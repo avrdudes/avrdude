@@ -94,16 +94,18 @@
 
 
 #define DEFAULT_PARALLEL "/dev/ppi0"
+#define DEFAULT_SERIAL   "/dev/cuaa0"
 
 extern char * avr_version;
 extern char * config_version;
 extern char * fileio_version;
 extern char * lists_version;
 extern char * main_version;
+extern char * pgm_version;
 extern char * ppi_version;
 extern char * term_version;
 
-#define N_MODULES 7
+#define N_MODULES 8
 
 char ** modules[N_MODULES] = { 
   &avr_version,
@@ -111,6 +113,7 @@ char ** modules[N_MODULES] = {
   &fileio_version,
   &lists_version,
   &main_version, 
+  &pgm_version, 
   &ppi_version, 
   &term_version 
 };
@@ -126,7 +129,7 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
 
 PROGRAMMER * pgm = NULL;
 
-PROGRAMMER compiled_in_pgm;
+PROGRAMMER * compiled_in_pgm;
 
 /*
  * global options
@@ -142,7 +145,7 @@ void usage(void)
   fprintf(stderr,
           "\nUsage: %s -p partno [-e] [-E exitspec[,exitspec]] [-f format] "
           "[-F]\n"
-          "      %s[-i filename] [-m memtype] [-o filename] [-P parallel] "
+          "      %s[-i filename] [-m memtype] [-o filename] [-P port] "
           "[-t]\n"
           "      %s[-c programmer] [-C config-file] [-v [-v]] [-n]\n\n",
           progname, progbuf, progbuf);
@@ -306,75 +309,11 @@ int read_config(char * file)
 
 
 
-static char vccpins_buf[64];
-char * vccpins_str(unsigned int pmask)
-{
-  unsigned int mask;
-  int pin;
-  char b2[8];
-  char * b;
-
-  b = vccpins_buf;
-
-  b[0] = 0;
-  for (pin = 2, mask = 1; mask < 0x80; mask = mask << 1, pin++) {
-    if (pmask & mask) {
-      sprintf(b2, "%d", pin);
-      if (b[0] != 0)
-        strcat(b, ",");
-      strcat(b, b2);
-    }
-  }
-
-  return b;
-}
-
-
 void pinconfig_display(char * p)
 {
-  char vccpins[64];
-  char buffpins[64];
+  fprintf(stderr, "%sProgrammer Type: %s\n", p, pgm->type);
 
-  if (pgm->pinno[PPI_AVR_VCC]) {
-    snprintf(vccpins, sizeof(vccpins), " = pins %s", 
-             vccpins_str(pgm->pinno[PPI_AVR_VCC]));
-  }
-  else {
-    strcpy(vccpins, " (not used)");
-  }
-
-  if (pgm->pinno[PPI_AVR_BUFF]) {
-    snprintf(buffpins, sizeof(buffpins), " = pins %s", 
-             vccpins_str(pgm->pinno[PPI_AVR_BUFF]));
-  }
-  else {
-    strcpy(buffpins, " (not used)");
-  }
-
-  fprintf(stderr, "%sProgrammer Pin Configuration: %s (%s)\n", p, 
-          (char *)ldata(lfirst(pgm->id)), pgm->desc);
-
-  fprintf(stderr, 
-          "%s  VCC     = 0x%02x%s\n"
-          "%s  BUFF    = 0x%02x%s\n"
-          "%s  RESET   = %d\n"
-          "%s  SCK     = %d\n"
-          "%s  MOSI    = %d\n"
-          "%s  MISO    = %d\n"
-          "%s  ERR LED = %d\n"
-          "%s  RDY LED = %d\n"
-          "%s  PGM LED = %d\n"
-          "%s  VFY LED = %d\n",
-          p, pgm->pinno[PPI_AVR_VCC], vccpins,
-          p, pgm->pinno[PPI_AVR_BUFF], buffpins,
-          p, pgm->pinno[PIN_AVR_RESET],
-          p, pgm->pinno[PIN_AVR_SCK],
-          p, pgm->pinno[PIN_AVR_MOSI],
-          p, pgm->pinno[PIN_AVR_MISO],
-          p, pgm->pinno[PIN_LED_ERR],
-          p, pgm->pinno[PIN_LED_RDY],
-          p, pgm->pinno[PIN_LED_PGM],
-          p, pgm->pinno[PIN_LED_VFY]);
+  pgm->display(pgm, p);
 }
 
 
@@ -457,7 +396,6 @@ void list_parts(FILE * f, char * prefix, LISTID parts)
  */
 int main(int argc, char * argv [])
 {
-  int              fd;          /* file descriptor for parallel port */
   int              rc;          /* general return code checking */
   int              exitrc;      /* exit code for main() */
   int              i;           /* general loop counter */
@@ -479,7 +417,7 @@ int main(int argc, char * argv [])
   char  * outputf;     /* output file name */
   char  * inputf;      /* input file name */
   int     ovsigck;     /* 1=override sig check, 0=don't */
-  char  * parallel;    /* parallel port device */
+  char  * port;        /* device port (/dev/xxx) */
   int     terminal;    /* 1=enter terminal mode, 0=don't */
   FILEFMT filefmt;     /* FMT_AUTO, FMT_IHEX, FMT_SREC, FMT_RBIN */
   int     nowrite;     /* don't actually write anything to the chip */
@@ -505,7 +443,7 @@ int main(int argc, char * argv [])
 
   partdesc      = NULL;
   readorwrite   = 0;
-  parallel      = DEFAULT_PARALLEL;
+  port          = DEFAULT_PARALLEL;
   outputf       = NULL;
   inputf        = NULL;
   doread        = 1;
@@ -535,12 +473,11 @@ int main(int argc, char * argv [])
   /*
    * initialize compiled-in default programmer 
    */
-  pgm = &compiled_in_pgm;
-  pgm->id = lcreat(NULL, 0);
+  compiled_in_pgm = pgm_new();
+  pgm = compiled_in_pgm;
+  ppi_initpgm(pgm);
   ladd(pgm->id, dup_string("avrprog"));
   strcpy(pgm->desc, "avrprog compiled-in default");
-  for (i=0; i<N_PINS; i++)
-    pgm->pinno[i] = 0;
   pgm->pinno[PPI_AVR_VCC]   = 0x0f;  /* ppi pins 2-5, data reg bits 0-3 */
   pgm->pinno[PPI_AVR_BUFF]  =  0;
   pgm->pinno[PIN_AVR_RESET] =  7;
@@ -674,7 +611,7 @@ int main(int argc, char * argv [])
         break;
 
       case 'P':
-        parallel = optarg;
+        port = optarg;
         break;
 
       case 'v':
@@ -739,7 +676,7 @@ int main(int argc, char * argv [])
     pgm = locate_pinconfig(programmers, "default");
     if (pgm == NULL) {
       /* no default config listed, use the compile-in default */
-      pgm = &compiled_in_pgm;
+      pgm = compiled_in_pgm;
     }
   }
   else {
@@ -776,7 +713,14 @@ int main(int argc, char * argv [])
 
 
   if (exitspecs != NULL) {
-    if (getexitspecs(exitspecs, &ppisetbits, &ppiclrbits) < 0) {
+    if (strcmp(pgm->type, "PPI") != 0) {
+      fprintf(stderr, 
+              "%s: WARNING: -E option is only valid with \"PPI\" "
+              "programmer types\n",
+              progname);
+      exitspecs = NULL;
+    }
+    else if (getexitspecs(exitspecs, &ppisetbits, &ppiclrbits) < 0) {
       usage();
       exit(1);
     }
@@ -799,70 +743,50 @@ int main(int argc, char * argv [])
 
   fprintf(stderr, "\n");
 
-  verify_pin_assigned(PIN_AVR_RESET, "AVR RESET");
-  verify_pin_assigned(PIN_AVR_SCK,   "AVR SCK");
-  verify_pin_assigned(PIN_AVR_MISO,  "AVR MISO");
-  verify_pin_assigned(PIN_AVR_MOSI,  "AVR MOSI");
+  if (strcmp(pgm->type, "PPI") == 0) {
+    verify_pin_assigned(PIN_AVR_RESET, "AVR RESET");
+    verify_pin_assigned(PIN_AVR_SCK,   "AVR SCK");
+    verify_pin_assigned(PIN_AVR_MISO,  "AVR MISO");
+    verify_pin_assigned(PIN_AVR_MOSI,  "AVR MOSI");
+  }
 
   /*
-   * open the parallel port
+   * open the programmer
    */
-  fd = open(parallel, O_RDWR);
-  if (fd < 0) {
-    fprintf(stderr, "%s: can't open device \"%s\": %s\n\n",
-              progname, parallel, strerror(errno));
-    return 1;
-  }
+  pgm->open(pgm, port);
 
   exitrc = 0;
 
-#if 0
-  ppi_sense(fd);
-#endif
-
-  ppidata = ppi_getall(fd, PPIDATA);
-  if (ppidata < 0) {
-    fprintf(stderr, "%s: error reading status of ppi data port\n", progname);
+  rc = pgm->save(pgm);
+  if (rc < 0) {
     exitrc = 1;
     ppidata = 0; /* clear all bits at exit */
     goto main_exit;
   }
 
-  ppidata &= ~ppiclrbits;
-  ppidata |= ppisetbits;
+  if (strcmp(pgm->type, "PPI") == 0) {
+    pgm->ppidata &= ~ppiclrbits;
+    pgm->ppidata |= ppisetbits;
+  }
 
-  /* 
+
+  /*
+   * enable the programmer
+   */
+  pgm->enable(pgm);
+
+  /*
    * turn off all the status leds
    */
-  LED_OFF(fd, pgm->pinno[PIN_LED_RDY]);
-  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
-  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
-  LED_OFF(fd, pgm->pinno[PIN_LED_VFY]);
-
-
-  /*
-   * Prepare to start talking to the connected device - pull reset low
-   * first, delay a few milliseconds, then enable the buffer.  This
-   * sequence allows the AVR to be reset before the buffer is enabled
-   * to avoid a short period of time where the AVR may be driving the
-   * programming lines at the same time the programmer tries to.  Of
-   * course, if a buffer is being used, then the /RESET line from the
-   * programmer needs to be directly connected to the AVR /RESET line
-   * and not via the buffer chip.
-   */
-
-  ppi_setpin(fd, pgm->pinno[PIN_AVR_RESET], 0);
-  usleep(1);
-
-  /*
-   * enable the 74367 buffer, if connected; this signal is active low
-   */
-  ppi_clr(fd, PPIDATA, pgm->pinno[PPI_AVR_BUFF]);
+  pgm->rdy_led(pgm, OFF);
+  pgm->err_led(pgm, OFF);
+  pgm->pgm_led(pgm, OFF);
+  pgm->vfy_led(pgm, OFF);
 
   /*
    * initialize the chip in preperation for accepting commands
    */
-  rc = avr_initialize(fd,p);
+  rc = pgm->initialize(pgm, p);
   if (rc < 0) {
     fprintf(stderr, "%s: initialization failed, rc=%d\n", progname, rc);
     exitrc = 1;
@@ -870,7 +794,7 @@ int main(int argc, char * argv [])
   }
 
   /* indicate ready */
-  LED_ON(fd, pgm->pinno[PIN_LED_RDY]);
+  pgm->rdy_led(pgm, ON);
 
   fprintf(stderr, 
             "%s: AVR device initialized and ready to accept instructions\n",
@@ -882,7 +806,7 @@ int main(int argc, char * argv [])
    * against 0xffffffff should ensure that the signature bytes are
    * valid.  
    */
-  rc = avr_signature(fd, p);
+  rc = avr_signature(pgm, p);
   if (rc != 0) {
     fprintf(stderr, "%s: error reading signature data, rc=%d\n",
             progname, rc);
@@ -923,7 +847,7 @@ int main(int argc, char * argv [])
   }
 
   if (set_cycles != -1) {
-    rc = avr_get_cycle_count(fd, p, &cycles);
+    rc = avr_get_cycle_count(pgm, p, &cycles);
     if (rc == 0) {
       /*
        * only attempt to update the cycle counter if we can actually
@@ -932,7 +856,7 @@ int main(int argc, char * argv [])
       cycles = set_cycles;
       fprintf(stderr, "%s: setting erase-rewrite cycle count to %d\n", 
               progname, cycles);
-      rc = avr_put_cycle_count(fd, p, cycles);
+      rc = avr_put_cycle_count(pgm, p, cycles);
       if (rc < 0) {
         fprintf(stderr, 
                 "%s: WARNING: failed to update the erase-rewrite cycle "
@@ -948,7 +872,7 @@ int main(int argc, char * argv [])
      * before the chip can accept new programming
      */
     fprintf(stderr, "%s: erasing chip\n", progname);
-    avr_chip_erase(fd,p);
+    pgm->chip_erase(pgm, p);
     fprintf(stderr, "%s: done.\n", progname);
   }
   else if (set_cycles == -1) {
@@ -960,7 +884,7 @@ int main(int argc, char * argv [])
      * see if the cycle count in the last four bytes of eeprom seems
      * reasonable 
      */
-    rc = avr_get_cycle_count(fd, p, &cycles);
+    rc = avr_get_cycle_count(pgm, p, &cycles);
     if ((rc >= 0) && (cycles != 0xffffffff)) {
       fprintf(stderr,
               "%s: current erase-rewrite cycle count is %d%s\n",
@@ -990,7 +914,7 @@ int main(int argc, char * argv [])
     /*
      * terminal mode
      */
-    exitrc = terminal_mode(fd, p);
+    exitrc = terminal_mode(pgm, p);
   }
   else if (doread) {
     /*
@@ -998,7 +922,7 @@ int main(int argc, char * argv [])
      */
     fprintf(stderr, "%s: reading %s memory:\n", 
             progname, memtype);
-    rc = avr_read(fd, p, memtype, 0, 1);
+    rc = avr_read(pgm, p, memtype, 0, 1);
     if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
               progname, memtype, rc);
@@ -1039,7 +963,7 @@ int main(int argc, char * argv [])
             progname, memtype, size);
 
     if (!nowrite) {
-      rc = avr_write(fd, p, memtype, size, 1);
+      rc = avr_write(pgm, p, memtype, size, 1);
     }
     else {
       /* 
@@ -1068,17 +992,17 @@ int main(int argc, char * argv [])
      * verify that the in memory file (p->mem[AVR_M_FLASH|AVR_M_EEPROM])
      * is the same as what is on the chip 
      */
-    LED_ON(fd, pgm->pinno[PIN_LED_VFY]);
+    pgm->vfy_led(pgm, ON);
 
     fprintf(stderr, "%s: verifying %s memory against %s:\n", 
             progname, memtype, inputf);
     fprintf(stderr, "%s: reading on-chip %s data:\n", 
             progname, memtype);
-    rc = avr_read(fd, v, memtype, vsize, 1);
+    rc = avr_read(pgm, v, memtype, vsize, 1);
     if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
               progname, memtype, rc);
-      LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
+      pgm->err_led(pgm, ON);
       exitrc = 1;
       goto main_exit;
     }
@@ -1088,7 +1012,7 @@ int main(int argc, char * argv [])
     if (rc < 0) {
       fprintf(stderr, "%s: verification error; content mismatch\n", 
               progname);
-      LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
+      pgm->err_led(pgm, ON);
       exitrc = 1;
       goto main_exit;
     }
@@ -1096,7 +1020,7 @@ int main(int argc, char * argv [])
     fprintf(stderr, "%s: %d bytes of %s verified\n", 
             progname, rc, memtype);
 
-    LED_OFF(fd, pgm->pinno[PIN_LED_VFY]);
+    pgm->vfy_led(pgm, OFF);
   }
 
 
@@ -1107,19 +1031,15 @@ int main(int argc, char * argv [])
    * program complete
    */
 
-  avr_powerdown(fd);
+  pgm->powerdown(pgm);
 
-  ppi_setall(fd, PPIDATA, ppidata);
+  pgm->restore(pgm);
 
-  /*
-   * disable the 74367 buffer, if connected; this signal is active low 
-   */
-  /* ppi_setpin(fd, pgm->pinno[PIN_AVR_BUFF], 1); */
-  ppi_set(fd, PPIDATA, pgm->pinno[PPI_AVR_BUFF]);
+  pgm->disable(pgm);
 
-  LED_OFF(fd, pgm->pinno[PIN_LED_RDY]);
+  pgm->rdy_led(pgm, OFF);
 
-  close(fd);
+  pgm->close(pgm);
 
   fprintf(stderr, "\n%s done.  Thank you.\n\n", progname);
 

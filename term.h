@@ -33,7 +33,8 @@
 #define __term_h__
 
 #include "avr.h"
+#include "pgm.h"
 
-int terminal_mode(int fd, struct avrpart * p);
+int terminal_mode(PROGRAMMER * pgm, struct avrpart * p);
 
 #endif

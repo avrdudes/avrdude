@@ -39,6 +39,7 @@
 #include "avr.h"
 #include "config.h"
 #include "lists.h"
+#include "pgm.h"
 #include "pindefs.h"
 #include "ppi.h"
 
@@ -50,28 +51,28 @@ extern PROGRAMMER * pgm;
 
 struct command {
   char * name;
-  int (*func)(int fd, struct avrpart * p, int argc, char *argv[]);
+  int (*func)(PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
   char * desc;
 };
 
 char * term_version = "$Id$";
 
 
-int cmd_dump  (int fd, struct avrpart * p, int argc, char *argv[]);
+int cmd_dump  (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
 
-int cmd_write (int fd, struct avrpart * p, int argc, char *argv[]);
+int cmd_write (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
 
-int cmd_erase (int fd, struct avrpart * p, int argc, char *argv[]);
+int cmd_erase (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
 
-int cmd_sig   (int fd, struct avrpart * p, int argc, char *argv[]);
+int cmd_sig   (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
 
-int cmd_part  (int fd, struct avrpart * p, int argc, char *argv[]);
+int cmd_part  (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
 
-int cmd_help  (int fd, struct avrpart * p, int argc, char *argv[]);
+int cmd_help  (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
 
-int cmd_quit  (int fd, struct avrpart * p, int argc, char *argv[]);
+int cmd_quit  (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
 
-int cmd_send  (int fd, struct avrpart * p, int argc, char *argv[]);
+int cmd_send  (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
 
 
 struct command cmd[] = {
@@ -204,7 +205,7 @@ int hexdump_buf(FILE * f, int startaddr, unsigned char * buf, int len)
 }
 
 
-int cmd_dump(int fd, struct avrpart * p, int argc, char * argv[])
+int cmd_dump(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 {
   static char prevmem[128] = {0};
   char * e;
@@ -280,7 +281,7 @@ int cmd_dump(int fd, struct avrpart * p, int argc, char * argv[])
   }
 
   for (i=0; i<len; i++) {
-    rc = avr_read_byte(fd, p, mem, addr+i, &buf[i]);
+    rc = avr_read_byte(pgm, p, mem, addr+i, &buf[i]);
     if (rc != 0) {
       fprintf(stderr, "error reading %s address 0x%05lx of part %s\n",
               mem->desc, addr+i, p->desc);
@@ -303,7 +304,7 @@ int cmd_dump(int fd, struct avrpart * p, int argc, char * argv[])
 }
 
 
-int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
+int cmd_write(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 {
   char * e;
   int len, maxsize;
@@ -373,10 +374,10 @@ int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
     }
   }
 
-  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
+  pgm->err_led(pgm, OFF);
   for (werror=0, i=0; i<len; i++) {
 
-    rc = avr_write_byte(fd, p, mem, addr+i, buf[i]);
+    rc = avr_write_byte(pgm, p, mem, addr+i, buf[i]);
     if (rc) {
       fprintf(stderr, "%s (write): error writing 0x%02x at 0x%05lx, rc=%d\n",
               progname, buf[i], addr+i, rc);
@@ -387,7 +388,7 @@ int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
       werror = 1;
     }
 
-    rc = avr_read_byte(fd, p, mem, addr+i, &b);
+    rc = avr_read_byte(pgm, p, mem, addr+i, &b);
     if (b != buf[i]) {
       fprintf(stderr, 
               "%s (write): error writing 0x%02x at 0x%05lx cell=0x%02x\n",
@@ -396,7 +397,7 @@ int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
     }
 
     if (werror) {
-      LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
+      pgm->err_led(pgm, ON);
     }
   }
 
@@ -408,7 +409,7 @@ int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
 }
 
 
-int cmd_send(int fd, struct avrpart * p, int argc, char * argv[])
+int cmd_send(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 {
   unsigned char cmd[4], res[4];
   char * e;
@@ -433,9 +434,9 @@ int cmd_send(int fd, struct avrpart * p, int argc, char * argv[])
     }
   }
 
-  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
+  pgm->err_led(pgm, OFF);
 
-  avr_cmd(fd, cmd, res);
+  pgm->cmd(pgm, cmd, res);
 
   /*
    * display results
@@ -451,15 +452,15 @@ int cmd_send(int fd, struct avrpart * p, int argc, char * argv[])
 }
 
 
-int cmd_erase(int fd, struct avrpart * p, int argc, char * argv[])
+int cmd_erase(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 {
   fprintf(stderr, "%s: erasing chip\n", progname);
-  avr_chip_erase(fd,p);
+  pgm->chip_erase(pgm, p);
   return 0;
 }
 
 
-int cmd_part(int fd, struct avrpart * p, int argc, char * argv[])
+int cmd_part(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 {
   fprintf(stdout, "\n");
   avr_display(stdout, p, "", 0);
@@ -469,13 +470,13 @@ int cmd_part(int fd, struct avrpart * p, int argc, char * argv[])
 }
 
 
-int cmd_sig(int fd, struct avrpart * p, int argc, char * argv[])
+int cmd_sig(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 {
   int i;
   int rc;
   AVRMEM * m;
 
-  rc = avr_signature(fd, p);
+  rc = avr_signature(pgm, p);
   if (rc != 0) {
     fprintf(stderr, "error reading signature data, rc=%d\n",
             rc);
@@ -498,13 +499,13 @@ int cmd_sig(int fd, struct avrpart * p, int argc, char * argv[])
 }
 
 
-int cmd_quit(int fd, struct avrpart * p, int argc, char * argv[])
+int cmd_quit(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 {
   return 1;
 }
 
 
-int cmd_help(int fd, struct avrpart * p, int argc, char * argv[])
+int cmd_help(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 {
   int i;
 
@@ -599,7 +600,7 @@ int tokenize(char * s, char *** argv)
 }
 
 
-int do_cmd(int fd, struct avrpart * p, int argc, char * argv[])
+int do_cmd(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 {
   int i;
   int hold;
@@ -609,7 +610,7 @@ int do_cmd(int fd, struct avrpart * p, int argc, char * argv[])
   hold = -1;
   for (i=0; i<NCMDS; i++) {
     if (strcasecmp(argv[0], cmd[i].name) == 0) {
-      return cmd[i].func(fd, p, argc, argv);
+      return cmd[i].func(pgm, p, argc, argv);
     }
     else if (strncasecmp(argv[0], cmd[i].name, len)==0) {
       if (hold != -1) {
@@ -622,7 +623,7 @@ int do_cmd(int fd, struct avrpart * p, int argc, char * argv[])
   }
 
   if (hold != -1)
-    return cmd[hold].func(fd, p, argc, argv);
+    return cmd[hold].func(pgm, p, argc, argv);
 
   fprintf(stderr, "%s: invalid command \"%s\"\n",
           progname, argv[0]);
@@ -631,7 +632,7 @@ int do_cmd(int fd, struct avrpart * p, int argc, char * argv[])
 }
 
 
-int terminal_mode(int fd, struct avrpart * p)
+int terminal_mode(PROGRAMMER * pgm, struct avrpart * p)
 {
   char  * cmdbuf;
   int     i, len;
@@ -666,7 +667,7 @@ int terminal_mode(int fd, struct avrpart * p)
     fprintf(stdout, "\n");
 
     /* run the command */
-    rc = do_cmd(fd, p, argc, argv);
+    rc = do_cmd(pgm, p, argc, argv);
     free(argv);
     if (rc > 0) {
       rc = 0;

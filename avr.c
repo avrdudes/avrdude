@@ -177,65 +177,6 @@ AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
 
 
 
-/*
- * transmit and receive a byte of data to/from the AVR device
- */
-unsigned char avr_txrx(int fd, unsigned char byte)
-{
-  int i;
-  unsigned char r, b, rbyte;
-
-  rbyte = 0;
-  for (i=0; i<8; i++) {
-    b = (byte >> (7-i)) & 0x01;
-
-    /* 
-     * read the result bit (it is either valid from a previous clock
-     * pulse or it is ignored in the current context)
-     */
-    r = ppi_getpin(fd, pgm->pinno[PIN_AVR_MISO]);
-    
-    /* set the data input line as desired */
-    ppi_setpin(fd, pgm->pinno[PIN_AVR_MOSI], b);
-    
-    /* 
-     * pulse the clock line, clocking in the MOSI data, and clocking out
-     * the next result bit
-     */
-    ppi_pulsepin(fd, pgm->pinno[PIN_AVR_SCK]);
-
-    rbyte = rbyte | (r << (7-i));
-  }
-
-  return rbyte;
-}
-
-
-/*
- * transmit an AVR device command and return the results; 'cmd' and
- * 'res' must point to at least a 4 byte data buffer
- */
-int avr_cmd(int fd, unsigned char cmd[4], unsigned char res[4])
-{
-  int i;
-
-  for (i=0; i<4; i++) {
-    res[i] = avr_txrx(fd, cmd[i]);
-  }
-
-#if 0
-  fprintf(stderr, "avr_cmd(): [ ");
-  for (i=0; i<4; i++)
-    fprintf(stderr, "%02x ", cmd[i]);
-  fprintf(stderr, "] [ ");
-  for (i=0; i<4; i++)
-    fprintf(stderr, "%02x ", res[i]);
-  fprintf(stderr, "]\n");
-#endif
-
-  return 0;
-}
-
 
 /*
  * avr_set_bits()
@@ -354,16 +295,16 @@ int avr_get_output(OPCODE * op, unsigned char * res, unsigned char * data)
 /*
  * read a byte of data from the indicated memory region
  */
-int avr_read_byte(int fd, AVRPART * p, AVRMEM * mem, unsigned long addr, 
-                  unsigned char * value)
+int avr_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem, 
+                  unsigned long addr, unsigned char * value)
 {
   unsigned char cmd[4];
   unsigned char res[4];
   unsigned char data;
   OPCODE * readop;
 
-  LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
-  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
+  pgm->pgm_led(pgm, ON);
+  pgm->err_led(pgm, OFF);
 
   /*
    * figure out what opcode to use
@@ -392,11 +333,11 @@ int avr_read_byte(int fd, AVRPART * p, AVRMEM * mem, unsigned long addr,
 
   avr_set_bits(readop, cmd);
   avr_set_addr(readop, cmd, addr);
-  avr_cmd(fd, cmd, res);
+  pgm->cmd(pgm, cmd, res);
   data = 0;
   avr_get_output(readop, res, &data);
 
-  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
+  pgm->pgm_led(pgm, OFF);
 
   *value = data;
 
@@ -411,7 +352,8 @@ int avr_read_byte(int fd, AVRPART * p, AVRMEM * mem, unsigned long addr,
  *
  * Return the number of bytes read, or < 0 if an error occurs.  
  */
-int avr_read(int fd, AVRPART * p, char * memtype, int size, int verbose)
+int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size, 
+             int verbose)
 {
   unsigned char    rbyte;
   unsigned long    i;
@@ -435,7 +377,7 @@ int avr_read(int fd, AVRPART * p, char * memtype, int size, int verbose)
   printed = 0;
 
   for (i=0; i<size; i++) {
-    rc = avr_read_byte(fd, p, mem, i, &rbyte);
+    rc = avr_read_byte(pgm, p, mem, i, &rbyte);
     if (rc != 0) {
       fprintf(stderr, "avr_read(): error reading address 0x%04lx\n", i);
       if (rc == -1) 
@@ -464,7 +406,7 @@ int avr_read(int fd, AVRPART * p, char * memtype, int size, int verbose)
 /*
  * write a page data at the specified address
  */
-int avr_write_page(int fd, AVRPART * p, AVRMEM * mem,
+int avr_write_page(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem, 
                    unsigned long addr)
 {
   unsigned char cmd[4];
@@ -486,14 +428,14 @@ int avr_write_page(int fd, AVRPART * p, AVRMEM * mem,
   if (mem->op[AVR_OP_LOADPAGE_LO])
     addr = addr / 2;
 
-  LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
-  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
+  pgm->pgm_led(pgm, ON);
+  pgm->err_led(pgm, OFF);
 
   memset(cmd, 0, sizeof(cmd));
 
   avr_set_bits(wp, cmd);
   avr_set_addr(wp, cmd, addr);
-  avr_cmd(fd, cmd, res);
+  pgm->cmd(pgm, cmd, res);
 
   /*
    * since we don't know what voltage the target AVR is powered by, be
@@ -501,7 +443,7 @@ int avr_write_page(int fd, AVRPART * p, AVRMEM * mem,
    */
   usleep(mem->max_write_delay);
 
-  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
+  pgm->pgm_led(pgm, OFF);
   return 0;
 }
 
@@ -509,7 +451,7 @@ int avr_write_page(int fd, AVRPART * p, AVRMEM * mem,
 /*
  * write a byte of data at the specified address
  */
-int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
+int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                    unsigned long addr, unsigned char data)
 {
   unsigned char cmd[4];
@@ -529,7 +471,7 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
      * value and only write if we are changing the value; we can't
      * use this optimization for paged addressing.
      */
-    rc = avr_read_byte(fd, p, mem, addr, &b);
+    rc = avr_read_byte(pgm, p, mem, addr, &b);
     if (rc != 0) {
       if (rc != -1) {
         return -2;
@@ -578,15 +520,15 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
   }
 
 
-  LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
-  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
+  pgm->pgm_led(pgm, ON);
+  pgm->err_led(pgm, OFF);
 
   memset(cmd, 0, sizeof(cmd));
 
   avr_set_bits(writeop, cmd);
   avr_set_addr(writeop, cmd, caddr);
   avr_set_input(writeop, cmd, data);
-  avr_cmd(fd, cmd, res);
+  pgm->cmd(pgm, cmd, res);
 
   if (mem->paged) {
     /*
@@ -594,7 +536,7 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
      * page complete immediately, we only need to delay when we commit
      * the whole page via the avr_write_page() routine.
      */
-    LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
+    pgm->pgm_led(pgm, OFF);
     return 0;
   }
 
@@ -604,7 +546,7 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
      * the max programming time and then return 
      */
     usleep(mem->max_write_delay); /* maximum write delay */
-    LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
+    pgm->pgm_led(pgm, OFF);
     return 0;
   }
 
@@ -612,10 +554,10 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
   ready = 0;
   while (!ready) {
     usleep(mem->min_write_delay);
-    rc = avr_read_byte(fd, p, mem, addr, &r);
+    rc = avr_read_byte(pgm, p, mem, addr, &r);
     if (rc != 0) {
-      LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
-      LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
+      pgm->pgm_led(pgm, OFF);
+      pgm->err_led(pgm, ON);
       return -4;
     }
 
@@ -628,10 +570,10 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
        * specified for the chip.
        */
       usleep(mem->max_write_delay);
-      rc = avr_read_byte(fd, p, mem, addr, &r);
+      rc = avr_read_byte(pgm, p, mem, addr, &r);
       if (rc != 0) {
-        LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
-        LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
+        pgm->pgm_led(pgm, OFF);
+        pgm->err_led(pgm, OFF);
         return -5;
       }
     }
@@ -648,15 +590,15 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
        * device if the data read back does not match what we wrote.
        */
       usleep(mem->max_write_delay); /* maximum write delay */
-      LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
+      pgm->pgm_led(pgm, OFF);
       fprintf(stderr,
               "%s: this device must be powered off and back on to continue\n",
               progname);
       if (pgm->pinno[PPI_AVR_VCC]) {
         fprintf(stderr, "%s: attempting to do this now ...\n", progname);
-        avr_powerdown(fd);
+        pgm->powerdown(pgm);
         usleep(250000);
-        rc = avr_initialize(fd, p);
+        rc = pgm->initialize(pgm, p);
         if (rc < 0) {
           fprintf(stderr, "%s: initialization failed, rc=%d\n", progname, rc);
           fprintf(stderr, 
@@ -682,14 +624,14 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
        * been plenty of time, the memory cell still doesn't match what
        * we wrote.  Indicate a write error.
        */
-      LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
-      LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
+      pgm->pgm_led(pgm, OFF);
+      pgm->err_led(pgm, ON);
       
       return -6;
     }
   }
 
-  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
+  pgm->pgm_led(pgm, OFF);
   return 0;
 }
 
@@ -703,7 +645,8 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
  *
  * Return the number of bytes written, or -1 if an error occurs.
  */
-int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose)
+int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size, 
+              int verbose)
 {
   int              rc;
   int              wsize;
@@ -720,7 +663,7 @@ int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose)
     return -1;
   }
 
-  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
+  pgm->err_led(pgm, OFF);
 
   printed = 0;
   werror  = 0;
@@ -745,11 +688,11 @@ int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose)
         printed = 1;
       }
     }
-    rc = avr_write_byte(fd, p, m, i, data);
+    rc = avr_write_byte(pgm, p, m, i, data);
     if (rc) {
       fprintf(stderr, " ***failed;  ");
       fprintf(stderr, "\n");
-      LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
+      pgm->err_led(pgm, ON);
       werror = 1;
     }
 
@@ -760,7 +703,7 @@ int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose)
        */
       if (((i % m->page_size) == m->page_size-1) ||
           (i == wsize-1)) {
-        rc = avr_write_page(fd, p, m, i);
+        rc = avr_write_page(pgm, p, m, i);
         if (rc) {
           fprintf(stderr,
                   " *** page %ld (addresses 0x%04lx - 0x%04lx) failed "
@@ -768,7 +711,7 @@ int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose)
                   i % m->page_size, 
                   i - m->page_size + 1, i);
           fprintf(stderr, "\n");
-          LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
+          pgm->err_led(pgm, ON);
           werror = 1;
         }
       }
@@ -779,7 +722,7 @@ int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose)
        * make sure the error led stay on if there was a previous write
        * error, otherwise it gets cleared in avr_write_byte() 
        */
-      LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
+      pgm->err_led(pgm, ON);
     }
   }
 
@@ -790,170 +733,20 @@ int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose)
 }
 
 
-/*
- * issue the 'program enable' command to the AVR device
- */
-int avr_program_enable(int fd, AVRPART * p)
-{
-  unsigned char cmd[4];
-  unsigned char res[4];
-
-  if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
-    fprintf(stderr, "program enable instruction not defined for part \"%s\"\n",
-            p->desc);
-    return -1;
-  }
-
-  memset(cmd, 0, sizeof(cmd));
-  avr_set_bits(p->op[AVR_OP_PGM_ENABLE], cmd);
-  avr_cmd(fd, cmd, res);
-
-  if (res[2] != cmd[1])
-    return -2;
-
-  return 0;
-}
-
-
-/*
- * issue the 'chip erase' command to the AVR device
- */
-int avr_chip_erase(int fd, AVRPART * p)
-{
-  unsigned char cmd[4];
-  unsigned char res[4];
-  int cycles;
-  int rc;
-
-  if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
-    fprintf(stderr, "chip erase instruction not defined for part \"%s\"\n",
-            p->desc);
-    return -1;
-  }
-
-  rc = avr_get_cycle_count(fd, p, &cycles);
-
-  /*
-   * only print out the current cycle count if we aren't going to
-   * display it below 
-   */
-  if (!do_cycles && ((rc >= 0) && (cycles != 0xffffffff))) {
-    fprintf(stderr,
-            "%s: current erase-rewrite cycle count is %d%s\n",
-            progname, cycles, 
-            do_cycles ? "" : " (if being tracked)");
-  }
-
-  LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
-
-  memset(cmd, 0, sizeof(cmd));
-
-  avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
-  avr_cmd(fd, cmd, res);
-  usleep(p->chip_erase_delay);
-  avr_initialize(fd, p);
-
-  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
-
-  if (do_cycles && (cycles != -1)) {
-    if (cycles == 0x00ffff) {
-      cycles = 0;
-    }
-    cycles++;
-    fprintf(stderr, "%s: erase-rewrite cycle count is now %d\n", 
-            progname, cycles);
-    avr_put_cycle_count(fd, p, cycles);
-  }
-
-  return 0;
-}
-
 
 /*
  * read the AVR device's signature bytes
  */
-int avr_signature(int fd, AVRPART * p)
+int avr_signature(PROGRAMMER * pgm, AVRPART * p)
 {
   int rc;
 
-  rc = avr_read(fd, p, "signature", 0, 0);
+  rc = avr_read(pgm, p, "signature", 0, 0);
   if (rc < 0) {
     fprintf(stderr, 
             "%s: error reading signature data for part \"%s\", rc=%d\n",
             progname, p->desc, rc);
     return -1;
-  }
-
-  return 0;
-}
-
-
-/*
- * apply power to the AVR processor
- */
-void avr_powerup(int fd)
-{
-  ppi_set(fd, PPIDATA, pgm->pinno[PPI_AVR_VCC]);    /* power up */
-  usleep(100000);
-}
-
-
-/*
- * remove power from the AVR processor
- */
-void avr_powerdown(int fd)
-{
-  ppi_clr(fd, PPIDATA, pgm->pinno[PPI_AVR_VCC]);    /* power down */
-}
-
-
-/*
- * initialize the AVR device and prepare it to accept commands
- */
-int avr_initialize(int fd, AVRPART * p)
-{
-  int rc;
-  int tries;
-
-  avr_powerup(fd);
-  usleep(20000);
-
-  ppi_setpin(fd, pgm->pinno[PIN_AVR_SCK], 0);
-  ppi_setpin(fd, pgm->pinno[PIN_AVR_RESET], 0);
-  usleep(20000);
-
-  ppi_pulsepin(fd, pgm->pinno[PIN_AVR_RESET]);
-
-  usleep(20000); /* 20 ms XXX should be a per-chip parameter */
-
-  /*
-   * Enable programming mode.  If we are programming an AT90S1200, we
-   * can only issue the command and hope it worked.  If we are using
-   * one of the other chips, the chip will echo 0x53 when issuing the
-   * third byte of the command.  In this case, try up to 32 times in
-   * order to possibly get back into sync with the chip if we are out
-   * of sync.
-   */
-  if (strcmp(p->desc, "AT90S1200")==0) {
-    avr_program_enable(fd, p);
-  }
-  else {
-    tries = 0;
-    do {
-      rc = avr_program_enable(fd, p);
-      if ((rc == 0)||(rc == -1))
-        break;
-      ppi_pulsepin(fd, pgm->pinno[PIN_AVR_SCK]);
-      tries++;
-    } while (tries < 65);
-
-    /*
-     * can't sync with the device, maybe it's not attached?
-     */
-    if (rc) {
-      fprintf(stderr, "%s: AVR device not responding\n", progname);
-      return -1;
-    }
   }
 
   return 0;
@@ -1043,7 +836,7 @@ int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size)
 }
 
 
-int avr_get_cycle_count(int fd, AVRPART * p, int * cycles)
+int avr_get_cycle_count(PROGRAMMER * pgm, AVRPART * p, int * cycles)
 {
   AVRMEM * a;
   int cycle_count;
@@ -1055,28 +848,28 @@ int avr_get_cycle_count(int fd, AVRPART * p, int * cycles)
     return -1;
   }
 
-  rc = avr_read_byte(fd, p, a, a->size-4, &v1);
+  rc = avr_read_byte(pgm, p, a, a->size-4, &v1);
   if (rc < 0) {
     fprintf(stderr, "%s: WARNING: can't read memory for cycle count, rc=%d\n",
             progname, rc);
     return -1;
   }
 
-  rc = avr_read_byte(fd, p, a, a->size-3, &v2);
+  rc = avr_read_byte(pgm, p, a, a->size-3, &v2);
   if (rc < 0) {
     fprintf(stderr, "%s: WARNING: can't read memory for cycle count, rc=%d\n",
             progname, rc);
     return -1;
   }
 
-  rc = avr_read_byte(fd, p, a, a->size-2, &v3);
+  rc = avr_read_byte(pgm, p, a, a->size-2, &v3);
   if (rc < 0) {
     fprintf(stderr, "%s: WARNING: can't read memory for cycle count, rc=%d\n",
             progname, rc);
     return -1;
   }
 
-  rc = avr_read_byte(fd, p, a, a->size-1, &v4);
+  rc = avr_read_byte(pgm, p, a, a->size-1, &v4);
   if (rc < 0) {
     fprintf(stderr, "%s: WARNING: can't read memory for cycle count, rc=%d\n",
             progname, rc);
@@ -1099,7 +892,7 @@ int avr_get_cycle_count(int fd, AVRPART * p, int * cycles)
 }
 
 
-int avr_put_cycle_count(int fd, AVRPART * p, int cycles)
+int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles)
 {
   AVRMEM * a;
   unsigned char v1, v2, v3, v4;
@@ -1115,25 +908,25 @@ int avr_put_cycle_count(int fd, AVRPART * p, int cycles)
   v2 = (cycles & 0x0ff0000) >> 16;
   v1 = (cycles & 0x0ff000000) >> 24;
 
-  rc = avr_write_byte(fd, p, a, a->size-4, v1);
+  rc = avr_write_byte(pgm, p, a, a->size-4, v1);
   if (rc < 0) {
     fprintf(stderr, "%s: WARNING: can't write memory for cycle count, rc=%d\n",
             progname, rc);
     return -1;
   }
-  rc = avr_write_byte(fd, p, a, a->size-3, v2);
+  rc = avr_write_byte(pgm, p, a, a->size-3, v2);
   if (rc < 0) {
     fprintf(stderr, "%s: WARNING: can't write memory for cycle count, rc=%d\n",
             progname, rc);
     return -1;
   }
-  rc = avr_write_byte(fd, p, a, a->size-2, v3);
+  rc = avr_write_byte(pgm, p, a, a->size-2, v3);
   if (rc < 0) {
     fprintf(stderr, "%s: WARNING: can't write memory for cycle count, rc=%d\n",
             progname, rc);
     return -1;
   }
-  rc = avr_write_byte(fd, p, a, a->size-1, v4);
+  rc = avr_write_byte(pgm, p, a, a->size-1, v4);
   if (rc < 0) {
     fprintf(stderr, "%s: WARNING: can't write memory for cycle count, rc=%d\n",
             progname, rc);
