@@ -1,4 +1,8 @@
 2003-10-13  Eric B. Weddington  <eric@ecentral.com>
+    
+	*avrdude.conf.in: Fix for unterminated character error.
+
+2003-10-13  Eric B. Weddington  <eric@ecentral.com>
 
 	* avrdude.conf.in: Add ATmega8515 definition.
 	Contributed by: Matthias Weiﬂer <matthias@matwei.de>
