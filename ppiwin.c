@@ -39,6 +39,8 @@ reg = register as defined in an enum in ppi.h. This must be converted
 #include <string.h>
 #include <unistd.h>
 #include <windows.h>
+#include <sys/time.h>
+#include <w32api/windows.h>
 #include "ppi.h"
 
 
@@ -315,6 +317,74 @@ static void outb(unsigned char value, unsigned short port)
     return;
 }
 
+/* These two functions usecPerfDelay and usleep are based on code from the
+ * uisp project and are a replacement  for the cygwin usleep library
+ * function which seems to not delay for the correct time
+ */
+
+BOOL usecPerfDelay(long t)
+{
+  static BOOL perf_counter_checked = FALSE;
+  static BOOL use_perf_counter = FALSE;
+  static LARGE_INTEGER freq ;
+
+  if (! perf_counter_checked) {
+	if (QueryPerformanceFrequency(&freq)){
+	    use_perf_counter = TRUE;
+    }
+    perf_counter_checked = TRUE;
+  }
+
+  if (! use_perf_counter)
+	return FALSE;
+
+  else {
+	LARGE_INTEGER now;
+	LARGE_INTEGER finish;
+	QueryPerformanceCounter(&now);
+	finish.QuadPart = now.QuadPart + (t * freq.QuadPart) / 1000000;
+	do {
+	    QueryPerformanceCounter(&now);
+	} while (now.QuadPart < finish.QuadPart);
+
+	return TRUE;
+  }
+}
+
+// WARNING WARNING This function replaces the standard usleep() library function
+// because it doesn't appear to delay for the correct time
+
+#ifndef MIN_SLEEP_USEC
+#define MIN_SLEEP_USEC 20000
+#endif
+
+unsigned usleep( unsigned int uSeconds )
+{
+  struct timeval t1, t2;
+  struct timespec nanoDelay ;
+
+  if (usecPerfDelay(uSeconds))
+    return;
+
+  gettimeofday(&t1, NULL);
+
+  if( uSeconds > MIN_SLEEP_USEC )
+  {
+    nanoDelay.tv_sec = uSeconds / 1000000UL;
+    nanoDelay.tv_nsec = (uSeconds / 1000000UL) * 1000 ;
+    nanosleep( &nanoDelay, NULL ) ;
+  }
+
+  /* loop for the remaining time */
+  t2.tv_sec = uSeconds / 1000000UL;
+  t2.tv_usec = uSeconds % 1000000UL;
+
+  timeradd(&t1, &t2, &t1);
+
+  do {
+    gettimeofday(&t2, NULL);
+  } while (timercmp(&t2, &t1, <));
+}
 
 
 #endif
