@@ -37,6 +37,36 @@
 
 extern char * progname;
 
+struct ppipins_t {
+  int pin;
+  int reg;
+  int bit;
+  int inverted;
+};
+
+static struct ppipins_t pins[] = {
+  {  1, PPICTRL,   0x01, 1 },
+  {  2, PPIDATA,   0x01, 0 },
+  {  3, PPIDATA,   0x02, 0 },
+  {  4, PPIDATA,   0x04, 0 },
+  {  5, PPIDATA,   0x08, 0 },
+  {  6, PPIDATA,   0x10, 0 },
+  {  7, PPIDATA,   0x20, 0 },
+  {  8, PPIDATA,   0x40, 0 },
+  {  9, PPIDATA,   0x80, 0 },
+  { 10, PPISTATUS, 0x40, 0 },
+  { 11, PPISTATUS, 0x80, 1 },
+  { 12, PPISTATUS, 0x20, 0 },
+  { 13, PPISTATUS, 0x10, 0 },
+  { 14, PPICTRL,   0x02, 1 }, 
+  { 15, PPISTATUS, 0x08, 0 },
+  { 16, PPICTRL,   0x04, 0 }, 
+  { 17, PPICTRL,   0x08, 1 }
+};
+
+#define NPINS (sizeof(pins)/sizeof(struct ppipins_t))
+
+
 /*
  * set 'get' and 'set' appropriately for subsequent passage to ioctl()
  * to get/set the specified PPI registers.  
@@ -125,7 +155,7 @@ int ppi_get ( int fd, int reg, int bit )
   ioctl(fd, get, &v);
   v &= bit;
 
-  return (v == bit);
+  return v; /* v == bit */
 }
 
 /*
@@ -198,24 +228,114 @@ int ppi_pulse ( int fd, int reg, int bit )
 }
 
 
+int ppi_setpin ( int fd, int pin, int value )
+{
+
+  if (pin < 1 || pin > 17)
+    return -1;
+
+  pin--;
+
+  if (pins[pin].inverted)
+    value = !value;
+
+  if (value)
+    ppi_set(fd, pins[pin].reg, pins[pin].bit);
+  else
+    ppi_clr(fd, pins[pin].reg, pins[pin].bit);
+
+  return 0;
+}
+
+
+int ppi_getpin ( int fd, int pin )
+{
+  int value;
+
+  if (pin < 1 || pin > 17)
+    return -1;
+
+  pin--;
+
+  value = ppi_get(fd, pins[pin].reg, pins[pin].bit);
+
+  if (value)
+    value = 1;
+    
+  if (pins[pin].inverted)
+    value = !value;
+
+  return value;
+}
+
+
+int ppi_pulsepin ( int fd, int pin )
+{
+
+  if (pin < 1 || pin > 17)
+    return -1;
+
+  pin--;
+
+  ppi_toggle(fd, pins[pin].reg, pins[pin].bit);
+  ppi_toggle(fd, pins[pin].reg, pins[pin].bit);
+
+  return 0;
+}
+
+
+int ppi_getpinmask ( int pin )
+{
+  if (pin < 1 || pin > 17)
+    return -1;
+
+  return pins[pin-1].bit;
+}
+
+
+int ppi_getpinreg ( int pin )
+{
+  if (pin < 1 || pin > 17)
+    return -1;
+
+  return pins[pin-1].reg;
+}
+
+
 /*
  * infinite loop, sensing on the pin that we use to read data out of
  * the device; this is a debugging aid, you can insert a call to this
  * function in 'main()' and can use it to determine whether your sense
  * pin is actually sensing.  
  */
-int ppi_sense_test ( int fd, int reg, int bit )
+int ppi_sense ( int fd )
 {
-  unsigned char v, pv;
+  unsigned int r, pr;
+  unsigned int v;
+  int count;
+  char buf[128];
+  int i;
 
-  pv = 1;
+  count = 0;
+
+  fprintf ( stderr, 
+            "parallel port data:\n"
+            "         111111111\n"
+            "123456789012345678\n" );
+
+  buf[17] = 0;
+  pr = 1;
   do {
-    usleep(100000); /* check every 100 ms */
-    v = ppi_get(fd, reg, bit);
-    if (v != pv) {
-      fprintf ( stderr, "sense bit = %d\n", v );
+    usleep(1); /* don't be too much of a cpu hog */
+    for (i=1; i<=17; i++) {
+      buf[i-1] = ppi_getpin(fd, i);
+      if (buf[i-1])
+        buf[i-1] = '|';
+      else
+        buf[i-1] = '.';
     }
-    pv = v;
+    fprintf(stderr, "\r                   \r%s", buf);
+
   } while(1);
 
   return 0;

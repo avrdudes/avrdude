@@ -32,25 +32,44 @@
 /*
  * Code to program an Atmel AVR AT90S device using the parallel port.
  *
- * Make the following connections:
+ * Make the following (minimal) connections:
  *
- *  Parallel Port      Atmel AVR
- *  -------------      ----------------------------
- *    Pin  2       ->   Vcc      (see NOTE below)
- *    Pin  3       ->   SCK      CLOCK IN
- *    Pin  4       ->   MOSI     Instruction input
- *    Pin  5       ->   /RESET
- *    Pin  6,7,8,9 ->   Vcc      (Can be tied together with Schottky diodes)
- *    Pin 10       <-   MISO     Data out
- *    Pin 18       <-   GND
+ *  Parallel Port      Programmer Function
+ *  -------------      -----------------------------
+ *       Pins 2-5  ->  Vcc (see note below)
+ *       Pin    7  ->  AVR /RESET
+ *       Pin    8  ->  AVR SCK  (clock input)
+ *       Pin    9  ->  AVR MOSI (instruction in)
+ *       Pin   10  <-  AVR MISO (data out)
+ *       Pin   18      Signal Ground
+ *
+ * Additionally, the following conntections can be made to enable
+ * additional features:
+ *
+ *  Parallel Port      Programmer Function
+ *  -------------      -----------------------------
+ *       Pin    1      STATUS LED, active low (program or verify error)
+ *       Pin    6  ->  /ENABLE ('367 bus driver)
+ *       Pin   14      STATUS LED, active low (ready)
+ *       Pin   16      STATUS LED, active low (programming)
+ *       Pin   17      STATUS LED, active low (verifying)
+ *
+ *  Pin 6 can be tied to the enable line of a 74HC367 in order to
+ *  isolate and buffer the data to and from the PC parallel port.
+ *  This is useful for connecting to a device in-circuit, and keeps
+ *  the state of the parallel port pins from interfering with the
+ *  normal operation of the target system.  When programming is
+ *  complete, this pin is driven high, causing to pins of the '367 to
+ *  float.
  *
  *  NOTE on Vcc connection: make sure your parallel port can supply an
- *  adequate amount of current to power your device.  6-10 mA is
- *  common for parallel port signal lines, but is not guaranteed,
- *  especially for notebook computers.  Optionally, you can tie pins
- *  6, 7, 8, and 9 also to Vcc with Schottky diodes to supply
- *  additional current.  If in doubt, don't risk damaging your
- *  parallel port, use an external power supply.
+ *  adequate amount of current to power your device.  6-10 mA per pin
+ *  is common for parallel port signal lines, but is not guaranteed,
+ *  especially for notebook computers.  For additional power, use
+ *  multiple pins tied together with Schottky diodes.  If in doubt,
+ *  don't risk damaging your parallel port, use an external power
+ *  supply.
+ * 
  */
 
 #include <stdio.h>
@@ -104,16 +123,16 @@ int getexitspecs ( char *s, int *set, int *clr )
 
   while ((cp = strtok(s, ","))) {
     if (strcmp(cp, "reset") == 0) {
-      *clr |= AVR_RESET; 
+      *clr |= ppi_getpinmask(PIN_AVR_RESET);
     }
     else if (strcmp(cp, "noreset") == 0) {
-      *set |= AVR_RESET; 
+      *set |= ppi_getpinmask(PIN_AVR_RESET);
     }
     else if (strcmp(cp, "vcc") == 0) { 
-      *set |= AVR_POWER; 
+      *set |= PPI_AVR_VCC;
     }
     else if (strcmp(cp, "novcc") == 0) {
-      *clr |= AVR_POWER; 
+      *clr |= PPI_AVR_VCC;
     }
     else {
       return -1;
@@ -373,6 +392,10 @@ int main ( int argc, char * argv [] )
   }
 
   exitrc = 0;
+
+#if 0
+  ppi_sense(fd);
+#endif
 
   ppidata = ppi_getall(fd, PPIDATA);
   if (ppidata < 0) {
