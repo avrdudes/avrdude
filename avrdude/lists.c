@@ -1,5 +1,6 @@
 /*
- * Copyright 2001  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (c) 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997,
+ *   1998, 1999, 2000, 2001, 2002  Brian S. Dean <bsd@bsdhome.com>
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
