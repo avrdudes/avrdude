@@ -919,7 +919,7 @@ static int stk500_set_fosc(PROGRAMMER * pgm, double v)
       if (fosc >= fbase / (256 * ps[idx] * 2)) {
         /* this prescaler value can handle our frequency */
         prescale = idx + 1;
-        cmatch = (unsigned)(fbase / (2 * v * ps[idx]));
+        cmatch = (unsigned)(fbase / (2 * fosc * ps[idx])) - 1;
         break;
       }
     }
