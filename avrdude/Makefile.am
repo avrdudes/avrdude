@@ -23,6 +23,9 @@
 
 EXTRA_DIST   = avrdude.1 avrdude.pdf avrdude.conf.in bootstrap
 
+SUBDIRS      = @WINDOWS_DIRS@
+DIST_SUBDIRS = windows
+
 AM_YFLAGS    = -d
 
 AM_CPPFLAGS     = -DCONFIG_DIR=\"$(sysconfdir)\"
