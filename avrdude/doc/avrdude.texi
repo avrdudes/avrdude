@@ -596,6 +596,55 @@ avrdude done.  Thank you.
 @end cartouche
 @end example
 
+@noindent
+Using the default programmer, download the file @code{diag.hex} to
+flash, @code{eeprom.hex} to EEPROM, and set the Extended, High, and Low
+fuse bytes to 0xff, 0x89, and 0x2e respectively:
+
+@example
+@cartouche
+
+% avrdude -p m128 -U flash:w:diag.hex \
+>                 -U eeprom:w:eeprom.hex \
+>                 -U efuse:w:0xff:m      \
+>                 -U hfuse:w:0x89:m      \
+>                 -U lfuse:w:0x2e:m
+
+avrdude: AVR device initialized and ready to accept instructions
+
+Reading | ################################################## | 100% 0.03s
+
+avrdude: Device signature = 0x1e9702
+avrdude: NOTE: FLASH memory has been specified, an erase cycle will be performed
+         To disable this feature, specify the -D option.
+avrdude: erasing chip
+avrdude: reading input file "diag.hex"
+avrdude: input file diag.hex auto detected as Intel Hex
+avrdude: writing flash (19278 bytes):
+
+Writing | ################################################## | 100% 7.60s
+
+avrdude: 19456 bytes of flash written
+avrdude: verifying flash memory against diag.hex:
+avrdude: load data flash data from input file diag.hex:
+avrdude: input file diag.hex auto detected as Intel Hex
+avrdude: input file diag.hex contains 19278 bytes
+avrdude: reading on-chip flash data:
+
+Reading | ################################################## | 100% 6.84s
+
+avrdude: verifying ...
+avrdude: 19278 bytes of flash verified
+
+[ ... other memory status output skipped for brevity ... ]
+
+avrdude done.  Thank you.
+
+% 
+@end cartouche
+@end example
+
+
 
 @c
 @c Node
