@@ -528,6 +528,16 @@ int avr_write_byte ( int fd, struct avrpart * p, AVRMEM memtype,
   unsigned char r;
   int ready;
   int tries;
+  unsigned char b;
+
+  /* 
+   * check to see if the write is necessary by reading the existing
+   * value and only write if we are changing the value 
+   */
+  b = avr_read_byte(fd, p, memtype, addr);
+  if (b == data) {
+    return 0;
+  }
 
   switch (memtype) {
     case AVR_FLASH_LO: 
@@ -631,10 +641,7 @@ int avr_write ( int fd, struct avrpart * p, AVRMEM memtype )
     /* eeprom or low byte of flash */
     data = buf[bi++];
     nl = 0;
-    if (data != 0xff)
-      rc = avr_write_byte(fd, p, memt, i, data );
-    else
-      rc = 0;
+    rc = avr_write_byte(fd, p, memt, i, data );
     fprintf(stderr, "                      \r%4u 0x%02x", i, data);
     if (rc) {
       fprintf(stderr, " ***failed;  ");
@@ -644,10 +651,7 @@ int avr_write ( int fd, struct avrpart * p, AVRMEM memtype )
     if (memtype == AVR_FLASH) {
       /* high byte of flash */
       data = buf[bi++];
-      if (data != 0xff)
-        rc = avr_write_byte(fd, p, AVR_FLASH_HI, i, data );
-      else
-        rc = 0;
+      rc = avr_write_byte(fd, p, AVR_FLASH_HI, i, data );
       fprintf(stderr, " 0x%02x", data);
       if (rc) {
         fprintf(stderr, " ***failed;  " );
@@ -974,10 +978,10 @@ int ihex2b ( char * infile, FILE * inf,
     cksum = -cksum & 0xff;
     if (cksum != b) {
       fprintf(stderr, 
-              "%s: cksum error for line %d of \"%s\": computed=%02x "
+              "%s: WARNING: cksum error for line %d of \"%s\": computed=%02x "
               "found=%02x\n",
               progname, lineno, infile, cksum, b);
-      return -1;
+      /* return -1; */
     }
 
     if (rectype == 1) {
@@ -1763,6 +1767,7 @@ int main ( int argc, char * argv [] )
   char  * parallel;    /* parallel port device */
   int     interactive; /* 1=enter interactive command mode, 0=don't */
   FILEFMT filefmt;     /* FMT_AUTO, FMT_IHEX, FMT_SREC, FMT_RBIN */
+  int     nowrite;     /* don't actually write anything to the chip */
 
   readorwrite = 0;
   parallel    = DEFAULT_PARALLEL;
@@ -1775,6 +1780,7 @@ int main ( int argc, char * argv [] )
   ovsigck     = 0;
   interactive = 0;
   filefmt     = FMT_AUTO;
+  nowrite     = 0;
 
   progname = rindex(argv[0],'/');
   if (progname)
@@ -1822,7 +1828,7 @@ int main ( int argc, char * argv [] )
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?cef:Fi:m:o:p:P:")) != -1) {
+  while ((ch = getopt(argc,argv,"?cef:Fi:m:no:p:P:")) != -1) {
 
     switch (ch) {
       case 'm': /* select memory type to operate on */
@@ -1844,6 +1850,10 @@ int main ( int argc, char * argv [] )
 
       case 'F': /* override invalid signature check */
         ovsigck = 1;
+        break;
+
+      case 'n':
+        nowrite = 1;
         break;
 
       case 'o': /* specify output file */
@@ -2110,15 +2120,18 @@ int main ( int argc, char * argv [] )
      */
     fprintf(stderr, "%s: writing %s:\n", 
             progname, memtypestr(memtype));
-#if 0
-    rc = avr_write ( fd, p, memtype );
-#else
-    /* 
-     * test mode, don't actually write to the chip, output the buffer
-     * to stdout in intel hex instead 
-     */
-    rc = fileio(FIO_WRITE, "-", FMT_IHEX, p, memtype);
-#endif
+
+    if (!nowrite) {
+      rc = avr_write ( fd, p, memtype );
+    }
+    else {
+      /* 
+       * test mode, don't actually write to the chip, output the buffer
+       * to stdout in intel hex instead 
+       */
+      rc = fileio(FIO_WRITE, "-", FMT_IHEX, p, memtype);
+    }
+
     if (rc) {
       fprintf ( stderr, "%s: failed to write flash memory, rc=%d\n", 
                 progname, rc );
