@@ -97,10 +97,11 @@ For avrdude version @value{VERSION}, @value{UPDATED}.
 
 @menu
 * Introduction::                
-* Command Line Options::        
-* Terminal Mode Operation::     
+* Command Line Options::
+* Terminal Mode Operation::
 * Configuration File::          
-* Platform Dependent Information::  
+* Platform Dependent Information::
+* Troubleshooting::
 @end menu
 
 @c
@@ -186,8 +187,8 @@ Roth.
 @cindex options
 
 @menu
-* Option Descriptions::         
-* Example Command Line Invocations::  
+* Option Descriptions::
+* Example Command Line Invocations::
 @end menu
 
 @c
@@ -211,7 +212,7 @@ following options are recognized:
 @item -p @var{partno}
 This is the only mandatory option and it tells AVRDUDE what type of part
 (MCU) that is connected to the programmer.  The @var{partno} parameter
-is the part's id listed in the configuration file.  Specify -p ? to list 
+is the part's id listed in the configuration file.  Specify -p ? to list
 all parts in the configuration file.  If a part is unknown
 to AVRDUDE, it means that there is no config file entry for that part,
 but it can be added to the configuration file if you have the Atmel
@@ -319,7 +320,7 @@ Nightshade ALF-PgmAVR, http://nightshade.homeip.net/
 Atmel Low Cost Serial Programmer
 
 @itemx avrisp
-Atmel AVR ISP                 
+Atmel AVR ISP
 
 @itemx bascom
 Bascom SAMPLE programming cable
@@ -331,7 +332,7 @@ Brian Dean's Programmer, http://www.bsdhome.com/avrdude/
 Atmel Butterfly Development Board
 
 @itemx dt006
-Dontronics DT006              
+Dontronics DT006
 
 @itemx pavr
 Jason Kyle's pAVR Serial Programmer
@@ -340,13 +341,13 @@ Jason Kyle's pAVR Serial Programmer
 Picoweb Programming Cable, http://www.picoweb.net/
 
 @itemx pony-stk200
-Pony Prog STK200              
+Pony Prog STK200
 
 @itemx sp12
-Steve Bolt's Programmer       
+Steve Bolt's Programmer
 
 @itemx stk200
-STK200                        
+STK200
 
 @itemx stk500
 Atmel STK500                  
@@ -405,7 +406,7 @@ The `/RESET' line will be deactivated at program exit, thus allowing the
 MCU target program to run while the programming hardware remains
 connected.
 
-@itemx vcc 
+@itemx vcc
 This option will leave those parallel port pins active (i. e. high) that
 can be used to supply `Vcc' power to the MCU.
 
@@ -998,7 +999,7 @@ part
 @end example
 
 @menu
-* Instruction Format::          
+* Instruction Format::
 @end menu
 
 @c
@@ -1046,7 +1047,7 @@ instruction for an AT90S2313 AVR part could be encoded as:
 
 @example
 
-read  = "1  0  1  0   0  0  0  0   x x x x  x x x x", 
+read  = "1  0  1  0   0  0  0  0   x x x x  x x x x",
         "x a6 a5 a4  a3 a2 a1 a0   o o o o  o o o o";
 
 write = "1  1  0  0   0  0  0  0   x x x x  x x x x",
@@ -1101,12 +1102,12 @@ problem with the at90s4433/2333's; see the at90s4433 errata at:
 @c
 @c Node
 @c
-@node Platform Dependent Information,  , Configuration File, Top
+@node Platform Dependent Information, Troubleshooting, Configuration File, Top
 @appendix Platform Dependent Information
 
 @menu
-* Unix::                        
-* Windows::                     
+* Unix::
+* Windows::
 @end menu
 
 @c
@@ -1542,4 +1543,55 @@ line driven and for writing the batch files.
 
 @end itemize
 
+@c
+@c Node
+@c
+@node Troubleshooting, ,Platform Dependent Information ,Top
+@appendix Troubleshooting
+
+@itemize @bullet
+
+@item
+Problem: I'm using a serial programmer under Windows and get the following
+error:
+
+@code{avrdude: serial_open(): can't set attributes for device "com1"},
+
+Solution: This problem seems to appear with certain versions of Cygwin. Specifying
+@code{"/dev/com1"} instead of @code{"com1"} should help.
+
+
+@item
+Problem: I'm using linux and my AVR910 programmer is really slow.
+
+Solution (short): @code{setserial @var{port} low_latency}
+
+Solution (long):
+There are two problems here. First, the system may wait some time before it
+passes data from the serial port to the program. Under Linux the following
+command works around this (you may need root privileges for this).
+
+@code{setserial @var{port} low_latency}
+
+Secondly, the serial interface chip may delay the interrupt for some time.
+This behaviour can be changed by setting the FIFO-threshold to one. Under Linux this
+can only be done by changing the kernel source in @code{drivers/char/serial.c}.
+Search the file for @code{UART_FCR_TRIGGER_8} and replace it with @code{UART_FCR_TRIGGER_1}. Note that overall performance might suffer if there
+is high throughput on serial lines. Also note that you are modifying the kernel at
+your own risk.
+
+
+@item
+Problem: I'm not using linux and my AVR910 programmer is really slow.
+
+Solutions: The reasons for this are the same as above.
+If you know how to work around this on your OS, please let us know.
+
+
+
+@end itemize
+
+
+
 @bye
+
