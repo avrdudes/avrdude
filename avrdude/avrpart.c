@@ -418,6 +418,19 @@ AVRPART * locate_part(LISTID parts, char * partdesc)
   return NULL;
 }
 
+AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode)
+{
+  LNODEID ln1;
+  AVRPART * p = NULL;
+
+  for (ln1=lfirst(parts); ln1; ln1=lnext(ln1)) {
+    p = ldata(ln1);
+    if (p->avr910_devcode == devcode)
+      return p;
+  }
+
+  return NULL;
+}
 
 void list_parts(FILE * f, char * prefix, LISTID parts)
 {

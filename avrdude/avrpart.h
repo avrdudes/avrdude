@@ -135,6 +135,7 @@ void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type,
 AVRPART * avr_new_part(void);
 AVRPART * avr_dup_part(AVRPART * d);
 AVRPART * locate_part(LISTID parts, char * partdesc);
+AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode);
 void list_parts(FILE * f, char * prefix, LISTID parts);
 void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose);
 

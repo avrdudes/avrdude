@@ -15,9 +15,6 @@
 - FIXME: term.c: terminal_get_input(): strip newlines in non-readline input 
   code.
 
-- FIXME: avr910.c: avr910_initialize(): Need to lookup devcode and report the 
-  device.
-  
 - FIXME: avr910.c: avr910_cmd(): Insert version check here.
 
 - FIXME: ser_posix.c: serial_close(): Should really restore the terminal to 

@@ -174,6 +174,7 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
   char type;
   unsigned char c;
   int dev_supported = 0;
+  AVRPART * part;
 
   /* Get the programmer identifier. Programmer returns exactly 7 chars
      _without_ the null.*/
@@ -214,7 +215,9 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
     avr910_recv(pgm, &c, 1);
     if (c == 0)
       break;
-    fprintf(stderr, "    Device code: 0x%02x\n", c);
+    part = locate_part_by_avr910_devcode(part_list, c);
+
+    fprintf(stderr, "    Device code: 0x%02x = %s\n", c, part ?  part->desc : "(unknown)");
 
     /* FIXME: Need to lookup devcode and report the device. */
 
