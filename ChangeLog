@@ -1,20 +1,31 @@
+2004-07-08  Theodore A. Roth  <troth@openavr.org>
+
+	* AUTHORS: Add names of recent major contributors.
+	* ser_win32.c: Assign copyright to Martin J. Thomas since he did all
+	real work on this file.
+
 2004-07-07  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
 	* NEWS, doc/TODO: Updated NEWS and TODO
 
 2004-07-07  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
 	* stk500.c, term.c, doc/avrdude.texi, avrdude.1:
         added "sck"-command to the terminal mode.
         This command allows slowing down of the SCK of
         STK500-programmers.
 
 2004-07-05  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
 	* *.c, *.h: Removed unnecessary includes of
         config.h
 
 2004-07-04  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
 	* avr.h: Removed some unused prototypes
 
 2004-07-04  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
 	* stk500.c: Fixed fosc behaviour for values exceeding
 	maximum frequency (contributed by Galen Seitz)
 
@@ -27,35 +38,39 @@
 	* avrdude.conf.in: Fix efuse bits for ATmega169.
 
 2004-06-24  Alex Shepherd <maillists@ajsystems.co.nz>
+
 	Merged in Win32 Native changes contributed by Martin Thomas
-      Changed all instances of __CYGWIN__ conditional compilation to WIN32NATIVE
-      * ser_win32.c fleshed out all the previous stubs
-      * ser_posix.c added WIN32NATIVE conditional compilation to skip
-        all function to allow ser_win32.c functions to operate
-      * ppi.h removed commented code
-      * pgh.h added usleep macros
-      * main.c stdout,stderr tweaks for Win32
-      * configure.ac added CFLAGS and LDFLAGS for Win32Native
-      * config_gram.y added strtok_r macro
-      * buterfly.c added various stub functions and EXIT processing
-      * avr910.c added return 0 to avr910_open() and included time headers
-      * term.c added warning about libreadline not supported in WIN32NATIVE
+	Changed all instances of __CYGWIN__ conditional compilation to
+	WIN32NATIVE
+
+	* ser_win32.c: fleshed out all the previous stubs
+	* ser_posix.c: added WIN32NATIVE conditional compilation to skip
+	all function to allow ser_win32.c functions to operate
+	* ppi.h: removed commented code
+	* pgh.h: added usleep macros
+	* main.c: stdout,stderr tweaks for Win32
+	* configure.ac: added CFLAGS and LDFLAGS for Win32Native
+	* config_gram.y: added strtok_r macro
+	* buterfly.c: added various stub functions and EXIT processing
+	* avr910.c: added return 0 to avr910_open() and included time headers
+	* term.c: added warning about libreadline not supported in WIN32NATIVE
 
 2004-06-17  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
 	* avrdude.conf.in: Added support for
           - tiny13 (contributed by Pawel Moll)
           - mega48 and mega88 (contributed by Galen Seitz)
         However, the STK500-code for mega8 remains unchanged.
 
-2004/05/19  Brian S. Dean  <bsd@bsdhome.com>
+2004-05-19  Brian S. Dean  <bsd@bsdhome.com>
 
-        * main.c:
-        * stk500.c: Allow the baud rate to be specified on the command
+	* main.c:
+	* stk500.c: Allow the baud rate to be specified on the command
 	line with a new -b switch.  The specified baud rate will
 	override the default serial port baud rate for a particular
 	programmer.
 
-2004/05/19  Brian S. Dean  <bsd@bsdhome.com>
+2004-05-19  Brian S. Dean  <bsd@bsdhome.com>
 
 	* ppi.c: Stub-out the ppi_* functions in ppi.c with empty
 	wrappers that simply return an error code in order to build
