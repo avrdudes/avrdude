@@ -10,7 +10,7 @@
 
 	* avrdude.conf.in: Fix efuse bits for ATmega169.
 
-2004-04-17  Jan-Hinnerk Reichert  <hinni@despammed.com>
+2004-06-17  Jan-Hinnerk Reichert  <hinni@despammed.com>
 	* avrdude.conf.in: Added support for
           - tiny13 (contributed by Pawel Moll)
           - mega48 and mega88 (contributed by Galen Seitz)
