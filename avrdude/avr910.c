@@ -307,8 +307,15 @@ static int avr910_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
 
 static void avr910_open(PROGRAMMER * pgm, char * port)
 {
+  /*
+   *  If baudrate was not specified use 19.200 Baud
+   */
+  if(pgm->baudrate == 0) {
+    pgm->baudrate = 19200;
+  }
+
   strcpy(pgm->port, port);
-  pgm->fd = serial_open(port, 19200);
+  pgm->fd = serial_open(port, pgm->baudrate);
 
   /*
    * drain any extraneous input

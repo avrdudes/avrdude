@@ -940,17 +940,18 @@ The format of the programmer definition is as follows:
 @example
 programmer
     id     = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
-    desc   = <description> ;                  # quoted string
-    type   = par | stk500 ;                   # programmer type
-    vcc    = <num1> [, <num2> ... ] ;         # pin number(s)
-    reset  = <num> ;                          # pin number
-    sck    = <num> ;                          # pin number
-    mosi   = <num> ;                          # pin number
-    miso   = <num> ;                          # pin number
-    errled = <num> ;                          # pin number
-    rdyled = <num> ;                          # pin number
-    pgmled = <num> ;                          # pin number
-    vfyled = <num> ;                          # pin number
+    desc     = <description> ;                  # quoted string
+    type     = par | stk500 ;                   # programmer type
+    baudrate = <num> ;                          # baudrate for avr910
+    vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
+    reset    = <num> ;                          # pin number
+    sck      = <num> ;                          # pin number
+    mosi     = <num> ;                          # pin number
+    miso     = <num> ;                          # pin number
+    errled   = <num> ;                          # pin number
+    rdyled   = <num> ;                          # pin number
+    pgmled   = <num> ;                          # pin number
+    vfyled   = <num> ;                          # pin number
   ;
 @end example
 

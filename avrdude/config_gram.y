@@ -65,6 +65,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_PAGE_SIZE
 %token K_PAGED
 
+%token K_BAUDRATE
 %token K_BS2
 %token K_BUFF
 %token K_CHIP_ERASE_DELAY
@@ -355,6 +356,12 @@ prog_parm :
 
         free_token(t);
       }
+    }
+  } |
+
+  K_BAUDRATE TKN_EQUAL TKN_NUMBER {
+    {
+      current_prog->baudrate = $3->value.number;
     }
   } |
 

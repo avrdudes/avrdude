@@ -1,5 +1,12 @@
 2004-01-03  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
+	* avr910.c, pgm.c, pgm.h, config_gram.y, lexer.l: Add new configuration
+	parameter baudrate to support avr910-programmers with non-standard
+	baudrates
+	* avrdude.conf.in, doc/avrdude.texi: Added "baudrate" to documentation.
+
+2004-01-03  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
 	avr910.c: Removed debugging stuff that is no longer needed.
 
 2004-01-03  Jan-Hinnerk Reichert  <hinni@despammed.com>
