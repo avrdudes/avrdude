@@ -34,7 +34,7 @@ main.o   : avr.h fileio.h ppi.h term.h pindefs.h
 avr.o    : avr.h ppi.h pindefs.h
 fileio.o : fileio.h avr.h
 ppi.o    : ppi.h
-term.o   : term.h avr.h
+term.o   : term.h avr.h pindefs.h ppi.h
 
 clean :
 	rm -f *~ *.core ${TARGET} *.o

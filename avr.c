@@ -175,6 +175,7 @@ unsigned char avr_read_byte ( int fd, struct avrpart * p,
   static unsigned char cmdbyte[3] = { 0xa0, 0x20, 0x28 };
 
   LED_ON(fd, PIN_LED_PGM);
+  LED_OFF(fd, PIN_LED_ERR);
 
   offset = 0;
 
@@ -251,6 +252,7 @@ int avr_write_byte ( int fd, struct avrpart * p, AVRMEM memtype,
   }
 
   LED_ON(fd, PIN_LED_PGM);
+  LED_OFF(fd, PIN_LED_ERR);
 
   offset = 0;
 
@@ -294,6 +296,7 @@ int avr_write_byte ( int fd, struct avrpart * p, AVRMEM memtype,
        * returning an error code 
        */
       LED_OFF(fd, PIN_LED_PGM);
+      LED_ON(fd, PIN_LED_ERR);
       return -1;
     }
   }
@@ -319,8 +322,11 @@ int avr_write ( int fd, struct avrpart * p, AVRMEM memtype, int size )
   unsigned char  * buf;
   unsigned short   i;
   unsigned char    data;
+  int              werror;
 
   LED_OFF(fd, PIN_LED_ERR);
+
+  werror = 0;
 
   buf   = p->mem[memtype];
   wsize = p->memsize[memtype];
@@ -343,6 +349,14 @@ int avr_write ( int fd, struct avrpart * p, AVRMEM memtype, int size )
     if (rc) {
       fprintf(stderr, " ***failed;  ");
       fprintf(stderr, "\n");
+      LED_ON(fd, PIN_LED_ERR);
+      werror = 1;
+    }
+    if (werror) {
+      /* 
+       * make sure the error led stay on if there was a previous write
+       * error, otherwise it gets cleared in avr_write_byte() 
+       */
       LED_ON(fd, PIN_LED_ERR);
     }
   }
