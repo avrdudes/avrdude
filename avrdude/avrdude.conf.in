@@ -870,12 +870,12 @@ part
 part
     id               = "8515";
     desc             = "AT90S8515";
-    devicecode       = 0x63;
+    devicecode       = 0x60;
     chip_erase_delay = 20000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
 
-    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
+    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
                        "x x x x  x x x x    x x x x  x x x x";
 
     memory "eeprom"
@@ -944,7 +944,7 @@ part
 part
     id               = "8535";
     desc             = "AT90S8535";
-    devicecode       = 0x64;
+    devicecode       = 0x61;
     chip_erase_delay = 20000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
