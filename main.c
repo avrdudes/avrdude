@@ -375,7 +375,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?c:C:eE:f:Fi:m:no:p:P:tvVyY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?c:C:eE:f:FiI:m:no:p:P:tvVyY:")) != -1) {
 
     switch (ch) {
       case 'c': /* programmer id */
@@ -439,6 +439,16 @@ int main(int argc, char * argv [])
         }
         doread = 0;
         inputf = optarg;
+        break;
+
+      case 'I': /* specify input file and assume 'immediate mode' */
+        if (outputf || terminal) {
+          fprintf(stderr,"%s: -o, -I, and -t are incompatible\n\n", progname);
+          return 1;
+        }
+        doread = 0;
+        inputf = optarg;
+        filefmt = FMT_IMM;
         break;
 
       case 'f':   /* specify file format */
