@@ -8,7 +8,7 @@ Approximate change log for AVRDUDE by version.
 
 Current:
 
-  * Native Win32 support: The windows doesn't need Cygwin
+  * Native Win32 support: The windows build doesn't need Cygwin
     anymore. Additionally, the delay timing on windows should be
     more accurate now.
     Contributed by Martin Thomas
