@@ -76,55 +76,22 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
                              multiline messages */
 
-char * usage_text =
-"\n"
-"Usage:  avrprog [options]\n"
-"\n"
-"  Available Options:\n"
-"\n"
-"    -m MemType    : select memory type for reading or writing\n"
-"                      \"e\", \"eeprom\" = EEPROM\n"
-"                      \"f\", \"flash\"  = FLASH (default)\n"
-"\n"
-"    -i Filename   : select input file, \"-\" = stdin\n"
-"\n"
-"    -o Filename   : select output file, \"-\" = stdout\n"
-"\n"
-"    -f Format     : select input / output file format\n"
-"                      \"i\" = Intel Hex\n"
-"                      \"s\" = Motorola S-Record\n"
-"                      \"r\" = Raw binary (default for output)\n"
-"                      \"a\" = Auto detect (default for input)\n"
-"                              (valid for input only)\n"
-"                              \n"
-"\n"
-"    -p Part       : select Atmel part number (see below for valid parts)\n"
-"\n"
-"    -P Parallel   : select parallel port device name (default = /dev/ppi0)\n"
-"\n"
-"    -F            : override invalid device signature check\n"
-"\n"
-"    -t            : enter terminal mode (or read commands from stdin)\n"
-"\n"
-"    -E exitspec[,...]: specify which bits to set/reset on exit\n"
-"                     \"[no]reset\" = [don't] activate /RESET\n"
-"                     \"[no]vcc\"   = [don't] activate Vcc\n"
-"\n"
-"    -e            : perform a chip erase (required before programming)\n"
-"\n";
-
-
-
 /*
  * usage message
  */
 void usage ( void )
 {
-  fprintf ( stderr, "%s", usage_text );
+  fprintf(stderr,
+          "\nUsage: %s -p partno [-e] [-E exitspec[,exitspec]] [-f format] [-F]\n"
+          "     %s[-i filename] [-m memtype] [-o filename] [-P parallel] [-t]\n\n",
+          progname, progbuf);
 
+#if 0
   fprintf(stderr, "  Valid Parts for the -p option are:\n");
   avr_list_parts(stderr, "    ");
   fprintf(stderr, "\n");
+#endif
+
 }
 
 
@@ -223,7 +190,7 @@ int main ( int argc, char * argv [] )
    * they are running
    */
   fprintf(stderr, "\n%s: Copyright 2000 Brian Dean, bsd@bsdhome.com\n"
-          "%sVersion %s\n", progname, progbuf, version);
+          "%sVersion %s\n\n", progname, progbuf, version);
 
   /*
    * check for no arguments
