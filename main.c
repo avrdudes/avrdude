@@ -887,7 +887,7 @@ int main(int argc, char * argv [])
     size = rc;
 
     fprintf(stderr, "%s: writing output file \"%s\"\n",
-            progname, outputf);
+            progname, strcmp(outputf, "-")==0 ? "<stdout>" : outputf);
     rc = fileio(FIO_WRITE, outputf, filefmt, p, memtype, size);
     if (rc < 0) {
       fprintf(stderr, "%s: terminating\n", progname);
@@ -902,7 +902,7 @@ int main(int argc, char * argv [])
      * read the data from the specified file
      */
     fprintf(stderr, "%s: reading input file \"%s\"\n",
-            progname, inputf);
+            progname, strcmp(inputf, "-")==0 ? "<stdin>" : inputf);
     rc = fileio(FIO_READ, inputf, filefmt, p, memtype, -1);
     if (rc < 0) {
       fprintf(stderr, "%s: terminating\n", progname);

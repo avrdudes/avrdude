@@ -1019,7 +1019,6 @@ int fileio(int op, char * filename, FILEFMT format,
 
   if (format != FMT_IMM) {
     if (!using_stdio) {
-      fname = filename;
       f = fopen(fname, fio.mode);
       if (f == NULL) {
         fprintf(stderr, "%s: can't open %s file %s: %s\n",
