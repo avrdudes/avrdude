@@ -611,7 +611,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
     /*
      * write the buffer contents to the selected memory type
      */
-    fprintf(stderr, "%s: writing %s (%d bytes):\n", 
+    fprintf(stderr, "%s: writing %s (%ld bytes):\n", 
             progname, upd->memtype, size);
 
     if (!nowrite) {
@@ -635,7 +635,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
 
     vsize = rc;
 
-    fprintf(stderr, "%s: %d bytes of %s written\n", progname, 
+    fprintf(stderr, "%s: %ld bytes of %s written\n", progname, 
             vsize, upd->memtype);
 
   }
@@ -713,13 +713,11 @@ int main(int argc, char * argv [])
   int              exitrc;      /* exit code for main() */
   int              i;           /* general loop counter */
   int              ch;          /* options flag */
-  int              size;        /* size of memory region */
   int              len;         /* length for various strings */
   struct avrpart * p;           /* which avr part we are programming */
   struct avrpart * v;           /* used for verify */
   int              readorwrite; /* true if a chip read/write op was selected */
   int              ppidata;	/* cached value of the ppi data register */
-  int              vsize=-1;    /* number of bytes to verify */
   AVRMEM         * sig;         /* signature data */
   struct stat      sb;
   UPDATE         * upd;

@@ -691,7 +691,7 @@ int fileio_rbin(struct fioparms * fio,
 int fileio_imm(struct fioparms * fio,
                char * filename, FILE * f, unsigned char * buf, int size)
 {
-  int rc;
+  int rc = 0;
   char * e, * p;
   unsigned long b;
   int loc;

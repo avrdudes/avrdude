@@ -1,3 +1,11 @@
+2003-08-28  Eric B. Weddington  <eric@ecentral.com>
+
+    * avr910.c:
+    * fileio.c:
+    * main.c:
+    * stk500.c:
+    More code cleanup to remove warnings.
+
 2003-08-27  Theodore A. Roth  <troth@openavr.org>
 
 	* main.c (update_progress_no_tty): Properly terminate progress. Also

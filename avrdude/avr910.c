@@ -503,7 +503,7 @@ static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   unsigned int max_addr = n_bytes;
   unsigned int page_addr;
   int page_bytes = page_size;
-  int page_wr_cmd_pending;
+  int page_wr_cmd_pending = 0;
 
   avr910_write_setup(pgm, p, m);
 
