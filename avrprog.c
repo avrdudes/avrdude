@@ -40,13 +40,16 @@
  *    Pin  3       ->   SCK      CLOCK IN
  *    Pin  4       ->   MOSI     Instruction input
  *    Pin  5       ->   /RESET
+ *    Pin  6,7,8,9 ->   Vcc      (Can be tied together with Schottky diodes)
  *    Pin 10       <-   MISO     Data out
  *    Pin 18       <-   GND
  *
  *  NOTE on Vcc connection: make sure your parallel port can supply an
  *  adequate amount of current to power your device.  6-10 mA is
- *  common for parallel port signal lines, but is not guaranteed.  If
- *  in doubt, use an external power supply.
+ *  common for parallel port signal lines, but is not guaranteed.
+ *  Optionally, you can tie pins 6, 7, 8, and 9 also to Vcc with
+ *  Schottky diodes to supply additional current.  If in doubt, don't
+ *  risk damaging your parallel port, use an external power supply.  
  */
 
 #include <stdio.h>
@@ -70,11 +73,11 @@ char * progname;
 /*
  * bit definitions for AVR device connections
  */
-#define AVR_POWER 0x01  /* bit 0 of data register */
-#define AVR_CLOCK 0x02  /* bit 1 of data register */
-#define AVR_INSTR 0x04  /* bit 2 of data register */
-#define AVR_RESET 0x08  /* bit 3 of data register */
-#define AVR_DATA  0x40  /* bit 6 of status register */
+#define AVR_POWER 0xf1  /* bit 0 and 4...7 of data register */
+#define AVR_CLOCK 0x02  /* bit 1 of data register           */
+#define AVR_INSTR 0x04  /* bit 2 of data register           */
+#define AVR_RESET 0x08  /* bit 3 of data register           */
+#define AVR_DATA  0x40  /* bit 6 of status register         */
 
 
 /*
@@ -109,7 +112,7 @@ struct avrpart {
 struct avrpart parts[] = {
   { "AT90S8515", "8515", 8192, 512 },
   { "AT90S2313", "2313", 2048, 128 },
-  { "AT90S1200", "1200", 1200,  64 }
+  { "AT90S1200", "1200", 1024,  64 }
 };
 
 
@@ -665,7 +668,7 @@ void usage ( void )
   int i;
 
   fprintf ( stderr, 
-            "\nUsage:  %s [-r] [-e|-f] [-u InputFile|-o Outputfile]\n"
+            "\nUsage:  %s [options]\n"
             "\n"
             "  Available Options:\n"
             "    -r            : erase the flash and eeprom (required before programming)\n"
@@ -975,8 +978,9 @@ int main ( int argc, char * argv [] )
     if (eeprom||flash) {
       fprintf(stderr, "%s: you must specify an input or an output file\n",
               progname);
+      exitrc = 1;
     }
-    exitrc = 1;
+    usage();
     goto main_exit;
   }
 
@@ -1096,7 +1100,7 @@ int main ( int argc, char * argv [] )
 
   avr_powerdown(fd);
   ppi_clr(fd, PPIDATA, 0xff);
-  ppi_set(fd, PPIDATA, AVR_RESET);
+  ppi_clr(fd, PPIDATA, AVR_RESET);
 
   close(fd);
   close(iofd);
