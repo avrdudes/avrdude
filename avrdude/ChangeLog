@@ -29,6 +29,11 @@
 
 	* avrdude.conf.in: Fix typo for devicecode deprecation comment.
 
+2003-03-17  Eric B. Weddington  <eric@umginc.net>
+
+    * avrdude.conf.in: Add Bascom SAMPLE programmer. 
+    Submitted by Larry Barello <larryba@barrello.net>
+
 2003-03-16  Theodore A. Roth  <troth@openavr.org>
 
 	* avr.c (avr_read): Use pgm->read_sig_bytes to read signature bytes if

@@ -6,11 +6,18 @@ Approximate change log for AVRDUDE by version.
 
 ----------------------------------------------------------------------
 
+Version TBD
+
+  * Add support for the Bascom SAMPLE programmer. Submitted by
+    Larry Barello <larryba@barrello.net>
+
+
+
 Version 4.0.0
 
   * Now support Linux - added by "Theodore A. Roth" <troth@openavr.org>
 
-  * Now support Windows - added by "E. Weddington" <eric@umginc.net>
+  * Now support Windows - added by "Eric B. Weddington" <eric@umginc.net>
 
   * Use 'configure' scripts to tailor the code to the system avrdude
     is getting ready to be compiled on - added by "Theodore A. Roth"
