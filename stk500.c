@@ -387,7 +387,16 @@ static int stk500_program_enable(PROGRAMMER * pgm, AVRPART * p)
     return -1;
   }
 
-  fprintf(stderr, "%s: stk500_program_enable(): unkown response=0x%02x\n",
+  if(buf[0] == Resp_STK_FAILED)
+  {
+      fprintf(stderr, 
+	      "%s: stk500_program_enable(): failed to enter programming mode\n", 
+		  progname);
+	  return -1;
+  }
+
+
+  fprintf(stderr, "%s: stk500_program_enable(): unknown response=0x%02x\n",
           progname, buf[0]);
 
   return -1;
@@ -585,7 +594,7 @@ static void stk500_disable(PROGRAMMER * pgm)
     return;
   }
 
-  fprintf(stderr, "%s: stk500_disable(): unkown response=0x%02x\n",
+  fprintf(stderr, "%s: stk500_disable(): unknown response=0x%02x\n",
           progname, buf[0]);
 
   return;
