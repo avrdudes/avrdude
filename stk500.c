@@ -741,9 +741,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 #endif     
 
   for (addr = 0; addr < n; addr += page_size) {
-    if (verbose) {
-      fprintf(stderr, "\r      \r%6u", addr);
-    }
+    report_progress (addr, n_bytes, NULL);
     tries = 0;
   retry:
     tries++;
@@ -786,10 +784,6 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
               progname, Resp_STK_INSYNC, buf[0]);
       return -5;
     }
-  }
-  if (verbose) {
-    fprintf(stderr, "\r      \r%6u", addr-1);
-    fprintf(stderr, "\n");
   }
 
   return n;
@@ -835,9 +829,7 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   }
 
   for (addr = 0; addr < n; addr += page_size) {
-    if (verbose) {
-      fprintf(stderr, "\r      \r%6u", addr);
-    }
+    report_progress (addr, n_bytes, NULL);
     tries = 0;
   retry:
     tries++;
@@ -877,10 +869,6 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
               progname, Resp_STK_INSYNC, buf[0]);
       return -5;
     }
-  }
-  if (verbose) {
-    fprintf(stderr, "\r      \r%6u", addr-1);
-    fprintf(stderr, "\n");
   }
 
   return n;

@@ -394,7 +394,6 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
   unsigned char  * buf;
   AVRMEM * mem;
   int rc;
-  int printed;
 
   mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
@@ -443,8 +442,6 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
     }
   }
 
-  printed = 0;
-
   for (i=0; i<size; i++) {
     rc = avr_read_byte(pgm, p, mem, i, &rbyte);
     if (rc != 0) {
@@ -456,16 +453,7 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
       return -2;
     }
     buf[i] = rbyte;
-    if (verbose) {
-      if ((i % 16 == 0)||(i == (size-1))) {
-        printed = 1;
-        fprintf(stderr, "\r        \r%6lu", i);
-      }
-    }
-  }
-
-  if (printed) {
-    fprintf(stderr, "\n");
+    report_progress(i, size, NULL);
   }
 
   if (strcasecmp(mem->desc, "flash") == 0)
@@ -738,7 +726,6 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
   unsigned char    data;
   int              werror;
   AVRMEM         * m;
-  int              printed;
 
   m = avr_locate_mem(p, memtype);
   if (m == NULL) {
@@ -749,7 +736,6 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
 
   pgm->err_led(pgm, OFF);
 
-  printed = 0;
   werror  = 0;
 
   wsize = m->size;
@@ -782,12 +768,8 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
 
   for (i=0; i<wsize; i++) {
     data = m->buf[i];
-    if (verbose) {
-      if ((i % 16 == 0)||(i == (wsize-1))) {
-        fprintf(stderr, "\r      \r%6lu", i);
-        printed = 1;
-      }
-    }
+    report_progress(i, wsize, NULL);
+
     rc = avr_write_byte(pgm, p, m, i, data);
     if (rc) {
       fprintf(stderr, " ***failed;  ");
@@ -825,10 +807,6 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
       pgm->err_led(pgm, ON);
     }
   }
-
-  if (printed)
-    fprintf(stderr, "\n");
-
   return i;
 }
 
@@ -841,6 +819,7 @@ int avr_signature(PROGRAMMER * pgm, AVRPART * p)
 {
   int rc;
 
+  report_progress (0,1,"Reading");
   rc = avr_read(pgm, p, "signature", 0, 0);
   if (rc < 0) {
     fprintf(stderr, 
@@ -848,6 +827,7 @@ int avr_signature(PROGRAMMER * pgm, AVRPART * p)
             progname, p->desc, rc);
     return -1;
   }
+  report_progress (1,1,NULL);
 
   return 0;
 }

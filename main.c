@@ -92,6 +92,7 @@ void usage(void)
     "  -t                         Enter terminal mode.\n"
     "  -E <exitspec>[,<exitspec>] List programmer exit specifications.\n"
     "  -v                         Verbose output. -v -v for more.\n"
+    "  -q                         Quell progress output.\n"
     "  -?                         Display this usage.\n"
     "\navrdude project: <URL:http://savannah.nongnu.org/projects/avrdude>\n"
     ,progname);
@@ -253,7 +254,104 @@ void list_programmers(FILE * f, char * prefix, LISTID programmers)
   return;
 }
 
+typedef void (*FP_UpdateProgress)(int percent, char *hdr);
 
+static FP_UpdateProgress update_progress;
+
+/* Report the progress of a read or write operation from/to the device.
+
+   The first call of report_progress() should look like this (for a write op):
+
+     report_progress (0, 1, "Writing"); 
+
+   Then hdr should be passed NULL on subsequent calls while the operation is
+   progressing. Once the operation is complete, a final call should be made as
+   such to ensure proper termination of the progress report:
+
+     report_progress (1, 1, NULL);
+
+   It would be nice if we could reduce the usage to one and only one call for
+   each of start, during and end cases. As things stand now, that is not
+   possible and makes maintenance a bit more work. */
+
+void report_progress (int completed, int total, char *hdr)
+{
+  static int last = 0;
+  int percent = (completed * 100) / total;
+
+  if (update_progress == NULL)
+    return;
+
+  if (hdr) {
+    last = 0;
+    update_progress (percent, hdr);
+  }
+
+  if (percent > 100)
+    percent = 100;
+
+  if (percent > last) {
+    last = percent;
+    update_progress (percent, hdr);
+  }
+
+  if (percent == 100)
+    last = 0;                   /* Get ready for next time. */
+}
+
+static void update_progress_tty (int percent, char *hdr)
+{
+  static char hashes[51];
+  static char *header;
+  static last = 0;
+  int i;
+
+  hashes[50] = 0;
+
+  memset (hashes, ' ', 50);
+  for (i=0; i<percent; i+=2) {
+    hashes[i/2] = '#';
+  }
+
+  if (hdr) {
+    fprintf (stderr, "\n");
+    last = 0;
+    header = hdr;
+  }
+
+  if (last == 0) {
+    fprintf (stderr, "\r%s | %s | %d%%", header, hashes, percent);
+  }
+
+  if (percent == 100) {
+    last = 1;
+    fprintf (stderr, "\n\n");
+  }
+}
+
+static void update_progress_no_tty (int percent, char *hdr)
+{
+  static int last = 0;
+  int cnt = (percent>>1)*2;
+
+  if (hdr) {
+    fprintf (stderr, "\n%s | ", hdr);
+    last = 0;
+  }
+  else {
+    while (cnt > last) {
+      fprintf (stderr, "#");
+      cnt -=  2;
+    }
+  }
+
+  if ((percent == 100) && (last != 0)) {
+    fprintf (stderr, " | 100%\n\n");
+    last = 0;
+  }
+  else
+    last = (percent>>1)*2;    /* Make last a multiple of 2. */
+}
 
 /*
  * main routine
@@ -297,6 +395,7 @@ int main(int argc, char * argv [])
   int     set_cycles;  /* value to set the erase-rewrite cycles to */
   char  * e;           /* for strtol() error checking */
   char  * homedir;
+  int     quell_progress;
 
   progname = rindex(argv[0],'/');
   if (progname)
@@ -323,6 +422,7 @@ int main(int argc, char * argv [])
   filefmt       = FMT_AUTO;
   nowrite       = 0;
   verify        = 1;        /* on by default */
+  quell_progress = 0;
   ppisetbits    = 0;
   ppiclrbits    = 0;
   exitspecs     = NULL;
@@ -375,7 +475,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?c:C:eE:f:Fi:I:m:no:p:P:tvVyY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?c:C:eE:f:Fi:I:m:no:p:P:qtvVyY:")) != -1) {
 
     switch (ch) {
       case 'c': /* programmer id */
@@ -422,6 +522,10 @@ int main(int argc, char * argv [])
 
       case 'p' : /* specify AVR part */
         partdesc = optarg;
+        break;
+
+      case 'q' : /* Quell progress output */
+        quell_progress = 1;
         break;
 
       case 'e': /* perform a chip erase */
@@ -522,6 +626,13 @@ int main(int argc, char * argv [])
         break;
     }
 
+  }
+
+  if (quell_progress == 0) {
+    if (isatty (STDERR_FILENO))
+      update_progress = update_progress_tty;
+    else
+      update_progress = update_progress_no_tty;
   }
 
   if (verbose) {
@@ -877,6 +988,7 @@ int main(int argc, char * argv [])
      */
     fprintf(stderr, "%s: reading %s memory:\n", 
             progname, memtype);
+    report_progress(0,1,"Reading");
     rc = avr_read(pgm, p, memtype, 0, 1);
     if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
@@ -884,6 +996,7 @@ int main(int argc, char * argv [])
       exitrc = 1;
       goto main_exit;
     }
+    report_progress(1,1,NULL);
     size = rc;
 
     fprintf(stderr, "%s: writing output file \"%s\"\n",
@@ -918,7 +1031,9 @@ int main(int argc, char * argv [])
             progname, memtype, size);
 
     if (!nowrite) {
+      report_progress(0,1,"Writing");
       rc = avr_write(pgm, p, memtype, size, 1);
+      report_progress(1,1,NULL);
     }
     else {
       /* 
@@ -953,6 +1068,7 @@ int main(int argc, char * argv [])
             progname, memtype, inputf);
     fprintf(stderr, "%s: reading on-chip %s data:\n", 
             progname, memtype);
+    report_progress (0,1,"Reading");
     rc = avr_read(pgm, v, memtype, vsize, 1);
     if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
@@ -961,6 +1077,7 @@ int main(int argc, char * argv [])
       exitrc = 1;
       goto main_exit;
     }
+    report_progress (1,1,NULL);
 
     fprintf(stderr, "%s: verifying ...\n", progname);
     rc = avr_verify(p, v, memtype, vsize);
