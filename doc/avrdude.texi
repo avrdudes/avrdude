@@ -1,0 +1,966 @@
+%% -*-texinfo-*-
+\input texinfo
+
+@c $Id$
+
+@setfilename avrdude.info
+@settitle AVRDUDE
+
+@set UPDATED 26 Febuary 2003
+@set EDITION 3.2.0
+@set VERSION 3.2.0
+
+@titlepage
+@title AVRDUDE
+@subtitle A program for download/uploading AVR microcontroller flash and eeprom.
+@subtitle For AVRDUDE, Version @value{VERSION}, @value{UPDATED}.
+@author by Brian S. Dean
+
+@page
+@hfill (Send bugs and comments on AVRDUDE to @w{@email{avrdude-dev@@nongnu.org}}.)
+
+@vfill
+
+Copyright @copyright{} 2003 Brian S. Dean
+@sp 2
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the entire
+resulting derived work is distributed under the terms of a permission
+notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation approved
+by the Free Software Foundation.
+@end titlepage
+
+@contents
+
+@chapter Introduction
+@cindex introduction
+
+AVRDUDE - AVR Downloader Uploader - is a program for downloading and
+uploading the on-chip memories of Atmel's AVR microcontrollers. It can
+program the Flash and EEPROM, and where supported by the serial
+programming protocol, it can program fuse and lock bits. AVRDUDE also
+supplies a direct instruction mode allowing one to issue any programming
+instruction to the AVR chip regardless of whether AVRDUDE implements
+that specific feature of a particular chip.
+
+AVRDUDE can be used effectively via the command line to read or write
+all chip memory types (eeprom, flash, fuse bits, lock bits, signature
+bytes) or via an interactive (terminal) mode. Using AVRDUDE from the
+command line works well for programming the entire memory of the chip
+from the contents of a file, while interactive mode is useful for
+exploring memory contents, modifing individual bytes of eeprom,
+programming fuse/lock bits, etc.
+
+AVRDUDE supports two basic programmer types: Atmel's STK500 and the PPI
+(parallel port interface). PPI represents a class of simple programmers
+where the programming lines are directly connected to the PC parallel
+port, while the STK500 uses the serial port to communicate with the PC
+and contains on-board logic to control the programming of the target
+device. Several pin configurations exist for several variations of the
+PPI programmers, and AVRDUDE can be be configured to work with them by
+either specifying the appropriate programmer on the command line or by
+creating a new entry in its configuration file. All that's usually
+required for a new entry is to tell AVRDUDE which pins to use for each
+programming function.
+
+@section History
+
+AVRDUDE was written by Brian S. Dean under the name of AVRPROG to run on
+the FreeBSD Operating System.  Brian renamed the software to be called
+AVRDUDE when interest grew in a Windows port of the software so that the
+name did not conflict with AVRPROG.EXE which is the name of Atmel's
+Windows programming software.
+
+The AVRDUDE source now resides in the public CVS repository on
+savannah.gnu.org (@url{http://savannah.gnu.org/projects/avrdude/}),
+where it continues to be enhanced and ported to other systems.  In
+addition to FreeBSD, AVRDUDE now runs on Linux and Windows.  The
+developers behind the porting effort primarily were Ted Roth, Eric
+Weddington, and Joerg Wunsch.
+
+And in the spirit of many open source projects, this manual also draws
+on the work of others.  The initial revision was composed of parts of
+the original Unix manual page written by Joerg Wunsch, the original web
+site documentation by Brian Dean, and from the comments describing the
+fields in the AVRDUDE configuration file by Brian Dean.  The texi
+formatting was modeled after that of the Simulavr documentation by Ted
+Roth.
+
+
+@chapter Command Line Options
+@cindex options
+
+@section Option Descriptions
+
+@noindent
+AVRDUDE is a command line tool, used as follows:
+
+@example
+avrdude -p partno @var{options} @dots{}
+@end example
+
+@noindent
+Command line options are used to control AVRDUDE's behaviour.  The
+following options are recognized:
+
+@table @code
+@item -p @var{partno}
+This is the only mandatory option and it tells AVRDUDE what type of part
+(MCU) that is connected to the programmer.  The @var{partno} parameter
+is the part's id listed in the configuration file.  If a part is unknown
+to AVRDUDE, it means that there is no config file entry for that part,
+but it can be added to the configuration file if you have the Atmel
+datasheet so that you can enter the programming specifications.
+Currently, the following MCU types are understood:
+
+@table @code
+@itemx t15
+ATtiny15
+
+@itemx 1200
+AT90S1200
+
+@itemx 2313
+AT90S2313
+
+@itemx 2333
+AT90S2333
+
+@itemx 2343
+AT90S2343 (*)
+
+@itemx 4414
+AT90S4414
+
+@itemx 4433
+AT90S4433
+
+@itemx 4434
+AT90S4434
+
+@itemx 8515
+AT90S8515
+
+@itemx 8535
+AT90S8535
+
+@itemx m163
+ATMEGA163
+
+@itemx m169
+ATMEGA169
+
+@itemx m128
+ATMEGA128
+
+@itemx m103
+ATMEGA103
+
+@itemx m16
+ATMEGA16
+
+@itemx m8
+ATMEGA8
+
+@end table
+
+(*)   The AT90S2323 uses the same algorithm.
+
+@item -c @var{programmer-id}
+Specify the programmer to be used.  AVRDUDE knows about several common
+programmers.  Use this option to specify which one to use.  The
+@var{programmer-id} parameter is the programmer's id listed in the
+configuration file.  If you have a programmer that is unknown to
+AVRDUDE, and the programmer is controlled via the PC parallel port,
+there's a good chance that it can be easily added to the configuration
+file without any code changes to AVRDUDE.  Simply copy an existing entry
+and change the pin definitions to match that of the unknown programmer.
+
+@item -C @var{config-file}
+Use the specified config file for configuration data.  This file
+contains all programmer and part definitions that AVRDUDE knows about.
+If you have a programmer or part that AVRDUDE does not know about, you
+can add it to the config file (be sure and submit a patch back to the
+author so that it can be incorporated for the next version).  If not
+specified, AVRDUDE reads the configuration file from
+/usr/local/etc/avrdude.conf (FreeBSD and Linux) or from the installation
+location's bin directory (Windows).
+
+@item -e
+Causes a chip erase to be executed.  This will reset the contents of the
+flash ROM and EEPROM to the value `0xff', and is basically a
+prerequisite command before the flash ROM can be reprogrammed again.
+The only exception would be if the new contents would exclusively cause
+bits to be pro- grammed from the value `1' to `0'.  Note that in order
+to reprogram EERPOM cells, no explicit prior chip erase is required
+since the MCU provides an auto-erase cycle in that case before
+programming the cell.
+
+
+@item -E @var{exitspec}[,@dots{}]
+By default, AVRDUDE leaves the parallel port in the same state at exit
+as it has been found at startup.  This option modifies the state of the
+`/RESET' and `Vcc' lines the par- allel port is left at, according to
+the exitspec arguments provided, as follows:
+
+@table @code
+@itemx reset
+The `/RESET' signal will be left activated at pro- gram exit, that is it
+will be held low, in order to keep the MCU in reset state afterwards.
+Note in particular that the programming algorithm for the AT90S1200
+device mandates that the `/RESET' signal is active before powering up
+the MCU, so in case an external power supply is used for this MCU type,
+a previous invocation of AVRDUDE with this option specified is one of
+the possible ways to guarantee this condition.
+
+@itemx noreset
+The `/RESET' line will be deactivated at program exit, thus allowing the
+MCU target program to run while the programming hardware remains
+connected.
+
+@itemx vcc 
+This option will leave those parallel port pins active (i. e. high) that
+can be used to supply `Vcc' power to the MCU.
+
+@itemx novcc
+This option will pull the `Vcc' pins of the paral- lel port down at
+program exit.
+
+@end table
+
+Multiple @var{exitspec} arguments can be separated with commas.
+
+
+
+@item -f @var{format}
+This option specifies the file format for the input or out- put files to
+be processed.  Format can be one of:
+
+@table @code
+@itemx i
+Intel Hex
+
+@itemx s
+Motorola S-record
+
+@itemx r
+raw binary; little-endian byte order, in the case of the flash ROM data
+
+@itemx a
+auto detect; valid for input only, and only if the input is not provided
+at stdin.
+
+@end table
+
+The default is to use auto detection for input files, and raw binary
+format for output files.
+
+@item -F
+Normally, AVRDUDE tries to verify that the device signature read from
+the part is reasonable before continuing.  Since it can happen from time
+to time that a device has a broken (erased or overwritten) device
+signature but is otherwise operating normally, this options is provided
+to override the check.
+
+@item -i @var{filename}
+Specifies the input file to be programmed into the MCU.  Can be
+specified as `-' to use stdin as the input.
+
+@item -m @var{memtype}
+Specifies which program area of the MCU to read or write; allowable
+values depend on the MCU being programmed, but most support at least
+@code{eeprom} for the EEPROM, and @code{flash} for the flash ROM.  Use
+the @code{-v} option on the command line or the @code{part} command from
+terminal mode to display all the memory types supported by a particular
+device.  The default is @code{flash}.
+
+@item -n
+No-write - disables actually writing data to the MCU (useful for
+debugging AVRDUDE).
+
+@item -o @var{filename}
+Specifies the name of the output file to write, and causes the
+respective memory area to be read from the MCU.  Can be specified as `-'
+to write to stdout.
+
+@item -P @var{port}
+Use port to identify the device to which the programmer is attached.  By
+default the @code{/dev/ppi0} port is used, but if the programmer type
+normally connects to the serial port, the @code{/dev/cuaa0} port is the
+default.  If you need to use a different parallel or serial port, use
+this option to spec- ify the alternate port name.
+
+@item -t
+Tells AVRDUDE to enter the interactive ``terminal'' mode instead of up-
+or downloading files.  See below for a detailed description of the
+terminal mode.
+
+@item -v
+Enable verbose output.
+
+@item -V
+Disable automatic verify check when uploading data.
+
+@item -y
+Tells AVRDUDE to use the last four bytes of the connected parts' EEPROM
+memory to track the number of times the device has been erased.  When
+this option is used and the @code{-e} flag is specified to generate a
+chip erase, the previous counter will be saved before the chip erase, it
+is then incremented, and written back after the erase cycle com- pletes.
+Presumably, the device would only be erased just before being
+programmed, and thus, this can be utilized to give an indication of how
+many erase-rewrite cycles the part has undergone.  Since the FLASH
+memory can only endure a finite number of erase-rewrite cycles, one can
+use this option to track when a part is nearing the limit.  The typ-
+ical limit for Atmel AVR FLASH is 1000 cycles.  Of course, if the
+application needs the last four bytes of EEPROM mem- ory, this option
+should not be used.
+
+@item -Y @var{cycles}
+Instructs AVRDUDE to initialize the erase-rewrite cycle counter residing
+at the last four bytes of EEPROM memory to the specified value.  If the
+application needs the last four bytes of EEPROM memory, this option
+should not be used.
+
+@end table
+
+@section Example Command Line Invocations
+
+@noindent
+Download the file @code{m128diag.hex} to the ATmega128 chip using the
+STK500 programmer connected to the default serial port:
+
+@example
+@cartouche
+% avrdude -p m128 -c stk500 -y -e -i m128diag.hex
+
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: Device signature = 0x1e9702
+avrdude: erasing chip
+avrdude: erase-rewrite cycle count is now 52
+avrdude: done.
+avrdude: reading input file "m128diag.hex"
+avrdude: input file m128diag.hex auto detected as Intel Hex
+avrdude: writing flash (18130 bytes):
+ 18175
+avrdude: 18176 bytes of flash written
+avrdude: verifying flash memory against m128diag.hex:
+avrdude: reading on-chip flash data:
+ 18175
+avrdude: verifying ...
+avrdude: 18176 bytes of flash verified
+
+avrdude done.  Thank you.
+
+% 
+@end cartouche
+@end example
+
+@noindent
+Upload the flash memory from the ATmega128 connected to the STK500
+programmer and save it in raw binary format in the file named
+@code{m128diag.flash}:
+
+@example
+@cartouche
+% avrdude -p m128 -c stk500 -f r -o m128diag.flash 
+
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: Device signature = 0x1e9702
+avrdude: current erase-rewrite cycle count is 52 (if being tracked)
+avrdude: reading flash memory:
+131071
+avrdude: writing output file "m128diag.flash"
+
+avrdude done.  Thank you.
+
+% 
+@end cartouche
+@end example
+
+
+@chapter Terminal Mode Operation
+
+AVRDUDE has an interactive mode called @var{terminal mode} that is
+enabled by the @code{-t} option.  This mode allows one to enter
+interactive commands to display and modify the various device memories,
+perform a chip erase, display the device signature bytes and part
+parameters, and to send raw programming commands.  Commands and
+parameters may be abbreviated to their shortest unambiguous form.
+Terminal mode also supports a command history so that previously entered
+commands can be recalled and edited.
+
+@section Terminal Mode Commands
+
+@noindent
+The following commands are implemented:
+
+@table @code
+
+@item dump @var{memtype} @var{addr} @var{nbytes}
+Read @var{nbytes} from the specified memory area, and display them in
+the usual hexadecimal and ASCII form.
+
+@item dump
+Continue dumping the memory contents for another @var{nbytes} where the
+previous dump command left off.
+
+@item write @var{memtype} @var{addr} @var{byte1} @dots{} @var{byteN}
+Manually program the respective memory cells, starting at address addr,
+using the values @var{byte1} through @var{byteN}.  This feature is not
+implemented for bank-addressed memories such as the flash memory of
+ATMega devices.
+
+@item erase
+Perform a chip erase.
+
+@item send @var{b1} @var{b2} @var{b3} @var{b4}
+Send raw instruction codes to the AVR device.  If you need access to a
+feature of an AVR part that is not directly supported by AVRDUDE, this
+command allows you to use it, even though AVRDUDE does not implement the
+command.
+
+@item sig
+Display the device signature bytes.
+
+@item part
+Display the current part settings.
+
+@item ?
+@itemx help
+Give a short on-line summary of the available commands.
+
+@item quit
+Leave terminal mode and thus AVRDUDE.
+
+@end table
+
+@section Terminal Mode Examples
+
+@noindent
+Display part parameters, modify eeprom cells, perform a chip erase:
+
+@example
+@cartouche
+% avrdude -p m128 -c stk500 -t
+
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: Device signature = 0x1e9702
+avrdude: current erase-rewrite cycle count is 52 (if being tracked)
+avrdude> part
+>>> part 
+
+AVR Part              : ATMEGA128
+Chip Erase delay      : 9000 us
+PAGEL                 : PD7
+BS2                   : PA0
+RESET disposition     : dedicated
+RETRY pulse           : SCK
+serial program mode   : yes
+parallel program mode : yes
+Memory Detail         :
+
+                            Page                       Polled
+  Memory Type Paged  Size   Size #Pages MinW  MaxW   ReadBack
+  ----------- ------ ------ ---- ------ ----- ----- ---------
+  eeprom      no       4096    8     0  9000  9000 0xff 0xff
+  flash       yes    131072  256   512  4500  9000 0xff 0x00
+  lfuse       no          1    0     0     0     0 0x00 0x00
+  hfuse       no          1    0     0     0     0 0x00 0x00
+  efuse       no          1    0     0     0     0 0x00 0x00
+  lock        no          1    0     0     0     0 0x00 0x00
+  calibration no          1    0     0     0     0 0x00 0x00
+  signature   no          3    0     0     0     0 0x00 0x00
+
+avrdude> dump eeprom 0 16
+>>> dump eeprom 0 16 
+0000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+
+avrdude> write eeprom 0 1 2 3 4
+>>> write eeprom 0 1 2 3 4 
+
+avrdude> dump eeprom 0 16
+>>> dump eeprom 0 16 
+0000  01 02 03 04 ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+
+avrdude> erase
+>>> erase 
+avrdude: erasing chip
+avrdude> dump eeprom 0 16
+>>> dump eeprom 0 16 
+0000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+
+avrdude> 
+@end cartouche
+@end example
+
+
+@noindent
+Program the fuse bits of an ATmega128 (disable M103 compatibility,
+enable high speed external crystal, enable brown-out detection).  First
+display the factory defaults, then reprogram:
+
+@example
+@cartouche
+% avrdude -p m128 -c stk500 -t
+
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: Device signature = 0x1e9702
+avrdude: current erase-rewrite cycle count is 52 (if being tracked)
+avrdude> d efuse
+>>> d efuse 
+0000  fd                                                |.               |
+
+avrdude> d hfuse
+>>> d hfuse 
+0000  99                                                |.               |
+
+avrdude> d lfuse
+>>> d lfuse 
+0000  e1                                                |.               |
+
+avrdude> w efuse 0 0xff
+>>> w efuse 0 0xff 
+
+avrdude> w hfuse 0 0x89
+>>> w hfuse 0 0x89 
+
+avrdude> w lfuse 0 0x2e
+>>> w lfuse 0 0x2e 
+
+avrdude> 
+@end cartouche
+@end example
+
+
+@chapter Configuration File
+
+@noindent
+AVRDUDE reads a configuration file upon startup which describes all of
+the parts and programmers that it knows about.  The advantage of this is
+that if you have a chip that is not currently supported by AVRDUDE, you
+can add it to the configuration file without waiting for a new release
+of AVRDUDE.  Likewise, if you have a parallel port programmer that is
+not supported by AVRDUDE, chances are good that you can copy and
+existing programmer definition, and with only a few changes, make your
+programmer work with AVRDUDE.
+
+AVRDUDE first looks for a system wide configuration file in a platform
+dependent location.  On Unix, this is usually
+@code{/usr/local/etc/avrdude.conf}, while on Windows it is usally in the
+same location as the executable file.  The name of this file can be
+changed using the @code{-C} command line option.  After the system wide
+configuration file is parsed, AVRDUDE looks for a per-user configuration
+file to augment or override the system wide defaults.  On Unix, the
+per-user file is @code{.avrduderc} within the user's home directory.  On
+Windows, this file is the @code{avrdude.rc} file located in the same
+directory as the executable.
+
+@section AVRDUDE Defaults
+
+@table @code
+
+@item default_parallel = "@var{default-parallel-device}";
+Assign the default parallel port device.  Can be overidden using the
+@code{-P} option.
+
+@item default_serial = "@var{default-serial-device}";
+Assign the default serial port device.  Can be overidden using the
+@code{-P} option.
+
+@item default_programmer = "@var{default-programmer-id}";
+Assign the default programmer id.  Can be overidden using the @code{-c}
+option.
+
+@end table
+
+
+@section Programmer Definitions
+
+@noindent
+The format of the programmer definition is as follows:
+
+@example
+programmer
+    id     = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
+    desc   = <description> ;                  # quoted string
+    type   = par | stk500 ;                   # programmer type
+    vcc    = <num1> [, <num2> ... ] ;         # pin number(s)
+    reset  = <num> ;                          # pin number
+    sck    = <num> ;                          # pin number
+    mosi   = <num> ;                          # pin number
+    miso   = <num> ;                          # pin number
+    errled = <num> ;                          # pin number
+    rdyled = <num> ;                          # pin number
+    pgmled = <num> ;                          # pin number
+    vfyled = <num> ;                          # pin number
+  ;
+@end example
+
+
+@section Part Definitions
+
+@example
+part
+    id               = <id> ;                 # quoted string
+    desc             = <description> ;        # quoted string
+    devicecode       = <num> ;                # numeric
+    chip_erase_delay = <num> ;                # micro-seconds
+    pagel            = <num> ;                # pin name in hex, i.e., 0xD7
+    bs2              = <num> ;                # pin name in hex, i.e., 0xA0
+    reset            = dedicated | io;
+    retry_pulse      = reset | sck;
+    pgm_enable       = <instruction format> ;
+    chip_erase       = <instruction format> ;
+    memory <memtype>
+        paged           = <yes/no> ;          # yes / no
+        size            = <num> ;             # bytes
+        page_size       = <num> ;             # bytes
+        num_pages       = <num> ;             # numeric
+        min_write_delay = <num> ;             # micro-seconds
+        max_write_delay = <num> ;             # micro-seconds
+        readback_p1     = <num> ;             # byte value
+        readback_p2     = <num> ;             # byte value
+        pwroff_after_write = <yes/no> ;       # yes / no
+        read            = <instruction format> ;
+        write           = <instruction format> ;
+        read_lo         = <instruction format> ;
+        read_hi         = <instruction format> ;
+        write_lo        = <instruction format> ;
+        write_hi        = <instruction format> ;
+        loadpage_lo     = <instruction format> ;
+        loadpage_hi     = <instruction format> ;
+        writepage       = <instruction format> ;
+      ;
+  ;
+@end example
+
+@subsection Instruction Format
+
+@noindent
+Instruction formats are specified as a comma seperated list of string
+values containing information (bit specifiers) about each of the 32 bits
+of the instruction.  Bit specifiers may be one of the following formats:
+
+@table @code
+
+@item 1
+The bit is always set on input as well as output
+
+@item 0
+the bit is always clear on input as well as output
+
+@item x
+the bit is ignored on input and output
+
+@item a
+the bit is an address bit, the bit-number matches this bit specifier's
+position within the current instruction byte
+
+@item a@var{N}
+the bit is the @var{N}th address bit, bit-number = N, i.e., @code{a12}
+is address bit 12 on input, @code{a0} is address bit 0.
+
+@item i
+the bit is an input data bit
+
+@item o
+the bit is an output data bit
+
+@end table
+
+Each instruction must be composed of 32 bit specifiers.  The instruction
+specification closely follows the instruction data provided in Atmel's
+data sheets for their parts.  For example, the EEPROM read and write
+instruction for an AT90S2313 AVR part could be encoded as:
+
+@example
+
+read  = "1  0  1  0   0  0  0  0   x x x x  x x x x", 
+        "x a6 a5 a4  a3 a2 a1 a0   o o o o  o o o o";
+
+write = "1  1  0  0   0  0  0  0   x x x x  x x x x",
+        "x a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+
+@end example
+
+
+
+@section Other Notes
+
+
+@itemize @bullet
+@item
+The @code{devicecode} parameter is the device code used by the STK500
+and are obtained from the software section (@code{avr061.zip} of
+Atmel's AVR061 application note available from
+@url{http://www.atmel.com/atmel/acrobat/doc2525.pdf}.
+
+@item
+Not all memory types will implement all instructions.
+
+@item
+AVR Fuse bits and Lock bits are implemented as a type of memory.
+
+@item
+Example memory types are: @code{flash}, @code{eeprom}, @code{fuse},
+@code{lfuse} (low fuse), @code{hfuse} (high fuse), @code{efuse}
+(extended fuse), @code{signature}, @code{calibration}, @code{lock}.
+
+@item
+The memory type specified on the AVRDUDE command line must match one of
+the memory types defined for the specified chip.
+
+@item
+The @code{pwroff_after_write} flag causes AVRDUDE to attempt to power
+the device off and back on after an unsuccessful write to the affected
+memory area if VCC programmer pins are defined.  If VCC pins are not
+defined for the programmer, a message indicating that the device needs a
+power-cycle is printed out.  This flag was added to work around a
+problem with the at90s4433/2333's; see the at90s4433 errata at:
+
+         @url{http://www.atmel.com/atmel/acrobat/doc1280.pdf}
+
+@end itemize
+
+
+@appendix Platform Dependent Information
+
+@section FreeBSD
+
+@subsection Installation
+
+@noindent
+AVRDUDE is installed via the FreeBSD Ports Tree as follows:
+
+@example
+% su - root
+# cd /usr/ports/devel/avrdude
+# make install
+@end example
+
+If you wish to install from a pre-built package instead of the source,
+you can use the following instead:
+
+@example
+% su - root
+# pkg_add -r avrdude
+@end example
+
+Of course, you must be connected to the Internet for these methods to
+work, since that is where the source as well as the pre-built package is
+obtained.
+
+
+@subsection Configuration Files
+
+@noindent
+The default configuration file for FreeBSD is located at
+@code{/usr/local/etc/avrdude.conf}.  This can be changed by using the
+@code{-C} command line option.  Additionally, the user's home directory
+is search for a file named @code{.avrduderc}, and if found, is used to
+augment the system default configuration file.
+
+@subsection Port Names
+
+@noindent
+AVRDUDE uses the FreeBSD ppi(4) interface for accessing the parallel
+port and the sio(4) driver for serial port access.  The default name
+used for the parallel port is @code{/dev/ppi0}, while the default serial
+port device is @code{/dev/cuaa0}.
+
+@subsection Documentation
+
+@noindent
+AVRDUDE installs a manual page as well as HTML and PDF documentation.
+The manual page is installed in @code{/usr/local/man/man1} area, while
+the HTML and PDF documentation is installed in
+@code{/usr/local/share/doc/avrdude} directory.
+
+
+@section Linux
+
+@subsection Installation
+
+@noindent
+Empty.
+
+@subsection Configuration Files
+
+@noindent
+Empty.
+
+@subsection Port Names
+
+@noindent
+Empty.
+
+@subsection Documentation
+
+@noindent
+Empty.
+
+
+@section Windows
+
+@subsection Installation
+
+@noindent
+Empty.
+
+@subsection Configuration Files
+
+@subsubsection Configuration file names
+
+@noindent
+AVRDUDE on Windows looks for a system configuration file name of
+@code{avrdude.conf} and looks for a user override configuration file of
+@code{avrdude.rc}.
+
+@subsubsection How AVRDUDE finds the configuration files.
+ 
+@noindent
+AVRDUDE on Windows has a different way of searching for the system and
+user configuration files. Below is the search method for locating the
+configuration files:
+
+@enumerate
+
+@item
+The directory from which the application loaded.
+
+@item
+The current directory.
+
+@item
+The Windows system directory. Use the GetSystemDirectory function to get
+the path of this directory.  On Windows NT, the name of this directory
+is @code{SYSTEM32}.
+
+@item
+Windows NT: The 16-bit Windows system directory. There is no Win32
+function that obtains the path of this directory, but it is searched.
+The name of this directory is SYSTEM.
+
+@item
+The Windows directory. Use the GetWindowsDirectory function to get
+the path of this directory.
+
+@item
+The directories that are listed in the PATH environment variable.
+
+@end enumerate
+
+
+@subsection Port Names
+
+@subsubsection Serial Ports
+ 
+@noindent
+When you select a serial port (i.e. when using an STK500) use the
+Windows serial port device names such as: com1, com2, etc.
+ 
+@subsubsection Parallel Ports
+
+@noindent
+AVRDUDE will only accept 3 Windows parallel port names: lpt1, lpt2, or
+lpt3.  Each of these names corresponds to a fixed parallel port base
+address:
+
+@table @code
+@item lpt1
+0x378
+
+@item lpt2
+0x278
+
+@item lpt3
+0x3BC
+
+@end table
+
+On your desktop PC, lpt1 will be the most common choice. If you are
+using a laptop, you might have to use lpt3 instead of lpt1. Select the
+name of the port the corresponds to the base address of the parallel
+port that you want.
+ 
+
+ 
+@subsection Using the parallel port
+
+@subsubsection Windows NT/2K/XP
+
+@noindent
+On Windows NT, 2000, and XP user applications cannot directly access the
+parallel port. However, kernel mode drivers can access the parallel port.
+giveio.sys is a driver that can allow user applications to set the state
+of the parallel port pins.
+
+Before using AVRDUDE, the giveio.sys driver must be loaded. The
+accompanying loaddrv.exe program can do just that. loaddrv is also a
+command line program.
+
+To make things even easier there are 3 batch files that are also
+included:
+
+@enumerate
+@item install_giveio.bat
+Install and start the giveio driver.
+
+@item status_giveio.bat
+Check on the status of the giveio driver.
+
+@item remove_giveio.bat
+Stop and remove the giveio driver from memory.
+@end enumerate
+
+These 3 batch files calls the loaddrv program with various options to
+install, start, stop, and remove the driver.
+
+When you first execute install_giveio.bat, loaddrv.exe and giveio.sys
+must be in the current directory. When install_giveio.bat is executed it
+will copy giveio.sys from your current directory to your Windows
+directory. It will then load the driver from the Windows directory. This
+means that after the first time install_giveio is executed, subsequently
+you should be able to execute the batch file from any directory and have
+it successfully start the driver.
+
+@subsubsection Windows 95/98
+
+@noindent
+On Windows 95 and 98 the giveio.sys driver is not needed.
+
+
+@subsection Documentation
+
+@noindent
+Empty.
+
+@subsection Credits.
+
+@noindent
+Thanks to:
+
+@itemize @bullet
+@item
+Dale Roberts for the giveio driver
+
+@item
+Paula Tomlinson for the loaddrv sources.
+
+@item
+Chris Liechti <cliechti@@gmx.net> for modifying loaddrv to be command
+line driven and for writing the batch files.
+
+@end itemize
+
+@bye
