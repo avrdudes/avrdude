@@ -29,8 +29,23 @@
 
 /* $Id$ */
 
+%token K_OP
+%token K_READ
+%token K_WRITE
+%token K_READ_LO
+%token K_READ_HI
+%token K_WRITE_LO
+%token K_WRITE_HI
+%token K_LOADPAGE_LO
+%token K_LOADPAGE_HI
+%token K_WRITEPAGE
+%token K_CHIP_ERASE
+%token K_PGM_ENABLE
+
+%token K_MEMORY
+
 %token K_PAGE_SIZE
-%token K_PAGEED
+%token K_PAGED
 %token K_BUFF
 %token K_CHIP_ERASE_DELAY
 %token K_DESC
@@ -107,7 +122,8 @@ part_def :
     { current_part = avr_new_part(); }
     part_parms 
     { 
-      unsigned int i, j, shift, psize;
+      LNODEID ln;
+      AVRMEM * m;
 
       if (current_part->id[0] == 0) {
         fprintf(stderr,
@@ -121,49 +137,35 @@ part_def :
        * to shift a page for constructing the page address for
        * page-addressed memories.
        */
-      for (i=0; i<AVR_MAXMEMTYPES; i++) {
-        if (current_part->mem[i].paged) {
-          if (!current_part->mem[i].page_size) {
+      for (ln=lfirst(current_part->mem); ln; ln=lnext(ln)) {
+        m = ldata(ln);
+        if (m->paged) {
+          if (m->page_size == 0) {
             fprintf(stderr, 
                     "%s: error at %s:%d: must specify page_size for paged "
                     "memory\n",
                     progname, infile, lineno);
             exit(1);
           }
-          if (!current_part->mem[i].num_pages) {
+          if (m->num_pages == 0) {
             fprintf(stderr, 
                     "%s: error at %s:%d: must specify num_pages for paged "
                     "memory\n",
                     progname, infile, lineno);
             exit(1);
           }
-          if (current_part->mem[i].size != current_part->mem[i].page_size *
-                                             current_part->mem[i].num_pages) {
+          if (m->size != m->page_size * m->num_pages) {
             fprintf(stderr, 
                     "%s: error at %s:%d: page size (%u) * num_pages (%u) = "
                     "%u does not match memory size (%u)\n",
                     progname, infile, lineno,
-                    current_part->mem[i].page_size, 
-                    current_part->mem[i].num_pages, 
-                    current_part->mem[i].page_size * current_part->mem[i].num_pages,
-                    current_part->mem[i].size);
+                    m->page_size, 
+                    m->num_pages, 
+                    m->page_size * m->num_pages,
+                    m->size);
             exit(1);
           }
-          shift = 0;
-          psize = current_part->mem[i].page_size / 2 - 1;
-          for (j=0; j<32 && !shift; j++) {
-            if ((psize >> j) == 0) {
-              shift = j;
-            }
-          }
-          if (!shift) {
-            fprintf(stderr, 
-                    "%s: error at %s:%d: can't determine amount to shift for the page address\n"
-                    "     Are you sure page_size (=%u) is correct?\n",
-                    progname, infile, lineno, current_part->mem[i].page_size);
-            exit(1);
-          }
-          current_part->mem[i].pageaddr_shift = shift;
+
         }
       }
 
@@ -246,6 +248,21 @@ prog_parm :
 ;
 
 
+opcode :
+  K_READ         |
+  K_WRITE        |
+  K_READ_LO      |
+  K_READ_HI      |
+  K_WRITE_LO     |
+  K_WRITE_HI     |
+  K_LOADPAGE_LO  |
+  K_LOADPAGE_HI  |
+  K_WRITEPAGE    |
+  K_CHIP_ERASE   |
+  K_PGM_ENABLE
+;
+
+
 part_parms :
   part_parm TKN_SEMI |
   part_parms part_parm TKN_SEMI
@@ -273,11 +290,46 @@ part_parm :
       free_token($3);
     } |
 
+/*
   K_EEPROM { current_mem = AVR_M_EEPROM; }
     mem_specs |
 
   K_FLASH { current_mem = AVR_M_FLASH; }
-    mem_specs
+    mem_specs | 
+*/
+
+  K_MEMORY TKN_STRING 
+    { 
+      current_mem = avr_new_memtype(); 
+      strcpy(current_mem->desc, strdup($2->value.string)); 
+      free_token($2); 
+    } 
+    mem_specs 
+    { 
+      ladd(current_part->mem, current_mem); 
+      current_mem = NULL; 
+    } |
+
+  opcode TKN_EQUAL string_list {
+    { 
+      int opnum;
+      OPCODE * op;
+
+      if (lsize(string_list) != 32) {
+        fprintf(stderr, 
+                "%s: error at %s:%d: only %d bits specified, need 32\n",
+                progname, infile, lineno, lsize(string_list));
+        exit(1);
+      }
+
+      opnum = which_opcode($1);
+      op = avr_new_opcode();
+      parse_cmdbits(op);
+      current_part->op[opnum] = op;
+
+      free_token($1);
+    }
+  }
 ;
 
 
@@ -295,52 +347,73 @@ mem_specs :
 mem_spec :
   K_PAGED          TKN_EQUAL yesno
     {
-      current_part->mem[current_mem].paged = $3->primary == K_YES ? 1 : 0;
+      current_mem->paged = $3->primary == K_YES ? 1 : 0;
       free_token($3);
     } |
 
   K_SIZE            TKN_EQUAL TKN_NUMBER
     {
-      current_part->mem[current_mem].size = $3->value.number;
+      current_mem->size = $3->value.number;
       free_token($3);
     } |
 
 
   K_PAGE_SIZE       TKN_EQUAL TKN_NUMBER
     {
-      current_part->mem[current_mem].page_size = $3->value.number;
+      current_mem->page_size = $3->value.number;
       free_token($3);
     } |
 
   K_NUM_PAGES       TKN_EQUAL TKN_NUMBER
     {
-      current_part->mem[current_mem].num_pages = $3->value.number;
+      current_mem->num_pages = $3->value.number;
       free_token($3);
     } |
 
   K_MIN_WRITE_DELAY TKN_EQUAL TKN_NUMBER
     {
-      current_part->mem[current_mem].min_write_delay = $3->value.number;
+      current_mem->min_write_delay = $3->value.number;
       free_token($3);
     } |
 
   K_MAX_WRITE_DELAY TKN_EQUAL TKN_NUMBER
     {
-      current_part->mem[current_mem].max_write_delay = $3->value.number;
+      current_mem->max_write_delay = $3->value.number;
       free_token($3);
     } |
 
   K_READBACK_P1     TKN_EQUAL TKN_NUMBER
     {
-      current_part->mem[current_mem].readback[0] = $3->value.number;
+      current_mem->readback[0] = $3->value.number;
       free_token($3);
     } |
 
   K_READBACK_P2     TKN_EQUAL TKN_NUMBER
     {
-      current_part->mem[current_mem].readback[1] = $3->value.number;
+      current_mem->readback[1] = $3->value.number;
       free_token($3);
+    } |
+
+  opcode TKN_EQUAL string_list {
+    { 
+      int opnum;
+      OPCODE * op;
+
+      if (lsize(string_list) != 32) {
+        fprintf(stderr, 
+                "%s: error at %s:%d: only %d bits specified, need 32\n",
+                progname, infile, lineno, lsize(string_list));
+        exit(1);
+      }
+
+      opnum = which_opcode($1);
+      op = avr_new_opcode();
+      parse_cmdbits(op);
+      current_mem->op[opnum] = op;
+
+      free_token($1);
     }
+  }
 ;
 
 
@@ -391,4 +464,124 @@ static int assign_pin(int pinno, TOKEN * v)
 
   return 0;
 }
+
+
+static int which_opcode(TOKEN * opcode)
+{
+  switch (opcode->primary) {
+    case K_READ        : return AVR_OP_READ; break;
+    case K_WRITE       : return AVR_OP_WRITE; break;
+    case K_READ_LO     : return AVR_OP_READ_LO; break;
+    case K_READ_HI     : return AVR_OP_READ_HI; break;
+    case K_WRITE_LO    : return AVR_OP_WRITE_LO; break;
+    case K_WRITE_HI    : return AVR_OP_WRITE_HI; break;
+    case K_LOADPAGE_LO : return AVR_OP_LOADPAGE_LO; break;
+    case K_LOADPAGE_HI : return AVR_OP_LOADPAGE_HI; break;
+    case K_WRITEPAGE   : return AVR_OP_WRITEPAGE; break;
+    case K_CHIP_ERASE  : return AVR_OP_CHIP_ERASE; break;
+    case K_PGM_ENABLE  : return AVR_OP_PGM_ENABLE; break;
+    default :
+      fprintf(stderr, 
+              "%s: error at %s:%d: invalid opcode\n",
+              progname, infile, lineno);
+      exit(1);
+      break;
+  }
+}
+
+
+static int parse_cmdbits(OPCODE * op)
+{
+  TOKEN * t;
+  int bitno;
+  char ch;
+  char * e;
+  char * q;
+  int len;
+
+  bitno = 31;
+  while (lsize(string_list)) {
+
+    t = lrmv_n(string_list, 1);
+
+    len = strlen(t->value.string);
+
+    if (len == 0) {
+      fprintf(stderr, 
+              "%s: error at %s:%d: invalid bit specifier \"\"\n",
+              progname, infile, lineno);
+      exit(1);
+    }
+
+    ch = t->value.string[0];
+
+    if (len == 1) {
+      switch (ch) {
+        case '1':
+          op->bit[bitno].type  = AVR_CMDBIT_VALUE;
+          op->bit[bitno].value = 1;
+          op->bit[bitno].bitno = bitno % 8;
+          break;
+        case '0':
+          op->bit[bitno].type  = AVR_CMDBIT_VALUE;
+          op->bit[bitno].value = 0;
+          op->bit[bitno].bitno = bitno % 8;
+          break;
+        case 'x':
+          op->bit[bitno].type  = AVR_CMDBIT_IGNORE;
+          op->bit[bitno].value = 0;
+          op->bit[bitno].bitno = bitno % 8;
+          break;
+        case 'a':
+          op->bit[bitno].type  = AVR_CMDBIT_ADDRESS;
+          op->bit[bitno].value = 0;
+          op->bit[bitno].bitno = 8*(bitno/8) + bitno % 8;
+          break;
+        case 'i':
+          op->bit[bitno].type  = AVR_CMDBIT_INPUT;
+          op->bit[bitno].value = 0;
+          op->bit[bitno].bitno = bitno % 8;
+          break;
+        case 'o':
+          op->bit[bitno].type  = AVR_CMDBIT_OUTPUT;
+          op->bit[bitno].value = 0;
+          op->bit[bitno].bitno = bitno % 8;
+          break;
+        default :
+          fprintf(stderr, 
+                  "%s: error at %s:%d: invalid bit specifier '%c'\n",
+                  progname, infile, lineno, ch);
+          exit(1);
+          break;
+      }
+    }
+    else {
+      if (ch == 'a') {
+        q = &t->value.string[1];
+        op->bit[bitno].bitno = strtol(q, &e, 0);
+        if ((e == q)||(*e != 0)) {
+          fprintf(stderr, 
+                  "%s: error at %s:%d: can't parse bit number from \"%s\"\n",
+                  progname, infile, lineno, q);
+          exit(1);
+        }
+        op->bit[bitno].type = AVR_CMDBIT_ADDRESS;
+        op->bit[bitno].value = 0;
+      }
+      else {
+        fprintf(stderr, 
+                "%s: error at %s:%d: invalid bit specifier \"%s\"\n",
+                progname, infile, lineno, t->value.string);
+        exit(1);
+      }
+    }
+
+    free_token(t);    
+    bitno--;
+
+  }  /* while */
+
+  return 0;
+}
+
 

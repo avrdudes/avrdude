@@ -37,6 +37,7 @@
 
 #include "avr.h"
 #include "config.h"
+#include "lists.h"
 #include "pindefs.h"
 #include "ppi.h"
 
@@ -64,36 +65,111 @@ AVRPART * avr_new_part(void)
   p->id[0]   = 0;
   p->desc[0] = 0;
 
+  p->mem = lcreat(NULL, 0);
+
   return p;
 }
 
 
 
-AVRPART * avr_dup_part(AVRPART * d)
+OPCODE * avr_new_opcode(void)
 {
-  AVRPART * p;
-  int i;
+  OPCODE * m;
 
-  p = (AVRPART *)malloc(sizeof(AVRPART));
-  if (p == NULL) {
-    fprintf(stderr, "avr_dup_part(): out of memory\n");
+  m = (OPCODE *)malloc(sizeof(*m));
+  if (m == NULL) {
+    fprintf(stderr, "avr_new_opcode(): out of memory\n");
     exit(1);
   }
 
+  memset(m, 0, sizeof(*m));
+
+  return m;
+}
+
+
+
+AVRMEM * avr_new_memtype(void)
+{
+  AVRMEM * m;
+
+  m = (AVRMEM *)malloc(sizeof(*m));
+  if (m == NULL) {
+    fprintf(stderr, "avr_new_memtype(): out of memory\n");
+    exit(1);
+  }
+
+  memset(m, 0, sizeof(*m));
+
+  return m;
+}
+
+
+AVRMEM * avr_dup_mem(AVRMEM * m)
+{
+  AVRMEM * n;
+
+  n = avr_new_memtype();
+
+  *n = *m;
+
+  n->buf = (unsigned char *)malloc(n->size);
+  if (n->buf == NULL) {
+    fprintf(stderr, 
+            "avr_dup_mem(): out of memory (memsize=%d)\n", 
+            n->size);
+    exit(1);
+  }
+  memset(n->buf, 0, n->size);
+
+  return n;
+}
+
+
+AVRPART * avr_dup_part(AVRPART * d)
+{
+  AVRPART * p;
+  LISTID save;
+  LNODEID ln;
+
+  p = avr_new_part();
+  save = p->mem;
+
   *p = *d;
 
-  for (i=0; i<AVR_MAXMEMTYPES; i++) {
-    p->mem[i].buf = (unsigned char *)malloc(p->mem[i].size);
-    if (p->mem[i].buf == NULL) {
-      fprintf(stderr, 
-              "avr_dup_part(): out of memory (memsize=%d)\n", 
-              p->mem[i].size);
-      exit(1);
-    }
-    memset(p->mem[i].buf, 0, p->mem[i].size);
+  p->mem = save;
+
+  for (ln=lfirst(d->mem); ln; ln=lnext(ln)) {
+    ladd(p->mem, avr_dup_mem(ldata(ln)));
   }
 
   return p;
+}
+
+
+
+AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
+{
+  AVRMEM * m, * match;
+  LNODEID ln;
+  int matches;
+  int l;
+
+  l = strlen(desc);
+  matches = 0;
+  match = NULL;
+  for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+    m = ldata(ln);
+    if (strncmp(desc, m->desc, l) == 0) {
+      match = m;
+      matches++;
+    }
+  }
+
+  if (matches == 1)
+    return match;
+
+  return NULL;
 }
 
 
@@ -155,132 +231,106 @@ int avr_cmd(int fd, unsigned char cmd[4], unsigned char res[4])
     res[i] = avr_txrx(fd, cmd[i]);
   }
 
-  return 0;
-}
-
-
-/*
- * read a calibration byte
- */
-unsigned char avr_read_calibration(int fd, AVRPART * p)
-{
-  unsigned char cmd[4];
-  unsigned char res[4];
-
-  LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
-  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
-
-  cmd[0] = 0x38;
-  cmd[1] = 0x00; /* don't care */
-  cmd[2] = 0x00;
-  cmd[3] = 0x00; /* don't care */
-
-  avr_cmd(fd, cmd, res);
-
-  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
-
-  return res[3];    /* calibration byte */
-}
-
-
-/*
- * read a fuse byte
- */
-unsigned char avr_read_fuse(int fd, AVRPART * p, int high)
-{
-  unsigned char cmd[4];
-  unsigned char res[4];
-  static unsigned char cmdbyte1[2] = { 0x50, 0x58 };
-  static unsigned char cmdbyte2[2] = { 0x00, 0x08 };
-
-  LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
-  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
-
-  cmd[0] = cmdbyte1[high];
-  cmd[1] = cmdbyte2[high];
-  cmd[2] = 0;               /* don't care */
-  cmd[3] = 0;               /* don't care */
-
-  avr_cmd(fd, cmd, res);
-
-  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
-
-  return res[3];    /* fuse bits */
-}
-
-
-/*
- * write a fuse byte
- */
-int avr_write_fuse(int fd, AVRPART * p, int high, unsigned char b)
-{
-  unsigned char cmd[4];
-  unsigned char res[4];
-  static unsigned char cmdbyte[2] = { 0xa0, 0xa8 };
-
-  LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
-  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
-
-  cmd[0] = 0xac;
-  cmd[1] = cmdbyte[high];
-  cmd[2] = 0x00;            /* don't care */
-  cmd[3] = b;               /* fuse bits  */
-
-  avr_cmd(fd, cmd, res);
-
-  usleep(2000);
-
-  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
+#if 0
+  fprintf(stderr, "avr_cmd(): [ ");
+  for (i=0; i<4; i++)
+    fprintf(stderr, "%02x ", cmd[i]);
+  fprintf(stderr, "] [ ");
+  for (i=0; i<4; i++)
+    fprintf(stderr, "%02x ", res[i]);
+  fprintf(stderr, "]\n");
+#endif
 
   return 0;
 }
 
 
-/*
- * read a lock byte
- */
-unsigned char avr_read_lock(int fd, AVRPART * p)
+int avr_set_bits(OPCODE * op, unsigned char * cmd)
 {
-  unsigned char cmd[4];
-  unsigned char res[4];
+  int i, j, bit;
+  unsigned char mask;
 
-  LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
-  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
+  for (i=0; i<32; i++) {
+    if (op->bit[i].type == AVR_CMDBIT_VALUE) {
+      j = 3 - i / 8;
+      bit = i % 8;
+      mask = 1 << bit;
+      if (op->bit[i].value)
+        cmd[j] = cmd[j] | mask;
+      else
+        cmd[j] = cmd[j] & ~mask;
+    }
+  }
 
-  cmd[0] = 0x58;
-  cmd[1] = 0x00;
-  cmd[2] = 0;
-  cmd[3] = 0;               /* don't care */
-
-  avr_cmd(fd, cmd, res);
-
-  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
-
-  return res[3];  /* lock bits */
+  return 0;
 }
 
 
-/*
- * write a lock byte
- */
-int avr_write_lock(int fd, AVRPART * p, unsigned char b)
+int avr_set_addr(OPCODE * op, unsigned char * cmd, unsigned long addr)
 {
-  unsigned char cmd[4];
-  unsigned char res[4];
+  int i, j, bit;
+  unsigned long value;
+  unsigned char mask;
 
-  LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
-  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
+  for (i=0; i<32; i++) {
+    if (op->bit[i].type == AVR_CMDBIT_ADDRESS) {
+      j = 3 - i / 8;
+      bit = i % 8;
+      mask = 1 << bit;
+      value = addr >> op->bit[i].bitno & 0x01;
+      if (value)
+        cmd[j] = cmd[j] | mask;
+      else
+        cmd[j] = cmd[j] & ~mask;
+    }
+  }
 
-  cmd[0] = 0x5c;
-  cmd[1] = 0xe0;
-  cmd[2] = 0;               /* don't care */
-  cmd[3] = b;               /* lock bits  */
+  return 0;
+}
 
-  avr_cmd(fd, cmd, res);
 
-  usleep(2000);
+int avr_set_input(OPCODE * op, unsigned char * cmd, unsigned char data)
+{
+  int i, j, bit;
+  unsigned char value;
+  unsigned char mask;
 
-  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
+  for (i=0; i<32; i++) {
+    if (op->bit[i].type == AVR_CMDBIT_INPUT) {
+      j = 3 - i / 8;
+      bit = i % 8;
+      mask = 1 << bit;
+      value = data >> op->bit[i].bitno & 0x01;
+      if (value)
+        cmd[j] = cmd[j] | mask;
+      else
+        cmd[j] = cmd[j] & ~mask;
+    }
+  }
+
+  return 0;
+}
+
+
+int avr_get_output(OPCODE * op, unsigned char * cmd, unsigned char * data)
+{
+  int i, j, bit;
+  unsigned char value;
+  unsigned char mask;
+
+  for (i=0; i<32; i++) {
+    if (op->bit[i].type == AVR_CMDBIT_OUTPUT) {
+      j = 3 - i / 8;
+      bit = i % 8;
+      mask = 1 << bit;
+      value = ((cmd[j] & mask) >> bit) & 0x01;
+      value = value << op->bit[i].bitno;
+      if (value)
+        *data = *data | value;
+      else
+        *data = *data & ~value;
+    }
+  }
 
   return 0;
 }
@@ -289,60 +339,89 @@ int avr_write_lock(int fd, AVRPART * p, unsigned char b)
 /*
  * read a byte of data from the indicated memory region
  */
-unsigned char avr_read_byte(int fd, AVRPART * p,
-                            int memtype, unsigned long addr)
+int avr_read_byte(int fd, AVRPART * p, AVRMEM * mem, unsigned long addr, 
+                  unsigned char * value)
 {
-  unsigned short offset;
   unsigned char cmd[4];
   unsigned char res[4];
-  /* order here is very important, AVR_EEPROM, AVR_FLASH, AVR_FLASH+1 */
-  static unsigned char cmdbyte[3] = { 0xa0, 0x20, 0x28 };
+  unsigned char data;
+  OPCODE * readop;
 
   LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
   LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
 
-  offset = 0;
-
-  if (memtype == AVR_M_FLASH) {
-    offset = addr & 0x01;
-    addr   = addr / 2;
+  if (mem->op[AVR_OP_READ_LO]) {
+    if (addr & 0x00000001)
+      readop = mem->op[AVR_OP_READ_HI];
+    else
+      readop = mem->op[AVR_OP_READ_LO];
+    addr = addr / 2;
+  }
+  else {
+    readop = mem->op[AVR_OP_READ];
   }
 
-  cmd[0] = cmdbyte[memtype + offset];
-  cmd[1] = addr >> 8;     /* high order bits of address       */
-  cmd[2] = addr & 0x0ff;  /* low order bits of address        */
-  cmd[3] = 0;             /* don't care                       */
+  if (readop == NULL) {
+    fprintf(stderr, 
+            "avr_read_byte(): operation not supported on memory type \"%s\"\n",
+            p->desc);
+    return -1;
+  }
 
+  memset(cmd, 0, sizeof(cmd));
+
+  avr_set_bits(readop, cmd);
+  avr_set_addr(readop, cmd, addr);
   avr_cmd(fd, cmd, res);
+  data = 0;
+  avr_get_output(readop, res, &data);
 
   LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
 
-  return res[3];
+  *value = data;
+
+  return 0;
 }
 
 
 /*
  * Read the entirety of the specified memory type into the
  * corresponding buffer of the avrpart pointed to by 'p'.  If size =
- * 0, read the entire contents, otherwize, read 'size' bytes.
+ * 0, read the entire contents, otherwise, read 'size' bytes.
  *
- * Return the number of bytes read, or -1 if an error occurs.  */
-int avr_read(int fd, AVRPART * p, int memtype, int size)
+ * Return the number of bytes read, or -1 if an error occurs.  
+ */
+int avr_read(int fd, AVRPART * p, char * memtype, int size, int verbose)
 {
   unsigned char    rbyte;
   unsigned long    i;
   unsigned char  * buf;
+  AVRMEM * mem;
+  int rc;
 
-  buf  = p->mem[memtype].buf;
+  mem = avr_locate_mem(p, memtype);
+  if (mem == NULL) {
+    fprintf(stderr, "No \"%s\" memory for part %s\n",
+            memtype, p->desc);
+    return -1;
+  }
+
+  buf  = mem->buf;
   if (size == 0) {
-    size = p->mem[memtype].size;
+    size = mem->size;
   }
 
   for (i=0; i<size; i++) {
-    rbyte = avr_read_byte(fd, p, memtype, i);
-    if (i % 16 == 0)
-      fprintf(stderr, "                    \r%4lu  0x%02x", i, rbyte);
+    rc = avr_read_byte(fd, p, mem, i, &rbyte);
+    if (rc != 0) {
+      fprintf(stderr, "avr_read(): error reading address 0x%04lx\n", i);
+      return -2;
+    }
     buf[i] = rbyte;
+    if (verbose) {
+      if (i % 16 == 0)
+        fprintf(stderr, "                    \r%4lu  0x%02x", i, rbyte);
+    }
   }
 
   fprintf(stderr, "\n");
@@ -357,39 +436,38 @@ int avr_read(int fd, AVRPART * p, int memtype, int size)
 /*
  * write a byte of data to the indicated memory region
  */
-int avr_write_page(int fd, AVRPART * p, int memtype, 
-                   unsigned short page)
+int avr_write_page(int fd, AVRPART * p, AVRMEM * mem,
+                   unsigned long addr)
 {
   unsigned char cmd[4];
   unsigned char res[4];
+  OPCODE * wp;
+
+  wp = mem->op[AVR_OP_WRITEPAGE];
+  if (wp == NULL) {
+    fprintf(stderr, 
+            "avr_write_page(): memory \"%s\" not configured for page writes\n",
+            mem->desc);
+    return -1;
+  }
+
+  if (mem->op[AVR_OP_LOADPAGE_LO])
+    addr = addr / 2;
 
   LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
   LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
 
-  /*
-   * 'page' indicates which page is being programmed: 0 for the first
-   * page_size block, 1 for the second, up to num_pages-1 for the
-   * last.  The MCU actually wants the high-order bits of what would
-   * be the actual address instead, shifted left to the upper most
-   * bits of a 16 bit word.  For a 128K flash, the actual address is a
-   * 17 bits.  To get the right value to send to the MCU, we want to
-   * shift 'page' left by 16 - the number of bits in the page
-   * address.
-   */
-  page = page << p->mem[memtype].pageaddr_shift;
+  memset(cmd, 0, sizeof(cmd));
 
-  cmd[0] = 0x4c;
-  cmd[1] = page >> 8;     /* high order bits of address */
-  cmd[2] = page & 0x0ff;  /* low order bits of address  */
-  cmd[3] = 0;             /* these bits are ignored     */
-
+  avr_set_bits(wp, cmd);
+  avr_set_addr(wp, cmd, addr);
   avr_cmd(fd, cmd, res);
 
   /*
    * since we don't know what voltage the target AVR is powered by, be
    * conservative and delay the max amount the spec says to wait 
    */
-  usleep(p->mem[memtype].max_write_delay);
+  usleep(mem->max_write_delay);
 
   LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
   return 0;
@@ -399,7 +477,7 @@ int avr_write_page(int fd, AVRPART * p, int memtype,
 /*
  * write a byte of data to the indicated memory region
  */
-int avr_write_byte(int fd, AVRPART * p, int memtype, 
+int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
                    unsigned long addr, unsigned char data)
 {
   unsigned char cmd[4];
@@ -408,45 +486,67 @@ int avr_write_byte(int fd, AVRPART * p, int memtype,
   int ready;
   int tries;
   unsigned char b;
-  unsigned short offset;
   unsigned short caddr;
-  /* order here is very important, AVR_M_EEPROM, AVR_M_FLASH, AVR_M_FLASH+1 */
-  static unsigned char cmdbyte[3] = { 0xc0, 0x40, 0x48 };
+  OPCODE * writeop;
+  int rc;
 
-  if (!p->mem[memtype].paged) {
+  if (!mem->paged) {
     /* 
      * check to see if the write is necessary by reading the existing
      * value and only write if we are changing the value; we can't
      * use this optimization for paged addressing.
      */
-    b = avr_read_byte(fd, p, memtype, addr);
+    rc = avr_read_byte(fd, p, mem, addr, &b);
+    if (rc != 0)
+      return -1;
+
     if (b == data) {
       return 0;
     }
   }
-  else {
-    addr = addr % p->mem[memtype].page_size;
+
+  /*
+   * determine which memory opcode to use
+   */
+  if (mem->op[AVR_OP_WRITE_LO]) {
+    if (addr & 0x01)
+      writeop = mem->op[AVR_OP_WRITE_HI];
+    else
+      writeop = mem->op[AVR_OP_WRITE_LO];
+    caddr = addr / 2;
   }
+  else if (mem->op[AVR_OP_LOADPAGE_LO]) {
+    if (addr & 0x01)
+      writeop = mem->op[AVR_OP_LOADPAGE_HI];
+    else
+      writeop = mem->op[AVR_OP_LOADPAGE_LO];
+    caddr = addr / 2;
+  }
+  else {
+    writeop = mem->op[AVR_OP_WRITE];
+    caddr = addr;
+  }
+
+  if (writeop == NULL) {
+    fprintf(stderr, 
+            "avr_write_byte(): write not support for memory type \"%s\"\n",
+            mem->desc);
+    exit(1);
+    return -1;
+  }
+
 
   LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
   LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
 
-  offset = 0;
+  memset(cmd, 0, sizeof(cmd));
 
-  caddr = addr;
-  if (memtype == AVR_M_FLASH) {
-    offset = addr & 0x01;
-    caddr  = addr / 2;
-  }
-
-  cmd[0] = cmdbyte[memtype + offset];
-  cmd[1] = caddr >> 8;     /* high order bits of address       */
-  cmd[2] = caddr & 0x0ff;  /* low order bits of address        */
-  cmd[3] = data;           /* data                             */
-
+  avr_set_bits(writeop, cmd);
+  avr_set_addr(writeop, cmd, caddr);
+  avr_set_input(writeop, cmd, data);
   avr_cmd(fd, cmd, res);
 
-  if (p->mem[memtype].paged) {
+  if (mem->paged) {
     /*
      * in paged addressing, single bytes to written to the memory
      * page complete immediately, we only need to delay when we commit
@@ -459,18 +559,24 @@ int avr_write_byte(int fd, AVRPART * p, int memtype,
   tries = 0;
   ready = 0;
   while (!ready) {
-    usleep(p->mem[memtype].min_write_delay); /* typical write delay */
-    r = avr_read_byte(fd, p, memtype, addr);
-    if ((data == p->mem[memtype].readback[0]) ||
-        (data == p->mem[memtype].readback[1])) {
+    usleep(mem->min_write_delay); /* typical write delay */
+    rc = avr_read_byte(fd, p, mem, addr, &r);
+    if (rc != 0) {
+      return -1;
+    }
+    if ((data == mem->readback[0]) ||
+        (data == mem->readback[1])) {
       /* 
        * use an extra long delay when we happen to be writing values
        * used for polled data read-back.  In this case, polling
        * doesn't work, and we need to delay the worst case write time
        * specified for the chip.
        */
-      usleep(p->mem[memtype].max_write_delay);
-      r = avr_read_byte(fd, p, memtype, addr);
+      usleep(mem->max_write_delay);
+      rc = avr_read_byte(fd, p, mem, addr, &r);
+      if (rc != 0) {
+        return -1;
+      }
     }
 
     if (r == data) {
@@ -504,19 +610,28 @@ int avr_write_byte(int fd, AVRPART * p, int memtype,
  *
  * Return the number of bytes written, or -1 if an error occurs.
  */
-int avr_write(int fd, AVRPART * p, int memtype, int size)
+int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose)
 {
   int              rc;
   int              wsize;
   unsigned long    i;
   unsigned char    data;
   int              werror;
+  AVRMEM         * m;
+
+  m = avr_locate_mem(p, memtype);
+  if (m == NULL) {
+    fprintf(stderr, "No \"%s\" memory for part %s\n",
+            memtype, p->desc);
+    return -1;
+  }
+
 
   LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
 
   werror = 0;
 
-  wsize = p->mem[memtype].size;
+  wsize = m->size;
   if (size < wsize) {
     wsize = size;
   }
@@ -530,10 +645,12 @@ int avr_write(int fd, AVRPART * p, int memtype, int size)
 
   for (i=0; i<wsize; i++) {
     /* eeprom or low byte of flash */
-    data = p->mem[memtype].buf[i];
-    rc = avr_write_byte(fd, p, memtype, i, data);
-    if (i % 16 == 0)
-      fprintf(stderr, "                      \r%4lu 0x%02x", i, data);
+    data = m->buf[i];
+    if (verbose) {
+      if (i % 16 == 0)
+        fprintf(stderr, "                      \r%4lu 0x%02x ", i, data);
+    }
+    rc = avr_write_byte(fd, p, m, i, data);
     if (rc) {
       fprintf(stderr, " ***failed;  ");
       fprintf(stderr, "\n");
@@ -541,15 +658,16 @@ int avr_write(int fd, AVRPART * p, int memtype, int size)
       werror = 1;
     }
 
-    if (p->mem[memtype].paged) {
-      if (((i % p->mem[memtype].page_size) == p->mem[memtype].page_size-1) ||
+    if (m->paged) {
+      if (((i % m->page_size) == m->page_size-1) ||
           (i == wsize-1)) {
-        rc = avr_write_page(fd, p, memtype, i/p->mem[memtype].page_size);
+        rc = avr_write_page(fd, p, m, i);
         if (rc) {
           fprintf(stderr,
-                  " *** page %ld (addresses 0x%04lx - 0x%04lx) failed to write\n",
-                  i % p->mem[memtype].page_size, 
-                  i-p->mem[memtype].page_size+1, i);
+                  " *** page %ld (addresses 0x%04lx - 0x%04lx) failed "
+                  "to write\n",
+                  i % m->page_size, 
+                  i - m->page_size + 1, i);
           fprintf(stderr, "\n");
           LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
           werror = 1;
@@ -576,15 +694,23 @@ int avr_write(int fd, AVRPART * p, int memtype, int size)
 /*
  * issue the 'program enable' command to the AVR device
  */
-int avr_program_enable(int fd)
+int avr_program_enable(int fd, AVRPART * p)
 {
-  unsigned char cmd[4] = {0xac, 0x53, 0x00, 0x00};
+  unsigned char cmd[4];
   unsigned char res[4];
 
+  if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
+    fprintf(stderr, "program enable instruction not defined for part \"%s\"\n",
+            p->desc);
+    return -1;
+  }
+
+  memset(cmd, 0, sizeof(cmd));
+  avr_set_bits(p->op[AVR_OP_PGM_ENABLE], cmd);
   avr_cmd(fd, cmd, res);
 
   if (res[2] != cmd[1])
-    return -1;
+    return -2;
 
   return 0;
 }
@@ -595,12 +721,21 @@ int avr_program_enable(int fd)
  */
 int avr_chip_erase(int fd, AVRPART * p)
 {
-  unsigned char data[4] = {0xac, 0x80, 0x00, 0x00};
+  unsigned char cmd[4];
   unsigned char res[4];
+
+  if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
+    fprintf(stderr, "chip erase instruction not defined for part \"%s\"\n",
+            p->desc);
+    return -1;
+  }
 
   LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
 
-  avr_cmd(fd, data, res);
+  memset(cmd, 0, sizeof(cmd));
+
+  avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
+  avr_cmd(fd, cmd, res);
   usleep(p->chip_erase_delay);
   avr_initialize(fd, p);
 
@@ -613,16 +748,16 @@ int avr_chip_erase(int fd, AVRPART * p)
 /*
  * read the AVR device's signature bytes
  */
-int avr_signature(int fd, unsigned char sig[4])
+int avr_signature(int fd, AVRPART * p)
 {
-  unsigned char cmd[4] = {0x30, 0x00, 0x00, 0x00};
-  unsigned char res[4];
-  int i;
+  int rc;
 
-  for (i=0; i<4; i++) {
-    cmd[2] = i;
-    avr_cmd(fd, cmd, res);
-    sig[i] = res[3];
+  rc = avr_read(fd, p, "signature", 0, 0);
+  if (rc < 0) {
+    fprintf(stderr, 
+            "%s: error reading signature data for part \"%s\", rc=%d\n",
+            progname, p->desc, rc);
+    return -1;
   }
 
   return 0;
@@ -674,12 +809,12 @@ int avr_initialize(int fd, AVRPART * p)
    * of sync.
    */
   if (strcmp(p->desc, "AT90S1200")==0) {
-    avr_program_enable(fd);
+    avr_program_enable(fd, p);
   }
   else {
     tries = 0;
     do {
-      rc = avr_program_enable(fd);
+      rc = avr_program_enable(fd, p);
       if (rc == 0)
         break;
       ppi_pulsepin(fd, pgm->pinno[PIN_AVR_SCK]);
@@ -700,27 +835,17 @@ int avr_initialize(int fd, AVRPART * p)
 
 
 
-char * avr_memtstr(int memtype)
-{
-  switch (memtype) {
-    case AVR_M_EEPROM : return "eeprom"; break;
-    case AVR_M_FLASH  : return "flash"; break;
-    case AVR_M_FUSE   : return "fuse-bit"; break;
-    case AVR_M_LOCK   : return "fock-bit"; break;
-    default         : return "unknown-memtype"; break;
-  }
-}
-
-
 int avr_initmem(AVRPART * p)
 {
-  int i;
+  LNODEID ln;
+  AVRMEM * m;
 
-  for (i=0; i<AVR_MAXMEMTYPES; i++) {
-    p->mem[i].buf = (unsigned char *) malloc(p->mem[i].size);
-    if (p->mem[i].buf == NULL) {
+  for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+    m = ldata(ln);
+    m->buf = (unsigned char *) malloc(m->size);
+    if (m->buf == NULL) {
       fprintf(stderr, "%s: can't alloc buffer for %s size of %d bytes\n",
-              progname, avr_memtstr(i), p->mem[i].size);
+              progname, m->desc, m->size);
       return -1;
     }
   }
@@ -736,15 +861,32 @@ int avr_initmem(AVRPART * p)
  *
  * Return the number of bytes verified, or -1 if they don't match.  
  */
-int avr_verify(AVRPART * p, AVRPART * v, int memtype, int size)
+int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size)
 {
   int i;
   unsigned char * buf1, * buf2;
   int vsize;
+  AVRMEM * a, * b;
 
-  buf1  = p->mem[memtype].buf;
-  buf2  = v->mem[memtype].buf;
-  vsize = p->mem[memtype].size;
+  a = avr_locate_mem(p, memtype);
+  if (a == NULL) {
+    fprintf(stderr, 
+            "avr_verify(): memory type \"%s\" not defined for part %s\n",
+            memtype, p->desc);
+    return -1;
+  }
+
+  b = avr_locate_mem(v, memtype);
+  if (b == NULL) {
+    fprintf(stderr, 
+            "avr_verify(): memory type \"%s\" not defined for part %s\n",
+            memtype, v->desc);
+    return -1;
+  }
+
+  buf1  = a->buf;
+  buf2  = b->buf;
+  vsize = a->size;
 
   if (vsize < size) {
     fprintf(stderr, 
@@ -752,7 +894,7 @@ int avr_verify(AVRPART * p, AVRPART * v, int memtype, int size)
             "%s%s memory region only contains %d bytes\n"
             "%sOnly %d bytes will be verified.\n",
             progname, size,
-            progbuf, avr_memtstr(memtype), vsize,
+            progbuf, memtype, vsize,
             progbuf, vsize);
     size = vsize;
   }
@@ -777,20 +919,19 @@ void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type)
 {
   if (m == NULL) {
     fprintf(f, 
-            "%sMem                  Page        Page                 Polled\n"
-            "%sType   Paged  Size   Size #Pages Shift MinW  MaxW   ReadBack\n"
-            "%s------ ------ ------ ---- ------ ----- ----- ----- ---------\n",
+            "%sMem                       Page                       Polled\n"
+            "%sType        Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
+            "%s----------- ------ ------ ---- ------ ----- ----- ---------\n",
             prefix, prefix, prefix);
   }
   else {
     fprintf(f,
-            "%s%-6s %-6s %6d %4d %6d %5d %5d %5d 0x%02x 0x%02x\n",
-            prefix, avr_memtstr(type), 
+            "%s%-11s %-6s %6d %4d %5d %5d %5d 0x%02x 0x%02x\n",
+            prefix, m->desc,
             m->paged ? "yes" : "no",
             m->size, 
             m->page_size, 
             m->num_pages, 
-            m->pageaddr_shift, 
             m->min_write_delay, 
             m->max_write_delay,
             m->readback[0], 
@@ -805,6 +946,8 @@ void avr_display(FILE * f, AVRPART * p, char * prefix)
   int i;
   char * buf;
   char * px;
+  LNODEID ln;
+  AVRMEM * m;
 
   fprintf(f, 
           "%sAVR Part         : %s\n"
@@ -827,8 +970,9 @@ void avr_display(FILE * f, AVRPART * p, char * prefix)
   }
   
   avr_mem_display(px, f, NULL, 0);
-  for (i=0; i<AVR_MAXMEMTYPES; i++) {
-    avr_mem_display(px, f, &p->mem[i], i);
+  for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+    m = ldata(ln);
+    avr_mem_display(px, f, m, i);
   }
 
   if (buf)

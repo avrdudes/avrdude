@@ -520,7 +520,7 @@ int fmt_autodetect(char * fname)
 
 
 int fileio(int op, char * filename, FILEFMT format, 
-             struct avrpart * p, int memtype, int size)
+             struct avrpart * p, char * memtype, int size)
 {
   int rc;
   FILE * f;
@@ -528,6 +528,15 @@ int fileio(int op, char * filename, FILEFMT format,
   unsigned char * buf;
   struct fioparms fio;
   int i;
+  AVRMEM * mem;
+
+  mem = avr_locate_mem(p, memtype);
+  if (mem == NULL) {
+    fprintf(stderr, 
+            "fileio(): memory type \"%s\" not configured for device \"%s\"\n",
+            memtype, p->desc);
+    return -1;
+  }
 
   rc = fileio_setparms(op, &fio);
   if (rc < 0)
@@ -554,9 +563,9 @@ int fileio(int op, char * filename, FILEFMT format,
   }
 
   /* point at the requested memory buffer */
-  buf = p->mem[memtype].buf;
+  buf = mem->buf;
   if (fio.op == FIO_READ)
-    size = p->mem[memtype].size;
+    size = mem->size;
 
   if (fio.op == FIO_READ) {
     /* 0xff fill unspecified memory */

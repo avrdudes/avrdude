@@ -45,7 +45,7 @@ LISTID       string_list;
 LISTID       number_list;
 PROGRAMMER * current_prog;
 AVRPART    * current_part;
-int          current_mem;
+AVRMEM     * current_mem;
 LISTID       part_list;
 LISTID       programmers;
 
