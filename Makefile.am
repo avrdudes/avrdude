@@ -27,8 +27,8 @@ EXTRA_DIST   = \
 	avrdude.spec \
 	bootstrap
 
-SUBDIRS      = @WINDOWS_DIRS@
-DIST_SUBDIRS = windows
+SUBDIRS      = doc @WINDOWS_DIRS@
+DIST_SUBDIRS = doc windows
 
 AM_YFLAGS    = -d
 
