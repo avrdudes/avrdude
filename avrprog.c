@@ -525,6 +525,11 @@ int main ( int argc, char * argv [] )
   else
     progname = argv[0];
 
+  if (argc == 1) {
+    usage();
+    return 0;
+  }
+
   while ((ch = getopt(argc,argv,"?efo:ru:")) != -1) {
     switch (ch) {
       case 'e':
