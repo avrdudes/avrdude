@@ -495,6 +495,9 @@ The @var{filename} field indicates the name of the file to read or
 write.  The @var{format} field is optional and contains the format of
 the file to read or write.  See the @option{-f} option for possible
 values.
+Note that if @var{filename} contains a colon, the @var{format} field is
+no longer optional since the filename part following the colon would
+otherwise be misinterpreted as @var{format}.
 
 @item -v
 Enable verbose output.
@@ -574,11 +577,11 @@ avrdude done.  Thank you.
 @noindent
 Upload the flash memory from the ATmega128 connected to the STK500
 programmer and save it in raw binary format in the file named
-@code{diag.flash}:
+@code{c:/diag flash.bin}:
 
 @example
 @cartouche
-% avrdude -p m128 -c stk500 -U flash:r:diag.flash:r 
+% avrdude -p m128 -c stk500 -U flash:r:"c:/diag flash.bin":r 
 
 avrdude: AVR device initialized and ready to accept instructions
 
@@ -589,7 +592,7 @@ avrdude: reading flash memory:
 
 Reading | ################################################## | 100% 46.10s
 
-avrdude: writing output file "diag.flash"
+avrdude: writing output file "c:/diag flash.bin"
 
 avrdude done.  Thank you.
 

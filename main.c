@@ -393,9 +393,10 @@ static void update_progress_no_tty (int percent, double etime, char *hdr)
 UPDATE * parse_op(char * s)
 {
   char buf[1024];
-  char * p;
+  char * p, * cp, c;
   UPDATE * upd;
   int i;
+  size_t fnlen;
 
   upd = (UPDATE *)malloc(sizeof(UPDATE));
   if (upd == NULL) {
@@ -457,55 +458,52 @@ UPDATE * parse_op(char * s)
 
   p++;
 
-  i = 0;
-  while ((i < (sizeof(buf)-1) && *p && (*p != ':')))
-    buf[i++] = *p++;
-  
-  if (!((*p == ':')||(*p == 0))) {
-    fprintf(stderr, "%s: invalid update specification\n", progname);
-    free(upd->memtype);
-    free(upd);
-    return NULL;
-  }
-
-  buf[i] = 0;
-
-  upd->filename = (char *)malloc(strlen(buf)+1);
-  if (upd->filename == NULL) {
-    fprintf(stderr, "%s: out of memory\n", progname);
-    free(upd->memtype);
-    free(upd);
-    return NULL;
-  }
-  strcpy(upd->filename, buf);
-
-  upd->format = FMT_AUTO;
-
-  if (*p == ':') {
-    p++;
-    switch (*p) {
+  /*
+   * Now, parse the filename component.  Instead of looking for the
+   * leftmost possible colon delimiter, we look for the rightmost one.
+   * If we found one, we do have a trailing :format specifier, and
+   * process it.  Otherwise, the remainder of the string is our file
+   * name component.  That way, the file name itself is allowed to
+   * contain a colon itself (e. g. C:/some/file.hex), except the
+   * optional format specifier becomes mandatory then.
+   */
+  cp = p;
+  p = strrchr(cp, ':');
+  if (p == NULL) {
+    upd->format = FMT_AUTO;
+    fnlen = strlen(cp);
+    upd->filename = (char *)malloc(fnlen + 1);
+  } else {
+    fnlen = p - cp;
+    upd->filename = (char *)malloc(fnlen +1);
+    c = *++p;
+    if (c && p[1])
+      /* More than one char - force failure below. */
+      c = '?';
+    switch (c) {
       case 'a': upd->format = FMT_AUTO; break;
       case 's': upd->format = FMT_SREC; break;
       case 'i': upd->format = FMT_IHEX; break;
       case 'r': upd->format = FMT_RBIN; break;
       case 'm': upd->format = FMT_IMM; break;
       default:
-        fprintf(stderr, "%s: invalid file format '%c' in update specifier\n",
-                progname, *p);
+        fprintf(stderr, "%s: invalid file format '%s' in update specifier\n",
+                progname, p);
         free(upd->memtype);
-        free(upd->filename);
         free(upd);
         return NULL;
     }
-    p++;
   }
 
-  if (*p != 0) {
-    fprintf(stderr, 
-            "%s: WARNING, extraneous data (%s) in update specifier ignored\n",
-            progname, p);
+  if (upd->filename == NULL) {
+    fprintf(stderr, "%s: out of memory\n", progname);
+    free(upd->memtype);
+    free(upd);
+    return NULL;
   }
-  
+  memcpy(upd->filename, cp, fnlen);
+  upd->filename[fnlen] = 0;
+
   return upd;
 }
 
