@@ -64,11 +64,15 @@ int cmd_erase (int fd, struct avrpart * p, int argc, char *argv[]);
 
 int cmd_sig   (int fd, struct avrpart * p, int argc, char *argv[]);
 
+int cmd_cal   (int fd, struct avrpart * p, int argc, char *argv[]);
+
 int cmd_part  (int fd, struct avrpart * p, int argc, char *argv[]);
 
 int cmd_help  (int fd, struct avrpart * p, int argc, char *argv[]);
 
 int cmd_quit  (int fd, struct avrpart * p, int argc, char *argv[]);
+
+int cmd_send  (int fd, struct avrpart * p, int argc, char *argv[]);
 
 
 struct command cmd[] = {
@@ -77,7 +81,9 @@ struct command cmd[] = {
   { "write", cmd_write, "write memory : %s [eeprom|flash] <addr> <b1> <b2> ... <bN>" },
   { "erase", cmd_erase, "perform a chip erase" },
   { "sig",   cmd_sig,   "display device signature bytes" },
+  { "cal",   cmd_cal,   "display device calibration byte" },
   { "part",  cmd_part,  "display the current part settings" },
+  { "send",  cmd_send,  "send a command : %s <b1> <b2> <b3> <b4>" },
   { "help",  cmd_help,  "help" },
   { "?",     cmd_help,  "help" },
   { "quit",  cmd_quit,  "quit" }
@@ -215,7 +221,7 @@ int cmd_dump(int fd, struct avrpart * p, int argc, char * argv[])
   }
   else {
     if (!((argc == 2) || (argc == 4))) {
-      fprintf(stderr, "Usage: dump flash|eeprom [<addr> <len>]\n");
+      fprintf(stderr, "Usage: dump flash|eeprom|fuse|lock [<addr> <len>]\n");
       return -1;
     }
 
@@ -225,6 +231,14 @@ int cmd_dump(int fd, struct avrpart * p, int argc, char * argv[])
     }
     else if (strncasecmp(argv[1],"eeprom",l)==0) {
       memtype = AVR_M_EEPROM;
+    }
+    else if ((strncasecmp(argv[1],"fuse",l)==0)||
+             (strncasecmp(argv[1],"fuse-bit",l)==0)) {
+      memtype = AVR_M_FUSE;
+    }
+    else if ((strncasecmp(argv[1],"lock",l)==0)||
+             (strncasecmp(argv[1],"lock-bit",l)==0)) {
+      memtype = AVR_M_LOCK;
     }
     else {
       fprintf(stderr, "%s (dump): invalid memory type \"%s\"\n",
@@ -249,7 +263,20 @@ int cmd_dump(int fd, struct avrpart * p, int argc, char * argv[])
     }
   }
 
-  maxsize = p->mem[memtype].size;
+  maxsize = 0;
+
+  switch (memtype) {
+    case AVR_M_FLASH:
+    case AVR_M_EEPROM:
+      maxsize = p->mem[memtype].size;
+      break;
+    case AVR_M_FUSE:
+      maxsize = 2;
+      break;
+    case AVR_M_LOCK:
+      maxsize = 1;
+      break;
+  }
 
   if (argc == 2) {
     addr = 0;
@@ -273,8 +300,20 @@ int cmd_dump(int fd, struct avrpart * p, int argc, char * argv[])
     return -1;
   }
 
-  for (i=0; i<len; i++)
-    buf[i] = avr_read_byte(fd, p, memtype, addr+i);
+  for (i=0; i<len; i++) {
+    switch (memtype) {
+      case AVR_M_FLASH:
+      case AVR_M_EEPROM:
+        buf[i] = avr_read_byte(fd, p, memtype, addr+i);
+        break;
+      case AVR_M_FUSE:
+        buf[i] = avr_read_fuse(fd, p, addr+i);
+        break;
+      case AVR_M_LOCK:
+        buf[i] = avr_read_lock(fd, p);
+        break;
+    }
+  }
 
   hexdump_buf(stdout, addr, buf, len);
 
@@ -298,8 +337,8 @@ int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
   int werror;
 
   if (argc < 4) {
-    fprintf(stderr, 
-            "Usage: write flash|eeprom <addr> <byte1> <byte2> ... byteN>\n");
+    fprintf(stderr, "Usage: write flash|eeprom|fuse <addr> <byte1> "
+            "<byte2> ... byteN>\n");
     return -1;
   }
 
@@ -310,19 +349,39 @@ int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
   else if (strncasecmp(argv[1],"eeprom",l)==0) {
     memtype = AVR_M_EEPROM;
   }
+  else if ((strncasecmp(argv[1],"fuse",l)==0)||
+           (strncasecmp(argv[1],"fuse-bit",l)==0)) {
+    memtype = AVR_M_FUSE;
+  }
+  else if ((strncasecmp(argv[1],"lock",l)==0)||
+           (strncasecmp(argv[1],"lock-bit",l)==0)) {
+    memtype = AVR_M_LOCK;
+  }
   else {
     fprintf(stderr, "%s (write): invalid memory type \"%s\"\n",
             progname, argv[1]);
     return -1;
   }
 
-  if (p->mem[memtype].paged) {
-    fprintf(stderr, "%s (write): sorry, interactive write of page addressed "
-            "memory is not supported\n", progname);
-    return -1;
-  }
+  maxsize = 0;
 
-  maxsize = p->mem[memtype].size;
+  switch (memtype) {
+    case AVR_M_FLASH:
+    case AVR_M_EEPROM:
+      if (p->mem[memtype].paged) {
+        fprintf(stderr, "%s (write): sorry, interactive write of page "
+                "addressed memory is not supported\n", progname);
+        return -1;
+      }
+      maxsize = p->mem[memtype].size;
+      break;
+    case AVR_M_FUSE:
+      maxsize = 2;
+      break;
+    case AVR_M_LOCK:
+      maxsize = 1;
+      break;
+  }
 
   addr = strtoul(argv[2], &e, 0);
   if (*e || (e == argv[2])) {
@@ -360,13 +419,28 @@ int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
     if (*e || (e == argv[i])) {
       fprintf(stderr, "%s (write): can't parse byte \"%s\"\n",
               progname, argv[i]);
+      free(buf);
       return -1;
     }
   }
 
   LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
   for (werror=0, i=0; i<len; i++) {
-    rc = avr_write_byte(fd, p, memtype, addr+i, buf[i]);
+
+    rc = 0;
+    switch (memtype) {
+      case AVR_M_EEPROM:
+      case AVR_M_FLASH:
+        rc = avr_write_byte(fd, p, memtype, addr+i, buf[i]);
+        break;
+      case AVR_M_FUSE:
+        rc = avr_write_fuse(fd, p, addr+i, buf[i]);
+        break;
+      case AVR_M_LOCK:
+        rc = avr_write_lock(fd, p, buf[i]);
+        break;
+    }
+        
     if (rc) {
       fprintf(stderr, "%s (write): error writing 0x%02x at 0x%04x\n",
               progname, buf[i], addr+i);
@@ -378,6 +452,49 @@ int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
   }
 
   free(buf);
+
+  fprintf(stdout, "\n");
+
+  return 0;
+}
+
+
+int cmd_send(int fd, struct avrpart * p, int argc, char * argv[])
+{
+  unsigned char cmd[4], res[4];
+  char * e;
+  int i;
+  int len;
+
+  if (argc != 5) {
+    fprintf(stderr, "Usage: send <byte1> <byte2> <byte3> <byte4>\n");
+    return -1;
+  }
+
+  /* number of bytes to write at the specified address */
+  len = argc - 1;
+
+  /* load command bytes */
+  for (i=1; i<argc; i++) {
+    cmd[i-1] = strtoul(argv[i], &e, 0);
+    if (*e || (e == argv[i])) {
+      fprintf(stderr, "%s (send): can't parse byte \"%s\"\n",
+              progname, argv[i]);
+      return -1;
+    }
+  }
+
+  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
+
+  avr_cmd(fd, cmd, res);
+
+  /*
+   * display results
+   */
+  fprintf(stderr, "results:");
+  for (i=0; i<len; i++)
+    fprintf(stderr, " %02x", res[i]);
+  fprintf(stderr, "\n");
 
   fprintf(stdout, "\n");
 
@@ -413,6 +530,17 @@ int cmd_sig(int fd, struct avrpart * p, int argc, char * argv[])
   for (i=0; i<4; i++)
     fprintf(stdout, "%02x", sig[i]);
   fprintf(stdout, "\n\n");
+
+  return 0;
+}
+
+
+int cmd_cal(int fd, struct avrpart * p, int argc, char * argv[])
+{
+  unsigned char byte;
+
+  byte = avr_read_calibration(fd, p);
+  fprintf(stdout, "\nDevice calibration = 0x%02x\n\n", byte);
 
   return 0;
 }

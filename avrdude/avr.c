@@ -49,75 +49,6 @@ extern PROGRAMMER * pgm;
 char * avr_version = "$Id$";
 
 
-/* Need to add information for 2323, 2343, and 4414 */
-
-#if 0
-struct avrpart parts[] = {
-  {"AT90S1200", "1200", 20000, 
-   {{0,     64,   0,   0,  9000, 20000, {0x00, 0xff }, NULL},   /* eeprom */
-    {0,   1024,   0,   0,  9000, 20000, {0xff,    0 }, NULL}}}, /* flash  */
-  
-  {"AT90S2313", "2313", 20000, 
-   {{0,    128,   0,   0,  9000, 20000, {0x80, 0x7f }, NULL},   /* eeprom */
-    {0,   2048,   0,   0,  9000, 20000, {0x7f,    0 }, NULL}}}, /* flash  */
-  
-  {"AT90S2333", "2333", 20000, 
-   {{0,    128,   0,   0,  9000, 20000, {0x00, 0xff }, NULL},   /* eeprom */
-    {0,   2048,   0,   0,  9000, 20000, {0xff,    0 }, NULL}}}, /* flash  */
-  
-  {"AT90S4433", "4433", 20000, 
-   {{0,    256,   0,   0,  9000, 20000, {0x00, 0xff }, NULL},   /* eeprom */
-    {0,   4096,   0,   0,  9000, 20000, {0xff,    0 }, NULL}}}, /* flash  */
-  
-  {"AT90S4434", "4434", 20000, 
-   {{0,    256,   0,   0,  9000, 20000, {0x00, 0xff }, NULL},   /* eeprom */
-    {0,   4096,   0,   0,  9000, 20000, {0xff,    0 }, NULL}}}, /* flash  */
-  
-  {"AT90S8515", "8515", 20000, 
-   {{0,    512,   0,   0,  9000, 20000, {0x80, 0x7f }, NULL},   /* eeprom */
-    {0,   8192,   0,   0,  9000, 20000, {0x7f, 0x00 }, NULL}}}, /* flash  */
-  
-  {"AT90S8535", "8535", 20000, 
-   {{0,    512,   0,   0,  9000, 20000, {0x00, 0xff }, NULL},   /* eeprom */
-    {0,   8192,   0,   0,  9000, 20000, {0xff, 0x00 }, NULL}}}, /* flash  */
-  
-  {"ATMEGA103", "103", 56000*2, 
-   {{0,   4096,   0,   0, 64000, 69000, {0x80, 0x7f }, NULL},   /* eeprom */
-    {1, 131072, 256, 512, 22000, 56000, {0xff, 0x00 }, NULL}}}, /* flash  */
-
-};
-
-#define N_AVRPARTS (sizeof(parts)/sizeof(struct avrpart))
-
-
-int avr_list_parts(FILE * f, char * prefix)
-{
-  int i;
-
-  for (i=0; i<N_AVRPARTS; i++) {
-    fprintf(f, "%s%s = %s\n", 
-            prefix, parts[i].optiontag, parts[i].partdesc);
-  }
-
-  return i;
-}
-
-
-struct avrpart * avr_find_part(char * p)
-{
-  int i;
-
-  for (i=0; i<N_AVRPARTS; i++) {
-    if (strcmp(parts[i].optiontag, p)==0) {
-      return &parts[i];
-    }
-  }
-
-  return NULL;
-}
-#endif
-
-
 AVRPART * avr_new_part(void)
 {
   AVRPART * p;
@@ -229,6 +160,133 @@ int avr_cmd(int fd, unsigned char cmd[4], unsigned char res[4])
 
 
 /*
+ * read a calibration byte
+ */
+unsigned char avr_read_calibration(int fd, AVRPART * p)
+{
+  unsigned char cmd[4];
+  unsigned char res[4];
+
+  LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
+  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
+
+  cmd[0] = 0x38;
+  cmd[1] = 0x00; /* don't care */
+  cmd[2] = 0x00;
+  cmd[3] = 0x00; /* don't care */
+
+  avr_cmd(fd, cmd, res);
+
+  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
+
+  return res[3];    /* calibration byte */
+}
+
+
+/*
+ * read a fuse byte
+ */
+unsigned char avr_read_fuse(int fd, AVRPART * p, int high)
+{
+  unsigned char cmd[4];
+  unsigned char res[4];
+  static unsigned char cmdbyte1[2] = { 0x50, 0x58 };
+  static unsigned char cmdbyte2[2] = { 0x00, 0x08 };
+
+  LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
+  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
+
+  cmd[0] = cmdbyte1[high];
+  cmd[1] = cmdbyte2[high];
+  cmd[2] = 0;               /* don't care */
+  cmd[3] = 0;               /* don't care */
+
+  avr_cmd(fd, cmd, res);
+
+  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
+
+  return res[3];    /* fuse bits */
+}
+
+
+/*
+ * write a fuse byte
+ */
+int avr_write_fuse(int fd, AVRPART * p, int high, unsigned char b)
+{
+  unsigned char cmd[4];
+  unsigned char res[4];
+  static unsigned char cmdbyte[2] = { 0xa0, 0xa8 };
+
+  LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
+  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
+
+  cmd[0] = 0xac;
+  cmd[1] = cmdbyte[high];
+  cmd[2] = 0x00;            /* don't care */
+  cmd[3] = b;               /* fuse bits  */
+
+  avr_cmd(fd, cmd, res);
+
+  usleep(2000);
+
+  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
+
+  return 0;
+}
+
+
+/*
+ * read a lock byte
+ */
+unsigned char avr_read_lock(int fd, AVRPART * p)
+{
+  unsigned char cmd[4];
+  unsigned char res[4];
+
+  LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
+  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
+
+  cmd[0] = 0x58;
+  cmd[1] = 0x00;
+  cmd[2] = 0;
+  cmd[3] = 0;               /* don't care */
+
+  avr_cmd(fd, cmd, res);
+
+  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
+
+  return res[3];  /* lock bits */
+}
+
+
+/*
+ * write a lock byte
+ */
+int avr_write_lock(int fd, AVRPART * p, unsigned char b)
+{
+  unsigned char cmd[4];
+  unsigned char res[4];
+
+  LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
+  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
+
+  cmd[0] = 0x5c;
+  cmd[1] = 0xe0;
+  cmd[2] = 0;               /* don't care */
+  cmd[3] = b;               /* lock bits  */
+
+  avr_cmd(fd, cmd, res);
+
+  usleep(2000);
+
+  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
+
+  return 0;
+}
+
+
+/*
  * read a byte of data from the indicated memory region
  */
 unsigned char avr_read_byte(int fd, AVRPART * p,
@@ -265,19 +323,20 @@ unsigned char avr_read_byte(int fd, AVRPART * p,
 
 /*
  * Read the entirety of the specified memory type into the
- * corresponding buffer of the avrpart pointed to by 'p'.
+ * corresponding buffer of the avrpart pointed to by 'p'.  If size =
+ * 0, read the entire contents, otherwize, read 'size' bytes.
  *
- * Return the number of bytes read, or -1 if an error occurs.  
- */
-int avr_read(int fd, AVRPART * p, int memtype)
+ * Return the number of bytes read, or -1 if an error occurs.  */
+int avr_read(int fd, AVRPART * p, int memtype, int size)
 {
   unsigned char    rbyte;
   unsigned long    i;
   unsigned char  * buf;
-  int              size;
 
   buf  = p->mem[memtype].buf;
-  size = p->mem[memtype].size;
+  if (size == 0) {
+    size = p->mem[memtype].size;
+  }
 
   for (i=0; i<size; i++) {
     rbyte = avr_read_byte(fd, p, memtype, i);
@@ -290,6 +349,9 @@ int avr_read(int fd, AVRPART * p, int memtype)
 
   return i;
 }
+
+
+
 
 
 /*
@@ -643,6 +705,8 @@ char * avr_memtstr(int memtype)
   switch (memtype) {
     case AVR_M_EEPROM : return "eeprom"; break;
     case AVR_M_FLASH  : return "flash"; break;
+    case AVR_M_FUSE   : return "fuse-bit"; break;
+    case AVR_M_LOCK   : return "fock-bit"; break;
     default         : return "unknown-memtype"; break;
   }
 }

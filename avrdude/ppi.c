@@ -35,6 +35,8 @@
 
 #include "ppi.h"
 
+#define SLOW_TOGGLE 0
+
 extern char * progname;
 
 struct ppipins_t {
@@ -224,7 +226,16 @@ int ppi_setall(int fd, int reg, int val)
 int ppi_pulse(int fd, int reg, int bit)
 {
   ppi_toggle(fd, reg, bit);
+
+#if SLOW_TOGGLE
+  usleep(1000);
+#endif
+
   ppi_toggle(fd, reg, bit);
+
+#if SLOW_TOGGLE
+  usleep(1000);
+#endif
 
   return 0;
 }
@@ -245,6 +256,10 @@ int ppi_setpin(int fd, int pin, int value)
     ppi_set(fd, pins[pin].reg, pins[pin].bit);
   else
     ppi_clr(fd, pins[pin].reg, pins[pin].bit);
+
+#if SLOW_TOGGLE
+  usleep(1000);
+#endif
 
   return 0;
 }
@@ -280,7 +295,16 @@ int ppi_pulsepin(int fd, int pin)
   pin--;
 
   ppi_toggle(fd, pins[pin].reg, pins[pin].bit);
+
+#if SLOW_TOGGLE
+  usleep(1000);
+#endif
+
   ppi_toggle(fd, pins[pin].reg, pins[pin].bit);
+
+#if SLOW_TOGGLE
+  usleep(1000);
+#endif
 
   return 0;
 }

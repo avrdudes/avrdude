@@ -42,6 +42,8 @@
  */
 #define AVR_M_EEPROM 0
 #define AVR_M_FLASH  1
+#define AVR_M_FUSE   2
+#define AVR_M_LOCK   3
 
 #define AVR_MAXMEMTYPES 2     /* just flash and eeprom */
 
@@ -86,10 +88,20 @@ unsigned char avr_txrx(int fd, unsigned char byte);
 
 int avr_cmd(int fd, unsigned char cmd[4], unsigned char res[4]);
 
+unsigned char avr_read_calibration(int fd, AVRPART * p);
+
+unsigned char avr_read_fuse(int fd, AVRPART * p, int high);
+
+int avr_write_fuse(int fd, AVRPART * p, int high, unsigned char b);
+
+unsigned char avr_read_lock(int fd, AVRPART * p);
+
+int avr_write_lock(int fd, AVRPART * p, unsigned char b);
+
 unsigned char avr_read_byte(int fd, AVRPART * p,
                             int memtype, unsigned long addr);
 
-int avr_read(int fd, AVRPART * p, int memtype);
+int avr_read(int fd, AVRPART * p, int memtype, int size);
 
 int avr_write_bank(int fd, AVRPART * p, int memtype, 
                    unsigned short bank);
