@@ -8,6 +8,13 @@ Approximate change log for AVRDUDE by version.
 
 Current:
 
+  * Perform an auto erase before programming if the flash memory is
+    anywhere specified to be written by any of the -U requests.  Old
+    style memory specification options (-f, -i, -I, -m, and -o) are
+    deprecated in favor of the new -U options.  Auto erase is disabled
+    if any of the old-style options (specifically -i and -o) are
+    specified.
+
   * Add new -U option for specifying programming operations - allows
     multiple memory operations on a single command line.
 
