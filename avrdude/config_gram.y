@@ -399,9 +399,9 @@ mem_spec :
       free_token($3);
     } |
 
-  K_PWROFF_AFTER_WRITE TKN_EQUAL TKN_NUMBER
+  K_PWROFF_AFTER_WRITE TKN_EQUAL yesno
     {
-      current_mem->pwroff_after_write = $3->value.number;
+      current_mem->pwroff_after_write = $3->primary == K_YES ? 1 : 0;
       free_token($3);
     } |
 
