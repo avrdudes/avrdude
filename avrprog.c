@@ -1,19 +1,46 @@
 /*
- * Copyright 2000, Brian Dean
+ * Copyright 2000  Brian S. Dean <bsd@bsdhome.com>
  * All Rights Reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY BRIAN S. DEAN ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL BRIAN S. DEAN BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ * 
  */
 
 /* $Id$ */
 
 /*
- * Code to program an Atmel AVR device using the parallel port.
+ * Code to program an Atmel AVR AT90S device using the parallel port.
  *
  * Make the following connections:
  *
- *  Pin  2 -> PB7(SCK)  CLOCK IN             (data bit 0)
- *  Pin  3 -> PB5(MOSI) Instruction input    (data bit 1)
- *  Pin  4 -> /RESET                         (data bit 2)
- *  Pin 10 <- PB6(MISO) Data out             (status bit 6)
+ *  Parallel Port      Atmel AVR
+ *  -------------      ----------------------------
+ *    Pin  2       ->   Vcc
+ *    Pin  3       ->   PB7(SCK)  CLOCK IN
+ *    Pin  4       ->   PB5(MOSI) Instruction input
+ *    Pin  5       ->   /RESET
+ *    Pin 10       <-   PB6(MISO) Data out
  *
  */
 
@@ -33,9 +60,10 @@
 char * progname;
 
 
-#define AVR_CLOCK 0x01  /* bit 0 of data register */
-#define AVR_INSTR 0x02  /* bit 1 of data register */
-#define AVR_RESET 0x04  /* bit 2 of data register */
+#define AVR_POWER 0x01  /* bit 0 of data register */
+#define AVR_CLOCK 0x02  /* bit 1 of data register */
+#define AVR_INSTR 0x04  /* bit 2 of data register */
+#define AVR_RESET 0x08  /* bit 3 of data register */
 #define AVR_DATA  0x40  /* bit 6 of status register */
 
 
@@ -52,23 +80,6 @@ enum {
   AVR_FLASH_LO,
   AVR_FLASH_HI
 };
-
-
-int dprintf ( FILE * f, char * format, ... )
-{
-#if DEBUG
-  va_list ap;
-  int rc;
-
-  va_start(ap,format);
-  rc = vfprintf(f,format,ap);
-  va_end(ap);
-
-  return rc;
-#else
-  return 0;
-#endif
-}
 
 
 int ppi_getops ( int reg, unsigned long * get, unsigned long * set )
@@ -207,19 +218,32 @@ unsigned char avr_txrx ( int fd, unsigned char byte )
 }
 
 
-unsigned char avr_read_byte ( int fd, unsigned short addr, int memtype )
+int avr_cmd ( int fd, unsigned char * cmd, unsigned char * res )
 {
-  unsigned char r;
+  int i;
+
+  for (i=0; i<4; i++) {
+    res[i] = avr_txrx(fd, cmd[i]);
+  }
+
+  return 0;
+}
+
+
+unsigned char avr_read_byte ( int fd, int memtype, unsigned short addr )
+{
+  unsigned char cmd[4];
+  unsigned char res[4];
 
   switch (memtype) {
     case AVR_FLASH_LO: 
-      avr_txrx(fd, 0x20); 
+      cmd[0] = 0x20;
       break;
     case AVR_FLASH_HI: 
-      avr_txrx(fd, 0x28); 
+      cmd[0] = 0x28;
       break;
     case AVR_EEPROM: 
-      avr_txrx(fd, 0xa0); 
+      cmd[0] = 0xa0;
       addr &= 0x7f;
       break;
     default:
@@ -229,24 +253,28 @@ unsigned char avr_read_byte ( int fd, unsigned short addr, int memtype )
       break;
   }
 
-  avr_txrx(fd, addr >> 8);     /* high order bits of address       */
-  avr_txrx(fd, addr & 0x0ff);  /* low order bits of address        */
-  r = avr_txrx(fd, 0);         /* don't care                       */
+  cmd[1] = addr >> 8;     /* high order bits of address       */
+  cmd[2] = addr & 0x0ff;  /* low order bits of address        */
+  cmd[3] = 0;             /* don't care                       */
 
-  return r;
+  avr_cmd(fd, cmd, res);
+
+  return res[3];
 }
 
 
 int avr_read ( int fd, int memtype, unsigned start, unsigned n, 
                unsigned char * buf, int bufsize )
 {
-  unsigned char rbyte;
-  unsigned short data;
+  unsigned char rbyte, memt;
   unsigned short end, i, bi;
 
   switch (memtype) {
-    case AVR_FLASH  : 
+    case AVR_FLASH  :
+      memt = AVR_FLASH_LO;
+      break;
     case AVR_EEPROM : 
+      memt = memtype;
       break;
     default:
       fprintf(stderr, "%s: avr_read(); internal error: invalid memtype=%d\n",
@@ -260,29 +288,21 @@ int avr_read ( int fd, int memtype, unsigned start, unsigned n,
   bi = 0;
 
   for (i=start; i<end; i++) {
+    /* eeprom or low byte of flash */
+    rbyte = avr_read_byte(fd, memt, i);
+    fprintf ( stderr, "                    \r%4u  0x%02x", i, rbyte );
+    if (bi < bufsize) {
+      buf[bi++] = rbyte;
+    }
+
     if (memtype == AVR_FLASH) {
-      rbyte = avr_read_byte(fd, i, AVR_FLASH_LO);  /* flash low byte */
-      fprintf ( stderr, "                    \r%4u  0x%02x", i, rbyte );
-      data = rbyte;
-      if (bi < bufsize) {
-        buf[bi++] = rbyte;
-      }
-
-      rbyte = avr_read_byte(fd, i, AVR_FLASH_HI);  /* flash high byte */
+      /* flash high byte */
+      rbyte = avr_read_byte(fd, AVR_FLASH_HI, i);
       fprintf ( stderr, " 0x%02x", rbyte );
-      data |= (rbyte << 8);
       if (bi < bufsize) {
         buf[bi++] = rbyte;
       }
     }
-    else {
-      rbyte = avr_read_byte(fd, i, memtype);  /* eeprom byte */
-      fprintf ( stderr, "          \r%4u  0x%02x", i, rbyte );
-      if (bi < bufsize) {
-        buf[bi++] = rbyte;
-      }
-    }
-
   }
 
   fprintf ( stderr, "\n" );
@@ -293,19 +313,20 @@ int avr_read ( int fd, int memtype, unsigned start, unsigned n,
 
 int avr_write_byte ( int fd, int memtype, unsigned short addr, unsigned char data )
 {
+  unsigned char cmd[4], res[4];
   unsigned char r;
   int ready;
   int tries;
 
   switch (memtype) {
     case AVR_FLASH_LO: 
-      avr_txrx(fd, 0x40); 
+      cmd[0] = 0x40;
       break;
     case AVR_FLASH_HI: 
-      avr_txrx(fd, 0x48); 
+      cmd[0] = 0x48;
       break;
     case AVR_EEPROM: 
-      avr_txrx(fd, 0xc0); 
+      cmd[0] = 0xc0;
       addr &= 0x7f;
       break;
     default:
@@ -315,26 +336,32 @@ int avr_write_byte ( int fd, int memtype, unsigned short addr, unsigned char dat
       break;
   }
 
-  avr_txrx(fd, addr >> 8);     /* high order bits of address       */
-  avr_txrx(fd, addr & 0x0ff);  /* low order bits of address        */
-  avr_txrx(fd, data);          /* data                             */
+  cmd[1] = addr >> 8;     /* high order bits of address       */
+  cmd[2] = addr & 0x0ff;  /* low order bits of address        */
+  cmd[3] = data;          /* data                             */
+
+  avr_cmd(fd, cmd, res);
 
   tries = 0;
   ready = 0;
   while (!ready) {
     usleep(5000);               /* flash write delay */
-    r = avr_read_byte ( fd, addr, memtype );
+    r = avr_read_byte(fd, memtype, addr);
     if (data == 0x7f) {
-      usleep(20000);
+      usleep(20000);    /* long delay for 0x7f since polling doesn't work */
       ready = 1;
     }
     else if (r == data) {
       ready = 1;
     }
+
     tries++;
     if (!ready && tries > 10) {
-      fprintf(stderr, "**" );
-      ready = 1;
+      /*
+       * we couldn't write the data, indicate our displeasure by
+       * returning an error code 
+       */
+      return -1;
     }
   }
 
@@ -343,17 +370,21 @@ int avr_write_byte ( int fd, int memtype, unsigned short addr, unsigned char dat
 
 
 int avr_write ( int fd, int memtype, unsigned start, 
-                unsigned char * buf, int size )
+                unsigned char * buf, int bufsize )
 {
-  unsigned char data;
+  unsigned char data, memt;
   unsigned short end, i, bi;
+  int nl;
+  int rc;
 
   switch (memtype) {
     case AVR_FLASH  : 
-      end = start+size/2;
+      end = start+bufsize/2;
+      memt = AVR_FLASH_LO;
       break;
     case AVR_EEPROM : 
-      end = start+size;
+      end = start+bufsize;
+      memt = memtype;
       break;
     default:
       fprintf(stderr, "%s: avr_write(); internal error: invalid memtype=%d\n",
@@ -365,23 +396,28 @@ int avr_write ( int fd, int memtype, unsigned start,
   bi = 0;
 
   for (i=start; i<end; i++) {
+    /* eeprom or low byte of flash */
+    data = buf[bi++];
+    nl = 0;
+    rc = avr_write_byte(fd, memt, i, data );
+    fprintf(stderr, "                      \r%4u 0x%02x", i, data);
+    if (rc) {
+      fprintf(stderr, " ***failed;  ");
+      nl = 1;
+    }
+    
     if (memtype == AVR_FLASH) {
-      /* low byte */
+      /* high byte of flash */
       data = buf[bi++];
-      avr_write_byte(fd, AVR_FLASH_LO, i, data );
-      fprintf ( stderr, "                      \r%4u 0x%02x", i, data );
-
-      /* high byte */
-      data = buf[bi++];
-      avr_write_byte(fd, AVR_FLASH_HI, i, data );
-      fprintf ( stderr, " 0x%02x", data );
+      rc = avr_write_byte(fd, AVR_FLASH_HI, i, data );
+      fprintf(stderr, " 0x%02x", data);
+      if (rc) {
+        fprintf(stderr, " ***failed;  " );
+        nl = 1;
+      }
     }
-    else {
-      data = buf[bi++];
-      avr_write_byte(fd, memtype, i, data );
-      fprintf ( stderr, "            \r%4u 0x%02x", i, data );
-    }
-
+    if (nl)
+      fprintf(stderr, "\n");
   }
 
   fprintf ( stderr, "\n" );
@@ -392,23 +428,12 @@ int avr_write ( int fd, int memtype, unsigned start,
 
 int avr_program_enable ( int fd )
 {
-  unsigned char data[4] = {0xac, 0x53, 0x00, 0x00};
-  unsigned char byte, rbyte;
-  int avrok;
-  int i;
+  unsigned char cmd[4] = {0xac, 0x53, 0x00, 0x00};
+  unsigned char res[4];
 
-  avrok = 0;
+  avr_cmd(fd, cmd, res);
 
-  for (i=0; i<4; i++) {
-    byte = data[i];
-    rbyte = avr_txrx ( fd, byte );
-    if (i == 2) {
-      if (rbyte == data[1])
-        avrok = 1;
-    }
-  }
-
-  if (!avrok)
+  if (res[2] != cmd[1])
     return -1;
 
   return 0;
@@ -418,11 +443,9 @@ int avr_program_enable ( int fd )
 int avr_chip_erase ( int fd )
 {
   unsigned char data[4] = {0xac, 0x80, 0x00, 0x00};
-  int i;
+  unsigned char res[4];
 
-  for (i=0; i<4; i++) {
-    avr_txrx ( fd, data[i] );
-  }
+  avr_cmd(fd, data, res);
 
   usleep(20000);
 
@@ -430,10 +453,41 @@ int avr_chip_erase ( int fd )
 }
 
 
+int avr_signature ( int fd, char sig[4] )
+{
+  unsigned char cmd[4] = {0x30, 0x00, 0x00, 0x00};
+  unsigned char res[4];
+  int i;
+
+  for (i=0; i<4; i++) {
+    cmd[2] = i;
+    avr_cmd(fd, cmd, res);
+    sig[i] = res[3];
+  }
+
+  return 0;
+}
+
+
+void avr_powerup ( int fd )
+{
+  ppi_set(fd, PPIDATA, AVR_POWER);    /* power up */
+  usleep(100000);
+}
+
+
+void avr_powerdown ( int fd )
+{
+  ppi_clr(fd, PPIDATA, AVR_POWER);    /* power down */
+}
+
+
 int avr_initialize ( int fd )
 {
   int rc;
   int tries;
+
+  avr_powerup(fd);
 
   ppi_clr(fd, PPIDATA, AVR_CLOCK);
   ppi_clr(fd, PPIDATA, AVR_RESET);
@@ -504,9 +558,10 @@ int main ( int argc, char * argv [] )
   int fd;
   int rc;
   unsigned char buf[2048];
+  unsigned char sig[4];
   int ch;
   int iofd;
-  int flash, eeprom, doread, erase;
+  int flash, eeprom, doread, erase, dosig;
   int size;
   char * outputf;
   char * inputf;
@@ -518,6 +573,7 @@ int main ( int argc, char * argv [] )
   eeprom  = 0;
   flash   = 0;
   erase   = 0;
+  dosig   = 0;
 
   progname = rindex(argv[0],'/');
   if (progname)
@@ -530,7 +586,7 @@ int main ( int argc, char * argv [] )
     return 0;
   }
 
-  while ((ch = getopt(argc,argv,"?efo:ru:")) != -1) {
+  while ((ch = getopt(argc,argv,"?efo:rsu:")) != -1) {
     switch (ch) {
       case 'e':
         if (flash) {
@@ -541,6 +597,9 @@ int main ( int argc, char * argv [] )
         break;
       case 'r':
         erase = 1;
+        break;
+      case 's':
+        dosig = 1;
         break;
       case 'f':
         if (eeprom) {
@@ -606,6 +665,7 @@ int main ( int argc, char * argv [] )
   rc = avr_initialize(fd);
   if (rc < 0) {
     fprintf ( stderr, "%s: initialization failed, rc=%d\n", progname, rc );
+    avr_powerdown(fd);
     return 1;
   }
 
@@ -619,9 +679,22 @@ int main ( int argc, char * argv [] )
     fprintf(stderr, "%s: done.\n", progname );
   }
 
+  if (dosig) {
+    int i;
+    fprintf(stderr, "%s: reading signature bytes: ", progname );
+    avr_signature(fd, sig);
+    for (i=0; i<4; i++)
+      fprintf(stderr, "0x%02x ", sig[i]);
+    fprintf(stderr, "\n");
+  }
+
   if (iofd < 0) {
-    fprintf(stderr, "%s: you must specify an input or an output file\n",
-            progname);
+    if (eeprom||flash) {
+      fprintf(stderr, "%s: you must specify an input or an output file\n",
+              progname);
+    }
+    avr_powerdown(fd);
+    close(fd);
     return 1;
   }
 
@@ -629,6 +702,7 @@ int main ( int argc, char * argv [] )
     fprintf(stderr, 
             "%s: please specify either the eeprom (-e) or the flash (-f) memory\n",
             progname);
+    avr_powerdown(fd);
     return 1;
   }
 
@@ -643,6 +717,7 @@ int main ( int argc, char * argv [] )
       if (rc) {
         fprintf ( stderr, "%s: failed to read all of flash memory, rc=%d\n", 
                   progname, rc );
+        avr_powerdown(fd);
         return 1;
       }
     }
@@ -653,6 +728,7 @@ int main ( int argc, char * argv [] )
       if (rc) {
         fprintf ( stderr, "%s: failed to read all of eeprom memory, rc=%d\n", 
                   progname, rc );
+        avr_powerdown(fd);
         return 1;
       }
     }
@@ -660,11 +736,13 @@ int main ( int argc, char * argv [] )
     rc = write ( iofd, buf, size );
     if (rc < 0) {
       fprintf(stderr, "%s: write error: %s\n", progname, strerror(errno));
+      avr_powerdown(fd);
       return 1;
     }
     else if (rc != size) {
       fprintf(stderr, "%s: wrote only %d bytes of the expected %d\n", 
               progname, rc, size);
+      avr_powerdown(fd);
       return 1;
     }
   }
@@ -684,33 +762,37 @@ int main ( int argc, char * argv [] )
     if (rc < 0) {
       fprintf(stderr, "%s: read error from \"%s\": %s\n", 
               progname, inputf, strerror(errno));
-      return 1;
-    }
-    else if (rc != size) {
-      fprintf(stderr, "%s: read only %d bytes of the expected %d from \"%s\"\n", 
-              progname, rc, size, inputf);
+      avr_powerdown(fd);
       return 1;
     }
 
+    size = rc;
+
     if (flash) {
-      fprintf ( stderr, "%s: writing flash memory:\n", progname );
+      fprintf(stderr, "%s: writing %d bytes into flash memory:\n", 
+              progname, size);
       rc = avr_write ( fd, AVR_FLASH, 0, buf, size );
       if (rc) {
         fprintf ( stderr, "%s: failed to write flash memory, rc=%d\n", 
                   progname, rc );
+        avr_powerdown(fd);
         return 1;
       }
     }
     else if (eeprom) {
-      fprintf ( stderr, "%s: writing eeprom memory:\n", progname );
+      fprintf(stderr, "%s: writing %d bytes into eeprom memory:\n", 
+              progname, size);
       rc = avr_write ( fd, AVR_EEPROM, 0, buf, size );
       if (rc) {
         fprintf ( stderr, "%s: failed to write eeprom memory, rc=%d\n", 
                   progname, rc );
+        avr_powerdown(fd);
         return 1;
       }
     }
   }
+
+  avr_powerdown(fd);
 
   close(fd);
   close(iofd);
