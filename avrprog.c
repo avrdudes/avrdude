@@ -1331,7 +1331,7 @@ int main ( int argc, char * argv [] )
           memtype = AVR_FLASH;
         }
         else {
-          fprintf(stderr, "%s: invalid memory type \"%s\"\n", 
+          fprintf(stderr, "%s: invalid memory type \"%s\"\n\n", 
                   progname, optarg);
           usage();
           exit(1);
@@ -1344,8 +1344,8 @@ int main ( int argc, char * argv [] )
         break;
 
       case 'o': /* specify output file */
-        if (inputf) {
-          fprintf(stderr,"%s: -i and -o are incompatible\n", progname);
+        if (inputf || interactive) {
+          fprintf(stderr,"%s: -i, -o, and -c are incompatible\n\n", progname);
           return 1;
         }
         doread = 1;
@@ -1377,8 +1377,8 @@ int main ( int argc, char * argv [] )
         break;
 
       case 'i': /* specify input file */
-        if (outputf) {
-          fprintf(stderr,"%s: -o and -i are incompatible\n", progname);
+        if (outputf || interactive) {
+          fprintf(stderr,"%s: -o, -i, and -c are incompatible\n\n", progname);
           return 1;
         }
         doread = 0;
@@ -1397,12 +1397,13 @@ int main ( int argc, char * argv [] )
           case 'i' : filefmt = FMT_IHEX; break;
           case 'r' : filefmt = FMT_RBIN; break;
           case 's' :
-            fprintf(stderr, "%s: Motorola S-Record format not yet supported\n",
+            fprintf(stderr, 
+                    "%s: Motorola S-Record format not yet supported\n\n",
                     progname);
             exit(1);
             break;
           default :
-            fprintf(stderr, "%s: invalid file format \"%s\"\n",
+            fprintf(stderr, "%s: invalid file format \"%s\"\n\n",
                     progname, optarg);
             usage();
             exit(1);
@@ -1412,7 +1413,7 @@ int main ( int argc, char * argv [] )
       case 'c': /* enter interactive command mode */
         if (!((inputf == NULL)||(outputf == NULL))) {
           fprintf(stderr, 
-                  "%s: interactive mode is not compatible with -i or -o\n",
+                  "%s: interactive mode is not compatible with -i or -o\n\n",
                   progname);
           usage();
           exit(1);
@@ -1430,7 +1431,7 @@ int main ( int argc, char * argv [] )
         break;
 
       default:
-        fprintf(stderr, "%s: invalid option -%c\n", progname, ch);
+        fprintf(stderr, "%s: invalid option -%c\n\n", progname, ch);
         usage();
         exit(1);
         break;
