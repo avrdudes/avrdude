@@ -1380,8 +1380,6 @@ int main(int argc, char * argv [])
 
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
     upd = ldata(ln);
-    fprintf(stderr, "%s: performing op: %d, %s, %d, %s\n",
-            progname, upd->op, upd->memtype, upd->format, upd->filename);
     rc = do_op(pgm, p, upd, nowrite, verify);
     if (rc) {
       exitrc = 1;
