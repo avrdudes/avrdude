@@ -93,12 +93,12 @@ char * fmtstr(FILEFMT format)
 
 
 int b2ihex(unsigned char * inbuf, int bufsize, 
-             int recsize, int startaddr,
-             char * outfile, FILE * outf)
+           int recsize, int startaddr,
+           char * outfile, FILE * outf)
 {
   unsigned char * buf;
   unsigned int nextaddr;
-  int n, nbytes;
+  int n, nbytes, n_64k;
   int i;
   unsigned char cksum;
 
@@ -108,6 +108,7 @@ int b2ihex(unsigned char * inbuf, int bufsize,
     return -1;
   }
 
+  n_64k    = 0;
   nextaddr = startaddr;
   buf      = inbuf;
   nbytes   = 0;
@@ -116,6 +117,9 @@ int b2ihex(unsigned char * inbuf, int bufsize,
     n = recsize;
     if (n > bufsize)
       n = bufsize;
+
+    if ((nextaddr + n) > 0x10000)
+      n = 0x10000 - nextaddr;
 
     if (n) {
       cksum = 0;
@@ -130,6 +134,20 @@ int b2ihex(unsigned char * inbuf, int bufsize,
       
       nextaddr += n;
       nbytes   += n;
+    }
+
+    if (nextaddr >= 0x10000) {
+      int lo, hi;
+      /* output an extended address record */
+      n_64k++;
+      lo = n_64k & 0xff;
+      hi = (n_64k >> 8) & 0xff;
+      cksum = 0;
+      fprintf(outf, ":02000004%02X%02X", hi, lo);
+      cksum += 2 + 0 + 4 + hi + lo;
+      cksum = -cksum;
+      fprintf(outf, "%02X\n", cksum);
+      nextaddr = 0;
     }
 
     /* advance to next 'recsize' bytes */

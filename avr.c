@@ -78,8 +78,8 @@ struct avrpart parts[] = {
    {{0,    512,   0,   0,  9000, 20000, {0x00, 0xff }, NULL},   /* eeprom */
     {0,   8192,   0,   0,  9000, 20000, {0xff, 0x00 }, NULL}}}, /* flash  */
   
-  {"ATMEGA103", "103", 20000, 
-   {{0,   4096,   0,   0,  9000, 20000, {0x00, 0xff }, NULL},   /* eeprom */
+  {"ATMEGA103", "103", 56000*2, 
+   {{0,   4096,   0,   0, 64000, 69000, {0x80, 0x7f }, NULL},   /* eeprom */
     {1, 131072, 256, 512, 22000, 56000, {0xff, 0x00 }, NULL}}}, /* flash  */
 
 };
@@ -181,7 +181,7 @@ int avr_cmd(int fd, unsigned char cmd[4], unsigned char res[4])
  * read a byte of data from the indicated memory region
  */
 unsigned char avr_read_byte(int fd, struct avrpart * p,
-                              int memtype, unsigned short addr)
+                              int memtype, unsigned long addr)
 {
   unsigned short offset;
   unsigned char cmd[4];
@@ -221,7 +221,7 @@ unsigned char avr_read_byte(int fd, struct avrpart * p,
 int avr_read(int fd, struct avrpart * p, int memtype)
 {
   unsigned char    rbyte;
-  unsigned short   i;
+  unsigned long    i;
   unsigned char  * buf;
   int              size;
 
@@ -230,7 +230,7 @@ int avr_read(int fd, struct avrpart * p, int memtype)
 
   for (i=0; i<size; i++) {
     rbyte = avr_read_byte(fd, p, memtype, i);
-    fprintf(stderr, "                    \r%4u  0x%02x", i, rbyte);
+    fprintf(stderr, "                    \r%4lu  0x%02x", i, rbyte);
     buf[i] = rbyte;
   }
 
@@ -243,8 +243,38 @@ int avr_read(int fd, struct avrpart * p, int memtype)
 /*
  * write a byte of data to the indicated memory region
  */
+int avr_write_bank(int fd, struct avrpart * p, int memtype, 
+                   unsigned short bank)
+{
+  unsigned char cmd[4];
+  unsigned char res[4];
+
+  LED_ON(fd, pinno[PIN_LED_PGM]);
+  LED_OFF(fd, pinno[PIN_LED_ERR]);
+
+  cmd[0] = 0x4c;
+  cmd[1] = bank >> 8;     /* high order bits of address */
+  cmd[2] = bank & 0x0ff;  /* low order bits of address  */
+  cmd[3] = 0;             /* these bits are ignored     */
+
+  avr_cmd(fd, cmd, res);
+
+  /*
+   * since we don't know what voltage the target AVR is powered by, be
+   * conservative and delay the max amount the spec says to wait 
+   */
+  usleep(p->mem[memtype].max_write_delay);
+
+  LED_OFF(fd, pinno[PIN_LED_PGM]);
+  return 0;
+}
+
+
+/*
+ * write a byte of data to the indicated memory region
+ */
 int avr_write_byte(int fd, struct avrpart * p, int memtype, 
-                     unsigned short addr, unsigned char data)
+                     unsigned long addr, unsigned char data)
 {
   unsigned char cmd[4];
   unsigned char res[4];
@@ -257,13 +287,19 @@ int avr_write_byte(int fd, struct avrpart * p, int memtype,
   /* order here is very important, AVR_M_EEPROM, AVR_M_FLASH, AVR_M_FLASH+1 */
   static unsigned char cmdbyte[3] = { 0xc0, 0x40, 0x48 };
 
-  /* 
-   * check to see if the write is necessary by reading the existing
-   * value and only write if we are changing the value 
-   */
-  b = avr_read_byte(fd, p, memtype, addr);
-  if (b == data) {
-    return 0;
+  if (!p->mem[memtype].banked) {
+    /* 
+     * check to see if the write is necessary by reading the existing
+     * value and only write if we are changing the value; we can't
+     * use this optimization for banked addressing.
+     */
+    b = avr_read_byte(fd, p, memtype, addr);
+    if (b == data) {
+      return 0;
+    }
+  }
+  else {
+    addr = addr % p->mem[memtype].bank_size;
   }
 
   LED_ON(fd, pinno[PIN_LED_PGM]);
@@ -280,9 +316,19 @@ int avr_write_byte(int fd, struct avrpart * p, int memtype,
   cmd[0] = cmdbyte[memtype + offset];
   cmd[1] = caddr >> 8;     /* high order bits of address       */
   cmd[2] = caddr & 0x0ff;  /* low order bits of address        */
-  cmd[3] = data;          /* data                             */
+  cmd[3] = data;           /* data                             */
 
   avr_cmd(fd, cmd, res);
+
+  if (p->mem[memtype].banked) {
+    /*
+     * in banked addressing, single bytes to written to the memory
+     * page complete immediately, we only need to delay when we commit
+     * the whole page via the avr_write_bank() routine.
+     */
+    LED_OFF(fd, pinno[PIN_LED_PGM]);
+    return 0;
+  }
 
   tries = 0;
   ready = 0;
@@ -298,14 +344,15 @@ int avr_write_byte(int fd, struct avrpart * p, int memtype,
        * specified for the chip.
        */
       usleep(p->mem[memtype].max_write_delay);
-      ready = 1;
+      r = avr_read_byte(fd, p, memtype, addr);
     }
-    else if (r == data) {
+
+    if (r == data) {
       ready = 1;
     }
 
     tries++;
-    if (!ready && tries > 10) {
+    if (!ready && tries > 5) {
       /*
        * we couldn't write the data, indicate our displeasure by
        * returning an error code 
@@ -335,8 +382,7 @@ int avr_write(int fd, struct avrpart * p, int memtype, int size)
 {
   int              rc;
   int              wsize;
-  unsigned char  * buf;
-  unsigned short   i;
+  unsigned long    i;
   unsigned char    data;
   int              werror;
 
@@ -344,7 +390,6 @@ int avr_write(int fd, struct avrpart * p, int memtype, int size)
 
   werror = 0;
 
-  buf   = p->mem[memtype].buf;
   wsize = p->mem[memtype].size;
   if (size < wsize) {
     wsize = size;
@@ -359,15 +404,32 @@ int avr_write(int fd, struct avrpart * p, int memtype, int size)
 
   for (i=0; i<wsize; i++) {
     /* eeprom or low byte of flash */
-    data = buf[i];
+    data = p->mem[memtype].buf[i];
     rc = avr_write_byte(fd, p, memtype, i, data);
-    fprintf(stderr, "                      \r%4u 0x%02x", i, data);
+    fprintf(stderr, "                      \r%4lu 0x%02x", i, data);
     if (rc) {
       fprintf(stderr, " ***failed;  ");
       fprintf(stderr, "\n");
       LED_ON(fd, pinno[PIN_LED_ERR]);
       werror = 1;
     }
+
+    if (p->mem[memtype].banked) {
+      if (((i % p->mem[memtype].bank_size) == p->mem[memtype].bank_size-1) ||
+          (i == wsize-1)) {
+        rc = avr_write_bank(fd, p, memtype, i/p->mem[memtype].bank_size);
+        if (rc) {
+          fprintf(stderr,
+                  " *** bank %ld (addresses 0x%04lx - 0x%04lx) failed to write\n",
+                  i % p->mem[memtype].bank_size, 
+                  i-p->mem[memtype].bank_size+1, i);
+          fprintf(stderr, "\n");
+          LED_ON(fd, pinno[PIN_LED_ERR]);
+          werror = 1;
+        }
+      }
+    }
+
     if (werror) {
       /* 
        * make sure the error led stay on if there was a previous write
@@ -376,6 +438,7 @@ int avr_write(int fd, struct avrpart * p, int memtype, int size)
       LED_ON(fd, pinno[PIN_LED_ERR]);
     }
   }
+
 
   fprintf(stderr, "\n");
 
