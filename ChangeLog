@@ -1,5 +1,9 @@
 2003-04-17  Eric B. Weddington  <eric@umginc.net>
 
+	* NEWS: Replace TBD with new release version.
+
+2003-04-17  Eric B. Weddington  <eric@umginc.net>
+
 	* avrdude.conf.in: Change name of pony programmer to pony-stk200
 	to better describe the hardware (PonyProg is software that works
 	with various hardware).
