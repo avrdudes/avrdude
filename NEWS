@@ -6,7 +6,11 @@ Approximate change log for AVRDUDE by version.
 
 ----------------------------------------------------------------------
 
-Current:
+Version 4.2.0:
+
+  * Add basic support for reading and writing fuses via SPI with avr910
+    programmers. Submitted by
+    Jan-Hinnerk Reichert <jan-hinnerk_reichert@hamburg.de>.
 
   * Perform an auto erase before programming if the flash memory is
     anywhere specified to be written by any of the -U requests.  Old
@@ -22,7 +26,7 @@ Current:
     environments such as emacs.
 
   * Fix long-standing timing (verify) problems on Windows platform.
-    Submitted by Alex Shepherd <ashepherd@wave.co.nz>
+    Submitted by Alex Shepherd <ashepherd@wave.co.nz>.
 
   * Add new file format option - 'm' for "immediate mode."  In this
     case, the filename argument of the -o, -i, or -U options is
@@ -36,13 +40,13 @@ Current:
     Contributed by Rune Christensen <rune.christensen@adslhome.dk>.
 
   * Add support for the sp12 programmer.  Submitted by
-    Larry Barello <larryba@barrello.net>
+    Larry Barello <larryba@barrello.net>.
 
 
 Version 4.1.0
 
   * Add support for the Bascom SAMPLE programmer. Submitted by
-    Larry Barello <larryba@barrello.net>
+    Larry Barello <larryba@barrello.net>.
 
   * Add support for avr910 type programmers (mcu00100, pavr avr910, etc).
 
@@ -51,16 +55,16 @@ Version 4.1.0
 
 Version 4.0.0
 
-  * Now support Linux - added by "Theodore A. Roth" <troth@openavr.org>
+  * Now support Linux - added by "Theodore A. Roth" <troth@openavr.org>.
 
-  * Now support Windows - added by "Eric B. Weddington" <eric@ecentral.com>
+  * Now support Windows - added by "Eric B. Weddington" <eric@ecentral.com>.
 
   * Use 'configure' scripts to tailor the code to the system avrdude
     is getting ready to be compiled on - added by "Theodore A. Roth"
-    <troth@openavr.org>
+    <troth@openavr.org>.
 
   * Motorola S-Record support - submitted by "Alexey V.Levdikov "
-    <tsar@kemford.com>
+    <tsar@kemford.com>.
 
   * Support parallel programming on the STK500.  Introduce 'pagel' and
     'bs2' keywords to the config file for this purpose.
@@ -276,4 +280,4 @@ Version 1.3.0 :
 
 Version 1.2.2 :
 
-  * Initial public release
+  * Initial public release.

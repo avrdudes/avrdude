@@ -1,3 +1,13 @@
+2003-09-06  Theodore A. Roth  <troth@openavr.org>
+
+	* AVRDUDE 4.2.0 has been released (cvs release tag is "release_4_2_0").
+
+2003-09-06  Theodore A. Roth  <troth@openavr.org>
+
+	* NEWS: Update for 4.2.0 release. Add note about read/write of fuses
+	support for avr910.
+	* configure.ac (AC_INIT): Set version to 4.2.0.
+
 2003-09-05  Theodore A. Roth  <troth@openavr.org>
 [Contributed by Jan-Hinnerk Reichert <jan-hinnerk_reichert@hamburg.de>]
 
@@ -204,7 +214,7 @@
 	* configure.ac: Add cvs suffix back to version.
 	* doc/TODO: Add a few items.
 
-2003-04-18
+2003-04-18  Theodore A. Roth  <troth@openavr.org>
 
 	* AVRDUDE 4.1.0 has been released (cvs release tag is "release_4_1_0").
 
