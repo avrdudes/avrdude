@@ -128,6 +128,11 @@ PROGRAMMER * pgm = NULL;
 
 PROGRAMMER compiled_in_pgm;
 
+/*
+ * global options
+ */
+int do_cycles;   /* track erase-rewrite cycles */
+
 
 /*
  * usage message
@@ -488,7 +493,6 @@ int main(int argc, char * argv [])
   char    configfile[PATH_MAX]; /* pin configuration file */
   int     cycles;      /* erase-rewrite cycles */
   int     set_cycles;  /* value to set the erase-rewrite cycles to */
-  int     do_cycles;   /* track erase-rewrite cycles */
   char  * e;
 
   progname = rindex(argv[0],'/');
@@ -688,6 +692,7 @@ int main(int argc, char * argv [])
                   progname, optarg);
           exit(1);
         }
+        do_cycles = 1;
         break;
 
       case '?': /* help */
@@ -854,17 +859,6 @@ int main(int argc, char * argv [])
             progname);
 
   /*
-   * see if the cycle count in the last two bytes of eeprom seems
-   * reasonable
-   */
-  cycles = avr_get_cycle_count(fd, p);
-  if ((cycles != -1) && (cycles != 0x00ffff)) {
-    fprintf(stderr,
-            "%s: current erase-rewrite cycle count is %d (if being tracked)\n",
-            progname, cycles);
-  }
-
-  /*
    * Let's read the signature bytes to make sure there is at least a
    * chip on the other end that is responding correctly.  A check
    * against 0xffffffff should ensure that the signature bytes are
@@ -910,28 +904,54 @@ int main(int argc, char * argv [])
     }
   }
 
+  if (set_cycles != -1) {
+    cycles = avr_get_cycle_count(fd, p);
+    if (cycles != -1) {
+      /*
+       * only attempt to update the cycle counter if we can actually
+       * read the old value
+       */
+      cycles = set_cycles;
+      fprintf(stderr, "%s: setting erase-rewrite cycle count to %d\n", 
+              progname, cycles);
+      rc = avr_put_cycle_count(fd, p, cycles);
+      if (rc < 0) {
+        fprintf(stderr, 
+                "%s: WARNING: failed to update the erase-rewrite cycle "
+                "counter\n",
+                progname);
+      }
+    }
+  }
+
   if (erase) {
     /*
      * erase the chip's flash and eeprom memories, this is required
      * before the chip can accept new programming
      */
-
     fprintf(stderr, "%s: erasing chip\n", progname);
     avr_chip_erase(fd,p);
-    if (do_cycles && (cycles != -1)) {
-      if (cycles == 0x00ffff) {
-        cycles = 0;
-      }
-      cycles++;
-      if (set_cycles != -1) {
-        cycles = set_cycles;
-      }
-      fprintf(stderr, "%s: erase-rewrite cycle count is now %d\n", 
-              progname, cycles);
-      avr_put_cycle_count(fd, p, cycles);
-    }
     fprintf(stderr, "%s: done.\n", progname);
   }
+  else if (set_cycles == -1) {
+    /*
+     * The erase routine displays this same information, so don't
+     * repeat it if an erase was done.  Also, don't display this if we
+     * set the cycle count (due to -Y).
+     *
+     * see if the cycle count in the last two bytes of eeprom seems
+     * reasonable 
+     */
+    cycles = avr_get_cycle_count(fd, p);
+    if ((cycles != -1) && (cycles != 0x00ffff)) {
+      fprintf(stderr,
+              "%s: current erase-rewrite cycle count is %d%s\n",
+              progname, cycles, 
+              do_cycles ? "" : " (if being tracked)");
+    }
+  }
+
+
 
   if (!terminal && ((inputf==NULL) && (outputf==NULL))) {
     /*
