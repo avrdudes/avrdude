@@ -1580,6 +1580,8 @@ int cmd_write ( int fd, struct avrpart * p, int argc, char * argv[] )
     i++;
   }
 
+  free(buf);
+
   fprintf(stdout, "\n");
 
   return 0;
