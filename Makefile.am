@@ -21,7 +21,11 @@
 # $Id$
 #
 
-EXTRA_DIST   = avrdude.1 avrdude.pdf avrdude.conf.in bootstrap
+EXTRA_DIST   = \
+	avrdude.1 \
+	avrdude.pdf \
+	avrdude.spec \
+	bootstrap
 
 SUBDIRS      = @WINDOWS_DIRS@
 DIST_SUBDIRS = windows
