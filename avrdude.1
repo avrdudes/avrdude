@@ -30,6 +30,7 @@
 .Fl p Ar partno
 .Op Fl c Ar programmer-id
 .Op Fl C Ar config-file
+.Op Fl D
 .Op Fl e
 .Oo Fl E Ar exitspec Ns
 .Op \&, Ns Ar exitspec
@@ -43,7 +44,7 @@
 .Op Fl P Ar port
 .Op Fl q
 .Op Fl t
-.Op Fl U Ar memop
+.Op Fl U Ar memtype:op:filename:filefmt
 .Op Fl v
 .Op Fl V
 .Op Fl y
@@ -180,6 +181,19 @@ submit a patch back to the author so that it can be incorporated for
 the next version).  See the config file, located at
 .Pa ${PREFIX}/etc/avrdude.conf ,
 which contains a description of the format.
+.It Fl D
+Disable auto erase for flash.  When the
+.Fl U
+option with flash memory is specified,
+.Nm
+will perform a chip erase before starting any of the programming
+operations, since it generally is a mistake to program the flash
+without performing an erase first.  This option disables that.
+However, to remain backward compatible, the
+.Fl i ,
+and
+.Fl m
+options automatically disable the auto erase feature.
 .It Fl e
 Causes a chip erase to be executed.  This will reset the contents of the
 flash ROM and EEPROM to the value
@@ -244,8 +258,10 @@ Multiple
 .Ar exitspec
 arguments can be separated with commas.
 .It Fl f Ar format
-This option specifies the file format for the input or output files
-to be processed.
+(Deprecated, use
+.Fl U
+instead.) This option specifies the file format for the input or
+output files to be processed.
 .Ar Format
 can be one of:
 .Bl -tag -width sss
@@ -276,14 +292,18 @@ that a device has a broken (erased or overwritten) device signature
 but is otherwise operating normally, this options is provided to
 override the check.
 .It Fl i Ar filename
-Specifies the input file to be programmed into the MCU.  Can be specified
-as
+(Deprecated, use
+.Fl U
+instead.)  Specifies the input file to be programmed into the MCU.
+Can be specified as
 .Ql \&-
 to use
 .Em stdin
 as the input.
 .It Fl I Ar data
-Same as specifying
+(Deprecated, use
+.Fl U
+instead.)  Same as specifying
 .Fl i
 and
 .Fl f Ar m
@@ -292,8 +312,11 @@ where the filename field is used as the data itself.  Useful for
 programming single byte memories such as fuse bytes without having to
 use single byte files or enter interactive terminal mode.
 .It Fl m Ar memtype
-Specifies which program area of the MCU to read or write; allowable
-values depend on the MCU being programmed, but most support at least
+(Deprecated, use
+.Fl U
+instead.)  Specifies which program area of the MCU to read or write;
+allowable values depend on the MCU being programmed, but most support
+at least
 .Em eeprom
 for the EEPROM, and
 .Em flash
@@ -309,8 +332,11 @@ No-write - disables actually writing data to the MCU (useful for debugging
 .Nm avrdude
 ).
 .It Fl o Ar filename
-Specifies the name of the output file to write, and causes the respective
-memory area to be read from the MCU.  Can be specified as
+(Deprecated, use
+.Fl U
+instead.)  Specifies the name of the output file to write, and causes
+the respective memory area to be read from the MCU.  Can be specified
+as
 .Ql \&-
 to write to
 .Em stdout .
