@@ -316,8 +316,6 @@ int avr_write_page(int fd, AVRPART * p, int memtype,
    */
   page = page << p->mem[memtype].pageaddr_shift;
 
-  fprintf(stderr, "page address=%u\n", page);
-
   cmd[0] = 0x4c;
   cmd[1] = page >> 8;     /* high order bits of address */
   cmd[2] = page & 0x0ff;  /* low order bits of address  */
@@ -715,20 +713,20 @@ void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type)
 {
   if (m == NULL) {
     fprintf(f, 
-            "%sMem                  Page Page                       Polled\n"
-            "%sType   Paged  Size   Size Shift #Pages MinW  MaxW   ReadBack\n"
-            "%s------ ------ ------ ---- ----- ------ ----- ----- ---------\n",
+            "%sMem                  Page        Page                 Polled\n"
+            "%sType   Paged  Size   Size #Pages Shift MinW  MaxW   ReadBack\n"
+            "%s------ ------ ------ ---- ------ ----- ----- ----- ---------\n",
             prefix, prefix, prefix);
   }
   else {
     fprintf(f,
-            "%s%-6s %-6s %6d %4d %5d %6d %5d %5d 0x%02x 0x%02x\n",
+            "%s%-6s %-6s %6d %4d %6d %5d %5d %5d 0x%02x 0x%02x\n",
             prefix, avr_memtstr(type), 
             m->paged ? "yes" : "no",
             m->size, 
             m->page_size, 
-            m->pageaddr_shift, 
             m->num_pages, 
+            m->pageaddr_shift, 
             m->min_write_delay, 
             m->max_write_delay,
             m->readback[0], 
