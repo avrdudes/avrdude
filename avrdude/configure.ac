@@ -23,22 +23,15 @@
 
 # Process this file with autoconf to produce a configure script.
 
-# Automake-1.5 requires arguments to AM_INIT_AUTOMAKE, but Automake-1.6 and
-# later to not. To work around this, we need to give the version in two places
-# so we define avrdude_version. Once freebsd can use 1.6 or newer, we can get
-# rid of this silly hack and remove the args to AM_INIT_AUTOMAKE.
-
-m4_define([avrdude_version],[3.1.0cvs])
-
-AC_PREREQ(2.53)
-AC_INIT(avrdude, avrdude_version, avrdude-dev@nongnu.org)
+AC_PREREQ(2.57)
+AC_INIT(avrdude, 3.1.0cvs, avrdude-dev@nongnu.org)
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
 AC_CONFIG_SRCDIR([main.c])
-AM_INIT_AUTOMAKE(avrdude, avrdude_version)
+AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER([ac_cfg.h]) 
 
 # Checks for programs.

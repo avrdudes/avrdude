@@ -31,18 +31,18 @@ html:
 	mv *.html avrdude-html
 
 # This rule is only need for automake versions prior to 1.7
-ps: avrdude.ps
+#ps: avrdude.ps
 
 # The pdf rules are only needed for automake versions prior to 1.7
 
-pdf: avrdude.pdf
+#pdf: avrdude.pdf
 
-avrdude.pdf: $(info_TEXINFOS)
+#avrdude.pdf: $(info_TEXINFOS)
 
-SUFFIXES = .pdf
+#SUFFIXES = .pdf
 
-.texi.pdf:
-	texi2pdf $?
+#.texi.pdf:
+#	texi2pdf $?
 
 clean-local:
 	rm -rf avrdude-html *.info
