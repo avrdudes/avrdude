@@ -167,4 +167,8 @@ void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type,
 
 void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose);
 
+int avr_get_cycle_count(int fd, AVRPART * p);
+
+int avr_put_cycle_count(int fd, AVRPART * p, int cycles);
+
 #endif

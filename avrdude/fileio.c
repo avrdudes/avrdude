@@ -583,7 +583,7 @@ int fileio(int op, char * filename, FILEFMT format,
       return -1;
     }
 
-    fprintf(stderr, "%s: %s file %s auto detected as %s\n\n", 
+    fprintf(stderr, "%s: %s file %s auto detected as %s\n", 
             progname, fio.iodesc, fname, fmtstr(format));
   }
 

@@ -293,6 +293,30 @@ Tells
 .Nm
 to enter the interactive ``terminal'' mode instead of up- or downloading
 files.  See below for a detailed description of the terminal mode.
+.It Fl y
+Tells
+.Nm
+to use the last two bytes of the connected parts' EEPROM memory to
+track the number of times the device has been erased.  When this
+option is used and the
+.Fl e
+flag is specified to generate a chip erase, the previous counter will
+be saved before the chip erase, it is then incremented, and written
+back after the erase cycle completes.  Presumably, the device would
+only be erased just before being programmed, and thus, this can be
+utilized to give an indication of how may erase-rewrite cycles the
+part has undergone.  Since the FLASH memory can only endure a finite
+number of erase-rewrite cycles, one can use this option to track when
+a part is nearing the limit.  The typical limit for Atmel AVR FLASH is
+1000 cycles.  Of course, if the application needs the last two bytes
+of EEPROM memory, this option should not be used.
+.It Fl Y Ar cycles
+Instructs
+.Nm
+to initialize the erase-rewrite cycle counter residing at the last two
+bytes of EEPROM memory to the specified value.  If the application
+needs the last two bytes of EEPROM memory, this option should not be
+used.
 .El
 .Ss Terminal mode
 In this mode,
