@@ -1,3 +1,8 @@
+2003-12-01  Eric B. Weddington  <eric@ecentral.com>
+
+	*doc/avrdude.texi: Add missing -D option to user manual.
+	[This fixes bug #6804]
+
 2003-11-30  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
 	*avrpart.c,main.c: Moved list_parts() and locate_part()
