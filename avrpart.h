@@ -22,6 +22,8 @@
 #ifndef __avrpart_h__
 #define __avrpart_h__
 
+#include <limits.h>
+
 #include "lists.h"
 
 /*
@@ -91,6 +93,8 @@ typedef struct avrpart {
   OPCODE      * op[AVR_OP_MAX];     /* opcodes */
 
   LISTID        mem;                /* avr memory definitions */
+  char          config_file[PATH_MAX]; /* config file where defined */
+  int           lineno;                /* config file line number */
 } AVRPART;
 
 #define AVR_MEMDESCLEN 64

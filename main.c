@@ -39,6 +39,8 @@
 #include <time.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "avr.h"
 #include "config.h"
@@ -59,8 +61,6 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
 
 PROGRAMMER * pgm = NULL;
 
-PROGRAMMER * compiled_in_pgm;
-
 /*
  * global options
  */
@@ -72,7 +72,7 @@ int do_cycles;   /* track erase-rewrite cycles */
  */
 void usage(void)
 {
-	printf(
+  printf(
 		"Usage: %s [options]\n"
 		"Options:\n"
 		"  -p <partno>                Required. Specify AVR device.\n"
@@ -140,6 +140,7 @@ int read_config(char * file)
     return -1;
   }
 
+  lineno = 1;
   infile = file;
   yyin   = f;
 
@@ -155,7 +156,8 @@ int read_config(char * file)
 
 void programmer_display(char * p)
 {
-  fprintf(stderr, "%sProgrammer Type: %s\n", p, pgm->type);
+  fprintf(stderr, "%sProgrammer Type : %s\n", p, pgm->type);
+  fprintf(stderr, "%sDescription     : %s\n", p, pgm->desc);
 
   pgm->display(pgm, p);
 }
@@ -227,7 +229,23 @@ void list_parts(FILE * f, char * prefix, LISTID parts)
 
   for (ln1=lfirst(parts); ln1; ln1=lnext(ln1)) {
     p = ldata(ln1);
-    fprintf(f, "%s%-4s = %s\n", prefix, p->id, p->desc);
+    fprintf(f, "%s%-4s = %-15s [%s:%d]\n", 
+            prefix, p->id, p->desc, p->config_file, p->lineno);
+  }
+
+  return;
+}
+
+void list_programmers(FILE * f, char * prefix, LISTID programmers)
+{
+  LNODEID ln1;
+  PROGRAMMER * p;
+
+  for (ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
+    p = ldata(ln1);
+    fprintf(f, "%s%-8s = %-30s [%s:%d]\n", 
+            prefix, (char *)ldata(lfirst(p->id)), p->desc, 
+            p->config_file, p->lineno);
   }
 
   return;
@@ -252,6 +270,7 @@ int main(int argc, char * argv [])
   int              ppidata;	/* cached value of the ppi data register */
   int              vsize=-1;    /* number of bytes to verify */
   AVRMEM         * sig;         /* signature data */
+  struct stat      sb;
 
   /* options / operating mode variables */
   char *  memtype;     /* "flash", "eeprom", etc */
@@ -270,10 +289,12 @@ int main(int argc, char * argv [])
   char  * exitspecs;   /* exit specs string from command line */
   char  * programmer;  /* programmer id */
   char  * partdesc;    /* part id */
-  char    configfile[PATH_MAX]; /* pin configuration file */
+  char    sys_config[PATH_MAX]; /* system wide config file */
+  char    usr_config[PATH_MAX]; /* per-user config file */
   int     cycles;      /* erase-rewrite cycles */
   int     set_cycles;  /* value to set the erase-rewrite cycles to */
   char  * e;           /* for strtol() error checking */
+  char  * homedir;
 
   progname = rindex(argv[0],'/');
   if (progname)
@@ -309,11 +330,21 @@ int main(int argc, char * argv [])
   do_cycles     = 0;
   set_cycles    = -1;
 
-  strcpy(configfile, CONFIG_DIR);
-  i = strlen(configfile);
-  if (i && (configfile[i-1] != '/'))
-    strcat(configfile, "/");
-  strcat(configfile, "avrdude.conf");
+  strcpy(sys_config, CONFIG_DIR);
+  i = strlen(sys_config);
+  if (i && (sys_config[i-1] != '/'))
+    strcat(sys_config, "/");
+  strcat(sys_config, "avrdude.conf");
+
+  usr_config[0] = 0;
+  homedir = getenv("HOME");
+  if (homedir != NULL) {
+    strcpy(usr_config, homedir);
+    i = strlen(usr_config);
+    if (i && (usr_config[i-1] != '/'))
+      strcat(usr_config, "/");
+    strcat(usr_config, ".avrduderc");
+  }
 
   len = strlen(progname) + 2;
   for (i=0; i<len; i++)
@@ -339,9 +370,9 @@ int main(int argc, char * argv [])
         programmer = optarg;
         break;
 
-      case 'C': /* pin configuration file */
-        strncpy(configfile, optarg, PATH_MAX);
-        configfile[PATH_MAX-1] = 0;
+      case 'C': /* system wide configuration file */
+        strncpy(sys_config, optarg, PATH_MAX);
+        sys_config[PATH_MAX-1] = 0;
         break;
 
       case 'm': /* select memory type to operate on */
@@ -481,11 +512,46 @@ int main(int argc, char * argv [])
             progname, version, progbuf);
   }
 
-  rc = read_config(configfile);
+  if (verbose) {
+    fprintf(stderr, "%sSystem wide configuration file is \"%s\"\n",
+            progbuf, sys_config);
+  }
+
+  rc = read_config(sys_config);
   if (rc) {
-    fprintf(stderr, "%s: error reading configuration file \"%s\"\n",
-            progname, configfile);
+    fprintf(stderr, 
+            "%s: error reading system wide configuration file \"%s\"\n",
+            progname, sys_config);
     exit(1);
+  }
+
+  if (usr_config[0] != 0) {
+    if (verbose) {
+      fprintf(stderr, "%sUser configuration file is \"%s\"\n",
+              progbuf, usr_config);
+    }
+
+    rc = stat(usr_config, &sb);
+    if ((rc < 0) || ((sb.st_mode & S_IFREG) == 0)) {
+      if (verbose) {
+        fprintf(stderr,
+                "%sUser configuration file does not exist or is not a "
+                "regular file, skipping\n",
+                progbuf);
+      }
+    }
+    else {
+      rc = read_config(usr_config);
+      if (rc) {
+        fprintf(stderr, "%s: error reading user configuration file \"%s\"\n",
+                progname, usr_config);
+        exit(1);
+      }
+    }
+  }
+
+  if (verbose) {
+    fprintf(stderr, "\n");
   }
 
   if (programmer[0] == 0) {
@@ -501,9 +567,12 @@ int main(int argc, char * argv [])
 
   pgm = locate_programmer(programmers, programmer);
   if (pgm == NULL) {
+    fprintf(stderr,"\n");
     fprintf(stderr, 
             "%s: Can't find programmer id \"%s\"\n",
             progname, programmer);
+    fprintf(stderr,"\nValid programmers are:\n");
+    list_programmers(stderr, "  ", programmers);
     fprintf(stderr,"\n");
     exit(1);
   }
@@ -516,12 +585,10 @@ int main(int argc, char * argv [])
 
   if (partdesc == NULL) {
     fprintf(stderr, 
-            "%s: No AVR part has been specified, use \"-p Part\"\n\n"
-            "  Valid Parts are:\n\n",
+            "%s: No AVR part has been specified, use \"-p Part\"\n\n",
             progname);
-    list_parts(stderr, "    ", part_list);
-    fprintf(stderr, "\n");
-    fprintf(stderr, "(These come from the config file \"%s\")\n", configfile);
+    fprintf(stderr,"Valid parts are:\n");
+    list_parts(stderr, "  ", part_list);
     fprintf(stderr, "\n");
     exit(1);
   }
@@ -530,11 +597,10 @@ int main(int argc, char * argv [])
   p = locate_part(part_list, partdesc);
   if (p == NULL) {
     fprintf(stderr, 
-            "%s: AVR Part \"%s\" not found.  Valid parts are:\n\n",
+            "%s: AVR Part \"%s\" not found.\n\n",
             progname, partdesc);
-    list_parts(stderr, "    ", part_list);
-    fprintf(stderr, "\n");
-    fprintf(stderr, "(These come from the config file \"%s\")\n", configfile);
+    fprintf(stderr,"Valid parts are:\n");
+    list_parts(stderr, "  ", part_list);
     fprintf(stderr, "\n");
     exit(1);
   }

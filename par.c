@@ -553,10 +553,6 @@ static void par_display(PROGRAMMER * pgm, char * p)
     strcpy(buffpins, " (not used)");
   }
 
-
-  fprintf(stderr, "%sProgrammer Pin Configuration: %s (%s)\n", p, 
-          (char *)ldata(lfirst(pgm->id)), pgm->desc);
-
   fprintf(stderr, 
           "%s  VCC     = 0x%02x%s\n"
           "%s  BUFF    = 0x%02x%s\n"

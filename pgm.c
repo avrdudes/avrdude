@@ -55,6 +55,8 @@ PROGRAMMER * pgm_new(void)
   pgm->id = lcreat(NULL, 0);
   pgm->desc[0] = 0;
   pgm->type[0] = 0;
+  pgm->config_file[0] = 0;
+  pgm->lineno = 0;
 
   for (i=0; i<N_PINS; i++)
     pgm->pinno[i] = 0;
