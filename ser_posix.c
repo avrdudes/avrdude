@@ -36,7 +36,7 @@
 extern char *progname;
 
 struct baud_mapping {
-  int baud;
+  long baud;
   speed_t speed;
 };
 
@@ -55,7 +55,7 @@ static struct baud_mapping baud_lookup_table [] = {
   { 0,      0 }                 /* Terminator. */
 };
 
-static speed_t serial_baud_lookup(int baud)
+static speed_t serial_baud_lookup(long baud)
 {
   struct baud_mapping *map = baud_lookup_table;
 
@@ -65,12 +65,12 @@ static speed_t serial_baud_lookup(int baud)
     map++;
   }
 
-  fprintf(stderr, "%s: serial_baud_lookup(): unknown baud rate: %d", 
+  fprintf(stderr, "%s: serial_baud_lookup(): unknown baud rate: %ld", 
           progname, baud);
   exit(1);
 }
 
-static int serial_setattr(int fd, int baud)
+static int serial_setattr(int fd, long baud)
 {
   int rc;
   struct termios termios;

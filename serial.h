@@ -32,7 +32,7 @@
 
 #include "config.h"
 
-extern int serial_open(char * port, int baud);
+extern int serial_open(char * port, long baud);
 extern void serial_close(int fd);
 
 extern int serial_send(int fd, char * buf, size_t buflen);
