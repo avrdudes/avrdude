@@ -1,0 +1,27 @@
+# $Id$
+#
+# Programmer Pin Configurations
+#
+# The format of these entries is as follows:
+#   name:[desc=<description>:][[<pin>=<value>:]...]
+#
+# Example: for a programmer called PGM-1 that uses pin 2 and 3 for
+#   power, pins 4, 5, and 6 for RESET, SCK, and MOSI, and pin 10 for
+#   MISO, we could use the following entry:
+#
+#  pgm-1 : desc=Programmer 1:vcc=2,3:reset=4:sck=5:mosi=6:miso=10
+#
+# Continuation lines are supported, use a backslash (\) as the last
+# character of the line and the next line will included as part of the
+# configuration data.
+#
+
+bsd   : desc=Brian Dean's programmer:vcc=2,3,4,5:reset=7:sck=8:\
+        mosi=9:miso=10
+
+dt006 : desc=Dontronics DT006:reset=4:sck=5:mosi=2:miso=11
+
+alf   : desc=Tony Freibel's programmer:vcc=2,3,4,5:buff=6:\
+        reset=7:sck=8:mosi=9:miso=10:errled=1:rdyled=14:pgmled=16:\
+        vfyled=17
+

@@ -52,8 +52,6 @@ enum {
   FIO_WRITE
 };
 
-#define MAX_LINE_LEN 256  /* max line length for ASCII format input files */
-
 char * fmtstr ( FILEFMT format );
 
 int fileio_setparms ( int op, struct fioparms * fp );

@@ -73,12 +73,14 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <ctype.h>
 
 #include "avr.h"
 #include "fileio.h"
@@ -114,6 +116,8 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
                              multiline messages */
 
+unsigned int pinno[N_PINS];
+
 /*
  * usage message
  */
@@ -138,16 +142,18 @@ int getexitspecs ( char *s, int *set, int *clr )
 
   while ((cp = strtok(s, ","))) {
     if (strcmp(cp, "reset") == 0) {
-      *clr |= ppi_getpinmask(PIN_AVR_RESET);
+      *clr |= ppi_getpinmask(pinno[PIN_AVR_RESET]);
     }
     else if (strcmp(cp, "noreset") == 0) {
-      *set |= ppi_getpinmask(PIN_AVR_RESET);
+      *set |= ppi_getpinmask(pinno[PIN_AVR_RESET]);
     }
     else if (strcmp(cp, "vcc") == 0) { 
-      *set |= PPI_AVR_VCC;
+      if (pinno[PPI_AVR_VCC])
+        *set |= pinno[PPI_AVR_VCC];
     }
     else if (strcmp(cp, "novcc") == 0) {
-      *clr |= PPI_AVR_VCC;
+      if (pinno[PPI_AVR_VCC])
+        *clr |= pinno[PPI_AVR_VCC];
     }
     else {
       return -1;
@@ -259,6 +265,329 @@ int print_module_versions ( FILE * outf, char * timestamp )
 
 
 
+#define MAX_LINE_LEN 1024
+#define MAX_PIN_NAME 64
+
+int parse_config(int lineno, char * infile, char * config, char * s, 
+                 unsigned int * pinno, char * desc, int desclen)
+{
+  char pin_name[MAX_PIN_NAME];
+  char * p;
+  int i;
+  int pins;
+  unsigned int value;
+  unsigned int v;
+  char * e;
+
+  pins = 0;
+  p = s;
+
+  while (1) {
+
+    while (*p && isspace(*p))
+      p++;
+
+    if (*p == 0) {
+      if (pins == 0) {
+        fprintf(stderr, 
+                "%s: warning: no pins configured using config entry \"%s\" "
+                "at line %d of %s\n",
+                progname, config, lineno, infile);
+      }
+      return 0;
+    }
+
+    /*
+     * parse the pin name
+     */
+    pin_name[0] = 0;
+    i = 0;
+    while (*p && (i<MAX_PIN_NAME) && !((*p == '=')||isspace(*p))) {
+      pin_name[i++] = *p;
+      p++;
+    }
+
+    if (i == MAX_PIN_NAME) {
+      fprintf(stderr, "%s: pin name too long at line %d of \"%s\"\n",
+              progname, lineno, infile);
+      return -1;
+    }
+    pin_name[i] = 0;
+
+    /* skip over spaces and equals sign */
+    while (*p && (isspace(*p)||(*p == '=')))
+      p++;
+
+    if (strcasecmp(pin_name, "desc") == 0) {
+      i = 0;
+      while (*p && (i<desclen) && (*p != ':')) {
+        desc[i++] = *p;
+        p++;
+      }
+      if (i == desclen) {
+        fprintf(stderr, 
+                "%s: error at line %d of %s: description is too "
+                "long (max = %d chars)\n",
+                progname, lineno, infile, desclen);
+        return -1;
+      }
+      desc[i] = 0;
+    }
+    else {
+      /*
+       * parse pin value
+       */
+      value = 0;
+      while (*p && (*p != ':')) {
+        
+        if (strcasecmp(pin_name, "desc") == 0) {
+          i = 0;
+          while (*p && (i<desclen) && (*p != ':')) {
+            desc[i++] = *p;
+            p++;
+          }
+          if (i == desclen) {
+            fprintf(stderr, 
+                    "%s: error at line %d of %s: description is too "
+                    "long (max = %d chars)\n",
+                    progname, lineno, infile, desclen);
+            return -1;
+          }
+          desc[i] = 0;
+        }
+        else {
+          v = strtoul(p, &e, 0);
+          if (e == p) {
+            fprintf(stderr, 
+                    "%s: can't parse pin value at line %d of \"%s\" "
+                    "starting with \"%s\"\n",
+                    progname, lineno, infile, p);
+            return -1;
+          }
+          
+          if (strcasecmp(pin_name, "VCC")==0) {
+            /*
+             * VCC is a bit mask of pins for the data register, pins 2-9
+             */
+            if ((v < 2) || (v > 9)) {
+              fprintf(stderr, 
+                      "%s: error at line %d of %s: VCC must be one or more "
+                      "pins from the range 2-9\n",
+                      progname, lineno, infile);
+              return -1;
+            }
+            value |= (1 << (v-2));
+          }
+          else {
+            if ((v <= 0) || (v >= 18)) {
+              fprintf(stderr, 
+                      "%s: error at line %d of %s: pin must be in the "
+                      "range 1-17\n",
+                      progname, lineno, infile);
+              return -1;
+            }
+            value = v;
+          }
+          
+          p = e;
+          while (*p && (isspace(*p)||(*p == ',')))
+            p++;
+        }
+        
+        if (strcasecmp(pin_name, "VCC")==0)
+          pinno[PPI_AVR_VCC] = value;
+        else if (strcasecmp(pin_name, "BUFF")==0)
+          pinno[PIN_AVR_BUFF] = value;
+        else if (strcasecmp(pin_name, "RESET")==0)
+          pinno[PIN_AVR_RESET] = value;
+        else if (strcasecmp(pin_name, "SCK")==0)
+          pinno[PIN_AVR_SCK] = value;
+        else if (strcasecmp(pin_name, "MOSI")==0)
+          pinno[PIN_AVR_MOSI] = value;
+        else if (strcasecmp(pin_name, "MISO")==0)
+          pinno[PIN_AVR_MISO] = value;
+        else if (strcasecmp(pin_name, "ERRLED")==0)
+          pinno[PIN_LED_ERR] = value;
+        else if (strcasecmp(pin_name, "RDYLED")==0)
+          pinno[PIN_LED_RDY] = value;
+        else if (strcasecmp(pin_name, "PGMLED")==0)
+          pinno[PIN_LED_PGM] = value;
+        else if (strcasecmp(pin_name, "VFYLED")==0)
+          pinno[PIN_LED_VFY] = value;
+        else {
+          fprintf(stderr, 
+                  "%s: error at line %d of %s: invalid pin name \"%s\"\n",
+                  progname, lineno, infile,  pin_name);
+          return -1;
+        } 
+        
+        pins++;
+      }
+    }
+
+    while (*p && (*p == ':'))
+      p++;
+  }
+
+  return 0;
+}
+
+  
+
+int read_config(char * infile, char * config, unsigned int * pinno, 
+                char * desc, int desclen)
+{
+  FILE * f;
+  char line[MAX_LINE_LEN];
+  char buf[MAX_LINE_LEN];
+  char configname[MAX_PIN_NAME];
+  int len, lineno, rc, cont;
+  char * p, * q;
+  int i;
+
+  for (i=0; i<N_PINS; i++)
+    pinno[i] = 0;
+
+  f = fopen(infile, "r");
+  if (f == NULL) {
+    fprintf(stderr, "%s: can't open config file \"%s\": %s\n",
+            progname, infile, strerror(errno));
+    return -1;
+  }
+
+  lineno = 0;
+  buf[0] = 0;
+  while (fgets(line, MAX_LINE_LEN, f) != NULL) {
+    lineno++;
+
+    p = line;
+    while (isspace(*p))
+      p++;
+
+    if ((*p == '#')||(*p == '\n')||(*p == 0))
+      continue;
+
+    len = strlen(p);
+    if (p[len-1] == '\n') {
+      p[len-1] = 0;
+      len--;
+    }
+
+    cont = 0;
+
+    if (p[len-1] == '\\') {
+      cont = 1;              /* flag that this is a continuation line */
+
+      /* trim trailing white space before continuation character */
+      q = &p[len-2];
+      while (isspace(*q))
+        q--;
+      q++;
+      *q = 0;
+    }
+
+    rc = strlcat(buf, p, MAX_LINE_LEN);
+    if (rc >= MAX_LINE_LEN) {
+      fprintf(stderr, 
+              "%s: buffer length of %d exceed at line %d of \"%s\"\n",
+              progname, MAX_LINE_LEN, lineno, infile);
+      return -2;
+    }
+
+    if (cont)
+      continue;  /* continuation line, keep going */
+
+    /*
+     * read the configuration name from the beginning of the line
+     */
+    p = buf;
+    i = 0;
+    while (*p && (i < MAX_PIN_NAME) && (!(isspace(*p)||(*p == ':')))) {
+      configname[i++] = *p;
+      p++;
+    }
+    if (i == MAX_PIN_NAME) {
+      fprintf(stderr, "%s: configuration name too long at line %d of \"%s\"\n",
+              progname, lineno, infile);
+      return -3;
+    }
+    configname[i] = 0;
+
+    /*
+     * position 'p' to the beginning of the pin information
+     */
+    while (*p && (isspace(*p) || (*p == ':')))
+      p++;
+
+    if (strcasecmp(configname, config) == 0) {
+      rc = parse_config(lineno, infile, config, p, pinno, desc, desclen);
+      if (rc) {
+        fprintf(stderr, "%s: error parsing config file \"%s\" at line %d\n",
+                progname, infile, lineno);
+        return -3;
+      }
+
+      return 0;
+    }
+
+    buf[0] = 0;
+  }
+
+  /*
+   * config entry not found
+   */
+
+  fprintf(stderr, "%s: config entry \"%s\" not found in file \"%s\"\n",
+          progname, config, infile);
+
+  return -5;
+}
+
+
+
+
+void pinconfig_display(char * p, char * config, char * desc)
+{
+  fprintf(stderr, "%sProgrammer Pin Configuration: %s (%s)\n", p, 
+          config ? config : "DEFAULT", desc);
+  fprintf(stderr, 
+          "%s  VCC     = 0x%02x\n"
+          "%s  BUFF    = %d\n"
+          "%s  RESET   = %d\n"
+          "%s  SCK     = %d\n"
+          "%s  MOSI    = %d\n"
+          "%s  MISO    = %d\n"
+          "%s  ERR LED = %d\n"
+          "%s  RDY LED = %d\n"
+          "%s  PGM LED = %d\n"
+          "%s  VFY LED = %d\n",
+          p, pinno[PPI_AVR_VCC],
+          p, pinno[PIN_AVR_BUFF],
+          p, pinno[PIN_AVR_RESET],
+          p, pinno[PIN_AVR_SCK],
+          p, pinno[PIN_AVR_MOSI],
+          p, pinno[PIN_AVR_MISO],
+          p, pinno[PIN_LED_ERR],
+          p, pinno[PIN_LED_RDY],
+          p, pinno[PIN_LED_PGM],
+          p, pinno[PIN_LED_VFY]);
+}
+
+
+
+void verify_pin_assigned(int pin, char * desc)
+{
+  if (pinno[pin] == 0) {
+    fprintf(stderr, "%s: error: no pin has been assigned for %s\n",
+            progname, desc);
+    exit(1);
+  }
+}
+
+    
+
+#define MAX_DESC_LEN 80
+
 /*
  * main routine
  */
@@ -279,6 +608,9 @@ int main ( int argc, char * argv [] )
   int              ppidata;	/* cached value of the ppi data register */
   int              vsize=-1;    /* number of bytes to verify */
   char             timestamp[64];
+  char             configfile[PATH_MAX]; /* pin configuration file */
+  char *           pinconfig;
+  char             desc[MAX_DESC_LEN];
 
   /* options / operating mode variables */
   int     memtype;     /* AVR_FLASH or AVR_EEPROM */
@@ -295,20 +627,46 @@ int main ( int argc, char * argv [] )
   int     ppisetbits;  /* bits to set in ppi data register at exit */
   int     ppiclrbits;  /* bits to clear in ppi data register at exit */
 
-  readorwrite = 0;
-  parallel    = DEFAULT_PARALLEL;
-  outputf     = NULL;
-  inputf      = NULL;
-  doread      = 1;
-  memtype     = AVR_FLASH;
-  erase       = 0;
-  p           = NULL;
-  ovsigck     = 0;
-  terminal = 0;
-  filefmt     = FMT_AUTO;
-  nowrite     = 0;
-  verify      = 1;        /* on by default; XXX can't turn it off */
-  ppisetbits  = ppiclrbits = 0;
+  readorwrite   = 0;
+  parallel      = DEFAULT_PARALLEL;
+  outputf       = NULL;
+  inputf        = NULL;
+  doread        = 1;
+  memtype       = AVR_FLASH;
+  erase         = 0;
+  p             = NULL;
+  ovsigck       = 0;
+  terminal      = 0;
+  filefmt       = FMT_AUTO;
+  nowrite       = 0;
+  verify        = 1;        /* on by default; XXX can't turn it off */
+  ppisetbits    = ppiclrbits = 0;
+  pinconfig     = NULL;
+
+  strcpy(configfile, CONFIG_DIR);
+  i = strlen(configfile);
+  if (i && (configfile[i-1] != '/'))
+    strcat(configfile, "/");
+  strcat(configfile, "avrprog.conf");
+
+  for (i=0; i<N_PINS; i++)
+    pinno[i] = 0;
+
+  /*
+   * default pin configuration
+   */
+  pinno[PPI_AVR_VCC]   = 0x0f;  /* ppi pins 2-5, data reg bits 0-3 */
+  pinno[PIN_AVR_BUFF]  =  0;
+  pinno[PIN_AVR_RESET] =  7;
+  pinno[PIN_AVR_SCK]   =  8;
+  pinno[PIN_AVR_MOSI]  =  9;
+  pinno[PIN_AVR_MISO]  = 10;
+  pinno[PIN_LED_ERR]   =  0;
+  pinno[PIN_LED_RDY]   =  0;
+  pinno[PIN_LED_PGM]   =  0;
+  pinno[PIN_LED_VFY]   =  0;
+
+  strcpy(desc, "compiled in default");
 
   progname = rindex(argv[0],'/');
   if (progname)
@@ -343,9 +701,18 @@ int main ( int argc, char * argv [] )
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?eE:f:Fi:m:no:p:P:tV")) != -1) {
+  while ((ch = getopt(argc,argv,"?c:C:eE:f:Fi:m:no:p:P:tV")) != -1) {
 
     switch (ch) {
+      case 'c': /* pin configuration */
+        pinconfig = optarg;
+        break;
+
+      case 'C': /* pin configuration file */
+        strncpy(configfile, optarg, PATH_MAX);
+        configfile[PATH_MAX-1] = 0;
+        break;
+
       case 'm': /* select memory type to operate on */
         if ((strcasecmp(optarg,"e")==0)||(strcasecmp(optarg,"eeprom")==0)) {
           memtype = AVR_EEPROM;
@@ -482,6 +849,19 @@ int main ( int argc, char * argv [] )
     return 1;
   }
 
+  /*
+   * read the parallel port pin configuration to use if requested
+   */
+  if (pinconfig != NULL) {
+    rc = read_config(configfile, pinconfig, pinno, desc, MAX_DESC_LEN);
+    if (rc) {
+      fprintf(stderr, "%s: error reading \"%s\" configuration from \"%s\"\n",
+              progname, pinconfig, configfile);
+      exit(1);
+    }
+  }
+
+
   /* 
    * set up seperate instances of the avr part, one for use in
    * programming, one for use in verifying.  These are separate
@@ -497,8 +877,16 @@ int main ( int argc, char * argv [] )
   avr_initmem(v);
 
   avr_display(stderr, p, progbuf);
+#if 1
+  pinconfig_display(progbuf, pinconfig, desc);
+#endif
 
   fprintf(stderr, "\n");
+
+  verify_pin_assigned(PIN_AVR_RESET, "AVR RESET");
+  verify_pin_assigned(PIN_AVR_SCK,   "AVR SCK");
+  verify_pin_assigned(PIN_AVR_MISO,  "AVR MISO");
+  verify_pin_assigned(PIN_AVR_MOSI,  "AVR MOSI");
 
   /*
    * open the parallel port
@@ -529,15 +917,15 @@ int main ( int argc, char * argv [] )
   /* 
    * turn off all the status leds
    */
-  LED_OFF(fd, PIN_LED_RDY);
-  LED_OFF(fd, PIN_LED_ERR);
-  LED_OFF(fd, PIN_LED_PGM);
-  LED_OFF(fd, PIN_LED_VFY);
+  LED_OFF(fd, pinno[PIN_LED_RDY]);
+  LED_OFF(fd, pinno[PIN_LED_ERR]);
+  LED_OFF(fd, pinno[PIN_LED_PGM]);
+  LED_OFF(fd, pinno[PIN_LED_VFY]);
 
   /*
    * enable the 74367 buffer, if connected; this signal is active low
    */
-  ppi_setpin(fd, PIN_AVR_BUFF, 0);
+  ppi_setpin(fd, pinno[PIN_AVR_BUFF], 0);
 
   /*
    * initialize the chip in preperation for accepting commands
@@ -550,7 +938,7 @@ int main ( int argc, char * argv [] )
   }
 
   /* indicate ready */
-  LED_ON(fd, PIN_LED_RDY);
+  LED_ON(fd, pinno[PIN_LED_RDY]);
 
   fprintf ( stderr, 
             "%s: AVR device initialized and ready to accept instructions\n",
@@ -692,7 +1080,7 @@ int main ( int argc, char * argv [] )
      * verify that the in memory file (p->mem[AVR_FLASH|AVR_EEPROM])
      * is the same as what is on the chip 
      */
-    LED_ON(fd, PIN_LED_VFY);
+    LED_ON(fd, pinno[PIN_LED_VFY]);
 
     fprintf(stderr, "%s: verifying %s memory against %s:\n", 
             progname, avr_memtstr(memtype), inputf);
@@ -702,7 +1090,7 @@ int main ( int argc, char * argv [] )
     if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
               progname, avr_memtstr(memtype), rc);
-      LED_ON(fd, PIN_LED_ERR);
+      LED_ON(fd, pinno[PIN_LED_ERR]);
       exitrc = 1;
       goto main_exit;
     }
@@ -712,7 +1100,7 @@ int main ( int argc, char * argv [] )
     if (rc < 0) {
       fprintf(stderr, "%s: verification error; content mismatch\n", 
               progname);
-      LED_ON(fd, PIN_LED_ERR);
+      LED_ON(fd, pinno[PIN_LED_ERR]);
       exitrc = 1;
       goto main_exit;
     }
@@ -720,7 +1108,7 @@ int main ( int argc, char * argv [] )
     fprintf(stderr, "%s: %d bytes of %s verified\n", 
             progname, rc, avr_memtstr(memtype));
 
-    LED_OFF(fd, PIN_LED_VFY);
+    LED_OFF(fd, pinno[PIN_LED_VFY]);
   }
 
 
@@ -737,9 +1125,9 @@ int main ( int argc, char * argv [] )
   /*
    * disable the 74367 buffer, if connected; this signal is active low 
    */
-  ppi_setpin(fd, PIN_AVR_BUFF, 1);
+  ppi_setpin(fd, pinno[PIN_AVR_BUFF], 1);
 
-  LED_OFF(fd, PIN_LED_RDY);
+  LED_OFF(fd, pinno[PIN_LED_RDY]);
 
   close(fd);
 
