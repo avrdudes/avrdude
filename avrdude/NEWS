@@ -20,7 +20,7 @@ Version 4.0.0
 
   * Now support Linux - added by "Theodore A. Roth" <troth@openavr.org>
 
-  * Now support Windows - added by "Eric B. Weddington" <eric@umginc.net>
+  * Now support Windows - added by "Eric B. Weddington" <eric@ecentral.com>
 
   * Use 'configure' scripts to tailor the code to the system avrdude
     is getting ready to be compiled on - added by "Theodore A. Roth"
