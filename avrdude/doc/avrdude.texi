@@ -756,8 +756,8 @@ avrdude>
 
 @noindent
 Program the fuse bits of an ATmega128 (disable M103 compatibility,
-enable high speed external crystal, enable brown-out detection).  First
-display the factory defaults, then reprogram:
+enable high speed external crystal, enable brown-out detection, slowly
+rising power).  First display the factory defaults, then reprogram:
 
 @example
 @cartouche
@@ -784,8 +784,8 @@ avrdude> w efuse 0 0xff
 avrdude> w hfuse 0 0x89
 >>> w hfuse 0 0x89 
 
-avrdude> w lfuse 0 0x2e
->>> w lfuse 0 0x2e 
+avrdude> w lfuse 0 0x2f
+>>> w lfuse 0 0x2f 
 
 avrdude> 
 @end cartouche
