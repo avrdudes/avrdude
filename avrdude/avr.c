@@ -687,9 +687,11 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
       if (m->paged) {
         return pgm->paged_write(pgm, p, m, m->page_size, size);
       }
+#if 0
       else {
-        return pgm->paged_write(pgm, p, m, pgm->page_size, size);
+        return pgm->paged_write(pgm, p, m, 32 /*pgm->page_size*/, size);
       }
+#endif
     }
   }
 
