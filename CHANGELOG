@@ -4,6 +4,12 @@ Approximate change log for AVRPROG by version
 
 ----------------------------------------------------------------------
 
+Version 2.1.0:
+
+  * Implement a per-part erase-rewrite cycle counter; requires the use
+    of two bytes of EEPROM memory.
+
+
 Version 2.0.5:
 
   * Support for ATtiny15 - contributed by Asher Hoskins
