@@ -209,11 +209,20 @@ int ppi_toggle ( int fd, int reg, int bit )
     return -1;
 
   ioctl(fd, get, &v);
-  v |= bit;
+  v ^= bit;
   ioctl(fd, set, &v);
 
-  v &= ~bit;
-  ioctl(fd, set, &v);
+  return 0;
+}
+
+
+/*
+ * pulse the indicated bit of the specified register.
+ */
+int ppi_pulse ( int fd, int reg, int bit )
+{
+  ppi_toggle(fd, reg, bit);
+  ppi_toggle(fd, reg, bit);
 
   return 0;
 }
@@ -236,7 +245,7 @@ int avr_txrx_bit ( int fd, int bit )
   else
     ppi_clr(fd, PPIDATA, AVR_INSTR);
 
-  ppi_toggle(fd, PPIDATA, AVR_CLOCK);
+  ppi_pulse(fd, PPIDATA, AVR_CLOCK);
 
   return r;
 }
@@ -569,7 +578,7 @@ int avr_initialize ( int fd )
 
   ppi_clr(fd, PPIDATA, AVR_CLOCK);
   ppi_clr(fd, PPIDATA, AVR_RESET);
-  ppi_toggle(fd, PPIDATA, AVR_RESET);
+  ppi_pulse(fd, PPIDATA, AVR_RESET);
 
   usleep(20000); /* 20 ms */
 
@@ -582,7 +591,7 @@ int avr_initialize ( int fd )
     rc = avr_program_enable ( fd );
     if (rc == 0)
       break;
-    ppi_toggle(fd, PPIDATA, AVR_CLOCK);
+    ppi_pulse(fd, PPIDATA, AVR_CLOCK);
     tries++;
   } while (tries < 32);
 
@@ -648,7 +657,7 @@ void usage ( void )
 int main ( int argc, char * argv [] )
 {
   int fd;
-  int rc;
+  int rc, exitrc;
   int i;
   unsigned char buf[2048];
   unsigned char sig[4];
@@ -801,8 +810,8 @@ int main ( int argc, char * argv [] )
   rc = avr_initialize(fd);
   if (rc < 0) {
     fprintf ( stderr, "%s: initialization failed, rc=%d\n", progname, rc );
-    avr_powerdown(fd);
-    return 1;
+    exitrc = 1;
+    goto main_exit;
   }
 
   fprintf ( stderr, "%s: AVR device initialized and ready to accept instructions\n",
@@ -844,9 +853,8 @@ int main ( int argc, char * argv [] )
       fprintf(stderr, "%s: you must specify an input or an output file\n",
               progname);
     }
-    avr_powerdown(fd);
-    close(fd);
-    return 1;
+    exitrc = 1;
+    goto main_exit;
   }
 
 
@@ -858,10 +866,8 @@ int main ( int argc, char * argv [] )
     fprintf(stderr, 
             "%s: please specify either the eeprom (-e) or the flash (-f) memory\n",
             progname);
-    avr_powerdown(fd);
-    close(fd);
-    close(iofd);
-    return 1;
+    exitrc = 1;
+    goto main_exit;
   }
 
 
@@ -876,10 +882,8 @@ int main ( int argc, char * argv [] )
       if (rc) {
         fprintf ( stderr, "%s: failed to read all of flash memory, rc=%d\n", 
                   progname, rc );
-        avr_powerdown(fd);
-        close(fd);
-        close(iofd);
-        return 1;
+        exitrc = 1;
+        goto main_exit;
       }
     }
     else if (eeprom) {
@@ -889,10 +893,8 @@ int main ( int argc, char * argv [] )
       if (rc) {
         fprintf ( stderr, "%s: failed to read all of eeprom memory, rc=%d\n", 
                   progname, rc );
-        avr_powerdown(fd);
-        close(fd);
-        close(iofd);
-        return 1;
+        exitrc = 1;
+        goto main_exit;
       }
     }
 
@@ -902,18 +904,14 @@ int main ( int argc, char * argv [] )
     rc = write ( iofd, buf, size );
     if (rc < 0) {
       fprintf(stderr, "%s: write error: %s\n", progname, strerror(errno));
-      avr_powerdown(fd);
-      close(fd);
-      close(iofd);
-      return 1;
+      exitrc = 1;
+      goto main_exit;
     }
     else if (rc != size) {
       fprintf(stderr, "%s: wrote only %d bytes of the expected %d\n", 
               progname, rc, size);
-      avr_powerdown(fd);
-      close(fd);
-      close(iofd);
-      return 1;
+      exitrc = 1;
+      goto main_exit;
     }
   }
   else {
@@ -934,10 +932,8 @@ int main ( int argc, char * argv [] )
     if (rc < 0) {
       fprintf(stderr, "%s: read error from \"%s\": %s\n", 
               progname, inputf, strerror(errno));
-      avr_powerdown(fd);
-      close(fd);
-      close(iofd);
-      return 1;
+      exitrc = 1;
+      goto main_exit;
     }
 
     size = rc;
@@ -952,10 +948,8 @@ int main ( int argc, char * argv [] )
       if (rc) {
         fprintf ( stderr, "%s: failed to write flash memory, rc=%d\n", 
                   progname, rc );
-        avr_powerdown(fd);
-        close(fd);
-        close(iofd);
-        return 1;
+        exitrc = 1;
+        goto main_exit;
       }
     }
     else if (eeprom) {
@@ -965,21 +959,23 @@ int main ( int argc, char * argv [] )
       if (rc) {
         fprintf ( stderr, "%s: failed to write eeprom memory, rc=%d\n", 
                   progname, rc );
-        avr_powerdown(fd);
-        close(fd);
-        close(iofd);
-        return 1;
+        exitrc = 1;
+        goto main_exit;
       }
     }
   }
 
+ main_exit:
 
   /*
-   * normal program completion
+   * program complete
    */
+
   avr_powerdown(fd);
   close(fd);
   close(iofd);
+
+  fprintf(stderr, "\n" );
 
   return 0;
 }
