@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003  Eric B. Weddington <eric@ecentral.com>
+ * Copyright (C) 2003, 2004  Eric B. Weddington <ericw@evcohs.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/* $Id$ */
 
 /*
 This is the parallel port interface for Windows built using Cygwin.
@@ -327,13 +328,30 @@ void gettimeofday(struct timeval*tv, void*z){
 
 // #define W32USLEEPDBG
 
+#ifdef W32USLEEPDBG
+
+#  define DEBUG_QueryPerformanceCounter(arg) QueryPerformanceCounter(arg)
+#  define DEBUG_DisplayTimingInfo(start, stop, freq, us, has_highperf)     \
+     do {                                                                  \
+       unsigned long dt;                                                   \
+       dt = (unsigned long)((stop.QuadPart - start.QuadPart) * 1000 * 1000 \
+                            / freq.QuadPart);                              \
+       fprintf(stderr,                                                     \
+               "hpt:%i usleep usec:%lu sleep msec:%lu timed usec:%lu\n",   \
+               has_highperf, us, ((us + 999) / 1000), dt);                 \
+     } while (0)
+
+#else
+
+#  define DEBUG_QueryPerformanceCounter(arg)
+#  define DEBUG_DisplayTimingInfo(start, stop, freq, us, has_highperf)
+
+#endif
+
 void usleep(unsigned long us)
 {
 	int has_highperf;
 	LARGE_INTEGER freq,start,stop,loopend;
-	#ifdef W32USLEEPDBG
-	unsigned long dt;
-	#endif
 
 	// workaround: although usleep is very precise if using
 	// high-performance-timers there are sometimes problems with
@@ -354,21 +372,15 @@ void usleep(unsigned long us)
 		} while (stop.QuadPart<=loopend.QuadPart);
 	}
 	else {
-		#ifdef W32USLEEPDBG
-		QueryPerformanceCounter(&start);
-		#endif
+		DEBUG_QueryPerformanceCounter(&start);
+
 		Sleep(1);
 		Sleep( (DWORD)((us+999)/1000) );
-		#ifdef W32USLEEPDBG
-		QueryPerformanceCounter(&stop);
-		#endif
+
+		DEBUG_QueryPerformanceCounter(&stop);
 	}
 	
-	#ifdef W32USLEEPDBG
-	dt=(unsigned long)((stop.QuadPart-start.QuadPart)*1000*1000/freq.QuadPart);
-	fprintf(stderr,"hpt:%i usleep usec:%lu sleep msec:%lu timed usec:%lu\n",
-		has_highperf,us,((us+999)/1000),dt);
-	#endif
+    DEBUG_DisplayTimingInfo(start, stop, freq, us, has_highperf);
 }
 
 #endif

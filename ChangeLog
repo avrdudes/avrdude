@@ -1,3 +1,16 @@
+2004-07-15  Theodore A. Roth  <troth@openavr.org>
+
+	* main.c (main): Don't indent CPP directives.
+	When showing update progress in a no tty situation, use unbuffered IO
+	for all systems, not just win32 native.
+	Update copyright year when printing version.
+	Remove warning about native win32 being experimental.
+	Split a line string.
+	* ppiwin.c: Update copyright year.
+	Add cvs Id keyword.
+	(usleep): Cleanup debug CPP directives to improve readability.
+	* ser_win32.c: Include <stdio.h> to fix failing build.
+
 2004-07-08  Theodore A. Roth  <troth@openavr.org>
 
 	* AUTHORS: Add names of recent major contributors.
