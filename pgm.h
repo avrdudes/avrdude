@@ -79,6 +79,7 @@ typedef struct programmer_t {
   int  (*set_vtarget)    (struct programmer_t * pgm, double v);
   int  (*set_varef)      (struct programmer_t * pgm, double v);
   int  (*set_fosc)       (struct programmer_t * pgm, double v);
+  int  (*set_sck_period) (struct programmer_t * pgm, double v);
   char config_file[PATH_MAX]; /* config file where defined */
   int  lineno;                /* config file line number */
 } PROGRAMMER;

@@ -78,6 +78,8 @@ int cmd_varef (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
 
 int cmd_fosc  (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
 
+int cmd_sck   (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+
 
 struct command cmd[] = {
   { "dump",  cmd_dump,  "dump memory  : %s <memtype> <addr> <N-Bytes>" },
@@ -91,6 +93,7 @@ struct command cmd[] = {
   { "vtarg", cmd_vtarg, "set <V[target]> (STK500 only)" },
   { "varef", cmd_varef, "set <V[aref]> (STK500 only)" },
   { "fosc",  cmd_fosc,  "set <oscillator frequency> (STK500 only)" },
+  { "sck",   cmd_sck,   "set <SCK period> (STK500 only)" },
   { "help",  cmd_help,  "help" },
   { "?",     cmd_help,  "help" },
   { "quit",  cmd_quit,  "quit" }
@@ -590,6 +593,38 @@ int cmd_fosc(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
   }
   if ((rc = pgm->set_fosc(pgm, v)) != 0) {
     fprintf(stderr, "%s (fosc): failed to set oscillator_frequency (rc = %d)\n",
+	    progname, rc);
+    return -3;
+  }
+  return 0;
+}
+
+
+int cmd_sck(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+{
+  int rc;
+  double v;
+  char *endp;
+
+  if (argc != 2) {
+    fprintf(stderr, "Usage: sck <value>\n");
+    return -1;
+  }
+  v = strtod(argv[1], &endp);
+  if (endp == argv[1]) {
+    fprintf(stderr, "%s (sck): can't parse period \"%s\"\n",
+	    progname, argv[1]);
+    return -1;
+  }
+  v *= 1e-6;			/* Convert from microseconds to seconds. */
+  if (pgm->set_sck_period == NULL) {
+    fprintf(stderr,
+	    "%s (sck): the %s programmer cannot set SCK period\n",
+	    progname, pgm->type);
+    return -2;
+  }
+  if ((rc = pgm->set_sck_period(pgm, v)) != 0) {
+    fprintf(stderr, "%s (sck): failed to set SCK period (rc = %d)\n",
 	    progname, rc);
     return -3;
   }
