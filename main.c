@@ -51,6 +51,7 @@
 #include "par.h"
 #include "pindefs.h"
 #include "term.h"
+#include "safemode.h"
 
 
 enum {
@@ -109,6 +110,9 @@ void usage(void)
     "                             is performed in the order specified.\n"
     "  -n                         Do not write anything to the device.\n"
     "  -V                         Do not verify.\n"
+    "  -u                         Disable safemode, you need this option if you\n"
+    "                             want to change fuse bits. Otherwise they will be\n"
+    "                             recovered if they change\n"
     "  -t                         Enter terminal mode.\n"
     "  -E <exitspec>[,<exitspec>] List programmer exit specifications.\n"
     "  -v                         Verbose output. -v -v for more.\n"
@@ -660,6 +664,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
 
   return 0;
 }
+  
 
 /*
  * main routine
@@ -699,6 +704,7 @@ int main(int argc, char * argv [])
   char  * e;           /* for strtol() error checking */
   int     quell_progress;
   int     baudrate;    /* override default programmer baud rate */
+  int     safemode;    /* Enable safemode, 1=safemode on, 0=normal */
 #if !defined(WIN32NATIVE)
   char  * homedir;
 #endif
@@ -745,6 +751,7 @@ int main(int argc, char * argv [])
   do_cycles     = 0;
   set_cycles    = -1;
   baudrate      = 0;
+  safemode      = 1;       /* Safemode enabled by default */
 
 
 #if defined(WIN32NATIVE)
@@ -789,7 +796,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?b:c:C:DeE:Fnp:P:qtU:vVyY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?b:c:C:DeE:Fnp:P:qtU:uvVyY:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -846,6 +853,10 @@ int main(int argc, char * argv [])
         terminal = 1;
         break;
 
+      case 'u' : /* Disable safemode */
+        safemode = 0;
+        break;
+	
       case 'U':
         upd = parse_op(optarg);
         if (upd == NULL) {
@@ -1199,7 +1210,54 @@ int main(int argc, char * argv [])
       }
     }
   }
+  
+  unsigned char safemode_lfuse = 0xff;
+  unsigned char safemode_hfuse = 0xff;
+  unsigned char safemode_efuse = 0xff;    
+  if (safemode == 1) {
+   /* If safemode is enabled, go ahead and read the current low, high, and extended fuse bytes as needed */
+    
+     fprintf(stderr, "\n");
+     
+     if (safemode_readfuses (&safemode_lfuse, &safemode_hfuse, &safemode_efuse, pgm, p, verbose) != 0) {
+       fprintf(stderr, "%s: safemode: To protect your AVR the programming will be aborted\n", progname);
+       exitrc = 1;
+       goto main_exit;
+     }
+     
+     fprintf(stderr, "\n");	
+          
+   //Save the fuses as default
+   safemode_memfuses(1, &safemode_lfuse, &safemode_hfuse, &safemode_efuse);
+   
+   
+   /* Check if user is attempting to write fuse bytes */
+   AVRMEM * m;
 
+   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
+     upd = ldata(ln);
+     m = avr_locate_mem(p, upd->memtype);
+     if (m == NULL)
+       continue;
+     if (((strcasecmp(m->desc, "lfuse")  == 0) || 
+          (strcasecmp(m->desc, "hfuse")  == 0) || 
+	  (strcasecmp(m->desc, "efuse")  == 0)) && (upd->op == DEVICE_WRITE)) {
+       fprintf(stderr,
+               "%s: NOTE: FUSE memory has been specified, and safemode is ON\n"
+	       "%s: This will not allow you to change the fuse bits.\n"
+               "%s: To disable this feature, specify the -u option.\n",
+               progname, progname, progname);
+      }
+    }
+    
+    fprintf(stderr, "\n");
+   
+     
+  }
+
+  
+  
+    
   if ((erase == 0) && (auto_erase == 1)) {
     AVRMEM * m;
 
@@ -1271,9 +1329,16 @@ int main(int argc, char * argv [])
 
 
   if (terminal) {
+  
+    /* Warn user if safemode is on */
+    if (safemode > 0) {
+       fprintf(stderr, "%s: safemode is enabled, you will NOT be "
+                 "able to change the fuse bits. Use -u option to disable\n",
+		 progname);
+    }  
     /*
      * terminal mode
-     */
+     */         
     exitrc = terminal_mode(pgm, p);
   }
 
@@ -1286,12 +1351,94 @@ int main(int argc, char * argv [])
       break;
     }
   }
+  
+  /* Right before we exit programming mode, which will make the fuse bits active,
+     check to make sure they are still correct */
+  if (safemode == 1){
+ /* If safemode is enabled, go ahead and read the current low, high, and extended fuse bytes as needed */
+     unsigned char safemodeafter_lfuse = 0xff;
+     unsigned char safemodeafter_hfuse = 0xff;
+     unsigned char safemodeafter_efuse = 0xff;   
+     unsigned char failures = 0;
+     
+     fprintf(stderr, "\n");
+     
+   //Restore the default fuse values
+   safemode_memfuses(0, &safemode_lfuse, &safemode_hfuse, &safemode_efuse);
+     
+     /* Try reading back fuses, make sure they are reliable to read back */
+     if (safemode_readfuses (&safemodeafter_lfuse, &safemodeafter_hfuse, &safemodeafter_efuse, pgm, p, verbose) != 0) {
+       /* Uh-oh.. try once more to read back fuses */
+       if (safemode_readfuses (&safemodeafter_lfuse, &safemodeafter_hfuse, &safemodeafter_efuse, pgm, p, verbose) != 0) { 
+           fprintf(stderr, "%s: safemode: Sorry, reading back fuses was unreliable. I have given up and exited programming mode\n",
+                  progname);
+           exitrc = 1;
+	   goto main_exit;		  
+       }
+     }
+     
+     /* Now check what fuses are against what they should be */
+     if (safemodeafter_lfuse != safemode_lfuse) {
+     	fprintf(stderr, "%s: safemode: lfuse changed! Read as %x, was %x\n", progname, 
+	        safemodeafter_lfuse, safemode_lfuse);
+		
+	/* Enough chit-chat, time to program some fuses and check them */
+	if (safemode_writefuse (safemode_lfuse, "lfuse", pgm, p, 10, verbose) == 0) {
+	   fprintf(stderr, "%s: safemode: and is now rescued\n", progname);
+	}
+	else {
+	   fprintf(stderr, "%s: and COULD NOT be changed\n", progname);
+	   failures++;
+	}
+      }
+	
+     /* Now check what fuses are against what they should be */
+     if (safemodeafter_hfuse != safemode_hfuse) {
+     	fprintf(stderr, "%s: safemode: hfuse changed! Read as %x, was %x\n", progname, 
+	        safemodeafter_hfuse, safemode_hfuse);
+		
+	/* Enough chit-chat, time to program some fuses and check them */
+	if (safemode_writefuse (safemode_hfuse, "hfuse", pgm, p, 10, verbose) == 0) {
+	   fprintf(stderr, "%s: safemode: and is now rescued\n", progname);
+	}
+	else {
+	   fprintf(stderr, "%s: and COULD NOT be changed\n", progname);
+	   failures++;
+	}
+     }
+	
+     /* Now check what fuses are against what they should be */
+     if (safemodeafter_efuse != safemode_efuse) {
+     	fprintf(stderr, "%s: safemode: efuse changed! Read as %x, was %x\n", progname, 
+	        safemodeafter_efuse, safemode_efuse);
+		
+	/* Enough chit-chat, time to program some fuses and check them */
+	if (safemode_writefuse (safemode_efuse, "efuse", pgm, p, 10, verbose) == 0) {
+	   fprintf(stderr, "%s: safemode: and is now rescued\n", progname);
+	}
+	else {
+	   fprintf(stderr, "%s: and COULD NOT be changed\n", progname);
+	   failures++;
+	}
+     }
+     
+     fprintf(stderr, "%s: safemode: ", progname);
+     if (failures == 0) {
+     	fprintf(stderr, "Fuses OK\n");
+     }
+     else {
+        fprintf(stderr, "Fuses not recovered, sorry\n");
+     }
+           
+  }
+ 
 
  main_exit:
 
   /*
    * program complete
    */
+   
 
   pgm->powerdown(pgm);
 
