@@ -53,6 +53,7 @@ extern int          lineno;
 extern char       * infile;
 extern LISTID       string_list;
 extern LISTID       number_list;
+extern char         default_programmer[];
 extern char         default_parallel[];
 extern char         default_serial[];
 

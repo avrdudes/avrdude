@@ -68,6 +68,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_CHIP_ERASE_DELAY
 %token K_DEDICATED
 %token K_DEFAULT_PARALLEL
+%token K_DEFAULT_PROGRAMMER
 %token K_DEFAULT_SERIAL
 %token K_DESC
 %token K_DEVICECODE
@@ -130,6 +131,12 @@ def :
   prog_def TKN_SEMI |
 
   part_def TKN_SEMI |
+
+  K_DEFAULT_PROGRAMMER TKN_EQUAL TKN_STRING TKN_SEMI {
+    strncpy(default_programmer, $3->value.string, MAX_STR_CONST);
+    default_programmer[MAX_STR_CONST-1] = 0;
+    free_token($3);
+  } |
 
   K_DEFAULT_PARALLEL TKN_EQUAL TKN_STRING TKN_SEMI {
     strncpy(default_parallel, $3->value.string, PATH_MAX);
