@@ -489,7 +489,6 @@ char * avr_memtstr ( AVRMEM memtype )
 }
 
 
-
 int avr_initmem ( struct avrpart * p )
 {
   int i;
@@ -508,8 +507,11 @@ int avr_initmem ( struct avrpart * p )
 
 
 /*
- * Verify up to 'size' bytes of p against v.  Return the number of
- * bytes verified, or -1 if they don't match.  
+ * Verify the memory buffer of p with that of v.  The byte range of v,
+ * may be a subset of p.  The byte range of p should cover the whole
+ * chip's memory size.
+ *
+ * Return the number of bytes verified, or -1 if they don't match.  
  */
 int avr_verify(struct avrpart * p, struct avrpart * v, AVRMEM memtype, int size)
 {
