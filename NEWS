@@ -8,6 +8,10 @@ Approximate change log for AVRDUDE by version.
 
 Current:
 
+	* Add ATmega8515 definition.
+	Contributed by: Matthias Weiﬂer <matthias@matwei.de>
+
+
 Version 4.2.0:
 
   * Add basic support for reading and writing fuses via SPI with avr910

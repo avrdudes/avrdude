@@ -1,3 +1,9 @@
+2003-10-13  Eric B. Weddington  <eric@ecentral.com>
+
+	* avrdude.conf.in: Add ATmega8515 definition.
+	Contributed by: Matthias Weiﬂer <matthias@matwei.de>
+	* NEWS: Add note about ATmega8515 definition.
+
 2003-09-24  Eric B. Weddington  <eric@ecentral.com>
 
 	* doc/TODO: Updated TODO list.
