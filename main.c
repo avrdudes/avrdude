@@ -227,43 +227,6 @@ PROGRAMMER * locate_programmer(LISTID programmers, char * configid)
   return NULL;
 }
 
-
-AVRPART * locate_part(LISTID parts, char * partdesc)
-{
-  LNODEID ln1;
-  AVRPART * p = NULL;
-  int found;
-
-  found = 0;
-
-  for (ln1=lfirst(parts); ln1 && !found; ln1=lnext(ln1)) {
-    p = ldata(ln1);
-    if ((strcasecmp(partdesc, p->id) == 0) ||
-        (strcasecmp(partdesc, p->desc) == 0))
-      found = 1;
-  }
-
-  if (found)
-    return p;
-
-  return NULL;
-}
-
-
-void list_parts(FILE * f, char * prefix, LISTID parts)
-{
-  LNODEID ln1;
-  AVRPART * p;
-
-  for (ln1=lfirst(parts); ln1; ln1=lnext(ln1)) {
-    p = ldata(ln1);
-    fprintf(f, "%s%-4s = %-15s [%s:%d]\n", 
-            prefix, p->id, p->desc, p->config_file, p->lineno);
-  }
-
-  return;
-}
-
 void list_programmers(FILE * f, char * prefix, LISTID programmers)
 {
   LNODEID ln1;
@@ -271,8 +234,8 @@ void list_programmers(FILE * f, char * prefix, LISTID programmers)
 
   for (ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
     p = ldata(ln1);
-    fprintf(f, "%s%-8s = %-30s [%s:%d]\n", 
-            prefix, (char *)ldata(lfirst(p->id)), p->desc, 
+    fprintf(f, "%s%-8s = %-30s [%s:%d]\n",
+            prefix, (char *)ldata(lfirst(p->id)), p->desc,
             p->config_file, p->lineno);
   }
 
@@ -287,7 +250,7 @@ static FP_UpdateProgress update_progress;
 
    The first call of report_progress() should look like this (for a write op):
 
-     report_progress (0, 1, "Writing"); 
+     report_progress (0, 1, "Writing");
 
    Then hdr should be passed NULL on subsequent calls while the operation is
    progressing. Once the operation is complete, a final call should be made as
