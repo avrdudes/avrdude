@@ -281,6 +281,16 @@ programmer
   vfyled = 17;
 ;
 
+programmer
+  id    = "sp12";
+  desc  = "Steve Bolt's Programmer";
+  type  = par;
+  vcc   = 4,5,6,7,8;
+  reset = 3;
+  sck   = 2;
+  mosi  = 9;
+  miso  = 11;
+;
 
 
 
