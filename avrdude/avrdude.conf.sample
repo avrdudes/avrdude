@@ -337,6 +337,32 @@ part
   ;
 
 part
+    id               = "m163";
+    desc             = "ATMEGA163";
+    chip_erase_delay = 32000;
+    eeprom
+        paged           = no;
+        size            = 512;
+        page_size       = 0;
+        num_pages       = 0;
+        min_write_delay = 4000;
+        max_write_delay = 4000;
+        readback_p1     = 0xff;
+        readback_p2     = 0xff;
+      ;
+    flash
+        paged           = yes;
+        size            = 16384;
+        page_size       = 128;
+        num_pages       = 128;
+        min_write_delay = 16000;
+        max_write_delay = 16000;
+        readback_p1     = 0xff;
+        readback_p2     = 0xff;
+      ;
+  ;
+
+part
     id               = "m8";
     desc             = "ATMEGA8";
     chip_erase_delay = 9000;
