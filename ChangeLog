@@ -1,1 +1,591 @@
-See the CHANGELOG file.
+2003-03-11  Theodore A. Roth  <troth@openavr.org>
+
+	* AUTHORS: Updated.
+	* CHANGELOG: Move contents to NEWS and remove file.
+	* ChangeLog: All of the changes for this year.
+	* ChangeLog-2001: All 2001 changes.
+	* ChangeLog-2002: All 2002 changes.
+	* Makefile.am (EXTRA_DIST): Remove CHANGELOG and and Change-200[12].
+	* NEWS: Moved contents of CHANGELOG file here.
+	* README: Add note pointing to savannah site.
+
+2003-03-11  Eric Weddington <eric@umginc.net>
+
+	* doc/avrdude.texi:
+	Add Install and Documentation sections for Windows. Fix typo.
+
+2003-03-10  Theodore A. Roth  <troth@openavr.org>
+
+	* Makefile.am: * Makefile.am (EXTRA_DIST): Add CHANGELOG.
+
+2003-03-10  Brian S. Dean  <bsd@bdmicro.com>
+
+	* stk500.c: Disable debugging printf.
+
+	* configure.ac: Update version number in preparation for release.
+
+2003-03-10  Theodore A. Roth  <troth@openavr.org>
+
+	* doc/avrdude.texi:
+	Add comment before each node to make them stand out better.
+	Use @option{} command for options instead of @code{}.
+	Merge FreeBSD and Linux platform dependent information.
+
+2003-03-10  Brian S. Dean  <bsd@bdmicro.com>
+
+	* avrdude.1: Minor man page updates to better reflect reality.
+
+2003-03-10  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* bootstrap:
+	Export all the AUTO* variables.  Hopefully, that way the generated
+	Makefile might get them correctly.
+
+	* bootstrap:
+	Export ${AUTOCONF} so automake will find it by whatever name it will be
+	called today.
+
+2003-03-06  Eric Weddington <eric@umginc.net>
+
+	* doc/avrdude.texi:
+	Add notes about ability to list parts and list programmers in the
+	config file in -p and -c descriptions. Change info about where to
+	find Windows search method in -C description.
+
+	* main.c:
+	Change software version from hardcoded value to getting it from
+	the configuration.
+
+2003-03-06  Theodore A. Roth  <troth@openavr.org>
+
+	* avrdude.spec.in: * avrdude.spec.in: Add docs sub-package.
+	Add %post and %preun scriptlets for handling info files.
+
+	* configure.ac, doc/Makefile.am:
+	* configure.ac: Add --enable-versioned-doc option and set DOC_INST_DIR.
+	* doc/Makefile.am: Add rules to install docs in DOC_INST_DIR.
+
+	* doc/Makefile.am:
+	Delete the lines which where commented out in previous commit.
+
+	* configure.ac, doc/Makefile.am:
+	* configure.ac: Remove hack to make work with automake-1.5.
+	* doc/Makefile.am: Remove extra rules that were needed to work with
+		automake-1.5.
+
+	* bootstrap:
+	* bootstrap: Force use of autoconf-2.57 and automake-1.7.x.
+
+2003-03-05  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Add a definition for the popular Ponyprog dongle.
+
+	Submitted by:	Daniel Williamson <dannyw@maconmgt.co.uk>
+
+2003-03-05  Brian S. Dean  <bsd@bdmicro.com>
+
+	* main.c:
+	Check the programmer type against 'STK500' instead of the programmer
+	name when checking to see if we should default to the default_serial
+	port instead of the default_parallel port.  This has us do the right
+	thing for the new 'avrisp' programmer.
+
+	* stk500.c:
+	Make the page size used for non-paged parts for the 'paged_write'
+	command be 128 bytes.  This cuts 6 seconds off the programming time
+	for uploading a 6K file into an AT90S8515 vs the time loading the same
+	file using a 16 byte buffer, and the response feedback is still good.
+
+	* avr.c, stk500.c:
+	Fix stk500 page write (Program Page command).  This is supported after
+	all on non-paged-memory parts.  The problem was that the page size was
+	defaulting to 256 (maximum for the stk500), but the timeout for a
+	response from the stk500 before declaring it dead was only 0.5
+	seconds.  But it takes much longer than 0.5 seconds to program 256
+	bytes, so we just weren't waiting long enough.
+
+	Fix this in two ways - increase the timeout to 5 seconds, and decrease
+	the page size to 16 bytes for non-paged parts.  The programming time
+	for 16 bytes is short enough to provide the user with some feedback
+	that something is happening.
+
+	* avr.c, stk500.c:
+	Don't call the programmer's 'paged_write' routine unless the memory
+	itself is paged as it doesn't appear to work otherwise.
+
+	* avrdude.conf.in: Fix device codes for at90s8515 and at90s8535.
+
+	* avrdude.conf.in:
+	Add PAGEL and BS2 parms for parts I have datasheets for.
+
+	* config_gram.y:
+	Do that last commit slightly differently - this way results in no
+	shift-reduce conflicts.
+
+	* config_gram.y:
+	It shouldn't be an error to have an empty configuration file.  This
+	causes some shift-reduce conflicts, but I think they are OK.
+
+	* main.c:
+	Print out a list of valid parts for '-p ?' and a list of valid
+	programmers for '-c ?'.
+
+2003-03-04  Eric Weddington <eric@umginc.net>
+
+	* doc/avrdude.texi: Minor Windows doc corrections.
+
+	* doc/TODO: Add TODO file.
+
+	* avrdude.conf.in: Add AVR ISP programmer.
+
+2003-03-04  Brian S. Dean  <bsd@bdmicro.com>
+
+	* stk500.c:
+	Don't try to set extended device programming parameters if they
+	haven't been specified in the config file for the part.
+
+	* stk500.c: Set extended device parameters for all firmware versions.
+
+	* stk500.c:
+	First attempt at supporting STK500 firmware past 1.10.  Thanks to
+	Jason Kyle for the needed protocol information.
+
+2003-03-03  Theodore A. Roth  <troth@openavr.org>
+
+	* doc/Makefile.am:
+	* doc/Makefile.am: Add ps and pdf rules since they aren't supplied by
+	automake versions prior to 1.7.
+
+	* doc/avrdude.texi:
+	* doc/avrdude.texi: Add node and menu information for the info system.
+
+	* Makefile.am, configure.ac, doc/Makefile.am, doc/avrdude.texi:
+	* Makefile.am (SUBDIRS): Add doc dir.
+	* configure.ac (AC_CONFIG_FILES): Add doc/Makefile.
+	* doc/Makefile.am: New file.
+	* doc/avrdude.texi: Use automatically generated version.texi.
+
+2003-03-02  Brian S. Dean  <bsd@bdmicro.com>
+
+	* doc/avrdude.texi: Initial manual.
+
+2003-02-27  Theodore A. Roth  <troth@openavr.org>
+
+	* term.c: * term.c: Use fgets() if readline() is not available.
+
+2003-02-27  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* bootstrap:
+	Oops, accidentally spammed the repository with my private version of
+	"bootstrap".  Back out that change.
+
+	* bootstrap, lexer.l:
+	Ignore \r as white space, to make the Windows people happy.
+
+2003-02-27  Theodore A. Roth  <troth@openavr.org>
+
+	* Makefile.am (EXTRA_DIST): Add avrdude.spec and make entries one
+	per line so future patches are obvious as to what changed.
+	* avrdude.spec.in: New file to support creation of binaries in rpm
+	format.
+	* configure.ac (AC_OUTPUT): Add avrdude.spec.  Reorder so that
+	Makefile is the last entry.
+
+2003-02-26  Theodore A. Roth  <troth@openavr.org>
+
+	* Makefile.am (SUBDIRS): Add windows dir.
+	* configure.ac: If $target is a windows system, build whats in
+	windows sub dir.
+	* windows/Makefile.am: New file.
+
+2003-02-25  Theodore A. Roth  <troth@openavr.org>
+
+	* ChangeLog: Point reader to the CHANGELOG file.
+	* Makefile.am (EXTRA_DIST): Rename avrdude.conf.sample to
+	avrdude.conf.in.
+	Remove avrdude.conf and distclean-local rules.
+	Add install-exec-local and backup-avrdude-conf rules.
+	* avrdude.conf.in:
+	Set default_parallel to "@DEFAULT_PAR_PORT@" for autoconf expansion.
+	Set default_serial to "@DEFAULT_SER_PORT@" for autoconf expansion.
+	* configure.ac: Add call to AC_CANONICAL_{BUILD,HOST,TARGET} macros.
+	Set DEFAULT_PAR_PORT and DEFAULT_SER_PORT based on $host.
+	Add copyright header.
+	Define avrdude_version so AC_INIT and AM_INIT_AUTOMAKE are sure
+	to get the same version.
+
+	* avrdude.conf.in, avrdude.conf.sample:
+	Renamed avrdude.conf.sample to avrdude.conf.in.
+
+2003-02-25  Eric Weddington <eric@umginc.net>
+
+	* ppiwin.c: CRs again.
+
+	* confwin.c, confwin.h: Get rid of CRs.
+
+	* main.c, Makefile.am: Get rid of CRs again.
+
+2003-02-24  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.1: Atmel has rearranged their web site, so now the AVR
+	docs have been moved to a more logically sounding URL.
+
+2003-02-24  Eric Weddington <eric@umginc.net>
+
+	* Makefile.am, main.c: Integrate Windows search of config files.
+
+	* confwin.c, confwin.h: config file search on Windows.
+
+	* ppiwin.c: Change port value from lpt1alt to lpt3. Other
+	formatting changes.
+
+	* windows/giveio.c:
+	Add giveio device driver source. Requires MS DDK to build.
+
+	* windows/giveio.sys: Add giveio device driver binary.
+
+	* giveio.sys, install_giveio.bat, remove_giveio.bat, status_giveio.bat:
+	Move Windows specific files.
+
+	* windows/loaddrv.c, windows/loaddrv.h, windows/remove_giveio.bat:
+	* windows/status_giveio.bat, windows/install_giveio.bat:
+	Add Windows specific files.
+
+	* main.c: Usage back to stderr.
+
+2003-02-22  Brian S. Dean  <bsd@bdmicro.com>
+
+	* CHANGELOG: Add note about .avrduderc.
+
+	* avr.c, avrdude.conf.sample, avrpart.h, config_gram.y, main.c,
+	* par.c, pgm.c, pgm.h:
+	Add the ability to read a per-user config file located at
+	$HOME/.avrduderc.  Entries from .avrduderc take precedence over those
+	from the system wide config file in ${PREFIX}/etc/avrdude.conf.
+
+	Track and display the config file name and line number when we print
+	out the available parts and programmers.  This is useful in case
+	someone has overridden a definition in their .avrduderc file and is
+	wondering why the definition in the system wide config file is not
+	being used.
+
+	Remove the default programmer 'stk500' from the distributed config
+	file.
+
+	* CHANGELOG: Spelling.
+
+2003-02-21  Brian S. Dean  <bsd@bdmicro.com>
+
+	* CHANGELOG:
+	Put some stuff in the CHANGELOG for this upcoming new version before I
+	forget.
+
+	* main.c:
+	Update comment due to removal of the default parallel port pin config.
+
+	* config.c, config.h, config_gram.y, lexer.l, main.c:
+	* avrdude.conf.sample:
+	Introduce 'default_programmer' to the config file instead of requiring
+	one of the programmers to be tagged "default" within its definition.
+
+	Also, axe the notion of a compiled-in default programmer.  It is
+	kind've pointless now that nearly all configuration comes from the
+	config file, thus, avrdude is not very useful without the config file,
+	and thus, having a programmer compiled-in offers little or no benefit.
+
+2003-02-21  Eric Weddington <eric@umginc.net>
+
+	* main.c: Change usage text to be verbose.
+
+	* giveio.sys: Add Windows parallel port device driver (binary).
+
+	* install_giveio.bat, remove_giveio.bat, status_giveio.bat:
+	Windows batch files to work with giveio.sys.
+
+2003-02-21  Brian S. Dean  <bsd@bdmicro.com>
+
+	* avrdude.conf.sample, config.c, config.h, config_gram.y, lexer.l:
+	* main.c:
+	Add port name defaults to the config file instead of hard-coding.
+	This adds 'default_parallel' and 'default_serial' keywords to the
+	grammar, which take quoted string arguments.
+
+	* avrdude.conf.sample:
+	Document the recent additions to the config file.
+
+	* stk500.c, avr.c, avrpart.h, config_gram.y, lexer.l, par.c:
+	Add the ability to specify which pin to pulse when retrying entry into
+	programming mode.  Use 'retry_pulse' in the per-part specification
+	that can currently take values of 'reset' or 'sck', the default being
+	'sck' which preserves the previous behaviour.  Some newer parts
+	indicate that /RESET should be pulsed, while older parts say to pulse
+	SCK.
+
+2003-02-20  Eric Weddington <eric@umginc.net>
+
+	* main.c, par.c:
+	Make verbose global. Make debug code in par_cmd() based on verbose=2.
+
+2003-02-20  Brian S. Dean  <bsd@bdmicro.com>
+
+	* stk500.c: Fix pseudo/full parallel mode selection logic.
+
+	* avrdude.conf.sample:
+	Woops, didn't really mean to commit those changes that slipped in with
+	the last commit.  Those were just there for testing.
+
+	* avr.c, avrdude.conf.sample, avrpart.h, config_gram.y, lexer.l:
+	* stk500.c:
+	Add 'serial' and 'parallel' keywords to the grammar so that one can
+	say whether parts support these programming modes or not.  Possible
+	values for 'serial' are 'yes' or 'no'.  Possible values for 'parallel'
+	are 'yes', 'no', or 'pseudo'.  Add a bit mask of flags to the AVRPART
+	structure to capture these settings.  Use these within
+	stk500_initialize() to set the device parameters correctly.
+
+	Defaults for 'serial' and 'parallel' are 'yes' unless specified
+	otherwise.
+
+2003-02-20  Eric Weddington <eric@umginc.net>
+
+	* Makefile.am, ppiwin.c: Get rid of CRs.
+
+	* Makefile.am: Add ppiwin.c to avrdude_SOURCES.
+
+	* ppiwin.c: Added ppiwin.c: Windows parallel port driver.
+
+	* stk500.c:
+	Add error message for fail to enter programming mode. Fix typos.
+
+2003-02-20  Brian S. Dean  <bsd@bdmicro.com>
+
+	* avr.c, avrdude.conf.sample, avrpart.h, config_gram.y, lexer.l:
+	Add a few parameters needed for parallel programming: assignment of
+	PAGEL and BS2 signals and the disposition of the reset pin
+	('dedicated' or 'io').
+
+2003-02-20  Theodore A. Roth  <troth@openavr.org>
+
+	* avrdude.1: Fix spacing for m169 entry. (tabs not spaces ;-)
+
+2003-02-20  Brian S. Dean  <bsd@bdmicro.com>
+
+	* avrdude.1, fileio.c, main.c: Add Motorola S-record support.
+
+	Submitted by:		"Alexey V.Levdikov" <tsar@kemford.com>
+
+2003-02-19  Theodore A. Roth  <troth@openavr.org>
+
+	* avrdude.1: Add m169 to list of supported targets.
+
+2003-02-19  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.sample, avrdude.1:
+	My colleague contributed a part definition for the AT90S2343.
+
+	Submitted by:	Mirko Kaffka <mirko@mkaffka.de>
+
+2003-02-18  Theodore A. Roth  <troth@openavr.org>
+
+	* avrdude.conf.sample:
+	Add support for mega169. (tested with stk500 with 1.7 firmware)
+
+	* avrdude.conf.sample:
+	Add commments to separate parts (makes it easier for the eye to parse).
+
+2003-02-15  Theodore A. Roth  <troth@openavr.org>
+
+	* Makefile.am: Add $srcdir to sample config filename so that
+	building in a separate dir works.
+
+2003-02-15  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* Makefile.am:
+	Only GNU make sets $< in non-inference rules, so rather explicitly
+	spell the source file(s) to remain compatible.
+
+2003-02-14  Theodore A. Roth  <troth@openavr.org>
+
+	* Makefile.am: Add distclean rule and EXTRA_DIST list to get 'make
+	distcheck' to succeed.
+
+	These changes add basic support for a autoconf/automake based
+	build system.
+
+	* .cvsignore: Ignore autoconf files.
+	* AUTHORS: New file.
+	* ChangeLog: New file.
+	* Makefile: Removed file.
+	* Makefile.am: New file.
+	* NEWS: New file.
+	* README: New file.
+	* bootstrap: New file.
+	* configure.ac: New file.
+	* avr.c: Include ac_cfg.h (generated by autoconf).
+	* config.c: Include ac_cfg.h.
+	Include config_gram.h instead of y.tab.h.
+	* config.h: If HAS_YYSTYPE is not defined, define YYSTYPE.
+	* config_gram.y: Include ac_cfg.h.
+	* fileio.c: Include ac_cfg.h.
+	* lexer.l: Include config_gram.h instead of y.tab.h.
+	* lists.c: Include ac_cfg.h.
+	* main.c: Include ac_cfg.h.
+	* par.c: Include ac_cfg.h.
+	* pgm.c: Include ac_cfg.h.
+	* ppi.c: Include ac_cfg.h.
+	* stk500.c: Include ac_cfg.h.
+	* term.c: Include ac_cfg.h.
+
+2003-02-14  Brian S. Dean  <bsd@bdmicro.com>
+
+	* stk500.c: Fix typos.  Fix error messages.
+
+2003-02-13  Brian S. Dean  <bsd@bdmicro.com>
+
+	* Makefile, avrdude.conf.sample, config_gram.y, lexer.l, main.c:
+	* par.c, par.h, ppi.c, ppi.h, stk500.c:
+	Split higher level parallel port programmer code off from ppi.c into
+	its own file par.c, leaving low level parallel port accessor routines
+	in ppi.c to help with portability.  Change the programmer type to
+	'PAR' now instead of 'PPI' - 'PAR' represents the parallel port
+	programmer type.
+
+	Be more liberal with 'static' function declarations within the
+	programmer implimentation files - these functions should never be
+	called directly - always use the programmer function references.
+
+	There are still a few places in 'main.c' that directly reference the
+	parallel programmer explicitly (par_getpinmask).  These should be
+	fixed somehow.
+
+	Axe a few unused functions.
+
+2003-02-12  Theodore A. Roth  <troth@openavr.org>
+
+	* .cvsignore: New file.
+
+	* stk500.c: Remove need for inttypes.h.
+
+	* lexer.l: Define YY_NO_UNPUT to quell a compiler warning.
+
+	* Makefile: Remove YACC assignment.
+	Add '-b y' options to YACC invocation.
+	Remove leading '-' from 'include .depend'.
+
+2003-02-12  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* config_gram.y:
+	Declare the internally used static functions on top, to get rid of the
+	compiler warnings.
+
+	Reported by:	bison-generated parsers
+
+2003-02-11  Theodore A. Roth  <troth@openavr.org>
+
+	* linux_ppdev.h: New file.
+	* ppi.c: Include system dependant parallel port interface file.
+	(ppi_open): Add call to ppi_claim().
+	(ppi_close): Add call to ppi_release().
+	* ppi.h: Define ppi_claim() and ppi_release() as NOPs if not previously
+	defined.
+	* stk500.c: Include inttypes header to quell compiler warning.
+
+2003-02-11  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* pgm.c, ppi.c, stk500.c: Fix some implicit declaration warnings.
+
+	* config_gram.y:
+	Move the C declarations to the top of the file.  While [b]yacc doesn't
+	care, bison does, and this is normally the way it's meant to be
+	anyway.
+
+2003-02-11  Theodore A. Roth  <troth@openavr.org>
+
+	* Makefile: Generate dependencies specific to the target system.
+	Explicitly use byacc.
+
+	* Makefile:
+	Remove reference to avr-gcc in depend rule (cut & paste error).
+
+2003-02-09  Brian S. Dean  <bsd@bdmicro.com>
+
+	* main.c, pgm.c, pgm.h, pindefs.h, ppi.c, ppi.h, stk500.c:
+	* stk500.h, stk500_private.h, term.c, term.h, CHANGELOG, COPYING:
+	* Makefile, avr.c, avr.h, avrdude.1, avrdude.conf.sample:
+	* avrdude.pdf, avrpart.h, config.c, config.h, config_gram.y:
+	* fileio.c, fileio.h, lexer.l, lists.c, lists.h:
+	Test commit in new public repository.  Before this time this repo
+	existed on a private system.  Commits made by 'bsd' on the old system
+	were made by Brian Dean (bdean on the current system).
+
+2003-02-08  Brian S. Dean  <bsd@bdmicro.com>
+
+	* Makefile, avr.c, avr.h, avrdude.1, avrpart.h, config.c,
+	* config.h, config_gram.y, fileio.c, fileio.h, lexer.l, lists.c:
+	* lists.h, main.c, pgm.c, pgm.h, pindefs.h, ppi.c, ppi.h:
+	* stk500.c, stk500.h, term.c, term.h:
+	The last part of that last commit message should read:
+
+		All others - modify program description.
+
+	* Makefile, avr.c, avr.h, avrdude.1, avrpart.h, config.c:
+	* config.h, config_gram.y, fileio.c, fileio.h, lexer.l, lists.c:
+	* lists.h, main.c, pgm.c, pgm.h, pindefs.h, ppi.c, ppi.h:
+	* stk500.c, stk500.h, term.c, term.h:
+	Makefile: include a target to automatically generate the dependency
+	          list.
+
+	All others
+
+2003-02-06  Brian S. Dean  <bsd@bdmicro.com>
+
+	* avrdude.1: Update license to GPL, permission by Joerg Wunsch.
+
+	* lexer.l: Add GPL.
+
+	* Makefile, config_gram.y: Add GPL to the Makefile and config_gram.y.
+
+	* Makefile, stk500.h:
+	Add stk500.h as a dependency for stk500.c.  Remove carraige returns
+	from stk500.h - don't know how those got in there (pointed out by Ted
+	Roth).
+
+	* COPYING, avr.c, avr.h, avrpart.h, config.c, config.h, fileio.c:
+	* fileio.h, lists.c, lists.h, main.c, pgm.c, pgm.h, pindefs.h:
+	* ppi.c, ppi.h, stk500.c, stk500.h, term.c, term.h:
+	Re-license using the GNU GPL.  Thanks to Ted Roth for the patch.
+
+	* avr.c, avr.h, config.c, config.h, config_gram.y, fileio.c:
+	* fileio.h, lexer.l, lists.c, lists.h, main.c, pgm.c, pgm.h:
+	* pindefs.h, ppi.c, ppi.h, stk500.c, stk500.h, term.c, term.h:
+	Get rid of the verbose printing of individual file CVS version ids.
+	This was intended to be used for identifying code in the field for
+	incoming bug reports, but I've never really found it all that useful.
+
+	* CHANGELOG, Makefile, Makefile.inc, avr.c, avrdude.1:
+	* avrdude.conf.sample, config_gram.y, lexer.l, main.c, stk500.c:
+	* term.c:
+	Change the name from AVRPROG to AVRDUDE.
+
+	This change represents a name change only.  There is currently an
+	effort to port AVRPROG to other platforms including Linux and Windows.
+	Since Atmel's programmer binary that's included within their AVR
+	Studio software is named AVRPROG.EXE on the Windows OS, there is the
+	chance for confusion if we keep calling this program AVRPROG as well.
+	Up until now the name hasn't really been a problem since there was no
+	chance to confuse 'avrprog' on Unix with Atmel's AVRPROG because
+	Atmel's tools only run on Windows.  But with the Unix 'avrprog'
+	possibly being ported to Windows, I felt a name change was the best
+	way to avoid problems.
+
+	So - from this point forward, my FreeBSD Unix program formerly
+	known as AVRPROG will subsequently be known as AVRDUDE (AVR
+	Downloader/UploaDEr).
+
+	This change also represents a time when the AVRDUDE sources move from
+	my own private repository to a public repository.  This will give
+	other developers a chance to port AVRDUDE to other platforms and
+	extend its functionality to support additional programming hardware,
+	etc.
+
+	So goodbye AVRPROG, welcome AVRDUDE!
