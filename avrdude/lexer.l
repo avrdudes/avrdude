@@ -123,8 +123,8 @@ SIGN     [+-]
          exit(1); }
 }
 
-bank_size        { yylval=NULL; return K_BANK_SIZE; }
-banked           { yylval=NULL; return K_BANKED; }
+bank_size        { yylval=NULL; return K_PAGE_SIZE; }
+banked           { yylval=NULL; return K_PAGED; }
 buff             { yylval=NULL; return K_BUFF; }
 chip_erase_delay { yylval=NULL; return K_CHIP_ERASE_DELAY; }
 desc             { yylval=NULL; return K_DESC; }
@@ -136,7 +136,10 @@ max_write_delay  { yylval=NULL; return K_MAX_WRITE_DELAY; }
 min_write_delay  { yylval=NULL; return K_MIN_WRITE_DELAY; }
 miso             { yylval=NULL; return K_MISO; }
 mosi             { yylval=NULL; return K_MOSI; }
-num_banks        { yylval=NULL; return K_NUM_BANKS; }
+num_banks        { yylval=NULL; return K_NUM_PAGES; }
+num_pages        { yylval=NULL; return K_NUM_PAGES; }
+page_size        { yylval=NULL; return K_PAGE_SIZE; }
+paged            { yylval=NULL; return K_PAGED; }
 part             { yylval=NULL; return K_PART; }
 pgmled           { yylval=NULL; return K_PGMLED; }
 programmer       { yylval=NULL; return K_PROGRAMMER; }
