@@ -29,6 +29,8 @@ Current:
   * Deprecated options have been removed.
     Now the "-U" option must be used.
 
+  * MacOS X now supported by default.
+
 Version 4.3.0:
 
   * Added support for "Butterfly" evaluation board.
