@@ -303,7 +303,8 @@ int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
   int len, maxsize;
   char * memtype;
   unsigned long addr, i;
-  char * buf;
+  unsigned char * buf;
+  unsigned char b;
   int rc;
   int werror;
   AVRMEM * mem;
@@ -371,14 +372,23 @@ int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
 
     rc = avr_write_byte(fd, p, mem, addr+i, buf[i]);
     if (rc) {
-      fprintf(stderr, "%s (write): error writing 0x%02x at 0x%05lx\n",
-              progname, buf[i], addr+i);
+      fprintf(stderr, "%s (write): error writing 0x%02x at 0x%05lx, rc=%d\n",
+              progname, buf[i], addr+i, rc);
       if (rc == -1)
         fprintf(stderr, 
                 "write operation not supported on memory type \"%s\"\n",
                 mem->desc);
       werror = 1;
     }
+
+    rc = avr_read_byte(fd, p, mem, addr+i, &b);
+    if (b != buf[i]) {
+      fprintf(stderr, 
+              "%s (write): error writing 0x%02x at 0x%05lx cell=0x%02x\n",
+              progname, buf[i], addr+i, b);
+      werror = 1;
+    }
+
     if (werror) {
       LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
     }
@@ -446,7 +456,7 @@ int cmd_erase(int fd, struct avrpart * p, int argc, char * argv[])
 int cmd_part(int fd, struct avrpart * p, int argc, char * argv[])
 {
   fprintf(stdout, "\n");
-  avr_display(stdout, p, "");
+  avr_display(stdout, p, "", 0);
   fprintf(stdout, "\n");
 
   return 0;

@@ -764,7 +764,7 @@ int main(int argc, char * argv [])
   v = avr_dup_part(p);
 
   if (verbose) {
-    avr_display(stderr, p, progbuf);
+    avr_display(stderr, p, progbuf, verbose);
     fprintf(stderr, "\n");
     pinconfig_display(progbuf);
   }

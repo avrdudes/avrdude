@@ -87,6 +87,10 @@ typedef struct avrmem {
   int num_pages;              /* number of pages (if page addressed) */
   int min_write_delay;        /* microseconds */
   int max_write_delay;        /* microseconds */
+  int pwroff_after_write;     /* after this memory type is written to,
+                                 the device must be powered off and
+                                 back on, see errata
+                                 http://www.atmel.com/atmel/acrobat/doc1280.pdf */
   unsigned char readback[2];  /* polled read-back values */
   unsigned char * buf;        /* pointer to memory buffer */
   OPCODE * op[AVR_OP_MAX];    /* opcodes */
@@ -158,7 +162,9 @@ int avr_initmem(AVRPART * p);
 
 int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size);
 
-void avr_display(FILE * f, AVRPART * p, char * prefix);
+void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type, 
+                     int verbose);
 
+void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose);
 
 #endif

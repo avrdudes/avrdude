@@ -442,8 +442,9 @@ int avr_read(int fd, AVRPART * p, char * memtype, int size, int verbose)
     }
     buf[i] = rbyte;
     if (verbose) {
-      if ((i % 16 == 0)||(i == (size-1)))
-        fprintf(stderr, "                    \r%4lu  0x%02x", i, rbyte);
+      if ((i % 16 == 0)||(i == (size-1))) {
+        fprintf(stderr, "\r        \r%6lu", i);
+      }
     }
   }
 
@@ -524,7 +525,7 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
     rc = avr_read_byte(fd, p, mem, addr, &b);
     if (rc != 0) {
       if (rc != -1) {
-        return -1;
+        return -2;
       }
       /*
        * the read operation is not support on this memory type
@@ -603,11 +604,14 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
   tries = 0;
   ready = 0;
   while (!ready) {
-    usleep(mem->min_write_delay); /* typical write delay */
+    usleep(mem->min_write_delay);
     rc = avr_read_byte(fd, p, mem, addr, &r);
     if (rc != 0) {
-      return -1;
+      LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
+      LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
+      return -4;
     }
+
     if ((data == mem->readback[0]) ||
         (data == mem->readback[1])) {
       /* 
@@ -619,24 +623,62 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
       usleep(mem->max_write_delay);
       rc = avr_read_byte(fd, p, mem, addr, &r);
       if (rc != 0) {
-        return -1;
+        LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
+        LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
+        return -5;
       }
     }
     
     if (r == data) {
       ready = 1;
     }
-    
+    else if (mem->pwroff_after_write) {
+      /*
+       * The device has been flagged as power-off after write to this
+       * memory type.  The reason we don't just blindly follow the
+       * flag is that the power-off advice may only apply to some
+       * memory bits but not all.  We only actually power-off the
+       * device if the data read back does not match what we wrote.
+       */
+      usleep(mem->max_write_delay); /* maximum write delay */
+      LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
+      fprintf(stderr,
+              "%s: this device must be powered off and back on to continue\n",
+              progname);
+      if (pgm->pinno[PPI_AVR_VCC]) {
+        fprintf(stderr, "%s: attempting to do this now ...\n", progname);
+        avr_powerdown(fd);
+        usleep(250000);
+        rc = avr_initialize(fd, p);
+        if (rc < 0) {
+          fprintf(stderr, "%s: initialization failed, rc=%d\n", progname, rc);
+          fprintf(stderr, 
+                  "%s: can't re-initialize device after programming the "
+                  "%s bits\n", progname, mem->desc);
+          fprintf(stderr,
+                  "%s: you must manually power-down the device and restart\n"
+                  "%s:   avrprog to continue.\n",
+                  progname, progname);
+          return -3;
+        }
+        
+        fprintf(stderr, "%s: device was successfully re-initialized\n",
+                progname);
+        return 0;
+      }
+    }
+
     tries++;
     if (!ready && tries > 5) {
       /*
-       * we couldn't write the data, indicate our displeasure by
-       * returning an error code 
+       * we wrote the data, but after waiting for what should have
+       * been plenty of time, the memory cell still doesn't match what
+       * we wrote.  Indicate a write error.
        */
       LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
       LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
       
-      return -1;
+      return -6;
     }
   }
 
@@ -689,8 +731,9 @@ int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose)
   for (i=0; i<wsize; i++) {
     data = m->buf[i];
     if (verbose) {
-      if ((i % 16 == 0)||(i == (wsize-1)))
-        fprintf(stderr, "                      \r%4lu 0x%02x ", i, data);
+      if ((i % 16 == 0)||(i == (wsize-1))) {
+        fprintf(stderr, "\r      \r%6lu", i);
+      }
     }
     rc = avr_write_byte(fd, p, m, i, data);
     if (rc) {
@@ -953,7 +996,7 @@ int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size)
   for (i=0; i<size; i++) {
     if (buf1[i] != buf2[i]) {
       fprintf(stderr, 
-              "%s: verification error, first mismatch at byte %d\n"
+              "%s: verification error, first mismatch at byte 0x%04x\n"
               "%s0x%02x != 0x%02x\n",
               progname, i, 
               progbuf, buf1[i], buf2[i]);
@@ -966,8 +1009,45 @@ int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size)
 
 
 
-void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type)
+char * avr_op_str(int op)
 {
+  switch (op) {
+    case AVR_OP_READ        : return "READ"; break;
+    case AVR_OP_WRITE       : return "WRITE"; break;
+    case AVR_OP_READ_LO     : return "READ_LO"; break;
+    case AVR_OP_READ_HI     : return "READ_HI"; break;
+    case AVR_OP_WRITE_LO    : return "WRITE_LO"; break;
+    case AVR_OP_WRITE_HI    : return "WRITE_HI"; break;
+    case AVR_OP_LOADPAGE_LO : return "LOADPAGE_LO"; break;
+    case AVR_OP_LOADPAGE_HI : return "LOADPAGE_HI"; break;
+    case AVR_OP_WRITEPAGE   : return "WRITEPAGE"; break;
+    case AVR_OP_CHIP_ERASE  : return "CHIP_ERASE"; break;
+    case AVR_OP_PGM_ENABLE  : return "PGM_ENABLE"; break;
+    default : return "<unknown opcode>"; break;
+  }
+}
+
+
+char * bittype(int type)
+{
+  switch (type) {
+    case AVR_CMDBIT_IGNORE  : return "IGNORE"; break;
+    case AVR_CMDBIT_VALUE   : return "VALUE"; break;
+    case AVR_CMDBIT_ADDRESS : return "ADDRESS"; break;
+    case AVR_CMDBIT_INPUT   : return "INPUT"; break;
+    case AVR_CMDBIT_OUTPUT  : return "OUTPUT"; break;
+    default : return "<unknown bit type>"; break;
+  }
+}
+
+
+
+void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type, 
+                     int verbose)
+{
+  int i, j;
+  char * optr;
+
   if (m == NULL) {
     fprintf(f, 
             "%s                          Page                       Polled\n"
@@ -976,6 +1056,13 @@ void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type)
             prefix, prefix, prefix);
   }
   else {
+    if (verbose > 1) {
+      fprintf(f, 
+              "%s                          Page                       Polled\n"
+              "%sMemory Type Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
+              "%s----------- ------ ------ ---- ------ ----- ----- ---------\n",
+              prefix, prefix, prefix);
+    }
     fprintf(f,
             "%s%-11s %-6s %6d %4d %5d %5d %5d 0x%02x 0x%02x\n",
             prefix, m->desc,
@@ -987,12 +1074,35 @@ void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type)
             m->max_write_delay,
             m->readback[0], 
             m->readback[1]);
+    if (verbose > 1) {
+      fprintf(stderr, 
+              "%s  Memory Ops:\n"
+              "%s    Oeration     Inst Bit  Bit Type  Bitno  Value\n"
+              "%s    -----------  --------  --------  -----  -----\n",
+              prefix, prefix, prefix);
+      for (i=0; i<AVR_OP_MAX; i++) {
+        if (m->op[i]) {
+          for (j=31; j>=0; j--) {
+            if (j==31)
+              optr = avr_op_str(i);
+            else
+              optr = " ";
+          fprintf(f,
+                  "%s    %-11s  %8d  %8s  %5d  %5d\n",
+                  prefix, optr, j,
+                  bittype(m->op[i]->bit[j].type),
+                  m->op[i]->bit[j].bitno,
+                  m->op[i]->bit[j].value);
+          }
+        }
+      }
+    }
   }
 }
 
 
 
-void avr_display(FILE * f, AVRPART * p, char * prefix)
+void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose)
 {
   int i;
   char * buf;
@@ -1020,10 +1130,12 @@ void avr_display(FILE * f, AVRPART * p, char * prefix)
     px = buf;
   }
   
-  avr_mem_display(px, f, NULL, 0);
+  if (verbose <= 1) {
+    avr_mem_display(px, f, NULL, 0, verbose);
+  }
   for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
     m = ldata(ln);
-    avr_mem_display(px, f, m, i);
+    avr_mem_display(px, f, m, i, verbose);
   }
 
   if (buf)
