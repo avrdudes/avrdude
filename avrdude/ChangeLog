@@ -1,4 +1,7 @@
 2004-07-04  Jan-Hinnerk Reichert  <hinni@despammed.com>
+	* avr.h: Removed some unused prototypes
+
+2004-07-04  Jan-Hinnerk Reichert  <hinni@despammed.com>
 	* stk500.c: Fixed fosc behaviour for values exceeding
 	maximum frequency (contributed by Galen Seitz)
 
