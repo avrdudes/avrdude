@@ -86,9 +86,6 @@
 #include "term.h"
 
 
-#define DEFAULT_PARALLEL "/dev/ppi0"
-#define DEFAULT_SERIAL   "/dev/cuaa0"
-
 char * version      = "3.1.0";
 
 int    verbose;     /* verbose output */
@@ -308,11 +305,14 @@ int main(int argc, char * argv [])
   else
     progname = argv[0];
 
+  default_parallel[0] = 0;
+  default_serial[0]   = 0;
+
   init_config();
 
   partdesc      = NULL;
   readorwrite   = 0;
-  port          = DEFAULT_PARALLEL;
+  port          = default_parallel;
   outputf       = NULL;
   inputf        = NULL;
   doread        = 1;
@@ -381,8 +381,8 @@ int main(int argc, char * argv [])
       case 'c': /* pin configuration */
         pinconfig = optarg;
         if (strcmp(pinconfig, "stk500") == 0) {
-          if (port == DEFAULT_PARALLEL) {
-            port = DEFAULT_SERIAL;
+          if (port == default_parallel) {
+            port = default_serial;
           }
         }
         break;
@@ -613,6 +613,19 @@ int main(int argc, char * argv [])
   /*
    * open the programmer
    */
+  if (port[0] == 0) {
+    fprintf(stderr, "\n%s: no port has been specified on the command or the "
+            "config file\n", 
+            progname);
+    fprintf(stderr, "%sSpecify a port using the -P option and try again\n\n",
+            progbuf);
+    exit(1);
+  }
+
+  if (verbose) {
+    fprintf(stderr, "%sUsing Port            : %s\n", progbuf, port);
+  }
+
   pgm->open(pgm, port);
 
   if (verbose) {

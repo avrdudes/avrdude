@@ -30,6 +30,9 @@
 #include "config.h"
 #include "config_gram.h"
 
+char default_parallel[PATH_MAX];
+char default_serial[PATH_MAX];
+
 char string_buf[MAX_STR_CONST];
 char *string_buf_ptr;
 
