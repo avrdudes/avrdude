@@ -324,13 +324,25 @@ static void avr910_enable(PROGRAMMER * pgm)
 static int avr910_cmd(PROGRAMMER * pgm, unsigned char cmd[4], 
                       unsigned char res[4])
 {
-  int i;
+  unsigned char buf[5];
 
   no_show_func_info();
 
-  for (i=0; i<4; i++) {
-    fprintf(stderr, "cmd[%d] = 0x%02x\n", i, cmd[i]);
-  }
+  /* FIXME: Insert version check here */
+
+  buf[0] = '.';                 /* New Universal Command */
+  buf[1] = cmd[0];
+  buf[2] = cmd[1];
+  buf[3] = cmd[2];
+  buf[4] = cmd[3];
+
+  avr910_send (pgm, buf, 5);
+  avr910_recv (pgm, buf, 2);
+
+  res[0] = 0x00;                /* Dummy value */
+  res[1] = cmd[0];
+  res[2] = cmd[1];
+  res[3] = buf[0];
 
   return 0;
 }
