@@ -93,6 +93,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_READBACK_P2
 %token K_READMEM
 %token K_RESET
+%token K_RETRY_PULSE
 %token K_SERIAL
 %token K_SCK
 %token K_SIZE
@@ -307,8 +308,10 @@ prog_parm :
     }
   } |
 
-  K_RESET  TKN_EQUAL TKN_NUMBER { assign_pin(PIN_AVR_RESET, $3); } |
-  K_SCK    TKN_EQUAL TKN_NUMBER { assign_pin(PIN_AVR_SCK, $3); } |
+  K_RESET  TKN_EQUAL TKN_NUMBER { free_token($1); 
+                                  assign_pin(PIN_AVR_RESET, $3); } |
+  K_SCK    TKN_EQUAL TKN_NUMBER { free_token($1); 
+                                  assign_pin(PIN_AVR_SCK, $3); } |
   K_MOSI   TKN_EQUAL TKN_NUMBER { assign_pin(PIN_AVR_MOSI, $3); } |
   K_MISO   TKN_EQUAL TKN_NUMBER { assign_pin(PIN_AVR_MISO, $3); } |
   K_ERRLED TKN_EQUAL TKN_NUMBER { assign_pin(PIN_LED_ERR, $3); } |
@@ -345,6 +348,10 @@ reset_disposition :
 
 parallel_modes :
   yesno | K_PSEUDO
+;
+
+retry_lines :
+  K_RESET | K_SCK
 ;
 
 part_parm :
@@ -394,7 +401,7 @@ part_parm :
       else if ($3->primary == K_IO)
         current_part->reset_disposition = RESET_IO;
 
-      free_token($3);
+      free_tokens(2, $1, $3);
     } |
 
   K_SERIAL TKN_EQUAL yesno
@@ -425,6 +432,21 @@ part_parm :
 
       free_token($3);
     } |
+
+  K_RETRY_PULSE TKN_EQUAL retry_lines
+    {
+      switch ($3->primary) {
+        case K_RESET :
+          current_part->retry_pulse = PIN_AVR_RESET;
+          break;
+        case K_SCK :
+          current_part->retry_pulse = PIN_AVR_SCK;
+          break;
+      }
+
+      free_token($1);
+    } |
+
 
 /*
   K_EEPROM { current_mem = AVR_M_EEPROM; }

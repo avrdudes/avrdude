@@ -445,7 +445,7 @@ static int par_initialize(PROGRAMMER * pgm, AVRPART * p)
       rc = pgm->program_enable(pgm, p);
       if ((rc == 0)||(rc == -1))
         break;
-      par_pulsepin(pgm->fd, pgm->pinno[PIN_AVR_SCK]);
+      par_pulsepin(pgm->fd, pgm->pinno[p->retry_pulse/*PIN_AVR_SCK*/]);
       tries++;
     } while (tries < 65);
 

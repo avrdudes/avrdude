@@ -120,15 +120,14 @@ banked           { yylval=NULL; return K_PAGED; }
 bs2              { yylval=NULL; return K_BS2; }
 buff             { yylval=NULL; return K_BUFF; }
 chip_erase_delay { yylval=NULL; return K_CHIP_ERASE_DELAY; }
-dedicated        { yylval=new_token(K_DEDICATED); return K_DEDICATED; }
 desc             { yylval=NULL; return K_DESC; }
 devicecode       { yylval=NULL; return K_DEVICECODE; }
 eeprom           { yylval=NULL; return K_EEPROM; }
 errled           { yylval=NULL; return K_ERRLED; }
 flash            { yylval=NULL; return K_FLASH; }
 id               { yylval=NULL; return K_ID; }
-io               { yylval=new_token(K_IO); return K_IO; }
 max_write_delay  { yylval=NULL; return K_MAX_WRITE_DELAY; }
+memory           { yylval=NULL; return K_MEMORY; }
 min_write_delay  { yylval=NULL; return K_MIN_WRITE_DELAY; }
 miso             { yylval=NULL; return K_MISO; }
 mosi             { yylval=NULL; return K_MOSI; }
@@ -142,19 +141,25 @@ parallel         { yylval=NULL; return K_PARALLEL; }
 part             { yylval=NULL; return K_PART; }
 pgmled           { yylval=NULL; return K_PGMLED; }
 programmer       { yylval=NULL; return K_PROGRAMMER; }
-pseudo           { yylval=new_token(K_PSEUDO); return K_PSEUDO; }
 pwroff_after_write { yylval=NULL; return K_PWROFF_AFTER_WRITE; }
 rdyled           { yylval=NULL; return K_RDYLED; }
 readback_p1      { yylval=NULL; return K_READBACK_P1; }
 readback_p2      { yylval=NULL; return K_READBACK_P2; }
-reset            { yylval=NULL; return K_RESET; }
-sck              { yylval=NULL; return K_SCK; }
+retry_pulse      { yylval=NULL; return K_RETRY_PULSE; }
 serial           { yylval=NULL; return K_SERIAL; }
 size             { yylval=NULL; return K_SIZE; }
 stk500           { yylval=NULL; return K_STK500; }
 type             { yylval=NULL; return K_TYPE; }
 vcc              { yylval=NULL; return K_VCC; }
 vfyled           { yylval=NULL; return K_VFYLED; }
+
+
+dedicated        { yylval=new_token(K_DEDICATED); return K_DEDICATED; }
+io               { yylval=new_token(K_IO); return K_IO; }
+pseudo           { yylval=new_token(K_PSEUDO); return K_PSEUDO; }
+
+reset            { yylval=new_token(K_RESET); return K_RESET; }
+sck              { yylval=new_token(K_SCK); return K_SCK; }
 
 read             { yylval=new_token(K_READ); return K_READ; }
 write            { yylval=new_token(K_WRITE); return K_WRITE; }
@@ -167,8 +172,6 @@ loadpage_hi      { yylval=new_token(K_LOADPAGE_HI); return K_LOADPAGE_HI; }
 writepage        { yylval=new_token(K_WRITEPAGE); return K_WRITEPAGE; }
 chip_erase       { yylval=new_token(K_CHIP_ERASE); return K_CHIP_ERASE; }
 pgm_enable       { yylval=new_token(K_PGM_ENABLE); return K_PGM_ENABLE; }
-
-memory           { yylval=NULL; return K_MEMORY; }
 
 no               { yylval=new_token(K_NO); return K_NO; }
 yes              { yylval=new_token(K_YES); return K_YES; }
