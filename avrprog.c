@@ -804,6 +804,9 @@ int main ( int argc, char * argv [] )
   }
 
 
+  exitrc = 0;
+
+
   /*
    * initialize the chip in preperation for accepting commands
    */
@@ -977,6 +980,6 @@ int main ( int argc, char * argv [] )
 
   fprintf(stderr, "\n" );
 
-  return 0;
+  return exitrc;
 }
 
