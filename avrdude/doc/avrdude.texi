@@ -127,17 +127,24 @@ from the contents of a file, while interactive mode is useful for
 exploring memory contents, modifing individual bytes of eeprom,
 programming fuse/lock bits, etc.
 
-AVRDUDE supports two basic programmer types: Atmel's STK500 and the PPI
-(parallel port interface). PPI represents a class of simple programmers
-where the programming lines are directly connected to the PC parallel
-port, while the STK500 uses the serial port to communicate with the PC
+AVRDUDE supports three basic programmer types: Atmel's STK500, appnote
+avr910 and the PPI (parallel port interface). PPI represents a class
+of simple programmers where the programming lines are directly
+connected to the PC parallel port. Several pin configurations exist
+for several variations of the PPI programmers, and AVRDUDE can be be
+configured to work with them by either specifying the appropriate
+programmer on the command line or by creating a new entry in its
+configuration file. All that's usually required for a new entry is to
+tell AVRDUDE which pins to use for each programming function. 
+
+The STK500 and avr910 use the serial port to communicate with the PC
 and contains on-board logic to control the programming of the target
-device. Several pin configurations exist for several variations of the
-PPI programmers, and AVRDUDE can be be configured to work with them by
-either specifying the appropriate programmer on the command line or by
-creating a new entry in its configuration file. All that's usually
-required for a new entry is to tell AVRDUDE which pins to use for each
-programming function.
+device. The fundamental difference between the two types lies in the
+protocol used to control the programmer. The av910 protocol is very
+simplistic and can easily be used as the basis for a simple, home made
+programer since the firmware is available online. On the other hand,
+the STK500 protocol is more robust and complicated and the firmware is
+not openly available.
 
 @menu
 * History::                     

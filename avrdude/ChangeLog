@@ -1,3 +1,8 @@
+2003-04-17  Theodore A. Roth  <troth@openavr.org>
+
+	* configure.ac: Set version to 4.1.0.
+	* doc/avrdude.texi: Add note about avr910 programmer type.
+
 2003-04-17  Eric B. Weddington  <eric@umginc.net>
 
 	* NEWS: Replace TBD with new release version.
