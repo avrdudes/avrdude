@@ -540,7 +540,10 @@ static void stk500_enable(PROGRAMMER * pgm)
 static int stk500_open(PROGRAMMER * pgm, char * port)
 {
   strcpy(pgm->port, port);
-  pgm->fd = serial_open(port, 115200);
+  if (pgm->baudrate)
+    pgm->fd = serial_open(port, pgm->baudrate);
+  else
+    pgm->fd = serial_open(port, 115200);
 
   /*
    * drain any extraneous input
