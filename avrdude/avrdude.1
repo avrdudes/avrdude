@@ -1,4 +1,4 @@
-.\" Copyright (c) 2001 Joerg Wunsch
+.\" Copyright (c) 2001, 2002 Joerg Wunsch
 .\"
 .\" All rights reserved.
 .\"
@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE January 19, 2001
+.Dd DATE January 11, 2002
 .Os
 .Dt AVRPROG 1
 .Sh NAME
@@ -144,7 +144,11 @@ option).  New pin configurations can be easily added or modified
 through the use of a config file to make
 .Nm avrprog
 work with different programmers as long as the programmer supports the
-Atmel AVR serial program method.
+Atmel AVR serial program method.  If that file contains an entry named
+.Dq default ,
+this one will be used as default if
+.Fl c Ar programmer-id
+is missing; otherwise a builtin default will be used.
 .It Fl C Ar config-file
 Use the specified config file to load configuration data.  This file
 contains all programmer and part definitions that
