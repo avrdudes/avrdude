@@ -4,6 +4,20 @@ Approximate change log for AVRPROG by version
 
 ----------------------------------------------------------------------
 
+Version 3.0.0
+
+  * Rewrite parts of the code to make it easy to support other types
+    of programmers besides the directly connected parallel port
+    programmer (PPI).
+
+  * Add support for Atmel's STK500 programmer/development board.  The
+    STK500's "paged mode" read/write is supported which makes this
+    programmer very fast.  This is sorely needed on parts with large
+    memories such as the ATmega128.  My 12K test program burns in
+    about 5 seconds, add another 5 to read it back out for
+    verification.
+
+
 Version 2.1.5:
 
   * When getting ready to initiate communications with the AVR device,

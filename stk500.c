@@ -57,7 +57,7 @@ extern int do_cycles;
 char * stk500_version = "$Id$";
 
 
-int static send(PROGRAMMER * pgm, char * buf, int buflen)
+int static stk500_send(PROGRAMMER * pgm, char * buf, int buflen)
 {
   struct timeval timeout;
   fd_set wfds;
@@ -77,7 +77,8 @@ int static send(PROGRAMMER * pgm, char * buf, int buflen)
   reselect:
     nfds = select(pgm->fd+1, NULL, &wfds, NULL, &timeout);
     if (nfds == 0) {
-      fprintf(stderr, "%s: send(): programmer is not responding on %s\n",
+      fprintf(stderr, 
+              "%s: stk500_send(): programmer is not responding on %s\n",
               progname, pgm->port);
       exit(1);
     }
@@ -86,7 +87,7 @@ int static send(PROGRAMMER * pgm, char * buf, int buflen)
         goto reselect;
       }
       else {
-        fprintf(stderr, "%s: send(): select(): %s\n",
+        fprintf(stderr, "%s: stk500_send(): select(): %s\n",
                 progname, strerror(errno));
         exit(1);
       }
@@ -94,7 +95,7 @@ int static send(PROGRAMMER * pgm, char * buf, int buflen)
 
     rc = write(pgm->fd, buf, 1);
     if (rc < 0) {
-      fprintf(stderr, "%s: send(): write error: %s\n",
+      fprintf(stderr, "%s: stk500_send(): write error: %s\n",
               progname, strerror(errno));
       exit(1);
     }
@@ -107,7 +108,7 @@ int static send(PROGRAMMER * pgm, char * buf, int buflen)
 
       
   
-int static recv(PROGRAMMER * pgm, char * buf, int n)
+int static stk500_recv(PROGRAMMER * pgm, char * buf, int n)
 {
   struct timeval timeout;
   fd_set rfds;
@@ -124,7 +125,8 @@ int static recv(PROGRAMMER * pgm, char * buf, int n)
   reselect:
     nfds = select(pgm->fd+1, &rfds, NULL, NULL, &timeout);
     if (nfds == 0) {
-      fprintf(stderr, "%s: recv(): programmer is not responding on %s\n",
+      fprintf(stderr, 
+              "%s: stk500_recv(): programmer is not responding on %s\n",
               progname, pgm->port);
       exit(1);
     }
@@ -133,7 +135,7 @@ int static recv(PROGRAMMER * pgm, char * buf, int n)
         goto reselect;
       }
       else {
-        fprintf(stderr, "%s: recv(): select(): %s\n",
+        fprintf(stderr, "%s: stk500_recv(): select(): %s\n",
                 progname, strerror(errno));
         exit(1);
       }
@@ -141,7 +143,7 @@ int static recv(PROGRAMMER * pgm, char * buf, int n)
 
     rc = read(pgm->fd, buf, 1);
     if (rc < 0) {
-      fprintf(stderr, "%s: recv(): read error: %s\n",
+      fprintf(stderr, "%s: stk500_recv(): read error: %s\n",
               progname, strerror(errno));
       exit(1);
     }
@@ -153,7 +155,7 @@ int static recv(PROGRAMMER * pgm, char * buf, int n)
 }
 
       
-int static drain(PROGRAMMER * pgm, int display)
+int static stk500_drain(PROGRAMMER * pgm, int display)
 {
   struct timeval timeout;
   fd_set rfds;
@@ -186,7 +188,7 @@ int static drain(PROGRAMMER * pgm, int display)
         goto reselect;
       }
       else {
-        fprintf(stderr, "%s: drain(): select(): %s\n",
+        fprintf(stderr, "%s: stk500_drain(): select(): %s\n",
                 progname, strerror(errno));
         exit(1);
       }
@@ -194,7 +196,7 @@ int static drain(PROGRAMMER * pgm, int display)
 
     rc = read(pgm->fd, &buf, 1);
     if (rc < 0) {
-      fprintf(stderr, "%s: drain(): read error: %s\n",
+      fprintf(stderr, "%s: stk500_drain(): read error: %s\n",
               progname, strerror(errno));
       exit(1);
     }
@@ -205,7 +207,7 @@ int static drain(PROGRAMMER * pgm, int display)
 }
 
 
-static int getsync(PROGRAMMER * pgm)
+static int stk500_getsync(PROGRAMMER * pgm)
 {
   unsigned char buf[32], resp[32];
 
@@ -213,20 +215,21 @@ static int getsync(PROGRAMMER * pgm)
    * get in sync */
   buf[0] = Cmnd_STK_GET_SYNC;
   buf[1] = Sync_CRC_EOP;
-  send(pgm, buf, 2);
-  recv(pgm, resp, 1);
+  stk500_send(pgm, buf, 2);
+  stk500_recv(pgm, resp, 1);
   if (resp[0] != Resp_STK_INSYNC) {
     fprintf(stderr, 
-            "%s: stk500_open(): not in sync: resp=0x%02x\n",
+            "%s: stk500_getsync(): not in sync: resp=0x%02x\n",
             progname, resp[0]);
-    drain(pgm, 0);
+    stk500_drain(pgm, 0);
     exit(1);
   }
 
-  recv(pgm, resp, 1);
+  stk500_recv(pgm, resp, 1);
   if (resp[0] != Resp_STK_OK) {
     fprintf(stderr, 
-            "%s: stk500_open(): can't communicate with device: resp=0x%02x\n",
+            "%s: stk500_getsync(): can't communicate with device: "
+            "resp=0x%02x\n",
             progname, resp[0]);
     exit(1);
   }
@@ -271,22 +274,22 @@ int stk500_cmd(PROGRAMMER * pgm, unsigned char cmd[4], unsigned char res[4])
   buf[4] = cmd[3];
   buf[5] = Sync_CRC_EOP;
 
-  send(pgm, buf, 6);
+  stk500_send(pgm, buf, 6);
 
-  recv(pgm, buf, 1);
+  stk500_recv(pgm, buf, 1);
   if (buf[0] != Resp_STK_INSYNC) {
-    fprintf(stderr, "%s: programmer is out of sync\n", progname);
+    fprintf(stderr, "%s: stk500_cmd(): programmer is out of sync\n", progname);
     exit(1);
   }
 
   res[0] = cmd[1];
   res[1] = cmd[2];
   res[2] = cmd[3];
-  recv(pgm, &res[3], 1);
+  stk500_recv(pgm, &res[3], 1);
 
-  recv(pgm, buf, 1);
+  stk500_recv(pgm, buf, 1);
   if (buf[0] != Resp_STK_OK) {
-    fprintf(stderr, "%s: protocol error\n", progname);
+    fprintf(stderr, "%s: stk500_cmd(): protocol error\n", progname);
     exit(1);
   }
 
@@ -363,26 +366,26 @@ int stk500_program_enable(PROGRAMMER * pgm, AVRPART * p)
   buf[0] = Cmnd_STK_ENTER_PROGMODE;
   buf[1] = Sync_CRC_EOP;
 
-  send(pgm, buf, 2);
-  recv(pgm, buf, 1);
+  stk500_send(pgm, buf, 2);
+  stk500_recv(pgm, buf, 1);
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
       fprintf(stderr, "%s: stk500_program_enable(): can't get into sync\n",
               progname);
       return -1;
     }
-    getsync(pgm);
+    stk500_getsync(pgm);
     goto retry;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
     fprintf(stderr,
-            "%s: stk500_initialize(): (a) protocol error, "
+            "%s: stk500_program_enable(): protocol error, "
             "expect=0x%02x, resp=0x%02x\n", 
             progname, Resp_STK_INSYNC, buf[0]);
     return -1;
   }
 
-  recv(pgm, buf, 1);
+  stk500_recv(pgm, buf, 1);
   if (buf[0] == Resp_STK_OK) {
     return 0;
   }
@@ -425,6 +428,11 @@ int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
   unsigned char buf[32];
   AVRMEM * m;
   int tries;
+
+  tries = 0;
+
+ retry:
+  tries++;
 
   /*
    * set device programming parameters
@@ -501,18 +509,15 @@ int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
 
   buf[21] = Sync_CRC_EOP;
 
-  tries = 0;
- retry:
-  tries++;
-  send(pgm, buf, 22);
-  recv(pgm, buf, 1);
+  stk500_send(pgm, buf, 22);
+  stk500_recv(pgm, buf, 1);
   if (buf[0] == Resp_STK_NOSYNC) {
     fprintf(stderr,
             "%s: stk500_initialize(): programmer not in sync, resp=0x%02x\n", 
             progname, buf[0]);
     if (tries > 33)
       return -1;
-    getsync(pgm);
+    stk500_getsync(pgm);
     goto retry;
     return -1;
   }
@@ -524,7 +529,7 @@ int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
     return -1;
   }
 
-  recv(pgm, buf, 1);
+  stk500_recv(pgm, buf, 1);
   if (buf[0] != Resp_STK_OK) {
     fprintf(stderr,
             "%s: stk500_initialize(): (b) protocol error, "
@@ -559,15 +564,15 @@ void stk500_disable(PROGRAMMER * pgm)
   buf[0] = Cmnd_STK_LEAVE_PROGMODE;
   buf[1] = Sync_CRC_EOP;
 
-  send(pgm, buf, 2);
-  recv(pgm, buf, 1);
+  stk500_send(pgm, buf, 2);
+  stk500_recv(pgm, buf, 1);
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
       fprintf(stderr, "%s: stk500_program_enable(): can't get into sync\n",
               progname);
       return;
     }
-    getsync(pgm);
+    stk500_getsync(pgm);
     goto retry;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
@@ -578,7 +583,7 @@ void stk500_disable(PROGRAMMER * pgm)
     return;
   }
 
-  recv(pgm, buf, 1);
+  stk500_recv(pgm, buf, 1);
   if (buf[0] == Resp_STK_OK) {
     return;
   }
@@ -600,7 +605,7 @@ void stk500_enable(PROGRAMMER * pgm)
 }
 
 
-int static set_tty_attr(int fd)
+int static stk500_setattr(int fd)
 {
   int rc;
   struct termios termios;
@@ -613,12 +618,12 @@ int static set_tty_attr(int fd)
    */
   rc = tcgetattr(fd, &termios);
   if (rc < 0) {
-    fprintf(stderr, "%s: tcgetattr() failed, %s", 
+    fprintf(stderr, "%s: stk500_setattr(): tcgetattr() failed, %s", 
             progname, strerror(errno));
     return -errno;
   }
 
-#if 1
+#if 0
   termios.c_iflag &= ~(INPCK | IXOFF | IXON);
   termios.c_cflag &= ~(HUPCL | CSTOPB | CRTSCTS);
   termios.c_cflag |= (CLOCAL | CREAD);
@@ -628,7 +633,7 @@ int static set_tty_attr(int fd)
   termios.c_iflag = 0;
   termios.c_oflag = 0;
   termios.c_cflag &= ~ (PARENB | CSIZE | CSTOPB);
-  termios.c_cflag |=   (CS8 | HUPCL | CREAD | CLOCAL);
+  termios.c_cflag |=   (CS8 | CREAD | CLOCAL);
   termios.c_lflag = 0;
   termios.c_cc[VMIN]  = 1;
   termios.c_cc[VTIME] = 0;
@@ -639,7 +644,8 @@ int static set_tty_attr(int fd)
   
   rc = tcsetattr(fd, TCSANOW, &termios);
   if (rc < 0) {
-    fprintf(stderr, "%s: tcsetattr() failed, %s", progname, strerror(errno));
+    fprintf(stderr, "%s: stk500_setattr(): tcsetattr() failed, %s", 
+            progname, strerror(errno));
     return -errno;
   }
 
@@ -658,7 +664,7 @@ void stk500_open(PROGRAMMER * pgm, char * port)
    */
   pgm->fd = open(port, O_RDWR | O_NOCTTY /*| O_NONBLOCK*/);
   if (pgm->fd < 0) {
-    fprintf(stderr, "%s: can't open device \"%s\": %s\n",
+    fprintf(stderr, "%s: stk500_open(): can't open device \"%s\": %s\n",
             progname, port, strerror(errno));
     exit(1);
   }
@@ -666,9 +672,10 @@ void stk500_open(PROGRAMMER * pgm, char * port)
   /*
    * set serial line attributes
    */
-  rc = set_tty_attr(pgm->fd);
+  rc = stk500_setattr(pgm->fd);
   if (rc) {
-    fprintf(stderr, "%s: can't set attributes for device \"%s\"\n",
+    fprintf(stderr, 
+            "%s: stk500_open(): can't set attributes for device \"%s\"\n",
             progname, port);
     exit(1);
   }
@@ -676,11 +683,11 @@ void stk500_open(PROGRAMMER * pgm, char * port)
   /*
    * drain any extraneous input
    */
-  drain(pgm, 0);
+  stk500_drain(pgm, 0);
 
-  getsync(pgm);
+  stk500_getsync(pgm);
 
-  drain(pgm, 0);
+  stk500_drain(pgm, 0);
 }
 
 
@@ -691,7 +698,7 @@ void stk500_close(PROGRAMMER * pgm)
 }
 
 
-static int loadaddr(PROGRAMMER * pgm, uint16_t addr)
+static int stk500_loadaddr(PROGRAMMER * pgm, uint16_t addr)
 {
   unsigned char buf[16];
   int tries;
@@ -704,35 +711,36 @@ static int loadaddr(PROGRAMMER * pgm, uint16_t addr)
   buf[2] = (addr >> 8) & 0xff;
   buf[3] = Sync_CRC_EOP;
 
-  send(pgm, buf, 4);
+  stk500_send(pgm, buf, 4);
 
-  recv(pgm, buf, 1);
+  stk500_recv(pgm, buf, 1);
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
-      fprintf(stderr, "%s: loadaddr(): can't get into sync\n",
+      fprintf(stderr, "%s: stk500_loadaddr(): can't get into sync\n",
               progname);
       return -1;
     }
-    getsync(pgm);
+    stk500_getsync(pgm);
     goto retry;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
     fprintf(stderr,
-            "%s: loadaddr(): (a) protocol error, "
+            "%s: stk500_loadaddr(): (a) protocol error, "
             "expect=0x%02x, resp=0x%02x\n", 
             progname, Resp_STK_INSYNC, buf[0]);
     return -1;
   }
 
-  recv(pgm, buf, 1);
+  stk500_recv(pgm, buf, 1);
   if (buf[0] == Resp_STK_OK) {
     return 0;
   }
 
   fprintf(stderr,
-          "%s: loadaddr(): (a) protocol error, "
+          "%s: loadaddr(): (b) protocol error, "
           "expect=0x%02x, resp=0x%02x\n", 
           progname, Resp_STK_INSYNC, buf[0]);
+
   return -1;
 }
 
@@ -781,27 +789,27 @@ int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     tries = 0;
   retry:
     tries++;
-    loadaddr(pgm, addr/a_div);
+    stk500_loadaddr(pgm, addr/a_div);
     buf[0] = Cmnd_STK_PROG_PAGE;
     buf[1] = (page_size >> 8) & 0xff;
     buf[2] = page_size & 0xff;
     buf[3] = memtype;
-    send(pgm, buf, 4);
+    stk500_send(pgm, buf, 4);
     for (i=0; i<page_size; i++) {
       buf[0] = m->buf[addr + i];
-      send(pgm, buf, 1);
+      stk500_send(pgm, buf, 1);
     }
     buf[0] = Sync_CRC_EOP;
-    send(pgm, buf, 1);
+    stk500_send(pgm, buf, 1);
 
-    recv(pgm, buf, 1);
+    stk500_recv(pgm, buf, 1);
     if (buf[0] == Resp_STK_NOSYNC) {
       if (tries > 33) {
         fprintf(stderr, "\n%s: stk500_paged_write(): can't get into sync\n",
                 progname);
         return -3;
       }
-      getsync(pgm);
+      stk500_getsync(pgm);
       goto retry;
     }
     else if (buf[0] != Resp_STK_INSYNC) {
@@ -812,7 +820,7 @@ int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       return -4;
     }
     
-    recv(pgm, buf, 1);
+    stk500_recv(pgm, buf, 1);
     if (buf[0] != Resp_STK_OK) {
       fprintf(stderr,
               "\n%s: stk500_paged_write(): (a) protocol error, "
@@ -866,30 +874,27 @@ int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     }
   }
 
-  fprintf(stderr, "%s: stk500_paged_load(): n=%d, a_div=%d\n", 
-          progname, n, a_div);
-
   for (addr = 0; addr < n; addr += page_size) {
     fprintf(stderr, "\r      \r%6u", addr);
     tries = 0;
   retry:
     tries++;
-    loadaddr(pgm, addr/a_div);
+    stk500_loadaddr(pgm, addr/a_div);
     buf[0] = Cmnd_STK_READ_PAGE;
     buf[1] = (page_size >> 8) & 0xff;
     buf[2] = page_size & 0xff;
     buf[3] = memtype;
     buf[4] = Sync_CRC_EOP;
-    send(pgm, buf, 5);
+    stk500_send(pgm, buf, 5);
 
-    recv(pgm, buf, 1);
+    stk500_recv(pgm, buf, 1);
     if (buf[0] == Resp_STK_NOSYNC) {
       if (tries > 33) {
         fprintf(stderr, "\n%s: stk500_paged_load(): can't get into sync\n",
                 progname);
         return -3;
       }
-      getsync(pgm);
+      stk500_getsync(pgm);
       goto retry;
     }
     else if (buf[0] != Resp_STK_INSYNC) {
@@ -900,9 +905,9 @@ int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       return -4;
     }
 
-    recv(pgm, &m->buf[addr], page_size);
+    stk500_recv(pgm, &m->buf[addr], page_size);
 
-    recv(pgm, buf, 1);
+    stk500_recv(pgm, buf, 1);
     if (buf[0] != Resp_STK_OK) {
       fprintf(stderr,
               "\n%s: stk500_paged_load(): (a) protocol error, "
@@ -918,7 +923,7 @@ int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
+static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
 {
   unsigned char buf[16];
   unsigned v;
@@ -930,16 +935,16 @@ static int getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
   buf[1] = parm;
   buf[2] = Sync_CRC_EOP;
 
-  send(pgm, buf, 3);
+  stk500_send(pgm, buf, 3);
 
-  recv(pgm, buf, 1);
+  stk500_recv(pgm, buf, 1);
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
       fprintf(stderr, "\n%s: getparm(): can't get into sync\n",
               progname);
       return -1;
     }
-    getsync(pgm);
+    stk500_getsync(pgm);
     goto retry;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
@@ -950,10 +955,10 @@ static int getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
     return -2;
   }
 
-  recv(pgm, buf, 1);
+  stk500_recv(pgm, buf, 1);
   v = buf[0];
 
-  recv(pgm, buf, 1);
+  stk500_recv(pgm, buf, 1);
   if (buf[0] == Resp_STK_FAILED) {
     fprintf(stderr,
             "\n%s: getparm(): parameter 0x%02x failed\n",
@@ -978,9 +983,9 @@ void stk500_display(PROGRAMMER * pgm, char * p)
 {
   unsigned maj, min, hdw;
 
-  getparm(pgm, Parm_STK_HW_VER, &hdw);
-  getparm(pgm, Parm_STK_SW_MAJOR, &maj);
-  getparm(pgm, Parm_STK_SW_MINOR, &min);
+  stk500_getparm(pgm, Parm_STK_HW_VER, &hdw);
+  stk500_getparm(pgm, Parm_STK_SW_MAJOR, &maj);
+  stk500_getparm(pgm, Parm_STK_SW_MINOR, &min);
 
   fprintf(stderr, "%sHardware Version: %d\n", p, hdw);
   fprintf(stderr, "%sFirmware Version: %d.%d\n", p, maj, min);
