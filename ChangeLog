@@ -1,3 +1,8 @@
+2003-04-05  Theodore A. Roth  <troth@openavr.org>
+
+	* avr910.c: Refactor to allow probing for auto addr increment. If auto
+	incr supported by programmer hw, don't send addr for every byte.
+
 2003-04-03  Eric B. Weddington <eric@umginc.net>
     * confwin.c: Fix bug that allows garbage for non-existent user
     config filename on Windows.
