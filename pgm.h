@@ -32,6 +32,8 @@
 #ifndef __pgm_h__
 #define __pgm_h__
 
+#include <limits.h>
+
 #include "avrpart.h"
 #include "lists.h"
 #include "pindefs.h"
@@ -41,11 +43,13 @@
 #define OFF 0
 
 #define PGM_DESCLEN 80
+#define PGM_PORTLEN PATH_MAX
 #define PGM_TYPELEN 32
 typedef struct programmer_t {
   LISTID id;
   char desc[PGM_DESCLEN];
   char type[PGM_TYPELEN];
+  char port[PGM_PORTLEN];
   unsigned int pinno[N_PINS];
   int ppidata;
   int fd;

@@ -128,6 +128,7 @@ banked           { yylval=NULL; return K_PAGED; }
 buff             { yylval=NULL; return K_BUFF; }
 chip_erase_delay { yylval=NULL; return K_CHIP_ERASE_DELAY; }
 desc             { yylval=NULL; return K_DESC; }
+devicecode       { yylval=NULL; return K_DEVICECODE; }
 eeprom           { yylval=NULL; return K_EEPROM; }
 errled           { yylval=NULL; return K_ERRLED; }
 flash            { yylval=NULL; return K_FLASH; }
