@@ -31,7 +31,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include </sys/dev/ppbus/ppi.h>
+#include <dev/ppbus/ppi.h>
 
 #include "ppi.h"
 
