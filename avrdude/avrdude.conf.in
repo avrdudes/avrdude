@@ -184,7 +184,7 @@ default_serial     = "@DEFAULT_SER_PORT@";
 
 programmer
   id    = "bsd";
-  desc  = "Brian Dean's Programmer";
+  desc  = "Brian Dean's Programmer, http://www.bsdhome.com/avrdude/";
   type  = par;
   vcc   = 2, 3, 4, 5;
   reset = 7;
@@ -267,7 +267,7 @@ programmer
 
 programmer
   id     = "alf";
-  desc   = "Nightshade ALF-PgmAVR http://nightshade.homeip.net/";
+  desc   = "Nightshade ALF-PgmAVR, http://nightshade.homeip.net/";
   type   = par;
   vcc    = 2, 3, 4, 5;
   buff   = 6;
@@ -294,7 +294,7 @@ programmer
 
 programmer
   id     = "picoweb";
-  desc   = "Picoweb Programming Cable www.picoweb.net";
+  desc   = "Picoweb Programming Cable, http://www.picoweb.net/";
   type   = par;
   reset  = 2;
   sck    = 3;

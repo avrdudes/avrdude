@@ -154,7 +154,7 @@ not openly available.
 @c Node
 @c
 @node History,  , Introduction, Introduction
-@section History
+@section History and Credits
 
 AVRDUDE was written by Brian S. Dean under the name of AVRPROG to run on
 the FreeBSD Operating System.  Brian renamed the software to be called
@@ -219,9 +219,6 @@ datasheet so that you can enter the programming specifications.
 Currently, the following MCU types are understood:
 
 @table @code
-@itemx t15
-ATtiny15
-
 @itemx 1200
 AT90S1200
 
@@ -249,23 +246,38 @@ AT90S8515
 @itemx 8535
 AT90S8535
 
+@itemx m103
+ATMEGA103
+
+@itemx m128
+ATMEGA128
+
+@itemx m16
+ATMEGA16
+
 @itemx m163
 ATMEGA163
 
 @itemx m169
 ATMEGA169
 
-@itemx m128
-ATMEGA128
-
-@itemx m103
-ATMEGA103
-
-@itemx m16
-ATMEGA16
+@itemx m32
+ATMEGA32
 
 @itemx m8
 ATMEGA8
+
+@itemx m8535
+ATMEGA8535
+
+@itemx t12
+ATtiny12
+
+@itemx t15
+ATtiny15
+
+@itemx t26
+ATTINY26
 
 @end table
 
@@ -275,12 +287,55 @@ ATMEGA8
 Specify the programmer to be used.  AVRDUDE knows about several common
 programmers.  Use this option to specify which one to use.  The
 @var{programmer-id} parameter is the programmer's id listed in the
-configuration file.  Specify -c ? to list all programmers in the 
+configuration file.  Specify -c ? to list all programmers in the
 configuration file.  If you have a programmer that is unknown to
 AVRDUDE, and the programmer is controlled via the PC parallel port,
 there's a good chance that it can be easily added to the configuration
 file without any code changes to AVRDUDE.  Simply copy an existing entry
 and change the pin definitions to match that of the unknown programmer.
+Currently, the following programmer ids are understood and supported:
+
+@table @code
+
+@itemx alf
+Nightshade ALF-PgmAVR, http://nightshade.homeip.net/
+
+@itemx avr910
+Atmel Low Cost Serial Programmer
+
+@itemx avrisp
+Atmel AVR ISP                 
+
+@itemx bascom
+Bascom SAMPLE programming cable
+
+@itemx bsd
+Brian Dean's Programmer, http://www.bsdhome.com/avrdude/
+
+@itemx dt006
+Dontronics DT006              
+
+@itemx pavr
+Jason Kyle's pAVR Serial Programmer
+
+@itemx picoweb
+Picoweb Programming Cable, http://www.picoweb.net/
+
+@itemx pony
+stk200 = Pony Prog STK200              
+
+@itemx sp12
+Steve Bolt's Programmer       
+
+@itemx stk200
+STK200                        
+
+@itemx stk500
+Atmel STK500                  
+
+@end table
+
+
 
 @item -C @var{config-file}
 Use the specified config file for configuration data.  This file
@@ -351,6 +406,16 @@ Motorola S-record
 
 @itemx r
 raw binary; little-endian byte order, in the case of the flash ROM data
+
+@itemx m
+immediate mode; actual byte values specified on the command line,
+seperated by commas or spaces in place of the @var{filename} field of
+the @option{-i}, @option{-o}, or @option{-U} options.  This is useful
+for programming fuse bytes without having to create a single-byte file
+or enter terminal mode.  If the number specified begins with @code{0x},
+it is treated as a hex value.  If the number otherwise begins with a
+leading zero (@code{0}) it is treated as octal.  Otherwise, the value is
+treated as decimal.
 
 @itemx a
 auto detect; valid for input only, and only if the input is not provided
@@ -466,12 +531,12 @@ should not be used.
 @section Example Command Line Invocations
 
 @noindent
-Download the file @code{m128diag.hex} to the ATmega128 chip using the
+Download the file @code{diag.hex} to the ATmega128 chip using the
 STK500 programmer connected to the default serial port:
 
 @example
 @cartouche
-% avrdude -p m128 -e -U flash:w:diag.hex 
+% avrdude -p m128 -c stk500 -e -U flash:w:diag.hex 
 
 avrdude: AVR device initialized and ready to accept instructions
 
@@ -508,11 +573,11 @@ avrdude done.  Thank you.
 @noindent
 Upload the flash memory from the ATmega128 connected to the STK500
 programmer and save it in raw binary format in the file named
-@code{m128diag.flash}:
+@code{diag.flash}:
 
 @example
 @cartouche
-% avrdude -p m128 -e -U flash:r:diag.flash:r 
+% avrdude -p m128 -c stk500 -e -U flash:r:diag.flash:r 
 
 avrdude: AVR device initialized and ready to accept instructions
 
