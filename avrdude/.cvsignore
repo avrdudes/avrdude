@@ -1,0 +1,8 @@
+*.diff
+*.patch
+y.output
+y.tab.h
+lexer.c
+config_gram.c
+.cvsignore
+.depend
