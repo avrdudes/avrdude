@@ -699,6 +699,7 @@ int main(int argc, char * argv [])
   int     set_cycles;  /* value to set the erase-rewrite cycles to */
   char  * e;           /* for strtol() error checking */
   int     quell_progress;
+  int     baudrate;    /* override default programmer baud rate */
 #if !defined(__CYGWIN__)
   char  * homedir;
 #endif
@@ -738,6 +739,7 @@ int main(int argc, char * argv [])
   verbose       = 0;
   do_cycles     = 0;
   set_cycles    = -1;
+  baudrate      = 0;
 
 
   #if defined(__CYGWIN__)
@@ -782,9 +784,18 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?c:C:DeE:Fnp:P:qtU:vVyY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?b:c:C:DeE:Fnp:P:qtU:vVyY:")) != -1) {
 
     switch (ch) {
+      case 'b': /* override default programmer baud rate */
+        baudrate = strtol(optarg, &e, 0);
+        if ((e == optarg) || (*e != 0)) {
+          fprintf(stderr, "%s: invalid baud rate specified '%s'\n",
+                  progname, optarg);
+          exit(1);
+        }
+        break;
+
       case 'c': /* programmer id */
         programmer = optarg;
         break;
@@ -1062,6 +1073,13 @@ int main(int argc, char * argv [])
   if (verbose) {
     fprintf(stderr, "%sUsing Port            : %s\n", progbuf, port);
     fprintf(stderr, "%sUsing Programmer      : %s\n", progbuf, programmer);
+  }
+
+  if (baudrate != 0) {
+    if (verbose) {
+      fprintf(stderr, "%sOverriding Baud Rate  : %d\n", progbuf, baudrate);
+    }
+    pgm->baudrate = baudrate;
   }
 
   rc = pgm->open(pgm, port);
