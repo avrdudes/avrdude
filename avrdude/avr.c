@@ -47,26 +47,26 @@ extern char   progbuf[];
 /* Need to add information for 2323, 2343, and 4414 */
 
 struct avrpart parts[] = {
-  { "AT90S1200", "1200", 1024,  64, 0xff, { 0x00, 0xff }, 
-    9000, 20000, 20000, NULL, NULL },
+  { "AT90S1200", "1200", {  64, 1024 }, 0xff, { 0x00, 0xff }, 
+    9000, 20000, 20000, { NULL, NULL } },
 
-  { "AT90S2313", "2313", 2048, 128, 0x7f, { 0x80, 0x7f }, 
-    9000, 20000, 20000, NULL, NULL },
+  { "AT90S2313", "2313", { 128, 2048 }, 0x7f, { 0x80, 0x7f }, 
+    9000, 20000, 20000, { NULL, NULL } },
 
-  { "AT90S2333", "2333", 2048, 128, 0xff, { 0x00, 0xff },
-    9000, 20000, 20000, NULL, NULL },
+  { "AT90S2333", "2333", { 128, 2048 }, 0xff, { 0x00, 0xff },
+    9000, 20000, 20000, { NULL, NULL } },
 
-  { "AT90S4433", "4433", 4096, 256, 0xff, { 0x00, 0xff },
-    9000, 20000, 20000, NULL, NULL },
+  { "AT90S4433", "4433", { 256, 4096 }, 0xff, { 0x00, 0xff },
+    9000, 20000, 20000, { NULL, NULL } },
 
-  { "AT90S4434", "4434", 4096, 256, 0xff, { 0x00, 0xff },
-    9000, 20000, 20000, NULL, NULL },
+  { "AT90S4434", "4434", { 256, 4096 }, 0xff, { 0x00, 0xff },
+    9000, 20000, 20000, { NULL, NULL } },
 
-  { "AT90S8515", "8515", 8192, 512, 0x7f, { 0x80, 0x7f },
-    9000, 20000, 20000, NULL, NULL },
+  { "AT90S8515", "8515", { 512, 8192 }, 0x7f, { 0x80, 0x7f },
+    9000, 20000, 20000, { NULL, NULL } },
 
-  { "AT90S8535", "8535", 8192, 512, 0xff, { 0x00, 0xff },
-    9000, 20000, 20000, NULL, NULL },
+  { "AT90S8535", "8535", { 512, 8192 }, 0xff, { 0x00, 0xff },
+    9000, 20000, 20000, { NULL, NULL } },
 };
 
 #define N_AVRPARTS (sizeof(parts)/sizeof(struct avrpart))
@@ -169,27 +169,20 @@ int avr_cmd ( int fd, unsigned char cmd[4], unsigned char res[4] )
 unsigned char avr_read_byte ( int fd, struct avrpart * p,
                               AVRMEM memtype, unsigned short addr )
 {
+  unsigned short offset;
   unsigned char cmd[4];
   unsigned char res[4];
+  /* order here is very important, AVR_EEPROM, AVR_FLASH, AVR_FLASH+1 */
+  static unsigned char cmdbyte[3] = { 0xa0, 0x20, 0x28 };
 
-  switch (memtype) {
-    case AVR_FLASH_LO: 
-      cmd[0] = 0x20;
-      break;
-    case AVR_FLASH_HI: 
-      cmd[0] = 0x28;
-      break;
-    case AVR_EEPROM: 
-      cmd[0] = 0xa0;
-      break;
-    default:
-      fprintf(stderr, 
-              "%s: avr_read_byte(); internal error: invalid memtype=%d\n",
-              progname, memtype);
-      return -1;
-      break;
+  offset = 0;
+
+  if (memtype == AVR_FLASH) {
+    offset = addr & 0x01;
+    addr   = addr / 2;
   }
 
+  cmd[0] = cmdbyte[memtype + offset];
   cmd[1] = addr >> 8;     /* high order bits of address       */
   cmd[2] = addr & 0x0ff;  /* low order bits of address        */
   cmd[3] = 0;             /* don't care                       */
@@ -208,60 +201,23 @@ unsigned char avr_read_byte ( int fd, struct avrpart * p,
  */
 int avr_read ( int fd, struct avrpart * p, AVRMEM memtype )
 {
-  unsigned char rbyte, memt;
-  unsigned short n, start, end, i, bi;
-  unsigned char * buf;
-  int bufsize;
+  unsigned char    rbyte;
+  unsigned short   i;
+  unsigned char  * buf;
+  int              size;
 
-  start = 0;
+  buf  = p->mem[memtype];
+  size = p->memsize[memtype];
 
-  switch (memtype) {
-    case AVR_FLASH  :
-      memt    = AVR_FLASH_LO;
-      buf     = p->flash;
-      n       = p->flash_size/2;
-      bufsize = p->flash_size;
-      break;
-
-    case AVR_EEPROM : 
-      memt    = memtype;
-      buf     = p->eeprom;
-      n       = p->eeprom_size;
-      bufsize = p->eeprom_size;
-      break;
-
-    default:
-      fprintf(stderr, "%s: avr_read(); internal error: invalid memtype=%d\n",
-              progname, memtype);
-      return -1;
-      break;
-  }
-
-  end = start+n;
-
-  bi = 0;
-
-  for (i=start; i<end; i++) {
-    /* eeprom or low byte of flash */
-    rbyte = avr_read_byte(fd, p, memt, i);
+  for (i=0; i<size; i++) {
+    rbyte = avr_read_byte(fd, p, memtype, i);
     fprintf ( stderr, "                    \r%4u  0x%02x", i, rbyte );
-    if (bi < bufsize) {
-      buf[bi++] = rbyte;
-    }
-
-    if (memtype == AVR_FLASH) {
-      /* flash high byte */
-      rbyte = avr_read_byte(fd, p, AVR_FLASH_HI, i);
-      fprintf ( stderr, " 0x%02x", rbyte );
-      if (bi < bufsize) {
-        buf[bi++] = rbyte;
-      }
-    }
+    buf[i] = rbyte;
   }
 
   fprintf ( stderr, "\n" );
 
-  return bi;
+  return i;
 }
 
 
@@ -271,11 +227,16 @@ int avr_read ( int fd, struct avrpart * p, AVRMEM memtype )
 int avr_write_byte ( int fd, struct avrpart * p, AVRMEM memtype, 
                      unsigned short addr, unsigned char data )
 {
-  unsigned char cmd[4], res[4];
+  unsigned char cmd[4];
+  unsigned char res[4];
   unsigned char r;
   int ready;
   int tries;
   unsigned char b;
+  unsigned short offset;
+  unsigned short caddr;
+  /* order here is very important, AVR_EEPROM, AVR_FLASH, AVR_FLASH+1 */
+  static unsigned char cmdbyte[3] = { 0xc0, 0x40, 0x48 };
 
   /* 
    * check to see if the write is necessary by reading the existing
@@ -286,26 +247,17 @@ int avr_write_byte ( int fd, struct avrpart * p, AVRMEM memtype,
     return 0;
   }
 
-  switch (memtype) {
-    case AVR_FLASH_LO: 
-      cmd[0] = 0x40;
-      break;
-    case AVR_FLASH_HI: 
-      cmd[0] = 0x48;
-      break;
-    case AVR_EEPROM: 
-      cmd[0] = 0xc0;
-      break;
-    default:
-      fprintf(stderr,
-              "%s: avr_write_byte(); internal error: invalid memtype=%d\n",
-              progname, memtype);
-      return -1;
-      break;
+  offset = 0;
+
+  caddr = addr;
+  if (memtype == AVR_FLASH) {
+    offset = addr & 0x01;
+    caddr  = addr / 2;
   }
 
-  cmd[1] = addr >> 8;     /* high order bits of address       */
-  cmd[2] = addr & 0x0ff;  /* low order bits of address        */
+  cmd[0] = cmdbyte[memtype + offset];
+  cmd[1] = caddr >> 8;     /* high order bits of address       */
+  cmd[2] = caddr & 0x0ff;  /* low order bits of address        */
   cmd[3] = data;          /* data                             */
 
   avr_cmd(fd, cmd, res);
@@ -355,83 +307,39 @@ int avr_write_byte ( int fd, struct avrpart * p, AVRMEM memtype,
  */
 int avr_write ( int fd, struct avrpart * p, AVRMEM memtype, int size )
 {
-  unsigned char data, memt;
-  unsigned short start, end, i, bi;
-  int nl;
-  int rc;
-  unsigned char * buf;
-  int bufsize;
-  int wsize;
+  int              rc;
+  int              wsize;
+  unsigned char  * buf;
+  unsigned short   i;
+  unsigned char    data;
 
-  start = 0;
-
-  switch (memtype) {
-    case AVR_FLASH  : 
-      buf     = p->flash;
-      bufsize = p->flash_size;
-      wsize   = bufsize;
-      if (size < wsize) {
-        bufsize = size;
-      }
-      end     = start+bufsize/2;
-      memt    = AVR_FLASH_LO;
-      break;
-    case AVR_EEPROM : 
-      buf     = p->eeprom;
-      bufsize = p->eeprom_size;
-      wsize   = bufsize;
-      if (size < wsize) {
-        bufsize = size;
-      }
-      end     = start+bufsize;
-      memt    = memtype;
-      break;
-    default:
-      fprintf(stderr, "%s: avr_write(); internal error: invalid memtype=%d\n",
-              progname, memtype);
-      return -1;
-      break;
+  buf   = p->mem[memtype];
+  wsize = p->memsize[memtype];
+  if (size < wsize) {
+    wsize = size;
   }
-
-  /* were we asked to write out more data than the device can hold? */
-  if (wsize < size) {
+  else if (size > wsize) {
     fprintf(stderr, 
             "%s: WARNING: %d bytes requested, but memory region is only %d bytes\n"
             "%sOnly %d bytes will actually be written\n",
-            progname, size, bufsize,
-            progbuf, bufsize);
+            progname, size, wsize,
+            progbuf, wsize);
   }
 
-  bi = 0;
-
-  for (i=start; i<end; i++) {
+  for (i=0; i<wsize; i++) {
     /* eeprom or low byte of flash */
-    data = buf[bi++];
-    nl = 0;
-    rc = avr_write_byte(fd, p, memt, i, data );
+    data = buf[i];
+    rc = avr_write_byte(fd, p, memtype, i, data );
     fprintf(stderr, "                      \r%4u 0x%02x", i, data);
     if (rc) {
       fprintf(stderr, " ***failed;  ");
-      nl = 1;
-    }
-
-    if (memtype == AVR_FLASH) {
-      /* high byte of flash */
-      data = buf[bi++];
-      rc = avr_write_byte(fd, p, AVR_FLASH_HI, i, data );
-      fprintf(stderr, " 0x%02x", data);
-      if (rc) {
-        fprintf(stderr, " ***failed;  " );
-        nl = 1;
-      }
-    }
-    if (nl)
       fprintf(stderr, "\n");
+    }
   }
 
   fprintf ( stderr, "\n" );
 
-  return bi;
+  return i;
 }
 
 
@@ -570,18 +478,15 @@ char * avr_memtstr ( AVRMEM memtype )
 
 int avr_initmem ( struct avrpart * p )
 {
-  p->flash = (unsigned char *) malloc(p->flash_size);
-  if (p->flash == NULL) {
-    fprintf(stderr, "%s: can't alloc buffer for flash size of %d bytes\n",
-            progname, p->flash_size);
-    return -1;
-  }
+  int i;
 
-  p->eeprom = (unsigned char *) malloc(p->eeprom_size);
-  if (p->eeprom == NULL) {
-    fprintf(stderr, "%s: can't alloc buffer for eeprom size of %d bytes\n",
-            progname, p->eeprom_size);
-    return -1;
+  for (i=0; i<AVR_MAXMEMTYPES; i++) {
+    p->mem[i] = (unsigned char *) malloc(p->memsize[i]);
+    if (p->mem[i] == NULL) {
+      fprintf(stderr, "%s: can't alloc buffer for %s size of %d bytes\n",
+              progname, avr_memtstr(i), p->memsize[i]);
+      return -1;
+    }
   }
 
   return 0;
@@ -598,24 +503,9 @@ int avr_verify(struct avrpart * p, struct avrpart * v, AVRMEM memtype, int size)
   unsigned char * buf1, * buf2;
   int vsize;
 
-  switch (memtype) {
-    case AVR_FLASH:
-      buf1 = p->flash;
-      buf2 = v->flash;
-      vsize = p->flash_size;
-      break;
-
-    case AVR_EEPROM:
-      buf1 = p->eeprom;
-      buf2 = v->eeprom;
-      vsize = p->eeprom_size;
-      break;
-
-    default:
-      fprintf(stderr, "%s: invalid memory type = %d for data verification\n",
-              progname, memtype);
-      return -1;
-  }
+  buf1  = p->mem[memtype];
+  buf2  = v->mem[memtype];
+  vsize = p->memsize[memtype];
 
   if (vsize < size) {
     fprintf(stderr, 
@@ -654,8 +544,8 @@ void avr_display ( FILE * f, struct avrpart * p, char * prefix )
           "%sFlash Polled Readback  = 0x%02x\n"
           "%sEEPROM Polled Readback = 0x%02x, 0x%02x\n",
           prefix, p->partdesc,
-          prefix, p->flash_size, 
-          prefix, p->eeprom_size,
+          prefix, p->memsize[AVR_FLASH],
+          prefix, p->memsize[AVR_EEPROM],
           prefix, p->min_write_delay, p->max_write_delay, 
           prefix, p->chip_erase_delay,
           prefix, p->f_readback,

@@ -433,24 +433,10 @@ int fileio ( int op, char * filename, FILEFMT format,
     }
   }
 
-  switch (memtype) {
-    case AVR_EEPROM:
-      buf = p->eeprom;
-      if (fio.op == FIO_READ)
-        size = p->eeprom_size;
-      break;
-
-    case AVR_FLASH:
-      buf = p->flash;
-      if (fio.op == FIO_READ)
-        size = p->flash_size;
-      break;
-      
-    default:
-      fprintf(stderr, "%s: invalid memory type for %s: %d\n",
-              progname, fio.iodesc, memtype);
-      return -1;
-  }
+  /* point at the requested memory buffer */
+  buf = p->mem[memtype];
+  if (fio.op == FIO_READ)
+    size = p->memsize[memtype];
 
   if (fio.op == FIO_READ) {
     /* 0xff fill unspecified memory */

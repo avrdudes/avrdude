@@ -46,5 +46,5 @@ ${BINDIR}/${TARGET} : ${TARGET}
 
 ${MANDIR}/${MANUAL}.gz : ${MANUAL}
 	${INSTALL_MANUAL} ${MANUAL} ${MANDIR}
-	gzip ${MANDIR}/${MANUAL}
+	gzip -f ${MANDIR}/${MANUAL}
 
