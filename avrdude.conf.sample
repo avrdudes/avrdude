@@ -939,7 +939,7 @@ part
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 0 0 0",
                           "x x x x  x x x x  i i i i  i i i i";
 
-        read            = "1 0 1 0  0 0 0 0  0 0 0 0  0 0 0 0",
+        read            = "0 1 0 1  0 0 0 0  0 0 0 0  0 0 0 0",
                           "x x x x  x x x x  o o o o  o o o o";
       ;
 
@@ -948,7 +948,7 @@ part
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  1 0 0 0",
                           "x x x x  x x x x  i i i i  i i i i";
 
-        read            = "1 0 1 0  1 0 0 0  0 0 0 0  1 0 0 0",
+        read            = "0 1 0 1  1 0 0 0  0 0 0 0  1 0 0 0",
                           "x x x x  x x x x  o o o o  o o o o";
       ;
 
