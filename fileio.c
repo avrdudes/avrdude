@@ -29,13 +29,26 @@
 
 /* $Id$ */
 
+#include <limits.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
 
 #include "avr.h"
 #include "fileio.h"
+
+
+#define IHEX_MAXDATA 256
+
+struct ihexrec {
+  unsigned char    reclen;
+  unsigned short   loadofs;
+  unsigned char    rectyp;
+  unsigned char    data[IHEX_MAXDATA];
+  unsigned char    cksum;
+};
 
 
 extern char * progname;
@@ -135,100 +148,173 @@ int b2ihex ( unsigned char * inbuf, int bufsize,
 }
 
 
+int ihex_readrec ( struct ihexrec * ihex, char * rec )
+{
+  int i, j;
+  char buf[8];
+  int offset, len;
+  char * e;
+  unsigned char cksum;
+  int rc;
+
+  len    = strlen(rec);
+  offset = 1;
+  cksum  = 0;
+
+  /* reclen */
+  if (offset + 2 > len)
+    return -1;
+  for (i=0; i<2; i++)
+    buf[i] = rec[offset++];
+  buf[i] = 0;
+  ihex->reclen = strtoul(buf, &e, 16);
+  if (e == buf || *e != 0)
+    return -1;
+
+  /* load offset */
+  if (offset + 4 > len)
+    return -1;
+  for (i=0; i<4; i++)
+    buf[i] = rec[offset++];
+  buf[i] = 0;
+  ihex->loadofs = strtoul(buf, &e, 16);
+  if (e == buf || *e != 0)
+    return -1;
+
+  /* record type */
+  if (offset + 2 > len)
+    return -1;
+  for (i=0; i<2; i++)
+    buf[i] = rec[offset++];
+  buf[i] = 0;
+  ihex->rectyp = strtoul(buf, &e, 16);
+  if (e == buf || *e != 0)
+    return -1;
+
+  cksum = ihex->reclen + ((ihex->loadofs >> 8 ) & 0x0ff) + 
+    (ihex->loadofs & 0x0ff) + ihex->rectyp;
+
+  /* data */
+  for (j=0; j<ihex->reclen; j++) {
+    if (offset + 2 > len)
+      return -1;
+    for (i=0; i<2; i++)
+      buf[i] = rec[offset++];
+    buf[i] = 0;
+    ihex->data[j] = strtoul(buf, &e, 16);
+    if (e == buf || *e != 0)
+      return -1;
+    cksum += ihex->data[j];
+  }
+
+  /* cksum */
+  if (offset + 2 > len)
+    return -1;
+  for (i=0; i<2; i++)
+    buf[i] = rec[offset++];
+  buf[i] = 0;
+  ihex->cksum = strtoul(buf, &e, 16);
+  if (e == buf || *e != 0)
+    return -1;
+
+  rc = -cksum & 0x000000ff;
+
+  return rc;
+}
+
+
+
+
 int ihex2b ( char * infile, FILE * inf,
              unsigned char * outbuf, int bufsize )
 {
-  unsigned char buffer [ MAX_LINE_LEN ];
+  char buffer [ MAX_LINE_LEN ];
   unsigned char * buf;
-  unsigned int nextaddr;
-  unsigned int b;
-  int n, nbytes;
-  int i, j;
-  unsigned int cksum, rectype;
+  unsigned int nextaddr, baseaddr;
+  int nbytes;
+  int i;
   int lineno;
+  int len;
+  struct ihexrec ihex;
+  int rc;
 
   lineno   = 0;
   buf      = outbuf;
   nbytes   = 0;
+  baseaddr = 0;
 
   while (fgets((char *)buffer,MAX_LINE_LEN,inf)!=NULL) {
     lineno++;
+    len = strlen(buffer);
+    if (buffer[len-1] == '\n') 
+      buffer[--len] = 0;
     if (buffer[0] != ':')
       continue;
-    if (sscanf((char *)&buffer[1], 
-               "%02x%04x%02x", &n, &nextaddr, &rectype) != 3) {
+    rc = ihex_readrec(&ihex, buffer);
+    if (rc < 0) {
       fprintf(stderr, "%s: invalid record at line %d of \"%s\"\n",
               progname, lineno, infile);
-      exit(1);
+      return -1;
     }
-
-    if ((rectype != 0) && (rectype != 1)) {
-      fprintf(stderr, 
-              "%s: don't know how to deal with rectype=%d " 
-              "at line %d of %s\n",
-              progname, rectype, lineno, infile);
-      exit(1);
-    }
-
-    if (n && ((nextaddr + n) > bufsize)) {
-      fprintf(stderr, "%s: address 0x%04x out of range at line %d of %s\n",
-              progname, nextaddr+n, lineno, infile);
+    else if (rc != ihex.cksum) {
+      fprintf(stderr, "%s: ERROR: checksum mismatch at line %d of \"%s\"\n",
+              progname, lineno, infile);
+      fprintf(stderr, "%s: checksum=0x%02x, computed checksum=0x%02x\n",
+              progname, ihex.cksum, rc);
       return -1;
     }
 
-    /* start computing a checksum */
-    cksum = n + ((nextaddr >> 8 ) & 0x0ff) + (nextaddr & 0x0ff) + rectype;
+    switch (ihex.rectyp) {
 
-    for (i=0; i<n; i++) {
-      if (sscanf((char *)&buffer[i*2+9], "%02x", &b) != 1) {
-        fprintf(stderr, "%s: can't scan byte number %d at line %d of %s\n",
-                progname, i, lineno, infile);
-        /* display the buffer and the position of the scan error */
-        fprintf(stderr, "%s", buffer);
-        for (j=0; j<9+2*i; j++) {
-          fprintf(stderr, " ");
+      case 0: /* data record */
+        nextaddr = ihex.loadofs + baseaddr;
+        if (nextaddr + ihex.reclen > bufsize) {
+          fprintf(stderr, 
+                  "%s: ERROR: address 0x%04x out of range at line %d of %s\n",
+                  progname, nextaddr+ihex.reclen, lineno, infile);
+          return -1;
         }
-        fprintf(stderr, "^\n");
+        for (i=0; i<ihex.reclen; i++) {
+          buf[nextaddr+i] = ihex.data[i];
+        }
+        nbytes += ihex.reclen;
+        break;
+
+      case 1: /* end of file record */
+        return nbytes;
+        break;
+
+      case 2: /* extended segment address record */
+        baseaddr = (ihex.data[0] << 8 | ihex.data[1]) << 4;
+        break;
+
+      case 3: /* start segment address record */
+        /* we don't do anything with the start address */
+        break;
+
+      case 4: /* extended linear address record */
+        baseaddr = (ihex.data[0] << 8 | ihex.data[1]) << 16;
+        break;
+
+      case 5: /* start linear address record */
+        /* we don't do anything with the start address */
+        break;
+
+      default:
+        fprintf(stderr, 
+                "%s: don't know how to deal with rectype=%d " 
+                "at line %d of %s\n",
+                progname, ihex.rectyp, lineno, infile);
         return -1;
-      }
-
-      buf[nextaddr + i] = b;
-      cksum += b;
-    }
-
-    nbytes += n;
-
-    /*-----------------------------------------------------------------
-      read the cksum value from the record and compare it with our
-      computed value
-      -----------------------------------------------------------------*/
-    if (sscanf((char *)&buffer[n*2+9], "%02x", &b) != 1) {
-      fprintf(stderr, "%s: can't scan byte number %d at line %d of %s\n",
-              progname, i, lineno, infile);
-      /* display the buffer and the position of the scan error */
-      fprintf(stderr, "%s", buffer);
-      for (j=0; j<9+2*i; j++) {
-        fprintf(stderr, " ");
-      }
-      fprintf(stderr, "^\n");
-      return -1;
-    }
-
-    cksum = -cksum & 0xff;
-    if (cksum != b) {
-      fprintf(stderr, 
-              "%s: WARNING: cksum error for line %d of \"%s\": computed=%02x "
-              "found=%02x\n",
-              progname, lineno, infile, cksum, b);
-      /* return -1; */
-    }
-
-    if (rectype == 1) {
-      /* end of record */
-      return nbytes;
+        break;
     }
 
   } /* while */
+
+  fprintf(stderr, 
+          "%s: WARNING: no end of file record found for Intel Hex "
+          "file \"%s\"\n",
+          progname, infile);
 
   return nbytes;
 }
