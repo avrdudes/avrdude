@@ -82,7 +82,7 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
 void usage ( void )
 {
   fprintf(stderr,
-          "\nUsage: %s -p partno [-e] [-E exitspec[,exitspec]] [-f format] [-F]\n"
+          "Usage: %s -p partno [-e] [-E exitspec[,exitspec]] [-f format] [-F]\n"
           "      %s[-i filename] [-m memtype] [-o filename] [-P parallel] [-t]\n\n",
           progname, progbuf);
 
