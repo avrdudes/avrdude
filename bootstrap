@@ -1,0 +1,30 @@
+#! /bin/sh
+
+# autoconf-2.57 is preferred, but >= 2.53 should be ok
+
+if [ "x${AUTOHEADER}" = "x" ]; then
+	AUTOHEADER="autoheader-2.57"
+fi
+
+if [ "x${AUTOCONF}" = "x" ]; then
+	AUTOCONF="autoconf-2.57"
+fi
+
+# automake-1.7 is preferred, but >= 1.6 should be ok
+
+if [ "x${ACLOCAL}" = "x" ]; then
+	ACLOCAL="aclocal-1.7"
+fi
+
+if [ "x${AUTOMAKE}" = "x" ]; then
+	AUTOMAKE="automake-1.7"
+fi
+
+# Bootstrap the build system.
+
+set -x
+
+${ACLOCAL}
+${AUTOHEADER}
+${AUTOCONF}
+${AUTOMAKE} -a -c

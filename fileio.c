@@ -19,6 +19,8 @@
 
 /* $Id$ */
 
+#include "ac_cfg.h"
+
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
