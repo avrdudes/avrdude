@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE July 24, 2003
+.Dd DATE November 26, 2003
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -387,6 +387,13 @@ field is optional and contains the format of the file to read or
 write.  See the
 .Fl f
 option for possible values.
+Note that if
+.Ar filename
+contains a colon, the
+.Ar format
+field is no longer optional since the filename part following the colon
+would otherwise be misinterpreted as
+.Ar format .
 .It Fl v
 Enable verbose output.
 .It Fl V
