@@ -32,7 +32,6 @@ CONFIGDIR    = ${PREFIX}/etc
 
 DIRS         = ${BINDIR} ${MANDIR} ${DOCDIR} ${CONFIGDIR}
 
-YACC         = byacc
 INSTALL      = /usr/bin/install -c -o root -g wheel
 
 CFLAGS       += -Wall -DCONFIG_DIR=\"${CONFIGDIR}\" ${YYDEF}
@@ -101,7 +100,7 @@ ${CONFIGDIR}/avrdude.conf : avrdude.conf.sample
 .SUFFIXES: .c .y .l
 
 .y.c:
-	${YACC} ${YFLAGS} $<
+	${YACC} ${YFLAGS} -b y $<
 	mv -f y.tab.c $@
 
 .l.c:
@@ -112,5 +111,5 @@ depend :
 	@${MAKE} config_gram.c lexer.c
 	@${CC} ${CFLAGS} -MM ${SRCS} > .depend
 
--include .depend
+include .depend
 
