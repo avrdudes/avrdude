@@ -315,13 +315,6 @@ part_parm :
       int opnum;
       OPCODE * op;
 
-      if (lsize(string_list) != 32) {
-        fprintf(stderr, 
-                "%s: error at %s:%d: only %d bits specified, need 32\n",
-                progname, infile, lineno, lsize(string_list));
-        exit(1);
-      }
-
       opnum = which_opcode($1);
       op = avr_new_opcode();
       parse_cmdbits(op);
@@ -398,13 +391,6 @@ mem_spec :
     { 
       int opnum;
       OPCODE * op;
-
-      if (lsize(string_list) != 32) {
-        fprintf(stderr, 
-                "%s: error at %s:%d: only %d bits specified, need 32\n",
-                progname, infile, lineno, lsize(string_list));
-        exit(1);
-      }
 
       opnum = which_opcode($1);
       op = avr_new_opcode();
@@ -498,86 +484,100 @@ static int parse_cmdbits(OPCODE * op)
   char * e;
   char * q;
   int len;
+  char * s, *brkt;
 
-  bitno = 31;
+  bitno = 32;
   while (lsize(string_list)) {
 
     t = lrmv_n(string_list, 1);
 
-    len = strlen(t->value.string);
+    s = strtok_r(t->value.string, " ", &brkt);
+    while (s != NULL) {
 
-    if (len == 0) {
-      fprintf(stderr, 
-              "%s: error at %s:%d: invalid bit specifier \"\"\n",
-              progname, infile, lineno);
-      exit(1);
-    }
-
-    ch = t->value.string[0];
-
-    if (len == 1) {
-      switch (ch) {
-        case '1':
-          op->bit[bitno].type  = AVR_CMDBIT_VALUE;
-          op->bit[bitno].value = 1;
-          op->bit[bitno].bitno = bitno % 8;
-          break;
-        case '0':
-          op->bit[bitno].type  = AVR_CMDBIT_VALUE;
-          op->bit[bitno].value = 0;
-          op->bit[bitno].bitno = bitno % 8;
-          break;
-        case 'x':
-          op->bit[bitno].type  = AVR_CMDBIT_IGNORE;
-          op->bit[bitno].value = 0;
-          op->bit[bitno].bitno = bitno % 8;
-          break;
-        case 'a':
-          op->bit[bitno].type  = AVR_CMDBIT_ADDRESS;
-          op->bit[bitno].value = 0;
-          op->bit[bitno].bitno = 8*(bitno/8) + bitno % 8;
-          break;
-        case 'i':
-          op->bit[bitno].type  = AVR_CMDBIT_INPUT;
-          op->bit[bitno].value = 0;
-          op->bit[bitno].bitno = bitno % 8;
-          break;
-        case 'o':
-          op->bit[bitno].type  = AVR_CMDBIT_OUTPUT;
-          op->bit[bitno].value = 0;
-          op->bit[bitno].bitno = bitno % 8;
-          break;
-        default :
-          fprintf(stderr, 
-                  "%s: error at %s:%d: invalid bit specifier '%c'\n",
-                  progname, infile, lineno, ch);
-          exit(1);
-          break;
-      }
-    }
-    else {
-      if (ch == 'a') {
-        q = &t->value.string[1];
-        op->bit[bitno].bitno = strtol(q, &e, 0);
-        if ((e == q)||(*e != 0)) {
-          fprintf(stderr, 
-                  "%s: error at %s:%d: can't parse bit number from \"%s\"\n",
-                  progname, infile, lineno, q);
-          exit(1);
-        }
-        op->bit[bitno].type = AVR_CMDBIT_ADDRESS;
-        op->bit[bitno].value = 0;
-      }
-      else {
+      bitno--;
+      if (bitno < 0) {
         fprintf(stderr, 
-                "%s: error at %s:%d: invalid bit specifier \"%s\"\n",
-                progname, infile, lineno, t->value.string);
+                "%s: error at %s:%d: too many opcode bits for instruction\n",
+                progname, infile, lineno);
         exit(1);
       }
+
+      len = strlen(s);
+
+      if (len == 0) {
+        fprintf(stderr, 
+                "%s: error at %s:%d: invalid bit specifier \"\"\n",
+                progname, infile, lineno);
+        exit(1);
+      }
+
+      ch = s[0];
+
+      if (len == 1) {
+        switch (ch) {
+          case '1':
+            op->bit[bitno].type  = AVR_CMDBIT_VALUE;
+            op->bit[bitno].value = 1;
+            op->bit[bitno].bitno = bitno % 8;
+            break;
+          case '0':
+            op->bit[bitno].type  = AVR_CMDBIT_VALUE;
+            op->bit[bitno].value = 0;
+            op->bit[bitno].bitno = bitno % 8;
+            break;
+          case 'x':
+            op->bit[bitno].type  = AVR_CMDBIT_IGNORE;
+            op->bit[bitno].value = 0;
+            op->bit[bitno].bitno = bitno % 8;
+            break;
+          case 'a':
+            op->bit[bitno].type  = AVR_CMDBIT_ADDRESS;
+            op->bit[bitno].value = 0;
+            op->bit[bitno].bitno = 8*(bitno/8) + bitno % 8;
+            break;
+          case 'i':
+            op->bit[bitno].type  = AVR_CMDBIT_INPUT;
+            op->bit[bitno].value = 0;
+            op->bit[bitno].bitno = bitno % 8;
+            break;
+          case 'o':
+            op->bit[bitno].type  = AVR_CMDBIT_OUTPUT;
+            op->bit[bitno].value = 0;
+            op->bit[bitno].bitno = bitno % 8;
+            break;
+          default :
+            fprintf(stderr, 
+                    "%s: error at %s:%d: invalid bit specifier '%c'\n",
+                    progname, infile, lineno, ch);
+            exit(1);
+            break;
+        }
+      }
+      else {
+        if (ch == 'a') {
+          q = &s[1];
+          op->bit[bitno].bitno = strtol(q, &e, 0);
+          if ((e == q)||(*e != 0)) {
+            fprintf(stderr, 
+                    "%s: error at %s:%d: can't parse bit number from \"%s\"\n",
+                    progname, infile, lineno, q);
+            exit(1);
+          }
+          op->bit[bitno].type = AVR_CMDBIT_ADDRESS;
+          op->bit[bitno].value = 0;
+        }
+        else {
+          fprintf(stderr, 
+                  "%s: error at %s:%d: invalid bit specifier \"%s\"\n",
+                  progname, infile, lineno, s);
+          exit(1);
+        }
+      }
+
+      s = strtok_r(NULL, " ", &brkt);
     }
 
-    free_token(t);    
-    bitno--;
+    free_token(t);
 
   }  /* while */
 

@@ -93,30 +93,59 @@ programmer
   vfyled = 17;
 ;
 
-/*
+
 part
     id               = "1200";
     desc             = "AT90S1200";
     chip_erase_delay = 20000;
-    eeprom
-        paged           = no;
+    pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    memory "eeprom"
         size            = 64;
-        page_size       = 0;
-        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x00;
         readback_p2     = 0xff;
+        read            = "1 0 1 0  0 0 0 0   x x x x  x x x x", 
+                          "x x a a  a a a a   o o o o  o o o o";
+
+        write           = "1 1 0 0  0 0 0 0   x x x x  x x x x",
+                          "x x a a  a a a a   i i i i  i i i i";
       ;
-    flash
-        paged           = no;
+    memory "flash"
         size            = 1024;
-        page_size       = 0;
-        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0xff;
         readback_p2     = 0x00;
+        read_lo         = "  0   0   1   0    0   0   0   0",
+                          "  x   x   x   x    x   x   x  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        read_hi         = "  0   0   1   0    1   0   0   0",
+                          "  x   x   x   x    x   x   x  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        write_lo        = "  0   1   0   0    0   0   0   0",
+                          "  x   x   x   x    x   x   x  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        write_hi        = "  0   1   0   0    1   0   0   0",
+                          "  x   x   x   x    x   x   x  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  i   i   i   i    i   i   i   i";
+      ;
+    memory "signature"
+        size            = 3;
+        read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
+                          "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
       ;
   ;
 
@@ -125,25 +154,59 @@ part
     id               = "2313";
     desc             = "AT90S2313";
     chip_erase_delay = 20000;
-    eeprom
-        paged           = no;
+    pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    memory "eeprom"
         size            = 128;
-        page_size       = 0;
-        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x80;
         readback_p2     = 0x7f;
+        read            = "1 0 1 0  0 0 0 0   x x x x  x x x x", 
+                          "x a a a  a a a a   o o o o  o o o o";
+
+        write           = "1 1 0 0  0 0 0 0   x x x x  x x x x",
+                          "x a a a  a a a a   i i i i  i i i i";
       ;
-    flash
-        paged           = no;
+    memory "flash"
         size            = 2048;
-        page_size       = 0;
-        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x7f;
         readback_p2     = 0x00;
+        read_lo         = "  0   0   1   0    0   0   0   0",
+                          "  x   x   x   x    x   x  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        read_hi         = "  0   0   1   0    1   0   0   0",
+                          "  x   x   x   x    x   x  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        write_lo        = "  0   1   0   0    0   0   0   0",
+                          "  x   x   x   x    x   x  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        write_hi        = "  0   1   0   0    1   0   0   0",
+                          "  x   x   x   x    x   x  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  i   i   i   i    i   i   i   i";
+      ;
+    memory "signature"
+        size            = 3;
+        read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
+                          "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
+      ;
+    memory "lock"
+        size            = 1;
+        write           = "1 0 1 0  1 1 0 0  1 1 1 x  x i i x",
+                          "x x x x  x x x x  x x x x  x x x x";
       ;
   ;
 
@@ -152,25 +215,54 @@ part
     id               = "2333";
     desc             = "AT90S2333";
     chip_erase_delay = 20000;
-    eeprom
-        paged           = no;
+    pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    memory "eeprom"
         size            = 128;
-        page_size       = 0;
-        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x00;
         readback_p2     = 0xff;
+        read            = "1 0 1 0  0 0 0 0   x x x x  x x x x", 
+                          "x a a a  a a a a   o o o o  o o o o";
+
+        write           = "1 1 0 0  0 0 0 0   x x x x  x x x x",
+                          "x a a a  a a a a   i i i i  i i i i";
       ;
-    flash
-        paged           = no;
+    memory "flash"
         size            = 2048;
-        page_size       = 0;
-        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0xff;
         readback_p2     = 0x00;
+        read_lo         = "  0   0   1   0    0   0   0   0",
+                          "  x   x   x   x    x   x  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        read_hi         = "  0   0   1   0    1   0   0   0",
+                          "  x   x   x   x    x   x  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        write_lo        = "  0   1   0   0    0   0   0   0",
+                          "  x   x   x   x    x   x  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        write_hi        = "  0   1   0   0    1   0   0   0",
+                          "  x   x   x   x    x   x  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  i   i   i   i    i   i   i   i";
+      ;
+    memory "signature"
+        size            = 3;
+        read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
+                          "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
       ;
   ;
 
@@ -179,25 +271,54 @@ part
     id               = "4433";
     desc             = "AT90S4433";
     chip_erase_delay = 20000;
-    eeprom
-        paged           = no;
+    pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    memory "eeprom"
         size            = 256;
-        page_size       = 0;
-        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x00;
         readback_p2     = 0xff;
+        read            = "1 0 1 0  0 0 0 0   x x x x  x x x x", 
+                          "a a a a  a a a a   o o o o  o o o o";
+
+        write           = "1 1 0 0  0 0 0 0   x x x x  x x x x",
+                          "a a a a  a a a a   i i i i  i i i i";
       ;
-    flash
-        paged           = no;
+    memory "flash"
         size            = 4096;
-        page_size       = 0;
-        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0xff;
         readback_p2     = 0x00;
+        read_lo         = "  0   0   1   0    0   0   0   0",
+                          "  x   x   x   x    x a10  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        read_hi         = "  0   0   1   0    1   0   0   0",
+                          "  x   x   x   x    x a10  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        write_lo        = "  0   1   0   0    0   0   0   0",
+                          "  x   x   x   x    x a10  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        write_hi        = "  0   1   0   0    1   0   0   0",
+                          "  x   x   x   x    x a10  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  i   i   i   i    i   i   i   i";
+      ;
+    memory "signature"
+        size            = 3;
+        read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
+                          "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
       ;
   ;
 
@@ -206,25 +327,54 @@ part
     id               = "4434";
     desc             = "AT90S4434";
     chip_erase_delay = 20000;
-    eeprom
-        paged           = no;
+    pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    memory "eeprom"
         size            = 256;
-        page_size       = 0;
-        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x00;
         readback_p2     = 0xff;
+        read            = "1 0 1 0  0 0 0 0   x x x x  x x x x", 
+                          "a a a a  a a a a   o o o o  o o o o";
+
+        write           = "1 1 0 0  0 0 0 0   x x x x  x x x x",
+                          "a a a a  a a a a   i i i i  i i i i";
       ;
-    flash
-        paged           = no;
+    memory "flash"
         size            = 4096;
-        page_size       = 0;
-        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0xff;
         readback_p2     = 0x00;
+        read_lo         = "  0   0   1   0    0   0   0   0",
+                          "  x   x   x   x    x a10  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        read_hi         = "  0   0   1   0    1   0   0   0",
+                          "  x   x   x   x    x a10  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        write_lo        = "  0   1   0   0    0   0   0   0",
+                          "  x   x   x   x    x a10  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        write_hi        = "  0   1   0   0    1   0   0   0",
+                          "  x   x   x   x    x a10  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  i   i   i   i    i   i   i   i";
+      ;
+    memory "signature"
+        size            = 3;
+        read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
+                          "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
       ;
   ;
 
@@ -233,25 +383,54 @@ part
     id               = "8515";
     desc             = "AT90S8515";
     chip_erase_delay = 20000;
-    eeprom
-        paged           = no;
+    pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    memory "eeprom"
         size            = 512;
-        page_size       = 0;
-        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x80;
         readback_p2     = 0x7f;
+        read            = "1 0 1 0  0 0 0 0   x x x x  x x x a8", 
+                          "a a a a  a a a a   o o o o  o o o o";
+
+        write           = "1 1 0 0  0 0 0 0   x x x x  x x x a8",
+                          "a a a a  a a a a   i i i i  i i i i";
       ;
-    flash
-        paged           = no;
+    memory "flash"
         size            = 8192;
-        page_size       = 0;
-        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x7f;
         readback_p2     = 0x00;
+        read_lo         = "  0   0   1   0    0   0   0   0",
+                          "  x   x   x   x  a11 a10  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        read_hi         = "  0   0   1   0    1   0   0   0",
+                          "  x   x   x   x  a11 a10  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        write_lo        = "  0   1   0   0    0   0   0   0",
+                          "  x   x   x   x  a11 a10  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        write_hi        = "  0   1   0   0    1   0   0   0",
+                          "  x   x   x   x  a11 a10  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  i   i   i   i    i   i   i   i";
+      ;
+    memory "signature"
+        size            = 3;
+        read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
+                          "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
       ;
   ;
 
@@ -260,25 +439,54 @@ part
     id               = "8535";
     desc             = "AT90S8535";
     chip_erase_delay = 20000;
-    eeprom
-        paged           = no;
+    pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    memory "eeprom"
         size            = 512;
-        page_size       = 0;
-        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x00;
         readback_p2     = 0xff;
+        read            = "1 0 1 0  0 0 0 0   x x x x  x x x a8", 
+                          "a a a a  a a a a   o o o o  o o o o";
+
+        write           = "1 1 0 0  0 0 0 0   x x x x  x x x a8",
+                          "a a a a  a a a a   i i i i  i i i i";
       ;
-    flash
-        paged           = no;
+    memory "flash"
         size            = 8192;
-        page_size       = 0;
-        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0xff;
         readback_p2     = 0x00;
+        read_lo         = "  0   0   1   0    0   0   0   0",
+                          "  x   x   x   x  a11 a10  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        read_hi         = "  0   0   1   0    1   0   0   0",
+                          "  x   x   x   x  a11 a10  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        write_lo        = "  0   1   0   0    0   0   0   0",
+                          "  x   x   x   x  a11 a10  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        write_hi        = "  0   1   0   0    1   0   0   0",
+                          "  x   x   x   x  a11 a10  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  i   i   i   i    i   i   i   i";
+      ;
+    memory "signature"
+        size            = 3;
+        read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
+                          "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
       ;
   ;
 
@@ -287,17 +495,29 @@ part
     id               = "m103";
     desc             = "ATMEGA103";
     chip_erase_delay = 112000;
-    eeprom
-        paged           = no;
+    pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    memory "eeprom"
         size            = 4096;
-        page_size       = 0;
-        num_pages       = 0;
         min_write_delay = 4000;
         max_write_delay = 9000;
         readback_p1     = 0x00;
         readback_p2     = 0xff;
+	read            = "  1   0   1   0      0   0   0   0",
+                          "  x   x   x   x    a11 a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
+
+	write           = "  1   1   0   0      0   0   0   0",
+                          "  x   x   x   x    a11 a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0", 
+                          "  i   i   i   i      i   i   i   i";
       ;
-    flash
+    memory "flash"
         paged           = yes;
         size            = 131072;
         page_size       = 256;
@@ -307,6 +527,11 @@ part
         readback_p1     = 0xff;
         readback_p2     = 0x00;
       ;
+    memory "signature"
+        size            = 3;
+        read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
+                          "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
+      ;
   ;
 
 
@@ -314,17 +539,29 @@ part
     id               = "m16";
     desc             = "ATMEGA16";
     chip_erase_delay = 9000;
-    eeprom
-        paged           = no;
+    pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    memory "eeprom"
         size            = 512;
-        page_size       = 0;
-        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 9000;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
+	read            = "  1   0   1   0      0   0   0   0",
+                          "  x   x   x   x      x   x   x  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
+
+	write           = "  1   1   0   0      0   0   0   0",
+                          "  x   x   x   x      x   x   x  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0", 
+                          "  i   i   i   i      i   i   i   i";
       ;
-    flash
+    memory "flash"
         paged           = yes;
         size            = 16384;
         page_size       = 128;
@@ -334,39 +571,42 @@ part
         readback_p1     = 0xff;
         readback_p2     = 0xff;
       ;
+    memory "signature"
+        size            = 3;
+        read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
+                          "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
+      ;
   ;
-*/
 
+
+
+#------------------------------------------------------------
+# ATMega163
+#------------------------------------------------------------
 part
     id               = "m163";
     desc             = "ATMEGA163";
-    pgm_enable       = "1", "0", "1", "0",  "1", "1", "0", "0", 
-                       "0", "1", "0", "1",  "0", "0", "1", "1",
-                       "x", "x", "x", "x",  "x", "x", "x", "x", 
-                       "x", "x", "x", "x",  "x", "x", "x", "x";
-
-    chip_erase       = "1", "0", "1", "0",  "1", "1", "0", "0", 
-                       "1", "0", "0", "0",  "0", "0", "0", "0",
-                       "x", "x", "x", "x",  "x", "x", "x", "x", 
-                       "x", "x", "x", "x",  "x", "x", "x", "x";
-
     chip_erase_delay = 32000;
-    memory "eeprom"
+    pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
+                       "x x x x  x x x x    x x x x  x x x x";
+   memory "eeprom"
         size            = 512;
         min_write_delay = 4000;
         max_write_delay = 4000;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
+	read            = "  1   0   1   0      0   0   0   0",
+                          "  x   x   x   x      x   x   x  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
 
-	read        = "1",   "0",   "1",   "0",    "0",   "0",   "0",   "0",
-                      "x",   "x",   "x",   "x",    "x",   "x",   "x",   "a8",
-                      "a7",  "a6",  "a5",  "a4",   "a3",  "a2",  "a1",  "a0", 
-                      "o",   "o",   "o",   "o",    "o",   "o",   "o",   "o";
-
-	write       = "1",   "1",   "0",   "0",    "0",   "0",   "0",   "0",
-                      "x",   "x",   "x",   "x",    "x",   "x",   "x",   "a8",
-                      "a7",  "a6",  "a5",  "a4",   "a3",  "a2",  "a1",  "a0", 
-                      "i",   "i",   "i",   "i",    "i",   "i",   "i",   "i";
+	write           = "  1   1   0   0      0   0   0   0",
+                          "  x   x   x   x      x   x   x  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0", 
+                          "  i   i   i   i      i   i   i   i";
       ;
     memory "flash"
         paged           = yes;
@@ -377,130 +617,102 @@ part
         max_write_delay = 16000;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
+        read_lo         = "  0   0   1   0      0   0   0   0",
+                          "  x   x   x a12    a11 a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
 
-        read_lo     = "0",  "0",  "1",  "0",    "0",   "0",   "0",  "0",
-                      "x",  "x",  "x",  "a12",  "a11", "a10", "a9", "a8",
-                      "a7", "a6", "a5", "a4",   "a3",  "a2",  "a1", "a0",
-                      "o",  "o",  "o",  "o",    "o",   "o",   "o",  "o";
+        read_hi         = "  0   0   1   0      1   0   0   0",
+                          "  x   x   x a12    a11 a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
 
-        read_hi     = "0",  "0",  "1",  "0",    "1",   "0",   "0",  "0",
-                      "x",  "x",  "x",  "a12",  "a11", "a10", "a9", "a8",
-                      "a7", "a6", "a5", "a4",   "a3",  "a2",  "a1", "a0",
-                      "o",  "o",  "o",  "o",    "o",   "o",   "o",  "o";
+        loadpage_lo     = "  0   1   0   0      0   0   0   0",
+                          "  x   x   x   x      x   x   x   x",
+                          "  x   x  a5  a4     a3  a2  a1  a0",
+                          "  i   i   i   i      i   i   i   i";
 
-        loadpage_lo = "0",  "1",  "0",  "0",    "0",   "0",   "0",  "0",
-                      "x",  "x",  "x",  "x",    "x",   "x",   "x",  "x",
-                      "x",  "x", "a5", "a4",   "a3",  "a2",  "a1", "a0",
-                      "i",  "i",  "i",  "i",    "i",   "i",   "i",  "i";
+        loadpage_hi     = "  0   1   0   0      1   0   0   0",
+                          "  x   x   x   x      x   x   x   x",
+                          "  x   x  a5  a4     a3  a2  a1  a0",
+                          "  i   i   i   i      i   i   i   i";
 
-        loadpage_hi = "0",  "1",  "0",  "0",    "1",   "0",   "0",  "0",
-                      "x",  "x",  "x",  "x",    "x",   "x",   "x",  "x",
-                      "x",  "x", "a5", "a4",   "a3",  "a2",  "a1", "a0",
-                      "i",  "i",  "i",  "i",    "i",   "i",   "i",  "i";
-
-        writepage   = "0",  "1",  "0",  "0",    "1",   "1",   "0",  "0",
-                      "x",  "x",  "x",  "a12",  "a11", "a10", "a9", "a8",
-                      "a7", "a6", "x",  "x",    "x",   "x",   "x",  "x",
-                      "x",  "x",  "x",  "x",    "x",   "x",   "x",  "x";
+        writepage       = "  0   1   0   0      1   1   0   0",
+                          "  x   x   x a12    a11 a10  a9  a8",
+                          " a7  a6   x   x      x   x   x   x",
+                          "  x   x   x   x      x   x   x   x";
       ;
     memory "lfuse"
         size            = 1;
         min_write_delay = 2000;
         max_write_delay = 2000;
+        read            = "0 1 0 1  0 0 0 0   0 0 0 0  0 0 0 0",
+                          "x x x x  x x x x   o o x x  o o o o";
 
-        read        = "0",  "1",  "0",  "1",    "0",   "0",   "0",  "0",
-                      "0",  "0",  "0",  "0",    "0",   "0",   "0",  "0",
-                      "x",  "x",  "x",  "x",    "x",   "x",   "x",  "x",
-                      "o",  "o",  "x",  "x",    "o",   "o",   "o",  "o";
-
-        write       = "1",  "0",  "1",  "0",    "1",   "1",   "0",  "0",
-                      "1",  "0",  "1",  "0",    "0",   "0",   "0",  "0",
-                      "x",  "x",  "x",  "x",    "x",   "x",   "x",  "x",
-                      "i",  "i",  "1",  "1",    "i",   "i",   "i",  "i";
+        write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 0 0 0",
+                          "x x x x  x x x x   i i 1 1  i i i i";
       ;
     memory "hfuse"
         size            = 1;
         min_write_delay = 2000;
         max_write_delay = 2000;
+        read            = "0 1 0 1  1 0 0 0   0 0 0 0  1 0 0 0",
+                          "x x x x  x x x x   x x x x  1 o o o";
 
-        read        = "0",  "1",  "0",  "1",    "1",   "0",   "0",  "0",
-                      "0",  "0",  "0",  "0",    "1",   "0",   "0",  "0",
-                      "x",  "x",  "x",  "x",    "x",   "x",   "x",  "x",
-                      "x",  "x",  "x",  "x",    "1",   "o",   "o",  "o";
-
-        write       = "1",  "0",  "1",  "0",    "1",   "1",   "0",  "0",
-                      "1",  "0",  "1",  "0",    "1",   "0",   "0",  "0",
-                      "x",  "x",  "x",  "x",    "x",   "x",   "x",  "x",
-                      "1",  "1",  "1",  "1",    "1",   "i",   "i",  "i";
+        write           = "1 0 1 0  1 1 0 0   1 0 1 0  1 0 0 0",
+                          "x x x x  x x x x   1 1 1 1  1 i i i";
       ;
     memory "lock"
         size            = 1;
         min_write_delay = 2000;
         max_write_delay = 2000;
+        read            = "0 1 0 1  1 0 0 0   0 0 0 0  0 0 0 0",
+                          "x x x x  0 x x x   x x o o  o o o o";
 
-        read        = "0",  "1",  "0",  "1",    "1",   "0",   "0",  "0",
-                      "0",  "0",  "0",  "0",    "0",   "0",   "0",  "0",
-                      "x",  "x",  "x",  "x",    "0",   "x",   "x",  "x",
-                      "x",  "x",  "o",  "o",    "o",   "o",   "o",  "o";
-
-        write       = "1",  "0",  "1",  "0",    "1",   "1",   "0",  "0",
-                      "1",  "1",  "1",  "x",    "x",   "x",   "x",  "x",
-                      "x",  "x",  "x",  "x",    "x",   "x",   "x",  "x",
-                      "1",  "1",  "i",  "i",    "i",   "i",   "i",  "i";
+        write           = "1 0 1 0  1 1 0 0   1 1 1 x  x x x x",
+                          "x x x x  x x x x   1 1 i i  i i i i";
       ;
     memory "signature"
-        size        = 3;
-
-        read        = "0",  "0",  "1",  "1",    "0",   "0",   "0",  "0",
-                      "x",  "x",  "x",  "x",    "x",   "x",   "x",  "x",
-                      "x",  "x",  "x",  "x",    "x",   "x",   "a1", "a0",
-                      "o",  "o",  "o",  "o",    "o",   "o",   "o",  "o";
+        size            = 3;
+        read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
+                          "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
       ;
     memory "calibration"
-        size        = 1;
-        read        = "0",  "0",  "1",  "1",    "1",   "0",   "0",  "0",
-                      "x",  "x",  "x",  "x",    "x",   "x",   "x",  "x",
-                      "0",  "0",  "0",  "0",    "0",   "0",   "0",  "0",
-                      "o",  "o",  "o",  "o",    "o",   "o",   "o",  "o";
+        size            = 1;
+        read            = "0 0 1 1  1 0 0 0   x x x x  x x x x",
+                          "0 0 0 0  0 0 0 0   o o o o  o o o o";
       ;
-
-/*
-    instructions
-        instr "pe",   "programming enable"         [ "1010 1100", "0101 0011", "xxxx xxxx", "xxxx xxxx" ];
-        instr "ce",   "chip erase"                 [ "1010 1100", "100x xxxx", "xxxx xxxx", "xxxx xxxx" ];
-        instr "rpm",  "read program memory"        [ "0010 H000", "xxxa aaaa", "bbbb bbbb", "oooo oooo" ];
-        instr "lpmp"  "load program memory page"   [ "0100 H000", "xxxx xxxx", "xxbb bbbb", "iiii iiii" ];
-        instr "wpmp", "write program memory page"  [ "0100 1100", "xxxa aaaa", "bbxx xxxx", "xxxx xxxx" ];
-        instr "rep",  "read eeprom memory"         [ "1010 0000", "xxxx xxxa", "bbbb bbbb", "oooo oooo" ];
-        instr "wep",  "write eeprom memory"        [ "1100 0000", "xxxx xxxa", "bbbb bbbb", "iiii iiii" ];
-        instr "rlb",  "read lock bits"             [ "0101 1000", "0000 0000", "xxxx 0xxx", "xxoo oooo" ];
-        instr "wlb",  "write lock bits"            [ "1010 1100", "111x xxxx", "xxxx xxxx", "11ii iiii" ];
-        instr "rsb",  "read signature byte"        [ "0011 0000", "xxxx xxxx", "xxxx xxbb", "oooo oooo" ];
-        instr "wfb",  "write fuse bits"            [ "1010 1100", "1010 0000", "xxxx xxxx", "ii11 iiii" ];
-        instr "wfhb", "write fuse high bits"       [ "1010 1100", "1010 1000", "xxxx xxxx", "1111 1iii" ];
-        instr "rfb",  "read fuse bits"             [ "0101 0000", "0000 0000", "xxxx xxxx", "ooxx oooo" ];
-        instr "rfhb", "read fuse high bits"        [ "0101 1000", "0000 1000", "xxxx xxxx", "xxxx 1ooo" ];
-        instr "rcb",  "read calibration byte"      [ "0011 1000", "xxxx xxxx", "0000 0000", "oooo oooo" ];
-      ;
-*/
   ;
 
-/*
+
+
 part
     id               = "m8";
     desc             = "ATMEGA8";
     chip_erase_delay = 9000;
-    eeprom
-        paged           = no;
+    pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    memory "eeprom"
         size            = 512;
-        page_size       = 0;
-        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 9000;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
+	read            = "  1   0   1   0      0   0   0   0",
+                          "  x   x   x   x      x   x   x  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
+
+	write           = "  1   1   0   0      0   0   0   0",
+                          "  x   x   x   x      x   x   x  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0", 
+                          "  i   i   i   i      i   i   i   i";
       ;
-    flash
+    memory "flash"
         paged           = yes;
         size            = 8192;
         page_size       = 64;
@@ -510,6 +722,10 @@ part
         readback_p1     = 0xff;
         readback_p2     = 0xff;
       ;
+    memory "signature"
+        size            = 3;
+        read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
+                          "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
+      ;
   ;
 
-*/

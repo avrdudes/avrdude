@@ -531,7 +531,6 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
     fprintf(stderr, 
             "avr_write_byte(): write not support for memory type \"%s\"\n",
             mem->desc);
-    exit(1);
     return -1;
   }
 
