@@ -277,6 +277,15 @@ as
 to use
 .Em stdin
 as the input.
+.It Fl I Ar data
+Same as specifying
+.Fl i
+and
+.Fl f Ar m
+together, i.e., this is a shortcut for using immediate file input mode
+where the filename field is used as the data itself.  Useful for
+programming single byte memories such as fuse bytes without having to
+use single byte files or enter interactive terminal mode.
 .It Fl m Ar memtype
 Specifies which program area of the MCU to read or write; allowable
 values depend on the MCU being programmed, but most support at least
