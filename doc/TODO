@@ -1,15 +1,8 @@
 
 - Man page needs updated for avr910 info.
 
-- avr910 needs a little bit of work to support setting fuse byte (note that it
-  can only deal with a _single_ fuse byte.
-
 - Website needs to link to docs:
   http://savannah.nongnu.org/download/avrdude/doc/avrdude-html/
-
-- Add avr910 device codes for more devices. Some where posted here:
-  <http://www.avrfreaks.com/phorum/read.php?f=3&i=40925&t=40717#40925>
-  but uisp seems to have a more comprehensive list.
 
 - [Windows Port] Use Windows API for serial port communications (ser_win32.c).
   (In Progress)
@@ -29,4 +22,4 @@
 
 - FIXME: ser_posix.c: serial_close(): Should really restore the terminal to 
   original state here.
-  
+
