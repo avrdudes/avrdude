@@ -623,8 +623,8 @@ int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                   "%s bits\n", progname, mem->desc);
           fprintf(stderr,
                   "%s: you must manually power-down the device and restart\n"
-                  "%s:   avrprog to continue.\n",
-                  progname, progname);
+                  "%s:   %s to continue.\n",
+                  progname, progname, progname);
           return -3;
         }
         

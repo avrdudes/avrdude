@@ -642,7 +642,7 @@ int terminal_mode(PROGRAMMER * pgm, struct avrpart * p)
   char ** argv;
 
   rc = 0;
-  while ((cmdbuf = readline("avrprog> ")) != NULL) {
+  while ((cmdbuf = readline("avrdude> ")) != NULL) {
     len = strlen(cmdbuf);
     if (len >= 1)
       add_history(cmdbuf);

@@ -30,7 +30,7 @@
 /* $Id$ */
 
 /*
- * avrprog interface for Atmel STK500 programmer
+ * avrdude interface for Atmel STK500 programmer
  *
  * Note: most commands use the "universal command" feature of the
  * programmer in a "pass through" mode, exceptions are "program

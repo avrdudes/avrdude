@@ -26,9 +26,9 @@
 .\"
 .Dd DATE January 11, 2002
 .Os
-.Dt AVRPROG 1
+.Dt AVRDUDE 1
 .Sh NAME
-.Nm avrprog
+.Nm avrdude
 .Nd driver program for ``simple'' Atmel AVR MCU programmer
 .Sh SYNOPSIS
 .Nm
@@ -52,10 +52,10 @@
 .Op Fl y
 .Op Fl Y
 .Sh DESCRIPTION
-.Nm Avrprog
+.Nm Avrdude
 is a program for downloading code and data to Atmel AVR
 microcontrollers.
-.Nm Avrprog
+.Nm Avrdude
 supports Atmel's STK500 programmer as well as a simple hard-wired
 programmer connected directly to a
 .Xr ppi 4
@@ -82,7 +82,7 @@ signal is available to control a buffer/driver IC 74LS367 (or
 from the MCU when in-system programming is used.
 .Pp
 See the file
-.Pa ${PREFIX}/share/doc/avrprog/avrprog.pdf
+.Pa ${PREFIX}/share/doc/avrdude/avrdude.pdf
 for a schematic of the
 .Xr ppi 4
 based programming hardware.
@@ -100,7 +100,7 @@ as a standalone assembler, or
 .Xr avr-objcopy 1
 for the final stage of the GNU toolchain for the AVR microcontroller.
 .Pp
-.Nm Avrprog
+.Nm Avrdude
 can program the EEPROM and flash ROM memory cells of supported AVR
 parts.  Where supported by the serial instruction set, fuse bits and
 lock bits can be programmed as well.  These are implemented within
@@ -120,13 +120,13 @@ individual memory cells.
 .Ss Options
 In order to control all the different operation modi, a number of options
 need to be specified to
-.Nm avrprog .
+.Nm avrdude .
 .Bl -tag -offset indent -width indent
 .It Fl p Ar partno
 This is the only option that is mandatory for every invocation of
-.Nm avrprog .
+.Nm avrdude .
 It specifies the type of the MCU connected to the programmer.  These are read from the config file.  If
-.Nm avrprog
+.Nm avrdude
 does not know about a part that you have, simply add it to the config
 file (be sure and submit a patch back to the author so that it can be
 incorporated for the next version).  See the sample config file for
@@ -156,7 +156,7 @@ configurations are read from the config file (see the
 .Fl C
 option).  New pin configurations can be easily added or modified
 through the use of a config file to make
-.Nm avrprog
+.Nm avrdude
 work with different programmers as long as the programmer supports the
 Atmel AVR serial program method.  If that file contains an entry named
 .Dq default ,
@@ -166,13 +166,13 @@ is missing; otherwise a builtin default will be used.
 .It Fl C Ar config-file
 Use the specified config file to load configuration data.  This file
 contains all programmer and part definitions that
-.Nm avrprog
+.Nm avrdude
 knows about.  If you have a programmer or part that
-.Nm avrprog
+.Nm avrdude
 does not know about, you can add it to the config file (be sure and
 submit a patch back to the author so that it can be incorporated for
 the next version).  See the sample config file, located at
-.Pa ${PREFIX}/etc/avrprog.conf.sample ,
+.Pa ${PREFIX}/etc/avrdude.conf.sample ,
 which contains a description of the format.
 .It Fl e
 Causes a chip erase to be executed.  This will reset the contents of the
@@ -287,7 +287,7 @@ by a particular device.  The default is
 .Em flash .
 .It Fl n
 No-write - disables actually writing data to the MCU (useful for debugging
-.Nm avrprog
+.Nm avrdude
 ).
 .It Fl o Ar filename
 Specifies the name of the output file to write, and causes the respective
@@ -389,7 +389,7 @@ Display the current part settings.
 Give a short on-line summary of the available commands.
 .It Ar quit
 Leave terminal mode and thus
-.Nm avrprog .
+.Nm avrdude .
 .El
 .Ss Default Parallel port pin connections
 (these can be changed, see the
@@ -410,15 +410,15 @@ ll.
 .It Pa /dev/ppi0
 default device to be used for communication with the programming
 hardware
-.It Pa ${PREFIX}/etc/avrprog.conf.sample
+.It Pa ${PREFIX}/etc/avrdude.conf.sample
 sample programmer and parts configuration file
-.It Pa ${PREFIX}/etc/avrprog.conf
+.It Pa ${PREFIX}/etc/avrdude.conf
 default programmer and parts configuration file
 .It Pa ~/.inputrc
 Initialization file for the
 .Xr readline 3
 library
-.It Pa ${PREFIX}/share/doc/avrprog/avrprog.pdf
+.It Pa ${PREFIX}/share/doc/avrdude/avrdude.pdf
 Schematic of programming hardware
 .El
 .\" .Sh EXAMPLES
@@ -433,7 +433,7 @@ The AVR microcontroller product description can be found at
 .Dl "http://www.atmel.com/atmel/products/prod23.htm"
 .\" .Sh HISTORY
 .Sh AUTHORS
-.Nm Avrprog
+.Nm Avrdude
 was written by Brian S. Dean <bsd@bsdhome.com>.
 .Pp
 This man page by

@@ -471,6 +471,7 @@ mem_spec :
 #include "pindefs.h"
 #include "ppi.h"
 #include "pgm.h"
+#include "stk500.h"
 #include "avr.h"
 
 extern char * progname;

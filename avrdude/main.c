@@ -461,7 +461,7 @@ int main(int argc, char * argv [])
   ppiclrbits    = 0;
   exitspecs     = NULL;
   pgm           = NULL;
-  pinconfig     = "avrprog"; /* compiled-in default */
+  pinconfig     = "avrdude"; /* compiled-in default */
   verbose       = 0;
   do_cycles     = 0;
   set_cycles    = -1;
@@ -470,7 +470,7 @@ int main(int argc, char * argv [])
   i = strlen(configfile);
   if (i && (configfile[i-1] != '/'))
     strcat(configfile, "/");
-  strcat(configfile, "avrprog.conf");
+  strcat(configfile, "avrdude.conf");
 
   /*
    * initialize compiled-in default programmer 
@@ -478,8 +478,8 @@ int main(int argc, char * argv [])
   compiled_in_pgm = pgm_new();
   pgm = compiled_in_pgm;
   ppi_initpgm(pgm);
-  ladd(pgm->id, dup_string("avrprog"));
-  strcpy(pgm->desc, "avrprog compiled-in default");
+  ladd(pgm->id, dup_string("avrdude"));
+  strcpy(pgm->desc, "avrdude compiled-in default");
   pgm->pinno[PPI_AVR_VCC]   = 0x0f;  /* ppi pins 2-5, data reg bits 0-3 */
   pgm->pinno[PPI_AVR_BUFF]  =  0;
   pgm->pinno[PIN_AVR_RESET] =  7;
@@ -679,7 +679,7 @@ int main(int argc, char * argv [])
     exit(1);
   }
 
-  if (strcmp(pinconfig, "avrprog") == 0) {
+  if (strcmp(pinconfig, "avrdude") == 0) {
     pgm = locate_pinconfig(programmers, "default");
     if (pgm == NULL) {
       /* no default config listed, use the compile-in default */

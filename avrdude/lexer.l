@@ -184,7 +184,7 @@ yes              { yylval=new_token(K_YES); return K_YES; }
 c: { fprintf(stderr, "error at %s:%d: possible old-style config file entry\n",
              infile, lineno);
      fprintf(stderr, "  Update your config file (see %s%s for a sample)\n",
-             CONFIG_DIR, "/avrprog.conf.sample");
+             CONFIG_DIR, "/avrdude.conf.sample");
      exit(1); }
 
 . { fprintf(stderr, "error at %s:%d unrecognized character: \"%s\"\n", 

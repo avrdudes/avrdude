@@ -1,8 +1,33 @@
 $Id$
 
-Approximate change log for AVRPROG by version
+Approximate change log for AVRDUDE by version
 
 ----------------------------------------------------------------------
+
+Version 3.1.0
+
+  * This change represents a name change only.  There is currently an
+    effort to port AVRPROG to other platforms including Linux and
+    Windows.  Since Atmel's programmer binary that's included within
+    their AVR Studio software is named AVRPROG.EXE on the Windows OS,
+    there is the chance for confusion if we keep calling this program
+    AVRPROG as well.  Up until now the name hasn't really been a
+    problem since there was no chance to confuse 'avrprog' on Unix
+    with Atmel's AVRPROG because Atmel's tools only run on Windows.
+    But with the Unix 'avrprog' possibly being ported to Windows, I
+    felt a name change was the best way to avoid problems.
+
+    So - from this point forward, my FreeBSD Unix program formerly
+    known as AVRPROG will subsequently be known as AVRDUDE (AVR
+    Downloader/UploaDEr).
+
+    This change also represents a time when the AVRDUDE sources move
+    from my own private repository to a public repository.  This will
+    give other developers a chance to port AVRDUDE to other platforms
+    and extend its functionality to support additional programming
+    hardware, etc.
+
+    So goodbye AVRPROG, welcome AVRDUDE!
 
 Version 3.0.0
 
