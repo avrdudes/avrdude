@@ -115,7 +115,7 @@ char ** modules[N_MODULES] = {
   &term_version 
 };
 
-char * version      = "2.1.3";
+char * version      = "2.1.4";
 
 char * main_version = "$Id$";
 
@@ -909,8 +909,8 @@ int main(int argc, char * argv [])
   }
 
   if (set_cycles != -1) {
-    cycles = avr_get_cycle_count(fd, p);
-    if (cycles != -1) {
+    rc = avr_get_cycle_count(fd, p, &cycles);
+    if (rc == 0) {
       /*
        * only attempt to update the cycle counter if we can actually
        * read the old value
@@ -943,11 +943,11 @@ int main(int argc, char * argv [])
      * repeat it if an erase was done.  Also, don't display this if we
      * set the cycle count (due to -Y).
      *
-     * see if the cycle count in the last two bytes of eeprom seems
+     * see if the cycle count in the last four bytes of eeprom seems
      * reasonable 
      */
-    cycles = avr_get_cycle_count(fd, p);
-    if ((cycles != -1) && (cycles != 0x00ffff)) {
+    rc = avr_get_cycle_count(fd, p, &cycles);
+    if ((rc >= 0) && (cycles != 0xffffffff)) {
       fprintf(stderr,
               "%s: current erase-rewrite cycle count is %d%s\n",
               progname, cycles, 
