@@ -381,6 +381,119 @@ static void avr910_set_addr(PROGRAMMER * pgm, unsigned long addr)
 }
 
 
+/*
+ * For some reason, if we don't do this when writing to flash, the first byte
+ * of flash is not programmed. I susect that the board got out of sync after
+ * the erase and sending another command gets us back in sync. -TRoth
+ */
+static void avr910_write_setup(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
+{
+  if (strcmp(m->desc, "flash") == 0) {
+    avr910_send(pgm, "y", 1);
+    avr910_vfy_cmd_sent(pgm, "clear LED");
+  }
+}
+
+
+static int avr910_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+                             unsigned long addr, unsigned char value)
+{
+  unsigned char cmd[2];
+
+  no_show_func_info();
+
+  if (strcmp(m->desc, "flash") == 0) {
+    if (addr & 0x01) {
+      cmd[0] = 'C';             /* Write Program Mem high byte */
+    }
+    else {
+      cmd[0] = 'c';
+    }
+
+    addr >>= 1;
+  }
+  else if (strcmp(m->desc, "eeprom") == 0) {
+    cmd[0] = 'D';
+  }
+  else {
+    return -1;
+  }
+
+  cmd[1] = value;
+
+  avr910_set_addr(pgm, addr);
+
+  avr910_send(pgm, cmd, sizeof(cmd));
+  avr910_vfy_cmd_sent(pgm, "write byte");
+
+  return 0;
+}
+
+
+static int avr910_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+                                  unsigned long addr, unsigned char * value)
+{
+  static int cached = 0;
+  static unsigned char cvalue;
+  static unsigned long caddr;
+
+  if (cached && ((caddr + 1) == addr)) {
+    *value = cvalue;
+    cached = 0;
+  }
+  else {
+    unsigned char buf[2];
+
+    avr910_set_addr(pgm, addr >> 1);
+
+    avr910_send(pgm, "R", 1);
+
+    /* Read back the program mem word (MSB first) */
+    avr910_recv(pgm, buf, sizeof(buf));
+
+    if ((addr & 0x01) == 0) {
+      *value = buf[1];
+      cached = 1;
+      cvalue = buf[0];
+      caddr = addr;
+    }
+    else {
+      *value = buf[0];
+    }
+  }
+
+  return 0;
+}
+
+
+static int avr910_read_byte_eeprom(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+                                   unsigned long addr, unsigned char * value)
+{
+  avr910_set_addr(pgm, addr);
+  avr910_send(pgm, "d", 1);
+  avr910_recv(pgm, value, 1);
+
+  return 0;
+}
+
+
+static int avr910_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+                            unsigned long addr, unsigned char * value)
+{
+  no_show_func_info();
+
+  if (strcmp(m->desc, "flash") == 0) {
+    return avr910_read_byte_flash(pgm, p, m, addr, value);
+  }
+
+  if (strcmp(m->desc, "eeprom") == 0) {
+    return avr910_read_byte_eeprom(pgm, p, m, addr, value);
+  }
+
+  return -1;
+}
+
+
 static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
                                     int page_size, int n_bytes)
 {
@@ -389,13 +502,7 @@ static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   unsigned int addr = 0;
   unsigned int max_addr = n_bytes;
 
-  /*
-   * For some reason, if we don't do this when writing to flash, the first
-   * byte of flash is not programmed. I susect that the board got out of sync
-   * after the erase and sending another command gets us back in sync. -TRoth
-   */
-  avr910_send(pgm, "y", 1);
-  avr910_vfy_cmd_sent(pgm, "clear LED");
+  avr910_write_setup(pgm, p, m);
 
   avr910_set_addr(pgm, addr>>1);
 
@@ -545,7 +652,12 @@ void avr910_initpgm(PROGRAMMER * pgm)
    * optional functions
    */
 
+  pgm->write_setup = avr910_write_setup;
+  pgm->write_byte = avr910_write_byte;
+  pgm->read_byte = avr910_read_byte;
+
   pgm->paged_write = avr910_paged_write;
   pgm->paged_load = avr910_paged_load;
+
   pgm->read_sig_bytes = avr910_read_sig_bytes;
 }
