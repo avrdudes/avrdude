@@ -264,7 +264,6 @@ int print_module_versions ( FILE * outf, char * timestamp )
 }
 
 
-
 #define MAX_LINE_LEN 1024
 #define MAX_PIN_NAME 64
 
@@ -457,6 +456,7 @@ int read_config(char * infile, char * config, unsigned int * pinno,
 
   lineno = 0;
   buf[0] = 0;
+  cont   = 0;
   while (fgets(line, MAX_LINE_LEN, f) != NULL) {
     lineno++;
 
@@ -464,6 +464,9 @@ int read_config(char * infile, char * config, unsigned int * pinno,
     while (isspace(*p))
       p++;
 
+    /*
+     * skip empty lines and lines that start with '#'
+     */
     if ((*p == '#')||(*p == '\n')||(*p == 0))
       continue;
 
@@ -471,6 +474,37 @@ int read_config(char * infile, char * config, unsigned int * pinno,
     if (p[len-1] == '\n') {
       p[len-1] = 0;
       len--;
+    }
+
+    /*
+     * we're only interested in pin configuration data which begin
+     * with "c:" 
+     */
+    if (((len < 3) || (p[0] != 'c')) && !cont)
+      continue;
+
+
+    /*
+     * skip over the "c:"
+     */
+    if (!cont) {
+      p++;
+      while (*p && isspace(*p))
+        p++;
+
+      if (*p != ':') {
+        fprintf(stderr, "line %d:\n%s\n",
+                lineno, line);
+        for (i=0; i<(p-line); i++) {
+          fprintf(stderr, "-");
+        }
+        fprintf(stderr, "^\n");
+        fprintf(stderr, "error at column %d, line %d of %s: expecting ':'\n",
+                p-line+1, lineno, infile);
+        return -1;
+      }
+      p++;
+      len = strlen(p);
     }
 
     cont = 0;
@@ -547,12 +581,47 @@ int read_config(char * infile, char * config, unsigned int * pinno,
 
 
 
+static char vccpins_buf[64];
+char * vccpins_str(unsigned int pmask)
+{
+  unsigned int mask;
+  int pin;
+  char b2[8];
+  char * b;
+
+  b = vccpins_buf;
+
+  b[0] = 0;
+  for (pin = 2, mask = 1; mask < 0x80; mask = mask << 1, pin++) {
+    if (pmask & mask) {
+      sprintf(b2, "%d", pin);
+      if (b[0] != 0)
+        strcat(b, ",");
+      strcat(b, b2);
+    }
+  }
+
+  return b;
+}
+
+
 void pinconfig_display(char * p, char * config, char * desc)
 {
+  char vccpins[64];
+
+  if (pinno[PPI_AVR_VCC]) {
+    snprintf(vccpins, sizeof(vccpins), " = pins %s", 
+             vccpins_str(pinno[PPI_AVR_VCC]));
+  }
+  else {
+    vccpins[0] = 0;
+  }
+
   fprintf(stderr, "%sProgrammer Pin Configuration: %s (%s)\n", p, 
           config ? config : "DEFAULT", desc);
+
   fprintf(stderr, 
-          "%s  VCC     = 0x%02x\n"
+          "%s  VCC     = 0x%02x %s\n"
           "%s  BUFF    = %d\n"
           "%s  RESET   = %d\n"
           "%s  SCK     = %d\n"
@@ -562,7 +631,7 @@ void pinconfig_display(char * p, char * config, char * desc)
           "%s  RDY LED = %d\n"
           "%s  PGM LED = %d\n"
           "%s  VFY LED = %d\n",
-          p, pinno[PPI_AVR_VCC],
+          p, pinno[PPI_AVR_VCC], vccpins,
           p, pinno[PIN_AVR_BUFF],
           p, pinno[PIN_AVR_RESET],
           p, pinno[PIN_AVR_SCK],
