@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE January 11, 2002
+.Dd DATE July 24, 2003
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -112,6 +112,9 @@ been code-protected previously, of course) and store the data in a
 file.  Finally, a ``terminal'' mode is available that allows one to
 interactively communicate with the MCU, and to display or program
 individual memory cells.
+On the STK500 programmer, several operational parameters (target supply
+voltage, target Aref voltage, master clock) can be examined and changed
+from within terminal mode as well.
 .Ss Options
 In order to control all the different operation modi, a number of options
 need to be specified to
@@ -398,6 +401,35 @@ does not implement the command.
 Display the device signature bytes.
 .It Ar part
 Display the current part settings.
+.It Ar vtarg voltage
+Set the target's supply voltage to
+.Ar voltage
+Volts.
+.Em Only supported on the STK500 programmer.
+.It Ar varef voltage
+Set the adjustable voltage source to
+.Ar voltage
+Volts.
+This voltage is normally used to drive the target's
+.Em Aref
+input on the STK500.
+.Em Only supported on the STK500 programmer.
+.It Ar fosc freq Ns Op M Ns \&| Ns k
+Set the master oscillator to
+.Ar freq
+Hz.
+An optional trailing letter
+.Ar \&M
+multiplies by 1E6, a trailing letter
+.Ar \&k
+by 1E3.
+.Em Only supported on the STK500 programmer.
+.It Ar fosc off
+Turn the master oscillator off.
+.Em Only supported on the STK500 programmer.
+.It Ar parms
+Display the current voltage and master oscillator parameters.
+.Em Only supported on the STK500 programmer.
 .It Ar \&?
 .It Ar help
 Give a short on-line summary of the available commands.

@@ -6,6 +6,18 @@ Approximate change log for AVRDUDE by version.
 
 ----------------------------------------------------------------------
 
+Current:
+
+  * Add support for displaying and setting the various STK500 operational
+    parameters (Vtarget, Varef, Master clock).
+
+  * Add 'picoweb' programming cable programmer.
+    Contributed by Rune Christensen <rune.christensen@adslhome.dk>.
+
+  * Add support for the sp12 programmer.  Submitted by
+    Larry Barello <larryba@barrello.net>
+
+
 Version 4.1.0
 
   * Add support for the Bascom SAMPLE programmer. Submitted by

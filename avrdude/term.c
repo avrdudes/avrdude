@@ -66,6 +66,14 @@ int cmd_quit  (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
 
 int cmd_send  (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
 
+int cmd_parms (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+
+int cmd_vtarg (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+
+int cmd_varef (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+
+int cmd_fosc  (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+
 
 struct command cmd[] = {
   { "dump",  cmd_dump,  "dump memory  : %s <memtype> <addr> <N-Bytes>" },
@@ -75,6 +83,10 @@ struct command cmd[] = {
   { "sig",   cmd_sig,   "display device signature bytes" },
   { "part",  cmd_part,  "display the current part information" },
   { "send",  cmd_send,  "send a raw command : %s <b1> <b2> <b3> <b4>" },
+  { "parms", cmd_parms, "display adjustable parameters (STK500 only)" },
+  { "vtarg", cmd_vtarg, "set <V[target]> (STK500 only)" },
+  { "varef", cmd_varef, "set <V[aref]> (STK500 only)" },
+  { "fosc",  cmd_fosc,  "set <oscillator frequency> (STK500 only)" },
   { "help",  cmd_help,  "help" },
   { "?",     cmd_help,  "help" },
   { "quit",  cmd_quit,  "quit" }
@@ -494,6 +506,120 @@ int cmd_sig(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 int cmd_quit(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 {
   return 1;
+}
+
+
+int cmd_parms(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+{
+  if (pgm->print_parms == NULL) {
+    fprintf(stderr,
+	    "%s (parms): the %s programmer does not support "
+	    "adjustable parameters\n",
+	    progname, pgm->type);
+    return -1;
+  }
+  pgm->print_parms(pgm);
+
+  return 0;
+}
+
+
+int cmd_vtarg(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+{
+  int rc;
+  double v;
+  char *endp;
+
+  if (argc != 2) {
+    fprintf(stderr, "Usage: vtarg <value>\n");
+    return -1;
+  }
+  v = strtod(argv[1], &endp);
+  if (endp == argv[1]) {
+    fprintf(stderr, "%s (vtarg): can't parse voltage \"%s\"\n",
+            progname, argv[1]);
+    return -1;
+  }
+  if (pgm->set_vtarget == NULL) {
+    fprintf(stderr, "%s (vtarg): the %s programmer cannot set V[target]\n",
+	    progname, pgm->type);
+    return -2;
+  }
+  if ((rc = pgm->set_vtarget(pgm, v)) != 0) {
+    fprintf(stderr, "%s (vtarg): failed to set V[target] (rc = %d)\n",
+	    progname, rc);
+    return -3;
+  }
+  return 0;
+}
+
+
+int cmd_fosc(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+{
+  int rc;
+  double v;
+  char *endp;
+
+  if (argc != 2) {
+    fprintf(stderr, "Usage: fosc <value>[M|k] | off\n");
+    return -1;
+  }
+  v = strtod(argv[1], &endp);
+  if (endp == argv[1]) {
+    if (strcmp(argv[1], "off") == 0)
+      v = 0.0;
+    else {
+      fprintf(stderr, "%s (fosc): can't parse frequency \"%s\"\n",
+	      progname, argv[1]);
+      return -1;
+    }
+  }
+  if (*endp == 'm' || *endp == 'M')
+    v *= 1e6;
+  else if (*endp == 'k' || *endp == 'K')
+    v *= 1e3;
+  if (pgm->set_fosc == NULL) {
+    fprintf(stderr,
+	    "%s (fosc): the %s programmer cannot set oscillator frequency\n",
+	    progname, pgm->type);
+    return -2;
+  }
+  if ((rc = pgm->set_fosc(pgm, v)) != 0) {
+    fprintf(stderr, "%s (fosc): failed to set oscillator_frequency (rc = %d)\n",
+	    progname, rc);
+    return -3;
+  }
+  return 0;
+}
+
+
+int cmd_varef(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+{
+  int rc;
+  double v;
+  char *endp;
+
+  if (argc != 2) {
+    fprintf(stderr, "Usage: varef <value>\n");
+    return -1;
+  }
+  v = strtod(argv[1], &endp);
+  if (endp == argv[1]) {
+    fprintf(stderr, "%s (varef): can't parse voltage \"%s\"\n",
+            progname, argv[1]);
+    return -1;
+  }
+  if (pgm->set_varef == NULL) {
+    fprintf(stderr, "%s (varef): the %s programmer cannot set V[aref]\n",
+	    progname, pgm->type);
+    return -2;
+  }
+  if ((rc = pgm->set_varef(pgm, v)) != 0) {
+    fprintf(stderr, "%s (varef): failed to set V[aref] (rc = %d)\n",
+	    progname, rc);
+    return -3;
+  }
+  return 0;
 }
 
 

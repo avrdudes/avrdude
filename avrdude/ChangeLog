@@ -1,3 +1,14 @@
+2003-07-24  Joerg Wunsch  <j@uriah.heep.sax.de>
+
+	* avrdude.1
+	* doc/avrdude.texi
+	* pgm.c
+	* pgm.h
+	* stk500.c
+	* stk500_private.h
+	* term.c: Add support for displaying and setting the various
+	operational parameters of the STK500 (Vtarget, Varef, clock).
+
 2003-05-13  Theodore A. Roth  <troth@openavr.org>
 
 	* avr910.c (avr910_paged_write_flash): Add code to send the 'm'

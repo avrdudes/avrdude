@@ -72,6 +72,10 @@ typedef struct programmer_t {
   int  (*read_byte)      (struct programmer_t * pgm, AVRPART * p, AVRMEM * m,
                           unsigned long addr, unsigned char * value);
   int  (*read_sig_bytes) (struct programmer_t * pgm, AVRPART * p, AVRMEM * m);
+  void (*print_parms)    (struct programmer_t * pgm);
+  int  (*set_vtarget)    (struct programmer_t * pgm, double v);
+  int  (*set_varef)      (struct programmer_t * pgm, double v);
+  int  (*set_fosc)       (struct programmer_t * pgm, double v);
   char config_file[PATH_MAX]; /* config file where defined */
   int  lineno;                /* config file line number */
 } PROGRAMMER;

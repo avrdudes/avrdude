@@ -555,6 +555,33 @@ Leave terminal mode and thus AVRDUDE.
 
 @end table
 
+@noindent
+In addition, the following commands are supported on the STK500
+programmer:
+
+@table @code
+
+@item vtarg @var{voltage}
+Set the target's supply voltage to @var{voltage} Volts.
+
+@item varef @var{voltage}
+Set the adjustable voltage source to @var{voltage} Volts.
+This voltage is normally used to drive the target's
+@emph{Aref} input on the STK500.
+
+@item fosc @var{freq}[@var{M}|@var{k}]
+Set the master oscillator to @var{freq} Hz.
+An optional trailing letter @var{M}
+multiplies by 1E6, a trailing letter @var{k} by 1E3.
+
+@item fosc off
+Turn the master oscillator off.
+
+@item parms
+Display the current voltage and master oscillator parameters.
+
+@end table
+
 @c
 @c Node
 @c

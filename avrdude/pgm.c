@@ -93,6 +93,9 @@ PROGRAMMER * pgm_new(void)
   pgm->write_byte     = NULL;
   pgm->read_byte      = NULL;
   pgm->read_sig_bytes = NULL;
+  pgm->set_vtarget    = NULL;
+  pgm->set_varef      = NULL;
+  pgm->set_fosc       = NULL;
 
   return pgm;
 }
