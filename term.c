@@ -196,8 +196,7 @@ int hexdump_buf ( FILE * f, int startaddr, char * buf, int len )
 int cmd_dump ( int fd, struct avrpart * p, int argc, char * argv[] )
 {
   char * e;
-  int i, j, l;
-  unsigned short daddr;
+  int i, l;
   char * buf;
   int maxsize;
   static AVRMEM memtype=AVR_FLASH;
@@ -241,12 +240,7 @@ int cmd_dump ( int fd, struct avrpart * p, int argc, char * argv[] )
     }
   }
 
-  switch (memtype) {
-    case AVR_FLASH  : maxsize = p->flash_size; break;
-    case AVR_EEPROM : maxsize = p->eeprom_size; break;
-    default : return -1; /* this can't happen, but is silences gcc
-                            warnings */
-  }
+  maxsize = p->memsize[memtype];
 
   if (addr > maxsize) {
     fprintf(stderr, 
@@ -265,29 +259,8 @@ int cmd_dump ( int fd, struct avrpart * p, int argc, char * argv[] )
     return -1;
   }
 
-  j     = 0;
-  daddr = addr;
-  if (memtype == AVR_FLASH) {
-    daddr = addr / 2;
-    if (addr & 0x01) {
-      buf[j++] = avr_read_byte( fd, p, AVR_FLASH_HI, daddr);
-      daddr++;
-    }
-  }
-
-  i = daddr;
-  while (j < len) {
-    if (memtype == AVR_FLASH) {
-      buf[j++] = avr_read_byte( fd, p, AVR_FLASH_LO, i);
-      if (j < len) {
-        buf[j++] = avr_read_byte( fd, p, AVR_FLASH_HI, i);
-      }
-    }
-    else {
-      buf[j++] = avr_read_byte( fd, p, AVR_EEPROM, i);
-    }
-    i++;
-  }
+  for (i=0; i<len; i++)
+    buf[i] = avr_read_byte(fd, p, memtype, addr+i);
 
   hexdump_buf(stdout, addr, buf, len);
 
@@ -301,10 +274,10 @@ int cmd_dump ( int fd, struct avrpart * p, int argc, char * argv[] )
 int cmd_write ( int fd, struct avrpart * p, int argc, char * argv[] )
 {
   char * e;
-  int i, j, l;
+  int i, l;
   int len, maxsize;
   AVRMEM memtype;
-  unsigned short addr, daddr;
+  unsigned short addr;
   char * buf;
   int rc;
 
@@ -317,17 +290,17 @@ int cmd_write ( int fd, struct avrpart * p, int argc, char * argv[] )
   l = strlen(argv[1]);
   if (strncasecmp(argv[1],"flash",l)==0) {
     memtype = AVR_FLASH;
-    maxsize = p->flash_size;
   }
   else if (strncasecmp(argv[1],"eeprom",l)==0) {
     memtype = AVR_EEPROM;
-    maxsize = p->eeprom_size;
   }
   else {
     fprintf(stderr, "%s (write): invalid memory type \"%s\"\n",
             progname, argv[1]);
     return -1;
   }
+
+  maxsize = p->memsize[memtype];
 
   addr = strtoul(argv[2], &e, 0);
   if (*e || (e == argv[2])) {
@@ -369,45 +342,12 @@ int cmd_write ( int fd, struct avrpart * p, int argc, char * argv[] )
     }
   }
 
-  j     = 0;
-  daddr = addr;
-  if (memtype == AVR_FLASH) {
-    daddr = addr / 2;
-    if (addr & 0x01) {
-      /* handle odd numbered memory locations in the flash area */
-      rc = avr_write_byte(fd, p, AVR_FLASH_HI, daddr, buf[j++]);
-      if (rc) {
-        fprintf(stderr, "%s (write): error writing 0x%02x at 0x%04x\n",
-                progname, buf[j-1], daddr*2+1);
-      }
-      daddr++;
+  for (i=0; i<len; i++) {
+    rc = avr_write_byte(fd, p, memtype, addr+i, buf[i]);
+    if (rc) {
+      fprintf(stderr, "%s (write): error writing 0x%02x at 0x%04x\n",
+              progname, buf[i], addr+i);
     }
-  }
-
-  i = daddr;
-  while (j < len) {
-    if (memtype == AVR_FLASH) {
-      rc = avr_write_byte( fd, p, AVR_FLASH_LO, i, buf[j++]);
-      if (rc) {
-        fprintf(stderr, "%s (write): error writing 0x%02x at 0x%04x\n",
-                progname, buf[j-1], i*2);
-      }
-      if (j < len) {
-        rc = avr_write_byte( fd, p, AVR_FLASH_HI, i, buf[j++]);
-        if (rc) {
-          fprintf(stderr, "%s (write): error writing 0x%02x at 0x%04x\n",
-                  progname, buf[j-1], i*2+1);
-        }
-      }
-    }
-    else {
-      rc = avr_write_byte( fd, p, AVR_EEPROM, i, buf[j++]);
-      if (rc) {
-        fprintf(stderr, "%s (write): error writing 0x%02x at 0x%04x\n",
-                progname, buf[j-1], i);
-      }
-    }
-    i++;
   }
 
   free(buf);

@@ -45,27 +45,47 @@
 
 
 /*
- * AVR memory designations
+ * AVR memory designations; the order of these is important, these are
+ * used as indexes into statically initialized data, don't change them
+ * around.
  */
 typedef enum {
   AVR_EEPROM,
-  AVR_FLASH,
-  AVR_FLASH_LO,
-  AVR_FLASH_HI
+  AVR_FLASH
 } AVRMEM;
+
+#define AVR_MAXMEMTYPES 2     /* just flash and eeprom */
+
+#if 0
+struct avrmem {
+  AVRMEM          memtype;
+  int             startaddr;
+  int             size;
+  unsigned char   buf;
+  struct avrmem * next;
+};
+#endif
 
 struct avrpart {
   char          * partdesc;         /* long part name */
   char          * optiontag;        /* short part name */
+  int             memsize[AVR_MAXMEMTYPES]; /* sizes for eeprom,
+                                               flash, etc, indexed by
+                                               AVR_EEPROM or AVR_FLASH */
+#if 0
   int             flash_size;       /* size in bytes of flash */
   int             eeprom_size;      /* size in bytes of eeprom */
+#endif
   unsigned char   f_readback;       /* flash write polled readback value */
   unsigned char   e_readback[2];    /* eeprom write polled readback values */
   int             min_write_delay;  /* microseconds */
   int             max_write_delay;  /* microseconds */
   int             chip_erase_delay; /* microseconds */
+  unsigned char * mem[AVR_MAXMEMTYPES];
+#if 0
   unsigned char * flash;
   unsigned char * eeprom;
+#endif
 };
 
 extern struct avrpart parts[];
