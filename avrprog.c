@@ -46,10 +46,11 @@
  *
  *  NOTE on Vcc connection: make sure your parallel port can supply an
  *  adequate amount of current to power your device.  6-10 mA is
- *  common for parallel port signal lines, but is not guaranteed.
- *  Optionally, you can tie pins 6, 7, 8, and 9 also to Vcc with
- *  Schottky diodes to supply additional current.  If in doubt, don't
- *  risk damaging your parallel port, use an external power supply.  
+ *  common for parallel port signal lines, but is not guaranteed,
+ *  especially for notebook computers.  Optionally, you can tie pins
+ *  6, 7, 8, and 9 also to Vcc with Schottky diodes to supply
+ *  additional current.  If in doubt, don't risk damaging your
+ *  parallel port, use an external power supply.
  */
 
 #include <stdio.h>
