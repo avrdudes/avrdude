@@ -1,23 +1,34 @@
+#------------------------------------------------------------------------
 #
 # $Id$
 #
+# Makefile
+#
 
-TARGET = avrprog
+TARGET      = avrprog
 
-DEST   = ${HOME}/bin/0.${ARCH}
+PREFIX      ?= /usr/local
+BINDIR       = ${PREFIX}/bin
 
-all : ${TARGET}
+INSTALL      = /usr/bin/install -c -o root -g wheel
 
-CFLAGS = -Wall --pedantic -g
+CFLAGS += -Wall --pedantic
 
-${TARGET} : avrprog.c
-	${CC} ${CFLAGS} -o ${TARGET} avrprog.c
+INSTALL_PROGRAM = ${INSTALL} -m 555 -s
+INSTALL_DATA    = ${INSTALL} -m 444
+INSTALL_MANUAL  = ${INSTALL_DATA}
+
+
+all : $(TARGET)
+
+$(TARGET) : avrprog.c
+	$(CC) $(CFLAGS) -o $(TARGET) $<
 
 clean :
-	rm -f *.o ${TARGET} *~
+	rm -f *~ *.core $(TARGET)
 
-install : ${DEST}/${TARGET}
+install : ${BINDIR}/$(TARGET)
 
-${DEST}/${TARGET} : ${TARGET}
-	cp -p ${TARGET} $@
+${BINDIR}/$(TARGET) : $(TARGET)
+	${INSTALL_PROGRAM} $(TARGET) ${BINDIR}
 

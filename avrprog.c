@@ -468,6 +468,8 @@ int avr_read ( int fd, struct avrpart * p, AVRMEM memtype )
   unsigned char * buf;
   int bufsize;
 
+  start = 0;
+
   switch (memtype) {
     case AVR_FLASH  :
       memt    = AVR_FLASH_LO;
@@ -1009,6 +1011,10 @@ int fileio_rbin ( struct fioparms * fio,
     case FIO_WRITE:
       rc = fwrite(buf, 1, size, f);
       break;
+    default:
+      fprintf(stderr, "%s: fileio: invalid operation=%d\n",
+              progname, fio->op);
+      return -1;
   }
 
   if (rc < size) {
@@ -1697,6 +1703,7 @@ int go_interactive ( int fd, struct avrpart * p )
   int     argc;
   char ** argv;
 
+  rc = 0;
   fprintf(stdout, "avrprog> ");
   while (fgets(cmdbuf, MAX_LINE_LEN, stdin) != NULL) {
     len = strlen(cmdbuf);
@@ -1722,7 +1729,6 @@ int go_interactive ( int fd, struct avrpart * p )
       fprintf(stdout, "%s ", argv[i]);
     fprintf(stdout, "\n");
 
-#if 1
     /* run the command */
     rc = do_cmd(fd, p, argc, argv);
     free(argv);
@@ -1730,7 +1736,6 @@ int go_interactive ( int fd, struct avrpart * p )
       rc = 0;
       break;
     }
-#endif
 
     fprintf(stdout, "avrprog> ");
   }
