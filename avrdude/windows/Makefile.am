@@ -37,7 +37,7 @@ EXTRA_DIST   = \
 
 bin_PROGRAMS = loaddrv
 
-loaddrv_CFLAGS = -mno-cygwin
+loaddrv_LDFLAGS = -mno-cygwin
 
 loaddrv_SOURCES = \
 	loaddrv.c \
