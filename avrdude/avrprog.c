@@ -237,6 +237,10 @@ char * usage_text =
 "\n"
 "    -t            : enter terminal mode (or read commands from stdin)\n"
 "\n"
+"    -E exitspec[,...]: specify which bits to set/reset on exit\n"
+"                     \"[no]reset\" = [don't] activate /RESET\n"
+"                     \"[no]vcc\"   = [don't] activate Vcc\n"
+"\n"
 "    -e            : perform a chip erase (required before programming)\n"
 "\n";
 
@@ -383,7 +387,6 @@ int ppi_get ( int fd, int reg, int bit )
   return (v == bit);
 }
 
-
 /*
  * toggle the indicated bit of the specified register.
  */
@@ -404,6 +407,43 @@ int ppi_toggle ( int fd, int reg, int bit )
   return 0;
 }
 
+
+/*
+ * get all bits of the specified register.
+ */
+int ppi_getall ( int fd, int reg )
+{
+  unsigned char v;
+  unsigned long get, set;
+  int rc;
+
+  rc = ppi_getops ( reg, &get, &set );
+  if (rc)
+    return -1;
+
+  ioctl(fd, get, &v);
+
+  return (int)v;
+}
+
+/*
+ * set all bits of the specified register to val.
+ */
+int ppi_setall ( int fd, int reg, int val )
+{
+  unsigned char v;
+  unsigned long get, set;
+  int rc;
+
+  rc = ppi_getops ( reg, &get, &set );
+  if (rc)
+    return -1;
+
+  v = val;
+  ioctl(fd, set, &v);
+
+  return 0;
+}
 
 /*
  * pulse the indicated bit of the specified register.
@@ -1816,6 +1856,8 @@ int go_interactive ( int fd, struct avrpart * p )
   rc = 0;
   while ((cmdbuf = readline("avrprog> ")) != NULL) {
     len = strlen(cmdbuf);
+    if (len > 1)
+      add_history(cmdbuf);
 
     /* 
      * find the start of the command, skipping any white space
@@ -1931,6 +1973,26 @@ void display_part ( FILE * f, struct avrpart * p, char * prefix )
 }
 
 /*
+ * parse the -E string
+ */
+int getexitspecs ( char *s, int *set, int *clr )
+{
+  char *cp;
+
+  while ((cp = strtok(s, ","))) {
+    if (strcmp(cp, "reset") == 0) { *clr |= AVR_RESET; }
+    else if (strcmp(cp, "noreset") == 0) { *set |= AVR_RESET; }
+    else if (strcmp(cp, "vcc") == 0) { *set |= AVR_POWER; }
+    else if (strcmp(cp, "novcc") == 0) { *clr |= AVR_POWER; }
+    else
+      return -1;
+    s = 0; /* strtok() should be called with the actual string only once */
+  }
+
+  return 0;
+}
+
+/*
  * main routine
  */
 int main ( int argc, char * argv [] )
@@ -1949,6 +2011,7 @@ int main ( int argc, char * argv [] )
   struct avrpart * p, ap1;      /* which avr part we are programming */
   struct avrpart * v, ap2;     /* used for verify */
   int              readorwrite; /* true if a chip read/write op was selected */
+  int              ppidata;	/* cached value of the ppi data register */
 
   /* options / operating mode variables */
   int     memtype;     /* AVR_FLASH or AVR_EEPROM */
@@ -1962,6 +2025,8 @@ int main ( int argc, char * argv [] )
   FILEFMT filefmt;     /* FMT_AUTO, FMT_IHEX, FMT_SREC, FMT_RBIN */
   int     nowrite;     /* don't actually write anything to the chip */
   int     verify;      /* perform a verify operation */
+  int     ppisetbits;  /* bits to set in ppi data register at exit */
+  int     ppiclrbits;  /* bits to clear in ppi data register at exit */
 
   readorwrite = 0;
   parallel    = DEFAULT_PARALLEL;
@@ -1976,6 +2041,7 @@ int main ( int argc, char * argv [] )
   filefmt     = FMT_AUTO;
   nowrite     = 0;
   verify      = 1;        /* on by default; XXX can't turn it off */
+  ppisetbits  = ppiclrbits = 0;
 
   progname = rindex(argv[0],'/');
   if (progname)
@@ -2023,7 +2089,7 @@ int main ( int argc, char * argv [] )
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?ef:Fi:m:no:p:P:tv")) != -1) {
+  while ((ch = getopt(argc,argv,"?eE:f:Fi:m:no:p:P:tv")) != -1) {
 
     switch (ch) {
       case 'm': /* select memory type to operate on */
@@ -2083,6 +2149,13 @@ int main ( int argc, char * argv [] )
       case 'e': /* perform a chip erase */
         erase = 1;
         break;
+
+      case 'E':
+	if (getexitspecs(optarg, &ppisetbits, &ppiclrbits) < 0) {
+	  usage();
+	  exit(1);
+	}
+	break;
 
       case 'i': /* specify input file */
         if (outputf || terminal) {
@@ -2191,6 +2264,15 @@ int main ( int argc, char * argv [] )
 
   exitrc = 0;
 
+  ppidata = ppi_getall(fd, PPIDATA);
+  if (ppidata < 0) {
+    fprintf ( stderr, "%s: error reading status of ppi data port\n", progname);
+    exitrc = 1;
+    ppidata = 0; /* clear all bits at exit */
+    goto main_exit;
+  }
+  ppidata &= ~ppiclrbits;
+  ppidata |= ppisetbits;
 
   /*
    * initialize the chip in preperation for accepting commands
@@ -2368,8 +2450,7 @@ int main ( int argc, char * argv [] )
    */
 
   avr_powerdown(fd);
-  ppi_clr(fd, PPIDATA, 0xff);
-  ppi_clr(fd, PPIDATA, AVR_RESET);
+  ppi_setall(fd, PPIDATA, ppidata);
 
   close(fd);
 
