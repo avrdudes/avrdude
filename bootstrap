@@ -38,6 +38,8 @@ export ACLOCAL AUTOHEADER AUTOCONF AUTOMAKE
 
 set -x
 
+rm -rf autom4te.cache
+
 ${ACLOCAL}
 ${AUTOHEADER}
 ${AUTOCONF}

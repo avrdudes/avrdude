@@ -1,8 +1,21 @@
+2004-07-18  Theodore A. Roth  <troth@openavr.org>
+
+	* AVRDUDE 4.4.0 has been released (cvs release tag is "release_4_4_0").
+
+2004-07-18  Theodore A. Roth  <troth@openavr.org>
+
+	* Makefile.am (EXTRA_DIST): Remove avrdude.pdf since it is no longer
+	supplied.
+	* NEWS: Fix typo.
+	* bootstrap: Delete the autom4te.cache dir before running the
+	autotools.
+	* configure.ac (AC_INIT): Set version to 4.4.0.
+
 2004-07-17  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
-        * avrdude.1: Fixed obvious copy and paste error
-        (Patch #3199 contributed by Galen Seitz)
-        
+	* avrdude.1: Fixed obvious copy and paste error
+	(Patch #3199 contributed by Galen Seitz)
+
 2004-07-15  Theodore A. Roth  <troth@openavr.org>
 
 	* main.c (main): Don't indent CPP directives.
@@ -29,14 +42,14 @@
 2004-07-07  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
 	* stk500.c, term.c, doc/avrdude.texi, avrdude.1:
-        added "sck"-command to the terminal mode.
-        This command allows slowing down of the SCK of
-        STK500-programmers.
+	added "sck"-command to the terminal mode.
+	This command allows slowing down of the SCK of
+	STK500-programmers.
 
 2004-07-05  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
 	* *.c, *.h: Removed unnecessary includes of
-        config.h
+	config.h
 
 2004-07-04  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
@@ -49,7 +62,7 @@
 
 2004-07-04  Jan-Hinnerk Reichert  <hinni@despammed.com>
 	* avrdude.conf.in: Added support for
-        ATtiny2313 (contributed by Bob Paddock)
+	ATtiny2313 (contributed by Bob Paddock)
 
 2004-06-25  Joerg Wunsch <j@uriah.heep.sax.de>
 
@@ -76,9 +89,9 @@
 2004-06-17  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
 	* avrdude.conf.in: Added support for
-          - tiny13 (contributed by Pawel Moll)
-          - mega48 and mega88 (contributed by Galen Seitz)
-        However, the STK500-code for mega8 remains unchanged.
+	  - tiny13 (contributed by Pawel Moll)
+	  - mega48 and mega88 (contributed by Galen Seitz)
+	However, the STK500-code for mega8 remains unchanged.
 
 2004-05-19  Brian S. Dean  <bsd@bsdhome.com>
 
@@ -104,8 +117,8 @@
 2004-04-17  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
 	* avr910.c: Hopefully fixed that weird "first byte not
-        programmed"-error in a good way (previous fix was not
-        working with all firmwares)
+	programmed"-error in a good way (previous fix was not
+	working with all firmwares)
 
 2004-02-10  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
@@ -124,7 +137,6 @@
 	from avr910, butterfly and stk500.
 	* pgm.c: Fixed wrong type for default_open introduced by
 	the cleanup yesterday.
-
 
 2004-01-29  Jan-Hinnerk Reichert  <hinni@despammed.com>
 

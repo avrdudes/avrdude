@@ -26,7 +26,6 @@ EXTRA_DIST   = \
 	ChangeLog-2002 \
 	ChangeLog-2003 \
 	avrdude.1 \
-	avrdude.pdf \
 	avrdude.spec \
 	bootstrap
 
