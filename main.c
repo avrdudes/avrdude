@@ -739,6 +739,8 @@ int main ( int argc, char * argv [] )
    */
   ppi_setpin(fd, PIN_AVR_BUFF, 1);
 
+  LED_OFF(fd, PIN_LED_RDY);
+
   close(fd);
 
   fprintf(stderr, "\n%s done.  Thank you.\n\n", progname);
