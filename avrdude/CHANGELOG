@@ -10,7 +10,7 @@ Version ???
 
   * Now support Windows - added by "E. Weddington" <eric@umginc.net>
 
-  * Use 'configure' scripts to taylor the code to the system avrdude
+  * Use 'configure' scripts to tailor the code to the system avrdude
     is getting ready to be compiled on - added by "Theodore A. Roth"
     <troth@openavr.org>
 
