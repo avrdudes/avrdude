@@ -450,17 +450,16 @@ int main(int argc, char * argv [])
   int              ch;          /* options flag */
   int              size;        /* size of memory region */
   int              len;         /* length for various strings */
-  unsigned char    sig[4];      /* AVR signature bytes */
-  unsigned char    nulldev[4];  /* 0xff signature bytes for comparison */
   struct avrpart * p;           /* which avr part we are programming */
   struct avrpart * v;           /* used for verify */
   int              readorwrite; /* true if a chip read/write op was selected */
   int              ppidata;	/* cached value of the ppi data register */
   int              vsize=-1;    /* number of bytes to verify */
   char             timestamp[64];
+  AVRMEM         * sig;         /* signature data */
 
   /* options / operating mode variables */
-  int     memtype;     /* AVR_FLASH or AVR_EEPROM */
+  char *  memtype;     /* "flash", "eeprom", etc */
   int     doread;      /* 1=reading AVR, 0=writing AVR */
   int     erase;       /* 1=erase chip, 0=don't */
   char  * outputf;     /* output file name */
@@ -493,7 +492,7 @@ int main(int argc, char * argv [])
   outputf       = NULL;
   inputf        = NULL;
   doread        = 1;
-  memtype       = AVR_M_FLASH;
+  memtype       = "flash";
   erase         = 0;
   p             = NULL;
   ovsigck       = 0;
@@ -567,17 +566,14 @@ int main(int argc, char * argv [])
 
       case 'm': /* select memory type to operate on */
         if ((strcasecmp(optarg,"e")==0)||(strcasecmp(optarg,"eeprom")==0)) {
-          memtype = AVR_M_EEPROM;
+          memtype = "eeprom";
         }
         else if ((strcasecmp(optarg,"f")==0)||
                  (strcasecmp(optarg,"flash")==0)) {
-          memtype = AVR_M_FLASH;
+          memtype = "flash";
         }
         else {
-          fprintf(stderr, "%s: invalid memory type \"%s\"\n\n", 
-                  progname, optarg);
-          usage();
-          exit(1);
+          memtype = optarg;
         }
         readorwrite = 1;
         break;
@@ -833,23 +829,43 @@ int main(int argc, char * argv [])
    * against 0xffffffff should ensure that the signature bytes are
    * valid.  
    */
-  avr_signature(fd, sig);
-  fprintf(stderr, "%s: Device signature = 0x", progname);
-  for (i=0; i<4; i++)
-    fprintf(stderr, "%02x", sig[i]);
-  fprintf(stderr, "\n");
+  rc = avr_signature(fd, p);
+  if (rc != 0) {
+    fprintf(stderr, "%s: error reading signature data, rc=%d\n",
+            progname, rc);
+    exit(1);
+  }
 
-  memset(nulldev,0xff,4);
-  if (memcmp(sig,nulldev,4)==0) {
-    fprintf(stderr, 
-            "%s: Yikes!  Invalid device signature.\n", progname);
-    if (!ovsigck) {
-      fprintf(stderr, "%sDouble check connections and try again, "
-              "or use -F to override\n"
-              "%sthis check.\n\n",
-              progbuf, progbuf);
-      exitrc = 1;
-      goto main_exit;
+  sig = avr_locate_mem(p, "signature");
+  if (sig == NULL) {
+    fprintf(stderr,
+            "%s: WARNING: signature data not defined for device \"%s\"\n",
+            progname, p->desc);
+  }   
+
+  if (sig != NULL) {
+    int ff;
+
+    fprintf(stderr, "%s: Device signature = 0x", progname);
+    ff = 1;
+    for (i=0; i<sig->size; i++) {
+      fprintf(stderr, "%02x", sig->buf[i]);
+      if (sig->buf[i] != 0xff)
+        ff = 0;
+    }
+    fprintf(stderr, "\n");
+
+    if (ff) {
+      fprintf(stderr, 
+              "%s: Yikes!  Invalid device signature.\n", progname);
+      if (!ovsigck) {
+        fprintf(stderr, "%sDouble check connections and try again, "
+                "or use -F to override\n"
+                "%sthis check.\n\n",
+                progbuf, progbuf);
+        exitrc = 1;
+        goto main_exit;
+      }
     }
   }
 
@@ -892,11 +908,11 @@ int main(int argc, char * argv [])
      * read out the specified device memory and write it to a file 
      */
     fprintf(stderr, "%s: reading %s memory:\n", 
-            progname, avr_memtstr(memtype));
-    rc = avr_read(fd, p, memtype, 0);
+            progname, memtype);
+    rc = avr_read(fd, p, memtype, 0, 1);
     if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
-              progname, avr_memtstr(memtype), rc);
+              progname, memtype, rc);
       exitrc = 1;
       goto main_exit;
     }
@@ -931,10 +947,10 @@ int main(int argc, char * argv [])
      * write the buffer contents to the selected memory type
      */
     fprintf(stderr, "%s: writing %s:\n", 
-            progname, avr_memtstr(memtype));
+            progname, memtype);
 
     if (!nowrite) {
-      rc = avr_write(fd, p, memtype, size);
+      rc = avr_write(fd, p, memtype, size, 1);
     }
     else {
       /* 
@@ -954,7 +970,7 @@ int main(int argc, char * argv [])
     vsize = rc;
 
     fprintf(stderr, "%s: %d bytes of %s written\n", progname, 
-            vsize, avr_memtstr(memtype));
+            vsize, memtype);
 
   }
 
@@ -966,13 +982,13 @@ int main(int argc, char * argv [])
     LED_ON(fd, pgm->pinno[PIN_LED_VFY]);
 
     fprintf(stderr, "%s: verifying %s memory against %s:\n", 
-            progname, avr_memtstr(memtype), inputf);
+            progname, memtype, inputf);
     fprintf(stderr, "%s: reading on-chip %s data:\n", 
-            progname, avr_memtstr(memtype));
-    rc = avr_read(fd, v, memtype, vsize);
+            progname, memtype);
+    rc = avr_read(fd, v, memtype, vsize, 1);
     if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
-              progname, avr_memtstr(memtype), rc);
+              progname, memtype, rc);
       LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
       exitrc = 1;
       goto main_exit;
@@ -989,7 +1005,7 @@ int main(int argc, char * argv [])
     }
     
     fprintf(stderr, "%s: %d bytes of %s verified\n", 
-            progname, rc, avr_memtstr(memtype));
+            progname, rc, memtype);
 
     LED_OFF(fd, pgm->pinno[PIN_LED_VFY]);
   }

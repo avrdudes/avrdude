@@ -152,6 +152,21 @@ size             { yylval=NULL; return K_SIZE; }
 vcc              { yylval=NULL; return K_VCC; }
 vfyled           { yylval=NULL; return K_VFYLED; }
 
+op               { yylval=NULL; return K_OP; }
+read             { yylval=new_token(K_READ); return K_READ; }
+write            { yylval=new_token(K_WRITE); return K_WRITE; }
+read_lo          { yylval=new_token(K_READ_LO); return K_READ_LO; }
+read_hi          { yylval=new_token(K_READ_HI); return K_READ_HI; }
+write_lo         { yylval=new_token(K_WRITE_LO); return K_WRITE_LO; }
+write_hi         { yylval=new_token(K_WRITE_HI); return K_WRITE_HI; }
+loadpage_lo      { yylval=new_token(K_LOADPAGE_LO); return K_LOADPAGE_LO; }
+loadpage_hi      { yylval=new_token(K_LOADPAGE_HI); return K_LOADPAGE_HI; }
+writepage        { yylval=new_token(K_WRITEPAGE); return K_WRITEPAGE; }
+chip_erase       { yylval=new_token(K_CHIP_ERASE); return K_CHIP_ERASE; }
+pgm_enable       { yylval=new_token(K_PGM_ENABLE); return K_PGM_ENABLE; }
+
+memory           { yylval=NULL; return K_MEMORY; }
+
 no               { yylval=new_token(K_NO); return K_NO; }
 yes              { yylval=new_token(K_YES); return K_YES; }
 

@@ -55,6 +55,9 @@ install : dirs                             \
 	  ${CONFIGDIR}/avrprog.conf.sample \
 	  ${CONFIGDIR}/avrprog.conf
 
+config_gram.o : avr.h config.h lists.h pindefs.h
+
+
 dirs :
 	@for dir in ${DIRS}; do \
 	  if [ ! -d $$dir ]; then \

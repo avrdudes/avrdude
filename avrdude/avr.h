@@ -34,29 +34,62 @@
 
 #include <stdio.h>
 
+#include "lists.h"
+
+
 /*
- * AVR memory designations; the order of these is important, these are
- * used as indexes into statically initialized data, don't change them
- * around.  Specifically, avr_read_byte() and avr_write_byte() rely on
- * the order.
+ * AVR serial programming instructions
  */
-#define AVR_M_EEPROM 0
-#define AVR_M_FLASH  1
-#define AVR_M_FUSE   2
-#define AVR_M_LOCK   3
+enum {
+  AVR_OP_READ,
+  AVR_OP_WRITE,
+  AVR_OP_READ_LO,
+  AVR_OP_READ_HI,
+  AVR_OP_WRITE_LO,
+  AVR_OP_WRITE_HI,
+  AVR_OP_LOADPAGE_LO,
+  AVR_OP_LOADPAGE_HI,
+  AVR_OP_WRITEPAGE,
+  AVR_OP_CHIP_ERASE,
+  AVR_OP_PGM_ENABLE,
+  AVR_OP_MAX
+};
 
-#define AVR_MAXMEMTYPES 2     /* just flash and eeprom */
 
+enum {
+  AVR_CMDBIT_IGNORE,  /* bit is ignored on input and output */
+  AVR_CMDBIT_VALUE,   /* bit is set to 0 or 1 for input or output */
+  AVR_CMDBIT_ADDRESS, /* this bit represents an input address bit */
+  AVR_CMDBIT_INPUT,   /* this bit is an input bit */
+  AVR_CMDBIT_OUTPUT   /* this bit is an output bit */
+};
+
+/*
+ * serial programming instruction bit specifications
+ */
+typedef struct cmdbit {
+  int          type;  /* AVR_CMDBIT_* */
+  int          bitno; /* which input bit to use for this command bit */
+  int          value; /* bit value if type == AVR_CMDBIT_VALUD */
+} CMDBIT;
+
+typedef struct opcode {
+  CMDBIT        bit[32]; /* opcode bit specs */
+} OPCODE;
+
+
+#define AVR_MEMDESCLEN 64
 typedef struct avrmem {
-  int paged;                    /* page addressed (e.g. ATmega flash) */
-  int size;                     /* total memory size in bytes */
-  int page_size;                /* size of memory page (if page addressed) */
-  int num_pages;                /* number of pages (if page addressed) */
-  int pageaddr_shift;           /* number of bits in the page address */
-  int min_write_delay;          /* microseconds */
-  int max_write_delay;          /* microseconds */
-  unsigned char readback[2];    /* polled read-back values */
-  unsigned char * buf;          /* pointer to memory buffer */
+  char desc[AVR_MEMDESCLEN];  /* memory description ("flash", "eeprom", etc) */
+  int paged;                  /* page addressed (e.g. ATmega flash) */
+  int size;                   /* total memory size in bytes */
+  int page_size;              /* size of memory page (if page addressed) */
+  int num_pages;              /* number of pages (if page addressed) */
+  int min_write_delay;        /* microseconds */
+  int max_write_delay;        /* microseconds */
+  unsigned char readback[2];  /* polled read-back values */
+  unsigned char * buf;        /* pointer to memory buffer */
+  OPCODE * op[AVR_OP_MAX];    /* opcodes */
 } AVRMEM;
 
 
@@ -65,10 +98,10 @@ typedef struct avrmem {
 typedef struct avrpart {
   char          desc[AVR_DESCLEN];  /* long part name */
   char          id[AVR_IDLEN];      /* short part name */
+  int           chip_erase_delay;   /* microseconds */
+  OPCODE      * op[AVR_OP_MAX];     /* opcodes */
 
-  int             chip_erase_delay; /* microseconds */
-
-  AVRMEM          mem[AVR_MAXMEMTYPES];
+  LISTID        mem;                /* avr memory definitions */
 } AVRPART;
 
 
@@ -80,7 +113,13 @@ AVRPART * avr_find_part(char * p);
 
 AVRPART * avr_new_part(void);
 
+OPCODE * avr_new_opcode(void);
+
+AVRMEM * avr_new_memtype(void);
+
 AVRPART * avr_dup_part(AVRPART * d);
+
+AVRMEM * avr_locate_mem(AVRPART * p, char * desc);
 
 int avr_txrx_bit(int fd, int bit);
 
@@ -88,34 +127,24 @@ unsigned char avr_txrx(int fd, unsigned char byte);
 
 int avr_cmd(int fd, unsigned char cmd[4], unsigned char res[4]);
 
-unsigned char avr_read_calibration(int fd, AVRPART * p);
+int avr_read_byte(int fd, AVRPART * p, AVRMEM * mem, unsigned long addr, 
+                  unsigned char * value);
 
-unsigned char avr_read_fuse(int fd, AVRPART * p, int high);
+int avr_read(int fd, AVRPART * p, char * memtype, int size, int verbose);
 
-int avr_write_fuse(int fd, AVRPART * p, int high, unsigned char b);
+int avr_write_page(int fd, AVRPART * p, AVRMEM * mem,
+                   unsigned long addr);
 
-unsigned char avr_read_lock(int fd, AVRPART * p);
-
-int avr_write_lock(int fd, AVRPART * p, unsigned char b);
-
-unsigned char avr_read_byte(int fd, AVRPART * p,
-                            int memtype, unsigned long addr);
-
-int avr_read(int fd, AVRPART * p, int memtype, int size);
-
-int avr_write_bank(int fd, AVRPART * p, int memtype, 
-                   unsigned short bank);
-
-int avr_write_byte(int fd, AVRPART * p, int memtype, 
+int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
                    unsigned long addr, unsigned char data);
 
-int avr_write(int fd, AVRPART * p, int memtype, int size);
+int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose);
 
-int avr_program_enable(int fd);
+int avr_program_enable(int fd, AVRPART * p);
 
 int avr_chip_erase(int fd, AVRPART * p);
 
-int avr_signature(int fd, unsigned char sig[4]);
+int avr_signature(int fd, AVRPART * p);
 
 void avr_powerup(int fd);
 
@@ -127,8 +156,7 @@ char * avr_memtstr(int memtype);
 
 int avr_initmem(AVRPART * p);
 
-int avr_verify(AVRPART * p, AVRPART * v, int memtype, 
-               int size);
+int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size);
 
 void avr_display(FILE * f, AVRPART * p, char * prefix);
 

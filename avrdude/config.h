@@ -63,7 +63,7 @@ typedef struct programmer_t {
 extern FILE       * yyin;
 extern PROGRAMMER * current_prog;
 extern AVRPART    * current_part;
-extern int          current_mem;
+extern AVRMEM     * current_mem;
 extern LISTID       programmers;
 extern LISTID       part_list;
 extern int          lineno;
