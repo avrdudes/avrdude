@@ -94,32 +94,32 @@ int do_cycles;   /* track erase-rewrite cycles */
  */
 void usage(void)
 {
-    fprintf(stderr,
-    "Usage: %s [options]\n"
-    "Options:\n"
-    "  -p <partno>                Required. Specify AVR device.\n"
-    "  -C <config-file>           Specify location of configuration file.\n"
-    "  -c <programmer>            Specify programmer type.\n"
-    "  -D                         Disable auto erase for flash memory\n"
-    "  -P <port>                  Specify connection port.\n"
-    "  -F                         Override invalid signature check.\n"
-    "  -e                         Perform a chip erase.\n"
-    "  -U <memtype>:r|w|v:<filename>[:format]\n"
-    "                             Memory operation specification.\n"
-    "                             Multiple -U options are allowed, each request\n"
-    "                             is performed in the order specified.\n"
-    "  -n                         Do not write anything to the device.\n"
-    "  -V                         Do not verify.\n"
-    "  -u                         Disable safemode, you need this option if you\n"
-    "                             want to change fuse bits. Otherwise they will be\n"
-    "                             recovered if they change\n"
-    "  -t                         Enter terminal mode.\n"
-    "  -E <exitspec>[,<exitspec>] List programmer exit specifications.\n"
-    "  -v                         Verbose output. -v -v for more.\n"
-    "  -q                         Quell progress output.\n"
-    "  -?                         Display this usage.\n"
-    "\navrdude project: <URL:http://savannah.nongnu.org/projects/avrdude>\n"
-    ,progname);
+  fprintf(stderr,
+ "Usage: %s [options]\n"
+ "Options:\n"
+ "  -p <partno>                Required. Specify AVR device.\n"
+ "  -C <config-file>           Specify location of configuration file.\n"
+ "  -c <programmer>            Specify programmer type.\n"
+ "  -D                         Disable auto erase for flash memory\n"
+ "  -P <port>                  Specify connection port.\n"
+ "  -F                         Override invalid signature check.\n"
+ "  -e                         Perform a chip erase.\n"
+ "  -U <memtype>:r|w|v:<filename>[:format]\n"
+ "                             Memory operation specification.\n"
+ "                             Multiple -U options are allowed, each request\n"
+ "                             is performed in the order specified.\n"
+ "  -n                         Do not write anything to the device.\n"
+ "  -V                         Do not verify.\n"
+ "  -u                         Disable safemode, you need this option if you\n"
+ "                             want to change fuse bits. Otherwise they will be\n"
+ "                             recovered if they change\n"
+ "  -t                         Enter terminal mode.\n"
+ "  -E <exitspec>[,<exitspec>] List programmer exit specifications.\n"
+ "  -v                         Verbose output. -v -v for more.\n"
+ "  -q                         Quell progress output.\n"
+ "  -?                         Display this usage.\n"
+ "\navrdude project: <URL:http://savannah.nongnu.org/projects/avrdude>\n"
+          ,progname);
 }
 
 
@@ -245,22 +245,25 @@ typedef void (*FP_UpdateProgress)(int percent, double etime, char *hdr);
 
 static FP_UpdateProgress update_progress;
 
-/* Report the progress of a read or write operation from/to the device.
-
-   The first call of report_progress() should look like this (for a write op):
-
-     report_progress (0, 1, "Writing");
-
-   Then hdr should be passed NULL on subsequent calls while the operation is
-   progressing. Once the operation is complete, a final call should be made as
-   such to ensure proper termination of the progress report:
-
-     report_progress (1, 1, NULL);
-
-   It would be nice if we could reduce the usage to one and only one call for
-   each of start, during and end cases. As things stand now, that is not
-   possible and makes maintenance a bit more work. */
-
+/*
+ * Report the progress of a read or write operation from/to the
+ * device.
+ * 
+ * The first call of report_progress() should look like this (for a write op):
+ * 
+ * report_progress (0, 1, "Writing");
+ *
+ * Then hdr should be passed NULL on subsequent calls while the
+ * operation is progressing. Once the operation is complete, a final
+ * call should be made as such to ensure proper termination of the
+ * progress report:
+ * 
+ * report_progress (1, 1, NULL);
+ *
+ * It would be nice if we could reduce the usage to one and only one
+ * call for each of start, during and end cases. As things stand now,
+ * that is not possible and makes maintenance a bit more work.
+ */
 void report_progress (int completed, int total, char *hdr)
 {
   static int last = 0;
@@ -370,7 +373,7 @@ UPDATE * parse_op(char * s)
   p = s;
   while ((i < (sizeof(buf)-1) && *p && (*p != ':')))
     buf[i++] = *p++;
-
+  
   if (*p != ':') {
     fprintf(stderr, "%s: invalid update specification\n", progname);
     free(upd);
@@ -504,7 +507,7 @@ UPDATE * new_update(int op, char * memtype, int filefmt, char * filename)
   u->filename = strdup(filename);
   u->op = op;
   u->format = filefmt;
-
+  
   return u;
 }
 
@@ -553,7 +556,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
     }
   }
   else if (upd->op == DEVICE_WRITE) {
-   /*
+    /*
      * write the selected device memory using data from a file; first
      * read the data from the specified file
      */
@@ -590,7 +593,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
 
     if (rc < 0) {
       fprintf(stderr, "%s: failed to write %s memory, rc=%d\n", 
-                progname, upd->memtype, rc);
+              progname, upd->memtype, rc);
       return -1;
     }
 
@@ -650,7 +653,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
       pgm->err_led(pgm, ON);
       return -1;
     }
-    
+
     fprintf(stderr, "%s: %d bytes of %s verified\n", 
             progname, rc, upd->memtype);
 
@@ -664,7 +667,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
 
   return 0;
 }
-  
+
 
 /*
  * main routine
@@ -710,12 +713,12 @@ int main(int argc, char * argv [])
 #endif
 
   progname = rindex(argv[0],'/');
-  
-  #if defined (WIN32NATIVE)
+
+#if defined (WIN32NATIVE)
   /* take care of backslash as dir sep in W32 */
   if (!progname) progname = rindex(argv[0],'\\');
-  #endif /* WIN32NATIVE */
-  
+#endif /* WIN32NATIVE */
+
   if (progname)
     progname++;
   else
@@ -758,7 +761,7 @@ int main(int argc, char * argv [])
 
   win_sys_config_set(sys_config);
   win_usr_config_set(usr_config);
-  
+
 #else
 
   strcpy(sys_config, CONFIG_DIR);
@@ -856,7 +859,7 @@ int main(int argc, char * argv [])
       case 'u' : /* Disable safemode */
         safemode = 0;
         break;
-	
+
       case 'U':
         upd = parse_op(optarg);
         if (upd == NULL) {
@@ -920,7 +923,7 @@ int main(int argc, char * argv [])
          i.e. Programmers Notepad */
       setvbuf( stderr, NULL, _IONBF, 0 );
       setvbuf( stdout, NULL, _IONBF, 0 );
-	}
+    }
   }
 
   if (verbose) {
@@ -1162,8 +1165,8 @@ int main(int argc, char * argv [])
   pgm->rdy_led(pgm, ON);
 
   fprintf(stderr,
-            "%s: AVR device initialized and ready to accept instructions\n",
-            progname);
+          "%s: AVR device initialized and ready to accept instructions\n",
+          progname);
 
   /*
    * Let's read the signature bytes to make sure there is at least a
@@ -1210,54 +1213,58 @@ int main(int argc, char * argv [])
       }
     }
   }
-  
+
   unsigned char safemode_lfuse = 0xff;
   unsigned char safemode_hfuse = 0xff;
   unsigned char safemode_efuse = 0xff;    
   if (safemode == 1) {
-   /* If safemode is enabled, go ahead and read the current low, high, and extended fuse bytes as needed */
-    
-     fprintf(stderr, "\n");
-     
-     if (safemode_readfuses (&safemode_lfuse, &safemode_hfuse, &safemode_efuse, pgm, p, verbose) != 0) {
-       fprintf(stderr, "%s: safemode: To protect your AVR the programming will be aborted\n", progname);
-       exitrc = 1;
-       goto main_exit;
-     }
-     
-     fprintf(stderr, "\n");	
-          
-   //Save the fuses as default
-   safemode_memfuses(1, &safemode_lfuse, &safemode_hfuse, &safemode_efuse);
-   
-   
-   /* Check if user is attempting to write fuse bytes */
-   AVRMEM * m;
+    /* If safemode is enabled, go ahead and read the current low, high,
+       and extended fuse bytes as needed */
 
-   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
-     upd = ldata(ln);
-     m = avr_locate_mem(p, upd->memtype);
-     if (m == NULL)
-       continue;
-     if (((strcasecmp(m->desc, "lfuse")  == 0) || 
-          (strcasecmp(m->desc, "hfuse")  == 0) || 
-	  (strcasecmp(m->desc, "efuse")  == 0)) && (upd->op == DEVICE_WRITE)) {
-       fprintf(stderr,
-               "%s: NOTE: FUSE memory has been specified, and safemode is ON\n"
-	       "%s: This will not allow you to change the fuse bits.\n"
-               "%s: To disable this feature, specify the -u option.\n",
-               progname, progname, progname);
+    fprintf(stderr, "\n");
+
+    if (safemode_readfuses(&safemode_lfuse, &safemode_hfuse,
+                           &safemode_efuse, pgm, p, verbose) != 0) {
+      fprintf(stderr, "%s: safemode: To protect your AVR the programming "
+              "will be aborted\n",
+              progname);
+      exitrc = 1;
+      goto main_exit;
+    }
+
+    fprintf(stderr, "\n");	
+
+    //Save the fuses as default
+    safemode_memfuses(1, &safemode_lfuse, &safemode_hfuse, &safemode_efuse);
+
+
+    /* Check if user is attempting to write fuse bytes */
+    AVRMEM * m;
+
+    for (ln=lfirst(updates); ln; ln=lnext(ln)) {
+      upd = ldata(ln);
+      m = avr_locate_mem(p, upd->memtype);
+      if (m == NULL)
+        continue;
+      if (((strcasecmp(m->desc, "lfuse")  == 0) || 
+           (strcasecmp(m->desc, "hfuse")  == 0) || 
+           (strcasecmp(m->desc, "efuse")  == 0)) && (upd->op == DEVICE_WRITE)) {
+        fprintf(stderr,
+                "%s: NOTE: FUSE memory has been specified, and safemode is ON\n"
+                "%s: This will not allow you to change the fuse bits.\n"
+                "%s: To disable this feature, specify the -u option.\n",
+                progname, progname, progname);
       }
     }
-    
+
     fprintf(stderr, "\n");
-   
-     
+
+
   }
 
-  
-  
-    
+
+
+
   if ((erase == 0) && (auto_erase == 1)) {
     AVRMEM * m;
 
@@ -1278,11 +1285,11 @@ int main(int argc, char * argv [])
     }
   }
 
-    /*
+  /*
    * Display cycle count, if and only if it is not set later on.
    *
    * The cycle count will be displayed anytime it will be changed later.
-     */
+   */
   if ((set_cycles == -1) && ((erase == 0) || (do_cycles == 0))) {
     /*
      * see if the cycle count in the last four bytes of eeprom seems
@@ -1329,12 +1336,12 @@ int main(int argc, char * argv [])
 
 
   if (terminal) {
-  
+
     /* Warn user if safemode is on */
     if (safemode > 0) {
-       fprintf(stderr, "%s: safemode is enabled, you will NOT be "
-                 "able to change the fuse bits. Use -u option to disable\n",
-		 progname);
+      fprintf(stderr, "%s: safemode is enabled, you will NOT be "
+              "able to change the fuse bits. Use -u option to disable\n",
+              progname);
     }  
     /*
      * terminal mode
@@ -1351,94 +1358,102 @@ int main(int argc, char * argv [])
       break;
     }
   }
-  
-  /* Right before we exit programming mode, which will make the fuse bits active,
-     check to make sure they are still correct */
-  if (safemode == 1){
- /* If safemode is enabled, go ahead and read the current low, high, and extended fuse bytes as needed */
-     unsigned char safemodeafter_lfuse = 0xff;
-     unsigned char safemodeafter_hfuse = 0xff;
-     unsigned char safemodeafter_efuse = 0xff;   
-     unsigned char failures = 0;
-     
-     fprintf(stderr, "\n");
-     
-   //Restore the default fuse values
-   safemode_memfuses(0, &safemode_lfuse, &safemode_hfuse, &safemode_efuse);
-     
-     /* Try reading back fuses, make sure they are reliable to read back */
-     if (safemode_readfuses (&safemodeafter_lfuse, &safemodeafter_hfuse, &safemodeafter_efuse, pgm, p, verbose) != 0) {
-       /* Uh-oh.. try once more to read back fuses */
-       if (safemode_readfuses (&safemodeafter_lfuse, &safemodeafter_hfuse, &safemodeafter_efuse, pgm, p, verbose) != 0) { 
-           fprintf(stderr, "%s: safemode: Sorry, reading back fuses was unreliable. I have given up and exited programming mode\n",
-                  progname);
-           exitrc = 1;
-	   goto main_exit;		  
-       }
-     }
-     
-     /* Now check what fuses are against what they should be */
-     if (safemodeafter_lfuse != safemode_lfuse) {
-     	fprintf(stderr, "%s: safemode: lfuse changed! Read as %x, was %x\n", progname, 
-	        safemodeafter_lfuse, safemode_lfuse);
-		
-	/* Enough chit-chat, time to program some fuses and check them */
-	if (safemode_writefuse (safemode_lfuse, "lfuse", pgm, p, 10, verbose) == 0) {
-	   fprintf(stderr, "%s: safemode: and is now rescued\n", progname);
-	}
-	else {
-	   fprintf(stderr, "%s: and COULD NOT be changed\n", progname);
-	   failures++;
-	}
-      }
-	
-     /* Now check what fuses are against what they should be */
-     if (safemodeafter_hfuse != safemode_hfuse) {
-     	fprintf(stderr, "%s: safemode: hfuse changed! Read as %x, was %x\n", progname, 
-	        safemodeafter_hfuse, safemode_hfuse);
-		
-	/* Enough chit-chat, time to program some fuses and check them */
-	if (safemode_writefuse (safemode_hfuse, "hfuse", pgm, p, 10, verbose) == 0) {
-	   fprintf(stderr, "%s: safemode: and is now rescued\n", progname);
-	}
-	else {
-	   fprintf(stderr, "%s: and COULD NOT be changed\n", progname);
-	   failures++;
-	}
-     }
-	
-     /* Now check what fuses are against what they should be */
-     if (safemodeafter_efuse != safemode_efuse) {
-     	fprintf(stderr, "%s: safemode: efuse changed! Read as %x, was %x\n", progname, 
-	        safemodeafter_efuse, safemode_efuse);
-		
-	/* Enough chit-chat, time to program some fuses and check them */
-	if (safemode_writefuse (safemode_efuse, "efuse", pgm, p, 10, verbose) == 0) {
-	   fprintf(stderr, "%s: safemode: and is now rescued\n", progname);
-	}
-	else {
-	   fprintf(stderr, "%s: and COULD NOT be changed\n", progname);
-	   failures++;
-	}
-     }
-     
-     fprintf(stderr, "%s: safemode: ", progname);
-     if (failures == 0) {
-     	fprintf(stderr, "Fuses OK\n");
-     }
-     else {
-        fprintf(stderr, "Fuses not recovered, sorry\n");
-     }
-           
-  }
- 
 
- main_exit:
+  /* Right before we exit programming mode, which will make the fuse
+     bits active, check to make sure they are still correct */
+  if (safemode == 1){
+    /* If safemode is enabled, go ahead and read the current low,
+     * high, and extended fuse bytes as needed */
+    unsigned char safemodeafter_lfuse = 0xff;
+    unsigned char safemodeafter_hfuse = 0xff;
+    unsigned char safemodeafter_efuse = 0xff;   
+    unsigned char failures = 0;
+
+    fprintf(stderr, "\n");
+
+    //Restore the default fuse values
+    safemode_memfuses(0, &safemode_lfuse, &safemode_hfuse, &safemode_efuse);
+
+    /* Try reading back fuses, make sure they are reliable to read back */
+    if (safemode_readfuses(&safemodeafter_lfuse, &safemodeafter_hfuse,
+                           &safemodeafter_efuse, pgm, p, verbose) != 0) {
+      /* Uh-oh.. try once more to read back fuses */
+      if (safemode_readfuses(&safemodeafter_lfuse, &safemodeafter_hfuse,
+                             &safemodeafter_efuse, pgm, p, verbose) != 0) { 
+        fprintf(stderr,
+                "%s: safemode: Sorry, reading back fuses was unreliable. "
+                "I have given up and exited programming mode\n",
+                progname);
+        exitrc = 1;
+        goto main_exit;		  
+      }
+    }
+
+    /* Now check what fuses are against what they should be */
+    if (safemodeafter_lfuse != safemode_lfuse) {
+      fprintf(stderr, "%s: safemode: lfuse changed! Read as %x, was %x\n",
+              progname, safemodeafter_lfuse, safemode_lfuse);
+
+      /* Enough chit-chat, time to program some fuses and check them */
+      if (safemode_writefuse (safemode_lfuse, "lfuse", pgm, p,
+                              10, verbose) == 0) {
+        fprintf(stderr, "%s: safemode: and is now rescued\n", progname);
+      }
+      else {
+        fprintf(stderr, "%s: and COULD NOT be changed\n", progname);
+        failures++;
+      }
+    }
+
+    /* Now check what fuses are against what they should be */
+    if (safemodeafter_hfuse != safemode_hfuse) {
+      fprintf(stderr, "%s: safemode: hfuse changed! Read as %x, was %x\n",
+              progname, safemodeafter_hfuse, safemode_hfuse);
+
+      /* Enough chit-chat, time to program some fuses and check them */
+      if (safemode_writefuse(safemode_hfuse, "hfuse", pgm, p,
+                             10, verbose) == 0) {
+        fprintf(stderr, "%s: safemode: and is now rescued\n", progname);
+      }
+      else {
+        fprintf(stderr, "%s: and COULD NOT be changed\n", progname);
+        failures++;
+      }
+    }
+
+    /* Now check what fuses are against what they should be */
+    if (safemodeafter_efuse != safemode_efuse) {
+      fprintf(stderr, "%s: safemode: efuse changed! Read as %x, was %x\n",
+              progname, safemodeafter_efuse, safemode_efuse);
+
+      /* Enough chit-chat, time to program some fuses and check them */
+      if (safemode_writefuse (safemode_efuse, "efuse", pgm, p,
+                              10, verbose) == 0) {
+        fprintf(stderr, "%s: safemode: and is now rescued\n", progname);
+      }
+      else {
+        fprintf(stderr, "%s: and COULD NOT be changed\n", progname);
+        failures++;
+      }
+    }
+
+    fprintf(stderr, "%s: safemode: ", progname);
+    if (failures == 0) {
+      fprintf(stderr, "Fuses OK\n");
+    }
+    else {
+      fprintf(stderr, "Fuses not recovered, sorry\n");
+    }
+
+  }
+
+
+main_exit:
 
   /*
    * program complete
    */
-   
+
 
   pgm->powerdown(pgm);
 
