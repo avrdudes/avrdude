@@ -32,6 +32,10 @@
 #       desc             = <description> ;        # quoted string
 #       devicecode       = <num> ;                # numeric
 #       chip_erase_delay = <num> ;                # micro-seconds
+#       pagel            = <num> ;                # pin name in hex, i.e., 0xD7
+#       bs2              = <num> ;                # pin name in hex, i.e., 0xA0
+#       reset            = dedicated | io;
+#       retry_pulse      = reset | sck;
 #       pgm_enable       = <instruction format> ;
 #       chip_erase       = <instruction format> ;
 #       memory <memtype>
