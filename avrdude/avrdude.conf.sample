@@ -30,7 +30,9 @@
 #       id               = <id> ;                 # quoted string
 #       desc             = <description> ;        # quoted string
 #       chip_erase_delay = <num> ;                # micro-seconds
-#       eeprom
+#       pgm_enable       = <instruction format> ;
+#       chip_erase       = <instruction format> ;
+#       memory <memtype>
 #           paged           = <yes/no> ;          # yes / no
 #           size            = <num> ;             # bytes
 #           page_size       = <num> ;             # bytes
@@ -39,22 +41,58 @@
 #           max_write_delay = <num> ;             # micro-seconds
 #           readback_p1     = <num> ;             # byte value
 #           readback_p2     = <num> ;             # byte value
-#         ;
-#       flash
-#           paged           = <yes/no> ;          # yes / no
-#           size            = <num> ;             # bytes
-#           page_size       = <num> ;             # bytes
-#           num_pages       = <num> ;             # numeric
-#           min_write_delay = <num> ;             # micro-seconds
-#           max_write_delay = <num> ;             # micro-seconds
-#           readback_p1     = <num> ;             # byte value
-#           readback_p2     = <num> ;             # byte value
+#           read            = <instruction format> ;
+#           write           = <instruction format> ;
+#           read_lo         = <instruction format> ;
+#           read_hi         = <instruction format> ;
+#           write_lo        = <instruction format> ;
+#           write_hi        = <instruction format> ;
+#           loadpage_lo     = <instruction format> ;
+#           loadpage_hi     = <instruction format> ;
+#           writepage       = <instruction format> ;
 #         ;
 #     ;
 #
-# If any of the above parameters is not specified, the default value of
-# 0 is used for numerics or the empty string ("") for string values.
-# If a required parameter is left empty, AVRPROG will complain.
+# If any of the above parameters are not specified, the default value
+# of 0 is used for numerics or the empty string ("") for string
+# values.  If a required parameter is left empty, AVRPROG will
+# complain.
+#
+# NOTES:
+#   * Not all memory types will implement all instructions.
+#   * AVR Fuse bits and Lock bits are implemented as a type of memory.
+#   * Example memory types are:
+#       "flash", "eeprom", "fuse", "lfuse" (low fuse), "hfuse" (high
+#       fuse), "signature", "calibration", "lock"
+#   * The memory type specified on the avrprog command line must match
+#     one of the memory types defined for the specified chip.
+#
+# INSTRUCTION FORMATS
+#
+#    Instruction formats are specified as a comma seperated list of
+#    string values containing information (bit specifiers) about each
+#    of the 32 bits of the instruction.  Bit specifiers may be one of
+#    the following formats:
+#
+#       '1'  = the bit is always set on input as well as output
+#
+#       '0'  = the bit is always clear on input as well as output
+#
+#       'x'  = the bit is ignored on input and output
+#
+#       'a'  = the bit is an address bit, the bit-number matches this bit
+#              specifier's position within the current instruction byte
+#
+#       'aN' = the bit is the Nth address bit, bit-number = N, i.e., a12
+#              is address bit 12 on input, a0 is address bit 0.
+#
+#       'i'  = the bit is an input data bit
+#
+#       'o'  = the bit is an output data bit
+#
+#    Each instruction must be composed of 32 bit specifiers.  The
+#    instruction specification closely follows the instruction data
+#    provided in Atmel's data sheets for their parts.
 #
 # See below for some examples.
 #
@@ -135,7 +173,7 @@ part
         write_lo        = "  0   1   0   0    0   0   0   0",
                           "  x   x   x   x    x   x   x  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
-                          "  o   o   o   o    o   o   o   o";
+                          "  i   i   i   i    i   i   i   i";
 
         write_hi        = "  0   1   0   0    1   0   0   0",
                           "  x   x   x   x    x   x   x  a8",
@@ -191,7 +229,7 @@ part
         write_lo        = "  0   1   0   0    0   0   0   0",
                           "  x   x   x   x    x   x  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
-                          "  o   o   o   o    o   o   o   o";
+                          "  i   i   i   i    i   i   i   i";
 
         write_hi        = "  0   1   0   0    1   0   0   0",
                           "  x   x   x   x    x   x  a9  a8",
@@ -252,7 +290,7 @@ part
         write_lo        = "  0   1   0   0    0   0   0   0",
                           "  x   x   x   x    x   x  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
-                          "  o   o   o   o    o   o   o   o";
+                          "  i   i   i   i    i   i   i   i";
 
         write_hi        = "  0   1   0   0    1   0   0   0",
                           "  x   x   x   x    x   x  a9  a8",
@@ -308,7 +346,7 @@ part
         write_lo        = "  0   1   0   0    0   0   0   0",
                           "  x   x   x   x    x a10  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
-                          "  o   o   o   o    o   o   o   o";
+                          "  i   i   i   i    i   i   i   i";
 
         write_hi        = "  0   1   0   0    1   0   0   0",
                           "  x   x   x   x    x a10  a9  a8",
@@ -364,7 +402,7 @@ part
         write_lo        = "  0   1   0   0    0   0   0   0",
                           "  x   x   x   x    x a10  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
-                          "  o   o   o   o    o   o   o   o";
+                          "  i   i   i   i    i   i   i   i";
 
         write_hi        = "  0   1   0   0    1   0   0   0",
                           "  x   x   x   x    x a10  a9  a8",
@@ -420,7 +458,7 @@ part
         write_lo        = "  0   1   0   0    0   0   0   0",
                           "  x   x   x   x  a11 a10  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
-                          "  o   o   o   o    o   o   o   o";
+                          "  i   i   i   i    i   i   i   i";
 
         write_hi        = "  0   1   0   0    1   0   0   0",
                           "  x   x   x   x  a11 a10  a9  a8",
@@ -476,7 +514,7 @@ part
         write_lo        = "  0   1   0   0    0   0   0   0",
                           "  x   x   x   x  a11 a10  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
-                          "  o   o   o   o    o   o   o   o";
+                          "  i   i   i   i    i   i   i   i";
 
         write_hi        = "  0   1   0   0    1   0   0   0",
                           "  x   x   x   x  a11 a10  a9  a8",
