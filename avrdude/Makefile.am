@@ -39,7 +39,9 @@ DIST_SUBDIRS = doc windows
 
 AM_YFLAGS    = -d
 
-AM_CPPFLAGS     = -DCONFIG_DIR=\"$(sysconfdir)\"
+avrdude_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
+
+avrdude_CFLAGS   = @ENABLE_WARNINGS@  
 
 bin_PROGRAMS = avrdude
 

@@ -125,6 +125,12 @@ case $target in
 esac
 AC_SUBST(WINDOWS_DIRS,$WINDOWS_DIRS)
 
+# If we are compiling with gcc, enable all warning and make warnings errors.
+if test "$GCC" = yes; then
+    ENABLE_WARNINGS="-Wall"
+fi
+AC_SUBST(ENABLE_WARNINGS,$ENABLE_WARNINGS)
+
 AC_CONFIG_FILES([
 	doc/Makefile
 	windows/Makefile
