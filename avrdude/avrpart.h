@@ -70,6 +70,10 @@ typedef struct opcode {
 } OPCODE;
 
 
+#define AVRPART_SERIALOK       0x0001  /* part supports serial programming */
+#define AVRPART_PARALLELOK     0x0002  /* part supports parallel programming */
+#define AVRPART_PSEUDOPARALLEL 0x0004  /* part has pseudo parallel support */
+
 #define AVR_DESCLEN 64
 #define AVR_IDLEN   32
 typedef struct avrpart {
@@ -80,6 +84,7 @@ typedef struct avrpart {
   unsigned char pagel;              /* for parallel programming */
   unsigned char bs2;                /* for parallel programming */
   int           reset_disposition;  /* see RESET_ enums */
+  unsigned      flags;              /* see AVRPART_ masks */
 
   OPCODE      * op[AVR_OP_MAX];     /* opcodes */
 

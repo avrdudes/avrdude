@@ -58,6 +58,7 @@ AVRPART * avr_new_part(void)
   p->id[0]   = 0;
   p->desc[0] = 0;
   p->reset_disposition = RESET_DEDICATED;
+  p->flags = AVRPART_SERIALOK | AVRPART_PARALLELOK;
 
   p->mem = lcreat(NULL, 0);
 
@@ -1073,17 +1074,22 @@ void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose)
   AVRMEM * m;
 
   fprintf(f, 
-          "%sAVR Part          : %s\n"
-          "%sChip Erase delay  : %d us\n"
-          "%sPAGEL             : P%02X\n"
-          "%sBS2               : P%02X\n"
-          "%sRESET disposition : %s\n"
-          "%sMemory Detail     :\n\n",
+          "%sAVR Part              : %s\n"
+          "%sChip Erase delay      : %d us\n"
+          "%sPAGEL                 : P%02X\n"
+          "%sBS2                   : P%02X\n"
+          "%sRESET disposition     : %s\n"
+          "%sserial program mode   : %s\n"
+          "%sparallel program mode : %s\n"
+          "%sMemory Detail         :\n\n",
           prefix, p->desc,
           prefix, p->chip_erase_delay,
           prefix, p->pagel,
           prefix, p->bs2,
           prefix, reset_disp_str(p->reset_disposition),
+          prefix, (p->flags & AVRPART_SERIALOK) ? "yes" : "no",
+          prefix, (p->flags & AVRPART_PARALLELOK) ? 
+            ((p->flags & AVRPART_PSEUDOPARALLEL) ? "psuedo" : "yes") : "no",
           prefix);
 
   px = prefix;

@@ -1085,6 +1085,8 @@ part
     pagel            = 0xD7;
     bs2              = 0xA0;
     reset            = dedicated;
+    serial           = yes;
+    parallel         = yes;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
 
