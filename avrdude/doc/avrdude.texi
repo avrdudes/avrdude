@@ -297,7 +297,7 @@ Causes a chip erase to be executed.  This will reset the contents of the
 flash ROM and EEPROM to the value `0xff', and is basically a
 prerequisite command before the flash ROM can be reprogrammed again.
 The only exception would be if the new contents would exclusively cause
-bits to be pro- grammed from the value `1' to `0'.  Note that in order
+bits to be programmed from the value `1' to `0'.  Note that in order
 to reprogram EERPOM cells, no explicit prior chip erase is required
 since the MCU provides an auto-erase cycle in that case before
 programming the cell.
@@ -306,12 +306,12 @@ programming the cell.
 @item -E @var{exitspec}[,@dots{}]
 By default, AVRDUDE leaves the parallel port in the same state at exit
 as it has been found at startup.  This option modifies the state of the
-`/RESET' and `Vcc' lines the par- allel port is left at, according to
+`/RESET' and `Vcc' lines the parallel port is left at, according to
 the exitspec arguments provided, as follows:
 
 @table @code
 @itemx reset
-The `/RESET' signal will be left activated at pro- gram exit, that is it
+The `/RESET' signal will be left activated at program exit, that is it
 will be held low, in order to keep the MCU in reset state afterwards.
 Note in particular that the programming algorithm for the AT90S1200
 device mandates that the `/RESET' signal is active before powering up
@@ -329,7 +329,7 @@ This option will leave those parallel port pins active (i. e. high) that
 can be used to supply `Vcc' power to the MCU.
 
 @itemx novcc
-This option will pull the `Vcc' pins of the paral- lel port down at
+This option will pull the `Vcc' pins of the parallel port down at
 program exit.
 
 @end table
@@ -339,7 +339,7 @@ Multiple @var{exitspec} arguments can be separated with commas.
 
 
 @item -f @var{format}
-This option specifies the file format for the input or out- put files to
+This option specifies the file format for the input or output files to
 be processed.  Format can be one of:
 
 @table @code
@@ -394,7 +394,11 @@ Use port to identify the device to which the programmer is attached.  By
 default the @code{/dev/ppi0} port is used, but if the programmer type
 normally connects to the serial port, the @code{/dev/cuaa0} port is the
 default.  If you need to use a different parallel or serial port, use
-this option to spec- ify the alternate port name.
+this option to specify the alternate port name.
+
+@item -q
+Disable (or quell) output of the progress bar while reading or writing
+to the device.
 
 @item -t
 Tells AVRDUDE to enter the interactive ``terminal'' mode instead of up-
@@ -412,14 +416,14 @@ Tells AVRDUDE to use the last four bytes of the connected parts' EEPROM
 memory to track the number of times the device has been erased.  When
 this option is used and the @option{-e} flag is specified to generate a
 chip erase, the previous counter will be saved before the chip erase, it
-is then incremented, and written back after the erase cycle com- pletes.
+is then incremented, and written back after the erase cycle completes.
 Presumably, the device would only be erased just before being
 programmed, and thus, this can be utilized to give an indication of how
 many erase-rewrite cycles the part has undergone.  Since the FLASH
 memory can only endure a finite number of erase-rewrite cycles, one can
-use this option to track when a part is nearing the limit.  The typ-
-ical limit for Atmel AVR FLASH is 1000 cycles.  Of course, if the
-application needs the last four bytes of EEPROM mem- ory, this option
+use this option to track when a part is nearing the limit.  The typical
+limit for Atmel AVR FLASH is 1000 cycles.  Of course, if the
+application needs the last four bytes of EEPROM memory, this option
 should not be used.
 
 @item -Y @var{cycles}
