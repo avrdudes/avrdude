@@ -125,8 +125,11 @@ Atmel AVR serial program method.
 .It Fl C Ar Config-File
 Use the specified config file to locate the desired pin configuration.
 Pin configurations are specified in the config file using a colon
-seperated field format.  The configuration name is the first field,
-the remaining fields are of the form:
+seperated field format.  The configuration entry type is the first
+field and currently must be
+.Ar c:
+The configuration name is the second field, and the remaining fields
+are of the form:
 .Ar PIN=VALUE ,
 where
 .Ar PIN
@@ -135,8 +138,11 @@ can be
 The value is the pin number of the PC parallel port assigned to that
 function.  The
 .Ar VCC
-pin can take multible values seperated by a comma.  It's value(s) must
-come from pins 2 through 9.  The default configuration file is
+pin can take on multiple values seperated by a comma (which are or'd
+together to create a bit mask).
+.Ar VCC
+pin numbers must come from pins 2 through 9.  The default
+configuration file is
 .Pa /usr/local/etc/avrprog.conf .
 .It Fl e
 Causes a chip erase to be executed.  This will reset the contents of the
@@ -304,7 +310,10 @@ Give a short on-line summary of the available commands.
 Leave terminal mode and thus
 .Nm avrprog .
 .El
-.Ss Parallel port pin connections
+.Ss Default Parallel port pin connections
+(these can be changed, see the
+.Fl c
+option)
 .TS
 ll.
 \fBPin number\fP	\fBFunction\fP
@@ -325,6 +334,8 @@ ll.
 .It Pa /dev/ppi0
 default device to be used for communication with the programming
 hardware
+.It Pa /usr/local/etc/avrprog.conf.sample
+sample pin configuration file
 .It Pa /usr/local/etc/avrprog.conf
 default pin configuration file
 .It Pa ~/.inputrc
