@@ -89,6 +89,8 @@ PROGRAMMER * pgm_new(void)
    */
   pgm->paged_write    = NULL;
   pgm->paged_load     = NULL;
+  pgm->write_byte     = NULL;
+  pgm->read_byte      = NULL;
   pgm->read_sig_bytes = NULL;
 
   return pgm;
