@@ -385,6 +385,8 @@ part
     desc             = "AT90S1200";
     stk500_devcode   = 0x33;
     avr910_devcode   = 0x13;
+    pagel            = 0xd7;
+    bs2              = 0xa0;
     chip_erase_delay = 20000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
