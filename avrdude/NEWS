@@ -1,0 +1,236 @@
+$Id$
+
+Approximate change log for AVRDUDE by version.
+
+(For more detailed changes, see the ChangeLog file.)
+
+----------------------------------------------------------------------
+
+Version 4.0.0
+
+  * Now support Linux - added by "Theodore A. Roth" <troth@openavr.org>
+
+  * Now support Windows - added by "E. Weddington" <eric@umginc.net>
+
+  * Use 'configure' scripts to tailor the code to the system avrdude
+    is getting ready to be compiled on - added by "Theodore A. Roth"
+    <troth@openavr.org>
+
+  * Motorola S-Record support - submitted by "Alexey V.Levdikov "
+    <tsar@kemford.com>
+
+  * Support parallel programming on the STK500.  Introduce 'pagel' and
+    'bs2' keywords to the config file for this purpose.
+
+  * Add support for the AT90S2343
+
+  * Add support for the ATmega169
+
+  * Add ability to specify system defaults within the config file
+    (default parallel port, default serial port).
+
+  * Specify the default programmer seperately from the programmer
+    definition.  This is now done in the config file using the
+    'default_programmer' keyword.
+
+  * Support a per-user config file (~/.avrduderc) so that one can
+    override system wide defaults if desired.
+
+  * Follow the datasheet more closely for several parts in the "retry"
+    code when entering programming mode fails initially.  Introduce
+    'retry_pulse' to the config file for this purpose.
+
+
+
+Version 3.1.0
+
+  * This change represents a name change only.  There is currently an
+    effort to port AVRPROG to other platforms including Linux and
+    Windows.  Since Atmel's programmer binary that's included within
+    their AVR Studio software is named AVRPROG.EXE on the Windows OS,
+    there is the chance for confusion if we keep calling this program
+    AVRPROG as well.  Up until now the name hasn't really been a
+    problem since there was no chance to confuse 'avrprog' on Unix
+    with Atmel's AVRPROG because Atmel's tools only run on Windows.
+    But with the Unix 'avrprog' possibly being ported to Windows, I
+    felt a name change was the best way to avoid problems.
+
+    So - from this point forward, my FreeBSD Unix program formerly
+    known as AVRPROG will subsequently be known as AVRDUDE (AVR
+    Downloader/UploaDEr).
+
+    This change also represents a time when the AVRDUDE sources move
+    from my own private repository to a public repository.  This will
+    give other developers a chance to port AVRDUDE to other platforms
+    and extend its functionality to support additional programming
+    hardware, etc.
+
+    So goodbye AVRPROG, welcome AVRDUDE!
+
+Version 3.0.0
+
+  * Rewrite parts of the code to make it easy to support other types
+    of programmers besides the directly connected parallel port
+    programmer (PPI).
+
+  * Add support for Atmel's STK500 programmer/development board.  The
+    STK500's "paged mode" read/write is supported which makes this
+    programmer very fast.  This is sorely needed on parts with large
+    memories such as the ATmega128.  My 12K test program burns in
+    about 5 seconds, add another 5 to read it back out for
+    verification.
+
+
+Version 2.1.5:
+
+  * When getting ready to initiate communications with the AVR device,
+    first pull /RESET low for a short period of time before enabling
+    the buffer chip.  This sequence allows the AVR to be reset before
+    the buffer is enabled to avoid a short period of time where the
+    AVR may be driving the programming lines at the same time the
+    programmer tries to.  Of course, if a buffer is being used, then
+    the /RESET line from the programmer needs to be directly connected
+    to the AVR /RESET line and not via the buffer chip.
+
+    Feature contributed by Rick C. Petty <rick@KIWI-Computer.com>.
+
+  * When in interactive terminal mode and dumping memory using the
+    'dump <memtype>' command without any address information, and the
+    end of memory is reached, wrap back around to zero on the next
+    invocation.
+
+
+Version 2.1.4:
+
+  * Fix -Y option.
+
+
+Version 2.1.3:
+
+  * Be backward compatible when reading 2-byte rewrite cycle counters
+    as written by avrprog version 2.1.0.  Version 2.1.1 changed over
+    to a 4-byte counter, which caused avrprog versions 2.1.1 and 2.1.2
+    to report a negative count for parts that were initialized using
+    version 2.1.0.  Thanks to Joerg Wunsch for noticing this.
+
+
+Version 2.1.2:
+
+  * Add '-V' option to disable automatic verify check with uploading
+    data.
+
+
+Version 2.1.1:
+
+  * Fix ATmega128 instruction sequences for reading fuse bits -
+    contributed by Joerg Wunsch.
+
+  * Modify erase-rewrite cycle counter code to use a 4 byte counter
+    instead of a two byte counter.
+
+
+Version 2.1.0:
+
+  * Implement a per-part erase-rewrite cycle counter; requires the use
+    of two bytes of EEPROM memory.
+
+
+Version 2.0.5:
+
+  * Support for ATtiny15 - contributed by Asher Hoskins
+
+
+Version 2.0.4:
+
+  * Config file fixes for various parts.
+
+
+Version 2.0.3:
+
+  * Work around problem programming fuse bits on parts like the
+    at90s4433 as described in the following errata:
+
+      http://www.atmel.com/atmel/acrobat/doc1280.pdf
+
+  * Add part definition for at90s4414, at90s4433.
+
+  * Add fuse/lock bit memory instructions for the at90s1200,
+    at90s2333, at90s4433 and at90s8515.
+
+  * Fix setting of programmer status LEDs under certain write-fail
+    conditions.
+
+
+Version 2.0.2 :
+
+  * Fix writing to read-only memories such as the lock bits of the
+    AT90S2313.
+
+  * Copyright updates.
+
+
+Version 2.0.1 :
+
+  * Use correct parallel port pins for VCC.
+
+  * Add programmer definition for Atmel's STK200.
+
+  * Add programmer definition for the AVR3 board.
+
+  * Fix address bit encoding for many parts.
+
+  * Allow the ``BUFF'' signal to be asserted by multiple pins of the
+    parallel port (like VCC) instead of just one.  The STK200 appears
+    to need this feature.
+
+
+Version 2.0.0 :
+
+  * Add support for programming fuse and lock bits if supported by the
+    part.
+
+  * Move instruction encoding into the config file.  Now any part can
+    be supported as long as it uses the same basic serial programming
+    instruction format.
+
+  * Add part definitions for the ATMega163 and ATMega8 devices.
+
+
+Version 1.4.3 :
+
+  * Mostly internal code cleanup.
+
+
+Version 1.4.2 :
+
+  * Fixes for ATMega paged memory support.
+
+  * Support for ATMega16 device.
+
+
+Version 1.4.1 :
+
+  * No functional changes, update to Copyrights only.
+
+
+Version 1.4.0 :
+
+  * Add part definitions to the config file.
+
+  * Add initial support for Atmel's ATMega paged memory parts.
+
+  * Config file documentation added.
+
+  * Add a definition for the Dontronics DT006 programmer.
+
+  * Fix Intel Hex support for addresses larger than 64k.
+
+
+Version 1.3.0 :
+
+  * Make programmer pin assignments configurable.
+
+
+Version 1.2.2 :
+
+  * Initial public release
