@@ -1,9 +1,16 @@
 
 General:
 
+- Man page needs updated for avr910 info.
 
+- avr910 needs a little bit of work to support setting fuse byte (note that it
+  can only deal with a _single_ fuse byte.
+
+- Website needs to link to docs:
+  http://savannah.nongnu.org/download/avrdude/doc/avrdude-html/
 
 Windows:
+
 - Use Windows API for stk500 serial port communications on Windows port.
   This might remove dependency on Cygwin.
   
