@@ -81,6 +81,11 @@ static int avr910_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   avr910_send(pgm, "e", 1);
   avr910_vfy_cmd_sent(pgm, "chip erase");
 
+  /*
+   * avr910 firmware may not delay long enough
+   */
+  usleep (p->chip_erase_delay);
+
   return 0;
 }
 
@@ -284,20 +289,6 @@ static void avr910_set_addr(PROGRAMMER * pgm, unsigned long addr)
 }
 
 
-/*
- * For some reason, if we don't do this when writing to flash, the first byte
- * of flash is not programmed. I susect that the board got out of sync after
- * the erase and sending another command gets us back in sync. -TRoth
- */
-static void avr910_write_setup(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
-{
-  if (strcmp(m->desc, "flash") == 0) {
-    avr910_send(pgm, "y", 1);
-    avr910_vfy_cmd_sent(pgm, "clear LED");
-  }
-}
-
-
 static int avr910_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                              unsigned long addr, unsigned char value)
 {
@@ -404,8 +395,6 @@ static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   int page_bytes = page_size;
   int page_wr_cmd_pending = 0;
 
-  avr910_write_setup(pgm, p, m);
-
   page_addr = addr;
   avr910_set_addr(pgm, addr>>1);
 
@@ -480,7 +469,7 @@ static int avr910_paged_write_eeprom(PROGRAMMER * pgm, AVRPART * p,
 }
 
 
-static int avr910_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
+static int avr910_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                               int page_size, int n_bytes)
 {
   if (strcmp(m->desc, "flash") == 0) {
@@ -582,7 +571,6 @@ void avr910_initpgm(PROGRAMMER * pgm)
    * optional functions
    */
 
-  pgm->write_setup = avr910_write_setup;
   pgm->write_byte = avr910_write_byte;
   pgm->read_byte = avr910_read_byte;
 
