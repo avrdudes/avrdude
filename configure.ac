@@ -103,5 +103,17 @@ AC_MSG_CHECKING([for serial device])
 AC_MSG_RESULT([$DEFAULT_SER_PORT])
 AC_SUBST(DEFAULT_SER_PORT, $DEFAULT_SER_PORT)
 
-AC_CONFIG_FILES([Makefile avrdude.conf])
+# See if we need to drop into the windows subdir.
+case $target in
+        *-*-mingw32* | *-*-cygwin* | *-*-windows*)
+		WINDOWS_DIRS="windows"
+		;;
+esac
+AC_SUBST(WINDOWS_DIRS,$WINDOWS_DIRS)
+
+AC_CONFIG_FILES([
+	windows/Makefile
+	Makefile
+	avrdude.conf
+])
 AC_OUTPUT
