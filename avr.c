@@ -1082,6 +1082,11 @@ int avr_get_cycle_count(int fd, AVRPART * p)
     return -1;
   }
 
+  if ((v1 == 0xff) && (v2 == 0xff) && (v3 != 0xff) && (v4 != 0xff)) {
+    v1 = 0;
+    v2 = 0;
+  }
+
   cycle_count = (((unsigned int)v1) << 24) | 
     (((unsigned int)v2) << 16) |
     (((unsigned int)v3) << 8) |
