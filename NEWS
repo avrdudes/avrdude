@@ -8,8 +8,21 @@ Approximate change log for AVRDUDE by version.
 
 Current:
 
-	* Add ATmega8515 definition.
-	Contributed by: Matthias Weiﬂer <matthias@matwei.de>
+  * Add ATmega8515 support.
+    Contributed by: Matthias Weiﬂer <matthias@matwei.de>
+  
+  * Add ATmega64 support.
+    Contributed by: Erik Christiansen <erik@dd.nec.com.au>
+  
+  * Improved polling algorithm to speed up
+    programming of byte oriented parallel programmers.
+    Contributed by: Jan-Hinnerk Reichert <jan-hinnerk_reichert@hamburg.de>
+  
+  * Add "fuse" and "lock" definitions for the AT90S8535.
+  
+  * STK500 skips empty pages in paged write resulting in faster downloads
+    when there are empty blocks in between code (such as files that contain
+    application code and bootloader code).
 
 
 Version 4.2.0:
