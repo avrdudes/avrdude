@@ -158,12 +158,15 @@ if test "$GCC" = yes; then
 fi
 AC_SUBST(ENABLE_WARNINGS,$ENABLE_WARNINGS)
 
+if test "$enabled_doc" = "yes"; then
+AC_CONFIG_FILES([doc/Makefile])
+fi
+
 AC_CONFIG_FILES([
-	doc/Makefile
-	windows/Makefile
-	avrdude.spec
-	avrdude.conf
-	Makefile
+       windows/Makefile
+       avrdude.spec
+       avrdude.conf
+       Makefile
 ])
 
 AC_OUTPUT
