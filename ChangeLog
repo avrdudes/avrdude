@@ -7,7 +7,7 @@
 2003-04-16  Eric B. Weddington <eric@umginc.net>
 
 	* avrdude.conf.in: Add support for ATmega8535
-	Submitted by Alexander <apeter@gmx.de>
+	Submitted by Alexander Peter <apeter@gmx.de>
 	* NEWS: List new devices supported: ATmega8535
 
 2003-04-09  Theodore A. Roth  <troth@openavr.org>
