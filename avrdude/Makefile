@@ -67,7 +67,7 @@ pgm.o: pgm.c pgm.h avrpart.h lists.h pindefs.h
 
 ppi.o: ppi.c avr.h avrpart.h lists.h pgm.h pindefs.h ppi.h config.h
 
-stk500.o: stk500.c avr.h avrpart.h lists.h pgm.h pindefs.h stk500_private.h
+stk500.o: stk500.c stk500.h avr.h avrpart.h lists.h pgm.h pindefs.h stk500_private.h
 
 term.o: term.c avr.h avrpart.h lists.h pgm.h pindefs.h config.h ppi.h
 
