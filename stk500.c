@@ -36,7 +36,6 @@
 #include <errno.h>
 #include <termios.h>
 #include <sys/time.h>
-#include <inttypes.h>
 
 #include "avr.h"
 #include "pgm.h"
@@ -680,7 +679,7 @@ void stk500_close(PROGRAMMER * pgm)
 }
 
 
-static int stk500_loadaddr(PROGRAMMER * pgm, uint16_t addr)
+static int stk500_loadaddr(PROGRAMMER * pgm, unsigned int addr)
 {
   unsigned char buf[16];
   int tries;
