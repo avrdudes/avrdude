@@ -272,6 +272,9 @@ ATMEGA169
 @itemx m32
 ATMEGA32
 
+@itemx m48
+ATMEGA48
+
 @itemx m64
 ATMEGA64
 
@@ -283,6 +286,9 @@ ATMEGA8515
 
 @itemx m8535
 ATMEGA8535
+
+@itemx m88
+ATMEGA88
 
 @itemx t12
 ATtiny12
