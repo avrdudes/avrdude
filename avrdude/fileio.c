@@ -895,7 +895,6 @@ int fileio(int op, char * filename, FILEFMT format,
   char * fname;
   unsigned char * buf;
   struct fioparms fio;
-  int i;
   AVRMEM * mem;
   int using_stdio;
 

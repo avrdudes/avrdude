@@ -334,7 +334,7 @@ static void update_progress_tty (int percent, double etime, char *hdr)
 {
   static char hashes[51];
   static char *header;
-  static last = 0;
+  static int last = 0;
   int i;
 
   hashes[50] = 0;
@@ -745,7 +745,6 @@ int main(int argc, char * argv [])
   int     cycles;      /* erase-rewrite cycles */
   int     set_cycles;  /* value to set the erase-rewrite cycles to */
   char  * e;           /* for strtol() error checking */
-  char  * homedir;
   int     quell_progress;
 
   progname = rindex(argv[0],'/');
@@ -797,6 +796,7 @@ int main(int argc, char * argv [])
   win_usr_config_set(usr_config);
   
   #else
+  char  * homedir;
 
   strcpy(sys_config, CONFIG_DIR);
   i = strlen(sys_config);
