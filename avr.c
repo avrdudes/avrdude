@@ -295,34 +295,32 @@ int avr_read(int fd, AVRPART * p, int memtype)
 /*
  * write a byte of data to the indicated memory region
  */
-int avr_write_bank(int fd, AVRPART * p, int memtype, 
-                   unsigned short bank)
+int avr_write_page(int fd, AVRPART * p, int memtype, 
+                   unsigned short page)
 {
   unsigned char cmd[4];
   unsigned char res[4];
-  unsigned int shift;
 
   LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
   LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
 
   /*
-   * 'bank' indicates which bank is being programmed: 0 for the first
-   * bank_size block, 1 for the second, up to num_banks-1 for the
+   * 'page' indicates which page is being programmed: 0 for the first
+   * page_size block, 1 for the second, up to num_pages-1 for the
    * last.  The MCU actually wants the high-order bits of what would
    * be the actual address instead, shifted left to the upper most
    * bits of a 16 bit word.  For a 128K flash, the actual address is a
    * 17 bits.  To get the right value to send to the MCU, we want to
-   * shift 'bank' left by 16 - the number of bits in the bank
+   * shift 'page' left by 16 - the number of bits in the page
    * address.
    */
-  shift = 16 - p->mem[memtype].bankaddrbits;
-  bank = bank << shift;
+  page = page << p->mem[memtype].pageaddr_shift;
 
-  fprintf(stderr, "bank address=%u\n", bank);
+  fprintf(stderr, "page address=%u\n", page);
 
   cmd[0] = 0x4c;
-  cmd[1] = bank >> 8;     /* high order bits of address */
-  cmd[2] = bank & 0x0ff;  /* low order bits of address  */
+  cmd[1] = page >> 8;     /* high order bits of address */
+  cmd[2] = page & 0x0ff;  /* low order bits of address  */
   cmd[3] = 0;             /* these bits are ignored     */
 
   avr_cmd(fd, cmd, res);
@@ -355,11 +353,11 @@ int avr_write_byte(int fd, AVRPART * p, int memtype,
   /* order here is very important, AVR_M_EEPROM, AVR_M_FLASH, AVR_M_FLASH+1 */
   static unsigned char cmdbyte[3] = { 0xc0, 0x40, 0x48 };
 
-  if (!p->mem[memtype].banked) {
+  if (!p->mem[memtype].paged) {
     /* 
      * check to see if the write is necessary by reading the existing
      * value and only write if we are changing the value; we can't
-     * use this optimization for banked addressing.
+     * use this optimization for paged addressing.
      */
     b = avr_read_byte(fd, p, memtype, addr);
     if (b == data) {
@@ -367,7 +365,7 @@ int avr_write_byte(int fd, AVRPART * p, int memtype,
     }
   }
   else {
-    addr = addr % p->mem[memtype].bank_size;
+    addr = addr % p->mem[memtype].page_size;
   }
 
   LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
@@ -388,11 +386,11 @@ int avr_write_byte(int fd, AVRPART * p, int memtype,
 
   avr_cmd(fd, cmd, res);
 
-  if (p->mem[memtype].banked) {
+  if (p->mem[memtype].paged) {
     /*
-     * in banked addressing, single bytes to written to the memory
+     * in paged addressing, single bytes to written to the memory
      * page complete immediately, we only need to delay when we commit
-     * the whole page via the avr_write_bank() routine.
+     * the whole page via the avr_write_page() routine.
      */
     LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
     return 0;
@@ -483,15 +481,15 @@ int avr_write(int fd, AVRPART * p, int memtype, int size)
       werror = 1;
     }
 
-    if (p->mem[memtype].banked) {
-      if (((i % p->mem[memtype].bank_size) == p->mem[memtype].bank_size-1) ||
+    if (p->mem[memtype].paged) {
+      if (((i % p->mem[memtype].page_size) == p->mem[memtype].page_size-1) ||
           (i == wsize-1)) {
-        rc = avr_write_bank(fd, p, memtype, i/p->mem[memtype].bank_size);
+        rc = avr_write_page(fd, p, memtype, i/p->mem[memtype].page_size);
         if (rc) {
           fprintf(stderr,
-                  " *** bank %ld (addresses 0x%04lx - 0x%04lx) failed to write\n",
-                  i % p->mem[memtype].bank_size, 
-                  i-p->mem[memtype].bank_size+1, i);
+                  " *** page %ld (addresses 0x%04lx - 0x%04lx) failed to write\n",
+                  i % p->mem[memtype].page_size, 
+                  i-p->mem[memtype].page_size+1, i);
           fprintf(stderr, "\n");
           LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
           werror = 1;
@@ -717,18 +715,24 @@ void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type)
 {
   if (m == NULL) {
     fprintf(f, 
-            "%sMem                  Bank                       Polled\n"
-            "%sType   Banked Size   Size #Banks MinW  MaxW   ReadBack\n"
-            "%s------ ------ ------ ---- ------ ----- ----- ---------\n",
+            "%sMem                  Page Page                       Polled\n"
+            "%sType   Paged  Size   Size Shift #Pages MinW  MaxW   ReadBack\n"
+            "%s------ ------ ------ ---- ----- ------ ----- ----- ---------\n",
             prefix, prefix, prefix);
   }
   else {
     fprintf(f,
-            "%s%-6s %-6s %6d %4d %6d %5d %5d 0x%02x 0x%02x\n",
-            prefix, avr_memtstr(type), m->banked ? "yes" : "no",
-            m->size, m->bank_size, m->num_banks, 
-            m->min_write_delay, m->max_write_delay,
-            m->readback[0], m->readback[1]);
+            "%s%-6s %-6s %6d %4d %5d %6d %5d %5d 0x%02x 0x%02x\n",
+            prefix, avr_memtstr(type), 
+            m->paged ? "yes" : "no",
+            m->size, 
+            m->page_size, 
+            m->pageaddr_shift, 
+            m->num_pages, 
+            m->min_write_delay, 
+            m->max_write_delay,
+            m->readback[0], 
+            m->readback[1]);
   }
 }
 

@@ -46,11 +46,11 @@
 #define AVR_MAXMEMTYPES 2     /* just flash and eeprom */
 
 typedef struct avrmem {
-  int banked;                   /* bank addressed (e.g. ATmega flash) */
+  int paged;                    /* page addressed (e.g. ATmega flash) */
   int size;                     /* total memory size in bytes */
-  int bank_size;                /* size of memory bank (if bank addressed) */
-  int num_banks;                /* number of banks (if bank addressed) */
-  int bankaddrbits;             /* number of bits in the bank address */
+  int page_size;                /* size of memory page (if page addressed) */
+  int num_pages;                /* number of pages (if page addressed) */
+  int pageaddr_shift;           /* number of bits in the page address */
   int min_write_delay;          /* microseconds */
   int max_write_delay;          /* microseconds */
   unsigned char readback[2];    /* polled read-back values */

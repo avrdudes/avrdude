@@ -316,8 +316,8 @@ int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
     return -1;
   }
 
-  if (p->mem[memtype].banked) {
-    fprintf(stderr, "%s (write): sorry, interactive write of bank addressed "
+  if (p->mem[memtype].paged) {
+    fprintf(stderr, "%s (write): sorry, interactive write of page addressed "
             "memory is not supported\n", progname);
     return -1;
   }

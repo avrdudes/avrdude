@@ -31,20 +31,20 @@
 #       desc             = <description> ;        # quoted string
 #       chip_erase_delay = <num> ;                # micro-seconds
 #       eeprom
-#           banked          = <yes/no> ;          # yes / no
+#           paged           = <yes/no> ;          # yes / no
 #           size            = <num> ;             # bytes
-#           bank_size       = <num> ;             # bytes
-#           num_banks       = <num> ;             # numeric
+#           page_size       = <num> ;             # bytes
+#           num_pages       = <num> ;             # numeric
 #           min_write_delay = <num> ;             # micro-seconds
 #           max_write_delay = <num> ;             # micro-seconds
 #           readback_p1     = <num> ;             # byte value
 #           readback_p2     = <num> ;             # byte value
 #         ;
 #       flash
-#           banked          = <yes/no> ;          # yes / no
+#           paged           = <yes/no> ;          # yes / no
 #           size            = <num> ;             # bytes
-#           bank_size       = <num> ;             # bytes
-#           num_banks       = <num> ;             # numeric
+#           page_size       = <num> ;             # bytes
+#           num_pages       = <num> ;             # numeric
 #           min_write_delay = <num> ;             # micro-seconds
 #           max_write_delay = <num> ;             # micro-seconds
 #           readback_p1     = <num> ;             # byte value
@@ -99,20 +99,20 @@ part
     desc             = "AT90S1200";
     chip_erase_delay = 20000;
     eeprom
-        banked          = no;
+        paged           = no;
         size            = 64;
-        bank_size       = 0;
-        num_banks       = 0;
+        page_size       = 0;
+        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x00;
         readback_p2     = 0xff;
       ;
     flash
-        banked          = no;
+        paged           = no;
         size            = 1024;
-        bank_size       = 0;
-        num_banks       = 0;
+        page_size       = 0;
+        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0xff;
@@ -126,20 +126,20 @@ part
     desc             = "AT90S2313";
     chip_erase_delay = 20000;
     eeprom
-        banked          = no;
+        paged           = no;
         size            = 128;
-        bank_size       = 0;
-        num_banks       = 0;
+        page_size       = 0;
+        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x80;
         readback_p2     = 0x7f;
       ;
     flash
-        banked          = no;
+        paged           = no;
         size            = 2048;
-        bank_size       = 0;
-        num_banks       = 0;
+        page_size       = 0;
+        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x7f;
@@ -153,20 +153,20 @@ part
     desc             = "AT90S2333";
     chip_erase_delay = 20000;
     eeprom
-        banked          = no;
+        paged           = no;
         size            = 128;
-        bank_size       = 0;
-        num_banks       = 0;
+        page_size       = 0;
+        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x00;
         readback_p2     = 0xff;
       ;
     flash
-        banked          = no;
+        paged           = no;
         size            = 2048;
-        bank_size       = 0;
-        num_banks       = 0;
+        page_size       = 0;
+        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0xff;
@@ -180,20 +180,20 @@ part
     desc             = "AT90S4433";
     chip_erase_delay = 20000;
     eeprom
-        banked          = no;
+        paged           = no;
         size            = 256;
-        bank_size       = 0;
-        num_banks       = 0;
+        page_size       = 0;
+        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x00;
         readback_p2     = 0xff;
       ;
     flash
-        banked          = no;
+        paged           = no;
         size            = 4096;
-        bank_size       = 0;
-        num_banks       = 0;
+        page_size       = 0;
+        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0xff;
@@ -207,20 +207,20 @@ part
     desc             = "AT90S4434";
     chip_erase_delay = 20000;
     eeprom
-        banked          = no;
+        paged           = no;
         size            = 256;
-        bank_size       = 0;
-        num_banks       = 0;
+        page_size       = 0;
+        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x00;
         readback_p2     = 0xff;
       ;
     flash
-        banked          = no;
+        paged           = no;
         size            = 4096;
-        bank_size       = 0;
-        num_banks       = 0;
+        page_size       = 0;
+        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0xff;
@@ -234,20 +234,20 @@ part
     desc             = "AT90S8515";
     chip_erase_delay = 20000;
     eeprom
-        banked          = no;
+        paged           = no;
         size            = 512;
-        bank_size       = 0;
-        num_banks       = 0;
+        page_size       = 0;
+        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x80;
         readback_p2     = 0x7f;
       ;
     flash
-        banked          = no;
+        paged           = no;
         size            = 8192;
-        bank_size       = 0;
-        num_banks       = 0;
+        page_size       = 0;
+        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x7f;
@@ -261,20 +261,20 @@ part
     desc             = "AT90S8535";
     chip_erase_delay = 20000;
     eeprom
-        banked          = no;
+        paged           = no;
         size            = 512;
-        bank_size       = 0;
-        num_banks       = 0;
+        page_size       = 0;
+        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x00;
         readback_p2     = 0xff;
       ;
     flash
-        banked          = no;
+        paged           = no;
         size            = 8192;
-        bank_size       = 0;
-        num_banks       = 0;
+        page_size       = 0;
+        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0xff;
@@ -288,20 +288,20 @@ part
     desc             = "ATMEGA103";
     chip_erase_delay = 112000;
     eeprom
-        banked          = no;
+        paged           = no;
         size            = 4096;
-        bank_size       = 0;
-        num_banks       = 0;
+        page_size       = 0;
+        num_pages       = 0;
         min_write_delay = 4000;
         max_write_delay = 9000;
         readback_p1     = 0x00;
         readback_p2     = 0xff;
       ;
     flash
-        banked          = yes;
+        paged           = yes;
         size            = 131072;
-        bank_size       = 256;
-        num_banks       = 512;
+        page_size       = 256;
+        num_pages       = 512;
         min_write_delay = 22000;
         max_write_delay = 56000;
         readback_p1     = 0xff;
@@ -315,20 +315,20 @@ part
     desc             = "ATMEGA16";
     chip_erase_delay = 9000;
     eeprom
-        banked          = no;
+        paged           = no;
         size            = 512;
-        bank_size       = 0;
-        num_banks       = 0;
+        page_size       = 0;
+        num_pages       = 0;
         min_write_delay = 9000;
         max_write_delay = 9000;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
       ;
     flash
-        banked          = yes;
+        paged           = yes;
         size            = 16384;
-        bank_size       = 128;
-        num_banks       = 128;
+        page_size       = 128;
+        num_pages       = 128;
         min_write_delay = 4500;
         max_write_delay = 9000;
         readback_p1     = 0xff;

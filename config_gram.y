@@ -29,8 +29,8 @@
 
 /* $Id$ */
 
-%token K_BANK_SIZE
-%token K_BANKED
+%token K_PAGE_SIZE
+%token K_PAGEED
 %token K_BUFF
 %token K_CHIP_ERASE_DELAY
 %token K_DESC
@@ -38,23 +38,27 @@
 %token K_ERRLED
 %token K_FLASH
 %token K_ID
+%token K_LOADPAGE
 %token K_MAX_WRITE_DELAY
 %token K_MIN_WRITE_DELAY
 %token K_MISO
 %token K_MOSI
-%token K_NO
-%token K_NUM_BANKS
+%token K_NUM_PAGES
 %token K_PART
 %token K_PGMLED
 %token K_PROGRAMMER
 %token K_RDYLED
 %token K_READBACK_P1
 %token K_READBACK_P2
+%token K_READMEM
 %token K_RESET
 %token K_SCK
 %token K_SIZE
 %token K_VCC
 %token K_VFYLED
+%token K_WRITEPAGE
+
+%token K_NO
 %token K_YES
 
 %token TKN_COMMA
@@ -103,7 +107,8 @@ part_def :
     { current_part = avr_new_part(); }
     part_parms 
     { 
-      unsigned int i, j, pagebits;
+      unsigned int i, j, shift, psize;
+
       if (current_part->id[0] == 0) {
         fprintf(stderr,
                 "%s: error at %s:%d: required parameter id not specified\n",
@@ -115,46 +120,48 @@ part_def :
        * perform some sanity checking
        */
       for (i=0; i<AVR_MAXMEMTYPES; i++) {
-        if (current_part->mem[i].banked) {
-          if (!current_part->mem[i].bank_size) {
+        if (current_part->mem[i].paged) {
+          if (!current_part->mem[i].page_size) {
             fprintf(stderr, 
-                    "%s: error at %s:%d: must specify bank_size for banked "
+                    "%s: error at %s:%d: must specify page_size for paged "
                     "memory\n",
                     progname, infile, lineno);
             exit(1);
           }
-          if (!current_part->mem[i].num_banks) {
+          if (!current_part->mem[i].num_pages) {
             fprintf(stderr, 
-                    "%s: error at %s:%d: must specify num_banks for banked "
+                    "%s: error at %s:%d: must specify num_pages for paged "
                     "memory\n",
                     progname, infile, lineno);
             exit(1);
           }
-          if (current_part->mem[i].size != current_part->mem[i].bank_size *
-                                             current_part->mem[i].num_banks) {
+          if (current_part->mem[i].size != current_part->mem[i].page_size *
+                                             current_part->mem[i].num_pages) {
             fprintf(stderr, 
-                    "%s: error at %s:%d: bank size (%u) * num_banks (%u) = "
+                    "%s: error at %s:%d: page size (%u) * num_pages (%u) = "
                     "%u does not match memory size (%u)\n",
                     progname, infile, lineno,
-                    current_part->mem[i].bank_size, 
-                    current_part->mem[i].num_banks, 
-                    current_part->mem[i].bank_size * current_part->mem[i].num_banks,
+                    current_part->mem[i].page_size, 
+                    current_part->mem[i].num_pages, 
+                    current_part->mem[i].page_size * current_part->mem[i].num_pages,
                     current_part->mem[i].size);
             exit(1);
           }
-          pagebits = 0;
-          for (j=0; j<32 && !pagebits; j++) {
-            if ((1 << j) == current_part->mem[i].num_banks)
-              pagebits = j;
+          shift = 0;
+          psize = current_part->mem[i].page_size / 2 - 1;
+          for (j=0; j<32 && !shift; j++) {
+            if ((psize >> j) == 0) {
+              shift = j;
+            }
           }
-          if (!pagebits) {
+          if (!shift) {
             fprintf(stderr, 
-                    "%s: error at %s:%d: can't determine the number of bank address bits\n"
-                    "     Are you sure num_banks (=%u) is correct?\n",
-                    progname, infile, lineno, current_part->mem[i].num_banks);
+                    "%s: error at %s:%d: can't determine amount to shift for the page address\n"
+                    "     Are you sure page_size (=%u) is correct?\n",
+                    progname, infile, lineno, current_part->mem[i].page_size);
             exit(1);
           }
-          current_part->mem[i].bankaddrbits = pagebits;
+          current_part->mem[i].pageaddr_shift = shift;
         }
       }
 
@@ -284,9 +291,9 @@ mem_specs :
 
 
 mem_spec :
-  K_BANKED          TKN_EQUAL yesno
+  K_PAGED          TKN_EQUAL yesno
     {
-      current_part->mem[current_mem].banked = $3->primary == K_YES ? 1 : 0;
+      current_part->mem[current_mem].paged = $3->primary == K_YES ? 1 : 0;
       free_token($3);
     } |
 
@@ -297,15 +304,15 @@ mem_spec :
     } |
 
 
-  K_BANK_SIZE       TKN_EQUAL TKN_NUMBER
+  K_PAGE_SIZE       TKN_EQUAL TKN_NUMBER
     {
-      current_part->mem[current_mem].bank_size = $3->value.number;
+      current_part->mem[current_mem].page_size = $3->value.number;
       free_token($3);
     } |
 
-  K_NUM_BANKS       TKN_EQUAL TKN_NUMBER
+  K_NUM_PAGES       TKN_EQUAL TKN_NUMBER
     {
-      current_part->mem[current_mem].num_banks = $3->value.number;
+      current_part->mem[current_mem].num_pages = $3->value.number;
       free_token($3);
     } |
 
