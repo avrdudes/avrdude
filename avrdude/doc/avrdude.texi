@@ -753,6 +753,9 @@ multiplies by 1E6, a trailing letter @var{k} by 1E3.
 @item fosc off
 Turn the master oscillator off.
 
+@item sck @var{period}
+Set the SCK clock period to @var{period} microseconds.
+
 @item parms
 Display the current voltage and master oscillator parameters.
 

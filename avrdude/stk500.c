@@ -41,6 +41,7 @@
 #include "stk500_private.h"
 #include "serial.h"
 
+#define STK500_XTAL 7372800U
 
 extern int    verbose;
 extern char * progname;
@@ -889,7 +890,6 @@ static int stk500_set_varef(PROGRAMMER * pgm, double v)
 
 static int stk500_set_fosc(PROGRAMMER * pgm, double v)
 {
-#define fbase 7372800U
   unsigned prescale, cmatch, fosc;
   static unsigned ps[] = {
     1, 8, 32, 64, 128, 256, 1024
@@ -898,7 +898,7 @@ static int stk500_set_fosc(PROGRAMMER * pgm, double v)
 
   prescale = cmatch = 0;
   if (v > 0.0) {
-    if (v > fbase / 2) {
+    if (v > STK500_XTAL / 2) {
       const char *unit;
       if (v > 1e6) {
         v /= 1e6;
@@ -910,22 +910,22 @@ static int stk500_set_fosc(PROGRAMMER * pgm, double v)
         unit = "Hz";
       fprintf(stderr,
           "%s: stk500_set_fosc(): f = %.3f %s too high, using %.3f MHz\n",
-          progname, v, unit, fbase / 2e6);
-      fosc = fbase / 2;
+          progname, v, unit, STK500_XTAL / 2e6);
+      fosc = STK500_XTAL / 2;
     } else
       fosc = (unsigned)v;
     
     for (idx = 0; idx < sizeof(ps) / sizeof(ps[0]); idx++) {
-      if (fosc >= fbase / (256 * ps[idx] * 2)) {
+      if (fosc >= STK500_XTAL / (256 * ps[idx] * 2)) {
         /* this prescaler value can handle our frequency */
         prescale = idx + 1;
-        cmatch = (unsigned)(fbase / (2 * fosc * ps[idx])) - 1;
+        cmatch = (unsigned)(STK500_XTAL / (2 * fosc * ps[idx])) - 1;
         break;
       }
     }
     if (idx == sizeof(ps) / sizeof(ps[0])) {
       fprintf(stderr, "%s: stk500_set_fosc(): f = %u Hz too low, %u Hz min\n",
-          progname, fosc, fbase / (256 * 1024 * 2));
+          progname, fosc, STK500_XTAL / (256 * 1024 * 2));
       return -1;
     }
   }
@@ -935,6 +935,38 @@ static int stk500_set_fosc(PROGRAMMER * pgm, double v)
     return rc;
   
   return 0;
+}
+
+
+/* This code assumes that each count of the SCK duration parameter
+   represents 8/f, where f is the clock frequency of the STK500 master
+   processors (not the target).  This number comes from Atmel
+   application note AVR061.  It appears that the STK500 bit bangs SCK.
+   For small duration values, the actual SCK width is larger than
+   expected.  As the duration value increases, the SCK width error
+   diminishes. */
+static int stk500_set_sck_period(PROGRAMMER * pgm, double v)
+{
+  int dur;
+  double min, max;
+
+  min = 8.0 / STK500_XTAL;
+  max = 255 * min;
+  dur = v / min + 0.5;
+  
+  if (v < min) {
+      dur = 1;
+      fprintf(stderr,
+	      "%s: stk500_set_sck_period(): p = %.1f us too small, using %.1f us\n",
+	      progname, v / 1e-6, dur * min / 1e-6);
+  } else if (v > max) {
+      dur = 255;
+      fprintf(stderr,
+	      "%s: stk500_set_sck_period(): p = %.1f us too large, using %.1f us\n",
+	      progname, v / 1e-6, dur * min / 1e-6);
+  }
+  
+  return stk500_setparm(pgm, Parm_STK_SCK_DURATION, dur);
 }
 
 
@@ -1081,12 +1113,13 @@ static void stk500_display(PROGRAMMER * pgm, char * p)
 
 static void stk500_print_parms1(PROGRAMMER * pgm, char * p)
 {
-  unsigned vtarget, vadjust, osc_pscale, osc_cmatch;
+  unsigned vtarget, vadjust, osc_pscale, osc_cmatch, sck_duration;
 
   stk500_getparm(pgm, Parm_STK_VTARGET, &vtarget);
   stk500_getparm(pgm, Parm_STK_VADJUST, &vadjust);
   stk500_getparm(pgm, Parm_STK_OSC_PSCALE, &osc_pscale);
   stk500_getparm(pgm, Parm_STK_OSC_CMATCH, &osc_cmatch);
+  stk500_getparm(pgm, Parm_STK_SCK_DURATION, &sck_duration);
 
   fprintf(stderr, "%sVtarget         : %.1f V\n", p, vtarget / 10.0);
   fprintf(stderr, "%sVaref           : %.1f V\n", p, vadjust / 10.0);
@@ -1095,7 +1128,7 @@ static void stk500_print_parms1(PROGRAMMER * pgm, char * p)
     fprintf(stderr, "Off\n");
   else {
     int prescale = 1;
-    double f = 3.6864e6;
+    double f = STK500_XTAL / 2;
     const char *unit;
 
     switch (osc_pscale) {
@@ -1118,6 +1151,8 @@ static void stk500_print_parms1(PROGRAMMER * pgm, char * p)
       unit = "Hz";
     fprintf(stderr, "%.3f %s\n", f, unit);
   }
+  fprintf(stderr, "%sSCK period      : %.1f us\n", p, 
+	  sck_duration * 8.0e6 / STK500_XTAL + 0.05);
 
   return;
 }
@@ -1155,5 +1190,6 @@ void stk500_initpgm(PROGRAMMER * pgm)
   pgm->set_vtarget    = stk500_set_vtarget;
   pgm->set_varef      = stk500_set_varef;
   pgm->set_fosc       = stk500_set_fosc;
+  pgm->set_sck_period = stk500_set_sck_period;
   pgm->page_size      = 256;
 }

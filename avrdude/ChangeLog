@@ -1,3 +1,9 @@
+2004-07-07  Jan-Hinnerk Reichert  <hinni@despammed.com>
+	* stk500.c, term.c, doc/avrdude.texi, avrdude.1:
+        added "sck"-command to the terminal mode.
+        This command allows slowing down of the SCK of
+        STK500-programmers.
+
 2004-07-05  Jan-Hinnerk Reichert  <hinni@despammed.com>
 	* *.c, *.h: Removed unnecessary includes of
         config.h
