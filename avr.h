@@ -25,17 +25,12 @@
 #include <stdio.h>
 
 #include "avrpart.h"
-#include "lists.h"
 #include "pgm.h"
 
 
 
 extern struct avrpart parts[];
 
-
-int avr_txrx_bit(int fd, int bit);
-
-unsigned char avr_txrx(int fd, unsigned char byte);
 
 int avr_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                   unsigned long addr, unsigned char * value);
@@ -54,14 +49,7 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
 
 int avr_signature(PROGRAMMER * pgm, AVRPART * p);
 
-char * avr_memtstr(int memtype);
-
-int avr_initmem(AVRPART * p);
-
 int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size);
-
-void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type,
-                     int verbose);
 
 int avr_get_cycle_count(PROGRAMMER * pgm, AVRPART * p, int * cycles);
 
