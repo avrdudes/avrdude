@@ -934,41 +934,40 @@ static int stk500_set_fosc(PROGRAMMER * pgm, double v)
   };
   int idx, rc;
 
-  if (v <= 0.0) {
-    prescale = cmatch = 0;
-    goto setclock;
-  }
-  if (v > fbase / 2) {
-    const char *unit;
-    if (v > 1e6) {
-      v /= 1e6;
-      unit = "MHz";
-    } else if (v > 1e3) {
-      v /= 1e3;
-      unit = "kHz";
+  prescale = cmatch = 0;
+  if (v > 0.0) {
+    if (v > fbase / 2) {
+      const char *unit;
+      if (v > 1e6) {
+        v /= 1e6;
+        unit = "MHz";
+      } else if (v > 1e3) {
+        v /= 1e3;
+        unit = "kHz";
+      } else
+        unit = "Hz";
+      fprintf(stderr,
+          "%s: stk500_set_fosc(): f = %.3f %s too high, using %.3f MHz\n",
+          progname, v, unit, fbase / 2e6);
+      fosc = fbase / 2;
     } else
-      unit = "Hz";
-    fprintf(stderr,
-	    "%s: stk500_set_fosc(): f = %.3f %s too high, using %.3f MHz\n",
-	    progname, v, unit, fbase / 2e6);
-    fosc = fbase / 2;
-  } else
-    fosc = (unsigned)v;
-
-  for (idx = 0; idx < sizeof(ps) / sizeof(ps[0]); idx++) {
-    if (fosc >= fbase / (256 * ps[idx] * 2)) {
-      /* this prescaler value can handle our frequency */
-      prescale = idx + 1;
-      cmatch = (unsigned)(fbase / (2 * v * ps[idx]));
-      break;
+      fosc = (unsigned)v;
+    
+    for (idx = 0; idx < sizeof(ps) / sizeof(ps[0]); idx++) {
+      if (fosc >= fbase / (256 * ps[idx] * 2)) {
+        /* this prescaler value can handle our frequency */
+        prescale = idx + 1;
+        cmatch = (unsigned)(fbase / (2 * v * ps[idx]));
+        break;
+      }
+    }
+    if (idx == sizeof(ps) / sizeof(ps[0])) {
+      fprintf(stderr, "%s: stk500_set_fosc(): f = %u Hz too low, %u Hz min\n",
+          progname, fosc, fbase / (256 * 1024 * 2));
+      return -1;
     }
   }
-  if (idx == sizeof(ps) / sizeof(ps[0])) {
-    fprintf(stderr, "%s: stk500_set_fosc(): f = %u Hz too low, %u Hz min\n",
-	    progname, fosc, fbase / (256 * 1024 * 2));
-    return -1;
-  }
- setclock:
+  
   if ((rc = stk500_setparm(pgm, Parm_STK_OSC_PSCALE, prescale)) != 0
       || (rc = stk500_setparm(pgm, Parm_STK_OSC_CMATCH, cmatch)) != 0)
     return rc;
