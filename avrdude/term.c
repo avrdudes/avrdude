@@ -278,6 +278,9 @@ int cmd_dump(int fd, struct avrpart * p, int argc, char * argv[])
     if (rc != 0) {
       fprintf(stderr, "error reading %s address 0x%05lx of part %s\n",
               mem->desc, addr+i, p->desc);
+      if (rc == -1)
+        fprintf(stderr, "read operation not supported on memory type \"%s\"\n",
+                mem->desc);
       return -1;
     }
   }
@@ -370,6 +373,10 @@ int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
     if (rc) {
       fprintf(stderr, "%s (write): error writing 0x%02x at 0x%05lx\n",
               progname, buf[i], addr+i);
+      if (rc == -1)
+        fprintf(stderr, 
+                "write operation not supported on memory type \"%s\"\n",
+                mem->desc);
       werror = 1;
     }
     if (werror) {
