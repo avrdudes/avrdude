@@ -751,7 +751,7 @@ int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   if (strcmp(m->desc, "flash") == 0) {
     memtype = 'F';
   }
-  else if (strcmp(m->desc, "flash") == 0) {
+  else if (strcmp(m->desc, "eeprom") == 0) {
     memtype = 'E';
   }
   else {
@@ -841,7 +841,7 @@ int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   if (strcmp(m->desc, "flash") == 0) {
     memtype = 'F';
   }
-  else if (strcmp(m->desc, "flash") == 0) {
+  else if (strcmp(m->desc, "eeprom") == 0) {
     memtype = 'E';
   }
   else {
