@@ -11,12 +11,13 @@ BINDIR       = ${PREFIX}/bin
 MANDIR       = ${PREFIX}/man/man1
 MANUAL       = avrprog.1
 DOCDIR       = ${PREFIX}/share/doc/avrprog
+CONFIGDIR    = ${PREFIX}/etc
 
-DIRS         = ${BINDIR} ${MANDIR} ${DOCDIR}
+DIRS         = ${BINDIR} ${MANDIR} ${DOCDIR} ${CONFIGDIR}
 
 INSTALL      = /usr/bin/install -c -o root -g wheel
 
-CFLAGS      += -Wall --pedantic
+CFLAGS      = -g -Wall --pedantic -DCONFIG_DIR=\"${CONFIGDIR}\"
 
 LDFLAGS      =  
 
@@ -39,7 +40,11 @@ ${TARGET} : ${OBJS}
 clean :
 	rm -f *~ *.core ${TARGET} *.o
 
-install : dirs ${BINDIR}/${TARGET} ${MANDIR}/${MANUAL} ${DOCDIR}/AVRprog.pdf
+install : dirs                  \
+	  ${BINDIR}/${TARGET}   \
+	  ${MANDIR}/${MANUAL}   \
+	  ${DOCDIR}/avrprog.pdf \
+	  ${CONFIGDIR}/avrprog.conf.sample
 
 
 dirs :
@@ -51,11 +56,14 @@ dirs :
 	done
 
 ${BINDIR}/${TARGET} : ${TARGET}
-	${INSTALL_PROGRAM} ${TARGET} ${BINDIR}
+	${INSTALL_PROGRAM} ${TARGET} $@
 
 ${MANDIR}/${MANUAL} : ${MANUAL}
-	${INSTALL_MANUAL} ${MANUAL} ${MANDIR}
+	${INSTALL_MANUAL} ${MANUAL} $@
 
-${DOCDIR}/AVRprog.pdf : AVRprog.pdf
-	${INSTALL_DATA} AVRprog.pdf ${DOCDIR}/AVRprog.pdf
+${DOCDIR}/avrprog.pdf : avrprog.pdf
+	${INSTALL_DATA} avrprog.pdf $@
+
+${CONFIGDIR}/avrprog.conf.sample : avrprog.conf.sample
+	${INSTALL_DATA} avrprog.conf.sample $@
 

@@ -42,6 +42,9 @@
 
 #define IHEX_MAXDATA 256
 
+#define MAX_LINE_LEN 256  /* max line length for ASCII format input files */
+
+
 struct ihexrec {
   unsigned char    reclen;
   unsigned short   loadofs;

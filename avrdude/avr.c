@@ -114,16 +114,16 @@ int avr_txrx_bit ( int fd, int bit )
    * read the result bit (it is either valid from a previous clock
    * pulse or it is ignored in the current context)
    */
-  r = ppi_getpin(fd, PIN_AVR_MISO);
+  r = ppi_getpin(fd, pinno[PIN_AVR_MISO]);
 
   /* set the data input line as desired */
-  ppi_setpin(fd, PIN_AVR_MOSI, bit);
+  ppi_setpin(fd, pinno[PIN_AVR_MOSI], bit);
 
   /* 
    * pulse the clock line, clocking in the MOSI data, and clocking out
    * the next result bit
    */
-  ppi_pulsepin(fd, PIN_AVR_SCK);
+  ppi_pulsepin(fd, pinno[PIN_AVR_SCK]);
 
   return r;
 }
@@ -176,8 +176,8 @@ unsigned char avr_read_byte ( int fd, struct avrpart * p,
   /* order here is very important, AVR_EEPROM, AVR_FLASH, AVR_FLASH+1 */
   static unsigned char cmdbyte[3] = { 0xa0, 0x20, 0x28 };
 
-  LED_ON(fd, PIN_LED_PGM);
-  LED_OFF(fd, PIN_LED_ERR);
+  LED_ON(fd, pinno[PIN_LED_PGM]);
+  LED_OFF(fd, pinno[PIN_LED_ERR]);
 
   offset = 0;
 
@@ -193,7 +193,7 @@ unsigned char avr_read_byte ( int fd, struct avrpart * p,
 
   avr_cmd(fd, cmd, res);
 
-  LED_OFF(fd, PIN_LED_PGM);
+  LED_OFF(fd, pinno[PIN_LED_PGM]);
 
   return res[3];
 }
@@ -253,8 +253,8 @@ int avr_write_byte ( int fd, struct avrpart * p, AVRMEM memtype,
     return 0;
   }
 
-  LED_ON(fd, PIN_LED_PGM);
-  LED_OFF(fd, PIN_LED_ERR);
+  LED_ON(fd, pinno[PIN_LED_PGM]);
+  LED_OFF(fd, pinno[PIN_LED_ERR]);
 
   offset = 0;
 
@@ -297,13 +297,14 @@ int avr_write_byte ( int fd, struct avrpart * p, AVRMEM memtype,
        * we couldn't write the data, indicate our displeasure by
        * returning an error code 
        */
-      LED_OFF(fd, PIN_LED_PGM);
-      LED_ON(fd, PIN_LED_ERR);
+      LED_OFF(fd, pinno[PIN_LED_PGM]);
+      LED_ON(fd, pinno[PIN_LED_ERR]);
+
       return -1;
     }
   }
 
-  LED_OFF(fd, PIN_LED_PGM);
+  LED_OFF(fd, pinno[PIN_LED_PGM]);
   return 0;
 }
 
@@ -326,7 +327,7 @@ int avr_write ( int fd, struct avrpart * p, AVRMEM memtype, int size )
   unsigned char    data;
   int              werror;
 
-  LED_OFF(fd, PIN_LED_ERR);
+  LED_OFF(fd, pinno[PIN_LED_ERR]);
 
   werror = 0;
 
@@ -351,7 +352,7 @@ int avr_write ( int fd, struct avrpart * p, AVRMEM memtype, int size )
     if (rc) {
       fprintf(stderr, " ***failed;  ");
       fprintf(stderr, "\n");
-      LED_ON(fd, PIN_LED_ERR);
+      LED_ON(fd, pinno[PIN_LED_ERR]);
       werror = 1;
     }
     if (werror) {
@@ -359,7 +360,7 @@ int avr_write ( int fd, struct avrpart * p, AVRMEM memtype, int size )
        * make sure the error led stay on if there was a previous write
        * error, otherwise it gets cleared in avr_write_byte() 
        */
-      LED_ON(fd, PIN_LED_ERR);
+      LED_ON(fd, pinno[PIN_LED_ERR]);
     }
   }
 
@@ -394,13 +395,13 @@ int avr_chip_erase ( int fd, struct avrpart * p )
   unsigned char data[4] = {0xac, 0x80, 0x00, 0x00};
   unsigned char res[4];
 
-  LED_ON(fd, PIN_LED_PGM);
+  LED_ON(fd, pinno[PIN_LED_PGM]);
 
   avr_cmd(fd, data, res);
   usleep(p->chip_erase_delay);
   avr_initialize(fd, p);
 
-  LED_OFF(fd, PIN_LED_PGM);
+  LED_OFF(fd, pinno[PIN_LED_PGM]);
 
   return 0;
 }
@@ -455,9 +456,9 @@ int avr_initialize ( int fd, struct avrpart * p )
   avr_powerup(fd);
 
 
-  ppi_setpin(fd, PIN_AVR_SCK, 0);
-  ppi_setpin(fd, PIN_AVR_RESET, 0);
-  ppi_pulsepin(fd, PIN_AVR_RESET);
+  ppi_setpin(fd, pinno[PIN_AVR_SCK], 0);
+  ppi_setpin(fd, pinno[PIN_AVR_RESET], 0);
+  ppi_pulsepin(fd, pinno[PIN_AVR_RESET]);
 
   usleep(20000); /* 20 ms XXX should be a per-chip parameter */
 
@@ -478,7 +479,7 @@ int avr_initialize ( int fd, struct avrpart * p )
       rc = avr_program_enable ( fd );
       if (rc == 0)
         break;
-      ppi_pulsepin(fd, PIN_AVR_SCK);
+      ppi_pulsepin(fd, pinno[PIN_AVR_SCK]);
       tries++;
     } while (tries < 32);
 
