@@ -82,15 +82,18 @@ static int parse_cmdbits(OPCODE * op);
 %token K_NUM_PAGES
 %token K_PAGEL
 %token K_PAR
+%token K_PARALLEL
 %token K_PART
 %token K_PGMLED
 %token K_PROGRAMMER
+%token K_PSEUDO
 %token K_PWROFF_AFTER_WRITE
 %token K_RDYLED
 %token K_READBACK_P1
 %token K_READBACK_P2
 %token K_READMEM
 %token K_RESET
+%token K_SERIAL
 %token K_SCK
 %token K_SIZE
 %token K_STK500
@@ -340,6 +343,10 @@ reset_disposition :
   K_DEDICATED | K_IO
 ;
 
+parallel_modes :
+  yesno | K_PSEUDO
+;
+
 part_parm :
   K_ID TKN_EQUAL TKN_STRING 
     {
@@ -386,6 +393,35 @@ part_parm :
         current_part->reset_disposition = RESET_DEDICATED;
       else if ($3->primary == K_IO)
         current_part->reset_disposition = RESET_IO;
+
+      free_token($3);
+    } |
+
+  K_SERIAL TKN_EQUAL yesno
+    {
+      if ($3->primary == K_YES)
+        current_part->flags |= AVRPART_SERIALOK;
+      else if ($3->primary == K_NO)
+        current_part->flags &= ~AVRPART_SERIALOK;
+
+      free_token($3);
+    } |
+
+  K_PARALLEL TKN_EQUAL parallel_modes
+    {
+      if ($3->primary == K_YES) {
+        current_part->flags |= AVRPART_PARALLELOK;
+        current_part->flags &= ~AVRPART_PSEUDOPARALLEL;
+      }
+      else if ($3->primary == K_NO) {
+        current_part->flags &= ~AVRPART_PARALLELOK;
+        current_part->flags &= ~AVRPART_PSEUDOPARALLEL;
+      }
+      else if ($3->primary == K_PSEUDO) {
+        current_part->flags |= AVRPART_PARALLELOK;
+        current_part->flags |= AVRPART_PSEUDOPARALLEL;
+      }
+
 
       free_token($3);
     } |
