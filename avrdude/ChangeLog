@@ -1,5 +1,9 @@
 2004-01-26  Theodore A. Roth  <troth@openavr.org>
 
+	* configure.ac (AC_INIT): Post release version update.
+
+2004-01-26  Theodore A. Roth  <troth@openavr.org>
+
 	* AVRDUDE 4.3.0 has been released (cvs release tag is "release_4_3_0").
 
 2004-01-26  Theodore A. Roth  <troth@openavr.org>
