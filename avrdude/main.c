@@ -554,7 +554,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
 {
   struct avrpart * v;
   AVRMEM * mem;
-  long size, vsize;
+  int size, vsize;
   int rc;
 
   mem = avr_locate_mem(p, upd->memtype);
@@ -611,7 +611,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
     /*
      * write the buffer contents to the selected memory type
      */
-    fprintf(stderr, "%s: writing %s (%ld bytes):\n", 
+    fprintf(stderr, "%s: writing %s (%d bytes):\n", 
             progname, upd->memtype, size);
 
     if (!nowrite) {
@@ -635,7 +635,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
 
     vsize = rc;
 
-    fprintf(stderr, "%s: %ld bytes of %s written\n", progname, 
+    fprintf(stderr, "%s: %d bytes of %s written\n", progname, 
             vsize, upd->memtype);
 
   }
@@ -661,7 +661,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
       return -1;
     }
     size = rc;
-    fprintf(stderr, "%s: input file %s contains %ld bytes\n", 
+    fprintf(stderr, "%s: input file %s contains %d bytes\n", 
             progname, upd->filename, size);
 
 
