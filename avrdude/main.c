@@ -449,11 +449,12 @@ int main ( int argc, char * argv [] )
     fprintf(stderr, 
             "%s: Yikes!  Invalid device signature.\n", progname);
     if (!ovsigck) {
-      fprintf(stderr, 
-              "%sDouble check connections and try again, or use -F to override\n"
+      fprintf(stderr, "%sDouble check connections and try again, "
+              "or use -F to override\n"
               "%sthis check.\n\n",
               progbuf, progbuf );
-      exit(1);
+      exitrc = 1;
+      goto main_exit;
     }
   }
 
