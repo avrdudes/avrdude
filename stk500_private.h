@@ -86,7 +86,7 @@
 #define Parm_STK_PARAMODE          0x94  // ' ' - TRUE or FALSE
 #define Parm_STK_POLLING           0x95  // ' ' - TRUE or FALSE
 #define Parm_STK_SELFTIMED         0x96  // ' ' - TRUE or FALSE
-
+#define Param_STK500_TOPCARD_DETECT 0x98  // ' ' - Detect top-card attached
 
 // *****************[ STK status bit definitions ]***************************
 

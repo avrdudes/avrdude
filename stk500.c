@@ -47,7 +47,8 @@ extern int do_cycles;
 
 
 static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value);
-
+static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value);
+static void stk500_print_parms1(PROGRAMMER * pgm, char * p);
 
 static int stk500_send(PROGRAMMER * pgm, char * buf, size_t len)
 {
@@ -538,7 +539,19 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
     }
   }
 
-  return pgm->program_enable(pgm, p);
+  pgm->program_enable(pgm, p);
+
+  /*
+   * Return success even if program_enable() failed.  Otherwise, if
+   * someone has turned off the STK500 oscillator (or set it to an
+   * unreasonably slow master clock), they were hosed at this point,
+   * since to reset fosc to a reasonable value, they at least need to
+   * get avrdude to start up in terminal mode.  The luser has already
+   * seen a "failed to enter programming mode" message in that case,
+   * and he also needs to specify -F at program startup since the
+   * device ID bytes cannot be read in this situation.
+   */
+  return 0;
 }
 
 
@@ -874,6 +887,107 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
+static int stk500_set_vtarget(PROGRAMMER * pgm, double v)
+{
+  unsigned uaref, utarg;
+
+  utarg = (unsigned)((v + 0.049) * 10);
+
+  if (stk500_getparm(pgm, Parm_STK_VADJUST, &uaref) != 0) {
+    fprintf(stderr,
+	    "%s: stk500_set_vtarget(): cannot obtain V[aref]\n",
+	    progname);
+    return -1;
+  }
+
+  if (uaref > utarg) {
+    fprintf(stderr,
+	    "%s: stk500_set_vtarget(): reducing V[aref] from %.1f to %.1f\n",
+	    progname, uaref / 10.0, v);
+    if (stk500_setparm(pgm, Parm_STK_VADJUST, utarg)
+	!= 0)
+      return -1;
+  }
+  return stk500_setparm(pgm, Parm_STK_VTARGET, utarg);
+}
+
+
+static int stk500_set_varef(PROGRAMMER * pgm, double v)
+{
+  unsigned uaref, utarg;
+
+  uaref = (unsigned)((v + 0.049) * 10);
+
+  if (stk500_getparm(pgm, Parm_STK_VTARGET, &utarg) != 0) {
+    fprintf(stderr,
+	    "%s: stk500_set_varef(): cannot obtain V[target]\n",
+	    progname);
+    return -1;
+  }
+
+  if (uaref > utarg) {
+    fprintf(stderr,
+	    "%s: stk500_set_varef(): V[aref] must not be greater than "
+	    "V[target] = %.1f\n",
+	    progname, utarg / 10.0);
+    return -1;
+  }
+  return stk500_setparm(pgm, Parm_STK_VADJUST, uaref);
+}
+
+
+static int stk500_set_fosc(PROGRAMMER * pgm, double v)
+{
+#define fbase 7372800U
+  unsigned prescale, cmatch, fosc;
+  static unsigned ps[] = {
+    1, 8, 32, 64, 128, 256, 1024
+  };
+  int idx, rc;
+
+  if (v <= 0.0) {
+    prescale = cmatch = 0;
+    goto setclock;
+  }
+  if (v > fbase / 2) {
+    const char *unit;
+    if (v > 1e6) {
+      v /= 1e6;
+      unit = "MHz";
+    } else if (v > 1e3) {
+      v /= 1e3;
+      unit = "kHz";
+    } else
+      unit = "Hz";
+    fprintf(stderr,
+	    "%s: stk500_set_fosc(): f = %.3f %s too high, using %.3f MHz\n",
+	    progname, v, unit, fbase / 2e6);
+    fosc = fbase / 2;
+  } else
+    fosc = (unsigned)v;
+
+  for (idx = 0; idx < sizeof(ps) / sizeof(ps[0]); idx++) {
+    if (fosc >= fbase / (256 * ps[idx] * 2)) {
+      /* this prescaler value can handle our frequency */
+      prescale = idx + 1;
+      cmatch = (unsigned)(fbase / (2 * v * ps[idx]));
+      break;
+    }
+  }
+  if (idx == sizeof(ps) / sizeof(ps[0])) {
+    fprintf(stderr, "%s: stk500_set_fosc(): f = %u Hz too low, %u Hz min\n",
+	    progname, fosc, fbase / (256 * 1024 * 2));
+    return -1;
+  }
+ setclock:
+  if ((rc = stk500_setparm(pgm, Parm_STK_OSC_PSCALE, prescale)) != 0
+      || (rc = stk500_setparm(pgm, Parm_STK_OSC_CMATCH, cmatch)) != 0)
+    return rc;
+  
+  return 0;
+}
+
+
 static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
 {
   unsigned char buf[16];
@@ -930,18 +1044,138 @@ static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
 }
 
   
+static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value)
+{
+  unsigned char buf[16];
+  int tries = 0;
+
+ retry:
+  tries++;
+  buf[0] = Cmnd_STK_SET_PARAMETER;
+  buf[1] = parm;
+  buf[2] = value;
+  buf[3] = Sync_CRC_EOP;
+
+  stk500_send(pgm, buf, 4);
+
+  stk500_recv(pgm, buf, 1);
+  if (buf[0] == Resp_STK_NOSYNC) {
+    if (tries > 33) {
+      fprintf(stderr, "\n%s: stk500_setparm(): can't get into sync\n",
+              progname);
+      return -1;
+    }
+    stk500_getsync(pgm);
+    goto retry;
+  }
+  else if (buf[0] != Resp_STK_INSYNC) {
+    fprintf(stderr,
+            "\n%s: stk500_setparm(): (a) protocol error, "
+            "expect=0x%02x, resp=0x%02x\n", 
+            progname, Resp_STK_INSYNC, buf[0]);
+    return -2;
+  }
+
+  stk500_recv(pgm, buf, 1);
+  if (buf[0] == Resp_STK_OK)
+    return 0;
+
+  parm = buf[0];	/* if not STK_OK, we've been echoed parm here */
+  stk500_recv(pgm, buf, 1);
+  if (buf[0] == Resp_STK_FAILED) {
+    fprintf(stderr,
+            "\n%s: stk500_setparm(): parameter 0x%02x failed\n",
+            progname, parm);
+    return -3;
+  }
+  else {
+    fprintf(stderr,
+            "\n%s: stk500_setparm(): (a) protocol error, "
+            "expect=0x%02x, resp=0x%02x\n", 
+            progname, Resp_STK_INSYNC, buf[0]);
+    return -3;
+  }
+}
+
+  
 static void stk500_display(PROGRAMMER * pgm, char * p)
 {
-  unsigned maj, min, hdw;
+  unsigned maj, min, hdw, topcard;
 
   stk500_getparm(pgm, Parm_STK_HW_VER, &hdw);
   stk500_getparm(pgm, Parm_STK_SW_MAJOR, &maj);
   stk500_getparm(pgm, Parm_STK_SW_MINOR, &min);
+  stk500_getparm(pgm, Param_STK500_TOPCARD_DETECT, &topcard);
 
   fprintf(stderr, "%sHardware Version: %d\n", p, hdw);
   fprintf(stderr, "%sFirmware Version: %d.%d\n", p, maj, min);
+  if (topcard < 3) {
+    const char *n = "Unknown";
+
+    switch (topcard) {
+      case 1:
+	n = "STK502";
+	break;
+
+      case 2:
+	n = "STK501";
+	break;
+    }
+    fprintf(stderr, "%sTopcard         : %s\n", p, n);
+  }
+  stk500_print_parms1(pgm, p);
 
   return;
+}
+
+
+static void stk500_print_parms1(PROGRAMMER * pgm, char * p)
+{
+  unsigned vtarget, vadjust, osc_pscale, osc_cmatch;
+
+  stk500_getparm(pgm, Parm_STK_VTARGET, &vtarget);
+  stk500_getparm(pgm, Parm_STK_VADJUST, &vadjust);
+  stk500_getparm(pgm, Parm_STK_OSC_PSCALE, &osc_pscale);
+  stk500_getparm(pgm, Parm_STK_OSC_CMATCH, &osc_cmatch);
+
+  fprintf(stderr, "%sVtarget         : %.1f V\n", p, vtarget / 10.0);
+  fprintf(stderr, "%sVaref           : %.1f V\n", p, vadjust / 10.0);
+  fprintf(stderr, "%sOscillator      : ", p);
+  if (osc_pscale == 0)
+    fprintf(stderr, "Off\n");
+  else {
+    int prescale = 1;
+    double f = 3.6864e6;
+    const char *unit;
+
+    switch (osc_pscale) {
+      case 2: prescale = 8; break;
+      case 3: prescale = 32; break;
+      case 4: prescale = 64; break;
+      case 5: prescale = 128; break;
+      case 6: prescale = 256; break;
+      case 7: prescale = 1024; break;
+    }
+    f /= prescale;
+    f /= (osc_cmatch + 1);
+    if (f > 1e6) {
+      f /= 1e6;
+      unit = "MHz";
+    } else if (f > 1e3) {
+      f /= 1000;
+      unit = "kHz";
+    } else
+      unit = "Hz";
+    fprintf(stderr, "%.3f %s\n", f, unit);
+  }
+
+  return;
+}
+
+
+static void stk500_print_parms(PROGRAMMER * pgm)
+{
+  stk500_print_parms1(pgm, "");
 }
 
 
@@ -975,7 +1209,9 @@ void stk500_initpgm(PROGRAMMER * pgm)
    */
   pgm->paged_write    = stk500_paged_write;
   pgm->paged_load     = stk500_paged_load;
+  pgm->print_parms    = stk500_print_parms;
+  pgm->set_vtarget    = stk500_set_vtarget;
+  pgm->set_varef      = stk500_set_varef;
+  pgm->set_fosc       = stk500_set_fosc;
   pgm->page_size      = 256;
 }
-
-
