@@ -4,6 +4,25 @@ Approximate change log for AVRPROG by version
 
 ----------------------------------------------------------------------
 
+Version 2.1.5:
+
+  * When getting ready to initiate communications with the AVR device,
+    first pull /RESET low for a short period of time before enabling
+    the buffer chip.  This sequence allows the AVR to be reset before
+    the buffer is enabled to avoid a short period of time where the
+    AVR may be driving the programming lines at the same time the
+    programmer tries to.  Of course, if a buffer is being used, then
+    the /RESET line from the programmer needs to be directly connected
+    to the AVR /RESET line and not via the buffer chip.
+
+    Feature contributed by Rick C. Petty <rick@KIWI-Computer.com>.
+
+  * When in interactive terminal mode and dumping memory using the
+    'dump <memtype>' command without any address information, and the
+    end of memory is reached, wrap back around to zero on the next
+    invocation.
+
+
 Version 2.1.4:
 
   * Fix -Y option.

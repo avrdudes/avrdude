@@ -256,11 +256,17 @@ int cmd_dump(int fd, struct avrpart * p, int argc, char * argv[])
 
   maxsize = mem->size;
 
-  if (addr > maxsize) {
-    fprintf(stderr, 
-            "%s (dump): address 0x%05lx is out of range for %s memory\n",
-            progname, addr, mem->desc);
-    return -1;
+  if (addr >= maxsize) {
+    if (argc == 2) {
+      /* wrap around */
+      addr = 0;
+    }
+    else {
+      fprintf(stderr, 
+              "%s (dump): address 0x%05lx is out of range for %s memory\n",
+              progname, addr, mem->desc);
+      return -1;
+    }
   }
 
   /* trim len if nessary to not read past the end of memory */
