@@ -872,7 +872,7 @@ int ihex2b ( char * infile, FILE * inf,
     if (rectype != 0) {
       fprintf(stderr, 
               "%s: don't know how to deal with rectype=%d " 
-              "at line %d of \"%s\"\n",
+              "at line %d of %s\n",
               progname, rectype, lineno, infile);
       exit(1);
     }
@@ -1057,10 +1057,11 @@ int fileio ( int op, char * filename, int format,
     }
   }
   else {
-    f = fopen(filename, fio.mode);
+    fname = filename;
+    f = fopen(fname, fio.mode);
     if (f == NULL) {
       fprintf(stderr, "%s: can't open %s file %s: %s\n",
-              progname, fio.iodesc, filename, strerror(errno));
+              progname, fio.iodesc, fname, strerror(errno));
       return -2;
     }
   }
@@ -1475,13 +1476,14 @@ int main ( int argc, char * argv [] )
      */
     fprintf(stderr, "%s: writing %s:\n", 
             progname, memtypestr(memtype));
-#if 1
+#if 0
     rc = avr_write ( fd, memtype, p );
 #else
-    if (memtype == AVR_FLASH)
-      b2ihex ( p->flash, p->flash_size, 32, 0, "<stdout>", stdout);
-    else
-      b2ihex ( p->eeprom, p->eeprom_size, 32, 0, "<stdout>", stdout);
+    /* 
+     * test mode, don't actually write to the chip, output the buffer
+     * to stdout in intel hex instead 
+     */
+    fileio(FIO_WRITE, "-", FMT_IHEX, p, memtype);
 #endif
     if (rc) {
       fprintf ( stderr, "%s: failed to write flash memory, rc=%d\n", 
