@@ -31,6 +31,9 @@ Version ???
     definition.  This is now done in the config file using the
     'default_programmer' keyword.
 
+  * Support a per-user config file (~/.avrduderc) so that one can
+    override system wide defaults if desired.
+
   * Follow the datasheet more closely for several parts in the "retry"
     code when entering programming mode fails initially.  Introduce
     'retry_pulse' to the config file for this purpose.
