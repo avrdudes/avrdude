@@ -37,7 +37,8 @@
 /*
  * AVR memory designations; the order of these is important, these are
  * used as indexes into statically initialized data, don't change them
- * around.
+ * around.  Specifically, avr_read_byte() and avr_write_byte() rely on
+ * the order.
  */
 typedef enum {
   AVR_EEPROM,
@@ -48,7 +49,6 @@ typedef enum {
 
 #if 0
 struct avrmem {
-  AVRMEM          memtype;
   int             startaddr;
   int             size;
   unsigned char * buf;
@@ -67,10 +67,17 @@ struct avrpart {
   int             min_write_delay;  /* microseconds */
   int             max_write_delay;  /* microseconds */
   int             chip_erase_delay; /* microseconds */
+#if 1
   unsigned char * mem[AVR_MAXMEMTYPES]; /* pointers to avr memory
                                            buffers, indexed by
                                            AVR_EEPROM or AVR_FLASH */
+#else
+  struct avrmem * mem[AVR_MAXMEMTYPES]; /* pointers to avr memory
+                                           buffers, indexed by
+                                           AVR_EEPROM or AVR_FLASH */
+#endif
 };
+
 
 extern struct avrpart parts[];
 
