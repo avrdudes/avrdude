@@ -1282,26 +1282,6 @@ int main(int argc, char * argv [])
     }
   }
 
-  if (set_cycles != -1) {
-    rc = avr_get_cycle_count(pgm, p, &cycles);
-    if (rc == 0) {
-      /*
-       * only attempt to update the cycle counter if we can actually
-       * read the old value
-       */
-      cycles = set_cycles;
-      fprintf(stderr, "%s: setting erase-rewrite cycle count to %d\n", 
-              progname, cycles);
-      rc = avr_put_cycle_count(pgm, p, cycles);
-      if (rc < 0) {
-        fprintf(stderr, 
-                "%s: WARNING: failed to update the erase-rewrite cycle "
-                "counter\n",
-                progname);
-      }
-    }
-  }
-
   if ((erase == 0) && (auto_erase == 1)) {
     AVRMEM * m;
 
@@ -1321,6 +1301,44 @@ int main(int argc, char * argv [])
     }
   }
 
+    /*
+   * Display cycle count, if and only if it is not set later on.
+   *
+   * The cycle count will be displayed anytime it will be changed later.
+     */
+  if ((set_cycles == -1) && ((erase == 0) || (do_cycles == 0))) {
+    /*
+     * see if the cycle count in the last four bytes of eeprom seems
+     * reasonable 
+     */
+    rc = avr_get_cycle_count(pgm, p, &cycles);
+    if ((rc >= 0) && (cycles != 0)) {
+      fprintf(stderr,
+              "%s: current erase-rewrite cycle count is %d%s\n",
+              progname, cycles, 
+              do_cycles ? "" : " (if being tracked)");
+    }
+  }
+
+  if (set_cycles != -1) {
+    rc = avr_get_cycle_count(pgm, p, &cycles);
+    if (rc == 0) {
+      /*
+       * only attempt to update the cycle counter if we can actually
+       * read the old value
+       */
+      cycles = set_cycles;
+      fprintf(stderr, "%s: setting erase-rewrite cycle count to %d\n",
+              progname, cycles);
+      rc = avr_put_cycle_count(pgm, p, cycles);
+      if (rc < 0) {
+        fprintf(stderr,
+                "%s: WARNING: failed to update the erase-rewrite cycle "
+                "counter\n",
+                progname);
+      }
+    }
+  }
 
 
   if (erase) {
@@ -1329,24 +1347,7 @@ int main(int argc, char * argv [])
      * before the chip can accept new programming
      */
     fprintf(stderr, "%s: erasing chip\n", progname);
-    pgm->chip_erase(pgm, p);
-  }
-  else if (set_cycles == -1) {
-    /*
-     * The erase routine displays this same information, so don't
-     * repeat it if an erase was done.  Also, don't display this if we
-     * set the cycle count (due to -Y).
-     *
-     * see if the cycle count in the last four bytes of eeprom seems
-     * reasonable 
-     */
-    rc = avr_get_cycle_count(pgm, p, &cycles);
-    if ((rc >= 0) && (cycles != 0xffffffff)) {
-      fprintf(stderr,
-              "%s: current erase-rewrite cycle count is %d%s\n",
-              progname, cycles, 
-              do_cycles ? "" : " (if being tracked)");
-    }
+    avr_chip_erase(pgm, p);
   }
 
 
