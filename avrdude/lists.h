@@ -68,9 +68,6 @@ typedef void * LNODEID;
 #define LISTRMV(l,d) lrmv_d(l,d)     /* remove from end of the list */
 
 
-#define LISTSZ  32  /* size of internal private LIST structure */
-
-
 /* .................... Function Prototypes .................... */
 
 LISTID     lcreat      ( void * liststruct, int poolsize );

@@ -413,11 +413,6 @@ lcreat ( void * liststruct, int elements )
 {
   LIST * l;
 
-  if (LISTSZ != sizeof(LIST)) {
-    printf ( "lcreat(): warning, LISTSZ[%d] != sizeof(LIST)[%d]\n",
-             LISTSZ, sizeof(LIST) );
-  }
-
   if (liststruct == NULL) {
     /*--------------------------------------------------
       allocate memory for the list itself
