@@ -520,6 +520,7 @@ int read_config(char * infile, char * config, unsigned int * pinno,
       p++;
 
     if (strcasecmp(configname, config) == 0) {
+      strlcpy(desc, "no description", desclen);
       rc = parse_config(lineno, infile, config, p, pinno, desc, desclen);
       if (rc) {
         fprintf(stderr, "%s: error parsing config file \"%s\" at line %d\n",
