@@ -1,23 +1,35 @@
 #! /bin/sh
 
-# autoconf-2.57 is preferred, but >= 2.53 should be ok
+# autoconf-2.57 is required
 
-if [ "x${AUTOHEADER}" = "x" ]; then
-	AUTOHEADER="autoheader-2.57"
+: ${AUTOHEADER="autoheader${AC_VER}"}
+: ${AUTOCONF="autoconf${AC_VER}"}
+
+# automake-1.7.x is required
+
+: ${ACLOCAL="aclocal${AM_VER}"}
+: ${AUTOMAKE="automake${AM_VER}"}
+
+# Verify autoconf version
+
+AUTOCONF_VER=`(${AUTOCONF} --version 2>/dev/null | head -n 1 | \
+              cut -d ' ' -f 4) 2>/dev/null`
+if [ "$AUTOCONF_VER" != "2.57" ]
+then
+	echo "You need to use autoconf version 2.57."
+	echo "You are using `${AUTOCONF} --version | head -n 1`."
+	exit 1
 fi
 
-if [ "x${AUTOCONF}" = "x" ]; then
-	AUTOCONF="autoconf-2.57"
-fi
+# Verify automake version
 
-# automake-1.7 is preferred, but >= 1.6 should be ok
-
-if [ "x${ACLOCAL}" = "x" ]; then
-	ACLOCAL="aclocal-1.7"
-fi
-
-if [ "x${AUTOMAKE}" = "x" ]; then
-	AUTOMAKE="automake-1.7"
+AUTOMAKE_VER=`(${AUTOMAKE} --version | head -n 1 | \
+              cut -d ' ' -f 4 | cut -d '.' -f -2) 2>/dev/null`
+if [ "$AUTOMAKE_VER" != "1.7" ]
+then
+	echo "You need to use automake version 1.7 (preferrably 1.7.3)."
+	echo "You are using `${AUTOMAKE} --version | head -n 1`."
+	exit 1
 fi
 
 # Bootstrap the build system.
