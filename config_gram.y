@@ -73,6 +73,8 @@ static int parse_cmdbits(OPCODE * op);
 %token K_DEFAULT_SERIAL
 %token K_DESC
 %token K_DEVICECODE
+%token K_STK500_DEVCODE
+%token K_AVR910_DEVCODE
 %token K_EEPROM
 %token K_ERRLED
 %token K_FLASH
@@ -411,7 +413,24 @@ part_parm :
 
   K_DEVICECODE TKN_EQUAL TKN_NUMBER {
     {
-      current_part->devicecode = $3->value.number;
+      fprintf(stderr, 
+              "%s: error at %s:%d: devicecode is deprecated, use "
+              "stk500_devcode instead\n",
+              progname, infile, lineno);
+      exit(1);
+    }
+  } |
+
+  K_STK500_DEVCODE TKN_EQUAL TKN_NUMBER {
+    {
+      current_part->stk500_devcode = $3->value.number;
+      free_token($3);
+    }
+  } |
+
+  K_AVR910_DEVCODE TKN_EQUAL TKN_NUMBER {
+    {
+      current_part->avr910_devcode = $3->value.number;
       free_token($3);
     }
   } |

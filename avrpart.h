@@ -81,7 +81,8 @@ typedef struct opcode {
 typedef struct avrpart {
   char          desc[AVR_DESCLEN];  /* long part name */
   char          id[AVR_IDLEN];      /* short part name */
-  int           devicecode;         /* Atmel STK500 device code */
+  int           stk500_devcode;     /* stk500 device code */
+  int           avr910_devcode;     /* avr910 device code */
   int           chip_erase_delay;   /* microseconds */
   unsigned char pagel;              /* for parallel programming */
   unsigned char bs2;                /* for parallel programming */

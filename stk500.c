@@ -383,7 +383,7 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
    */
   buf[0] = Cmnd_STK_SET_DEVICE;
 
-  buf[1] = p->devicecode;
+  buf[1] = p->stk500_devcode;
   buf[2] = 0; /* device revision */
 
   if ((p->flags & AVRPART_SERIALOK) && (p->flags & AVRPART_PARALLELOK))
