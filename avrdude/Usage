@@ -24,7 +24,6 @@ Usage:  avrprog [options]
 
     -F            : override invalid device signature check
 
-    -c            : enter interactive command mode (or read commands
-                    from stdin)
+    -t            : enter terminal mode (or read commands from stdin)
 
     -e            : perform a chip erase (required before programming)
