@@ -1,3 +1,7 @@
+2003-03-24  Theodore A. Roth  <troth@openavr.org>
+
+	* NEWS: Add note about avr910 support.
+
 2003-03-23  Theodore A. Roth  <troth@openavr.org>
 
 	* avr.c (avr_write): Add call to pgm->write_setup() before the write
@@ -31,8 +35,8 @@
 
 2003-03-17  Eric B. Weddington  <eric@umginc.net>
 
-    * avrdude.conf.in: Add Bascom SAMPLE programmer. 
-    Submitted by Larry Barello <larryba@barrello.net>
+	* avrdude.conf.in: Add Bascom SAMPLE programmer. 
+	Submitted by Larry Barello <larryba@barrello.net>
 
 2003-03-16  Theodore A. Roth  <troth@openavr.org>
 
