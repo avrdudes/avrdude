@@ -379,7 +379,7 @@ void verify_pin_assigned(int pin, char * desc)
 PROGRAMMER * locate_pinconfig(LISTID programmers, char * configid)
 {
   LNODEID ln1, ln2;
-  PROGRAMMER * p;
+  PROGRAMMER * p = NULL;
   char * id;
   int found;
 
@@ -404,7 +404,7 @@ PROGRAMMER * locate_pinconfig(LISTID programmers, char * configid)
 AVRPART * locate_part(LISTID parts, char * partdesc)
 {
   LNODEID ln1;
-  AVRPART * p;
+  AVRPART * p = NULL;
   int found;
 
   found = 0;
