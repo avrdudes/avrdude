@@ -565,6 +565,27 @@ int main(int argc, char * argv [])
     fprintf(stderr, "\n");
   }
 
+  if (partdesc) {
+    if (strcmp(partdesc, "?") == 0) {
+      fprintf(stderr, "\n");
+      fprintf(stderr,"Valid parts are:\n");
+      list_parts(stderr, "  ", part_list);
+      fprintf(stderr, "\n");
+      exit(1);
+    }
+  }
+
+  if (programmer) {
+    if (strcmp(programmer, "?") == 0) {
+      fprintf(stderr, "\n");
+      fprintf(stderr,"Valid programmers are:\n");
+      list_programmers(stderr, "  ", programmers);
+      fprintf(stderr,"\n");
+      exit(1);
+    }
+  }
+
+
   if (programmer[0] == 0) {
     fprintf(stderr, 
             "\n%s: no programmer has been specified on the command line "
