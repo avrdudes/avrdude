@@ -1,16 +1,21 @@
-2003/11/14  Brian S. Dean  <bsd@bsdhome.com>
+2003-11-19  Theodore A. Roth  <troth@openavr.org>
+[Contributed by Jan-Hinnerk Reichert <jan-hinnerk_reichert@hamburg.de>]
 
-        * avrdude.conf.in:
-          Add ATmega64 part.
-          
-          Contributed by Erik Christiansen <erik@dd.nec.com.au>
+	* avr.c (avr_write_byte_default): Improve polling algorithm to speed up
+	programming of byte oriented parallel programmers.
 
-2003/11/08  Joerg Wunsch  <j@uriah.heep.sax.de>
+2003-11-14  Brian S. Dean  <bsd@bsdhome.com>
+[Contributed by Erik Christiansen <erik@dd.nec.com.au>]
 
-        * avrdude.conf.in:
-          Add "fuse" and "lock" definitions for the AT90S8535.  Actually,
-	  this is stolen from the AT90S8515 since the datasheet says it's
-	  the same there.
+	* avrdude.conf.in:
+	Add ATmega64 part.
+
+2003-11-08  Joerg Wunsch  <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in:
+	Add "fuse" and "lock" definitions for the AT90S8535.  Actually,
+	this is stolen from the AT90S8515 since the datasheet says it's
+	the same there.
 
 2003-10-13  Bill Somerville  <bill@classdesign.com>
 
@@ -19,11 +24,11 @@
 	(stk500_paged_write): Send whole block at once.
 	(stk500_paged_load): Limit blocks read to no bigger than memory
 	device size.
-    [This fixes bug #5713.]
+	[This fixes bug #5713.]
 
 2003-10-13  Eric B. Weddington  <eric@ecentral.com>
 
-	*avrdude.conf.in: Fix for unterminated character error.
+	* avrdude.conf.in: Fix for unterminated character error.
 
 2003-10-13  Eric B. Weddington  <eric@ecentral.com>
 

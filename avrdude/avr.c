@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/time.h>
+#include <time.h>
 
 
 #include "avr.h"
@@ -521,11 +523,14 @@ int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   unsigned char r;
   int ready;
   int tries;
+  unsigned long start_time;
+  unsigned long prog_time;
   unsigned char b;
   unsigned short caddr;
   OPCODE * writeop;
   int rc;
   int readok=0;
+  struct timeval tv;
 
   if (!mem->paged) {
     /* 
@@ -615,13 +620,6 @@ int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   tries = 0;
   ready = 0;
   while (!ready) {
-    usleep(mem->min_write_delay);
-    rc = avr_read_byte(pgm, p, mem, addr, &r);
-    if (rc != 0) {
-      pgm->pgm_led(pgm, OFF);
-      pgm->err_led(pgm, ON);
-      return -4;
-    }
 
     if ((data == mem->readback[0]) ||
         (data == mem->readback[1])) {
@@ -639,6 +637,29 @@ int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
         return -5;
       }
     }
+    else {
+      gettimeofday (&tv, NULL);
+      start_time = (tv.tv_sec * 1000000) + tv.tv_usec;
+      do {
+        /*
+         * Do polling, but timeout after max_write_delay.
+	 */
+        rc = avr_read_byte(pgm, p, mem, addr, &r);
+        if (rc != 0) {
+          pgm->pgm_led(pgm, OFF);
+          pgm->err_led(pgm, ON);
+          return -4;
+        }
+        gettimeofday (&tv, NULL);
+        prog_time = (tv.tv_sec * 1000000) + tv.tv_usec;
+      } while ((r != data) &&
+               ((prog_time-start_time) < mem->max_write_delay));
+    }
+
+    /*
+     * At this point we either have a valid readback or the
+     * max_write_delay is expired.
+     */
     
     if (r == data) {
       ready = 1;
@@ -651,7 +672,6 @@ int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
        * memory bits but not all.  We only actually power-off the
        * device if the data read back does not match what we wrote.
        */
-      usleep(mem->max_write_delay); /* maximum write delay */
       pgm->pgm_led(pgm, OFF);
       fprintf(stderr,
               "%s: this device must be powered off and back on to continue\n",
