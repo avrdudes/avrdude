@@ -39,12 +39,11 @@ term.o   : term.h avr.h
 clean :
 	rm -f *~ *.core ${TARGET} *.o
 
-install : ${BINDIR}/${TARGET} ${MANDIR}/${MANUAL}.gz
+install : ${BINDIR}/${TARGET} ${MANDIR}/${MANUAL}
 
 ${BINDIR}/${TARGET} : ${TARGET}
 	${INSTALL_PROGRAM} ${TARGET} ${BINDIR}
 
-${MANDIR}/${MANUAL}.gz : ${MANUAL}
+${MANDIR}/${MANUAL} : ${MANUAL}
 	${INSTALL_MANUAL} ${MANUAL} ${MANDIR}
-	gzip -f ${MANDIR}/${MANUAL}
 
