@@ -1,3 +1,9 @@
+2003-04-16  Eric B. Weddington  <eric@umginc.net>
+
+	* avrdude.conf.in: Add support for ATtiny26
+	Submitted by Artur Lipowski <LAL@pro.onet.pl>
+	* NEWS: List new devices supported: ATtiny26
+
 2003-04-16  Eric B. Weddington <eric@umginc.net>
 
 	* avrdude.conf.in: Add support for ATmega8535
@@ -29,7 +35,7 @@
 2003-04-03  Eric B. Weddington <eric@umginc.net>
 	
 	* confwin.c: Fix bug that allows garbage for non-existent user
-    config filename on Windows.
+	config filename on Windows.
 
 2003-03-24  Theodore A. Roth  <troth@openavr.org>
 
