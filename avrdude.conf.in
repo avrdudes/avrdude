@@ -292,6 +292,16 @@ programmer
   miso  = 11;
 ;
 
+programmer
+  id     = "picoweb";
+  desc   = "Picoweb Programming Cable www.picoweb.net";
+  type   = par;
+  reset  = 2;
+  sck    = 3;
+  mosi   = 4;
+  miso   = 13;
+;
+
 
 
 
