@@ -18,6 +18,26 @@
  */
 
 /* $Id$ */
+%{
+
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
+#include "config.h"
+#include "lists.h"
+#include "pindefs.h"
+#include "ppi.h"
+#include "pgm.h"
+#include "stk500.h"
+#include "avr.h"
+
+extern char * progname;
+
+int yylex(void);
+int yyerror(char * errmsg);
+
+%}
 
 %token K_READ
 %token K_WRITE
@@ -452,23 +472,6 @@ mem_spec :
 
 
 %%
-
-#include <string.h>
-#include <math.h>
-
-#include "config.h"
-#include "lists.h"
-#include "pindefs.h"
-#include "ppi.h"
-#include "pgm.h"
-#include "stk500.h"
-#include "avr.h"
-
-extern char * progname;
-
-int yylex(void);
-int yyerror(char * errmsg);
-
 
 #if 0
 static char * vtypestr(int type)
