@@ -192,6 +192,12 @@ programmer
 ;
 
 programmer
+  id    = "avrisp";
+  desc  = "Atmel AVR ISP";
+  type  = stk500;
+;
+
+programmer
   id    = "stk500";
   desc  = "Atmel STK500";
   type  = stk500;
