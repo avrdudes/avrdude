@@ -1,3 +1,9 @@
+2003-04-09  Theodore A. Roth  <troth@openavr.org>
+
+	* avr910.c: Reading a 16 bit word in paged load needs to swap the
+	bytes since the 'R' command returns MSB first and the internal buffer
+	stores LSB first.
+
 2003-04-07  Theodore A. Roth  <troth@openavr.org>
 
 	* stk500.c: Don't print out read/write byte progress unless the verbose
