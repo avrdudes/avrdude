@@ -225,32 +225,44 @@ static unsigned char par_txrx(PROGRAMMER * pgm, unsigned char byte)
   unsigned char r, b, rbyte;
 
   rbyte = 0;
-  for (i=0; i<8; i++) {
-    b = (byte >> (7-i)) & 0x01;
+  for (i=7; i>=0; i--) {
+    /*
+     * Write and read one bit on SPI.
+     * Some notes on timing: Let T be the time it takes to do
+     * one par_setpin()-call resp. par clrpin()-call, then
+     * - SCK is high for 2T
+     * - SCK is low for 2T
+     * - MOSI setuptime is 1T
+     * - MOSI holdtime is 3T
+     * - SCK low to MISO read is 2T to 3T
+     * So we are within programming specs (expect for AT90S1200),
+     * if and only if T>t_CLCL (t_CLCL=clock period of target system).
+     *
+     * Due to the delay introduced by "IN" and "OUT"-commands,
+     * T is greater than 1us (more like 2us) on x86-architectures.
+     * So programming works safely down to 1MHz target clock.
+    */
 
-    /* 
-     * read the result bit (it is either valid from a previous clock
-     * pulse or it is ignored in the current context)
-     */
-    r = par_getpin(pgm->fd, pgm->pinno[PIN_AVR_MISO]);
-    
+    b = (byte >> i) & 0x01;
+
     /* set the data input line as desired */
     par_setpin(pgm->fd, pgm->pinno[PIN_AVR_MOSI], b);
-    
-    /* 
-     * pulse the clock line, clocking in the MOSI data, and clocking out
-     * the next result bit
-     */
-    par_pulsepin(pgm->fd, pgm->pinno[PIN_AVR_SCK]);
 
-    rbyte = rbyte | (r << (7-i));
+    par_setpin(pgm->fd, pgm->pinno[PIN_AVR_SCK], 1);
+
+    /*
+     * read the result bit (it is either valid from a previous falling
+     * edge or it is ignored in the current context)
+     */
+    r = par_getpin(pgm->fd, pgm->pinno[PIN_AVR_MISO]);
+
+    par_setpin(pgm->fd, pgm->pinno[PIN_AVR_SCK], 0);
+
+    rbyte |= r << i;
   }
 
   return rbyte;
 }
-
-
-
 
 
 static int par_rdy_led(PROGRAMMER * pgm, int value)
