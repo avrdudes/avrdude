@@ -1,5 +1,5 @@
 /*
- * Copyright 2000  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright 2001  Brian S. Dean <bsd@bsdhome.com>
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,10 +40,8 @@
  * around.  Specifically, avr_read_byte() and avr_write_byte() rely on
  * the order.
  */
-typedef enum {
-  AVR_EEPROM,
-  AVR_FLASH
-} AVRMEM;
+#define AVR_M_EEPROM 0
+#define AVR_M_FLASH  1
 
 #define AVR_MAXMEMTYPES 2     /* just flash and eeprom */
 
@@ -56,9 +54,27 @@ struct avrmem {
 };
 #endif
 
+typedef struct avrmem {
+  int banked;                   /* bank addressed (e.g. ATmega flash) */
+  int size;                     /* total memory size in bytes */
+  int bank_size;                /* size of memory bank (if bank addressed) */
+  int num_banks;                /* number of banks (if bank addressed) */
+  int min_write_delay;          /* microseconds */
+  int max_write_delay;          /* microseconds */
+  unsigned char readback[2];    /* polled read-back values */
+  unsigned char * buf;          /* pointer to memory buffer */
+} AVRMEM;
+
+
 struct avrpart {
   char          * partdesc;         /* long part name */
   char          * optiontag;        /* short part name */
+
+  int             chip_erase_delay; /* microseconds */
+
+  AVRMEM          mem[AVR_MAXMEMTYPES];
+
+#if 0
   int             memsize[AVR_MAXMEMTYPES]; /* sizes for eeprom,
                                                flash, etc, indexed by
                                                AVR_EEPROM or AVR_FLASH */
@@ -66,7 +82,6 @@ struct avrpart {
   unsigned char   e_readback[2];    /* eeprom write polled readback values */
   int             min_write_delay;  /* microseconds */
   int             max_write_delay;  /* microseconds */
-  int             chip_erase_delay; /* microseconds */
 #if 1
   unsigned char * mem[AVR_MAXMEMTYPES]; /* pointers to avr memory
                                            buffers, indexed by
@@ -75,6 +90,7 @@ struct avrpart {
   struct avrmem * mem[AVR_MAXMEMTYPES]; /* pointers to avr memory
                                            buffers, indexed by
                                            AVR_EEPROM or AVR_FLASH */
+#endif
 #endif
 };
 
@@ -94,14 +110,14 @@ unsigned char avr_txrx ( int fd, unsigned char byte );
 int avr_cmd ( int fd, unsigned char cmd[4], unsigned char res[4] );
 
 unsigned char avr_read_byte ( int fd, struct avrpart * p,
-                              AVRMEM memtype, unsigned short addr );
+                              int memtype, unsigned short addr );
 
-int avr_read ( int fd, struct avrpart * p, AVRMEM memtype );
+int avr_read ( int fd, struct avrpart * p, int memtype );
 
-int avr_write_byte ( int fd, struct avrpart * p, AVRMEM memtype, 
+int avr_write_byte ( int fd, struct avrpart * p, int memtype, 
                      unsigned short addr, unsigned char data );
 
-int avr_write ( int fd, struct avrpart * p, AVRMEM memtype, int size );
+int avr_write ( int fd, struct avrpart * p, int memtype, int size );
 
 int avr_program_enable ( int fd );
 
@@ -115,11 +131,11 @@ void avr_powerdown ( int fd );
 
 int avr_initialize ( int fd, struct avrpart * p );
 
-char * avr_memtstr ( AVRMEM memtype );
+char * avr_memtstr ( int memtype );
 
 int avr_initmem ( struct avrpart * p );
 
-int avr_verify(struct avrpart * p, struct avrpart * v, AVRMEM memtype, 
+int avr_verify(struct avrpart * p, struct avrpart * v, int memtype, 
                int size);
 
 void avr_display ( FILE * f, struct avrpart * p, char * prefix );

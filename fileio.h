@@ -57,6 +57,6 @@ char * fmtstr ( FILEFMT format );
 int fileio_setparms ( int op, struct fioparms * fp );
 
 int fileio ( int op, char * filename, FILEFMT format, 
-             struct avrpart * p, AVRMEM memtype, int size );
+             struct avrpart * p, int memtype, int size );
 
 #endif
