@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -919,7 +919,7 @@ int main(int argc, char * argv [])
      */
     fprintf(stderr,
             "\n%s: Version %s\n"
-            "%sCopyright (c) 2000-2004 Brian Dean, bsd@bsdhome.com\n\n",
+            "%sCopyright (c) 2000-2004 Brian Dean, bsd@bdmicro.com\n\n",
             progname, version, progbuf);
   }
 
