@@ -1,3 +1,8 @@
+2003-04-23  Eric B. Weddington  <eric@umginc.net>
+
+	* fileio.c: Fix for bug #3293. Set correct open mode for raw format
+	for Windows.
+
 2003-04-18  Theodore A. Roth  <troth@openavr.org>
 
 	* configure.ac: Add cvs suffix back to version.
