@@ -50,6 +50,7 @@ avrdude_SOURCES = \
 	pindefs.h \
 	ppi.c \
 	ppi.h \
+	ppiwin.c \
 	stk500.c \
 	stk500.h \
 	stk500_private.h \
