@@ -343,12 +343,17 @@ int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 int avr_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem, 
                   unsigned long addr, unsigned char * value)
 {
+  int rc;
+
   if (pgm->read_byte) {
-    return pgm->read_byte(pgm, p, mem, addr, value);
+    rc = pgm->read_byte(pgm, p, mem, addr, value);
+    if (rc == 0) {
+      return rc;
+    }
+    /* read_byte() method failed, try again with default. */
   }
-  else {
-    return avr_read_byte_default(pgm, p, mem, addr, value);
-  }
+
+  return avr_read_byte_default(pgm, p, mem, addr, value);
 }
 
 
@@ -699,12 +704,17 @@ int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                    unsigned long addr, unsigned char data)
 {
+  int rc;
+
   if (pgm->write_byte) {
-    return pgm->write_byte(pgm, p, mem, addr, data);
+    rc = pgm->write_byte(pgm, p, mem, addr, data);
+    if (rc == 0) {
+      return rc;
+    }
+    /* write_byte() method failed, try again with default. */
   }
-  else {
-    return avr_write_byte_default(pgm, p, mem, addr, data);
-  }
+
+  return avr_write_byte_default(pgm, p, mem, addr, data);
 }
 
 

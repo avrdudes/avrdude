@@ -1,3 +1,12 @@
+2003-09-05  Theodore A. Roth  <troth@openavr.org>
+[Contributed by Jan-Hinnerk Reichert <jan-hinnerk_reichert@hamburg.de>]
+
+	* avr.c (avr_read_byte): If pgm->read_byte method fails, retry with
+	avr_read_byte_default.
+	* avr.c (avr_write_byte): If pgm->write_byte method fails, retry with
+	avr_write_byte_default.
+	* avr910.c (avr910_cmd): Implement using universal command.
+
 2003-09-04  Theodore A. Roth  <troth@openavr.org>
 
 	* Makefile.am: Change AM_CPPFLAGS to avrdude_CPPFLAGS.
