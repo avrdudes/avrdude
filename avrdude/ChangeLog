@@ -1,5 +1,10 @@
 2003-03-11  Theodore A. Roth  <troth@openavr.org>
 
+	* Makefile.am: Add CLEANFILES to remove all files from a make.
+	* doc/Makefile.am: Ditto
+
+2003-03-11  Theodore A. Roth  <troth@openavr.org>
+
 	* windows/Makefile.am: Fix uninstall-local rule (forget the $$file
 	part of the rm command).
 

@@ -21,6 +21,10 @@
 # $Id$
 #
 
+CLEANFILES = \
+	version.texi \
+	stamp-vti
+
 info_TEXINFOS = avrdude.texi
 
 all-local: info html ps pdf

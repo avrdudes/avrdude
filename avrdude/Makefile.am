@@ -29,6 +29,11 @@ EXTRA_DIST   = \
 	avrdude.spec \
 	bootstrap
 
+CLEANFILES = \
+	config_gram.c \
+	config_gram.h \
+	lexer.c
+
 SUBDIRS      = doc @WINDOWS_DIRS@
 DIST_SUBDIRS = doc windows
 
