@@ -1,5 +1,11 @@
 2003-04-05  Theodore A. Roth  <troth@openavr.org>
 
+	* avr910.c: Re-add the avr910 byte read/write methods which were 
+	removed in my previous patch. Terminal mode read/writes are broken
+	without those methods. D'oh!
+
+2003-04-05  Theodore A. Roth  <troth@openavr.org>
+
 	* avr910.c: Refactor to allow probing for auto addr increment. If auto
 	incr supported by programmer hw, don't send addr for every byte.
 
