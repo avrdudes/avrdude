@@ -1,3 +1,8 @@
+2003-11-21  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
+	* ppi.c: Major speed tuning. Since ioctl() is expensive read from
+	shadowregisters where possible.
+
 2003-11-19  Eric B. Weddington  <eric@ecentral.com>
 
 	* NEWS: Update news from items in ChangeLog.
