@@ -35,11 +35,7 @@
 .Oo Fl E Ar exitspec Ns
 .Op \&, Ns Ar exitspec
 .Oc
-.Op Fl f Ar format
 .Op Fl F
-.Op Fl i Ar filename
-.Op Fl m Ar memtype
-.Op Fl o Ar filename
 .Op Fl n
 .Op Fl P Ar port
 .Op Fl q
@@ -189,11 +185,6 @@ option with flash memory is specified,
 will perform a chip erase before starting any of the programming
 operations, since it generally is a mistake to program the flash
 without performing an erase first.  This option disables that.
-However, to remain backward compatible, the
-.Fl i ,
-and
-.Fl m
-options automatically disable the auto erase feature.
 .It Fl e
 Causes a chip erase to be executed.  This will reset the contents of the
 flash ROM and EEPROM to the value
@@ -257,32 +248,6 @@ pins of the parallel port down at program exit.
 Multiple
 .Ar exitspec
 arguments can be separated with commas.
-.It Fl f Ar format
-(Deprecated, use
-.Fl U
-instead.) This option specifies the file format for the input or
-output files to be processed.
-.Ar Format
-can be one of:
-.Bl -tag -width sss
-.It Ar i
-Intel Hex
-.It Ar s
-Motorola S-record
-.It Ar r
-raw binary; little-endian byte order, in the case of the flash ROM data
-.It Ar m
-immediate; actual byte values specified on the command line, seperated
-by commas or spaces.  This is good for programming fuse bytes without
-having to create a single-byte file or enter terminal mode.
-.It Ar a
-auto detect; valid for input only, and only if the input is not
-provided at
-.Em stdin .
-.El
-.Pp
-The default is to use auto detection for input files, and raw binary
-format for output files.
 .It Fl F
 Normally,
 .Nm
@@ -291,55 +256,10 @@ reasonable before continuing.  Since it can happen from time to time
 that a device has a broken (erased or overwritten) device signature
 but is otherwise operating normally, this options is provided to
 override the check.
-.It Fl i Ar filename
-(Deprecated, use
-.Fl U
-instead.)  Specifies the input file to be programmed into the MCU.
-Can be specified as
-.Ql \&-
-to use
-.Em stdin
-as the input.
-.It Fl I Ar data
-(Deprecated, use
-.Fl U
-instead.)  Same as specifying
-.Fl i
-and
-.Fl f Ar m
-together, i.e., this is a shortcut for using immediate file input mode
-where the filename field is used as the data itself.  Useful for
-programming single byte memories such as fuse bytes without having to
-use single byte files or enter interactive terminal mode.
-.It Fl m Ar memtype
-(Deprecated, use
-.Fl U
-instead.)  Specifies which program area of the MCU to read or write;
-allowable values depend on the MCU being programmed, but most support
-at least
-.Em eeprom
-for the EEPROM, and
-.Em flash
-for the flash ROM.  Use the
-.Fl v
-option on the command line or the
-.Ar part
-command from terminal mode to display all the memory types supported
-by a particular device.  The default is
-.Em flash .
 .It Fl n
 No-write - disables actually writing data to the MCU (useful for debugging
 .Nm avrdude
 ).
-.It Fl o Ar filename
-(Deprecated, use
-.Fl U
-instead.)  Specifies the name of the output file to write, and causes
-the respective memory area to be read from the MCU.  Can be specified
-as
-.Ql \&-
-to write to
-.Em stdout .
 .It Fl P Ar port
 Use
 .Ar port
@@ -384,9 +304,28 @@ field indicates the name of the file to read or write.
 The
 .Ar format
 field is optional and contains the format of the file to read or
-write.  See the
-.Fl f
-option for possible values.
+write.
+.Ar Format
+can be one of:
+.Bl -tag -width sss
+.It Ar i
+Intel Hex
+.It Ar s
+Motorola S-record
+.It Ar r
+raw binary; little-endian byte order, in the case of the flash ROM data
+.It Ar m
+immediate; actual byte values specified on the command line, seperated
+by commas or spaces.  This is good for programming fuse bytes without
+having to create a single-byte file or enter terminal mode.
+.It Ar a
+auto detect; valid for input only, and only if the input is not
+provided at
+.Em stdin .
+.El
+.Pp
+The default is to use auto detection for input files, and raw binary
+format for output files.
 Note that if
 .Ar filename
 contains a colon, the

@@ -4,11 +4,9 @@
 - Website needs to link to docs:
   http://savannah.nongnu.org/download/avrdude/doc/avrdude-html/
 
-- Remove old options from manpage and texinfo-documentation
-
 - [Windows Port] Use Windows API for serial port communications (ser_win32.c).
   (In Progress)
-  
+
 - Add "skip empty pages" optimization on avr910 paged write. The stk500 has
   this optimization already.
 
