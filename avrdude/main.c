@@ -711,6 +711,8 @@ int main(int argc, char * argv [])
   unsigned char safemode_lfuse = 0xff;
   unsigned char safemode_hfuse = 0xff;
   unsigned char safemode_efuse = 0xff;
+  int fuses_specified = 0;
+  int fuses_updated = 0;
 #if !defined(WIN32NATIVE)
   char  * homedir;
 #endif
@@ -1249,6 +1251,7 @@ int main(int argc, char * argv [])
       if (((strcasecmp(m->desc, "lfuse")  == 0) || 
            (strcasecmp(m->desc, "hfuse")  == 0) || 
            (strcasecmp(m->desc, "efuse")  == 0)) && (upd->op == DEVICE_WRITE)) {
+        fuses_specified = 1;
         fprintf(stderr,
                 "%s: NOTE: FUSE memory has been specified, and safemode is ON\n"
                 "%s: This will not allow you to change the fuse bits.\n"
@@ -1391,6 +1394,7 @@ int main(int argc, char * argv [])
 
     /* Now check what fuses are against what they should be */
     if (safemodeafter_lfuse != safemode_lfuse) {
+      fuses_updated = 1;
       fprintf(stderr, "%s: safemode: lfuse changed! Read as %x, was %x\n",
               progname, safemodeafter_lfuse, safemode_lfuse);
 
@@ -1407,6 +1411,7 @@ int main(int argc, char * argv [])
 
     /* Now check what fuses are against what they should be */
     if (safemodeafter_hfuse != safemode_hfuse) {
+      fuses_updated = 1;
       fprintf(stderr, "%s: safemode: hfuse changed! Read as %x, was %x\n",
               progname, safemodeafter_hfuse, safemode_hfuse);
 
@@ -1423,6 +1428,7 @@ int main(int argc, char * argv [])
 
     /* Now check what fuses are against what they should be */
     if (safemodeafter_efuse != safemode_efuse) {
+      fuses_updated = 1;
       fprintf(stderr, "%s: safemode: efuse changed! Read as %x, was %x\n",
               progname, safemodeafter_efuse, safemode_efuse);
 
@@ -1443,6 +1449,10 @@ int main(int argc, char * argv [])
     }
     else {
       fprintf(stderr, "Fuses not recovered, sorry\n");
+    }
+
+    if (fuses_updated && fuses_specified) {
+      exitrc = 1;
     }
 
   }
