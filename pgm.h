@@ -53,6 +53,7 @@ typedef struct programmer_t {
   unsigned int pinno[N_PINS];
   int ppidata;
   int fd;
+  int  page_size;  /* page size if the programmer supports paged write/load */
   int  (*rdy_led)        (struct programmer_t * pgm, int value);
   int  (*err_led)        (struct programmer_t * pgm, int value);
   int  (*pgm_led)        (struct programmer_t * pgm, int value);
@@ -72,9 +73,9 @@ typedef struct programmer_t {
   void (*open)           (struct programmer_t * pgm, char * port);
   void (*close)          (struct programmer_t * pgm);
   int  (*paged_write)    (struct programmer_t * pgm, AVRPART * p, AVRMEM * m, 
-                          int n_bytes);
+                          int page_size, int n_bytes);
   int  (*paged_load)     (struct programmer_t * pgm, AVRPART * p, AVRMEM * m,
-                          int n_bytes);
+                          int page_size, int n_bytes);
 } PROGRAMMER;
 
 

@@ -374,12 +374,20 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
     size = mem->size;
   }
 
-  if (mem->paged && pgm->paged_load != NULL) {
-    /*
-     * the programmer directly supports writing this memory, perhaps
-     * more efficiently than we can from here 
-     */
-    return pgm->paged_load(pgm, p, mem, size);
+  if ((strcmp(mem->desc, "flash")==0) || (strcmp(mem->desc, "eeprom")==0)) {
+    if (pgm->paged_load != NULL) {
+      /*
+       * the programmer supports a paged mode read, perhaps more
+       * efficiently than we can read it directly, so use its routine
+       * instead
+       */
+      if (mem->paged) {
+        return pgm->paged_load(pgm, p, mem, mem->page_size, size);
+      }
+      else {
+        return pgm->paged_load(pgm, p, mem, pgm->page_size, size);
+      }
+    }
   }
 
 
@@ -434,7 +442,7 @@ int avr_write_page(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
    * if this memory is word-addressable, adjust the address
    * accordingly
    */
-  if (mem->op[AVR_OP_LOADPAGE_LO])
+  if ((mem->op[AVR_OP_LOADPAGE_LO]) || (mem->op[AVR_OP_READ_LO]))
     addr = addr / 2;
 
   pgm->pgm_led(pgm, ON);
@@ -674,12 +682,20 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
 
   pgm->err_led(pgm, OFF);
 
-  if (m->paged && pgm->paged_write != NULL) {
-    /*
-     * the programmer directly supports writing this memory, perhaps
-     * more efficiently than we can from here 
-     */
-    return pgm->paged_write(pgm, p, m, size);
+  if ((strcmp(m->desc, "flash")==0) || (strcmp(m->desc, "eeprom")==0)) {
+    if (pgm->paged_write != NULL) {
+      /*
+       * the programmer supports a paged mode write, perhaps more
+       * efficiently than we can read it directly, so use its routine
+       * instead
+       */
+      if (m->paged) {
+        return pgm->paged_write(pgm, p, m, m->page_size, size);
+      }
+      else {
+        return pgm->paged_write(pgm, p, m, pgm->page_size, size);
+      }
+    }
   }
 
   printed = 0;

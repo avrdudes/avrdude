@@ -737,7 +737,8 @@ static int loadaddr(PROGRAMMER * pgm, uint16_t addr)
 }
 
 
-int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, int n_bytes)
+int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
+                       int page_size, int n_bytes)
 {
   unsigned char buf[16];
   int memtype;
@@ -746,9 +747,6 @@ int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, int n_bytes)
   int i;
   int tries;
   unsigned int n;
-
-  if (!m->paged)
-    return -1;
 
   if (strcmp(m->desc, "flash") == 0) {
     memtype = 'F';
@@ -760,7 +758,7 @@ int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, int n_bytes)
     return -2;
   }
 
-  if (m->op[AVR_OP_LOADPAGE_LO])
+  if ((m->op[AVR_OP_LOADPAGE_LO]) || (m->op[AVR_OP_READ_LO]))
     a_div = 2;
   else
     a_div = 1;
@@ -770,26 +768,26 @@ int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, int n_bytes)
     n = m->size;
   }
   else {
-    if ((n_bytes % m->page_size) != 0) {
-      n = n_bytes + m->page_size - (n_bytes % m->page_size);
+    if ((n_bytes % page_size) != 0) {
+      n = n_bytes + page_size - (n_bytes % page_size);
     }
     else {
       n = n_bytes;
     }
   }
 
-  for (addr = 0; addr < n; addr += m->page_size) {
+  for (addr = 0; addr < n; addr += page_size) {
     fprintf(stderr, "\r      \r%6u", addr);
     tries = 0;
   retry:
     tries++;
     loadaddr(pgm, addr/a_div);
     buf[0] = Cmnd_STK_PROG_PAGE;
-    buf[1] = (m->page_size >> 8) & 0xff;
-    buf[2] = m->page_size & 0xff;
+    buf[1] = (page_size >> 8) & 0xff;
+    buf[2] = page_size & 0xff;
     buf[3] = memtype;
     send(pgm, buf, 4);
-    for (i=0; i<m->page_size; i++) {
+    for (i=0; i<page_size; i++) {
       buf[0] = m->buf[addr + i];
       send(pgm, buf, 1);
     }
@@ -830,7 +828,8 @@ int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, int n_bytes)
 }
 
 
-int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, int n_bytes)
+int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
+                      int page_size, int n_bytes)
 {
   unsigned char buf[16];
   int memtype;
@@ -838,9 +837,6 @@ int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, int n_bytes)
   int a_div;
   int tries;
   unsigned int n;
-
-  if (!m->paged)
-    return -1;
 
   if (strcmp(m->desc, "flash") == 0) {
     memtype = 'F';
@@ -852,7 +848,7 @@ int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, int n_bytes)
     return -2;
   }
 
-  if (m->op[AVR_OP_LOADPAGE_LO])
+  if ((m->op[AVR_OP_LOADPAGE_LO]) || (m->op[AVR_OP_READ_LO]))
     a_div = 2;
   else
     a_div = 1;
@@ -862,23 +858,26 @@ int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, int n_bytes)
     n = m->size;
   }
   else {
-    if ((n_bytes % m->page_size) != 0) {
-      n = n_bytes + m->page_size - (n_bytes % m->page_size);
+    if ((n_bytes % page_size) != 0) {
+      n = n_bytes + page_size - (n_bytes % page_size);
     }
     else {
       n = n_bytes;
     }
   }
 
-  for (addr = 0; addr < n; addr += m->page_size) {
+  fprintf(stderr, "%s: stk500_paged_load(): n=%d, a_div=%d\n", 
+          progname, n, a_div);
+
+  for (addr = 0; addr < n; addr += page_size) {
     fprintf(stderr, "\r      \r%6u", addr);
     tries = 0;
   retry:
     tries++;
     loadaddr(pgm, addr/a_div);
     buf[0] = Cmnd_STK_READ_PAGE;
-    buf[1] = (m->page_size >> 8) & 0xff;
-    buf[2] = m->page_size & 0xff;
+    buf[1] = (page_size >> 8) & 0xff;
+    buf[2] = page_size & 0xff;
     buf[3] = memtype;
     buf[4] = Sync_CRC_EOP;
     send(pgm, buf, 5);
@@ -901,7 +900,7 @@ int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, int n_bytes)
       return -4;
     }
 
-    recv(pgm, &m->buf[addr], m->page_size);
+    recv(pgm, &m->buf[addr], page_size);
 
     recv(pgm, buf, 1);
     if (buf[0] != Resp_STK_OK) {
@@ -1020,6 +1019,7 @@ void stk500_initpgm(PROGRAMMER * pgm)
    */
   pgm->paged_write    = stk500_paged_write;
   pgm->paged_load     = stk500_paged_load;
+  pgm->page_size      = 256;
 }
 
 
