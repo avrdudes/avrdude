@@ -536,8 +536,10 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
     }
   }
 
+#if 0
   fprintf(stderr, "%s: stk500_initialize(): n_extparms = %d\n", 
           progname, n_extparms);
+#endif
     
   buf[5] = 1; /* polling supported - XXX need this in config file */
   buf[6] = 1; /* programming is self-timed - XXX need in config file */
