@@ -53,6 +53,10 @@ extern int          lineno;
 extern char       * infile;
 extern LISTID       string_list;
 extern LISTID       number_list;
+extern char         default_parallel[];
+extern char         default_serial[];
+
+
 
 #if !defined(HAS_YYSTYPE)
 #define YYSTYPE struct token_t *

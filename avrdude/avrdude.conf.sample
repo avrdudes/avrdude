@@ -170,6 +170,13 @@
 
 
 #
+# Overall avrdude defaults
+#
+default_parallel = "/dev/ppi0";
+default_serial   = "/dev/cuaa0";
+
+
+#
 # PROGRAMMER DEFINITIONS
 #
 
