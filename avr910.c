@@ -572,6 +572,7 @@ static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   int rd_size;
   unsigned int addr = 0;
   unsigned int max_addr;
+  unsigned char buf[2];
 
   if (strcmp(m->desc, "flash") == 0) {
     cmd = 'R';
@@ -591,7 +592,16 @@ static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   while (addr < max_addr) {
     avr910_send(pgm, &cmd, 1);
-    avr910_recv(pgm, &m->buf[addr], rd_size);
+    if (cmd == 'R') {
+      /* The 'R' command returns two bytes, MSB first, we need to put the data
+         into the memory buffer LSB first. */
+      avr910_recv(pgm, buf, 2);
+      m->buf[addr*2]   = buf[1];  /* LSB */
+      m->buf[addr*2+1] = buf[0];  /* MSB */
+    }
+    else {
+      avr910_recv(pgm, &m->buf[addr], 1);
+    }
 
     addr++;
 
