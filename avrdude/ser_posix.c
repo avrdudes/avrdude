@@ -26,6 +26,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/time.h>
 
 #include <fcntl.h>
 #include <termios.h>
