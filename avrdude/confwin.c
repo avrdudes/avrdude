@@ -1,0 +1,49 @@
+/*
+ * avrdude - A Downloader/Uploader for AVR device programmers
+ * Copyright (C) 2003  Eric B. Weddington <eric@umginc.net> or <eric@ecentral.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+
+
+#if defined(__CYGWIN__)
+
+#include <limits.h>
+#include <windows.h>
+
+
+static char *filename;
+
+
+void win_sys_config_set(char sys_config[PATH_MAX])
+{
+    /* Use Windows API call to search for the Windows default system config file.*/
+    SearchPath(NULL, "avrdude.conf", NULL, PATH_MAX, sys_config, &filename);
+    return;
+}
+
+
+void win_usr_config_set(char usr_config[PATH_MAX])
+{
+    /* Use Windows API call to search for the Windows default user config file. */
+	SearchPath(NULL, "avrdude.rc", NULL, PATH_MAX, usr_config, &filename);
+    return;
+}
+
+
+#endif
+
+
