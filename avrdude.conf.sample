@@ -284,7 +284,7 @@ part
 
 
 part
-    id               = "103";
+    id               = "m103";
     desc             = "ATMEGA103";
     chip_erase_delay = 112000;
     eeprom
@@ -311,7 +311,7 @@ part
 
 
 part
-    id               = "16";
+    id               = "m16";
     desc             = "ATMEGA16";
     chip_erase_delay = 9000;
     eeprom
@@ -328,6 +328,32 @@ part
         paged           = yes;
         size            = 16384;
         page_size       = 128;
+        num_pages       = 128;
+        min_write_delay = 4500;
+        max_write_delay = 9000;
+        readback_p1     = 0xff;
+        readback_p2     = 0xff;
+      ;
+  ;
+
+part
+    id               = "m8";
+    desc             = "ATMEGA8";
+    chip_erase_delay = 9000;
+    eeprom
+        paged           = no;
+        size            = 512;
+        page_size       = 0;
+        num_pages       = 0;
+        min_write_delay = 9000;
+        max_write_delay = 9000;
+        readback_p1     = 0xff;
+        readback_p2     = 0xff;
+      ;
+    flash
+        paged           = yes;
+        size            = 8192;
+        page_size       = 64;
         num_pages       = 128;
         min_write_delay = 4500;
         max_write_delay = 9000;

@@ -281,7 +281,7 @@ int avr_read(int fd, AVRPART * p, int memtype)
 
   for (i=0; i<size; i++) {
     rbyte = avr_read_byte(fd, p, memtype, i);
-    if (i % 1024 == 0)
+    if (i % 16 == 0)
       fprintf(stderr, "                    \r%4lu  0x%02x", i, rbyte);
     buf[i] = rbyte;
   }
@@ -470,7 +470,7 @@ int avr_write(int fd, AVRPART * p, int memtype, int size)
     /* eeprom or low byte of flash */
     data = p->mem[memtype].buf[i];
     rc = avr_write_byte(fd, p, memtype, i, data);
-    if (i % 1024 == 0)
+    if (i % 16 == 0)
       fprintf(stderr, "                      \r%4lu 0x%02x", i, data);
     if (rc) {
       fprintf(stderr, " ***failed;  ");
