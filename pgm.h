@@ -42,6 +42,7 @@ typedef struct programmer_t {
   char port[PGM_PORTLEN];
   unsigned int pinno[N_PINS];
   int ppidata;
+  int ppictrl;
   int baudrate;
   int fd;
   int  page_size;  /* page size if the programmer supports paged write/load */
@@ -51,8 +52,6 @@ typedef struct programmer_t {
   int  (*vfy_led)        (struct programmer_t * pgm, int value);
   int  (*initialize)     (struct programmer_t * pgm, AVRPART * p);
   void (*display)        (struct programmer_t * pgm, char * p);
-  int  (*save)           (struct programmer_t * pgm);
-  void (*restore)        (struct programmer_t * pgm);
   void (*enable)         (struct programmer_t * pgm);
   void (*disable)        (struct programmer_t * pgm);
   void (*powerup)        (struct programmer_t * pgm);
@@ -61,7 +60,7 @@ typedef struct programmer_t {
   int  (*chip_erase)     (struct programmer_t * pgm, AVRPART * p);
   int  (*cmd)            (struct programmer_t * pgm, unsigned char cmd[4], 
                           unsigned char res[4]);
-  void (*open)           (struct programmer_t * pgm, char * port);
+  int  (*open)           (struct programmer_t * pgm, char * port);
   void (*close)          (struct programmer_t * pgm);
   int  (*paged_write)    (struct programmer_t * pgm, AVRPART * p, AVRMEM * m, 
                           int page_size, int n_bytes);

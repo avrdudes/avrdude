@@ -1,3 +1,10 @@
+2004-01-28  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
+	* pgm.[ch], main.c, par.c, avr910.c, butterfly.c, stk500.c:
+	Move save/restore-functionality into open/close.
+	* par.c: open/close now saves/restores PPICTRL, too.
+	* TODO: exitspecs don't work if RESET is in PPICTRL.
+
 2004-01-26  Theodore A. Roth  <troth@openavr.org>
 
 	* configure.ac (AC_INIT): Post release version update.

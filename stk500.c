@@ -522,16 +522,6 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
 }
 
 
-static int stk500_save(PROGRAMMER * pgm)
-{
-  return 0;
-}
-
-static void stk500_restore(PROGRAMMER * pgm)
-{
-  return;
-}
-
 static void stk500_disable(PROGRAMMER * pgm)
 {
   unsigned char buf[16];
@@ -585,7 +575,7 @@ static void stk500_enable(PROGRAMMER * pgm)
 }
 
 
-static void stk500_open(PROGRAMMER * pgm, char * port)
+static int stk500_open(PROGRAMMER * pgm, char * port)
 {
   strcpy(pgm->port, port);
   pgm->fd = serial_open(port, 115200);
@@ -598,6 +588,8 @@ static void stk500_open(PROGRAMMER * pgm, char * port)
   stk500_getsync(pgm);
 
   stk500_drain(pgm, 0);
+
+  return 0;
 }
 
 
@@ -1185,8 +1177,6 @@ void stk500_initpgm(PROGRAMMER * pgm)
   pgm->vfy_led        = stk500_vfy_led;
   pgm->initialize     = stk500_initialize;
   pgm->display        = stk500_display;
-  pgm->save           = stk500_save;
-  pgm->restore        = stk500_restore;
   pgm->enable         = stk500_enable;
   pgm->disable        = stk500_disable;
   pgm->powerup        = stk500_powerup;

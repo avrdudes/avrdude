@@ -679,7 +679,6 @@ int main(int argc, char * argv [])
   struct avrpart * p;           /* which avr part we are programming */
   struct avrpart * v;           /* used for verify */
   int              readorwrite; /* true if a chip read/write op was selected */
-  int              ppidata;	/* cached value of the ppi data register */
   AVRMEM         * sig;         /* signature data */
   struct stat      sb;
   UPDATE         * upd;
@@ -1161,7 +1160,7 @@ int main(int argc, char * argv [])
    */
   if (port[0] == 0) {
     fprintf(stderr, "\n%s: no port has been specified on the command line "
-            "or the config file\n", 
+            "or the config file\n",
             progname);
     fprintf(stderr, "%sSpecify a port using the -P option and try again\n\n",
             progbuf);
@@ -1173,7 +1172,12 @@ int main(int argc, char * argv [])
     fprintf(stderr, "%sUsing Programmer      : %s\n", progbuf, programmer);
   }
 
-  pgm->open(pgm, port);
+  rc = pgm->open(pgm, port);
+  if (rc < 0) {
+    exitrc = 1;
+    pgm->ppidata = 0; /* clear all bits at exit */
+    goto main_exit;
+  }
 
   if (verbose) {
     avr_display(stderr, p, progbuf, verbose);
@@ -1186,15 +1190,8 @@ int main(int argc, char * argv [])
   exitrc = 0;
 
   /*
-   * allow the programmer to save its state
+   * handle exit specs. FIXME: this should be moved to "par.c"
    */
-  rc = pgm->save(pgm);
-  if (rc < 0) {
-    exitrc = 1;
-    ppidata = 0; /* clear all bits at exit */
-    goto main_exit;
-  }
-
   if (strcmp(pgm->type, "PPI") == 0) {
     pgm->ppidata &= ~ppiclrbits;
     pgm->ppidata |= ppisetbits;
@@ -1411,11 +1408,6 @@ int main(int argc, char * argv [])
    */
 
   pgm->powerdown(pgm);
-
-  /*
-   * restore programmer state
-   */
-  pgm->restore(pgm);
 
   pgm->disable(pgm);
 
