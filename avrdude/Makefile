@@ -21,7 +21,6 @@
 # $Id$
 #
 
-
 TARGET       = avrdude
 
 PREFIX      ?= /usr/local
@@ -33,6 +32,7 @@ CONFIGDIR    = ${PREFIX}/etc
 
 DIRS         = ${BINDIR} ${MANDIR} ${DOCDIR} ${CONFIGDIR}
 
+YACC         = byacc
 INSTALL      = /usr/bin/install -c -o root -g wheel
 
 CFLAGS       += -Wall -DCONFIG_DIR=\"${CONFIGDIR}\" ${YYDEF}
@@ -44,24 +44,24 @@ INSTALL_PROGRAM = ${INSTALL} -m 555 -s
 INSTALL_DATA    = ${INSTALL} -m 444
 INSTALL_MANUAL  = ${INSTALL_DATA}
 
-
 LIBS       = -lreadline
 
 YYDEF  = -DYYSTYPE="struct token_t *"
 
-SRCS = avr.c config.c fileio.c lists.c main.c pgm.c ppi.c stk500.c term.c
+SRCS = config_gram.c avr.c config.c fileio.c lexer.c lists.c main.c pgm.c \
+	ppi.c stk500.c term.c
 
 OBJS = config_gram.o avr.o config.o fileio.o lexer.o lists.o main.o pgm.o \
 	ppi.o stk500.o term.o
 
-all : ${TARGET}
+all : depend ${TARGET}
 
 
 ${TARGET} : ${OBJS}
 	${CC} ${LDFLAGS} -o ${TARGET} ${OBJS} ${LIBS}
 
 clean :
-	rm -f *.o lexer.c ${TARGET} *~ *.core y.tab.c y.tab.h y.output
+	rm -f *.o config_gram.c lexer.c ${TARGET} *~ *.core y.tab.h y.output
 
 install : dirs                             \
 	  ${BINDIR}/${TARGET}              \
@@ -69,24 +69,6 @@ install : dirs                             \
 	  ${DOCDIR}/avrdude.pdf            \
 	  ${CONFIGDIR}/avrdude.conf.sample \
 	  ${CONFIGDIR}/avrdude.conf
-
-# these dependencies are manual
-config_gram.o : config.h lists.h pindefs.h ppi.h pgm.h stk500.h avr.h
-lexer.o : config.h y.tab.h lists.h
-
-# these dependencie are generated using 'make depend'
-avr.o: avr.c avr.h avrpart.h lists.h pgm.h pindefs.h config.h ppi.h
-config.o: config.c avr.h avrpart.h lists.h pgm.h pindefs.h config.h \
-  y.tab.h
-fileio.o: fileio.c avr.h avrpart.h lists.h pgm.h pindefs.h fileio.h
-lists.o: lists.c lists.h
-main.o: main.c avr.h avrpart.h lists.h pgm.h pindefs.h config.h fileio.h \
-  ppi.h term.h
-pgm.o: pgm.c pgm.h avrpart.h lists.h pindefs.h
-ppi.o: ppi.c avr.h avrpart.h lists.h pgm.h pindefs.h ppi.h config.h
-stk500.o: stk500.c avr.h avrpart.h lists.h pgm.h pindefs.h \
-  stk500_private.h
-term.o: term.c avr.h avrpart.h lists.h pgm.h pindefs.h config.h ppi.h
 
 dirs :
 	@for dir in ${DIRS}; do \
@@ -116,8 +98,19 @@ ${CONFIGDIR}/avrdude.conf : avrdude.conf.sample
 	fi
 	${INSTALL_DATA} avrdude.conf.sample $@
 
+.SUFFIXES: .c .y .l
+
+.y.c:
+	${YACC} ${YFLAGS} $<
+	mv -f y.tab.c $@
+
+.l.c:
+	${LEX} -t $< > $@
+
 depend :
-	@echo Dependency List:
 	@if [ ! -f y.tab.h ]; then touch y.tab.h; fi
-	@gcc ${CFLAGS} -MM ${SRCS}
+	@${MAKE} config_gram.c lexer.c
+	@${CC} ${CFLAGS} -MM ${SRCS} > .depend
+
+-include .depend
 
