@@ -1411,6 +1411,8 @@ means that after the first time install_giveio is executed, you should
 be able to subsequently execute the batch file from any directory and have
 it successfully start the driver.
 
+Note that you must have administrator privilege to load the giveio driver.
+
 @c
 @c Node
 @c
