@@ -1,3 +1,8 @@
+2004-07-17  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
+        * avrdude.1: Fixed obvious copy and paste error
+        (Patch #3199 contributed by Galen Seitz)
+        
 2004-07-15  Theodore A. Roth  <troth@openavr.org>
 
 	* main.c (main): Don't indent CPP directives.
