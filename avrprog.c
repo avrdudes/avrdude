@@ -128,15 +128,30 @@ struct avrpart {
 };
 
 
+
+/* Need to add information for 2323, 2343, and 4414 */
+
 struct avrpart parts[] = {
-  { "AT90S8515", "8515", 8192, 512, 0x7f, { 0x80, 0x7f },
+  { "AT90S1200", "1200", 1024,  64, 0xff, { 0x00, 0xff }, 
     9000, 20000, 20000, NULL, NULL },
 
   { "AT90S2313", "2313", 2048, 128, 0x7f, { 0x80, 0x7f }, 
     9000, 20000, 20000, NULL, NULL },
 
-  { "AT90S1200", "1200", 1024,  64, 0x7f, { 0x80, 0x7f }, 
-    9000, 20000, 20000, NULL, NULL }
+  { "AT90S2333", "2333", 2048, 128, 0xff, { 0x00, 0xff },
+    9000, 20000, 20000, NULL, NULL },
+
+  { "AT90S4433", "4433", 4096, 256, 0xff, { 0x00, 0xff },
+    9000, 20000, 20000, NULL, NULL },
+
+  { "AT90S4434", "4434", 4096, 256, 0xff, { 0x00, 0xff },
+    9000, 20000, 20000, NULL, NULL },
+
+  { "AT90S8515", "8515", 8192, 512, 0x7f, { 0x80, 0x7f },
+    9000, 20000, 20000, NULL, NULL },
+
+  { "AT90S8535", "8535", 8192, 512, 0xff, { 0x00, 0xff },
+    9000, 20000, 20000, NULL, NULL },
 };
 
 #define N_AVRPARTS (sizeof(parts)/sizeof(struct avrpart))
@@ -208,8 +223,7 @@ char * usage_text =
 "\n"
 "    -F            : override invalid device signature check\n"
 "\n"
-"    -c            : enter interactive command mode (or read commands\n"
-"                    from stdin)\n"
+"    -t            : enter terminal mode (or read commands from stdin)\n"
 "\n"
 "    -e            : perform a chip erase (required before programming)\n"
 "\n";
@@ -1833,7 +1847,7 @@ int main ( int argc, char * argv [] )
   char  * inputf;      /* input file name */
   int     ovsigck;     /* 1=override sig check, 0=don't */
   char  * parallel;    /* parallel port device */
-  int     interactive; /* 1=enter interactive command mode, 0=don't */
+  int     terminal;    /* 1=enter terminal mode, 0=don't */
   FILEFMT filefmt;     /* FMT_AUTO, FMT_IHEX, FMT_SREC, FMT_RBIN */
   int     nowrite;     /* don't actually write anything to the chip */
   int     verify;      /* perform a verify operation */
@@ -1847,7 +1861,7 @@ int main ( int argc, char * argv [] )
   erase       = 0;
   p           = NULL;
   ovsigck     = 0;
-  interactive = 0;
+  terminal = 0;
   filefmt     = FMT_AUTO;
   nowrite     = 0;
   verify      = 1;        /* on by default; XXX can't turn it off */
@@ -1898,7 +1912,7 @@ int main ( int argc, char * argv [] )
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?cef:Fi:m:no:p:P:v")) != -1) {
+  while ((ch = getopt(argc,argv,"?ef:Fi:m:no:p:P:tv")) != -1) {
 
     switch (ch) {
       case 'm': /* select memory type to operate on */
@@ -1927,14 +1941,14 @@ int main ( int argc, char * argv [] )
         break;
 
       case 'o': /* specify output file */
-        if (inputf || interactive) {
-          fprintf(stderr,"%s: -i, -o, and -c are incompatible\n\n", progname);
+        if (inputf || terminal) {
+          fprintf(stderr,"%s: -i, -o, and -t are incompatible\n\n", progname);
           return 1;
         }
         doread = 1;
         outputf = optarg;
         if (filefmt == FMT_AUTO)
-          filefmt = FMT_IHEX;
+          filefmt = FMT_RBIN;
         break;
 
       case 'p' : /* specify AVR part */
@@ -1960,8 +1974,8 @@ int main ( int argc, char * argv [] )
         break;
 
       case 'i': /* specify input file */
-        if (outputf || interactive) {
-          fprintf(stderr,"%s: -o, -i, and -c are incompatible\n\n", progname);
+        if (outputf || terminal) {
+          fprintf(stderr,"%s: -o, -i, and -t are incompatible\n\n", progname);
           return 1;
         }
         doread = 0;
@@ -1993,15 +2007,15 @@ int main ( int argc, char * argv [] )
         }
         break;
 
-      case 'c': /* enter interactive command mode */
+      case 't': /* enter terminal mode */
         if (!((inputf == NULL)||(outputf == NULL))) {
           fprintf(stderr, 
-                  "%s: interactive mode is not compatible with -i or -o\n\n",
+                  "%s: terminal mode is not compatible with -i or -o\n\n",
                   progname);
           usage();
           exit(1);
         }
-        interactive = 1;
+        terminal = 1;
         break;
 
       case 'P':
@@ -2133,7 +2147,7 @@ int main ( int argc, char * argv [] )
   }
 
 
-  if (!interactive && ((inputf==NULL) && (outputf==NULL))) {
+  if (!terminal && ((inputf==NULL) && (outputf==NULL))) {
     /*
      * Check here to see if any other operations were selected and
      * generate an error message because if they were, we need either
@@ -2148,9 +2162,9 @@ int main ( int argc, char * argv [] )
     goto main_exit;
   }
 
-  if (interactive) {
+  if (terminal) {
     /*
-     * interactive command mode
+     * terminal mode
      */
     exitrc = go_interactive(fd, p);
   }
