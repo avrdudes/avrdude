@@ -633,29 +633,38 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
   }
 
   if (n_extparms) {
-    buf[0] = n_extparms+1;
-    /*
-     * m is currently pointing to eeprom memory if the part has it
-     */
-    if (m)
-      buf[1] = m->page_size;
-    else
-      buf[1] = 0;
-
-    buf[2] = p->pagel;
-    buf[3] = p->bs2;
-
-    if (n_extparms == 4) {
-      if (p->reset_disposition == RESET_DEDICATED)
-        buf[4] = 0;
-      else
-        buf[4] = 1;
+    if ((p->pagel == 0) || (p->bs2 == 0)) {
+      fprintf(stderr, 
+              "%s: please define PAGEL and BS2 signals in the configuration "
+              "file for part %s\n", 
+              progname, p->desc);
     }
+    else {
+      buf[0] = n_extparms+1;
 
-    rc = stk500_set_extended_parms(pgm, n_extparms+1, buf);
-    if (rc) {
-      fprintf(stderr, "%s: stk500_initialize(): failed\n", progname);
-      exit(1);
+      /*
+       * m is currently pointing to eeprom memory if the part has it
+       */
+      if (m)
+        buf[1] = m->page_size;
+      else
+        buf[1] = 0;
+      
+      buf[2] = p->pagel;
+      buf[3] = p->bs2;
+      
+      if (n_extparms == 4) {
+        if (p->reset_disposition == RESET_DEDICATED)
+          buf[4] = 0;
+        else
+          buf[4] = 1;
+      }
+      
+      rc = stk500_set_extended_parms(pgm, n_extparms+1, buf);
+      if (rc) {
+        fprintf(stderr, "%s: stk500_initialize(): failed\n", progname);
+        exit(1);
+      }
     }
   }
 
