@@ -175,32 +175,6 @@ AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
 
 
 /*
- * transmit and receive a bit of data to/from the AVR device
- */
-int avr_txrx_bit(int fd, int bit)
-{
-  int r;
-
-  /* 
-   * read the result bit (it is either valid from a previous clock
-   * pulse or it is ignored in the current context)
-   */
-  r = ppi_getpin(fd, pgm->pinno[PIN_AVR_MISO]);
-
-  /* set the data input line as desired */
-  ppi_setpin(fd, pgm->pinno[PIN_AVR_MOSI], bit);
-
-  /* 
-   * pulse the clock line, clocking in the MOSI data, and clocking out
-   * the next result bit
-   */
-  ppi_pulsepin(fd, pgm->pinno[PIN_AVR_SCK]);
-
-  return r;
-}
-
-
-/*
  * transmit and receive a byte of data to/from the AVR device
  */
 unsigned char avr_txrx(int fd, unsigned char byte)
@@ -211,7 +185,22 @@ unsigned char avr_txrx(int fd, unsigned char byte)
   rbyte = 0;
   for (i=0; i<8; i++) {
     b = (byte >> (7-i)) & 0x01;
-    r = avr_txrx_bit(fd, b);
+
+    /* 
+     * read the result bit (it is either valid from a previous clock
+     * pulse or it is ignored in the current context)
+     */
+    r = ppi_getpin(fd, pgm->pinno[PIN_AVR_MISO]);
+    
+    /* set the data input line as desired */
+    ppi_setpin(fd, pgm->pinno[PIN_AVR_MOSI], b);
+    
+    /* 
+     * pulse the clock line, clocking in the MOSI data, and clocking out
+     * the next result bit
+     */
+    ppi_pulsepin(fd, pgm->pinno[PIN_AVR_SCK]);
+
     rbyte = rbyte | (r << (7-i));
   }
 
@@ -245,6 +234,11 @@ int avr_cmd(int fd, unsigned char cmd[4], unsigned char res[4])
 }
 
 
+/*
+ * avr_set_bits()
+ *
+ * Set instruction bits in the specified command based on the opcode.  
+ */
 int avr_set_bits(OPCODE * op, unsigned char * cmd)
 {
   int i, j, bit;
@@ -266,6 +260,12 @@ int avr_set_bits(OPCODE * op, unsigned char * cmd)
 }
 
 
+/*
+ * avr_set_addr()
+ *
+ * Set address bits in the specified command based on the opcode, and
+ * the address.
+ */
 int avr_set_addr(OPCODE * op, unsigned char * cmd, unsigned long addr)
 {
   int i, j, bit;
@@ -289,6 +289,12 @@ int avr_set_addr(OPCODE * op, unsigned char * cmd, unsigned long addr)
 }
 
 
+/*
+ * avr_set_input()
+ *
+ * Set input data bits in the specified command based on the opcode,
+ * and the data byte.
+ */
 int avr_set_input(OPCODE * op, unsigned char * cmd, unsigned char data)
 {
   int i, j, bit;
@@ -312,7 +318,13 @@ int avr_set_input(OPCODE * op, unsigned char * cmd, unsigned char data)
 }
 
 
-int avr_get_output(OPCODE * op, unsigned char * cmd, unsigned char * data)
+/*
+ * avr_get_output()
+ *
+ * Retreive output data bits from the command results based on the
+ * opcode data.
+ */
+int avr_get_output(OPCODE * op, unsigned char * res, unsigned char * data)
 {
   int i, j, bit;
   unsigned char value;
@@ -323,7 +335,7 @@ int avr_get_output(OPCODE * op, unsigned char * cmd, unsigned char * data)
       j = 3 - i / 8;
       bit = i % 8;
       mask = 1 << bit;
-      value = ((cmd[j] & mask) >> bit) & 0x01;
+      value = ((res[j] & mask) >> bit) & 0x01;
       value = value << op->bit[i].bitno;
       if (value)
         *data = *data | value;
@@ -350,6 +362,9 @@ int avr_read_byte(int fd, AVRPART * p, AVRMEM * mem, unsigned long addr,
   LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
   LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
 
+  /*
+   * figure out what opcode to use
+   */
   if (mem->op[AVR_OP_READ_LO]) {
     if (addr & 0x00000001)
       readop = mem->op[AVR_OP_READ_HI];
@@ -389,7 +404,7 @@ int avr_read_byte(int fd, AVRPART * p, AVRMEM * mem, unsigned long addr,
  * corresponding buffer of the avrpart pointed to by 'p'.  If size =
  * 0, read the entire contents, otherwise, read 'size' bytes.
  *
- * Return the number of bytes read, or -1 if an error occurs.  
+ * Return the number of bytes read, or < 0 if an error occurs.  
  */
 int avr_read(int fd, AVRPART * p, char * memtype, int size, int verbose)
 {
@@ -430,11 +445,8 @@ int avr_read(int fd, AVRPART * p, char * memtype, int size, int verbose)
 }
 
 
-
-
-
 /*
- * write a byte of data to the indicated memory region
+ * write a page data at the specified address
  */
 int avr_write_page(int fd, AVRPART * p, AVRMEM * mem,
                    unsigned long addr)
@@ -451,6 +463,10 @@ int avr_write_page(int fd, AVRPART * p, AVRMEM * mem,
     return -1;
   }
 
+  /*
+   * if this memory is word-addressable, adjust the address
+   * accordingly
+   */
   if (mem->op[AVR_OP_LOADPAGE_LO])
     addr = addr / 2;
 
@@ -475,7 +491,7 @@ int avr_write_page(int fd, AVRPART * p, AVRMEM * mem,
 
 
 /*
- * write a byte of data to the indicated memory region
+ * write a byte of data at the specified address
  */
 int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
                    unsigned long addr, unsigned char data)
@@ -601,11 +617,11 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
 
 
 /*
- * Write the whole memory region (flash or eeprom, specified by
- * 'memtype') from the corresponding buffer of the avrpart pointed to
- * by 'p'.  Write up to 'size' bytes from the buffer.  Data is only
- * written if the new data value is different from the existing data
- * value.  Data beyond 'size' bytes is not affected.
+ * Write the whole memory region of the specified memory from the
+ * corresponding buffer of the avrpart pointed to by 'p'.  Write up to
+ * 'size' bytes from the buffer.  Data is only written if the new data
+ * value is different from the existing data value.  Data beyond
+ * 'size' bytes is not affected.
  *
  * Return the number of bytes written, or -1 if an error occurs.
  */
@@ -625,7 +641,6 @@ int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose)
     return -1;
   }
 
-
   LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
 
   werror = 0;
@@ -643,7 +658,6 @@ int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose)
   }
 
   for (i=0; i<wsize; i++) {
-    /* eeprom or low byte of flash */
     data = m->buf[i];
     if (verbose) {
       if (i % 16 == 0)
@@ -658,6 +672,10 @@ int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose)
     }
 
     if (m->paged) {
+      /*
+       * check to see if it is time to flush the page with a page
+       * write
+       */
       if (((i % m->page_size) == m->page_size-1) ||
           (i == wsize-1)) {
         rc = avr_write_page(fd, p, m, i);
@@ -792,7 +810,6 @@ int avr_initialize(int fd, AVRPART * p)
 
   avr_powerup(fd);
 
-
   ppi_setpin(fd, pgm->pinno[PIN_AVR_SCK], 0);
   ppi_setpin(fd, pgm->pinno[PIN_AVR_RESET], 0);
   ppi_pulsepin(fd, pgm->pinno[PIN_AVR_RESET]);
@@ -833,7 +850,10 @@ int avr_initialize(int fd, AVRPART * p)
 }
 
 
-
+/*
+ * Allocate and initialize memory buffers for each of the device's
+ * defined memory regions.  
+ */
 int avr_initmem(AVRPART * p)
 {
   LNODEID ln;
@@ -918,8 +938,8 @@ void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type)
 {
   if (m == NULL) {
     fprintf(f, 
-            "%sMem                       Page                       Polled\n"
-            "%sType        Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
+            "%s                          Page                       Polled\n"
+            "%sMemory Type Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
             "%s----------- ------ ------ ---- ------ ----- ----- ---------\n",
             prefix, prefix, prefix);
   }

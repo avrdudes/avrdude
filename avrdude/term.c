@@ -206,6 +206,7 @@ int hexdump_buf(FILE * f, int startaddr, unsigned char * buf, int len)
 
 int cmd_dump(int fd, struct avrpart * p, int argc, char * argv[])
 {
+  static char prevmem[128] = {0};
   char * e;
   unsigned char * buf;
   int maxsize;
@@ -222,6 +223,13 @@ int cmd_dump(int fd, struct avrpart * p, int argc, char * argv[])
   }
 
   memtype = argv[1];
+
+  if (strncmp(prevmem, memtype, strlen(memtype)) != 0) {
+    addr = 0;
+    len  = 64;
+    strncpy(prevmem, memtype, sizeof(prevmem)-1);
+    prevmem[sizeof(prevmem)-1] = 0;
+  }
 
   mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
@@ -298,7 +306,7 @@ int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
   AVRMEM * mem;
 
   if (argc < 4) {
-    fprintf(stderr, "Usage: write flash|eeprom|fuse <addr> <byte1> "
+    fprintf(stderr, "Usage: write <memtype> <addr> <byte1> "
             "<byte2> ... byteN>\n");
     return -1;
   }
