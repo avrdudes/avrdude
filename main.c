@@ -609,7 +609,9 @@ int main(int argc, char * argv [])
     exit(1);
   }
 
-  if (strcmp(programmer, "stk500") == 0) {
+  fprintf(stderr, "programmer type = %s\n", pgm->type);
+
+  if (strcmp(pgm->type, "STK500") == 0) {
     if (port == default_parallel) {
       port = default_serial;
     }
