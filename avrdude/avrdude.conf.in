@@ -1219,6 +1219,8 @@ part
     id               = "m16";
     desc             = "ATMEGA16";
     devicecode       = 0x82;
+    pagel            = 0xd7;
+    bs2              = 0xa0;
     chip_erase_delay = 9000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
@@ -1322,6 +1324,8 @@ part
     desc             = "ATMEGA163";
     devicecode       = 0x81;
     chip_erase_delay = 32000;
+    pagel            = 0xd7;
+    bs2              = 0xa0;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
 
@@ -1554,6 +1558,8 @@ part
     id               = "m8";
     desc             = "ATMEGA8";
     devicecode       = 0x70;
+    pagel            = 0xd7;
+    bs2              = 0xc2;
     chip_erase_delay = 9000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
