@@ -50,6 +50,9 @@ extern int do_cycles;
 static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value);
 static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value);
 static void stk500_print_parms1(PROGRAMMER * pgm, char * p);
+static int stk500_is_page_empty(unsigned int address, int page_size, 
+    const unsigned char *buf);
+
 
 static int stk500_send(PROGRAMMER * pgm, char * buf, size_t len)
 {
@@ -687,6 +690,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   int i;
   int tries;
   unsigned int n;
+  int flash;
 
   if (page_size == 0) {
     page_size = 128;
@@ -694,9 +698,11 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   if (strcmp(m->desc, "flash") == 0) {
     memtype = 'F';
+    flash = 1;
   }
   else if (strcmp(m->desc, "eeprom") == 0) {
     memtype = 'E';
+    flash = 0;
   }
   else {
     return -2;
@@ -731,6 +737,13 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   for (addr = 0; addr < n; addr += page_size) {
     report_progress (addr, n_bytes, NULL);
+    
+    /* Only skip on empty page if programming flash. */
+    if (flash) {
+      if (stk500_is_page_empty(addr, page_size, m->buf)) {
+          continue;
+      }
+    }
     tries = 0;
   retry:
     tries++;
@@ -778,6 +791,20 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return n;
 }
 
+static int stk500_is_page_empty(unsigned int address, int page_size, 
+                                const unsigned char *buf)
+{
+    int i;
+    for(i = 0; i < page_size; i++) {
+        if(buf[address + i] != 0xFF) {
+            /* Page is not empty. */
+            return(0);
+        }
+    }
+    
+    /* Page is empty. */
+    return(1);
+}
 
 static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
                              int page_size, int n_bytes)

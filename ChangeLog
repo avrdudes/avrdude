@@ -1,3 +1,7 @@
+2003-09-16  Eric B. Weddington  <eric@ecentral.com>
+
+	* stk500.c: If writing flash, skip empty pages in paged write.
+
 2003-09-06  Theodore A. Roth  <troth@openavr.org>
 
 	* NEWS: Add 'Current:' header.
