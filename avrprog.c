@@ -1745,6 +1745,66 @@ int go_interactive ( int fd, struct avrpart * p )
 
 
 
+int avr_initmem ( struct avrpart * p )
+{
+  p->flash = (unsigned char *) malloc(p->flash_size);
+  if (p->flash == NULL) {
+    fprintf(stderr, "%s: can't alloc buffer for flash size of %d bytes\n",
+            progname, p->flash_size);
+    exit(1);
+  }
+
+  p->eeprom = (unsigned char *) malloc(p->eeprom_size);
+  if (p->eeprom == NULL) {
+    fprintf(stderr, "%s: can't alloc buffer for eeprom size of %d bytes\n",
+            progname, p->eeprom_size);
+    exit(1);
+  }
+
+  return 0;
+}
+
+
+int verify_data(struct avrpart * p, struct avrpart * v, AVRMEM memtype)
+{
+  int i;
+  unsigned char * buf1, * buf2;
+  int size;
+
+  switch (memtype) {
+    case AVR_FLASH:
+      buf1 = p->flash;
+      buf2 = v->flash;
+      size = p->flash_size;
+      break;
+
+    case AVR_EEPROM:
+      buf1 = p->eeprom;
+      buf2 = v->eeprom;
+      size = p->eeprom_size;
+      break;
+
+    default:
+      fprintf(stderr, "%s: invalid memory type = %d for data verification\n",
+              progname, memtype);
+      return -1;
+  }
+
+  for (i=0; i<size; i++) {
+    if (buf1[i] != buf2[i]) {
+      fprintf(stderr, 
+              "%s: verification error, first mismatch at byte %d\n"
+              "%s0x%02x != 0x%02x\n",
+              progname, i, 
+              progbuf, buf1[i], buf2[i]);
+      return -1;
+    }
+  }
+
+  return 0;
+}
+
+
 /*
  * main routine
  */
@@ -1761,7 +1821,8 @@ int main ( int argc, char * argv [] )
   char           * p2;          /* used to parse CVS Ed */
   unsigned char    sig[4];      /* AVR signature bytes */
   unsigned char    nulldev[4];  /* 0xff signature bytes for comparison */
-  struct avrpart * p;           /* which avr part we are programming */
+  struct avrpart * p, ap1;      /* which avr part we are programming */
+  struct avrpart * v, ap2;     /* used for verify */
   int              readorwrite; /* true if a chip read/write op was selected */
 
   /* options / operating mode variables */
@@ -1775,6 +1836,7 @@ int main ( int argc, char * argv [] )
   int     interactive; /* 1=enter interactive command mode, 0=don't */
   FILEFMT filefmt;     /* FMT_AUTO, FMT_IHEX, FMT_SREC, FMT_RBIN */
   int     nowrite;     /* don't actually write anything to the chip */
+  int     verify;      /* perform a verify operation */
 
   readorwrite = 0;
   parallel    = DEFAULT_PARALLEL;
@@ -1788,6 +1850,7 @@ int main ( int argc, char * argv [] )
   interactive = 0;
   filefmt     = FMT_AUTO;
   nowrite     = 0;
+  verify      = 1;        /* on by default; XXX can't turn it off */
 
   progname = rindex(argv[0],'/');
   if (progname)
@@ -1835,7 +1898,7 @@ int main ( int argc, char * argv [] )
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?cef:Fi:m:no:p:P:")) != -1) {
+  while ((ch = getopt(argc,argv,"?cef:Fi:m:no:p:P:v")) != -1) {
 
     switch (ch) {
       case 'm': /* select memory type to operate on */
@@ -1945,6 +2008,10 @@ int main ( int argc, char * argv [] )
         parallel = optarg;
         break;
 
+      case 'v':
+        verify = 1;
+        break;
+
       case '?': /* help */
         usage();
         exit(0);
@@ -1969,6 +2036,20 @@ int main ( int argc, char * argv [] )
     return 1;
   }
 
+  /* 
+   * set up seperate instances of the avr part, one for use in
+   * programming, one for use in verifying.  These are separate
+   * because they need separate flash and eeprom buffer space 
+   */
+  ap1 = *p;
+  v   = p;
+  p   = &ap1;
+  ap2 = *v;
+  v   = &ap2;
+
+  avr_initmem(p);
+  avr_initmem(v);
+
   fprintf(stderr, 
           "%sAVR Part               = %s\n"
           "%sFlash memory size      = %d bytes\n"
@@ -1985,20 +2066,6 @@ int main ( int argc, char * argv [] )
           progbuf, p->f_readback,
           progbuf, p->e_readback[0], p->e_readback[1]);
   fprintf(stderr, "\n");
-
-  p->flash = (unsigned char *) malloc(p->flash_size);
-  if (p->flash == NULL) {
-    fprintf(stderr, "%s: can't alloc buffer for flash size of %d bytes\n",
-            progname, p->flash_size);
-    exit(1);
-  }
-
-  p->eeprom = (unsigned char *) malloc(p->eeprom_size);
-  if (p->eeprom == NULL) {
-    fprintf(stderr, "%s: can't alloc buffer for eeprom size of %d bytes\n",
-            progname, p->eeprom_size);
-    exit(1);
-  }
 
   /*
    * open the parallel port
@@ -2091,16 +2158,18 @@ int main ( int argc, char * argv [] )
     /*
      * read out the specified device memory and write it to a file 
      */
-    fprintf ( stderr, "%s: reading %s memory:\n", 
-              progname, memtypestr(memtype) );
+    fprintf(stderr, "%s: reading %s memory:\n", 
+            progname, memtypestr(memtype));
     rc = avr_read ( fd, p, memtype );
     if (rc) {
-      fprintf ( stderr, "%s: failed to read all of %s memory, rc=%d\n", 
-                progname, memtypestr(memtype), rc );
+      fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
+              progname, memtypestr(memtype), rc);
       exitrc = 1;
       goto main_exit;
     }
 
+    fprintf(stderr, "%s: writing output file \"%s\"\n",
+            progname, outputf);
     rc = fileio(FIO_WRITE, outputf, filefmt, p, memtype);
     if (rc < 0) {
       fprintf(stderr, "%s: terminating\n", progname);
@@ -2114,6 +2183,8 @@ int main ( int argc, char * argv [] )
      * write the selected device memory using data from a file; first
      * read the data from the specified file
      */
+    fprintf(stderr, "%s: reading input file \"%s\"\n",
+            progname, inputf);
     rc = fileio(FIO_READ, inputf, filefmt, p, memtype );
     if (rc < 0) {
       fprintf(stderr, "%s: terminating\n", progname);
@@ -2145,7 +2216,39 @@ int main ( int argc, char * argv [] )
       exitrc = 1;
       goto main_exit;
     }
+
   }
+
+  if (!doread && verify) {
+    /* 
+     * verify that the in memory file (p->flash or p->eeprom) is the
+     * same as what is on the chip 
+     */
+    fprintf(stderr, "%s: verifying %s memory against %s:\n", 
+            progname, memtypestr(memtype), inputf);
+    fprintf(stderr, "%s: reading on-chip %s data:\n", 
+            progname, memtypestr(memtype));
+    rc = avr_read ( fd, v, memtype );
+    if (rc) {
+      fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
+              progname, memtypestr(memtype), rc);
+      exitrc = 1;
+      goto main_exit;
+    }
+    
+    fprintf(stderr, "%s: verifying\n", progname);
+    rc = verify_data(p, v, memtype);
+    if (rc) {
+      fprintf(stderr, "%s: verification error; content mismatch\n", 
+              progname);
+      exitrc = 1;
+      goto main_exit;
+    }
+    
+    fprintf(stderr, "%s: data verified\n", progname);
+  }
+
+
 
  main_exit:
 
