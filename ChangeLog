@@ -1,3 +1,9 @@
+2003-09-04  Theodore A. Roth  <troth@openavr.org>
+
+	* Makefile.am: Change AM_CPPFLAGS to avrdude_CPPFLAGS.
+	Define avrdude_CFLAGS.
+	* configure.ac: Set ENABLE_WARNINGS to "-Wall" if using gcc.
+
 2003-09-02  Eric B. Weddington <eric@ecentral.com>
 
     * doc/avrdude.texi: Add note about privileges needed to load 
