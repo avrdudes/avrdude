@@ -502,7 +502,7 @@ int fmt_autodetect ( char * fname )
 
 
 int fileio ( int op, char * filename, FILEFMT format, 
-             struct avrpart * p, AVRMEM memtype, int size )
+             struct avrpart * p, int memtype, int size )
 {
   int rc;
   FILE * f;
@@ -536,9 +536,9 @@ int fileio ( int op, char * filename, FILEFMT format,
   }
 
   /* point at the requested memory buffer */
-  buf = p->mem[memtype];
+  buf = p->mem[memtype].buf;
   if (fio.op == FIO_READ)
-    size = p->memsize[memtype];
+    size = p->mem[memtype].size;
 
   if (fio.op == FIO_READ) {
     /* 0xff fill unspecified memory */

@@ -700,13 +700,14 @@ int main ( int argc, char * argv [] )
   int     ppisetbits;  /* bits to set in ppi data register at exit */
   int     ppiclrbits;  /* bits to clear in ppi data register at exit */
   char  * exitspecs;   /* exit specs string from command line */
+  int     verbose;
 
   readorwrite   = 0;
   parallel      = DEFAULT_PARALLEL;
   outputf       = NULL;
   inputf        = NULL;
   doread        = 1;
-  memtype       = AVR_FLASH;
+  memtype       = AVR_M_FLASH;
   erase         = 0;
   p             = NULL;
   ovsigck       = 0;
@@ -718,6 +719,7 @@ int main ( int argc, char * argv [] )
   ppiclrbits    = 0;
   exitspecs     = NULL;
   pinconfig     = NULL;
+  verbose       = 0;
 
   strcpy(configfile, CONFIG_DIR);
   i = strlen(configfile);
@@ -758,14 +760,6 @@ int main ( int argc, char * argv [] )
   print_module_versions(NULL, timestamp);
 
   /*
-   * Print out an identifying string so folks can tell what version
-   * they are running
-   */
-  fprintf(stderr, "\n%s: Copyright 2001 Brian Dean, bsd@bsdhome.com\n"
-          "%sVersion %s  Revision Timestamp %s\n\n", 
-          progname, progbuf, version, timestamp);
-
-  /*
    * check for no arguments
    */
   if (argc == 1) {
@@ -777,7 +771,7 @@ int main ( int argc, char * argv [] )
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?c:C:eE:f:Fi:m:no:p:P:tV")) != -1) {
+  while ((ch = getopt(argc,argv,"?c:C:eE:f:Fi:m:no:p:P:tv")) != -1) {
 
     switch (ch) {
       case 'c': /* pin configuration */
@@ -791,11 +785,11 @@ int main ( int argc, char * argv [] )
 
       case 'm': /* select memory type to operate on */
         if ((strcasecmp(optarg,"e")==0)||(strcasecmp(optarg,"eeprom")==0)) {
-          memtype = AVR_EEPROM;
+          memtype = AVR_M_EEPROM;
         }
         else if ((strcasecmp(optarg,"f")==0)||
                  (strcasecmp(optarg,"flash")==0)) {
-          memtype = AVR_FLASH;
+          memtype = AVR_M_FLASH;
         }
         else {
           fprintf(stderr, "%s: invalid memory type \"%s\"\n\n", 
@@ -894,8 +888,8 @@ int main ( int argc, char * argv [] )
         parallel = optarg;
         break;
 
-      case 'V':
-        print_module_versions(stderr, NULL);
+      case 'v':
+        verbose++;
         break;
 
       case '?': /* help */
@@ -911,6 +905,21 @@ int main ( int argc, char * argv [] )
     }
 
   }
+
+  if (verbose) {
+    /*
+     * Print out an identifying string so folks can tell what version
+     * they are running
+     */
+    fprintf(stderr, "\n%s: Copyright 2001 Brian Dean, bsd@bsdhome.com\n"
+            "%sVersion %s  Revision Timestamp %s\n\n", 
+            progname, progbuf, version, timestamp);
+    
+    if (verbose > 1) {
+      print_module_versions(stderr, NULL);
+    }
+  }
+
 
   if (p == NULL) {
     fprintf(stderr, 
@@ -956,10 +965,11 @@ int main ( int argc, char * argv [] )
   avr_initmem(p);
   avr_initmem(v);
 
-  avr_display(stderr, p, progbuf);
-#if 1
-  pinconfig_display(progbuf, pinconfig, desc);
-#endif
+  if (verbose) {
+    avr_display(stderr, p, progbuf);
+    fprintf(stderr, "\n");
+    pinconfig_display(progbuf, pinconfig, desc);
+  }
 
   fprintf(stderr, "\n");
 
@@ -1158,7 +1168,7 @@ int main ( int argc, char * argv [] )
 
   if (!doread && verify) {
     /* 
-     * verify that the in memory file (p->mem[AVR_FLASH|AVR_EEPROM])
+     * verify that the in memory file (p->mem[AVR_M_FLASH|AVR_M_EEPROM])
      * is the same as what is on the chip 
      */
     LED_ON(fd, pinno[PIN_LED_VFY]);

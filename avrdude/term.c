@@ -204,7 +204,7 @@ int cmd_dump ( int fd, struct avrpart * p, int argc, char * argv[] )
   int i, l;
   char * buf;
   int maxsize;
-  static AVRMEM memtype=AVR_FLASH;
+  static int memtype=AVR_M_FLASH;
   static unsigned short addr=0;
   static int len=64;
 
@@ -219,10 +219,10 @@ int cmd_dump ( int fd, struct avrpart * p, int argc, char * argv[] )
 
     l = strlen(argv[1]);
     if (strncasecmp(argv[1],"flash",l)==0) {
-      memtype = AVR_FLASH;
+      memtype = AVR_M_FLASH;
     }
     else if (strncasecmp(argv[1],"eeprom",l)==0) {
-      memtype = AVR_EEPROM;
+      memtype = AVR_M_EEPROM;
     }
     else {
       fprintf(stderr, "%s (dump): invalid memory type \"%s\"\n",
@@ -247,7 +247,7 @@ int cmd_dump ( int fd, struct avrpart * p, int argc, char * argv[] )
     }
   }
 
-  maxsize = p->memsize[memtype];
+  maxsize = p->mem[memtype].size;
 
   if (argc == 2) {
     addr = 0;
@@ -288,7 +288,7 @@ int cmd_write ( int fd, struct avrpart * p, int argc, char * argv[] )
   char * e;
   int i, l;
   int len, maxsize;
-  AVRMEM memtype;
+  int memtype;
   unsigned short addr;
   char * buf;
   int rc;
@@ -302,10 +302,10 @@ int cmd_write ( int fd, struct avrpart * p, int argc, char * argv[] )
 
   l = strlen(argv[1]);
   if (strncasecmp(argv[1],"flash",l)==0) {
-    memtype = AVR_FLASH;
+    memtype = AVR_M_FLASH;
   }
   else if (strncasecmp(argv[1],"eeprom",l)==0) {
-    memtype = AVR_EEPROM;
+    memtype = AVR_M_EEPROM;
   }
   else {
     fprintf(stderr, "%s (write): invalid memory type \"%s\"\n",
@@ -313,7 +313,7 @@ int cmd_write ( int fd, struct avrpart * p, int argc, char * argv[] )
     return -1;
   }
 
-  maxsize = p->memsize[memtype];
+  maxsize = p->mem[memtype].size;
 
   addr = strtoul(argv[2], &e, 0);
   if (*e || (e == argv[2])) {
