@@ -125,7 +125,7 @@ int b2ihex ( unsigned char * inbuf, int bufsize,
   n = 0;
   nextaddr = 0;
   fprintf ( outf, ":%02X%04X01", n, nextaddr );
-  cksum += n + ((nextaddr >> 8) & 0x0ff) + (nextaddr & 0x0ff);
+  cksum += n + ((nextaddr >> 8) & 0x0ff) + (nextaddr & 0x0ff) + 1;
   cksum = -cksum;
   fprintf ( outf, "%02X\n", cksum );
 
@@ -175,7 +175,7 @@ int ihex2b ( char * infile, FILE * inf,
     }
 
     /* start computing a checksum */
-    cksum = n + ((nextaddr >> 8 ) & 0x0ff) + (nextaddr & 0x0ff);
+    cksum = n + ((nextaddr >> 8 ) & 0x0ff) + (nextaddr & 0x0ff) + rectype;
 
     for (i=0; i<n; i++) {
       if (sscanf((char *)&buffer[i*2+9], "%02x", &b) != 1) {
