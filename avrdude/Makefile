@@ -48,12 +48,12 @@ clean :
 	rm -f *.o lexer.c ${TARGET} *~ *.core y.tab.c y.tab.h
 	touch y.tab.h
 
-install : dirs                  \
-	  ${BINDIR}/${TARGET}   \
-	  ${MANDIR}/${MANUAL}   \
-	  ${DOCDIR}/avrprog.pdf \
-	  ${CONFIGDIR}/avrprog.conf.sample
-
+install : dirs                             \
+	  ${BINDIR}/${TARGET}              \
+	  ${MANDIR}/${MANUAL}              \
+	  ${DOCDIR}/avrprog.pdf            \
+	  ${CONFIGDIR}/avrprog.conf.sample \
+	  ${CONFIGDIR}/avrprog.conf
 
 dirs :
 	@for dir in ${DIRS}; do \
@@ -77,6 +77,7 @@ ${CONFIGDIR}/avrprog.conf.sample : avrprog.conf.sample
 
 ${CONFIGDIR}/avrprog.conf : avrprog.conf.sample
 	@if [ -f ${CONFIGDIR}/avrprog.conf ]; then                       \
+	  echo "WARNING: backing up ${CONFIGDIR}/avrprog.conf to ${CONFIGDIR}/avrprog.conf.old"; \
 	  cp -p ${CONFIGDIR}/avrprog.conf ${CONFIGDIR}/avrprog.conf.old; \
 	fi
 	${INSTALL_DATA} avrprog.conf.sample $@
