@@ -839,10 +839,24 @@ int main(int argc, char * argv [])
   LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
   LED_OFF(fd, pgm->pinno[PIN_LED_VFY]);
 
+
+  /*
+   * Prepare to start talking to the connected device - pull reset low
+   * first, delay a few milliseconds, then enable the buffer.  This
+   * sequence allows the AVR to be reset before the buffer is enabled
+   * to avoid a short period of time where the AVR may be driving the
+   * programming lines at the same time the programmer tries to.  Of
+   * course, if a buffer is being used, then the /RESET line from the
+   * programmer needs to be directly connected to the AVR /RESET line
+   * and not via the buffer chip.
+   */
+
+  ppi_setpin(fd, pgm->pinno[PIN_AVR_RESET], 0);
+  usleep(1);
+
   /*
    * enable the 74367 buffer, if connected; this signal is active low
    */
-  /*ppi_setpin(fd, pgm->pinno[PIN_AVR_BUFF], 0);*/
   ppi_clr(fd, PPIDATA, pgm->pinno[PPI_AVR_BUFF]);
 
   /*
