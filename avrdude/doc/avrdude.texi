@@ -405,6 +405,31 @@ Tells AVRDUDE to enter the interactive ``terminal'' mode instead of up-
 or downloading files.  See below for a detailed description of the
 terminal mode.
 
+@item -U @var{memtype}:@var{op}:@var{filename}[:@var{format}]
+Perform a memory operation, equivalent to specifing the @option{-m},
+@option{-i} or @option{-o}, and @option{-f} options, except that
+multiple @option{-U} optins can be specified in order to operate on
+mulitple memories on the same command-line invocation.  The
+@var{memtype} field specifies the memory type to operate on.  The
+@var{op} field specifies what operation to perform:
+
+@table @code
+@itemx r
+read the specified device memory and write to the specified file
+
+@itemx w
+read the specified file and write it to the specified device memory
+
+@itemx v
+read the specified device memory and the specified file and perform a verify operation
+
+@end table
+
+The @var{filename} field indicates the name of the file to read or
+write.  The @var{format} field is optional and contains the format of
+the file to read or write.  See the @option{-f} option for possible
+values.
+
 @item -v
 Enable verbose output.
 
@@ -446,27 +471,37 @@ STK500 programmer connected to the default serial port:
 
 @example
 @cartouche
-% avrdude -p m128 -c stk500 -y -e -i m128diag.hex
+% avrdude -p m128 -e -U flash:w:diag.hex 
 
 avrdude: AVR device initialized and ready to accept instructions
+
+Reading | ################################################## | 100% 0.03s
+
 avrdude: Device signature = 0x1e9702
 avrdude: erasing chip
-avrdude: erase-rewrite cycle count is now 52
 avrdude: done.
-avrdude: reading input file "m128diag.hex"
-avrdude: input file m128diag.hex auto detected as Intel Hex
-avrdude: writing flash (18130 bytes):
- 18175
-avrdude: 18176 bytes of flash written
-avrdude: verifying flash memory against m128diag.hex:
+avrdude: performing op: 1, flash, 0, diag.hex
+avrdude: reading input file "diag.hex"
+avrdude: input file diag.hex auto detected as Intel Hex
+avrdude: writing flash (19278 bytes):
+
+Writing | ################################################## | 100% 7.60s
+
+avrdude: 19456 bytes of flash written
+avrdude: verifying flash memory against diag.hex:
+avrdude: load data flash data from input file diag.hex:
+avrdude: input file diag.hex auto detected as Intel Hex
+avrdude: input file diag.hex contains 19278 bytes
 avrdude: reading on-chip flash data:
- 18175
+
+Reading | ################################################## | 100% 6.83s
+
 avrdude: verifying ...
-avrdude: 18176 bytes of flash verified
+avrdude: 19278 bytes of flash verified
 
 avrdude done.  Thank you.
 
-% 
+%
 @end cartouche
 @end example
 
@@ -477,14 +512,20 @@ programmer and save it in raw binary format in the file named
 
 @example
 @cartouche
-% avrdude -p m128 -c stk500 -f r -o m128diag.flash 
+% avrdude -p m128 -e -U flash:r:diag.flash:r 
 
 avrdude: AVR device initialized and ready to accept instructions
+
+Reading | ################################################## | 100% 0.03s
+
 avrdude: Device signature = 0x1e9702
-avrdude: current erase-rewrite cycle count is 52 (if being tracked)
+avrdude: erasing chip
+avrdude: done.
 avrdude: reading flash memory:
-131071
-avrdude: writing output file "m128diag.flash"
+
+Reading | ################################################## | 100% 46.10s
+
+avrdude: writing output file "diag.flash"
 
 avrdude done.  Thank you.
 
