@@ -1056,7 +1056,7 @@ void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type,
             prefix, prefix, prefix);
   }
   else {
-    if (verbose > 1) {
+    if (verbose > 2) {
       fprintf(f, 
               "%s                          Page                       Polled\n"
               "%sMemory Type Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
@@ -1074,7 +1074,7 @@ void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type,
             m->max_write_delay,
             m->readback[0], 
             m->readback[1]);
-    if (verbose > 1) {
+    if (verbose > 2) {
       fprintf(stderr, 
               "%s  Memory Ops:\n"
               "%s    Oeration     Inst Bit  Bit Type  Bitno  Value\n"
@@ -1130,7 +1130,7 @@ void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose)
     px = buf;
   }
   
-  if (verbose <= 1) {
+  if (verbose <= 2) {
     avr_mem_display(px, f, NULL, 0, verbose);
   }
   for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
