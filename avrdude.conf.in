@@ -1940,3 +1940,110 @@ part
       ;
   ;
 
+
+#------------------------------------------------------------
+# ATtiny26
+#------------------------------------------------------------
+
+part
+    id                  = "t26";
+    desc                = "ATTINY26";
+    stk500_devcode      = 0x21;
+    pagel               = 0xb3;
+    bs2                 = 0xb2;
+    chip_erase_delay    = 9000;
+    pgm_enable          = "1 0 1 0  1 1 0 0   0 1 0 1  0 0 1 1",
+                          "x x x x  x x x x   x x x x  x x x x";
+
+    chip_erase          = "1 0 1 0  1 1 0 0   1 0 0 x  x x x x",
+                          "x x x x  x x x x   x x x x  x x x x";
+
+    memory "eeprom"
+        size            = 128;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0xff;
+        readback_p2     = 0xff;
+        read            = "1  0  1  0   0  0  0  0    x x x x  x x x x",
+                          "x a6 a5 a4  a3 a2 a1 a0    o o o o  o o o o";
+
+        write           = "1  1  0  0   0  0  0  0    x x x x  x x x x",
+                          "x a6 a5 a4  a3 a2 a1 a0    i i i i  i i i i";
+    ;
+
+    memory "flash"
+        paged           = yes;
+        size            = 2048;
+        page_size       = 32;
+        num_pages       = 64;
+        min_write_delay = 4500;
+        max_write_delay = 20000;
+        readback_p1     = 0xff;
+        readback_p2     = 0xff;
+        read_lo         = "  0  0  1  0   0  0  0  0",
+                          "  x  x  x  x   x  x a9 a8",
+                          " a7 a6 a5 a4  a3 a2 a1 a0",
+                          "  o  o  o  o   o  o  o  o";
+
+        read_hi         = "  0  0  1  0   1  0  0  0",
+                          "  x  x  x  x   x  x a9 a8",
+                          " a7 a6 a5 a4  a3 a2 a1 a0",
+                          "  o  o  o  o   o  o  o  o";
+
+        loadpage_lo     = "  0  1  0  0   0  0  0  0",
+                          "  x  x  x  x   x  x  x  x",
+                          "  x  x  x  x  a3 a2 a1 a0",
+                          "  i  i  i  i   i  i  i  i";
+
+        loadpage_hi     = "  0  1  0  0   1  0  0  0",
+                          "  x  x  x  x   x  x  x  x",
+                          "  x  x  x  x  a3 a2 a1 a0",
+                          "  i  i  i  i   i  i  i  i";
+
+        writepage       = "  0  1  0  0   1  1  0  0",
+                          "  x  x  x  x   x  x a9 a8",
+                          " a7 a6 a5 a4   x  x  x  x",
+                          "  x  x  x  x   x  x  x  x";
+    ;
+
+    memory "signature"
+        size            = 3;
+        read            = "0  0  1  1   0  0  0  0    x x x x  x x x x",
+                          "0  0  0  0   0  0 a1 a0    o o o o  o o o o";
+    ;
+
+    memory "lock"
+        size            = 1;
+        read            = "0  1  0  1   1  0  0  0    x x x x  x x x x",
+                          "x  x  x  x   x  x  x  x    x x x x  x x o o";
+
+        write           = "1  0  1  0   1  1  0  0    1 1 1 1  1 1 i i",
+                          "x  x  x  x   x  x  x  x    x x x x  x x x x";
+    ;
+
+    memory "lfuse"
+        size            = 1;
+        write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 0 0 0",
+                          "x x x x  x x x x  i i i i  i i i i";
+
+        read            = "0 1 0 1  0 0 0 0  0 0 0 0  0 0 0 0",
+                          "x x x x  x x x x  o o o o  o o o o";
+      ;
+
+    memory "hfuse"
+        size            = 1;
+        write           = "1 0 1 0  1 1 0 0  1 0 1 0  1 0 0 0",
+                          "x x x x  x x x x  x x x i  i i i i";
+
+        read            = "0 1 0 1  1 0 0 0  0 0 0 0  1 0 0 0",
+                          "x x x x  x x x x  x x x o  o o o o";
+      ;
+
+    memory "calibration"
+        size            = 4;
+        read            = "0  0  1  1   1  0  0  0    x x x x  x x x x",
+                          "0  0  0  0   0  0 a1 a0    o o o o  o o o o";
+    ;
+
+;
+

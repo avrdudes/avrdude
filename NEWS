@@ -13,7 +13,7 @@ Version TBD
 
   * Add support for avr910 type programmers (mcu00100, pavr avr910, etc).
 
-  * Support new devices: ATmega8535
+  * Support new devices: ATmega8535, ATtiny26
   
 
 Version 4.0.0
