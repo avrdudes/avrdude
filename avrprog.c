@@ -65,6 +65,8 @@
 #include </sys/dev/ppbus/ppi.h>
 #include <limits.h>
 #include <ctype.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 #define DEFAULT_PARALLEL "/dev/ppi0"
 
@@ -173,18 +175,28 @@ enum {
 
 int cmd_dump(int fd, struct avrpart * p, int argc, char *argv[]);
 int cmd_write(int fd, struct avrpart * p, int argc, char *argv[]);
+int cmd_erase(int fd, struct avrpart * p, int argc, char *argv[]);
+int cmd_sig(int fd, struct avrpart * p, int argc, char *argv[]);
+int cmd_part(int fd, struct avrpart * p, int argc, char *argv[]);
+int cmd_help(int fd, struct avrpart * p, int argc, char *argv[]);
 int cmd_quit(int fd, struct avrpart * p, int argc, char *argv[]);
 
 struct command {
   char * name;
   int (*func)(int fd, struct avrpart * p, int argc, char *argv[]);
+  char * desc;
 };
 
 
 struct command cmd[] = {
-  { "dump",  cmd_dump },
-  { "write", cmd_write },
-  { "quit",  cmd_quit }
+  { "dump",  cmd_dump,  "dump memory  : %s [eeprom|flash] <addr> <N-Bytes>" },
+  { "write", cmd_write, "write memory : %s [eeprom|flash] <addr> <b1> <b2> ... <bN>" },
+  { "erase", cmd_erase, "perform a chip erase" },
+  { "sig",   cmd_sig,   "display device signature bytes" },
+  { "part",  cmd_part,  "display the current part settings" },
+  { "help",  cmd_help,  "help" },
+  { "?",     cmd_help,  "help" },
+  { "quit",  cmd_quit,  "quit" }
 };
 
 #define NCMDS (sizeof(cmd)/sizeof(struct command))
@@ -227,6 +239,41 @@ char * usage_text =
 "\n"
 "    -e            : perform a chip erase (required before programming)\n"
 "\n";
+
+
+
+int avr_txrx_bit ( int fd, int bit );
+
+unsigned char avr_txrx ( int fd, unsigned char byte );
+
+int avr_cmd ( int fd, unsigned char cmd[4], unsigned char res[4] );
+
+unsigned char avr_read_byte ( int fd, struct avrpart * p,
+                              AVRMEM memtype, unsigned short addr );
+
+int avr_read ( int fd, struct avrpart * p, AVRMEM memtype );
+
+int avr_write_byte ( int fd, struct avrpart * p, AVRMEM memtype, 
+                     unsigned short addr, unsigned char data );
+
+int avr_write ( int fd, struct avrpart * p, AVRMEM memtype );
+
+int avr_program_enable ( int fd );
+
+int avr_chip_erase ( int fd, struct avrpart * p );
+
+int avr_signature ( int fd, unsigned char sig[4] );
+
+void avr_powerup ( int fd );
+
+void avr_powerdown ( int fd );
+
+int avr_initialize ( int fd, struct avrpart * p );
+
+int avr_initmem ( struct avrpart * p );
+
+void display_part ( FILE * f, struct avrpart * p, char * prefix );
+
 
 
 
@@ -710,8 +757,8 @@ int avr_chip_erase ( int fd, struct avrpart * p )
   unsigned char res[4];
 
   avr_cmd(fd, data, res);
-
   usleep(p->chip_erase_delay);
+  avr_initialize(fd, p);
 
   return 0;
 }
@@ -1608,9 +1655,58 @@ int cmd_write ( int fd, struct avrpart * p, int argc, char * argv[] )
 }
 
 
+int cmd_erase ( int fd, struct avrpart * p, int argc, char * argv[] )
+{
+  fprintf(stderr, "%s: erasing chip\n", progname );
+  avr_chip_erase(fd,p);
+  return 0;
+}
+
+
+int cmd_part ( int fd, struct avrpart * p, int argc, char * argv[] )
+{
+  fprintf(stdout, "\n");
+  display_part(stdout, p, "");
+  fprintf(stdout, "\n");
+
+  return 0;
+}
+
+
+int cmd_sig ( int fd, struct avrpart * p, int argc, char * argv[] )
+{
+  unsigned char sig[4];      /* AVR signature bytes */
+  int i;
+
+  avr_signature(fd, sig);
+  fprintf(stdout, "\nDevice signature = 0x");
+  for (i=0; i<4; i++)
+    fprintf(stdout, "%02x", sig[i]);
+  fprintf(stdout, "\n\n");
+
+  return 0;
+}
+
+
 int cmd_quit ( int fd, struct avrpart * p, int argc, char * argv[] )
 {
   return 1;
+}
+
+
+int cmd_help ( int fd, struct avrpart * p, int argc, char * argv[] )
+{
+  int i;
+
+  fprintf(stdout, "Valid commands:\n\n" );
+  for (i=0; i<NCMDS; i++) {
+    fprintf(stdout, "  %-6s : ", cmd[i].name );
+    fprintf(stdout, cmd[i].desc, cmd[i].name);
+    fprintf(stdout, "\n");
+  }
+  fprintf(stdout, "\n");
+
+  return 0;
 }
 
 
@@ -1710,7 +1806,7 @@ int do_cmd ( int fd, struct avrpart * p, int argc, char * argv[] )
 
 int go_interactive ( int fd, struct avrpart * p )
 {
-  char    cmdbuf[MAX_LINE_LEN];
+  char  * cmdbuf;
   int     i, len;
   char  * q;
   int     rc;
@@ -1718,11 +1814,8 @@ int go_interactive ( int fd, struct avrpart * p )
   char ** argv;
 
   rc = 0;
-  fprintf(stdout, "avrprog> ");
-  while (fgets(cmdbuf, MAX_LINE_LEN, stdin) != NULL) {
+  while ((cmdbuf = readline("avrprog> ")) != NULL) {
     len = strlen(cmdbuf);
-    if (cmdbuf[len-1] == '\n')
-      cmdbuf[--len] = 0;
 
     /* 
      * find the start of the command, skipping any white space
@@ -1750,8 +1843,7 @@ int go_interactive ( int fd, struct avrpart * p )
       rc = 0;
       break;
     }
-
-    fprintf(stdout, "avrprog> ");
+    free(cmdbuf);
   }
 
   return rc;
@@ -1818,6 +1910,25 @@ int verify_data(struct avrpart * p, struct avrpart * v, AVRMEM memtype)
   return 0;
 }
 
+
+void display_part ( FILE * f, struct avrpart * p, char * prefix )
+{
+  fprintf(f, 
+          "%sAVR Part               = %s\n"
+          "%sFlash memory size      = %d bytes\n"
+          "%sEEPROM memory size     = %d bytes\n"
+          "%sMin/Max program delay  = %d/%d us\n"
+          "%sChip Erase delay       = %d us\n"
+          "%sFlash Polled Readback  = 0x%02x\n"
+          "%sEEPROM Polled Readback = 0x%02x, 0x%02x\n",
+          prefix, p->partdesc,
+          prefix, p->flash_size, 
+          prefix, p->eeprom_size,
+          prefix, p->min_write_delay, p->max_write_delay, 
+          prefix, p->chip_erase_delay,
+          prefix, p->f_readback,
+          prefix, p->e_readback[0], p->e_readback[1]);
+}
 
 /*
  * main routine
@@ -2064,21 +2175,8 @@ int main ( int argc, char * argv [] )
   avr_initmem(p);
   avr_initmem(v);
 
-  fprintf(stderr, 
-          "%sAVR Part               = %s\n"
-          "%sFlash memory size      = %d bytes\n"
-          "%sEEPROM memory size     = %d bytes\n"
-          "%sMin/Max program delay  = %d/%d us\n"
-          "%sChip Erase delay       = %d us\n"
-          "%sFlash Polled Readback  = 0x%02x\n"
-          "%sEEPROM Polled Readback = 0x%02x, 0x%02x\n",
-          progbuf, p->partdesc,
-          progbuf, p->flash_size, 
-          progbuf, p->eeprom_size,
-          progbuf, p->min_write_delay, p->max_write_delay, 
-          progbuf, p->chip_erase_delay,
-          progbuf, p->f_readback,
-          progbuf, p->e_readback[0], p->e_readback[1]);
+  display_part(stderr, p, progbuf);
+
   fprintf(stderr, "\n");
 
   /*
@@ -2142,7 +2240,6 @@ int main ( int argc, char * argv [] )
      */
     fprintf(stderr, "%s: erasing chip\n", progname );
     avr_chip_erase(fd,p);
-    avr_initialize(fd,p);
     fprintf(stderr, "%s: done.\n", progname );
   }
 

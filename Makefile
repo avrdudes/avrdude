@@ -22,7 +22,7 @@ INSTALL_MANUAL  = ${INSTALL_DATA}
 all : $(TARGET)
 
 $(TARGET) : avrprog.c
-	$(CC) $(CFLAGS) -o $(TARGET) $<
+	$(CC) $(CFLAGS) -o $(TARGET) $< -lreadline
 
 clean :
 	rm -f *~ *.core $(TARGET)
