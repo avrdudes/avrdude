@@ -110,19 +110,16 @@ int avr_txrx_bit ( int fd, int bit )
    * read the result bit (it is either valid from a previous clock
    * pulse or it is ignored in the current context)
    */
-  r = ppi_get(fd, PPISTATUS, AVR_DATA);
+  r = ppi_getpin(fd, PIN_AVR_MISO);
 
   /* set the data input line as desired */
-  if (bit)
-    ppi_set(fd, PPIDATA, AVR_INSTR);
-  else
-    ppi_clr(fd, PPIDATA, AVR_INSTR);
+  ppi_setpin(fd, PIN_AVR_MOSI, bit);
 
   /* 
    * pulse the clock line, clocking in the MOSI data, and clocking out
    * the next result bit
    */
-  ppi_pulse(fd, PPIDATA, AVR_CLOCK);
+  ppi_pulsepin(fd, PIN_AVR_SCK);
 
   return r;
 }
@@ -400,7 +397,7 @@ int avr_signature ( int fd, unsigned char sig[4] )
  */
 void avr_powerup ( int fd )
 {
-  ppi_set(fd, PPIDATA, AVR_POWER);    /* power up */
+  ppi_set(fd, PPIDATA, PPI_AVR_VCC);    /* power up */
   usleep(100000);
 }
 
@@ -410,7 +407,7 @@ void avr_powerup ( int fd )
  */
 void avr_powerdown ( int fd )
 {
-  ppi_clr(fd, PPIDATA, AVR_POWER);    /* power down */
+  ppi_clr(fd, PPIDATA, PPI_AVR_VCC);    /* power down */
 }
 
 
@@ -424,9 +421,10 @@ int avr_initialize ( int fd, struct avrpart * p )
 
   avr_powerup(fd);
 
-  ppi_clr(fd, PPIDATA, AVR_CLOCK);
-  ppi_clr(fd, PPIDATA, AVR_RESET);
-  ppi_pulse(fd, PPIDATA, AVR_RESET);
+
+  ppi_setpin(fd, PIN_AVR_SCK, 0);
+  ppi_setpin(fd, PIN_AVR_RESET, 0);
+  ppi_pulsepin(fd, PIN_AVR_RESET);
 
   usleep(20000); /* 20 ms XXX should be a per-chip parameter */
 
@@ -447,7 +445,7 @@ int avr_initialize ( int fd, struct avrpart * p )
       rc = avr_program_enable ( fd );
       if (rc == 0)
         break;
-      ppi_pulse(fd, PPIDATA, AVR_CLOCK);
+      ppi_pulsepin(fd, PIN_AVR_SCK);
       tries++;
     } while (tries < 32);
 

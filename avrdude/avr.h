@@ -34,14 +34,18 @@
 
 #include <stdio.h>
 
-/*
- * bit definitions for AVR device connections
- */
-#define AVR_POWER 0xf1  /* bit 0 and 4...7 of data register */
-#define AVR_CLOCK 0x02  /* bit 1 of data register           */
-#define AVR_INSTR 0x04  /* bit 2 of data register           */
-#define AVR_RESET 0x08  /* bit 3 of data register           */
-#define AVR_DATA  0x40  /* bit 6 of status register         */
+
+#define PPI_AVR_VCC    0x0f  /* ppi pins 2-5, data reg bits 0-3 */
+#define PIN_AVR_BUFF   6
+#define PIN_AVR_RESET  7
+#define PIN_AVR_SCK    8
+#define PIN_AVR_MOSI   9
+#define PIN_AVR_MISO  10
+#define PIN_LED_ERR    1
+#define PIN_LED_RDY   14
+#define PIN_LED_PGM   16
+#define PIN_LED_VFY   17
+
 
 
 /*
@@ -61,7 +65,7 @@ struct avrmem {
   AVRMEM          memtype;
   int             startaddr;
   int             size;
-  unsigned char   buf;
+  unsigned char * buf;
   struct avrmem * next;
 };
 #endif
@@ -72,20 +76,14 @@ struct avrpart {
   int             memsize[AVR_MAXMEMTYPES]; /* sizes for eeprom,
                                                flash, etc, indexed by
                                                AVR_EEPROM or AVR_FLASH */
-#if 0
-  int             flash_size;       /* size in bytes of flash */
-  int             eeprom_size;      /* size in bytes of eeprom */
-#endif
   unsigned char   f_readback;       /* flash write polled readback value */
   unsigned char   e_readback[2];    /* eeprom write polled readback values */
   int             min_write_delay;  /* microseconds */
   int             max_write_delay;  /* microseconds */
   int             chip_erase_delay; /* microseconds */
-  unsigned char * mem[AVR_MAXMEMTYPES];
-#if 0
-  unsigned char * flash;
-  unsigned char * eeprom;
-#endif
+  unsigned char * mem[AVR_MAXMEMTYPES]; /* pointers to avr memory
+                                           buffers, indexed by
+                                           AVR_EEPROM or AVR_FLASH */
 };
 
 extern struct avrpart parts[];

@@ -41,21 +41,33 @@ enum {
   PPISTATUS
 };
 
-int ppi_getops ( int reg, unsigned long * get, unsigned long * set );
+int ppi_getops     ( int reg, unsigned long * get, unsigned long * set );
 
-int ppi_set    ( int fd, int reg, int bit );
+int ppi_set        ( int fd, int reg, int bit );
 
-int ppi_clr    ( int fd, int reg, int bit );
+int ppi_clr        ( int fd, int reg, int bit );
 
-int ppi_get    ( int fd, int reg, int bit );
+int ppi_get        ( int fd, int reg, int bit );
 
-int ppi_toggle ( int fd, int reg, int bit );
+int ppi_toggle     ( int fd, int reg, int bit );
 
-int ppi_getall ( int fd, int reg );
+int ppi_getall     ( int fd, int reg );
 
-int ppi_setall ( int fd, int reg, int val );
+int ppi_setall     ( int fd, int reg, int val );
 
-int ppi_pulse  ( int fd, int reg, int bit );
+int ppi_pulse      ( int fd, int reg, int bit );
+
+int ppi_setpin     ( int fd, int pin, int value );
+
+int ppi_getpin     ( int fd, int pin );
+
+int ppi_pulsepin   ( int fd, int pin );
+
+int ppi_getpinmask ( int pin );
+
+int ppi_getpinreg  ( int pin );
+
+int ppi_sense      ( int fd );
 
 #endif
 
