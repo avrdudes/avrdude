@@ -501,22 +501,49 @@ static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   unsigned char buf[2];
   unsigned int addr = 0;
   unsigned int max_addr = n_bytes;
+  unsigned int page_addr;
+  int page_bytes = page_size;
+  int page_wr_cmd_pending;
 
   avr910_write_setup(pgm, p, m);
 
+  page_addr = addr;
   avr910_set_addr(pgm, addr>>1);
 
   while (addr < max_addr) {
+    page_wr_cmd_pending = 1;
     buf[0] = cmd[addr & 0x01];
     buf[1] = m->buf[addr];
     avr910_send(pgm, buf, sizeof(buf));
     avr910_vfy_cmd_sent(pgm, "write byte");
 
     addr++;
+    page_bytes--;
 
     if ((has_auto_incr_addr != 'Y') && ((addr & 0x01) == 0)) {
       avr910_set_addr(pgm, addr>>1);
     }
+    else if (m->paged && (page_bytes == 0)) {
+      /* Send the "Issue Page Write" if we have sent a whole page. */
+
+      avr910_set_addr(pgm, page_addr>>1);
+      avr910_send(pgm, "m", 1);
+      avr910_vfy_cmd_sent(pgm, "flush page");
+
+      /* Set page address for next page. */
+
+      page_addr = addr;
+      page_bytes = page_size;
+    }
+  }
+
+  /* If we didn't send the page wr cmd after the last byte written in the
+     loop, send it now. */
+
+  if (page_wr_cmd_pending) {
+    avr910_set_addr(pgm, page_addr>>1);
+    avr910_send(pgm, "m", 1);
+    avr910_vfy_cmd_sent(pgm, "flush final page");
   }
 
   return addr;

@@ -1,5 +1,10 @@
 2003-05-13  Theodore A. Roth  <troth@openavr.org>
 
+	* avr910.c (avr910_paged_write_flash): Add code to send the 'm'
+	command ("issue page write" cmd) for each page.
+
+2003-05-13  Theodore A. Roth  <troth@openavr.org>
+
 	* avrdude.conf.in: Add pagel and bs2 entries for at90s1200 device.
 
 2003-05-13  Theodore A. Roth  <troth@openavr.org>
