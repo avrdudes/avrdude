@@ -22,8 +22,6 @@
 #ifndef __stk500_h__
 #define __stk500_h__
 
-#include "config.h"
-
 void stk500_initpgm (PROGRAMMER * pgm);
 
 #endif

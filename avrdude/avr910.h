@@ -22,7 +22,7 @@
 #ifndef __avr910_h__
 #define __avr910_h__
 
-#include "config.h"
+#include "avrpart.h"
 
 void avr910_initpgm (PROGRAMMER * pgm);
 

@@ -47,8 +47,6 @@ extern FILE       * yyin;
 extern PROGRAMMER * current_prog;
 extern AVRPART    * current_part;
 extern AVRMEM     * current_mem;
-extern LISTID       programmers;
-extern LISTID       part_list;
 extern int          lineno;
 extern char       * infile;
 extern LISTID       string_list;

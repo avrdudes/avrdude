@@ -22,8 +22,6 @@
 #ifndef __par_h__
 #define __par_h__
 
-#include "config.h"
-
 void par_initpgm        (PROGRAMMER * pgm);
 
 int par_getpinmask(int pin);

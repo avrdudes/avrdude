@@ -50,7 +50,6 @@
 #include "lists.h"
 #include "par.h"
 #include "pindefs.h"
-#include "ppi.h"
 #include "term.h"
 
 
@@ -134,7 +133,7 @@ int getexitspecs(char *s, int *set, int *clr)
     else if (strcmp(cp, "noreset") == 0) {
       *set |= par_getpinmask(pgm->pinno[PIN_AVR_RESET]);
     }
-    else if (strcmp(cp, "vcc") == 0) { 
+    else if (strcmp(cp, "vcc") == 0) {
       if (pgm->pinno[PPI_AVR_VCC])
         *set |= pgm->pinno[PPI_AVR_VCC];
     }
@@ -507,7 +506,7 @@ UPDATE * new_update(int op, char * memtype, int filefmt, char * filename)
 
 
 
-int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite, 
+int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
           int verify)
 {
   struct avrpart * v;

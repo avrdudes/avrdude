@@ -26,6 +26,9 @@
 
 #include "lists.h"
 
+
+extern LISTID part_list;
+
 /*
  * AVR serial programming instructions
  */

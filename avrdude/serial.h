@@ -30,8 +30,6 @@
 #ifndef __serial_h__
 #define __serial_h__
 
-#include "config.h"
-
 extern int serial_open(char * port, long baud);
 extern void serial_close(int fd);
 

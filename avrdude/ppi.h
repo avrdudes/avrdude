@@ -22,8 +22,6 @@
 #ifndef __ppi_h__
 #define __ppi_h__
 
-#include "config.h"
-
 /*
  * PPI registers
  */

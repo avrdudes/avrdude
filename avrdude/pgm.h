@@ -35,6 +35,9 @@
 #define PGM_DESCLEN 80
 #define PGM_PORTLEN PATH_MAX
 #define PGM_TYPELEN 32
+
+extern LISTID       programmers;
+
 typedef struct programmer_t {
   LISTID id;
   char desc[PGM_DESCLEN];
