@@ -604,6 +604,87 @@ part
       ;
   ;
 
+
+#------------------------------------------------------------
+# AT90s2343
+#------------------------------------------------------------
+
+part
+    id               = "2343";
+    desc             = "AT90S2343";
+    chip_erase_delay = 18000;
+    pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    memory "eeprom"
+        size            = 128;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0x00;
+        readback_p2     = 0xff;
+        read            = "1  0  1  0   0  0  0  0   0 0 0 0  0 0 0 0", 
+                          "x a6 a5 a4  a3 a2 a1 a0   o o o o  o o o o";
+
+        write           = "1  1  0  0   0  0  0  0   0 0 0 0  0 0 0 0",
+                          "x a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+      ;
+    memory "flash"
+        size            = 2048;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0xff;
+        readback_p2     = 0x00;
+        read_lo         = "  0   0   1   0    0   0   0   0",
+                          "  x   x   x   x    x   x  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        read_hi         = "  0   0   1   0    1   0   0   0",
+                          "  x   x   x   x    x   x  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        write_lo        = "  0   1   0   0    0   0   0   0",
+                          "  x   x   x   x    x   x  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  i   i   i   i    i   i   i   i";
+
+        write_hi        = "  0   1   0   0    1   0   0   0",
+                          "  x   x   x   x    x   x  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  i   i   i   i    i   i   i   i";
+      ;
+    memory "signature"
+        size            = 3;
+        read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
+                          "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
+      ;
+    memory "fuse"
+        size            = 1;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        read            = "0 1 0 1  1 0 0 0   x x x x  x x x x",
+                          "x x x x  x x x x   o o o x  x x x o";
+
+        write           = "1 0 1 0  1 1 0 0   1 0 1 1  1 1 1 i",
+                          "x x x x  x x x x   x x x x  x x x x";
+      ;
+    memory "lock"
+        size            = 1;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        read            = "0 1 0 1  1 0 0 0   x x x x  x x x x",
+                          "x x x x  x x x x   o o o x  x x x o";
+
+        write           = "1 0 1 0  1 1 0 0   1 1 1 1  1 i i 1",
+                          "x x x x  x x x x   x x x x  x x x x";
+      ;
+  ;
+
+
 #------------------------------------------------------------
 # AT90s4433
 #------------------------------------------------------------
