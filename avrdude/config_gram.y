@@ -37,6 +37,11 @@
 #include "butterfly.h"
 #include "avr.h"
 
+#if defined(WIN32NATIVE)
+#define strtok_r( _s, _sep, _lasts ) \
+    ( *(_lasts) = strtok( (_s), (_sep) ) )
+#endif
+
 extern char * progname;
 
 int yylex(void);

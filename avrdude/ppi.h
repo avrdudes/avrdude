@@ -34,13 +34,6 @@ enum {
 };
 
 
-#if !defined(ppi_claim)
-#  define ppi_claim(pgm)
-#endif
-
-#if !defined(ppi_release)
-#  define ppi_release(pgm)
-#endif
 
 int ppi_get       (int fd, int reg, int bit);
 

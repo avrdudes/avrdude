@@ -30,6 +30,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 #include "avr.h"
 #include "pgm.h"
@@ -259,6 +261,8 @@ static int avr910_open(PROGRAMMER * pgm, char * port)
    * drain any extraneous input
    */
   avr910_drain (pgm, 0);
+	
+  return 0;
 }
 
 static void avr910_close(PROGRAMMER * pgm)

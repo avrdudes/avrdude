@@ -700,11 +700,17 @@ int main(int argc, char * argv [])
   char  * e;           /* for strtol() error checking */
   int     quell_progress;
   int     baudrate;    /* override default programmer baud rate */
-#if !defined(__CYGWIN__)
+#if !defined(WIN32NATIVE)
   char  * homedir;
 #endif
 
   progname = rindex(argv[0],'/');
+  
+  #if defined (WIN32NATIVE)
+  /* take care of backslash as dir sep in W32 */
+  if (!progname) progname = rindex(argv[0],'\\');
+  #endif /* WIN32NATIVE */
+  
   if (progname)
     progname++;
   else
@@ -742,7 +748,7 @@ int main(int argc, char * argv [])
   baudrate      = 0;
 
 
-  #if defined(__CYGWIN__)
+  #if defined(WIN32NATIVE)
 
   win_sys_config_set(sys_config);
   win_usr_config_set(usr_config);
@@ -897,8 +903,16 @@ int main(int argc, char * argv [])
   if (quell_progress == 0) {
     if (isatty (STDERR_FILENO))
       update_progress = update_progress_tty;
-    else
+    else {
       update_progress = update_progress_no_tty;
+      #if defined(WIN32NATIVE)
+      /* disable all buffering of stderr for compatibility with
+         software that captures and redirects output to a GUI
+         i.e. Programmers Notepad */
+      setvbuf( stderr, NULL, _IONBF, 0 );
+      setvbuf( stdout, NULL, _IONBF, 0 );
+      #endif /* WIN32NATIVE */
+	}
   }
 
   if (verbose) {
@@ -910,6 +924,11 @@ int main(int argc, char * argv [])
             "\n%s: Version %s\n"
             "%sCopyright (c) 2000-2003 Brian Dean, bsd@bsdhome.com\n\n",
             progname, version, progbuf);
+	#if defined(WIN32NATIVE)
+	#warning "Experimental Win32 Native Build"
+	fprintf(stderr,"%sExperimental Windows32 native build by Martin Thomas\n\n",
+		progbuf);
+	#endif
   }
 
   if (verbose) {

@@ -910,7 +910,7 @@ int fileio(int op, char * filename, FILEFMT format,
   if (rc < 0)
     return -1;
 
-  #if defined(__CYGWIN__)
+  #if defined(WIN32NATIVE)
   /* Open Raw Binary format in binary mode on Windows.*/
   if(format == FMT_RBIN)
   {

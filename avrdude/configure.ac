@@ -121,6 +121,8 @@ AC_SUBST(DEFAULT_SER_PORT, $DEFAULT_SER_PORT)
 case $target in
         *-*-mingw32* | *-*-cygwin* | *-*-windows*)
 		WINDOWS_DIRS="windows"
+		CFLAGS="-mno-cygwin -DWIN32NATIVE"
+		LDFLAGS="-static"
 		;;
 esac
 AC_SUBST(WINDOWS_DIRS,$WINDOWS_DIRS)
