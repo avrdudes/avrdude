@@ -172,8 +172,8 @@
 #
 # Overall avrdude defaults
 #
-default_parallel   = "/dev/ppi0";
-default_serial     = "/dev/cuaa0";
+default_parallel   = "@DEFAULT_PAR_PORT@";
+default_serial     = "@DEFAULT_SER_PORT@";
 
 
 #

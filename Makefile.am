@@ -21,7 +21,7 @@
 # $Id$
 #
 
-EXTRA_DIST   = avrdude.1 avrdude.pdf avrdude.conf.sample bootstrap
+EXTRA_DIST   = avrdude.1 avrdude.pdf avrdude.conf.in bootstrap
 
 AM_YFLAGS    = -d
 
@@ -63,8 +63,12 @@ man_MANS = avrdude.1
 
 sysconf_DATA = avrdude.conf
 
-avrdude.conf: avrdude.conf.sample
-	cp $(srcdir)/avrdude.conf.sample $@
+install-exec-local: backup-avrdude-conf
 
-distclean-local:
-	rm -rf avrdude.conf
+# This will get run before the config file is installed.
+backup-avrdude-conf:
+	@echo "Backing up avrdude.conf in ${DESTDIR}${sysconfdir}"
+	@if test -e ${DESTDIR}${sysconfdir}/avrdude.conf; then \
+		cp -pR ${DESTDIR}${sysconfdir}/avrdude.conf \
+			${DESTDIR}${sysconfdir}/avrdude.conf.bak; \
+	fi

@@ -1,8 +1,44 @@
+#
+# avrdude - A Downloader/Uploader for AVR device programmers
+# Copyright (C) 2003  Theodore A. Roth  <troth@openavr.org>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+
+#
+# $Id$
+#
+
 # Process this file with autoconf to produce a configure script.
-AC_INIT(avrdude, 3.1.0cvs, avrdude-dev@nongnu.org)
+
+# Automake-1.5 requires arguments to AM_INIT_AUTOMAKE, but Automake-1.6 and
+# later to not. To work around this, we need to give the version in two places
+# so we define avrdude_version. Once freebsd can use 1.6 or newer, we can get
+# rid of this silly hack and remove the args to AM_INIT_AUTOMAKE.
+
+m4_define([avrdude_version],[3.1.0cvs])
+
 AC_PREREQ(2.53)
+AC_INIT(avrdude, avrdude_version, avrdude-dev@nongnu.org)
+
+AC_CANONICAL_BUILD
+AC_CANONICAL_HOST
+AC_CANONICAL_TARGET
+
 AC_CONFIG_SRCDIR([main.c])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE(avrdude, avrdude_version)
 AM_CONFIG_HEADER([ac_cfg.h]) 
 
 # Checks for programs.
@@ -28,5 +64,44 @@ AC_PROG_GCC_TRADITIONAL
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul])
 
-AC_CONFIG_FILES([Makefile])
+# Checks for misc stuff.
+
+# Find the parallel serial device files based on target system
+# If a system doesn't have a PC style parallel, mark it as unknown.
+case $target in
+	i[[3456]]86-*-linux*)
+		DEFAULT_PAR_PORT="/dev/parport0"
+		DEFAULT_SER_PORT="/dev/ttyS0"
+		;;
+	*-*-linux*)
+		DEFAULT_PAR_PORT="unknown"
+		DEFAULT_SER_PORT="/dev/ttyS0"
+		;;
+	i[[3456]]86-*-freebsd*)
+		DEFAULT_PAR_PORT="/dev/ppi0"
+		DEFAULT_SER_PORT="/dev/cuaa0"
+		;;
+	*-*-freebsd*)
+		DEFAULT_PAR_PORT="unknown"
+		DEFAULT_SER_PORT="/dev/cuaa0"
+		;;
+	*-*-msdos* | *-*-mingw32* | *-*-cygwin* | *-*-windows*)
+		DEFAULT_PAR_PORT="lpt1"
+		DEFAULT_SER_PORT="com1"
+		;;
+	*)
+		DEFAULT_PAR_PORT="unknown"
+		DEFAULT_SER_PORT="unknown"
+		;;
+esac
+
+AC_MSG_CHECKING([for parallel device])
+AC_MSG_RESULT([$DEFAULT_PAR_PORT])
+AC_SUBST(DEFAULT_PAR_PORT, $DEFAULT_PAR_PORT)
+
+AC_MSG_CHECKING([for serial device])
+AC_MSG_RESULT([$DEFAULT_SER_PORT])
+AC_SUBST(DEFAULT_SER_PORT, $DEFAULT_SER_PORT)
+
+AC_CONFIG_FILES([Makefile avrdude.conf])
 AC_OUTPUT
