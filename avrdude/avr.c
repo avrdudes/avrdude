@@ -1019,7 +1019,6 @@ int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size)
 
 int avr_get_cycle_count(int fd, AVRPART * p)
 {
-  int size;
   AVRMEM * a;
   int cycle_count;
   unsigned char v1, v2;
@@ -1051,7 +1050,6 @@ int avr_get_cycle_count(int fd, AVRPART * p)
 
 int avr_put_cycle_count(int fd, AVRPART * p, int cycles)
 {
-  int size;
   AVRMEM * a;
   unsigned char v1, v2;
   int rc;
