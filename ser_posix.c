@@ -168,14 +168,14 @@ int serial_send(int fd, char * buf, size_t buflen)
       fprintf(stderr, "%s: Send: ", progname);
 
       while (buflen) {
-        char c = *buf;
+        unsigned char c = *buf;
         if (isprint(c)) {
           fprintf(stderr, "%c ", c);
         }
         else {
           fprintf(stderr, ". ");
         }
-        fprintf(stderr, "[%02x] ", ((unsigned int)c) & 0xff);
+        fprintf(stderr, "[%02x] ", c);
 
         buf++;
         buflen--;
@@ -277,14 +277,14 @@ int serial_recv(int fd, char * buf, size_t buflen)
       fprintf(stderr, "%s: Recv: ", progname);
 
       while (len) {
-        char c = *p;
+        unsigned char c = *p;
         if (isprint(c)) {
           fprintf(stderr, "%c ", c);
         }
         else {
           fprintf(stderr, ". ");
         }
-        fprintf(stderr, "[%02x] ", ((unsigned int)c &0xff));
+        fprintf(stderr, "[%02x] ", c);
 
         p++;
         len--;

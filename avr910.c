@@ -67,7 +67,7 @@ static int avr910_recv(PROGRAMMER * pgm, char * buf, size_t len)
 
 static int avr910_drain(PROGRAMMER * pgm, int display)
 {
-  show_func_info();
+  no_show_func_info();
 
   return serial_drain(pgm->fd, display);
 }
@@ -139,12 +139,27 @@ static int avr910_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
+
+static void avr910_enter_prog_mode(PROGRAMMER * pgm)
+{
+  avr910_send(pgm, "P", 1);
+  avr910_vfy_cmd_sent(pgm, "enter prog mode");
+}
+
+
+static void avr910_leave_prog_mode(PROGRAMMER * pgm)
+{
+  avr910_send(pgm, "L", 1);
+  avr910_vfy_cmd_sent(pgm, "leave prog mode");
+}
+
+
 /*
  * issue the 'program enable' command to the AVR device
  */
 static int avr910_program_enable(PROGRAMMER * pgm, AVRPART * p)
 {
-  show_func_info();
+  no_show_func_info();
 
   return -1;
 }
@@ -176,20 +191,6 @@ static void avr910_powerdown(PROGRAMMER * pgm)
 }
 
 
-static void avr910_enter_prog_mode(PROGRAMMER * pgm)
-{
-  avr910_send(pgm, "P", 1);
-  avr910_vfy_cmd_sent(pgm, "enter prog mode");
-}
-
-
-static void avr910_leave_prog_mode(PROGRAMMER * pgm)
-{
-  avr910_send(pgm, "L", 1);
-  avr910_vfy_cmd_sent(pgm, "leave prog mode");
-}
-
-
 /*
  * initialize the AVR device and prepare it to accept commands
  */
@@ -203,7 +204,7 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
   unsigned char c;
   int dev_supported = 0;
 
-  show_func_info();
+  no_show_func_info();
 
   /* Get the programmer identifier. Programmer returns exactly 7 chars
      _without_ the null.*/
@@ -316,7 +317,7 @@ static int avr910_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
 {
   int i;
 
-  show_func_info();
+  no_show_func_info();
 
   for (i=0; i<4; i++) {
     fprintf(stderr, "cmd[%d] = 0x%02x\n", i, cmd[i]);
@@ -352,9 +353,135 @@ static void avr910_close(PROGRAMMER * pgm)
 
 static void avr910_display(PROGRAMMER * pgm, char * p)
 {
-  show_func_info();
+  no_show_func_info();
 
   return;
+}
+
+
+static void avr910_set_addr(PROGRAMMER * pgm, unsigned long addr)
+{
+  unsigned char cmd[3];
+
+  cmd[0] = 'A';
+  cmd[1] = (addr >> 8) & 0xff;
+  cmd[2] = addr & 0xff;
+  
+  avr910_send(pgm, cmd, sizeof(cmd));
+  avr910_vfy_cmd_sent(pgm, "set addr");
+}
+
+
+/*
+ * For some reason, if we don't do this when writing to flash, the first byte
+ * of flash is not programmed. I susect that the board got out of sync after
+ * the erase and sending another command gets us back in sync. -TRoth
+ */
+static void avr910_write_setup(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
+{
+  if (strcmp(m->desc, "flash") == 0) {
+    avr910_send(pgm, "y", 1);
+    avr910_vfy_cmd_sent(pgm, "clear LED");
+  }
+}
+
+
+static int avr910_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+                             unsigned long addr, unsigned char value)
+{
+  unsigned char cmd[2];
+
+  no_show_func_info();
+
+  if (strcmp(m->desc, "flash") == 0) {
+    if (addr & 0x01) {
+      cmd[0] = 'C';             /* Write Program Mem high byte */
+    }
+    else {
+      cmd[0] = 'c';
+    }
+
+    addr >>= 1;
+  }
+  else if (strcmp(m->desc, "eeprom") == 0) {
+    cmd[0] = 'D';
+  }
+  else {
+    return -1;
+  }
+
+  cmd[1] = value;
+
+  avr910_set_addr(pgm, addr);
+
+  avr910_send(pgm, cmd, sizeof(cmd));
+  avr910_vfy_cmd_sent(pgm, "write byte");
+
+  return 0;
+}
+
+
+static int avr910_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+                                  unsigned long addr, unsigned char * value)
+{
+  static int cached = 0;
+  static unsigned char cvalue;
+  static unsigned long caddr;
+
+  if (cached && ((caddr + 1) == addr)) {
+    *value = cvalue;
+    cached = 0;
+  }
+  else {
+    unsigned char buf[2];
+
+    avr910_set_addr(pgm, addr >> 1);
+
+    avr910_send(pgm, "R", 1);
+
+    /* Read back the program mem word (MSB first) */
+    avr910_recv(pgm, buf, sizeof(buf));
+
+    if ((addr & 0x01) == 0) {
+      *value = buf[1];
+      cached = 1;
+      cvalue = buf[0];
+      caddr = addr;
+    }
+    else {
+      *value = buf[0];
+    }
+  }
+
+  return 0;
+}
+
+
+static int avr910_read_byte_eeprom(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+                                   unsigned long addr, unsigned char * value)
+{
+  avr910_set_addr(pgm, addr);
+  avr910_send(pgm, "d", 1);
+  avr910_recv(pgm, value, 1);
+
+  return 0;
+}
+
+
+static int avr910_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+                            unsigned long addr, unsigned char * value)
+{
+  no_show_func_info();
+
+  if (strcmp(m->desc, "flash") == 0) {
+    return avr910_read_byte_flash(pgm, p, m, addr, value);
+  }
+
+  if (strcmp(m->desc, "eeprom") == 0) {
+    return avr910_read_byte_eeprom(pgm, p, m, addr, value);
+  }
+
+  return -1;
 }
 
 /* Signature byte reads are always 3 bytes. */
@@ -406,5 +533,8 @@ void avr910_initpgm(PROGRAMMER * pgm)
    * optional functions
    */
 
+  pgm->write_setup = avr910_write_setup;
+  pgm->write_byte = avr910_write_byte;
+  pgm->read_byte = avr910_read_byte;
   pgm->read_sig_bytes = avr910_read_sig_bytes;
 }

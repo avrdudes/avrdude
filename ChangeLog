@@ -1,5 +1,15 @@
 2003-03-23  Theodore A. Roth  <troth@openavr.org>
 
+	* avr.c (avr_write): Add call to pgm->write_setup() before the write
+	loop.
+	* avr910.c: Change all show_func_info() calls to no_show_func_info().
+	Add read/write to/from flash/eeprom memory functionality.
+	* pgm.c: Initialize pgm->write_setup.
+	* pgm.h: Add write_setup field to PROGRAMMER structure.
+	* ser_posix.c: Remove unneeded cast in verbosity code.
+
+2003-03-23  Theodore A. Roth  <troth@openavr.org>
+
 	* ser_posix.c: Limit verbose output to 2 chars.
 
 2003-03-23  Theodore A. Roth  <troth@openavr.org>

@@ -733,6 +733,10 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
     }
   }
 
+  if (pgm->write_setup) {
+      pgm->write_setup(pgm, p, m);
+  }
+
   for (i=0; i<wsize; i++) {
     data = m->buf[i];
     if (verbose) {
