@@ -1,4 +1,8 @@
 2004-07-04  Jan-Hinnerk Reichert  <hinni@despammed.com>
+	* stk500.c: Fixed fosc behaviour for values exceeding
+	maximum frequency (contributed by Galen Seitz)
+
+2004-07-04  Jan-Hinnerk Reichert  <hinni@despammed.com>
 	* avrdude.conf.in: Added support for
         ATtiny2313 (contributed by Bob Paddock)
 
