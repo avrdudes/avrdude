@@ -1,5 +1,10 @@
 2004-02-10  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
+	* avrdude.1, doc/avrdude.texi, doc/TODO:
+	Removed the deprecated options from documentation
+
+2004-02-10  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
 	* main.c: Removed deprecated options.
 
 2004-01-28  Jan-Hinnerk Reichert  <hinni@despammed.com>
