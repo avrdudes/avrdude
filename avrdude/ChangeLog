@@ -1,3 +1,12 @@
+2004-01-26  Theodore A. Roth  <troth@openavr.org>
+
+	* AVRDUDE 4.3.0 has been released (cvs release tag is "release_4_3_0").
+
+2004-01-26  Theodore A. Roth  <troth@openavr.org>
+
+	* configure.ac: Update copyright year.
+	(AC_INIT): Set version to 4.3.0.
+
 2004-01-25  Theodore A. Roth  <troth@openavr.org>
 
 	* ChangeLog: Minor formatting cleanups.

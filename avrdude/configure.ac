@@ -1,6 +1,6 @@
 #
 # avrdude - A Downloader/Uploader for AVR device programmers
-# Copyright (C) 2003  Theodore A. Roth  <troth@openavr.org>
+# Copyright (C) 2003, 2004  Theodore A. Roth  <troth@openavr.org>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(avrdude, 4.2.0cvs, avrdude-dev@nongnu.org)
+AC_INIT(avrdude, 4.3.0, avrdude-dev@nongnu.org)
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
