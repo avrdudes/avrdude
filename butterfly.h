@@ -22,8 +22,6 @@
 #ifndef __butterfly_h__
 #define __butterfly_h__
 
-#include "config.h"
-
 void butterfly_initpgm (PROGRAMMER * pgm);
 
 #endif /* __butterfly_h__ */

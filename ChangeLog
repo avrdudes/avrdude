@@ -1,3 +1,7 @@
+2004-07-05  Jan-Hinnerk Reichert  <hinni@despammed.com>
+	* *.c, *.h: Removed unnecessary includes of
+        config.h
+
 2004-07-04  Jan-Hinnerk Reichert  <hinni@despammed.com>
 	* avr.h: Removed some unused prototypes
 
