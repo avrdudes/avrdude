@@ -119,5 +119,5 @@ ${CONFIGDIR}/avrdude.conf : avrdude.conf.sample
 depend :
 	@echo Dependency List:
 	@if [ ! -f y.tab.h ]; then touch y.tab.h; fi
-	@avr-gcc ${CFLAGS} -MM ${SRCS}
+	@gcc ${CFLAGS} -MM ${SRCS}
 
