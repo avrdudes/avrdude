@@ -1,3 +1,12 @@
+2003-08-25  Eric B. Weddington  <eric@ecentral.com>
+
+    * fileio.c: 
+    * main.c: 
+    * ppiwin.c:
+    * ser_posix.c:
+    * stk500.c:
+    Minor code cleanup to remove warnings.
+
 2003-08-01  Theodore A. Roth  <troth@openavr.org>
 
 	* avrdude.1: Document the -q option.

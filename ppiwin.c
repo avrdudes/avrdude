@@ -351,8 +351,10 @@ BOOL usecPerfDelay(long t)
   }
 }
 
-// WARNING WARNING This function replaces the standard usleep() library function
-// because it doesn't appear to delay for the correct time
+/*
+WARNING WARNING This function replaces the standard usleep() library function
+because it doesn't appear to delay for the correct time.
+*/
 
 #ifndef MIN_SLEEP_USEC
 #define MIN_SLEEP_USEC 20000
@@ -364,7 +366,7 @@ unsigned usleep( unsigned int uSeconds )
   struct timespec nanoDelay ;
 
   if (usecPerfDelay(uSeconds))
-    return;
+    return(0);
 
   gettimeofday(&t1, NULL);
 
@@ -384,6 +386,8 @@ unsigned usleep( unsigned int uSeconds )
   do {
     gettimeofday(&t2, NULL);
   } while (timercmp(&t2, &t1, <));
+  
+  return(0);
 }
 
 
