@@ -747,12 +747,12 @@ int main(int argc, char * argv [])
   baudrate      = 0;
 
 
-  #if defined(WIN32NATIVE)
+#if defined(WIN32NATIVE)
 
   win_sys_config_set(sys_config);
   win_usr_config_set(usr_config);
   
-  #else
+#else
 
   strcpy(sys_config, CONFIG_DIR);
   i = strlen(sys_config);
@@ -770,7 +770,7 @@ int main(int argc, char * argv [])
     strcat(usr_config, ".avrduderc");
   }
 
-  #endif
+#endif
 
   len = strlen(progname) + 2;
   for (i=0; i<len; i++)
@@ -904,13 +904,11 @@ int main(int argc, char * argv [])
       update_progress = update_progress_tty;
     else {
       update_progress = update_progress_no_tty;
-      #if defined(WIN32NATIVE)
       /* disable all buffering of stderr for compatibility with
          software that captures and redirects output to a GUI
          i.e. Programmers Notepad */
       setvbuf( stderr, NULL, _IONBF, 0 );
       setvbuf( stdout, NULL, _IONBF, 0 );
-      #endif /* WIN32NATIVE */
 	}
   }
 
@@ -921,13 +919,8 @@ int main(int argc, char * argv [])
      */
     fprintf(stderr,
             "\n%s: Version %s\n"
-            "%sCopyright (c) 2000-2003 Brian Dean, bsd@bsdhome.com\n\n",
+            "%sCopyright (c) 2000-2004 Brian Dean, bsd@bsdhome.com\n\n",
             progname, version, progbuf);
-	#if defined(WIN32NATIVE)
-	#warning "Experimental Win32 Native Build"
-	fprintf(stderr,"%sExperimental Windows32 native build by Martin Thomas\n\n",
-		progbuf);
-	#endif
   }
 
   if (verbose) {
@@ -1218,7 +1211,8 @@ int main(int argc, char * argv [])
       if ((strcasecmp(m->desc, "flash") == 0) && (upd->op == DEVICE_WRITE)) {
         erase = 1;
         fprintf(stderr,
-                "%s: NOTE: FLASH memory has been specified, an erase cycle will be performed\n"
+                "%s: NOTE: FLASH memory has been specified, an erase cycle "
+                "will be performed\n"
                 "%sTo disable this feature, specify the -D option.\n",
                 progname, progbuf);
         break;

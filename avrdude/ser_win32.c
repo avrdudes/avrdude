@@ -26,6 +26,7 @@
 #if defined(WIN32NATIVE)
 
 #include <windows.h>
+#include <stdio.h>
 #include <ctype.h>   /* for isprint */
 #include "serial.h"
 
