@@ -699,7 +699,7 @@ void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type)
 {
   if (m == NULL) {
     fprintf(f, 
-            "%sMem                  Bank\n"
+            "%sMem                  Bank                       Polled\n"
             "%sType   Banked Size   Size #Banks MinW  MaxW   ReadBack\n"
             "%s------ ------ ------ ---- ------ ----- ----- ---------\n",
             prefix, prefix, prefix);

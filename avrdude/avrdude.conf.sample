@@ -15,7 +15,7 @@
 #   programmer
 #       id     = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
 #       desc   = <description> ;                  # quoted string
-#       vcc    = <num1> [, <num2> ... ] ;         # pin number
+#       vcc    = <num1> [, <num2> ... ] ;         # pin number(s)
 #       reset  = <num> ;                          # pin number
 #       sck    = <num> ;                          # pin number
 #       mosi   = <num> ;                          # pin number

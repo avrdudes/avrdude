@@ -33,6 +33,8 @@
 .Sh SYNOPSIS
 .Nm
 .Fl p Ar partno
+.Op Fl c Ar programmer-id
+.Op Fl C Ar config-file
 .Op Fl e
 .Oo Fl E Ar exitspec Ns
 .Op \&, Ns Ar exitspec
@@ -42,13 +44,15 @@
 .Op Fl i Ar filename
 .Op Fl m Ar memtype
 .Op Fl o Ar filename
+.Op Fl n
 .Op Fl P Ar parallel
 .Op Fl t
+.Op Fl v
 .Sh DESCRIPTION
 .Nm Avrprog
-is a driver program for a simple programming hardware that allows to
-program Atmel AVR microcontrollers, where the programmer is connected
-directly to a
+is a driver program for a simple programming hardware that allows one
+to program Atmel AVR microcontrollers, where the programmer is
+connected directly to a
 .Xr ppi 4
 parallel port.  In the simplest case, the hardware consists just of a
 cable, connecting the respective AVR signal lines to the parallel port.
@@ -72,7 +76,7 @@ decouple the parallel port from the MCU when in-system programming is
 used.
 .Pp
 See the file
-.Pa ${PREFIX}/share/doc/avrprog/AVRprog.pdf
+.Pa ${PREFIX}/share/doc/avrprog/avrprog.pdf
 for a schematic of the programming hardware.
 .Pp
 Input files can be provided, and output files can be written in
@@ -88,9 +92,9 @@ for the final stage of the GNU toolchain for the AVR microcontroller.
 Both, EEPROM cells and the flash ROM can be programmed (separately).
 It is also possible to read the chip (provided it has not been
 code-protected previously, of course) and store the data in a file.
-Finally, a ``terminal'' mode is available that allows to interactively
-communicate with the MCU, and to display or program individual various
-memory cells even one at a time if desired.
+Finally, a ``terminal'' mode is available that allows one to
+interactively communicate with the MCU, and to display or program
+individual memory cells.
 .Ss Options
 In order to control all the different operation modi, a number of options
 need to be specified to
@@ -99,8 +103,12 @@ need to be specified to
 .It Fl p Ar partno
 This is the only option that is mandatory for every invocation of
 .Nm avrprog .
-It specifies the type of the MCU connected to the programmer.  Currently,
-the following MCU types are understood:
+It specifies the type of the MCU connected to the programmer.  These are read from the config file.  If
+.Nm avrprog
+does not know about a part that you have, simply add it to the config
+file (be sure and submit a patch back to the author so that it can be
+incorporated for the next version).  See the sample config file for
+the format.  Currently, the following MCU types are understood:
 .Pp
 .TS
 ll.
@@ -112,8 +120,9 @@ ll.
 4434	AT90S4434
 8515	AT90S8515
 8535	AT90S8535
+103	ATMEGA103
 .TE
-.It Fl c Ar Pin-Configuration
+.It Fl c Ar programmer-id
 Use the pin configuration specified by the argument.  Pin
 configurations are read from the config file (see the
 .Fl C
@@ -122,28 +131,17 @@ through the use of a config file to make
 .Nm avrprog
 work with different programmers as long as the programmer supports the
 Atmel AVR serial program method.
-.It Fl C Ar Config-File
-Use the specified config file to locate the desired pin configuration.
-Pin configurations are specified in the config file using a colon
-seperated field format.  The configuration entry type is the first
-field and currently must be
-.Ar c:
-The configuration name is the second field, and the remaining fields
-are of the form:
-.Ar PIN=VALUE ,
-where
-.Ar PIN
-can be
-.Ar VCC , RESET , SCK , MOSI , MISO , BUFF , PGMLED , RDYLED , VFYLED , ERRLED .
-The value is the pin number of the PC parallel port assigned to that
-function.  The
-.Ar VCC
-pin can take on multiple values seperated by a comma (which are or'd
-together to create a bit mask).
-.Ar VCC
-pin numbers must come from pins 2 through 9.  The default
-configuration file is
-.Pa /usr/local/etc/avrprog.conf .
+.It Fl C Ar config-file
+Use the specified config file to load configuration data.  This file
+contains all programmer and part definitions that
+.Nm avrprog
+knows about.  If you have a programmer or part that
+.Nm avrprog
+does not know about, you can add it to the config file (be sure and
+submit a patch back to the author so that it can be incorporated for
+the next version).  See the sample config file, located at
+.Pa ${PREFIX}/etc/avrprog.conf.sample ,
+which contains a description of the format.
 .It Fl e
 Causes a chip erase to be executed.  This will reset the contents of the
 flash ROM and EEPROM to the value
@@ -249,6 +247,10 @@ values are
 for the EEPROM, or
 .Em flash
 for the flash ROM, which is also the default.
+.It Fl n
+No-write - disables actually writing data to the MCU (useful for debugging
+.Nm avrprog
+).
 .It Fl o Ar filename
 Specifies the name of the output file to write, and causes the respective
 memory area to be read from the MCU.  Can be specified as
@@ -297,6 +299,8 @@ using the values
 .Ar byte1
 through
 .Ar byteN .
+This feature is not implemented for bank-addressed memories such as
+flash memory of ATMega devices.
 .It Ar erase
 Perform a chip erase.
 .It Ar sig
@@ -329,15 +333,15 @@ ll.
 .It Pa /dev/ppi0
 default device to be used for communication with the programming
 hardware
-.It Pa /usr/local/etc/avrprog.conf.sample
+.It Pa ${PREFIX}/etc/avrprog.conf.sample
 sample pin configuration file
-.It Pa /usr/local/etc/avrprog.conf
+.It Pa ${PREFIX}/etc/avrprog.conf
 default pin configuration file
 .It Pa ~/.inputrc
 Initialization file for the
 .Xr readline 3
 library
-.It Pa ${PREFIX}/share/doc/avrprog/AVRprog.pdf
+.It Pa ${PREFIX}/share/doc/avrprog/avrprog.pdf
 Schematic of programming hardware
 .El
 .\" .Sh EXAMPLES
