@@ -122,6 +122,7 @@ buff             { yylval=NULL; return K_BUFF; }
 chip_erase_delay { yylval=NULL; return K_CHIP_ERASE_DELAY; }
 desc             { yylval=NULL; return K_DESC; }
 default_parallel { yylval=NULL; return K_DEFAULT_PARALLEL; }
+default_programmer { yylval=NULL; return K_DEFAULT_PROGRAMMER; }
 default_serial   { yylval=NULL; return K_DEFAULT_SERIAL; }
 devicecode       { yylval=NULL; return K_DEVICECODE; }
 eeprom           { yylval=NULL; return K_EEPROM; }

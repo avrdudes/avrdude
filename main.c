@@ -190,7 +190,7 @@ int read_config(char * file)
 
 
 
-void pinconfig_display(char * p)
+void programmer_display(char * p)
 {
   fprintf(stderr, "%sProgrammer Type: %s\n", p, pgm->type);
 
@@ -210,7 +210,7 @@ void verify_pin_assigned(int pin, char * desc)
 
 
 
-PROGRAMMER * locate_pinconfig(LISTID programmers, char * configid)
+PROGRAMMER * locate_programmer(LISTID programmers, char * configid)
 {
   LNODEID ln1, ln2;
   PROGRAMMER * p = NULL;
@@ -305,7 +305,7 @@ int main(int argc, char * argv [])
   int     ppisetbits;  /* bits to set in ppi data register at exit */
   int     ppiclrbits;  /* bits to clear in ppi data register at exit */
   char  * exitspecs;   /* exit specs string from command line */
-  char  * pinconfig;   /* programmer id */
+  char  * programmer;  /* programmer id */
   char  * partdesc;    /* part id */
   char    configfile[PATH_MAX]; /* pin configuration file */
   int     cycles;      /* erase-rewrite cycles */
@@ -341,7 +341,7 @@ int main(int argc, char * argv [])
   ppiclrbits    = 0;
   exitspecs     = NULL;
   pgm           = NULL;
-  pinconfig     = "avrdude"; /* compiled-in default */
+  programmer    = default_programmer;
   verbose       = 0;
   do_cycles     = 0;
   set_cycles    = -1;
@@ -351,25 +351,6 @@ int main(int argc, char * argv [])
   if (i && (configfile[i-1] != '/'))
     strcat(configfile, "/");
   strcat(configfile, "avrdude.conf");
-
-  /*
-   * initialize compiled-in default programmer 
-   */
-  compiled_in_pgm = pgm_new();
-  pgm = compiled_in_pgm;
-  par_initpgm(pgm);
-  ladd(pgm->id, dup_string("avrdude"));
-  strcpy(pgm->desc, "avrdude compiled-in default");
-  pgm->pinno[PPI_AVR_VCC]   = 0x0f;  /* ppi pins 2-5, data reg bits 0-3 */
-  pgm->pinno[PPI_AVR_BUFF]  =  0;
-  pgm->pinno[PIN_AVR_RESET] =  7;
-  pgm->pinno[PIN_AVR_SCK]   =  8;
-  pgm->pinno[PIN_AVR_MOSI]  =  9;
-  pgm->pinno[PIN_AVR_MISO]  = 10;
-  pgm->pinno[PIN_LED_ERR]   =  0;
-  pgm->pinno[PIN_LED_RDY]   =  0;
-  pgm->pinno[PIN_LED_PGM]   =  0;
-  pgm->pinno[PIN_LED_VFY]   =  0;
 
   len = strlen(progname) + 2;
   for (i=0; i<len; i++)
@@ -391,13 +372,8 @@ int main(int argc, char * argv [])
   while ((ch = getopt(argc,argv,"?c:C:eE:f:Fi:m:no:p:P:tvVyY:")) != -1) {
 
     switch (ch) {
-      case 'c': /* pin configuration */
-        pinconfig = optarg;
-        if (strcmp(pinconfig, "stk500") == 0) {
-          if (port == default_parallel) {
-            port = default_serial;
-          }
-        }
+      case 'c': /* programmer id */
+        programmer = optarg;
         break;
 
       case 'C': /* pin configuration file */
@@ -544,26 +520,34 @@ int main(int argc, char * argv [])
 
   rc = read_config(configfile);
   if (rc) {
-    fprintf(stderr, "%s: error reading \"%s\" configuration from \"%s\"\n",
-            progname, pinconfig, configfile);
+    fprintf(stderr, "%s: error reading configuration file \"%s\"\n",
+            progname, configfile);
     exit(1);
   }
 
-  if (strcmp(pinconfig, "avrdude") == 0) {
-    pgm = locate_pinconfig(programmers, "default");
-    if (pgm == NULL) {
-      /* no default config listed, use the compile-in default */
-      pgm = compiled_in_pgm;
-    }
+  if (programmer[0] == 0) {
+    fprintf(stderr, 
+            "\n%s: no programmer has been specified on the command line "
+            "or the config file\n", 
+            progname);
+    fprintf(stderr, 
+            "%sSpecify a programmer using the -c option and try again\n\n",
+            progbuf);
+    exit(1);
   }
-  else {
-    pgm = locate_pinconfig(programmers, pinconfig);
-    if (pgm == NULL) {
-      fprintf(stderr, 
-              "%s: Can't find programmer id \"%s\"\n",
-              progname, pinconfig);
-      fprintf(stderr,"\n");
-      exit(1);
+
+  pgm = locate_programmer(programmers, programmer);
+  if (pgm == NULL) {
+    fprintf(stderr, 
+            "%s: Can't find programmer id \"%s\"\n",
+            progname, programmer);
+    fprintf(stderr,"\n");
+    exit(1);
+  }
+
+  if (strcmp(programmer, "stk500") == 0) {
+    if (port == default_parallel) {
+      port = default_serial;
     }
   }
 
@@ -627,8 +611,8 @@ int main(int argc, char * argv [])
    * open the programmer
    */
   if (port[0] == 0) {
-    fprintf(stderr, "\n%s: no port has been specified on the command or the "
-            "config file\n", 
+    fprintf(stderr, "\n%s: no port has been specified on the command line "
+            "or the config file\n", 
             progname);
     fprintf(stderr, "%sSpecify a port using the -P option and try again\n\n",
             progbuf);
@@ -637,6 +621,7 @@ int main(int argc, char * argv [])
 
   if (verbose) {
     fprintf(stderr, "%sUsing Port            : %s\n", progbuf, port);
+    fprintf(stderr, "%sUsing Programmer      : %s\n", progbuf, programmer);
   }
 
   pgm->open(pgm, port);
@@ -644,7 +629,7 @@ int main(int argc, char * argv [])
   if (verbose) {
     avr_display(stderr, p, progbuf, verbose);
     fprintf(stderr, "\n");
-    pinconfig_display(progbuf);
+    programmer_display(progbuf);
   }
 
   fprintf(stderr, "\n");
