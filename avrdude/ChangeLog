@@ -1,5 +1,11 @@
 2003-09-06  Theodore A. Roth  <troth@openavr.org>
 
+	* NEWS: Add 'Current:' header.
+	* configure.ac (AC_INIT): Add cvs back to version since we're
+	back in dev cycle (post release).
+
+2003-09-06  Theodore A. Roth  <troth@openavr.org>
+
 	* AVRDUDE 4.2.0 has been released (cvs release tag is "release_4_2_0").
 
 2003-09-06  Theodore A. Roth  <troth@openavr.org>

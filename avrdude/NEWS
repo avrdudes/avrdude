@@ -6,6 +6,8 @@ Approximate change log for AVRDUDE by version.
 
 ----------------------------------------------------------------------
 
+Current:
+
 Version 4.2.0:
 
   * Add basic support for reading and writing fuses via SPI with avr910
