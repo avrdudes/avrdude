@@ -1,4 +1,4 @@
-2001-12-30  Brian S. Dean  <bsd@bdmicro.com>
+2001-12-30  Brian S. Dean  <bsd@bsdhome.com>
 
 	* main.c: Update version.
 
@@ -8,7 +8,7 @@
 
 	* avrdude.1: Bring up to date.
 
-2001-12-29  Brian S. Dean  <bsd@bdmicro.com>
+2001-12-29  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrdude.conf.sample: Add the AVR3 progammer.
 
@@ -22,11 +22,11 @@
 
 	Fix EEPROM address line selection for several parts.
 
-2001-12-15  Brian S. Dean  <bsd@bdmicro.com>
+2001-12-15  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrdude.conf.sample: fix spelling error
 
-2001-11-24  Brian S. Dean  <bsd@bdmicro.com>
+2001-11-24  Brian S. Dean  <bsd@bsdhome.com>
 
 	* Makefile:
 	Change "WARNING" to "NOTE" when overwriting the avrprog.conf file.
@@ -37,7 +37,7 @@
 	Add comments about instruction formats.  Correct an instruction
 	specification (cut&paste error).
 
-2001-11-21  Brian S. Dean  <bsd@bdmicro.com>
+2001-11-21  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avr.c, config_gram.y, lexer.l, term.c:
 	In interactive mode, reset the address and length if we start dumping
@@ -67,7 +67,7 @@
 	more verbose than what I initially hoped for, but I've tried to keep
 	it as concise as I could, while still remaining reasonably flexible.
 
-2001-11-19  Brian S. Dean  <bsd@bdmicro.com>
+2001-11-19  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avr.c, avr.h, avrdude.conf.sample, main.c, ppi.c, term.c:
 	Add support for ATMega163.
@@ -89,25 +89,25 @@
 	parts and non-orthoganal instructions across existing parts without
 	making avrprog code changes.
 
-2001-11-17  Brian S. Dean  <bsd@bdmicro.com>
+2001-11-17  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrdude.conf.sample: Add ATMEGA163 part.
 
-2001-11-11  Brian S. Dean  <bsd@bdmicro.com>
+2001-11-11  Brian S. Dean  <bsd@bsdhome.com>
 
 	* main.c: output formatting
 
-2001-11-05  Brian S. Dean  <bsd@bdmicro.com>
+2001-11-05  Brian S. Dean  <bsd@bsdhome.com>
 
 	* ppi.c: Get ppi.h from /usr/include, not /sys.
 
-2001-10-31  Brian S. Dean  <bsd@bdmicro.com>
+2001-10-31  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avr.c, avrdude.conf.sample, main.c: Correct version string.
 	Update read/write status more frequently.
 	Prefix ATMega parts with an 'm'.
 
-2001-10-16  Brian S. Dean  <bsd@bdmicro.com>
+2001-10-16  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avr.c: Change ording for memory display.
 
@@ -126,7 +126,7 @@
 	Fix ATMega flash addressing.  Add an ATMEGA16 part.  Perform sanity
 	checking on the memory parameters for parts that do bank addressing.
 
-2001-10-15  Brian S. Dean  <bsd@bdmicro.com>
+2001-10-15  Brian S. Dean  <bsd@bsdhome.com>
 
 	* config.c, config.h, lists.h: Add copyright.
 
@@ -144,7 +144,7 @@
 
 	Miscellaneous minor cleanups.
 
-2001-10-14  Brian S. Dean  <bsd@bdmicro.com>
+2001-10-14  Brian S. Dean  <bsd@bsdhome.com>
 
 	* Makefile, Makefile.inc, avr.c, avr.h, avrdude.conf.sample:
 	* config.c, config.h, config_gram.y, lexer.l, lists.c, lists.h:
@@ -170,7 +170,7 @@
 	Intel Hex Record type '04' is now generated as required for outputing
 	memory contents that go beyond 64K.
 
-2001-10-13  Brian S. Dean  <bsd@bdmicro.com>
+2001-10-13  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avr.c, avr.h, fileio.c, fileio.h, main.c, ppi.c, ppi.h, term.c:
 	* term.h:
@@ -179,7 +179,7 @@
 	* avr.c, avr.h, fileio.c, fileio.h, main.c, term.c:
 	Commit changes in preparation for support the ATMega line.
 
-2001-10-01  Brian S. Dean  <bsd@bdmicro.com>
+2001-10-01  Brian S. Dean  <bsd@bsdhome.com>
 
 	* Makefile: Don't override CFLAGS.
 
@@ -190,7 +190,7 @@
 
 	Update copyrights.
 
-2001-09-21  Brian S. Dean  <bsd@bdmicro.com>
+2001-09-21  Brian S. Dean  <bsd@bsdhome.com>
 
 	* main.c:
 	Be sure to read the exit specs after the pin configuration has been
@@ -198,7 +198,7 @@
 
 	* main.c: debugging
 
-2001-09-20  Brian S. Dean  <bsd@bdmicro.com>
+2001-09-20  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrdude.1, avrdude.conf.sample, main.c:
 	Prefix pin config entries in the config file with a "c:".  Later, I
@@ -208,7 +208,7 @@
 
 	* main.c: Initialize pin configuration description.
 
-2001-09-19  Brian S. Dean  <bsd@bdmicro.com>
+2001-09-19  Brian S. Dean  <bsd@bsdhome.com>
 
 	* AVRprog.pdf, Makefile, avr.c, avrdude.1, avrdude.conf.sample:
 	* avrdude.pdf, fileio.c, fileio.h, main.c, pindefs.h, term.c:
@@ -217,27 +217,27 @@
 
 	Rename AVRprog.pdf to avrprog.pdf.
 
-2001-04-29  Brian S. Dean  <bsd@bdmicro.com>
+2001-04-29  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrprog-programmer.jpg: Remove this image file from the repository.
 
-2001-04-26  Brian S. Dean  <bsd@bdmicro.com>
+2001-04-26  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrprog-schematic.jpg:
 	Remove this image, use AVRprog.pdf as the preferred schematic for the
 	programmer.
 
-2001-04-25  Brian S. Dean  <bsd@bdmicro.com>
+2001-04-25  Brian S. Dean  <bsd@bsdhome.com>
 
 	* AVRprog.pdf, Makefile, avrdude.1:
 	Add a schematic provided by Joerg Wunch and also update the manual
 	page (also updated by Joerg) to reference the schematic.
 
-2001-02-25  Brian S. Dean  <bsd@bdmicro.com>
+2001-02-25  Brian S. Dean  <bsd@bsdhome.com>
 
 	* Makefile, Makefile.inc: Automate dependency generation.
 
-2001-02-08  Brian S. Dean  <bsd@bdmicro.com>
+2001-02-08  Brian S. Dean  <bsd@bsdhome.com>
 
 	* main.c: Turn off ready led when finished programming.
 
@@ -252,7 +252,7 @@
 	term.c : update status leds on write, make the address and length
 	         arguments for dump optional.
 
-2001-01-26  Brian S. Dean  <bsd@bdmicro.com>
+2001-01-26  Brian S. Dean  <bsd@bsdhome.com>
 
 	* main.c: Version 1.1
 
@@ -287,11 +287,11 @@
 	fileio.c: Properly handle all the Intel Hex record types that I can
 	          find information about.
 
-2001-01-25  Brian S. Dean  <bsd@bdmicro.com>
+2001-01-25  Brian S. Dean  <bsd@bsdhome.com>
 
 	* Usage, avr.h: Get rid of the Usage file.
 
-2001-01-24  Brian S. Dean  <bsd@bdmicro.com>
+2001-01-24  Brian S. Dean  <bsd@bsdhome.com>
 
 	* Makefile, avr.c, avr.h, main.c, pindefs.h, ppi.c:
 	Move pin definitions to their own file.
@@ -318,7 +318,7 @@
 	method is much easier to use when setting / retrieving multiple pins
 	simultaneously.
 
-2001-01-22  Brian S. Dean  <bsd@bdmicro.com>
+2001-01-22  Brian S. Dean  <bsd@bsdhome.com>
 
 	* Makefile: Don't gzip the man page.
 
@@ -353,7 +353,7 @@
 	     having to worry about whether the address starts on an odd byte
 	     or an even byte.
 
-2001-01-20  Brian S. Dean  <bsd@bdmicro.com>
+2001-01-20  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avr.c, avr.h, fileio.c, fileio.h, main.c:
 	Return error codes instead of exiting, thus making sure that we exit
@@ -378,7 +378,7 @@
 	Add initial man page graciously contributed by Joerg Wunsch.  Thanks
 	Joerg!
 
-2001-01-19  Brian S. Dean  <bsd@bdmicro.com>
+2001-01-19  Brian S. Dean  <bsd@bsdhome.com>
 
 	* term.c:
 	Accept abbreviations for eeprom and flash for the dump and write
@@ -406,7 +406,7 @@
 
 	Contributed by: Joerg Wunsch
 
-2001-01-18  Brian S. Dean  <bsd@bdmicro.com>
+2001-01-18  Brian S. Dean  <bsd@bsdhome.com>
 
 	* Makefile, avrprog.c:
 	Switch to using readline() for getting terminal input.  I can't seem
@@ -428,7 +428,7 @@
 	Update the parts table with corrections for old values and add some
 	new values.
 
-2001-01-15  Brian S. Dean  <bsd@bdmicro.com>
+2001-01-15  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrprog.c:
 	Automatically verify on-chip data with what we just programmed.
@@ -438,7 +438,7 @@
 
 	Fix a few "may be used uninitialized" bugs found by -Wall.
 
-2001-01-14  Brian S. Dean  <bsd@bdmicro.com>
+2001-01-14  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrprog.c: Free a buffer.
 
@@ -454,7 +454,7 @@
 	* avrprog.c:
 	Correctly produce and handle "end of record" for intel hex files.
 
-2001-01-13  Brian S. Dean  <bsd@bdmicro.com>
+2001-01-13  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrprog.c:
 	Re-enable writing to the chip.  I should probably should make this a
@@ -494,7 +494,7 @@
 
 	Only write the flash or eeprom if the data to be written is not 0xff.
 
-2000-12-31  Brian S. Dean  <bsd@bdmicro.com>
+2000-12-31  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrprog.c: Update a comment.
 
@@ -513,22 +513,22 @@
 	Update after receiving some good feedback from Joerg Wunsch.  We
 	should now be able to program AT90S1200's.
 
-2000-12-30  Brian S. Dean  <bsd@bdmicro.com>
+2000-12-30  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrprog.c: Don't limit eeprom addresses.
 
-2000-12-20  Brian S. Dean  <bsd@bdmicro.com>
+2000-12-20  Brian S. Dean  <bsd@bsdhome.com>
 
 	* Makefile, avrprog.c:
 	Add support for the 8515.  Make the addition for other devices easier.
 
-2000-08-27  Brian S. Dean  <bsd@bdmicro.com>
+2000-08-27  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrprog.c:
 	Clear all bits except AVR_RESET when finished reading or programming
 	the Atmel device.
 
-2000-08-07  Brian S. Dean  <bsd@bdmicro.com>
+2000-08-07  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrprog.c: update announcement message
 
@@ -543,7 +543,7 @@
 	Make all abnormal returns after the parallel port has been opened go
 	through a single exit point at the bottom of 'main()'.
 
-2000-08-06  Brian S. Dean  <bsd@bdmicro.com>
+2000-08-06  Brian S. Dean  <bsd@bsdhome.com>
 
 	* Makefile, avrprog.c: Makefile: add --pedantic compiler option
 
@@ -588,7 +588,7 @@
 	  Don't print out the message about needing to specify a file if the
 	  user is not requesting an operation that requires the file.
 
-2000-08-05  Brian S. Dean  <bsd@bdmicro.com>
+2000-08-05  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrprog.c: Pring usage when no arguments are supplied.
 
