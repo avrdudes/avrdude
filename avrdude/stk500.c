@@ -448,10 +448,12 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
   else
     buf[3] = 1; /* device supports parallel only */
 
-  if ((p->flags & AVRPART_PARALLELOK) && (p->flags & AVRPART_PSEUDOPARALLEL))
-    buf[4] = 1; /* full parallel interface */
-  else
-    buf[4] = 0; /* pseudo parallel interface */
+  if (p->flags & AVRPART_PARALLELOK) {
+    if (p->flags & AVRPART_PSEUDOPARALLEL)
+      buf[4] = 0; /* pseudo parallel interface */
+    else
+      buf[4] = 1; /* full parallel interface */
+  }
     
   buf[5] = 1; /* polling supported - XXX need this in config file */
   buf[6] = 1; /* programming is self-timed - XXX need in config file */
