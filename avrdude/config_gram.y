@@ -117,7 +117,9 @@ part_def :
       }
 
       /*
-       * perform some sanity checking
+       * perform some sanity checking, and compute the number of bits
+       * to shift a page for constructing the page address for
+       * page-addressed memories.
        */
       for (i=0; i<AVR_MAXMEMTYPES; i++) {
         if (current_part->mem[i].paged) {
