@@ -302,7 +302,15 @@ programmer
   miso   = 13;
 ;
 
-
+programmer
+  id    = "abcmini";
+  desc  = "ABCmini Board, aka Dick Smith HOTCHIP";
+  type  = par;
+  reset = 4;
+  sck   = 3;
+  mosi  = 2;
+  miso  = 10;
+;
 
 
 #
