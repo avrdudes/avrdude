@@ -65,6 +65,15 @@ need to be connected to the parallel port.  Optionally, some otherwise
 unused output pins of the parallel port can be used to supply power for
 the MCU part, so it is also possible to construct a passive standalone
 programming device.
+Some status LEDs indicating the current operating state of the
+programmer can be connected, and a signal is available to control a
+buffer/driver IC 74LS367 (or 74HCT367).  The latter can be useful to
+decouple the parallel port from the MCU when in-system programming is
+used.
+.Pp
+See the file
+.Pa ${PREFIX}/share/doc/avrprog/AVRprog.pdf
+for a schematic of the programming hardware.
 .Pp
 Input files can be provided, and output files can be written in
 different file formats, such as raw binary files containing the data
@@ -270,6 +279,22 @@ Give a short on-line summary of the available commands.
 Leave terminal mode and thus
 .Nm avrprog .
 .El
+.Ss Parallel port pin connections
+.TS
+ll.
+\fBPin number\fP	\fBFunction\fP
+1	LED (write or verify error)
+2-5	Vcc (optional power supply to MCU)
+6	/ENABLE (optional for '367 buffer/driver)
+7	/RESET (to MCU)
+8	SCK (to MCU)
+9	MOSI (to MCU)
+10	MISO (from MCU)
+14	LED (ready)
+16	LED (programming)
+17	LED (verifying)
+18-25	GND
+.TE
 .Sh FILES
 .Bl -tag -offset indent -width /dev/ppi0XXX
 .It Pa /dev/ppi0
@@ -279,6 +304,8 @@ hardware
 Initialization file for the
 .Xr readline 3
 library
+.It Pa ${PREFIX}/share/doc/avrprog/AVRprog.pdf
+Schematic of programming hardware
 .El
 .\" .Sh EXAMPLES
 .\" .Sh DIAGNOSTICS
@@ -301,4 +328,3 @@ This man page by
 .el Joerg Wunsch.
 .Sh BUGS
 Motorola S-record files are not yet implemented.
-
