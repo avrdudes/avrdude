@@ -1,5 +1,5 @@
 /*
- * Copyright 2000, 2001, 2002  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright 2002  Brian S. Dean <bsd@bsdhome.com>
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,17 +29,12 @@
 
 /* $Id$ */
 
-#ifndef __ppi_h__
-#define __ppi_h__
+#ifndef __stk500_h__
+#define __stk500_h__
 
 #include "config.h"
 
-
-void ppi_initpgm        (PROGRAMMER * pgm);
-
-int ppi_getpinmask(int pin);
-
-
+void stk500_initpgm (PROGRAMMER * pgm);
 
 #endif
 

@@ -48,6 +48,7 @@
 %token K_BUFF
 %token K_CHIP_ERASE_DELAY
 %token K_DESC
+%token K_DEVICECODE
 %token K_EEPROM
 %token K_ERRLED
 %token K_FLASH
@@ -221,7 +222,7 @@ prog_parm :
 
   K_TYPE TKN_EQUAL K_STK500 {
     { 
-      fprintf(stderr, "%s: programmer 'stk500' not yet supported\n", progname);
+      stk500_initpgm(current_prog);
     }
   } |
 
@@ -327,6 +328,13 @@ part_parm :
       current_part->desc[AVR_DESCLEN-1] = 0;
       free_token($3);
     } |
+
+  K_DEVICECODE TKN_EQUAL TKN_NUMBER {
+    {
+      current_part->devicecode = $3->value.number;
+      free_token($3);
+    }
+  } |
 
   K_CHIP_ERASE_DELAY TKN_EQUAL TKN_NUMBER
     {
@@ -461,6 +469,7 @@ mem_spec :
 #include "config.h"
 #include "lists.h"
 #include "pindefs.h"
+#include "ppi.h"
 #include "pgm.h"
 #include "avr.h"
 
