@@ -89,10 +89,21 @@ as a standalone assembler, or
 .Xr avr-objcopy 1
 for the final stage of the GNU toolchain for the AVR microcontroller.
 .Pp
-Both, EEPROM cells and the flash ROM can be programmed (separately).
-It is also possible to read the chip (provided it has not been
-code-protected previously, of course) and store the data in a file.
-Finally, a ``terminal'' mode is available that allows one to
+.Nm Avrprog
+can program the EEPROM and flash ROM memory cells of supported AVR
+parts.  Where supported by the serial instruction set, fuse bits and
+lock bits can be programmed as well.  These are implemented within
+.Nm
+as seperate memory types and can be programmed using data from a file
+(see the
+.Fl m
+option) or from terminal mode (see the
+.Ar dump
+and
+.Ar write
+commands).  It is also possible to read the chip (provided it has not
+been code-protected previously, of course) and store the data in a
+file.  Finally, a ``terminal'' mode is available that allows one to
 interactively communicate with the MCU, and to display or program
 individual memory cells.
 .Ss Options
@@ -120,7 +131,10 @@ ll.
 4434	AT90S4434
 8515	AT90S8515
 8535	AT90S8535
-103	ATMEGA103
+m163	ATMEGA163
+m103	ATMEGA103
+m16	ATMEGA16
+m8	ATMEGA8
 .TE
 .It Fl c Ar programmer-id
 Use the pin configuration specified by the argument.  Pin
@@ -242,11 +256,17 @@ to use
 as the input.
 .It Fl m Ar memtype
 Specifies which program area of the MCU to read or write; allowable
-values are
+values depend on the MCU being programmed, but most support at least
 .Em eeprom
-for the EEPROM, or
+for the EEPROM, and
 .Em flash
-for the flash ROM, which is also the default.
+for the flash ROM.  Use the
+.Fl v
+option on the command line or the
+.Ar part
+command from terminal mode to display all the memory types supported
+by a particular device.  The default is
+.Em flash .
 .It Fl n
 No-write - disables actually writing data to the MCU (useful for debugging
 .Nm avrprog
@@ -281,7 +301,7 @@ a command history using
 so previously entered command lines can be recalled and edited.  The
 following commands are currently implemented:
 .Bl -tag -offset indent -width indent
-.It Ar dump eeprom\&|flash addr nbytes
+.It Ar dump memtype addr nbytes
 Read
 .Ar nbytes
 bytes from the specified memory area, and display them in the usual
@@ -292,7 +312,7 @@ Continue dumping the memory contents for another
 where the previous
 .Ar dump
 command left off.
-.It Ar write eeprom\&|flash addr byte1 ... byteN
+.It Ar write memtype addr byte1 ... byteN
 Manually program the respective memory cells, starting at address
 .Ar addr ,
 using the values
@@ -300,9 +320,16 @@ using the values
 through
 .Ar byteN .
 This feature is not implemented for bank-addressed memories such as
-flash memory of ATMega devices.
+the flash memory of ATMega devices.
 .It Ar erase
 Perform a chip erase.
+.It Ar send b1 b2 b3 b4
+Send raw instruction codes to the AVR device.  If you need access to a
+feature of an AVR part that is not directly supported by
+.Nm ,
+this command allows you to use it, even though
+.Nm
+does not implement the command.
 .It Ar sig
 Display the device signature bytes.
 .It Ar part
@@ -347,7 +374,6 @@ Schematic of programming hardware
 .\" .Sh EXAMPLES
 .\" .Sh DIAGNOSTICS
 .Sh SEE ALSO
-.Xr asl 1 ,
 .Xr avr-objcopy 1 ,
 .Xr ppi 4 ,
 .Xr readline 3
