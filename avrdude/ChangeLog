@@ -100,6 +100,19 @@
 	* fileio.c: Fix for bug #3293. Set correct open mode for raw format
 	for Windows.
 
+2003/04/19 18:41:35  bdean
+
+	* avrdude.1:
+	* fileio.c:
+	* fileio.h:
+	* main.c:
+	Implement and "immediate mode" for file input - this allows
+	one to specify byte values on the command line instead of via
+	a file.  This can be good for specifying fuse bytes and
+	eliminates the need to create single-byte files or using
+	interactive terminal mode for these single-byte memories.
+	Requested by several folks on the mailing list.
+
 2003-04-18  Theodore A. Roth  <troth@openavr.org>
 
 	* configure.ac: Add cvs suffix back to version.
