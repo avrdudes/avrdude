@@ -1,3 +1,9 @@
+2003-05-02  Theodore A. Roth  <troth@openavr.org>
+
+	* avrdude.conf.in: Add avr decodes for devices known in avr910
+	firmware version 2.3.
+	Add missing stk500 devocde for 2343.
+
 2003-04-23  Eric B. Weddington  <eric@umginc.net>
 
 	* fileio.c: Fix for bug #3293. Set correct open mode for raw format

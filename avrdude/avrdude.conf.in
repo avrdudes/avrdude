@@ -465,6 +465,7 @@ part
     id               = "4414";
     desc             = "AT90S4414";
     stk500_devcode   = 0x50;
+    avr910_devcode   = 0x28;
     chip_erase_delay = 20000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
@@ -525,6 +526,7 @@ part
     id               = "2313";
     desc             = "AT90S2313";
     stk500_devcode   = 0x40;
+    avr910_devcode   = 0x20;
     chip_erase_delay = 20000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
@@ -590,6 +592,7 @@ part
     id               = "2333";
     desc             = "AT90S2333";
     stk500_devcode   = 0x42;
+    stk500_devcode   = 0x34;
     chip_erase_delay = 20000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
@@ -671,6 +674,8 @@ part
 part
     id               = "2343";
     desc             = "AT90S2343";
+    stk500_devcode   = 0x43;
+    avr910_devcode   = 0x4c;
     chip_erase_delay = 18000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
@@ -752,6 +757,7 @@ part
     id               = "4433";
     desc             = "AT90S4433";
     stk500_devcode   = 0x51;
+    avr910_devcode   = 0x30;
     chip_erase_delay = 20000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
@@ -833,6 +839,7 @@ part
     id               = "4434";
     desc             = "AT90S4434";
     stk500_devcode   = 0x52;
+    avr910_devcode   = 0x6c;
     chip_erase_delay = 20000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
@@ -988,6 +995,7 @@ part
     id               = "8535";
     desc             = "AT90S8535";
     stk500_devcode   = 0x61;
+    avr910_devcode   = 0x68;
     chip_erase_delay = 20000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
@@ -1048,6 +1056,7 @@ part
     id               = "m103";
     desc             = "ATMEGA103";
     stk500_devcode   = 0xB1;
+    avr910_devcode   = 0x41;
     chip_erase_delay = 112000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
@@ -1366,6 +1375,7 @@ part
     id               = "m163";
     desc             = "ATMEGA163";
     stk500_devcode   = 0x81;
+    avr910_devcode   = 0x64;
     chip_erase_delay = 32000;
     pagel            = 0xd7;
     bs2              = 0xa0;
@@ -1601,6 +1611,7 @@ part
     id               = "m32";
     desc             = "ATMEGA32";
     stk500_devcode   = 0x91;
+    avr910_devcode   = 0x72;
     chip_erase_delay = 32000;
     pagel            = 0xd7;
     bs2              = 0xa0;
