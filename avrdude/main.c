@@ -328,21 +328,30 @@ char * vccpins_str(unsigned int pmask)
 void pinconfig_display(char * p)
 {
   char vccpins[64];
+  char buffpins[64];
 
   if (pgm->pinno[PPI_AVR_VCC]) {
     snprintf(vccpins, sizeof(vccpins), " = pins %s", 
              vccpins_str(pgm->pinno[PPI_AVR_VCC]));
   }
   else {
-    vccpins[0] = 0;
+    strcpy(vccpins, " (not used)");
+  }
+
+  if (pgm->pinno[PPI_AVR_BUFF]) {
+    snprintf(buffpins, sizeof(buffpins), " = pins %s", 
+             vccpins_str(pgm->pinno[PPI_AVR_BUFF]));
+  }
+  else {
+    strcpy(buffpins, " (not used)");
   }
 
   fprintf(stderr, "%sProgrammer Pin Configuration: %s (%s)\n", p, 
           (char *)ldata(lfirst(pgm->id)), pgm->desc);
 
   fprintf(stderr, 
-          "%s  VCC     = 0x%02x %s\n"
-          "%s  BUFF    = %d\n"
+          "%s  VCC     = 0x%02x%s\n"
+          "%s  BUFF    = 0x%02x%s\n"
           "%s  RESET   = %d\n"
           "%s  SCK     = %d\n"
           "%s  MOSI    = %d\n"
@@ -352,7 +361,7 @@ void pinconfig_display(char * p)
           "%s  PGM LED = %d\n"
           "%s  VFY LED = %d\n",
           p, pgm->pinno[PPI_AVR_VCC], vccpins,
-          p, pgm->pinno[PIN_AVR_BUFF],
+          p, pgm->pinno[PPI_AVR_BUFF], buffpins,
           p, pgm->pinno[PIN_AVR_RESET],
           p, pgm->pinno[PIN_AVR_SCK],
           p, pgm->pinno[PIN_AVR_MOSI],
@@ -523,7 +532,7 @@ int main(int argc, char * argv [])
   for (i=0; i<N_PINS; i++)
     pgm->pinno[i] = 0;
   pgm->pinno[PPI_AVR_VCC]   = 0x0f;  /* ppi pins 2-5, data reg bits 0-3 */
-  pgm->pinno[PIN_AVR_BUFF]  =  0;
+  pgm->pinno[PPI_AVR_BUFF]  =  0;
   pgm->pinno[PIN_AVR_RESET] =  7;
   pgm->pinno[PIN_AVR_SCK]   =  8;
   pgm->pinno[PIN_AVR_MOSI]  =  9;
@@ -804,7 +813,8 @@ int main(int argc, char * argv [])
   /*
    * enable the 74367 buffer, if connected; this signal is active low
    */
-  ppi_setpin(fd, pgm->pinno[PIN_AVR_BUFF], 0);
+  /*ppi_setpin(fd, pgm->pinno[PIN_AVR_BUFF], 0);*/
+  ppi_clr(fd, PPIDATA, pgm->pinno[PPI_AVR_BUFF]);
 
   /*
    * initialize the chip in preperation for accepting commands
@@ -1025,7 +1035,8 @@ int main(int argc, char * argv [])
   /*
    * disable the 74367 buffer, if connected; this signal is active low 
    */
-  ppi_setpin(fd, pgm->pinno[PIN_AVR_BUFF], 1);
+  /* ppi_setpin(fd, pgm->pinno[PIN_AVR_BUFF], 1); */
+  ppi_set(fd, PPIDATA, pgm->pinno[PPI_AVR_BUFF]);
 
   LED_OFF(fd, pgm->pinno[PIN_LED_RDY]);
 

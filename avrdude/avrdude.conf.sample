@@ -108,6 +108,16 @@ programmer
 ;
 
 programmer
+  id    = "stk200";
+  desc  = "STK200";
+  buff  = 4, 5;
+  sck   = 6;
+  mosi  = 7;
+  reset = 9;
+  miso  = 10;
+;
+
+programmer
   id    = "dt006";
   desc  = "Dontronics DT006";
   reset = 4;
@@ -148,11 +158,11 @@ part
         max_write_delay = 20000;
         readback_p1     = 0x00;
         readback_p2     = 0xff;
-        read            = "1 0 1 0  0 0 0 0   x x x x  x x x x", 
-                          "x x a a  a a a a   o o o o  o o o o";
+        read            = "1 0  1  0   0  0  0  0   x x x x  x x x x", 
+                          "x x a5 a4  a3 a2 a1 a0   o o o o  o o o o";
 
-        write           = "1 1 0 0  0 0 0 0   x x x x  x x x x",
-                          "x x a a  a a a a   i i i i  i i i i";
+        write           = "1 1  0  0   0  0  0  0   x x x x  x x x x",
+                          "x x a5 a4  a3 a2 a1 a0   i i i i  i i i i";
       ;
     memory "flash"
         size            = 1024;
@@ -204,11 +214,11 @@ part
         max_write_delay = 20000;
         readback_p1     = 0x80;
         readback_p2     = 0x7f;
-        read            = "1 0 1 0  0 0 0 0   x x x x  x x x x", 
-                          "x a a a  a a a a   o o o o  o o o o";
+        read            = "1  0  1  0   0  0  0  0   x x x x  x x x x", 
+                          "x a6 a5 a4  a3 a2 a1 a0   o o o o  o o o o";
 
-        write           = "1 1 0 0  0 0 0 0   x x x x  x x x x",
-                          "x a a a  a a a a   i i i i  i i i i";
+        write           = "1  1  0  0   0  0  0  0   x x x x  x x x x",
+                          "x a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
       ;
     memory "flash"
         size            = 2048;
@@ -265,11 +275,11 @@ part
         max_write_delay = 20000;
         readback_p1     = 0x00;
         readback_p2     = 0xff;
-        read            = "1 0 1 0  0 0 0 0   x x x x  x x x x", 
-                          "x a a a  a a a a   o o o o  o o o o";
+        read            = "1  0  1  0   0  0  0  0   x x x x  x x x x", 
+                          "x a6 a5 a4  a3 a2 a1 a0   o o o o  o o o o";
 
-        write           = "1 1 0 0  0 0 0 0   x x x x  x x x x",
-                          "x a a a  a a a a   i i i i  i i i i";
+        write           = "1  1  0  0   0  0  0  0   x x x x  x x x x",
+                          "x a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
       ;
     memory "flash"
         size            = 2048;
@@ -377,11 +387,11 @@ part
         max_write_delay = 20000;
         readback_p1     = 0x00;
         readback_p2     = 0xff;
-        read            = "1 0 1 0  0 0 0 0   x x x x  x x x x", 
-                          "a a a a  a a a a   o o o o  o o o o";
+        read            = " 1  0  1  0   0  0  0  0   x x x x  x x x x", 
+                          "a7 a6 a5 a4  a3 a2 a1 a0   o o o o  o o o o";
 
-        write           = "1 1 0 0  0 0 0 0   x x x x  x x x x",
-                          "a a a a  a a a a   i i i i  i i i i";
+        write           = " 1  1  0  0   0  0  0  0   x x x x  x x x x",
+                          "a7 a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
       ;
     memory "flash"
         size            = 4096;
@@ -433,11 +443,11 @@ part
         max_write_delay = 20000;
         readback_p1     = 0x80;
         readback_p2     = 0x7f;
-        read            = "1 0 1 0  0 0 0 0   x x x x  x x x a8", 
-                          "a a a a  a a a a   o o o o  o o o o";
+        read            = " 1  0  1  0   0  0  0  0  x x x x  x x x a8", 
+                          "a7 a6 a5 a4 a3 a2 a1 a0   o o o o  o o o o";
 
-        write           = "1 1 0 0  0 0 0 0   x x x x  x x x a8",
-                          "a a a a  a a a a   i i i i  i i i i";
+        write           = " 1  1  0  0   0  0  0  0   x x x x  x x x a8",
+                          "a7 a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
       ;
     memory "flash"
         size            = 8192;
@@ -489,11 +499,11 @@ part
         max_write_delay = 20000;
         readback_p1     = 0x00;
         readback_p2     = 0xff;
-        read            = "1 0 1 0  0 0 0 0   x x x x  x x x a8", 
-                          "a a a a  a a a a   o o o o  o o o o";
+        read            = " 1  0  1  0   0  0  0  0   x x x x  x x x a8", 
+                          "a7 a6 a5 a4  a3 a2 a1 a0   o o o o  o o o o";
 
-        write           = "1 1 0 0  0 0 0 0   x x x x  x x x a8",
-                          "a a a a  a a a a   i i i i  i i i i";
+        write           = " 1  1  0  0   0  0  0  0   x x x x  x x x a8",
+                          "a7 a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
       ;
     memory "flash"
         size            = 8192;
