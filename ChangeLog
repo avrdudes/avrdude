@@ -1,3 +1,8 @@
+2004-04-23  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* lists.h, lists.c: Drop LISTSZ and the check for
+	it in lcreat().
+
 2004-04-17  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
 	* avr910.c: Hopefully fixed that weird "first byte not
