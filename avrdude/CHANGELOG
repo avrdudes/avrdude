@@ -1,0 +1,79 @@
+$Id$
+
+Approximate change log for AVRPROG by version
+
+----------------------------------------------------------------------
+
+Version 2.0.2 :
+
+  * Fix writing to read-only memories such as the lock bits of the
+    AT90S2313.
+
+  * Copyright updates.
+
+
+Version 2.0.1 :
+
+  * Use correct parallel port pins for VCC.
+
+  * Add programmer definition for Atmel's STK200.
+
+  * Add programmer definition for the AVR3 board.
+
+  * Fix address bit encoding for many parts.
+
+  * Allow the ``BUFF'' signal to be asserted by multiple pins of the
+    parallel port (like VCC) instead of just one.  The STK200 appears
+    to need this feature.
+
+
+Version 2.0.0 :
+
+  * Add support for programming fuse and lock bits if supported by the
+    part.
+
+  * Move instruction encoding into the config file.  Now any part can
+    be supported as long as it uses the same basic serial programming
+    instruction format.
+
+  * Add part definitions for the ATMega163 and ATMega8 devices.
+
+
+Version 1.4.3 :
+
+  * Mostly internal code cleanup.
+
+
+Version 1.4.2 :
+
+  * Fixes for ATMega paged memory support.
+
+  * Support for ATMega16 device.
+
+
+Version 1.4.1 :
+
+  * No functional changes, update to Copyrights only.
+
+
+Version 1.4.0 :
+
+  * Add part definitions to the config file.
+
+  * Add initial support for Atmel's ATMega paged memory parts.
+
+  * Config file documentation added.
+
+  * Add a definition for the Dontronics DT006 programmer.
+
+  * Fix Intel Hex support for addresses larger than 64k.
+
+
+Version 1.3.0 :
+
+  * Make programmer pin assignments configurable.
+
+
+Version 1.2.2 :
+
+  * Initial public release
