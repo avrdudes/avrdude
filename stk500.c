@@ -878,6 +878,12 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   int tries;
   unsigned int n;
 
+  if (page_size == 0) {
+    fprintf(stderr, "%s: stk500_paged_write(): invalid page size = %d\n",
+            progname, page_size);
+    return -1;
+  }
+
   if (strcmp(m->desc, "flash") == 0) {
     memtype = 'F';
   }
@@ -905,6 +911,15 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       n = n_bytes;
     }
   }
+
+#if 0
+  fprintf(stderr, 
+          "n_bytes   = %d\n"
+          "n         = %u\n"
+          "a_div     = %d\n"
+          "page_size = %d\n",
+          n_bytes, n, a_div, page_size);
+#endif     
 
   for (addr = 0; addr < n; addr += page_size) {
     fprintf(stderr, "\r      \r%6u", addr);
