@@ -422,7 +422,7 @@ part
         write           = "1 0 1 0  1 1 0 0   1 0 1 i  i i i i",
                           "x x x x  x x x x   x x x x  x x x x";
 
-        pwroff_after_write = 1;
+        pwroff_after_write = yes;
       ;
     memory "lock"
         size            = 1;
@@ -500,7 +500,7 @@ part
         write           = "1 0 1 0  1 1 0 0   1 0 1 i  i i i i",
                           "x x x x  x x x x   x x x x  x x x x";
 
-        pwroff_after_write = 1;
+        pwroff_after_write = yes;
       ;
     memory "lock"
         size            = 1;
