@@ -39,6 +39,8 @@
 extern char * progname;
 extern int do_cycles;
 
+static char has_auto_incr_addr;
+
 /* These two defines are only for debugging. Will remove them once it starts
    working. */
 
@@ -227,8 +229,15 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
   avr910_recv(pgm, &type, 1);
 
   fprintf(stderr, "Found programmer: Id = \"%s\"; type = %c\n", id, type);
-  fprintf(stderr, "    Software Version = %c.%c; "
-          "Hardware Version = %c.%c\n", sw[0], sw[1], hw[0], hw[1]);
+  fprintf(stderr, "    Software Version = %c.%c; ", sw[0], sw[1]);
+  fprintf(stderr, "Hardware Version = %c.%c\n", hw[0], hw[1]);
+
+  /* See if programmer supports autoincrement of address. */
+
+  avr910_send(pgm, "a", 1);
+  avr910_recv(pgm, &has_auto_incr_addr, 1);
+  if (has_auto_incr_addr == 'Y')
+      fprintf(stderr, "Programmer supports auto addr increment.\n");
 
   /* Get list of devices that the programmer supports. */
 
@@ -372,116 +381,119 @@ static void avr910_set_addr(PROGRAMMER * pgm, unsigned long addr)
 }
 
 
-/*
- * For some reason, if we don't do this when writing to flash, the first byte
- * of flash is not programmed. I susect that the board got out of sync after
- * the erase and sending another command gets us back in sync. -TRoth
- */
-static void avr910_write_setup(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
+static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
+                                    int page_size, int n_bytes)
 {
-  if (strcmp(m->desc, "flash") == 0) {
-    avr910_send(pgm, "y", 1);
-    avr910_vfy_cmd_sent(pgm, "clear LED");
+  unsigned char cmd[] = {'c', 'C'};
+  unsigned char buf[2];
+  unsigned int addr = 0;
+  unsigned int max_addr = n_bytes;
+
+  /*
+   * For some reason, if we don't do this when writing to flash, the first
+   * byte of flash is not programmed. I susect that the board got out of sync
+   * after the erase and sending another command gets us back in sync. -TRoth
+   */
+  avr910_send(pgm, "y", 1);
+  avr910_vfy_cmd_sent(pgm, "clear LED");
+
+  avr910_set_addr(pgm, addr>>1);
+
+  while (addr < max_addr) {
+    buf[0] = cmd[addr & 0x01];
+    buf[1] = m->buf[addr];
+    avr910_send(pgm, buf, sizeof(buf));
+    avr910_vfy_cmd_sent(pgm, "write byte");
+
+    addr++;
+
+    if ((has_auto_incr_addr != 'Y') && ((addr & 0x01) == 0)) {
+      avr910_set_addr(pgm, addr>>1);
+    }
   }
+
+  return addr;
 }
 
 
-static int avr910_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-                             unsigned long addr, unsigned char value)
+static int avr910_paged_write_eeprom(PROGRAMMER * pgm, AVRPART * p,
+                                     AVRMEM * m, int page_size, int n_bytes)
 {
   unsigned char cmd[2];
+  unsigned int addr = 0;
+  unsigned int max_addr = n_bytes;
 
-  no_show_func_info();
+  avr910_set_addr(pgm, addr);
 
+  cmd[0] = 'D';
+
+  while (addr < max_addr) {
+    cmd[1] = m->buf[addr];
+    avr910_send(pgm, cmd, sizeof(cmd));
+    avr910_vfy_cmd_sent(pgm, "write byte");
+
+    addr++;
+
+    if (has_auto_incr_addr != 'Y') {
+      avr910_set_addr(pgm, addr);
+    }
+  }
+
+  return addr;
+}
+
+
+static int avr910_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
+                              int page_size, int n_bytes)
+{
   if (strcmp(m->desc, "flash") == 0) {
-    if (addr & 0x01) {
-      cmd[0] = 'C';             /* Write Program Mem high byte */
-    }
-    else {
-      cmd[0] = 'c';
-    }
-
-    addr >>= 1;
+    return avr910_paged_write_flash(pgm, p, m, page_size, n_bytes);
   }
   else if (strcmp(m->desc, "eeprom") == 0) {
-    cmd[0] = 'D';
+    return avr910_paged_write_eeprom(pgm, p, m, page_size, n_bytes);
   }
   else {
-    return -1;
+    return -2;
   }
-
-  cmd[1] = value;
-
-  avr910_set_addr(pgm, addr);
-
-  avr910_send(pgm, cmd, sizeof(cmd));
-  avr910_vfy_cmd_sent(pgm, "write byte");
-
-  return 0;
 }
 
 
-static int avr910_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-                                  unsigned long addr, unsigned char * value)
+static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
+                             int page_size, int n_bytes)
 {
-  static int cached = 0;
-  static unsigned char cvalue;
-  static unsigned long caddr;
-
-  if (cached && ((caddr + 1) == addr)) {
-    *value = cvalue;
-    cached = 0;
-  }
-  else {
-    unsigned char buf[2];
-
-    avr910_set_addr(pgm, addr >> 1);
-
-    avr910_send(pgm, "R", 1);
-
-    /* Read back the program mem word (MSB first) */
-    avr910_recv(pgm, buf, sizeof(buf));
-
-    if ((addr & 0x01) == 0) {
-      *value = buf[1];
-      cached = 1;
-      cvalue = buf[0];
-      caddr = addr;
-    }
-    else {
-      *value = buf[0];
-    }
-  }
-
-  return 0;
-}
-
-
-static int avr910_read_byte_eeprom(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-                                   unsigned long addr, unsigned char * value)
-{
-  avr910_set_addr(pgm, addr);
-  avr910_send(pgm, "d", 1);
-  avr910_recv(pgm, value, 1);
-
-  return 0;
-}
-
-
-static int avr910_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-                            unsigned long addr, unsigned char * value)
-{
-  no_show_func_info();
+  unsigned char cmd;
+  int rd_size;
+  unsigned int addr = 0;
+  unsigned int max_addr;
 
   if (strcmp(m->desc, "flash") == 0) {
-    return avr910_read_byte_flash(pgm, p, m, addr, value);
+    cmd = 'R';
+    rd_size = 2;                /* read two bytes per addr */
+  }
+  else if (strcmp(m->desc, "eeprom") == 0) {
+    cmd = 'd';
+    rd_size = 1;
+  }
+  else {
+    return -2;
   }
 
-  if (strcmp(m->desc, "eeprom") == 0) {
-    return avr910_read_byte_eeprom(pgm, p, m, addr, value);
+  max_addr = n_bytes/rd_size;
+
+  avr910_set_addr(pgm, addr);
+
+  while (addr < max_addr) {
+    avr910_send(pgm, &cmd, 1);
+    avr910_recv(pgm, &m->buf[addr], rd_size);
+
+    addr++;
+
+    if (has_auto_incr_addr != 'Y') {
+      avr910_set_addr(pgm, addr);
+    }
   }
 
-  return -1;
+  return addr * rd_size;
 }
 
 /* Signature byte reads are always 3 bytes. */
@@ -533,8 +545,7 @@ void avr910_initpgm(PROGRAMMER * pgm)
    * optional functions
    */
 
-  pgm->write_setup = avr910_write_setup;
-  pgm->write_byte = avr910_write_byte;
-  pgm->read_byte = avr910_read_byte;
+  pgm->paged_write = avr910_paged_write;
+  pgm->paged_load = avr910_paged_load;
   pgm->read_sig_bytes = avr910_read_sig_bytes;
 }
