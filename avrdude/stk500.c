@@ -498,13 +498,13 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
   int tries;
   unsigned maj, min;
   int rc;
-  int do_extparms = 0;
+  int n_extparms = 3;
 
   stk500_getparm(pgm, Parm_STK_SW_MAJOR, &maj);
   stk500_getparm(pgm, Parm_STK_SW_MINOR, &min);
 
   if ((maj > 1) || ((maj == 1) && (min > 10)))
-    do_extparms = 1;
+    n_extparms = 4;
 
   tries = 0;
 
@@ -525,11 +525,17 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
     buf[3] = 1; /* device supports parallel only */
 
   if (p->flags & AVRPART_PARALLELOK) {
-    if (p->flags & AVRPART_PSEUDOPARALLEL)
+    if (p->flags & AVRPART_PSEUDOPARALLEL) {
       buf[4] = 0; /* pseudo parallel interface */
-    else
+      n_extparms = 0;
+    }
+    else {
       buf[4] = 1; /* full parallel interface */
+    }
   }
+
+  fprintf(stderr, "%s: stk500_initialize(): n_extparms = %d\n", 
+          progname, n_extparms);
     
   buf[5] = 1; /* polling supported - XXX need this in config file */
   buf[6] = 1; /* programming is self-timed - XXX need in config file */
@@ -626,8 +632,8 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
     return -1;
   }
 
-  if (do_extparms) {
-    buf[0] = 5;
+  if (n_extparms) {
+    buf[0] = n_extparms+1;
     /*
      * m is currently pointing to eeprom memory if the part has it
      */
@@ -639,12 +645,14 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
     buf[2] = p->pagel;
     buf[3] = p->bs2;
 
-    if (p->reset_disposition == RESET_DEDICATED)
-      buf[4] = 0;
-    else
-      buf[4] = 1;
+    if (n_extparms == 4) {
+      if (p->reset_disposition == RESET_DEDICATED)
+        buf[4] = 0;
+      else
+        buf[4] = 1;
+    }
 
-    rc = stk500_set_extended_parms(pgm, 5, buf);
+    rc = stk500_set_extended_parms(pgm, n_extparms+1, buf);
     if (rc) {
       fprintf(stderr, "%s: stk500_initialize(): failed\n", progname);
       exit(1);
