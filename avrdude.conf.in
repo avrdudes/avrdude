@@ -214,6 +214,23 @@ programmer
   miso  = 10;
 ;
 
+# The programming dongle used by the popular Ponyprog
+# utility.  It is almost similar to the STK200 one,
+# except that there is a LED indicating that the
+# programming is currently in progress.
+
+programmer
+  id    = "pony";
+  desc  = "Pony Prog";
+  type  = par;
+  buff  = 4, 5;
+  sck   = 6;
+  mosi  = 7;
+  reset = 9;
+  miso  = 10;
+  pgmled = 8; 
+;
+
 programmer
   id    = "dt006";
   desc  = "Dontronics DT006";
