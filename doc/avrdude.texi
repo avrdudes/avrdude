@@ -1009,7 +1009,7 @@ augment the system default configuration file.
 @subsubsection FreeBSD Configuration Files
 
 @noindent
-When AVRUDE is installed using the FreeBSD ports system, the system
+When AVRDUDE is installed using the FreeBSD ports system, the system
 configuration file is always @code{/usr/local/etc/avrdude.conf}.
 
 @c
@@ -1090,7 +1090,25 @@ such as @option{--prefix}.
 @subsection Installation
 
 @noindent
-Empty.
+A Windows executable of avrdude is included in WinAVR which can be found at
+@url{http://sourceforge.net/projects/winavr}. WinAVR is a suite of executable, 
+open source software development tools for the AVR for the Windows platform.
+
+To build avrdude from the source You must have Cygwin (@url{http://www.cygwin.com/}).
+
+To build and install from the source tarball for Windows (using Cygwin):
+
+@example
+$ set PREFIX=<your install directory path>
+$ export PREFIX
+$ gunzip -c avrdude-@value{VERSION}.tar.gz | tar xf -
+$ cd avrdude-@value{VERSION}
+$ ./configure LDFLAGS="-static" --prefix=$PREFIX --datadir=$PREFIX 
+--sysconfdir=$PREFIX/bin --enable-versioned-doc=no
+$ make
+$ make install
+@end example
+
 
 @c
 @c Node
@@ -1268,7 +1286,15 @@ On Windows 95 and 98 the giveio.sys driver is not needed.
 @subsection Documentation
 
 @noindent
-Empty.
+AVRDUDE installs a manual page as well as info, HTML and PDF
+documentation.  The manual page is installed in
+@code{/usr/local/man/man1} area, while the HTML and PDF documentation
+is installed in @code{/usr/local/share/doc/avrdude} directory.  The
+info manual is installed in @code{/usr/local/info/avrdude.info}.
+
+Note that these locations can be altered by various configure options
+such as @option{--prefix} and @option{--datadir}.
+
 
 @c
 @c Node
