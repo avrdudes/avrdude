@@ -1,5 +1,9 @@
 2003-03-23  Theodore A. Roth  <troth@openavr.org>
 
+	* ser_posix.c: Add verbose level > 3 output for send and recv functions.
+
+2003-03-23  Theodore A. Roth  <troth@openavr.org>
+
 	* avr.c: Add avr_read_byte_default().
 	Have avr_read_byte() call pgm->read_byte() or avr_read_byte_default().
 	Add avr_write_byte_default().

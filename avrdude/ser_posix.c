@@ -34,6 +34,7 @@
 #include <unistd.h>
 
 extern char *progname;
+extern int verbose;
 
 struct baud_mapping {
   long baud;
@@ -156,13 +157,37 @@ int serial_send(int fd, char * buf, size_t buflen)
   int nfds;
   int rc;
 
-  if (!buflen)
+  char * p = buf;
+  size_t len = buflen;
+
+  if (!len)
     return 0;
+
+  if (verbose > 3)
+  {
+      fprintf(stderr, "%s: Send: ", progname);
+
+      while (buflen) {
+        char c = *buf;
+        if (isprint(c)) {
+          fprintf(stderr, "%c ", c);
+        }
+        else {
+          fprintf(stderr, ". ");
+        }
+        fprintf(stderr, "[%02x] ", (unsigned int)c);
+
+        buf++;
+        buflen--;
+      }
+
+      fprintf(stderr, "\n");
+  }
 
   timeout.tv_sec = 0;
   timeout.tv_usec = 500000;
 
-  while (buflen) {
+  while (len) {
     FD_ZERO(&wfds);
     FD_SET(fd, &wfds);
 
@@ -185,14 +210,14 @@ int serial_send(int fd, char * buf, size_t buflen)
       }
     }
 
-    rc = write(fd, buf, 1);
+    rc = write(fd, p, 1);
     if (rc < 0) {
       fprintf(stderr, "%s: serial_send(): write error: %s\n",
               progname, strerror(errno));
       exit(1);
     }
-    buf++;
-    buflen--;
+    p++;
+    len--;
   }
 
   return 0;
@@ -206,10 +231,13 @@ int serial_recv(int fd, char * buf, size_t buflen)
   int nfds;
   int rc;
 
+  char * p = buf;
+  size_t len = 0;
+
   timeout.tv_sec  = 5;
   timeout.tv_usec = 0;
 
-  while (buflen) {
+  while (len < buflen) {
     FD_ZERO(&rfds);
     FD_SET(fd, &rfds);
 
@@ -232,14 +260,36 @@ int serial_recv(int fd, char * buf, size_t buflen)
       }
     }
 
-    rc = read(fd, buf, 1);
+    rc = read(fd, p, 1);
     if (rc < 0) {
       fprintf(stderr, "%s: serial_recv(): read error: %s\n",
               progname, strerror(errno));
       exit(1);
     }
-    buf++;
-    buflen--;
+    p++;
+    len++;
+  }
+
+  p = buf;
+
+  if (verbose > 3)
+  {
+      fprintf(stderr, "%s: Recv: ", progname);
+
+      while (len) {
+        char c = *p;
+        if (isprint(c)) {
+          fprintf(stderr, "%c ", c);
+        }
+        else {
+          fprintf(stderr, ". ");
+        }
+        fprintf(stderr, "[%02x] ", ((unsigned int)c &0xff));
+
+        p++;
+        len--;
+      }
+      fprintf(stderr, "\n");
   }
 
   return 0;
