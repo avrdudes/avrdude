@@ -735,14 +735,6 @@ int main(int argc, char * argv [])
   p = avr_dup_part(p);
   v = avr_dup_part(p);
 
-  if (verbose) {
-    avr_display(stderr, p, progbuf, verbose);
-    fprintf(stderr, "\n");
-    pinconfig_display(progbuf);
-  }
-
-  fprintf(stderr, "\n");
-
   if (strcmp(pgm->type, "PPI") == 0) {
     verify_pin_assigned(PIN_AVR_RESET, "AVR RESET");
     verify_pin_assigned(PIN_AVR_SCK,   "AVR SCK");
@@ -754,6 +746,14 @@ int main(int argc, char * argv [])
    * open the programmer
    */
   pgm->open(pgm, port);
+
+  if (verbose) {
+    avr_display(stderr, p, progbuf, verbose);
+    fprintf(stderr, "\n");
+    pinconfig_display(progbuf);
+  }
+
+  fprintf(stderr, "\n");
 
   exitrc = 0;
 

@@ -39,24 +39,6 @@
 #include "pgm.h"
 
 
-#define AVR_MEMDESCLEN 64
-typedef struct avrmem {
-  char desc[AVR_MEMDESCLEN];  /* memory description ("flash", "eeprom", etc) */
-  int paged;                  /* page addressed (e.g. ATmega flash) */
-  int size;                   /* total memory size in bytes */
-  int page_size;              /* size of memory page (if page addressed) */
-  int num_pages;              /* number of pages (if page addressed) */
-  int min_write_delay;        /* microseconds */
-  int max_write_delay;        /* microseconds */
-  int pwroff_after_write;     /* after this memory type is written to,
-                                 the device must be powered off and
-                                 back on, see errata
-                                 http://www.atmel.com/atmel/acrobat/doc1280.pdf */
-  unsigned char readback[2];  /* polled read-back values */
-  unsigned char * buf;        /* pointer to memory buffer */
-  OPCODE * op[AVR_OP_MAX];    /* opcodes */
-} AVRMEM;
-
 
 extern struct avrpart parts[];
 

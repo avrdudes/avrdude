@@ -374,6 +374,15 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
     size = mem->size;
   }
 
+  if (mem->paged && pgm->paged_load != NULL) {
+    /*
+     * the programmer directly supports writing this memory, perhaps
+     * more efficiently than we can from here 
+     */
+    return pgm->paged_load(pgm, p, mem, size);
+  }
+
+
   printed = 0;
 
   for (i=0; i<size; i++) {
@@ -664,6 +673,14 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
   }
 
   pgm->err_led(pgm, OFF);
+
+  if (m->paged && pgm->paged_write != NULL) {
+    /*
+     * the programmer directly supports writing this memory, perhaps
+     * more efficiently than we can from here 
+     */
+    return pgm->paged_write(pgm, p, m, size);
+  }
 
   printed = 0;
   werror  = 0;

@@ -69,6 +69,10 @@ PROGRAMMER * pgm_new(void)
   for (i=0; i<N_PINS; i++)
     pgm->pinno[i] = 0;
 
+  /*
+   * mandatory functions - these are called without checking to see
+   * whether they are assigned or not
+   */
   pgm->rdy_led        = pgm_default_1;
   pgm->err_led        = pgm_default_1;
   pgm->pgm_led        = pgm_default_1;
@@ -86,6 +90,13 @@ PROGRAMMER * pgm_new(void)
   pgm->cmd            = pgm_default_5;
   pgm->open           = pgm_default_6;
   pgm->close          = pgm_default_4;
+
+  /*
+   * optional functions - these are checked to make sure they are
+   * assigned before they are called
+   */
+  pgm->paged_write    = NULL;
+  pgm->paged_load     = NULL;
 
   return pgm;
 }
