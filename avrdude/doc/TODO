@@ -20,3 +20,5 @@
 - FIXME: ser_posix.c: serial_close(): Should really restore the terminal to 
   original state here.
 
+- FIXME: main.c, par.c: exitspecs don't work if RESET-pin is controlled over
+  PPICTRL.

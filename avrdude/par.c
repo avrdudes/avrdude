@@ -105,15 +105,11 @@ static void par_powerdown      (PROGRAMMER * pgm);
 
 static int  par_initialize     (PROGRAMMER * pgm, AVRPART * p);
 
-static int  par_save           (PROGRAMMER * pgm);
-
-static void par_restore        (PROGRAMMER * pgm);
-
 static void par_disable        (PROGRAMMER * pgm);
 
 static void par_enable         (PROGRAMMER * pgm);
 
-static void par_open           (PROGRAMMER * pgm, char * port);
+static int  par_open           (PROGRAMMER * pgm, char * port);
 
 static void par_close          (PROGRAMMER * pgm);
 
@@ -437,26 +433,6 @@ static int par_initialize(PROGRAMMER * pgm, AVRPART * p)
 }
 
 
-static int par_save(PROGRAMMER * pgm)
-{
-  int rc;
-
-  rc = ppi_getall(pgm->fd, PPIDATA);
-  if (rc < 0) {
-    fprintf(stderr, "%s: error reading status of ppi data port\n", progname);
-    return -1;
-  }
-
-  pgm->ppidata = rc;
-
-  return 0;
-}
-
-static void par_restore(PROGRAMMER * pgm)
-{
-  ppi_setall(pgm->fd, PPIDATA, pgm->ppidata);
-}
-
 static void par_disable(PROGRAMMER * pgm)
 {
   ppi_set(pgm->fd, PPIDATA, pgm->pinno[PPI_AVR_BUFF]);
@@ -485,8 +461,10 @@ static void par_enable(PROGRAMMER * pgm)
 }
 
 
-static void par_open(PROGRAMMER * pgm, char * port)
+static int par_open(PROGRAMMER * pgm, char * port)
 {
+  int rc;
+
   pgm->fd = ppi_open(port);
   if (pgm->fd < 0) {
     fprintf(stderr, "%s: failed to open parallel port \"%s\"\n\n",
@@ -495,11 +473,38 @@ static void par_open(PROGRAMMER * pgm, char * port)
   }
 
   ppi_claim(pgm);
+
+  /*
+   * save pin values, so they can be restored when device is closed
+   */
+  rc = ppi_getall(pgm->fd, PPIDATA);
+  if (rc < 0) {
+    fprintf(stderr, "%s: error reading status of ppi data port\n", progname);
+    return -1;
+  }
+  pgm->ppidata = rc;
+
+  rc = ppi_getall(pgm->fd, PPICTRL);
+  if (rc < 0) {
+    fprintf(stderr, "%s: error reading status of ppi ctrl port\n", progname);
+    return -1;
+  }
+  pgm->ppictrl = rc;
+
+  return 0;
 }
 
 
 static void par_close(PROGRAMMER * pgm)
 {
+  /*
+   * Restore pin values before closing,
+   * but ensure that buffers are turned off.
+   */
+  pgm->ppidata |= pgm->pinno[PPI_AVR_BUFF];
+  ppi_setall(pgm->fd, PPIDATA, pgm->ppidata);
+  ppi_setall(pgm->fd, PPICTRL, pgm->ppictrl);
+
   ppi_release(pgm);
 
   ppi_close(pgm->fd);
@@ -513,7 +518,7 @@ static void par_display(PROGRAMMER * pgm, char * p)
   char buffpins[64];
 
   if (pgm->pinno[PPI_AVR_VCC]) {
-    snprintf(vccpins, sizeof(vccpins), " = pins %s", 
+    snprintf(vccpins, sizeof(vccpins), " = pins %s",
              vccpins_str(pgm->pinno[PPI_AVR_VCC]));
   }
   else {
@@ -563,8 +568,6 @@ void par_initpgm(PROGRAMMER * pgm)
   pgm->vfy_led        = par_vfy_led;
   pgm->initialize     = par_initialize;
   pgm->display        = par_display;
-  pgm->save           = par_save;
-  pgm->restore        = par_restore;
   pgm->enable         = par_enable;
   pgm->disable        = par_disable;
   pgm->powerup        = par_powerup;

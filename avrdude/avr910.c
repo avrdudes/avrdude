@@ -247,22 +247,6 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
 }
 
 
-static int avr910_save(PROGRAMMER * pgm)
-{
-  /* Do nothing. */
-
-  return 0;
-}
-
-
-static void avr910_restore(PROGRAMMER * pgm)
-{
-  /* Do nothing. */
-
-  return;
-}
-
-
 static void avr910_disable(PROGRAMMER * pgm)
 {
   /* Do nothing. */
@@ -308,7 +292,7 @@ static int avr910_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
 }
 
 
-static void avr910_open(PROGRAMMER * pgm, char * port)
+static int avr910_open(PROGRAMMER * pgm, char * port)
 {
   /*
    *  If baudrate was not specified use 19.200 Baud
@@ -644,8 +628,6 @@ void avr910_initpgm(PROGRAMMER * pgm)
   pgm->vfy_led        = avr910_vfy_led;
   pgm->initialize     = avr910_initialize;
   pgm->display        = avr910_display;
-  pgm->save           = avr910_save;
-  pgm->restore        = avr910_restore;
   pgm->enable         = avr910_enable;
   pgm->disable        = avr910_disable;
   pgm->powerup        = avr910_powerup;

@@ -311,26 +311,6 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
 }
 
 
-static int butterfly_save(PROGRAMMER * pgm)
-{
-  no_show_func_info();
-
-  /* Do nothing. */
-
-  return 0;
-}
-
-
-static void butterfly_restore(PROGRAMMER * pgm)
-{
-  no_show_func_info();
-
-  /* Do nothing. */
-
-  return;
-}
-
-
 static void butterfly_disable(PROGRAMMER * pgm)
 {
   no_show_func_info();
@@ -351,7 +331,7 @@ static void butterfly_enable(PROGRAMMER * pgm)
 }
 
 
-static void butterfly_open(PROGRAMMER * pgm, char * port)
+static int butterfly_open(PROGRAMMER * pgm, char * port)
 {
   no_show_func_info();
 
@@ -362,6 +342,8 @@ static void butterfly_open(PROGRAMMER * pgm, char * port)
    * drain any extraneous input
    */
   butterfly_drain (pgm, 0);
+
+  return 0;
 }
 
 
@@ -615,8 +597,6 @@ void butterfly_initpgm(PROGRAMMER * pgm)
   pgm->vfy_led        = butterfly_vfy_led;
   pgm->initialize     = butterfly_initialize;
   pgm->display        = butterfly_display;
-  pgm->save           = butterfly_save;
-  pgm->restore        = butterfly_restore;
   pgm->enable         = butterfly_enable;
   pgm->disable        = butterfly_disable;
   pgm->powerup        = butterfly_powerup;

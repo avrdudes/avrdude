@@ -72,8 +72,6 @@ PROGRAMMER * pgm_new(void)
   pgm->vfy_led        = pgm_default_1;
   pgm->initialize     = pgm_default_2;
   pgm->display        = pgm_default_6;
-  pgm->save           = pgm_default_3;
-  pgm->restore        = pgm_default_4;
   pgm->enable         = pgm_default_4;
   pgm->disable        = pgm_default_4;
   pgm->powerup        = pgm_default_4;
@@ -81,7 +79,7 @@ PROGRAMMER * pgm_new(void)
   pgm->program_enable = pgm_default_2;
   pgm->chip_erase     = pgm_default_2;
   pgm->cmd            = pgm_default_5;
-  pgm->open           = pgm_default_6;
+  pgm->open           = pgm_default_3;
   pgm->close          = pgm_default_4;
 
   /*
