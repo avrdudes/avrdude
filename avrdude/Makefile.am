@@ -74,6 +74,8 @@ avrdude_SOURCES = \
 	ppi.c \
 	ppi.h \
 	ppiwin.c \
+	safemode.c \
+	safemode.h \
 	serial.h \
 	ser_posix.c \
 	ser_win32.c \
