@@ -1,3 +1,18 @@
+2003-11-30  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
+	*avrpart.c,main.c: Moved list_parts() and locate_part()
+	from main.c to avrpart.c
+	*avrpart.h: Added prototypes for list_parts() and
+	locate_part()
+
+2003-11-30  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
+	*avrpart.c,avr.c: Moved elementary functions on types
+	OPCODE, AVRMEM and AVRPART from avr.c to new file avrpart.c
+	*avr.h: Removed prototypes for moved functions
+	*avrpart.h: Added prototypes for functions in avrpart.c
+	*Makefile.am: Added new file avrpart.c
+
 2003-11-28  Michael Mayer  <michael-mayer@gmx.de>
 
 	* added new programmer type "butterfly":
