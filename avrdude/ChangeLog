@@ -1,3 +1,8 @@
+2003-09-02  Eric B. Weddington <eric@ecentral.com>
+
+    * doc/avrdude.texi: Add note about privileges needed to load 
+    the giveio driver for Windows.
+
 2003/08/29  Brian S. Dean  <bsd@bsdhome.com>
 
         * avrdude.1:
