@@ -113,7 +113,8 @@ AC_SUBST(WINDOWS_DIRS,$WINDOWS_DIRS)
 
 AC_CONFIG_FILES([
 	windows/Makefile
-	Makefile
+	avrdude.spec
 	avrdude.conf
+	Makefile
 ])
 AC_OUTPUT
