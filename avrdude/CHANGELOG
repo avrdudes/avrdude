@@ -4,7 +4,7 @@ Approximate change log for AVRPROG by version
 
 ----------------------------------------------------------------------
 
-Latest:
+2.0.3:
 
   * Work around problem programming fuse bits on parts like the
     at90s4433 as described in the following errata:
