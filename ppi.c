@@ -232,4 +232,75 @@ void ppi_close(int fd)
 }
 
 
+#elif defined(__POWERPC__) && defined(__APPLE__)
+
+int ppi_shadow_access(int fd, int reg, unsigned char *v, unsigned char action)
+{
+  return -1;
+}
+
+/*
+ * set the indicated bit of the specified register.
+ */
+int ppi_set(int fd, int reg, int bit)
+{
+  return -1;
+}
+
+
+/*
+ * clear the indicated bit of the specified register.
+ */
+int ppi_clr(int fd, int reg, int bit)
+{
+  return -1;
+}
+
+
+/*
+ * get the indicated bit of the specified register.
+ */
+int ppi_get(int fd, int reg, int bit)
+{
+  return -1;
+}
+
+/*
+ * toggle the indicated bit of the specified register.
+ */
+int ppi_toggle(int fd, int reg, int bit)
+{
+  return -1;
+}
+
+
+/*
+ * get all bits of the specified register.
+ */
+int ppi_getall(int fd, int reg)
+{
+  return -1;
+}
+
+/*
+ * set all bits of the specified register to val.
+ */
+int ppi_setall(int fd, int reg, int val)
+{
+  return -1;
+}
+
+
+int ppi_open(char * port)
+{
+  return -1;
+}
+
+
+void ppi_close(int fd)
+{
+}
+
+
 #endif
+
