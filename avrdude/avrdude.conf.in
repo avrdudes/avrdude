@@ -234,8 +234,8 @@ programmer
 # programming is currently in progress.
 
 programmer
-  id    = "pony";
-  desc  = "Pony Prog";
+  id    = "pony-stk200";
+  desc  = "Pony Prog STK200";
   type  = par;
   buff  = 4, 5;
   sck   = 6;

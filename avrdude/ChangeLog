@@ -1,3 +1,9 @@
+2003-04-17  Eric B. Weddington  <eric@umginc.net>
+
+	* avrdude.conf.in: Change name of pony programmer to pony-stk200
+	to better describe the hardware (PonyProg is software that works
+	with various hardware).
+
 2003-04-16  Eric B. Weddington  <eric@umginc.net>
 
 	* avrdude.conf.in: Add support for ATtiny26
