@@ -689,7 +689,6 @@ int main ( int argc, char * argv [] )
    * Print out an identifying string so folks can tell what version
    * they are running
    */
-  fprintf(stderr, "\n");
   p1 = strchr(version,',');
   if (p1 == NULL)
     p1 = version;
@@ -702,15 +701,12 @@ int main ( int argc, char * argv [] )
   else
     p2 += 3;
 
-  fprintf(stderr, "%s, Revision ", progname );
+  fprintf(stderr, "\n");
+  fprintf(stderr, "AVRProg: Copyright (C) 2000 Brian Dean, bsd@bsdhome.com\n");
+  fprintf(stderr, "         Revision " );
   for (i=0; i<p2-p1; i++)
     fprintf(stderr, "%c", p1[i]);
   fprintf(stderr, "\n");
-  rc = strlen(progname);
-  for (i=0; i<rc+2; i++)
-    fprintf(stderr, "%c", ' ');
-  fprintf(stderr, "Author: Brian Dean, bsd@bsdhome.com\n");
-
 
   /*
    * check for no arguments
