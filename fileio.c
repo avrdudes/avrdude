@@ -54,6 +54,7 @@ struct ihexrec {
 extern char * progname;
 extern char   progbuf[];
 
+char * fileio_version = "$Id$";
 
 int b2ihex ( unsigned char * inbuf, int bufsize, 
              int recsize, int startaddr,

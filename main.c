@@ -77,6 +77,7 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "avr.h"
@@ -88,8 +89,25 @@
 
 #define DEFAULT_PARALLEL "/dev/ppi0"
 
+extern char * avr_version;
+extern char * fileio_version;
+extern char * main_version;
+extern char * ppi_version;
+extern char * term_version;
 
-char * version = "1.1";
+#define N_MODULES 5
+
+char ** modules[5] = { 
+  &avr_version, 
+  &fileio_version, 
+  &main_version, 
+  &ppi_version, 
+  &term_version 
+};
+
+char * version      = "1";
+
+char * main_version = "$Id$";
 
 char * progname;
 char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
@@ -102,8 +120,10 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
 void usage ( void )
 {
   fprintf(stderr,
-          "Usage: %s -p partno [-e] [-E exitspec[,exitspec]] [-f format] [-F]\n"
-          "      %s[-i filename] [-m memtype] [-o filename] [-P parallel] [-t]\n\n",
+          "Usage: %s -p partno [-e] [-E exitspec[,exitspec]] [-f format] "
+          "[-F] [-V]\n"
+          "      %s[-i filename] [-m memtype] [-o filename] [-P parallel] "
+          "[-t]\n\n",
           progname, progbuf);
 
 }
@@ -139,6 +159,103 @@ int getexitspecs ( char *s, int *set, int *clr )
 }
 
 
+int parse_cvsid ( char * cvsid, char * name, char * rev, char * datetime )
+{
+  int i, j;
+
+  if (strncmp(cvsid,"$Id: ",5) != 0)
+    return -1;
+
+  name[0]     = 0;
+  rev[0]      = 0;
+  datetime[0] = 0;
+
+  i = 0;
+  j = 5;
+  while (cvsid[j] && cvsid[j] != ',')
+    name[i++] = cvsid[j++];
+  name[i] = 0;
+
+  while (cvsid[j] && cvsid[j] != ' ')
+    j++;
+
+  if (cvsid[j])
+    j++;
+
+  i = 0;
+  while (cvsid[j] && cvsid[j] != ' ')
+    rev[i++] = cvsid[j++];
+  rev[i] = 0;
+
+  if (cvsid[j])
+    j++;
+
+  i = 0;
+  while (cvsid[j] && cvsid[j] != ' ')
+    datetime[i++] = cvsid[j++];
+  if (cvsid[j] == ' ') {
+    datetime[i++] = cvsid[j++];
+    while (cvsid[j] && cvsid[j] != ' ')
+      datetime[i++] = cvsid[j++];
+  }
+  datetime[i] = 0;
+
+  return 0;
+}
+
+
+int print_module_versions ( FILE * outf )
+{
+  char name[64], rev[16], datetime[64];
+  int y, m, d, h, min, s;
+  int i;
+  int rc;
+  int maxtime;
+  struct tm t;
+  time_t now;
+
+  maxtime = 0;
+  for (i=0; i<N_MODULES; i++) {
+    parse_cvsid(*modules[i], name, rev, datetime);
+    rc = sscanf(datetime, "%d/%d/%d %d:%d:%d", &y, &m, &d, &h, &min, &s);
+    if (rc != 6) {
+      fprintf(stderr, "%s: module version scan error, rc=%d\n", progname, rc);
+    }
+    else {
+      now = time(NULL);
+      gmtime_r(&now, &t);
+      t.tm_sec  = s;
+      t.tm_min  = min;
+      t.tm_hour = h;
+      t.tm_mday = d;
+      t.tm_mon  = m-1;
+      t.tm_year = y-1900;
+      now = timegm(&t);
+      if (now > maxtime)
+        maxtime = now;
+    }
+    if (outf)
+      fprintf(outf, "  %-10s  %-5s  %s\n", name, rev, datetime);
+  }
+
+  if (outf)
+    fprintf(outf, "\n");
+
+#if 0
+  gmtime_r(&maxtime, &t);
+  fprintf(stderr, "Latest revision date is %04d/%02d/%02d %02d:%02d:%02d\n",
+          t.tm_year+1900, t.tm_mon, t.tm_mday, 
+          t.tm_hour, t.tm_min, t.tm_sec);
+#endif
+
+  if (outf)
+    fprintf(outf, "\n");
+
+  return maxtime;
+}
+
+
+
 /*
  * main routine
  */
@@ -158,6 +275,7 @@ int main ( int argc, char * argv [] )
   int              readorwrite; /* true if a chip read/write op was selected */
   int              ppidata;	/* cached value of the ppi data register */
   int              vsize=-1;    /* number of bytes to verify */
+  int              rev;
 
   /* options / operating mode variables */
   int     memtype;     /* AVR_FLASH or AVR_EEPROM */
@@ -200,12 +318,15 @@ int main ( int argc, char * argv [] )
     progbuf[i] = ' ';
   progbuf[i] = 0;
 
+  rev = print_module_versions(NULL);
+
   /*
    * Print out an identifying string so folks can tell what version
    * they are running
    */
   fprintf(stderr, "\n%s: Copyright 2000 Brian Dean, bsd@bsdhome.com\n"
-          "%sVersion %s\n\n", progname, progbuf, version);
+          "%sVersion %s  Revision Timestamp %d\n\n", 
+          progname, progbuf, version, rev);
 
   /*
    * check for no arguments
@@ -219,7 +340,7 @@ int main ( int argc, char * argv [] )
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?eE:f:Fi:m:no:p:P:tv")) != -1) {
+  while ((ch = getopt(argc,argv,"?eE:f:Fi:m:no:p:P:tV")) != -1) {
 
     switch (ch) {
       case 'm': /* select memory type to operate on */
@@ -330,8 +451,8 @@ int main ( int argc, char * argv [] )
         parallel = optarg;
         break;
 
-      case 'v':
-        verify = 1;
+      case 'V':
+        print_module_versions(stderr);
         break;
 
       case '?': /* help */

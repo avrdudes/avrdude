@@ -43,6 +43,7 @@ extern char * progname;
 extern char   progbuf[];
 
 
+char * avr_version = "$Id$";
 
 
 /* Need to add information for 2323, 2343, and 4414 */
