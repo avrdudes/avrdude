@@ -457,11 +457,7 @@ int main(int argc, char * argv [])
           case 'a' : filefmt = FMT_AUTO; break;
           case 'i' : filefmt = FMT_IHEX; break;
           case 'r' : filefmt = FMT_RBIN; break;
-          case 's' :
-            fprintf(stderr, 
-                    "%s: Motorola S-Record format not yet supported\n\n",
-                    progname);
-            exit(1);
+          case 's' : filefmt = FMT_SREC; break;
             break;
           default :
             fprintf(stderr, "%s: invalid file format \"%s\"\n\n",

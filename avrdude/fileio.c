@@ -39,7 +39,7 @@
 
 struct ihexrec {
   unsigned char    reclen;
-  unsigned short   loadofs;
+  unsigned int     loadofs;
   unsigned char    rectyp;
   unsigned char    data[IHEX_MAXDATA];
   unsigned char    cksum;
@@ -55,6 +55,17 @@ int b2ihex(unsigned char * inbuf, int bufsize,
 
 int ihex2b(char * infile, FILE * inf,
              unsigned char * outbuf, int bufsize);
+
+int b2srec(unsigned char * inbuf, int bufsize, 
+           int recsize, int startaddr,
+           char * outfile, FILE * outf);
+
+int srec2b(char * infile, FILE * inf,
+             unsigned char * outbuf, int bufsize);
+
+int ihex_readrec(struct ihexrec * ihex, char * rec);
+
+int srec_readrec(struct ihexrec * srec, char * rec);            
 
 int fileio_rbin(struct fioparms * fio,
                   char * filename, FILE * f, unsigned char * buf, int size);
@@ -344,6 +355,348 @@ int ihex2b(char * infile, FILE * inf,
 }
 
 
+int b2srec(unsigned char * inbuf, int bufsize, 
+           int recsize, int startaddr,
+           char * outfile, FILE * outf)
+{
+  unsigned char * buf;
+  unsigned int nextaddr, stopaddr;
+  int n, nbytes, addr_width;
+  int i;
+  unsigned char cksum;
+  unsigned char startf, stopf ,emptyf;
+
+  char * tmpl=0;
+
+  if (recsize > 255) {
+    fprintf(stderr, "%s: ERROR: recsize=%d, must be < 256\n",
+            progname, recsize);
+    return -1;
+  }
+
+  buf = inbuf;
+  nextaddr = 0;    
+  stopaddr = 0;
+  startf = 0;
+  stopf = 0;
+
+  /* search for ranges of 'real' data */     
+  for (i=startaddr; i<bufsize; i++) {
+    if (buf[i] == 0xff) {
+      if (startf == 0) 
+        continue;
+      else if (stopf == 0) {
+        stopf = 1;
+        stopaddr = i;
+      }
+    }
+    else {
+      if (startf == 0) {
+        startf = 1;
+        nextaddr = i;
+        while (nextaddr % recsize != 0)
+          nextaddr --;
+      }
+      else if (stopf == 1) {
+        stopf = 0;
+        stopaddr = bufsize;
+      }
+    }
+  }
+  nbytes = i; 
+
+  bufsize = stopaddr - nextaddr;
+  addr_width = 0;
+
+  while (bufsize) {
+
+    n = recsize;
+
+    if (n > bufsize) 
+      n = bufsize;
+
+    if (n) {
+      cksum = 0;
+      if (nextaddr + n <= 0xffff) {
+        addr_width = 2;
+        tmpl="S1%02X%04X";
+      }
+      else if (nextaddr + n <= 0xffffff) {
+        addr_width = 3;
+        tmpl="S2%02X%06X";
+      }
+      else if (nextaddr + n <= 0xffffffff) {
+        addr_width = 4;
+        tmpl="S3%02X%08X";
+      }
+      else {
+        fprintf(stderr, "%s: ERROR: address=%d, out of range\n",
+                progname, nextaddr);
+        return -1;
+      }
+
+      /* skip the lines filled with 0xff */ 
+      emptyf = 1;
+      for (i=nextaddr; i<nextaddr + n; i++) {
+        if (buf[i] != 0xff) {
+          emptyf=0;
+          break;
+        }
+      }
+
+      if (emptyf != 1) {	
+
+        fprintf(outf, tmpl, n + addr_width + 1, nextaddr);		
+
+        cksum += n + addr_width + 1;
+
+        for (i=addr_width; i>0; i--) 
+          cksum += (nextaddr >> (i-1) * 8) & 0xff;
+
+        for (i=nextaddr; i<nextaddr + n; i++) {
+          fprintf(outf, "%02X", buf[i]);
+          cksum += buf[i];
+        }
+
+        cksum = 0xff - cksum;
+        fprintf(outf, "%02X\n", cksum);
+      }
+
+      nextaddr += n;
+    }
+
+    /* advance to next 'recsize' bytes */
+    bufsize -= n;
+  }
+
+  /*-----------------------------------------------------------------
+    add the end of record data line
+    -----------------------------------------------------------------*/
+  cksum = 0;
+  n = 0;
+  nextaddr = 0;
+
+  if (startaddr <= 0xffff) {
+    addr_width = 2;
+    tmpl="S9%02X%04X";
+  }
+  else if (startaddr <= 0xffffff) {
+    addr_width = 3;
+    tmpl="S9%02X%06X";
+  }
+  else if (startaddr <= 0xffffffff) {
+    addr_width = 4;
+    tmpl="S9%02X%08X";
+  }
+
+  fprintf(outf, tmpl, n + addr_width + 1, nextaddr);
+
+  cksum += n + addr_width +1;
+  for (i=addr_width; i>0; i--) 
+    cksum += (nextaddr >> (i - 1) * 8) & 0xff;
+  cksum = 0xff - cksum;
+  fprintf(outf, "%02X\n", cksum);
+
+  return nbytes; 
+}
+
+
+int srec_readrec(struct ihexrec * srec, char * rec)
+{
+  int i, j;
+  char buf[8];
+  int offset, len, addr_width;
+  char * e;
+  unsigned char cksum;
+  int rc;
+
+  len = strlen(rec);
+  offset = 1;
+  cksum = 0;
+  addr_width = 2;
+
+  /* record type */
+  if (offset + 1 > len) 
+    return -1;
+  srec->rectyp = rec[offset++];
+  if (srec->rectyp == 0x32 || srec->rectyp == 0x38) 
+    addr_width = 3;	/* S2,S8-record */
+  else if (srec->rectyp == 0x33 || srec->rectyp == 0x37) 
+    addr_width = 4;	/* S3,S7-record */
+
+  /* reclen */
+  if (offset + 2 > len) 
+    return -1;
+  for (i=0; i<2; i++) 
+    buf[i] = rec[offset++];
+  buf[i] = 0;
+  srec->reclen = strtoul(buf, &e, 16);
+  cksum += srec->reclen;
+  srec->reclen -= (addr_width+1);
+  if (e == buf || *e != 0) 
+    return -1;
+
+  /* load offset */
+  if (offset + addr_width > len) 
+    return -1;
+  for (i=0; i<addr_width*2; i++) 
+    buf[i] = rec[offset++];
+  buf[i] = 0;
+  srec->loadofs = strtoull(buf, &e, 16);
+  if (e == buf || *e != 0) 
+    return -1;
+
+  for (i=addr_width; i>0; i--)
+    cksum += (srec->loadofs >> (i - 1) * 8) & 0xff;
+
+  /* data */
+  for (j=0; j<srec->reclen; j++) {
+    if (offset+2  > len) 
+      return -1;
+    for (i=0; i<2; i++) 
+      buf[i] = rec[offset++];
+    buf[i] = 0;
+    srec->data[j] = strtoul(buf, &e, 16);
+    if (e == buf || *e != 0) 
+      return -1;
+    cksum += srec->data[j];
+  }
+
+  /* cksum */
+  if (offset + 2 > len) 
+    return -1;
+  for (i=0; i<2; i++) 
+    buf[i] = rec[offset++];
+  buf[i] = 0;
+  srec->cksum = strtoul(buf, &e, 16);
+  if (e == buf || *e != 0) 
+    return -1;
+
+  rc = 0xff - cksum;
+  return rc;
+}
+
+
+int srec2b(char * infile, FILE * inf,
+           unsigned char * outbuf, int bufsize)
+{
+  char buffer [ MAX_LINE_LEN ];
+  unsigned char * buf;
+  unsigned int nextaddr, baseaddr, maxaddr;
+  int i;
+  int lineno;
+  int len;
+  struct ihexrec srec;
+  int rc;
+  int reccount;
+  unsigned char datarec;
+
+  char * msg = 0;
+
+  lineno   = 0;
+  buf      = outbuf;
+  baseaddr = 0;
+  maxaddr  = 0;
+  reccount = 0;
+
+  while (fgets((char *)buffer,MAX_LINE_LEN,inf)!=NULL) {
+    lineno++;
+    len = strlen(buffer);
+    if (buffer[len-1] == '\n') 
+      buffer[--len] = 0;
+    if (buffer[0] != 0x53)
+      continue;
+    rc = srec_readrec(&srec, buffer);
+
+    if (rc < 0) {
+      fprintf(stderr, "%s: ERROR: invalid record at line %d of \"%s\"\n",
+              progname, lineno, infile);
+      return -1;
+    }
+    else if (rc != srec.cksum) {
+      fprintf(stderr, "%s: ERROR: checksum mismatch at line %d of \"%s\"\n",
+              progname, lineno, infile);
+      fprintf(stderr, "%s: checksum=0x%02x, computed checksum=0x%02x\n",
+              progname, srec.cksum, rc);
+      return -1;
+    }
+
+    datarec=0;	
+    switch (srec.rectyp) {
+      case 0x30: /* S0 - header record*/
+        /* skip */
+        break;
+
+      case 0x31: /* S1 - 16 bit address data record */
+        datarec=1;
+        msg="%s: ERROR: address 0x%04x out of range at line %d of %s\n";    
+        break;
+
+      case 0x32: /* S2 - 24 bit address data record */
+        datarec=1;
+        msg="%s: ERROR: address 0x%06x out of range at line %d of %s\n";
+        break;
+
+      case 0x33: /* S3 - 32 bit address data record */
+        datarec=1;
+        msg="%s: ERROR: address 0x%08x out of range at line %d of %s\n";
+        break;
+
+      case 0x34: /* S4 - symbol record (LSI extension) */
+        fprintf(stderr, 
+                "%s: ERROR: not supported record at line %d of %s\n",
+                progname, lineno, infile);
+        return -1;
+
+      case 0x35: /* S5 - count of S1,S2 and S3 records previously tx'd */
+        if (srec.loadofs != reccount){
+          fprintf(stderr, 
+                  "%s: ERROR: count of transmitted data records mismatch "
+                  "at line %d of \"%s\"\n",
+                  progname, lineno, infile);
+          fprintf(stderr, "%s: transmitted data records= %d, expected "
+                  "value= %d\n",
+                  progname, reccount, srec.loadofs);
+          return -1;
+        }
+        break;
+
+      case 0x37: /* S7 Record - end record for 32 bit address data */
+      case 0x38: /* S8 Record - end record for 24 bit address data */
+      case 0x39: /* S9 Record - end record for 16 bit address data */
+        return maxaddr;
+
+      default:
+        fprintf(stderr, 
+                "%s: ERROR: don't know how to deal with rectype S%d " 
+                "at line %d of %s\n",
+                progname, srec.rectyp, lineno, infile);
+        return -1;
+    }
+
+    if (datarec == 1) {
+      nextaddr = srec.loadofs + baseaddr;
+      if (nextaddr + srec.reclen > bufsize) {
+        fprintf(stderr, msg, progname, nextaddr+srec.reclen, lineno, infile);
+        return -1;
+      }
+      for (i=0; i<srec.reclen; i++) 
+        buf[nextaddr+i] = srec.data[i];
+      if (nextaddr+srec.reclen > maxaddr)
+        maxaddr = nextaddr+srec.reclen;
+      reccount++;	
+    }
+
+  } 
+
+  fprintf(stderr, 
+          "%s: WARNING: no end of file record found for Motorola S-Records "
+          "file \"%s\"\n",
+          progname, infile);
+
+  return maxaddr;
+}
+
 
 int fileio_rbin(struct fioparms * fio,
                   char * filename, FILE * f, unsigned char * buf, int size)
@@ -408,9 +761,31 @@ int fileio_ihex(struct fioparms * fio,
 int fileio_srec(struct fioparms * fio,
                   char * filename, FILE * f, unsigned char * buf, int size)
 {
-  fprintf(stderr, "%s: Motorola S-Record %s format not yet supported\n",
-          progname, fio->iodesc);
-  return -1;
+  int rc;
+
+  switch (fio->op) {
+    case FIO_WRITE:
+      rc = b2srec(buf, size, 32, 0, filename, f);
+      if (rc < 0) {
+        return -1;
+      }
+      break;
+
+    case FIO_READ:
+      rc = srec2b(filename, f, buf, size);
+      if (rc < 0)
+        return -1;
+      break;
+
+    default:
+      fprintf(stderr, "%s: ERROR: invalid Motorola S-Records file I/O "
+              "operation=%d\n",
+              progname, fio->op);
+      return -1;
+      break;
+  }
+
+  return rc;
 }
 
 
