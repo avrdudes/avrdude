@@ -103,9 +103,10 @@ extern char * lists_version;
 extern char * main_version;
 extern char * pgm_version;
 extern char * ppi_version;
+extern char * stk500_version;
 extern char * term_version;
 
-#define N_MODULES 8
+#define N_MODULES 9
 
 char ** modules[N_MODULES] = { 
   &avr_version,
@@ -115,10 +116,11 @@ char ** modules[N_MODULES] = {
   &main_version, 
   &pgm_version, 
   &ppi_version, 
+  &stk500_version, 
   &term_version 
 };
 
-char * version      = "2.1.5";
+char * version      = "3.0.0";
 
 char * main_version = "$Id$";
 
@@ -189,7 +191,7 @@ int parse_cvsid(char * cvsid, char * name, char * rev, char * datetime)
 {
   int i, j;
 
-  if (strncmp(cvsid,"$Id: ",5) != 0)
+  if (strncmp(cvsid,"$Id: ", 5) != 0)
     return -1;
 
   name[0]     = 0;

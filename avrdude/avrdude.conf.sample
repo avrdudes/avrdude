@@ -15,6 +15,7 @@
 #   programmer
 #       id     = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
 #       desc   = <description> ;                  # quoted string
+#       type   = ppi | stk500 ;                   # programmer type
 #       vcc    = <num1> [, <num2> ... ] ;         # pin number(s)
 #       reset  = <num> ;                          # pin number
 #       sck    = <num> ;                          # pin number
@@ -29,6 +30,7 @@
 #   part
 #       id               = <id> ;                 # quoted string
 #       desc             = <description> ;        # quoted string
+#       devicecode       = <num> ;                # numeric
 #       chip_erase_delay = <num> ;                # micro-seconds
 #       pgm_enable       = <instruction format> ;
 #       chip_erase       = <instruction format> ;
@@ -60,6 +62,8 @@
 # complain.
 #
 # NOTES:
+#   * 'devicecode' is the device code used by the STK500 (see codes 
+#       listed below)
 #   * Not all memory types will implement all instructions.
 #   * AVR Fuse bits and Lock bits are implemented as a type of memory.
 #   * Example memory types are:
@@ -105,6 +109,64 @@
 #    provided in Atmel's data sheets for their parts.
 #
 # See below for some examples.
+#
+#
+# The following are STK500 part device codes to use for the
+# "devicecode" field of the part.  These came from Atmel's software
+# section avr061.zip which accompanies the application note
+# AVR061 available from:
+#
+#      http://www.atmel.com/atmel/acrobat/doc2525.pdf
+#
+
+#define ATTINY10    0x10
+#define ATTINY11    0x11
+#define ATTINY12    0x12
+
+#define ATTINY22    0x20
+#define ATTINY26    0x21
+#define ATTINY28    0x22
+
+#define AT90S1200   0x33
+
+#define AT90S2313   0x40
+#define AT90S2323   0x41
+#define AT90S2333   0x42
+#define AT90S2343   0x43
+
+#define AT90S4414   0x50
+#define AT90S4433   0x51
+#define AT90S4434   0x52
+
+#define AT90S8515   0x60
+#define AT90S8535   0x61
+#define AT90C8534   0x62
+#define ATMEGA8515  0x63
+#define ATMEGA8535  0x64
+
+#define ATMEGA8     0x70
+
+#define ATMEGA161   0x80
+#define ATMEGA163   0x81
+#define ATMEGA16    0x82
+#define ATMEGA162   0x83
+#define ATMEGA169   0x84
+
+#define ATMEGA323   0x90
+#define ATMEGA32    0x91
+
+#define ATMEGA103   0xB1
+#define ATMEGA128   0xB2
+
+#define AT86RF401   0xD0
+
+#define AT89START   0xE0
+#define AT89S51	    0xE0
+#define AT89S52	    0xE1
+
+
+#
+# PROGRAMMER DEFINITIONS
 #
 
 programmer
@@ -165,55 +227,9 @@ programmer
 
 
 
-
-
-
-#define ATTINY10    0x10
-#define ATTINY11    0x11
-#define ATTINY12    0x12
-
-#define ATTINY22    0x20
-#define ATTINY26    0x21
-#define ATTINY28    0x22
-
-#define AT90S1200   0x33
-
-#define AT90S2313   0x40
-#define AT90S2323   0x41
-#define AT90S2333   0x42
-#define AT90S2343   0x43
-
-#define AT90S4414   0x50
-#define AT90S4433   0x51
-#define AT90S4434   0x52
-
-#define AT90S8515   0x60
-#define AT90S8535   0x61
-#define AT90C8534   0x62
-#define ATMEGA8515  0x63
-#define ATMEGA8535  0x64
-
-#define ATMEGA8     0x70
-
-#define ATMEGA161   0x80
-#define ATMEGA163   0x81
-#define ATMEGA16    0x82
-#define ATMEGA162   0x83
-#define ATMEGA169   0x84
-
-#define ATMEGA323   0x90
-#define ATMEGA32    0x91
-
-#define ATMEGA103   0xB1
-#define ATMEGA128   0xB2
-
-#define AT86RF401   0xD0
-
-#define AT89START   0xE0
-#define AT89S51	    0xE0
-#define AT89S52	    0xE1
-
-
+#
+# PART DEFINITIONS
+#
 
 
 part
