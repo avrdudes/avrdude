@@ -281,7 +281,8 @@ int avr_read(int fd, AVRPART * p, int memtype)
 
   for (i=0; i<size; i++) {
     rbyte = avr_read_byte(fd, p, memtype, i);
-    fprintf(stderr, "                    \r%4lu  0x%02x", i, rbyte);
+    if (i % 1024 == 0)
+      fprintf(stderr, "                    \r%4lu  0x%02x", i, rbyte);
     buf[i] = rbyte;
   }
 
@@ -299,9 +300,25 @@ int avr_write_bank(int fd, AVRPART * p, int memtype,
 {
   unsigned char cmd[4];
   unsigned char res[4];
+  unsigned int shift;
 
   LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
   LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
+
+  /*
+   * 'bank' indicates which bank is being programmed: 0 for the first
+   * bank_size block, 1 for the second, up to num_banks-1 for the
+   * last.  The MCU actually wants the high-order bits of what would
+   * be the actual address instead, shifted left to the upper most
+   * bits of a 16 bit word.  For a 128K flash, the actual address is a
+   * 17 bits.  To get the right value to send to the MCU, we want to
+   * shift 'bank' left by 16 - the number of bits in the bank
+   * address.
+   */
+  shift = 16 - p->mem[memtype].bankaddrbits;
+  bank = bank << shift;
+
+  fprintf(stderr, "bank address=%u\n", bank);
 
   cmd[0] = 0x4c;
   cmd[1] = bank >> 8;     /* high order bits of address */
@@ -457,7 +474,8 @@ int avr_write(int fd, AVRPART * p, int memtype, int size)
     /* eeprom or low byte of flash */
     data = p->mem[memtype].buf[i];
     rc = avr_write_byte(fd, p, memtype, i, data);
-    fprintf(stderr, "                      \r%4lu 0x%02x", i, data);
+    if (i % 1024 == 0)
+      fprintf(stderr, "                      \r%4lu 0x%02x", i, data);
     if (rc) {
       fprintf(stderr, " ***failed;  ");
       fprintf(stderr, "\n");

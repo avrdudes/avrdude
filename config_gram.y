@@ -101,14 +101,62 @@ prog_def :
 part_def :
   K_PART
     { current_part = avr_new_part(); }
-    part_parms
+    part_parms 
     { 
+      unsigned int i, j, pagebits;
       if (current_part->id[0] == 0) {
         fprintf(stderr,
                 "%s: error at %s:%d: required parameter id not specified\n",
                 progname, infile, lineno);
         exit(1);
       }
+
+      /*
+       * perform some sanity checking
+       */
+      for (i=0; i<AVR_MAXMEMTYPES; i++) {
+        if (current_part->mem[i].banked) {
+          if (!current_part->mem[i].bank_size) {
+            fprintf(stderr, 
+                    "%s: error at %s:%d: must specify bank_size for banked "
+                    "memory\n",
+                    progname, infile, lineno);
+            exit(1);
+          }
+          if (!current_part->mem[i].num_banks) {
+            fprintf(stderr, 
+                    "%s: error at %s:%d: must specify num_banks for banked "
+                    "memory\n",
+                    progname, infile, lineno);
+            exit(1);
+          }
+          if (current_part->mem[i].size != current_part->mem[i].bank_size *
+                                             current_part->mem[i].num_banks) {
+            fprintf(stderr, 
+                    "%s: error at %s:%d: bank size (%u) * num_banks (%u) = "
+                    "%u does not match memory size (%u)\n",
+                    progname, infile, lineno,
+                    current_part->mem[i].bank_size, 
+                    current_part->mem[i].num_banks, 
+                    current_part->mem[i].bank_size * current_part->mem[i].num_banks,
+                    current_part->mem[i].size);
+            exit(1);
+          }
+          pagebits = 0;
+          for (j=0; j<32 && !pagebits; j++) {
+            if ((1 << j) == current_part->mem[i].num_banks)
+              pagebits = j;
+          }
+          if (!pagebits) {
+            fprintf(stderr, 
+                    "%s: error at %s:%d: can't determine the number of bank address bits\n"
+                    "     Are you sure num_banks (=%u) is correct?\n",
+                    progname, infile, lineno, current_part->mem[i].num_banks);
+          }
+          current_part->mem[i].bankaddrbits = pagebits;
+        }
+      }
+
       ladd(part_list, current_part); 
       current_part = NULL; 
     }

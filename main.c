@@ -284,7 +284,7 @@ int read_config(char * file)
   f = fopen(file, "r");
   if (f == NULL) {
     fprintf(stderr, "%s: can't open config file \"%s\": %s\n",
-            progname, infile, strerror(errno));
+            progname, file, strerror(errno));
     return -1;
   }
 
