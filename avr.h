@@ -84,4 +84,6 @@ int avr_get_cycle_count(PROGRAMMER * pgm, AVRPART * p, int * cycles);
 
 int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles);;
 
+int avr_mem_hiaddr(AVRMEM * mem);
+
 #endif

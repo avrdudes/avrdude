@@ -933,9 +933,7 @@ int fileio(int op, char * filename, FILEFMT format,
 
   if (fio.op == FIO_READ) {
     /* 0xff fill unspecified memory */
-    for (i=0; i<size; i++) {
-      buf[i] = 0xff;
-    }
+    memset(buf, 0xff, size);
   }
 
   using_stdio = 0;
@@ -1009,6 +1007,16 @@ int fileio(int op, char * filename, FILEFMT format,
       fprintf(stderr, "%s: invalid %s file format: %d\n",
               progname, fio.iodesc, format);
       return -1;
+  }
+
+  if (rc > 0) {
+    if ((op == FIO_READ) && (strcasecmp(mem->desc, "flash") == 0)) {
+      /*
+       * if we are reading flash, just mark the size as being the
+       * highest non-0xff byte
+       */
+      rc = avr_mem_hiaddr(mem);
+    }
   }
 
   return rc;

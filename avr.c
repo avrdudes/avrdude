@@ -353,6 +353,33 @@ int avr_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
 
 /*
+ * Return the number of "interesting" bytes in a memory buffer,
+ * "interesting" being defined as up to the last non-0xff data
+ * value. This is useful for determining where to stop when dealing
+ * with "flash" memory, since writing 0xff to flash is typically a
+ * no-op. Always return an even number since flash is word addressed.
+ */
+int avr_mem_hiaddr(AVRMEM * mem)
+{
+  int i, n;
+
+  /* return the highest non-0xff address regardless of how much
+     memory was read */
+  for (i=mem->size-1; i>0; i--) {
+    if (mem->buf[i] != 0xff) {
+      n = i+1;
+      if (n & 0x01)
+        return n+1;
+      else
+        return n;
+    }
+  }
+
+  return 0;
+}
+
+
+/*
  * Read the entirety of the specified memory type into the
  * corresponding buffer of the avrpart pointed to by 'p'.  If size =
  * 0, read the entire contents, otherwise, read 'size' bytes.
@@ -381,6 +408,11 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
     size = mem->size;
   }
 
+  /*
+   * start with all 0xff
+   */
+  memset(buf, 0xff, size);
+
   if ((strcmp(mem->desc, "flash")==0) || (strcmp(mem->desc, "eeprom")==0)) {
     if (pgm->paged_load != NULL) {
       /*
@@ -389,11 +421,19 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
        * instead
        */
       if (mem->paged) {
-        return pgm->paged_load(pgm, p, mem, mem->page_size, size);
+        rc = pgm->paged_load(pgm, p, mem, mem->page_size, size);
+        if (rc < 0)
+          return rc;
       }
       else {
-        return pgm->paged_load(pgm, p, mem, pgm->page_size, size);
+        rc = pgm->paged_load(pgm, p, mem, pgm->page_size, size);
+        if (rc < 0)
+          return rc;
       }
+      if (strcasecmp(mem->desc, "flash") == 0)
+        return avr_mem_hiaddr(mem);
+      else
+        return rc;
     }
   }
 
@@ -428,7 +468,10 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
     fprintf(stderr, "\n");
   }
 
-  return i;
+  if (strcasecmp(mem->desc, "flash") == 0)
+    return avr_mem_hiaddr(mem);
+  else
+    return i;
 }
 
 
