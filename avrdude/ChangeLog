@@ -16,6 +16,23 @@
 	* stk500.c:
 	Minor code cleanup to remove warnings.
 
+2003/08/21  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrdude.1:
+	* main.c:
+
+	Introduce a new option, -U, for performing memory operions.
+	Its argument is a 4 field string (fields seperated by colons)
+	which indicate what memory type to operate on, what operation
+	to perform is (read, write, or verify), the filename to read
+	from, write to, or verify against, and an optional file format
+	field.  Multple -U options can be specified to operate on more
+	than one memory at a time with a single invocation.  For
+	example, to update both the flash and the eeprom at the same
+	time one can now specify the following:
+
+	avrdude -p -e -U flash:w:main.hex:i -U eeprom:w:eeprom.hex:i
+
 2003-08-01  Theodore A. Roth  <troth@openavr.org>
 
 	* avrdude.1: Document the -q option.
