@@ -64,6 +64,7 @@
 #include <sys/stat.h>
 #include </sys/dev/ppbus/ppi.h>
 #include <limits.h>
+#include <ctype.h>
 
 #define DEFAULT_PARALLEL "/dev/ppi0"
 
@@ -102,12 +103,12 @@ typedef enum {
   AVR_FLASH_HI
 } AVRMEM;
 
-enum {
+typedef enum {
   FMT_AUTO,
   FMT_SREC,
   FMT_IHEX,
   FMT_RBIN
-};
+} FILEFMT;
 
 struct avrpart {
   char          * partdesc;         /* long part name */
@@ -800,6 +801,18 @@ void usage ( void )
 }
 
 
+char * fmtstr ( FILEFMT format )
+{
+  switch (format) {
+    case FMT_AUTO : return "auto-detect"; break;
+    case FMT_SREC : return "Motorola S-Record"; break;
+    case FMT_IHEX : return "Intel Hex"; break;
+    case FMT_RBIN : return "raw binary"; break;
+    default       : return "invalid format"; break;
+  };
+}
+
+
 
 int b2ihex ( unsigned char * inbuf, int bufsize, 
              int recsize, int startaddr,
@@ -971,7 +984,7 @@ int fileio_rbin ( struct fioparms * fio,
             "%s: %s error %s %s: %s; %s %d of the expected %d bytes\n", 
             progname, fio->iodesc, fio->dir, filename, strerror(errno),
             fio->rw, rc, size);
-    return -5;
+    return -1;
   }
 
   return rc;
@@ -987,20 +1000,20 @@ int fileio_ihex ( struct fioparms * fio,
     case FIO_WRITE:
       rc = b2ihex(buf, size, 32, 0, filename, f);
       if (rc) {
-        return -5;
+        return -1;
       }
       break;
 
     case FIO_READ:
       rc = ihex2b(filename, f, buf, size);
       if (rc)
-        return -5;
+        return -1;
       break;
 
     default:
       fprintf(stderr, "%s: invalid Intex Hex file I/O operation=%d\n",
               progname, fio->op);
-      return -5;
+      return -1;
       break;
   }
 
@@ -1013,7 +1026,7 @@ int fileio_srec ( struct fioparms * fio,
 {
   fprintf(stderr, "%s: Motorola S-Record %s format not yet supported\n",
           progname, fio->iodesc);
-  return -5;
+  return -1;
 }
 
 
@@ -1047,7 +1060,72 @@ int fileio_setparms ( int op, struct fioparms * fp )
 }
 
 
-int fileio ( int op, char * filename, int format, 
+
+int fmt_autodetect ( char * fname )
+{
+  FILE * f;
+  unsigned char buf[MAX_LINE_LEN];
+  int i;
+  int len;
+  int found;
+
+  f = fopen(fname, "r");
+  if (f == NULL) {
+    fprintf(stderr, "%s: error opening %s: %s\n",
+            progname, fname, strerror(errno));
+    return -1;
+  }
+
+  while (fgets((char *)buf, MAX_LINE_LEN, f)!=NULL) {
+    buf[MAX_LINE_LEN-1] = 0;
+    len = strlen((char *)buf);
+    if (buf[len-1] == '\n')
+      buf[--len] = 0;
+
+    /* check for binary data */
+    found = 0;
+    for (i=0; i<len; i++) {
+      if (buf[i] > 127) {
+        found = 1;
+        break;
+      }
+    }
+    if (found)
+      return FMT_RBIN;
+
+    /* check for lines that look like intel hex */
+    if ((buf[0] == ':') && (len >= 11)) {
+      found = 1;
+      for (i=1; i<len; i++) {
+        if (!isxdigit(buf[1])) {
+          found = 0;
+          break;
+        }
+      }
+      if (found)
+        return FMT_IHEX;
+    }
+
+    /* check for lines that look like motorola s-record */
+    if ((buf[0] == 'S') && (len >= 10) && isdigit(buf[1])) {
+      found = 1;
+      for (i=1; i<len; i++) {
+        if (!isxdigit(buf[1])) {
+          found = 0;
+          break;
+        }
+      }
+      if (found)
+        return FMT_SREC;
+    }
+  }
+
+  return -1;
+}
+
+
+
+int fileio ( int op, char * filename, FILEFMT format, 
              struct avrpart * p, AVRMEM memtype )
 {
   int rc;
@@ -1078,7 +1156,7 @@ int fileio ( int op, char * filename, int format,
     if (f == NULL) {
       fprintf(stderr, "%s: can't open %s file %s: %s\n",
               progname, fio.iodesc, fname, strerror(errno));
-      return -2;
+      return -1;
     }
   }
 
@@ -1096,7 +1174,7 @@ int fileio ( int op, char * filename, int format,
     default:
       fprintf(stderr, "%s: invalid memory type for %s: %d\n",
               progname, fio.iodesc, memtype);
-      return -3;
+      return -1;
   }
 
   if (fio.op == FIO_READ) {
@@ -1104,6 +1182,19 @@ int fileio ( int op, char * filename, int format,
     for (i=0; i<size; i++) {
       buf[i] = 0xff;
     }
+  }
+
+  if (format == FMT_AUTO) {
+    format = fmt_autodetect(fname);
+    if (format < 0) {
+      fprintf(stderr, 
+              "%s: can't determine file format for %s, specify explicitly\n",
+              progname, fname);
+      return -1;
+    }
+
+    fprintf(stderr, "%s: %s file %s auto detected as %s\n\n", 
+            progname, fio.iodesc, fname, fmtstr(format));
   }
 
   switch (format) {
@@ -1122,7 +1213,7 @@ int fileio ( int op, char * filename, int format,
     default:
       fprintf(stderr, "%s: invalid %s file format: %d\n",
               progname, fio.iodesc, format);
-      return -4;
+      return -1;
   }
 
   return rc;
@@ -1160,15 +1251,15 @@ int main ( int argc, char * argv [] )
   int              readorwrite; /* true if a chip read/write op was selected */
 
   /* options / operating mode variables */
-  int    memtype;     /* AVR_FLASH or AVR_EEPROM */
-  int    doread;      /* 0=reading, 1=writing */
-  int    erase;       /* 1=erase chip, 0=don't */
-  char * outputf;     /* output file name */
-  char * inputf;      /* input file name */
-  int    ovsigck;     /* 1=override sig check, 0=don't */
-  char * parallel;    /* parallel port device */
-  int    interactive; /* 1=enter interactive command mode, 0=don't */
-  int    filefmt;     /* FMT_AUTO, FMT_IHEX, FMT_SREC, FMT_RBIN */
+  int     memtype;     /* AVR_FLASH or AVR_EEPROM */
+  int     doread;      /* 0=reading, 1=writing */
+  int     erase;       /* 1=erase chip, 0=don't */
+  char  * outputf;     /* output file name */
+  char  * inputf;      /* input file name */
+  int     ovsigck;     /* 1=override sig check, 0=don't */
+  char  * parallel;    /* parallel port device */
+  int     interactive; /* 1=enter interactive command mode, 0=don't */
+  FILEFMT filefmt;     /* FMT_AUTO, FMT_IHEX, FMT_SREC, FMT_RBIN */
 
   readorwrite = 0;
   parallel    = DEFAULT_PARALLEL;
@@ -1517,7 +1608,7 @@ int main ( int argc, char * argv [] )
      * test mode, don't actually write to the chip, output the buffer
      * to stdout in intel hex instead 
      */
-    fileio(FIO_WRITE, "-", FMT_IHEX, p, memtype);
+    rc = fileio(FIO_WRITE, "-", FMT_IHEX, p, memtype);
 #endif
     if (rc) {
       fprintf ( stderr, "%s: failed to write flash memory, rc=%d\n", 
