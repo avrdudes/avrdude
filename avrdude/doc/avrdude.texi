@@ -449,6 +449,14 @@ parallel or serial port, use this option to specify the alternate port name.
 Disable (or quell) output of the progress bar while reading or writing
 to the device.
 
+@item -u
+Disables the default behaviour of reading out the fuses three times before
+programming, then verifying at the end of programming that the fuses have not
+changed. If you want to change fuses you will need to specify this option,
+as avrdude will see the fuses have changed (even though you wanted to) and
+will change them back for your "saftey". This option was designed to
+prevent cases of fuse bits magically changing. 
+
 @item -t
 Tells AVRDUDE to enter the interactive ``terminal'' mode instead of up-
 or downloading files.  See below for a detailed description of the
@@ -583,6 +591,8 @@ Reading | ################################################## | 100% 6.83s
 avrdude: verifying ...
 avrdude: 19278 bytes of flash verified
 
+avrdude: safemode: Fuses OK
+
 avrdude done.  Thank you.
 
 %
@@ -609,6 +619,8 @@ Reading | ################################################## | 100% 46.10s
 
 avrdude: writing output file "c:/diag flash.bin"
 
+avrdude: safemode: Fuses OK
+
 avrdude done.  Thank you.
 
 % 
@@ -623,7 +635,7 @@ fuse bytes to 0xff, 0x89, and 0x2e respectively:
 @example
 @cartouche
 
-% avrdude -p m128 -U flash:w:diag.hex \
+% avrdude -p m128 -u -U flash:w:diag.hex \
 >                 -U eeprom:w:eeprom.hex \
 >                 -U efuse:w:0xff:m      \
 >                 -U hfuse:w:0x89:m      \
@@ -828,11 +840,13 @@ avrdude>
 @noindent
 Program the fuse bits of an ATmega128 (disable M103 compatibility,
 enable high speed external crystal, enable brown-out detection, slowly
-rising power).  First display the factory defaults, then reprogram:
+rising power).  Note since we are working with fuse bits the -u (unsafe)
+option is specified, which allows you to modify the fuse bits. First 
+display the factory defaults, then reprogram:
 
 @example
 @cartouche
-% avrdude -p m128 -c stk500 -t
+% avrdude -p m128 -u -c stk500 -t
 
 avrdude: AVR device initialized and ready to accept instructions
 avrdude: Device signature = 0x1e9702
@@ -1577,6 +1591,17 @@ Problem: I'm not using linux and my AVR910 programmer is really slow.
 
 Solutions: The reasons for this are the same as above.
 If you know how to work around this on your OS, please let us know.
+
+@item
+Problem: I cannot modify the fuse bits on my AVR!
+
+Solution: You probably forgot to specify the -u option, which allows you to modify fuse bits.
+This is done to prevent corrupt data from changing the fuse bits without you knowing about it, and
+currently also prevents the user from changing the fuse bits by accident. This patch was added in
+response to a number of occasions when an AVR had stopped responding because the fuse bits got changed
+by an error caused by the programmer. Programmer of course meaning both the physical device, and the
+person sitting at the keyboard.
+
 
 
 
