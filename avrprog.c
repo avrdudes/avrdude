@@ -55,7 +55,6 @@
 #include <stdarg.h>
 #include <sys/stat.h>
 #include </sys/dev/ppbus/ppi.h>
-#include </sys/dev/ppbus/ppbconf.h>
 
 #define PARALLEL "/dev/ppi0"
 
@@ -105,19 +104,9 @@ struct avrpart {
 
 struct avrpart parts[] = {
   { "AT90S8515", "8515", 8192, 512 },
-  { "AT90S2313", "2313", 2048, 128 }
+  { "AT90S2313", "2313", 2048, 128 },
+  { "AT90S1200", "1200", 1200,  64 }
 };
-
-
-
-/*
- * variable declarations required for getopt() 
- */
-char *optarg;
-int optind;
-int optopt;
-int opterr;
-int optreset;
 
 
 /*
@@ -250,18 +239,24 @@ int ppi_pulse ( int fd, int reg, int bit )
  */
 int avr_txrx_bit ( int fd, int bit )
 {
-  unsigned char d;
   int r;
 
-  ioctl(fd, PPIGDATA, &d);
-
+  /* 
+   * read the result bit (it is either valid from a previous clock
+   * pulse or it is ignored in the current context)
+   */
   r = ppi_get(fd, PPISTATUS, AVR_DATA);
 
+  /* set the data input line as desired */
   if (bit)
     ppi_set(fd, PPIDATA, AVR_INSTR);
   else
     ppi_clr(fd, PPIDATA, AVR_INSTR);
 
+  /* 
+   * pulse the clock line, clocking in the MOSI data, and clocking out
+   * the next result bit
+   */
   ppi_pulse(fd, PPIDATA, AVR_CLOCK);
 
   return r;
@@ -586,7 +581,7 @@ void avr_powerdown ( int fd )
 /*
  * initialize the AVR device and prepare it to accept commands
  */
-int avr_initialize ( int fd )
+int avr_initialize ( int fd, struct avrpart * p )
 {
   int rc;
   int tries;
@@ -600,24 +595,33 @@ int avr_initialize ( int fd )
   usleep(20000); /* 20 ms */
 
   /*
-   * enable programming mode, try up to 32 times in order to possibly
-   * get back into sync with the chip if we are out of sync.  
+   * Enable programming mode.  If we are programming an AT90S1200, we
+   * can only issue the command and hope it worked.  If we are using
+   * one of the other chips, the chip will echo 0x53 when issuing the
+   * third byte of the command.  In this case, try up to 32 times in
+   * order to possibly get back into sync with the chip if we are out
+   * of sync.
    */
-  tries = 0;
-  do {
-    rc = avr_program_enable ( fd );
-    if (rc == 0)
-      break;
-    ppi_pulse(fd, PPIDATA, AVR_CLOCK);
-    tries++;
-  } while (tries < 32);
+  if (strcmp(p->partdesc, "AT90S1200")==0) {
+    avr_program_enable ( fd );
+  }
+  else {
+    tries = 0;
+    do {
+      rc = avr_program_enable ( fd );
+      if (rc == 0)
+        break;
+      ppi_pulse(fd, PPIDATA, AVR_CLOCK);
+      tries++;
+    } while (tries < 32);
 
-  /*
-   * can't sync with the device, maybe it's not attached?
-   */
-  if (tries == 32) {
-    fprintf ( stderr, "%s: AVR device not responding\n", progname );
-    return -1;
+    /*
+     * can't sync with the device, maybe it's not attached?
+     */
+    if (tries == 32) {
+      fprintf ( stderr, "%s: AVR device not responding\n", progname );
+      return -1;
+    }
   }
 
   return 0;
@@ -654,6 +658,8 @@ int ppi_sense_test ( int fd )
  */
 void usage ( void )
 {
+  int i;
+
   fprintf ( stderr, 
             "\nUsage:  %s [-r] [-e|-f] [-u InputFile|-o Outputfile]\n"
             "\n"
@@ -661,11 +667,21 @@ void usage ( void )
             "    -r            : erase the flash and eeprom (required before programming)\n"
             "    -e            : select eeprom for reading or writing\n"
             "    -f            : select flash for reading or writing\n"
-            "    -p Part       : 8515 or 2313\n"
+            "    -p Part       : see below for valid parts\n"
             "    -u InputFile  : write data from this file\n"
             "    -o OutputFile : write data to this file\n"
+            "    -F            : override invalid device signature check\n"
+            "    -s            : read device signature bytes\n"
             "\n",
             progname );
+
+  fprintf(stderr, "  Valid Parts for the -p option are:\n");
+  for (i=0; i<sizeof(parts)/sizeof(parts[0]); i++) {
+    fprintf(stderr, "    \"%s\" = %s\n", 
+            parts[i].optiontag, parts[i].partdesc);
+  }
+  fprintf(stderr, "\n");
+
 }
 
 
@@ -678,7 +694,6 @@ int main ( int argc, char * argv [] )
   int rc, exitrc;
   int i;
   unsigned char * buf;
-  unsigned char sig[4];
   int ch;
   int iofd;
   int flash, eeprom, doread, erase, dosig;
@@ -687,6 +702,9 @@ int main ( int argc, char * argv [] )
   char * inputf;
   char * p1, * p2;
   struct avrpart * p;
+  unsigned char sig[4], nulldev[4];
+  int len;
+  int ovsigck;
 
   iofd    = -1;
   outputf = NULL;
@@ -697,6 +715,7 @@ int main ( int argc, char * argv [] )
   erase   = 0;
   dosig   = 0;
   p       = NULL;
+  ovsigck = 0;
 
   progname = rindex(argv[0],'/');
   if (progname)
@@ -740,7 +759,7 @@ int main ( int argc, char * argv [] )
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?efo:p:rsu:")) != -1) {
+  while ((ch = getopt(argc,argv,"?efFo:p:rsu:")) != -1) {
     switch (ch) {
       case 'e': /* select eeprom memory */
         if (flash) {
@@ -749,18 +768,15 @@ int main ( int argc, char * argv [] )
         }
         eeprom = 1;
         break;
-      case 'r': /* perform a chip erase */
-        erase = 1;
-        break;
-      case 's': /* read out the signature bytes */
-        dosig = 1;
-        break;
       case 'f': /* select flash memory */
         if (eeprom) {
           fprintf(stderr,"%s: -e and -f are incompatible\n", progname);
           return 1;
         }
         flash = 1;
+        break;
+      case 'F': /* override invalid signature check */
+        ovsigck = 1;
         break;
       case 'o': /* specify output file */
         if (inputf) {
@@ -801,6 +817,12 @@ int main ( int argc, char * argv [] )
           return 1;
         }
         break;
+      case 'r': /* perform a chip erase */
+        erase = 1;
+        break;
+      case 's': /* read out the signature bytes */
+        dosig = 1;
+        break;
       case 'u': /* specify input (upload) file */
         if (outputf) {
           fprintf(stderr,"%s: -o and -u are incompatible\n", progname);
@@ -826,7 +848,6 @@ int main ( int argc, char * argv [] )
         break;
     }
   }
-
 
   if (p == NULL) {
     fprintf(stderr, 
@@ -875,7 +896,7 @@ int main ( int argc, char * argv [] )
   /*
    * initialize the chip in preperation for accepting commands
    */
-  rc = avr_initialize(fd);
+  rc = avr_initialize(fd,p);
   if (rc < 0) {
     fprintf ( stderr, "%s: initialization failed, rc=%d\n", progname, rc );
     exitrc = 1;
@@ -885,6 +906,36 @@ int main ( int argc, char * argv [] )
   fprintf ( stderr, "%s: AVR device initialized and ready to accept instructions\n",
             progname );
 
+  /*
+   * Let's read the signature bytes to make sure there is at least a
+   * chip on the other end that is responding correctly.  A check
+   * against 0xffffffff should ensure that the signature bytes are
+   * valid.  
+   */
+  avr_signature(fd, sig);
+  fprintf(stderr, "%s: Device signature = 0x", progname);
+  for (i=0; i<4; i++)
+    fprintf(stderr, "%02x", sig[i]);
+  fprintf(stderr, "\n");
+
+  memset(nulldev,0xff,4);
+  if (memcmp(sig,nulldev,4)==0) {
+    len = strlen(progname) + 2;
+    for (i=0; i<len; i++)
+      buf[i] = ' ';
+    buf[i] = 0;
+    fprintf(stderr, 
+            "%s: Yikes!  Invalid device signature.\n", progname);
+    if (!ovsigck) {
+      fprintf(stderr, 
+              "%sDouble check connections and try again, or use -F to override\n"
+              "%sthis check.\n\n",
+              buf, buf );
+      exit(1);
+    }
+  }
+
+  fprintf(stderr, "\n");
 
   if (erase) {
     /*
@@ -893,7 +944,7 @@ int main ( int argc, char * argv [] )
      */
     fprintf(stderr, "%s: erasing chip\n", progname );
     avr_chip_erase(fd);
-    avr_initialize(fd);
+    avr_initialize(fd,p);
     fprintf(stderr, "%s: done.\n", progname );
   }
 
@@ -905,7 +956,7 @@ int main ( int argc, char * argv [] )
     fprintf(stderr, "%s: reading signature bytes: ", progname );
     avr_signature(fd, sig);
     for (i=0; i<4; i++)
-      fprintf(stderr, "0x%02x ", sig[i]);
+      fprintf(stderr, "%02x", sig[i]);
     fprintf(stderr, "\n");
   }
 
