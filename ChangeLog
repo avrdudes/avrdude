@@ -41,6 +41,15 @@
 
 	avrdude -p -e -U flash:w:main.hex:i -U eeprom:w:eeprom.hex:i
 
+2003/08/20  Brian S. Dean  <bsd@bsdhome.com>
+
+	* ppiwin.c:
+	Timing related fixes for the Windows platform.  Several folks have
+	reported that this patch fixes verify errors on the Windows platform
+	that are apparently timing related.  Submitted by: Alex Shepherd
+	<ashepherd@wave.co.nz>, who indicates that this patch was based on
+	code from the UISP project.
+
 2003-08-01  Theodore A. Roth  <troth@openavr.org>
 
 	* avrdude.1: Document the -q option.
@@ -70,6 +79,46 @@
 	* stk500_private.h:
 	* term.c: Add support for displaying and setting the various
 	operational parameters of the STK500 (Vtarget, Varef, clock).
+
+2003/07/22  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrdude.conf.in:
+	  Add 'picoweb' programming cable programmer.
+	  Contributed by Rune Christensen <rune.christensen@adslhome.dk>.
+
+2003/06/18  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrdude.conf.in:
+	  Add the 'sp12' (Steve Bolt's) programmer.
+	  Submitted by Larry Barello <larryba@barello.net>.
+
+2003/06/17  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrdude.conf.in:
+	  Properly identify the "ALF" programmer.
+	  
+	  Extend ATmega8 calibration memory to support all 4 calibration bytes.
+	  Savannah bug #3835.  Submitted by Francisco T. A. Silva
+	  <ftas@geodigitus.com.br>.
+	  
+	  Add a few AVR910 programmer device codes.  Savannah bug #3569 - sorry
+	  I can't tell who submitted this to give proper credit.
+	  
+	  Add support for the ATtiny12.  Submitted by Pontifex <pontifex@isys.ca>
+
+2003/05/22  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avr.c:
+	* avr.h:
+	* fileio.c:
+	  Optimize flash memory handling a little bit by ignoring 0xff data that
+	  resides above the last non-0xff data value in the address space.  Only
+	  do this for flash memory since writing a 0xff to flash is a no-op.
+	  This has the affect of creating smaller output files when dumping
+	  memory contents from flash if the program in flash does not consume
+	  the whole memory space.  It also results in shorter programming times
+	  when avrdude is asked to load a file into flash that has lots of 0xff
+	  filled data past the last non-0xff data value.
 
 2003-05-13  Theodore A. Roth  <troth@openavr.org>
 
@@ -175,6 +224,15 @@
 	
 	* confwin.c: Fix bug that allows garbage for non-existent user
 	config filename on Windows.
+
+2003/03/29  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrdude.conf.in:
+	  Add the ATmega32 part.  This part definition was contributed by:
+	  Daniel Williamson <dannyw@maconmgt.co.uk> and
+	  Ruwan Jayanetti <rjayanetti@sri.crossvue.com>	  
+	  The resulting part definition used was actually somewhat of a merge of
+	  the two submitted definitions.
 
 2003-03-24  Theodore A. Roth  <troth@openavr.org>
 
