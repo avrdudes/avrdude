@@ -148,7 +148,9 @@ def :
     strncpy(default_serial, $3->value.string, PATH_MAX);
     default_serial[PATH_MAX-1] = 0;
     free_token($3);
-  }
+  } |
+
+  /* empty */
 ;
 
 
