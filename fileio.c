@@ -937,6 +937,7 @@ int fileio(int op, char * filename, FILEFMT format,
   struct fioparms fio;
   int i;
   AVRMEM * mem;
+  int using_stdio;
 
   mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
@@ -977,6 +978,8 @@ int fileio(int op, char * filename, FILEFMT format,
     }
   }
 
+  using_stdio = 0;
+
   if (strcmp(filename, "-")==0) {
     if (fio.op == FIO_READ) {
       fname = "<stdin>";
@@ -986,6 +989,7 @@ int fileio(int op, char * filename, FILEFMT format,
       fname = "<stdout>";
       f = stdout;
     }
+    using_stdio = 1;
   }
   else {
     fname = filename;
@@ -993,6 +997,14 @@ int fileio(int op, char * filename, FILEFMT format,
   }
 
   if (format == FMT_AUTO) {
+    if (using_stdio) {
+      fprintf(stderr, 
+              "%s: can't auto detect file format when using stdin/out.\n"
+              "     Please specify a file format using the -f option and try again.\n", 
+              progname);
+      exit(1);
+    }
+
     format = fmt_autodetect(fname);
     if (format < 0) {
       fprintf(stderr, 
@@ -1006,12 +1018,14 @@ int fileio(int op, char * filename, FILEFMT format,
   }
 
   if (format != FMT_IMM) {
-    fname = filename;
-    f = fopen(fname, fio.mode);
-    if (f == NULL) {
-      fprintf(stderr, "%s: can't open %s file %s: %s\n",
-              progname, fio.iodesc, fname, strerror(errno));
-      return -1;
+    if (!using_stdio) {
+      fname = filename;
+      f = fopen(fname, fio.mode);
+      if (f == NULL) {
+        fprintf(stderr, "%s: can't open %s file %s: %s\n",
+                progname, fio.iodesc, fname, strerror(errno));
+        return -1;
+      }
     }
   }
 
