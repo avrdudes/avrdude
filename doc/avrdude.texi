@@ -255,6 +255,12 @@ ATMEGA128
 @itemx m16
 ATMEGA16
 
+@itemx m161
+ATMEGA161
+
+@itemx m162
+ATMEGA162
+
 @itemx m163
 ATMEGA163
 
@@ -264,8 +270,14 @@ ATMEGA169
 @itemx m32
 ATMEGA32
 
+@itemx m64
+ATMEGA64
+
 @itemx m8
 ATMEGA8
+
+@itemx m8515
+ATMEGA8515
 
 @itemx m8535
 ATMEGA8535
@@ -297,6 +309,9 @@ Currently, the following programmer ids are understood and supported:
 
 @table @code
 
+@itemx abcmini
+ABCmini Board, aka Dick Smith HOTCHIP
+
 @itemx alf
 Nightshade ALF-PgmAVR, http://nightshade.homeip.net/
 
@@ -312,6 +327,9 @@ Bascom SAMPLE programming cable
 @itemx bsd
 Brian Dean's Programmer, http://www.bsdhome.com/avrdude/
 
+@itemx butterfly
+Atmel Butterfly Development Board
+
 @itemx dt006
 Dontronics DT006              
 
@@ -321,8 +339,8 @@ Jason Kyle's pAVR Serial Programmer
 @itemx picoweb
 Picoweb Programming Cable, http://www.picoweb.net/
 
-@itemx pony
-stk200 = Pony Prog STK200              
+@itemx pony-stk200
+Pony Prog STK200              
 
 @itemx sp12
 Steve Bolt's Programmer       
