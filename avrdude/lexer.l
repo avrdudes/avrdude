@@ -152,6 +152,7 @@ retry_pulse      { yylval=NULL; return K_RETRY_PULSE; }
 serial           { yylval=NULL; return K_SERIAL; }
 size             { yylval=NULL; return K_SIZE; }
 stk500           { yylval=NULL; return K_STK500; }
+avr910           { yylval=NULL; return K_AVR910; }
 type             { yylval=NULL; return K_TYPE; }
 vcc              { yylval=NULL; return K_VCC; }
 vfyled           { yylval=NULL; return K_VFYLED; }

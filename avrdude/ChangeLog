@@ -1,3 +1,13 @@
+2003-03-16  Theodore A. Roth  <troth@openavr.org>
+
+	* avrdude.conf.in: Add avr910 and pavr programmers.
+	* config_gram.y: Add parsing of avr910 programmer.
+	* lexer.l: Add avr910 token.
+	* avr910.c: [this is still work in progress]
+	Add some debug output.
+	Add probe for programmer presense.
+	* main.c: Set port to default_serial if programmer type is avr910.
+
 2003-03-13  Theodore A. Roth  <troth@openavr.org>
 
 	* ser_posix.c, ser_win32.c, serial.h:

@@ -15,7 +15,7 @@
 #   programmer
 #       id     = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
 #       desc   = <description> ;                  # quoted string
-#       type   = par | stk500 ;                   # programmer type
+#       type   = par | stk500 | avr910;           # programmer type
 #       vcc    = <num1> [, <num2> ... ] ;         # pin number(s)
 #       reset  = <num> ;                          # pin number
 #       sck    = <num> ;                          # pin number
@@ -201,6 +201,18 @@ programmer
   id    = "stk500";
   desc  = "Atmel STK500";
   type  = stk500;
+;
+
+programmer
+  id    = "avr910";
+  desc  = "Atmel Low Cost Serial Programmer";
+  type  = avr910;
+;
+
+programmer
+  id    = "pavr";
+  desc  = "Jason Kyle's pAVR Serial Programmer";
+  type  = avr910;
 ;
 
 programmer
