@@ -41,36 +41,21 @@ extern int do_cycles;
 
 static char has_auto_incr_addr;
 
-/* These two defines are only for debugging. Will remove them once it starts
-   working. */
-
-#define show_func_info() \
-  fprintf(stderr, "%s: line %d: called %s()\n", \
-          __FILE__, __LINE__, __FUNCTION__)
-
-#define no_show_func_info()
-
 
 static int avr910_send(PROGRAMMER * pgm, char * buf, size_t len)
 {
-  no_show_func_info();
-
   return serial_send(pgm->fd, buf, len);
 }
 
 
 static int avr910_recv(PROGRAMMER * pgm, char * buf, size_t len)
 {
-  no_show_func_info();
-
   return serial_recv(pgm->fd, buf, len);
 }
 
 
 static int avr910_drain(PROGRAMMER * pgm, int display)
 {
-  no_show_func_info();
-
   return serial_drain(pgm->fd, display);
 }
 
@@ -90,8 +75,6 @@ static void avr910_vfy_cmd_sent(PROGRAMMER * pgm, char * errmsg)
 
 static int avr910_rdy_led(PROGRAMMER * pgm, int value)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return 0;
@@ -100,8 +83,6 @@ static int avr910_rdy_led(PROGRAMMER * pgm, int value)
 
 static int avr910_err_led(PROGRAMMER * pgm, int value)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return 0;
@@ -110,8 +91,6 @@ static int avr910_err_led(PROGRAMMER * pgm, int value)
 
 static int avr910_pgm_led(PROGRAMMER * pgm, int value)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return 0;
@@ -120,8 +99,6 @@ static int avr910_pgm_led(PROGRAMMER * pgm, int value)
 
 static int avr910_vfy_led(PROGRAMMER * pgm, int value)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return 0;
@@ -133,8 +110,6 @@ static int avr910_vfy_led(PROGRAMMER * pgm, int value)
  */
 static int avr910_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {
-  no_show_func_info();
-
   avr910_send(pgm, "e", 1);
   avr910_vfy_cmd_sent(pgm, "chip erase");
 
@@ -161,8 +136,6 @@ static void avr910_leave_prog_mode(PROGRAMMER * pgm)
  */
 static int avr910_program_enable(PROGRAMMER * pgm, AVRPART * p)
 {
-  no_show_func_info();
-
   return -1;
 }
 
@@ -172,8 +145,6 @@ static int avr910_program_enable(PROGRAMMER * pgm, AVRPART * p)
  */
 static void avr910_powerup(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return;
@@ -185,8 +156,6 @@ static void avr910_powerup(PROGRAMMER * pgm)
  */
 static void avr910_powerdown(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return;
@@ -205,8 +174,6 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
   char type;
   unsigned char c;
   int dev_supported = 0;
-
-  no_show_func_info();
 
   /* Get the programmer identifier. Programmer returns exactly 7 chars
      _without_ the null.*/
@@ -279,8 +246,6 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
 
 static int avr910_save(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return 0;
@@ -289,8 +254,6 @@ static int avr910_save(PROGRAMMER * pgm)
 
 static void avr910_restore(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return;
@@ -299,8 +262,6 @@ static void avr910_restore(PROGRAMMER * pgm)
 
 static void avr910_disable(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return;
@@ -309,8 +270,6 @@ static void avr910_disable(PROGRAMMER * pgm)
 
 static void avr910_enable(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return;
@@ -325,8 +284,6 @@ static int avr910_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
                       unsigned char res[4])
 {
   unsigned char buf[5];
-
-  no_show_func_info();
 
   /* FIXME: Insert version check here */
 
@@ -350,8 +307,6 @@ static int avr910_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
 
 static void avr910_open(PROGRAMMER * pgm, char * port)
 {
-  no_show_func_info();
-
   strcpy(pgm->port, port);
   pgm->fd = serial_open(port, 19200);
 
@@ -363,8 +318,6 @@ static void avr910_open(PROGRAMMER * pgm, char * port)
 
 static void avr910_close(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   avr910_leave_prog_mode(pgm);
 
   serial_close(pgm->fd);
@@ -374,8 +327,6 @@ static void avr910_close(PROGRAMMER * pgm)
 
 static void avr910_display(PROGRAMMER * pgm, char * p)
 {
-  no_show_func_info();
-
   return;
 }
 
@@ -411,8 +362,6 @@ static int avr910_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                              unsigned long addr, unsigned char value)
 {
   unsigned char cmd[2];
-
-  no_show_func_info();
 
   if (strcmp(m->desc, "flash") == 0) {
     if (addr & 0x01) {
@@ -492,8 +441,6 @@ static int avr910_read_byte_eeprom(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 static int avr910_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                             unsigned long addr, unsigned char * value)
 {
-  no_show_func_info();
-
   if (strcmp(m->desc, "flash") == 0) {
     return avr910_read_byte_flash(pgm, p, m, addr, value);
   }
@@ -662,8 +609,6 @@ static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 static int avr910_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 {
-  no_show_func_info();
-
   if (m->size < 3) {
     fprintf(stderr, "%s: memsize too small for sig byte read", progname);
     return -1;
@@ -678,8 +623,6 @@ static int avr910_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 
 void avr910_initpgm(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   strcpy(pgm->type, "avr910");
 
   /*

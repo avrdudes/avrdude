@@ -1,5 +1,9 @@
 2004-01-03  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
+	avr910.c: Removed debugging stuff that is no longer needed.
+
+2004-01-03  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
 	doc/TODO: Removed two items.
 
 2004-01-03  Jan-Hinnerk Reichert  <hinni@despammed.com>
