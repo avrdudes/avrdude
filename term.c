@@ -196,7 +196,7 @@ int hexdump_buf ( FILE * f, int startaddr, char * buf, int len )
 int cmd_dump ( int fd, struct avrpart * p, int argc, char * argv[] )
 {
   char * e;
-  int i, j;
+  int i, j, l;
   unsigned short daddr;
   char * buf;
   int maxsize;
@@ -213,10 +213,11 @@ int cmd_dump ( int fd, struct avrpart * p, int argc, char * argv[] )
       return -1;
     }
 
-    if (strcmp(argv[1],"flash")==0) {
+    l = strlen(argv[1]);
+    if (strncasecmp(argv[1],"flash",l)==0) {
       memtype = AVR_FLASH;
     }
-    else if (strcmp(argv[1],"eeprom")==0) {
+    else if (strncasecmp(argv[1],"eeprom",l)==0) {
       memtype = AVR_EEPROM;
     }
     else {
@@ -300,7 +301,7 @@ int cmd_dump ( int fd, struct avrpart * p, int argc, char * argv[] )
 int cmd_write ( int fd, struct avrpart * p, int argc, char * argv[] )
 {
   char * e;
-  int i, j;
+  int i, j, l;
   int len, maxsize;
   AVRMEM memtype;
   unsigned short addr, daddr;
@@ -313,11 +314,12 @@ int cmd_write ( int fd, struct avrpart * p, int argc, char * argv[] )
     return -1;
   }
 
-  if (strcmp(argv[1],"flash")==0) {
+  l = strlen(argv[1]);
+  if (strncasecmp(argv[1],"flash",l)==0) {
     memtype = AVR_FLASH;
     maxsize = p->flash_size;
   }
-  else if (strcmp(argv[1],"eeprom")==0) {
+  else if (strncasecmp(argv[1],"eeprom",l)==0) {
     memtype = AVR_EEPROM;
     maxsize = p->eeprom_size;
   }
@@ -592,7 +594,7 @@ int terminal_mode ( int fd, struct avrpart * p )
   rc = 0;
   while ((cmdbuf = readline("avrprog> ")) != NULL) {
     len = strlen(cmdbuf);
-    if (len > 1)
+    if (len >= 1)
       add_history(cmdbuf);
 
     /* 
