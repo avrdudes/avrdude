@@ -90,7 +90,7 @@ int avr_read ( int fd, struct avrpart * p, AVRMEM memtype );
 int avr_write_byte ( int fd, struct avrpart * p, AVRMEM memtype, 
                      unsigned short addr, unsigned char data );
 
-int avr_write ( int fd, struct avrpart * p, AVRMEM memtype );
+int avr_write ( int fd, struct avrpart * p, AVRMEM memtype, int size );
 
 int avr_program_enable ( int fd );
 
@@ -108,7 +108,8 @@ char * avr_memtstr ( AVRMEM memtype );
 
 int avr_initmem ( struct avrpart * p );
 
-int avr_verify(struct avrpart * p, struct avrpart * v, AVRMEM memtype);
+int avr_verify(struct avrpart * p, struct avrpart * v, AVRMEM memtype, 
+               int size);
 
 void avr_display ( FILE * f, struct avrpart * p, char * prefix );
 

@@ -186,7 +186,7 @@ unsigned char avr_read_byte ( int fd, struct avrpart * p,
       fprintf(stderr, 
               "%s: avr_read_byte(); internal error: invalid memtype=%d\n",
               progname, memtype);
-      exit(1);
+      return -1;
       break;
   }
 
@@ -201,8 +201,10 @@ unsigned char avr_read_byte ( int fd, struct avrpart * p,
 
 
 /*
- * read the entirety of the specified memory type into the
- * corresponding buffer of the avrpart pointed to by 'p'.  
+ * Read the entirety of the specified memory type into the
+ * corresponding buffer of the avrpart pointed to by 'p'.
+ *
+ * Return the number of bytes read, or -1 if an error occurs.  
  */
 int avr_read ( int fd, struct avrpart * p, AVRMEM memtype )
 {
@@ -231,7 +233,7 @@ int avr_read ( int fd, struct avrpart * p, AVRMEM memtype )
     default:
       fprintf(stderr, "%s: avr_read(); internal error: invalid memtype=%d\n",
               progname, memtype);
-      exit(1);
+      return -1;
       break;
   }
 
@@ -259,7 +261,7 @@ int avr_read ( int fd, struct avrpart * p, AVRMEM memtype )
 
   fprintf ( stderr, "\n" );
 
-  return 0;
+  return bi;
 }
 
 
@@ -298,7 +300,7 @@ int avr_write_byte ( int fd, struct avrpart * p, AVRMEM memtype,
       fprintf(stderr,
               "%s: avr_write_byte(); internal error: invalid memtype=%d\n",
               progname, memtype);
-      exit(1);
+      return -1;
       break;
   }
 
@@ -345,11 +347,13 @@ int avr_write_byte ( int fd, struct avrpart * p, AVRMEM memtype,
 /*
  * Write the whole memory region (flash or eeprom, specified by
  * 'memtype') from the corresponding buffer of the avrpart pointed to
- * by 'p'.  All of the memory is updated, however, input data of 0xff
- * is not actually written out, because empty flash and eeprom
- * contains 0xff, and you can't actually write 1's, only 0's.
+ * by 'p'.  Write up to 'size' bytes from the buffer.  Data is only
+ * written if the new data value is different from the existing data
+ * value.  Data beyond 'size' bytes is not affected.
+ *
+ * Return the number of bytes written, or -1 if an error occurs.
  */
-int avr_write ( int fd, struct avrpart * p, AVRMEM memtype )
+int avr_write ( int fd, struct avrpart * p, AVRMEM memtype, int size )
 {
   unsigned char data, memt;
   unsigned short start, end, i, bi;
@@ -357,6 +361,7 @@ int avr_write ( int fd, struct avrpart * p, AVRMEM memtype )
   int rc;
   unsigned char * buf;
   int bufsize;
+  int wsize;
 
   start = 0;
 
@@ -364,20 +369,37 @@ int avr_write ( int fd, struct avrpart * p, AVRMEM memtype )
     case AVR_FLASH  : 
       buf     = p->flash;
       bufsize = p->flash_size;
+      wsize   = bufsize;
+      if (size < wsize) {
+        bufsize = size;
+      }
       end     = start+bufsize/2;
       memt    = AVR_FLASH_LO;
       break;
     case AVR_EEPROM : 
       buf     = p->eeprom;
       bufsize = p->eeprom_size;
+      wsize   = bufsize;
+      if (size < wsize) {
+        bufsize = size;
+      }
       end     = start+bufsize;
       memt    = memtype;
       break;
     default:
       fprintf(stderr, "%s: avr_write(); internal error: invalid memtype=%d\n",
               progname, memtype);
-      exit(1);
+      return -1;
       break;
+  }
+
+  /* were we asked to write out more data than the device can hold? */
+  if (wsize < size) {
+    fprintf(stderr, 
+            "%s: WARNING: %d bytes requested, but memory region is only %d bytes\n"
+            "%sOnly %d bytes will actually be written\n",
+            progname, size, bufsize,
+            progbuf, bufsize);
   }
 
   bi = 0;
@@ -392,7 +414,7 @@ int avr_write ( int fd, struct avrpart * p, AVRMEM memtype )
       fprintf(stderr, " ***failed;  ");
       nl = 1;
     }
-    
+
     if (memtype == AVR_FLASH) {
       /* high byte of flash */
       data = buf[bi++];
@@ -409,7 +431,7 @@ int avr_write ( int fd, struct avrpart * p, AVRMEM memtype )
 
   fprintf ( stderr, "\n" );
 
-  return 0;
+  return bi;
 }
 
 
@@ -552,43 +574,58 @@ int avr_initmem ( struct avrpart * p )
   if (p->flash == NULL) {
     fprintf(stderr, "%s: can't alloc buffer for flash size of %d bytes\n",
             progname, p->flash_size);
-    exit(1);
+    return -1;
   }
 
   p->eeprom = (unsigned char *) malloc(p->eeprom_size);
   if (p->eeprom == NULL) {
     fprintf(stderr, "%s: can't alloc buffer for eeprom size of %d bytes\n",
             progname, p->eeprom_size);
-    exit(1);
+    return -1;
   }
 
   return 0;
 }
 
 
-int avr_verify(struct avrpart * p, struct avrpart * v, AVRMEM memtype)
+/*
+ * Verify up to 'size' bytes of p against v.  Return the number of
+ * bytes verified, or -1 if they don't match.  
+ */
+int avr_verify(struct avrpart * p, struct avrpart * v, AVRMEM memtype, int size)
 {
   int i;
   unsigned char * buf1, * buf2;
-  int size;
+  int vsize;
 
   switch (memtype) {
     case AVR_FLASH:
       buf1 = p->flash;
       buf2 = v->flash;
-      size = p->flash_size;
+      vsize = p->flash_size;
       break;
 
     case AVR_EEPROM:
       buf1 = p->eeprom;
       buf2 = v->eeprom;
-      size = p->eeprom_size;
+      vsize = p->eeprom_size;
       break;
 
     default:
       fprintf(stderr, "%s: invalid memory type = %d for data verification\n",
               progname, memtype);
       return -1;
+  }
+
+  if (vsize < size) {
+    fprintf(stderr, 
+            "%s: WARNING: requested verification for %d bytes\n"
+            "%s%s memory region only contains %d bytes\n"
+            "%sOnly %d bytes will be verified.\n",
+            progname, size,
+            progbuf, avr_memtstr(memtype), vsize,
+            progbuf, vsize);
+    size = vsize;
   }
 
   for (i=0; i<size; i++) {
@@ -602,7 +639,7 @@ int avr_verify(struct avrpart * p, struct avrpart * v, AVRMEM memtype)
     }
   }
 
-  return 0;
+  return size;
 }
 
 
