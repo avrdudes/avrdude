@@ -166,7 +166,7 @@ char * usage_text =
 "                      \"e\", \"eeprom\" = EEPROM\n"
 "                      \"f\", \"flash\"  = FLASH\n"
 "\n"
-"    -i Filename   : select input file\n"
+"    -i Filename   : select input file, \"-\" = stdin\n"
 "\n"
 "    -o Filename   : select output file, \"-\" = stdout\n"
 "\n"
@@ -179,8 +179,6 @@ char * usage_text =
 "    -p Part       : select Atmel part number (see below for valid parts)\n"
 "\n"
 "    -P Parallel   : select parallel port device name (default = /dev/ppi0)\n"
-"\n"
-"    -s            : read device signature bytes\n"
 "\n"
 "    -F            : override invalid device signature check\n"
 "\n"
@@ -197,7 +195,7 @@ int list_valid_parts ( FILE * f, char * prefix )
   int i;
 
   for (i=0; i<N_AVRPARTS; i++) {
-    fprintf(f, "%s\"%s\" = %s\n", 
+    fprintf(f, "%s%s = %s\n", 
             prefix, parts[i].optiontag, parts[i].partdesc);
   }
 
