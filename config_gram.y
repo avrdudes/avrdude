@@ -152,6 +152,7 @@ part_def :
                     "%s: error at %s:%d: can't determine the number of bank address bits\n"
                     "     Are you sure num_banks (=%u) is correct?\n",
                     progname, infile, lineno, current_part->mem[i].num_banks);
+            exit(1);
           }
           current_part->mem[i].bankaddrbits = pagebits;
         }
