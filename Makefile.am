@@ -37,6 +37,8 @@ avrdude_SOURCES = \
 	avrpart.h \
 	config.c \
 	config.h \
+	confwin.c \
+	confwin.h \
 	fileio.c \
 	fileio.h \
 	linux_ppdev.h \

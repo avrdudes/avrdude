@@ -44,6 +44,7 @@
 
 #include "avr.h"
 #include "config.h"
+#include "confwin.h"
 #include "fileio.h"
 #include "par.h"
 #include "pindefs.h"
@@ -330,6 +331,14 @@ int main(int argc, char * argv [])
   do_cycles     = 0;
   set_cycles    = -1;
 
+
+  #if defined(__CYGWIN__)
+
+  win_sys_config_set(sys_config);
+  win_usr_config_set(usr_config);
+  
+  #else
+
   strcpy(sys_config, CONFIG_DIR);
   i = strlen(sys_config);
   if (i && (sys_config[i-1] != '/'))
@@ -345,6 +354,8 @@ int main(int argc, char * argv [])
       strcat(usr_config, "/");
     strcat(usr_config, ".avrduderc");
   }
+  
+  #endif
 
   len = strlen(progname) + 2;
   for (i=0; i<len; i++)
