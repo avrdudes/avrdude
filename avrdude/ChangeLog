@@ -1,5 +1,9 @@
 2003-12-01  Eric B. Weddington  <eric@ecentral.com>
 
+	*doc/avrdude.texi: Update devices and programmers supported.
+
+2003-12-01  Eric B. Weddington  <eric@ecentral.com>
+
 	*doc/avrdude.texi: Add missing -D option to user manual.
 	[This fixes bug #6804]
 
