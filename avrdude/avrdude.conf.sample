@@ -110,6 +110,7 @@
 programmer
   id    = "bsd", "default";
   desc  = "Brian Dean's Programmer";
+  type  = ppi;
   vcc   = 2, 3, 4, 5;
   reset = 7;
   sck   = 8;
@@ -120,6 +121,7 @@ programmer
 programmer
   id    = "stk200";
   desc  = "STK200";
+  type  = ppi;
   buff  = 4, 5;
   sck   = 6;
   mosi  = 7;
@@ -130,6 +132,7 @@ programmer
 programmer
   id    = "dt006";
   desc  = "Dontronics DT006";
+  type  = ppi;
   reset = 4;
   sck   = 5;
   mosi  = 2;
@@ -139,6 +142,7 @@ programmer
 programmer
   id     = "alf";
   desc   = "Tony Friebel's Programmer";
+  type   = ppi;
   vcc    = 2, 3, 4, 5;
   buff   = 6;
   reset  = 7;

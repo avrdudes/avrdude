@@ -34,48 +34,9 @@
 
 #include <stdio.h>
 
+#include "avrpart.h"
 #include "lists.h"
-
-
-/*
- * AVR serial programming instructions
- */
-enum {
-  AVR_OP_READ,
-  AVR_OP_WRITE,
-  AVR_OP_READ_LO,
-  AVR_OP_READ_HI,
-  AVR_OP_WRITE_LO,
-  AVR_OP_WRITE_HI,
-  AVR_OP_LOADPAGE_LO,
-  AVR_OP_LOADPAGE_HI,
-  AVR_OP_WRITEPAGE,
-  AVR_OP_CHIP_ERASE,
-  AVR_OP_PGM_ENABLE,
-  AVR_OP_MAX
-};
-
-
-enum {
-  AVR_CMDBIT_IGNORE,  /* bit is ignored on input and output */
-  AVR_CMDBIT_VALUE,   /* bit is set to 0 or 1 for input or output */
-  AVR_CMDBIT_ADDRESS, /* this bit represents an input address bit */
-  AVR_CMDBIT_INPUT,   /* this bit is an input bit */
-  AVR_CMDBIT_OUTPUT   /* this bit is an output bit */
-};
-
-/*
- * serial programming instruction bit specifications
- */
-typedef struct cmdbit {
-  int          type;  /* AVR_CMDBIT_* */
-  int          bitno; /* which input bit to use for this command bit */
-  int          value; /* bit value if type == AVR_CMDBIT_VALUD */
-} CMDBIT;
-
-typedef struct opcode {
-  CMDBIT        bit[32]; /* opcode bit specs */
-} OPCODE;
+#include "pgm.h"
 
 
 #define AVR_MEMDESCLEN 64
@@ -95,18 +56,6 @@ typedef struct avrmem {
   unsigned char * buf;        /* pointer to memory buffer */
   OPCODE * op[AVR_OP_MAX];    /* opcodes */
 } AVRMEM;
-
-
-#define AVR_DESCLEN 64
-#define AVR_IDLEN   32
-typedef struct avrpart {
-  char          desc[AVR_DESCLEN];  /* long part name */
-  char          id[AVR_IDLEN];      /* short part name */
-  int           chip_erase_delay;   /* microseconds */
-  OPCODE      * op[AVR_OP_MAX];     /* opcodes */
-
-  LISTID        mem;                /* avr memory definitions */
-} AVRPART;
 
 
 extern struct avrpart parts[];
@@ -129,32 +78,24 @@ int avr_txrx_bit(int fd, int bit);
 
 unsigned char avr_txrx(int fd, unsigned char byte);
 
-int avr_cmd(int fd, unsigned char cmd[4], unsigned char res[4]);
+int avr_set_bits(OPCODE * op, unsigned char * cmd);
 
-int avr_read_byte(int fd, AVRPART * p, AVRMEM * mem, unsigned long addr, 
-                  unsigned char * value);
+int avr_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem, 
+                  unsigned long addr, unsigned char * value);
 
-int avr_read(int fd, AVRPART * p, char * memtype, int size, int verbose);
+int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size, 
+             int verbose);
 
-int avr_write_page(int fd, AVRPART * p, AVRMEM * mem,
+int avr_write_page(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                    unsigned long addr);
 
-int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
+int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                    unsigned long addr, unsigned char data);
 
-int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose);
+int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size, 
+              int verbose);
 
-int avr_program_enable(int fd, AVRPART * p);
-
-int avr_chip_erase(int fd, AVRPART * p);
-
-int avr_signature(int fd, AVRPART * p);
-
-void avr_powerup(int fd);
-
-void avr_powerdown(int fd);
-
-int avr_initialize(int fd, AVRPART * p);
+int avr_signature(PROGRAMMER * pgm, AVRPART * p);
 
 char * avr_memtstr(int memtype);
 
@@ -167,8 +108,8 @@ void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type,
 
 void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose);
 
-int avr_get_cycle_count(int fd, AVRPART * p, int * cycles);
+int avr_get_cycle_count(PROGRAMMER * pgm, AVRPART * p, int * cycles);
 
-int avr_put_cycle_count(int fd, AVRPART * p, int cycles);
+int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles);;
 
 #endif

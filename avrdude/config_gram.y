@@ -60,8 +60,9 @@
 %token K_NUM_PAGES
 %token K_PART
 %token K_PGMLED
-%token K_PWROFF_AFTER_WRITE
+%token K_PPI
 %token K_PROGRAMMER
+%token K_PWROFF_AFTER_WRITE
 %token K_RDYLED
 %token K_READBACK_P1
 %token K_READBACK_P2
@@ -69,6 +70,8 @@
 %token K_RESET
 %token K_SCK
 %token K_SIZE
+%token K_STK500
+%token K_TYPE
 %token K_VCC
 %token K_VFYLED
 %token K_WRITEPAGE
@@ -102,12 +105,17 @@ def :
 
 prog_def :
   K_PROGRAMMER 
-    { current_prog = new_programmer(); }
+    { current_prog = pgm_new(); }
     prog_parms
     { 
       if (lsize(current_prog->id) == 0) {
         fprintf(stderr,
                 "%s: error at %s:%d: required parameter id not specified\n",
+                progname, infile, lineno);
+        exit(1);
+      }
+      if (current_prog->type[0] == 0) {
+        fprintf(stderr, "%s: error at %s:%d: programmer type not specified\n",
                 progname, infile, lineno);
         exit(1);
       }
@@ -202,6 +210,18 @@ prog_parm :
         ladd(current_prog->id, dup_string(t->value.string));
         free_token(t);
       }
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_PPI {
+    { 
+      ppi_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_STK500 {
+    { 
+      fprintf(stderr, "%s: programmer 'stk500' not yet supported\n", progname);
     }
   } |
 
@@ -441,6 +461,7 @@ mem_spec :
 #include "config.h"
 #include "lists.h"
 #include "pindefs.h"
+#include "pgm.h"
 #include "avr.h"
 
 extern char * progname;

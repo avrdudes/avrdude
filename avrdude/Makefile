@@ -18,6 +18,7 @@ DIRS         = ${BINDIR} ${MANDIR} ${DOCDIR} ${CONFIGDIR}
 INSTALL      = /usr/bin/install -c -o root -g wheel
 
 CFLAGS       += -Wall -DCONFIG_DIR=\"${CONFIGDIR}\" ${YYDEF}
+#CFLAGS       = -g -Wall -DCONFIG_DIR=\"${CONFIGDIR}\" ${YYDEF}
 LDFLAGS      =  
 YFLAGS       = -t -d -v
 

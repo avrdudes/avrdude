@@ -274,29 +274,6 @@ void pyytext(void)
 }
 
 
-PROGRAMMER * new_programmer(void)
-{
-  PROGRAMMER * p;
-  int i;
-
-  p = (PROGRAMMER *)malloc(sizeof(PROGRAMMER));
-  if (p == NULL) {
-    fprintf(stderr, "new_programmer(): out of memory\n");
-    exit(1);
-  }
-
-  memset(p, 0, sizeof(*p));
-
-  p->id = lcreat(NULL, 0);
-  p->desc[0] = 0;
-
-  for (i=0; i<N_PINS; i++)
-    p->pinno[i] = 0;
-
-  return p;
-}
-
-
 char * dup_string(char * str)
 {
   char * s;
