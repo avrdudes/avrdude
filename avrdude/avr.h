@@ -50,6 +50,7 @@ typedef struct avrmem {
   int size;                     /* total memory size in bytes */
   int bank_size;                /* size of memory bank (if bank addressed) */
   int num_banks;                /* number of banks (if bank addressed) */
+  int bankaddrbits;             /* number of bits in the bank address */
   int min_write_delay;          /* microseconds */
   int max_write_delay;          /* microseconds */
   unsigned char readback[2];    /* polled read-back values */

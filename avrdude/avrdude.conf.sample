@@ -120,6 +120,7 @@ part
       ;
   ;
 
+
 part
     id               = "2313";
     desc             = "AT90S2313";
@@ -146,7 +147,7 @@ part
       ;
   ;
 
-    
+
 part
     id               = "2333";
     desc             = "AT90S2333";
@@ -173,7 +174,7 @@ part
       ;
   ;
 
-    
+
 part
     id               = "4433";
     desc             = "AT90S4433";
@@ -200,7 +201,7 @@ part
       ;
   ;
 
-    
+
 part
     id               = "4434";
     desc             = "AT90S4434";
@@ -227,7 +228,7 @@ part
       ;
   ;
 
-    
+
 part
     id               = "8515";
     desc             = "AT90S8515";
@@ -254,7 +255,7 @@ part
       ;
   ;
 
-    
+
 part
     id               = "8535";
     desc             = "AT90S8535";
@@ -281,7 +282,7 @@ part
       ;
   ;
 
-    
+
 part
     id               = "103";
     desc             = "ATMEGA103";
@@ -305,6 +306,33 @@ part
         max_write_delay = 56000;
         readback_p1     = 0xff;
         readback_p2     = 0x00;
+      ;
+  ;
+
+
+part
+    id               = "16";
+    desc             = "ATMEGA16";
+    chip_erase_delay = 9000;
+    eeprom
+        banked          = no;
+        size            = 512;
+        bank_size       = 0;
+        num_banks       = 0;
+        min_write_delay = 9000;
+        max_write_delay = 9000;
+        readback_p1     = 0xff;
+        readback_p2     = 0xff;
+      ;
+    flash
+        banked          = yes;
+        size            = 16384;
+        bank_size       = 128;
+        num_banks       = 128;
+        min_write_delay = 4500;
+        max_write_delay = 9000;
+        readback_p1     = 0xff;
+        readback_p2     = 0xff;
       ;
   ;
 
