@@ -1,3 +1,8 @@
+2003-04-07  Theodore A. Roth  <troth@openavr.org>
+
+	* stk500.c: Don't print out read/write byte progress unless the verbose
+	option is given.
+
 2003-04-05  Theodore A. Roth  <troth@openavr.org>
 
 	* avr910.c: Re-add the avr910 byte read/write methods which were 
