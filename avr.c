@@ -417,6 +417,7 @@ int avr_read(int fd, AVRPART * p, char * memtype, int size, int verbose)
   unsigned char  * buf;
   AVRMEM * mem;
   int rc;
+  int printed;
 
   mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
@@ -429,6 +430,8 @@ int avr_read(int fd, AVRPART * p, char * memtype, int size, int verbose)
   if (size == 0) {
     size = mem->size;
   }
+
+  printed = 0;
 
   for (i=0; i<size; i++) {
     rc = avr_read_byte(fd, p, mem, i, &rbyte);
@@ -443,12 +446,15 @@ int avr_read(int fd, AVRPART * p, char * memtype, int size, int verbose)
     buf[i] = rbyte;
     if (verbose) {
       if ((i % 16 == 0)||(i == (size-1))) {
+        printed = 1;
         fprintf(stderr, "\r        \r%6lu", i);
       }
     }
   }
 
-  fprintf(stderr, "\n");
+  if (printed) {
+    fprintf(stderr, "\n");
+  }
 
   return i;
 }
@@ -704,6 +710,7 @@ int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose)
   unsigned char    data;
   int              werror;
   AVRMEM         * m;
+  int              printed;
 
   m = avr_locate_mem(p, memtype);
   if (m == NULL) {
@@ -714,7 +721,8 @@ int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose)
 
   LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
 
-  werror = 0;
+  printed = 0;
+  werror  = 0;
 
   wsize = m->size;
   if (size < wsize) {
@@ -733,6 +741,7 @@ int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose)
     if (verbose) {
       if ((i % 16 == 0)||(i == (wsize-1))) {
         fprintf(stderr, "\r      \r%6lu", i);
+        printed = 1;
       }
     }
     rc = avr_write_byte(fd, p, m, i, data);
@@ -773,8 +782,8 @@ int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose)
     }
   }
 
-
-  fprintf(stderr, "\n");
+  if (printed)
+    fprintf(stderr, "\n");
 
   return i;
 }
@@ -1005,6 +1014,70 @@ int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size)
   }
 
   return size;
+}
+
+
+int avr_get_cycle_count(int fd, AVRPART * p)
+{
+  int size;
+  AVRMEM * a;
+  int cycle_count;
+  unsigned char v1, v2;
+  int rc;
+
+  a = avr_locate_mem(p, "eeprom");
+  if (a == NULL) {
+    return -1;
+  }
+
+  rc = avr_read_byte(fd, p, a, a->size-2, &v1);
+  if (rc < 0) {
+    fprintf(stderr, "%s: WARNING: can't read memory for cycle count, rc=%d\n",
+            progname, rc);
+    return -1;
+  }
+  rc = avr_read_byte(fd, p, a, a->size-1, &v2);
+  if (rc < 0) {
+    fprintf(stderr, "%s: WARNING: can't read memory for cycle count, rc=%d\n",
+            progname, rc);
+    return -1;
+  }
+
+  cycle_count = ((unsigned int)v1) << 8 | v2;
+
+  return cycle_count;
+}
+
+
+int avr_put_cycle_count(int fd, AVRPART * p, int cycles)
+{
+  int size;
+  AVRMEM * a;
+  unsigned char v1, v2;
+  int rc;
+
+  a = avr_locate_mem(p, "eeprom");
+  if (a == NULL) {
+    return -1;
+  }
+
+  v2 = cycles & 0x0ff;
+  v1 = (cycles & 0x0ff00) >> 8;
+
+  rc = avr_write_byte(fd, p, a, a->size-2, v1);
+  if (rc < 0) {
+    fprintf(stderr, "%s: WARNING: can't write memory for cycle count, rc=%d\n",
+            progname, rc);
+    return -1;
+  }
+  rc = avr_write_byte(fd, p, a, a->size-1, v2);
+  if (rc < 0) {
+    fprintf(stderr, "%s: WARNING: can't write memory for cycle count, rc=%d\n",
+            progname, rc);
+    return -1;
+  }
+
+  return 0;
 }
 
 

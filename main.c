@@ -115,7 +115,7 @@ char ** modules[N_MODULES] = {
   &term_version 
 };
 
-char * version      = "2.0.3";
+char * version      = "2.1.0";
 
 char * main_version = "$Id$";
 
@@ -486,6 +486,10 @@ int main(int argc, char * argv [])
   char  * pinconfig;   /* programmer id */
   char  * partdesc;    /* part id */
   char    configfile[PATH_MAX]; /* pin configuration file */
+  int     cycles;      /* erase-rewrite cycles */
+  int     set_cycles;  /* value to set the erase-rewrite cycles to */
+  int     do_cycles;   /* track erase-rewrite cycles */
+  char  * e;
 
   progname = rindex(argv[0],'/');
   if (progname)
@@ -515,6 +519,8 @@ int main(int argc, char * argv [])
   pgm           = NULL;
   pinconfig     = "avrprog"; /* compiled-in default */
   verbose       = 0;
+  do_cycles     = 0;
+  set_cycles    = -1;
 
   strcpy(configfile, CONFIG_DIR);
   i = strlen(configfile);
@@ -561,7 +567,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?c:C:eE:f:Fi:m:no:p:P:tv")) != -1) {
+  while ((ch = getopt(argc,argv,"?c:C:eE:f:Fi:m:no:p:P:tvyY:")) != -1) {
 
     switch (ch) {
       case 'c': /* pin configuration */
@@ -669,6 +675,19 @@ int main(int argc, char * argv [])
 
       case 'v':
         verbose++;
+        break;
+
+      case 'y':
+        do_cycles = 1;
+        break;
+
+      case 'Y':
+        set_cycles = strtol(optarg, &e, 0);
+        if ((e == optarg) || (*e != 0)) {
+          fprintf(stderr, "%s: invalid cycle count '%s'\n",
+                  progname, optarg);
+          exit(1);
+        }
         break;
 
       case '?': /* help */
@@ -835,6 +854,17 @@ int main(int argc, char * argv [])
             progname);
 
   /*
+   * see if the cycle count in the last two bytes of eeprom seems
+   * reasonable
+   */
+  cycles = avr_get_cycle_count(fd, p);
+  if ((cycles != -1) && (cycles != 0x00ffff)) {
+    fprintf(stderr,
+            "%s: current erase-rewrite cycle count is %d (if being tracked)\n",
+            progname, cycles);
+  }
+
+  /*
    * Let's read the signature bytes to make sure there is at least a
    * chip on the other end that is responding correctly.  A check
    * against 0xffffffff should ensure that the signature bytes are
@@ -852,7 +882,7 @@ int main(int argc, char * argv [])
     fprintf(stderr,
             "%s: WARNING: signature data not defined for device \"%s\"\n",
             progname, p->desc);
-  }   
+  }
 
   if (sig != NULL) {
     int ff;
@@ -880,18 +910,28 @@ int main(int argc, char * argv [])
     }
   }
 
-  fprintf(stderr, "\n");
-
   if (erase) {
     /*
      * erase the chip's flash and eeprom memories, this is required
      * before the chip can accept new programming
      */
+
     fprintf(stderr, "%s: erasing chip\n", progname);
     avr_chip_erase(fd,p);
+    if (do_cycles && (cycles != -1)) {
+      if (cycles == 0x00ffff) {
+        cycles = 0;
+      }
+      cycles++;
+      if (set_cycles != -1) {
+        cycles = set_cycles;
+      }
+      fprintf(stderr, "%s: erase-rewrite cycle count is now %d\n", 
+              progname, cycles);
+      avr_put_cycle_count(fd, p, cycles);
+    }
     fprintf(stderr, "%s: done.\n", progname);
   }
-
 
   if (!terminal && ((inputf==NULL) && (outputf==NULL))) {
     /*
