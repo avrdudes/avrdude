@@ -110,21 +110,29 @@ enum {
 };
 
 struct avrpart {
-  char * partdesc;   
-  char * optiontag;
-  int flash_size;
-  int eeprom_size;
-  unsigned char f_readback;
-  unsigned char e_readback[2];
+  char          * partdesc;         /* long part name */
+  char          * optiontag;        /* short part name */
+  int             flash_size;       /* size in bytes of flash */
+  int             eeprom_size;      /* size in bytes of eeprom */
+  unsigned char   f_readback;       /* flash write polled readback value */
+  unsigned char   e_readback[2];    /* eeprom write polled readback values */
+  int             min_write_delay;  /* microseconds */
+  int             max_write_delay;  /* microseconds */
+  int             chip_erase_delay; /* microseconds */
   unsigned char * flash;
   unsigned char * eeprom;
 };
 
 
 struct avrpart parts[] = {
-  { "AT90S8515", "8515", 8192, 512, 0x7f, { 0x80, 0x7f }, NULL, NULL },
-  { "AT90S2313", "2313", 2048, 128, 0x7f, { 0x80, 0x7f }, NULL, NULL },
-  { "AT90S1200", "1200", 1024,  64, 0x7f, { 0x80, 0x7f }, NULL, NULL }
+  { "AT90S8515", "8515", 8192, 512, 0x7f, { 0x80, 0x7f },
+    9000, 20000, 20000, NULL, NULL },
+
+  { "AT90S2313", "2313", 2048, 128, 0x7f, { 0x80, 0x7f }, 
+    9000, 20000, 20000, NULL, NULL },
+
+  { "AT90S1200", "1200", 1024,  64, 0x7f, { 0x80, 0x7f }, 
+    9000, 20000, 20000, NULL, NULL }
 };
 
 #define N_AVRPARTS (sizeof(parts)/sizeof(struct avrpart))
@@ -391,7 +399,8 @@ int avr_cmd ( int fd, unsigned char cmd[4], unsigned char res[4] )
 /*
  * read a byte of data from the indicated memory region
  */
-unsigned char avr_read_byte ( int fd, AVRMEM memtype, unsigned short addr )
+unsigned char avr_read_byte ( int fd, struct avrpart * p,
+                              AVRMEM memtype, unsigned short addr )
 {
   unsigned char cmd[4];
   unsigned char res[4];
@@ -428,7 +437,7 @@ unsigned char avr_read_byte ( int fd, AVRMEM memtype, unsigned short addr )
  * read the entirety of the specified memory type into the
  * corresponding buffer of the avrpart pointed to by 'p'.  
  */
-int avr_read ( int fd, AVRMEM memtype, struct avrpart * p )
+int avr_read ( int fd, struct avrpart * p, AVRMEM memtype )
 {
   unsigned char rbyte, memt;
   unsigned short n, start, end, i, bi;
@@ -463,7 +472,7 @@ int avr_read ( int fd, AVRMEM memtype, struct avrpart * p )
 
   for (i=start; i<end; i++) {
     /* eeprom or low byte of flash */
-    rbyte = avr_read_byte(fd, memt, i);
+    rbyte = avr_read_byte(fd, p, memt, i);
     fprintf ( stderr, "                    \r%4u  0x%02x", i, rbyte );
     if (bi < bufsize) {
       buf[bi++] = rbyte;
@@ -471,7 +480,7 @@ int avr_read ( int fd, AVRMEM memtype, struct avrpart * p )
 
     if (memtype == AVR_FLASH) {
       /* flash high byte */
-      rbyte = avr_read_byte(fd, AVR_FLASH_HI, i);
+      rbyte = avr_read_byte(fd, p, AVR_FLASH_HI, i);
       fprintf ( stderr, " 0x%02x", rbyte );
       if (bi < bufsize) {
         buf[bi++] = rbyte;
@@ -488,7 +497,7 @@ int avr_read ( int fd, AVRMEM memtype, struct avrpart * p )
 /*
  * write a byte of data to the indicated memory region
  */
-int avr_write_byte ( int fd, AVRMEM memtype, 
+int avr_write_byte ( int fd, struct avrpart * p, AVRMEM memtype, 
                      unsigned short addr, unsigned char data )
 {
   unsigned char cmd[4], res[4];
@@ -523,10 +532,17 @@ int avr_write_byte ( int fd, AVRMEM memtype,
   tries = 0;
   ready = 0;
   while (!ready) {
-    usleep(5000);               /* flash write delay */
-    r = avr_read_byte(fd, memtype, addr);
-    if (data == 0x7f) {
-      usleep(20000);    /* long delay for 0x7f since polling doesn't work */
+    usleep(p->min_write_delay); /* typical flash/eeprom write delay */
+    r = avr_read_byte(fd, p, memtype, addr);
+    if ((data == p->f_readback) ||
+        (data == p->e_readback[0]) || (data == p->e_readback[1])) {
+      /* 
+       * use an extra long delay when we happen to be writing values
+       * used for polled data read-back.  In this case, polling
+       * doesn't work, and we need to delay the worst case write time
+       * specified for the chip.
+       */
+      usleep(p->max_write_delay);
       ready = 1;
     }
     else if (r == data) {
@@ -554,7 +570,7 @@ int avr_write_byte ( int fd, AVRMEM memtype,
  * is not actually written out, because empty flash and eeprom
  * contains 0xff, and you can't actually write 1's, only 0's.
  */
-int avr_write ( int fd, AVRMEM memtype, struct avrpart * p )
+int avr_write ( int fd, struct avrpart * p, AVRMEM memtype )
 {
   unsigned char data, memt;
   unsigned short start, end, i, bi;
@@ -592,7 +608,7 @@ int avr_write ( int fd, AVRMEM memtype, struct avrpart * p )
     data = buf[bi++];
     nl = 0;
     if (data != 0xff)
-      rc = avr_write_byte(fd, memt, i, data );
+      rc = avr_write_byte(fd, p, memt, i, data );
     else
       rc = 0;
     fprintf(stderr, "                      \r%4u 0x%02x", i, data);
@@ -605,7 +621,7 @@ int avr_write ( int fd, AVRMEM memtype, struct avrpart * p )
       /* high byte of flash */
       data = buf[bi++];
       if (data != 0xff)
-        rc = avr_write_byte(fd, AVR_FLASH_HI, i, data );
+        rc = avr_write_byte(fd, p, AVR_FLASH_HI, i, data );
       else
         rc = 0;
       fprintf(stderr, " 0x%02x", data);
@@ -643,14 +659,14 @@ int avr_program_enable ( int fd )
 /*
  * issue the 'chip erase' command to the AVR device
  */
-int avr_chip_erase ( int fd )
+int avr_chip_erase ( int fd, struct avrpart * p )
 {
   unsigned char data[4] = {0xac, 0x80, 0x00, 0x00};
   unsigned char res[4];
 
   avr_cmd(fd, data, res);
 
-  usleep(20000);
+  usleep(p->chip_erase_delay);
 
   return 0;
 }
@@ -1135,7 +1151,7 @@ int main ( int argc, char * argv [] )
   int              ch;          /* options flag */
   int              size;        /* size of memory region */
   int              len;         /* length for various strings */
-  char             buf[PATH_MAX]; /* temporary buffer */
+  char             pbuf[PATH_MAX]; /* temporary buffer */
   char           * p1;          /* used to parse CVS Id */
   char           * p2;          /* used to parse CVS Ed */
   unsigned char    sig[4];      /* AVR signature bytes */
@@ -1172,6 +1188,11 @@ int main ( int argc, char * argv [] )
   else
     progname = argv[0];
 
+  len = strlen(progname) + 2;
+  for (i=0; i<len; i++)
+    pbuf[i] = ' ';
+  pbuf[i] = 0;
+
   /*
    * Print out an identifying string so folks can tell what version
    * they are running
@@ -1189,8 +1210,8 @@ int main ( int argc, char * argv [] )
     p2 += 3;
 
   fprintf(stderr, "\n");
-  fprintf(stderr, "AVRProg: Copyright 2000 Brian Dean, bsd@bsdhome.com\n");
-  fprintf(stderr, "         Revision " );
+  fprintf(stderr, "%s: Copyright 2000 Brian Dean, bsd@bsdhome.com\n"
+          "%sRevision ", progname, pbuf);
   for (i=0; i<p2-p1; i++)
     fprintf(stderr, "%c", p1[i]);
   fprintf(stderr, "\n\n");
@@ -1207,7 +1228,7 @@ int main ( int argc, char * argv [] )
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?cef:Fi:m:o:p:P:s")) != -1) {
+  while ((ch = getopt(argc,argv,"?cef:Fi:m:o:p:P:")) != -1) {
 
     switch (ch) {
       case 'm': /* select memory type to operate on */
@@ -1308,6 +1329,10 @@ int main ( int argc, char * argv [] )
         interactive = 1;
         break;
 
+      case 'P':
+        parallel = optarg;
+        break;
+
       case '?': /* help */
         usage();
         exit(0);
@@ -1332,8 +1357,21 @@ int main ( int argc, char * argv [] )
     return 1;
   }
 
-  fprintf(stderr, "%s: Using AVR Part %s: flash=%d, eeprom=%d\n",
-          progname, p->partdesc, p->flash_size, p->eeprom_size);
+  fprintf(stderr, 
+          "%sAVR Part               = %s\n"
+          "%sFlash memory size      = %d bytes\n"
+          "%sEEPROM memory size     = %d bytes\n"
+          "%sMin/Max program delay  = %d/%d us\n"
+          "%sChip Erase delay       = %d us\n"
+          "%sFlash Polled Readback  = 0x%02x\n"
+          "%sEEPROM Polled Readback = 0x%02x, 0x%02x\n",
+          pbuf, p->partdesc,
+          pbuf, p->flash_size, 
+          pbuf, p->eeprom_size,
+          pbuf, p->min_write_delay, p->max_write_delay, 
+          pbuf, p->chip_erase_delay,
+          pbuf, p->f_readback,
+          pbuf, p->e_readback[0], p->e_readback[1]);
   fprintf(stderr, "\n");
 
   p->flash = (unsigned char *) malloc(p->flash_size);
@@ -1353,10 +1391,10 @@ int main ( int argc, char * argv [] )
   /*
    * open the parallel port
    */
-  fd = open ( DEFAULT_PARALLEL, O_RDWR );
+  fd = open ( parallel, O_RDWR );
   if (fd < 0) {
-    fprintf ( stderr, "%s: can't open device \"%s\": %s\n",
-              progname, DEFAULT_PARALLEL, strerror(errno) );
+    fprintf ( stderr, "%s: can't open device \"%s\": %s\n\n",
+              progname, parallel, strerror(errno) );
     return 1;
   }
 
@@ -1391,17 +1429,13 @@ int main ( int argc, char * argv [] )
 
   memset(nulldev,0xff,4);
   if (memcmp(sig,nulldev,4)==0) {
-    len = strlen(progname) + 2;
-    for (i=0; i<len; i++)
-      buf[i] = ' ';
-    buf[i] = 0;
     fprintf(stderr, 
             "%s: Yikes!  Invalid device signature.\n", progname);
     if (!ovsigck) {
       fprintf(stderr, 
               "%sDouble check connections and try again, or use -F to override\n"
               "%sthis check.\n\n",
-              buf, buf );
+              pbuf, pbuf );
       exit(1);
     }
   }
@@ -1414,7 +1448,7 @@ int main ( int argc, char * argv [] )
      * before the chip can accept new programming
      */
     fprintf(stderr, "%s: erasing chip\n", progname );
-    avr_chip_erase(fd);
+    avr_chip_erase(fd,p);
     avr_initialize(fd,p);
     fprintf(stderr, "%s: done.\n", progname );
   }
@@ -1442,7 +1476,7 @@ int main ( int argc, char * argv [] )
      */
     fprintf ( stderr, "%s: reading %s memory:\n", 
               progname, memtypestr(memtype) );
-    rc = avr_read ( fd, memtype, p );
+    rc = avr_read ( fd, p, memtype );
     if (rc) {
       fprintf ( stderr, "%s: failed to read all of %s memory, rc=%d\n", 
                 progname, memtypestr(memtype), rc );
@@ -1477,7 +1511,7 @@ int main ( int argc, char * argv [] )
     fprintf(stderr, "%s: writing %s:\n", 
             progname, memtypestr(memtype));
 #if 0
-    rc = avr_write ( fd, memtype, p );
+    rc = avr_write ( fd, p, memtype );
 #else
     /* 
      * test mode, don't actually write to the chip, output the buffer
