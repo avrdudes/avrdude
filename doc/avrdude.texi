@@ -15,6 +15,42 @@
 @c @set EDITION 3.2.0
 @c @set VERSION 3.2.0
 
+@c This is a dir.info fragment to support semi-automated addition of
+@c manuals to an info tree.
+@dircategory AVR Programming & development tools.
+@direntry
+* AvrDude: (avrdude).            AVR program downloader/uploader.
+@end direntry
+
+@ifinfo
+This file documents the avrdude program.
+
+For avrdude version @value{VERSION}, @value{UPDATED}.
+
+Copyright @copyright{} 2003 Brian Dean
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+@ignore
+Permission is granted to process this file through TeX and print the
+results, provided the printed document carries copying permission
+notice identical to this one except for the removal of this paragraph
+(this paragraph not being relevant to the printed manual).
+
+@end ignore
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the entire
+resulting derived work is distributed under the terms of a permission
+notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation approved
+by the Free Software Foundation.
+@end ifinfo
+
 @titlepage
 @title AVRDUDE
 @subtitle A program for download/uploading AVR microcontroller flash and eeprom.
@@ -46,6 +82,29 @@ by the Free Software Foundation.
 
 @contents
 
+@c
+@c Top Node
+@c
+@node Top, Introduction, (dir), (dir)
+@comment  node-name,  next,  previous,  up
+
+@ifinfo
+This file documents the avrdude program for downloading/uploading
+programs to Atmel AVR microcontrollers.
+
+For avrdude version @value{VERSION}, @value{UPDATED}.
+@end ifinfo
+
+@menu
+* Introduction::                
+* Command Line Options::        
+* Terminal Mode Operation::     
+* Configuration File::          
+* Platform Dependent Information::  
+@end menu
+
+@node Introduction, Command Line Options, Top, Top
+@comment  node-name,  next,  previous,  up
 @chapter Introduction
 @cindex introduction
 
@@ -77,6 +136,11 @@ creating a new entry in its configuration file. All that's usually
 required for a new entry is to tell AVRDUDE which pins to use for each
 programming function.
 
+@menu
+* History::                     
+@end menu
+
+@node History,  , Introduction, Introduction
 @section History
 
 AVRDUDE was written by Brian S. Dean under the name of AVRPROG to run on
@@ -101,9 +165,16 @@ formatting was modeled after that of the Simulavr documentation by Ted
 Roth.
 
 
+@node Command Line Options, Terminal Mode Operation, Introduction, Top
 @chapter Command Line Options
 @cindex options
 
+@menu
+* Option Descriptions::         
+* Example Command Line Invocations::  
+@end menu
+
+@node Option Descriptions, Example Command Line Invocations, Command Line Options, Command Line Options
 @section Option Descriptions
 
 @noindent
@@ -338,6 +409,7 @@ should not be used.
 
 @end table
 
+@node Example Command Line Invocations,  , Option Descriptions, Command Line Options
 @section Example Command Line Invocations
 
 @noindent
@@ -393,6 +465,7 @@ avrdude done.  Thank you.
 @end example
 
 
+@node Terminal Mode Operation, Configuration File, Command Line Options, Top
 @chapter Terminal Mode Operation
 
 AVRDUDE has an interactive mode called @var{terminal mode} that is
@@ -404,6 +477,12 @@ parameters may be abbreviated to their shortest unambiguous form.
 Terminal mode also supports a command history so that previously entered
 commands can be recalled and edited.
 
+@menu
+* Terminal Mode Commands::      
+* Terminal Mode Examples::      
+@end menu
+
+@node Terminal Mode Commands, Terminal Mode Examples, Terminal Mode Operation, Terminal Mode Operation
 @section Terminal Mode Commands
 
 @noindent
@@ -449,6 +528,7 @@ Leave terminal mode and thus AVRDUDE.
 
 @end table
 
+@node Terminal Mode Examples,  , Terminal Mode Commands, Terminal Mode Operation
 @section Terminal Mode Examples
 
 @noindent
@@ -547,6 +627,7 @@ avrdude>
 @end example
 
 
+@node Configuration File, Platform Dependent Information, Terminal Mode Operation, Top
 @chapter Configuration File
 
 @noindent
@@ -570,6 +651,14 @@ per-user file is @code{.avrduderc} within the user's home directory.  On
 Windows, this file is the @code{avrdude.rc} file located in the same
 directory as the executable.
 
+@menu
+* AVRDUDE Defaults::            
+* Programmer Definitions::      
+* Part Definitions::            
+* Other Notes::                 
+@end menu
+
+@node AVRDUDE Defaults, Programmer Definitions, Configuration File, Configuration File
 @section AVRDUDE Defaults
 
 @table @code
@@ -589,6 +678,7 @@ option.
 @end table
 
 
+@node Programmer Definitions, Part Definitions, AVRDUDE Defaults, Configuration File
 @section Programmer Definitions
 
 @noindent
@@ -612,6 +702,7 @@ programmer
 @end example
 
 
+@node Part Definitions, Other Notes, Programmer Definitions, Configuration File
 @section Part Definitions
 
 @example
@@ -649,6 +740,11 @@ part
   ;
 @end example
 
+@menu
+* Instruction Format::          
+@end menu
+
+@node Instruction Format,  , Part Definitions, Part Definitions
 @subsection Instruction Format
 
 @noindent
@@ -700,6 +796,7 @@ write = "1  1  0  0   0  0  0  0   x x x x  x x x x",
 
 
 
+@node Other Notes,  , Part Definitions, Configuration File
 @section Other Notes
 
 
@@ -738,10 +835,26 @@ problem with the at90s4433/2333's; see the at90s4433 errata at:
 @end itemize
 
 
+@node Platform Dependent Information,  , Configuration File, Top
 @appendix Platform Dependent Information
 
+@menu
+* FreeBSD::                     
+* Linux::                       
+* Windows::                     
+@end menu
+
+@node FreeBSD, Linux, Platform Dependent Information, Platform Dependent Information
 @section FreeBSD
 
+@menu
+* FreeBSD Installation::        
+* FreeBsd Configuration Files::  
+* FreeBSD Port Names::          
+* FreeBSD Documentation::       
+@end menu
+
+@node FreeBSD Installation, FreeBsd Configuration Files, FreeBSD, FreeBSD
 @subsection Installation
 
 @noindent
@@ -766,6 +879,7 @@ work, since that is where the source as well as the pre-built package is
 obtained.
 
 
+@node FreeBsd Configuration Files, FreeBSD Port Names, FreeBSD Installation, FreeBSD
 @subsection Configuration Files
 
 @noindent
@@ -775,6 +889,7 @@ The default configuration file for FreeBSD is located at
 is search for a file named @code{.avrduderc}, and if found, is used to
 augment the system default configuration file.
 
+@node FreeBSD Port Names, FreeBSD Documentation, FreeBsd Configuration Files, FreeBSD
 @subsection Port Names
 
 @noindent
@@ -783,6 +898,7 @@ port and the sio(4) driver for serial port access.  The default name
 used for the parallel port is @code{/dev/ppi0}, while the default serial
 port device is @code{/dev/cuaa0}.
 
+@node FreeBSD Documentation,  , FreeBSD Port Names, FreeBSD
 @subsection Documentation
 
 @noindent
@@ -792,38 +908,68 @@ the HTML and PDF documentation is installed in
 @code{/usr/local/share/doc/avrdude} directory.
 
 
+@node Linux, Windows, FreeBSD, Platform Dependent Information
 @section Linux
 
+@menu
+* Linux Installation::          
+* Linux Configuration Files::   
+* Linux Port Names::            
+* Linux Documentation::         
+@end menu
+
+@node Linux Installation, Linux Configuration Files, Linux, Linux
 @subsection Installation
 
 @noindent
 Empty.
 
+@node Linux Configuration Files, Linux Port Names, Linux Installation, Linux
 @subsection Configuration Files
 
 @noindent
 Empty.
 
+@node Linux Port Names, Linux Documentation, Linux Configuration Files, Linux
 @subsection Port Names
 
 @noindent
 Empty.
 
+@node Linux Documentation,  , Linux Port Names, Linux
 @subsection Documentation
 
 @noindent
 Empty.
 
 
+@node Windows,  , Linux, Platform Dependent Information
 @section Windows
 
+@menu
+* Windows Installation::        
+* Windows Configuration Files::  
+* Windows Port Names::          
+* Using the parallel port::     
+* Documentation::               
+* Credits.::                    
+@end menu
+
+@node Windows Installation, Windows Configuration Files, Windows, Windows
 @subsection Installation
 
 @noindent
 Empty.
 
+@node Windows Configuration Files, Windows Port Names, Windows Installation, Windows
 @subsection Configuration Files
 
+@menu
+* Configuration file names::    
+* How AVRDUDE finds the configuration files.::  
+@end menu
+
+@node Configuration file names, How AVRDUDE finds the configuration files., Windows Configuration Files, Windows Configuration Files
 @subsubsection Configuration file names
 
 @noindent
@@ -831,6 +977,7 @@ AVRDUDE on Windows looks for a system configuration file name of
 @code{avrdude.conf} and looks for a user override configuration file of
 @code{avrdude.rc}.
 
+@node How AVRDUDE finds the configuration files.,  , Configuration file names, Windows Configuration Files
 @subsubsection How AVRDUDE finds the configuration files.
  
 @noindent
@@ -866,14 +1013,22 @@ The directories that are listed in the PATH environment variable.
 @end enumerate
 
 
+@node Windows Port Names, Using the parallel port, Windows Configuration Files, Windows
 @subsection Port Names
 
+@menu
+* Serial Ports::                
+* Parallel Ports::              
+@end menu
+
+@node Serial Ports, Parallel Ports, Windows Port Names, Windows Port Names
 @subsubsection Serial Ports
  
 @noindent
 When you select a serial port (i.e. when using an STK500) use the
 Windows serial port device names such as: com1, com2, etc.
  
+@node Parallel Ports,  , Serial Ports, Windows Port Names
 @subsubsection Parallel Ports
 
 @noindent
@@ -900,8 +1055,15 @@ port that you want.
  
 
  
+@node Using the parallel port, Documentation, Windows Port Names, Windows
 @subsection Using the parallel port
 
+@menu
+* Windows NT/2K/XP::            
+* Windows 95/98::               
+@end menu
+
+@node Windows NT/2K/XP, Windows 95/98, Using the parallel port, Using the parallel port
 @subsubsection Windows NT/2K/XP
 
 @noindent
@@ -939,17 +1101,20 @@ means that after the first time install_giveio is executed, subsequently
 you should be able to execute the batch file from any directory and have
 it successfully start the driver.
 
+@node Windows 95/98,  , Windows NT/2K/XP, Using the parallel port
 @subsubsection Windows 95/98
 
 @noindent
 On Windows 95 and 98 the giveio.sys driver is not needed.
 
 
+@node Documentation, Credits., Using the parallel port, Windows
 @subsection Documentation
 
 @noindent
 Empty.
 
+@node Credits.,  , Documentation, Windows
 @subsection Credits.
 
 @noindent
