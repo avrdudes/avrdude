@@ -30,7 +30,7 @@
 #   part
 #       id               = <id> ;                 # quoted string
 #       desc             = <description> ;        # quoted string
-#       devcode          = <num> ;            # deprecated, use stk500_devcode
+#       devicecode       = <num> ;            # deprecated, use stk500_devcode
 #       stk500_devcode   = <num> ;                # numeric
 #       avr910_devcode   = <num> ;                # numeric
 #       chip_erase_delay = <num> ;                # micro-seconds

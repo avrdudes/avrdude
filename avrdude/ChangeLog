@@ -1,3 +1,7 @@
+2003-03-17  Theodore A. Roth  <troth@openavr.org>
+
+	* avrdude.conf.in: Fix typo for devicecode deprecation comment.
+
 2003-03-16  Theodore A. Roth  <troth@openavr.org>
 
 	* avr.c (avr_read): Use pgm->read_sig_bytes to read signature bytes if
