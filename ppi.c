@@ -43,24 +43,33 @@
 
 extern char * progname;
 
-/*
- * set 'get' and 'set' appropriately for subsequent passage to ioctl()
- * to get/set the specified PPI registers.  
- */
-static int ppi_getops(int reg, unsigned long * get, unsigned long * set)
+enum {
+  PPI_READ,
+  PPI_WRITE,
+  PPI_SHADOWREAD
+};
+
+int ppi_shadow_access(int fd, int reg, unsigned char *v, unsigned char action)
 {
+  static unsigned char shadow[3];
+  int shadow_num;
+  unsigned long set, get;
+
   switch (reg) {
     case PPIDATA:
-      *set = PPISDATA;
-      *get = PPIGDATA;
+      set = PPISDATA;
+      get = PPIGDATA;
+      shadow_num = 0;
       break;
     case PPICTRL:
-      *set = PPISCTRL;
-      *get = PPIGCTRL;
+      set = PPISCTRL;
+      get = PPIGCTRL;
+      shadow_num = 1;
       break;
     case PPISTATUS:
-      *set = PPISSTATUS;
-      *get = PPIGSTATUS;
+      set = PPISSTATUS;
+      get = PPIGSTATUS;
+      shadow_num = 2;
       break;
     default:
       fprintf(stderr, "%s: avr_set(): invalid register=%d\n",
@@ -69,9 +78,21 @@ static int ppi_getops(int reg, unsigned long * get, unsigned long * set)
       break;
   }
 
+  switch (action) {
+    case PPI_SHADOWREAD:
+      *v = shadow[shadow_num];
+      break;
+    case PPI_READ:
+      ioctl(fd, get, v);
+      shadow[shadow_num]=*v;
+      break;
+    case PPI_WRITE:
+      shadow[shadow_num]=*v;
+      ioctl(fd, set, v);
+      break;
+  }
   return 0;
 }
-
 
 /*
  * set the indicated bit of the specified register.
@@ -79,16 +100,14 @@ static int ppi_getops(int reg, unsigned long * get, unsigned long * set)
 int ppi_set(int fd, int reg, int bit)
 {
   unsigned char v;
-  unsigned long get, set;
   int rc;
 
-  rc = ppi_getops(reg, &get, &set);
+  rc = ppi_shadow_access(fd, reg, &v, PPI_SHADOWREAD);
+  v |= bit;
+  rc |= ppi_shadow_access(fd, reg, &v, PPI_WRITE);
+
   if (rc)
     return -1;
-
-  ioctl(fd, get, &v);
-  v |= bit;
-  ioctl(fd, set, &v);
 
   return 0;
 }
@@ -100,16 +119,14 @@ int ppi_set(int fd, int reg, int bit)
 int ppi_clr(int fd, int reg, int bit)
 {
   unsigned char v;
-  unsigned long get, set;
   int rc;
 
-  rc = ppi_getops(reg, &get, &set);
+  rc = ppi_shadow_access(fd, reg, &v, PPI_SHADOWREAD);
+  v &= ~bit;
+  rc |= ppi_shadow_access(fd, reg, &v, PPI_WRITE);
+
   if (rc)
     return -1;
-
-  ioctl(fd, get, &v);
-  v &= ~bit;
-  ioctl(fd, set, &v);
 
   return 0;
 }
@@ -121,15 +138,13 @@ int ppi_clr(int fd, int reg, int bit)
 int ppi_get(int fd, int reg, int bit)
 {
   unsigned char v;
-  unsigned long get, set;
   int rc;
 
-  rc = ppi_getops(reg, &get, &set);
+  rc = ppi_shadow_access(fd, reg, &v, PPI_READ);
+  v &= bit;
+
   if (rc)
     return -1;
-
-  ioctl(fd, get, &v);
-  v &= bit;
 
   return v; /* v == bit */
 }
@@ -140,16 +155,14 @@ int ppi_get(int fd, int reg, int bit)
 int ppi_toggle(int fd, int reg, int bit)
 {
   unsigned char v;
-  unsigned long get, set;
   int rc;
 
-  rc = ppi_getops(reg, &get, &set);
+  rc = ppi_shadow_access(fd, reg, &v, PPI_SHADOWREAD);
+  v ^= bit;
+  rc |= ppi_shadow_access(fd, reg, &v, PPI_WRITE);
+
   if (rc)
     return -1;
-
-  ioctl(fd, get, &v);
-  v ^= bit;
-  ioctl(fd, set, &v);
 
   return 0;
 }
@@ -161,16 +174,14 @@ int ppi_toggle(int fd, int reg, int bit)
 int ppi_getall(int fd, int reg)
 {
   unsigned char v;
-  unsigned long get, set;
   int rc;
 
-  rc = ppi_getops(reg, &get, &set);
+  rc = ppi_shadow_access(fd, reg, &v, PPI_READ);
+
   if (rc)
     return -1;
 
-  ioctl(fd, get, &v);
-
-  return (int)v;
+  return v; /* v == bit */
 }
 
 /*
@@ -179,15 +190,13 @@ int ppi_getall(int fd, int reg)
 int ppi_setall(int fd, int reg, int val)
 {
   unsigned char v;
-  unsigned long get, set;
   int rc;
 
-  rc = ppi_getops(reg, &get, &set);
+  v = val;
+  rc = ppi_shadow_access(fd, reg, &v, PPI_WRITE);
+
   if (rc)
     return -1;
-
-  v = val;
-  ioctl(fd, set, &v);
 
   return 0;
 }
@@ -196,6 +205,7 @@ int ppi_setall(int fd, int reg, int val)
 int ppi_open(char * port)
 {
   int fd;
+  unsigned char v;
 
   fd = open(port, O_RDWR);
   if (fd < 0) {
@@ -203,6 +213,14 @@ int ppi_open(char * port)
               progname, port, strerror(errno));
     return -1;
   }
+
+  /*
+   * Initialize shadow registers
+   */
+
+  ppi_shadow_access (fd, PPIDATA, &v, PPI_READ);
+  ppi_shadow_access (fd, PPICTRL, &v, PPI_READ);
+  ppi_shadow_access (fd, PPISTATUS, &v, PPI_READ);
 
   return fd;
 }
