@@ -363,23 +363,26 @@ static void update_progress_tty (int percent, double etime, char *hdr)
 
 static void update_progress_no_tty (int percent, double etime, char *hdr)
 {
+  static int done = 0;
   static int last = 0;
   int cnt = (percent>>1)*2;
 
   if (hdr) {
     fprintf (stderr, "\n%s | ", hdr);
     last = 0;
+    done = 0;
   }
   else {
-    while (cnt > last) {
+    while ((cnt > last) && (done == 0)) {
       fprintf (stderr, "#");
       cnt -=  2;
     }
   }
 
-  if ((percent == 100) && (last != 0)) {
+  if ((percent == 100) && (done == 0)) {
     fprintf (stderr, " | 100%% %0.2fs\n\n", etime);
     last = 0;
+    done = 1;
   }
   else
     last = (percent>>1)*2;    /* Make last a multiple of 2. */

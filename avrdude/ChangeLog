@@ -1,5 +1,10 @@
 2003-08-27  Theodore A. Roth  <troth@openavr.org>
 
+	* main.c (update_progress_no_tty): Properly terminate progress. Also
+	fixes stk500 problem where number of bytes written is less than a page.
+
+2003-08-27  Theodore A. Roth  <troth@openavr.org>
+
 	* avrdude.spec.in: Fix broken rpmbuild on RedHat-9.
 
 2003-08-25  Eric B. Weddington  <eric@ecentral.com>
