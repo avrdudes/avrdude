@@ -1,3 +1,13 @@
+2003-08-01  Theodore A. Roth  <troth@openavr.org>
+
+	* avrdude.1: Document the -q option.
+	* doc/avrdude.texi: Document the -q option.
+	Fix some typos left over from pasting in man output.
+
+2003-07-30  Brian S. Dean  <bsd@bsdhome.com>
+
+	* main.c: Add elapsed time information to the new progress bar.
+
 2003-07-29  Theodore A. Roth  <troth@openavr.org>
 
 	* avr.c:
