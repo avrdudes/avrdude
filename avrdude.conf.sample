@@ -1082,6 +1082,9 @@ part
     desc             = "ATMEGA128";
     devicecode       = 0xB2;
     chip_erase_delay = 9000;
+    pagel            = 0xD7;
+    bs2              = 0xA0;
+    reset            = dedicated;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
 
@@ -1089,6 +1092,8 @@ part
                        "x x x x  x x x x    x x x x  x x x x";
 
     memory "eeprom"
+        paged           = no; /* leave this "no" */
+        page_size       = 8;  /* for parallel programming */
         size            = 4096;
         min_write_delay = 9000;
         max_write_delay = 9000;

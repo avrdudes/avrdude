@@ -117,14 +117,17 @@ SIGN     [+-]
 
 bank_size        { yylval=NULL; return K_PAGE_SIZE; }
 banked           { yylval=NULL; return K_PAGED; }
+bs2              { yylval=NULL; return K_BS2; }
 buff             { yylval=NULL; return K_BUFF; }
 chip_erase_delay { yylval=NULL; return K_CHIP_ERASE_DELAY; }
+dedicated        { yylval=new_token(K_DEDICATED); return K_DEDICATED; }
 desc             { yylval=NULL; return K_DESC; }
 devicecode       { yylval=NULL; return K_DEVICECODE; }
 eeprom           { yylval=NULL; return K_EEPROM; }
 errled           { yylval=NULL; return K_ERRLED; }
 flash            { yylval=NULL; return K_FLASH; }
 id               { yylval=NULL; return K_ID; }
+io               { yylval=new_token(K_IO); return K_IO; }
 max_write_delay  { yylval=NULL; return K_MAX_WRITE_DELAY; }
 min_write_delay  { yylval=NULL; return K_MIN_WRITE_DELAY; }
 miso             { yylval=NULL; return K_MISO; }
@@ -133,6 +136,7 @@ num_banks        { yylval=NULL; return K_NUM_PAGES; }
 num_pages        { yylval=NULL; return K_NUM_PAGES; }
 page_size        { yylval=NULL; return K_PAGE_SIZE; }
 paged            { yylval=NULL; return K_PAGED; }
+pagel            { yylval=NULL; return K_PAGEL; }
 part             { yylval=NULL; return K_PART; }
 pgmled           { yylval=NULL; return K_PGMLED; }
 par              { yylval=NULL; return K_PAR; }
