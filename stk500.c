@@ -881,7 +881,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   unsigned int n;
 
   if (page_size == 0) {
-    page_size = 16;
+    page_size = 128;
   }
 
   if (strcmp(m->desc, "flash") == 0) {
