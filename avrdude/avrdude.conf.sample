@@ -142,6 +142,21 @@ programmer
 ;
 
 
+# The AVR3 board does not drive the clock on the AVR.  You must
+# disconnect pin 5 from the parallel port and add a clock signal to
+# the board.
+programmer
+  id      = "avr3";
+  desc    = "AVR3 (disconnect pin 5 - see config file for details)";
+  reset   = 6;
+  sck     = 8;
+  mosi    = 7;
+  miso    = 10;
+;
+
+
+
+
 part
     id               = "1200";
     desc             = "AT90S1200";
