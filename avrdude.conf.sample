@@ -151,19 +151,6 @@ programmer
   vfyled = 17;
 ;
 
-# The AVR3 board does not drive the clock on the AVR.  You must use a
-# cable that does not pass through pin 5 of the parallel port, and you
-# add a clock signal to the board at pin 3 of P1 or pin 3 of J2.
-programmer
-  id      = "avr3";
-  desc    = "AVR3 (disconnect pin 5 - see config file for details)";
-  reset   = 6;
-  sck     = 8;
-  mosi    = 7;
-  miso    = 10;
-;
-
-
 
 
 part
@@ -741,6 +728,7 @@ part
                           " a7  a6  a5  a4     a3  a2  a1  a0", 
                           "  i   i   i   i      i   i   i   i";
       ;
+
     memory "flash"
         paged           = yes;
         size            = 131072;
@@ -750,7 +738,50 @@ part
         max_write_delay = 56000;
         readback_p1     = 0xff;
         readback_p2     = 0x00;
+        read_lo         = "  0   0   1   0      0   0   0   0",
+                          "a15 a14 a13 a12    a11 a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
+
+        read_hi         = "  0   0   1   0      1   0   0   0",
+                          "a15 a14 a13 a12    a11 a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
+
+        loadpage_lo     = "  0   1   0   0      0   0   0   0",
+                          "  x   x   x   x      x   x   x   x",
+                          "  x  a6  a5  a4     a3  a2  a1  a0",
+                          "  i   i   i   i      i   i   i   i";
+
+        loadpage_hi     = "  0   1   0   0      1   0   0   0",
+                          "  x   x   x   x      x   x   x   x",
+                          "  x  a6  a5  a4     a3  a2  a1  a0",
+                          "  i   i   i   i      i   i   i   i";
+
+        writepage       = "  0   1   0   0      1   1   0   0",
+                          "a15 a14 a13 a12    a11 a10  a9  a8",
+                          " a7   x   x   x      x   x   x   x",
+                          "  x   x   x   x      x   x   x   x";
       ;
+
+    memory "fuse"
+        size            = 1;
+        read            = "0 1 0 1  0 0 0 0  x x x x  x x x x",
+                          "x x x x  x x x x  x x o x  o 1 o o";
+
+        write           = "1 0 1 0  1 1 0 0  1 0 1 1  i 1 i i",
+                          "x x x x  x x x x  x x x x  x x x x";
+      ;
+
+    memory "lock"
+        size            = 1;
+        read            = "0 1 0 1  1 0 0 0   x x x x  x x x x",
+                          "x x x x  x x x x   x x x x  x o o x";
+
+        write           = "1 0 1 0  1 1 0 0   1 1 1 1  1 i i 1",
+                          "x x x x  x x x x   x x x x  x x x x";
+      ;
+
     memory "signature"
         size            = 3;
         read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
@@ -785,6 +816,7 @@ part
                           " a7  a6  a5  a4     a3  a2  a1  a0", 
                           "  i   i   i   i      i   i   i   i";
       ;
+
     memory "flash"
         paged           = yes;
         size            = 131072;
@@ -828,6 +860,7 @@ part
         read            = "1 0 1 0  0 0 0 0  0 0 0 0  0 0 0 0",
                           "x x x x  x x x x  o o o o  o o o o";
       ;
+
     memory "hfuse"
         size            = 1;
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  1 0 0 0",
@@ -836,6 +869,7 @@ part
         read            = "1 0 1 0  1 0 0 0  0 0 0 0  1 0 0 0",
                           "x x x x  x x x x  o o o o  o o o o";
       ;
+
     memory "efuse"
         size            = 1;
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
@@ -844,6 +878,7 @@ part
         read            = "0 1 0 1  0 0 0 0  0 0 0 0  1 0 0 0",
                           "x x x x  x x x x  o o o o  o o o o";
       ;
+
     memory "lock"
         size            = 1;
         read            = "0 1 0 1  1 0 0 0   0 0 0 0  0 0 0 0",
@@ -852,11 +887,13 @@ part
         write           = "1 0 1 0  1 1 0 0   1 1 1 x  x x x x",
                           "x x x x  x x x x   1 1 i i  i i i i";
       ;
+
     memory "calibration"
         size            = 1;
         read            = "0 0 1 1  1 0 0 0  x x x x  x x x x",
                           "0 0 0 0  0 0 0 0  o o o o  o o o o";
       ;
+
     memory "signature"
         size            = 3;
         read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
@@ -872,7 +909,7 @@ part
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
 
-    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
+    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
                        "x x x x  x x x x    x x x x  x x x x";
 
     memory "eeprom"
@@ -882,15 +919,16 @@ part
         readback_p1     = 0xff;
         readback_p2     = 0xff;
 	read            = "  1   0   1   0      0   0   0   0",
-                          "  x   x   x   x      x   x   x  a8",
+                          "  0   0   x   x      x   x  a9  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0",
                           "  o   o   o   o      o   o   o   o";
 
 	write           = "  1   1   0   0      0   0   0   0",
-                          "  x   x   x   x      x   x   x  a8",
+                          "  0   0   x   x      x   x  a9  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0", 
                           "  i   i   i   i      i   i   i   i";
       ;
+
     memory "flash"
         paged           = yes;
         size            = 16384;
@@ -900,6 +938,57 @@ part
         max_write_delay = 9000;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
+        read_lo         = "  0   0   1   0      0   0   0   0",
+                          "  0   0 a13 a12    a11 a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
+
+        read_hi         = "  0   0   1   0      1   0   0   0",
+                          "  0   0 a13 a12    a11 a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
+
+        loadpage_lo     = "  0   1   0   0      0   0   0   0",
+                          "  0   0   x   x      x   x   x   x",
+                          "  x   x  a5  a4     a3  a2  a1  a0",
+                          "  i   i   i   i      i   i   i   i";
+
+        loadpage_hi     = "  0   1   0   0      1   0   0   0",
+                          "  0   0   x   x      x   x   x   x",
+                          "  x   x  a5  a4     a3  a2  a1  a0",
+                          "  i   i   i   i      i   i   i   i";
+
+        writepage       = "  0   1   0   0      1   1   0   0",
+                          "  0   0 a13 a12    a11 a10  a9  a8",
+                          " a7  a6   x   x      x   x   x   x",
+                          "  x   x   x   x      x   x   x   x";
+      ;
+
+    memory "lock"
+        size            = 1;
+        read            = "0 1 0 1  1 0 0 0   0 0 0 0  0 0 0 0",
+                          "x x x x  x x x x   x x o o  o o o o";
+
+        write           = "1 0 1 0  1 1 0 0   1 1 1 x  x x x x",
+                          "x x x x  x x x x   1 1 i i  i i i i";
+      ;
+
+    memory "lfuse"
+        size            = 1;
+        read            = "0 1 0 1  0 0 0 0   0 0 0 0  0 0 0 0",
+                          "x x x x  x x x x   o o o o  o o o o";
+
+        write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 0 0 0",
+                          "x x x x  x x x x   i i i i  i i i i";
+      ;
+
+    memory "hfuse"
+        size            = 1;
+        read            = "0 1 0 1  1 0 0 0   0 0 0 0  1 0 0 0",
+                          "x x x x  x x x x   o o o o  o o o o";
+
+        write           = "1 0 1 0  1 1 0 0   1 0 1 0  1 0 0 0",
+                          "x x x x  x x x x   i i i i  i i i i";
       ;
     memory "signature"
         size            = 3;
@@ -938,6 +1027,7 @@ part
                           " a7  a6  a5  a4     a3  a2  a1  a0", 
                           "  i   i   i   i      i   i   i   i";
       ;
+
     memory "flash"
         paged           = yes;
         size            = 16384;
@@ -972,6 +1062,7 @@ part
                           " a7  a6   x   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
       ;
+
     memory "lfuse"
         size            = 1;
         min_write_delay = 2000;
@@ -982,6 +1073,7 @@ part
         write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 0 0 0",
                           "x x x x  x x x x   i i 1 1  i i i i";
       ;
+
     memory "hfuse"
         size            = 1;
         min_write_delay = 2000;
@@ -992,6 +1084,7 @@ part
         write           = "1 0 1 0  1 1 0 0   1 0 1 0  1 0 0 0",
                           "x x x x  x x x x   1 1 1 1  1 i i i";
       ;
+
     memory "lock"
         size            = 1;
         min_write_delay = 2000;
@@ -1002,11 +1095,13 @@ part
         write           = "1 0 1 0  1 1 0 0   1 1 1 x  x x x x",
                           "x x x x  x x x x   1 1 i i  i i i i";
       ;
+
     memory "signature"
         size            = 3;
         read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
                           "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
       ;
+
     memory "calibration"
         size            = 1;
         read            = "0 0 1 1  1 0 0 0   x x x x  x x x x",
@@ -1023,7 +1118,7 @@ part
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
 
-    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
+    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
                        "x x x x  x x x x    x x x x  x x x x";
 
     memory "eeprom"
@@ -1033,12 +1128,12 @@ part
         readback_p1     = 0xff;
         readback_p2     = 0xff;
 	read            = "  1   0   1   0      0   0   0   0",
-                          "  x   x   x   x      x   x   x  a8",
+                          "  0   0   x   x      x   x   x  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0",
                           "  o   o   o   o      o   o   o   o";
 
 	write           = "  1   1   0   0      0   0   0   0",
-                          "  x   x   x   x      x   x   x  a8",
+                          "  0   0   x   x      x   x   x  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0", 
                           "  i   i   i   i      i   i   i   i";
       ;
@@ -1051,7 +1146,71 @@ part
         max_write_delay = 9000;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
+        read_lo         = "  0   0   1   0    0   0   0   0",
+                          "  0   0   0   0  a11 a10  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        read_hi         = "  0   0   1   0    1   0   0   0",
+                          "  0   0   0   0  a11 a10  a9  a8",
+                          " a7  a6  a5  a4   a3  a2  a1  a0",
+                          "  o   o   o   o    o   o   o   o";
+
+        loadpage_lo     = "  0   1   0   0      0   0   0   0",
+                          "  0   0   0   0      x   x   x   x",
+                          "  x   x   x  a4     a3  a2  a1  a0",
+                          "  i   i   i   i      i   i   i   i";
+
+        loadpage_hi     = "  0   1   0   0      1   0   0   0",
+                          "  0   0   0   0      x   x   x   x",
+                          "  x   x   x  a4     a3  a2  a1  a0",
+                          "  i   i   i   i      i   i   i   i";
+
+        writepage       = "  0   1   0   0      1   1   0   0",
+                          "  0   0   0   0    a11 a10  a9  a8",
+                          " a7  a6  a5   x      x   x   x   x",
+                          "  x   x   x   x      x   x   x   x";
       ;
+
+    memory "lfuse"
+        size            = 1;
+        min_write_delay = 2000;
+        max_write_delay = 2000;
+        read            = "0 1 0 1  0 0 0 0   0 0 0 0  0 0 0 0",
+                          "x x x x  x x x x   o o o o  o o o o";
+
+        write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 0 0 0",
+                          "x x x x  x x x x   i i i i  i i i i";
+      ;
+
+    memory "hfuse"
+        size            = 1;
+        min_write_delay = 2000;
+        max_write_delay = 2000;
+        read            = "0 1 0 1  1 0 0 0   0 0 0 0  1 0 0 0",
+                          "x x x x  x x x x   o o o o  o o o o";
+
+        write           = "1 0 1 0  1 1 0 0   1 0 1 0  1 0 0 0",
+                          "x x x x  x x x x   i i i i  i i i i";
+      ;
+
+    memory "lock"
+        size            = 1;
+        min_write_delay = 2000;
+        max_write_delay = 2000;
+        read            = "0 1 0 1  1 0 0 0   0 0 0 0  0 0 0 0",
+                          "x x x x  x x x x   x x o o  o o o o";
+
+        write           = "1 0 1 0  1 1 0 0   1 1 1 x  x x x x",
+                          "x x x x  x x x x   1 1 i i  i i i i";
+      ;
+
+    memory "calibration"
+        size            = 1;
+        read            = "0 0 1 1  1 0 0 0   0 0 x x  x x x x",
+                          "0 0 0 0  0 0 0 0   o o o o  o o o o";
+      ;
+
     memory "signature"
         size            = 3;
         read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",

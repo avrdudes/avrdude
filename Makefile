@@ -80,8 +80,9 @@ ${CONFIGDIR}/avrprog.conf.sample : avrprog.conf.sample
 
 ${CONFIGDIR}/avrprog.conf : avrprog.conf.sample
 	@if [ -f ${CONFIGDIR}/avrprog.conf ]; then                       \
-	  echo "NOTE: backing up ${CONFIGDIR}/avrprog.conf to ${CONFIGDIR}/avrprog.conf.old"; \
-	  cp -p ${CONFIGDIR}/avrprog.conf ${CONFIGDIR}/avrprog.conf.old; \
+	  export TS=`date '+%Y%m%d%H%M%S'`;                              \
+	  echo "NOTE: backing up ${CONFIGDIR}/avrprog.conf to ${CONFIGDIR}/avrprog.conf.$${TS}"; \
+	  cp -p ${CONFIGDIR}/avrprog.conf ${CONFIGDIR}/avrprog.conf.$${TS}; \
 	fi
 	${INSTALL_DATA} avrprog.conf.sample $@
 
