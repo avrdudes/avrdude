@@ -41,6 +41,7 @@
 #include "serial.h"
 
 
+extern int    verbose;
 extern char * progname;
 extern int do_cycles;
 
@@ -727,7 +728,9 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 #endif     
 
   for (addr = 0; addr < n; addr += page_size) {
-    fprintf(stderr, "\r      \r%6u", addr);
+    if (verbose) {
+      fprintf(stderr, "\r      \r%6u", addr);
+    }
     tries = 0;
   retry:
     tries++;
@@ -771,8 +774,10 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       return -5;
     }
   }
-  fprintf(stderr, "\r      \r%6u", addr-1);
-  fprintf(stderr, "\n");
+  if (verbose) {
+    fprintf(stderr, "\r      \r%6u", addr-1);
+    fprintf(stderr, "\n");
+  }
 
   return n;
 }
@@ -817,7 +822,9 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   }
 
   for (addr = 0; addr < n; addr += page_size) {
-    fprintf(stderr, "\r      \r%6u", addr);
+    if (verbose) {
+      fprintf(stderr, "\r      \r%6u", addr);
+    }
     tries = 0;
   retry:
     tries++;
@@ -858,8 +865,10 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       return -5;
     }
   }
-  fprintf(stderr, "\r      \r%6u", addr-1);
-  fprintf(stderr, "\n");
+  if (verbose) {
+    fprintf(stderr, "\r      \r%6u", addr-1);
+    fprintf(stderr, "\n");
+  }
 
   return n;
 }
