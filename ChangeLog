@@ -1,3 +1,8 @@
+2003-05-04  Theodore A. Roth  <troth@openavr.org>
+
+	* configure.ac: Check for ncurses library (since it can be a
+	replacement for termcap).
+
 2003-05-02  Theodore A. Roth  <troth@openavr.org>
 
 	* avrdude.conf.in: Add avr decodes for devices known in avr910

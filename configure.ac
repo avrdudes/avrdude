@@ -42,6 +42,7 @@ AM_PROG_LEX
 
 # Checks for libraries.
 AC_CHECK_LIB([termcap], [tputs])
+AC_CHECK_LIB([ncurses], [tputs])
 AC_CHECK_LIB([readline], [readline])
 
 # Checks for header files.
