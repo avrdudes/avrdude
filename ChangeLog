@@ -9,7 +9,7 @@
 	firmware version 2.3.
 	Add missing stk500 devocde for 2343.
 
-2003-04-23  Eric B. Weddington  <eric@umginc.net>
+2003-04-23  Eric B. Weddington  <eric@ecentral.com>
 
 	* fileio.c: Fix for bug #3293. Set correct open mode for raw format
 	for Windows.
@@ -28,23 +28,23 @@
 	* configure.ac: Set version to 4.1.0.
 	* doc/avrdude.texi: Add note about avr910 programmer type.
 
-2003-04-17  Eric B. Weddington  <eric@umginc.net>
+2003-04-17  Eric B. Weddington  <eric@ecentral.com>
 
 	* NEWS: Replace TBD with new release version.
 
-2003-04-17  Eric B. Weddington  <eric@umginc.net>
+2003-04-17  Eric B. Weddington  <eric@ecentral.com>
 
 	* avrdude.conf.in: Change name of pony programmer to pony-stk200
 	to better describe the hardware (PonyProg is software that works
 	with various hardware).
 
-2003-04-16  Eric B. Weddington  <eric@umginc.net>
+2003-04-16  Eric B. Weddington  <eric@ecentral.com>
 
 	* avrdude.conf.in: Add support for ATtiny26
 	Submitted by Artur Lipowski <LAL@pro.onet.pl>
 	* NEWS: List new devices supported: ATtiny26
 
-2003-04-16  Eric B. Weddington <eric@umginc.net>
+2003-04-16  Eric B. Weddington <eric@ecentral.com>
 
 	* avrdude.conf.in: Add support for ATmega8535
 	Submitted by Alexander Peter <apeter@gmx.de>
@@ -72,7 +72,7 @@
 	* avr910.c: Refactor to allow probing for auto addr increment. If auto
 	incr supported by programmer hw, don't send addr for every byte.
 
-2003-04-03  Eric B. Weddington <eric@umginc.net>
+2003-04-03  Eric B. Weddington <eric@ecentral.com>
 	
 	* confwin.c: Fix bug that allows garbage for non-existent user
 	config filename on Windows.
@@ -112,7 +112,7 @@
 
 	* avrdude.conf.in: Fix typo for devicecode deprecation comment.
 
-2003-03-17  Eric B. Weddington  <eric@umginc.net>
+2003-03-17  Eric B. Weddington  <eric@ecentral.com>
 
 	* avrdude.conf.in: Add Bascom SAMPLE programmer. 
 	Submitted by Larry Barello <larryba@barrello.net>
@@ -200,7 +200,7 @@
 	* NEWS: Moved contents of CHANGELOG file here.
 	* README: Add note pointing to savannah site.
 
-2003-03-11  Eric Weddington <eric@umginc.net>
+2003-03-11  Eric Weddington <eric@ecentral.com>
 
 	* doc/avrdude.texi:
 	Add Install and Documentation sections for Windows. Fix typo.
@@ -236,7 +236,7 @@
 	Export ${AUTOCONF} so automake will find it by whatever name it will be
 	called today.
 
-2003-03-06  Eric Weddington <eric@umginc.net>
+2003-03-06  Eric Weddington <eric@ecentral.com>
 
 	* doc/avrdude.texi:
 	Add notes about ability to list parts and list programmers in the
@@ -321,7 +321,7 @@
 	Print out a list of valid parts for '-p ?' and a list of valid
 	programmers for '-c ?'.
 
-2003-03-04  Eric Weddington <eric@umginc.net>
+2003-03-04  Eric Weddington <eric@ecentral.com>
 
 	* doc/avrdude.texi: Minor Windows doc corrections.
 
@@ -408,7 +408,7 @@
 	* avrdude.conf.in, avrdude.conf.sample:
 	Renamed avrdude.conf.sample to avrdude.conf.in.
 
-2003-02-25  Eric Weddington <eric@umginc.net>
+2003-02-25  Eric Weddington <eric@ecentral.com>
 
 	* ppiwin.c: CRs again.
 
@@ -421,7 +421,7 @@
 	* avrdude.1: Atmel has rearranged their web site, so now the AVR
 	docs have been moved to a more logically sounding URL.
 
-2003-02-24  Eric Weddington <eric@umginc.net>
+2003-02-24  Eric Weddington <eric@ecentral.com>
 
 	* Makefile.am, main.c: Integrate Windows search of config files.
 
@@ -484,7 +484,7 @@
 	config file, thus, avrdude is not very useful without the config file,
 	and thus, having a programmer compiled-in offers little or no benefit.
 
-2003-02-21  Eric Weddington <eric@umginc.net>
+2003-02-21  Eric Weddington <eric@ecentral.com>
 
 	* main.c: Change usage text to be verbose.
 
@@ -512,7 +512,7 @@
 	indicate that /RESET should be pulsed, while older parts say to pulse
 	SCK.
 
-2003-02-20  Eric Weddington <eric@umginc.net>
+2003-02-20  Eric Weddington <eric@ecentral.com>
 
 	* main.c, par.c:
 	Make verbose global. Make debug code in par_cmd() based on verbose=2.
@@ -537,7 +537,7 @@
 	Defaults for 'serial' and 'parallel' are 'yes' unless specified
 	otherwise.
 
-2003-02-20  Eric Weddington <eric@umginc.net>
+2003-02-20  Eric Weddington <eric@ecentral.com>
 
 	* Makefile.am, ppiwin.c: Get rid of CRs.
 
