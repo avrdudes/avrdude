@@ -30,19 +30,5 @@ html:
 	texi2html -split_node $(srcdir)/$(info_TEXINFOS)
 	mv *.html avrdude-html
 
-# This rule is only need for automake versions prior to 1.7
-#ps: avrdude.ps
-
-# The pdf rules are only needed for automake versions prior to 1.7
-
-#pdf: avrdude.pdf
-
-#avrdude.pdf: $(info_TEXINFOS)
-
-#SUFFIXES = .pdf
-
-#.texi.pdf:
-#	texi2pdf $?
-
 clean-local:
 	rm -rf avrdude-html *.info
