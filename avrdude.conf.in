@@ -256,6 +256,16 @@ programmer
 ;
 
 programmer
+  id    = "bascom";
+  desc  = "Bascom SAMPLE programming cable";
+  type  = par;
+  reset = 4;
+  sck   = 5;
+  mosi  = 2;
+  miso  = 11;
+;
+
+programmer
   id     = "alf";
   desc   = "Tony Friebel's Programmer";
   type   = par;
