@@ -282,7 +282,7 @@ int main ( int argc, char * argv [] )
 
   /* options / operating mode variables */
   int     memtype;     /* AVR_FLASH or AVR_EEPROM */
-  int     doread;      /* 0=reading, 1=writing */
+  int     doread;      /* 1=reading AVR, 0=writing AVR */
   int     erase;       /* 1=erase chip, 0=don't */
   char  * outputf;     /* output file name */
   char  * inputf;      /* input file name */
@@ -599,7 +599,7 @@ int main ( int argc, char * argv [] )
     /*
      * Check here to see if any other operations were selected and
      * generate an error message because if they were, we need either
-     * an input or and output file, but one was not selected.
+     * an input or an output file, but one was not selected.
      * Otherwise, we just shut down.  
      */
     if (readorwrite) {
@@ -689,8 +689,8 @@ int main ( int argc, char * argv [] )
 
   if (!doread && verify) {
     /* 
-     * verify that the in memory file (p->flash or p->eeprom) is the
-     * same as what is on the chip 
+     * verify that the in memory file (p->mem[AVR_FLASH|AVR_EEPROM])
+     * is the same as what is on the chip 
      */
     LED_ON(fd, PIN_LED_VFY);
 
