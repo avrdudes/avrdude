@@ -72,27 +72,27 @@ int do_cycles;   /* track erase-rewrite cycles */
  */
 void usage(void)
 {
-  printf(
-		"Usage: %s [options]\n"
-		"Options:\n"
-		"  -p <partno>                Required. Specify AVR device.\n"
-		"  -C <config-file>           Specify location of configuration file.\n"
-		"  -c <programmer>            Specify programmer type.\n"
-		"  -P <port>                  Specify connection port.\n"
-		"  -F                         Override invalid signature check.\n"
-		"  -e                         Perform a chip erase.\n"
-		"  -m <memtype>               Memory type to operate on.\n"
-		"  -i <filename>              Write device. Specify an input file.\n"
-		"  -o <filename>              Read device. Specify an output file.\n"
-		"  -f <format>                Specify the file format.\n"
-		"  -n                         Do not write anything to the device.\n"
-		"  -V                         Do not verify.\n"
-		"  -t                         Enter terminal mode.\n"
-		"  -E <exitspec>[,<exitspec>] List programmer exit specifications.\n"
-		"  -v                         Verbose output. An additional -v can be added.\n"
-		"  -?                         Display this usage.\n"
-		"\navrdude project: <URL:http://savannah.nongnu.org/projects/avrdude>\n"
-		,progname);
+    fprintf(stderr,
+    "Usage: %s [options]\n"
+    "Options:\n"
+    "  -p <partno>                Required. Specify AVR device.\n"
+    "  -C <config-file>           Specify location of configuration file.\n"
+    "  -c <programmer>            Specify programmer type.\n"
+    "  -P <port>                  Specify connection port.\n"
+    "  -F                         Override invalid signature check.\n"
+    "  -e                         Perform a chip erase.\n"
+    "  -m <memtype>               Memory type to operate on.\n"
+    "  -i <filename>              Write device. Specify an input file.\n"
+    "  -o <filename>              Read device. Specify an output file.\n"
+    "  -f <format>                Specify the file format.\n"
+    "  -n                         Do not write anything to the device.\n"
+    "  -V                         Do not verify.\n"
+    "  -t                         Enter terminal mode.\n"
+    "  -E <exitspec>[,<exitspec>] List programmer exit specifications.\n"
+    "  -v                         Verbose output. -v -v for more.\n"
+    "  -?                         Display this usage.\n"
+    "\navrdude project: <URL:http://savannah.nongnu.org/projects/avrdude>\n"
+    ,progname);
 }
 
 
