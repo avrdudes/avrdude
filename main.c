@@ -47,10 +47,27 @@
 #include "config.h"
 #include "confwin.h"
 #include "fileio.h"
+#include "lists.h"
 #include "par.h"
 #include "pindefs.h"
 #include "ppi.h"
 #include "term.h"
+
+
+enum {
+  DEVICE_READ, 
+  DEVICE_WRITE,
+  DEVICE_VERIFY
+};
+
+
+typedef struct update_t {
+  char * memtype;
+  int    op;
+  char * filename;
+  int    format;
+} UPDATE;
+
 
 
 /* Get VERSION from ac_cfg.h */
@@ -63,6 +80,8 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              multiline messages */
 
 PROGRAMMER * pgm = NULL;
+
+LISTID updates;
 
 /*
  * global options
@@ -88,6 +107,10 @@ void usage(void)
     "  -i <filename>              Write device. Specify an input file.\n"
     "  -o <filename>              Read device. Specify an output file.\n"
     "  -f <format>                Specify the file format.\n"
+    "  -U <memtype>:r|w|v:<filename>[:format]\n"
+    "                             Alternate memory operation specification.\n"
+    "                             Multiple -U options are allowed, each request\n"
+    "                             is performed in the order specified.\n"
     "  -n                         Do not write anything to the device.\n"
     "  -V                         Do not verify.\n"
     "  -t                         Enter terminal mode.\n"
@@ -362,6 +385,322 @@ static void update_progress_no_tty (int percent, double etime, char *hdr)
     last = (percent>>1)*2;    /* Make last a multiple of 2. */
 }
 
+
+UPDATE * parse_op(char * s)
+{
+  char buf[1024];
+  char * p;
+  UPDATE * upd;
+  int i;
+
+  upd = (UPDATE *)malloc(sizeof(UPDATE));
+  if (upd == NULL) {
+    fprintf(stderr, "%s: out of memory\n", progname);
+    exit(1);
+  }
+
+  i = 0;
+  p = s;
+  while ((i < (sizeof(buf)-1) && *p && (*p != ':')))
+    buf[i++] = *p++;
+
+  if (*p != ':') {
+    fprintf(stderr, "%s: invalid update specification\n", progname);
+    free(upd);
+    return NULL;
+  }
+
+  buf[i] = 0;
+
+  upd->memtype = (char *)malloc(strlen(buf)+1);
+  if (upd->memtype == NULL) {
+    fprintf(stderr, "%s: out of memory\n", progname);
+    exit(1);
+  }
+  strcpy(upd->memtype, buf);
+
+  p++;
+  if (*p == 'r') {
+    upd->op = DEVICE_READ;
+  }
+  else if (*p == 'w') {
+    upd->op = DEVICE_WRITE;
+  }
+  else if (*p == 'v') {
+    upd->op = DEVICE_VERIFY;
+  }
+  else {
+    fprintf(stderr, "%s: invalid I/O mode '%c' in update specification\n",
+            progname, *p);
+    fprintf(stderr, 
+            "  allowed values are:\n"
+            "    r = read device\n"
+            "    w = write device\n"
+            "    v = verify device\n");
+    free(upd->memtype);
+    free(upd);
+    return NULL;
+  }
+
+  p++;
+
+  if (*p != ':') {
+    fprintf(stderr, "%s: invalid update specification\n", progname);
+    free(upd->memtype);
+    free(upd);
+    return NULL;
+  }
+
+  p++;
+
+  i = 0;
+  while ((i < (sizeof(buf)-1) && *p && (*p != ':')))
+    buf[i++] = *p++;
+  
+  if (!((*p == ':')||(*p == 0))) {
+    fprintf(stderr, "%s: invalid update specification\n", progname);
+    free(upd->memtype);
+    free(upd);
+    return NULL;
+  }
+
+  buf[i] = 0;
+
+  upd->filename = (char *)malloc(strlen(buf)+1);
+  if (upd->filename == NULL) {
+    fprintf(stderr, "%s: out of memory\n", progname);
+    free(upd->memtype);
+    free(upd);
+    return NULL;
+  }
+  strcpy(upd->filename, buf);
+
+  upd->format = FMT_AUTO;
+
+  if (*p == ':') {
+    p++;
+    switch (*p) {
+      case 'a': upd->format = FMT_AUTO; break;
+      case 's': upd->format = FMT_SREC; break;
+      case 'i': upd->format = FMT_IHEX; break;
+      case 'r': upd->format = FMT_RBIN; break;
+      case 'm': upd->format = FMT_IMM; break;
+      default:
+        fprintf(stderr, "%s: invalid file format '%c' in update specifier\n",
+                progname, *p);
+        free(upd->memtype);
+        free(upd->filename);
+        free(upd);
+        return NULL;
+    }
+    p++;
+  }
+
+  if (*p != 0) {
+    fprintf(stderr, 
+            "%s: WARNING, extraneous data (%s) in update specifier ignored\n",
+            progname, p);
+  }
+  
+  return upd;
+}
+
+
+UPDATE * dup_update(UPDATE * upd)
+{
+  UPDATE * u;
+
+  u = (UPDATE *)malloc(sizeof(UPDATE));
+  if (u == NULL) {
+    fprintf(stderr, "%s: out of memory\n", progname);
+    exit(1);
+  }
+
+  memcpy(u, upd, sizeof(UPDATE));
+
+  u->memtype = strdup(upd->memtype);
+  u->filename = strdup(upd->filename);
+
+  return u;
+}
+
+
+
+UPDATE * new_update(int op, char * memtype, int filefmt, char * filename)
+{
+  UPDATE * u;
+
+  u = (UPDATE *)malloc(sizeof(UPDATE));
+  if (u == NULL) {
+    fprintf(stderr, "%s: out of memory\n", progname);
+    exit(1);
+  }
+
+  u->memtype = strdup(memtype);
+  u->filename = strdup(filename);
+  u->op = op;
+  u->format = filefmt;
+
+  return u;
+}
+
+
+
+int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite, 
+          int verify)
+{
+  struct avrpart * v;
+  AVRMEM * mem;
+  long size, vsize;
+  int rc;
+
+  mem = avr_locate_mem(p, upd->memtype);
+  if (mem == NULL) {
+    fprintf(stderr, "\"%s\" memory type not defined for part \"%s\"\n",
+            upd->memtype, p->desc);
+    return -1;
+  }
+
+  if (upd->op == DEVICE_READ) {
+    /*
+     * read out the specified device memory and write it to a file 
+     */
+    fprintf(stderr, "%s: reading %s memory:\n", 
+            progname, upd->memtype);
+    report_progress(0,1,"Reading");
+    rc = avr_read(pgm, p, upd->memtype, 0, 1);
+    if (rc < 0) {
+      fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
+              progname, upd->memtype, rc);
+      return -1;
+    }
+    report_progress(1,1,NULL);
+    size = rc;
+
+    fprintf(stderr, 
+            "%s: writing output file \"%s\"\n",
+            progname, 
+            strcmp(upd->filename, "-")==0 ? "<stdout>" : upd->filename);
+    rc = fileio(FIO_WRITE, upd->filename, upd->format, p, upd->memtype, size);
+    if (rc < 0) {
+      fprintf(stderr, "%s: write to file '%s' failed\n", 
+              progname, upd->filename);
+      return -1;
+    }
+  }
+  else if (upd->op == DEVICE_WRITE) {
+   /*
+     * write the selected device memory using data from a file; first
+     * read the data from the specified file
+     */
+    fprintf(stderr, 
+            "%s: reading input file \"%s\"\n",
+            progname, 
+            strcmp(upd->filename, "-")==0 ? "<stdin>" : upd->filename);
+    rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1);
+    if (rc < 0) {
+      fprintf(stderr, "%s: write to file '%s' failed\n", 
+              progname, upd->filename);
+      return -1;
+    }
+    size = rc;
+
+    /*
+     * write the buffer contents to the selected memory type
+     */
+    fprintf(stderr, "%s: writing %s (%d bytes):\n", 
+            progname, upd->memtype, size);
+
+    if (!nowrite) {
+      report_progress(0,1,"Writing");
+      rc = avr_write(pgm, p, upd->memtype, size, 1);
+      report_progress(1,1,NULL);
+    }
+    else {
+      /* 
+       * test mode, don't actually write to the chip, output the buffer
+       * to stdout in intel hex instead 
+       */
+      rc = fileio(FIO_WRITE, "-", FMT_IHEX, p, upd->memtype, size);
+    }
+
+    if (rc < 0) {
+      fprintf(stderr, "%s: failed to write %s memory, rc=%d\n", 
+                progname, upd->memtype, rc);
+      return -1;
+    }
+
+    vsize = rc;
+
+    fprintf(stderr, "%s: %d bytes of %s written\n", progname, 
+            vsize, upd->memtype);
+
+  }
+  else if (upd->op == DEVICE_VERIFY) {
+    /* 
+     * verify that the in memory file (p->mem[AVR_M_FLASH|AVR_M_EEPROM])
+     * is the same as what is on the chip 
+     */
+    pgm->vfy_led(pgm, ON);
+
+    v = avr_dup_part(p);
+
+    fprintf(stderr, "%s: verifying %s memory against %s:\n", 
+            progname, upd->memtype, upd->filename);
+
+    fprintf(stderr, "%s: load data %s data from input file %s:\n",
+            progname, upd->memtype, upd->filename);
+
+    rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1);
+    if (rc < 0) {
+      fprintf(stderr, "%s: read from file '%s' failed\n", 
+              progname, upd->filename);
+      return -1;
+    }
+    size = rc;
+    fprintf(stderr, "%s: input file %s contains %ld bytes\n", 
+            progname, upd->filename, size);
+
+
+
+    fprintf(stderr, "%s: reading on-chip %s data:\n", 
+            progname, upd->memtype);
+
+    report_progress (0,1,"Reading");
+    rc = avr_read(pgm, v, upd->memtype, size, 1);
+    if (rc < 0) {
+      fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
+              progname, upd->memtype, rc);
+      pgm->err_led(pgm, ON);
+      return -1;
+    }
+    report_progress (1,1,NULL);
+
+
+
+    fprintf(stderr, "%s: verifying ...\n", progname);
+    rc = avr_verify(p, v, upd->memtype, size);
+    if (rc < 0) {
+      fprintf(stderr, "%s: verification error; content mismatch\n", 
+              progname);
+      pgm->err_led(pgm, ON);
+      return -1;
+    }
+    
+    fprintf(stderr, "%s: %d bytes of %s verified\n", 
+            progname, rc, upd->memtype);
+
+    pgm->vfy_led(pgm, OFF);
+  }
+  else {
+    fprintf(stderr, "%s: invalid update operation (%d) requested\n",
+            progname, upd->op);
+    return -1;
+  }
+
+  return 0;
+}
+
 /*
  * main routine
  */
@@ -380,10 +719,13 @@ int main(int argc, char * argv [])
   int              vsize=-1;    /* number of bytes to verify */
   AVRMEM         * sig;         /* signature data */
   struct stat      sb;
+  UPDATE         * upd;
+  LNODEID        * ln;
 
   /* options / operating mode variables */
   char *  memtype;     /* "flash", "eeprom", etc */
-  int     doread;      /* 1=reading AVR, 0=writing AVR */
+  int     doread;      /* 1=reading AVR */
+  int     dowrite;     /* 1=writing AVR */
   int     erase;       /* 1=erase chip, 0=don't */
   char  * outputf;     /* output file name */
   char  * inputf;      /* input file name */
@@ -417,12 +759,19 @@ int main(int argc, char * argv [])
 
   init_config();
 
+  updates = lcreat(NULL, 0);
+  if (updates == NULL) {
+    fprintf(stderr, "%s: cannot initialize updater list\n", progname);
+    exit(1);
+  }
+
   partdesc      = NULL;
   readorwrite   = 0;
   port          = default_parallel;
   outputf       = NULL;
   inputf        = NULL;
-  doread        = 1;
+  doread        = 0;
+  dowrite       = 0;
   memtype       = "flash";
   erase         = 0;
   p             = NULL;
@@ -484,7 +833,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?c:C:eE:f:Fi:I:m:no:p:P:qtvVyY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?c:C:eE:f:Fi:I:m:no:p:P:qtvU:VyY:")) != -1) {
 
     switch (ch) {
       case 'c': /* programmer id */
@@ -550,7 +899,7 @@ int main(int argc, char * argv [])
           fprintf(stderr,"%s: -o, -i, and -t are incompatible\n\n", progname);
           return 1;
         }
-        doread = 0;
+        dowrite = 1;
         inputf = optarg;
         break;
 
@@ -559,7 +908,7 @@ int main(int argc, char * argv [])
           fprintf(stderr,"%s: -o, -I, and -t are incompatible\n\n", progname);
           return 1;
         }
-        doread = 0;
+        dowrite = 1;
         inputf = optarg;
         filefmt = FMT_IMM;
         break;
@@ -599,6 +948,22 @@ int main(int argc, char * argv [])
 
       case 'P':
         port = optarg;
+        break;
+
+      case 'U':
+        upd = parse_op(optarg);
+        if (upd == NULL) {
+          fprintf(stderr, "%s: error parsing update operation '%s'\n",
+                  progname, optarg);
+          exit(1);
+        }
+        ladd(updates, upd);
+
+        if (verify && upd->op == DEVICE_WRITE) {
+          upd = dup_update(upd);
+          upd->op = DEVICE_VERIFY;
+          ladd(updates, upd);
+        }
         break;
 
       case 'v':
@@ -970,7 +1335,8 @@ int main(int argc, char * argv [])
 
 
 
-  if (!terminal && ((inputf==NULL) && (outputf==NULL))) {
+  if (!terminal && (lsize(updates) == 0) &&
+      ((inputf==NULL) && (outputf==NULL))) {
     /*
      * Check here to see if any other operations were selected and
      * generate an error message because if they were, we need either
@@ -985,6 +1351,13 @@ int main(int argc, char * argv [])
     goto main_exit;
   }
 
+  if (doread && dowrite) {
+    fprintf(stderr, "%s: can't be reading and writing from/to the same file\n",
+            progname);
+    exitrc = 1;
+    goto main_exit;
+  }
+
   if (terminal) {
     /*
      * terminal mode
@@ -992,119 +1365,29 @@ int main(int argc, char * argv [])
     exitrc = terminal_mode(pgm, p);
   }
   else if (doread) {
-    /*
-     * read out the specified device memory and write it to a file 
-     */
-    fprintf(stderr, "%s: reading %s memory:\n", 
-            progname, memtype);
-    report_progress(0,1,"Reading");
-    rc = avr_read(pgm, p, memtype, 0, 1);
-    if (rc < 0) {
-      fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
-              progname, memtype, rc);
-      exitrc = 1;
-      goto main_exit;
-    }
-    report_progress(1,1,NULL);
-    size = rc;
-
-    fprintf(stderr, "%s: writing output file \"%s\"\n",
-            progname, strcmp(outputf, "-")==0 ? "<stdout>" : outputf);
-    rc = fileio(FIO_WRITE, outputf, filefmt, p, memtype, size);
-    if (rc < 0) {
-      fprintf(stderr, "%s: terminating\n", progname);
-      exitrc = 1;
-      goto main_exit;
-    }
-
+    upd = new_update(DEVICE_READ, memtype, filefmt, outputf);
+    ladd(updates, upd);
   }
-  else {
-    /*
-     * write the selected device memory using data from a file; first
-     * read the data from the specified file
-     */
-    fprintf(stderr, "%s: reading input file \"%s\"\n",
-            progname, strcmp(inputf, "-")==0 ? "<stdin>" : inputf);
-    rc = fileio(FIO_READ, inputf, filefmt, p, memtype, -1);
-    if (rc < 0) {
-      fprintf(stderr, "%s: terminating\n", progname);
-      exitrc = 1;
-      goto main_exit;
-    }
-    size = rc;
-
-    /*
-     * write the buffer contents to the selected memory type
-     */
-    fprintf(stderr, "%s: writing %s (%d bytes):\n", 
-            progname, memtype, size);
-
-    if (!nowrite) {
-      report_progress(0,1,"Writing");
-      rc = avr_write(pgm, p, memtype, size, 1);
-      report_progress(1,1,NULL);
-    }
-    else {
-      /* 
-       * test mode, don't actually write to the chip, output the buffer
-       * to stdout in intel hex instead 
-       */
-      rc = fileio(FIO_WRITE, "-", FMT_IHEX, p, memtype, size);
-    }
-
-    if (rc < 0) {
-      fprintf(stderr, "%s: failed to write %s memory, rc=%d\n", 
-                progname, memtype, rc);
-      exitrc = 1;
-      goto main_exit;
-    }
-
-    vsize = rc;
-
-    fprintf(stderr, "%s: %d bytes of %s written\n", progname, 
-            vsize, memtype);
-
+  else if (dowrite) {
+    upd = new_update(DEVICE_WRITE, memtype, filefmt, inputf);
+    ladd(updates, upd);
   }
 
-  if (!doread && verify) {
-    /* 
-     * verify that the in memory file (p->mem[AVR_M_FLASH|AVR_M_EEPROM])
-     * is the same as what is on the chip 
-     */
-    pgm->vfy_led(pgm, ON);
-
-    fprintf(stderr, "%s: verifying %s memory against %s:\n", 
-            progname, memtype, inputf);
-    fprintf(stderr, "%s: reading on-chip %s data:\n", 
-            progname, memtype);
-    report_progress (0,1,"Reading");
-    rc = avr_read(pgm, v, memtype, vsize, 1);
-    if (rc < 0) {
-      fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
-              progname, memtype, rc);
-      pgm->err_led(pgm, ON);
-      exitrc = 1;
-      goto main_exit;
-    }
-    report_progress (1,1,NULL);
-
-    fprintf(stderr, "%s: verifying ...\n", progname);
-    rc = avr_verify(p, v, memtype, vsize);
-    if (rc < 0) {
-      fprintf(stderr, "%s: verification error; content mismatch\n", 
-              progname);
-      pgm->err_led(pgm, ON);
-      exitrc = 1;
-      goto main_exit;
-    }
-    
-    fprintf(stderr, "%s: %d bytes of %s verified\n", 
-            progname, rc, memtype);
-
-    pgm->vfy_led(pgm, OFF);
+  if (!doread && verify && inputf) {
+    upd = new_update(DEVICE_VERIFY, memtype, filefmt, inputf);
+    ladd(updates, upd);
   }
 
-
+  for (ln=lfirst(updates); ln; ln=lnext(ln)) {
+    upd = ldata(ln);
+    fprintf(stderr, "%s: performing op: %d, %s, %d, %s\n",
+            progname, upd->op, upd->memtype, upd->format, upd->filename);
+    rc = do_op(pgm, p, upd, nowrite, verify);
+    if (rc) {
+      exitrc = 1;
+      break;
+    }
+  }
 
  main_exit:
 
