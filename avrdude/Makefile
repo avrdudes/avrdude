@@ -1,5 +1,5 @@
 #
-# avrdude - A Uploader/Downloader for AVR device programmers
+# avrdude - A Downloader/Uploader for AVR device programmers
 # Copyright (C) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -22,7 +22,7 @@
 #
 
 
-TARGET      = avrdude
+TARGET       = avrdude
 
 PREFIX      ?= /usr/local
 BINDIR       = ${PREFIX}/bin
@@ -49,6 +49,8 @@ LIBS       = -lreadline
 
 YYDEF  = -DYYSTYPE="struct token_t *"
 
+SRCS = avr.c config.c fileio.c lists.c main.c pgm.c ppi.c stk500.c term.c
+
 OBJS = config_gram.o avr.o config.o fileio.o lexer.o lists.o main.o pgm.o \
 	ppi.o stk500.o term.o
 
@@ -68,27 +70,23 @@ install : dirs                             \
 	  ${CONFIGDIR}/avrdude.conf.sample \
 	  ${CONFIGDIR}/avrdude.conf
 
-config_gram.o : avr.h config.h lists.h pindefs.h
+# these dependencies are manual
+config_gram.o : config.h lists.h pindefs.h ppi.h pgm.h stk500.h avr.h
+lexer.o : config.h y.tab.h lists.h
 
+# these dependencie are generated using 'make depend'
 avr.o: avr.c avr.h avrpart.h lists.h pgm.h pindefs.h config.h ppi.h
-
-config.o: config.c avr.h avrpart.h lists.h pgm.h pindefs.h config.h
-
+config.o: config.c avr.h avrpart.h lists.h pgm.h pindefs.h config.h \
+  y.tab.h
 fileio.o: fileio.c avr.h avrpart.h lists.h pgm.h pindefs.h fileio.h
-
 lists.o: lists.c lists.h
-
 main.o: main.c avr.h avrpart.h lists.h pgm.h pindefs.h config.h fileio.h \
-	ppi.h term.h
-
+  ppi.h term.h
 pgm.o: pgm.c pgm.h avrpart.h lists.h pindefs.h
-
 ppi.o: ppi.c avr.h avrpart.h lists.h pgm.h pindefs.h ppi.h config.h
-
-stk500.o: stk500.c stk500.h avr.h avrpart.h lists.h pgm.h pindefs.h stk500_private.h
-
+stk500.o: stk500.c avr.h avrpart.h lists.h pgm.h pindefs.h \
+  stk500_private.h
 term.o: term.c avr.h avrpart.h lists.h pgm.h pindefs.h config.h ppi.h
-
 
 dirs :
 	@for dir in ${DIRS}; do \
@@ -117,4 +115,9 @@ ${CONFIGDIR}/avrdude.conf : avrdude.conf.sample
 	  cp -p ${CONFIGDIR}/avrdude.conf ${CONFIGDIR}/avrdude.conf.$${TS}; \
 	fi
 	${INSTALL_DATA} avrdude.conf.sample $@
+
+depend :
+	@echo Dependency List:
+	@if [ ! -f y.tab.h ]; then touch y.tab.h; fi
+	@avr-gcc ${CFLAGS} -MM ${SRCS}
 
