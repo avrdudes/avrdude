@@ -994,18 +994,15 @@ The directory from which the application loaded.
 The current directory.
 
 @item
-The Windows system directory. Use the GetSystemDirectory function to get
-the path of this directory.  On Windows NT, the name of this directory
+The Windows system directory. On Windows NT, the name of this directory
 is @code{SYSTEM32}.
 
 @item
-Windows NT: The 16-bit Windows system directory. There is no Win32
-function that obtains the path of this directory, but it is searched.
-The name of this directory is SYSTEM.
+Windows NT: The 16-bit Windows system directory. The name of this
+directory is @code{SYSTEM}.
 
 @item
-The Windows directory. Use the GetWindowsDirectory function to get
-the path of this directory.
+The Windows directory.
 
 @item
 The directories that are listed in the PATH environment variable.
@@ -1073,8 +1070,7 @@ giveio.sys is a driver that can allow user applications to set the state
 of the parallel port pins.
 
 Before using AVRDUDE, the giveio.sys driver must be loaded. The
-accompanying loaddrv.exe program can do just that. loaddrv is also a
-command line program.
+accompanying command-line program, loaddrv.exe, can do just that.
 
 To make things even easier there are 3 batch files that are also
 included:
@@ -1097,8 +1093,8 @@ When you first execute install_giveio.bat, loaddrv.exe and giveio.sys
 must be in the current directory. When install_giveio.bat is executed it
 will copy giveio.sys from your current directory to your Windows
 directory. It will then load the driver from the Windows directory. This
-means that after the first time install_giveio is executed, subsequently
-you should be able to execute the batch file from any directory and have
+means that after the first time install_giveio is executed, you should 
+be able to subsequently execute the batch file from any directory and have
 it successfully start the driver.
 
 @node Windows 95/98,  , Windows NT/2K/XP, Using the parallel port
@@ -1122,7 +1118,7 @@ Thanks to:
 
 @itemize @bullet
 @item
-Dale Roberts for the giveio driver
+Dale Roberts for the giveio driver.
 
 @item
 Paula Tomlinson for the loaddrv sources.
