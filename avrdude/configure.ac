@@ -112,6 +112,7 @@ esac
 AC_SUBST(WINDOWS_DIRS,$WINDOWS_DIRS)
 
 AC_CONFIG_FILES([
+	doc/Makefile
 	windows/Makefile
 	avrdude.spec
 	avrdude.conf
