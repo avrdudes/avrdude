@@ -23,7 +23,7 @@
 
 	* Makefile.am: * Makefile.am (EXTRA_DIST): Add CHANGELOG.
 
-2003-03-10  Brian S. Dean  <bsd@bdmicro.com>
+2003-03-10  Brian S. Dean  <bsd@bsdhome.com>
 
 	* stk500.c: Disable debugging printf.
 
@@ -36,7 +36,7 @@
 	Use @option{} command for options instead of @code{}.
 	Merge FreeBSD and Linux platform dependent information.
 
-2003-03-10  Brian S. Dean  <bsd@bdmicro.com>
+2003-03-10  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrdude.1: Minor man page updates to better reflect reality.
 
@@ -87,7 +87,7 @@
 
 	Submitted by:	Daniel Williamson <dannyw@maconmgt.co.uk>
 
-2003-03-05  Brian S. Dean  <bsd@bdmicro.com>
+2003-03-05  Brian S. Dean  <bsd@bsdhome.com>
 
 	* main.c:
 	Check the programmer type against 'STK500' instead of the programmer
@@ -143,7 +143,7 @@
 
 	* avrdude.conf.in: Add AVR ISP programmer.
 
-2003-03-04  Brian S. Dean  <bsd@bdmicro.com>
+2003-03-04  Brian S. Dean  <bsd@bsdhome.com>
 
 	* stk500.c:
 	Don't try to set extended device programming parameters if they
@@ -170,7 +170,7 @@
 	* doc/Makefile.am: New file.
 	* doc/avrdude.texi: Use automatically generated version.texi.
 
-2003-03-02  Brian S. Dean  <bsd@bdmicro.com>
+2003-03-02  Brian S. Dean  <bsd@bsdhome.com>
 
 	* doc/avrdude.texi: Initial manual.
 
@@ -258,7 +258,7 @@
 
 	* main.c: Usage back to stderr.
 
-2003-02-22  Brian S. Dean  <bsd@bdmicro.com>
+2003-02-22  Brian S. Dean  <bsd@bsdhome.com>
 
 	* CHANGELOG: Add note about .avrduderc.
 
@@ -279,7 +279,7 @@
 
 	* CHANGELOG: Spelling.
 
-2003-02-21  Brian S. Dean  <bsd@bdmicro.com>
+2003-02-21  Brian S. Dean  <bsd@bsdhome.com>
 
 	* CHANGELOG:
 	Put some stuff in the CHANGELOG for this upcoming new version before I
@@ -307,7 +307,7 @@
 	* install_giveio.bat, remove_giveio.bat, status_giveio.bat:
 	Windows batch files to work with giveio.sys.
 
-2003-02-21  Brian S. Dean  <bsd@bdmicro.com>
+2003-02-21  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrdude.conf.sample, config.c, config.h, config_gram.y, lexer.l:
 	* main.c:
@@ -331,7 +331,7 @@
 	* main.c, par.c:
 	Make verbose global. Make debug code in par_cmd() based on verbose=2.
 
-2003-02-20  Brian S. Dean  <bsd@bdmicro.com>
+2003-02-20  Brian S. Dean  <bsd@bsdhome.com>
 
 	* stk500.c: Fix pseudo/full parallel mode selection logic.
 
@@ -362,7 +362,7 @@
 	* stk500.c:
 	Add error message for fail to enter programming mode. Fix typos.
 
-2003-02-20  Brian S. Dean  <bsd@bdmicro.com>
+2003-02-20  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avr.c, avrdude.conf.sample, avrpart.h, config_gram.y, lexer.l:
 	Add a few parameters needed for parallel programming: assignment of
@@ -373,7 +373,7 @@
 
 	* avrdude.1: Fix spacing for m169 entry. (tabs not spaces ;-)
 
-2003-02-20  Brian S. Dean  <bsd@bdmicro.com>
+2003-02-20  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrdude.1, fileio.c, main.c: Add Motorola S-record support.
 
@@ -441,11 +441,11 @@
 	* stk500.c: Include ac_cfg.h.
 	* term.c: Include ac_cfg.h.
 
-2003-02-14  Brian S. Dean  <bsd@bdmicro.com>
+2003-02-14  Brian S. Dean  <bsd@bsdhome.com>
 
 	* stk500.c: Fix typos.  Fix error messages.
 
-2003-02-13  Brian S. Dean  <bsd@bdmicro.com>
+2003-02-13  Brian S. Dean  <bsd@bsdhome.com>
 
 	* Makefile, avrdude.conf.sample, config_gram.y, lexer.l, main.c:
 	* par.c, par.h, ppi.c, ppi.h, stk500.c:
@@ -512,7 +512,7 @@
 	* Makefile:
 	Remove reference to avr-gcc in depend rule (cut & paste error).
 
-2003-02-09  Brian S. Dean  <bsd@bdmicro.com>
+2003-02-09  Brian S. Dean  <bsd@bsdhome.com>
 
 	* main.c, pgm.c, pgm.h, pindefs.h, ppi.c, ppi.h, stk500.c:
 	* stk500.h, stk500_private.h, term.c, term.h, CHANGELOG, COPYING:
@@ -523,7 +523,7 @@
 	existed on a private system.  Commits made by 'bsd' on the old system
 	were made by Brian Dean (bdean on the current system).
 
-2003-02-08  Brian S. Dean  <bsd@bdmicro.com>
+2003-02-08  Brian S. Dean  <bsd@bsdhome.com>
 
 	* Makefile, avr.c, avr.h, avrdude.1, avrpart.h, config.c,
 	* config.h, config_gram.y, fileio.c, fileio.h, lexer.l, lists.c:
@@ -542,7 +542,7 @@
 
 	All others
 
-2003-02-06  Brian S. Dean  <bsd@bdmicro.com>
+2003-02-06  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrdude.1: Update license to GPL, permission by Joerg Wunsch.
 
