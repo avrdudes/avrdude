@@ -453,6 +453,7 @@ int main(int argc, char * argv [])
           case 'i' : filefmt = FMT_IHEX; break;
           case 'r' : filefmt = FMT_RBIN; break;
           case 's' : filefmt = FMT_SREC; break;
+          case 'm' : filefmt = FMT_IMM; break;
             break;
           default :
             fprintf(stderr, "%s: invalid file format \"%s\"\n\n",
