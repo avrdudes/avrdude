@@ -360,6 +360,25 @@ part
         readback_p1     = 0xff;
         readback_p2     = 0xff;
       ;
+/*
+    instructions
+        instr "pe",   "programming enable"         [ "1010 1100", "0101 0011", "xxxx xxxx", "xxxx xxxx" ];
+        instr "ce",   "chip erase"                 [ "1010 1100", "100x xxxx", "xxxx xxxx", "xxxx xxxx" ];
+        instr "rpm",  "read program memory"        [ "0010 H000", "xxxa aaaa", "bbbb bbbb", "oooo oooo" ];
+        instr "lpmp"  "load program memory page"   [ "0100 H000", "xxxx xxxx", "xxbb bbbb", "iiii iiii" ];
+        instr "wpmp", "write program memory page"  [ "0100 1100", "xxxa aaaa", "bbxx xxxx", "xxxx xxxx" ];
+        instr "rep",  "read eeprom memory"         [ "1010 0000", "xxxx xxxa", "bbbb bbbb", "oooo oooo" ];
+        instr "wep",  "write eeprom memory"        [ "1100 0000", "xxxx xxxa", "bbbb bbbb", "iiii iiii" ];
+        instr "rlb",  "read lock bits"             [ "0101 1000", "0000 0000", "xxxx 0xxx", "xxoo oooo" ];
+        instr "wlb",  "write lock bits"            [ "1010 1100", "111x xxxx", "xxxx xxxx", "11ii iiii" ];
+        instr "rsb",  "read signature byte"        [ "0011 0000", "xxxx xxxx", "xxxx xxbb", "oooo oooo" ];
+        instr "wfb",  "write fuse bits"            [ "1010 1100", "1010 0000", "xxxx xxxx", "ii11 iiii" ];
+        instr "wfhb", "write fuse high bits"       [ "1010 1100", "1010 1000", "xxxx xxxx", "1111 1iii" ];
+        instr "rfb",  "read fuse bits"             [ "0101 0000", "0000 0000", "xxxx xxxx", "ooxx oooo" ];
+        instr "rfhb", "read fuse high bits"        [ "0101 1000", "0000 1000", "xxxx xxxx", "xxxx 1ooo" ];
+        instr "rcb",  "read calibration byte"      [ "0011 1000", "xxxx xxxx", "0000 0000", "oooo oooo" ];
+      ;
+*/
   ;
 
 part

@@ -893,7 +893,7 @@ int main(int argc, char * argv [])
      */
     fprintf(stderr, "%s: reading %s memory:\n", 
             progname, avr_memtstr(memtype));
-    rc = avr_read(fd, p, memtype);
+    rc = avr_read(fd, p, memtype, 0);
     if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
               progname, avr_memtstr(memtype), rc);
@@ -969,7 +969,7 @@ int main(int argc, char * argv [])
             progname, avr_memtstr(memtype), inputf);
     fprintf(stderr, "%s: reading on-chip %s data:\n", 
             progname, avr_memtstr(memtype));
-    rc = avr_read(fd, v, memtype);
+    rc = avr_read(fd, v, memtype, vsize);
     if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
               progname, avr_memtstr(memtype), rc);
