@@ -375,7 +375,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?c:C:eE:f:FiI:m:no:p:P:tvVyY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?c:C:eE:f:Fi:I:m:no:p:P:tvVyY:")) != -1) {
 
     switch (ch) {
       case 'c': /* programmer id */
