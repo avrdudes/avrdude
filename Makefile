@@ -17,28 +17,36 @@ DIRS         = ${BINDIR} ${MANDIR} ${DOCDIR} ${CONFIGDIR}
 
 INSTALL      = /usr/bin/install -c -o root -g wheel
 
-CFLAGS       = -g -Wall --pedantic -DCONFIG_DIR=\"${CONFIGDIR}\"
-
+CFLAGS       = -g -Wall --pedantic -DCONFIG_DIR=\"${CONFIGDIR}\" ${YYDEF}
 LDFLAGS      =  
+YFLAGS       = -t -d -v
 
 INSTALL_PROGRAM = ${INSTALL} -m 555 -s
 INSTALL_DATA    = ${INSTALL} -m 444
 INSTALL_MANUAL  = ${INSTALL_DATA}
 
 
-LIBS = -lreadline
+LIBS       = -lreadline
+
+YYDEF  = -DYYSTYPE="struct token_t *"
+
 
 .include "Makefile.inc"
 
+EXTRA_OBJS = config_gram.o lexer.o
+OBJECTS = ${EXTRA_OBJS} ${OBJS} 
+
 all :
+	@if [ ! -f y.tab.h ]; then touch y.tab.h; fi
 	make depend
 	make ${TARGET}
 
-${TARGET} : ${OBJS}
-	${CC} ${LDFLAGS} -o ${TARGET} ${OBJS} ${LIBS}
+${TARGET} : ${OBJECTS}
+	${CC} ${LDFLAGS} -o ${TARGET} ${OBJECTS} ${LIBS}
 
 clean :
-	rm -f *~ *.core ${TARGET} *.o
+	rm -f *.o lexer.c ${TARGET} *~ *.core y.tab.c y.tab.h
+	touch y.tab.h
 
 install : dirs                  \
 	  ${BINDIR}/${TARGET}   \

@@ -1,27 +1,310 @@
 # $Id$
 #
-# Programmer Pin Configurations
+# AVRPROG Configuration File
 #
-# The format of these entries is as follows:
-#   c:<name>:[desc=<description>:][[<pin>=<value>:]...]
+# This file contains configuration data used by AVRPROG which describes
+# the programming hardware pinouts and also provides part definitions.
+# AVRPROG's "-C" command line option specifies the location of the
+# configuration file.  The "-c" option names the programmer confiuration
+# which must match one of the entry's "id" parameter.  The "-p" option
+# identifies which part AVRPROG is going to be programming and must match
+# one of the parts' "id" parameter.
 #
-# Example: for a programmer called PGM-1 that uses pin 2 and 3 for
-#   power, pins 4, 5, and 6 for RESET, SCK, and MOSI, and pin 10 for
-#   MISO, we could use the following entry:
+# Possible entry formats are:
 #
-#  c:pgm-1 : desc=Programmer 1:vcc=2,3:reset=4:sck=5:mosi=6:miso=10
+#   programmer
+#       id     = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
+#       desc   = <description> ;                  # quoted string
+#       vcc    = <num1> [, <num2> ... ] ;         # pin number
+#       reset  = <num> ;                          # pin number
+#       sck    = <num> ;                          # pin number
+#       mosi   = <num> ;                          # pin number
+#       miso   = <num> ;                          # pin number
+#       errled = <num> ;                          # pin number
+#       rdyled = <num> ;                          # pin number
+#       pgmled = <num> ;                          # pin number
+#       vfyled = <num> ;                          # pin number
+#     ;
 #
-# Continuation lines are supported, use a backslash (\) as the last
-# character of the line and the next line will included as part of the
-# configuration data.
+#   part
+#       id               = <id> ;                 # quoted string
+#       desc             = <description> ;        # quoted string
+#       chip_erase_delay = <num> ;                # micro-seconds
+#       eeprom
+#           banked          = <yes/no> ;          # yes / no
+#           size            = <num> ;             # bytes
+#           bank_size       = <num> ;             # bytes
+#           num_banks       = <num> ;             # numeric
+#           min_write_delay = <num> ;             # micro-seconds
+#           max_write_delay = <num> ;             # micro-seconds
+#           readback_p1     = <num> ;             # byte value
+#           readback_p2     = <num> ;             # byte value
+#         ;
+#       flash
+#           banked          = <yes/no> ;          # yes / no
+#           size            = <num> ;             # bytes
+#           bank_size       = <num> ;             # bytes
+#           num_banks       = <num> ;             # numeric
+#           min_write_delay = <num> ;             # micro-seconds
+#           max_write_delay = <num> ;             # micro-seconds
+#           readback_p1     = <num> ;             # byte value
+#           readback_p2     = <num> ;             # byte value
+#         ;
+#     ;
+#
+# If any of the above parameters is not specified, the default value of
+# 0 is used for numerics or the empty string ("") for string values.
+# If a required parameter is left empty, AVRPROG will complain.
+#
+# See below for some examples.
 #
 
-c:bsd   : desc=Brian Dean's programmer:vcc=2,3,4,5:reset=7:sck=8:\
-          mosi=9:miso=10
+programmer
+  id    = "bsd", "default";
+  desc  = "Brian Dean's Programmer";
+  vcc   = 2, 3, 4, 5;
+  reset = 7;
+  sck   = 8;
+  mosi  = 9;
+  miso  = 10;
+;
 
-c:dt006 : desc=Dontronics DT006:reset=4:sck=5:mosi=2:miso=11
+programmer
+  id    = "dt006";
+  desc  = "Dontronics DT006";
+  reset = 4;
+  sck   = 8;
+  mosi  = 9;
+  miso  = 10;
+;
 
-c:alf   : desc=Tony Freibel's programmer:vcc=2,3,4,5:buff=6:\
-          reset=7:sck=8:mosi=9:miso=10:errled=1:rdyled=14:pgmled=16:\
-          vfyled=17
+programmer
+  id     = "alf";
+  desc   = "Tony Friebel's Programmer";
+  vcc    = 2, 3, 4, 5;
+  buff   = 6;
+  reset  = 7;
+  sck    = 8;
+  mosi   = 9;
+  miso   = 10;
+  errled = 1;
+  rdyled = 14;
+  pgmled = 16;
+  vfyled = 17;
+;
+
+
+part
+    id               = "1200";
+    desc             = "AT90S1200";
+    chip_erase_delay = 20000;
+    eeprom
+        banked          = no;
+        size            = 64;
+        bank_size       = 0;
+        num_banks       = 0;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0x00;
+        readback_p2     = 0xff;
+      ;
+    flash
+        banked          = no;
+        size            = 1024;
+        bank_size       = 0;
+        num_banks       = 0;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0xff;
+        readback_p2     = 0x00;
+      ;
+  ;
+
+part
+    id               = "2313";
+    desc             = "AT90S2313";
+    chip_erase_delay = 20000;
+    eeprom
+        banked          = no;
+        size            = 128;
+        bank_size       = 0;
+        num_banks       = 0;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0x80;
+        readback_p2     = 0x7f;
+      ;
+    flash
+        banked          = no;
+        size            = 2048;
+        bank_size       = 0;
+        num_banks       = 0;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0x7f;
+        readback_p2     = 0x00;
+      ;
+  ;
+
+    
+part
+    id               = "2333";
+    desc             = "AT90S2333";
+    chip_erase_delay = 20000;
+    eeprom
+        banked          = no;
+        size            = 128;
+        bank_size       = 0;
+        num_banks       = 0;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0x00;
+        readback_p2     = 0xff;
+      ;
+    flash
+        banked          = no;
+        size            = 2048;
+        bank_size       = 0;
+        num_banks       = 0;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0xff;
+        readback_p2     = 0x00;
+      ;
+  ;
+
+    
+part
+    id               = "4433";
+    desc             = "AT90S4433";
+    chip_erase_delay = 20000;
+    eeprom
+        banked          = no;
+        size            = 256;
+        bank_size       = 0;
+        num_banks       = 0;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0x00;
+        readback_p2     = 0xff;
+      ;
+    flash
+        banked          = no;
+        size            = 4096;
+        bank_size       = 0;
+        num_banks       = 0;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0xff;
+        readback_p2     = 0x00;
+      ;
+  ;
+
+    
+part
+    id               = "4434";
+    desc             = "AT90S4434";
+    chip_erase_delay = 20000;
+    eeprom
+        banked          = no;
+        size            = 256;
+        bank_size       = 0;
+        num_banks       = 0;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0x00;
+        readback_p2     = 0xff;
+      ;
+    flash
+        banked          = no;
+        size            = 4096;
+        bank_size       = 0;
+        num_banks       = 0;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0xff;
+        readback_p2     = 0x00;
+      ;
+  ;
+
+    
+part
+    id               = "8515";
+    desc             = "AT90S8515";
+    chip_erase_delay = 20000;
+    eeprom
+        banked          = no;
+        size            = 512;
+        bank_size       = 0;
+        num_banks       = 0;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0x80;
+        readback_p2     = 0x7f;
+      ;
+    flash
+        banked          = no;
+        size            = 8192;
+        bank_size       = 0;
+        num_banks       = 0;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0x7f;
+        readback_p2     = 0x00;
+      ;
+  ;
+
+    
+part
+    id               = "8535";
+    desc             = "AT90S8535";
+    chip_erase_delay = 20000;
+    eeprom
+        banked          = no;
+        size            = 512;
+        bank_size       = 0;
+        num_banks       = 0;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0x00;
+        readback_p2     = 0xff;
+      ;
+    flash
+        banked          = no;
+        size            = 8192;
+        bank_size       = 0;
+        num_banks       = 0;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0xff;
+        readback_p2     = 0x00;
+      ;
+  ;
+
+    
+part
+    id               = "103";
+    desc             = "ATMEGA103";
+    chip_erase_delay = 112000;
+    eeprom
+        banked          = no;
+        size            = 4096;
+        bank_size       = 0;
+        num_banks       = 0;
+        min_write_delay = 4000;
+        max_write_delay = 9000;
+        readback_p1     = 0x00;
+        readback_p2     = 0xff;
+      ;
+    flash
+        banked          = yes;
+        size            = 131072;
+        bank_size       = 256;
+        num_banks       = 512;
+        min_write_delay = 22000;
+        max_write_delay = 56000;
+        readback_p1     = 0xff;
+        readback_p2     = 0x00;
+      ;
+  ;
 

@@ -37,12 +37,14 @@
 #include <readline/history.h>
 
 #include "avr.h"
+#include "config.h"
 #include "pindefs.h"
 #include "ppi.h"
 
 
-extern char * progname;
-extern char   progbuf[];
+extern char       * progname;
+extern char         progbuf[];
+extern PROGRAMMER * pgm;
 
 
 struct command {
@@ -362,7 +364,7 @@ int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
     }
   }
 
-  LED_OFF(fd, pinno[PIN_LED_ERR]);
+  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
   for (werror=0, i=0; i<len; i++) {
     rc = avr_write_byte(fd, p, memtype, addr+i, buf[i]);
     if (rc) {
@@ -371,7 +373,7 @@ int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
       werror = 1;
     }
     if (werror) {
-      LED_ON(fd, pinno[PIN_LED_ERR]);
+      LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
     }
   }
 

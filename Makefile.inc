@@ -1,7 +1,13 @@
 
-.SUFFIXES: .o .c
+.SUFFIXES: .o .c .l .y
 
 first_rule : all
+
+.y.o:
+	${YACC} ${YFLAGS} ${.IMPSRC}
+	${CC} ${CFLAGS} -c y.tab.c
+	rm -f y.tab.c
+	mv y.tab.o ${.TARGET}
 
 
 .depend : .PHONY

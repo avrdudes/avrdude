@@ -36,12 +36,14 @@
 
 
 #include "avr.h"
+#include "config.h"
 #include "pindefs.h"
 #include "ppi.h"
 
 
-extern char * progname;
-extern char   progbuf[];
+extern char       * progname;
+extern char         progbuf[];
+extern PROGRAMMER * pgm;
 
 
 char * avr_version = "$Id$";
@@ -49,6 +51,7 @@ char * avr_version = "$Id$";
 
 /* Need to add information for 2323, 2343, and 4414 */
 
+#if 0
 struct avrpart parts[] = {
   {"AT90S1200", "1200", 20000, 
    {{0,     64,   0,   0,  9000, 20000, {0x00, 0xff }, NULL},   /* eeprom */
@@ -87,8 +90,6 @@ struct avrpart parts[] = {
 #define N_AVRPARTS (sizeof(parts)/sizeof(struct avrpart))
 
 
-
-
 int avr_list_parts(FILE * f, char * prefix)
 {
   int i;
@@ -114,6 +115,56 @@ struct avrpart * avr_find_part(char * p)
 
   return NULL;
 }
+#endif
+
+
+AVRPART * avr_new_part(void)
+{
+  AVRPART * p;
+
+  p = (AVRPART *)malloc(sizeof(AVRPART));
+  if (p == NULL) {
+    fprintf(stderr, "new_part(): out of memory\n");
+    exit(1);
+  }
+
+  memset(p, 0, sizeof(*p));
+
+  p->id[0]   = 0;
+  p->desc[0] = 0;
+
+  return p;
+}
+
+
+
+AVRPART * avr_dup_part(AVRPART * d)
+{
+  AVRPART * p;
+  int i;
+
+  p = (AVRPART *)malloc(sizeof(AVRPART));
+  if (p == NULL) {
+    fprintf(stderr, "avr_dup_part(): out of memory\n");
+    exit(1);
+  }
+
+  *p = *d;
+
+  for (i=0; i<AVR_MAXMEMTYPES; i++) {
+    p->mem[i].buf = (unsigned char *)malloc(p->mem[i].size);
+    if (p->mem[i].buf == NULL) {
+      fprintf(stderr, 
+              "avr_dup_part(): out of memory (memsize=%d)\n", 
+              p->mem[i].size);
+      exit(1);
+    }
+    memset(p->mem[i].buf, 0, p->mem[i].size);
+  }
+
+  return p;
+}
+
 
 
 /*
@@ -127,16 +178,16 @@ int avr_txrx_bit(int fd, int bit)
    * read the result bit (it is either valid from a previous clock
    * pulse or it is ignored in the current context)
    */
-  r = ppi_getpin(fd, pinno[PIN_AVR_MISO]);
+  r = ppi_getpin(fd, pgm->pinno[PIN_AVR_MISO]);
 
   /* set the data input line as desired */
-  ppi_setpin(fd, pinno[PIN_AVR_MOSI], bit);
+  ppi_setpin(fd, pgm->pinno[PIN_AVR_MOSI], bit);
 
   /* 
    * pulse the clock line, clocking in the MOSI data, and clocking out
    * the next result bit
    */
-  ppi_pulsepin(fd, pinno[PIN_AVR_SCK]);
+  ppi_pulsepin(fd, pgm->pinno[PIN_AVR_SCK]);
 
   return r;
 }
@@ -180,8 +231,8 @@ int avr_cmd(int fd, unsigned char cmd[4], unsigned char res[4])
 /*
  * read a byte of data from the indicated memory region
  */
-unsigned char avr_read_byte(int fd, struct avrpart * p,
-                              int memtype, unsigned long addr)
+unsigned char avr_read_byte(int fd, AVRPART * p,
+                            int memtype, unsigned long addr)
 {
   unsigned short offset;
   unsigned char cmd[4];
@@ -189,8 +240,8 @@ unsigned char avr_read_byte(int fd, struct avrpart * p,
   /* order here is very important, AVR_EEPROM, AVR_FLASH, AVR_FLASH+1 */
   static unsigned char cmdbyte[3] = { 0xa0, 0x20, 0x28 };
 
-  LED_ON(fd, pinno[PIN_LED_PGM]);
-  LED_OFF(fd, pinno[PIN_LED_ERR]);
+  LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
+  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
 
   offset = 0;
 
@@ -206,7 +257,7 @@ unsigned char avr_read_byte(int fd, struct avrpart * p,
 
   avr_cmd(fd, cmd, res);
 
-  LED_OFF(fd, pinno[PIN_LED_PGM]);
+  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
 
   return res[3];
 }
@@ -218,7 +269,7 @@ unsigned char avr_read_byte(int fd, struct avrpart * p,
  *
  * Return the number of bytes read, or -1 if an error occurs.  
  */
-int avr_read(int fd, struct avrpart * p, int memtype)
+int avr_read(int fd, AVRPART * p, int memtype)
 {
   unsigned char    rbyte;
   unsigned long    i;
@@ -243,14 +294,14 @@ int avr_read(int fd, struct avrpart * p, int memtype)
 /*
  * write a byte of data to the indicated memory region
  */
-int avr_write_bank(int fd, struct avrpart * p, int memtype, 
+int avr_write_bank(int fd, AVRPART * p, int memtype, 
                    unsigned short bank)
 {
   unsigned char cmd[4];
   unsigned char res[4];
 
-  LED_ON(fd, pinno[PIN_LED_PGM]);
-  LED_OFF(fd, pinno[PIN_LED_ERR]);
+  LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
+  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
 
   cmd[0] = 0x4c;
   cmd[1] = bank >> 8;     /* high order bits of address */
@@ -265,7 +316,7 @@ int avr_write_bank(int fd, struct avrpart * p, int memtype,
    */
   usleep(p->mem[memtype].max_write_delay);
 
-  LED_OFF(fd, pinno[PIN_LED_PGM]);
+  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
   return 0;
 }
 
@@ -273,8 +324,8 @@ int avr_write_bank(int fd, struct avrpart * p, int memtype,
 /*
  * write a byte of data to the indicated memory region
  */
-int avr_write_byte(int fd, struct avrpart * p, int memtype, 
-                     unsigned long addr, unsigned char data)
+int avr_write_byte(int fd, AVRPART * p, int memtype, 
+                   unsigned long addr, unsigned char data)
 {
   unsigned char cmd[4];
   unsigned char res[4];
@@ -302,8 +353,8 @@ int avr_write_byte(int fd, struct avrpart * p, int memtype,
     addr = addr % p->mem[memtype].bank_size;
   }
 
-  LED_ON(fd, pinno[PIN_LED_PGM]);
-  LED_OFF(fd, pinno[PIN_LED_ERR]);
+  LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
+  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
 
   offset = 0;
 
@@ -326,7 +377,7 @@ int avr_write_byte(int fd, struct avrpart * p, int memtype,
      * page complete immediately, we only need to delay when we commit
      * the whole page via the avr_write_bank() routine.
      */
-    LED_OFF(fd, pinno[PIN_LED_PGM]);
+    LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
     return 0;
   }
 
@@ -357,14 +408,14 @@ int avr_write_byte(int fd, struct avrpart * p, int memtype,
        * we couldn't write the data, indicate our displeasure by
        * returning an error code 
        */
-      LED_OFF(fd, pinno[PIN_LED_PGM]);
-      LED_ON(fd, pinno[PIN_LED_ERR]);
+      LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
+      LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
 
       return -1;
     }
   }
 
-  LED_OFF(fd, pinno[PIN_LED_PGM]);
+  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
   return 0;
 }
 
@@ -378,7 +429,7 @@ int avr_write_byte(int fd, struct avrpart * p, int memtype,
  *
  * Return the number of bytes written, or -1 if an error occurs.
  */
-int avr_write(int fd, struct avrpart * p, int memtype, int size)
+int avr_write(int fd, AVRPART * p, int memtype, int size)
 {
   int              rc;
   int              wsize;
@@ -386,7 +437,7 @@ int avr_write(int fd, struct avrpart * p, int memtype, int size)
   unsigned char    data;
   int              werror;
 
-  LED_OFF(fd, pinno[PIN_LED_ERR]);
+  LED_OFF(fd, pgm->pinno[PIN_LED_ERR]);
 
   werror = 0;
 
@@ -410,7 +461,7 @@ int avr_write(int fd, struct avrpart * p, int memtype, int size)
     if (rc) {
       fprintf(stderr, " ***failed;  ");
       fprintf(stderr, "\n");
-      LED_ON(fd, pinno[PIN_LED_ERR]);
+      LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
       werror = 1;
     }
 
@@ -424,7 +475,7 @@ int avr_write(int fd, struct avrpart * p, int memtype, int size)
                   i % p->mem[memtype].bank_size, 
                   i-p->mem[memtype].bank_size+1, i);
           fprintf(stderr, "\n");
-          LED_ON(fd, pinno[PIN_LED_ERR]);
+          LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
           werror = 1;
         }
       }
@@ -435,7 +486,7 @@ int avr_write(int fd, struct avrpart * p, int memtype, int size)
        * make sure the error led stay on if there was a previous write
        * error, otherwise it gets cleared in avr_write_byte() 
        */
-      LED_ON(fd, pinno[PIN_LED_ERR]);
+      LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
     }
   }
 
@@ -466,18 +517,18 @@ int avr_program_enable(int fd)
 /*
  * issue the 'chip erase' command to the AVR device
  */
-int avr_chip_erase(int fd, struct avrpart * p)
+int avr_chip_erase(int fd, AVRPART * p)
 {
   unsigned char data[4] = {0xac, 0x80, 0x00, 0x00};
   unsigned char res[4];
 
-  LED_ON(fd, pinno[PIN_LED_PGM]);
+  LED_ON(fd, pgm->pinno[PIN_LED_PGM]);
 
   avr_cmd(fd, data, res);
   usleep(p->chip_erase_delay);
   avr_initialize(fd, p);
 
-  LED_OFF(fd, pinno[PIN_LED_PGM]);
+  LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
 
   return 0;
 }
@@ -524,7 +575,7 @@ void avr_powerdown(int fd)
 /*
  * initialize the AVR device and prepare it to accept commands
  */
-int avr_initialize(int fd, struct avrpart * p)
+int avr_initialize(int fd, AVRPART * p)
 {
   int rc;
   int tries;
@@ -532,9 +583,9 @@ int avr_initialize(int fd, struct avrpart * p)
   avr_powerup(fd);
 
 
-  ppi_setpin(fd, pinno[PIN_AVR_SCK], 0);
-  ppi_setpin(fd, pinno[PIN_AVR_RESET], 0);
-  ppi_pulsepin(fd, pinno[PIN_AVR_RESET]);
+  ppi_setpin(fd, pgm->pinno[PIN_AVR_SCK], 0);
+  ppi_setpin(fd, pgm->pinno[PIN_AVR_RESET], 0);
+  ppi_pulsepin(fd, pgm->pinno[PIN_AVR_RESET]);
 
   usleep(20000); /* 20 ms XXX should be a per-chip parameter */
 
@@ -546,7 +597,7 @@ int avr_initialize(int fd, struct avrpart * p)
    * order to possibly get back into sync with the chip if we are out
    * of sync.
    */
-  if (strcmp(p->partdesc, "AT90S1200")==0) {
+  if (strcmp(p->desc, "AT90S1200")==0) {
     avr_program_enable(fd);
   }
   else {
@@ -555,7 +606,7 @@ int avr_initialize(int fd, struct avrpart * p)
       rc = avr_program_enable(fd);
       if (rc == 0)
         break;
-      ppi_pulsepin(fd, pinno[PIN_AVR_SCK]);
+      ppi_pulsepin(fd, pgm->pinno[PIN_AVR_SCK]);
       tries++;
     } while (tries < 32);
 
@@ -583,7 +634,7 @@ char * avr_memtstr(int memtype)
 }
 
 
-int avr_initmem(struct avrpart * p)
+int avr_initmem(AVRPART * p)
 {
   int i;
 
@@ -607,7 +658,7 @@ int avr_initmem(struct avrpart * p)
  *
  * Return the number of bytes verified, or -1 if they don't match.  
  */
-int avr_verify(struct avrpart * p, struct avrpart * v, int memtype, int size)
+int avr_verify(AVRPART * p, AVRPART * v, int memtype, int size)
 {
   int i;
   unsigned char * buf1, * buf2;
@@ -665,7 +716,7 @@ void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type)
 
 
 
-void avr_display(FILE * f, struct avrpart * p, char * prefix)
+void avr_display(FILE * f, AVRPART * p, char * prefix)
 {
   int i;
   char * buf;
@@ -675,7 +726,7 @@ void avr_display(FILE * f, struct avrpart * p, char * prefix)
           "%sAVR Part         : %s\n"
           "%sChip Erase delay : %d us\n"
           "%sMemory Detail    :\n\n",
-          prefix, p->partdesc,
+          prefix, p->desc,
           prefix, p->chip_erase_delay,
           prefix);
 

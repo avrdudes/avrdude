@@ -32,7 +32,6 @@
 #ifndef __pindefs_h__
 #define __pindefs_h__
 
-#if 1
 enum {
   PPI_AVR_VCC=1,
   PIN_AVR_BUFF,
@@ -46,21 +45,6 @@ enum {
   PIN_LED_VFY,
   N_PINS
 };
-
-extern unsigned int pinno[N_PINS];
-
-#else
-#define PPI_AVR_VCC    0x0f  /* ppi pins 2-5, data reg bits 0-3 */
-#define PIN_AVR_BUFF   6
-#define PIN_AVR_RESET  7
-#define PIN_AVR_SCK    8
-#define PIN_AVR_MOSI   9
-#define PIN_AVR_MISO  10
-#define PIN_LED_ERR    1
-#define PIN_LED_RDY   14
-#define PIN_LED_PGM   16
-#define PIN_LED_VFY   17
-#endif
 
 #define LED_ON(fd,pin)  ppi_setpin(fd,pin,0)
 #define LED_OFF(fd,pin) ppi_setpin(fd,pin,1)
