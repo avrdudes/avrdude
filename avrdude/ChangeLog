@@ -1,3 +1,19 @@
+2004/05/19  Brian S. Dean  <bsd@bsdhome.com>
+
+        * main.c:
+        * stk500.c: Allow the baud rate to be specified on the command
+	line with a new -b switch.  The specified baud rate will
+	override the default serial port baud rate for a particular
+	programmer.
+
+2004/05/19  Brian S. Dean  <bsd@bsdhome.com>
+
+	* ppi.c: Stub-out the ppi_* functions in ppi.c with empty
+	wrappers that simply return an error code in order to build
+	successfully on MacOS X.  This allows avrdude to work on MacOS
+	X and was tested using a USB<->RS232 cable adapter,
+	specifically Keyspan model USA-19HS.
+
 2004-04-23  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* lists.h, lists.c: Drop LISTSZ and the check for
