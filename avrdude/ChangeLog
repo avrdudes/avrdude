@@ -1,3 +1,11 @@
+2003-03-12  Theodore A. Roth  <troth@openavr.org>
+
+	* configure.ac (AC_INIT): Set version to 4.0.0cvs since we're done
+	with 4.0.0 release.
+
+2003-03-12
+	* AVRDUDE 4.0.0 has been released (cvs release tag is "release_4_0_0").
+
 2003-03-11  Theodore A. Roth  <troth@openavr.org>
 
 	* Makefile.am: Add CLEANFILES to remove all files from a make.
