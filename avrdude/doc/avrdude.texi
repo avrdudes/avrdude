@@ -577,15 +577,13 @@ programmer and save it in raw binary format in the file named
 
 @example
 @cartouche
-% avrdude -p m128 -c stk500 -e -U flash:r:diag.flash:r 
+% avrdude -p m128 -c stk500 -U flash:r:diag.flash:r 
 
 avrdude: AVR device initialized and ready to accept instructions
 
 Reading | ################################################## | 100% 0.03s
 
 avrdude: Device signature = 0x1e9702
-avrdude: erasing chip
-avrdude: done.
 avrdude: reading flash memory:
 
 Reading | ################################################## | 100% 46.10s
