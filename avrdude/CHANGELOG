@@ -4,6 +4,22 @@ Approximate change log for AVRPROG by version
 
 ----------------------------------------------------------------------
 
+Latest:
+
+  * Work around problem programming fuse bits on parts like the
+    at90s4433 as described in the following errata:
+
+      http://www.atmel.com/atmel/acrobat/doc1280.pdf
+
+  * Add part definition for at90s4414, at90s4433.
+
+  * Add fuse/lock bit memory instructions for the at90s1200,
+    at90s2333, at90s4433 and at90s8515.
+
+  * Fix setting of programmer status LEDs under certain write-fail
+    conditions.
+
+
 Version 2.0.2 :
 
   * Fix writing to read-only memories such as the lock bits of the
