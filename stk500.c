@@ -540,19 +540,7 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
     }
   }
 
-  pgm->program_enable(pgm, p);
-
-  /*
-   * Return success even if program_enable() failed.  Otherwise, if
-   * someone has turned off the STK500 oscillator (or set it to an
-   * unreasonably slow master clock), they were hosed at this point,
-   * since to reset fosc to a reasonable value, they at least need to
-   * get avrdude to start up in terminal mode.  The luser has already
-   * seen a "failed to enter programming mode" message in that case,
-   * and he also needs to specify -F at program startup since the
-   * device ID bytes cannot be read in this situation.
-   */
-  return 0;
+  return pgm->program_enable(pgm, p);
 }
 
 
