@@ -1,3 +1,8 @@
+2004-07-19  Theodore A. Roth  <troth@openavr.org>
+
+	* avrdude.1: Remove reference to ppi programmer schematic.
+	* configure.ac (AC_INIT): Set version to "4.4.0cvs".
+
 2004-07-18  Theodore A. Roth  <troth@openavr.org>
 
 	* AVRDUDE 4.4.0 has been released (cvs release tag is "release_4_4_0").
