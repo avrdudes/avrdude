@@ -46,7 +46,7 @@ extern char * progname;
 extern int do_cycles;
 
 
-int static stk500_send(PROGRAMMER * pgm, char * buf, int buflen)
+static int stk500_send(PROGRAMMER * pgm, char * buf, int buflen)
 {
   struct timeval timeout;
   fd_set wfds;
@@ -97,7 +97,7 @@ int static stk500_send(PROGRAMMER * pgm, char * buf, int buflen)
 
       
   
-int static stk500_recv(PROGRAMMER * pgm, char * buf, int n)
+static int stk500_recv(PROGRAMMER * pgm, char * buf, int n)
 {
   struct timeval timeout;
   fd_set rfds;
@@ -144,7 +144,7 @@ int static stk500_recv(PROGRAMMER * pgm, char * buf, int n)
 }
 
       
-int static stk500_drain(PROGRAMMER * pgm, int display)
+static int stk500_drain(PROGRAMMER * pgm, int display)
 {
   struct timeval timeout;
   fd_set rfds;
@@ -227,22 +227,22 @@ static int stk500_getsync(PROGRAMMER * pgm)
 }
 
 
-int stk500_rdy_led(PROGRAMMER * pgm, int value)
+static int stk500_rdy_led(PROGRAMMER * pgm, int value)
 {
   return 0;
 }
 
-int stk500_err_led(PROGRAMMER * pgm, int value)
+static int stk500_err_led(PROGRAMMER * pgm, int value)
 {
   return 0;
 }
 
-int stk500_pgm_led(PROGRAMMER * pgm, int value)
+static int stk500_pgm_led(PROGRAMMER * pgm, int value)
 {
   return 0;
 }
 
-int stk500_vfy_led(PROGRAMMER * pgm, int value)
+static int stk500_vfy_led(PROGRAMMER * pgm, int value)
 {
   return 0;
 }
@@ -252,7 +252,8 @@ int stk500_vfy_led(PROGRAMMER * pgm, int value)
  * transmit an AVR device command and return the results; 'cmd' and
  * 'res' must point to at least a 4 byte data buffer
  */
-int stk500_cmd(PROGRAMMER * pgm, unsigned char cmd[4], unsigned char res[4])
+static int stk500_cmd(PROGRAMMER * pgm, unsigned char cmd[4], 
+                      unsigned char res[4])
 {
   unsigned char buf[32];
 
@@ -290,7 +291,7 @@ int stk500_cmd(PROGRAMMER * pgm, unsigned char cmd[4], unsigned char res[4])
 /*
  * issue the 'chip erase' command to the AVR device
  */
-int stk500_chip_erase(PROGRAMMER * pgm, AVRPART * p)
+static int stk500_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {
   unsigned char cmd[4];
   unsigned char res[4];
@@ -343,7 +344,7 @@ int stk500_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 /*
  * issue the 'program enable' command to the AVR device
  */
-int stk500_program_enable(PROGRAMMER * pgm, AVRPART * p)
+static int stk500_program_enable(PROGRAMMER * pgm, AVRPART * p)
 {
   unsigned char buf[16];
   int tries=0;
@@ -394,7 +395,7 @@ int stk500_program_enable(PROGRAMMER * pgm, AVRPART * p)
 /*
  * apply power to the AVR processor
  */
-void stk500_powerup(PROGRAMMER * pgm)
+static void stk500_powerup(PROGRAMMER * pgm)
 {
   return;
 }
@@ -403,7 +404,7 @@ void stk500_powerup(PROGRAMMER * pgm)
 /*
  * remove power from the AVR processor
  */
-void stk500_powerdown(PROGRAMMER * pgm)
+static void stk500_powerdown(PROGRAMMER * pgm)
 {
   return;
 }
@@ -412,7 +413,7 @@ void stk500_powerdown(PROGRAMMER * pgm)
 /*
  * initialize the AVR device and prepare it to accept commands
  */
-int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
+static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
 {
   unsigned char buf[32];
   AVRMEM * m;
@@ -531,17 +532,17 @@ int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
 }
 
 
-int stk500_save(PROGRAMMER * pgm)
+static int stk500_save(PROGRAMMER * pgm)
 {
   return 0;
 }
 
-void stk500_restore(PROGRAMMER * pgm)
+static void stk500_restore(PROGRAMMER * pgm)
 {
   return;
 }
 
-void stk500_disable(PROGRAMMER * pgm)
+static void stk500_disable(PROGRAMMER * pgm)
 {
   unsigned char buf[16];
   int tries=0;
@@ -588,13 +589,13 @@ void stk500_disable(PROGRAMMER * pgm)
   return;
 }
 
-void stk500_enable(PROGRAMMER * pgm)
+static void stk500_enable(PROGRAMMER * pgm)
 {
   return;
 }
 
 
-int static stk500_setattr(int fd)
+static int stk500_setattr(int fd)
 {
   int rc;
   struct termios termios;
@@ -634,7 +635,7 @@ int static stk500_setattr(int fd)
 }
 
 
-void stk500_open(PROGRAMMER * pgm, char * port)
+static void stk500_open(PROGRAMMER * pgm, char * port)
 {
   int rc;
 
@@ -672,7 +673,7 @@ void stk500_open(PROGRAMMER * pgm, char * port)
 }
 
 
-void stk500_close(PROGRAMMER * pgm)
+static void stk500_close(PROGRAMMER * pgm)
 {
   close(pgm->fd);
   pgm->fd = -1;
@@ -726,8 +727,8 @@ static int stk500_loadaddr(PROGRAMMER * pgm, unsigned int addr)
 }
 
 
-int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
-                       int page_size, int n_bytes)
+static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
+                              int page_size, int n_bytes)
 {
   unsigned char buf[16];
   int memtype;
@@ -817,8 +818,8 @@ int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
-                      int page_size, int n_bytes)
+static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
+                             int page_size, int n_bytes)
 {
   unsigned char buf[16];
   int memtype;
@@ -960,7 +961,7 @@ static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
 }
 
   
-void stk500_display(PROGRAMMER * pgm, char * p)
+static void stk500_display(PROGRAMMER * pgm, char * p)
 {
   unsigned maj, min, hdw;
 

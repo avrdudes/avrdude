@@ -19,44 +19,14 @@
 
 /* $Id$ */
 
-#ifndef __ppi_h__
-#define __ppi_h__
+#ifndef __par_h__
+#define __par_h__
 
 #include "config.h"
 
-/*
- * PPI registers
- */
-enum {
-  PPIDATA,
-  PPICTRL,
-  PPISTATUS
-};
+void par_initpgm        (PROGRAMMER * pgm);
 
-
-#if !defined(ppi_claim)
-#  define ppi_claim(pgm)
-#endif
-
-#if !defined(ppi_release)
-#  define ppi_release(pgm)
-#endif
-
-int ppi_get       (int fd, int reg, int bit);
-
-int ppi_set       (int fd, int reg, int bit);
-
-int ppi_clr       (int fd, int reg, int bit);
-
-int ppi_getall    (int fd, int reg);
-
-int ppi_setall    (int fd, int reg, int val);
-
-int ppi_toggle    (int fd, int reg, int bit);
-
-int ppi_open      (char * port);
-
-void ppi_close    (int fd);
+int par_getpinmask(int pin);
 
 #endif
 

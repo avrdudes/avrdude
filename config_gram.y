@@ -26,6 +26,7 @@
 
 #include "config.h"
 #include "lists.h"
+#include "par.h"
 #include "pindefs.h"
 #include "ppi.h"
 #include "pgm.h"
@@ -73,9 +74,9 @@ static int parse_cmdbits(OPCODE * op);
 %token K_MISO
 %token K_MOSI
 %token K_NUM_PAGES
+%token K_PAR
 %token K_PART
 %token K_PGMLED
-%token K_PPI
 %token K_PROGRAMMER
 %token K_PWROFF_AFTER_WRITE
 %token K_RDYLED
@@ -228,9 +229,9 @@ prog_parm :
     }
   } |
 
-  K_TYPE TKN_EQUAL K_PPI {
+  K_TYPE TKN_EQUAL K_PAR {
     { 
-      ppi_initpgm(current_prog);
+      par_initpgm(current_prog);
     }
   } |
 
