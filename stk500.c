@@ -109,8 +109,8 @@ static int stk500_recv(PROGRAMMER * pgm, char * buf, int n)
   int nfds;
   int rc;
 
-  timeout.tv_sec = 0;
-  timeout.tv_usec = 500000;
+  timeout.tv_sec  = 5;
+  timeout.tv_usec = 0;
 
   while (n) {
     FD_ZERO(&rfds);
@@ -511,6 +511,8 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
  retry:
   tries++;
 
+  memset(buf, 0, sizeof(buf));
+
   /*
    * set device programming parameters
    */
@@ -879,9 +881,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   unsigned int n;
 
   if (page_size == 0) {
-    fprintf(stderr, "%s: stk500_paged_write(): invalid page size = %d\n",
-            progname, page_size);
-    return -1;
+    page_size = 16;
   }
 
   if (strcmp(m->desc, "flash") == 0) {

@@ -677,24 +677,6 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
 
   pgm->err_led(pgm, OFF);
 
-  if ((strcmp(m->desc, "flash")==0) || (strcmp(m->desc, "eeprom")==0)) {
-    if (pgm->paged_write != NULL) {
-      /*
-       * the programmer supports a paged mode write, perhaps more
-       * efficiently than we can read it directly, so use its routine
-       * instead
-       */
-      if (m->paged) {
-        return pgm->paged_write(pgm, p, m, m->page_size, size);
-      }
-#if 0
-      else {
-        return pgm->paged_write(pgm, p, m, 32 /*pgm->page_size*/, size);
-      }
-#endif
-    }
-  }
-
   printed = 0;
   werror  = 0;
 
@@ -704,10 +686,22 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
   }
   else if (size > wsize) {
     fprintf(stderr, 
-            "%s: WARNING: %d bytes requested, but memory region is only %d bytes\n"
+            "%s: WARNING: %d bytes requested, but memory region is only %d"
+            "bytes\n"
             "%sOnly %d bytes will actually be written\n",
             progname, size, wsize,
             progbuf, wsize);
+  }
+
+  if ((strcmp(m->desc, "flash")==0) || (strcmp(m->desc, "eeprom")==0)) {
+    if (pgm->paged_write != NULL) {
+      /*
+       * the programmer supports a paged mode write, perhaps more
+       * efficiently than we can read it directly, so use its routine
+       * instead
+       */
+      return pgm->paged_write(pgm, p, m, m->page_size, size);
+    }
   }
 
   for (i=0; i<wsize; i++) {
