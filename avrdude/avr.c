@@ -583,7 +583,7 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
 
   if (mem->paged) {
     /*
-     * in paged addressing, single bytes to written to the memory
+     * in paged addressing, single bytes to be written to the memory
      * page complete immediately, we only need to delay when we commit
      * the whole page via the avr_write_page() routine.
      */

@@ -957,8 +957,8 @@ int main(int argc, char * argv [])
     /*
      * write the buffer contents to the selected memory type
      */
-    fprintf(stderr, "%s: writing %s:\n", 
-            progname, memtype);
+    fprintf(stderr, "%s: writing %s (%d bytes):\n", 
+            progname, memtype, size);
 
     if (!nowrite) {
       rc = avr_write(fd, p, memtype, size, 1);
@@ -972,8 +972,8 @@ int main(int argc, char * argv [])
     }
 
     if (rc < 0) {
-      fprintf(stderr, "%s: failed to write flash memory, rc=%d\n", 
-                progname, rc);
+      fprintf(stderr, "%s: failed to write %s memory, rc=%d\n", 
+                progname, memtype, rc);
       exitrc = 1;
       goto main_exit;
     }
