@@ -41,6 +41,7 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 
 #include "avr.h"
 #include "config.h"
@@ -254,7 +255,7 @@ void list_programmers(FILE * f, char * prefix, LISTID programmers)
   return;
 }
 
-typedef void (*FP_UpdateProgress)(int percent, char *hdr);
+typedef void (*FP_UpdateProgress)(int percent, double etime, char *hdr);
 
 static FP_UpdateProgress update_progress;
 
@@ -277,14 +278,21 @@ static FP_UpdateProgress update_progress;
 void report_progress (int completed, int total, char *hdr)
 {
   static int last = 0;
+  static double start_time;
   int percent = (completed * 100) / total;
+  struct timeval tv;
+  double t;
 
   if (update_progress == NULL)
     return;
 
+  gettimeofday(&tv, NULL);
+  t = tv.tv_sec + ((double)tv.tv_usec)/1000000;
+
   if (hdr) {
     last = 0;
-    update_progress (percent, hdr);
+    start_time = t;
+    update_progress (percent, t - start_time, hdr);
   }
 
   if (percent > 100)
@@ -292,14 +300,14 @@ void report_progress (int completed, int total, char *hdr)
 
   if (percent > last) {
     last = percent;
-    update_progress (percent, hdr);
+    update_progress (percent, t - start_time, hdr);
   }
 
   if (percent == 100)
     last = 0;                   /* Get ready for next time. */
 }
 
-static void update_progress_tty (int percent, char *hdr)
+static void update_progress_tty (int percent, double etime, char *hdr)
 {
   static char hashes[51];
   static char *header;
@@ -320,7 +328,8 @@ static void update_progress_tty (int percent, char *hdr)
   }
 
   if (last == 0) {
-    fprintf (stderr, "\r%s | %s | %d%%", header, hashes, percent);
+    fprintf(stderr, "\r%s | %s | %d%% %0.2fs", 
+            header, hashes, percent, etime);
   }
 
   if (percent == 100) {
@@ -329,7 +338,7 @@ static void update_progress_tty (int percent, char *hdr)
   }
 }
 
-static void update_progress_no_tty (int percent, char *hdr)
+static void update_progress_no_tty (int percent, double etime, char *hdr)
 {
   static int last = 0;
   int cnt = (percent>>1)*2;
@@ -346,7 +355,7 @@ static void update_progress_no_tty (int percent, char *hdr)
   }
 
   if ((percent == 100) && (last != 0)) {
-    fprintf (stderr, " | 100%\n\n");
+    fprintf (stderr, " | 100%% %0.2fs\n\n", etime);
     last = 0;
   }
   else
