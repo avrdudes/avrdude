@@ -105,7 +105,7 @@ char ** modules[5] = {
   &term_version 
 };
 
-char * version      = "1.1";
+char * version      = "1.2";
 
 char * main_version = "$Id$";
 
