@@ -34,8 +34,11 @@ CLEANFILES = \
 	config_gram.h \
 	lexer.c
 
-SUBDIRS      = doc @WINDOWS_DIRS@
-DIST_SUBDIRS = doc windows
+#SUBDIRS      = doc @WINDOWS_DIRS@
+#DIST_SUBDIRS = doc windows
+
+SUBDIRS = @SUBDIRS_AC@
+DIST_SUBDIRS = @DIST_SUBDIRS_AC@
 
 AM_YFLAGS    = -d
 
