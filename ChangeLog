@@ -1,5 +1,14 @@
+2003-10-13  Bill Somerville  <bill@classdesign.com>
+
+	* stk500.c (stk500_paged_write): Limit blocks written to no bigger
+	than memory device size.
+	(stk500_paged_write): Send whole block at once.
+	(stk500_paged_load): Limit blocks read to no bigger than memory
+	device size.
+    [This fixes bug #5713.]
+
 2003-10-13  Eric B. Weddington  <eric@ecentral.com>
-    
+
 	*avrdude.conf.in: Fix for unterminated character error.
 
 2003-10-13  Eric B. Weddington  <eric@ecentral.com>

@@ -687,7 +687,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   int memtype;
   unsigned int addr;
   int a_div;
-  int i;
+  int block_size;
   int tries;
   unsigned int n;
   int flash;
@@ -738,9 +738,16 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   for (addr = 0; addr < n; addr += page_size) {
     report_progress (addr, n_bytes, NULL);
     
+	if (addr + page_size > n_bytes) {
+	   block_size = n_bytes % page_size;
+	}
+	else {
+	   block_size = page_size;
+	}
+  
     /* Only skip on empty page if programming flash. */
     if (flash) {
-      if (stk500_is_page_empty(addr, page_size, m->buf)) {
+      if (stk500_is_page_empty(addr, block_size, m->buf)) {
           continue;
       }
     }
@@ -749,14 +756,13 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     tries++;
     stk500_loadaddr(pgm, addr/a_div);
     buf[0] = Cmnd_STK_PROG_PAGE;
-    buf[1] = (page_size >> 8) & 0xff;
-    buf[2] = page_size & 0xff;
+    buf[1] = (block_size >> 8) & 0xff;
+    buf[2] = block_size & 0xff;
     buf[3] = memtype;
     stk500_send(pgm, buf, 4);
-    for (i=0; i<page_size; i++) {
-      buf[0] = m->buf[addr + i];
-      stk500_send(pgm, buf, 1);
-    }
+
+	stk500_send(pgm, &m->buf[addr], block_size);
+
     buf[0] = Sync_CRC_EOP;
     stk500_send(pgm, buf, 1);
 
@@ -788,7 +794,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     }
   }
 
-  return n;
+  return n_bytes;
 }
 
 static int stk500_is_page_empty(unsigned int address, int page_size, 
@@ -815,6 +821,7 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   int a_div;
   int tries;
   unsigned int n;
+  int block_size;
 
   if (strcmp(m->desc, "flash") == 0) {
     memtype = 'F';
@@ -846,13 +853,21 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   for (addr = 0; addr < n; addr += page_size) {
     report_progress (addr, n_bytes, NULL);
+
+	if (addr + page_size > n_bytes) {
+	   block_size = n_bytes % page_size;
+	}
+	else {
+	   block_size = page_size;
+	}
+  
     tries = 0;
   retry:
     tries++;
     stk500_loadaddr(pgm, addr/a_div);
     buf[0] = Cmnd_STK_READ_PAGE;
-    buf[1] = (page_size >> 8) & 0xff;
-    buf[2] = page_size & 0xff;
+    buf[1] = (block_size >> 8) & 0xff;
+    buf[2] = block_size & 0xff;
     buf[3] = memtype;
     buf[4] = Sync_CRC_EOP;
     stk500_send(pgm, buf, 5);
@@ -875,7 +890,7 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       return -4;
     }
 
-    stk500_recv(pgm, &m->buf[addr], page_size);
+    stk500_recv(pgm, &m->buf[addr], block_size);
 
     stk500_recv(pgm, buf, 1);
     if (buf[0] != Resp_STK_OK) {
@@ -887,7 +902,7 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     }
   }
 
-  return n;
+  return n_bytes;
 }
 
 
