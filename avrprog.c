@@ -971,6 +971,9 @@ int main ( int argc, char * argv [] )
    */
 
   avr_powerdown(fd);
+  ppi_clr(fd, PPIDATA, 0xff);
+  ppi_set(fd, PPIDATA, AVR_RESET);
+
   close(fd);
   close(iofd);
 
