@@ -1,3 +1,10 @@
+2004-01-29  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
+	* par.c: changed order of port-read/writes in par_txrx().
+	This change should increase immunity to delays in the
+	programmer-hardware.
+	Also did some unrelated cleanup in par_txrx().
+
 2004-01-28  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
 	* pgm.[ch], main.c, par.c, avr910.c, butterfly.c, stk500.c:
