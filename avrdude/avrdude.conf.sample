@@ -152,6 +152,88 @@ programmer
 ;
 
 
+part
+    id                  = "t15";
+    desc                = "ATtiny15";
+    chip_erase_delay    = 20000;
+    pgm_enable          = "1 0 1 0  1 1 0 0   0 1 0 1  0 0 1 1",
+                          "x x x x  x x x x   x x x x  x x x x";
+
+    chip_erase          = "1 0 1 0  1 1 0 0   1 0 0 x  x x x x",
+                          "x x x x  x x x x   x x x x  x x x x";
+
+    memory "eeprom"
+        size            = 64;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0xff;
+        readback_p2     = 0xff;
+        read            = "1  0  1  0   0  0  0  0    x x x x  x x x x",
+                          "x  x a5 a4  a3 a2 a1 a0    o o o o  o o o o";
+
+        write           = "1  1  0  0   0  0  0  0    x x x x  x x x x",
+                          "x  x a5 a4  a3 a2 a1 a0    i i i i  i i i i";
+    ;
+
+    memory "flash"
+        size            = 1024;
+        min_write_delay = 4500;
+        max_write_delay = 20000;
+        readback_p1     = 0xff;
+        readback_p2     = 0xff;
+        read_lo         = "  0  0  1  0   0  0  0  0",
+                          "  x  x  x  x   x  x  x a8",
+                          " a7 a6 a5 a4  a3 a2 a1 a0",
+                          "  o  o  o  o   o  o  o  o";
+
+        read_hi         = "  0  0  1  0   1  0  0  0",
+                          "  x  x  x  x   x  x  x a8",
+                          " a7 a6 a5 a4  a3 a2 a1 a0",
+                          "  o  o  o  o   o  o  o  o";
+
+        write_lo        = "  0  1  0  0   0  0  0  0",
+                          "  x  x  x  x   x  x  x a8",
+                          " a7 a6 a5 a4  a3 a2 a1 a0",
+                          "  i  i  i  i   i  i  i  i";
+
+        write_hi        = "  0  1  0  0   1  0  0  0",
+                          "  x  x  x  x   x  x  x a8",
+                          " a7 a6 a5 a4  a3 a2 a1 a0",
+                          "  i  i  i  i   i  i  i  i";
+    ;
+
+    memory "signature"
+        size            = 3;
+        read            = "0  0  1  1   0  0  0  0    x x x x  x x x x",
+                          "0  0  0  0   0  0 a1 a0    o o o o  o o o o";
+    ;
+
+    memory "lock"
+        size            = 1;
+        read            = "0  1  0  1   1  0  0  0    x x x x  x x x x",
+                          "x  x  x  x   x  x  x  x    x x x x  x o o x";
+
+        write           = "1  0  1  0   1  1  0  0    1 1 1 1  1 i i 1",
+                          "x  x  x  x   x  x  x  x    x x x x  x x x x";
+    ;
+
+    memory "calibration"
+        size            = 1;
+        read            = "0  0  1  1   1  0  0  0    x x x x  x x x x",
+                          "0  0  0  0   0  0  0  0    o o o o  o o o o";
+    ;
+
+    memory "fuse"
+        size            = 1;
+        read            = "0  1  0  1   0  0  0  0    x x x x  x x x x",
+                          "x  x  x  x   x  x  x  x    o o o o  x x o o";
+
+        write           = "1  0  1  0   1  1  0  0    1 0 1 x  x x x x",
+                          "x  x  x  x   x  x  x  x    i i i i  1 1 i i";
+    ;
+;
+
+
 
 part
     id               = "1200";
