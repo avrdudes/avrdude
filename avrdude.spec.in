@@ -18,12 +18,20 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-root
 %description
 AVRDUDE is software for programming Atmel AVR Microcontrollers.
 
+## The avrdude-docs subpackage
+%package docs
+Summary: Documentation for AVRDUDE.
+Group: Documentation
+%description docs
+Documentation for avrdude in html, postscript and pdf formats.
+
 %prep
 %setup -q
 
 %build
 
-./configure --prefix=%{_prefix} --sysconfdir=/etc --mandir=%{_mandir}
+./configure --prefix=%{_prefix} --sysconfdir=/etc --mandir=%{_mandir} \
+	--infodir=%{_infodir}
 
 make
 
@@ -32,19 +40,43 @@ rm -rf $RPM_BUILD_ROOT
 make prefix=$RPM_BUILD_ROOT%{_prefix} \
 	sysconfdir=$RPM_BUILD_ROOT/etc \
 	mandir=$RPM_BUILD_ROOT%{_mandir} \
+	infodir=$RPM_BUILD_ROOT%{_infodir} \
 	install
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%post
+[ -f %{_infodir}/avrdude.info ] && \
+	/sbin/install-info %{_infodir}/avrdude.info %{_infodir}/dir || :
+[ -f %{_infodir}/avrdude.info.gz ] && \
+	/sbin/install-info %{_infodir}/avrdude.info.gz %{_infodir}/dir || :
+
+%preun
+if [ $1 = 0 ]; then
+	[ -f %{_infodir}/avrdude.info ] && \
+		/sbin/install-info --delete %{_infodir}/avrdude.info %{_infodir}/dir || :
+	[ -f %{_infodir}/avrdude.info.gz ] && \
+		/sbin/install-info --delete %{_infodir}/avrdude.info.gz %{_infodir}/dir || :
+fi
+
 %files
 %defattr(-,root,root)
 %{_prefix}/bin/avrdude
 %{_mandir}/man1/avrdude.1.gz
+%{_infodir}/*info*
 %attr(0644,root,root)   %config /etc/avrdude.conf
 
+%files docs
+%doc doc/avrdude-html
+%doc doc/avrdude.ps
+%doc doc/avrdude.pdf
 
 %changelog
+* Wed Mar 05 2003 Theodore A. Roth <troth@openavr.org>
+- Add docs sub-package.
+- Add %post and %preun scriptlets for handling info files.
+
 * Wed Feb 26 2003 Theodore A. Roth <troth@openavr.org>
 - Initial build.
 
