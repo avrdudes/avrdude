@@ -21,6 +21,8 @@
 # $Id$
 #
 
+EXTRA_DIST   = avrdude.1 avrdude.pdf avrdude.conf.sample bootstrap
+
 AM_YFLAGS    = -d
 
 AM_CPPFLAGS     = -DCONFIG_DIR=\"$(sysconfdir)\"
@@ -61,3 +63,5 @@ sysconf_DATA = avrdude.conf
 avrdude.conf: avrdude.conf.sample
 	cp $< $@
 
+distclean-local:
+	rm -rf avrdude.conf
