@@ -22,19 +22,16 @@ INSTALL_DATA    = ${INSTALL} -m 444
 INSTALL_MANUAL  = ${INSTALL_DATA}
 
 
-OBJS = avr.o fileio.o main.o ppi.o term.o
 LIBS = -lreadline
 
-all : ${TARGET}
+.include "Makefile.inc"
+
+all :
+	make depend
+	make ${TARGET}
 
 ${TARGET} : ${OBJS}
 	${CC} ${LDFLAGS} -o ${TARGET} ${OBJS} ${LIBS}
-
-main.o   : avr.h fileio.h ppi.h term.h pindefs.h
-avr.o    : avr.h ppi.h pindefs.h
-fileio.o : fileio.h avr.h
-ppi.o    : ppi.h
-term.o   : term.h avr.h pindefs.h ppi.h
 
 clean :
 	rm -f *~ *.core ${TARGET} *.o
