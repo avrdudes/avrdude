@@ -29,7 +29,6 @@
 
 /* $Id$ */
 
-%token K_OP
 %token K_READ
 %token K_WRITE
 %token K_READ_LO

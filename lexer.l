@@ -152,7 +152,6 @@ size             { yylval=NULL; return K_SIZE; }
 vcc              { yylval=NULL; return K_VCC; }
 vfyled           { yylval=NULL; return K_VFYLED; }
 
-op               { yylval=NULL; return K_OP; }
 read             { yylval=new_token(K_READ); return K_READ; }
 write            { yylval=new_token(K_WRITE); return K_WRITE; }
 read_lo          { yylval=new_token(K_READ_LO); return K_READ_LO; }
