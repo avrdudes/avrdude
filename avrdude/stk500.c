@@ -385,7 +385,7 @@ static int stk500_program_enable(PROGRAMMER * pgm, AVRPART * p)
     return -1;
   }
 
-  fprintf(stderr, "%s: stk500_program_enamble(): unkown response=0x%02x\n",
+  fprintf(stderr, "%s: stk500_program_enable(): unkown response=0x%02x\n",
           progname, buf[0]);
 
   return -1;
@@ -558,7 +558,7 @@ static void stk500_disable(PROGRAMMER * pgm)
   stk500_recv(pgm, buf, 1);
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
-      fprintf(stderr, "%s: stk500_program_enable(): can't get into sync\n",
+      fprintf(stderr, "%s: stk500_disable(): can't get into sync\n",
               progname);
       return;
     }
@@ -567,8 +567,8 @@ static void stk500_disable(PROGRAMMER * pgm)
   }
   else if (buf[0] != Resp_STK_INSYNC) {
     fprintf(stderr,
-            "%s: stk500_initialize(): (a) protocol error, "
-            "expect=0x%02x, resp=0x%02x\n", 
+            "%s: stk500_disable(): protocol error, expect=0x%02x, "
+            "resp=0x%02x\n", 
             progname, Resp_STK_INSYNC, buf[0]);
     return;
   }
@@ -578,12 +578,12 @@ static void stk500_disable(PROGRAMMER * pgm)
     return;
   }
   else if (buf[0] == Resp_STK_NODEVICE) {
-    fprintf(stderr, "%s: stk500_program_enable(): no device\n",
+    fprintf(stderr, "%s: stk500_disable(): no device\n",
             progname);
     return;
   }
 
-  fprintf(stderr, "%s: stk500_program_enamble(): unkown response=0x%02x\n",
+  fprintf(stderr, "%s: stk500_disable(): unkown response=0x%02x\n",
           progname, buf[0]);
 
   return;
@@ -922,7 +922,7 @@ static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
   stk500_recv(pgm, buf, 1);
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
-      fprintf(stderr, "\n%s: getparm(): can't get into sync\n",
+      fprintf(stderr, "\n%s: stk500_getparm(): can't get into sync\n",
               progname);
       return -1;
     }
@@ -931,7 +931,7 @@ static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
   }
   else if (buf[0] != Resp_STK_INSYNC) {
     fprintf(stderr,
-            "\n%s: getparm(): (a) protocol error, "
+            "\n%s: stk500_getparm(): (a) protocol error, "
             "expect=0x%02x, resp=0x%02x\n", 
             progname, Resp_STK_INSYNC, buf[0]);
     return -2;
@@ -943,13 +943,13 @@ static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
   stk500_recv(pgm, buf, 1);
   if (buf[0] == Resp_STK_FAILED) {
     fprintf(stderr,
-            "\n%s: getparm(): parameter 0x%02x failed\n",
+            "\n%s: stk500_getparm(): parameter 0x%02x failed\n",
             progname, v);
     return -3;
   }
   else if (buf[0] != Resp_STK_OK) {
     fprintf(stderr,
-            "\n%s: getparm(): (a) protocol error, "
+            "\n%s: stk500_getparm(): (a) protocol error, "
             "expect=0x%02x, resp=0x%02x\n", 
             progname, Resp_STK_INSYNC, buf[0]);
     return -3;
