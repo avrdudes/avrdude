@@ -346,11 +346,11 @@ part
         max_write_delay = 20000;
         readback_p1     = 0x00;
         readback_p2     = 0xff;
-        read            = "1 0 1 0  0 0 0 0   x x x x  x x x x", 
-                          "a a a a  a a a a   o o o o  o o o o";
+        read            = " 1  0  1  0   0  0  0  0   x x x x  x x x x", 
+                          "a7 a6 a5 a4  a3 a2 a1 a0   o o o o  o o o o";
 
-        write           = "1 1 0 0  0 0 0 0   x x x x  x x x x",
-                          "a a a a  a a a a   i i i i  i i i i";
+        write           = " 1  1  0  0   0  0  0  0   x x x x  x x x x",
+                          "a7 a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
       ;
     memory "flash"
         size            = 4096;
