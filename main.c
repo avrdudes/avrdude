@@ -433,7 +433,7 @@ int main(int argc, char * argv [])
   char    configfile[PATH_MAX]; /* pin configuration file */
   int     cycles;      /* erase-rewrite cycles */
   int     set_cycles;  /* value to set the erase-rewrite cycles to */
-  char  * e;
+  char  * e;           /* for strtol() error checking */
 
   progname = rindex(argv[0],'/');
   if (progname)
@@ -690,7 +690,7 @@ int main(int argc, char * argv [])
     pgm = locate_pinconfig(programmers, pinconfig);
     if (pgm == NULL) {
       fprintf(stderr, 
-              "%s: Can't find pin config id \"%s\"\n",
+              "%s: Can't find programmer id \"%s\"\n",
               progname, pinconfig);
       fprintf(stderr,"\n");
       exit(1);
@@ -703,7 +703,9 @@ int main(int argc, char * argv [])
             "  Valid Parts are:\n\n",
             progname);
     list_parts(stderr, "    ", part_list);
-    fprintf(stderr,"\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "(These come from the config file \"%s\")\n", configfile);
+    fprintf(stderr, "\n");
     exit(1);
   }
 
@@ -714,6 +716,8 @@ int main(int argc, char * argv [])
             "%s: AVR Part \"%s\" not found.  Valid parts are:\n\n",
             progname, partdesc);
     list_parts(stderr, "    ", part_list);
+    fprintf(stderr, "\n");
+    fprintf(stderr, "(These come from the config file \"%s\")\n", configfile);
     fprintf(stderr, "\n");
     exit(1);
   }
@@ -764,6 +768,9 @@ int main(int argc, char * argv [])
 
   exitrc = 0;
 
+  /*
+   * allow the programmer to save its state
+   */
   rc = pgm->save(pgm);
   if (rc < 0) {
     exitrc = 1;
@@ -775,7 +782,6 @@ int main(int argc, char * argv [])
     pgm->ppidata &= ~ppiclrbits;
     pgm->ppidata |= ppisetbits;
   }
-
 
   /*
    * enable the programmer
@@ -1040,6 +1046,9 @@ int main(int argc, char * argv [])
 
   pgm->powerdown(pgm);
 
+  /*
+   * restore programmer state
+   */
   pgm->restore(pgm);
 
   pgm->disable(pgm);
