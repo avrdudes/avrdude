@@ -8,22 +8,50 @@ Approximate change log for AVRDUDE by version.
 
 Current:
 
+  * Native Win32 support: The windows doesn't need Cygwin
+    anymore. Additionally, the delay timing on windows should be
+    more accurate now.
+    Contributed by Martin Thomas
+
+  * Add support for
+    - ATmega48, ATmega88 (contributed by Galen Seitz)
+    - ATtiny2313 (contributed by Bob Paddock)
+    - ATtiny13 (contributed by Pawel Moll)
+
+  * Added command to change the SCK of STK500-programmers. Now it
+    is possible to program uC with slow oscillator.
+    Contributed by Galen Seitz
+
+  * Baudrate for serial programmers (STK500 and AVR910) is
+    configurable in the config or at the command-line.
+    This way some more tweaked bootloaders and programmers can be used.
+
+  * Deprecated options have been removed.
+    Now the "-U" option must be used.
+
+Version 4.3.0:
+
+  * Added support for "Butterfly" evaluation board.
+
+  * Make cycle-count work with AVR910-programmers.
+
+  * Added "Troubleshooting"-Appendix to the manual.
+
   * Add ATmega8515 support.
     Contributed by: Matthias Weiﬂer <matthias@matwei.de>
-  
+
   * Add ATmega64 support.
     Contributed by: Erik Christiansen <erik@dd.nec.com.au>
-  
+
   * Improved polling algorithm to speed up
     programming of byte oriented parallel programmers.
     Contributed by: Jan-Hinnerk Reichert <jan-hinnerk_reichert@hamburg.de>
-  
+
   * Add "fuse" and "lock" definitions for the AT90S8535.
-  
+
   * STK500 skips empty pages in paged write resulting in faster downloads
     when there are empty blocks in between code (such as files that contain
     application code and bootloader code).
-
 
 Version 4.2.0:
 
