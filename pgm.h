@@ -83,4 +83,32 @@ typedef struct programmer_t {
 
 PROGRAMMER * pgm_new(void);
 
+#if defined(WIN32NATIVE)
+
+#include <windows.h>
+
+/* usleep replacements */
+/* sleep Windows in ms, Unix usleep in us
+ #define usleep(us) Sleep((us)<20000?20:us/1000)
+ #define usleep(us) Sleep(us/1000)
+ #define ANTIWARP 3
+ #define usleep(us) Sleep(us/1000*ANTIWARP)
+*/
+void usleep(unsigned long us);
+
+void gettimeofday(struct timeval*, void*z);
+
+#define rindex strrchr
+
+#endif /* __win32native_h */
+
+
+#if !defined(ppi_claim)
+#  define ppi_claim(pgm)
+#endif
+
+#if !defined(ppi_release)
+#  define ppi_release(pgm)
+#endif
+
 #endif

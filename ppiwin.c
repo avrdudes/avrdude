@@ -30,7 +30,7 @@ reg = register as defined in an enum in ppi.h. This must be converted
 
 
 
-#if defined(__CYGWIN__)
+#if defined (WIN32NATIVE)
 
 #include <errno.h>
 #include <fcntl.h>
@@ -40,10 +40,8 @@ reg = register as defined in an enum in ppi.h. This must be converted
 #include <unistd.h>
 #include <windows.h>
 #include <sys/time.h>
-#include <w32api/windows.h>
+#include <windows.h>
 #include "ppi.h"
-
-
 
 extern char *progname;
 
@@ -317,79 +315,61 @@ static void outb(unsigned char value, unsigned short port)
     return;
 }
 
-/* These two functions usecPerfDelay and usleep are based on code from the
- * uisp project and are a replacement  for the cygwin usleep library
- * function which seems to not delay for the correct time
- */
+void gettimeofday(struct timeval*tv, void*z){
+// i've found only ms resolution, avrdude expects us
 
-BOOL usecPerfDelay(long t)
-{
-  static BOOL perf_counter_checked = FALSE;
-  static BOOL use_perf_counter = FALSE;
-  static LARGE_INTEGER freq ;
-
-  if (! perf_counter_checked) {
-	if (QueryPerformanceFrequency(&freq)){
-	    use_perf_counter = TRUE;
-    }
-    perf_counter_checked = TRUE;
-  }
-
-  if (! use_perf_counter)
-	return FALSE;
-
-  else {
-	LARGE_INTEGER now;
-	LARGE_INTEGER finish;
-	QueryPerformanceCounter(&now);
-	finish.QuadPart = now.QuadPart + (t * freq.QuadPart) / 1000000;
-	do {
-	    QueryPerformanceCounter(&now);
-	} while (now.QuadPart < finish.QuadPart);
-
-	return TRUE;
-  }
-}
-
-/*
-WARNING WARNING This function replaces the standard usleep() library function
-because it doesn't appear to delay for the correct time.
-*/
-
-#ifndef MIN_SLEEP_USEC
-#define MIN_SLEEP_USEC 20000
-#endif
-
-unsigned usleep( unsigned int uSeconds )
-{
-  struct timeval t1, t2;
-  struct timespec nanoDelay ;
-
-  if (usecPerfDelay(uSeconds))
-    return(0);
-
-  gettimeofday(&t1, NULL);
-
-  if( uSeconds > MIN_SLEEP_USEC )
-  {
-    nanoDelay.tv_sec = uSeconds / 1000000UL;
-    nanoDelay.tv_nsec = (uSeconds / 1000000UL) * 1000 ;
-    nanosleep( &nanoDelay, NULL ) ;
-  }
-
-  /* loop for the remaining time */
-  t2.tv_sec = uSeconds / 1000000UL;
-  t2.tv_usec = uSeconds % 1000000UL;
-
-  timeradd(&t1, &t2, &t1);
-
-  do {
-    gettimeofday(&t2, NULL);
-  } while (timercmp(&t2, &t1, <));
+	SYSTEMTIME st;
+	GetSystemTime(&st);
   
-  return(0);
+	tv->tv_sec=(long)(st.wSecond+st.wMinute*60+st.wHour*3600);
+	tv->tv_usec=(long)(st.wMilliseconds*1000);
 }
 
+// #define W32USLEEPDBG
+
+void usleep(unsigned long us)
+{
+	int has_highperf;
+	LARGE_INTEGER freq,start,stop,loopend;
+	#ifdef W32USLEEPDBG
+	unsigned long dt;
+	#endif
+
+	// workaround: although usleep is very precise if using
+	// high-performance-timers there are sometimes problems with
+	// verify - increasing the delay helps sometimes but not
+	// realiably. There must be some other problem. Maybe just
+	// with my test-hardware maybe in the code-base.
+	//// us=(unsigned long) (us*1.5);	
+
+	has_highperf=QueryPerformanceFrequency(&freq);
+
+	//has_highperf=0; // debug
+
+	if (has_highperf) {
+		QueryPerformanceCounter(&start);
+		loopend.QuadPart=start.QuadPart+freq.QuadPart*us/(1000*1000);
+		do { 
+			QueryPerformanceCounter(&stop);
+		} while (stop.QuadPart<=loopend.QuadPart);
+	}
+	else {
+		#ifdef W32USLEEPDBG
+		QueryPerformanceCounter(&start);
+		#endif
+		Sleep(1);
+		Sleep( (DWORD)((us+999)/1000) );
+		#ifdef W32USLEEPDBG
+		QueryPerformanceCounter(&stop);
+		#endif
+	}
+	
+	#ifdef W32USLEEPDBG
+	dt=(unsigned long)((stop.QuadPart-start.QuadPart)*1000*1000/freq.QuadPart);
+	fprintf(stderr,"hpt:%i usleep usec:%lu sleep msec:%lu timed usec:%lu\n",
+		has_highperf,us,((us+999)/1000),dt);
+	#endif
+}
 
 #endif
 

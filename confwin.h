@@ -19,7 +19,7 @@
 
 
 
-#if defined(__CYGWIN__)
+#if defined(WIN32NATIVE)
 #ifndef __confwin_h__
 #define __confwin_h__
 

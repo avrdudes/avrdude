@@ -23,6 +23,9 @@
  * Posix serial interface for avrdude.
  */
 
+#if !defined(WIN32NATIVE)
+
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -350,3 +353,5 @@ int serial_drain(int fd, int display)
 
   return 0;
 }
+
+#endif  /* WIN32NATIVE */

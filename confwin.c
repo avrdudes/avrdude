@@ -19,7 +19,7 @@
 
 
 
-#if defined(__CYGWIN__)
+#if defined(WIN32NATIVE)
 
 #include <limits.h>
 #include <windows.h>

@@ -28,8 +28,10 @@
 #include <limits.h>
 
 #if defined(HAVE_LIBREADLINE)
+#if !defined(WIN32NATIVE)
 #  include <readline/readline.h>
 #  include <readline/history.h>
+#endif
 #endif
 
 #include "avr.h"
@@ -754,7 +756,7 @@ int do_cmd(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 
 char * terminal_get_input(const char *prompt)
 {
-#if defined(HAVE_LIBREADLINE)
+#if defined(HAVE_LIBREADLINE) && !defined(WIN32NATIVE)
   char *input;
   input = readline(prompt);
   if ((input != NULL) && (strlen(input) >= 1))
@@ -767,7 +769,7 @@ char * terminal_get_input(const char *prompt)
   if (fgets(input, sizeof(input), stdin))
   {
     /* FIXME: readline strips the '\n', should this too? */
-    strdup(input);
+    return strdup(input);
   }
   else
     return NULL;
