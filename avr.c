@@ -42,6 +42,8 @@
 #include "ppi.h"
 
 
+#define DEBUG 0
+
 extern char       * progname;
 extern char         progbuf[];
 extern PROGRAMMER * pgm;
@@ -377,9 +379,11 @@ int avr_read_byte(int fd, AVRPART * p, AVRMEM * mem, unsigned long addr,
   }
 
   if (readop == NULL) {
+#if DEBUG
     fprintf(stderr, 
             "avr_read_byte(): operation not supported on memory type \"%s\"\n",
             p->desc);
+#endif
     return -1;
   }
 
@@ -430,11 +434,15 @@ int avr_read(int fd, AVRPART * p, char * memtype, int size, int verbose)
     rc = avr_read_byte(fd, p, mem, i, &rbyte);
     if (rc != 0) {
       fprintf(stderr, "avr_read(): error reading address 0x%04lx\n", i);
+      if (rc == -1) 
+        fprintf(stderr, 
+                "    read operation not supported for memory \"%s\"\n",
+                memtype);
       return -2;
     }
     buf[i] = rbyte;
     if (verbose) {
-      if (i % 16 == 0)
+      if ((i % 16 == 0)||(i == (size-1)))
         fprintf(stderr, "                    \r%4lu  0x%02x", i, rbyte);
     }
   }
@@ -505,6 +513,7 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
   unsigned short caddr;
   OPCODE * writeop;
   int rc;
+  int readok=0;
 
   if (!mem->paged) {
     /* 
@@ -513,11 +522,19 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
      * use this optimization for paged addressing.
      */
     rc = avr_read_byte(fd, p, mem, addr, &b);
-    if (rc != 0)
-      return -1;
-
-    if (b == data) {
-      return 0;
+    if (rc != 0) {
+      if (rc != -1) {
+        return -1;
+      }
+      /*
+       * the read operation is not support on this memory type
+       */
+    }
+    else {
+      readok = 1;
+      if (b == data) {
+        return 0;
+      }
     }
   }
 
@@ -544,9 +561,11 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
   }
 
   if (writeop == NULL) {
+#if DEBUG
     fprintf(stderr, 
-            "avr_write_byte(): write not support for memory type \"%s\"\n",
+            "avr_write_byte(): write not supported for memory type \"%s\"\n",
             mem->desc);
+#endif
     return -1;
   }
 
@@ -567,6 +586,16 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
      * page complete immediately, we only need to delay when we commit
      * the whole page via the avr_write_page() routine.
      */
+    LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
+    return 0;
+  }
+
+  if (readok == 0) {
+    /*
+     * read operation not supported for this memory type, just wait
+     * the max programming time and then return 
+     */
+    usleep(mem->max_write_delay); /* maximum write delay */
     LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
     return 0;
   }
@@ -593,11 +622,11 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
         return -1;
       }
     }
-
+    
     if (r == data) {
       ready = 1;
     }
-
+    
     tries++;
     if (!ready && tries > 5) {
       /*
@@ -606,7 +635,7 @@ int avr_write_byte(int fd, AVRPART * p, AVRMEM * mem,
        */
       LED_OFF(fd, pgm->pinno[PIN_LED_PGM]);
       LED_ON(fd, pgm->pinno[PIN_LED_ERR]);
-
+      
       return -1;
     }
   }
@@ -660,7 +689,7 @@ int avr_write(int fd, AVRPART * p, char * memtype, int size, int verbose)
   for (i=0; i<wsize; i++) {
     data = m->buf[i];
     if (verbose) {
-      if (i % 16 == 0)
+      if ((i % 16 == 0)||(i == (wsize-1)))
         fprintf(stderr, "                      \r%4lu 0x%02x ", i, data);
     }
     rc = avr_write_byte(fd, p, m, i, data);
