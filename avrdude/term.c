@@ -24,8 +24,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#include <readline/readline.h>
-#include <readline/history.h>
+
+#if defined(HAVE_LIBREADLINE)
+#  include <readline/readline.h>
+#  include <readline/history.h>
+#endif
 
 #include "avr.h"
 #include "config.h"
@@ -621,21 +624,40 @@ int do_cmd(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 }
 
 
+char * terminal_get_input(const char *prompt)
+{
+#if defined(HAVE_LIBREADLINE)
+  char *input;
+  input = readline(prompt);
+  if ((input != NULL) && (strlen(input) >= 1))
+    add_history(input);
+
+  return input;
+#else
+  char input[256];
+  printf("%s", prompt);
+  if (fgets(input, sizeof(input), stdin))
+  {
+    /* FIXME: readline strips the '\n', should this too? */
+    strdup(input);
+  }
+  else
+    return NULL;
+#endif
+}
+
+
 int terminal_mode(PROGRAMMER * pgm, struct avrpart * p)
 {
   char  * cmdbuf;
-  int     i, len;
+  int     i;
   char  * q;
   int     rc;
   int     argc;
   char ** argv;
 
   rc = 0;
-  while ((cmdbuf = readline("avrdude> ")) != NULL) {
-    len = strlen(cmdbuf);
-    if (len >= 1)
-      add_history(cmdbuf);
-
+  while ((cmdbuf = terminal_get_input("avrdude> ")) != NULL) {
     /* 
      * find the start of the command, skipping any white space
      */
