@@ -430,7 +430,7 @@ void list_parts(FILE * f, char * prefix, LISTID parts)
 
   for (ln1=lfirst(parts); ln1; ln1=lnext(ln1)) {
     p = ldata(ln1);
-    fprintf(f, "%s%s = %s\n", prefix, p->id, p->desc);
+    fprintf(f, "%s%-4s = %s\n", prefix, p->id, p->desc);
   }
 
   return;
