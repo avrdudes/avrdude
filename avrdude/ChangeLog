@@ -1,3 +1,8 @@
+2003-09-18  Eric B. Weddington  <eric@ecentral.com>
+
+	* doc/avrdude.texi: Minor corrections. Change description of -P
+	to reference platform dependencies.
+
 2003-09-16  Eric B. Weddington  <eric@ecentral.com>
 
 	* stk500.c: If writing flash, skip empty pages in paged write.
