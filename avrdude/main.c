@@ -696,6 +696,7 @@ int main ( int argc, char * argv [] )
   int     verify;      /* perform a verify operation */
   int     ppisetbits;  /* bits to set in ppi data register at exit */
   int     ppiclrbits;  /* bits to clear in ppi data register at exit */
+  char  * exitspecs;   /* exit specs string from command line */
 
   readorwrite   = 0;
   parallel      = DEFAULT_PARALLEL;
@@ -710,7 +711,9 @@ int main ( int argc, char * argv [] )
   filefmt       = FMT_AUTO;
   nowrite       = 0;
   verify        = 1;        /* on by default; XXX can't turn it off */
-  ppisetbits    = ppiclrbits = 0;
+  ppisetbits    = 0;
+  ppiclrbits    = 0;
+  exitspecs     = NULL;
   pinconfig     = NULL;
 
   strcpy(configfile, CONFIG_DIR);
@@ -836,10 +839,7 @@ int main ( int argc, char * argv [] )
         break;
 
       case 'E':
-	if (getexitspecs(optarg, &ppisetbits, &ppiclrbits) < 0) {
-	  usage();
-	  exit(1);
-	}
+        exitspecs = optarg;
 	break;
 
       case 'i': /* specify input file */
@@ -931,6 +931,13 @@ int main ( int argc, char * argv [] )
     }
   }
 
+  if (exitspecs != NULL) {
+    if (getexitspecs(exitspecs, &ppisetbits, &ppiclrbits) < 0) {
+      usage();
+      exit(1);
+    }
+  }
+
 
   /* 
    * set up seperate instances of the avr part, one for use in
@@ -982,14 +989,18 @@ int main ( int argc, char * argv [] )
     goto main_exit;
   }
 
+#if 0
   fprintf(stderr, "initial port data = 0x%02x, pins %s\n",
           ppidata, vccpins_str(ppidata));
+#endif
 
   ppidata &= ~ppiclrbits;
   ppidata |= ppisetbits;
 
+#if 0
   fprintf(stderr, "apply exit specs, port data = 0x%02x, pins %s\n",
           ppidata, vccpins_str(ppidata));
+#endif
 
   /* 
    * turn off all the status leds
@@ -1197,8 +1208,12 @@ int main ( int argc, char * argv [] )
    */
 
   avr_powerdown(fd);
+
+#if 0
   fprintf(stderr, "port data = 0x%02x, pins %s\n",
           ppidata, vccpins_str(ppidata));
+#endif
+
   ppi_setall(fd, PPIDATA, ppidata);
 
   /*
