@@ -197,42 +197,54 @@ int cmd_dump ( int fd, struct avrpart * p, int argc, char * argv[] )
 {
   char * e;
   int i, j;
-  int len, maxsize;
-  AVRMEM memtype;
-  unsigned short addr, daddr;
+  unsigned short daddr;
   char * buf;
+  int maxsize;
+  static AVRMEM memtype=AVR_FLASH;
+  static unsigned short addr=0;
+  static int len=64;
 
-  if (argc != 4) {
-    fprintf(stderr, "Usage: dump flash|eeprom <addr> <len>\n");
-    return -1;
-  }
-
-  if (strcmp(argv[1],"flash")==0) {
-    memtype = AVR_FLASH;
-    maxsize = p->flash_size;
-  }
-  else if (strcmp(argv[1],"eeprom")==0) {
-    memtype = AVR_EEPROM;
-    maxsize = p->eeprom_size;
+  if (argc == 1) {
+    addr += len;
   }
   else {
-    fprintf(stderr, "%s (dump): invalid memory type \"%s\"\n",
-            progname, argv[1]);
-    return -1;
+    if (argc != 4) {
+      fprintf(stderr, "Usage: dump flash|eeprom <addr> <len>\n");
+      return -1;
+    }
+
+    if (strcmp(argv[1],"flash")==0) {
+      memtype = AVR_FLASH;
+    }
+    else if (strcmp(argv[1],"eeprom")==0) {
+      memtype = AVR_EEPROM;
+    }
+    else {
+      fprintf(stderr, "%s (dump): invalid memory type \"%s\"\n",
+              progname, argv[1]);
+      return -1;
+    }
+
+    addr = strtoul(argv[2], &e, 0);
+    if (*e || (e == argv[2])) {
+      fprintf(stderr, "%s (dump): can't parse address \"%s\"\n",
+              progname, argv[2]);
+      return -1;
+    }
+
+    len = strtol(argv[3], &e, 0);
+    if (*e || (e == argv[3])) {
+      fprintf(stderr, "%s (dump): can't parse length \"%s\"\n",
+              progname, argv[3]);
+      return -1;
+    }
   }
 
-  addr = strtoul(argv[2], &e, 0);
-  if (*e || (e == argv[2])) {
-    fprintf(stderr, "%s (dump): can't parse address \"%s\"\n",
-            progname, argv[2]);
-    return -1;
-  }
-
-  len = strtol(argv[3], &e, 0);
-  if (*e || (e == argv[3])) {
-    fprintf(stderr, "%s (dump): can't parse length \"%s\"\n",
-            progname, argv[3]);
-    return -1;
+  switch (memtype) {
+    case AVR_FLASH  : maxsize = p->flash_size; break;
+    case AVR_EEPROM : maxsize = p->eeprom_size; break;
+    default : return -1; /* this can't happen, but is silences gcc
+                            warnings */
   }
 
   if (addr > maxsize) {
@@ -242,13 +254,9 @@ int cmd_dump ( int fd, struct avrpart * p, int argc, char * argv[] )
     return -1;
   }
 
-  if ((addr + len) > maxsize) {
-    fprintf(stderr, 
-            "%s (dump): selected address and length exceed "
-            "range for %s memory\n", 
-            progname, avr_memtstr(memtype));
-    return -1;
-  }
+  /* trim len if nessary to not read past the end of memory */
+  if ((addr + len) > maxsize)
+    len = maxsize - addr;
 
   buf = malloc(len);
   if (buf == NULL) {
