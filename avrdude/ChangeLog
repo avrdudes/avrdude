@@ -1,5 +1,9 @@
 2004-01-17  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
+	* doc/avrdude.texi: get rid of those black boxes marking "overfull hbox"
+
+2004-01-17  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
 	* doc/avrdude.texi: new appendix "Troubleshooting"
 
 2004-01-12  Jan-Hinnerk Reichert  <hinni@despammed.com>

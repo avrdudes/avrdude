@@ -5,6 +5,7 @@
 
 @setfilename avrdude.info
 @settitle AVRDUDE
+@finalout
 
 @include version.texi
 
