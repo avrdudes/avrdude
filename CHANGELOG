@@ -4,6 +4,11 @@ Approximate change log for AVRPROG by version
 
 ----------------------------------------------------------------------
 
+Version 2.0.5:
+
+  * Support for ATtiny15 - contributed by Asher Hoskins
+
+
 Version 2.0.4:
 
   * Config file fixes for various parts.
