@@ -175,7 +175,7 @@ int serial_send(int fd, char * buf, size_t buflen)
         else {
           fprintf(stderr, ". ");
         }
-        fprintf(stderr, "[%02x] ", (unsigned int)c);
+        fprintf(stderr, "[%02x] ", ((unsigned int)c) & 0xff);
 
         buf++;
         buflen--;

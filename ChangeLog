@@ -1,5 +1,9 @@
 2003-03-23  Theodore A. Roth  <troth@openavr.org>
 
+	* ser_posix.c: Limit verbose output to 2 chars.
+
+2003-03-23  Theodore A. Roth  <troth@openavr.org>
+
 	* ser_posix.c: Add verbose level > 3 output for send and recv functions.
 
 2003-03-23  Theodore A. Roth  <troth@openavr.org>
