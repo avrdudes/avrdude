@@ -1,5 +1,5 @@
 /*
- * Copyright 2000  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright 2001  Brian S. Dean <bsd@bsdhome.com>
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,9 @@
 
 /*
  * Code to program an Atmel AVR AT90S device using the parallel port.
+ *
+ * Pin definitions can be changed via a config file.  Below is the
+ * default pin configuration.
  *
  * Make the following (minimal) connections:
  *
@@ -107,7 +110,7 @@ char ** modules[5] = {
   &term_version 
 };
 
-char * version      = "1.2";
+char * version      = "1.3.0";
 
 char * main_version = "$Id$";
 
@@ -758,7 +761,7 @@ int main ( int argc, char * argv [] )
    * Print out an identifying string so folks can tell what version
    * they are running
    */
-  fprintf(stderr, "\n%s: Copyright 2000 Brian Dean, bsd@bsdhome.com\n"
+  fprintf(stderr, "\n%s: Copyright 2001 Brian Dean, bsd@bsdhome.com\n"
           "%sVersion %s  Revision Timestamp %s\n\n", 
           progname, progbuf, version, timestamp);
 
@@ -989,18 +992,8 @@ int main ( int argc, char * argv [] )
     goto main_exit;
   }
 
-#if 0
-  fprintf(stderr, "initial port data = 0x%02x, pins %s\n",
-          ppidata, vccpins_str(ppidata));
-#endif
-
   ppidata &= ~ppiclrbits;
   ppidata |= ppisetbits;
-
-#if 0
-  fprintf(stderr, "apply exit specs, port data = 0x%02x, pins %s\n",
-          ppidata, vccpins_str(ppidata));
-#endif
 
   /* 
    * turn off all the status leds
@@ -1208,11 +1201,6 @@ int main ( int argc, char * argv [] )
    */
 
   avr_powerdown(fd);
-
-#if 0
-  fprintf(stderr, "port data = 0x%02x, pins %s\n",
-          ppidata, vccpins_str(ppidata));
-#endif
 
   ppi_setall(fd, PPIDATA, ppidata);
 

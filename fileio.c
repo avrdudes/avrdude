@@ -1,5 +1,5 @@
 /*
- * Copyright 2000  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright 2001  Brian S. Dean <bsd@bsdhome.com>
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
