@@ -708,6 +708,9 @@ int main(int argc, char * argv [])
   int     quell_progress;
   int     baudrate;    /* override default programmer baud rate */
   int     safemode;    /* Enable safemode, 1=safemode on, 0=normal */
+  unsigned char safemode_lfuse = 0xff;
+  unsigned char safemode_hfuse = 0xff;
+  unsigned char safemode_efuse = 0xff;
 #if !defined(WIN32NATIVE)
   char  * homedir;
 #endif
@@ -1214,10 +1217,9 @@ int main(int argc, char * argv [])
     }
   }
 
-  unsigned char safemode_lfuse = 0xff;
-  unsigned char safemode_hfuse = 0xff;
-  unsigned char safemode_efuse = 0xff;    
   if (safemode == 1) {
+    AVRMEM * m;
+
     /* If safemode is enabled, go ahead and read the current low, high,
        and extended fuse bytes as needed */
 
@@ -1239,8 +1241,6 @@ int main(int argc, char * argv [])
 
 
     /* Check if user is attempting to write fuse bytes */
-    AVRMEM * m;
-
     for (ln=lfirst(updates); ln; ln=lnext(ln)) {
       upd = ldata(ln);
       m = avr_locate_mem(p, upd->memtype);
