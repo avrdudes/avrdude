@@ -32,6 +32,10 @@ then
 	exit 1
 fi
 
+# automake doesn't find autoconf${AC_VER} unless this variable is
+# exported:
+export AUTOCONF
+
 # Bootstrap the build system.
 
 set -x
