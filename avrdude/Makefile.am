@@ -22,6 +22,7 @@
 #
 
 EXTRA_DIST   = \
+	CHANGELOG \
 	avrdude.1 \
 	avrdude.pdf \
 	avrdude.spec \
