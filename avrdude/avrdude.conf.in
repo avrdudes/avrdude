@@ -327,6 +327,7 @@ part
     id                  = "t12";
     desc                = "ATtiny12";
     stk500_devcode      = 0x12;
+    avr910_devcode      = 0x55;
     chip_erase_delay    = 20000;
     pgm_enable          = "1 0 1 0  1 1 0 0   0 1 0 1  0 0 1 1",
                           "x x x x  x x x x   x x x x  x x x x";
@@ -415,7 +416,7 @@ part
     desc                = "ATtiny15";
     stk500_devcode      = 0x13;
     avr910_devcode      = 0x56;
-    chip_erase_delay    = 20000;
+    chip_erase_delay    = 8200;
     pgm_enable          = "1 0 1 0  1 1 0 0   0 1 0 1  0 0 1 1",
                           "x x x x  x x x x   x x x x  x x x x";
 
@@ -424,8 +425,8 @@ part
 
     memory "eeprom"
         size            = 64;
-        min_write_delay = 9000;
-        max_write_delay = 20000;
+        min_write_delay = 8200;
+        max_write_delay = 8200;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
         read            = "1  0  1  0   0  0  0  0    x x x x  x x x x",
@@ -437,8 +438,8 @@ part
 
     memory "flash"
         size            = 1024;
-        min_write_delay = 4500;
-        max_write_delay = 20000;
+        min_write_delay = 4100;
+        max_write_delay = 4100;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
         read_lo         = "  0  0  1  0   0  0  0  0",
@@ -514,8 +515,8 @@ part
 
     memory "eeprom"
         size            = 64;
-        min_write_delay = 9000;
-        max_write_delay = 20000;
+        min_write_delay = 4000;
+        max_write_delay = 9000;
         readback_p1     = 0x00;
         readback_p2     = 0xff;
         read            = "1 0  1  0   0  0  0  0   x x x x  x x x x", 
@@ -526,10 +527,10 @@ part
       ;
     memory "flash"
         size            = 1024;
-        min_write_delay = 9000;
-        max_write_delay = 20000;
+        min_write_delay = 4000;
+        max_write_delay = 9000;
         readback_p1     = 0xff;
-        readback_p2     = 0x00;
+        readback_p2     = 0xff;
         read_lo         = "  0   0   1   0    0   0   0   0",
                           "  x   x   x   x    x   x   x  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
@@ -610,7 +611,7 @@ part
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0x7f;
-        readback_p2     = 0x00;
+        readback_p2     = 0x7f;
         read_lo         = "  0   0   1   0    0   0   0   0",
                           "  x   x   x   x  a11 a10  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
@@ -656,8 +657,8 @@ part
 
     memory "eeprom"
         size            = 128;
-        min_write_delay = 9000;
-        max_write_delay = 20000;
+        min_write_delay = 4000;
+        max_write_delay = 9000;
         readback_p1     = 0x80;
         readback_p2     = 0x7f;
         read            = "1  0  1  0   0  0  0  0   x x x x  x x x x", 
@@ -668,10 +669,10 @@ part
       ;
     memory "flash"
         size            = 2048;
-        min_write_delay = 9000;
-        max_write_delay = 20000;
+        min_write_delay = 4000;
+        max_write_delay = 9000;
         readback_p1     = 0x7f;
-        readback_p2     = 0x00;
+        readback_p2     = 0x7f;
         read_lo         = "  0   0   1   0    0   0   0   0",
                           "  x   x   x   x    x   x  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
@@ -737,7 +738,7 @@ part
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0xff;
-        readback_p2     = 0x00;
+        readback_p2     = 0xff;
         read_lo         = "  0   0   1   0    0   0   0   0",
                           "  x   x   x   x    x   x  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
@@ -820,7 +821,7 @@ part
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0xff;
-        readback_p2     = 0x00;
+        readback_p2     = 0xff;
         read_lo         = "  0   0   1   0    0   0   0   0",
                           "  x   x   x   x    x   x  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
@@ -902,7 +903,7 @@ part
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0xff;
-        readback_p2     = 0x00;
+        readback_p2     = 0xff;
         read_lo         = "  0   0   1   0    0   0   0   0",
                           "  x   x   x   x    x a10  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
@@ -984,7 +985,7 @@ part
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0xff;
-        readback_p2     = 0x00;
+        readback_p2     = 0xff;
         read_lo         = "  0   0   1   0    0   0   0   0",
                           "  x   x   x   x    x a10  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
@@ -1050,8 +1051,8 @@ part
 
     memory "eeprom"
         size            = 512;
-        min_write_delay = 9000;
-        max_write_delay = 20000;
+        min_write_delay = 4000;
+        max_write_delay = 9000;
         readback_p1     = 0x80;
         readback_p2     = 0x7f;
         read            = " 1  0  1  0   0  0  0  0  x x x x  x x x a8", 
@@ -1062,10 +1063,10 @@ part
       ;
     memory "flash"
         size            = 8192;
-        min_write_delay = 9000;
-        max_write_delay = 20000;
+        min_write_delay = 4000;
+        max_write_delay = 9000;
         readback_p1     = 0x7f;
-        readback_p2     = 0x00;
+        readback_p2     = 0x7f;
         read_lo         = "  0   0   1   0    0   0   0   0",
                           "  x   x   x   x  a11 a10  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
@@ -1140,7 +1141,7 @@ part
         min_write_delay = 9000;
         max_write_delay = 20000;
         readback_p1     = 0xff;
-        readback_p2     = 0x00;
+        readback_p2     = 0xff;
         read_lo         = "  0   0   1   0    0   0   0   0",
                           "  x   x   x   x  a11 a10  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
@@ -1223,7 +1224,7 @@ part
         min_write_delay = 22000;
         max_write_delay = 56000;
         readback_p1     = 0xff;
-        readback_p2     = 0x00;
+        readback_p2     = 0xff;
         read_lo         = "  0   0   1   0      0   0   0   0",
                           "a15 a14 a13 a12    a11 a10  a9  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0",
@@ -1319,9 +1320,9 @@ part
         page_size       = 256;
         num_pages       = 256;
         min_write_delay = 4500;
-        max_write_delay = 9000;
+        max_write_delay = 4500;
         readback_p1     = 0xff;
-        readback_p2     = 0x00;
+        readback_p2     = 0xff;
         read_lo         = "  0   0   1   0      0   0   0   0",
                           "  x a14 a13 a12    a11 a10  a9  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0",
@@ -1408,6 +1409,7 @@ part
     id               = "m128";
     desc             = "ATMEGA128";
     stk500_devcode   = 0xB2;
+    avr910_devcode   = 0x43;
     chip_erase_delay = 9000;
     pagel            = 0xD7;
     bs2              = 0xA0;
@@ -1443,9 +1445,9 @@ part
         page_size       = 256;
         num_pages       = 512;
         min_write_delay = 4500;
-        max_write_delay = 9000;
+        max_write_delay = 4500;
         readback_p1     = 0xff;
-        readback_p2     = 0x00;
+        readback_p2     = 0xff;
         read_lo         = "  0   0   1   0      0   0   0   0",
                           "a15 a14 a13 a12    a11 a10  a9  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0",
@@ -1529,6 +1531,7 @@ part
     id               = "m16";
     desc             = "ATMEGA16";
     stk500_devcode   = 0x82;
+    avr910_devcode   = 0x74;
     pagel            = 0xd7;
     bs2              = 0xa0;
     chip_erase_delay = 9000;
@@ -1561,7 +1564,7 @@ part
         page_size       = 128;
         num_pages       = 128;
         min_write_delay = 4500;
-        max_write_delay = 9000;
+        max_write_delay = 4500;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
         read_lo         = "  0   0   1   0      0   0   0   0",
@@ -1632,7 +1635,7 @@ part
     id               = "m162";
     desc             = "ATMEGA162";
     stk500_devcode   = 0x83;
-    chip_erase_delay = 50000;
+    chip_erase_delay = 9000;
 
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
@@ -1645,8 +1648,8 @@ part
         size            = 16384;
         page_size       = 128;
         num_pages       = 128;
-        min_write_delay = 16000;
-        max_write_delay = 16000;
+        min_write_delay = 4500;
+        max_write_delay = 4500;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
 
@@ -1678,8 +1681,8 @@ part
 
     memory "eeprom"
         size            = 512;
-        min_write_delay = 16000;
-        max_write_delay = 16000;
+        min_write_delay = 9000;
+        max_write_delay = 9000;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
 
@@ -1881,7 +1884,7 @@ part
     id               = "m169";
     desc             = "ATMEGA169";
     stk500_devcode   = 0x85;
-    chip_erase_delay = 32000;
+    chip_erase_delay = 9000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
 
@@ -1889,8 +1892,8 @@ part
                        "x x x x  x x x x    x x x x  x x x x";
    memory "eeprom"
         size            = 512;
-        min_write_delay = 4000;
-        max_write_delay = 4000;
+        min_write_delay = 9000;
+        max_write_delay = 9000;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
 	read            = "  1   0   1   0      0   0   0   0",
@@ -1909,8 +1912,8 @@ part
         size            = 16384;
         page_size       = 128;
         num_pages       = 128;
-        min_write_delay = 16000;
-        max_write_delay = 16000;
+        min_write_delay = 4500;
+        max_write_delay = 4500;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
         read_lo         = "  0   0   1   0      0   0   0   0",
@@ -2003,7 +2006,7 @@ part
     desc             = "ATMEGA32";
     stk500_devcode   = 0x91;
     avr910_devcode   = 0x72;
-    chip_erase_delay = 32000;
+    chip_erase_delay = 9000;
     pagel            = 0xd7;
     bs2              = 0xa0;
     reset            = dedicated;
@@ -2037,7 +2040,7 @@ part
         page_size       = 128;
         num_pages       = 256;
         min_write_delay = 4500;
-        max_write_delay = 9000;
+        max_write_delay = 4500;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
         read_lo         = "  0   0   1   0      0   0   0   0",
@@ -2112,6 +2115,103 @@ part
       ;
   ;
 
+#------------------------------------------------------------
+# ATmega161
+#------------------------------------------------------------
+
+part
+    id               = "m161";
+    desc             = "ATMEGA161";
+    stk500_devcode   = 0x80;
+    avr910_devcode   = 0x60;
+    chip_erase_delay = 28000;
+    pagel            = 0xd7;
+    bs2              = 0xa0;
+    pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
+                       "x x x x  x x x x    x x x x  x x x x";
+
+    chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
+                       "x x x x  x x x x    x x x x  x x x x";
+   memory "eeprom"
+        size            = 512;
+        min_write_delay = 3400;
+        max_write_delay = 3400;
+        readback_p1     = 0xff;
+        readback_p2     = 0xff;
+	read            = "  1   0   1   0      0   0   0   0",
+                          "  x   x   x   x      x   x   x  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
+
+	write           = "  1   1   0   0      0   0   0   0",
+                          "  x   x   x   x      x   x   x  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  i   i   i   i      i   i   i   i";
+      ;
+
+    memory "flash"
+        paged           = yes;
+        size            = 16384;
+        page_size       = 128;
+        num_pages       = 128;
+        min_write_delay = 14000;
+        max_write_delay = 14000;
+        readback_p1     = 0xff;
+        readback_p2     = 0xff;
+        read_lo         = "  0   0   1   0      0   0   0   0",
+                          "  x   x   x a12    a11 a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
+
+        read_hi         = "  0   0   1   0      1   0   0   0",
+                          "  x   x   x a12    a11 a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
+
+        loadpage_lo     = "  0   1   0   0      0   0   0   0",
+                          "  x   x   x   x      x   x   x   x",
+                          "  x   x  a5  a4     a3  a2  a1  a0",
+                          "  i   i   i   i      i   i   i   i";
+
+        loadpage_hi     = "  0   1   0   0      1   0   0   0",
+                          "  x   x   x   x      x   x   x   x",
+                          "  x   x  a5  a4     a3  a2  a1  a0",
+                          "  i   i   i   i      i   i   i   i";
+
+        writepage       = "  0   1   0   0      1   1   0   0",
+                          "  x   x   x a12    a11 a10  a9  a8",
+                          " a7  a6   x   x      x   x   x   x",
+                          "  x   x   x   x      x   x   x   x";
+      ;
+
+    memory "fuse"
+        size            = 1;
+        min_write_delay = 2000;
+        max_write_delay = 2000;
+        read            = "0 1 0 1  0 0 0 0   x x x x  x x x x",
+                          "x x x x  x x x x   x o x o  o o o o";
+
+        write           = "1 0 1 0  1 1 0 0   1 0 1 x  x x x x",
+                          "x x x x  x x x x   1 i 1 i  i i i i";
+      ;
+
+    memory "lock"
+        size            = 1;
+        min_write_delay = 2000;
+        max_write_delay = 2000;
+        read            = "0 1 0 1  1 0 0 0   0 0 0 0  0 0 0 0",
+                          "x x x x  x x x x   x x o o  o o o o";
+
+        write           = "1 0 1 0  1 1 0 0   1 1 1 x  x x x x",
+                          "x x x x  x x x x   1 1 i i  i i i i";
+      ;
+    memory "signature"
+        size            = 3;
+        read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
+                          "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
+      ;
+  ;
+
 
 #------------------------------------------------------------
 # ATmega8
@@ -2121,6 +2221,7 @@ part
     id               = "m8";
     desc             = "ATMEGA8";
     stk500_devcode   = 0x70;
+    avr910_devcode   = 0x76;
     pagel            = 0xd7;
     bs2              = 0xc2;
     chip_erase_delay = 9000;
@@ -2152,7 +2253,7 @@ part
         page_size       = 64;
         num_pages       = 128;
         min_write_delay = 4500;
-        max_write_delay = 9000;
+        max_write_delay = 4500;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
         read_lo         = "  0   0   1   0    0   0   0   0",
@@ -2237,6 +2338,7 @@ part
     id               = "m8515";
     desc             = "ATMEGA8515";
     stk500_devcode   = 0x63;
+    avr910_devcode   = 0x3A;
     chip_erase_delay = 9000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
@@ -2266,7 +2368,7 @@ part
         page_size       = 64;
         num_pages       = 128;
         min_write_delay = 4500;
-        max_write_delay = 9000;
+        max_write_delay = 4500;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
         read_lo         = "  0   0   1   0    0   0   0   0",
@@ -2383,7 +2485,7 @@ part
         page_size       = 64;
         num_pages       = 128;
         min_write_delay = 4500;
-        max_write_delay = 9000;
+        max_write_delay = 4500;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
         read_lo         = "  0   0   1   0    0   0   0   0",
@@ -2467,6 +2569,7 @@ part
     id                  = "t26";
     desc                = "ATTINY26";
     stk500_devcode      = 0x21;
+    avr910_devcode      = 0x5e;
     pagel               = 0xb3;
     bs2                 = 0xb2;
     chip_erase_delay    = 9000;
@@ -2479,7 +2582,7 @@ part
     memory "eeprom"
         size            = 128;
         min_write_delay = 9000;
-        max_write_delay = 20000;
+        max_write_delay = 9000;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
         read            = "1  0  1  0   0  0  0  0    x x x x  x x x x",
@@ -2495,7 +2598,7 @@ part
         page_size       = 32;
         num_pages       = 64;
         min_write_delay = 4500;
-        max_write_delay = 20000;
+        max_write_delay = 4500;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
         read_lo         = "  0  0  1  0   0  0  0  0",
