@@ -287,11 +287,8 @@ int avr_get_output(OPCODE * op, unsigned char * res, unsigned char * data)
 }
 
 
-/*
- * read a byte of data from the indicated memory region
- */
-int avr_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem, 
-                  unsigned long addr, unsigned char * value)
+int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem, 
+                          unsigned long addr, unsigned char * value)
 {
   unsigned char cmd[4];
   unsigned char res[4];
@@ -337,6 +334,21 @@ int avr_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   *value = data;
 
   return 0;
+}
+
+
+/*
+ * read a byte of data from the indicated memory region
+ */
+int avr_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem, 
+                  unsigned long addr, unsigned char * value)
+{
+  if (pgm->read_byte) {
+    return pgm->read_byte(pgm, p, mem, addr, value);
+  }
+  else {
+    return avr_read_byte_default(pgm, p, mem, addr, value);
+  }
 }
 
 
@@ -465,10 +477,7 @@ int avr_write_page(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 }
 
 
-/*
- * write a byte of data at the specified address
- */
-int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                    unsigned long addr, unsigned char data)
 {
   unsigned char cmd[4];
@@ -650,6 +659,21 @@ int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
   pgm->pgm_led(pgm, OFF);
   return 0;
+}
+
+
+/*
+ * write a byte of data at the specified address
+ */
+int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+                   unsigned long addr, unsigned char data)
+{
+  if (pgm->write_byte) {
+    return pgm->write_byte(pgm, p, mem, addr, data);
+  }
+  else {
+    return avr_write_byte_default(pgm, p, mem, addr, data);
+  }
 }
 
 

@@ -66,6 +66,10 @@ typedef struct programmer_t {
                           int page_size, int n_bytes);
   int  (*paged_load)     (struct programmer_t * pgm, AVRPART * p, AVRMEM * m,
                           int page_size, int n_bytes);
+  int  (*write_byte)     (struct programmer_t * pgm, AVRPART * p, AVRMEM * m,
+                          unsigned long addr, unsigned char value);
+  int  (*read_byte)      (struct programmer_t * pgm, AVRPART * p, AVRMEM * m,
+                          unsigned long addr, unsigned char * value);
   int  (*read_sig_bytes) (struct programmer_t * pgm, AVRPART * p, AVRMEM * m);
   char config_file[PATH_MAX]; /* config file where defined */
   int  lineno;                /* config file line number */
