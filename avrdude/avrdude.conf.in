@@ -214,6 +214,12 @@ programmer
 ;
 
 programmer
+  id    = "butterfly";
+  desc  = "Atmel Butterfly Development Board";
+  type  = butterfly;
+;
+
+programmer
   id    = "pavr";
   desc  = "Jason Kyle's pAVR Serial Programmer";
   type  = avr910;
@@ -1884,6 +1890,7 @@ part
     id               = "m169";
     desc             = "ATMEGA169";
     stk500_devcode   = 0x85;
+    avr910_devcode   = 0x75;
     chip_erase_delay = 9000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";

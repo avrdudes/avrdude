@@ -53,6 +53,8 @@ avrdude_SOURCES = \
 	avr910.c \
 	avr910.h \
 	avrpart.h \
+	butterfly.c \
+	butterfly.h \
 	config.c \
 	config.h \
 	confwin.c \
