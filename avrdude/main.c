@@ -100,13 +100,14 @@ void usage(void)
     "  -p <partno>                Required. Specify AVR device.\n"
     "  -C <config-file>           Specify location of configuration file.\n"
     "  -c <programmer>            Specify programmer type.\n"
+    "  -D                         Disable auto erase for flash memory\n"
     "  -P <port>                  Specify connection port.\n"
     "  -F                         Override invalid signature check.\n"
     "  -e                         Perform a chip erase.\n"
-    "  -m <memtype>               Memory type to operate on.\n"
-    "  -i <filename>              Write device. Specify an input file.\n"
-    "  -o <filename>              Read device. Specify an output file.\n"
-    "  -f <format>                Specify the file format.\n"
+    "  -m <memtype>               (deprecated) Memory type to operate on.\n"
+    "  -i <filename>              (deprecated) Write device. Specify an input file.\n"
+    "  -o <filename>              (deprecated) Read device. Specify an output file.\n"
+    "  -f <format>                (deprecated) Specify the file format.\n"
     "  -U <memtype>:r|w|v:<filename>[:format]\n"
     "                             Alternate memory operation specification.\n"
     "                             Multiple -U options are allowed, each request\n"
@@ -722,12 +723,15 @@ int main(int argc, char * argv [])
   struct stat      sb;
   UPDATE         * upd;
   LNODEID        * ln;
+  int              deprecated = 0;
 
   /* options / operating mode variables */
   char *  memtype;     /* "flash", "eeprom", etc */
   int     doread;      /* 1=reading AVR */
   int     dowrite;     /* 1=writing AVR */
   int     erase;       /* 1=erase chip, 0=don't */
+  int     auto_erase;  /* 0=never erase unless explicity told to do
+                          so, 1=erase if we are going to program flash */
   char  * outputf;     /* output file name */
   char  * inputf;      /* input file name */
   int     ovsigck;     /* 1=override sig check, 0=don't */
@@ -777,6 +781,7 @@ int main(int argc, char * argv [])
   dowrite       = 0;
   memtype       = "flash";
   erase         = 0;
+  auto_erase    = 1;
   p             = NULL;
   ovsigck       = 0;
   terminal      = 0;
@@ -836,7 +841,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?c:C:eE:f:Fi:I:m:no:p:P:qtvU:VyY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?c:C:DeE:f:Fi:I:m:no:p:P:qtU:vVyY:")) != -1) {
 
     switch (ch) {
       case 'c': /* programmer id */
@@ -848,75 +853,21 @@ int main(int argc, char * argv [])
         sys_config[PATH_MAX-1] = 0;
         break;
 
-      case 'm': /* select memory type to operate on */
-        if ((strcasecmp(optarg,"e")==0)||(strcasecmp(optarg,"eeprom")==0)) {
-          memtype = "eeprom";
-        }
-        else if ((strcasecmp(optarg,"f")==0)||
-                 (strcasecmp(optarg,"flash")==0)) {
-          memtype = "flash";
-        }
-        else {
-          memtype = optarg;
-        }
-        readorwrite = 1;
-        break;
-
-      case 'F': /* override invalid signature check */
-        ovsigck = 1;
-        break;
-
-      case 'n':
-        nowrite = 1;
-        break;
-
-      case 'o': /* specify output file */
-        if (inputf || terminal) {
-          fprintf(stderr,"%s: -i, -o, and -t are incompatible\n\n", progname);
-          return 1;
-        }
-        doread = 1;
-        outputf = optarg;
-        if (filefmt == FMT_AUTO)
-          filefmt = FMT_RBIN;
-        break;
-
-      case 'p' : /* specify AVR part */
-        partdesc = optarg;
-        break;
-
-      case 'q' : /* Quell progress output */
-        quell_progress = 1;
+      case 'D': /* disable auto erase */
+        auto_erase = 0;
         break;
 
       case 'e': /* perform a chip erase */
         erase = 1;
+        auto_erase = 0;
         break;
 
       case 'E':
         exitspecs = optarg;
 	break;
 
-      case 'i': /* specify input file */
-        if (outputf || terminal) {
-          fprintf(stderr,"%s: -o, -i, and -t are incompatible\n\n", progname);
-          return 1;
-        }
-        dowrite = 1;
-        inputf = optarg;
-        break;
-
-      case 'I': /* specify input file and assume 'immediate mode' */
-        if (outputf || terminal) {
-          fprintf(stderr,"%s: -o, -I, and -t are incompatible\n\n", progname);
-          return 1;
-        }
-        dowrite = 1;
-        inputf = optarg;
-        filefmt = FMT_IMM;
-        break;
-
       case 'f':   /* specify file format */
+        deprecated = 1;
         if (strlen(optarg) != 1) {
           fprintf(stderr, "%s: invalid file format \"%s\"\n",
                   progname, optarg);
@@ -938,6 +889,77 @@ int main(int argc, char * argv [])
         }
         break;
 
+      case 'F': /* override invalid signature check */
+        ovsigck = 1;
+        break;
+
+      case 'i': /* specify input file */
+        deprecated = 1;
+        auto_erase = 0;
+        if (outputf || terminal) {
+          fprintf(stderr,"%s: -o, -i, and -t are incompatible\n\n", progname);
+          return 1;
+        }
+        dowrite = 1;
+        inputf = optarg;
+        break;
+
+      case 'I': /* specify input file and assume 'immediate mode' */
+        deprecated = 1;
+        auto_erase = 0;
+        if (outputf || terminal) {
+          fprintf(stderr,"%s: -o, -I, and -t are incompatible\n\n", progname);
+          return 1;
+        }
+        dowrite = 1;
+        inputf = optarg;
+        filefmt = FMT_IMM;
+        break;
+
+      case 'm': /* select memory type to operate on */
+        deprecated = 1;
+        if ((strcasecmp(optarg,"e")==0)||(strcasecmp(optarg,"eeprom")==0)) {
+          memtype = "eeprom";
+        }
+        else if ((strcasecmp(optarg,"f")==0)||
+                 (strcasecmp(optarg,"flash")==0)) {
+          memtype = "flash";
+        }
+        else {
+          memtype = optarg;
+        }
+        readorwrite = 1;
+        break;
+
+      case 'n':
+        nowrite = 1;
+        break;
+
+      case 'o': /* specify output file */
+        deprecated = 1;
+        auto_erase = 0;
+        if (inputf || terminal) {
+          fprintf(stderr,"%s: -i, -o, and -t are incompatible\n\n", progname);
+          return 1;
+        }
+        doread = 1;
+        outputf = optarg;
+        if (filefmt == FMT_AUTO)
+          filefmt = FMT_RBIN;
+        break;
+
+      case 'p' : /* specify AVR part */
+        partdesc = optarg;
+        break;
+
+      case 'P':
+        port = optarg;
+        break;
+
+      case 'q' : /* Quell progress output */
+        quell_progress = 1;
+        break;
+
       case 't': /* enter terminal mode */
         if (!((inputf == NULL)||(outputf == NULL))) {
           fprintf(stderr, 
@@ -947,10 +969,6 @@ int main(int argc, char * argv [])
           exit(1);
         }
         terminal = 1;
-        break;
-
-      case 'P':
-        port = optarg;
         break;
 
       case 'U':
@@ -1004,6 +1022,14 @@ int main(int argc, char * argv [])
     }
 
   }
+
+  if (deprecated) {
+    fprintf(stderr, 
+            "\n%s: WARNING: the -f, -i, -I, -o, and -m options are deprecated.\n"
+            "%sPlease use the -U option instead.\n", 
+            progname, progbuf);
+  }
+
 
   if (quell_progress == 0) {
     if (isatty (STDERR_FILENO))
@@ -1309,6 +1335,27 @@ int main(int argc, char * argv [])
     }
   }
 
+  if ((erase == 0) && (auto_erase == 1)) {
+    AVRMEM * m;
+
+    for (ln=lfirst(updates); ln; ln=lnext(ln)) {
+      upd = ldata(ln);
+      m = avr_locate_mem(p, upd->memtype);
+      if (m == NULL)
+        continue;
+      if ((strcasecmp(m->desc, "flash") == 0) && (upd->op == DEVICE_WRITE)) {
+        erase = 1;
+        fprintf(stderr,
+                "%s: NOTE: FLASH memory has been specified, an erase cycle will be performed\n"
+                "%sTo disable this feature, specify the -D option.\n",
+                progname, progbuf);
+        break;
+      }
+    }
+  }
+
+
+
   if (erase) {
     /*
      * erase the chip's flash and eeprom memories, this is required
@@ -1316,7 +1363,6 @@ int main(int argc, char * argv [])
      */
     fprintf(stderr, "%s: erasing chip\n", progname);
     pgm->chip_erase(pgm, p);
-    fprintf(stderr, "%s: done.\n", progname);
   }
   else if (set_cycles == -1) {
     /*
