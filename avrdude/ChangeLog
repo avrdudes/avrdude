@@ -1,3 +1,7 @@
+2003-09-24  Eric B. Weddington  <eric@ecentral.com>
+
+	* doc/TODO: Updated TODO list.
+
 2003-09-22  Eric B. Weddington  <eric@ecentral.com>
 
 	* windows/Makefile.am: Correct makefile so loaddrv does not link
