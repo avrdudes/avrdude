@@ -74,6 +74,7 @@ static struct ppipins_t pins[] = {
 
 extern char * progname;
 extern int do_cycles;
+extern int verbose;
 
 
 static int par_setpin          (int fd, int pin, int value);
@@ -294,15 +295,18 @@ static int par_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
     res[i] = par_txrx(pgm, cmd[i]);
   }
 
-#if 0
-  fprintf(stderr, "avr_cmd(): [ ");
-  for (i=0; i<4; i++)
-    fprintf(stderr, "%02x ", cmd[i]);
-  fprintf(stderr, "] [ ");
-  for (i=0; i<4; i++)
-    fprintf(stderr, "%02x ", res[i]);
-  fprintf(stderr, "]\n");
-#endif
+    if(verbose >= 2)
+	{
+        fprintf(stderr, "par_cmd(): [ ");
+        for(i = 0; i < 4; i++)
+            fprintf(stderr, "%02X ", cmd[i]);
+        fprintf(stderr, "] [ ");
+        for(i = 0; i < 4; i++)
+		{
+            fprintf(stderr, "%02X ", res[i]);
+		}
+        fprintf(stderr, "]\n");
+	}
 
   return 0;
 }
