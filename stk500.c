@@ -637,7 +637,7 @@ static int stk500_setattr(int fd)
 
   termios.c_iflag = 0;
   termios.c_oflag = 0;
-  termios.c_cflag &= ~ (PARENB | CSIZE | CSTOPB);
+  termios.c_cflag = 0;
   termios.c_cflag |=   (CS8 | CREAD | CLOCAL);
   termios.c_lflag = 0;
   termios.c_cc[VMIN]  = 1;

@@ -84,6 +84,8 @@ typedef struct avrpart {
   unsigned char pagel;              /* for parallel programming */
   unsigned char bs2;                /* for parallel programming */
   int           reset_disposition;  /* see RESET_ enums */
+  int           retry_pulse;        /* retry program enable by pulsing
+                                       this pin (PIN_AVR_*) */
   unsigned      flags;              /* see AVRPART_ masks */
 
   OPCODE      * op[AVR_OP_MAX];     /* opcodes */
