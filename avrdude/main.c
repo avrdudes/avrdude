@@ -1258,8 +1258,14 @@ int main(int argc, char * argv [])
   rc = pgm->initialize(pgm, p);
   if (rc < 0) {
     fprintf(stderr, "%s: initialization failed, rc=%d\n", progname, rc);
-    exitrc = 1;
-    goto main_exit;
+    if (!ovsigck) {
+      fprintf(stderr, "%sDouble check connections and try again, "
+              "or use -F to override\n"
+              "%sthis check.\n\n",
+              progbuf, progbuf);
+      exitrc = 1;
+      goto main_exit;
+    }
   }
 
   /* indicate ready */
