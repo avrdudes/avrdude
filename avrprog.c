@@ -1602,7 +1602,7 @@ int main ( int argc, char * argv [] )
      */
     fprintf(stderr, "%s: writing %s:\n", 
             progname, memtypestr(memtype));
-#if 0
+#if 1
     rc = avr_write ( fd, p, memtype );
 #else
     /* 
