@@ -360,11 +360,10 @@ int b2srec(unsigned char * inbuf, int bufsize,
            char * outfile, FILE * outf)
 {
   unsigned char * buf;
-  unsigned int nextaddr, stopaddr;
+  unsigned int nextaddr;
   int n, nbytes, addr_width;
   int i;
   unsigned char cksum;
-  unsigned char startf, stopf ,emptyf;
 
   char * tmpl=0;
 
@@ -373,39 +372,11 @@ int b2srec(unsigned char * inbuf, int bufsize,
             progname, recsize);
     return -1;
   }
-
+  
+  nextaddr = startaddr;
   buf = inbuf;
-  nextaddr = 0;    
-  stopaddr = 0;
-  startf = 0;
-  stopf = 0;
+  nbytes = 0;    
 
-  /* search for ranges of 'real' data */     
-  for (i=startaddr; i<bufsize; i++) {
-    if (buf[i] == 0xff) {
-      if (startf == 0) 
-        continue;
-      else if (stopf == 0) {
-        stopf = 1;
-        stopaddr = i;
-      }
-    }
-    else {
-      if (startf == 0) {
-        startf = 1;
-        nextaddr = i;
-        while (nextaddr % recsize != 0)
-          nextaddr --;
-      }
-      else if (stopf == 1) {
-        stopf = 0;
-        stopaddr = bufsize;
-      }
-    }
-  }
-  nbytes = i; 
-
-  bufsize = stopaddr - nextaddr;
   addr_width = 0;
 
   while (bufsize) {
@@ -435,34 +406,23 @@ int b2srec(unsigned char * inbuf, int bufsize,
         return -1;
       }
 
-      /* skip the lines filled with 0xff */ 
-      emptyf = 1;
+      fprintf(outf, tmpl, n + addr_width + 1, nextaddr);		
+
+      cksum += n + addr_width + 1;
+
+      for (i=addr_width; i>0; i--) 
+        cksum += (nextaddr >> (i-1) * 8) & 0xff;
+
       for (i=nextaddr; i<nextaddr + n; i++) {
-        if (buf[i] != 0xff) {
-          emptyf=0;
-          break;
-        }
+        fprintf(outf, "%02X", buf[i]);
+        cksum += buf[i];
       }
 
-      if (emptyf != 1) {	
-
-        fprintf(outf, tmpl, n + addr_width + 1, nextaddr);		
-
-        cksum += n + addr_width + 1;
-
-        for (i=addr_width; i>0; i--) 
-          cksum += (nextaddr >> (i-1) * 8) & 0xff;
-
-        for (i=nextaddr; i<nextaddr + n; i++) {
-          fprintf(outf, "%02X", buf[i]);
-          cksum += buf[i];
-        }
-
-        cksum = 0xff - cksum;
-        fprintf(outf, "%02X\n", cksum);
-      }
+      cksum = 0xff - cksum;
+      fprintf(outf, "%02X\n", cksum);
 
       nextaddr += n;
+      nbytes +=n;
     }
 
     /* advance to next 'recsize' bytes */
