@@ -41,6 +41,7 @@
 #           max_write_delay = <num> ;             # micro-seconds
 #           readback_p1     = <num> ;             # byte value
 #           readback_p2     = <num> ;             # byte value
+#           pwroff_after_write = <yes/no> ;       # yes / no
 #           read            = <instruction format> ;
 #           write           = <instruction format> ;
 #           read_lo         = <instruction format> ;
@@ -66,6 +67,15 @@
 #       fuse), "signature", "calibration", "lock"
 #   * The memory type specified on the avrprog command line must match
 #     one of the memory types defined for the specified chip.
+#   * The pwroff_after_write flag causes avrprog to attempt to
+#     power the device off and back on after an unsuccessful write to
+#     the affected memory area if VCC programmer pins are defined.  If
+#     VCC pins are not defined for the programmer, a message
+#     indicating that the device needs a power-cycle is printed out.
+#     This flag was added to work around a problem with the
+#     at90s4433/2333's; see the at90s4433 errata at:
+#
+#         http://www.atmel.com/atmel/acrobat/doc1280.pdf
 #
 # INSTRUCTION FORMATS
 #
