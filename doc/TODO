@@ -1,6 +1,4 @@
 
-General:
-
 - Man page needs updated for avr910 info.
 
 - avr910 needs a little bit of work to support setting fuse byte (note that it
@@ -10,13 +8,25 @@ General:
   http://savannah.nongnu.org/download/avrdude/doc/avrdude-html/
 
 - Add avr910 device codes for more devices. Some where posted here:
-  http://www.avrfreaks.com/phorum/read.php?f=3&i=40925&t=40717#40925
+  <http://www.avrfreaks.com/phorum/read.php?f=3&i=40925&t=40717#40925>
   but uisp seems to have a more comprehensive list.
 
-Windows:
-
-- Use Windows API for stk500 serial port communications on Windows port.
-  This might remove dependency on Cygwin.
+- [Windows Port] Use Windows API for serial port communications (ser_win32.c).
+  (In Progress)
   
-- Add ability to find all parallel port names available and base addresses
-  of available ports.
+- Add "skip empty pages" optimization on avr910 paged write. The stk500 has
+  this optimization already.
+
+- Fix "overfull \hbox" issues in building documentation.
+
+- FIXME: term.c: terminal_get_input(): strip newlines in non-readline input 
+  code.
+
+- FIXME: avr910.c: avr910_initialize(): Need to lookup devcode and report the 
+  device.
+  
+- FIXME: avr910.c: avr910_cmd(): Insert version check here.
+
+- FIXME: ser_posix.c: serial_close(): Should really restore the terminal to 
+  original state here.
+  
