@@ -116,4 +116,24 @@ typedef struct avrmem {
   OPCODE * op[AVR_OP_MAX];    /* opcodes */
 } AVRMEM;
 
+/* Functions for OPCODE structures */
+OPCODE * avr_new_opcode(void);
+int avr_set_bits(OPCODE * op, unsigned char * cmd);
+int avr_set_addr(OPCODE * op, unsigned char * cmd, unsigned long addr);
+int avr_set_input(OPCODE * op, unsigned char * cmd, unsigned char data);
+int avr_get_output(OPCODE * op, unsigned char * res, unsigned char * data);
+
+/* Functions for AVRMEM structures */
+AVRMEM * avr_new_memtype(void);
+int avr_initmem(AVRPART * p);
+AVRMEM * avr_dup_mem(AVRMEM * m);
+AVRMEM * avr_locate_mem(AVRPART * p, char * desc);
+void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type,
+                     int verbose);
+
+/* Functions for AVRPART structures */
+AVRPART * avr_new_part(void);
+AVRPART * avr_dup_part(AVRPART * d);
+void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose);
+
 #endif
