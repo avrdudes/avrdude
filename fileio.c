@@ -224,14 +224,25 @@ int ihex_readrec ( struct ihexrec * ihex, char * rec )
 
 
 
+/*
+ * Intel Hex to binary buffer
+ *
+ * Given an open file 'inf' which contains Intel Hex formated data,
+ * parse the file and lay it out within the memory buffer pointed to
+ * by outbuf.  The size of outbuf, 'bufsize' is honored; if data would
+ * fall outsize of the memory buffer outbuf, an error is generated.
+ *
+ * Return the maximum memory address within 'outbuf' that was written.
+ * If an error occurs, return -1.
+ *
+ * */
 
 int ihex2b ( char * infile, FILE * inf,
              unsigned char * outbuf, int bufsize )
 {
   char buffer [ MAX_LINE_LEN ];
   unsigned char * buf;
-  unsigned int nextaddr, baseaddr;
-  int nbytes;
+  unsigned int nextaddr, baseaddr, maxaddr;
   int i;
   int lineno;
   int len;
@@ -240,8 +251,8 @@ int ihex2b ( char * infile, FILE * inf,
 
   lineno   = 0;
   buf      = outbuf;
-  nbytes   = 0;
   baseaddr = 0;
+  maxaddr  = 0;
 
   while (fgets((char *)buffer,MAX_LINE_LEN,inf)!=NULL) {
     lineno++;
@@ -277,11 +288,12 @@ int ihex2b ( char * infile, FILE * inf,
         for (i=0; i<ihex.reclen; i++) {
           buf[nextaddr+i] = ihex.data[i];
         }
-        nbytes += ihex.reclen;
+        if (nextaddr+ihex.reclen > maxaddr)
+          maxaddr = nextaddr+ihex.reclen;
         break;
 
       case 1: /* end of file record */
-        return nbytes;
+        return maxaddr;
         break;
 
       case 2: /* extended segment address record */
@@ -316,7 +328,7 @@ int ihex2b ( char * infile, FILE * inf,
           "file \"%s\"\n",
           progname, infile);
 
-  return nbytes;
+  return maxaddr;
 }
 
 
