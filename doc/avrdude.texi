@@ -140,7 +140,7 @@ tell AVRDUDE which pins to use for each programming function.
 The STK500 and avr910 use the serial port to communicate with the PC
 and contains on-board logic to control the programming of the target
 device. The fundamental difference between the two types lies in the
-protocol used to control the programmer. The av910 protocol is very
+protocol used to control the programmer. The avr910 protocol is very
 simplistic and can easily be used as the basis for a simple, home made
 programer since the firmware is available online. On the other hand,
 the STK500 protocol is more robust and complicated and the firmware is
@@ -455,11 +455,12 @@ respective memory area to be read from the MCU.  Can be specified as `-'
 to write to stdout.
 
 @item -P @var{port}
-Use port to identify the device to which the programmer is attached.  By
-default the @code{/dev/ppi0} port is used, but if the programmer type
-normally connects to the serial port, the @code{/dev/cuaa0} port is the
-default.  If you need to use a different parallel or serial port, use
-this option to specify the alternate port name.
+Use port to identify the device to which the programmer is attached.  
+Normally, the default parallel port is used, but if the programmer type 
+normally connects to the serial port, the default serial port will be
+used. See Appendix A, Platform Dependent Information, to find out the 
+default port names for your platform. If you need to use a different 
+parallel or serial port, use this option to specify the alternate port name.
 
 @item -q
 Disable (or quell) output of the progress bar while reading or writing
@@ -1035,7 +1036,7 @@ write = "1  1  0  0   0  0  0  0   x x x x  x x x x",
 @itemize @bullet
 @item
 The @code{devicecode} parameter is the device code used by the STK500
-and are obtained from the software section (@code{avr061.zip} of
+and is obtained from the software section (@code{avr061.zip}) of
 Atmel's AVR061 application note available from
 @url{http://www.atmel.com/atmel/acrobat/doc2525.pdf}.
 
