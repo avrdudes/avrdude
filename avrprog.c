@@ -411,7 +411,7 @@ int avr_write_byte ( int fd, AVRMEM memtype, unsigned short addr, unsigned char 
       break;
     case AVR_EEPROM: 
       cmd[0] = 0xc0;
-      addr &= 0x7f;
+      /* addr &= 0x7f; */
       break;
     default:
       fprintf(stderr, "%s: avr_write_byte(); internal error: invalid memtype=%d\n",
