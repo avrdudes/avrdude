@@ -78,7 +78,32 @@ else
     DOC_INST_DIR='$(DESTDIR)$(datadir)/doc/avrdude'
 fi
 
+AC_ARG_ENABLE(
+	[doc],
+	AC_HELP_STRING(
+		[--enable-doc],
+		[Enable building documents(default)]),
+	[case "${enableval}" in
+		yes) enabled_doc=yes ;;
+		no)  enabled_doc=no ;;
+		*)   AC_MSG_ERROR(bad value ${enableval} for disable-doc option) ;;
+		esac],
+	[enabled_doc=no])
+
+if test "$enabled_doc" = "yes"; then
+
+SUBDIRS_AC='doc @WINDOWS_DIRS@'
+DIST_SUBDIRS_AC='doc windows'
+else
+
+SUBDIRS_AC='@WINDOWS_DIRS@'
+DIST_SUBDIRS_AC='windows'
+fi
+
 AC_SUBST(DOC_INST_DIR, $DOC_INST_DIR)
+AC_SUBST(SUBDIRS_AC, $SUBDIRS_AC)	
+AC_SUBST(DIST_SUBDIRS_AC, $DIST_SUBDIRS_AC)
+
 
 # Find the parallel serial device files based on target system
 # If a system doesn't have a PC style parallel, mark it as unknown.
@@ -140,4 +165,6 @@ AC_CONFIG_FILES([
 	avrdude.conf
 	Makefile
 ])
+
 AC_OUTPUT
+
