@@ -1,36 +1,41 @@
 2003-12-01  Eric B. Weddington  <eric@ecentral.com>
 
-	*doc/avrdude.texi: Update devices and programmers supported.
+	* doc/avrdude.texi: Update devices and programmers supported.
 
 2003-12-01  Eric B. Weddington  <eric@ecentral.com>
 
-	*doc/avrdude.texi: Add missing -D option to user manual.
+	* doc/avrdude.texi: Add missing -D option to user manual.
 	[This fixes bug #6804]
 
 2003-11-30  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
-	*avrpart.c,main.c: Moved list_parts() and locate_part()
+	* avrpart.c,main.c: Moved list_parts() and locate_part()
 	from main.c to avrpart.c
-	*avrpart.h: Added prototypes for list_parts() and
+	* avrpart.h: Added prototypes for list_parts() and
 	locate_part()
 
 2003-11-30  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
-	*avrpart.c,avr.c: Moved elementary functions on types
+	* avrpart.c, avr.c: Moved elementary functions on types
 	OPCODE, AVRMEM and AVRPART from avr.c to new file avrpart.c
-	*avr.h: Removed prototypes for moved functions
-	*avrpart.h: Added prototypes for functions in avrpart.c
-	*Makefile.am: Added new file avrpart.c
+	* avr.h: Removed prototypes for moved functions
+	* avrpart.h: Added prototypes for functions in avrpart.c
+	* Makefile.am: Added new file avrpart.c
 
 2003-11-28  Michael Mayer  <michael-mayer@gmx.de>
 
-	* added new programmer type "butterfly":
-	lexer.l: new programmer type "butterfly"
-	config_gram.y: new token K_BUTTERFLY
-	avrdude.conf.in: added programmer definition
+	added new programmer type "butterfly":
+	* lexer.l: new programmer type "butterfly"
+	* config_gram.y: new token K_BUTTERFLY
+	* avrdude.conf.in: added programmer definition
 	* butterfly.c, butterfly.h: cloned from avr910.?, changed to work
 	with the Atmel Butterfly device
 	* Makefile.am: added butterfly.[ch] to avrdude_SOURCES
+
+2003-11-26  Joerg Wunsch  <j@uriah.heep.sax.de>
+
+	* main.c: Make the -U parser tolerate colons in filenames.
+	* avrdude.1, doc/avrdude.texi: Document the -U changes.
 
 2003-11-21  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
