@@ -749,6 +749,9 @@ int main(int argc, char * argv [])
   int     set_cycles;  /* value to set the erase-rewrite cycles to */
   char  * e;           /* for strtol() error checking */
   int     quell_progress;
+#if !defined(__CYGWIN__)
+  char  * homedir;
+#endif
 
   progname = rindex(argv[0],'/');
   if (progname)
@@ -799,7 +802,6 @@ int main(int argc, char * argv [])
   win_usr_config_set(usr_config);
   
   #else
-  char  * homedir;
 
   strcpy(sys_config, CONFIG_DIR);
   i = strlen(sys_config);
