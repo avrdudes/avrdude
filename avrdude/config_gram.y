@@ -60,6 +60,7 @@
 %token K_NUM_PAGES
 %token K_PART
 %token K_PGMLED
+%token K_PWROFF_AFTER_WRITE
 %token K_PROGRAMMER
 %token K_RDYLED
 %token K_READBACK_P1
@@ -395,6 +396,12 @@ mem_spec :
   K_MAX_WRITE_DELAY TKN_EQUAL TKN_NUMBER
     {
       current_mem->max_write_delay = $3->value.number;
+      free_token($3);
+    } |
+
+  K_PWROFF_AFTER_WRITE TKN_EQUAL TKN_NUMBER
+    {
+      current_mem->pwroff_after_write = $3->value.number;
       free_token($3);
     } |
 

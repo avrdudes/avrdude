@@ -142,6 +142,7 @@ page_size        { yylval=NULL; return K_PAGE_SIZE; }
 paged            { yylval=NULL; return K_PAGED; }
 part             { yylval=NULL; return K_PART; }
 pgmled           { yylval=NULL; return K_PGMLED; }
+pwroff_after_write { yylval=NULL; return K_PWROFF_AFTER_WRITE; }
 programmer       { yylval=NULL; return K_PROGRAMMER; }
 rdyled           { yylval=NULL; return K_RDYLED; }
 readback_p1      { yylval=NULL; return K_READBACK_P1; }
