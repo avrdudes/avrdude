@@ -1,3 +1,9 @@
+2003-04-16  Eric B. Weddington <eric@umginc.net>
+
+	* avrdude.conf.in: Add support for ATmega8535
+	Submitted by Alexander <apeter@gmx.de>
+	* NEWS: List new devices supported: ATmega8535
+
 2003-04-09  Theodore A. Roth  <troth@openavr.org>
 
 	* avr910.c: Reading a 16 bit word in paged load needs to swap the
@@ -21,7 +27,8 @@
 	incr supported by programmer hw, don't send addr for every byte.
 
 2003-04-03  Eric B. Weddington <eric@umginc.net>
-    * confwin.c: Fix bug that allows garbage for non-existent user
+	
+	* confwin.c: Fix bug that allows garbage for non-existent user
     config filename on Windows.
 
 2003-03-24  Theodore A. Roth  <troth@openavr.org>
