@@ -1,3 +1,12 @@
+2003-04-18  Theodore A. Roth  <troth@openavr.org>
+
+	* configure.ac: Add cvs suffix back to version.
+	* doc/TODO: Add a few items.
+
+2003-04-18
+
+	* AVRDUDE 4.1.0 has been released (cvs release tag is "release_4_1_0").
+
 2003-04-17  Theodore A. Roth  <troth@openavr.org>
 
 	* configure.ac: Set version to 4.1.0.
@@ -151,6 +160,7 @@
 	with 4.0.0 release.
 
 2003-03-12
+
 	* AVRDUDE 4.0.0 has been released (cvs release tag is "release_4_0_0").
 
 2003-03-11  Theodore A. Roth  <troth@openavr.org>
