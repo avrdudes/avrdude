@@ -8,6 +8,20 @@ Approximate change log for AVRDUDE by version.
 
 Current:
 
+  * Add new -U option for specifying programming operations - allows
+    multiple memory operations on a single command line.
+
+  * New progress reporting, looks nicer and is nicer to wrapper
+    environments such as emacs.
+
+  * Fix long-standing timing (verify) problems on Windows platform.
+    Submitted by Alex Shepherd <ashepherd@wave.co.nz>
+
+  * Add new file format option - 'm' for "immediate mode."  In this
+    case, the filename argument of the -o, -i, or -U options is
+    treated as the data for uploading - useful for specifying fuse
+    bits without having to create a single-byte file for uploading.
+
   * Add support for displaying and setting the various STK500 operational
     parameters (Vtarget, Varef, Master clock).
 
