@@ -4,6 +4,39 @@ Approximate change log for AVRDUDE by version
 
 ----------------------------------------------------------------------
 
+Version ???
+
+  * Now support Linux - added by "Theodore A. Roth" <troth@openavr.org>
+
+  * Now support Windows - added by "E. Weddington" <eric@umginc.net>
+
+  * Use 'configure' scripts to taylor the code to the system avrdude
+    is getting ready to be compiled on - added by "Theodore A. Roth"
+    <troth@openavr.org>
+
+  * Motorola S-Record support - submitted by "Alexey V.Levdikov "
+    <tsar@kemford.com>
+
+  * Support parallel programming on the STK500.  Introduce 'pagel' and
+    'bs2' keywords to the config file for this purpose.
+
+  * Add support for the AT90S2343
+
+  * Add support for the ATmega169
+
+  * Add ability to specify system defaults within the config file
+    (default parallel port, default serial port).
+
+  * Specify the default programmer seperately from the programmer
+    definition.  This is now done in the config file using the
+    'default_programmer' keyword.
+
+  * Follow the datasheet more closely for several parts in the "retry"
+    code when entering programming mode fails initially.  Introduce
+    'retry_pulse' to the config file for this purpose.
+
+
+
 Version 3.1.0
 
   * This change represents a name change only.  There is currently an
