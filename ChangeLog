@@ -1,3 +1,13 @@
+2003-11-28  Michael Mayer  <michael-mayer@gmx.de>
+
+	* added new programmer type "butterfly":
+	lexer.l: new programmer type "butterfly"
+	config_gram.y: new token K_BUTTERFLY
+	avrdude.conf.in: added programmer definition
+	* butterfly.c, butterfly.h: cloned from avr910.?, changed to work
+	with the Atmel Butterfly device
+	* Makefile.am: added butterfly.[ch] to avrdude_SOURCES
+
 2003-11-21  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
 	* ppi.c: Major speed tuning. Since ioctl() is expensive read from
