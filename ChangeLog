@@ -1,3 +1,7 @@
+2003-04-03  Eric B. Weddington <eric@umginc.net>
+    * confwin.c: Fix bug that allows garbage for non-existent user
+    config filename on Windows.
+
 2003-03-24  Theodore A. Roth  <troth@openavr.org>
 
 	* NEWS: Add note about avr910 support.

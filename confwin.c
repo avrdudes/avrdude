@@ -30,6 +30,8 @@ static char *filename;
 
 void win_sys_config_set(char sys_config[PATH_MAX])
 {
+    sys_config[0] = 0;
+    
     /* Use Windows API call to search for the Windows default system config file.*/
     SearchPath(NULL, "avrdude.conf", NULL, PATH_MAX, sys_config, &filename);
     return;
@@ -38,6 +40,8 @@ void win_sys_config_set(char sys_config[PATH_MAX])
 
 void win_usr_config_set(char usr_config[PATH_MAX])
 {
+    usr_config[0] = 0;
+    
     /* Use Windows API call to search for the Windows default user config file. */
 	SearchPath(NULL, "avrdude.rc", NULL, PATH_MAX, usr_config, &filename);
     return;
