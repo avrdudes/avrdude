@@ -4,7 +4,7 @@ Usage:  avrprog [options]
 
     -m MemType    : select memory type for reading or writing
                       \"e\", \"eeprom\" = EEPROM
-                      \"f\", \"flash\"  = FLASH
+                      \"f\", \"flash\"  = FLASH (default)
 
     -i Filename   : select input file, \"-\" = stdin
 
@@ -13,8 +13,10 @@ Usage:  avrprog [options]
     -f Format     : select input / output file format
                       \"i\" = Intel Hex
                       \"s\" = Motorola S-Record
-                      \"r\" = Raw binary
-                      \"a\" = Auto detect (valid input only)
+                      \"r\" = Raw binary (default for output)
+                      \"a\" = Auto detect (default for input)
+                              (valid for input only)
+                              
 
     -p Part       : select Atmel part number (see below for valid parts)
 
