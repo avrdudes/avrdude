@@ -41,10 +41,12 @@
  *    Pin  4       ->   PB5(MOSI) Instruction input
  *    Pin  5       ->   /RESET
  *    Pin 10       <-   PB6(MISO) Data out
+ *    Pin 18       <-   GND
  *
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -91,6 +93,21 @@ typedef enum {
   AVR_FLASH_LO,
   AVR_FLASH_HI
 } AVRMEM;
+
+
+struct avrpart {
+  char * partdesc;
+  char * optiontag;
+  int flash_size;
+  int eeprom_size;
+};
+
+
+struct avrpart parts[] = {
+  { "AT90S8515", "8515", 8192, 512 },
+  { "AT90S2313", "2313", 2048, 128 }
+};
+
 
 
 /*
@@ -303,7 +320,7 @@ unsigned char avr_read_byte ( int fd, AVRMEM memtype, unsigned short addr )
       break;
     case AVR_EEPROM: 
       cmd[0] = 0xa0;
-      addr &= 0x7f;
+      /* addr &= 0x7f; */
       break;
     default:
       fprintf(stderr, "%s: avr_read_byte(); internal error: invalid memtype=%d\n",
@@ -644,6 +661,7 @@ void usage ( void )
             "    -r            : erase the flash and eeprom (required before programming)\n"
             "    -e            : select eeprom for reading or writing\n"
             "    -f            : select flash for reading or writing\n"
+            "    -p Part       : 8515 or 2313\n"
             "    -u InputFile  : write data from this file\n"
             "    -o OutputFile : write data to this file\n"
             "\n",
@@ -659,7 +677,7 @@ int main ( int argc, char * argv [] )
   int fd;
   int rc, exitrc;
   int i;
-  unsigned char buf[2048];
+  unsigned char * buf;
   unsigned char sig[4];
   int ch;
   int iofd;
@@ -668,6 +686,7 @@ int main ( int argc, char * argv [] )
   char * outputf;
   char * inputf;
   char * p1, * p2;
+  struct avrpart * p;
 
   iofd    = -1;
   outputf = NULL;
@@ -677,6 +696,7 @@ int main ( int argc, char * argv [] )
   flash   = 0;
   erase   = 0;
   dosig   = 0;
+  p       = NULL;
 
   progname = rindex(argv[0],'/');
   if (progname)
@@ -706,7 +726,7 @@ int main ( int argc, char * argv [] )
   fprintf(stderr, "         Revision " );
   for (i=0; i<p2-p1; i++)
     fprintf(stderr, "%c", p1[i]);
-  fprintf(stderr, "\n");
+  fprintf(stderr, "\n\n");
 
   /*
    * check for no arguments
@@ -720,7 +740,7 @@ int main ( int argc, char * argv [] )
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?efo:rsu:")) != -1) {
+  while ((ch = getopt(argc,argv,"?efo:p:rsu:")) != -1) {
     switch (ch) {
       case 'e': /* select eeprom memory */
         if (flash) {
@@ -762,6 +782,25 @@ int main ( int argc, char * argv [] )
           }
         }
         break;
+      case 'p' : /* specify AVR part */
+        p = NULL;
+        for (i=0; i<sizeof(parts)/sizeof(parts[0]); i++) {
+          if (strcmp(parts[i].optiontag, optarg)==0) {
+            p = &parts[i];
+            break;
+          }
+        }
+        if (p == NULL) {
+          fprintf(stderr, "%s: AVR Part \"%s\" not found.  Valid parts are:\n\n",
+                  progname, optarg );
+          for (i=0; i<sizeof(parts)/sizeof(parts[0]); i++) {
+            fprintf(stderr, "    \"%s\" = %s\n", 
+                    parts[i].optiontag, parts[i].partdesc);
+          }
+          fprintf(stderr, "\n");
+          return 1;
+        }
+        break;
       case 'u': /* specify input (upload) file */
         if (outputf) {
           fprintf(stderr,"%s: -o and -u are incompatible\n", progname);
@@ -789,6 +828,37 @@ int main ( int argc, char * argv [] )
   }
 
 
+  if (p == NULL) {
+    fprintf(stderr, 
+            "%s: No AVR part has been specified, use \"-p Part\"\n\n"
+            "  Valid Parts are:\n\n",
+            progname );
+    for (i=0; i<sizeof(parts)/sizeof(parts[0]); i++) {
+      fprintf(stderr, "    \"%s\" = %s\n", 
+              parts[i].optiontag, parts[i].partdesc);
+    }
+    fprintf(stderr,"\n");
+    return 1;
+  }
+
+  fprintf(stderr, "%s: Using AVR Part %s: flash=%d, eeprom=%d\n",
+          progname, p->partdesc, p->flash_size, p->eeprom_size);
+  fprintf(stderr, "\n");
+
+  if (p->flash_size >= p->eeprom_size)
+    size = p->flash_size;
+  else
+    size = p->eeprom_size;
+
+  buf = (unsigned char *) malloc(size);
+  if (buf == NULL) {
+    fprintf(stderr, 
+            "%s: out of memory allocating %d bytes for on-chip memory buffer\n",
+            progname, size);
+    return 1;
+  }
+
+
   /*
    * open the parallel port
    */
@@ -798,7 +868,6 @@ int main ( int argc, char * argv [] )
               progname, PARALLEL, strerror(errno) );
     return 1;
   }
-
 
   exitrc = 0;
 
@@ -875,7 +944,7 @@ int main ( int argc, char * argv [] )
      * read out the specified device memory and write it to a file 
      */
     if (flash) {
-      size = 2048;
+      size = p->flash_size;
       fprintf ( stderr, "%s: reading flash memory:\n", progname );
       rc = avr_read ( fd, AVR_FLASH, 0, size/2, buf, size );
       if (rc) {
@@ -886,7 +955,7 @@ int main ( int argc, char * argv [] )
       }
     }
     else if (eeprom) {
-      size = 128;
+      size = p->eeprom_size;
       fprintf ( stderr, "%s: reading eeprom memory:\n", progname );
       rc = avr_read ( fd, AVR_EEPROM, 0, size, buf, size );
       if (rc) {
@@ -918,10 +987,10 @@ int main ( int argc, char * argv [] )
      * write the selected device memory using data from a file
      */
     if (flash) {
-      size = 2048;
+      size = p->flash_size;
     }
     else if (eeprom) {
-      size = 128;
+      size = p->eeprom_size;
     }
 
     /*

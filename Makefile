@@ -8,7 +8,7 @@ DEST   = ${HOME}/bin/0.${ARCH}
 
 all : ${TARGET}
 
-CFLAGS = -Wall --pedantic
+CFLAGS = -Wall --pedantic -g
 
 ${TARGET} : avrprog.c
 	${CC} ${CFLAGS} -o ${TARGET} avrprog.c
