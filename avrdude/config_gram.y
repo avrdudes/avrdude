@@ -154,7 +154,10 @@ def :
 
 prog_def :
   K_PROGRAMMER 
-    { current_prog = pgm_new(); }
+    { current_prog = pgm_new();
+      strcpy(current_prog->config_file, infile);
+      current_prog->lineno = lineno;
+    }
     prog_parms
     { 
       if (lsize(current_prog->id) == 0) {
@@ -168,7 +171,7 @@ prog_def :
                 progname, infile, lineno);
         exit(1);
       }
-      ladd(programmers, current_prog); 
+      PUSH(programmers, current_prog); 
       current_prog = NULL; 
     }
 ;
@@ -176,7 +179,11 @@ prog_def :
 
 part_def :
   K_PART
-    { current_part = avr_new_part(); }
+    {
+      current_part = avr_new_part();
+      strcpy(current_part->config_file, infile);
+      current_part->lineno = lineno;
+    }
     part_parms 
     { 
       LNODEID ln;
@@ -226,7 +233,7 @@ part_def :
         }
       }
 
-      ladd(part_list, current_part); 
+      PUSH(part_list, current_part); 
       current_part = NULL; 
     }
 ;
