@@ -78,6 +78,7 @@
 #include "avr.h"
 #include "config.h"
 #include "fileio.h"
+#include "par.h"
 #include "pindefs.h"
 #include "ppi.h"
 #include "term.h"
@@ -128,10 +129,10 @@ int getexitspecs(char *s, int *set, int *clr)
 
   while ((cp = strtok(s, ","))) {
     if (strcmp(cp, "reset") == 0) {
-      *clr |= ppi_getpinmask(pgm->pinno[PIN_AVR_RESET]);
+      *clr |= par_getpinmask(pgm->pinno[PIN_AVR_RESET]);
     }
     else if (strcmp(cp, "noreset") == 0) {
-      *set |= ppi_getpinmask(pgm->pinno[PIN_AVR_RESET]);
+      *set |= par_getpinmask(pgm->pinno[PIN_AVR_RESET]);
     }
     else if (strcmp(cp, "vcc") == 0) { 
       if (pgm->pinno[PPI_AVR_VCC])
@@ -341,7 +342,7 @@ int main(int argc, char * argv [])
    */
   compiled_in_pgm = pgm_new();
   pgm = compiled_in_pgm;
-  ppi_initpgm(pgm);
+  par_initpgm(pgm);
   ladd(pgm->id, dup_string("avrdude"));
   strcpy(pgm->desc, "avrdude compiled-in default");
   pgm->pinno[PPI_AVR_VCC]   = 0x0f;  /* ppi pins 2-5, data reg bits 0-3 */

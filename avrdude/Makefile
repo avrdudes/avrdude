@@ -47,11 +47,11 @@ LIBS       = -lreadline
 
 YYDEF  = -DYYSTYPE="struct token_t *"
 
-SRCS = config_gram.c avr.c config.c fileio.c lexer.c lists.c main.c pgm.c \
-	ppi.c stk500.c term.c
+SRCS = config_gram.c avr.c config.c fileio.c lexer.c lists.c main.c par.c \
+	pgm.c ppi.c stk500.c term.c
 
-OBJS = config_gram.o avr.o config.o fileio.o lexer.o lists.o main.o pgm.o \
-	ppi.o stk500.o term.o
+OBJS = config_gram.o avr.o config.o fileio.o lexer.o lists.o main.o par.o \
+	pgm.o ppi.o stk500.o term.o
 
 all : depend ${TARGET}
 
