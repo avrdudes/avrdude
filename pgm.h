@@ -42,6 +42,7 @@ typedef struct programmer_t {
   char port[PGM_PORTLEN];
   unsigned int pinno[N_PINS];
   int ppidata;
+  int baudrate;
   int fd;
   int  page_size;  /* page size if the programmer supports paged write/load */
   int  (*rdy_led)        (struct programmer_t * pgm, int value);
