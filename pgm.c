@@ -1,5 +1,5 @@
 /*
- * Copyright 2002  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,8 +44,6 @@ void pgm_default_4 (struct programmer_t *);
 int  pgm_default_5 (struct programmer_t *, unsigned char cmd[4], 
                     unsigned char res[4]);
 void pgm_default_6 (struct programmer_t *, char *);
-
-char * pgm_version = "$Id$";
 
 
 PROGRAMMER * pgm_new(void)

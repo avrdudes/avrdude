@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2001, 2002  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (c) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,8 +54,6 @@ struct command {
   int (*func)(PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
   char * desc;
 };
-
-char * term_version = "$Id$";
 
 
 int cmd_dump  (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);

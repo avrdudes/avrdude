@@ -1,5 +1,5 @@
 /*
- * Copyright 2000, 2001, 2002  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,11 +83,6 @@ static struct ppipins_t pins[] = {
 };
 
 #define NPINS (sizeof(pins)/sizeof(struct ppipins_t))
-
-
-char * ppi_version = "$Id$";
-
-
 
 
 int ppi_getops    (int reg, unsigned long * get, unsigned long * set);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2001, 2002  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (c) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,8 +47,6 @@ extern char       * progname;
 extern char         progbuf[];
 extern PROGRAMMER * pgm;
 
-
-char * avr_version = "$Id$";
 
 extern int do_cycles;
 
