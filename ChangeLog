@@ -1,3 +1,12 @@
+2005-01-24  Colin O'Flynn  <coflynn@newae.com>
+
+	* main.c: Add "safe mode". Fuse settings will be restored at the end
+	of a programming session unless the -u switch is specified.
+	* safemode.c: New file. Safe mode support.
+	* safemode.h: New file. Safe mode support.
+	* Makefile.am: Add new files.
+	* doc/avrdude.texi: Document new Safe Mode feature and switch.
+
 2004-07-19  Theodore A. Roth  <troth@openavr.org>
 
 	* avrdude.1: Remove reference to ppi programmer schematic.
