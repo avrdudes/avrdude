@@ -9,6 +9,10 @@ General:
 - Website needs to link to docs:
   http://savannah.nongnu.org/download/avrdude/doc/avrdude-html/
 
+- Add avr910 device codes for more devices. Some where posted here:
+  http://www.avrfreaks.com/phorum/read.php?f=3&i=40925&t=40717#40925
+  but uisp seems to have a more comprehensive list.
+
 Windows:
 
 - Use Windows API for stk500 serial port communications on Windows port.
