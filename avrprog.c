@@ -57,6 +57,8 @@
 
 #define PARALLEL "/dev/ppi0"
 
+char * version = "$Id$";
+
 char * progname;
 
 
@@ -580,6 +582,8 @@ int main ( int argc, char * argv [] )
     progname++;
   else
     progname = argv[0];
+
+  fprintf(stderr, "%s, Version Information: %s\n", progname, version);
 
   if (argc == 1) {
     usage();
