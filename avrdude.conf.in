@@ -337,6 +337,26 @@ programmer
   miso  = 10;
 ;
 
+
+# From the contributor of the "xil" jtag cable:
+# The "vcc" definition isn't really vcc (the cable gets its power from
+# the programming circuit) but is necessary to switch one of the
+# buffer lines (trying to add it to the "buff" lines doesn't work).
+# With this, TMS connects to RESET, TDI to MOSI, TDO to MISO and TCK
+# to SCK (plus vcc/gnd of course)
+programmer
+  id    = "xil";
+  desc  = "Xilinx JTAG cable";
+  type  = par;
+  mosi  = 2;
+  sck   = 3;
+  reset = 4;
+  buff  = 5;
+  miso  = 13;
+  vcc   = 6;
+;
+
+
 #
 # PART DEFINITIONS
 #
