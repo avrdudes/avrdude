@@ -283,6 +283,7 @@ int cmd_dump(int fd, struct avrpart * p, int argc, char * argv[])
   return 0;
 }
 
+
 int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
 {
   char * e;
@@ -310,6 +311,12 @@ int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
   else {
     fprintf(stderr, "%s (write): invalid memory type \"%s\"\n",
             progname, argv[1]);
+    return -1;
+  }
+
+  if (p->mem[memtype].banked) {
+    fprintf(stderr, "%s (write): sorry, interactive write of bank addressed "
+            "memory is not supported\n", progname);
     return -1;
   }
 

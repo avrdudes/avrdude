@@ -110,12 +110,15 @@ unsigned char avr_txrx(int fd, unsigned char byte);
 int avr_cmd(int fd, unsigned char cmd[4], unsigned char res[4]);
 
 unsigned char avr_read_byte(int fd, struct avrpart * p,
-                              int memtype, unsigned short addr);
+                              int memtype, unsigned long addr);
 
 int avr_read(int fd, struct avrpart * p, int memtype);
 
+int avr_write_bank(int fd, struct avrpart * p, int memtype, 
+                   unsigned short bank);
+
 int avr_write_byte(int fd, struct avrpart * p, int memtype, 
-                     unsigned short addr, unsigned char data);
+                     unsigned long addr, unsigned char data);
 
 int avr_write(int fd, struct avrpart * p, int memtype, int size);
 
