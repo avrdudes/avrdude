@@ -34,20 +34,6 @@
 
 #include <stdio.h>
 
-
-#define PPI_AVR_VCC    0x0f  /* ppi pins 2-5, data reg bits 0-3 */
-#define PIN_AVR_BUFF   6
-#define PIN_AVR_RESET  7
-#define PIN_AVR_SCK    8
-#define PIN_AVR_MOSI   9
-#define PIN_AVR_MISO  10
-#define PIN_LED_ERR    1
-#define PIN_LED_RDY   14
-#define PIN_LED_PGM   16
-#define PIN_LED_VFY   17
-
-
-
 /*
  * AVR memory designations; the order of these is important, these are
  * used as indexes into statically initialized data, don't change them

@@ -81,6 +81,7 @@
 
 #include "avr.h"
 #include "fileio.h"
+#include "pindefs.h"
 #include "ppi.h"
 #include "term.h"
 
@@ -104,12 +105,6 @@ void usage ( void )
           "Usage: %s -p partno [-e] [-E exitspec[,exitspec]] [-f format] [-F]\n"
           "      %s[-i filename] [-m memtype] [-o filename] [-P parallel] [-t]\n\n",
           progname, progbuf);
-
-#if 0
-  fprintf(stderr, "  Valid Parts for the -p option are:\n");
-  avr_list_parts(stderr, "    ");
-  fprintf(stderr, "\n");
-#endif
 
 }
 
@@ -407,6 +402,19 @@ int main ( int argc, char * argv [] )
   ppidata &= ~ppiclrbits;
   ppidata |= ppisetbits;
 
+  /* 
+   * turn off all the status leds
+   */
+  LED_OFF(fd, PIN_LED_RDY);
+  LED_OFF(fd, PIN_LED_ERR);
+  LED_OFF(fd, PIN_LED_PGM);
+  LED_OFF(fd, PIN_LED_VFY);
+
+  /*
+   * enable the 74367 buffer, if connected; this signal is active low
+   */
+  ppi_setpin(fd, PIN_AVR_BUFF, 0);
+
   /*
    * initialize the chip in preperation for accepting commands
    */
@@ -416,6 +424,9 @@ int main ( int argc, char * argv [] )
     exitrc = 1;
     goto main_exit;
   }
+
+  /* indicate ready */
+  LED_ON(fd, PIN_LED_RDY);
 
   fprintf ( stderr, 
             "%s: AVR device initialized and ready to accept instructions\n",
@@ -556,6 +567,8 @@ int main ( int argc, char * argv [] )
      * verify that the in memory file (p->flash or p->eeprom) is the
      * same as what is on the chip 
      */
+    LED_ON(fd, PIN_LED_VFY);
+
     fprintf(stderr, "%s: verifying %s memory against %s:\n", 
             progname, avr_memtstr(memtype), inputf);
     fprintf(stderr, "%s: reading on-chip %s data:\n", 
@@ -564,6 +577,7 @@ int main ( int argc, char * argv [] )
     if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
               progname, avr_memtstr(memtype), rc);
+      LED_ON(fd, PIN_LED_ERR);
       exitrc = 1;
       goto main_exit;
     }
@@ -573,12 +587,15 @@ int main ( int argc, char * argv [] )
     if (rc < 0) {
       fprintf(stderr, "%s: verification error; content mismatch\n", 
               progname);
+      LED_ON(fd, PIN_LED_ERR);
       exitrc = 1;
       goto main_exit;
     }
     
     fprintf(stderr, "%s: %d bytes of %s verified\n", 
             progname, rc, avr_memtstr(memtype));
+
+    LED_OFF(fd, PIN_LED_VFY);
   }
 
 
@@ -591,6 +608,11 @@ int main ( int argc, char * argv [] )
 
   avr_powerdown(fd);
   ppi_setall(fd, PPIDATA, ppidata);
+
+  /*
+   * disable the 74367 buffer, if connected; this signal is active low 
+   */
+  ppi_setpin(fd, PIN_AVR_BUFF, 1);
 
   close(fd);
 
