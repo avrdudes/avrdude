@@ -1,3 +1,20 @@
+2003/08/29  Brian S. Dean  <bsd@bsdhome.com>
+
+        * avrdude.1:
+        * main.c:
+          Perform an auto erase before programming if the flash memory is
+          anywhere specified to be written by any of the -U requests.
+          
+          To remain backward compatible with previous versions, disable this
+          feature if any of the old-style memory specification operations are
+          specified (-i, -o).
+          
+          Implement the -D option to explicitly disable the auto erase default.
+          
+          Deprecate the old-style memory specification options (-f, -i, -I, -m,
+          and -o) in favor of the new -U option which allows one to operate on
+          multiple memories on a single command line.
+
 2003-08-28  Eric B. Weddington  <eric@ecentral.com>
 
     * avr910.c:
