@@ -88,6 +88,7 @@ int avr_list_parts ( FILE * f, char * prefix )
   return i;
 }
 
+
 struct avrpart * avr_find_part ( char * p )
 {
   int i;
@@ -100,6 +101,7 @@ struct avrpart * avr_find_part ( char * p )
 
   return NULL;
 }
+
 
 /*
  * transmit and receive a bit of data to/from the AVR device
