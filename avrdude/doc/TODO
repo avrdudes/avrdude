@@ -1,0 +1,11 @@
+
+General:
+
+
+
+Windows:
+- Use Windows API for stk500 serial port communications on Windows port.
+  This might remove dependency on Cygwin.
+  
+- Add ability to find all parallel port names available and base addresses
+  of available ports.
