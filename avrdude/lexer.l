@@ -29,7 +29,7 @@
 #include <sys/stat.h>
 
 #include "config.h"
-#include "y.tab.h"
+#include "config_gram.h"
 #include "lists.h"
 
 extern int    lineno;

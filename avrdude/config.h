@@ -54,7 +54,7 @@ extern char       * infile;
 extern LISTID       string_list;
 extern LISTID       number_list;
 
-#if 0
+#if !defined(HAS_YYSTYPE)
 #define YYSTYPE struct token_t *
 #endif
 extern YYSTYPE yylval;

@@ -21,6 +21,8 @@
 
 #if defined(__FreeBSD__) || defined(__linux__)
 
+#include "ac_cfg.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -19,6 +19,8 @@
 
 /* $Id$ */
 
+#include "ac_cfg.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -26,7 +28,7 @@
 
 #include "avr.h"
 #include "config.h"
-#include "y.tab.h"
+#include "config_gram.h"
 
 char string_buf[MAX_STR_CONST];
 char *string_buf_ptr;

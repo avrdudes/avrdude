@@ -6,3 +6,15 @@ lexer.c
 config_gram.c
 .cvsignore
 .depend
+INSTALL
+Makefile.in
+ac_cfg.h.in
+aclocal.m4
+autom4te.cache
+configure
+depcomp
+install-sh
+missing
+mkinstalldirs
+stamp-h.in
+
