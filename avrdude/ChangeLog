@@ -1,3 +1,7 @@
+2004-07-04  Jan-Hinnerk Reichert  <hinni@despammed.com>
+	* avrdude.conf.in: Added support for
+        ATtiny2313 (contributed by Bob Paddock)
+
 2004-06-25  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: Fix efuse bits for ATmega169.
