@@ -36,13 +36,17 @@
  *
  *  Parallel Port      Atmel AVR
  *  -------------      ----------------------------
- *    Pin  2       ->   Vcc
- *    Pin  3       ->   PB7(SCK)  CLOCK IN
- *    Pin  4       ->   PB5(MOSI) Instruction input
+ *    Pin  2       ->   Vcc      (see NOTE below)
+ *    Pin  3       ->   SCK      CLOCK IN
+ *    Pin  4       ->   MOSI     Instruction input
  *    Pin  5       ->   /RESET
- *    Pin 10       <-   PB6(MISO) Data out
+ *    Pin 10       <-   MISO     Data out
  *    Pin 18       <-   GND
  *
+ *  NOTE on Vcc connection: make sure your parallel port can supply an
+ *  adequate amount of current to power your device.  6-10 mA is
+ *  common for parallel port signal lines, but is not guaranteed.  If
+ *  in doubt, use an external power supply.
  */
 
 #include <stdio.h>
