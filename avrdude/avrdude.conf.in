@@ -321,6 +321,15 @@ programmer
   miso  = 10;
 ;
 
+programmer
+  id    = "futurlec";
+  desc  = "Futurlec.com programming cable.";
+  type  = par;
+  reset = 3;
+  sck   = 2;
+  mosi  = 1;
+  miso  = 10;
+;
 
 #
 # PART DEFINITIONS
