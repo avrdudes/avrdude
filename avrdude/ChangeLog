@@ -1,3 +1,7 @@
+2003-05-13  Theodore A. Roth  <troth@openavr.org>
+
+	* doc/TODO: Add note about avr910 device codes.
+
 2003-05-04  Theodore A. Roth  <troth@openavr.org>
 
 	* configure.ac: Check for ncurses library (since it can be a
