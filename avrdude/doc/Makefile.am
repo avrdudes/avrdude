@@ -32,3 +32,19 @@ html:
 
 clean-local:
 	rm -rf avrdude-html *.info
+
+install-data-local: install-docs
+
+install-docs: html ps pdf
+	$(mkinstalldirs) $(DOC_INST_DIR)
+	$(INSTALL_DATA) avrdude.ps $(DOC_INST_DIR)/avrdude.ps
+	$(INSTALL_DATA) avrdude.pdf $(DOC_INST_DIR)/avrdude.pdf
+	$(mkinstalldirs) $(DOC_INST_DIR)/avrdude-html
+	@list=`echo avrdude-html/*.html`; \
+		for file in $$list; \
+		do \
+			$(INSTALL_DATA) $$file $(DOC_INST_DIR)/$$file; \
+		done
+
+uninstall-local:
+	rm -rf $(DOC_INST_DIR)

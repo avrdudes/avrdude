@@ -59,6 +59,26 @@ AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strt
 
 # Checks for misc stuff.
 
+AC_ARG_ENABLE(
+	[versioned-doc],
+	AC_HELP_STRING(
+		[--enable-versioned-doc],
+		[install docs in directory with version name (default)]),
+	[case "${enableval}" in
+		yes) versioned_doc=yes ;;
+		no)  versioned_doc=no ;;
+		*)   AC_MSG_ERROR(bad value ${enableval} for versioned-doc option) ;;
+		esac],
+	[versioned_doc=yes])
+
+if test "$versioned_doc" = "yes"; then
+    DOC_INST_DIR='$(DESTDIR)$(datadir)/doc/avrdude-$(VERSION)'
+else
+    DOC_INST_DIR='$(DESTDIR)$(datadir)/doc/avrdude'
+fi
+
+AC_SUBST(DOC_INST_DIR, $DOC_INST_DIR)
+
 # Find the parallel serial device files based on target system
 # If a system doesn't have a PC style parallel, mark it as unknown.
 case $target in
