@@ -48,6 +48,9 @@ extern char * progname;
 extern int do_cycles;
 
 
+static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value);
+
+
 static int stk500_send(PROGRAMMER * pgm, char * buf, int buflen)
 {
   struct timeval timeout;
@@ -421,6 +424,70 @@ static void stk500_powerdown(PROGRAMMER * pgm)
 }
 
 
+static int stk500_set_extended_parms(PROGRAMMER * pgm, int n, 
+                                     unsigned char * cmd)
+{
+  unsigned char buf[16];
+  int tries=0;
+  int i;
+
+ retry:
+  
+  tries++;
+
+  buf[0] = Cmnd_STK_SET_DEVICE_EXT;
+  for (i=0; i<n; i++) {
+    buf[1+i] = cmd[i];
+  }
+  i++;
+  buf[i] = Sync_CRC_EOP;
+
+  stk500_send(pgm, buf, i+1);
+  stk500_recv(pgm, buf, 1);
+  if (buf[0] == Resp_STK_NOSYNC) {
+    if (tries > 33) {
+      fprintf(stderr, "%s: stk500_set_extended_parms(): can't get into sync\n",
+              progname);
+      return -1;
+    }
+    stk500_getsync(pgm);
+    goto retry;
+  }
+  else if (buf[0] != Resp_STK_INSYNC) {
+    fprintf(stderr,
+            "%s: stk500_set_extended_parms(): protocol error, "
+            "expect=0x%02x, resp=0x%02x\n", 
+            progname, Resp_STK_INSYNC, buf[0]);
+    return -1;
+  }
+
+  stk500_recv(pgm, buf, 1);
+  if (buf[0] == Resp_STK_OK) {
+    return 0;
+  }
+  else if (buf[0] == Resp_STK_NODEVICE) {
+    fprintf(stderr, "%s: stk500_set_extended_parms(): no device\n",
+            progname);
+    return -1;
+  }
+
+  if(buf[0] == Resp_STK_FAILED)
+  {
+      fprintf(stderr, 
+	      "%s: stk500_set_extended_parms(): failed to set extended "
+              "device programming parameters\n", 
+              progname);
+	  return -1;
+  }
+
+
+  fprintf(stderr, "%s: stk500_set_extended_parms(): unknown response=0x%02x\n",
+          progname, buf[0]);
+
+  return -1;
+}
+
+
 /*
  * initialize the AVR device and prepare it to accept commands
  */
@@ -429,6 +496,15 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
   unsigned char buf[32];
   AVRMEM * m;
   int tries;
+  unsigned maj, min;
+  int rc;
+  int do_extparms = 0;
+
+  stk500_getparm(pgm, Parm_STK_SW_MAJOR, &maj);
+  stk500_getparm(pgm, Parm_STK_SW_MINOR, &min);
+
+  if ((maj > 1) || ((maj == 1) && (min > 10)))
+    do_extparms = 1;
 
   tries = 0;
 
@@ -548,6 +624,31 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
             "expect=0x%02x, resp=0x%02x\n", 
             progname, Resp_STK_OK, buf[0]);
     return -1;
+  }
+
+  if (do_extparms) {
+    buf[0] = 5;
+    /*
+     * m is currently pointing to eeprom memory if the part has it
+     */
+    if (m)
+      buf[1] = m->page_size;
+    else
+      buf[1] = 0;
+
+    buf[2] = p->pagel;
+    buf[3] = p->bs2;
+
+    if (p->reset_disposition == RESET_DEDICATED)
+      buf[4] = 0;
+    else
+      buf[4] = 1;
+
+    rc = stk500_set_extended_parms(pgm, 5, buf);
+    if (rc) {
+      fprintf(stderr, "%s: stk500_initialize(): failed\n", progname);
+      exit(1);
+    }
   }
 
   return pgm->program_enable(pgm, p);
