@@ -640,6 +640,7 @@ int avr_write ( int fd, struct avrpart * p, AVRMEM memtype )
   return 0;
 }
 
+
 /*
  * issue the 'program enable' command to the AVR device
  */
@@ -725,7 +726,7 @@ int avr_initialize ( int fd, struct avrpart * p )
   ppi_clr(fd, PPIDATA, AVR_RESET);
   ppi_pulse(fd, PPIDATA, AVR_RESET);
 
-  usleep(20000); /* 20 ms */
+  usleep(20000); /* 20 ms XXX should be a per-chip parameter */
 
   /*
    * Enable programming mode.  If we are programming an AT90S1200, we
@@ -791,13 +792,11 @@ int ppi_sense_test ( int fd )
  */
 void usage ( void )
 {
-
   fprintf ( stderr, "%s", usage_text );
 
   fprintf(stderr, "  Valid Parts for the -p option are:\n");
   list_valid_parts(stderr, "    ");
   fprintf(stderr, "\n");
-
 }
 
 
@@ -858,11 +857,12 @@ int b2ihex ( unsigned char * inbuf, int bufsize,
   }
 
   /*-----------------------------------------------------------------
-    add the trailing zero data line
+    add the end of record data line
     -----------------------------------------------------------------*/
   cksum = 0;
   n = 0;
-  fprintf ( outf, ":%02X%04X00", n, nextaddr );
+  nextaddr = 0;
+  fprintf ( outf, ":%02X%04X01", n, nextaddr );
   cksum += n + ((nextaddr >> 8) & 0x0ff) + (nextaddr & 0x0ff);
   cksum = -cksum;
   fprintf ( outf, "%02X\n", cksum );
@@ -898,7 +898,7 @@ int ihex2b ( char * infile, FILE * inf,
       exit(1);
     }
 
-    if (rectype != 0) {
+    if ((rectype != 0) && (rectype != 1)) {
       fprintf(stderr, 
               "%s: don't know how to deal with rectype=%d " 
               "at line %d of %s\n",
@@ -955,6 +955,11 @@ int ihex2b ( char * infile, FILE * inf,
               "found=%02x\n",
               progname, lineno, infile, cksum, b);
       return -1;
+    }
+
+    if (rectype == 1) {
+      /* end of record */
+      return 0;
     }
 
     prevaddr = nextaddr + n;
@@ -1602,7 +1607,7 @@ int main ( int argc, char * argv [] )
      */
     fprintf(stderr, "%s: writing %s:\n", 
             progname, memtypestr(memtype));
-#if 1
+#if 0
     rc = avr_write ( fd, p, memtype );
 #else
     /* 
