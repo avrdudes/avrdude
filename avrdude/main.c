@@ -109,14 +109,27 @@ int do_cycles;   /* track erase-rewrite cycles */
  */
 void usage(void)
 {
-  fprintf(stderr,
-          "\nUsage: %s -p partno [-e] [-E exitspec[,exitspec]] [-f format] "
-          "[-F]\n"
-          "      %s[-i filename] [-m memtype] [-o filename] [-P port] "
-          "[-t]\n"
-          "      %s[-c programmer] [-C config-file] [-v [-v]] [-n]\n\n",
-          progname, progbuf, progbuf);
-
+	printf(
+		"Usage: %s [options]\n"
+		"Options:\n"
+		"  -p <partno>                Required. Specify AVR device.\n"
+		"  -C <config-file>           Specify location of configuration file.\n"
+		"  -c <programmer>            Specify programmer type.\n"
+		"  -P <port>                  Specify connection port.\n"
+		"  -F                         Override invalid signature check.\n"
+		"  -e                         Perform a chip erase.\n"
+		"  -m <memtype>               Memory type to operate on.\n"
+		"  -i <filename>              Write device. Specify an input file.\n"
+		"  -o <filename>              Read device. Specify an output file.\n"
+		"  -f <format>                Specify the file format.\n"
+		"  -n                         Do not write anything to the device.\n"
+		"  -V                         Do not verify.\n"
+		"  -t                         Enter terminal mode.\n"
+		"  -E <exitspec>[,<exitspec>] List programmer exit specifications.\n"
+		"  -v                         Verbose output. An additional -v can be added.\n"
+		"  -?                         Display this usage.\n"
+		"\navrdude project: <URL:http://savannah.nongnu.org/projects/avrdude>\n"
+		,progname);
 }
 
 
