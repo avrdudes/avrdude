@@ -20,14 +20,16 @@
 /* $Id$ */
 
 /*
- * Posix serial interface for avrdude.
+ * Native Win32 serial interface for avrdude.
  */
+
+#include "serial.h"
 
 extern char *progname;
 
 #if 0
 
-int serial_open(char * port, int baud)
+int serial_open(char * port, long baud)
 {
   return fd;
 }

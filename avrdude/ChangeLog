@@ -1,3 +1,8 @@
+2003-03-13  Theodore A. Roth  <troth@openavr.org>
+
+	* ser_posix.c, ser_win32.c, serial.h:
+	Change baud from int to long to avoid a 16-bit int overflow.
+
 2003-03-12  Theodore A. Roth  <troth@openavr.org>
 
 	* Makefile.am (avrdude_SOURCES): Add avr910.[ch], serial.h and
