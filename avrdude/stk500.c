@@ -103,32 +103,11 @@ static int stk500_getsync(PROGRAMMER * pgm)
 }
 
 
-static int stk500_rdy_led(PROGRAMMER * pgm, int value)
-{
-  return 0;
-}
-
-static int stk500_err_led(PROGRAMMER * pgm, int value)
-{
-  return 0;
-}
-
-static int stk500_pgm_led(PROGRAMMER * pgm, int value)
-{
-  return 0;
-}
-
-static int stk500_vfy_led(PROGRAMMER * pgm, int value)
-{
-  return 0;
-}
-
-
 /*
  * transmit an AVR device command and return the results; 'cmd' and
  * 'res' must point to at least a 4 byte data buffer
  */
-static int stk500_cmd(PROGRAMMER * pgm, unsigned char cmd[4], 
+static int stk500_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
                       unsigned char res[4])
 {
   unsigned char buf[32];
@@ -252,25 +231,8 @@ static int stk500_program_enable(PROGRAMMER * pgm, AVRPART * p)
 }
 
 
-/*
- * apply power to the AVR processor
- */
-static void stk500_powerup(PROGRAMMER * pgm)
-{
-  return;
-}
 
-
-/*
- * remove power from the AVR processor
- */
-static void stk500_powerdown(PROGRAMMER * pgm)
-{
-  return;
-}
-
-
-static int stk500_set_extended_parms(PROGRAMMER * pgm, int n, 
+static int stk500_set_extended_parms(PROGRAMMER * pgm, int n,
                                      unsigned char * cmd)
 {
   unsigned char buf[16];
@@ -1171,16 +1133,10 @@ void stk500_initpgm(PROGRAMMER * pgm)
   /*
    * mandatory functions
    */
-  pgm->rdy_led        = stk500_rdy_led;
-  pgm->err_led        = stk500_err_led;
-  pgm->pgm_led        = stk500_pgm_led;
-  pgm->vfy_led        = stk500_vfy_led;
   pgm->initialize     = stk500_initialize;
   pgm->display        = stk500_display;
   pgm->enable         = stk500_enable;
   pgm->disable        = stk500_disable;
-  pgm->powerup        = stk500_powerup;
-  pgm->powerdown      = stk500_powerdown;
   pgm->program_enable = stk500_program_enable;
   pgm->chip_erase     = stk500_chip_erase;
   pgm->cmd            = stk500_cmd;
