@@ -1,3 +1,9 @@
+2004-01-03  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
+	*main.c,avr.c,avr.h,par.c,stk500.c: Add function
+	avr_chip_erase() to unify handling of cycle-count.
+	Makes cycle-count work for avr910-programmers
+
 2003-12-01  Eric B. Weddington  <eric@ecentral.com>
 
 	* doc/avrdude.texi: Update devices and programmers supported.
