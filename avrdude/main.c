@@ -515,6 +515,11 @@ int main(int argc, char * argv [])
     switch (ch) {
       case 'c': /* pin configuration */
         pinconfig = optarg;
+        if (strcmp(pinconfig, "stk500") == 0) {
+          if (port == DEFAULT_PARALLEL) {
+            port = DEFAULT_SERIAL;
+          }
+        }
         break;
 
       case 'C': /* pin configuration file */

@@ -45,7 +45,7 @@
 .Op Fl m Ar memtype
 .Op Fl o Ar filename
 .Op Fl n
-.Op Fl P Ar parallel
+.Op Fl P Ar port
 .Op Fl t
 .Op Fl v
 .Op Fl V
@@ -298,12 +298,14 @@ to write to
 .It Fl P Ar port
 Use
 .Ar port
-as the
-.Xr ppi 4
-device to communicate with, instead of the default
-.Pa /dev/ppi0 .
-If you are using the STK500 programmer, use this option to specify
-which serial port to use.
+to identify the device to which the programmer is attached.  By
+default the
+.Pa /dev/ppi0
+port is used, but if the programmer type normally connects to the
+serial port, the
+.Pa /dev/cuaa0
+port is the default.  If you need to use a different parallel or
+serial port, use this option to specify the alternate port name.
 .It Fl t
 Tells
 .Nm
