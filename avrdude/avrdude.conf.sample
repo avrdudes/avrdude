@@ -5,7 +5,7 @@
 # This file contains configuration data used by AVRPROG which describes
 # the programming hardware pinouts and also provides part definitions.
 # AVRPROG's "-C" command line option specifies the location of the
-# configuration file.  The "-c" option names the programmer confiuration
+# configuration file.  The "-c" option names the programmer configuration
 # which must match one of the entry's "id" parameter.  The "-p" option
 # identifies which part AVRPROG is going to be programming and must match
 # one of the parts' "id" parameter.
