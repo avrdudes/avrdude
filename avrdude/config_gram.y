@@ -37,6 +37,10 @@ extern char * progname;
 int yylex(void);
 int yyerror(char * errmsg);
 
+static int assign_pin(int pinno, TOKEN * v);
+static int which_opcode(TOKEN * opcode);
+static int parse_cmdbits(OPCODE * op);
+ 
 %}
 
 %token K_READ
