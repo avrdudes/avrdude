@@ -6,7 +6,7 @@ Approximate change log for AVRDUDE by version.
 
 ----------------------------------------------------------------------
 
-Version TBD
+Version 4.1.0
 
   * Add support for the Bascom SAMPLE programmer. Submitted by
     Larry Barello <larryba@barrello.net>
