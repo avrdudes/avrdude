@@ -49,6 +49,8 @@ struct command {
   char * desc;
 };
 
+char * term_version = "$Id$";
+
 
 int cmd_dump  (int fd, struct avrpart * p, int argc, char *argv[]);
 

@@ -67,6 +67,8 @@ static struct ppipins_t pins[] = {
 #define NPINS (sizeof(pins)/sizeof(struct ppipins_t))
 
 
+char * ppi_version = "$Id$";
+
 /*
  * set 'get' and 'set' appropriately for subsequent passage to ioctl()
  * to get/set the specified PPI registers.  
