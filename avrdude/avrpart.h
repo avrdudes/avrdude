@@ -51,6 +51,11 @@ enum {
   AVR_CMDBIT_OUTPUT   /* this bit is an output bit */
 };
 
+enum { /* these are assigned to reset_disposition of AVRPART */
+  RESET_DEDICATED,    /* reset pin is dedicated */
+  RESET_IO            /* reset pin might be configured as an I/O pin */
+};
+
 /*
  * serial programming instruction bit specifications
  */
@@ -72,6 +77,10 @@ typedef struct avrpart {
   char          id[AVR_IDLEN];      /* short part name */
   int           devicecode;         /* Atmel STK500 device code */
   int           chip_erase_delay;   /* microseconds */
+  unsigned char pagel;              /* for parallel programming */
+  unsigned char bs2;                /* for parallel programming */
+  int           reset_disposition;  /* see RESET_ enums */
+
   OPCODE      * op[AVR_OP_MAX];     /* opcodes */
 
   LISTID        mem;                /* avr memory definitions */

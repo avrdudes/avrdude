@@ -57,6 +57,7 @@ AVRPART * avr_new_part(void)
 
   p->id[0]   = 0;
   p->desc[0] = 0;
+  p->reset_disposition = RESET_DEDICATED;
 
   p->mem = lcreat(NULL, 0);
 
@@ -1053,6 +1054,15 @@ void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type,
 }
 
 
+char * reset_disp_str(int r)
+{
+  switch (r) {
+    case RESET_DEDICATED : return "dedicated";
+    case RESET_IO        : return "possible i/o";
+    default              : return "<invalid>";
+  }
+}
+
 
 void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose)
 {
@@ -1063,11 +1073,17 @@ void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose)
   AVRMEM * m;
 
   fprintf(f, 
-          "%sAVR Part         : %s\n"
-          "%sChip Erase delay : %d us\n"
-          "%sMemory Detail    :\n\n",
+          "%sAVR Part          : %s\n"
+          "%sChip Erase delay  : %d us\n"
+          "%sPAGEL             : P%02X\n"
+          "%sBS2               : P%02X\n"
+          "%sRESET disposition : %s\n"
+          "%sMemory Detail     :\n\n",
           prefix, p->desc,
           prefix, p->chip_erase_delay,
+          prefix, p->pagel,
+          prefix, p->bs2,
+          prefix, reset_disp_str(p->reset_disposition),
           prefix);
 
   px = prefix;

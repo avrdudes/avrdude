@@ -62,20 +62,25 @@ static int parse_cmdbits(OPCODE * op);
 
 %token K_PAGE_SIZE
 %token K_PAGED
+
+%token K_BS2
 %token K_BUFF
 %token K_CHIP_ERASE_DELAY
+%token K_DEDICATED
 %token K_DESC
 %token K_DEVICECODE
 %token K_EEPROM
 %token K_ERRLED
 %token K_FLASH
 %token K_ID
+%token K_IO
 %token K_LOADPAGE
 %token K_MAX_WRITE_DELAY
 %token K_MIN_WRITE_DELAY
 %token K_MISO
 %token K_MOSI
 %token K_NUM_PAGES
+%token K_PAGEL
 %token K_PAR
 %token K_PART
 %token K_PGMLED
@@ -331,6 +336,10 @@ part_parms :
 ;
 
 
+reset_disposition :
+  K_DEDICATED | K_IO
+;
+
 part_parm :
   K_ID TKN_EQUAL TKN_STRING 
     {
@@ -356,6 +365,28 @@ part_parm :
   K_CHIP_ERASE_DELAY TKN_EQUAL TKN_NUMBER
     {
       current_part->chip_erase_delay = $3->value.number;
+      free_token($3);
+    } |
+
+  K_PAGEL TKN_EQUAL TKN_NUMBER
+    {
+      current_part->pagel = $3->value.number;
+      free_token($3);
+    } |
+
+  K_BS2 TKN_EQUAL TKN_NUMBER
+    {
+      current_part->bs2 = $3->value.number;
+      free_token($3);
+    } |
+
+  K_RESET TKN_EQUAL reset_disposition
+    {
+      if ($3->primary == K_DEDICATED)
+        current_part->reset_disposition = RESET_DEDICATED;
+      else if ($3->primary == K_IO)
+        current_part->reset_disposition = RESET_IO;
+
       free_token($3);
     } |
 
