@@ -1833,7 +1833,7 @@ part
 part
     id               = "m8535";
     desc             = "ATMEGA8535";
-    devicecode       = 0x64;
+    stk500_devcode   = 0x64;
     pagel            = 0xd7;
     bs2              = 0xa0;
     chip_erase_delay = 9000;
