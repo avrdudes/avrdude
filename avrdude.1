@@ -159,11 +159,11 @@ option).  New pin configurations can be easily added or modified
 through the use of a config file to make
 .Nm avrdude
 work with different programmers as long as the programmer supports the
-Atmel AVR serial program method.  If that file contains an entry named
-.Dq default ,
-this one will be used as default if
-.Fl c Ar programmer-id
-is missing; otherwise a builtin default will be used.
+Atmel AVR serial program method.  You can use the 'default_programmer'
+keyword in your
+.Pa ${HOME}/.avrduderc
+file to assign a default programmer to keep from having to specify
+this option on every invocation.
 .It Fl C Ar config-file
 Use the specified config file to load configuration data.  This file
 contains all programmer and part definitions that
@@ -172,8 +172,8 @@ knows about.  If you have a programmer or part that
 .Nm avrdude
 does not know about, you can add it to the config file (be sure and
 submit a patch back to the author so that it can be incorporated for
-the next version).  See the sample config file, located at
-.Pa ${PREFIX}/etc/avrdude.conf.sample ,
+the next version).  See the config file, located at
+.Pa ${PREFIX}/etc/avrdude.conf ,
 which contains a description of the format.
 .It Fl e
 Causes a chip erase to be executed.  This will reset the contents of the
@@ -411,10 +411,10 @@ ll.
 .It Pa /dev/ppi0
 default device to be used for communication with the programming
 hardware
-.It Pa ${PREFIX}/etc/avrdude.conf.sample
-sample programmer and parts configuration file
 .It Pa ${PREFIX}/etc/avrdude.conf
-default programmer and parts configuration file
+programmer and parts configuration file
+.It Pa ${HOME}/.avrduderc
+programmer and parts configuration file (per-user overrides)
 .It Pa ~/.inputrc
 Initialization file for the
 .Xr readline 3
