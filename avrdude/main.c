@@ -104,12 +104,8 @@ void usage(void)
     "  -P <port>                  Specify connection port.\n"
     "  -F                         Override invalid signature check.\n"
     "  -e                         Perform a chip erase.\n"
-    "  -m <memtype>               (deprecated) Memory type to operate on.\n"
-    "  -i <filename>              (deprecated) Write device. Specify an input file.\n"
-    "  -o <filename>              (deprecated) Read device. Specify an output file.\n"
-    "  -f <format>                (deprecated) Specify the file format.\n"
     "  -U <memtype>:r|w|v:<filename>[:format]\n"
-    "                             Alternate memory operation specification.\n"
+    "                             Memory operation specification.\n"
     "                             Multiple -U options are allowed, each request\n"
     "                             is performed in the order specified.\n"
     "  -n                         Do not write anything to the device.\n"
@@ -678,26 +674,18 @@ int main(int argc, char * argv [])
   int              len;         /* length for various strings */
   struct avrpart * p;           /* which avr part we are programming */
   struct avrpart * v;           /* used for verify */
-  int              readorwrite; /* true if a chip read/write op was selected */
   AVRMEM         * sig;         /* signature data */
   struct stat      sb;
   UPDATE         * upd;
   LNODEID        * ln;
-  int              deprecated = 0;
 
   /* options / operating mode variables */
-  char *  memtype;     /* "flash", "eeprom", etc */
-  int     doread;      /* 1=reading AVR */
-  int     dowrite;     /* 1=writing AVR */
   int     erase;       /* 1=erase chip, 0=don't */
   int     auto_erase;  /* 0=never erase unless explicity told to do
                           so, 1=erase if we are going to program flash */
-  char  * outputf;     /* output file name */
-  char  * inputf;      /* input file name */
   int     ovsigck;     /* 1=override sig check, 0=don't */
   char  * port;        /* device port (/dev/xxx) */
   int     terminal;    /* 1=enter terminal mode, 0=don't */
-  FILEFMT filefmt;     /* FMT_AUTO, FMT_IHEX, FMT_SREC, FMT_RBIN */
   int     nowrite;     /* don't actually write anything to the chip */
   int     verify;      /* perform a verify operation */
   int     ppisetbits;  /* bits to set in ppi data register at exit */
@@ -733,19 +721,12 @@ int main(int argc, char * argv [])
   }
 
   partdesc      = NULL;
-  readorwrite   = 0;
   port          = default_parallel;
-  outputf       = NULL;
-  inputf        = NULL;
-  doread        = 0;
-  dowrite       = 0;
-  memtype       = "flash";
   erase         = 0;
   auto_erase    = 1;
   p             = NULL;
   ovsigck       = 0;
   terminal      = 0;
-  filefmt       = FMT_AUTO;
   nowrite       = 0;
   verify        = 1;        /* on by default */
   quell_progress = 0;
@@ -781,7 +762,7 @@ int main(int argc, char * argv [])
       strcat(usr_config, "/");
     strcat(usr_config, ".avrduderc");
   }
-  
+
   #endif
 
   len = strlen(progname) + 2;
@@ -801,7 +782,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?c:C:DeE:f:Fi:I:m:no:p:P:qtU:vVyY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?c:C:DeE:Fnp:P:qtU:vVyY:")) != -1) {
 
     switch (ch) {
       case 'c': /* programmer id */
@@ -819,93 +800,18 @@ int main(int argc, char * argv [])
 
       case 'e': /* perform a chip erase */
         erase = 1;
-        auto_erase = 0;
         break;
 
       case 'E':
         exitspecs = optarg;
-	break;
-
-      case 'f':   /* specify file format */
-        deprecated = 1;
-        if (strlen(optarg) != 1) {
-          fprintf(stderr, "%s: invalid file format \"%s\"\n",
-                  progname, optarg);
-          usage();
-          exit(1);
-        }
-        switch (optarg[0]) {
-          case 'a' : filefmt = FMT_AUTO; break;
-          case 'i' : filefmt = FMT_IHEX; break;
-          case 'r' : filefmt = FMT_RBIN; break;
-          case 's' : filefmt = FMT_SREC; break;
-          case 'm' : filefmt = FMT_IMM; break;
-            break;
-          default :
-            fprintf(stderr, "%s: invalid file format \"%s\"\n\n",
-                    progname, optarg);
-            usage();
-            exit(1);
-        }
         break;
 
       case 'F': /* override invalid signature check */
         ovsigck = 1;
         break;
 
-      case 'i': /* specify input file */
-        deprecated = 1;
-        auto_erase = 0;
-        if (outputf || terminal) {
-          fprintf(stderr,"%s: -o, -i, and -t are incompatible\n\n", progname);
-          return 1;
-        }
-        dowrite = 1;
-        inputf = optarg;
-        break;
-
-      case 'I': /* specify input file and assume 'immediate mode' */
-        deprecated = 1;
-        auto_erase = 0;
-        if (outputf || terminal) {
-          fprintf(stderr,"%s: -o, -I, and -t are incompatible\n\n", progname);
-          return 1;
-        }
-        dowrite = 1;
-        inputf = optarg;
-        filefmt = FMT_IMM;
-        break;
-
-      case 'm': /* select memory type to operate on */
-        deprecated = 1;
-        if ((strcasecmp(optarg,"e")==0)||(strcasecmp(optarg,"eeprom")==0)) {
-          memtype = "eeprom";
-        }
-        else if ((strcasecmp(optarg,"f")==0)||
-                 (strcasecmp(optarg,"flash")==0)) {
-          memtype = "flash";
-        }
-        else {
-          memtype = optarg;
-        }
-        readorwrite = 1;
-        break;
-
       case 'n':
         nowrite = 1;
-        break;
-
-      case 'o': /* specify output file */
-        deprecated = 1;
-        auto_erase = 0;
-        if (inputf || terminal) {
-          fprintf(stderr,"%s: -i, -o, and -t are incompatible\n\n", progname);
-          return 1;
-        }
-        doread = 1;
-        outputf = optarg;
-        if (filefmt == FMT_AUTO)
-          filefmt = FMT_RBIN;
         break;
 
       case 'p' : /* specify AVR part */
@@ -921,13 +827,6 @@ int main(int argc, char * argv [])
         break;
 
       case 't': /* enter terminal mode */
-        if (!((inputf == NULL)||(outputf == NULL))) {
-          fprintf(stderr, 
-                  "%s: terminal mode is not compatible with -i or -o\n\n",
-                  progname);
-          usage();
-          exit(1);
-        }
         terminal = 1;
         break;
 
@@ -983,13 +882,6 @@ int main(int argc, char * argv [])
 
   }
 
-  if (deprecated) {
-    fprintf(stderr, 
-            "\n%s: WARNING: the -f, -i, -I, -o, and -m options are deprecated.\n"
-            "%sPlease use the -U option instead.\n", 
-            progname, progbuf);
-  }
-
 
   if (quell_progress == 0) {
     if (isatty (STDERR_FILENO))
@@ -1003,9 +895,9 @@ int main(int argc, char * argv [])
      * Print out an identifying string so folks can tell what version
      * they are running
      */
-    fprintf(stderr, 
+    fprintf(stderr,
             "\n%s: Version %s\n"
-            "%sCopyright (c) 2000-2003 Brian Dean, bsd@bsdhome.com\n\n", 
+            "%sCopyright (c) 2000-2003 Brian Dean, bsd@bsdhome.com\n\n",
             progname, version, progbuf);
   }
 
@@ -1016,7 +908,7 @@ int main(int argc, char * argv [])
 
   rc = read_config(sys_config);
   if (rc) {
-    fprintf(stderr, 
+    fprintf(stderr,
             "%s: error reading system wide configuration file \"%s\"\n",
             progname, sys_config);
     exit(1);
@@ -1073,11 +965,11 @@ int main(int argc, char * argv [])
 
 
   if (programmer[0] == 0) {
-    fprintf(stderr, 
+    fprintf(stderr,
             "\n%s: no programmer has been specified on the command line "
-            "or the config file\n", 
+            "or the config file\n",
             progname);
-    fprintf(stderr, 
+    fprintf(stderr,
             "%sSpecify a programmer using the -c option and try again\n\n",
             progbuf);
     exit(1);
@@ -1086,7 +978,7 @@ int main(int argc, char * argv [])
   pgm = locate_programmer(programmers, programmer);
   if (pgm == NULL) {
     fprintf(stderr,"\n");
-    fprintf(stderr, 
+    fprintf(stderr,
             "%s: Can't find programmer id \"%s\"\n",
             progname, programmer);
     fprintf(stderr,"\nValid programmers are:\n");
@@ -1103,7 +995,7 @@ int main(int argc, char * argv [])
   }
 
   if (partdesc == NULL) {
-    fprintf(stderr, 
+    fprintf(stderr,
             "%s: No AVR part has been specified, use \"-p Part\"\n\n",
             progname);
     fprintf(stderr,"Valid parts are:\n");
@@ -1115,7 +1007,7 @@ int main(int argc, char * argv [])
 
   p = locate_part(part_list, partdesc);
   if (p == NULL) {
-    fprintf(stderr, 
+    fprintf(stderr,
             "%s: AVR Part \"%s\" not found.\n\n",
             progname, partdesc);
     fprintf(stderr,"Valid parts are:\n");
@@ -1127,7 +1019,7 @@ int main(int argc, char * argv [])
 
   if (exitspecs != NULL) {
     if (strcmp(pgm->type, "PPI") != 0) {
-      fprintf(stderr, 
+      fprintf(stderr,
               "%s: WARNING: -E option is only valid with \"PPI\" "
               "programmer types\n",
               progname);
@@ -1140,10 +1032,10 @@ int main(int argc, char * argv [])
   }
 
 
-  /* 
+  /*
    * set up seperate instances of the avr part, one for use in
    * programming, one for use in verifying.  These are separate
-   * because they need separate flash and eeprom buffer space 
+   * because they need separate flash and eeprom buffer space
    */
   p = avr_dup_part(p);
   v = avr_dup_part(p);
@@ -1229,7 +1121,7 @@ int main(int argc, char * argv [])
   /* indicate ready */
   pgm->rdy_led(pgm, ON);
 
-  fprintf(stderr, 
+  fprintf(stderr,
             "%s: AVR device initialized and ready to accept instructions\n",
             progname);
 
@@ -1237,7 +1129,7 @@ int main(int argc, char * argv [])
    * Let's read the signature bytes to make sure there is at least a
    * chip on the other end that is responding correctly.  A check
    * against 0xffffffff should ensure that the signature bytes are
-   * valid.  
+   * valid.
    */
   rc = avr_signature(pgm, p);
   if (rc != 0) {
@@ -1266,7 +1158,7 @@ int main(int argc, char * argv [])
     fprintf(stderr, "\n");
 
     if (ff) {
-      fprintf(stderr, 
+      fprintf(stderr,
               "%s: Yikes!  Invalid device signature.\n", progname);
       if (!ovsigck) {
         fprintf(stderr, "%sDouble check connections and try again, "
@@ -1306,13 +1198,13 @@ int main(int argc, char * argv [])
   if ((set_cycles == -1) && ((erase == 0) || (do_cycles == 0))) {
     /*
      * see if the cycle count in the last four bytes of eeprom seems
-     * reasonable 
+     * reasonable
      */
     rc = avr_get_cycle_count(pgm, p, &cycles);
     if ((rc >= 0) && (cycles != 0)) {
       fprintf(stderr,
               "%s: current erase-rewrite cycle count is %d%s\n",
-              progname, cycles, 
+              progname, cycles,
               do_cycles ? "" : " (if being tracked)");
     }
   }
@@ -1348,49 +1240,13 @@ int main(int argc, char * argv [])
   }
 
 
-
-  if (!terminal && (lsize(updates) == 0) &&
-      ((inputf==NULL) && (outputf==NULL))) {
-    /*
-     * Check here to see if any other operations were selected and
-     * generate an error message because if they were, we need either
-     * an input or an output file, but one was not selected.
-     * Otherwise, we just shut down.  
-     */
-    if (readorwrite) {
-      fprintf(stderr, "%s: you must specify an input or an output file\n",
-              progname);
-      exitrc = 1;
-    }
-    goto main_exit;
-  }
-
-  if (doread && dowrite) {
-    fprintf(stderr, "%s: can't be reading and writing from/to the same file\n",
-            progname);
-    exitrc = 1;
-    goto main_exit;
-  }
-
   if (terminal) {
     /*
      * terminal mode
      */
     exitrc = terminal_mode(pgm, p);
   }
-  else if (doread) {
-    upd = new_update(DEVICE_READ, memtype, filefmt, outputf);
-    ladd(updates, upd);
-  }
-  else if (dowrite) {
-    upd = new_update(DEVICE_WRITE, memtype, filefmt, inputf);
-    ladd(updates, upd);
-  }
 
-  if (!doread && verify && inputf) {
-    upd = new_update(DEVICE_VERIFY, memtype, filefmt, inputf);
-    ladd(updates, upd);
-  }
 
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
     upd = ldata(ln);
@@ -1419,4 +1275,3 @@ int main(int argc, char * argv [])
 
   return exitrc;
 }
-
