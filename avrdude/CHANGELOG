@@ -4,6 +4,12 @@ Approximate change log for AVRPROG by version
 
 ----------------------------------------------------------------------
 
+Version 2.1.2:
+
+  * Add '-V' option to disable automatic verify check with uploading
+    data.
+
+
 Version 2.1.1:
 
   * Fix ATmega128 instruction sequences for reading fuse bits -

@@ -115,7 +115,7 @@ char ** modules[N_MODULES] = {
   &term_version 
 };
 
-char * version      = "2.1.1";
+char * version      = "2.1.2";
 
 char * main_version = "$Id$";
 
@@ -516,7 +516,7 @@ int main(int argc, char * argv [])
   terminal      = 0;
   filefmt       = FMT_AUTO;
   nowrite       = 0;
-  verify        = 1;        /* on by default; XXX can't turn it off */
+  verify        = 1;        /* on by default */
   ppisetbits    = 0;
   ppiclrbits    = 0;
   exitspecs     = NULL;
@@ -571,7 +571,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?c:C:eE:f:Fi:m:no:p:P:tvyY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?c:C:eE:f:Fi:m:no:p:P:tvVyY:")) != -1) {
 
     switch (ch) {
       case 'c': /* pin configuration */
@@ -679,6 +679,10 @@ int main(int argc, char * argv [])
 
       case 'v':
         verbose++;
+        break;
+
+      case 'V':
+        verify = 0;
         break;
 
       case 'y':
