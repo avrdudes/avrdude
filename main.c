@@ -204,7 +204,7 @@ int parse_cvsid ( char * cvsid, char * name, char * rev, char * datetime )
 }
 
 
-int print_module_versions ( FILE * outf )
+int print_module_versions ( FILE * outf, char * timestamp )
 {
   char name[64], rev[16], datetime[64];
   int y, m, d, h, min, s;
@@ -221,7 +221,7 @@ int print_module_versions ( FILE * outf )
     if (rc != 6) {
       fprintf(stderr, "%s: module version scan error, rc=%d\n", progname, rc);
     }
-    else {
+    else if (timestamp) {
       now = time(NULL);
       gmtime_r(&now, &t);
       t.tm_sec  = s;
@@ -231,8 +231,11 @@ int print_module_versions ( FILE * outf )
       t.tm_mon  = m-1;
       t.tm_year = y-1900;
       now = timegm(&t);
-      if (now > maxtime)
+      if (now > maxtime) {
         maxtime = now;
+        strcpy(timestamp, datetime);
+        strcat(timestamp, " GMT");
+      }
     }
     if (outf)
       fprintf(outf, "  %-10s  %-5s  %s\n", name, rev, datetime);
@@ -251,7 +254,7 @@ int print_module_versions ( FILE * outf )
   if (outf)
     fprintf(outf, "\n");
 
-  return maxtime;
+  return 0;
 }
 
 
@@ -275,7 +278,7 @@ int main ( int argc, char * argv [] )
   int              readorwrite; /* true if a chip read/write op was selected */
   int              ppidata;	/* cached value of the ppi data register */
   int              vsize=-1;    /* number of bytes to verify */
-  int              rev;
+  char             timestamp[64];
 
   /* options / operating mode variables */
   int     memtype;     /* AVR_FLASH or AVR_EEPROM */
@@ -318,15 +321,15 @@ int main ( int argc, char * argv [] )
     progbuf[i] = ' ';
   progbuf[i] = 0;
 
-  rev = print_module_versions(NULL);
+  print_module_versions(NULL, timestamp);
 
   /*
    * Print out an identifying string so folks can tell what version
    * they are running
    */
   fprintf(stderr, "\n%s: Copyright 2000 Brian Dean, bsd@bsdhome.com\n"
-          "%sVersion %s  Revision Timestamp %d\n\n", 
-          progname, progbuf, version, rev);
+          "%sVersion %s  Revision Timestamp %s\n\n", 
+          progname, progbuf, version, timestamp);
 
   /*
    * check for no arguments
@@ -452,7 +455,7 @@ int main ( int argc, char * argv [] )
         break;
 
       case 'V':
-        print_module_versions(stderr);
+        print_module_versions(stderr, NULL);
         break;
 
       case '?': /* help */
