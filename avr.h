@@ -69,6 +69,8 @@ int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles);;
 
 int avr_mem_hiaddr(AVRMEM * mem);
 
+int avr_chip_erase(PROGRAMMER * pgm, AVRPART * p);
+
 extern void report_progress (int completed, int total, char *hdr);
 
 #endif

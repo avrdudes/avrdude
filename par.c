@@ -319,26 +319,11 @@ static int par_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {
   unsigned char cmd[4];
   unsigned char res[4];
-  int cycles;
-  int rc;
 
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
     fprintf(stderr, "chip erase instruction not defined for part \"%s\"\n",
             p->desc);
     return -1;
-  }
-
-  rc = avr_get_cycle_count(pgm, p, &cycles);
-
-  /*
-   * only print out the current cycle count if we aren't going to
-   * display it below 
-   */
-  if (!do_cycles && ((rc >= 0) && (cycles != 0xffffffff))) {
-    fprintf(stderr,
-            "%s: current erase-rewrite cycle count is %d%s\n",
-            progname, cycles, 
-            do_cycles ? "" : " (if being tracked)");
   }
 
   pgm->pgm_led(pgm, ON);
@@ -351,16 +336,6 @@ static int par_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   pgm->initialize(pgm, p);
 
   pgm->pgm_led(pgm, OFF);
-
-  if (do_cycles && (cycles != -1)) {
-    if (cycles == 0x00ffff) {
-      cycles = 0;
-    }
-    cycles++;
-    fprintf(stderr, "%s: erase-rewrite cycle count is now %d\n", 
-            progname, cycles);
-    avr_put_cycle_count(pgm, p, cycles);
-  }
 
   return 0;
 }

@@ -682,54 +682,37 @@ int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size)
 int avr_get_cycle_count(PROGRAMMER * pgm, AVRPART * p, int * cycles)
 {
   AVRMEM * a;
-  int cycle_count;
-  unsigned char v1, v2, v3, v4;
+  unsigned int cycle_count = 0;
+  unsigned char v1;
   int rc;
+  int i;
 
   a = avr_locate_mem(p, "eeprom");
   if (a == NULL) {
     return -1;
   }
 
-  rc = avr_read_byte(pgm, p, a, a->size-4, &v1);
+  for (i=4; i>0; i--) {
+    rc = avr_read_byte(pgm, p, a, a->size-i, &v1);
   if (rc < 0) {
     fprintf(stderr, "%s: WARNING: can't read memory for cycle count, rc=%d\n",
             progname, rc);
     return -1;
   }
-
-  rc = avr_read_byte(pgm, p, a, a->size-3, &v2);
-  if (rc < 0) {
-    fprintf(stderr, "%s: WARNING: can't read memory for cycle count, rc=%d\n",
-            progname, rc);
-    return -1;
+    cycle_count = (cycle_count << 8) | v1;
   }
 
-  rc = avr_read_byte(pgm, p, a, a->size-2, &v3);
-  if (rc < 0) {
-    fprintf(stderr, "%s: WARNING: can't read memory for cycle count, rc=%d\n",
-            progname, rc);
-    return -1;
+   /*
+   * If the EEPROM is erased, the cycle count reads 0xffffffff.
+   * In this case we return a cycle_count of zero.
+   * So, the calling function don't have to care about whether or not
+   * the cycle count was initialized.
+   */
+  if (cycle_count == 0xffffffff) {
+    cycle_count = 0;
   }
 
-  rc = avr_read_byte(pgm, p, a, a->size-1, &v4);
-  if (rc < 0) {
-    fprintf(stderr, "%s: WARNING: can't read memory for cycle count, rc=%d\n",
-            progname, rc);
-    return -1;
-  }
-
-  if ((v1 == 0xff) && (v2 == 0xff) && (v3 != 0xff) && (v4 != 0xff)) {
-    v1 = 0;
-    v2 = 0;
-  }
-
-  cycle_count = (((unsigned int)v1) << 24) | 
-    (((unsigned int)v2) << 16) |
-    (((unsigned int)v3) << 8) |
-    v4;
-
-  *cycles = cycle_count;
+  *cycles = (int) cycle_count;
 
   return 0;
 }
@@ -738,43 +721,56 @@ int avr_get_cycle_count(PROGRAMMER * pgm, AVRPART * p, int * cycles)
 int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles)
 {
   AVRMEM * a;
-  unsigned char v1, v2, v3, v4;
+  unsigned char v1;
   int rc;
+  int i;
 
   a = avr_locate_mem(p, "eeprom");
   if (a == NULL) {
     return -1;
   }
 
-  v4 = cycles & 0x0ff;
-  v3 = (cycles & 0x0ff00) >> 8;
-  v2 = (cycles & 0x0ff0000) >> 16;
-  v1 = (cycles & 0x0ff000000) >> 24;
+  for (i=1; i<=4; i++) {
+    v1 = cycles & 0xff;
+    cycles = cycles >> 8;
 
-  rc = avr_write_byte(pgm, p, a, a->size-4, v1);
-  if (rc < 0) {
-    fprintf(stderr, "%s: WARNING: can't write memory for cycle count, rc=%d\n",
-            progname, rc);
-    return -1;
-  }
-  rc = avr_write_byte(pgm, p, a, a->size-3, v2);
-  if (rc < 0) {
-    fprintf(stderr, "%s: WARNING: can't write memory for cycle count, rc=%d\n",
-            progname, rc);
-    return -1;
-  }
-  rc = avr_write_byte(pgm, p, a, a->size-2, v3);
-  if (rc < 0) {
-    fprintf(stderr, "%s: WARNING: can't write memory for cycle count, rc=%d\n",
-            progname, rc);
-    return -1;
-  }
-  rc = avr_write_byte(pgm, p, a, a->size-1, v4);
-  if (rc < 0) {
-    fprintf(stderr, "%s: WARNING: can't write memory for cycle count, rc=%d\n",
-            progname, rc);
-    return -1;
+    rc = avr_write_byte(pgm, p, a, a->size-i, v1);
+    if (rc < 0) {
+      fprintf(stderr, "%s: WARNING: can't write memory for cycle count, rc=%d\n",
+              progname, rc);
+      return -1;
+    }
   }
 
   return 0;
+  }
+
+int avr_chip_erase(PROGRAMMER * pgm, AVRPART * p)
+{
+  int cycles;
+  int rc;
+
+  if (do_cycles) {
+    rc = avr_get_cycle_count(pgm, p, &cycles);
+    /*
+     * Don't update the cycle counter, if read failed
+     */
+    if(rc != 0) {
+      do_cycles = 0;
+    }
+  }
+
+  rc = pgm->chip_erase(pgm, p);
+
+  /*
+   * Don't update the cycle counter, if erase failed
+   */
+  if (do_cycles && (rc == 0)) {
+    cycles++;
+    fprintf(stderr, "%s: erase-rewrite cycle count is now %d\n",
+            progname, cycles);
+    avr_put_cycle_count(pgm, p, cycles);
+  }
+
+  return rc;
 }
