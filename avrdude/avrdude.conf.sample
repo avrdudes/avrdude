@@ -73,9 +73,9 @@ programmer
   id    = "dt006";
   desc  = "Dontronics DT006";
   reset = 4;
-  sck   = 8;
-  mosi  = 9;
-  miso  = 10;
+  sck   = 5;
+  mosi  = 2;
+  miso  = 11;
 ;
 
 programmer
