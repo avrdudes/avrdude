@@ -89,7 +89,7 @@ struct avrpart parts[] = {
 
 
 
-int avr_list_parts ( FILE * f, char * prefix )
+int avr_list_parts(FILE * f, char * prefix)
 {
   int i;
 
@@ -102,7 +102,7 @@ int avr_list_parts ( FILE * f, char * prefix )
 }
 
 
-struct avrpart * avr_find_part ( char * p )
+struct avrpart * avr_find_part(char * p)
 {
   int i;
 
@@ -119,7 +119,7 @@ struct avrpart * avr_find_part ( char * p )
 /*
  * transmit and receive a bit of data to/from the AVR device
  */
-int avr_txrx_bit ( int fd, int bit )
+int avr_txrx_bit(int fd, int bit)
 {
   int r;
 
@@ -145,7 +145,7 @@ int avr_txrx_bit ( int fd, int bit )
 /*
  * transmit and receive a byte of data to/from the AVR device
  */
-unsigned char avr_txrx ( int fd, unsigned char byte )
+unsigned char avr_txrx(int fd, unsigned char byte)
 {
   int i;
   unsigned char r, b, rbyte;
@@ -153,7 +153,7 @@ unsigned char avr_txrx ( int fd, unsigned char byte )
   rbyte = 0;
   for (i=0; i<8; i++) {
     b = (byte >> (7-i)) & 0x01;
-    r = avr_txrx_bit ( fd, b );
+    r = avr_txrx_bit(fd, b);
     rbyte = rbyte | (r << (7-i));
   }
 
@@ -165,7 +165,7 @@ unsigned char avr_txrx ( int fd, unsigned char byte )
  * transmit an AVR device command and return the results; 'cmd' and
  * 'res' must point to at least a 4 byte data buffer
  */
-int avr_cmd ( int fd, unsigned char cmd[4], unsigned char res[4] )
+int avr_cmd(int fd, unsigned char cmd[4], unsigned char res[4])
 {
   int i;
 
@@ -180,8 +180,8 @@ int avr_cmd ( int fd, unsigned char cmd[4], unsigned char res[4] )
 /*
  * read a byte of data from the indicated memory region
  */
-unsigned char avr_read_byte ( int fd, struct avrpart * p,
-                              int memtype, unsigned short addr )
+unsigned char avr_read_byte(int fd, struct avrpart * p,
+                              int memtype, unsigned short addr)
 {
   unsigned short offset;
   unsigned char cmd[4];
@@ -218,7 +218,7 @@ unsigned char avr_read_byte ( int fd, struct avrpart * p,
  *
  * Return the number of bytes read, or -1 if an error occurs.  
  */
-int avr_read ( int fd, struct avrpart * p, int memtype )
+int avr_read(int fd, struct avrpart * p, int memtype)
 {
   unsigned char    rbyte;
   unsigned short   i;
@@ -230,11 +230,11 @@ int avr_read ( int fd, struct avrpart * p, int memtype )
 
   for (i=0; i<size; i++) {
     rbyte = avr_read_byte(fd, p, memtype, i);
-    fprintf ( stderr, "                    \r%4u  0x%02x", i, rbyte );
+    fprintf(stderr, "                    \r%4u  0x%02x", i, rbyte);
     buf[i] = rbyte;
   }
 
-  fprintf ( stderr, "\n" );
+  fprintf(stderr, "\n");
 
   return i;
 }
@@ -243,8 +243,8 @@ int avr_read ( int fd, struct avrpart * p, int memtype )
 /*
  * write a byte of data to the indicated memory region
  */
-int avr_write_byte ( int fd, struct avrpart * p, int memtype, 
-                     unsigned short addr, unsigned char data )
+int avr_write_byte(int fd, struct avrpart * p, int memtype, 
+                     unsigned short addr, unsigned char data)
 {
   unsigned char cmd[4];
   unsigned char res[4];
@@ -331,7 +331,7 @@ int avr_write_byte ( int fd, struct avrpart * p, int memtype,
  *
  * Return the number of bytes written, or -1 if an error occurs.
  */
-int avr_write ( int fd, struct avrpart * p, int memtype, int size )
+int avr_write(int fd, struct avrpart * p, int memtype, int size)
 {
   int              rc;
   int              wsize;
@@ -360,7 +360,7 @@ int avr_write ( int fd, struct avrpart * p, int memtype, int size )
   for (i=0; i<wsize; i++) {
     /* eeprom or low byte of flash */
     data = buf[i];
-    rc = avr_write_byte(fd, p, memtype, i, data );
+    rc = avr_write_byte(fd, p, memtype, i, data);
     fprintf(stderr, "                      \r%4u 0x%02x", i, data);
     if (rc) {
       fprintf(stderr, " ***failed;  ");
@@ -377,7 +377,7 @@ int avr_write ( int fd, struct avrpart * p, int memtype, int size )
     }
   }
 
-  fprintf ( stderr, "\n" );
+  fprintf(stderr, "\n");
 
   return i;
 }
@@ -386,7 +386,7 @@ int avr_write ( int fd, struct avrpart * p, int memtype, int size )
 /*
  * issue the 'program enable' command to the AVR device
  */
-int avr_program_enable ( int fd )
+int avr_program_enable(int fd)
 {
   unsigned char cmd[4] = {0xac, 0x53, 0x00, 0x00};
   unsigned char res[4];
@@ -403,7 +403,7 @@ int avr_program_enable ( int fd )
 /*
  * issue the 'chip erase' command to the AVR device
  */
-int avr_chip_erase ( int fd, struct avrpart * p )
+int avr_chip_erase(int fd, struct avrpart * p)
 {
   unsigned char data[4] = {0xac, 0x80, 0x00, 0x00};
   unsigned char res[4];
@@ -423,7 +423,7 @@ int avr_chip_erase ( int fd, struct avrpart * p )
 /*
  * read the AVR device's signature bytes
  */
-int avr_signature ( int fd, unsigned char sig[4] )
+int avr_signature(int fd, unsigned char sig[4])
 {
   unsigned char cmd[4] = {0x30, 0x00, 0x00, 0x00};
   unsigned char res[4];
@@ -442,7 +442,7 @@ int avr_signature ( int fd, unsigned char sig[4] )
 /*
  * apply power to the AVR processor
  */
-void avr_powerup ( int fd )
+void avr_powerup(int fd)
 {
   ppi_set(fd, PPIDATA, PPI_AVR_VCC);    /* power up */
   usleep(100000);
@@ -452,7 +452,7 @@ void avr_powerup ( int fd )
 /*
  * remove power from the AVR processor
  */
-void avr_powerdown ( int fd )
+void avr_powerdown(int fd)
 {
   ppi_clr(fd, PPIDATA, PPI_AVR_VCC);    /* power down */
 }
@@ -461,7 +461,7 @@ void avr_powerdown ( int fd )
 /*
  * initialize the AVR device and prepare it to accept commands
  */
-int avr_initialize ( int fd, struct avrpart * p )
+int avr_initialize(int fd, struct avrpart * p)
 {
   int rc;
   int tries;
@@ -484,12 +484,12 @@ int avr_initialize ( int fd, struct avrpart * p )
    * of sync.
    */
   if (strcmp(p->partdesc, "AT90S1200")==0) {
-    avr_program_enable ( fd );
+    avr_program_enable(fd);
   }
   else {
     tries = 0;
     do {
-      rc = avr_program_enable ( fd );
+      rc = avr_program_enable(fd);
       if (rc == 0)
         break;
       ppi_pulsepin(fd, pinno[PIN_AVR_SCK]);
@@ -500,7 +500,7 @@ int avr_initialize ( int fd, struct avrpart * p )
      * can't sync with the device, maybe it's not attached?
      */
     if (tries == 32) {
-      fprintf ( stderr, "%s: AVR device not responding\n", progname );
+      fprintf(stderr, "%s: AVR device not responding\n", progname);
       return -1;
     }
   }
@@ -510,7 +510,7 @@ int avr_initialize ( int fd, struct avrpart * p )
 
 
 
-char * avr_memtstr ( int memtype )
+char * avr_memtstr(int memtype)
 {
   switch (memtype) {
     case AVR_M_EEPROM : return "eeprom"; break;
@@ -520,7 +520,7 @@ char * avr_memtstr ( int memtype )
 }
 
 
-int avr_initmem ( struct avrpart * p )
+int avr_initmem(struct avrpart * p)
 {
   int i;
 
@@ -602,7 +602,7 @@ void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type)
 
 
 
-void avr_display ( FILE * f, struct avrpart * p, char * prefix )
+void avr_display(FILE * f, struct avrpart * p, char * prefix)
 {
   int i;
   char * buf;

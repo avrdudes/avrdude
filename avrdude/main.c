@@ -124,7 +124,7 @@ unsigned int pinno[N_PINS];
 /*
  * usage message
  */
-void usage ( void )
+void usage(void)
 {
   fprintf(stderr,
           "Usage: %s -p partno [-e] [-E exitspec[,exitspec]] [-f format] "
@@ -139,7 +139,7 @@ void usage ( void )
 /*
  * parse the -E string
  */
-int getexitspecs ( char *s, int *set, int *clr )
+int getexitspecs(char *s, int *set, int *clr)
 {
   char *cp;
 
@@ -168,7 +168,7 @@ int getexitspecs ( char *s, int *set, int *clr )
 }
 
 
-int parse_cvsid ( char * cvsid, char * name, char * rev, char * datetime )
+int parse_cvsid(char * cvsid, char * name, char * rev, char * datetime)
 {
   int i, j;
 
@@ -213,7 +213,7 @@ int parse_cvsid ( char * cvsid, char * name, char * rev, char * datetime )
 }
 
 
-int print_module_versions ( FILE * outf, char * timestamp )
+int print_module_versions(FILE * outf, char * timestamp)
 {
   char name[64], rev[16], datetime[64];
   int y, m, d, h, min, s;
@@ -664,7 +664,7 @@ void verify_pin_assigned(int pin, char * desc)
 /*
  * main routine
  */
-int main ( int argc, char * argv [] )
+int main(int argc, char * argv [])
 {
   int              fd;          /* file descriptor for parallel port */
   int              rc;          /* general return code checking */
@@ -824,7 +824,7 @@ int main ( int argc, char * argv [] )
         if (p == NULL) {
           fprintf(stderr, 
                   "%s: AVR Part \"%s\" not found.  Valid parts are:\n\n",
-                  progname, optarg );
+                  progname, optarg);
           avr_list_parts(stderr,"    ");
           fprintf(stderr, "\n");
           return 1;
@@ -925,7 +925,7 @@ int main ( int argc, char * argv [] )
     fprintf(stderr, 
             "%s: No AVR part has been specified, use \"-p Part\"\n\n"
             "  Valid Parts are:\n\n",
-            progname );
+            progname);
     avr_list_parts(stderr, "    ");
     fprintf(stderr,"\n");
     return 1;
@@ -981,10 +981,10 @@ int main ( int argc, char * argv [] )
   /*
    * open the parallel port
    */
-  fd = open ( parallel, O_RDWR );
+  fd = open(parallel, O_RDWR);
   if (fd < 0) {
-    fprintf ( stderr, "%s: can't open device \"%s\": %s\n\n",
-              progname, parallel, strerror(errno) );
+    fprintf(stderr, "%s: can't open device \"%s\": %s\n\n",
+              progname, parallel, strerror(errno));
     return 1;
   }
 
@@ -996,7 +996,7 @@ int main ( int argc, char * argv [] )
 
   ppidata = ppi_getall(fd, PPIDATA);
   if (ppidata < 0) {
-    fprintf ( stderr, "%s: error reading status of ppi data port\n", progname);
+    fprintf(stderr, "%s: error reading status of ppi data port\n", progname);
     exitrc = 1;
     ppidata = 0; /* clear all bits at exit */
     goto main_exit;
@@ -1023,7 +1023,7 @@ int main ( int argc, char * argv [] )
    */
   rc = avr_initialize(fd,p);
   if (rc < 0) {
-    fprintf ( stderr, "%s: initialization failed, rc=%d\n", progname, rc );
+    fprintf(stderr, "%s: initialization failed, rc=%d\n", progname, rc);
     exitrc = 1;
     goto main_exit;
   }
@@ -1031,9 +1031,9 @@ int main ( int argc, char * argv [] )
   /* indicate ready */
   LED_ON(fd, pinno[PIN_LED_RDY]);
 
-  fprintf ( stderr, 
+  fprintf(stderr, 
             "%s: AVR device initialized and ready to accept instructions\n",
-            progname );
+            progname);
 
   /*
    * Let's read the signature bytes to make sure there is at least a
@@ -1055,7 +1055,7 @@ int main ( int argc, char * argv [] )
       fprintf(stderr, "%sDouble check connections and try again, "
               "or use -F to override\n"
               "%sthis check.\n\n",
-              progbuf, progbuf );
+              progbuf, progbuf);
       exitrc = 1;
       goto main_exit;
     }
@@ -1068,9 +1068,9 @@ int main ( int argc, char * argv [] )
      * erase the chip's flash and eeprom memories, this is required
      * before the chip can accept new programming
      */
-    fprintf(stderr, "%s: erasing chip\n", progname );
+    fprintf(stderr, "%s: erasing chip\n", progname);
     avr_chip_erase(fd,p);
-    fprintf(stderr, "%s: done.\n", progname );
+    fprintf(stderr, "%s: done.\n", progname);
   }
 
 
@@ -1101,7 +1101,7 @@ int main ( int argc, char * argv [] )
      */
     fprintf(stderr, "%s: reading %s memory:\n", 
             progname, avr_memtstr(memtype));
-    rc = avr_read ( fd, p, memtype );
+    rc = avr_read(fd, p, memtype);
     if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
               progname, avr_memtstr(memtype), rc);
@@ -1142,7 +1142,7 @@ int main ( int argc, char * argv [] )
             progname, avr_memtstr(memtype));
 
     if (!nowrite) {
-      rc = avr_write ( fd, p, memtype, size );
+      rc = avr_write(fd, p, memtype, size);
     }
     else {
       /* 
@@ -1153,8 +1153,8 @@ int main ( int argc, char * argv [] )
     }
 
     if (rc < 0) {
-      fprintf ( stderr, "%s: failed to write flash memory, rc=%d\n", 
-                progname, rc );
+      fprintf(stderr, "%s: failed to write flash memory, rc=%d\n", 
+                progname, rc);
       exitrc = 1;
       goto main_exit;
     }
@@ -1177,7 +1177,7 @@ int main ( int argc, char * argv [] )
             progname, avr_memtstr(memtype), inputf);
     fprintf(stderr, "%s: reading on-chip %s data:\n", 
             progname, avr_memtstr(memtype));
-    rc = avr_read ( fd, v, memtype );
+    rc = avr_read(fd, v, memtype);
     if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
               progname, avr_memtstr(memtype), rc);

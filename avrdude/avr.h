@@ -99,46 +99,46 @@ extern struct avrpart parts[];
 
 
 
-int avr_list_parts ( FILE * f, char * prefix );
+int avr_list_parts(FILE * f, char * prefix);
 
-struct avrpart * avr_find_part ( char * p );
+struct avrpart * avr_find_part(char * p);
 
-int avr_txrx_bit ( int fd, int bit );
+int avr_txrx_bit(int fd, int bit);
 
-unsigned char avr_txrx ( int fd, unsigned char byte );
+unsigned char avr_txrx(int fd, unsigned char byte);
 
-int avr_cmd ( int fd, unsigned char cmd[4], unsigned char res[4] );
+int avr_cmd(int fd, unsigned char cmd[4], unsigned char res[4]);
 
-unsigned char avr_read_byte ( int fd, struct avrpart * p,
-                              int memtype, unsigned short addr );
+unsigned char avr_read_byte(int fd, struct avrpart * p,
+                              int memtype, unsigned short addr);
 
-int avr_read ( int fd, struct avrpart * p, int memtype );
+int avr_read(int fd, struct avrpart * p, int memtype);
 
-int avr_write_byte ( int fd, struct avrpart * p, int memtype, 
-                     unsigned short addr, unsigned char data );
+int avr_write_byte(int fd, struct avrpart * p, int memtype, 
+                     unsigned short addr, unsigned char data);
 
-int avr_write ( int fd, struct avrpart * p, int memtype, int size );
+int avr_write(int fd, struct avrpart * p, int memtype, int size);
 
-int avr_program_enable ( int fd );
+int avr_program_enable(int fd);
 
-int avr_chip_erase ( int fd, struct avrpart * p );
+int avr_chip_erase(int fd, struct avrpart * p);
 
-int avr_signature ( int fd, unsigned char sig[4] );
+int avr_signature(int fd, unsigned char sig[4]);
 
-void avr_powerup ( int fd );
+void avr_powerup(int fd);
 
-void avr_powerdown ( int fd );
+void avr_powerdown(int fd);
 
-int avr_initialize ( int fd, struct avrpart * p );
+int avr_initialize(int fd, struct avrpart * p);
 
-char * avr_memtstr ( int memtype );
+char * avr_memtstr(int memtype);
 
-int avr_initmem ( struct avrpart * p );
+int avr_initmem(struct avrpart * p);
 
 int avr_verify(struct avrpart * p, struct avrpart * v, int memtype, 
                int size);
 
-void avr_display ( FILE * f, struct avrpart * p, char * prefix );
+void avr_display(FILE * f, struct avrpart * p, char * prefix);
 
 
 #endif

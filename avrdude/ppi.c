@@ -73,7 +73,7 @@ char * ppi_version = "$Id$";
  * set 'get' and 'set' appropriately for subsequent passage to ioctl()
  * to get/set the specified PPI registers.  
  */
-int ppi_getops ( int reg, unsigned long * get, unsigned long * set )
+int ppi_getops(int reg, unsigned long * get, unsigned long * set)
 {
   switch (reg) {
     case PPIDATA:
@@ -90,7 +90,7 @@ int ppi_getops ( int reg, unsigned long * get, unsigned long * set )
       break;
     default:
       fprintf(stderr, "%s: avr_set(): invalid register=%d\n",
-              progname, reg );
+              progname, reg);
       return -1;
       break;
   }
@@ -102,13 +102,13 @@ int ppi_getops ( int reg, unsigned long * get, unsigned long * set )
 /*
  * set the indicated bit of the specified register.
  */
-int ppi_set ( int fd, int reg, int bit )
+int ppi_set(int fd, int reg, int bit)
 {
   unsigned char v;
   unsigned long get, set;
   int rc;
 
-  rc = ppi_getops ( reg, &get, &set );
+  rc = ppi_getops(reg, &get, &set);
   if (rc)
     return -1;
 
@@ -123,13 +123,13 @@ int ppi_set ( int fd, int reg, int bit )
 /*
  * clear the indicated bit of the specified register.
  */
-int ppi_clr ( int fd, int reg, int bit )
+int ppi_clr(int fd, int reg, int bit)
 {
   unsigned char v;
   unsigned long get, set;
   int rc;
 
-  rc = ppi_getops ( reg, &get, &set );
+  rc = ppi_getops(reg, &get, &set);
   if (rc)
     return -1;
 
@@ -144,13 +144,13 @@ int ppi_clr ( int fd, int reg, int bit )
 /*
  * get the indicated bit of the specified register.
  */
-int ppi_get ( int fd, int reg, int bit )
+int ppi_get(int fd, int reg, int bit)
 {
   unsigned char v;
   unsigned long get, set;
   int rc;
 
-  rc = ppi_getops ( reg, &get, &set );
+  rc = ppi_getops(reg, &get, &set);
   if (rc)
     return -1;
 
@@ -163,13 +163,13 @@ int ppi_get ( int fd, int reg, int bit )
 /*
  * toggle the indicated bit of the specified register.
  */
-int ppi_toggle ( int fd, int reg, int bit )
+int ppi_toggle(int fd, int reg, int bit)
 {
   unsigned char v;
   unsigned long get, set;
   int rc;
 
-  rc = ppi_getops ( reg, &get, &set );
+  rc = ppi_getops(reg, &get, &set);
   if (rc)
     return -1;
 
@@ -184,13 +184,13 @@ int ppi_toggle ( int fd, int reg, int bit )
 /*
  * get all bits of the specified register.
  */
-int ppi_getall ( int fd, int reg )
+int ppi_getall(int fd, int reg)
 {
   unsigned char v;
   unsigned long get, set;
   int rc;
 
-  rc = ppi_getops ( reg, &get, &set );
+  rc = ppi_getops(reg, &get, &set);
   if (rc)
     return -1;
 
@@ -202,13 +202,13 @@ int ppi_getall ( int fd, int reg )
 /*
  * set all bits of the specified register to val.
  */
-int ppi_setall ( int fd, int reg, int val )
+int ppi_setall(int fd, int reg, int val)
 {
   unsigned char v;
   unsigned long get, set;
   int rc;
 
-  rc = ppi_getops ( reg, &get, &set );
+  rc = ppi_getops(reg, &get, &set);
   if (rc)
     return -1;
 
@@ -221,7 +221,7 @@ int ppi_setall ( int fd, int reg, int val )
 /*
  * pulse the indicated bit of the specified register.
  */
-int ppi_pulse ( int fd, int reg, int bit )
+int ppi_pulse(int fd, int reg, int bit)
 {
   ppi_toggle(fd, reg, bit);
   ppi_toggle(fd, reg, bit);
@@ -230,7 +230,7 @@ int ppi_pulse ( int fd, int reg, int bit )
 }
 
 
-int ppi_setpin ( int fd, int pin, int value )
+int ppi_setpin(int fd, int pin, int value)
 {
 
   if (pin < 1 || pin > 17)
@@ -250,7 +250,7 @@ int ppi_setpin ( int fd, int pin, int value )
 }
 
 
-int ppi_getpin ( int fd, int pin )
+int ppi_getpin(int fd, int pin)
 {
   int value;
 
@@ -271,7 +271,7 @@ int ppi_getpin ( int fd, int pin )
 }
 
 
-int ppi_pulsepin ( int fd, int pin )
+int ppi_pulsepin(int fd, int pin)
 {
 
   if (pin < 1 || pin > 17)
@@ -286,7 +286,7 @@ int ppi_pulsepin ( int fd, int pin )
 }
 
 
-int ppi_getpinmask ( int pin )
+int ppi_getpinmask(int pin)
 {
   if (pin < 1 || pin > 17)
     return -1;
@@ -295,7 +295,7 @@ int ppi_getpinmask ( int pin )
 }
 
 
-int ppi_getpinreg ( int pin )
+int ppi_getpinreg(int pin)
 {
   if (pin < 1 || pin > 17)
     return -1;
@@ -310,7 +310,7 @@ int ppi_getpinreg ( int pin )
  * function in 'main()' and can use it to determine whether your sense
  * pin is actually sensing.  
  */
-int ppi_sense ( int fd )
+int ppi_sense(int fd)
 {
   unsigned int pr;
   int count;
@@ -319,10 +319,10 @@ int ppi_sense ( int fd )
 
   count = 0;
 
-  fprintf ( stderr, 
+  fprintf(stderr, 
             "parallel port data:\n"
             "         111111111\n"
-            "123456789012345678\n" );
+            "123456789012345678\n");
 
   buf[17] = 0;
   pr = 1;
