@@ -62,6 +62,9 @@ char * version = "$Id$";
 char * progname;
 
 
+/*
+ * bit definitions for AVR device connections
+ */
 #define AVR_POWER 0x01  /* bit 0 of data register */
 #define AVR_CLOCK 0x02  /* bit 1 of data register */
 #define AVR_INSTR 0x04  /* bit 2 of data register */
@@ -69,6 +72,9 @@ char * progname;
 #define AVR_DATA  0x40  /* bit 6 of status register */
 
 
+/*
+ * PPI registers
+ */
 enum {
   PPIDATA,
   PPICTRL,
@@ -76,14 +82,31 @@ enum {
 };
 
 
-enum {
+/*
+ * AVR memory designations
+ */
+typedef enum {
   AVR_EEPROM,
   AVR_FLASH,
   AVR_FLASH_LO,
   AVR_FLASH_HI
-};
+} AVRMEM;
 
 
+/*
+ * variable declarations required for getopt() 
+ */
+char *optarg;
+int optind;
+int optopt;
+int opterr;
+int optreset;
+
+
+/*
+ * set 'get' and 'set' appropriately for subsequent passage to ioctl()
+ * to get/set the specified PPI registers.  
+ */
 int ppi_getops ( int reg, unsigned long * get, unsigned long * set )
 {
   switch (reg) {
@@ -110,6 +133,9 @@ int ppi_getops ( int reg, unsigned long * get, unsigned long * set )
 }
 
 
+/*
+ * set the indicated bit of the specified register.
+ */
 int ppi_set ( int fd, int reg, int bit )
 {
   unsigned char v;
@@ -128,6 +154,9 @@ int ppi_set ( int fd, int reg, int bit )
 }
 
 
+/*
+ * clear the indicated bit of the specified register.
+ */
 int ppi_clr ( int fd, int reg, int bit )
 {
   unsigned char v;
@@ -146,6 +175,9 @@ int ppi_clr ( int fd, int reg, int bit )
 }
 
 
+/*
+ * get the indicated bit of the specified register.
+ */
 int ppi_get ( int fd, int reg, int bit )
 {
   unsigned char v;
@@ -163,6 +195,9 @@ int ppi_get ( int fd, int reg, int bit )
 }
 
 
+/*
+ * toggle the indicated bit of the specified register.
+ */
 int ppi_toggle ( int fd, int reg, int bit )
 {
   unsigned char v;
@@ -184,6 +219,9 @@ int ppi_toggle ( int fd, int reg, int bit )
 }
 
 
+/*
+ * transmit and receive a bit of data to/from the AVR device
+ */
 int avr_txrx_bit ( int fd, int bit )
 {
   unsigned char d;
@@ -204,6 +242,9 @@ int avr_txrx_bit ( int fd, int bit )
 }
 
 
+/*
+ * transmit and receive a byte of data to/from the AVR device
+ */
 unsigned char avr_txrx ( int fd, unsigned char byte )
 {
   int i;
@@ -220,7 +261,11 @@ unsigned char avr_txrx ( int fd, unsigned char byte )
 }
 
 
-int avr_cmd ( int fd, unsigned char * cmd, unsigned char * res )
+/*
+ * transmit an AVR device command and return the results; 'cmd' and
+ * 'res' must point to at least a 4 byte data buffer
+ */
+int avr_cmd ( int fd, unsigned char cmd[4], unsigned char res[4] )
 {
   int i;
 
@@ -232,7 +277,10 @@ int avr_cmd ( int fd, unsigned char * cmd, unsigned char * res )
 }
 
 
-unsigned char avr_read_byte ( int fd, int memtype, unsigned short addr )
+/*
+ * read a byte of data from the indicated memory region
+ */
+unsigned char avr_read_byte ( int fd, AVRMEM memtype, unsigned short addr )
 {
   unsigned char cmd[4];
   unsigned char res[4];
@@ -265,7 +313,12 @@ unsigned char avr_read_byte ( int fd, int memtype, unsigned short addr )
 }
 
 
-int avr_read ( int fd, int memtype, unsigned start, unsigned n, 
+/*
+ * read 'n' words of data from the indicated memory region.  If the
+ * flash memory is being read, n*2 bytes will be read into 'buf'; if
+ * the eeprom is being read, 'n' bytes will be read into 'buf'.
+ */
+int avr_read ( int fd, AVRMEM memtype, unsigned start, unsigned n, 
                unsigned char * buf, int bufsize )
 {
   unsigned char rbyte, memt;
@@ -313,7 +366,10 @@ int avr_read ( int fd, int memtype, unsigned start, unsigned n,
 }
 
 
-int avr_write_byte ( int fd, int memtype, unsigned short addr, unsigned char data )
+/*
+ * write a byte of data to the indicated memory region
+ */
+int avr_write_byte ( int fd, AVRMEM memtype, unsigned short addr, unsigned char data )
 {
   unsigned char cmd[4], res[4];
   unsigned char r;
@@ -371,7 +427,10 @@ int avr_write_byte ( int fd, int memtype, unsigned short addr, unsigned char dat
 }
 
 
-int avr_write ( int fd, int memtype, unsigned start, 
+/*
+ * write 'bufsize' bytes of data to the indicated memory region.
+ */
+int avr_write ( int fd, AVRMEM memtype, unsigned start, 
                 unsigned char * buf, int bufsize )
 {
   unsigned char data, memt;
@@ -427,7 +486,9 @@ int avr_write ( int fd, int memtype, unsigned start,
   return 0;
 }
 
-
+/*
+ * issue the 'program enable' command to the AVR device
+ */
 int avr_program_enable ( int fd )
 {
   unsigned char cmd[4] = {0xac, 0x53, 0x00, 0x00};
@@ -442,6 +503,9 @@ int avr_program_enable ( int fd )
 }
 
 
+/*
+ * issue the 'chip erase' command to the AVR device
+ */
 int avr_chip_erase ( int fd )
 {
   unsigned char data[4] = {0xac, 0x80, 0x00, 0x00};
@@ -455,7 +519,10 @@ int avr_chip_erase ( int fd )
 }
 
 
-int avr_signature ( int fd, char sig[4] )
+/*
+ * read the AVR device's signature bytes
+ */
+int avr_signature ( int fd, unsigned char sig[4] )
 {
   unsigned char cmd[4] = {0x30, 0x00, 0x00, 0x00};
   unsigned char res[4];
@@ -471,6 +538,9 @@ int avr_signature ( int fd, char sig[4] )
 }
 
 
+/*
+ * apply power to the AVR processor
+ */
 void avr_powerup ( int fd )
 {
   ppi_set(fd, PPIDATA, AVR_POWER);    /* power up */
@@ -478,12 +548,18 @@ void avr_powerup ( int fd )
 }
 
 
+/*
+ * remove power from the AVR processor
+ */
 void avr_powerdown ( int fd )
 {
   ppi_clr(fd, PPIDATA, AVR_POWER);    /* power down */
 }
 
 
+/*
+ * initialize the AVR device and prepare it to accept commands
+ */
 int avr_initialize ( int fd )
 {
   int rc;
@@ -497,6 +573,10 @@ int avr_initialize ( int fd )
 
   usleep(20000); /* 20 ms */
 
+  /*
+   * enable programming mode, try up to 32 times in order to possibly
+   * get back into sync with the chip if we are out of sync.  
+   */
   tries = 0;
   do {
     rc = avr_program_enable ( fd );
@@ -505,23 +585,36 @@ int avr_initialize ( int fd )
     ppi_toggle(fd, PPIDATA, AVR_CLOCK);
     tries++;
   } while (tries < 32);
+
+  /*
+   * can't sync with the device, maybe it's not attached?
+   */
   if (tries == 32) {
     fprintf ( stderr, "%s: AVR device not responding\n", progname );
     return -1;
   }
+
   return 0;
 }
 
 
+
+/*
+ * infinite loop, sensing on the pin that we use to read data out of
+ * the device; this is a debugging aid, you can insert a call to this
+ * function in 'main()' and can use it to determine whether your sense
+ * pin is actually sensing.  
+ */
 int ppi_sense_test ( int fd )
 {
   unsigned char v, pv;
 
   pv = 1;
   do {
+    usleep(100000); /* check every 100 ms */
     v = ppi_get(fd, PPISTATUS, AVR_DATA);
     if (v != pv) {
-      fprintf ( stderr, "PPISTATUS bit = %d\n", v );
+      fprintf ( stderr, "sense bit = %d\n", v );
     }
     pv = v;
   } while(1);
@@ -530,15 +623,9 @@ int ppi_sense_test ( int fd )
 }
 
 
-
-/* vars for getopt() */
-char *optarg;
-int optind;
-int optopt;
-int opterr;
-int optreset;
-
-
+/*
+ * usage message
+ */
 void usage ( void )
 {
   fprintf ( stderr, 
@@ -555,10 +642,14 @@ void usage ( void )
 }
 
 
+/*
+ * main routine
+ */
 int main ( int argc, char * argv [] )
 {
   int fd;
   int rc;
+  int i;
   unsigned char buf[2048];
   unsigned char sig[4];
   int ch;
@@ -567,6 +658,7 @@ int main ( int argc, char * argv [] )
   int size;
   char * outputf;
   char * inputf;
+  char * p1, * p2;
 
   iofd    = -1;
   outputf = NULL;
@@ -583,36 +675,69 @@ int main ( int argc, char * argv [] )
   else
     progname = argv[0];
 
-  fprintf(stderr, "%s, Version Information: %s\n", progname, version);
 
+  /*
+   * Print out an identifying string so folks can tell what version
+   * they are running
+   */
+  fprintf(stderr, "\n");
+  p1 = strchr(version,',');
+  if (p1 == NULL)
+    p1 = version;
+  else
+    p1 += 3;
+
+  p2 = strrchr(p1,':');
+  if (p2 == NULL)
+    p2 = &p1[strlen(p1)];
+  else
+    p2 += 3;
+
+  fprintf(stderr, "%s, Revision ", progname );
+  for (i=0; i<p2-p1; i++)
+    fprintf(stderr, "%c", p1[i]);
+  fprintf(stderr, "\n");
+  rc = strlen(progname);
+  for (i=0; i<rc+2; i++)
+    fprintf(stderr, "%c", ' ');
+  fprintf(stderr, "Author: Brian Dean, bsd@bsdhome.com\n");
+
+
+  /*
+   * check for no arguments
+   */
   if (argc == 1) {
     usage();
     return 0;
   }
 
+
+  /*
+   * process command line arguments
+   */
   while ((ch = getopt(argc,argv,"?efo:rsu:")) != -1) {
     switch (ch) {
-      case 'e':
+      case 'e': /* select eeprom memory */
         if (flash) {
           fprintf(stderr,"%s: -e and -f are incompatible\n", progname);
           return 1;
         }
         eeprom = 1;
         break;
-      case 'r':
+      case 'r': /* perform a chip erase */
         erase = 1;
         break;
-      case 's':
+      case 's': /* read out the signature bytes */
         dosig = 1;
         break;
-      case 'f':
+      case 'f': /* select flash memory */
         if (eeprom) {
           fprintf(stderr,"%s: -e and -f are incompatible\n", progname);
           return 1;
         }
         flash = 1;
         break;
-      case 'o':
+      case 'o': /* specify output file */
         if (inputf) {
           fprintf(stderr,"%s: -o and -u are incompatible\n", progname);
           return 1;
@@ -632,7 +757,7 @@ int main ( int argc, char * argv [] )
           }
         }
         break;
-      case 'u':
+      case 'u': /* specify input (upload) file */
         if (outputf) {
           fprintf(stderr,"%s: -o and -u are incompatible\n", progname);
           return 1;
@@ -646,7 +771,7 @@ int main ( int argc, char * argv [] )
           return 1;
         }
         break;
-      case '?':
+      case '?': /* help */
         usage();
         return 1;
         break;
@@ -658,6 +783,10 @@ int main ( int argc, char * argv [] )
     }
   }
 
+
+  /*
+   * open the parallel port
+   */
   fd = open ( PARALLEL, O_RDWR );
   if (fd < 0) {
     fprintf ( stderr, "%s: can't open device \"%s\": %s\n",
@@ -665,7 +794,10 @@ int main ( int argc, char * argv [] )
     return 1;
   }
 
-  fprintf ( stderr, "%s: initializing\n", progname );
+
+  /*
+   * initialize the chip in preperation for accepting commands
+   */
   rc = avr_initialize(fd);
   if (rc < 0) {
     fprintf ( stderr, "%s: initialization failed, rc=%d\n", progname, rc );
@@ -676,15 +808,23 @@ int main ( int argc, char * argv [] )
   fprintf ( stderr, "%s: AVR device initialized and ready to accept instructions\n",
             progname );
 
+
   if (erase) {
+    /*
+     * erase the chip's flash and eeprom memories, this is required
+     * before the chip can accept new programming
+     */
     fprintf(stderr, "%s: erasing chip\n", progname );
     avr_chip_erase(fd);
     avr_initialize(fd);
     fprintf(stderr, "%s: done.\n", progname );
   }
 
+
   if (dosig) {
-    int i;
+    /*
+     * read out the on-chip signature bytes
+     */
     fprintf(stderr, "%s: reading signature bytes: ", progname );
     avr_signature(fd, sig);
     for (i=0; i<4; i++)
@@ -692,7 +832,14 @@ int main ( int argc, char * argv [] )
     fprintf(stderr, "\n");
   }
 
+
   if (iofd < 0) {
+    /*
+     * Check here to see if any other operations were selected and
+     * generate an error message because if they were, we need either
+     * an input or and output file, but one was not selected.
+     * Otherwise, we just shut down.  
+     */
     if (eeprom||flash) {
       fprintf(stderr, "%s: you must specify an input or an output file\n",
               progname);
@@ -702,17 +849,25 @@ int main ( int argc, char * argv [] )
     return 1;
   }
 
+
   if (!(eeprom||flash)) {
+    /*
+     * an input file or an output file was specified, but the memory
+     * type (eeprom or flash) was not specified.  
+     */
     fprintf(stderr, 
             "%s: please specify either the eeprom (-e) or the flash (-f) memory\n",
             progname);
     avr_powerdown(fd);
+    close(fd);
+    close(iofd);
     return 1;
   }
 
+
   if (doread) {
     /*
-     * read device memory 
+     * read out the specified device memory and write it to a file 
      */
     if (flash) {
       size = 2048;
@@ -722,6 +877,8 @@ int main ( int argc, char * argv [] )
         fprintf ( stderr, "%s: failed to read all of flash memory, rc=%d\n", 
                   progname, rc );
         avr_powerdown(fd);
+        close(fd);
+        close(iofd);
         return 1;
       }
     }
@@ -733,26 +890,35 @@ int main ( int argc, char * argv [] )
         fprintf ( stderr, "%s: failed to read all of eeprom memory, rc=%d\n", 
                   progname, rc );
         avr_powerdown(fd);
+        close(fd);
+        close(iofd);
         return 1;
       }
     }
 
+    /*
+     * write it out to the specified file
+     */
     rc = write ( iofd, buf, size );
     if (rc < 0) {
       fprintf(stderr, "%s: write error: %s\n", progname, strerror(errno));
       avr_powerdown(fd);
+      close(fd);
+      close(iofd);
       return 1;
     }
     else if (rc != size) {
       fprintf(stderr, "%s: wrote only %d bytes of the expected %d\n", 
               progname, rc, size);
       avr_powerdown(fd);
+      close(fd);
+      close(iofd);
       return 1;
     }
   }
   else {
     /*
-     * write device memory 
+     * write the selected device memory using data from a file
      */
     if (flash) {
       size = 2048;
@@ -761,17 +927,24 @@ int main ( int argc, char * argv [] )
       size = 128;
     }
 
-    /* read in the data file */
+    /*
+     * read in the data file that will be used to write into the chip
+     */
     rc = read(iofd, buf, size);
     if (rc < 0) {
       fprintf(stderr, "%s: read error from \"%s\": %s\n", 
               progname, inputf, strerror(errno));
       avr_powerdown(fd);
+      close(fd);
+      close(iofd);
       return 1;
     }
 
     size = rc;
 
+    /*
+     * write the buffer contents to the selected memory type
+     */
     if (flash) {
       fprintf(stderr, "%s: writing %d bytes into flash memory:\n", 
               progname, size);
@@ -780,6 +953,8 @@ int main ( int argc, char * argv [] )
         fprintf ( stderr, "%s: failed to write flash memory, rc=%d\n", 
                   progname, rc );
         avr_powerdown(fd);
+        close(fd);
+        close(iofd);
         return 1;
       }
     }
@@ -791,17 +966,21 @@ int main ( int argc, char * argv [] )
         fprintf ( stderr, "%s: failed to write eeprom memory, rc=%d\n", 
                   progname, rc );
         avr_powerdown(fd);
+        close(fd);
+        close(iofd);
         return 1;
       }
     }
   }
 
-  avr_powerdown(fd);
 
+  /*
+   * normal program completion
+   */
+  avr_powerdown(fd);
   close(fd);
   close(iofd);
 
   return 0;
 }
-
 
