@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2001, 2002  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (c) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,8 +56,6 @@ struct ihexrec {
 
 extern char * progname;
 extern char   progbuf[];
-
-char * fileio_version = "$Id$";
 
 int b2ihex(unsigned char * inbuf, int bufsize, 
              int recsize, int startaddr,

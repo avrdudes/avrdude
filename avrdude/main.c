@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2001, 2002  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (c) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,33 +96,7 @@
 #define DEFAULT_PARALLEL "/dev/ppi0"
 #define DEFAULT_SERIAL   "/dev/cuaa0"
 
-extern char * avr_version;
-extern char * config_version;
-extern char * fileio_version;
-extern char * lists_version;
-extern char * main_version;
-extern char * pgm_version;
-extern char * ppi_version;
-extern char * stk500_version;
-extern char * term_version;
-
-#define N_MODULES 9
-
-char ** modules[N_MODULES] = { 
-  &avr_version,
-  &config_version,
-  &fileio_version,
-  &lists_version,
-  &main_version, 
-  &pgm_version, 
-  &ppi_version, 
-  &stk500_version, 
-  &term_version 
-};
-
-char * version      = "3.0.0";
-
-char * main_version = "$Id$";
+char * version      = "3.1.0";
 
 char * progname;
 char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
@@ -182,105 +156,6 @@ int getexitspecs(char *s, int *set, int *clr)
     }
     s = 0; /* strtok() should be called with the actual string only once */
   }
-
-  return 0;
-}
-
-
-int parse_cvsid(char * cvsid, char * name, char * rev, char * datetime)
-{
-  int i, j;
-
-  if (strncmp(cvsid,"$Id: ", 5) != 0)
-    return -1;
-
-  name[0]     = 0;
-  rev[0]      = 0;
-  datetime[0] = 0;
-
-  i = 0;
-  j = 5;
-  while (cvsid[j] && cvsid[j] != ',')
-    name[i++] = cvsid[j++];
-  name[i] = 0;
-
-  while (cvsid[j] && cvsid[j] != ' ')
-    j++;
-
-  if (cvsid[j])
-    j++;
-
-  i = 0;
-  while (cvsid[j] && cvsid[j] != ' ')
-    rev[i++] = cvsid[j++];
-  rev[i] = 0;
-
-  if (cvsid[j])
-    j++;
-
-  i = 0;
-  while (cvsid[j] && cvsid[j] != ' ')
-    datetime[i++] = cvsid[j++];
-  if (cvsid[j] == ' ') {
-    datetime[i++] = cvsid[j++];
-    while (cvsid[j] && cvsid[j] != ' ')
-      datetime[i++] = cvsid[j++];
-  }
-  datetime[i] = 0;
-
-  return 0;
-}
-
-
-int print_module_versions(FILE * outf, char * timestamp)
-{
-  char name[64], rev[16], datetime[64];
-  int y, m, d, h, min, s;
-  int i;
-  int rc;
-  int maxtime;
-  struct tm t;
-  time_t now;
-
-  maxtime = 0;
-  for (i=0; i<N_MODULES; i++) {
-    parse_cvsid(*modules[i], name, rev, datetime);
-    rc = sscanf(datetime, "%d/%d/%d %d:%d:%d", &y, &m, &d, &h, &min, &s);
-    if (rc != 6) {
-      fprintf(stderr, "%s: module version scan error, rc=%d\n", progname, rc);
-    }
-    else if (timestamp) {
-      now = time(NULL);
-      gmtime_r(&now, &t);
-      t.tm_sec  = s;
-      t.tm_min  = min;
-      t.tm_hour = h;
-      t.tm_mday = d;
-      t.tm_mon  = m-1;
-      t.tm_year = y-1900;
-      now = timegm(&t);
-      if (now > maxtime) {
-        maxtime = now;
-        strcpy(timestamp, datetime);
-        strcat(timestamp, " GMT");
-      }
-    }
-    if (outf)
-      fprintf(outf, "  %-10s  %-5s  %s\n", name, rev, datetime);
-  }
-
-  if (outf)
-    fprintf(outf, "\n");
-
-#if 0
-  gmtime_r(&maxtime, &t);
-  fprintf(stderr, "Latest revision date is %04d/%02d/%02d %02d:%02d:%02d\n",
-          t.tm_year+1900, t.tm_mon, t.tm_mday, 
-          t.tm_hour, t.tm_min, t.tm_sec);
-#endif
-
-  if (outf)
-    fprintf(outf, "\n");
 
   return 0;
 }
@@ -409,7 +284,6 @@ int main(int argc, char * argv [])
   int              readorwrite; /* true if a chip read/write op was selected */
   int              ppidata;	/* cached value of the ppi data register */
   int              vsize=-1;    /* number of bytes to verify */
-  char             timestamp[64];
   AVRMEM         * sig;         /* signature data */
 
   /* options / operating mode variables */
@@ -495,8 +369,6 @@ int main(int argc, char * argv [])
   for (i=0; i<len; i++)
     progbuf[i] = ' ';
   progbuf[i] = 0;
-
-  print_module_versions(NULL, timestamp);
 
   /*
    * check for no arguments
@@ -663,13 +535,9 @@ int main(int argc, char * argv [])
      * they are running
      */
     fprintf(stderr, 
-            "\n%s: Copyright (c) 2000-2002 Brian Dean, bsd@bsdhome.com\n"
-            "%sVersion %s  Revision Timestamp %s\n\n", 
-            progname, progbuf, version, timestamp);
-    
-    if (verbose > 1) {
-      print_module_versions(stderr, NULL);
-    }
+            "\n%s: Version %s\n"
+            "%sCopyright (c) 2000-2003 Brian Dean, bsd@bsdhome.com\n\n", 
+            progname, version, progbuf);
   }
 
   rc = read_config(configfile);
