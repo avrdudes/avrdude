@@ -71,6 +71,10 @@ typedef struct programmer_t {
                           unsigned char res[4]);
   void (*open)           (struct programmer_t * pgm, char * port);
   void (*close)          (struct programmer_t * pgm);
+  int  (*paged_write)    (struct programmer_t * pgm, AVRPART * p, AVRMEM * m, 
+                          int n_bytes);
+  int  (*paged_load)     (struct programmer_t * pgm, AVRPART * p, AVRMEM * m,
+                          int n_bytes);
 } PROGRAMMER;
 
 

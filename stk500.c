@@ -29,6 +29,15 @@
 
 /* $Id$ */
 
+/*
+ * avrprog interface for Atmel STK500 programmer
+ *
+ * Note: most commands use the "universal command" feature of the
+ * programmer in a "pass through" mode, exceptions are "program
+ * enable", "paged read", and "paged write".
+ *
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
@@ -201,8 +210,7 @@ static int getsync(PROGRAMMER * pgm)
   unsigned char buf[32], resp[32];
 
   /*
-   * get in sync
-   */
+   * get in sync */
   buf[0] = Cmnd_STK_GET_SYNC;
   buf[1] = Sync_CRC_EOP;
   send(pgm, buf, 2);
@@ -683,8 +691,301 @@ void stk500_close(PROGRAMMER * pgm)
 }
 
 
+static int loadaddr(PROGRAMMER * pgm, uint16_t addr)
+{
+  unsigned char buf[16];
+  int tries;
+
+  tries = 0;
+ retry:
+  tries++;
+  buf[0] = Cmnd_STK_LOAD_ADDRESS;
+  buf[1] = addr & 0xff;
+  buf[2] = (addr >> 8) & 0xff;
+  buf[3] = Sync_CRC_EOP;
+
+  send(pgm, buf, 4);
+
+  recv(pgm, buf, 1);
+  if (buf[0] == Resp_STK_NOSYNC) {
+    if (tries > 33) {
+      fprintf(stderr, "%s: loadaddr(): can't get into sync\n",
+              progname);
+      return -1;
+    }
+    getsync(pgm);
+    goto retry;
+  }
+  else if (buf[0] != Resp_STK_INSYNC) {
+    fprintf(stderr,
+            "%s: loadaddr(): (a) protocol error, "
+            "expect=0x%02x, resp=0x%02x\n", 
+            progname, Resp_STK_INSYNC, buf[0]);
+    return -1;
+  }
+
+  recv(pgm, buf, 1);
+  if (buf[0] == Resp_STK_OK) {
+    return 0;
+  }
+
+  fprintf(stderr,
+          "%s: loadaddr(): (a) protocol error, "
+          "expect=0x%02x, resp=0x%02x\n", 
+          progname, Resp_STK_INSYNC, buf[0]);
+  return -1;
+}
+
+
+int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, int n_bytes)
+{
+  unsigned char buf[16];
+  int memtype;
+  unsigned int addr;
+  int a_div;
+  int i;
+  int tries;
+  unsigned int n;
+
+  if (!m->paged)
+    return -1;
+
+  if (strcmp(m->desc, "flash") == 0) {
+    memtype = 'F';
+  }
+  else if (strcmp(m->desc, "flash") == 0) {
+    memtype = 'E';
+  }
+  else {
+    return -2;
+  }
+
+  if (m->op[AVR_OP_LOADPAGE_LO])
+    a_div = 2;
+  else
+    a_div = 1;
+
+  if (n_bytes > m->size) {
+    n_bytes = m->size;
+    n = m->size;
+  }
+  else {
+    if ((n_bytes % m->page_size) != 0) {
+      n = n_bytes + m->page_size - (n_bytes % m->page_size);
+    }
+    else {
+      n = n_bytes;
+    }
+  }
+
+  for (addr = 0; addr < n; addr += m->page_size) {
+    fprintf(stderr, "\r      \r%6u", addr);
+    tries = 0;
+  retry:
+    tries++;
+    loadaddr(pgm, addr/a_div);
+    buf[0] = Cmnd_STK_PROG_PAGE;
+    buf[1] = (m->page_size >> 8) & 0xff;
+    buf[2] = m->page_size & 0xff;
+    buf[3] = memtype;
+    send(pgm, buf, 4);
+    for (i=0; i<m->page_size; i++) {
+      buf[0] = m->buf[addr + i];
+      send(pgm, buf, 1);
+    }
+    buf[0] = Sync_CRC_EOP;
+    send(pgm, buf, 1);
+
+    recv(pgm, buf, 1);
+    if (buf[0] == Resp_STK_NOSYNC) {
+      if (tries > 33) {
+        fprintf(stderr, "\n%s: stk500_paged_write(): can't get into sync\n",
+                progname);
+        return -3;
+      }
+      getsync(pgm);
+      goto retry;
+    }
+    else if (buf[0] != Resp_STK_INSYNC) {
+      fprintf(stderr,
+              "\n%s: stk500_paged_write(): (a) protocol error, "
+              "expect=0x%02x, resp=0x%02x\n", 
+              progname, Resp_STK_INSYNC, buf[0]);
+      return -4;
+    }
+    
+    recv(pgm, buf, 1);
+    if (buf[0] != Resp_STK_OK) {
+      fprintf(stderr,
+              "\n%s: stk500_paged_write(): (a) protocol error, "
+              "expect=0x%02x, resp=0x%02x\n", 
+              progname, Resp_STK_INSYNC, buf[0]);
+      return -5;
+    }
+  }
+  fprintf(stderr, "\r      \r%6u", addr-1);
+  fprintf(stderr, "\n");
+
+  return n;
+}
+
+
+int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, int n_bytes)
+{
+  unsigned char buf[16];
+  int memtype;
+  unsigned int addr;
+  int a_div;
+  int tries;
+  unsigned int n;
+
+  if (!m->paged)
+    return -1;
+
+  if (strcmp(m->desc, "flash") == 0) {
+    memtype = 'F';
+  }
+  else if (strcmp(m->desc, "flash") == 0) {
+    memtype = 'E';
+  }
+  else {
+    return -2;
+  }
+
+  if (m->op[AVR_OP_LOADPAGE_LO])
+    a_div = 2;
+  else
+    a_div = 1;
+
+  if (n_bytes > m->size) {
+    n_bytes = m->size;
+    n = m->size;
+  }
+  else {
+    if ((n_bytes % m->page_size) != 0) {
+      n = n_bytes + m->page_size - (n_bytes % m->page_size);
+    }
+    else {
+      n = n_bytes;
+    }
+  }
+
+  for (addr = 0; addr < n; addr += m->page_size) {
+    fprintf(stderr, "\r      \r%6u", addr);
+    tries = 0;
+  retry:
+    tries++;
+    loadaddr(pgm, addr/a_div);
+    buf[0] = Cmnd_STK_READ_PAGE;
+    buf[1] = (m->page_size >> 8) & 0xff;
+    buf[2] = m->page_size & 0xff;
+    buf[3] = memtype;
+    buf[4] = Sync_CRC_EOP;
+    send(pgm, buf, 5);
+
+    recv(pgm, buf, 1);
+    if (buf[0] == Resp_STK_NOSYNC) {
+      if (tries > 33) {
+        fprintf(stderr, "\n%s: stk500_paged_load(): can't get into sync\n",
+                progname);
+        return -3;
+      }
+      getsync(pgm);
+      goto retry;
+    }
+    else if (buf[0] != Resp_STK_INSYNC) {
+      fprintf(stderr,
+              "\n%s: stk500_paged_load(): (a) protocol error, "
+              "expect=0x%02x, resp=0x%02x\n", 
+              progname, Resp_STK_INSYNC, buf[0]);
+      return -4;
+    }
+
+    recv(pgm, &m->buf[addr], m->page_size);
+
+    recv(pgm, buf, 1);
+    if (buf[0] != Resp_STK_OK) {
+      fprintf(stderr,
+              "\n%s: stk500_paged_load(): (a) protocol error, "
+              "expect=0x%02x, resp=0x%02x\n", 
+              progname, Resp_STK_INSYNC, buf[0]);
+      return -5;
+    }
+  }
+  fprintf(stderr, "\r      \r%6u", addr-1);
+  fprintf(stderr, "\n");
+
+  return n;
+}
+
+
+static int getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
+{
+  unsigned char buf[16];
+  unsigned v;
+  int tries = 0;
+
+ retry:
+  tries++;
+  buf[0] = Cmnd_STK_GET_PARAMETER;
+  buf[1] = parm;
+  buf[2] = Sync_CRC_EOP;
+
+  send(pgm, buf, 3);
+
+  recv(pgm, buf, 1);
+  if (buf[0] == Resp_STK_NOSYNC) {
+    if (tries > 33) {
+      fprintf(stderr, "\n%s: getparm(): can't get into sync\n",
+              progname);
+      return -1;
+    }
+    getsync(pgm);
+    goto retry;
+  }
+  else if (buf[0] != Resp_STK_INSYNC) {
+    fprintf(stderr,
+            "\n%s: getparm(): (a) protocol error, "
+            "expect=0x%02x, resp=0x%02x\n", 
+            progname, Resp_STK_INSYNC, buf[0]);
+    return -2;
+  }
+
+  recv(pgm, buf, 1);
+  v = buf[0];
+
+  recv(pgm, buf, 1);
+  if (buf[0] == Resp_STK_FAILED) {
+    fprintf(stderr,
+            "\n%s: getparm(): parameter 0x%02x failed\n",
+            progname, v);
+    return -3;
+  }
+  else if (buf[0] != Resp_STK_OK) {
+    fprintf(stderr,
+            "\n%s: getparm(): (a) protocol error, "
+            "expect=0x%02x, resp=0x%02x\n", 
+            progname, Resp_STK_INSYNC, buf[0]);
+    return -3;
+  }
+
+  *value = v;
+
+  return 0;
+}
+
+  
 void stk500_display(PROGRAMMER * pgm, char * p)
 {
+  unsigned maj, min, hdw;
+
+  getparm(pgm, Parm_STK_HW_VER, &hdw);
+  getparm(pgm, Parm_STK_SW_MAJOR, &maj);
+  getparm(pgm, Parm_STK_SW_MINOR, &min);
+
+  fprintf(stderr, "%sHardware Version: %d\n", p, hdw);
+  fprintf(stderr, "%sFirmware Version: %d.%d\n", p, maj, min);
+
   return;
 }
 
@@ -693,6 +994,9 @@ void stk500_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "STK500");
 
+  /*
+   * mandatory functions
+   */
   pgm->rdy_led        = stk500_rdy_led;
   pgm->err_led        = stk500_err_led;
   pgm->pgm_led        = stk500_pgm_led;
@@ -710,6 +1014,12 @@ void stk500_initpgm(PROGRAMMER * pgm)
   pgm->cmd            = stk500_cmd;
   pgm->open           = stk500_open;
   pgm->close          = stk500_close;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = stk500_paged_write;
+  pgm->paged_load     = stk500_paged_load;
 }
 
 
