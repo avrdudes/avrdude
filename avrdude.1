@@ -134,6 +134,7 @@ t15	ATtiny15
 1200	AT90S1200
 2313	AT90S2313
 2333	AT90S2333
+2343	AT90S2343 (*)
 4414	AT90S4414
 4433	AT90S4433
 4434	AT90S4434
@@ -145,6 +146,10 @@ m103	ATMEGA103
 m16	ATMEGA16
 m8	ATMEGA8
 .TE
+.Bl -tag -width "(*) "
+.It "(*)"
+The AT90S2323 uses the same algorithm.
+.El
 .It Fl c Ar programmer-id
 Use the pin configuration specified by the argument.  Pin
 configurations are read from the config file (see the
