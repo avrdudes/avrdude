@@ -1,3 +1,8 @@
+2004-01-12  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
+	* avr910.c, avrpart.c, avrpart.h, doc/TODO:
+	Look up devicecode and report device.
+
 2004-01-03  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
 	* avr910.c, pgm.c, pgm.h, config_gram.y, lexer.l: Add new configuration
