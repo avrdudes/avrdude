@@ -786,7 +786,7 @@ int avr_signature(int fd, AVRPART * p)
  */
 void avr_powerup(int fd)
 {
-  ppi_set(fd, PPIDATA, PPI_AVR_VCC);    /* power up */
+  ppi_set(fd, PPIDATA, pgm->pinno[PPI_AVR_VCC]);    /* power up */
   usleep(100000);
 }
 
@@ -796,7 +796,7 @@ void avr_powerup(int fd)
  */
 void avr_powerdown(int fd)
 {
-  ppi_clr(fd, PPIDATA, PPI_AVR_VCC);    /* power down */
+  ppi_clr(fd, PPIDATA, pgm->pinno[PPI_AVR_VCC]);    /* power down */
 }
 
 
@@ -809,9 +809,12 @@ int avr_initialize(int fd, AVRPART * p)
   int tries;
 
   avr_powerup(fd);
+  usleep(20000);
 
   ppi_setpin(fd, pgm->pinno[PIN_AVR_SCK], 0);
   ppi_setpin(fd, pgm->pinno[PIN_AVR_RESET], 0);
+  usleep(20000);
+
   ppi_pulsepin(fd, pgm->pinno[PIN_AVR_RESET]);
 
   usleep(20000); /* 20 ms XXX should be a per-chip parameter */
@@ -831,16 +834,16 @@ int avr_initialize(int fd, AVRPART * p)
     tries = 0;
     do {
       rc = avr_program_enable(fd, p);
-      if (rc == 0)
+      if ((rc == 0)||(rc == -1))
         break;
       ppi_pulsepin(fd, pgm->pinno[PIN_AVR_SCK]);
       tries++;
-    } while (tries < 32);
+    } while (tries < 65);
 
     /*
      * can't sync with the device, maybe it's not attached?
      */
-    if (tries == 32) {
+    if (rc) {
       fprintf(stderr, "%s: AVR device not responding\n", progname);
       return -1;
     }

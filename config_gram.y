@@ -235,11 +235,35 @@ prog_parm :
     }
   } |
 
+  K_BUFF TKN_EQUAL num_list {
+    { 
+      TOKEN * t;
+      int pin;
+
+      current_prog->pinno[PPI_AVR_BUFF] = 0;
+
+      while (lsize(number_list)) {
+        t = lrmv_n(number_list, 1);
+        pin = t->value.number;
+        if ((pin < 2) || (pin > 9)) {
+          fprintf(stderr, 
+                  "%s: error at line %d of %s: BUFF must be one or more "
+                  "pins from the range 2-9\n",
+                  progname, lineno, infile);
+          exit(1);
+        }
+
+        current_prog->pinno[PPI_AVR_BUFF] |= (1 << (pin-2));
+
+        free_token(t);
+      }
+    }
+  } |
+
   K_RESET  TKN_EQUAL TKN_NUMBER { assign_pin(PIN_AVR_RESET, $3); } |
   K_SCK    TKN_EQUAL TKN_NUMBER { assign_pin(PIN_AVR_SCK, $3); } |
   K_MOSI   TKN_EQUAL TKN_NUMBER { assign_pin(PIN_AVR_MOSI, $3); } |
   K_MISO   TKN_EQUAL TKN_NUMBER { assign_pin(PIN_AVR_MISO, $3); } |
-  K_BUFF   TKN_EQUAL TKN_NUMBER { assign_pin(PIN_AVR_BUFF, $3); } |
   K_ERRLED TKN_EQUAL TKN_NUMBER { assign_pin(PIN_LED_ERR, $3); } |
   K_RDYLED TKN_EQUAL TKN_NUMBER { assign_pin(PIN_LED_RDY, $3); } |
   K_PGMLED TKN_EQUAL TKN_NUMBER { assign_pin(PIN_LED_PGM, $3); } |
