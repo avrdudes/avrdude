@@ -83,7 +83,7 @@ void usage ( void )
 {
   fprintf(stderr,
           "\nUsage: %s -p partno [-e] [-E exitspec[,exitspec]] [-f format] [-F]\n"
-          "     %s[-i filename] [-m memtype] [-o filename] [-P parallel] [-t]\n\n",
+          "      %s[-i filename] [-m memtype] [-o filename] [-P parallel] [-t]\n\n",
           progname, progbuf);
 
 #if 0
@@ -143,6 +143,7 @@ int main ( int argc, char * argv [] )
   struct avrpart * v, ap2;      /* used for verify */
   int              readorwrite; /* true if a chip read/write op was selected */
   int              ppidata;	/* cached value of the ppi data register */
+  int              vsize=-1;    /* number of bytes to verify */
 
   /* options / operating mode variables */
   int     memtype;     /* AVR_FLASH or AVR_EEPROM */
@@ -463,16 +464,17 @@ int main ( int argc, char * argv [] )
     fprintf(stderr, "%s: reading %s memory:\n", 
             progname, avr_memtstr(memtype));
     rc = avr_read ( fd, p, memtype );
-    if (rc) {
+    if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
               progname, avr_memtstr(memtype), rc);
       exitrc = 1;
       goto main_exit;
     }
+    size = rc;
 
     fprintf(stderr, "%s: writing output file \"%s\"\n",
             progname, outputf);
-    rc = fileio(FIO_WRITE, outputf, filefmt, p, memtype);
+    rc = fileio(FIO_WRITE, outputf, filefmt, p, memtype, size);
     if (rc < 0) {
       fprintf(stderr, "%s: terminating\n", progname);
       exitrc = 1;
@@ -487,7 +489,7 @@ int main ( int argc, char * argv [] )
      */
     fprintf(stderr, "%s: reading input file \"%s\"\n",
             progname, inputf);
-    rc = fileio(FIO_READ, inputf, filefmt, p, memtype );
+    rc = fileio(FIO_READ, inputf, filefmt, p, memtype, -1);
     if (rc < 0) {
       fprintf(stderr, "%s: terminating\n", progname);
       exitrc = 1;
@@ -502,22 +504,27 @@ int main ( int argc, char * argv [] )
             progname, avr_memtstr(memtype));
 
     if (!nowrite) {
-      rc = avr_write ( fd, p, memtype );
+      rc = avr_write ( fd, p, memtype, size );
     }
     else {
       /* 
        * test mode, don't actually write to the chip, output the buffer
        * to stdout in intel hex instead 
        */
-      rc = fileio(FIO_WRITE, "-", FMT_IHEX, p, memtype);
+      rc = fileio(FIO_WRITE, "-", FMT_IHEX, p, memtype, size);
     }
 
-    if (rc) {
+    if (rc < 0) {
       fprintf ( stderr, "%s: failed to write flash memory, rc=%d\n", 
                 progname, rc );
       exitrc = 1;
       goto main_exit;
     }
+
+    vsize = rc;
+
+    fprintf(stderr, "%s: %d bytes of %s written\n", progname, 
+            vsize, avr_memtstr(memtype));
 
   }
 
@@ -531,23 +538,24 @@ int main ( int argc, char * argv [] )
     fprintf(stderr, "%s: reading on-chip %s data:\n", 
             progname, avr_memtstr(memtype));
     rc = avr_read ( fd, v, memtype );
-    if (rc) {
+    if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
               progname, avr_memtstr(memtype), rc);
       exitrc = 1;
       goto main_exit;
     }
-    
-    fprintf(stderr, "%s: verifying\n", progname);
-    rc = avr_verify(p, v, memtype);
-    if (rc) {
+
+    fprintf(stderr, "%s: verifying ...\n", progname);
+    rc = avr_verify(p, v, memtype, vsize);
+    if (rc < 0) {
       fprintf(stderr, "%s: verification error; content mismatch\n", 
               progname);
       exitrc = 1;
       goto main_exit;
     }
     
-    fprintf(stderr, "%s: data verified\n", progname);
+    fprintf(stderr, "%s: %d bytes of %s verified\n", 
+            progname, rc, avr_memtstr(memtype));
   }
 
 

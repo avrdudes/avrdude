@@ -81,7 +81,7 @@ int b2ihex ( unsigned char * inbuf, int bufsize,
 {
   unsigned char * buf;
   unsigned int nextaddr;
-  int n;
+  int n, nbytes;
   int i;
   unsigned char cksum;
 
@@ -92,8 +92,9 @@ int b2ihex ( unsigned char * inbuf, int bufsize,
   }
 
   nextaddr = startaddr;
+  buf      = inbuf;
+  nbytes   = 0;
 
-  buf = inbuf;
   while (bufsize) {
     n = recsize;
     if (n > bufsize)
@@ -111,6 +112,7 @@ int b2ihex ( unsigned char * inbuf, int bufsize,
       fprintf ( outf, "%02X\n", cksum );
       
       nextaddr += n;
+      nbytes   += n;
     }
 
     /* advance to next 'recsize' bytes */
@@ -129,7 +131,7 @@ int b2ihex ( unsigned char * inbuf, int bufsize,
   cksum = -cksum;
   fprintf ( outf, "%02X\n", cksum );
 
-  return 0;
+  return nbytes;
 }
 
 
@@ -138,16 +140,16 @@ int ihex2b ( char * infile, FILE * inf,
 {
   unsigned char buffer [ MAX_LINE_LEN ];
   unsigned char * buf;
-  unsigned int prevaddr, nextaddr;
+  unsigned int nextaddr;
   unsigned int b;
-  int n;
+  int n, nbytes;
   int i, j;
   unsigned int cksum, rectype;
   int lineno;
 
   lineno   = 0;
-  prevaddr = 0;
   buf      = outbuf;
+  nbytes   = 0;
 
   while (fgets((char *)buffer,MAX_LINE_LEN,inf)!=NULL) {
     lineno++;
@@ -194,6 +196,8 @@ int ihex2b ( char * infile, FILE * inf,
       cksum += b;
     }
 
+    nbytes += n;
+
     /*-----------------------------------------------------------------
       read the cksum value from the record and compare it with our
       computed value
@@ -221,13 +225,12 @@ int ihex2b ( char * infile, FILE * inf,
 
     if (rectype == 1) {
       /* end of record */
-      return 0;
+      return nbytes;
     }
 
-    prevaddr = nextaddr + n;
-  }
+  } /* while */
 
-  return 0;
+  return nbytes;
 }
 
 
@@ -250,7 +253,7 @@ int fileio_rbin ( struct fioparms * fio,
       return -1;
   }
 
-  if (rc < size) {
+  if (rc < 0 || (fio->op == FIO_WRITE && rc < size)) {
     fprintf(stderr, 
             "%s: %s error %s %s: %s; %s %d of the expected %d bytes\n", 
             progname, fio->iodesc, fio->dir, filename, strerror(errno),
@@ -270,14 +273,14 @@ int fileio_ihex ( struct fioparms * fio,
   switch (fio->op) {
     case FIO_WRITE:
       rc = b2ihex(buf, size, 32, 0, filename, f);
-      if (rc) {
+      if (rc < 0) {
         return -1;
       }
       break;
 
     case FIO_READ:
       rc = ihex2b(filename, f, buf, size);
-      if (rc)
+      if (rc < 0)
         return -1;
       break;
 
@@ -288,7 +291,7 @@ int fileio_ihex ( struct fioparms * fio,
       break;
   }
 
-  return 0;
+  return rc;
 }
 
 
@@ -397,13 +400,12 @@ int fmt_autodetect ( char * fname )
 
 
 int fileio ( int op, char * filename, FILEFMT format, 
-             struct avrpart * p, AVRMEM memtype )
+             struct avrpart * p, AVRMEM memtype, int size )
 {
   int rc;
   FILE * f;
   char * fname;
   unsigned char * buf;
-  int size;
   struct fioparms fio;
   int i;
 
@@ -434,12 +436,14 @@ int fileio ( int op, char * filename, FILEFMT format,
   switch (memtype) {
     case AVR_EEPROM:
       buf = p->eeprom;
-      size = p->eeprom_size;
+      if (fio.op == FIO_READ)
+        size = p->eeprom_size;
       break;
 
     case AVR_FLASH:
       buf = p->flash;
-      size = p->flash_size;
+      if (fio.op == FIO_READ)
+        size = p->flash_size;
       break;
       
     default:
