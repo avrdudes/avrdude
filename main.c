@@ -981,8 +981,15 @@ int main ( int argc, char * argv [] )
     ppidata = 0; /* clear all bits at exit */
     goto main_exit;
   }
+
+  fprintf(stderr, "initial port data = 0x%02x, pins %s\n",
+          ppidata, vccpins_str(ppidata));
+
   ppidata &= ~ppiclrbits;
   ppidata |= ppisetbits;
+
+  fprintf(stderr, "apply exit specs, port data = 0x%02x, pins %s\n",
+          ppidata, vccpins_str(ppidata));
 
   /* 
    * turn off all the status leds
@@ -1190,6 +1197,8 @@ int main ( int argc, char * argv [] )
    */
 
   avr_powerdown(fd);
+  fprintf(stderr, "port data = 0x%02x, pins %s\n",
+          ppidata, vccpins_str(ppidata));
   ppi_setall(fd, PPIDATA, ppidata);
 
   /*
