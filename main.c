@@ -91,6 +91,7 @@
 
 char * version      = "3.1.0";
 
+int    verbose;     /* verbose output */
 char * progname;
 char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
@@ -294,7 +295,6 @@ int main(int argc, char * argv [])
   int     ppisetbits;  /* bits to set in ppi data register at exit */
   int     ppiclrbits;  /* bits to clear in ppi data register at exit */
   char  * exitspecs;   /* exit specs string from command line */
-  int     verbose;     /* verbose output */
   char  * pinconfig;   /* programmer id */
   char  * partdesc;    /* part id */
   char    configfile[PATH_MAX]; /* pin configuration file */
