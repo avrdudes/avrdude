@@ -1046,7 +1046,7 @@ int avr_get_cycle_count(int fd, AVRPART * p)
 {
   AVRMEM * a;
   int cycle_count;
-  unsigned char v1, v2;
+  unsigned char v1, v2, v3, v4;
   int rc;
 
   a = avr_locate_mem(p, "eeprom");
@@ -1054,20 +1054,38 @@ int avr_get_cycle_count(int fd, AVRPART * p)
     return -1;
   }
 
-  rc = avr_read_byte(fd, p, a, a->size-2, &v1);
-  if (rc < 0) {
-    fprintf(stderr, "%s: WARNING: can't read memory for cycle count, rc=%d\n",
-            progname, rc);
-    return -1;
-  }
-  rc = avr_read_byte(fd, p, a, a->size-1, &v2);
+  rc = avr_read_byte(fd, p, a, a->size-4, &v1);
   if (rc < 0) {
     fprintf(stderr, "%s: WARNING: can't read memory for cycle count, rc=%d\n",
             progname, rc);
     return -1;
   }
 
-  cycle_count = ((unsigned int)v1) << 8 | v2;
+  rc = avr_read_byte(fd, p, a, a->size-3, &v2);
+  if (rc < 0) {
+    fprintf(stderr, "%s: WARNING: can't read memory for cycle count, rc=%d\n",
+            progname, rc);
+    return -1;
+  }
+
+  rc = avr_read_byte(fd, p, a, a->size-2, &v3);
+  if (rc < 0) {
+    fprintf(stderr, "%s: WARNING: can't read memory for cycle count, rc=%d\n",
+            progname, rc);
+    return -1;
+  }
+
+  rc = avr_read_byte(fd, p, a, a->size-1, &v4);
+  if (rc < 0) {
+    fprintf(stderr, "%s: WARNING: can't read memory for cycle count, rc=%d\n",
+            progname, rc);
+    return -1;
+  }
+
+  cycle_count = (((unsigned int)v1) << 24) | 
+    (((unsigned int)v2) << 16) |
+    (((unsigned int)v3) << 8) |
+    v4;
 
   return cycle_count;
 }
@@ -1076,7 +1094,7 @@ int avr_get_cycle_count(int fd, AVRPART * p)
 int avr_put_cycle_count(int fd, AVRPART * p, int cycles)
 {
   AVRMEM * a;
-  unsigned char v1, v2;
+  unsigned char v1, v2, v3, v4;
   int rc;
 
   a = avr_locate_mem(p, "eeprom");
@@ -1084,16 +1102,30 @@ int avr_put_cycle_count(int fd, AVRPART * p, int cycles)
     return -1;
   }
 
-  v2 = cycles & 0x0ff;
-  v1 = (cycles & 0x0ff00) >> 8;
+  v4 = cycles & 0x0ff;
+  v3 = (cycles & 0x0ff00) >> 8;
+  v2 = (cycles & 0x0ff0000) >> 16;
+  v1 = (cycles & 0x0ff000000) >> 24;
 
-  rc = avr_write_byte(fd, p, a, a->size-2, v1);
+  rc = avr_write_byte(fd, p, a, a->size-4, v1);
   if (rc < 0) {
     fprintf(stderr, "%s: WARNING: can't write memory for cycle count, rc=%d\n",
             progname, rc);
     return -1;
   }
-  rc = avr_write_byte(fd, p, a, a->size-1, v2);
+  rc = avr_write_byte(fd, p, a, a->size-3, v2);
+  if (rc < 0) {
+    fprintf(stderr, "%s: WARNING: can't write memory for cycle count, rc=%d\n",
+            progname, rc);
+    return -1;
+  }
+  rc = avr_write_byte(fd, p, a, a->size-2, v3);
+  if (rc < 0) {
+    fprintf(stderr, "%s: WARNING: can't write memory for cycle count, rc=%d\n",
+            progname, rc);
+    return -1;
+  }
+  rc = avr_write_byte(fd, p, a, a->size-1, v4);
   if (rc < 0) {
     fprintf(stderr, "%s: WARNING: can't write memory for cycle count, rc=%d\n",
             progname, rc);

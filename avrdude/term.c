@@ -482,7 +482,7 @@ int cmd_sig(int fd, struct avrpart * p, int argc, char * argv[])
             p->desc);
   }
   else {
-    fprintf(stdout, "Device signature = 0x", progname);
+    fprintf(stdout, "Device signature = 0x");
     for (i=0; i<m->size; i++)
       fprintf(stdout, "%02x", m->buf[i]);
     fprintf(stdout, "\n\n");
