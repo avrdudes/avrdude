@@ -52,7 +52,8 @@
 #include "term.h"
 
 
-char * version      = "3.1.0";
+/* Get VERSION from ac_cfg.h */
+char * version      = VERSION;
 
 int    verbose;     /* verbose output */
 char * progname;
