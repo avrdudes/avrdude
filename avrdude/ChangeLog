@@ -1,3 +1,9 @@
+2004-04-17  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
+	* avr910.c: Hopefully fixed that weird "first byte not
+        programmed"-error in a good way (previous fix was not
+        working with all firmwares)
+
 2004-02-10  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
 	* avrdude.1, doc/avrdude.texi, doc/TODO:
