@@ -52,6 +52,7 @@ avrdude_SOURCES = \
 	avr.h \
 	avr910.c \
 	avr910.h \
+	avrpart.c \
 	avrpart.h \
 	butterfly.c \
 	butterfly.h \

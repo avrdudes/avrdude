@@ -33,29 +33,14 @@
 extern struct avrpart parts[];
 
 
-
-AVRPART * avr_find_part(char * p);
-
-AVRPART * avr_new_part(void);
-
-OPCODE * avr_new_opcode(void);
-
-AVRMEM * avr_new_memtype(void);
-
-AVRPART * avr_dup_part(AVRPART * d);
-
-AVRMEM * avr_locate_mem(AVRPART * p, char * desc);
-
 int avr_txrx_bit(int fd, int bit);
 
 unsigned char avr_txrx(int fd, unsigned char byte);
 
-int avr_set_bits(OPCODE * op, unsigned char * cmd);
-
-int avr_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem, 
+int avr_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                   unsigned long addr, unsigned char * value);
 
-int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size, 
+int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
              int verbose);
 
 int avr_write_page(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
@@ -64,7 +49,7 @@ int avr_write_page(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                    unsigned long addr, unsigned char data);
 
-int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size, 
+int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
               int verbose);
 
 int avr_signature(PROGRAMMER * pgm, AVRPART * p);
@@ -75,10 +60,8 @@ int avr_initmem(AVRPART * p);
 
 int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size);
 
-void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type, 
+void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type,
                      int verbose);
-
-void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose);
 
 int avr_get_cycle_count(PROGRAMMER * pgm, AVRPART * p, int * cycles);
 
