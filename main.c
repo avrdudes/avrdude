@@ -1,5 +1,5 @@
 /*
- * Copyright 2001  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (c) 2000, 2001, 2002  Brian S. Dean <bsd@bsdhome.com>
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -115,7 +115,7 @@ char ** modules[N_MODULES] = {
   &term_version 
 };
 
-char * version      = "2.0.1";
+char * version      = "2.0.2";
 
 char * main_version = "$Id$";
 
@@ -690,7 +690,7 @@ int main(int argc, char * argv [])
      * Print out an identifying string so folks can tell what version
      * they are running
      */
-    fprintf(stderr, "\n%s: Copyright 2001 Brian Dean, bsd@bsdhome.com\n"
+    fprintf(stderr, "\n%s: Copyright 2000-2002 Brian Dean, bsd@bsdhome.com\n"
             "%sVersion %s  Revision Timestamp %s\n\n", 
             progname, progbuf, version, timestamp);
     
