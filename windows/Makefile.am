@@ -54,7 +54,7 @@ install-exec-local:
 
 uninstall-local:
 	@for file in $(local_install_list); do \
-		echo " rm -f $(DESTDIR)$(bindir)"; \
-		rm -f $(DESTDIR)$(bindir); \
+		echo " rm -f $(DESTDIR)$(bindir)/$$file"; \
+		rm -f $(DESTDIR)$(bindir)/$$file; \
 	done
 

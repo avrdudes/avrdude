@@ -1,5 +1,10 @@
 2003-03-11  Theodore A. Roth  <troth@openavr.org>
 
+	* windows/Makefile.am: Fix uninstall-local rule (forget the $$file
+	part of the rm command).
+
+2003-03-11  Theodore A. Roth  <troth@openavr.org>
+
 	* AUTHORS: Updated.
 	* CHANGELOG: Move contents to NEWS and remove file.
 	* ChangeLog: All of the changes for this year.
