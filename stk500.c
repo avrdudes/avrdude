@@ -33,15 +33,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <errno.h>
-#include <termios.h>
-#include <sys/time.h>
 
 #include "avr.h"
 #include "pgm.h"
 #include "stk500_private.h"
+#include "serial.h"
 
 
 extern char * progname;
@@ -51,153 +48,21 @@ extern int do_cycles;
 static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value);
 
 
-static int stk500_send(PROGRAMMER * pgm, char * buf, int buflen)
+static int stk500_send(PROGRAMMER * pgm, char * buf, size_t len)
 {
-  struct timeval timeout;
-  fd_set wfds;
-  int nfds;
-  int rc;
-
-  if (!buflen)
-    return 0;
-
-  timeout.tv_sec = 0;
-  timeout.tv_usec = 500000;
-
-  while (buflen) {
-    FD_ZERO(&wfds);
-    FD_SET(pgm->fd, &wfds);
-
-  reselect:
-    nfds = select(pgm->fd+1, NULL, &wfds, NULL, &timeout);
-    if (nfds == 0) {
-      fprintf(stderr, 
-              "%s: stk500_send(): programmer is not responding on %s\n",
-              progname, pgm->port);
-      exit(1);
-    }
-    else if (nfds == -1) {
-      if (errno == EINTR) {
-        goto reselect;
-      }
-      else {
-        fprintf(stderr, "%s: stk500_send(): select(): %s\n",
-                progname, strerror(errno));
-        exit(1);
-      }
-    }
-
-    rc = write(pgm->fd, buf, 1);
-    if (rc < 0) {
-      fprintf(stderr, "%s: stk500_send(): write error: %s\n",
-              progname, strerror(errno));
-      exit(1);
-    }
-    buf++;
-    buflen--;
-  }
-
-  return 0;
+  return serial_send(pgm->fd, buf, len);
 }
 
-      
-  
-static int stk500_recv(PROGRAMMER * pgm, char * buf, int n)
+
+static int stk500_recv(PROGRAMMER * pgm, char * buf, size_t len)
 {
-  struct timeval timeout;
-  fd_set rfds;
-  int nfds;
-  int rc;
-
-  timeout.tv_sec  = 5;
-  timeout.tv_usec = 0;
-
-  while (n) {
-    FD_ZERO(&rfds);
-    FD_SET(pgm->fd, &rfds);
-
-  reselect:
-    nfds = select(pgm->fd+1, &rfds, NULL, NULL, &timeout);
-    if (nfds == 0) {
-      fprintf(stderr, 
-              "%s: stk500_recv(): programmer is not responding on %s\n",
-              progname, pgm->port);
-      exit(1);
-    }
-    else if (nfds == -1) {
-      if (errno == EINTR) {
-        goto reselect;
-      }
-      else {
-        fprintf(stderr, "%s: stk500_recv(): select(): %s\n",
-                progname, strerror(errno));
-        exit(1);
-      }
-    }
-
-    rc = read(pgm->fd, buf, 1);
-    if (rc < 0) {
-      fprintf(stderr, "%s: stk500_recv(): read error: %s\n",
-              progname, strerror(errno));
-      exit(1);
-    }
-    buf++;
-    n--;
-  }
-
-  return 0;
+  return serial_recv(pgm->fd, buf, len);
 }
 
-      
+
 static int stk500_drain(PROGRAMMER * pgm, int display)
 {
-  struct timeval timeout;
-  fd_set rfds;
-  int nfds;
-  int rc;
-  unsigned char buf;
-
-  timeout.tv_sec = 0;
-  timeout.tv_usec = 250000;
-
-  if (display) {
-    fprintf(stderr, "drain>");
-  }
-
-  while (1) {
-    FD_ZERO(&rfds);
-    FD_SET(pgm->fd, &rfds);
-
-  reselect:
-    nfds = select(pgm->fd+1, &rfds, NULL, NULL, &timeout);
-    if (nfds == 0) {
-      if (display) {
-        fprintf(stderr, "<drain\n");
-      }
-      
-      return 0;
-    }
-    else if (nfds == -1) {
-      if (errno == EINTR) {
-        goto reselect;
-      }
-      else {
-        fprintf(stderr, "%s: stk500_drain(): select(): %s\n",
-                progname, strerror(errno));
-        exit(1);
-      }
-    }
-
-    rc = read(pgm->fd, &buf, 1);
-    if (rc < 0) {
-      fprintf(stderr, "%s: stk500_drain(): read error: %s\n",
-              progname, strerror(errno));
-      exit(1);
-    }
-    if (display) {
-      fprintf(stderr, "%02x ", buf);
-    }
-  }
+  return serial_drain(pgm->fd, display);
 }
 
 
@@ -739,72 +604,10 @@ static void stk500_enable(PROGRAMMER * pgm)
 }
 
 
-static int stk500_setattr(int fd)
-{
-  int rc;
-  struct termios termios;
-  
-  if (!isatty(fd))
-    return -1;
-  
-  /*
-   * initialize terminal modes
-   */
-  rc = tcgetattr(fd, &termios);
-  if (rc < 0) {
-    fprintf(stderr, "%s: stk500_setattr(): tcgetattr() failed, %s", 
-            progname, strerror(errno));
-    return -errno;
-  }
-
-  termios.c_iflag = 0;
-  termios.c_oflag = 0;
-  termios.c_cflag = 0;
-  termios.c_cflag |=   (CS8 | CREAD | CLOCAL);
-  termios.c_lflag = 0;
-  termios.c_cc[VMIN]  = 1;
-  termios.c_cc[VTIME] = 0;
-
-  cfsetospeed(&termios, B115200);
-  cfsetispeed(&termios, B115200);
-  
-  rc = tcsetattr(fd, TCSANOW, &termios);
-  if (rc < 0) {
-    fprintf(stderr, "%s: stk500_setattr(): tcsetattr() failed, %s", 
-            progname, strerror(errno));
-    return -errno;
-  }
-
-  return 0;
-}
-
-
 static void stk500_open(PROGRAMMER * pgm, char * port)
 {
-  int rc;
-
   strcpy(pgm->port, port);
-
-  /*
-   * open the serial port
-   */
-  pgm->fd = open(port, O_RDWR | O_NOCTTY /*| O_NONBLOCK*/);
-  if (pgm->fd < 0) {
-    fprintf(stderr, "%s: stk500_open(): can't open device \"%s\": %s\n",
-            progname, port, strerror(errno));
-    exit(1);
-  }
-
-  /*
-   * set serial line attributes
-   */
-  rc = stk500_setattr(pgm->fd);
-  if (rc) {
-    fprintf(stderr, 
-            "%s: stk500_open(): can't set attributes for device \"%s\"\n",
-            progname, port);
-    exit(1);
-  }
+  pgm->fd = serial_open(port, 115200);
 
   /*
    * drain any extraneous input
@@ -819,7 +622,7 @@ static void stk500_open(PROGRAMMER * pgm, char * port)
 
 static void stk500_close(PROGRAMMER * pgm)
 {
-  close(pgm->fd);
+  serial_close(pgm->fd);
   pgm->fd = -1;
 }
 

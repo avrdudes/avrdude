@@ -1,5 +1,18 @@
 2003-03-12  Theodore A. Roth  <troth@openavr.org>
 
+	* Makefile.am (avrdude_SOURCES): Add avr910.[ch], serial.h and
+	ser_posix.c files.
+	* avr910.c: New file (stubs for avr910 serial programmer).
+	* avr910.h: New file.
+	* ser_posix.c: New file.
+	* ser_win32.c: New file (just stubs for now).
+	* serial.h: New file.
+	* stk500.c: Move all the code for accessing the posix serial ports
+	into ser_posix. This will make a native win32 port easier and allows
+	the avr910 programmer to share the serial code.
+
+2003-03-12  Theodore A. Roth  <troth@openavr.org>
+
 	* configure.ac (AC_INIT): Set version to 4.0.0cvs since we're done
 	with 4.0.0 release.
 
