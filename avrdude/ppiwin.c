@@ -47,24 +47,23 @@ extern char *progname;
 
 
 
-#define DEVICE_LPT1		"lpt1"
-#define DEVICE_LPT2		"lpt2"
-#define DEVICE_LPT1ALT	"lpt1alt"
+#define DEVICE_LPT1 "lpt1"
+#define DEVICE_LPT2 "lpt2"
+#define DEVICE_LPT3 "lpt3"
 
 #define DEVICE_MAX	3
 
 typedef struct
 {
-	const char *name;
-	int base_address;
+    const char *name;
+    int base_address;
 } winpp;
 
 static const winpp winports[DEVICE_MAX] = 
 {
-	{DEVICE_LPT1, 0x378},
-	{DEVICE_LPT2, 0x278},
-	{DEVICE_LPT1ALT, 0x3BC},
-
+    {DEVICE_LPT1, 0x378},
+    {DEVICE_LPT2, 0x278},
+    {DEVICE_LPT3, 0x3BC},
 };
 
 
@@ -85,72 +84,72 @@ static void outb(unsigned char value, unsigned short port);
 int ppi_open(char *port)
 {
     unsigned char i;
-	int fd;
+    int fd;
 	
-	fd = winnt_pp_open();
+    fd = winnt_pp_open();
 
-	if(fd < 0)
-	{
-		fprintf(stderr, "%s: can't open device \"giveio\"\n\n", progname);
-		return(-1);
-	}
+    if(fd < 0)
+    {
+        fprintf(stderr, "%s: can't open device \"giveio\"\n\n", progname);
+        return(-1);
+    }
 
-	/* Search the windows port names for a match */
-	fd = -1;
-	for(i = 0; i < DEVICE_MAX; i++)
-	{
-		if(strcmp(winports[i].name, port) == 0)
-		{
-			/* Set the file descriptor with the Windows parallel port base address. */
-			fd = winports[i].base_address;
-			break;
-		}
-	}
-	if(fd < 0)
-	{
-		fprintf(stderr, "%s: can't open device \"%s\"\n\n", progname, port);
-		return(-1);
-	}
+    /* Search the windows port names for a match */
+    fd = -1;
+    for(i = 0; i < DEVICE_MAX; i++)
+    {
+        if(strcmp(winports[i].name, port) == 0)
+        {
+            /* Set the file descriptor with the Windows parallel port base address. */
+            fd = winports[i].base_address;
+            break;
+        }
+    }
+    if(fd < 0)
+    {
+        fprintf(stderr, "%s: can't open device \"%s\"\n\n", progname, port);
+        return(-1);
+    }
 
-	return(fd);
+    return(fd);
 }
 
 
 #define DRIVERNAME      "\\\\.\\giveio"
 static int winnt_pp_open(void)
 {
-	// Only try to use giveio under Windows NT/2000/XP.
-	OSVERSIONINFO ver_info;
-	
-	memset(&ver_info, 0, sizeof(ver_info));
-	
-	ver_info.dwOSVersionInfoSize = sizeof(ver_info);
-	
-	if(!GetVersionEx(&ver_info))
-	{
-		return(-1);
-	}
-	else if(ver_info.dwPlatformId == VER_PLATFORM_WIN32_NT) 
-	{
-		HANDLE h = CreateFile(DRIVERNAME,
-		   GENERIC_READ,
-		   0,
-		   NULL,
-		   OPEN_EXISTING,
-		   FILE_ATTRIBUTE_NORMAL,
-		   NULL);
-		   
-		if(h == INVALID_HANDLE_VALUE)
-		{
-			return(-1);
-		}
-		
-		/* Close immediately. The process now has the rights it needs. */
-		if(h != NULL)
-		{
-			CloseHandle(h);
-		}
-	}
+    // Only try to use giveio under Windows NT/2000/XP.
+    OSVERSIONINFO ver_info;
+
+    memset(&ver_info, 0, sizeof(ver_info));
+
+    ver_info.dwOSVersionInfoSize = sizeof(ver_info);
+
+    if(!GetVersionEx(&ver_info))
+    {
+        return(-1);
+    }
+    else if(ver_info.dwPlatformId == VER_PLATFORM_WIN32_NT) 
+    {
+        HANDLE h = CreateFile(DRIVERNAME,
+            GENERIC_READ,
+            0,
+            NULL,
+            OPEN_EXISTING,
+            FILE_ATTRIBUTE_NORMAL,
+            NULL);
+
+        if(h == INVALID_HANDLE_VALUE)
+        {
+            return(-1);
+        }
+
+        /* Close immediately. The process now has the rights it needs. */
+        if(h != NULL)
+        {
+            CloseHandle(h);
+        }
+    }
     return(0);
 }
 
@@ -159,7 +158,7 @@ static int winnt_pp_open(void)
 
 void ppi_close(int fd)
 {
-	return;
+    return;
 }
 
 
@@ -169,14 +168,14 @@ void ppi_close(int fd)
  */
 int ppi_set(int fd, int reg, int bit)
 {
-	unsigned char v;
-	unsigned short port;
-	
-	port = port_get(fd, reg);
-	v = inb(port);
-	v |= bit;
-	outb(v, port);
-	return 0;
+    unsigned char v;
+    unsigned short port;
+
+    port = port_get(fd, reg);
+    v = inb(port);
+    v |= bit;
+    outb(v, port);
+    return 0;
 }
 
 
@@ -185,15 +184,15 @@ int ppi_set(int fd, int reg, int bit)
  */
 int ppi_clr(int fd, int reg, int bit)
 {
-	unsigned char v;
-	unsigned short port;
-	
-	port = port_get(fd, reg);
-	v = inb(port);
-	v &= ~bit;
-	outb(v, port);
-	
-	return 0;
+    unsigned char v;
+    unsigned short port;
+
+    port = port_get(fd, reg);
+    v = inb(port);
+    v &= ~bit;
+    outb(v, port);
+
+    return 0;
 }
 
 
@@ -202,12 +201,12 @@ int ppi_clr(int fd, int reg, int bit)
  */
 int ppi_get(int fd, int reg, int bit)
 {
-	unsigned char v;
+    unsigned char v;
 
-	v = inb(port_get(fd, reg));
-	v &= bit;
-	
-	return(v);
+    v = inb(port_get(fd, reg));
+    v &= bit;
+
+    return(v);
 }
 
 
@@ -218,16 +217,16 @@ int ppi_get(int fd, int reg, int bit)
  */
 int ppi_toggle(int fd, int reg, int bit)
 {
-	unsigned char v;
-	unsigned short port;
-	
-	port = port_get(fd, reg);
+    unsigned char v;
+    unsigned short port;
 
-	v = inb(port);
-	v ^= bit;
-	outb(v, port);
+    port = port_get(fd, reg);
 
-	return 0;
+    v = inb(port);
+    v ^= bit;
+    outb(v, port);
+
+    return 0;
 }
 
 
@@ -236,11 +235,11 @@ int ppi_toggle(int fd, int reg, int bit)
  */
 int ppi_getall(int fd, int reg)
 {
-	unsigned char v;
+    unsigned char v;
 
-	v = inb(port_get(fd, reg));
-	
-	return((int)v);
+    v = inb(port_get(fd, reg));
+
+    return((int)v);
 }
 
 
@@ -251,8 +250,8 @@ int ppi_getall(int fd, int reg)
  */
 int ppi_setall(int fd, int reg, int val)
 {
-	outb((unsigned char)val, port_get(fd, reg));
-	return 0;
+    outb((unsigned char)val, port_get(fd, reg));
+    return 0;
 }
 
 
@@ -261,35 +260,35 @@ int ppi_setall(int fd, int reg, int val)
 /* Calculate port address to access. */
 static unsigned short port_get(int fd, int reg)
 {
-	return((unsigned short)(fd + reg2offset(reg)));
+    return((unsigned short)(fd + reg2offset(reg)));
 }
 
 
 /* Convert register enum to offset of base address. */
 static unsigned char reg2offset(int reg)
 {
-	unsigned char offset = 0;
-	
-	switch(reg)
-	{
-		case PPIDATA:
-		{
-			offset = 0;
-			break;
-		}
-		case PPISTATUS:
-		{
-			offset = 1;
-			break;
-		}
-		case PPICTRL:
-		{
-			offset = 2;
-			break;
-		}
-	}
+    unsigned char offset = 0;
 
-	return(offset);
+    switch(reg)
+    {
+        case PPIDATA:
+        {
+            offset = 0;
+            break;
+        }
+        case PPISTATUS:
+        {
+            offset = 1;
+            break;
+        }
+        case PPICTRL:
+        {
+            offset = 2;
+            break;
+        }
+    }
+
+    return(offset);
 }
 
 
@@ -297,10 +296,12 @@ static unsigned char reg2offset(int reg)
 static unsigned char inb(unsigned short port)
 {
     unsigned char t;
-    asm volatile ("in %1, %0"
-                  : "=a" (t)
-                  : "d" (port));
-    return t;
+    
+	asm volatile ("in %1, %0"
+        : "=a" (t)
+        : "d" (port));
+    
+	return t;
 }
 
 
@@ -308,8 +309,10 @@ static unsigned char inb(unsigned short port)
 static void outb(unsigned char value, unsigned short port)
 {
     asm volatile ("out %1, %0"
-                  :
-                  : "d" (port), "a" (value) );
+        :
+        : "d" (port), "a" (value) );
+
+    return;
 }
 
 
