@@ -61,7 +61,7 @@ man_MANS = avrdude.1
 sysconf_DATA = avrdude.conf
 
 avrdude.conf: avrdude.conf.sample
-	cp $< $@
+	cp avrdude.conf.sample $@
 
 distclean-local:
 	rm -rf avrdude.conf
