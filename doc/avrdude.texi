@@ -103,6 +103,9 @@ For avrdude version @value{VERSION}, @value{UPDATED}.
 * Platform Dependent Information::  
 @end menu
 
+@c
+@c Node
+@c
 @node Introduction, Command Line Options, Top, Top
 @comment  node-name,  next,  previous,  up
 @chapter Introduction
@@ -140,6 +143,9 @@ programming function.
 * History::                     
 @end menu
 
+@c
+@c Node
+@c
 @node History,  , Introduction, Introduction
 @section History
 
@@ -165,6 +171,9 @@ formatting was modeled after that of the Simulavr documentation by Ted
 Roth.
 
 
+@c
+@c Node
+@c
 @node Command Line Options, Terminal Mode Operation, Introduction, Top
 @chapter Command Line Options
 @cindex options
@@ -174,6 +183,9 @@ Roth.
 * Example Command Line Invocations::  
 @end menu
 
+@c
+@c Node
+@c
 @node Option Descriptions, Example Command Line Invocations, Command Line Options, Command Line Options
 @section Option Descriptions
 
@@ -357,7 +369,7 @@ specified as `-' to use stdin as the input.
 Specifies which program area of the MCU to read or write; allowable
 values depend on the MCU being programmed, but most support at least
 @code{eeprom} for the EEPROM, and @code{flash} for the flash ROM.  Use
-the @code{-v} option on the command line or the @code{part} command from
+the @option{-v} option on the command line or the @code{part} command from
 terminal mode to display all the memory types supported by a particular
 device.  The default is @code{flash}.
 
@@ -391,7 +403,7 @@ Disable automatic verify check when uploading data.
 @item -y
 Tells AVRDUDE to use the last four bytes of the connected parts' EEPROM
 memory to track the number of times the device has been erased.  When
-this option is used and the @code{-e} flag is specified to generate a
+this option is used and the @option{-e} flag is specified to generate a
 chip erase, the previous counter will be saved before the chip erase, it
 is then incremented, and written back after the erase cycle com- pletes.
 Presumably, the device would only be erased just before being
@@ -411,6 +423,9 @@ should not be used.
 
 @end table
 
+@c
+@c Node
+@c
 @node Example Command Line Invocations,  , Option Descriptions, Command Line Options
 @section Example Command Line Invocations
 
@@ -467,11 +482,14 @@ avrdude done.  Thank you.
 @end example
 
 
+@c
+@c Node
+@c
 @node Terminal Mode Operation, Configuration File, Command Line Options, Top
 @chapter Terminal Mode Operation
 
 AVRDUDE has an interactive mode called @var{terminal mode} that is
-enabled by the @code{-t} option.  This mode allows one to enter
+enabled by the @option{-t} option.  This mode allows one to enter
 interactive commands to display and modify the various device memories,
 perform a chip erase, display the device signature bytes and part
 parameters, and to send raw programming commands.  Commands and
@@ -530,6 +548,9 @@ Leave terminal mode and thus AVRDUDE.
 
 @end table
 
+@c
+@c Node
+@c
 @node Terminal Mode Examples,  , Terminal Mode Commands, Terminal Mode Operation
 @section Terminal Mode Examples
 
@@ -629,6 +650,9 @@ avrdude>
 @end example
 
 
+@c
+@c Node
+@c
 @node Configuration File, Platform Dependent Information, Terminal Mode Operation, Top
 @chapter Configuration File
 
@@ -646,7 +670,7 @@ AVRDUDE first looks for a system wide configuration file in a platform
 dependent location.  On Unix, this is usually
 @code{/usr/local/etc/avrdude.conf}, while on Windows it is usally in the
 same location as the executable file.  The name of this file can be
-changed using the @code{-C} command line option.  After the system wide
+changed using the @option{-C} command line option.  After the system wide
 configuration file is parsed, AVRDUDE looks for a per-user configuration
 file to augment or override the system wide defaults.  On Unix, the
 per-user file is @code{.avrduderc} within the user's home directory.  On
@@ -660,6 +684,9 @@ directory as the executable.
 * Other Notes::                 
 @end menu
 
+@c
+@c Node
+@c
 @node AVRDUDE Defaults, Programmer Definitions, Configuration File, Configuration File
 @section AVRDUDE Defaults
 
@@ -667,19 +694,22 @@ directory as the executable.
 
 @item default_parallel = "@var{default-parallel-device}";
 Assign the default parallel port device.  Can be overidden using the
-@code{-P} option.
+@option{-P} option.
 
 @item default_serial = "@var{default-serial-device}";
 Assign the default serial port device.  Can be overidden using the
-@code{-P} option.
+@option{-P} option.
 
 @item default_programmer = "@var{default-programmer-id}";
-Assign the default programmer id.  Can be overidden using the @code{-c}
+Assign the default programmer id.  Can be overidden using the @option{-c}
 option.
 
 @end table
 
 
+@c
+@c Node
+@c
 @node Programmer Definitions, Part Definitions, AVRDUDE Defaults, Configuration File
 @section Programmer Definitions
 
@@ -704,6 +734,9 @@ programmer
 @end example
 
 
+@c
+@c Node
+@c
 @node Part Definitions, Other Notes, Programmer Definitions, Configuration File
 @section Part Definitions
 
@@ -746,6 +779,9 @@ part
 * Instruction Format::          
 @end menu
 
+@c
+@c Node
+@c
 @node Instruction Format,  , Part Definitions, Part Definitions
 @subsection Instruction Format
 
@@ -798,6 +834,9 @@ write = "1  1  0  0   0  0  0  0   x x x x  x x x x",
 
 
 
+@c
+@c Node
+@c
 @node Other Notes,  , Part Definitions, Configuration File
 @section Other Notes
 
@@ -837,27 +876,72 @@ problem with the at90s4433/2333's; see the at90s4433 errata at:
 @end itemize
 
 
+@c
+@c Node
+@c
 @node Platform Dependent Information,  , Configuration File, Top
 @appendix Platform Dependent Information
 
 @menu
-* FreeBSD::                     
-* Linux::                       
+* Unix::                        
 * Windows::                     
 @end menu
 
-@node FreeBSD, Linux, Platform Dependent Information, Platform Dependent Information
-@section FreeBSD
+@c
+@c Node
+@c
+@node Unix, Windows, Platform Dependent Information, Platform Dependent Information
+@section Unix
+
+@menu
+* Unix Installation::           
+* Unix Configuration Files::    
+* Unix Port Names::             
+* Unix Documentation::          
+@end menu
+
+@c
+@c Node
+@c
+@node Unix Installation, Unix Configuration Files, Unix, Unix
+@subsection Unix Installation
+
+@noindent
+To build and install from the source tarball on Unix like systems:
+
+@example
+$ gunzip -c avrdude-@value{VERSION}.tar.gz | tar xf -
+$ cd avrdude-@value{VERSION}
+$ ./configure
+$ make
+$ su root -c 'make install'
+@end example
+
+The default location of the install is into @code{/usr/local} so you
+will need to be sure that @code{/usr/local/bin} is in your @code{PATH}
+environment variable.
+
+If you do not have root access to your system, you can do the the
+following instead:
+
+@example
+$ gunzip -c avrdude-@value{VERSION}.tar.gz | tar xf -
+$ cd avrdude-@value{VERSION}
+$ ./configure --prefix=$HOME/local
+$ make
+$ make install
+@end example
 
 @menu
 * FreeBSD Installation::        
-* FreeBsd Configuration Files::  
-* FreeBSD Port Names::          
-* FreeBSD Documentation::       
+* Linux Installation::          
 @end menu
 
-@node FreeBSD Installation, FreeBsd Configuration Files, FreeBSD, FreeBSD
-@subsection Installation
+@c
+@c Node
+@c
+@node FreeBSD Installation, Linux Installation, Unix Installation, Unix Installation
+@subsubsection FreeBSD Installation
 
 @noindent
 AVRDUDE is installed via the FreeBSD Ports Tree as follows:
@@ -880,72 +964,114 @@ Of course, you must be connected to the Internet for these methods to
 work, since that is where the source as well as the pre-built package is
 obtained.
 
-
-@node FreeBsd Configuration Files, FreeBSD Port Names, FreeBSD Installation, FreeBSD
-@subsection Configuration Files
+@c
+@c Node
+@c
+@node Linux Installation,  , FreeBSD Installation, Unix Installation
+@subsubsection Linux Installation
 
 @noindent
-The default configuration file for FreeBSD is located at
-@code{/usr/local/etc/avrdude.conf}.  This can be changed by using the
-@code{-C} command line option.  Additionally, the user's home directory
-is search for a file named @code{.avrduderc}, and if found, is used to
+On rpm based linux systems (such as RedHat, SUSE, Mandrake, etc), you
+can build and install the rpm binaries directly from the tarball:
+
+@example
+$ su - root
+# rpmbuild -tb avrdude-@value{VERSION}.tar.gz
+# rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-@value{VERSION}-1.i386.rpm
+@end example
+
+Note that the path to the resulting rpm package, differs from system
+to system. The above example is specific to RedHat.
+
+@c
+@c Node
+@c
+@node Unix Configuration Files, Unix Port Names, Unix Installation, Unix
+@subsection Unix Configuration Files
+
+@noindent
+When AVRDUDE is build using the default @option{--prefix} configure
+option, the default configuration file for a Unix system is located at
+@code{/usr/local/etc/avrdude.conf}.  This can be overridden by using the
+@option{-C} command line option.  Additionally, the user's home directory
+is searched for a file named @code{.avrduderc}, and if found, is used to
 augment the system default configuration file.
 
-@node FreeBSD Port Names, FreeBSD Documentation, FreeBsd Configuration Files, FreeBSD
-@subsection Port Names
-
-@noindent
-AVRDUDE uses the FreeBSD ppi(4) interface for accessing the parallel
-port and the sio(4) driver for serial port access.  The default name
-used for the parallel port is @code{/dev/ppi0}, while the default serial
-port device is @code{/dev/cuaa0}.
-
-@node FreeBSD Documentation,  , FreeBSD Port Names, FreeBSD
-@subsection Documentation
-
-@noindent
-AVRDUDE installs a manual page as well as HTML and PDF documentation.
-The manual page is installed in @code{/usr/local/man/man1} area, while
-the HTML and PDF documentation is installed in
-@code{/usr/local/share/doc/avrdude} directory.
-
-
-@node Linux, Windows, FreeBSD, Platform Dependent Information
-@section Linux
-
 @menu
-* Linux Installation::          
+* FreeBSD Configuration Files::  
 * Linux Configuration Files::   
-* Linux Port Names::            
-* Linux Documentation::         
 @end menu
 
-@node Linux Installation, Linux Configuration Files, Linux, Linux
-@subsection Installation
+@c
+@c Node
+@c
+@node FreeBSD Configuration Files, Linux Configuration Files, Unix Configuration Files, Unix Configuration Files
+@subsubsection FreeBSD Configuration Files
 
 @noindent
-Empty.
+When AVRUDE is installed using the FreeBSD ports system, the system
+configuration file is always @code{/usr/local/etc/avrdude.conf}.
 
-@node Linux Configuration Files, Linux Port Names, Linux Installation, Linux
-@subsection Configuration Files
-
-@noindent
-Empty.
-
-@node Linux Port Names, Linux Documentation, Linux Configuration Files, Linux
-@subsection Port Names
+@c
+@c Node
+@c
+@node Linux Configuration Files,  , FreeBSD Configuration Files, Unix Configuration Files
+@subsubsection Linux Configuration Files
 
 @noindent
-Empty.
+When AVRDUDE is installed using from an rpm package, the system
+configuration file will be always be @code{/etc/avrdude.conf}.
 
-@node Linux Documentation,  , Linux Port Names, Linux
-@subsection Documentation
+@c
+@c Node
+@c
+@node Unix Port Names, Unix Documentation, Unix Configuration Files, Unix
+@subsection Unix Port Names
 
 @noindent
-Empty.
+The parallel and serial port device file names are system specific.
+The following table lists the default names for a given system.
 
+@multitable @columnfractions .30 .30 .30
+@item @strong{System}
+  @tab @strong{Default Parallel Port}
+  @tab @strong{Default Serial Port}
+@item FreeBSD
+  @tab @code{/dev/ppi0}
+  @tab @code{/dev/cuaa0}
+@item Linux
+  @tab @code{/dev/parport0}
+  @tab @code{/dev/ttyS0}
+@end multitable
 
-@node Windows,  , Linux, Platform Dependent Information
+On FreeBSD systems, AVRDUDE uses the ppi(4) interface for
+accessing the parallel port and the sio(4) driver for serial port
+access.
+
+On Linux systems, AVRDUDE uses the ppdev interface for
+accessing the parallel port and the tty driver for serial port
+access.
+
+@c
+@c Node
+@c
+@node Unix Documentation,  , Unix Port Names, Unix
+@subsection Unix Documentation
+
+@noindent
+AVRDUDE installs a manual page as well as info, HTML and PDF
+documentation.  The manual page is installed in
+@code{/usr/local/man/man1} area, while the HTML and PDF documentation
+is installed in @code{/usr/local/share/doc/avrdude} directory.  The
+info manual is installed in @code{/usr/local/info/avrdude.info}.
+
+Note that these locations can be altered by various configure options
+such as @option{--prefix}.
+
+@c
+@c Node
+@c
+@node Windows,  , Unix, Platform Dependent Information
 @section Windows
 
 @menu
@@ -957,12 +1083,18 @@ Empty.
 * Credits.::                    
 @end menu
 
+@c
+@c Node
+@c
 @node Windows Installation, Windows Configuration Files, Windows, Windows
 @subsection Installation
 
 @noindent
 Empty.
 
+@c
+@c Node
+@c
 @node Windows Configuration Files, Windows Port Names, Windows Installation, Windows
 @subsection Configuration Files
 
@@ -971,6 +1103,9 @@ Empty.
 * How AVRDUDE finds the configuration files.::  
 @end menu
 
+@c
+@c Node
+@c
 @node Configuration file names, How AVRDUDE finds the configuration files., Windows Configuration Files, Windows Configuration Files
 @subsubsection Configuration file names
 
@@ -979,6 +1114,9 @@ AVRDUDE on Windows looks for a system configuration file name of
 @code{avrdude.conf} and looks for a user override configuration file of
 @code{avrdude.rc}.
 
+@c
+@c Node
+@c
 @node How AVRDUDE finds the configuration files.,  , Configuration file names, Windows Configuration Files
 @subsubsection How AVRDUDE finds the configuration files.
  
@@ -1012,6 +1150,9 @@ The directories that are listed in the PATH environment variable.
 @end enumerate
 
 
+@c
+@c Node
+@c
 @node Windows Port Names, Using the parallel port, Windows Configuration Files, Windows
 @subsection Port Names
 
@@ -1020,6 +1161,9 @@ The directories that are listed in the PATH environment variable.
 * Parallel Ports::              
 @end menu
 
+@c
+@c Node
+@c
 @node Serial Ports, Parallel Ports, Windows Port Names, Windows Port Names
 @subsubsection Serial Ports
  
@@ -1027,6 +1171,9 @@ The directories that are listed in the PATH environment variable.
 When you select a serial port (i.e. when using an STK500) use the
 Windows serial port device names such as: com1, com2, etc.
  
+@c
+@c Node
+@c
 @node Parallel Ports,  , Serial Ports, Windows Port Names
 @subsubsection Parallel Ports
 
@@ -1051,9 +1198,11 @@ On your desktop PC, lpt1 will be the most common choice. If you are
 using a laptop, you might have to use lpt3 instead of lpt1. Select the
 name of the port the corresponds to the base address of the parallel
 port that you want.
- 
 
- 
+
+@c
+@c Node
+@c 
 @node Using the parallel port, Documentation, Windows Port Names, Windows
 @subsection Using the parallel port
 
@@ -1062,6 +1211,9 @@ port that you want.
 * Windows 95/98::               
 @end menu
 
+@c
+@c Node
+@c
 @node Windows NT/2K/XP, Windows 95/98, Using the parallel port, Using the parallel port
 @subsubsection Windows NT/2K/XP
 
@@ -1099,6 +1251,9 @@ means that after the first time install_giveio is executed, you should
 be able to subsequently execute the batch file from any directory and have
 it successfully start the driver.
 
+@c
+@c Node
+@c
 @node Windows 95/98,  , Windows NT/2K/XP, Using the parallel port
 @subsubsection Windows 95/98
 
@@ -1106,12 +1261,18 @@ it successfully start the driver.
 On Windows 95 and 98 the giveio.sys driver is not needed.
 
 
+@c
+@c Node
+@c
 @node Documentation, Credits., Using the parallel port, Windows
 @subsection Documentation
 
 @noindent
 Empty.
 
+@c
+@c Node
+@c
 @node Credits.,  , Documentation, Windows
 @subsection Credits.
 
