@@ -2,6 +2,11 @@
 
 # autoconf-2.57 is preferred, but >= 2.53 should be ok
 
+AUTOHEADER=autoheader
+AUTOCONF=autoconf
+ACLOCAL=aclocal
+AUTOMAKE=automake
+
 if [ "x${AUTOHEADER}" = "x" ]; then
 	AUTOHEADER="autoheader-2.57"
 fi

@@ -184,7 +184,7 @@ yes              { yylval=new_token(K_YES); return K_YES; }
 ";"       { yylval = NULL; pyytext(); return TKN_SEMI; }
 
 "\n"      { lineno++; }
-[ \t]+  /* ignore whitespace */
+[ \r\t]+  /* ignore whitespace */
 
 c: { fprintf(stderr, "error at %s:%d: possible old-style config file entry\n",
              infile, lineno);
