@@ -48,6 +48,9 @@
 .Op Fl P Ar parallel
 .Op Fl t
 .Op Fl v
+.Op Fl V
+.Op Fl y
+.Op Fl Y
 .Sh DESCRIPTION
 .Nm Avrprog
 is a driver program for a simple programming hardware that allows one
@@ -124,14 +127,17 @@ the format.  Currently, the following MCU types are understood:
 .TS
 ll.
 \fBOption tag\fP	\fBOfficial part name\fP
+t15	ATtiny15
 1200	AT90S1200
 2313	AT90S2313
 2333	AT90S2333
+4414	AT90S4414
 4433	AT90S4433
 4434	AT90S4434
 8515	AT90S8515
 8535	AT90S8535
 m163	ATMEGA163
+m128	ATMEGA128
 m103	ATMEGA103
 m16	ATMEGA16
 m8	ATMEGA8
@@ -293,6 +299,10 @@ Tells
 .Nm
 to enter the interactive ``terminal'' mode instead of up- or downloading
 files.  See below for a detailed description of the terminal mode.
+.It Fl v
+Enable verbose output.
+.It Fl V
+Disable automatic verify check when uploading data.
 .It Fl y
 Tells
 .Nm
