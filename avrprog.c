@@ -702,7 +702,7 @@ int main ( int argc, char * argv [] )
     p2 += 3;
 
   fprintf(stderr, "\n");
-  fprintf(stderr, "AVRProg: Copyright (C) 2000 Brian Dean, bsd@bsdhome.com\n");
+  fprintf(stderr, "AVRProg: Copyright 2000 Brian Dean, bsd@bsdhome.com\n");
   fprintf(stderr, "         Revision " );
   for (i=0; i<p2-p1; i++)
     fprintf(stderr, "%c", p1[i]);
