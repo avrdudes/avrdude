@@ -690,7 +690,8 @@ int main(int argc, char * argv [])
      * Print out an identifying string so folks can tell what version
      * they are running
      */
-    fprintf(stderr, "\n%s: Copyright 2000-2002 Brian Dean, bsd@bsdhome.com\n"
+    fprintf(stderr, 
+            "\n%s: Copyright (c) 2000-2002 Brian Dean, bsd@bsdhome.com\n"
             "%sVersion %s  Revision Timestamp %s\n\n", 
             progname, progbuf, version, timestamp);
     
