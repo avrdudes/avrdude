@@ -823,6 +823,7 @@ int avr_chip_erase(int fd, AVRPART * p)
   unsigned char cmd[4];
   unsigned char res[4];
   int cycles;
+  int rc;
 
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
     fprintf(stderr, "chip erase instruction not defined for part \"%s\"\n",
@@ -830,13 +831,13 @@ int avr_chip_erase(int fd, AVRPART * p)
     return -1;
   }
 
-  cycles = avr_get_cycle_count(fd, p);
+  rc = avr_get_cycle_count(fd, p, &cycles);
 
   /*
    * only print out the current cycle count if we aren't going to
    * display it below 
    */
-  if (!do_cycles && ((cycles != -1) && (cycles != 0x00ffff))) {
+  if (!do_cycles && ((rc >= 0) && (cycles != 0xffffffff))) {
     fprintf(stderr,
             "%s: current erase-rewrite cycle count is %d%s\n",
             progname, cycles, 
@@ -1042,7 +1043,7 @@ int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size)
 }
 
 
-int avr_get_cycle_count(int fd, AVRPART * p)
+int avr_get_cycle_count(int fd, AVRPART * p, int * cycles)
 {
   AVRMEM * a;
   int cycle_count;
@@ -1092,7 +1093,9 @@ int avr_get_cycle_count(int fd, AVRPART * p)
     (((unsigned int)v3) << 8) |
     v4;
 
-  return cycle_count;
+  *cycles = cycle_count;
+
+  return 0;
 }
 
 
