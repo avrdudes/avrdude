@@ -192,7 +192,8 @@ following options are recognized:
 @item -p @var{partno}
 This is the only mandatory option and it tells AVRDUDE what type of part
 (MCU) that is connected to the programmer.  The @var{partno} parameter
-is the part's id listed in the configuration file.  If a part is unknown
+is the part's id listed in the configuration file.  Specify -p ? to list 
+all parts in the configuration file.  If a part is unknown
 to AVRDUDE, it means that there is no config file entry for that part,
 but it can be added to the configuration file if you have the Atmel
 datasheet so that you can enter the programming specifications.
@@ -255,6 +256,7 @@ ATMEGA8
 Specify the programmer to be used.  AVRDUDE knows about several common
 programmers.  Use this option to specify which one to use.  The
 @var{programmer-id} parameter is the programmer's id listed in the
+configuration file.  Specify -c ? to list all programmers in the 
 configuration file.  If you have a programmer that is unknown to
 AVRDUDE, and the programmer is controlled via the PC parallel port,
 there's a good chance that it can be easily added to the configuration
@@ -268,8 +270,8 @@ If you have a programmer or part that AVRDUDE does not know about, you
 can add it to the config file (be sure and submit a patch back to the
 author so that it can be incorporated for the next version).  If not
 specified, AVRDUDE reads the configuration file from
-/usr/local/etc/avrdude.conf (FreeBSD and Linux) or from the installation
-location's bin directory (Windows).
+/usr/local/etc/avrdude.conf (FreeBSD and Linux). See Appendix A for
+the method of searching for the configuration file for Windows.
 
 @item -e
 Causes a chip erase to be executed.  This will reset the contents of the
