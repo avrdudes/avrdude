@@ -25,7 +25,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+
+#if defined(__FreeBSD__)
 #include <dev/ppbus/ppi.h>
+#elif defined(__linux__)
+#include "linux_ppdev.h"
+#endif
 
 #include "avr.h"
 #include "pindefs.h"
@@ -760,11 +765,15 @@ void ppi_open(PROGRAMMER * pgm, char * port)
               progname, port, strerror(errno));
     exit(1);
   }
+
+  ppi_claim(pgm);
 }
 
 
 void ppi_close(PROGRAMMER * pgm)
 {
+  ppi_release(pgm);
+
   close(pgm->fd);
   pgm->fd = -1;
 }

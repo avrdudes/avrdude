@@ -36,6 +36,7 @@
 #include <errno.h>
 #include <termios.h>
 #include <sys/time.h>
+#include <inttypes.h>
 
 #include "avr.h"
 #include "pgm.h"

@@ -29,7 +29,13 @@ void ppi_initpgm        (PROGRAMMER * pgm);
 
 int ppi_getpinmask(int pin);
 
+#if !defined(ppi_claim)
+#  define ppi_claim(pgm)
+#endif
 
+#if !defined(ppi_release)
+#  define ppi_release(pgm)
+#endif
 
 #endif
 
