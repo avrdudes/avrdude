@@ -53,34 +53,42 @@
 .Op Fl Y
 .Sh DESCRIPTION
 .Nm Avrprog
-is a driver program for a simple programming hardware that allows one
-to program Atmel AVR microcontrollers, where the programmer is
-connected directly to a
+is a program for downloading code and data to Atmel AVR
+microcontrollers.
+.Nm Avrprog
+supports Atmel's STK500 programmer as well as a simple hard-wired
+programmer connected directly to a
 .Xr ppi 4
 parallel port.  In the simplest case, the hardware consists just of a
-cable, connecting the respective AVR signal lines to the parallel port.
+cable connecting the respective AVR signal lines to the parallel port.
 .Pp
 The MCU is programmed in
 .Em serial programming mode ,
-so the MCU signals
+so, for the
+.Xr ppi 4
+based programmer, the MCU signals
 .Ql /RESET ,
 .Ql SCK ,
 .Ql MISO
 and
 .Ql MOSI
 need to be connected to the parallel port.  Optionally, some otherwise
-unused output pins of the parallel port can be used to supply power for
-the MCU part, so it is also possible to construct a passive standalone
-programming device.
-Some status LEDs indicating the current operating state of the
-programmer can be connected, and a signal is available to control a
-buffer/driver IC 74LS367 (or 74HCT367).  The latter can be useful to
-decouple the parallel port from the MCU when in-system programming is
-used.
+unused output pins of the parallel port can be used to supply power
+for the MCU part, so it is also possible to construct a passive
+standalone programming device.  Some status LEDs indicating the
+current operating state of the programmer can be connected, and a
+signal is available to control a buffer/driver IC 74LS367 (or
+74HCT367).  The latter can be useful to decouple the parallel port
+from the MCU when in-system programming is used.
 .Pp
 See the file
 .Pa ${PREFIX}/share/doc/avrprog/avrprog.pdf
-for a schematic of the programming hardware.
+for a schematic of the
+.Xr ppi 4
+based programming hardware.
+.Pp
+Atmel's STK500 programmer is also supported and connects to a serial
+port.
 .Pp
 Input files can be provided, and output files can be written in
 different file formats, such as raw binary files containing the data
@@ -287,13 +295,15 @@ memory area to be read from the MCU.  Can be specified as
 .Ql \&-
 to write to
 .Em stdout .
-.It Fl P Ar parallel
+.It Fl P Ar port
 Use
-.Ar parallel
+.Ar port
 as the
 .Xr ppi 4
 device to communicate with, instead of the default
 .Pa /dev/ppi0 .
+If you are using the STK500 programmer, use this option to specify
+which serial port to use.
 .It Fl t
 Tells
 .Nm
@@ -399,9 +409,9 @@ ll.
 default device to be used for communication with the programming
 hardware
 .It Pa ${PREFIX}/etc/avrprog.conf.sample
-sample pin configuration file
+sample programmer and parts configuration file
 .It Pa ${PREFIX}/etc/avrprog.conf
-default pin configuration file
+default programmer and parts configuration file
 .It Pa ~/.inputrc
 Initialization file for the
 .Xr readline 3
