@@ -1,5 +1,30 @@
 2003-03-16  Theodore A. Roth  <troth@openavr.org>
 
+	* avr.c (avr_read): Use pgm->read_sig_bytes to read signature bytes if
+	available.
+	* avr910.c (avr910_vfy_cmd_sent): New function.
+	(avr910_chip_erase): Add support for chip erase.
+	(avr910_enter_prog_mode): New function.
+	(avr910_leave_prog_mode): New function.
+	(avr910_initialize): Add code to select device type and enter prog mode.
+	(avr910_close): Leave programming mode before closing serial port.
+	(avr910_read_sig_bytes): New function.
+	(avr910_initpgm): Add avr910_read_sig_bytes method to pgm initializer.
+	* avrdude.conf.in: Add note about deprecating devicecode.
+	Change all occurences of devicecode to stk500_devcode.
+	Add avr910_devcode to a few parts for testing.
+	* avrpart.h (struct avrpart): Change devicecode field to stk500_devcode.
+	(struct avrpart): Add avr910_devcode field.
+	* config_gram.y: Add K_STK500_DEVCODE and K_AVR910_DEVCODE tokens.
+	Generate an error if devicecode is found in the config file.
+	Handle parsing of avr910_devcode and stk500_devcode.
+	* lexer.l: Handle parsing of avr910_devcode and stk500_devcode.
+	* pgm.c: Initialize pgm->read_sig_bytes field.
+	* pgm.h: Add pgm->read_sig_bytes field.
+	* stk500.c: Use stk500_devcode instead of devicecode.
+
+2003-03-16  Theodore A. Roth  <troth@openavr.org>
+
 	* avrdude.conf.in: Add avr910 and pavr programmers.
 	* config_gram.y: Add parsing of avr910 programmer.
 	* lexer.l: Add avr910 token.

@@ -385,6 +385,11 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
     }
   }
 
+  if (strcmp(mem->desc, "signature") == 0) {
+    if (pgm->read_sig_bytes) {
+      return pgm->read_sig_bytes(pgm, p, mem);
+    }
+  }
 
   printed = 0;
 
