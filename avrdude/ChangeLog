@@ -10,6 +10,21 @@
 
 	* avrdude.conf.in: Fix efuse bits for ATmega169.
 
+2004-06-24  Alex Shepherd <maillists@ajsystems.co.nz>
+	Merged in Win32 Native changes contributed by Martin Thomas
+      Changed all instances of __CYGWIN__ conditional compilation to WIN32NATIVE
+      * ser_win32.c fleshed out all the previous stubs
+      * ser_posix.c added WIN32NATIVE conditional compilation to skip
+        all function to allow ser_win32.c functions to operate
+      * ppi.h removed commented code
+      * pgh.h added usleep macros
+      * main.c stdout,stderr tweaks for Win32
+      * configure.ac added CFLAGS and LDFLAGS for Win32Native
+      * config_gram.y added strtok_r macro
+      * buterfly.c added various stub functions and EXIT processing
+      * avr910.c added return 0 to avr910_open() and included time headers
+      * term.c added warning about libreadline not supported in WIN32NATIVE
+
 2004-06-17  Jan-Hinnerk Reichert  <hinni@despammed.com>
 	* avrdude.conf.in: Added support for
           - tiny13 (contributed by Pawel Moll)
