@@ -34,6 +34,6 @@
 
 #include "avr.h"
 
-int terminal_mode ( int fd, struct avrpart * p );
+int terminal_mode(int fd, struct avrpart * p);
 
 #endif

@@ -59,27 +59,27 @@ extern char   progbuf[];
 
 char * fileio_version = "$Id$";
 
-int b2ihex ( unsigned char * inbuf, int bufsize, 
+int b2ihex(unsigned char * inbuf, int bufsize, 
              int recsize, int startaddr,
-             char * outfile, FILE * outf );
+             char * outfile, FILE * outf);
 
-int ihex2b ( char * infile, FILE * inf,
-             unsigned char * outbuf, int bufsize );
+int ihex2b(char * infile, FILE * inf,
+             unsigned char * outbuf, int bufsize);
 
-int fileio_rbin ( struct fioparms * fio,
-                  char * filename, FILE * f, unsigned char * buf, int size );
+int fileio_rbin(struct fioparms * fio,
+                  char * filename, FILE * f, unsigned char * buf, int size);
 
-int fileio_ihex ( struct fioparms * fio, 
-                  char * filename, FILE * f, unsigned char * buf, int size );
+int fileio_ihex(struct fioparms * fio, 
+                  char * filename, FILE * f, unsigned char * buf, int size);
 
-int fileio_srec ( struct fioparms * fio,
-                  char * filename, FILE * f, unsigned char * buf, int size );
+int fileio_srec(struct fioparms * fio,
+                  char * filename, FILE * f, unsigned char * buf, int size);
 
-int fmt_autodetect ( char * fname );
+int fmt_autodetect(char * fname);
 
 
 
-char * fmtstr ( FILEFMT format )
+char * fmtstr(FILEFMT format)
 {
   switch (format) {
     case FMT_AUTO : return "auto-detect"; break;
@@ -92,9 +92,9 @@ char * fmtstr ( FILEFMT format )
 
 
 
-int b2ihex ( unsigned char * inbuf, int bufsize, 
+int b2ihex(unsigned char * inbuf, int bufsize, 
              int recsize, int startaddr,
-             char * outfile, FILE * outf )
+             char * outfile, FILE * outf)
 {
   unsigned char * buf;
   unsigned int nextaddr;
@@ -103,8 +103,8 @@ int b2ihex ( unsigned char * inbuf, int bufsize,
   unsigned char cksum;
 
   if (recsize > 255) {
-    fprintf ( stderr, "%s: recsize=%d, must be < 256\n",
-              progname, recsize );
+    fprintf(stderr, "%s: recsize=%d, must be < 256\n",
+              progname, recsize);
     return -1;
   }
 
@@ -119,14 +119,14 @@ int b2ihex ( unsigned char * inbuf, int bufsize,
 
     if (n) {
       cksum = 0;
-      fprintf ( outf, ":%02X%04X00", n, nextaddr );
+      fprintf(outf, ":%02X%04X00", n, nextaddr);
       cksum += n + ((nextaddr >> 8) & 0x0ff) + (nextaddr & 0x0ff);
       for (i=0; i<n; i++) {
-        fprintf ( outf, "%02X", buf[i] );
+        fprintf(outf, "%02X", buf[i]);
         cksum += buf[i];
       }
       cksum = -cksum;
-      fprintf ( outf, "%02X\n", cksum );
+      fprintf(outf, "%02X\n", cksum);
       
       nextaddr += n;
       nbytes   += n;
@@ -143,16 +143,16 @@ int b2ihex ( unsigned char * inbuf, int bufsize,
   cksum = 0;
   n = 0;
   nextaddr = 0;
-  fprintf ( outf, ":%02X%04X01", n, nextaddr );
+  fprintf(outf, ":%02X%04X01", n, nextaddr);
   cksum += n + ((nextaddr >> 8) & 0x0ff) + (nextaddr & 0x0ff) + 1;
   cksum = -cksum;
-  fprintf ( outf, "%02X\n", cksum );
+  fprintf(outf, "%02X\n", cksum);
 
   return nbytes;
 }
 
 
-int ihex_readrec ( struct ihexrec * ihex, char * rec )
+int ihex_readrec(struct ihexrec * ihex, char * rec)
 {
   int i, j;
   char buf[8];
@@ -195,7 +195,7 @@ int ihex_readrec ( struct ihexrec * ihex, char * rec )
   if (e == buf || *e != 0)
     return -1;
 
-  cksum = ihex->reclen + ((ihex->loadofs >> 8 ) & 0x0ff) + 
+  cksum = ihex->reclen + ((ihex->loadofs >> 8) & 0x0ff) + 
     (ihex->loadofs & 0x0ff) + ihex->rectyp;
 
   /* data */
@@ -241,8 +241,8 @@ int ihex_readrec ( struct ihexrec * ihex, char * rec )
  *
  * */
 
-int ihex2b ( char * infile, FILE * inf,
-             unsigned char * outbuf, int bufsize )
+int ihex2b(char * infile, FILE * inf,
+             unsigned char * outbuf, int bufsize)
 {
   char buffer [ MAX_LINE_LEN ];
   unsigned char * buf;
@@ -337,8 +337,8 @@ int ihex2b ( char * infile, FILE * inf,
 
 
 
-int fileio_rbin ( struct fioparms * fio,
-                  char * filename, FILE * f, unsigned char * buf, int size )
+int fileio_rbin(struct fioparms * fio,
+                  char * filename, FILE * f, unsigned char * buf, int size)
 {
   int rc;
 
@@ -367,8 +367,8 @@ int fileio_rbin ( struct fioparms * fio,
 }
 
 
-int fileio_ihex ( struct fioparms * fio, 
-                  char * filename, FILE * f, unsigned char * buf, int size )
+int fileio_ihex(struct fioparms * fio, 
+                  char * filename, FILE * f, unsigned char * buf, int size)
 {
   int rc;
 
@@ -397,8 +397,8 @@ int fileio_ihex ( struct fioparms * fio,
 }
 
 
-int fileio_srec ( struct fioparms * fio,
-                  char * filename, FILE * f, unsigned char * buf, int size )
+int fileio_srec(struct fioparms * fio,
+                  char * filename, FILE * f, unsigned char * buf, int size)
 {
   fprintf(stderr, "%s: Motorola S-Record %s format not yet supported\n",
           progname, fio->iodesc);
@@ -406,7 +406,7 @@ int fileio_srec ( struct fioparms * fio,
 }
 
 
-int fileio_setparms ( int op, struct fioparms * fp )
+int fileio_setparms(int op, struct fioparms * fp)
 {
   fp->op = op;
 
@@ -437,7 +437,7 @@ int fileio_setparms ( int op, struct fioparms * fp )
 
 
 
-int fmt_autodetect ( char * fname )
+int fmt_autodetect(char * fname)
 {
   FILE * f;
   unsigned char buf[MAX_LINE_LEN];
@@ -501,8 +501,8 @@ int fmt_autodetect ( char * fname )
 
 
 
-int fileio ( int op, char * filename, FILEFMT format, 
-             struct avrpart * p, int memtype, int size )
+int fileio(int op, char * filename, FILEFMT format, 
+             struct avrpart * p, int memtype, int size)
 {
   int rc;
   FILE * f;

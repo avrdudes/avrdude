@@ -87,7 +87,7 @@ struct command cmd[] = {
 
 
 
-int nexttok ( char * buf, char ** tok, char ** next )
+int nexttok(char * buf, char ** tok, char ** next)
 {
   char * q, * n;
 
@@ -116,7 +116,7 @@ int nexttok ( char * buf, char ** tok, char ** next )
 }
 
 
-int hexdump_line ( char * buffer, unsigned char * p, int n, int pad )
+int hexdump_line(char * buffer, unsigned char * p, int n, int pad)
 {
   char * hexdata = "0123456789abcdef";
   char * b;
@@ -148,13 +148,13 @@ int hexdump_line ( char * buffer, unsigned char * p, int n, int pad )
 }
 
 
-int chardump_line ( char * buffer, unsigned char * p, int n, int pad )
+int chardump_line(char * buffer, unsigned char * p, int n, int pad)
 {
   int i;
   char b [ 128 ];
 
   for (i=0; i<n; i++) {
-    memcpy ( b, p, n );
+    memcpy(b, p, n);
     buffer[i] = '.';
     if (isalpha(b[i]) || isdigit(b[i]) || ispunct(b[i]))
       buffer[i] = b[i];
@@ -171,7 +171,7 @@ int chardump_line ( char * buffer, unsigned char * p, int n, int pad )
 }
 
 
-int hexdump_buf ( FILE * f, int startaddr, char * buf, int len )
+int hexdump_buf(FILE * f, int startaddr, char * buf, int len)
 {
   int addr;
   int i, n;
@@ -198,7 +198,7 @@ int hexdump_buf ( FILE * f, int startaddr, char * buf, int len )
 }
 
 
-int cmd_dump ( int fd, struct avrpart * p, int argc, char * argv[] )
+int cmd_dump(int fd, struct avrpart * p, int argc, char * argv[])
 {
   char * e;
   int i, l;
@@ -283,7 +283,7 @@ int cmd_dump ( int fd, struct avrpart * p, int argc, char * argv[] )
   return 0;
 }
 
-int cmd_write ( int fd, struct avrpart * p, int argc, char * argv[] )
+int cmd_write(int fd, struct avrpart * p, int argc, char * argv[])
 {
   char * e;
   int i, l;
@@ -376,15 +376,15 @@ int cmd_write ( int fd, struct avrpart * p, int argc, char * argv[] )
 }
 
 
-int cmd_erase ( int fd, struct avrpart * p, int argc, char * argv[] )
+int cmd_erase(int fd, struct avrpart * p, int argc, char * argv[])
 {
-  fprintf(stderr, "%s: erasing chip\n", progname );
+  fprintf(stderr, "%s: erasing chip\n", progname);
   avr_chip_erase(fd,p);
   return 0;
 }
 
 
-int cmd_part ( int fd, struct avrpart * p, int argc, char * argv[] )
+int cmd_part(int fd, struct avrpart * p, int argc, char * argv[])
 {
   fprintf(stdout, "\n");
   avr_display(stdout, p, "");
@@ -394,7 +394,7 @@ int cmd_part ( int fd, struct avrpart * p, int argc, char * argv[] )
 }
 
 
-int cmd_sig ( int fd, struct avrpart * p, int argc, char * argv[] )
+int cmd_sig(int fd, struct avrpart * p, int argc, char * argv[])
 {
   unsigned char sig[4];      /* AVR signature bytes */
   int i;
@@ -409,19 +409,19 @@ int cmd_sig ( int fd, struct avrpart * p, int argc, char * argv[] )
 }
 
 
-int cmd_quit ( int fd, struct avrpart * p, int argc, char * argv[] )
+int cmd_quit(int fd, struct avrpart * p, int argc, char * argv[])
 {
   return 1;
 }
 
 
-int cmd_help ( int fd, struct avrpart * p, int argc, char * argv[] )
+int cmd_help(int fd, struct avrpart * p, int argc, char * argv[])
 {
   int i;
 
-  fprintf(stdout, "Valid commands:\n\n" );
+  fprintf(stdout, "Valid commands:\n\n");
   for (i=0; i<NCMDS; i++) {
-    fprintf(stdout, "  %-6s : ", cmd[i].name );
+    fprintf(stdout, "  %-6s : ", cmd[i].name);
     fprintf(stdout, cmd[i].desc, cmd[i].name);
     fprintf(stdout, "\n");
   }
@@ -431,7 +431,7 @@ int cmd_help ( int fd, struct avrpart * p, int argc, char * argv[] )
 }
 
 
-int tokenize ( char * s, char *** argv )
+int tokenize(char * s, char *** argv)
 {
   int     i, n, l, nargs, offset;
   int     len, slen;
@@ -508,7 +508,7 @@ int tokenize ( char * s, char *** argv )
 }
 
 
-int do_cmd ( int fd, struct avrpart * p, int argc, char * argv[] )
+int do_cmd(int fd, struct avrpart * p, int argc, char * argv[])
 {
   int i;
   int hold;
@@ -540,7 +540,7 @@ int do_cmd ( int fd, struct avrpart * p, int argc, char * argv[] )
 }
 
 
-int terminal_mode ( int fd, struct avrpart * p )
+int terminal_mode(int fd, struct avrpart * p)
 {
   char  * cmdbuf;
   int     i, len;
