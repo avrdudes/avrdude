@@ -1,13 +1,13 @@
 # $Id$
 #
-# AVRPROG Configuration File
+# AVRDUDE Configuration File
 #
-# This file contains configuration data used by AVRPROG which describes
+# This file contains configuration data used by AVRDUDE which describes
 # the programming hardware pinouts and also provides part definitions.
-# AVRPROG's "-C" command line option specifies the location of the
+# AVRDUDE's "-C" command line option specifies the location of the
 # configuration file.  The "-c" option names the programmer configuration
 # which must match one of the entry's "id" parameter.  The "-p" option
-# identifies which part AVRPROG is going to be programming and must match
+# identifies which part AVRDUDE is going to be programming and must match
 # one of the parts' "id" parameter.
 #
 # Possible entry formats are:
@@ -58,7 +58,7 @@
 #
 # If any of the above parameters are not specified, the default value
 # of 0 is used for numerics or the empty string ("") for string
-# values.  If a required parameter is left empty, AVRPROG will
+# values.  If a required parameter is left empty, AVRDUDE will
 # complain.
 #
 # NOTES:
@@ -69,9 +69,9 @@
 #   * Example memory types are:
 #       "flash", "eeprom", "fuse", "lfuse" (low fuse), "hfuse" (high
 #       fuse), "signature", "calibration", "lock"
-#   * The memory type specified on the avrprog command line must match
+#   * The memory type specified on the avrdude command line must match
 #     one of the memory types defined for the specified chip.
-#   * The pwroff_after_write flag causes avrprog to attempt to
+#   * The pwroff_after_write flag causes avrdude to attempt to
 #     power the device off and back on after an unsuccessful write to
 #     the affected memory area if VCC programmer pins are defined.  If
 #     VCC pins are not defined for the programmer, a message

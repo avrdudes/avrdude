@@ -4,13 +4,13 @@
 #
 
 
-TARGET      = avrprog
+TARGET      = avrdude
 
 PREFIX      ?= /usr/local
 BINDIR       = ${PREFIX}/bin
 MANDIR       = ${PREFIX}/man/man1
-MANUAL       = avrprog.1
-DOCDIR       = ${PREFIX}/share/doc/avrprog
+MANUAL       = avrdude.1
+DOCDIR       = ${PREFIX}/share/doc/avrdude
 CONFIGDIR    = ${PREFIX}/etc
 
 DIRS         = ${BINDIR} ${MANDIR} ${DOCDIR} ${CONFIGDIR}
@@ -31,32 +31,45 @@ LIBS       = -lreadline
 
 YYDEF  = -DYYSTYPE="struct token_t *"
 
+OBJS = config_gram.o avr.o config.o fileio.o lexer.o lists.o main.o pgm.o \
+	ppi.o stk500.o term.o
 
-.include "Makefile.inc"
+all : ${TARGET}
 
-EXTRA_OBJS = config_gram.o lexer.o
-OBJECTS = ${EXTRA_OBJS} ${OBJS} 
 
-all :
-	@if [ ! -f y.tab.h ]; then touch y.tab.h; fi
-	make depend
-	make ${TARGET}
-
-${TARGET} : ${OBJECTS}
-	${CC} ${LDFLAGS} -o ${TARGET} ${OBJECTS} ${LIBS}
+${TARGET} : ${OBJS}
+	${CC} ${LDFLAGS} -o ${TARGET} ${OBJS} ${LIBS}
 
 clean :
-	rm -f *.o lexer.c ${TARGET} *~ *.core y.tab.c y.tab.h
-	touch y.tab.h
+	rm -f *.o lexer.c ${TARGET} *~ *.core y.tab.c y.tab.h y.output
 
 install : dirs                             \
 	  ${BINDIR}/${TARGET}              \
 	  ${MANDIR}/${MANUAL}              \
-	  ${DOCDIR}/avrprog.pdf            \
-	  ${CONFIGDIR}/avrprog.conf.sample \
-	  ${CONFIGDIR}/avrprog.conf
+	  ${DOCDIR}/avrdude.pdf            \
+	  ${CONFIGDIR}/avrdude.conf.sample \
+	  ${CONFIGDIR}/avrdude.conf
 
 config_gram.o : avr.h config.h lists.h pindefs.h
+
+avr.o: avr.c avr.h avrpart.h lists.h pgm.h pindefs.h config.h ppi.h
+
+config.o: config.c avr.h avrpart.h lists.h pgm.h pindefs.h config.h
+
+fileio.o: fileio.c avr.h avrpart.h lists.h pgm.h pindefs.h fileio.h
+
+lists.o: lists.c lists.h
+
+main.o: main.c avr.h avrpart.h lists.h pgm.h pindefs.h config.h fileio.h \
+	ppi.h term.h
+
+pgm.o: pgm.c pgm.h avrpart.h lists.h pindefs.h
+
+ppi.o: ppi.c avr.h avrpart.h lists.h pgm.h pindefs.h ppi.h config.h
+
+stk500.o: stk500.c avr.h avrpart.h lists.h pgm.h pindefs.h stk500_private.h
+
+term.o: term.c avr.h avrpart.h lists.h pgm.h pindefs.h config.h ppi.h
 
 
 dirs :
@@ -73,17 +86,17 @@ ${BINDIR}/${TARGET} : ${TARGET}
 ${MANDIR}/${MANUAL} : ${MANUAL}
 	${INSTALL_MANUAL} ${MANUAL} $@
 
-${DOCDIR}/avrprog.pdf : avrprog.pdf
-	${INSTALL_DATA} avrprog.pdf $@
+${DOCDIR}/avrdude.pdf : avrdude.pdf
+	${INSTALL_DATA} avrdude.pdf $@
 
-${CONFIGDIR}/avrprog.conf.sample : avrprog.conf.sample
-	${INSTALL_DATA} avrprog.conf.sample $@
+${CONFIGDIR}/avrdude.conf.sample : avrdude.conf.sample
+	${INSTALL_DATA} avrdude.conf.sample $@
 
-${CONFIGDIR}/avrprog.conf : avrprog.conf.sample
-	@if [ -f ${CONFIGDIR}/avrprog.conf ]; then                       \
+${CONFIGDIR}/avrdude.conf : avrdude.conf.sample
+	@if [ -f ${CONFIGDIR}/avrdude.conf ]; then                       \
 	  export TS=`date '+%Y%m%d%H%M%S'`;                              \
-	  echo "NOTE: backing up ${CONFIGDIR}/avrprog.conf to ${CONFIGDIR}/avrprog.conf.$${TS}"; \
-	  cp -p ${CONFIGDIR}/avrprog.conf ${CONFIGDIR}/avrprog.conf.$${TS}; \
+	  echo "NOTE: backing up ${CONFIGDIR}/avrdude.conf to ${CONFIGDIR}/avrdude.conf.$${TS}"; \
+	  cp -p ${CONFIGDIR}/avrdude.conf ${CONFIGDIR}/avrdude.conf.$${TS}; \
 	fi
-	${INSTALL_DATA} avrprog.conf.sample $@
+	${INSTALL_DATA} avrdude.conf.sample $@
 
