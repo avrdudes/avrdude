@@ -6,33 +6,33 @@
 
 2003-09-02  Eric B. Weddington <eric@ecentral.com>
 
-    * doc/avrdude.texi: Add note about privileges needed to load 
-    the giveio driver for Windows.
+	* doc/avrdude.texi: Add note about privileges needed to load 
+	the giveio driver for Windows.
 
-2003/08/29  Brian S. Dean  <bsd@bsdhome.com>
+2003-08-29  Brian S. Dean  <bsd@bsdhome.com>
 
-        * avrdude.1:
-        * main.c:
-          Perform an auto erase before programming if the flash memory is
-          anywhere specified to be written by any of the -U requests.
-          
-          To remain backward compatible with previous versions, disable this
-          feature if any of the old-style memory specification operations are
-          specified (-i, -o).
-          
-          Implement the -D option to explicitly disable the auto erase default.
-          
-          Deprecate the old-style memory specification options (-f, -i, -I, -m,
-          and -o) in favor of the new -U option which allows one to operate on
-          multiple memories on a single command line.
+	* avrdude.1:
+	* main.c:
+	Perform an auto erase before programming if the flash memory is
+	anywhere specified to be written by any of the -U requests.
+
+	To remain backward compatible with previous versions, disable this
+	feature if any of the old-style memory specification operations are
+	specified (-i, -o).
+
+	Implement the -D option to explicitly disable the auto erase default.
+
+	Deprecate the old-style memory specification options (-f, -i, -I, -m,
+	and -o) in favor of the new -U option which allows one to operate on
+	multiple memories on a single command line.
 
 2003-08-28  Eric B. Weddington  <eric@ecentral.com>
 
-    * avr910.c:
-    * fileio.c:
-    * main.c:
-    * stk500.c:
-    More code cleanup to remove warnings.
+	* avr910.c:
+	* fileio.c:
+	* main.c:
+	* stk500.c:
+	More code cleanup to remove warnings.
 
 2003-08-27  Theodore A. Roth  <troth@openavr.org>
 
@@ -52,7 +52,7 @@
 	* stk500.c:
 	Minor code cleanup to remove warnings.
 
-2003/08/21  Brian S. Dean  <bsd@bsdhome.com>
+2003-08-21  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrdude.1:
 	* main.c:
@@ -69,7 +69,7 @@
 
 	avrdude -p -e -U flash:w:main.hex:i -U eeprom:w:eeprom.hex:i
 
-2003/08/20  Brian S. Dean  <bsd@bsdhome.com>
+2003-08-20  Brian S. Dean  <bsd@bsdhome.com>
 
 	* ppiwin.c:
 	Timing related fixes for the Windows platform.  Several folks have
@@ -114,39 +114,39 @@
 	  Add 'picoweb' programming cable programmer.
 	  Contributed by Rune Christensen <rune.christensen@adslhome.dk>.
 
-2003/06/18  Brian S. Dean  <bsd@bsdhome.com>
+2003-06-18  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrdude.conf.in:
-	  Add the 'sp12' (Steve Bolt's) programmer.
-	  Submitted by Larry Barello <larryba@barello.net>.
+	Add the 'sp12' (Steve Bolt's) programmer.
+	Submitted by Larry Barello <larryba@barello.net>.
 
-2003/06/17  Brian S. Dean  <bsd@bsdhome.com>
+2003-06-17  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrdude.conf.in:
-	  Properly identify the "ALF" programmer.
-	  
-	  Extend ATmega8 calibration memory to support all 4 calibration bytes.
-	  Savannah bug #3835.  Submitted by Francisco T. A. Silva
-	  <ftas@geodigitus.com.br>.
-	  
-	  Add a few AVR910 programmer device codes.  Savannah bug #3569 - sorry
-	  I can't tell who submitted this to give proper credit.
-	  
-	  Add support for the ATtiny12.  Submitted by Pontifex <pontifex@isys.ca>
+	Properly identify the "ALF" programmer.
+	
+	Extend ATmega8 calibration memory to support all 4 calibration bytes.
+	Savannah bug #3835.  Submitted by Francisco T. A. Silva
+	<ftas@geodigitus.com.br>.
+	
+	Add a few AVR910 programmer device codes.  Savannah bug #3569 - sorry
+	I can't tell who submitted this to give proper credit.
+	
+	Add support for the ATtiny12.  Submitted by Pontifex <pontifex@isys.ca>
 
-2003/05/22  Brian S. Dean  <bsd@bsdhome.com>
+2003-05-22  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avr.c:
 	* avr.h:
 	* fileio.c:
-	  Optimize flash memory handling a little bit by ignoring 0xff data that
-	  resides above the last non-0xff data value in the address space.  Only
-	  do this for flash memory since writing a 0xff to flash is a no-op.
-	  This has the affect of creating smaller output files when dumping
-	  memory contents from flash if the program in flash does not consume
-	  the whole memory space.  It also results in shorter programming times
-	  when avrdude is asked to load a file into flash that has lots of 0xff
-	  filled data past the last non-0xff data value.
+	Optimize flash memory handling a little bit by ignoring 0xff data that
+	resides above the last non-0xff data value in the address space.  Only
+	do this for flash memory since writing a 0xff to flash is a no-op.
+	This has the affect of creating smaller output files when dumping
+	memory contents from flash if the program in flash does not consume
+	the whole memory space.  It also results in shorter programming times
+	when avrdude is asked to load a file into flash that has lots of 0xff
+	filled data past the last non-0xff data value.
 
 2003-05-13  Theodore A. Roth  <troth@openavr.org>
 
@@ -177,7 +177,7 @@
 	* fileio.c: Fix for bug #3293. Set correct open mode for raw format
 	for Windows.
 
-2003/04/19 18:41:35  bdean
+2003-04-19  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrdude.1:
 	* fileio.c:
@@ -253,14 +253,14 @@
 	* confwin.c: Fix bug that allows garbage for non-existent user
 	config filename on Windows.
 
-2003/03/29  Brian S. Dean  <bsd@bsdhome.com>
+2003-03-29  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrdude.conf.in:
-	  Add the ATmega32 part.  This part definition was contributed by:
-	  Daniel Williamson <dannyw@maconmgt.co.uk> and
-	  Ruwan Jayanetti <rjayanetti@sri.crossvue.com>	  
-	  The resulting part definition used was actually somewhat of a merge of
-	  the two submitted definitions.
+	Add the ATmega32 part.  This part definition was contributed by:
+	Daniel Williamson <dannyw@maconmgt.co.uk> and
+	Ruwan Jayanetti <rjayanetti@sri.crossvue.com>	  
+	The resulting part definition used was actually somewhat of a merge of
+	the two submitted definitions.
 
 2003-03-24  Theodore A. Roth  <troth@openavr.org>
 
