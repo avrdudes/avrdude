@@ -1,3 +1,17 @@
+2003/11/14  Brian S. Dean  <bsd@bsdhome.com>
+
+        * avrdude.conf.in:
+          Add ATmega64 part.
+          
+          Contributed by Erik Christiansen <erik@dd.nec.com.au>
+
+2003/11/08  Joerg Wunsch  <j@uriah.heep.sax.de>
+
+        * avrdude.conf.in:
+          Add "fuse" and "lock" definitions for the AT90S8535.  Actually,
+	  this is stolen from the AT90S8515 since the datasheet says it's
+	  the same there.
+
 2003-10-13  Bill Somerville  <bill@classdesign.com>
 
 	* stk500.c (stk500_paged_write): Limit blocks written to no bigger
