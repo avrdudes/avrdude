@@ -623,13 +623,6 @@ int static stk500_setattr(int fd)
     return -errno;
   }
 
-#if 0
-  termios.c_iflag &= ~(INPCK | IXOFF | IXON);
-  termios.c_cflag &= ~(HUPCL | CSTOPB | CRTSCTS);
-  termios.c_cflag |= (CLOCAL | CREAD);
-  termios.c_cc [VMIN] = 1;
-  termios.c_cc [VTIME] = 0;
-#else
   termios.c_iflag = 0;
   termios.c_oflag = 0;
   termios.c_cflag &= ~ (PARENB | CSIZE | CSTOPB);
@@ -637,7 +630,6 @@ int static stk500_setattr(int fd)
   termios.c_lflag = 0;
   termios.c_cc[VMIN]  = 1;
   termios.c_cc[VTIME] = 0;
-#endif
 
   cfsetospeed(&termios, B115200);
   cfsetispeed(&termios, B115200);
