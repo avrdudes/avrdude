@@ -37,6 +37,8 @@
 #include <readline/history.h>
 
 #include "avr.h"
+#include "pindefs.h"
+#include "ppi.h"
 
 
 extern char * progname;
@@ -69,6 +71,7 @@ int cmd_quit  (int fd, struct avrpart * p, int argc, char *argv[]);
 
 struct command cmd[] = {
   { "dump",  cmd_dump,  "dump memory  : %s [eeprom|flash] <addr> <N-Bytes>" },
+  { "read",  cmd_dump,  "alias for dump" },
   { "write", cmd_write, "write memory : %s [eeprom|flash] <addr> <b1> <b2> ... <bN>" },
   { "erase", cmd_erase, "perform a chip erase" },
   { "sig",   cmd_sig,   "display device signature bytes" },
@@ -209,8 +212,8 @@ int cmd_dump ( int fd, struct avrpart * p, int argc, char * argv[] )
     addr += len;
   }
   else {
-    if (argc != 4) {
-      fprintf(stderr, "Usage: dump flash|eeprom <addr> <len>\n");
+    if (!((argc == 2) || (argc == 4))) {
+      fprintf(stderr, "Usage: dump flash|eeprom [<addr> <len>]\n");
       return -1;
     }
 
@@ -227,22 +230,29 @@ int cmd_dump ( int fd, struct avrpart * p, int argc, char * argv[] )
       return -1;
     }
 
-    addr = strtoul(argv[2], &e, 0);
-    if (*e || (e == argv[2])) {
-      fprintf(stderr, "%s (dump): can't parse address \"%s\"\n",
-              progname, argv[2]);
-      return -1;
-    }
+    if (argc == 4) {
+      addr = strtoul(argv[2], &e, 0);
+      if (*e || (e == argv[2])) {
+        fprintf(stderr, "%s (dump): can't parse address \"%s\"\n",
+                progname, argv[2]);
+        return -1;
+      }
 
-    len = strtol(argv[3], &e, 0);
-    if (*e || (e == argv[3])) {
-      fprintf(stderr, "%s (dump): can't parse length \"%s\"\n",
-              progname, argv[3]);
-      return -1;
+      len = strtol(argv[3], &e, 0);
+      if (*e || (e == argv[3])) {
+        fprintf(stderr, "%s (dump): can't parse length \"%s\"\n",
+                progname, argv[3]);
+        return -1;
+      }
     }
   }
 
   maxsize = p->memsize[memtype];
+
+  if (argc == 2) {
+    addr = 0;
+    len = maxsize;
+  }
 
   if (addr > maxsize) {
     fprintf(stderr, 
@@ -282,6 +292,7 @@ int cmd_write ( int fd, struct avrpart * p, int argc, char * argv[] )
   unsigned short addr;
   char * buf;
   int rc;
+  int werror;
 
   if (argc < 4) {
     fprintf(stderr, 
@@ -344,11 +355,16 @@ int cmd_write ( int fd, struct avrpart * p, int argc, char * argv[] )
     }
   }
 
-  for (i=0; i<len; i++) {
+  LED_OFF(fd, PIN_LED_ERR);
+  for (werror=0, i=0; i<len; i++) {
     rc = avr_write_byte(fd, p, memtype, addr+i, buf[i]);
     if (rc) {
       fprintf(stderr, "%s (write): error writing 0x%02x at 0x%04x\n",
               progname, buf[i], addr+i);
+      werror = 1;
+    }
+    if (werror) {
+      LED_ON(fd, PIN_LED_ERR);
     }
   }
 
