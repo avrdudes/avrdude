@@ -250,6 +250,10 @@ Intel Hex
 Motorola S-record
 .It Ar r
 raw binary; little-endian byte order, in the case of the flash ROM data
+.It Ar m
+immediate; actual byte values specified on the command line, seperated
+by commas or spaces.  This is good for programming fuse bytes without
+having to create a single-byte file or enter terminal mode.
 .It Ar a
 auto detect; valid for input only, and only if the input is not
 provided at

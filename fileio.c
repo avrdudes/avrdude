@@ -728,6 +728,49 @@ int fileio_rbin(struct fioparms * fio,
 }
 
 
+int fileio_imm(struct fioparms * fio,
+               char * filename, FILE * f, unsigned char * buf, int size)
+{
+  int rc;
+  char * e, * p;
+  unsigned long b;
+  int loc;
+
+  switch (fio->op) {
+    case FIO_READ:
+      loc = 0;
+      p = strtok(filename, " ,");
+      while (p != NULL && loc < size) {
+        b = strtoul(p, &e, 0);
+        if (*e != 0) {
+          fprintf(stderr,
+                  "%s: invalid byte value (%s) specified for immediate mode\n",
+                  progname, p);
+          return -1;
+        }
+        buf[loc++] = b;
+        p = strtok(NULL, " ,");
+        rc = loc;
+      }
+      break;
+    default:
+      fprintf(stderr, "%s: fileio: invalid operation=%d\n",
+              progname, fio->op);
+      return -1;
+  }
+
+  if (rc < 0 || (fio->op == FIO_WRITE && rc < size)) {
+    fprintf(stderr, 
+            "%s: %s error %s %s: %s; %s %d of the expected %d bytes\n", 
+            progname, fio->iodesc, fio->dir, filename, strerror(errno),
+            fio->rw, rc, size);
+    return -1;
+  }
+
+  return rc;
+}
+
+
 int fileio_ihex(struct fioparms * fio, 
                   char * filename, FILE * f, unsigned char * buf, int size)
 {
@@ -907,6 +950,18 @@ int fileio(int op, char * filename, FILEFMT format,
   if (rc < 0)
     return -1;
 
+  /* point at the requested memory buffer */
+  buf = mem->buf;
+  if (fio.op == FIO_READ)
+    size = mem->size;
+
+  if (fio.op == FIO_READ) {
+    /* 0xff fill unspecified memory */
+    for (i=0; i<size; i++) {
+      buf[i] = 0xff;
+    }
+  }
+
   if (strcmp(filename, "-")==0) {
     if (fio.op == FIO_READ) {
       fname = "<stdin>";
@@ -919,24 +974,7 @@ int fileio(int op, char * filename, FILEFMT format,
   }
   else {
     fname = filename;
-    f = fopen(fname, fio.mode);
-    if (f == NULL) {
-      fprintf(stderr, "%s: can't open %s file %s: %s\n",
-              progname, fio.iodesc, fname, strerror(errno));
-      return -1;
-    }
-  }
-
-  /* point at the requested memory buffer */
-  buf = mem->buf;
-  if (fio.op == FIO_READ)
-    size = mem->size;
-
-  if (fio.op == FIO_READ) {
-    /* 0xff fill unspecified memory */
-    for (i=0; i<size; i++) {
-      buf[i] = 0xff;
-    }
+    f = NULL;
   }
 
   if (format == FMT_AUTO) {
@@ -952,6 +990,16 @@ int fileio(int op, char * filename, FILEFMT format,
             progname, fio.iodesc, fname, fmtstr(format));
   }
 
+  if (format != FMT_IMM) {
+    fname = filename;
+    f = fopen(fname, fio.mode);
+    if (f == NULL) {
+      fprintf(stderr, "%s: can't open %s file %s: %s\n",
+              progname, fio.iodesc, fname, strerror(errno));
+      return -1;
+    }
+  }
+
   switch (format) {
     case FMT_IHEX:
       rc = fileio_ihex(&fio, fname, f, buf, size);
@@ -963,6 +1011,10 @@ int fileio(int op, char * filename, FILEFMT format,
 
     case FMT_RBIN:
       rc = fileio_rbin(&fio, fname, f, buf, size);
+      break;
+
+    case FMT_IMM:
+      rc = fileio_imm(&fio, fname, f, buf, size);
       break;
 
     default:
