@@ -296,7 +296,7 @@ files.  See below for a detailed description of the terminal mode.
 .It Fl y
 Tells
 .Nm
-to use the last two bytes of the connected parts' EEPROM memory to
+to use the last four bytes of the connected parts' EEPROM memory to
 track the number of times the device has been erased.  When this
 option is used and the
 .Fl e
@@ -308,14 +308,14 @@ utilized to give an indication of how many erase-rewrite cycles the
 part has undergone.  Since the FLASH memory can only endure a finite
 number of erase-rewrite cycles, one can use this option to track when
 a part is nearing the limit.  The typical limit for Atmel AVR FLASH is
-1000 cycles.  Of course, if the application needs the last two bytes
+1000 cycles.  Of course, if the application needs the last four bytes
 of EEPROM memory, this option should not be used.
 .It Fl Y Ar cycles
 Instructs
 .Nm
-to initialize the erase-rewrite cycle counter residing at the last two
+to initialize the erase-rewrite cycle counter residing at the last four
 bytes of EEPROM memory to the specified value.  If the application
-needs the last two bytes of EEPROM memory, this option should not be
+needs the last four bytes of EEPROM memory, this option should not be
 used.
 .El
 .Ss Terminal mode
