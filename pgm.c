@@ -29,13 +29,35 @@
 
 extern char * progname;
 
-int  pgm_default_1 (struct programmer_t *, int);
-int  pgm_default_2 (struct programmer_t *, AVRPART *);
-int  pgm_default_3 (struct programmer_t *);
-void pgm_default_4 (struct programmer_t *);
-int  pgm_default_5 (struct programmer_t *, unsigned char cmd[4], 
+static int  pgm_default_2 (struct programmer_t *, AVRPART *);
+static void pgm_default_4 (struct programmer_t *);
+static int  pgm_default_5 (struct programmer_t *, unsigned char cmd[4],
                     unsigned char res[4]);
-void pgm_default_6 (struct programmer_t *, char *);
+static void pgm_default_6 (struct programmer_t *, char *);
+
+
+static int pgm_default_open (struct programmer_t *pgm, char * name)
+{
+  fprintf (stderr, "\n%s: Fatal error: Programmer does not support open()",
+               progname);
+  exit(1);
+}
+
+static int  pgm_default_led (struct programmer_t * pgm, int value)
+{
+  /*
+   * If programmer has no LEDs, just do nothing.
+   */
+  return 0;
+}
+
+
+static void pgm_default_powerup_powerdown (struct programmer_t * pgm)
+{
+  /*
+   * If programmer does not support powerup/down, just do nothing.
+   */
+}
 
 
 PROGRAMMER * pgm_new(void)
@@ -66,21 +88,27 @@ PROGRAMMER * pgm_new(void)
    * mandatory functions - these are called without checking to see
    * whether they are assigned or not
    */
-  pgm->rdy_led        = pgm_default_1;
-  pgm->err_led        = pgm_default_1;
-  pgm->pgm_led        = pgm_default_1;
-  pgm->vfy_led        = pgm_default_1;
   pgm->initialize     = pgm_default_2;
   pgm->display        = pgm_default_6;
   pgm->enable         = pgm_default_4;
   pgm->disable        = pgm_default_4;
-  pgm->powerup        = pgm_default_4;
-  pgm->powerdown      = pgm_default_4;
+  pgm->powerup        = pgm_default_powerup_powerdown;
+  pgm->powerdown      = pgm_default_powerup_powerdown;
   pgm->program_enable = pgm_default_2;
   pgm->chip_erase     = pgm_default_2;
   pgm->cmd            = pgm_default_5;
-  pgm->open           = pgm_default_3;
+  pgm->open           = pgm_default_open;
   pgm->close          = pgm_default_4;
+
+  /*
+   * predefined functions - these functions have a valid default
+   * implementation. Hence, they don't need to be defined in
+   * the programmer.
+   */
+  pgm->rdy_led        = pgm_default_led;
+  pgm->err_led        = pgm_default_led;
+  pgm->pgm_led        = pgm_default_led;
+  pgm->vfy_led        = pgm_default_led;
 
   /*
    * optional functions - these are checked to make sure they are
@@ -100,43 +128,31 @@ PROGRAMMER * pgm_new(void)
 }
 
 
-void pgm_default(void)
+static void pgm_default(void)
 {
   fprintf(stderr, "%s: programmer operation not supported\n", progname);
 }
 
 
-int  pgm_default_1 (struct programmer_t * pgm, int value)
+static int  pgm_default_2 (struct programmer_t * pgm, AVRPART * p)
 {
   pgm_default();
   return -1;
 }
 
-int  pgm_default_2 (struct programmer_t * pgm, AVRPART * p)
-{
-  pgm_default();
-  return -1;
-}
-
-int  pgm_default_3 (struct programmer_t * pgm)
-{
-  pgm_default();
-  return -1;
-}
-
-void pgm_default_4 (struct programmer_t * pgm)
+static void pgm_default_4 (struct programmer_t * pgm)
 {
   pgm_default();
 }
 
-int  pgm_default_5 (struct programmer_t * pgm, unsigned char cmd[4], 
+static int  pgm_default_5 (struct programmer_t * pgm, unsigned char cmd[4],
                     unsigned char res[4])
 {
   pgm_default();
   return -1;
 }
 
-void pgm_default_6 (struct programmer_t * pgm, char * p)
+static void pgm_default_6 (struct programmer_t * pgm, char * p)
 {
   pgm_default();
 }

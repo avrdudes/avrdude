@@ -1,3 +1,13 @@
+2004-01-28  Jan-Hinnerk Reichert  <hinni@despammed.com>
+
+	* pgm.c, main.c, avr910.c, butterfly.c, stk500.c:
+	Changed default for powerup, powerdown and LED-commands
+	to do nothing and return OK. Then removed these commands
+	from avr910, butterfly and stk500.
+	* pgm.c: Fixed wrong type for default_open introduced by
+	the cleanup yesterday.
+
+
 2004-01-29  Jan-Hinnerk Reichert  <hinni@despammed.com>
 
 	* par.c: changed order of port-read/writes in par_txrx().

@@ -73,38 +73,6 @@ static void avr910_vfy_cmd_sent(PROGRAMMER * pgm, char * errmsg)
 }
 
 
-static int avr910_rdy_led(PROGRAMMER * pgm, int value)
-{
-  /* Do nothing. */
-
-  return 0;
-}
-
-
-static int avr910_err_led(PROGRAMMER * pgm, int value)
-{
-  /* Do nothing. */
-
-  return 0;
-}
-
-
-static int avr910_pgm_led(PROGRAMMER * pgm, int value)
-{
-  /* Do nothing. */
-
-  return 0;
-}
-
-
-static int avr910_vfy_led(PROGRAMMER * pgm, int value)
-{
-  /* Do nothing. */
-
-  return 0;
-}
-
-
 /*
  * issue the 'chip erase' command to the AVR device
  */
@@ -137,28 +105,6 @@ static void avr910_leave_prog_mode(PROGRAMMER * pgm)
 static int avr910_program_enable(PROGRAMMER * pgm, AVRPART * p)
 {
   return -1;
-}
-
-
-/*
- * apply power to the AVR processor
- */
-static void avr910_powerup(PROGRAMMER * pgm)
-{
-  /* Do nothing. */
-
-  return;
-}
-
-
-/*
- * remove power from the AVR processor
- */
-static void avr910_powerdown(PROGRAMMER * pgm)
-{
-  /* Do nothing. */
-
-  return;
 }
 
 
@@ -622,16 +568,10 @@ void avr910_initpgm(PROGRAMMER * pgm)
   /*
    * mandatory functions
    */
-  pgm->rdy_led        = avr910_rdy_led;
-  pgm->err_led        = avr910_err_led;
-  pgm->pgm_led        = avr910_pgm_led;
-  pgm->vfy_led        = avr910_vfy_led;
   pgm->initialize     = avr910_initialize;
   pgm->display        = avr910_display;
   pgm->enable         = avr910_enable;
   pgm->disable        = avr910_disable;
-  pgm->powerup        = avr910_powerup;
-  pgm->powerdown      = avr910_powerdown;
   pgm->program_enable = avr910_program_enable;
   pgm->chip_erase     = avr910_chip_erase;
   pgm->cmd            = avr910_cmd;
