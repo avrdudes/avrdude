@@ -37,6 +37,8 @@ extern char * infile;
 
 void pyytext(void);
 
+#define YY_NO_UNPUT
+
 %}
 
 DIGIT    [0-9]
