@@ -267,7 +267,7 @@ programmer
 
 programmer
   id     = "alf";
-  desc   = "Tony Friebel's Programmer";
+  desc   = "Nightshade ALF-PgmAVR http://nightshade.homeip.net/";
   type   = par;
   vcc    = 2, 3, 4, 5;
   buff   = 6;
@@ -290,6 +290,93 @@ programmer
 #
 
 #------------------------------------------------------------
+# ATtiny12
+#------------------------------------------------------------
+
+part
+    id                  = "t12";
+    desc                = "ATtiny12";
+    stk500_devcode      = 0x12;
+    chip_erase_delay    = 20000;
+    pgm_enable          = "1 0 1 0  1 1 0 0   0 1 0 1  0 0 1 1",
+                          "x x x x  x x x x   x x x x  x x x x";
+
+    chip_erase          = "1 0 1 0  1 1 0 0   1 0 0 x  x x x x",
+                          "x x x x  x x x x   x x x x  x x x x";
+
+    memory "eeprom"
+        size            = 64;
+        min_write_delay = 9000;
+        max_write_delay = 20000;
+        readback_p1     = 0xff;
+        readback_p2     = 0xff;
+        read            = "1  0  1  0   0  0  0  0    x x x x  x x x x",
+                          "x  x a5 a4  a3 a2 a1 a0    o o o o  o o o o";
+
+        write           = "1  1  0  0   0  0  0  0    x x x x  x x x x",
+                          "x  x a5 a4  a3 a2 a1 a0    i i i i  i i i i";
+    ;
+
+    memory "flash"
+        size            = 1024;
+        min_write_delay = 4500;
+        max_write_delay = 20000;
+        readback_p1     = 0xff;
+        readback_p2     = 0xff;
+        read_lo         = "  0  0  1  0   0  0  0  0",
+                          "  x  x  x  x   x  x  x a8",
+                          " a7 a6 a5 a4  a3 a2 a1 a0",
+                          "  o  o  o  o   o  o  o  o";
+
+        read_hi         = "  0  0  1  0   1  0  0  0",
+                          "  x  x  x  x   x  x  x a8",
+                          " a7 a6 a5 a4  a3 a2 a1 a0",
+                          "  o  o  o  o   o  o  o  o";
+
+        write_lo        = "  0  1  0  0   0  0  0  0",
+                          "  x  x  x  x   x  x  x a8",
+                          " a7 a6 a5 a4  a3 a2 a1 a0",
+                          "  i  i  i  i   i  i  i  i";
+
+        write_hi        = "  0  1  0  0   1  0  0  0",
+                          "  x  x  x  x   x  x  x a8",
+                          " a7 a6 a5 a4  a3 a2 a1 a0",
+                          "  i  i  i  i   i  i  i  i";
+    ;
+
+    memory "signature"
+        size            = 3;
+        read            = "0  0  1  1   0  0  0  0    x x x x  x x x x",
+                          "0  0  0  0   0  0 a1 a0    o o o o  o o o o";
+    ;
+
+    memory "lock"
+        size            = 1;
+        read            = "0  1  0  1   1  0  0  0    x x x x  x x x x",
+                          "x  x  x  x   x  x  x  x    x x x x  x o o x";
+
+        write           = "1  0  1  0   1  1  0  0    1 1 1 1  1 i i 1",
+                          "x  x  x  x   x  x  x  x    x x x x  x x x x";
+    ;
+
+    memory "calibration"
+        size            = 1;
+        read            = "0  0  1  1   1  0  0  0    x x x x  x x x x",
+                          "0  0  0  0   0  0  0  0    o o o o  o o o o";
+    ;
+
+    memory "fuse"
+        size            = 1;
+        read            = "0  1  0  1   0  0  0  0    x x x x  x x x x",
+                          "x  x  x  x   x  x  x  x    o o o o  o o o o";
+
+        write           = "1  0  1  0   1  1  0  0    1 0 1 x  x x x x",
+                          "x  x  x  x   x  x  x  x    i i i i  i i i i";
+    ;
+;
+
+
+#------------------------------------------------------------
 # ATtiny15
 #------------------------------------------------------------
 
@@ -297,6 +384,7 @@ part
     id                  = "t15";
     desc                = "ATtiny15";
     stk500_devcode      = 0x13;
+    avr910_devcode      = 0x56;
     chip_erase_delay    = 20000;
     pgm_enable          = "1 0 1 0  1 1 0 0   0 1 0 1  0 0 1 1",
                           "x x x x  x x x x   x x x x  x x x x";
@@ -594,7 +682,7 @@ part
     id               = "2333";
     desc             = "AT90S2333";
     stk500_devcode   = 0x42;
-    stk500_devcode   = 0x34;
+    avr910_devcode   = 0x34;
     chip_erase_delay = 20000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
@@ -1826,9 +1914,9 @@ part
       ;
 
     memory "calibration"
-        size            = 1;
-        read            = "0 0 1 1  1 0 0 0   0 0 x x  x x x x",
-                          "0 0 0 0  0 0 0 0   o o o o  o o o o";
+        size            = 4;
+        read            = "0  0  1  1   1  0  0  0   0  0  x  x   x  x  x  x",
+                          "0  0  0  0   0  0 a1 a0   o  o  o  o   o  o  o  o";
       ;
 
     memory "signature"
