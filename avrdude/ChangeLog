@@ -1,11 +1,20 @@
+2003-07-29  Theodore A. Roth  <troth@openavr.org>
+
+	* avr.c:
+	* avr.h:
+	* avr910.c:
+	* main.c:
+	* stk500.c:
+	New progress reporting implementation.
+
 2003-07-24  Joerg Wunsch  <j@uriah.heep.sax.de>
 
-	* avrdude.1
-	* doc/avrdude.texi
-	* pgm.c
-	* pgm.h
-	* stk500.c
-	* stk500_private.h
+	* avrdude.1:
+	* doc/avrdude.texi:
+	* pgm.c:
+	* pgm.h:
+	* stk500.c:
+	* stk500_private.h:
 	* term.c: Add support for displaying and setting the various
 	operational parameters of the STK500 (Vtarget, Varef, clock).
 

@@ -535,6 +535,8 @@ static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       page_addr = addr;
       page_bytes = page_size;
     }
+
+    report_progress (addr, max_addr, NULL);
   }
 
   /* If we didn't send the page wr cmd after the last byte written in the
@@ -571,6 +573,8 @@ static int avr910_paged_write_eeprom(PROGRAMMER * pgm, AVRPART * p,
     if (has_auto_incr_addr != 'Y') {
       avr910_set_addr(pgm, addr);
     }
+
+    report_progress (addr, max_addr, NULL);
   }
 
   return addr;
@@ -635,6 +639,8 @@ static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     if (has_auto_incr_addr != 'Y') {
       avr910_set_addr(pgm, addr);
     }
+
+    report_progress (addr, max_addr, NULL);
   }
 
   return addr * rd_size;
