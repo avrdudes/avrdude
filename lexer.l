@@ -130,6 +130,12 @@ yes              { yylval=new_token(K_YES); return K_YES; }
 "\n"      { lineno++; }
 [ \t]+  /* ignore whitespace */
 
+c: { fprintf(stderr, "error at %s:%d: possible old-style config file entry\n",
+             infile, lineno);
+     fprintf(stderr, "  Update your config file (see %s%s for a sample)\n",
+             CONFIG_DIR, "/avrprog.conf.sample");
+     exit(1); }
+
 . { fprintf(stderr, "error at %s:%d unrecognized character: \"%s\"\n", 
             infile, lineno, yytext); exit(1); }
 

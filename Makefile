@@ -75,3 +75,9 @@ ${DOCDIR}/avrprog.pdf : avrprog.pdf
 ${CONFIGDIR}/avrprog.conf.sample : avrprog.conf.sample
 	${INSTALL_DATA} avrprog.conf.sample $@
 
+${CONFIGDIR}/avrprog.conf : avrprog.conf.sample
+	@if [ -f ${CONFIGDIR}/avrprog.conf ]; then                       \
+	  cp -p ${CONFIGDIR}/avrprog.conf ${CONFIGDIR}/avrprog.conf.old; \
+	fi
+	${INSTALL_DATA} avrprog.conf.sample $@
+
