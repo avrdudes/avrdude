@@ -310,8 +310,7 @@ int ppi_getpinreg ( int pin )
  */
 int ppi_sense ( int fd )
 {
-  unsigned int r, pr;
-  unsigned int v;
+  unsigned int pr;
   int count;
   char buf[128];
   int i;

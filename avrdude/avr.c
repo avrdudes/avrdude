@@ -35,6 +35,7 @@
 
 
 #include "avr.h"
+#include "pindefs.h"
 #include "ppi.h"
 
 
@@ -172,6 +173,8 @@ unsigned char avr_read_byte ( int fd, struct avrpart * p,
   /* order here is very important, AVR_EEPROM, AVR_FLASH, AVR_FLASH+1 */
   static unsigned char cmdbyte[3] = { 0xa0, 0x20, 0x28 };
 
+  LED_ON(fd, PIN_LED_PGM);
+
   offset = 0;
 
   if (memtype == AVR_FLASH) {
@@ -185,6 +188,8 @@ unsigned char avr_read_byte ( int fd, struct avrpart * p,
   cmd[3] = 0;             /* don't care                       */
 
   avr_cmd(fd, cmd, res);
+
+  LED_OFF(fd, PIN_LED_PGM);
 
   return res[3];
 }
@@ -244,6 +249,8 @@ int avr_write_byte ( int fd, struct avrpart * p, AVRMEM memtype,
     return 0;
   }
 
+  LED_ON(fd, PIN_LED_PGM);
+
   offset = 0;
 
   caddr = addr;
@@ -285,10 +292,12 @@ int avr_write_byte ( int fd, struct avrpart * p, AVRMEM memtype,
        * we couldn't write the data, indicate our displeasure by
        * returning an error code 
        */
+      LED_OFF(fd, PIN_LED_PGM);
       return -1;
     }
   }
 
+  LED_OFF(fd, PIN_LED_PGM);
   return 0;
 }
 
@@ -309,6 +318,8 @@ int avr_write ( int fd, struct avrpart * p, AVRMEM memtype, int size )
   unsigned char  * buf;
   unsigned short   i;
   unsigned char    data;
+
+  LED_OFF(fd, PIN_LED_ERR);
 
   buf   = p->mem[memtype];
   wsize = p->memsize[memtype];
@@ -331,6 +342,7 @@ int avr_write ( int fd, struct avrpart * p, AVRMEM memtype, int size )
     if (rc) {
       fprintf(stderr, " ***failed;  ");
       fprintf(stderr, "\n");
+      LED_ON(fd, PIN_LED_ERR);
     }
   }
 
@@ -365,9 +377,13 @@ int avr_chip_erase ( int fd, struct avrpart * p )
   unsigned char data[4] = {0xac, 0x80, 0x00, 0x00};
   unsigned char res[4];
 
+  LED_ON(fd, PIN_LED_PGM);
+
   avr_cmd(fd, data, res);
   usleep(p->chip_erase_delay);
   avr_initialize(fd, p);
+
+  LED_OFF(fd, PIN_LED_PGM);
 
   return 0;
 }
