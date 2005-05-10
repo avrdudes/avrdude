@@ -41,6 +41,8 @@
 extern char *progname;
 extern int verbose;
 
+long serial_recv_timeout = 5000; /* ms */
+
 struct baud_mapping {
   long baud;
   speed_t speed;
@@ -76,7 +78,7 @@ static speed_t serial_baud_lookup(long baud)
   exit(1);
 }
 
-static int serial_setattr(int fd, long baud)
+int serial_setspeed(int fd, long baud)
 {
   int rc;
   struct termios termios;
@@ -90,7 +92,7 @@ static int serial_setattr(int fd, long baud)
    */
   rc = tcgetattr(fd, &termios);
   if (rc < 0) {
-    fprintf(stderr, "%s: serial_setattr(): tcgetattr() failed, %s", 
+    fprintf(stderr, "%s: serial_setspeed(): tcgetattr() failed, %s", 
             progname, strerror(errno));
     return -errno;
   }
@@ -108,7 +110,7 @@ static int serial_setattr(int fd, long baud)
   
   rc = tcsetattr(fd, TCSANOW, &termios);
   if (rc < 0) {
-    fprintf(stderr, "%s: serial_setattr(): tcsetattr() failed, %s", 
+    fprintf(stderr, "%s: serial_setspeed(): tcsetattr() failed, %s", 
             progname, strerror(errno));
     return -errno;
   }
@@ -135,7 +137,7 @@ int serial_open(char * port, int baud)
   /*
    * set serial line attributes
    */
-  rc = serial_setattr(fd, baud);
+  rc = serial_setspeed(fd, baud);
   if (rc) {
     fprintf(stderr, 
             "%s: serial_open(): can't set attributes for device \"%s\"\n",
@@ -199,9 +201,10 @@ int serial_send(int fd, char * buf, size_t buflen)
   reselect:
     nfds = select(fd+1, NULL, &wfds, NULL, &timeout);
     if (nfds == 0) {
-      fprintf(stderr,
-              "%s: serial_send(): programmer is not responding\n",
-              progname);
+      if (verbose >= 1)
+	fprintf(stderr,
+		"%s: serial_send(): programmer is not responding\n",
+		progname);
       exit(1);
     }
     else if (nfds == -1) {
@@ -239,8 +242,8 @@ int serial_recv(int fd, char * buf, size_t buflen)
   char * p = buf;
   size_t len = 0;
 
-  timeout.tv_sec  = 5;
-  timeout.tv_usec = 0;
+  timeout.tv_sec  = serial_recv_timeout / 1000L;
+  timeout.tv_usec = (serial_recv_timeout % 1000L) * 1000;
 
   while (len < buflen) {
     FD_ZERO(&rfds);
@@ -249,10 +252,11 @@ int serial_recv(int fd, char * buf, size_t buflen)
   reselect:
     nfds = select(fd+1, &rfds, NULL, NULL, &timeout);
     if (nfds == 0) {
-      fprintf(stderr, 
-              "%s: serial_recv(): programmer is not responding\n",
-              progname);
-      exit(1);
+      if (verbose > 1)
+	fprintf(stderr,
+		"%s: serial_recv(): programmer is not responding\n",
+		progname);
+      return -1;
     }
     else if (nfds == -1) {
       if (errno == EINTR) {

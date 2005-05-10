@@ -15,7 +15,7 @@
 #   programmer
 #       id       = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
 #       desc     = <description> ;                  # quoted string
-#       type     = par | stk500 | avr910;           # programmer type
+#       type     = par | stk500 | stk500v2 | avr910 | jtagmkii; # programmer type
 #       baudrate = <num> ;                          # baudrate for avr910-programmer
 #       vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
 #       reset    = <num> ;                          # pin number
@@ -31,16 +31,43 @@
 #   part
 #       id               = <id> ;                 # quoted string
 #       desc             = <description> ;        # quoted string
+#       has_jtag         = <yes/no> ;             # part has JTAG i/f
 #       devicecode       = <num> ;            # deprecated, use stk500_devcode
 #       stk500_devcode   = <num> ;                # numeric
 #       avr910_devcode   = <num> ;                # numeric
 #       chip_erase_delay = <num> ;                # micro-seconds
-#       pagel            = <num> ;                # pin name in hex, i.e., 0xD7
-#       bs2              = <num> ;                # pin name in hex, i.e., 0xA0
 #       reset            = dedicated | io;
 #       retry_pulse      = reset | sck;
 #       pgm_enable       = <instruction format> ;
 #       chip_erase       = <instruction format> ;
+#       chip_erase_delay = <num> ;                # chip erase delay (us)
+#       # STK500 parameters (parallel programming IO lines)
+#       pagel            = <num> ;                # pin name in hex, i.e., 0xD7
+#       bs2              = <num> ;                # pin name in hex, i.e., 0xA0
+#       serial           = <yes/no> ;             # can use serial downloading
+#       parallel         = <yes/no/pseudo>;       # can use par. programming
+#       # STK500v2 parameters, to be taken from Atmel's XML files
+#       timeout          = <num> ;
+#       stabdelay        = <num> ;
+#       cmdexdelay       = <num> ;
+#       synchloops       = <num> ;
+#       bytedelay        = <num> ;
+#       pollvalue        = <num> ;
+#       pollindex        = <num> ;
+#       predelay         = <num> ;
+#       postdelay        = <num> ;
+#       pollmethod       = <num> ;
+#       mode             = <num> ;
+#       delay            = <num> ;
+#       blocksize        = <num> ;
+#       readsize         = <num> ;
+#       # JTAG ICE mkII parameters, also from XML files
+#       allowfullpagebitstream = <yes/no> ;
+#       enablepageprogramming = <yes/no> ;
+#       idr              = <num> ;                # IO addr of IDR (OCD) reg.
+#       rampz            = <num> ;                # IO addr of RAMPZ reg.
+#       spmcr            = <num> ;                # mem addr of SPMC[S]R reg.
+#
 #       memory <memtype>
 #           paged           = <yes/no> ;          # yes / no
 #           size            = <num> ;             # bytes
@@ -209,9 +236,21 @@ programmer
 ;
 
 programmer
+  id    = "avrispv2";
+  desc  = "Atmel AVR ISP V2";
+  type  =  stk500v2;
+;
+
+programmer
   id    = "stk500";
   desc  = "Atmel STK500";
   type  = stk500;
+;
+
+programmer
+  id    = "stk500v2";
+  desc  = "Atmel STK500 V2";
+  type  = stk500v2;
 ;
 
 programmer
@@ -224,6 +263,21 @@ programmer
   id    = "butterfly";
   desc  = "Atmel Butterfly Development Board";
   type  = butterfly;
+;
+
+programmer
+  id    = "jtagmkII";
+  desc  = "Atmel JTAG ICE mkII";
+  baudrate = 19200;    # default is 19200
+  type  = jtagmkii;
+;
+
+# easier to type
+programmer
+  id    = "jtag2";
+  desc  = "Atmel JTAG ICE mkII";
+  baudrate = 19200;    # default is 19200
+  type  = jtagmkii;
 ;
 
 programmer
@@ -377,6 +431,17 @@ part
     chip_erase          = "1 0 1 0  1 1 0 0   1 0 0 x  x x x x",
                           "x x x x  x x x x   x x x x  x x x x";
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
     memory "eeprom"
         size            = 64;
         min_write_delay = 9000;
@@ -388,6 +453,11 @@ part
 
         write           = "1  1  0  0   0  0  0  0    x x x x  x x x x",
                           "x  x a5 a4  a3 a2 a1 a0    i i i i  i i i i";
+
+	mode		= 0x04;
+	delay		= 8;
+	blocksize	= 64;
+	readsize	= 256;
     ;
 
     memory "flash"
@@ -415,6 +485,11 @@ part
                           "  x  x  x  x   x  x  x a8",
                           " a7 a6 a5 a4  a3 a2 a1 a0",
                           "  i  i  i  i   i  i  i  i";
+
+	mode		= 0x04;
+	delay		= 5;
+	blocksize	= 128;
+	readsize	= 256;
     ;
 
     memory "signature"
@@ -463,6 +538,17 @@ part
     chip_erase          = "1 0 1 0  1 1 0 0   1 0 0 x  x x x x",
                           "x x x x  x x x x   x x x x  x x x x";
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 1;
+
     memory "eeprom"
         size            = 64;
         min_write_delay = 4000;
@@ -474,6 +560,11 @@ part
 
         write           = "1  1  0  0   0  0  0  0    0 0 0 x  x x x x",
                           "x  x a5 a4  a3 a2 a1 a0    i i i i  i i i i";
+
+	mode		= 0x41;
+	delay		= 5;
+	blocksize	= 4;
+	readsize	= 256;
     ;
 
     memory "flash"
@@ -509,6 +600,11 @@ part
                           "  0  0  0  0   0  0  0 a8",
                           " a7 a6 a5 a4   x  x  x  x",
                           "  x  x  x  x   x  x  x  x";
+
+	mode		= 0x41;
+	delay		= 6;
+	blocksize	= 32;
+	readsize	= 256;
     ;
 
     memory "signature"
@@ -578,6 +674,17 @@ part
     chip_erase          = "1 0 1 0  1 1 0 0   1 0 0 x  x x x x",
                           "x x x x  x x x x   x x x x  x x x x";
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
     memory "eeprom"
         size            = 64;
         min_write_delay = 8200;
@@ -589,6 +696,11 @@ part
 
         write           = "1  1  0  0   0  0  0  0    x x x x  x x x x",
                           "x  x a5 a4  a3 a2 a1 a0    i i i i  i i i i";
+
+	mode		= 0x04;
+	delay		= 10;
+	blocksize	= 64;
+	readsize	= 256;
     ;
 
     memory "flash"
@@ -616,6 +728,11 @@ part
                           "  x  x  x  x   x  x  x a8",
                           " a7 a6 a5 a4  a3 a2 a1 a0",
                           "  i  i  i  i   i  i  i  i";
+
+	mode		= 0x04;
+	delay		= 5;
+	blocksize	= 128;
+	readsize	= 256;
     ;
 
     memory "signature"
@@ -649,7 +766,6 @@ part
     ;
 ;
 
-
 #------------------------------------------------------------
 # AT90s1200
 #------------------------------------------------------------
@@ -668,6 +784,17 @@ part
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
                        "x x x x  x x x x    x x x x  x x x x";
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 1;
+    bytedelay		= 0;
+    pollindex		= 0;
+    pollvalue		= 0xFF;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
     memory "eeprom"
         size            = 64;
         min_write_delay = 4000;
@@ -679,6 +806,11 @@ part
 
         write           = "1 1  0  0   0  0  0  0   x x x x  x x x x",
                           "x x a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+
+	mode		= 0x04;
+	delay		= 20;
+	blocksize	= 32;
+	readsize	= 256;
       ;
     memory "flash"
         size            = 1024;
@@ -705,6 +837,11 @@ part
                           "  x   x   x   x    x   x   x  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
                           "  i   i   i   i    i   i   i   i";
+
+	mode		= 0x02;
+	delay		= 15;
+	blocksize	= 128;
+	readsize	= 256;
       ;
     memory "signature"
         size            = 3;
@@ -749,6 +886,17 @@ part
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
                        "x x x x  x x x x    x x x x  x x x x";
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
     memory "eeprom"
         size            = 256;
         min_write_delay = 9000;
@@ -760,6 +908,11 @@ part
 
         write           = " 1  1  0  0   0  0  0  0   x x x x  x x x a8",
                           "a7 a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+
+	mode		= 0x04;
+	delay		= 12;
+	blocksize	= 64;
+	readsize	= 256;
       ;
     memory "flash"
         size            = 4096;
@@ -786,6 +939,11 @@ part
                           "  x   x   x   x  a11 a10  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
                           "  i   i   i   i    i   i   i   i";
+
+	mode		= 0x04;
+	delay		= 12;
+	blocksize	= 64;
+	readsize	= 256;
       ;
     memory "signature"
         size            = 3;
@@ -810,6 +968,17 @@ part
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
                        "x x x x  x x x x    x x x x  x x x x";
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
     memory "eeprom"
         size            = 128;
         min_write_delay = 4000;
@@ -821,6 +990,11 @@ part
 
         write           = "1  1  0  0   0  0  0  0   x x x x  x x x x",
                           "x a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+
+	mode		= 0x04;
+	delay		= 12;
+	blocksize	= 64;
+	readsize	= 256;
       ;
     memory "flash"
         size            = 2048;
@@ -847,6 +1021,11 @@ part
                           "  x   x   x   x    x   x  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
                           "  i   i   i   i    i   i   i   i";
+
+	mode		= 0x04;
+	delay		= 12;
+	blocksize	= 128;
+	readsize	= 256;
       ;
     memory "signature"
         size            = 3;
@@ -866,6 +1045,7 @@ part
 
 part
     id               = "2333";
+##### WARNING: No XML file for device 'AT90S2333'! #####
     desc             = "AT90S2333";
     stk500_devcode   = 0x42;
     avr910_devcode   = 0x34;
@@ -944,7 +1124,7 @@ part
 
 
 #------------------------------------------------------------
-# AT90s2343
+# AT90s2343 (also AT90s2323 and ATtiny22)
 #------------------------------------------------------------
 
 part
@@ -959,6 +1139,17 @@ part
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
                        "x x x x  x x x x    x x x x  x x x x";
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
     memory "eeprom"
         size            = 128;
         min_write_delay = 9000;
@@ -970,6 +1161,11 @@ part
 
         write           = "1  1  0  0   0  0  0  0   0 0 0 0  0 0 0 0",
                           "x a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+
+	mode		= 0x04;
+	delay		= 12;
+	blocksize	= 64;
+	readsize	= 256;
       ;
     memory "flash"
         size            = 2048;
@@ -996,6 +1192,11 @@ part
                           "  x   x   x   x    x   x  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
                           "  i   i   i   i    i   i   i   i";
+
+	mode		= 0x04;
+	delay		= 12;
+	blocksize	= 128;
+	readsize	= 128;
       ;
     memory "signature"
         size            = 3;
@@ -1041,6 +1242,17 @@ part
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
                        "x x x x  x x x x    x x x x  x x x x";
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
     memory "eeprom"
         size            = 256;
         min_write_delay = 9000;
@@ -1052,6 +1264,11 @@ part
 
         write           = " 1  1  0  0   0  0  0  0   x x x x  x x x x",
                           "a7 a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+
+	mode		= 0x04;
+	delay		= 12;
+	blocksize	= 128;
+	readsize	= 256;
       ;
     memory "flash"
         size            = 4096;
@@ -1078,6 +1295,11 @@ part
                           "  x   x   x   x    x a10  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
                           "  i   i   i   i    i   i   i   i";
+
+	mode		= 0x04;
+	delay		= 12;
+	blocksize	= 128;
+	readsize	= 256;
       ;
     memory "signature"
         size            = 3;
@@ -1113,6 +1335,7 @@ part
 
 part
     id               = "4434";
+##### WARNING: No XML file for device 'AT90S4434'! #####
     desc             = "AT90S4434";
     stk500_devcode   = 0x52;
     avr910_devcode   = 0x6c;
@@ -1204,6 +1427,17 @@ part
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
                        "x x x x  x x x x    x x x x  x x x x";
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
     memory "eeprom"
         size            = 512;
         min_write_delay = 4000;
@@ -1215,6 +1449,11 @@ part
 
         write           = " 1  1  0  0   0  0  0  0   x x x x  x x x a8",
                           "a7 a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+
+	mode		= 0x04;
+	delay		= 12;
+	blocksize	= 128;
+	readsize	= 256;
       ;
     memory "flash"
         size            = 8192;
@@ -1241,6 +1480,11 @@ part
                           "  x   x   x   x  a11 a10  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
                           "  i   i   i   i    i   i   i   i";
+
+	mode		= 0x04;
+	delay		= 12;
+	blocksize	= 128;
+	readsize	= 256;
       ;
     memory "signature"
         size            = 3;
@@ -1279,6 +1523,17 @@ part
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
                        "x x x x  x x x x    x x x x  x x x x";
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
     memory "eeprom"
         size            = 512;
         min_write_delay = 9000;
@@ -1290,6 +1545,11 @@ part
 
         write           = " 1  1  0  0   0  0  0  0   x x x x  x x x a8",
                           "a7 a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+
+	mode		= 0x04;
+	delay		= 12;
+	blocksize	= 128;
+	readsize	= 256;
       ;
     memory "flash"
         size            = 8192;
@@ -1316,6 +1576,11 @@ part
                           "  x   x   x   x  a11 a10  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
                           "  i   i   i   i    i   i   i   i";
+
+	mode		= 0x04;
+	delay		= 12;
+	blocksize	= 128;
+	readsize	= 256;
       ;
     memory "signature"
         size            = 3;
@@ -1354,6 +1619,17 @@ part
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
                        "x x x x  x x x x    x x x x  x x x x";
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
     memory "eeprom"
         size            = 4096;
         min_write_delay = 4000;
@@ -1369,6 +1645,11 @@ part
                           "  x   x   x   x    a11 a10  a9  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0", 
                           "  i   i   i   i      i   i   i   i";
+
+	mode		= 0x04;
+	delay		= 12;
+	blocksize	= 64;
+	readsize	= 256;
       ;
 
     memory "flash"
@@ -1404,6 +1685,11 @@ part
                           "a15 a14 a13 a12    a11 a10  a9  a8",
                           " a7   x   x   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x11;
+	delay		= 70;
+	blocksize	= 256;
+	readsize	= 256;
       ;
 
     memory "fuse"
@@ -1439,6 +1725,7 @@ part
 part
     id               = "m64";
     desc             = "ATMEGA64";
+    has_jtag         = yes;
     stk500_devcode   = 0xA0;
     chip_erase_delay = 9000;
     pagel            = 0xD7;
@@ -1449,6 +1736,20 @@ part
 
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
                        "x x x x  x x x x    x x x x  x x x x";
+
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
+    idr                 = 0x22;
+    spmcr               = 0x68;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -1467,6 +1768,11 @@ part
                           "  x   x   x   x    a11 a10  a9  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0", 
                           "  i   i   i   i      i   i   i   i";
+
+	mode		= 0x04;
+	delay		= 20;
+	blocksize	= 64;
+	readsize	= 256;
       ;
 
     memory "flash"
@@ -1502,6 +1808,11 @@ part
                           "  x a14 a13 a12    a11 a10  a9  a8",
                           " a7   x   x   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x21;
+	delay		= 6;
+	blocksize	= 128;
+	readsize	= 256;
       ;
 
     memory "lfuse"
@@ -1563,6 +1874,7 @@ part
 part
     id               = "m128";
     desc             = "ATMEGA128";
+    has_jtag         = yes;
     stk500_devcode   = 0xB2;
     avr910_devcode   = 0x43;
     chip_erase_delay = 9000;
@@ -1574,6 +1886,21 @@ part
 
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
                        "x x x x  x x x x    x x x x  x x x x";
+
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
+    idr                 = 0x22;
+    spmcr               = 0x68;
+    rampz               = 0x3b;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -1592,6 +1919,11 @@ part
                           "  x   x   x   x    a11 a10  a9  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0", 
                           "  i   i   i   i      i   i   i   i";
+
+	mode		= 0x04;
+	delay		= 12;
+	blocksize	= 64;
+	readsize	= 256;
       ;
 
     memory "flash"
@@ -1627,6 +1959,11 @@ part
                           "a15 a14 a13 a12    a11 a10  a9  a8",
                           " a7   x   x   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x21;
+	delay		= 6;
+	blocksize	= 128;
+	readsize	= 256;
       ;
 
     memory "lfuse"
@@ -1685,6 +2022,7 @@ part
 part
     id               = "c128";
     desc             = "AT90CAN128";
+    has_jtag         = yes;
     stk500_devcode   = 0xB3;
 #    avr910_devcode   = 0x43;
     chip_erase_delay = 9000;
@@ -1696,6 +2034,21 @@ part
 
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
                        "x x x x  x x x x    x x x x  x x x x";
+
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 1;
+
+    idr                 = 0x31;
+    spmcr               = 0x57;
+    rampz               = 0x3b;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -1714,6 +2067,11 @@ part
                           "  0   0   0   x    a11 a10  a9  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0", 
                           "  i   i   i   i      i   i   i   i";
+
+	mode		= 0x41;
+	delay		= 20;
+	blocksize	= 8;
+	readsize	= 256;
       ;
 
     memory "flash"
@@ -1749,6 +2107,11 @@ part
                           "a15 a14 a13 a12    a11 a10  a9  a8",
                           " a7   x   x   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x41;
+	delay		= 6;
+	blocksize	= 256;
+	readsize	= 256;
       ;
 
     memory "lfuse"
@@ -1808,6 +2171,7 @@ part
 part
     id               = "m16";
     desc             = "ATMEGA16";
+    has_jtag         = yes;
     stk500_devcode   = 0x82;
     avr910_devcode   = 0x74;
     pagel            = 0xd7;
@@ -1819,7 +2183,23 @@ part
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
                        "x x x x  x x x x    x x x x  x x x x";
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
+    idr                 = 0x31;
+    spmcr               = 0x57;
+
     memory "eeprom"
+        paged           = no; /* leave this "no" */
+        page_size       = 4;  /* for parallel programming */
         size            = 512;
         min_write_delay = 9000;
         max_write_delay = 9000;
@@ -1834,6 +2214,11 @@ part
                           "  0   0   x   x      x   x  a9  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0", 
                           "  i   i   i   i      i   i   i   i";
+
+	mode		= 0x04;
+	delay		= 10;
+	blocksize	= 128;
+	readsize	= 256;
       ;
 
     memory "flash"
@@ -1869,6 +2254,11 @@ part
                           "  0   0 a13 a12    a11 a10  a9  a8",
                           " a7  a6   x   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x21;
+	delay		= 6;
+	blocksize	= 128;
+	readsize	= 256;
       ;
 
     memory "lock"
@@ -1912,8 +2302,12 @@ part
 part
     id               = "m162";
     desc             = "ATMEGA162";
+    has_jtag         = yes;
     stk500_devcode   = 0x83;
     chip_erase_delay = 9000;
+
+    idr              = 0x04;
+    spmcr            = 0x57;
 
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
@@ -1957,7 +2351,20 @@ part
                           "  x   x   x   x      x   x   x   x";
       ;
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
     memory "eeprom"
+        paged           = no; /* leave this "no" */
+        page_size       = 4;  /* for parallel programming */
         size            = 512;
         min_write_delay = 9000;
         max_write_delay = 9000;
@@ -1973,6 +2380,11 @@ part
                           "  0   0   x   x      x   x  a9  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0",
                           "  i   i   i   i      i   i   i   i";
+
+	mode		= 0x41;
+	delay		= 20;
+	blocksize	= 4;
+	readsize	= 256;
         ;
 
     memory "lfuse"
@@ -2106,6 +2518,11 @@ part
                           "  x   x   x a12    a11 a10  a9  a8",
                           " a7  a6   x   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x41;
+	delay		= 6;
+	blocksize	= 128;
+	readsize	= 256;
       ;
 
     memory "lfuse"
@@ -2161,6 +2578,7 @@ part
 part
     id               = "m169";
     desc             = "ATMEGA169";
+    has_jtag         = yes;
     stk500_devcode   = 0x85;
     avr910_devcode   = 0x75;
     chip_erase_delay = 9000;
@@ -2169,7 +2587,23 @@ part
 
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
                        "x x x x  x x x x    x x x x  x x x x";
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 1;
+
+    idr                 = 0x31;
+    spmcr               = 0x57;
+
    memory "eeprom"
+        paged           = no; /* leave this "no" */
+        page_size       = 4;  /* for parallel programming */
         size            = 512;
         min_write_delay = 9000;
         max_write_delay = 9000;
@@ -2184,6 +2618,11 @@ part
                           "  x   x   x   x      x   x   x  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0", 
                           "  i   i   i   i      i   i   i   i";
+
+	mode		= 0x41;
+	delay		= 20;
+	blocksize	= 4;
+	readsize	= 256;
       ;
 
     memory "flash"
@@ -2219,6 +2658,11 @@ part
                           "  x   x   x a12    a11 a10  a9  a8",
                           " a7  a6   x   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x41;
+	delay		= 6;
+	blocksize	= 128;
+	readsize	= 256;
       ;
 
     memory "lfuse"
@@ -2283,6 +2727,7 @@ part
 part
     id               = "m32";
     desc             = "ATMEGA32";
+    has_jtag         = yes;
     stk500_devcode   = 0x91;
     avr910_devcode   = 0x72;
     chip_erase_delay = 9000;
@@ -2294,6 +2739,20 @@ part
 
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
                        "x x x x  x x x x    x x x x  x x x x";
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
+    idr                 = 0x31;
+    spmcr               = 0x57;
+
    memory "eeprom"
         paged           = no;   /* leave this "no" */
         page_size       = 4;    /* for parallel programming */
@@ -2311,6 +2770,11 @@ part
                           "  0   0   x   x      x   x  a9  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0",
                           "  i   i   i   i      i   i   i   i";
+
+	mode		= 0x04;
+	delay		= 10;
+	blocksize	= 64;
+	readsize	= 256;
       ;
 
     memory "flash"
@@ -2346,6 +2810,11 @@ part
                           "  0   0 a13 a12    a11 a10  a9  a8",
                           " a7  a6   x   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x21;
+	delay		= 6;
+	blocksize	= 64;
+	readsize	= 256;
       ;
 
     memory "lfuse"
@@ -2411,6 +2880,17 @@ part
 
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
                        "x x x x  x x x x    x x x x  x x x x";
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
    memory "eeprom"
         size            = 512;
         min_write_delay = 3400;
@@ -2426,6 +2906,11 @@ part
                           "  x   x   x   x      x   x   x  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0",
                           "  i   i   i   i      i   i   i   i";
+
+	mode		= 0x04;
+	delay		= 5;
+	blocksize	= 128;
+	readsize	= 256;
       ;
 
     memory "flash"
@@ -2461,6 +2946,11 @@ part
                           "  x   x   x a12    a11 a10  a9  a8",
                           " a7  a6   x   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x21;
+	delay		= 16;
+	blocksize	= 128;
+	readsize	= 256;
       ;
 
     memory "fuse"
@@ -2503,12 +2993,23 @@ part
     avr910_devcode   = 0x76;
     pagel            = 0xd7;
     bs2              = 0xc2;
-    chip_erase_delay = 9000;
+    chip_erase_delay = 10000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
                        "x x x x  x x x x    x x x x  x x x x";
+
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
 
     memory "eeprom"
         size            = 512;
@@ -2525,6 +3026,11 @@ part
                           "  0   0   x   x      x   x   x  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0", 
                           "  i   i   i   i      i   i   i   i";
+
+	mode		= 0x04;
+	delay		= 10;
+	blocksize	= 128;
+	readsize	= 256;
       ;
     memory "flash"
         paged           = yes;
@@ -2534,7 +3040,7 @@ part
         min_write_delay = 4500;
         max_write_delay = 4500;
         readback_p1     = 0xff;
-        readback_p2     = 0xff;
+        readback_p2     = 0x00;
         read_lo         = "  0   0   1   0    0   0   0   0",
                           "  0   0   0   0  a11 a10  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
@@ -2559,6 +3065,11 @@ part
                           "  0   0   0   0    a11 a10  a9  a8",
                           " a7  a6  a5   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x21;
+	delay		= 6;
+	blocksize	= 64;
+	readsize	= 256;
       ;
 
     memory "lfuse"
@@ -2625,6 +3136,17 @@ part
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
                        "x x x x  x x x x    x x x x  x x x x";
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
     memory "eeprom"
         size            = 512;
         min_write_delay = 9000;
@@ -2640,6 +3162,11 @@ part
                           "  0   0   x   x      x   x   x  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0",
                           "  i   i   i   i      i   i   i   i";
+
+	mode		= 0x04;
+	delay		= 10;
+	blocksize	= 128;
+	readsize	= 256;
       ;
     memory "flash"
         paged           = yes;
@@ -2674,6 +3201,11 @@ part
                           "  0   0   0   0    a11 a10  a9  a8",
                           " a7  a6  a5   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x21;
+	delay		= 6;
+	blocksize	= 64;
+	readsize	= 256;
       ;
 
     memory "lfuse"
@@ -2742,6 +3274,17 @@ part
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
                        "x x x x  x x x x    x x x x  x x x x";
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
     memory "eeprom"
         size            = 512;
         min_write_delay = 9000;
@@ -2757,6 +3300,11 @@ part
                           "  0   0   x   x      x   x   x  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0",
                           "  i   i   i   i      i   i   i   i";
+
+	mode		= 0x04;
+	delay		= 10;
+	blocksize	= 128;
+	readsize	= 256;
       ;
     memory "flash"
         paged           = yes;
@@ -2791,6 +3339,11 @@ part
                           "  0   0   0   0    a11 a10  a9  a8",
                           " a7  a6  a5   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x21;
+	delay		= 6;
+	blocksize	= 64;
+	readsize	= 256;
       ;
 
     memory "lfuse"
@@ -2858,6 +3411,17 @@ part
     chip_erase          = "1 0 1 0  1 1 0 0   1 0 0 x  x x x x",
                           "x x x x  x x x x   x x x x  x x x x";
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
     memory "eeprom"
         size            = 128;
         min_write_delay = 9000;
@@ -2869,6 +3433,11 @@ part
 
         write           = "1  1  0  0   0  0  0  0    x x x x  x x x x",
                           "x a6 a5 a4  a3 a2 a1 a0    i i i i  i i i i";
+
+	mode		= 0x04;
+	delay		= 10;
+	blocksize	= 64;
+	readsize	= 256;
     ;
 
     memory "flash"
@@ -2904,6 +3473,11 @@ part
                           "  x  x  x  x   x  x a9 a8",
                           " a7 a6 a5 a4   x  x  x  x",
                           "  x  x  x  x   x  x  x  x";
+
+	mode		= 0x21;
+	delay		= 6;
+	blocksize	= 16;
+	readsize	= 256;
     ;
 
     memory "signature"
@@ -2959,12 +3533,23 @@ part
 #    avr910_devcode   = 0x;
     pagel            = 0xd7;
     bs2              = 0xc2;
-    chip_erase_delay = 9000;
+    chip_erase_delay = 45000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
                        "x x x x  x x x x    x x x x  x x x x";
+
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 1;
 
     memory "eeprom"
         size            = 256;
@@ -2981,6 +3566,11 @@ part
                           "  0   0   0   x      x   x   x   x",
                           " a7  a6  a5  a4     a3  a2  a1  a0", 
                           "  i   i   i   i      i   i   i   i";
+
+	mode		= 0x41;
+	delay		= 5;
+	blocksize	= 4;
+	readsize	= 256;
       ;
     memory "flash"
         paged           = yes;
@@ -2989,8 +3579,8 @@ part
         num_pages       = 64;
         min_write_delay = 4500;
         max_write_delay = 4500;
-        readback_p1     = 0xff;
-        readback_p2     = 0xff;
+        readback_p1     = 0x00;
+        readback_p2     = 0x00;
         read_lo         = "  0   0   1   0    0   0   0   0",
                           "  0   0   0   0    0 a10  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
@@ -3015,6 +3605,11 @@ part
                           "  0   0   0   0      0 a10  a9  a8",
                           " a7  a6  a5   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x41;
+	delay		= 6;
+	blocksize	= 64;
+	readsize	= 256;
       ;
 
     memory "lfuse"
@@ -3082,6 +3677,17 @@ part
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
                        "x x x x  x x x x    x x x x  x x x x";
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 1;
+
     memory "eeprom"
         size            = 512;
         min_write_delay = 3600;
@@ -3097,6 +3703,11 @@ part
                           "  0   0   0   x      x   x   x  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0", 
                           "  i   i   i   i      i   i   i   i";
+
+	mode		= 0x41;
+	delay		= 5;
+	blocksize	= 4;
+	readsize	= 256;
       ;
     memory "flash"
         paged           = yes;
@@ -3131,6 +3742,11 @@ part
                           "  0   0   0   0    a11 a10  a9  a8",
                           " a7  a6  a5   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x41;
+	delay		= 6;
+	blocksize	= 64;
+	readsize	= 256;
       ;
 
     memory "lfuse"
@@ -3213,6 +3829,17 @@ part
      chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
                         "x x x x  x x x x    x x x x  x x x x";
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 1;
+
      memory "eeprom"
          size            = 128;
          min_write_delay = 4000;
@@ -3224,6 +3851,11 @@ part
 
          write           = "1  1  0  0   0  0  0  0   0 0 0 x  x x x x",
                            "x a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+
+	mode		= 0x41;
+	delay		= 6;
+	blocksize	= 4;
+	readsize	= 256;
        ;
      memory "flash"
          paged           = yes;
@@ -3261,6 +3893,11 @@ part
                            "  0  0  0  0   0  0 a9 a8",
                            " a7 a6 a5 a4   x  x  x  x",
                            "  x  x  x  x   x  x  x  x";
+
+	mode		= 0x41;
+	delay		= 6;
+	blocksize	= 32;
+	readsize	= 256;
        ;
 #   ATtiny2313 has Signature Bytes: 0x1E 0x91 0x0A.
      memory "signature"
@@ -3309,3 +3946,4 @@ part
                            "0  0  0  0   0  0  0  a0   o o o o  o o o o";
      ;
   ;
+

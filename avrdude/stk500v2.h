@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003-2004  Theodore A. Roth  <troth@openavr.org>
+ * Copyright (C) 2002-2005  Brian S. Dean <bsd@bsdhome.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,25 +19,11 @@
 
 /* $Id$ */
 
-/* This is the API for the generic serial interface. The implementations are
-   actually provided by the target dependant files:
+#ifndef stk500v2_h__
+#define stk500v2_h__
 
-   ser_posix.c : posix serial interface.
-   ser_win32.c : native win32 serial interface.
+void stk500v2_initpgm (PROGRAMMER * pgm);
 
-   The target file will be selected at configure time. */
+#endif
 
-#ifndef __serial_h__
-#define __serial_h__
 
-extern long serial_recv_timeout;
-
-extern int serial_open(char * port, long baud);
-extern int serial_setattr(int fd, long baud);
-extern void serial_close(int fd);
-
-extern int serial_send(int fd, char * buf, size_t buflen);
-extern int serial_recv(int fd, char * buf, size_t buflen);
-extern int serial_drain(int fd, int display);
-
-#endif /* __serial_h__ */
