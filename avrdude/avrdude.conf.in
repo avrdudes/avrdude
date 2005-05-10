@@ -1750,6 +1750,7 @@ part
 
     idr                 = 0x22;
     spmcr               = 0x68;
+    allowfullpagebitstream = yes;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -1901,6 +1902,7 @@ part
     idr                 = 0x22;
     spmcr               = 0x68;
     rampz               = 0x3b;
+    allowfullpagebitstream = yes;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -2196,6 +2198,7 @@ part
 
     idr                 = 0x31;
     spmcr               = 0x57;
+    allowfullpagebitstream = yes;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -2308,6 +2311,7 @@ part
 
     idr              = 0x04;
     spmcr            = 0x57;
+    allowfullpagebitstream = yes;
 
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
@@ -2752,6 +2756,7 @@ part
 
     idr                 = 0x31;
     spmcr               = 0x57;
+    allowfullpagebitstream = yes;
 
    memory "eeprom"
         paged           = no;   /* leave this "no" */

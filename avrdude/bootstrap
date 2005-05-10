@@ -1,4 +1,6 @@
 #! /bin/sh
+AC_VER=259
+AM_VER=19
 
 # autoconf-2.57 is required
 
@@ -14,7 +16,7 @@
 
 AUTOCONF_VER=`(${AUTOCONF} --version 2>/dev/null | head -n 1 | \
               cut -d ' ' -f 4) 2>/dev/null`
-if [ "$AUTOCONF_VER" != "2.57" ]
+if [ "$AUTOCONF_VER" != "2.59" ]
 then
 	echo "You need to use autoconf version 2.57."
 	echo "You are using `${AUTOCONF} --version | head -n 1`."
@@ -25,7 +27,7 @@ fi
 
 AUTOMAKE_VER=`(${AUTOMAKE} --version | head -n 1 | \
               cut -d ' ' -f 4 | cut -d '.' -f -2) 2>/dev/null`
-if [ "$AUTOMAKE_VER" != "1.7" ]
+if [ "$AUTOMAKE_VER" != "1.9" ]
 then
 	echo "You need to use automake version 1.7 (preferrably 1.7.3)."
 	echo "You are using `${AUTOMAKE} --version | head -n 1`."
