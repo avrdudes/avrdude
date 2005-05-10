@@ -1,6 +1,6 @@
 .\"
 .\" avrdude - A Downloader/Uploader for AVR device programmers
-.\" Copyright (C) 2001, 2002, 2003  Joerg Wunsch
+.\" Copyright (C) 2001, 2002, 2003, 2005  Joerg Wunsch
 .\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE November 26, 2003
+.Dd DATE May 10, 2005
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -28,6 +28,8 @@
 .Sh SYNOPSIS
 .Nm
 .Fl p Ar partno
+.Op Fl b Ar baudrate
+.Op Fl B Ar bitclock
 .Op Fl c Ar programmer-id
 .Op Fl C Ar config-file
 .Op Fl D
@@ -51,9 +53,13 @@
 is a program for downloading code and data to Atmel AVR
 microcontrollers.
 .Nm Avrdude
-supports Atmel's STK500 programmer as well as a simple hard-wired
+supports Atmel's STK500 programmer,
+Atmel's JTAG ICE mkII,
+as well as a simple hard-wired
 programmer connected directly to a
 .Xr ppi 4
+or
+.Xr parport 4
 parallel port.  In the simplest case, the hardware consists just of a
 cable connecting the respective AVR signal lines to the parallel port.
 .Pp
@@ -78,6 +84,11 @@ from the MCU when in-system programming is used.
 .Pp
 Atmel's STK500 programmer is also supported and connects to a serial
 port.
+Both, firmware versions 1.x and 2.x can be handled, but require a
+different programmer type specification (by now).
+.Pp
+Atmel's JTAG ICE mkII is supported as well to up- or download memory
+areas from/to an AVR target (no support for on-chip debugging).
 .Pp
 Input files can be provided, and output files can be written in
 different file formats, such as raw binary files containing the data
@@ -127,7 +138,7 @@ the format.  Currently, the following MCU types are understood:
 .TS
 ll.
 \fBOption tag\fP	\fBOfficial part name\fP
-t15	ATtiny15
+c128	AT90CAN128
 1200	AT90S1200
 2313	AT90S2313
 2333	AT90S2333
@@ -137,19 +148,43 @@ t15	ATtiny15
 4434	AT90S4434
 8515	AT90S8515
 8535	AT90S8535
-m163	ATMEGA163
-m169	ATMEGA169
-m128	ATMEGA128
-m103	ATMEGA103
-m16	ATMEGA16
-m48	ATMEGA48
-m8	ATMEGA8
-m88	ATMEGA88
+m103	ATmega103
+m128	ATmega128
+m16	ATmega16
+m161	ATmega161
+m162	ATmega162
+m163	ATmega163
+m169	ATmega169
+m32	ATmega32
+m48	ATmega48
+m64	ATmega64
+m8	ATmega8
+m8515	ATmega8515
+m8535	ATmega8535
+m88	ATmega88
+t12	ATtiny12
+t13	ATtiny13
+t15	ATtiny15
+t2313	ATtiny2313
+t26	ATtiny26
 .TE
 .Bl -tag -width "(*) "
 .It "(*)"
-The AT90S2323 uses the same algorithm.
+The AT90S2323 and ATtiny22 use the same algorithm.
 .El
+.It Fl b Ar baudrate
+Override the RS-232 connection baud rate specified in the respective
+programmer's entry of the configuration file.
+.It Fl B Ar bitclock
+Specify the bit clock period for the JTAG interface (JTAG ICE only).
+The value is a floating-point number in microseconds.
+The default value of the JTAG ICE results in about 1 microsecond bit
+clock period, suitable for target MCUs running at 4 MHz clock and
+above.
+Unlike certain parameters in the STK500, the JTAG ICE resets all its
+parameters to default values when the programming software signs
+off from the ICE, so for MCUs running at lower clock speeds, this
+parameter must be specified on the command-line.
 .It Fl c Ar programmer-id
 Use the pin configuration specified by the argument.  Pin
 configurations are read from the config file (see the
@@ -434,13 +469,24 @@ by 1E3.
 Turn the master oscillator off.
 .Em Only supported on the STK500 programmer.
 .It Ar sck period
+.Em STK500 programmer only:
 Set the SCK clock period to
 .Ar period
 microseconds.
-.Em Only supported on the STK500 programmer.
+.Pp
+.Em JTAG ICE only:
+Set the JTAG ICE bit clock period to
+.Ar period
+microseconds.
+Note that unlike STK500 settings, this setting will be reverted to
+its default value (approximately 1 microsecond) when the programming
+software signs off from the JTAG ICE.
 .It Ar parms
+.Em STK500 programmer only:
 Display the current voltage and master oscillator parameters.
-.Em Only supported on the STK500 programmer.
+.Pp
+.Em JTAG ICE only:
+Display the current target supply voltage and JTAG bit clock rate/period.
 .It Ar \&?
 .It Ar help
 Give a short on-line summary of the available commands.

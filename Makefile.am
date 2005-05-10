@@ -63,8 +63,13 @@ avrdude_SOURCES = \
 	config.h \
 	confwin.c \
 	confwin.h \
+	crc16.c \
+	crc16.h \
 	fileio.c \
 	fileio.h \
+	jtagmkII.c \
+	jtagmkII.h \
+	jtagmkII_private.h \
 	linux_ppdev.h \
 	lists.c \
 	lists.h \
@@ -85,6 +90,9 @@ avrdude_SOURCES = \
 	stk500.c \
 	stk500.h \
 	stk500_private.h \
+	stk500v2.c \
+	stk500v2.h \
+	stk500v2_private.h \
 	term.c \
 	term.h
 

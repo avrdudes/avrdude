@@ -78,6 +78,9 @@ typedef struct opcode {
 #define AVRPART_SERIALOK       0x0001  /* part supports serial programming */
 #define AVRPART_PARALLELOK     0x0002  /* part supports parallel programming */
 #define AVRPART_PSEUDOPARALLEL 0x0004  /* part has pseudo parallel support */
+#define AVRPART_HAS_JTAG       0x0008  /* part has a JTAG i/f */
+#define AVRPART_ALLOWFULLPAGEBITSTREAM 0x0010 /* JTAG ICE mkII param. */
+#define AVRPART_ENABLEPAGEPROGRAMMING 0x0020 /* JTAG ICE mkII param. */
 
 #define AVR_DESCLEN 64
 #define AVR_IDLEN   32
@@ -93,6 +96,21 @@ typedef struct avrpart {
   int           retry_pulse;        /* retry program enable by pulsing
                                        this pin (PIN_AVR_*) */
   unsigned      flags;              /* see AVRPART_ masks */
+
+  int           timeout;            /* stk500 v2 xml file parameter */
+  int           stabdelay;          /* stk500 v2 xml file parameter */
+  int           cmdexedelay;        /* stk500 v2 xml file parameter */
+  int           synchloops;         /* stk500 v2 xml file parameter */
+  int           bytedelay;          /* stk500 v2 xml file parameter */
+  int           pollindex;          /* stk500 v2 xml file parameter */
+  unsigned char pollvalue;          /* stk500 v2 xml file parameter */
+  int           predelay;           /* stk500 v2 xml file parameter */
+  int           postdelay;          /* stk500 v2 xml file parameter */
+  int           pollmethod;         /* stk500 v2 xml file parameter */
+
+  unsigned char idr;                /* JTAG ICE mkII XML file parameter */
+  unsigned char rampz;              /* JTAG ICE mkII XML file parameter */
+  unsigned char spmcr;              /* JTAG ICE mkII XML file parameter */
 
   OPCODE      * op[AVR_OP_MAX];     /* opcodes */
 
@@ -115,6 +133,13 @@ typedef struct avrmem {
                                  back on, see errata
                                  http://www.atmel.com/atmel/acrobat/doc1280.pdf */
   unsigned char readback[2];  /* polled read-back values */
+
+  int mode;                   /* stk500 v2 xml file parameter */
+  int delay;                  /* stk500 v2 xml file parameter */
+  int blocksize;              /* stk500 v2 xml file parameter */
+  int readsize;               /* stk500 v2 xml file parameter */
+  int pollindex;              /* stk500 v2 xml file parameter */
+
   unsigned char * buf;        /* pointer to memory buffer */
   OPCODE * op[AVR_OP_MAX];    /* opcodes */
 } AVRMEM;

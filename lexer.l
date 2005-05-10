@@ -115,23 +115,29 @@ SIGN     [+-]
          exit(1); }
 }
 
+allowfullpagebitstream { yylval=NULL; return K_ALLOWFULLPAGEBITSTREAM; }
+avr910           { yylval=NULL; return K_AVR910; }
+avr910_devcode   { yylval=NULL; return K_AVR910_DEVCODE; }
 bank_size        { yylval=NULL; return K_PAGE_SIZE; }
 banked           { yylval=NULL; return K_PAGED; }
 baudrate         { yylval=NULL; return K_BAUDRATE; }
 bs2              { yylval=NULL; return K_BS2; }
 buff             { yylval=NULL; return K_BUFF; }
+butterfly        { yylval=NULL; return K_BUTTERFLY; }
 chip_erase_delay { yylval=NULL; return K_CHIP_ERASE_DELAY; }
 desc             { yylval=NULL; return K_DESC; }
 default_parallel { yylval=NULL; return K_DEFAULT_PARALLEL; }
 default_programmer { yylval=NULL; return K_DEFAULT_PROGRAMMER; }
 default_serial   { yylval=NULL; return K_DEFAULT_SERIAL; }
 devicecode       { yylval=NULL; return K_DEVICECODE; }
-stk500_devcode   { yylval=NULL; return K_STK500_DEVCODE; }
-avr910_devcode   { yylval=NULL; return K_AVR910_DEVCODE; }
 eeprom           { yylval=NULL; return K_EEPROM; }
+enablepageprogramming { yylval=NULL; return K_ENABLEPAGEPROGRAMMING; }
 errled           { yylval=NULL; return K_ERRLED; }
 flash            { yylval=NULL; return K_FLASH; }
+has_jtag         { yylval=NULL; return K_HAS_JTAG; }
 id               { yylval=NULL; return K_ID; }
+idr              { yylval=NULL; return K_IDR; }
+jtagmkii         { yylval=NULL; return K_JTAG_MKII; }
 max_write_delay  { yylval=NULL; return K_MAX_WRITE_DELAY; }
 memory           { yylval=NULL; return K_MEMORY; }
 min_write_delay  { yylval=NULL; return K_MIN_WRITE_DELAY; }
@@ -148,18 +154,36 @@ part             { yylval=NULL; return K_PART; }
 pgmled           { yylval=NULL; return K_PGMLED; }
 programmer       { yylval=NULL; return K_PROGRAMMER; }
 pwroff_after_write { yylval=NULL; return K_PWROFF_AFTER_WRITE; }
+rampz            { yylval=NULL; return K_RAMPZ; }
 rdyled           { yylval=NULL; return K_RDYLED; }
 readback_p1      { yylval=NULL; return K_READBACK_P1; }
 readback_p2      { yylval=NULL; return K_READBACK_P2; }
 retry_pulse      { yylval=NULL; return K_RETRY_PULSE; }
 serial           { yylval=NULL; return K_SERIAL; }
 size             { yylval=NULL; return K_SIZE; }
+spmcr            { yylval=NULL; return K_SPMCR; }
 stk500           { yylval=NULL; return K_STK500; }
-avr910           { yylval=NULL; return K_AVR910; }
-butterfly        { yylval=NULL; return K_BUTTERFLY; }
+stk500v2         { yylval=NULL; return K_STK500V2; }
+stk500_devcode   { yylval=NULL; return K_STK500_DEVCODE; }
 type             { yylval=NULL; return K_TYPE; }
 vcc              { yylval=NULL; return K_VCC; }
 vfyled           { yylval=NULL; return K_VFYLED; }
+
+timeout          { yylval=NULL; return K_TIMEOUT; }
+stabdelay        { yylval=NULL; return K_STABDELAY; }
+cmdexedelay      { yylval=NULL; return K_CMDEXEDELAY; }
+synchloops       { yylval=NULL; return K_SYNCHLOOPS; }
+bytedelay        { yylval=NULL; return K_BYTEDELAY; }
+pollvalue        { yylval=NULL; return K_POLLVALUE; }
+pollindex        { yylval=NULL; return K_POLLINDEX; }
+predelay         { yylval=NULL; return K_PREDELAY; }
+postdelay        { yylval=NULL; return K_POSTDELAY; }
+pollmethod       { yylval=NULL; return K_POLLMETHOD; }
+mode             { yylval=NULL; return K_MODE; }
+delay            { yylval=NULL; return K_DELAY; }
+blocksize        { yylval=NULL; return K_BLOCKSIZE; }
+readsize        { yylval=NULL; return K_READSIZE; }
+
 
 
 dedicated        { yylval=new_token(K_DEDICATED); return K_DEDICATED; }

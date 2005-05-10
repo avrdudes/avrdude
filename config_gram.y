@@ -33,9 +33,11 @@
 #include "ppi.h"
 #include "pgm.h"
 #include "stk500.h"
+#include "stk500v2.h"
 #include "avr910.h"
 #include "butterfly.h"
 #include "avr.h"
+#include "jtagmkII.h"
 
 #if defined(WIN32NATIVE)
 #define strtok_r( _s, _sep, _lasts ) \
@@ -87,6 +89,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_FLASH
 %token K_ID
 %token K_IO
+%token K_JTAG_MKII
 %token K_LOADPAGE
 %token K_MAX_WRITE_DELAY
 %token K_MIN_WRITE_DELAY
@@ -111,6 +114,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_SCK
 %token K_SIZE
 %token K_STK500
+%token K_STK500V2
 %token K_AVR910
 %token K_BUTTERFLY
 %token K_TYPE
@@ -120,6 +124,36 @@ static int parse_cmdbits(OPCODE * op);
 
 %token K_NO
 %token K_YES
+
+/* stk500 v2 xml file parameters */
+%token K_TIMEOUT
+%token K_STABDELAY
+%token K_CMDEXEDELAY
+%token K_SYNCHLOOPS
+%token K_BYTEDELAY
+%token K_POLLVALUE
+%token K_POLLINDEX
+%token K_PREDELAY
+%token K_POSTDELAY
+%token K_POLLMETHOD
+%token K_MODE
+%token K_DELAY
+%token K_BLOCKSIZE
+%token K_READSIZE
+
+/* JTAG ICE mkII specific parameters */
+%token K_ALLOWFULLPAGEBITSTREAM	/*
+				 * Internal parameter for the JTAG
+				 * ICE; describes the internal JTAG
+				 * streaming behaviour inside the MCU.
+				 * 1 for all older chips, 0 for newer
+				 * MCUs.
+				 */
+%token K_ENABLEPAGEPROGRAMMING	/* ? yes for mega256*, mega406 */
+%token K_HAS_JTAG		/* MCU has JTAG i/f. */
+%token K_IDR			/* address of OCD register in IO space */
+%token K_RAMPZ			/* address of RAMPZ reg. in IO space */
+%token K_SPMCR			/* address of SPMC[S]R in memory space */
 
 %token TKN_COMMA
 %token TKN_EQUAL
@@ -296,6 +330,12 @@ prog_parm :
     }
   } |
 
+  K_TYPE TKN_EQUAL K_STK500V2 {
+    {
+      stk500v2_initpgm(current_prog);
+    }
+  } |
+
   K_TYPE TKN_EQUAL K_AVR910 {
     { 
       avr910_initpgm(current_prog);
@@ -305,6 +345,12 @@ prog_parm :
   K_TYPE TKN_EQUAL K_BUTTERFLY {
     { 
       butterfly_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_JTAG_MKII {
+    {
+      jtagmkII_initpgm(current_prog);
     }
   } |
 
@@ -483,6 +529,114 @@ part_parm :
       free_tokens(2, $1, $3);
     } |
 
+  K_TIMEOUT TKN_EQUAL TKN_NUMBER
+    {
+      current_part->timeout = $3->value.number;
+      free_token($3);
+    } |
+
+  K_STABDELAY TKN_EQUAL TKN_NUMBER
+    {
+      current_part->stabdelay = $3->value.number;
+      free_token($3);
+    } |
+
+  K_CMDEXEDELAY TKN_EQUAL TKN_NUMBER
+    {
+      current_part->cmdexedelay = $3->value.number;
+      free_token($3);
+    } |
+
+  K_SYNCHLOOPS TKN_EQUAL TKN_NUMBER
+    {
+      current_part->synchloops = $3->value.number;
+      free_token($3);
+    } |
+
+  K_BYTEDELAY TKN_EQUAL TKN_NUMBER
+    {
+      current_part->bytedelay = $3->value.number;
+      free_token($3);
+    } |
+
+  K_POLLVALUE TKN_EQUAL TKN_NUMBER
+    {
+      current_part->pollvalue = $3->value.number;
+      free_token($3);
+    } |
+
+  K_POLLINDEX TKN_EQUAL TKN_NUMBER
+    {
+      current_part->pollindex = $3->value.number;
+      free_token($3);
+    } |
+
+  K_PREDELAY TKN_EQUAL TKN_NUMBER
+    {
+      current_part->predelay = $3->value.number;
+      free_token($3);
+    } |
+
+  K_POSTDELAY TKN_EQUAL TKN_NUMBER
+    {
+      current_part->postdelay = $3->value.number;
+      free_token($3);
+    } |
+
+  K_POLLMETHOD TKN_EQUAL TKN_NUMBER
+    {
+      current_part->pollmethod = $3->value.number;
+      free_token($3);
+    } |
+
+  K_HAS_JTAG TKN_EQUAL yesno
+    {
+      if ($3->primary == K_YES)
+        current_part->flags |= AVRPART_HAS_JTAG;
+      else if ($3->primary == K_NO)
+        current_part->flags &= ~AVRPART_HAS_JTAG;
+
+      free_token($3);
+    } |
+
+  K_ALLOWFULLPAGEBITSTREAM TKN_EQUAL yesno
+    {
+      if ($3->primary == K_YES)
+        current_part->flags |= AVRPART_ALLOWFULLPAGEBITSTREAM;
+      else if ($3->primary == K_NO)
+        current_part->flags &= ~AVRPART_ALLOWFULLPAGEBITSTREAM;
+
+      free_token($3);
+    } |
+
+  K_ENABLEPAGEPROGRAMMING TKN_EQUAL yesno
+    {
+      if ($3->primary == K_YES)
+        current_part->flags |= AVRPART_ENABLEPAGEPROGRAMMING;
+      else if ($3->primary == K_NO)
+        current_part->flags &= ~AVRPART_ENABLEPAGEPROGRAMMING;
+
+      free_token($3);
+    } |
+
+  K_IDR TKN_EQUAL TKN_NUMBER
+    {
+      current_part->idr = $3->value.number;
+      free_token($3);
+    } |
+
+  K_RAMPZ TKN_EQUAL TKN_NUMBER
+    {
+      current_part->rampz = $3->value.number;
+      free_token($3);
+    } |
+
+  K_SPMCR TKN_EQUAL TKN_NUMBER
+    {
+      current_part->spmcr = $3->value.number;
+      free_token($3);
+    } |
+
   K_SERIAL TKN_EQUAL yesno
     {
       if ($3->primary == K_YES)
@@ -629,6 +783,38 @@ mem_spec :
       current_mem->readback[1] = $3->value.number;
       free_token($3);
     } |
+
+
+  K_MODE TKN_EQUAL TKN_NUMBER
+    {
+      current_mem->mode = $3->value.number;
+      free_token($3);
+    } |
+
+  K_DELAY TKN_EQUAL TKN_NUMBER
+    {
+      current_mem->delay = $3->value.number;
+      free_token($3);
+    } |
+
+  K_BLOCKSIZE TKN_EQUAL TKN_NUMBER
+    {
+      current_mem->blocksize = $3->value.number;
+      free_token($3);
+    } |
+
+  K_READSIZE TKN_EQUAL TKN_NUMBER
+    {
+      current_mem->readsize = $3->value.number;
+      free_token($3);
+    } |
+
+  K_POLLINDEX TKN_EQUAL TKN_NUMBER
+    {
+      current_mem->pollindex = $3->value.number;
+      free_token($3);
+    } |
+
 
   opcode TKN_EQUAL string_list {
     { 

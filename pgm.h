@@ -47,6 +47,7 @@ typedef struct programmer_t {
   int ppidata;
   int ppictrl;
   int baudrate;
+  double bitclock;    /* JTAG ICE clock period in microseconds */
   int fd;
   int  page_size;  /* page size if the programmer supports paged write/load */
   int  (*rdy_led)        (struct programmer_t * pgm, int value);

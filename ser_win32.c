@@ -33,6 +33,8 @@
 extern char *progname;
 extern int verbose;
 
+long serial_recv_timeout = 5000; /* ms */
+
 #define W32SERBUFSIZE 1024
 
 struct baud_mapping {
@@ -81,9 +83,30 @@ BOOL serial_w32SetTimeOut(HANDLE hComPort, DWORD timeout) // in ms
 	return SetCommTimeouts(hComPort, &ctmo);
 }
 
-int serial_open(char * port, long baud)
+int serial_setspeed(int fd, long baud)
 {
 	DCB dcb;
+	HANDLE hComPort = (HANDLE)fd;
+
+	ZeroMemory (&dcb, sizeof(DCB));
+	dcb.DCBlength = sizeof(DCB);
+	dcb.BaudRate = serial_baud_lookup (baud);
+	dcb.fBinary = 1;
+	dcb.fDtrControl = DTR_CONTROL_DISABLE;
+	dcb.fRtsControl = RTS_CONTROL_DISABLE;
+	dcb.ByteSize = 8;
+	dcb.Parity = NOPARITY;
+	dcb.StopBits = ONESTOPBIT;
+
+	if (!SetCommState(hComPort, &dcb))
+		return -1;
+
+	return 0;
+}
+
+
+int serial_open(char * port, long baud)
+{
 	LPVOID lpMsgBuf;
 	HANDLE hComPort=INVALID_HANDLE_VALUE;
 
@@ -120,17 +143,8 @@ int serial_open(char * port, long baud)
 		exit(1);
 	}
 
-	ZeroMemory (&dcb, sizeof(DCB));
-	dcb.DCBlength = sizeof(DCB);
-	dcb.BaudRate = serial_baud_lookup (baud);
-	dcb.fBinary = 1;
-	dcb.fDtrControl = DTR_CONTROL_DISABLE;
-	dcb.fRtsControl = RTS_CONTROL_DISABLE;
-	dcb.ByteSize = 8;
-	dcb.Parity = NOPARITY;
-	dcb.StopBits = ONESTOPBIT;
 
-	if (!SetCommState(hComPort, &dcb))
+	if (serial_setspeed((int)hComPort, baud) != 0)
 	{
 		CloseHandle(hComPort);
 		fprintf(stderr, "%s: serial_open(): can't set com-state for \"%s\"\n",
@@ -229,7 +243,7 @@ int serial_recv(int fd, char * buf, size_t buflen)
 		exit(1);
 	}
 	
-	serial_w32SetTimeOut(hComPort,5000);
+	serial_w32SetTimeOut(hComPort, serial_recv_timeout);
 	
 	if (!ReadFile(hComPort, buf, buflen, &read, NULL)) {
 		LPVOID lpMsgBuf;

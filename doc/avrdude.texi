@@ -28,7 +28,7 @@ This file documents the avrdude program.
 
 For avrdude version @value{VERSION}, @value{UPDATED}.
 
-Copyright @copyright{} 2003 Brian Dean
+Copyright @copyright{} 2003,2005 Brian Dean
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -63,7 +63,7 @@ by the Free Software Foundation.
 
 @vfill
 
-Copyright @copyright{} 2003 Brian S. Dean
+Copyright @copyright{} 2003,2005 Brian S. Dean
 @sp 2
 
 Permission is granted to make and distribute verbatim copies of
@@ -129,7 +129,8 @@ from the contents of a file, while interactive mode is useful for
 exploring memory contents, modifing individual bytes of eeprom,
 programming fuse/lock bits, etc.
 
-AVRDUDE supports three basic programmer types: Atmel's STK500, appnote
+AVRDUDE supports four basic programmer types: Atmel's STK500,
+Atmel's JTAG ICE mkII, appnote
 avr910 and the PPI (parallel port interface). PPI represents a class
 of simple programmers where the programming lines are directly
 connected to the PC parallel port. Several pin configurations exist
@@ -139,7 +140,7 @@ programmer on the command line or by creating a new entry in its
 configuration file. All that's usually required for a new entry is to
 tell AVRDUDE which pins to use for each programming function. 
 
-The STK500 and avr910 use the serial port to communicate with the PC
+The STK500, JTAG ICE and avr910 use the serial port to communicate with the PC
 and contains on-board logic to control the programming of the target
 device. The fundamental difference between the two types lies in the
 protocol used to control the programmer. The avr910 protocol is very
@@ -147,6 +148,14 @@ simplistic and can easily be used as the basis for a simple, home made
 programer since the firmware is available online. On the other hand,
 the STK500 protocol is more robust and complicated and the firmware is
 not openly available.
+The JTAG ICE also uses a serial communication protocol which is similar
+to the STK500 firmware version 2 one.  However, as the JTAG ICE is
+intented to allow on-chip debugging as well as memory programming, the
+protocol is more sophisticated.
+(This protocol can also be run on top of USB, but AVRDUDE by now only
+supports the RS-232-based option.)
+Only the memory programming functionality of the JTAG ICE is supported
+by AVRDUDE.
 
 @menu
 * History::                     
@@ -221,6 +230,9 @@ datasheet so that you can enter the programming specifications.
 Currently, the following MCU types are understood:
 
 @table @code
+@itemx c128
+AT90CAN128
+
 @itemx 1200
 AT90S1200
 
@@ -249,59 +261,80 @@ AT90S8515
 AT90S8535
 
 @itemx m103
-ATMEGA103
+ATmega103
 
 @itemx m128
-ATMEGA128
+ATmega128
 
 @itemx m16
-ATMEGA16
+ATmega16
 
 @itemx m161
-ATMEGA161
+ATmega161
 
 @itemx m162
-ATMEGA162
+ATmega162
 
 @itemx m163
-ATMEGA163
+ATmega163
 
 @itemx m169
-ATMEGA169
+ATmega169
 
 @itemx m32
-ATMEGA32
+ATmega32
 
 @itemx m48
-ATMEGA48
+ATmega48
 
 @itemx m64
-ATMEGA64
+ATmega64
 
 @itemx m8
-ATMEGA8
+ATmega8
 
 @itemx m8515
-ATMEGA8515
+ATmega8515
 
 @itemx m8535
-ATMEGA8535
+ATmega8535
 
 @itemx m88
-ATMEGA88
+ATmega88
 
 @itemx t12
 ATtiny12
 
+@itemx t13
+ATtiny13
+
 @itemx t15
 ATtiny15
 
+@itemx t2313
+ATtiny2313
+
 @itemx t26
-ATTINY26
+ATtiny26
 
 @end table
 
-(*)   The AT90S2323 uses the same algorithm.
+(*)   The AT90S2323 and ATtiny22 use the same algorithm.
+
+@item -b @var{baudrate}
+Override the RS-232 connection baud rate specified in the respective
+programmer's entry of the configuration file.
+
+@item -B @var{bitclock}
+Specify the bit clock period for the JTAG interface (JTAG ICE only).
+The value is a floating-point number in microseconds.
+The default value of the JTAG ICE results in about 1 microsecond bit
+clock period, suitable for target MCUs running at 4 MHz clock and
+above.
+Unlike certain parameters in the STK500, the JTAG ICE resets all its
+parameters to default values when the programming software signs
+off from the ICE, so for MCUs running at lower clock speeds, this
+parameter must be specified on the command-line.
 
 @item -c @var{programmer-id}
 Specify the programmer to be used.  AVRDUDE knows about several common
@@ -766,10 +799,21 @@ multiplies by 1E6, a trailing letter @var{k} by 1E3.
 Turn the master oscillator off.
 
 @item sck @var{period}
+@emph{STK500 only:}
 Set the SCK clock period to @var{period} microseconds.
 
+@emph{JTAG ICE only:}
+Set the JTAG ICE bit clock period to @var{period} microseconds.
+Note that unlike STK500 settings, this setting will be reverted to
+its default value (approximately 1 microsecond) when the programming
+software signs off from the JTAG ICE.
+
 @item parms
+@emph{STK500 only:}
 Display the current voltage and master oscillator parameters.
+
+@emph{JTAG ICE only:}
+Display the current target supply voltage and JTAG bit clock rate/period.
 
 @end table
 

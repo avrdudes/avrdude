@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2000-2005  Brian S. Dean <bsd@bsdhome.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,8 @@
 /* $Id$ */
 
 /*
- * Code to program an Atmel AVR AT90S device using the parallel port.
+ * Code to program an Atmel AVR device through one of the supported
+ * programmers.
  *
  * For parallel port connected programmers, the pin definitions can be
  * changed via a config file.  See the config file for instructions on
@@ -98,6 +99,8 @@ void usage(void)
  "Usage: %s [options]\n"
  "Options:\n"
  "  -p <partno>                Required. Specify AVR device.\n"
+ "  -b <baudrate>              Override RS-232 baud rate.\n"
+ "  -B <bitclock>              Specify JTAG bit clock period (us).\n"
  "  -C <config-file>           Specify location of configuration file.\n"
  "  -c <programmer>            Specify programmer type.\n"
  "  -D                         Disable auto erase for flash memory\n"
@@ -115,6 +118,8 @@ void usage(void)
  "                             recovered if they change\n"
  "  -t                         Enter terminal mode.\n"
  "  -E <exitspec>[,<exitspec>] List programmer exit specifications.\n"
+ "  -y                         Count # erase cycles in EEPROM.\n"
+ "  -Y <number>                Initialize erase cycle # in EEPROM.\n"
  "  -v                         Verbose output. -v -v for more.\n"
  "  -q                         Quell progress output.\n"
  "  -?                         Display this usage.\n"
@@ -707,6 +712,7 @@ int main(int argc, char * argv [])
   char  * e;           /* for strtol() error checking */
   int     quell_progress;
   int     baudrate;    /* override default programmer baud rate */
+  double  bitclock;    /* Specify programmer bit clock (JTAG ICE) */
   int     safemode;    /* Enable safemode, 1=safemode on, 0=normal */
   unsigned char safemode_lfuse = 0xff;
   unsigned char safemode_hfuse = 0xff;
@@ -759,6 +765,7 @@ int main(int argc, char * argv [])
   do_cycles     = 0;
   set_cycles    = -1;
   baudrate      = 0;
+  bitclock      = 0.0;
   safemode      = 1;       /* Safemode enabled by default */
 
 
@@ -811,6 +818,15 @@ int main(int argc, char * argv [])
         baudrate = strtol(optarg, &e, 0);
         if ((e == optarg) || (*e != 0)) {
           fprintf(stderr, "%s: invalid baud rate specified '%s'\n",
+                  progname, optarg);
+          exit(1);
+        }
+        break;
+
+      case 'B':	/* specify JTAG ICE bit clock period */
+	bitclock = strtod(optarg, &e);
+	if ((e == optarg) || (*e != 0) || bitclock == 0.0) {
+	  fprintf(stderr, "%s: invalid bit clock period specified '%s'\n",
                   progname, optarg);
           exit(1);
         }
@@ -1110,6 +1126,13 @@ int main(int argc, char * argv [])
       fprintf(stderr, "%sOverriding Baud Rate  : %d\n", progbuf, baudrate);
     }
     pgm->baudrate = baudrate;
+  }
+
+  if (bitclock != 0.0) {
+    if (verbose) {
+      fprintf(stderr, "%sSetting bit clk period: %.1f\n", progbuf, bitclock);
+    }
+    pgm->bitclock = bitclock;
   }
 
   rc = pgm->open(pgm, port);
