@@ -128,7 +128,8 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
   tstart = tv.tv_sec;
 
   while ( (state != sDONE ) && (!timeout) ) {
-    serial_recv(pgm->fd, &c, 1);
+    if (serial_recv(pgm->fd, &c, 1) < 0)
+      goto timedout;
     DEBUG("0x%02x ",c);
     checksum ^= c;
 
@@ -203,6 +204,7 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
      gettimeofday(&tv, NULL);
      tnow = tv.tv_sec;
      if (tnow-tstart > timeoutval) {			// wuff - signed/unsigned/overflow
+      timedout:
        fprintf(stderr, "%s: stk500_2_ReceiveMessage(): timeout\n",
                progname);
        return -1;

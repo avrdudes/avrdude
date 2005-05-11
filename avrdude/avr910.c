@@ -52,7 +52,16 @@ static int avr910_send(PROGRAMMER * pgm, char * buf, size_t len)
 
 static int avr910_recv(PROGRAMMER * pgm, char * buf, size_t len)
 {
-  return serial_recv(pgm->fd, buf, len);
+  int rv;
+
+  rv = serial_recv(pgm->fd, buf, len);
+  if (rv < 0) {
+    fprintf(stderr,
+	    "%s: avr910_recv(): programmer is not responding\n",
+	    progname);
+    exit(1);
+  }
+  return 0;
 }
 
 
