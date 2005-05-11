@@ -115,6 +115,14 @@ int serial_setspeed(int fd, long baud)
     return -errno;
   }
 
+#if 0
+  /*
+   * set non blocking mode
+   */
+  rc = fcntl(fd, F_GETFL, 0);
+  fcntl(fd, F_SETFL, rc | O_NONBLOCK);
+#endif
+
   return 0;
 }
 
@@ -159,7 +167,7 @@ void serial_close(int fd)
 
 int serial_send(int fd, char * buf, size_t buflen)
 {
-  struct timeval timeout;
+  struct timeval timeout, to2;
   fd_set wfds;
   int nfds;
   int rc;
@@ -193,13 +201,14 @@ int serial_send(int fd, char * buf, size_t buflen)
 
   timeout.tv_sec = 0;
   timeout.tv_usec = 500000;
+  to2 = timeout;
 
   while (len) {
+  reselect:
     FD_ZERO(&wfds);
     FD_SET(fd, &wfds);
 
-  reselect:
-    nfds = select(fd+1, NULL, &wfds, NULL, &timeout);
+    nfds = select(fd+1, NULL, &wfds, NULL, &to2);
     if (nfds == 0) {
       if (verbose >= 1)
 	fprintf(stderr,
@@ -208,7 +217,7 @@ int serial_send(int fd, char * buf, size_t buflen)
       exit(1);
     }
     else if (nfds == -1) {
-      if (errno == EINTR) {
+      if (errno == EINTR || errno == EAGAIN) {
         goto reselect;
       }
       else {
@@ -218,14 +227,14 @@ int serial_send(int fd, char * buf, size_t buflen)
       }
     }
 
-    rc = write(fd, p, 1);
+    rc = write(fd, p, (len > 1024) ? 1024 : len);
     if (rc < 0) {
       fprintf(stderr, "%s: serial_send(): write error: %s\n",
               progname, strerror(errno));
       exit(1);
     }
-    p++;
-    len--;
+    p += rc;
+    len -= rc;
   }
 
   return 0;
@@ -234,7 +243,7 @@ int serial_send(int fd, char * buf, size_t buflen)
 
 int serial_recv(int fd, char * buf, size_t buflen)
 {
-  struct timeval timeout;
+  struct timeval timeout, to2;
   fd_set rfds;
   int nfds;
   int rc;
@@ -244,13 +253,14 @@ int serial_recv(int fd, char * buf, size_t buflen)
 
   timeout.tv_sec  = serial_recv_timeout / 1000L;
   timeout.tv_usec = (serial_recv_timeout % 1000L) * 1000;
+  to2 = timeout;
 
   while (len < buflen) {
+  reselect:
     FD_ZERO(&rfds);
     FD_SET(fd, &rfds);
 
-  reselect:
-    nfds = select(fd+1, &rfds, NULL, NULL, &timeout);
+    nfds = select(fd+1, &rfds, NULL, NULL, &to2);
     if (nfds == 0) {
       if (verbose > 1)
 	fprintf(stderr,
@@ -259,7 +269,10 @@ int serial_recv(int fd, char * buf, size_t buflen)
       return -1;
     }
     else if (nfds == -1) {
-      if (errno == EINTR) {
+      if (errno == EINTR || errno == EAGAIN) {
+	fprintf(stderr,
+		"%s: serial_recv(): programmer is not responding,reselecting\n",
+		progname);
         goto reselect;
       }
       else {
@@ -269,14 +282,14 @@ int serial_recv(int fd, char * buf, size_t buflen)
       }
     }
 
-    rc = read(fd, p, 1);
+    rc = read(fd, p, (buflen - len > 1024) ? 1024 : buflen - len);
     if (rc < 0) {
       fprintf(stderr, "%s: serial_recv(): read error: %s\n",
               progname, strerror(errno));
       exit(1);
     }
-    p++;
-    len++;
+    p += rc;
+    len += rc;
   }
 
   p = buf;
