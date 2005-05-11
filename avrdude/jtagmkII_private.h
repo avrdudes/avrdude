@@ -285,12 +285,6 @@ struct device_descriptor
   unsigned char ucPCMaskExtended; /* For parts with extended PC */
   unsigned char ucPCMaskHigh; /* PC high mask */
   unsigned char ucEindAddress; /* Selects reset type. [EIND address...] */
-  /* Does not work yet, M_MCU f/w rev 3.11, S_MCU f/w rev 3.16 */
-  /*  unsigned char EECRAddress[2]; */ /* EECR IO address */
+  /* new as of early 2005, firmware 4.x */
+  unsigned char EECRAddress[2]; /* EECR memory-mapped IO address */
 };
-
-#define fill_b4(u) \
-{ ((u) & 0xffUL), (((u) & 0xff00UL) >> 8), \
-  (((u) & 0xff0000UL) >> 16), (((u) & 0xff000000UL) >> 24) }
-#define fill_b2(u) \
-{ ((u) & 0xff), (((u) & 0xff00) >> 8) }

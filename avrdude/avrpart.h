@@ -111,6 +111,7 @@ typedef struct avrpart {
   unsigned char idr;                /* JTAG ICE mkII XML file parameter */
   unsigned char rampz;              /* JTAG ICE mkII XML file parameter */
   unsigned char spmcr;              /* JTAG ICE mkII XML file parameter */
+  unsigned short eecr;              /* JTAC ICE mkII XML file parameter */
 
   OPCODE      * op[AVR_OP_MAX];     /* opcodes */
 

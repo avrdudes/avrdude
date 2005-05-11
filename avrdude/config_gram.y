@@ -154,6 +154,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_IDR			/* address of OCD register in IO space */
 %token K_RAMPZ			/* address of RAMPZ reg. in IO space */
 %token K_SPMCR			/* address of SPMC[S]R in memory space */
+%token K_EECR    		/* address of EECR in memory space */
 
 %token TKN_COMMA
 %token TKN_EQUAL
@@ -634,6 +635,12 @@ part_parm :
   K_SPMCR TKN_EQUAL TKN_NUMBER
     {
       current_part->spmcr = $3->value.number;
+      free_token($3);
+    } |
+
+  K_EECR TKN_EQUAL TKN_NUMBER
+    {
+      current_part->eecr = $3->value.number;
       free_token($3);
     } |
 
