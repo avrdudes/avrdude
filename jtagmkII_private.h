@@ -177,14 +177,14 @@
 # define EMULATOR_MODE_SPI 0x03
 #define PAR_IREG 0x04
 #define PAR_BAUD_RATE 0x05
-# define BAUD_2400 0x01
-# define BAUD_4800 0x02
-# define BAUD_9600 0x03
-# define BAUD_19200 0x04	/* default */
-# define BAUD_38400 0x05
-# define BAUD_57600 0x06
-# define BAUD_115200 0x07
-# define BAUD_14400 0x08
+# define PAR_BAUD_2400 0x01
+# define PAR_BAUD_4800 0x02
+# define PAR_BAUD_9600 0x03
+# define PAR_BAUD_19200 0x04	/* default */
+# define PAR_BAUD_38400 0x05
+# define PAR_BAUD_57600 0x06
+# define PAR_BAUD_115200 0x07
+# define PAR_BAUD_14400 0x08
 #define PAR_OCD_VTARGET 0x06
 #define PAR_OCD_JTAG_CLK 0x07
 #define PAR_OCD_BREAK_CAUSE 0x08

@@ -932,14 +932,14 @@ static unsigned char jtagmkII_get_baud(long baud)
     long baud;
     unsigned char val;
   } baudtab[] = {
-    { 2400L, BAUD_2400 },
-    { 4800L, BAUD_4800 },
-    { 9600L, BAUD_9600 },
-    { 19200L, BAUD_19200 },
-    { 38400L, BAUD_38400 },
-    { 57600L, BAUD_57600 },
-    { 115200L, BAUD_115200 },
-    { 14400L, BAUD_14400 },
+    { 2400L, PAR_BAUD_2400 },
+    { 4800L, PAR_BAUD_4800 },
+    { 9600L, PAR_BAUD_9600 },
+    { 19200L, PAR_BAUD_19200 },
+    { 38400L, PAR_BAUD_38400 },
+    { 57600L, PAR_BAUD_57600 },
+    { 115200L, PAR_BAUD_115200 },
+    { 14400L, PAR_BAUD_14400 },
   };
   int i;
 
