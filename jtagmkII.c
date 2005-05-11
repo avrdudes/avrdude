@@ -1234,8 +1234,10 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 		"%s: jtagmkII_paged_write(): "
 		"timeout/error communicating with programmer (status %d)\n",
 		progname, status);
-      if (tries++ < 3)
+      if (tries++ < 4) {
+	serial_recv_timeout *= 2;
 	goto retry;
+      }
       fprintf(stderr,
 	      "%s: jtagmkII_paged_write(): fatal timeout/"
 	      "error communicating with programmer (status %d)\n",
@@ -1326,8 +1328,10 @@ static int jtagmkII_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 		"%s: jtagmkII_paged_load(): "
 		"timeout/error communicating with programmer (status %d)\n",
 		progname, status);
-      if (tries++ < 3)
+      if (tries++ < 4) {
+	serial_recv_timeout *= 2;
 	goto retry;
+      }
       fprintf(stderr,
 	      "%s: jtagmkII_paged_load(): fatal timeout/"
 	      "error communicating with programmer (status %d)\n",
