@@ -66,9 +66,18 @@ static int butterfly_send(PROGRAMMER * pgm, char * buf, size_t len)
 
 static int butterfly_recv(PROGRAMMER * pgm, char * buf, size_t len)
 {
+  int rv;
+
   no_show_func_info();
 
-  return serial_recv(pgm->fd, buf, len);
+  rv = serial_recv(pgm->fd, buf, len);
+  if (rv < 0) {
+    fprintf(stderr,
+	    "%s: butterfly_recv(): programmer is not responding\n",
+	    progname);
+    exit(1);
+  }
+  return 0;
 }
 
 
