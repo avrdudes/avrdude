@@ -71,20 +71,17 @@ static int prog_enabled;	/* Cached value of PROGRAMMING status. */
 static unsigned char serno[6];	/* JTAG ICE serial number. */
 /*
  * The OCDEN fuse is bit 7 of the high fuse (hfuse).  In order to
- * perform memory operations on MTYPE_SPM and MTYPE_EEPROM, we need to
- * enable on-chip debugging, as these memory types are apparently
- * emulated by running MCU instructions on the target MCU.  We cache
- * the original value here, so it can be restored before exiting.
- * User-requested hfuse updates will always mask out the OCDEN fuse
- * then, only updating the cached copy.
+ * perform memory operations on MTYPE_SPM and MTYPE_EEPROM, OCDEN
+ * needs to be programmed.
  *
  * OCDEN should probably rather be defined via the configuration, but
  * if this ever changes to a different fuse byte for one MCU, quite
  * some code here needs to be generalized anyway.
  */
 #define OCDEN (1 << 7)
-static unsigned char hfuse_backup;
-static int internal_hfuse_handling;
+
+/* The length of the device descriptor is firmware-dependent. */
+static size_t device_descriptor_length;
 
 static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 			      unsigned long addr, unsigned char * value);
@@ -537,6 +534,7 @@ static int jtagmkII_getsync(PROGRAMMER * pgm) {
 #define MAXTRIES 33
   unsigned char buf[3], *resp, c = 0xff;
   int status;
+  unsigned int fwver;
 
   if (verbose >= 3)
     fprintf(stderr, "%s: jtagmkII_getsync()\n", progname);
@@ -563,6 +561,8 @@ static int jtagmkII_getsync(PROGRAMMER * pgm) {
 
     if (status > 0) {
       if ((c = resp[0]) == RSP_SIGN_ON) {
+	fwver = ((unsigned)resp[8] << 8) | (unsigned)resp[7];
+	memcpy(serno, resp + 10, 6);
 	if (verbose >= 1 && status > 17) {
 	  fprintf(stderr, "JTAG ICE mkII sign-on message:\n");
 	  fprintf(stderr, "Communications protocol version: %u\n",
@@ -581,7 +581,6 @@ static int jtagmkII_getsync(PROGRAMMER * pgm) {
 		  (unsigned)resp[8], (unsigned)resp[7]);
 	  fprintf(stderr, "  hardware version:              %u\n",
 		  (unsigned)resp[9]);
-	  memcpy(serno, resp + 10, 6);
 	  fprintf(stderr, "Serial number:                   "
 		  "%02x:%02x:%02x:%02x:%02x:%02x\n",
 		  serno[0], serno[1], serno[2], serno[3], serno[4], serno[5]);
@@ -607,6 +606,28 @@ static int jtagmkII_getsync(PROGRAMMER * pgm) {
 	      progname, c);
     return -1;
   }
+
+  device_descriptor_length = sizeof(struct device_descriptor);
+  /*
+   * There's no official documentation from Atmel about what firmware
+   * revision matches what device descriptor length.  The algorithm
+   * below has been found empirically.
+   */
+#define FWVER(maj, min) ((maj << 8) | (min))
+  if (fwver < FWVER(3, 16)) {
+    device_descriptor_length -= 2;
+    fprintf(stderr,
+	    "%s: jtagmkII_getsync(): "
+	    "S_MCU firmware version might be too old to work correctly\n",
+	    progname);
+  } else if (fwver < FWVER(4, 0)) {
+    device_descriptor_length -= 2;
+  }
+#undef FWVER
+  if (verbose >= 2)
+    fprintf(stderr,
+	    "%s: jtagmkII_getsync(): Using a %u-byte device descriptor\n",
+	    progname, device_descriptor_length);
 
   /* Turn the ICE into JTAG mode */
   buf[0] = EMULATOR_MODE_JTAG;
@@ -718,6 +739,7 @@ static void jtagmkII_set_devdescr(PROGRAMMER * pgm, AVRPART * p)
   sendbuf.dd.ucSPMCRAddress = p->spmcr;
   sendbuf.dd.ucRAMPZAddress = p->rampz;
   sendbuf.dd.ucIDRAddress = p->idr;
+  u16_to_b2(sendbuf.dd.EECRAddress, p->eecr);
   sendbuf.dd.ucAllowFullPageBitstream =
     (p->flags & AVRPART_ALLOWFULLPAGEBITSTREAM) != 0;
   sendbuf.dd.EnablePageProgramming =
@@ -738,7 +760,8 @@ static void jtagmkII_set_devdescr(PROGRAMMER * pgm, AVRPART * p)
     fprintf(stderr, "%s: jtagmkII_set_devdescr(): "
 	    "Sending set device descriptor command: ",
 	    progname);
-  jtagmkII_send(pgm, (unsigned char *)&sendbuf, sizeof sendbuf);
+  jtagmkII_send(pgm, (unsigned char *)&sendbuf,
+		device_descriptor_length + sizeof(unsigned char));
 
   status = jtagmkII_recv(pgm, &resp);
   if (status <= 0) {
@@ -986,19 +1009,14 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
   if (jtagmkII_reset(pgm) < 0)
     return -1;
 
-  internal_hfuse_handling = 1;
   strcpy(hfuse.desc, "hfuse");
-  if (jtagmkII_read_byte(pgm, p, &hfuse, 1, &hfuse_backup) < 0) {
-    internal_hfuse_handling = 0;
+  if (jtagmkII_read_byte(pgm, p, &hfuse, 1, &b) < 0)
     return -1;
-  }
-  b = hfuse_backup;
-  b &= ~OCDEN;
-  if (jtagmkII_write_byte(pgm, p, &hfuse, 1, b) < 0) {
-    internal_hfuse_handling = 0;
-    return -1;
-  }
-  internal_hfuse_handling = 0;
+  if ((b & OCDEN) != 0)
+    fprintf(stderr,
+	    "%s: jtagmkII_initialize(): warning: OCDEN fuse not programmed, "
+	    "single-byte EEPROM updates not possible\n",
+	    progname);
 
   return 0;
 }
@@ -1050,45 +1068,9 @@ static void jtagmkII_close(PROGRAMMER * pgm)
 {
   int status;
   unsigned char buf[1], *resp, c;
-  AVRMEM hfuse;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkII_close()\n", progname);
-
-  internal_hfuse_handling = 1;
-  strcpy(hfuse.desc, "hfuse");
-  (void)jtagmkII_write_byte(pgm, NULL, &hfuse, 1, hfuse_backup);
-  internal_hfuse_handling = 0;
-
-  buf[0] = CMND_RESET;
-  if (verbose >= 2)
-    fprintf(stderr, "%s: jtagmkII_close(): Sending restore target command: ",
-	    progname);
-  jtagmkII_send(pgm, buf, 1);
-
-  status = jtagmkII_recv(pgm, &resp);
-  if (status <= 0) {
-    if (verbose >= 2)
-      putc('\n', stderr);
-    fprintf(stderr,
-	    "%s: jtagmkII_close(): "
-	    "timeout/error communicating with programmer (status %d)\n",
-	    progname, status);
-  } else {
-    if (verbose >= 3) {
-      putc('\n', stderr);
-      jtagmkII_prmsg(pgm, resp, status);
-    } else if (verbose == 2)
-      fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[0], status);
-    c = resp[0];
-    free(resp);
-    if (c != RSP_OK) {
-      fprintf(stderr,
-	      "%s: jtagmkII_close(): "
-	      "bad response to restore target command: 0x%02x\n",
-	      progname, c);
-    }
-  }
 
   buf[0] = CMND_GO;
   if (verbose >= 2)
@@ -1397,10 +1379,6 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   } else if (strcmp(mem->desc, "hfuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 1;
-    if (!internal_hfuse_handling) {
-      *value = hfuse_backup;
-      return 0;
-    }
   } else if (strcmp(mem->desc, "efuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 2;
@@ -1497,7 +1475,7 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 {
   unsigned char cmd[11];
   unsigned char *resp = NULL, writedata;
-  int status, tries, need_progmode = 1, is_hfuse = 0;
+  int status, tries, need_progmode = 1;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkII_write_byte(.., %s, 0x%lx, ...)\n",
@@ -1519,10 +1497,6 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   } else if (strcmp(mem->desc, "hfuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 1;
-    if (!internal_hfuse_handling) {
-      is_hfuse = 1;
-      writedata &= ~OCDEN;
-    }
   } else if (strcmp(mem->desc, "efuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 2;
@@ -1583,8 +1557,6 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     goto fail;
   }
 
-  if (is_hfuse && !internal_hfuse_handling)
-    hfuse_backup = data;
   free(resp);
   return 0;
 

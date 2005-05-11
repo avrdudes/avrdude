@@ -130,6 +130,7 @@ default_parallel { yylval=NULL; return K_DEFAULT_PARALLEL; }
 default_programmer { yylval=NULL; return K_DEFAULT_PROGRAMMER; }
 default_serial   { yylval=NULL; return K_DEFAULT_SERIAL; }
 devicecode       { yylval=NULL; return K_DEVICECODE; }
+eecr             { yylval=NULL; return K_EECR; }
 eeprom           { yylval=NULL; return K_EEPROM; }
 enablepageprogramming { yylval=NULL; return K_ENABLEPAGEPROGRAMMING; }
 errled           { yylval=NULL; return K_ERRLED; }

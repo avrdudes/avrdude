@@ -67,6 +67,8 @@
 #       idr              = <num> ;                # IO addr of IDR (OCD) reg.
 #       rampz            = <num> ;                # IO addr of RAMPZ reg.
 #       spmcr            = <num> ;                # mem addr of SPMC[S]R reg.
+#       eecr             = <num> ;                # mem addr of EECR reg.
+#                                                 # (only when != 0x3c)
 #
 #       memory <memtype>
 #           paged           = <yes/no> ;          # yes / no
@@ -2051,6 +2053,7 @@ part
     idr                 = 0x31;
     spmcr               = 0x57;
     rampz               = 0x3b;
+    eecr                = 0x3f;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */

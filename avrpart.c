@@ -366,7 +366,7 @@ AVRPART * avr_new_part(void)
   p->desc[0] = 0;
   p->reset_disposition = RESET_DEDICATED;
   p->retry_pulse = PIN_AVR_SCK;
-  p->flags = AVRPART_SERIALOK | AVRPART_PARALLELOK;
+  p->flags = AVRPART_SERIALOK | AVRPART_PARALLELOK | AVRPART_ENABLEPAGEPROGRAMMING;
   p->config_file[0] = 0;
   p->lineno = 0;
 
