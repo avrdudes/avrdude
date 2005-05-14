@@ -954,7 +954,7 @@ int main(int argc, char * argv [])
      */
     fprintf(stderr,
             "\n%s: Version %s\n"
-            "%sCopyright (c) 2000-2004 Brian Dean, http://www.bdmicro.com/\n\n",
+            "%sCopyright (c) 2000-2005 Brian Dean, http://www.bdmicro.com/\n\n",
             progname, version, progbuf);
   }
 
