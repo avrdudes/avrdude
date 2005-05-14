@@ -1,3 +1,46 @@
+2005-05-10  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* Makefile.am:
+	* avr910.c:
+	* avrdude.1:
+	* avrdude.conf.in:
+	* avrpart.c:
+	* avrpart.h:
+	* butterfly.c:
+	* config_gram.y:
+	* crc16.c:
+	* crc16.h:
+	* jtagmkII.c:
+	* jtagmkII.h:
+	* jtagmkII_private.h:
+	* lexer.l:
+	* main.c:
+	* pgm.h:
+	* serial.h:
+	* ser_posix.c:
+	* ser_win32.c:
+	* stk500.c:
+	* stk500v2.c:
+	* stk500v2.h:
+	* stk500v2_private.h:
+	* doc/avrdude.texi:
+
+	Mega-commit to bring in both, the STK500v2 support from Erik
+	Walthinsen, as well as JTAG ICE mkII support (by me).
+
+	Note that for the JTAG ICE, I did change a few things in the
+	internal API.  Notably I made the serial receive timeout
+	configurable by the backends via an exported variable (done in
+	both the Posix and the Win32 implementation), and I made the
+	serial_recv() function return a -1 instead of bailing out with
+	exit(1) upon encountering a receive timeout (currently only done
+	in the Posix implementation).  Both measures together allow me to
+	receive a datastreem from the ICE at 115 kbps on a somewhat lossy
+	PCI multi-UART card that occasionally drops a character.  The JTAG
+	ICE mkII protocol has enough of safety layers to allow recovering
+	from these events, but the previous code wasn't prepared for any
+	kind of recovery.  The Win32 change for this still has to be done.
+
 2005-01-24  Colin O'Flynn  <coflynn@newae.com>
 
 	* main.c: Add "safe mode". Fuse settings will be restored at the end
