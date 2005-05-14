@@ -1,3 +1,11 @@
+2005/05/14  Brian S. Dean  <bsd@bsdhome.com>
+
+	* configure.ac:
+	* main.c:
+	  Update version for beta release and copyright message.
+	  Change the default port to 'serial' for the newly added serial
+	  programmers stk500v2 and jtagmkii.
+
 2005-05-10  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* Makefile.am:
@@ -41,6 +49,34 @@
 	from these events, but the previous code wasn't prepared for any
 	kind of recovery.  The Win32 change for this still has to be done.
 
+2005/02/11  Brian S. Dean  <bsd@bsdhome.com>
+
+	* main.c:
+	  Exit non-zero if safe-mode reverts fuse bits that were requested on
+	  the command-line.
+
+	  Variable declarations must only appear at the beginning of a block.
+
+2005/02/10  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrdude.1:
+	  Document -u option to disable safe mode.
+
+2005/02/10  Brian S. Dean  <bsd@bsdhome.com>
+
+	* configure.ac:
+	  doc/Makefile is now dependent on whether or not doc is enabled.
+
+2005/02/10  Brian S. Dean  <bsd@bsdhome.com>
+
+	* Makefile.am:
+	* configure.ac:
+	  Disable the doc build by default; the tools needed to build
+	  doc are either not available on all systems or are at best
+	  inconvenient to build and install.  The doc can still be built, one
+	  just needs to specify --enable-doc at configure time.
+	
+
 2005-01-24  Colin O'Flynn  <coflynn@newae.com>
 
 	* main.c: Add "safe mode". Fuse settings will be restored at the end
@@ -49,6 +85,19 @@
 	* safemode.h: New file. Safe mode support.
 	* Makefile.am: Add new files.
 	* doc/avrdude.texi: Document new Safe Mode feature and switch.
+
+2004/12/22  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrdude.conf.in:
+	  Add support for "Xilinx JTAG cable". Contributed by:
+	  Tymm <tymm@booyaka.com>
+
+	  Add support for the AT90CAN128.  Not sure if all the instruction
+	  encoding is correct, specifically the address bits don't exactly match
+	  those of the preliminary datasheet that I have, but I don't see how
+	  they could be right.  Tested with STK500 and it works there.
+	  Instruction encodings have not been tested due to lack of a parallel
+	  port on my Mac development box.
 
 2004-07-19  Theodore A. Roth  <troth@openavr.org>
 
