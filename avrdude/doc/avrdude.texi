@@ -374,6 +374,13 @@ Atmel Butterfly Development Board
 @itemx dt006
 Dontronics DT006
 
+@item jtagmkII
+@itemx jtag2
+Atmel JTAG ICE mkII (default speed 19200 Bd)
+
+@itemx jtag2fast
+Atmel JTAG ICE mkII, running at 115200 Bd
+
 @itemx pavr
 Jason Kyle's pAVR Serial Programmer
 
@@ -390,7 +397,10 @@ Steve Bolt's Programmer
 STK200
 
 @itemx stk500
-Atmel STK500                  
+Atmel STK500
+
+@itemx stk500v2
+Atmel STK500, running a verrsion 2.x firmware
 
 @end table
 
