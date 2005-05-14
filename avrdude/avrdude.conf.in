@@ -282,6 +282,14 @@ programmer
   type  = jtagmkii;
 ;
 
+# JTAG ICE mkII @ 115200 Bd
+programmer
+  id    = "jtag2fast";
+  desc  = "Atmel JTAG ICE mkII";
+  baudrate = 115200;
+  type  = jtagmkii;
+;
+
 programmer
   id    = "pavr";
   desc  = "Jason Kyle's pAVR Serial Programmer";
