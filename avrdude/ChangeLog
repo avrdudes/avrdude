@@ -1,3 +1,10 @@
+2005-05-19  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.1:
+	* doc/avrdude.texi: Document that the JTAG ICE mkII code currently
+	cannot write to flash one byte at a time.  Also mention the bug
+	tracker interface on savannah.
+
 2005/05/14  Brian S. Dean  <bsd@bsdhome.com>
 
 	* configure.ac:

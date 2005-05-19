@@ -1608,6 +1608,11 @@ line driven and for writing the batch files.
 @node Troubleshooting, ,Platform Dependent Information ,Top
 @appendix Troubleshooting
 
+@noindent
+In general, please report any bugs encountered via
+@url{http://savannah.nongnu.org/bugs/?group=avrdude}.
+
+
 @itemize @bullet
 
 @item
@@ -1656,6 +1661,12 @@ response to a number of occasions when an AVR had stopped responding because the
 by an error caused by the programmer. Programmer of course meaning both the physical device, and the
 person sitting at the keyboard.
 
+@item
+Problem: Updating the flash ROM from terminal mode does not work with the
+JTAG ICE mkII.
+
+Solution: None at this time.  Currently, the JTAG ICE mkII code cannot
+write to the flash ROM one byte at a time.
 
 
 
