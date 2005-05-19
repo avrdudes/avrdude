@@ -543,4 +543,10 @@ This man page by
 .ie t J\(:org Wunsch.
 .el Joerg Wunsch.
 .Sh BUGS
-Please report bugs to avrdude-dev@nongnu.org.
+Please report bugs via
+.Dl "http://savannah.nongnu.org/bugs/?group=avrdude" .
+.Pp
+The JTAGICE mkII programmer currently cannot write to the flash ROM
+one byte at a time.
+For that reason, updating the flash ROM from terminal mode does not
+work.
