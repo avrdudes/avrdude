@@ -1,3 +1,10 @@
+2005-05-27  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* jtagmkII.c: fix a signedness bug when shifting bits; when
+	discarding a packet for being overly long, restart the state
+	machine instead of attempting to drop a preposterous amount
+	of data.
+
 2005-05-19  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.1:

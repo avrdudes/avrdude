@@ -99,9 +99,9 @@ b4_to_u32(unsigned char *b)
 {
   unsigned long l;
   l = b[0];
-  l += b[1] << 8;
-  l += b[2] << 16;
-  l += b[3] << 24;
+  l += (unsigned)b[1] << 8;
+  l += (unsigned)b[2] << 16;
+  l += (unsigned)b[3] << 24;
 
   return l;
 }
@@ -120,7 +120,7 @@ b2_to_u16(unsigned char *b)
 {
   unsigned short l;
   l = b[0];
-  l += b[1] << 8;
+  l += (unsigned)b[1] << 8;
 
   return l;
 }
@@ -411,7 +411,7 @@ static int jtagmkII_recv_frame(PROGRAMMER * pgm, unsigned char **msg,
       case sSEQNUM1:
       case sSEQNUM2:
 	r_seqno >>= 8;
-	r_seqno |= (c << 8);
+	r_seqno |= ((unsigned)c << 8);
 	state++;
 	break;
       case sSIZE1:
@@ -419,7 +419,7 @@ static int jtagmkII_recv_frame(PROGRAMMER * pgm, unsigned char **msg,
       case sSIZE3:
       case sSIZE4:
 	msglen >>= 8;
-	msglen |= (c << 24);
+	msglen |= ((unsigned)c << 24);
         state++;
         break;
       case sTOKEN:
@@ -430,7 +430,8 @@ static int jtagmkII_recv_frame(PROGRAMMER * pgm, unsigned char **msg,
 		    "%s: jtagmkII_recv(): msglen %lu exceeds max message "
 		    "size %u, ignoring message\n",
 		    progname, msglen, MAX_MESSAGE);
-	    ignorpkt++;
+	    state = sSTART;
+	    headeridx = 0;
 	  } else if ((buf = malloc(msglen + 10)) == NULL) {
 	    fprintf(stderr, "%s: jtagmkII_recv(): out of memory\n",
 		    progname);
