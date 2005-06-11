@@ -1,3 +1,7 @@
+2005-06-11  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Add support for the ATmega329x/649x.
+
 2005-05-27  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* jtagmkII.c: fix a signedness bug when shifting bits; when
