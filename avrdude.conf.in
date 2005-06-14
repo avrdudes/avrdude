@@ -2436,6 +2436,17 @@ part
         write           = "1 0 1 0  1 1 0 0   1 0 1 0  1 0 0 0",
                           "x x x x  x x x x   i i i i  i i i i";
       ;
+
+    memory "efuse"
+        size            = 1;
+
+        read            = "0 1 0 1  0 0 0 0  0 0 0 0  1 0 0 0",
+                          "x x x x  x x x x  o o o o  o o o o";
+
+        write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
+                          "x x x x  x x x x  1 1 1 1  1 i i i";
+      ;
+
     memory "signature"
         size            = 3;
         read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
@@ -2578,6 +2589,17 @@ part
         write           = "1 0 1 0  1 1 0 0   1 0 1 0  1 0 0 0",
                           "x x x x  x x x x   i i i i  i i i i";
       ;
+
+    memory "efuse"
+        size            = 1;
+
+        read            = "0 1 0 1  0 0 0 0  0 0 0 0  1 0 0 0",
+                          "x x x x  x x x x  o o o o  o o o o";
+
+        write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
+                          "x x x x  x x x x  1 1 1 1  1 i i i";
+      ;
+
     memory "signature"
         size            = 3;
         read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
@@ -2720,6 +2742,17 @@ part
         write           = "1 0 1 0  1 1 0 0   1 0 1 0  1 0 0 0",
                           "x x x x  x x x x   i i i i  i i i i";
       ;
+
+    memory "efuse"
+        size            = 1;
+
+        read            = "0 1 0 1  0 0 0 0  0 0 0 0  1 0 0 0",
+                          "x x x x  x x x x  o o o o  o o o o";
+
+        write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
+                          "x x x x  x x x x  1 1 1 1  1 i i i";
+      ;
+
     memory "signature"
         size            = 3;
         read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
@@ -2860,7 +2893,7 @@ part
                           "x x x x  x x x x  o o o o  o o o o";
 
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
-                          "x x x x  x x x x  1 1 1 i  i i i 1";
+                          "x x x x  x x x x  1 1 1 1  1 i i i";
       ;
 
     memory "lock"

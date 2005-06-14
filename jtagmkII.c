@@ -874,6 +874,8 @@ static int jtagmkII_program_enable(PROGRAMMER * pgm)
 	    "%s: jtagmkII_program_enable(): "
 	    "bad response to enter progmode command: 0x%02x\n",
 	    progname, c);
+    if (c == RSP_ILLEGAL_JTAG_ID)
+      fprintf(stderr, "%s: JTAGEN fuse disabled?\n", progname);
     return -1;
   }
 

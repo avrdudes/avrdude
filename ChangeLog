@@ -1,3 +1,9 @@
+2005-06-14  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Add support for the ATmega164/324/644.
+	* jtagmkII.c: If enter_progmode fails with RSP_ILLEGAL_JTAG_ID, give
+	the user a hint that the JTAGEN fuse might be unset.
+
 2005-06-11  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: Add support for the ATmega329x/649x.
