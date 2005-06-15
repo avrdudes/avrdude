@@ -2062,6 +2062,7 @@ part
     spmcr               = 0x57;
     rampz               = 0x3b;
     eecr                = 0x3f;
+    allowfullpagebitstream = no;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
