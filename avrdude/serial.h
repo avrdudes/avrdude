@@ -32,12 +32,25 @@
 
 extern long serial_recv_timeout;
 
-extern int serial_open(char * port, long baud);
-extern int serial_setspeed(int fd, long baud);
-extern void serial_close(int fd);
+struct serial_device
+{
+  int (*open)(char * port, long baud);
+  int (*setspeed)(int fd, long baud);
+  void (*close)(int fd);
 
-extern int serial_send(int fd, char * buf, size_t buflen);
-extern int serial_recv(int fd, char * buf, size_t buflen);
-extern int serial_drain(int fd, int display);
+  int (*send)(int fd, char * buf, size_t buflen);
+  int (*recv)(int fd, char * buf, size_t buflen);
+  int (*drain)(int fd, int display);
+};
+
+extern struct serial_device *serdev;
+extern struct serial_device serial_serdev, usb_serdev;
+
+#define serial_open (serdev->open)
+#define serial_setspeed (serdev->setspeed)
+#define serial_close (serdev->close)
+#define serial_send (serdev->send)
+#define serial_recv (serdev->recv)
+#define serial_drain (serdev->drain)
 
 #endif /* __serial_h__ */

@@ -1047,6 +1047,15 @@ static int jtagmkII_open(PROGRAMMER * pgm, char * port)
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkII_open()\n", progname);
 
+#if defined(HAVE_LIBUSB)
+  /*
+   * If the port name starts with "usb", divert the serial routines
+   * to the USB ones.
+   */
+  if (strncmp(port, "usb", 3) == 0)
+    serdev = &usb_serdev;
+#endif
+
   strcpy(pgm->port, port);
   /*
    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon

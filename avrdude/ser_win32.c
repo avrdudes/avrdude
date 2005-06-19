@@ -72,7 +72,7 @@ static DWORD serial_baud_lookup(long baud)
 }
 
 
-BOOL serial_w32SetTimeOut(HANDLE hComPort, DWORD timeout) // in ms
+static BOOL serial_w32SetTimeOut(HANDLE hComPort, DWORD timeout) // in ms
 {
 	COMMTIMEOUTS ctmo;
 	ZeroMemory (&ctmo, sizeof(COMMTIMEOUTS));
@@ -83,7 +83,7 @@ BOOL serial_w32SetTimeOut(HANDLE hComPort, DWORD timeout) // in ms
 	return SetCommTimeouts(hComPort, &ctmo);
 }
 
-int serial_setspeed(int fd, long baud)
+static int ser_setspeed(int fd, long baud)
 {
 	DCB dcb;
 	HANDLE hComPort = (HANDLE)fd;
@@ -105,13 +105,13 @@ int serial_setspeed(int fd, long baud)
 }
 
 
-int serial_open(char * port, long baud)
+static int ser_open(char * port, long baud)
 {
 	LPVOID lpMsgBuf;
 	HANDLE hComPort=INVALID_HANDLE_VALUE;
 
 	/* if (hComPort!=INVALID_HANDLE_VALUE) 
-		fprintf(stderr, "%s: serial_open(): \"%s\" is already open\n",
+		fprintf(stderr, "%s: ser_open(): \"%s\" is already open\n",
 				progname, port);
 	*/
 
@@ -129,7 +129,7 @@ int serial_open(char * port, long baud)
 			(LPTSTR) &lpMsgBuf,
 			0,
 			NULL);
-		fprintf(stderr, "%s: serial_open(): can't open device \"%s\": %s\n",
+		fprintf(stderr, "%s: ser_open(): can't open device \"%s\": %s\n",
 				progname, port, (char*)lpMsgBuf);
 		LocalFree( lpMsgBuf );
 		exit(1);
@@ -138,16 +138,16 @@ int serial_open(char * port, long baud)
 	if (!SetupComm(hComPort, W32SERBUFSIZE, W32SERBUFSIZE))
 	{
 		CloseHandle(hComPort);
-		fprintf(stderr, "%s: serial_open(): can't set buffers for \"%s\"\n",
+		fprintf(stderr, "%s: ser_open(): can't set buffers for \"%s\"\n",
 				progname, port);
 		exit(1);
 	}
 
 
-	if (serial_setspeed((int)hComPort, baud) != 0)
+	if (ser_setspeed((int)hComPort, baud) != 0)
 	{
 		CloseHandle(hComPort);
-		fprintf(stderr, "%s: serial_open(): can't set com-state for \"%s\"\n",
+		fprintf(stderr, "%s: ser_open(): can't set com-state for \"%s\"\n",
 				progname, port);
 		exit(1);
 	}
@@ -155,7 +155,7 @@ int serial_open(char * port, long baud)
 	if (!serial_w32SetTimeOut(hComPort,0))
 	{
 		CloseHandle(hComPort);
-		fprintf(stderr, "%s: serial_open(): can't set initial timeout for \"%s\"\n",
+		fprintf(stderr, "%s: ser_open(): can't set initial timeout for \"%s\"\n",
 				progname, port);
 		exit(1);
 	}
@@ -164,7 +164,7 @@ int serial_open(char * port, long baud)
 }
 
 
-void serial_close(int fd)
+static void ser_close(int fd)
 {
 	HANDLE hComPort=(HANDLE)fd;
 	if (hComPort != INVALID_HANDLE_VALUE)
@@ -174,7 +174,7 @@ void serial_close(int fd)
 }
 
 
-int serial_send(int fd, char * buf, size_t buflen)
+static int ser_send(int fd, char * buf, size_t buflen)
 {
 	size_t len = buflen;
 	unsigned char c='\0';
@@ -183,7 +183,7 @@ int serial_send(int fd, char * buf, size_t buflen)
 	HANDLE hComPort=(HANDLE)fd;
 
 	if (hComPort == INVALID_HANDLE_VALUE) {
-		fprintf(stderr, "%s: serial_send(): port not open\n",
+		fprintf(stderr, "%s: ser_send(): port not open\n",
               progname); 
 		exit(1);
 	}
@@ -213,13 +213,13 @@ int serial_send(int fd, char * buf, size_t buflen)
 	serial_w32SetTimeOut(hComPort,500);
 
 	if (!WriteFile (hComPort, buf, buflen, &written, NULL)) {
-		fprintf(stderr, "%s: serial_send(): write error: %s\n",
+		fprintf(stderr, "%s: ser_send(): write error: %s\n",
               progname, "sorry no info avail"); // TODO
 		exit(1);
 	}
 
 	if (written != buflen) {
-		fprintf(stderr, "%s: serial_send(): size/send mismatch\n",
+		fprintf(stderr, "%s: ser_send(): size/send mismatch\n",
               progname); 
 		exit(1);
 	}
@@ -228,7 +228,7 @@ int serial_send(int fd, char * buf, size_t buflen)
 }
 
 
-int serial_recv(int fd, char * buf, size_t buflen)
+static int ser_recv(int fd, char * buf, size_t buflen)
 {
 	unsigned char c;
 	char * p = buf;
@@ -238,7 +238,7 @@ int serial_recv(int fd, char * buf, size_t buflen)
 	HANDLE hComPort=(HANDLE)fd;
 	
 	if (hComPort == INVALID_HANDLE_VALUE) {
-		fprintf(stderr, "%s: serial_read(): port not open\n",
+		fprintf(stderr, "%s: ser_read(): port not open\n",
               progname); 
 		exit(1);
 	}
@@ -257,7 +257,7 @@ int serial_recv(int fd, char * buf, size_t buflen)
 			(LPTSTR) &lpMsgBuf,
 			0,
 			NULL 	);
-		fprintf(stderr, "%s: serial_recv(): read error: %s\n",
+		fprintf(stderr, "%s: ser_recv(): read error: %s\n",
 			      progname, (char*)lpMsgBuf);
 		LocalFree( lpMsgBuf );
 		exit(1);
@@ -288,7 +288,7 @@ int serial_recv(int fd, char * buf, size_t buflen)
 }
 
 
-int serial_drain(int fd, int display)
+static int ser_drain(int fd, int display)
 {
 	// int rc;
 	unsigned char buf[10];
@@ -298,7 +298,7 @@ int serial_drain(int fd, int display)
 	HANDLE hComPort=(HANDLE)fd;
 
   	if (hComPort == INVALID_HANDLE_VALUE) {
-		fprintf(stderr, "%s: serial_drain(): port not open\n",
+		fprintf(stderr, "%s: ser_drain(): port not open\n",
               progname); 
 		exit(1);
 	}
@@ -323,7 +323,7 @@ int serial_drain(int fd, int display)
 				(LPTSTR) &lpMsgBuf,
 				0,
 				NULL 	);
-			fprintf(stderr, "%s: serial_drain(): read error: %s\n",
+			fprintf(stderr, "%s: ser_drain(): read error: %s\n",
 					  progname, (char*)lpMsgBuf);
 			LocalFree( lpMsgBuf );
 			exit(1);
@@ -339,5 +339,17 @@ int serial_drain(int fd, int display)
 	} // while
   return 0;
 }
+
+struct serial_device serial_serdev =
+{
+  .open = ser_open,
+  .setspeed = ser_setspeed,
+  .close = ser_close,
+  .send = ser_send,
+  .recv = ser_recv,
+  .drain = ser_drain,
+};
+
+struct serial_device *serdev = &serial_serdev;
 
 #endif /* WIN32NATIVE */

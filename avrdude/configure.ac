@@ -44,6 +44,7 @@ AM_PROG_LEX
 AC_CHECK_LIB([termcap], [tputs])
 AC_CHECK_LIB([ncurses], [tputs])
 AC_CHECK_LIB([readline], [readline])
+AC_CHECK_LIB([usb], [usb_open])
 
 # Checks for header files.
 AC_HEADER_STDC

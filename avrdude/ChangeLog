@@ -1,3 +1,16 @@
+2005-06-19  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* Makefile.am: Implement libusb-base USB transport for the
+	JTAG ICE mkII.
+	* configure.ac: ditto.
+	* jtagmkII.c: ditto.
+	* ser_posix.c: ditto.
+	* ser_win32.c: ditto.
+	* serial.h: ditto.
+	* usb_libusb.c: ditto (New file).
+	* avrdude.1: document the USB transport.
+	* doc/avrdude.texi: ditto.
+
 2005-06-15  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: The AT90CAN128 has AllowFullPageBitstream = no.
