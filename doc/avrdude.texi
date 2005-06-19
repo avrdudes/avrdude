@@ -488,6 +488,15 @@ used. See Appendix A, Platform Dependent Information, to find out the
 default port names for your platform. If you need to use a different
 parallel or serial port, use this option to specify the alternate port name.
 
+For the JTAG ICE mkII, if AVRDUDE has been built with libusb support,
+@var{port} may alternatively be specified as
+@var{usb}[:@var{serialno}].  In that case, the JTAG ICE mkII will be
+looked up on USB.  If @var{serialno} is also specified, it will be
+matched against the serial number read from any JTAG ICE mkII found on
+USB.  The match is done after stripping any existing colons from the
+given serial number, and right-to-left, so only the least significant
+bytes from the serial number need to be given.
+
 @item -q
 Disable (or quell) output of the progress bar while reading or writing
 to the device.
@@ -594,6 +603,7 @@ should not be used.
 
 @end table
 
+@page
 @c
 @c Node
 @c
@@ -642,6 +652,7 @@ avrdude done.  Thank you.
 @end cartouche
 @end example
 
+@page
 @noindent
 Upload the flash memory from the ATmega128 connected to the STK500
 programmer and save it in raw binary format in the file named
@@ -670,6 +681,7 @@ avrdude done.  Thank you.
 @end cartouche
 @end example
 
+@page
 @noindent
 Using the default programmer, download the file @code{diag.hex} to
 flash, @code{eeprom.hex} to EEPROM, and set the Extended, High, and Low
@@ -715,6 +727,29 @@ avrdude: 19278 bytes of flash verified
 avrdude done.  Thank you.
 
 % 
+@end cartouche
+@end example
+
+@page
+@noindent
+Connect to the JTAG ICE mkII which serial number ends up in 1C37 via
+USB, and enter terminal mode:
+
+@example
+@cartouche
+
+% avrdude -c jtag2 -p m649 -P usb:1c:37 -t
+
+avrdude: AVR device initialized and ready to accept instructions
+
+Reading | ################################################## | 100% 0.03s
+
+avrdude: Device signature = 0x1e9603
+
+[ ... terminal mode output skipped for brevity ... ]
+
+avrdude done.  Thank you.
+
 @end cartouche
 @end example
 

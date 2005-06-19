@@ -38,6 +38,8 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include "serial.h"
+
 extern char *progname;
 extern int verbose;
 
@@ -78,7 +80,7 @@ static speed_t serial_baud_lookup(long baud)
   exit(1);
 }
 
-int serial_setspeed(int fd, long baud)
+static int ser_setspeed(int fd, long baud)
 {
   int rc;
   struct termios termios;
@@ -92,7 +94,7 @@ int serial_setspeed(int fd, long baud)
    */
   rc = tcgetattr(fd, &termios);
   if (rc < 0) {
-    fprintf(stderr, "%s: serial_setspeed(): tcgetattr() failed, %s", 
+    fprintf(stderr, "%s: ser_setspeed(): tcgetattr() failed, %s", 
             progname, strerror(errno));
     return -errno;
   }
@@ -110,7 +112,7 @@ int serial_setspeed(int fd, long baud)
   
   rc = tcsetattr(fd, TCSANOW, &termios);
   if (rc < 0) {
-    fprintf(stderr, "%s: serial_setspeed(): tcsetattr() failed, %s", 
+    fprintf(stderr, "%s: ser_setspeed(): tcsetattr() failed, %s", 
             progname, strerror(errno));
     return -errno;
   }
@@ -127,7 +129,7 @@ int serial_setspeed(int fd, long baud)
 }
 
 
-int serial_open(char * port, int baud)
+static int ser_open(char * port, long baud)
 {
   int rc;
   int fd;
@@ -137,7 +139,7 @@ int serial_open(char * port, int baud)
    */
   fd = open(port, O_RDWR | O_NOCTTY /*| O_NONBLOCK*/);
   if (fd < 0) {
-    fprintf(stderr, "%s: serial_open(): can't open device \"%s\": %s\n",
+    fprintf(stderr, "%s: ser_open(): can't open device \"%s\": %s\n",
             progname, port, strerror(errno));
     exit(1);
   }
@@ -145,10 +147,10 @@ int serial_open(char * port, int baud)
   /*
    * set serial line attributes
    */
-  rc = serial_setspeed(fd, baud);
+  rc = ser_setspeed(fd, baud);
   if (rc) {
     fprintf(stderr, 
-            "%s: serial_open(): can't set attributes for device \"%s\"\n",
+            "%s: ser_open(): can't set attributes for device \"%s\"\n",
             progname, port);
     exit(1);
   }
@@ -157,7 +159,7 @@ int serial_open(char * port, int baud)
 }
 
 
-void serial_close(int fd)
+static void ser_close(int fd)
 {
   /* FIXME: Should really restore the terminal to original state here. */
 
@@ -165,7 +167,7 @@ void serial_close(int fd)
 }
 
 
-int serial_send(int fd, char * buf, size_t buflen)
+static int ser_send(int fd, char * buf, size_t buflen)
 {
   struct timeval timeout, to2;
   fd_set wfds;
@@ -212,7 +214,7 @@ int serial_send(int fd, char * buf, size_t buflen)
     if (nfds == 0) {
       if (verbose >= 1)
 	fprintf(stderr,
-		"%s: serial_send(): programmer is not responding\n",
+		"%s: ser_send(): programmer is not responding\n",
 		progname);
       exit(1);
     }
@@ -221,7 +223,7 @@ int serial_send(int fd, char * buf, size_t buflen)
         goto reselect;
       }
       else {
-        fprintf(stderr, "%s: serial_send(): select(): %s\n",
+        fprintf(stderr, "%s: ser_send(): select(): %s\n",
                 progname, strerror(errno));
         exit(1);
       }
@@ -229,7 +231,7 @@ int serial_send(int fd, char * buf, size_t buflen)
 
     rc = write(fd, p, (len > 1024) ? 1024 : len);
     if (rc < 0) {
-      fprintf(stderr, "%s: serial_send(): write error: %s\n",
+      fprintf(stderr, "%s: ser_send(): write error: %s\n",
               progname, strerror(errno));
       exit(1);
     }
@@ -241,7 +243,7 @@ int serial_send(int fd, char * buf, size_t buflen)
 }
 
 
-int serial_recv(int fd, char * buf, size_t buflen)
+static int ser_recv(int fd, char * buf, size_t buflen)
 {
   struct timeval timeout, to2;
   fd_set rfds;
@@ -264,19 +266,19 @@ int serial_recv(int fd, char * buf, size_t buflen)
     if (nfds == 0) {
       if (verbose > 1)
 	fprintf(stderr,
-		"%s: serial_recv(): programmer is not responding\n",
+		"%s: ser_recv(): programmer is not responding\n",
 		progname);
       return -1;
     }
     else if (nfds == -1) {
       if (errno == EINTR || errno == EAGAIN) {
 	fprintf(stderr,
-		"%s: serial_recv(): programmer is not responding,reselecting\n",
+		"%s: ser_recv(): programmer is not responding,reselecting\n",
 		progname);
         goto reselect;
       }
       else {
-        fprintf(stderr, "%s: serial_recv(): select(): %s\n",
+        fprintf(stderr, "%s: ser_recv(): select(): %s\n",
                 progname, strerror(errno));
         exit(1);
       }
@@ -284,7 +286,7 @@ int serial_recv(int fd, char * buf, size_t buflen)
 
     rc = read(fd, p, (buflen - len > 1024) ? 1024 : buflen - len);
     if (rc < 0) {
-      fprintf(stderr, "%s: serial_recv(): read error: %s\n",
+      fprintf(stderr, "%s: ser_recv(): read error: %s\n",
               progname, strerror(errno));
       exit(1);
     }
@@ -318,7 +320,7 @@ int serial_recv(int fd, char * buf, size_t buflen)
 }
 
 
-int serial_drain(int fd, int display)
+static int ser_drain(int fd, int display)
 {
   struct timeval timeout;
   fd_set rfds;
@@ -351,7 +353,7 @@ int serial_drain(int fd, int display)
         goto reselect;
       }
       else {
-        fprintf(stderr, "%s: serial_drain(): select(): %s\n",
+        fprintf(stderr, "%s: ser_drain(): select(): %s\n",
                 progname, strerror(errno));
         exit(1);
       }
@@ -359,7 +361,7 @@ int serial_drain(int fd, int display)
 
     rc = read(fd, &buf, 1);
     if (rc < 0) {
-      fprintf(stderr, "%s: serial_drain(): read error: %s\n",
+      fprintf(stderr, "%s: ser_drain(): read error: %s\n",
               progname, strerror(errno));
       exit(1);
     }
@@ -370,5 +372,17 @@ int serial_drain(int fd, int display)
 
   return 0;
 }
+
+struct serial_device serial_serdev =
+{
+  .open = ser_open,
+  .setspeed = ser_setspeed,
+  .close = ser_close,
+  .send = ser_send,
+  .recv = ser_recv,
+  .drain = ser_drain,
+};
+
+struct serial_device *serdev = &serial_serdev;
 
 #endif  /* WIN32NATIVE */

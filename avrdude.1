@@ -303,6 +303,23 @@ serial port, the
 .Pa /dev/cuaa0
 port is the default.  If you need to use a different parallel or
 serial port, use this option to specify the alternate port name.
+.Pp
+For the JTAG ICE mkII, if
+.Nm
+has been configured with libusb support,
+.Ar port
+can alternatively be specified as
+.Ar usb Ns Op \&: Ns Ar serialno .
+This will cause
+.Nm
+to search a JTAG ICE mkII on USB.
+If
+.Ar serialno
+is also specified, it will be matched against the serial number read
+from any JTAG ICE mkII found on USB.
+The match is done after stripping any existing colons from the given
+serial number, and right-to-left, so only the least significant bytes
+from the serial number need to be given.
 .It Fl q
 Disable (or quell) output of the progress bar while reading or writing
 to the device.

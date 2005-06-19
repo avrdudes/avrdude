@@ -94,7 +94,8 @@ avrdude_SOURCES = \
 	stk500v2.h \
 	stk500v2_private.h \
 	term.c \
-	term.h
+	term.h \
+	usb_libusb.c
 
 man_MANS = avrdude.1
 
