@@ -101,9 +101,6 @@ static int usbdev_open(char * port, long baud)
 
   for (bus = usb_busses; bus; bus = bus->next)
     {
-      if (bus->root_dev)
-	continue;
-
       for (dev = bus->devices; dev; dev = dev->next)
 	{
 	  udev = usb_open(dev);
