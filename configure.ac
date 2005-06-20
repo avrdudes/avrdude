@@ -44,7 +44,9 @@ AM_PROG_LEX
 AC_CHECK_LIB([termcap], [tputs])
 AC_CHECK_LIB([ncurses], [tputs])
 AC_CHECK_LIB([readline], [readline])
-AC_CHECK_LIB([usb], [usb_open])
+# usb_get_string_simple is only available in recent enough
+# versions of libusb, so use that as a decision base.
+AC_CHECK_LIB([usb], [usb_get_string_simple])
 
 # Checks for header files.
 AC_HEADER_STDC
