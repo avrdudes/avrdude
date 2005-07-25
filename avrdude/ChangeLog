@@ -1,3 +1,7 @@
+2005-07-25  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* usb_libusb.c: Catch benign errors when reading the serial #.
+
 2005-06-19  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* Makefile.am: Implement libusb-base USB transport for the

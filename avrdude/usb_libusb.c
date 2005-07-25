@@ -117,7 +117,17 @@ static int usbdev_open(char * port, long baud)
 		      fprintf(stderr,
 			      "%s: usb_open(): cannot read serial number \"%s\"\n",
 			      progname, usb_strerror());
-		      exit(1);
+		      /*
+		       * On some systems, libusb appears to have
+		       * problems sending control messages.  Catch the
+		       * benign case where the user did not request a
+		       * particular serial number, so we could
+		       * continue anyway.
+		       */
+		      if (serno != NULL)
+			exit(1); /* no chance */
+		      else
+			strcpy(string, "[unknown]");
 		    }
 
 		  if (verbose)
