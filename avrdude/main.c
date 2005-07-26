@@ -1208,7 +1208,8 @@ int main(int argc, char * argv [])
   if (rc != 0) {
     fprintf(stderr, "%s: error reading signature data, rc=%d\n",
             progname, rc);
-    exit(1);
+    exitrc = 1;
+    goto main_exit;
   }
 
   sig = avr_locate_mem(p, "signature");
