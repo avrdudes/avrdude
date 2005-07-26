@@ -1,3 +1,14 @@
+2005/07/26  Brian S. Dean  <bsd@bsdhome.com>
+
+	* main.c:
+	  Don't call exit() directly here - set the exit value and jump to the
+	  main_exit: label to ensure the programmer is released correctly.
+
+	* stk500v2.c:
+	  The stk500v2_getsync() function was improperly checking for success,
+	  thus it was falsely reporting that it failed when it was actually
+	  working correctly.  Fixed.
+
 2005-07-25  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* usb_libusb.c: Catch benign errors when reading the serial #.
