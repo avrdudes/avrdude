@@ -238,14 +238,6 @@ retry:
   // if we got bytes returned, check to see what came back
   if (status > 0) {
     if ((resp[0] == CMD_SIGN_ON) && (resp[1] == STATUS_CMD_OK)) {
-#if 0
-      int i;
-      fprintf(stderr, "found programmer type: ");
-      for (i=0; i<resp[2]; i++) {
-        fprintf(stderr, "%c", resp[3+i]);
-      }
-      fprintf(stderr, "\n");
-#endif
       // success!
       return 0;
     } else {
