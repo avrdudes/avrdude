@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE May 10, 2005
+.Dd DATE July 28, 2005
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -55,6 +55,7 @@ microcontrollers.
 .Nm Avrdude
 supports Atmel's STK500 programmer,
 Atmel's JTAG ICE mkII,
+programmers complying to AppNote AVR910 and AVR109 (including the Butterfly),
 as well as a simple hard-wired
 programmer connected directly to a
 .Xr ppi 4
@@ -86,6 +87,11 @@ Atmel's STK500 programmer is also supported and connects to a serial
 port.
 Both, firmware versions 1.x and 2.x can be handled, but require a
 different programmer type specification (by now).
+.Pp
+The simple serial programmer described in Atmel's application note
+AVR910, and the bootloader described in Atmel's application note
+AVR109 (which is also used by the AVR Butterfly evaluation board), are
+supported on a serial port.
 .Pp
 Atmel's JTAG ICE mkII is supported as well to up- or download memory
 areas from/to an AVR target (no support for on-chip debugging).
@@ -567,3 +573,10 @@ The JTAGICE mkII programmer currently cannot write to the flash ROM
 one byte at a time.
 For that reason, updating the flash ROM from terminal mode does not
 work.
+.Pp
+The device IDs used by AVR910 and AVR109 do not match, so the
+avr109 (aka. butterfly) programmer might report
+.Dl "selected device is not supported by programmer" .
+Use the -F option to force
+.Nm
+to contiue anway.

@@ -129,9 +129,10 @@ from the contents of a file, while interactive mode is useful for
 exploring memory contents, modifing individual bytes of eeprom,
 programming fuse/lock bits, etc.
 
-AVRDUDE supports four basic programmer types: Atmel's STK500,
+AVRDUDE supports five basic programmer types: Atmel's STK500,
 Atmel's JTAG ICE mkII, appnote
-avr910 and the PPI (parallel port interface). PPI represents a class
+avr910, appnote avr109 (including the AVR Butterfly),
+and the PPI (parallel port interface). PPI represents a class
 of simple programmers where the programming lines are directly
 connected to the PC parallel port. Several pin configurations exist
 for several variations of the PPI programmers, and AVRDUDE can be be
@@ -140,9 +141,13 @@ programmer on the command line or by creating a new entry in its
 configuration file. All that's usually required for a new entry is to
 tell AVRDUDE which pins to use for each programming function. 
 
-The STK500, JTAG ICE and avr910 use the serial port to communicate with the PC
-and contains on-board logic to control the programming of the target
-device. The fundamental difference between the two types lies in the
+The STK500, JTAG ICE, avr910, and avr109/butterfly use the serial port to communicate with the PC.
+The STK500, JTAG ICE, and avr910 contain on-board logic to control the programming of the target
+device.
+The avr109 bootloader implements a protocol similar to avr910, but is
+actually implemented in the boot area of the target's flash ROM, as
+opposed to being an external device.
+The fundamental difference between the two types lies in the
 protocol used to control the programmer. The avr910 protocol is very
 simplistic and can easily be used as the basis for a simple, home made
 programer since the firmware is available online. On the other hand,
@@ -152,8 +157,7 @@ The JTAG ICE also uses a serial communication protocol which is similar
 to the STK500 firmware version 2 one.  However, as the JTAG ICE is
 intented to allow on-chip debugging as well as memory programming, the
 protocol is more sophisticated.
-(This protocol can also be run on top of USB, but AVRDUDE by now only
-supports the RS-232-based option.)
+(This protocol can also be run on top of USB.)
 Only the memory programming functionality of the JTAG ICE is supported
 by AVRDUDE.
 
@@ -356,8 +360,14 @@ ABCmini Board, aka Dick Smith HOTCHIP
 @itemx alf
 Nightshade ALF-PgmAVR, http://nightshade.homeip.net/
 
+@itemx avr109
+Atmel AppNote AVR109 Boot Loader
+
 @itemx avr910
 Atmel Low Cost Serial Programmer
+
+@itemx avr911
+Atmel AppNote AVR911 AVROSP (an alias for avr109)
 
 @itemx avrisp
 Atmel AVR ISP
@@ -507,7 +517,7 @@ programming, then verifying at the end of programming that the fuses have not
 changed. If you want to change fuses you will need to specify this option,
 as avrdude will see the fuses have changed (even though you wanted to) and
 will change them back for your "saftey". This option was designed to
-prevent cases of fuse bits magically changing. 
+prevent cases of fuse bits magically changing (usually called @emph{safemode}).
 
 @item -t
 Tells AVRDUDE to enter the interactive ``terminal'' mode instead of up-
@@ -1037,7 +1047,7 @@ programmer
     id     = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
     desc     = <description> ;                  # quoted string
     type     = par | stk500 ;                   # programmer type
-    baudrate = <num> ;                          # baudrate for avr910
+    baudrate = <num> ;                          # baudrate for serial ports
     vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
     reset    = <num> ;                          # pin number
     sck      = <num> ;                          # pin number
@@ -1189,6 +1199,24 @@ power-cycle is printed out.  This flag was added to work around a
 problem with the at90s4433/2333's; see the at90s4433 errata at:
 
          @url{http://www.atmel.com/atmel/acrobat/doc1280.pdf}
+
+@item
+The boot loader from application note AVR109 (and thus also the AVR
+Butterfly) does not support writing of fuse bits.  Writing lock bits
+is supported, but is restricted to the boot lock bits (BLBxx).  These
+are restrictions imposed by the underlying SPM instruction that is used
+to program the device from inside the boot loader.  Note that programming
+the boot lock bits can result in a ``shoot-into-your-foot'' scenario as
+the only way to unprogram these bits is a chip erase, which will also
+erase the boot loader code.
+
+The boot loader implements the ``chip erase'' function by erasing the
+flash pages of the application section.
+
+Reading fuse and lock bits is fully supported.
+
+Note that due to the unability to write the fuse bits, the safemode
+functionality does not make sense for these boot loaders.
 
 @end itemize
 
@@ -1695,6 +1723,18 @@ currently also prevents the user from changing the fuse bits by accident. This p
 response to a number of occasions when an AVR had stopped responding because the fuse bits got changed
 by an error caused by the programmer. Programmer of course meaning both the physical device, and the
 person sitting at the keyboard.
+
+@item
+Problem: AVRDUDE says my device is not supported when using the AVR109 boot loader
+
+Solution: Currently, AVRDUDE uses the AVR910 device codes given in the
+@code{avrdude.conf} file, and matches them against the list of supported
+devices reported by the programmer.  Unfortunately, there are no device
+codes at all for some of the newer AVR devices, and even worse, the
+device codes listed in @code{preprocessor.xls} of appnote AVR109 do not
+match those once specified in AVR910.
+
+Use the -F option to force AVRDUDE to continue anyway.
 
 @item
 Problem: Updating the flash ROM from terminal mode does not work with the
