@@ -1,4 +1,12 @@
-2005/07/26  Brian S. Dean  <bsd@bsdhome.com>
+2005-07-27  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	(This work has been done as part of a contract with Atmel, Dresden.)
+	* butterfly.c: Implement full support for AVR109 boot loaders.
+	* avrdude.conf.in: add avr109 and avr911 as alias for butterfly.
+	* avrdude.1: Document the AVR109 addition.
+	* doc/avrdude.texi: (Ditto.)
+
+2005-07-26  Brian S. Dean  <bsd@bsdhome.com>
 
 	* main.c:
 	  Don't call exit() directly here - set the exit value and jump to the

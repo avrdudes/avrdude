@@ -268,6 +268,18 @@ programmer
 ;
 
 programmer
+  id    = "avr109";
+  desc  = "Atmel AppNote AVR109 Boot Loader";
+  type  = butterfly;
+;
+
+programmer
+  id    = "avr911";
+  desc  = "Atmel AppNote AVR911 AVROSP";
+  type  = butterfly;
+;
+
+programmer
   id    = "jtagmkII";
   desc  = "Atmel JTAG ICE mkII";
   baudrate = 19200;    # default is 19200

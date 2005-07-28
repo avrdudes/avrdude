@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2003-2004  Theodore A. Roth  <troth@openavr.org>
+ * Copyright (C) 2005 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +25,14 @@
  * evaluation board. This board features a bootloader which uses a protocol
  * very similar, but not identical, to the one described in application note
  * avr910.
+ *
+ * Actually, the butterfly uses a predecessor of the avr910 protocol
+ * which is described in application notes avr109 (generic AVR
+ * bootloader) and avr911 (opensource programmer).  This file now
+ * fully handles the features present in avr109.  It should probably
+ * be renamed to avr109, but we rather stick with the old name inside
+ * the file.  We'll provide aliases for "avr109" and "avr911" in
+ * avrdude.conf so users could call it by these name as well.
  */
 
 
@@ -222,7 +231,10 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
 
   no_show_func_info();
 
-  /* send some ESC to activate butterfly bootloader */
+  /*
+   * Send some ESC to activate butterfly bootloader.  This is not needed
+   * for plain avr109 bootloaders but does not harm there either.
+   */
   butterfly_send(pgm, "\033\033\033\033", 4);
   butterfly_drain(pgm, 0);
 
@@ -271,7 +283,7 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   if (c != 'Y') {
     fprintf(stderr,
             "%s: error: buffered memory access not supported. Maybe it isn't\n"\
-            "a butterfly but a AVR910 device?\n", progname);
+            "a butterfly/AVR109 but a AVR910 device?\n", progname);
     exit(1);
   };
   butterfly_recv(pgm, &c, 1);
@@ -300,10 +312,11 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   fprintf(stderr,"\n");
 
   if (!dev_supported) {
+    /* FIXME: if nothing matched, we should rather compare the device
+       signatures. */
     fprintf(stderr,
             "%s: error: selected device is not supported by programmer: %s\n",
             progname, p->id);
-    exit(1);
   }
 
   /* Tell the programmer which part we selected. */
@@ -314,9 +327,7 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   butterfly_send(pgm, buf, 2);
   butterfly_vfy_cmd_sent(pgm, "select device");
 
-  butterfly_enter_prog_mode(pgm);
-
-  return 0;
+  return dev_supported? 0: -1;
 }
 
 
@@ -325,7 +336,7 @@ static void butterfly_disable(PROGRAMMER * pgm)
 {
   no_show_func_info();
 
-  /* Do nothing. */
+  butterfly_leave_prog_mode(pgm);
 
   return;
 }
@@ -335,7 +346,7 @@ static void butterfly_enable(PROGRAMMER * pgm)
 {
   no_show_func_info();
 
-  /* Do nothing. */
+  butterfly_enter_prog_mode(pgm);
 
   return;
 }
@@ -346,7 +357,13 @@ static int butterfly_open(PROGRAMMER * pgm, char * port)
   no_show_func_info();
 
   strcpy(pgm->port, port);
-  pgm->fd = serial_open(port, 19200);
+  /*
+   *  If baudrate was not specified use 19200 Baud
+   */
+  if(pgm->baudrate == 0) {
+    pgm->baudrate = 19200;
+  }
+  pgm->fd = serial_open(port, pgm->baudrate);
 
   /*
    * drain any extraneous input
@@ -360,8 +377,6 @@ static int butterfly_open(PROGRAMMER * pgm, char * port)
 static void butterfly_close(PROGRAMMER * pgm)
 {
   no_show_func_info();
-
-  butterfly_leave_prog_mode(pgm);
 
   /* "exit programmer" added by Martin Thomas 2/2004 */
   butterfly_send(pgm, "E", 1);
@@ -401,23 +416,30 @@ static int butterfly_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   no_show_func_info();
 
-  if ((strcmp(m->desc, "flash") != 0) && (strcmp(m->desc, "eeprom") != 0))
+  if ((strcmp(m->desc, "flash") == 0) || (strcmp(m->desc, "eeprom") == 0))
+  {
+    cmd[0] = 'B';
+    cmd[1] = 0;
+    if ((cmd[3] = toupper(m->desc[0])) == 'E') {	/* write to eeprom */
+      cmd[2] = 1;
+      cmd[4] = value;
+      size = 5;
+    } else {						/* write to flash */
+      /* @@@ not yet implemented */
+      cmd[2] = 2;
+      size = 6;
+      return -1;
+    }
+    butterfly_set_addr(pgm, addr);
+  }
+  else if (strcmp(m->desc, "lock") == 0)
+  {
+    cmd[0] = 'l';
+    cmd[1] = value;
+    size = 2;
+  }
+  else
     return -1;
-
-  cmd[0] = 'B';
-  cmd[1] = 0;
-  if ((cmd[3] = toupper(m->desc[0])) == 'E') {	/* write to eeprom */
-    cmd[2] = 1;
-    cmd[4] = value;
-    size = 5;
-  } else {						/* write to flash */
-    /* @@@ not yet implemented */
-    cmd[2] = 2;
-    size = 6;
-    return -1;
-  };
-
-  butterfly_set_addr(pgm, addr);
 
   butterfly_send(pgm, cmd, size);
   butterfly_vfy_cmd_sent(pgm, "write byte");
@@ -475,6 +497,8 @@ static int butterfly_read_byte_eeprom(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 static int butterfly_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                             unsigned long addr, unsigned char * value)
 {
+  unsigned char cmd;
+
   no_show_func_info();
 
   if (strcmp(m->desc, "flash") == 0) {
@@ -485,7 +509,25 @@ static int butterfly_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     return butterfly_read_byte_eeprom(pgm, p, m, addr, value);
   }
 
-  return -1;
+  if (strcmp(m->desc, "lfuse") == 0) {
+    cmd = 'F';
+  }
+  else if (strcmp(m->desc, "hfuse") == 0) {
+    cmd = 'N';
+  }
+  else if (strcmp(m->desc, "efuse") == 0) {
+    cmd = 'Q';
+  }
+  else if (strcmp(m->desc, "lock") == 0) {
+    cmd = 'r';
+  }
+  else
+    return -1;
+
+  butterfly_send(pgm, &cmd, 1);
+  butterfly_recv(pgm, value, 1);
+
+  return *value == '?'? -1: 0;
 }
 
 
@@ -581,6 +623,8 @@ static int butterfly_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 /* Signature byte reads are always 3 bytes. */
 static int butterfly_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 {
+  unsigned char tmp;
+
   no_show_func_info();
 
   if (m->size < 3) {
@@ -590,6 +634,10 @@ static int butterfly_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 
   butterfly_send(pgm, "s", 1);
   butterfly_recv(pgm, m->buf, 3);
+  /* Returned signature has wrong order. */
+  tmp = m->buf[2];
+  m->buf[2] = m->buf[0];
+  m->buf[0] = tmp;
 
   return 3;
 }
