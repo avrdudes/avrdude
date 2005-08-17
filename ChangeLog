@@ -1,3 +1,7 @@
+2005-08-17  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: fix the EEPROM size for ATmega329x/649x.
+
 2005-08-16  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: Add support for the AT90PWM2/3.

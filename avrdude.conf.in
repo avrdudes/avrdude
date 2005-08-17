@@ -3241,7 +3241,7 @@ part
    memory "eeprom"
         paged           = no; /* leave this "no" */
         page_size       = 4;  /* for parallel programming */
-        size            = 2048;
+        size            = 1024;
         min_write_delay = 9000;
         max_write_delay = 9000;
         readback_p1     = 0xff;
@@ -3393,7 +3393,7 @@ part
    memory "eeprom"
         paged           = no; /* leave this "no" */
         page_size       = 4;  /* for parallel programming */
-        size            = 2048;
+        size            = 1024;
         min_write_delay = 9000;
         max_write_delay = 9000;
         readback_p1     = 0xff;
@@ -3543,7 +3543,7 @@ part
    memory "eeprom"
         paged           = no; /* leave this "no" */
         page_size       = 8;  /* for parallel programming */
-        size            = 4096;
+        size            = 2048;
         min_write_delay = 9000;
         max_write_delay = 9000;
         readback_p1     = 0xff;
@@ -3695,7 +3695,7 @@ part
    memory "eeprom"
         paged           = no; /* leave this "no" */
         page_size       = 8;  /* for parallel programming */
-        size            = 4096;
+        size            = 2048;
         min_write_delay = 9000;
         max_write_delay = 9000;
         readback_p1     = 0xff;
