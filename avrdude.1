@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE July 28, 2005
+.Dd DATE August 28, 2005
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -145,6 +145,8 @@ the format.  Currently, the following MCU types are understood:
 ll.
 \fBOption tag\fP	\fBOfficial part name\fP
 c128	AT90CAN128
+pwm2	AT90PWM2
+pwm3	AT90PWM3
 1200	AT90S1200
 2313	AT90S2313
 2333	AT90S2333
@@ -160,10 +162,17 @@ m16	ATmega16
 m161	ATmega161
 m162	ATmega162
 m163	ATmega163
+m164	ATmega164
 m169	ATmega169
 m32	ATmega32
+m324	ATmega324
+m329	ATmega329
+m3290	ATmega3290
 m48	ATmega48
 m64	ATmega64
+m644	ATmega644
+m649	ATmega649
+m6490	ATmega6490
 m8	ATmega8
 m8515	ATmega8515
 m8535	ATmega8535
@@ -172,7 +181,10 @@ t12	ATtiny12
 t13	ATtiny13
 t15	ATtiny15
 t2313	ATtiny2313
+t25	ATtiny25
 t26	ATtiny26
+t45	ATtiny45
+t85	ATtiny85
 .TE
 .Bl -tag -width "(*) "
 .It "(*)"

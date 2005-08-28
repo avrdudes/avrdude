@@ -237,6 +237,12 @@ Currently, the following MCU types are understood:
 @itemx c128
 AT90CAN128
 
+@itemx pwm2
+AT90PWM2
+
+@itemx pwm3
+AT90PWM3
+
 @itemx 1200
 AT90S1200
 
@@ -282,17 +288,38 @@ ATmega162
 @itemx m163
 ATmega163
 
+@itemx m164
+ATmega164
+
 @itemx m169
 ATmega169
 
 @itemx m32
 ATmega32
 
+@itemx m324
+ATmega324
+
+@itemx m329
+ATmega329
+
+@itemx m3290
+ATmega3290
+
 @itemx m48
 ATmega48
 
 @itemx m64
 ATmega64
+
+@itemx m644
+ATmega644
+
+@itemx m649
+ATmega649
+
+@itemx m6490
+ATmega6490
 
 @itemx m8
 ATmega8
@@ -318,8 +345,17 @@ ATtiny15
 @itemx t2313
 ATtiny2313
 
+@itemx t25
+ATtiny25
+
 @itemx t26
 ATtiny26
+
+@itemx t45
+ATtiny45
+
+@itemx t85
+ATtiny85
 
 @end table
 
