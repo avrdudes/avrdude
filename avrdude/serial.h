@@ -38,8 +38,8 @@ struct serial_device
   int (*setspeed)(int fd, long baud);
   void (*close)(int fd);
 
-  int (*send)(int fd, char * buf, size_t buflen);
-  int (*recv)(int fd, char * buf, size_t buflen);
+  int (*send)(int fd, unsigned char * buf, size_t buflen);
+  int (*recv)(int fd, unsigned char * buf, size_t buflen);
   int (*drain)(int fd, int display);
 };
 

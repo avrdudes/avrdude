@@ -69,7 +69,7 @@ static int butterfly_send(PROGRAMMER * pgm, char * buf, size_t len)
 {
   no_show_func_info();
 
-  return serial_send(pgm->fd, buf, len);
+  return serial_send(pgm->fd, (unsigned char *)buf, len);
 }
 
 
@@ -79,7 +79,7 @@ static int butterfly_recv(PROGRAMMER * pgm, char * buf, size_t len)
 
   no_show_func_info();
 
-  rv = serial_recv(pgm->fd, buf, len);
+  rv = serial_recv(pgm->fd, (unsigned char *)buf, len);
   if (rv < 0) {
     fprintf(stderr,
 	    "%s: butterfly_recv(): programmer is not responding\n",
@@ -226,7 +226,7 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   char hw[2];
   char buf[10];
   char type;
-  unsigned char c;
+  char c;
   int dev_supported = 0;
 
   no_show_func_info();
@@ -396,7 +396,7 @@ static void butterfly_display(PROGRAMMER * pgm, char * p)
 
 static void butterfly_set_addr(PROGRAMMER * pgm, unsigned long addr)
 {
-  unsigned char cmd[3];
+  char cmd[3];
 
   cmd[0] = 'A';
   cmd[1] = (addr >> 8) & 0xff;
@@ -411,7 +411,7 @@ static void butterfly_set_addr(PROGRAMMER * pgm, unsigned long addr)
 static int butterfly_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                              unsigned long addr, unsigned char value)
 {
-  unsigned char cmd[6];
+  char cmd[6];
   int size;
 
   no_show_func_info();
@@ -460,7 +460,7 @@ static int butterfly_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cached = 0;
   }
   else {
-    unsigned char buf[2];
+    char buf[2];
 
     butterfly_set_addr(pgm, addr >> 1);
 
@@ -489,7 +489,7 @@ static int butterfly_read_byte_eeprom(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 {
   butterfly_set_addr(pgm, addr);
   butterfly_send(pgm, "g\000\001E", 4);
-  butterfly_recv(pgm, value, 1);
+  butterfly_recv(pgm, (char *)value, 1);
   return 0;
 }
 
@@ -497,7 +497,7 @@ static int butterfly_read_byte_eeprom(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 static int butterfly_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                             unsigned long addr, unsigned char * value)
 {
-  unsigned char cmd;
+  char cmd;
 
   no_show_func_info();
 
@@ -525,7 +525,7 @@ static int butterfly_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     return -1;
 
   butterfly_send(pgm, &cmd, 1);
-  butterfly_recv(pgm, value, 1);
+  butterfly_recv(pgm, (char *)value, 1);
 
   return *value == '?'? -1: 0;
 }
@@ -537,7 +537,7 @@ static int butterfly_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 {
   unsigned int addr = 0;
   unsigned int max_addr = n_bytes;
-  unsigned char *cmd;
+  char *cmd;
   unsigned int blocksize = buffersize;
 
   if (strcmp(m->desc, "flash") && strcmp(m->desc, "eeprom")) 
@@ -593,7 +593,7 @@ static int butterfly_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     return -2;
 
   {		/* use buffered mode */
-    unsigned char cmd[4];
+    char cmd[4];
     int blocksize = buffersize;
 
     cmd[0] = 'g';
@@ -608,7 +608,7 @@ static int butterfly_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       cmd[2] = blocksize & 0xff;
 
       butterfly_send(pgm, cmd, 4);
-      butterfly_recv(pgm, &m->buf[addr], blocksize);
+      butterfly_recv(pgm, (char *)&m->buf[addr], blocksize);
 
       addr += blocksize;
 
@@ -633,7 +633,7 @@ static int butterfly_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
   }
 
   butterfly_send(pgm, "s", 1);
-  butterfly_recv(pgm, m->buf, 3);
+  butterfly_recv(pgm, (char *)m->buf, 3);
   /* Returned signature has wrong order. */
   tmp = m->buf[2];
   m->buf[2] = m->buf[0];

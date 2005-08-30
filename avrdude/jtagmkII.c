@@ -295,7 +295,7 @@ static int jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
   unsigned char *buf;
 
   if (verbose >= 3)
-    fprintf(stderr, "\n%s: jtagmkII_send(): sending %d bytes\n",
+    fprintf(stderr, "\n%s: jtagmkII_send(): sending %zd bytes\n",
 	    progname, len);
 
   if ((buf = malloc(len + 10)) == NULL)
@@ -627,7 +627,7 @@ static int jtagmkII_getsync(PROGRAMMER * pgm) {
 #undef FWVER
   if (verbose >= 2)
     fprintf(stderr,
-	    "%s: jtagmkII_getsync(): Using a %u-byte device descriptor\n",
+	    "%s: jtagmkII_getsync(): Using a %zu-byte device descriptor\n",
 	    progname, device_descriptor_length);
 
   /* Turn the ICE into JTAG mode */
@@ -1698,7 +1698,7 @@ static int jtagmkII_setparm(PROGRAMMER * pgm, unsigned char parm,
   memcpy(buf + 2, value, size);
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkII_setparm(): "
-	    "Sending set parameter command (parm 0x%02x, %u bytes): ",
+	    "Sending set parameter command (parm 0x%02x, %zu bytes): ",
 	    progname, parm, size);
   jtagmkII_send(pgm, buf, size + 2);
 
