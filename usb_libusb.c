@@ -178,7 +178,7 @@ static void usbdev_close(int fd)
 }
 
 
-static int usbdev_send(int fd, char *bp, size_t mlen)
+static int usbdev_send(int fd, unsigned char *bp, size_t mlen)
 {
   usb_dev_handle *udev = (usb_dev_handle *)fd;
 
@@ -213,11 +213,11 @@ usb_fill_buf(usb_dev_handle *udev)
   return 0;
 }
 
-static int usbdev_recv(int fd, char *buf, size_t nbytes)
+static int usbdev_recv(int fd, unsigned char *buf, size_t nbytes)
 {
   usb_dev_handle *udev = (usb_dev_handle *)fd;
   int i, amnt;
-  char * p = buf;
+  unsigned char * p = buf;
 
   for (i = 0; nbytes > 0;)
     {
