@@ -2,6 +2,21 @@
 
 	* usb_libusb.c: Consistently use unsigned char for buffers.
 
+2005-08-29  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avr910.c: Eliminate compiler warnings.  GCC 4.x elicits many
+	signedness warnings when passing unsigned char * when char * is in
+	the prototype and vice versa.  Clean these up along with a few
+	others.
+	* butterfly.c: (Ditto.)
+	* jtagmkII.c: (Ditto.)
+	* safemode.c: (Ditto.)
+	* safemode.h: (Ditto.)
+	* ser_posix.c: (Ditto.)
+	* serial.h: (Ditto.)
+	* stk500.c: (Ditto.)
+	* stk500v2.c: (Ditto.)
+
 2005-08-28  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: Add support for the ATtiny25/45/85.  Note that
