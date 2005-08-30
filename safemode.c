@@ -66,7 +66,7 @@ int safemode_writefuse (unsigned char fuse, char * fusename, PROGRAMMER * pgm, A
 }
 
 /* Reads the fuses three times, checking that all readings are the same. This will ensure that the before values aren't in error! */
-int safemode_readfuses (char * lfuse, char * hfuse, char * efuse, PROGRAMMER * pgm, AVRPART * p, int verbose)  
+int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse, unsigned char * efuse, PROGRAMMER * pgm, AVRPART * p, int verbose)  
 {
 
   unsigned char value;

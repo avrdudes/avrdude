@@ -167,14 +167,13 @@ static void ser_close(int fd)
 }
 
 
-static int ser_send(int fd, char * buf, size_t buflen)
+static int ser_send(int fd, unsigned char * buf, size_t buflen)
 {
   struct timeval timeout, to2;
   fd_set wfds;
   int nfds;
   int rc;
-
-  char * p = buf;
+  unsigned char * p = buf;
   size_t len = buflen;
 
   if (!len)
@@ -243,14 +242,13 @@ static int ser_send(int fd, char * buf, size_t buflen)
 }
 
 
-static int ser_recv(int fd, char * buf, size_t buflen)
+static int ser_recv(int fd, unsigned char * buf, size_t buflen)
 {
   struct timeval timeout, to2;
   fd_set rfds;
   int nfds;
   int rc;
-
-  char * p = buf;
+  unsigned char * p = buf;
   size_t len = 0;
 
   timeout.tv_sec  = serial_recv_timeout / 1000L;

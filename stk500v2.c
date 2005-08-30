@@ -173,7 +173,7 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
         if (curlen < maxsize) {
           msg[curlen] = c;
         } else {
-          fprintf(stderr, "%s: stk500v2_recv(): buffer too small, received %d byte into %d byte buffer\n",
+          fprintf(stderr, "%s: stk500v2_recv(): buffer too small, received %d byte into %zd byte buffer\n",
                   progname,curlen,maxsize);
           return -2;
         }
@@ -271,7 +271,7 @@ retry:
   return 0;
 }
 
-static int stk500v2_command(PROGRAMMER * pgm, char * buf, size_t len, size_t maxlen) {
+static int stk500v2_command(PROGRAMMER * pgm, unsigned char * buf, size_t len, size_t maxlen) {
   int i;
   int tries = 0;
   int status;

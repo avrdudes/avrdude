@@ -55,13 +55,13 @@ static int stk500_is_page_empty(unsigned int address, int page_size,
     const unsigned char *buf);
 
 
-static int stk500_send(PROGRAMMER * pgm, char * buf, size_t len)
+static int stk500_send(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 {
   return serial_send(pgm->fd, buf, len);
 }
 
 
-static int stk500_recv(PROGRAMMER * pgm, char * buf, size_t len)
+static int stk500_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 {
   int rv;
 
