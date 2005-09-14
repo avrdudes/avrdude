@@ -1,3 +1,9 @@
+2005-09-14  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: add a jtag2slow programmer alias, and make
+	"jtag2" default to 115200 Bd.
+	* doc/avrdude.texi: document the above changes.
+
 2005-08-30  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* usb_libusb.c: Consistently use unsigned char for buffers.

@@ -288,7 +288,7 @@ programmer
 
 # easier to type
 programmer
-  id    = "jtag2";
+  id    = "jtag2slow";
   desc  = "Atmel JTAG ICE mkII";
   baudrate = 19200;    # default is 19200
   type  = jtagmkii;
@@ -297,6 +297,14 @@ programmer
 # JTAG ICE mkII @ 115200 Bd
 programmer
   id    = "jtag2fast";
+  desc  = "Atmel JTAG ICE mkII";
+  baudrate = 115200;
+  type  = jtagmkii;
+;
+
+# make the fast one the default, people will love that
+programmer
+  id    = "jtag2";
   desc  = "Atmel JTAG ICE mkII";
   baudrate = 115200;
   type  = jtagmkii;

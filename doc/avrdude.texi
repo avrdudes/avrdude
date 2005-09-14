@@ -421,11 +421,14 @@ Atmel Butterfly Development Board
 Dontronics DT006
 
 @item jtagmkII
-@itemx jtag2
+@itemx jtag2slow
 Atmel JTAG ICE mkII (default speed 19200 Bd)
 
 @itemx jtag2fast
 Atmel JTAG ICE mkII, running at 115200 Bd
+
+@itemx jtag2
+Same as before.
 
 @itemx pavr
 Jason Kyle's pAVR Serial Programmer
