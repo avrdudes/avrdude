@@ -3178,7 +3178,7 @@ part
     memory "efuse"
         size            = 1;
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
-                          "x x x x  x x x x  x x x x  i i i x";
+                          "x x x x  x x x x  x x x x  i i i i";
 
         read            = "0 1 0 1  0 0 0 0  0 0 0 0  1 0 0 0",
                           "x x x x  x x x x  o o o o  o o o o";
