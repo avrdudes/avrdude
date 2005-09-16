@@ -1,3 +1,8 @@
+2005-09-16  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* butterfly.c: improve the butterfly initialization so it is more likely
+	to synchonize; [bug #9787: avrdude 4.4.0 correct butterfly interface]
+
 2005-09-14  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: add a jtag2slow programmer alias, and make
