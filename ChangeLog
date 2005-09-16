@@ -10,6 +10,11 @@
 
 2005-09-14  Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* jtagmkII.c (jtagmkII_paged_load): return the number of bytes read.
+	This makes EEPROM block reads work again.
+
+2005-09-14  Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* avrdude.conf.in: add a jtag2slow programmer alias, and make
 	"jtag2" default to 115200 Bd.
 	* doc/avrdude.texi: document the above changes.
