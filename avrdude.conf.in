@@ -1790,12 +1790,12 @@ part
         max_write_delay = 9000;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
-	read_lo           = "  1   0   1   0      0   0   0   0",
+        read            = "  1   0   1   0      0   0   0   0",
                           "  x   x   x   x    a11 a10  a9  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0",
                           "  o   o   o   o      o   o   o   o";
 
-	write_lo           = "  1   1   0   0      0   0   0   0",
+        write           = "  1   1   0   0      0   0   0   0",
                           "  x   x   x   x    a11 a10  a9  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0", 
                           "  i   i   i   i      i   i   i   i";
@@ -1943,12 +1943,12 @@ part
         max_write_delay = 9000;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
-	read_lo            = "  1   0   1   0      0   0   0   0",
+        read            = "  1   0   1   0      0   0   0   0",
                           "  x   x   x   x    a11 a10  a9  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0",
                           "  o   o   o   o      o   o   o   o";
 
-	write_lo           = "  1   1   0   0      0   0   0   0",
+        write           = "  1   1   0   0      0   0   0   0",
                           "  x   x   x   x    a11 a10  a9  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0", 
                           "  i   i   i   i      i   i   i   i";
