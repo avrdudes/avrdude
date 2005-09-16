@@ -1352,7 +1352,7 @@ static int jtagmkII_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   }
   serial_recv_timeout = otimeout;
 
-  return 0;
+  return n_bytes;
 }
 
 static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
