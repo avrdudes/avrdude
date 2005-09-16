@@ -1,5 +1,15 @@
 2005-09-16  Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* doc/Makefile.am: add logic to detect the misf^H^H^H^H
+	gratitous API change in recent versions of texi2html where
+	the output directory has changed names.
+	Fix for:
+	bug #13026: The build fails with texi2html 1.76
+	bug #12715: make issues during install
+	patch #3091: commandline fix for latest version of texi2html
+
+2005-09-16  Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* usb_libusb.c (usbdev_drain): actually implement draining to aid
 	synchronizing against a JTAG ICE in weird state.
 
