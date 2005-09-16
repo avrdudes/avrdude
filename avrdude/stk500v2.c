@@ -501,6 +501,7 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   unsigned char buf[266];
   unsigned char cmds[4];
   int result;
+  OPCODE * rop, * wop;
 
   DEBUG("STK500V2: stk500v2_paged_write(..,%s,%d,%d)\n",m->desc,page_size,n_bytes);
 
@@ -515,9 +516,18 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   }
   commandbuf[4] = m->delay;
 
+  if (a_div == 1) {
+    wop = m->op[AVR_OP_WRITE];
+    rop = m->op[AVR_OP_READ];
+  }
+  else {
+    wop = m->op[AVR_OP_WRITE_LO];
+    rop = m->op[AVR_OP_READ_LO];
+  }
+
   // if the memory is paged, load the appropriate commands into the buffer
   if (m->mode & 0x01) {
-    commandbuf[3] = m->mode | 0x80;		// yes, write the stupid page to flash
+    commandbuf[3] = m->mode | 0x80;		// yes, write the page to flash
 
     if (m->op[AVR_OP_LOADPAGE_LO] == NULL) {
       fprintf(stderr, "%s: stk500v2_paged_write: loadpage instruction not defined for part \"%s\"\n",
@@ -536,26 +546,27 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     commandbuf[6] = cmds[0];
 
   // otherwise, we need to load different commands in
-  } else {
-    commandbuf[3] = m->mode | 0x80;		// yes, write the stupid words to flash
+  } 
+  else {
+    commandbuf[3] = m->mode | 0x80;		// yes, write the words to flash
 
-    if (m->op[AVR_OP_WRITE_LO] == NULL) {
+    if (wop == NULL) {
       fprintf(stderr, "%s: stk500v2_paged_write: write instruction not defined for part \"%s\"\n",
               progname, p->desc);
       return -1;
     }
-    avr_set_bits(m->op[AVR_OP_WRITE_LO], cmds);
+    avr_set_bits(wop, cmds);
     commandbuf[5] = cmds[0];
     commandbuf[6] = 0;
   }
 
   // the read command is common to both methods
-  if (m->op[AVR_OP_READ_LO] == NULL) {
+  if (rop == NULL) {
     fprintf(stderr, "%s: stk500v2_paged_write: read instruction not defined for part \"%s\"\n",
             progname, p->desc);
     return -1;
   }
-  avr_set_bits(m->op[AVR_OP_READ_LO], cmds);
+  avr_set_bits(rop, cmds);
   commandbuf[7] = cmds[0];
 
   commandbuf[8] = m->readback[0];
@@ -625,25 +636,30 @@ static int stk500v2_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   unsigned char buf[275];	// max buffer size for stk500v2 at this point
   unsigned char cmds[4];
   int result;
+  OPCODE * rop;
 
   DEBUG("STK500V2: stk500v2_paged_load(..,%s,%d,%d)\n",m->desc,page_size,n_bytes);
 
   page_size = m->readsize;
 
+  rop = m->op[AVR_OP_READ];
+
   // determine which command is to be used
   if (strcmp(m->desc, "flash") == 0) {
     commandbuf[0] = CMD_READ_FLASH_ISP;
-  } else if (strcmp(m->desc, "eeprom") == 0) {
+    rop = m->op[AVR_OP_READ_LO];
+  } 
+  else if (strcmp(m->desc, "eeprom") == 0) {
     commandbuf[0] = CMD_READ_EEPROM_ISP;
   }
 
   // the read command is common to both methods
-  if (m->op[AVR_OP_READ_LO] == NULL) {
+  if (rop == NULL) {
     fprintf(stderr, "%s: stk500v2_paged_load: read instruction not defined for part \"%s\"\n",
             progname, p->desc);
     return -1;
   }
-  avr_set_bits(m->op[AVR_OP_READ_LO], cmds);
+  avr_set_bits(rop, cmds);
   commandbuf[3] = cmds[0];
 
   stk500v2_loadaddr(pgm, 0);
