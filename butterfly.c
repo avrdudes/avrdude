@@ -235,15 +235,25 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
    * Send some ESC to activate butterfly bootloader.  This is not needed
    * for plain avr109 bootloaders but does not harm there either.
    */
-  butterfly_send(pgm, "\033\033\033\033", 4);
-  butterfly_drain(pgm, 0);
-
-  /* Get the programmer identifier. Programmer returns exactly 7 chars
-     _without_ the null.*/
-
-  butterfly_send(pgm, "S", 1);
-  memset (id, 0, sizeof(id));
-  butterfly_recv(pgm, id, sizeof(id)-1);
+  fprintf(stderr, "Connecting to programmer: ");
+  do {
+    putc('.', stderr);
+    butterfly_send(pgm, "\033", 1);
+    butterfly_drain(pgm, 0);
+    butterfly_send(pgm, "S", 1);
+    butterfly_recv(pgm, &c, 1);
+    if (c != '?') {
+        putc('\n', stderr);
+        /*
+         * Got a useful response, continue getting the programmer
+         * identifier. Programmer returns exactly 7 chars _without_
+         * the null.
+         */
+      id[0] = c;
+      butterfly_recv(pgm, &id[1], sizeof(id)-2);
+      id[sizeof(id)-1] = '\0';
+    }
+  } while (c == '?');
 
   /* Get the HW and SW versions to see if the programmer is present. */
 
@@ -327,6 +337,9 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   butterfly_send(pgm, buf, 2);
   butterfly_vfy_cmd_sent(pgm, "select device");
 
+  if (dev_supported)
+      butterfly_enter_prog_mode(pgm);
+
   return dev_supported? 0: -1;
 }
 
@@ -345,8 +358,6 @@ static void butterfly_disable(PROGRAMMER * pgm)
 static void butterfly_enable(PROGRAMMER * pgm)
 {
   no_show_func_info();
-
-  butterfly_enter_prog_mode(pgm);
 
   return;
 }
