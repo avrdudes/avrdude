@@ -441,6 +441,17 @@ programmer
 ;
 
 
+programmer
+  id = "dapa";
+  desc = "Direct AVR Parallel Access cable";
+  type = par;
+  reset = 16;
+  sck = 1;
+  mosi = 2;
+  miso = 11;
+;
+
+
 #
 # PART DEFINITIONS
 #
