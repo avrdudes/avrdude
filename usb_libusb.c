@@ -259,6 +259,16 @@ static int usbdev_recv(int fd, unsigned char *buf, size_t nbytes)
 
 static int usbdev_drain(int fd, int display)
 {
+  usb_dev_handle *udev = (usb_dev_handle *)fd;
+  int rv;
+
+  do {
+    rv = usb_bulk_read(udev, JTAGICE_BULK_EP, usbbuf, JTAGICE_MAX_XFER, 100);
+    if (rv > 0 && verbose >= 4)
+      fprintf(stderr, "%s: usbdev_drain(): flushed %d characters\n",
+	      progname, rv);
+  } while (rv > 0);
+
   return 0;
 }
 
