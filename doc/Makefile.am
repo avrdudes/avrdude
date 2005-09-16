@@ -30,9 +30,14 @@ info_TEXINFOS = avrdude.texi
 all-local: info html ps pdf
 
 html: 
-	mkdir -p avrdude-html
 	texi2html -split_node $(srcdir)/$(info_TEXINFOS)
-	mv *.html avrdude-html
+	if [ -e ./avrdude.html ]; then \
+	 mkdir -p avrdude-html; \
+	 mv *.html avrdude-html ; \
+	else \
+	 mv avrdude avrdude-html; \
+	fi;
+	
 
 clean-local:
 	rm -rf avrdude-html *.info
