@@ -572,6 +572,33 @@ mulitple memories on the same command-line invocation.  The
 the @option{-v} option on the command line or the @code{part} command from
 terminal mode to display all the memory types supported by a particular
 device.
+Typically, a device's memory configuration at least contains
+the memory types
+@code{flash}
+and
+@code{eeprom}.
+All memory types currently known are:
+@table @code
+@item calibration
+One or more bytes of RC oscillator calibration data.
+@item eeprom
+The EEPROM of the device.
+@item efuse
+The extended fuse byte.
+@item flash
+The flash ROM of the device.
+@item fuse
+The fuse byte in devices that have only a single fuse byte.
+@item hfuse
+The high fuse byte.
+@item lfuse
+The low fuse byte.
+@item lock
+The lock byte.
+@item signature
+The three device signature bytes (device ID).
+@end table
+
 The @var{op} field specifies what operation to perform:
 
 @table @code
