@@ -48,6 +48,7 @@ struct ihexrec {
 
 extern char * progname;
 extern char   progbuf[];
+extern int    quell_progress;
 
 int b2ihex(unsigned char * inbuf, int bufsize, 
              int recsize, int startaddr,
@@ -970,8 +971,10 @@ int fileio(int op, char * filename, FILEFMT format,
       return -1;
     }
 
-    fprintf(stderr, "%s: %s file %s auto detected as %s\n", 
-            progname, fio.iodesc, fname, fmtstr(format));
+    if (quell_progress < 2) {
+      fprintf(stderr, "%s: %s file %s auto detected as %s\n", 
+              progname, fio.iodesc, fname, fmtstr(format));
+    }
   }
 
   if (format != FMT_IMM) {
