@@ -357,7 +357,39 @@ the fuse bits.
 .Xc
 Perform a memory operation as indicated.  The
 .Ar memtype
-field specifies the memory type to operate on.  The
+field specifies the memory type to operate on.
+The available memory types are device-dependant, the actual
+configuration can be viewed with the
+.Cm part
+command in terminal mode.
+Typically, a device's memory configuration at least contains
+the memory types
+.Ar flash
+and
+.Ar eeprom .
+All memory types currently known are:
+.Bl -tag -width "calibration" -compact
+.It calibration
+One or more bytes of RC oscillator calibration data.
+.It eeprom
+The EEPROM of the device.
+.It efuse
+The extended fuse byte.
+.It flash
+The flash ROM of the device.
+.It fuse
+The fuse byte in devices that have only a single fuse byte.
+.It hfuse
+The high fuse byte.
+.It lfuse
+The low fuse byte.
+.It lock
+The lock byte.
+.It signature
+The three device signature bytes (device ID).
+.El
+.Pp
+The
 .Ar op
 field specifies what operation to perform:
 .Bl -tag -width noreset
