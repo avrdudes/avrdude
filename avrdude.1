@@ -340,7 +340,7 @@ serial number, and right-to-left, so only the least significant bytes
 from the serial number need to be given.
 .It Fl q
 Disable (or quell) output of the progress bar while reading or writing
-to the device.
+to the device.  Specify it a second time for even quieter operation.
 .It Fl t
 Tells
 .Nm
@@ -508,7 +508,9 @@ does not implement the command.
 .It Ar sig
 Display the device signature bytes.
 .It Ar part
-Display the current part settings.
+Display the current part settings and parameters.  Includes chip
+specific information including all memory types supported by the
+device, read/write timing, etc.
 .It Ar vtarg voltage
 Set the target's supply voltage to
 .Ar voltage
