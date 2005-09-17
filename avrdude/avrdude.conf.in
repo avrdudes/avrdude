@@ -2092,8 +2092,8 @@ part
 
     memory "calibration"
         size            = 4;
-        read            = "0 0 1 1  1 0 0 0  x x x x  x x x x",
-                          "0 0 0 0  0 0 0 0  o o o o  o o o o";
+        read            = "0 0 1 1  1 0 0 0    x x x x  x x x x",
+                          "0 0 0 0  0 0 a1 a0  o o o o  o o o o";
       ;
 
     memory "signature"
