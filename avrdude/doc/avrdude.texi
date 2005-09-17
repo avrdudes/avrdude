@@ -548,7 +548,7 @@ bytes from the serial number need to be given.
 
 @item -q
 Disable (or quell) output of the progress bar while reading or writing
-to the device.
+to the device.  Specify it a second time for even quieter operation.
 
 @item -u
 Disables the default behaviour of reading out the fuses three times before
@@ -886,7 +886,9 @@ command.
 Display the device signature bytes.
 
 @item part
-Display the current part settings.
+Display the current part settings and parameters.  Includes chip
+specific information including all memory types supported by the
+device, read/write timing, etc.
 
 @item ?
 @itemx help
