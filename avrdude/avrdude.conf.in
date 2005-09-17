@@ -1719,8 +1719,8 @@ part
         size            = 4096;
         min_write_delay = 4000;
         max_write_delay = 9000;
-        readback_p1     = 0x00;
-        readback_p2     = 0xff;
+        readback_p1     = 0x80;
+        readback_p2     = 0x7f;
 	read            = "  1   0   1   0      0   0   0   0",
                           "  x   x   x   x    a11 a10  a9  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0",
