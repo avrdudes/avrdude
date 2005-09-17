@@ -453,6 +453,50 @@ programmer
 
 
 #
+# some ultra cheap programmers use bitbanging on the 
+# serialport.
+#
+
+# serial ponyprog design (dasa2 in uisp)
+# reset=!txd sck=rts mosi=dtr miso=cts
+
+programmer
+  id    = "ponyser";
+  desc  = "serial port banging, design ponyprog serial";
+  type  = serbb;
+  reset = ~3;
+  sck   = 6;
+  mosi  = 4;
+  miso  = 7;
+;
+
+# unknown (dasa in uisp)
+# reset=rts sck=dtr mosi=txd miso=cts
+
+programmer
+  id    = "dasa";
+  desc  = "serial port banging, reset=rts sck=dtr mosi=txd miso=cts";
+  type  = serbb;
+  reset = 6;
+  sck   = 4;
+  mosi  = 3;
+  miso  = 7;
+;
+
+# unknown (dasa3 in uisp)
+# reset=!dtr sck=rts mosi=txd miso=cts
+
+programmer
+  id    = "dasa3";
+  desc  = "serial port banging, reset=!dtr sck=rts mosi=txd miso=cts";
+  type  = serbb;
+  reset = ~4;
+  sck   = 6;
+  mosi  = 3;
+  miso  = 7;
+;
+
+#
 # PART DEFINITIONS
 #
 
@@ -2047,7 +2091,7 @@ part
       ;
 
     memory "calibration"
-        size            = 1;
+        size            = 4;
         read            = "0 0 1 1  1 0 0 0  x x x x  x x x x",
                           "0 0 0 0  0 0 0 0  o o o o  o o o o";
       ;
