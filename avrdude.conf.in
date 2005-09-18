@@ -445,6 +445,7 @@ programmer
   id = "dapa";
   desc = "Direct AVR Parallel Access cable";
   type = par;
+  vcc   = 3;
   reset = 16;
   sck = 1;
   mosi = 2;
