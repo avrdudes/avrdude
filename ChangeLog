@@ -1,3 +1,23 @@
+2005-09-18  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Add the serial bit-bang driver, contributed by Michael Holzt.
+	* bitbang.h: New file.
+	* bitbang.c: New file.
+	* serbb.h: New file.
+	* serbb_posix.c: New file.
+	* serbb_win32.c: New file.
+	* Makefile.am: Include new files.
+	* config_gram.y: Add serbb to configuration language.
+	* lexer.l: (Ditto.)
+	* par.c: Centralize bit-bang code in bitbang.c.
+	* par.h: Declare newly published functions.
+	* pgm.h (struct programmer_t): Add a flag field for private use
+	  by the programmer.
+	* pindefs.h: Add definitions for negated serbb pins.
+	* avrdude.conf.in: Add serbb programmers ponyser, dasa, and dasa3.
+	* avrdude.1: Document serbb code.
+	* doc/avrdude.texi: (Ditto.)
+
 2005/09/18  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avrdude.conf.in: Patch #4078: add VCC pin definition for DAPA

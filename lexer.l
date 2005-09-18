@@ -160,6 +160,7 @@ rdyled           { yylval=NULL; return K_RDYLED; }
 readback_p1      { yylval=NULL; return K_READBACK_P1; }
 readback_p2      { yylval=NULL; return K_READBACK_P2; }
 retry_pulse      { yylval=NULL; return K_RETRY_PULSE; }
+serbb            { yylval=NULL; return K_SERBB; }
 serial           { yylval=NULL; return K_SERIAL; }
 size             { yylval=NULL; return K_SIZE; }
 spmcr            { yylval=NULL; return K_SPMCR; }
@@ -212,6 +213,7 @@ yes              { yylval=new_token(K_YES); return K_YES; }
 ","       { yylval = NULL; pyytext(); return TKN_COMMA; }
 "="       { yylval = NULL; pyytext(); return TKN_EQUAL; }
 ";"       { yylval = NULL; pyytext(); return TKN_SEMI; }
+"~"       { yylval = NULL; pyytext(); return TKN_TILDE; }
 
 "\n"      { lineno++; }
 [ \r\t]+  /* ignore whitespace */

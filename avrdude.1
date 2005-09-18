@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE August 28, 2005
+.Dd DATE September 18, 2005
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -61,7 +61,8 @@ programmer connected directly to a
 .Xr ppi 4
 or
 .Xr parport 4
-parallel port.  In the simplest case, the hardware consists just of a
+parallel port, or to a standard serial port.
+In the simplest case, the hardware consists just of a
 cable connecting the respective AVR signal lines to the parallel port.
 .Pp
 The MCU is programmed in
@@ -82,6 +83,15 @@ current operating state of the programmer can be connected, and a
 signal is available to control a buffer/driver IC 74LS367 (or
 74HCT367).  The latter can be useful to decouple the parallel port
 from the MCU when in-system programming is used.
+.Pp
+A number of equally simple bit-bang programming adapters that connect
+to a serial port are supported as well, among them the popular
+Ponyprog serial adapter, and the DASA and DASA3 adapters that used to
+be supported by uisp(1).
+Note that these adapters are meant to be attached to a physical serial
+port.
+Connecting to a serial port emulated on top of USB is likely to not
+work at all, or to work abysmally slow.
 .Pp
 Atmel's STK500 programmer is also supported and connects to a serial
 port.

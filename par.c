@@ -37,8 +37,8 @@
 #include "avr.h"
 #include "pindefs.h"
 #include "pgm.h"
-#include "par.h"
 #include "ppi.h"
+#include "bitbang.h"
 
 #define SLOW_TOGGLE 0
 
@@ -49,7 +49,7 @@ struct ppipins_t {
   int inverted;
 };
 
-static struct ppipins_t pins[] = {
+struct ppipins_t ppipins[] = {
   {  1, PPICTRL,   0x01, 1 },
   {  2, PPIDATA,   0x01, 0 },
   {  3, PPIDATA,   0x02, 0 },
@@ -69,66 +69,30 @@ static struct ppipins_t pins[] = {
   { 17, PPICTRL,   0x08, 1 }
 };
 
-#define NPINS (sizeof(pins)/sizeof(struct ppipins_t))
+#define NPINS (sizeof(ppipins)/sizeof(struct ppipins_t))
 
 
 extern char * progname;
 extern int do_cycles;
 extern int verbose;
 
-
-static int par_setpin          (int fd, int pin, int value);
-
-static int par_getpin          (int fd, int pin);
-
-static int par_pulsepin        (int fd, int pin);
-
-
-static int  par_rdy_led        (PROGRAMMER * pgm, int value);
-
-static int  par_err_led        (PROGRAMMER * pgm, int value);
-
-static int  par_pgm_led        (PROGRAMMER * pgm, int value);
-
-static int  par_vfy_led        (PROGRAMMER * pgm, int value);
-
-static int  par_cmd            (PROGRAMMER * pgm, unsigned char cmd[4], 
-                                unsigned char res[4]);
-
-static int  par_chip_erase     (PROGRAMMER * pgm, AVRPART * p);
-
-static int  par_program_enable (PROGRAMMER * pgm, AVRPART * p);
-
-static void par_powerup        (PROGRAMMER * pgm);
-
-static void par_powerdown      (PROGRAMMER * pgm);
-
-static int  par_initialize     (PROGRAMMER * pgm, AVRPART * p);
-
-static void par_disable        (PROGRAMMER * pgm);
-
-static void par_enable         (PROGRAMMER * pgm);
-
-static int  par_open           (PROGRAMMER * pgm, char * port);
-
-static void par_close          (PROGRAMMER * pgm);
-
-
-static int par_setpin(int fd, int pin, int value)
+int par_setpin(int fd, int pin, int value)
 {
+
+  pin &= PIN_MASK;
 
   if (pin < 1 || pin > 17)
     return -1;
 
   pin--;
 
-  if (pins[pin].inverted)
+  if (ppipins[pin].inverted)
     value = !value;
 
   if (value)
-    ppi_set(fd, pins[pin].reg, pins[pin].bit);
+    ppi_set(fd, ppipins[pin].reg, ppipins[pin].bit);
   else
-    ppi_clr(fd, pins[pin].reg, pins[pin].bit);
+    ppi_clr(fd, ppipins[pin].reg, ppipins[pin].bit);
 
 #if SLOW_TOGGLE
   usleep(1000);
@@ -138,28 +102,30 @@ static int par_setpin(int fd, int pin, int value)
 }
 
 
-static int par_getpin(int fd, int pin)
+int par_getpin(int fd, int pin)
 {
   int value;
+
+  pin &= PIN_MASK;
 
   if (pin < 1 || pin > 17)
     return -1;
 
   pin--;
 
-  value = ppi_get(fd, pins[pin].reg, pins[pin].bit);
+  value = ppi_get(fd, ppipins[pin].reg, ppipins[pin].bit);
 
   if (value)
     value = 1;
     
-  if (pins[pin].inverted)
+  if (ppipins[pin].inverted)
     value = !value;
 
   return value;
 }
 
 
-static int par_pulsepin(int fd, int pin)
+int par_highpulsepin(int fd, int pin)
 {
 
   if (pin < 1 || pin > 17)
@@ -167,13 +133,11 @@ static int par_pulsepin(int fd, int pin)
 
   pin--;
 
-  ppi_toggle(fd, pins[pin].reg, pins[pin].bit);
-
+  ppi_set(fd, ppipins[pin].reg, ppipins[pin].bit);
 #if SLOW_TOGGLE
   usleep(1000);
 #endif
-
-  ppi_toggle(fd, pins[pin].reg, pins[pin].bit);
+  ppi_clr(fd, ppipins[pin].reg, ppipins[pin].bit);
 
 #if SLOW_TOGGLE
   usleep(1000);
@@ -184,15 +148,17 @@ static int par_pulsepin(int fd, int pin)
 
 int par_getpinmask(int pin)
 {
+  pin &= PIN_MASK;
+
   if (pin < 1 || pin > 17)
     return -1;
 
-  return pins[pin-1].bit;
+  return ppipins[pin-1].bit;
 }
 
 
-static char vccpins_buf[64];
-static char * vccpins_str(unsigned int pmask)
+char vccpins_buf[64];
+char * vccpins_str(unsigned int pmask)
 {
   unsigned int mask;
   int pin;
@@ -214,169 +180,10 @@ static char * vccpins_str(unsigned int pmask)
   return b;
 }
 
-
-
-/*
- * transmit and receive a byte of data to/from the AVR device
- */
-static unsigned char par_txrx(PROGRAMMER * pgm, unsigned char byte)
-{
-  int i;
-  unsigned char r, b, rbyte;
-
-  rbyte = 0;
-  for (i=7; i>=0; i--) {
-    /*
-     * Write and read one bit on SPI.
-     * Some notes on timing: Let T be the time it takes to do
-     * one par_setpin()-call resp. par clrpin()-call, then
-     * - SCK is high for 2T
-     * - SCK is low for 2T
-     * - MOSI setuptime is 1T
-     * - MOSI holdtime is 3T
-     * - SCK low to MISO read is 2T to 3T
-     * So we are within programming specs (expect for AT90S1200),
-     * if and only if T>t_CLCL (t_CLCL=clock period of target system).
-     *
-     * Due to the delay introduced by "IN" and "OUT"-commands,
-     * T is greater than 1us (more like 2us) on x86-architectures.
-     * So programming works safely down to 1MHz target clock.
-    */
-
-    b = (byte >> i) & 0x01;
-
-    /* set the data input line as desired */
-    par_setpin(pgm->fd, pgm->pinno[PIN_AVR_MOSI], b);
-
-    par_setpin(pgm->fd, pgm->pinno[PIN_AVR_SCK], 1);
-
-    /*
-     * read the result bit (it is either valid from a previous falling
-     * edge or it is ignored in the current context)
-     */
-    r = par_getpin(pgm->fd, pgm->pinno[PIN_AVR_MISO]);
-
-    par_setpin(pgm->fd, pgm->pinno[PIN_AVR_SCK], 0);
-
-    rbyte |= r << i;
-  }
-
-  return rbyte;
-}
-
-
-static int par_rdy_led(PROGRAMMER * pgm, int value)
-{
-  par_setpin(pgm->fd, pgm->pinno[PIN_LED_RDY], !value);
-  return 0;
-}
-
-static int par_err_led(PROGRAMMER * pgm, int value)
-{
-  par_setpin(pgm->fd, pgm->pinno[PIN_LED_ERR], !value);
-  return 0;
-}
-
-static int par_pgm_led(PROGRAMMER * pgm, int value)
-{
-  par_setpin(pgm->fd, pgm->pinno[PIN_LED_PGM], !value);
-  return 0;
-}
-
-static int par_vfy_led(PROGRAMMER * pgm, int value)
-{
-  par_setpin(pgm->fd, pgm->pinno[PIN_LED_VFY], !value);
-  return 0;
-}
-
-
-/*
- * transmit an AVR device command and return the results; 'cmd' and
- * 'res' must point to at least a 4 byte data buffer
- */
-static int par_cmd(PROGRAMMER * pgm, unsigned char cmd[4], 
-                   unsigned char res[4])
-{
-  int i;
-
-  for (i=0; i<4; i++) {
-    res[i] = par_txrx(pgm, cmd[i]);
-  }
-
-    if(verbose >= 2)
-	{
-        fprintf(stderr, "par_cmd(): [ ");
-        for(i = 0; i < 4; i++)
-            fprintf(stderr, "%02X ", cmd[i]);
-        fprintf(stderr, "] [ ");
-        for(i = 0; i < 4; i++)
-		{
-            fprintf(stderr, "%02X ", res[i]);
-		}
-        fprintf(stderr, "]\n");
-	}
-
-  return 0;
-}
-
-
-/*
- * issue the 'chip erase' command to the AVR device
- */
-static int par_chip_erase(PROGRAMMER * pgm, AVRPART * p)
-{
-  unsigned char cmd[4];
-  unsigned char res[4];
-
-  if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
-    fprintf(stderr, "chip erase instruction not defined for part \"%s\"\n",
-            p->desc);
-    return -1;
-  }
-
-  pgm->pgm_led(pgm, ON);
-
-  memset(cmd, 0, sizeof(cmd));
-
-  avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
-  pgm->cmd(pgm, cmd, res);
-  usleep(p->chip_erase_delay);
-  pgm->initialize(pgm, p);
-
-  pgm->pgm_led(pgm, OFF);
-
-  return 0;
-}
-
-/*
- * issue the 'program enable' command to the AVR device
- */
-static int par_program_enable(PROGRAMMER * pgm, AVRPART * p)
-{
-  unsigned char cmd[4];
-  unsigned char res[4];
-
-  if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
-    fprintf(stderr, "program enable instruction not defined for part \"%s\"\n",
-            p->desc);
-    return -1;
-  }
-
-  memset(cmd, 0, sizeof(cmd));
-  avr_set_bits(p->op[AVR_OP_PGM_ENABLE], cmd);
-  pgm->cmd(pgm, cmd, res);
-
-  if (res[2] != cmd[1])
-    return -2;
-
-  return 0;
-}
-
-
 /*
  * apply power to the AVR processor
  */
-static void par_powerup(PROGRAMMER * pgm)
+void par_powerup(PROGRAMMER * pgm)
 {
   ppi_set(pgm->fd, PPIDATA, pgm->pinno[PPI_AVR_VCC]);    /* power up */
   usleep(100000);
@@ -386,71 +193,17 @@ static void par_powerup(PROGRAMMER * pgm)
 /*
  * remove power from the AVR processor
  */
-static void par_powerdown(PROGRAMMER * pgm)
+void par_powerdown(PROGRAMMER * pgm)
 {
   ppi_clr(pgm->fd, PPIDATA, pgm->pinno[PPI_AVR_VCC]);    /* power down */
 }
 
-
-/*
- * initialize the AVR device and prepare it to accept commands
- */
-static int par_initialize(PROGRAMMER * pgm, AVRPART * p)
-{
-  int rc;
-  int tries;
-
-  pgm->powerup(pgm);
-  usleep(20000);
-
-  par_setpin(pgm->fd, pgm->pinno[PIN_AVR_SCK], 0);
-  par_setpin(pgm->fd, pgm->pinno[PIN_AVR_RESET], 0);
-  usleep(20000);
-
-  par_pulsepin(pgm->fd, pgm->pinno[PIN_AVR_RESET]);
-
-  usleep(20000); /* 20 ms XXX should be a per-chip parameter */
-
-  /*
-   * Enable programming mode.  If we are programming an AT90S1200, we
-   * can only issue the command and hope it worked.  If we are using
-   * one of the other chips, the chip will echo 0x53 when issuing the
-   * third byte of the command.  In this case, try up to 32 times in
-   * order to possibly get back into sync with the chip if we are out
-   * of sync.
-   */
-  if (strcmp(p->desc, "AT90S1200")==0) {
-    pgm->program_enable(pgm, p);
-  }
-  else {
-    tries = 0;
-    do {
-      rc = pgm->program_enable(pgm, p);
-      if ((rc == 0)||(rc == -1))
-        break;
-      par_pulsepin(pgm->fd, pgm->pinno[p->retry_pulse/*PIN_AVR_SCK*/]);
-      tries++;
-    } while (tries < 65);
-
-    /*
-     * can't sync with the device, maybe it's not attached?
-     */
-    if (rc) {
-      fprintf(stderr, "%s: AVR device not responding\n", progname);
-      return -1;
-    }
-  }
-
-  return 0;
-}
-
-
-static void par_disable(PROGRAMMER * pgm)
+void par_disable(PROGRAMMER * pgm)
 {
   ppi_set(pgm->fd, PPIDATA, pgm->pinno[PPI_AVR_BUFF]);
 }
 
-static void par_enable(PROGRAMMER * pgm)
+void par_enable(PROGRAMMER * pgm)
 {
   /*
    * Prepare to start talking to the connected device - pull reset low
@@ -472,8 +225,7 @@ static void par_enable(PROGRAMMER * pgm)
   ppi_clr(pgm->fd, PPIDATA, pgm->pinno[PPI_AVR_BUFF]);
 }
 
-
-static int par_open(PROGRAMMER * pgm, char * port)
+int par_open(PROGRAMMER * pgm, char * port)
 {
   int rc;
 
@@ -507,7 +259,7 @@ static int par_open(PROGRAMMER * pgm, char * port)
 }
 
 
-static void par_close(PROGRAMMER * pgm)
+void par_close(PROGRAMMER * pgm)
 {
   /*
    * Restore pin values before closing,
@@ -523,8 +275,7 @@ static void par_close(PROGRAMMER * pgm)
   pgm->fd = -1;
 }
 
-
-static void par_display(PROGRAMMER * pgm, char * p)
+void par_display(PROGRAMMER * pgm, char * p)
 {
   char vccpins[64];
   char buffpins[64];
@@ -574,21 +325,22 @@ void par_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "PPI");
 
-  pgm->rdy_led        = par_rdy_led;
-  pgm->err_led        = par_err_led;
-  pgm->pgm_led        = par_pgm_led;
-  pgm->vfy_led        = par_vfy_led;
-  pgm->initialize     = par_initialize;
+  pgm->rdy_led        = bitbang_rdy_led;
+  pgm->err_led        = bitbang_err_led;
+  pgm->pgm_led        = bitbang_pgm_led;
+  pgm->vfy_led        = bitbang_vfy_led;
+  pgm->initialize     = bitbang_initialize;
   pgm->display        = par_display;
   pgm->enable         = par_enable;
   pgm->disable        = par_disable;
   pgm->powerup        = par_powerup;
   pgm->powerdown      = par_powerdown;
-  pgm->program_enable = par_program_enable;
-  pgm->chip_erase     = par_chip_erase;
-  pgm->cmd            = par_cmd;
+  pgm->program_enable = bitbang_program_enable;
+  pgm->chip_erase     = bitbang_chip_erase;
+  pgm->cmd            = bitbang_cmd;
   pgm->open           = par_open;
   pgm->close          = par_close;
+  
+  /* this is a parallel port bitbang device */
+  pgm->flag	      = 0;
 }
-
-

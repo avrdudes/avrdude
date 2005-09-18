@@ -57,6 +57,8 @@ avrdude_SOURCES = \
 	avr910.h \
 	avrpart.c \
 	avrpart.h \
+	bitbang.c \
+	bitbang.h \
 	butterfly.c \
 	butterfly.h \
 	config.c \
@@ -85,6 +87,9 @@ avrdude_SOURCES = \
 	safemode.c \
 	safemode.h \
 	serial.h \
+	serbb.h \
+	serbb_posix.c \
+	serbb_win32.c \
 	ser_posix.c \
 	ser_win32.c \
 	stk500.c \

@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2005 Michael Holzt <kju-avr@fqdn.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,29 +17,17 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-
 /* $Id$ */
 
-#ifndef __pindefs_h__
-#define __pindefs_h__
+#ifndef serbb_h
+#define serbb_h
 
-enum {
-  PPI_AVR_VCC=1,
-  PPI_AVR_BUFF,
-  PIN_AVR_RESET,
-  PIN_AVR_SCK,
-  PIN_AVR_MOSI,
-  PIN_AVR_MISO,
-  PIN_LED_ERR,
-  PIN_LED_RDY,
-  PIN_LED_PGM,
-  PIN_LED_VFY,
-  N_PINS
-};
-#define PIN_INVERSE 0x80	/* flag for inverted pin in serbb */
-#define PIN_MASK    0x7f
+void serbb_initpgm        (PROGRAMMER * pgm);
 
-#define LED_ON(fd,pin)  ppi_setpin(fd,pin,0)
-#define LED_OFF(fd,pin) ppi_setpin(fd,pin,1)
+int serbb_setpin(int fd, int pin, int value);
+int serbb_getpin(int fd, int pin);
+int serbb_highpulsepin(int fd, int pin);
 
 #endif
+
+
