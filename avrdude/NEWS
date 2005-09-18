@@ -5,8 +5,38 @@ Approximate change log for AVRDUDE by version.
 (For more detailed changes, see the ChangeLog file.)
 
 ----------------------------------------------------------------------
-
 Current:
+
+  * Support for JTAGICE MkII device
+
+  * Support for STK500 Version 2 Protocol
+
+  * New devices supported:
+
+      - AT90CAN128
+      - ATmega329x/649x
+      - ATmega164/324/644
+      - AT90PWM2/3,
+      - ATmega164/324/644
+      - ATmega329x/649x
+      - ATtiny25/45/85
+
+  * DAPA programmer pinout supported
+
+  * New "safemode" feature where fuse bits are verified before exit
+    and if possible recovered if they have changed.  This is intended
+    to protect against changed fuses which were not requested which is
+    reported to sometimes happen due to improper power supply or other
+    reasons.
+
+  * Various fixes for avr910 and butterfly programmers
+
+  * Full support for AVR109 boot loaders (butterfly)
+
+  * Adding -q -q suppresses most terminal output
+
+
+Version 4.4.0:
 
   * Native Win32 support: The windows build doesn't need Cygwin
     anymore. Additionally, the delay timing on windows should be
