@@ -7,12 +7,26 @@
 
 	* avr910.c: This is patch #3277 which appears to fix a number of
 	  issues with the avr910 programmer.
-	  
+
 	  Fixes the following problems with paged writes in avr910.c:
 	    - failure to re-set address after page writes;
 	    - no polling or delay after page writes;
 	    - no page writes when not using auto-increment;
 	    - an extraneous page write when data ends on page boundary.
+
+2005-09-17  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Fix the poll values for the ATmega103's EEPROM
+	so they eventually match the XML file.
+	This fixes bug #7492: EEPROM writing fail on atmega103 with
+	atavrisp
+
+2005-09-17  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: The ATmega128 has four oscillator calibration
+	bytes, not only a single one.
+	This closes bug #11496: Memory bank calibration on atmega128
+	should have 4 bytes
 
 2005/09/17  Brian S. Dean  <bsd@bsdhome.com>
 
