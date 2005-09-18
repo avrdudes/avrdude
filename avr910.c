@@ -358,7 +358,7 @@ static int avr910_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     if ((addr & 0x01) == 0) {
       *value = buf[1];
-      cached = 1;
+      // cached = 1;
       cvalue = buf[0];
       caddr = addr;
     }
@@ -421,20 +421,24 @@ static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     addr++;
     page_bytes--;
 
-    if ((has_auto_incr_addr != 'Y') && ((addr & 0x01) == 0)) {
-      avr910_set_addr(pgm, addr>>1);
-    }
-    else if (m->paged && (page_bytes == 0)) {
+    if (m->paged && (page_bytes == 0)) {
       /* Send the "Issue Page Write" if we have sent a whole page. */
 
       avr910_set_addr(pgm, page_addr>>1);
       avr910_send(pgm, "m", 1);
       avr910_vfy_cmd_sent(pgm, "flush page");
 
+      page_wr_cmd_pending = 0;
+      usleep(m->max_write_delay);
+      avr910_set_addr(pgm, addr>>1);
+
       /* Set page address for next page. */
 
       page_addr = addr;
       page_bytes = page_size;
+    }
+    else if ((has_auto_incr_addr != 'Y') && ((addr & 0x01) == 0)) {
+      avr910_set_addr(pgm, addr>>1);
     }
 
     report_progress (addr, max_addr, NULL);
@@ -447,6 +451,7 @@ static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     avr910_set_addr(pgm, page_addr>>1);
     avr910_send(pgm, "m", 1);
     avr910_vfy_cmd_sent(pgm, "flush final page");
+    usleep(m->max_write_delay);
   }
 
   return addr;
@@ -468,6 +473,7 @@ static int avr910_paged_write_eeprom(PROGRAMMER * pgm, AVRPART * p,
     cmd[1] = m->buf[addr];
     avr910_send(pgm, cmd, sizeof(cmd));
     avr910_vfy_cmd_sent(pgm, "write byte");
+    usleep(m->max_write_delay);
 
     addr++;
 
