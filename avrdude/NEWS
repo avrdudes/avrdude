@@ -21,6 +21,9 @@ Current:
       - ATmega329x/649x
       - ATtiny25/45/85
 
+  * Support for serial bit-bang adapters: Ponyprog serial, UISP DASA,
+    UISP DASA3.
+
   * DAPA programmer pinout supported
 
   * New "safemode" feature where fuse bits are verified before exit

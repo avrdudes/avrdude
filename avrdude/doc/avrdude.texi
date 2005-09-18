@@ -129,9 +129,10 @@ from the contents of a file, while interactive mode is useful for
 exploring memory contents, modifing individual bytes of eeprom,
 programming fuse/lock bits, etc.
 
-AVRDUDE supports five basic programmer types: Atmel's STK500,
+AVRDUDE supports six basic programmer types: Atmel's STK500,
 Atmel's JTAG ICE mkII, appnote
 avr910, appnote avr109 (including the AVR Butterfly),
+serial bit-bang adapters,
 and the PPI (parallel port interface). PPI represents a class
 of simple programmers where the programming lines are directly
 connected to the PC parallel port. Several pin configurations exist
@@ -139,7 +140,15 @@ for several variations of the PPI programmers, and AVRDUDE can be be
 configured to work with them by either specifying the appropriate
 programmer on the command line or by creating a new entry in its
 configuration file. All that's usually required for a new entry is to
-tell AVRDUDE which pins to use for each programming function. 
+tell AVRDUDE which pins to use for each programming function.
+
+A number of equally simple bit-bang programming adapters that connect
+to a serial port are supported as well, among them the popular
+Ponyprog serial adapter, and the DASA and DASA3 adapters that used to
+be supported by uisp(1).  Note that these adapters are meant to be
+attached to a physical serial port.  Connecting to a serial port
+emulated on top of USB is likely to not work at all, or to work
+abysmally slow.
 
 The STK500, JTAG ICE, avr910, and avr109/butterfly use the serial port to communicate with the PC.
 The STK500, JTAG ICE, and avr910 contain on-board logic to control the programming of the target

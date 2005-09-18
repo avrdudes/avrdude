@@ -25,6 +25,9 @@
 void par_initpgm        (PROGRAMMER * pgm);
 
 int par_getpinmask(int pin);
+int par_setpin(int fd, int pin, int value);
+int par_getpin(int fd, int pin);
+int par_highpulsepin(int fd, int pin);
 
 #endif
 

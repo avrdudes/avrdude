@@ -29,6 +29,7 @@
 #include "config.h"
 #include "lists.h"
 #include "par.h"
+#include "serbb.h"
 #include "pindefs.h"
 #include "ppi.h"
 #include "pgm.h"
@@ -49,7 +50,7 @@ extern char * progname;
 int yylex(void);
 int yyerror(char * errmsg);
 
-static int assign_pin(int pinno, TOKEN * v);
+static int assign_pin(int pinno, TOKEN * v, int invert);
 static int which_opcode(TOKEN * opcode);
 static int parse_cmdbits(OPCODE * op);
  
@@ -110,6 +111,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_READMEM
 %token K_RESET
 %token K_RETRY_PULSE
+%token K_SERBB
 %token K_SERIAL
 %token K_SCK
 %token K_SIZE
@@ -159,6 +161,7 @@ static int parse_cmdbits(OPCODE * op);
 %token TKN_COMMA
 %token TKN_EQUAL
 %token TKN_SEMI
+%token TKN_TILDE
 %token TKN_NUMBER
 %token TKN_STRING
 %token TKN_ID
@@ -325,6 +328,12 @@ prog_parm :
     }
   } |
 
+  K_TYPE TKN_EQUAL K_SERBB {
+    {
+      serbb_initpgm(current_prog);
+    }
+  } |
+
   K_TYPE TKN_EQUAL K_STK500 {
     { 
       stk500_initpgm(current_prog);
@@ -418,15 +427,26 @@ prog_parm :
   } |
 
   K_RESET  TKN_EQUAL TKN_NUMBER { free_token($1); 
-                                  assign_pin(PIN_AVR_RESET, $3); } |
+                                  assign_pin(PIN_AVR_RESET, $3, 0); } |
   K_SCK    TKN_EQUAL TKN_NUMBER { free_token($1); 
-                                  assign_pin(PIN_AVR_SCK, $3); } |
-  K_MOSI   TKN_EQUAL TKN_NUMBER { assign_pin(PIN_AVR_MOSI, $3); } |
-  K_MISO   TKN_EQUAL TKN_NUMBER { assign_pin(PIN_AVR_MISO, $3); } |
-  K_ERRLED TKN_EQUAL TKN_NUMBER { assign_pin(PIN_LED_ERR, $3); } |
-  K_RDYLED TKN_EQUAL TKN_NUMBER { assign_pin(PIN_LED_RDY, $3); } |
-  K_PGMLED TKN_EQUAL TKN_NUMBER { assign_pin(PIN_LED_PGM, $3); } |
-  K_VFYLED TKN_EQUAL TKN_NUMBER { assign_pin(PIN_LED_VFY, $3); }
+                                  assign_pin(PIN_AVR_SCK, $3, 0); } |
+  K_MOSI   TKN_EQUAL TKN_NUMBER { assign_pin(PIN_AVR_MOSI, $3, 0); } |
+  K_MISO   TKN_EQUAL TKN_NUMBER { assign_pin(PIN_AVR_MISO, $3, 0); } |
+  K_ERRLED TKN_EQUAL TKN_NUMBER { assign_pin(PIN_LED_ERR, $3, 0); } |
+  K_RDYLED TKN_EQUAL TKN_NUMBER { assign_pin(PIN_LED_RDY, $3, 0); } |
+  K_PGMLED TKN_EQUAL TKN_NUMBER { assign_pin(PIN_LED_PGM, $3, 0); } |
+  K_VFYLED TKN_EQUAL TKN_NUMBER { assign_pin(PIN_LED_VFY, $3, 0); } |
+
+  K_RESET  TKN_EQUAL TKN_TILDE TKN_NUMBER { free_token($1); 
+                                  assign_pin(PIN_AVR_RESET, $4, 1); } |
+  K_SCK    TKN_EQUAL TKN_TILDE TKN_NUMBER { free_token($1); 
+                                  assign_pin(PIN_AVR_SCK, $4, 1); } |
+  K_MOSI   TKN_EQUAL TKN_TILDE TKN_NUMBER { assign_pin(PIN_AVR_MOSI, $4, 1); } |
+  K_MISO   TKN_EQUAL TKN_TILDE TKN_NUMBER { assign_pin(PIN_AVR_MISO, $4, 1); } |
+  K_ERRLED TKN_EQUAL TKN_TILDE TKN_NUMBER { assign_pin(PIN_LED_ERR, $4, 1); } |
+  K_RDYLED TKN_EQUAL TKN_TILDE TKN_NUMBER { assign_pin(PIN_LED_RDY, $4, 1); } |
+  K_PGMLED TKN_EQUAL TKN_TILDE TKN_NUMBER { assign_pin(PIN_LED_PGM, $4, 1); } |
+  K_VFYLED TKN_EQUAL TKN_TILDE TKN_NUMBER { assign_pin(PIN_LED_VFY, $4, 1); }
 ;
 
 
@@ -854,7 +874,7 @@ static char * vtypestr(int type)
 #endif
 
 
-static int assign_pin(int pinno, TOKEN * v)
+static int assign_pin(int pinno, TOKEN * v, int invert)
 {
   int value;
 
@@ -867,6 +887,8 @@ static int assign_pin(int pinno, TOKEN * v)
             progname, lineno, infile);
     exit(1);
   }
+  if (invert)
+    value |= PIN_INVERSE;
 
   current_prog->pinno[pinno] = value;
 
