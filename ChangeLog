@@ -1,3 +1,46 @@
+2005/09/18  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrdude.conf.in: Patch #4078: add VCC pin definition for DAPA
+	  programmer.
+
+2005/09/18  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avr910.c: This is patch #3277 which appears to fix a number of
+	  issues with the avr910 programmer.
+	  
+	  Fixes the following problems with paged writes in avr910.c:
+	    - failure to re-set address after page writes;
+	    - no polling or delay after page writes;
+	    - no page writes when not using auto-increment;
+	    - an extraneous page write when data ends on page boundary.
+
+2005/09/17  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrdude.1:
+	  Document -q -q.  Expand a little on the description of the 'part'
+	  command.
+
+2005/09/16  Brian S. Dean  <bsd@bsdhome.com>
+
+	* fileio.c:
+	* main.c:
+	  Implement -q -q to be very very quiet.
+
+2005/09/16  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrdude.conf.in:
+	  Add DAPA programmer.
+
+2005/09/16  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrdude.conf.in:
+	* stk500v2.c:
+	  This fixes EEPROM access using the STK500V2 programmer, partially
+	  undoing part of a previous general fixup commit.  Choose the correct
+	  read/write operations with the stk500v2 program function - the correct
+	  one depends on the memory type.  EEPROM is byte addressable so uses
+	  read/write.  FLASH is word addressable and so uses read_lo/write_lo.
+
 2005-09-16  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.1: document the memtypes for -U
@@ -35,6 +78,20 @@
 	"jtag2" default to 115200 Bd.
 	* doc/avrdude.texi: document the above changes.
 
+2005/09/14  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrdude.conf.in:
+	  Change bit 0 of the ATmega169 efuse 'write' opcode from 'x' (ignore)
+	  to 'i' (input).  Even though this bit should be ignored, it should not
+	  be changed.  The 'x' setting sets the bit to zero which programs it
+	  and could cause undefined behaviour.  Setting to 'i' enables it to be
+	  rewritten to its old value.
+	  
+	  A better solution might be to read the fuse byte, apply the new value
+	  while leaving the 'x' bit alone, then writing the value back.  The
+	  current fix is a workaround which allows the developer to change the
+	  bit as desired.
+
 2005-08-30  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* usb_libusb.c: Consistently use unsigned char for buffers.
@@ -62,6 +119,27 @@
 	* avrdude.1: Mention all the recently added device support: AT90PWM2/3,
 	ATmega164/324/644, ATmega329x/649x, ATtiny25/45/85.
 	* doc/avrdude.texi: (Ditto.)
+
+2005/08/28  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrdude.conf.in:
+	* stk500v2.c:
+	  This is patch # 4338, obsoletes patch #4327, provides fixes for bugs
+	  #13693, #13871, and #14212.
+	  
+	  This provides bug fixes to the STK500V2 programmer type.
+
+	    - incorrect token used from avrdude.conf.in
+	    - wrong command sent to programmer, hence no write to eeprom.
+	    - programmer was said to start writing at 0x0000 and continue
+	      page by page and was not repositionned when a gap was found
+	      in the hex file, or when the hex file start address was not
+	      0x0000. Hence the verify procedure was correct, not the
+	      write procedure.
+	    - speed up of flash write to skip empty pages (full of 0xFF)
+	      by re-enabling a dedicated function for that task.
+	    - stk500v2_paged_load() was not returning the number of byte
+	      read, so empty hex files were generated when reading memory.
 
 2005-08-17  Joerg Wunsch <j@uriah.heep.sax.de>
 
