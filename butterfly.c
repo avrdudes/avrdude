@@ -226,7 +226,7 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   char hw[2];
   char buf[10];
   char type;
-  char c;
+  unsigned char c;
   int dev_supported = 0;
 
   no_show_func_info();

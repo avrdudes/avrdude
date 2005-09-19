@@ -1,3 +1,8 @@
+2005-09-19  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* butterfly.c (butterfly_initialize): make the device code unsigned so
+	it wouldn't sign-extend when >= 0x80.
+
 2005-09-18  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	Add the serial bit-bang driver, contributed by Michael Holzt.
