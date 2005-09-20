@@ -226,7 +226,7 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   char hw[2];
   char buf[10];
   char type;
-  unsigned char c;
+  char c;
   int dev_supported = 0;
 
   no_show_func_info();
@@ -312,11 +312,11 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
     butterfly_recv(pgm, &c, 1);
     if (c == 0)
       break;
-    fprintf(stderr, "    Device code: 0x%02x\n", c);
+    fprintf(stderr, "    Device code: 0x%02x\n", (unsigned int)(unsigned char)c);
 
     /* FIXME: Need to lookup devcode and report the device. */
 
-    if (p->avr910_devcode == c)
+    if (p->avr910_devcode == (int)(unsigned char)c)
       dev_supported = 1;
   };
   fprintf(stderr,"\n");
