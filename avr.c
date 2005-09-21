@@ -485,6 +485,7 @@ int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   unsigned char safemode_hfuse;
   unsigned char safemode_efuse;
   unsigned char safemode_fuse;
+  int rc;
 
   /* If we write the fuses, then we need to tell safemode that they *should* change */
   safemode_memfuses(0, &safemode_lfuse, &safemode_hfuse, &safemode_efuse, &safemode_fuse);
@@ -503,8 +504,6 @@ int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   }
   
   safemode_memfuses(1, &safemode_lfuse, &safemode_hfuse, &safemode_efuse, &safemode_fuse);
-
-  int rc;
 
   if (pgm->write_byte) {
     rc = pgm->write_byte(pgm, p, mem, addr, data);
