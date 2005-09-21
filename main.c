@@ -835,7 +835,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?b:c:C:DeE:Fnp:P:qtU:suvVyY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?b:B:c:C:DeE:Fnp:P:qstU:uvVyY:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -1163,7 +1163,7 @@ int main(int argc, char * argv [])
     if (verbose) {
       fprintf(stderr, "%sSetting bit clk period: %.1f\n", progbuf, bitclock);
     }
-    pgm->bitclock = bitclock;
+    pgm->bitclock = bitclock * 1e-6;
   }
 
   rc = pgm->open(pgm, port);
