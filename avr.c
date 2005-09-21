@@ -33,6 +33,7 @@
 #include "lists.h"
 #include "pindefs.h"
 #include "ppi.h"
+#include "safemode.h"
 
 #define DEBUG 0
 
@@ -479,6 +480,30 @@ int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                    unsigned long addr, unsigned char data)
 {
+
+  unsigned char safemode_lfuse;
+  unsigned char safemode_hfuse;
+  unsigned char safemode_efuse;
+  unsigned char safemode_fuse;
+
+  /* If we write the fuses, then we need to tell safemode that they *should* change */
+  safemode_memfuses(0, &safemode_lfuse, &safemode_hfuse, &safemode_efuse, &safemode_fuse);
+
+  if (strcmp(mem->desc, "fuse")==0) {
+      safemode_fuse = data;
+  }
+  if (strcmp(mem->desc, "lfuse")==0) {
+      safemode_lfuse = data;
+  }
+  if (strcmp(mem->desc, "hfuse")==0) {
+      safemode_hfuse = data;
+  }
+  if (strcmp(mem->desc, "efuse")==0) {
+      safemode_efuse = data;
+  }
+  
+  safemode_memfuses(1, &safemode_lfuse, &safemode_hfuse, &safemode_efuse, &safemode_fuse);
+
   int rc;
 
   if (pgm->write_byte) {
@@ -592,6 +617,7 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
       pgm->err_led(pgm, ON);
     }
   }
+
   return i;
 }
 
