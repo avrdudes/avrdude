@@ -1,3 +1,8 @@
+2005-09-21  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* main.c: Add the forgotten -B option to the option string in
+	getopt(); sort the -s option into order.
+
 2005/09/21  Brian S. Dean  <bsd@bsdhome.com>
 
 	* avr.c:
