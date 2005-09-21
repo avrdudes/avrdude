@@ -26,5 +26,6 @@
 #include "pgm.h"
 
 int terminal_mode(PROGRAMMER * pgm, struct avrpart * p);
+char * terminal_get_input(const char *prompt);
 
 #endif

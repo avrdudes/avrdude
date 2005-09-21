@@ -30,9 +30,13 @@
 /* This value from ac_cfg.h */
 char * progname = PACKAGE_NAME; 
 
-/* Writes the specified fuse in fusename (can be "lfuse", "hfuse", or "efuse") and verifies it. Will try up to tries
-amount of times before giving up */
-int safemode_writefuse (unsigned char fuse, char * fusename, PROGRAMMER * pgm, AVRPART * p, int tries, int verbose)
+/* 
+ * Writes the specified fuse in fusename (can be "lfuse", "hfuse", or
+ * "efuse") and verifies it. Will try up to tries amount of times
+ * before giving up 
+ */
+int safemode_writefuse (unsigned char fuse, char * fusename, PROGRAMMER * pgm,
+                        AVRPART * p, int tries, int verbose)
 {
   AVRMEM * m;
   unsigned char fuseread;
@@ -50,8 +54,9 @@ int safemode_writefuse (unsigned char fuse, char * fusename, PROGRAMMER * pgm, A
         
     /* Report information to user if needed */
     if (verbose > 0) {
-      fprintf(stderr, "%s: safemode: Wrote %s to %x, read as %x. %d attempts left\n",
-             progname, fusename, fuse, fuseread, tries-1);
+      fprintf(stderr, 
+              "%s: safemode: Wrote %s to %x, read as %x. %d attempts left\n",
+              progname, fusename, fuse, fuseread, tries-1);
     }
     
     /* If fuse wrote OK, no need to keep going */
@@ -65,8 +70,13 @@ int safemode_writefuse (unsigned char fuse, char * fusename, PROGRAMMER * pgm, A
   return returnvalue;
 }
 
-/* Reads the fuses three times, checking that all readings are the same. This will ensure that the before values aren't in error! */
-int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse, unsigned char * efuse, PROGRAMMER * pgm, AVRPART * p, int verbose)  
+/* 
+ * Reads the fuses three times, checking that all readings are the
+ * same. This will ensure that the before values aren't in error! 
+ */
+int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse, 
+                        unsigned char * efuse, unsigned char * fuse, 
+                        PROGRAMMER * pgm, AVRPART * p, int verbose)  
 {
 
   unsigned char value;
@@ -74,11 +84,41 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse, unsigned c
   unsigned char safemode_lfuse;
   unsigned char safemode_hfuse;
   unsigned char safemode_efuse;
+  unsigned char safemode_fuse;
   AVRMEM * m;
   
   safemode_lfuse = *lfuse;
   safemode_hfuse = *hfuse;
   safemode_efuse = *efuse;
+  safemode_fuse  = *fuse;
+
+
+  /* Read fuse three times */ 
+  fusegood = 2; /* If AVR device doesn't support this fuse, don't want
+                   to generate a verify error */
+  m = avr_locate_mem(p, "fuse");
+  if (m != NULL) {
+    fusegood = 0; /* By default fuse is a failure */
+    avr_read_byte(pgm, p, m, 0, &safemode_fuse);
+    avr_read_byte(pgm, p, m, 0, &value);
+    if (value == safemode_fuse) {
+        avr_read_byte(pgm, p, m, 0, &value);
+        if (value == safemode_fuse){
+        fusegood = 1; /* Fuse read OK three times */
+        }
+    }
+  }
+
+    if (fusegood == 0)   {
+        fprintf(stderr,
+           "%s: safemode: Verify error - unable to read fuse properly. "
+           "Programmer may not be reliable.\n", progname);
+        return -1;
+    }
+    else if ((fusegood == 1) && (verbose > 0)) {
+        printf("%s: safemode: fuse reads as %X\n", progname, safemode_fuse);
+    }
+
 
   /* Read lfuse three times */  
   fusegood = 2; /* If AVR device doesn't support this fuse, don't want
@@ -161,20 +201,28 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse, unsigned c
   *lfuse = safemode_lfuse;
   *hfuse = safemode_hfuse;
   *efuse = safemode_efuse;
+  *fuse  = safemode_fuse;
 
   return 0;
 }
 
 
-/* This routine will store the current values pointed to by lfuse, hfuse, and efuse into an internal buffer in this routine
-when save is set to 1. When save is 0 (or not 1 really) it will copy the values from the internal buffer into the locations
-pointed to be lfuse, hfuse, and efuse. This allows you to change the fuse bits if needed from another routine (ie: have it so
-if user requests fuse bits are changed, the requested value is now verified */
-int safemode_memfuses (int save, unsigned char * lfuse, unsigned char * hfuse, unsigned char * efuse)
+/*
+ * This routine will store the current values pointed to by lfuse,
+ * hfuse, and efuse into an internal buffer in this routine when save
+ * is set to 1. When save is 0 (or not 1 really) it will copy the
+ * values from the internal buffer into the locations pointed to be
+ * lfuse, hfuse, and efuse. This allows you to change the fuse bits if
+ * needed from another routine (ie: have it so if user requests fuse
+ * bits are changed, the requested value is now verified 
+ */
+int safemode_memfuses (int save, unsigned char * lfuse, unsigned char * hfuse,
+                       unsigned char * efuse, unsigned char * fuse)
 {
   static unsigned char safemode_lfuse = 0xff;
   static unsigned char safemode_hfuse = 0xff;
   static unsigned char safemode_efuse = 0xff;
+  static unsigned char safemode_fuse = 0xff;
   
   switch (save) {
     
@@ -183,6 +231,7 @@ int safemode_memfuses (int save, unsigned char * lfuse, unsigned char * hfuse, u
         safemode_lfuse = *lfuse;
         safemode_hfuse = *hfuse;
         safemode_efuse = *efuse;
+        safemode_fuse  = *fuse;
 
         break;
     /* Read back the fuses */
@@ -190,6 +239,7 @@ int safemode_memfuses (int save, unsigned char * lfuse, unsigned char * hfuse, u
         *lfuse = safemode_lfuse;
         *hfuse = safemode_hfuse;
         *efuse = safemode_efuse;
+        *fuse  = safemode_fuse;
         break;
   }
   

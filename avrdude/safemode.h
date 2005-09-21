@@ -28,12 +28,12 @@ amount of times before giving up */
 int safemode_writefuse (unsigned char fuse, char * fusename, PROGRAMMER * pgm, AVRPART * p, int tries, int verbose);
 
 /* Reads the fuses three times, checking that all readings are the same. This will ensure that the before values aren't in error! */
-int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse, unsigned char * efuse, PROGRAMMER * pgm, AVRPART * p, int verbose);
+int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse, unsigned char * efuse, unsigned char * fuse, PROGRAMMER * pgm, AVRPART * p, int verbose);
   
 /* This routine will store the current values pointed to by lfuse, hfuse, and efuse into an internal buffer in this routine
 when save is set to 1. When save is 0 (or not 1 really) it will copy the values from the internal buffer into the locations
 pointed to be lfuse, hfuse, and efuse. This allows you to change the fuse bits if needed from another routine (ie: have it so
 if user requests fuse bits are changed, the requested value is now verified */
-int safemode_memfuses (int save, unsigned char * lfuse, unsigned char * hfuse, unsigned char * efuse);
+int safemode_memfuses (int save, unsigned char * lfuse, unsigned char * hfuse, unsigned char * efuse, unsigned char * fuse);
 
 #endif //__safemode_h
