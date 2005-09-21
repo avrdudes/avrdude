@@ -41,6 +41,7 @@
 .Op Fl n
 .Op Fl P Ar port
 .Op Fl q
+.Op Fl s
 .Op Fl t
 .Op Fl u
 .Op Fl U Ar memtype:op:filename:filefmt
@@ -351,6 +352,13 @@ from the serial number need to be given.
 .It Fl q
 Disable (or quell) output of the progress bar while reading or writing
 to the device.  Specify it a second time for even quieter operation.
+.It Fl s
+Disable safemode prompting.  When safemode discovers that one or more
+fuse bits have unintentionally changed, it will prompt for
+confirmation regarding whether or not it should attempt to recover the
+fuse bit(s).  Specifying this flag disables the prompt and assumes
+that the fuse bit(s) should be recovered without asking for
+confirmation first.
 .It Fl t
 Tells
 .Nm
