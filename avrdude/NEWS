@@ -7,6 +7,10 @@ Approximate change log for AVRDUDE by version.
 ----------------------------------------------------------------------
 Current:
 
+
+
+Version 5.0:
+
   * Support for JTAGICE MkII device
 
   * Support for STK500 Version 2 Protocol
