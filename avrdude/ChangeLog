@@ -1,5 +1,11 @@
 2005-09-21  Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* main.c(do_op): use mem->desc in place of upd->memtype to
+	give the full name of the respective memory area, instead of
+	the (possibly abbreviated) name the user typed in the -U option.
+
+2005-09-21  Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* main.c: Add the forgotten -B option to the option string in
 	getopt(); sort the -s option into order.
 

@@ -540,13 +540,13 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
      */
     if (quell_progress < 2) {
       fprintf(stderr, "%s: reading %s memory:\n", 
-            progname, upd->memtype);
+            progname, mem->desc);
 	  }
     report_progress(0,1,"Reading");
     rc = avr_read(pgm, p, upd->memtype, 0, 1);
     if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
-              progname, upd->memtype, rc);
+              progname, mem->desc, rc);
       return -1;
     }
     report_progress(1,1,NULL);
@@ -607,7 +607,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
 
     if (rc < 0) {
       fprintf(stderr, "%s: failed to write %s memory, rc=%d\n", 
-              progname, upd->memtype, rc);
+              progname, mem->desc, rc);
       return -1;
     }
 
@@ -630,10 +630,10 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
 
     if (quell_progress < 2) {
       fprintf(stderr, "%s: verifying %s memory against %s:\n", 
-            progname, upd->memtype, upd->filename);
+            progname, mem->desc, upd->filename);
 
       fprintf(stderr, "%s: load data %s data from input file %s:\n",
-            progname, upd->memtype, upd->filename);
+            progname, mem->desc, upd->filename);
     }
 
     rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1);
@@ -654,7 +654,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
     rc = avr_read(pgm, v, upd->memtype, size, 1);
     if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
-              progname, upd->memtype, rc);
+              progname, mem->desc, rc);
       pgm->err_led(pgm, ON);
       return -1;
     }
@@ -675,7 +675,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
 
     if (quell_progress < 2) {
       fprintf(stderr, "%s: %d bytes of %s verified\n", 
-              progname, rc, upd->memtype);
+              progname, rc, mem->desc);
     }
 
     pgm->vfy_led(pgm, OFF);
