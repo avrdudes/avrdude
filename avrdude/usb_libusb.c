@@ -48,11 +48,14 @@ extern int verbose;
  * Should we query the endpoint number and max transfer size from USB?
  * After all, the JTAG ICE mkII docs document these values.
  */
-#define JTAGICE_BULK_EP 2
+#define JTAGICE_BULK_EP_WRITE 0x02
+#define JTAGICE_BULK_EP_READ  0x82
 #define JTAGICE_MAX_XFER 64
 
 static char usbbuf[JTAGICE_MAX_XFER];
 static int buflen = -1, bufptr;
+
+static int usb_interface;
 
 static int usbdev_open(char * port, long baud)
 {
@@ -99,7 +102,7 @@ static int usbdev_open(char * port, long baud)
   usb_find_busses();
   usb_find_devices();
 
-  for (bus = usb_busses; bus; bus = bus->next)
+  for (bus = usb_get_busses(); bus; bus = bus->next)
     {
       for (dev = bus->devices; dev; dev = dev->next)
 	{
@@ -132,7 +135,7 @@ static int usbdev_open(char * port, long baud)
 
 		  if (verbose)
 		    fprintf(stderr,
-			    "%s: usb_open(): Found JTAG ICE, serno: %s\n",
+			    "%s: usbdev_open(): Found JTAG ICE, serno: %s\n",
 			    progname, string);
 		  if (serno != NULL)
 		    {
@@ -153,8 +156,35 @@ static int usbdev_open(char * port, long baud)
 			}
 		    }
 
+		  if (dev->config == NULL)
+		    {
+		      fprintf(stderr,
+			      "%s: usbdev_open(): USB device has no configuration\n",
+			      progname);
+		      goto trynext;
+		    }
+
+		  if (usb_set_configuration(udev, dev->config[0].bConfigurationValue))
+		    {
+		      fprintf(stderr,
+			      "%s: usbdev_open(): error setting configuration %d: %s\n",
+			      progname, dev->config[0].bConfigurationValue,
+			      usb_strerror());
+		      goto trynext;
+		    }
+
+		  usb_interface = dev->config[0].interface[0].altsetting[0].bInterfaceNumber;
+		  if (usb_claim_interface(udev, usb_interface))
+		    {
+		      fprintf(stderr,
+			      "%s: usbdev_open(): error claiming interface %d: %s\n",
+			      progname, usb_interface, usb_strerror());
+		      goto trynext;
+		    }
+
 		  return (int)udev;
 		}
+	      trynext:
 	      usb_close(udev);
 	    }
 	}
@@ -174,6 +204,7 @@ static void usbdev_close(int fd)
 {
   usb_dev_handle *udev = (usb_dev_handle *)fd;
 
+  (void)usb_release_interface(udev, usb_interface);
   usb_close(udev);
 }
 
@@ -181,8 +212,16 @@ static void usbdev_close(int fd)
 static int usbdev_send(int fd, unsigned char *bp, size_t mlen)
 {
   usb_dev_handle *udev = (usb_dev_handle *)fd;
+  size_t rv;
 
-  return usb_bulk_write(udev, JTAGICE_BULK_EP, (char *)bp, mlen, 5000) != mlen;
+  rv = usb_bulk_write(udev, JTAGICE_BULK_EP_WRITE, (char *)bp, mlen, 5000);
+  if (rv != mlen)
+  {
+      fprintf(stderr, "%s: usbdev_send(): wrote %d out of %d bytes, err = %s\n",
+              progname, rv, mlen, usb_strerror());
+      return -1;
+  }
+  return 0;
 }
 
 /*
@@ -198,7 +237,7 @@ usb_fill_buf(usb_dev_handle *udev)
 {
   int rv;
 
-  rv = usb_bulk_read(udev, JTAGICE_BULK_EP, usbbuf, JTAGICE_MAX_XFER, 5000);
+  rv = usb_bulk_read(udev, JTAGICE_BULK_EP_READ, usbbuf, JTAGICE_MAX_XFER, 5000);
   if (rv < 0)
     {
       if (verbose > 1)
@@ -263,7 +302,7 @@ static int usbdev_drain(int fd, int display)
   int rv;
 
   do {
-    rv = usb_bulk_read(udev, JTAGICE_BULK_EP, usbbuf, JTAGICE_MAX_XFER, 100);
+    rv = usb_bulk_read(udev, JTAGICE_BULK_EP_READ, usbbuf, JTAGICE_MAX_XFER, 100);
     if (rv > 0 && verbose >= 4)
       fprintf(stderr, "%s: usbdev_drain(): flushed %d characters\n",
 	      progname, rv);
