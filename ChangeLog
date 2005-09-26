@@ -1,3 +1,10 @@
+2005-09-26  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* jtagmkII.c (jtagmkII_paged_write): default the page size early so the
+	buffer will be allocated correctly.
+	* usb_libusb.c: fix libusb handling; now it works with libusb-win32 as
+	well.
+
 2005-09-21  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* main.c(do_op): use mem->desc in place of upd->memtype to
