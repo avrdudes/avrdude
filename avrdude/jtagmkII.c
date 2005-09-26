@@ -1165,6 +1165,8 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   if (jtagmkII_program_enable(pgm) < 0)
     return -1;
 
+  if (page_size == 0) page_size = 256;
+
   if ((cmd = malloc(page_size + 10)) == NULL) {
     fprintf(stderr, "%s: jtagmkII_paged_write(): Out of memory\n",
 	    progname);
@@ -1181,8 +1183,6 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     eeprom_pageaddr = (unsigned long)-1L;
     page_size = eeprom_pagesize;
   }
-
-  if (page_size == 0) page_size = 256;
 
   serial_recv_timeout = 100;
   for (addr = 0; addr < n_bytes; addr += page_size) {
