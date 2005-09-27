@@ -1,3 +1,10 @@
+2005-09-27  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* doc/avrdude.texi: Polish up the docs a bit.  Use smallexample
+	instead of example for wide tty output.  Document a trick to
+	find out about the serial numbers of all JTAG ICEs attached
+	to USB.
+
 2005-09-26  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* jtagmkII.c (jtagmkII_paged_write): default the page size early so the
