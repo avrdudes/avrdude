@@ -1,3 +1,9 @@
+2005-10-09  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: add support for ATmega640/1280/1281.
+	* avrdude.1: document the above.
+	* doc/avrdude.texi: (Ditto.)
+
 2005-09-27  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* doc/avrdude.texi: Polish up the docs a bit.  Use smallexample

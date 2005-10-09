@@ -7,6 +7,11 @@ Approximate change log for AVRDUDE by version.
 ----------------------------------------------------------------------
 Current:
 
+  * New devices supported:
+
+      - ATmega640/1280/1281
+
+  * JTAG mkII support now works with libusb-win32, too
 
 
 Version 5.0:
