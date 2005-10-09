@@ -291,6 +291,12 @@ ATmega103
 @itemx m128
 ATmega128
 
+@itemx m1280
+ATmega1280
+
+@itemx m1281
+ATmega1281
+
 @itemx m16
 ATmega16
 
@@ -326,6 +332,9 @@ ATmega48
 
 @itemx m64
 ATmega64
+
+@itemx m640
+ATmega640
 
 @itemx m644
 ATmega644
