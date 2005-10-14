@@ -1,3 +1,8 @@
+2005-10-14  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in (ATmega8515): fix size of calibration
+	memory.
+
 2005-10-09  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: add support for ATmega640/1280/1281.
