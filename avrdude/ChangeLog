@@ -1,3 +1,7 @@
+2005-10-20  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* butterfly.c: fix yet another sign extension bug.
+
 2005-10-14  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in (ATmega8515): fix size of calibration

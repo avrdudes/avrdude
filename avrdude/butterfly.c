@@ -297,9 +297,9 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
     exit(1);
   };
   butterfly_recv(pgm, &c, 1);
-  buffersize = c<<8;
+  buffersize = (unsigned int)(unsigned char)c<<8;
   butterfly_recv(pgm, &c, 1);
-  buffersize += c;
+  buffersize += (unsigned int)(unsigned char)c;
   fprintf(stderr,
     "Programmer supports buffered memory access with buffersize=%i bytes.\n",
      buffersize);
