@@ -40,6 +40,12 @@
 #include "ppi.h"
 #include "bitbang.h"
 
+extern char * progname;
+extern int do_cycles;
+extern int verbose;
+
+#if HAVE_PARPORT
+
 #define SLOW_TOGGLE 0
 
 struct ppipins_t {
@@ -71,12 +77,7 @@ struct ppipins_t ppipins[] = {
 
 #define NPINS (sizeof(ppipins)/sizeof(struct ppipins_t))
 
-
-extern char * progname;
-extern int do_cycles;
-extern int verbose;
-
-int par_setpin(int fd, int pin, int value)
+static int par_setpin(PROGRAMMER * pgm, int pin, int value)
 {
 
   pin &= PIN_MASK;
@@ -90,9 +91,9 @@ int par_setpin(int fd, int pin, int value)
     value = !value;
 
   if (value)
-    ppi_set(fd, ppipins[pin].reg, ppipins[pin].bit);
+    ppi_set(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
   else
-    ppi_clr(fd, ppipins[pin].reg, ppipins[pin].bit);
+    ppi_clr(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
 
 #if SLOW_TOGGLE
   usleep(1000);
@@ -102,7 +103,7 @@ int par_setpin(int fd, int pin, int value)
 }
 
 
-int par_getpin(int fd, int pin)
+static int par_getpin(PROGRAMMER * pgm, int pin)
 {
   int value;
 
@@ -113,7 +114,7 @@ int par_getpin(int fd, int pin)
 
   pin--;
 
-  value = ppi_get(fd, ppipins[pin].reg, ppipins[pin].bit);
+  value = ppi_get(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
 
   if (value)
     value = 1;
@@ -125,7 +126,7 @@ int par_getpin(int fd, int pin)
 }
 
 
-int par_highpulsepin(int fd, int pin)
+static int par_highpulsepin(PROGRAMMER * pgm, int pin)
 {
 
   if (pin < 1 || pin > 17)
@@ -133,11 +134,11 @@ int par_highpulsepin(int fd, int pin)
 
   pin--;
 
-  ppi_set(fd, ppipins[pin].reg, ppipins[pin].bit);
+  ppi_set(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
 #if SLOW_TOGGLE
   usleep(1000);
 #endif
-  ppi_clr(fd, ppipins[pin].reg, ppipins[pin].bit);
+  ppi_clr(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
 
 #if SLOW_TOGGLE
   usleep(1000);
@@ -158,7 +159,7 @@ int par_getpinmask(int pin)
 
 
 char vccpins_buf[64];
-char * vccpins_str(unsigned int pmask)
+static char * vccpins_str(unsigned int pmask)
 {
   unsigned int mask;
   int pin;
@@ -183,7 +184,7 @@ char * vccpins_str(unsigned int pmask)
 /*
  * apply power to the AVR processor
  */
-void par_powerup(PROGRAMMER * pgm)
+static void par_powerup(PROGRAMMER * pgm)
 {
   ppi_set(pgm->fd, PPIDATA, pgm->pinno[PPI_AVR_VCC]);    /* power up */
   usleep(100000);
@@ -193,17 +194,17 @@ void par_powerup(PROGRAMMER * pgm)
 /*
  * remove power from the AVR processor
  */
-void par_powerdown(PROGRAMMER * pgm)
+static void par_powerdown(PROGRAMMER * pgm)
 {
   ppi_clr(pgm->fd, PPIDATA, pgm->pinno[PPI_AVR_VCC]);    /* power down */
 }
 
-void par_disable(PROGRAMMER * pgm)
+static void par_disable(PROGRAMMER * pgm)
 {
   ppi_set(pgm->fd, PPIDATA, pgm->pinno[PPI_AVR_BUFF]);
 }
 
-void par_enable(PROGRAMMER * pgm)
+static void par_enable(PROGRAMMER * pgm)
 {
   /*
    * Prepare to start talking to the connected device - pull reset low
@@ -216,7 +217,7 @@ void par_enable(PROGRAMMER * pgm)
    * and not via the buffer chip.
    */
 
-  par_setpin(pgm->fd, pgm->pinno[PIN_AVR_RESET], 0);
+  par_setpin(pgm, pgm->pinno[PIN_AVR_RESET], 0);
   usleep(1);
 
   /*
@@ -225,7 +226,7 @@ void par_enable(PROGRAMMER * pgm)
   ppi_clr(pgm->fd, PPIDATA, pgm->pinno[PPI_AVR_BUFF]);
 }
 
-int par_open(PROGRAMMER * pgm, char * port)
+static int par_open(PROGRAMMER * pgm, char * port)
 {
   int rc;
 
@@ -259,7 +260,7 @@ int par_open(PROGRAMMER * pgm, char * port)
 }
 
 
-void par_close(PROGRAMMER * pgm)
+static void par_close(PROGRAMMER * pgm)
 {
   /*
    * Restore pin values before closing,
@@ -275,7 +276,7 @@ void par_close(PROGRAMMER * pgm)
   pgm->fd = -1;
 }
 
-void par_display(PROGRAMMER * pgm, char * p)
+static void par_display(PROGRAMMER * pgm, char * p)
 {
   char vccpins[64];
   char buffpins[64];
@@ -320,6 +321,38 @@ void par_display(PROGRAMMER * pgm, char * p)
           p, pgm->pinno[PIN_LED_VFY]);
 }
 
+/*
+ * parse the -E string
+ */
+static int par_getexitspecs(PROGRAMMER * pgm, char *s, int *set, int *clr)
+{
+  char *cp;
+
+  while ((cp = strtok(s, ","))) {
+    if (strcmp(cp, "reset") == 0) {
+      *clr |= par_getpinmask(pgm->pinno[PIN_AVR_RESET]);
+    }
+    else if (strcmp(cp, "noreset") == 0) {
+      *set |= par_getpinmask(pgm->pinno[PIN_AVR_RESET]);
+    }
+    else if (strcmp(cp, "vcc") == 0) {
+      if (pgm->pinno[PPI_AVR_VCC])
+        *set |= pgm->pinno[PPI_AVR_VCC];
+    }
+    else if (strcmp(cp, "novcc") == 0) {
+      if (pgm->pinno[PPI_AVR_VCC])
+        *clr |= pgm->pinno[PPI_AVR_VCC];
+    }
+    else {
+      return -1;
+    }
+    s = 0; /* strtok() should be called with the actual string only once */
+  }
+
+  return 0;
+}
+
+
 
 void par_initpgm(PROGRAMMER * pgm)
 {
@@ -340,7 +373,19 @@ void par_initpgm(PROGRAMMER * pgm)
   pgm->cmd            = bitbang_cmd;
   pgm->open           = par_open;
   pgm->close          = par_close;
-  
-  /* this is a parallel port bitbang device */
-  pgm->flag	      = 0;
+  pgm->setpin         = par_setpin;
+  pgm->getpin         = par_getpin;
+  pgm->highpulsepin   = par_highpulsepin;
+  pgm->getexitspecs   = par_getexitspecs;
 }
+
+#else  /* !HAVE_PARPORT */
+
+void par_initpgm(PROGRAMMER * pgm)
+{
+  fprintf(stderr,
+	  "%s: parallel port access not available in this configuration\n",
+	  progname);
+}
+
+#endif /* HAVE_PARPORT */

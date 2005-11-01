@@ -81,6 +81,10 @@ typedef struct programmer_t {
   int  (*set_varef)      (struct programmer_t * pgm, double v);
   int  (*set_fosc)       (struct programmer_t * pgm, double v);
   int  (*set_sck_period) (struct programmer_t * pgm, double v);
+  int  (*setpin)         (struct programmer_t * pgm, int pin, int value);
+  int  (*getpin)         (struct programmer_t * pgm, int pin);
+  int  (*highpulsepin)   (struct programmer_t * pgm, int pin);
+  int  (*getexitspecs)   (struct programmer_t * pgm, char *s, int *set, int *clr);
   char config_file[PATH_MAX]; /* config file where defined */
   int  lineno;                /* config file line number */
   char flag;		      /* for private use of the programmer */
@@ -103,8 +107,6 @@ PROGRAMMER * pgm_new(void);
 void usleep(unsigned long us);
 
 void gettimeofday(struct timeval*, void*z);
-
-#define rindex strrchr
 
 #endif /* __win32native_h */
 

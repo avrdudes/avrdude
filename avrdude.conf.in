@@ -221,17 +221,6 @@ default_serial     = "@DEFAULT_SER_PORT@";
 #
 
 programmer
-  id    = "bsd";
-  desc  = "Brian Dean's Programmer, http://www.bsdhome.com/avrdude/";
-  type  = par;
-  vcc   = 2, 3, 4, 5;
-  reset = 7;
-  sck   = 8;
-  mosi  = 9;
-  miso  = 10;
-;
-
-programmer
   id    = "avrisp";
   desc  = "Atmel AVR ISP";
   type  = stk500;
@@ -314,6 +303,20 @@ programmer
   id    = "pavr";
   desc  = "Jason Kyle's pAVR Serial Programmer";
   type  = avr910;
+;
+
+@HAVE_PARPORT_BEGIN@  Inclusion of the following depends on --enable-parport
+# Parallel port programmers.
+
+programmer
+  id    = "bsd";
+  desc  = "Brian Dean's Programmer, http://www.bsdhome.com/avrdude/";
+  type  = par;
+  vcc   = 2, 3, 4, 5;
+  reset = 7;
+  sck   = 8;
+  mosi  = 9;
+  miso  = 10;
 ;
 
 programmer
@@ -452,6 +455,7 @@ programmer
   miso = 11;
 ;
 
+@HAVE_PARPORT_END@
 
 #
 # some ultra cheap programmers use bitbanging on the 

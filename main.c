@@ -129,39 +129,6 @@ void usage(void)
 }
 
 
-/*
- * parse the -E string
- */
-int getexitspecs(char *s, int *set, int *clr)
-{
-  char *cp;
-
-  while ((cp = strtok(s, ","))) {
-    if (strcmp(cp, "reset") == 0) {
-      *clr |= par_getpinmask(pgm->pinno[PIN_AVR_RESET]);
-    }
-    else if (strcmp(cp, "noreset") == 0) {
-      *set |= par_getpinmask(pgm->pinno[PIN_AVR_RESET]);
-    }
-    else if (strcmp(cp, "vcc") == 0) {
-      if (pgm->pinno[PPI_AVR_VCC])
-        *set |= pgm->pinno[PPI_AVR_VCC];
-    }
-    else if (strcmp(cp, "novcc") == 0) {
-      if (pgm->pinno[PPI_AVR_VCC])
-        *clr |= pgm->pinno[PPI_AVR_VCC];
-    }
-    else {
-      return -1;
-    }
-    s = 0; /* strtok() should be called with the actual string only once */
-  }
-
-  return 0;
-}
-
-
-
 int read_config(char * file)
 {
   FILE * f;
@@ -742,11 +709,11 @@ int main(int argc, char * argv [])
   char  * homedir;
 #endif
 
-  progname = rindex(argv[0],'/');
+  progname = strrchr(argv[0],'/');
 
 #if defined (WIN32NATIVE)
   /* take care of backslash as dir sep in W32 */
-  if (!progname) progname = rindex(argv[0],'\\');
+  if (!progname) progname = strrchr(argv[0],'\\');
 #endif /* WIN32NATIVE */
 
   if (progname)
@@ -1106,14 +1073,13 @@ int main(int argc, char * argv [])
 
 
   if (exitspecs != NULL) {
-    if (strcmp(pgm->type, "PPI") != 0) {
+    if (pgm->getexitspecs == NULL) {
       fprintf(stderr,
-              "%s: WARNING: -E option is only valid with \"PPI\" "
-              "programmer types\n",
+              "%s: WARNING: -E option not supported by this programmer type\n",
               progname);
       exitspecs = NULL;
     }
-    else if (getexitspecs(exitspecs, &ppisetbits, &ppiclrbits) < 0) {
+    else if (pgm->getexitspecs(pgm, exitspecs, &ppisetbits, &ppiclrbits) < 0) {
       usage();
       exit(1);
     }
