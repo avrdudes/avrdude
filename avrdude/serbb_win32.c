@@ -59,9 +59,9 @@ static int dtr, rts, txd;
   Negative pin # means negated value.
 */
 
-void serbb_setpin(int fd, int pin, int value)
+static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
 {
-	HANDLE hComPort = (HANDLE)fd;
+	HANDLE hComPort = (HANDLE)pgm->fd;
         LPVOID lpMsgBuf;
         DWORD dwFunc;
         const char *name;
@@ -73,7 +73,7 @@ void serbb_setpin(int fd, int pin, int value)
         }
 
         if (pin < 1 || pin > 7)
-                return;
+                return -1;
 
         pin--;
 
@@ -101,7 +101,7 @@ void serbb_setpin(int fd, int pin, int value)
                         fprintf(stderr,
                                 "%s: serbb_setpin(): unknown pin %d\n",
                                 progname, pin + 1);
-                return;
+                return -1;
         }
         if (verbose > 4)
                 fprintf(stderr,
@@ -126,12 +126,12 @@ void serbb_setpin(int fd, int pin, int value)
                 LocalFree(lpMsgBuf);
                 exit(1);
         }
-        return;
+        return 0;
 }
 
-int serbb_getpin(int fd, int pin)
+static int serbb_getpin(PROGRAMMER * pgm, int pin)
 {
-	HANDLE hComPort = (HANDLE)fd;
+	HANDLE hComPort = (HANDLE)pgm->fd;
         LPVOID lpMsgBuf;
         int invert, rv;
         const char *name;
@@ -224,16 +224,16 @@ int serbb_getpin(int fd, int pin)
         return rv;
 }
 
-int serbb_highpulsepin(int fd, int pin)
+static int serbb_highpulsepin(PROGRAMMER * pgm, int pin)
 {
         if (pin < 1 || pin > 7)
                 return -1;
 
-        serbb_setpin(fd, pin, 1);
+        serbb_setpin(pgm, pin, 1);
 #if SLOW_TOGGLE
         usleep(1000);
 #endif
-        serbb_setpin(fd, pin, 0);
+        serbb_setpin(pgm, pin, 0);
 
 #if SLOW_TOGGLE
         usleep(1000);
@@ -243,32 +243,32 @@ int serbb_highpulsepin(int fd, int pin)
 }
 
 
-void serbb_display(PROGRAMMER *pgm, char *p)
+static void serbb_display(PROGRAMMER *pgm, char *p)
 {
   /* MAYBE */
 }
 
-void serbb_enable(PROGRAMMER *pgm)
+static void serbb_enable(PROGRAMMER *pgm)
 {
   /* nothing */
 }
 
-void serbb_disable(PROGRAMMER *pgm)
+static void serbb_disable(PROGRAMMER *pgm)
 {
   /* nothing */
 }
 
-void serbb_powerup(PROGRAMMER *pgm)
+static void serbb_powerup(PROGRAMMER *pgm)
 {
   /* nothing */
 }
 
-void serbb_powerdown(PROGRAMMER *pgm)
+static void serbb_powerdown(PROGRAMMER *pgm)
 {
   /* nothing */
 }
 
-int serbb_open(PROGRAMMER *pgm, char *port)
+static int serbb_open(PROGRAMMER *pgm, char *port)
 {
         DCB dcb;
 	LPVOID lpMsgBuf;
@@ -332,7 +332,7 @@ int serbb_open(PROGRAMMER *pgm, char *port)
         return 0;
 }
 
-void serbb_close(PROGRAMMER *pgm)
+static void serbb_close(PROGRAMMER *pgm)
 {
 	HANDLE hComPort=(HANDLE)pgm->fd;
 	if (hComPort != INVALID_HANDLE_VALUE)
@@ -364,9 +364,9 @@ void serbb_initpgm(PROGRAMMER *pgm)
   pgm->cmd            = bitbang_cmd;
   pgm->open           = serbb_open;
   pgm->close          = serbb_close;
-
-  /* this is a serial port bitbang device */
-  pgm->flag           = 1;
+  pgm->setpin         = serbb_setpin;
+  pgm->getpin         = serbb_getpin;
+  pgm->highpulsepin   = serbb_highpulsepin;
 }
 
 #endif  /* WIN32NATIVE */

@@ -1,3 +1,21 @@
+2005-11-01  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Make avrdude Solaris-compatible.
+	* Makefile.am: distclean avrdude.conf.
+	* avrdude.conf.in: make the parallel-port programmers optional.
+	* bitbang.c: move the bitbang features out into PROGRAMMER.
+	* configure.ac: introduce --enable-parport, add Solaris.
+	* lexer.l: replace str by strng to work around problems in some
+	versions of flex.
+	* main.c: move getexitspecs into the respective programmer's
+	domain; replace rindex by the C-standard strrchr.
+	* par.c: make parallel port optional.
+	* par.h: everything but par_initpgm() is private now.
+	* pgm.h: add setping/getping/highpulsepin/getexitspecs.
+	* serbb_posix.c: generalize bitbang interface; replace
+	cfmakeraw() by explicit code.
+	* serbb_win32.c: generalize bitbang interface.
+
 2005-10-20  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* butterfly.c: fix yet another sign extension bug.

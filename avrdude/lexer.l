@@ -46,7 +46,7 @@ HEXDIGIT [0-9a-fA-F]
 ID       [_a-zA-Z][_a-zA-Z0-9]*
 SIGN     [+-]
 
-%x str
+%x strng
 %x incl
 %x comment
 
@@ -56,7 +56,7 @@ SIGN     [+-]
 {SIGN}*{DIGIT}+"."{DIGIT}* { yylval = number(yytext); return TKN_NUMBER; }
 {SIGN}*"."{DIGIT}*         { yylval = number(yytext); return TKN_NUMBER; }
 
-"\""      { string_buf_ptr = string_buf; BEGIN(str); }
+"\""      { string_buf_ptr = string_buf; BEGIN(strng); }
 
 0x{HEXDIGIT}+ { yylval = hexnumber(yytext); return TKN_NUMBER; }
 
@@ -99,7 +99,7 @@ SIGN     [+-]
      }
 
 
-<str>{
+<strng>{
   \" { *string_buf_ptr = 0; string_buf_ptr = string_buf; 
          yylval = string(string_buf_ptr); BEGIN(INITIAL); return TKN_STRING; }
   \\n  *string_buf_ptr++ = '\n';

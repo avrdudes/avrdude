@@ -108,6 +108,9 @@ sysconf_DATA = avrdude.conf
 
 install-exec-local: backup-avrdude-conf
 
+distclean-local:
+	rm -f avrdude.conf
+
 # This will get run before the config file is installed.
 backup-avrdude-conf:
 	@echo "Backing up avrdude.conf in ${DESTDIR}${sysconfdir}"

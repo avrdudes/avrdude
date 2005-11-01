@@ -58,15 +58,15 @@ struct termios oldmode;
   7	cts	<-
 */
 
-int serregbits[] =
+static int serregbits[] =
 { TIOCM_CD, 0, 0, TIOCM_DTR, TIOCM_DSR, TIOCM_RTS, TIOCM_CTS };
 
 #ifdef DEBUG
-char *serpins[7] =
+static char *serpins[7] =
   { "CD", "RXD", "TXD ~RESET", "DTR MOSI", "DSR", "RTS SCK", "CTS MISO" };
 #endif
 
-void serbb_setpin(int fd, int pin, int value)
+static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
 {
   unsigned int	ctl;
 
@@ -77,7 +77,7 @@ void serbb_setpin(int fd, int pin, int value)
   }
 
   if ( pin < 1 || pin > 7 )
-    return;
+    return -1;
 
   pin--;
 
@@ -88,24 +88,24 @@ void serbb_setpin(int fd, int pin, int value)
   switch ( pin )
   {
     case 2:  /* txd */
-             ioctl(fd, value ? TIOCSBRK : TIOCCBRK, 0);
-             return;
+             ioctl(pgm->fd, value ? TIOCSBRK : TIOCCBRK, 0);
+             return 0;
 
     case 3:  /* dtr, rts */
-    case 5:  ioctl(fd, TIOCMGET, &ctl);
+    case 5:  ioctl(pgm->fd, TIOCMGET, &ctl);
              if ( value )
                ctl |= serregbits[pin];
              else
                ctl &= ~(serregbits[pin]);
-             ioctl(fd, TIOCMSET, &ctl);
-             return;
+             ioctl(pgm->fd, TIOCMSET, &ctl);
+             return 0;
 
     default: /* impossible */
-             return;
+             return -1;
   }
 }
 
-int serbb_getpin(int fd, int pin)
+static int serbb_getpin(PROGRAMMER * pgm, int pin)
 {
   unsigned int	ctl;
   unsigned char invert;
@@ -131,7 +131,7 @@ int serbb_getpin(int fd, int pin)
     case 3:
     case 4:
     case 5:
-    case 6:  ioctl(fd, TIOCMGET, &ctl);
+    case 6:  ioctl(pgm->fd, TIOCMGET, &ctl);
              if ( !invert )
              {
 #ifdef DEBUG
@@ -152,16 +152,16 @@ int serbb_getpin(int fd, int pin)
   }
 }
 
-int serbb_highpulsepin(int fd, int pin)
+static int serbb_highpulsepin(PROGRAMMER * pgm, int pin)
 {
   if (pin < 1 || pin > 7)
     return -1;
 
-  serbb_setpin(fd, pin, 1);
+  serbb_setpin(pgm, pin, 1);
   #if SLOW_TOGGLE
   usleep(1000);
   #endif
-  serbb_setpin(fd, pin, 0);
+  serbb_setpin(pgm, pin, 0);
 
   #if SLOW_TOGGLE
   usleep(1000);
@@ -172,32 +172,32 @@ int serbb_highpulsepin(int fd, int pin)
 
 
 
-void serbb_display(PROGRAMMER *pgm, char *p)
+static void serbb_display(PROGRAMMER *pgm, char *p)
 {
   /* MAYBE */
 }
 
-void serbb_enable(PROGRAMMER *pgm)
+static void serbb_enable(PROGRAMMER *pgm)
 {
   /* nothing */
 }
 
-void serbb_disable(PROGRAMMER *pgm)
+static void serbb_disable(PROGRAMMER *pgm)
 {
   /* nothing */
 }
 
-void serbb_powerup(PROGRAMMER *pgm)
+static void serbb_powerup(PROGRAMMER *pgm)
 {
   /* nothing */
 }
 
-void serbb_powerdown(PROGRAMMER *pgm)
+static void serbb_powerdown(PROGRAMMER *pgm)
 {
   /* nothing */
 }
 
-int serbb_open(PROGRAMMER *pgm, char *port)
+static int serbb_open(PROGRAMMER *pgm, char *port)
 {
   struct termios mode;
   int flags;
@@ -206,41 +206,40 @@ int serbb_open(PROGRAMMER *pgm, char *port)
 
   pgm->fd = open(port, O_RDWR | O_NOCTTY | O_NONBLOCK);
 
-  if ( pgm->fd > 0 )
-  {
-    tcgetattr(pgm->fd, &mode);
-    oldmode = mode;
+  if (pgm->fd < 0)
+    return(-1);
 
-    cfmakeraw(&mode);
-    mode.c_iflag &= ~(INPCK | IXOFF | IXON);
-    mode.c_cflag &= ~(HUPCL | CSTOPB | CRTSCTS);
-    mode.c_cflag |= (CLOCAL | CREAD);
-    mode.c_cc [VMIN] = 1;
-    mode.c_cc [VTIME] = 0;
+  tcgetattr(pgm->fd, &mode);
+  oldmode = mode;
 
-    tcsetattr(pgm->fd, TCSANOW, &mode);
+  mode.c_iflag = IGNBRK | IGNPAR;
+  mode.c_oflag = 0;
+  mode.c_cflag = CLOCAL | CREAD | CS8 | B9600;
+  mode.c_cc [VMIN] = 1;
+  mode.c_cc [VTIME] = 0;
 
-    /* Clear O_NONBLOCK flag.  */
-    flags = fcntl(pgm->fd, F_GETFL, 0);
-    if (flags == -1)
+  tcsetattr(pgm->fd, TCSANOW, &mode);
+
+  /* Clear O_NONBLOCK flag.  */
+  flags = fcntl(pgm->fd, F_GETFL, 0);
+  if (flags == -1)
     {
       fprintf(stderr, "%s: Can not get flags\n", progname);
       return(-1);
     }
-    flags &= ~O_NONBLOCK;
-    if (fcntl(pgm->fd, F_SETFL, flags) == -1)
+  flags &= ~O_NONBLOCK;
+  if (fcntl(pgm->fd, F_SETFL, flags) == -1)
     {
       fprintf(stderr, "%s: Can not clear nonblock flag\n", progname);
       return(-1);
     }
-  }
 
   return(0);
 }
 
-void serbb_close(PROGRAMMER *pgm)
+static void serbb_close(PROGRAMMER *pgm)
 {
-  tcsetattr(pgm->fd, TCSADRAIN, &oldmode);
+  tcsetattr(pgm->fd, TCSANOW, &oldmode);
   return;
 }
 
@@ -263,9 +262,9 @@ void serbb_initpgm(PROGRAMMER *pgm)
   pgm->cmd            = bitbang_cmd;
   pgm->open           = serbb_open;
   pgm->close          = serbb_close;
-
-  /* this is a serial port bitbang device */
-  pgm->flag           = 1;
+  pgm->setpin         = serbb_setpin;
+  pgm->getpin         = serbb_getpin;
+  pgm->highpulsepin   = serbb_highpulsepin;
 }
 
 #endif  /* WIN32NATIVE */

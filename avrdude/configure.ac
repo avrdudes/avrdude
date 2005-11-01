@@ -32,7 +32,7 @@ AC_CANONICAL_TARGET
 
 AC_CONFIG_SRCDIR([main.c])
 AM_INIT_AUTOMAKE
-AM_CONFIG_HEADER([ac_cfg.h]) 
+AM_CONFIG_HEADER([ac_cfg.h])
 
 # Checks for programs.
 AC_PROG_CC
@@ -93,6 +93,18 @@ AC_ARG_ENABLE(
 		esac],
 	[enabled_doc=no])
 
+AC_ARG_ENABLE(
+	[parport],
+	AC_HELP_STRING(
+		[--enable-parport],
+		[Enable accessing parallel ports(default)]),
+	[case "${enableval}" in
+		yes) enabled_parport=yes ;;
+		no)  enabled_parport=no ;;
+		*)   AC_MSG_ERROR(bad value ${enableval} for enable-parport option) ;;
+		esac],
+	[enabled_parport=yes])
+
 if test "$enabled_doc" = "yes"; then
 
 SUBDIRS_AC='doc @WINDOWS_DIRS@'
@@ -104,7 +116,7 @@ DIST_SUBDIRS_AC='windows'
 fi
 
 AC_SUBST(DOC_INST_DIR, $DOC_INST_DIR)
-AC_SUBST(SUBDIRS_AC, $SUBDIRS_AC)	
+AC_SUBST(SUBDIRS_AC, $SUBDIRS_AC)
 AC_SUBST(DIST_SUBDIRS_AC, $DIST_SUBDIRS_AC)
 
 
@@ -127,6 +139,10 @@ case $target in
 		DEFAULT_PAR_PORT="unknown"
 		DEFAULT_SER_PORT="/dev/cuaa0"
 		;;
+	*-*-solaris*)
+		DEFAULT_PAR_PORT="unknown"
+		DEFAULT_SER_PORT="/dev/term/a"
+		;;
 	*-*-msdos* | *-*-mingw32* | *-*-cygwin* | *-*-windows*)
 		DEFAULT_PAR_PORT="lpt1"
 		DEFAULT_SER_PORT="com1"
@@ -137,13 +153,28 @@ case $target in
 		;;
 esac
 
-AC_MSG_CHECKING([for parallel device])
-AC_MSG_RESULT([$DEFAULT_PAR_PORT])
-AC_SUBST(DEFAULT_PAR_PORT, $DEFAULT_PAR_PORT)
+if test "$enabled_parport" = "yes"; then
+	AC_MSG_CHECKING([for parallel device])
+	if test "$DEFAULT_PAR_PORT" = "unknown"; then
+		AC_MSG_NOTICE([parallel port access disabled for this system])
+		enabled_parport=no
+	else
+		AC_MSG_RESULT([$DEFAULT_PAR_PORT])
+	fi
+	AC_SUBST(DEFAULT_PAR_PORT, $DEFAULT_PAR_PORT)
+fi
 
 AC_MSG_CHECKING([for serial device])
 AC_MSG_RESULT([$DEFAULT_SER_PORT])
 AC_SUBST(DEFAULT_SER_PORT, $DEFAULT_SER_PORT)
+
+if test "$enabled_parport" = "yes"; then
+	AC_DEFINE(HAVE_PARPORT, 1, [parallel port access enabled])
+	confsubst="-e /^@HAVE_PARPORT_/d"
+else
+	confsubst="-e /^@HAVE_PARPORT_BEGIN@/,/^@HAVE_PARPORT_END@/d"
+fi
+export confsubst
 
 # See if we need to drop into the windows subdir.
 case $target in
@@ -168,9 +199,17 @@ fi
 AC_CONFIG_FILES([
        windows/Makefile
        avrdude.spec
-       avrdude.conf
        Makefile
 ])
 
-AC_OUTPUT
+# The procedure to create avrdude.conf involves two steps.  First,
+# normal autoconf substitution will be applied, resulting in
+# avrdude.conf.tmp.  Finally, a sed command will be applied to filter
+# out unwanted parts (currently the parallel port programmer types)
+# based on previous configuration results, thereby producing the final
+# avrdude.conf file.
 
+AC_CONFIG_FILES([avrdude.conf.tmp:avrdude.conf.in],
+		[sed $confsubst avrdude.conf.tmp > avrdude.conf])
+
+AC_OUTPUT

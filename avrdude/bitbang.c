@@ -40,35 +40,6 @@ extern char * progname;
 extern int do_cycles;
 extern int verbose;
 
-static int bitbang_setpin(PROGRAMMER * pgm, int pin, int value)
-{
-  if ( pgm->flag )
-    serbb_setpin(pgm->fd,pin,value);
-  else
-    par_setpin(pgm->fd,pin,value);
-
-  return 0;
-}
-
-
-static int bitbang_getpin(PROGRAMMER * pgm, int pin)
-{
-  if ( pgm->flag )
-    return serbb_getpin(pgm->fd,pin);
-  else
-    return par_getpin(pgm->fd,pin);
-}
-
-
-static int bitbang_highpulsepin(PROGRAMMER * pgm, int pin)
-{
-  if ( pgm->flag )
-    return serbb_highpulsepin(pgm->fd,pin);
-  else
-    return par_highpulsepin(pgm->fd,pin);
-}
-
-
 /*
  * transmit and receive a byte of data to/from the AVR device
  */
@@ -82,7 +53,7 @@ static unsigned char bitbang_txrx(PROGRAMMER * pgm, unsigned char byte)
     /*
      * Write and read one bit on SPI.
      * Some notes on timing: Let T be the time it takes to do
-     * one bitbang_setpin()-call resp. par clrpin()-call, then
+     * one pgm->setpin()-call resp. par clrpin()-call, then
      * - SCK is high for 2T
      * - SCK is low for 2T
      * - MOSI setuptime is 1T
@@ -99,17 +70,17 @@ static unsigned char bitbang_txrx(PROGRAMMER * pgm, unsigned char byte)
     b = (byte >> i) & 0x01;
 
     /* set the data input line as desired */
-    bitbang_setpin(pgm, pgm->pinno[PIN_AVR_MOSI], b);
+    pgm->setpin(pgm, pgm->pinno[PIN_AVR_MOSI], b);
 
-    bitbang_setpin(pgm, pgm->pinno[PIN_AVR_SCK], 1);
+    pgm->setpin(pgm, pgm->pinno[PIN_AVR_SCK], 1);
 
     /*
      * read the result bit (it is either valid from a previous falling
      * edge or it is ignored in the current context)
      */
-    r = bitbang_getpin(pgm, pgm->pinno[PIN_AVR_MISO]);
+    r = pgm->getpin(pgm, pgm->pinno[PIN_AVR_MISO]);
 
-    bitbang_setpin(pgm, pgm->pinno[PIN_AVR_SCK], 0);
+    pgm->setpin(pgm, pgm->pinno[PIN_AVR_SCK], 0);
 
     rbyte |= r << i;
   }
@@ -120,25 +91,25 @@ static unsigned char bitbang_txrx(PROGRAMMER * pgm, unsigned char byte)
 
 int bitbang_rdy_led(PROGRAMMER * pgm, int value)
 {
-  bitbang_setpin(pgm, pgm->pinno[PIN_LED_RDY], !value);
+  pgm->setpin(pgm, pgm->pinno[PIN_LED_RDY], !value);
   return 0;
 }
 
 int bitbang_err_led(PROGRAMMER * pgm, int value)
 {
-  bitbang_setpin(pgm, pgm->pinno[PIN_LED_ERR], !value);
+  pgm->setpin(pgm, pgm->pinno[PIN_LED_ERR], !value);
   return 0;
 }
 
 int bitbang_pgm_led(PROGRAMMER * pgm, int value)
 {
-  bitbang_setpin(pgm, pgm->pinno[PIN_LED_PGM], !value);
+  pgm->setpin(pgm, pgm->pinno[PIN_LED_PGM], !value);
   return 0;
 }
 
 int bitbang_vfy_led(PROGRAMMER * pgm, int value)
 {
-  bitbang_setpin(pgm, pgm->pinno[PIN_LED_VFY], !value);
+  pgm->setpin(pgm, pgm->pinno[PIN_LED_VFY], !value);
   return 0;
 }
 
@@ -236,11 +207,11 @@ int bitbang_initialize(PROGRAMMER * pgm, AVRPART * p)
   pgm->powerup(pgm);
   usleep(20000);
 
-  bitbang_setpin(pgm, pgm->pinno[PIN_AVR_SCK], 0);
-  bitbang_setpin(pgm, pgm->pinno[PIN_AVR_RESET], 0);
+  pgm->setpin(pgm, pgm->pinno[PIN_AVR_SCK], 0);
+  pgm->setpin(pgm, pgm->pinno[PIN_AVR_RESET], 0);
   usleep(20000);
 
-  bitbang_highpulsepin(pgm, pgm->pinno[PIN_AVR_RESET]);
+  pgm->highpulsepin(pgm, pgm->pinno[PIN_AVR_RESET]);
 
   usleep(20000); /* 20 ms XXX should be a per-chip parameter */
 
@@ -261,7 +232,7 @@ int bitbang_initialize(PROGRAMMER * pgm, AVRPART * p)
       rc = pgm->program_enable(pgm, p);
       if ((rc == 0)||(rc == -1))
         break;
-      bitbang_highpulsepin(pgm, pgm->pinno[p->retry_pulse/*PIN_AVR_SCK*/]);
+      pgm->highpulsepin(pgm, pgm->pinno[p->retry_pulse/*PIN_AVR_SCK*/]);
       tries++;
     } while (tries < 65);
 
