@@ -2,6 +2,8 @@
 
 	* config.h: change YYSTYPE to be a single word, to work around
 	a bug in Solaris' yacc.
+	* lexer.l: remove incompatibilities with Solaris' default lex,
+	bump resource limits for lex.
 
 2005-11-01  Joerg Wunsch <j@uriah.heep.sax.de>
 

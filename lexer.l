@@ -50,6 +50,11 @@ SIGN     [+-]
 %x incl
 %x comment
 
+/* Bump resources for classic lex. */
+%e2000
+%p5000
+%n1000
+
 %%
 
 {SIGN}*{DIGIT}+            { yylval = number(yytext); return TKN_NUMBER; }
@@ -64,7 +69,7 @@ SIGN     [+-]
 
 #   { /* The following eats '#' style comments to end of line */
        BEGIN(comment); }
-<comment>[^\n] /* eat comments */ 
+<comment>[^\n] { /* eat comments */ }
 <comment>\n { lineno++; BEGIN(INITIAL); }
 
 
@@ -99,21 +104,19 @@ SIGN     [+-]
      }
 
 
-<strng>{
-  \" { *string_buf_ptr = 0; string_buf_ptr = string_buf; 
-         yylval = string(string_buf_ptr); BEGIN(INITIAL); return TKN_STRING; }
-  \\n  *string_buf_ptr++ = '\n';
-  \\t  *string_buf_ptr++ = '\t';
-  \\r  *string_buf_ptr++ = '\r';
-  \\b  *string_buf_ptr++ = '\b';
-  \\f  *string_buf_ptr++ = '\f';
-  \\(.|\n)  *(string_buf_ptr++) = yytext[1];
-  [^\\\n\"]+ { char *yptr = yytext; while (*yptr) 
+<strng>\" { *string_buf_ptr = 0; string_buf_ptr = string_buf;
+             yylval = string(string_buf_ptr); BEGIN(INITIAL); return TKN_STRING; }
+<strng>\\n  *string_buf_ptr++ = '\n';
+<strng>\\t  *string_buf_ptr++ = '\t';
+<strng>\\r  *string_buf_ptr++ = '\r';
+<strng>\\b  *string_buf_ptr++ = '\b';
+<strng>\\f  *string_buf_ptr++ = '\f';
+<strng>\\(.|\n)  *(string_buf_ptr++) = yytext[1];
+<strng>[^\\\n\"]+ { char *yptr = yytext; while (*yptr) 
                                          *(string_buf_ptr++) = *(yptr++); }
-  \n { fprintf(stderr, "error at line %d: unterminated character constant\n",
-         lineno); 
-         exit(1); }
-}
+<strng>\n { fprintf(stderr, "error at line %d: unterminated character constant\n",
+            lineno); 
+            exit(1); }
 
 allowfullpagebitstream { yylval=NULL; return K_ALLOWFULLPAGEBITSTREAM; }
 avr910           { yylval=NULL; return K_AVR910; }
@@ -216,7 +219,7 @@ yes              { yylval=new_token(K_YES); return K_YES; }
 "~"       { yylval = NULL; pyytext(); return TKN_TILDE; }
 
 "\n"      { lineno++; }
-[ \r\t]+  /* ignore whitespace */
+[ \r\t]+  { /* ignore whitespace */ }
 
 c: { fprintf(stderr, "error at %s:%d: possible old-style config file entry\n",
              infile, lineno);
