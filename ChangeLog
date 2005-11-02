@@ -1,3 +1,8 @@
+2005-11-02  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* config.h: change YYSTYPE to be a single word, to work around
+	a bug in Solaris' yacc.
+
 2005-11-01  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	Make avrdude Solaris-compatible.
