@@ -41,6 +41,7 @@ typedef struct token_t {
   int primary;
   VALUE value;
 } TOKEN;
+typedef struct token_t *token_p;
 
 
 extern FILE       * yyin;
@@ -58,7 +59,7 @@ extern char         default_serial[];
 
 
 #if !defined(HAS_YYSTYPE)
-#define YYSTYPE struct token_t *
+#define YYSTYPE token_p
 #endif
 extern YYSTYPE yylval;
 
