@@ -1,3 +1,15 @@
+2005-11-03  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Add ecpp(7D) (parallel port) for Solaris.
+	* configure.ac: add Solaris' default parallel port.
+	* linux_ppdev.h: change parallel port access to the new style.
+	* freebsd_ppi.h: New file, abstract FreeBSD's ppi(4).
+	* solaris_ecpp.h: New file, abstract Solaris' ecpp(7D).
+	* par.c: change header inclusion sequence.
+	* pgm.h: remove obsolete ppi_claim() and ppi_release() dummies.
+	* ppi.c: change header inclusion sequence, use new parport
+	abstraction, drop obsolete dummy implementation.
+
 2005-11-02  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* config.h: change YYSTYPE to be a single word, to work around
