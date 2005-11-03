@@ -111,12 +111,4 @@ void gettimeofday(struct timeval*, void*z);
 #endif /* __win32native_h */
 
 
-#if !defined(ppi_claim)
-#  define ppi_claim(pgm)
-#endif
-
-#if !defined(ppi_release)
-#  define ppi_release(pgm)
-#endif
-
 #endif
