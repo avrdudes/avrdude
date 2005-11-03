@@ -29,9 +29,11 @@
 #include <errno.h>
 
 #if defined(__FreeBSD__)
-#include <dev/ppbus/ppi.h>
+# include "freebsd_ppi.h"
 #elif defined(__linux__)
-#include "linux_ppdev.h"
+# include "linux_ppdev.h"
+#elif defined(__sun__) && defined(__svr4__) /* Solaris */
+# include "solaris_ecpp.h"
 #endif
 
 #include "avr.h"

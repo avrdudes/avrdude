@@ -140,7 +140,7 @@ case $target in
 		DEFAULT_SER_PORT="/dev/cuaa0"
 		;;
 	*-*-solaris*)
-		DEFAULT_PAR_PORT="unknown"
+		DEFAULT_PAR_PORT="/dev/printers/0"
 		DEFAULT_SER_PORT="/dev/term/a"
 		;;
 	*-*-msdos* | *-*-mingw32* | *-*-cygwin* | *-*-windows*)

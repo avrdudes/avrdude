@@ -9,15 +9,6 @@
 
 #include <stdlib.h>
 
-#define PPISDATA    PPWDATA
-#define PPIGDATA    PPRDATA
-
-#define PPISCTRL    PPWCONTROL
-#define PPIGCTRL    PPRCONTROL
-
-#define PPISSTATUS  PPWSTATUS
-#define PPIGSTATUS  PPRSTATUS
-
 #define ppi_claim(pgm)                                       \
   if (ioctl(pgm->fd, PPCLAIM)) {                             \
     fprintf(stderr, "%s: can't claim device \"%s\": %s\n\n", \
@@ -33,5 +24,13 @@
     exit(1);                                                 \
   }
 
+#define DO_PPI_READ(fd, reg, valp) \
+	(void)ioctl(fd, \
+		(reg) == PPIDATA? PPRDATA: ((reg) == PPICTRL? PPRCONTROL: PPRSTATUS), \
+		    valp)
+#define DO_PPI_WRITE(fd, reg, valp) \
+	(void)ioctl(fd, \
+		(reg) == PPIDATA? PPWDATA: ((reg) == PPICTRL? PPWCONTROL: PPWSTATUS), \
+		    valp)
 
 #endif /* __linux_ppdev_h__ */
