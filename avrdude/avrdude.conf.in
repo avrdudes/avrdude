@@ -5047,6 +5047,12 @@ part
                           " 0 0 0 a12 a11 a10 a9 a8",
                           " a7 a6 x x x x x x",
                           " x x x x x x x x";
+
+        mode        = 0x41;
+        delay       = 6;
+        blocksize   = 128;
+        readsize    = 256;
+
         ;
         
     memory "lfuse"
