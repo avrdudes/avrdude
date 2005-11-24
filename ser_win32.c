@@ -179,6 +179,7 @@ static int ser_send(int fd, char * buf, size_t buflen)
 	size_t len = buflen;
 	unsigned char c='\0';
 	DWORD written;
+        char * b = buf;
 
 	HANDLE hComPort=(HANDLE)fd;
 
@@ -195,8 +196,8 @@ static int ser_send(int fd, char * buf, size_t buflen)
 	{
 		fprintf(stderr, "%s: Send: ", progname);
 
-		while (buflen) {
-			c = *buf;
+		while (len) {
+			c = *b;
 			if (isprint(c)) {
 				fprintf(stderr, "%c ", c);
 			}
@@ -204,8 +205,8 @@ static int ser_send(int fd, char * buf, size_t buflen)
 				fprintf(stderr, ". ");
 			}
 			fprintf(stderr, "[%02x] ", c);
-			buf++;
-			buflen--;
+			b++;
+			len--;
 		}
       fprintf(stderr, "\n");
 	}
