@@ -69,6 +69,9 @@ avrdude_SOURCES = \
 	crc16.h \
 	fileio.c \
 	fileio.h \
+	jtagmkI.c \
+	jtagmkI.h \
+	jtagmkI_private.h \
 	jtagmkII.c \
 	jtagmkII.h \
 	jtagmkII_private.h \
