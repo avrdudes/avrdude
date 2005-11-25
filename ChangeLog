@@ -1,3 +1,9 @@
+2005-11-25 Colin O'Flynn <coflynn@newae.com>
+    Fixed bug 15051, building for Windows breaks.
+    *par.c: ppi_claim and ppi_release definitions now in a Windows header file
+    *ppi.c: Only included if you are building for Windows
+    *win_ppdev.h: Initial Commit, see par.c
+
 2005-11-24 Colin O'Flynn <coflynn@newae.com>
     Fix bug 14681 - Serial Communication Fails on -vvvv with Windows
     * ser_win32.c: Patched with Brian Dean's patch
