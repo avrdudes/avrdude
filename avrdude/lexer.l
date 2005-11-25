@@ -141,6 +141,7 @@ flash            { yylval=NULL; return K_FLASH; }
 has_jtag         { yylval=NULL; return K_HAS_JTAG; }
 id               { yylval=NULL; return K_ID; }
 idr              { yylval=NULL; return K_IDR; }
+jtagmki          { yylval=NULL; return K_JTAG_MKI; }
 jtagmkii         { yylval=NULL; return K_JTAG_MKII; }
 max_write_delay  { yylval=NULL; return K_MAX_WRITE_DELAY; }
 memory           { yylval=NULL; return K_MEMORY; }
