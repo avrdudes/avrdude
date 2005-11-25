@@ -34,6 +34,8 @@
 # include "linux_ppdev.h"
 #elif defined(__sun__) && defined(__svr4__) /* Solaris */
 # include "solaris_ecpp.h"
+#elif defined(WIN32NATIVE)
+# include "win_ppdev.h"
 #endif
 
 #include "avr.h"

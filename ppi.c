@@ -19,6 +19,9 @@
 
 /* $Id$ */
 
+
+#if !defined(WIN32NATIVE)
+
 #include "ac_cfg.h"
 
 #if HAVE_PARPORT
@@ -228,3 +231,4 @@ void ppi_close(int fd)
 
 #endif /* HAVE_PARPORT */
 
+#endif /* !WIN32NATIVE */
