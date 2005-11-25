@@ -1,16 +1,29 @@
 2005-11-25 Colin O'Flynn <coflynn@newae.com>
-    Fixed bug 15051, building for Windows breaks.
-    *par.c: ppi_claim and ppi_release definitions now in a Windows header file
-    *ppi.c: Only included if you are building for Windows
-    *win_ppdev.h: Initial Commit, see par.c
+
+	Fixed bug 15051, building for Windows breaks.
+	* par.c: ppi_claim and ppi_release definitions now in a Windows header file
+	* ppi.c: Only included if you are building for Windows
+	* win_ppdev.h: Initial Commit, see par.c
+
+2005-11-24  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Add basic support for the Atmel JTAG ICE mkI:
+	* config_gram.y: add mkI support to config sytax.
+	* lexer.l: (Ditto.)
+	* avrdude.conf.in: add sample programmer entries.
+	* jtagmkI.c: New file
+	* jtagmkI.h: New file
+	* jtagmkI_private.h: New file
+	* Makefile.am: include new files in build.
 
 2005-11-24 Colin O'Flynn <coflynn@newae.com>
-    Fix bug 14681 - Serial Communication Fails on -vvvv with Windows
-    * ser_win32.c: Patched with Brian Dean's patch
+
+	Fix bug 14681 - Serial Communication Fails on -vvvv with Windows
+	* ser_win32.c: Patched with Brian Dean's patch
 
 2005-11-03  Joerg Wunsch <j@uriah.heep.sax.de>
 
-    Add ecpp(7D) (parallel port) for Solaris.
+	Add ecpp(7D) (parallel port) for Solaris.
 	* configure.ac: add Solaris' default parallel port.
 	* linux_ppdev.h: change parallel port access to the new style.
 	* freebsd_ppi.h: New file, abstract FreeBSD's ppi(4).
