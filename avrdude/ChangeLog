@@ -21,6 +21,12 @@
 	Fix bug 14681 - Serial Communication Fails on -vvvv with Windows
 	* ser_win32.c: Patched with Brian Dean's patch
 
+2005-11-05 Colin O'Flynn <coflynn@newae.com>
+
+	Patch #4532 by Manfred Bartz
+	* avrdude.conf.in: added support for ATMega168 (also added support
+	for the stk500v2 protocol which was not in the patch).
+
 2005-11-03  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	Add ecpp(7D) (parallel port) for Solaris.
