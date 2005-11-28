@@ -104,7 +104,7 @@ static int jtagmkI_setparm(PROGRAMMER * pgm, unsigned char parm,
 			    unsigned char value);
 static void jtagmkI_print_parms1(PROGRAMMER * pgm, char * p);
 
-static int jtagmkI_resync(PROGRAMMER *pgm, int maxtries);
+static int jtagmkI_resync(PROGRAMMER *pgm, int maxtries, int signon);
 
 static void
 u32_to_b3(unsigned char *b, unsigned long l)
@@ -227,10 +227,10 @@ static int jtagmkI_drain(PROGRAMMER * pgm, int display)
 }
 
 
-static int jtagmkI_resync(PROGRAMMER * pgm, int maxtries)
+static int jtagmkI_resync(PROGRAMMER * pgm, int maxtries, int signon)
 {
   int tries;
-  unsigned char buf[1], resp[1];
+  unsigned char buf[4], resp[9];
   long otimeout = serial_recv_timeout;
 
   serial_recv_timeout = 200;
@@ -260,6 +260,39 @@ static int jtagmkI_resync(PROGRAMMER * pgm, int maxtries)
 	fprintf(stderr, "got RESP_OK\n");
       break;
     }
+
+    if (signon) {
+      /*
+       * The following is black magic, the idea has been taken from
+       * AVaRICE.
+       *
+       * Apparently, the ICE behaves differently right after a
+       * power-up vs. when reconnecting to an ICE that has already
+       * been worked with.  The undocumented 'E' command (or
+       * subcommand) occasionally helps in getting the connection into
+       * sync.
+       */
+      buf[0] = CMD_GET_SIGNON;
+      buf[1] = 'E';
+      buf[2] = ' ';
+      buf[3] = ' ';
+      if (verbose >= 2)
+	fprintf(stderr, "%s: jtagmkI_resync(): Sending sign-on command: ",
+		progname);
+
+      if (serial_send(pgm->fd, buf, 4) != 0) {
+	fprintf(stderr,
+		"\n%s: jtagmkI_resync(): failed to send command to serial port\n",
+		progname);
+	serial_recv_timeout = otimeout;
+	return -1;
+      }
+      if (serial_recv(pgm->fd, resp, 9) == 0 && resp[0] == RESP_OK) {
+	if (verbose >= 2)
+	  fprintf(stderr, "got RESP_OK\n");
+	break;
+      }
+    }
   }
   if (tries >= maxtries) {
     if (verbose >= 2)
@@ -279,8 +312,12 @@ static int jtagmkI_getsync(PROGRAMMER * pgm)
 {
   unsigned char buf[1], resp[9];
 
-  if (jtagmkI_resync(pgm, 5) < 0)
+  if (jtagmkI_resync(pgm, 5, 1) < 0) {
+    jtagmkI_drain(pgm, 0);
     return -1;
+  }
+
+  jtagmkI_drain(pgm, 0);
 
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkI_getsync(): Sending sign-on command: ",
@@ -739,7 +776,7 @@ static int jtagmkI_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     tries = 0;
     again:
 
-    if (tries != 0 && jtagmkI_resync(pgm, 2000) < 0) {
+    if (tries != 0 && jtagmkI_resync(pgm, 2000, 0) < 0) {
       fprintf(stderr,
 	      "%s: jtagmkI_paged_write(): sync loss, retries exhausted\n",
 	      progname);
@@ -863,7 +900,7 @@ static int jtagmkI_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     tries = 0;
     again:
-    if (tries != 0 && jtagmkI_resync(pgm, 2000) < 0) {
+    if (tries != 0 && jtagmkI_resync(pgm, 2000, 0) < 0) {
       fprintf(stderr,
 	      "%s: jtagmkI_paged_load(): sync loss, retries exhausted\n",
 	      progname);
