@@ -1,3 +1,12 @@
+2005-11-28  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* configure.ac: enable parport access on x86_64 Linux and
+	FreeBSD systems.
+
+2005-11-27  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: add the "calibration" space to ATmega16.
+
 2005-11-25 Colin O'Flynn <coflynn@newae.com>
 
 	Fixed bug 15051, building for Windows breaks.
