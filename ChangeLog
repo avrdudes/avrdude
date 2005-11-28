@@ -1,5 +1,9 @@
 2005-11-28  Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* jtagmkI.c: Improve the communication startup with the ICE.
+
+2005-11-28  Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* configure.ac: enable parport access on x86_64 Linux and
 	FreeBSD systems.
 
