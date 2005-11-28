@@ -123,7 +123,7 @@ AC_SUBST(DIST_SUBDIRS_AC, $DIST_SUBDIRS_AC)
 # Find the parallel serial device files based on target system
 # If a system doesn't have a PC style parallel, mark it as unknown.
 case $target in
-	i[[3456]]86-*-linux*)
+	i[[3456]]86-*-linux*|x86_64-*-linux*)
 		DEFAULT_PAR_PORT="/dev/parport0"
 		DEFAULT_SER_PORT="/dev/ttyS0"
 		;;
@@ -131,7 +131,7 @@ case $target in
 		DEFAULT_PAR_PORT="unknown"
 		DEFAULT_SER_PORT="/dev/ttyS0"
 		;;
-	i[[3456]]86-*-freebsd*)
+	i[[3456]]86-*-freebsd*|amd64-*-freebsd*)
 		DEFAULT_PAR_PORT="/dev/ppi0"
 		DEFAULT_SER_PORT="/dev/cuaa0"
 		;;
