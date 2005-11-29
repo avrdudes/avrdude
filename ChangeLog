@@ -1,5 +1,15 @@
 2005-11-29  Joerg Wunsch <j@uriah.heep.sax.de>
 
+	Submitted by Galen Seitz:
+	patch #4459: Fix for rpm package builds
+	* avrdude.spec.in: update the RPM spec file:
+	  - Default to enable-doc=yes during configure.
+	  - Move info file to docs package.
+	  - Make building of docs package conditional.  Basic
+	    idea copied from avr-gcc.
+
+2005-11-29  Joerg Wunsch <j@uriah.heep.sax.de>
+
 	Submitted by someone who thinks he's called "Daper":
 	Fix bug #15013: Wrong use of PPICLAIM (kernel: ppdev0: claim the
 	port first)
