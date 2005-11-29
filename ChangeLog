@@ -1,5 +1,10 @@
 2005-11-29  Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* avrdude.1: update for JTAG ICE mkI support.
+	* doc/avrdude.texi: (Ditto.)
+
+2005-11-29  Joerg Wunsch <j@uriah.heep.sax.de>
+
 	Submitted by Galen Seitz:
 	patch #4459: Fix for rpm package builds
 	* avrdude.spec.in: update the RPM spec file:

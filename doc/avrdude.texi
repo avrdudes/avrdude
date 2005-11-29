@@ -136,7 +136,7 @@ exploring memory contents, modifing individual bytes of eeprom,
 programming fuse/lock bits, etc.
 
 AVRDUDE supports six basic programmer types: Atmel's STK500,
-Atmel's JTAG ICE mkII, appnote
+Atmel's JTAG ICE (both mkI and mkII), appnote
 avr910, appnote avr109 (including the AVR Butterfly),
 serial bit-bang adapters,
 and the PPI (parallel port interface). PPI represents a class
@@ -172,7 +172,7 @@ The JTAG ICE also uses a serial communication protocol which is similar
 to the STK500 firmware version 2 one.  However, as the JTAG ICE is
 intented to allow on-chip debugging as well as memory programming, the
 protocol is more sophisticated.
-(This protocol can also be run on top of USB.)
+(The JTAG ICE mkII protocol can also be run on top of USB.)
 Only the memory programming functionality of the JTAG ICE is supported
 by AVRDUDE.
 
@@ -443,6 +443,13 @@ Atmel Butterfly Development Board
 
 @itemx dt006
 Dontronics DT006
+
+@item jtagmkI
+@itemx jtag1
+Atmel JTAG ICE mkI, running at 115200 Bd
+
+@itemx jtag1slow
+Atmel JTAG ICE mkI, running at 19200 Bd
 
 @item jtagmkII
 @itemx jtag2slow
@@ -1842,11 +1849,21 @@ Use the -F option to force AVRDUDE to continue anyway.
 
 @item
 Problem: Updating the flash ROM from terminal mode does not work with the
-JTAG ICE mkII.
+JTAG ICEs.
 
-Solution: None at this time.  Currently, the JTAG ICE mkII code cannot
+Solution: None at this time.  Currently, the JTAG ICE code cannot
 write to the flash ROM one byte at a time.
 
+@item
+Problem: Page-mode programming the EEPROM (using the -U option) does
+not erase EEPROM cells before writing, and thus cannot overwrite any
+previous value != 0xff.
+
+Solution: None.  This is an inherent feature of the way JTAG EEPROM
+programming works, and is documented that way in the Atmel AVR
+datasheets.
+In order to successfully program the EEPROM that way, a prior chip
+erase (with the EESAVE fuse unprogrammed) is required.
 
 
 @end itemize

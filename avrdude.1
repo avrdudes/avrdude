@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE September 18, 2005
+.Dd DATE November 29, 2005
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -55,7 +55,7 @@ is a program for downloading code and data to Atmel AVR
 microcontrollers.
 .Nm Avrdude
 supports Atmel's STK500 programmer,
-Atmel's JTAG ICE mkII,
+Atmel's JTAG ICE (both mkI and mkII),
 programmers complying to AppNote AVR910 and AVR109 (including the Butterfly),
 as well as a simple hard-wired
 programmer connected directly to a
@@ -104,7 +104,7 @@ AVR910, and the bootloader described in Atmel's application note
 AVR109 (which is also used by the AVR Butterfly evaluation board), are
 supported on a serial port.
 .Pp
-Atmel's JTAG ICE mkII is supported as well to up- or download memory
+Atmel's JTAG ICE (both mkI and mkII) is supported as well to up- or download memory
 areas from/to an AVR target (no support for on-chip debugging).
 .Pp
 Input files can be provided, and output files can be written in
@@ -643,14 +643,19 @@ This man page by
 Please report bugs via
 .Dl "http://savannah.nongnu.org/bugs/?group=avrdude" .
 .Pp
-The JTAGICE mkII programmer currently cannot write to the flash ROM
+The JTAG ICE programmers currently cannot write to the flash ROM
 one byte at a time.
 For that reason, updating the flash ROM from terminal mode does not
 work.
+.Pp
+Page-mode programming the EEPROM through JTAG (i.e. through an
+.Fl U
+option) requires a prior chip erase.
+This is an inherent feature of the way JTAG EEPROM programming works.
 .Pp
 The device IDs used by AVR910 and AVR109 do not match, so the
 avr109 (aka. butterfly) programmer might report
 .Dl "selected device is not supported by programmer" .
 Use the -F option to force
 .Nm
-to contiue anway.
+to contiue anyway.
