@@ -13,6 +13,11 @@ Current:
 
   * JTAG mkII support now works with libusb-win32, too
 
+  * JTAG ICE mkI support has been added
+
+  * Solaris support has been added (including ecpp(7D) parallel-port
+    bit-bang mode)
+
 
 Version 5.0:
 
