@@ -1,3 +1,16 @@
+2005-11-29  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by someone who thinks he's called "Daper":
+	Fix bug #15013: Wrong use of PPICLAIM (kernel: ppdev0: claim the
+	port first)
+	* par.c: don't claim/release here (thus win_ppdev.h not needed
+	anymore)
+	* ppi.c: claim/release here.
+	* freebsd_ppi.h: ppi_claim/ppi_release now take an fd as parameter.
+	* solaris_ecpp.h: (Ditto.)
+	* linux_ppdev.h: (Ditto.)  (Also add copyright.)
+	* win_ppdev.h: Not needed anymore, remove.
+
 2005-11-28  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* jtagmkI.c: Improve the communication startup with the ICE.
