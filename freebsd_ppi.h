@@ -24,9 +24,9 @@
 
 #include <dev/ppbus/ppi.h>
 
-#define ppi_claim(pgm) {}
+#define ppi_claim(fd) {}
 
-#define ppi_release(pgm) {}
+#define ppi_release(fd) {}
 
 #define DO_PPI_READ(fd, reg, valp) \
 	(void)ioctl(fd, \

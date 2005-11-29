@@ -212,6 +212,8 @@ int ppi_open(char * port)
     return -1;
   }
 
+  ppi_claim (fd);
+
   /*
    * Initialize shadow registers
    */
@@ -226,6 +228,7 @@ int ppi_open(char * port)
 
 void ppi_close(int fd)
 {
+  ppi_release (fd);
   close(fd);
 }
 

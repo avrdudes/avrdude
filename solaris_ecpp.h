@@ -24,15 +24,15 @@
 
 #include <sys/ecppio.h>
 
-#define ppi_claim(pgm) \
+#define ppi_claim(fd) \
 	do { \
 		struct ecpp_transfer_parms p; \
-		(void)ioctl(pgm->fd, ECPPIOC_GETPARMS, &p); \
+		(void)ioctl(fd, ECPPIOC_GETPARMS, &p); \
 		p.mode = ECPP_DIAG_MODE; \
-		(void)ioctl(pgm->fd, ECPPIOC_SETPARMS, &p); \
+		(void)ioctl(fd, ECPPIOC_SETPARMS, &p); \
 	} while(0);
 
-#define ppi_release(pgm)
+#define ppi_release(fd)
 
 #define DO_PPI_READ(fd, reg, valp) \
 	do { struct ecpp_regs r; \

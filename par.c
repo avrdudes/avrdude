@@ -34,8 +34,6 @@
 # include "linux_ppdev.h"
 #elif defined(__sun__) && defined(__svr4__) /* Solaris */
 # include "solaris_ecpp.h"
-#elif defined(WIN32NATIVE)
-# include "win_ppdev.h"
 #endif
 
 #include "avr.h"
@@ -241,8 +239,6 @@ static int par_open(PROGRAMMER * pgm, char * port)
     exit(1);
   }
 
-  ppi_claim(pgm);
-
   /*
    * save pin values, so they can be restored when device is closed
    */
@@ -273,8 +269,6 @@ static void par_close(PROGRAMMER * pgm)
   pgm->ppidata |= pgm->pinno[PPI_AVR_BUFF];
   ppi_setall(pgm->fd, PPIDATA, pgm->ppidata);
   ppi_setall(pgm->fd, PPICTRL, pgm->ppictrl);
-
-  ppi_release(pgm);
 
   ppi_close(pgm->fd);
   pgm->fd = -1;
