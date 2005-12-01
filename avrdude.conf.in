@@ -4830,10 +4830,10 @@ part
         min_write_delay = 4500;
         max_write_delay = 4500;
         read            = "0 1 0 1  0 0 0 0   0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x   o o o o  o o o o";
+                          "x x x x  x x x x   x x x x  x x x o";
 
         write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 1 0 0",
-                          "x x x x  x x x x   i i i i  i i i i";
+                          "x x x x  x x x x   x x x x  x x x i";
       ;
 
     memory "calibration"
@@ -4967,10 +4967,10 @@ part
         min_write_delay = 4500;
         max_write_delay = 4500;
         read            = "0 1 0 1  0 0 0 0   0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x   o o o o  o o o o";
+                          "x x x x  x x x x   x x x x  x o o o";
 
         write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 1 0 0",
-                          "x x x x  x x x x   i i i i  i i i i";
+                          "x x x x  x x x x   x x x x  x i i i";
       ;
 
     memory "lock"
@@ -5111,10 +5111,10 @@ part
         min_write_delay = 4500;
         max_write_delay = 4500;
         read            = "0 1 0 1 0 0 0 0 0 0 0 0 1 0 0 0",
-                          "x x x x x x x x o o o o o o o o";
+                          "x x x x x x x x x x x x x o o o";
         
         write           = "1 0 1 0 1 1 0 0 1 0 1 0 0 1 0 0",
-                          "x x x x x x x x i i i i i i i i";
+                          "x x x x x x x x x x x x x i i i";
         ;
     
     memory "lock"

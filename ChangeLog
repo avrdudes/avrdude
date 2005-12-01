@@ -1,3 +1,9 @@
+2005-12-01  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: fix the number of significant bits for
+	the efuse memory in ATmega48/88/168; the datasheet is a bit
+	off here as well.
+
 2005-11-29  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.1: update for JTAG ICE mkI support.
