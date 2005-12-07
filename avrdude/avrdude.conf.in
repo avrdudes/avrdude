@@ -2935,7 +2935,12 @@ part
                           "  0   0 a13 a12    a11 a10  a9  a8",
                           " a7  a6   x   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
-      ;
+       mode        = 0x41;
+    delay       = 10;
+    blocksize   = 128;
+    readsize    = 256;  
+
+        ;
 
     timeout		= 200;
     stabdelay		= 100;
