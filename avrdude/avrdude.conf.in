@@ -6413,3 +6413,412 @@ part
       ;
   ;
 
+#------------------------------------------------------------
+# ATtiny24
+#------------------------------------------------------------
+
+part
+     id            = "t24";
+     desc          = "ATtiny24";
+## no STK500 devcode in XML file, use the ATtiny45 one
+     stk500_devcode   = 0x14;
+##  avr910_devcode   = ?;
+##  Try the AT90S2313 devcode:
+     avr910_devcode   = 0x20;
+     reset            = io;
+     chip_erase_delay = 4500;
+
+     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
+                        "x x x x  x x x x    x x x x  x x x x";
+
+     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
+                        "x x x x  x x x x    x x x x  x x x x";
+
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 1;
+
+     memory "eeprom"
+         size            = 128;
+         min_write_delay = 4000;
+         max_write_delay = 4500;
+         readback_p1     = 0xff;
+         readback_p2     = 0xff;
+         read            = "1  0  1  0   0  0  0  0   0 0 0 x  x x x x",
+                           "x a6 a5 a4  a3 a2 a1 a0   o o o o  o o o o";
+
+         write           = "1  1  0  0   0  0  0  0   0 0 0 x  x x x x",
+                           "x a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+
+	mode		= 0x41;
+	delay		= 6;
+	blocksize	= 4;
+	readsize	= 256;
+       ;
+     memory "flash"
+         paged           = yes;
+         size            = 2048;
+         page_size       = 32;
+         num_pages       = 64;
+         min_write_delay = 4500;
+         max_write_delay = 4500;
+         readback_p1     = 0xff;
+         readback_p2     = 0xff;
+         read_lo         = "  0   0   1   0    0   0   0   0",
+                           "  0   0   0   0    0   0  a9  a8",
+                           " a7  a6  a5  a4   a3  a2  a1  a0",
+                           "  o   o   o   o    o   o   o   o";
+
+         read_hi         = "  0   0   1   0    1   0   0   0",
+                           "  0   0   0   0    0   0  a9  a8",
+                           " a7  a6  a5  a4   a3  a2  a1  a0",
+                           "  o   o   o   o    o   o   o   o";
+
+         loadpage_lo     = "  0   1   0   0    0   0   0   0",
+                           "  0   0   0   x    x   x   x   x",
+                           "  x   x   x   x   a3  a2  a1  a0",
+                           "  i   i   i   i    i   i   i   i";
+
+         loadpage_hi     = "  0   1   0   0    1   0   0   0",
+                           "  0   0   0   x    x   x   x   x",
+                           "  x   x   x   x   a3  a2  a1  a0",
+                           "  i   i   i   i    i   i   i   i";
+
+         writepage       = "  0  1  0  0   1  1  0  0",
+                           "  0  0  0  0   0  0 a9 a8",
+                           " a7 a6 a5 a4   x  x  x  x",
+                           "  x  x  x  x   x  x  x  x";
+
+	mode		= 0x41;
+	delay		= 6;
+	blocksize	= 32;
+	readsize	= 256;
+       ;
+#   ATtiny24 has Signature Bytes: 0x1E 0x91 0x0B.
+     memory "signature"
+         size            = 3;
+         read            = "0  0  1  1   0  0  0  0   0  0  0  x   x  x  x  x",
+                           "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
+       ;
+     memory "lock"
+         size            = 1;
+         write           = "1 0 1 0  1 1 0 0  1 1 1 x  x x x x",
+                           "x x x x  x x x x  x x x x  x x i i";
+         read            = "0 1 0 1  1 0 0 0  0 0 0 0  0 0 0 0",
+                           "0 0 0 0  0 0 0 0  o o o o  o o o o";
+       ;
+
+     memory "lfuse"
+         size            = 1;
+         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 0 0 0",
+                           "x x x x  x x x x  i i i i  i i i i";
+
+         read            = "0 1 0 1  0 0 0 0  0 0 0 0  0 0 0 0",
+                           "x x x x  x x x x  o o o o  o o o o";
+       ;
+
+     memory "hfuse"
+         size            = 1;
+         write           = "1 0 1 0  1 1 0 0  1 0 1 0  1 0 0 0",
+                           "x x x x  x x x x  i i i i  i i i i";
+
+         read            = "0 1 0 1  1 0 0 0  0 0 0 0  1 0 0 0",
+                           "x x x x  x x x x  o o o o  o o o o";
+       ;
+
+     memory "efuse"
+         size            = 1;
+         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
+                           "x x x x  x x x x  x x x x  x x x i";
+
+         read            = "0 1 0 1  0 0 0 0  0 0 0 0  1 0 0 0",
+                           "x x x x  x x x x  o o o o  o o o o";
+     ;
+
+     memory "calibration"
+         size            = 1;
+         read            = "0  0  1  1   1  0  0  0    0 0 0 x  x x x x",
+                           "0  0  0  0   0  0  0  a0   o o o o  o o o o";
+     ;
+  ;
+
+#------------------------------------------------------------
+# ATtiny44
+#------------------------------------------------------------
+
+part
+     id            = "t44";
+     desc          = "ATtiny44";
+## no STK500 devcode in XML file, use the ATtiny45 one
+     stk500_devcode   = 0x14;
+##  avr910_devcode   = ?;
+##  Try the AT90S2313 devcode:
+     avr910_devcode   = 0x20;
+     reset            = io;
+     chip_erase_delay = 4500;
+
+     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
+                        "x x x x  x x x x    x x x x  x x x x";
+
+     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
+                        "x x x x  x x x x    x x x x  x x x x";
+
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 1;
+
+     memory "eeprom"
+         size            = 256;
+         min_write_delay = 4000;
+         max_write_delay = 4500;
+         readback_p1     = 0xff;
+         readback_p2     = 0xff;
+         read            = "1  0  1  0   0  0  0  0    0 0 0 x  x x x x",
+                           "a7 a6 a5 a4  a3 a2 a1 a0   o o o o  o o o o";
+
+         write           = "1  1  0  0   0  0  0  0    0 0 0 x  x x x x",
+                           "a7 a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+
+	mode		= 0x41;
+	delay		= 6;
+	blocksize	= 4;
+	readsize	= 256;
+       ;
+     memory "flash"
+         paged           = yes;
+         size            = 4096;
+         page_size       = 64;
+         num_pages       = 64;
+         min_write_delay = 4500;
+         max_write_delay = 4500;
+         readback_p1     = 0xff;
+         readback_p2     = 0xff;
+         read_lo         = "  0   0   1   0    0   0   0   0",
+                           "  0   0   0   0    0  a10 a9  a8",
+                           " a7  a6  a5  a4   a3  a2  a1  a0",
+                           "  o   o   o   o    o   o   o   o";
+
+         read_hi         = "  0   0   1   0    1   0   0   0",
+                           "  0   0   0   0    0  a10 a9  a8",
+                           " a7  a6  a5  a4   a3  a2  a1  a0",
+                           "  o   o   o   o    o   o   o   o";
+
+         loadpage_lo     = "  0   1   0   0    0   0   0   0",
+                           "  0   0   0   x    x   x   x   x",
+                           "  x   x   x  a4   a3  a2  a1  a0",
+                           "  i   i   i   i    i   i   i   i";
+
+         loadpage_hi     = "  0   1   0   0    1   0   0   0",
+                           "  0   0   0   x    x   x   x   x",
+                           "  x   x   x  a4   a3  a2  a1  a0",
+                           "  i   i   i   i    i   i   i   i";
+
+         writepage       = "  0  1  0  0   1  1  0  0",
+                           "  0  0  0  0   0 a10 a9 a8",
+                           " a7 a6 a5  x   x  x  x  x",
+                           "  x  x  x  x   x  x  x  x";
+
+	mode		= 0x41;
+	delay		= 6;
+	blocksize	= 32;
+	readsize	= 256;
+       ;
+#   ATtiny44 has Signature Bytes: 0x1E 0x92 0x07.
+     memory "signature"
+         size            = 3;
+         read            = "0  0  1  1   0  0  0  0   0  0  0  x   x  x  x  x",
+                           "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
+       ;
+     memory "lock"
+         size            = 1;
+         write           = "1 0 1 0  1 1 0 0  1 1 1 x  x x x x",
+                           "x x x x  x x x x  x x x x  x x i i";
+         read            = "0 1 0 1  1 0 0 0  0 0 0 0  0 0 0 0",
+                           "0 0 0 0  0 0 0 0  o o o o  o o o o";
+       ;
+
+     memory "lfuse"
+         size            = 1;
+         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 0 0 0",
+                           "x x x x  x x x x  i i i i  i i i i";
+
+         read            = "0 1 0 1  0 0 0 0  0 0 0 0  0 0 0 0",
+                           "x x x x  x x x x  o o o o  o o o o";
+       ;
+
+     memory "hfuse"
+         size            = 1;
+         write           = "1 0 1 0  1 1 0 0  1 0 1 0  1 0 0 0",
+                           "x x x x  x x x x  i i i i  i i i i";
+
+         read            = "0 1 0 1  1 0 0 0  0 0 0 0  1 0 0 0",
+                           "x x x x  x x x x  o o o o  o o o o";
+       ;
+
+     memory "efuse"
+         size            = 1;
+         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
+                           "x x x x  x x x x  x x x x  x x x i";
+
+         read            = "0 1 0 1  0 0 0 0  0 0 0 0  1 0 0 0",
+                           "x x x x  x x x x  o o o o  o o o o";
+     ;
+
+     memory "calibration"
+         size            = 1;
+         read            = "0  0  1  1   1  0  0  0    0 0 0 x  x x x x",
+                           "0  0  0  0   0  0  0  a0   o o o o  o o o o";
+     ;
+  ;
+
+#------------------------------------------------------------
+# ATtiny84
+#------------------------------------------------------------
+
+part
+     id            = "t84";
+     desc          = "ATtiny84";
+## no STK500 devcode in XML file, use the ATtiny45 one
+     stk500_devcode   = 0x14;
+##  avr910_devcode   = ?;
+##  Try the AT90S2313 devcode:
+     avr910_devcode   = 0x20;
+     reset            = io;
+     chip_erase_delay = 4500;
+
+     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
+                        "x x x x  x x x x    x x x x  x x x x";
+
+     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
+                        "x x x x  x x x x    x x x x  x x x x";
+
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 1;
+
+     memory "eeprom"
+         size            = 512;
+         min_write_delay = 4000;
+         max_write_delay = 4500;
+         readback_p1     = 0xff;
+         readback_p2     = 0xff;
+         read            = "1  0  1  0   0  0  0  0    0 0 0 x  x x x a8",
+                           "a7 a6 a5 a4  a3 a2 a1 a0   o o o o  o o o o";
+
+         write           = "1  1  0  0   0  0  0  0    0 0 0 x  x x x a8",
+                           "a8 a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+
+	mode		= 0x41;
+	delay		= 6;
+	blocksize	= 4;
+	readsize	= 256;
+       ;
+     memory "flash"
+         paged           = yes;
+         size            = 8192;
+         page_size       = 64;
+         num_pages       = 128;
+         min_write_delay = 4500;
+         max_write_delay = 4500;
+         readback_p1     = 0xff;
+         readback_p2     = 0xff;
+         read_lo         = "  0   0   1   0    0   0   0   0",
+                           "  0   0   0   0  a11 a10  a9  a8",
+                           " a7  a6  a5  a4   a3  a2  a1  a0",
+                           "  o   o   o   o    o   o   o   o";
+
+         read_hi         = "  0   0   1   0    1   0   0   0",
+                           "  0   0   0   0  a11 a10  a9  a8",
+                           " a7  a6  a5  a4   a3  a2  a1  a0",
+                           "  o   o   o   o    o   o   o   o";
+
+         loadpage_lo     = "  0   1   0   0    0   0   0   0",
+                           "  0   0   0   x    x   x   x   x",
+                           "  x   x   x  a4   a3  a2  a1  a0",
+                           "  i   i   i   i    i   i   i   i";
+
+         loadpage_hi     = "  0   1   0   0    1   0   0   0",
+                           "  0   0   0   x    x   x   x   x",
+                           "  x   x   x  a4   a3  a2  a1  a0",
+                           "  i   i   i   i    i   i   i   i";
+
+         writepage       = "  0  1  0  0   1   1   0  0",
+                           "  0  0  0  0  a11 a10 a9 a8",
+                           " a7 a6 a5  x   x  x  x  x",
+                           "  x  x  x  x   x  x  x  x";
+
+	mode		= 0x41;
+	delay		= 6;
+	blocksize	= 32;
+	readsize	= 256;
+       ;
+#   ATtiny84 has Signature Bytes: 0x1E 0x93 0x0C.
+     memory "signature"
+         size            = 3;
+         read            = "0  0  1  1   0  0  0  0   0  0  0  x   x  x  x  x",
+                           "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
+       ;
+
+     memory "lock"
+         size            = 1;
+         write           = "1 0 1 0  1 1 0 0  1 1 1 x  x x x x",
+                           "x x x x  x x x x  x x x x  x x i i";
+         read            = "0 1 0 1  1 0 0 0  0 0 0 0  0 0 0 0",
+                           "0 0 0 0  0 0 0 0  o o o o  o o o o";
+       ;
+
+     memory "lfuse"
+         size            = 1;
+         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 0 0 0",
+                           "x x x x  x x x x  i i i i  i i i i";
+
+         read            = "0 1 0 1  0 0 0 0  0 0 0 0  0 0 0 0",
+                           "x x x x  x x x x  o o o o  o o o o";
+       ;
+
+     memory "hfuse"
+         size            = 1;
+         write           = "1 0 1 0  1 1 0 0  1 0 1 0  1 0 0 0",
+                           "x x x x  x x x x  i i i i  i i i i";
+
+         read            = "0 1 0 1  1 0 0 0  0 0 0 0  1 0 0 0",
+                           "x x x x  x x x x  o o o o  o o o o";
+       ;
+
+     memory "efuse"
+         size            = 1;
+         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
+                           "x x x x  x x x x  x x x x  x x x i";
+
+         read            = "0 1 0 1  0 0 0 0  0 0 0 0  1 0 0 0",
+                           "x x x x  x x x x  o o o o  o o o o";
+     ;
+
+     memory "calibration"
+         size            = 1;
+         read            = "0  0  1  1   1  0  0  0    0 0 0 x  x x x x",
+                           "0  0  0  0   0  0  0  a0   o o o o  o o o o";
+     ;
+  ;
+

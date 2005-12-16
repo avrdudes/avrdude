@@ -1,5 +1,10 @@
+2005-12-16  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Added support for ATtiny24/44/84.
+
 2005-12-05  Colin O'Flynn <coflynn@newae.com>
-    * avrdude.conf.in: Added m162 support for stk500v2
+
+	* avrdude.conf.in: Added m162 support for stk500v2
 
 2005-12-01  Joerg Wunsch <j@uriah.heep.sax.de>
 
