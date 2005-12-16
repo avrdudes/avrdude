@@ -10,6 +10,7 @@ Current:
   * New devices supported:
 
       - ATmega640/1280/1281
+      - ATtiny24/44/84
 
   * JTAG mkII support now works with libusb-win32, too
 
