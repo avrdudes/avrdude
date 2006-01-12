@@ -2,6 +2,7 @@
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2005 Erik Walthinsen
  * Copyright (C) 2002-2004 Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2006 dcm@mit.edu
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +25,10 @@
 /*
  * avrdude interface for Atmel STK500V2 programmer
  *
+ * As the AVRISP mkII device is basically an STK500v2 one that can
+ * only talk across USB, and that misses any kind of framing protocol,
+ * this is handled here as well.
+ *
  * Note: most commands use the "universal command" feature of the
  * programmer in a "pass through" mode, exceptions are "program
  * enable", "paged read", and "paged write".
@@ -45,6 +50,7 @@
 #include "stk500_private.h"	// temp until all code converted
 #include "stk500v2_private.h"
 #include "serial.h"
+#include "usbdevs.h"
 
 #define STK500V2_XTAL 7372800U
 
@@ -66,6 +72,7 @@ extern char * progname;
 extern int do_cycles;
 
 static unsigned char command_sequence = 1;
+static int is_mk2;		/* Is the device an AVRISP mkII? */
 
 
 static int stk500v2_getparm(PROGRAMMER * pgm, unsigned char parm, unsigned char * value);
@@ -74,11 +81,25 @@ static void stk500v2_print_parms1(PROGRAMMER * pgm, char * p);
 static int stk500v2_is_page_empty(unsigned int address, int page_size,
                                   const unsigned char *buf);
 
+static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v);
+
+static int stk500v2_send_mk2(PROGRAMMER * pgm, unsigned char * data, size_t len)
+{
+  if (serial_send(pgm->fd, data, len) != 0) {
+    fprintf(stderr,"%s: stk500_send_mk2(): failed to send command to serial port\n",progname);
+    exit(1);
+  }
+
+  return 0;
+}
 
 static int stk500v2_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 {
   unsigned char buf[275 + 6];		// max MESSAGE_BODY of 275 bytes, 6 bytes overhead
   int i;
+
+  if (is_mk2)
+    return stk500v2_send_mk2(pgm, data, len);
 
   buf[0] = MESSAGE_START;
   buf[1] = command_sequence;
@@ -110,6 +131,19 @@ static int stk500v2_drain(PROGRAMMER * pgm, int display)
   return serial_drain(pgm->fd, display);
 }
 
+static int stk500v2_recv_mk2(PROGRAMMER * pgm, unsigned char msg[],
+			     size_t maxsize)
+{
+  int rv;
+
+  rv = serial_recv(pgm->fd, msg, maxsize);
+  if (rv < 0) {
+    fprintf(stderr, "%s: stk500v2_recv_mk2: error in USB receive\n", progname);
+    return -1;
+  }
+
+  return rv;
+}
 
 static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) {
   enum states { sINIT, sSTART, sSEQNUM, sSIZE1, sSIZE2, sTOKEN, sDATA, sCSUM, sDONE }  state = sSTART;
@@ -121,6 +155,9 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
   long timeoutval = 5;		// seconds
   struct timeval tv;
   double tstart, tnow;
+
+  if (is_mk2)
+    return stk500v2_recv_mk2(pgm, msg, maxsize);
 
   DEBUG("STK500V2: stk500v2_recv(): ");
 
@@ -437,13 +474,30 @@ static void stk500v2_enable(PROGRAMMER * pgm)
 
 static int stk500v2_open(PROGRAMMER * pgm, char * port)
 {
+  long baud = 115200;
+
   DEBUG("STK500V2: stk500v2_open()\n");
 
-  strcpy(pgm->port, port);
   if (pgm->baudrate)
-    pgm->fd = serial_open(port, pgm->baudrate);
-  else
-    pgm->fd = serial_open(port, 115200);
+    baud = pgm->baudrate;
+
+#if defined(HAVE_LIBUSB)
+  /*
+   * If the port name starts with "usb", divert the serial routines
+   * to the USB ones.  The serial_open() function for USB overrides
+   * the meaning of the "baud" parameter to be the USB device ID to
+   * search for.
+   */
+  if (strncmp(port, "usb", 3) == 0) {
+    serdev = &usb_serdev_frame;
+    baud = USB_DEVICE_AVRISPMKII;
+    is_mk2 = 1;
+    pgm->set_sck_period = stk500v2_set_sck_period_mk2;
+  }
+#endif
+
+  strcpy(pgm->port, port);
+  pgm->fd = serial_open(port, baud);
 
   /*
    * drain any extraneous input
@@ -797,6 +851,44 @@ static int stk500v2_set_fosc(PROGRAMMER * pgm, double v)
   return 0;
 }
 
+/* The list of SCK frequencies supported by the AVRISP mkII, as listed
+ * in AVR069 */
+double avrispmkIIfreqs[] = {
+	8000000, 4000000, 2000000, 1000000, 500000, 250000, 125000,
+	96386, 89888, 84211, 79208, 74767, 70797, 67227, 64000,
+	61069, 58395, 55945, 51613, 49690, 47905, 46243, 43244,
+	41885, 39409, 38278, 36200, 34335, 32654, 31129, 29740,
+	28470, 27304, 25724, 24768, 23461, 22285, 21221, 20254,
+	19371, 18562, 17583, 16914, 16097, 15356, 14520, 13914,
+	13224, 12599, 12031, 11511, 10944, 10431, 9963, 9468,
+	9081, 8612, 8239, 7851, 7498, 7137, 6809, 6478, 6178,
+	5879, 5607, 5359, 5093, 4870, 4633, 4418, 4209, 4019,
+	3823, 3645, 3474, 3310, 3161, 3011, 2869, 2734, 2611,
+	2484, 2369, 2257, 2152, 2052, 1956, 1866, 1779, 1695,
+	1615, 1539, 1468, 1398, 1333, 1271, 1212, 1155, 1101,
+	1049, 1000, 953, 909, 866, 826, 787, 750, 715, 682,
+	650, 619, 590, 563, 536, 511, 487, 465, 443, 422,
+	402, 384, 366, 349, 332, 317, 302, 288, 274, 261,
+	249, 238, 226, 216, 206, 196, 187, 178, 170, 162,
+	154, 147, 140, 134, 128, 122, 116, 111, 105, 100,
+	95.4, 90.9, 86.6, 82.6, 78.7, 75.0, 71.5, 68.2,
+	65.0, 61.9, 59.0, 56.3, 53.6, 51.1
+};
+
+static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v)
+{
+  int i;
+
+  for (i = 0; i < sizeof(avrispmkIIfreqs); i++) {
+    if (1 / avrispmkIIfreqs[i] >= v)
+      break;
+  }
+
+  fprintf(stderr, "Using p = %.2f us for SCK (param = %d)\n",
+		  1000000 / avrispmkIIfreqs[i], i);
+
+  return stk500v2_setparm(pgm, PARAM_SCK_DURATION, i);
+}
 
 /* This code assumes that each count of the SCK duration parameter
    represents 8/f, where f is the clock frequency of the STK500V2 master
@@ -938,7 +1030,11 @@ static void stk500v2_print_parms1(PROGRAMMER * pgm, char * p)
       unit = "Hz";
     fprintf(stderr, "%.3f %s\n", f, unit);
   }
-  fprintf(stderr, "%sSCK period      : %.1f us\n", p,
+  if (is_mk2)
+    fprintf(stderr, "%sSCK period      : %.2f us\n", p,
+	  (float) 1000000 / avrispmkIIfreqs[sck_duration]);
+  else
+    fprintf(stderr, "%sSCK period      : %.1f us\n", p,
 	  sck_duration * 8.0e6 / STK500V2_XTAL + 0.05);
 
   return;

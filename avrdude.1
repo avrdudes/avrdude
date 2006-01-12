@@ -55,6 +55,7 @@ is a program for downloading code and data to Atmel AVR
 microcontrollers.
 .Nm Avrdude
 supports Atmel's STK500 programmer,
+Atmel's AVRISP and AVRISP mkII devices,
 Atmel's JTAG ICE (both mkI and mkII),
 programmers complying to AppNote AVR910 and AVR109 (including the Butterfly),
 as well as a simple hard-wired
@@ -352,6 +353,9 @@ from any JTAG ICE mkII found on USB.
 The match is done after stripping any existing colons from the given
 serial number, and right-to-left, so only the least significant bytes
 from the serial number need to be given.
+.Pp
+As the AVRISP mkII device can only be talked to over USB, the very
+same method of specifying the port is required there.
 .It Fl q
 Disable (or quell) output of the progress bar while reading or writing
 to the device.  Specify it a second time for even quieter operation.

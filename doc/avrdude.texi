@@ -135,7 +135,8 @@ from the contents of a file, while interactive mode is useful for
 exploring memory contents, modifing individual bytes of eeprom,
 programming fuse/lock bits, etc.
 
-AVRDUDE supports six basic programmer types: Atmel's STK500,
+AVRDUDE supports the following basic programmer types: Atmel's STK500,
+Atmel's AVRISP and AVRISP mkII devices,
 Atmel's JTAG ICE (both mkI and mkII), appnote
 avr910, appnote avr109 (including the AVR Butterfly),
 serial bit-bang adapters,
@@ -430,7 +431,16 @@ Atmel Low Cost Serial Programmer
 Atmel AppNote AVR911 AVROSP (an alias for avr109)
 
 @itemx avrisp
-Atmel AVR ISP
+Atmel AVR ISP (an alias for stk500)
+
+@itemx avrispv2
+Atmel AVR ISP, running a version 2.x firmware (an alias for stk500v2)
+
+@itemx avrispmkII
+Atmel AVR ISP mkII (alias for stk500v2)
+
+@itemx avrispmk2
+Atmel AVR ISP mkII (alias for stk500v2)
 
 @itemx bascom
 Bascom SAMPLE programming cable
@@ -480,7 +490,7 @@ STK200
 Atmel STK500
 
 @itemx stk500v2
-Atmel STK500, running a verrsion 2.x firmware
+Atmel STK500, running a version 2.x firmware
 
 @end table
 
@@ -578,6 +588,9 @@ given serial number, and right-to-left, so only the least significant
 bytes from the serial number need to be given.
 For a trick how to find out the serial numbers of all JTAG ICEs
 attached to USB, see @ref{Example Command Line Invocations}.
+
+As the AVRISP mkII device can only be talked to over USB, the very
+same method of specifying the port is required there.
 
 @item -q
 Disable (or quell) output of the progress bar while reading or writing
