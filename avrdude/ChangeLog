@@ -1,3 +1,8 @@
+2006-01-12  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Add EEPROM page instructions for the
+	ATmega169 so it will work for STK500v2.
+
 2005-12-16  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: Added support for ATtiny24/44/84.
