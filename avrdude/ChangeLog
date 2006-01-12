@@ -1,3 +1,20 @@
+2006-01-13  Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Contributed by dcm@mit.edu: add support for the
+	AVRISP mkII device. (Savannah patch #4789.)
+	* serial.h: Declare usb_serdev_frame device descriptor.
+	* stk500v2.c: Implementation of the AVRISP mkII handling.
+	* usb_libusb.c: Add USB handling for short-frame delimited
+	AVRISP mkII USB protocol; add distinction of different
+	devices in usbdev_open().
+	* jtagmkII.c: Tell usbdev_open() to search for the JTAG ICE mkII.
+	* usbdevs.h: (New file.)
+	* Makefile.am: Add usbdevs.h, as well as some other forgotten
+	files "make distcheck" complained about.
+	* avrdude.conf.in: Add more aliases for the AVRISP mkII.
+	* avrdude.1: Document how to use the AVRISP mkII.
+	* doc/avrdude.texi: (Ditto.)
+
 2006-01-12  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: Add EEPROM page instructions for the

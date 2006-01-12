@@ -22,6 +22,7 @@
 #
 
 EXTRA_DIST   = \
+	ChangeLog \
 	ChangeLog-2001 \
 	ChangeLog-2002 \
 	ChangeLog-2003 \
@@ -69,6 +70,7 @@ avrdude_SOURCES = \
 	crc16.h \
 	fileio.c \
 	fileio.h \
+	freebsd_ppi.h \
 	jtagmkI.c \
 	jtagmkI.h \
 	jtagmkI_private.h \
@@ -95,6 +97,7 @@ avrdude_SOURCES = \
 	serbb_win32.c \
 	ser_posix.c \
 	ser_win32.c \
+	solaris_ecpp.h \
 	stk500.c \
 	stk500.h \
 	stk500_private.h \
@@ -103,6 +106,7 @@ avrdude_SOURCES = \
 	stk500v2_private.h \
 	term.c \
 	term.h \
+	usbdevs.h \
 	usb_libusb.c
 
 man_MANS = avrdude.1

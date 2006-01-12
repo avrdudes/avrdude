@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2005 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2005,2006 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * Derived from stk500 code which is:
  * Copyright (C) 2002-2004 Brian S. Dean <bsd@bsdhome.com>
@@ -43,6 +43,7 @@
 #include "pgm.h"
 #include "jtagmkII_private.h"
 #include "serial.h"
+#include "usbdevs.h"
 
 
 extern int    verbose;
@@ -1044,26 +1045,34 @@ static void jtagmkII_enable(PROGRAMMER * pgm)
 
 static int jtagmkII_open(PROGRAMMER * pgm, char * port)
 {
+  long baud;
+
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkII_open()\n", progname);
 
-#if defined(HAVE_LIBUSB)
-  /*
-   * If the port name starts with "usb", divert the serial routines
-   * to the USB ones.
-   */
-  if (strncmp(port, "usb", 3) == 0)
-    serdev = &usb_serdev;
-#endif
-
-  strcpy(pgm->port, port);
   /*
    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
    * attaching.  If the config file or command-line parameters specify
    * a higher baud rate, we switch to it later on, after establishing
    * the connection with the ICE.
    */
-  pgm->fd = serial_open(port, 19200);
+  baud = 19200;
+
+#if defined(HAVE_LIBUSB)
+  /*
+   * If the port name starts with "usb", divert the serial routines
+   * to the USB ones.  The serial_open() function for USB overrides
+   * the meaning of the "baud" parameter to be the USB device ID to
+   * search for.
+   */
+  if (strncmp(port, "usb", 3) == 0) {
+    serdev = &usb_serdev;
+    baud = USB_DEVICE_JTAGICEMKII;
+  }
+#endif
+
+  strcpy(pgm->port, port);
+  pgm->fd = serial_open(port, baud);
 
   /*
    * drain any extraneous input
