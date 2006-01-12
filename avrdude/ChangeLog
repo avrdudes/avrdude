@@ -1,6 +1,6 @@
 2006-01-13  Joerg Wunsch <j@uriah.heep.sax.de>
 
-	Contributed by dcm@mit.edu: add support for the
+	Contributed by David Moore: add support for the
 	AVRISP mkII device. (Savannah patch #4789.)
 	* serial.h: Declare usb_serdev_frame device descriptor.
 	* stk500v2.c: Implementation of the AVRISP mkII handling.

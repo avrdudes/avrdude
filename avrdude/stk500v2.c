@@ -2,7 +2,7 @@
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2005 Erik Walthinsen
  * Copyright (C) 2002-2004 Brian S. Dean <bsd@bsdhome.com>
- * Copyright (C) 2006 dcm@mit.edu
+ * Copyright (C) 2006 David Moore
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
