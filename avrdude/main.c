@@ -1386,7 +1386,7 @@ int main(int argc, char * argv [])
 
     /* Try reading back fuses, make sure they are reliable to read back */
     if (safemode_readfuses(&safemodeafter_lfuse, &safemodeafter_hfuse,
-                           &safemodeafter_efuse, &safemode_fuse, pgm, p, verbose) != 0) {
+                           &safemodeafter_efuse, &safemodeafter_fuse, pgm, p, verbose) != 0) {
       /* Uh-oh.. try once more to read back fuses */
       if (safemode_readfuses(&safemodeafter_lfuse, &safemodeafter_hfuse,
                              &safemodeafter_efuse, &safemodeafter_fuse, pgm, p, verbose) != 0) { 
