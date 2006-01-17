@@ -1,5 +1,6 @@
 2006-01-17 Colin O'Flynn <coflynn@newae.com>
     * main.c: Fixed a typo in safemode variable names, fixed bug 15113
+    * avrdude.conf.in : Added BS2 and pagel to M162, Patch 4766
 
 2006-01-13  Joerg Wunsch <j@uriah.heep.sax.de>
 
