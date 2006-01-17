@@ -1,6 +1,8 @@
 2006-01-17 Colin O'Flynn <coflynn@newae.com>
     * main.c: Fixed a typo in safemode variable names, fixed bug 15113
     * avrdude.conf.in : Added BS2 and pagel to M162, Patch 4766
+    * main.c, stk500v2.c: Added patch 4804 from eolson@mit.edu
+                          Which stops sck from being writtend needlessly
 
 2006-01-13  Joerg Wunsch <j@uriah.heep.sax.de>
 

@@ -101,7 +101,7 @@ void usage(void)
  "Options:\n"
  "  -p <partno>                Required. Specify AVR device.\n"
  "  -b <baudrate>              Override RS-232 baud rate.\n"
- "  -B <bitclock>              Specify JTAG bit clock period (us).\n"
+ "  -B <bitclock>              Specify JTAG/STK500v2 bit clock period (us).\n"
  "  -C <config-file>           Specify location of configuration file.\n"
  "  -c <programmer>            Specify programmer type.\n"
  "  -D                         Disable auto erase for flash memory\n"
@@ -1129,6 +1129,7 @@ int main(int argc, char * argv [])
     if (verbose) {
       fprintf(stderr, "%sSetting bit clk period: %.1f\n", progbuf, bitclock);
     }
+
     pgm->bitclock = bitclock * 1e-6;
   }
 

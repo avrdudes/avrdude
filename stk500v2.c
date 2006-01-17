@@ -508,6 +508,11 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
 
   stk500v2_drain(pgm, 0);
 
+  if (pgm->bitclock != 0.0) {
+    if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
+      return -1;
+  }
+
   return 0;
 }
 
@@ -940,8 +945,7 @@ static int stk500v2_getparm(PROGRAMMER * pgm, unsigned char parm, unsigned char 
   return 0;
 }
 
-
-static int stk500v2_setparm(PROGRAMMER * pgm, unsigned char parm, unsigned char value)
+static int stk500v2_setparm_real(PROGRAMMER * pgm, unsigned char parm, unsigned char value)
 {
   unsigned char buf[32];
 
@@ -958,6 +962,23 @@ static int stk500v2_setparm(PROGRAMMER * pgm, unsigned char parm, unsigned char 
   return 0;
 }
 
+static int stk500v2_setparm(PROGRAMMER * pgm, unsigned char parm, unsigned char value)
+{
+  unsigned char current_value;
+  int res;
+
+  res = stk500v2_getparm(pgm, parm, &current_value);
+  if (res < 0)
+    fprintf(stderr, "%s: Unable to get parameter 0x%02x\n", progname, parm);
+
+  // don't issue a write if the correct value is already set.
+  if (value == current_value) {
+    fprintf(stderr, "%s: Skipping paramter write; parameter value already set.\n", progname);
+    return 0;
+  }
+
+  return stk500v2_setparm_real(pgm, parm, value);
+}
 
 static void stk500v2_display(PROGRAMMER * pgm, char * p)
 {
