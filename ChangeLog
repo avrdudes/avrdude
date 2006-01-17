@@ -1,3 +1,6 @@
+2006-01-17 Colin O'Flynn <coflynn@newae.com>
+    * main.c: Fixed a typo in safemode variable names, fixed bug 15113
+
 2006-01-13  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	Contributed by David Moore: add support for the
