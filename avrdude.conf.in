@@ -2902,6 +2902,8 @@ part
     has_jtag         = yes;
     stk500_devcode   = 0x83;
     chip_erase_delay = 9000;
+    pagel            = 0xd7;
+    bs2              = 0xa0;
 
     idr              = 0x04;
     spmcr            = 0x57;
