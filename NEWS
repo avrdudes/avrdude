@@ -7,6 +7,9 @@ Approximate change log for AVRDUDE by version.
 ----------------------------------------------------------------------
 Current:
 
+  * Fixed paged flash write operations for AT90PWMx devices
+    (error in datasheet).
+
 Version 5.1:
 
   * New devices supported:
