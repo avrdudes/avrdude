@@ -369,6 +369,7 @@ AVRPART * avr_new_part(void)
   p->flags = AVRPART_SERIALOK | AVRPART_PARALLELOK | AVRPART_ENABLEPAGEPROGRAMMING;
   p->config_file[0] = 0;
   p->lineno = 0;
+  memset(p->signature, 0xFF, 3);
 
   p->mem = lcreat(NULL, 0);
 

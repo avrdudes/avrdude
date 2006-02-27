@@ -1201,8 +1201,8 @@ int main(int argc, char * argv [])
   /*
    * Let's read the signature bytes to make sure there is at least a
    * chip on the other end that is responding correctly.  A check
-   * against 0xffffffff should ensure that the signature bytes are
-   * valid.
+   * against 0xffffff / 0x000000 should ensure that the signature bytes
+   * are valid.
    */
   rc = avr_signature(pgm, p);
   if (rc != 0) {
@@ -1220,24 +1220,26 @@ int main(int argc, char * argv [])
   }
 
   if (sig != NULL) {
-    int ff;
+    int ff, zz;
 
     if (quell_progress < 2) {
       fprintf(stderr, "%s: Device signature = 0x", progname);
     }
-    ff = 1;
+    ff = zz = 1;
     for (i=0; i<sig->size; i++) {
       if (quell_progress < 2) {
         fprintf(stderr, "%02x", sig->buf[i]);
       }
       if (sig->buf[i] != 0xff)
         ff = 0;
+      if (sig->buf[i] != 0x00)
+        zz = 0;
     }
     if (quell_progress < 2) {
       fprintf(stderr, "\n");
     }
 
-    if (ff) {
+    if (ff || zz) {
       fprintf(stderr,
               "%s: Yikes!  Invalid device signature.\n", progname);
       if (!ovsigck) {
@@ -1245,6 +1247,23 @@ int main(int argc, char * argv [])
                 "or use -F to override\n"
                 "%sthis check.\n\n",
                 progbuf, progbuf);
+        exitrc = 1;
+        goto main_exit;
+      }
+    }
+
+    if (sig->size != 3 ||
+	sig->buf[0] != p->signature[0] ||
+	sig->buf[1] != p->signature[1] ||
+	sig->buf[2] != p->signature[2]) {
+      fprintf(stderr,
+	      "%s: Expected signature for %s is %02X %02X %02X\n",
+	      progname, p->desc,
+	      p->signature[0], p->signature[1], p->signature[2]);
+      if (!ovsigck) {
+        fprintf(stderr, "%sDouble check chip, "
+		"or use -F to override this check.\n",
+                progbuf);
         exitrc = 1;
         goto main_exit;
       }
