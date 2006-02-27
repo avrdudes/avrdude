@@ -1,3 +1,13 @@
+2006-02-27  Colin O'Flynn <coflynn@newae.com>
+    Contributed by Wim Lewis, add support for checking device
+        signatures in detail (patch #4924 and #4925)
+    * avrdude.conf.in: Add signatures
+    * avrpart.c: Set default signature
+    * avrpart.h: Variable for signature
+    * config_gram.y: More signature reading
+    * lexer.l: Define that signatures exist
+    * main.c: Read signatures and check them against hardware
+
 2006-02-21  Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: Fix paged flash write for AT90PWMx

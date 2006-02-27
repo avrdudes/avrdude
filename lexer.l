@@ -166,6 +166,7 @@ readback_p2      { yylval=NULL; return K_READBACK_P2; }
 retry_pulse      { yylval=NULL; return K_RETRY_PULSE; }
 serbb            { yylval=NULL; return K_SERBB; }
 serial           { yylval=NULL; return K_SERIAL; }
+signature        { yylval=NULL; return K_SIGNATURE; }
 size             { yylval=NULL; return K_SIZE; }
 spmcr            { yylval=NULL; return K_SPMCR; }
 stk500           { yylval=NULL; return K_STK500; }

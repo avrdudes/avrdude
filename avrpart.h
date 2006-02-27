@@ -92,6 +92,7 @@ typedef struct avrpart {
   int           chip_erase_delay;   /* microseconds */
   unsigned char pagel;              /* for parallel programming */
   unsigned char bs2;                /* for parallel programming */
+  unsigned char signature[3];       /* expected value of signature bytes */
   int           reset_disposition;  /* see RESET_ enums */
   int           retry_pulse;        /* retry program enable by pulsing
                                        this pin (PIN_AVR_*) */

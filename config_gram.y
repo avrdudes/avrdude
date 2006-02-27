@@ -116,6 +116,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_SERBB
 %token K_SERIAL
 %token K_SCK
+%token K_SIGNATURE
 %token K_SIZE
 %token K_STK500
 %token K_STK500V2
@@ -527,6 +528,17 @@ part_parm :
     {
       current_part->avr910_devcode = $3->value.number;
       free_token($3);
+    }
+  } |
+
+  K_SIGNATURE TKN_EQUAL TKN_NUMBER TKN_NUMBER TKN_NUMBER {
+    {
+      current_part->signature[0] = $3->value.number;
+      current_part->signature[1] = $4->value.number;
+      current_part->signature[2] = $5->value.number;
+      free_token($3);
+      free_token($4);
+      free_token($5);
     }
   } |
 
