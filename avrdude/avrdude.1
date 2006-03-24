@@ -80,7 +80,7 @@ and
 need to be connected to the parallel port.  Optionally, some otherwise
 unused output pins of the parallel port can be used to supply power
 for the MCU part, so it is also possible to construct a passive
-standalone programming device.  Some status LEDs indicating the
+stand-alone programming device.  Some status LEDs indicating the
 current operating state of the programmer can be connected, and a
 signal is available to control a buffer/driver IC 74LS367 (or
 74HCT367).  The latter can be useful to decouple the parallel port
@@ -123,7 +123,7 @@ can program the EEPROM and flash ROM memory cells of supported AVR
 parts.  Where supported by the serial instruction set, fuse bits and
 lock bits can be programmed as well.  These are implemented within
 .Nm
-as seperate memory types and can be programmed using data from a file
+as separate memory types and can be programmed using data from a file
 (see the
 .Fl m
 option) or from terminal mode (see the
@@ -390,7 +390,7 @@ option to disable safemode prompting.
 Perform a memory operation as indicated.  The
 .Ar memtype
 field specifies the memory type to operate on.
-The available memory types are device-dependant, the actual
+The available memory types are device-dependent, the actual
 configuration can be viewed with the
 .Cm part
 command in terminal mode.
@@ -450,7 +450,7 @@ Motorola S-record
 .It Ar r
 raw binary; little-endian byte order, in the case of the flash ROM data
 .It Ar m
-immediate; actual byte values specified on the command line, seperated
+immediate; actual byte values specified on the command line, separated
 by commas or spaces.  This is good for programming fuse bytes without
 having to create a single-byte file or enter terminal mode.
 .It Ar a
@@ -662,4 +662,4 @@ avr109 (aka. butterfly) programmer might report
 .Dl "selected device is not supported by programmer" .
 Use the -F option to force
 .Nm
-to contiue anyway.
+to continue anyway.
