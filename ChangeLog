@@ -1,3 +1,7 @@
+2006-03-23  Colin O'Flunn <coflynn@newae.com>
+    Contributed by Wim Lewis, fix a few typos (patch #4987)
+    *avrdude.1: Typo fix
+
 2006-02-27  Colin O'Flynn <coflynn@newae.com>
     Contributed by Wim Lewis, add support for checking device
         signatures in detail (patch #4924 and #4925)
