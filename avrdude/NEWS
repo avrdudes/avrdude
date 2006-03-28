@@ -7,8 +7,14 @@ Approximate change log for AVRDUDE by version.
 ----------------------------------------------------------------------
 Current:
 
+  * New devices supported:
+
+      - AT90USB646/647/1286/1287
+
   * Fixed paged flash write operations for AT90PWMx devices
     (error in datasheet).
+
+  * Add signature verification.
 
 Version 5.1:
 
