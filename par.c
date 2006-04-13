@@ -81,7 +81,9 @@ struct ppipins_t ppipins[] = {
 
 static int par_setpin(PROGRAMMER * pgm, int pin, int value)
 {
+  int inverted;
 
+  inverted = pin & PIN_INVERSE;
   pin &= PIN_MASK;
 
   if (pin < 1 || pin > 17)
@@ -90,6 +92,9 @@ static int par_setpin(PROGRAMMER * pgm, int pin, int value)
   pin--;
 
   if (ppipins[pin].inverted)
+    inverted = !inverted;
+
+  if (inverted)
     value = !value;
 
   if (value)
@@ -108,7 +113,9 @@ static int par_setpin(PROGRAMMER * pgm, int pin, int value)
 static int par_getpin(PROGRAMMER * pgm, int pin)
 {
   int value;
+  int inverted;
 
+  inverted = pin & PIN_INVERSE;
   pin &= PIN_MASK;
 
   if (pin < 1 || pin > 17)
@@ -122,6 +129,9 @@ static int par_getpin(PROGRAMMER * pgm, int pin)
     value = 1;
     
   if (ppipins[pin].inverted)
+    inverted = !inverted;
+
+  if (inverted)
     value = !value;
 
   return value;
@@ -130,21 +140,40 @@ static int par_getpin(PROGRAMMER * pgm, int pin)
 
 static int par_highpulsepin(PROGRAMMER * pgm, int pin)
 {
+  int inverted;
+
+  inverted = pin & PIN_INVERSE;
+  pin &= PIN_MASK;
 
   if (pin < 1 || pin > 17)
     return -1;
 
   pin--;
 
-  ppi_set(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+  if (ppipins[pin].inverted)
+    inverted = !inverted;
+
+  if (inverted) {
+    ppi_clr(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
 #if SLOW_TOGGLE
-  usleep(1000);
+    usleep(1000);
 #endif
-  ppi_clr(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+    ppi_set(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
 
 #if SLOW_TOGGLE
-  usleep(1000);
+    usleep(1000);
 #endif
+  } else {
+    ppi_set(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+#if SLOW_TOGGLE
+    usleep(1000);
+#endif
+    ppi_clr(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+
+#if SLOW_TOGGLE
+    usleep(1000);
+#endif
+  }
 
   return 0;
 }
