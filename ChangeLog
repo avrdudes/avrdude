@@ -1,3 +1,12 @@
+2006-04-13 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* par.c: Add logic to negate parallel-port signals in
+	avrdude.conf using a tilde.
+
+	Contributed by Bram Daams:
+	* avrdude.conf.in: Add the "atisp" programmer entry that
+	makes use of negated signals.
+
 2006-03-28 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: Add entries for AT90USB{64,128}{6,7}
