@@ -492,6 +492,16 @@ programmer
   miso = 11;
 ;
 
+programmer
+  id    = "atisp";
+  desc  = "AT-ISP V1.1 programming cable for AVR-SDK1 from <http://micro-research.co.th/> micro-research.co.th";
+  type  = par;
+  reset = ~6;
+  sck   = ~8;
+  mosi  = ~7;
+  miso  = ~10;
+;
+
 @HAVE_PARPORT_END@
 
 #
