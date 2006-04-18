@@ -1,3 +1,8 @@
+2006-04-18 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Contributed by Julius Luukko <Julius.Luukko@lut.fi>:
+	* avrdude.conf.in: Add the "ere-isp-avr" programmer.
+
 2006-04-13 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* par.c: Add logic to negate parallel-port signals in

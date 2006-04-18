@@ -502,6 +502,16 @@ programmer
   miso  = ~10;
 ;
 
+programmer
+  id    = "ere-isp-avr";
+  desc  = "ERE ISP-AVR <http://www.ere.co.th/download/sch050713.pdf>"
+  type  = par;
+  reset = ~4;
+  sck   = 3;
+  mosi  = 2;
+  miso  = 10;
+;
+
 @HAVE_PARPORT_END@
 
 #
