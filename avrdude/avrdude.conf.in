@@ -504,7 +504,7 @@ programmer
 
 programmer
   id    = "ere-isp-avr";
-  desc  = "ERE ISP-AVR <http://www.ere.co.th/download/sch050713.pdf>"
+  desc  = "ERE ISP-AVR <http://www.ere.co.th/download/sch050713.pdf>";
   type  = par;
   reset = ~4;
   sck   = 3;
