@@ -1,4 +1,4 @@
-2006-04-18 Joerg Wunsch <j@uriah.heep.sax.de>
+2006-05-24 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avr.c: Start implementing support for ATmega256x;
 	jtag2 and bitbang programmers are working, stk500v2
