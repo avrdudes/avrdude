@@ -51,7 +51,7 @@ int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   unsigned char cmd[4];
   unsigned char res[4];
   unsigned char data;
-  OPCODE * readop;
+  OPCODE * readop, * lext;
 
   pgm->pgm_led(pgm, ON);
   pgm->err_led(pgm, OFF);
@@ -77,6 +77,18 @@ int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
             p->desc);
 #endif
     return -1;
+  }
+
+  /*
+   * If this device has a "load extended address" command, issue it.
+   */
+  lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
+  if (lext != NULL) {
+    memset(cmd, 0, sizeof(cmd));
+
+    avr_set_bits(lext, cmd);
+    avr_set_addr(lext, cmd, addr);
+    pgm->cmd(pgm, cmd, res);
   }
 
   memset(cmd, 0, sizeof(cmd));
@@ -234,7 +246,7 @@ int avr_write_page(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 {
   unsigned char cmd[4];
   unsigned char res[4];
-  OPCODE * wp;
+  OPCODE * wp, * lext;
 
   wp = mem->op[AVR_OP_WRITEPAGE];
   if (wp == NULL) {
@@ -253,6 +265,18 @@ int avr_write_page(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
   pgm->pgm_led(pgm, ON);
   pgm->err_led(pgm, OFF);
+
+  /*
+   * If this device has a "load extended address" command, issue it.
+   */
+  lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
+  if (lext != NULL) {
+    memset(cmd, 0, sizeof(cmd));
+
+    avr_set_bits(lext, cmd);
+    avr_set_addr(lext, cmd, addr);
+    pgm->cmd(pgm, cmd, res);
+  }
 
   memset(cmd, 0, sizeof(cmd));
 

@@ -1,5 +1,16 @@
 2006-04-18 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* avr.c: Start implementing support for ATmega256x;
+	jtag2 and bitbang programmers are working, stk500v2
+	still needs to be done.
+	* avrdude.conf.in: (Ditto.)
+	* avrpart.c: (Ditto.)
+	* avrpart.h: (Ditto.)
+	* config_gram.y: (Ditto.)
+	* lexer.l: (Ditto.)
+
+2006-04-18 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	Contributed by Julius Luukko <Julius.Luukko@lut.fi>:
 	* avrdude.conf.in: Add the "ere-isp-avr" programmer.
 
