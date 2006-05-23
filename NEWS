@@ -10,6 +10,7 @@ Current:
   * New devices supported:
 
       - AT90USB646/647/1286/1287
+      - ATmega2560/2561
 
   * Fixed paged flash write operations for AT90PWMx devices
     (error in datasheet).
