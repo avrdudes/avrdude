@@ -174,6 +174,7 @@ char * avr_op_str(int op)
     case AVR_OP_WRITE_HI    : return "WRITE_HI"; break;
     case AVR_OP_LOADPAGE_LO : return "LOADPAGE_LO"; break;
     case AVR_OP_LOADPAGE_HI : return "LOADPAGE_HI"; break;
+    case AVR_OP_LOAD_EXT_ADDR : return "LOAD_EXT_ADDR"; break;
     case AVR_OP_WRITEPAGE   : return "WRITEPAGE"; break;
     case AVR_OP_CHIP_ERASE  : return "CHIP_ERASE"; break;
     case AVR_OP_PGM_ENABLE  : return "PGM_ENABLE"; break;

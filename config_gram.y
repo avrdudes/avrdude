@@ -65,6 +65,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_WRITE_HI
 %token K_LOADPAGE_LO
 %token K_LOADPAGE_HI
+%token K_LOAD_EXT_ADDR
 %token K_WRITEPAGE
 %token K_CHIP_ERASE
 %token K_PGM_ENABLE
@@ -468,6 +469,7 @@ opcode :
   K_WRITE_HI     |
   K_LOADPAGE_LO  |
   K_LOADPAGE_HI  |
+  K_LOAD_EXT_ADDR |
   K_WRITEPAGE    |
   K_CHIP_ERASE   |
   K_PGM_ENABLE
@@ -927,6 +929,7 @@ static int which_opcode(TOKEN * opcode)
     case K_WRITE_HI    : return AVR_OP_WRITE_HI; break;
     case K_LOADPAGE_LO : return AVR_OP_LOADPAGE_LO; break;
     case K_LOADPAGE_HI : return AVR_OP_LOADPAGE_HI; break;
+    case K_LOAD_EXT_ADDR : return AVR_OP_LOAD_EXT_ADDR; break;
     case K_WRITEPAGE   : return AVR_OP_WRITEPAGE; break;
     case K_CHIP_ERASE  : return AVR_OP_CHIP_ERASE; break;
     case K_PGM_ENABLE  : return AVR_OP_PGM_ENABLE; break;

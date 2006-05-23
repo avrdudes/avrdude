@@ -208,6 +208,7 @@ write_lo         { yylval=new_token(K_WRITE_LO); return K_WRITE_LO; }
 write_hi         { yylval=new_token(K_WRITE_HI); return K_WRITE_HI; }
 loadpage_lo      { yylval=new_token(K_LOADPAGE_LO); return K_LOADPAGE_LO; }
 loadpage_hi      { yylval=new_token(K_LOADPAGE_HI); return K_LOADPAGE_HI; }
+load_ext_addr    { yylval=new_token(K_LOAD_EXT_ADDR); return K_LOAD_EXT_ADDR; }
 writepage        { yylval=new_token(K_WRITEPAGE); return K_WRITEPAGE; }
 chip_erase       { yylval=new_token(K_CHIP_ERASE); return K_CHIP_ERASE; }
 pgm_enable       { yylval=new_token(K_PGM_ENABLE); return K_PGM_ENABLE; }
