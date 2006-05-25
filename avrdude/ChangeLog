@@ -1,3 +1,11 @@
+2006-05-25 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* stk500v2.c: Implement extended addressing needed
+	for the ATmega256x devices.
+	* avrdude.1: Document ATmega256x support.
+	* doc/avrdude.texi: Document ATmega256x support.
+	Also document Solaris port defaults.
+
 2006-05-24 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avr.c: Start implementing support for ATmega256x;

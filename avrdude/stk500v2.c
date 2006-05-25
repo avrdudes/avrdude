@@ -41,6 +41,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <limits.h>
 #include <unistd.h>
 #include <sys/time.h>
 #include <time.h>
@@ -554,8 +555,7 @@ static int stk500v2_loadaddr(PROGRAMMER * pgm, unsigned int addr)
 static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
                               int page_size, int n_bytes)
 {
-  int addr, block_size, last_addr;
-  int a_div=1;
+  unsigned int addr, block_size, last_addr, hiaddr, addrshift, use_ext_addr;
   unsigned char commandbuf[10];
   unsigned char buf[266];
   unsigned char cmds[4];
@@ -565,17 +565,29 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   DEBUG("STK500V2: stk500v2_paged_write(..,%s,%d,%d)\n",m->desc,page_size,n_bytes);
 
   if (page_size == 0) page_size = 256;
+  hiaddr = UINT_MAX;
+  addrshift = 0;
+  use_ext_addr = 0;
 
   // determine which command is to be used
   if (strcmp(m->desc, "flash") == 0) {
-    a_div=2;
+    addrshift = 1;
     commandbuf[0] = CMD_PROGRAM_FLASH_ISP;
+    /*
+     * If bit 31 is set, this indicates that the following read/write
+     * operation will be performed on a memory that is larger than
+     * 64KBytes. This is an indication to STK500 that a load extended
+     * address must be executed.
+     */
+    if (m->op[AVR_OP_LOAD_EXT_ADDR] != NULL) {
+      use_ext_addr = (1U << 31);
+    }
   } else if (strcmp(m->desc, "eeprom") == 0) {
     commandbuf[0] = CMD_PROGRAM_EEPROM_ISP;
   }
   commandbuf[4] = m->delay;
 
-  if (a_div == 1) {
+  if (addrshift == 0) {
     wop = m->op[AVR_OP_WRITE];
     rop = m->op[AVR_OP_READ];
   }
@@ -631,7 +643,7 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   commandbuf[8] = m->readback[0];
   commandbuf[9] = m->readback[1];
 
-  last_addr=-1;
+  last_addr=UINT_MAX;		/* impossible address */
 
   for (addr=0; addr < n_bytes; addr += page_size) {
     report_progress(addr,n_bytes,NULL);
@@ -654,8 +666,8 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     buf[1] = block_size >> 8;
     buf[2] = block_size & 0xff;
 
-    if((last_addr==-1)||(last_addr+block_size != addr)){
-      stk500v2_loadaddr(pgm, addr/a_div);
+    if((last_addr==UINT_MAX)||(last_addr+block_size != addr)){
+      stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift));
     }
     last_addr=addr;
 
@@ -690,7 +702,7 @@ static int stk500v2_is_page_empty(unsigned int address, int page_size,
 static int stk500v2_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                              int page_size, int n_bytes)
 {
-  int addr, block_size;
+  unsigned int addr, block_size, hiaddr, addrshift, use_ext_addr;
   unsigned char commandbuf[4];
   unsigned char buf[275];	// max buffer size for stk500v2 at this point
   unsigned char cmds[4];
@@ -703,11 +715,25 @@ static int stk500v2_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   rop = m->op[AVR_OP_READ];
 
+  hiaddr = UINT_MAX;
+  addrshift = 0;
+  use_ext_addr = 0;
+
   // determine which command is to be used
   if (strcmp(m->desc, "flash") == 0) {
     commandbuf[0] = CMD_READ_FLASH_ISP;
     rop = m->op[AVR_OP_READ_LO];
-  } 
+    addrshift = 1;
+    /*
+     * If bit 31 is set, this indicates that the following read/write
+     * operation will be performed on a memory that is larger than
+     * 64KBytes. This is an indication to STK500 that a load extended
+     * address must be executed.
+     */
+    if (m->op[AVR_OP_LOAD_EXT_ADDR] != NULL) {
+      use_ext_addr = (1U << 31);
+    }
+  }
   else if (strcmp(m->desc, "eeprom") == 0) {
     commandbuf[0] = CMD_READ_EEPROM_ISP;
   }
@@ -720,8 +746,6 @@ static int stk500v2_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   }
   avr_set_bits(rop, cmds);
   commandbuf[3] = cmds[0];
-
-  stk500v2_loadaddr(pgm, 0);
 
   for (addr=0; addr < n_bytes; addr += page_size) {
     report_progress(addr, n_bytes,NULL);
@@ -736,6 +760,13 @@ static int stk500v2_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     buf[1] = block_size >> 8;
     buf[2] = block_size & 0xff;
+
+    // Ensure a new "load extended address" will be issued
+    // when crossing a 64 KB boundary in flash.
+    if (hiaddr != (addr & ~0xFFFF)) {
+      hiaddr = addr & ~0xFFFF;
+      stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift));
+    }
 
     result = stk500v2_command(pgm,buf,4,sizeof(buf));
     if (buf[1] != STATUS_CMD_OK) {

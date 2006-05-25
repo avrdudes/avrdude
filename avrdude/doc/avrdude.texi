@@ -28,7 +28,7 @@ This file documents the avrdude program.
 
 For avrdude version @value{VERSION}, @value{UPDATED}.
 
-Copyright @copyright{} 2003, 2005 Brian Dean
+Copyright @copyright{} 2003, 2005, 2006 Brian Dean
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -316,6 +316,12 @@ ATmega164
 @itemx m169
 ATmega169
 
+@itemx m2560
+ATmega2560 (**)
+
+@itemx m2561
+ATmega2561 (**)
+
 @itemx m32
 ATmega32
 
@@ -385,6 +391,10 @@ ATtiny85
 @end table
 
 (*)   The AT90S2323 and ATtiny22 use the same algorithm.
+
+(**)  Flash addressing above 128 KB is not supported by all
+programming hardware.  Known to work are jtag2, stk500v2,
+and bit-bang programmers.
 
 @item -b @var{baudrate}
 Override the RS-232 connection baud rate specified in the respective
@@ -1520,6 +1530,9 @@ The following table lists the default names for a given system.
 @item Linux
   @tab @code{/dev/parport0}
   @tab @code{/dev/ttyS0}
+@item Solaris
+  @tab @code{/dev/printers/0}
+  @tab @code{/dev/term/a}
 @end multitable
 
 On FreeBSD systems, AVRDUDE uses the ppi(4) interface for
@@ -1528,6 +1541,10 @@ access.
 
 On Linux systems, AVRDUDE uses the ppdev interface for
 accessing the parallel port and the tty driver for serial port
+access.
+
+On Solaris systems, AVRDUDE uses the ecpp(7D) driver for
+accessing the parallel port and the asy(7D) driver for serial port
 access.
 
 @c

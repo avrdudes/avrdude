@@ -1,6 +1,6 @@
 .\"
 .\" avrdude - A Downloader/Uploader for AVR device programmers
-.\" Copyright (C) 2001, 2002, 2003, 2005  Joerg Wunsch
+.\" Copyright (C) 2001, 2002, 2003, 2005, 2006  Joerg Wunsch
 .\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE November 29, 2005
+.Dd DATE May 25, 2006
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -170,21 +170,23 @@ pwm3	AT90PWM3
 8535	AT90S8535
 m103	ATmega103
 m128	ATmega128
-m1280   ATmega1280
-m1281   ATmega1281
+m1280	ATmega1280
+m1281	ATmega1281
 m16	ATmega16
 m161	ATmega161
 m162	ATmega162
 m163	ATmega163
 m164	ATmega164
 m169	ATmega169
+m2560	ATmega2560 (**)
+m2561	ATmega2561 (**)
 m32	ATmega32
 m324	ATmega324
 m329	ATmega329
 m3290	ATmega3290
 m48	ATmega48
 m64	ATmega64
-m640    ATmega640
+m640	ATmega640
 m644	ATmega644
 m649	ATmega649
 m6490	ATmega6490
@@ -201,9 +203,13 @@ t26	ATtiny26
 t45	ATtiny45
 t85	ATtiny85
 .TE
-.Bl -tag -width "(*) "
+.Bl -tag -width "(**) "
 .It "(*)"
 The AT90S2323 and ATtiny22 use the same algorithm.
+.It "(**)"
+Flash addressing above 128 KB is not supported by all
+programming hardware.  Known to work are jtag2, stk500v2,
+and bit-bang programmers.
 .El
 .It Fl b Ar baudrate
 Override the RS-232 connection baud rate specified in the respective
