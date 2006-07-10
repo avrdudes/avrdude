@@ -1,3 +1,8 @@
+2006-07-10 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Enter the signatures for the
+	ATmega164/324/644 devices.
+
 2006-05-25 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* stk500v2.c: Implement extended addressing needed
