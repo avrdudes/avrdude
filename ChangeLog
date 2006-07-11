@@ -1,3 +1,8 @@
+2006-07-11 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Fix the signatures for the
+	ATmega164/324 devices.
+
 2006-07-10 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: Enter the signatures for the
