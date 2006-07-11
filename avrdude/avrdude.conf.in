@@ -2484,7 +2484,7 @@ part
 #   stk500_devcode   = 0x82; # no STK500v1 support
 #   avr910_devcode   = 0x?;  # try the ATmega16 one:^
     avr910_devcode   = 0x74;
-    signature        = 0x1e 0x94 0x09;
+    signature        = 0x1e 0x94 0x0a;
     pagel            = 0xd7;
     bs2              = 0xa0;
     chip_erase_delay = 9000;
@@ -2638,7 +2638,7 @@ part
 #   stk500_devcode   = 0x82; # no STK500v1 support
 #   avr910_devcode   = 0x?;  # try the ATmega16 one:^
     avr910_devcode   = 0x74;
-    signature        = 0x1e 0x95 0x09;
+    signature        = 0x1e 0x95 0x08;
     pagel            = 0xd7;
     bs2              = 0xa0;
     chip_erase_delay = 9000;
