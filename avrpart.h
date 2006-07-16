@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2003-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,6 +63,12 @@ enum { /* these are assigned to reset_disposition of AVRPART */
   RESET_IO            /* reset pin might be configured as an I/O pin */
 };
 
+enum ctl_stack_t {
+  CTL_STACK_NONE,     /* no control stack defined */
+  CTL_STACK_PP,	      /* parallel programming control stack */
+  CTL_STACK_HVSP      /* high voltage serial programming control stack */
+};
+
 /*
  * serial programming instruction bit specifications
  */
@@ -85,6 +92,7 @@ typedef struct opcode {
 
 #define AVR_DESCLEN 64
 #define AVR_IDLEN   32
+#define CTL_STACK_SIZE 32
 typedef struct avrpart {
   char          desc[AVR_DESCLEN];  /* long part name */
   char          id[AVR_IDLEN];      /* short part name */
@@ -109,6 +117,19 @@ typedef struct avrpart {
   int           predelay;           /* stk500 v2 xml file parameter */
   int           postdelay;          /* stk500 v2 xml file parameter */
   int           pollmethod;         /* stk500 v2 xml file parameter */
+
+  enum ctl_stack_t ctl_stack_type;  /* what to use the ctl stack for */
+  unsigned char controlstack[CTL_STACK_SIZE]; /* stk500v2 PP/HVSP ctl stack */
+
+  int           ppenterstabdelay;   /* stk500 v2 pp mode parameter */
+  int           progmodedelay;      /* stk500 v2 pp mode parameter */
+  int           latchcycles;        /* stk500 v2 pp mode parameter */
+  int           togglevtg;          /* stk500 v2 pp mode parameter */
+  int           poweroffdelay;      /* stk500 v2 pp mode parameter */
+  int           resetdelayms;       /* stk500 v2 pp mode parameter */
+  int           resetdelayus;       /* stk500 v2 pp mode parameter */
+  int           ppleavestabdelay;   /* stk500 v2 pp mode parameter */
+  int           resetdelay;         /* stk500 v2 pp mode parameter */
 
   unsigned char idr;                /* JTAG ICE mkII XML file parameter */
   unsigned char rampz;              /* JTAG ICE mkII XML file parameter */
