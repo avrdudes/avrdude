@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -170,6 +171,7 @@ signature        { yylval=NULL; return K_SIGNATURE; }
 size             { yylval=NULL; return K_SIZE; }
 spmcr            { yylval=NULL; return K_SPMCR; }
 stk500           { yylval=NULL; return K_STK500; }
+stk500pp         { yylval=NULL; return K_STK500PP; }
 stk500v2         { yylval=NULL; return K_STK500V2; }
 stk500_devcode   { yylval=NULL; return K_STK500_DEVCODE; }
 type             { yylval=NULL; return K_TYPE; }
@@ -190,7 +192,16 @@ mode             { yylval=NULL; return K_MODE; }
 delay            { yylval=NULL; return K_DELAY; }
 blocksize        { yylval=NULL; return K_BLOCKSIZE; }
 readsize        { yylval=NULL; return K_READSIZE; }
-
+pp_controlstack  { yylval=NULL; return K_PP_CONTROLSTACK; }
+ppenterstabdelay { yylval=NULL; return K_PPENTERSTABDELAY; }
+progmodedelay    { yylval=NULL; return K_PROGMODEDELAY; }
+latchcycles      { yylval=NULL; return K_LATCHCYCLES; }
+togglevtg        { yylval=NULL; return K_TOGGLEVTG; }
+poweroffdelay    { yylval=NULL; return K_POWEROFFDELAY; }
+resetdelayms     { yylval=NULL; return K_RESETDELAYMS; }
+resetdelayus     { yylval=NULL; return K_RESETDELAYUS; }
+ppleavestabdelay { yylval=NULL; return K_PPLEAVESTABDELAY; }
+resetdelay       { yylval=NULL; return K_RESETDELAY; }
 
 
 dedicated        { yylval=new_token(K_DEDICATED); return K_DEDICATED; }

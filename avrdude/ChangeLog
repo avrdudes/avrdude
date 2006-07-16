@@ -1,3 +1,18 @@
+2006-07-16 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	First stab at an implementation of the STK500 parallel programming
+	feature (v2 firmware only), named "stk500pp".  Still not yet
+	complete: EEPROM writes not working, documentation missing, only
+	ATmega16 parameters available in avrdude.conf.in, some parameters
+	not yet implemented.
+	* avrdude.conf.in: Add sample parameters for PP mode to ATmega16.
+	* avrpart.h: Add the parallel programming control parameters.
+	* avrpart.c: (Ditto.)
+	* config_gram.y: Add stk500pp configuration grammar.
+	* lexer.l: Add stk500pp token recognition.
+	* stk500v2.h: Add declaration for stk500pp_initpgm().
+	* stk500v2.c: Add stk500pp implementation.
+
 2006-07-11 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: Fix the signatures for the

@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -120,6 +121,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_SIGNATURE
 %token K_SIZE
 %token K_STK500
+%token K_STK500PP
 %token K_STK500V2
 %token K_AVR910
 %token K_BUTTERFLY
@@ -132,6 +134,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_YES
 
 /* stk500 v2 xml file parameters */
+/* ISP */
 %token K_TIMEOUT
 %token K_STABDELAY
 %token K_CMDEXEDELAY
@@ -146,6 +149,18 @@ static int parse_cmdbits(OPCODE * op);
 %token K_DELAY
 %token K_BLOCKSIZE
 %token K_READSIZE
+/* PP mode */
+%token K_PPENTERSTABDELAY
+%token K_PROGMODEDELAY
+%token K_LATCHCYCLES
+%token K_TOGGLEVTG
+%token K_POWEROFFDELAY
+%token K_RESETDELAYMS
+%token K_RESETDELAYUS
+%token K_PPLEAVESTABDELAY
+%token K_RESETDELAY
+
+%token K_PP_CONTROLSTACK
 
 /* JTAG ICE mkII specific parameters */
 %token K_ALLOWFULLPAGEBITSTREAM	/*
@@ -350,6 +365,12 @@ prog_parm :
     }
   } |
 
+  K_TYPE TKN_EQUAL K_STK500PP {
+    {
+      stk500pp_initpgm(current_prog);
+    }
+  } |
+
   K_TYPE TKN_EQUAL K_AVR910 {
     { 
       avr910_initpgm(current_prog);
@@ -544,6 +565,48 @@ part_parm :
     }
   } |
 
+  K_PP_CONTROLSTACK TKN_EQUAL num_list {
+    {
+      TOKEN * t;
+      unsigned nbytes;
+      int ok;
+
+      if (current_part->ctl_stack_type != CTL_STACK_NONE)
+	{
+	  fprintf(stderr,
+		  "%s: error at line %d of %s: "
+		  "control stack already defined\n",
+		  progname, lineno, infile);
+	  exit(1);
+	}
+
+      current_part->ctl_stack_type = CTL_STACK_PP;
+      nbytes = 0;
+      ok = 1;
+
+      while (lsize(number_list)) {
+        t = lrmv_n(number_list, 1);
+	if (nbytes < CTL_STACK_SIZE)
+	  {
+	    current_part->controlstack[nbytes] = t->value.number;
+	    nbytes++;
+	  }
+	else
+	  {
+	    ok = 0;
+	  }
+        free_token(t);
+      }
+      if (!ok)
+	{
+	  fprintf(stderr,
+                  "%s: Warning: line %d of %s: "
+		  "too many bytes in control stack\n",
+                  progname, lineno, infile);
+        }
+    }
+  } |
+
   K_CHIP_ERASE_DELAY TKN_EQUAL TKN_NUMBER
     {
       current_part->chip_erase_delay = $3->value.number;
@@ -629,6 +692,60 @@ part_parm :
   K_POLLMETHOD TKN_EQUAL TKN_NUMBER
     {
       current_part->pollmethod = $3->value.number;
+      free_token($3);
+    } |
+
+  K_PPENTERSTABDELAY TKN_EQUAL TKN_NUMBER
+    {
+      current_part->ppenterstabdelay = $3->value.number;
+      free_token($3);
+    } |
+
+  K_PROGMODEDELAY TKN_EQUAL TKN_NUMBER
+    {
+      current_part->progmodedelay = $3->value.number;
+      free_token($3);
+    } |
+
+  K_LATCHCYCLES TKN_EQUAL TKN_NUMBER
+    {
+      current_part->latchcycles = $3->value.number;
+      free_token($3);
+    } |
+
+  K_TOGGLEVTG TKN_EQUAL TKN_NUMBER
+    {
+      current_part->togglevtg = $3->value.number;
+      free_token($3);
+    } |
+
+  K_POWEROFFDELAY TKN_EQUAL TKN_NUMBER
+    {
+      current_part->poweroffdelay = $3->value.number;
+      free_token($3);
+    } |
+
+  K_RESETDELAYMS TKN_EQUAL TKN_NUMBER
+    {
+      current_part->resetdelayms = $3->value.number;
+      free_token($3);
+    } |
+
+  K_RESETDELAYUS TKN_EQUAL TKN_NUMBER
+    {
+      current_part->resetdelayus = $3->value.number;
+      free_token($3);
+    } |
+
+  K_PPLEAVESTABDELAY TKN_EQUAL TKN_NUMBER
+    {
+      current_part->ppleavestabdelay = $3->value.number;
+      free_token($3);
+    } |
+
+  K_RESETDELAY TKN_EQUAL TKN_NUMBER
+    {
+      current_part->resetdelay = $3->value.number;
       free_token($3);
     } |
 

@@ -15,7 +15,7 @@
 #   programmer
 #       id       = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
 #       desc     = <description> ;                  # quoted string
-#       type     = par | stk500 | stk500v2 | avr910 | jtagmki | jtagmkii; # programmer type
+#       type     = par | stk500 | stk500v2 | stk500pp | avr910 | jtagmki | jtagmkii; # programmer type
 #       baudrate = <num> ;                          # baudrate for avr910-programmer
 #       vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
 #       reset    = <num> ;                          # pin number
@@ -256,6 +256,12 @@ programmer
   id    = "stk500v2";
   desc  = "Atmel STK500 V2";
   type  = stk500v2;
+;
+
+programmer
+  id    = "stk500pp";
+  desc  = "Atmel STK500 V2 in parallel programming mode";
+  type  = stk500pp;
 ;
 
 programmer
@@ -2362,6 +2368,21 @@ part
     predelay		= 1;
     postdelay		= 1;
     pollmethod		= 0;
+
+    pp_controlstack     =
+	0x0E, 0x1E, 0x0F, 0x1F, 0x2E, 0x3E, 0x2F, 0x3F,
+	0x4E, 0x5E, 0x4F, 0x5F, 0x6E, 0x7E, 0x6F, 0x7F,
+	0x66, 0x76, 0x67, 0x77, 0x6A, 0x7A, 0x6B, 0x7B,
+	0xBE, 0xFD, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
+    ppenterstabdelay    = 100;
+    progmodedelay       = 100;
+    latchcycles         = 6;
+    togglevtg           = 0;
+    poweroffdelay       = 0;
+    resetdelayms        = 0;
+    resetdelayus        = 0;
+    ppleavestabdelay    = 15;
+    resetdelay          = 15;
 
     idr                 = 0x31;
     spmcr               = 0x57;
