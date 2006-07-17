@@ -1,3 +1,9 @@
+2006-07-17 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* main.c: Use mem->desc in place of upd->memtype in more places to
+	give the full name of the respective memory area, instead of
+	the (possibly abbreviated) name the user typed in the -U option.
+
 2006-07-16 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	First stab at an implementation of the STK500 parallel programming

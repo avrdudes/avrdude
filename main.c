@@ -556,7 +556,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
      */
     if (quell_progress < 2) {
       fprintf(stderr, "%s: writing %s (%d bytes):\n", 
-            progname, upd->memtype, size);
+            progname, mem->desc, size);
 	  }
 
     if (!nowrite) {
@@ -582,7 +582,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
 
     if (quell_progress < 2) {
       fprintf(stderr, "%s: %d bytes of %s written\n", progname, 
-            vsize, upd->memtype);
+            vsize, mem->desc);
     }
 
   }
@@ -614,7 +614,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
       fprintf(stderr, "%s: input file %s contains %d bytes\n", 
             progname, upd->filename, size);
       fprintf(stderr, "%s: reading on-chip %s data:\n", 
-            progname, upd->memtype);
+            progname, mem->desc);
     }
 
     report_progress (0,1,"Reading");
