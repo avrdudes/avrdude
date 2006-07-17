@@ -85,9 +85,6 @@ static unsigned char *eeprom_pagecache;
 static unsigned long eeprom_pageaddr;
 static unsigned int eeprom_pagesize;
 
-/* page buffer for single-byte IO */
-static unsigned char *pagebuf;
-
 static unsigned char command_sequence = 1;
 static int is_mk2;		/* Is the device an AVRISP mkII? */
 
@@ -99,6 +96,7 @@ static int stk500v2_is_page_empty(unsigned int address, int page_size,
                                   const unsigned char *buf);
 
 static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v);
+static unsigned int stk500v2_mode_for_pagesize(unsigned int pagesize);
 
 static int stk500v2_send_mk2(PROGRAMMER * pgm, unsigned char * data, size_t len)
 {
@@ -563,23 +561,15 @@ static int stk500pp_initialize(PROGRAMMER * pgm, AVRPART * p)
   }
   free(flash_pagecache);
   free(eeprom_pagecache);
-  free(pagebuf);
-  if ((pagebuf = malloc(flash_pagesize + 5)) == NULL) {
-    fprintf(stderr, "%s: stk500pp_initialize(): Out of memory\n",
-	    progname);
-    return -1;
-  }
   if ((flash_pagecache = malloc(flash_pagesize)) == NULL) {
     fprintf(stderr, "%s: stk500pp_initialize(): Out of memory\n",
 	    progname);
-    free(pagebuf);
     return -1;
   }
   if ((eeprom_pagecache = malloc(eeprom_pagesize)) == NULL) {
     fprintf(stderr, "%s: stk500pp_initialize(): Out of memory\n",
 	    progname);
     free(flash_pagecache);
-    free(pagebuf);
     return -1;
   }
   flash_pageaddr = eeprom_pageaddr = (unsigned long)-1L;
@@ -613,8 +603,6 @@ static void stk500pp_disable(PROGRAMMER * pgm)
   unsigned char buf[16];
   int result;
 
-  free(pagebuf);
-  pagebuf = NULL;
   free(flash_pagecache);
   flash_pagecache = NULL;
   free(eeprom_pagecache);
@@ -726,6 +714,7 @@ static int stk500pp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 			      unsigned long addr, unsigned char * value)
 {
   int result, cmdlen = 2;
+  char buf[266];
   unsigned long paddr = 0UL, *paddr_ptr = NULL;
   unsigned int pagesize = 0, use_ext_addr = 0, addrshift = 0;
   unsigned char *cache_ptr = NULL;
@@ -738,7 +727,7 @@ static int stk500pp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     return -1;
 
   if (strcmp(mem->desc, "flash") == 0) {
-    pagebuf[0] = CMD_READ_FLASH_PP;
+    buf[0] = CMD_READ_FLASH_PP;
     cmdlen = 3;
     pagesize = mem->page_size;
     if (pagesize == 0)
@@ -757,7 +746,7 @@ static int stk500pp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       use_ext_addr = (1U << 31);
     }
   } else if (strcmp(mem->desc, "eeprom") == 0) {
-    pagebuf[0] = CMD_READ_EEPROM_PP;
+    buf[0] = CMD_READ_EEPROM_PP;
     cmdlen = 3;
     pagesize = mem->page_size;
     if (pagesize == 0)
@@ -766,20 +755,20 @@ static int stk500pp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     paddr_ptr = &eeprom_pageaddr;
     cache_ptr = eeprom_pagecache;
   } else if (strcmp(mem->desc, "lfuse") == 0) {
-    pagebuf[0] = CMD_READ_FUSE_PP;
+    buf[0] = CMD_READ_FUSE_PP;
     addr = 0;
   } else if (strcmp(mem->desc, "hfuse") == 0) {
-    pagebuf[0] = CMD_READ_FUSE_PP;
+    buf[0] = CMD_READ_FUSE_PP;
     addr = 1;
   } else if (strcmp(mem->desc, "efuse") == 0) {
-    pagebuf[0] = CMD_READ_FUSE_PP;
+    buf[0] = CMD_READ_FUSE_PP;
     addr = 2;
   } else if (strcmp(mem->desc, "lock") == 0) {
-    pagebuf[0] = CMD_READ_LOCK_PP;
+    buf[0] = CMD_READ_LOCK_PP;
   } else if (strcmp(mem->desc, "calibration") == 0) {
-    pagebuf[0] = CMD_READ_OSCCAL_PP;
+    buf[0] = CMD_READ_OSCCAL_PP;
   } else if (strcmp(mem->desc, "signature") == 0) {
-    pagebuf[0] = CMD_READ_SIGNATURE_PP;
+    buf[0] = CMD_READ_SIGNATURE_PP;
   }
 
   /*
@@ -798,22 +787,22 @@ static int stk500pp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
   if (cmdlen == 3) {
     /* long command, fill in # of bytes */
-    pagebuf[1] = (pagesize >> 8) & 0xff;
-    pagebuf[2] = pagesize & 0xff;
+    buf[1] = (pagesize >> 8) & 0xff;
+    buf[2] = pagesize & 0xff;
 
     /* flash and EEPROM reads require the load address command */
-    stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift));
+    stk500v2_loadaddr(pgm, use_ext_addr | (paddr >> addrshift));
   } else {
-    pagebuf[1] = addr;
+    buf[1] = addr;
   }
 
   if (verbose >= 2)
     fprintf(stderr, "%s: stk500pp_read_byte(): Sending read memory command: ",
 	    progname);
 
-  result = stk500v2_command(pgm, pagebuf, cmdlen, pagesize == 0? 3: pagesize + 3);
+  result = stk500v2_command(pgm, buf, cmdlen, sizeof(buf));
 
-  if (result < 0 || pagebuf[1] != STATUS_CMD_OK) {
+  if (result < 0 || buf[1] != STATUS_CMD_OK) {
     fprintf(stderr,
 	    "%s: stk500pp_read_byte(): "
 	    "timeout/error communicating with programmer (status %d)\n",
@@ -823,10 +812,10 @@ static int stk500pp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
   if (pagesize) {
     *paddr_ptr = paddr;
-    memcpy(cache_ptr, pagebuf + 2, pagesize);
+    memcpy(cache_ptr, buf + 2, pagesize);
     *value = cache_ptr[addr & (pagesize - 1)];
   } else {
-    *value = pagebuf[2];
+    *value = buf[2];
   }
 
   return 0;
@@ -836,6 +825,7 @@ static int stk500pp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 			       unsigned long addr, unsigned char data)
 {
   int result, cmdlen;
+  char buf[266];
   unsigned long paddr = 0UL, *paddr_ptr = NULL;
   unsigned int pagesize = 0, use_ext_addr = 0, addrshift = 0;
   unsigned char *cache_ptr = NULL;
@@ -848,7 +838,7 @@ static int stk500pp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     return -1;
 
   if (strcmp(mem->desc, "flash") == 0) {
-    pagebuf[0] = CMD_PROGRAM_FLASH_PP;
+    buf[0] = CMD_PROGRAM_FLASH_PP;
     pagesize = mem->page_size;
     if (pagesize == 0)
       pagesize = 2;
@@ -866,7 +856,7 @@ static int stk500pp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       use_ext_addr = (1U << 31);
     }
   } else if (strcmp(mem->desc, "eeprom") == 0) {
-    pagebuf[0] = CMD_PROGRAM_EEPROM_PP;
+    buf[0] = CMD_PROGRAM_EEPROM_PP;
     pagesize = mem->page_size;
     if (pagesize == 0)
       pagesize = 1;
@@ -874,16 +864,16 @@ static int stk500pp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     paddr_ptr = &eeprom_pageaddr;
     cache_ptr = eeprom_pagecache;
   } else if (strcmp(mem->desc, "lfuse") == 0) {
-    pagebuf[0] = CMD_PROGRAM_FUSE_PP;
+    buf[0] = CMD_PROGRAM_FUSE_PP;
     addr = 0;
   } else if (strcmp(mem->desc, "hfuse") == 0) {
-    pagebuf[0] = CMD_PROGRAM_FUSE_PP;
+    buf[0] = CMD_PROGRAM_FUSE_PP;
     addr = 1;
   } else if (strcmp(mem->desc, "efuse") == 0) {
-    pagebuf[0] = CMD_PROGRAM_FUSE_PP;
+    buf[0] = CMD_PROGRAM_FUSE_PP;
     addr = 2;
   } else if (strcmp(mem->desc, "lock") == 0) {
-    pagebuf[0] = CMD_PROGRAM_LOCK_PP;
+    buf[0] = CMD_PROGRAM_LOCK_PP;
   } else {
     fprintf(stderr,
 	    "%s: stk500pp_write_byte(): "
@@ -907,29 +897,41 @@ static int stk500pp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     cache_ptr[addr & (pagesize - 1)] = data;
 
     /* long command, fill in # of bytes */
-    pagebuf[1] = (pagesize >> 8) & 0xff;
-    pagebuf[2] = pagesize & 0xff;
+    buf[1] = (pagesize >> 8) & 0xff;
+    buf[2] = pagesize & 0xff;
 
-    pagebuf[3] = mem->mode | 0x80;
-    pagebuf[4] = mem->delay;
-    memcpy(pagebuf + 5, cache_ptr, pagesize);
+    /*
+     * Synthesize the mode byte.  This is simpler than adding yet
+     * another parameter to the avrdude.conf file.  We calculate the
+     * bits corresponding to the page size, as explained in AVR068.
+     * We set bit 7, to indicate this is to actually write the page to
+     * the target device.  We set bit 6 to indicate this is the very
+     * last page to be programmed, whatever this means -- we just
+     * pretend we don't know any better. ;-)  Bit 0 is set if this is
+     * a paged memory, which means it has a page size of more than 2.
+     */
+    buf[3] = stk500v2_mode_for_pagesize(pagesize) | 0x80 | 0x40;
+    if (pagesize > 2)
+      buf[3] |= 0x01;
+    buf[4] = mem->delay;
+    memcpy(buf + 5, cache_ptr, pagesize);
 
     /* flash and EEPROM reads require the load address command */
     stk500v2_loadaddr(pgm, use_ext_addr | (paddr >> addrshift));
   } else {
-    pagebuf[1] = addr;
-    pagebuf[2] = data;
-    pagebuf[3] = 0;		/* pulseWidth */
-    pagebuf[4] = 5;		/* pollTimeout */
+    buf[1] = addr;
+    buf[2] = data;
+    buf[3] = 0;		/* pulseWidth */
+    buf[4] = 5;		/* pollTimeout */
   }
 
   if (verbose >= 2)
     fprintf(stderr, "%s: stk500pp_write_byte(): Sending write memory command: ",
 	    progname);
 
-  result = stk500v2_command(pgm, pagebuf, cmdlen, cmdlen);
+  result = stk500v2_command(pgm, buf, cmdlen, sizeof(buf));
 
-  if (result < 0 || pagebuf[1] != STATUS_CMD_OK) {
+  if (result < 0 || buf[1] != STATUS_CMD_OK) {
     fprintf(stderr,
 	    "%s: stk500pp_write_byte(): "
 	    "timeout/error communicating with programmer (status %d)\n",
@@ -1081,7 +1083,7 @@ static int stk500pp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 				int page_size, int n_bytes)
 {
   unsigned int addr, block_size, last_addr, hiaddr, addrshift, use_ext_addr;
-  unsigned char commandbuf[5];
+  unsigned char commandbuf[5], buf[266];
   int result;
 
   DEBUG("STK500V2: stk500pp_paged_write(..,%s,%d,%d)\n",m->desc,page_size,n_bytes);
@@ -1109,12 +1111,22 @@ static int stk500pp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     eeprom_pageaddr = (unsigned long)-1L;
     commandbuf[0] = CMD_PROGRAM_EEPROM_PP;
   }
-  commandbuf[3] = m->mode | 0x80;		// yes, write the page to flash
+  /*
+   * Synthesize the mode byte.  This is simpler than adding yet
+   * another parameter to the avrdude.conf file.  We calculate the
+   * bits corresponding to the page size, as explained in AVR068.  We
+   * set bit 7, to indicate this is to actually write the page to the
+   * target device.  We set bit 6 to indicate this is the very last
+   * page to be programmed, whatever this means -- we just pretend we
+   * don't know any better. ;-)  Finally, we set bit 0 to say this is
+   * a paged memory, after all, that's why we got here at all.
+   */
+  commandbuf[3] = stk500v2_mode_for_pagesize(page_size) | 0x80 | 0x40 | 0x01;
   commandbuf[4] = m->delay;
 
   last_addr = UINT_MAX;		/* impossible address */
 
-  for (addr=0; addr < n_bytes; addr += page_size) {
+  for (addr = 0; addr < n_bytes; addr += page_size) {
     report_progress(addr,n_bytes,NULL);
 
     if ((n_bytes-addr) < page_size)
@@ -1124,28 +1136,30 @@ static int stk500pp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     DEBUG("block_size at addr %d is %d\n",addr,block_size);
 
-    if (commandbuf[0] == CMD_PROGRAM_FLASH_PP){
+    if (commandbuf[0] == CMD_PROGRAM_FLASH_PP) {
       if (stk500v2_is_page_empty(addr, block_size, m->buf)) {
           continue;
       }
     }
 
-    memcpy(pagebuf, commandbuf, sizeof(commandbuf));
+    memcpy(buf, commandbuf, sizeof(commandbuf));
 
-    pagebuf[1] = block_size >> 8;
-    pagebuf[2] = block_size & 0xff;
+    buf[1] = page_size >> 8;
+    buf[2] = page_size & 0xff;
 
     if ((last_addr == UINT_MAX) || (last_addr + block_size != addr)) {
       stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift));
     }
     last_addr=addr;
 
-    memcpy(pagebuf + 5, m->buf + addr, block_size);
+    memcpy(buf + 5, m->buf + addr, block_size);
+    if (block_size != page_size)
+      memset(buf + 5 + block_size, 0xff, page_size - block_size);
 
-    result = stk500v2_command(pgm, pagebuf, block_size + 5, page_size + 5);
-    if (pagebuf[1] != STATUS_CMD_OK) {
+    result = stk500v2_command(pgm, buf, page_size + 5, sizeof(buf));
+    if (buf[1] != STATUS_CMD_OK) {
       fprintf(stderr, "%s: stk500pp_paged_write: write command failed with %d\n",
-              progname, pagebuf[1]);
+              progname, buf[1]);
       return -1;
     }
   }
@@ -1261,7 +1275,7 @@ static int stk500pp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 			       int page_size, int n_bytes)
 {
   unsigned int addr, block_size, hiaddr, addrshift, use_ext_addr;
-  unsigned char commandbuf[3];
+  unsigned char commandbuf[3], buf[266];
   int result;
 
   DEBUG("STK500V2: stk500pp_paged_load(..,%s,%d,%d)\n",m->desc,page_size,n_bytes);
@@ -1299,10 +1313,10 @@ static int stk500pp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       block_size = page_size;
     DEBUG("block_size at addr %d is %d\n",addr,block_size);
 
-    memcpy(pagebuf, commandbuf, sizeof(commandbuf));
+    memcpy(buf, commandbuf, sizeof(commandbuf));
 
-    pagebuf[1] = block_size >> 8;
-    pagebuf[2] = block_size & 0xff;
+    buf[1] = block_size >> 8;
+    buf[2] = block_size & 0xff;
 
     // Ensure a new "load extended address" will be issued
     // when crossing a 64 KB boundary in flash.
@@ -1311,10 +1325,10 @@ static int stk500pp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift));
     }
 
-    result = stk500v2_command(pgm, pagebuf, 3, block_size + 3);
-    if (pagebuf[1] != STATUS_CMD_OK) {
+    result = stk500v2_command(pgm, buf, 3, sizeof(buf));
+    if (buf[1] != STATUS_CMD_OK) {
       fprintf(stderr, "%s: stk500pp_paged_load: read command failed with %d\n",
-              progname, pagebuf[1]);
+              progname, buf[1]);
       return -1;
     }
 #if 0
@@ -1324,7 +1338,7 @@ static int stk500pp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     }
 #endif
 
-    memcpy(&m->buf[addr], &pagebuf[2], block_size);
+    memcpy(&m->buf[addr], &buf[2], block_size);
   }
 
   return n_bytes;
@@ -1467,6 +1481,29 @@ static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v)
 		  1000000 / avrispmkIIfreqs[i], i);
 
   return stk500v2_setparm(pgm, PARAM_SCK_DURATION, i);
+}
+
+/*
+ * Return the "mode" value for the parallel and HVSP modes that
+ * corresponds to the pagesize.
+ */
+static unsigned int stk500v2_mode_for_pagesize(unsigned int pagesize)
+{
+  switch (pagesize)
+    {
+    case 256:  return 0u << 1;
+    case 2:    return 1u << 1;
+    case 4:    return 2u << 1;
+    case 8:    return 3u << 1;
+    case 16:   return 4u << 1;
+    case 32:   return 5u << 1;
+    case 64:   return 6u << 1;
+    case 128:  return 7u << 1;
+    }
+  fprintf(stderr,
+	  "%s: stk500v2_mode_for_pagesize(): invalid pagesize: %u\n",
+	  progname, pagesize);
+  exit(1);
 }
 
 /* This code assumes that each count of the SCK duration parameter
