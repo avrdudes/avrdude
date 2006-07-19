@@ -1,3 +1,9 @@
+2006-07-19 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* stk500v2.c: Hide stk500v2_set_sck_period_mk2() behind an #if
+	defined(HAVE_LIBUSB) as it is only used there (for the AVRISP
+	mkII).
+
 2006-07-17 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* stk500v2.c: Fix all bugs in stk500pp.  Eliminate pagebuf, and
