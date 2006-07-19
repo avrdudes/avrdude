@@ -202,6 +202,12 @@ resetdelayms     { yylval=NULL; return K_RESETDELAYMS; }
 resetdelayus     { yylval=NULL; return K_RESETDELAYUS; }
 ppleavestabdelay { yylval=NULL; return K_PPLEAVESTABDELAY; }
 resetdelay       { yylval=NULL; return K_RESETDELAY; }
+chiperasepulsewidth { yylval=NULL; return K_CHIPERASEPULSEWIDTH; }
+chiperasepolltimeout { yylval=NULL; return K_CHIPERASEPOLLTIMEOUT; }
+programfusepulsewidth { yylval=NULL; return K_PROGRAMFUSEPULSEWIDTH; }
+programfusepolltimeout { yylval=NULL; return K_PROGRAMFUSEPOLLTIMEOUT; }
+programlockpulsewidth { yylval=NULL; return K_PROGRAMLOCKPULSEWIDTH; }
+programlockpolltimeout { yylval=NULL; return K_PROGRAMLOCKPOLLTIMEOUT; }
 
 
 dedicated        { yylval=new_token(K_DEDICATED); return K_DEDICATED; }

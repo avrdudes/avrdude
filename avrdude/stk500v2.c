@@ -449,8 +449,8 @@ static int stk500pp_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   pgm->pgm_led(pgm, ON);
 
   buf[0] = CMD_CHIP_ERASE_PP;
-  buf[1] = 0;			/* pulseWidth */
-  buf[2] = 5;			/* pollTimeout */
+  buf[1] = p->chiperasepulsewidth;
+  buf[2] = p->chiperasepolltimeout;
   result = stk500v2_command(pgm, buf, 3, sizeof(buf));
   usleep(p->chip_erase_delay);
   pgm->initialize(pgm, p);
@@ -557,9 +557,11 @@ static int stk500pp_initialize(PROGRAMMER * pgm, AVRPART * p)
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
     if (strcmp(m->desc, "flash") == 0) {
-      flash_pagesize = m->page_size;
+      if (m->page_size > 0)
+	flash_pagesize = m->page_size;
     } else if (strcmp(m->desc, "eeprom") == 0) {
-      eeprom_pagesize = m->page_size;
+      if (m->page_size > 0)
+	eeprom_pagesize = m->page_size;
     }
   }
   free(flash_pagecache);
@@ -757,7 +759,8 @@ static int stk500pp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &eeprom_pageaddr;
     cache_ptr = eeprom_pagecache;
-  } else if (strcmp(mem->desc, "lfuse") == 0) {
+  } else if (strcmp(mem->desc, "lfuse") == 0 ||
+	     strcmp(mem->desc, "fuse") == 0) {
     buf[0] = CMD_READ_FUSE_PP;
     addr = 0;
   } else if (strcmp(mem->desc, "hfuse") == 0) {
@@ -827,7 +830,7 @@ static int stk500pp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 static int stk500pp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 			       unsigned long addr, unsigned char data)
 {
-  int result, cmdlen;
+  int result, cmdlen, timeout = 0, pulsewidth = 0;
   char buf[266];
   unsigned long paddr = 0UL, *paddr_ptr = NULL;
   unsigned int pagesize = 0, use_ext_addr = 0, addrshift = 0;
@@ -866,17 +869,26 @@ static int stk500pp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &eeprom_pageaddr;
     cache_ptr = eeprom_pagecache;
-  } else if (strcmp(mem->desc, "lfuse") == 0) {
+  } else if (strcmp(mem->desc, "lfuse") == 0 ||
+	     strcmp(mem->desc, "fuse") == 0) {
     buf[0] = CMD_PROGRAM_FUSE_PP;
     addr = 0;
+    pulsewidth = p->programfusepulsewidth;
+    timeout = p->programfusepolltimeout;
   } else if (strcmp(mem->desc, "hfuse") == 0) {
     buf[0] = CMD_PROGRAM_FUSE_PP;
     addr = 1;
+    pulsewidth = p->programfusepulsewidth;
+    timeout = p->programfusepolltimeout;
   } else if (strcmp(mem->desc, "efuse") == 0) {
     buf[0] = CMD_PROGRAM_FUSE_PP;
     addr = 2;
+    pulsewidth = p->programfusepulsewidth;
+    timeout = p->programfusepolltimeout;
   } else if (strcmp(mem->desc, "lock") == 0) {
     buf[0] = CMD_PROGRAM_LOCK_PP;
+    pulsewidth = p->programlockpulsewidth;
+    timeout = p->programlockpolltimeout;
   } else {
     fprintf(stderr,
 	    "%s: stk500pp_write_byte(): "
@@ -913,9 +925,11 @@ static int stk500pp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
      * pretend we don't know any better. ;-)  Bit 0 is set if this is
      * a paged memory, which means it has a page size of more than 2.
      */
-    buf[3] = stk500v2_mode_for_pagesize(pagesize) | 0x80 | 0x40;
-    if (pagesize > 2)
+    buf[3] = 0x80 | 0x40;
+    if (pagesize > 2) {
+      buf[3] |= stk500v2_mode_for_pagesize(pagesize);
       buf[3] |= 0x01;
+    }
     buf[4] = mem->delay;
     memcpy(buf + 5, cache_ptr, pagesize);
 
@@ -924,8 +938,8 @@ static int stk500pp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   } else {
     buf[1] = addr;
     buf[2] = data;
-    buf[3] = 0;		/* pulseWidth */
-    buf[4] = 5;		/* pollTimeout */
+    buf[3] = pulsewidth;
+    buf[4] = timeout;
   }
 
   if (verbose >= 2)
@@ -1091,7 +1105,6 @@ static int stk500pp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   DEBUG("STK500V2: stk500pp_paged_write(..,%s,%d,%d)\n",m->desc,page_size,n_bytes);
 
-  if (page_size == 0) page_size = 256;
   hiaddr = UINT_MAX;
   addrshift = 0;
   use_ext_addr = 0;
@@ -1124,8 +1137,14 @@ static int stk500pp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
    * don't know any better. ;-)  Finally, we set bit 0 to say this is
    * a paged memory, after all, that's why we got here at all.
    */
-  commandbuf[3] = stk500v2_mode_for_pagesize(page_size) | 0x80 | 0x40 | 0x01;
+  commandbuf[3] = 0x80 | 0x40;
+  if (page_size > 2) {
+    commandbuf[3] |= stk500v2_mode_for_pagesize(page_size);
+    commandbuf[3] |= 0x01;
+  }
   commandbuf[4] = m->delay;
+
+  if (page_size == 0) page_size = 256;
 
   last_addr = UINT_MAX;		/* impossible address */
 
