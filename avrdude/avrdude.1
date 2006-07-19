@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE May 25, 2006
+.Dd DATE July 19, 2006
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -99,6 +99,8 @@ Atmel's STK500 programmer is also supported and connects to a serial
 port.
 Both, firmware versions 1.x and 2.x can be handled, but require a
 different programmer type specification (by now).
+Using firmware version 2, parallel programming is also supported
+(programmer type stk500pp).
 .Pp
 The simple serial programmer described in Atmel's application note
 AVR910, and the bootloader described in Atmel's application note
@@ -662,6 +664,7 @@ Page-mode programming the EEPROM through JTAG (i.e. through an
 .Fl U
 option) requires a prior chip erase.
 This is an inherent feature of the way JTAG EEPROM programming works.
+This also applies to the STK500 in parallel programming mode.
 .Pp
 The device IDs used by AVR910 and AVR109 do not match, so the
 avr109 (aka. butterfly) programmer might report
