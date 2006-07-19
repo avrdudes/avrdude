@@ -160,6 +160,13 @@ static int parse_cmdbits(OPCODE * op);
 %token K_PPLEAVESTABDELAY
 %token K_RESETDELAY
 
+%token K_CHIPERASEPULSEWIDTH
+%token K_CHIPERASEPOLLTIMEOUT
+%token K_PROGRAMFUSEPULSEWIDTH
+%token K_PROGRAMFUSEPOLLTIMEOUT
+%token K_PROGRAMLOCKPULSEWIDTH
+%token K_PROGRAMLOCKPOLLTIMEOUT
+
 %token K_PP_CONTROLSTACK
 
 /* JTAG ICE mkII specific parameters */
@@ -746,6 +753,42 @@ part_parm :
   K_RESETDELAY TKN_EQUAL TKN_NUMBER
     {
       current_part->resetdelay = $3->value.number;
+      free_token($3);
+    } |
+
+  K_CHIPERASEPULSEWIDTH TKN_EQUAL TKN_NUMBER
+    {
+      current_part->chiperasepulsewidth = $3->value.number;
+      free_token($3);
+    } |
+
+  K_CHIPERASEPOLLTIMEOUT TKN_EQUAL TKN_NUMBER
+    {
+      current_part->chiperasepolltimeout = $3->value.number;
+      free_token($3);
+    } |
+
+  K_PROGRAMFUSEPULSEWIDTH TKN_EQUAL TKN_NUMBER
+    {
+      current_part->programfusepulsewidth = $3->value.number;
+      free_token($3);
+    } |
+
+  K_PROGRAMFUSEPOLLTIMEOUT TKN_EQUAL TKN_NUMBER
+    {
+      current_part->programfusepolltimeout = $3->value.number;
+      free_token($3);
+    } |
+
+  K_PROGRAMLOCKPULSEWIDTH TKN_EQUAL TKN_NUMBER
+    {
+      current_part->programlockpulsewidth = $3->value.number;
+      free_token($3);
+    } |
+
+  K_PROGRAMLOCKPOLLTIMEOUT TKN_EQUAL TKN_NUMBER
+    {
+      current_part->programlockpolltimeout = $3->value.number;
       free_token($3);
     } |
 

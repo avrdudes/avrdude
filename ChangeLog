@@ -1,5 +1,15 @@
 2006-07-19 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* stk500v2.c: Add more parameters for PP mode.  Fix the
+	non-paged write operations for old AVRs.
+	* lexer.l: Add more parameters for PP mode.
+	* config_gram.y: (Ditto.)
+	* avrpart.h: (Ditto.)
+	* avrdude.conf.in: Use the new PP mode parameters; add PP mode
+	definitions for AT90S8515.
+
+2006-07-19 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* stk500v2.c: Hide stk500v2_set_sck_period_mk2() behind an #if
 	defined(HAVE_LIBUSB) as it is only used there (for the AVRISP
 	mkII).

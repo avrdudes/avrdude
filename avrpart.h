@@ -130,6 +130,12 @@ typedef struct avrpart {
   int           resetdelayus;       /* stk500 v2 pp mode parameter */
   int           ppleavestabdelay;   /* stk500 v2 pp mode parameter */
   int           resetdelay;         /* stk500 v2 pp mode parameter */
+  int           chiperasepulsewidth; /* stk500 v2 pp mode parameter */
+  int           chiperasepolltimeout; /* stk500 v2 pp mode parameter */
+  int           programfusepulsewidth; /* stk500 v2 pp mode parameter */
+  int           programfusepolltimeout; /* stk500 v2 pp mode parameter */
+  int           programlockpulsewidth; /* stk500 v2 pp mode parameter */
+  int           programlockpolltimeout; /* stk500 v2 pp mode parameter */
 
   unsigned char idr;                /* JTAG ICE mkII XML file parameter */
   unsigned char rampz;              /* JTAG ICE mkII XML file parameter */
