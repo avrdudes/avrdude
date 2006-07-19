@@ -95,8 +95,11 @@ static void stk500v2_print_parms1(PROGRAMMER * pgm, char * p);
 static int stk500v2_is_page_empty(unsigned int address, int page_size,
                                   const unsigned char *buf);
 
-static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v);
 static unsigned int stk500v2_mode_for_pagesize(unsigned int pagesize);
+
+#if defined(HAVE_LIBUSB)
+static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v);
+#endif
 
 static int stk500v2_send_mk2(PROGRAMMER * pgm, unsigned char * data, size_t len)
 {
@@ -1468,6 +1471,7 @@ double avrispmkIIfreqs[] = {
 	65.0, 61.9, 59.0, 56.3, 53.6, 51.1
 };
 
+#if defined(HAVE_LIBUSB)
 static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v)
 {
   int i;
@@ -1482,6 +1486,7 @@ static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v)
 
   return stk500v2_setparm(pgm, PARAM_SCK_DURATION, i);
 }
+#endif /* HAVE_LIBUSB */
 
 /*
  * Return the "mode" value for the parallel and HVSP modes that
