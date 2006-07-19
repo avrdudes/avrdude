@@ -7,6 +7,8 @@
 	* avrpart.h: (Ditto.)
 	* avrdude.conf.in: Use the new PP mode parameters; add PP mode
 	definitions for AT90S8515.
+	* avrdude.1: Document the stk500pp support.
+	* doc/avrdude.texi: (Ditto.)
 
 2006-07-19 Joerg Wunsch <j@uriah.heep.sax.de>
 

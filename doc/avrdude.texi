@@ -499,6 +499,10 @@ STK200
 @itemx stk500
 Atmel STK500
 
+@itemx stk500pp
+Atmel STK500 in parallel programming mode (version 2.x
+firmware only)
+
 @itemx stk500v2
 Atmel STK500, running a version 2.x firmware
 
@@ -1894,6 +1898,7 @@ programming works, and is documented that way in the Atmel AVR
 datasheets.
 In order to successfully program the EEPROM that way, a prior chip
 erase (with the EESAVE fuse unprogrammed) is required.
+This also applies to the STK500 in parallel programming mode.
 
 
 @end itemize
