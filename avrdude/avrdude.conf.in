@@ -62,6 +62,23 @@
 #       delay            = <num> ;
 #       blocksize        = <num> ;
 #       readsize         = <num> ;
+#       # STK500v2 parallel programming parameters, from XML
+#       pp_controlstack  = <num>, <num>, ...;
+#       ppenterstabdelay = <num>;
+#       progmodedelay    = <num>;
+#       latchcycles      = <num>;
+#       togglevtg        = <num>;
+#       poweroffdelay    = <num>;
+#       resetdelayms     = <num>;
+#       resetdelayus     = <num>;
+#       ppleavestabdelay = <num>;
+#       resetdelay       = <num>;
+#       chiperasepulsewidth = <num>;
+#       chiperasepolltimeout = <num>;
+#       programfusepulsewidth = <num>;
+#       programfusepolltimeout = <num>;
+#       programlockpulsewidth = <num>;
+#       programlockpolltimeout = <num>;
 #       # JTAG ICE mkII parameters, also from XML files
 #       allowfullpagebitstream = <yes/no> ;
 #       enablepageprogramming = <yes/no> ;
