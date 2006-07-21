@@ -1,5 +1,19 @@
 2006-07-21 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	Implement STK500 (v2) HVSP mode.
+	* stk500v2.c: Add new functions for HVSP support.
+	* stk500v2.h: Add prototype for the stk500hvsp programmer.
+	* avrpart.h: Add fields to struct avrpart for new features.
+	* config_gram.y: Extend the configuration syntax for new
+	features required for HVSP support.
+	* lexer.l: (Ditto.)
+	* avrdude.conf.in: Add HVSP support for ATtiny13 and
+	ATtiny45 as an example.
+	* avrdude.1: Document stk500hvsp.
+	* doc/avrdude.texi: (Ditto.)
+
+2006-07-21 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* avrpart.c: Print the very verbose memory details only
 	in debug level > 4.
 
