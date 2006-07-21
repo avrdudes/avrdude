@@ -1,3 +1,8 @@
+2006-07-21 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrpart.c: Print the very verbose memory details only
+	in debug level > 4.
+
 2006-07-19 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* stk500v2.c: Add more parameters for PP mode.  Fix the
