@@ -121,21 +121,24 @@ typedef struct avrpart {
   enum ctl_stack_t ctl_stack_type;  /* what to use the ctl stack for */
   unsigned char controlstack[CTL_STACK_SIZE]; /* stk500v2 PP/HVSP ctl stack */
 
-  int           ppenterstabdelay;   /* stk500 v2 pp mode parameter */
-  int           progmodedelay;      /* stk500 v2 pp mode parameter */
-  int           latchcycles;        /* stk500 v2 pp mode parameter */
-  int           togglevtg;          /* stk500 v2 pp mode parameter */
-  int           poweroffdelay;      /* stk500 v2 pp mode parameter */
-  int           resetdelayms;       /* stk500 v2 pp mode parameter */
-  int           resetdelayus;       /* stk500 v2 pp mode parameter */
-  int           ppleavestabdelay;   /* stk500 v2 pp mode parameter */
-  int           resetdelay;         /* stk500 v2 pp mode parameter */
-  int           chiperasepulsewidth; /* stk500 v2 pp mode parameter */
-  int           chiperasepolltimeout; /* stk500 v2 pp mode parameter */
-  int           programfusepulsewidth; /* stk500 v2 pp mode parameter */
-  int           programfusepolltimeout; /* stk500 v2 pp mode parameter */
-  int           programlockpulsewidth; /* stk500 v2 pp mode parameter */
-  int           programlockpolltimeout; /* stk500 v2 pp mode parameter */
+  int           hventerstabdelay;   /* stk500 v2 hv mode parameter */
+  int           progmodedelay;      /* stk500 v2 hv mode parameter */
+  int           latchcycles;        /* stk500 v2 hv mode parameter */
+  int           togglevtg;          /* stk500 v2 hv mode parameter */
+  int           poweroffdelay;      /* stk500 v2 hv mode parameter */
+  int           resetdelayms;       /* stk500 v2 hv mode parameter */
+  int           resetdelayus;       /* stk500 v2 hv mode parameter */
+  int           hvleavestabdelay;   /* stk500 v2 hv mode parameter */
+  int           resetdelay;         /* stk500 v2 hv mode parameter */
+  int           chiperasepulsewidth; /* stk500 v2 hv mode parameter */
+  int           chiperasepolltimeout; /* stk500 v2 hv mode parameter */
+  int           chiperasetime;      /* stk500 v2 hv mode parameter */
+  int           programfusepulsewidth; /* stk500 v2 hv mode parameter */
+  int           programfusepolltimeout; /* stk500 v2 hv mode parameter */
+  int           programlockpulsewidth; /* stk500 v2 hv mode parameter */
+  int           programlockpolltimeout; /* stk500 v2 hv mode parameter */
+  int           synchcycles;        /* stk500 v2 hv mode parameter */
+  int           hvspcmdexedelay;    /* stk500 v2 xml file parameter */
 
   unsigned char idr;                /* JTAG ICE mkII XML file parameter */
   unsigned char rampz;              /* JTAG ICE mkII XML file parameter */

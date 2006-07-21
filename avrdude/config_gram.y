@@ -121,6 +121,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_SIGNATURE
 %token K_SIZE
 %token K_STK500
+%token K_STK500HVSP
 %token K_STK500PP
 %token K_STK500V2
 %token K_AVR910
@@ -138,6 +139,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_TIMEOUT
 %token K_STABDELAY
 %token K_CMDEXEDELAY
+%token K_HVSPCMDEXEDELAY
 %token K_SYNCHLOOPS
 %token K_BYTEDELAY
 %token K_POLLVALUE
@@ -149,25 +151,29 @@ static int parse_cmdbits(OPCODE * op);
 %token K_DELAY
 %token K_BLOCKSIZE
 %token K_READSIZE
-/* PP mode */
-%token K_PPENTERSTABDELAY
+/* HV mode */
+%token K_HVENTERSTABDELAY
 %token K_PROGMODEDELAY
 %token K_LATCHCYCLES
 %token K_TOGGLEVTG
 %token K_POWEROFFDELAY
 %token K_RESETDELAYMS
 %token K_RESETDELAYUS
-%token K_PPLEAVESTABDELAY
+%token K_HVLEAVESTABDELAY
 %token K_RESETDELAY
+%token K_SYNCHCYCLES
+%token K_HVCMDEXEDELAY
 
 %token K_CHIPERASEPULSEWIDTH
 %token K_CHIPERASEPOLLTIMEOUT
+%token K_CHIPERASETIME
 %token K_PROGRAMFUSEPULSEWIDTH
 %token K_PROGRAMFUSEPOLLTIMEOUT
 %token K_PROGRAMLOCKPULSEWIDTH
 %token K_PROGRAMLOCKPOLLTIMEOUT
 
 %token K_PP_CONTROLSTACK
+%token K_HVSP_CONTROLSTACK
 
 /* JTAG ICE mkII specific parameters */
 %token K_ALLOWFULLPAGEBITSTREAM	/*
@@ -369,6 +375,12 @@ prog_parm :
   K_TYPE TKN_EQUAL K_STK500V2 {
     {
       stk500v2_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_STK500HVSP {
+    {
+      stk500hvsp_initpgm(current_prog);
     }
   } |
 
@@ -614,6 +626,48 @@ part_parm :
     }
   } |
 
+  K_HVSP_CONTROLSTACK TKN_EQUAL num_list {
+    {
+      TOKEN * t;
+      unsigned nbytes;
+      int ok;
+
+      if (current_part->ctl_stack_type != CTL_STACK_NONE)
+	{
+	  fprintf(stderr,
+		  "%s: error at line %d of %s: "
+		  "control stack already defined\n",
+		  progname, lineno, infile);
+	  exit(1);
+	}
+
+      current_part->ctl_stack_type = CTL_STACK_HVSP;
+      nbytes = 0;
+      ok = 1;
+
+      while (lsize(number_list)) {
+        t = lrmv_n(number_list, 1);
+	if (nbytes < CTL_STACK_SIZE)
+	  {
+	    current_part->controlstack[nbytes] = t->value.number;
+	    nbytes++;
+	  }
+	else
+	  {
+	    ok = 0;
+	  }
+        free_token(t);
+      }
+      if (!ok)
+	{
+	  fprintf(stderr,
+                  "%s: Warning: line %d of %s: "
+		  "too many bytes in control stack\n",
+                  progname, lineno, infile);
+        }
+    }
+  } |
+
   K_CHIP_ERASE_DELAY TKN_EQUAL TKN_NUMBER
     {
       current_part->chip_erase_delay = $3->value.number;
@@ -660,6 +714,12 @@ part_parm :
       free_token($3);
     } |
 
+  K_HVSPCMDEXEDELAY TKN_EQUAL TKN_NUMBER
+    {
+      current_part->hvspcmdexedelay = $3->value.number;
+      free_token($3);
+    } |
+
   K_SYNCHLOOPS TKN_EQUAL TKN_NUMBER
     {
       current_part->synchloops = $3->value.number;
@@ -702,9 +762,9 @@ part_parm :
       free_token($3);
     } |
 
-  K_PPENTERSTABDELAY TKN_EQUAL TKN_NUMBER
+  K_HVENTERSTABDELAY TKN_EQUAL TKN_NUMBER
     {
-      current_part->ppenterstabdelay = $3->value.number;
+      current_part->hventerstabdelay = $3->value.number;
       free_token($3);
     } |
 
@@ -744,9 +804,9 @@ part_parm :
       free_token($3);
     } |
 
-  K_PPLEAVESTABDELAY TKN_EQUAL TKN_NUMBER
+  K_HVLEAVESTABDELAY TKN_EQUAL TKN_NUMBER
     {
-      current_part->ppleavestabdelay = $3->value.number;
+      current_part->hvleavestabdelay = $3->value.number;
       free_token($3);
     } |
 
@@ -765,6 +825,12 @@ part_parm :
   K_CHIPERASEPOLLTIMEOUT TKN_EQUAL TKN_NUMBER
     {
       current_part->chiperasepolltimeout = $3->value.number;
+      free_token($3);
+    } |
+
+  K_CHIPERASETIME TKN_EQUAL TKN_NUMBER
+    {
+      current_part->chiperasetime = $3->value.number;
       free_token($3);
     } |
 
@@ -789,6 +855,12 @@ part_parm :
   K_PROGRAMLOCKPOLLTIMEOUT TKN_EQUAL TKN_NUMBER
     {
       current_part->programlockpolltimeout = $3->value.number;
+      free_token($3);
+    } |
+
+  K_SYNCHCYCLES TKN_EQUAL TKN_NUMBER
+    {
+      current_part->synchcycles = $3->value.number;
       free_token($3);
     } |
 

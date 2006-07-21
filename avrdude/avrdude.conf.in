@@ -15,7 +15,8 @@
 #   programmer
 #       id       = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
 #       desc     = <description> ;                  # quoted string
-#       type     = par | stk500 | stk500v2 | stk500pp | avr910 | jtagmki | jtagmkii; # programmer type
+#       type     = par | stk500 | stk500v2 | stk500pp | stk500hvsp |
+#                  avr910 | jtagmki | jtagmkii;     # programmer type
 #       baudrate = <num> ;                          # baudrate for avr910-programmer
 #       vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
 #       reset    = <num> ;                          # pin number
@@ -50,7 +51,7 @@
 #       # STK500v2 parameters, to be taken from Atmel's XML files
 #       timeout          = <num> ;
 #       stabdelay        = <num> ;
-#       cmdexdelay       = <num> ;
+#       cmdexedelay      = <num> ;
 #       synchloops       = <num> ;
 #       bytedelay        = <num> ;
 #       pollvalue        = <num> ;
@@ -62,22 +63,26 @@
 #       delay            = <num> ;
 #       blocksize        = <num> ;
 #       readsize         = <num> ;
-#       # STK500v2 parallel programming parameters, from XML
-#       pp_controlstack  = <num>, <num>, ...;
-#       ppenterstabdelay = <num>;
-#       progmodedelay    = <num>;
+#       hvspcmdexedelay  = <num> ;
+#       # STK500v2 HV programming parameters, from XML
+#       pp_controlstack  = <num>, <num>, ...;   # PP only
+#       hvsp_controlstack = <num>, <num>, ...;  # HVSP only
+#       hventerstabdelay = <num>;
+#       progmodedelay    = <num>;               # PP only
 #       latchcycles      = <num>;
 #       togglevtg        = <num>;
 #       poweroffdelay    = <num>;
 #       resetdelayms     = <num>;
 #       resetdelayus     = <num>;
-#       ppleavestabdelay = <num>;
+#       hvleavestabdelay = <num>;
 #       resetdelay       = <num>;
-#       chiperasepulsewidth = <num>;
+#       synchcycles      = <num>;               # HVSP only
+#       chiperasepulsewidth = <num>;            # PP only
 #       chiperasepolltimeout = <num>;
-#       programfusepulsewidth = <num>;
+#       chiperasetime    = <num>;               # HVSP only
+#       programfusepulsewidth = <num>;          # PP only
 #       programfusepolltimeout = <num>;
-#       programlockpulsewidth = <num>;
+#       programlockpulsewidth = <num>;          # PP only
 #       programlockpolltimeout = <num>;
 #       # JTAG ICE mkII parameters, also from XML files
 #       allowfullpagebitstream = <yes/no> ;
@@ -279,6 +284,12 @@ programmer
   id    = "stk500pp";
   desc  = "Atmel STK500 V2 in parallel programming mode";
   type  = stk500pp;
+;
+
+programmer
+  id    = "stk500hvsp";
+  desc  = "Atmel STK500 V2 in high-voltage serial programming mode";
+  type  = stk500hvsp;
 ;
 
 programmer
@@ -721,8 +732,30 @@ part
     postdelay		= 1;
     pollmethod		= 1;
 
+    hvsp_controlstack     =
+	0x4C, 0x0C, 0x1C, 0x2C, 0x3C, 0x64, 0x74, 0x66,
+        0x68, 0x78, 0x68, 0x68, 0x7A, 0x6A, 0x68, 0x78,
+        0x78, 0x7D, 0x6D, 0x0C, 0x80, 0x40, 0x20, 0x10,
+        0x11, 0x08, 0x04, 0x02, 0x03, 0x08, 0x04, 0x00;
+    hventerstabdelay    = 100;
+    progmodedelay       = 0;
+    hvspcmdexedelay     = 0;
+    synchcycles         = 6;
+    latchcycles         = 1;
+    togglevtg           = 1;
+    poweroffdelay       = 25;
+    resetdelayms        = 0;
+    resetdelayus        = 90;
+    hvleavestabdelay    = 100;
+    resetdelay          = 25;
+    chiperasepolltimeout = 40;
+    chiperasetime       = 0;
+    programfusepolltimeout = 25;
+    programlockpolltimeout = 25;
+
     memory "eeprom"
         size            = 64;
+        page_size       = 4;
         min_write_delay = 4000;
         max_write_delay = 4000;
         readback_p1     = 0xff;
@@ -1624,14 +1657,14 @@ part
 	0x4E, 0x5E, 0x4F, 0x5F, 0x6E, 0x7E, 0x6F, 0x7F,
 	0x66, 0x76, 0x67, 0x77, 0x6A, 0x7A, 0x6B, 0x7B,
 	0xBE, 0xFD, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
-    ppenterstabdelay    = 100;
+    hventerstabdelay    = 100;
     progmodedelay       = 0;
     latchcycles         = 0;
     togglevtg           = 0;
     poweroffdelay       = 0;
     resetdelayms        = 0;
     resetdelayus        = 0;
-    ppleavestabdelay    = 15;
+    hvleavestabdelay    = 15;
     resetdelay          = 15;
     chiperasepulsewidth = 15;
     chiperasepolltimeout = 0;
@@ -2412,14 +2445,14 @@ part
 	0x4E, 0x5E, 0x4F, 0x5F, 0x6E, 0x7E, 0x6F, 0x7F,
 	0x66, 0x76, 0x67, 0x77, 0x6A, 0x7A, 0x6B, 0x7B,
 	0xBE, 0xFD, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
-    ppenterstabdelay    = 100;
+    hventerstabdelay    = 100;
     progmodedelay       = 100;
     latchcycles         = 6;
     togglevtg           = 0;
     poweroffdelay       = 0;
     resetdelayms        = 0;
     resetdelayus        = 0;
-    ppleavestabdelay    = 15;
+    hvleavestabdelay    = 15;
     resetdelay          = 15;
     chiperasepulsewidth = 0;
     chiperasepolltimeout = 10;
@@ -5876,8 +5909,30 @@ part
     postdelay		= 1;
     pollmethod		= 1;
 
+    hvsp_controlstack     =
+	0x4C, 0x0C, 0x1C, 0x2C, 0x3C, 0x64, 0x74, 0x66,
+        0x68, 0x78, 0x68, 0x68, 0x7A, 0x6A, 0x68, 0x78,
+        0x78, 0x7D, 0x6D, 0x0C, 0x80, 0x40, 0x20, 0x10,
+        0x11, 0x08, 0x04, 0x02, 0x03, 0x08, 0x04, 0x00;
+    hventerstabdelay    = 100;
+    progmodedelay       = 0;
+    hvspcmdexedelay     = 0;
+    synchcycles         = 6;
+    latchcycles         = 1;
+    togglevtg           = 1;
+    poweroffdelay       = 25;
+    resetdelayms        = 0;
+    resetdelayus        = 50;
+    hvleavestabdelay    = 100;
+    resetdelay          = 25;
+    chiperasepolltimeout = 40;
+    chiperasetime       = 0;
+    programfusepolltimeout = 25;
+    programlockpolltimeout = 25;
+
      memory "eeprom"
          size            = 256;
+         page_size       = 4;
          min_write_delay = 4000;
          max_write_delay = 4500;
          readback_p1     = 0xff;

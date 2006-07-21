@@ -68,6 +68,11 @@
 #define DEBUGRECV(format,args...)
 #endif
 
+enum hvmode
+{
+  PPMODE, HVSPMODE
+};
+
 
 extern int    verbose;
 extern char * progname;
@@ -399,11 +404,11 @@ static int stk500v2_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
 }
 
 
-static int stk500pp_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
+static int stk500hv_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
                         unsigned char res[4])
 {
 
-  fprintf(stderr, "%s: stk500pp_command(): no direct SPI supported for PP mode\n",
+  fprintf(stderr, "%s: stk500hv_command(): no direct SPI supported for PP mode\n",
 	  progname);
   return -1;
 }
@@ -439,18 +444,24 @@ static int stk500v2_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 }
 
 /*
- * issue the 'chip erase' command to the AVR device, parallel mode
+ * issue the 'chip erase' command to the AVR device, generic HV mode
  */
-static int stk500pp_chip_erase(PROGRAMMER * pgm, AVRPART * p)
+static int stk500hv_chip_erase(PROGRAMMER * pgm, AVRPART * p, enum hvmode mode)
 {
   int result;
   unsigned char buf[3];
 
   pgm->pgm_led(pgm, ON);
 
-  buf[0] = CMD_CHIP_ERASE_PP;
-  buf[1] = p->chiperasepulsewidth;
-  buf[2] = p->chiperasepolltimeout;
+  if (mode == PPMODE) {
+    buf[0] = CMD_CHIP_ERASE_PP;
+    buf[1] = p->chiperasepulsewidth;
+    buf[2] = p->chiperasepolltimeout;
+  } else {
+    buf[0] = CMD_CHIP_ERASE_HVSP;
+    buf[1] = p->chiperasepolltimeout;
+    buf[2] = p->chiperasetime;
+  }
   result = stk500v2_command(pgm, buf, 3, sizeof(buf));
   usleep(p->chip_erase_delay);
   pgm->initialize(pgm, p);
@@ -458,6 +469,22 @@ static int stk500pp_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   pgm->pgm_led(pgm, OFF);
 
   return result;
+}
+
+/*
+ * issue the 'chip erase' command to the AVR device, parallel mode
+ */
+static int stk500pp_chip_erase(PROGRAMMER * pgm, AVRPART * p)
+{
+  return stk500hv_chip_erase(pgm, p, PPMODE);
+}
+
+/*
+ * issue the 'chip erase' command to the AVR device, HVSP mode
+ */
+static int stk500hvsp_chip_erase(PROGRAMMER * pgm, AVRPART * p)
+{
+  return stk500hv_chip_erase(pgm, p, HVSPMODE);
 }
 
 /*
@@ -477,7 +504,7 @@ static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
   buf[1] = p->timeout;
   buf[2] = p->stabdelay;
   buf[3] = p->cmdexedelay;
-  buf[4] = p->synchloops;
+  buf[4] = p->synchcycles;
   buf[5] = p->bytedelay;
   buf[6] = p->pollvalue;
   buf[7] = p->pollindex;
@@ -494,7 +521,7 @@ static int stk500pp_program_enable(PROGRAMMER * pgm, AVRPART * p)
   unsigned char buf[16];
 
   buf[0] = CMD_ENTER_PROGMODE_PP;
-  buf[1] = p->ppenterstabdelay;
+  buf[1] = p->hventerstabdelay;
   buf[2] = p->progmodedelay;
   buf[3] = p->latchcycles;
   buf[4] = p->togglevtg;
@@ -503,6 +530,26 @@ static int stk500pp_program_enable(PROGRAMMER * pgm, AVRPART * p)
   buf[7] = p->resetdelayus;
 
   return stk500v2_command(pgm, buf, 8, sizeof(buf));
+}
+
+/*
+ * issue the 'program enable' command to the AVR device, HVSP mode
+ */
+static int stk500hvsp_program_enable(PROGRAMMER * pgm, AVRPART * p)
+{
+  unsigned char buf[16];
+
+  buf[0] = CMD_ENTER_PROGMODE_HVSP;
+  buf[1] = p->hventerstabdelay;
+  buf[2] = p->hvspcmdexedelay;
+  buf[3] = p->synchcycles;
+  buf[4] = p->latchcycles;
+  buf[5] = p->togglevtg;
+  buf[6] = p->poweroffdelay;
+  buf[7] = p->resetdelayms;
+  buf[8] = p->resetdelayus;
+
+  return stk500v2_command(pgm, buf, 9, sizeof(buf));
 }
 
 
@@ -517,20 +564,22 @@ static int stk500v2_initialize(PROGRAMMER * pgm, AVRPART * p)
 
 
 /*
- * initialize the AVR device and prepare it to accept commands, parallel mode
+ * initialize the AVR device and prepare it to accept commands, generic HV mode
  */
-static int stk500pp_initialize(PROGRAMMER * pgm, AVRPART * p)
+static int stk500hv_initialize(PROGRAMMER * pgm, AVRPART * p, enum hvmode mode)
 {
   unsigned char buf[CTL_STACK_SIZE + 1];
   int result;
   LNODEID ln;
   AVRMEM * m;
 
-  if (p->ctl_stack_type != CTL_STACK_PP) {
+  if (p->ctl_stack_type != (mode == PPMODE? CTL_STACK_PP: CTL_STACK_HVSP)) {
     fprintf(stderr,
-	    "%s: stk500pp_initialize(): "
-	    "parallel programming control stack not defined for part \"%s\"\n",
-            progname, p->desc);
+	    "%s: stk500hv_initialize(): "
+	    "%s programming control stack not defined for part \"%s\"\n",
+            progname,
+	    (mode == PPMODE? "parallel": "high-voltage serial"),
+	    p->desc);
     return -1;
   }
 
@@ -582,6 +631,21 @@ static int stk500pp_initialize(PROGRAMMER * pgm, AVRPART * p)
   return pgm->program_enable(pgm, p);
 }
 
+/*
+ * initialize the AVR device and prepare it to accept commands, PP mode
+ */
+static int stk500pp_initialize(PROGRAMMER * pgm, AVRPART * p)
+{
+  return stk500hv_initialize(pgm, p, PPMODE);
+}
+
+/*
+ * initialize the AVR device and prepare it to accept commands, HVSP mode
+ */
+static int stk500hvsp_initialize(PROGRAMMER * pgm, AVRPART * p)
+{
+  return stk500hv_initialize(pgm, p, HVSPMODE);
+}
 
 static void stk500v2_disable(PROGRAMMER * pgm)
 {
@@ -603,7 +667,10 @@ static void stk500v2_disable(PROGRAMMER * pgm)
   return;
 }
 
-static void stk500pp_disable(PROGRAMMER * pgm)
+/*
+ * Leave programming mode, generic HV mode
+ */
+static void stk500hv_disable(PROGRAMMER * pgm, enum hvmode mode)
 {
   unsigned char buf[16];
   int result;
@@ -613,21 +680,37 @@ static void stk500pp_disable(PROGRAMMER * pgm)
   free(eeprom_pagecache);
   eeprom_pagecache = NULL;
 
-  buf[0] = CMD_LEAVE_PROGMODE_PP;
-  buf[1] = 15;  // p->ppleavestabdelay;
+  buf[0] = mode == PPMODE? CMD_LEAVE_PROGMODE_PP: CMD_LEAVE_PROGMODE_HVSP;
+  buf[1] = 15;  // p->hvleavestabdelay;
   buf[2] = 15;  // p->resetdelay;
 
   result = stk500v2_command(pgm, buf, 3, sizeof(buf));
 
   if (result < 0 || buf[1] != STATUS_CMD_OK) {
     fprintf(stderr,
-	    "%s: stk500pp_disable(): "
+	    "%s: stk500hv_disable(): "
 	    "failed to leave programming mode, got 0x%02x\n",
             progname,buf[1]);
     exit(1);
   }
 
   return;
+}
+
+/*
+ * Leave programming mode, PP mode
+ */
+static void stk500pp_disable(PROGRAMMER * pgm)
+{
+  stk500hv_disable(pgm, PPMODE);
+}
+
+/*
+ * Leave programming mode, HVSP mode
+ */
+static void stk500hvsp_disable(PROGRAMMER * pgm)
+{
+  stk500hv_disable(pgm, HVSPMODE);
 }
 
 static void stk500v2_enable(PROGRAMMER * pgm)
@@ -715,8 +798,12 @@ static int stk500v2_loadaddr(PROGRAMMER * pgm, unsigned int addr)
 }
 
 
-static int stk500pp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
-			      unsigned long addr, unsigned char * value)
+/*
+ * Read a single byte, generic HV mode
+ */
+static int stk500hv_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+			      unsigned long addr, unsigned char * value,
+			      enum hvmode mode)
 {
   int result, cmdlen = 2;
   char buf[266];
@@ -725,14 +812,11 @@ static int stk500pp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   unsigned char *cache_ptr = NULL;
 
   if (verbose >= 2)
-    fprintf(stderr, "%s: stk500pp_read_byte(.., %s, 0x%lx, ...)\n",
+    fprintf(stderr, "%s: stk500hv_read_byte(.., %s, 0x%lx, ...)\n",
 	    progname, mem->desc, addr);
 
-  if (stk500pp_program_enable(pgm, p) < 0)
-    return -1;
-
   if (strcmp(mem->desc, "flash") == 0) {
-    buf[0] = CMD_READ_FLASH_PP;
+    buf[0] = mode == PPMODE? CMD_READ_FLASH_PP: CMD_READ_FLASH_HVSP;
     cmdlen = 3;
     pagesize = mem->page_size;
     if (pagesize == 0)
@@ -751,7 +835,7 @@ static int stk500pp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       use_ext_addr = (1U << 31);
     }
   } else if (strcmp(mem->desc, "eeprom") == 0) {
-    buf[0] = CMD_READ_EEPROM_PP;
+    buf[0] = mode == PPMODE? CMD_READ_EEPROM_PP: CMD_READ_EEPROM_HVSP;
     cmdlen = 3;
     pagesize = mem->page_size;
     if (pagesize == 0)
@@ -761,24 +845,24 @@ static int stk500pp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     cache_ptr = eeprom_pagecache;
   } else if (strcmp(mem->desc, "lfuse") == 0 ||
 	     strcmp(mem->desc, "fuse") == 0) {
-    buf[0] = CMD_READ_FUSE_PP;
+    buf[0] = mode == PPMODE? CMD_READ_FUSE_PP: CMD_READ_FUSE_HVSP;
     addr = 0;
   } else if (strcmp(mem->desc, "hfuse") == 0) {
-    buf[0] = CMD_READ_FUSE_PP;
+    buf[0] = mode == PPMODE? CMD_READ_FUSE_PP: CMD_READ_FUSE_HVSP;
     addr = 1;
   } else if (strcmp(mem->desc, "efuse") == 0) {
-    buf[0] = CMD_READ_FUSE_PP;
+    buf[0] = mode == PPMODE? CMD_READ_FUSE_PP: CMD_READ_FUSE_HVSP;
     addr = 2;
   } else if (strcmp(mem->desc, "lock") == 0) {
-    buf[0] = CMD_READ_LOCK_PP;
+    buf[0] = mode == PPMODE? CMD_READ_LOCK_PP: CMD_READ_LOCK_HVSP;
   } else if (strcmp(mem->desc, "calibration") == 0) {
-    buf[0] = CMD_READ_OSCCAL_PP;
+    buf[0] = mode == PPMODE? CMD_READ_OSCCAL_PP: CMD_READ_OSCCAL_HVSP;
   } else if (strcmp(mem->desc, "signature") == 0) {
-    buf[0] = CMD_READ_SIGNATURE_PP;
+    buf[0] = mode == PPMODE? CMD_READ_SIGNATURE_PP: CMD_READ_SIGNATURE_HVSP;
   }
 
   /*
-   * In parallel mode, we have to use paged reads for flash and
+   * In HV mode, we have to use paged reads for flash and
    * EEPROM, and cache the results in a page cache.
    *
    * Page cache validation is based on "{flash,eeprom}_pageaddr"
@@ -803,14 +887,14 @@ static int stk500pp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   }
 
   if (verbose >= 2)
-    fprintf(stderr, "%s: stk500pp_read_byte(): Sending read memory command: ",
+    fprintf(stderr, "%s: stk500hv_read_byte(): Sending read memory command: ",
 	    progname);
 
   result = stk500v2_command(pgm, buf, cmdlen, sizeof(buf));
 
   if (result < 0 || buf[1] != STATUS_CMD_OK) {
     fprintf(stderr,
-	    "%s: stk500pp_read_byte(): "
+	    "%s: stk500hv_read_byte(): "
 	    "timeout/error communicating with programmer (status %d)\n",
 	    progname, result);
     return -1;
@@ -827,8 +911,30 @@ static int stk500pp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   return 0;
 }
 
-static int stk500pp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
-			       unsigned long addr, unsigned char data)
+/*
+ * Read a single byte, PP mode
+ */
+static int stk500pp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+			      unsigned long addr, unsigned char * value)
+{
+  return stk500hv_read_byte(pgm, p, mem, addr, value, PPMODE);
+}
+
+/*
+ * Read a single byte, HVSP mode
+ */
+static int stk500hvsp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+				unsigned long addr, unsigned char * value)
+{
+  return stk500hv_read_byte(pgm, p, mem, addr, value, HVSPMODE);
+}
+
+/*
+ * Write one byte, generic HV mode
+ */
+static int stk500hv_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+			       unsigned long addr, unsigned char data,
+			       enum hvmode mode)
 {
   int result, cmdlen, timeout = 0, pulsewidth = 0;
   char buf[266];
@@ -837,14 +943,11 @@ static int stk500pp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   unsigned char *cache_ptr = NULL;
 
   if (verbose >= 2)
-    fprintf(stderr, "%s: stk500pp_write_byte(.., %s, 0x%lx, ...)\n",
+    fprintf(stderr, "%s: stk500hv_write_byte(.., %s, 0x%lx, ...)\n",
 	    progname, mem->desc, addr);
 
-  if (stk500pp_program_enable(pgm, p) < 0)
-    return -1;
-
   if (strcmp(mem->desc, "flash") == 0) {
-    buf[0] = CMD_PROGRAM_FLASH_PP;
+    buf[0] = mode == PPMODE? CMD_PROGRAM_FLASH_PP: CMD_PROGRAM_FLASH_HVSP;
     pagesize = mem->page_size;
     if (pagesize == 0)
       pagesize = 2;
@@ -862,7 +965,7 @@ static int stk500pp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       use_ext_addr = (1U << 31);
     }
   } else if (strcmp(mem->desc, "eeprom") == 0) {
-    buf[0] = CMD_PROGRAM_EEPROM_PP;
+    buf[0] = mode == PPMODE? CMD_PROGRAM_EEPROM_PP: CMD_PROGRAM_EEPROM_HVSP;
     pagesize = mem->page_size;
     if (pagesize == 0)
       pagesize = 1;
@@ -871,27 +974,27 @@ static int stk500pp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     cache_ptr = eeprom_pagecache;
   } else if (strcmp(mem->desc, "lfuse") == 0 ||
 	     strcmp(mem->desc, "fuse") == 0) {
-    buf[0] = CMD_PROGRAM_FUSE_PP;
+    buf[0] = mode == PPMODE? CMD_PROGRAM_FUSE_PP: CMD_PROGRAM_FUSE_HVSP;
     addr = 0;
     pulsewidth = p->programfusepulsewidth;
     timeout = p->programfusepolltimeout;
   } else if (strcmp(mem->desc, "hfuse") == 0) {
-    buf[0] = CMD_PROGRAM_FUSE_PP;
+    buf[0] = mode == PPMODE? CMD_PROGRAM_FUSE_PP: CMD_PROGRAM_FUSE_HVSP;
     addr = 1;
     pulsewidth = p->programfusepulsewidth;
     timeout = p->programfusepolltimeout;
   } else if (strcmp(mem->desc, "efuse") == 0) {
-    buf[0] = CMD_PROGRAM_FUSE_PP;
+    buf[0] = mode == PPMODE? CMD_PROGRAM_FUSE_PP: CMD_PROGRAM_FUSE_HVSP;
     addr = 2;
     pulsewidth = p->programfusepulsewidth;
     timeout = p->programfusepolltimeout;
   } else if (strcmp(mem->desc, "lock") == 0) {
-    buf[0] = CMD_PROGRAM_LOCK_PP;
+    buf[0] = mode == PPMODE? CMD_PROGRAM_LOCK_PP: CMD_PROGRAM_LOCK_HVSP;
     pulsewidth = p->programlockpulsewidth;
     timeout = p->programlockpolltimeout;
   } else {
     fprintf(stderr,
-	    "%s: stk500pp_write_byte(): "
+	    "%s: stk500hv_write_byte(): "
 	    "unsupported memory type: %s\n",
 	    progname, mem->desc);
     return -1;
@@ -900,7 +1003,7 @@ static int stk500pp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   cmdlen = 5 + pagesize;
 
   /*
-   * In parallel mode, we have to use paged writes for flash and
+   * In HV mode, we have to use paged writes for flash and
    * EEPROM.  As both, flash and EEPROM cells can only be programmed
    * from `1' to `0' bits (even EEPROM does not support auto-erase in
    * parallel mode), we just pre-fill the page cache with 0xff, so all
@@ -938,19 +1041,24 @@ static int stk500pp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   } else {
     buf[1] = addr;
     buf[2] = data;
-    buf[3] = pulsewidth;
-    buf[4] = timeout;
+    if (mode == PPMODE) {
+      buf[3] = pulsewidth;
+      buf[4] = timeout;
+    } else {
+      buf[3] = timeout;
+      cmdlen--;
+    }
   }
 
   if (verbose >= 2)
-    fprintf(stderr, "%s: stk500pp_write_byte(): Sending write memory command: ",
+    fprintf(stderr, "%s: stk500hv_write_byte(): Sending write memory command: ",
 	    progname);
 
   result = stk500v2_command(pgm, buf, cmdlen, sizeof(buf));
 
   if (result < 0 || buf[1] != STATUS_CMD_OK) {
     fprintf(stderr,
-	    "%s: stk500pp_write_byte(): "
+	    "%s: stk500hv_write_byte(): "
 	    "timeout/error communicating with programmer (status %d)\n",
 	    progname, result);
     return -1;
@@ -963,6 +1071,25 @@ static int stk500pp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
   return 0;
 }
+
+/*
+ * Write one byte, PP mode
+ */
+static int stk500pp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+			       unsigned long addr, unsigned char data)
+{
+  return stk500hv_write_byte(pgm, p, mem, addr, data, PPMODE);
+}
+
+/*
+ * Write one byte, HVSP mode
+ */
+static int stk500hvsp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+			       unsigned long addr, unsigned char data)
+{
+  return stk500hv_write_byte(pgm, p, mem, addr, data, HVSPMODE);
+}
+
 
 static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
                               int page_size, int n_bytes)
@@ -1096,14 +1223,18 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return n_bytes;
 }
 
-static int stk500pp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-				int page_size, int n_bytes)
+/*
+ * Write pages of flash/EEPROM, generic HV mode
+ */
+static int stk500hv_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+				  int page_size, int n_bytes,
+				  enum hvmode mode)
 {
   unsigned int addr, block_size, last_addr, hiaddr, addrshift, use_ext_addr;
   unsigned char commandbuf[5], buf[266];
   int result;
 
-  DEBUG("STK500V2: stk500pp_paged_write(..,%s,%d,%d)\n",m->desc,page_size,n_bytes);
+  DEBUG("STK500V2: stk500hv_paged_write(..,%s,%d,%d)\n",m->desc,page_size,n_bytes);
 
   hiaddr = UINT_MAX;
   addrshift = 0;
@@ -1113,7 +1244,7 @@ static int stk500pp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   if (strcmp(m->desc, "flash") == 0) {
     addrshift = 1;
     flash_pageaddr = (unsigned long)-1L;
-    commandbuf[0] = CMD_PROGRAM_FLASH_PP;
+    commandbuf[0] = mode == PPMODE? CMD_PROGRAM_FLASH_PP: CMD_PROGRAM_FLASH_HVSP;
     /*
      * If bit 31 is set, this indicates that the following read/write
      * operation will be performed on a memory that is larger than
@@ -1125,7 +1256,7 @@ static int stk500pp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     }
   } else if (strcmp(m->desc, "eeprom") == 0) {
     eeprom_pageaddr = (unsigned long)-1L;
-    commandbuf[0] = CMD_PROGRAM_EEPROM_PP;
+    commandbuf[0] = mode == PPMODE? CMD_PROGRAM_EEPROM_PP: CMD_PROGRAM_EEPROM_HVSP;
   }
   /*
    * Synthesize the mode byte.  This is simpler than adding yet
@@ -1158,7 +1289,7 @@ static int stk500pp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     DEBUG("block_size at addr %d is %d\n",addr,block_size);
 
-    if (commandbuf[0] == CMD_PROGRAM_FLASH_PP) {
+    if (addrshift == 1) {
       if (stk500v2_is_page_empty(addr, block_size, m->buf)) {
           continue;
       }
@@ -1180,13 +1311,31 @@ static int stk500pp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     result = stk500v2_command(pgm, buf, page_size + 5, sizeof(buf));
     if (buf[1] != STATUS_CMD_OK) {
-      fprintf(stderr, "%s: stk500pp_paged_write: write command failed with %d\n",
+      fprintf(stderr, "%s: stk500hv_paged_write: write command failed with %d\n",
               progname, buf[1]);
       return -1;
     }
   }
 
   return n_bytes;
+}
+
+/*
+ * Write pages of flash/EEPROM, PP mode
+ */
+static int stk500pp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+				int page_size, int n_bytes)
+{
+  return stk500hv_paged_write(pgm, p, m, page_size, n_bytes, PPMODE);
+}
+
+/*
+ * Write pages of flash/EEPROM, HVSP mode
+ */
+static int stk500hvsp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+				  int page_size, int n_bytes)
+{
+  return stk500hv_paged_write(pgm, p, m, page_size, n_bytes, HVSPMODE);
 }
 
 static int stk500v2_is_page_empty(unsigned int address, int page_size,
@@ -1293,14 +1442,18 @@ static int stk500v2_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int stk500pp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-			       int page_size, int n_bytes)
+/*
+ * Read pages of flash/EEPROM, generic HV mode
+ */
+static int stk500hv_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+			       int page_size, int n_bytes,
+			       enum hvmode mode)
 {
   unsigned int addr, block_size, hiaddr, addrshift, use_ext_addr;
   unsigned char commandbuf[3], buf[266];
   int result;
 
-  DEBUG("STK500V2: stk500pp_paged_load(..,%s,%d,%d)\n",m->desc,page_size,n_bytes);
+  DEBUG("STK500V2: stk500hv_paged_load(..,%s,%d,%d)\n",m->desc,page_size,n_bytes);
 
   page_size = m->readsize;
 
@@ -1310,7 +1463,7 @@ static int stk500pp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   // determine which command is to be used
   if (strcmp(m->desc, "flash") == 0) {
-    commandbuf[0] = CMD_READ_FLASH_PP;
+    commandbuf[0] = mode == PPMODE? CMD_READ_FLASH_PP: CMD_READ_FLASH_HVSP;
     addrshift = 1;
     /*
      * If bit 31 is set, this indicates that the following read/write
@@ -1323,7 +1476,7 @@ static int stk500pp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     }
   }
   else if (strcmp(m->desc, "eeprom") == 0) {
-    commandbuf[0] = CMD_READ_EEPROM_PP;
+    commandbuf[0] = mode == PPMODE? CMD_READ_EEPROM_PP: CMD_READ_EEPROM_HVSP;
   }
 
   for (addr = 0; addr < n_bytes; addr += page_size) {
@@ -1349,7 +1502,7 @@ static int stk500pp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     result = stk500v2_command(pgm, buf, 3, sizeof(buf));
     if (buf[1] != STATUS_CMD_OK) {
-      fprintf(stderr, "%s: stk500pp_paged_load: read command failed with %d\n",
+      fprintf(stderr, "%s: stk500hv_paged_load: read command failed with %d\n",
               progname, buf[1]);
       return -1;
     }
@@ -1364,6 +1517,24 @@ static int stk500pp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   }
 
   return n_bytes;
+}
+
+/*
+ * Read pages of flash/EEPROM, PP mode
+ */
+static int stk500pp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+			       int page_size, int n_bytes)
+{
+  return stk500hv_paged_load(pgm, p, m, page_size, n_bytes, PPMODE);
+}
+
+/*
+ * Read pages of flash/EEPROM, HVSP mode
+ */
+static int stk500hvsp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+				 int page_size, int n_bytes)
+{
+  return stk500hv_paged_load(pgm, p, m, page_size, n_bytes, HVSPMODE);
 }
 
 
@@ -1746,7 +1917,7 @@ void stk500pp_initpgm(PROGRAMMER * pgm)
   pgm->disable        = stk500pp_disable;
   pgm->program_enable = stk500pp_program_enable;
   pgm->chip_erase     = stk500pp_chip_erase;
-  pgm->cmd            = stk500pp_cmd;
+  pgm->cmd            = stk500hv_cmd;
   pgm->open           = stk500v2_open;
   pgm->close          = stk500v2_close;
 
@@ -1757,6 +1928,38 @@ void stk500pp_initpgm(PROGRAMMER * pgm)
   pgm->write_byte     = stk500pp_write_byte;
   pgm->paged_write    = stk500pp_paged_write;
   pgm->paged_load     = stk500pp_paged_load;
+  pgm->print_parms    = stk500v2_print_parms;
+  pgm->set_vtarget    = stk500v2_set_vtarget;
+  pgm->set_varef      = stk500v2_set_varef;
+  pgm->set_fosc       = stk500v2_set_fosc;
+  pgm->set_sck_period = stk500v2_set_sck_period;
+  pgm->page_size      = 256;
+}
+
+void stk500hvsp_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "STK500HVSP");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = stk500hvsp_initialize;
+  pgm->display        = stk500v2_display;
+  pgm->enable         = stk500v2_enable;
+  pgm->disable        = stk500hvsp_disable;
+  pgm->program_enable = stk500hvsp_program_enable;
+  pgm->chip_erase     = stk500hvsp_chip_erase;
+  pgm->cmd            = stk500hv_cmd;
+  pgm->open           = stk500v2_open;
+  pgm->close          = stk500v2_close;
+
+  /*
+   * optional functions
+   */
+  pgm->read_byte      = stk500hvsp_read_byte;
+  pgm->write_byte     = stk500hvsp_write_byte;
+  pgm->paged_write    = stk500hvsp_paged_write;
+  pgm->paged_load     = stk500hvsp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_vtarget    = stk500v2_set_vtarget;
   pgm->set_varef      = stk500v2_set_varef;
