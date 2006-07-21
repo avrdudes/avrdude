@@ -319,7 +319,7 @@ void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type,
             m->max_write_delay,
             m->readback[0],
             m->readback[1]);
-    if (verbose > 2) {
+    if (verbose > 4) {
       fprintf(stderr,
               "%s  Memory Ops:\n"
               "%s    Oeration     Inst Bit  Bit Type  Bitno  Value\n"
