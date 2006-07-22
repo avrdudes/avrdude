@@ -1,3 +1,7 @@
+2006-07-22 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Add the ATtiny11, an HVSP-only device.
+
 2006-07-21 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	Implement STK500 (v2) HVSP mode.
