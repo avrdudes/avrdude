@@ -597,6 +597,70 @@ programmer
 #
 
 #------------------------------------------------------------
+# ATtiny11
+#------------------------------------------------------------
+
+# This is an HVSP-only device.
+
+part
+    id                  = "t11";
+    desc                = "ATtiny11";
+    stk500_devcode      = 0x11;
+    signature           = 0x1e 0x90 0x04;
+    chip_erase_delay    = 20000;
+
+    timeout		= 200;
+    hvsp_controlstack     =
+	0x4C, 0x0C, 0x1C, 0x2C, 0x3C, 0x64, 0x74, 0x66,
+        0x68, 0x78, 0x68, 0x68, 0x7A, 0x6A, 0x68, 0x78,
+        0x78, 0x7D, 0x6D, 0x0C, 0x80, 0x40, 0x20, 0x10,
+        0x11, 0x08, 0x04, 0x02, 0x03, 0x08, 0x04, 0x00;
+    hventerstabdelay    = 100;
+    progmodedelay       = 0;
+    hvspcmdexedelay     = 0;
+    synchcycles         = 6;
+    latchcycles         = 1;
+    togglevtg           = 1;
+    poweroffdelay       = 25;
+    resetdelayms        = 0;
+    resetdelayus        = 50;
+    hvleavestabdelay    = 100;
+    resetdelay          = 25;
+    chiperasepolltimeout = 40;
+    chiperasetime       = 0;
+    programfusepolltimeout = 25;
+    programlockpolltimeout = 25;
+
+    memory "eeprom"
+        size            = 64;
+	blocksize	= 64;
+	readsize	= 256;
+    ;
+
+    memory "flash"
+        size            = 1024;
+	blocksize	= 128;
+	readsize	= 256;
+    ;
+
+    memory "signature"
+        size            = 3;
+    ;
+
+    memory "lock"
+        size            = 1;
+    ;
+
+    memory "calibration"
+        size            = 1;
+    ;
+
+    memory "fuse"
+        size            = 1;
+    ;
+;
+
+#------------------------------------------------------------
 # ATtiny12
 #------------------------------------------------------------
 
