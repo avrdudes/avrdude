@@ -504,7 +504,7 @@ static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
   buf[1] = p->timeout;
   buf[2] = p->stabdelay;
   buf[3] = p->cmdexedelay;
-  buf[4] = p->synchcycles;
+  buf[4] = p->synchloops;
   buf[5] = p->bytedelay;
   buf[6] = p->pollvalue;
   buf[7] = p->pollindex;
