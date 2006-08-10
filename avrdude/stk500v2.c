@@ -459,8 +459,12 @@ static int stk500hv_chip_erase(PROGRAMMER * pgm, AVRPART * p, enum hvmode mode)
     buf[2] = p->chiperasepolltimeout;
   } else {
     buf[0] = CMD_CHIP_ERASE_HVSP;
-    buf[1] = p->chiperasepolltimeout;
-    buf[2] = p->chiperasetime;
+    /*
+     * AVR068 has them the other way around, but that's the sequence
+     * Atmel's stk500.exe is issuing.
+     */
+    buf[1] = p->chiperasetime;
+    buf[2] = p->chiperasepolltimeout;
   }
   result = stk500v2_command(pgm, buf, 3, sizeof(buf));
   usleep(p->chip_erase_delay);
