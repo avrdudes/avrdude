@@ -1,3 +1,9 @@
+2006-08-10 Eric B. Weddington <eweddington@cso.atmel.com>
+
+    Contributed by Bob Paddock <graceindustries@gmail.com>
+    * avrdude.conf.in: Patch #4780. Provide support for mega325, mega3250,
+    mega645, mega6450.
+
 2006-08-10 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in (ATtiny11): fix the HVSP control stack,
