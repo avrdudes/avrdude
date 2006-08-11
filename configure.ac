@@ -46,7 +46,10 @@ AC_CHECK_LIB([ncurses], [tputs])
 AC_CHECK_LIB([readline], [readline])
 # usb_get_string_simple is only available in recent enough
 # versions of libusb, so use that as a decision base.
-AC_CHECK_LIB([usb], [usb_get_string_simple])
+AC_CHECK_LIB([usb], [usb_get_string_simple],
+		    [LIBUSB=-lusb],
+		    [LIBUSB=])
+AC_SUBST(LIBUSB, $LIBUSB)
 
 # Checks for header files.
 AC_HEADER_STDC

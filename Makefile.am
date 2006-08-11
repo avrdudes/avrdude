@@ -47,6 +47,8 @@ avrdude_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
 
 avrdude_CFLAGS   = @ENABLE_WARNINGS@  
 
+avrdude_LDADD  = @LIBUSB@
+
 bin_PROGRAMS = avrdude
 
 avrdude_SOURCES = \

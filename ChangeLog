@@ -1,3 +1,11 @@
+2006-08-11 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* configure.ac (AC_CHECK_LIB([usb]): implement a private LIBUSB
+	macro to add this library to, to prevent it from being
+	automatically linked to all binaries.  This should fix the Win32
+	build of loaddrv.
+	* Makefile.am (avrdude_LDADD): add LIBUSB here.
+
 2006-08-10 Eric B. Weddington <eweddington@cso.atmel.com>
 
     Contributed by Bob Paddock <graceindustries@gmail.com>
