@@ -1,3 +1,10 @@
+2006-08-13 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* tools: New directory.
+	* tools/get-hv-params.xsl: New file, extract high-voltage
+	programming parameters from Atmel XML files, and produce
+	an avrdude.conf[.in] snippet.
+
 2006-08-11 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* configure.ac (AC_CHECK_LIB([usb]): implement a private LIBUSB
