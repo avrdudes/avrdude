@@ -43,7 +43,10 @@
                                      'PP')]">
         <xsl:if test="self::node()[name() = 'PPControlStack']"
         >    pp_controlstack     =
-        <xsl:value-of select="translate(current(), ' ', ',')" />;
+        <xsl:call-template name="format_cstack">
+            <xsl:with-param name="stack" select="." />
+            <xsl:with-param name="count" select="0" />
+        </xsl:call-template>;
 </xsl:if> <!-- PPControlStack -->
 
 	<xsl:if test="self::node()[name() = 'PpEnterProgMode']">
@@ -126,7 +129,10 @@
 
         <xsl:if test="self::node()[name() = 'HvspControlStack']"
         >    hvsp_controlstack   =
-        <xsl:value-of select="translate(current(), ' ', ',')" />;
+        <xsl:call-template name="format_cstack">
+            <xsl:with-param name="stack" select="." />
+            <xsl:with-param name="count" select="0" />
+        </xsl:call-template>;
 </xsl:if> <!-- HvspControlStack -->
 
         <xsl:if test="self::node()[name() = 'HvspEnterProgMode']">
@@ -201,5 +207,48 @@
     </xsl:if>  <!-- STK500_2 parameters -->
     </xsl:for-each>  <!-- All nodes -->
 
+    </xsl:template>
+
+    <!--
+     * Format the control stack argument: replace space-separated
+     * list by a list separated with commas, followed by either
+     * a space or a newline, dependend on the current argument
+     * count.
+     * This template calls itself recursively, until the entire
+     * argument $stack has been processed.
+    -->
+    <xsl:template name="format_cstack">
+        <xsl:param name="stack" />
+        <xsl:choose>
+            <xsl:when test="string-length($stack) &lt;= 4">
+                <!-- Last element, print it, and leave template. -->
+                <xsl:value-of select="$stack" />
+            </xsl:when>
+            <xsl:otherwise>
+                <!--
+                  * More arguments follow, print first value,
+                  * followed by a comma, decide whether a space
+                  * or a newline needs to be emitted, and recurse
+                  * with the remaining part of $stack.
+                -->
+                <xsl:value-of select="substring($stack, 1, 4)" />
+                <xsl:choose>
+                    <xsl:when test="$count mod 8 = 7">
+                        <!-- comma, newline, 8 spaces indentation -->
+                        <xsl:text>,
+        </xsl:text>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <!-- comma, space -->
+                        <xsl:text>, </xsl:text>
+                    </xsl:otherwise>
+                </xsl:choose>
+                <xsl:call-template name="format_cstack">
+                    <xsl:with-param name="stack" select="substring($stack, 6)"
+                    />
+                    <xsl:with-param name="count" select="$count + 1" />
+                </xsl:call-template>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 </xsl:stylesheet>
