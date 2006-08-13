@@ -1,3 +1,7 @@
+2006-08-14 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Add HVSP/PP mode parameters for all AVRs.
+
 2006-08-13 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* tools: New directory.
