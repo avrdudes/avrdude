@@ -11,11 +11,16 @@ Current:
 
       - AT90USB646/647/1286/1287
       - ATmega2560/2561
+      - ATmega325/3250/645/6450
+      - ATtiny11 (HVSP only device)
 
   * Fixed paged flash write operations for AT90PWMx devices
     (error in datasheet).
 
   * Add signature verification.
+
+  * Add high-voltage mode programming for the STK500 (both,
+    parallel, and high-voltage serial programming).
 
 Version 5.1:
 
