@@ -1,5 +1,11 @@
 2006-08-14 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	Submitted by <eolson@mit.edu>:
+	* stk500v2.c (stk500v2_open): patch #5273: Emit error message
+	if user requests usb and no libusb support
+
+2006-08-14 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* avrdude.conf.in: Add HVSP/PP mode parameters for all AVRs.
 
 2006-08-13 Joerg Wunsch <j@uriah.heep.sax.de>

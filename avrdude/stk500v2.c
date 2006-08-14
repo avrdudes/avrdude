@@ -732,7 +732,6 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
   if (pgm->baudrate)
     baud = pgm->baudrate;
 
-#if defined(HAVE_LIBUSB)
   /*
    * If the port name starts with "usb", divert the serial routines
    * to the USB ones.  The serial_open() function for USB overrides
@@ -740,12 +739,16 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
    * search for.
    */
   if (strncmp(port, "usb", 3) == 0) {
+#if defined(HAVE_LIBUSB)
     serdev = &usb_serdev_frame;
     baud = USB_DEVICE_AVRISPMKII;
     is_mk2 = 1;
     pgm->set_sck_period = stk500v2_set_sck_period_mk2;
-  }
+#else
+    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    return -1;
 #endif
+  }
 
   strcpy(pgm->port, port);
   pgm->fd = serial_open(port, baud);
