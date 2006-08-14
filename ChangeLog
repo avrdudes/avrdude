@@ -19,9 +19,9 @@
 
 2006-08-10 Eric B. Weddington <eweddington@cso.atmel.com>
 
-    Contributed by Bob Paddock <graceindustries@gmail.com>
-    * avrdude.conf.in: Patch #4780. Provide support for mega325, mega3250,
-    mega645, mega6450.
+	Contributed by Bob Paddock <graceindustries@gmail.com>
+	* avrdude.conf.in: Patch #4780. Provide support for mega325,
+	mega3250, mega645, mega6450.
 
 2006-08-10 Joerg Wunsch <j@uriah.heep.sax.de>
 
@@ -378,15 +378,15 @@
 	* safemode.h:
 	* term.h:
 	  This is Colin O'Flynn's mega patch for updating safemode support:
-	  
+
 	  * add support for parts with just 'fuse' memory
-	  
+
 	  * if any fuse memories are altered, reflect those changes in the
 	  post-programming safemode check so that safemode no longer
 	  complains about fuses which were intentionally altered; this
 	  eliminates the need to completely disable safemode using -u in
 	  order to program fuses.
-	  
+
 	  * provide -s option which will not ask to restore fuses, it will
 	  just do it
 
@@ -517,7 +517,7 @@
 	  be changed.  The 'x' setting sets the bit to zero which programs it
 	  and could cause undefined behaviour.  Setting to 'i' enables it to be
 	  rewritten to its old value.
-	  
+
 	  A better solution might be to read the fuse byte, apply the new value
 	  while leaving the 'x' bit alone, then writing the value back.  The
 	  current fix is a workaround which allows the developer to change the
@@ -557,7 +557,7 @@
 	* stk500v2.c:
 	  This is patch # 4338, obsoletes patch #4327, provides fixes for bugs
 	  #13693, #13871, and #14212.
-	  
+
 	  This provides bug fixes to the STK500V2 programmer type.
 
 	    - incorrect token used from avrdude.conf.in
@@ -721,7 +721,6 @@
 	  doc are either not available on all systems or are at best
 	  inconvenient to build and install.  The doc can still be built, one
 	  just needs to specify --enable-doc at configure time.
-	
 
 2005-01-24  Colin O'Flynn  <coflynn@newae.com>
 
