@@ -1,5 +1,11 @@
 2006-08-17 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* stk500v2.c: unreverse the argument order for
+	CMD_CHIP_ERASE_HVSP; Atmel says AVR068 is right, and
+	stk500.exe is wrong.
+
+2006-08-17 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	Submitted by Neil Davey:
 	patch #4539: Ability to control the bit clock (usleep) delay
 	for ppi interface
