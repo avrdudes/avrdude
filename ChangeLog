@@ -3,6 +3,8 @@
 	* stk500v2.c: unreverse the argument order for
 	CMD_CHIP_ERASE_HVSP; Atmel says AVR068 is right, and
 	stk500.exe is wrong.
+	* configure.ac (AC_CHECK_LIB[usb]): Fix the generation
+	of HAVE_LIBUSB in ac_cfg.h.
 
 2006-08-17 Joerg Wunsch <j@uriah.heep.sax.de>
 
