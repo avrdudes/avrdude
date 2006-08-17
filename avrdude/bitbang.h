@@ -25,6 +25,7 @@
 int bitbang_setpin(int fd, int pin, int value);
 int bitbang_getpin(int fd, int pin);
 int bitbang_highpulsepin(int fd, int pin);
+void bitbang_delay(unsigned int us);
 
 int  bitbang_rdy_led        (PROGRAMMER * pgm, int value);
 int  bitbang_err_led        (PROGRAMMER * pgm, int value);

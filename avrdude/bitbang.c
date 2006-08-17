@@ -28,17 +28,102 @@
 #include <unistd.h>
 #include <errno.h>
 
+#if !defined(WIN32NATIVE)
+#  include <signal.h>
+#  include <sys/time.h>
+#endif
+
 #include "avr.h"
 #include "pindefs.h"
 #include "pgm.h"
 #include "par.h"
 #include "serbb.h"
 
-#define SLOW_TOGGLE 0
-
 extern char * progname;
 extern int do_cycles;
 extern int verbose;
+
+static int delay_decrement;
+
+#if !defined(WIN32NATIVE)
+static volatile int done;
+
+typedef void (*mysighandler_t)(int);
+static mysighandler_t saved_alarmhandler;
+
+static void alarmhandler(int signo)
+{
+  done = 1;
+  signal(SIGALRM, saved_alarmhandler);
+}
+#endif /* !WIN32NATIVE */
+
+/*
+ * Calibrate the microsecond delay loop below.
+ */
+static void bitbang_calibrate_delay(void)
+{
+  /*
+   * Right now, we don't have any Win32 implementation for this, so we
+   * can only run on a preconfigured delay stepping there.  The figure
+   * below should at least be correct within an order of magnitude,
+   * judging from the auto-calibration figures seen on various Unix
+   * systems on comparable hardware.
+   */
+#if defined(WIN32NATIVE)
+  delay_decrement = 100;
+#else  /* !WIN32NATIVE */
+  struct itimerval itv;
+  volatile int i;
+
+  if (verbose >= 2)
+    fprintf(stderr,
+	    "%s: Calibrating delay loop...",
+	    progname);
+  i = 0;
+  done = 0;
+  saved_alarmhandler = signal(SIGALRM, alarmhandler);
+  /*
+   * Set ITIMER_REAL to 100 ms.  All known systems have a timer
+   * granularity of 10 ms or better, so counting the delay cycles
+   * accumulating over 100 ms should give us a rather realistic
+   * picture, without annoying the user by a lengthy startup time (as
+   * an alarm(1) would do).  Of course, if heavy system activity
+   * happens just during calibration but stops before the remaining
+   * part of AVRDUDE runs, this will yield wrong values.  There's not
+   * much we can do about this.
+   */
+  itv.it_value.tv_sec = 0;
+  itv.it_value.tv_usec = 100000;
+  itv.it_interval.tv_sec = itv.it_interval.tv_usec = 0;
+  setitimer(ITIMER_REAL, &itv, 0);
+  while (!done)
+    i--;
+  itv.it_value.tv_sec = itv.it_value.tv_usec = 0;
+  setitimer(ITIMER_REAL, &itv, 0);
+  /*
+   * Calculate back from 100 ms to 1 us.
+   */
+  delay_decrement = -i / 100000;
+  if (verbose >= 2)
+    fprintf(stderr,
+	    " calibrated to %d cycles per us\n",
+	    delay_decrement);
+#endif /* WIN32NATIVE */
+}
+
+/*
+ * Delay for approximately the number of microseconds specified.
+ * usleep()'s granularity is usually like 1 ms or 10 ms, so it's not
+ * really suitable for short delays in bit-bang algorithms.
+ */
+void bitbang_delay(int us)
+{
+  volatile int del = us * delay_decrement;
+
+  while (del > 0)
+    del--;
+}
 
 /*
  * transmit and receive a byte of data to/from the AVR device
@@ -203,6 +288,8 @@ int bitbang_initialize(PROGRAMMER * pgm, AVRPART * p)
 {
   int rc;
   int tries;
+
+  bitbang_calibrate_delay();
 
   pgm->powerup(pgm);
   usleep(20000);

@@ -1,3 +1,18 @@
+2006-08-17 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by Neil Davey:
+	patch #4539: Ability to control the bit clock (usleep) delay
+	for ppi interface
+	* bitbang.c: Implement bitbang_delay() and its calibration.
+	* bitbang.h: Declare bitbang_delay().
+	* main.c: Add the ispdelay option (-i).
+	* pgm.h (struct programmer_t): Add the ispdelay parameter.
+	* par.c: Add calls to bitbang_delay() when requested.
+	* serbb_posix.c: (Ditto.)
+	* serbb_win32.c: (Ditto.)
+	* avrdude.1: Document the new -i option.
+	* doc/avrdude.texi: (Ditto.)
+
 2006-08-14 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	Submitted by <chris@awaretechs.com>:
