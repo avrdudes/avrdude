@@ -48,8 +48,6 @@ extern int verbose;
 
 #if HAVE_PARPORT
 
-#define SLOW_TOGGLE 0
-
 struct ppipins_t {
   int pin;
   int reg;
@@ -102,9 +100,8 @@ static int par_setpin(PROGRAMMER * pgm, int pin, int value)
   else
     ppi_clr(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
 
-#if SLOW_TOGGLE
-  usleep(1000);
-#endif
+  if (pgm->ispdelay > 1)
+    bitbang_delay(pgm->ispdelay);
 
   return 0;
 }
@@ -155,24 +152,20 @@ static int par_highpulsepin(PROGRAMMER * pgm, int pin)
 
   if (inverted) {
     ppi_clr(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
-#if SLOW_TOGGLE
-    usleep(1000);
-#endif
-    ppi_set(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+    if (pgm->ispdelay > 1)
+      bitbang_delay(pgm->ispdelay);
 
-#if SLOW_TOGGLE
-    usleep(1000);
-#endif
+    ppi_set(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+    if (pgm->ispdelay > 1)
+      bitbang_delay(pgm->ispdelay);
   } else {
     ppi_set(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
-#if SLOW_TOGGLE
-    usleep(1000);
-#endif
-    ppi_clr(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+    if (pgm->ispdelay > 1)
+      bitbang_delay(pgm->ispdelay);
 
-#if SLOW_TOGGLE
-    usleep(1000);
-#endif
+    ppi_clr(pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
+    if (pgm->ispdelay > 1)
+      bitbang_delay(pgm->ispdelay);
   }
 
   return 0;

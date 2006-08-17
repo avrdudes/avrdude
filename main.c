@@ -105,6 +105,7 @@ void usage(void)
  "  -C <config-file>           Specify location of configuration file.\n"
  "  -c <programmer>            Specify programmer type.\n"
  "  -D                         Disable auto erase for flash memory\n"
+ "  -i <delay>                 ISP Clock Delay [in microseconds]\n"
  "  -P <port>                  Specify connection port.\n"
  "  -F                         Override invalid signature check.\n"
  "  -e                         Perform a chip erase.\n"
@@ -695,6 +696,7 @@ int main(int argc, char * argv [])
   char  * e;           /* for strtol() error checking */
   int     baudrate;    /* override default programmer baud rate */
   double  bitclock;    /* Specify programmer bit clock (JTAG ICE) */
+  int     ispdelay;    /* Specify the delay for ISP clock */
   int     safemode;    /* Enable safemode, 1=safemode on, 0=normal */
   int     silentsafe;  /* Don't ask about fuses, 1=silent, 0=normal */
   unsigned char safemode_lfuse = 0xff;
@@ -752,6 +754,7 @@ int main(int argc, char * argv [])
   set_cycles    = -1;
   baudrate      = 0;
   bitclock      = 0.0;
+  ispdelay      = 0;
   safemode      = 1;       /* Safemode on by default */
   silentsafe    = 0;       /* Ask by default */
   
@@ -802,7 +805,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?b:B:c:C:DeE:Fnp:P:qstU:uvVyY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?b:B:c:C:DeE:Fi:np:P:qstU:uvVyY:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -818,6 +821,15 @@ int main(int argc, char * argv [])
 	bitclock = strtod(optarg, &e);
 	if ((e == optarg) || (*e != 0) || bitclock == 0.0) {
 	  fprintf(stderr, "%s: invalid bit clock period specified '%s'\n",
+                  progname, optarg);
+          exit(1);
+        }
+        break;
+
+      case 'i':	/* specify isp clock delay */
+	ispdelay = strtol(optarg, &e,10);
+	if ((e == optarg) || (*e != 0) || ispdelay == 0) {
+	  fprintf(stderr, "%s: invalid isp clock delay specified '%s'\n",
                   progname, optarg);
           exit(1);
         }
@@ -1131,6 +1143,13 @@ int main(int argc, char * argv [])
     }
 
     pgm->bitclock = bitclock * 1e-6;
+  }
+
+  if (ispdelay != 0) {
+    if (verbose) {
+      fprintf(stderr, "%sSetting isp clock delay: %3i\n", progbuf, ispdelay);
+    }
+    pgm->ispdelay = ispdelay;
   }
 
   rc = pgm->open(pgm, port);

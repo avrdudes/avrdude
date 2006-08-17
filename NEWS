@@ -22,6 +22,9 @@ Current:
   * Add high-voltage mode programming for the STK500 (both,
     parallel, and high-voltage serial programming).
 
+  * Allow for specifying the ISP clock delay as an option for
+    bit-bang programming adapters.
+
 Version 5.1:
 
   * New devices supported:

@@ -584,6 +584,23 @@ to time that a device has a broken (erased or overwritten) device
 signature but is otherwise operating normally, this options is provided
 to override the check.
 
+@item -i @var{delay}
+For bitbang-type programmers, delay for approximately
+@var{delay}
+microseconds between each bit state change.
+If the host system is very fast, or the target runs off a slow clock
+(like a 32 kHz crystal, or the 128 kHz internal RC oscillator), this
+can become necessary to satisfy the requirement that the ISP clock
+frequency must not be higher than 1/4 of the CPU clock frequency.
+This is implemented as a spin-loop delay to allow even for very
+short delays.
+On Unix-style operating systems, the spin loop is initially calibrated
+against a system timer, so the number of microseconds might be rather
+realistic, assuming a constant system load while AVRDUDE is running.
+On Win32 operating systems, a preconfigured number of cycles per
+microsecond is assumed that might be off a bit for very fast or very
+slow machines.
+
 @item -n
 No-write - disables actually writing data to the MCU (useful for
 debugging AVRDUDE).

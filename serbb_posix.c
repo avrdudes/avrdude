@@ -158,14 +158,12 @@ static int serbb_highpulsepin(PROGRAMMER * pgm, int pin)
     return -1;
 
   serbb_setpin(pgm, pin, 1);
-  #if SLOW_TOGGLE
-  usleep(1000);
-  #endif
-  serbb_setpin(pgm, pin, 0);
+  if (pgm->ispdelay > 1)
+    bitbang_delay(pgm->ispdelay);
 
-  #if SLOW_TOGGLE
-  usleep(1000);
-  #endif
+  serbb_setpin(pgm, pin, 0);
+  if (pgm->ispdelay > 1)
+    bitbang_delay(pgm->ispdelay);
 
   return 0;
 }
