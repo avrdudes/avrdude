@@ -1,3 +1,11 @@
+2006-08-18 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* Makefile.am: Add a dist-hook, and make it remove lexer.c,
+	config_gram.c, and config_gram.h from the source distribution
+	archive.  These files are supposed to be generated on the target
+	system.
+	Closes bug #15536: avrdude-5.1 compilation fails on Gentoo/amd64
+
 2006-08-17 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* stk500v2.c: unreverse the argument order for
