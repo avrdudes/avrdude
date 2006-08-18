@@ -51,6 +51,21 @@ avrdude_LDADD  = @LIBUSB@
 
 bin_PROGRAMS = avrdude
 
+# automake thinks these generated files should be in the distribution,
+# but this might cause trouble for some users, so we rather don't want
+# to have them there.
+#
+# See
+#
+# https://savannah.nongnu.org/bugs/index.php?func=detailitem&item_id=15536
+#
+# for why we don't want to have them.
+dist-hook:
+	rm -f \
+	$(distdir)/lexer.c \
+	$(distdir)/config_gram.c \
+	$(distdir)/config_gram.h
+
 avrdude_SOURCES = \
 	config_gram.y \
 	lexer.l \
