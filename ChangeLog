@@ -1,5 +1,13 @@
 2006-08-18 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* stk500v2: Minor cosmetic changes: STK500 firmware version
+	numbers are M.NN, so always display the minor number as two
+	digits.  Examine the response to the sign-on command to see which
+	programmer hardware we are talking to, and then restrict the
+	STK500 topcard display to devices detected as STK500.
+
+2006-08-18 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* Makefile.am: Add a dist-hook, and make it remove lexer.c,
 	config_gram.c, and config_gram.h from the source distribution
 	archive.  These files are supposed to be generated on the target

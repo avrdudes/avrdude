@@ -93,6 +93,22 @@ static unsigned int eeprom_pagesize;
 static unsigned char command_sequence = 1;
 static int is_mk2;		/* Is the device an AVRISP mkII? */
 
+static enum
+{
+  PGMTYPE_UNKNOWN,
+  PGMTYPE_STK500,
+  PGMTYPE_AVRISP,
+  PGMTYPE_AVRISP_MKII,
+}
+pgmtype;
+
+static const char *pgmname[] =
+{
+  "unknown",
+  "STK500",
+  "AVRISP",
+  "AVRISP mkII",
+};
 
 static int stk500v2_getparm(PROGRAMMER * pgm, unsigned char parm, unsigned char * value);
 static int stk500v2_setparm(PROGRAMMER * pgm, unsigned char parm, unsigned char value);
@@ -297,8 +313,32 @@ retry:
 
   // if we got bytes returned, check to see what came back
   if (status > 0) {
-    if ((resp[0] == CMD_SIGN_ON) && (resp[1] == STATUS_CMD_OK)) {
+    if ((resp[0] == CMD_SIGN_ON) && (resp[1] == STATUS_CMD_OK) &&
+	(status > 3)) {
       // success!
+      unsigned int siglen = resp[2];
+      if (siglen >= strlen("STK500_2") &&
+	  memcmp(resp + 3, "STK500_2", strlen("STK500_2")) == 0) {
+	pgmtype = PGMTYPE_STK500;
+      } else if (siglen >= strlen("AVRISP_2") &&
+		 memcmp(resp + 3, "AVRISP_2", strlen("AVRISP_2")) == 0) {
+	pgmtype = PGMTYPE_AVRISP;
+      } else if (siglen >= strlen("AVRISP_MK2") &&
+		 memcmp(resp + 3, "AVRISP_MK2", strlen("AVRISP_MK2")) == 0) {
+	pgmtype = PGMTYPE_AVRISP_MKII;
+      } else {
+	resp[siglen + 3] = 0;
+	if (verbose)
+	  fprintf(stderr,
+		  "%s: stk500v2_getsync(): got response from unknown "
+		  "programmer %s, assuming STK500\n",
+		  progname, resp + 3);
+	pgmtype = PGMTYPE_STK500;
+      }
+      if (verbose >= 2)
+	fprintf(stderr,
+		"%s: stk500v2_getsync(): found %s programmer\n",
+		progname, pgmname[pgmtype]);
       return 0;
     } else {
       if (tries > 33) {
@@ -559,6 +599,9 @@ static int stk500hvsp_program_enable(PROGRAMMER * pgm, AVRPART * p)
  */
 static int stk500v2_initialize(PROGRAMMER * pgm, AVRPART * p)
 {
+
+  pgmtype = PGMTYPE_UNKNOWN;
+
   return pgm->program_enable(pgm, p);
 }
 
@@ -627,6 +670,8 @@ static int stk500hv_initialize(PROGRAMMER * pgm, AVRPART * p, enum hvmode mode)
     return -1;
   }
   flash_pageaddr = eeprom_pageaddr = (unsigned long)-1L;
+
+  pgmtype = PGMTYPE_UNKNOWN;
 
   return pgm->program_enable(pgm, p);
 }
@@ -1797,12 +1842,12 @@ static void stk500v2_display(PROGRAMMER * pgm, char * p)
   stk500v2_getparm(pgm, PARAM_HW_VER, &hdw);
   stk500v2_getparm(pgm, PARAM_SW_MAJOR, &maj);
   stk500v2_getparm(pgm, PARAM_SW_MINOR, &min);
-  stk500v2_getparm(pgm, PARAM_TOPCARD_DETECT, &topcard);
 
   fprintf(stderr, "%sHardware Version: %d\n", p, hdw);
-  fprintf(stderr, "%sFirmware Version: %d.%d\n", p, maj, min);
+  fprintf(stderr, "%sFirmware Version: %d.%02d\n", p, maj, min);
 
-  if (1) {			// should check to see if it's a stk500 first
+  if (pgmtype == PGMTYPE_STK500) {
+    stk500v2_getparm(pgm, PARAM_TOPCARD_DETECT, &topcard);
     switch (topcard) {
       case 0xAA: topcard_name = "STK501"; break;
       case 0x55: topcard_name = "STK502"; break;
