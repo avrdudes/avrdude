@@ -335,7 +335,7 @@ retry:
 		  progname, resp + 3);
 	pgmtype = PGMTYPE_STK500;
       }
-      if (verbose >= 2)
+      if (verbose >= 3)
 	fprintf(stderr,
 		"%s: stk500v2_getsync(): found %s programmer\n",
 		progname, pgmname[pgmtype]);
@@ -600,8 +600,6 @@ static int stk500hvsp_program_enable(PROGRAMMER * pgm, AVRPART * p)
 static int stk500v2_initialize(PROGRAMMER * pgm, AVRPART * p)
 {
 
-  pgmtype = PGMTYPE_UNKNOWN;
-
   return pgm->program_enable(pgm, p);
 }
 
@@ -670,8 +668,6 @@ static int stk500hv_initialize(PROGRAMMER * pgm, AVRPART * p, enum hvmode mode)
     return -1;
   }
   flash_pageaddr = eeprom_pageaddr = (unsigned long)-1L;
-
-  pgmtype = PGMTYPE_UNKNOWN;
 
   return pgm->program_enable(pgm, p);
 }
@@ -798,6 +794,8 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
    * drain any extraneous input
    */
   stk500v2_drain(pgm, 0);
+
+  pgmtype = PGMTYPE_UNKNOWN;
 
   stk500v2_getsync(pgm);
 
@@ -1837,12 +1835,20 @@ static int stk500v2_setparm(PROGRAMMER * pgm, unsigned char parm, unsigned char 
 static void stk500v2_display(PROGRAMMER * pgm, char * p)
 {
   unsigned char maj, min, hdw, topcard;
-  const char *topcard_name;
+  const char *topcard_name, *pgmname;
 
   stk500v2_getparm(pgm, PARAM_HW_VER, &hdw);
   stk500v2_getparm(pgm, PARAM_SW_MAJOR, &maj);
   stk500v2_getparm(pgm, PARAM_SW_MINOR, &min);
 
+  switch (pgmtype) {
+    case PGMTYPE_UNKNOWN:     pgmname = "Unknown"; break;
+    case PGMTYPE_STK500:      pgmname = "STK500"; break;
+    case PGMTYPE_AVRISP:      pgmname = "AVRISP"; break;
+    case PGMTYPE_AVRISP_MKII: pgmname = "AVRISP mkII"; break;
+    default:                  pgmname = "None";
+  }
+  fprintf(stderr, "%sProgrammer Model: %s\n", p, pgmname);
   fprintf(stderr, "%sHardware Version: %d\n", p, hdw);
   fprintf(stderr, "%sFirmware Version: %d.%02d\n", p, maj, min);
 
@@ -1870,40 +1876,42 @@ static void stk500v2_print_parms1(PROGRAMMER * pgm, char * p)
   unsigned char vtarget, vadjust, osc_pscale, osc_cmatch, sck_duration;
 
   stk500v2_getparm(pgm, PARAM_VTARGET, &vtarget);
-  stk500v2_getparm(pgm, PARAM_VADJUST, &vadjust);
-  stk500v2_getparm(pgm, PARAM_OSC_PSCALE, &osc_pscale);
-  stk500v2_getparm(pgm, PARAM_OSC_CMATCH, &osc_cmatch);
   stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration);
-
   fprintf(stderr, "%sVtarget         : %.1f V\n", p, vtarget / 10.0);
-  fprintf(stderr, "%sVaref           : %.1f V\n", p, vadjust / 10.0);
-  fprintf(stderr, "%sOscillator      : ", p);
-  if (osc_pscale == 0)
-    fprintf(stderr, "Off\n");
-  else {
-    int prescale = 1;
-    double f = STK500V2_XTAL / 2;
-    const char *unit;
 
-    switch (osc_pscale) {
-      case 2: prescale = 8; break;
-      case 3: prescale = 32; break;
-      case 4: prescale = 64; break;
-      case 5: prescale = 128; break;
-      case 6: prescale = 256; break;
-      case 7: prescale = 1024; break;
+  if (pgmtype == PGMTYPE_STK500) {
+    stk500v2_getparm(pgm, PARAM_VADJUST, &vadjust);
+    stk500v2_getparm(pgm, PARAM_OSC_PSCALE, &osc_pscale);
+    stk500v2_getparm(pgm, PARAM_OSC_CMATCH, &osc_cmatch);
+    fprintf(stderr, "%sVaref           : %.1f V\n", p, vadjust / 10.0);
+    fprintf(stderr, "%sOscillator      : ", p);
+    if (osc_pscale == 0)
+      fprintf(stderr, "Off\n");
+    else {
+      int prescale = 1;
+      double f = STK500V2_XTAL / 2;
+      const char *unit;
+
+      switch (osc_pscale) {
+        case 2: prescale = 8; break;
+        case 3: prescale = 32; break;
+        case 4: prescale = 64; break;
+        case 5: prescale = 128; break;
+        case 6: prescale = 256; break;
+        case 7: prescale = 1024; break;
+      }
+      f /= prescale;
+      f /= (osc_cmatch + 1);
+      if (f > 1e6) {
+	f /= 1e6;
+	unit = "MHz";
+      } else if (f > 1e3) {
+	f /= 1000;
+	unit = "kHz";
+      } else
+	unit = "Hz";
+      fprintf(stderr, "%.3f %s\n", f, unit);
     }
-    f /= prescale;
-    f /= (osc_cmatch + 1);
-    if (f > 1e6) {
-      f /= 1e6;
-      unit = "MHz";
-    } else if (f > 1e3) {
-      f /= 1000;
-      unit = "kHz";
-    } else
-      unit = "Hz";
-    fprintf(stderr, "%.3f %s\n", f, unit);
   }
   if (is_mk2)
     fprintf(stderr, "%sSCK period      : %.2f us\n", p,
