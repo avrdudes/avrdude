@@ -1,3 +1,9 @@
+2006-08-20 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* configure.ac: Check for gettimeofday().
+	* ppiwin.c (gettimeofday): Define gettimeofday() replacement
+	only if !defined(HAVE_GETTIMEOFDAY); use correct protype.
+
 2006-08-18 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* stk500v2: Minor cosmetic changes: STK500 firmware version

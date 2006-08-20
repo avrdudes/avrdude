@@ -65,7 +65,7 @@ AC_HEADER_TIME
 # Checks for library functions.
 AC_PROG_GCC_TRADITIONAL
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul])
+AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul gettimeofday])
 
 # Checks for misc stuff.
 
