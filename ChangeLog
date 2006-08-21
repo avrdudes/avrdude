@@ -1,5 +1,14 @@
 2006-08-21 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* avrdude.conf.in: Add (rather conservative) write delay timing
+	values to the *fuse and lock memory spaces of all devices where
+	they have been missing.  Add the lock memory space to the ATmega48
+	section.
+	Closes bug #14920: tiny2313 fuses and AVRDUDE 5.0
+	Closes bug #15751: atmega48: no lock bits defined
+
+2006-08-21 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* avrdude.conf.in: Fix the size of the calibration memory space
 	for ATtiny13, ATmega64, ATmega16, ATmega32, ATmega8535, ATtiny25,
 	ATtiny45, ATtiny85.
