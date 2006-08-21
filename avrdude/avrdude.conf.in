@@ -232,6 +232,52 @@
 #define AT89S51	    0xE0
 #define AT89S52	    0xE1
 
+# The following table lists the devices in the original AVR910
+# appnote:
+# |Device |Signature | Code |
+# +-------+----------+------+
+# |tiny12 | 1E 90 05 | 0x55 |
+# |tiny15 | 1E 90 06 | 0x56 |
+# |       |          |      |
+# | S1200 | 1E 90 01 | 0x13 |
+# |       |          |      |
+# | S2313 | 1E 91 01 | 0x20 |
+# | S2323 | 1E 91 02 | 0x48 |
+# | S2333 | 1E 91 05 | 0x34 |
+# | S2343 | 1E 91 03 | 0x4C |
+# |       |          |      |
+# | S4414 | 1E 92 01 | 0x28 |
+# | S4433 | 1E 92 03 | 0x30 |
+# | S4434 | 1E 92 02 | 0x6C |
+# |       |          |      |
+# | S8515 | 1E 93 01 | 0x38 |
+# | S8535 | 1E 93 03 | 0x68 |
+# |       |          |      |
+# |mega32 | 1E 95 01 | 0x72 |
+# |mega83 | 1E 93 05 | 0x65 |
+# |mega103| 1E 97 01 | 0x41 |
+# |mega161| 1E 94 01 | 0x60 |
+# |mega163| 1E 94 02 | 0x64 |
+
+# Appnote AVR109 also has a table of AVR910 device codes, which
+# lists:
+# dev         avr910   signature
+# ATmega8     0x77     0x1E 0x93 0x07
+# ATmega8515  0x3B     0x1E 0x93 0x06
+# ATmega8535  0x6A     0x1E 0x93 0x08
+# ATmega16    0x75     0x1E 0x94 0x03
+# ATmega162   0x63     0x1E 0x94 0x04
+# ATmega163   0x66     0x1E 0x94 0x02
+# ATmega169   0x79     0x1E 0x94 0x05
+# ATmega32    0x7F     0x1E 0x95 0x02
+# ATmega323   0x73     0x1E 0x95 0x01
+# ATmega64    0x46     0x1E 0x96 0x02
+# ATmega128   0x44     0x1E 0x97 0x02
+
+# Note that both lists contradict for the ATmega32 and the ATmega163.
+# We go with the original AVR910 in these cases.  As AVR910 still has
+# the originally name ATmega83 for the ATmega8535, we use the AVR109
+# code here.
 
 #
 # Overall avrdude defaults
@@ -2232,6 +2278,7 @@ part
     desc             = "ATMEGA64";
     has_jtag         = yes;
     stk500_devcode   = 0xA0;
+    avr910_devcode   = 0x46;
     signature        = 0x1e 0x96 0x02;
     chip_erase_delay = 9000;
     pagel            = 0xD7;
@@ -2412,7 +2459,7 @@ part
     desc             = "ATMEGA128";
     has_jtag         = yes;
     stk500_devcode   = 0xB2;
-    avr910_devcode   = 0x43;
+    avr910_devcode   = 0x44;
     signature        = 0x1e 0x97 0x02;
     chip_erase_delay = 9000;
     pagel            = 0xD7;
@@ -2770,7 +2817,7 @@ part
     desc             = "ATMEGA16";
     has_jtag         = yes;
     stk500_devcode   = 0x82;
-    avr910_devcode   = 0x74;
+    avr910_devcode   = 0x75;
     signature        = 0x1e 0x94 0x03;
     pagel            = 0xd7;
     bs2              = 0xa0;
@@ -3482,6 +3529,7 @@ part
     desc             = "ATMEGA162";
     has_jtag         = yes;
     stk500_devcode   = 0x83;
+    avr910_devcode   = 0x63;
     signature        = 0x1e 0x94 0x04;
     chip_erase_delay = 9000;
     pagel            = 0xd7;
@@ -3810,7 +3858,7 @@ part
     desc             = "ATMEGA169";
     has_jtag         = yes;
     stk500_devcode   = 0x85;
-    avr910_devcode   = 0x75;
+    avr910_devcode   = 0x79;
     signature        = 0x1e 0x94 0x05;
     chip_erase_delay = 9000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
@@ -4990,7 +5038,7 @@ part
     id               = "m8";
     desc             = "ATMEGA8";
     stk500_devcode   = 0x70;
-    avr910_devcode   = 0x76;
+    avr910_devcode   = 0x77;
     signature        = 0x1e 0x93 0x07;
     pagel            = 0xd7;
     bs2              = 0xc2;
@@ -5150,7 +5198,7 @@ part
     id               = "m8515";
     desc             = "ATMEGA8515";
     stk500_devcode   = 0x63;
-    avr910_devcode   = 0x3A;
+    avr910_devcode   = 0x3B;
     signature        = 0x1e 0x93 0x07;
     chip_erase_delay = 9000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
@@ -5308,6 +5356,7 @@ part
     id               = "m8535";
     desc             = "ATMEGA8535";
     stk500_devcode   = 0x64;
+    avr910_devcode   = 0x6A;
     signature        = 0x1e 0x93 0x08;
     pagel            = 0xd7;
     bs2              = 0xa0;
@@ -6167,9 +6216,8 @@ part
      id            = "t2313";
      desc          = "ATtiny2313";
      stk500_devcode   = 0x23;
-##  avr910_devcode   = ?;
-##  Try the AT90S2313 devcode:
-     avr910_devcode   = 0x20;
+##   Use the ATtiny26 devcode:
+     avr910_devcode   = 0x5e;
      signature        = 0x1e 0x91 0x0a;
      pagel            = 0xD4;
      bs2              = 0xD6;

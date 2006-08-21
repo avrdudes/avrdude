@@ -1,5 +1,13 @@
 2006-08-21 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* avrdude.conf.in: Fix various AVR910 device codes.  Add the code
+	tables from both, AVR910 and AVR109.  Change avr910_devcode of
+	the ATtiny2313 to 0x5e (ATtiny26).
+	Closes bug #16671: Tiny2313 avr910_devcode is bad
+	Closes bug #15826: avr910 device type for ATmega8 wrong
+
+2006-08-21 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* avrdude.conf.in: Add (rather conservative) write delay timing
 	values to the *fuse and lock memory spaces of all devices where
 	they have been missing.  Add the lock memory space to the ATmega48
