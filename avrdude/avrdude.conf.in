@@ -917,9 +917,9 @@ part
     ;
 
     memory "calibration"
-        size            = 1;
+        size            = 2;
         read            = "0  0  1  1   1  0  0  0    0 0 0 x  x x x x",
-                          "0  0  0  0   0  0  0  0    o o o o  o o o o";
+                          "0  0  0  0   0  0  0 a0    o o o o  o o o o";
     ;
 
     memory "lfuse"
@@ -2358,9 +2358,9 @@ part
       ;
 
     memory "calibration"
-        size            = 1;
-        read            = "0 0 1 1  1 0 0 0  x x x x  x x x x",
-                          "0 0 0 0  0 0 0 0  o o o o  o o o o";
+        size            = 4;
+        read            = "0 0 1 1  1 0 0 0    x x x x  x x x x",
+                          "0 0 0 0  0 0 a1 a0  o o o o  o o o o";
       ;
 
     memory "signature"
@@ -2867,10 +2867,10 @@ part
                           "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
       ;
     memory "calibration"
-        size            = 1;
+        size            = 4;
 
         read            = "0 0 1 1  1 0 0 0   0 0 0 x  x x x x",
-                          "0 0 0 0  0 0 0 0   o o o o  o o o o";
+                          "0 0 0 0  0 0 a1 a0 o o o o  o o o o";
         ;
   ;
 
@@ -4752,9 +4752,9 @@ part
       ;
 
     memory "calibration"
-        size            = 1;
-        read            = "0 0 1 1  1 0 0 0   0 0 x x  x x x x",
-                          "0 0 0 0  0 0 0 0   o o o o  o o o o";
+        size            = 4;
+        read            = "0 0 1 1  1 0 0 0    0 0 x x  x x x x",
+                          "0 0 0 0  0 0 a1 a0  o o o o  o o o o";
       ;
   ;
 
@@ -5360,9 +5360,9 @@ part
       ;
 
     memory "calibration"
-        size            = 1;
+        size            = 4;
         read            = "0 0 1 1  1 0 0 0   0 0 x x  x x x x",
-                          "0 0 0 0  0 0 0 0   o o o o  o o o o";
+                          "0 0 0 0  0 0 a1 a0 o o o o  o o o o";
       ;
 
     memory "signature"
@@ -6684,7 +6684,7 @@ part
      ;
 
      memory "calibration"
-         size            = 1;
+         size            = 2;
          read            = "0  0  1  1   1  0  0  0    0 0 0 x  x x x x",
                            "0  0  0  0   0  0  0  a0   o o o o  o o o o";
      ;
@@ -6840,7 +6840,7 @@ part
      ;
 
      memory "calibration"
-         size            = 1;
+         size            = 2;
          read            = "0  0  1  1   1  0  0  0    0 0 0 x  x x x x",
                            "0  0  0  0   0  0  0  a0   o o o o  o o o o";
      ;
@@ -6995,7 +6995,7 @@ part
      ;
 
      memory "calibration"
-         size            = 1;
+         size            = 2;
          read            = "0  0  1  1   1  0  0  0    0 0 0 x  x x x x",
                            "0  0  0  0   0  0  0  a0   o o o o  o o o o";
      ;
