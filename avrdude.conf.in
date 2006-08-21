@@ -3134,8 +3134,8 @@ part
     memory "flash"
         paged           = yes;
         size            = 32768;
-        page_size       = 256;
-        num_pages       = 128;
+        page_size       = 128;
+        num_pages       = 256;
         min_write_delay = 4500;
         max_write_delay = 4500;
         readback_p1     = 0xff;
@@ -3152,17 +3152,17 @@ part
 
         loadpage_lo     = "  0   1   0   0      0   0   0   0",
                           "  0   0   x   x      x   x   x   x",
-                          "  x  a6  a5  a4     a3  a2  a1  a0",
+                          "  x   x  a5  a4     a3  a2  a1  a0",
                           "  i   i   i   i      i   i   i   i";
 
         loadpage_hi     = "  0   1   0   0      1   0   0   0",
                           "  0   0   x   x      x   x   x   x",
-                          "  x  a6  a5  a4     a3  a2  a1  a0",
+                          "  x   x  a5  a4     a3  a2  a1  a0",
                           "  i   i   i   i      i   i   i   i";
 
         writepage       = "  0   1   0   0      1   1   0   0",
                           "  0 a14 a13 a12    a11 a10  a9  a8",
-                          " a7   x   x   x      x   x   x   x",
+                          " a7  a6   x   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
 
 	mode		= 0x21;
