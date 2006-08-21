@@ -1,3 +1,9 @@
+2006-08-21 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in (ATmega324): Correct the pagesize from 256 to
+	128.
+	This closes bug #16410: ATMega164/324/644 cannot be programmed
+
 2006-08-20 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* configure.ac: Check for gettimeofday().
