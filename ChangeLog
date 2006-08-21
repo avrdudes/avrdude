@@ -1,5 +1,12 @@
 2006-08-21 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* avrdude.conf.in: Fix the size of the calibration memory space
+	for ATtiny13, ATmega64, ATmega16, ATmega32, ATmega8535, ATtiny25,
+	ATtiny45, ATtiny85.
+	Closes bug #17383: Wrong calibration section in avrdude.conf...
+
+2006-08-21 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* avrdude.conf.in (ATmega324): Correct the pagesize from 256 to
 	128.
 	This closes bug #16410: ATMega164/324/644 cannot be programmed
