@@ -1,5 +1,18 @@
 2006-08-22 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* avrdude.conf.in: Add page mode parameters for all "eeprom"
+	memory definitions that are organized in pages.
+	* avr.c (avr_write_byte_default): Consider using the loadpage
+	instructions only if the respective memory is marked "paged".
+	Closes bug #17199: EEPROM fails verification on ATmega645 with
+	pony-stk200 hardware
+	Closes bug #16849: EEPROM write fails for AT90USB1287 with
+	mode 0x41
+	Closes bug #15146: stk500v2_paged_write: loadpage instruction
+	not defined for part
+
+2006-08-22 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* doc/avrdude.info (-c): Change "avrispmk2" into "avrisp2" as that
 	is the programmer actually supported by avrdude.conf.in.
 	Closes bug #15677: documentation mentions wrong programmer-id
