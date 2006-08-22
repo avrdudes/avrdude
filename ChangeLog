@@ -1,3 +1,10 @@
+2006-08-22 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* doc/avrdude.info (-c): Change "avrispmk2" into "avrisp2" as that
+	is the programmer actually supported by avrdude.conf.in.
+	Closes bug #15677: documentation mentions wrong programmer-id
+	"avrispmk2"
+
 2006-08-21 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: Fix various AVR910 device codes.  Add the code
