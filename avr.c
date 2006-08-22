@@ -345,7 +345,7 @@ int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       writeop = mem->op[AVR_OP_WRITE_LO];
     caddr = addr / 2;
   }
-  else if (mem->op[AVR_OP_LOADPAGE_LO]) {
+  else if (mem->paged && mem->op[AVR_OP_LOADPAGE_LO]) {
     if (addr & 0x01)
       writeop = mem->op[AVR_OP_LOADPAGE_HI];
     else
