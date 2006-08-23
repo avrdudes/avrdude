@@ -200,6 +200,8 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
   struct termios mode;
   int flags;
 
+  bitbang_check_prerequisites(pgm);
+
   /* adapted from uisp code */
 
   pgm->fd = open(port, O_RDWR | O_NOCTTY | O_NONBLOCK);

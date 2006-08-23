@@ -272,6 +272,8 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 	LPVOID lpMsgBuf;
 	HANDLE hComPort = INVALID_HANDLE_VALUE;
 
+	bitbang_check_prerequisites(pgm);
+
 	hComPort = CreateFile(port, GENERIC_READ | GENERIC_WRITE, 0, NULL,
                               OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
