@@ -335,4 +335,24 @@ int bitbang_initialize(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
+static void verify_pin_assigned(PROGRAMMER * pgm, int pin, char * desc)
+{
+  if (pgm->pinno[pin] == 0) {
+    fprintf(stderr, "%s: error: no pin has been assigned for %s\n",
+            progname, desc);
+    exit(1);
+  }
+}
 
+
+/*
+ * Verify all prerequisites for a bit-bang programmer are present.
+ */
+void bitbang_check_prerequisites(PROGRAMMER *pgm)
+{
+
+  verify_pin_assigned(pgm, PIN_AVR_RESET, "AVR RESET");
+  verify_pin_assigned(pgm, PIN_AVR_SCK,   "AVR SCK");
+  verify_pin_assigned(pgm, PIN_AVR_MISO,  "AVR MISO");
+  verify_pin_assigned(pgm, PIN_AVR_MOSI,  "AVR MOSI");
+}

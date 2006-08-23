@@ -165,17 +165,6 @@ void programmer_display(char * p)
 
 
 
-void verify_pin_assigned(int pin, char * desc)
-{
-  if (pgm->pinno[pin] == 0) {
-    fprintf(stderr, "%s: error: no pin has been assigned for %s\n",
-            progname, desc);
-    exit(1);
-  }
-}
-
-
-
 PROGRAMMER * locate_programmer(LISTID programmers, char * configid)
 {
   LNODEID ln1, ln2;
@@ -1097,7 +1086,6 @@ int main(int argc, char * argv [])
     }
   }
 
-
   /*
    * set up seperate instances of the avr part, one for use in
    * programming, one for use in verifying.  These are separate
@@ -1105,13 +1093,6 @@ int main(int argc, char * argv [])
    */
   p = avr_dup_part(p);
   v = avr_dup_part(p);
-
-  if (strcmp(pgm->type, "PPI") == 0) {
-    verify_pin_assigned(PIN_AVR_RESET, "AVR RESET");
-    verify_pin_assigned(PIN_AVR_SCK,   "AVR SCK");
-    verify_pin_assigned(PIN_AVR_MISO,  "AVR MISO");
-    verify_pin_assigned(PIN_AVR_MOSI,  "AVR MOSI");
-  }
 
   /*
    * open the programmer

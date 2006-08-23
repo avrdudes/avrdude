@@ -1,5 +1,15 @@
 2006-08-22 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* bitbang.c: Move the bitbang prerequisite checks out from
+	main() into their own bitbang_check_prerequisites().
+	* bitbang.h: (Ditto.)
+	* main.c: (Ditto.)
+	* par.c: (Ditto.)
+	* serbb_posix.c: (Ditto.)
+	* serbb_win32.c: (Ditto.)
+
+2006-08-22 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* avrdude.conf.in: Add page mode parameters for all "eeprom"
 	memory definitions that are organized in pages.
 	* avr.c (avr_write_byte_default): Consider using the loadpage

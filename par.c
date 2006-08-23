@@ -254,6 +254,8 @@ static int par_open(PROGRAMMER * pgm, char * port)
 {
   int rc;
 
+  bitbang_check_prerequisites(pgm);
+
   pgm->fd = ppi_open(port);
   if (pgm->fd < 0) {
     fprintf(stderr, "%s: failed to open parallel port \"%s\"\n\n",
