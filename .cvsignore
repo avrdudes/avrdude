@@ -7,6 +7,7 @@ config_gram.c
 config_gram.h
 .cvsignore
 .depend
+.deps
 INSTALL
 Makefile.in
 ac_cfg.h.in
@@ -28,3 +29,4 @@ config.guess
 config.log
 config.status
 config.sub
+avrdude
