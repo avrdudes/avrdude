@@ -10,6 +10,7 @@ config_gram.h
 .deps
 INSTALL
 Makefile.in
+Makefile
 ac_cfg.h.in
 aclocal.m4
 autom4te.cache
