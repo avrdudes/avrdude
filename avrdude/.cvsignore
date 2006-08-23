@@ -4,6 +4,7 @@ y.output
 y.tab.h
 lexer.c
 config_gram.c
+config_gram.h
 .cvsignore
 .depend
 INSTALL
@@ -14,7 +15,16 @@ autom4te.cache
 configure
 depcomp
 install-sh
+compile
 missing
 mkinstalldirs
 stamp-h.in
-
+stamp-h1
+ac_cfg.h
+avrdude.conf
+avrdude.conf.tmp
+avrdude.spec
+config.guess
+config.log
+config.status
+config.sub
