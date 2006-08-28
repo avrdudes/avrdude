@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003-2004  Theodore A. Roth  <troth@openavr.org>
+ * Copyright (C) 2003-2004, 2006  Theodore A. Roth  <troth@openavr.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,6 +65,9 @@ static struct baud_mapping baud_lookup_table [] = {
   { 0,      0 }                 /* Terminator. */
 };
 
+static struct termios original_termios;
+static int saved_original_termios;
+
 static speed_t serial_baud_lookup(long baud)
 {
   struct baud_mapping *map = baud_lookup_table;
@@ -75,7 +78,7 @@ static speed_t serial_baud_lookup(long baud)
     map++;
   }
 
-  fprintf(stderr, "%s: serial_baud_lookup(): unknown baud rate: %ld", 
+  fprintf(stderr, "%s: serial_baud_lookup(): unknown baud rate: %ld\n",
           progname, baud);
   exit(1);
 }
@@ -87,43 +90,49 @@ static int ser_setspeed(int fd, long baud)
   speed_t speed = serial_baud_lookup (baud);
   
   if (!isatty(fd))
-    return -1;
+    return -ENOTTY;
   
   /*
    * initialize terminal modes
    */
   rc = tcgetattr(fd, &termios);
   if (rc < 0) {
-    fprintf(stderr, "%s: ser_setspeed(): tcgetattr() failed, %s", 
-            progname, strerror(errno));
+    fprintf(stderr, "%s: ser_setspeed(): tcgetattr() failed",
+            progname);
     return -errno;
   }
 
-  termios.c_iflag = 0;
+  /*
+   * copy termios for ser_close if we haven't already
+   */
+  if (! saved_original_termios++) {
+    original_termios = termios;
+  }
+
+  termios.c_iflag = IGNBRK;
   termios.c_oflag = 0;
-  termios.c_cflag = 0;
-  termios.c_cflag |=   (CS8 | CREAD | CLOCAL);
   termios.c_lflag = 0;
+  termios.c_cflag = (CS8 | CREAD | CLOCAL);
   termios.c_cc[VMIN]  = 1;
   termios.c_cc[VTIME] = 0;
 
   cfsetospeed(&termios, speed);
   cfsetispeed(&termios, speed);
   
-  rc = tcsetattr(fd, TCSANOW, &termios);
+  rc = tcsetattr(fd, TCSANOW | TCSAFLUSH, &termios);
   if (rc < 0) {
-    fprintf(stderr, "%s: ser_setspeed(): tcsetattr() failed, %s", 
-            progname, strerror(errno));
+    fprintf(stderr, "%s: ser_setspeed(): tcsetattr() failed",
+            progname);
     return -errno;
   }
 
-#if 0
   /*
-   * set non blocking mode
+   * Everything is now set up for a local line without modem control
+   * or flow control, so clear O_NONBLOCK again.
    */
   rc = fcntl(fd, F_GETFL, 0);
-  fcntl(fd, F_SETFL, rc | O_NONBLOCK);
-#endif
+  if (rc != -1)
+    fcntl(fd, F_SETFL, rc & ~O_NONBLOCK);
 
   return 0;
 }
@@ -137,7 +146,7 @@ static int ser_open(char * port, long baud)
   /*
    * open the serial port
    */
-  fd = open(port, O_RDWR | O_NOCTTY /*| O_NONBLOCK*/);
+  fd = open(port, O_RDWR | O_NOCTTY | O_NONBLOCK);
   if (fd < 0) {
     fprintf(stderr, "%s: ser_open(): can't open device \"%s\": %s\n",
             progname, port, strerror(errno));
@@ -150,8 +159,8 @@ static int ser_open(char * port, long baud)
   rc = ser_setspeed(fd, baud);
   if (rc) {
     fprintf(stderr, 
-            "%s: ser_open(): can't set attributes for device \"%s\"\n",
-            progname, port);
+            "%s: ser_open(): can't set attributes for device \"%s\": %s\n",
+            progname, port, strerror(-rc));
     exit(1);
   }
 
@@ -161,7 +170,18 @@ static int ser_open(char * port, long baud)
 
 static void ser_close(int fd)
 {
-  /* FIXME: Should really restore the terminal to original state here. */
+  /*
+   * restore original termios settings from ser_open
+   */
+  if (saved_original_termios) {
+    int rc = tcsetattr(fd, TCSANOW | TCSADRAIN, &original_termios);
+    if (rc) {
+      fprintf(stderr, 
+              "%s: ser_close(): can't reset attributes for device: %s\n",
+              progname, strerror(errno));
+    }
+    saved_original_termios = 0;
+  }
 
   close(fd);
 }
