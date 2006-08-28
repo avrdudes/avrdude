@@ -1,3 +1,13 @@
+2006-08-28 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Contributed by Ned Konz:
+	* ser_posix.c: Open the serial port with O_NONBLOCK, and
+	save and restore the port state before exiting.
+	patch #5008: Patch for (5.1) ser_posix.c for O_NONBLOCK open
+	and restoring serial port state on close
+	Closes bug #12622: avrdude hangs on macosx/darwin with PL-2303
+	usb-to-serial and Butterfly
+
 2006-08-22 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* bitbang.c: Move the bitbang prerequisite checks out from
