@@ -38,12 +38,26 @@
 
 extern LISTID       programmers;
 
+typedef enum {
+  EXIT_VCC_UNSPEC,
+  EXIT_VCC_ENABLED,
+  EXIT_VCC_DISABLED
+} exit_vcc_t;
+
+typedef enum {
+  EXIT_RESET_UNSPEC,
+  EXIT_RESET_ENABLED,
+  EXIT_RESET_DISABLED
+} exit_reset_t;
+
 typedef struct programmer_t {
   LISTID id;
   char desc[PGM_DESCLEN];
   char type[PGM_TYPELEN];
   char port[PGM_PORTLEN];
   unsigned int pinno[N_PINS];
+  exit_vcc_t exit_vcc;
+  exit_reset_t exit_reset;
   int ppidata;
   int ppictrl;
   int baudrate;
@@ -85,7 +99,7 @@ typedef struct programmer_t {
   int  (*setpin)         (struct programmer_t * pgm, int pin, int value);
   int  (*getpin)         (struct programmer_t * pgm, int pin);
   int  (*highpulsepin)   (struct programmer_t * pgm, int pin);
-  int  (*getexitspecs)   (struct programmer_t * pgm, char *s, int *set, int *clr);
+  int  (*parseexitspecs) (struct programmer_t * pgm, char *s);
   char config_file[PATH_MAX]; /* config file where defined */
   int  lineno;                /* config file line number */
   char flag;		      /* for private use of the programmer */

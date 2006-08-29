@@ -673,8 +673,6 @@ int main(int argc, char * argv [])
   int     terminal;    /* 1=enter terminal mode, 0=don't */
   int     nowrite;     /* don't actually write anything to the chip */
   int     verify;      /* perform a verify operation */
-  int     ppisetbits;  /* bits to set in ppi data register at exit */
-  int     ppiclrbits;  /* bits to clear in ppi data register at exit */
   char  * exitspecs;   /* exit specs string from command line */
   char  * programmer;  /* programmer id */
   char  * partdesc;    /* part id */
@@ -733,8 +731,6 @@ int main(int argc, char * argv [])
   nowrite       = 0;
   verify        = 1;        /* on by default */
   quell_progress = 0;
-  ppisetbits    = 0;
-  ppiclrbits    = 0;
   exitspecs     = NULL;
   pgm           = NULL;
   programmer    = default_programmer;
@@ -1074,13 +1070,13 @@ int main(int argc, char * argv [])
 
 
   if (exitspecs != NULL) {
-    if (pgm->getexitspecs == NULL) {
+    if (pgm->parseexitspecs == NULL) {
       fprintf(stderr,
               "%s: WARNING: -E option not supported by this programmer type\n",
               progname);
       exitspecs = NULL;
     }
-    else if (pgm->getexitspecs(pgm, exitspecs, &ppisetbits, &ppiclrbits) < 0) {
+    else if (pgm->parseexitspecs(pgm, exitspecs) < 0) {
       usage();
       exit(1);
     }
@@ -1151,14 +1147,6 @@ int main(int argc, char * argv [])
   }
 
   exitrc = 0;
-
-  /*
-   * handle exit specs. FIXME: this should be moved to "par.c"
-   */
-  if (strcmp(pgm->type, "PPI") == 0) {
-    pgm->ppidata &= ~ppiclrbits;
-    pgm->ppidata |= ppisetbits;
-  }
 
   /*
    * enable the programmer

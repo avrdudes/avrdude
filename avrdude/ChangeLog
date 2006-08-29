@@ -1,3 +1,21 @@
+2006-08-30 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Rework the exit specs so they actually work again.  It should be
+	possible to extend them for other programmers than PPI now (serbb,
+	stk500*).
+	* pgm.h: Keep the exit specs in an abstract form inside struct
+	programmer_t.  (Should be moved out into some programmer-specific
+	structure.)  Rename the getexitspecs() method into
+	parseexitspecs().
+	* main.c: Move the exit specs stuff out to the programmer
+	implementation.
+	* par.c: Implement the new exit spec handling.  Everything is now
+	done using the generic abstraction layer.
+	Closes bug #16443: No disable Resetsignal at the end of
+	Programming Session
+	Obviates need for patch #5057: quick and dirty Hack to unset Reset
+	after Programming
+
 2006-08-29 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	This patch has been contributed by an anonymous developer
