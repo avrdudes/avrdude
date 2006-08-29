@@ -1,3 +1,14 @@
+2006-08-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	This patch has been contributed by an anonymous developer
+	via the patch tracking system.
+	patch #5096: Allow VCC and BUFF to be any pin in parallel mode
+	* config_gram.y: Release the restriction to PPIDATA pins.
+	* par.c: Rework the code to introduce a function par_setmany()
+	that builds on top of par_setpin(), and use that function for the
+	PPI_AVR_VCC and PPI_AVR_BUFF pin collections.  This also abstracts
+	the polarity of these signals appropriately.
+
 2006-08-28 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	Contributed by Ned Konz:
