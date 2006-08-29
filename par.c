@@ -180,17 +180,6 @@ static int par_highpulsepin(PROGRAMMER * pgm, int pin)
   return 0;
 }
 
-static int par_getpinmask(int pin)
-{
-  pin &= PIN_MASK;
-
-  if (pin < 1 || pin > 17)
-    return -1;
-
-  return ppipins[pin-1].bit;
-}
-
-
 static char * pins_to_str(unsigned int pmask)
 {
   static char buf[64];
@@ -291,13 +280,45 @@ static int par_open(PROGRAMMER * pgm, char * port)
 
 static void par_close(PROGRAMMER * pgm)
 {
+
   /*
    * Restore pin values before closing,
    * but ensure that buffers are turned off.
    */
-  pgm->ppidata |= pgm->pinno[PPI_AVR_BUFF];
   ppi_setall(pgm->fd, PPIDATA, pgm->ppidata);
   ppi_setall(pgm->fd, PPICTRL, pgm->ppictrl);
+
+  par_setpin(pgm, pgm->pinno[PPI_AVR_BUFF], 1);
+
+  /*
+   * Handle exit specs.
+   */
+  switch (pgm->exit_reset) {
+  case EXIT_RESET_ENABLED:
+    par_setpin(pgm, pgm->pinno[PIN_AVR_RESET], 0);
+    break;
+
+  case EXIT_RESET_DISABLED:
+    par_setpin(pgm, pgm->pinno[PIN_AVR_RESET], 1);
+    break;
+
+  case EXIT_RESET_UNSPEC:
+    /* Leave it alone. */
+    break;
+  }
+  switch (pgm->exit_vcc) {
+  case EXIT_VCC_ENABLED:
+    par_setmany(pgm, pgm->pinno[PPI_AVR_VCC], 1);
+    break;
+
+  case EXIT_VCC_DISABLED:
+    par_setmany(pgm, pgm->pinno[PPI_AVR_VCC], 0);
+    break;
+
+  case EXIT_VCC_UNSPEC:
+    /* Leave it alone. */
+    break;
+  }
 
   ppi_close(pgm->fd);
   pgm->fd = -1;
@@ -348,27 +369,26 @@ static void par_display(PROGRAMMER * pgm, char * p)
           p, pgm->pinno[PIN_LED_VFY]);
 }
 
+
 /*
  * parse the -E string
  */
-static int par_getexitspecs(PROGRAMMER * pgm, char *s, int *set, int *clr)
+static int par_parseexitspecs(PROGRAMMER * pgm, char *s)
 {
   char *cp;
 
   while ((cp = strtok(s, ","))) {
     if (strcmp(cp, "reset") == 0) {
-      *clr |= par_getpinmask(pgm->pinno[PIN_AVR_RESET]);
+      pgm->exit_reset = EXIT_RESET_ENABLED;
     }
     else if (strcmp(cp, "noreset") == 0) {
-      *set |= par_getpinmask(pgm->pinno[PIN_AVR_RESET]);
+      pgm->exit_reset = EXIT_RESET_DISABLED;
     }
     else if (strcmp(cp, "vcc") == 0) {
-      if (pgm->pinno[PPI_AVR_VCC])
-        *set |= pgm->pinno[PPI_AVR_VCC];
+      pgm->exit_vcc = EXIT_VCC_ENABLED;
     }
     else if (strcmp(cp, "novcc") == 0) {
-      if (pgm->pinno[PPI_AVR_VCC])
-        *clr |= pgm->pinno[PPI_AVR_VCC];
+      pgm->exit_vcc = EXIT_VCC_DISABLED;
     }
     else {
       return -1;
@@ -379,11 +399,12 @@ static int par_getexitspecs(PROGRAMMER * pgm, char *s, int *set, int *clr)
   return 0;
 }
 
-
-
 void par_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "PPI");
+
+  pgm->exit_vcc = EXIT_VCC_UNSPEC;
+  pgm->exit_reset = EXIT_RESET_UNSPEC;
 
   pgm->rdy_led        = bitbang_rdy_led;
   pgm->err_led        = bitbang_err_led;
@@ -403,7 +424,7 @@ void par_initpgm(PROGRAMMER * pgm)
   pgm->setpin         = par_setpin;
   pgm->getpin         = par_getpin;
   pgm->highpulsepin   = par_highpulsepin;
-  pgm->getexitspecs   = par_getexitspecs;
+  pgm->parseexitspecs = par_parseexitspecs;
 }
 
 #else  /* !HAVE_PARPORT */
