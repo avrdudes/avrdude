@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2000-2006  Brian S. Dean <bsd@bsdhome.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ struct ppipins_t {
   int inverted;
 };
 
-struct ppipins_t ppipins[] = {
+static struct ppipins_t ppipins[] = {
   {  1, PPICTRL,   0x01, 1 },
   {  2, PPIDATA,   0x01, 0 },
   {  3, PPIDATA,   0x02, 0 },
@@ -106,6 +106,15 @@ static int par_setpin(PROGRAMMER * pgm, int pin, int value)
   return 0;
 }
 
+static void par_setmany(PROGRAMMER * pgm, unsigned int pinset, int value)
+{
+  int pin;
+
+  for (pin = 1; pin <= 17; pin++) {
+    if (pinset & (1 << pin))
+      par_setpin(pgm, pin, value);
+  }
+}
 
 static int par_getpin(PROGRAMMER * pgm, int pin)
 {
@@ -171,7 +180,7 @@ static int par_highpulsepin(PROGRAMMER * pgm, int pin)
   return 0;
 }
 
-int par_getpinmask(int pin)
+static int par_getpinmask(int pin)
 {
   pin &= PIN_MASK;
 
@@ -182,27 +191,23 @@ int par_getpinmask(int pin)
 }
 
 
-char vccpins_buf[64];
-static char * vccpins_str(unsigned int pmask)
+static char * pins_to_str(unsigned int pmask)
 {
-  unsigned int mask;
+  static char buf[64];
   int pin;
   char b2[8];
-  char * b;
 
-  b = vccpins_buf;
-
-  b[0] = 0;
-  for (pin = 2, mask = 1; mask < 0x80; mask = mask << 1, pin++) {
-    if (pmask & mask) {
+  buf[0] = 0;
+  for (pin = 1; pin <= 17; pin++) {
+    if (pmask & (1 << pin)) {
       sprintf(b2, "%d", pin);
-      if (b[0] != 0)
-        strcat(b, ",");
-      strcat(b, b2);
+      if (buf[0] != 0)
+        strcat(buf, ",");
+      strcat(buf, b2);
     }
   }
 
-  return b;
+  return buf;
 }
 
 /*
@@ -210,7 +215,7 @@ static char * vccpins_str(unsigned int pmask)
  */
 static void par_powerup(PROGRAMMER * pgm)
 {
-  ppi_set(pgm->fd, PPIDATA, pgm->pinno[PPI_AVR_VCC]);    /* power up */
+  par_setmany(pgm, pgm->pinno[PPI_AVR_VCC], 1);	/* power up */
   usleep(100000);
 }
 
@@ -220,12 +225,12 @@ static void par_powerup(PROGRAMMER * pgm)
  */
 static void par_powerdown(PROGRAMMER * pgm)
 {
-  ppi_clr(pgm->fd, PPIDATA, pgm->pinno[PPI_AVR_VCC]);    /* power down */
+  par_setmany(pgm, pgm->pinno[PPI_AVR_VCC], 0);	/* power down */
 }
 
 static void par_disable(PROGRAMMER * pgm)
 {
-  ppi_set(pgm->fd, PPIDATA, pgm->pinno[PPI_AVR_BUFF]);
+  par_setmany(pgm, pgm->pinno[PPI_AVR_BUFF], 1); /* turn off */
 }
 
 static void par_enable(PROGRAMMER * pgm)
@@ -247,7 +252,7 @@ static void par_enable(PROGRAMMER * pgm)
   /*
    * enable the 74367 buffer, if connected; this signal is active low
    */
-  ppi_clr(pgm->fd, PPIDATA, pgm->pinno[PPI_AVR_BUFF]);
+  par_setmany(pgm, pgm->pinno[PPI_AVR_BUFF], 0);
 }
 
 static int par_open(PROGRAMMER * pgm, char * port)
@@ -304,24 +309,24 @@ static void par_display(PROGRAMMER * pgm, char * p)
   char buffpins[64];
 
   if (pgm->pinno[PPI_AVR_VCC]) {
-    snprintf(vccpins, sizeof(vccpins), " = pins %s",
-             vccpins_str(pgm->pinno[PPI_AVR_VCC]));
+    snprintf(vccpins, sizeof(vccpins), "%s",
+             pins_to_str(pgm->pinno[PPI_AVR_VCC]));
   }
   else {
     strcpy(vccpins, " (not used)");
   }
 
   if (pgm->pinno[PPI_AVR_BUFF]) {
-    snprintf(buffpins, sizeof(buffpins), " = pins %s", 
-             vccpins_str(pgm->pinno[PPI_AVR_BUFF]));
+    snprintf(buffpins, sizeof(buffpins), "%s",
+             pins_to_str(pgm->pinno[PPI_AVR_BUFF]));
   }
   else {
     strcpy(buffpins, " (not used)");
   }
 
   fprintf(stderr, 
-          "%s  VCC     = 0x%02x%s\n"
-          "%s  BUFF    = 0x%02x%s\n"
+          "%s  VCC     = %s\n"
+          "%s  BUFF    = %s\n"
           "%s  RESET   = %d\n"
           "%s  SCK     = %d\n"
           "%s  MOSI    = %d\n"
@@ -331,8 +336,8 @@ static void par_display(PROGRAMMER * pgm, char * p)
           "%s  PGM LED = %d\n"
           "%s  VFY LED = %d\n",
 
-          p, pgm->pinno[PPI_AVR_VCC], vccpins,
-          p, pgm->pinno[PPI_AVR_BUFF], buffpins,
+          p, vccpins,
+          p, buffpins,
           p, pgm->pinno[PIN_AVR_RESET],
           p, pgm->pinno[PIN_AVR_SCK],
           p, pgm->pinno[PIN_AVR_MOSI],

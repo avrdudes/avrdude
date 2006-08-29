@@ -430,15 +430,7 @@ prog_parm :
       while (lsize(number_list)) {
         t = lrmv_n(number_list, 1);
         pin = t->value.number;
-        if ((pin < 2) || (pin > 9)) {
-          fprintf(stderr, 
-                  "%s: error at line %d of %s: VCC must be one or more "
-                  "pins from the range 2-9\n",
-                  progname, lineno, infile);
-          exit(1);
-        }
-
-        current_prog->pinno[PPI_AVR_VCC] |= (1 << (pin-2));
+        current_prog->pinno[PPI_AVR_VCC] |= (1 << pin);
 
         free_token(t);
       }
@@ -455,15 +447,7 @@ prog_parm :
       while (lsize(number_list)) {
         t = lrmv_n(number_list, 1);
         pin = t->value.number;
-        if ((pin < 2) || (pin > 9)) {
-          fprintf(stderr, 
-                  "%s: error at line %d of %s: BUFF must be one or more "
-                  "pins from the range 2-9\n",
-                  progname, lineno, infile);
-          exit(1);
-        }
-
-        current_prog->pinno[PPI_AVR_BUFF] |= (1 << (pin-2));
+        current_prog->pinno[PPI_AVR_BUFF] |= (1 << pin);
 
         free_token(t);
       }
