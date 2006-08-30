@@ -2,6 +2,7 @@
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
  * Copyright (C) 2005 Michael Holzt <kju-avr@fqdn.org>
+ * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,20 +51,24 @@ struct termios oldmode;
   serial port/pin mapping
 
   1	cd	<-
-  2	rxd	<-
+  2	(rxd)	<-
   3	txd	->
   4	dtr	->
-  5	dsr	<-
-  6	rts	->
-  7	cts	<-
+  5	GND
+  6	dsr	<-
+  7	rts	->
+  8	cts	<-
+  9	ri	<-
 */
 
-static int serregbits[] =
-{ TIOCM_CD, 0, 0, TIOCM_DTR, TIOCM_DSR, TIOCM_RTS, TIOCM_CTS };
+#define DB9PINS 9
+
+static int serregbits[DB9PINS + 1] =
+{ 0, TIOCM_CD, 0, 0, TIOCM_DTR, 0, TIOCM_DSR, TIOCM_RTS, TIOCM_CTS, TIOCM_RI };
 
 #ifdef DEBUG
-static char *serpins[7] =
-  { "CD", "RXD", "TXD ~RESET", "DTR MOSI", "DSR", "RTS SCK", "CTS MISO" };
+static char *serpins[DB9PINS + 1] =
+  { "NONE", "CD", "RXD", "TXD", "DTR", "GND", "DSR", "RTS", "CTS", "RI" };
 #endif
 
 static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
@@ -76,10 +81,8 @@ static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
     pin   &= PIN_MASK;
   }
 
-  if ( pin < 1 || pin > 7 )
+  if ( pin < 1 || pin > DB9PINS )
     return -1;
-
-  pin--;
 
 #ifdef DEBUG
   printf("%s to %d\n",serpins[pin],value);
@@ -87,12 +90,13 @@ static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
 
   switch ( pin )
   {
-    case 2:  /* txd */
+    case 3:  /* txd */
              ioctl(pgm->fd, value ? TIOCSBRK : TIOCCBRK, 0);
              return 0;
 
-    case 3:  /* dtr, rts */
-    case 5:  ioctl(pgm->fd, TIOCMGET, &ctl);
+    case 4:  /* dtr */
+    case 7:  /* rts */
+             ioctl(pgm->fd, TIOCMGET, &ctl);
              if ( value )
                ctl |= serregbits[pin];
              else
@@ -117,21 +121,19 @@ static int serbb_getpin(PROGRAMMER * pgm, int pin)
   } else
     invert = 0;
 
-  if ( pin < 1 || pin > 7 )
+  if ( pin < 1 || pin > DB9PINS )
     return(-1);
-
-  pin --;
 
   switch ( pin )
   {
-    case 1:  /* rxd, currently not implemented, FIXME */
+    case 2:  /* rxd, currently not implemented, FIXME */
              return(-1);
 
-    case 0:  /* cd, dsr, dtr, rts, cts */
-    case 3:
-    case 4:
-    case 5:
-    case 6:  ioctl(pgm->fd, TIOCMGET, &ctl);
+    case 1:  /* cd  */
+    case 6:  /* dsr */
+    case 8:  /* cts */
+    case 9:  /* ri  */
+             ioctl(pgm->fd, TIOCMGET, &ctl);
              if ( !invert )
              {
 #ifdef DEBUG
@@ -154,7 +156,7 @@ static int serbb_getpin(PROGRAMMER * pgm, int pin)
 
 static int serbb_highpulsepin(PROGRAMMER * pgm, int pin)
 {
-  if (pin < 1 || pin > 7)
+  if ( pin < 1 || pin > DB9PINS )
     return -1;
 
   serbb_setpin(pgm, pin, 1);
