@@ -1,5 +1,17 @@
 2006-08-30 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	Rewrite the serbb code so the pin numbering matches the
+	DB9 connector, and fix some related bugs in serbb_posix.c.
+	Closes bug #16265: dasa2 does not work under posix
+	* avrdude.conf.in: New serbb pin numbering; added "siprog"
+	as an alias for "ponyser".
+	* serbb_posix.c: New pin numbering, fix some confusion.
+	* serbb_win32.c: New pin numbering.
+	The generic and Posix-related parts of these changes have
+	been contributed by Hanns-Konrad Unger
+	
+2006-08-30 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	Contributed by the anonymous developer of patch #5096:
 	* avrdude.conf.in (blaster): Add an entry for the Altera
 	byteblaster.
