@@ -610,18 +610,45 @@ programmer
 # some ultra cheap programmers use bitbanging on the 
 # serialport.
 #
+# PC - DB9 - Pins for RS232:
+#
+# GND   5   -- |O
+#              |   O| <-   9   RI
+# DTR   4   <- |O   |
+#              |   O| <-   8   CTS
+# TXD   3   <- |O   |
+#              |   O| ->   7   RTS
+# RXD   2   -> |O   |
+#              |   O| <-   6   DSR
+# DCD   1   -> |O
+#
+# Using RXD is currently not supported.
+# Using RI is not supported under Win32 but is supported under Posix.
 
 # serial ponyprog design (dasa2 in uisp)
 # reset=!txd sck=rts mosi=dtr miso=cts
 
 programmer
   id    = "ponyser";
-  desc  = "serial port banging, design ponyprog serial";
+  desc  = "design ponyprog serial, reset=!txd sck=rts mosi=dtr miso=cts";
   type  = serbb;
   reset = ~3;
-  sck   = 6;
+  sck   = 7;
   mosi  = 4;
-  miso  = 7;
+  miso  = 8;
+;
+
+# Same as above, different name
+# reset=!txd sck=rts mosi=dtr miso=cts
+
+programmer
+  id    = "siprog";
+  desc  = "Lancos SI-Prog <http://www.lancos.com/siprogsch.html>";
+  type  = serbb;
+  reset = ~3;
+  sck   = 7;
+  mosi  = 4;
+  miso  = 8;
 ;
 
 # unknown (dasa in uisp)
@@ -631,10 +658,10 @@ programmer
   id    = "dasa";
   desc  = "serial port banging, reset=rts sck=dtr mosi=txd miso=cts";
   type  = serbb;
-  reset = 6;
+  reset = 7;
   sck   = 4;
   mosi  = 3;
-  miso  = 7;
+  miso  = 8;
 ;
 
 # unknown (dasa3 in uisp)
@@ -645,9 +672,9 @@ programmer
   desc  = "serial port banging, reset=!dtr sck=rts mosi=txd miso=cts";
   type  = serbb;
   reset = ~4;
-  sck   = 6;
+  sck   = 7;
   mosi  = 3;
-  miso  = 7;
+  miso  = 8;
 ;
 
 #

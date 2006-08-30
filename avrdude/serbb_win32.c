@@ -2,7 +2,7 @@
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2003, 2004  Martin J. Thomas  <mthomas@rhrk.uni-kl.de>
  * Copyright (C) 2005 Michael Holzt <kju-avr@fqdn.org>
- * Copyright (C) 2005 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2005, 2006 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,15 +49,17 @@ static int dtr, rts, txd;
   serial port/pin mapping
 
   1	cd	<-
-  2	rxd	<-
+  2	(rxd)	<-
   3	txd	->
   4	dtr	->
-  5	dsr	<-
-  6	rts	->
-  7	cts	<-
-
-  Negative pin # means negated value.
+  5	GND
+  6	dsr	<-
+  7	rts	->
+  8	cts	<-
+  9	ri	<-
 */
+
+#define DB9PINS 9
 
 static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
 {
@@ -72,26 +74,24 @@ static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
                 pin &= PIN_MASK;
         }
 
-        if (pin < 1 || pin > 7)
+        if (pin < 1 || pin > DB9PINS)
                 return -1;
-
-        pin--;
 
         switch (pin)
         {
-        case 2:  /* txd */
+        case 3:  /* txd */
                 dwFunc = value? SETBREAK: CLRBREAK;
                 name = value? "SETBREAK": "CLRBREAK";
                 txd = value;
                 break;
 
-        case 3:  /* dtr */
+        case 4:  /* dtr */
                 dwFunc = value? SETDTR: CLRDTR;
                 name = value? "SETDTR": "CLRDTR";
                 dtr = value;
                 break;
 
-        case 5:  /* rts */
+        case 7:  /* rts */
                 dwFunc = value? SETRTS: CLRRTS;
                 name = value? "SETRTS": "CLRRTS";
                 break;
@@ -144,12 +144,10 @@ static int serbb_getpin(PROGRAMMER * pgm, int pin)
         } else
                 invert = 0;
 
-        if (pin < 1 || pin > 7)
+        if (pin < 1 || pin > DB9PINS)
                 return -1;
 
-        pin --;
-
-        if (pin == 0 /* cd */ || pin == 4 /* dsr */ || pin == 6 /* cts */)
+        if (pin == 1 /* cd */ || pin == 6 /* dsr */ || pin == 8 /* cts */)
         {
                 if (!GetCommModemStatus(hComPort, &modemstate))
                 {
@@ -176,13 +174,13 @@ static int serbb_getpin(PROGRAMMER * pgm, int pin)
                                 progname, modemstate);
                 switch (pin)
                 {
-                case 0:
+                case 1:
                         modemstate &= MS_RLSD_ON;
                         break;
-                case 4:
+                case 6:
                         modemstate &= MS_DSR_ON;
                         break;
-                case 6:
+                case 8:
                         modemstate &= MS_CTS_ON;
                         break;
                 }
@@ -195,15 +193,15 @@ static int serbb_getpin(PROGRAMMER * pgm, int pin)
 
         switch (pin)
         {
-        case 2: /* txd */
+        case 3: /* txd */
                 rv = txd;
                 name = "TXD";
                 break;
-        case 3: /* dtr */
+        case 4: /* dtr */
                 rv = dtr;
                 name = "DTR";
                 break;
-        case 5: /* rts */
+        case 7: /* rts */
                 rv = rts;
                 name = "RTS";
                 break;
