@@ -592,6 +592,18 @@ programmer
   miso  = 10;
 ;
 
+programmer
+  id    = "blaster";
+  desc  = "Altera ByteBlaster";
+  type  = par;
+  sck   = 2;
+  miso  = 11;
+  reset = 3;
+  mosi  = 8;
+  buff  = 14;
+;
+
+
 @HAVE_PARPORT_END@
 
 #

@@ -1,5 +1,11 @@
 2006-08-30 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	Contributed by the anonymous developer of patch #5096:
+	* avrdude.conf.in (blaster): Add an entry for the Altera
+	byteblaster.
+
+2006-08-30 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	Rework the exit specs so they actually work again.  It should be
 	possible to extend them for other programmers than PPI now (serbb,
 	stk500*).
