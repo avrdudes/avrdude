@@ -314,6 +314,9 @@ programmer
   type  =  stk500v2;
 ;
 
+# This is supposed to be the "default" STK500 entry.
+# Refers to V1 by now, might be changed to V2 in a
+# future release.
 programmer
   id    = "stk500";
   desc  = "Atmel STK500";
@@ -321,8 +324,14 @@ programmer
 ;
 
 programmer
+  id    = "stk500v1";
+  desc  = "Atmel STK500 Version 1.x firmware";
+  type  = stk500;
+;
+
+programmer
   id    = "stk500v2";
-  desc  = "Atmel STK500 V2";
+  desc  = "Atmel STK500 Version 2.x firmware";
   type  = stk500v2;
 ;
 
