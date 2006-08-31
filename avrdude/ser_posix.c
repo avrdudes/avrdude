@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003-2004, 2006  Theodore A. Roth  <troth@openavr.org>
+ * Copyright (C) 2003-2004  Theodore A. Roth  <troth@openavr.org>
+ * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +34,9 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <netinet/in.h>
 
 #include <fcntl.h>
 #include <termios.h>
@@ -137,11 +141,89 @@ static int ser_setspeed(int fd, long baud)
   return 0;
 }
 
+/*
+ * Given a port description of the form <host>:<port>, open a TCP
+ * connection to the specified destination, which is assumed to be a
+ * terminal/console server with serial parameters configured
+ * appropriately (e. g. 115200-8-N-1 for a STK500.)
+ */
+static int
+net_open(const char *port)
+{
+  char *hstr, *pstr, *end;
+  unsigned int pnum;
+  int fd;
+  struct sockaddr_in sockaddr;
+  struct hostent *hp;
+
+  if ((hstr = strdup(port)) == NULL) {
+    fprintf(stderr, "%s: net_open(): Out of memory!\n",
+	    progname);
+    exit(1);
+  }
+
+  if (((pstr = strchr(hstr, ':')) == NULL) || (pstr == hstr)) {
+    fprintf(stderr, "%s: net_open(): Mangled host:port string \"%s\"\n",
+	    progname, hstr);
+    free(hstr);
+    exit(1);
+  }
+
+  /*
+   * Terminate the host section of the description.
+   */
+  *pstr++ = '\0';
+
+  pnum = strtoul(pstr, &end, 10);
+
+  if ((*pstr == '\0') || (*end != '\0') || (pnum == 0) || (pnum > 65535)) {
+    fprintf(stderr, "%s: net_open(): Bad port number \"%s\"\n",
+	    progname, pstr);
+    free(hstr);
+    exit(1);
+  }
+
+  if ((hp = gethostbyname(hstr)) == NULL) {
+    fprintf(stderr, "%s: net_open(): unknown host \"%s\"\n",
+	    progname, hstr);
+    free(hstr);
+    exit(1);
+  }
+
+  free(hstr);
+
+  if ((fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+    fprintf(stderr, "%s: net_open(): Cannot open socket: %s\n",
+	    progname, strerror(errno));
+    exit(1);
+  }
+
+  memset(&sockaddr, 0, sizeof(struct sockaddr_in));
+  sockaddr.sin_family = AF_INET;
+  sockaddr.sin_port = htons(pnum);
+  memcpy(&(sockaddr.sin_addr.s_addr), hp->h_addr, sizeof(struct in_addr));
+
+  if (connect(fd, (struct sockaddr *)&sockaddr, sizeof(sockaddr))) {
+    fprintf(stderr, "%s: net_open(): Connect failed: %s\n",
+	    progname, strerror(errno));
+    exit(1);
+  }
+
+  return fd;
+}
 
 static int ser_open(char * port, long baud)
 {
   int rc;
   int fd;
+
+  /*
+   * If the port is of the form "net:<host>:<port>", then
+   * handle it as a TCP connection to a terminal server.
+   */
+  if (strncmp(port, "net:", strlen("net:")) == 0) {
+    return net_open(port + strlen("net:"));
+  }
 
   /*
    * open the serial port
