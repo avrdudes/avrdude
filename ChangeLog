@@ -1,5 +1,10 @@
 2006-08-31 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* avrdude.conf.in: Introduce a "stk500v1" entry, so we
+	can switch the default "stk500" to "stk500v2" some day.
+
+2006-08-31 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	The major part of this change has been contributed by
 	<andyw@pobox.com>.
 	Implements patch #4635: Add support for terminal/console
