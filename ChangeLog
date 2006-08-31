@@ -1,3 +1,9 @@
+2006-08-31 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Tentative fix for bug #16156: Problem with Si-Prog
+	* serbb_posix.c: Disable reset before closing.
+	* serbb_win32.c: (Ditto.)
+
 2006-08-30 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	Rewrite the serbb code so the pin numbering matches the

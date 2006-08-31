@@ -334,7 +334,10 @@ static void serbb_close(PROGRAMMER *pgm)
 {
 	HANDLE hComPort=(HANDLE)pgm->fd;
 	if (hComPort != INVALID_HANDLE_VALUE)
+	{
+		pgm->setpin(pgm, pgm->pinno[PIN_AVR_RESET], 1);
 		CloseHandle (hComPort);
+	}
         if (verbose > 2)
                 fprintf(stderr,
                         "%s: ser_close(): closed comm port handle 0x%x\n",
