@@ -241,7 +241,12 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 
 static void serbb_close(PROGRAMMER *pgm)
 {
-  tcsetattr(pgm->fd, TCSANOW, &oldmode);
+  if (pgm->fd != -1)
+  {   
+	  tcsetattr(pgm->fd, TCSANOW, &oldmode);
+	  pgm->setpin(pgm, pgm->pinno[PIN_AVR_RESET], 1);
+	  close(pgm->fd);
+  }
   return;
 }
 
