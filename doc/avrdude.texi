@@ -28,7 +28,9 @@ This file documents the avrdude program.
 
 For avrdude version @value{VERSION}, @value{UPDATED}.
 
-Copyright @copyright{} 2003, 2005, 2006 Brian Dean
+Copyright @copyright{} 2003, 2005 Brian Dean
+
+Copyright @copyright{} 2006 J@"org Wunsch
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -64,6 +66,8 @@ Send comments on AVRDUDE to @w{@email{avrdude-dev@@nongnu.org}}.
 Use @uref{http://savannah.nongnu.org/bugs/?group=avrdude} to report bugs.
 
 Copyright @copyright{} 2003,2005 Brian S. Dean
+
+Copyright @copyright{} 2006 J@"org Wunsch
 @sp 2
 
 Permission is granted to make and distribute verbatim copies of
@@ -100,6 +104,8 @@ Send comments on AVRDUDE to @w{@email{avrdude-dev@@nongnu.org}}.
 Use @uref{http://savannah.nongnu.org/bugs/?group=avrdude} to report bugs.
 
 Copyright @copyright{} 2003,2005 Brian S. Dean
+
+Copyright @copyright{} 2006 J@"org Wunsch
 @end ifinfo
 
 @menu
@@ -615,7 +621,7 @@ parallel or serial port, use this option to specify the alternate port name.
 
 For the JTAG ICE mkII, if AVRDUDE has been built with libusb support,
 @var{port} may alternatively be specified as
-@var{usb}[:@var{serialno}].  In that case, the JTAG ICE mkII will be
+@code{usb}[:@var{serialno}].  In that case, the JTAG ICE mkII will be
 looked up on USB.  If @var{serialno} is also specified, it will be
 matched against the serial number read from any JTAG ICE mkII found on
 USB.  The match is done after stripping any existing colons from the
@@ -626,6 +632,22 @@ attached to USB, see @ref{Example Command Line Invocations}.
 
 As the AVRISP mkII device can only be talked to over USB, the very
 same method of specifying the port is required there.
+
+For programmers that attach to a serial port using some kind of
+higher level protocol (as opposed to bit-bang style programmers),
+@var{port} can be specified as @code{net}:@var{host}:@var{port}.
+In this case, instead of trying to open a local device, a TCP
+network connection to (TCP) @var{port} on @var{host}
+is established.
+The remote endpoint is assumed to be a terminal or console server
+that connects the network stream to a local serial port where the
+actual programmer has been attached to.
+The port is assumed to be properly configured, for example using a
+transparent 8-bit data connection without parity at 115200 Baud
+for a STK500.
+
+@emph{This feature is currently not implemented for Win32 systems.}
+
 
 @item -q
 Disable (or quell) output of the progress bar while reading or writing
