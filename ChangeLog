@@ -1,5 +1,12 @@
 2006-08-31 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	Fix for bug #16627: Butterfly programmer does not reset after
+	programming
+	* butterfly.c: Wait for the device's response after sending
+	an "E" command.
+
+2006-08-31 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	Tentative fix for bug #16156: Problem with Si-Prog
 	* serbb_posix.c: Disable reset before closing.
 	* serbb_win32.c: (Ditto.)

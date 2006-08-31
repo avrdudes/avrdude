@@ -389,8 +389,9 @@ static void butterfly_close(PROGRAMMER * pgm)
 {
   no_show_func_info();
 
-  /* "exit programmer" added by Martin Thomas 2/2004 */
+  /* "exit programmer" */
   butterfly_send(pgm, "E", 1);
+  butterfly_vfy_cmd_sent(pgm, "exit bootloader");
 
   serial_close(pgm->fd);
   pgm->fd = -1;
