@@ -1,3 +1,9 @@
+2006-09-01 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by Wim Lewis.
+	* serbb_posix.c: Improve error handling.
+	patch #4923: Better error reporting for serial-bitbang programmers
+
 2006-08-31 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: Introduce a "stk500v1" entry, so we

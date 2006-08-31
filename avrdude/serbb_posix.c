@@ -74,6 +74,7 @@ static char *serpins[DB9PINS + 1] =
 static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
 {
   unsigned int	ctl;
+  int           r;
 
   if (pin & PIN_INVERSE)
   {
@@ -91,17 +92,29 @@ static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
   switch ( pin )
   {
     case 3:  /* txd */
-             ioctl(pgm->fd, value ? TIOCSBRK : TIOCCBRK, 0);
+	     r = ioctl(pgm->fd, value ? TIOCSBRK : TIOCCBRK, 0);
+	     if (r < 0) {
+	       perror("ioctl(\"TIOCxBRK\")");
+	       return -1;
+	     }
              return 0;
 
     case 4:  /* dtr */
     case 7:  /* rts */
-             ioctl(pgm->fd, TIOCMGET, &ctl);
+             r = ioctl(pgm->fd, TIOCMGET, &ctl);
+ 	     if (r < 0) {
+	       perror("ioctl(\"TIOCMGET\")");
+	       return -1;
+ 	     }
              if ( value )
                ctl |= serregbits[pin];
              else
                ctl &= ~(serregbits[pin]);
-             ioctl(pgm->fd, TIOCMSET, &ctl);
+	     r = ioctl(pgm->fd, TIOCMSET, &ctl);
+ 	     if (r < 0) {
+	       perror("ioctl(\"TIOCMSET\")");
+	       return -1;
+ 	     }
              return 0;
 
     default: /* impossible */
@@ -113,6 +126,7 @@ static int serbb_getpin(PROGRAMMER * pgm, int pin)
 {
   unsigned int	ctl;
   unsigned char invert;
+  int           r;
 
   if (pin & PIN_INVERSE)
   {
@@ -133,7 +147,11 @@ static int serbb_getpin(PROGRAMMER * pgm, int pin)
     case 6:  /* dsr */
     case 8:  /* cts */
     case 9:  /* ri  */
-             ioctl(pgm->fd, TIOCMGET, &ctl);
+             r = ioctl(pgm->fd, TIOCMGET, &ctl);
+ 	     if (r < 0) {
+	       perror("ioctl(\"TIOCMGET\")");
+	       return -1;
+ 	     }
              if ( !invert )
              {
 #ifdef DEBUG
@@ -201,6 +219,7 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 {
   struct termios mode;
   int flags;
+  int r;
 
   bitbang_check_prerequisites(pgm);
 
@@ -208,10 +227,17 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 
   pgm->fd = open(port, O_RDWR | O_NOCTTY | O_NONBLOCK);
 
-  if (pgm->fd < 0)
+  if (pgm->fd < 0) {
+    perror(port);
     return(-1);
+  }
 
-  tcgetattr(pgm->fd, &mode);
+  r = tcgetattr(pgm->fd, &mode);
+  if (r < 0) {
+    fprintf(stderr, "%s: ", port);
+    perror("tcgetattr");
+    return(-1);
+  }
   oldmode = mode;
 
   mode.c_iflag = IGNBRK | IGNPAR;
@@ -220,19 +246,26 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
   mode.c_cc [VMIN] = 1;
   mode.c_cc [VTIME] = 0;
 
-  tcsetattr(pgm->fd, TCSANOW, &mode);
+  r = tcsetattr(pgm->fd, TCSANOW, &mode);
+  if (r < 0) {
+      fprintf(stderr, "%s: ", port);
+      perror("tcsetattr");
+      return(-1);
+  }
 
   /* Clear O_NONBLOCK flag.  */
   flags = fcntl(pgm->fd, F_GETFL, 0);
   if (flags == -1)
     {
-      fprintf(stderr, "%s: Can not get flags\n", progname);
+      fprintf(stderr, "%s: Can not get flags: %s\n",
+	      progname, strerror(errno));
       return(-1);
     }
   flags &= ~O_NONBLOCK;
   if (fcntl(pgm->fd, F_SETFL, flags) == -1)
     {
-      fprintf(stderr, "%s: Can not clear nonblock flag\n", progname);
+      fprintf(stderr, "%s: Can not clear nonblock flag: %s\n",
+	      progname, strerror(errno));
       return(-1);
     }
 
@@ -241,9 +274,11 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 
 static void serbb_close(PROGRAMMER *pgm)
 {
+  int r;
+
   if (pgm->fd != -1)
-  {   
-	  tcsetattr(pgm->fd, TCSANOW, &oldmode);
+  {
+	  (void)tcsetattr(pgm->fd, TCSANOW, &oldmode);
 	  pgm->setpin(pgm, pgm->pinno[PIN_AVR_RESET], 1);
 	  close(pgm->fd);
   }
