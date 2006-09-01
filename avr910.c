@@ -557,6 +557,8 @@ static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 static int avr910_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 {
+  unsigned char tmp;
+
   if (m->size < 3) {
     fprintf(stderr, "%s: memsize too small for sig byte read", progname);
     return -1;
@@ -564,6 +566,10 @@ static int avr910_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 
   avr910_send(pgm, "s", 1);
   avr910_recv(pgm, (char *)m->buf, 3);
+  /* Returned signature has wrong order. */
+  tmp = m->buf[2];
+  m->buf[2] = m->buf[0];
+  m->buf[0] = tmp;
 
   return 3;
 }

@@ -227,7 +227,6 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   char buf[10];
   char type;
   char c;
-  int dev_supported = 0;
 
   no_show_func_info();
 
@@ -313,21 +312,8 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
     if (c == 0)
       break;
     fprintf(stderr, "    Device code: 0x%02x\n", (unsigned int)(unsigned char)c);
-
-    /* FIXME: Need to lookup devcode and report the device. */
-
-    if (p->avr910_devcode == (int)(unsigned char)c)
-      dev_supported = 1;
   };
   fprintf(stderr,"\n");
-
-  if (!dev_supported) {
-    /* FIXME: if nothing matched, we should rather compare the device
-       signatures. */
-    fprintf(stderr,
-            "%s: error: selected device is not supported by programmer: %s\n",
-            progname, p->id);
-  }
 
   /* Tell the programmer which part we selected. */
 
@@ -337,10 +323,9 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   butterfly_send(pgm, buf, 2);
   butterfly_vfy_cmd_sent(pgm, "select device");
 
-  if (dev_supported)
-      butterfly_enter_prog_mode(pgm);
+  butterfly_enter_prog_mode(pgm);
 
-  return dev_supported? 0: -1;
+  return 0;
 }
 
 
