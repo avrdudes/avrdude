@@ -946,9 +946,9 @@ int main(int argc, char * argv [])
      * they are running
      */
     fprintf(stderr,
-            "\n%s: Version %s\n"
+            "\n%s: Version %s, compiled on %s at %s\n"
             "%sCopyright (c) 2000-2005 Brian Dean, http://www.bdmicro.com/\n\n",
-            progname, version, progbuf);
+            progname, version, __DATE__, __TIME__, progbuf);
   }
 
   if (verbose) {

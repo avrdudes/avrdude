@@ -1,5 +1,12 @@
 2006-09-01 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* main.c: Add date and time of compilation to the verbose
+	greeting message.
+	Idea taken from patch #3172: Adds date and time of compile
+	to usage message
+
+2006-09-01 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	Contributed by <avrdude@zevv.nl> as
 	patch #4372: Better synchronization for stk500
 	* stk500.c: Sync three times, and drop any noise inbetween.
