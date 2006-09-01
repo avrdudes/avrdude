@@ -1,5 +1,11 @@
 2006-09-01 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	Contributed by <avrdude@zevv.nl> as
+	patch #4372: Better synchronization for stk500
+	* stk500.c: Sync three times, and drop any noise inbetween.
+
+2006-09-01 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* avrdude.conf.in (ATtiny261, ATtiny461, ATtiny861): new
 	entries.
 
