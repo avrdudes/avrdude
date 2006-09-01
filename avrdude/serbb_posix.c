@@ -274,8 +274,6 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 
 static void serbb_close(PROGRAMMER *pgm)
 {
-  int r;
-
   if (pgm->fd != -1)
   {
 	  (void)tcsetattr(pgm->fd, TCSANOW, &oldmode);
