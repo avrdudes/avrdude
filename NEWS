@@ -13,6 +13,7 @@ Current:
       - ATmega2560/2561
       - ATmega325/3250/645/6450
       - ATtiny11 (HVSP only device)
+      - ATtiny261/461/861
 
   * Fixed paged flash write operations for AT90PWMx devices
     (error in datasheet).
@@ -24,6 +25,8 @@ Current:
 
   * Allow for specifying the ISP clock delay as an option for
     bit-bang programming adapters.
+
+  * Many bugfixes.
 
 Version 5.1:
 
