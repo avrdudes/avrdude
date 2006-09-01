@@ -1,5 +1,10 @@
 2006-09-01 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* avrdude.conf.in (ATtiny261, ATtiny461, ATtiny861): new
+	entries.
+
+2006-09-01 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* butterfly.c: Remove the device support decision based on
 	the old AVR910 device codes; we've got signature verification
 	now so better rely on that.
