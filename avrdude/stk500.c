@@ -90,6 +90,16 @@ static int stk500_getsync(PROGRAMMER * pgm)
    * get in sync */
   buf[0] = Cmnd_STK_GET_SYNC;
   buf[1] = Sync_CRC_EOP;
+  
+  /*
+   * First send and drain a few times to get rid of line noise 
+   */
+   
+  stk500_send(pgm, buf, 2);
+  stk500_drain(pgm, 0);
+  stk500_send(pgm, buf, 2);
+  stk500_drain(pgm, 0);
+
   stk500_send(pgm, buf, 2);
   stk500_recv(pgm, resp, 1);
   if (resp[0] != Resp_STK_INSYNC) {
