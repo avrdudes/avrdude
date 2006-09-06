@@ -24,7 +24,6 @@
 
 int  jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len);
 int  jtagmkII_recv(PROGRAMMER * pgm, unsigned char **msg);
-int  jtagmkII_open(PROGRAMMER * pgm, char * port);
 void jtagmkII_close(PROGRAMMER * pgm);
 int  jtagmkII_getsync(PROGRAMMER * pgm, int mode);
 int  jtagmkII_getparm(PROGRAMMER * pgm, unsigned char parm,
