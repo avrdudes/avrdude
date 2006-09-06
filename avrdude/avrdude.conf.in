@@ -16,7 +16,7 @@
 #       id       = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
 #       desc     = <description> ;                  # quoted string
 #       type     = par | stk500 | stk500v2 | stk500pp | stk500hvsp |
-#                  avr910 | jtagmki | jtagmkii;     # programmer type
+#                  avr910 | jtagmki | jtagmkii | jtagmkii_isp; # programmer type
 #       baudrate = <num> ;                          # baudrate for avr910-programmer
 #       vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
 #       reset    = <num> ;                          # pin number
@@ -423,6 +423,14 @@ programmer
   desc  = "Atmel JTAG ICE mkII";
   baudrate = 115200;
   type  = jtagmkii;
+;
+
+# JTAG ICE mkII in ISP mode
+programmer
+  id    = "jtag2isp";
+  desc  = "Atmel JTAG ICE mkII in ISP mode";
+  baudrate = 115200;
+  type  = jtagmkii_isp;
 ;
 
 programmer

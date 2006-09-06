@@ -1,3 +1,17 @@
+2006-09-06 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Add support for the JTAG ICE mkII in ISP mode.
+	* avrdude.conf.in (jtag2isp): New programmer entry.
+	* config_gram.y: Add K_JTAG_MKII_ISP.
+	* jtagmkII.c: Restructure and export some more functions.
+	* jtagmkII.h: Declare exported functions.
+	* jtagmkII_private.h: Prepare file to be included in stk500v2.c.
+	* lexer.l: Add jtagmkii_isp token.
+	* stk500v2.c: Implement glue to jtagmkII.c.
+	* stk500v2.h: Declare stk500v2_jtagmkII_initpgm().
+	* avrdude.1: Document the new programmer support.
+	* doc/avrdude.texi: (Ditto.)
+
 2006-09-01 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* main.c: Add date and time of compilation to the verbose

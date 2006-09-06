@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2002-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2002-2004, 2006  Brian S. Dean <bsd@bsdhome.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,14 @@
 
 #ifndef jtagmkII_h
 #define jtagmkII_h
+
+int  jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len);
+int  jtagmkII_recv(PROGRAMMER * pgm, unsigned char **msg);
+int  jtagmkII_open(PROGRAMMER * pgm, char * port);
+void jtagmkII_close(PROGRAMMER * pgm);
+int  jtagmkII_getsync(PROGRAMMER * pgm, int mode);
+int  jtagmkII_getparm(PROGRAMMER * pgm, unsigned char parm,
+		      unsigned char * value);
 
 void jtagmkII_initpgm (PROGRAMMER * pgm);
 

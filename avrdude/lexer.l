@@ -144,6 +144,7 @@ id               { yylval=NULL; return K_ID; }
 idr              { yylval=NULL; return K_IDR; }
 jtagmki          { yylval=NULL; return K_JTAG_MKI; }
 jtagmkii         { yylval=NULL; return K_JTAG_MKII; }
+jtagmkii_isp     { yylval=NULL; return K_JTAG_MKII_ISP; }
 max_write_delay  { yylval=NULL; return K_MAX_WRITE_DELAY; }
 memory           { yylval=NULL; return K_MEMORY; }
 min_write_delay  { yylval=NULL; return K_MIN_WRITE_DELAY; }
