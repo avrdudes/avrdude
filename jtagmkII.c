@@ -89,8 +89,6 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 			       unsigned long addr, unsigned char data);
 static int jtagmkII_set_sck_period(PROGRAMMER * pgm, double v);
-static int jtagmkII_getparm(PROGRAMMER * pgm, unsigned char parm,
-			    unsigned char * value);
 static int jtagmkII_setparm(PROGRAMMER * pgm, unsigned char parm,
 			    unsigned char * value);
 static void jtagmkII_print_parms1(PROGRAMMER * pgm, char * p);
@@ -291,7 +289,7 @@ static void jtagmkII_prmsg(PROGRAMMER * pgm, unsigned char * data, size_t len)
 }
 
 
-static int jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
+int jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 {
   unsigned char *buf;
 
@@ -493,7 +491,7 @@ fprintf(stderr, "\n");
   return msglen;
 }
 
-static int jtagmkII_recv(PROGRAMMER * pgm, unsigned char **msg) {
+int jtagmkII_recv(PROGRAMMER * pgm, unsigned char **msg) {
   unsigned short r_seqno;
   int rv;
 
@@ -531,7 +529,7 @@ static int jtagmkII_recv(PROGRAMMER * pgm, unsigned char **msg) {
 }
 
 
-static int jtagmkII_getsync(PROGRAMMER * pgm) {
+int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
   int tries;
 #define MAXTRIES 33
   unsigned char buf[3], *resp, c = 0xff;
@@ -625,14 +623,24 @@ static int jtagmkII_getsync(PROGRAMMER * pgm) {
   } else if (fwver < FWVER(4, 0)) {
     device_descriptor_length -= 2;
   }
-#undef FWVER
-  if (verbose >= 2)
+  if (verbose >= 2 && mode != EMULATOR_MODE_SPI)
     fprintf(stderr,
 	    "%s: jtagmkII_getsync(): Using a %zu-byte device descriptor\n",
 	    progname, device_descriptor_length);
+  if (mode == EMULATOR_MODE_SPI) {
+    device_descriptor_length = 0;
+    if (fwver < FWVER(4, 14)) {
+      fprintf(stderr,
+	      "%s: jtagmkII_getsync(): ISP functionality requires firmware "
+	      "version >= 4.14\n",
+	      progname);
+      return -1;
+    }
+  }
+#undef FWVER
 
-  /* Turn the ICE into JTAG mode */
-  buf[0] = EMULATOR_MODE_JTAG;
+  /* Turn the ICE into JTAG or ISP mode as requested. */
+  buf[0] = mode;
   if (jtagmkII_setparm(pgm, PAR_EMULATOR_MODE, buf) < 0)
     return -1;
 
@@ -1058,7 +1066,6 @@ static int jtagmkII_open(PROGRAMMER * pgm, char * port)
    */
   baud = 19200;
 
-#if defined(HAVE_LIBUSB)
   /*
    * If the port name starts with "usb", divert the serial routines
    * to the USB ones.  The serial_open() function for USB overrides
@@ -1066,10 +1073,14 @@ static int jtagmkII_open(PROGRAMMER * pgm, char * port)
    * search for.
    */
   if (strncmp(port, "usb", 3) == 0) {
+#if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
     baud = USB_DEVICE_JTAGICEMKII;
-  }
+#else
+    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    return -1;
 #endif
+  }
 
   strcpy(pgm->port, port);
   pgm->fd = serial_open(port, baud);
@@ -1079,13 +1090,13 @@ static int jtagmkII_open(PROGRAMMER * pgm, char * port)
    */
   jtagmkII_drain(pgm, 0);
 
-  jtagmkII_getsync(pgm);
+  jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG);
 
   return 0;
 }
 
 
-static void jtagmkII_close(PROGRAMMER * pgm)
+void jtagmkII_close(PROGRAMMER * pgm)
 {
   int status;
   unsigned char buf[1], *resp, c;
@@ -1093,33 +1104,36 @@ static void jtagmkII_close(PROGRAMMER * pgm)
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkII_close()\n", progname);
 
-  buf[0] = CMND_GO;
-  if (verbose >= 2)
-    fprintf(stderr, "%s: jtagmkII_close(): Sending GO command: ",
-	    progname);
-  jtagmkII_send(pgm, buf, 1);
-
-  status = jtagmkII_recv(pgm, &resp);
-  if (status <= 0) {
+  if (device_descriptor_length) {
+    /* When in JTAG mode, restart target. */
+    buf[0] = CMND_GO;
     if (verbose >= 2)
-      putc('\n', stderr);
-    fprintf(stderr,
-	    "%s: jtagmkII_close(): "
-	    "timeout/error communicating with programmer (status %d)\n",
-	    progname, status);
-  } else {
-    if (verbose >= 3) {
-      putc('\n', stderr);
-      jtagmkII_prmsg(pgm, resp, status);
-    } else if (verbose == 2)
-      fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[0], status);
-    c = resp[0];
-    free(resp);
-    if (c != RSP_OK) {
+      fprintf(stderr, "%s: jtagmkII_close(): Sending GO command: ",
+	      progname);
+    jtagmkII_send(pgm, buf, 1);
+
+    status = jtagmkII_recv(pgm, &resp);
+    if (status <= 0) {
+      if (verbose >= 2)
+	putc('\n', stderr);
       fprintf(stderr,
 	      "%s: jtagmkII_close(): "
-	      "bad response to GO command: 0x%02x\n",
-	      progname, c);
+	      "timeout/error communicating with programmer (status %d)\n",
+	      progname, status);
+    } else {
+      if (verbose >= 3) {
+	putc('\n', stderr);
+	jtagmkII_prmsg(pgm, resp, status);
+      } else if (verbose == 2)
+	fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[0], status);
+      c = resp[0];
+      free(resp);
+      if (c != RSP_OK) {
+	fprintf(stderr,
+		"%s: jtagmkII_close(): "
+		"bad response to GO command: 0x%02x\n",
+		progname, c);
+      }
     }
   }
 
@@ -1624,8 +1638,8 @@ static int jtagmkII_set_sck_period(PROGRAMMER * pgm, double v)
  * bytes by now, we always copy out 4 bytes to *value, so the caller
  * must have allocated sufficient space.
  */
-static int jtagmkII_getparm(PROGRAMMER * pgm, unsigned char parm,
-			    unsigned char * value)
+int jtagmkII_getparm(PROGRAMMER * pgm, unsigned char parm,
+		     unsigned char * value)
 {
   int status;
   unsigned char buf[2], *resp, c;

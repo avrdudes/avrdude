@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE August 16, 2006
+.Dd DATE September 6, 2006
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -57,7 +57,7 @@ microcontrollers.
 .Nm Avrdude
 supports Atmel's STK500 programmer,
 Atmel's AVRISP and AVRISP mkII devices,
-Atmel's JTAG ICE (both mkI and mkII),
+Atmel's JTAG ICE (both mkI and mkII, the latter also in ISP mode),
 programmers complying to AppNote AVR910 and AVR109 (including the Butterfly),
 as well as a simple hard-wired
 programmer connected directly to a
@@ -111,6 +111,7 @@ supported on a serial port.
 .Pp
 Atmel's JTAG ICE (both mkI and mkII) is supported as well to up- or download memory
 areas from/to an AVR target (no support for on-chip debugging).
+For the JTAG ICE mkII, both JTAG and ISP mode are supported.
 .Pp
 Input files can be provided, and output files can be written in
 different file formats, such as raw binary files containing the data
@@ -219,7 +220,7 @@ and bit-bang programmers.
 Override the RS-232 connection baud rate specified in the respective
 programmer's entry of the configuration file.
 .It Fl B Ar bitclock
-Specify the bit clock period for the JTAG interface (JTAG ICE only).
+Specify the bit clock period for the JTAG interface or the ISP clock (JTAG ICE only).
 The value is a floating-point number in microseconds.
 The default value of the JTAG ICE results in about 1 microsecond bit
 clock period, suitable for target MCUs running at 4 MHz clock and
@@ -629,6 +630,8 @@ microseconds.
 Note that unlike STK500 settings, this setting will be reverted to
 its default value (approximately 1 microsecond) when the programming
 software signs off from the JTAG ICE.
+This parameter can also be used on the JTAG ICE mkII to specify the
+ISP clock period when operating the ICE in ISP mode.
 .It Ar parms
 .Em STK500 programmer only:
 Display the current voltage and master oscillator parameters.

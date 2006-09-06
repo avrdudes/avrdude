@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2005 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2005, 2006 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,6 +26,7 @@
  * Taken from Appnote AVR067
  */
 
+#if !defined(JTAGMKII_PRIVATE_EXPORTED)
 /*
  * Communication with the JTAG ICE works in frames.  The protocol
  * somewhat resembles the STK500v2 protocol, yet it is sufficiently
@@ -71,6 +72,8 @@
  */
 #define MAX_MESSAGE 100000
 
+#endif /* JTAGMKII_PRIVATE_EXPORTED */
+
 /* ICE command codes */
 #define CMND_CHIP_ERASE 0x13
 #define CMND_CLEAR_EVENTS 0x22
@@ -83,6 +86,7 @@
 #define CMND_GET_SIGN_ON 0x01
 #define CMND_GET_SYNC 0x0f
 #define CMND_GO 0x08
+#define CMND_ISP_PACKET 0x2F
 #define CMND_LEAVE_PROGMODE 0x15
 #define CMND_READ_MEMORY 0x05
 #define CMND_READ_PC 0x07
@@ -232,6 +236,7 @@
 # define PAGEPROG_NOT_ALLOWED 0x00
 # define PAGEPROG_ALLOWED 0x01
 
+#if !defined(JTAGMKII_PRIVATE_EXPORTED)
 /*
  * In appnote AVR067, struct device_descriptor is written with
  * int/long field types.  We cannot use them directly, as they were
@@ -288,3 +293,4 @@ struct device_descriptor
   /* new as of early 2005, firmware 4.x */
   unsigned char EECRAddress[2]; /* EECR memory-mapped IO address */
 };
+#endif /* JTAGMKII_PRIVATE_EXPORTED */

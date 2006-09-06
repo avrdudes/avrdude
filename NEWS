@@ -23,6 +23,9 @@ Current:
   * Add high-voltage mode programming for the STK500 (both,
     parallel, and high-voltage serial programming).
 
+  * Add support for using the JTAG ICE mkII as a generic ISP
+    programmer.
+
   * Allow for specifying the ISP clock delay as an option for
     bit-bang programming adapters.
 

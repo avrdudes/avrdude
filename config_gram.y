@@ -95,6 +95,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_IO
 %token K_JTAG_MKI
 %token K_JTAG_MKII
+%token K_JTAG_MKII_ISP
 %token K_LOADPAGE
 %token K_MAX_WRITE_DELAY
 %token K_MIN_WRITE_DELAY
@@ -411,6 +412,12 @@ prog_parm :
   K_TYPE TKN_EQUAL K_JTAG_MKII {
     {
       jtagmkII_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_JTAG_MKII_ISP {
+    {
+      stk500v2_jtagmkII_initpgm(current_prog);
     }
   } |
 

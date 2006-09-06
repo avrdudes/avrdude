@@ -54,6 +54,17 @@
 #include "serial.h"
 #include "usbdevs.h"
 
+/*
+ * We need to import enough from the JTAG ICE mkII definitions to be
+ * able to talk to the ICE, query some parameters etc.  The macro
+ * JTAGMKII_PRIVATE_EXPORTED limits the amount of definitions that
+ * jtagmkII_private.h will export, so to avoid conflicts with those
+ * names that are identical to the STK500v2 ones.
+ */
+#include "jtagmkII.h"           // public interfaces from jtagmkII.c
+#define JTAGMKII_PRIVATE_EXPORTED
+#include "jtagmkII_private.h"
+
 #define STK500V2_XTAL 7372800U
 
 #if 0
@@ -91,7 +102,6 @@ static unsigned long eeprom_pageaddr;
 static unsigned int eeprom_pagesize;
 
 static unsigned char command_sequence = 1;
-static int is_mk2;		/* Is the device an AVRISP mkII? */
 
 static enum
 {
@@ -99,6 +109,7 @@ static enum
   PGMTYPE_STK500,
   PGMTYPE_AVRISP,
   PGMTYPE_AVRISP_MKII,
+  PGMTYPE_JTAGICE_MKII,
 }
 pgmtype;
 
@@ -108,6 +119,36 @@ static const char *pgmname[] =
   "STK500",
   "AVRISP",
   "AVRISP mkII",
+  "JTAG ICE mkII",
+};
+
+struct jtagispentry
+{
+  unsigned char cmd;
+  unsigned short size;
+#define SZ_READ_FLASH_EE USHRT_MAX
+#define SZ_SPI_MULTI     (USHRT_MAX - 1)
+};
+
+static struct jtagispentry jtagispcmds[] = {
+  { CMD_SET_PARAMETER, 2 },
+  { CMD_GET_PARAMETER, 3 },
+  { CMD_OSCCAL, 2 },
+  { CMD_LOAD_ADDRESS, 2 },
+  { CMD_ENTER_PROGMODE_ISP, 2 },
+  { CMD_LEAVE_PROGMODE_ISP, 2 },
+  { CMD_CHIP_ERASE_ISP, 2 },
+  { CMD_PROGRAM_FLASH_ISP, 2 },
+  { CMD_READ_FLASH_ISP, SZ_READ_FLASH_EE },
+  { CMD_PROGRAM_EEPROM_ISP, 2 },
+  { CMD_READ_EEPROM_ISP, SZ_READ_FLASH_EE },
+  { CMD_PROGRAM_FUSE_ISP, 3 },
+  { CMD_READ_FUSE_ISP, 4 },
+  { CMD_PROGRAM_LOCK_ISP, 3 },
+  { CMD_READ_LOCK_ISP, 4 },
+  { CMD_READ_SIGNATURE_ISP, 4 },
+  { CMD_READ_OSCCAL_ISP, 4 },
+  { CMD_SPI_MULTI, SZ_SPI_MULTI }
 };
 
 static int stk500v2_getparm(PROGRAMMER * pgm, unsigned char parm, unsigned char * value);
@@ -118,9 +159,17 @@ static int stk500v2_is_page_empty(unsigned int address, int page_size,
 
 static unsigned int stk500v2_mode_for_pagesize(unsigned int pagesize);
 
-#if defined(HAVE_LIBUSB)
 static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v);
-#endif
+
+static unsigned short
+b2_to_u16(unsigned char *b)
+{
+  unsigned short l;
+  l = b[0];
+  l += (unsigned)b[1] << 8;
+
+  return l;
+}
 
 static int stk500v2_send_mk2(PROGRAMMER * pgm, unsigned char * data, size_t len)
 {
@@ -132,13 +181,74 @@ static int stk500v2_send_mk2(PROGRAMMER * pgm, unsigned char * data, size_t len)
   return 0;
 }
 
+static unsigned short get_jtagisp_return_size(unsigned char cmd)
+{
+  int i;
+
+  for (i = 0; i < sizeof jtagispcmds / sizeof jtagispcmds[0]; i++)
+    if (jtagispcmds[i].cmd == cmd)
+      return jtagispcmds[i].size;
+
+  return 0;
+}
+
+/*
+ * Send the data as a JTAG ICE mkII encapsulated ISP packet.
+ * Unlike what AVR067 says, the packet gets a length of our
+ * response buffer prepended, and replies with RSP_SPI_DATA
+ * if successful.
+ */
+static int stk500v2_jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
+{
+  unsigned char *cmdbuf;
+  int rv;
+  unsigned short sz;
+
+  sz = get_jtagisp_return_size(data[0]);
+  if (sz == 0) {
+    fprintf(stderr, "%s: unsupported encapsulated ISP command: %#x\n",
+	    progname, data[0]);
+    return -1;
+  }
+  if (sz == SZ_READ_FLASH_EE) {
+    /*
+     * For CMND_READ_FLASH_ISP and CMND_READ_EEPROM_ISP, extract the
+     * size of the return data from the request.  Note that the
+     * request itself has the size in big endian format, while we are
+     * supposed to deliver it in little endian.
+     */
+    sz = 3 + (data[1] << 8) + data[2];
+  } else if (sz == SZ_SPI_MULTI) {
+    /*
+     * CMND_SPI_MULTI has the Rx size encoded in its 3rd byte.
+     */
+    sz = 3 + data[2];
+  }
+
+  if ((cmdbuf = malloc(len + 3)) == NULL) {
+    fprintf(stderr, "%s: out of memory for command packet\n",
+            progname);
+    exit(1);
+  }
+  cmdbuf[0] = CMND_ISP_PACKET;
+  cmdbuf[1] = sz & 0xff;
+  cmdbuf[2] = (sz >> 8) & 0xff;
+  memcpy(cmdbuf + 3, data, len);
+  rv = jtagmkII_send(pgm, cmdbuf, len + 3);
+  free(cmdbuf);
+
+  return rv;
+}
+
 static int stk500v2_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 {
   unsigned char buf[275 + 6];		// max MESSAGE_BODY of 275 bytes, 6 bytes overhead
   int i;
 
-  if (is_mk2)
+  if (pgmtype == PGMTYPE_AVRISP_MKII)
     return stk500v2_send_mk2(pgm, data, len);
+  else if (pgmtype == PGMTYPE_JTAGICE_MKII)
+    return stk500v2_jtagmkII_send(pgm, data, len);
 
   buf[0] = MESSAGE_START;
   buf[1] = command_sequence;
@@ -184,6 +294,44 @@ static int stk500v2_recv_mk2(PROGRAMMER * pgm, unsigned char msg[],
   return rv;
 }
 
+static int stk500v2_jtagmkII_recv(PROGRAMMER * pgm, unsigned char msg[],
+                                  size_t maxsize)
+{
+  int rv;
+  unsigned char *jtagmsg;
+
+  rv = jtagmkII_recv(pgm, &jtagmsg);
+  if (rv <= 0) {
+    fprintf(stderr, "%s: stk500v2_jtagmkII_recv(): error in jtagmkII_recv()\n",
+            progname);
+    return -1;
+  }
+  if (rv > maxsize) {
+    fprintf(stderr,
+            "%s: stk500v2_jtagmkII_recv(): got %u bytes, have only room for %u bytes\n",
+            progname, (unsigned)rv, maxsize);
+    rv = maxsize;
+  }
+  switch (jtagmsg[0]) {
+  case RSP_SPI_DATA:
+    break;
+  case RSP_FAILED:
+    fprintf(stderr, "%s: stk500v2_jtagmkII_recv(): failed\n",
+	    progname);
+    return -1;
+  case RSP_ILLEGAL_MCU_STATE:
+    fprintf(stderr, "%s: stk500v2_jtagmkII_recv(): illegal MCU state\n",
+	    progname);
+    return -1;
+  default:
+    fprintf(stderr, "%s: stk500v2_jtagmkII_recv(): unknown status %d\n",
+	    progname, jtagmsg[0]);
+    return -1;
+  }
+  memcpy(msg, jtagmsg + 1, rv - 1);
+  return 0;
+}
+
 static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) {
   enum states { sINIT, sSTART, sSEQNUM, sSIZE1, sSIZE2, sTOKEN, sDATA, sCSUM, sDONE }  state = sSTART;
   int msglen = 0;
@@ -195,8 +343,10 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
   struct timeval tv;
   double tstart, tnow;
 
-  if (is_mk2)
+  if (pgmtype == PGMTYPE_AVRISP_MKII)
     return stk500v2_recv_mk2(pgm, msg, maxsize);
+  else if (pgmtype == PGMTYPE_JTAGICE_MKII)
+    return stk500v2_jtagmkII_recv(pgm, msg, maxsize);
 
   DEBUG("STK500V2: stk500v2_recv(): ");
 
@@ -300,6 +450,9 @@ static int stk500v2_getsync(PROGRAMMER * pgm) {
   int status;
 
   DEBUG("STK500V2: stk500v2_getsync()\n");
+
+  if (pgmtype == PGMTYPE_JTAGICE_MKII)
+    return 0;
 
 retry:
   tries++;
@@ -702,7 +855,6 @@ static void stk500v2_disable(PROGRAMMER * pgm)
   if (buf[1] != STATUS_CMD_OK) {
     fprintf(stderr, "%s: stk500v2_disable(): failed to leave programming mode, got 0x%02x\n",
             progname,buf[1]);
-    exit(1);
   }
 
   return;
@@ -769,6 +921,8 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
   if (pgm->baudrate)
     baud = pgm->baudrate;
 
+  pgmtype = PGMTYPE_UNKNOWN;
+
   /*
    * If the port name starts with "usb", divert the serial routines
    * to the USB ones.  The serial_open() function for USB overrides
@@ -779,7 +933,7 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev_frame;
     baud = USB_DEVICE_AVRISPMKII;
-    is_mk2 = 1;
+    pgmtype = PGMTYPE_AVRISP_MKII;
     pgm->set_sck_period = stk500v2_set_sck_period_mk2;
 #else
     fprintf(stderr, "avrdude was compiled without usb support.\n");
@@ -794,8 +948,6 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
    * drain any extraneous input
    */
   stk500v2_drain(pgm, 0);
-
-  pgmtype = PGMTYPE_UNKNOWN;
 
   stk500v2_getsync(pgm);
 
@@ -1707,7 +1859,6 @@ double avrispmkIIfreqs[] = {
 	65.0, 61.9, 59.0, 56.3, 53.6, 51.1
 };
 
-#if defined(HAVE_LIBUSB)
 static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v)
 {
   int i;
@@ -1722,7 +1873,6 @@ static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v)
 
   return stk500v2_setparm(pgm, PARAM_SCK_DURATION, i);
 }
-#endif /* HAVE_LIBUSB */
 
 /*
  * Return the "mode" value for the parallel and HVSP modes that
@@ -1837,10 +1987,6 @@ static void stk500v2_display(PROGRAMMER * pgm, char * p)
   unsigned char maj, min, hdw, topcard;
   const char *topcard_name, *pgmname;
 
-  stk500v2_getparm(pgm, PARAM_HW_VER, &hdw);
-  stk500v2_getparm(pgm, PARAM_SW_MAJOR, &maj);
-  stk500v2_getparm(pgm, PARAM_SW_MINOR, &min);
-
   switch (pgmtype) {
     case PGMTYPE_UNKNOWN:     pgmname = "Unknown"; break;
     case PGMTYPE_STK500:      pgmname = "STK500"; break;
@@ -1848,9 +1994,14 @@ static void stk500v2_display(PROGRAMMER * pgm, char * p)
     case PGMTYPE_AVRISP_MKII: pgmname = "AVRISP mkII"; break;
     default:                  pgmname = "None";
   }
-  fprintf(stderr, "%sProgrammer Model: %s\n", p, pgmname);
-  fprintf(stderr, "%sHardware Version: %d\n", p, hdw);
-  fprintf(stderr, "%sFirmware Version: %d.%02d\n", p, maj, min);
+  if (pgmtype != PGMTYPE_JTAGICE_MKII) {
+    fprintf(stderr, "%sProgrammer Model: %s\n", p, pgmname);
+    stk500v2_getparm(pgm, PARAM_HW_VER, &hdw);
+    stk500v2_getparm(pgm, PARAM_SW_MAJOR, &maj);
+    stk500v2_getparm(pgm, PARAM_SW_MINOR, &min);
+    fprintf(stderr, "%sHardware Version: %d\n", p, hdw);
+    fprintf(stderr, "%sFirmware Version: %d.%02d\n", p, maj, min);
+  }
 
   if (pgmtype == PGMTYPE_STK500) {
     stk500v2_getparm(pgm, PARAM_TOPCARD_DETECT, &topcard);
@@ -1874,10 +2025,17 @@ static void stk500v2_display(PROGRAMMER * pgm, char * p)
 static void stk500v2_print_parms1(PROGRAMMER * pgm, char * p)
 {
   unsigned char vtarget, vadjust, osc_pscale, osc_cmatch, sck_duration;
+  unsigned char vtarget_jtag[4];
 
-  stk500v2_getparm(pgm, PARAM_VTARGET, &vtarget);
+  if (pgmtype == PGMTYPE_JTAGICE_MKII) {
+    jtagmkII_getparm(pgm, PAR_OCD_VTARGET, vtarget_jtag);
+    fprintf(stderr, "%sVtarget         : %.1f V\n", p,
+	    b2_to_u16(vtarget_jtag) / 1000.0);
+  } else {
+    stk500v2_getparm(pgm, PARAM_VTARGET, &vtarget);
+    fprintf(stderr, "%sVtarget         : %.1f V\n", p, vtarget / 10.0);
+  }
   stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration);
-  fprintf(stderr, "%sVtarget         : %.1f V\n", p, vtarget / 10.0);
 
   if (pgmtype == PGMTYPE_STK500) {
     stk500v2_getparm(pgm, PARAM_VADJUST, &vadjust);
@@ -1913,7 +2071,7 @@ static void stk500v2_print_parms1(PROGRAMMER * pgm, char * p)
       fprintf(stderr, "%.3f %s\n", f, unit);
     }
   }
-  if (is_mk2)
+  if (pgmtype == PGMTYPE_AVRISP_MKII || pgmtype == PGMTYPE_JTAGICE_MKII)
     fprintf(stderr, "%sSCK period      : %.2f us\n", p,
 	  (float) 1000000 / avrispmkIIfreqs[sck_duration]);
   else
@@ -1927,6 +2085,72 @@ static void stk500v2_print_parms1(PROGRAMMER * pgm, char * p)
 static void stk500v2_print_parms(PROGRAMMER * pgm)
 {
   stk500v2_print_parms1(pgm, "");
+}
+
+
+/*
+ * Wrapper functions for the JTAG ICE mkII in ISP mode.  This mode
+ * uses the normal JTAG ICE mkII packet stream to communicate with the
+ * ICE, but then encapsulates AVRISP mkII commands using
+ * CMND_ISP_PACKET.
+ */
+
+/*
+ * Open a JTAG ICE mkII in ISP mode.
+ */
+static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
+{
+  long baud;
+
+  if (verbose >= 2)
+    fprintf(stderr, "%s: stk500v2_jtagmkII_open()\n", progname);
+
+  /*
+   * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
+   * attaching.  If the config file or command-line parameters specify
+   * a higher baud rate, we switch to it later on, after establishing
+   * the connection with the ICE.
+   */
+  baud = 19200;
+
+  /*
+   * If the port name starts with "usb", divert the serial routines
+   * to the USB ones.  The serial_open() function for USB overrides
+   * the meaning of the "baud" parameter to be the USB device ID to
+   * search for.
+   */
+  if (strncmp(port, "usb", 3) == 0) {
+#if defined(HAVE_LIBUSB)
+    serdev = &usb_serdev;
+    baud = USB_DEVICE_JTAGICEMKII;
+#else
+    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    return -1;
+#endif
+  }
+
+  strcpy(pgm->port, port);
+  pgm->fd = serial_open(port, baud);
+
+  /*
+   * drain any extraneous input
+   */
+  stk500v2_drain(pgm, 0);
+
+  if (jtagmkII_getsync(pgm, EMULATOR_MODE_SPI) != 0) {
+    fprintf(stderr, "%s: failed to sync with the JTAG ICE mkII in ISP mode\n",
+            progname);
+    exit(1);
+  }
+
+  pgmtype = PGMTYPE_JTAGICE_MKII;
+
+  if (pgm->bitclock != 0.0) {
+    if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
+      return -1;
+  }
+
+  return 0;
 }
 
 
@@ -2021,5 +2245,32 @@ void stk500hvsp_initpgm(PROGRAMMER * pgm)
   pgm->set_varef      = stk500v2_set_varef;
   pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period;
+  pgm->page_size      = 256;
+}
+
+void stk500v2_jtagmkII_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "JTAGMKII_ISP");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = stk500v2_initialize;
+  pgm->display        = stk500v2_display;
+  pgm->enable         = stk500v2_enable;
+  pgm->disable        = stk500v2_disable;
+  pgm->program_enable = stk500v2_program_enable;
+  pgm->chip_erase     = stk500v2_chip_erase;
+  pgm->cmd            = stk500v2_cmd;
+  pgm->open           = stk500v2_jtagmkII_open;
+  pgm->close          = jtagmkII_close;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = stk500v2_paged_write;
+  pgm->paged_load     = stk500v2_paged_load;
+  pgm->print_parms    = stk500v2_print_parms;
+  pgm->set_sck_period = stk500v2_set_sck_period_mk2;
   pgm->page_size      = 256;
 }
