@@ -41,6 +41,7 @@
 #include "avr.h"
 #include "crc16.h"
 #include "pgm.h"
+#include "jtagmkII.h"
 #include "jtagmkII_private.h"
 #include "serial.h"
 #include "usbdevs.h"
@@ -88,6 +89,7 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 			      unsigned long addr, unsigned char * value);
 static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 			       unsigned long addr, unsigned char data);
+static int jtagmkII_reset(PROGRAMMER * pgm, unsigned char flags);
 static int jtagmkII_set_sck_period(PROGRAMMER * pgm, double v);
 static int jtagmkII_setparm(PROGRAMMER * pgm, unsigned char parm,
 			    unsigned char * value);
@@ -641,8 +643,39 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
 
   /* Turn the ICE into JTAG or ISP mode as requested. */
   buf[0] = mode;
-  if (jtagmkII_setparm(pgm, PAR_EMULATOR_MODE, buf) < 0)
-    return -1;
+  if (jtagmkII_setparm(pgm, PAR_EMULATOR_MODE, buf) < 0) {
+    if (mode == EMULATOR_MODE_SPI) {
+      fprintf(stderr,
+	      "%s: jtagmkII_getsync(): "
+	      "ISP activation failed, trying debugWire\n",
+	      progname);
+      buf[0] = EMULATOR_MODE_DEBUGWIRE;
+      if (jtagmkII_setparm(pgm, PAR_EMULATOR_MODE, buf) < 0)
+	return -1;
+      else {
+	/*
+	 * We are supposed to send a CMND_RESET with the
+	 * MONCOM_DISABLE flag set right now, and then
+	 * restart from scratch.
+	 *
+	 * As this will make the ICE sign off from USB, so
+	 * we risk losing our USB connection, it's easier
+	 * to instruct the user to restart AVRDUDE rather
+	 * than trying to cope with all this inside the
+	 * program.
+	 */
+	(void)jtagmkII_reset(pgm, 0x04);
+	jtagmkII_close(pgm);
+	fprintf(stderr,
+		"%s: Target prepared for ISP, signed off.\n"
+		"%s: Please restart %s without power-cycling the target.\n",
+		progname, progname, progname);
+	exit(0);
+      }
+    } else {
+      return -1;
+    }
+  }
 
   /* GET SYNC forces the target into STOPPED mode */
   buf[0] = CMND_GET_SYNC;
@@ -801,16 +834,17 @@ static void jtagmkII_set_devdescr(PROGRAMMER * pgm, AVRPART * p)
 /*
  * Reset the target.
  */
-static int jtagmkII_reset(PROGRAMMER * pgm)
+static int jtagmkII_reset(PROGRAMMER * pgm, unsigned char flags)
 {
   int status;
-  unsigned char buf[1], *resp, c;
+  unsigned char buf[2], *resp, c;
 
   buf[0] = CMND_RESET;
+  buf[1] = flags;
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkII_reset(): Sending reset command: ",
 	    progname);
-  jtagmkII_send(pgm, buf, 1);
+  jtagmkII_send(pgm, buf, 2);
 
   status = jtagmkII_recv(pgm, &resp);
   if (status <= 0) {
@@ -933,7 +967,7 @@ static int jtagmkII_program_disable(PROGRAMMER * pgm)
   }
 
   prog_enabled = 0;
-  (void)jtagmkII_reset(pgm);
+  (void)jtagmkII_reset(pgm, 0x01);
 
   return 0;
 }
@@ -1018,7 +1052,7 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
   }
   flash_pageaddr = eeprom_pageaddr = (unsigned long)-1L;
 
-  if (jtagmkII_reset(pgm) < 0)
+  if (jtagmkII_reset(pgm, 0x01) < 0)
     return -1;
 
   strcpy(hfuse.desc, "hfuse");
