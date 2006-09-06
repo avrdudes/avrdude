@@ -2140,6 +2140,7 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
   if (jtagmkII_getsync(pgm, EMULATOR_MODE_SPI) != 0) {
     fprintf(stderr, "%s: failed to sync with the JTAG ICE mkII in ISP mode\n",
             progname);
+    pgm->close(pgm);		/* sign off correctly */
     exit(1);
   }
 
