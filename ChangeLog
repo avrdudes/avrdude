@@ -1,3 +1,9 @@
+2006-09-07 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* jtagmkII.c: When failing to start in ISP mode, try
+	debugWire instead.  This requires the user to eventually
+	restart AVRDUE from scratch then.
+
 2006-09-06 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	Add support for the JTAG ICE mkII in ISP mode.
