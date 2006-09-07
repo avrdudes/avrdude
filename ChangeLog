@@ -1,5 +1,9 @@
 2006-09-07 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* jtagmkII.c: Translate numerical response codes to strings.
+
+2006-09-07 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* avrdude.1: The avr109 programmer type no longer chokes on
 	a wrong avr910 device ID, so remove that description.
 	* doc/avrdude.texi: (Ditto.)
