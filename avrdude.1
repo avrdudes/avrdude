@@ -676,7 +676,31 @@ library
 Schematic of programming hardware
 .El
 .\" .Sh EXAMPLES
-.\" .Sh DIAGNOSTICS
+.Sh DIAGNOSTICS
+.Bd -literal
+avrdude: jtagmkII_setparm(): bad response to set parameter command: RSP_FAILED
+avrdude: jtagmkII_getsync(): ISP activation failed, trying debugWire
+avrdude: Target prepared for ISP, signed off.
+avrdude: Please restart avrdude without power-cycling the target.
+.Ed
+.Pp
+If the target AVR has been set up for debugWire mode (i. e. the
+.Em DWEN
+fuse is programmed), normal ISP connection attempts will fail as
+the
+.Em /RESET
+pin is not available.
+When using the JTAG ICE mkII in ISP mode, the message shown indicates
+that
+.Nm
+has guessed this condition, and tried to initiate a debugWire reset
+to the target.
+When successful, this will leave the target AVR in a state where it
+can respond to normal ISP communication again (until the next power
+cycle).
+Typically, the same command is going to be retried again immediately
+afterwards, and will then succeed connecting to the target using
+normal ISP communication.
 .Sh SEE ALSO
 .Xr avr-objcopy 1 ,
 .Xr ppi 4 ,
