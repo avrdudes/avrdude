@@ -1,5 +1,11 @@
 2006-09-07 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* avrdude.1: The avr109 programmer type no longer chokes on
+	a wrong avr910 device ID, so remove that description.
+	* doc/avrdude.texi: (Ditto.)
+
+2006-09-07 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* jtagmkII.c: When failing to start in ISP mode, try
 	debugWire instead.  This requires the user to eventually
 	restart AVRDUE from scratch then.
