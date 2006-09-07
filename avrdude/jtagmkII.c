@@ -82,6 +82,28 @@ static unsigned char serno[6];	/* JTAG ICE serial number. */
  */
 #define OCDEN (1 << 7)
 
+#define RC(x) { x, #x },
+static struct {
+  unsigned int code;
+  const char *descr;
+} jtagresults[] = {
+  RC(RSP_DEBUGWIRE_SYNC_FAILED)
+  RC(RSP_FAILED)
+  RC(RSP_ILLEGAL_BREAKPOINT)
+  RC(RSP_ILLEGAL_COMMAND)
+  RC(RSP_ILLEGAL_EMULATOR_MODE)
+  RC(RSP_ILLEGAL_JTAG_ID)
+  RC(RSP_ILLEGAL_MCU_STATE)
+  RC(RSP_ILLEGAL_MEMORY_TYPE)
+  RC(RSP_ILLEGAL_MEMORY_RANGE)
+  RC(RSP_ILLEGAL_PARAMETER)
+  RC(RSP_ILLEGAL_POWER_STATE)
+  RC(RSP_ILLEGAL_VALUE)
+  RC(RSP_NO_TARGET_POWER)
+  RC(RSP_SET_N_PARAMETERS)
+};
+
+
 /* The length of the device descriptor is firmware-dependent. */
 static size_t device_descriptor_length;
 
@@ -132,6 +154,21 @@ u16_to_b2(unsigned char *b, unsigned short l)
   b[0] = l & 0xff;
   b[1] = (l >> 8) & 0xff;
 }
+
+static const char *
+jtagmkII_get_rc(unsigned int rc)
+{
+  int i;
+  static char msg[50];
+
+  for (i = 0; i < sizeof jtagresults / sizeof jtagresults[0]; i++)
+    if (jtagresults[i].code == rc)
+      return jtagresults[i].descr;
+
+  sprintf(msg, "Unknown JTAG ICE mkII result code 0x%02x", rc);
+  return msg;
+}
+
 
 static void jtagmkII_print_memory(unsigned char *b, size_t s)
 {
@@ -604,8 +641,8 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
     else
       fprintf(stderr,
 	      "%s: jtagmkII_getsync(): "
-	      "bad response to sign-on command: 0x%02x\n",
-	      progname, c);
+	      "bad response to sign-on command: %s\n",
+	      progname, jtagmkII_get_rc(c));
     return -1;
   }
 
@@ -704,8 +741,8 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
   if (c != RSP_OK) {
     fprintf(stderr,
 	    "%s: jtagmkII_getsync(): "
-	    "bad response to set parameter command: 0x%02x\n",
-	    progname, c);
+	    "bad response to set parameter command: %s\n",
+	    progname, jtagmkII_get_rc(c));
     return -1;
   }
 
@@ -756,8 +793,8 @@ static int jtagmkII_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   if (c != RSP_OK) {
     fprintf(stderr,
 	    "%s: jtagmkII_chip_erase(): "
-	    "bad response to chip erase command: 0x%02x\n",
-	    progname, c);
+	    "bad response to chip erase command: %s\n",
+	    progname, jtagmkII_get_rc(c));
     return -1;
   }
 
@@ -826,8 +863,8 @@ static void jtagmkII_set_devdescr(PROGRAMMER * pgm, AVRPART * p)
   if (c != RSP_OK) {
     fprintf(stderr,
 	    "%s: jtagmkII_set_devdescr(): "
-	    "bad response to set device descriptor command: 0x%02x\n",
-	    progname, c);
+	    "bad response to set device descriptor command: %s\n",
+	    progname, jtagmkII_get_rc(c));
   }
 }
 
@@ -866,8 +903,8 @@ static int jtagmkII_reset(PROGRAMMER * pgm, unsigned char flags)
   if (c != RSP_OK) {
     fprintf(stderr,
 	    "%s: jtagmkII_reset(): "
-	    "bad response to reset command: 0x%02x\n",
-	    progname, c);
+	    "bad response to reset command: %s\n",
+	    progname, jtagmkII_get_rc(c));
     return -1;
   }
 
@@ -915,8 +952,8 @@ static int jtagmkII_program_enable(PROGRAMMER * pgm)
   if (c != RSP_OK) {
     fprintf(stderr,
 	    "%s: jtagmkII_program_enable(): "
-	    "bad response to enter progmode command: 0x%02x\n",
-	    progname, c);
+	    "bad response to enter progmode command: %s\n",
+	    progname, jtagmkII_get_rc(c));
     if (c == RSP_ILLEGAL_JTAG_ID)
       fprintf(stderr, "%s: JTAGEN fuse disabled?\n", progname);
     return -1;
@@ -961,8 +998,8 @@ static int jtagmkII_program_disable(PROGRAMMER * pgm)
   if (c != RSP_OK) {
     fprintf(stderr,
 	    "%s: jtagmkII_program_disable(): "
-	    "bad response to leave progmode command: 0x%02x\n",
-	    progname, c);
+	    "bad response to leave progmode command: %s\n",
+	    progname, jtagmkII_get_rc(c));
     return -1;
   }
 
@@ -1165,8 +1202,8 @@ void jtagmkII_close(PROGRAMMER * pgm)
       if (c != RSP_OK) {
 	fprintf(stderr,
 		"%s: jtagmkII_close(): "
-		"bad response to GO command: 0x%02x\n",
-		progname, c);
+		"bad response to GO command: %s\n",
+		progname, jtagmkII_get_rc(c));
       }
     }
   }
@@ -1197,8 +1234,8 @@ void jtagmkII_close(PROGRAMMER * pgm)
   if (c != RSP_OK) {
     fprintf(stderr,
 	    "%s: jtagmkII_close(): "
-	    "bad response to sign-off command: 0x%02x\n",
-	    progname, c);
+	    "bad response to sign-off command: %s\n",
+	    progname, jtagmkII_get_rc(c));
   }
 
   serial_close(pgm->fd);
@@ -1305,8 +1342,8 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     if (resp[0] != RSP_OK) {
       fprintf(stderr,
 	      "%s: jtagmkII_paged_write(): "
-	      "bad response to write memory command: 0x%02x\n",
-	      progname, resp[0]);
+	      "bad response to write memory command: %s\n",
+	      progname, jtagmkII_get_rc(resp[0]));
       free(resp);
       free(cmd);
       serial_recv_timeout = otimeout;
@@ -1398,8 +1435,8 @@ static int jtagmkII_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     if (resp[0] != RSP_MEMORY) {
       fprintf(stderr,
 	      "%s: jtagmkII_paged_load(): "
-	      "bad response to read memory command: 0x%02x\n",
-	      progname, resp[0]);
+	      "bad response to read memory command: %s\n",
+	      progname, jtagmkII_get_rc(resp[0]));
       free(resp);
       serial_recv_timeout = otimeout;
       return -1;
@@ -1513,8 +1550,8 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   if (resp[0] != RSP_MEMORY) {
     fprintf(stderr,
 	    "%s: jtagmkII_read_byte(): "
-	    "bad response to read memory command: 0x%02x\n",
-	    progname, resp[0]);
+	    "bad response to read memory command: %s\n",
+	    progname, jtagmkII_get_rc(resp[0]));
     goto fail;
   }
 
@@ -1621,8 +1658,8 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   if (resp[0] != RSP_OK) {
     fprintf(stderr,
 	    "%s: jtagmkII_write_byte(): "
-	    "bad response to write memory command: 0x%02x\n",
-	    progname, resp[0]);
+	    "bad response to write memory command: %s\n",
+	    progname, jtagmkII_get_rc(resp[0]));
     goto fail;
   }
 
@@ -1708,8 +1745,8 @@ int jtagmkII_getparm(PROGRAMMER * pgm, unsigned char parm,
   if (c != RSP_PARAMETER) {
     fprintf(stderr,
 	    "%s: jtagmkII_getparm(): "
-	    "bad response to get parameter command: 0x%02x\n",
-	    progname, c);
+	    "bad response to get parameter command: %s\n",
+	    progname, jtagmkII_get_rc(c));
     free(resp);
     return -1;
   }
@@ -1779,8 +1816,8 @@ static int jtagmkII_setparm(PROGRAMMER * pgm, unsigned char parm,
   if (c != RSP_OK) {
     fprintf(stderr,
 	    "%s: jtagmkII_setparm(): "
-	    "bad response to set parameter command: 0x%02x\n",
-	    progname, c);
+	    "bad response to set parameter command: %s\n",
+	    progname, jtagmkII_get_rc(c));
     return -1;
   }
 
