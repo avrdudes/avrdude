@@ -1,5 +1,10 @@
 2006-09-07 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* avrdude.1: Describe how to disable the DWEN fuse.
+	* doc/avrdude.texi: (Ditto.)
+
+2006-09-07 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* jtagmkII.c: Translate numerical response codes to strings.
 
 2006-09-07 Joerg Wunsch <j@uriah.heep.sax.de>

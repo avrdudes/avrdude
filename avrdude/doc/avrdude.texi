@@ -1938,6 +1938,56 @@ In order to successfully program the EEPROM that way, a prior chip
 erase (with the EESAVE fuse unprogrammed) is required.
 This also applies to the STK500 in high-voltage programming mode.
 
+@item
+Problem: How do I turn off the @var{DWEN} fuse?
+
+Solution: If the @var{DWEN} (debugWire enable) fuse is activated,
+the @var{/RESET} pin is not functional anymore, so normal ISP
+communication cannot be established.
+There are two options to deactivate that fuse again: high-voltage
+programming, or getting the JTAG ICE mkII talk debugWire, and
+prepare the target AVR to accept normal ISP communication again.
+
+The first option requires a programmer that is capable of high-voltage
+programming (either serial or parallel, depending on the AVR device),
+for example the STK500.  In high-voltage programming mode, the
+@var{/RESET} pin is activated initially using a 12 V pulse (thus the
+name @emph{high voltage}), so the target AVR can subsequently be
+reprogrammed, and the @var{DWEN} fuse can be cleared.  Typically, this
+operation cannot be performed while the AVR is located in the target
+circuit though.
+
+The second option requires a JTAG ICE mkII that can talk the debugWire
+protocol.  The ICE needs to be connected to the target using the
+JTAG-to-ISP adapter, so the JTAG ICE mkII can be used as a debugWire
+initiator as well as an ISP programmer.  AVRDUDE will then be activated
+using the @var{jtag2isp} programmer type.  The initial ISP
+communication attempt will fail, but AVRDUDE then tries to iniate a
+debugWire reset.  When successful, this will leave the target AVR in a
+state where it can accept standard ISP communication.  The ICE is then
+signed off (which will make it signing off from the USB as well), so
+AVRDUDE has to be called again afterwards.  This time, standard ISP
+communication can work, so the @var{DWEN} fuse can be cleared.
+
+The pin mapping for the JTAG-to-ISP adapter is:
+
+@table @code
+@item JTAG pin
+ISP pin
+@item 1
+@code{3}
+@item 2
+@code{6}
+@item 3
+@code{1}
+@item 4
+@code{2}
+@item 6
+@code{5}
+@item 9
+@code{4}
+@end table
+
 
 @end itemize
 
