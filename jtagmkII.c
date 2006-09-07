@@ -485,7 +485,7 @@ static int jtagmkII_recv_frame(PROGRAMMER * pgm, unsigned char **msg,
 
   }
   if (verbose >= 3)
-fprintf(stderr, "\n");
+    fprintf(stderr, "\n");
 
   *seqno = r_seqno;
   *msg = buf;
