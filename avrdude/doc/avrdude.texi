@@ -1920,18 +1920,6 @@ Solutions: The reasons for this are the same as above.
 If you know how to work around this on your OS, please let us know.
 
 @item
-Problem: AVRDUDE says my device is not supported when using the AVR109 boot loader
-
-Solution: Currently, AVRDUDE uses the AVR910 device codes given in the
-@code{avrdude.conf} file, and matches them against the list of supported
-devices reported by the programmer.  Unfortunately, there are no device
-codes at all for some of the newer AVR devices, and even worse, the
-device codes listed in @code{preprocessor.xls} of appnote AVR109 do not
-match those once specified in AVR910.
-
-Use the -F option to force AVRDUDE to continue anyway.
-
-@item
 Problem: Updating the flash ROM from terminal mode does not work with the
 JTAG ICEs.
 

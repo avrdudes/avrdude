@@ -707,10 +707,3 @@ Page-mode programming the EEPROM through JTAG (i.e. through an
 option) requires a prior chip erase.
 This is an inherent feature of the way JTAG EEPROM programming works.
 This also applies to the STK500 in parallel programming mode.
-.Pp
-The device IDs used by AVR910 and AVR109 do not match, so the
-avr109 (aka. butterfly) programmer might report
-.Dl "selected device is not supported by programmer" .
-Use the -F option to force
-.Nm
-to continue anyway.
