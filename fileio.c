@@ -911,7 +911,7 @@ int fileio(int op, char * filename, FILEFMT format,
   if (rc < 0)
     return -1;
 
-  #if defined(WIN32NATIVE)
+#if defined(WIN32NATIVE)
   /* Open Raw Binary format in binary mode on Windows.*/
   if(format == FMT_RBIN)
   {
@@ -924,7 +924,7 @@ int fileio(int op, char * filename, FILEFMT format,
           fio.mode = "wb";
       }
   }
-  #endif
+#endif
 
   /* point at the requested memory buffer */
   buf = mem->buf;
