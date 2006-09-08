@@ -534,6 +534,14 @@ contains a colon, the
 field is no longer optional since the filename part following the colon
 would otherwise be misinterpreted as
 .Ar format .
+.Pp
+As an abbreviation, the form
+.Fl U Ar filename
+is equivalent to specifying
+.Fl U Em flash:w: Ns Ar filename Ns :a .
+This will only work if
+.Ar filename
+does not have a colon in it.
 .It Fl v
 Enable verbose output.
 .It Fl V

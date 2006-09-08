@@ -338,9 +338,20 @@ UPDATE * parse_op(char * s)
     buf[i++] = *p++;
   
   if (*p != ':') {
-    fprintf(stderr, "%s: invalid update specification\n", progname);
-    free(upd);
-    return NULL;
+    upd->memtype = (char *)malloc(strlen("flash")+1);
+    if (upd->memtype == NULL) {
+      outofmem:
+      fprintf(stderr, "%s: out of memory\n", progname);
+      exit(1);
+    }
+    strcpy(upd->memtype, "flash");
+    upd->op = DEVICE_WRITE;
+    upd->filename = (char *)malloc(strlen(buf) + 1);
+    if (upd->filename == NULL)
+      goto outofmem;
+    strcpy(upd->filename, buf);
+    upd->format = FMT_AUTO;
+    return upd;
   }
 
   buf[i] = 0;
