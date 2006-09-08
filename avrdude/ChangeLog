@@ -1,5 +1,9 @@
 2006-09-07 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* fileio.c: CPP statements start in column #1.
+
+2006-09-07 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* avrdude.1: Describe how to disable the DWEN fuse.
 	* doc/avrdude.texi: (Ditto.)
 
