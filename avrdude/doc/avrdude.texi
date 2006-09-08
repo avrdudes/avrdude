@@ -749,6 +749,23 @@ treated as decimal.
 auto detect; valid for input only, and only if the input is not provided
 at stdin.
 
+@itemx d
+decimal; this and the following formats are only valid on output.
+They generate one line of output for the respective memory section,
+forming a comma-separated list of the values.
+This can be particularly useful for subsequent processing, like for
+fuse bit settings.
+
+@itemx h
+hexadecimal; each value will get the string @emph{0x} prepended.
+
+@itemx o
+octal; each value will get a @emph{0}
+prepended unless it is less than 8 in which case it gets no prefix.
+
+@itemx b
+binary; each value will get the string @emph{0b} prepended.
+
 @end table
 
 The default is to use auto detection for input files, and raw binary

@@ -414,6 +414,10 @@ UPDATE * parse_op(char * s)
       case 'i': upd->format = FMT_IHEX; break;
       case 'r': upd->format = FMT_RBIN; break;
       case 'm': upd->format = FMT_IMM; break;
+      case 'b': upd->format = FMT_BIN; break;
+      case 'd': upd->format = FMT_DEC; break;
+      case 'h': upd->format = FMT_HEX; break;
+      case 'o': upd->format = FMT_OCT; break;
       default:
         fprintf(stderr, "%s: invalid file format '%s' in update specifier\n",
                 progname, p);
