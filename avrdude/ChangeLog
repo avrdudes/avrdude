@@ -1,6 +1,7 @@
-2006-09-07 Joerg Wunsch <j@uriah.heep.sax.de>
+2006-09-08 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* fileio.c: CPP statements start in column #1.
+	* stk500v2.c: Hide two debug/trace statements behind "verbose".
 
 2006-09-07 Joerg Wunsch <j@uriah.heep.sax.de>
 

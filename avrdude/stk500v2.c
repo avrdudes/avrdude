@@ -1868,8 +1868,9 @@ static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v)
       break;
   }
 
-  fprintf(stderr, "Using p = %.2f us for SCK (param = %d)\n",
-		  1000000 / avrispmkIIfreqs[i], i);
+  if (verbose > 2)
+    fprintf(stderr, "Using p = %.2f us for SCK (param = %d)\n",
+	    1000000 / avrispmkIIfreqs[i], i);
 
   return stk500v2_setparm(pgm, PARAM_SCK_DURATION, i);
 }
@@ -1974,7 +1975,7 @@ static int stk500v2_setparm(PROGRAMMER * pgm, unsigned char parm, unsigned char 
     fprintf(stderr, "%s: Unable to get parameter 0x%02x\n", progname, parm);
 
   // don't issue a write if the correct value is already set.
-  if (value == current_value) {
+  if (value == current_value && verbose > 2) {
     fprintf(stderr, "%s: Skipping paramter write; parameter value already set.\n", progname);
     return 0;
   }
