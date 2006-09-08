@@ -1,5 +1,18 @@
 2006-09-08 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	Implement numerical output formats for decimal, hexadecimal,
+	octal, and binary numbers.
+	Closes bug #16129: more output formats for fuse bits
+	(avrdude enhancement request)
+	* fileio.c: Implement fileio_num() and the itoa_simple()
+	helper function.
+	* fileio.h: Add new file formats to FILEFMT.
+	* main.c: Parse the new file formats.
+	* avrdude.1: Document all this.
+	* doc/avrdude.texi: (Ditto.)
+
+2006-09-08 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* fileio.c: CPP statements start in column #1.
 	* stk500v2.c: Hide two debug/trace statements behind "verbose".
 

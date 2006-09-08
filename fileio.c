@@ -77,6 +77,10 @@ int fileio_ihex(struct fioparms * fio,
 int fileio_srec(struct fioparms * fio,
                   char * filename, FILE * f, unsigned char * buf, int size);
 
+int fileio_num(struct fioparms * fio,
+		char * filename, FILE * f, unsigned char * buf, int size,
+		FILEFMT fmt);
+
 int fmt_autodetect(char * fname);
 
 
@@ -658,6 +662,45 @@ int srec2b(char * infile, FILE * inf,
   return maxaddr;
 }
 
+/*
+ * Simple itoa() implementation.  Caller needs to allocate enough
+ * space in buf.  Only positive integers are handled.
+ */
+static char *itoa_simple(int n, char *buf, int base)
+{
+  div_t q;
+  char c, *cp, *cp2;
+
+  cp = buf;
+  /*
+   * Divide by base until the number disappeared, but ensure at least
+   * one digit will be emitted.
+   */
+  do {
+    q = div(n, base);
+    n = q.quot;
+    if (q.rem >= 10)
+      c = q.rem - 10 + 'a';
+    else
+      c = q.rem + '0';
+    *cp++ = c;
+  } while (q.quot != 0);
+
+  /* Terminate the string. */
+  *cp-- = '\0';
+
+  /* Now revert the result string. */
+  cp2 = buf;
+  while (cp > cp2) {
+    c = *cp;
+    *cp-- = *cp2;
+    *cp2++ = c;
+  }
+
+  return buf;
+}
+
+
 
 int fileio_rbin(struct fioparms * fio,
                   char * filename, FILE * f, unsigned char * buf, int size)
@@ -790,6 +833,78 @@ int fileio_srec(struct fioparms * fio,
   }
 
   return rc;
+}
+
+
+int fileio_num(struct fioparms * fio,
+	       char * filename, FILE * f, unsigned char * buf, int size,
+	       FILEFMT fmt)
+{
+  const char *prefix;
+  char cbuf[20];
+  int base, i, num;
+
+  switch (fmt) {
+    case FMT_HEX:
+      prefix = "0x";
+      base = 16;
+      break;
+
+    default:
+    case FMT_DEC:
+      prefix = "";
+      base = 10;
+      break;
+
+    case FMT_OCT:
+      prefix = "0";
+      base = 8;
+      break;
+
+    case FMT_BIN:
+      prefix = "0b";
+      base = 2;
+      break;
+
+  }
+
+  switch (fio->op) {
+    case FIO_WRITE:
+      break;
+    default:
+      fprintf(stderr, "%s: fileio: invalid operation=%d\n",
+              progname, fio->op);
+      return -1;
+  }
+
+  for (i = 0; i < size; i++) {
+    if (i > 0) {
+      if (putc(',', f) == EOF)
+	goto writeerr;
+    }
+    num = (unsigned int)buf[i];
+    /*
+     * For a base of 8 and a value < 8 to convert, don't write the
+     * prefix.  The conversion will be indistinguishable from a
+     * decimal one then.
+     */
+    if (prefix[0] != '\0' && !(base == 8 && num < 8)) {
+      if (fputs(prefix, f) == EOF)
+	goto writeerr;
+    }
+    itoa_simple(num, cbuf, base);
+    if (fputs(cbuf, f) == EOF)
+      goto writeerr;
+  }
+  if (putc('\n', f) == EOF)
+    goto writeerr;
+
+  return 0;
+
+ writeerr:
+  fprintf(stderr, "%s: error writing to %s: %s\n",
+	  progname, filename, strerror(errno));
+  return -1;
 }
 
 
@@ -1003,6 +1118,13 @@ int fileio(int op, char * filename, FILEFMT format,
 
     case FMT_IMM:
       rc = fileio_imm(&fio, fname, f, buf, size);
+      break;
+
+    case FMT_HEX:
+    case FMT_DEC:
+    case FMT_OCT:
+    case FMT_BIN:
+      rc = fileio_num(&fio, fname, f, buf, size, format);
       break;
 
     default:

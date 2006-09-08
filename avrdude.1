@@ -505,6 +505,24 @@ having to create a single-byte file or enter terminal mode.
 auto detect; valid for input only, and only if the input is not
 provided at
 .Em stdin .
+.It Ar d
+decimal; this and the following formats are only valid on output.
+They generate one line of output for the respective memory section,
+forming a comma-separated list of the values.
+This can be particularly useful for subsequent processing, like for
+fuse bit settings.
+.It Ar h
+hexadecimal; each value will get the string
+.Em 0x
+prepended.
+.It Ar o
+octal; each value will get a
+.Em 0
+prepended unless it is less than 8 in which case it gets no prefix.
+.It Ar b
+binary; each value will get the string
+.Em 0b
+prepended.
 .El
 .Pp
 The default is to use auto detection for input files, and raw binary
