@@ -775,6 +775,11 @@ Note that if @var{filename} contains a colon, the @var{format} field is
 no longer optional since the filename part following the colon would
 otherwise be misinterpreted as @var{format}.
 
+As an abbreviation, the form @code{-U} @var{filename}
+is equivalent to specifying
+@code{-U} @emph{flash:w:}@var{filename}@emph{:a}.
+This will only work if @var{filename} does not have a colon in it.
+
 @item -v
 Enable verbose output.
 
