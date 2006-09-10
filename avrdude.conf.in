@@ -16,7 +16,8 @@
 #       id       = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
 #       desc     = <description> ;                  # quoted string
 #       type     = par | stk500 | stk500v2 | stk500pp | stk500hvsp |
-#                  avr910 | jtagmki | jtagmkii | jtagmkii_isp; # programmer type
+#                  avr910 | butterfly | usbasp |
+#                  jtagmki | jtagmkii | jtagmkii_isp; # programmer type
 #       baudrate = <num> ;                          # baudrate for avr910-programmer
 #       vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
 #       reset    = <num> ;                          # pin number
@@ -351,6 +352,12 @@ programmer
   id    = "avr910";
   desc  = "Atmel Low Cost Serial Programmer";
   type  = avr910;
+;
+
+programmer
+  id    = "usbasp";
+  desc  = "USBasp, http://www.fischl.de/usbasp/";
+  type  = usbasp;
 ;
 
 programmer

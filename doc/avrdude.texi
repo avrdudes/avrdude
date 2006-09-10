@@ -184,6 +184,11 @@ Only the memory programming functionality of the JTAG ICE is supported
 by AVRDUDE.
 For the JTAG ICE mkII, both JTAG and ISP mode are supported.
 
+The USBasp ISP adapter is also supported, provided AVRDUDE
+has been compiled with libusb support.
+It features a simple firwmare-only USB implementation, running on
+an ATmega8 (or ATmega88).
+
 
 @menu
 * History::                     
@@ -2010,6 +2015,13 @@ ISP pin
 @code{4}
 @end table
 
+@item
+Problem: Multiple USBasp programmers connected simultaneously are not
+found.
+
+Solution: none at this time.  The simplicity of the USBasp programmer
+doesn't offer a method to distinguish multiple programmers that are
+connected simultaneously, so effectively only one USBasp is supported.
 
 @end itemize
 
