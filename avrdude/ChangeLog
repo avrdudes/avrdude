@@ -1,3 +1,16 @@
+2006-09-10 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Contributed by Thomas Fischl: add support for USBasp.
+	patch #4686: Add support for USBasp, a simple USB programmer
+	* usbasp.c: New file, implement the USBasp driver.
+	* usbasp.h: New file, interface declarations for USBasp.
+	* Makefile.am: Wire the new files into the build.
+	* avrdude.conf.in: Add the usbasp programmer entry.
+	* config_gram.y: Add the usbasp token.
+	* lexer.l: (Ditto.)
+	* avrdude.1: Document the USBasp programmer.
+	* doc/avrdude.texi: (Ditto.)
+
 2006-09-08 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* main.c: Implement -U filename as a shorthand for

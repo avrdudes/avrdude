@@ -123,6 +123,8 @@ avrdude_SOURCES = \
 	stk500v2_private.h \
 	term.c \
 	term.h \
+	usbasp.c \
+	usbasp.h \
 	usbdevs.h \
 	usb_libusb.c
 
