@@ -1880,8 +1880,8 @@ communication can work, so the @var{DWEN} fuse can be cleared.
 
 The pin mapping for the JTAG-to-ISP adapter is:
 
-@multitable @columnfractions .15 .15
-@headitem JTAG pin @tab ISP pin
+@multitable @columnfractions .2 .2
+@item @strong{JTAG pin} @tab @strong{ISP pin}
 @item 1 @tab 3
 @item 2 @tab 6
 @item 3 @tab 1
