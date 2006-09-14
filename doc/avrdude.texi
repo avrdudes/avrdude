@@ -349,7 +349,7 @@ Currently, the following programmer ids are understood and supported:
 ABCmini Board, aka Dick Smith HOTCHIP
 @item @code{alf}         @tab
 Nightshade ALF-PgmAVR,@*
-@indicateurl{http://nightshade.homeip.net/}
+@url{http://nightshade.homeip.net/}
 @item @code{avr109}      @tab
 Atmel AppNote AVR109 Boot Loader
 @item @code{avr910}      @tab
@@ -368,7 +368,7 @@ Atmel AVR ISP mkII (alias for stk500v2)
 Bascom SAMPLE programming cable
 @item @code{bsd}         @tab
 Brian Dean's Programmer,@*
-@indicateurl{http://www.bsdhome.com/avrdude/}
+@url{http://www.bsdhome.com/avrdude/}
 @item @code{butterfly}   @tab
 Atmel Butterfly Development Board
 @item @code{dt006}       @tab
@@ -393,7 +393,7 @@ Atmel JTAG ICE mkII in ISP mode.
 Jason Kyle's pAVR Serial Programmer
 @item @code{picoweb}     @tab
 Picoweb Programming Cable,@*
-@indicateurl{http://www.picoweb.net/}
+@url{http://www.picoweb.net/}
 @item @code{pony-stk200} @tab
 Pony Prog STK200
 @item @code{sp12}        @tab
