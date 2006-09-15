@@ -6012,18 +6012,29 @@ part
     memory "hfuse"
         size            = 1;
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  1 0 0 0",
-                          "x x x x  x x x x  x x x i  i i i i";
+                          "x x x x  x x x x  i i i i  i i i i";
 
         read            = "0 1 0 1  1 0 0 0  0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x  x x x o  o o o o";
+                          "x x x x  x x x x  o o o o  o o o o";
+        min_write_delay = 4500;
+        max_write_delay = 4500;
+      ;
+
+    memory "efuse"
+        size            = 1;
+        write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 1 0 0",
+                          "x x x x  x x x x   x x x x  x x x i";
+
+        read            = "0 1 0 1  0 0 0 0   0 0 0 0  1 0 0 0",
+                          "x x x x  x x x x   x x x x  x x x o";
         min_write_delay = 4500;
         max_write_delay = 4500;
       ;
 
     memory "calibration"
-        size            = 4;
+        size            = 1;
         read            = "0  0  1  1   1  0  0  0    x x x x  x x x x",
-                          "0  0  0  0   0  0 a1 a0    o o o o  o o o o";
+                          "0  0  0  0   0  0  0  0    o o o o  o o o o";
     ;
 
 ;
@@ -6185,18 +6196,29 @@ part
     memory "hfuse"
         size            = 1;
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  1 0 0 0",
-                          "x x x x  x x x x  x x x i  i i i i";
+                          "x x x x  x x x x  i i i i  i i i i";
 
         read            = "0 1 0 1  1 0 0 0  0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x  x x x o  o o o o";
+                          "x x x x  x x x x  o o o o  o o o o";
+        min_write_delay = 4500;
+        max_write_delay = 4500;
+      ;
+
+    memory "efuse"
+        size            = 1;
+        write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 1 0 0",
+                          "x x x x  x x x x   x x x x  x x x i";
+
+        read            = "0 1 0 1  0 0 0 0   0 0 0 0  1 0 0 0",
+                          "x x x x  x x x x   x x x x  x x x o";
         min_write_delay = 4500;
         max_write_delay = 4500;
       ;
 
     memory "calibration"
-        size            = 4;
+        size            = 1;
         read            = "0  0  1  1   1  0  0  0    x x x x  x x x x",
-                          "0  0  0  0   0  0 a1 a0    o o o o  o o o o";
+                          "0  0  0  0   0  0  0  0    o o o o  o o o o";
     ;
 
 ;
@@ -6358,18 +6380,29 @@ part
     memory "hfuse"
         size            = 1;
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  1 0 0 0",
-                          "x x x x  x x x x  x x x i  i i i i";
+                          "x x x x  x x x x  i i i i  i i i i";
 
         read            = "0 1 0 1  1 0 0 0  0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x  x x x o  o o o o";
+                          "x x x x  x x x x  o o o o  o o o o";
+        min_write_delay = 4500;
+        max_write_delay = 4500;
+      ;
+
+    memory "efuse"
+        size            = 1;
+        write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 1 0 0",
+                          "x x x x  x x x x   x x x x  x x x i";
+
+        read            = "0 1 0 1  0 0 0 0   0 0 0 0  1 0 0 0",
+                          "x x x x  x x x x   x x x x  x x x o";
         min_write_delay = 4500;
         max_write_delay = 4500;
       ;
 
     memory "calibration"
-        size            = 4;
+        size            = 1;
         read            = "0  0  1  1   1  0  0  0    x x x x  x x x x",
-                          "0  0  0  0   0  0 a1 a0    o o o o  o o o o";
+                          "0  0  0  0   0  0  0  0    o o o o  o o o o";
     ;
 
 ;

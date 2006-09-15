@@ -1,3 +1,10 @@
+2006-09-15 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Fix some mistakes for the ATtinyX61 family:
+	. high fuse has 8 bits
+	. there is an extended fuse (just one bit)
+	. the calibration area is only 1 byte
+
 2006-09-12 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* doc/avrdude.texi: Convert some of the tables to multitables
