@@ -1,3 +1,11 @@
+2006-09-17 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by Thomas Fischl:
+	* usbasp.c: Check for USBasp with new as well as old VID/PID
+	pair, warn the user about upgrading the firmware in case an
+	old one has been found.
+	* usbasp.h: Add new VID/PID.
+
 2006-09-15 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: Fix some mistakes for the ATtinyX61 family:

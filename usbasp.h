@@ -25,8 +25,11 @@
 #include "avrpart.h"
 
 
-#define	USBDEV_VENDOR	0x03eb	/* ATMEL */
-#define	USBDEV_PRODUCT	0xc7B4 	/* USBasp */
+#define	USBASP_SHARED_VID   0x16C0  /* VOTI */
+#define	USBASP_SHARED_PID   0x05DC  /* Obdev's free shared PID */
+
+#define	USBASP_OLD_VID      0x03EB  /* ATMEL */
+#define	USBASP_OLD_PID	    0xC7B4  /* (unoffical) USBasp */
 
 #define USBASP_FUNC_CONNECT    1
 #define USBASP_FUNC_DISCONNECT 2
@@ -43,6 +46,9 @@
 #define USBASP_READBLOCKSIZE   200
 #define USBASP_WRITEBLOCKSIZE  200
 
+#define USB_ERROR_NOTFOUND  1
+#define USB_ERROR_ACCESS    2
+#define USB_ERROR_IO        3
 
 void usbasp_initpgm (PROGRAMMER * pgm);
 
