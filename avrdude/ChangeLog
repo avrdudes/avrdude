@@ -1,3 +1,16 @@
+2006-09-18 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Various fixes for ancient processors and their
+	capabilities.  For the AT90S1200 and the AT90S8515, fuse bit
+	handling via ISP, and lock bit reading via ISP are not supported
+	at all.  For the AT90S4414 (small brother of the AT90S8515), add
+	the ability to write the lock bits, and add a definition for the
+	fuse bits (usable for HV programming).  For the AT90S2313, add the
+	"fuse" memory range, so it's available for HV programming.
+
+	Resolves bug #17796: avrdude will not program or verify lockbits
+	with Atmel STK protocol programmers
+
 2006-09-17 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	Submitted by Thomas Fischl:
