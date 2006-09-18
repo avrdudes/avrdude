@@ -1310,21 +1310,11 @@ part
       ;
     memory "fuse"
         size            = 1;
-        min_write_delay = 9000;
-        max_write_delay = 20000;
-        read            = "0 1 0 1  0 0 0 0   x x x x  x x x x",
-                          "x x x x  x x x x   x x o o  o o o o";
-
-        write           = "1 0 1 0  1 1 0 0   1 0 1 i  i i i i",
-                          "x x x x  x x x x   x x x x  x x x x";
       ;
     memory "lock"
         size            = 1;
         min_write_delay = 9000;
         max_write_delay = 20000;
-        read            = "0 1 0 1  1 0 0 0   x x x x  x x x x",
-                          "x x x x  x x x x   x x x x  x o o x";
-
         write           = "1 0 1 0  1 1 0 0   1 1 1 1  1 i i 1",
                           "x x x x  x x x x   x x x x  x x x x";
       ;
@@ -1431,6 +1421,16 @@ part
         read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
                           "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
       ;
+    memory "fuse"
+	size		= 1;
+      ;
+    memory "lock"
+	size		= 1;
+	write		= "1  0  1  0   1  1  0  0   1  1  1  1   1  i  i  1",
+			  "x  x  x  x   x  x  x  x   x  x  x  x   x  x  x  x";
+        min_write_delay = 9000;
+        max_write_delay = 9000;
+      ;
   ;
 
 #------------------------------------------------------------
@@ -1533,6 +1533,9 @@ part
         size            = 3;
         read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
                           "x  x  x  x   x  x a1 a0   o  o  o  o   o  o  o  o";
+      ;
+    memory "fuse"
+        size            = 1;
       ;
     memory "lock"
         size            = 1;
@@ -2063,17 +2066,9 @@ part
       ;
     memory "fuse"
 	size		= 1;
-	read		= "0  1  0  1   1  0  0  0   x  x  x  x   x  x  x  x",
-			  "x  x  x  x   x  x  x  x   x  x  x  x   x  x  x  o";
-	write		= "1  0  1  0   1  1  0  0   1  0  1  1   1  1  1  i",
-			  "x  x  x  x   x  x  x  x   x  x  x  x   x  x  x  x";
-        min_write_delay = 9000;
-        max_write_delay = 9000;
       ;
     memory "lock"
 	size		= 1;
-	read		= "0  1  0  1   1  0  0  0   x  x  x  x   x  x  x  x",
-			  "x  x  x  x   x  x  x  x   o  o  x  x   x  x  x  x";
 	write		= "1  0  1  0   1  1  0  0   1  1  1  1   1  i  i  1",
 			  "x  x  x  x   x  x  x  x   x  x  x  x   x  x  x  x";
         min_write_delay = 9000;
