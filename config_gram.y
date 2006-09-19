@@ -36,6 +36,7 @@
 #include "pgm.h"
 #include "stk500.h"
 #include "stk500v2.h"
+#include "stk500generic.h"
 #include "avr910.h"
 #include "butterfly.h"
 #include "usbasp.h"
@@ -126,6 +127,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_STK500HVSP
 %token K_STK500PP
 %token K_STK500V2
+%token K_STK500GENERIC
 %token K_AVR910
 %token K_USBASP
 %token K_BUTTERFLY
@@ -390,6 +392,12 @@ prog_parm :
   K_TYPE TKN_EQUAL K_STK500PP {
     {
       stk500pp_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_STK500GENERIC {
+    {
+      stk500generic_initpgm(current_prog);
     }
   } |
 

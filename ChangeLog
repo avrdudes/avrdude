@@ -1,3 +1,23 @@
+2006-09-20 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Add the "stk500generic" programmer that auto-probes for STK500
+	either firmware version 1 or 2.
+	* Makefile.am (avrdude_SOURCES): add the new files
+	stk500generic.c and stk500generic.h.
+	* avrdude.conf.in: Add the stk500generic programmer type, and
+	change the "stk500" entry to point to this programmer.
+	* config_gram.y: Add the stk500generic keyword.
+	* lexer.l: (Ditto.)
+	* stk500.c: Change the stk500v1 code to not call exit()
+	prematurely when failing to open the programmer, but instead
+	return an error status.
+	* stk500generic.c: (New file.) Stub programmer implementation.
+	Probe for either stk500v1 or stk500v2, and adjust the current pgm
+	appropriately.
+	* stk500generic.h: (New file.) Declare the public interface(s)
+	of stk500generic.c.
+	* doc/avrdude.texi: Document the changed behaviour of stk500.
+
 2006-09-18 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: Various fixes for ancient processors and their
