@@ -29,6 +29,12 @@ Current:
   * Allow for specifying the ISP clock delay as an option for
     bit-bang programming adapters.
 
+  * Add support for Thomas Fischl's USBasp low-cost USB-attached
+    programmer.
+
+  * The "stk500" programmer type is now implemented as a stub
+    that tries to probe for either "stk500v1" or "stk500v2".
+
   * Many bugfixes.
 
 Version 5.1:
