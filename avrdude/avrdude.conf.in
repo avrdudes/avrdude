@@ -15,7 +15,7 @@
 #   programmer
 #       id       = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
 #       desc     = <description> ;                  # quoted string
-#       type     = par | stk500 | stk500v2 | stk500pp | stk500hvsp |
+#       type     = par | stk500 | stk500v2 | stk500pp | stk500hvsp | stk500generic |
 #                  avr910 | butterfly | usbasp |
 #                  jtagmki | jtagmkii | jtagmkii_isp; # programmer type
 #       baudrate = <num> ;                          # baudrate for avr910-programmer
@@ -316,12 +316,13 @@ programmer
 ;
 
 # This is supposed to be the "default" STK500 entry.
-# Refers to V1 by now, might be changed to V2 in a
-# future release.
+# Attempts to select the correct firmware version
+# by probing for it.  Better use one of the entries
+# below instead.
 programmer
   id    = "stk500";
   desc  = "Atmel STK500";
-  type  = stk500;
+  type  = stk500generic;
 ;
 
 programmer

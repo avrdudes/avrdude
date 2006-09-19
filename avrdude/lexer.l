@@ -176,6 +176,7 @@ stk500           { yylval=NULL; return K_STK500; }
 stk500hvsp       { yylval=NULL; return K_STK500HVSP; }
 stk500pp         { yylval=NULL; return K_STK500PP; }
 stk500v2         { yylval=NULL; return K_STK500V2; }
+stk500generic    { yylval=NULL; return K_STK500GENERIC; }
 stk500_devcode   { yylval=NULL; return K_STK500_DEVCODE; }
 type             { yylval=NULL; return K_TYPE; }
 vcc              { yylval=NULL; return K_VCC; }
