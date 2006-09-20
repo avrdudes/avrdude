@@ -76,6 +76,7 @@ char * version      = VERSION;
 
 int    verbose;     /* verbose output */
 int    quell_progress; /* un-verebose output */
+int    ovsigck;     /* 1=override sig check, 0=don't */
 char * progname;
 char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
@@ -683,7 +684,6 @@ int main(int argc, char * argv [])
   int     erase;       /* 1=erase chip, 0=don't */
   int     auto_erase;  /* 0=never erase unless explicity told to do
                           so, 1=erase if we are going to program flash */
-  int     ovsigck;     /* 1=override sig check, 0=don't */
   char  * port;        /* device port (/dev/xxx) */
   int     terminal;    /* 1=enter terminal mode, 0=don't */
   int     nowrite;     /* don't actually write anything to the chip */

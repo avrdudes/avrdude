@@ -1,5 +1,12 @@
 2006-09-20 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* avr910.c: As there is a lot of ambiguity about the AVR910
+	device codes, allow the user to override the device code
+	verification with the -F option.
+	* main.c: Make ovsigck a global variable.
+
+2006-09-20 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	Add the "stk500generic" programmer that auto-probes for STK500
 	either firmware version 1 or 2.
 	* Makefile.am (avrdude_SOURCES): add the new files
