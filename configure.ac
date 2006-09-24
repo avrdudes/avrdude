@@ -44,14 +44,20 @@ AM_PROG_LEX
 AC_CHECK_LIB([termcap], [tputs])
 AC_CHECK_LIB([ncurses], [tputs])
 AC_CHECK_LIB([readline], [readline])
-# usb_get_string_simple is only available in recent enough
-# versions of libusb, so use that as a decision base.
-AC_CHECK_LIB([usb], [usb_get_string_simple],
-		    [LIBUSB=-lusb
-		    AC_DEFINE([HAVE_LIBUSB],
-		              [1],
-			      [Define to 1 if libusb is available.])],
-		    [LIBUSB=])
+AH_TEMPLATE([HAVE_LIBUSB],
+            [Define if USB support is enabled via libusb])
+AC_CHECK_LIB([usb], [usb_get_string_simple], [have_libusb=yes])
+if test x$have_libusb = xyes; then
+   case $target in
+       *-*-darwin*)
+               LIBUSB="-lusb -framework CoreFoundation -framework IOKit"
+               ;;
+       *)
+               LIBUSB="-lusb"
+               ;;
+   esac
+   AC_DEFINE([HAVE_LIBUSB])
+fi
 AC_SUBST(LIBUSB, $LIBUSB)
 
 # Checks for header files.

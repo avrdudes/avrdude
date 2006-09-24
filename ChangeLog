@@ -1,3 +1,10 @@
+2006-09-24 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by Thomas Fischl (initially):
+	* configure.ac: Add the CoreFoundation and IOKit framework
+	linker flags on MacOS X when configuring for USB support.
+	patch #4685: Libusb on MacOS X: detection and additional includes
+
 2006-09-20 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avr910.c: As there is a lot of ambiguity about the AVR910
