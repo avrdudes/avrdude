@@ -1,3 +1,8 @@
+2006-09-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* pgm.h: Fix prototype for gettimeofday().
+	Closes bug #17884: another gettimeofday conflict under win32/cygwin
+
 2006-09-24 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	Submitted by Thomas Fischl (initially):
