@@ -121,7 +121,7 @@ PROGRAMMER * pgm_new(void);
 */
 void usleep(unsigned long us);
 
-void gettimeofday(struct timeval*, void*z);
+void gettimeofday(struct timeval *tv, struct timezone *tz);
 
 #endif /* __win32native_h */
 
