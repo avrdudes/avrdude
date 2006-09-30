@@ -110,6 +110,7 @@ PROGRAMMER * pgm_new(void);
 
 #if defined(WIN32NATIVE)
 
+#include "ac_cfg.h"
 #include <windows.h>
 
 /* usleep replacements */
@@ -121,7 +122,9 @@ PROGRAMMER * pgm_new(void);
 */
 void usleep(unsigned long us);
 
+#if !defined(HAVE_GETTIMEOFDAY)
 int gettimeofday(struct timeval *tv, struct timezone *tz);
+#endif /* HAVE_GETTIMEOFDAY */
 
 #endif /* __win32native_h */
 
