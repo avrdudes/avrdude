@@ -329,7 +329,7 @@ static int stk500v2_jtagmkII_recv(PROGRAMMER * pgm, unsigned char msg[],
     return -1;
   }
   memcpy(msg, jtagmsg + 1, rv - 1);
-  return 0;
+  return rv;
 }
 
 static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) {
@@ -524,8 +524,8 @@ retry:
   return 0;
 }
 
-static int stk500v2_command
-(PROGRAMMER * pgm, unsigned char * buf, size_t len, size_t maxlen) {
+static int stk500v2_command(PROGRAMMER * pgm, unsigned char * buf,
+                            size_t len, size_t maxlen) {
   int i;
   int tries = 0;
   int status;
@@ -539,14 +539,24 @@ retry:
 
   // send the command to the programmer
   stk500v2_send(pgm,buf,len);
-
   // attempt to read the status back
   status = stk500v2_recv(pgm,buf,maxlen);
 
   // if we got a successful readback, return
   if (status > 0) {
     DEBUG(" = %d\n",status);
-    return status;
+    if (status < 2) {
+      fprintf(stderr, "%s: stk500v2_command(): short reply\n", progname);
+      return -1;
+    }
+    if (buf[1] == STATUS_CMD_OK)
+      return status;
+    if (buf[1] == STATUS_CMD_FAILED)
+      fprintf(stderr, "%s: stk500v2_command(): command failed\n", progname);
+    else
+      fprintf(stderr, "%s: stk500v2_command(): unknown status 0x%02x\n",
+              progname, buf[1]);
+    return -1;
   }
 
   // otherwise try to sync up again
@@ -582,9 +592,13 @@ static int stk500v2_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
   buf[7] = cmd[3];
 
   result = stk500v2_command(pgm, buf, 8, sizeof(buf));
-  if (buf[1] != STATUS_CMD_OK) {
+  if (result < 0) {
     fprintf(stderr, "%s: stk500v2_cmd(): failed to send command\n",
             progname);
+    return -1;
+  } else if (result < 6) {
+    fprintf(stderr, "%s: stk500v2_cmd(): short reply, len = %d\n",
+            progname, result);
     return -1;
   }
 
@@ -782,11 +796,11 @@ static int stk500hv_initialize(PROGRAMMER * pgm, AVRPART * p, enum hvmode mode)
 
   result = stk500v2_command(pgm, buf, CTL_STACK_SIZE + 1, sizeof(buf));
 
-  if (result < 0 || buf[1] != STATUS_CMD_OK) {
+  if (result < 0) {
     fprintf(stderr,
 	    "%s: stk500pp_initalize(): "
-	    "failed to set control stack, got 0x%02x\n",
-            progname, buf[1]);
+	    "failed to set control stack\n",
+            progname);
     return -1;
   }
 
@@ -852,9 +866,10 @@ static void stk500v2_disable(PROGRAMMER * pgm)
 
   result = stk500v2_command(pgm, buf, 3, sizeof(buf));
 
-  if (buf[1] != STATUS_CMD_OK) {
-    fprintf(stderr, "%s: stk500v2_disable(): failed to leave programming mode, got 0x%02x\n",
-            progname,buf[1]);
+  if (result < 0) {
+    fprintf(stderr,
+            "%s: stk500v2_disable(): failed to leave programming mode\n",
+            progname);
   }
 
   return;
@@ -879,11 +894,11 @@ static void stk500hv_disable(PROGRAMMER * pgm, enum hvmode mode)
 
   result = stk500v2_command(pgm, buf, 3, sizeof(buf));
 
-  if (result < 0 || buf[1] != STATUS_CMD_OK) {
+  if (result < 0) {
     fprintf(stderr,
 	    "%s: stk500hv_disable(): "
-	    "failed to leave programming mode, got 0x%02x\n",
-            progname,buf[1]);
+	    "failed to leave programming mode\n",
+            progname);
     exit(1);
   }
 
@@ -986,9 +1001,10 @@ static int stk500v2_loadaddr(PROGRAMMER * pgm, unsigned int addr)
 
   result = stk500v2_command(pgm, buf, 5, sizeof(buf));
 
-  if (buf[1] != STATUS_CMD_OK) {
-    fprintf(stderr, "%s: stk500v2_loadaddr(): failed to set load address, got 0x%02x\n",
-            progname,buf[1]);
+  if (result < 0) {
+    fprintf(stderr,
+            "%s: stk500v2_loadaddr(): failed to set load address\n",
+            progname);
     return -1;
   }
 
@@ -1090,11 +1106,11 @@ static int stk500hv_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
   result = stk500v2_command(pgm, buf, cmdlen, sizeof(buf));
 
-  if (result < 0 || buf[1] != STATUS_CMD_OK) {
+  if (result < 0) {
     fprintf(stderr,
 	    "%s: stk500hv_read_byte(): "
-	    "timeout/error communicating with programmer (status %d)\n",
-	    progname, result);
+	    "timeout/error communicating with programmer\n",
+	    progname);
     return -1;
   }
 
@@ -1254,11 +1270,11 @@ static int stk500hv_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
   result = stk500v2_command(pgm, buf, cmdlen, sizeof(buf));
 
-  if (result < 0 || buf[1] != STATUS_CMD_OK) {
+  if (result < 0) {
     fprintf(stderr,
 	    "%s: stk500hv_write_byte(): "
-	    "timeout/error communicating with programmer (status %d)\n",
-	    progname, result);
+	    "timeout/error communicating with programmer\n",
+	    progname);
     return -1;
   }
 
@@ -1411,9 +1427,10 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     memcpy(buf+10,m->buf+addr, block_size);
 
     result = stk500v2_command(pgm,buf,block_size+10, sizeof(buf));
-    if (buf[1] != STATUS_CMD_OK) {
-      fprintf(stderr,"%s: stk500v2_paged_write: write command failed with %d\n",
-              progname,buf[1]);
+    if (result < 0) {
+      fprintf(stderr,
+              "%s: stk500v2_paged_write: write command failed\n",
+              progname);
       return -1;
     }
   }
@@ -1508,9 +1525,10 @@ static int stk500hv_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       memset(buf + 5 + block_size, 0xff, page_size - block_size);
 
     result = stk500v2_command(pgm, buf, page_size + 5, sizeof(buf));
-    if (buf[1] != STATUS_CMD_OK) {
-      fprintf(stderr, "%s: stk500hv_paged_write: write command failed with %d\n",
-              progname, buf[1]);
+    if (result < 0) {
+      fprintf(stderr,
+              "%s: stk500hv_paged_write: write command failed\n",
+              progname);
       return -1;
     }
   }
@@ -1621,9 +1639,10 @@ static int stk500v2_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     }
 
     result = stk500v2_command(pgm,buf,4,sizeof(buf));
-    if (buf[1] != STATUS_CMD_OK) {
-      fprintf(stderr,"%s: stk500v2_paged_load: read command failed with %d\n",
-              progname,buf[1]);
+    if (result < 0) {
+      fprintf(stderr,
+              "%s: stk500v2_paged_load: read command failed\n",
+              progname);
       return -1;
     }
 #if 0
@@ -1699,9 +1718,10 @@ static int stk500hv_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     }
 
     result = stk500v2_command(pgm, buf, 3, sizeof(buf));
-    if (buf[1] != STATUS_CMD_OK) {
-      fprintf(stderr, "%s: stk500hv_paged_load: read command failed with %d\n",
-              progname, buf[1]);
+    if (result < 0) {
+      fprintf(stderr,
+              "%s: stk500hv_paged_load: read command failed\n",
+              progname);
       return -1;
     }
 #if 0
@@ -2088,6 +2108,23 @@ static void stk500v2_print_parms(PROGRAMMER * pgm)
   stk500v2_print_parms1(pgm, "");
 }
 
+static int stk500v2_perform_osccal(PROGRAMMER * pgm)
+{
+  unsigned char buf[32];
+  int rv;
+
+  buf[0] = CMD_OSCCAL;
+
+  rv = stk500v2_command(pgm, buf, 1, sizeof(buf));
+  if (rv < 0) {
+    fprintf(stderr, "%s: stk500v2_perform_osccal(): failed\n",
+            progname);
+    return -1;
+  }
+
+  return 0;
+}
+
 
 /*
  * Wrapper functions for the JTAG ICE mkII in ISP mode.  This mode
@@ -2183,6 +2220,7 @@ void stk500v2_initpgm(PROGRAMMER * pgm)
   pgm->set_varef      = stk500v2_set_varef;
   pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period;
+  pgm->perform_osccal = stk500v2_perform_osccal;
   pgm->page_size      = 256;
 }
 
@@ -2274,5 +2312,6 @@ void stk500v2_jtagmkII_initpgm(PROGRAMMER * pgm)
   pgm->paged_load     = stk500v2_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
+  pgm->perform_osccal = stk500v2_perform_osccal;
   pgm->page_size      = 256;
 }

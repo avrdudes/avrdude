@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE September 10, 2006
+.Dd DATE October 9, 2006
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -40,6 +40,7 @@
 .Op Fl F
 .Op Fl i Ar delay
 .Op Fl n
+.Op Fl O
 .Op Fl P Ar port
 .Op Fl q
 .Op Fl s
@@ -360,6 +361,12 @@ slow machines.
 No-write - disables actually writing data to the MCU (useful for debugging
 .Nm avrdude
 ).
+.It Fl O
+Perform a RC oscillator run-time calibration according to Atmel
+application note AVR053.
+This is only supported on the STK500v2, AVRISP mkII, and JTAG ICE mkII
+hardware.
+Note that the result will be stored in the EEPROM cell at address 0.
 .It Fl P Ar port
 Use
 .Ar port

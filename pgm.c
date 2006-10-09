@@ -123,6 +123,7 @@ PROGRAMMER * pgm_new(void)
   pgm->set_vtarget    = NULL;
   pgm->set_varef      = NULL;
   pgm->set_fosc       = NULL;
+  pgm->perform_osccal = NULL;
 
   return pgm;
 }

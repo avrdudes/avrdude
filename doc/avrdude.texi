@@ -505,6 +505,13 @@ slow machines.
 No-write - disables actually writing data to the MCU (useful for
 debugging AVRDUDE).
 
+@item -O
+Perform a RC oscillator run-time calibration according to Atmel
+application note AVR053.
+This is only supported on the STK500v2, AVRISP mkII, and JTAG ICE mkII
+hardware.
+Note that the result will be stored in the EEPROM cell at address 0.
+
 @item -P @var{port}
 Use port to identify the device to which the programmer is attached.
 Normally, the default parallel port is used, but if the programmer type
