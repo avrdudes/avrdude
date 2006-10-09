@@ -1,5 +1,13 @@
 2006-10-09 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	Released AVRDUDE 5.2.
+
+2006-10-09 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* configure.ac: Bump version to 5.2
+
+2006-10-09 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	Submitted by John Voltz: add AVR053 oscillator calibration.
 	* main.c: Add the -O option.
 	* pgm.c: Add the hook for the perform_osccal() method.
