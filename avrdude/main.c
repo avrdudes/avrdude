@@ -110,6 +110,7 @@ void usage(void)
  "  -P <port>                  Specify connection port.\n"
  "  -F                         Override invalid signature check.\n"
  "  -e                         Perform a chip erase.\n"
+ "  -O                         Perform RC oscillator calibration (see AVR053). \n"
  "  -U <memtype>:r|w|v:<filename>[:format]\n"
  "                             Memory operation specification.\n"
  "                             Multiple -U options are allowed, each request\n"
@@ -682,6 +683,7 @@ int main(int argc, char * argv [])
 
   /* options / operating mode variables */
   int     erase;       /* 1=erase chip, 0=don't */
+  int     calibrate;   /* 1=calibrate RC oscillator, 0=don't */
   int     auto_erase;  /* 0=never erase unless explicity told to do
                           so, 1=erase if we are going to program flash */
   char  * port;        /* device port (/dev/xxx) */
@@ -739,6 +741,7 @@ int main(int argc, char * argv [])
   partdesc      = NULL;
   port          = default_parallel;
   erase         = 0;
+  calibrate     = 0;
   auto_erase    = 1;
   p             = NULL;
   ovsigck       = 0;
@@ -805,7 +808,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?b:B:c:C:DeE:Fi:np:P:qstU:uvVyY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?b:B:c:C:DeE:Fi:np:OP:qstU:uvVyY:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -863,6 +866,10 @@ int main(int argc, char * argv [])
       case 'n':
         nowrite = 1;
         break;
+
+      case 'O': /* perform RC oscillator calibration */
+	calibrate = 1;
+	break;
 
       case 'p' : /* specify AVR part */
         partdesc = optarg;
@@ -1148,6 +1155,21 @@ int main(int argc, char * argv [])
   if (rc < 0) {
     exitrc = 1;
     pgm->ppidata = 0; /* clear all bits at exit */
+    goto main_exit;
+  }
+
+  if (calibrate) {
+    /*
+     * perform an RC oscillator calibration
+     * as outlined in appnote AVR053
+     */
+    fprintf(stderr, "%s: performing RC oscillator calibration\n", progname);
+    exitrc = pgm->perform_osccal(pgm);
+    if (exitrc == 0 && quell_progress < 2) {
+      fprintf(stderr,
+              "%s: calibration value is now stored in EEPROM at address 0\n",
+              progname);
+    }
     goto main_exit;
   }
 
