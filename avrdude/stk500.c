@@ -590,8 +590,6 @@ static int stk500_open(PROGRAMMER * pgm, char * port)
   if (stk500_getsync(pgm) < 0)
     return -1;
 
-  stk500_drain(pgm, 0);
-
   return 0;
 }
 
@@ -656,13 +654,14 @@ static int stk500_loadaddr(PROGRAMMER * pgm, unsigned int addr)
 static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
                               int page_size, int n_bytes)
 {
-  unsigned char buf[16];
+  unsigned char buf[page_size + 16];
   int memtype;
   unsigned int addr;
   int a_div;
   int block_size;
   int tries;
   unsigned int n;
+  unsigned int i;
   int flash;
 
   if (page_size == 0) {
@@ -728,16 +727,18 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   retry:
     tries++;
     stk500_loadaddr(pgm, addr/a_div);
-    buf[0] = Cmnd_STK_PROG_PAGE;
-    buf[1] = (block_size >> 8) & 0xff;
-    buf[2] = block_size & 0xff;
-    buf[3] = memtype;
-    stk500_send(pgm, buf, 4);
 
-	stk500_send(pgm, &m->buf[addr], block_size);
-
-    buf[0] = Sync_CRC_EOP;
-    stk500_send(pgm, buf, 1);
+    /* build command block and avoid multiple send commands as it leads to a crash
+        of the silabs usb serial driver on mac os x */
+    i = 0;
+    buf[i++] = Cmnd_STK_PROG_PAGE;
+    buf[i++] = (block_size >> 8) & 0xff;
+    buf[i++] = block_size & 0xff;
+    buf[i++] = memtype;
+    memcpy(&buf[i], &m->buf[addr], block_size);
+    i += block_size;
+    buf[i++] = Sync_CRC_EOP;
+    stk500_send( pgm, buf, i);
 
     if (stk500_recv(pgm, buf, 1) < 0)
       exit(1);

@@ -1,3 +1,16 @@
+2006-10-09 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by freckle@sf.net:
+	* stk500.c (stk500_paged_write): Send the command and the data
+	payload within a single write().
+	patch #5025: Improve stk500.c robustness
+
+	Submitted by Matthias Ringwald:
+	* stk500.c (stk500_open): do not flush the serial line after
+	getting in sync with the programmer.
+	patch #5293: stk500.c: no drain after sync (-> allow BTnode
+	Bootloader to work on cygwin)
+
 2006-09-29 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* pgm.h: Fix prototype for gettimeofday().
