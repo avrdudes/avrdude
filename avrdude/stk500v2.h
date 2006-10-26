@@ -27,6 +27,7 @@ void stk500v2_initpgm (PROGRAMMER * pgm);
 void stk500hvsp_initpgm (PROGRAMMER * pgm);
 void stk500pp_initpgm (PROGRAMMER * pgm);
 void stk500v2_jtagmkII_initpgm(PROGRAMMER * pgm);
+void stk500v2_dragon_isp_initpgm(PROGRAMMER * pgm);
 
 #endif
 

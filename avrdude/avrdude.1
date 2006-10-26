@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE October 9, 2006
+.Dd DATE October 26, 2006
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -113,6 +113,19 @@ supported on a serial port.
 Atmel's JTAG ICE (both mkI and mkII) is supported as well to up- or download memory
 areas from/to an AVR target (no support for on-chip debugging).
 For the JTAG ICE mkII, both JTAG and ISP mode are supported.
+.Pp
+The AVR Dragon is supported in JTAG and ISP mode.
+(High-voltage programming is not yet supported.)
+When used in JTAG mode, the AVR Dragon behaves similar to a
+JTAG ICE mkII, so all device-specific comments for that device
+will apply as well.
+When used in ISP mode, the AVR Dragon behaves similar to an
+AVRISP mkII (or JTAG ICE mkII in ISP mode), so all device-specific
+comments will apply there.
+In particular, the Dragon starts out with a rather fast ISP clock
+frequency, so the
+.Fl B Ar bitclock
+option might be required to achieve a stable ISP communication.
 .Pp
 The USBasp ISP adapter is also supported, provided
 .Nm avrdude

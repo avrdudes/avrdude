@@ -1,3 +1,16 @@
+2006-10-26 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Add support for the AVR Dragon (JTAG and ISP mode).
+	* config_gram.y: (Ditto.)
+	* jtagmkII.c: (Ditto.)
+	* jtagmkII.h: (Ditto.)
+	* lexer.l: (Ditto.)
+	* stk500v2.c: (Ditto.)
+	* stk500v2.h: (Ditto.)
+	* usbdevs.h: (Ditto.)
+	* avrdude.1: Document the AVR Dragon support.
+	* doc/avrdude.texi: (Ditto.)
+
 2006-10-09 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	Released AVRDUDE 5.2.

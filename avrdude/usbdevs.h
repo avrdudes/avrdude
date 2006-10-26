@@ -29,6 +29,8 @@
 #define USB_VENDOR_ATMEL 1003
 #define USB_DEVICE_JTAGICEMKII 0x2103
 #define USB_DEVICE_AVRISPMKII  0x2104
+#define USB_DEVICE_AVRDRAGON   0x2107
+
 /*
  * Should we query the endpoint number and max transfer size from USB?
  * After all, the JTAG ICE mkII docs document these values.

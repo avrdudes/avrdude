@@ -26,6 +26,9 @@
 
 /*
  * avrdude interface for Atmel JTAG ICE mkII programmer
+ *
+ * The AVR Dragon also uses the same protocol, so it is handled here
+ * as well.
  */
 
 #include "ac_cfg.h"
@@ -573,7 +576,7 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
 #define MAXTRIES 33
   unsigned char buf[3], *resp, c = 0xff;
   int status;
-  unsigned int fwver;
+  unsigned int fwver, hwver;
 
   if (verbose >= 3)
     fprintf(stderr, "%s: jtagmkII_getsync()\n", progname);
@@ -601,6 +604,7 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
     if (status > 0) {
       if ((c = resp[0]) == RSP_SIGN_ON) {
 	fwver = ((unsigned)resp[8] << 8) | (unsigned)resp[7];
+	hwver = (unsigned)resp[9];
 	memcpy(serno, resp + 10, 6);
 	if (verbose >= 1 && status > 17) {
 	  fprintf(stderr, "JTAG ICE mkII sign-on message:\n");
@@ -651,15 +655,19 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
    * There's no official documentation from Atmel about what firmware
    * revision matches what device descriptor length.  The algorithm
    * below has been found empirically.
+   *
+   * The original JTAG ICE mkII has hardware version 0, the AVR Dragon
+   * has hardware version 2 (on the slave MCU) and doesn't need the
+   * firmware version checks (by now).
    */
 #define FWVER(maj, min) ((maj << 8) | (min))
-  if (fwver < FWVER(3, 16)) {
+  if (hwver == 0 && fwver < FWVER(3, 16)) {
     device_descriptor_length -= 2;
     fprintf(stderr,
 	    "%s: jtagmkII_getsync(): "
 	    "S_MCU firmware version might be too old to work correctly\n",
 	    progname);
-  } else if (fwver < FWVER(4, 0)) {
+  } else if (hwver == 0 && fwver < FWVER(4, 0)) {
     device_descriptor_length -= 2;
   }
   if (verbose >= 2 && mode != EMULATOR_MODE_SPI)
@@ -668,7 +676,7 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
 	    progname, device_descriptor_length);
   if (mode == EMULATOR_MODE_SPI) {
     device_descriptor_length = 0;
-    if (fwver < FWVER(4, 14)) {
+    if (hwver == 0 && fwver < FWVER(4, 14)) {
       fprintf(stderr,
 	      "%s: jtagmkII_getsync(): ISP functionality requires firmware "
 	      "version >= 4.14\n",
@@ -1147,6 +1155,51 @@ static int jtagmkII_open(PROGRAMMER * pgm, char * port)
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
     baud = USB_DEVICE_JTAGICEMKII;
+#else
+    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    return -1;
+#endif
+  }
+
+  strcpy(pgm->port, port);
+  pgm->fd = serial_open(port, baud);
+
+  /*
+   * drain any extraneous input
+   */
+  jtagmkII_drain(pgm, 0);
+
+  jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG);
+
+  return 0;
+}
+
+
+static int jtagmkII_dragon_open(PROGRAMMER * pgm, char * port)
+{
+  long baud;
+
+  if (verbose >= 2)
+    fprintf(stderr, "%s: jtagmkII_dragon_open()\n", progname);
+
+  /*
+   * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
+   * attaching.  If the config file or command-line parameters specify
+   * a higher baud rate, we switch to it later on, after establishing
+   * the connection with the ICE.
+   */
+  baud = 19200;
+
+  /*
+   * If the port name starts with "usb", divert the serial routines
+   * to the USB ones.  The serial_open() function for USB overrides
+   * the meaning of the "baud" parameter to be the USB device ID to
+   * search for.
+   */
+  if (strncmp(port, "usb", 3) == 0) {
+#if defined(HAVE_LIBUSB)
+    serdev = &usb_serdev;
+    baud = USB_DEVICE_AVRDRAGON;
 #else
     fprintf(stderr, "avrdude was compiled without usb support.\n");
     return -1;
@@ -1900,6 +1953,36 @@ void jtagmkII_initpgm(PROGRAMMER * pgm)
   pgm->chip_erase     = jtagmkII_chip_erase;
   pgm->cmd            = jtagmkII_cmd;
   pgm->open           = jtagmkII_open;
+  pgm->close          = jtagmkII_close;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = jtagmkII_paged_write;
+  pgm->paged_load     = jtagmkII_paged_load;
+  pgm->read_byte      = jtagmkII_read_byte;
+  pgm->write_byte     = jtagmkII_write_byte;
+  pgm->print_parms    = jtagmkII_print_parms;
+  pgm->set_sck_period = jtagmkII_set_sck_period;
+  pgm->page_size      = 256;
+}
+
+
+void jtagmkII_dragon_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "DRAGON_JTAG");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = jtagmkII_initialize;
+  pgm->display        = jtagmkII_display;
+  pgm->enable         = jtagmkII_enable;
+  pgm->disable        = jtagmkII_disable;
+  pgm->program_enable = jtagmkII_program_enable_dummy;
+  pgm->chip_erase     = jtagmkII_chip_erase;
+  pgm->cmd            = jtagmkII_cmd;
+  pgm->open           = jtagmkII_dragon_open;
   pgm->close          = jtagmkII_close;
 
   /*

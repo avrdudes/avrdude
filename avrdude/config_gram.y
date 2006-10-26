@@ -88,6 +88,8 @@ static int parse_cmdbits(OPCODE * op);
 %token K_DEFAULT_SERIAL
 %token K_DESC
 %token K_DEVICECODE
+%token K_DRAGON_ISP
+%token K_DRAGON_JTAG
 %token K_STK500_DEVCODE
 %token K_AVR910_DEVCODE
 %token K_EEPROM
@@ -434,6 +436,18 @@ prog_parm :
   K_TYPE TKN_EQUAL K_JTAG_MKII_ISP {
     {
       stk500v2_jtagmkII_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_DRAGON_ISP {
+    {
+      stk500v2_dragon_isp_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_DRAGON_JTAG {
+    {
+      jtagmkII_dragon_initpgm(current_prog);
     }
   } |
 

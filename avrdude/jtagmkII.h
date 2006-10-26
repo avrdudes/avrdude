@@ -30,6 +30,7 @@ int  jtagmkII_getparm(PROGRAMMER * pgm, unsigned char parm,
 		      unsigned char * value);
 
 void jtagmkII_initpgm (PROGRAMMER * pgm);
+void jtagmkII_dragon_initpgm (PROGRAMMER * pgm);
 
 #endif
 
