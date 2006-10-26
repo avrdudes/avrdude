@@ -17,7 +17,8 @@
 #       desc     = <description> ;                  # quoted string
 #       type     = par | stk500 | stk500v2 | stk500pp | stk500hvsp | stk500generic |
 #                  avr910 | butterfly | usbasp |
-#                  jtagmki | jtagmkii | jtagmkii_isp; # programmer type
+#                  jtagmki | jtagmkii | jtagmkii_isp |
+#                  dragon_jtag | dragon_isp;        # programmer type
 #       baudrate = <num> ;                          # baudrate for avr910-programmer
 #       vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
 #       reset    = <num> ;                          # pin number
@@ -439,6 +440,22 @@ programmer
   desc  = "Atmel JTAG ICE mkII in ISP mode";
   baudrate = 115200;
   type  = jtagmkii_isp;
+;
+
+# AVR Dragon in JTAG mode
+programmer
+  id    = "dragon_jtag";
+  desc  = "Atmel AVR Dragon in JTAG mode";
+  baudrate = 115200;
+  type  = dragon_jtag;
+;
+
+# AVR Dragon in ISP mode
+programmer
+  id    = "dragon_isp";
+  desc  = "Atmel AVR Dragon in ISP mode";
+  baudrate = 115200;
+  type  = dragon_isp;
 ;
 
 programmer
