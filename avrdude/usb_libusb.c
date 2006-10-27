@@ -202,11 +202,6 @@ static int usbdev_open(char * port, long baud)
   exit(1);
 }
 
-static int usbdev_setspeed(int fd, long baud)
-{
-  return 0;
-}
-
 static void usbdev_close(int fd)
 {
   usb_dev_handle *udev = (usb_dev_handle *)fd;
@@ -431,11 +426,11 @@ static int usbdev_drain(int fd, int display)
 struct serial_device usb_serdev =
 {
   .open = usbdev_open,
-  .setspeed = usbdev_setspeed,
   .close = usbdev_close,
   .send = usbdev_send,
   .recv = usbdev_recv,
   .drain = usbdev_drain,
+  .flags = SERDEV_FL_NONE,
 };
 
 /*
@@ -444,11 +439,11 @@ struct serial_device usb_serdev =
 struct serial_device usb_serdev_frame =
 {
   .open = usbdev_open,
-  .setspeed = usbdev_setspeed,
   .close = usbdev_close,
   .send = usbdev_send,
   .recv = usbdev_recv_frame,
   .drain = usbdev_drain,
+  .flags = SERDEV_FL_NONE,
 };
 
 #endif  /* HAVE_LIBUSB */

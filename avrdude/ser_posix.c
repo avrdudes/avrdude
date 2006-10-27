@@ -481,6 +481,7 @@ struct serial_device serial_serdev =
   .send = ser_send,
   .recv = ser_recv,
   .drain = ser_drain,
+  .flags = SERDEV_FL_CANSETSPEED,
 };
 
 struct serial_device *serdev = &serial_serdev;

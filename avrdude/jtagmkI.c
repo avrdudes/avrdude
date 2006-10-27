@@ -553,7 +553,7 @@ static int jtagmkI_initialize(PROGRAMMER * pgm, AVRPART * p)
 
   jtagmkI_drain(pgm, 0);
 
-  if (initial_baudrate != pgm->baudrate) {
+  if ((serdev->flags & SERDEV_FL_CANSETSPEED) && initial_baudrate != pgm->baudrate) {
     if ((b = jtagmkI_get_baud(pgm->baudrate)) == 0) {
       fprintf(stderr, "%s: jtagmkI_initialize(): unsupported baudrate %d\n",
               progname, pgm->baudrate);

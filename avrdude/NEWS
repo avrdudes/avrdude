@@ -7,6 +7,11 @@ Approximate change log for AVRDUDE by version.
 ----------------------------------------------------------------------
 Current:
 
+  * Add support for the AVR Dragon (JTAG and ISP mode).
+
+
+Version 5.2:
+
   * New devices supported:
 
       - AT90USB646/647/1286/1287
