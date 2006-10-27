@@ -1,3 +1,17 @@
+2006-10-27 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* jtagmkI.c: Implement a flags field in struct serdev, and populate it
+	with a flag that indicates whether the underlying communication can
+	dynamically change its speed or not.  This flag is set for true serial
+	communication but clear for USB communication.  Don't try to adjust
+	the speed when talking over a communication channel that doesn't
+	support it.  (The Dragon does not even support the respective parameter.)
+	* jtagmkII.c: (Ditto.)
+	* ser_posix.c: (Ditto.)
+	* ser_win32.c: (Ditto.)
+	* serial.h: (Ditto.)
+	* usb_libusb.c: (Ditto.)
+
 2006-10-26 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: Add support for the AVR Dragon (JTAG and ISP mode).

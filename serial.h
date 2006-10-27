@@ -41,6 +41,10 @@ struct serial_device
   int (*send)(int fd, unsigned char * buf, size_t buflen);
   int (*recv)(int fd, unsigned char * buf, size_t buflen);
   int (*drain)(int fd, int display);
+
+  int flags;
+#define SERDEV_FL_NONE         0x0000 /* no flags */
+#define SERDEV_FL_CANSETSPEED  0x0001 /* device can change speed */
 };
 
 extern struct serial_device *serdev;

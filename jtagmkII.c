@@ -1055,7 +1055,7 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
     return -1;
   }
 
-  if (pgm->baudrate && pgm->baudrate != 19200) {
+  if ((serdev->flags & SERDEV_FL_CANSETSPEED) && pgm->baudrate && pgm->baudrate != 19200) {
     if ((b = jtagmkII_get_baud(pgm->baudrate)) == 0) {
       fprintf(stderr, "%s: jtagmkII_initialize(): unsupported baudrate %d\n",
 	      progname, pgm->baudrate);
