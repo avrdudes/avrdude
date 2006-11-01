@@ -7,7 +7,7 @@ Approximate change log for AVRDUDE by version.
 ----------------------------------------------------------------------
 Current:
 
-  * Add support for the AVR Dragon (JTAG and ISP mode).
+  * Add support for the AVR Dragon (all modes: ISP, JTAG, HVSP, PP).
 
 
 Version 5.2:

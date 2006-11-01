@@ -232,7 +232,7 @@ static void jtagmkII_prmsg(PROGRAMMER * pgm, unsigned char * data, size_t len)
       switch (data[1]) {
       case EMULATOR_MODE_DEBUGWIRE: fprintf(stderr, ": DebugWire"); break;
       case EMULATOR_MODE_JTAG:      fprintf(stderr, ": JTAG"); break;
-      case EMULATOR_MODE_UNKNOWN:   fprintf(stderr, ": Unknown"); break;
+      case EMULATOR_MODE_HV:        fprintf(stderr, ": HVSP/PP"); break;
       case EMULATOR_MODE_SPI:       fprintf(stderr, ": SPI"); break;
       }
     putc('\n', stderr);
@@ -674,7 +674,7 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
     fprintf(stderr,
 	    "%s: jtagmkII_getsync(): Using a %zu-byte device descriptor\n",
 	    progname, device_descriptor_length);
-  if (mode == EMULATOR_MODE_SPI) {
+  if (mode == EMULATOR_MODE_SPI || mode == EMULATOR_MODE_HV) {
     device_descriptor_length = 0;
     if (hwver == 0 && fwver < FWVER(4, 14)) {
       fprintf(stderr,
