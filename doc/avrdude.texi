@@ -184,7 +184,7 @@ Only the memory programming functionality of the JTAG ICE is supported
 by AVRDUDE.
 For the JTAG ICE mkII, both JTAG and ISP mode are supported.
 
-The AVR Dragon is supported in JTAG and ISP mode.
+The AVR Dragon is supported in all modes (ISP, JTAG, HVSP, PP).
 (High-voltage programming is not yet supported.)
 When used in JTAG mode, the AVR Dragon behaves similar to a
 JTAG ICE mkII, so all device-specific comments for that device
@@ -385,6 +385,14 @@ Brian Dean's Programmer,@*
 Atmel Butterfly Development Board
 @item @code{dt006}       @tab
 Dontronics DT006
+@item @code{dragon_hvsp} @tab
+AVR Dragon in high-voltage serial programming mode
+@item @code{dragon_isp}  @tab
+AVR Dragon in ISP mode
+@item @code{dragon_jtag} @tab
+AVR Dragon in JTAG mode
+@item @code{dragon_pp}   @tab
+AVR Dragon in (high-voltage) parallel programming mode
 @item @code{jtagmkI}     @tab
 Atmel JTAG ICE mkI, running at 115200 Bd
 @item @code{jtag1}       @tab

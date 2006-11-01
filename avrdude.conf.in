@@ -18,7 +18,8 @@
 #       type     = par | stk500 | stk500v2 | stk500pp | stk500hvsp | stk500generic |
 #                  avr910 | butterfly | usbasp |
 #                  jtagmki | jtagmkii | jtagmkii_isp |
-#                  dragon_jtag | dragon_isp;        # programmer type
+#                  dragon_jtag | dragon_isp | dragon_pp |
+#                  dragon_hvsp; # programmer type
 #       baudrate = <num> ;                          # baudrate for avr910-programmer
 #       vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
 #       reset    = <num> ;                          # pin number
@@ -456,6 +457,22 @@ programmer
   desc  = "Atmel AVR Dragon in ISP mode";
   baudrate = 115200;
   type  = dragon_isp;
+;
+
+# AVR Dragon in PP mode
+programmer
+  id    = "dragon_pp";
+  desc  = "Atmel AVR Dragon in PP mode";
+  baudrate = 115200;
+  type  = dragon_pp;
+;
+
+# AVR Dragon in HVSP mode
+programmer
+  id    = "dragon_hvsp";
+  desc  = "Atmel AVR Dragon in HVSP mode";
+  baudrate = 115200;
+  type  = dragon_hvsp;
 ;
 
 programmer

@@ -1,3 +1,15 @@
+2006-11-01 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Implement HVSP and PP modes for the AVR Dragon.
+	* config_gram.y: (Ditto.)
+	* jtagmkII.c: (Ditto.)
+	* jtagmkII_private.h: (Ditto.)
+	* lexer.l: (Ditto.)
+	* stk500v2.c: (Ditto.)
+	* stk500v2.h: (Ditto.)
+	* avrdude.1: Document the HVSP and PP support for the Dragon.
+	* doc/avrdude.texi: (Ditto.)
+
 2006-10-27 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* jtagmkI.c: Implement a flags field in struct serdev, and populate it
