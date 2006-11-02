@@ -1,3 +1,10 @@
+2006-11-02 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Fix the width of the efuse memory area for a
+	number of AVRs.
+	Closes bug #18182: Wrong setting of eFuse configuration for
+	mega640/1280/1281/2560/2561 in avrdude 5.2
+
 2006-11-01 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: Implement HVSP and PP modes for the AVR Dragon.

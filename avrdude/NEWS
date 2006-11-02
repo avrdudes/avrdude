@@ -9,6 +9,7 @@ Current:
 
   * Add support for the AVR Dragon (all modes: ISP, JTAG, HVSP, PP).
 
+  * Bugfixes.
 
 Version 5.2:
 
