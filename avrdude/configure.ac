@@ -97,7 +97,7 @@ AC_ARG_ENABLE(
 	[doc],
 	AC_HELP_STRING(
 		[--enable-doc],
-		[Enable building documents(default)]),
+		[Enable building documents]),
 	[case "${enableval}" in
 		yes) enabled_doc=yes ;;
 		no)  enabled_doc=no ;;
