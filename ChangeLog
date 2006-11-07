@@ -1,3 +1,7 @@
+2006-11-07 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* configure.ac: Don't pretend --enable-doc were the default.
+
 2006-11-02 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: Fix the width of the efuse memory area for a
