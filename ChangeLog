@@ -1,3 +1,8 @@
+2006-11-08 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* configure.ac: Preserve ${LDFLAGS} inherited from environment
+	for Win32 environments.
+
 2006-11-07 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* configure.ac: Don't pretend --enable-doc were the default.
