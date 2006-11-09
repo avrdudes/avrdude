@@ -10291,6 +10291,7 @@ part
 part
     id               = "m325";
     desc             = "ATMEGA325";
+    signature        = 0x1e 0x95 0x05;
     has_jtag         = yes;
 #   stk500_devcode   = 0x??; # No STK500v1 support?
 #   avr910_devcode   = 0x??; # Try the ATmega16 one
@@ -10458,7 +10459,6 @@ part
         max_write_delay = 9000;
       ;
 
-#   ATmega325 has Signature Bytes: 0x1E 0x95 0x05.
     memory "signature"
         size            = 3;
         read            = "0  0  1  1   0  0  0  0   0  0  0  0   0  0  0  0",
@@ -10480,6 +10480,7 @@ part
 part
     id               = "m645";
     desc             = "ATMEGA645";
+    signature        = 0x1E 0x96 0x05;
     has_jtag         = yes;
 #   stk500_devcode   = 0x??; # No STK500v1 support?
 #   avr910_devcode   = 0x??; # Try the ATmega16 one
@@ -10647,7 +10648,6 @@ part
         max_write_delay = 9000;
       ;
 
-#   ATmega645 has Signature Bytes: 0x1E 0x96 0x05.
     memory "signature"
         size            = 3;
         read            = "0  0  1  1   0  0  0  0   0  0  0  0   0  0  0  0",
@@ -10669,6 +10669,7 @@ part
 part
     id               = "m3250";
     desc             = "ATMEGA3250";
+    signature        = 0x1E 0x95 0x06;
     has_jtag         = yes;
 #   stk500_devcode   = 0x??; # No STK500v1 support?
 #   avr910_devcode   = 0x??; # Try the ATmega16 one
@@ -10836,7 +10837,6 @@ part
         max_write_delay = 9000;
       ;
 
-#   ATmega3250 has Signature Bytes: 0x1E 0x95 0x06.
     memory "signature"
         size            = 3;
         read            = "0  0  1  1   0  0  0  0   0  0  0  0   0  0  0  0",
@@ -10858,6 +10858,7 @@ part
 part
     id               = "m6450";
     desc             = "ATMEGA6450";
+    signature        = 0x1E 0x96 0x06;
     has_jtag         = yes;
 #   stk500_devcode   = 0x??; # No STK500v1 support?
 #   avr910_devcode   = 0x??; # Try the ATmega16 one
@@ -11025,7 +11026,6 @@ part
         max_write_delay = 9000;
       ;
 
-#   ATmega6450 has Signature Bytes: 0x1E 0x96 0x06..
     memory "signature"
         size            = 3;
         read            = "0  0  1  1   0  0  0  0   0  0  0  0   0  0  0  0",

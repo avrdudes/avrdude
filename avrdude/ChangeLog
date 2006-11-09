@@ -1,3 +1,7 @@
+2006-11-10 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Add signatures for ATmega325/3250/645/6450.
+
 2006-11-08 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* configure.ac: Preserve ${LDFLAGS} inherited from environment
