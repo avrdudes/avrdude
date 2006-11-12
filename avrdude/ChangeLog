@@ -1,3 +1,7 @@
+2006-11-12 Colin O'Flunn <coflynn@newae.com>
+    * avrdude.conf.in: Add read command for lockbits for Tiny2313.
+       Applies patch #5538
+
 2006-11-10 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrdude.conf.in: Add signatures for ATmega325/3250/645/6450.

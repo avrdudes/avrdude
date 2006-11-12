@@ -7118,6 +7118,8 @@ part
          size            = 1;
          write           = "1 0 1 0  1 1 0 0  1 1 1 x  x x x x",
                            "x x x x  x x x x  1 1 i i  i i i i";
+         read           = "0 1 0 1  1 0 0 0  0 0 0 0  0 0 0 0",
+                          "x x x x  x x x x  x x o o  o o o o";
         min_write_delay = 9000;
         max_write_delay = 9000;
        ;
