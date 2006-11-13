@@ -517,8 +517,6 @@ static int jtagmkI_program_disable(PROGRAMMER * pgm)
       if (verbose == 2)
         fprintf(stderr, "OK\n");
     }
-
-    (void)jtagmkI_reset(pgm);
   }
   prog_enabled = 0;
 
@@ -699,25 +697,6 @@ static void jtagmkI_close(PROGRAMMER * pgm)
     fprintf(stderr, "%s: jtagmkI_close()\n", progname);
 
   if (pgm->fd != -1) {
-    buf[0] = CMD_GO;
-    if (verbose >= 2)
-      fprintf(stderr, "%s: jtagmkI_close(): Sending GO command: ",
-              progname);
-    jtagmkI_send(pgm, buf, 1);
-    jtagmkI_recv(pgm, resp, 1);
-    if (resp[0] != RESP_OK) {
-      if (verbose >= 2)
-        putc('\n', stderr);
-      fprintf(stderr,
-              "%s: jtagmkI_close(): "
-              "timeout/error communicating with programmer (resp %c)\n",
-              progname, resp[0]);
-      exit(1);
-    } else {
-      if (verbose == 2)
-        fprintf(stderr, "OK\n");
-    }
-
     serial_close(pgm->fd);
   }
 

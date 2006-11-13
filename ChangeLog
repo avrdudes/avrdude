@@ -1,6 +1,16 @@
+2006-11-13 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* jtagmkI.c: Avoid sending a CMD_RESET when leaving programming
+	mode, and CMD_GO when closing the connection.  They cause the
+	activity LED on the ICE to continue to flicker, and are not
+	necessary anyway (the target starts to run by itself when leaving
+	programmng mode).
+	This is a partial fix for bug #18262: JTAGMKI/JTAG1 Reset Bug
+
 2006-11-12 Colin O'Flunn <coflynn@newae.com>
-    * avrdude.conf.in: Add read command for lockbits for Tiny2313.
-       Applies patch #5538
+
+	* avrdude.conf.in: Add read command for lockbits for Tiny2313.
+	Applies patch #5538
 
 2006-11-10 Joerg Wunsch <j@uriah.heep.sax.de>
 
