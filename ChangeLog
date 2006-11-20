@@ -1,4 +1,4 @@
-2006-11-13 Joerg Wunsch <j@uriah.heep.sax.de>
+2006-11-20 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avr.c: Replace the fallback of avr_read_byte() and avr_write_byte() to
 	avr_read_byte_default() and avr_write_byte_default (resp.) by directly
