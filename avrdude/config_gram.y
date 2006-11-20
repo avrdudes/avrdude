@@ -88,6 +88,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_DEFAULT_SERIAL
 %token K_DESC
 %token K_DEVICECODE
+%token K_DRAGON_DW
 %token K_DRAGON_HVSP
 %token K_DRAGON_ISP
 %token K_DRAGON_JTAG
@@ -101,6 +102,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_IO
 %token K_JTAG_MKI
 %token K_JTAG_MKII
+%token K_JTAG_MKII_DW
 %token K_JTAG_MKII_ISP
 %token K_LOADPAGE
 %token K_MAX_WRITE_DELAY
@@ -194,10 +196,12 @@ static int parse_cmdbits(OPCODE * op);
 				 */
 %token K_ENABLEPAGEPROGRAMMING	/* ? yes for mega256*, mega406 */
 %token K_HAS_JTAG		/* MCU has JTAG i/f. */
+%token K_HAS_DW			/* MCU has debugWire i/f. */
 %token K_IDR			/* address of OCD register in IO space */
 %token K_RAMPZ			/* address of RAMPZ reg. in IO space */
 %token K_SPMCR			/* address of SPMC[S]R in memory space */
 %token K_EECR    		/* address of EECR in memory space */
+%token K_FLASH_INSTR		/* flash instructions */
 
 %token TKN_COMMA
 %token TKN_EQUAL
@@ -435,9 +439,21 @@ prog_parm :
     }
   } |
 
+  K_TYPE TKN_EQUAL K_JTAG_MKII_DW {
+    {
+      jtagmkII_dw_initpgm(current_prog);
+    }
+  } |
+
   K_TYPE TKN_EQUAL K_JTAG_MKII_ISP {
     {
       stk500v2_jtagmkII_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_DRAGON_DW {
+    {
+      jtagmkII_dragon_dw_initpgm(current_prog);
     }
   } |
 
@@ -703,6 +719,38 @@ part_parm :
     }
   } |
 
+  K_FLASH_INSTR TKN_EQUAL num_list {
+    {
+      TOKEN * t;
+      unsigned nbytes;
+      int ok;
+
+      nbytes = 0;
+      ok = 1;
+
+      while (lsize(number_list)) {
+        t = lrmv_n(number_list, 1);
+	if (nbytes < FLASH_INSTR_SIZE)
+	  {
+	    current_part->flash_instr[nbytes] = t->value.number;
+	    nbytes++;
+	  }
+	else
+	  {
+	    ok = 0;
+	  }
+        free_token(t);
+      }
+      if (!ok)
+	{
+	  fprintf(stderr,
+                  "%s: Warning: line %d of %s: "
+		  "too many bytes in flash instructions\n",
+                  progname, lineno, infile);
+        }
+    }
+  } |
+
   K_CHIP_ERASE_DELAY TKN_EQUAL TKN_NUMBER
     {
       current_part->chip_erase_delay = $3->value.number;
@@ -905,6 +953,16 @@ part_parm :
         current_part->flags |= AVRPART_HAS_JTAG;
       else if ($3->primary == K_NO)
         current_part->flags &= ~AVRPART_HAS_JTAG;
+
+      free_token($3);
+    } |
+
+  K_HAS_DW TKN_EQUAL yesno
+    {
+      if ($3->primary == K_YES)
+        current_part->flags |= AVRPART_HAS_DW;
+      else if ($3->primary == K_NO)
+        current_part->flags &= ~AVRPART_HAS_DW;
 
       free_token($3);
     } |

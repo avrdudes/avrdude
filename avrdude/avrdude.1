@@ -112,10 +112,11 @@ supported on a serial port.
 .Pp
 Atmel's JTAG ICE (both mkI and mkII) is supported as well to up- or download memory
 areas from/to an AVR target (no support for on-chip debugging).
-For the JTAG ICE mkII, both JTAG and ISP mode are supported.
+For the JTAG ICE mkII, JTAG, debugWire and ISP mode are supported.
+See below for the limitations of debugWire.
 .Pp
-The AVR Dragon is supported in all modes (ISP, JTAG, HVSP, PP).
-When used in JTAG mode, the AVR Dragon behaves similar to a
+The AVR Dragon is supported in all modes (ISP, JTAG, HVSP, PP, debugWire).
+When used in JTAG and debugWire mode, the AVR Dragon behaves similar to a
 JTAG ICE mkII, so all device-specific comments for that device
 will apply as well.
 When used in ISP mode, the AVR Dragon behaves similar to an
@@ -710,6 +711,33 @@ ll.
 10	MISO (from MCU)
 18-25	GND
 .TE
+.Ss debugWire limitations
+The debugWire protocol is Atmel's proprietary one-wire (plus ground)
+protocol to allow an in-circuit emulation of the smaller AVR devices,
+using the
+.Ql /RESET
+line.
+DebugWire mode is initiated by activating the
+.Ql DWEN
+fuse, and then power-cycling the target.
+While this mode is mainly intented for debugging/emulation, it
+also offers limited programming capabilities.
+Effectively, the only memory area that can be read or programmed
+in this mode is the flash ROM.
+It is also possible to read out the signature.
+All other memory areas cannot be accessed.
+There is no
+.Em chip erase
+functionality in debugWire mode; instead, while reprogramming the
+flash ROM, each flash ROM page is erased right before updating it.
+This is done transparently by the JTAG ICE mkII (or AVR Dragon).
+The only way back from debugWire mode is to initiate a special
+sequence of commands to the JTAG ICE mkII (or AVR Dragon), so the
+debugWire mode will be temporarily disabled, and the target can
+be accessed using normal ISP programming.
+This sequence is automatically initiated by using the JTAG ICE mkII
+or AVR Dragon in ISP mode, when they detect that ISP mode cannot be
+entered.
 .Sh FILES
 .Bl -tag -offset indent -width /dev/ppi0XXX
 .It Pa /dev/ppi0

@@ -17,8 +17,8 @@
 #       desc     = <description> ;                  # quoted string
 #       type     = par | stk500 | stk500v2 | stk500pp | stk500hvsp | stk500generic |
 #                  avr910 | butterfly | usbasp |
-#                  jtagmki | jtagmkii | jtagmkii_isp |
-#                  dragon_jtag | dragon_isp | dragon_pp |
+#                  jtagmki | jtagmkii | jtagmkii_isp | jtagmkii_dw |
+#                  dragon_dw | dragon_jtag | dragon_isp | dragon_pp |
 #                  dragon_hvsp; # programmer type
 #       baudrate = <num> ;                          # baudrate for avr910-programmer
 #       vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
@@ -36,6 +36,7 @@
 #       id               = <id> ;                 # quoted string
 #       desc             = <description> ;        # quoted string
 #       has_jtag         = <yes/no> ;             # part has JTAG i/f
+#       has_debugwire    = <yes/no> ;             # part has debugWire i/f
 #       devicecode       = <num> ;            # deprecated, use stk500_devcode
 #       stk500_devcode   = <num> ;                # numeric
 #       avr910_devcode   = <num> ;                # numeric
@@ -443,6 +444,14 @@ programmer
   type  = jtagmkii_isp;
 ;
 
+# JTAG ICE mkII in debugWire mode
+programmer
+  id    = "jtag2dw";
+  desc  = "Atmel JTAG ICE mkII in debugWire mode";
+  baudrate = 115200;
+  type  = jtagmkii_dw;
+;
+
 # AVR Dragon in JTAG mode
 programmer
   id    = "dragon_jtag";
@@ -473,6 +482,14 @@ programmer
   desc  = "Atmel AVR Dragon in HVSP mode";
   baudrate = 115200;
   type  = dragon_hvsp;
+;
+
+# AVR Dragon in debugWire mode
+programmer
+  id    = "dragon_dw";
+  desc  = "Atmel AVR Dragon in debugWire mode";
+  baudrate = 115200;
+  type  = dragon_dw;
 ;
 
 programmer
@@ -9182,6 +9199,7 @@ part
 part
      id            = "t44";
      desc          = "ATtiny44";
+     has_debugwire = yes;
 ## no STK500 devcode in XML file, use the ATtiny45 one
      stk500_devcode   = 0x14;
 ##  avr910_devcode   = ?;
@@ -9227,6 +9245,8 @@ part
     chiperasetime       = 0;
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
+
+    flash_instr         = 0xb4, 0x07, 0x17;
 
      memory "eeprom"
          size            = 256;

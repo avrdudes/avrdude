@@ -89,10 +89,12 @@ typedef struct opcode {
 #define AVRPART_HAS_JTAG       0x0008  /* part has a JTAG i/f */
 #define AVRPART_ALLOWFULLPAGEBITSTREAM 0x0010 /* JTAG ICE mkII param. */
 #define AVRPART_ENABLEPAGEPROGRAMMING 0x0020 /* JTAG ICE mkII param. */
+#define AVRPART_HAS_DW         0x0040  /* part has a debugWire i/f */
 
 #define AVR_DESCLEN 64
 #define AVR_IDLEN   32
 #define CTL_STACK_SIZE 32
+#define FLASH_INSTR_SIZE 3
 typedef struct avrpart {
   char          desc[AVR_DESCLEN];  /* long part name */
   char          id[AVR_IDLEN];      /* short part name */
@@ -120,6 +122,7 @@ typedef struct avrpart {
 
   enum ctl_stack_t ctl_stack_type;  /* what to use the ctl stack for */
   unsigned char controlstack[CTL_STACK_SIZE]; /* stk500v2 PP/HVSP ctl stack */
+  unsigned char flash_instr[FLASH_INSTR_SIZE]; /* flash instructions (debugWire, JTAG) */
 
   int           hventerstabdelay;   /* stk500 v2 hv mode parameter */
   int           progmodedelay;      /* stk500 v2 hv mode parameter */

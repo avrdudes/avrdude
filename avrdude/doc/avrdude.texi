@@ -182,11 +182,12 @@ protocol is more sophisticated.
 (The JTAG ICE mkII protocol can also be run on top of USB.)
 Only the memory programming functionality of the JTAG ICE is supported
 by AVRDUDE.
-For the JTAG ICE mkII, both JTAG and ISP mode are supported.
+For the JTAG ICE mkII, JTAG, debugWire and ISP mode are supported.
+See below for the limitations of debugWire.
 
-The AVR Dragon is supported in all modes (ISP, JTAG, HVSP, PP).
+The AVR Dragon is supported in all modes (ISP, JTAG, HVSP, PP, debugWire).
 (High-voltage programming is not yet supported.)
-When used in JTAG mode, the AVR Dragon behaves similar to a
+When used in JTAG and debugWire mode, the AVR Dragon behaves similar to a
 JTAG ICE mkII, so all device-specific comments for that device
 will apply as well.
 When used in ISP mode, the AVR Dragon behaves similar to an
@@ -385,6 +386,8 @@ Brian Dean's Programmer,@*
 Atmel Butterfly Development Board
 @item @code{dt006}       @tab
 Dontronics DT006
+@item @code{dragon_dw}   @tab
+AVR Dragon in debugWire mode
 @item @code{dragon_hvsp} @tab
 AVR Dragon in high-voltage serial programming mode
 @item @code{dragon_isp}  @tab
@@ -409,6 +412,8 @@ Atmel JTAG ICE mkII, running at 115200 Bd
 @emph{Same as before.}
 @item @code{jtag2isp}    @tab
 Atmel JTAG ICE mkII in ISP mode.
+@item @code{jtag2dw}     @tab
+Atmel JTAG ICE mkII in debugWire mode.
 @item @code{pavr}        @tab
 Jason Kyle's pAVR Serial Programmer
 @item @code{picoweb}     @tab
@@ -1926,6 +1931,36 @@ found.
 Solution: none at this time.  The simplicity of the USBasp programmer
 doesn't offer a method to distinguish multiple programmers that are
 connected simultaneously, so effectively only one USBasp is supported.
+
+@item
+Problem: I cannot do @dots{} when the target is in debugWire mode.
+
+Solution: debugWire mode imposes several limitations.
+
+The debugWire protocol is Atmel's proprietary one-wire (plus ground)
+protocol to allow an in-circuit emulation of the smaller AVR devices,
+using the @var{/RESET} line.
+DebugWire mode is initiated by activating the @var{DWEN}
+fuse, and then power-cycling the target.
+While this mode is mainly intented for debugging/emulation, it
+also offers limited programming capabilities.
+Effectively, the only memory area that can be read or programmed
+in this mode is the flash ROM.
+It is also possible to read out the signature.
+All other memory areas cannot be accessed.
+There is no
+@emph{chip erase}
+functionality in debugWire mode; instead, while reprogramming the
+flash ROM, each flash ROM page is erased right before updating it.
+This is done transparently by the JTAG ICE mkII (or AVR Dragon).
+The only way back from debugWire mode is to initiate a special
+sequence of commands to the JTAG ICE mkII (or AVR Dragon), so the
+debugWire mode will be temporarily disabled, and the target can
+be accessed using normal ISP programming.
+This sequence is automatically initiated by using the JTAG ICE mkII
+or AVR Dragon in ISP mode, when they detect that ISP mode cannot be
+entered.
+
 
 @end itemize
 

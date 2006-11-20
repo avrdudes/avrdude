@@ -1,3 +1,15 @@
+2006-11-21 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Implement debugWire programming support.
+	* avrpart.h: Implement debugWire support.
+	* config_gram.y: (Ditto.)
+	* jtagmkII.c: (Ditto.)
+	* jtagmkII.h: (Ditto.)
+	* lexer.l: (Ditto.)
+	* avrdude.conf.in: Add the new dW programmers.
+	* avrdude.1: Document the dW support.
+	* doc/avrdude.texi: (Ditto.)
+
 2006-11-20 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* jtagmkI.c (jtagmkI_close): remove two unused variables.
