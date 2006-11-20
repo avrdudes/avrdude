@@ -19,6 +19,8 @@
 	* par.c: (Ditto.)
 	* pgm.c: (Ditto.)
 	* safemode.c: (Ditto.)
+	* serbb_posix.c: (Ditto.)
+	* serbb_win32.c: (Ditto.)
 	* stk500.c: (Ditto.)
 	* stk500v2.c: (Ditto.)
 	* term.c: (Ditto.)

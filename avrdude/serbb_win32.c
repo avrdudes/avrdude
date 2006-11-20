@@ -368,6 +368,8 @@ void serbb_initpgm(PROGRAMMER *pgm)
   pgm->setpin         = serbb_setpin;
   pgm->getpin         = serbb_getpin;
   pgm->highpulsepin   = serbb_highpulsepin;
+  pgm->read_byte      = avr_read_byte_default;
+  pgm->write_byte     = avr_write_byte_default;
 }
 
 #endif  /* WIN32NATIVE */
