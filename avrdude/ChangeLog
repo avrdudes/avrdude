@@ -1,5 +1,9 @@
 2006-11-20 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* jtagmkI.c (jtagmkI_close): remove two unused variables.
+
+2006-11-20 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* avr.c: Replace the fallback of avr_read_byte() and avr_write_byte() to
 	avr_read_byte_default() and avr_write_byte_default (resp.) by directly
 	calling the latter functions from within all programmers that don't
