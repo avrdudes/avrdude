@@ -661,16 +661,14 @@ void butterfly_initpgm(PROGRAMMER * pgm)
   pgm->powerdown      = butterfly_powerdown;
   pgm->program_enable = butterfly_program_enable;
   pgm->chip_erase     = butterfly_chip_erase;
-/*  pgm->cmd		not supported, use default error message */
   pgm->open           = butterfly_open;
   pgm->close          = butterfly_close;
+  pgm->read_byte      = butterfly_read_byte;
+  pgm->write_byte     = butterfly_write_byte;
 
   /*
    * optional functions
    */
-
-  pgm->write_byte = butterfly_write_byte;
-  pgm->read_byte = butterfly_read_byte;
 
   pgm->paged_write = butterfly_paged_write;
   pgm->paged_load = butterfly_paged_load;

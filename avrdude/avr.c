@@ -53,6 +53,14 @@ int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   unsigned char data;
   OPCODE * readop, * lext;
 
+  if (pgm->cmd == NULL) {
+    fprintf(stderr,
+	    "%s: Error: %s programmer uses avr_read_byte_default() but does not\n"
+	    "provide a cmd() method.\n",
+	    progname, pgm->type);
+    return -1;
+  }
+
   pgm->pgm_led(pgm, ON);
   pgm->err_led(pgm, OFF);
 
@@ -104,26 +112,6 @@ int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   *value = data;
 
   return 0;
-}
-
-
-/*
- * read a byte of data from the indicated memory region
- */
-int avr_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem, 
-                  unsigned long addr, unsigned char * value)
-{
-  int rc;
-
-  if (pgm->read_byte) {
-    rc = pgm->read_byte(pgm, p, mem, addr, value);
-    if (rc == 0) {
-      return rc;
-    }
-    /* read_byte() method failed, try again with default. */
-  }
-
-  return avr_read_byte_default(pgm, p, mem, addr, value);
 }
 
 
@@ -218,7 +206,7 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
   }
 
   for (i=0; i<size; i++) {
-    rc = avr_read_byte(pgm, p, mem, i, &rbyte);
+    rc = pgm->read_byte(pgm, p, mem, i, &rbyte);
     if (rc != 0) {
       fprintf(stderr, "avr_read(): error reading address 0x%04lx\n", i);
       if (rc == -1) 
@@ -247,6 +235,14 @@ int avr_write_page(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   unsigned char cmd[4];
   unsigned char res[4];
   OPCODE * wp, * lext;
+
+  if (pgm->cmd == NULL) {
+    fprintf(stderr,
+	    "%s: Error: %s programmer uses avr_write_page() but does not\n"
+	    "provide a cmd() method.\n",
+	    progname, pgm->type);
+    return -1;
+  }
 
   wp = mem->op[AVR_OP_WRITEPAGE];
   if (wp == NULL) {
@@ -312,13 +308,21 @@ int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   int readok=0;
   struct timeval tv;
 
+  if (pgm->cmd == NULL) {
+    fprintf(stderr,
+	    "%s: Error: %s programmer uses avr_write_byte_default() but does not\n"
+	    "provide a cmd() method.\n",
+	    progname, pgm->type);
+    return -1;
+  }
+
   if (!mem->paged) {
     /* 
      * check to see if the write is necessary by reading the existing
      * value and only write if we are changing the value; we can't
      * use this optimization for paged addressing.
      */
-    rc = avr_read_byte(pgm, p, mem, addr, &b);
+    rc = pgm->read_byte(pgm, p, mem, addr, &b);
     if (rc != 0) {
       if (rc != -1) {
         return -2;
@@ -410,7 +414,7 @@ int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
        * specified for the chip.
        */
       usleep(mem->max_write_delay);
-      rc = avr_read_byte(pgm, p, mem, addr, &r);
+      rc = pgm->read_byte(pgm, p, mem, addr, &r);
       if (rc != 0) {
         pgm->pgm_led(pgm, OFF);
         pgm->err_led(pgm, OFF);
@@ -424,7 +428,7 @@ int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
         /*
          * Do polling, but timeout after max_write_delay.
 	 */
-        rc = avr_read_byte(pgm, p, mem, addr, &r);
+        rc = pgm->read_byte(pgm, p, mem, addr, &r);
         if (rc != 0) {
           pgm->pgm_led(pgm, OFF);
           pgm->err_led(pgm, ON);
@@ -509,7 +513,6 @@ int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   unsigned char safemode_hfuse;
   unsigned char safemode_efuse;
   unsigned char safemode_fuse;
-  int rc;
 
   /* If we write the fuses, then we need to tell safemode that they *should* change */
   safemode_memfuses(0, &safemode_lfuse, &safemode_hfuse, &safemode_efuse, &safemode_fuse);
@@ -529,15 +532,7 @@ int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   
   safemode_memfuses(1, &safemode_lfuse, &safemode_hfuse, &safemode_efuse, &safemode_fuse);
 
-  if (pgm->write_byte) {
-    rc = pgm->write_byte(pgm, p, mem, addr, data);
-    if (rc == 0) {
-      return rc;
-    }
-    /* write_byte() method failed, try again with default. */
-  }
-
-  return avr_write_byte_default(pgm, p, mem, addr, data);
+  return pgm->write_byte(pgm, p, mem, addr, data);
 }
 
 
@@ -741,7 +736,7 @@ int avr_get_cycle_count(PROGRAMMER * pgm, AVRPART * p, int * cycles)
   }
 
   for (i=4; i>0; i--) {
-    rc = avr_read_byte(pgm, p, a, a->size-i, &v1);
+    rc = pgm->read_byte(pgm, p, a, a->size-i, &v1);
   if (rc < 0) {
     fprintf(stderr, "%s: WARNING: can't read memory for cycle count, rc=%d\n",
             progname, rc);

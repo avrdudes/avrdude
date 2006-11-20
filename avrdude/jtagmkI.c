@@ -334,16 +334,6 @@ static int jtagmkI_getsync(PROGRAMMER * pgm)
   return 0;
 }
 
-static int jtagmkI_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
-                        unsigned char res[4])
-{
-
-  fprintf(stderr, "%s: jtagmkI_command(): no direct SPI supported for JTAG\n",
-	  progname);
-  return -1;
-}
-
-
 /*
  * issue the 'chip erase' command to the AVR device
  */
@@ -1354,17 +1344,16 @@ void jtagmkI_initpgm(PROGRAMMER * pgm)
   pgm->disable        = jtagmkI_disable;
   pgm->program_enable = jtagmkI_program_enable_dummy;
   pgm->chip_erase     = jtagmkI_chip_erase;
-  pgm->cmd            = jtagmkI_cmd;
   pgm->open           = jtagmkI_open;
   pgm->close          = jtagmkI_close;
+  pgm->read_byte      = jtagmkI_read_byte;
+  pgm->write_byte     = jtagmkI_write_byte;
 
   /*
    * optional functions
    */
   pgm->paged_write    = jtagmkI_paged_write;
   pgm->paged_load     = jtagmkI_paged_load;
-  pgm->read_byte      = jtagmkI_read_byte;
-  pgm->write_byte     = jtagmkI_write_byte;
   pgm->print_parms    = jtagmkI_print_parms;
   pgm->set_sck_period = jtagmkI_set_sck_period;
   pgm->page_size      = 256;

@@ -176,6 +176,14 @@ static int stk500_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   unsigned char cmd[4];
   unsigned char res[4];
 
+  if (pgm->cmd == NULL) {
+    fprintf(stderr,
+	    "%s: Error: %s programmer uses stk500_chip_erase() but does not\n"
+	    "provide a cmd() method.\n",
+	    progname, pgm->type);
+    return -1;
+  }
+
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
     fprintf(stderr, "chip erase instruction not defined for part \"%s\"\n",
             p->desc);
@@ -1236,6 +1244,8 @@ void stk500_initpgm(PROGRAMMER * pgm)
   pgm->cmd            = stk500_cmd;
   pgm->open           = stk500_open;
   pgm->close          = stk500_close;
+  pgm->read_byte      = avr_read_byte_default;
+  pgm->write_byte     = avr_write_byte_default;
 
   /*
    * optional functions

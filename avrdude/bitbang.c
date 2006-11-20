@@ -355,4 +355,10 @@ void bitbang_check_prerequisites(PROGRAMMER *pgm)
   verify_pin_assigned(pgm, PIN_AVR_SCK,   "AVR SCK");
   verify_pin_assigned(pgm, PIN_AVR_MISO,  "AVR MISO");
   verify_pin_assigned(pgm, PIN_AVR_MOSI,  "AVR MOSI");
+
+  if (pgm->cmd == NULL) {
+    fprintf(stderr, "%s: error: no cmd() method defined for bitbang programmer\n",
+            progname);
+    exit(1);
+  }
 }

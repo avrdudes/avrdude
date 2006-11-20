@@ -411,6 +411,8 @@ void usbasp_initpgm(PROGRAMMER * pgm)
   pgm->cmd            = usbasp_cmd;
   pgm->open           = usbasp_open;
   pgm->close          = usbasp_close;
+  pgm->read_byte      = avr_read_byte_default;
+  pgm->write_byte     = avr_write_byte_default;
 
   /*
    * optional functions
