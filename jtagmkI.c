@@ -681,7 +681,6 @@ static int jtagmkI_open(PROGRAMMER * pgm, char * port)
 
 static void jtagmkI_close(PROGRAMMER * pgm)
 {
-  unsigned char buf[1], resp[2];
 
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkI_close()\n", progname);
