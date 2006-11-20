@@ -1,5 +1,31 @@
 2006-11-13 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* avr.c: Replace the fallback of avr_read_byte() and avr_write_byte() to
+	avr_read_byte_default() and avr_write_byte_default (resp.) by directly
+	calling the latter functions from within all programmers that don't
+	implement their own read_byte()/write_byte() methods.  In turn, make the
+	read_byte() and write_byte() methods mandatory, and the cmd() method
+	(direct ISP command) optional instead (it's effectively mandatory for
+	any programmer using avr_read_byte_default()/avr_write_byte_default()
+	though).  Remove all the pointless cmd() method stubs from those programmers
+	that don't need it.
+	Eliminate avr_read_byte() as it was now completely identical to
+	pgm->read_byte().
+	* avr.h: (Ditto.)
+	* bitbang.c: (Ditto.)
+	* butterfly.c: (Ditto.)
+	* jtagmkI.c: (Ditto.)
+	* jtagmkII.c: (Ditto.)
+	* par.c: (Ditto.)
+	* pgm.c: (Ditto.)
+	* safemode.c: (Ditto.)
+	* stk500.c: (Ditto.)
+	* stk500v2.c: (Ditto.)
+	* term.c: (Ditto.)
+	* usbasp.c: (Ditto.)
+
+2006-11-13 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* jtagmkI.c: Avoid sending a CMD_RESET when leaving programming
 	mode, and CMD_GO when closing the connection.  They cause the
 	activity LED on the ICE to continue to flicker, and are not

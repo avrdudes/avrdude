@@ -32,8 +32,8 @@
 extern struct avrpart parts[];
 
 
-int avr_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
-                  unsigned long addr, unsigned char * value);
+int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+			  unsigned long addr, unsigned char * value);
 
 int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
              int verbose);
@@ -43,6 +43,9 @@ int avr_write_page(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
 int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                    unsigned long addr, unsigned char data);
+
+int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+			   unsigned long addr, unsigned char data);
 
 int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
               int verbose);

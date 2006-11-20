@@ -643,16 +643,6 @@ static int stk500v2_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
 }
 
 
-static int stk500hv_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
-                        unsigned char res[4])
-{
-
-  fprintf(stderr, "%s: stk500hv_command(): no direct SPI supported for PP mode\n",
-	  progname);
-  return -1;
-}
-
-
 /*
  * issue the 'chip erase' command to the AVR device
  */
@@ -2375,6 +2365,8 @@ void stk500v2_initpgm(PROGRAMMER * pgm)
   pgm->cmd            = stk500v2_cmd;
   pgm->open           = stk500v2_open;
   pgm->close          = stk500v2_close;
+  pgm->read_byte      = avr_read_byte_default;
+  pgm->write_byte     = avr_write_byte_default;
 
   /*
    * optional functions
@@ -2403,15 +2395,14 @@ void stk500pp_initpgm(PROGRAMMER * pgm)
   pgm->disable        = stk500pp_disable;
   pgm->program_enable = stk500pp_program_enable;
   pgm->chip_erase     = stk500pp_chip_erase;
-  pgm->cmd            = stk500hv_cmd;
   pgm->open           = stk500v2_open;
   pgm->close          = stk500v2_close;
+  pgm->read_byte      = stk500pp_read_byte;
+  pgm->write_byte     = stk500pp_write_byte;
 
   /*
    * optional functions
    */
-  pgm->read_byte      = stk500pp_read_byte;
-  pgm->write_byte     = stk500pp_write_byte;
   pgm->paged_write    = stk500pp_paged_write;
   pgm->paged_load     = stk500pp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
@@ -2435,15 +2426,14 @@ void stk500hvsp_initpgm(PROGRAMMER * pgm)
   pgm->disable        = stk500hvsp_disable;
   pgm->program_enable = stk500hvsp_program_enable;
   pgm->chip_erase     = stk500hvsp_chip_erase;
-  pgm->cmd            = stk500hv_cmd;
   pgm->open           = stk500v2_open;
   pgm->close          = stk500v2_close;
+  pgm->read_byte      = stk500hvsp_read_byte;
+  pgm->write_byte     = stk500hvsp_write_byte;
 
   /*
    * optional functions
    */
-  pgm->read_byte      = stk500hvsp_read_byte;
-  pgm->write_byte     = stk500hvsp_write_byte;
   pgm->paged_write    = stk500hvsp_paged_write;
   pgm->paged_load     = stk500hvsp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
@@ -2470,6 +2460,8 @@ void stk500v2_jtagmkII_initpgm(PROGRAMMER * pgm)
   pgm->cmd            = stk500v2_cmd;
   pgm->open           = stk500v2_jtagmkII_open;
   pgm->close          = jtagmkII_close;
+  pgm->read_byte      = avr_read_byte_default;
+  pgm->write_byte     = avr_write_byte_default;
 
   /*
    * optional functions
@@ -2498,6 +2490,8 @@ void stk500v2_dragon_isp_initpgm(PROGRAMMER * pgm)
   pgm->cmd            = stk500v2_cmd;
   pgm->open           = stk500v2_dragon_isp_open;
   pgm->close          = jtagmkII_close;
+  pgm->read_byte      = avr_read_byte_default;
+  pgm->write_byte     = avr_write_byte_default;
 
   /*
    * optional functions
@@ -2522,15 +2516,14 @@ void stk500v2_dragon_pp_initpgm(PROGRAMMER * pgm)
   pgm->disable        = stk500pp_disable;
   pgm->program_enable = stk500pp_program_enable;
   pgm->chip_erase     = stk500pp_chip_erase;
-  pgm->cmd            = stk500hv_cmd;
   pgm->open           = stk500v2_dragon_hv_open;
   pgm->close          = jtagmkII_close;
+  pgm->read_byte      = stk500pp_read_byte;
+  pgm->write_byte     = stk500pp_write_byte;
 
   /*
    * optional functions
    */
-  pgm->read_byte      = stk500pp_read_byte;
-  pgm->write_byte     = stk500pp_write_byte;
   pgm->paged_write    = stk500pp_paged_write;
   pgm->paged_load     = stk500pp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
@@ -2554,15 +2547,14 @@ void stk500v2_dragon_hvsp_initpgm(PROGRAMMER * pgm)
   pgm->disable        = stk500hvsp_disable;
   pgm->program_enable = stk500hvsp_program_enable;
   pgm->chip_erase     = stk500hvsp_chip_erase;
-  pgm->cmd            = stk500hv_cmd;
   pgm->open           = stk500v2_dragon_hv_open;
   pgm->close          = jtagmkII_close;
+  pgm->read_byte      = stk500hvsp_read_byte;
+  pgm->write_byte     = stk500hvsp_write_byte;
 
   /*
    * optional functions
    */
-  pgm->read_byte      = stk500hvsp_read_byte;
-  pgm->write_byte     = stk500hvsp_write_byte;
   pgm->paged_write    = stk500hvsp_paged_write;
   pgm->paged_load     = stk500hvsp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;

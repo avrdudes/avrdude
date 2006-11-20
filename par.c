@@ -425,6 +425,8 @@ void par_initpgm(PROGRAMMER * pgm)
   pgm->getpin         = par_getpin;
   pgm->highpulsepin   = par_highpulsepin;
   pgm->parseexitspecs = par_parseexitspecs;
+  pgm->read_byte      = avr_read_byte_default;
+  pgm->write_byte     = avr_write_byte_default;
 }
 
 #else  /* !HAVE_PARPORT */
