@@ -9,6 +9,8 @@
 	* avrdude.conf.in: Add the new dW programmers.
 	* avrdude.1: Document the dW support.
 	* doc/avrdude.texi: (Ditto.)
+	* tools/get-dw-params.xsl: XSL stylesheet to extract the dW
+	parameters from the XML files.
 
 2006-11-20 Joerg Wunsch <j@uriah.heep.sax.de>
 

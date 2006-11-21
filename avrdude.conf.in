@@ -963,6 +963,8 @@ part
 part
     id                  = "t13";
     desc                = "ATtiny13";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x0E, 0x1E;
     stk500_devcode      = 0x14;
     signature           = 0x1e 0x90 0x07;
     chip_erase_delay    = 4000;
@@ -5911,6 +5913,8 @@ part
 part
     id                  = "t261";
     desc                = "ATTINY261";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x00, 0x10;
 #    stk500_devcode      = 0x21;
 #    avr910_devcode      = 0x5e;
     signature           = 0x1e 0x91 0x0c;
@@ -6095,6 +6099,8 @@ part
 part
     id                  = "t461";
     desc                = "ATTINY461";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x00, 0x10;
 #    stk500_devcode      = 0x21;
 #    avr910_devcode      = 0x5e;
     signature           = 0x1e 0x92 0x08;
@@ -6279,6 +6285,8 @@ part
 part
     id                  = "t861";
     desc                = "ATTINY861";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x00, 0x10;
 #    stk500_devcode      = 0x21;
 #    avr910_devcode      = 0x5e;
     signature           = 0x1e 0x93 0x0d;
@@ -6462,6 +6470,8 @@ part
 part
     id               = "m48";
     desc             = "ATMEGA48";
+     has_debugwire = yes;
+     flash_instr   = 0xB6, 0x01, 0x11;
     stk500_devcode   = 0x59;
 #    avr910_devcode   = 0x;
     signature        = 0x1e 0x92 0x05;
@@ -6644,6 +6654,8 @@ part
 part
     id               = "m88";
     desc             = "ATMEGA88";
+     has_debugwire = yes;
+     flash_instr   = 0xB6, 0x01, 0x11;
     stk500_devcode   = 0x73;
 #    avr910_devcode   = 0x;
     signature        = 0x1e 0x93 0x0a;
@@ -6825,6 +6837,8 @@ part
 part
     id              = "m168";
     desc            = "ATMEGA168";
+     has_debugwire = yes;
+     flash_instr   = 0xB6, 0x01, 0x11;
     stk500_devcode  = 0x86;
     # avr910_devcode = 0x;
     signature       = 0x1e 0x94 0x06;
@@ -7008,6 +7022,8 @@ part
 part
      id            = "t2313";
      desc          = "ATtiny2313";
+     has_debugwire = yes;
+     flash_instr   = 0xB2, 0x0F, 0x1F;
      stk500_devcode   = 0x23;
 ##   Use the ATtiny26 devcode:
      avr910_devcode   = 0x5e;
@@ -7190,6 +7206,8 @@ part
 part
      id            = "pwm2";
      desc          = "AT90PWM2";
+     has_debugwire = yes;
+     flash_instr   = 0xB6, 0x01, 0x11;
      stk500_devcode   = 0x65;
 ##  avr910_devcode   = ?;
      signature        = 0x1e 0x93 0x81;
@@ -7369,6 +7387,8 @@ part
 part
      id            = "pwm3";
      desc          = "AT90PWM3";
+     has_debugwire = yes;
+     flash_instr   = 0xB6, 0x01, 0x11;
      stk500_devcode   = 0x65;
 ##  avr910_devcode   = ?;
      signature        = 0x1e 0x93 0x81;
@@ -7546,6 +7566,8 @@ part
 part
      id            = "t25";
      desc          = "ATtiny25";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x02, 0x12;
 ## no STK500 devcode in XML file, use the ATtiny45 one
      stk500_devcode   = 0x14;
 ##  avr910_devcode   = ?;
@@ -7721,6 +7743,8 @@ part
 part
      id            = "t45";
      desc          = "ATtiny45";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x02, 0x12;
      stk500_devcode   = 0x14;
 ##  avr910_devcode   = ?;
 ##  Try the AT90S2313 devcode:
@@ -7895,6 +7919,8 @@ part
 part
      id            = "t85";
      desc          = "ATtiny85";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x02, 0x12;
 ## no STK500 devcode in XML file, use the ATtiny45 one
      stk500_devcode   = 0x14;
 ##  avr910_devcode   = ?;
@@ -9022,6 +9048,8 @@ part
 part
      id            = "t24";
      desc          = "ATtiny24";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x07, 0x17;
 ## no STK500 devcode in XML file, use the ATtiny45 one
      stk500_devcode   = 0x14;
 ##  avr910_devcode   = ?;
@@ -9200,6 +9228,7 @@ part
      id            = "t44";
      desc          = "ATtiny44";
      has_debugwire = yes;
+     flash_instr   = 0xB4, 0x07, 0x17;
 ## no STK500 devcode in XML file, use the ATtiny45 one
      stk500_devcode   = 0x14;
 ##  avr910_devcode   = ?;
@@ -9245,8 +9274,6 @@ part
     chiperasetime       = 0;
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
-
-    flash_instr         = 0xb4, 0x07, 0x17;
 
      memory "eeprom"
          size            = 256;
@@ -9379,6 +9406,8 @@ part
 part
      id            = "t84";
      desc          = "ATtiny84";
+     has_debugwire = yes;
+     flash_instr   = 0xB4, 0x07, 0x17;
 ## no STK500 devcode in XML file, use the ATtiny45 one
      stk500_devcode   = 0x14;
 ##  avr910_devcode   = ?;
