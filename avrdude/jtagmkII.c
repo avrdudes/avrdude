@@ -1802,14 +1802,8 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   return 0;
 
 fail:
-  /*
-   * XXX should return an error status here, but that would cause
-   * the generic methods to retry the request using the SPI method,
-   * which is complete nonsense for JTAG.
-   */
-  *value = 42;
   free(resp);
-  return 0;
+  return -1;
 }
 
 static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
@@ -1903,13 +1897,8 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   return 0;
 
 fail:
-  /*
-   * XXX should return an error status here, but that would cause
-   * the generic methods to retry the request using the SPI method,
-   * which is complete nonsense for JTAG.
-   */
   free(resp);
-  return 0;
+  return -1;
 }
 
 

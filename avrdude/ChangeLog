@@ -1,5 +1,11 @@
 2006-11-21 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* jtagmkII.c: In jtagmkII_read_byte() and jtagmkII_write_byte(),
+	return an error upon failure now that the upper layers won't fall
+	back to the cmd() method anymore in that case.
+
+2006-11-21 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	Implement debugWire programming support.
 	* avrpart.h: Implement debugWire support.
 	* config_gram.y: (Ditto.)
