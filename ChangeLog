@@ -1,3 +1,8 @@
+2006-11-23 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avr.c (avr_read, avr_write): if the paged access returns a
+	failure, fall back to byte access.
+
 2006-11-21 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* jtagmkII.c: In jtagmkII_read_byte() and jtagmkII_write_byte(),
