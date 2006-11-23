@@ -182,20 +182,13 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
        * efficiently than we can read it directly, so use its routine
        * instead
        */
-      if (mem->paged) {
-        rc = pgm->paged_load(pgm, p, mem, mem->page_size, size);
-        if (rc < 0)
-          return rc;
+      rc = pgm->paged_load(pgm, p, mem, mem->page_size, size);
+      if (rc == 0) {
+	if (strcasecmp(mem->desc, "flash") == 0)
+	  return avr_mem_hiaddr(mem);
+	else
+	  return 0;
       }
-      else {
-        rc = pgm->paged_load(pgm, p, mem, pgm->page_size, size);
-        if (rc < 0)
-          return rc;
-      }
-      if (strcasecmp(mem->desc, "flash") == 0)
-        return avr_mem_hiaddr(mem);
-      else
-        return rc;
     }
   }
 
@@ -586,7 +579,8 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
        * efficiently than we can read it directly, so use its routine
        * instead
        */
-      return pgm->paged_write(pgm, p, m, m->page_size, size);
+      if (pgm->paged_write(pgm, p, m, m->page_size, size) == 0)
+	return 0;
     }
   }
 
