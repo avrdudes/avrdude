@@ -40,6 +40,8 @@
                     select="translate(/AVRPART/ADMIN/PART_NAME,
                                       'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
                                       'abcdefghijklmnopqrstuvwxyz')" />
+      <xsl:variable name="ucEepromInst"
+                    select="//AVRPART/ICE_SETTINGS/JTAGICEmkII/ucEepromInst" />
       <xsl:variable name="ucFlashInst"
                     select="//AVRPART/ICE_SETTINGS/JTAGICEmkII/ucFlashInst" />
 
@@ -59,6 +61,13 @@
       <xsl:text>     flash_instr   = </xsl:text>
       <xsl:call-template name="format-hex">
         <xsl:with-param name="arg" select="$ucFlashInst" />
+        <xsl:with-param name="count" select="0" />
+      </xsl:call-template>
+      <xsl:text>;&#010;</xsl:text>
+
+      <xsl:text>     eeprom_instr  = </xsl:text>
+      <xsl:call-template name="format-hex">
+        <xsl:with-param name="arg" select="$ucEepromInst" />
         <xsl:with-param name="count" select="0" />
       </xsl:call-template>
       <xsl:text>;&#010;</xsl:text>
@@ -118,7 +127,7 @@
           <xsl:value-of select="substring($arg, 1, 4)" />
           <xsl:choose>
             <xsl:when test="$count mod 8 = 7">
-              <xsl:text>,&#010;&#009;      </xsl:text>
+              <xsl:text>,&#010;&#009;             </xsl:text>
             </xsl:when>
             <xsl:otherwise>
               <xsl:text>, </xsl:text>

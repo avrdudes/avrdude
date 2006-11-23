@@ -95,6 +95,7 @@ typedef struct opcode {
 #define AVR_IDLEN   32
 #define CTL_STACK_SIZE 32
 #define FLASH_INSTR_SIZE 3
+#define EEPROM_INSTR_SIZE 20
 typedef struct avrpart {
   char          desc[AVR_DESCLEN];  /* long part name */
   char          id[AVR_IDLEN];      /* short part name */
@@ -123,6 +124,7 @@ typedef struct avrpart {
   enum ctl_stack_t ctl_stack_type;  /* what to use the ctl stack for */
   unsigned char controlstack[CTL_STACK_SIZE]; /* stk500v2 PP/HVSP ctl stack */
   unsigned char flash_instr[FLASH_INSTR_SIZE]; /* flash instructions (debugWire, JTAG) */
+  unsigned char eeprom_instr[EEPROM_INSTR_SIZE]; /* EEPROM instructions (debugWire, JTAG) */
 
   int           hventerstabdelay;   /* stk500 v2 hv mode parameter */
   int           progmodedelay;      /* stk500 v2 hv mode parameter */

@@ -202,6 +202,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_SPMCR			/* address of SPMC[S]R in memory space */
 %token K_EECR    		/* address of EECR in memory space */
 %token K_FLASH_INSTR		/* flash instructions */
+%token K_EEPROM_INSTR		/* EEPROM instructions */
 
 %token TKN_COMMA
 %token TKN_EQUAL
@@ -746,6 +747,38 @@ part_parm :
 	  fprintf(stderr,
                   "%s: Warning: line %d of %s: "
 		  "too many bytes in flash instructions\n",
+                  progname, lineno, infile);
+        }
+    }
+  } |
+
+  K_EEPROM_INSTR TKN_EQUAL num_list {
+    {
+      TOKEN * t;
+      unsigned nbytes;
+      int ok;
+
+      nbytes = 0;
+      ok = 1;
+
+      while (lsize(number_list)) {
+        t = lrmv_n(number_list, 1);
+	if (nbytes < EEPROM_INSTR_SIZE)
+	  {
+	    current_part->eeprom_instr[nbytes] = t->value.number;
+	    nbytes++;
+	  }
+	else
+	  {
+	    ok = 0;
+	  }
+        free_token(t);
+      }
+      if (!ok)
+	{
+	  fprintf(stderr,
+                  "%s: Warning: line %d of %s: "
+		  "too many bytes in EEPROM instructions\n",
                   progname, lineno, infile);
         }
     }
