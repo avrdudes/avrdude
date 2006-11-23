@@ -846,8 +846,10 @@ static void jtagmkII_set_devdescr(PROGRAMMER * pgm, AVRPART * p)
       u32_to_b4(sendbuf.dd.ulFlashSize, m->size);
       u16_to_b2(sendbuf.dd.uiFlashPageSize, flash_pagesize);
       u16_to_b2(sendbuf.dd.uiFlashpages, m->size / flash_pagesize);
-      if (p->flags & AVRPART_HAS_DW)
+      if (p->flags & AVRPART_HAS_DW) {
 	memcpy(sendbuf.dd.ucFlashInst, p->flash_instr, FLASH_INSTR_SIZE);
+	memcpy(sendbuf.dd.ucEepromInst, p->eeprom_instr, EEPROM_INSTR_SIZE);
+      }
     } else if (strcmp(m->desc, "eeprom") == 0) {
       sendbuf.dd.ucEepromPageSize = eeprom_pagesize = m->page_size;
     }
@@ -1660,13 +1662,16 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     paddr_ptr = &flash_pageaddr;
     cache_ptr = flash_pagecache;
   } else if (strcmp(mem->desc, "eeprom") == 0) {
-    cmd[1] = MTYPE_EEPROM_PAGE;
-    pagesize = mem->page_size;
-    paddr = addr & ~(pagesize - 1);
-    paddr_ptr = &eeprom_pageaddr;
-    cache_ptr = eeprom_pagecache;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
+    if (pgm->flag & PGM_FL_IS_DW) {
+      /* debugWire cannot use page access for EEPROM */
+      cmd[1] = MTYPE_EEPROM;
+    } else {
+      cmd[1] = MTYPE_EEPROM_PAGE;
+      pagesize = mem->page_size;
+      paddr = addr & ~(pagesize - 1);
+      paddr_ptr = &eeprom_pageaddr;
+      cache_ptr = eeprom_pagecache;
+    }
   } else if (strcmp(mem->desc, "lfuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 0;
@@ -1716,7 +1721,6 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       default:
 	fprintf(stderr, "%s: illegal address %lu for signature memory\n",
 		progname, addr);
-	*value = 42;
 	return -1;
       }
       return 0;
@@ -1776,6 +1780,8 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 	    "%s: jtagmkII_read_byte(): "
 	    "fatal timeout/error communicating with programmer (status %d)\n",
 	    progname, status);
+    if (status < 0)
+      resp = 0;
     goto fail;
   }
   if (verbose >= 3) {
@@ -1811,7 +1817,7 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 {
   unsigned char cmd[11];
   unsigned char *resp = NULL, writedata;
-  int status, tries, need_progmode = 1;
+  int status, tries, need_progmode = 1, unsupp = 0;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkII_write_byte(.., %s, 0x%lx, ...)\n",
@@ -1823,6 +1829,8 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     cmd[1] = MTYPE_SPM;
     need_progmode = 0;
     flash_pageaddr = (unsigned long)-1L;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   } else if (strcmp(mem->desc, "eeprom") == 0) {
     cmd[1] = MTYPE_EEPROM;
     need_progmode = 0;
@@ -1830,19 +1838,34 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   } else if (strcmp(mem->desc, "lfuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 0;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   } else if (strcmp(mem->desc, "hfuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 1;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   } else if (strcmp(mem->desc, "efuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 2;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   } else if (strcmp(mem->desc, "lock") == 0) {
     cmd[1] = MTYPE_LOCK_BITS;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   } else if (strcmp(mem->desc, "calibration") == 0) {
     cmd[1] = MTYPE_OSCCAL_BYTE;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   } else if (strcmp(mem->desc, "signature") == 0) {
     cmd[1] = MTYPE_SIGN_JTAG;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   }
+
+  if (unsupp)
+    return -1;
 
   if (need_progmode) {
     if (jtagmkII_program_enable(pgm) < 0)
@@ -1901,17 +1924,6 @@ fail:
   return -1;
 }
 
-
-static int jtagmkII_write_byte_dw(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
-				  unsigned long addr, unsigned char data)
-{
-
-  fprintf(stderr,
-	  "%s: jtagmkII_write_byte_dw(): no single-byte writes supported in debugWire\n",
-	  progname);
-
-  return -1;
-}
 
 /*
  * Set the JTAG clock.  The actual frequency is quite a bit of
@@ -2172,7 +2184,7 @@ void jtagmkII_dw_initpgm(PROGRAMMER * pgm)
   pgm->open           = jtagmkII_open_dw;
   pgm->close          = jtagmkII_close;
   pgm->read_byte      = jtagmkII_read_byte;
-  pgm->write_byte     = jtagmkII_write_byte_dw;
+  pgm->write_byte     = jtagmkII_write_byte;
 
   /*
    * optional functions
@@ -2230,7 +2242,7 @@ void jtagmkII_dragon_dw_initpgm(PROGRAMMER * pgm)
   pgm->open           = jtagmkII_dragon_open_dw;
   pgm->close          = jtagmkII_close;
   pgm->read_byte      = jtagmkII_read_byte;
-  pgm->write_byte     = jtagmkII_write_byte_dw;
+  pgm->write_byte     = jtagmkII_write_byte;
 
   /*
    * optional functions

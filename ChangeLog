@@ -1,5 +1,20 @@
 2006-11-23 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	Implement EEPROM access through debugWire.
+	* jtagmkII.c: Extend the jtagmkII_read_byte() and
+	jtagmkII_write_byte() methods to handle EEPROM through
+	debugWire.
+	* avrpart.h: Implement the "flash instruction" parameter.
+	* config_gram.y: (Ditto.)
+	* lexer.l: (Ditto.)
+	* avrdude.conf.in: (Ditto.)
+	* avrdude.1: Document the EEPROM access through dW.
+	* doc/avrdude.texi: (Ditto.)
+	* tools/get-dw-params.xsl: Extend to extract the flash
+	instruction field.
+
+2006-11-23 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* avr.c (avr_read, avr_write): if the paged access returns a
 	failure, fall back to byte access.
 

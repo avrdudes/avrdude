@@ -224,6 +224,7 @@ programfusepolltimeout { yylval=NULL; return K_PROGRAMFUSEPOLLTIMEOUT; }
 programlockpulsewidth { yylval=NULL; return K_PROGRAMLOCKPULSEWIDTH; }
 programlockpolltimeout { yylval=NULL; return K_PROGRAMLOCKPOLLTIMEOUT; }
 flash_instr      { yylval=NULL; return K_FLASH_INSTR; }
+eeprom_instr     { yylval=NULL; return K_EEPROM_INSTR; }
 
 dedicated        { yylval=new_token(K_DEDICATED); return K_DEDICATED; }
 io               { yylval=new_token(K_IO); return K_IO; }
