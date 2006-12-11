@@ -1534,7 +1534,6 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       return -1;
     }
     free(resp);
-    usleep(1000000);
   }
 
   free(cmd);
