@@ -49,8 +49,14 @@ int safemode_writefuse (unsigned char fuse, char * fusename, PROGRAMMER * pgm,
  
   /* Keep trying to write then read back the fuse values */   
   while (tries > 0) {
-    avr_write_byte(pgm, p, m, 0, fuse);
-    pgm->read_byte(pgm, p, m, 0, &fuseread);
+    if (avr_write_byte(pgm, p, m, 0, fuse) != 0)
+        {
+        continue;
+        }
+    if (pgm->read_byte(pgm, p, m, 0, &fuseread) != 0)
+        {
+        continue;
+        }
         
     /* Report information to user if needed */
     if (verbose > 0) {
@@ -99,15 +105,25 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
   m = avr_locate_mem(p, "fuse");
   if (m != NULL) {
     fusegood = 0; /* By default fuse is a failure */
-    pgm->read_byte(pgm, p, m, 0, &safemode_fuse);
-    pgm->read_byte(pgm, p, m, 0, &value);
-    if (value == safemode_fuse) {
-        pgm->read_byte(pgm, p, m, 0, &value);
-        if (value == safemode_fuse){
-        fusegood = 1; /* Fuse read OK three times */
+    if(pgm->read_byte(pgm, p, m, 0, &safemode_fuse) != 0)
+        {
+        safemode_fuse = 1 + value; //failed - ensure they differ
         }
+    if(pgm->read_byte(pgm, p, m, 0, &value) != 0)
+        {
+        value = 1 + safemode_fuse; //failed - ensure they differ
+        }
+    if (value == safemode_fuse) {
+        if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
+            {
+            value = 1 + safemode_fuse;
+            }
+        if (value == safemode_fuse)
+            {
+            fusegood = 1; /* Fuse read OK three times */
+            }
     }
-  }
+  } 
 
     if (fusegood == 0)   {
         fprintf(stderr,
@@ -126,10 +142,19 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
   m = avr_locate_mem(p, "lfuse");
   if (m != NULL) {
     fusegood = 0; /* By default fuse is a failure */
-    pgm->read_byte(pgm, p, m, 0, &safemode_lfuse);
-    pgm->read_byte(pgm, p, m, 0, &value);
+    if (pgm->read_byte(pgm, p, m, 0, &safemode_lfuse) != 0)
+        {
+        safemode_lfuse = 1 + value;
+        }
+    if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
+        {
+        value = safemode_lfuse + 1;
+        }
     if (value == safemode_lfuse) {
-        pgm->read_byte(pgm, p, m, 0, &value);
+        if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
+            {
+            value = safemode_lfuse + 1;
+            }
         if (value == safemode_lfuse){
         fusegood = 1; /* Fuse read OK three times */
         }
@@ -152,10 +177,19 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
   m = avr_locate_mem(p, "hfuse");
   if (m != NULL) {
     fusegood = 0; /* By default fuse is a failure */
-    pgm->read_byte(pgm, p, m, 0, &safemode_hfuse);
-    pgm->read_byte(pgm, p, m, 0, &value);
+    if (pgm->read_byte(pgm, p, m, 0, &safemode_hfuse) != 0)
+        {
+        safemode_hfuse = value + 1;
+        }
+    if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
+        {
+        value = safemode_hfuse + 1;
+        }
     if (value == safemode_hfuse) {
-        pgm->read_byte(pgm, p, m, 0, &value);
+        if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
+            {
+            value = safemode_hfuse + 1;
+            }
         if (value == safemode_hfuse){
              fusegood = 1; /* Fuse read OK three times */
         }
@@ -178,10 +212,19 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
   m = avr_locate_mem(p, "efuse");
   if (m != NULL) {
     fusegood = 0; /* By default fuse is a failure */
-    pgm->read_byte(pgm, p, m, 0, &safemode_efuse);
-    pgm->read_byte(pgm, p, m, 0, &value);
+    if (pgm->read_byte(pgm, p, m, 0, &safemode_efuse) != 0)
+        {
+        safemode_efuse = value + 1;
+        }
+    if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
+        {
+        value = safemode_efuse + 1;
+        }
     if (value == safemode_efuse) {
-        pgm->read_byte(pgm, p, m, 0, &value);
+        if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
+            {
+            value = safemode_efuse + 1;
+            }
         if (value == safemode_efuse){
              fusegood = 1; /* Fuse read OK three times */
         }
