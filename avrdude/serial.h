@@ -31,16 +31,21 @@
 #define __serial_h__
 
 extern long serial_recv_timeout;
+union filedescriptor
+{
+  int ifd;
+  void *pfd;
+};
 
 struct serial_device
 {
-  int (*open)(char * port, long baud);
-  int (*setspeed)(int fd, long baud);
-  void (*close)(int fd);
+  void (*open)(char * port, long baud, union filedescriptor *fd);
+  int (*setspeed)(union filedescriptor *fd, long baud);
+  void (*close)(union filedescriptor *fd);
 
-  int (*send)(int fd, unsigned char * buf, size_t buflen);
-  int (*recv)(int fd, unsigned char * buf, size_t buflen);
-  int (*drain)(int fd, int display);
+  int (*send)(union filedescriptor *fd, unsigned char * buf, size_t buflen);
+  int (*recv)(union filedescriptor *fd, unsigned char * buf, size_t buflen);
+  int (*drain)(union filedescriptor *fd, int display);
 
   int flags;
 #define SERDEV_FL_NONE         0x0000 /* no flags */

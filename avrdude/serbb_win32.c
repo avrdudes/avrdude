@@ -63,7 +63,7 @@ static int dtr, rts, txd;
 
 static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
 {
-	HANDLE hComPort = (HANDLE)pgm->fd;
+	HANDLE hComPort = (HANDLE)pgm->fd.pfd;
         LPVOID lpMsgBuf;
         DWORD dwFunc;
         const char *name;
@@ -131,7 +131,7 @@ static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
 
 static int serbb_getpin(PROGRAMMER * pgm, int pin)
 {
-	HANDLE hComPort = (HANDLE)pgm->fd;
+	HANDLE hComPort = (HANDLE)pgm->fd.pfd;
         LPVOID lpMsgBuf;
         int invert, rv;
         const char *name;
@@ -323,7 +323,7 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
                         "%s: ser_open(): opened comm port \"%s\", handle 0x%x\n",
                         progname, port, (int)hComPort);
 
-        pgm->fd = (int)hComPort;
+        pgm->fd.pfd = (void *)hComPort;
 
         dtr = rts = txd = 0;
 
@@ -332,7 +332,7 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 
 static void serbb_close(PROGRAMMER *pgm)
 {
-	HANDLE hComPort=(HANDLE)pgm->fd;
+	HANDLE hComPort=(HANDLE)pgm->fd.pfd;
 	if (hComPort != INVALID_HANDLE_VALUE)
 	{
 		pgm->setpin(pgm, pgm->pinno[PIN_AVR_RESET], 1);

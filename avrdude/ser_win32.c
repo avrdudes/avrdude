@@ -84,10 +84,10 @@ static BOOL serial_w32SetTimeOut(HANDLE hComPort, DWORD timeout) // in ms
 	return SetCommTimeouts(hComPort, &ctmo);
 }
 
-static int ser_setspeed(int fd, long baud)
+static int ser_setspeed(union filedescriptor *fd, long baud)
 {
 	DCB dcb;
-	HANDLE hComPort = (HANDLE)fd;
+	HANDLE hComPort = (HANDLE)fd->pfd;
 
 	ZeroMemory (&dcb, sizeof(DCB));
 	dcb.DCBlength = sizeof(DCB);
@@ -106,7 +106,7 @@ static int ser_setspeed(int fd, long baud)
 }
 
 
-static int ser_open(char * port, long baud)
+static void ser_open(char * port, long baud, union filedescriptor *fdp)
 {
 	LPVOID lpMsgBuf;
 	HANDLE hComPort=INVALID_HANDLE_VALUE;
@@ -158,8 +158,8 @@ static int ser_open(char * port, long baud)
 		exit(1);
 	}
 
-
-	if (ser_setspeed((int)hComPort, baud) != 0)
+        fdp->pfd = (void *)hComPort;
+	if (ser_setspeed(fdp, baud) != 0)
 	{
 		CloseHandle(hComPort);
 		fprintf(stderr, "%s: ser_open(): can't set com-state for \"%s\"\n",
@@ -174,14 +174,12 @@ static int ser_open(char * port, long baud)
 				progname, port);
 		exit(1);
 	}
-
-  return (int)hComPort;
 }
 
 
-static void ser_close(int fd)
+static void ser_close(union filedescriptor *fd)
 {
-	HANDLE hComPort=(HANDLE)fd;
+	HANDLE hComPort=(HANDLE)fd->pfd;
 	if (hComPort != INVALID_HANDLE_VALUE)
 		CloseHandle (hComPort);
 
@@ -189,14 +187,14 @@ static void ser_close(int fd)
 }
 
 
-static int ser_send(int fd, char * buf, size_t buflen)
+static int ser_send(union filedescriptor *fd, unsigned char * buf, size_t buflen)
 {
 	size_t len = buflen;
 	unsigned char c='\0';
 	DWORD written;
-        char * b = buf;
+        unsigned char * b = buf;
 
-	HANDLE hComPort=(HANDLE)fd;
+	HANDLE hComPort=(HANDLE)fd->pfd;
 
 	if (hComPort == INVALID_HANDLE_VALUE) {
 		fprintf(stderr, "%s: ser_send(): port not open\n",
@@ -244,14 +242,14 @@ static int ser_send(int fd, char * buf, size_t buflen)
 }
 
 
-static int ser_recv(int fd, char * buf, size_t buflen)
+static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen)
 {
 	unsigned char c;
-	char * p = buf;
+	unsigned char * p = buf;
 	size_t len = 0;
 	DWORD read;
 
-	HANDLE hComPort=(HANDLE)fd;
+	HANDLE hComPort=(HANDLE)fd->pfd;
 	
 	if (hComPort == INVALID_HANDLE_VALUE) {
 		fprintf(stderr, "%s: ser_read(): port not open\n",
@@ -304,14 +302,14 @@ static int ser_recv(int fd, char * buf, size_t buflen)
 }
 
 
-static int ser_drain(int fd, int display)
+static int ser_drain(union filedescriptor *fd, int display)
 {
 	// int rc;
 	unsigned char buf[10];
 	BOOL readres;
 	DWORD read;
 
-	HANDLE hComPort=(HANDLE)fd;
+	HANDLE hComPort=(HANDLE)fd->pfd;
 
   	if (hComPort == INVALID_HANDLE_VALUE) {
 		fprintf(stderr, "%s: ser_drain(): port not open\n",

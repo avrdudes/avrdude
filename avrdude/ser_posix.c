@@ -87,19 +87,19 @@ static speed_t serial_baud_lookup(long baud)
   exit(1);
 }
 
-static int ser_setspeed(int fd, long baud)
+static int ser_setspeed(union filedescriptor *fd, long baud)
 {
   int rc;
   struct termios termios;
   speed_t speed = serial_baud_lookup (baud);
   
-  if (!isatty(fd))
+  if (!isatty(fd->ifd))
     return -ENOTTY;
   
   /*
    * initialize terminal modes
    */
-  rc = tcgetattr(fd, &termios);
+  rc = tcgetattr(fd->ifd, &termios);
   if (rc < 0) {
     fprintf(stderr, "%s: ser_setspeed(): tcgetattr() failed",
             progname);
@@ -123,7 +123,7 @@ static int ser_setspeed(int fd, long baud)
   cfsetospeed(&termios, speed);
   cfsetispeed(&termios, speed);
   
-  rc = tcsetattr(fd, TCSANOW | TCSAFLUSH, &termios);
+  rc = tcsetattr(fd->ifd, TCSANOW | TCSAFLUSH, &termios);
   if (rc < 0) {
     fprintf(stderr, "%s: ser_setspeed(): tcsetattr() failed",
             progname);
@@ -134,9 +134,9 @@ static int ser_setspeed(int fd, long baud)
    * Everything is now set up for a local line without modem control
    * or flow control, so clear O_NONBLOCK again.
    */
-  rc = fcntl(fd, F_GETFL, 0);
+  rc = fcntl(fd->ifd, F_GETFL, 0);
   if (rc != -1)
-    fcntl(fd, F_SETFL, rc & ~O_NONBLOCK);
+    fcntl(fd->ifd, F_SETFL, rc & ~O_NONBLOCK);
 
   return 0;
 }
@@ -147,8 +147,8 @@ static int ser_setspeed(int fd, long baud)
  * terminal/console server with serial parameters configured
  * appropriately (e. g. 115200-8-N-1 for a STK500.)
  */
-static int
-net_open(const char *port)
+static void
+net_open(const char *port, union filedescriptor *fdp)
 {
   char *hstr, *pstr, *end;
   unsigned int pnum;
@@ -209,10 +209,10 @@ net_open(const char *port)
     exit(1);
   }
 
-  return fd;
+  fdp->ifd = fd;
 }
 
-static int ser_open(char * port, long baud)
+static void ser_open(char * port, long baud, union filedescriptor *fdp)
 {
   int rc;
   int fd;
@@ -222,7 +222,8 @@ static int ser_open(char * port, long baud)
    * handle it as a TCP connection to a terminal server.
    */
   if (strncmp(port, "net:", strlen("net:")) == 0) {
-    return net_open(port + strlen("net:"));
+    net_open(port + strlen("net:"), fdp);
+    return;
   }
 
   /*
@@ -238,7 +239,7 @@ static int ser_open(char * port, long baud)
   /*
    * set serial line attributes
    */
-  rc = ser_setspeed(fd, baud);
+  rc = ser_setspeed(fdp, baud);
   if (rc) {
     fprintf(stderr, 
             "%s: ser_open(): can't set attributes for device \"%s\": %s\n",
@@ -246,17 +247,17 @@ static int ser_open(char * port, long baud)
     exit(1);
   }
 
-  return fd;
+  fdp->ifd = fd;
 }
 
 
-static void ser_close(int fd)
+static void ser_close(union filedescriptor *fd)
 {
   /*
    * restore original termios settings from ser_open
    */
   if (saved_original_termios) {
-    int rc = tcsetattr(fd, TCSANOW | TCSADRAIN, &original_termios);
+    int rc = tcsetattr(fd->ifd, TCSANOW | TCSADRAIN, &original_termios);
     if (rc) {
       fprintf(stderr, 
               "%s: ser_close(): can't reset attributes for device: %s\n",
@@ -265,11 +266,11 @@ static void ser_close(int fd)
     saved_original_termios = 0;
   }
 
-  close(fd);
+  close(fd->ifd);
 }
 
 
-static int ser_send(int fd, unsigned char * buf, size_t buflen)
+static int ser_send(union filedescriptor *fd, unsigned char * buf, size_t buflen)
 {
   struct timeval timeout, to2;
   fd_set wfds;
@@ -309,9 +310,9 @@ static int ser_send(int fd, unsigned char * buf, size_t buflen)
   while (len) {
   reselect:
     FD_ZERO(&wfds);
-    FD_SET(fd, &wfds);
+    FD_SET(fd->ifd, &wfds);
 
-    nfds = select(fd+1, NULL, &wfds, NULL, &to2);
+    nfds = select(fd->ifd + 1, NULL, &wfds, NULL, &to2);
     if (nfds == 0) {
       if (verbose >= 1)
 	fprintf(stderr,
@@ -330,7 +331,7 @@ static int ser_send(int fd, unsigned char * buf, size_t buflen)
       }
     }
 
-    rc = write(fd, p, (len > 1024) ? 1024 : len);
+    rc = write(fd->ifd, p, (len > 1024) ? 1024 : len);
     if (rc < 0) {
       fprintf(stderr, "%s: ser_send(): write error: %s\n",
               progname, strerror(errno));
@@ -344,7 +345,7 @@ static int ser_send(int fd, unsigned char * buf, size_t buflen)
 }
 
 
-static int ser_recv(int fd, unsigned char * buf, size_t buflen)
+static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen)
 {
   struct timeval timeout, to2;
   fd_set rfds;
@@ -360,9 +361,9 @@ static int ser_recv(int fd, unsigned char * buf, size_t buflen)
   while (len < buflen) {
   reselect:
     FD_ZERO(&rfds);
-    FD_SET(fd, &rfds);
+    FD_SET(fd->ifd, &rfds);
 
-    nfds = select(fd+1, &rfds, NULL, NULL, &to2);
+    nfds = select(fd->ifd + 1, &rfds, NULL, NULL, &to2);
     if (nfds == 0) {
       if (verbose > 1)
 	fprintf(stderr,
@@ -384,7 +385,7 @@ static int ser_recv(int fd, unsigned char * buf, size_t buflen)
       }
     }
 
-    rc = read(fd, p, (buflen - len > 1024) ? 1024 : buflen - len);
+    rc = read(fd->ifd, p, (buflen - len > 1024) ? 1024 : buflen - len);
     if (rc < 0) {
       fprintf(stderr, "%s: ser_recv(): read error: %s\n",
               progname, strerror(errno));
@@ -420,7 +421,7 @@ static int ser_recv(int fd, unsigned char * buf, size_t buflen)
 }
 
 
-static int ser_drain(int fd, int display)
+static int ser_drain(union filedescriptor *fd, int display)
 {
   struct timeval timeout;
   fd_set rfds;
@@ -437,10 +438,10 @@ static int ser_drain(int fd, int display)
 
   while (1) {
     FD_ZERO(&rfds);
-    FD_SET(fd, &rfds);
+    FD_SET(fd->ifd, &rfds);
 
   reselect:
-    nfds = select(fd+1, &rfds, NULL, NULL, &timeout);
+    nfds = select(fd->ifd + 1, &rfds, NULL, NULL, &timeout);
     if (nfds == 0) {
       if (display) {
         fprintf(stderr, "<drain\n");
@@ -459,7 +460,7 @@ static int ser_drain(int fd, int display)
       }
     }
 
-    rc = read(fd, &buf, 1);
+    rc = read(fd->ifd, &buf, 1);
     if (rc < 0) {
       fprintf(stderr, "%s: ser_drain(): read error: %s\n",
               progname, strerror(errno));

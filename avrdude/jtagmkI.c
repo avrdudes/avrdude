@@ -194,7 +194,7 @@ static int jtagmkI_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
   buf[len] = ' ';		/* "CRC" */
   buf[len + 1] = ' ';		/* EOP */
 
-  if (serial_send(pgm->fd, buf, len + 2) != 0) {
+  if (serial_send(&pgm->fd, buf, len + 2) != 0) {
     fprintf(stderr,
 	    "%s: jtagmkI_send(): failed to send command to serial port\n",
 	    progname);
@@ -208,7 +208,7 @@ static int jtagmkI_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 
 static void jtagmkI_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 {
-  if (serial_recv(pgm->fd, buf, len) != 0) {
+  if (serial_recv(&pgm->fd, buf, len) != 0) {
     fprintf(stderr,
 	    "\n%s: jtagmkI_recv(): failed to send command to serial port\n",
 	    progname);
@@ -223,7 +223,7 @@ static void jtagmkI_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 
 static int jtagmkI_drain(PROGRAMMER * pgm, int display)
 {
-  return serial_drain(pgm->fd, display);
+  return serial_drain(&pgm->fd, display);
 }
 
 
@@ -248,14 +248,14 @@ static int jtagmkI_resync(PROGRAMMER * pgm, int maxtries, int signon)
       fprintf(stderr, "%s: jtagmkI_resync(): Sending sync command: ",
 	      progname);
 
-    if (serial_send(pgm->fd, buf, 1) != 0) {
+    if (serial_send(&pgm->fd, buf, 1) != 0) {
       fprintf(stderr,
 	      "\n%s: jtagmkI_resync(): failed to send command to serial port\n",
 	      progname);
       serial_recv_timeout = otimeout;
       return -1;
     }
-    if (serial_recv(pgm->fd, resp, 1) == 0 && resp[0] == RESP_OK) {
+    if (serial_recv(&pgm->fd, resp, 1) == 0 && resp[0] == RESP_OK) {
       if (verbose >= 2)
 	fprintf(stderr, "got RESP_OK\n");
       break;
@@ -280,14 +280,14 @@ static int jtagmkI_resync(PROGRAMMER * pgm, int maxtries, int signon)
 	fprintf(stderr, "%s: jtagmkI_resync(): Sending sign-on command: ",
 		progname);
 
-      if (serial_send(pgm->fd, buf, 4) != 0) {
+      if (serial_send(&pgm->fd, buf, 4) != 0) {
 	fprintf(stderr,
 		"\n%s: jtagmkI_resync(): failed to send command to serial port\n",
 		progname);
 	serial_recv_timeout = otimeout;
 	return -1;
       }
-      if (serial_recv(pgm->fd, resp, 9) == 0 && resp[0] == RESP_OK) {
+      if (serial_recv(&pgm->fd, resp, 9) == 0 && resp[0] == RESP_OK) {
 	if (verbose >= 2)
 	  fprintf(stderr, "got RESP_OK\n");
 	break;
@@ -486,7 +486,7 @@ static int jtagmkI_program_disable(PROGRAMMER * pgm)
   if (!prog_enabled)
     return 0;
 
-  if (pgm->fd != -1) {
+  if (pgm->fd.ifd != -1) {
     buf[0] = CMD_LEAVE_PROGMODE;
     if (verbose >= 2)
       fprintf(stderr, "%s: jtagmkI_program_disable(): "
@@ -552,7 +552,7 @@ static int jtagmkI_initialize(PROGRAMMER * pgm, AVRPART * p)
                 progname, pgm->baudrate);
       if (jtagmkI_setparm(pgm, PARM_BITRATE, b) == 0) {
         initial_baudrate = pgm->baudrate; /* don't adjust again later */
-        serial_setspeed(pgm->fd, pgm->baudrate);
+        serial_setspeed(&pgm->fd, pgm->baudrate);
       }
     }
   }
@@ -653,7 +653,7 @@ static int jtagmkI_open(PROGRAMMER * pgm, char * port)
       fprintf(stderr,
               "%s: jtagmkI_open(): trying to sync at baud rate %ld:\n",
               progname, baudtab[i].baud);
-    pgm->fd = serial_open(port, baudtab[i].baud);
+    serial_open(port, baudtab[i].baud, &pgm->fd);
 
     /*
      * drain any extraneous input
@@ -667,13 +667,13 @@ static int jtagmkI_open(PROGRAMMER * pgm, char * port)
       return 0;
     }
 
-    serial_close(pgm->fd);
+    serial_close(&pgm->fd);
   }
 
   fprintf(stderr,
           "%s: jtagmkI_open(): failed to synchronize to ICE\n",
           progname);
-  pgm->fd = -1;
+  pgm->fd.ifd = -1;
 
   return -1;
 }
@@ -685,11 +685,11 @@ static void jtagmkI_close(PROGRAMMER * pgm)
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkI_close()\n", progname);
 
-  if (pgm->fd != -1) {
-    serial_close(pgm->fd);
+  if (pgm->fd.ifd != -1) {
+    serial_close(&pgm->fd);
   }
 
-  pgm->fd = -1;
+  pgm->fd.ifd = -1;
 }
 
 

@@ -57,7 +57,7 @@ static int stk500_is_page_empty(unsigned int address, int page_size,
 
 static int stk500_send(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 {
-  return serial_send(pgm->fd, buf, len);
+  return serial_send(&pgm->fd, buf, len);
 }
 
 
@@ -65,7 +65,7 @@ static int stk500_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 {
   int rv;
 
-  rv = serial_recv(pgm->fd, buf, len);
+  rv = serial_recv(&pgm->fd, buf, len);
   if (rv < 0) {
     fprintf(stderr,
 	    "%s: stk500_recv(): programmer is not responding\n",
@@ -78,7 +78,7 @@ static int stk500_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 
 static int stk500_drain(PROGRAMMER * pgm, int display)
 {
-  return serial_drain(pgm->fd, display);
+  return serial_drain(&pgm->fd, display);
 }
 
 
@@ -585,10 +585,7 @@ static void stk500_enable(PROGRAMMER * pgm)
 static int stk500_open(PROGRAMMER * pgm, char * port)
 {
   strcpy(pgm->port, port);
-  if (pgm->baudrate)
-    pgm->fd = serial_open(port, pgm->baudrate);
-  else
-    pgm->fd = serial_open(port, 115200);
+  serial_open(port, pgm->baudrate? pgm->baudrate: 115200, &pgm->fd);
 
   /*
    * drain any extraneous input
@@ -604,8 +601,8 @@ static int stk500_open(PROGRAMMER * pgm, char * port)
 
 static void stk500_close(PROGRAMMER * pgm)
 {
-  serial_close(pgm->fd);
-  pgm->fd = -1;
+  serial_close(&pgm->fd);
+  pgm->fd.ifd = -1;
 }
 
 
