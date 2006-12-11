@@ -1,3 +1,9 @@
+2006-12-11 Colin O'Flynn <coflynn@newae.com>
+
+    * safemode.c: Stop ignoring return values!
+      Closes bug #18339
+
+
 2006-12-11 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	Submitted by Nick Lott:
