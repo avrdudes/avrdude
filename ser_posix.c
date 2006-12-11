@@ -236,6 +236,8 @@ static void ser_open(char * port, long baud, union filedescriptor *fdp)
     exit(1);
   }
 
+  fdp->ifd = fd;
+
   /*
    * set serial line attributes
    */
@@ -246,8 +248,6 @@ static void ser_open(char * port, long baud, union filedescriptor *fdp)
             progname, port, strerror(-rc));
     exit(1);
   }
-
-  fdp->ifd = fd;
 }
 
 
