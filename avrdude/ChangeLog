@@ -1,5 +1,14 @@
 2006-12-11 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* avr.c: Fix a bug introduced in rev. 1.69, when implementing the
+	fallback from each programmer's paged_load() or paged_write()
+	method, respectively.  The return value needs to be checked for
+	being greater or equal than 0 rather equal to 0 in order to
+	assume the operation has been successful.
+	Fixes bug #18489: avrdude is too slow (20 byte/s)
+
+2006-12-11 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* avr910.c: Make the code compile warning-free:  
 	- declare a dummy "struct timezone" for some Win32 systems (MinGW)
 	- fix a few printf() argument types
