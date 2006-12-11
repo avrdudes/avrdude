@@ -27,7 +27,7 @@
 #include "avrpart.h"
 #include "lists.h"
 #include "pindefs.h"
-
+#include "serial.h"
 
 #define ON  1
 #define OFF 0
@@ -63,7 +63,7 @@ typedef struct programmer_t {
   int baudrate;
   double bitclock;    /* JTAG ICE clock period in microseconds */
   int ispdelay;    /* ISP clock delay */
-  int fd;
+  union filedescriptor fd;
   int  page_size;  /* page size if the programmer supports paged write/load */
   int  (*rdy_led)        (struct programmer_t * pgm, int value);
   int  (*err_led)        (struct programmer_t * pgm, int value);
@@ -124,6 +124,7 @@ PROGRAMMER * pgm_new(void);
 void usleep(unsigned long us);
 
 #if !defined(HAVE_GETTIMEOFDAY)
+struct timezone;
 int gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif /* HAVE_GETTIMEOFDAY */
 

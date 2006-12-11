@@ -54,7 +54,7 @@ enum {
   PPI_SHADOWREAD
 };
 
-int ppi_shadow_access(int fd, int reg, unsigned char *v, unsigned char action)
+int ppi_shadow_access(union filedescriptor *fdp, int reg, unsigned char *v, unsigned char action)
 {
   static unsigned char shadow[3];
   int shadow_num;
@@ -81,12 +81,12 @@ int ppi_shadow_access(int fd, int reg, unsigned char *v, unsigned char action)
       *v = shadow[shadow_num];
       break;
     case PPI_READ:
-      DO_PPI_READ(fd, reg, v);
+      DO_PPI_READ(fdp->ifd, reg, v);
       shadow[shadow_num]=*v;
       break;
     case PPI_WRITE:
       shadow[shadow_num]=*v;
-      DO_PPI_WRITE(fd, reg, v);
+      DO_PPI_WRITE(fdp->ifd, reg, v);
       break;
   }
   return 0;
@@ -95,14 +95,14 @@ int ppi_shadow_access(int fd, int reg, unsigned char *v, unsigned char action)
 /*
  * set the indicated bit of the specified register.
  */
-int ppi_set(int fd, int reg, int bit)
+int ppi_set(union filedescriptor *fdp, int reg, int bit)
 {
   unsigned char v;
   int rc;
 
-  rc = ppi_shadow_access(fd, reg, &v, PPI_SHADOWREAD);
+  rc = ppi_shadow_access(fdp, reg, &v, PPI_SHADOWREAD);
   v |= bit;
-  rc |= ppi_shadow_access(fd, reg, &v, PPI_WRITE);
+  rc |= ppi_shadow_access(fdp, reg, &v, PPI_WRITE);
 
   if (rc)
     return -1;
@@ -114,14 +114,14 @@ int ppi_set(int fd, int reg, int bit)
 /*
  * clear the indicated bit of the specified register.
  */
-int ppi_clr(int fd, int reg, int bit)
+int ppi_clr(union filedescriptor *fdp, int reg, int bit)
 {
   unsigned char v;
   int rc;
 
-  rc = ppi_shadow_access(fd, reg, &v, PPI_SHADOWREAD);
+  rc = ppi_shadow_access(fdp, reg, &v, PPI_SHADOWREAD);
   v &= ~bit;
-  rc |= ppi_shadow_access(fd, reg, &v, PPI_WRITE);
+  rc |= ppi_shadow_access(fdp, reg, &v, PPI_WRITE);
 
   if (rc)
     return -1;
@@ -133,12 +133,12 @@ int ppi_clr(int fd, int reg, int bit)
 /*
  * get the indicated bit of the specified register.
  */
-int ppi_get(int fd, int reg, int bit)
+int ppi_get(union filedescriptor *fdp, int reg, int bit)
 {
   unsigned char v;
   int rc;
 
-  rc = ppi_shadow_access(fd, reg, &v, PPI_READ);
+  rc = ppi_shadow_access(fdp, reg, &v, PPI_READ);
   v &= bit;
 
   if (rc)
@@ -150,14 +150,14 @@ int ppi_get(int fd, int reg, int bit)
 /*
  * toggle the indicated bit of the specified register.
  */
-int ppi_toggle(int fd, int reg, int bit)
+int ppi_toggle(union filedescriptor *fdp, int reg, int bit)
 {
   unsigned char v;
   int rc;
 
-  rc = ppi_shadow_access(fd, reg, &v, PPI_SHADOWREAD);
+  rc = ppi_shadow_access(fdp, reg, &v, PPI_SHADOWREAD);
   v ^= bit;
-  rc |= ppi_shadow_access(fd, reg, &v, PPI_WRITE);
+  rc |= ppi_shadow_access(fdp, reg, &v, PPI_WRITE);
 
   if (rc)
     return -1;
@@ -169,12 +169,12 @@ int ppi_toggle(int fd, int reg, int bit)
 /*
  * get all bits of the specified register.
  */
-int ppi_getall(int fd, int reg)
+int ppi_getall(union filedescriptor *fdp, int reg)
 {
   unsigned char v;
   int rc;
 
-  rc = ppi_shadow_access(fd, reg, &v, PPI_READ);
+  rc = ppi_shadow_access(fdp, reg, &v, PPI_READ);
 
   if (rc)
     return -1;
@@ -185,13 +185,13 @@ int ppi_getall(int fd, int reg)
 /*
  * set all bits of the specified register to val.
  */
-int ppi_setall(int fd, int reg, int val)
+int ppi_setall(union filedescriptor *fdp, int reg, int val)
 {
   unsigned char v;
   int rc;
 
   v = val;
-  rc = ppi_shadow_access(fd, reg, &v, PPI_WRITE);
+  rc = ppi_shadow_access(fdp, reg, &v, PPI_WRITE);
 
   if (rc)
     return -1;
@@ -200,7 +200,7 @@ int ppi_setall(int fd, int reg, int val)
 }
 
 
-int ppi_open(char * port)
+void ppi_open(char * port, union filedescriptor *fdp)
 {
   int fd;
   unsigned char v;
@@ -209,7 +209,8 @@ int ppi_open(char * port)
   if (fd < 0) {
     fprintf(stderr, "%s: can't open device \"%s\": %s\n",
               progname, port, strerror(errno));
-    return -1;
+    fdp->ifd = -1;
+    return;
   }
 
   ppi_claim (fd);
@@ -218,18 +219,18 @@ int ppi_open(char * port)
    * Initialize shadow registers
    */
 
-  ppi_shadow_access (fd, PPIDATA, &v, PPI_READ);
-  ppi_shadow_access (fd, PPICTRL, &v, PPI_READ);
-  ppi_shadow_access (fd, PPISTATUS, &v, PPI_READ);
+  ppi_shadow_access (fdp, PPIDATA, &v, PPI_READ);
+  ppi_shadow_access (fdp, PPICTRL, &v, PPI_READ);
+  ppi_shadow_access (fdp, PPISTATUS, &v, PPI_READ);
 
-  return fd;
+  fdp->ifd = fd;
 }
 
 
-void ppi_close(int fd)
+void ppi_close(union filedescriptor *fdp)
 {
-  ppi_release (fd);
-  close(fd);
+  ppi_release (fdp->ifd);
+  close(fdp->ifd);
 }
 
 #endif /* HAVE_PARPORT */

@@ -33,21 +33,21 @@ enum {
 
 
 
-int ppi_get       (int fd, int reg, int bit);
+int ppi_get       (union filedescriptor *fdp, int reg, int bit);
 
-int ppi_set       (int fd, int reg, int bit);
+int ppi_set       (union filedescriptor *fdp, int reg, int bit);
 
-int ppi_clr       (int fd, int reg, int bit);
+int ppi_clr       (union filedescriptor *fdp, int reg, int bit);
 
-int ppi_getall    (int fd, int reg);
+int ppi_getall    (union filedescriptor *fdp, int reg);
 
-int ppi_setall    (int fd, int reg, int val);
+int ppi_setall    (union filedescriptor *fdp, int reg, int val);
 
-int ppi_toggle    (int fd, int reg, int bit);
+int ppi_toggle    (union filedescriptor *fdp, int reg, int bit);
 
-int ppi_open      (char * port);
+void ppi_open     (char * port, union filedescriptor *fdp);
 
-void ppi_close    (int fd);
+void ppi_close    (union filedescriptor *fdp);
 
 #endif
 

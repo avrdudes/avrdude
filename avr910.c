@@ -47,7 +47,7 @@ static char has_auto_incr_addr;
 
 static int avr910_send(PROGRAMMER * pgm, char * buf, size_t len)
 {
-  return serial_send(pgm->fd, (unsigned char *)buf, len);
+  return serial_send(&pgm->fd, (unsigned char *)buf, len);
 }
 
 
@@ -55,7 +55,7 @@ static int avr910_recv(PROGRAMMER * pgm, char * buf, size_t len)
 {
   int rv;
 
-  rv = serial_recv(pgm->fd, (unsigned char *)buf, len);
+  rv = serial_recv(&pgm->fd, (unsigned char *)buf, len);
   if (rv < 0) {
     fprintf(stderr,
 	    "%s: avr910_recv(): programmer is not responding\n",
@@ -68,7 +68,7 @@ static int avr910_recv(PROGRAMMER * pgm, char * buf, size_t len)
 
 static int avr910_drain(PROGRAMMER * pgm, int display)
 {
-  return serial_drain(pgm->fd, display);
+  return serial_drain(&pgm->fd, display);
 }
 
 
@@ -271,7 +271,7 @@ static int avr910_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  pgm->fd = serial_open(port, pgm->baudrate);
+  serial_open(port, pgm->baudrate, &pgm->fd);
 
   /*
    * drain any extraneous input
@@ -285,8 +285,8 @@ static void avr910_close(PROGRAMMER * pgm)
 {
   avr910_leave_prog_mode(pgm);
 
-  serial_close(pgm->fd);
-  pgm->fd = -1;
+  serial_close(&pgm->fd);
+  pgm->fd.ifd = -1;
 }
 
 

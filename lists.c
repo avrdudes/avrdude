@@ -1290,8 +1290,8 @@ int lprint ( FILE * f, LISTID lid )
 
   l = (LIST *)lid;
 
-  fprintf ( f, "list id 0x%08x internal data structures:\n", 
-            (unsigned int)lid );
+  fprintf ( f, "list id %p internal data structures:\n", 
+            lid );
 #if CHECK_MAGIC
   if ((l->magic1 != MAGIC) || (l->magic2 != MAGIC)) {
     fprintf ( f, "  *** WARNING: LIST MAGIC IS CORRUPT ***\n" );

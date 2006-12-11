@@ -43,6 +43,7 @@ reg = register as defined in an enum in ppi.h. This must be converted
 #include <windows.h>
 #include <sys/time.h>
 #include <windows.h>
+#include "serial.h"
 #include "ppi.h"
 
 extern char *progname;
@@ -74,7 +75,7 @@ static const winpp winports[DEVICE_MAX] =
 
 /* FUNCTION PROTOTYPES */
 static int winnt_pp_open(void);
-static unsigned short port_get(int fd, int reg);
+static unsigned short port_get(union filedescriptor *fdp, int reg);
 static unsigned char reg2offset(int reg);
 static unsigned char inb(unsigned short port);
 static void outb(unsigned char value, unsigned short port);
@@ -83,7 +84,7 @@ static void outb(unsigned char value, unsigned short port);
 
 /* FUNCTION DEFINITIONS */
 
-int ppi_open(char *port)
+void ppi_open(char *port, union filedescriptor *fdp)
 {
     unsigned char i;
     int fd;
@@ -93,7 +94,8 @@ int ppi_open(char *port)
     if(fd < 0)
     {
         fprintf(stderr, "%s: can't open device \"giveio\"\n\n", progname);
-        return(-1);
+        fdp->ifd = -1;
+        return;
     }
 
     /* Search the windows port names for a match */
@@ -110,10 +112,11 @@ int ppi_open(char *port)
     if(fd < 0)
     {
         fprintf(stderr, "%s: can't open device \"%s\"\n\n", progname, port);
-        return(-1);
+        fdp->ifd = -1;
+        return;
     }
 
-    return(fd);
+    fdp->ifd = fd;
 }
 
 
@@ -158,7 +161,7 @@ static int winnt_pp_open(void)
 
 
 
-void ppi_close(int fd)
+void ppi_close(union filedescriptor *fdp)
 {
     return;
 }
@@ -168,12 +171,12 @@ void ppi_close(int fd)
 /*
  * set the indicated bit of the specified register.
  */
-int ppi_set(int fd, int reg, int bit)
+int ppi_set(union filedescriptor *fdp, int reg, int bit)
 {
     unsigned char v;
     unsigned short port;
 
-    port = port_get(fd, reg);
+    port = port_get(fdp, reg);
     v = inb(port);
     v |= bit;
     outb(v, port);
@@ -184,12 +187,12 @@ int ppi_set(int fd, int reg, int bit)
 /*
  * clear the indicated bit of the specified register.
  */
-int ppi_clr(int fd, int reg, int bit)
+int ppi_clr(union filedescriptor *fdp, int reg, int bit)
 {
     unsigned char v;
     unsigned short port;
 
-    port = port_get(fd, reg);
+    port = port_get(fdp, reg);
     v = inb(port);
     v &= ~bit;
     outb(v, port);
@@ -201,11 +204,11 @@ int ppi_clr(int fd, int reg, int bit)
 /*
  * get the indicated bit of the specified register.
  */
-int ppi_get(int fd, int reg, int bit)
+int ppi_get(union filedescriptor *fdp, int reg, int bit)
 {
     unsigned char v;
 
-    v = inb(port_get(fd, reg));
+    v = inb(port_get(fdp, reg));
     v &= bit;
 
     return(v);
@@ -217,12 +220,12 @@ int ppi_get(int fd, int reg, int bit)
 /*
  * toggle the indicated bit of the specified register.
  */
-int ppi_toggle(int fd, int reg, int bit)
+int ppi_toggle(union filedescriptor *fdp, int reg, int bit)
 {
     unsigned char v;
     unsigned short port;
 
-    port = port_get(fd, reg);
+    port = port_get(fdp, reg);
 
     v = inb(port);
     v ^= bit;
@@ -235,11 +238,11 @@ int ppi_toggle(int fd, int reg, int bit)
 /*
  * get all bits of the specified register.
  */
-int ppi_getall(int fd, int reg)
+int ppi_getall(union filedescriptor *fdp, int reg)
 {
     unsigned char v;
 
-    v = inb(port_get(fd, reg));
+    v = inb(port_get(fdp, reg));
 
     return((int)v);
 }
@@ -250,9 +253,9 @@ int ppi_getall(int fd, int reg)
 /*
  * set all bits of the specified register to val.
  */
-int ppi_setall(int fd, int reg, int val)
+int ppi_setall(union filedescriptor *fdp, int reg, int val)
 {
-    outb((unsigned char)val, port_get(fd, reg));
+    outb((unsigned char)val, port_get(fdp, reg));
     return 0;
 }
 
@@ -260,9 +263,9 @@ int ppi_setall(int fd, int reg, int val)
 
 
 /* Calculate port address to access. */
-static unsigned short port_get(int fd, int reg)
+static unsigned short port_get(union filedescriptor *fdp, int reg)
 {
-    return((unsigned short)(fd + reg2offset(reg)));
+    return((unsigned short)(fdp->ifd + reg2offset(reg)));
 }
 
 
@@ -318,6 +321,7 @@ static void outb(unsigned char value, unsigned short port)
 }
 
 #if !defined(HAVE_GETTIMEOFDAY)
+struct timezone;
 int gettimeofday(struct timeval *tv, struct timezone *unused){
 // i've found only ms resolution, avrdude expects us
 

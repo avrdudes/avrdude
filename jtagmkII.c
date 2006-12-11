@@ -359,7 +359,7 @@ int jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 
   crcappend(buf, len + 8);
 
-  if (serial_send(pgm->fd, buf, len + 10) != 0) {
+  if (serial_send(&pgm->fd, buf, len + 10) != 0) {
     fprintf(stderr,
 	    "%s: jtagmkII_send(): failed to send command to serial port\n",
 	    progname);
@@ -374,7 +374,7 @@ int jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 
 static int jtagmkII_drain(PROGRAMMER * pgm, int display)
 {
-  return serial_drain(pgm->fd, display);
+  return serial_drain(&pgm->fd, display);
 }
 
 
@@ -423,9 +423,9 @@ static int jtagmkII_recv_frame(PROGRAMMER * pgm, unsigned char **msg,
       if (ignorpkt) {
 	/* skip packet's contents */
 	for(l = 0; l < msglen; l++)
-	  rv += serial_recv(pgm->fd, &c, 1);
+	  rv += serial_recv(&pgm->fd, &c, 1);
       } else {
-	rv += serial_recv(pgm->fd, buf + 8, msglen);
+	rv += serial_recv(&pgm->fd, buf + 8, msglen);
       }
       if (rv != 0) {
 	timedout:
@@ -438,7 +438,7 @@ static int jtagmkII_recv_frame(PROGRAMMER * pgm, unsigned char **msg,
 	return -1;
       }
     } else {
-      if (serial_recv(pgm->fd, &c, 1) != 0)
+      if (serial_recv(&pgm->fd, &c, 1) != 0)
 	goto timedout;
     }
     checksum ^= c;
@@ -1099,7 +1099,7 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
 		"trying to set baudrate to %d\n",
 		progname, pgm->baudrate);
       if (jtagmkII_setparm(pgm, PAR_BAUD_RATE, &b) == 0)
-	serial_setspeed(pgm->fd, pgm->baudrate);
+	serial_setspeed(&pgm->fd, pgm->baudrate);
     }
   }
   if (!(pgm->flag & PGM_FL_IS_DW) && pgm->bitclock != 0.0) {
@@ -1199,7 +1199,7 @@ static int jtagmkII_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  pgm->fd = serial_open(port, baud);
+  serial_open(port, baud, &pgm->fd);
 
   /*
    * drain any extraneous input
@@ -1244,7 +1244,7 @@ static int jtagmkII_open_dw(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  pgm->fd = serial_open(port, baud);
+  serial_open(port, baud, &pgm->fd);
 
   /*
    * drain any extraneous input
@@ -1289,7 +1289,7 @@ static int jtagmkII_dragon_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  pgm->fd = serial_open(port, baud);
+  serial_open(port, baud, &pgm->fd);
 
   /*
    * drain any extraneous input
@@ -1334,7 +1334,7 @@ static int jtagmkII_dragon_open_dw(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  pgm->fd = serial_open(port, baud);
+  serial_open(port, baud, &pgm->fd);
 
   /*
    * drain any extraneous input
@@ -1418,8 +1418,8 @@ void jtagmkII_close(PROGRAMMER * pgm)
 	    progname, jtagmkII_get_rc(c));
   }
 
-  serial_close(pgm->fd);
-  pgm->fd = -1;
+  serial_close(&pgm->fd);
+  pgm->fd.ifd = -1;
 }
 
 

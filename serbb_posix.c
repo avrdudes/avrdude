@@ -92,7 +92,7 @@ static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
   switch ( pin )
   {
     case 3:  /* txd */
-	     r = ioctl(pgm->fd, value ? TIOCSBRK : TIOCCBRK, 0);
+	     r = ioctl(pgm->fd.ifd, value ? TIOCSBRK : TIOCCBRK, 0);
 	     if (r < 0) {
 	       perror("ioctl(\"TIOCxBRK\")");
 	       return -1;
@@ -101,7 +101,7 @@ static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
 
     case 4:  /* dtr */
     case 7:  /* rts */
-             r = ioctl(pgm->fd, TIOCMGET, &ctl);
+             r = ioctl(pgm->fd.ifd, TIOCMGET, &ctl);
  	     if (r < 0) {
 	       perror("ioctl(\"TIOCMGET\")");
 	       return -1;
@@ -110,7 +110,7 @@ static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
                ctl |= serregbits[pin];
              else
                ctl &= ~(serregbits[pin]);
-	     r = ioctl(pgm->fd, TIOCMSET, &ctl);
+	     r = ioctl(pgm->fd.ifd, TIOCMSET, &ctl);
  	     if (r < 0) {
 	       perror("ioctl(\"TIOCMSET\")");
 	       return -1;
@@ -147,7 +147,7 @@ static int serbb_getpin(PROGRAMMER * pgm, int pin)
     case 6:  /* dsr */
     case 8:  /* cts */
     case 9:  /* ri  */
-             r = ioctl(pgm->fd, TIOCMGET, &ctl);
+             r = ioctl(pgm->fd.ifd, TIOCMGET, &ctl);
  	     if (r < 0) {
 	       perror("ioctl(\"TIOCMGET\")");
 	       return -1;
@@ -225,14 +225,14 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 
   /* adapted from uisp code */
 
-  pgm->fd = open(port, O_RDWR | O_NOCTTY | O_NONBLOCK);
+  pgm->fd.ifd = open(port, O_RDWR | O_NOCTTY | O_NONBLOCK);
 
-  if (pgm->fd < 0) {
+  if (pgm->fd.ifd < 0) {
     perror(port);
     return(-1);
   }
 
-  r = tcgetattr(pgm->fd, &mode);
+  r = tcgetattr(pgm->fd.ifd, &mode);
   if (r < 0) {
     fprintf(stderr, "%s: ", port);
     perror("tcgetattr");
@@ -246,7 +246,7 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
   mode.c_cc [VMIN] = 1;
   mode.c_cc [VTIME] = 0;
 
-  r = tcsetattr(pgm->fd, TCSANOW, &mode);
+  r = tcsetattr(pgm->fd.ifd, TCSANOW, &mode);
   if (r < 0) {
       fprintf(stderr, "%s: ", port);
       perror("tcsetattr");
@@ -254,7 +254,7 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
   }
 
   /* Clear O_NONBLOCK flag.  */
-  flags = fcntl(pgm->fd, F_GETFL, 0);
+  flags = fcntl(pgm->fd.ifd, F_GETFL, 0);
   if (flags == -1)
     {
       fprintf(stderr, "%s: Can not get flags: %s\n",
@@ -262,7 +262,7 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
       return(-1);
     }
   flags &= ~O_NONBLOCK;
-  if (fcntl(pgm->fd, F_SETFL, flags) == -1)
+  if (fcntl(pgm->fd.ifd, F_SETFL, flags) == -1)
     {
       fprintf(stderr, "%s: Can not clear nonblock flag: %s\n",
 	      progname, strerror(errno));
@@ -274,11 +274,11 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 
 static void serbb_close(PROGRAMMER *pgm)
 {
-  if (pgm->fd != -1)
+  if (pgm->fd.ifd != -1)
   {
-	  (void)tcsetattr(pgm->fd, TCSANOW, &oldmode);
+	  (void)tcsetattr(pgm->fd.ifd, TCSANOW, &oldmode);
 	  pgm->setpin(pgm, pgm->pinno[PIN_AVR_RESET], 1);
-	  close(pgm->fd);
+	  close(pgm->fd.ifd);
   }
   return;
 }

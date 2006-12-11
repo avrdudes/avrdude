@@ -205,7 +205,7 @@ b2_to_u16(unsigned char *b)
 
 static int stk500v2_send_mk2(PROGRAMMER * pgm, unsigned char * data, size_t len)
 {
-  if (serial_send(pgm->fd, data, len) != 0) {
+  if (serial_send(&pgm->fd, data, len) != 0) {
     fprintf(stderr,"%s: stk500_send_mk2(): failed to send command to serial port\n",progname);
     exit(1);
   }
@@ -298,7 +298,7 @@ static int stk500v2_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
   for (i=0;i<len+6;i++) DEBUG("0x%02x ",buf[i]);
   DEBUG(", %d)\n",len+6);
 
-  if (serial_send(pgm->fd, buf, len+6) != 0) {
+  if (serial_send(&pgm->fd, buf, len+6) != 0) {
     fprintf(stderr,"%s: stk500_send(): failed to send command to serial port\n",progname);
     exit(1);
   }
@@ -309,7 +309,7 @@ static int stk500v2_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 
 static int stk500v2_drain(PROGRAMMER * pgm, int display)
 {
-  return serial_drain(pgm->fd, display);
+  return serial_drain(&pgm->fd, display);
 }
 
 static int stk500v2_recv_mk2(PROGRAMMER * pgm, unsigned char msg[],
@@ -317,7 +317,7 @@ static int stk500v2_recv_mk2(PROGRAMMER * pgm, unsigned char msg[],
 {
   int rv;
 
-  rv = serial_recv(pgm->fd, msg, maxsize);
+  rv = serial_recv(&pgm->fd, msg, maxsize);
   if (rv < 0) {
     fprintf(stderr, "%s: stk500v2_recv_mk2: error in USB receive\n", progname);
     return -1;
@@ -386,7 +386,7 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
   tstart = tv.tv_sec;
 
   while ( (state != sDONE ) && (!timeout) ) {
-    if (serial_recv(pgm->fd, &c, 1) < 0)
+    if (serial_recv(&pgm->fd, &c, 1) < 0)
       goto timedout;
     DEBUG("0x%02x ",c);
     checksum ^= c;
@@ -979,7 +979,7 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  pgm->fd = serial_open(port, baud);
+  serial_open(port, baud, &pgm->fd);
 
   /*
    * drain any extraneous input
@@ -1003,8 +1003,8 @@ static void stk500v2_close(PROGRAMMER * pgm)
 {
   DEBUG("STK500V2: stk500v2_close()\n");
 
-  serial_close(pgm->fd);
-  pgm->fd = -1;
+  serial_close(&pgm->fd);
+  pgm->fd.ifd = -1;
 }
 
 
@@ -2190,7 +2190,7 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  pgm->fd = serial_open(port, baud);
+  serial_open(port, baud, &pgm->fd);
 
   /*
    * drain any extraneous input
@@ -2257,7 +2257,7 @@ static int stk500v2_dragon_isp_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  pgm->fd = serial_open(port, baud);
+  serial_open(port, baud, &pgm->fd);
 
   /*
    * drain any extraneous input
@@ -2324,7 +2324,7 @@ static int stk500v2_dragon_hv_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  pgm->fd = serial_open(port, baud);
+  serial_open(port, baud, &pgm->fd);
 
   /*
    * drain any extraneous input

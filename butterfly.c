@@ -69,7 +69,7 @@ static int butterfly_send(PROGRAMMER * pgm, char * buf, size_t len)
 {
   no_show_func_info();
 
-  return serial_send(pgm->fd, (unsigned char *)buf, len);
+  return serial_send(&pgm->fd, (unsigned char *)buf, len);
 }
 
 
@@ -79,7 +79,7 @@ static int butterfly_recv(PROGRAMMER * pgm, char * buf, size_t len)
 
   no_show_func_info();
 
-  rv = serial_recv(pgm->fd, (unsigned char *)buf, len);
+  rv = serial_recv(&pgm->fd, (unsigned char *)buf, len);
   if (rv < 0) {
     fprintf(stderr,
 	    "%s: butterfly_recv(): programmer is not responding\n",
@@ -94,7 +94,7 @@ static int butterfly_drain(PROGRAMMER * pgm, int display)
 {
   no_show_func_info();
 
-  return serial_drain(pgm->fd, display);
+  return serial_drain(&pgm->fd, display);
 }
 
 
@@ -359,7 +359,7 @@ static int butterfly_open(PROGRAMMER * pgm, char * port)
   if(pgm->baudrate == 0) {
     pgm->baudrate = 19200;
   }
-  pgm->fd = serial_open(port, pgm->baudrate);
+  serial_open(port, pgm->baudrate, &pgm->fd);
 
   /*
    * drain any extraneous input
@@ -378,8 +378,8 @@ static void butterfly_close(PROGRAMMER * pgm)
   butterfly_send(pgm, "E", 1);
   butterfly_vfy_cmd_sent(pgm, "exit bootloader");
 
-  serial_close(pgm->fd);
-  pgm->fd = -1;
+  serial_close(&pgm->fd);
+  pgm->fd.ifd = -1;
 }
 
 
