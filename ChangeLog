@@ -1,5 +1,11 @@
 2006-12-11 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	Submitted by Nick Lott:
+	* avrdude.conf.in: Fix signature for ATmega8515.
+	Closes bug #18348: ATMEGA8515 Signature is wrong in avrdude.conf
+
+2006-12-11 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* avr.c: Fix a bug introduced in rev. 1.69, when implementing the
 	fallback from each programmer's paged_load() or paged_write()
 	method, respectively.  The return value needs to be checked for
