@@ -1,8 +1,13 @@
+2006-12-11 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* jtagmkI.c (jtagmkI_close): revert baud rate to the initial
+	value in case we had changed it.
+	Fixes bug #18262: JTAGMKI/JTAG1 Reset Bug
+
 2006-12-11 Colin O'Flynn <coflynn@newae.com>
 
-    * safemode.c: Stop ignoring return values!
-      Closes bug #18339
-
+	* safemode.c: Stop ignoring return values!
+	  Closes bug #18339
 
 2006-12-11 Joerg Wunsch <j@uriah.heep.sax.de>
 
