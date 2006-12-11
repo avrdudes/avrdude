@@ -46,7 +46,7 @@ extern int do_cycles;
  * XXX There should really be a programmer-specific private data
  * pointer in struct PROGRAMMER.
  */
-static long initial_baudrate;
+static int initial_baudrate;
 
 /*
  * See jtagmkI_read_byte() for an explanation of the flash and
@@ -681,9 +681,30 @@ static int jtagmkI_open(PROGRAMMER * pgm, char * port)
 
 static void jtagmkI_close(PROGRAMMER * pgm)
 {
+  unsigned char b;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkI_close()\n", progname);
+
+  /*
+   * Revert baud rate to what it used to be when we started.  This
+   * appears to make AVR Studio happier when it is about to access the
+   * ICE later on.
+   */
+  if ((serdev->flags & SERDEV_FL_CANSETSPEED) && initial_baudrate != pgm->baudrate) {
+    if ((b = jtagmkI_get_baud(initial_baudrate)) == 0) {
+      fprintf(stderr, "%s: jtagmkI_close(): unsupported baudrate %d\n",
+              progname, initial_baudrate);
+    } else {
+      if (verbose >= 2)
+        fprintf(stderr, "%s: jtagmkI_close(): "
+                "trying to set baudrate to %d\n",
+                progname, initial_baudrate);
+      if (jtagmkI_setparm(pgm, PARM_BITRATE, b) == 0) {
+        serial_setspeed(&pgm->fd, pgm->baudrate);
+      }
+    }
+  }
 
   if (pgm->fd.ifd != -1) {
     serial_close(&pgm->fd);
