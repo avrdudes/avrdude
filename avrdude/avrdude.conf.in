@@ -5445,7 +5445,7 @@ part
     desc             = "ATMEGA8515";
     stk500_devcode   = 0x63;
     avr910_devcode   = 0x3B;
-    signature        = 0x1e 0x93 0x07;
+    signature        = 0x1e 0x93 0x06;
     chip_erase_delay = 9000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
