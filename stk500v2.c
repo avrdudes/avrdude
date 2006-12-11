@@ -341,7 +341,7 @@ static int stk500v2_jtagmkII_recv(PROGRAMMER * pgm, unsigned char msg[],
   if (rv - 1 > maxsize) {
     fprintf(stderr,
             "%s: stk500v2_jtagmkII_recv(): got %u bytes, have only room for %u bytes\n",
-            progname, (unsigned)rv - 1, maxsize);
+            progname, (unsigned)rv - 1, (unsigned)maxsize);
     rv = maxsize;
   }
   switch (jtagmsg[0]) {
