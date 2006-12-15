@@ -1110,7 +1110,7 @@ static int jtagmkI_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       return -1;
   }
 
-  cmd[2] = 1;
+  cmd[2] = 1 - 1;
   if (cmd[1] == MTYPE_SPM) {
     /*
      * Flash is word-addressed, but we cannot handle flash anyway
