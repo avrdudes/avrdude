@@ -98,6 +98,7 @@ avrdude_SOURCES = \
 	lists.c \
 	lists.h \
 	main.c \
+	my_ddk_hidsdi.h \
 	par.c \
 	par.h \
 	pgm.c \
@@ -112,6 +113,7 @@ avrdude_SOURCES = \
 	serbb.h \
 	serbb_posix.c \
 	serbb_win32.c \
+	ser_avrdoper.c \
 	ser_posix.c \
 	ser_win32.c \
 	solaris_ecpp.h \

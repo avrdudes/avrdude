@@ -1,3 +1,17 @@
+2006-12-21 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by Christian Starkjohann:
+	patch #5507: Support for AVR-Doper USB programmer in HID mode
+	* configure.ac: Add hooks to detect the Win32 HID library,
+	as well as the existence of <ddk/hidsdi.h>.
+	* Makefile.am: Add new files.
+	* my_ddk_hidsdi.h: (New file.)
+	* ser_avrdoper.c: (New file.)
+	* serial.h: Add declaration for avrdoper_serdev.
+	* stk500v2.c: Add hook to divert to the AVR Doper code.
+	* avrdude.1: Document the AVR Doper support.
+	* doc/avrdude.texi: (Ditto.)
+
 2006-12-15 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	Submitted by ivanv at netman.ru

@@ -12,6 +12,8 @@ Current:
 
   * Add support for debugWire (both, JTAG ICE mkII, and AVR Dragon).
 
+  * Add support for the AVR Doper USB HID-class programmer.
+
   * Bugfixes.
 
 Version 5.2:

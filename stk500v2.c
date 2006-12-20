@@ -960,6 +960,16 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
 
   pgmtype = PGMTYPE_UNKNOWN;
 
+  if(strcasecmp(port, "avrdoper") == 0){
+#if defined(HAVE_LIBUSB) || defined(WIN32NATIVE)
+    serdev = &avrdoper_serdev;
+    pgmtype = PGMTYPE_STK500;
+#else
+    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    return -1;
+#endif
+  }
+
   /*
    * If the port name starts with "usb", divert the serial routines
    * to the USB ones.  The serial_open() function for USB overrides

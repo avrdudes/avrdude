@@ -53,7 +53,10 @@ struct serial_device
 };
 
 extern struct serial_device *serdev;
-extern struct serial_device serial_serdev, usb_serdev, usb_serdev_frame;
+extern struct serial_device serial_serdev;
+extern struct serial_device usb_serdev;
+extern struct serial_device usb_serdev_frame;
+extern struct serial_device avrdoper_serdev;
 
 #define serial_open (serdev->open)
 #define serial_setspeed (serdev->setspeed)

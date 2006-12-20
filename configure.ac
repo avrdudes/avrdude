@@ -60,9 +60,49 @@ if test x$have_libusb = xyes; then
 fi
 AC_SUBST(LIBUSB, $LIBUSB)
 
+AC_MSG_CHECKING([for a Win32 HID libray])
+SAVED_LIBS="${LIBS}"
+case $target in
+	*-*-mingw32*)
+		LIBHID="-lhid -lsetupapi"
+		HIDINCLUDE="#include <ddk/hidsdi.h>"
+		;;
+	*)
+		LIBHID="-lhid"
+		HIDINCLUDE='#include "my_ddk_hidsdi.h"'
+		;;
+esac
+LIBS="${LIBS} ${LIBHID}"
+
+AH_TEMPLATE([HAVE_LIBHID],
+            [Define if HID support is enabled via the Win32 DDK])
+AC_TRY_RUN([#include <windows.h>
+#include <setupapi.h>
+$HIDINCLUDE
+
+int
+main(void)
+{
+    GUID hidGuid;
+    HidD_GetHidGuid(&hidGuid);
+
+    return 0;
+}
+], [have_libhid=yes], [have_libhid=no], [have_libhid=no])
+AC_MSG_RESULT([$have_libhid])
+if test x$have_libhid = xyes; then
+   AC_DEFINE([HAVE_LIBHID])
+else
+   LIBHID=""
+fi
+LIBS="${SAVED_LIBS}"
+
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h limits.h stdlib.h string.h sys/ioctl.h sys/time.h termios.h unistd.h])
+AC_CHECK_HEADERS([limits.h stdlib.h string.h])
+AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h termios.h unistd.h])
+AC_CHECK_HEADERS([ddk/hidsdi.h],,,[#include <windows.h>
+#include <setupapi.h>])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
