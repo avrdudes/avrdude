@@ -559,6 +559,11 @@ attached to USB, see @ref{Example Command Line Invocations}.
 As the AVRISP mkII device can only be talked to over USB, the very
 same method of specifying the port is required there.
 
+For the USB programmer "AVR-Doper" running in HID mode, the port must
+be specified as @var{avrdoper}. Libusb support is required on Unix
+but not on Windows. For more information about AVR-Doper see
+@url{http://www.obdev.at/avrusb/avrdoper.html}.
+
 For programmers that attach to a serial port using some kind of
 higher level protocol (as opposed to bit-bang style programmers),
 @var{port} can be specified as @code{net}:@var{host}:@var{port}.
