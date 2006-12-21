@@ -1,5 +1,11 @@
 2006-12-21 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	Submitted by Vince VG:
+	* avrdude.conf.in (frank-stk200): New programmer added.
+	Closes patch #5502: one other programmer
+
+2006-12-21 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	Submitted by Christian Starkjohann:
 	* ser_avrdoper.c (usbOpenDevice): clear the error code when
 	returning successfully.

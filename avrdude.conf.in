@@ -679,6 +679,18 @@ programmer
   buff  = 14;
 ;
 
+# It is almost same as pony-stk200, except vcc on pin 5 to auto
+# disconnect port (download on http://electropol.free.fr)
+programmer
+  id    = "frank-stk200";
+  desc  = "Frank STK200";
+  type  = par;
+  vcc   = 5;
+  sck   = 6;
+  mosi  = 7;
+  reset = 9;
+  miso  = 10;
+  pgmled = 8;
 
 @HAVE_PARPORT_END@
 
