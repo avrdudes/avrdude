@@ -1,6 +1,12 @@
 2006-12-21 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	Submitted by Christian Starkjohann:
+	* ser_avrdoper.c (usbOpenDevice): clear the error code when
+	returning successfully.
+
+2006-12-21 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by Christian Starkjohann:
 	patch #5507: Support for AVR-Doper USB programmer in HID mode
 	* configure.ac: Add hooks to detect the Win32 HID library,
 	as well as the existence of <ddk/hidsdi.h>.
