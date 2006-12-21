@@ -10,6 +10,7 @@
 
 	Submitted by Vince VG:
 	* avrdude.conf.in (frank-stk200): New programmer added.
+	* doc/avrdude.texi: Mention frank-stk200.
 	Closes patch #5502: one other programmer
 
 2006-12-21 Joerg Wunsch <j@uriah.heep.sax.de>
