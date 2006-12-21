@@ -1,5 +1,9 @@
 2006-12-21 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* configure.ac (AC_INIT): Bump version to 5.3cvs.
+
+2006-12-21 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	Released AVRDUDE 5.3.
 
 2006-12-21 Joerg Wunsch <j@uriah.heep.sax.de>
