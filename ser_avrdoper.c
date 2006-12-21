@@ -179,6 +179,7 @@ static int usbOpenDevice(union filedescriptor *fdp, int vendor, char *vendorName
         free(deviceDetails);
     if(handle != INVALID_HANDLE_VALUE){
 	fdp->pfd = (void *)handle;
+	errorCode = 0;
     }
     return errorCode;
 }
