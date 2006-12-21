@@ -396,6 +396,8 @@ AVR Dragon in ISP mode
 AVR Dragon in JTAG mode
 @item @code{dragon_pp}   @tab
 AVR Dragon in (high-voltage) parallel programming mode
+@item @code{frank-stk200} @tab
+Frank's STK200 clone, @url{http://electropol.free.fr/spip/spip.php?article15}
 @item @code{jtagmkI}     @tab
 Atmel JTAG ICE mkI, running at 115200 Bd
 @item @code{jtag1}       @tab
