@@ -66,7 +66,7 @@ static int              avrdoperRxPosition = 0; /* amount of bytes already consu
 /* ------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------ */
 
-#ifdef WIN32NATIVE
+#if defined(WIN32NATIVE) && defined(HAVE_LIBHID)
 
 #include <windows.h>
 #include <setupapi.h>
@@ -242,7 +242,7 @@ static int usbGetReport(union filedescriptor *fdp, int reportType, int reportNum
 /* ------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------ */
 
-#else /* !WIN32NATIVE */
+#else /* !(WIN32NATIVE && HAVE_LIBHID) */
 
 /* ------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------ */
