@@ -691,6 +691,7 @@ programmer
   reset = 9;
   miso  = 10;
   pgmled = 8;
+;
 
 @HAVE_PARPORT_END@
 
