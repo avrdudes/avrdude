@@ -7651,8 +7651,8 @@ part
     latchcycles         = 1;
     togglevtg           = 1;
     poweroffdelay       = 25;
-    resetdelayms        = 0;
-    resetdelayus        = 50;
+    resetdelayms        = 1;
+    resetdelayus        = 0;
     hvleavestabdelay    = 100;
     resetdelay          = 25;
     chiperasepolltimeout = 40;
@@ -7831,8 +7831,8 @@ part
     latchcycles         = 1;
     togglevtg           = 1;
     poweroffdelay       = 25;
-    resetdelayms        = 0;
-    resetdelayus        = 50;
+    resetdelayms        = 1;
+    resetdelayus        = 0;
     hvleavestabdelay    = 100;
     resetdelay          = 25;
     chiperasepolltimeout = 40;
@@ -8010,8 +8010,8 @@ part
     latchcycles         = 1;
     togglevtg           = 1;
     poweroffdelay       = 25;
-    resetdelayms        = 0;
-    resetdelayus        = 50;
+    resetdelayms        = 1;
+    resetdelayus        = 0;
     hvleavestabdelay    = 100;
     resetdelay          = 25;
     chiperasepolltimeout = 40;
