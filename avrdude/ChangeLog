@@ -1,0 +1,6 @@
+2007-01-07 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Reported by Till Harbaum:
+	* avrdude.conf.in (ATtiny25/45/85): Change HVSP reset from
+	500 microseconds to 1 ms, matching the most recent Atmel XML
+	specs.
