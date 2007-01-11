@@ -226,7 +226,7 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   char hw[2];
   char buf[10];
   char type;
-  char c;
+  char c, devtype_1st;
 
   no_show_func_info();
 
@@ -307,18 +307,28 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
 
   butterfly_send(pgm, "t", 1);
   fprintf(stderr, "\nProgrammer supports the following devices:\n");
+  devtype_1st = 0;
   while (1) {
     butterfly_recv(pgm, &c, 1);
+    if (devtype_1st == 0)
+      devtype_1st = c;
+
     if (c == 0)
       break;
     fprintf(stderr, "    Device code: 0x%02x\n", (unsigned int)(unsigned char)c);
   };
   fprintf(stderr,"\n");
 
-  /* Tell the programmer which part we selected. */
+  /* Tell the programmer which part we selected.
+     According to the AVR109 code, this is ignored by the bootloader.  As
+     some early versions might not properly ignore it, rather pick up the
+     first device type as reported above than anything out of avrdude.conf,
+     so to avoid a potential conflict.  There appears to be no general
+     agreement on AVR910 device IDs beyond the ones from the original
+     appnote 910. */
 
   buf[0] = 'T';
-  buf[1] = p->avr910_devcode;
+  buf[1] = devtype_1st;
 
   butterfly_send(pgm, buf, 2);
   butterfly_vfy_cmd_sent(pgm, "select device");

@@ -1,3 +1,14 @@
+2007-01-11 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* butterfly.c (butterfly_initialize): when sending the 'T'
+	command (which is ignored by current AVR109 bootloaders),
+	send the first reply from the list of supported device
+	codes back rather than using avrdude.conf's idea about
+	an AVR910 device code.  Apparently, this solves disagreements
+	between different versions of at least the ATmega8 AVR910
+	device code.
+	Closes bug #18727: Writing flash failed
+
 2007-01-07 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	Reported by Till Harbaum:
