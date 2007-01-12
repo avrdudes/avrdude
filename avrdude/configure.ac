@@ -60,16 +60,36 @@ if test x$have_libusb = xyes; then
 fi
 AC_SUBST(LIBUSB, $LIBUSB)
 
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS([limits.h stdlib.h string.h])
+AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h termios.h unistd.h])
+AC_CHECK_HEADERS([ddk/hidsdi.h],,,[#include <windows.h>
+#include <setupapi.h>])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_HEADER_TIME
+
+# Checks for library functions.
+AC_PROG_GCC_TRADITIONAL
+AC_FUNC_MALLOC
+AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul gettimeofday])
+
 AC_MSG_CHECKING([for a Win32 HID libray])
 SAVED_LIBS="${LIBS}"
 case $target in
-	*-*-mingw32*)
+        *-*-mingw32* | *-*-cygwin* | *-*-windows*)
 		LIBHID="-lhid -lsetupapi"
-		HIDINCLUDE="#include <ddk/hidsdi.h>"
+		if test $ac_cv_header_ddk_hidsdi_h = yes
+		then
+			HIDINCLUDE="#include <ddk/hidsdi.h>"
+		else
+			HIDINCLUDE="#include \"my_ddk_hidsdi.h\""
+		fi
 		;;
 	*)
-		LIBHID="-lhid"
-		HIDINCLUDE='#include "my_ddk_hidsdi.h"'
+		LIBHID=""
 		;;
 esac
 LIBS="${LIBS} ${LIBHID}"
@@ -96,22 +116,7 @@ else
    LIBHID=""
 fi
 LIBS="${SAVED_LIBS}"
-
-# Checks for header files.
-AC_HEADER_STDC
-AC_CHECK_HEADERS([limits.h stdlib.h string.h])
-AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h termios.h unistd.h])
-AC_CHECK_HEADERS([ddk/hidsdi.h],,,[#include <windows.h>
-#include <setupapi.h>])
-
-# Checks for typedefs, structures, and compiler characteristics.
-AC_C_CONST
-AC_HEADER_TIME
-
-# Checks for library functions.
-AC_PROG_GCC_TRADITIONAL
-AC_FUNC_MALLOC
-AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul gettimeofday])
+AC_SUBST(LIBHID, $LIBHID)
 
 # Checks for misc stuff.
 
@@ -232,7 +237,7 @@ export confsubst
 case $target in
         *-*-mingw32* | *-*-cygwin* | *-*-windows*)
 		WINDOWS_DIRS="windows"
-		CFLAGS="-mno-cygwin -DWIN32NATIVE"
+		CFLAGS="${CFLAGS} -mno-cygwin -DWIN32NATIVE"
 		LDFLAGS="${LDFLAGS} -static"
 		;;
 esac
