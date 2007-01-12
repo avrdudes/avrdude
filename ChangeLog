@@ -1,3 +1,10 @@
+2007-01-12 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* configure.ac: Improve the detection of the Win32 HID library,
+	and the presence of the header ddk/hidsdi.h.  It now works
+	correctly under Cygwin and several flavours of MinGW.
+	* Makefile.am: Add new LIBHID pattern.
+
 2007-01-11 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* butterfly.c (butterfly_initialize): when sending the 'T'
