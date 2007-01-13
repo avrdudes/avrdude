@@ -1,3 +1,8 @@
+2007-01-13 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in (ATmega8): Bump the delay values for flash
+	and EEPROM, based on the current Atmel XML file.
+
 2007-01-12 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* configure.ac: Improve the detection of the Win32 HID library,

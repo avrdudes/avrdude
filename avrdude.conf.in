@@ -5357,7 +5357,7 @@ part
                           "  i   i   i   i      i   i   i   i";
 
 	mode		= 0x04;
-	delay		= 10;
+	delay		= 20;
 	blocksize	= 128;
 	readsize	= 256;
       ;
@@ -5396,7 +5396,7 @@ part
                           "  x   x   x   x      x   x   x   x";
 
 	mode		= 0x21;
-	delay		= 6;
+	delay		= 10;
 	blocksize	= 64;
 	readsize	= 256;
       ;
