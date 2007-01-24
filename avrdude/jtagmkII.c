@@ -41,6 +41,7 @@
 #include <sys/time.h>
 #include <time.h>
 
+#include "avrdude.h"
 #include "avr.h"
 #include "crc16.h"
 #include "pgm.h"
@@ -49,10 +50,6 @@
 #include "serial.h"
 #include "usbdevs.h"
 
-
-extern int    verbose;
-extern char * progname;
-extern int do_cycles;
 
 /*
  * XXX There should really be a programmer-specific private data

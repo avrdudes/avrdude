@@ -36,15 +36,12 @@
 # include "solaris_ecpp.h"
 #endif
 
+#include "avrdude.h"
 #include "avr.h"
 #include "pindefs.h"
 #include "pgm.h"
 #include "ppi.h"
 #include "bitbang.h"
-
-extern char * progname;
-extern int do_cycles;
-extern int verbose;
 
 #if HAVE_PARPORT
 

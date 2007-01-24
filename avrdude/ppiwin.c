@@ -43,12 +43,10 @@ reg = register as defined in an enum in ppi.h. This must be converted
 #include <windows.h>
 #include <sys/time.h>
 #include <windows.h>
+
+#include "avrdude.h"
 #include "serial.h"
 #include "ppi.h"
-
-extern char *progname;
-
-
 
 #define DEVICE_LPT1 "lpt1"
 #define DEVICE_LPT2 "lpt2"

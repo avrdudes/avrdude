@@ -1,5 +1,38 @@
 2007-01-13 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	Move all "extern" declarations into a centreal header file.
+	* Makefile.am: Add new avrdude.h.
+	* avrdude.h: New file.
+	* avr.c: Replace private extern decl's by #include "avrdude.h".
+	* avr910.c: (Ditto.)
+	* avrpart.c: (Ditto.)
+	* bitbang.c: (Ditto.)
+	* butterfly.c: (Ditto.)
+	* config.c: (Ditto.)
+	* config_gram.y: (Ditto.)
+	* fileio.c: (Ditto.)
+	* jtagmkI.c: (Ditto.)
+	* jtagmkII.c: (Ditto.)
+	* lexer.l: (Ditto.)
+	* main.c: (Ditto.)
+	* par.c: (Ditto.)
+	* pgm.c: (Ditto.)
+	* ppi.c: (Ditto.)
+	* ppiwin.c: (Ditto.)
+	* ser_avrdoper.c: (Ditto.)
+	* ser_posix.c: (Ditto.)
+	* ser_win32.c: (Ditto.)
+	* serbb_posix.c: (Ditto.)
+	* serbb_win32.c: (Ditto.)
+	* stk500.c: (Ditto.)
+	* stk500generic.c: (Ditto.)
+	* stk500v2.c: (Ditto.)
+	* term.c: (Ditto.)
+	* usb_libusb.c: (Ditto.)
+	* usbasp.c: (Ditto.)
+
+2007-01-13 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* avrdude.conf.in (ATmega8): Bump the delay values for flash
 	and EEPROM, based on the current Atmel XML file.
 

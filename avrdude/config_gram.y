@@ -27,6 +27,8 @@
 #include <string.h>
 #include <math.h>
 
+#include "avrdude.h"
+
 #include "config.h"
 #include "lists.h"
 #include "par.h"
@@ -48,8 +50,6 @@
 #define strtok_r( _s, _sep, _lasts ) \
     ( *(_lasts) = strtok( (_s), (_sep) ) )
 #endif
-
-extern char * progname;
 
 int yylex(void);
 int yyerror(char * errmsg);

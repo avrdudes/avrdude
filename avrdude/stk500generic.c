@@ -32,11 +32,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "avrdude.h"
 #include "pgm.h"
 #include "stk500.h"
 #include "stk500v2.h"
-
-extern char *progname;
 
 static int stk500generic_open(PROGRAMMER * pgm, char * port)
 {

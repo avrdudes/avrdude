@@ -28,6 +28,7 @@
 #include <sys/time.h>
 #include <time.h>
 
+#include "avrdude.h"
 
 #include "avr.h"
 #include "lists.h"
@@ -36,14 +37,6 @@
 #include "safemode.h"
 
 #define DEBUG 0
-
-extern char       * progname;
-extern char         progbuf[];
-extern PROGRAMMER * pgm;
-
-
-extern int do_cycles;
-
 
 int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem, 
                           unsigned long addr, unsigned char * value)

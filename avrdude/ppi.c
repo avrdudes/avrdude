@@ -41,12 +41,11 @@
 # include "solaris_ecpp.h"
 #endif
 
+#include "avrdude.h"
 #include "avr.h"
 #include "pindefs.h"
 #include "pgm.h"
 #include "ppi.h"
-
-extern char * progname;
 
 enum {
   PPI_READ,

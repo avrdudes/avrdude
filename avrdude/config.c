@@ -45,8 +45,10 @@ AVRMEM     * current_mem;
 LISTID       part_list;
 LISTID       programmers;
 
-int    lineno = 0;
-char * infile = NULL;
+int    lineno;
+char * infile;
+
+extern char * yytext;
 
 #define DEBUG 0
 
@@ -261,8 +263,6 @@ void print_token(TOKEN * tkn)
 void pyytext(void)
 {
 #if DEBUG
-  extern char * yytext;
-
   fprintf(stderr, "TOKEN: \"%s\"\n", yytext);
 #endif
 }

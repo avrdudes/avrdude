@@ -74,9 +74,6 @@ typedef struct update_t {
 /* Get VERSION from ac_cfg.h */
 char * version      = VERSION;
 
-int    verbose;     /* verbose output */
-int    quell_progress; /* un-verebose output */
-int    ovsigck;     /* 1=override sig check, 0=don't */
 char * progname;
 char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
@@ -89,7 +86,10 @@ LISTID updates;
 /*
  * global options
  */
-int do_cycles;   /* track erase-rewrite cycles */
+int    do_cycles;   /* track erase-rewrite cycles */
+int    verbose;     /* verbose output */
+int    quell_progress; /* un-verebose output */
+int    ovsigck;     /* 1=override sig check, 0=don't */
 
 
 /*

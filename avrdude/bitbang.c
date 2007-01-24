@@ -33,15 +33,12 @@
 #  include <sys/time.h>
 #endif
 
+#include "avrdude.h"
 #include "avr.h"
 #include "pindefs.h"
 #include "pgm.h"
 #include "par.h"
 #include "serbb.h"
-
-extern char * progname;
-extern int do_cycles;
-extern int verbose;
 
 static int delay_decrement;
 

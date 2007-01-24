@@ -33,14 +33,12 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include "avrdude.h"
+
 #include "avr.h"
 #include "pgm.h"
 #include "avr910.h"
 #include "serial.h"
-
-extern char * progname;
-extern int do_cycles;
-extern int ovsigck;
 
 static char has_auto_incr_addr;
 
