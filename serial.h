@@ -27,8 +27,8 @@
 
    The target file will be selected at configure time. */
 
-#ifndef __serial_h__
-#define __serial_h__
+#ifndef serial_h
+#define serial_h
 
 extern long serial_recv_timeout;
 union filedescriptor
@@ -65,4 +65,4 @@ extern struct serial_device avrdoper_serdev;
 #define serial_recv (serdev->recv)
 #define serial_drain (serdev->drain)
 
-#endif /* __serial_h__ */
+#endif /* serial_h */

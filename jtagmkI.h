@@ -22,7 +22,15 @@
 #ifndef jtagmkI_h
 #define jtagmkI_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void jtagmkI_initpgm (PROGRAMMER * pgm);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

@@ -19,8 +19,8 @@
 
 /* $Id$ */
 
-#ifndef __config_h__
-#define __config_h__
+#ifndef config_h
+#define config_h
 
 #include "lists.h"
 #include "pindefs.h"
@@ -52,6 +52,8 @@ extern int          lineno;
 extern char       * infile;
 extern LISTID       string_list;
 extern LISTID       number_list;
+extern LISTID       part_list;
+extern LISTID       programmers;
 extern char         default_programmer[];
 extern char         default_parallel[];
 extern char         default_serial[];
@@ -65,6 +67,10 @@ extern YYSTYPE yylval;
 
 extern char string_buf[MAX_STR_CONST];
 extern char *string_buf_ptr;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int yyparse(void);
 
@@ -89,12 +95,14 @@ TOKEN * keyword(int primary);
 
 void print_token(TOKEN * tkn);
 
-PROGRAMMER * new_programmer(void);
-
-AVRPART * new_part(void);
-
-AVRPART * dup_part(AVRPART * d);
+void pyytext(void);
 
 char * dup_string(char * str);
+
+int read_config(char * file);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

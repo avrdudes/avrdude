@@ -20,14 +20,19 @@
 
 
 #if defined(WIN32NATIVE)
-#ifndef __confwin_h__
-#define __confwin_h__
+#ifndef confwin_h
+#define confwin_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void win_sys_config_set(char sys_config[PATH_MAX]);
 void win_usr_config_set(char usr_config[PATH_MAX]);
 
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 #endif

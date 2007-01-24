@@ -19,13 +19,21 @@
 
 /* $Id$ */
 
-#ifndef __term_h__
-#define __term_h__
+#ifndef term_h
+#define term_h
 
 #include "avr.h"
 #include "pgm.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int terminal_mode(PROGRAMMER * pgm, struct avrpart * p);
 char * terminal_get_input(const char *prompt);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

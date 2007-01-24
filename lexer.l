@@ -35,8 +35,6 @@
 #include "config_gram.h"
 #include "lists.h"
 
-void pyytext(void);
-
 #define YY_NO_UNPUT
 
 %}

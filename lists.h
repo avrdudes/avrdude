@@ -28,8 +28,8 @@
   Author : Brian Dean
   Date   : 10 January, 1990
   ----------------------------------------------------------------------*/
-#ifndef __lists_h__
-#define __lists_h__
+#ifndef lists_h
+#define lists_h
 
 #include <stdio.h>
 
@@ -67,6 +67,10 @@ typedef void * LNODEID;
 #define LISTRMV(l,d) lrmv_d(l,d)     /* remove from end of the list */
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* .................... Function Prototypes .................... */
 
 LISTID     lcreat      ( void * liststruct, int poolsize );
@@ -103,5 +107,9 @@ LISTID     lcat    ( LISTID lid1, LISTID lid2 );
 void     * lsrch   ( LISTID lid, void * p, int (*compare)(void *p1,void *p2));
 
 int        lprint  ( FILE * f, LISTID lid );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

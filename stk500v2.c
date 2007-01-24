@@ -1886,7 +1886,7 @@ static int stk500v2_set_fosc(PROGRAMMER * pgm, double v)
 
 /* The list of SCK frequencies supported by the AVRISP mkII, as listed
  * in AVR069 */
-double avrispmkIIfreqs[] = {
+static double avrispmkIIfreqs[] = {
 	8000000, 4000000, 2000000, 1000000, 500000, 250000, 125000,
 	96386, 89888, 84211, 79208, 74767, 70797, 67227, 64000,
 	61069, 58395, 55945, 51613, 49690, 47905, 46243, 43244,

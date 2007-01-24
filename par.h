@@ -19,11 +19,17 @@
 
 /* $Id$ */
 
-#ifndef __par_h__
-#define __par_h__
+#ifndef par_h
+#define par_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void par_initpgm        (PROGRAMMER * pgm);
 
+#ifdef __cplusplus
+}
 #endif
 
-
+#endif

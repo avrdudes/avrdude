@@ -49,31 +49,44 @@ struct command {
 };
 
 
-int cmd_dump  (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+static int cmd_dump  (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
 
-int cmd_write (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+static int cmd_write (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
 
-int cmd_erase (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+static int cmd_erase (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
 
-int cmd_sig   (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+static int cmd_sig   (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
 
-int cmd_part  (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+static int cmd_part  (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
 
-int cmd_help  (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+static int cmd_help  (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
 
-int cmd_quit  (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+static int cmd_quit  (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
 
-int cmd_send  (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+static int cmd_send  (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
 
-int cmd_parms (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+static int cmd_parms (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
 
-int cmd_vtarg (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+static int cmd_vtarg (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
 
-int cmd_varef (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+static int cmd_varef (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
 
-int cmd_fosc  (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+static int cmd_fosc  (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
 
-int cmd_sck   (PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+static int cmd_sck   (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
 
 
 struct command cmd[] = {
@@ -100,7 +113,7 @@ struct command cmd[] = {
 
 
 
-int nexttok(char * buf, char ** tok, char ** next)
+static int nexttok(char * buf, char ** tok, char ** next)
 {
   char * q, * n;
 
@@ -129,7 +142,7 @@ int nexttok(char * buf, char ** tok, char ** next)
 }
 
 
-int hexdump_line(char * buffer, unsigned char * p, int n, int pad)
+static int hexdump_line(char * buffer, unsigned char * p, int n, int pad)
 {
   char * hexdata = "0123456789abcdef";
   char * b;
@@ -161,7 +174,7 @@ int hexdump_line(char * buffer, unsigned char * p, int n, int pad)
 }
 
 
-int chardump_line(char * buffer, unsigned char * p, int n, int pad)
+static int chardump_line(char * buffer, unsigned char * p, int n, int pad)
 {
   int i;
   char b [ 128 ];
@@ -184,7 +197,7 @@ int chardump_line(char * buffer, unsigned char * p, int n, int pad)
 }
 
 
-int hexdump_buf(FILE * f, int startaddr, unsigned char * buf, int len)
+static int hexdump_buf(FILE * f, int startaddr, unsigned char * buf, int len)
 {
   int addr;
   int i, n;
@@ -211,7 +224,8 @@ int hexdump_buf(FILE * f, int startaddr, unsigned char * buf, int len)
 }
 
 
-int cmd_dump(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
+		    int argc, char * argv[])
 {
   static char prevmem[128] = {0};
   char * e;
@@ -310,7 +324,8 @@ int cmd_dump(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 }
 
 
-int cmd_write(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
+		     int argc, char * argv[])
 {
   char * e;
   int len, maxsize;
@@ -415,7 +430,8 @@ int cmd_write(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 }
 
 
-int cmd_send(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+static int cmd_send(PROGRAMMER * pgm, struct avrpart * p,
+		    int argc, char * argv[])
 {
   unsigned char cmd[4], res[4];
   char * e;
@@ -465,7 +481,8 @@ int cmd_send(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 }
 
 
-int cmd_erase(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+static int cmd_erase(PROGRAMMER * pgm, struct avrpart * p,
+		     int argc, char * argv[])
 {
   fprintf(stderr, "%s: erasing chip\n", progname);
   pgm->chip_erase(pgm, p);
@@ -473,7 +490,8 @@ int cmd_erase(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 }
 
 
-int cmd_part(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+static int cmd_part(PROGRAMMER * pgm, struct avrpart * p,
+		    int argc, char * argv[])
 {
   fprintf(stdout, "\n");
   avr_display(stdout, p, "", 0);
@@ -483,7 +501,8 @@ int cmd_part(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 }
 
 
-int cmd_sig(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+static int cmd_sig(PROGRAMMER * pgm, struct avrpart * p,
+		   int argc, char * argv[])
 {
   int i;
   int rc;
@@ -512,13 +531,15 @@ int cmd_sig(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 }
 
 
-int cmd_quit(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+static int cmd_quit(PROGRAMMER * pgm, struct avrpart * p,
+		    int argc, char * argv[])
 {
   return 1;
 }
 
 
-int cmd_parms(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+static int cmd_parms(PROGRAMMER * pgm, struct avrpart * p,
+		     int argc, char * argv[])
 {
   if (pgm->print_parms == NULL) {
     fprintf(stderr,
@@ -533,7 +554,8 @@ int cmd_parms(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 }
 
 
-int cmd_vtarg(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+static int cmd_vtarg(PROGRAMMER * pgm, struct avrpart * p,
+		     int argc, char * argv[])
 {
   int rc;
   double v;
@@ -563,7 +585,8 @@ int cmd_vtarg(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 }
 
 
-int cmd_fosc(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+static int cmd_fosc(PROGRAMMER * pgm, struct avrpart * p,
+		    int argc, char * argv[])
 {
   int rc;
   double v;
@@ -602,7 +625,8 @@ int cmd_fosc(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 }
 
 
-int cmd_sck(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+static int cmd_sck(PROGRAMMER * pgm, struct avrpart * p,
+		   int argc, char * argv[])
 {
   int rc;
   double v;
@@ -634,7 +658,8 @@ int cmd_sck(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 }
 
 
-int cmd_varef(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+static int cmd_varef(PROGRAMMER * pgm, struct avrpart * p,
+		     int argc, char * argv[])
 {
   int rc;
   double v;
@@ -664,7 +689,8 @@ int cmd_varef(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 }
 
 
-int cmd_help(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+static int cmd_help(PROGRAMMER * pgm, struct avrpart * p,
+		    int argc, char * argv[])
 {
   int i;
 
@@ -682,7 +708,7 @@ int cmd_help(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
 }
 
 
-int tokenize(char * s, char *** argv)
+static int tokenize(char * s, char *** argv)
 {
   int     i, n, l, nargs, offset;
   int     len, slen;
@@ -759,7 +785,8 @@ int tokenize(char * s, char *** argv)
 }
 
 
-int do_cmd(PROGRAMMER * pgm, struct avrpart * p, int argc, char * argv[])
+static int do_cmd(PROGRAMMER * pgm, struct avrpart * p,
+		  int argc, char * argv[])
 {
   int i;
   int hold;

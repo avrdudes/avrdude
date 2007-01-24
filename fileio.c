@@ -47,38 +47,38 @@ struct ihexrec {
 };
 
 
-int b2ihex(unsigned char * inbuf, int bufsize, 
+static int b2ihex(unsigned char * inbuf, int bufsize, 
              int recsize, int startaddr,
              char * outfile, FILE * outf);
 
-int ihex2b(char * infile, FILE * inf,
+static int ihex2b(char * infile, FILE * inf,
              unsigned char * outbuf, int bufsize);
 
-int b2srec(unsigned char * inbuf, int bufsize, 
+static int b2srec(unsigned char * inbuf, int bufsize, 
            int recsize, int startaddr,
            char * outfile, FILE * outf);
 
-int srec2b(char * infile, FILE * inf,
+static int srec2b(char * infile, FILE * inf,
              unsigned char * outbuf, int bufsize);
 
-int ihex_readrec(struct ihexrec * ihex, char * rec);
+static int ihex_readrec(struct ihexrec * ihex, char * rec);
 
-int srec_readrec(struct ihexrec * srec, char * rec);            
+static int srec_readrec(struct ihexrec * srec, char * rec);
 
-int fileio_rbin(struct fioparms * fio,
+static int fileio_rbin(struct fioparms * fio,
                   char * filename, FILE * f, unsigned char * buf, int size);
 
-int fileio_ihex(struct fioparms * fio, 
+static int fileio_ihex(struct fioparms * fio, 
                   char * filename, FILE * f, unsigned char * buf, int size);
 
-int fileio_srec(struct fioparms * fio,
+static int fileio_srec(struct fioparms * fio,
                   char * filename, FILE * f, unsigned char * buf, int size);
 
-int fileio_num(struct fioparms * fio,
+static int fileio_num(struct fioparms * fio,
 		char * filename, FILE * f, unsigned char * buf, int size,
 		FILEFMT fmt);
 
-int fmt_autodetect(char * fname);
+static int fmt_autodetect(char * fname);
 
 
 
@@ -95,7 +95,7 @@ char * fmtstr(FILEFMT format)
 
 
 
-int b2ihex(unsigned char * inbuf, int bufsize, 
+static int b2ihex(unsigned char * inbuf, int bufsize, 
            int recsize, int startaddr,
            char * outfile, FILE * outf)
 {
@@ -173,7 +173,7 @@ int b2ihex(unsigned char * inbuf, int bufsize,
 }
 
 
-int ihex_readrec(struct ihexrec * ihex, char * rec)
+static int ihex_readrec(struct ihexrec * ihex, char * rec)
 {
   int i, j;
   char buf[8];
@@ -262,7 +262,7 @@ int ihex_readrec(struct ihexrec * ihex, char * rec)
  *
  * */
 
-int ihex2b(char * infile, FILE * inf,
+static int ihex2b(char * infile, FILE * inf,
              unsigned char * outbuf, int bufsize)
 {
   char buffer [ MAX_LINE_LEN ];
@@ -357,7 +357,7 @@ int ihex2b(char * infile, FILE * inf,
 }
 
 
-int b2srec(unsigned char * inbuf, int bufsize, 
+static int b2srec(unsigned char * inbuf, int bufsize, 
            int recsize, int startaddr,
            char * outfile, FILE * outf)
 {
@@ -463,7 +463,7 @@ int b2srec(unsigned char * inbuf, int bufsize,
 }
 
 
-int srec_readrec(struct ihexrec * srec, char * rec)
+static int srec_readrec(struct ihexrec * srec, char * rec)
 {
   int i, j;
   char buf[8];
@@ -539,7 +539,7 @@ int srec_readrec(struct ihexrec * srec, char * rec)
 }
 
 
-int srec2b(char * infile, FILE * inf,
+static int srec2b(char * infile, FILE * inf,
            unsigned char * outbuf, int bufsize)
 {
   char buffer [ MAX_LINE_LEN ];
@@ -699,7 +699,7 @@ static char *itoa_simple(int n, char *buf, int base)
 
 
 
-int fileio_rbin(struct fioparms * fio,
+static int fileio_rbin(struct fioparms * fio,
                   char * filename, FILE * f, unsigned char * buf, int size)
 {
   int rc;
@@ -729,7 +729,7 @@ int fileio_rbin(struct fioparms * fio,
 }
 
 
-int fileio_imm(struct fioparms * fio,
+static int fileio_imm(struct fioparms * fio,
                char * filename, FILE * f, unsigned char * buf, int size)
 {
   int rc = 0;
@@ -772,7 +772,7 @@ int fileio_imm(struct fioparms * fio,
 }
 
 
-int fileio_ihex(struct fioparms * fio, 
+static int fileio_ihex(struct fioparms * fio, 
                   char * filename, FILE * f, unsigned char * buf, int size)
 {
   int rc;
@@ -802,7 +802,7 @@ int fileio_ihex(struct fioparms * fio,
 }
 
 
-int fileio_srec(struct fioparms * fio,
+static int fileio_srec(struct fioparms * fio,
                   char * filename, FILE * f, unsigned char * buf, int size)
 {
   int rc;
@@ -833,7 +833,7 @@ int fileio_srec(struct fioparms * fio,
 }
 
 
-int fileio_num(struct fioparms * fio,
+static int fileio_num(struct fioparms * fio,
 	       char * filename, FILE * f, unsigned char * buf, int size,
 	       FILEFMT fmt)
 {
@@ -936,7 +936,7 @@ int fileio_setparms(int op, struct fioparms * fp)
 
 
 
-int fmt_autodetect(char * fname)
+static int fmt_autodetect(char * fname)
 {
   FILE * f;
   unsigned char buf[MAX_LINE_LEN];

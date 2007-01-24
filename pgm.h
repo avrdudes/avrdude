@@ -19,8 +19,8 @@
 
 /* $Id$ */
 
-#ifndef __pgm_h__
-#define __pgm_h__
+#ifndef pgm_h
+#define pgm_h
 
 #include <limits.h>
 
@@ -35,8 +35,6 @@
 #define PGM_DESCLEN 80
 #define PGM_PORTLEN PATH_MAX
 #define PGM_TYPELEN 32
-
-extern LISTID       programmers;
 
 typedef enum {
   EXIT_VCC_UNSPEC,
@@ -106,29 +104,18 @@ typedef struct programmer_t {
   char flag;		      /* for private use of the programmer */
 } PROGRAMMER;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 PROGRAMMER * pgm_new(void);
 
-#if defined(WIN32NATIVE)
+void programmer_display(PROGRAMMER * pgm, char * p);
+PROGRAMMER * locate_programmer(LISTID programmers, char * configid);
+void list_programmers(FILE * f, char * prefix, LISTID programmers);
 
-#include "ac_cfg.h"
-#include <windows.h>
-
-/* usleep replacements */
-/* sleep Windows in ms, Unix usleep in us
- #define usleep(us) Sleep((us)<20000?20:us/1000)
- #define usleep(us) Sleep(us/1000)
- #define ANTIWARP 3
- #define usleep(us) Sleep(us/1000*ANTIWARP)
-*/
-void usleep(unsigned long us);
-
-#if !defined(HAVE_GETTIMEOFDAY)
-struct timezone;
-int gettimeofday(struct timeval *tv, struct timezone *tz);
-#endif /* HAVE_GETTIMEOFDAY */
-
-#endif /* __win32native_h */
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif

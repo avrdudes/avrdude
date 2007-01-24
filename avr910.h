@@ -19,11 +19,19 @@
 
 /* $Id$ */
 
-#ifndef __avr910_h__
-#define __avr910_h__
+#ifndef avr910_h
+#define avr910_h
 
 #include "avrpart.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void avr910_initpgm (PROGRAMMER * pgm);
 
-#endif /* __avr910_h__ */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* avr910_h */

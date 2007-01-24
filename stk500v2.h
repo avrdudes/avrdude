@@ -20,8 +20,12 @@
 
 /* $Id$ */
 
-#ifndef stk500v2_h__
-#define stk500v2_h__
+#ifndef stk500v2_h
+#define stk500v2_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void stk500v2_initpgm (PROGRAMMER * pgm);
 void stk500hvsp_initpgm (PROGRAMMER * pgm);
@@ -30,6 +34,10 @@ void stk500v2_jtagmkII_initpgm(PROGRAMMER * pgm);
 void stk500v2_dragon_hvsp_initpgm(PROGRAMMER * pgm);
 void stk500v2_dragon_isp_initpgm(PROGRAMMER * pgm);
 void stk500v2_dragon_pp_initpgm(PROGRAMMER * pgm);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

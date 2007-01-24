@@ -20,15 +20,13 @@
 
 /* $Id$ */
 
-#ifndef __avrpart_h__
-#define __avrpart_h__
+#ifndef avrpart_h
+#define avrpart_h
 
 #include <limits.h>
 
 #include "lists.h"
 
-
-extern LISTID part_list;
 
 /*
  * AVR serial programming instructions
@@ -182,6 +180,10 @@ typedef struct avrmem {
   OPCODE * op[AVR_OP_MAX];    /* opcodes */
 } AVRMEM;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Functions for OPCODE structures */
 OPCODE * avr_new_opcode(void);
 int avr_set_bits(OPCODE * op, unsigned char * cmd);
@@ -205,4 +207,8 @@ AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode);
 void list_parts(FILE * f, char * prefix, LISTID parts);
 void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose);
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif /* avrpart_h */

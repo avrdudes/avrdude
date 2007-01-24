@@ -1,5 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
+ * Copyright (C) 2000-2005  Brian S. Dean <bsd@bsdhome.com>
  * Copyright (C) 2007 Joerg Wunsch
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,43 +20,36 @@
 
 /* $Id$ */
 
-#ifndef avrdude_h
-#define avrdude_h
+#ifndef update_h
+#define update_h
 
-extern char * progname;		/* name of program, for messages */
-extern char progbuf[];		/* spaces same length as progname */
+enum {
+  DEVICE_READ,
+  DEVICE_WRITE,
+  DEVICE_VERIFY
+};
 
-extern int do_cycles;		/* track erase-rewrite cycles (-y) */
-extern int ovsigck;		/* override signature check (-F) */
-extern int verbose;		/* verbosity level (-v, -vv, ...) */
-extern int quell_progress;	/* quiteness level (-q, -qq) */
 
-#if defined(WIN32NATIVE)
-
-#include "ac_cfg.h"
-#include <windows.h>
+typedef struct update_t {
+  char * memtype;
+  int    op;
+  char * filename;
+  int    format;
+} UPDATE;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* usleep replacements */
-/* sleep Windows in ms, Unix usleep in us
- #define usleep(us) Sleep((us)<20000?20:us/1000)
- #define usleep(us) Sleep(us/1000)
- #define ANTIWARP 3
- #define usleep(us) Sleep(us/1000*ANTIWARP)
-*/
-void usleep(unsigned long us);
+extern UPDATE * parse_op(char * s);
+extern UPDATE * dup_update(UPDATE * upd);
+extern UPDATE * new_update(int op, char * memtype, int filefmt,
+			   char * filename);
+extern int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd,
+		 int nowrite, int verify);
 
-#if !defined(HAVE_GETTIMEOFDAY)
-struct timezone;
-int gettimeofday(struct timeval *tv, struct timezone *tz);
 #ifdef __cplusplus
 }
 #endif
-#endif /* HAVE_GETTIMEOFDAY */
-
-#endif /* defined(WIN32NATIVE) */
 
 #endif

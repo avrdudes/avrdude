@@ -53,7 +53,8 @@ enum {
   PPI_SHADOWREAD
 };
 
-int ppi_shadow_access(union filedescriptor *fdp, int reg, unsigned char *v, unsigned char action)
+static int ppi_shadow_access(union filedescriptor *fdp, int reg,
+			     unsigned char *v, unsigned char action)
 {
   static unsigned char shadow[3];
   int shadow_num;

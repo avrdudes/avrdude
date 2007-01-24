@@ -22,6 +22,10 @@
 #ifndef jtagmkII_h
 #define jtagmkII_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int  jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len);
 int  jtagmkII_recv(PROGRAMMER * pgm, unsigned char **msg);
 void jtagmkII_close(PROGRAMMER * pgm);
@@ -33,6 +37,10 @@ void jtagmkII_initpgm (PROGRAMMER * pgm);
 void jtagmkII_dw_initpgm (PROGRAMMER * pgm);
 void jtagmkII_dragon_initpgm (PROGRAMMER * pgm);
 void jtagmkII_dragon_dw_initpgm (PROGRAMMER * pgm);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 
