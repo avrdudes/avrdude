@@ -37,6 +37,7 @@
 #include <sys/ioctl.h>
 #include <termios.h>
 
+#include "avrdude.h"
 #include "avr.h"
 #include "pindefs.h"
 #include "pgm.h"
@@ -44,8 +45,7 @@
 
 #undef DEBUG
 
-extern char *progname;
-struct termios oldmode;
+static struct termios oldmode;
 
 /*
   serial port/pin mapping

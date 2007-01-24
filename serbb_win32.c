@@ -32,13 +32,11 @@
 #include <windows.h>
 #include <stdio.h>
 
+#include "avrdude.h"
 #include "avr.h"
 #include "pindefs.h"
 #include "pgm.h"
 #include "bitbang.h"
-
-extern char *progname;
-extern int verbose;
 
 /* cached status lines */
 static int dtr, rts, txd;

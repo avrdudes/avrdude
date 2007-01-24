@@ -36,17 +36,13 @@
 #include <errno.h>
 #include <unistd.h>
 
+#include "avrdude.h"
 #include "avr.h"
 #include "pgm.h"
 #include "stk500_private.h"
 #include "serial.h"
 
 #define STK500_XTAL 7372800U
-
-extern int    verbose;
-extern char * progname;
-extern int do_cycles;
-
 
 static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value);
 static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value);

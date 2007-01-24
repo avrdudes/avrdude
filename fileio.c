@@ -28,6 +28,7 @@
 #include <errno.h>
 #include <ctype.h>
 
+#include "avrdude.h"
 #include "avr.h"
 #include "fileio.h"
 
@@ -45,10 +46,6 @@ struct ihexrec {
   unsigned char    cksum;
 };
 
-
-extern char * progname;
-extern char   progbuf[];
-extern int    quell_progress;
 
 int b2ihex(unsigned char * inbuf, int bufsize, 
              int recsize, int startaddr,

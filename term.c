@@ -34,18 +34,13 @@
 #endif
 #endif
 
+#include "avrdude.h"
 #include "avr.h"
 #include "config.h"
 #include "lists.h"
 #include "pgm.h"
 #include "pindefs.h"
 #include "ppi.h"
-
-
-extern char       * progname;
-extern char         progbuf[];
-extern PROGRAMMER * pgm;
-
 
 struct command {
   char * name;

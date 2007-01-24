@@ -25,9 +25,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "avrdude.h"
 #include "pgm.h"
-
-extern char * progname;
 
 static int  pgm_default_2 (struct programmer_t *, AVRPART *);
 static int  pgm_default_3 (struct programmer_t * pgm, AVRPART * p, AVRMEM * mem,

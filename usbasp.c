@@ -33,16 +33,13 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include "avrdude.h"
 #include "avr.h"
 #include "pgm.h"
 #include "usbasp.h"
 
 #ifdef HAVE_LIBUSB
 #include <usb.h>
-
-extern int    verbose;
-extern char * progname;
-extern int do_cycles;
 
 static usb_dev_handle *usbhandle;
 
@@ -425,8 +422,6 @@ void usbasp_initpgm(PROGRAMMER * pgm)
 
 
 #else /* HAVE_LIBUSB */
-
-extern char * progname;
 
 static int usbasp_nousb_open (struct programmer_t *pgm, char * name)
 {

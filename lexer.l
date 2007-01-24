@@ -29,12 +29,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "avrdude.h"
+
 #include "config.h"
 #include "config_gram.h"
 #include "lists.h"
-
-extern int    lineno;
-extern char * infile;
 
 void pyytext(void);
 

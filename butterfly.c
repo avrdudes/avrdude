@@ -44,13 +44,11 @@
 #include <errno.h>
 #include <ctype.h>
 
+#include "avrdude.h"
 #include "avr.h"
 #include "pgm.h"
 #include "butterfly.h"
 #include "serial.h"
-
-extern char * progname;
-extern int do_cycles;
 
 static char has_auto_incr_addr;
 static unsigned buffersize = 0;

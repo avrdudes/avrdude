@@ -73,6 +73,7 @@ avrdude_SOURCES = \
 	avr.h \
 	avr910.c \
 	avr910.h \
+	avrdude.h \
 	avrpart.c \
 	avrpart.h \
 	bitbang.c \

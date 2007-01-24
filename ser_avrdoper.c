@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "avrdude.h"
 #include "serial.h"
 
 /* ------------------------------------------------------------------------ */
@@ -52,9 +53,6 @@
 
 #define USB_VENDOR_ID   0x16c0
 #define USB_PRODUCT_ID  0x05df
-
-extern char *progname;
-extern int verbose;
 
 static int  reportDataSizes[4] = {13, 29, 61, 125};
 

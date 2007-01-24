@@ -29,10 +29,9 @@
 #include <windows.h>
 #include <stdio.h>
 #include <ctype.h>   /* for isprint */
-#include "serial.h"
 
-extern char *progname;
-extern int verbose;
+#include "avrdude.h"
+#include "serial.h"
 
 long serial_recv_timeout = 5000; /* ms */
 

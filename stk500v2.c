@@ -47,6 +47,7 @@
 #include <sys/time.h>
 #include <time.h>
 
+#include "avrdude.h"
 #include "avr.h"
 #include "pgm.h"
 #include "stk500_private.h"	// temp until all code converted
@@ -84,10 +85,6 @@ enum hvmode
   PPMODE, HVSPMODE
 };
 
-
-extern int    verbose;
-extern char * progname;
-extern int do_cycles;
 
 /*
  * See stk500pp_read_byte() for an explanation of the flash and

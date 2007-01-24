@@ -38,11 +38,9 @@
 
 #include <usb.h>
 
+#include "avrdude.h"
 #include "serial.h"
 #include "usbdevs.h"
-
-extern char *progname;
-extern int verbose;
 
 static char usbbuf[USBDEV_MAX_XFER];
 static int buflen = -1, bufptr;

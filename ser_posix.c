@@ -42,10 +42,8 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include "avrdude.h"
 #include "serial.h"
-
-extern char *progname;
-extern int verbose;
 
 long serial_recv_timeout = 5000; /* ms */
 

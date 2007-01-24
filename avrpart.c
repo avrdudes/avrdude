@@ -24,11 +24,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "avrdude.h"
 #include "avrpart.h"
 #include "pindefs.h"
-
-extern char * progname;
-
 
 /***
  *** Elementary functions dealing with OPCODE structures
