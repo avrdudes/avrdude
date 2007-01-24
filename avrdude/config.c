@@ -21,11 +21,13 @@
 
 #include "ac_cfg.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 
+#include "avrdude.h"
 #include "avr.h"
 #include "config.h"
 #include "config_gram.h"
@@ -281,3 +283,24 @@ char * dup_string(char * str)
   return s;
 }
 
+int read_config(char * file)
+{
+  FILE * f;
+
+  f = fopen(file, "r");
+  if (f == NULL) {
+    fprintf(stderr, "%s: can't open config file \"%s\": %s\n",
+            progname, file, strerror(errno));
+    return -1;
+  }
+
+  lineno = 1;
+  infile = file;
+  yyin   = f;
+
+  yyparse();
+
+  fclose(f);
+
+  return 0;
+}

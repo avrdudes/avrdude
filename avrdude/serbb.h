@@ -22,11 +22,15 @@
 #ifndef serbb_h
 #define serbb_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void serbb_initpgm        (PROGRAMMER * pgm);
 
-int serbb_setpin(int fd, int pin, int value);
-int serbb_getpin(int fd, int pin);
-int serbb_highpulsepin(int fd, int pin);
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

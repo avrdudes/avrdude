@@ -19,8 +19,8 @@
 
 /* $Id$ */
 
-#ifndef __ppi_h__
-#define __ppi_h__
+#ifndef ppi_h
+#define ppi_h
 
 /*
  * PPI registers
@@ -31,7 +31,9 @@ enum {
   PPISTATUS
 };
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int ppi_get       (union filedescriptor *fdp, int reg, int bit);
 
@@ -48,6 +50,10 @@ int ppi_toggle    (union filedescriptor *fdp, int reg, int bit);
 void ppi_open     (char * port, union filedescriptor *fdp);
 
 void ppi_close    (union filedescriptor *fdp);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

@@ -22,6 +22,10 @@
 #ifndef bitbang_h
 #define bitbang_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int bitbang_setpin(int fd, int pin, int value);
 int bitbang_getpin(int fd, int pin);
 int bitbang_highpulsepin(int fd, int pin);
@@ -42,5 +46,9 @@ void bitbang_powerdown      (PROGRAMMER * pgm);
 int  bitbang_initialize     (PROGRAMMER * pgm, AVRPART * p);
 void bitbang_disable        (PROGRAMMER * pgm);
 void bitbang_enable         (PROGRAMMER * pgm);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

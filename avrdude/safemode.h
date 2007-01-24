@@ -20,9 +20,13 @@
  */
 
  
-#ifndef __safemode_h__
-#define __safemode_h__
+#ifndef safemode_h
+#define safemode_h
  
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Writes the specified fuse in fusename (can be "lfuse", "hfuse", or "efuse") and verifies it. Will try up to tries
 amount of times before giving up */
 int safemode_writefuse (unsigned char fuse, char * fusename, PROGRAMMER * pgm, AVRPART * p, int tries, int verbose);
@@ -36,4 +40,8 @@ pointed to be lfuse, hfuse, and efuse. This allows you to change the fuse bits i
 if user requests fuse bits are changed, the requested value is now verified */
 int safemode_memfuses (int save, unsigned char * lfuse, unsigned char * hfuse, unsigned char * efuse, unsigned char * fuse);
 
-#endif //__safemode_h
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* safemode_h */

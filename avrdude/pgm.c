@@ -167,3 +167,49 @@ static void pgm_default_6 (struct programmer_t * pgm, char * p)
 }
 
 
+void programmer_display(PROGRAMMER * pgm, char * p)
+{
+  fprintf(stderr, "%sProgrammer Type : %s\n", p, pgm->type);
+  fprintf(stderr, "%sDescription     : %s\n", p, pgm->desc);
+
+  pgm->display(pgm, p);
+}
+
+PROGRAMMER * locate_programmer(LISTID programmers, char * configid)
+{
+  LNODEID ln1, ln2;
+  PROGRAMMER * p = NULL;
+  char * id;
+  int found;
+
+  found = 0;
+
+  for (ln1=lfirst(programmers); ln1 && !found; ln1=lnext(ln1)) {
+    p = ldata(ln1);
+    for (ln2=lfirst(p->id); ln2 && !found; ln2=lnext(ln2)) {
+      id = ldata(ln2);
+      if (strcasecmp(configid, id) == 0)
+        found = 1;
+    }
+  }
+
+  if (found)
+    return p;
+
+  return NULL;
+}
+
+void list_programmers(FILE * f, char * prefix, LISTID programmers)
+{
+  LNODEID ln1;
+  PROGRAMMER * p;
+
+  for (ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
+    p = ldata(ln1);
+    fprintf(f, "%s%-8s = %-30s [%s:%d]\n",
+            prefix, (char *)ldata(lfirst(p->id)), p->desc,
+            p->config_file, p->lineno);
+  }
+
+  return;
+}

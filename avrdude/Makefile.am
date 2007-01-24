@@ -131,7 +131,9 @@ avrdude_SOURCES = \
 	usbasp.c \
 	usbasp.h \
 	usbdevs.h \
-	usb_libusb.c
+	usb_libusb.c \
+	update.h \
+	update.c
 
 man_MANS = avrdude.1
 

@@ -162,7 +162,7 @@ int avr_get_output(OPCODE * op, unsigned char * res, unsigned char * data)
 }
 
 
-char * avr_op_str(int op)
+static char * avr_op_str(int op)
 {
   switch (op) {
     case AVR_OP_READ        : return "READ"; break;
@@ -182,7 +182,7 @@ char * avr_op_str(int op)
 }
 
 
-char * bittype(int type)
+static char * bittype(int type)
 {
   switch (type) {
     case AVR_CMDBIT_IGNORE  : return "IGNORE"; break;
@@ -449,7 +449,7 @@ void list_parts(FILE * f, char * prefix, LISTID parts)
 }
 
 
-char * reset_disp_str(int r)
+static char * reset_disp_str(int r)
 {
   switch (r) {
     case RESET_DEDICATED : return "dedicated";
@@ -459,7 +459,7 @@ char * reset_disp_str(int r)
 }
 
 
-char * pin_name(int pinno)
+static char * pin_name(int pinno)
 {
   switch (pinno) {
     case PIN_AVR_RESET : return "RESET";

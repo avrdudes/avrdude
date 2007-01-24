@@ -19,9 +19,17 @@
 
 /* $Id$ */
 
-#ifndef __butterfly_h__
-#define __butterfly_h__
+#ifndef butterfly_h
+#define butterfly_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void butterfly_initpgm (PROGRAMMER * pgm);
 
-#endif /* __butterfly_h__ */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* butterfly_h */

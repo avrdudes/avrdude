@@ -27,10 +27,15 @@
 #include "avrpart.h"
 #include "pgm.h"
 
-
+typedef void (*FP_UpdateProgress)(int percent, double etime, char *hdr);
 
 extern struct avrpart parts[];
 
+extern FP_UpdateProgress update_progress;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 			  unsigned long addr, unsigned char * value);
@@ -62,6 +67,10 @@ int avr_mem_hiaddr(AVRMEM * mem);
 
 int avr_chip_erase(PROGRAMMER * pgm, AVRPART * p);
 
-extern void report_progress (int completed, int total, char *hdr);
+void report_progress (int completed, int total, char *hdr);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -19,10 +19,18 @@
 
 /* $Id$ */
 
-#ifndef __stk500_h__
-#define __stk500_h__
+#ifndef stk500_h
+#define stk500_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void stk500_initpgm (PROGRAMMER * pgm);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

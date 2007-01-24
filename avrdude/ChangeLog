@@ -1,4 +1,51 @@
-2007-01-13 Joerg Wunsch <j@uriah.heep.sax.de>
+2007-01-24 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Major code cleanup.
+	- Make all internal functions "static".
+	- Make sure each module's header and implementation file match.
+	- Remove all library-like functionality from main.c, so only
+	  the actual frontend remains in main.c.
+	- Add C++ brackets to all header files.
+	* avr.c: (Ditto.)
+	* avr.h: (Ditto.)
+	* avr910.c: (Ditto.)
+	* avr910.h: (Ditto.)
+	* avrdude.h: (Ditto.)
+	* avrpart.c: (Ditto.)
+	* avrpart.h: (Ditto.)
+	* bitbang.h: (Ditto.)
+	* butterfly.h: (Ditto.)
+	* config.c: (Ditto.)
+	* config.h: (Ditto.)
+	* confwin.h: (Ditto.)
+	* crc16.c: (Ditto.)
+	* crc16.h: (Ditto.)
+	* fileio.c: (Ditto.)
+	* fileio.h: (Ditto.)
+	* jtagmkI.h: (Ditto.)
+	* jtagmkII.h: (Ditto.)
+	* lexer.l: (Ditto.)
+	* lists.h: (Ditto.)
+	* main.c: (Ditto.)
+	* par.h: (Ditto.)
+	* pgm.c: (Ditto.)
+	* pgm.h: (Ditto.)
+	* ppi.c: (Ditto.)
+	* ppi.h: (Ditto.)
+	* safemode.h: (Ditto.)
+	* serbb.h: (Ditto.)
+	* serial.h: (Ditto.)
+	* stk500.h: (Ditto.)
+	* stk500v2.c: (Ditto.)
+	* stk500v2.h: (Ditto.)
+	* term.c: (Ditto.)
+	* term.h: (Ditto.)
+	* usbasp.h: (Ditto.)
+	* update.c: New file.
+	* update.h: New file.
+	* Makefile.am: Include update.c and update.h.
+
+2007-01-24 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	Move all "extern" declarations into a centreal header file.
 	* Makefile.am: Add new avrdude.h.

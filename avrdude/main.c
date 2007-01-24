@@ -53,22 +53,7 @@
 #include "pindefs.h"
 #include "term.h"
 #include "safemode.h"
-
-
-enum {
-  DEVICE_READ, 
-  DEVICE_WRITE,
-  DEVICE_VERIFY
-};
-
-
-typedef struct update_t {
-  char * memtype;
-  int    op;
-  char * filename;
-  int    format;
-} UPDATE;
-
+#include "update.h"
 
 
 /* Get VERSION from ac_cfg.h */
@@ -79,9 +64,7 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
                              multiline messages */
 
-PROGRAMMER * pgm = NULL;
-
-LISTID updates;
+static LISTID updates;
 
 /*
  * global options
@@ -95,7 +78,7 @@ int    ovsigck;     /* 1=override sig check, 0=don't */
 /*
  * usage message
  */
-void usage(void)
+static void usage(void)
 {
   fprintf(stderr,
  "Usage: %s [options]\n"
@@ -131,135 +114,6 @@ void usage(void)
           ,progname);
 }
 
-
-int read_config(char * file)
-{
-  FILE * f;
-
-  f = fopen(file, "r");
-  if (f == NULL) {
-    fprintf(stderr, "%s: can't open config file \"%s\": %s\n",
-            progname, file, strerror(errno));
-    return -1;
-  }
-
-  lineno = 1;
-  infile = file;
-  yyin   = f;
-
-  yyparse();
-
-  fclose(f);
-
-  return 0;
-}
-
-
-
-
-void programmer_display(char * p)
-{
-  fprintf(stderr, "%sProgrammer Type : %s\n", p, pgm->type);
-  fprintf(stderr, "%sDescription     : %s\n", p, pgm->desc);
-
-  pgm->display(pgm, p);
-}
-
-
-
-PROGRAMMER * locate_programmer(LISTID programmers, char * configid)
-{
-  LNODEID ln1, ln2;
-  PROGRAMMER * p = NULL;
-  char * id;
-  int found;
-
-  found = 0;
-
-  for (ln1=lfirst(programmers); ln1 && !found; ln1=lnext(ln1)) {
-    p = ldata(ln1);
-    for (ln2=lfirst(p->id); ln2 && !found; ln2=lnext(ln2)) {
-      id = ldata(ln2);
-      if (strcasecmp(configid, id) == 0)
-        found = 1;
-    }  
-  }
-
-  if (found)
-    return p;
-
-  return NULL;
-}
-
-void list_programmers(FILE * f, char * prefix, LISTID programmers)
-{
-  LNODEID ln1;
-  PROGRAMMER * p;
-
-  for (ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
-    p = ldata(ln1);
-    fprintf(f, "%s%-8s = %-30s [%s:%d]\n",
-            prefix, (char *)ldata(lfirst(p->id)), p->desc,
-            p->config_file, p->lineno);
-  }
-
-  return;
-}
-
-typedef void (*FP_UpdateProgress)(int percent, double etime, char *hdr);
-
-static FP_UpdateProgress update_progress;
-
-/*
- * Report the progress of a read or write operation from/to the
- * device.
- * 
- * The first call of report_progress() should look like this (for a write op):
- * 
- * report_progress (0, 1, "Writing");
- *
- * Then hdr should be passed NULL on subsequent calls while the
- * operation is progressing. Once the operation is complete, a final
- * call should be made as such to ensure proper termination of the
- * progress report:
- * 
- * report_progress (1, 1, NULL);
- *
- * It would be nice if we could reduce the usage to one and only one
- * call for each of start, during and end cases. As things stand now,
- * that is not possible and makes maintenance a bit more work.
- */
-void report_progress (int completed, int total, char *hdr)
-{
-  static int last = 0;
-  static double start_time;
-  int percent = (completed * 100) / total;
-  struct timeval tv;
-  double t;
-
-  if (update_progress == NULL)
-    return;
-
-  gettimeofday(&tv, NULL);
-  t = tv.tv_sec + ((double)tv.tv_usec)/1000000;
-
-  if (hdr) {
-    last = 0;
-    start_time = t;
-    update_progress (percent, t - start_time, hdr);
-  }
-
-  if (percent > 100)
-    percent = 100;
-
-  if (percent > last) {
-    last = percent;
-    update_progress (percent, t - start_time, hdr);
-  }
-
-  if (percent == 100)
-    last = 0;                   /* Get ready for next time. */
-}
 
 static void update_progress_tty (int percent, double etime, char *hdr)
 {
@@ -319,351 +173,6 @@ static void update_progress_no_tty (int percent, double etime, char *hdr)
     last = (percent>>1)*2;    /* Make last a multiple of 2. */
 }
 
-
-UPDATE * parse_op(char * s)
-{
-  char buf[1024];
-  char * p, * cp, c;
-  UPDATE * upd;
-  int i;
-  size_t fnlen;
-
-  upd = (UPDATE *)malloc(sizeof(UPDATE));
-  if (upd == NULL) {
-    fprintf(stderr, "%s: out of memory\n", progname);
-    exit(1);
-  }
-
-  i = 0;
-  p = s;
-  while ((i < (sizeof(buf)-1) && *p && (*p != ':')))
-    buf[i++] = *p++;
-  
-  if (*p != ':') {
-    upd->memtype = (char *)malloc(strlen("flash")+1);
-    if (upd->memtype == NULL) {
-      outofmem:
-      fprintf(stderr, "%s: out of memory\n", progname);
-      exit(1);
-    }
-    strcpy(upd->memtype, "flash");
-    upd->op = DEVICE_WRITE;
-    upd->filename = (char *)malloc(strlen(buf) + 1);
-    if (upd->filename == NULL)
-      goto outofmem;
-    strcpy(upd->filename, buf);
-    upd->format = FMT_AUTO;
-    return upd;
-  }
-
-  buf[i] = 0;
-
-  upd->memtype = (char *)malloc(strlen(buf)+1);
-  if (upd->memtype == NULL) {
-    fprintf(stderr, "%s: out of memory\n", progname);
-    exit(1);
-  }
-  strcpy(upd->memtype, buf);
-
-  p++;
-  if (*p == 'r') {
-    upd->op = DEVICE_READ;
-  }
-  else if (*p == 'w') {
-    upd->op = DEVICE_WRITE;
-  }
-  else if (*p == 'v') {
-    upd->op = DEVICE_VERIFY;
-  }
-  else {
-    fprintf(stderr, "%s: invalid I/O mode '%c' in update specification\n",
-            progname, *p);
-    fprintf(stderr, 
-            "  allowed values are:\n"
-            "    r = read device\n"
-            "    w = write device\n"
-            "    v = verify device\n");
-    free(upd->memtype);
-    free(upd);
-    return NULL;
-  }
-
-  p++;
-
-  if (*p != ':') {
-    fprintf(stderr, "%s: invalid update specification\n", progname);
-    free(upd->memtype);
-    free(upd);
-    return NULL;
-  }
-
-  p++;
-
-  /*
-   * Now, parse the filename component.  Instead of looking for the
-   * leftmost possible colon delimiter, we look for the rightmost one.
-   * If we found one, we do have a trailing :format specifier, and
-   * process it.  Otherwise, the remainder of the string is our file
-   * name component.  That way, the file name itself is allowed to
-   * contain a colon itself (e. g. C:/some/file.hex), except the
-   * optional format specifier becomes mandatory then.
-   */
-  cp = p;
-  p = strrchr(cp, ':');
-  if (p == NULL) {
-    upd->format = FMT_AUTO;
-    fnlen = strlen(cp);
-    upd->filename = (char *)malloc(fnlen + 1);
-  } else {
-    fnlen = p - cp;
-    upd->filename = (char *)malloc(fnlen +1);
-    c = *++p;
-    if (c && p[1])
-      /* More than one char - force failure below. */
-      c = '?';
-    switch (c) {
-      case 'a': upd->format = FMT_AUTO; break;
-      case 's': upd->format = FMT_SREC; break;
-      case 'i': upd->format = FMT_IHEX; break;
-      case 'r': upd->format = FMT_RBIN; break;
-      case 'm': upd->format = FMT_IMM; break;
-      case 'b': upd->format = FMT_BIN; break;
-      case 'd': upd->format = FMT_DEC; break;
-      case 'h': upd->format = FMT_HEX; break;
-      case 'o': upd->format = FMT_OCT; break;
-      default:
-        fprintf(stderr, "%s: invalid file format '%s' in update specifier\n",
-                progname, p);
-        free(upd->memtype);
-        free(upd);
-        return NULL;
-    }
-  }
-
-  if (upd->filename == NULL) {
-    fprintf(stderr, "%s: out of memory\n", progname);
-    free(upd->memtype);
-    free(upd);
-    return NULL;
-  }
-  memcpy(upd->filename, cp, fnlen);
-  upd->filename[fnlen] = 0;
-
-  return upd;
-}
-
-
-UPDATE * dup_update(UPDATE * upd)
-{
-  UPDATE * u;
-
-  u = (UPDATE *)malloc(sizeof(UPDATE));
-  if (u == NULL) {
-    fprintf(stderr, "%s: out of memory\n", progname);
-    exit(1);
-  }
-
-  memcpy(u, upd, sizeof(UPDATE));
-
-  u->memtype = strdup(upd->memtype);
-  u->filename = strdup(upd->filename);
-
-  return u;
-}
-
-
-
-UPDATE * new_update(int op, char * memtype, int filefmt, char * filename)
-{
-  UPDATE * u;
-
-  u = (UPDATE *)malloc(sizeof(UPDATE));
-  if (u == NULL) {
-    fprintf(stderr, "%s: out of memory\n", progname);
-    exit(1);
-  }
-
-  u->memtype = strdup(memtype);
-  u->filename = strdup(filename);
-  u->op = op;
-  u->format = filefmt;
-  
-  return u;
-}
-
-
-
-int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
-          int verify)
-{
-  struct avrpart * v;
-  AVRMEM * mem;
-  int size, vsize;
-  int rc;
-
-  mem = avr_locate_mem(p, upd->memtype);
-  if (mem == NULL) {
-    fprintf(stderr, "\"%s\" memory type not defined for part \"%s\"\n",
-            upd->memtype, p->desc);
-    return -1;
-  }
-
-  if (upd->op == DEVICE_READ) {
-    /*
-     * read out the specified device memory and write it to a file 
-     */
-    if (quell_progress < 2) {
-      fprintf(stderr, "%s: reading %s memory:\n", 
-            progname, mem->desc);
-	  }
-    report_progress(0,1,"Reading");
-    rc = avr_read(pgm, p, upd->memtype, 0, 1);
-    if (rc < 0) {
-      fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
-              progname, mem->desc, rc);
-      return -1;
-    }
-    report_progress(1,1,NULL);
-    size = rc;
-
-    if (quell_progress < 2) {
-      fprintf(stderr, 
-            "%s: writing output file \"%s\"\n",
-            progname, 
-            strcmp(upd->filename, "-")==0 ? "<stdout>" : upd->filename);
-    }
-    rc = fileio(FIO_WRITE, upd->filename, upd->format, p, upd->memtype, size);
-    if (rc < 0) {
-      fprintf(stderr, "%s: write to file '%s' failed\n", 
-              progname, upd->filename);
-      return -1;
-    }
-  }
-  else if (upd->op == DEVICE_WRITE) {
-    /*
-     * write the selected device memory using data from a file; first
-     * read the data from the specified file
-     */
-    if (quell_progress < 2) {
-      fprintf(stderr, 
-            "%s: reading input file \"%s\"\n",
-            progname, 
-            strcmp(upd->filename, "-")==0 ? "<stdin>" : upd->filename);
-    }
-    rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1);
-    if (rc < 0) {
-      fprintf(stderr, "%s: write to file '%s' failed\n", 
-              progname, upd->filename);
-      return -1;
-    }
-    size = rc;
-
-    /*
-     * write the buffer contents to the selected memory type
-     */
-    if (quell_progress < 2) {
-      fprintf(stderr, "%s: writing %s (%d bytes):\n", 
-            progname, mem->desc, size);
-	  }
-
-    if (!nowrite) {
-      report_progress(0,1,"Writing");
-      rc = avr_write(pgm, p, upd->memtype, size, 1);
-      report_progress(1,1,NULL);
-    }
-    else {
-      /* 
-       * test mode, don't actually write to the chip, output the buffer
-       * to stdout in intel hex instead 
-       */
-      rc = fileio(FIO_WRITE, "-", FMT_IHEX, p, upd->memtype, size);
-    }
-
-    if (rc < 0) {
-      fprintf(stderr, "%s: failed to write %s memory, rc=%d\n", 
-              progname, mem->desc, rc);
-      return -1;
-    }
-
-    vsize = rc;
-
-    if (quell_progress < 2) {
-      fprintf(stderr, "%s: %d bytes of %s written\n", progname, 
-            vsize, mem->desc);
-    }
-
-  }
-  else if (upd->op == DEVICE_VERIFY) {
-    /* 
-     * verify that the in memory file (p->mem[AVR_M_FLASH|AVR_M_EEPROM])
-     * is the same as what is on the chip 
-     */
-    pgm->vfy_led(pgm, ON);
-
-    v = avr_dup_part(p);
-
-    if (quell_progress < 2) {
-      fprintf(stderr, "%s: verifying %s memory against %s:\n", 
-            progname, mem->desc, upd->filename);
-
-      fprintf(stderr, "%s: load data %s data from input file %s:\n",
-            progname, mem->desc, upd->filename);
-    }
-
-    rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1);
-    if (rc < 0) {
-      fprintf(stderr, "%s: read from file '%s' failed\n", 
-              progname, upd->filename);
-      return -1;
-    }
-    size = rc;
-    if (quell_progress < 2) {
-      fprintf(stderr, "%s: input file %s contains %d bytes\n", 
-            progname, upd->filename, size);
-      fprintf(stderr, "%s: reading on-chip %s data:\n", 
-            progname, mem->desc);
-    }
-
-    report_progress (0,1,"Reading");
-    rc = avr_read(pgm, v, upd->memtype, size, 1);
-    if (rc < 0) {
-      fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n", 
-              progname, mem->desc, rc);
-      pgm->err_led(pgm, ON);
-      return -1;
-    }
-    report_progress (1,1,NULL);
-
-
-
-    if (quell_progress < 2) {
-      fprintf(stderr, "%s: verifying ...\n", progname);
-    }
-    rc = avr_verify(p, v, upd->memtype, size);
-    if (rc < 0) {
-      fprintf(stderr, "%s: verification error; content mismatch\n", 
-              progname);
-      pgm->err_led(pgm, ON);
-      return -1;
-    }
-
-    if (quell_progress < 2) {
-      fprintf(stderr, "%s: %d bytes of %s verified\n", 
-              progname, rc, mem->desc);
-    }
-
-    pgm->vfy_led(pgm, OFF);
-  }
-  else {
-    fprintf(stderr, "%s: invalid update operation (%d) requested\n",
-            progname, upd->op);
-    return -1;
-  }
-
-  return 0;
-}
-
-
 /*
  * main routine
  */
@@ -680,6 +189,8 @@ int main(int argc, char * argv [])
   struct stat      sb;
   UPDATE         * upd;
   LNODEID        * ln;
+  PROGRAMMER     * pgm;
+
 
   /* options / operating mode variables */
   int     erase;       /* 1=erase chip, 0=don't */
@@ -1176,7 +687,7 @@ int main(int argc, char * argv [])
   if (verbose) {
     avr_display(stderr, p, progbuf, verbose);
     fprintf(stderr, "\n");
-    programmer_display(progbuf);
+    programmer_display(pgm, progbuf);
   }
 
   if (quell_progress < 2) {

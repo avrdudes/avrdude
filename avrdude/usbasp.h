@@ -50,6 +50,14 @@
 #define USB_ERROR_ACCESS    2
 #define USB_ERROR_IO        3
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void usbasp_initpgm (PROGRAMMER * pgm);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* usbasp_h */
