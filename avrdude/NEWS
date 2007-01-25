@@ -9,6 +9,10 @@ Current:
 
   * Bugfixes.
 
+  * Source code rearranged so that the functionality is now built
+    into a libavrdude.a library where main.c is currently the only
+    existing frontend.
+
 Version 5.3.1:
 
   * Add support for the AVR Dragon (all modes: ISP, JTAG, HVSP, PP,

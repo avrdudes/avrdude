@@ -1,3 +1,10 @@
+2007-01-25 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* Makefile.am: Rearrange everything so it is now built into a
+	libavrdude.a library, and link main.c against that library.
+	* configure.ac: Add AC_PROG_RANLIB as we are building a library
+	now.
+
 2007-01-24 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	Major code cleanup.

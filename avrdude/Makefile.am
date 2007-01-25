@@ -45,11 +45,17 @@ AM_YFLAGS    = -d
 
 avrdude_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
 
-avrdude_CFLAGS   = @ENABLE_WARNINGS@  
+libavrdude_a_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
 
-avrdude_LDADD  = @LIBUSB@ @LIBHID@
+avrdude_CFLAGS   = @ENABLE_WARNINGS@
+
+libavrdude_a_CFLAGS   = @ENABLE_WARNINGS@
+
+avrdude_LDADD  = $(top_builddir)/$(noinst_LIBRARIES) @LIBUSB@ @LIBHID@
 
 bin_PROGRAMS = avrdude
+
+noinst_LIBRARIES = libavrdude.a
 
 # automake thinks these generated files should be in the distribution,
 # but this might cause trouble for some users, so we rather don't want
@@ -66,7 +72,7 @@ dist-hook:
 	$(distdir)/config_gram.c \
 	$(distdir)/config_gram.h
 
-avrdude_SOURCES = \
+libavrdude_a_SOURCES = \
 	config_gram.y \
 	lexer.l \
 	avr.c \
@@ -98,7 +104,6 @@ avrdude_SOURCES = \
 	linux_ppdev.h \
 	lists.c \
 	lists.h \
-	main.c \
 	my_ddk_hidsdi.h \
 	par.c \
 	par.h \
@@ -134,6 +139,9 @@ avrdude_SOURCES = \
 	usb_libusb.c \
 	update.h \
 	update.c
+
+avrdude_SOURCES = \
+	main.c
 
 man_MANS = avrdude.1
 
