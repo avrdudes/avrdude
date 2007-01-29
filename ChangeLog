@@ -1,3 +1,16 @@
+2007-01-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrpart.c: More backend/library abstraction and generalization:
+	turn the list_parts() and list_programmers() functions into
+	general list iteration functions that call a caller-supplied
+	callback for each element.  Implement list_parts() and
+	list_programmers() as private functions in main.c based on that
+	approach.
+	* avrpart.h: (Ditto.)
+	* main.c: (Ditto.)
+	* pgm.c: (Ditto.)
+	* pgm.h: (Ditto.)
+
 2007-01-25 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* Makefile.am: Rearrange everything so it is now built into a

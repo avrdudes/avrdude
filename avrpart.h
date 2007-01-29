@@ -204,8 +204,12 @@ AVRPART * avr_new_part(void);
 AVRPART * avr_dup_part(AVRPART * d);
 AVRPART * locate_part(LISTID parts, char * partdesc);
 AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode);
-void list_parts(FILE * f, char * prefix, LISTID parts);
 void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose);
+
+typedef void (*walk_avrparts_cb)(const char *name, const char *desc,
+                                 const char *cfgname, int cfglineno,
+                                 void *cookie);
+void walk_avrparts(LISTID programmers, walk_avrparts_cb cb, void *cookie);
 
 #ifdef __cplusplus
 }

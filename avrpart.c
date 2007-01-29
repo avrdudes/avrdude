@@ -434,19 +434,27 @@ AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode)
   return NULL;
 }
 
-void list_parts(FILE * f, char * prefix, LISTID parts)
+/*
+ * Iterate over the list of avrparts given as "avrparts", and
+ * call the callback function cb for each entry found.  cb is being
+ * passed the following arguments:
+ * . the name of the avrpart (for -p)
+ * . the descriptive text given in the config file
+ * . the name of the config file this avrpart has been defined in
+ * . the line number of the config file this avrpart has been defined at
+ * . the "cookie" passed into walk_avrparts() (opaque client data)
+ */
+void walk_avrparts(LISTID avrparts, walk_avrparts_cb cb, void *cookie)
 {
   LNODEID ln1;
   AVRPART * p;
 
-  for (ln1=lfirst(parts); ln1; ln1=lnext(ln1)) {
+  for (ln1 = lfirst(avrparts); ln1; ln1 = lnext(ln1)) {
     p = ldata(ln1);
-    fprintf(f, "%s%-4s = %-15s [%s:%d]\n",
-            prefix, p->id, p->desc, p->config_file, p->lineno);
+    cb(p->id, p->desc, p->config_file, p->lineno, cookie);
   }
-
-  return;
 }
+
 
 
 static char * reset_disp_str(int r)

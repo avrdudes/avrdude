@@ -199,17 +199,24 @@ PROGRAMMER * locate_programmer(LISTID programmers, char * configid)
   return NULL;
 }
 
-void list_programmers(FILE * f, char * prefix, LISTID programmers)
+/*
+ * Iterate over the list of programmers given as "programmers", and
+ * call the callback function cb for each entry found.  cb is being
+ * passed the following arguments:
+ * . the name of the programmer (for -c)
+ * . the descriptive text given in the config file
+ * . the name of the config file this programmer has been defined in
+ * . the line number of the config file this programmer has been defined at
+ * . the "cookie" passed into walk_programmers() (opaque client data)
+ */
+void walk_programmers(LISTID programmers, walk_programmers_cb cb, void *cookie)
 {
   LNODEID ln1;
   PROGRAMMER * p;
 
-  for (ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
+  for (ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
     p = ldata(ln1);
-    fprintf(f, "%s%-8s = %-30s [%s:%d]\n",
-            prefix, (char *)ldata(lfirst(p->id)), p->desc,
-            p->config_file, p->lineno);
+    cb((char *)ldata(lfirst(p->id)), p->desc, p->config_file, p->lineno, cookie);
   }
-
-  return;
 }
+
