@@ -112,7 +112,11 @@ PROGRAMMER * pgm_new(void);
 
 void programmer_display(PROGRAMMER * pgm, char * p);
 PROGRAMMER * locate_programmer(LISTID programmers, char * configid);
-void list_programmers(FILE * f, char * prefix, LISTID programmers);
+
+typedef void (*walk_programmers_cb)(const char *name, const char *desc,
+                                    const char *cfgname, int cfglineno,
+                                    void *cookie);
+void walk_programmers(LISTID programmers, walk_programmers_cb cb, void *cookie);
 
 #ifdef __cplusplus
 }

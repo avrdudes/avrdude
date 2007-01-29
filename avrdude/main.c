@@ -64,6 +64,12 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
                              multiline messages */
 
+struct list_walk_cookie
+{
+    FILE *f;
+    const char *prefix;
+};
+
 static LISTID updates;
 
 /*
@@ -171,6 +177,46 @@ static void update_progress_no_tty (int percent, double etime, char *hdr)
   }
   else
     last = (percent>>1)*2;    /* Make last a multiple of 2. */
+}
+
+static void list_programmers_callback(const char *name, const char *desc,
+                                      const char *cfgname, int cfglineno,
+                                      void *cookie)
+{
+    struct list_walk_cookie *c = (struct list_walk_cookie *)cookie;
+
+    fprintf(c->f, "%s%-8s = %-30s [%s:%d]\n",
+            c->prefix, name, desc, cfgname, cfglineno);
+}
+
+static void list_programmers(FILE * f, const char *prefix, LISTID programmers)
+{
+    struct list_walk_cookie c;
+
+    c.f = f;
+    c.prefix = prefix;
+
+    walk_programmers(programmers, list_programmers_callback, &c);
+}
+
+static void list_avrparts_callback(const char *name, const char *desc,
+                                   const char *cfgname, int cfglineno,
+                                   void *cookie)
+{
+    struct list_walk_cookie *c = (struct list_walk_cookie *)cookie;
+
+    fprintf(c->f, "%s%-4s = %-15s [%s:%d]\n",
+            c->prefix, name, desc, cfgname, cfglineno);
+}
+
+static void list_parts(FILE * f, const char *prefix, LISTID avrparts)
+{
+    struct list_walk_cookie c;
+
+    c.f = f;
+    c.prefix = prefix;
+
+    walk_avrparts(avrparts, list_avrparts_callback, &c);
 }
 
 /*
