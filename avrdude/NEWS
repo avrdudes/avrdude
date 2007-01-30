@@ -13,6 +13,8 @@ Current:
     into a libavrdude.a library where main.c is currently the only
     existing frontend.
 
+  * Implement ATmega256x support for butterfly/avr109.
+
 Version 5.3.1:
 
   * Add support for the AVR Dragon (all modes: ISP, JTAG, HVSP, PP,
