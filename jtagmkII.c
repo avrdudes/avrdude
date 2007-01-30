@@ -2070,7 +2070,7 @@ static int jtagmkII_setparm(PROGRAMMER * pgm, unsigned char parm,
 }
 
 
-static void jtagmkII_display(PROGRAMMER * pgm, char * p)
+static void jtagmkII_display(PROGRAMMER * pgm, const char * p)
 {
   unsigned char hw[4], fw[4];
 

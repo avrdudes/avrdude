@@ -182,7 +182,7 @@ static struct jtagispentry jtagispcmds[] = {
 
 static int stk500v2_getparm(PROGRAMMER * pgm, unsigned char parm, unsigned char * value);
 static int stk500v2_setparm(PROGRAMMER * pgm, unsigned char parm, unsigned char value);
-static void stk500v2_print_parms1(PROGRAMMER * pgm, char * p);
+static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p);
 static int stk500v2_is_page_empty(unsigned int address, int page_size,
                                   const unsigned char *buf);
 
@@ -2032,7 +2032,7 @@ static int stk500v2_setparm(PROGRAMMER * pgm, unsigned char parm, unsigned char 
   return stk500v2_setparm_real(pgm, parm, value);
 }
 
-static void stk500v2_display(PROGRAMMER * pgm, char * p)
+static void stk500v2_display(PROGRAMMER * pgm, const char * p)
 {
   unsigned char maj, min, hdw, topcard;
   const char *topcard_name, *pgmname;
@@ -2072,7 +2072,7 @@ static void stk500v2_display(PROGRAMMER * pgm, char * p)
 }
 
 
-static void stk500v2_print_parms1(PROGRAMMER * pgm, char * p)
+static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p)
 {
   unsigned char vtarget, vadjust, osc_pscale, osc_cmatch, sck_duration;
   unsigned char vtarget_jtag[4];

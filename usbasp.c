@@ -223,7 +223,7 @@ static void usbasp_enable(PROGRAMMER * pgm)
   return;
 }
 
-static void usbasp_display(PROGRAMMER * pgm, char * p)
+static void usbasp_display(PROGRAMMER * pgm, const char * p)
 {
   return;
 }

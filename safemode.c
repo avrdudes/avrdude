@@ -23,13 +23,12 @@
 #include <stdio.h>
 
 #include "ac_cfg.h"
+#include "avrdude.h"
 #include "avr.h"
 #include "pgm.h"
 #include "safemode.h"
 
 /* This value from ac_cfg.h */
-char * progname = PACKAGE_NAME; 
-
 /* 
  * Writes the specified fuse in fusename (can be "lfuse", "hfuse", or
  * "efuse") and verifies it. Will try up to tries amount of times
