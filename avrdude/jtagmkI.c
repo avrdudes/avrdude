@@ -100,7 +100,7 @@ static int jtagmkI_getparm(PROGRAMMER * pgm, unsigned char parm,
 			    unsigned char * value);
 static int jtagmkI_setparm(PROGRAMMER * pgm, unsigned char parm,
 			    unsigned char value);
-static void jtagmkI_print_parms1(PROGRAMMER * pgm, char * p);
+static void jtagmkI_print_parms1(PROGRAMMER * pgm, const char * p);
 
 static int jtagmkI_resync(PROGRAMMER *pgm, int maxtries, int signon);
 
@@ -1280,7 +1280,7 @@ static int jtagmkI_setparm(PROGRAMMER * pgm, unsigned char parm,
 }
 
 
-static void jtagmkI_display(PROGRAMMER * pgm, char * p)
+static void jtagmkI_display(PROGRAMMER * pgm, const char * p)
 {
 
   unsigned char hw, fw;
@@ -1298,7 +1298,7 @@ static void jtagmkI_display(PROGRAMMER * pgm, char * p)
 }
 
 
-static void jtagmkI_print_parms1(PROGRAMMER * pgm, char * p)
+static void jtagmkI_print_parms1(PROGRAMMER * pgm, const char * p)
 {
   unsigned char vtarget, jtag_clock;
   const char *clkstr;

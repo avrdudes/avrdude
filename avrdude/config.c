@@ -48,7 +48,7 @@ LISTID       part_list;
 LISTID       programmers;
 
 int    lineno;
-char * infile;
+const char * infile;
 
 extern char * yytext;
 
@@ -270,7 +270,7 @@ void pyytext(void)
 }
 
 
-char * dup_string(char * str)
+char * dup_string(const char * str)
 {
   char * s;
 
@@ -283,7 +283,7 @@ char * dup_string(char * str)
   return s;
 }
 
-int read_config(char * file)
+int read_config(const char * file)
 {
   FILE * f;
 

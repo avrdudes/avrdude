@@ -285,7 +285,7 @@ AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
 }
 
 
-void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type,
+void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, int type,
                      int verbose)
 {
   int i, j;
@@ -479,11 +479,11 @@ static char * pin_name(int pinno)
 }
 
 
-void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose)
+void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose)
 {
   int i;
   char * buf;
-  char * px;
+  const char * px;
   LNODEID ln;
   AVRMEM * m;
 

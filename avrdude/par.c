@@ -321,7 +321,7 @@ static void par_close(PROGRAMMER * pgm)
   pgm->fd.ifd = -1;
 }
 
-static void par_display(PROGRAMMER * pgm, char * p)
+static void par_display(PROGRAMMER * pgm, const char * p)
 {
   char vccpins[64];
   char buffpins[64];

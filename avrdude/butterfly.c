@@ -391,7 +391,7 @@ static void butterfly_close(PROGRAMMER * pgm)
 }
 
 
-static void butterfly_display(PROGRAMMER * pgm, char * p)
+static void butterfly_display(PROGRAMMER * pgm, const char * p)
 {
   no_show_func_info();
 

@@ -49,7 +49,7 @@ extern PROGRAMMER * current_prog;
 extern AVRPART    * current_part;
 extern AVRMEM     * current_mem;
 extern int          lineno;
-extern char       * infile;
+extern const char * infile;
 extern LISTID       string_list;
 extern LISTID       number_list;
 extern LISTID       part_list;
@@ -97,9 +97,9 @@ void print_token(TOKEN * tkn);
 
 void pyytext(void);
 
-char * dup_string(char * str);
+char * dup_string(const char * str);
 
-int read_config(char * file);
+int read_config(const char * file);
 
 #ifdef __cplusplus
 }

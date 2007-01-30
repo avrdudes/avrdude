@@ -34,7 +34,7 @@ static int  pgm_default_3 (struct programmer_t * pgm, AVRPART * p, AVRMEM * mem,
 static void pgm_default_4 (struct programmer_t *);
 static int  pgm_default_5 (struct programmer_t * pgm, AVRPART * p, AVRMEM * mem,
 			   unsigned long addr, unsigned char data);
-static void pgm_default_6 (struct programmer_t *, char *);
+static void pgm_default_6 (struct programmer_t *, const char *);
 
 
 static int pgm_default_open (struct programmer_t *pgm, char * name)
@@ -161,13 +161,13 @@ static int  pgm_default_5 (struct programmer_t * pgm, AVRPART * p, AVRMEM * mem,
   return -1;
 }
 
-static void pgm_default_6 (struct programmer_t * pgm, char * p)
+static void pgm_default_6 (struct programmer_t * pgm, const char * p)
 {
   pgm_default();
 }
 
 
-void programmer_display(PROGRAMMER * pgm, char * p)
+void programmer_display(PROGRAMMER * pgm, const char * p)
 {
   fprintf(stderr, "%sProgrammer Type : %s\n", p, pgm->type);
   fprintf(stderr, "%sDescription     : %s\n", p, pgm->desc);
@@ -175,11 +175,11 @@ void programmer_display(PROGRAMMER * pgm, char * p)
   pgm->display(pgm, p);
 }
 
-PROGRAMMER * locate_programmer(LISTID programmers, char * configid)
+PROGRAMMER * locate_programmer(LISTID programmers, const char * configid)
 {
   LNODEID ln1, ln2;
   PROGRAMMER * p = NULL;
-  char * id;
+  const char * id;
   int found;
 
   found = 0;

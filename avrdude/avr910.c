@@ -288,7 +288,7 @@ static void avr910_close(PROGRAMMER * pgm)
 }
 
 
-static void avr910_display(PROGRAMMER * pgm, char * p)
+static void avr910_display(PROGRAMMER * pgm, const char * p)
 {
   return;
 }

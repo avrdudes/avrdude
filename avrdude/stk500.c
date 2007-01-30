@@ -46,7 +46,7 @@
 
 static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value);
 static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value);
-static void stk500_print_parms1(PROGRAMMER * pgm, char * p);
+static void stk500_print_parms1(PROGRAMMER * pgm, const char * p);
 static int stk500_is_page_empty(unsigned int address, int page_size, 
     const unsigned char *buf);
 
@@ -1137,7 +1137,7 @@ static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value)
 }
 
   
-static void stk500_display(PROGRAMMER * pgm, char * p)
+static void stk500_display(PROGRAMMER * pgm, const char * p)
 {
   unsigned maj, min, hdw, topcard;
 
@@ -1168,7 +1168,7 @@ static void stk500_display(PROGRAMMER * pgm, char * p)
 }
 
 
-static void stk500_print_parms1(PROGRAMMER * pgm, char * p)
+static void stk500_print_parms1(PROGRAMMER * pgm, const char * p)
 {
   unsigned vtarget, vadjust, osc_pscale, osc_cmatch, sck_duration;
 

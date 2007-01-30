@@ -196,7 +196,7 @@ AVRMEM * avr_new_memtype(void);
 int avr_initmem(AVRPART * p);
 AVRMEM * avr_dup_mem(AVRMEM * m);
 AVRMEM * avr_locate_mem(AVRPART * p, char * desc);
-void avr_mem_display(char * prefix, FILE * f, AVRMEM * m, int type,
+void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, int type,
                      int verbose);
 
 /* Functions for AVRPART structures */
@@ -204,7 +204,7 @@ AVRPART * avr_new_part(void);
 AVRPART * avr_dup_part(AVRPART * d);
 AVRPART * locate_part(LISTID parts, char * partdesc);
 AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode);
-void avr_display(FILE * f, AVRPART * p, char * prefix, int verbose);
+void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose);
 
 typedef void (*walk_avrparts_cb)(const char *name, const char *desc,
                                  const char *cfgname, int cfglineno,

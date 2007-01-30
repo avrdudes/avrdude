@@ -1,3 +1,24 @@
+2007-01-30 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* safemode.c: Obtain progname from avrdude.h rather than trying to roll our
+	own (duplicate) copy of it.
+	* avr910.c: Constify char pointers.
+	* avrpart.c: (Ditto.)
+	* avrpart.h: (Ditto.)
+	* butterfly.c: (Ditto.)
+	* config.c: (Ditto.)
+	* config.h: (Ditto.)
+	* jtagmkI.c: (Ditto.)
+	* jtagmkII.c: (Ditto.)
+	* par.c: (Ditto.)
+	* pgm.c: (Ditto.)
+	* pgm.h: (Ditto.)
+	* serbb_posix.c: (Ditto.)
+	* serbb_win32.c: (Ditto.)
+	* stk500.c: (Ditto.)
+	* stk500v2.c: (Ditto.)
+	* usbasp.c: (Ditto.)
+
 2007-01-29 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avrpart.c: More backend/library abstraction and generalization:

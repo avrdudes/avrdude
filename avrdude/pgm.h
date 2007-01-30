@@ -68,7 +68,7 @@ typedef struct programmer_t {
   int  (*pgm_led)        (struct programmer_t * pgm, int value);
   int  (*vfy_led)        (struct programmer_t * pgm, int value);
   int  (*initialize)     (struct programmer_t * pgm, AVRPART * p);
-  void (*display)        (struct programmer_t * pgm, char * p);
+  void (*display)        (struct programmer_t * pgm, const char * p);
   void (*enable)         (struct programmer_t * pgm);
   void (*disable)        (struct programmer_t * pgm);
   void (*powerup)        (struct programmer_t * pgm);
@@ -110,8 +110,8 @@ extern "C" {
 
 PROGRAMMER * pgm_new(void);
 
-void programmer_display(PROGRAMMER * pgm, char * p);
-PROGRAMMER * locate_programmer(LISTID programmers, char * configid);
+void programmer_display(PROGRAMMER * pgm, const char * p);
+PROGRAMMER * locate_programmer(LISTID programmers, const char * configid);
 
 typedef void (*walk_programmers_cb)(const char *name, const char *desc,
                                     const char *cfgname, int cfglineno,

@@ -190,7 +190,7 @@ static int serbb_highpulsepin(PROGRAMMER * pgm, int pin)
 
 
 
-static void serbb_display(PROGRAMMER *pgm, char *p)
+static void serbb_display(PROGRAMMER *pgm, const char *p)
 {
   /* MAYBE */
 }
