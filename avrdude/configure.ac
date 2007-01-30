@@ -163,14 +163,12 @@ AC_ARG_ENABLE(
 		esac],
 	[enabled_parport=yes])
 
-if test "$enabled_doc" = "yes"; then
-
-SUBDIRS_AC='doc @WINDOWS_DIRS@'
 DIST_SUBDIRS_AC='doc windows'
-else
 
-SUBDIRS_AC='@WINDOWS_DIRS@'
-DIST_SUBDIRS_AC='windows'
+if test "$enabled_doc" = "yes"; then
+	SUBDIRS_AC='doc @WINDOWS_DIRS@'
+else
+	SUBDIRS_AC='@WINDOWS_DIRS@'
 fi
 
 AC_SUBST(DOC_INST_DIR, $DOC_INST_DIR)
@@ -250,11 +248,8 @@ if test "$GCC" = yes; then
 fi
 AC_SUBST(ENABLE_WARNINGS,$ENABLE_WARNINGS)
 
-if test "$enabled_doc" = "yes"; then
-AC_CONFIG_FILES([doc/Makefile])
-fi
-
 AC_CONFIG_FILES([
+       doc/Makefile
        windows/Makefile
        avrdude.spec
        Makefile
