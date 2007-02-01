@@ -140,7 +140,6 @@ static int parse_cmdbits(OPCODE * op);
 %token K_TYPE
 %token K_VCC
 %token K_VFYLED
-%token K_WRITEPAGE
 
 %token K_NO
 %token K_YES
