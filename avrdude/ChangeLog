@@ -1,3 +1,8 @@
+2007-02-02 Thomas Fischl <tfischl@gmx.de>
+	* usbasp.c: Changed return value of function usbasp_initialize to stop
+        avrdude on communication errors between programmer and target.
+	Closes bug #18581: safemode destroys fuse bits
+
 2007-02-01 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* config_gram.y: Remove duplicate definition of token K_WRITEPAGE

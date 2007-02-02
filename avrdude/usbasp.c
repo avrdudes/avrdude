@@ -205,8 +205,7 @@ static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p)
 
   usleep(100000);
 
-  pgm->program_enable(pgm, p);
-  return 0;
+  return pgm->program_enable(pgm, p);
 }
 
 static void usbasp_disable(PROGRAMMER * pgm)
