@@ -7,6 +7,10 @@ Approximate change log for AVRDUDE by version.
 ----------------------------------------------------------------------
 Current:
 
+  * New devices supported:
+
+      - AT90PWM2B/AT90PWM3B
+
   * Bugfixes.
 
   * Source code rearranged so that the functionality is now built
