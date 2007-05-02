@@ -856,17 +856,35 @@ int main(int argc, char * argv [])
     /* If safemode is enabled, go ahead and read the current low, high,
        and extended fuse bytes as needed */
 
-    if (safemode_readfuses(&safemode_lfuse, &safemode_hfuse,
-                           &safemode_efuse, &safemode_fuse, pgm, p, verbose) != 0) {
-      fprintf(stderr, "%s: safemode: To protect your AVR the programming "
-              "will be aborted\n",
-              progname);
-      exitrc = 1;
-      goto main_exit;
-    }
+	rc = safemode_readfuses(&safemode_lfuse, &safemode_hfuse,
+                           &safemode_efuse, &safemode_fuse, pgm, p, verbose);
 
-    //Save the fuses as default
-    safemode_memfuses(1, &safemode_lfuse, &safemode_hfuse, &safemode_efuse, &safemode_fuse);
+    if (rc != 0) {
+
+	  //Check if the programmer just doesn't support reading
+	  if (rc == -5)
+			{
+			if (verbose > 0)
+				{
+				fprintf(stderr, "%s: safemode: Fuse reading not support by programmer.\n"
+                	            "              Safemode disabled.\n", progname);
+				}
+			safemode = 0;
+			}
+      else
+			{
+
+      		fprintf(stderr, "%s: safemode: To protect your AVR the programming "
+            				    "will be aborted\n",
+               					 progname);
+      		exitrc = 1;
+		    goto main_exit;
+			}
+    }
+	else  {
+	    //Save the fuses as default
+    	safemode_memfuses(1, &safemode_lfuse, &safemode_hfuse, &safemode_efuse, &safemode_fuse);
+	}
   }
 
 
