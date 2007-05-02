@@ -2,7 +2,7 @@
  * avrdude - A Downloader/Uploader for AVR device programmers
  * avrdude is Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
  *
- * This file: Copyright (C) 2005 Colin O'Flynn <coflynn@newae.com>
+ * This file: Copyright (C) 2005-2007 Colin O'Flynn <coflynn@newae.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,6 +86,7 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
 
   unsigned char value;
   unsigned char fusegood = 0;
+  unsigned char allowfuseread = 1;
   unsigned char safemode_lfuse;
   unsigned char safemode_hfuse;
   unsigned char safemode_efuse;
@@ -106,7 +107,7 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
     fusegood = 0; /* By default fuse is a failure */
     if(pgm->read_byte(pgm, p, m, 0, &safemode_fuse) != 0)
         {
-        safemode_fuse = 1 + value; //failed - ensure they differ
+        allowfuseread = 0;
         }
 	if (verbose > 2)
 		{
@@ -114,7 +115,7 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
 		}
     if(pgm->read_byte(pgm, p, m, 0, &value) != 0)
         {
-        value = 1 + safemode_fuse; //failed - ensure they differ
+        allowfuseread = 0;
         }
 	if (verbose > 2)
 		{
@@ -123,7 +124,7 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
     if (value == safemode_fuse) {
         if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
             {
-            value = 1 + safemode_fuse;
+            allowfuseread = 0;
             }
 		if (verbose > 2)
 			{
@@ -135,6 +136,12 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
             }
     }
   } 
+
+	//Programmer does not allow fuse reading.... no point trying anymore
+    if (allowfuseread == 0)
+		{
+		return -5;
+		}
 
     if (fusegood == 0)   {
         fprintf(stderr,
@@ -155,15 +162,15 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
     fusegood = 0; /* By default fuse is a failure */
     if (pgm->read_byte(pgm, p, m, 0, &safemode_lfuse) != 0)
         {
-        safemode_lfuse = 1 + value;
+        allowfuseread = 0;
         }
 	if (verbose > 2)
 		{
-		fprintf(stderr, "%s: safemode read 1, lfuse value: %x\n",progname,  safemode_fuse);
+		fprintf(stderr, "%s: safemode read 1, lfuse value: %x\n",progname,  safemode_lfuse);
 		}
     if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
         {
-        value = safemode_lfuse + 1;
+        allowfuseread = 0;
         }
 	if (verbose > 2)
 		{
@@ -172,7 +179,7 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
     if (value == safemode_lfuse) {
         if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
             {
-            value = safemode_lfuse + 1;
+            allowfuseread = 0;
             }
 		if (verbose > 2)
 			{
@@ -183,6 +190,13 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
         }
     }
   }
+
+	//Programmer does not allow fuse reading.... no point trying anymore
+    if (allowfuseread == 0)
+		{
+		return -5;
+		}
+
 
     if (fusegood == 0)	 {
         fprintf(stderr,
@@ -202,15 +216,15 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
     fusegood = 0; /* By default fuse is a failure */
     if (pgm->read_byte(pgm, p, m, 0, &safemode_hfuse) != 0)
         {
-        safemode_hfuse = value + 1;
+        allowfuseread = 0;
         }
 	if (verbose > 2)
 		{
-		fprintf(stderr, "%s: safemode read 1, hfuse value: %x\n",progname,  safemode_fuse);
+		fprintf(stderr, "%s: safemode read 1, hfuse value: %x\n",progname,  safemode_hfuse);
 		}
     if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
         {
-        value = safemode_hfuse + 1;
+        allowfuseread = 0;
         }
 	if (verbose > 2)
 		{
@@ -219,7 +233,7 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
     if (value == safemode_hfuse) {
         if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
             {
-            value = safemode_hfuse + 1;
+            allowfuseread = 0;
             }
 		if (verbose > 2)
 			{
@@ -230,6 +244,12 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
         }
     }
   }
+
+	//Programmer does not allow fuse reading.... no point trying anymore
+    if (allowfuseread == 0)
+		{
+		return -5;
+		}
 
     if (fusegood == 0)	 {
             fprintf(stderr,
@@ -249,15 +269,15 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
     fusegood = 0; /* By default fuse is a failure */
     if (pgm->read_byte(pgm, p, m, 0, &safemode_efuse) != 0)
         {
-        safemode_efuse = value + 1;
+        allowfuseread = 0;
         }
 	if (verbose > 2)
 		{
-		fprintf(stderr, "%s: safemode read 1, efuse value: %x\n",progname, safemode_fuse);
+		fprintf(stderr, "%s: safemode read 1, efuse value: %x\n",progname, safemode_efuse);
 		}
     if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
         {
-        value = safemode_efuse + 1;
+        allowfuseread = 0;
         }
 	if (verbose > 2)
 		{
@@ -266,7 +286,7 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
     if (value == safemode_efuse) {
         if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
             {
-            value = safemode_efuse + 1;
+            allowfuseread = 0;
             }
 		if (verbose > 2)
 			{
@@ -277,7 +297,13 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
         }
     }
   }
-    
+   
+	//Programmer does not allow fuse reading.... no point trying anymore
+    if (allowfuseread == 0)
+		{
+		return -5;
+		}
+ 
     if (fusegood == 0)	 {
         fprintf(stderr,
            "%s: safemode: Verify error - unable to read efuse properly. "

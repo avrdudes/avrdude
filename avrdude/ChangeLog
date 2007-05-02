@@ -1,4 +1,10 @@
 2007-05-01 Colin O'Flynn <coflynn@newae.com>
+    * safemode.c: -Oops - bug in verbose output. Fixed.
+                  -Fixed handling of cases where programmer cannot read fuses (AVR910)
+    * main.c:     -Also fixing handling of cases where programmer cannot read fuses
+                  This should close one or more bugs (18803, 19570)
+
+2007-05-01 Colin O'Flynn <coflynn@newae.com>
     * safemode.c: Added verbose output from safemode routines.
 
 2007-03-25 Colin O'Flynn <coflynn@newae.com>
