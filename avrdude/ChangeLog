@@ -1,3 +1,6 @@
+2007-05-01 Colin O'Flynn <coflynn@newae.com>
+    * safemode.c: Added verbose output from safemode routines.
+
 2007-03-25 Colin O'Flynn <coflynn@newae.com>
 
 	* stk500generic.c: Forgot to close the serial port before trying to
