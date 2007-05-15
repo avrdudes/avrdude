@@ -8633,7 +8633,7 @@ part
                           "  x   x   x   x      x   x   x   x";
 
 	mode		= 0x41;
-	delay		= 6;
+	delay		= 10;
 	blocksize	= 256;
 	readsize	= 256;
       ;
@@ -8821,7 +8821,7 @@ part
                           "  x   x   x   x      x   x   x   x";
 
 	mode		= 0x41;
-	delay		= 6;
+	delay		= 10;
 	blocksize	= 256;
 	readsize	= 256;
       ;
@@ -9010,7 +9010,7 @@ part
                           "  x   x   x   x      x   x   x   x";
 
 	mode		= 0x41;
-	delay		= 6;
+	delay		= 10;
 	blocksize	= 256;
 	readsize	= 256;
       ;
@@ -9203,7 +9203,7 @@ part
                           "  0   0   0   0      0   0   0   0";
 
 	mode		= 0x41;
-	delay		= 6;
+	delay		= 10;
 	blocksize	= 256;
 	readsize	= 256;
       ;
@@ -9396,7 +9396,7 @@ part
                           "  0   0   0   0      0   0   0   0";
 
 	mode		= 0x41;
-	delay		= 6;
+	delay		= 10;
 	blocksize	= 256;
 	readsize	= 256;
       ;

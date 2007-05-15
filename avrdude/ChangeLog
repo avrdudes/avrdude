@@ -1,3 +1,9 @@
+2007-05-15 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Fix the STK500v2 ISP delay parameter for
+	ATmega640/1280/1281/2560/2561.  Atmel has changed the XML
+	files after the initial release.
+
 2007-05-01 Colin O'Flynn <coflynn@newae.com>
 
 	* safemode.c: -Oops - bug in verbose output. Fixed.
