@@ -271,8 +271,6 @@ static void ser_close(union filedescriptor *fd)
 static int ser_send(union filedescriptor *fd, unsigned char * buf, size_t buflen)
 {
   struct timeval timeout, to2;
-  fd_set wfds;
-  int nfds;
   int rc;
   unsigned char * p = buf;
   size_t len = buflen;
@@ -306,29 +304,6 @@ static int ser_send(union filedescriptor *fd, unsigned char * buf, size_t buflen
   to2 = timeout;
 
   while (len) {
-  reselect:
-    FD_ZERO(&wfds);
-    FD_SET(fd->ifd, &wfds);
-
-    nfds = select(fd->ifd + 1, NULL, &wfds, NULL, &to2);
-    if (nfds == 0) {
-      if (verbose >= 1)
-	fprintf(stderr,
-		"%s: ser_send(): programmer is not responding\n",
-		progname);
-      exit(1);
-    }
-    else if (nfds == -1) {
-      if (errno == EINTR || errno == EAGAIN) {
-        goto reselect;
-      }
-      else {
-        fprintf(stderr, "%s: ser_send(): select(): %s\n",
-                progname, strerror(errno));
-        exit(1);
-      }
-    }
-
     rc = write(fd->ifd, p, (len > 1024) ? 1024 : len);
     if (rc < 0) {
       fprintf(stderr, "%s: ser_send(): write error: %s\n",

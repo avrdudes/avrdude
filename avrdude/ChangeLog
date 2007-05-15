@@ -1,5 +1,13 @@
 2007-05-15 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* ser_posix.c (ser_send): Don't select() on the output fd before
+	trying to write something to the serial line.  That kind of
+	polling isn't very useful anyway, and it seems it breaks for the
+	Linux CP210x USB<->RS-232 bridge driver which is certainly a bug
+	in the driver, but we can just avoid that bug alltogether.
+
+2007-05-15 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* avrdude.conf.in: Fix the STK500v2 ISP delay parameter for
 	ATmega640/1280/1281/2560/2561.  Atmel has changed the XML
 	files after the initial release.
