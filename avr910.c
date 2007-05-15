@@ -326,7 +326,7 @@ static int avr910_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[0] = 'D';
   }
   else {
-    return -1;
+    return avr_write_byte_default(pgm, p, m, addr, value);
   }
 
   cmd[1] = value;
@@ -398,7 +398,7 @@ static int avr910_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     return avr910_read_byte_eeprom(pgm, p, m, addr, value);
   }
 
-  return -1;
+  return avr_read_byte_default(pgm, p, m, addr, value);
 }
 
 
