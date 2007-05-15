@@ -1,3 +1,9 @@
+2007-05-15 Colin O'Flynn <coflynn@newae.com>
+
+	* avrdude.conf.in: Rename the ATmega164 and ATmega324 into
+	ATmega164P and ATmega324P, resp.  Add an entry for the ATmega644P.
+	Fixes bug #19769: ATmega164p not recognized
+
 2007-05-15 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* ser_posix.c (ser_send): Don't select() on the output fd before
