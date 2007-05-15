@@ -1,3 +1,9 @@
+2007-05-15 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avr910.c: Fall back to avr_{read,write}_byte_default().  Fixes
+	bug #18803: Fuse reading regression in avrdude 5.3.1 with avr910
+	programmer
+
 2007-05-15 Colin O'Flynn <coflynn@newae.com>
 
 	* avrdude.conf.in: Rename the ATmega164 and ATmega324 into
