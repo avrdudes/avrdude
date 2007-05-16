@@ -172,7 +172,7 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
   memset(buf, 0xff, size);
 
   if ((strcmp(mem->desc, "flash")==0) || (strcmp(mem->desc, "eeprom")==0)) {
-    if (pgm->paged_load != NULL) {
+    if (pgm->paged_load != NULL && mem->page_size != 0) {
       /*
        * the programmer supports a paged mode read, perhaps more
        * efficiently than we can read it directly, so use its routine
@@ -569,7 +569,7 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
   }
 
   if ((strcmp(m->desc, "flash")==0) || (strcmp(m->desc, "eeprom")==0)) {
-    if (pgm->paged_write != NULL) {
+    if (pgm->paged_write != NULL && m->page_size != 0) {
       /*
        * the programmer supports a paged mode write, perhaps more
        * efficiently than we can read it directly, so use its routine

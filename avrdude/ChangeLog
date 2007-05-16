@@ -1,3 +1,11 @@
+2007-05-16 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avr.c (avr_read, avr_write): only use the paged_load and
+	paged_write backend functions iff the memory area in question has
+	a page_size != 0.
+	This is supposed to fix bug #19234: avrdude-5.3.1 segfaults when
+	stk500v1 tries to program an ATtiny15
+
 2007-05-15 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* avr910.c: Fall back to avr_{read,write}_byte_default().  Fixes
