@@ -1,5 +1,11 @@
 2007-05-16 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* avrdude.conf.in: Fix AVR910 devcodes.  It seems that the AVR109
+	listing refers to "BOOT"-type code, while the standard codes are
+	different (usually one below).
+
+2007-05-16 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* avr.c (avr_read, avr_write): only use the paged_load and
 	paged_write backend functions iff the memory area in question has
 	a page_size != 0.

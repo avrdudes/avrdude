@@ -277,11 +277,24 @@
 # ATmega323   0x73     0x1E 0x95 0x01
 # ATmega64    0x46     0x1E 0x96 0x02
 # ATmega128   0x44     0x1E 0x97 0x02
+#
+# These codes refer to "BOOT" device codes which are apparently
+# different than standard device codes, for whatever reasons
+# (often one above the standard code).
 
-# Note that both lists contradict for the ATmega32 and the ATmega163.
-# We go with the original AVR910 in these cases.  As AVR910 still has
-# the originally name ATmega83 for the ATmega8535, we use the AVR109
-# code here.
+# There are several extended versions of AVR910 implementations around
+# in the Internet.  These add the following codes (only devices that
+# actually exist are listed):
+
+# ATmega8515	0x3A
+# ATmega128	0x43
+# ATmega64	0x45
+# ATtiny26	0x5E
+# ATmega8535	0x69
+# ATmega32	0x72
+# ATmega16	0x74
+# ATmega8	0x76
+# ATmega169	0x78
 
 #
 # Overall avrdude defaults
@@ -2416,7 +2429,7 @@ part
     desc             = "ATMEGA64";
     has_jtag         = yes;
     stk500_devcode   = 0xA0;
-    avr910_devcode   = 0x46;
+    avr910_devcode   = 0x45;
     signature        = 0x1e 0x96 0x02;
     chip_erase_delay = 9000;
     pagel            = 0xD7;
@@ -2597,7 +2610,7 @@ part
     desc             = "ATMEGA128";
     has_jtag         = yes;
     stk500_devcode   = 0xB2;
-    avr910_devcode   = 0x44;
+    avr910_devcode   = 0x43;
     signature        = 0x1e 0x97 0x02;
     chip_erase_delay = 9000;
     pagel            = 0xD7;
@@ -2966,7 +2979,7 @@ part
     desc             = "ATMEGA16";
     has_jtag         = yes;
     stk500_devcode   = 0x82;
-    avr910_devcode   = 0x75;
+    avr910_devcode   = 0x74;
     signature        = 0x1e 0x94 0x03;
     pagel            = 0xd7;
     bs2              = 0xa0;
@@ -4249,7 +4262,7 @@ part
     desc             = "ATMEGA169";
     has_jtag         = yes;
     stk500_devcode   = 0x85;
-    avr910_devcode   = 0x79;
+    avr910_devcode   = 0x78;
     signature        = 0x1e 0x94 0x05;
     chip_erase_delay = 9000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
@@ -5489,7 +5502,7 @@ part
     id               = "m8";
     desc             = "ATMEGA8";
     stk500_devcode   = 0x70;
-    avr910_devcode   = 0x77;
+    avr910_devcode   = 0x76;
     signature        = 0x1e 0x93 0x07;
     pagel            = 0xd7;
     bs2              = 0xc2;
@@ -5649,7 +5662,7 @@ part
     id               = "m8515";
     desc             = "ATMEGA8515";
     stk500_devcode   = 0x63;
-    avr910_devcode   = 0x3B;
+    avr910_devcode   = 0x3A;
     signature        = 0x1e 0x93 0x06;
     chip_erase_delay = 9000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
@@ -5807,7 +5820,7 @@ part
     id               = "m8535";
     desc             = "ATMEGA8535";
     stk500_devcode   = 0x64;
-    avr910_devcode   = 0x6A;
+    avr910_devcode   = 0x69;
     signature        = 0x1e 0x93 0x08;
     pagel            = 0xd7;
     bs2              = 0xa0;
