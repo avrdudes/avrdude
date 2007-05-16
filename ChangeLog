@@ -1,5 +1,9 @@
 2007-05-16 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* configure.ac (AC_INIT): Bump version, releasing avrdude-5.4.
+
+2007-05-16 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* avrdude.conf.in: Fix AVR910 devcodes.  It seems that the AVR109
 	listing refers to "BOOT"-type code, while the standard codes are
 	different (usually one below).
