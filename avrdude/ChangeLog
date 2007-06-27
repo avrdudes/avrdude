@@ -1,3 +1,7 @@
+2007-06-27 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* Makefile.am (EXTRA_DIST): Add ChangeLog-2004-2006.
+
 2007-05-16 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* configure.ac (AC_INIT): Bump version for post-release.
