@@ -1,3 +1,9 @@
+2007-07-24 Thomas Fischl <tfischl@gmx.de>
+
+	* usbasp.c: Added long addresses to support devices with more
+        than 64kB flash. Closes bug #20558: Long address problem with
+        USBasp.
+
 2007-06-27 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* Makefile.am (EXTRA_DIST): Add ChangeLog-2004-2006.
