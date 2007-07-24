@@ -316,8 +316,22 @@ static int usbasp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       wbytes = 0;
     }
 
+    /* set address (new mode) - if firmware on usbasp support newmode, then they use address from this command */
+    unsigned char temp[4];
+    memset(temp, 0, sizeof(temp));
     cmd[0] = address & 0xFF;
     cmd[1] = address >> 8;
+    cmd[2] = address >> 16;
+    cmd[3] = address >> 24;
+    usbasp_transmit(1, USBASP_FUNC_SETLONGADDRESS, cmd, temp, sizeof(temp));	
+    
+    /* send command with address (compatibility mode) - if firmware on
+	  usbasp doesn't support newmode, then they use address from this */
+    cmd[0] = address & 0xFF;
+    cmd[1] = address >> 8;
+    // for compatibility - previous version of usbasp.c doesn't initialize this fields (firmware ignore it)
+    cmd[2] = 0;
+    cmd[3] = 0;
 
     n = usbasp_transmit(1, function, cmd, buffer, blocksize);
 
@@ -366,6 +380,19 @@ static int usbasp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       blockflags |= USBASP_BLOCKFLAG_LAST;
     }
 
+    /* set address (new mode) - if firmware on usbasp support newmode, then
+      they use address from this command */
+    unsigned char temp[4];
+    memset(temp, 0, sizeof(temp));
+    cmd[0] = address & 0xFF;
+    cmd[1] = address >> 8;
+    cmd[2] = address >> 16;
+    cmd[3] = address >> 24;
+    usbasp_transmit(1, USBASP_FUNC_SETLONGADDRESS, cmd, temp, sizeof(temp));
+    
+    /* normal command - firmware what support newmode - use address from previous command,
+      firmware what doesn't support newmode - ignore previous command and use address from this command */
+      
     cmd[0] = address & 0xFF;
     cmd[1] = address >> 8;
     cmd[2] = page_size & 0xFF;
