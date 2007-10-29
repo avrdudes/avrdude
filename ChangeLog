@@ -1,5 +1,9 @@
 2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* configure.ac (AC_INIT): Bump version, releasing avrdude-5.5.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	Submitted by <bikenomad@gmail.com>:
 	patch #5007: Patch for line-buffering of stdout and stderr
 	* main.c: call setvbuf() for stdout and stderr.
