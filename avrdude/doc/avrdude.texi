@@ -462,6 +462,9 @@ Atmel STK500, running a version 2.x firmware
 @item @code{usbasp}      @tab
 USBasp,@*
 @url{http://www.fischl.de/usbasp/}
+@item @code{usbtiny}     @tab
+USBtiny simple USB programmer,@*
+@url{http://www.ladyada.net/make/usbtinyisp/}
 @item @code{xil}         @tab
 Xilinx JTAG cable
 @end multitable

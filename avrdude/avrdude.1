@@ -1,6 +1,6 @@
 .\"
 .\" avrdude - A Downloader/Uploader for AVR device programmers
-.\" Copyright (C) 2001, 2002, 2003, 2005, 2006  Joerg Wunsch
+.\" Copyright (C) 2001, 2002, 2003, 2005, 2006, 2007  Joerg Wunsch
 .\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE October 26, 2006
+.Dd DATE October 29, 2007
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -127,11 +127,11 @@ frequency, so the
 .Fl B Ar bitclock
 option might be required to achieve a stable ISP communication.
 .Pp
-The USBasp ISP adapter is also supported, provided
+The USBasp ISP and USBtinyISP adapters are also supported, provided
 .Nm avrdude
 has been compiled with libusb support.
-It features a simple firwmare-only USB implementation, running on
-an ATmega8 (or ATmega88).
+They both feature simple firwmare-only USB implementations, running on
+an ATmega8 (or ATmega88), or ATtiny2313, respectively.
 .Pp
 Input files can be provided, and output files can be written in
 different file formats, such as raw binary files containing the data
@@ -817,6 +817,6 @@ option) requires a prior chip erase.
 This is an inherent feature of the way JTAG EEPROM programming works.
 This also applies to the STK500 in parallel programming mode.
 .Pp
-The USBasp driver does not offer any option to distinguish multiple
+The USBasp and USBtinyISP drivers do not offer any option to distinguish multiple
 devices connected simultaneously, so effectively only a single device
 is supported.
