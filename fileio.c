@@ -743,6 +743,10 @@ static int fileio_imm(struct fioparms * fio,
       p = strtok(filename, " ,");
       while (p != NULL && loc < size) {
         b = strtoul(p, &e, 0);
+	/* check for binary formated (0b10101001) strings */
+	b = (strncmp (p, "0b", 2))?
+	    strtoul (p, &e, 0):
+	    strtoul (p + 2, &e, 2);
         if (*e != 0) {
           fprintf(stderr,
                   "%s: invalid byte value (%s) specified for immediate mode\n",
