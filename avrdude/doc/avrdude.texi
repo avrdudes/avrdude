@@ -30,7 +30,7 @@ For avrdude version @value{VERSION}, @value{UPDATED}.
 
 Copyright @copyright{} 2003, 2005 Brian Dean
 
-Copyright @copyright{} 2006 J@"org Wunsch
+Copyright @copyright{} 2006, 2007 J@"org Wunsch
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -363,6 +363,9 @@ ABCmini Board, aka Dick Smith HOTCHIP
 @item @code{alf}         @tab
 Nightshade ALF-PgmAVR,@*
 @url{http://nightshade.homeip.net/}
+@item @code{atisp}       @tab
+AT-ISP V1.1 programming cable for AVR-SDK1 from,@*
+@url{http://micro-research.co.th/}
 @item @code{avr109}      @tab
 Atmel AppNote AVR109 Boot Loader
 @item @code{avr910}      @tab
@@ -371,21 +374,27 @@ Atmel Low Cost Serial Programmer
 Atmel AppNote AVR911 AVROSP (an alias for avr109)
 @item @code{avrisp}      @tab
 Atmel AVR ISP (an alias for stk500)
-@item @code{avrispv2}    @tab
-Atmel AVR ISP, running a version 2.x firmware (an alias for stk500v2)
+@item @code{avrisp2}     @tab
+Atmel AVR ISP mkII (alias for stk500v2)
 @item @code{avrispmkII}  @tab
 Atmel AVR ISP mkII (alias for stk500v2)
-@item @code{avrispmk2}   @tab
-Atmel AVR ISP mkII (alias for stk500v2)
+@item @code{avrispv2}    @tab
+Atmel AVR ISP, running a version 2.x firmware (an alias for stk500v2)
 @item @code{bascom}      @tab
 Bascom SAMPLE programming cable
+@item @code{blaster}     @tab
+Altera ByteBlaster
 @item @code{bsd}         @tab
 Brian Dean's Programmer,@*
 @url{http://www.bsdhome.com/avrdude/}
 @item @code{butterfly}   @tab
 Atmel Butterfly Development Board
-@item @code{dt006}       @tab
-Dontronics DT006
+@item @code{dapa}        @tab
+Direct AVR Parallel Access cable
+@item @code{dasa}        @tab
+serial port banging, reset=rts sck=dtr mosi=txd miso=cts
+@item @code{dasa3}       @tab
+serial port banging, reset=!dtr sck=rts mosi=txd miso=cts
 @item @code{dragon_dw}   @tab
 AVR Dragon in debugWire mode
 @item @code{dragon_hvsp} @tab
@@ -396,26 +405,34 @@ AVR Dragon in ISP mode
 AVR Dragon in JTAG mode
 @item @code{dragon_pp}   @tab
 AVR Dragon in (high-voltage) parallel programming mode
-@item @code{frank-stk200} @tab
-Frank's STK200 clone, @url{http://electropol.free.fr/spip/spip.php?article15}
-@item @code{jtagmkI}     @tab
-Atmel JTAG ICE mkI, running at 115200 Bd
+@item @code{dt006}       @tab
+Dontronics DT006
+@item @code{ere-isp-avr} @tab
+ERE ISP-AVR,@*
+@url{http://www.ere.co.th/download/sch050713.pdf}
+@item @code{frank-stk200}@tab
+Frank's STK200 clone,@*
+@url{http://electropol.free.fr/spip/spip.php?article15}
+@item @code{futurlec}    @tab
+Futurlec.com programming cable
 @item @code{jtag1}       @tab
-@emph{Same as before.}
+Atmel JTAG ICE mkI, running at 115200 Bd
 @item @code{jtag1slow}   @tab
 Atmel JTAG ICE mkI, running at 19200 Bd
-@item @code{jtagmkII}    @tab
-Atmel JTAG ICE mkII (default speed 19200 Bd)
 @item @code{jtag2slow}   @tab
-@emph{Same as before.}
+Atmel JTAG ICE mkII (default speed 19200 Bd)
+@item @code{jtag2}       @tab
+Atmel JTAG ICE mkII, running at 115200 Bd
 @item @code{jtag2fast}   @tab
 Atmel JTAG ICE mkII, running at 115200 Bd
-@item @code{jtag2}       @tab
-@emph{Same as before.}
 @item @code{jtag2isp}    @tab
 Atmel JTAG ICE mkII in ISP mode.
 @item @code{jtag2dw}     @tab
 Atmel JTAG ICE mkII in debugWire mode.
+@item @code{jtagmkI}     @tab
+Atmel JTAG ICE mkI, running at 115200 Bd
+@item @code{jtagmkII}    @tab
+Atmel JTAG ICE mkII (default speed 19200 Bd)
 @item @code{pavr}        @tab
 Jason Kyle's pAVR Serial Programmer
 @item @code{picoweb}     @tab
@@ -423,20 +440,27 @@ Picoweb Programming Cable,@*
 @url{http://www.picoweb.net/}
 @item @code{pony-stk200} @tab
 Pony Prog STK200
+@item @code{ponyser}     @tab
+design ponyprog serial, reset=!txd sck=rts mosi=dtr miso=cts
+@item @code{siprog}      @tab
+Lancos SI-Prog,@*
+@url{http://www.lancos.com/siprogsch.html}
 @item @code{sp12}        @tab
 Steve Bolt's Programmer
 @item @code{stk200}      @tab
 STK200
 @item @code{stk500}      @tab
 Atmel STK500, probing for either version 1.x or 2.x firmware
-@item @code{stk500v1}    @tab
-Atmel STK500, running a version 1.x firmware
 @item @code{stk500hvsp}  @tab
 Atmel STK500 in high-voltage serial programming mode(version 2.x firmware only)
 @item @code{stk500pp}    @tab
 Atmel STK500 in parallel programming mode (version 2.xfirmware only)
+@item @code{stk500v1}    @tab
+Atmel STK500, running a version 1.x firmware
 @item @code{stk500v2}    @tab
 Atmel STK500, running a version 2.x firmware
+@item @code{xil}         @tab
+Xilinx JTAG cable
 @end multitable
 
 
