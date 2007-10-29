@@ -1,5 +1,13 @@
 2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	bug #21152: Unable to program atmega324p with avrdude 5.4 and AVRISP
+	using default configuration file.
+	* avrdude.conf.in: Uncomment the (bogus) stk500_devcode lines for
+	the ATmega164P, ATmega324P, ATmega644, and ATmega644P definitions.
+	This only affects users of STK500v1 firmware.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	Submitted by <ladyada@gmail.com>:
 	Patch #6233: Add support for USBtinyISP programmer
 	* usbtiny.c: New file.
