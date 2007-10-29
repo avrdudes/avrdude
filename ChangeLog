@@ -1,5 +1,12 @@
 2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	Submitted by Wolfgang Moser:
+	patch #6121: ISP support for the C2N232I device (serial port
+	bitbanging)
+	* avrdude.conf.in: Add entry for c2n232i.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	Submitted by <karl.yerkes@gmail.com>:
 	patch #6141: accept binary format immediate values
 	* fileio.c: Detect a 0b prefix, and call strtoul() differently
