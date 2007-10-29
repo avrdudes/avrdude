@@ -1,5 +1,12 @@
 2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	Submitted by <karl.yerkes@gmail.com>:
+	patch #6141: accept binary format immediate values
+	* fileio.c: Detect a 0b prefix, and call strtoul() differently
+	in that case.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	bug #21076: -vvvv serial receive prints are empty in Win32 build
 	* ser_win32.c (ser_recv): Drop the essentially unused variable
 	"len", and use the variable "read" in order to track how many
