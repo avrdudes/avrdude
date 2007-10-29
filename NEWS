@@ -7,6 +7,7 @@ Approximate change log for AVRDUDE by version.
 ----------------------------------------------------------------------
 Current:
 
+  * Add support for the USBtinyISP programmer (patch #6233)
 
 Version 5.4:
 

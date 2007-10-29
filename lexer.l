@@ -120,6 +120,7 @@ allowfullpagebitstream { yylval=NULL; return K_ALLOWFULLPAGEBITSTREAM; }
 avr910           { yylval=NULL; return K_AVR910; }
 avr910_devcode   { yylval=NULL; return K_AVR910_DEVCODE; }
 usbasp           { yylval=NULL; return K_USBASP; }
+usbtiny          { yylval=NULL; return K_USBTINY; }
 bank_size        { yylval=NULL; return K_PAGE_SIZE; }
 banked           { yylval=NULL; return K_PAGED; }
 baudrate         { yylval=NULL; return K_BAUDRATE; }

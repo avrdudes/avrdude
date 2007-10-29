@@ -1,5 +1,18 @@
 2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	Submitted by <ladyada@gmail.com>:
+	Patch #6233: Add support for USBtinyISP programmer
+	* usbtiny.c: New file.
+	* usbtiny.h: (Ditto.)
+	* Makefile.am: Include usbtiny into the build.
+	* avrdude.conf.in: (Ditto.)
+	* config_gram.y: (Ditto.)
+	* lexer.l: (Ditto.)
+	* avrdude.1: Document the usbtiny support.
+	* doc/avrdude.texi: (Ditto.)
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* doc/avrdude.texi: Sort list of supported programmers into
 	alphabetical order, add all missing programmers.
 
