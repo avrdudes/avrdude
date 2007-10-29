@@ -1,5 +1,11 @@
 2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	bug #21145: atmega329p not recognized
+	* avrdude.conf.in: Add definitions for the ATmega329P/3290P.
+	Same as ATmega329/3290 except of the different signature.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	bug #21152: Unable to program atmega324p with avrdude 5.4 and AVRISP
 	using default configuration file.
 	* avrdude.conf.in: Uncomment the (bogus) stk500_devcode lines for
