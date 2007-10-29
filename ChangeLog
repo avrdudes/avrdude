@@ -1,5 +1,11 @@
 2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	Submitted by <graceindustries@gmail.com>:
+	patch #5953: Add AT90CAN64 and AT90CAN32 to avrdude.conf
+	* avrdude.conf.in: Add entry for AT90CAN64 and AT90CAN32.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	Submitted by Wolfgang Moser:
 	patch #6121: ISP support for the C2N232I device (serial port
 	bitbanging)
