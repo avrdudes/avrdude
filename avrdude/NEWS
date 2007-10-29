@@ -9,6 +9,8 @@ Current:
 
   * Add support for the USBtinyISP programmer (patch #6233)
 
+  * Bugfixes.
+
 Version 5.4:
 
   * New devices supported:
