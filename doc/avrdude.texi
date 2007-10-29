@@ -197,10 +197,10 @@ In particular, the Dragon starts out with a rather fast ISP clock
 frequency, so the @code{-B @var{bitclock}}
 option might be required to achieve a stable ISP communication.
 
-The USBasp ISP adapter is also supported, provided AVRDUDE
+The USBasp ISP and USBtinyISP adapters are also supported, provided AVRDUDE
 has been compiled with libusb support.
-It features a simple firwmare-only USB implementation, running on
-an ATmega8 (or ATmega88).
+They both feature simple firwmare-only USB implementations, running on
+an ATmega8 (or ATmega88), or ATtiny2313, respectively.
 
 
 @menu
@@ -459,6 +459,9 @@ Atmel STK500 in parallel programming mode (version 2.xfirmware only)
 Atmel STK500, running a version 1.x firmware
 @item @code{stk500v2}    @tab
 Atmel STK500, running a version 2.x firmware
+@item @code{usbasp}      @tab
+USBasp,@*
+@url{http://www.fischl.de/usbasp/}
 @item @code{xil}         @tab
 Xilinx JTAG cable
 @end multitable
@@ -1956,12 +1959,12 @@ The pin mapping for the JTAG-to-ISP adapter is:
 @end multitable
 
 @item
-Problem: Multiple USBasp programmers connected simultaneously are not
+Problem: Multiple USBasp or USBtinyISP programmers connected simultaneously are not
 found.
 
-Solution: none at this time.  The simplicity of the USBasp programmer
+Solution: none at this time.  The simplicity of these programmers
 doesn't offer a method to distinguish multiple programmers that are
-connected simultaneously, so effectively only one USBasp is supported.
+connected simultaneously, so effectively only one of them is supported.
 
 @item
 Problem: I cannot do @dots{} when the target is in debugWire mode.
