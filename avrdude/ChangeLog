@@ -1,3 +1,7 @@
+2007-10-30 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* configure.ac (AC_INIT): Bump version for post-release.
+
 2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* configure.ac (AC_INIT): Bump version, releasing avrdude-5.5.
