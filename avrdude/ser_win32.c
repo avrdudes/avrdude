@@ -245,7 +245,6 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 {
 	unsigned char c;
 	unsigned char * p = buf;
-	size_t len = 0;
 	DWORD read;
 
 	HANDLE hComPort=(HANDLE)fd->pfd;
@@ -282,7 +281,7 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 	{
 		fprintf(stderr, "%s: Recv: ", progname);
 
-		while (len) {
+		while (read) {
 			c = *p;
 			if (isprint(c)) {
 				fprintf(stderr, "%c ", c);
@@ -293,7 +292,7 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 			fprintf(stderr, "[%02x] ", c);
 
 			p++;
-			len--;
+			read--;
 		}
 		fprintf(stderr, "\n");
 	}

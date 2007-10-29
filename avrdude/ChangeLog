@@ -1,5 +1,12 @@
 2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	bug #21076: -vvvv serial receive prints are empty in Win32 build
+	* ser_win32.c (ser_recv): Drop the essentially unused variable
+	"len", and use the variable "read" in order to track how many
+	bytes have just been read in.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	bug #21145: atmega329p not recognized
 	* avrdude.conf.in: Add definitions for the ATmega329P/3290P.
 	Same as ATmega329/3290 except of the different signature.
