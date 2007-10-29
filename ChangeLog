@@ -1,3 +1,8 @@
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* doc/avrdude.texi: Sort list of supported programmers into
+	alphabetical order, add all missing programmers.
+
 2007-07-24 Thomas Fischl <tfischl@gmx.de>
 
 	* usbasp.c: Added long addresses to support devices with more
