@@ -272,6 +272,13 @@ int main(int argc, char * argv [])
   char  * homedir;
 #endif
 
+  /*
+   * Set line buffering for file descriptors so we see stdout and stderr
+   * properly interleaved.
+   */
+  setvbuf(stdout, (char*)NULL, _IOLBF, 0);
+  setvbuf(stderr, (char*)NULL, _IOLBF, 0);
+
   progname = strrchr(argv[0],'/');
 
 #if defined (WIN32NATIVE)

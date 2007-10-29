@@ -1,5 +1,11 @@
 2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	Submitted by <bikenomad@gmail.com>:
+	patch #5007: Patch for line-buffering of stdout and stderr
+	* main.c: call setvbuf() for stdout and stderr.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	Submitted by <graceindustries@gmail.com>:
 	patch #5953: Add AT90CAN64 and AT90CAN32 to avrdude.conf
 	* avrdude.conf.in: Add entry for AT90CAN64 and AT90CAN32.
