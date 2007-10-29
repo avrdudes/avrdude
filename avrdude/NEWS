@@ -9,6 +9,8 @@ Current:
 
   * Add support for the USBtinyISP programmer (patch #6233)
 
+  * Add support for the C2N232I serial bitbang programmer (patch #6121)
+
   * Bugfixes.
 
 Version 5.4:

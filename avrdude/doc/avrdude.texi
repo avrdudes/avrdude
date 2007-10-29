@@ -389,6 +389,9 @@ Brian Dean's Programmer,@*
 @url{http://www.bsdhome.com/avrdude/}
 @item @code{butterfly}   @tab
 Atmel Butterfly Development Board
+@item @code{c2n232i}     @tab
+C2N232I, reset=dtr sck=!rts mosi=!txd miso=!cts,@*
+@url{http://www.ktverkko.fi/~msmakela/8bit/c2n232/hardware/index.en.html}
 @item @code{dapa}        @tab
 Direct AVR Parallel Access cable
 @item @code{dasa}        @tab

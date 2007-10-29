@@ -785,6 +785,19 @@ programmer
   miso  = 8;
 ;
 
+# C2N232i (jumper configuration "auto")
+# reset=dtr sck=!rts mosi=!txd miso=!cts
+
+programmer
+  id    = "c2n232i";
+  desc  = "serial port banging, reset=dtr sck=!rts mosi=!txd miso=!cts";
+  type  = serbb;
+  reset = 4;
+  sck   = ~7;
+  mosi  = ~3;
+  miso  = ~8;
+;
+
 #
 # PART DEFINITIONS
 #
