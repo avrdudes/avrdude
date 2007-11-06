@@ -1,5 +1,10 @@
 2007-11-06 Joerg Wunsch <j@uriah.heep.sax.de>
 
+	* butterfly.c: Remove the no_show_func_info() calls, as Brian
+	promised some 4 years ago.
+
+2007-11-06 Joerg Wunsch <j@uriah.heep.sax.de>
+
 	* main.c: Add the -x option to pass extended parameters to
 	the programmer backend.
 	* pgm.c: (Ditto.)
