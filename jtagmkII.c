@@ -71,6 +71,10 @@ static unsigned int eeprom_pagesize;
 
 static int prog_enabled;	/* Cached value of PROGRAMMING status. */
 static unsigned char serno[6];	/* JTAG ICE serial number. */
+
+/* JTAG chain stuff */
+static unsigned char jtagchain[4];
+
 /*
  * The OCDEN fuse is bit 7 of the high fuse (hfuse).  In order to
  * perform memory operations on MTYPE_SPM and MTYPE_EEPROM, OCDEN
@@ -1108,6 +1112,12 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
       return -1;
   }
 
+  if (jtagmkII_setparm(pgm, PAR_DAISY_CHAIN_INFO, jtagchain) < 0) {
+    fprintf(stderr, "%s: jtagmkII_initialize(): Failed to setup JTAG chain\n",
+            progname);
+    return -1;
+  }
+
   /*
    * Must set the device descriptor before entering programming mode.
    */
@@ -1161,6 +1171,49 @@ static void jtagmkII_disable(PROGRAMMER * pgm)
 static void jtagmkII_enable(PROGRAMMER * pgm)
 {
   return;
+}
+
+static int jtagmkII_parseextparms(PROGRAMMER * pgm, LISTID extparms)
+{
+  LNODEID ln;
+  const char *extended_param;
+  int rv = 0;
+
+  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    extended_param = ldata(ln);
+
+    if (strncmp(extended_param, "jtagchain=", strlen("jtagchain=")) == 0) {
+      unsigned int ub, ua, bb, ba;
+      if (sscanf(extended_param, "jtagchain=%u,%u,%u,%u", &ub, &ua, &bb, &ba)
+          != 4) {
+        fprintf(stderr,
+                "%s: jtagmkII_parseextparms(): invalid JTAG chain '%s'\n",
+                progname, extended_param);
+        rv = -1;
+        continue;
+      }
+      if (verbose >= 2) {
+        fprintf(stderr,
+                "%s: jtagmkII_parseextparms(): JTAG chain parsed as:\n"
+                "%s %u units before, %u units after, %u bits before, %u bits after\n",
+                progname,
+                progbuf, ub, ua, bb, ba);
+      }
+      jtagchain[0] = ub;
+      jtagchain[1] = ua;
+      jtagchain[2] = bb;
+      jtagchain[3] = ba;
+
+      continue;
+    }
+
+    fprintf(stderr,
+            "%s: jtagmkII_parseextparms(): invalid extended parameter '%s'\n",
+            progname, extended_param);
+    rv = -1;
+  }
+
+  return rv;
 }
 
 
@@ -2026,6 +2079,7 @@ static int jtagmkII_setparm(PROGRAMMER * pgm, unsigned char parm,
   case PAR_OCD_VTARGET: size = 2; break;
   case PAR_OCD_JTAG_CLK: size = 1; break;
   case PAR_TIMERS_RUNNING: size = 1; break;
+  case PAR_DAISY_CHAIN_INFO: size = 4; break;
   default:
     fprintf(stderr, "%s: jtagmkII_setparm(): unknown parameter 0x%02x\n",
 	    progname, parm);
@@ -2160,6 +2214,7 @@ void jtagmkII_initpgm(PROGRAMMER * pgm)
   pgm->paged_load     = jtagmkII_paged_load;
   pgm->print_parms    = jtagmkII_print_parms;
   pgm->set_sck_period = jtagmkII_set_sck_period;
+  pgm->parseextparams = jtagmkII_parseextparms;
   pgm->page_size      = 256;
 }
 
@@ -2218,6 +2273,7 @@ void jtagmkII_dragon_initpgm(PROGRAMMER * pgm)
   pgm->paged_load     = jtagmkII_paged_load;
   pgm->print_parms    = jtagmkII_print_parms;
   pgm->set_sck_period = jtagmkII_set_sck_period;
+  pgm->parseextparams = jtagmkII_parseextparms;
   pgm->page_size      = 256;
 }
 

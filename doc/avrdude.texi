@@ -244,13 +244,14 @@ Roth.
 
 @menu
 * Option Descriptions::
+* Programmers accepting extended parameters::
 * Example Command Line Invocations::
 @end menu
 
 @c
 @c Node
 @c
-@node Option Descriptions, Example Command Line Invocations, Command Line Options, Command Line Options
+@node Option Descriptions, Programmers accepting extended parameters, Command Line Options, Command Line Options
 @section Option Descriptions
 
 @noindent
@@ -747,6 +748,12 @@ Enable verbose output.
 @item -V
 Disable automatic verify check when uploading data.
 
+@item -x @var{extended_param}
+Pass @var{extended_param} to the chosen programmer implementation as
+an extended parameter.  The interpretation of the extended parameter
+depends on the programmer itself.  See below for a list of programmers
+accepting extended parameters.
+
 @item -y
 Tells AVRDUDE to use the last four bytes of the connected parts' EEPROM
 memory to track the number of times the device has been erased.  When
@@ -774,7 +781,32 @@ should not be used.
 @c
 @c Node
 @c
-@node Example Command Line Invocations,  , Option Descriptions, Command Line Options
+@node Programmers accepting extended parameters, Example Command Line Invocations, Option Descriptions, Command Line Options
+@section Programmers accepting extended parameters
+
+@table @code
+
+@item JTAG ICE mkII
+@itemx AVR Dragon
+
+When using the JTAG ICE mkII or AVR Dragon in JTAG mode, the
+following extended parameter is accepted:
+@table @code
+@item @var{jtagchain=UB,UA,BB,BA}
+Setup the JTAG scan chain for @var{UB} units before, @var{UA} units
+after, @var{BB} bits before, and @var{BA} bits after the target AVR,
+respectively.
+Each AVR unit within the chain shifts by 4 bits.
+Other JTAG units might require a different bit shift count.
+@end table
+
+@end table
+
+@page
+@c
+@c Node
+@c
+@node Example Command Line Invocations,  , Programmers accepting extended parameters, Command Line Options
 @section Example Command Line Invocations
 
 @noindent

@@ -99,6 +99,7 @@ typedef struct programmer_t {
   int  (*highpulsepin)   (struct programmer_t * pgm, int pin);
   int  (*parseexitspecs) (struct programmer_t * pgm, char *s);
   int  (*perform_osccal) (struct programmer_t * pgm);
+  int  (*parseextparams) (struct programmer_t * pgm, LISTID xparams);
   char config_file[PATH_MAX]; /* config file where defined */
   int  lineno;                /* config file line number */
   char flag;		      /* for private use of the programmer */

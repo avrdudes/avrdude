@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE October 29, 2007
+.Dd DATE November 6, 2007
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -48,6 +48,7 @@
 .Op Fl u
 .Op Fl U Ar memtype:op:filename:filefmt
 .Op Fl v
+.Op Fl x Ar extended_param
 .Op Fl V
 .Op Fl y
 .Op Fl Y
@@ -578,6 +579,13 @@ does not have a colon in it.
 Enable verbose output.
 .It Fl V
 Disable automatic verify check when uploading data.
+.It Fl x Ar extended_param
+Pass
+.Ar extended_param
+to the chosen programmer implementation as an extended parameter.
+The interpretation of the extended parameter depends on the
+programmer itself.
+See below for a list of programmers accepting extended parameters.
 .It Fl y
 Tells
 .Nm
@@ -744,6 +752,27 @@ be accessed using normal ISP programming.
 This sequence is automatically initiated by using the JTAG ICE mkII
 or AVR Dragon in ISP mode, when they detect that ISP mode cannot be
 entered.
+.Ss Programmers accepting extended parameters
+.Bl -tag -offset indent -width indent
+.It Ar JTAG ICE mkII
+.It Ar AVR Dragon
+When using the JTAG ICE mkII or AVR Dragon in JTAG mode, the
+following extended parameter is accepted:
+.Bl -tag -offset indent -width indent
+.It Ar jtagchain=UB,UA,BB,BA
+Setup the JTAG scan chain for
+.Ar UB
+units before,
+.Ar UA
+units after,
+.Ar BB
+bits before, and
+.Ar BA
+bits after the target AVR, respectively.
+Each AVR unit within the chain shifts by 4 bits.
+Other JTAG units might require a different bit shift count.
+.El
+.El
 .Sh FILES
 .Bl -tag -offset indent -width /dev/ppi0XXX
 .It Pa /dev/ppi0

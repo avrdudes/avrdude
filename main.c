@@ -72,6 +72,8 @@ struct list_walk_cookie
 
 static LISTID updates;
 
+static LISTID extended_params;
+
 /*
  * global options
  */
@@ -111,6 +113,7 @@ static void usage(void)
  "                             fuses should be changed back.\n"
  "  -t                         Enter terminal mode.\n"
  "  -E <exitspec>[,<exitspec>] List programmer exit specifications.\n"
+ "  -x <extended_param>        Pass <extended_param> to programmer.\n"
  "  -y                         Count # erase cycles in EEPROM.\n"
  "  -Y <number>                Initialize erase cycle # in EEPROM.\n"
  "  -v                         Verbose output. -v -v for more.\n"
@@ -302,6 +305,12 @@ int main(int argc, char * argv [])
     exit(1);
   }
 
+  extended_params = lcreat(NULL, 0);
+  if (extended_params == NULL) {
+    fprintf(stderr, "%s: cannot initialize extended parameter list\n", progname);
+    exit(1);
+  }
+
   partdesc      = NULL;
   port          = default_parallel;
   erase         = 0;
@@ -324,7 +333,7 @@ int main(int argc, char * argv [])
   ispdelay      = 0;
   safemode      = 1;       /* Safemode on by default */
   silentsafe    = 0;       /* Ask by default */
-  
+
   if (isatty(STDIN_FILENO) == 0)
       safemode  = 0;       /* Turn off safemode if this isn't a terminal */
 
@@ -372,7 +381,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?b:B:c:C:DeE:Fi:np:OP:qstU:uvVyY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?b:B:c:C:DeE:Fi:np:OP:qstU:uvVx:yY:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -482,6 +491,10 @@ int main(int argc, char * argv [])
 
       case 'V':
         verify = 0;
+        break;
+
+      case 'x':
+        ladd(extended_params, optarg);
         break;
 
       case 'y':
@@ -621,6 +634,22 @@ int main(int argc, char * argv [])
     list_programmers(stderr, "  ", programmers);
     fprintf(stderr,"\n");
     exit(1);
+  }
+
+  if (lsize(extended_params) > 0) {
+    if (pgm->parseextparams == NULL) {
+      fprintf(stderr,
+              "%s: WARNING: Programmer doesn't support extended parameters,"
+              " -x option(s) ignored\n",
+              progname);
+    } else {
+      if (pgm->parseextparams(pgm, extended_params) < 0) {
+        fprintf(stderr,
+              "%s: Error parsing extended parameter list\n",
+              progname);
+        exit(1);
+      }
+    }
   }
 
   if ((strcmp(pgm->type, "STK500") == 0) ||
