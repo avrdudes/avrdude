@@ -1,13 +1,13 @@
 2007-11-06 Joerg Wunsch <j@uriah.heep.sax.de>
 
-	*  main.c: Add the -x option to pass extended parameters to
+	* main.c: Add the -x option to pass extended parameters to
 	the programmer backend.
-	*  pgm.c: (Ditto.)
-	*  pgm.h: (Ditto.)
-	*  jtagmkII.c: Implement the extended parameter jtagchain=
+	* pgm.c: (Ditto.)
+	* pgm.h: (Ditto.)
+	* jtagmkII.c: Implement the extended parameter jtagchain=
 	to support JTAG daisy-chains.
-	*  avrdude.1: Document all of the above.
-	*  doc/avrdude.texi: (Ditto.)
+	* avrdude.1: Document all of the above.
+	* doc/avrdude.texi: (Ditto.)
 
 2007-10-30 Joerg Wunsch <j@uriah.heep.sax.de>
 
