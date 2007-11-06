@@ -53,20 +53,8 @@
 static char has_auto_incr_addr;
 static unsigned buffersize = 0;
 
-/* These two defines are only for debugging. Will remove them once it starts
-   working. */
-
-#define show_func_info() \
-  fprintf(stderr, "%s: line %d: called %s()\n", \
-          __FILE__, __LINE__, __FUNCTION__)
-
-#define no_show_func_info()
-
-
 static int butterfly_send(PROGRAMMER * pgm, char * buf, size_t len)
 {
-  no_show_func_info();
-
   return serial_send(&pgm->fd, (unsigned char *)buf, len);
 }
 
@@ -74,8 +62,6 @@ static int butterfly_send(PROGRAMMER * pgm, char * buf, size_t len)
 static int butterfly_recv(PROGRAMMER * pgm, char * buf, size_t len)
 {
   int rv;
-
-  no_show_func_info();
 
   rv = serial_recv(&pgm->fd, (unsigned char *)buf, len);
   if (rv < 0) {
@@ -90,8 +76,6 @@ static int butterfly_recv(PROGRAMMER * pgm, char * buf, size_t len)
 
 static int butterfly_drain(PROGRAMMER * pgm, int display)
 {
-  no_show_func_info();
-
   return serial_drain(&pgm->fd, display);
 }
 
@@ -111,8 +95,6 @@ static void butterfly_vfy_cmd_sent(PROGRAMMER * pgm, char * errmsg)
 
 static int butterfly_rdy_led(PROGRAMMER * pgm, int value)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return 0;
@@ -121,8 +103,6 @@ static int butterfly_rdy_led(PROGRAMMER * pgm, int value)
 
 static int butterfly_err_led(PROGRAMMER * pgm, int value)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return 0;
@@ -131,8 +111,6 @@ static int butterfly_err_led(PROGRAMMER * pgm, int value)
 
 static int butterfly_pgm_led(PROGRAMMER * pgm, int value)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return 0;
@@ -141,8 +119,6 @@ static int butterfly_pgm_led(PROGRAMMER * pgm, int value)
 
 static int butterfly_vfy_led(PROGRAMMER * pgm, int value)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return 0;
@@ -154,8 +130,6 @@ static int butterfly_vfy_led(PROGRAMMER * pgm, int value)
  */
 static int butterfly_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {
-  no_show_func_info();
-
   butterfly_send(pgm, "e", 1);
   butterfly_vfy_cmd_sent(pgm, "chip erase");
 
@@ -182,8 +156,6 @@ static void butterfly_leave_prog_mode(PROGRAMMER * pgm)
  */
 static int butterfly_program_enable(PROGRAMMER * pgm, AVRPART * p)
 {
-  no_show_func_info();
-
   return -1;
 }
 
@@ -193,8 +165,6 @@ static int butterfly_program_enable(PROGRAMMER * pgm, AVRPART * p)
  */
 static void butterfly_powerup(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return;
@@ -206,8 +176,6 @@ static void butterfly_powerup(PROGRAMMER * pgm)
  */
 static void butterfly_powerdown(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   /* Do nothing. */
 
   return;
@@ -225,8 +193,6 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   char buf[10];
   char type;
   char c, devtype_1st;
-
-  no_show_func_info();
 
   /*
    * Send some ESC to activate butterfly bootloader.  This is not needed
@@ -340,8 +306,6 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
 
 static void butterfly_disable(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   butterfly_leave_prog_mode(pgm);
 
   return;
@@ -350,16 +314,12 @@ static void butterfly_disable(PROGRAMMER * pgm)
 
 static void butterfly_enable(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   return;
 }
 
 
 static int butterfly_open(PROGRAMMER * pgm, char * port)
 {
-  no_show_func_info();
-
   strcpy(pgm->port, port);
   /*
    *  If baudrate was not specified use 19200 Baud
@@ -380,8 +340,6 @@ static int butterfly_open(PROGRAMMER * pgm, char * port)
 
 static void butterfly_close(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   /* "exit programmer" */
   butterfly_send(pgm, "E", 1);
   butterfly_vfy_cmd_sent(pgm, "exit bootloader");
@@ -393,8 +351,6 @@ static void butterfly_close(PROGRAMMER * pgm)
 
 static void butterfly_display(PROGRAMMER * pgm, const char * p)
 {
-  no_show_func_info();
-
   return;
 }
 
@@ -433,8 +389,6 @@ static int butterfly_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   char cmd[6];
   int size;
   int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
-
-  no_show_func_info();
 
   if ((strcmp(m->desc, "flash") == 0) || (strcmp(m->desc, "eeprom") == 0))
   {
@@ -527,8 +481,6 @@ static int butterfly_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                             unsigned long addr, unsigned char * value)
 {
   char cmd;
-
-  no_show_func_info();
 
   if (strcmp(m->desc, "flash") == 0) {
     return butterfly_read_byte_flash(pgm, p, m, addr, value);
@@ -664,8 +616,6 @@ static int butterfly_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 {
   unsigned char tmp;
 
-  no_show_func_info();
-
   if (m->size < 3) {
     fprintf(stderr, "%s: memsize too small for sig byte read", progname);
     return -1;
@@ -684,8 +634,6 @@ static int butterfly_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 
 void butterfly_initpgm(PROGRAMMER * pgm)
 {
-  no_show_func_info();
-
   strcpy(pgm->type, "avr910");
 
   /*
