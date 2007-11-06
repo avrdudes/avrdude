@@ -125,6 +125,7 @@ PROGRAMMER * pgm_new(void)
   pgm->set_varef      = NULL;
   pgm->set_fosc       = NULL;
   pgm->perform_osccal = NULL;
+  pgm->parseextparams = NULL;
 
   return pgm;
 }

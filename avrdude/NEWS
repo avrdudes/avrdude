@@ -7,6 +7,11 @@ Approximate change log for AVRDUDE by version.
 ----------------------------------------------------------------------
 Current:
 
+  * Add support for the -x option to pass extended parameters to the
+    programmer backend.
+
+  * Add support for JTAG daisy-chains, using the -x daisychain=
+    option.
 
 Version 5.5:
 
