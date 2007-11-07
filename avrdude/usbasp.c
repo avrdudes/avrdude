@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2006  Thomas Fischl
+ * Copyright 2007 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,16 +42,42 @@
 #ifdef HAVE_LIBUSB
 #include <usb.h>
 
-static usb_dev_handle *usbhandle;
+/*
+ * Private data for this programmer.
+ */
+struct pdata
+{
+  usb_dev_handle *usbhandle;
+};
+
+#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+
+static void usbasp_setup(PROGRAMMER * pgm)
+{
+  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
+    fprintf(stderr,
+	    "%s: usbasp_setup(): Out of memory allocating private data\n",
+	    progname);
+    exit(1);
+  }
+  memset(pgm->cookie, 0, sizeof(struct pdata));
+}
+
+static void usbasp_teardown(PROGRAMMER * pgm)
+{
+  free(pgm->cookie);
+}
+
 
 /*
  * wrapper for usb_control_msg call
  */
-static int usbasp_transmit(unsigned char receive, unsigned char functionid,
+static int usbasp_transmit(PROGRAMMER * pgm,
+			   unsigned char receive, unsigned char functionid,
 			   unsigned char send[4], unsigned char * buffer, int buffersize)
 {
   int nbytes;
-  nbytes = usb_control_msg(usbhandle,
+  nbytes = usb_control_msg(PDATA(pgm)->usbhandle,
 			   USB_TYPE_VENDOR | USB_RECIP_DEVICE | (receive << 7),
 			   functionid,
 			   (send[1] << 8) | send[0],
@@ -158,11 +185,11 @@ static int usbasp_open(PROGRAMMER * pgm, char * port)
 {
   usb_init();
 
-  if (usbOpenDevice(&usbhandle, USBASP_SHARED_VID, "www.fischl.de",
+  if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_SHARED_VID, "www.fischl.de",
 		    USBASP_SHARED_PID, "USBasp") != 0) {
 
     /* check if device with old VID/PID is available */
-    if (usbOpenDevice(&usbhandle, USBASP_OLD_VID, "www.fischl.de",
+    if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_OLD_VID, "www.fischl.de",
 		      USBASP_OLD_PID, "USBasp") != 0) {
 
       /* no USBasp found */
@@ -190,9 +217,9 @@ static void usbasp_close(PROGRAMMER * pgm)
 {
   unsigned char temp[4];
   memset(temp, 0, sizeof(temp));
-  usbasp_transmit(1, USBASP_FUNC_DISCONNECT, temp, temp, sizeof(temp));
+  usbasp_transmit(pgm, 1, USBASP_FUNC_DISCONNECT, temp, temp, sizeof(temp));
 
-  usb_close(usbhandle);
+  usb_close(PDATA(pgm)->usbhandle);
 }
 
 
@@ -201,7 +228,7 @@ static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p)
 
   unsigned char temp[4];
   memset(temp, 0, sizeof(temp));
-  usbasp_transmit(1, USBASP_FUNC_CONNECT, temp, temp, sizeof(temp));
+  usbasp_transmit(pgm, 1, USBASP_FUNC_CONNECT, temp, temp, sizeof(temp));
 
   usleep(100000);
 
@@ -232,7 +259,7 @@ static int usbasp_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
                    unsigned char res[4])
 {
   int nbytes =
-    usbasp_transmit(1, USBASP_FUNC_TRANSMIT, cmd, res, sizeof(res));
+    usbasp_transmit(pgm, 1, USBASP_FUNC_TRANSMIT, cmd, res, sizeof(res));
 
   if(nbytes != 4){
     fprintf(stderr, "%s: error: wrong responds size\n",
@@ -254,7 +281,7 @@ static int usbasp_program_enable(PROGRAMMER * pgm, AVRPART * p)
   cmd[0] = 0;
 
   int nbytes =
-    usbasp_transmit(1, USBASP_FUNC_ENABLEPROG, cmd, res, sizeof(res));
+    usbasp_transmit(pgm, 1, USBASP_FUNC_ENABLEPROG, cmd, res, sizeof(res));
 
   if ((nbytes != 1) | (res[0] != 0)) {
     fprintf(stderr, "%s: error: programm enable: target doesn't answer. %x \n",
@@ -323,7 +350,7 @@ static int usbasp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[1] = address >> 8;
     cmd[2] = address >> 16;
     cmd[3] = address >> 24;
-    usbasp_transmit(1, USBASP_FUNC_SETLONGADDRESS, cmd, temp, sizeof(temp));	
+    usbasp_transmit(pgm, 1, USBASP_FUNC_SETLONGADDRESS, cmd, temp, sizeof(temp));	
     
     /* send command with address (compatibility mode) - if firmware on
 	  usbasp doesn't support newmode, then they use address from this */
@@ -333,7 +360,7 @@ static int usbasp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[2] = 0;
     cmd[3] = 0;
 
-    n = usbasp_transmit(1, function, cmd, buffer, blocksize);
+    n = usbasp_transmit(pgm, 1, function, cmd, buffer, blocksize);
 
     if (n != blocksize) {
       fprintf(stderr, "%s: error: wrong reading bytes %x\n",
@@ -388,7 +415,7 @@ static int usbasp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[1] = address >> 8;
     cmd[2] = address >> 16;
     cmd[3] = address >> 24;
-    usbasp_transmit(1, USBASP_FUNC_SETLONGADDRESS, cmd, temp, sizeof(temp));
+    usbasp_transmit(pgm, 1, USBASP_FUNC_SETLONGADDRESS, cmd, temp, sizeof(temp));
     
     /* normal command - firmware what support newmode - use address from previous command,
       firmware what doesn't support newmode - ignore previous command and use address from this command */
@@ -399,7 +426,7 @@ static int usbasp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[3] = (blockflags & 0x0F) + ((page_size & 0xF00) >> 4); //TP: Mega128 fix
     blockflags = 0;
 
-    n = usbasp_transmit(0, function, cmd, buffer, blocksize);
+    n = usbasp_transmit(pgm, 0, function, cmd, buffer, blocksize);
 
     if (n != blocksize) {
       fprintf(stderr, "%s: error: wrong count at writing %x\n",
@@ -443,6 +470,8 @@ void usbasp_initpgm(PROGRAMMER * pgm)
 
   pgm->paged_write = usbasp_paged_write;
   pgm->paged_load = usbasp_paged_load;
+  pgm->setup          = usbasp_setup;
+  pgm->teardown       = usbasp_teardown;
 
 }
 

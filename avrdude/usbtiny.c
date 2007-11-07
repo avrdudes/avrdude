@@ -47,18 +47,42 @@ typedef	unsigned long	ulong_t;
 extern int avr_write_byte_default ( PROGRAMMER* pgm, AVRPART* p,
 				    AVRMEM* mem, ulong_t addr,
 				    unsigned char data );
-static	usb_dev_handle*	usb_handle;
-static	int		sck_period;
-static	int		chunk_size;
+/*
+ * Private data for this programmer.
+ */
+struct pdata
+{
+  usb_dev_handle *usb_handle;
+  int sck_period;
+  int chunk_size;
+};
 
+#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
 // ----------------------------------------------------------------------
 
+static void usbtiny_setup(PROGRAMMER * pgm)
+{
+  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
+    fprintf(stderr,
+	    "%s: usbtiny_setup(): Out of memory allocating private data\n",
+	    progname);
+    exit(1);
+  }
+  memset(pgm->cookie, 0, sizeof(struct pdata));
+}
+
+static void usbtiny_teardown(PROGRAMMER * pgm)
+{
+  free(pgm->cookie);
+}
+
 // Wrapper for simple usb_control_msg messages
-static int usb_control (unsigned int requestid, unsigned int val, unsigned int index )
+static int usb_control (PROGRAMMER * pgm,
+			unsigned int requestid, unsigned int val, unsigned int index )
 {
   int nbytes;
-  nbytes = usb_control_msg( usb_handle,
+  nbytes = usb_control_msg( PDATA(pgm)->usb_handle,
 			    USB_ENDPOINT_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
 			    requestid,
 			    val, index,           // 2 bytes each of data
@@ -73,7 +97,8 @@ static int usb_control (unsigned int requestid, unsigned int val, unsigned int i
 }
 
 // Wrapper for simple usb_control_msg messages to receive data from programmer
-static int usb_in (unsigned int requestid, unsigned int val, unsigned int index,
+static int usb_in (PROGRAMMER * pgm,
+		   unsigned int requestid, unsigned int val, unsigned int index,
 		   unsigned char* buffer, int buflen, int bitclk )
 {
   int nbytes;
@@ -83,7 +108,7 @@ static int usb_in (unsigned int requestid, unsigned int val, unsigned int index,
   // figuring the bit-clock time and buffer size and adding to the standard USB timeout.
   timeout = USB_TIMEOUT + (buflen * bitclk) / 1000;
 
-  nbytes = usb_control_msg( usb_handle,
+  nbytes = usb_control_msg( PDATA(pgm)->usb_handle,
 			    USB_ENDPOINT_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
 			    requestid,
 			    val, index,
@@ -99,8 +124,9 @@ static int usb_in (unsigned int requestid, unsigned int val, unsigned int index,
 }
 
 // Wrapper for simple usb_control_msg messages to send data to programmer
-static int usb_out (unsigned int requestid, unsigned int val, unsigned int index,
-		     unsigned char* buffer, int buflen, int bitclk )
+static int usb_out (PROGRAMMER * pgm,
+		    unsigned int requestid, unsigned int val, unsigned int index,
+		    unsigned char* buffer, int buflen, int bitclk )
 {
   int nbytes;
   int timeout;
@@ -109,7 +135,7 @@ static int usb_out (unsigned int requestid, unsigned int val, unsigned int index
   // figuring the bit-clock time and buffer size and adding to the standard USB timeout.
   timeout = USB_TIMEOUT + (buflen * bitclk) / 1000;
 
-  nbytes = usb_control_msg( usb_handle,
+  nbytes = usb_control_msg( PDATA(pgm)->usb_handle,
 			    USB_ENDPOINT_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
 			    requestid,
 			    val, index,
@@ -157,7 +183,7 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
   usb_find_busses();             // have libusb scan all the usb busses available
   usb_find_devices();            // have libusb scan all the usb devices available
 
-  usb_handle = NULL;
+  PDATA(pgm)->usb_handle = NULL;
 
   // now we iterate through all the busses and devices
   for ( bus = usb_busses; bus; bus = bus->next ) {
@@ -165,10 +191,10 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
       if (dev->descriptor.idVendor == USBTINY_VENDOR
 	  && dev->descriptor.idProduct == USBTINY_PRODUCT ) {   // found match?
 
-	usb_handle = usb_open(dev);           // attempt to connect to device
+	PDATA(pgm)->usb_handle = usb_open(dev);           // attempt to connect to device
 
 	// wrong permissions or something?
-	if (!usb_handle) {
+	if (!PDATA(pgm)->usb_handle) {
 	  fprintf(stderr, "%s: Warning: cannot open USB device: %s\n",
 		  progname, usb_strerror());
 	  continue;
@@ -177,7 +203,7 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
     }
   }
 
-  if (!usb_handle) {
+  if (!PDATA(pgm)->usb_handle) {
     fprintf( stderr, "%s: Error: Could not find USBtiny device (0x%x/0x%x)\n",
 	     progname, USBTINY_VENDOR, USBTINY_PRODUCT );
     exit(1);
@@ -189,22 +215,22 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
 /* Clean up the handle for the usbtiny */
 static	void usbtiny_close ( PROGRAMMER* pgm )
 {
-  if (! usb_handle) {
+  if (! PDATA(pgm)->usb_handle) {
     return;                // not a valid handle, bail!
   }
-  usb_close(usb_handle);   // ask libusb to clean up
-  usb_handle = NULL;
+  usb_close(PDATA(pgm)->usb_handle);   // ask libusb to clean up
+  PDATA(pgm)->usb_handle = NULL;
 }
 
 /* A simple calculator function determines the maximum size of data we can
    shove through a USB connection without getting errors */
-static void usbtiny_set_chunk_size (int period)
+static void usbtiny_set_chunk_size (PROGRAMMER * pgm, int period)
 {
-  chunk_size = CHUNK_SIZE;       // start with the maximum (default)
-  while	(chunk_size > 8 && period > 16) {
+  PDATA(pgm)->chunk_size = CHUNK_SIZE;       // start with the maximum (default)
+  while	(PDATA(pgm)->chunk_size > 8 && period > 16) {
     // Reduce the chunk size for a slow SCK to reduce
     // the maximum time of a single USB transfer.
-    chunk_size >>= 1;
+    PDATA(pgm)->chunk_size >>= 1;
     period >>= 1;
   }
 }
@@ -213,23 +239,23 @@ static void usbtiny_set_chunk_size (int period)
    USBtiny to update itself to the new frequency */
 static int usbtiny_set_sck_period (PROGRAMMER *pgm, double v)
 {
-  sck_period = (int)(v * 1e6 + 0.5);   // convert from us to 'int', the 0.5 is for rounding up
+  PDATA(pgm)->sck_period = (int)(v * 1e6 + 0.5);   // convert from us to 'int', the 0.5 is for rounding up
 
   // Make sure its not 0, as that will confuse the usbtiny
-  if (sck_period < SCK_MIN)
-    sck_period = SCK_MIN;
+  if (PDATA(pgm)->sck_period < SCK_MIN)
+    PDATA(pgm)->sck_period = SCK_MIN;
 
   // We can't go slower, due to the byte-size of the clock variable
-  if  (sck_period > SCK_MAX)
-    sck_period = SCK_MAX;
+  if  (PDATA(pgm)->sck_period > SCK_MAX)
+    PDATA(pgm)->sck_period = SCK_MAX;
 
-  printf( "%s: Setting SCK period to %d usec\n", progname, sck_period );
+  printf( "%s: Setting SCK period to %d usec\n", progname, PDATA(pgm)->sck_period );
 
   // send the command to the usbtiny device.
-  usb_control(USBTINY_POWERUP, sck_period, RESET_LOW);  // MEME: for at90's fix resetstate?
+  usb_control(pgm, USBTINY_POWERUP, PDATA(pgm)->sck_period, RESET_LOW);  // MEME: for at90's fix resetstate?
 
   // with the new speed, we'll have to update how much data we send per usb transfer
-  usbtiny_set_chunk_size(sck_period);
+  usbtiny_set_chunk_size(pgm, PDATA(pgm)->sck_period);
   return 0;
 }
 
@@ -244,13 +270,13 @@ static int usbtiny_initialize (PROGRAMMER *pgm, AVRPART *p )
     usbtiny_set_sck_period(pgm, pgm->bitclock);
   } else {
     // -B option not specified: use default
-    sck_period = SCK_DEFAULT;
+    PDATA(pgm)->sck_period = SCK_DEFAULT;
     if	(verbose) {
       printf( "%s: Using SCK period of %d usec\n",
-	      progname, sck_period );
+	      progname, PDATA(pgm)->sck_period );
     }
-    usb_control( USBTINY_POWERUP, sck_period, RESET_LOW );
-    usbtiny_set_chunk_size(sck_period);
+    usb_control(pgm,  USBTINY_POWERUP, PDATA(pgm)->sck_period, RESET_LOW );
+    usbtiny_set_chunk_size(pgm, PDATA(pgm)->sck_period);
   }
 
   // Let the device wake up.
@@ -259,8 +285,8 @@ static int usbtiny_initialize (PROGRAMMER *pgm, AVRPART *p )
   // Attempt to use the underlying avrdude methods to connect (MEME: is this kosher?)
   if (! usbtiny_avr_op(pgm, p, AVR_OP_PGM_ENABLE, res)) {
     // no response, RESET and try again
-    usb_control(USBTINY_POWERUP, sck_period, RESET_HIGH);
-    usb_control(USBTINY_POWERUP, sck_period, RESET_LOW);
+    usb_control(pgm, USBTINY_POWERUP, PDATA(pgm)->sck_period, RESET_HIGH);
+    usb_control(pgm, USBTINY_POWERUP, PDATA(pgm)->sck_period, RESET_LOW);
     usleep(50000);
     if	( ! usbtiny_avr_op( pgm, p, AVR_OP_PGM_ENABLE, res)) {
       // give up
@@ -273,10 +299,10 @@ static int usbtiny_initialize (PROGRAMMER *pgm, AVRPART *p )
 /* Tell the USBtiny to release the output pins, etc */
 static void usbtiny_powerdown(PROGRAMMER * pgm)
 {
-  if (!usb_handle) {
+  if (!PDATA(pgm)->usb_handle) {
     return;                 // wasn't connected in the first place
   }
-  usb_control(USBTINY_POWERDOWN, 0, 0);      // Send USB control command to device
+  usb_control(pgm, USBTINY_POWERDOWN, 0, 0);      // Send USB control command to device
 }
 
 /* Send a 4-byte SPI command to the USBtinyISP for execution
@@ -288,10 +314,10 @@ static int usbtiny_cmd(PROGRAMMER * pgm, unsigned char cmd[4], unsigned char res
   // Make sure its empty so we don't read previous calls if it fails
   memset(res, '\0', sizeof(res) );
 
-  nbytes = usb_in( USBTINY_SPI,
+  nbytes = usb_in( pgm, USBTINY_SPI,
 		   (cmd[1] << 8) | cmd[0],  // convert to 16-bit words
 		   (cmd[3] << 8) | cmd[2],  //  "
-			res, sizeof(res), 8 * sck_period );
+			res, sizeof(res), 8 * PDATA(pgm)->sck_period );
   if (verbose > 1) {
     // print out the data we sent and received
     printf( "CMD: [%02x %02x %02x %02x] [%02x %02x %02x %02x]\n",
@@ -352,7 +378,7 @@ static int usbtiny_paged_load (PROGRAMMER * pgm, AVRPART * p, AVRMEM* m,
   }
 
   for (i = 0; i < n_bytes; i += chunk) {
-    chunk = chunk_size;         // start with the maximum chunk size possible
+    chunk = PDATA(pgm)->chunk_size;         // start with the maximum chunk size possible
 
     // If we want to xmit less than a chunk, thats OK
     if	(chunk > n_bytes-i)
@@ -360,12 +386,13 @@ static int usbtiny_paged_load (PROGRAMMER * pgm, AVRPART * p, AVRMEM* m,
 
     // Send the chunk of data to the USBtiny with the function we want
     // to perform
-    usb_in(function,          // EEPROM or flash
+    usb_in(pgm,
+	   function,          // EEPROM or flash
 	   0,                 // delay between SPI commands
 	   i,                 // index
 	   m->buf + i,        // pointer to where we store data
 	   chunk,             // number of bytes
-	   32 * sck_period);  // each byte gets turned into a 4-byte SPI cmd
+	   32 * PDATA(pgm)->sck_period);  // each byte gets turned into a 4-byte SPI cmd
                               // usb_in() multiplies this per byte.
 
     // Tell avrdude how we're doing to provide user feedback
@@ -400,13 +427,13 @@ static int usbtiny_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   if (! m->paged) {
     // Does this chip not support paged writes?
     i = (m->readback[1] << 8) | m->readback[0];
-    usb_control( USBTINY_POLL_BYTES, i, 0 );
+    usb_control(pgm, USBTINY_POLL_BYTES, i, 0 );
     delay = m->max_write_delay;
   }
 
   for (i=0; i < n_bytes; i=next) {
     // start with the max chunk size
-    chunk = chunk_size;
+    chunk = PDATA(pgm)->chunk_size;
 
     // we can only write a page at a time anyways
     if (m->paged && chunk > page_size)
@@ -416,12 +443,13 @@ static int usbtiny_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     if (chunk > n_bytes-i)
       chunk = n_bytes - i;
 
-    usb_out(function,       // Flash or EEPROM
+    usb_out(pgm,
+	    function,       // Flash or EEPROM
 	    delay,          // How much to wait between each byte
 	    i,              // Index of data
 	    m->buf + i,     // Pointer to data
 	    chunk,          // Number of bytes to write
-	    32 * sck_period + delay  // each byte gets turned into a
+	    32 * PDATA(pgm)->sck_period + delay  // each byte gets turned into a
 	                             // 4-byte SPI cmd  usb_in() multiplies
 	                             // this per byte. Then add the cmd-delay
 	    );
@@ -460,6 +488,8 @@ extern void usbtiny_initpgm ( PROGRAMMER* pgm )
   pgm->paged_load	= usbtiny_paged_load;
   pgm->paged_write	= usbtiny_paged_write;
   pgm->set_sck_period	= usbtiny_set_sck_period;
+  pgm->setup            = usbtiny_setup;
+  pgm->teardown         = usbtiny_teardown;
 }
 
 #else  /* !HAVE_LIBUSB */

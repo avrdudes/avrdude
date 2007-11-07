@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2003-2004  Theodore A. Roth  <troth@openavr.org>
+ * Copyright 2007 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +41,31 @@
 #include "avr910.h"
 #include "serial.h"
 
-static char has_auto_incr_addr;
+/*
+ * Private data for this programmer.
+ */
+struct pdata
+{
+  char has_auto_incr_addr;
+};
+
+#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+
+static void avr910_setup(PROGRAMMER * pgm)
+{
+  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
+    fprintf(stderr,
+	    "%s: avr910_setup(): Out of memory allocating private data\n",
+	    progname);
+    exit(1);
+  }
+  memset(pgm->cookie, 0, sizeof(struct pdata));
+}
+
+static void avr910_teardown(PROGRAMMER * pgm)
+{
+  free(pgm->cookie);
+}
 
 
 static int avr910_send(PROGRAMMER * pgm, char * buf, size_t len)
@@ -164,8 +189,8 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
   /* See if programmer supports autoincrement of address. */
 
   avr910_send(pgm, "a", 1);
-  avr910_recv(pgm, &has_auto_incr_addr, 1);
-  if (has_auto_incr_addr == 'Y')
+  avr910_recv(pgm, &PDATA(pgm)->has_auto_incr_addr, 1);
+  if (PDATA(pgm)->has_auto_incr_addr == 'Y')
       fprintf(stderr, "Programmer supports auto addr increment.\n");
 
   /* Get list of devices that the programmer supports. */
@@ -442,7 +467,7 @@ static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       page_addr = addr;
       page_bytes = page_size;
     }
-    else if ((has_auto_incr_addr != 'Y') && ((addr & 0x01) == 0)) {
+    else if ((PDATA(pgm)->has_auto_incr_addr != 'Y') && ((addr & 0x01) == 0)) {
       avr910_set_addr(pgm, addr>>1);
     }
 
@@ -482,7 +507,7 @@ static int avr910_paged_write_eeprom(PROGRAMMER * pgm, AVRPART * p,
 
     addr++;
 
-    if (has_auto_incr_addr != 'Y') {
+    if (PDATA(pgm)->has_auto_incr_addr != 'Y') {
       avr910_set_addr(pgm, addr);
     }
 
@@ -548,7 +573,7 @@ static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     addr++;
 
-    if (has_auto_incr_addr != 'Y') {
+    if (PDATA(pgm)->has_auto_incr_addr != 'Y') {
       avr910_set_addr(pgm, addr);
     }
 
@@ -608,4 +633,7 @@ void avr910_initpgm(PROGRAMMER * pgm)
   pgm->paged_load = avr910_paged_load;
 
   pgm->read_sig_bytes = avr910_read_sig_bytes;
+
+  pgm->setup          = avr910_setup;
+  pgm->teardown       = avr910_teardown;
 }

@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2005  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright 2007 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -73,6 +74,8 @@ struct list_walk_cookie
 static LISTID updates;
 
 static LISTID extended_params;
+
+static PROGRAMMER * pgm;
 
 /*
  * global options
@@ -222,6 +225,12 @@ static void list_parts(FILE * f, const char *prefix, LISTID avrparts)
     walk_avrparts(avrparts, list_avrparts_callback, &c);
 }
 
+static void exithook(void)
+{
+    if (pgm->teardown)
+        pgm->teardown(pgm);
+}
+
 /*
  * main routine
  */
@@ -238,7 +247,6 @@ int main(int argc, char * argv [])
   struct stat      sb;
   UPDATE         * upd;
   LNODEID        * ln;
-  PROGRAMMER     * pgm;
 
 
   /* options / operating mode variables */
@@ -634,6 +642,13 @@ int main(int argc, char * argv [])
     list_programmers(stderr, "  ", programmers);
     fprintf(stderr,"\n");
     exit(1);
+  }
+
+  if (pgm->setup) {
+    pgm->setup(pgm);
+  }
+  if (pgm->teardown) {
+    atexit(exithook);
   }
 
   if (lsize(extended_params) > 0) {

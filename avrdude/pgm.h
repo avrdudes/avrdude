@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2002-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright 2007 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -100,8 +101,11 @@ typedef struct programmer_t {
   int  (*parseexitspecs) (struct programmer_t * pgm, char *s);
   int  (*perform_osccal) (struct programmer_t * pgm);
   int  (*parseextparams) (struct programmer_t * pgm, LISTID xparams);
+  void (*setup)          (struct programmer_t * pgm);
+  void (*teardown)       (struct programmer_t * pgm);
   char config_file[PATH_MAX]; /* config file where defined */
   int  lineno;                /* config file line number */
+  void *cookie;		      /* for private use by the programmer */
   char flag;		      /* for private use of the programmer */
 } PROGRAMMER;
 

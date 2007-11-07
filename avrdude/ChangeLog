@@ -1,3 +1,22 @@
+2007-11-07 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* main.c: Add setup and teardown hooks to the programmer
+	definition.  If present, call the setup hook immediately after
+	finding the respective programmer object, and schedule the
+	teardown hook to be called upon exit.  This allows the
+	programmer implementation to dynamically allocate private
+	programmer data.
+	* pgm.c: (Ditto.)
+	* pgm.h: (Ditto.)
+	* avr910.c: Convert static programmer data into dynamically
+	allocated data.
+	* butterfly.c: (Ditto.)
+	* jtagmkI.c: (Ditto.)
+	* jtagmkII.c: (Ditto.)
+	* stk500v2.c: (Ditto.)
+	* usbasp.c: (Ditto.)
+	* usbtiny.c: (Ditto.)
+
 2007-11-06 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* butterfly.c: Remove the no_show_func_info() calls, as Brian
