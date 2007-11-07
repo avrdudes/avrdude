@@ -1,7 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2003-2004  Theodore A. Roth  <troth@openavr.org>
- * Copyright (C) 2005 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2005, 2007 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,8 +50,32 @@
 #include "butterfly.h"
 #include "serial.h"
 
-static char has_auto_incr_addr;
-static unsigned buffersize = 0;
+/*
+ * Private data for this programmer.
+ */
+struct pdata
+{
+  char has_auto_incr_addr;
+  unsigned int buffersize;
+};
+
+#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+
+static void butterfly_setup(PROGRAMMER * pgm)
+{
+  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
+    fprintf(stderr,
+	    "%s: butterfly_setup(): Out of memory allocating private data\n",
+	    progname);
+    exit(1);
+  }
+  memset(pgm->cookie, 0, sizeof(struct pdata));
+}
+
+static void butterfly_teardown(PROGRAMMER * pgm)
+{
+  free(pgm->cookie);
+}
 
 static int butterfly_send(PROGRAMMER * pgm, char * buf, size_t len)
 {
@@ -245,8 +269,8 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   /* See if programmer supports autoincrement of address. */
 
   butterfly_send(pgm, "a", 1);
-  butterfly_recv(pgm, &has_auto_incr_addr, 1);
-  if (has_auto_incr_addr == 'Y')
+  butterfly_recv(pgm, &PDATA(pgm)->has_auto_incr_addr, 1);
+  if (PDATA(pgm)->has_auto_incr_addr == 'Y')
       fprintf(stderr, "Programmer supports auto addr increment.\n");
 
   /* Check support for buffered memory access, abort if not available */
@@ -260,12 +284,12 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
     exit(1);
   };
   butterfly_recv(pgm, &c, 1);
-  buffersize = (unsigned int)(unsigned char)c<<8;
+  PDATA(pgm)->buffersize = (unsigned int)(unsigned char)c<<8;
   butterfly_recv(pgm, &c, 1);
-  buffersize += (unsigned int)(unsigned char)c;
+  PDATA(pgm)->buffersize += (unsigned int)(unsigned char)c;
   fprintf(stderr,
     "Programmer supports buffered memory access with buffersize=%i bytes.\n",
-     buffersize);
+     PDATA(pgm)->buffersize);
 
   /* Get list of devices that the programmer supports. */
 
@@ -519,7 +543,7 @@ static int butterfly_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   unsigned int addr = 0;
   unsigned int max_addr = n_bytes;
   char *cmd;
-  unsigned int blocksize = buffersize;
+  unsigned int blocksize = PDATA(pgm)->buffersize;
   int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
 
   if (strcmp(m->desc, "flash") && strcmp(m->desc, "eeprom")) 
@@ -581,7 +605,7 @@ static int butterfly_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   {		/* use buffered mode */
     char cmd[4];
-    int blocksize = buffersize;
+    int blocksize = PDATA(pgm)->buffersize;
 
     cmd[0] = 'g';
     cmd[3] = toupper(m->desc[0]);
@@ -664,4 +688,7 @@ void butterfly_initpgm(PROGRAMMER * pgm)
   pgm->paged_load = butterfly_paged_load;
 
   pgm->read_sig_bytes = butterfly_read_sig_bytes;
+
+  pgm->setup          = butterfly_setup;
+  pgm->teardown       = butterfly_teardown;
 }

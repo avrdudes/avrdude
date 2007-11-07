@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2005 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2005, 2007 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,24 +41,29 @@
 #include "serial.h"
 
 /*
- * XXX There should really be a programmer-specific private data
- * pointer in struct PROGRAMMER.
+ * Private data for this programmer.
  */
-static int initial_baudrate;
+struct pdata
+{
+  int initial_baudrate;
 
-/*
- * See jtagmkI_read_byte() for an explanation of the flash and
- * EEPROM page caches.
- */
-static unsigned char *flash_pagecache;
-static unsigned long flash_pageaddr;
-static unsigned int flash_pagesize;
+  /*
+   * See jtagmkI_read_byte() for an explanation of the flash and
+   * EEPROM page caches.
+   */
+  unsigned char *flash_pagecache;
+  unsigned long flash_pageaddr;
+  unsigned int flash_pagesize;
 
-static unsigned char *eeprom_pagecache;
-static unsigned long eeprom_pageaddr;
-static unsigned int eeprom_pagesize;
+  unsigned char *eeprom_pagecache;
+  unsigned long eeprom_pageaddr;
+  unsigned int eeprom_pagesize;
 
-static int prog_enabled;	/* Cached value of PROGRAMMING status. */
+  int prog_enabled;	/* Cached value of PROGRAMMING status. */
+};
+
+#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+
 /*
  * The OCDEN fuse is bit 7 of the high fuse (hfuse).  In order to
  * perform memory operations on MTYPE_SPM and MTYPE_EEPROM, OCDEN
@@ -103,6 +108,23 @@ static int jtagmkI_setparm(PROGRAMMER * pgm, unsigned char parm,
 static void jtagmkI_print_parms1(PROGRAMMER * pgm, const char * p);
 
 static int jtagmkI_resync(PROGRAMMER *pgm, int maxtries, int signon);
+
+static void jtagmkI_setup(PROGRAMMER * pgm)
+{
+  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
+    fprintf(stderr,
+	    "%s: jtagmkI_setup(): Out of memory allocating private data\n",
+	    progname);
+    exit(1);
+  }
+  memset(pgm->cookie, 0, sizeof(struct pdata));
+}
+
+static void jtagmkI_teardown(PROGRAMMER * pgm)
+{
+  free(pgm->cookie);
+}
+
 
 static void
 u32_to_b3(unsigned char *b, unsigned long l)
@@ -381,10 +403,10 @@ static void jtagmkI_set_devdescr(PROGRAMMER * pgm, AVRPART * p)
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
     if (strcmp(m->desc, "flash") == 0) {
-      flash_pagesize = m->page_size;
-      u16_to_b2(sendbuf.dd.uiFlashPageSize, flash_pagesize);
+      PDATA(pgm)->flash_pagesize = m->page_size;
+      u16_to_b2(sendbuf.dd.uiFlashPageSize, PDATA(pgm)->flash_pagesize);
     } else if (strcmp(m->desc, "eeprom") == 0) {
-      sendbuf.dd.ucEepromPageSize = eeprom_pagesize = m->page_size;
+      sendbuf.dd.ucEepromPageSize = PDATA(pgm)->eeprom_pagesize = m->page_size;
     }
   }
 
@@ -448,7 +470,7 @@ static int jtagmkI_program_enable(PROGRAMMER * pgm)
 {
   unsigned char buf[1], resp[2];
 
-  if (prog_enabled)
+  if (PDATA(pgm)->prog_enabled)
     return 0;
 
   buf[0] = CMD_ENTER_PROGMODE;
@@ -472,7 +494,7 @@ static int jtagmkI_program_enable(PROGRAMMER * pgm)
       fprintf(stderr, "OK\n");
   }
 
-  prog_enabled = 1;
+  PDATA(pgm)->prog_enabled = 1;
 
   return 0;
 }
@@ -481,7 +503,7 @@ static int jtagmkI_program_disable(PROGRAMMER * pgm)
 {
   unsigned char buf[1], resp[2];
 
-  if (!prog_enabled)
+  if (!PDATA(pgm)->prog_enabled)
     return 0;
 
   if (pgm->fd.ifd != -1) {
@@ -506,7 +528,7 @@ static int jtagmkI_program_disable(PROGRAMMER * pgm)
         fprintf(stderr, "OK\n");
     }
   }
-  prog_enabled = 0;
+  PDATA(pgm)->prog_enabled = 0;
 
   return 0;
 }
@@ -539,7 +561,7 @@ static int jtagmkI_initialize(PROGRAMMER * pgm, AVRPART * p)
 
   jtagmkI_drain(pgm, 0);
 
-  if ((serdev->flags & SERDEV_FL_CANSETSPEED) && initial_baudrate != pgm->baudrate) {
+  if ((serdev->flags & SERDEV_FL_CANSETSPEED) && PDATA(pgm)->initial_baudrate != pgm->baudrate) {
     if ((b = jtagmkI_get_baud(pgm->baudrate)) == 0) {
       fprintf(stderr, "%s: jtagmkI_initialize(): unsupported baudrate %d\n",
               progname, pgm->baudrate);
@@ -549,7 +571,7 @@ static int jtagmkI_initialize(PROGRAMMER * pgm, AVRPART * p)
 	      "trying to set baudrate to %d\n",
                 progname, pgm->baudrate);
       if (jtagmkI_setparm(pgm, PARM_BITRATE, b) == 0) {
-        initial_baudrate = pgm->baudrate; /* don't adjust again later */
+        PDATA(pgm)->initial_baudrate = pgm->baudrate; /* don't adjust again later */
         serial_setspeed(&pgm->fd, pgm->baudrate);
       }
     }
@@ -584,24 +606,24 @@ static int jtagmkI_initialize(PROGRAMMER * pgm, AVRPART * p)
    */
   jtagmkI_set_devdescr(pgm, p);
 
-  jtagmkI_setparm(pgm, PARM_FLASH_PAGESIZE_LOW, flash_pagesize & 0xff);
-  jtagmkI_setparm(pgm, PARM_FLASH_PAGESIZE_HIGH, flash_pagesize >> 8);
-  jtagmkI_setparm(pgm, PARM_EEPROM_PAGESIZE, eeprom_pagesize & 0xff);
+  jtagmkI_setparm(pgm, PARM_FLASH_PAGESIZE_LOW, PDATA(pgm)->flash_pagesize & 0xff);
+  jtagmkI_setparm(pgm, PARM_FLASH_PAGESIZE_HIGH, PDATA(pgm)->flash_pagesize >> 8);
+  jtagmkI_setparm(pgm, PARM_EEPROM_PAGESIZE, PDATA(pgm)->eeprom_pagesize & 0xff);
 
-  free(flash_pagecache);
-  free(eeprom_pagecache);
-  if ((flash_pagecache = malloc(flash_pagesize)) == NULL) {
+  free(PDATA(pgm)->flash_pagecache);
+  free(PDATA(pgm)->eeprom_pagecache);
+  if ((PDATA(pgm)->flash_pagecache = malloc(PDATA(pgm)->flash_pagesize)) == NULL) {
     fprintf(stderr, "%s: jtagmkI_initialize(): Out of memory\n",
 	    progname);
     return -1;
   }
-  if ((eeprom_pagecache = malloc(eeprom_pagesize)) == NULL) {
+  if ((PDATA(pgm)->eeprom_pagecache = malloc(PDATA(pgm)->eeprom_pagesize)) == NULL) {
     fprintf(stderr, "%s: jtagmkI_initialize(): Out of memory\n",
 	    progname);
-    free(flash_pagecache);
+    free(PDATA(pgm)->flash_pagecache);
     return -1;
   }
-  flash_pageaddr = eeprom_pageaddr = (unsigned long)-1L;
+  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
 
   if (jtagmkI_reset(pgm) < 0)
     return -1;
@@ -622,10 +644,10 @@ static int jtagmkI_initialize(PROGRAMMER * pgm, AVRPART * p)
 static void jtagmkI_disable(PROGRAMMER * pgm)
 {
 
-  free(flash_pagecache);
-  flash_pagecache = NULL;
-  free(eeprom_pagecache);
-  eeprom_pagecache = NULL;
+  free(PDATA(pgm)->flash_pagecache);
+  PDATA(pgm)->flash_pagecache = NULL;
+  free(PDATA(pgm)->eeprom_pagecache);
+  PDATA(pgm)->eeprom_pagecache = NULL;
 
   (void)jtagmkI_program_disable(pgm);
 }
@@ -644,7 +666,7 @@ static int jtagmkI_open(PROGRAMMER * pgm, char * port)
     fprintf(stderr, "%s: jtagmkI_open()\n", progname);
 
   strcpy(pgm->port, port);
-  initial_baudrate = -1L;
+  PDATA(pgm)->initial_baudrate = -1L;
 
   for (i = 0; i < sizeof(baudtab) / sizeof(baudtab[0]); i++) {
     if (verbose >= 2)
@@ -659,7 +681,7 @@ static int jtagmkI_open(PROGRAMMER * pgm, char * port)
     jtagmkI_drain(pgm, 0);
 
     if (jtagmkI_getsync(pgm) == 0) {
-      initial_baudrate = baudtab[i].baud;
+      PDATA(pgm)->initial_baudrate = baudtab[i].baud;
       if (verbose >= 2)
         fprintf(stderr, "%s: jtagmkI_open(): succeeded\n", progname);
       return 0;
@@ -689,15 +711,15 @@ static void jtagmkI_close(PROGRAMMER * pgm)
    * appears to make AVR Studio happier when it is about to access the
    * ICE later on.
    */
-  if ((serdev->flags & SERDEV_FL_CANSETSPEED) && initial_baudrate != pgm->baudrate) {
-    if ((b = jtagmkI_get_baud(initial_baudrate)) == 0) {
+  if ((serdev->flags & SERDEV_FL_CANSETSPEED) && PDATA(pgm)->initial_baudrate != pgm->baudrate) {
+    if ((b = jtagmkI_get_baud(PDATA(pgm)->initial_baudrate)) == 0) {
       fprintf(stderr, "%s: jtagmkI_close(): unsupported baudrate %d\n",
-              progname, initial_baudrate);
+              progname, PDATA(pgm)->initial_baudrate);
     } else {
       if (verbose >= 2)
         fprintf(stderr, "%s: jtagmkI_close(): "
                 "trying to set baudrate to %d\n",
-                progname, initial_baudrate);
+                progname, PDATA(pgm)->initial_baudrate);
       if (jtagmkI_setparm(pgm, PARM_BITRATE, b) == 0) {
         serial_setspeed(&pgm->fd, pgm->baudrate);
       }
@@ -746,13 +768,13 @@ static int jtagmkI_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   cmd[0] = CMD_WRITE_MEM;
   if (strcmp(m->desc, "flash") == 0) {
     cmd[1] = MTYPE_FLASH_PAGE;
-    flash_pageaddr = (unsigned long)-1L;
-    page_size = flash_pagesize;
+    PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
+    page_size = PDATA(pgm)->flash_pagesize;
     is_flash = 1;
   } else if (strcmp(m->desc, "eeprom") == 0) {
     cmd[1] = MTYPE_EEPROM_PAGE;
-    eeprom_pageaddr = (unsigned long)-1L;
-    page_size = eeprom_pagesize;
+    PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
+    page_size = PDATA(pgm)->eeprom_pagesize;
   }
   datacmd[0] = CMD_DATA;
 
@@ -968,15 +990,15 @@ static int jtagmkI_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     cmd[1] = MTYPE_FLASH_PAGE;
     pagesize = mem->page_size;
     paddr = addr & ~(pagesize - 1);
-    paddr_ptr = &flash_pageaddr;
-    cache_ptr = flash_pagecache;
+    paddr_ptr = &PDATA(pgm)->flash_pageaddr;
+    cache_ptr = PDATA(pgm)->flash_pagecache;
     is_flash = 1;
   } else if (strcmp(mem->desc, "eeprom") == 0) {
     cmd[1] = MTYPE_EEPROM_PAGE;
     pagesize = mem->page_size;
     paddr = addr & ~(pagesize - 1);
-    paddr_ptr = &eeprom_pageaddr;
-    cache_ptr = eeprom_pagecache;
+    paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
+    cache_ptr = PDATA(pgm)->eeprom_pagecache;
   } else if (strcmp(mem->desc, "lfuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 0;
@@ -1078,11 +1100,11 @@ static int jtagmkI_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   if (strcmp(mem->desc, "flash") == 0) {
     cmd[1] = MTYPE_SPM;
     need_progmode = 0;
-    flash_pageaddr = (unsigned long)-1L;
+    PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
   } else if (strcmp(mem->desc, "eeprom") == 0) {
     cmd[1] = MTYPE_EEPROM;
     need_progmode = 0;
-    eeprom_pageaddr = (unsigned long)-1L;
+    PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if (strcmp(mem->desc, "lfuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 0;
@@ -1374,5 +1396,7 @@ void jtagmkI_initpgm(PROGRAMMER * pgm)
   pgm->paged_load     = jtagmkI_paged_load;
   pgm->print_parms    = jtagmkI_print_parms;
   pgm->set_sck_period = jtagmkI_set_sck_period;
+  pgm->setup          = jtagmkI_setup;
+  pgm->teardown       = jtagmkI_teardown;
   pgm->page_size      = 256;
 }

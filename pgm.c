@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2002-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright 2007 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -126,6 +127,8 @@ PROGRAMMER * pgm_new(void)
   pgm->set_fosc       = NULL;
   pgm->perform_osccal = NULL;
   pgm->parseextparams = NULL;
+  pgm->setup          = NULL;
+  pgm->teardown       = NULL;
 
   return pgm;
 }

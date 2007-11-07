@@ -3,7 +3,7 @@
  * Copyright (C) 2005 Erik Walthinsen
  * Copyright (C) 2002-2004 Brian S. Dean <bsd@bsdhome.com>
  * Copyright (C) 2006 David Moore
- * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2006,2007 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,18 +87,27 @@ enum hvmode
 
 
 /*
- * See stk500pp_read_byte() for an explanation of the flash and
- * EEPROM page caches.
+ * Private data for this programmer.
  */
-static unsigned char *flash_pagecache;
-static unsigned long flash_pageaddr;
-static unsigned int flash_pagesize;
+struct pdata
+{
+  /*
+   * See stk500pp_read_byte() for an explanation of the flash and
+   * EEPROM page caches.
+   */
+  unsigned char *flash_pagecache;
+  unsigned long flash_pageaddr;
+  unsigned int flash_pagesize;
 
-static unsigned char *eeprom_pagecache;
-static unsigned long eeprom_pageaddr;
-static unsigned int eeprom_pagesize;
+  unsigned char *eeprom_pagecache;
+  unsigned long eeprom_pageaddr;
+  unsigned int eeprom_pagesize;
 
-static unsigned char command_sequence = 1;
+  unsigned char command_sequence;
+};
+
+#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+
 
 static enum
 {
@@ -190,6 +199,24 @@ static unsigned int stk500v2_mode_for_pagesize(unsigned int pagesize);
 
 static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v);
 
+static void stk500v2_setup(PROGRAMMER * pgm)
+{
+  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
+    fprintf(stderr,
+	    "%s: stk500v2_setup(): Out of memory allocating private data\n",
+	    progname);
+    exit(1);
+  }
+  memset(pgm->cookie, 0, sizeof(struct pdata));
+  PDATA(pgm)->command_sequence = 1;
+}
+
+static void stk500v2_teardown(PROGRAMMER * pgm)
+{
+  free(pgm->cookie);
+}
+
+
 static unsigned short
 b2_to_u16(unsigned char *b)
 {
@@ -280,7 +307,7 @@ static int stk500v2_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
     return stk500v2_jtagmkII_send(pgm, data, len);
 
   buf[0] = MESSAGE_START;
-  buf[1] = command_sequence;
+  buf[1] = PDATA(pgm)->command_sequence;
   buf[2] = len / 256;
   buf[3] = len % 256;
   buf[4] = TOKEN;
@@ -400,10 +427,10 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
         break;
       case sSEQNUM:
         DEBUGRECV("hoping for sequence...\n");
-        if (c == command_sequence) {
+        if (c == PDATA(pgm)->command_sequence) {
           DEBUGRECV("got it, incrementing\n");
           state = sSIZE1;
-          command_sequence++;
+          PDATA(pgm)->command_sequence++;
         } else {
           DEBUGRECV("sorry\n");
           state = sSTART;
@@ -828,32 +855,32 @@ static int stk500hv_initialize(PROGRAMMER * pgm, AVRPART * p, enum hvmode mode)
    * caches.  For devices/memory that are not page oriented, treat
    * them as page size 1 for EEPROM, and 2 for flash.
    */
-  flash_pagesize = 2;
-  eeprom_pagesize = 1;
+  PDATA(pgm)->flash_pagesize = 2;
+  PDATA(pgm)->eeprom_pagesize = 1;
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
     if (strcmp(m->desc, "flash") == 0) {
       if (m->page_size > 0)
-	flash_pagesize = m->page_size;
+	PDATA(pgm)->flash_pagesize = m->page_size;
     } else if (strcmp(m->desc, "eeprom") == 0) {
       if (m->page_size > 0)
-	eeprom_pagesize = m->page_size;
+	PDATA(pgm)->eeprom_pagesize = m->page_size;
     }
   }
-  free(flash_pagecache);
-  free(eeprom_pagecache);
-  if ((flash_pagecache = malloc(flash_pagesize)) == NULL) {
+  free(PDATA(pgm)->flash_pagecache);
+  free(PDATA(pgm)->eeprom_pagecache);
+  if ((PDATA(pgm)->flash_pagecache = malloc(PDATA(pgm)->flash_pagesize)) == NULL) {
     fprintf(stderr, "%s: stk500pp_initialize(): Out of memory\n",
 	    progname);
     return -1;
   }
-  if ((eeprom_pagecache = malloc(eeprom_pagesize)) == NULL) {
+  if ((PDATA(pgm)->eeprom_pagecache = malloc(PDATA(pgm)->eeprom_pagesize)) == NULL) {
     fprintf(stderr, "%s: stk500pp_initialize(): Out of memory\n",
 	    progname);
-    free(flash_pagecache);
+    free(PDATA(pgm)->flash_pagecache);
     return -1;
   }
-  flash_pageaddr = eeprom_pageaddr = (unsigned long)-1L;
+  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
 
   return pgm->program_enable(pgm, p);
 }
@@ -902,10 +929,10 @@ static void stk500hv_disable(PROGRAMMER * pgm, enum hvmode mode)
   unsigned char buf[16];
   int result;
 
-  free(flash_pagecache);
-  flash_pagecache = NULL;
-  free(eeprom_pagecache);
-  eeprom_pagecache = NULL;
+  free(PDATA(pgm)->flash_pagecache);
+  PDATA(pgm)->flash_pagecache = NULL;
+  free(PDATA(pgm)->eeprom_pagecache);
+  PDATA(pgm)->eeprom_pagecache = NULL;
 
   buf[0] = mode == PPMODE? CMD_LEAVE_PROGMODE_PP: CMD_LEAVE_PROGMODE_HVSP;
   buf[1] = 15;  // p->hvleavestabdelay;
@@ -1065,8 +1092,8 @@ static int stk500hv_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     if (pagesize == 0)
       pagesize = 2;
     paddr = addr & ~(pagesize - 1);
-    paddr_ptr = &flash_pageaddr;
-    cache_ptr = flash_pagecache;
+    paddr_ptr = &PDATA(pgm)->flash_pageaddr;
+    cache_ptr = PDATA(pgm)->flash_pagecache;
     addrshift = 1;
     /*
      * If bit 31 is set, this indicates that the following read/write
@@ -1084,8 +1111,8 @@ static int stk500hv_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     if (pagesize == 0)
       pagesize = 1;
     paddr = addr & ~(pagesize - 1);
-    paddr_ptr = &eeprom_pageaddr;
-    cache_ptr = eeprom_pagecache;
+    paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
+    cache_ptr = PDATA(pgm)->eeprom_pagecache;
   } else if (strcmp(mem->desc, "lfuse") == 0 ||
 	     strcmp(mem->desc, "fuse") == 0) {
     buf[0] = mode == PPMODE? CMD_READ_FUSE_PP: CMD_READ_FUSE_HVSP;
@@ -1195,8 +1222,8 @@ static int stk500hv_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     if (pagesize == 0)
       pagesize = 2;
     paddr = addr & ~(pagesize - 1);
-    paddr_ptr = &flash_pageaddr;
-    cache_ptr = flash_pagecache;
+    paddr_ptr = &PDATA(pgm)->flash_pageaddr;
+    cache_ptr = PDATA(pgm)->flash_pagecache;
     addrshift = 1;
     /*
      * If bit 31 is set, this indicates that the following read/write
@@ -1213,8 +1240,8 @@ static int stk500hv_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     if (pagesize == 0)
       pagesize = 1;
     paddr = addr & ~(pagesize - 1);
-    paddr_ptr = &eeprom_pageaddr;
-    cache_ptr = eeprom_pagecache;
+    paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
+    cache_ptr = PDATA(pgm)->eeprom_pagecache;
   } else if (strcmp(mem->desc, "lfuse") == 0 ||
 	     strcmp(mem->desc, "fuse") == 0) {
     buf[0] = mode == PPMODE? CMD_PROGRAM_FUSE_PP: CMD_PROGRAM_FUSE_HVSP;
@@ -1487,7 +1514,7 @@ static int stk500hv_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   // determine which command is to be used
   if (strcmp(m->desc, "flash") == 0) {
     addrshift = 1;
-    flash_pageaddr = (unsigned long)-1L;
+    PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
     commandbuf[0] = mode == PPMODE? CMD_PROGRAM_FLASH_PP: CMD_PROGRAM_FLASH_HVSP;
     /*
      * If bit 31 is set, this indicates that the following read/write
@@ -1499,7 +1526,7 @@ static int stk500hv_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       use_ext_addr = (1U << 31);
     }
   } else if (strcmp(m->desc, "eeprom") == 0) {
-    eeprom_pageaddr = (unsigned long)-1L;
+    PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
     commandbuf[0] = mode == PPMODE? CMD_PROGRAM_EEPROM_PP: CMD_PROGRAM_EEPROM_HVSP;
   }
   /*
@@ -2386,6 +2413,8 @@ void stk500v2_initpgm(PROGRAMMER * pgm)
   pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period;
   pgm->perform_osccal = stk500v2_perform_osccal;
+  pgm->setup          = stk500v2_setup;
+  pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
 }
 
@@ -2417,6 +2446,8 @@ void stk500pp_initpgm(PROGRAMMER * pgm)
   pgm->set_varef      = stk500v2_set_varef;
   pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period;
+  pgm->setup          = stk500v2_setup;
+  pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
 }
 
@@ -2448,6 +2479,8 @@ void stk500hvsp_initpgm(PROGRAMMER * pgm)
   pgm->set_varef      = stk500v2_set_varef;
   pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period;
+  pgm->setup          = stk500v2_setup;
+  pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
 }
 
@@ -2478,6 +2511,8 @@ void stk500v2_jtagmkII_initpgm(PROGRAMMER * pgm)
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
   pgm->perform_osccal = stk500v2_perform_osccal;
+  pgm->setup          = stk500v2_setup;
+  pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
 }
 
@@ -2507,6 +2542,8 @@ void stk500v2_dragon_isp_initpgm(PROGRAMMER * pgm)
   pgm->paged_load     = stk500v2_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
+  pgm->setup          = stk500v2_setup;
+  pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
 }
 
@@ -2538,6 +2575,8 @@ void stk500v2_dragon_pp_initpgm(PROGRAMMER * pgm)
   pgm->set_varef      = stk500v2_set_varef;
   pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
+  pgm->setup          = stk500v2_setup;
+  pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
 }
 
@@ -2569,5 +2608,7 @@ void stk500v2_dragon_hvsp_initpgm(PROGRAMMER * pgm)
   pgm->set_varef      = stk500v2_set_varef;
   pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
+  pgm->setup          = stk500v2_setup;
+  pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
 }
