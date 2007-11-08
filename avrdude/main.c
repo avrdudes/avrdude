@@ -134,6 +134,8 @@ static void update_progress_tty (int percent, double etime, char *hdr)
   static int last = 0;
   int i;
 
+  setvbuf(stderr, (char*)NULL, _IONBF, 0);
+
   hashes[50] = 0;
 
   memset (hashes, ' ', 50);
@@ -156,6 +158,8 @@ static void update_progress_tty (int percent, double etime, char *hdr)
     last = 1;
     fprintf (stderr, "\n\n");
   }
+
+  setvbuf(stderr, (char*)NULL, _IOLBF, 0);
 }
 
 static void update_progress_no_tty (int percent, double etime, char *hdr)
@@ -163,6 +167,8 @@ static void update_progress_no_tty (int percent, double etime, char *hdr)
   static int done = 0;
   static int last = 0;
   int cnt = (percent>>1)*2;
+
+  setvbuf(stderr, (char*)NULL, _IONBF, 0);
 
   if (hdr) {
     fprintf (stderr, "\n%s | ", hdr);
@@ -183,6 +189,8 @@ static void update_progress_no_tty (int percent, double etime, char *hdr)
   }
   else
     last = (percent>>1)*2;    /* Make last a multiple of 2. */
+
+  setvbuf(stderr, (char*)NULL, _IOLBF, 0);
 }
 
 static void list_programmers_callback(const char *name, const char *desc,
