@@ -1,3 +1,9 @@
+2007-11-08 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* main.c: Partially revert the line buffered output change,
+	and turn stderr into unbuffered output while producing the
+	progress report.
+
 2007-11-07 Joerg Wunsch <j@uriah.heep.sax.de>
 
 	* main.c: Add setup and teardown hooks to the programmer
