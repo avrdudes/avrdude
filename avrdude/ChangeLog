@@ -1,0 +1,5 @@
+2008-01-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* stk500v2.c (stk500v2_recv): Make length computation unsigned so
+	it cannot accidentally become negative.
+
