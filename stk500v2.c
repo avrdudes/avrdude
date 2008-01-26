@@ -390,8 +390,8 @@ static int stk500v2_jtagmkII_recv(PROGRAMMER * pgm, unsigned char msg[],
 
 static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) {
   enum states { sINIT, sSTART, sSEQNUM, sSIZE1, sSIZE2, sTOKEN, sDATA, sCSUM, sDONE }  state = sSTART;
-  int msglen = 0;
-  int curlen = 0;
+  unsigned int msglen = 0;
+  unsigned int curlen = 0;
   int timeout = 0;
   unsigned char c, checksum = 0;
 
@@ -438,13 +438,13 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
         break;
       case sSIZE1:
         DEBUGRECV("hoping for size LSB\n");
-        msglen = c*256;
+        msglen = (unsigned)c * 256;
         state = sSIZE2;
         break;
       case sSIZE2:
         DEBUGRECV("hoping for size MSB...");
-        msglen += c;
-        DEBUG(" msg is %d bytes\n",msglen);
+        msglen += (unsigned)c;
+        DEBUG(" msg is %u bytes\n",msglen);
         state = sTOKEN;
         break;
       case sTOKEN:
@@ -495,7 +495,7 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
   } /* while */
   DEBUG("\n");
 
-  return msglen+6;
+  return (int)(msglen+6);
 }
 
 
