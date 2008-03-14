@@ -135,6 +135,9 @@ static int parse_cmdbits(OPCODE * op);
 %token K_STK500PP
 %token K_STK500V2
 %token K_STK500GENERIC
+%token K_STK600
+%token K_STK600HVSP
+%token K_STK600PP
 %token K_AVR910
 %token K_USBASP
 %token K_USBTINY
@@ -408,6 +411,24 @@ prog_parm :
   K_TYPE TKN_EQUAL K_STK500GENERIC {
     {
       stk500generic_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_STK600 {
+    {
+      stk600_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_STK600HVSP {
+    {
+      stk600hvsp_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_STK600PP {
+    {
+      stk600pp_initpgm(current_prog);
     }
   } |
 

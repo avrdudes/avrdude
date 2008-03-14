@@ -35,6 +35,11 @@ union filedescriptor
 {
   int ifd;
   void *pfd;
+  struct
+  {
+    void *handle;
+    int ep;
+  } usb;
 };
 
 struct serial_device

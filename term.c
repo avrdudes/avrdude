@@ -662,25 +662,42 @@ static int cmd_varef(PROGRAMMER * pgm, struct avrpart * p,
 		     int argc, char * argv[])
 {
   int rc;
+  unsigned int chan;
   double v;
   char *endp;
 
-  if (argc != 2) {
-    fprintf(stderr, "Usage: varef <value>\n");
+  if (argc != 2 && argc != 3) {
+    fprintf(stderr, "Usage: varef [channel] <value>\n");
     return -1;
   }
-  v = strtod(argv[1], &endp);
-  if (endp == argv[1]) {
-    fprintf(stderr, "%s (varef): can't parse voltage \"%s\"\n",
-            progname, argv[1]);
-    return -1;
+  if (argc == 2) {
+    chan = 0;
+    v = strtod(argv[1], &endp);
+    if (endp == argv[1]) {
+      fprintf(stderr, "%s (varef): can't parse voltage \"%s\"\n",
+              progname, argv[1]);
+      return -1;
+    }
+  } else {
+    chan = strtoul(argv[1], &endp, 10);
+    if (endp == argv[1]) {
+      fprintf(stderr, "%s (varef): can't parse channel \"%s\"\n",
+              progname, argv[1]);
+      return -1;
+    }
+    v = strtod(argv[2], &endp);
+    if (endp == argv[2]) {
+      fprintf(stderr, "%s (varef): can't parse voltage \"%s\"\n",
+              progname, argv[2]);
+      return -1;
+    }
   }
   if (pgm->set_varef == NULL) {
     fprintf(stderr, "%s (varef): the %s programmer cannot set V[aref]\n",
 	    progname, pgm->type);
     return -2;
   }
-  if ((rc = pgm->set_varef(pgm, v)) != 0) {
+  if ((rc = pgm->set_varef(pgm, chan, v)) != 0) {
     fprintf(stderr, "%s (varef): failed to set V[aref] (rc = %d)\n",
 	    progname, rc);
     return -3;

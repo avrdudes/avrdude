@@ -913,7 +913,8 @@ static int stk500_set_vtarget(PROGRAMMER * pgm, double v)
 }
 
 
-static int stk500_set_varef(PROGRAMMER * pgm, double v)
+static int stk500_set_varef(PROGRAMMER * pgm, unsigned int chan /* unused */,
+                            double v)
 {
   unsigned uaref, utarg;
 

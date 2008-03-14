@@ -16,6 +16,7 @@
 #       id       = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
 #       desc     = <description> ;                  # quoted string
 #       type     = par | stk500 | stk500v2 | stk500pp | stk500hvsp | stk500generic |
+#                  stk600 | stk600pp | stk600hvsp |
 #                  avr910 | butterfly | usbasp |
 #                  jtagmki | jtagmkii | jtagmkii_isp | jtagmkii_dw |
 #                  dragon_dw | dragon_jtag | dragon_isp | dragon_pp |
@@ -365,6 +366,24 @@ programmer
   id    = "stk500hvsp";
   desc  = "Atmel STK500 V2 in high-voltage serial programming mode";
   type  = stk500hvsp;
+;
+
+programmer
+  id    = "stk600";
+  desc  = "Atmel STK600";
+  type  = stk600;
+;
+
+programmer
+  id    = "stk600pp";
+  desc  = "Atmel STK600 in parallel programming mode";
+  type  = stk600pp;
+;
+
+programmer
+  id    = "stk600hvsp";
+  desc  = "Atmel STK600 in high-voltage serial programming mode";
+  type  = stk600hvsp;
 ;
 
 programmer

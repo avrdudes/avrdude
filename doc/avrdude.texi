@@ -30,7 +30,7 @@ For avrdude version @value{VERSION}, @value{UPDATED}.
 
 Copyright @copyright{} 2003, 2005 Brian Dean
 
-Copyright @copyright{} 2006, 2007 J@"org Wunsch
+Copyright @copyright{} 2006 - 2008 J@"org Wunsch
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -67,7 +67,7 @@ Use @uref{http://savannah.nongnu.org/bugs/?group=avrdude} to report bugs.
 
 Copyright @copyright{} 2003,2005 Brian S. Dean
 
-Copyright @copyright{} 2006 J@"org Wunsch
+Copyright @copyright{} 2006 - 2008 J@"org Wunsch
 @sp 2
 
 Permission is granted to make and distribute verbatim copies of
@@ -113,6 +113,7 @@ Copyright @copyright{} 2006 J@"org Wunsch
 * Command Line Options::
 * Terminal Mode Operation::
 * Configuration File::          
+* Programmer Specific Information::
 * Platform Dependent Information::
 * Troubleshooting::
 @end menu
@@ -143,6 +144,7 @@ programming fuse/lock bits, etc.
 
 AVRDUDE supports the following basic programmer types: Atmel's STK500,
 Atmel's AVRISP and AVRISP mkII devices,
+Atmel's STK600,
 Atmel's JTAG ICE (both mkI and mkII, the latter also in ISP mode), appnote
 avr910, appnote avr109 (including the AVR Butterfly),
 serial bit-bang adapters,
@@ -164,7 +166,10 @@ emulated on top of USB is likely to not work at all, or to work
 abysmally slow.
 
 The STK500, JTAG ICE, avr910, and avr109/butterfly use the serial port to communicate with the PC.
-The STK500, JTAG ICE, and avr910 contain on-board logic to control the programming of the target
+The STK600, JTAG ICE mkII, AVRISP mkII, USBasp, and USBtinyISP
+programmers communicate through the USB, using @code{libusb} as a
+platform abstraction layer.
+The STK500, STK600, JTAG ICE, and avr910 contain on-board logic to control the programming of the target
 device.
 The avr109 bootloader implements a protocol similar to avr910, but is
 actually implemented in the boot area of the target's flash ROM, as
@@ -186,7 +191,6 @@ For the JTAG ICE mkII, JTAG, debugWire and ISP mode are supported.
 See below for the limitations of debugWire.
 
 The AVR Dragon is supported in all modes (ISP, JTAG, HVSP, PP, debugWire).
-(High-voltage programming is not yet supported.)
 When used in JTAG and debugWire mode, the AVR Dragon behaves similar to a
 JTAG ICE mkII, so all device-specific comments for that device
 will apply as well.
@@ -463,6 +467,12 @@ Atmel STK500 in parallel programming mode (version 2.xfirmware only)
 Atmel STK500, running a version 1.x firmware
 @item @code{stk500v2}    @tab
 Atmel STK500, running a version 2.x firmware
+@item @code{stk600}      @tab
+Atmel STK600 in ISP mode
+@item @code{stk600hvsp}  @tab
+Atmel STK600 in high-voltage serial programming mode
+@item @code{stk600pp}    @tab
+Atmel STK600 in parallel programming mode
 @item @code{usbasp}      @tab
 USBasp,@*
 @url{http://www.fischl.de/usbasp/}
@@ -1043,17 +1053,20 @@ Leave terminal mode and thus AVRDUDE.
 
 @noindent
 In addition, the following commands are supported on the STK500
-programmer:
+and STK600 programmer:
 
 @table @code
 
 @item vtarg @var{voltage}
 Set the target's supply voltage to @var{voltage} Volts.
 
-@item varef @var{voltage}
+@item varef @var{[channel]} @var{voltage}
 Set the adjustable voltage source to @var{voltage} Volts.
 This voltage is normally used to drive the target's
-@emph{Aref} input on the STK500.
+@emph{Aref} input on the STK500 and STK600.
+The STK600 offers two reference voltages, which can be
+selected by the optional parameter @var{channel} (either
+0 or 1).
 
 @item fosc @var{freq}[@var{M}|@var{k}]
 Set the master oscillator to @var{freq} Hz.
@@ -1064,7 +1077,7 @@ multiplies by 1E6, a trailing letter @var{k} by 1E3.
 Turn the master oscillator off.
 
 @item sck @var{period}
-@emph{STK500 only:}
+@emph{STK500 and STK600 only:}
 Set the SCK clock period to @var{period} microseconds.
 
 @emph{JTAG ICE only:}
@@ -1076,7 +1089,7 @@ This parameter can also be used on the JTAG ICE mkII to specify the
 ISP clock period when operating the ICE in ISP mode.
 
 @item parms
-@emph{STK500 only:}
+@emph{STK500 and STK600 only:}
 Display the current voltage and master oscillator parameters.
 
 @emph{JTAG ICE only:}
@@ -1191,7 +1204,7 @@ avrdude>
 @c
 @c Node
 @c
-@node Configuration File, Platform Dependent Information, Terminal Mode Operation, Top
+@node Configuration File, Programmer Specific Information, Terminal Mode Operation, Top
 @chapter Configuration File
 
 @noindent
@@ -1432,11 +1445,87 @@ functionality does not make sense for these boot loaders.
 
 @end itemize
 
+@c
+@c Node
+@c
+@node Programmer Specific Information, Platform Dependent Information, Configuration File, Top
+@chapter Programmer Specific Information
+
+@menu
+* Atmel STK600::
+@end menu
 
 @c
 @c Node
 @c
-@node Platform Dependent Information, Troubleshooting, Configuration File, Top
+@node Atmel STK600, , Programmer Specific Information, Programmer Specific Information
+@section Atmel STK600
+
+@c
+@c Update the table below by running the tools/get-stk600-devices.xsl
+@c XSLT transformation on targetboard.xml as shipped by the latest
+@c release of AVR Studio.
+@c
+The following devices are supported by the respective STK600 routing
+and socket card:
+
+@multitable @columnfractions .25 .25 .5
+@headitem Routing card @tab Socket card @tab Devices
+@item @code{STK600-RC008T-2} @tab @code{STK600-DIP} @tab ATtiny11 ATtiny12 ATtiny13 ATtiny25 ATtiny45 ATtiny85
+@item @code{STK600-RC008T-7} @tab @code{STK600-DIP} @tab ATtiny15
+@item @code{STK600-RC020T-1} @tab @code{STK600-DIP} @tab ATtiny2313
+@item @code{} @tab @code{STK600-TinyX3U} @tab ATtiny43U
+@item @code{STK600-RC014T-12} @tab @code{STK600-DIP} @tab ATtiny24 ATtiny44 ATtiny84
+@item @code{STK600-RC020T-8} @tab @code{STK600-DIP} @tab ATtiny26 ATtiny261 ATtiny461 ATtiny861
+@item @code{STK600-RC020T-23} @tab @code{STK600-SOIC} @tab ATtiny167
+@item @code{STK600-RC028T-3} @tab @code{STK600-DIP} @tab ATtiny28
+@item @code{STK600-RC028M-6} @tab @code{STK600-DIP} @tab ATtiny48 ATtiny88 ATmega8 ATmega48 ATmega88 ATmega168 ATmega48P ATmega88P ATmega168P ATmega328P
+@item @code{STK600-RC040M-4} @tab @code{STK600-DIP} @tab ATmega8515 ATmega162
+@item @code{STK600-RC040M-5} @tab @code{STK600-DIP} @tab ATmega8535 ATmega16 ATmega32 ATmega164P ATmega324P ATmega644 ATmega644P ATmega1284P
+@item @code{STK600-RC064M-9} @tab @code{STK600-TQFP64} @tab ATmega64 ATmega128 ATmega1281 ATmega2561 AT90CAN32 AT90CAN64 AT90CAN128
+@item @code{STK600-RC064M-10} @tab @code{STK600-TQFP64} @tab ATmega165 ATmega165P ATmega169 ATmega169P ATmega325 ATmega325P ATmega329 ATmega329P ATmega645 ATmega649
+@item @code{STK600-RC100M-11} @tab @code{STK600-TQFP100} @tab ATmega640 ATmega1280 ATmega2560
+@item @code{} @tab @code{STK600-ATMEGA2560} @tab ATmega2560
+@item @code{STK600-RC100M-18} @tab @code{STK600-TQFP100} @tab ATmega3250 ATmega3250P ATmega3290 ATmega3290P ATmega6450 ATmega6490
+@item @code{STK600-RC32U-20} @tab @code{STK600-TQFP32} @tab AT90USB82 AT90USB162
+@item @code{STK600-RC044U-25} @tab @code{STK600-TQFP44} @tab ATmega32U4
+@item @code{STK600-RC064U-17} @tab @code{STK600-TQFP64} @tab AT90USB646 AT90USB1286 AT90USB647 AT90USB1287
+@item @code{STK600-RCPWM-22} @tab @code{STK600-TQFP32} @tab ATmega32C1 ATmega32M1
+@item @code{STK600-RCPWM-19} @tab @code{STK600-SOIC} @tab AT90PWM2 AT90PWM3 AT90PWM2B AT90PWM3B AT90PWM216 AT90PWM316
+@item @code{STK600-RC044M-24} @tab @code{STK600-TSSOP44} @tab ATmega32HVB
+@item @code{STK600-RC100X-13} @tab @code{STK600-TQFP100} @tab ATxmega128A1 ATxmega128A1_revD ATxmega64A1
+@item @code{} @tab @code{STK600-uC3-144} @tab AT32UC3A0512 AT32UC3A0256 AT32UC3A0128
+@item @code{STK600-RCuC3B0-21} @tab @code{STK600-TQFP64-2} @tab AT32UC3B0256 AT32UC3B0128 AT32UC3B064
+@end multitable
+
+Ensure the correct socket and routing card are mounted @emph{before}
+powering on the STK600.  While the STK600 firmware ensures the socket
+and routing card mounted match each other (using a table stored
+internally in nonvolatile memory), it cannot handle the case where a
+wrong routing card is used, e. g. the routing card
+@code{STK600-RC040M-5} (which is meant for 40-pin DIP AVRs that have
+an ADC, with the power supply pins in the center of the package) was
+used but an ATmega8515 inserted (which uses the ``industry standard''
+pinout with Vcc and GND at opposite corners).
+
+Note that for devices that use the routing card @code{STK600-RC008T-2},
+in order to use ISP mode, the jumper for @code{AREF0} must be removed
+as it would otherwise block one of the ISP signals.  High-voltage
+serial programming can be used even with that jumper installed.
+
+The ISP system of the STK600 contains a detection against shortcuts
+and other wiring errors.  AVRDUDE initiates a connection check before
+trying to enter ISP programming mode, and display the result if the
+target is not found ready to be ISP programmed.
+
+High-voltage programming requires the target voltage to be set to at
+least 4.5 V in order to work.  This can be done using
+@emph{Terminal Mode}, see @ref{Terminal Mode Operation}.
+
+@c
+@c Node
+@c
+@node Platform Dependent Information, Troubleshooting, Programmer Specific Information, Top
 @appendix Platform Dependent Information
 
 @menu
@@ -1951,7 +2040,7 @@ programming works, and is documented that way in the Atmel AVR
 datasheets.
 In order to successfully program the EEPROM that way, a prior chip
 erase (with the EESAVE fuse unprogrammed) is required.
-This also applies to the STK500 in high-voltage programming mode.
+This also applies to the STK500 and STK600 in high-voltage programming mode.
 
 @item
 Problem: How do I turn off the @var{DWEN} fuse?

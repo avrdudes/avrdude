@@ -92,7 +92,7 @@ typedef struct programmer_t {
   int  (*read_sig_bytes) (struct programmer_t * pgm, AVRPART * p, AVRMEM * m);
   void (*print_parms)    (struct programmer_t * pgm);
   int  (*set_vtarget)    (struct programmer_t * pgm, double v);
-  int  (*set_varef)      (struct programmer_t * pgm, double v);
+  int  (*set_varef)      (struct programmer_t * pgm, unsigned int chan, double v);
   int  (*set_fosc)       (struct programmer_t * pgm, double v);
   int  (*set_sck_period) (struct programmer_t * pgm, double v);
   int  (*setpin)         (struct programmer_t * pgm, int pin, int value);

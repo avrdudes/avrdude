@@ -59,6 +59,7 @@ static void usbdev_open(char * port, long baud, union filedescriptor *fd)
   struct usb_device *dev;
   usb_dev_handle *udev;
   char *serno, *cp2;
+  int i;
   size_t x;
 
   /*
@@ -187,7 +188,33 @@ static void usbdev_open(char * port, long baud, union filedescriptor *fd)
 		      goto trynext;
 		    }
 
-		  fd->pfd = udev;
+		  fd->usb.handle = udev;
+		  fd->usb.ep = -1;
+		  /* Try finding out what our read endpoint is. */
+		  for (i = 0; i < dev->config[0].interface[0].altsetting[0].bNumEndpoints; i++)
+		    {
+		      int possible_ep = dev->config[0].interface[0].altsetting[0].
+		      endpoint[i].bEndpointAddress;
+
+		      if ((possible_ep & USB_ENDPOINT_DIR_MASK) != 0)
+			{
+			  if (verbose > 1)
+			    {
+			      fprintf(stderr,
+				      "%s: usbdev_open(): using read endpoint 0x%02x\n",
+				      progname, possible_ep);
+			    }
+			  fd->usb.ep = possible_ep;
+			  break;
+			}
+		    }
+		  if (fd->usb.ep == -1)
+		    {
+		      fprintf(stderr,
+			      "%s: usbdev_open(): cannot find a read endpoint, using 0x%02x\n",
+			      progname, USBDEV_BULK_EP_READ);
+		      fd->usb.ep = USBDEV_BULK_EP_READ;
+		    }
                   return;
 		}
 	      trynext:
@@ -203,7 +230,7 @@ static void usbdev_open(char * port, long baud, union filedescriptor *fd)
 
 static void usbdev_close(union filedescriptor *fd)
 {
-  usb_dev_handle *udev = (usb_dev_handle *)fd->pfd;
+  usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
 
   (void)usb_release_interface(udev, usb_interface);
 
@@ -219,7 +246,7 @@ static void usbdev_close(union filedescriptor *fd)
 
 static int usbdev_send(union filedescriptor *fd, unsigned char *bp, size_t mlen)
 {
-  usb_dev_handle *udev = (usb_dev_handle *)fd->pfd;
+  usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
   int rv;
   int i = mlen;
   unsigned char * p = bp;
@@ -276,11 +303,11 @@ static int usbdev_send(union filedescriptor *fd, unsigned char *bp, size_t mlen)
  * empty and more data are requested.
  */
 static int
-usb_fill_buf(usb_dev_handle *udev)
+usb_fill_buf(usb_dev_handle *udev, int ep)
 {
   int rv;
 
-  rv = usb_bulk_read(udev, USBDEV_BULK_EP_READ, usbbuf, USBDEV_MAX_XFER, 5000);
+  rv = usb_bulk_read(udev, ep, usbbuf, USBDEV_MAX_XFER, 5000);
   if (rv < 0)
     {
       if (verbose > 1)
@@ -297,7 +324,7 @@ usb_fill_buf(usb_dev_handle *udev)
 
 static int usbdev_recv(union filedescriptor *fd, unsigned char *buf, size_t nbytes)
 {
-  usb_dev_handle *udev = (usb_dev_handle *)fd->pfd;
+  usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
   int i, amnt;
   unsigned char * p = buf;
 
@@ -305,7 +332,7 @@ static int usbdev_recv(union filedescriptor *fd, unsigned char *buf, size_t nbyt
     {
       if (buflen <= bufptr)
 	{
-	  if (usb_fill_buf(udev) < 0)
+	  if (usb_fill_buf(udev, fd->usb.ep) < 0)
 	    return -1;
 	}
       amnt = buflen - bufptr > nbytes? nbytes: buflen - bufptr;
@@ -349,7 +376,7 @@ static int usbdev_recv(union filedescriptor *fd, unsigned char *buf, size_t nbyt
  */
 static int usbdev_recv_frame(union filedescriptor *fd, unsigned char *buf, size_t nbytes)
 {
-  usb_dev_handle *udev = (usb_dev_handle *)fd->pfd;
+  usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
   int rv, n;
   int i;
   unsigned char * p = buf;
@@ -357,7 +384,7 @@ static int usbdev_recv_frame(union filedescriptor *fd, unsigned char *buf, size_
   n = 0;
   do
     {
-      rv = usb_bulk_read(udev, USBDEV_BULK_EP_READ, usbbuf,
+      rv = usb_bulk_read(udev, fd->usb.ep, usbbuf,
 			 USBDEV_MAX_XFER, 10000);
       if (rv < 0)
 	{
@@ -406,11 +433,11 @@ static int usbdev_recv_frame(union filedescriptor *fd, unsigned char *buf, size_
 
 static int usbdev_drain(union filedescriptor *fd, int display)
 {
-  usb_dev_handle *udev = (usb_dev_handle *)fd->pfd;
+  usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
   int rv;
 
   do {
-    rv = usb_bulk_read(udev, USBDEV_BULK_EP_READ, usbbuf, USBDEV_MAX_XFER, 100);
+    rv = usb_bulk_read(udev, fd->usb.ep, usbbuf, USBDEV_MAX_XFER, 100);
     if (rv > 0 && verbose >= 4)
       fprintf(stderr, "%s: usbdev_drain(): flushed %d characters\n",
 	      progname, rv);

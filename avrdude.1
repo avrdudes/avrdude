@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE November 6, 2007
+.Dd DATE March 14, 2008
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -59,6 +59,7 @@ microcontrollers.
 .Nm Avrdude
 supports Atmel's STK500 programmer,
 Atmel's AVRISP and AVRISP mkII devices,
+Atmel's STK600,
 Atmel's JTAG ICE (both mkI and mkII, the latter also in ISP mode),
 programmers complying to AppNote AVR910 and AVR109 (including the Butterfly),
 as well as a simple hard-wired
@@ -105,6 +106,9 @@ different programmer type specification (by now).
 Using firmware version 2, high-voltage programming is also supported,
 both parallel and serial
 (programmer types stk500pp and stk500hvsp).
+.Pp
+Atmel's STK600 programmer is supported in ISP and high-voltage
+programming modes, and connects through the USB.
 .Pp
 The simple serial programmer described in Atmel's application note
 AVR910, and the bootloader described in Atmel's application note
@@ -161,7 +165,7 @@ been code-protected previously, of course) and store the data in a
 file.  Finally, a ``terminal'' mode is available that allows one to
 interactively communicate with the MCU, and to display or program
 individual memory cells.
-On the STK500 programmer, several operational parameters (target supply
+On the STK500 and STK600 programmer, several operational parameters (target supply
 voltage, target Aref voltage, master clock) can be examined and changed
 from within terminal mode as well.
 .Ss Options
@@ -661,15 +665,19 @@ device, read/write timing, etc.
 Set the target's supply voltage to
 .Ar voltage
 Volts.
-.Em Only supported on the STK500 programmer.
-.It Ar varef voltage
+.Em Only supported on the STK500 and STK600 programmer.
+.It Ar varef Op channel Ar voltage
 Set the adjustable voltage source to
 .Ar voltage
 Volts.
 This voltage is normally used to drive the target's
 .Em Aref
 input on the STK500.
-.Em Only supported on the STK500 programmer.
+On the Atmel STK600, two reference voltages are available, which
+can be selected by the optional
+.Ar channel
+argument (either 0 or 1).
+.Em Only supported on the STK500 and STK600 programmer.
 .It Ar fosc freq Ns Op M Ns \&| Ns k
 Set the master oscillator to
 .Ar freq
@@ -679,12 +687,12 @@ An optional trailing letter
 multiplies by 1E6, a trailing letter
 .Ar \&k
 by 1E3.
-.Em Only supported on the STK500 programmer.
+.Em Only supported on the STK500 and STK600 programmer.
 .It Ar fosc off
 Turn the master oscillator off.
-.Em Only supported on the STK500 programmer.
+.Em Only supported on the STK500 and STK600 programmer.
 .It Ar sck period
-.Em STK500 programmer only:
+.Em STK500 and STK600 programmer only:
 Set the SCK clock period to
 .Ar period
 microseconds.
@@ -699,7 +707,7 @@ software signs off from the JTAG ICE.
 This parameter can also be used on the JTAG ICE mkII to specify the
 ISP clock period when operating the ICE in ISP mode.
 .It Ar parms
-.Em STK500 programmer only:
+.Em STK500 and STK600 programmer only:
 Display the current voltage and master oscillator parameters.
 .Pp
 .Em JTAG ICE only:
@@ -844,7 +852,7 @@ Page-mode programming the EEPROM through JTAG (i.e. through an
 .Fl U
 option) requires a prior chip erase.
 This is an inherent feature of the way JTAG EEPROM programming works.
-This also applies to the STK500 in parallel programming mode.
+This also applies to the STK500 and STK600 in parallel programming mode.
 .Pp
 The USBasp and USBtinyISP drivers do not offer any option to distinguish multiple
 devices connected simultaneously, so effectively only a single device
