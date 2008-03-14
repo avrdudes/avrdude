@@ -38,6 +38,7 @@
 
 #include "ac_cfg.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -109,6 +110,16 @@ struct pdata
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
 
+/*
+ * Data structure for displaying STK600 routing and socket cards.
+ */
+struct carddata
+{
+  int id;
+  const char *name;
+};
+
+/* XXX That should become part of the private pgm-> data. */
 static enum
 {
   PGMTYPE_UNKNOWN,
@@ -116,6 +127,7 @@ static enum
   PGMTYPE_AVRISP,
   PGMTYPE_AVRISP_MKII,
   PGMTYPE_JTAGICE_MKII,
+  PGMTYPE_STK600,
 }
 pgmtype;
 
@@ -126,7 +138,11 @@ static const char *pgmname[] =
   "AVRISP",
   "AVRISP mkII",
   "JTAG ICE mkII",
+  "STK600",
 };
+
+/* XXX That should become part of the private pgm-> data. */
+static AVRPART *lastpart;
 
 struct jtagispentry
 {
@@ -191,6 +207,9 @@ static struct jtagispentry jtagispcmds[] = {
 
 static int stk500v2_getparm(PROGRAMMER * pgm, unsigned char parm, unsigned char * value);
 static int stk500v2_setparm(PROGRAMMER * pgm, unsigned char parm, unsigned char value);
+static int stk500v2_getparm2(PROGRAMMER * pgm, unsigned char parm, unsigned int * value);
+static int stk500v2_setparm2(PROGRAMMER * pgm, unsigned char parm, unsigned int value);
+static int stk500v2_setparm_real(PROGRAMMER * pgm, unsigned char parm, unsigned char value);
 static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p);
 static int stk500v2_is_page_empty(unsigned int address, int page_size,
                                   const unsigned char *buf);
@@ -198,6 +217,8 @@ static int stk500v2_is_page_empty(unsigned int address, int page_size,
 static unsigned int stk500v2_mode_for_pagesize(unsigned int pagesize);
 
 static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v);
+
+static int stk600_set_sck_period(PROGRAMMER * pgm, double v);
 
 static void stk500v2_setup(PROGRAMMER * pgm)
 {
@@ -301,7 +322,7 @@ static int stk500v2_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
   unsigned char buf[275 + 6];		// max MESSAGE_BODY of 275 bytes, 6 bytes overhead
   int i;
 
-  if (pgmtype == PGMTYPE_AVRISP_MKII)
+  if (pgmtype == PGMTYPE_AVRISP_MKII || pgmtype == PGMTYPE_STK600)
     return stk500v2_send_mk2(pgm, data, len);
   else if (pgmtype == PGMTYPE_JTAGICE_MKII)
     return stk500v2_jtagmkII_send(pgm, data, len);
@@ -399,7 +420,7 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
   struct timeval tv;
   double tstart, tnow;
 
-  if (pgmtype == PGMTYPE_AVRISP_MKII)
+  if (pgmtype == PGMTYPE_AVRISP_MKII || pgmtype == PGMTYPE_STK600)
     return stk500v2_recv_mk2(pgm, msg, maxsize);
   else if (pgmtype == PGMTYPE_JTAGICE_MKII)
     return stk500v2_jtagmkII_recv(pgm, msg, maxsize);
@@ -535,6 +556,9 @@ retry:
       } else if (siglen >= strlen("AVRISP_MK2") &&
 		 memcmp(resp + 3, "AVRISP_MK2", strlen("AVRISP_MK2")) == 0) {
 	pgmtype = PGMTYPE_AVRISP_MKII;
+      } else if (siglen >= strlen("STK600") &&
+	  memcmp(resp + 3, "STK600", strlen("STK600")) == 0) {
+	pgmtype = PGMTYPE_STK600;
       } else {
 	resp[siglen + 3] = 0;
 	if (verbose)
@@ -740,17 +764,72 @@ static int stk500hvsp_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   return stk500hv_chip_erase(pgm, p, HVSPMODE);
 }
 
+static struct
+{
+  unsigned int state;
+  const char *description;
+} connection_status[] =
+{
+  { STATUS_CONN_FAIL_MOSI, "MOSI fail" },
+  { STATUS_CONN_FAIL_RST, "RST fail" },
+  { STATUS_CONN_FAIL_SCK, "SCK fail" },
+  { STATUS_TGT_NOT_DETECTED, "Target not detected" },
+  { STATUS_TGT_REVERSE_INSERTED, "Target reverse inserted" },
+  { STATUS_CONN_FAIL_MOSI | STATUS_CONN_FAIL_RST,
+    "MOSI and RST fail" },
+  { STATUS_CONN_FAIL_MOSI | STATUS_CONN_FAIL_RST | STATUS_CONN_FAIL_SCK,
+    "MOSI, RST, and SCK fail" },
+  { STATUS_CONN_FAIL_RST | STATUS_CONN_FAIL_SCK,
+    "RST and SCK fail" },
+  { STATUS_CONN_FAIL_MOSI | STATUS_CONN_FAIL_SCK,
+    "MOSI and SCK fail" },
+};
+
 /*
  * issue the 'program enable' command to the AVR device
  */
 static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
 {
   unsigned char buf[16];
+  size_t i;
+  const char *msg;
+  int rv;
+
+  lastpart = p;
 
   if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
     fprintf(stderr, "%s: stk500v2_program_enable(): program enable instruction not defined for part \"%s\"\n",
             progname, p->desc);
     return -1;
+  }
+
+  if (pgmtype == PGMTYPE_STK500 || pgmtype == PGMTYPE_STK600)
+      /* Activate AVR-style (low active) RESET */
+      stk500v2_setparm_real(pgm, PARAM_RESET_POLARITY, 0x01);
+
+  if (pgmtype == PGMTYPE_STK600) {
+    buf[0] = CMD_CHECK_TARGET_CONNECTION;
+    if (stk500v2_command(pgm, buf, 1, sizeof(buf)) < 0) {
+      fprintf(stderr, "%s: stk500v2_program_enable(): cannot get connection status\n",
+            progname);
+      return -1;
+    }
+    if (buf[2] != STATUS_ISP_READY) {
+      msg = "Unknown";
+
+      for (i = 0;
+           i < sizeof connection_status / sizeof connection_status[0];
+           i++)
+        if (connection_status[i].state == (unsigned)buf[2]) {
+          msg = connection_status[i].description;
+          break;
+        }
+
+      fprintf(stderr, "%s: stk500v2_program_enable():"
+              " bad STK600 connection status: %s (0x%02x)\n",
+            progname, msg, buf[2]);
+      return -1;
+    }
   }
 
   buf[0] = CMD_ENTER_PROGMODE_ISP;
@@ -762,8 +841,34 @@ static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
   buf[6] = p->pollvalue;
   buf[7] = p->pollindex;
   avr_set_bits(p->op[AVR_OP_PGM_ENABLE], buf+8);
+  buf[10] = buf[11] = 0;
 
-  return stk500v2_command(pgm, buf, 12, sizeof(buf));
+  rv = stk500v2_command(pgm, buf, 12, sizeof(buf));
+
+  if (rv < 0) {
+    buf[0] = CMD_CHECK_TARGET_CONNECTION;
+    if (stk500v2_command(pgm, buf, 1, sizeof(buf)) < 0) {
+      fprintf(stderr, "%s: stk500v2_program_enable(): cannot get connection status\n",
+            progname);
+      return -1;
+    }
+
+    msg = "Unknown";
+
+    for (i = 0;
+	 i < sizeof connection_status / sizeof connection_status[0];
+	 i++)
+      if (connection_status[i].state == (unsigned)buf[2]) {
+	msg = connection_status[i].description;
+	break;
+      }
+
+    fprintf(stderr, "%s: stk500v2_program_enable():"
+	    " bad STK600 connection status: %s (0x%02x)\n",
+            progname, msg, buf[2]);
+  }
+
+  return rv;
 }
 
 /*
@@ -772,6 +877,8 @@ static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
 static int stk500pp_program_enable(PROGRAMMER * pgm, AVRPART * p)
 {
   unsigned char buf[16];
+
+  lastpart = p;
 
   buf[0] = CMD_ENTER_PROGMODE_PP;
   buf[1] = p->hventerstabdelay;
@@ -792,7 +899,11 @@ static int stk500hvsp_program_enable(PROGRAMMER * pgm, AVRPART * p)
 {
   unsigned char buf[16];
 
-  buf[0] = CMD_ENTER_PROGMODE_HVSP;
+  lastpart = p;
+
+  buf[0] = pgmtype == PGMTYPE_STK600?
+  CMD_ENTER_PROGMODE_HVSP_STK600:
+  CMD_ENTER_PROGMODE_HVSP;
   buf[1] = p->hventerstabdelay;
   buf[2] = p->hvspcmdexedelay;
   buf[3] = p->synchcycles;
@@ -934,7 +1045,10 @@ static void stk500hv_disable(PROGRAMMER * pgm, enum hvmode mode)
   free(PDATA(pgm)->eeprom_pagecache);
   PDATA(pgm)->eeprom_pagecache = NULL;
 
-  buf[0] = mode == PPMODE? CMD_LEAVE_PROGMODE_PP: CMD_LEAVE_PROGMODE_HVSP;
+  buf[0] = mode == PPMODE? CMD_LEAVE_PROGMODE_PP:
+  (pgmtype == PGMTYPE_STK600?
+   CMD_LEAVE_PROGMODE_HVSP_STK600:
+   CMD_LEAVE_PROGMODE_HVSP);
   buf[1] = 15;  // p->hvleavestabdelay;
   buf[2] = 15;  // p->resetdelay;
 
@@ -1006,6 +1120,56 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
     baud = USB_DEVICE_AVRISPMKII;
     pgmtype = PGMTYPE_AVRISP_MKII;
     pgm->set_sck_period = stk500v2_set_sck_period_mk2;
+#else
+    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    return -1;
+#endif
+  }
+
+  strcpy(pgm->port, port);
+  serial_open(port, baud, &pgm->fd);
+
+  /*
+   * drain any extraneous input
+   */
+  stk500v2_drain(pgm, 0);
+
+  stk500v2_getsync(pgm);
+
+  stk500v2_drain(pgm, 0);
+
+  if (pgm->bitclock != 0.0) {
+    if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
+      return -1;
+  }
+
+  return 0;
+}
+
+
+static int stk600_open(PROGRAMMER * pgm, char * port)
+{
+  long baud = 115200;
+
+  DEBUG("STK500V2: stk600_open()\n");
+
+  if (pgm->baudrate)
+    baud = pgm->baudrate;
+
+  pgmtype = PGMTYPE_UNKNOWN;
+
+  /*
+   * If the port name starts with "usb", divert the serial routines
+   * to the USB ones.  The serial_open() function for USB overrides
+   * the meaning of the "baud" parameter to be the USB device ID to
+   * search for.
+   */
+  if (strncmp(port, "usb", 3) == 0) {
+#if defined(HAVE_LIBUSB)
+    serdev = &usb_serdev_frame;
+    baud = USB_DEVICE_STK600;
+    pgmtype = PGMTYPE_STK600;
+    pgm->set_sck_period = stk600_set_sck_period;
 #else
     fprintf(stderr, "avrdude was compiled without usb support.\n");
     return -1;
@@ -1837,7 +2001,8 @@ static int stk500v2_set_vtarget(PROGRAMMER * pgm, double v)
 }
 
 
-static int stk500v2_set_varef(PROGRAMMER * pgm, double v)
+static int stk500v2_set_varef(PROGRAMMER * pgm, unsigned int chan /* unused */,
+                              double v)
 {
   unsigned char uaref, utarg;
 
@@ -2006,6 +2171,122 @@ static int stk500v2_set_sck_period(PROGRAMMER * pgm, double v)
 }
 
 
+static int stk600_set_vtarget(PROGRAMMER * pgm, double v)
+{
+  unsigned char utarg;
+  unsigned int uaref;
+  int rv;
+
+  utarg = (unsigned)((v + 0.049) * 10);
+
+  if (stk500v2_getparm2(pgm, PARAM2_AREF0, &uaref) != 0) {
+    fprintf(stderr,
+	    "%s: stk500v2_set_vtarget(): cannot obtain V[aref][0]\n",
+	    progname);
+    return -1;
+  }
+
+  if (uaref > (unsigned)utarg * 10) {
+    fprintf(stderr,
+	    "%s: stk500v2_set_vtarget(): reducing V[aref][0] from %.2f to %.1f\n",
+	    progname, uaref / 100.0, v);
+    uaref = 10 * (unsigned)utarg;
+    if (stk500v2_setparm2(pgm, PARAM2_AREF0, uaref)
+	!= 0)
+      return -1;
+  }
+
+  if (stk500v2_getparm2(pgm, PARAM2_AREF1, &uaref) != 0) {
+    fprintf(stderr,
+	    "%s: stk500v2_set_vtarget(): cannot obtain V[aref][1]\n",
+	    progname);
+    return -1;
+  }
+
+  if (uaref > (unsigned)utarg * 10) {
+    fprintf(stderr,
+	    "%s: stk500v2_set_vtarget(): reducing V[aref][1] from %.2f to %.1f\n",
+	    progname, uaref / 100.0, v);
+    uaref = 10 * (unsigned)utarg;
+    if (stk500v2_setparm2(pgm, PARAM2_AREF1, uaref)
+	!= 0)
+      return -1;
+  }
+
+  /*
+   * Vtarget on the STK600 can only be adjusted while not being in
+   * programming mode.
+   */
+  pgm->disable(pgm);
+  rv = stk500v2_setparm(pgm, PARAM_VTARGET, utarg);
+  pgm->program_enable(pgm, lastpart);
+
+  return rv;
+}
+
+
+static int stk600_set_varef(PROGRAMMER * pgm, unsigned int chan, double v)
+{
+  unsigned char utarg;
+  unsigned int uaref;
+
+  uaref = (unsigned)((v + 0.0049) * 100);
+
+  if (stk500v2_getparm(pgm, PARAM_VTARGET, &utarg) != 0) {
+    fprintf(stderr,
+	    "%s: stk500v2_set_varef(): cannot obtain V[target]\n",
+	    progname);
+    return -1;
+  }
+
+  if (uaref > (unsigned)utarg * 10) {
+    fprintf(stderr,
+	    "%s: stk500v2_set_varef(): V[aref] must not be greater than "
+	    "V[target] = %.1f\n",
+	    progname, utarg / 10.0);
+    return -1;
+  }
+
+  switch (chan)
+  {
+  case 0:
+    return stk500v2_setparm2(pgm, PARAM2_AREF0, uaref);
+
+  case 1:
+    return stk500v2_setparm2(pgm, PARAM2_AREF1, uaref);
+
+  default:
+    fprintf(stderr,
+	    "%s: stk500v2_set_varef(): invalid channel %d\n",
+	    progname, chan);
+    return -1;
+  }
+}
+
+
+static int stk600_set_fosc(PROGRAMMER * pgm, double v)
+{
+  unsigned int oct, dac;
+
+  oct = 1.443 * log(v / 1039.0);
+  dac = 2048 - (2078.0 * pow(2, (double)(10 + oct))) / v;
+
+  return stk500v2_setparm2(pgm, PARAM2_CLOCK_CONF, (oct << 12) | (dac << 2));
+}
+
+static int stk600_set_sck_period(PROGRAMMER * pgm, double v)
+{
+  unsigned int sck;
+
+  sck = ceil((16e6 / (2 * 1.0 / v)) - 1);
+
+  if (sck >= 4096)
+    sck = 4095;
+
+  return stk500v2_setparm2(pgm, PARAM2_SCK_DURATION, sck);
+}
+
+
 static int stk500v2_getparm(PROGRAMMER * pgm, unsigned char parm, unsigned char * value)
 {
   unsigned char buf[32];
@@ -2059,9 +2340,108 @@ static int stk500v2_setparm(PROGRAMMER * pgm, unsigned char parm, unsigned char 
   return stk500v2_setparm_real(pgm, parm, value);
 }
 
+static int stk500v2_getparm2(PROGRAMMER * pgm, unsigned char parm, unsigned int * value)
+{
+  unsigned char buf[32];
+
+  buf[0] = CMD_GET_PARAMETER;
+  buf[1] = parm;
+
+  if (stk500v2_command(pgm, buf, 2, sizeof(buf)) < 0) {
+    fprintf(stderr,"%s: stk500v2_getparm2(): failed to get parameter 0x%02x\n",
+            progname, parm);
+    return -1;
+  }
+
+  *value = ((unsigned)buf[2] << 8) | buf[3];
+
+  return 0;
+}
+
+static int stk500v2_setparm2(PROGRAMMER * pgm, unsigned char parm, unsigned int value)
+{
+  unsigned char buf[32];
+
+  buf[0] = CMD_SET_PARAMETER;
+  buf[1] = parm;
+  buf[2] = value >> 8;
+  buf[3] = value;
+
+  if (stk500v2_command(pgm, buf, 4, sizeof(buf)) < 0) {
+    fprintf(stderr, "\n%s: stk500v2_setparm2(): failed to set parameter 0x%02x\n",
+            progname, parm);
+    return -1;
+  }
+
+  return 0;
+}
+
+/*
+ * These two tables can be semi-automatically updated from
+ * targetboards.xml using tools/get-stk600-cards.xsl.
+ */
+static struct carddata routing_cards[] =
+{
+  { 0x01, "STK600-RC020T-1" },
+  { 0x03, "STK600-RC028T-3" },
+  { 0x05, "STK600-RC040M-5" },
+  { 0x08, "STK600-RC020T-8" },
+  { 0x0A, "STK600-RC040M-4" },
+  { 0x0C, "STK600-RC008T-2" },
+  { 0x0D, "STK600-RC028M-6" },
+  { 0x10, "STK600-RC064M-10" },
+  { 0x11, "STK600-RC100M-11" },
+  { 0x13, "STK600-RC100X-13" },
+  { 0x18, "STK600-RC100M-18" },
+  { 0x19, "STK600-RCPWM-19" },
+  { 0x1B, "STK600-RC32U-20" },
+  { 0x1C, "STK600-RC014T-12" },
+  { 0x1E, "STK600-RC064U-17" },
+  { 0x1F, "STK600-RCuC3B0-21" },
+  { 0x20, "STK600-RCPWM-22" },
+  { 0x21, "STK600-RC020T-23" },
+  { 0x22, "STK600-RC044M-24" },
+  { 0x23, "STK600-RC044U-25" },
+  { 0x55, "STK600-RC064M-9" },
+  { 0xA0, "STK600-RC008T-7" },
+};
+
+static struct carddata socket_cards[] =
+{
+  { 0x02, "STK600-TQFP32" },
+  { 0x03, "STK600-TQFP100" },
+  { 0x04, "STK600-SOIC" },
+  { 0x09, "STK600-TinyX3U" },
+  { 0x0C, "STK600-TSSOP44" },
+  { 0x0D, "STK600-TQFP44" },
+  { 0x0E, "STK600-TQFP64-2" },
+  { 0x0F, "STK600-ATMEGA2560" },
+  { 0x55, "STK600-TQFP64" },
+  { 0x69, "STK600-uC3-144" },
+  { 0xF1, "STK600-DIP" },
+};
+
+static const char *stk600_get_cardname(const struct carddata *table,
+				       size_t nele, int id)
+{
+  const struct carddata *cdp;
+
+  if (id == 0xFF)
+    /* 0xFF means this card is not present at all. */
+    return "Not present";
+
+  for (cdp = table; nele > 0; cdp++, nele--)
+    if (cdp->id == id)
+      return cdp->name;
+
+  return "Unknown";
+}
+
+
 static void stk500v2_display(PROGRAMMER * pgm, const char * p)
 {
-  unsigned char maj, min, hdw, topcard;
+  unsigned char maj, min, hdw, topcard, maj_s1, min_s1, maj_s2, min_s2;
+  unsigned int rev;
   const char *topcard_name, *pgmname;
 
   switch (pgmtype) {
@@ -2069,6 +2449,7 @@ static void stk500v2_display(PROGRAMMER * pgm, const char * p)
     case PGMTYPE_STK500:      pgmname = "STK500"; break;
     case PGMTYPE_AVRISP:      pgmname = "AVRISP"; break;
     case PGMTYPE_AVRISP_MKII: pgmname = "AVRISP mkII"; break;
+    case PGMTYPE_STK600:      pgmname = "STK600"; break;
     default:                  pgmname = "None";
   }
   if (pgmtype != PGMTYPE_JTAGICE_MKII) {
@@ -2077,7 +2458,15 @@ static void stk500v2_display(PROGRAMMER * pgm, const char * p)
     stk500v2_getparm(pgm, PARAM_SW_MAJOR, &maj);
     stk500v2_getparm(pgm, PARAM_SW_MINOR, &min);
     fprintf(stderr, "%sHardware Version: %d\n", p, hdw);
-    fprintf(stderr, "%sFirmware Version: %d.%02d\n", p, maj, min);
+    fprintf(stderr, "%sFirmware Version Master : %d.%02d\n", p, maj, min);
+    if (pgmtype == PGMTYPE_STK600) {
+      stk500v2_getparm(pgm, PARAM_SW_MAJOR_SLAVE1, &maj_s1);
+      stk500v2_getparm(pgm, PARAM_SW_MINOR_SLAVE1, &min_s1);
+      stk500v2_getparm(pgm, PARAM_SW_MAJOR_SLAVE2, &maj_s2);
+      stk500v2_getparm(pgm, PARAM_SW_MINOR_SLAVE2, &min_s2);
+      fprintf(stderr, "%sFirmware Version Slave 1: %d.%02d\n", p, maj_s1, min_s1);
+      fprintf(stderr, "%sFirmware Version Slave 2: %d.%02d\n", p, maj_s2, min_s2);
+    }
   }
 
   if (pgmtype == PGMTYPE_STK500) {
@@ -2092,17 +2481,50 @@ static void stk500v2_display(PROGRAMMER * pgm, const char * p)
       default: topcard_name = "Unknown"; break;
     }
     fprintf(stderr, "%sTopcard         : %s\n", p, topcard_name);
+  } else if (pgmtype == PGMTYPE_STK600) {
+    stk500v2_getparm(pgm, PARAM_ROUTINGCARD_ID, &topcard);
+    fprintf(stderr, "%sRouting card    : %s\n", p,
+	    stk600_get_cardname(routing_cards,
+				sizeof routing_cards / sizeof routing_cards[0],
+				topcard));
+    stk500v2_getparm(pgm, PARAM_SOCKETCARD_ID, &topcard);
+    fprintf(stderr, "%sSocket card     : %s\n", p,
+	    stk600_get_cardname(socket_cards,
+				sizeof socket_cards / sizeof socket_cards[0],
+				topcard));
+    stk500v2_getparm2(pgm, PARAM2_RC_ID_TABLE_REV, &rev);
+    fprintf(stderr, "%sRC_ID table rev : %d\n", p, rev);
+    stk500v2_getparm2(pgm, PARAM2_EC_ID_TABLE_REV, &rev);
+    fprintf(stderr, "%sEC_ID table rev : %d\n", p, rev);
   }
   stk500v2_print_parms1(pgm, p);
 
   return;
 }
 
+static double
+f_to_kHz_MHz(double f, const char **unit)
+{
+  if (f > 1e6) {
+    f /= 1e6;
+    *unit = "MHz";
+  } else if (f > 1e3) {
+    f /= 1000;
+    *unit = "kHz";
+  } else
+    *unit = "Hz";
+
+  return f;
+}
 
 static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p)
 {
   unsigned char vtarget, vadjust, osc_pscale, osc_cmatch, sck_duration;
+  unsigned int sck_stk600, clock_conf, dac, oct, varef;
   unsigned char vtarget_jtag[4];
+  int prescale;
+  double f;
+  const char *unit;
 
   if (pgmtype == PGMTYPE_JTAGICE_MKII) {
     jtagmkII_getparm(pgm, PAR_OCD_VTARGET, vtarget_jtag);
@@ -2112,20 +2534,22 @@ static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p)
     stk500v2_getparm(pgm, PARAM_VTARGET, &vtarget);
     fprintf(stderr, "%sVtarget         : %.1f V\n", p, vtarget / 10.0);
   }
-  stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration);
 
-  if (pgmtype == PGMTYPE_STK500) {
+  switch (pgmtype) {
+  case PGMTYPE_STK500:
+    stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration);
     stk500v2_getparm(pgm, PARAM_VADJUST, &vadjust);
     stk500v2_getparm(pgm, PARAM_OSC_PSCALE, &osc_pscale);
     stk500v2_getparm(pgm, PARAM_OSC_CMATCH, &osc_cmatch);
+    fprintf(stderr, "%sSCK period      : %.1f us\n", p,
+	  sck_duration * 8.0e6 / STK500V2_XTAL + 0.05);
     fprintf(stderr, "%sVaref           : %.1f V\n", p, vadjust / 10.0);
     fprintf(stderr, "%sOscillator      : ", p);
     if (osc_pscale == 0)
       fprintf(stderr, "Off\n");
     else {
-      int prescale = 1;
-      double f = STK500V2_XTAL / 2;
-      const char *unit;
+      prescale = 1;
+      f = STK500V2_XTAL / 2;
 
       switch (osc_pscale) {
         case 2: prescale = 8; break;
@@ -2137,23 +2561,40 @@ static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p)
       }
       f /= prescale;
       f /= (osc_cmatch + 1);
-      if (f > 1e6) {
-	f /= 1e6;
-	unit = "MHz";
-      } else if (f > 1e3) {
-	f /= 1000;
-	unit = "kHz";
-      } else
-	unit = "Hz";
+      f = f_to_kHz_MHz(f, &unit);
       fprintf(stderr, "%.3f %s\n", f, unit);
     }
-  }
-  if (pgmtype == PGMTYPE_AVRISP_MKII || pgmtype == PGMTYPE_JTAGICE_MKII)
+    break;
+
+  case PGMTYPE_AVRISP_MKII:
+  case PGMTYPE_JTAGICE_MKII:
+    stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration);
     fprintf(stderr, "%sSCK period      : %.2f us\n", p,
-	  (float) 1000000 / avrispmkIIfreqs[sck_duration]);
-  else
+	    (float) 1000000 / avrispmkIIfreqs[sck_duration]);
+    break;
+
+  case PGMTYPE_STK600:
+    stk500v2_getparm2(pgm, PARAM2_AREF0, &varef);
+    fprintf(stderr, "%sVaref 0         : %.2f V\n", p, varef / 100.0);
+    stk500v2_getparm2(pgm, PARAM2_AREF1, &varef);
+    fprintf(stderr, "%sVaref 1         : %.2f V\n", p, varef / 100.0);
+    stk500v2_getparm2(pgm, PARAM2_SCK_DURATION, &sck_stk600);
+    fprintf(stderr, "%sSCK period      : %.2f us\n", p,
+	    (float) (sck_stk600 + 1) / 8.0);
+    stk500v2_getparm2(pgm, PARAM2_CLOCK_CONF, &clock_conf);
+    oct = (clock_conf & 0xf000) >> 12u;
+    dac = (clock_conf & 0x0ffc) >> 2u;
+    f = pow(2, (double)oct) * 2078.0 / (2 - (double)dac / 1024.0);
+    f = f_to_kHz_MHz(f, &unit);
+    fprintf(stderr, "%sOscillator      : %.3f %s\n",
+            p, f, unit);
+    break;
+
+  default:
     fprintf(stderr, "%sSCK period      : %.1f us\n", p,
 	  sck_duration * 8.0e6 / STK500V2_XTAL + 0.05);
+    break;
+  }
 
   return;
 }
@@ -2180,7 +2621,6 @@ static int stk500v2_perform_osccal(PROGRAMMER * pgm)
 
   return 0;
 }
-
 
 /*
  * Wrapper functions for the JTAG ICE mkII in ISP mode.  This mode
@@ -2612,3 +3052,105 @@ void stk500v2_dragon_hvsp_initpgm(PROGRAMMER * pgm)
   pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
 }
+
+void stk600_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "STK600");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = stk500v2_initialize;
+  pgm->display        = stk500v2_display;
+  pgm->enable         = stk500v2_enable;
+  pgm->disable        = stk500v2_disable;
+  pgm->program_enable = stk500v2_program_enable;
+  pgm->chip_erase     = stk500v2_chip_erase;
+  pgm->cmd            = stk500v2_cmd;
+  pgm->open           = stk600_open;
+  pgm->close          = stk500v2_close;
+  pgm->read_byte      = avr_read_byte_default;
+  pgm->write_byte     = avr_write_byte_default;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = stk500v2_paged_write;
+  pgm->paged_load     = stk500v2_paged_load;
+  pgm->print_parms    = stk500v2_print_parms;
+  pgm->set_vtarget    = stk600_set_vtarget;
+  pgm->set_varef      = stk600_set_varef;
+  pgm->set_fosc       = stk600_set_fosc;
+  pgm->set_sck_period = stk600_set_sck_period;
+  pgm->perform_osccal = stk500v2_perform_osccal;
+  pgm->setup          = stk500v2_setup;
+  pgm->teardown       = stk500v2_teardown;
+  pgm->page_size      = 256;
+}
+
+void stk600pp_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "STK600PP");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = stk500pp_initialize;
+  pgm->display        = stk500v2_display;
+  pgm->enable         = stk500v2_enable;
+  pgm->disable        = stk500pp_disable;
+  pgm->program_enable = stk500pp_program_enable;
+  pgm->chip_erase     = stk500pp_chip_erase;
+  pgm->open           = stk600_open;
+  pgm->close          = stk500v2_close;
+  pgm->read_byte      = stk500pp_read_byte;
+  pgm->write_byte     = stk500pp_write_byte;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = stk500pp_paged_write;
+  pgm->paged_load     = stk500pp_paged_load;
+  pgm->print_parms    = stk500v2_print_parms;
+  pgm->set_vtarget    = stk600_set_vtarget;
+  pgm->set_varef      = stk600_set_varef;
+  pgm->set_fosc       = stk600_set_fosc;
+  pgm->set_sck_period = stk600_set_sck_period;
+  pgm->setup          = stk500v2_setup;
+  pgm->teardown       = stk500v2_teardown;
+  pgm->page_size      = 256;
+}
+
+void stk600hvsp_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "STK600HVSP");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = stk500hvsp_initialize;
+  pgm->display        = stk500v2_display;
+  pgm->enable         = stk500v2_enable;
+  pgm->disable        = stk500hvsp_disable;
+  pgm->program_enable = stk500hvsp_program_enable;
+  pgm->chip_erase     = stk500hvsp_chip_erase;
+  pgm->open           = stk600_open;
+  pgm->close          = stk500v2_close;
+  pgm->read_byte      = stk500hvsp_read_byte;
+  pgm->write_byte     = stk500hvsp_write_byte;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = stk500hvsp_paged_write;
+  pgm->paged_load     = stk500hvsp_paged_load;
+  pgm->print_parms    = stk500v2_print_parms;
+  pgm->set_vtarget    = stk600_set_vtarget;
+  pgm->set_varef      = stk600_set_varef;
+  pgm->set_fosc       = stk600_set_fosc;
+  pgm->set_sck_period = stk600_set_sck_period;
+  pgm->setup          = stk500v2_setup;
+  pgm->teardown       = stk500v2_teardown;
+  pgm->page_size      = 256;
+}
+
