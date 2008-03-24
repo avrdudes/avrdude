@@ -802,12 +802,27 @@ should not be used.
 When using the JTAG ICE mkII or AVR Dragon in JTAG mode, the
 following extended parameter is accepted:
 @table @code
-@item @var{jtagchain=UB,UA,BB,BA}
+@item @samp{jtagchain=UB,UA,BB,BA}
 Setup the JTAG scan chain for @var{UB} units before, @var{UA} units
 after, @var{BB} bits before, and @var{BA} bits after the target AVR,
 respectively.
 Each AVR unit within the chain shifts by 4 bits.
 Other JTAG units might require a different bit shift count.
+@end table
+
+@item AVR910
+
+The AVR910 programmer type accepts the following extended parameter:
+@table @code
+@item @samp{devcode=VALUE}
+Override the device code selection by using @var{VALUE}
+as the device code.
+The programmer is not queried for the list of supported
+device codes, and the specified @var{VALUE}
+is not verified but used directly within the
+@code{T} command sent to the programmer.
+@var{VALUE} can be specified using the conventional number notation of the
+C programming language.
 @end table
 
 @end table
@@ -1060,7 +1075,7 @@ and STK600 programmer:
 @item vtarg @var{voltage}
 Set the target's supply voltage to @var{voltage} Volts.
 
-@item varef @var{[channel]} @var{voltage}
+@item varef [@var{channel}] @var{voltage}
 Set the adjustable voltage source to @var{voltage} Volts.
 This voltage is normally used to drive the target's
 @emph{Aref} input on the STK500 and STK600.
@@ -1068,10 +1083,10 @@ The STK600 offers two reference voltages, which can be
 selected by the optional parameter @var{channel} (either
 0 or 1).
 
-@item fosc @var{freq}[@var{M}|@var{k}]
+@item fosc @var{freq}[@code{M}|@code{k}]
 Set the master oscillator to @var{freq} Hz.
-An optional trailing letter @var{M}
-multiplies by 1E6, a trailing letter @var{k} by 1E3.
+An optional trailing letter @code{M}
+multiplies by 1E6, a trailing letter @code{k} by 1E3.
 
 @item fosc off
 Turn the master oscillator off.

@@ -47,6 +47,7 @@
 struct pdata
 {
   char has_auto_incr_addr;
+  unsigned char devcode;
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
@@ -193,42 +194,48 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
   if (PDATA(pgm)->has_auto_incr_addr == 'Y')
       fprintf(stderr, "Programmer supports auto addr increment.\n");
 
-  /* Get list of devices that the programmer supports. */
+  if (PDATA(pgm)->devcode == 0) {
 
-  avr910_send(pgm, "t", 1);
-  fprintf(stderr, "\nProgrammer supports the following devices:\n");
-  devtype_1st = 0;
-  while (1) {
-    avr910_recv(pgm, &c, 1);
-    if (devtype_1st == 0)
-      devtype_1st = c;
-    if (c == 0)
-      break;
-    part = locate_part_by_avr910_devcode(part_list, c);
+    /* Get list of devices that the programmer supports. */
 
-    fprintf(stderr, "    Device code: 0x%02x = %s\n", c, part ?  part->desc : "(unknown)");
+    avr910_send(pgm, "t", 1);
+    fprintf(stderr, "\nProgrammer supports the following devices:\n");
+    devtype_1st = 0;
+    while (1) {
+      avr910_recv(pgm, &c, 1);
+      if (devtype_1st == 0)
+	devtype_1st = c;
+      if (c == 0)
+	break;
+      part = locate_part_by_avr910_devcode(part_list, c);
 
-    /* FIXME: Need to lookup devcode and report the device. */
+      fprintf(stderr, "    Device code: 0x%02x = %s\n", c, part ?  part->desc : "(unknown)");
 
-    if (p->avr910_devcode == c)
-      dev_supported = 1;
-  };
-  fprintf(stderr,"\n");
+      /* FIXME: Need to lookup devcode and report the device. */
 
-  if (!dev_supported) {
-    fprintf(stderr,
-            "%s: %s: selected device is not supported by programmer: %s\n",
-            progname, ovsigck? "warning": "error", p->id);
-    if (!ovsigck)
-      exit(1);
+      if (p->avr910_devcode == c)
+	dev_supported = 1;
+    };
+    fprintf(stderr,"\n");
+
+    if (!dev_supported) {
+      fprintf(stderr,
+	      "%s: %s: selected device is not supported by programmer: %s\n",
+	      progname, ovsigck? "warning": "error", p->id);
+      if (!ovsigck)
+	exit(1);
+    }
+    /* If the user forced the selection, use the first device
+       type that is supported by the programmer. */
+    buf[1] = ovsigck? devtype_1st: p->avr910_devcode;
+  } else {
+    /* devcode overridden by -x devcode= option */
+    buf[1] = (char)(PDATA(pgm)->devcode);
   }
 
-  /* Tell the programmer which part we selected.
-     If the user forced the selection, use the first device
-     type that is supported by the programmer. */
-
+  /* Tell the programmer which part we selected. */
   buf[0] = 'T';
-  buf[1] = ovsigck? devtype_1st: p->avr910_devcode;
+  /* buf[1] has been set up above */
 
   avr910_send(pgm, buf, 2);
   avr910_vfy_cmd_sent(pgm, "select device");
@@ -281,6 +288,45 @@ static int avr910_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
   res[3] = buf[0];
 
   return 0;
+}
+
+
+static int avr910_parseextparms(PROGRAMMER * pgm, LISTID extparms)
+{
+  LNODEID ln;
+  const char *extended_param;
+  int rv = 0;
+
+  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    extended_param = ldata(ln);
+
+    if (strncmp(extended_param, "devcode=", strlen("devcode=")) == 0) {
+      int devcode;
+      if (sscanf(extended_param, "devcode=%i", &devcode) != 1 ||
+	  devcode <= 0 || devcode > 255) {
+        fprintf(stderr,
+                "%s: avr910_parseextparms(): invalid devcode '%s'\n",
+                progname, extended_param);
+        rv = -1;
+        continue;
+      }
+      if (verbose >= 2) {
+        fprintf(stderr,
+                "%s: avr910_parseextparms(): devcode overwritten as 0x%02x\n",
+                progname, devcode);
+      }
+      PDATA(pgm)->devcode = devcode;
+
+      continue;
+    }
+
+    fprintf(stderr,
+            "%s: avr910_parseextparms(): invalid extended parameter '%s'\n",
+            progname, extended_param);
+    rv = -1;
+  }
+
+  return rv;
 }
 
 
@@ -634,6 +680,7 @@ void avr910_initpgm(PROGRAMMER * pgm)
 
   pgm->read_sig_bytes = avr910_read_sig_bytes;
 
+  pgm->parseextparams = avr910_parseextparms;
   pgm->setup          = avr910_setup;
   pgm->teardown       = avr910_teardown;
 }
