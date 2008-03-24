@@ -16,6 +16,10 @@ Current:
   * Add support for the Atmel STK600 for "classic" AVRs (AT90, ATtiny,
     ATmega), using either ISP or high-voltage programming modes.
 
+  * Add support for the -x devcode extended parameter to the avr910
+    programmer, to allow overriding the device code sent to the
+    programmer.
+
 Version 5.5:
 
   * Add support for the USBtinyISP programmer (patch #6233)

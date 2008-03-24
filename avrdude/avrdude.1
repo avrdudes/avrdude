@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE March 14, 2008
+.Dd DATE March 24, 2008
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -666,7 +666,7 @@ Set the target's supply voltage to
 .Ar voltage
 Volts.
 .Em Only supported on the STK500 and STK600 programmer.
-.It Ar varef Op channel Ar voltage
+.It Ar varef Oo Ar channel Oc Ar voltage
 Set the adjustable voltage source to
 .Ar voltage
 Volts.
@@ -779,6 +779,22 @@ bits before, and
 bits after the target AVR, respectively.
 Each AVR unit within the chain shifts by 4 bits.
 Other JTAG units might require a different bit shift count.
+.El
+.It Ar AVR910
+.Bl -tag -offset indent -width indent
+.It Ar devcode=VALUE
+Override the device code selection by using
+.Ar VALUE
+as the device code.
+The programmer is not queried for the list of supported
+device codes, and the specified
+.Ar VALUE
+is not verified but used directly within the
+.Ql T
+command sent to the programmer.
+.Ar VALUE
+can be specified using the conventional number notation of the
+C programming language.
 .El
 .El
 .Sh FILES

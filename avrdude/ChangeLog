@@ -1,3 +1,9 @@
+2008-03-24  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avr910.c: Add support for the -x devcode option.
+	* avrdude.1: Document -x devcode for avr910.
+	* doc/avrdude.texi: (Ditto.)
+
 2008-03-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Add initial support for the Atmel STK600, for
