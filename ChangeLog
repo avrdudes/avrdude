@@ -1,5 +1,9 @@
 2008-03-24  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* usb_libusb.c: #undef interface for Win32
+
+2008-03-24  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* avr910.c: Add support for the -x devcode option.
 	* avrdude.1: Document -x devcode for avr910.
 	* doc/avrdude.texi: (Ditto.)
