@@ -42,6 +42,11 @@
 #include "serial.h"
 #include "usbdevs.h"
 
+#if defined(WIN32NATIVE)
+/* someone has defined "interface" to "struct" in Cygwin */
+#  undef interface
+#endif
+
 static char usbbuf[USBDEV_MAX_XFER];
 static int buflen = -1, bufptr;
 
