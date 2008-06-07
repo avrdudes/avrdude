@@ -1,6 +1,14 @@
 2008-06-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Contributed by Klaus Leidinger <klaus@mikrocontroller-projekte.de>:
+	* main.c: Realign verbose messages.
+	* avrpart.c: (Ditto.)
+	* avr910.c: Print the device code selected in verbose mode.
+	* butterfly.c: (Ditto.)
+
+2008-06-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Contributed by Klaus Leidinger <klaus@mikrocontroller-projekte.de>:
 	Add check for buffermode feature, and use it if present.  Can be
 	turned off using -x no_blockmode.
 	* avr910.c: Implement buffermode test and usage.

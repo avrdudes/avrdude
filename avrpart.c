@@ -488,22 +488,22 @@ void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose)
   AVRMEM * m;
 
   fprintf(f,
-          "%sAVR Part              : %s\n"
-          "%sChip Erase delay      : %d us\n"
-          "%sPAGEL                 : P%02X\n"
-          "%sBS2                   : P%02X\n"
-          "%sRESET disposition     : %s\n"
-          "%sRETRY pulse           : %s\n"
-          "%sserial program mode   : %s\n"
-          "%sparallel program mode : %s\n"
-          "%sTimeout               : %d\n"
-          "%sStabDelay             : %d\n"
-          "%sCmdexeDelay           : %d\n"
-          "%sSyncLoops             : %d\n"
-          "%sByteDelay             : %d\n"
-          "%sPollIndex             : %d\n"
-          "%sPollValue             : 0x%02x\n"
-          "%sMemory Detail         :\n\n",
+          "%sAVR Part                      : %s\n"
+          "%sChip Erase delay              : %d us\n"
+          "%sPAGEL                         : P%02X\n"
+          "%sBS2                           : P%02X\n"
+          "%sRESET disposition             : %s\n"
+          "%sRETRY pulse                   : %s\n"
+          "%sserial program mode           : %s\n"
+          "%sparallel program mode         : %s\n"
+          "%sTimeout                       : %d\n"
+          "%sStabDelay                     : %d\n"
+          "%sCmdexeDelay                   : %d\n"
+          "%sSyncLoops                     : %d\n"
+          "%sByteDelay                     : %d\n"
+          "%sPollIndex                     : %d\n"
+          "%sPollValue                     : 0x%02x\n"
+          "%sMemory Detail                 :\n\n",
           prefix, p->desc,
           prefix, p->chip_erase_delay,
           prefix, p->pagel,

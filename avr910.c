@@ -268,6 +268,11 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
   avr910_send(pgm, buf, 2);
   avr910_vfy_cmd_sent(pgm, "select device");
 
+  if (verbose)
+    fprintf(stderr,
+	    "%s: avr910_devcode selected: 0x%02x\n",
+	    progname, (unsigned)buf[1]);
+
   avr910_enter_prog_mode(pgm);
 
   return 0;
