@@ -741,20 +741,26 @@ int main(int argc, char * argv [])
   }
 
   if (verbose) {
-    fprintf(stderr, "%sUsing Port            : %s\n", progbuf, port);
-    fprintf(stderr, "%sUsing Programmer      : %s\n", progbuf, programmer);
+    fprintf(stderr, "%sUsing Port                    : %s\n", progbuf, port);
+    fprintf(stderr, "%sUsing Programmer              : %s\n", progbuf, programmer);
+    if ((strcmp(pgm->type, "avr910") == 0)) {
+	  fprintf(stderr, "%savr910_devcode (avrdude.conf) : ", progbuf);
+      if(p->avr910_devcode)fprintf(stderr, "0x%x\n", p->avr910_devcode);
+	  else fprintf(stderr, "none\n");
+	}  
+	
   }
 
   if (baudrate != 0) {
     if (verbose) {
-      fprintf(stderr, "%sOverriding Baud Rate  : %d\n", progbuf, baudrate);
+      fprintf(stderr, "%sOverriding Baud Rate          : %d\n", progbuf, baudrate);
     }
     pgm->baudrate = baudrate;
   }
 
   if (bitclock != 0.0) {
     if (verbose) {
-      fprintf(stderr, "%sSetting bit clk period: %.1f\n", progbuf, bitclock);
+      fprintf(stderr, "%sSetting bit clk period        : %.1f\n", progbuf, bitclock);
     }
 
     pgm->bitclock = bitclock * 1e-6;
@@ -762,7 +768,7 @@ int main(int argc, char * argv [])
 
   if (ispdelay != 0) {
     if (verbose) {
-      fprintf(stderr, "%sSetting isp clock delay: %3i\n", progbuf, ispdelay);
+      fprintf(stderr, "%sSetting isp clock delay        : %3i\n", progbuf, ispdelay);
     }
     pgm->ispdelay = ispdelay;
   }
