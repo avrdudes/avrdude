@@ -823,6 +823,11 @@ is not verified but used directly within the
 @code{T} command sent to the programmer.
 @var{VALUE} can be specified using the conventional number notation of the
 C programming language.
+@item @samp{no_blockmode}
+Disables the default checking for block transfer capability.
+Use 
+@samp{no_blockmode} only if your @samp{AVR910} 
+programmer creates errors during initial sequence.
 @end table
 
 @end table

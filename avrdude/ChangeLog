@@ -1,3 +1,12 @@
+2008-06-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Contributed by Klaus Leidinger <klaus@mikrocontroller-projekte.de>:
+	Add check for buffermode feature, and use it if present.  Can be
+	turned off using -x no_blockmode.
+	* avr910.c: Implement buffermode test and usage.
+	* avrdude.1: Document -x no_blockmode.
+	* doc/avrdude.texi: (Ditto.)
+
 2008-03-24  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* usb_libusb.c: #undef interface for Win32

@@ -2,6 +2,7 @@
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2003-2004  Theodore A. Roth  <troth@openavr.org>
  * Copyright 2007 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright 2008 Klaus Leidinger <klaus@mikrocontroller-projekte.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 #include <sys/time.h>
 #include <unistd.h>
 
@@ -48,6 +50,9 @@ struct pdata
 {
   char has_auto_incr_addr;
   unsigned char devcode;
+  unsigned int buffersize;
+  unsigned char test_blockmode;
+  unsigned char use_blockmode;
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
@@ -61,6 +66,7 @@ static void avr910_setup(PROGRAMMER * pgm)
     exit(1);
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
+  PDATA(pgm)->test_blockmode = 1;
 }
 
 static void avr910_teardown(PROGRAMMER * pgm)
@@ -194,6 +200,28 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
   if (PDATA(pgm)->has_auto_incr_addr == 'Y')
       fprintf(stderr, "Programmer supports auto addr increment.\n");
 
+  /* Check support for buffered memory access, ignore if not available */
+
+  if (PDATA(pgm)->test_blockmode == 1) {
+    avr910_send(pgm, "b", 1);
+    avr910_recv(pgm, &c, 1);
+    if (c == 'Y') {
+      avr910_recv(pgm, &c, 1);
+      PDATA(pgm)->buffersize = (unsigned int)(unsigned char)c<<8;
+      avr910_recv(pgm, &c, 1);
+      PDATA(pgm)->buffersize += (unsigned int)(unsigned char)c;
+      fprintf(stderr,
+	      "Programmer supports buffered memory access with "
+	      "buffersize = %u bytes.\n",
+	      PDATA(pgm)->buffersize);
+      PDATA(pgm)->use_blockmode = 1;
+    } else {
+      PDATA(pgm)->use_blockmode = 0;
+    }
+  } else {
+    PDATA(pgm)->use_blockmode = 0;
+  }
+
   if (PDATA(pgm)->devcode == 0) {
 
     /* Get list of devices that the programmer supports. */
@@ -316,6 +344,16 @@ static int avr910_parseextparms(PROGRAMMER * pgm, LISTID extparms)
                 progname, devcode);
       }
       PDATA(pgm)->devcode = devcode;
+
+      continue;
+    }
+    if (strncmp(extended_param, "no_blockmode", strlen("no_blockmode")) == 0) {
+      if (verbose >= 2) {
+        fprintf(stderr,
+                "%s: avr910_parseextparms(-x): no testing for Blockmode\n",
+                progname);
+      }
+      PDATA(pgm)->test_blockmode = 0;
 
       continue;
     }
@@ -567,15 +605,55 @@ static int avr910_paged_write_eeprom(PROGRAMMER * pgm, AVRPART * p,
 static int avr910_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                               int page_size, int n_bytes)
 {
-  if (strcmp(m->desc, "flash") == 0) {
-    return avr910_paged_write_flash(pgm, p, m, page_size, n_bytes);
+  int rval = 0;
+  if (PDATA(pgm)->use_blockmode == 0) {
+    if (strcmp(m->desc, "flash") == 0) {
+      rval = avr910_paged_write_flash(pgm, p, m, page_size, n_bytes);
+    } else if (strcmp(m->desc, "eeprom") == 0) {
+      rval = avr910_paged_write_eeprom(pgm, p, m, page_size, n_bytes);
+    } else {
+      rval = -2;
+    }
   }
-  else if (strcmp(m->desc, "eeprom") == 0) {
-    return avr910_paged_write_eeprom(pgm, p, m, page_size, n_bytes);
+
+  if (PDATA(pgm)->use_blockmode == 1) {
+    unsigned int addr = 0;
+    unsigned int max_addr = n_bytes;
+    char *cmd;
+    unsigned int blocksize = PDATA(pgm)->buffersize;
+
+    if (strcmp(m->desc, "flash") && strcmp(m->desc, "eeprom"))
+      rval = -2;
+
+    if (m->desc[0] == 'e')
+      blocksize = 1;		/* Write to eeprom single bytes only */
+    avr910_set_addr(pgm, addr);
+
+    cmd = malloc(4 + blocksize);
+    if (!cmd) rval = -1;
+    cmd[0] = 'B';
+    cmd[3] = toupper(m->desc[0]);
+
+    while (addr < max_addr) {
+      if ((max_addr - addr) < blocksize) {
+        blocksize = max_addr - addr;
+      };
+      memcpy(&cmd[4], &m->buf[addr], blocksize);
+      cmd[1] = (blocksize >> 8) & 0xff;
+      cmd[2] = blocksize & 0xff;
+
+      avr910_send(pgm, cmd, 4 + blocksize);
+      avr910_vfy_cmd_sent(pgm, "write block");
+
+      addr += blocksize;
+
+      report_progress (addr, max_addr, NULL);
+    } /* while */
+    free(cmd);
+
+    rval = addr;
   }
-  else {
-    return -2;
-  }
+  return rval;
 }
 
 
@@ -587,46 +665,86 @@ static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   unsigned int addr = 0;
   unsigned int max_addr;
   char buf[2];
+  int rval=0;
 
-  if (strcmp(m->desc, "flash") == 0) {
-    cmd = 'R';
-    rd_size = 2;                /* read two bytes per addr */
-  }
-  else if (strcmp(m->desc, "eeprom") == 0) {
-    cmd = 'd';
-    rd_size = 1;
-  }
-  else {
-    return -2;
-  }
+  if (PDATA(pgm)->use_blockmode == 0) {
 
-  max_addr = n_bytes/rd_size;
-
-  avr910_set_addr(pgm, addr);
-
-  while (addr < max_addr) {
-    avr910_send(pgm, &cmd, 1);
-    if (cmd == 'R') {
-      /* The 'R' command returns two bytes, MSB first, we need to put the data
-         into the memory buffer LSB first. */
-      avr910_recv(pgm, buf, 2);
-      m->buf[addr*2]   = buf[1];  /* LSB */
-      m->buf[addr*2+1] = buf[0];  /* MSB */
-    }
-    else {
-      avr910_recv(pgm, (char *)&m->buf[addr], 1);
+    if (strcmp(m->desc, "flash") == 0) {
+      cmd = 'R';
+      rd_size = 2;                /* read two bytes per addr */
+    } else if (strcmp(m->desc, "eeprom") == 0) {
+      cmd = 'd';
+      rd_size = 1;
+    } else {
+      rval = -2;
     }
 
-    addr++;
+    max_addr = n_bytes/rd_size;
 
-    if (PDATA(pgm)->has_auto_incr_addr != 'Y') {
-      avr910_set_addr(pgm, addr);
+    avr910_set_addr(pgm, addr);
+
+    while (addr < max_addr) {
+      avr910_send(pgm, &cmd, 1);
+      if (cmd == 'R') {
+        /* The 'R' command returns two bytes, MSB first, we need to put the data
+           into the memory buffer LSB first. */
+        avr910_recv(pgm, buf, 2);
+        m->buf[addr*2]   = buf[1];  /* LSB */
+        m->buf[addr*2+1] = buf[0];  /* MSB */
+      }
+      else {
+        avr910_recv(pgm, (char *)&m->buf[addr], 1);
+      }
+
+      addr++;
+
+      if (PDATA(pgm)->has_auto_incr_addr != 'Y') {
+        avr910_set_addr(pgm, addr);
+      }
+
+      report_progress (addr, max_addr, NULL);
     }
 
-    report_progress (addr, max_addr, NULL);
+    rval = addr * rd_size;
   }
 
-  return addr * rd_size;
+  if (PDATA(pgm)->use_blockmode == 1) {
+    unsigned int addr = 0;
+    unsigned int max_addr = n_bytes;
+    int rd_size = 1;
+
+    /* check parameter syntax: only "flash" or "eeprom" is allowed */
+    if (strcmp(m->desc, "flash") && strcmp(m->desc, "eeprom"))
+      rval = -2;
+
+  	/* use buffered mode */
+    char cmd[4];
+    int blocksize = PDATA(pgm)->buffersize;
+
+    cmd[0] = 'g';
+    cmd[3] = toupper(m->desc[0]);
+
+    avr910_set_addr(pgm, addr);
+
+    while (addr < max_addr) {
+      if ((max_addr - addr) < blocksize) {
+        blocksize = max_addr - addr;
+      };
+      cmd[1] = (blocksize >> 8) & 0xff;
+      cmd[2] = blocksize & 0xff;
+
+      avr910_send(pgm, cmd, 4);
+      avr910_recv(pgm, (char *)&m->buf[addr], blocksize);
+
+      addr += blocksize;
+
+      report_progress (addr, max_addr, NULL);
+    }
+
+    rval = addr * rd_size;
+  }
+
+  return rval;
 }
 
 /* Signature byte reads are always 3 bytes. */

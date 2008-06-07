@@ -796,6 +796,15 @@ command sent to the programmer.
 can be specified using the conventional number notation of the
 C programming language.
 .El
+.Bl -tag -offset indent -width indent
+.It Ar no_blockmode
+Disables the default checking for block transfer capability.
+Use 
+.Ar no_blockmode
+only if your
+.Ar AVR910
+programmer creates errors during initial sequence. 
+.El
 .El
 .Sh FILES
 .Bl -tag -offset indent -width /dev/ppi0XXX
