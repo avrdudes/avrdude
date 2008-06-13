@@ -441,6 +441,8 @@ Atmel JTAG ICE mkII in debugWire mode.
 Atmel JTAG ICE mkI, running at 115200 Bd
 @item @code{jtagmkII}    @tab
 Atmel JTAG ICE mkII (default speed 19200 Bd)
+@item @code{mib510}      @tab
+Crossbow MIB510 programming board
 @item @code{pavr}        @tab
 Jason Kyle's pAVR Serial Programmer
 @item @code{picoweb}     @tab

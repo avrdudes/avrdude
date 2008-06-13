@@ -1,3 +1,13 @@
+2008-06-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Contributed by Janos Sallai <janos.sallai@vanderbilt.edu>:
+	patch #6074: added support for crossbow's MIB510 programmer
+	* avrdude.conf.in: Add entry for mib510.
+	* stk500.c: Add special hooks to handle the MIB510 programmer.
+	It mostly talks STK500v1 protocol but has a special hello and
+	goodbye sequence, and uses a fixed block size of 256 bytes.
+	* doc/avrdude.texi: Document support for mib510.
+
 2008-06-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Contributed by Klaus Leidinger <klaus@mikrocontroller-projekte.de>:

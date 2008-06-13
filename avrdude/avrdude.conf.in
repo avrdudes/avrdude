@@ -351,6 +351,12 @@ programmer
 ;
 
 programmer
+  id    = "mib510";
+  desc  = "Crossbow MIB510 programming board";
+  type  = stk500;
+;
+
+programmer
   id    = "stk500v2";
   desc  = "Atmel STK500 Version 2.x firmware";
   type  = stk500v2;

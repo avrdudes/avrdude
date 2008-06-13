@@ -20,6 +20,8 @@ Current:
     programmer, to allow overriding the device code sent to the
     programmer.
 
+  * Add support for the Crossbow MIB510 programmer (patch #6074).
+
 Version 5.5:
 
   * Add support for the USBtinyISP programmer (patch #6233)
