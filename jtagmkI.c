@@ -550,7 +550,7 @@ static unsigned char jtagmkI_get_baud(long baud)
 static int jtagmkI_initialize(PROGRAMMER * pgm, AVRPART * p)
 {
   AVRMEM hfuse;
-  char cmd[1], resp[5];
+  unsigned char cmd[1], resp[5];
   unsigned char b;
 
   if (!(p->flags & AVRPART_HAS_JTAG)) {

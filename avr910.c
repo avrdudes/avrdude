@@ -666,7 +666,7 @@ static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                              int page_size, int n_bytes)
 {
   char cmd;
-  int rd_size;
+  int rd_size = 1;
   unsigned int addr = 0;
   unsigned int max_addr;
   char buf[2];

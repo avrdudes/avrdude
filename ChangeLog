@@ -1,5 +1,15 @@
 2008-07-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Fix a bunch of warnings.
+	* avr910.c (avr910_paged_load): possible unitialized use of
+	rd_size
+	* jtagmkI.c (jtagmkI_initialize): pointer signedness mixup
+	* jtagmkII.c (jtagmkII_print_parms1): propagate const'ness
+	of parameter
+	* usbasp.c (usbasp_transmit): poiner signedness mixup
+
+2008-07-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Contributed by Ville Voipio:
 	patch #6501: New autotools support for avrdude
 	* Makefile.am: add @WINDOWS_DIRS@ to SUBDIR

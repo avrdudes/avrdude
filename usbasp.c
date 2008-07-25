@@ -82,7 +82,7 @@ static int usbasp_transmit(PROGRAMMER * pgm,
 			   functionid,
 			   (send[1] << 8) | send[0],
 			   (send[3] << 8) | send[2],
-			   buffer, buffersize,
+			   (char *)buffer, buffersize,
 			   5000);
   if(nbytes < 0){
     fprintf(stderr, "%s: error: usbasp_transmit: %s\n", progname, usb_strerror());
