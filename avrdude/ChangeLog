@@ -1,3 +1,12 @@
+2008-07-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Contributed by Ville Voipio:
+	patch #6501: New autotools support for avrdude
+	* Makefile.am: add @WINDOWS_DIRS@ to SUBDIR
+	* bootstrap: allow for autconf-2.61 and automake-1.10, too
+	* configure.ac: fix @WINDOWS_DIRS@ recursion, replace
+	AC_PROG_CC by AM_PROG_CC_C_O, for esoteric reasons
+
 2008-06-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Contributed by Janos Sallai <janos.sallai@vanderbilt.edu>:
