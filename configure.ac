@@ -35,7 +35,7 @@ AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(ac_cfg.h)
 
 # Checks for programs.
-AC_PROG_CC
+AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AC_PROG_YACC
 AM_PROG_LEX
@@ -166,9 +166,9 @@ AC_ARG_ENABLE(
 DIST_SUBDIRS_AC='doc windows'
 
 if test "$enabled_doc" = "yes"; then
-	SUBDIRS_AC='doc @WINDOWS_DIRS@'
+	SUBDIRS_AC='doc'
 else
-	SUBDIRS_AC='@WINDOWS_DIRS@'
+	SUBDIRS_AC=''
 fi
 
 AC_SUBST(DOC_INST_DIR, $DOC_INST_DIR)
