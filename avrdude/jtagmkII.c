@@ -128,7 +128,7 @@ static int jtagmkII_reset(PROGRAMMER * pgm, unsigned char flags);
 static int jtagmkII_set_sck_period(PROGRAMMER * pgm, double v);
 static int jtagmkII_setparm(PROGRAMMER * pgm, unsigned char parm,
 			    unsigned char * value);
-static void jtagmkII_print_parms1(PROGRAMMER * pgm, char * p);
+static void jtagmkII_print_parms1(PROGRAMMER * pgm, const char * p);
 
 static void jtagmkII_setup(PROGRAMMER * pgm)
 {
@@ -2166,7 +2166,7 @@ static void jtagmkII_display(PROGRAMMER * pgm, const char * p)
 }
 
 
-static void jtagmkII_print_parms1(PROGRAMMER * pgm, char * p)
+static void jtagmkII_print_parms1(PROGRAMMER * pgm, const char * p)
 {
   unsigned char vtarget[4], jtag_clock[4];
   char clkbuf[20];
