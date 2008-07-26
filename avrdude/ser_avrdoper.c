@@ -425,7 +425,7 @@ static int usbGetReport(union filedescriptor *fdp, int reportType, int reportNum
     *len = bytesReceived;
     if(!usesReportIDs){
         buffer[-1] = reportNumber;  /* add dummy report ID */
-        *len++;
+        len++;
     }
     return 0;
 }
