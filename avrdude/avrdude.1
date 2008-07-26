@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE March 24, 2008
+.Dd DATE July 27, 2008
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -109,6 +109,7 @@ both parallel and serial
 .Pp
 Atmel's STK600 programmer is supported in ISP and high-voltage
 programming modes, and connects through the USB.
+For ATxmega devices, the STK600 is supported in PDI mode.
 .Pp
 The simple serial programmer described in Atmel's application note
 AVR910, and the bootloader described in Atmel's application note
@@ -232,6 +233,8 @@ t25	ATtiny25
 t26	ATtiny26
 t45	ATtiny45
 t85	ATtiny85
+x128a1	ATxmega128A1
+x128a1d	ATxmega128A1revD
 .TE
 .Bl -tag -width "(**) "
 .It "(*)"
@@ -286,11 +289,18 @@ option with flash memory is specified,
 will perform a chip erase before starting any of the programming
 operations, since it generally is a mistake to program the flash
 without performing an erase first.  This option disables that.
+Auto erase is not used for ATxmega devices as these devices can
+use page erase before writing each page so no explicit chip erase
+is required.
+Note however that any page not affected by the current operation
+will retain its previous contents.
 .It Fl e
 Causes a chip erase to be executed.  This will reset the contents of the
 flash ROM and EEPROM to the value
 .Ql 0xff ,
-and is basically a prerequisite command before the flash ROM can be
+and clear all lock bits.
+Except for ATxmega devices which can use page erase,
+it is basically a prerequisite command before the flash ROM can be
 reprogrammed again.  The only exception would be if the new
 contents would exclusively cause bits to be programmed from the value
 .Ql 1

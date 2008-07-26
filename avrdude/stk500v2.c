@@ -220,6 +220,9 @@ static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v);
 
 static int stk600_set_sck_period(PROGRAMMER * pgm, double v);
 
+static void stk600_setup_xprog(PROGRAMMER * pgm);
+static int stk600_xprog_program_enable(PROGRAMMER * pgm, AVRPART * p);
+
 static void stk500v2_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
@@ -629,14 +632,47 @@ retry:
       fprintf(stderr, "%s: stk500v2_command(): short reply\n", progname);
       return -1;
     }
-    if (buf[1] == STATUS_CMD_OK)
-      return status;
-    if (buf[1] == STATUS_CMD_FAILED)
-      fprintf(stderr, "%s: stk500v2_command(): command failed\n", progname);
-    else
-      fprintf(stderr, "%s: stk500v2_command(): unknown status 0x%02x\n",
-              progname, buf[1]);
-    return -1;
+    if (buf[0] == CMD_XPROG_SETMODE || buf[0] == CMD_XPROG) {
+        /*
+         * Decode XPROG wrapper errors.
+         */
+        const char *msg;
+        int i;
+
+        /*
+         * For CMD_XPROG_SETMODE, the status is returned in buf[1].
+         * For CMD_XPROG, buf[1] contains the XPRG_CMD_* command, and
+         * buf[2] contains the status.
+         */
+        i = buf[0] == CMD_XPROG_SETMODE? 1: 2;
+
+        if (buf[i] != XPRG_ERR_OK) {
+            switch (buf[i]) {
+            case XPRG_ERR_FAILED:   msg = "Failed"; break;
+            case XPRG_ERR_COLLISION: msg = "Collision"; break;
+            case XPRG_ERR_TIMEOUT:  msg = "Timeout"; break;
+            default:                msg = "Unknown"; break;
+            }
+            fprintf(stderr, "%s: stk500v2_command(): error in %s: %s\n",
+                    progname,
+                    (buf[0] == CMD_XPROG_SETMODE? "CMD_XPROG_SETMODE": "CMD_XPROG"),
+                    msg);
+            return -1;
+        }
+        return 0;
+    } else {
+        /*
+         * Decode STK500v2 errors.
+         */
+        if (buf[1] == STATUS_CMD_OK)
+            return status;
+        if (buf[1] == STATUS_CMD_FAILED)
+            fprintf(stderr, "%s: stk500v2_command(): command failed\n", progname);
+        else
+            fprintf(stderr, "%s: stk500v2_command(): unknown status 0x%02x\n",
+                    progname, buf[1]);
+        return -1;
+    }
   }
 
   // otherwise try to sync up again
@@ -799,7 +835,7 @@ static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
 
   if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
     fprintf(stderr, "%s: stk500v2_program_enable(): program enable instruction not defined for part \"%s\"\n",
-            progname, p->desc);
+	    progname, p->desc);
     return -1;
   }
 
@@ -923,6 +959,15 @@ static int stk500hvsp_program_enable(PROGRAMMER * pgm, AVRPART * p)
  */
 static int stk500v2_initialize(PROGRAMMER * pgm, AVRPART * p)
 {
+
+  if (pgmtype == PGMTYPE_STK600 &&
+      (p->flags & AVRPART_HAS_PDI) != 0) {
+    /*
+     * This is an ATxmega device, must use XPROG protocol for the
+     * remaining actions.
+     */
+    stk600_setup_xprog(pgm);
+  }
 
   return pgm->program_enable(pgm, p);
 }
@@ -1240,7 +1285,7 @@ static int stk500hv_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 			      enum hvmode mode)
 {
   int result, cmdlen = 2;
-  char buf[266];
+  unsigned char buf[266];
   unsigned long paddr = 0UL, *paddr_ptr = NULL;
   unsigned int pagesize = 0, use_ext_addr = 0, addrshift = 0;
   unsigned char *cache_ptr = NULL;
@@ -1371,7 +1416,7 @@ static int stk500hv_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 			       enum hvmode mode)
 {
   int result, cmdlen, timeout = 0, pulsewidth = 0;
-  char buf[266];
+  unsigned char buf[266];
   unsigned long paddr = 0UL, *paddr_ptr = NULL;
   unsigned int pagesize = 0, use_ext_addr = 0, addrshift = 0;
   unsigned char *cache_ptr = NULL;
@@ -2820,6 +2865,482 @@ static int stk500v2_dragon_hv_open(PROGRAMMER * pgm, char * port)
   }
 
   return 0;
+}
+
+/*
+ * XPROG wrapper
+ */
+static int stk600_xprog_command(PROGRAMMER * pgm, unsigned char *b,
+                                unsigned int cmdsize, unsigned int responsesize)
+{
+    unsigned char *newb;
+    unsigned int s;
+    int rv;
+
+    if (cmdsize < responsesize)
+        s = responsesize;
+    else
+        s = cmdsize;
+
+    if ((newb = malloc(s + 1)) == 0) {
+        fprintf(stderr, "%s: stk600_xprog_cmd(): out of memory\n",
+                progname);
+        return -1;
+    }
+
+    newb[0] = CMD_XPROG;
+    memcpy(newb + 1, b, cmdsize);
+    rv = stk500v2_command(pgm, newb, cmdsize + 1, responsesize + 1);
+    if (rv == 0) {
+        memcpy(b, newb + 1, responsesize);
+    }
+
+    free(newb);
+
+    return rv;
+}
+
+
+/*
+ * issue the 'program enable' command to the AVR device, XPROG version
+ */
+static int stk600_xprog_program_enable(PROGRAMMER * pgm, AVRPART * p)
+{
+    unsigned char buf[16];
+    unsigned int eepagesize = 42;
+    unsigned int nvm_base;
+    AVRMEM *mem;
+
+    if (p->nvm_base == 0) {
+        fprintf(stderr,
+                "%s: stk600_xprog_program_enable(): no nvm_base parameter for XPROG device\n",
+                progname);
+        return -1;
+    }
+    if ((mem = avr_locate_mem(p, "eeprom")) != NULL) {
+        if (mem->page_size == 0) {
+            fprintf(stderr,
+                    "%s: stk600_xprog_program_enable(): no EEPROM page_size parameter for XPROG device\n",
+                    progname);
+            return -1;
+        }
+        eepagesize = mem->page_size;
+    }
+
+    buf[0] = CMD_XPROG_SETMODE;
+    buf[1] = 0;                 /* PDI mode */
+    if (stk500v2_command(pgm, buf, 2, sizeof(buf)) < 0) {
+        fprintf(stderr,
+                "%s: stk600_xprog_program_enable(): CMD_XPROG_SETMODE failed\n",
+                progname);
+        return -1;
+    }
+
+    buf[0] = XPRG_CMD_ENTER_PROGMODE;
+    if (stk600_xprog_command(pgm, buf, 1, 2) < 0) {
+        fprintf(stderr,
+                "%s: stk600_xprog_program_enable(): XPRG_CMD_ENTER_PROGMODE failed\n",
+                progname);
+        return -1;
+    }
+
+    buf[0] = XPRG_CMD_SET_PARAM;
+    buf[1] = XPRG_PARAM_NVMBASE;
+    nvm_base = p->nvm_base;
+    /*
+     * The 0x01000000 appears to be an indication to the programmer
+     * that the respective address is located in IO (i.e., SRAM)
+     * memory address space rather than flash.  This is not documented
+     * anywhere in AVR079 but matches what AVR Studio does.
+     */
+    nvm_base |= 0x01000000;
+    buf[2] = nvm_base >> 24;
+    buf[3] = nvm_base >> 16;
+    buf[4] = nvm_base >> 8;
+    buf[5] = nvm_base;
+    if (stk600_xprog_command(pgm, buf, 6, 2) < 0) {
+        fprintf(stderr,
+                "%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_NVMBASE) failed\n",
+                progname);
+        return -1;
+    }
+
+    if (mem != NULL) {
+        buf[0] = XPRG_CMD_SET_PARAM;
+        buf[1] = XPRG_PARAM_EEPPAGESIZE;
+        buf[2] = eepagesize >> 8;
+        buf[3] = eepagesize;
+        if (stk600_xprog_command(pgm, buf, 4, 2) < 0) {
+            fprintf(stderr,
+                    "%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_EEPPAGESIZE) failed\n",
+                    progname);
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+static void stk600_xprog_disable(PROGRAMMER * pgm)
+{
+    unsigned char buf[2];
+
+    buf[0] = XPRG_CMD_LEAVE_PROGMODE;
+    if (stk600_xprog_command(pgm, buf, 1, 2) < 0) {
+        fprintf(stderr,
+                "%s: stk600_xprog_program_enable(): XPRG_CMD_LEAVE_PROGMODE failed\n",
+                progname);
+    }
+}
+
+static int stk600_xprog_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+				   unsigned long addr, unsigned char data)
+{
+    unsigned char b[10];
+
+    /*
+     * Fancy offsets everywhere.
+     * This is probably what AVR079 means when writing about the
+     * "TIF address space".
+     */
+    if (strcmp(mem->desc, "flash") == 0) {
+        b[1] = XPRG_MEM_TYPE_APPL;
+        addr += 0x00800000;
+    } else if (strcmp(mem->desc, "boot") == 0) {
+        b[1] = XPRG_MEM_TYPE_BOOT;
+        addr += 0x00800000;
+    } else if (strcmp(mem->desc, "eeprom") == 0) {
+        b[1] = XPRG_MEM_TYPE_EEPROM;
+        addr += 0x008c0000;
+    } else if (strcmp(mem->desc, "lockbits") == 0) {
+        b[1] = XPRG_MEM_TYPE_LOCKBITS;
+        addr += 0x008f0000;
+    } else if (strcmp(mem->desc, "usersig") == 0) {
+        b[1] = XPRG_MEM_TYPE_USERSIG;
+        addr += 0x008e0000;
+    } else {
+        fprintf(stderr,
+                "%s: stk600_xprog_write_byte(): unknown memory \"%s\"\n",
+                progname, mem->desc);
+        return -1;
+    }
+    addr += mem->offset;
+
+    b[0] = XPRG_CMD_WRITE_MEM;
+    b[2] = 0;			/* pagemode: non-paged write */
+    b[3] = addr >> 24;
+    b[4] = addr >> 16;
+    b[5] = addr >> 8;
+    b[6] = addr;
+    b[7] = 0;
+    b[8] = 1;
+    b[9] = data;
+    if (stk600_xprog_command(pgm, b, 10, 2) < 0) {
+        fprintf(stderr,
+                "%s: stk600_xprog_write_byte(): XPRG_CMD_WRITE_MEM failed\n",
+                progname);
+        return -1;
+    }
+    return 0;
+}
+
+
+static int stk600_xprog_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+                                  unsigned long addr, unsigned char * value)
+{
+    unsigned char b[8];
+
+    /*
+     * Fancy offsets everywhere.
+     * This is probably what AVR079 means when writing about the
+     * "TIF address space".
+     */
+    if (strcmp(mem->desc, "flash") == 0) {
+        b[1] = XPRG_MEM_TYPE_APPL;
+        addr += 0x00800000;
+    } else if (strcmp(mem->desc, "boot") == 0) {
+        b[1] = XPRG_MEM_TYPE_BOOT;
+        addr += 0x00800000;
+    } else if (strcmp(mem->desc, "eeprom") == 0) {
+        b[1] = XPRG_MEM_TYPE_EEPROM;
+        addr += 0x008c0000;
+    } else if (strcmp(mem->desc, "signature") == 0) {
+        b[1] = XPRG_MEM_TYPE_APPL;
+        addr += 0x01000000;
+    } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
+        b[1] = XPRG_MEM_TYPE_FUSE;
+        addr += 0x008f0000;
+    } else if (strcmp(mem->desc, "lockbits") == 0) {
+        b[1] = XPRG_MEM_TYPE_LOCKBITS;
+        addr += 0x008f0000;
+    } else if (strcmp(mem->desc, "calibration") == 0) {
+        b[1] = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
+        addr += 0x008e0000;
+    } else if (strcmp(mem->desc, "usersig") == 0) {
+        b[1] = XPRG_MEM_TYPE_USERSIG;
+        addr += 0x008e0000;
+    } else {
+        fprintf(stderr,
+                "%s: stk600_xprog_read_byte(): unknown memory \"%s\"\n",
+                progname, mem->desc);
+        return -1;
+    }
+    addr += mem->offset;
+
+    b[0] = XPRG_CMD_READ_MEM;
+    b[2] = addr >> 24;
+    b[3] = addr >> 16;
+    b[4] = addr >> 8;
+    b[5] = addr;
+    b[6] = 0;
+    b[7] = 1;
+    if (stk600_xprog_command(pgm, b, 8, 3) < 0) {
+        fprintf(stderr,
+                "%s: stk600_xprog_read_byte(): XPRG_CMD_READ_MEM failed\n",
+                progname);
+        return -1;
+    }
+    *value = b[2];
+    return 0;
+}
+
+
+static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+				   int page_size, int n_bytes)
+{
+    unsigned char *b;
+    unsigned int addr;
+    unsigned int offset;
+    unsigned char memtype;
+    int n_bytes_orig = n_bytes;
+
+    /*
+     * The XPROG read command supports at most 256 bytes in one
+     * transfer.
+     */
+    if (page_size > 256)
+	page_size = 256;	/* not really a page size anymore */
+
+    /*
+     * Fancy offsets everywhere.
+     * This is probably what AVR079 means when writing about the
+     * "TIF address space".
+     */
+    if (strcmp(mem->desc, "flash") == 0) {
+        memtype = XPRG_MEM_TYPE_APPL;
+        addr = 0x00800000;
+    } else if (strcmp(mem->desc, "boot") == 0) {
+        memtype = XPRG_MEM_TYPE_BOOT;
+        addr = 0x00800000;
+    } else if (strcmp(mem->desc, "eeprom") == 0) {
+        memtype = XPRG_MEM_TYPE_EEPROM;
+        addr = 0x008c0000;
+    } else {
+        fprintf(stderr,
+                "%s: stk600_xprog_paged_load(): unknown paged memory \"%s\"\n",
+                progname, mem->desc);
+        return -1;
+    }
+
+    if ((b = malloc(page_size + 2)) == NULL) {
+	fprintf(stderr,
+                "%s: stk600_xprog_paged_load(): out of memory\n",
+                progname);
+        return -1;
+    }
+
+    offset = 0;
+    while (n_bytes != 0) {
+	report_progress(offset, n_bytes_orig, NULL);
+	b[0] = XPRG_CMD_READ_MEM;
+	b[1] = memtype;
+	b[2] = addr >> 24;
+	b[3] = addr >> 16;
+	b[4] = addr >> 8;
+	b[5] = addr;
+	b[6] = page_size >> 8;
+	b[7] = page_size;
+	if (stk600_xprog_command(pgm, b, 8, page_size + 2) < 0) {
+	    fprintf(stderr,
+		    "%s: stk600_xprog_paged_load(): XPRG_CMD_READ_MEM failed\n",
+		    progname);
+	    return -1;
+	}
+	memcpy(mem->buf + offset, b + 2, page_size);
+	if (n_bytes < page_size) {
+	    n_bytes = page_size;
+	}
+	offset += page_size;
+	addr += page_size;
+	n_bytes -= page_size;
+    }
+    free(b);
+
+    return n_bytes_orig;
+}
+
+static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+				    int page_size, int n_bytes)
+{
+    unsigned char *b;
+    unsigned int addr;
+    unsigned int offset;
+    unsigned char memtype;
+    int n_bytes_orig = n_bytes;
+
+    /*
+     * The XPROG read command supports at most 256 bytes in one
+     * transfer.
+     */
+    if (page_size > 512) {
+	fprintf(stderr,
+		"%s: stk600_xprog_paged_write(): cannot handle page size > 512\n",
+		progname);
+	return -1;
+    }
+
+    /*
+     * Fancy offsets everywhere.
+     * This is probably what AVR079 means when writing about the
+     * "TIF address space".
+     */
+    if (strcmp(mem->desc, "flash") == 0) {
+        memtype = XPRG_MEM_TYPE_APPL;
+        addr = 0x00800000;
+    } else if (strcmp(mem->desc, "boot") == 0) {
+        memtype = XPRG_MEM_TYPE_BOOT;
+        addr = 0x00800000;
+    } else if (strcmp(mem->desc, "eeprom") == 0) {
+        memtype = XPRG_MEM_TYPE_EEPROM;
+        addr = 0x008c0000;
+    } else {
+        fprintf(stderr,
+                "%s: stk600_xprog_paged_write(): unknown paged memory \"%s\"\n",
+                progname, mem->desc);
+        return -1;
+    }
+
+    if ((b = malloc(page_size + 9)) == NULL) {
+	fprintf(stderr,
+                "%s: stk600_xprog_paged_write(): out of memory\n",
+                progname);
+        return -1;
+    }
+
+    offset = 0;
+    while (n_bytes != 0) {
+	report_progress(offset, n_bytes_orig, NULL);
+
+	if (page_size > 256) {
+	    /*
+	     * AVR079 is not quite clear.  While it suggests that
+	     * downloading up to 512 bytes (256 words) were OK, it
+	     * obviously isn't -- 512-byte pages on the ATxmega128A1
+	     * are getting corrupted when written as a single piece.
+	     * It writes random junk somewhere beyond byte 256.
+	     * Splitting it into 256 byte chunks, and only setting the
+	     * erase page / write page bits in the final chunk helps.
+	     */
+	    if (page_size % 256 != 0) {
+		fprintf(stderr,
+			"%s: stk600_xprog_paged_write(): page size not multiple of 256\n",
+			progname);
+		return -1;
+	    }
+	    unsigned int chunk;
+	    for (chunk = 0; chunk < page_size; chunk += 256) {
+		memset(b + 9, 0xff, 256);
+		b[0] = XPRG_CMD_WRITE_MEM;
+		b[1] = memtype;
+		if (chunk + 256 == page_size) {
+		    b[2] = 3;	/* last chunk: erase page | write page */
+		} else {
+		    b[2] = 0;	/* initial/intermediate chunk: just download */
+		}
+		b[3] = addr >> 24;
+		b[4] = addr >> 16;
+		b[5] = addr >> 8;
+		b[6] = addr;
+		b[7] = 1;
+		b[8] = 0;
+		memcpy(b + 9, mem->buf + offset, n_bytes);
+		if (stk600_xprog_command(pgm, b, 256 + 9, 2) < 0) {
+		    fprintf(stderr,
+			    "%s: stk600_xprog_paged_write(): XPRG_CMD_WRITE_MEM failed\n",
+			    progname);
+		    return -1;
+		}
+		if (n_bytes < 256)
+		    n_bytes = 256;
+
+		offset += 256;
+		addr += 256;
+		n_bytes -= 256;
+	    }
+	} else {
+	    if (n_bytes < page_size)
+		/*
+		 * This can easily happen if the input file was not a
+		 * multiple of the page size.
+		 */
+		memset(b + 9 + n_bytes, 0xff, page_size - n_bytes);
+	    b[0] = XPRG_CMD_WRITE_MEM;
+	    b[1] = memtype;
+	    b[2] = 3;		/* erase page | write page */
+	    b[3] = addr >> 24;
+	    b[4] = addr >> 16;
+	    b[5] = addr >> 8;
+	    b[6] = addr;
+	    b[7] = page_size >> 8;
+	    b[8] = page_size;
+	    memcpy(b + 9, mem->buf + offset, n_bytes);
+	    if (stk600_xprog_command(pgm, b, page_size + 9, 2) < 0) {
+		fprintf(stderr,
+			"%s: stk600_xprog_paged_write(): XPRG_CMD_WRITE_MEM failed\n",
+			progname);
+		return -1;
+	    }
+	    if (n_bytes < page_size)
+		n_bytes = page_size;
+
+	    offset += page_size;
+	    addr += page_size;
+	    n_bytes -= page_size;
+	}
+    }
+    free(b);
+
+    return n_bytes_orig;
+}
+
+static int stk600_xprog_chip_erase(PROGRAMMER * pgm, AVRPART * p)
+{
+    unsigned char b[6];
+
+    b[0] = XPRG_CMD_ERASE;
+    b[1] = XPRG_ERASE_CHIP;
+    b[2] = b[3] = b[4] = b[5] = 0;
+    if (stk600_xprog_command(pgm, b, 6, 2) < 0) {
+	    fprintf(stderr,
+		    "%s: stk600_xprog_chip_erase(): XPRG_CMD_ERASE(XPRG_ERASE_CHIP) failed\n",
+		    progname);
+	    return -1;
+	}
+    return 0;
+}
+
+/*
+ * Modify pgm's methods for XPROG operation.
+ */
+static void stk600_setup_xprog(PROGRAMMER * pgm)
+{
+    pgm->program_enable = stk600_xprog_program_enable;
+    pgm->disable = stk600_xprog_disable;
+    pgm->read_byte = stk600_xprog_read_byte;
+    pgm->write_byte = stk600_xprog_write_byte;
+    pgm->paged_load = stk600_xprog_paged_load;
+    pgm->paged_write = stk600_xprog_paged_write;
+    pgm->chip_erase = stk600_xprog_chip_erase;
 }
 
 

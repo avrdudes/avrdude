@@ -953,7 +953,14 @@ int main(int argc, char * argv [])
   }
 
 
-
+  if ((p->flags & AVRPART_HAS_PDI) != 0) {
+    /*
+     * This is an ATxmega which can page erase, so no auto erase is
+     * needed.
+     */
+    auto_erase = 0;
+  }
+  
 
   if ((erase == 0) && (auto_erase == 1)) {
     AVRMEM * m;
