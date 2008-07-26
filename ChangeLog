@@ -6,7 +6,8 @@
 	* jtagmkI.c (jtagmkI_initialize): pointer signedness mixup
 	* jtagmkII.c (jtagmkII_print_parms1): propagate const'ness
 	of parameter
-	* usbasp.c (usbasp_transmit): poiner signedness mixup
+	* usbasp.c (usbasp_transmit): pointer signedness mixup
+	* ser_avrdoper.c (usbGetReport): remove useless pointer deref
 
 2008-07-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
