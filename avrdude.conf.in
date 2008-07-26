@@ -12512,3 +12512,151 @@ part
                           "0 0 0 0  0 0 0 0   o o o o  o o o o";
         ;
   ;
+
+#------------------------------------------------------------
+# ATxmega128A1 rev. D (engineering samples)
+#------------------------------------------------------------
+
+part
+    id               = "x128a1d";
+    desc             = "ATXMEGA128A1REVD";
+    signature        = 0x1E 0x97 0x41;
+    has_jtag         = yes;
+    has_pdi          = yes;
+    nvm_base         = 0x01C0;
+
+    memory "eeprom"
+        page_size       = 32;
+        size            = 2048;
+      ;
+
+    memory "flash"
+        size            = 0x20000;
+        page_size       = 512;
+      ;
+
+    memory "boot"
+        size            = 0x2000;
+        page_size       = 512;
+      ;
+
+# signature is actually in IO address space
+    memory "signature"
+        size            = 3;
+        offset          = 0x90;
+      ;
+
+    memory "fuse0"
+        size            = 1;
+        offset          = 0x20;
+      ;
+
+    memory "fuse1"
+        size            = 1;
+        offset          = 0x21;
+      ;
+
+    memory "fuse2"
+        size            = 1;
+        offset          = 0x22;
+      ;
+
+    memory "fuse4"
+        size            = 1;
+        offset          = 0x24;
+      ;
+
+    memory "fuse5"
+        size            = 1;
+        offset          = 0x25;
+      ;
+
+    memory "lockbits"
+        size            = 1;
+        offset          = 0x27;
+      ;
+
+    memory "calibration"
+        size            = 512;
+        offset          = 0x200;
+      ;
+
+    memory "usersig"
+        size            = 512;
+      ;
+
+  ;
+
+#------------------------------------------------------------
+# ATxmega128A1
+#------------------------------------------------------------
+
+part
+    id               = "x128a1";
+    desc             = "ATXMEGA128A1";
+    signature        = 0x1E 0x97 0x4C;
+    has_jtag         = yes;
+    has_pdi          = yes;
+    nvm_base         = 0x01C0;
+
+    memory "eeprom"
+        page_size       = 32;
+        size            = 2048;
+      ;
+
+    memory "flash"
+        size            = 0x20000;
+        page_size       = 512;
+      ;
+
+    memory "boot"
+        size            = 0x2000;
+        page_size       = 512;
+      ;
+
+# signature is actually in IO address space
+    memory "signature"
+        size            = 3;
+        offset          = 0x90;
+      ;
+
+    memory "fuse0"
+        size            = 1;
+        offset          = 0x20;
+      ;
+
+    memory "fuse1"
+        size            = 1;
+        offset          = 0x21;
+      ;
+
+    memory "fuse2"
+        size            = 1;
+        offset          = 0x22;
+      ;
+
+    memory "fuse4"
+        size            = 1;
+        offset          = 0x24;
+      ;
+
+    memory "fuse5"
+        size            = 1;
+        offset          = 0x25;
+      ;
+
+    memory "lockbits"
+        size            = 1;
+        offset          = 0x27;
+      ;
+
+    memory "calibration"
+        size            = 512;
+      ;
+
+    memory "usersig"
+        size            = 512;
+        offset          = 0x200;
+      ;
+
+  ;

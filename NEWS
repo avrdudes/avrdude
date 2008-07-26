@@ -25,6 +25,9 @@ Current:
   * Add support to bootstrap with GNU autoconf 2.61, and automake 1.10,
     respectively.
 
+  * Add support for ATxmega128A1 (including the revision D engineering
+    samples) for STK600 tools using PDI
+
 Version 5.5:
 
   * Add support for the USBtinyISP programmer (patch #6233)

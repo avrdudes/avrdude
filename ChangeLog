@@ -1,3 +1,22 @@
+2008-07-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	First implementation of ATxmega support.  By now, only the
+	PDI mode of the STK600 is supported.  Single-byte EEPROM
+	(and flash) updates do not work yet.
+	* avr.c: "boot" memory is a candidate memory region for paged
+	operations, besides "flash" and "eeprom".
+	* avrdude.conf.in: add ATxmega128A1 and ATxmega128A1revD
+	* avrpart.h: add the AVRPART_HAS_PDI flag (used to distinguish
+	ATxmega parts from classic AVRs), the nvm_base part field, and
+	the offset field for a memory region.
+	* config_gram.y: add "has_pdi", "nvm_base", and "offset"
+	* lexer.l: (Ditto.)
+	* main.c: disable auto_erase for ATxmega parts
+	* stk500v2.c: implement the XPROG functionality, and divert to
+	this for ATxmega parts
+	* avrdude.1: Document the changes.
+	* doc/avrdude.texi: (Ditto.)
+
 2008-07-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Fix a bunch of warnings.
