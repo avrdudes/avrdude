@@ -367,6 +367,12 @@ reasonable before continuing.  Since it can happen from time to time
 that a device has a broken (erased or overwritten) device signature
 but is otherwise operating normally, this options is provided to
 override the check.
+Also, for programmers like the Atmel STK500 and STK600 which can
+adjust parameters local to the programming tool (independent of an
+actual connection to a target controller), this option can be used
+together with
+.Fl t
+to continue in terminal mode.
 .It Fl i Ar delay
 For bitbang-type programmers, delay for approximately
 .Ar delay

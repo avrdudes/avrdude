@@ -1,5 +1,16 @@
 2008-07-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* main.c: Remember whether the device initialization worked, and
+	allow to continue with -F if it failed yet do not attempt to
+	perform anything on the device itself.  That way, -tF could be
+	specified for programmers like the STK500/STK600 even without a
+	device connected, just in order to allow changing parameters on
+	the programmer itself.
+	* avrdude.1: Document that possible use of the -F option.
+	* doc/avrdude.texi: (Ditto.)
+
+2008-07-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* stk500v2.c (stk600_xprog_paged_write): Fix a fatal miscalculation
 	of the number of bytes to be written which caused a malloc chunk
 	corruption.
