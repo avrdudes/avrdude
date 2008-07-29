@@ -3187,6 +3187,7 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     unsigned int offset;
     unsigned char memtype;
     int n_bytes_orig = n_bytes;
+    size_t writesize;
 
     /*
      * The XPROG read command supports at most 256 bytes in one
@@ -3249,7 +3250,12 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 	    }
 	    unsigned int chunk;
 	    for (chunk = 0; chunk < page_size; chunk += 256) {
-		memset(b + 9, 0xff, 256);
+                if (n_bytes < 256) {
+                    memset(b + 9 + n_bytes, 0xff, 256 - n_bytes);
+                    writesize = n_bytes;
+                } else {
+                    writesize = 256;
+                }
 		b[0] = XPRG_CMD_WRITE_MEM;
 		b[1] = memtype;
 		if (chunk + 256 == page_size) {
@@ -3263,7 +3269,7 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 		b[6] = addr;
 		b[7] = 1;
 		b[8] = 0;
-		memcpy(b + 9, mem->buf + offset, n_bytes);
+		memcpy(b + 9, mem->buf + offset, writesize);
 		if (stk600_xprog_command(pgm, b, 256 + 9, 2) < 0) {
 		    fprintf(stderr,
 			    "%s: stk600_xprog_paged_write(): XPRG_CMD_WRITE_MEM failed\n",
@@ -3278,12 +3284,16 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 		n_bytes -= 256;
 	    }
 	} else {
-	    if (n_bytes < page_size)
+	    if (n_bytes < page_size) {
 		/*
 		 * This can easily happen if the input file was not a
 		 * multiple of the page size.
 		 */
 		memset(b + 9 + n_bytes, 0xff, page_size - n_bytes);
+                writesize = n_bytes;
+            } else {
+                writesize = page_size;
+            }
 	    b[0] = XPRG_CMD_WRITE_MEM;
 	    b[1] = memtype;
 	    b[2] = 3;		/* erase page | write page */
@@ -3293,7 +3303,7 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 	    b[6] = addr;
 	    b[7] = page_size >> 8;
 	    b[8] = page_size;
-	    memcpy(b + 9, mem->buf + offset, n_bytes);
+	    memcpy(b + 9, mem->buf + offset, writesize);
 	    if (stk600_xprog_command(pgm, b, page_size + 9, 2) < 0) {
 		fprintf(stderr,
 			"%s: stk600_xprog_paged_write(): XPRG_CMD_WRITE_MEM failed\n",

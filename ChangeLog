@@ -1,3 +1,9 @@
+2008-07-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* stk500v2.c (stk600_xprog_paged_write): Fix a fatal miscalculation
+	of the number of bytes to be written which caused a malloc chunk
+	corruption.
+
 2008-07-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	First implementation of ATxmega support.  By now, only the
