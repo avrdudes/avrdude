@@ -28,6 +28,10 @@ Current:
   * Add support for ATxmega128A1 (including the revision D engineering
     samples) for STK600 tools using PDI
 
+  * The option combination -tF now enters terminal mode even if the
+    device initialization failed, so the user can modify programmer
+    parameters (like Vtarget).
+
 Version 5.5:
 
   * Add support for the USBtinyISP programmer (patch #6233)

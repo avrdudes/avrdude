@@ -279,6 +279,7 @@ int main(int argc, char * argv [])
   int     ispdelay;    /* Specify the delay for ISP clock */
   int     safemode;    /* Enable safemode, 1=safemode on, 0=normal */
   int     silentsafe;  /* Don't ask about fuses, 1=silent, 0=normal */
+  int     init_ok;     /* Device initialization worked well */
   unsigned char safemode_lfuse = 0xff;
   unsigned char safemode_hfuse = 0xff;
   unsigned char safemode_efuse = 0xff;
@@ -823,8 +824,8 @@ int main(int argc, char * argv [])
   /*
    * initialize the chip in preperation for accepting commands
    */
-  rc = pgm->initialize(pgm, p);
-  if (rc < 0) {
+  init_ok = (rc = pgm->initialize(pgm, p)) >= 0;
+  if (!init_ok) {
     fprintf(stderr, "%s: initialization failed, rc=%d\n", progname, rc);
     if (!ovsigck) {
       fprintf(stderr, "%sDouble check connections and try again, "
@@ -851,12 +852,14 @@ int main(int argc, char * argv [])
    * against 0xffffff / 0x000000 should ensure that the signature bytes
    * are valid.
    */
-  rc = avr_signature(pgm, p);
-  if (rc != 0) {
-    fprintf(stderr, "%s: error reading signature data, rc=%d\n",
-            progname, rc);
-    exitrc = 1;
-    goto main_exit;
+  if (init_ok) {
+    rc = avr_signature(pgm, p);
+    if (rc != 0) {
+      fprintf(stderr, "%s: error reading signature data, rc=%d\n",
+	      progname, rc);
+      exitrc = 1;
+      goto main_exit;
+    }
   }
 
   sig = avr_locate_mem(p, "signature");
@@ -917,7 +920,7 @@ int main(int argc, char * argv [])
     }
   }
 
-  if (safemode == 1) {
+  if (init_ok && safemode == 1) {
     /* If safemode is enabled, go ahead and read the current low, high,
        and extended fuse bytes as needed */
 
@@ -989,7 +992,8 @@ int main(int argc, char * argv [])
    *
    * The cycle count will be displayed anytime it will be changed later.
    */
-  if ((set_cycles == -1) && ((erase == 0) || (do_cycles == 0))) {
+  if (init_ok &&
+      (set_cycles == -1) && ((erase == 0) || (do_cycles == 0))) {
     /*
      * see if the cycle count in the last four bytes of eeprom seems
      * reasonable
@@ -1005,7 +1009,7 @@ int main(int argc, char * argv [])
     }
   }
 
-  if (set_cycles != -1) {
+  if (init_ok && set_cycles != -1) {
     rc = avr_get_cycle_count(pgm, p, &cycles);
     if (rc == 0) {
       /*
@@ -1028,7 +1032,7 @@ int main(int argc, char * argv [])
   }
 
 
-  if (erase) {
+  if (init_ok && erase) {
     /*
      * erase the chip's flash and eeprom memories, this is required
      * before the chip can accept new programming
@@ -1043,8 +1047,16 @@ int main(int argc, char * argv [])
   if (terminal) {
     /*
      * terminal mode
-     */         
+     */
     exitrc = terminal_mode(pgm, p);
+  }
+
+  if (!init_ok) {
+    /*
+     * If we came here by the -tF options, bail out now.
+     */
+    exitrc = 1;
+    goto main_exit;
   }
 
 
