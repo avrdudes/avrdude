@@ -1,3 +1,12 @@
+2008-10-31  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtagmkII.c: Fix a serious memory corruption that happened when
+	using the JTAG ICE mkII (or AVR Dragon) in ISP mode.  The wrong
+	set of per-programmer private data had been allocated (stk500v2
+	vs. jtagmkII) which was too small to hold the actual data.
+	* jtagmkII.h: (Ditto.)
+	* stk500v2.c: (Ditto.)
+
 2008-07-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* jtagmkII.c: Implement Xmega JTAG support.

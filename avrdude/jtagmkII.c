@@ -130,7 +130,7 @@ static int jtagmkII_setparm(PROGRAMMER * pgm, unsigned char parm,
 			    unsigned char * value);
 static void jtagmkII_print_parms1(PROGRAMMER * pgm, const char * p);
 
-static void jtagmkII_setup(PROGRAMMER * pgm)
+void jtagmkII_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
     fprintf(stderr,
@@ -141,7 +141,7 @@ static void jtagmkII_setup(PROGRAMMER * pgm)
   memset(pgm->cookie, 0, sizeof(struct pdata));
 }
 
-static void jtagmkII_teardown(PROGRAMMER * pgm)
+void jtagmkII_teardown(PROGRAMMER * pgm)
 {
   free(pgm->cookie);
 }
