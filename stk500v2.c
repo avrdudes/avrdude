@@ -3482,8 +3482,8 @@ void stk500v2_jtagmkII_initpgm(PROGRAMMER * pgm)
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
   pgm->perform_osccal = stk500v2_perform_osccal;
-  pgm->setup          = stk500v2_setup;
-  pgm->teardown       = stk500v2_teardown;
+  pgm->setup          = jtagmkII_setup;
+  pgm->teardown       = jtagmkII_teardown;
   pgm->page_size      = 256;
 }
 
@@ -3513,8 +3513,8 @@ void stk500v2_dragon_isp_initpgm(PROGRAMMER * pgm)
   pgm->paged_load     = stk500v2_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
-  pgm->setup          = stk500v2_setup;
-  pgm->teardown       = stk500v2_teardown;
+  pgm->setup          = jtagmkII_setup;
+  pgm->teardown       = jtagmkII_teardown;
   pgm->page_size      = 256;
 }
 
@@ -3546,8 +3546,8 @@ void stk500v2_dragon_pp_initpgm(PROGRAMMER * pgm)
   pgm->set_varef      = stk500v2_set_varef;
   pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
-  pgm->setup          = stk500v2_setup;
-  pgm->teardown       = stk500v2_teardown;
+  pgm->setup          = jtagmkII_setup;
+  pgm->teardown       = jtagmkII_teardown;
   pgm->page_size      = 256;
 }
 
@@ -3579,8 +3579,8 @@ void stk500v2_dragon_hvsp_initpgm(PROGRAMMER * pgm)
   pgm->set_varef      = stk500v2_set_varef;
   pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
-  pgm->setup          = stk500v2_setup;
-  pgm->teardown       = stk500v2_teardown;
+  pgm->setup          = jtagmkII_setup;
+  pgm->teardown       = jtagmkII_teardown;
   pgm->page_size      = 256;
 }
 

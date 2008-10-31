@@ -38,6 +38,14 @@ void jtagmkII_dw_initpgm (PROGRAMMER * pgm);
 void jtagmkII_dragon_initpgm (PROGRAMMER * pgm);
 void jtagmkII_dragon_dw_initpgm (PROGRAMMER * pgm);
 
+/*
+ * These functions are referenced from stk500v2.c for JTAG ICE mkII
+ * and AVR Dragon programmers running in one of the STK500v2
+ * modi.
+ */
+void jtagmkII_setup(PROGRAMMER * pgm);
+void jtagmkII_teardown(PROGRAMMER * pgm);
+
 #ifdef __cplusplus
 }
 #endif
