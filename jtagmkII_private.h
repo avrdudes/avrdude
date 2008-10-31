@@ -179,6 +179,7 @@
 # define EMULATOR_MODE_JTAG 0x01
 # define EMULATOR_MODE_HV 0x02	/* HVSP or PP mode of AVR Dragon */
 # define EMULATOR_MODE_SPI 0x03
+# define EMULATOR_MODE_JTAG_XMEGA 0x05
 #define PAR_IREG 0x04
 #define PAR_BAUD_RATE 0x05
 # define PAR_BAUD_2400 0x01
