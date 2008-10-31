@@ -1,5 +1,10 @@
 2008-07-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* jtagmkII.c: Implement Xmega JTAG support.
+	* jtagmkII_private.h: Add EMULATOR_MODE_JTAG_XMEGA.
+
+2008-07-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* main.c: Remember whether the device initialization worked, and
 	allow to continue with -F if it failed yet do not attempt to
 	perform anything on the device itself.  That way, -tF could be

@@ -261,6 +261,7 @@ static void jtagmkII_prmsg(PROGRAMMER * pgm, unsigned char * data, size_t len)
       case EMULATOR_MODE_JTAG:      fprintf(stderr, ": JTAG"); break;
       case EMULATOR_MODE_HV:        fprintf(stderr, ": HVSP/PP"); break;
       case EMULATOR_MODE_SPI:       fprintf(stderr, ": SPI"); break;
+      case EMULATOR_MODE_JTAG_XMEGA: fprintf(stderr, ": JTAG/Xmega"); break;
       }
     putc('\n', stderr);
     break;
@@ -876,6 +877,8 @@ static void jtagmkII_set_devdescr(PROGRAMMER * pgm, AVRPART * p)
       sendbuf.dd.ucEepromPageSize = PDATA(pgm)->eeprom_pagesize = m->page_size;
     }
   }
+  sendbuf.dd.ucCacheType =
+    (p->flags & AVRPART_HAS_PDI)? 0x02 /* ATxmega */: 0x00;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkII_set_devdescr(): "
@@ -1143,6 +1146,13 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
    * Must set the device descriptor before entering programming mode.
    */
   jtagmkII_set_devdescr(pgm, p);
+  /*
+   * If this is an ATxmega device, change the emulator mode from JTAG
+   * to JTAG_XMEGA.
+   */
+  if (!(pgm->flag & PGM_FL_IS_DW) &&
+      (p->flags & AVRPART_HAS_PDI))
+    jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG_XMEGA);
 
   free(PDATA(pgm)->flash_pagecache);
   free(PDATA(pgm)->eeprom_pagecache);
