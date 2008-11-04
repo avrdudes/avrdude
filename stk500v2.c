@@ -753,7 +753,7 @@ static int stk500v2_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 
   pgm->pgm_led(pgm, OFF);
 
-  return result;
+  return result >= 0? 0: -1;
 }
 
 /*
@@ -781,7 +781,7 @@ static int stk500hv_chip_erase(PROGRAMMER * pgm, AVRPART * p, enum hvmode mode)
 
   pgm->pgm_led(pgm, OFF);
 
-  return result;
+  return result >= 0? 0: -1;
 }
 
 /*
