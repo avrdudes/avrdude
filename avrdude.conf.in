@@ -11008,8 +11008,7 @@ part
 part
     id               = "usb646";
     desc             = "AT90USB646";
-#    signature        = 0x1e 0x96 0x82; ?
-    signature        = 0x1e 0x97 0x82;
+    signature        = 0x1e 0x96 0x82; ?
     has_jtag         = yes;
 #    stk500_devcode   = 0xB2;
 #    avr910_devcode   = 0x43;
@@ -11198,8 +11197,7 @@ part
 part
     id               = "usb647";
     desc             = "AT90USB647";
-#    signature        = 0x1e 0x96 0x82; ?
-    signature        = 0x1e 0x97 0x82;
+    signature        = 0x1e 0x96 0x82; ?
     has_jtag         = yes;
 #    stk500_devcode   = 0xB2;
 #    avr910_devcode   = 0x43;

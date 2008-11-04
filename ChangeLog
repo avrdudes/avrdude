@@ -1,3 +1,10 @@
+2008-11-04  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #24589: AT90USB64* have wrong signature
+	* avrdude.conf.in: Uncomment the correct, and delete the wrong
+	signature for AT90USB646/647.  Alas, the datasheet has never been
+	corrected for years.
+
 2008-10-31  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* jtagmkII.c: Fix a serious memory corruption that happened when
