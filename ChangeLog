@@ -1,5 +1,11 @@
 2008-11-04  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #22883: Chip Erase performed even with no-write flag (-n)
+	* main.c: Do not erase the chip if both, -e and -n options have
+	been specified.
+
+2008-11-04  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #24589: AT90USB64* have wrong signature
 	* avrdude.conf.in: Uncomment the correct, and delete the wrong
 	signature for AT90USB646/647.  Alas, the datasheet has never been

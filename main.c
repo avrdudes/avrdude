@@ -1037,10 +1037,16 @@ int main(int argc, char * argv [])
      * erase the chip's flash and eeprom memories, this is required
      * before the chip can accept new programming
      */
-    if (quell_progress < 2) {
-      fprintf(stderr, "%s: erasing chip\n", progname);
+    if (nowrite) {
+      fprintf(stderr,
+	      "%s: conflicting -e and -n options specified, NOT erasing chip\n",
+	      progname);
+    } else {
+      if (quell_progress < 2) {
+	fprintf(stderr, "%s: erasing chip\n", progname);
+      }
+      avr_chip_erase(pgm, p);
     }
-    avr_chip_erase(pgm, p);
   }
 
 
