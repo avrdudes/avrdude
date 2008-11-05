@@ -1882,7 +1882,7 @@ Windows serial port device names such as: com1, com2, etc.
 @subsubsection Parallel Ports
 
 @noindent
-AVRDUDE will only accept 3 Windows parallel port names: lpt1, lpt2, or
+AVRDUDE will accept 3 Windows parallel port names: lpt1, lpt2, or
 lpt3.  Each of these names corresponds to a fixed parallel port base
 address:
 
@@ -1903,6 +1903,9 @@ using a laptop, you might have to use lpt3 instead of lpt1. Select the
 name of the port the corresponds to the base address of the parallel
 port that you want.
 
+If the parallel port can be accessed through a different
+address, this address can be specified directly, using the common C
+language notation (i. e., hexadecimal values are prefixed by @code{0x}).
 
 @c
 @c Node

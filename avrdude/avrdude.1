@@ -1,6 +1,6 @@
 .\"
 .\" avrdude - A Downloader/Uploader for AVR device programmers
-.\" Copyright (C) 2001, 2002, 2003, 2005, 2006, 2007  Joerg Wunsch
+.\" Copyright (C) 2001, 2002, 2003, 2005, 2006, 2007, 2008  Joerg Wunsch
 .\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE July 27, 2008
+.Dd DATE November 5, 2008
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -412,6 +412,14 @@ serial port, the
 .Pa /dev/cuaa0
 port is the default.  If you need to use a different parallel or
 serial port, use this option to specify the alternate port name.
+.Pp
+On Win32 operating systems, the parallel ports are referred to as lpt1
+through lpt3, referring to the addresses 0x378, 0x278, and 0x3BC,
+respectively.  If the parallel port can be accessed through a different
+address, this address can be specified directly, using the common C
+language notation (i. e., hexadecimal values are prefixed by
+.Ql 0x
+).
 .Pp
 For the JTAG ICE mkII, if
 .Nm
