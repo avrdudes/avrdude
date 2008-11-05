@@ -2,6 +2,7 @@
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2003, 2004, 2006
  *    Eric B. Weddington <eweddington@cso.atmel.com>
+ * Copyright 2008, Joerg Wunsch
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,6 +107,24 @@ void ppi_open(char *port, union filedescriptor *fdp)
             fd = winports[i].base_address;
             break;
         }
+    }
+    if(fd == -1)
+    {
+	/*
+	 * Supplied port name did not match any of the pre-defined
+	 * names.  Try interpreting it as a numeric
+	 * (hexadecimal/decimal/octal) address.
+	 */
+	char *cp;
+
+	fd = strtol(port, &cp, 0);
+	if(*port == '\0' || *cp != '\0')
+	{
+	    fprintf(stderr,
+		    "%s: port name \"%s\" is neither lpt1/2/3 nor valid number\n",
+		    progname, port);
+	    fd = -1;
+	}
     }
     if(fd < 0)
     {
