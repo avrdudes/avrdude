@@ -312,19 +312,19 @@ static int usbtiny_cmd(PROGRAMMER * pgm, unsigned char cmd[4], unsigned char res
   int nbytes;
 
   // Make sure its empty so we don't read previous calls if it fails
-  memset(res, '\0', sizeof(res) );
+  memset(res, '\0', 4 );
 
   nbytes = usb_in( pgm, USBTINY_SPI,
 		   (cmd[1] << 8) | cmd[0],  // convert to 16-bit words
 		   (cmd[3] << 8) | cmd[2],  //  "
-			res, sizeof(res), 8 * PDATA(pgm)->sck_period );
+			res, 4, 8 * PDATA(pgm)->sck_period );
   if (verbose > 1) {
     // print out the data we sent and received
     printf( "CMD: [%02x %02x %02x %02x] [%02x %02x %02x %02x]\n",
 	    cmd[0], cmd[1], cmd[2], cmd[3],
 	    res[0], res[1], res[2], res[3] );
   }
-  return ((nbytes == sizeof(res)) &&      // should have read 4 bytes
+  return ((nbytes == 4) &&      // should have read 4 bytes
 	  res[2] == cmd[1]);              // AVR's do a delayed-echo thing
 }
 

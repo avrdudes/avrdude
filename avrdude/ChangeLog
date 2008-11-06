@@ -1,3 +1,10 @@
+2008-11-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by limor <limor@ladyada.net>
+	* usbtiny.c (usbtiny_cmd): Replace sizeof() by a fixed constant
+	4 for the result array, because otherwise it would take the size
+	of a pointer which miserably fails on 64-bit machines.
+
 2008-11-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	patch #6609: Using PCI parallel port cards on Windows
