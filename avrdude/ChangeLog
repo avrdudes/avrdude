@@ -1,3 +1,9 @@
+2008-11-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avrdude.h: Change the prototype for usleep() to be more Cygwin-
+	friendly.
+	* ppiwin.c: (Ditto.)
+
 2008-11-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by limor <limor@ladyada.net>
