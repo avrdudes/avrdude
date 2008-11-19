@@ -374,7 +374,7 @@ int gettimeofday(struct timeval *tv, struct timezone *unused){
 
 #endif
 
-void usleep(unsigned long us)
+int usleep(unsigned int us)
 {
 	int has_highperf;
 	LARGE_INTEGER freq,start,stop,loopend;
@@ -407,6 +407,8 @@ void usleep(unsigned long us)
 	}
 	
     DEBUG_DisplayTimingInfo(start, stop, freq, us, has_highperf);
+
+    return 0;
 }
 
 #endif

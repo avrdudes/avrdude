@@ -46,7 +46,7 @@ extern "C" {
  #define ANTIWARP 3
  #define usleep(us) Sleep(us/1000*ANTIWARP)
 */
-void usleep(unsigned long us);
+int usleep(unsigned int us);
 
 #if !defined(HAVE_GETTIMEOFDAY)
 struct timezone;
