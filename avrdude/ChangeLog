@@ -1,0 +1,6 @@
+2009-02-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Add the ATmega128RFA1.
+	* avrdude.1: document the addition of ATmega128RFA1.
+	* doc/avrdude.texi: (Ditto.)
+
