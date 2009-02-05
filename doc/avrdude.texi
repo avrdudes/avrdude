@@ -297,6 +297,7 @@ Currently, the following MCU types are understood:
 @item @code{m128}  @tab ATmega128
 @item @code{m1280} @tab ATmega1280
 @item @code{m1281} @tab ATmega1281
+@item @code{m128rfa1} @tab ATmega128RFA1
 @item @code{m16}   @tab ATmega16
 @item @code{m161}  @tab ATmega161
 @item @code{m162}  @tab ATmega162
