@@ -1,5 +1,13 @@
 2009-02-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Mark Litwack:
+	patch #6261: avrdude won't use dragon/debugwire to write a file
+	to eeprom
+	* jtagmkII.c (jtagmkII_paged_write): when in debugWire mode,
+	implement a paged write to EEPROM as a series of byte writes.
+
+2009-02-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Janos Sallai:
 	patch #6542: paged_load fails on the MIB510 programming board
 	* stk500.c: Add a workaround for the different signon sequence on

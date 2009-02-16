@@ -35,6 +35,8 @@ Current:
   * Add preliminary support for ATxmega128A1 for the JTAG ICE mkII using
     JTAG.
 
+  * Bugfixes.
+
 Version 5.5:
 
   * Add support for the USBtinyISP programmer (patch #6233)

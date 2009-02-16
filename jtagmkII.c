@@ -1534,13 +1534,25 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
     page_size = PDATA(pgm)->flash_pagesize;
   } else if (strcmp(m->desc, "eeprom") == 0) {
+    if (pgm->flag & PGM_FL_IS_DW) {
+      /*
+       * jtagmkII_paged_write() to EEPROM attempted while in
+       * DW mode.  Use jtagmkII_write_byte() instead.
+       */
+      for (addr = 0; addr < n_bytes; addr++) {
+	status = jtagmkII_write_byte(pgm, p, m, addr, m->buf[addr]);
+	report_progress(addr, n_bytes, NULL);
+	if (status < 0) {
+	  free(cmd);
+	  return -1;
+	}
+      }
+      free(cmd);
+      return n_bytes;
+    }
     cmd[1] = MTYPE_EEPROM_PAGE;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
     page_size = PDATA(pgm)->eeprom_pagesize;
-    if (pgm->flag & PGM_FL_IS_DW) {
-      free(cmd);
-      return -1;
-    }
   }
 
   serial_recv_timeout = 100;
