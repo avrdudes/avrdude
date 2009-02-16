@@ -7,6 +7,13 @@ Approximate change log for AVRDUDE by version.
 ----------------------------------------------------------------------
 Current:
 
+  * New devices supported:
+
+      - ATtiny88
+      - ATmega128RFA1
+      - ATxmega128A1 rev D
+      - ATxmega128A1
+
   * Add support for the -x option to pass extended parameters to the
     programmer backend.
 

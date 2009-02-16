@@ -1,5 +1,11 @@
 2009-02-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Bob Paddock:
+	patch #6748: ATTiny88 Config
+	* avrdude.conf.in (ATtiny88): new device support.
+
+2009-02-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Mark Litwack:
 	patch #6261: avrdude won't use dragon/debugwire to write a file
 	to eeprom
