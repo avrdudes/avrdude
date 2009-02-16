@@ -971,12 +971,24 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     if (stk500_recv(pgm, buf, 1) < 0)
       exit(1);
-    if (buf[0] != Resp_STK_OK) {
+
+    if(strcmp(ldata(lfirst(pgm->id)), "mib510") == 0) {
+      if (buf[0] != Resp_STK_INSYNC) {
       fprintf(stderr,
               "\n%s: stk500_paged_load(): (a) protocol error, "
               "expect=0x%02x, resp=0x%02x\n", 
               progname, Resp_STK_INSYNC, buf[0]);
       return -5;
+    }
+  }
+    else {
+      if (buf[0] != Resp_STK_OK) {
+        fprintf(stderr,
+                "\n%s: stk500_paged_load(): (a) protocol error, "
+                "expect=0x%02x, resp=0x%02x\n",
+                progname, Resp_STK_OK, buf[0]);
+        return -5;
+      }
     }
   }
 
