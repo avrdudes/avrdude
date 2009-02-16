@@ -20,7 +20,7 @@ Current:
     programmer, to allow overriding the device code sent to the
     programmer.
 
-  * Add support for the Crossbow MIB510 programmer (patch #6074).
+  * Add support for the Crossbow MIB510 programmer (patch #6074, #6542).
 
   * Add support to bootstrap with GNU autoconf 2.61, and automake 1.10,
     respectively.
