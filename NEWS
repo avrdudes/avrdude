@@ -14,6 +14,10 @@ Current:
       - ATxmega128A1 rev D
       - ATxmega128A1
 
+  * New programmers supported:
+
+      - AT89ISP cable (patch #6069)
+
   * Add support for the -x option to pass extended parameters to the
     programmer backend.
 
