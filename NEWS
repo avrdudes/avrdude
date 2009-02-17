@@ -12,6 +12,7 @@ Current:
       - AT90USB82
       - AT90USB162
       - ATtiny88
+      - ATmega328P
       - ATmega128RFA1
       - ATxmega128A1 rev D
       - ATxmega128A1

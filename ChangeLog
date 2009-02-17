@@ -1,5 +1,11 @@
 2009-02-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Limor ("Lady Ada"):
+	bug #24749: add support for '328p
+	* avrdude.conf.in (ATmega328P): new device support.
+
+2009-02-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by "Womo":
 	bug #25241: AT90USB162, AT90USB82 device support patch for avrdude-5.5
 	(also: bug #21745: AT90USBxx2 support)
