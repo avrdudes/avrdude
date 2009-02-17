@@ -1,3 +1,9 @@
+2009-02-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Evangelos Arkalis:
+	patch #6069: Atmel AT89ISP Cable
+	* avrdude.conf.in (89isp): new programmer support.
+
 2009-02-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Bob Paddock:

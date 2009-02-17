@@ -739,6 +739,18 @@ programmer
   pgmled = 8;
 ;
 
+# The AT98ISP Cable is a simple parallel dongle for AT89 family.
+# http://www.atmel.com/dyn/products/tools_card.asp?tool_id=2877
+programmer
+id = "89isp";
+desc = "Atmel at89isp cable";
+type = par;
+reset = 17;
+sck = 1;
+mosi = 2;
+miso = 10;
+;
+
 @HAVE_PARPORT_END@
 
 #
