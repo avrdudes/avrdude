@@ -239,11 +239,14 @@ static void usbdev_close(union filedescriptor *fd)
 
   (void)usb_release_interface(udev, usb_interface);
 
+#if defined(__FreeBSD__)
   /*
    * Without this reset, the AVRISP mkII seems to stall the second
-   * time we try to connect to it.
+   * time we try to connect to it.  This is not necessary on
+   * FreeBSD.
    */
   usb_reset(udev);
+#endif
 
   usb_close(udev);
 }
