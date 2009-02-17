@@ -1,5 +1,12 @@
 2009-02-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by "Womo":
+	bug #25241: AT90USB162, AT90USB82 device support patch for avrdude-5.5
+	(also: bug #21745: AT90USBxx2 support)
+	* avrdude.conf.in (AT90USB162, AT90USB82): new device support.
+
+2009-02-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Evangelos Arkalis:
 	patch #6069: Atmel AT89ISP Cable
 	* avrdude.conf.in (89isp): new programmer support.
