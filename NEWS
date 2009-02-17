@@ -9,6 +9,8 @@ Current:
 
   * New devices supported:
 
+      - AT90USB82
+      - AT90USB162
       - ATtiny88
       - ATmega128RFA1
       - ATxmega128A1 rev D
