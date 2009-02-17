@@ -1,6 +1,6 @@
 .\"
 .\" avrdude - A Downloader/Uploader for AVR device programmers
-.\" Copyright (C) 2001, 2002, 2003, 2005, 2006, 2007, 2008  Joerg Wunsch
+.\" Copyright (C) 2001, 2002, 2003, 2005 - 2009  Joerg Wunsch
 .\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -679,13 +679,21 @@ feature of an AVR part that is not directly supported by
 .Nm ,
 this command allows you to use it, even though
 .Nm
-does not implement the command.
+does not implement the command. When using direct SPI mode, up to 3 bytes
+can be omitted.
 .It Ar sig
 Display the device signature bytes.
+.It Ar spi
+Enter direct SPI mode.  The
+.Em pgmled
+pin acts as slave select.
+.Em Only supported on parallel bitbang programmers.
 .It Ar part
 Display the current part settings and parameters.  Includes chip
 specific information including all memory types supported by the
 device, read/write timing, etc.
+.It Ar pgm
+Return to programming mode (from direct SPI mode).
 .It Ar vtarg voltage
 Set the target's supply voltage to
 .Ar voltage

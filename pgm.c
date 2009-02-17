@@ -118,6 +118,7 @@ PROGRAMMER * pgm_new(void)
    * assigned before they are called
    */
   pgm->cmd            = NULL;
+  pgm->spi            = NULL;
   pgm->paged_write    = NULL;
   pgm->paged_load     = NULL;
   pgm->write_setup    = NULL;

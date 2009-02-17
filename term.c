@@ -88,6 +88,11 @@ static int cmd_fosc  (PROGRAMMER * pgm, struct avrpart * p,
 static int cmd_sck   (PROGRAMMER * pgm, struct avrpart * p,
 		      int argc, char *argv[]);
 
+static int cmd_spi   (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
+
+static int cmd_pgm   (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
 
 struct command cmd[] = {
   { "dump",  cmd_dump,  "dump memory  : %s <memtype> <addr> <N-Bytes>" },
@@ -102,6 +107,8 @@ struct command cmd[] = {
   { "varef", cmd_varef, "set <V[aref]> (STK500 only)" },
   { "fosc",  cmd_fosc,  "set <oscillator frequency> (STK500 only)" },
   { "sck",   cmd_sck,   "set <SCK period> (STK500 only)" },
+  { "spi",   cmd_spi,   "enter direct SPI mode" },
+  { "pgm",   cmd_pgm,   "return to programming mode" },
   { "help",  cmd_help,  "help" },
   { "?",     cmd_help,  "help" },
   { "quit",  cmd_quit,  "quit" }
@@ -111,7 +118,7 @@ struct command cmd[] = {
 
 
 
-
+static int spi_mode = 0;
 
 static int nexttok(char * buf, char ** tok, char ** next)
 {
@@ -445,8 +452,18 @@ static int cmd_send(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
-  if (argc != 5) {
-    fprintf(stderr, "Usage: send <byte1> <byte2> <byte3> <byte4>\n");
+  if (spi_mode && (pgm->spi == NULL)) {
+    fprintf(stderr,
+	    "The %s programmer does not support direct SPI transfers.\n",
+	    pgm->type);
+    return -1;
+  }
+
+
+  if ((argc > 5) || ((argc < 5) && (!spi_mode))) {
+    fprintf(stderr, spi_mode?
+      "Usage: send <byte1> [<byte2> [<byte3> [<byte4>]]]\n":
+      "Usage: send <byte1> <byte2> <byte3> <byte4>\n");
     return -1;
   }
 
@@ -465,7 +482,10 @@ static int cmd_send(PROGRAMMER * pgm, struct avrpart * p,
 
   pgm->err_led(pgm, OFF);
 
-  pgm->cmd(pgm, cmd, res);
+  if (spi_mode)
+    pgm->spi(pgm, cmd, res, argc-1);
+  else
+    pgm->cmd(pgm, cmd, res);
 
   /*
    * display results
@@ -724,6 +744,22 @@ static int cmd_help(PROGRAMMER * pgm, struct avrpart * p,
   return 0;
 }
 
+static int cmd_spi(PROGRAMMER * pgm, struct avrpart * p,
+        int argc, char * argv[])
+{
+  pgm->setpin(pgm, pgm->pinno[PIN_AVR_RESET], 1);
+  spi_mode = 1;
+  return 0;
+}
+
+static int cmd_pgm(PROGRAMMER * pgm, struct avrpart * p,
+        int argc, char * argv[])
+{
+  pgm->setpin(pgm, pgm->pinno[PIN_AVR_RESET], 0);
+  spi_mode = 0;
+  pgm->initialize(pgm, p);
+  return 0;
+}
 
 static int tokenize(char * s, char *** argv)
 {

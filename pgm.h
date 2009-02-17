@@ -78,6 +78,8 @@ typedef struct programmer_t {
   int  (*chip_erase)     (struct programmer_t * pgm, AVRPART * p);
   int  (*cmd)            (struct programmer_t * pgm, unsigned char cmd[4], 
                           unsigned char res[4]);
+  int  (*spi)            (struct programmer_t * pgm, unsigned char cmd[], 
+                          unsigned char res[], int count);
   int  (*open)           (struct programmer_t * pgm, char * port);
   void (*close)          (struct programmer_t * pgm);
   int  (*paged_write)    (struct programmer_t * pgm, AVRPART * p, AVRMEM * m, 

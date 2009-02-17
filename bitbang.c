@@ -225,6 +225,39 @@ int bitbang_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
   return 0;
 }
 
+/*
+ * transmit bytes via SPI and return the results; 'cmd' and
+ * 'res' must point to data buffers
+ */
+int bitbang_spi(PROGRAMMER * pgm, unsigned char cmd[],
+                   unsigned char res[], int count)
+{
+  int i;
+
+  pgm->setpin(pgm, pgm->pinno[PIN_LED_PGM], 0);
+
+  for (i=0; i<count; i++) {
+    res[i] = bitbang_txrx(pgm, cmd[i]);
+  }
+
+  pgm->setpin(pgm, pgm->pinno[PIN_LED_PGM], 1);
+
+  if(verbose >= 2)
+	{
+        fprintf(stderr, "bitbang_cmd(): [ ");
+        for(i = 0; i < count; i++)
+            fprintf(stderr, "%02X ", cmd[i]);
+        fprintf(stderr, "] [ ");
+        for(i = 0; i < count; i++)
+		{
+            fprintf(stderr, "%02X ", res[i]);
+		}
+        fprintf(stderr, "]\n");
+	}
+
+  return 0;
+}
+
 
 /*
  * issue the 'chip erase' command to the AVR device
