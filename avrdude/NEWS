@@ -49,6 +49,8 @@ Current:
   * Add preliminary support for ATxmega128A1 for the JTAG ICE mkII using
     JTAG.
 
+  * Add support for direct SPI transfers (bug #25156).
+
   * Bugfixes.
 
 Version 5.5:

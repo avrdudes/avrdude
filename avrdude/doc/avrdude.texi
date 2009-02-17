@@ -30,7 +30,7 @@ For avrdude version @value{VERSION}, @value{UPDATED}.
 
 Copyright @copyright{} 2003, 2005 Brian Dean
 
-Copyright @copyright{} 2006 - 2008 J@"org Wunsch
+Copyright @copyright{} 2006 - 2009 J@"org Wunsch
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -1066,15 +1066,23 @@ Perform a chip erase.
 Send raw instruction codes to the AVR device.  If you need access to a
 feature of an AVR part that is not directly supported by AVRDUDE, this
 command allows you to use it, even though AVRDUDE does not implement the
-command.
+command.   When using direct SPI mode, up to 3 bytes
+can be omitted.
 
 @item sig
 Display the device signature bytes.
+
+@item spi
+Enter direct SPI mode.  The @emph{pgmled} pin acts as slave select.
+@emph{Only supported on parallel bitbang programmers.}
 
 @item part
 Display the current part settings and parameters.  Includes chip
 specific information including all memory types supported by the
 device, read/write timing, etc.
+
+@item pgm
+Return to programming mode (from direct SPI mode).
 
 @item ?
 @itemx help

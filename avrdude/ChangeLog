@@ -1,5 +1,18 @@
 2009-02-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Andrew O. Shadoura:
+	bug #25156: add direct SPI transfer mode
+	* bitbang.c: Implement direct SPI transfers.
+	* bitbang.h: (Ditto.)
+	* par.c: (Ditto.)
+	* pgm.c: (Ditto.)
+	* pgm.h: (Ditto.)
+	* term.c: Add the "spi" and "pgm" commands.
+	* avrdude.1: Document the changes.
+	* doc/avrdude.texi: (Ditto.)
+
+2009-02-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Limor ("Lady Ada"):
 	bug #24749: add support for '328p
 	* avrdude.conf.in (ATmega328P): new device support.
