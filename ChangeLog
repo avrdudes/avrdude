@@ -1,5 +1,12 @@
 2009-02-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Nick Hibma:
+	bug #22271: usb_reset in usb_libusb.c not necessary in FreeBSD 6.x
+	* usb_libusb.c (usbdev_close): Do not call usb_reset() on FreeBSD.
+	It is not necessary there.
+
+2009-02-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Andrew O. Shadoura:
 	bug #25156: add direct SPI transfer mode
 	* bitbang.c: Implement direct SPI transfers.
