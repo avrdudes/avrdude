@@ -1,5 +1,10 @@
 2009-02-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* usbtiny.c: Replace all but one (very unlikely to trigger) exit(1)
+	by return -1.
+
+2009-02-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Dick Streefland:
 	patch #6749: make reading from the USBtinyISP programmer more robust
 	* usbtiny.c: Add code to retry failed communication attempts.
