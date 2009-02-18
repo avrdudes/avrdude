@@ -55,6 +55,7 @@ struct pdata
   usb_dev_handle *usb_handle;
   int sck_period;
   int chunk_size;
+  int retries;
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
@@ -89,7 +90,7 @@ static int usb_control (PROGRAMMER * pgm,
 			    NULL, 0,              // no data buffer in control messge
 			    USB_TIMEOUT );        // default timeout
   if(nbytes < 0){
-    fprintf(stderr, "%s: error: usbtiny_transmit: %s\n", progname, usb_strerror());
+    fprintf(stderr, "\n%s: error: usbtiny_transmit: %s\n", progname, usb_strerror());
     exit(1);
   }
 
@@ -103,24 +104,37 @@ static int usb_in (PROGRAMMER * pgm,
 {
   int nbytes;
   int timeout;
+  int i;
 
   // calculate the amout of time we expect the process to take by
   // figuring the bit-clock time and buffer size and adding to the standard USB timeout.
   timeout = USB_TIMEOUT + (buflen * bitclk) / 1000;
 
-  nbytes = usb_control_msg( PDATA(pgm)->usb_handle,
-			    USB_ENDPOINT_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			    requestid,
-			    val, index,
-			    (char *)buffer, buflen,
-			    timeout);
-  if (nbytes != buflen) {
-    fprintf(stderr, "%s: error: usbtiny_receive: %s (expected %d, got %d)\n",
-	    progname, usb_strerror(), buflen, nbytes);
-    exit(1);
+  for (i = 0; i < 10; i++) {
+    nbytes = usb_control_msg( PDATA(pgm)->usb_handle,
+			      USB_ENDPOINT_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+			      requestid,
+			      val, index,
+			      (char *)buffer, buflen,
+			      timeout);
+    if (nbytes == buflen) {
+      return nbytes;
+    }
+    PDATA(pgm)->retries++;
   }
+  fprintf(stderr, "\n%s: error: usbtiny_receive: %s (expected %d, got %d)\n",
+          progname, usb_strerror(), buflen, nbytes);
+  exit(1);
+}
 
-  return nbytes;
+// Report the number of retries, and reset the counter.
+static void check_retries (PROGRAMMER * pgm, const char* operation)
+{
+  if (PDATA(pgm)->retries > 0 && quell_progress < 2) {
+    printf("%s: %d retries during %s\n", progname,
+           PDATA(pgm)->retries, operation);
+  }
+  PDATA(pgm)->retries = 0;
 }
 
 // Wrapper for simple usb_control_msg messages to send data to programmer
@@ -142,7 +156,7 @@ static int usb_out (PROGRAMMER * pgm,
 			    (char *)buffer, buflen,
 			    timeout);
   if (nbytes != buflen) {
-    fprintf(stderr, "%s: error: usbtiny_send: %s (expected %d, got %d)\n",
+    fprintf(stderr, "\n%s: error: usbtiny_send: %s (expected %d, got %d)\n",
 	    progname, usb_strerror(), buflen, nbytes);
     exit(1);
   }
@@ -249,7 +263,10 @@ static int usbtiny_set_sck_period (PROGRAMMER *pgm, double v)
   if  (PDATA(pgm)->sck_period > SCK_MAX)
     PDATA(pgm)->sck_period = SCK_MAX;
 
-  printf( "%s: Setting SCK period to %d usec\n", progname, PDATA(pgm)->sck_period );
+  if (verbose) {
+    printf( "%s: Setting SCK period to %d usec\n", progname,
+	    PDATA(pgm)->sck_period );
+  }
 
   // send the command to the usbtiny device.
   usb_control(pgm, USBTINY_POWERUP, PDATA(pgm)->sck_period, RESET_LOW);  // MEME: for at90's fix resetstate?
@@ -318,6 +335,7 @@ static int usbtiny_cmd(PROGRAMMER * pgm, unsigned char cmd[4], unsigned char res
 		   (cmd[1] << 8) | cmd[0],  // convert to 16-bit words
 		   (cmd[3] << 8) | cmd[2],  //  "
 			res, 4, 8 * PDATA(pgm)->sck_period );
+  check_retries(pgm, "SPI command");
   if (verbose > 1) {
     // print out the data we sent and received
     printf( "CMD: [%02x %02x %02x %02x] [%02x %02x %02x %02x]\n",
@@ -399,6 +417,7 @@ static int usbtiny_paged_load (PROGRAMMER * pgm, AVRPART * p, AVRMEM* m,
     report_progress(i + chunk, n_bytes, NULL );
   }
 
+  check_retries(pgm, "read");
   return n_bytes;
 }
 
@@ -450,7 +469,7 @@ static int usbtiny_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	    m->buf + i,     // Pointer to data
 	    chunk,          // Number of bytes to write
 	    32 * PDATA(pgm)->sck_period + delay  // each byte gets turned into a
-	                             // 4-byte SPI cmd  usb_in() multiplies
+	                             // 4-byte SPI cmd  usb_out() multiplies
 	                             // this per byte. Then add the cmd-delay
 	    );
 
