@@ -1,3 +1,9 @@
+2009-02-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Dick Streefland:
+	patch #6749: make reading from the USBtinyISP programmer more robust
+	* usbtiny.c: Add code to retry failed communication attempts.
+
 2009-02-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Nick Hibma:
