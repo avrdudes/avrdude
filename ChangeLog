@@ -1,3 +1,9 @@
+2009-02-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	(Partially) submitted by John Voltz:
+	bug #20004: AVRDUDE update (-U) operations do not close files
+	* fileio.c (fmt_autodetect, fileio): fclose() files.
+
 2009-02-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* usbtiny.c: Replace all but one (very unlikely to trigger) exit(1)

@@ -969,8 +969,10 @@ static int fmt_autodetect(char * fname)
         break;
       }
     }
-    if (found)
+    if (found) {
+      fclose(f);
       return FMT_RBIN;
+    }
 
     /* check for lines that look like intel hex */
     if ((buf[0] == ':') && (len >= 11)) {
@@ -981,8 +983,10 @@ static int fmt_autodetect(char * fname)
           break;
         }
       }
-      if (found)
+      if (found) {
+        fclose(f);
         return FMT_IHEX;
+      }
     }
 
     /* check for lines that look like motorola s-record */
@@ -994,11 +998,14 @@ static int fmt_autodetect(char * fname)
           break;
         }
       }
-      if (found)
+      if (found) {
+        fclose(f);
         return FMT_SREC;
+      }
     }
   }
 
+  fclose(f);
   return -1;
 }
 
@@ -1143,7 +1150,9 @@ int fileio(int op, char * filename, FILEFMT format,
       rc = avr_mem_hiaddr(mem);
     }
   }
-
+  if (format != FMT_IMM) {
+    fclose(f);
+  }
   return rc;
 }
 
