@@ -50,7 +50,7 @@ SIGN     [+-]
 
 /* Bump resources for classic lex. */
 %e2000
-%p5000
+%p10000
 %n1000
 
 %%

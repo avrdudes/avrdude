@@ -1,3 +1,7 @@
+2009-02-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* lexer.l: Bump the %p size so AT&T lex will continue to work.
+
 2009-02-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	(Partially) submitted by John Voltz:
