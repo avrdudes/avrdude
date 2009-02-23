@@ -35,16 +35,18 @@ AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(ac_cfg.h)
 
 # Checks for programs.
-AM_PROG_CC_C_O
+AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_YACC
-AM_PROG_LEX
+AC_PROG_LEX
 AC_PROG_RANLIB
 
 # Checks for libraries.
 AC_CHECK_LIB([termcap], [tputs])
 AC_CHECK_LIB([ncurses], [tputs])
 AC_CHECK_LIB([readline], [readline])
+AC_SEARCH_LIBS([gethostent], [nsl])
+AC_SEARCH_LIBS([setsockopt], [socket])
 AH_TEMPLATE([HAVE_LIBUSB],
             [Define if USB support is enabled via libusb])
 AC_CHECK_LIB([usb], [usb_get_string_simple], [have_libusb=yes])
@@ -62,7 +64,6 @@ fi
 AC_SUBST(LIBUSB, $LIBUSB)
 
 # Checks for header files.
-AC_HEADER_STDC
 AC_CHECK_HEADERS([limits.h stdlib.h string.h])
 AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h termios.h unistd.h])
 AC_CHECK_HEADERS([ddk/hidsdi.h],,,[#include <windows.h>
@@ -73,8 +74,6 @@ AC_C_CONST
 AC_HEADER_TIME
 
 # Checks for library functions.
-AC_PROG_GCC_TRADITIONAL
-AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul gettimeofday])
 
 AC_MSG_CHECKING([for a Win32 HID libray])
