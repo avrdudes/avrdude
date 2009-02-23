@@ -37,7 +37,7 @@
 # include "freebsd_ppi.h"
 #elif defined(__linux__)
 # include "linux_ppdev.h"
-#elif defined(__sun__) && defined(__svr4__) /* Solaris */
+#elif defined(__sun__) || defined(__sun) /* Solaris */
 # include "solaris_ecpp.h"
 #endif
 

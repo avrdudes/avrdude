@@ -118,6 +118,13 @@ fi
 LIBS="${SAVED_LIBS}"
 AC_SUBST(LIBHID, $LIBHID)
 
+# Check for types
+
+# Solaris has uint_t and ulong_t typedefs in <sys/types.h>, avoid
+# the redeclaration in usbtiny.c.
+AC_CHECK_TYPES([uint_t], [], [], [#include <sys/types.h>])
+AC_CHECK_TYPES([ulong_t], [], [], [#include <sys/types.h>])
+
 # Checks for misc stuff.
 
 AC_ARG_ENABLE(

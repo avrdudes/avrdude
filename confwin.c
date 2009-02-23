@@ -18,6 +18,7 @@
  */
 
 
+#include "avrdude.h"
 
 #if defined(WIN32NATIVE)
 

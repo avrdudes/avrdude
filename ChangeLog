@@ -1,5 +1,25 @@
 2009-02-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	More fixes for Solaris, including fixes for the Sunpro compiler:
+	* avr.h: Remove stray semicolon.
+	* configure.ac: Add check for predefined types uint_t and ulong_t.
+	* confwin.c: Include "avrdude.h" on top to avoid empty translation
+	unit warning.
+	* ppwin.c: (Ditto.)
+	* ser_win32.c: (Ditto.)
+	* serbb_win32.c: (Ditto.)
+	* jtagmkII.c (jtagmkII_recv): remove unreachable "return".
+	* stk500.c (stk500_initialize): (Ditto.)
+	* par.c: Test for both, __sun__ and __sun to see whether we are
+	being compiled on Solaris.
+	* ppi.c: (Ditto.)
+	* stk500v2.c: Implement the DEBUG and DEBUGRECV macros in a way
+	that is compatible with the ISO C99 standard.
+	* usbtiny.c: Only typedef uint_t and ulong_t if they have not
+	been found already by the autoconf checks.
+
+2009-02-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #22204: Solaris10/11 Undefiniertes Symbol gethostbyname socket
 	connect
 	* configure.ac: Add checks for gethostent() and socket().

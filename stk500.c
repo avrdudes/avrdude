@@ -539,7 +539,6 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
     if (stk500_getsync(pgm) < 0)
       return -1;
     goto retry;
-    return -1;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
     fprintf(stderr,
