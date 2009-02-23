@@ -61,7 +61,7 @@ int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size);
 
 int avr_get_cycle_count(PROGRAMMER * pgm, AVRPART * p, int * cycles);
 
-int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles);;
+int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles);
 
 int avr_mem_hiaddr(AVRMEM * mem);
 

@@ -70,15 +70,15 @@
 #define STK500V2_XTAL 7372800U
 
 #if 0
-#define DEBUG(format,args...) fprintf(stderr, format, ## args)
+#define DEBUG(...) fprintf(stderr, __VA_ARGS__)
 #else
-#define DEBUG(format,args...)
+#define DEBUG(...)
 #endif
 
 #if 0
-#define DEBUGRECV(format,args...) fprintf(stderr, format, ## args)
+#define DEBUGRECV(...) fprintf(stderr, __VA_ARGS__)
 #else
-#define DEBUGRECV(format,args...)
+#define DEBUGRECV(...)
 #endif
 
 enum hvmode

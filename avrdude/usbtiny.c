@@ -41,8 +41,12 @@
 #if defined(HAVE_LIBUSB)      // we use LIBUSB to talk to the board
 #include <usb.h>
 
+#ifndef HAVE_UINT_T
 typedef	unsigned int	uint_t;
+#endif
+#ifndef HAVE_ULONG_T
 typedef	unsigned long	ulong_t;
+#endif
 
 extern int avr_write_byte_default ( PROGRAMMER* pgm, AVRPART* p,
 				    AVRMEM* mem, ulong_t addr,

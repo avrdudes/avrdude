@@ -24,6 +24,8 @@
  * Win32 serial bitbanging interface for avrdude.
  */
 
+#include "avrdude.h"
+
 #if defined(WIN32NATIVE)
 
 
@@ -32,7 +34,6 @@
 #include <windows.h>
 #include <stdio.h>
 
-#include "avrdude.h"
 #include "avr.h"
 #include "pindefs.h"
 #include "pgm.h"

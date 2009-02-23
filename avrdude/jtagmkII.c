@@ -595,7 +595,6 @@ int jtagmkII_recv(PROGRAMMER * pgm, unsigned char **msg) {
     }
     free(*msg);
   }
-  return 0;
 }
 
 
