@@ -1,3 +1,10 @@
+2009-02-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #22204: Solaris10/11 Undefiniertes Symbol gethostbyname socket
+	connect
+	* configure.ac: Add checks for gethostent() and socket().
+	While being here, remove some old cruft left from ancient days.
+
 2009-02-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* lexer.l: Bump the %p size so AT&T lex will continue to work.
