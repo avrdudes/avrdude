@@ -20,7 +20,7 @@
 #                  avr910 | butterfly | usbasp |
 #                  jtagmki | jtagmkii | jtagmkii_isp | jtagmkii_dw |
 #                  dragon_dw | dragon_jtag | dragon_isp | dragon_pp |
-#                  dragon_hvsp; # programmer type
+#                  dragon_hvsp | arduino; # programmer type
 #       baudrate = <num> ;                          # baudrate for avr910-programmer
 #       vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
 #       reset    = <num> ;                          # pin number
@@ -309,6 +309,12 @@ default_serial     = "@DEFAULT_SER_PORT@";
 #
 # PROGRAMMER DEFINITIONS
 #
+
+programmer
+  id    = "arduino";
+  desc  = "Arduino";
+  type  = arduino;
+;
 
 programmer
   id    = "avrisp";

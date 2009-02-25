@@ -77,6 +77,8 @@ dist-hook:
 libavrdude_a_SOURCES = \
 	config_gram.y \
 	lexer.l \
+	arduino.h \
+	arduino.c \
 	avr.c \
 	avr.h \
 	avr910.c \
