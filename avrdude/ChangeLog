@@ -1,5 +1,9 @@
 2009-02-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* stk500v2.c: Turn all non-const static data into instance data.
+
+2009-02-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* Makefile.am: Move term.[ch] from the library into the CLI
 	application section, as it is not useful for anything else but
 	the CLI frontend.
