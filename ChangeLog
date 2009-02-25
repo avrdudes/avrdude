@@ -1,5 +1,11 @@
 2009-02-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* Makefile.am: Move term.[ch] from the library into the CLI
+	application section, as it is not useful for anything else but
+	the CLI frontend.
+
+2009-02-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* avrdude.conf.in (ATmega1284P): new device.
 
 2009-02-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>

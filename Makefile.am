@@ -133,8 +133,6 @@ libavrdude_a_SOURCES = \
 	stk500v2_private.h \
 	stk500generic.c \
 	stk500generic.h \
-	term.c \
-	term.h \
 	usbasp.c \
 	usbasp.h \
 	usbdevs.h \
@@ -145,7 +143,9 @@ libavrdude_a_SOURCES = \
 	update.c
 
 avrdude_SOURCES = \
-	main.c
+	main.c \
+	term.c \
+	term.h
 
 man_MANS = avrdude.1
 
