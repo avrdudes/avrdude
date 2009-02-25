@@ -107,6 +107,9 @@ Using firmware version 2, high-voltage programming is also supported,
 both parallel and serial
 (programmer types stk500pp and stk500hvsp).
 .Pp
+The Arduino (which is very similar to the STK500 1.x) is supported via
+its own programmer type specification ``arduino''.
+.Pp
 Atmel's STK600 programmer is supported in ISP and high-voltage
 programming modes, and connects through the USB.
 For ATxmega devices, the STK600 is supported in PDI mode.
@@ -203,6 +206,7 @@ m103	ATmega103
 m128	ATmega128
 m1280	ATmega1280
 m1281	ATmega1281
+m1284p	ATmega1284P
 m128rfa1	ATmega128RFA1
 m16	ATmega16
 m161	ATmega161

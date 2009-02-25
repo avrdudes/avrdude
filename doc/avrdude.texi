@@ -190,6 +190,9 @@ by AVRDUDE.
 For the JTAG ICE mkII, JTAG, debugWire and ISP mode are supported.
 See below for the limitations of debugWire.
 
+The Arduino (which is very similar to the STK500 1.x) is supported via
+its own programmer type specification ``arduino''.
+
 The AVR Dragon is supported in all modes (ISP, JTAG, HVSP, PP, debugWire).
 When used in JTAG and debugWire mode, the AVR Dragon behaves similar to a
 JTAG ICE mkII, so all device-specific comments for that device
@@ -297,6 +300,7 @@ Currently, the following MCU types are understood:
 @item @code{m128}  @tab ATmega128
 @item @code{m1280} @tab ATmega1280
 @item @code{m1281} @tab ATmega1281
+@item @code{m1284p} @tab ATmega1284P
 @item @code{m128rfa1} @tab ATmega128RFA1
 @item @code{m16}   @tab ATmega16
 @item @code{m161}  @tab ATmega161
@@ -371,6 +375,8 @@ ABCmini Board, aka Dick Smith HOTCHIP
 @item @code{alf}         @tab
 Nightshade ALF-PgmAVR,@*
 @url{http://nightshade.homeip.net/}
+@item @code{arduino}
+Arduino board, protocol similar to STK500 1.x
 @item @code{atisp}       @tab
 AT-ISP V1.1 programming cable for AVR-SDK1 from,@*
 @url{http://micro-research.co.th/}

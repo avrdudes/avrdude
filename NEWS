@@ -21,6 +21,7 @@ Current:
   * New programmers supported:
 
       - AT89ISP cable (patch #6069)
+      - Arduino
 
   * Add support for the -x option to pass extended parameters to the
     programmer backend.
