@@ -1006,8 +1006,8 @@ static int stk500hvsp_program_enable(PROGRAMMER * pgm, AVRPART * p)
 static int stk500v2_initialize(PROGRAMMER * pgm, AVRPART * p)
 {
 
-  if (PDATA(pgm)->pgmtype == PGMTYPE_STK600 &&
-      (p->flags & AVRPART_HAS_PDI) != 0) {
+  if ((PDATA(pgm)->pgmtype == PGMTYPE_STK600 || PDATA(pgm)->pgmtype == PGMTYPE_AVRISP_MKII) != 0
+     && (p->flags & AVRPART_HAS_PDI) != 0) {
     /*
      * This is an ATxmega device, must use XPROG protocol for the
      * remaining actions.

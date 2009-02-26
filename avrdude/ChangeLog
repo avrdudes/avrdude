@@ -1,3 +1,10 @@
+2009-02-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Mikael Hermansson:
+	* avrdude.conf.in (ATxmega256A3): new device.
+	* stk500v2 (stk500v2_initialize): Enable the AVRISPmkII as a
+	PDI-capable device for ATxmega parts.
+
 2009-02-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Lars Immisch:

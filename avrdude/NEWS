@@ -17,6 +17,7 @@ Current:
       - ATmega128RFA1
       - ATxmega128A1 rev D
       - ATxmega128A1
+      - ATxmega256A3
 
   * New programmers supported:
 
@@ -42,7 +43,7 @@ Current:
     respectively.
 
   * Add support for ATxmega128A1 (including the revision D engineering
-    samples) for STK600 tools using PDI
+    samples) for STK600 and AVRISPmkII tools using PDI
 
   * The option combination -tF now enters terminal mode even if the
     device initialization failed, so the user can modify programmer
