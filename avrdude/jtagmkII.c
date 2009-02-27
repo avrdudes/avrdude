@@ -1816,6 +1816,11 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       }
       return 0;
     }
+    else if (mem->offset != 0) {
+      cmd[1] = MTYPE_SRAM;
+      addr += mem->offset;
+    }
+
   }
 
   /*

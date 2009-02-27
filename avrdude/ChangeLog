@@ -1,3 +1,9 @@
+2009-02-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Ed Okerson:
+	* jtagmkII.c (jtagmkII_read_byte): Fix signature reading of
+	Xmega.
+
 2009-02-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Mikael Hermansson:
