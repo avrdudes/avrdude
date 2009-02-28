@@ -228,8 +228,14 @@ static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p)
 
   unsigned char temp[4];
   memset(temp, 0, sizeof(temp));
+
+  /* set sck period */
+  pgm->set_sck_period(pgm, pgm->bitclock);
+
+  /* connect to target device */
   usbasp_transmit(pgm, 1, USBASP_FUNC_CONNECT, temp, temp, sizeof(temp));
 
+  /* wait, so device is ready to receive commands */
   usleep(100000);
 
   return pgm->program_enable(pgm, p);
@@ -350,8 +356,8 @@ static int usbasp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[1] = address >> 8;
     cmd[2] = address >> 16;
     cmd[3] = address >> 24;
-    usbasp_transmit(pgm, 1, USBASP_FUNC_SETLONGADDRESS, cmd, temp, sizeof(temp));	
-    
+    usbasp_transmit(pgm, 1, USBASP_FUNC_SETLONGADDRESS, cmd, temp, sizeof(temp));
+
     /* send command with address (compatibility mode) - if firmware on
 	  usbasp doesn't support newmode, then they use address from this */
     cmd[0] = address & 0xFF;
@@ -416,10 +422,10 @@ static int usbasp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[2] = address >> 16;
     cmd[3] = address >> 24;
     usbasp_transmit(pgm, 1, USBASP_FUNC_SETLONGADDRESS, cmd, temp, sizeof(temp));
-    
+
     /* normal command - firmware what support newmode - use address from previous command,
       firmware what doesn't support newmode - ignore previous command and use address from this command */
-      
+
     cmd[0] = address & 0xFF;
     cmd[1] = address >> 8;
     cmd[2] = page_size & 0xFF;
@@ -443,6 +449,86 @@ static int usbasp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   return n_bytes;
 }
+
+
+/* The list of SCK frequencies in kHz supported by USBasp */
+static struct sckoptions_t usbaspSCKoptions[] = {
+  { USBASP_ISP_SCK_1500, 1500 },
+  { USBASP_ISP_SCK_750, 750 },
+  { USBASP_ISP_SCK_375, 375 },
+  { USBASP_ISP_SCK_187_5, 187.5 },
+  { USBASP_ISP_SCK_93_75, 93.75 },
+  { USBASP_ISP_SCK_32, 32 },
+  { USBASP_ISP_SCK_16, 16 },
+  { USBASP_ISP_SCK_8, 8 },
+  { USBASP_ISP_SCK_4, 4 },
+  { USBASP_ISP_SCK_2, 2 },
+  { USBASP_ISP_SCK_1, 1 },
+  { USBASP_ISP_SCK_0_5, 0.5 }
+};
+
+
+/*
+ * Set sck period (in seconds)
+ * Find next possible sck period and write it to the programmer.
+ */
+static int usbasp_set_sck_period(PROGRAMMER *pgm, double sckperiod)
+{
+  char clockoption = USBASP_ISP_SCK_AUTO;
+  unsigned char res[4];
+  unsigned char cmd[4];
+
+  memset(cmd, 0, sizeof(cmd));
+  memset(res, 0, sizeof(res));
+
+  if (sckperiod == 0) {
+    /* auto sck set */
+
+    if (verbose >= 1)
+      fprintf(stderr, "%s: auto set sck period (because given equals null)\n", progname);
+
+  } else {
+
+    double sckfreq = 1 / sckperiod / 1000; /* sck in kHz */
+    double usefreq = 0;
+
+    if (verbose >= 2)
+      fprintf(stderr, "%s: try to set SCK period to %g s (= %g kHz)\n", progname, sckperiod, sckfreq);
+
+    if (sckperiod >= 1500) {
+      clockoption = USBASP_ISP_SCK_1500;
+      usefreq = 1500;
+
+    } else {
+
+      /* find clock option next to given clock */
+      int i;
+      for (i = 0; i < sizeof(usbaspSCKoptions) / sizeof(usbaspSCKoptions[0]); i++) {
+        if (sckfreq >= usbaspSCKoptions[i].frequency) {
+          clockoption = usbaspSCKoptions[i].id;
+          usefreq = usbaspSCKoptions[i].frequency;
+          break;
+        }
+      }
+    }
+
+    fprintf(stderr, "%s: set SCK frequency to %g kHz\n", progname, usefreq);
+  }
+
+  cmd[0] = clockoption;
+
+  int nbytes =
+    usbasp_transmit(pgm, 1, USBASP_FUNC_SETISPSCK, cmd, res, sizeof(res));
+
+  if ((nbytes != 1) | (res[0] != 0)) {
+    fprintf(stderr, "%s: warning: cannot set sck period. please check for usbasp firmware update.\n",
+      progname);
+    return -1;
+  }
+
+  return 0;
+}
+
 
 void usbasp_initpgm(PROGRAMMER * pgm)
 {
@@ -472,6 +558,7 @@ void usbasp_initpgm(PROGRAMMER * pgm)
   pgm->paged_load = usbasp_paged_load;
   pgm->setup          = usbasp_setup;
   pgm->teardown       = usbasp_teardown;
+  pgm->set_sck_period	= usbasp_set_sck_period;
 
 }
 
