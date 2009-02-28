@@ -457,33 +457,20 @@ static int avr910_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 static int avr910_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                                   unsigned long addr, unsigned char * value)
 {
-  static int cached = 0;
-  static unsigned char cvalue;
-  static unsigned long caddr;
+  char buf[2];
 
-  if (cached && ((caddr + 1) == addr)) {
-    *value = cvalue;
-    cached = 0;
+  avr910_set_addr(pgm, addr >> 1);
+
+  avr910_send(pgm, "R", 1);
+
+  /* Read back the program mem word (MSB first) */
+  avr910_recv(pgm, buf, sizeof(buf));
+
+  if ((addr & 0x01) == 0) {
+    *value = buf[1];
   }
   else {
-    char buf[2];
-
-    avr910_set_addr(pgm, addr >> 1);
-
-    avr910_send(pgm, "R", 1);
-
-    /* Read back the program mem word (MSB first) */
-    avr910_recv(pgm, buf, sizeof(buf));
-
-    if ((addr & 0x01) == 0) {
-      *value = buf[1];
-      // cached = 1;
-      cvalue = buf[0];
-      caddr = addr;
-    }
-    else {
-      *value = buf[0];
-    }
+    *value = buf[0];
   }
 
   return 0;
