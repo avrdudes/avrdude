@@ -1,3 +1,8 @@
+2009-02-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avr910.c (avr910_read_byte_flash): Eliminate a static variable that
+	hasn't been in use for 5 years.
+
 2009-02-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* configure.ac: Post-release 5.6.
