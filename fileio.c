@@ -1150,7 +1150,7 @@ int fileio(int op, char * filename, FILEFMT format,
       rc = avr_mem_hiaddr(mem);
     }
   }
-  if (format != FMT_IMM) {
+  if (format != FMT_IMM && !using_stdio) {
     fclose(f);
   }
   return rc;

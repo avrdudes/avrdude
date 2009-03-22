@@ -1,3 +1,9 @@
+2009-03-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #25971: "error writing to <stdout>" with multiple -U params.
+	* fileio.c: Do not close the input/output stream when working on an
+	stdio stream.
+
 2009-02-28  Thomas Fischl <tfischl@gmx.de>
 
 	Based on patch #6484 commited by Jurgis Brigmanis:
