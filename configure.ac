@@ -41,6 +41,9 @@ AC_PROG_YACC
 AC_PROG_LEX
 AC_PROG_RANLIB
 
+dnl Makefile.am:77: compiling `config_gram.c' with per-target flags requires `AM_PROG_CC_C_O' in `configure.ac'
+AM_PROG_CC_C_O
+
 # Checks for libraries.
 AC_CHECK_LIB([termcap], [tputs])
 AC_CHECK_LIB([ncurses], [tputs])

@@ -1,3 +1,9 @@
+2009-04-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	configure.ac: declare AM_PROG_CC_C_O to avoid the warning
+	"compiling `config_gram.c' with per-target flags
+	requires `AM_PROG_CC_C_O' in `configure.ac'"
+
 2009-03-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #25971: "error writing to <stdout>" with multiple -U params.
