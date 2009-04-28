@@ -1,3 +1,10 @@
+2009-04-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Carl Hamilton:
+	* update.c (parse_op): correctly \0-terminate buf after filling
+	it, before it is potentially used as the source of a call to
+	strlen or strcpy.
+
 2009-04-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* doc/avrdude.texi: Merge the -P 0xXXX option description from

@@ -51,6 +51,7 @@ UPDATE * parse_op(char * s)
   p = s;
   while ((i < (sizeof(buf)-1) && *p && (*p != ':')))
     buf[i++] = *p++;
+  buf[i] = 0;
 
   if (*p != ':') {
     upd->memtype = (char *)malloc(strlen("flash")+1);
@@ -68,8 +69,6 @@ UPDATE * parse_op(char * s)
     upd->format = FMT_AUTO;
     return upd;
   }
-
-  buf[i] = 0;
 
   upd->memtype = (char *)malloc(strlen(buf)+1);
   if (upd->memtype == NULL) {
