@@ -1,5 +1,19 @@
 2009-06-24  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Contributed by Zoltan Laday:
+	patch #6825: xmega problems with JTAGICEmkII
+	* jtagmkII.c: Many fixes for Xmega devices.
+	* jtagmkII_private.h: Add various new constants required for
+	Xmega devices.
+	* avrdude.conf.in: New devices: ATXMEGA64A1, ATXMEGA192A1,
+	ATXMEGA256A1, ATXMEGA64A3, ATXMEGA128A3, ATXMEGA192A3,
+	ATXMEGA256A3, ATXMEGA256A3B, ATXMEGA16A4, ATXMEGA32A4,
+	ATXMEGA64A4, ATXMEGA128A4
+	* avr.c (avr_read, avr_write): Add more names for (Xmega)
+	memory areas that require paged operation.
+
+2009-06-24  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* stk500v2.c (stk600_xprog_write_byte): Handle writing fuse bytes.
 
 2009-04-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
