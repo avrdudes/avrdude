@@ -9,9 +9,22 @@ Current:
 
   * New devices supported:
 
+      - ATXMEGA64A1
+      - ATXMEGA192A1
+      -	ATXMEGA256A1
+      - ATXMEGA64A3
+      - ATXMEGA128A3
+      - ATXMEGA192A3
+      -	ATXMEGA256A3
+      - ATXMEGA256A3B
+      - ATXMEGA16A4
+      - ATXMEGA32A4
+      - ATXMEGA64A4
+      - ATXMEGA128A4
+
   * New programmers supported:
-  
-  *
+
+  * Major Xmega fixes for the JTAG ICE mkII (patch #6825)
 
 
 Version 5.6:

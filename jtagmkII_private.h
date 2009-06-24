@@ -103,6 +103,7 @@
 #define CMND_SPI_CMD 0x1D
 #define CMND_WRITE_MEMORY 0x04
 #define CMND_WRITE_PC 0x06
+#define CMND_0x34 0x34
 
 /* ICE responses */
 #define RSP_DEBUGWIRE_SYNC_FAILED 0xAC
@@ -170,6 +171,9 @@
 #define MTYPE_SIGN_JTAG 0xB4	/* signature in programming mode */
 #define MTYPE_OSCCAL_BYTE 0xB5	/* osccal cells in programming mode */
 #define MTYPE_CAN 0xB6		/* CAN mailbox */
+#define MTYPE_FLASH 0xc0	/* xmega flash - undocumented in AVR067 */
+#define MTYPE_USERSIG 0xc5	/* xmega user signature - undocumented in AVR067 */
+#define MTYPE_PRODSIG 0xc6	/* xmega production signature - undocumented in AVR067 */
 
 /* (some) ICE parameters, for CMND_{GET,SET}_PARAMETER */
 #define PAR_HW_VERSION 0x01
@@ -219,6 +223,8 @@
 #define PAR_TARGET_SIGNATURE 0x1D
 #define PAR_DEBUGWIRE_BAUDRATE 0x1E
 #define PAR_PROGRAM_ENTRY_POINT 0x1F
+#define PAR_PDI_OFFSET_START 0x32
+#define PAR_PDI_OFFSET_END 0x33
 #define PAR_PACKET_PARSING_ERRORS 0x40
 #define PAR_VALID_PACKETS_RECEIVED 0x41
 #define PAR_INTERCOMMUNICATION_TX_FAILURES 0x42

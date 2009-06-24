@@ -1016,6 +1016,45 @@ static int jtagmkII_program_enable(PROGRAMMER * pgm)
   return 0;
 }
 
+static int jtagmkII_pre_write(PROGRAMMER * pgm)
+{
+  int status;
+  unsigned char *resp, c;
+  unsigned char buf[] = { CMND_0x34, 0x0, 0x0, 0x0, 0x0, 0x0 };
+  if (verbose >= 2)
+    fprintf(stderr, "%s: jtagmkII_pre_write(): Sending pre-write command: ",
+	    progname);
+  jtagmkII_send(pgm, buf, 6);
+
+  status = jtagmkII_recv(pgm, &resp);
+  if (status <= 0) {
+    if (verbose >= 2)
+      putc('\n', stderr);
+    fprintf(stderr,
+	    "%s: jtagmkII_pre_write(): "
+	    "timeout/error communicating with programmer (status %d)\n",
+	    progname, status);
+    return -1;
+  }
+  if (verbose >= 3) {
+    putc('\n', stderr);
+    jtagmkII_prmsg(pgm, resp, status);
+  } else if (verbose == 2)
+    fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[0], status);
+  c = resp[0];
+  free(resp);
+  if (c != RSP_OK) {
+    fprintf(stderr,
+	    "%s: jtagmkII_pre_write(): "
+	    "bad response to pre_write command: %s\n",
+	    progname, jtagmkII_get_rc(c));
+    return -1;
+  }
+
+  return 0;
+}
+
+
 static int jtagmkII_program_disable(PROGRAMMER * pgm)
 {
   int status;
@@ -1509,6 +1548,7 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   int addr, block_size;
   unsigned char *cmd;
   unsigned char *resp;
+  unsigned char par[4];
   int status, tries;
   long otimeout = serial_recv_timeout;
 
@@ -1526,10 +1566,17 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	    progname);
     return -1;
   }
+  if ( p->flags & AVRPART_HAS_PDI )
+  {
+   u32_to_b4( par, m->offset );
+   (void) jtagmkII_setparm( pgm, PAR_PDI_OFFSET_START, par );
+   u32_to_b4( par, m->offset + m->size );
+   (void) jtagmkII_setparm( pgm, PAR_PDI_OFFSET_END, par );
+  }
 
   cmd[0] = CMND_WRITE_MEMORY;
+  cmd[1] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_FLASH : MTYPE_FLASH_PAGE;
   if (strcmp(m->desc, "flash") == 0) {
-    cmd[1] = MTYPE_FLASH_PAGE;
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
     page_size = PDATA(pgm)->flash_pagesize;
   } else if (strcmp(m->desc, "eeprom") == 0) {
@@ -1549,11 +1596,12 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       free(cmd);
       return n_bytes;
     }
-    cmd[1] = MTYPE_EEPROM_PAGE;
+    cmd[1] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_EEPROM : MTYPE_EEPROM_PAGE;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
     page_size = PDATA(pgm)->eeprom_pagesize;
   }
-
+  if ( cmd[1] == MTYPE_FLASH )  (void)jtagmkII_pre_write(pgm);
+  
   serial_recv_timeout = 100;
   for (addr = 0; addr < n_bytes; addr += page_size) {
     report_progress(addr, n_bytes,NULL);
@@ -1568,7 +1616,7 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	      progname, addr, block_size);
 
     u32_to_b4(cmd + 2, page_size);
-    u32_to_b4(cmd + 6, addr);
+    u32_to_b4(cmd + 6, addr+m->offset );
 
     /*
      * The JTAG ICE will refuse to write anything but a full page, at
@@ -1653,14 +1701,16 @@ static int jtagmkII_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   page_size = m->readsize;
 
   cmd[0] = CMND_READ_MEMORY;
-  if (strcmp(m->desc, "flash") == 0) {
-    cmd[1] = MTYPE_FLASH_PAGE;
-  } else if (strcmp(m->desc, "eeprom") == 0) {
-    cmd[1] = MTYPE_EEPROM_PAGE;
+  cmd[1] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_FLASH : MTYPE_FLASH_PAGE;
+  if (strcmp(m->desc, "eeprom") == 0) {
+    cmd[1] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_EEPROM : MTYPE_EEPROM_PAGE;
     if (pgm->flag & PGM_FL_IS_DW)
       return -1;
+  } else if ( ( strcmp(m->desc, "prodsig") == 0 ) ) {
+    cmd[1] = MTYPE_PRODSIG;
+  } else if ( ( strcmp(m->desc, "usersig") == 0 ) ) {
+    cmd[1] = MTYPE_USERSIG;
   }
-
   serial_recv_timeout = 100;
   for (addr = 0; addr < n_bytes; addr += page_size) {
     report_progress(addr, n_bytes,NULL);
@@ -1675,7 +1725,7 @@ static int jtagmkII_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	      progname, addr, block_size);
 
     u32_to_b4(cmd + 2, block_size);
-    u32_to_b4(cmd + 6, addr);
+    u32_to_b4(cmd + 6, addr+m->offset );
 
     tries = 0;
 
@@ -1719,7 +1769,7 @@ static int jtagmkII_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       serial_recv_timeout = otimeout;
       return -1;
     }
-    memcpy(m->buf + addr, resp + 1, status);
+    memcpy(m->buf + addr, resp + 1, status-1);
     free(resp);
   }
   serial_recv_timeout = otimeout;
@@ -1746,14 +1796,15 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   cmd[0] = CMND_READ_MEMORY;
   unsupp = 0;
 
+  addr += mem->offset;
+  cmd[1] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_FLASH : MTYPE_FLASH_PAGE;
   if (strcmp(mem->desc, "flash") == 0) {
-    cmd[1] = MTYPE_FLASH_PAGE;
     pagesize = mem->page_size;
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->flash_pageaddr;
     cache_ptr = PDATA(pgm)->flash_pagecache;
   } else if (strcmp(mem->desc, "eeprom") == 0) {
-    if (pgm->flag & PGM_FL_IS_DW) {
+    if ( (pgm->flag & PGM_FL_IS_DW) || ( p->flags & AVRPART_HAS_PDI ) ) {
       /* debugWire cannot use page access for EEPROM */
       cmd[1] = MTYPE_EEPROM;
     } else {
@@ -1782,6 +1833,12 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     cmd[1] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
+  } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
+    cmd[1] = MTYPE_FUSE_BITS;
+  } else if (strcmp(mem->desc, "usersig") == 0) {
+    cmd[1] = MTYPE_USERSIG;
+  } else if (strcmp(mem->desc, "prodsig") == 0) {
+    cmd[1] = MTYPE_PRODSIG;
   } else if (strcmp(mem->desc, "calibration") == 0) {
     cmd[1] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
@@ -1815,10 +1872,6 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 	return -1;
       }
       return 0;
-    }
-    else if (mem->offset != 0) {
-      cmd[1] = MTYPE_SRAM;
-      addr += mem->offset;
     }
 
   }
@@ -1919,14 +1972,16 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     fprintf(stderr, "%s: jtagmkII_write_byte(.., %s, 0x%lx, ...)\n",
 	    progname, mem->desc, addr);
 
+  addr += mem->offset;
+
   writedata = data;
   cmd[0] = CMND_WRITE_MEMORY;
+  cmd[1] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_FLASH : MTYPE_SPM;
   if (strcmp(mem->desc, "flash") == 0) {
-    cmd[1] = MTYPE_SPM;
-    need_progmode = 0;
-    PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
+     need_progmode = 0;
+     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
+     if (pgm->flag & PGM_FL_IS_DW)
+       unsupp = 1;
   } else if (strcmp(mem->desc, "eeprom") == 0) {
     cmd[1] = MTYPE_EEPROM;
     need_progmode = 0;
@@ -1946,6 +2001,12 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     addr = 2;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
+  } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
+    cmd[1] = MTYPE_FUSE_BITS;
+  } else if (strcmp(mem->desc, "usersig") == 0) {
+    cmd[1] = MTYPE_USERSIG;
+  } else if (strcmp(mem->desc, "prodsig") == 0) {
+    cmd[1] = MTYPE_PRODSIG;
   } else if (strcmp(mem->desc, "lock") == 0) {
     cmd[1] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
@@ -2127,6 +2188,8 @@ static int jtagmkII_setparm(PROGRAMMER * pgm, unsigned char parm,
   case PAR_OCD_JTAG_CLK: size = 1; break;
   case PAR_TIMERS_RUNNING: size = 1; break;
   case PAR_DAISY_CHAIN_INFO: size = 4; break;
+  case PAR_PDI_OFFSET_START:
+  case PAR_PDI_OFFSET_END: size = 4; break;
   default:
     fprintf(stderr, "%s: jtagmkII_setparm(): unknown parameter 0x%02x\n",
 	    progname, parm);

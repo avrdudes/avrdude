@@ -13650,223 +13650,1360 @@ part
   ;
 
 #------------------------------------------------------------
-# ATxmega128A1 rev. D (engineering samples)
+# ATXMEGA64A1
 #------------------------------------------------------------
 
 part
-    id               = "x128a1d";
-    desc             = "ATXMEGA128A1REVD";
-    signature        = 0x1E 0x97 0x41;
-    has_jtag         = yes;
-    has_pdi          = yes;
-    nvm_base         = 0x01C0;
+    id		= "x64a1";
+    desc	= "ATXMEGA64A1";
+    signature	= 0x1e 0x96 0x4e;
+    has_jtag	= yes;
+    has_pdi	= yes;
+    nvm_base	= 0x01c0;
 
     memory "eeprom"
-        page_size       = 32;
-        size            = 2048;
-      ;
+        size		= 0x0800;
+        offset		= 0x08c0000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 
-    memory "flash"
-        size            = 0x20000;
-        page_size       = 512;
-      ;
+    memory "application"
+        size		= 0x00010000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "apptable"
+        size		= 0x00001000;
+        offset		= 0x0080f000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 
     memory "boot"
-        size            = 0x2000;
-        page_size       = 512;
-      ;
+        size		= 0x00001000;
+        offset		= 0x00810000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 
-# signature is actually in IO address space
-    memory "signature"
-        size            = 3;
-        offset          = 0x90;
-      ;
+    memory "flash"
+        size		= 0x00011000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 
-    memory "fuse0"
-        size            = 1;
-        offset          = 0x20;
-      ;
-
-    memory "fuse1"
-        size            = 1;
-        offset          = 0x21;
-      ;
-
-    memory "fuse2"
-        size            = 1;
-        offset          = 0x22;
-      ;
-
-    memory "fuse4"
-        size            = 1;
-        offset          = 0x24;
-      ;
-
-    memory "fuse5"
-        size            = 1;
-        offset          = 0x25;
-      ;
-
-    memory "lockbits"
-        size            = 1;
-        offset          = 0x27;
-      ;
-
-    memory "calibration"
-        size            = 512;
-        offset          = 0x200;
-      ;
+    memory "prodsig"
+        size		= 0x200;
+        offset		= 0x8e0200;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 
     memory "usersig"
-        size            = 512;
-      ;
+        size		= 0x200;
+        offset		= 0x8e0400;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 
-  ;
+    memory "signature"
+        size		= 3;
+        offset		= 0x1000090;
+    ;
+
+    memory "fuse0"
+        size		= 1;
+        offset		= 0x8f0020;
+    ;
+
+    memory "fuse1"
+        size		= 1;
+        offset		= 0x8f0021;
+    ;
+
+    memory "fuse2"
+        size		= 1;
+        offset		= 0x8f0022;
+    ;
+
+    memory "fuse4"
+        size		= 1;
+        offset		= 0x8f0024;
+    ;
+
+    memory "fuse5"
+        size		= 1;
+        offset		= 0x8f0025;
+    ;
+
+    memory "lock"
+        size		= 1;
+        offset		= 0x8f0027;
+    ;
+;
 
 #------------------------------------------------------------
-# ATxmega128A1
+# ATXMEGA128A1
 #------------------------------------------------------------
 
 part
-    id               = "x128a1";
-    desc             = "ATXMEGA128A1";
-    signature        = 0x1E 0x97 0x4C;
-    has_jtag         = yes;
-    has_pdi          = yes;
-    nvm_base         = 0x01C0;
+    id		= "x128a1";
+    desc	= "ATXMEGA128A1";
+    signature	= 0x1e 0x97 0x4c;
+    has_jtag	= yes;
+    has_pdi	= yes;
+    nvm_base	= 0x01c0;
 
     memory "eeprom"
-        page_size       = 32;
-        size            = 2048;
-      ;
+        size		= 0x0800;
+        offset		= 0x08c0000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 
-    memory "flash"
-        size            = 0x20000;
-        page_size       = 512;
-      ;
+    memory "application"
+        size		= 0x00020000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "apptable"
+        size		= 0x00002000;
+        offset		= 0x0081e000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 
     memory "boot"
-        size            = 0x2000;
-        page_size       = 512;
-      ;
+        size		= 0x00002000;
+        offset		= 0x00820000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 
-# signature is actually in IO address space
-    memory "signature"
-        size            = 3;
-        offset          = 0x90;
-      ;
+    memory "flash"
+        size		= 0x00022000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 
-    memory "fuse0"
-        size            = 1;
-        offset          = 0x20;
-      ;
-
-    memory "fuse1"
-        size            = 1;
-        offset          = 0x21;
-      ;
-
-    memory "fuse2"
-        size            = 1;
-        offset          = 0x22;
-      ;
-
-    memory "fuse4"
-        size            = 1;
-        offset          = 0x24;
-      ;
-
-    memory "fuse5"
-        size            = 1;
-        offset          = 0x25;
-      ;
-
-    memory "lockbits"
-        size            = 1;
-        offset          = 0x27;
-      ;
-
-    memory "calibration"
-        size            = 512;
-      ;
+    memory "prodsig"
+        size		= 0x200;
+        offset		= 0x8e0200;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 
     memory "usersig"
-        size            = 512;
-        offset          = 0x200;
-      ;
+        size		= 0x200;
+        offset		= 0x8e0400;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 
-  ;
+    memory "signature"
+        size		= 3;
+        offset		= 0x1000090;
+    ;
+
+    memory "fuse0"
+        size		= 1;
+        offset		= 0x8f0020;
+    ;
+
+    memory "fuse1"
+        size		= 1;
+        offset		= 0x8f0021;
+    ;
+
+    memory "fuse2"
+        size		= 1;
+        offset		= 0x8f0022;
+    ;
+
+    memory "fuse4"
+        size		= 1;
+        offset		= 0x8f0024;
+    ;
+
+    memory "fuse5"
+        size		= 1;
+        offset		= 0x8f0025;
+    ;
+
+    memory "lock"
+        size		= 1;
+        offset		= 0x8f0027;
+    ;
+;
 
 #------------------------------------------------------------
-# ATxmega256A3
+# ATXMEGA128A1REVD
 #------------------------------------------------------------
 
 part
-    id               = "x256a3";
-    desc             = "ATXMEGA256A3";
-    signature        = 0x1E 0x98 0x42;
-    has_jtag         = yes;
-    has_pdi          = yes;
-    nvm_base         = 0x01C0;
+    id		= "x128a1d";
+    desc	= "ATXMEGA128A1REVD";
+    signature	= 0x1e 0x97 0x41;
+    has_jtag	= yes;
+    has_pdi	= yes;
+    nvm_base	= 0x01c0;
 
     memory "eeprom"
-        page_size       = 32;
-        size            = 4096;
-      ;
+        size		= 0x0800;
+        offset		= 0x08c0000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 
-    memory "flash"
-        size            = 0x40000;
-        page_size       = 512;
-      ;
+    memory "application"
+        size		= 0x00020000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "apptable"
+        size		= 0x00002000;
+        offset		= 0x0081e000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 
     memory "boot"
-        size            = 0x2000;
-        page_size       = 512;
-      ;
+        size		= 0x00002000;
+        offset		= 0x00820000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 
-# signature is actually in IO address space
-    memory "signature"
-        size            = 3;
-        offset          = 0x90;
-      ;
+    memory "flash"
+        size		= 0x00022000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 
-    memory "fuse0"
-        size            = 1;
-        offset          = 0x20;
-      ;
-
-    memory "fuse1"
-        size            = 1;
-        offset          = 0x21;
-      ;
-
-    memory "fuse2"
-        size            = 1;
-        offset          = 0x22;
-      ;
-
-    memory "fuse4"
-        size            = 1;
-        offset          = 0x24;
-      ;
-
-    memory "fuse5"
-        size            = 1;
-        offset          = 0x25;
-      ;
-
-    memory "lockbits"
-        size            = 1;
-        offset          = 0x27;
-      ;
-
-    memory "calibration"
-        size            = 512;
-      ;
+    memory "prodsig"
+        size		= 0x200;
+        offset		= 0x8e0200;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 
     memory "usersig"
-        size            = 512;
-        offset          = 0x200;
-      ;
+        size		= 0x200;
+        offset		= 0x8e0400;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 
-  ;
+    memory "signature"
+        size		= 3;
+        offset		= 0x1000090;
+    ;
+
+    memory "fuse0"
+        size		= 1;
+        offset		= 0x8f0020;
+    ;
+
+    memory "fuse1"
+        size		= 1;
+        offset		= 0x8f0021;
+    ;
+
+    memory "fuse2"
+        size		= 1;
+        offset		= 0x8f0022;
+    ;
+
+    memory "fuse4"
+        size		= 1;
+        offset		= 0x8f0024;
+    ;
+
+    memory "fuse5"
+        size		= 1;
+        offset		= 0x8f0025;
+    ;
+
+    memory "lock"
+        size		= 1;
+        offset		= 0x8f0027;
+    ;
+;
+
+#------------------------------------------------------------
+# ATXMEGA192A1
+#------------------------------------------------------------
+
+part
+    id		= "x192a1";
+    desc	= "ATXMEGA192A1";
+    signature	= 0x1e 0x97 0x4e;
+    has_jtag	= yes;
+    has_pdi	= yes;
+    nvm_base	= 0x01c0;
+
+    memory "eeprom"
+        size		= 0x0800;
+        offset		= 0x08c0000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "application"
+        size		= 0x00030000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "apptable"
+        size		= 0x00002000;
+        offset		= 0x0082e000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "boot"
+        size		= 0x00002000;
+        offset		= 0x00830000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "flash"
+        size		= 0x00032000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "prodsig"
+        size		= 0x200;
+        offset		= 0x8e0200;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "usersig"
+        size		= 0x200;
+        offset		= 0x8e0400;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "signature"
+        size		= 3;
+        offset		= 0x1000090;
+    ;
+
+    memory "fuse0"
+        size		= 1;
+        offset		= 0x8f0020;
+    ;
+
+    memory "fuse1"
+        size		= 1;
+        offset		= 0x8f0021;
+    ;
+
+    memory "fuse2"
+        size		= 1;
+        offset		= 0x8f0022;
+    ;
+
+    memory "fuse4"
+        size		= 1;
+        offset		= 0x8f0024;
+    ;
+
+    memory "fuse5"
+        size		= 1;
+        offset		= 0x8f0025;
+    ;
+
+    memory "lock"
+        size		= 1;
+        offset		= 0x8f0027;
+    ;
+;
+
+#------------------------------------------------------------
+# ATXMEGA256A1
+#------------------------------------------------------------
+
+part
+    id		= "x256a1";
+    desc	= "ATXMEGA256A1";
+    signature	= 0x1e 0x98 0x46;
+    has_jtag	= yes;
+    has_pdi	= yes;
+    nvm_base	= 0x01c0;
+
+    memory "eeprom"
+        size		= 0x1000;
+        offset		= 0x08c0000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "application"
+        size		= 0x00040000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "apptable"
+        size		= 0x00002000;
+        offset		= 0x0083e000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "boot"
+        size		= 0x00002000;
+        offset		= 0x00840000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "flash"
+        size		= 0x00042000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "prodsig"
+        size		= 0x200;
+        offset		= 0x8e0200;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "usersig"
+        size		= 0x200;
+        offset		= 0x8e0400;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "signature"
+        size		= 3;
+        offset		= 0x1000090;
+    ;
+
+    memory "fuse0"
+        size		= 1;
+        offset		= 0x8f0020;
+    ;
+
+    memory "fuse1"
+        size		= 1;
+        offset		= 0x8f0021;
+    ;
+
+    memory "fuse2"
+        size		= 1;
+        offset		= 0x8f0022;
+    ;
+
+    memory "fuse4"
+        size		= 1;
+        offset		= 0x8f0024;
+    ;
+
+    memory "fuse5"
+        size		= 1;
+        offset		= 0x8f0025;
+    ;
+
+    memory "lock"
+        size		= 1;
+        offset		= 0x8f0027;
+    ;
+;
+
+#------------------------------------------------------------
+# ATXMEGA64A3
+#------------------------------------------------------------
+
+part
+    id		= "x64a3";
+    desc	= "ATXMEGA64A3";
+    signature	= 0x1e 0x96 0x42;
+    has_jtag	= yes;
+    has_pdi	= yes;
+    nvm_base	= 0x01c0;
+
+    memory "eeprom"
+        size		= 0x0800;
+        offset		= 0x08c0000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "application"
+        size		= 0x00010000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "apptable"
+        size		= 0x00001000;
+        offset		= 0x0080f000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "boot"
+        size		= 0x00001000;
+        offset		= 0x00810000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "flash"
+        size		= 0x00011000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "prodsig"
+        size		= 0x200;
+        offset		= 0x8e0200;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "usersig"
+        size		= 0x200;
+        offset		= 0x8e0400;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "signature"
+        size		= 3;
+        offset		= 0x1000090;
+    ;
+
+    memory "fuse0"
+        size		= 1;
+        offset		= 0x8f0020;
+    ;
+
+    memory "fuse1"
+        size		= 1;
+        offset		= 0x8f0021;
+    ;
+
+    memory "fuse2"
+        size		= 1;
+        offset		= 0x8f0022;
+    ;
+
+    memory "fuse4"
+        size		= 1;
+        offset		= 0x8f0024;
+    ;
+
+    memory "fuse5"
+        size		= 1;
+        offset		= 0x8f0025;
+    ;
+
+    memory "lock"
+        size		= 1;
+        offset		= 0x8f0027;
+    ;
+;
+
+#------------------------------------------------------------
+# ATXMEGA128A3
+#------------------------------------------------------------
+
+part
+    id		= "x128a3";
+    desc	= "ATXMEGA128A3";
+    signature	= 0x1e 0x97 0x42;
+    has_jtag	= yes;
+    has_pdi	= yes;
+    nvm_base	= 0x01c0;
+
+    memory "eeprom"
+        size		= 0x0800;
+        offset		= 0x08c0000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "application"
+        size		= 0x00020000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "apptable"
+        size		= 0x00002000;
+        offset		= 0x0081e000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "boot"
+        size		= 0x00002000;
+        offset		= 0x00820000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "flash"
+        size		= 0x00022000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "prodsig"
+        size		= 0x200;
+        offset		= 0x8e0200;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "usersig"
+        size		= 0x200;
+        offset		= 0x8e0400;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "signature"
+        size		= 3;
+        offset		= 0x1000090;
+    ;
+
+    memory "fuse0"
+        size		= 1;
+        offset		= 0x8f0020;
+    ;
+
+    memory "fuse1"
+        size		= 1;
+        offset		= 0x8f0021;
+    ;
+
+    memory "fuse2"
+        size		= 1;
+        offset		= 0x8f0022;
+    ;
+
+    memory "fuse4"
+        size		= 1;
+        offset		= 0x8f0024;
+    ;
+
+    memory "fuse5"
+        size		= 1;
+        offset		= 0x8f0025;
+    ;
+
+    memory "lock"
+        size		= 1;
+        offset		= 0x8f0027;
+    ;
+;
+
+#------------------------------------------------------------
+# ATXMEGA192A3
+#------------------------------------------------------------
+
+part
+    id		= "x192a3";
+    desc	= "ATXMEGA192A3";
+    signature	= 0x1e 0x97 0x44;
+    has_jtag	= yes;
+    has_pdi	= yes;
+    nvm_base	= 0x01c0;
+
+    memory "eeprom"
+        size		= 0x0800;
+        offset		= 0x08c0000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "application"
+        size		= 0x00030000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "apptable"
+        size		= 0x00002000;
+        offset		= 0x0082e000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "boot"
+        size		= 0x00002000;
+        offset		= 0x00830000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "flash"
+        size		= 0x00032000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "prodsig"
+        size		= 0x200;
+        offset		= 0x8e0200;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "usersig"
+        size		= 0x200;
+        offset		= 0x8e0400;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "signature"
+        size		= 3;
+        offset		= 0x1000090;
+    ;
+
+    memory "fuse0"
+        size		= 1;
+        offset		= 0x8f0020;
+    ;
+
+    memory "fuse1"
+        size		= 1;
+        offset		= 0x8f0021;
+    ;
+
+    memory "fuse2"
+        size		= 1;
+        offset		= 0x8f0022;
+    ;
+
+    memory "fuse4"
+        size		= 1;
+        offset		= 0x8f0024;
+    ;
+
+    memory "fuse5"
+        size		= 1;
+        offset		= 0x8f0025;
+    ;
+
+    memory "lock"
+        size		= 1;
+        offset		= 0x8f0027;
+    ;
+;
+
+#------------------------------------------------------------
+# ATXMEGA256A3
+#------------------------------------------------------------
+
+part
+    id		= "x256a3";
+    desc	= "ATXMEGA256A3";
+    signature	= 0x1e 0x98 0x42;
+    has_jtag	= yes;
+    has_pdi	= yes;
+    nvm_base	= 0x01c0;
+
+    memory "eeprom"
+        size		= 0x1000;
+        offset		= 0x08c0000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "application"
+        size		= 0x00040000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "apptable"
+        size		= 0x00002000;
+        offset		= 0x0083e000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "boot"
+        size		= 0x00002000;
+        offset		= 0x00840000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "flash"
+        size		= 0x00042000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "prodsig"
+        size		= 0x200;
+        offset		= 0x8e0200;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "usersig"
+        size		= 0x200;
+        offset		= 0x8e0400;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "signature"
+        size		= 3;
+        offset		= 0x1000090;
+    ;
+
+    memory "fuse0"
+        size		= 1;
+        offset		= 0x8f0020;
+    ;
+
+    memory "fuse1"
+        size		= 1;
+        offset		= 0x8f0021;
+    ;
+
+    memory "fuse2"
+        size		= 1;
+        offset		= 0x8f0022;
+    ;
+
+    memory "fuse4"
+        size		= 1;
+        offset		= 0x8f0024;
+    ;
+
+    memory "fuse5"
+        size		= 1;
+        offset		= 0x8f0025;
+    ;
+
+    memory "lock"
+        size		= 1;
+        offset		= 0x8f0027;
+    ;
+;
+
+#------------------------------------------------------------
+# ATXMEGA256A3B
+#------------------------------------------------------------
+
+part
+    id		= "x256a3b";
+    desc	= "ATXMEGA256A3B";
+    signature	= 0x1e 0x98 0x43;
+    has_jtag	= yes;
+    has_pdi	= yes;
+    nvm_base	= 0x01c0;
+
+    memory "eeprom"
+        size		= 0x1000;
+        offset		= 0x08c0000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "application"
+        size		= 0x00040000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "apptable"
+        size		= 0x00002000;
+        offset		= 0x0083e000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "boot"
+        size		= 0x00002000;
+        offset		= 0x00840000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "flash"
+        size		= 0x00042000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "prodsig"
+        size		= 0x200;
+        offset		= 0x8e0200;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "usersig"
+        size		= 0x200;
+        offset		= 0x8e0400;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "signature"
+        size		= 3;
+        offset		= 0x1000090;
+    ;
+
+    memory "fuse0"
+        size		= 1;
+        offset		= 0x8f0020;
+    ;
+
+    memory "fuse1"
+        size		= 1;
+        offset		= 0x8f0021;
+    ;
+
+    memory "fuse2"
+        size		= 1;
+        offset		= 0x8f0022;
+    ;
+
+    memory "fuse4"
+        size		= 1;
+        offset		= 0x8f0024;
+    ;
+
+    memory "fuse5"
+        size		= 1;
+        offset		= 0x8f0025;
+    ;
+
+    memory "lock"
+        size		= 1;
+        offset		= 0x8f0027;
+    ;
+;
+
+#------------------------------------------------------------
+# ATXMEGA16A4
+#------------------------------------------------------------
+
+part
+    id		= "x16a4";
+    desc	= "ATXMEGA16A4";
+    signature	= 0x1e 0x94 0x41;
+    has_jtag	= yes;
+    has_pdi	= yes;
+    nvm_base	= 0x01c0;
+
+    memory "eeprom"
+        size		= 0x0400;
+        offset		= 0x08c0000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "application"
+        size		= 0x00004000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "apptable"
+        size		= 0x00001000;
+        offset		= 0x00803000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "boot"
+        size		= 0x00001000;
+        offset		= 0x00804000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "flash"
+        size		= 0x00005000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "prodsig"
+        size		= 0x200;
+        offset		= 0x8e0200;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "usersig"
+        size		= 0x200;
+        offset		= 0x8e0400;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "signature"
+        size		= 3;
+        offset		= 0x1000090;
+    ;
+
+    memory "fuse0"
+        size		= 1;
+        offset		= 0x8f0020;
+    ;
+
+    memory "fuse1"
+        size		= 1;
+        offset		= 0x8f0021;
+    ;
+
+    memory "fuse2"
+        size		= 1;
+        offset		= 0x8f0022;
+    ;
+
+    memory "fuse4"
+        size		= 1;
+        offset		= 0x8f0024;
+    ;
+
+    memory "fuse5"
+        size		= 1;
+        offset		= 0x8f0025;
+    ;
+
+    memory "lock"
+        size		= 1;
+        offset		= 0x8f0027;
+    ;
+;
+
+#------------------------------------------------------------
+# ATXMEGA32A4
+#------------------------------------------------------------
+
+part
+    id		= "x32a4";
+    desc	= "ATXMEGA32A4";
+    signature	= 0x1e 0x95 0x41;
+    has_jtag	= yes;
+    has_pdi	= yes;
+    nvm_base	= 0x01c0;
+
+    memory "eeprom"
+        size		= 0x0400;
+        offset		= 0x08c0000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "application"
+        size		= 0x00008000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "apptable"
+        size		= 0x00001000;
+        offset		= 0x00807000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "boot"
+        size		= 0x00001000;
+        offset		= 0x00808000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "flash"
+        size		= 0x00009000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "prodsig"
+        size		= 0x200;
+        offset		= 0x8e0200;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "usersig"
+        size		= 0x200;
+        offset		= 0x8e0400;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "signature"
+        size		= 3;
+        offset		= 0x1000090;
+    ;
+
+    memory "fuse0"
+        size		= 1;
+        offset		= 0x8f0020;
+    ;
+
+    memory "fuse1"
+        size		= 1;
+        offset		= 0x8f0021;
+    ;
+
+    memory "fuse2"
+        size		= 1;
+        offset		= 0x8f0022;
+    ;
+
+    memory "fuse4"
+        size		= 1;
+        offset		= 0x8f0024;
+    ;
+
+    memory "fuse5"
+        size		= 1;
+        offset		= 0x8f0025;
+    ;
+
+    memory "lock"
+        size		= 1;
+        offset		= 0x8f0027;
+    ;
+;
+
+#------------------------------------------------------------
+# ATXMEGA64A4
+#------------------------------------------------------------
+
+part
+    id		= "x64a4";
+    desc	= "ATXMEGA64A4";
+    signature	= 0x1e 0x96 0x46;
+    has_jtag	= yes;
+    has_pdi	= yes;
+    nvm_base	= 0x01c0;
+
+    memory "eeprom"
+        size		= 0x0800;
+        offset		= 0x08c0000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "application"
+        size		= 0x00010000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "apptable"
+        size		= 0x00001000;
+        offset		= 0x0080f000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "boot"
+        size		= 0x00001000;
+        offset		= 0x00810000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "flash"
+        size		= 0x00011000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "prodsig"
+        size		= 0x200;
+        offset		= 0x8e0200;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "usersig"
+        size		= 0x200;
+        offset		= 0x8e0400;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "signature"
+        size		= 3;
+        offset		= 0x1000090;
+    ;
+
+    memory "fuse0"
+        size		= 1;
+        offset		= 0x8f0020;
+    ;
+
+    memory "fuse1"
+        size		= 1;
+        offset		= 0x8f0021;
+    ;
+
+    memory "fuse2"
+        size		= 1;
+        offset		= 0x8f0022;
+    ;
+
+    memory "fuse4"
+        size		= 1;
+        offset		= 0x8f0024;
+    ;
+
+    memory "fuse5"
+        size		= 1;
+        offset		= 0x8f0025;
+    ;
+
+    memory "lock"
+        size		= 1;
+        offset		= 0x8f0027;
+    ;
+;
+
+#------------------------------------------------------------
+# ATXMEGA128A4
+#------------------------------------------------------------
+
+part
+    id		= "x128a4";
+    desc	= "ATXMEGA128A4";
+    signature	= 0x1e 0x97 0x46;
+    has_jtag	= yes;
+    has_pdi	= yes;
+    nvm_base	= 0x01c0;
+
+    memory "eeprom"
+        size		= 0x0800;
+        offset		= 0x08c0000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "application"
+        size		= 0x00020000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "apptable"
+        size		= 0x00002000;
+        offset		= 0x0081e000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "boot"
+        size		= 0x00002000;
+        offset		= 0x00820000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "flash"
+        size		= 0x00022000;
+        offset		= 0x0800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "prodsig"
+        size		= 0x200;
+        offset		= 0x8e0200;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "usersig"
+        size		= 0x200;
+        offset		= 0x8e0400;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "signature"
+        size		= 3;
+        offset		= 0x1000090;
+    ;
+
+    memory "fuse0"
+        size		= 1;
+        offset		= 0x8f0020;
+    ;
+
+    memory "fuse1"
+        size		= 1;
+        offset		= 0x8f0021;
+    ;
+
+    memory "fuse2"
+        size		= 1;
+        offset		= 0x8f0022;
+    ;
+
+    memory "fuse4"
+        size		= 1;
+        offset		= 0x8f0024;
+    ;
+
+    memory "fuse5"
+        size		= 1;
+        offset		= 0x8f0025;
+    ;
+
+    memory "lock"
+        size		= 1;
+        offset		= 0x8f0027;
+    ;
+;
+
