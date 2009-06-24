@@ -1,3 +1,7 @@
+2009-06-24  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* stk500v2.c (stk600_xprog_write_byte): Handle writing fuse bytes.
+
 2009-04-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Carl Hamilton:

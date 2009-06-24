@@ -3016,6 +3016,9 @@ static int stk600_xprog_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     } else if (strcmp(mem->desc, "lockbits") == 0) {
         b[1] = XPRG_MEM_TYPE_LOCKBITS;
         addr += 0x008f0000;
+    } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
+        b[1] = XPRG_MEM_TYPE_FUSE;
+        addr += 0x008f0000;
     } else if (strcmp(mem->desc, "usersig") == 0) {
         b[1] = XPRG_MEM_TYPE_USERSIG;
         addr += 0x008e0000;
