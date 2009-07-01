@@ -1,3 +1,9 @@
+2009-07-01  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #26412: avrdude segfaults when called with a programmer that does not
+	support it
+	* main.c: do not call pgm->perform_osccal() unless it is != 0.
+
 2009-06-24  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Contributed by Zoltan Laday:

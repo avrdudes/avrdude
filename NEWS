@@ -26,6 +26,7 @@ Current:
 
   * Major Xmega fixes for the JTAG ICE mkII (patch #6825)
 
+  * Bugfixes.
 
 Version 5.6:
 
