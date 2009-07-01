@@ -786,8 +786,15 @@ int main(int argc, char * argv [])
      * perform an RC oscillator calibration
      * as outlined in appnote AVR053
      */
-    fprintf(stderr, "%s: performing RC oscillator calibration\n", progname);
-    exitrc = pgm->perform_osccal(pgm);
+    if (pgm->perform_osccal == 0) {
+      fprintf(stderr,
+              "%s: programmer does not support RC oscillator calibration\n",
+	      progname);
+      exitrc = 1;
+    } else {
+      fprintf(stderr, "%s: performing RC oscillator calibration\n", progname);
+      exitrc = pgm->perform_osccal(pgm);
+    }
     if (exitrc == 0 && quell_progress < 2) {
       fprintf(stderr,
               "%s: calibration value is now stored in EEPROM at address 0\n",
