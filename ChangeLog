@@ -1,5 +1,11 @@
 2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #26408: Crash in stk500v2_open()
+	* stk500generic.c: Implement setup and teardown hooks, calling in turn
+	the respective hooks of the stk500v2 implementation.
+
+2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #26130: Avrdude doesn't display it's version.
 	* main.c (usage): add a version number display to the default usage
 	message.

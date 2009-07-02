@@ -65,9 +65,27 @@ static int stk500generic_open(PROGRAMMER * pgm, char * port)
   return -1;
 }
 
+static void stk500generic_setup(PROGRAMMER * pgm)
+{
+  /*
+   * Only STK500v2 needs setup/teardown.
+   */
+  stk500v2_initpgm(pgm);
+  pgm->setup(pgm);
+}
+
+static void stk500generic_teardown(PROGRAMMER * pgm)
+{
+  stk500v2_initpgm(pgm);
+  pgm->teardown(pgm);
+}
+
+
 void stk500generic_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "STK500GENERIC");
 
   pgm->open           = stk500generic_open;
+  pgm->setup          = stk500generic_setup;
+  pgm->teardown       = stk500generic_teardown;
 }
