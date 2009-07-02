@@ -1,3 +1,9 @@
+2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #26130: Avrdude doesn't display it's version.
+	* main.c (usage): add a version number display to the default usage
+	message.
+
 2009-07-01  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #26412: avrdude segfaults when called with a programmer that does not
