@@ -1,5 +1,9 @@
 2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* configure.ac: Prepare for releasing version 5.7
+
+2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* main.c: Add my name to the copyright output when being verbose.
 
 2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
