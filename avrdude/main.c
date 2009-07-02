@@ -1,7 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2005  Brian S. Dean <bsd@bsdhome.com>
- * Copyright 2007 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright 2007-2009 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -122,8 +122,8 @@ static void usage(void)
  "  -v                         Verbose output. -v -v for more.\n"
  "  -q                         Quell progress output. -q -q for less.\n"
  "  -?                         Display this usage.\n"
- "\navrdude project: <URL:http://savannah.nongnu.org/projects/avrdude>\n"
-          ,progname);
+ "\navrdude version %s, URL: <http://savannah.nongnu.org/projects/avrdude/>\n"
+          ,progname, version);
 }
 
 
