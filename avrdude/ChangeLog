@@ -1,5 +1,12 @@
 2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Contributed by Shaun Jackman  <sjackman@gmail.com>
+	bug #21798: Fix both XSLT scripts
+	* tools/get-dw-params.xsl (format-hex): Add the parameter count.
+	* tools/get-hv-params.xsl (format_cstack): Ditto.
+
+2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #21922: ATmega163 still not working in version 5.5
 	* avrdude.conf.in (atmega163): fill in stk500v2 parameters, correct
 	some flash programming parameters as well.

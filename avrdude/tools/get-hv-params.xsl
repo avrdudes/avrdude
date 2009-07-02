@@ -219,6 +219,7 @@
     -->
     <xsl:template name="format_cstack">
         <xsl:param name="stack" />
+        <xsl:param name="count" />
         <xsl:choose>
             <xsl:when test="string-length($stack) &lt;= 4">
                 <!-- Last element, print it, and leave template. -->
