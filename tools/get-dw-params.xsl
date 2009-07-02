@@ -112,6 +112,7 @@
     <!-- recursively then until everything has been done -->
     <xsl:template name="format-hex">
       <xsl:param name="arg" />
+      <xsl:param name="count" />
       <xsl:choose>
         <xsl:when test="string-length($arg) &lt;= 4">
           <!-- Last element, print it, and leave template. -->
