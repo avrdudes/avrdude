@@ -5,7 +5,7 @@ Approximate change log for AVRDUDE by version.
 (For more detailed changes, see the ChangeLog file.)
 
 ----------------------------------------------------------------------
-Current:
+Version 5.7:
 
   * New devices supported:
 
@@ -21,8 +21,6 @@ Current:
       - ATXMEGA32A4
       - ATXMEGA64A4
       - ATXMEGA128A4
-
-  * New programmers supported:
 
   * Major Xmega fixes for the JTAG ICE mkII (patch #6825)
 
