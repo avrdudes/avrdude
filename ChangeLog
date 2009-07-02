@@ -1,5 +1,11 @@
 2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #22234: WINDOWS version: HOWTO: Specify Serial Ports Larger than COM9
+	* ser_win32.c (ser_open): prepend \\.\ to any COM port name, so it is
+	safe to be used for COM ports above 9.
+
+2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #26408: Crash in stk500v2_open()
 	* stk500generic.c: Implement setup and teardown hooks, calling in turn
 	the respective hooks of the stk500v2 implementation.
