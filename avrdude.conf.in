@@ -4761,6 +4761,17 @@ part
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
                        "x x x x  x x x x    x x x x  x x x x";
 
+    timeout             = 200;
+    stabdelay           = 100;
+    cmdexedelay         = 25;
+    synchloops          = 32;
+    bytedelay           = 0;
+    pollindex           = 3;
+    pollvalue           = 0x53;
+    predelay            = 1;
+    postdelay           = 1;
+    pollmethod          = 0;
+
     pp_controlstack     =
         0x0E, 0x1E, 0x0F, 0x1F, 0x2E, 0x3E, 0x2F, 0x3F,
         0x4E, 0x5E, 0x4F, 0x5F, 0x6E, 0x7E, 0x6F, 0x7F,
@@ -4795,8 +4806,12 @@ part
 
 	write           = "  1   1   0   0      0   0   0   0",
                           "  x   x   x   x      x   x   x  a8",
-                          " a7  a6  a5  a4     a3  a2  a1  a0", 
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
                           "  i   i   i   i      i   i   i   i";
+        mode            = 0x41;
+        delay           = 20;
+        blocksize       = 4;
+        readsize        = 256;
       ;
 
     memory "flash"
@@ -4833,8 +4848,8 @@ part
                           " a7  a6   x   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
 
-	mode		= 0x41;
-	delay		= 6;
+	mode		= 0x11;
+	delay		= 20;
 	blocksize	= 128;
 	readsize	= 256;
       ;
