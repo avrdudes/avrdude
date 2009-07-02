@@ -563,8 +563,9 @@ int main(int argc, char * argv [])
      */
     fprintf(stderr,
             "\n%s: Version %s, compiled on %s at %s\n"
-            "%sCopyright (c) 2000-2005 Brian Dean, http://www.bdmicro.com/\n\n",
-            progname, version, __DATE__, __TIME__, progbuf);
+            "%sCopyright (c) 2000-2005 Brian Dean, http://www.bdmicro.com/\n"
+	    "%sCopyright (c) 2007-2009 Joerg Wunsch\n\n",
+            progname, version, __DATE__, __TIME__, progbuf, progbuf);
   }
 
   if (verbose) {
