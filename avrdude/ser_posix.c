@@ -120,10 +120,10 @@ static int ser_setspeed(union filedescriptor *fd, long baud)
 
   cfsetospeed(&termios, speed);
   cfsetispeed(&termios, speed);
-  
-  rc = tcsetattr(fd->ifd, TCSANOW | TCSAFLUSH, &termios);
+
+  rc = tcsetattr(fd->ifd, TCSANOW, &termios);
   if (rc < 0) {
-    fprintf(stderr, "%s: ser_setspeed(): tcsetattr() failed",
+    fprintf(stderr, "%s: ser_setspeed(): tcsetattr() failed\n",
             progname);
     return -errno;
   }

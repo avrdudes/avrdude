@@ -1,5 +1,13 @@
 2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #22206: avrdude: ser_setspeed(): tcsetattr() failed
+	* ser_posix.c (ser_setspeed): Don't pass TCSAFLUSH to tcsetattr() as
+	it apparently fails to work on Solaris.  After reading the
+	documentation again, it seems TCSAFLUSH and TCSANOW are indeed
+	mutually exclusive.
+
+2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #22234: WINDOWS version: HOWTO: Specify Serial Ports Larger than COM9
 	* ser_win32.c (ser_open): prepend \\.\ to any COM port name, so it is
 	safe to be used for COM ports above 9.
