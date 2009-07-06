@@ -117,7 +117,14 @@ struct pdata
     }
         pgmtype;
 
-    AVRPART *lastpart;
+  AVRPART *lastpart;
+
+  /*
+   * Chained pdata for the JTAG ICE mkII backend.  This is used when
+   * calling the backend functions for ISP/HVSP/PP programming
+   * functionality of the JTAG ICE mkII and AVR Dragon.
+   */
+  void *chained_pdata;
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
@@ -278,9 +285,44 @@ static void stk500v2_setup(PROGRAMMER * pgm)
   PDATA(pgm)->command_sequence = 1;
 }
 
+static void stk500v2_jtagmkII_setup(PROGRAMMER * pgm)
+{
+  void *mycookie, *theircookie;
+
+  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
+    fprintf(stderr,
+	    "%s: stk500v2_setup(): Out of memory allocating private data\n",
+	    progname);
+    exit(1);
+  }
+  memset(pgm->cookie, 0, sizeof(struct pdata));
+  PDATA(pgm)->command_sequence = 1;
+
+  /*
+   * Now, have the JTAG ICE mkII backend allocate its own private
+   * data.  Store our own cookie in a safe place for the time being.
+   */
+  mycookie = pgm->cookie;
+  jtagmkII_setup(pgm);
+  theircookie = pgm->cookie;
+  pgm->cookie = mycookie;
+  PDATA(pgm)->chained_pdata = theircookie;
+}
+
 static void stk500v2_teardown(PROGRAMMER * pgm)
 {
   free(pgm->cookie);
+}
+
+static void stk500v2_jtagmkII_teardown(PROGRAMMER * pgm)
+{
+  void *mycookie;
+
+  mycookie = pgm->cookie;
+  pgm->cookie = PDATA(pgm)->chained_pdata;
+  jtagmkII_teardown(pgm);
+
+  free(mycookie);
 }
 
 
@@ -326,6 +368,7 @@ static int stk500v2_jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t
   unsigned char *cmdbuf;
   int rv;
   unsigned short sz;
+  void *mycookie;
 
   sz = get_jtagisp_return_size(data[0]);
   if (sz == 0) {
@@ -353,12 +396,15 @@ static int stk500v2_jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t
             progname);
     exit(1);
   }
+  mycookie = pgm->cookie;
+  pgm->cookie = PDATA(pgm)->chained_pdata;
   cmdbuf[0] = CMND_ISP_PACKET;
   cmdbuf[1] = sz & 0xff;
   cmdbuf[2] = (sz >> 8) & 0xff;
   memcpy(cmdbuf + 3, data, len);
   rv = jtagmkII_send(pgm, cmdbuf, len + 3);
   free(cmdbuf);
+  pgm->cookie = mycookie;
 
   return rv;
 }
@@ -423,8 +469,12 @@ static int stk500v2_jtagmkII_recv(PROGRAMMER * pgm, unsigned char msg[],
 {
   int rv;
   unsigned char *jtagmsg;
+  void *mycookie;
 
+  mycookie = pgm->cookie;
+  pgm->cookie = PDATA(pgm)->chained_pdata;
   rv = jtagmkII_recv(pgm, &jtagmsg);
+  pgm->cookie = mycookie;
   if (rv <= 0) {
     fprintf(stderr, "%s: stk500v2_jtagmkII_recv(): error in jtagmkII_recv()\n",
             progname);
@@ -2571,9 +2621,13 @@ static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p)
   int prescale;
   double f;
   const char *unit;
+  void *mycookie;
 
   if (PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII) {
+    mycookie = pgm->cookie;
+    pgm->cookie = PDATA(pgm)->chained_pdata;
     jtagmkII_getparm(pgm, PAR_OCD_VTARGET, vtarget_jtag);
+    pgm->cookie = mycookie;
     fprintf(stderr, "%sVtarget         : %.1f V\n", p,
 	    b2_to_u16(vtarget_jtag) / 1000.0);
   } else {
@@ -2681,6 +2735,7 @@ static int stk500v2_perform_osccal(PROGRAMMER * pgm)
 static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
 {
   long baud;
+  void *mycookie;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: stk500v2_jtagmkII_open()\n", progname);
@@ -2717,12 +2772,16 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
    */
   stk500v2_drain(pgm, 0);
 
+  mycookie = pgm->cookie;
+  pgm->cookie = PDATA(pgm)->chained_pdata;
   if (jtagmkII_getsync(pgm, EMULATOR_MODE_SPI) != 0) {
     fprintf(stderr, "%s: failed to sync with the JTAG ICE mkII in ISP mode\n",
             progname);
     pgm->close(pgm);		/* sign off correctly */
+    pgm->cookie = mycookie;
     exit(1);
   }
+  pgm->cookie = mycookie;
 
   PDATA(pgm)->pgmtype = PGMTYPE_JTAGICE_MKII;
 
@@ -2748,6 +2807,7 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
 static int stk500v2_dragon_isp_open(PROGRAMMER * pgm, char * port)
 {
   long baud;
+  void *mycookie;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: stk500v2_dragon_isp_open()\n", progname);
@@ -2784,12 +2844,16 @@ static int stk500v2_dragon_isp_open(PROGRAMMER * pgm, char * port)
    */
   stk500v2_drain(pgm, 0);
 
+  mycookie = pgm->cookie;
+  pgm->cookie = PDATA(pgm)->chained_pdata;
   if (jtagmkII_getsync(pgm, EMULATOR_MODE_SPI) != 0) {
     fprintf(stderr, "%s: failed to sync with the JTAG ICE mkII in ISP mode\n",
             progname);
     pgm->close(pgm);		/* sign off correctly */
+    pgm->cookie = mycookie;
     exit(1);
   }
+  pgm->cookie = mycookie;
 
   PDATA(pgm)->pgmtype = PGMTYPE_JTAGICE_MKII;
 
@@ -2815,6 +2879,7 @@ static int stk500v2_dragon_isp_open(PROGRAMMER * pgm, char * port)
 static int stk500v2_dragon_hv_open(PROGRAMMER * pgm, char * port)
 {
   long baud;
+  void *mycookie;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: stk500v2_dragon_hv_open()\n", progname);
@@ -2851,12 +2916,16 @@ static int stk500v2_dragon_hv_open(PROGRAMMER * pgm, char * port)
    */
   stk500v2_drain(pgm, 0);
 
+  mycookie = pgm->cookie;
+  pgm->cookie = PDATA(pgm)->chained_pdata;
   if (jtagmkII_getsync(pgm, EMULATOR_MODE_HV) != 0) {
     fprintf(stderr, "%s: failed to sync with the JTAG ICE mkII in HV mode\n",
             progname);
     pgm->close(pgm);		/* sign off correctly */
+    pgm->cookie = mycookie;
     exit(1);
   }
+  pgm->cookie = mycookie;
 
   PDATA(pgm)->pgmtype = PGMTYPE_JTAGICE_MKII;
 
@@ -3486,8 +3555,8 @@ void stk500v2_jtagmkII_initpgm(PROGRAMMER * pgm)
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
   pgm->perform_osccal = stk500v2_perform_osccal;
-  pgm->setup          = jtagmkII_setup;
-  pgm->teardown       = jtagmkII_teardown;
+  pgm->setup          = stk500v2_jtagmkII_setup;
+  pgm->teardown       = stk500v2_jtagmkII_teardown;
   pgm->page_size      = 256;
 }
 
@@ -3550,8 +3619,8 @@ void stk500v2_dragon_pp_initpgm(PROGRAMMER * pgm)
   pgm->set_varef      = stk500v2_set_varef;
   pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
-  pgm->setup          = jtagmkII_setup;
-  pgm->teardown       = jtagmkII_teardown;
+  pgm->setup          = stk500v2_jtagmkII_setup;
+  pgm->teardown       = stk500v2_jtagmkII_teardown;
   pgm->page_size      = 256;
 }
 
@@ -3583,8 +3652,8 @@ void stk500v2_dragon_hvsp_initpgm(PROGRAMMER * pgm)
   pgm->set_varef      = stk500v2_set_varef;
   pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
-  pgm->setup          = jtagmkII_setup;
-  pgm->teardown       = jtagmkII_teardown;
+  pgm->setup          = stk500v2_jtagmkII_setup;
+  pgm->teardown       = stk500v2_jtagmkII_teardown;
   pgm->page_size      = 256;
 }
 

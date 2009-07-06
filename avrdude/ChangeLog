@@ -1,3 +1,11 @@
+2009-07-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* stk500v2.c: Fix a serious memory corruption problem resulting
+	out of the chaining of both, the stk500v2 and the jtagmkII
+	programmers for some programming hardware (JTAG ICE mkII and AVR
+	Dragon running in ISP, HVSP or PP mode), where both programmers
+	have to maintain their private programmer data.
+
 2009-07-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* configure.ac: Post-release (is pre-release...)
