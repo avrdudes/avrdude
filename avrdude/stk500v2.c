@@ -574,7 +574,7 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
         if (curlen < maxsize) {
           msg[curlen] = c;
         } else {
-          fprintf(stderr, "%s: stk500v2_recv(): buffer too small, received %d byte into %zd byte buffer\n",
+          fprintf(stderr, "%s: stk500v2_recv(): buffer too small, received %d byte into %u byte buffer\n",
                   progname,curlen,maxsize);
           return -2;
         }

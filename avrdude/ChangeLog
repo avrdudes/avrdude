@@ -1,5 +1,12 @@
 2009-07-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* jtagmkI.c (jtagmkI_send): Replace %zd format by %u since not all
+	implementations do understand the C99 formatting options (sigh).
+	* jtagmkII.c (jtagmkII_send): (Ditto.)
+	* stk500v2.c (stk500v2_recv): (Ditto.)
+
+2009-07-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #26002: HVPP of EEPROM with AVR Dragon and ATmega8 Fails
 	* avrdude.conf.in (ATmega8): add page size for EEPROM.
 
