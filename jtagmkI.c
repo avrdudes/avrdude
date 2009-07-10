@@ -200,7 +200,7 @@ static int jtagmkI_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
   unsigned char *buf;
 
   if (verbose >= 3)
-    fprintf(stderr, "\n%s: jtagmkI_send(): sending %zd bytes\n",
+    fprintf(stderr, "\n%s: jtagmkI_send(): sending %u bytes\n",
 	    progname, len);
 
   if ((buf = malloc(len + 2)) == NULL)
