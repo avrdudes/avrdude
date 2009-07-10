@@ -6563,6 +6563,7 @@ part
 
     memory "eeprom"
         size            = 512;
+        page_size       = 4;
         min_write_delay = 9000;
         max_write_delay = 9000;
         readback_p1     = 0xff;
