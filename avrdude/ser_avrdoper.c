@@ -92,6 +92,7 @@ static void convertUniToAscii(char *buffer)
     while(*uni != 0){
         if(*uni >= 256){
             *ascii++ = '?';
+            uni++;
         }else{
             *ascii++ = *uni++;
         }
