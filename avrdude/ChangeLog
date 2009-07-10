@@ -1,5 +1,9 @@
 2009-07-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* configure.ac: Prepare for releasing version 5.8
+
+2009-07-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Roger Wolff:
 	bug #26527: bug in unicode conversion
 	* ser_avrdoper.c (convertUniToAscii): when encountering a UTF-16
