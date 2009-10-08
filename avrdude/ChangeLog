@@ -1,5 +1,11 @@
 2009-10-08  Michal Ludvig  <mludvig@logix.net.nz>
 
+	* buspirate.c: Optimised buspirate_cmd() - reading 1kB EEPROM now
+	  takes only 14 sec instead of almost 2 mins with the original
+	  implementation.
+
+2009-10-08  Michal Ludvig  <mludvig@logix.net.nz>
+
 	* buspirate.c, buspirate.h: Support for the BusPirate programmer
 	* config_gram.y, avrdude.conf.in, main.c, lexer.l, Makefile.am:
 	  Glue for BusPirate.
