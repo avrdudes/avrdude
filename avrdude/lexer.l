@@ -127,6 +127,7 @@ banked           { yylval=NULL; return K_PAGED; }
 baudrate         { yylval=NULL; return K_BAUDRATE; }
 bs2              { yylval=NULL; return K_BS2; }
 buff             { yylval=NULL; return K_BUFF; }
+buspirate        { yylval=NULL; return K_BUSPIRATE; }
 butterfly        { yylval=NULL; return K_BUTTERFLY; }
 chip_erase_delay { yylval=NULL; return K_CHIP_ERASE_DELAY; }
 desc             { yylval=NULL; return K_DESC; }

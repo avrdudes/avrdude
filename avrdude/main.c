@@ -679,6 +679,7 @@ int main(int argc, char * argv [])
 
   if ((strcmp(pgm->type, "STK500") == 0) ||
       (strcmp(pgm->type, "avr910") == 0) ||
+      (strcmp(pgm->type, "buspirate") == 0) ||
       (strcmp(pgm->type, "STK500V2") == 0) ||
       (strcmp(pgm->type, "JTAGMKII") == 0)) {
     if (port == default_parallel) {

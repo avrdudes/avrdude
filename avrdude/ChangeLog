@@ -1,3 +1,9 @@
+2009-10-08  Michal Ludvig  <mludvig@logix.net.nz>
+
+	* buspirate.c, buspirate.h: Support for the BusPirate programmer
+	* config_gram.y, avrdude.conf.in, main.c, lexer.l, Makefile.am:
+	  Glue for BusPirate.
+
 2009-08-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* usb_libusb.c (usbdev_close): Repair the logic around the

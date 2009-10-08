@@ -88,6 +88,8 @@ libavrdude_a_SOURCES = \
 	avrpart.h \
 	bitbang.c \
 	bitbang.h \
+	buspirate.c \
+	buspirate.h \
 	butterfly.c \
 	butterfly.h \
 	config.c \
