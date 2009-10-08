@@ -280,7 +280,7 @@ static int buspirate_cmd(struct programmer_t *pgm,
 	snprintf(buf, sizeof(buf), "0x%02x 0x%02x 0x%02x 0x%02x\n",
 			 cmd[0], cmd[1], cmd[2], cmd[3]);
 	buspirate_send(pgm, buf);
-	while (1) {
+	while (i < 4) {
 		rcvd = buspirate_readline(pgm, NULL, 0);
 		/* WRITE: 0xAC READ: 0x04 */
 		if (sscanf(rcvd, "WRITE: 0x%x READ: 0x%x", &spi_write, &spi_read) == 2) {
@@ -289,10 +289,16 @@ static int buspirate_cmd(struct programmer_t *pgm,
 		if (buspirate_is_prompt(rcvd))
 			break;
 	}
+
 	if (i != 4) {
 		fprintf(stderr, "%s: error: SPI has not read 4 bytes back\n", progname);
 		return -1;
 	}
+
+	/* wait for prompt */
+	while (buspirate_getc(pgm) != '>')
+		/* do nothing */;
+
 	return 0;
 }
 
