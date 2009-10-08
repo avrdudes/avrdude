@@ -340,6 +340,12 @@ programmer
   type  =  stk500v2;
 ;
 
+programmer
+  id    = "buspirate";
+  desc  = "The Bus Pirate";
+  type  = buspirate;
+;
+
 # This is supposed to be the "default" STK500 entry.
 # Attempts to select the correct firmware version
 # by probing for it.  Better use one of the entries
