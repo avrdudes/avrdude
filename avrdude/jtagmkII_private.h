@@ -104,6 +104,14 @@
 #define CMND_WRITE_MEMORY 0x04
 #define CMND_WRITE_PC 0x06
 #define CMND_0x34 0x34
+// AVR32 - DFH
+#define CMND_GET_IR 0x24
+#define CMND_GET_xxx 0x25
+#define CMND_WRITE_SAB 0x28
+#define CMND_READ_SAB 0x29
+#define CMND_RESET_AVR 0x2B
+#define CMND_WRITE_MEMORY32 0x2D
+
 
 /* ICE responses */
 #define RSP_DEBUGWIRE_SYNC_FAILED 0xAC
