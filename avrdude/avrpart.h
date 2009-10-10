@@ -89,6 +89,8 @@ typedef struct opcode {
 #define AVRPART_ENABLEPAGEPROGRAMMING 0x0020 /* JTAG ICE mkII param. */
 #define AVRPART_HAS_DW         0x0040  /* part has a debugWire i/f */
 #define AVRPART_HAS_PDI        0x0080  /* part has PDI i/f rather than ISP (ATxmega) */
+#define AVRPART_AVR32          0x0100  /* part is in AVR32 family */
+#define AVRPART_CHIP_ERASE     0x0200  /* part will undergo chip erase */
 
 #define AVR_DESCLEN 64
 #define AVR_IDLEN   32
