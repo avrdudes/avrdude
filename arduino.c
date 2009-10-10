@@ -30,6 +30,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "avrdude.h"
 #include "pgm.h"
