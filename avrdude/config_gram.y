@@ -38,7 +38,6 @@
 #include "pgm.h"
 #include "stk500.h"
 #include "arduino.h"
-#include "buspirate.h"
 #include "stk500v2.h"
 #include "stk500generic.h"
 #include "avr910.h"
@@ -85,7 +84,6 @@ static int parse_cmdbits(OPCODE * op);
 %token K_BAUDRATE
 %token K_BS2
 %token K_BUFF
-%token K_BUSPIRATE
 %token K_CHIP_ERASE_DELAY
 %token K_DEDICATED
 %token K_DEFAULT_PARALLEL
@@ -107,6 +105,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_IO
 %token K_JTAG_MKI
 %token K_JTAG_MKII
+%token K_JTAG_MKII_AVR32
 %token K_JTAG_MKII_DW
 %token K_JTAG_MKII_ISP
 %token K_LOADPAGE
@@ -209,6 +208,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_HAS_DW			/* MCU has debugWire i/f. */
 %token K_HAS_PDI                /* MCU has PDI i/f rather than ISP (ATxmega). */
 %token K_IDR			/* address of OCD register in IO space */
+%token K_IS_AVR32               /* chip is in the avr32 family */
 %token K_RAMPZ			/* address of RAMPZ reg. in IO space */
 %token K_SPMCR			/* address of SPMC[S]R in memory space */
 %token K_EECR    		/* address of EECR in memory space */
@@ -427,12 +427,6 @@ prog_parm :
     }
   } |
 
-  K_TYPE TKN_EQUAL K_BUSPIRATE {
-    {
-      buspirate_initpgm(current_prog);
-    }
-  } |
-
   K_TYPE TKN_EQUAL K_STK600 {
     {
       stk600_initpgm(current_prog);
@@ -484,6 +478,11 @@ prog_parm :
   K_TYPE TKN_EQUAL K_JTAG_MKII {
     {
       jtagmkII_initpgm(current_prog);
+    }
+  } |
+  K_TYPE TKN_EQUAL K_JTAG_MKII_AVR32 {
+    {
+      jtagmkII_avr32_initpgm(current_prog);
     }
   } |
 
@@ -1057,6 +1056,16 @@ part_parm :
       free_token($3);
     } |
 
+  K_IS_AVR32 TKN_EQUAL yesno
+    {
+      if ($3->primary == K_YES)
+        current_part->flags |= AVRPART_AVR32;
+      else if ($3->primary == K_NO)
+        current_part->flags &= AVRPART_AVR32;
+
+      free_token($3);
+    } |
+    
   K_ALLOWFULLPAGEBITSTREAM TKN_EQUAL yesno
     {
       if ($3->primary == K_YES)
