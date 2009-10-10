@@ -73,13 +73,13 @@ static int stk500_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 }
 
 
-static int stk500_drain(PROGRAMMER * pgm, int display)
+int stk500_drain(PROGRAMMER * pgm, int display)
 {
   return serial_drain(&pgm->fd, display);
 }
 
 
-static int stk500_getsync(PROGRAMMER * pgm)
+int stk500_getsync(PROGRAMMER * pgm)
 {
   unsigned char buf[32], resp[32];
 

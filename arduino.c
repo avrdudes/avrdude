@@ -82,13 +82,40 @@ static int arduino_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
   return 3;
 }
 
+static int arduino_open(PROGRAMMER * pgm, char * port)
+{
+  strcpy(pgm->port, port);
+  serial_open(port, pgm->baudrate? pgm->baudrate: 115200, &pgm->fd);
+
+  /* Clear DTR and RTS to unload the RESET capacitor 
+   * (for example in Arduino) */
+  serial_set_dtr_rts(&pgm->fd, 0);
+  usleep(50*1000);
+  /* Set DTR and RTS back to high */
+  serial_set_dtr_rts(&pgm->fd, 1);
+  usleep(50*1000);
+
+  /*
+   * drain any extraneous input
+   */
+  stk500_drain(pgm, 0);
+
+  if (stk500_getsync(pgm) < 0)
+    return -1;
+
+  return 0;
+}
+
+
 void arduino_initpgm(PROGRAMMER * pgm)
 {
 	/* This is mostly a STK500; just the signature is read
-     differently than on real STK500v1 */
+     differently than on real STK500v1 
+     and the DTR signal is set when opening the serial port
+     for the Auto-Reset feature */
   stk500_initpgm(pgm);
 
   strcpy(pgm->type, "Arduino");
   pgm->read_sig_bytes = arduino_read_sig_bytes;
-
+  pgm->open = arduino_open;
 }

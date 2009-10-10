@@ -28,6 +28,10 @@ extern "C" {
 
 void stk500_initpgm (PROGRAMMER * pgm);
 
+/* used by arduino.c to avoid duplicate code */
+int stk500_getsync(PROGRAMMER * pgm);
+int stk500_drain(PROGRAMMER * pgm, int display);
+
 #ifdef __cplusplus
 }
 #endif

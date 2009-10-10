@@ -634,6 +634,14 @@ static int avrdoper_drain(union filedescriptor *fdp, int display)
 
 /* ------------------------------------------------------------------------- */
 
+static int avrdoper_set_dtr_rts(union filedescriptor *fdp, int is_on)
+{
+	fprintf(stderr, "%s: AVR-Doper doesn't support DTR/RTS setting\n", progname);
+    return -1;
+}
+
+/* ------------------------------------------------------------------------- */
+
 struct serial_device avrdoper_serdev =
 {
   .open = avrdoper_open,
@@ -641,6 +649,7 @@ struct serial_device avrdoper_serdev =
   .send = avrdoper_send,
   .recv = avrdoper_recv,
   .drain = avrdoper_drain,
+  .set_dtr_rts = avrdoper_set_dtr_rts,
   .flags = SERDEV_FL_NONE,
 };
 
