@@ -2570,7 +2570,7 @@ static int jtagmkII_avr32_reset(PROGRAMMER * pgm, unsigned char val, unsigned ch
 
   status = jtagmkII_recv(pgm, &resp);
   if (status != 2 || resp[0] != 0x87 || resp[1] != ret1) {
-    fprintf(stderr,
+    if(verbose) fprintf(stderr,
 	      "%s: jtagmkII_avr32_reset(): "
 	      "Get_IR, expecting %2.2x but got %2.2x\n",
 	      progname, ret1, resp[1]);
@@ -2586,7 +2586,7 @@ static int jtagmkII_avr32_reset(PROGRAMMER * pgm, unsigned char val, unsigned ch
 
   status = jtagmkII_recv(pgm, &resp);
   if (status != 2 || resp[0] != 0x87 || resp[1] != ret2) {
-    fprintf(stderr,
+    if(verbose) fprintf(stderr,
 	      "%s: jtagmkII_avr32_reset(): "
 	      "Get_XXX, expecting %2.2x but got %2.2x\n",
 	      progname, ret2, resp[1]);
@@ -3409,9 +3409,7 @@ static int jtagmkII_paged_load32(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   serial_recv_timeout = otimeout;
 
-  //status = jtagmkII_reset32(pgm, AVR32_SET4RUNNING | AVR32_RELEASE_JTAG);
-  //if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_reset32(pgm, AVR32_SET4RUNNING);  // AVR32_SET4RUNNING | AVR32_RELEASE_JTAG
+  status = jtagmkII_reset32(pgm, AVR32_SET4RUNNING); 
   if(status < 0) {lineno = __LINE__; goto eRR;}
 
   return addr;
