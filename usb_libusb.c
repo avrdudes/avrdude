@@ -350,7 +350,7 @@ static int usbdev_recv(union filedescriptor *fd, unsigned char *buf, size_t nbyt
       i += amnt;
     }
 
-  if (verbose > 3)
+  if (verbose > 4)
   {
       fprintf(stderr, "%s: Recv: ", progname);
 
