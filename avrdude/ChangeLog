@@ -1,3 +1,12 @@
+2009-10-10  Michal Ludvig  <mludvig@logix.net.nz>
+
+	Support for Arduino auto-reset:
+	* serial.h, ser_avrdoper.c, ser_posix.c, ser_win32.c: Added 
+	  serial_device.set_dtr_rts implementations.
+	* arduino.c, stk500.c, stk500.h: Call serial_set_dtr_rts()
+	  to reset Arduino board before program upload.
+	Inspired by patch #6866, resolves bug #26703
+
 2009-10-08  Michal Ludvig  <mludvig@logix.net.nz>
 
 	* buspirate.c: Optimised buspirate_cmd() - reading 1kB EEPROM now

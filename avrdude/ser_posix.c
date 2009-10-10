@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/socket.h>
@@ -208,6 +209,36 @@ net_open(const char *port, union filedescriptor *fdp)
   }
 
   fdp->ifd = fd;
+}
+
+
+static int ser_set_dtr_rts(union filedescriptor *fdp, int is_on)
+{
+  unsigned int	ctl;
+  int           r;
+
+  r = ioctl(fdp->ifd, TIOCMGET, &ctl);
+  if (r < 0) {
+    perror("ioctl(\"TIOCMGET\")");
+    return -1;
+  }
+
+  if (is_on) {
+    /* Clear DTR and RTS */
+    ctl &= ~(TIOCM_DTR | TIOCM_RTS);
+  }
+  else {
+    /* Set DTR and RTS */
+    ctl |= (TIOCM_DTR | TIOCM_RTS);
+  }
+
+  r = ioctl(fdp->ifd, TIOCMSET, &ctl);
+  if (r < 0) {
+    perror("ioctl(\"TIOCMSET\")");
+    return -1;
+  }
+
+  return 0;
 }
 
 static void ser_open(char * port, long baud, union filedescriptor *fdp)
@@ -455,6 +486,7 @@ struct serial_device serial_serdev =
   .send = ser_send,
   .recv = ser_recv,
   .drain = ser_drain,
+  .set_dtr_rts = ser_set_dtr_rts,
   .flags = SERDEV_FL_CANSETSPEED,
 };
 

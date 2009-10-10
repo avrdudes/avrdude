@@ -52,6 +52,8 @@ struct serial_device
   int (*recv)(union filedescriptor *fd, unsigned char * buf, size_t buflen);
   int (*drain)(union filedescriptor *fd, int display);
 
+  int (*set_dtr_rts)(union filedescriptor *fd, int is_on);
+
   int flags;
 #define SERDEV_FL_NONE         0x0000 /* no flags */
 #define SERDEV_FL_CANSETSPEED  0x0001 /* device can change speed */
@@ -69,5 +71,6 @@ extern struct serial_device avrdoper_serdev;
 #define serial_send (serdev->send)
 #define serial_recv (serdev->recv)
 #define serial_drain (serdev->drain)
+#define serial_set_dtr_rts (serdev->set_dtr_rts)
 
 #endif /* serial_h */

@@ -203,6 +203,20 @@ static void ser_close(union filedescriptor *fd)
 	hComPort = INVALID_HANDLE_VALUE;
 }
 
+static int ser_set_dtr_rts(union filedescriptor *fdp, int is_on)
+{
+	HANDLE hComPort=(HANDLE)fd->pfd;
+
+	if (is_on) {
+		EscapeCommFunction(hComPort, SETDTR);
+		EscapeCommFunction(hComPort, SETRTS);
+	} else {
+		EscapeCommFunction(hComPort, CLRDTR);
+		EscapeCommFunction(hComPort, CLRRTS);
+	}
+	return 0;
+}
+
 
 static int ser_send(union filedescriptor *fd, unsigned char * buf, size_t buflen)
 {
@@ -378,6 +392,7 @@ struct serial_device serial_serdev =
   .send = ser_send,
   .recv = ser_recv,
   .drain = ser_drain,
+  .set_dtr_rts = ser_set_dtr_rts,
   .flags = SERDEV_FL_CANSETSPEED,
 };
 
