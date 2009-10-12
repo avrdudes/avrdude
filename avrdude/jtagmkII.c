@@ -2972,7 +2972,7 @@ static int jtagmkII_chip_erase32(PROGRAMMER * pgm, AVRPART * p)
 {
   int status=0, loops;
   unsigned char *resp, buf[3], x, ret[4], *retP;
-  unsigned long val;
+  unsigned long val=0;
   unsigned int lineno;
 
   if(verbose) fprintf(stderr,
@@ -2980,7 +2980,7 @@ static int jtagmkII_chip_erase32(PROGRAMMER * pgm, AVRPART * p)
           progname);
 
   status = jtagmkII_reset32(pgm, AVR32_RESET_CHIP_ERASE);
-  if(status != 0) goto eRR;
+  if(status != 0) {lineno = __LINE__; goto eRR;}
 
   // sequence of IR transitions
   ret[0] = 0x01;
@@ -3318,7 +3318,7 @@ static int jtagmkII_paged_load32(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   if(!(p->flags & AVRPART_WRITE)) {
     status = jtagmkII_reset32(pgm, AVR32_RESET_READ);
-    if(status != 0) goto eRR;
+    if(status != 0) {lineno = __LINE__; goto eRR;}
   }
   
   // Init SMC and set clocks
@@ -3405,7 +3405,7 @@ static int jtagmkII_paged_write32(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   if(n_bytes == 0) return -1;
 
   status = jtagmkII_reset32(pgm, AVR32_RESET_WRITE);
-  if(status != 0) goto eRR;
+  if(status != 0) {lineno = __LINE__; goto eRR;}
   p->flags |= AVRPART_WRITE;
 
   pages = (n_bytes-1)/page_size + 1;
