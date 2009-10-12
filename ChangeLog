@@ -1,3 +1,9 @@
+2009-10-12  Michal Ludvig  <mludvig@logix.net.nz>
+
+	* buspirate.c: Replace GNU-only %as with %s in sscanf call.
+	* ser_win32.c(ser_set_dtr_rts): Fixed typo in parameter name.
+	* NEWS: Announce BusPirate.
+
 2009-10-10  Michal Ludvig  <mludvig@logix.net.nz>
 
 	Support for Arduino auto-reset:

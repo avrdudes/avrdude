@@ -203,7 +203,7 @@ static void ser_close(union filedescriptor *fd)
 	hComPort = INVALID_HANDLE_VALUE;
 }
 
-static int ser_set_dtr_rts(union filedescriptor *fdp, int is_on)
+static int ser_set_dtr_rts(union filedescriptor *fd, int is_on)
 {
 	HANDLE hComPort=(HANDLE)fd->pfd;
 
