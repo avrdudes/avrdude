@@ -84,6 +84,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_BAUDRATE
 %token K_BS2
 %token K_BUFF
+%token K_BUSPIRATE
 %token K_CHIP_ERASE_DELAY
 %token K_DEDICATED
 %token K_DEFAULT_PARALLEL
@@ -424,6 +425,12 @@ prog_parm :
   K_TYPE TKN_EQUAL K_ARDUINO {
     { 
       arduino_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_BUSPIRATE {
+    {
+      buspirate_initpgm(current_prog);
     }
   } |
 
