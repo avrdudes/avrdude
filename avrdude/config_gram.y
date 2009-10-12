@@ -38,6 +38,7 @@
 #include "pgm.h"
 #include "stk500.h"
 #include "arduino.h"
+#include "buspirate.h"
 #include "stk500v2.h"
 #include "stk500generic.h"
 #include "avr910.h"
