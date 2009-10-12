@@ -174,12 +174,12 @@ static int buspirate_start_spi_mode(struct programmer_t *pgm)
 {
 	int spi_cmd = -1;
 	int cmd;
-	char *rcvd, *mode, buf[5];
+	char *rcvd, mode[11], buf[5];
 
 	buspirate_send(pgm, "M\n");
 	while(1) {
 		rcvd = buspirate_readline(pgm, NULL, 0);
-		if (spi_cmd == -1 && sscanf(rcvd, "%d. %as", &cmd, &mode)) {
+		if (spi_cmd == -1 && sscanf(rcvd, "%d. %10s", &cmd, mode)) {
 			if (strcmp(mode, "SPI") == 0)
 				spi_cmd = cmd;
 		}
