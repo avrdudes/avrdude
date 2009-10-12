@@ -1,8 +1,35 @@
+2009-10-12  David Hoerl <dhoerl@mac.com>
+
+	*  config_gram.y: Restored inadvertantly removed buspirate entry
+	*  lexer.l.y: Restored inadvertantly removed buspirate entry
+
 2009-10-12  Michal Ludvig  <mludvig@logix.net.nz>
 
 	* buspirate.c: Replace GNU-only %as with %s in sscanf call.
 	* ser_win32.c(ser_set_dtr_rts): Fixed typo in parameter name.
 	* NEWS: Announce BusPirate.
+
+2009-10-11  David Hoerl <dhoerl@mac.com>
+
+	Support for AVR32
+
+	* AUTHORS: added myself
+	* NEWS: announced AVR32 support
+	* main.c: AVR32 flag tests to avoid several code blocks
+	* fileio.c: mods to ihex read function to handle address offsets and 
+	  size of avr32
+	* jtagmkI.c: added cast to printf call to remove warning
+	* arduino.c: added header file to bring in prototype for usleep()
+	* config_gram.y: added defines for avr32, new jtag_mkii variant for avr32
+	* jtagmkII_private.h: new jtag_mkii message types defined (used by
+	  avr32program)
+	* jtagmkII.h: extern jtagmkII_avr32_initpgm() addition
+	* jtagmkII.c: huge amount of code in support of avr32
+	* avrpart.h: additional flags to AVRPART for avr32
+	* usb_libusb.c: modified verbose test for USB read per-byte messages by
+	  by one, so with verbose=3 you get just full messages, 4 gives you bytes
+	  too
+	* lexer.l: additions for avr32
 
 2009-10-10  Michal Ludvig  <mludvig@logix.net.nz>
 
