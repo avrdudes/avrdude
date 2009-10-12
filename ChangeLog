@@ -1,3 +1,7 @@
+2009-10-12  Michal Ludvig  <mludvig@logix.net.nz>
+
+	* main.c: Re-added default to serial port for BusPirate.
+
 2009-10-12  David Hoerl <dhoerl@mac.com>
 
 	*  main.c: removed some avr32 code that was pushed into jtagmkII.c
