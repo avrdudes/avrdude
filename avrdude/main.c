@@ -723,7 +723,6 @@ int main(int argc, char * argv [])
   }
 
   if(p->flags & AVRPART_AVR32) {
-    if(erase) p->flags |= AVRPART_CHIP_ERASE;
     safemode = 0;
     auto_erase = 0;
   }

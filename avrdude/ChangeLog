@@ -1,7 +1,15 @@
 2009-10-12  David Hoerl <dhoerl@mac.com>
 
+	*  main.c: removed some avr32 code that was pushed into jtagmkII.c
+	*  jtagmkII.c: consolodated the avr32 reset code and avr32_chipreset
+	*  avrpart.h: modified AVRPART flags for avr32
+	*  lexer.l: added is_avr32 flag - only way to get yacc code to set flag
+	*  avrdude.conf.in: updated avr32 section to include "is_avr32" flag
+
+2009-10-12  David Hoerl <dhoerl@mac.com>
+
 	*  config_gram.y: Restored inadvertantly removed buspirate entry
-	*  lexer.l.y: Restored inadvertantly removed buspirate entry
+	*  lexer.l: Restored inadvertantly removed buspirate entry
 
 2009-10-12  Michal Ludvig  <mludvig@logix.net.nz>
 
