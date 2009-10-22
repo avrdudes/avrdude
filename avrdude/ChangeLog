@@ -1,3 +1,7 @@
+2009-10-22  David Hoerl <dhoerl@mac.com>
+
+	* usb_libusb.c: disabled usb_reset for Macs (same as FreeBSD)
+
 2009-10-12  Michal Ludvig  <mludvig@logix.net.nz>
 
 	* main.c: Re-added default to serial port for BusPirate.
