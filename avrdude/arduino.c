@@ -107,6 +107,12 @@ static int arduino_open(PROGRAMMER * pgm, char * port)
   return 0;
 }
 
+static void arduino_close(PROGRAMMER * pgm)
+{
+  serial_set_dtr_rts(&pgm->fd, 0);
+  serial_close(&pgm->fd);
+  pgm->fd.ifd = -1;
+}
 
 void arduino_initpgm(PROGRAMMER * pgm)
 {
@@ -119,4 +125,5 @@ void arduino_initpgm(PROGRAMMER * pgm)
   strcpy(pgm->type, "Arduino");
   pgm->read_sig_bytes = arduino_read_sig_bytes;
   pgm->open = arduino_open;
+  pgm->close = arduino_close;
 }
