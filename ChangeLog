@@ -1,3 +1,8 @@
+2009-11-03  Michal Ludvig  <mludvig@logix.net.nz>
+
+	* arduino.c: Add on to bug #26703 / patch #6866 - clear DTR/RTS
+	  when closing the port.
+
 2009-10-22  David Hoerl <dhoerl@mac.com>
 
 	* usb_libusb.c: disabled usb_reset for Macs (same as FreeBSD)
