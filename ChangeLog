@@ -2,6 +2,8 @@
 
 	* arduino.c: Add on to bug #26703 / patch #6866 - clear DTR/RTS
 	  when closing the port.
+	* Makefile.am: Silent warnings about signedness - they're useless
+	  and annoying, especially for 'char' vars.
 
 2009-10-22  David Hoerl <dhoerl@mac.com>
 
