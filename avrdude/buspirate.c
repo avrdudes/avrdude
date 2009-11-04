@@ -45,12 +45,103 @@
 #include "pgm.h"
 #include "serial.h"
 
-/* ====== Serial talker functions ====== */
+/* ====== Private data structure ====== */
+struct pdata
+{
+	char	hw_version[10];
+	int		fw_version;		/* = 100*fw_major + fw_minor */
+	int		binmode_version;
+	int		bin_spi_version;
+	int		in_binmode;
+	int		force_ascii;
+};
+#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+
+/* Binary mode is available from firmware v2.7 on */
+#define FW_BINMODE_VER	207
+
+/* ====== Serial talker functions - binmode ====== */
+
+static void dump_mem(unsigned char *buf, size_t len)
+{
+	size_t i;
+
+	for (i = 0; i<len; i++) {
+		if (i % 8 == 0)
+			fprintf(stderr, "\t");
+		fprintf(stderr, "0x%02x ", buf[i] & 0xFF);
+		if (i % 8 == 3)
+			fprintf(stderr, "  ");
+		else if (i % 8 == 7)
+			fprintf(stderr, "\n");
+	}
+	if (i % 8 != 7)
+		fprintf(stderr, "\n");
+}
+
+static int buspirate_send_bin(struct programmer_t *pgm, char *data, size_t len)
+{
+	int rc;
+
+	if (verbose > 1) {
+		fprintf(stderr, "%s: buspirate_send_bin():\n", progname);
+		dump_mem(data, len);
+	}
+
+	rc = serial_send(&pgm->fd, data, len);
+
+	return rc;
+}
+
+static int buspirate_recv_bin(struct programmer_t *pgm, char *buf, size_t len)
+{
+	int rc;
+
+	rc = serial_recv(&pgm->fd, buf, len);
+	if (rc < 0)
+		return EOF;
+	if (verbose > 1) {
+		fprintf(stderr, "%s: buspirate_recv_bin():\n", progname);
+		dump_mem(buf, len);
+	}
+
+	return len;
+}
+
+static int buspirate_expect_bin(struct programmer_t *pgm,
+								char *send_data, size_t send_len,
+								char *expect_data, size_t expect_len)
+{
+	char *recv_buf = alloca(expect_len);
+	if (!PDATA(pgm)->in_binmode) {
+		fprintf(stderr, "BusPirate: Internal error: buspirate_send_bin() called from ascii mode");
+		exit(1);
+	}
+
+	buspirate_send_bin(pgm, send_data, send_len);
+	buspirate_recv_bin(pgm, recv_buf, expect_len);
+	if (memcmp(expect_data, recv_buf, expect_len) != 0)
+		return 0;
+	return 1;
+}
+
+static int buspirate_expect_bin_byte(struct programmer_t *pgm,
+									 char send_byte, char expect_byte)
+{
+	return buspirate_expect_bin(pgm, &send_byte, 1, &expect_byte, 1);
+}
+
+/* ====== Serial talker functions - ascii mode ====== */
 
 static int buspirate_getc(struct programmer_t *pgm)
 {
 	int rc;
 	unsigned char ch = 0;
+
+	if (PDATA(pgm)->in_binmode) {
+		fprintf(stderr, "BusPirate: Internal error: buspirate_getc() called from binmode");
+		exit(1);
+	}
 
 	rc = serial_recv(&pgm->fd, &ch, 1);
 	if (rc < 0)
@@ -105,6 +196,11 @@ static int buspirate_send(struct programmer_t *pgm, char *str)
 
 	if (verbose)
 		fprintf(stderr, "%s: buspirate_send(): %s", progname, str);
+
+	if (PDATA(pgm)->in_binmode) {
+		fprintf(stderr, "BusPirate: Internal error: buspirate_send() called from binmode");
+		exit(1);
+	}
 
 	rc = serial_send(&pgm->fd, (unsigned char *)str, strlen(str));
 	if (rc)
@@ -170,7 +266,80 @@ static void buspirate_close(struct programmer_t *pgm)
 	pgm->fd.ifd = -1;
 }
 
-static int buspirate_start_spi_mode(struct programmer_t *pgm)
+static void buspirate_reset_from_binmode(struct programmer_t *pgm)
+{
+	char buf[10];
+	
+	buf[0] = 0x00;	/* BinMode: revert to HiZ */
+	buspirate_send_bin(pgm, buf, 1);
+
+	buf[0] = 0x0F;	/* BinMode: reset */
+	buspirate_send_bin(pgm, buf, 1);
+
+	PDATA(pgm)->in_binmode = 0;
+	while(1) {
+		buspirate_readline(pgm, buf, sizeof(buf) - 1);
+		if (buspirate_is_prompt(buf))
+			break;
+	}
+	if (verbose)
+		printf("BusPirate is back in the text mode\n");
+}
+
+static int buspirate_start_spi_mode_bin(struct programmer_t *pgm)
+{
+	unsigned char buf[20] = { '\0' };
+
+	/* == Switch to binmode - send 20x '\0' == */
+	buspirate_send_bin(pgm, buf, sizeof(buf));
+
+	/* Expecting 'BBIOx' reply */
+	memset(buf, 0, sizeof(buf));
+	buspirate_recv_bin(pgm, buf, 5);
+	if (sscanf(buf, "BBIO%d", &PDATA(pgm)->binmode_version) != 1) {
+		fprintf(stderr, "Binary mode not confirmed: '%s'\n", buf);
+		buspirate_reset_from_binmode(pgm);
+		return -1;
+	}
+	if (verbose)
+		printf("BusPirate binmode version: %d\n", PDATA(pgm)->binmode_version);
+
+	PDATA(pgm)->in_binmode = 1;
+
+	/* == Enter SPI mode == */
+	buf[0] = 0x01;	/* Enter raw SPI mode */
+	buspirate_send_bin(pgm, buf, 1);
+	memset(buf, 0, sizeof(buf));
+	buspirate_recv_bin(pgm, buf, 4);
+	if (sscanf(buf, "SPI%d", &PDATA(pgm)->bin_spi_version) != 1) {
+		fprintf(stderr, "SPI mode not confirmed: '%s'\n", buf);
+		buspirate_reset_from_binmode(pgm);
+		return -1;
+	}
+	if (verbose)
+		printf("BusPirate SPI version: %d\n", PDATA(pgm)->bin_spi_version);
+
+	/* 0b0100wxyz – Configure peripherals w=power, x=pull-ups, y=AUX, z=CS
+	 * we want power and CS -- 0b01001001 = 0x49 */
+	buspirate_expect_bin_byte(pgm, 0x49, 0x01);
+	usleep(50000);	// sleep for 50ms after power up
+
+	/* 01100xxx -  SPI speed
+	 * xxx = 000=30kHz, 001=125kHz, 010=250kHz, 011=1MHz,
+	 *       100=2MHz, 101=2.6MHz, 110=4MHz, 111=8MHz
+	 * use 30kHz = 0x60 */
+	buspirate_expect_bin_byte(pgm, 0x60, 0x01);
+
+	/* 1000wxyz – SPI config, w=HiZ(0)/3.3v(1), x=CLK idle, y=CLK edge, z=SMP sample
+	 * we want: 3.3V(1), idle low(0), data change on trailing edge (1), 
+	 *          sample in the middle of the pulse (0)
+	 *       => 0b10001010 = 0x8a */
+	buspirate_expect_bin_byte(pgm, 0x8A, 0x01);
+
+	return 0;
+}
+
+static int buspirate_start_spi_mode_ascii(struct programmer_t *pgm)
 {
 	int spi_cmd = -1;
 	int cmd;
@@ -225,6 +394,7 @@ static int buspirate_start_spi_mode(struct programmer_t *pgm)
 static void buspirate_enable(struct programmer_t *pgm)
 {
 	char *rcvd;
+	int fw_v1, fw_v2;
 
 	printf("Detecting BusPirate...\n");
 	buspirate_send(pgm, "#\n");
@@ -236,16 +406,39 @@ static void buspirate_enable(struct programmer_t *pgm)
 			puts("**");
 			break;
 		}
+		sscanf(rcvd, "Bus Pirate %9s", PDATA(pgm)->hw_version);
+		sscanf(rcvd, "Firmware v%d.%d", &fw_v1, &fw_v2);
 		printf("**  %s", rcvd);
 	}
 
-	if (buspirate_start_spi_mode(pgm) < 0)
-		fprintf(stderr, "%s: Failed to start SPI mode\n", progname);
+	PDATA(pgm)->fw_version = 100 * fw_v1 + fw_v2;
+	if (PDATA(pgm)->hw_version[0] == 0 || PDATA(pgm)->fw_version == 0) {
+		fprintf(stderr, "BusPirate not detected. Aborting.\n");
+		exit(1);
+	}
+
+	printf("BusPirate: firmware %d.%d\n", fw_v1, fw_v2);
+
+	if (PDATA(pgm)->fw_version >= FW_BINMODE_VER && !PDATA(pgm)->force_ascii) {
+		printf("BusPirate: using BINARY mode\n");
+		if (buspirate_start_spi_mode_bin(pgm) < 0)
+			fprintf(stderr, "%s: Failed to start binary SPI mode\n", progname);
+	}
+	if (! PDATA(pgm)->in_binmode) {
+		printf("BusPirate: using ASCII mode\n");
+		if (buspirate_start_spi_mode_ascii(pgm) < 0) {
+			fprintf(stderr, "%s: Failed to start ascii SPI mode\n", progname);
+			exit(1);
+		}
+	}
 }
 
 static void buspirate_disable(struct programmer_t *pgm)
 {
-	buspirate_expect(pgm, "#\n", "RESET", 1);
+	if (PDATA(pgm)->in_binmode)
+		buspirate_reset_from_binmode(pgm);
+	else
+		buspirate_expect(pgm, "#\n", "RESET", 1);
 }
 
 static int buspirate_initialize(struct programmer_t *pgm, AVRPART * p)
@@ -257,21 +450,49 @@ static int buspirate_initialize(struct programmer_t *pgm, AVRPART * p)
 
 static void buspirate_powerup(struct programmer_t *pgm)
 {
-	if (!buspirate_expect(pgm, "W\n", "POWER SUPPLIES ON", 1)) {
-		fprintf(stderr, "%s: warning: did not get a response to PowerUp command.\n", progname);
-		fprintf(stderr, "%s: warning: Trying to continue anyway...\n", progname);
-	}
+	if (PDATA(pgm)->in_binmode) {
+		/* Powerup in BinMode is handled in SPI init */
+		return;
+	} else 
+		if (buspirate_expect(pgm, "W\n", "POWER SUPPLIES ON", 1))
+			return;
+
+	fprintf(stderr, "%s: warning: did not get a response to PowerUp command.\n", progname);
+	fprintf(stderr, "%s: warning: Trying to continue anyway...\n", progname);
 }
 
 static void buspirate_powerdown(struct programmer_t *pgm)
 {
-	if (!buspirate_expect(pgm, "w\n", "POWER SUPPLIES OFF", 1))
-		fprintf(stderr, "%s: warning: did not get a response to PowerDown command.\n", progname);
+	if (PDATA(pgm)->in_binmode) {
+		/* 0b0100wxyz – Configure peripherals w=power, x=pull-ups, y=AUX, z=CS
+		 * we want everything off -- 0b01000000 = 0x40 */
+		if (buspirate_expect_bin_byte(pgm, 0x40, 0x01))
+			return;
+	} else 
+		if (buspirate_expect(pgm, "w\n", "POWER SUPPLIES OFF", 1))
+			return;
+
+	fprintf(stderr, "%s: warning: did not get a response to PowerDown command.\n", progname);
 }
 
-static int buspirate_cmd(struct programmer_t *pgm,
-						 unsigned char cmd[4],
-						 unsigned char res[4])
+static int buspirate_cmd_bin(struct programmer_t *pgm,
+							 unsigned char cmd[4],
+							 unsigned char res[4])
+{
+	/* 0001xxxx – Bulk SPI transfer, send/read 1-16 bytes (0=1byte!)
+	 * we are sending 4 bytes -> 0x13 */
+	if (!buspirate_expect_bin_byte(pgm, 0x13, 0x01))
+		return -1;
+
+	buspirate_send_bin(pgm, cmd, 4);
+	buspirate_recv_bin(pgm, res, 4);
+
+	return 0;
+}
+
+static int buspirate_cmd_ascii(struct programmer_t *pgm,
+							   unsigned char cmd[4],
+							   unsigned char res[4])
 {
 	char buf[25];
 	char *rcvd;
@@ -302,12 +523,27 @@ static int buspirate_cmd(struct programmer_t *pgm,
 	return 0;
 }
 
+static int buspirate_cmd(struct programmer_t *pgm,
+						 unsigned char cmd[4],
+						 unsigned char res[4])
+{
+	if (PDATA(pgm)->in_binmode)
+		return buspirate_cmd_bin(pgm, cmd, res);
+	else
+		return buspirate_cmd_ascii(pgm, cmd, res);
+}
+
 static int buspirate_program_enable(struct programmer_t *pgm, AVRPART * p)
 {
 	unsigned char cmd[4];
 	unsigned char res[4];
 
-	buspirate_expect(pgm, "{\n", "CS ENABLED", 1);
+	if (PDATA(pgm)->in_binmode)
+		/* 0000001x – CS high (1) or low (0)
+		 * we want CS low -> 0x02 */
+		buspirate_expect_bin_byte(pgm, 0x02, 0x01);
+	else
+		buspirate_expect(pgm, "{\n", "CS ENABLED", 1);
 
 	if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
 		fprintf(stderr,
@@ -352,6 +588,20 @@ static int buspirate_chip_erase(struct programmer_t *pgm, AVRPART * p)
 	return 0;
 }
 
+static int buspirate_parseextparms(struct programmer_t *pgm, LISTID extparms)
+{
+	LNODEID ln;
+	const char *extended_param;
+
+	for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    	extended_param = ldata(ln);
+		if (strcmp(extended_param, "ascii") == 0)
+			PDATA(pgm)->force_ascii = 1;
+	}
+
+	return 0;
+}
+
 void buspirate_initpgm(struct programmer_t *pgm)
 {
 	strcpy(pgm->type, "BusPirate");
@@ -373,5 +623,15 @@ void buspirate_initpgm(struct programmer_t *pgm)
 	pgm->cmd            = buspirate_cmd;
 	pgm->read_byte      = avr_read_byte_default;
 	pgm->write_byte     = avr_write_byte_default;
+
+	/* Support functions */
+	pgm->parseextparams = buspirate_parseextparms;
+
+	/* Allocate private data */
+	if ((pgm->cookie = calloc(1, sizeof(struct pdata))) == 0) {
+		fprintf(stderr, "%s: buspirate_initpgm(): Out of memory allocating private data\n",
+				progname);
+		exit(1);
+	}
 }
 
