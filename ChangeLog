@@ -2,6 +2,7 @@
 
 	* buspirate.c: Implemented 'BinMode' support for
 	  firmware 2.7 and higher.
+	* avrdude.1: Added info about BusPirate.
 
 2009-11-03  Michal Ludvig  <mludvig@logix.net.nz>
 
