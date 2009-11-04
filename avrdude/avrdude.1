@@ -110,6 +110,12 @@ both parallel and serial
 The Arduino (which is very similar to the STK500 1.x) is supported via
 its own programmer type specification ``arduino''.
 .Pp
+The BusPirate is a versatile tool that can also be used as an AVR programmer.
+Older BusPirate firmwares are supported in ASCII mode, for newer
+firmwares (2.7+) avrdude automatically selects binary mode. Should there
+be a problem with the binary mode use '-x ascii' to prefer ascii
+mode with newer firmwares.
+.Pp
 Atmel's STK600 programmer is supported in ISP and high-voltage
 programming modes, and connects through the USB.
 For ATxmega devices, the STK600 is supported in PDI mode.
@@ -842,6 +848,13 @@ Use
 only if your
 .Ar AVR910
 programmer creates errors during initial sequence. 
+.El
+.It Ar buspirate
+.Bl -tag -offset indent -width indent
+.It Ar ascii
+Use ASCII mode even when the firmware supports BinMode (binary mode). 
+BinMode is supported in firmware 2.7 and newer, older FW's either don't
+have BinMode or their BinMode is buggy.
 .El
 .El
 .Sh FILES
