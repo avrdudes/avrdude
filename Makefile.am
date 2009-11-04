@@ -51,7 +51,7 @@ libavrdude_a_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
 
 avrdude_CFLAGS   = @ENABLE_WARNINGS@
 
-libavrdude_a_CFLAGS   = @ENABLE_WARNINGS@ -Wno-sign-compare -Wno-sign-conversion -Wno-pointer-sign
+libavrdude_a_CFLAGS   = @ENABLE_WARNINGS@
 
 avrdude_LDADD  = $(top_builddir)/$(noinst_LIBRARIES) @LIBUSB@ @LIBHID@ -lm
 
