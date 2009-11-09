@@ -46,19 +46,46 @@
 #include "serial.h"
 
 /* ====== Private data structure ====== */
+/* CS and AUX pin bitmasks in 
+ * 0100wxyz – Configure peripherals command */
+#define BP_RESET_CS     0x01
+#define BP_RESET_AUX    0x02
+#define BP_RESET_AUX2   0x04
+
+#define BP_FLAG_IN_BINMODE          (1<<0)
+#define BP_FLAG_XPARM_FORCE_ASCII   (1<<1)
+#define BP_FLAG_XPARM_RESET         (1<<2)
+#define BP_FLAG_XPARM_SPIFREQ       (1<<3)
+
 struct pdata
 {
 	char	hw_version[10];
 	int		fw_version;		/* = 100*fw_major + fw_minor */
 	int		binmode_version;
 	int		bin_spi_version;
-	int		in_binmode;
-	int		force_ascii;
+	int		current_peripherals_config;
+	int		spifreq;		/* 0..7 - see buspirate manual for what freq each value means */
+	int		reset;			/* See BP_RESET_* above */
 };
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
 /* Binary mode is available from firmware v2.7 on */
 #define FW_BINMODE_VER	207
+
+/* ====== Feature checks ====== */
+static inline int
+buspirate_has_aux2(struct programmer_t *pgm)
+{
+	return ((PDATA(pgm)->fw_version >= 300) &&
+			strcmp(PDATA(pgm)->hw_version, "v1a") == 0);
+}
+
+static inline int
+buspirate_uses_ascii(struct programmer_t *pgm)
+{
+	return (pgm->flag & BP_FLAG_XPARM_FORCE_ASCII) ||
+		(PDATA(pgm)->fw_version < FW_BINMODE_VER);
+}
 
 /* ====== Serial talker functions - binmode ====== */
 
@@ -113,7 +140,7 @@ static int buspirate_expect_bin(struct programmer_t *pgm,
 								char *expect_data, size_t expect_len)
 {
 	char *recv_buf = alloca(expect_len);
-	if (!PDATA(pgm)->in_binmode) {
+	if (!pgm->flag & BP_FLAG_IN_BINMODE) {
 		fprintf(stderr, "BusPirate: Internal error: buspirate_send_bin() called from ascii mode");
 		exit(1);
 	}
@@ -138,7 +165,7 @@ static int buspirate_getc(struct programmer_t *pgm)
 	int rc;
 	unsigned char ch = 0;
 
-	if (PDATA(pgm)->in_binmode) {
+	if (pgm->flag & BP_FLAG_IN_BINMODE) {
 		fprintf(stderr, "BusPirate: Internal error: buspirate_getc() called from binmode");
 		exit(1);
 	}
@@ -197,7 +224,7 @@ static int buspirate_send(struct programmer_t *pgm, char *str)
 	if (verbose)
 		fprintf(stderr, "%s: buspirate_send(): %s", progname, str);
 
-	if (PDATA(pgm)->in_binmode) {
+	if (pgm->flag & BP_FLAG_IN_BINMODE) {
 		fprintf(stderr, "BusPirate: Internal error: buspirate_send() called from binmode");
 		exit(1);
 	}
@@ -244,6 +271,85 @@ static void buspirate_dummy_6(struct programmer_t *pgm,
 {
 }
 
+/* ====== Config / parameters handling functions ====== */
+static int
+buspirate_parseextparms(struct programmer_t *pgm, LISTID extparms)
+{
+	LNODEID ln;
+	const char *extended_param;
+	char reset[10];
+	char *preset = reset;	/* for strtok() */
+	int spifreq;
+
+	for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    	extended_param = ldata(ln);
+		if (strcmp(extended_param, "ascii") == 0) {
+			pgm->flag |= BP_FLAG_XPARM_FORCE_ASCII;
+			continue;
+		}
+		if (sscanf(extended_param, "spifreq=%d", &spifreq) == 1) {
+			if (spifreq & (~0x07)) {
+				fprintf(stderr, "BusPirate: spifreq must be between 0 and 7.\n");
+				fprintf(stderr, "BusPirate: see BusPirate manual for details.\n");
+				return -1;
+			}
+			PDATA(pgm)->spifreq = spifreq;
+			pgm->flag |= BP_FLAG_XPARM_SPIFREQ;
+			continue;
+		}
+
+		if (sscanf(extended_param, "reset=%s", reset) == 1) {
+			char *resetpin;
+			while ((resetpin = strtok(preset, ","))) {
+				preset = NULL;	/* for subsequent strtok() calls */
+				if (strcasecmp(resetpin, "cs") == 0)
+					PDATA(pgm)->reset |= BP_RESET_CS;
+				else if (strcasecmp(resetpin, "aux") == 0 || strcasecmp(reset, "aux1") == 0)
+					PDATA(pgm)->reset |= BP_RESET_AUX;
+				else if (strcasecmp(resetpin, "aux2") == 0)
+					PDATA(pgm)->reset |= BP_RESET_AUX2;
+				else {
+					fprintf(stderr, "BusPirate: reset must be either CS or AUX.\n");
+					return -1;
+				}
+			}
+			pgm->flag |= BP_FLAG_XPARM_RESET;
+			continue;
+		}
+	}
+
+	return 0;
+}
+
+static int
+buspirate_verifyconfig(struct programmer_t *pgm)
+{
+	/* Default reset pin is CS */
+	if (PDATA(pgm)->reset == 0x00)
+		PDATA(pgm)->reset |= BP_RESET_CS;
+
+	/* reset=AUX2 is only available on HW=v1a and FW>=3.0 */
+	if ((PDATA(pgm)->reset & BP_RESET_AUX2) && !buspirate_has_aux2(pgm)) {
+		fprintf(stderr, "BusPirate: Pin AUX2 is only available in binary mode\n");
+		fprintf(stderr, "BusPirate: with hardware==v1a && firmware>=3.0\n");
+		fprintf(stderr, "BusPirate: Your hardware==%s and firmware==%d.%d\n", 
+				PDATA(pgm)->hw_version, PDATA(pgm)->fw_version/100, PDATA(pgm)->fw_version%100);
+		return -1;
+	}
+
+	if ((PDATA(pgm)->reset != BP_RESET_CS) && buspirate_uses_ascii(pgm)) {
+		fprintf(stderr, "BusPirate: RESET pin other than CS is not supported in ASCII mode\n");
+		return -1;
+	}
+
+	if ((pgm->flag & BP_FLAG_XPARM_SPIFREQ) && buspirate_uses_ascii(pgm)) {
+		fprintf(stderr, "BusPirate: SPI speed selection is not supported in ASCII mode\n");
+		return -1;
+	}
+
+	return 0;
+}
+
 /* ====== Programmer methods ======= */
 static int buspirate_open(struct programmer_t *pgm, char * port)
 {
@@ -276,7 +382,7 @@ static void buspirate_reset_from_binmode(struct programmer_t *pgm)
 	buf[0] = 0x0F;	/* BinMode: reset */
 	buspirate_send_bin(pgm, buf, 1);
 
-	PDATA(pgm)->in_binmode = 0;
+	pgm->flag &= ~BP_FLAG_IN_BINMODE;
 	while(1) {
 		buspirate_readline(pgm, buf, sizeof(buf) - 1);
 		if (buspirate_is_prompt(buf))
@@ -304,7 +410,7 @@ static int buspirate_start_spi_mode_bin(struct programmer_t *pgm)
 	if (verbose)
 		printf("BusPirate binmode version: %d\n", PDATA(pgm)->binmode_version);
 
-	PDATA(pgm)->in_binmode = 1;
+	pgm->flag |= BP_FLAG_IN_BINMODE;
 
 	/* == Enter SPI mode == */
 	buf[0] = 0x01;	/* Enter raw SPI mode */
@@ -319,16 +425,21 @@ static int buspirate_start_spi_mode_bin(struct programmer_t *pgm)
 	if (verbose)
 		printf("BusPirate SPI version: %d\n", PDATA(pgm)->bin_spi_version);
 
-	/* 0b0100wxyz – Configure peripherals w=power, x=pull-ups, y=AUX, z=CS
-	 * we want power and CS -- 0b01001001 = 0x49 */
-	buspirate_expect_bin_byte(pgm, 0x49, 0x01);
+	/* 0b0100wxyz – Configure peripherals w=power, x=pull-ups/aux2, y=AUX, z=CS
+	 * we want power (0x48) and all reset pins high. */
+	PDATA(pgm)->current_peripherals_config  = 0x48;
+	PDATA(pgm)->current_peripherals_config |= BP_RESET_CS;
+	PDATA(pgm)->current_peripherals_config |= BP_RESET_AUX;
+	if (buspirate_has_aux2(pgm))
+		PDATA(pgm)->current_peripherals_config |= BP_RESET_AUX2;
+	buspirate_expect_bin_byte(pgm, PDATA(pgm)->current_peripherals_config, 0x01);
 	usleep(50000);	// sleep for 50ms after power up
 
 	/* 01100xxx -  SPI speed
 	 * xxx = 000=30kHz, 001=125kHz, 010=250kHz, 011=1MHz,
 	 *       100=2MHz, 101=2.6MHz, 110=4MHz, 111=8MHz
 	 * use 30kHz = 0x60 */
-	buspirate_expect_bin_byte(pgm, 0x60, 0x01);
+	buspirate_expect_bin_byte(pgm, 0x60 | PDATA(pgm)->spifreq, 0x01);
 
 	/* 1000wxyz – SPI config, w=HiZ(0)/3.3v(1), x=CLK idle, y=CLK edge, z=SMP sample
 	 * we want: 3.3V(1), idle low(0), data change on trailing edge (1), 
@@ -417,14 +528,15 @@ static void buspirate_enable(struct programmer_t *pgm)
 		exit(1);
 	}
 
-	printf("BusPirate: firmware %d.%d\n", fw_v1, fw_v2);
+	if (buspirate_verifyconfig(pgm) < 0)
+		exit(1);
 
-	if (PDATA(pgm)->fw_version >= FW_BINMODE_VER && !PDATA(pgm)->force_ascii) {
+	if (PDATA(pgm)->fw_version >= FW_BINMODE_VER && !(pgm->flag & BP_FLAG_XPARM_FORCE_ASCII)) {
 		printf("BusPirate: using BINARY mode\n");
 		if (buspirate_start_spi_mode_bin(pgm) < 0)
 			fprintf(stderr, "%s: Failed to start binary SPI mode\n", progname);
 	}
-	if (! PDATA(pgm)->in_binmode) {
+	if (!pgm->flag & BP_FLAG_IN_BINMODE) {
 		printf("BusPirate: using ASCII mode\n");
 		if (buspirate_start_spi_mode_ascii(pgm) < 0) {
 			fprintf(stderr, "%s: Failed to start ascii SPI mode\n", progname);
@@ -435,7 +547,7 @@ static void buspirate_enable(struct programmer_t *pgm)
 
 static void buspirate_disable(struct programmer_t *pgm)
 {
-	if (PDATA(pgm)->in_binmode)
+	if (pgm->flag & BP_FLAG_IN_BINMODE)
 		buspirate_reset_from_binmode(pgm);
 	else
 		buspirate_expect(pgm, "#\n", "RESET", 1);
@@ -450,7 +562,7 @@ static int buspirate_initialize(struct programmer_t *pgm, AVRPART * p)
 
 static void buspirate_powerup(struct programmer_t *pgm)
 {
-	if (PDATA(pgm)->in_binmode) {
+	if (pgm->flag & BP_FLAG_IN_BINMODE) {
 		/* Powerup in BinMode is handled in SPI init */
 		return;
 	} else 
@@ -463,7 +575,7 @@ static void buspirate_powerup(struct programmer_t *pgm)
 
 static void buspirate_powerdown(struct programmer_t *pgm)
 {
-	if (PDATA(pgm)->in_binmode) {
+	if (pgm->flag & BP_FLAG_IN_BINMODE) {
 		/* 0b0100wxyz – Configure peripherals w=power, x=pull-ups, y=AUX, z=CS
 		 * we want everything off -- 0b01000000 = 0x40 */
 		if (buspirate_expect_bin_byte(pgm, 0x40, 0x01))
@@ -527,7 +639,7 @@ static int buspirate_cmd(struct programmer_t *pgm,
 						 unsigned char cmd[4],
 						 unsigned char res[4])
 {
-	if (PDATA(pgm)->in_binmode)
+	if (pgm->flag & BP_FLAG_IN_BINMODE)
 		return buspirate_cmd_bin(pgm, cmd, res);
 	else
 		return buspirate_cmd_ascii(pgm, cmd, res);
@@ -538,10 +650,11 @@ static int buspirate_program_enable(struct programmer_t *pgm, AVRPART * p)
 	unsigned char cmd[4];
 	unsigned char res[4];
 
-	if (PDATA(pgm)->in_binmode)
-		/* 0000001x – CS high (1) or low (0)
-		 * we want CS low -> 0x02 */
-		buspirate_expect_bin_byte(pgm, 0x02, 0x01);
+	if (pgm->flag & BP_FLAG_IN_BINMODE) {
+		/* Clear configured reset pin(s): CS and/or AUX and/or AUX2 */
+		PDATA(pgm)->current_peripherals_config &= ~PDATA(pgm)->reset;
+		buspirate_expect_bin_byte(pgm, PDATA(pgm)->current_peripherals_config, 0x01);
+	}
 	else
 		buspirate_expect(pgm, "{\n", "CS ENABLED", 1);
 
@@ -584,20 +697,6 @@ static int buspirate_chip_erase(struct programmer_t *pgm, AVRPART * p)
 	pgm->initialize(pgm, p);
 
 	pgm->pgm_led(pgm, OFF);
-
-	return 0;
-}
-
-static int buspirate_parseextparms(struct programmer_t *pgm, LISTID extparms)
-{
-	LNODEID ln;
-	const char *extended_param;
-
-	for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    	extended_param = ldata(ln);
-		if (strcmp(extended_param, "ascii") == 0)
-			PDATA(pgm)->force_ascii = 1;
-	}
 
 	return 0;
 }
