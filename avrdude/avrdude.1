@@ -111,10 +111,10 @@ The Arduino (which is very similar to the STK500 1.x) is supported via
 its own programmer type specification ``arduino''.
 .Pp
 The BusPirate is a versatile tool that can also be used as an AVR programmer.
-Older BusPirate firmwares are supported in ASCII mode, for newer
-firmwares (2.7+) avrdude automatically selects binary mode. Should there
-be a problem with the binary mode use '-x ascii' to prefer ascii
-mode with newer firmwares.
+A single BusPirate can be connected to up to 3 independent AVRs. See
+the section on
+.Em extended parameters
+below for details.
 .Pp
 Atmel's STK600 programmer is supported in ISP and high-voltage
 programming modes, and connects through the USB.
@@ -851,10 +851,45 @@ programmer creates errors during initial sequence.
 .El
 .It Ar buspirate
 .Bl -tag -offset indent -width indent
+.It Ar reset={cs,aux,aux2}
+The default setup assumes the BusPirate's CS output pin connected to 
+the RESET pin on AVR side. It is however possible to have multiple AVRs
+connected to the same BP with MISO, MOSI and SCK lines common for all of them.
+In such a case one AVR should have its RESET connected to BusPirate's
+.Pa CS
+pin, second AVR's RESET connected to BusPirate's
+.Pa AUX
+pin and if your BusPirate has an
+.Pa AUX2
+pin (only available on BusPirate version v1a with firmware 3.0 or newer)
+use that to activate RESET on the third AVR.
+.Pp
+It may be a good idea to decouple the BusPirate and the AVR's SPI buses from 
+each other using a 3-state bus buffer. For example 74HC125 or 74HC244 are some
+good candidates with the latches driven by the appropriate reset pin (cs, 
+aux or aux2). Otherwise the SPI traffic in one active circuit may interfere
+with programming the AVR in the other design.
+.It Ar speed=<0..7>
+BusPirate to AVR SPI speed:
+.Bd -literal
+0 ..  30 kHz   (default)
+1 .. 125 kHz
+2 .. 250 kHz
+3 ..   1 MHz
+4 ..   2 MHz
+5 ..   2.6 MHz
+6 ..   4 MHz
+7 ..   8 MHz
+.Ed
 .It Ar ascii
 Use ASCII mode even when the firmware supports BinMode (binary mode). 
 BinMode is supported in firmware 2.7 and newer, older FW's either don't
-have BinMode or their BinMode is buggy.
+have BinMode or their BinMode is buggy. ASCII mode is slower and makes 
+the above
+.Ar reset=
+and 
+.Ar speed=
+parameters unavailable. 
 .El
 .El
 .Sh FILES
