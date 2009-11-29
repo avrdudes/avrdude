@@ -261,7 +261,6 @@ static int ihex_readrec(struct ihexrec * ihex, char * rec)
  * If an error occurs, return -1.
  *
  * */
-
 static int ihex2b(char * infile, FILE * inf,
              unsigned char * outbuf, int bufsize)
 {
@@ -279,6 +278,7 @@ static int ihex2b(char * infile, FILE * inf,
   baseaddr    = 0;
   maxaddr     = 0;
   offsetaddr  = 0;
+  nextaddr    = 0;
 
   while (fgets((char *)buffer,MAX_LINE_LEN,inf)!=NULL) {
     lineno++;
@@ -332,7 +332,7 @@ static int ihex2b(char * infile, FILE * inf,
 
       case 4: /* extended linear address record */
         baseaddr = (ihex.data[0] << 24 | ihex.data[1]) << 16;
-        if(offsetaddr == 0) offsetaddr = baseaddr;
+        if(nextaddr == 0) offsetaddr = baseaddr;	// if provided before any data, then remember it
         break;
 
       case 5: /* start linear address record */
@@ -357,7 +357,6 @@ static int ihex2b(char * infile, FILE * inf,
 
   return maxaddr-offsetaddr;
 }
-
 
 static int b2srec(unsigned char * inbuf, int bufsize, 
            int recsize, int startaddr,
@@ -1155,6 +1154,7 @@ int fileio(int op, char * filename, FILEFMT format,
   if (format != FMT_IMM && !using_stdio) {
     fclose(f);
   }
+
   return rc;
 }
 
