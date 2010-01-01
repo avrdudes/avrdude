@@ -2847,7 +2847,7 @@ static int jtagmkII_smc_init32(PROGRAMMER * pgm)
   status = jtagmkII_write_SABaddr(pgm, 0xffff0c00, 0x05, 0x0000004); if(status < 0) {lineno = __LINE__; goto eRR;} // Power Manager
   status = jtagmkII_write_SABaddr(pgm, 0xffff0c00, 0x05, 0x0000005); if(status < 0) {lineno = __LINE__; goto eRR;}
 
-  sleep(1);
+  usleep(1000000);
   
   val = jtagmkII_read_SABaddr(pgm, 0xfffe1408, 0x05); if(val != 0x0000a001) {lineno = __LINE__; goto eRR;} // PLL 0
 
