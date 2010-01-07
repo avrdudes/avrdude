@@ -1,5 +1,9 @@
 2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* buspirate.c: add $ Id $ line.
+
+2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Fix a few warnings that came up recently (some of them only triggered
 	by recent GCC versions).
 	* config_gram.y (parse_cmdbits): "brkt possibly used uninitialized"
