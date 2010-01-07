@@ -1,6 +1,7 @@
 2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* buspirate.c: add $ Id $ line.
+	* buspirate.h: add $ Id $ line.
 
 2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
