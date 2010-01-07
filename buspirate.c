@@ -89,14 +89,14 @@ buspirate_uses_ascii(struct programmer_t *pgm)
 
 /* ====== Serial talker functions - binmode ====== */
 
-static void dump_mem(unsigned char *buf, size_t len)
+static void dump_mem(char *buf, size_t len)
 {
 	size_t i;
 
 	for (i = 0; i<len; i++) {
 		if (i % 8 == 0)
 			fprintf(stderr, "\t");
-		fprintf(stderr, "0x%02x ", buf[i] & 0xFF);
+		fprintf(stderr, "0x%02x ", (unsigned)buf[i] & 0xFF);
 		if (i % 8 == 3)
 			fprintf(stderr, "  ");
 		else if (i % 8 == 7)
@@ -115,7 +115,7 @@ static int buspirate_send_bin(struct programmer_t *pgm, char *data, size_t len)
 		dump_mem(data, len);
 	}
 
-	rc = serial_send(&pgm->fd, data, len);
+	rc = serial_send(&pgm->fd, (unsigned char *)data, len);
 
 	return rc;
 }
@@ -124,7 +124,7 @@ static int buspirate_recv_bin(struct programmer_t *pgm, char *buf, size_t len)
 {
 	int rc;
 
-	rc = serial_recv(&pgm->fd, buf, len);
+	rc = serial_recv(&pgm->fd, (unsigned char *)buf, len);
 	if (rc < 0)
 		return EOF;
 	if (verbose > 1) {
@@ -394,7 +394,7 @@ static void buspirate_reset_from_binmode(struct programmer_t *pgm)
 
 static int buspirate_start_spi_mode_bin(struct programmer_t *pgm)
 {
-	unsigned char buf[20] = { '\0' };
+	char buf[20] = { '\0' };
 
 	/* == Switch to binmode - send 20x '\0' == */
 	buspirate_send_bin(pgm, buf, sizeof(buf));
@@ -596,8 +596,8 @@ static int buspirate_cmd_bin(struct programmer_t *pgm,
 	if (!buspirate_expect_bin_byte(pgm, 0x13, 0x01))
 		return -1;
 
-	buspirate_send_bin(pgm, cmd, 4);
-	buspirate_recv_bin(pgm, res, 4);
+	buspirate_send_bin(pgm, (char *)cmd, 4);
+	buspirate_recv_bin(pgm, (char *)res, 4);
 
 	return 0;
 }

@@ -2618,6 +2618,8 @@ static int jtagmkII_reset32(PROGRAMMER * pgm, unsigned short flags)
           "%s: jtagmkII_reset32(%2.2x)\n",
           progname, flags);
 
+  status = -1;
+
   // Happens at the start of a programming operation
   if(flags & AVR32_RESET_READ) {
     buf[0] = CMND_GET_IR;
