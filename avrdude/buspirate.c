@@ -48,8 +48,8 @@
 #include "serial.h"
 
 /* ====== Private data structure ====== */
-/* CS and AUX pin bitmasks in 
- * 0100wxyz – Configure peripherals command */
+/* CS and AUX pin bitmasks in
+ * 0100wxyz - Configure peripherals command */
 #define BP_RESET_CS     0x01
 #define BP_RESET_AUX    0x02
 #define BP_RESET_AUX2   0x04
@@ -62,12 +62,12 @@
 struct pdata
 {
 	char	hw_version[10];
-	int		fw_version;		/* = 100*fw_major + fw_minor */
-	int		binmode_version;
-	int		bin_spi_version;
-	int		current_peripherals_config;
-	int		spifreq;		/* 0..7 - see buspirate manual for what freq each value means */
-	int		reset;			/* See BP_RESET_* above */
+	int	fw_version;		/* = 100*fw_major + fw_minor */
+	int	binmode_version;
+	int	bin_spi_version;
+	int	current_peripherals_config;
+	int	spifreq;		/* 0..7 - see buspirate manual for what freq each value means */
+	int	reset;			/* See BP_RESET_* above */
 };
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
@@ -79,7 +79,7 @@ static inline int
 buspirate_has_aux2(struct programmer_t *pgm)
 {
 	return ((PDATA(pgm)->fw_version >= 300) &&
-			strcmp(PDATA(pgm)->hw_version, "v1a") == 0);
+		strcmp(PDATA(pgm)->hw_version, "v1a") == 0);
 }
 
 static inline int
@@ -138,8 +138,8 @@ static int buspirate_recv_bin(struct programmer_t *pgm, char *buf, size_t len)
 }
 
 static int buspirate_expect_bin(struct programmer_t *pgm,
-								char *send_data, size_t send_len,
-								char *expect_data, size_t expect_len)
+				char *send_data, size_t send_len,
+				char *expect_data, size_t expect_len)
 {
 	char *recv_buf = alloca(expect_len);
 	if (!pgm->flag & BP_FLAG_IN_BINMODE) {
@@ -155,7 +155,7 @@ static int buspirate_expect_bin(struct programmer_t *pgm,
 }
 
 static int buspirate_expect_bin_byte(struct programmer_t *pgm,
-									 char send_byte, char expect_byte)
+					char send_byte, char expect_byte)
 {
 	return buspirate_expect_bin(pgm, &send_byte, 1, &expect_byte, 1);
 }
@@ -208,12 +208,12 @@ static char *buspirate_readline(struct programmer_t *pgm, char *buf, size_t len)
 	serial_recv_timeout = orig_serial_recv_timeout;
 	if (verbose)
 		fprintf(stderr, "%s: buspirate_readline(): %s%s",
-				progname, buf,
-				buf[strlen(buf) - 1] == '\n' ? "" : "\n");
+			progname, buf,
+			buf[strlen(buf) - 1] == '\n' ? "" : "\n");
 	if (! buf[0]) {
 		fprintf(stderr,
-				"%s: buspirate_readline(): programmer is not responding\n",
-				progname);
+			"%s: buspirate_readline(): programmer is not responding\n",
+			progname);
 		exit(1);
 	}
 	return buf;
@@ -248,7 +248,7 @@ static int buspirate_is_prompt(char *str)
 }
 
 static int buspirate_expect(struct programmer_t *pgm, char *send,
-							char *expect, int wait_for_prompt)
+				char *expect, int wait_for_prompt)
 {
 	int got_it = 0;
 	size_t expect_len = strlen(expect);
@@ -334,7 +334,7 @@ buspirate_verifyconfig(struct programmer_t *pgm)
 	if ((PDATA(pgm)->reset & BP_RESET_AUX2) && !buspirate_has_aux2(pgm)) {
 		fprintf(stderr, "BusPirate: Pin AUX2 is only available in binary mode\n");
 		fprintf(stderr, "BusPirate: with hardware==v1a && firmware>=3.0\n");
-		fprintf(stderr, "BusPirate: Your hardware==%s and firmware==%d.%d\n", 
+		fprintf(stderr, "BusPirate: Your hardware==%s and firmware==%d.%d\n",
 				PDATA(pgm)->hw_version, PDATA(pgm)->fw_version/100, PDATA(pgm)->fw_version%100);
 		return -1;
 	}
@@ -377,7 +377,7 @@ static void buspirate_close(struct programmer_t *pgm)
 static void buspirate_reset_from_binmode(struct programmer_t *pgm)
 {
 	char buf[10];
-	
+
 	buf[0] = 0x00;	/* BinMode: revert to HiZ */
 	buspirate_send_bin(pgm, buf, 1);
 
@@ -427,7 +427,7 @@ static int buspirate_start_spi_mode_bin(struct programmer_t *pgm)
 	if (verbose)
 		printf("BusPirate SPI version: %d\n", PDATA(pgm)->bin_spi_version);
 
-	/* 0b0100wxyz – Configure peripherals w=power, x=pull-ups/aux2, y=AUX, z=CS
+	/* 0b0100wxyz - Configure peripherals w=power, x=pull-ups/aux2, y=AUX, z=CS
 	 * we want power (0x48) and all reset pins high. */
 	PDATA(pgm)->current_peripherals_config  = 0x48;
 	PDATA(pgm)->current_peripherals_config |= BP_RESET_CS;
@@ -443,8 +443,8 @@ static int buspirate_start_spi_mode_bin(struct programmer_t *pgm)
 	 * use 30kHz = 0x60 */
 	buspirate_expect_bin_byte(pgm, 0x60 | PDATA(pgm)->spifreq, 0x01);
 
-	/* 1000wxyz – SPI config, w=HiZ(0)/3.3v(1), x=CLK idle, y=CLK edge, z=SMP sample
-	 * we want: 3.3V(1), idle low(0), data change on trailing edge (1), 
+	/* 1000wxyz - SPI config, w=HiZ(0)/3.3v(1), x=CLK idle, y=CLK edge, z=SMP sample
+	 * we want: 3.3V(1), idle low(0), data change on trailing edge (1),
 	 *          sample in the middle of the pulse (0)
 	 *       => 0b10001010 = 0x8a */
 	buspirate_expect_bin_byte(pgm, 0x8A, 0x01);
@@ -567,7 +567,7 @@ static void buspirate_powerup(struct programmer_t *pgm)
 	if (pgm->flag & BP_FLAG_IN_BINMODE) {
 		/* Powerup in BinMode is handled in SPI init */
 		return;
-	} else 
+	} else
 		if (buspirate_expect(pgm, "W\n", "POWER SUPPLIES ON", 1))
 			return;
 
@@ -578,11 +578,11 @@ static void buspirate_powerup(struct programmer_t *pgm)
 static void buspirate_powerdown(struct programmer_t *pgm)
 {
 	if (pgm->flag & BP_FLAG_IN_BINMODE) {
-		/* 0b0100wxyz – Configure peripherals w=power, x=pull-ups, y=AUX, z=CS
+		/* 0b0100wxyz - Configure peripherals w=power, x=pull-ups, y=AUX, z=CS
 		 * we want everything off -- 0b01000000 = 0x40 */
 		if (buspirate_expect_bin_byte(pgm, 0x40, 0x01))
 			return;
-	} else 
+	} else
 		if (buspirate_expect(pgm, "w\n", "POWER SUPPLIES OFF", 1))
 			return;
 
@@ -590,10 +590,10 @@ static void buspirate_powerdown(struct programmer_t *pgm)
 }
 
 static int buspirate_cmd_bin(struct programmer_t *pgm,
-							 unsigned char cmd[4],
-							 unsigned char res[4])
+				unsigned char cmd[4],
+				unsigned char res[4])
 {
-	/* 0001xxxx – Bulk SPI transfer, send/read 1-16 bytes (0=1byte!)
+	/* 0001xxxx - Bulk SPI transfer, send/read 1-16 bytes (0=1byte!)
 	 * we are sending 4 bytes -> 0x13 */
 	if (!buspirate_expect_bin_byte(pgm, 0x13, 0x01))
 		return -1;
@@ -605,15 +605,15 @@ static int buspirate_cmd_bin(struct programmer_t *pgm,
 }
 
 static int buspirate_cmd_ascii(struct programmer_t *pgm,
-							   unsigned char cmd[4],
-							   unsigned char res[4])
+				unsigned char cmd[4],
+				unsigned char res[4])
 {
 	char buf[25];
 	char *rcvd;
 	int spi_write, spi_read, i = 0;
 
 	snprintf(buf, sizeof(buf), "0x%02x 0x%02x 0x%02x 0x%02x\n",
-			 cmd[0], cmd[1], cmd[2], cmd[3]);
+		cmd[0], cmd[1], cmd[2], cmd[3]);
 	buspirate_send(pgm, buf);
 	while (i < 4) {
 		rcvd = buspirate_readline(pgm, NULL, 0);
@@ -638,8 +638,8 @@ static int buspirate_cmd_ascii(struct programmer_t *pgm,
 }
 
 static int buspirate_cmd(struct programmer_t *pgm,
-						 unsigned char cmd[4],
-						 unsigned char res[4])
+				unsigned char cmd[4],
+				unsigned char res[4])
 {
 	if (pgm->flag & BP_FLAG_IN_BINMODE)
 		return buspirate_cmd_bin(pgm, cmd, res);
@@ -662,8 +662,8 @@ static int buspirate_program_enable(struct programmer_t *pgm, AVRPART * p)
 
 	if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
 		fprintf(stderr,
-				"program enable instruction not defined for part \"%s\"\n",
-				p->desc);
+			"program enable instruction not defined for part \"%s\"\n",
+			p->desc);
 		return -1;
 	}
 
@@ -684,8 +684,8 @@ static int buspirate_chip_erase(struct programmer_t *pgm, AVRPART * p)
 
 	if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
 		fprintf(stderr,
-				"chip erase instruction not defined for part \"%s\"\n",
-				p->desc);
+			"chip erase instruction not defined for part \"%s\"\n",
+			p->desc);
 		return -1;
 	}
 
@@ -731,7 +731,7 @@ void buspirate_initpgm(struct programmer_t *pgm)
 	/* Allocate private data */
 	if ((pgm->cookie = calloc(1, sizeof(struct pdata))) == 0) {
 		fprintf(stderr, "%s: buspirate_initpgm(): Out of memory allocating private data\n",
-				progname);
+			progname);
 		exit(1);
 	}
 }
