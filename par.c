@@ -285,7 +285,7 @@ static void par_close(PROGRAMMER * pgm)
   ppi_setall(&pgm->fd, PPIDATA, pgm->ppidata);
   ppi_setall(&pgm->fd, PPICTRL, pgm->ppictrl);
 
-  par_setpin(pgm, pgm->pinno[PPI_AVR_BUFF], 1);
+  par_setmany(pgm, pgm->pinno[PPI_AVR_BUFF], 1);
 
   /*
    * Handle exit specs.
