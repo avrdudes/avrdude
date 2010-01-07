@@ -1,11 +1,19 @@
 2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Eric Trein:
+	bug #27596: AT90s2333 is not correctly supported in avrdude.conf
+	* avrdude.conf.in (at90s2333): add various STK500v2 parameters.
+
+2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Gyorgy Szekely:
 	bug #28458: Buffer line is incorrectly released for PP programmers
 	* par.c (par_close): use par_setmany() rather than par_setpin()
 	for PPI_AVR_BUFF.
 
 2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Lukasz Goralczyk:
 	bug #27507: SIGSEGV when using avrdragon (avrdude 5.8)
 	* stk500v2.c (stk500v2_dragon_isp_initpgm): Use
 	stk500v2_jtagmkII_setup/stk500v2_jtagmkII_rather than their

@@ -1725,6 +1725,37 @@ part
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
                        "x x x x  x x x x    x x x x  x x x x";
 
+    timeout		= 200;
+    stabdelay		= 100;
+    cmdexedelay		= 25;
+    synchloops		= 32;
+    bytedelay		= 0;
+    pollindex		= 3;
+    pollvalue		= 0x53;
+    predelay		= 1;
+    postdelay		= 1;
+    pollmethod		= 0;
+
+    pp_controlstack     =
+        0x0E, 0x1E, 0x0F, 0x1F, 0x2E, 0x3E, 0x2F, 0x3F,
+        0x4E, 0x5E, 0x4F, 0x5F, 0x6E, 0x7E, 0x6F, 0x7F,
+        0x66, 0x76, 0x67, 0x77, 0x6A, 0x7A, 0x6B, 0x7B,
+        0xBE, 0xFD, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
+    hventerstabdelay    = 100;
+    progmodedelay       = 0;
+    latchcycles         = 0;
+    togglevtg           = 0;
+    poweroffdelay       = 0;
+    resetdelayms        = 0;
+    resetdelayus        = 0;
+    hvleavestabdelay    = 15;
+    chiperasepulsewidth = 15;
+    chiperasepolltimeout = 0;
+    programfusepulsewidth = 2;
+    programfusepolltimeout = 0;
+    programlockpulsewidth = 0;
+    programlockpolltimeout = 1;
+
     memory "eeprom"
         size            = 128;
         min_write_delay = 9000;
@@ -1736,7 +1767,13 @@ part
 
         write           = "1  1  0  0   0  0  0  0   x x x x  x x x x",
                           "x a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+
+	mode		= 0x04;
+	delay		= 12;
+	blocksize	= 128;
+	readsize	= 256;
       ;
+
     memory "flash"
         size            = 2048;
         min_write_delay = 9000;
@@ -1762,7 +1799,13 @@ part
                           "  x   x   x   x    x   x  a9  a8",
                           " a7  a6  a5  a4   a3  a2  a1  a0",
                           "  i   i   i   i    i   i   i   i";
+
+	mode		= 0x04;
+	delay		= 12;
+	blocksize	= 128;
+	readsize	= 256;
       ;
+
     memory "signature"
         size            = 3;
         read            = "0  0  1  1   0  0  0  0   x  x  x  x   x  x  x  x",
