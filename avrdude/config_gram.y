@@ -1395,7 +1395,7 @@ static int parse_cmdbits(OPCODE * op)
   char * e;
   char * q;
   int len;
-  char * s, *brkt;
+  char * s, *brkt = NULL;
 
   bitno = 32;
   while (lsize(string_list)) {

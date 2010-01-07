@@ -1,3 +1,15 @@
+2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Fix a few warnings that came up recently (some of them only triggered
+	by recent GCC versions).
+	* config_gram.y (parse_cmdbits): "brkt possibly used uninitialized"
+	(GCC errs here)
+	* jtagmkII.c (jtagmkII_reset32): "status possibly used uninitialized"
+	(I think GCC errs, too)
+	* buspirate.c: "pointers differ in signedness" (mismatch between
+	string processing and the use of "unsigned char" throughought the
+	AVRDUDE API)
+
 2010-01-01  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* jtagmkII.c (jtagmkII_smc_init32): replace sleep() by usleep() for
