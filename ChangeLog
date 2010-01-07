@@ -1,5 +1,10 @@
 2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* buspirate.c: Cosmetics: remove UTF-8 dashes, adjust for 8-column
+	hard tabs.
+
+2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* buspirate.c: add $ Id $ line.
 	* buspirate.h: add $ Id $ line.
 
