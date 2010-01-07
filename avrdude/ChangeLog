@@ -1,5 +1,13 @@
 2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #27507: SIGSEGV when using avrdragon (avrdude 5.8)
+	* stk500v2.c (stk500v2_dragon_isp_initpgm): Use
+	stk500v2_jtagmkII_setup/stk500v2_jtagmkII_rather than their
+	jtagII counterparts, to get the private data properly
+	initialized.
+
+2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* buspirate.c: Cosmetics: remove UTF-8 dashes, adjust for 8-column
 	hard tabs.
 

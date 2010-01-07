@@ -3586,8 +3586,8 @@ void stk500v2_dragon_isp_initpgm(PROGRAMMER * pgm)
   pgm->paged_load     = stk500v2_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
-  pgm->setup          = jtagmkII_setup;
-  pgm->teardown       = jtagmkII_teardown;
+  pgm->setup          = stk500v2_jtagmkII_setup;
+  pgm->teardown       = stk500v2_jtagmkII_teardown;
   pgm->page_size      = 256;
 }
 
