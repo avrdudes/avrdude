@@ -44,6 +44,7 @@ static int delay_decrement;
 
 #if defined(WIN32NATIVE)
 static int has_perfcount;
+static LARGE_INTEGER freq;
 #else
 static volatile int done;
 
@@ -63,8 +64,6 @@ static void alarmhandler(int signo)
 static void bitbang_calibrate_delay(void)
 {
 #if defined(WIN32NATIVE)
-  static LARGE_INTEGER freq;
-
   /*
    * If the hardware supports a high-resolution performance counter,
    * we ultimately prefer that one, as it gives quite accurate delays
