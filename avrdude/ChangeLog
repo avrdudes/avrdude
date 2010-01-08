@@ -1,5 +1,14 @@
 2010-01-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Doug:
+	patch #7010: Win32 enhanced bitbang_delay
+	* bitbang.c (bitbang_calibrate_delay, bitbang_delay): On Win32,
+	use the high-resolution performance counter rather than the
+	uneducated delay loop guess if it is available on the target
+	hardware.
+
+2010-01-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Gerard:
 	patch #6828: Using arbitrary BAUD rates
 	* ser_posix.c (serial_baud_lookup): Allow non-standard baud
