@@ -48,6 +48,7 @@
 struct pdata
 {
   usb_dev_handle *usbhandle;
+  int sckfreq_hz; 
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
@@ -340,14 +341,18 @@ static int usbasp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     return -2;
   }
 
+  /* set blocksize depending on sck frequency */  
+  if ((PDATA(pgm)->sckfreq_hz > 0) && (PDATA(pgm)->sckfreq_hz < 10000)) {
+     blocksize = USBASP_READBLOCKSIZE / 10;
+  } else {
+     blocksize = USBASP_READBLOCKSIZE;
+  }
+
   while (wbytes) {
-    if (wbytes > USBASP_READBLOCKSIZE) {
-      blocksize = USBASP_READBLOCKSIZE;
-      wbytes -= USBASP_READBLOCKSIZE;
-    } else {
+    if (wbytes <= blocksize) {
       blocksize = wbytes;
-      wbytes = 0;
     }
+    wbytes -= blocksize;
 
     /* set address (new mode) - if firmware on usbasp support newmode, then they use address from this command */
     unsigned char temp[4];
@@ -403,15 +408,21 @@ static int usbasp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     return -2;
   }
 
+  /* set blocksize depending on sck frequency */  
+  if ((PDATA(pgm)->sckfreq_hz > 0) && (PDATA(pgm)->sckfreq_hz < 10000)) {
+     blocksize = USBASP_WRITEBLOCKSIZE / 10;
+  } else {
+     blocksize = USBASP_WRITEBLOCKSIZE;
+  }
+
   while (wbytes) {
-    if (wbytes > USBASP_WRITEBLOCKSIZE) {
-      blocksize = USBASP_WRITEBLOCKSIZE;
-      wbytes -= USBASP_WRITEBLOCKSIZE;
-    } else {
+
+    if (wbytes <= blocksize) {
       blocksize = wbytes;
-      wbytes = 0;
       blockflags |= USBASP_BLOCKFLAG_LAST;
     }
+    wbytes -= blocksize;
+
 
     /* set address (new mode) - if firmware on usbasp support newmode, then
       they use address from this command */
@@ -451,20 +462,20 @@ static int usbasp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-/* The list of SCK frequencies in kHz supported by USBasp */
+/* The list of SCK frequencies in Hz supported by USBasp */
 static struct sckoptions_t usbaspSCKoptions[] = {
-  { USBASP_ISP_SCK_1500, 1500 },
-  { USBASP_ISP_SCK_750, 750 },
-  { USBASP_ISP_SCK_375, 375 },
-  { USBASP_ISP_SCK_187_5, 187.5 },
-  { USBASP_ISP_SCK_93_75, 93.75 },
-  { USBASP_ISP_SCK_32, 32 },
-  { USBASP_ISP_SCK_16, 16 },
-  { USBASP_ISP_SCK_8, 8 },
-  { USBASP_ISP_SCK_4, 4 },
-  { USBASP_ISP_SCK_2, 2 },
-  { USBASP_ISP_SCK_1, 1 },
-  { USBASP_ISP_SCK_0_5, 0.5 }
+  { USBASP_ISP_SCK_1500, 1500000 },
+  { USBASP_ISP_SCK_750, 750000 },
+  { USBASP_ISP_SCK_375, 375000 },
+  { USBASP_ISP_SCK_187_5, 187500 },
+  { USBASP_ISP_SCK_93_75, 93750 },
+  { USBASP_ISP_SCK_32, 32000 },
+  { USBASP_ISP_SCK_16, 16000 },
+  { USBASP_ISP_SCK_8, 8000 },
+  { USBASP_ISP_SCK_4, 4000 },
+  { USBASP_ISP_SCK_2, 2000 },
+  { USBASP_ISP_SCK_1, 1000 },
+  { USBASP_ISP_SCK_0_5, 500 }
 };
 
 
@@ -481,6 +492,9 @@ static int usbasp_set_sck_period(PROGRAMMER *pgm, double sckperiod)
   memset(cmd, 0, sizeof(cmd));
   memset(res, 0, sizeof(res));
 
+  /* reset global sck frequency to auto */
+  PDATA(pgm)->sckfreq_hz = 0;
+
   if (sckperiod == 0) {
     /* auto sck set */
 
@@ -489,22 +503,21 @@ static int usbasp_set_sck_period(PROGRAMMER *pgm, double sckperiod)
 
   } else {
 
-    double sckfreq = 1 / sckperiod / 1000; /* sck in kHz */
-    double usefreq = 0;
+    int sckfreq = 1 / sckperiod; /* sck in Hz */
+    int usefreq = 0;
 
     if (verbose >= 2)
-      fprintf(stderr, "%s: try to set SCK period to %g s (= %g kHz)\n", progname, sckperiod, sckfreq);
+      fprintf(stderr, "%s: try to set SCK period to %g s (= %i Hz)\n", progname, sckperiod, sckfreq);
 
-    if (sckperiod >= 1500) {
-      clockoption = USBASP_ISP_SCK_1500;
-      usefreq = 1500;
-
+    if (sckfreq >= usbaspSCKoptions[0].frequency) {
+      clockoption = usbaspSCKoptions[0].id;
+      usefreq = usbaspSCKoptions[0].frequency;
     } else {
 
       /* find clock option next to given clock */
       int i;
       for (i = 0; i < sizeof(usbaspSCKoptions) / sizeof(usbaspSCKoptions[0]); i++) {
-        if (sckfreq >= usbaspSCKoptions[i].frequency) {
+        if (sckfreq >= usbaspSCKoptions[i].frequency - 1) { /* subtract 1 to compensate round errors */
           clockoption = usbaspSCKoptions[i].id;
           usefreq = usbaspSCKoptions[i].frequency;
           break;
@@ -512,7 +525,10 @@ static int usbasp_set_sck_period(PROGRAMMER *pgm, double sckperiod)
       }
     }
 
-    fprintf(stderr, "%s: set SCK frequency to %g kHz\n", progname, usefreq);
+    /* save used sck frequency */
+    PDATA(pgm)->sckfreq_hz = usefreq;
+
+    fprintf(stderr, "%s: set SCK frequency to %i Hz\n", progname, usefreq);
   }
 
   cmd[0] = clockoption;

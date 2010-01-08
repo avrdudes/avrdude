@@ -1,3 +1,9 @@
+2010-01-08  Thomas Fischl <tfischl@gmx.de>
+
+	bug #28520: Programming with USBasp with low clock speed fails
+	* usbasp.c: Change blocksize depending on sck frequency to
+	avoid usb transmition timeouts.
+
 2010-01-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #27505: serbb_posix does not cope with inverted pins
