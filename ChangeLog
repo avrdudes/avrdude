@@ -1,3 +1,10 @@
+2010-01-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* bitbang.c: Fix Win32 build error: move freq up to the file
+	level.
+	* buspirate.c: Fix Win32 build warning: include <malloc.h> to
+	to get a declaration for alloca().
+
 2010-01-08  Thomas Fischl <tfischl@gmx.de>
 
 	bug #28520: Programming with USBasp with low clock speed fails
