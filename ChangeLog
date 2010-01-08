@@ -1,5 +1,12 @@
 2010-01-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #27505: serbb_posix does not cope with inverted pins
+	* serbb_posix (serbb_highpulsepin): apply PIN_MASK when
+	checking pin numbers.
+	* serbb_win32 (serbb_highpulsepin): (Dito.)
+
+2010-01-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #28516: Linux/Dragon: Error message on exit
 	* stk500v2.c: Fix the "bad response to GO command:
 	RSP_ILLEGAL_EMULATOR_MODE" message.  jtagmkII_close()
