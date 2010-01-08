@@ -1,5 +1,14 @@
 2010-01-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #28516: Linux/Dragon: Error message on exit
+	* stk500v2.c: Fix the "bad response to GO command:
+	RSP_ILLEGAL_EMULATOR_MODE" message.  jtagmkII_close()
+	has been called with the wrong pgm->cookie.  Wrap it
+	inside stk500v2_jtagmkII_close(), adjusting the cookie
+	data appropriately.
+
+2010-01-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Doug:
 	patch #7010: Win32 enhanced bitbang_delay
 	* bitbang.c (bitbang_calibrate_delay, bitbang_delay): On Win32,
