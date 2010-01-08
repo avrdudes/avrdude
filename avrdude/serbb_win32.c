@@ -223,8 +223,8 @@ static int serbb_getpin(PROGRAMMER * pgm, int pin)
 
 static int serbb_highpulsepin(PROGRAMMER * pgm, int pin)
 {
-        if (pin < 1 || pin > 7)
-                return -1;
+        if ( (pin & PIN_MASK) < 1 || (pin & PIN_MASK) > DB9PINS )
+          return -1;
 
         serbb_setpin(pgm, pin, 1);
 	if (pgm->ispdelay > 1)
