@@ -2795,6 +2795,23 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
 
 
 /*
+ * Close an AVR Dragon or JTAG ICE mkII in ISP/HVSP/PP mode.
+ */
+static void stk500v2_jtagmkII_close(PROGRAMMER * pgm)
+{
+  void *mycookie;
+
+  if (verbose >= 2)
+    fprintf(stderr, "%s: stk500v2_jtagmkII_close()\n", progname);
+
+  mycookie = pgm->cookie;
+  pgm->cookie = PDATA(pgm)->chained_pdata;
+  jtagmkII_close(pgm);
+  pgm->cookie = mycookie;
+}
+
+
+/*
  * Wrapper functions for the AVR Dragon in ISP mode.  This mode
  * uses the normal JTAG ICE mkII packet stream to communicate with the
  * ICE, but then encapsulates AVRISP mkII commands using
@@ -3543,7 +3560,7 @@ void stk500v2_jtagmkII_initpgm(PROGRAMMER * pgm)
   pgm->chip_erase     = stk500v2_chip_erase;
   pgm->cmd            = stk500v2_cmd;
   pgm->open           = stk500v2_jtagmkII_open;
-  pgm->close          = jtagmkII_close;
+  pgm->close          = stk500v2_jtagmkII_close;
   pgm->read_byte      = avr_read_byte_default;
   pgm->write_byte     = avr_write_byte_default;
 
@@ -3575,7 +3592,7 @@ void stk500v2_dragon_isp_initpgm(PROGRAMMER * pgm)
   pgm->chip_erase     = stk500v2_chip_erase;
   pgm->cmd            = stk500v2_cmd;
   pgm->open           = stk500v2_dragon_isp_open;
-  pgm->close          = jtagmkII_close;
+  pgm->close          = stk500v2_jtagmkII_close;
   pgm->read_byte      = avr_read_byte_default;
   pgm->write_byte     = avr_write_byte_default;
 
@@ -3605,7 +3622,7 @@ void stk500v2_dragon_pp_initpgm(PROGRAMMER * pgm)
   pgm->program_enable = stk500pp_program_enable;
   pgm->chip_erase     = stk500pp_chip_erase;
   pgm->open           = stk500v2_dragon_hv_open;
-  pgm->close          = jtagmkII_close;
+  pgm->close          = stk500v2_jtagmkII_close;
   pgm->read_byte      = stk500pp_read_byte;
   pgm->write_byte     = stk500pp_write_byte;
 
@@ -3638,7 +3655,7 @@ void stk500v2_dragon_hvsp_initpgm(PROGRAMMER * pgm)
   pgm->program_enable = stk500hvsp_program_enable;
   pgm->chip_erase     = stk500hvsp_chip_erase;
   pgm->open           = stk500v2_dragon_hv_open;
-  pgm->close          = jtagmkII_close;
+  pgm->close          = stk500v2_jtagmkII_close;
   pgm->read_byte      = stk500hvsp_read_byte;
   pgm->write_byte     = stk500hvsp_write_byte;
 
