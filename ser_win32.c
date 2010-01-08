@@ -67,9 +67,15 @@ static DWORD serial_baud_lookup(long baud)
     map++;
   }
 
-  fprintf(stderr, "%s: serial_baud_lookup(): unknown baud rate: %ld", 
-          progname, baud);
-  exit(1);
+  /*
+   * If a non-standard BAUD rate is used, issue
+   * a warning (if we are verbose) and return the raw rate
+   */
+  if (verbose > 0)
+      fprintf(stderr, "%s: serial_baud_lookup(): Using non-standard baud rate: %ld",
+              progname, baud);
+
+  return baud;
 }
 
 

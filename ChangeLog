@@ -1,3 +1,11 @@
+2010-01-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Gerard:
+	patch #6828: Using arbitrary BAUD rates
+	* ser_posix.c (serial_baud_lookup): Allow non-standard baud
+	rates.
+	* ser_win32.c (serial_baud_lookup): (Dito.)
+
 2010-01-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Eric Trein:
