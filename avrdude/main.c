@@ -728,6 +728,10 @@ int main(int argc, char * argv [])
     auto_erase = 0;
   }
 
+  if(p->flags & AVRPART_HAS_PDI) {
+    safemode = 0;
+  }
+
   /*
    * set up seperate instances of the avr part, one for use in
    * programming, one for use in verifying.  These are separate
