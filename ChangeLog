@@ -4,8 +4,12 @@
 	* jtagmkII_private.h: Add CMND_XMEGA_ERASE as well as
 	the various XMEGA_ERASE_* definitions (from updated
 	appnote AVR067)
-	* jtagmkII.c (jtagmkII_chip_erase): Correctly implement
-	Xmega chip erase based on CMND_XMEGA_ERASE.
+	* jtagmkII.c (jtagmkII_chip_erase): Correctly implement Xmega chip
+	erase based on CMND_XMEGA_ERASE.  After erasing an Xmega part, do
+	*not* reinitialize the world, as a subsequent programming
+	operation will fail (for unknown reasons).  Actually, this was
+	really only required for ancient AVRs, but doesn't hurt on mega
+	and tiny devices.
 	* jtagmkII.c (jtagmkII_pre_write): Remove, this turned out
 	to be just a chip erase.
 	* jtagmkII.c (jtagmkII_program_disable): Don't try reading

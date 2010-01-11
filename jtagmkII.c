@@ -907,7 +907,8 @@ static int jtagmkII_chip_erase(PROGRAMMER * pgm, AVRPART * p)
     return -1;
   }
 
-  pgm->initialize(pgm, p);
+  if (!(p->flags & AVRPART_HAS_PDI))
+      pgm->initialize(pgm, p);
 
   return 0;
 }
