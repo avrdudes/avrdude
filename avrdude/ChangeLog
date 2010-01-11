@@ -1,3 +1,9 @@
+2010-01-12  Michal Ludvig  <mludvig@logix.net.nz>
+
+	* buspirate.c: If the BusPirate doesn't respond
+	to a standard a reset command assume it was in binmode
+	and attempt to exit to text mode first.
+
 2010-01-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* bitbang.c: Fix Win32 build error: move freq up to the file

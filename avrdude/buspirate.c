@@ -181,7 +181,7 @@ static int buspirate_getc(struct programmer_t *pgm)
 	return ch;
 }
 
-static char *buspirate_readline(struct programmer_t *pgm, char *buf, size_t len)
+static char *buspirate_readline_noexit(struct programmer_t *pgm, char *buf, size_t len)
 {
 	char *buf_p;
 	long orig_serial_recv_timeout = serial_recv_timeout;
@@ -213,15 +213,25 @@ static char *buspirate_readline(struct programmer_t *pgm, char *buf, size_t len)
 		fprintf(stderr, "%s: buspirate_readline(): %s%s",
 			progname, buf,
 			buf[strlen(buf) - 1] == '\n' ? "" : "\n");
-	if (! buf[0]) {
+	if (! buf[0])
+		return NULL;
+
+	return buf;
+}
+
+static char *buspirate_readline(struct programmer_t *pgm, char *buf, size_t len)
+{
+	char *ret;
+	
+	ret = buspirate_readline_noexit(pgm, buf, len);
+	if (! ret) {
 		fprintf(stderr,
 			"%s: buspirate_readline(): programmer is not responding\n",
 			progname);
 		exit(1);
 	}
-	return buf;
+	return ret;
 }
-
 static int buspirate_send(struct programmer_t *pgm, char *str)
 {
 	int rc;
@@ -387,12 +397,26 @@ static void buspirate_reset_from_binmode(struct programmer_t *pgm)
 	buf[0] = 0x0F;	/* BinMode: reset */
 	buspirate_send_bin(pgm, buf, 1);
 
-	pgm->flag &= ~BP_FLAG_IN_BINMODE;
-	while(1) {
-		buspirate_readline(pgm, buf, sizeof(buf) - 1);
-		if (buspirate_is_prompt(buf))
+	/* read back all output */
+	memset(buf, '\0', sizeof(buf));
+	for (;;) {
+		int rc;
+		rc = buspirate_recv_bin(pgm, buf, sizeof(buf) - 1);
+
+		if (buspirate_is_prompt(buf)) {
+			pgm->flag &= ~BP_FLAG_IN_BINMODE;
 			break;
+		}
+		if (rc == EOF)
+			break;
+		memset(buf, '\0', sizeof(buf));
 	}
+
+	if (pgm->flag & BP_FLAG_IN_BINMODE) {
+		fprintf(stderr, "BusPirate reset failed. You may need to powercycle it.\n");
+		exit(1);
+	}
+
 	if (verbose)
 		printf("BusPirate is back in the text mode\n");
 }
@@ -509,22 +533,42 @@ static int buspirate_start_spi_mode_ascii(struct programmer_t *pgm)
 
 static void buspirate_enable(struct programmer_t *pgm)
 {
+	unsigned char *reset_str = "#\n";
 	char *rcvd;
 	int fw_v1, fw_v2;
+	int rc, print_banner = 0;
 
 	printf("Detecting BusPirate...\n");
-	buspirate_send(pgm, "#\n");
+
+	/* Call buspirate_send_bin() instead of buspirate_send() 
+	 * because we don't know if BP is in text or bin mode */
+	rc = buspirate_send_bin(pgm, reset_str, strlen(reset_str));
+	if (rc) {
+		fprintf(stderr, "BusPirate is not responding. Serial port error: %d\n", rc);
+		exit(1);
+	}
+
 	while(1) {
-		rcvd = buspirate_readline(pgm, NULL, 0);
-		if (strncmp(rcvd, "RESET", 5) == 0)
+		rcvd = buspirate_readline_noexit(pgm, NULL, 0);
+		if (! rcvd) {
+			fprintf(stderr, "BusPirate is not responding. Attempting reset.\n");
+			buspirate_reset_from_binmode(pgm);
+			/* re-run buspirate_enable() */
+			buspirate_enable(pgm);
+			return;
+		}
+		if (strncmp(rcvd, "RESET", 5) == 0) {
+			print_banner = 1;
 			continue;
+		}
 		if (buspirate_is_prompt(rcvd)) {
 			puts("**");
 			break;
 		}
 		sscanf(rcvd, "Bus Pirate %9s", PDATA(pgm)->hw_version);
 		sscanf(rcvd, "Firmware v%d.%d", &fw_v1, &fw_v2);
-		printf("**  %s", rcvd);
+		if (print_banner)
+			printf("**  %s", rcvd);
 	}
 
 	PDATA(pgm)->fw_version = 100 * fw_v1 + fw_v2;
@@ -552,9 +596,10 @@ static void buspirate_enable(struct programmer_t *pgm)
 
 static void buspirate_disable(struct programmer_t *pgm)
 {
-	if (pgm->flag & BP_FLAG_IN_BINMODE)
+	if (pgm->flag & BP_FLAG_IN_BINMODE) {
+		serial_recv_timeout = 100;
 		buspirate_reset_from_binmode(pgm);
-	else
+	} else
 		buspirate_expect(pgm, "#\n", "RESET", 1);
 }
 
