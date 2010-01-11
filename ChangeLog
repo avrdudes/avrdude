@@ -1,3 +1,7 @@
+2010-01-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* main.c (main): disable safemode for Xmega parts.
+
 2010-01-12  Michal Ludvig  <mludvig@logix.net.nz>
 
 	* buspirate.c: If the BusPirate doesn't respond
