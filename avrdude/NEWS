@@ -9,6 +9,8 @@ Current:
 
   * New devices supported:
 
+      - AVR32A0512 (JTAGMKII only)
+
   * New programmers supported:
 
       - BusPirate
