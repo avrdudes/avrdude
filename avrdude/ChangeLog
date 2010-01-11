@@ -1,5 +1,23 @@
 2010-01-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Clean-up the Xmega erase functions.
+	* jtagmkII_private.h: Add CMND_XMEGA_ERASE as well as
+	the various XMEGA_ERASE_* definitions (from updated
+	appnote AVR067)
+	* jtagmkII.c (jtagmkII_chip_erase): Correctly implement
+	Xmega chip erase based on CMND_XMEGA_ERASE.
+	* jtagmkII.c (jtagmkII_pre_write): Remove, this turned out
+	to be just a chip erase.
+	* jtagmkII.c (jtagmkII_program_disable): Don't try reading
+	"hfuse" for Xmega parts; they don't have it.
+	* main.c (main): Re-enable auto-erase.  It's been done
+	before (as "jtagmkII_pre_write") in jtagmkII_paged_write()
+	anyway.  Xmega boot and application flash areas should be
+	handled separately in the future, so auto_erase can only
+	affect the area just being programmed.
+
+2010-01-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* main.c (main): disable safemode for Xmega parts.
 
 2010-01-12  Michal Ludvig  <mludvig@logix.net.nz>
