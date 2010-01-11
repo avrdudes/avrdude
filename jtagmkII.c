@@ -863,14 +863,24 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
  */
 static int jtagmkII_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {
-  int status;
-  unsigned char buf[1], *resp, c;
-  
-  buf[0] = CMND_CHIP_ERASE;
+  int status, len;
+  unsigned char buf[6], *resp, c;
+
+  if (p->flags & AVRPART_HAS_PDI) {
+    buf[0] = CMND_XMEGA_ERASE;
+    buf[1] = XMEGA_ERASE_CHIP;
+    memset(buf + 2, 0, 4);      /* address of area to be erased */
+    len = 6;
+  } else {
+    buf[0] = CMND_CHIP_ERASE;
+    len = 1;
+  }
   if (verbose >= 2)
-    fprintf(stderr, "%s: jtagmkII_chip_erase(): Sending chip erase command: ",
-	    progname);
-  jtagmkII_send(pgm, buf, 1);
+    fprintf(stderr,
+            "%s: jtagmkII_chip_erase(): Sending %schip erase command: ",
+	    progname,
+            (p->flags & AVRPART_HAS_PDI)? "Xmega ": "");
+  jtagmkII_send(pgm, buf, len);
 
   status = jtagmkII_recv(pgm, &resp);
   if (status <= 0) {
@@ -1089,45 +1099,6 @@ static int jtagmkII_program_enable(PROGRAMMER * pgm)
   return 0;
 }
 
-static int jtagmkII_pre_write(PROGRAMMER * pgm)
-{
-  int status;
-  unsigned char *resp, c;
-  unsigned char buf[] = { CMND_0x34, 0x0, 0x0, 0x0, 0x0, 0x0 };
-  if (verbose >= 2)
-    fprintf(stderr, "%s: jtagmkII_pre_write(): Sending pre-write command: ",
-	    progname);
-  jtagmkII_send(pgm, buf, 6);
-
-  status = jtagmkII_recv(pgm, &resp);
-  if (status <= 0) {
-    if (verbose >= 2)
-      putc('\n', stderr);
-    fprintf(stderr,
-	    "%s: jtagmkII_pre_write(): "
-	    "timeout/error communicating with programmer (status %d)\n",
-	    progname, status);
-    return -1;
-  }
-  if (verbose >= 3) {
-    putc('\n', stderr);
-    jtagmkII_prmsg(pgm, resp, status);
-  } else if (verbose == 2)
-    fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[0], status);
-  c = resp[0];
-  free(resp);
-  if (c != RSP_OK) {
-    fprintf(stderr,
-	    "%s: jtagmkII_pre_write(): "
-	    "bad response to pre_write command: %s\n",
-	    progname, jtagmkII_get_rc(c));
-    return -1;
-  }
-
-  return 0;
-}
-
-
 static int jtagmkII_program_disable(PROGRAMMER * pgm)
 {
   int status;
@@ -1284,7 +1255,7 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
   if (jtagmkII_reset(pgm, 0x01) < 0)
     return -1;
 
-  if (!(pgm->flag & PGM_FL_IS_DW)) {
+  if (!(pgm->flag & PGM_FL_IS_DW) && !(p->flags & AVRPART_HAS_PDI)) {
     strcpy(hfuse.desc, "hfuse");
     if (jtagmkII_read_byte(pgm, p, &hfuse, 1, &b) < 0)
       return -1;
@@ -1671,8 +1642,6 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
     page_size = PDATA(pgm)->eeprom_pagesize;
   }
-  if ( cmd[1] == MTYPE_FLASH )  (void)jtagmkII_pre_write(pgm);
-  
   serial_recv_timeout = 100;
   for (addr = 0; addr < n_bytes; addr += page_size) {
     report_progress(addr, n_bytes,NULL);
