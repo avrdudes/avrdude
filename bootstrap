@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# autoconf-2.59 or 2.61 is known to work
+# autoconf-2.59 or 2.61, 2.62 is known to work
 
 : ${AUTOHEADER="autoheader${AC_VER}"}
 : ${AUTOCONF="autoconf${AC_VER}"}
@@ -14,9 +14,9 @@
 
 AUTOCONF_VER=`(${AUTOCONF} --version 2>/dev/null | head -n 1 | \
               cut -d ' ' -f 4) 2>/dev/null`
-if [ "$AUTOCONF_VER" != "2.59" -a "$AUTOCONF_VER" != "2.61" ]
+if [ "$AUTOCONF_VER" != "2.59" -a "$AUTOCONF_VER" != "2.61" -a "$AUTOCONF_VER" != "2.62" ]
 then
-	echo "Warning: This program is tested with autoconf version 2.59 and 2.61."
+	echo "Warning: This program is tested with autoconf version 2.59, 2.61 and 2.62."
 	echo "You are using `${AUTOCONF} --version | head -n 1`."
 fi
 
