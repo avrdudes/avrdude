@@ -1,5 +1,9 @@
 2010-01-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* bootstrap: autoconf 2.62 works well.
+
+2010-01-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Various fixes for Xmega devices.
 	* avrdude.conf.in: Correctly declare EEPROM page sizes for
 	all Xmega devices (0x20 instead of 0x100).
