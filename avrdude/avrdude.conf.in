@@ -13737,7 +13737,7 @@ part
     memory "eeprom"
         size		= 0x0800;
         offset		= 0x08c0000;
-        page_size	= 0x100;
+        page_size	= 0x20;
         readsize	= 0x100;
     ;
 
@@ -13834,7 +13834,7 @@ part
     memory "eeprom"
         size		= 0x0800;
         offset		= 0x08c0000;
-        page_size	= 0x100;
+        page_size	= 0x20;
         readsize	= 0x100;
     ;
 
@@ -13931,7 +13931,7 @@ part
     memory "eeprom"
         size		= 0x0800;
         offset		= 0x08c0000;
-        page_size	= 0x100;
+        page_size	= 0x20;
         readsize	= 0x100;
     ;
 
@@ -14028,7 +14028,7 @@ part
     memory "eeprom"
         size		= 0x0800;
         offset		= 0x08c0000;
-        page_size	= 0x100;
+        page_size	= 0x20;
         readsize	= 0x100;
     ;
 
@@ -14125,7 +14125,7 @@ part
     memory "eeprom"
         size		= 0x1000;
         offset		= 0x08c0000;
-        page_size	= 0x100;
+        page_size	= 0x20;
         readsize	= 0x100;
     ;
 
@@ -14222,7 +14222,7 @@ part
     memory "eeprom"
         size		= 0x0800;
         offset		= 0x08c0000;
-        page_size	= 0x100;
+        page_size	= 0x20;
         readsize	= 0x100;
     ;
 
@@ -14319,7 +14319,7 @@ part
     memory "eeprom"
         size		= 0x0800;
         offset		= 0x08c0000;
-        page_size	= 0x100;
+        page_size	= 0x20;
         readsize	= 0x100;
     ;
 
@@ -14416,7 +14416,7 @@ part
     memory "eeprom"
         size		= 0x0800;
         offset		= 0x08c0000;
-        page_size	= 0x100;
+        page_size	= 0x20;
         readsize	= 0x100;
     ;
 
@@ -14513,7 +14513,7 @@ part
     memory "eeprom"
         size		= 0x1000;
         offset		= 0x08c0000;
-        page_size	= 0x100;
+        page_size	= 0x20;
         readsize	= 0x100;
     ;
 
@@ -14610,7 +14610,7 @@ part
     memory "eeprom"
         size		= 0x1000;
         offset		= 0x08c0000;
-        page_size	= 0x100;
+        page_size	= 0x20;
         readsize	= 0x100;
     ;
 
@@ -14707,7 +14707,7 @@ part
     memory "eeprom"
         size		= 0x0400;
         offset		= 0x08c0000;
-        page_size	= 0x100;
+        page_size	= 0x20;
         readsize	= 0x100;
     ;
 
@@ -14804,7 +14804,7 @@ part
     memory "eeprom"
         size		= 0x0400;
         offset		= 0x08c0000;
-        page_size	= 0x100;
+        page_size	= 0x20;
         readsize	= 0x100;
     ;
 
@@ -14901,7 +14901,7 @@ part
     memory "eeprom"
         size		= 0x0800;
         offset		= 0x08c0000;
-        page_size	= 0x100;
+        page_size	= 0x20;
         readsize	= 0x100;
     ;
 
@@ -14998,7 +14998,7 @@ part
     memory "eeprom"
         size		= 0x0800;
         offset		= 0x08c0000;
-        page_size	= 0x100;
+        page_size	= 0x20;
         readsize	= 0x100;
     ;
 
