@@ -1456,7 +1456,8 @@ static int stk500hv_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     buf[2] = pagesize & 0xff;
 
     /* flash and EEPROM reads require the load address command */
-    stk500v2_loadaddr(pgm, use_ext_addr | (paddr >> addrshift));
+    if (stk500v2_loadaddr(pgm, use_ext_addr | (paddr >> addrshift)) < 0)
+        return -1;
   } else {
     buf[1] = addr;
   }
@@ -1612,7 +1613,8 @@ static int stk500hv_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     memcpy(buf + 5, cache_ptr, pagesize);
 
     /* flash and EEPROM reads require the load address command */
-    stk500v2_loadaddr(pgm, use_ext_addr | (paddr >> addrshift));
+    if (stk500v2_loadaddr(pgm, use_ext_addr | (paddr >> addrshift)) < 0)
+        return -1;
   } else {
     buf[1] = addr;
     buf[2] = data;
@@ -1781,7 +1783,8 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     buf[2] = block_size & 0xff;
 
     if((last_addr==UINT_MAX)||(last_addr+block_size != addr)){
-      stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift));
+      if (stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift)) < 0)
+        return -1;
     }
     last_addr=addr;
 
@@ -1877,7 +1880,8 @@ static int stk500hv_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     buf[2] = page_size & 0xff;
 
     if ((last_addr == UINT_MAX) || (last_addr + block_size != addr)) {
-      stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift));
+      if (stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift)) < 0)
+        return -1;
     }
     last_addr=addr;
 
@@ -1996,7 +2000,8 @@ static int stk500v2_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     // when crossing a 64 KB boundary in flash.
     if (hiaddr != (addr & ~0xFFFF)) {
       hiaddr = addr & ~0xFFFF;
-      stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift));
+      if (stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift)) < 0)
+        return -1;
     }
 
     result = stk500v2_command(pgm,buf,4,sizeof(buf));
@@ -2075,7 +2080,8 @@ static int stk500hv_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     // when crossing a 64 KB boundary in flash.
     if (hiaddr != (addr & ~0xFFFF)) {
       hiaddr = addr & ~0xFFFF;
-      stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift));
+      if (stk500v2_loadaddr(pgm, use_ext_addr | (addr >> addrshift)) < 0)
+        return -1;
     }
 
     result = stk500v2_command(pgm, buf, 3, sizeof(buf));
@@ -3085,29 +3091,18 @@ static int stk600_xprog_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 {
     unsigned char b[10];
 
-    /*
-     * Fancy offsets everywhere.
-     * This is probably what AVR079 means when writing about the
-     * "TIF address space".
-     */
     if (strcmp(mem->desc, "flash") == 0) {
         b[1] = XPRG_MEM_TYPE_APPL;
-        addr += 0x00800000;
     } else if (strcmp(mem->desc, "boot") == 0) {
         b[1] = XPRG_MEM_TYPE_BOOT;
-        addr += 0x00800000;
     } else if (strcmp(mem->desc, "eeprom") == 0) {
         b[1] = XPRG_MEM_TYPE_EEPROM;
-        addr += 0x008c0000;
     } else if (strcmp(mem->desc, "lockbits") == 0) {
         b[1] = XPRG_MEM_TYPE_LOCKBITS;
-        addr += 0x008f0000;
     } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
         b[1] = XPRG_MEM_TYPE_FUSE;
-        addr += 0x008f0000;
     } else if (strcmp(mem->desc, "usersig") == 0) {
         b[1] = XPRG_MEM_TYPE_USERSIG;
-        addr += 0x008e0000;
     } else {
         fprintf(stderr,
                 "%s: stk600_xprog_write_byte(): unknown memory \"%s\"\n",
@@ -3140,35 +3135,22 @@ static int stk600_xprog_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 {
     unsigned char b[8];
 
-    /*
-     * Fancy offsets everywhere.
-     * This is probably what AVR079 means when writing about the
-     * "TIF address space".
-     */
     if (strcmp(mem->desc, "flash") == 0) {
         b[1] = XPRG_MEM_TYPE_APPL;
-        addr += 0x00800000;
     } else if (strcmp(mem->desc, "boot") == 0) {
         b[1] = XPRG_MEM_TYPE_BOOT;
-        addr += 0x00800000;
     } else if (strcmp(mem->desc, "eeprom") == 0) {
         b[1] = XPRG_MEM_TYPE_EEPROM;
-        addr += 0x008c0000;
     } else if (strcmp(mem->desc, "signature") == 0) {
         b[1] = XPRG_MEM_TYPE_APPL;
-        addr += 0x01000000;
     } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
         b[1] = XPRG_MEM_TYPE_FUSE;
-        addr += 0x008f0000;
     } else if (strcmp(mem->desc, "lockbits") == 0) {
         b[1] = XPRG_MEM_TYPE_LOCKBITS;
-        addr += 0x008f0000;
     } else if (strcmp(mem->desc, "calibration") == 0) {
         b[1] = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
-        addr += 0x008e0000;
     } else if (strcmp(mem->desc, "usersig") == 0) {
         b[1] = XPRG_MEM_TYPE_USERSIG;
-        addr += 0x008e0000;
     } else {
         fprintf(stderr,
                 "%s: stk600_xprog_read_byte(): unknown memory \"%s\"\n",
@@ -3203,6 +3185,7 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     unsigned int offset;
     unsigned char memtype;
     int n_bytes_orig = n_bytes;
+    unsigned long use_ext_addr = 0;
 
     /*
      * The XPROG read command supports at most 256 bytes in one
@@ -3218,19 +3201,23 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
      */
     if (strcmp(mem->desc, "flash") == 0) {
         memtype = XPRG_MEM_TYPE_APPL;
-        addr = 0x00800000;
+        if (mem->size > 64 * 1024)
+            use_ext_addr = (1UL << 31);
     } else if (strcmp(mem->desc, "boot") == 0) {
         memtype = XPRG_MEM_TYPE_BOOT;
-        addr = 0x00800000;
+        // Do we have to consider the total amount of flash
+        // instead to decide whether to use extended addressing?
+        if (mem->size > 64 * 1024)
+            use_ext_addr = (1UL << 31);
     } else if (strcmp(mem->desc, "eeprom") == 0) {
         memtype = XPRG_MEM_TYPE_EEPROM;
-        addr = 0x008c0000;
     } else {
         fprintf(stderr,
                 "%s: stk600_xprog_paged_load(): unknown paged memory \"%s\"\n",
                 progname, mem->desc);
         return -1;
     }
+    addr = mem->offset;
 
     if ((b = malloc(page_size + 2)) == NULL) {
 	fprintf(stderr,
@@ -3238,6 +3225,9 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                 progname);
         return -1;
     }
+
+    if (stk500v2_loadaddr(pgm, use_ext_addr) < 0)
+        return -1;
 
     offset = 0;
     while (n_bytes != 0) {
@@ -3278,6 +3268,8 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     unsigned char memtype;
     int n_bytes_orig = n_bytes;
     size_t writesize;
+    unsigned long use_ext_addr = 0;
+    unsigned char writemode;
 
     /*
      * The XPROG read command supports at most 256 bytes in one
@@ -3297,19 +3289,26 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
      */
     if (strcmp(mem->desc, "flash") == 0) {
         memtype = XPRG_MEM_TYPE_APPL;
-        addr = 0x00800000;
+        writemode = (1 << XPRG_MEM_WRITE_WRITE);
+        if (mem->size > 64 * 1024)
+            use_ext_addr = (1UL << 31);
     } else if (strcmp(mem->desc, "boot") == 0) {
         memtype = XPRG_MEM_TYPE_BOOT;
-        addr = 0x00800000;
+        writemode = (1 << XPRG_MEM_WRITE_WRITE);
+        // Do we have to consider the total amount of flash
+        // instead to decide whether to use extended addressing?
+        if (mem->size > 64 * 1024)
+            use_ext_addr = (1UL << 31);
     } else if (strcmp(mem->desc, "eeprom") == 0) {
         memtype = XPRG_MEM_TYPE_EEPROM;
-        addr = 0x008c0000;
+        writemode = (1 << XPRG_MEM_WRITE_WRITE) | (1 << XPRG_MEM_WRITE_ERASE);
     } else {
         fprintf(stderr,
                 "%s: stk600_xprog_paged_write(): unknown paged memory \"%s\"\n",
                 progname, mem->desc);
         return -1;
     }
+    addr = mem->offset;
 
     if ((b = malloc(page_size + 9)) == NULL) {
 	fprintf(stderr,
@@ -3317,6 +3316,9 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                 progname);
         return -1;
     }
+
+    if (stk500v2_loadaddr(pgm, use_ext_addr) < 0)
+        return -1;
 
     offset = 0;
     while (n_bytes != 0) {
@@ -3349,7 +3351,7 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 		b[0] = XPRG_CMD_WRITE_MEM;
 		b[1] = memtype;
 		if (chunk + 256 == page_size) {
-		    b[2] = 3;	/* last chunk: erase page | write page */
+		    b[2] = writemode;	/* last chunk */
 		} else {
 		    b[2] = 0;	/* initial/intermediate chunk: just download */
 		}
@@ -3386,7 +3388,7 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
             }
 	    b[0] = XPRG_CMD_WRITE_MEM;
 	    b[1] = memtype;
-	    b[2] = 3;		/* erase page | write page */
+	    b[2] = writemode;
 	    b[3] = addr >> 24;
 	    b[4] = addr >> 16;
 	    b[5] = addr >> 8;

@@ -1,3 +1,20 @@
+2010-01-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Various fixes for Xmega devices.
+	* avrdude.conf.in: Correctly declare EEPROM page sizes for
+	all Xmega devices (0x20 instead of 0x100).
+	* avr.c: If a memory region has a page size declared, try
+	using the paged IO routines regardless of the target memory
+	name.  Xmega EEPROM requires to be written in paged mode.
+	Correctly use a long (rather than unsigned long) variable to
+	evaluate the success status of the paged mode write attempt.
+	* stk500v2.c: Don't apply TIF space offsets twice (bug #27995:
+	AVRDUDE 5.8svn fails to program and read XMEGA); use
+	stk500v2_loadaddr() prior to paged mode (EEPROM and flash) writes,
+	otherwise programming of flash areas will fail; while being there,
+	check the return value of stk500v2_loadaddr() everywhere; use the
+	correct write/erase mode bits (same as AVR Studio does).
+
 2010-01-12  Michal Ludvig  <mludvig@logix.net.nz>
 
 	* buspirate.c: Initialise firmware version to v0.0
