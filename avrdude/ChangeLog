@@ -1,3 +1,8 @@
+2010-01-12  Michal Ludvig  <mludvig@logix.net.nz>
+
+	* buspirate.c: Initialise firmware version to v0.0
+	prior to parsing the buspirate banner.
+
 2010-01-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Clean-up the Xmega erase functions.

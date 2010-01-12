@@ -535,7 +535,7 @@ static void buspirate_enable(struct programmer_t *pgm)
 {
 	unsigned char *reset_str = "#\n";
 	char *rcvd;
-	int fw_v1, fw_v2;
+	int fw_v1 = 0, fw_v2 = 0;
 	int rc, print_banner = 0;
 
 	printf("Detecting BusPirate...\n");
