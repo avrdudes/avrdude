@@ -18,9 +18,10 @@
 #       type     = par | stk500 | stk500v2 | stk500pp | stk500hvsp | stk500generic |
 #                  stk600 | stk600pp | stk600hvsp |
 #                  avr910 | butterfly | usbasp |
-#                  jtagmki | jtagmkii | jtagmkii_isp | jtagmkii_dw | jtagmkII_avr32 |
+#                  jtagmki | jtagmkii | jtagmkii_isp | jtagmkii_dw |
+#                  jtagmkII_avr32 | jtagmkii_pdi |
 #                  dragon_dw | dragon_jtag | dragon_isp | dragon_pp |
-#                  dragon_hvsp | arduino; # programmer type
+#                  dragon_hvsp | dragon_pdi | arduino; # programmer type
 #       baudrate = <num> ;                          # baudrate for avr910-programmer
 #       vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
 #       reset    = <num> ;                          # pin number
@@ -515,9 +516,26 @@ programmer
 programmer
   id    = "jtagmkII_avr32";
   desc  = "Atmel JTAG ICE mkII im AVR32 mode";
-  baudrate = 115200; 
+  baudrate = 115200;
   type  = jtagmkii_avr32;
 ;
+
+# JTAG ICE mkII in AVR32 mode
+programmer
+  id    = "jtag2avr32";
+  desc  = "Atmel JTAG ICE mkII im AVR32 mode";
+  baudrate = 115200;
+  type  = jtagmkii_avr32;
+;
+
+# JTAG ICE mkII in PDI mode
+programmer
+  id    = "jtag2pdi";
+  desc  = "Atmel JTAG ICE mkII PDI mode";
+  baudrate = 115200;
+  type  = jtagmkii_pdi;
+;
+
 # AVR Dragon in JTAG mode
 programmer
   id    = "dragon_jtag";
@@ -556,6 +574,14 @@ programmer
   desc  = "Atmel AVR Dragon in debugWire mode";
   baudrate = 115200;
   type  = dragon_dw;
+;
+
+# AVR Dragon in PDI mode
+programmer
+  id    = "dragon_pdi";
+  desc  = "Atmel AVR Dragon in PDI mode";
+  baudrate = 115200;
+  type  = dragon_pdi;
 ;
 
 programmer

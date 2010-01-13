@@ -36,8 +36,10 @@ int  jtagmkII_getparm(PROGRAMMER * pgm, unsigned char parm,
 void jtagmkII_initpgm (PROGRAMMER * pgm);
 void jtagmkII_avr32_initpgm (PROGRAMMER * pgm);
 void jtagmkII_dw_initpgm (PROGRAMMER * pgm);
+void jtagmkII_pdi_initpgm (PROGRAMMER * pgm);
 void jtagmkII_dragon_initpgm (PROGRAMMER * pgm);
 void jtagmkII_dragon_dw_initpgm (PROGRAMMER * pgm);
+void jtagmkII_dragon_pdi_initpgm (PROGRAMMER * pgm);
 
 /*
  * These functions are referenced from stk500v2.c for JTAG ICE mkII

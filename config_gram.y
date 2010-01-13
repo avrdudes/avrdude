@@ -97,6 +97,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_DRAGON_HVSP
 %token K_DRAGON_ISP
 %token K_DRAGON_JTAG
+%token K_DRAGON_PDI
 %token K_DRAGON_PP
 %token K_STK500_DEVCODE
 %token K_AVR910_DEVCODE
@@ -110,6 +111,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_JTAG_MKII_AVR32
 %token K_JTAG_MKII_DW
 %token K_JTAG_MKII_ISP
+%token K_JTAG_MKII_PDI
 %token K_LOADPAGE
 %token K_MAX_WRITE_DELAY
 %token K_MIN_WRITE_DELAY
@@ -506,6 +508,12 @@ prog_parm :
     }
   } |
 
+  K_TYPE TKN_EQUAL K_JTAG_MKII_PDI {
+    {
+      jtagmkII_pdi_initpgm(current_prog);
+    }
+  } |
+
   K_TYPE TKN_EQUAL K_DRAGON_DW {
     {
       jtagmkII_dragon_dw_initpgm(current_prog);
@@ -527,6 +535,12 @@ prog_parm :
   K_TYPE TKN_EQUAL K_DRAGON_JTAG {
     {
       jtagmkII_dragon_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_DRAGON_PDI {
+    {
+      jtagmkII_dragon_pdi_initpgm(current_prog);
     }
   } |
 

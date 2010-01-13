@@ -15,6 +15,7 @@ Current:
 
       - BusPirate
       - Arduino
+      - JTAGICEmkII and AVR Dragon in PDI mode (ATxmega devices)
 
   * Bugfixes
 

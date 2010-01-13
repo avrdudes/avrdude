@@ -1,5 +1,15 @@
 2010-01-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* jtagmkII.c: Implement PDI mode support for the JTAG ICE mkII
+	and the AVR Dragon.
+	* jtagmkII.h: (Dito.)
+	* config_gram.y: (Dito.)
+	* jtagmkII_private.h: (Dito.)
+	* avrdude.conf.in: (Dito.)
+	* lexer.l: (Dito.)
+
+2010-01-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* stk500v2.c: Update STK600 routing and socket card data from XML
 	file.
 
