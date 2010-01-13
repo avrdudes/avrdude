@@ -262,6 +262,40 @@
 #define XMEGA_ERASE_EEPROM_PAGE 0x06
 #define XMEGA_ERASE_USERSIG 0x07
 
+/* AVR32 related definitions */
+#define AVR32_FLASHC_FCR                  0xFFFE1400
+#define AVR32_FLASHC_FCMD                 0xFFFE1404
+#define   AVR32_FLASHC_FCMD_KEY           0xA5000000
+#define   AVR32_FLASHC_FCMD_WRITE_PAGE             1
+#define   AVR32_FLASHC_FCMD_ERASE_PAGE             2
+#define   AVR32_FLASHC_FCMD_CLEAR_PAGE_BUFFER      3
+#define   AVR32_FLASHC_FCMD_LOCK                   4
+#define   AVR32_FLASHC_FCMD_UNLOCK                 5
+#define AVR32_FLASHC_FSR                  0xFFFE1408
+#define   AVR32_FLASHC_FSR_RDY            0x00000001
+#define   AVR32_FLASHC_FSR_ERR            0x00000008
+#define AVR32_FLASHC_FGPFRHI              0xFFFE140C
+#define AVR32_FLASHC_FGPFRLO              0xFFFE1410
+
+#define AVR32_DC                          0x00000008
+#define AVR32_DS                          0x00000010
+#define AVR32_DINST                       0x00000104
+#define AVR32_DCCPU                       0x00000110
+#define AVR32_DCEMU                       0x00000114
+#define AVR32_DCSR                        0x00000118
+
+#define AVR32_DC_ABORT                    0x80000000
+#define AVR32_DC_RESET                    0x40000000
+#define AVR32_DC_DBE                      0x00002000
+#define AVR32_DC_DBR                      0x00001000
+
+#define AVR32_RESET_READ             0x0001
+#define AVR32_RESET_WRITE            0x0002
+#define AVR32_RESET_CHIP_ERASE       0x0004
+#define AVR32_SET4RUNNING            0x0008
+//#define AVR32_RESET_COMMON           (AVR32_RESET_READ | AVR32_RESET_WRITE | AVR32_RESET_CHIP_ERASE )
+
+
 #if !defined(JTAGMKII_PRIVATE_EXPORTED)
 /*
  * In appnote AVR067, struct device_descriptor is written with

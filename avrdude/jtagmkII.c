@@ -631,7 +631,7 @@ int jtagmkII_recv(PROGRAMMER * pgm, unsigned char **msg) {
        * original pointer though, as the caller must free() it.
        */
       memmove(*msg, *msg + 8, rv);
-      
+
       if (verbose == 4)
       {
           int i = rv;
@@ -2342,6 +2342,1073 @@ static void jtagmkII_print_parms(PROGRAMMER * pgm)
 #pragma mark -
 #endif
 
+static int jtagmkII_avr32_reset(PROGRAMMER * pgm, unsigned char val,
+                                unsigned char ret1, unsigned char ret2)
+{
+  int status;
+  unsigned char buf[3], *resp;
+
+  if(verbose) fprintf(stderr,
+          "%s: jtagmkII_avr32_reset(%2.2x)\n",
+          progname, val);
+
+  buf[0] = CMND_GET_IR;
+  buf[1] = 0x0C;
+  status = jtagmkII_send(pgm, buf, 2);
+  if(status < 0) return -1;
+
+  status = jtagmkII_recv(pgm, &resp);
+  if (status != 2 || resp[0] != 0x87 || resp[1] != ret1) {
+    if(verbose) fprintf(stderr,
+	      "%s: jtagmkII_avr32_reset(): "
+	      "Get_IR, expecting %2.2x but got %2.2x\n",
+	      progname, ret1, resp[1]);
+
+    //return -1;
+  }
+
+  buf[0] = CMND_GET_xxx;
+  buf[1] = 5;
+  buf[2] = val;
+  status = jtagmkII_send(pgm, buf, 3);
+  if(status < 0) return -1;
+
+  status = jtagmkII_recv(pgm, &resp);
+  if (status != 2 || resp[0] != 0x87 || resp[1] != ret2) {
+    if(verbose) fprintf(stderr,
+	      "%s: jtagmkII_avr32_reset(): "
+	      "Get_XXX, expecting %2.2x but got %2.2x\n",
+	      progname, ret2, resp[1]);
+    //return -1;
+  }
+
+  return 0;
+}
+
+// At init: AVR32_RESET_READ_IR | AVR32_RESET_READ_READ_CHIPINFO
+static int jtagmkII_reset32(PROGRAMMER * pgm, unsigned short flags)
+{
+  int status, j, lineno;
+  unsigned char *resp, buf[3];
+  unsigned long val=0;
+  unsigned long config0, config1;
+
+  if(verbose) fprintf(stderr,
+          "%s: jtagmkII_reset32(%2.2x)\n",
+          progname, flags);
+
+  status = -1;
+
+  // Happens at the start of a programming operation
+  if(flags & AVR32_RESET_READ) {
+    buf[0] = CMND_GET_IR;
+    buf[1] = 0x11;
+    status = jtagmkII_send(pgm, buf, 2);
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+
+    status = jtagmkII_recv(pgm, &resp);
+    if (status != 2 || resp[0] != 0x87 || resp[1] != 01)
+      {lineno = __LINE__; goto eRR;};
+  }
+
+  if(flags & (AVR32_RESET_WRITE | AVR32_SET4RUNNING)) {
+    // AVR_RESET(0x1F)
+    status = jtagmkII_avr32_reset(pgm, 0x1F, 0x01, 0x00);
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+    // AVR_RESET(0x07)
+    status = jtagmkII_avr32_reset(pgm, 0x07, 0x11, 0x1F);
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+  }
+
+  //if(flags & AVR32_RESET_COMMON)
+  {
+    val = jtagmkII_read_SABaddr(pgm, AVR32_DS, 0x01);
+    if(val != 0) {lineno = __LINE__; goto eRR;}
+    val = jtagmkII_read_SABaddr(pgm, AVR32_DC, 0x01);
+    if(val != 0) {lineno = __LINE__; goto eRR;}
+  }
+
+  if(flags & (AVR32_RESET_READ | AVR32_RESET_CHIP_ERASE)) {
+    status = jtagmkII_write_SABaddr(pgm, AVR32_DC, 0x01,
+                                    AVR32_DC_DBE | AVR32_DC_DBR);
+    if(status < 0) return -1;
+  }
+
+  if(flags & (AVR32_RESET_WRITE | AVR32_SET4RUNNING)) {
+    status = jtagmkII_write_SABaddr(pgm, AVR32_DC, 0x01,
+             AVR32_DC_ABORT | AVR32_DC_RESET | AVR32_DC_DBE | AVR32_DC_DBR);
+    if(status < 0) return -1;
+    for(j=0; j<21; ++j) {
+      val = jtagmkII_read_SABaddr(pgm, AVR32_DS, 0x01);
+    }
+    if(val != 0x04000000) {lineno = __LINE__; goto eRR;}
+
+    // AVR_RESET(0x00)
+    status = jtagmkII_avr32_reset(pgm, 0x00, 0x01, 0x07);
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+  }
+//  if(flags & (AVR32_RESET_READ | AVR32_RESET_WRITE))
+  {
+    for(j=0; j<2; ++j) {
+      val = jtagmkII_read_SABaddr(pgm, AVR32_DS, 0x01);
+      if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
+      if((val&0x05000020) != 0x05000020) {lineno = __LINE__; goto eRR;}
+    }
+  }
+
+  //if(flags & (AVR32_RESET_READ | AVR32_RESET_WRITE | AVR32_RESET_CHIP_ERASE))
+  {
+    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe7b00044);  // mtdr 272, R0
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+
+    val = jtagmkII_read_SABaddr(pgm, AVR32_DCSR, 0x01);
+    if(val != 0x00000001) {lineno = __LINE__; goto eRR;}
+
+    val = jtagmkII_read_SABaddr(pgm, AVR32_DCCPU, 0x01);
+    if(val != 0x00000000) {lineno = __LINE__; goto eRR;}
+  }
+
+  // Read chip configuration - common for all
+  if(flags & (AVR32_RESET_READ | AVR32_RESET_WRITE | AVR32_RESET_CHIP_ERASE)) {
+    for(j=0; j<2; ++j) {
+      val = jtagmkII_read_SABaddr(pgm, AVR32_DS, 0x01);
+      if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
+      if((val&0x05000020) != 0x05000020) {lineno = __LINE__; goto eRR;}
+    }
+
+    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe7b00044);  // mtdr 272, R0
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+
+    val = jtagmkII_read_SABaddr(pgm, AVR32_DCSR, 0x01);
+    if(val != 0x00000001) {lineno = __LINE__; goto eRR;}
+
+    val = jtagmkII_read_SABaddr(pgm, AVR32_DCCPU, 0x01);
+    if(val != 0x00000000) {lineno = __LINE__; goto eRR;}
+
+    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe1b00040);  // mfsr R0, 256
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+
+    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe7b00044);  // mtdr 272, R0
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+
+    val = jtagmkII_read_SABaddr(pgm, AVR32_DCSR, 0x01);
+    if(val != 0x00000001) {lineno = __LINE__; goto eRR;}
+
+    val = jtagmkII_read_SABaddr(pgm, AVR32_DCCPU, 0x01);
+    if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
+    config0 = val;  // 0x0204098b
+
+    status = jtagmkII_write_SABaddr(pgm, AVR32_DCEMU, 0x01, 0x00000000);
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+
+    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe5b00045);  // mtdr R0, 276
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+
+    val = jtagmkII_read_SABaddr(pgm, AVR32_DS, 0x01);
+    if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
+    if((val&0x05000020) != 0x05000020) {lineno = __LINE__; goto eRR;}
+
+    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe7b00044);  // mtdr 272, R0
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+
+    val = jtagmkII_read_SABaddr(pgm, AVR32_DCSR, 0x01);
+    if(val != 0x00000001) {lineno = __LINE__; goto eRR;}
+
+    val = jtagmkII_read_SABaddr(pgm, AVR32_DCCPU, 0x01);
+    if(val != 0x00000000) {lineno = __LINE__; goto eRR;}
+
+    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe1b00041);  // mfsr R0, 260
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe7b00044);  // mtdr 272, R0
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+
+    val = jtagmkII_read_SABaddr(pgm, AVR32_DCSR, 0x01);
+    if(val != 0x00000001) {lineno = __LINE__; goto eRR;}
+    val = jtagmkII_read_SABaddr(pgm, AVR32_DCCPU, 0x01);
+    if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
+    config1 = val;  // 0x00800000
+
+    status = jtagmkII_write_SABaddr(pgm, AVR32_DCEMU, 0x01, 0x00000000);
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe5b00045);  // mtdr R0, 276
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+
+    val = jtagmkII_read_SABaddr(pgm, 0x00000010, 0x06); // need to recheck who does this...
+    if(val != 0x00000000) {lineno = __LINE__; goto eRR;}
+  }
+
+  if(flags & AVR32_RESET_CHIP_ERASE) {
+    status = jtagmkII_avr32_reset(pgm, 0x1f, 0x01, 0x00);
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+    status = jtagmkII_avr32_reset(pgm, 0x01, 0x11, 0x1f);
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+  }
+
+  if(flags & AVR32_SET4RUNNING) {
+    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe1b00014);  // mfsr R0, 80
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+
+    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe7b00044);  // mtdr 272, R0
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+
+    val = jtagmkII_read_SABaddr(pgm, AVR32_DCSR, 0x01);
+    if(val != 0x00000001) {lineno = __LINE__; goto eRR;}
+
+    val = jtagmkII_read_SABaddr(pgm, AVR32_DCCPU, 0x01);
+    if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
+    config0 = val;  // 0x0204098b
+
+    status = jtagmkII_write_SABaddr(pgm, AVR32_DCEMU, 0x01, 0x00000000);
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+
+    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe5b00045);  // mfdr R0, 276
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+
+    val = jtagmkII_read_SABaddr(pgm, AVR32_DS, 0x01);
+    if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
+    if((val&0x05000020) != 0x05000020) {lineno = __LINE__; goto eRR;}
+
+    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xd623d703);  // retd
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+  }
+
+  return 0;
+
+  eRR:
+    fprintf(stderr,
+	    "%s: jtagmkII_reset32(): "
+	    "failed at line %d (status=%x val=%lx)\n",
+	    progname, lineno, status, val);
+    return -1;
+}
+
+static int jtagmkII_smc_init32(PROGRAMMER * pgm)
+{
+  int status, lineno;
+  unsigned long val;
+
+  // HMATRIX 0xFFFF1000
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1018, 0x05, 0x04000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1024, 0x05, 0x04000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1008, 0x05, 0x04000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1078, 0x05, 0x04000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1088, 0x05, 0x04000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1018, 0x05, 0x08000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1024, 0x05, 0x08000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1008, 0x05, 0x08000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1078, 0x05, 0x08000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1088, 0x05, 0x08000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1018, 0x05, 0x10000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1024, 0x05, 0x10000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1008, 0x05, 0x10000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1078, 0x05, 0x10000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1088, 0x05, 0x10000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1018, 0x05, 0x00020000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1024, 0x05, 0x00020000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1008, 0x05, 0x00020000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1078, 0x05, 0x00020000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1088, 0x05, 0x00020000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1018, 0x05, 0x02000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1024, 0x05, 0x02000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1008, 0x05, 0x02000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1078, 0x05, 0x02000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xffff1088, 0x05, 0x02000000);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+
+  status = jtagmkII_write_SABaddr(pgm, 0xfffe1c00, 0x05, 0x00010001);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xfffe1c04, 0x05, 0x05070a0b);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xfffe1c08, 0x05, 0x000b000c);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  status = jtagmkII_write_SABaddr(pgm, 0xfffe1c0c, 0x05, 0x00031103);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+
+  // switchToClockSource
+  val = jtagmkII_read_SABaddr(pgm, 0xffff0c28, 0x05);
+  if (val != 0x00000000) {lineno = __LINE__; goto eRR;} // OSC 0
+  status = jtagmkII_write_SABaddr(pgm, 0xffff0c28, 0x05, 0x0000607);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+  val = jtagmkII_read_SABaddr(pgm, 0xffff0c00, 0x05);
+  if (val != 0x00000000) {lineno = __LINE__; goto eRR;} // PLL 0
+  status = jtagmkII_write_SABaddr(pgm, 0xffff0c00, 0x05, 0x0000004);
+  if (status < 0) {lineno = __LINE__; goto eRR;} // Power Manager
+  status = jtagmkII_write_SABaddr(pgm, 0xffff0c00, 0x05, 0x0000005);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+
+  usleep(1000000);
+
+  val = jtagmkII_read_SABaddr(pgm, 0xfffe1408, 0x05);
+  if (val != 0x0000a001) {lineno = __LINE__; goto eRR;} // PLL 0
+
+  // need a small delay to let clock stabliize
+  usleep(50*1000);
+
+  return 0;
+
+  eRR:
+    fprintf(stderr,
+	    "%s: jtagmkII_smc_init32(): "
+	    "failed at line %d\n",
+	    progname, lineno);
+    return -1;
+}
+
+
+/*
+ * initialize the AVR device and prepare it to accept commands
+ */
+static int jtagmkII_initialize32(PROGRAMMER * pgm, AVRPART * p)
+{
+  int status, j;
+  unsigned char buf[6], *resp;
+
+  if (jtagmkII_setparm(pgm, PAR_DAISY_CHAIN_INFO, PDATA(pgm)->jtagchain) < 0) {
+    fprintf(stderr, "%s: jtagmkII_initialize(): Failed to setup JTAG chain\n",
+            progname);
+    return -1;
+  }
+
+  free(PDATA(pgm)->flash_pagecache);
+  free(PDATA(pgm)->eeprom_pagecache);
+  if ((PDATA(pgm)->flash_pagecache = malloc(PDATA(pgm)->flash_pagesize)) == NULL) {
+    fprintf(stderr, "%s: jtagmkII_initialize(): Out of memory\n",
+	    progname);
+    return -1;
+  }
+  if ((PDATA(pgm)->eeprom_pagecache = malloc(PDATA(pgm)->eeprom_pagesize)) == NULL) {
+    fprintf(stderr, "%s: jtagmkII_initialize32(): Out of memory\n",
+	    progname);
+    free(PDATA(pgm)->flash_pagecache);
+    return -1;
+  }
+  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
+
+  for(j=0; j<2; ++j) {
+    buf[0] = CMND_GET_IR;
+    buf[1] = 0x1;
+    if(jtagmkII_send(pgm, buf, 2) < 0)
+      return -1;
+    status = jtagmkII_recv(pgm, &resp);
+    if(status <= 0 || resp[0] != 0x87) {
+      if (verbose >= 2)
+        putc('\n', stderr);
+      fprintf(stderr,
+                "%s: jtagmkII_initialize32(): "
+                "timeout/error communicating with programmer (status %d)\n",
+                progname, status);
+      return -1;
+    }
+    free(resp);
+
+    memset(buf, 0, sizeof(buf));
+    buf[0] = CMND_GET_xxx;
+    buf[1] = 0x20;
+    if(jtagmkII_send(pgm, buf, 6) < 0)
+      return -1;
+    status = jtagmkII_recv(pgm, &resp);
+    if(status <= 0 || resp[0] != 0x87) {
+      if (verbose >= 2)
+        putc('\n', stderr);
+      fprintf(stderr,
+                "%s: jtagmkII_initialize32(): "
+                "timeout/error communicating with programmer (status %d)\n",
+                progname, status);
+      return -1;
+    }
+
+    if (status != 5 ||
+    resp[2] != p->signature[0] ||
+    resp[3] != p->signature[1] ||
+    resp[4] != p->signature[2]) {
+      fprintf(stderr,
+          "%s: Expected signature for %s is %02X %02X %02X\n",
+          progname, p->desc,
+          p->signature[0], p->signature[1], p->signature[2]);
+      if (!ovsigck) {
+        fprintf(stderr, "%sDouble check chip, "
+        "or use -F to override this check.\n",
+                progbuf);
+        return -1;
+      }
+    }
+    free(resp);
+  }
+
+  return 0;
+}
+
+static int jtagmkII_chip_erase32(PROGRAMMER * pgm, AVRPART * p)
+{
+  int status=0, loops;
+  unsigned char *resp, buf[3], x, ret[4], *retP;
+  unsigned long val=0;
+  unsigned int lineno;
+
+  if(verbose) fprintf(stderr,
+          "%s: jtagmkII_chip_erase32()\n",
+          progname);
+
+  status = jtagmkII_reset32(pgm, AVR32_RESET_CHIP_ERASE);
+  if(status != 0) {lineno = __LINE__; goto eRR;}
+
+  // sequence of IR transitions
+  ret[0] = 0x01;
+  ret[1] = 0x05;
+  ret[2] = 0x01;
+  ret[3] = 0x00;
+
+  retP = ret;
+  for(loops=0; loops<1000; ++loops) {
+    buf[0] = CMND_GET_IR;
+    buf[1] = 0x0F;
+    status = jtagmkII_send(pgm, buf, 2);
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+
+    status = jtagmkII_recv(pgm, &resp);
+    if (status != 2 || resp[0] != 0x87) {
+      {lineno = __LINE__; goto eRR;}
+    }
+    x = resp[1];
+    free(resp);
+    if(x == *retP) ++retP;
+    if(*retP == 0x00) break;
+  }
+  if(loops == 1000) {lineno = __LINE__; goto eRR;}
+
+  status = jtagmkII_avr32_reset(pgm, 0x00, 0x01, 0x01);
+  if(status < 0) {lineno = __LINE__; goto eRR;}
+
+  val = jtagmkII_read_SABaddr(pgm, 0x00000010, 0x06);
+  if(val != 0x00000000) {lineno = __LINE__; goto eRR;}
+
+  // AVR32 "special"
+  buf[0] = CMND_SET_PARAMETER;
+  buf[1] = 0x03;
+  buf[2] = 0x02;
+  jtagmkII_send(pgm, buf, 3);
+  status = jtagmkII_recv(pgm, &resp);
+  if(status < 0 || resp[0] != RSP_OK) {lineno = __LINE__; goto eRR;}
+  free(resp);
+
+  return 0;
+
+  eRR:
+    fprintf(stderr,
+	    "%s: jtagmkII_reset32(): "
+	    "failed at line %d (status=%x val=%lx)\n",
+	    progname, lineno, status, val);
+    return -1;
+}
+
+static unsigned long jtagmkII_read_SABaddr(PROGRAMMER * pgm, unsigned long addr,
+                                           unsigned int prefix)
+{
+  unsigned char buf[6], *resp;
+  int status;
+  unsigned long val;
+  unsigned long otimeout = serial_recv_timeout;
+
+  serial_recv_timeout = 256;
+
+  buf[0] = CMND_READ_SAB;
+  buf[1] = prefix;
+  u32_to_b4r(&buf[2], addr);
+
+  if(jtagmkII_send(pgm, buf, 6) < 0)
+    return ERROR_SAB;
+
+  status = jtagmkII_recv(pgm, &resp);
+  if(status <= 0 || resp[0] != 0x87) {
+    if (verbose >= 2)
+      putc('\n', stderr);
+    fprintf(stderr,
+	      "%s: jtagmkII_read_SABaddr(): "
+	      "timeout/error communicating with programmer (status %d) resp=%x\n",
+	      progname, status, resp[0]);
+    serial_recv_timeout = otimeout;
+
+    if(status > 0) {
+      int i;
+      fprintf(stderr, "Cmd: ");
+      for(i=0; i<6; ++i) fprintf(stderr, "%2.2x ", buf[i]);
+      fprintf(stderr, "\n");
+      fprintf(stderr, "Data: ");
+      for(i=0; i<status; ++i) fprintf(stderr, "%2.2x ", resp[i]);
+      fprintf(stderr, "\n");
+    }
+    return ERROR_SAB;
+  }
+
+  if(status != 5) {
+    if (verbose >= 2)
+      putc('\n', stderr);
+    fprintf(stderr,
+	      "%s: jtagmkII_read_SABaddr(): "
+	      "wrong number of bytes (status %d)\n",
+	      progname, status);
+    serial_recv_timeout = otimeout;
+    return ERROR_SAB;
+  }
+
+  val = b4_to_u32r(&resp[1]);
+  free(resp);
+
+  if (verbose) {
+    if (verbose >= 2)
+      putc('\n', stderr);
+    fprintf(stderr,
+	      "%s: jtagmkII_read_SABaddr(): "
+	      "OCD Register %lx -> %4.4lx\n",
+	      progname, addr, val);
+  }
+  serial_recv_timeout = otimeout;
+  return val;
+}
+
+static int jtagmkII_write_SABaddr(PROGRAMMER * pgm, unsigned long addr,
+                                  unsigned int prefix, unsigned long val)
+{
+  unsigned char buf[10], *resp;
+  int status;
+
+  buf[0] = CMND_WRITE_SAB;
+  buf[1] = prefix;
+  u32_to_b4r(&buf[2], addr);
+  u32_to_b4r(&buf[6], val);
+
+  if(jtagmkII_send(pgm, buf, 10) < 0)
+    return -1;
+
+  status = jtagmkII_recv(pgm, &resp);
+  if(status <= 0 || resp[0] != RSP_OK) {
+    if (verbose >= 2)
+      putc('\n', stderr);
+    fprintf(stderr,
+	      "%s: jtagmkII_write_SABaddr(): "
+	      "timeout/error communicating with programmer (status %d)\n",
+	      progname, status);
+    return -1;
+  }
+
+
+  if (verbose) {
+    if (verbose >= 2)
+      putc('\n', stderr);
+    fprintf(stderr,
+	      "%s: jtagmkII_write_SABaddr(): "
+	      "OCD Register %lx -> %4.4lx\n",
+	      progname, addr, val);
+  }
+  return 0;
+}
+
+static int jtagmkII_open32(PROGRAMMER * pgm, char * port)
+{
+  int status;
+  unsigned char buf[6], *resp;
+  long baud;
+
+  if (verbose >= 2)
+    fprintf(stderr, "%s: jtagmkII_open32()\n", progname);
+
+  /*
+   * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
+   * attaching.  If the config file or command-line parameters specify
+   * a higher baud rate, we switch to it later on, after establishing
+   * the connection with the ICE.
+   */
+  baud = 19200;
+
+  /*
+   * If the port name starts with "usb", divert the serial routines
+   * to the USB ones.  The serial_open() function for USB overrides
+   * the meaning of the "baud" parameter to be the USB device ID to
+   * search for.
+   */
+  if (strncmp(port, "usb", 3) == 0) {
+#if defined(HAVE_LIBUSB)
+    serdev = &usb_serdev;
+    baud = USB_DEVICE_JTAGICEMKII;
+#else
+    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    return -1;
+#endif
+  }
+
+  strcpy(pgm->port, port);
+  serial_open(port, baud, &pgm->fd);
+
+  /*
+   * drain any extraneous input
+   */
+  jtagmkII_drain(pgm, 0);
+
+  status = jtagmkII_getsync(pgm, -1);
+  if(status < 0) return -1;
+
+  // AVR32 "special"
+  buf[0] = CMND_SET_PARAMETER;
+  buf[1] = 0x2D;
+  buf[2] = 0x03;
+  jtagmkII_send(pgm, buf, 3);
+  status = jtagmkII_recv(pgm, &resp);
+  if(status < 0 || resp[0] != RSP_OK)
+    return -1;
+  free(resp);
+
+  buf[1] = 0x03;
+  buf[2] = 0x02;
+  jtagmkII_send(pgm, buf, 3);
+  status = jtagmkII_recv(pgm, &resp);
+  if(status < 0 || resp[0] != RSP_OK)
+    return -1;
+  free(resp);
+
+  buf[1] = 0x03;
+  buf[2] = 0x04;
+  jtagmkII_send(pgm, buf, 3);
+  status = jtagmkII_recv(pgm, &resp);
+  if(status < 0 || resp[0] != RSP_OK)
+    return -1;
+  free(resp);
+
+  return 0;
+}
+
+static void jtagmkII_close32(PROGRAMMER * pgm)
+{
+  int status, lineno;
+  unsigned char *resp, buf[3], c;
+  unsigned long val=0;
+
+  if (verbose >= 2)
+    fprintf(stderr, "%s: jtagmkII_close32()\n", progname);
+
+  // AVR32 "special"
+  buf[0] = CMND_SET_PARAMETER;
+  buf[1] = 0x03;
+  buf[2] = 0x02;
+  jtagmkII_send(pgm, buf, 3);
+  status = jtagmkII_recv(pgm, &resp);
+  if(status < 0 || resp[0] != RSP_OK) {lineno = __LINE__; goto eRR;}
+  free(resp);
+
+  buf[0] = CMND_SIGN_OFF;
+  if (verbose >= 2)
+    fprintf(stderr, "%s: jtagmkII_close(): Sending sign-off command: ",
+	    progname);
+  jtagmkII_send(pgm, buf, 1);
+
+  status = jtagmkII_recv(pgm, &resp);
+  if (status <= 0) {
+    if (verbose >= 2)
+      putc('\n', stderr);
+    fprintf(stderr,
+	    "%s: jtagmkII_close(): "
+	    "timeout/error communicating with programmer (status %d)\n",
+	    progname, status);
+    return;
+  }
+  if (verbose >= 3) {
+    putc('\n', stderr);
+    jtagmkII_prmsg(pgm, resp, status);
+  } else if (verbose == 2)
+    fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[0], status);
+  c = resp[0];
+  free(resp);
+  if (c != RSP_OK) {
+    fprintf(stderr,
+	    "%s: jtagmkII_close(): "
+	    "bad response to sign-off command: %s\n",
+	    progname, jtagmkII_get_rc(c));
+  }
+
+  ret:
+    serial_close(&pgm->fd);
+    pgm->fd.ifd = -1;
+    return;
+
+  eRR:
+    fprintf(stderr,
+	    "%s: jtagmkII_reset32(): "
+	    "failed at line %d (status=%x val=%lx)\n",
+	    progname, lineno, status, val);
+    goto ret;
+}
+
+static int jtagmkII_paged_load32(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+			       int page_size, int n_bytes)
+{
+  unsigned int addr, block_size;
+  unsigned char cmd[7];
+  unsigned char *resp;
+  int lineno, status;
+  unsigned long val=0;
+  long otimeout = serial_recv_timeout;
+
+  if (verbose >= 2)
+    fprintf(stderr, "%s: jtagmkII_paged_load32(.., %s, %d, %d)\n",
+	    progname, m->desc, page_size, n_bytes);
+
+  serial_recv_timeout = 256;
+
+  if(!(p->flags & AVRPART_WRITE)) {
+    status = jtagmkII_reset32(pgm, AVR32_RESET_READ);
+    if(status != 0) {lineno = __LINE__; goto eRR;}
+  }
+
+  // Init SMC and set clocks
+  if(!(p->flags & AVRPART_INIT_SMC)) {
+    status = jtagmkII_smc_init32(pgm);
+    if(status != 0) {lineno = __LINE__; goto eRR;} // PLL 0
+    p->flags |= AVRPART_INIT_SMC;
+  }
+
+  // Init SMC and set clocks
+  if(!(p->flags & AVRPART_INIT_SMC)) {
+    status = jtagmkII_smc_init32(pgm);
+    if(status != 0) {lineno = __LINE__; goto eRR;} // PLL 0
+    p->flags |= AVRPART_INIT_SMC;
+  }
+
+  //fprintf(stderr, "\n pageSize=%d bytes=%d pages=%d m->offset=0x%x pgm->page_size %d\n",
+  //        page_size, n_bytes, pages, m->offset, pgm->page_size);
+
+  cmd[0] = CMND_READ_MEMORY32;
+  cmd[1] = 0x40;
+  cmd[2] = 0x05;
+
+  addr = 0;
+  for (addr = 0; addr < n_bytes; addr += block_size) {
+    report_progress(addr, n_bytes, NULL);
+
+    block_size = ((n_bytes-addr) < pgm->page_size) ? (n_bytes - addr) : pgm->page_size;
+    if (verbose >= 3)
+      fprintf(stderr, "%s: jtagmkII_paged_load32(): "
+              "block_size at addr %d is %d\n",
+              progname, addr, block_size);
+
+    u32_to_b4r(cmd + 3, m->offset + addr);
+
+    status = jtagmkII_send(pgm, cmd, 7);
+    if(status<0) {lineno = __LINE__; goto eRR;}
+    status = jtagmkII_recv(pgm, &resp);
+    if(status<0) {lineno = __LINE__; goto eRR;}
+
+    if (verbose >= 3) {
+      putc('\n', stderr);
+      jtagmkII_prmsg(pgm, resp, status);
+    } else if (verbose == 2)
+      fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[0], status);
+    if (resp[0] != 0x87) {
+      fprintf(stderr,
+              "%s: jtagmkII_paged_load32(): "
+              "bad response to write memory command: %s\n",
+              progname, jtagmkII_get_rc(resp[0]));
+      free(resp);
+      return -1;
+    }
+    memcpy(m->buf + addr, resp + 1, block_size);
+    free(resp);
+
+  }
+
+  serial_recv_timeout = otimeout;
+
+  status = jtagmkII_reset32(pgm, AVR32_SET4RUNNING);
+  if(status < 0) {lineno = __LINE__; goto eRR;}
+
+  return addr;
+
+  eRR:
+    serial_recv_timeout = otimeout;
+    fprintf(stderr,
+	    "%s: jtagmkII_paged_load32(): "
+	    "failed at line %d (status=%x val=%lx)\n",
+	    progname, lineno, status, val);
+    return -1;
+}
+
+static int jtagmkII_paged_write32(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+				int page_size, int n_bytes)
+{
+  unsigned int addr, block_size;
+  unsigned char *cmd=NULL;
+  unsigned char *resp;
+  int lineno, status, pages, pageNum, blocks;
+  unsigned long val=0;
+  unsigned long otimeout = serial_recv_timeout;
+
+  serial_recv_timeout = 256;
+
+  if(n_bytes == 0) return -1;
+
+  status = jtagmkII_reset32(pgm, AVR32_RESET_WRITE);
+  if(status != 0) {lineno = __LINE__; goto eRR;}
+  p->flags |= AVRPART_WRITE;
+
+  pages = (n_bytes-1)/page_size + 1;
+  //fprintf(stderr, "\n pageSize=%d bytes=%d pages=%d m->offset=0x%x pgm->page_size %d\n",
+  //        page_size, n_bytes, pages, m->offset, pgm->page_size);
+
+  // Before any errors can happen
+  if ((cmd = malloc(pgm->page_size + 10)) == NULL) {
+    fprintf(stderr, "%s: jtagmkII_paged_write32(): Out of memory\n", progname);
+    return -1;
+  }
+
+  // Init SMC and set clocks
+  if(!(p->flags & AVRPART_INIT_SMC)) {
+    status = jtagmkII_smc_init32(pgm);
+    if(status != 0) {lineno = __LINE__; goto eRR;} // PLL 0
+    p->flags |= AVRPART_INIT_SMC;
+  }
+
+  // First unlock the pages
+  for(pageNum=0; pageNum < pages; ++pageNum) {
+    status =jtagmkII_flash_lock32(pgm, 0, pageNum);
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+  }
+
+  // Then erase them (guess could do this in the same loop above?)
+  for(pageNum=0; pageNum < pages; ++pageNum) {
+    status =jtagmkII_flash_erase32(pgm, pageNum);
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+  }
+
+  cmd[0] = CMND_WRITE_MEMORY32;
+  u32_to_b4r(&cmd[1], 0x40000000);  // who knows
+  cmd[5] = 0x5;
+
+  addr = 0;
+  for(pageNum=0; pageNum < pages; ++pageNum) {
+
+    report_progress(addr, n_bytes, NULL);
+
+    status = jtagmkII_flash_clear_pagebuffer32(pgm);
+    if(status != 0) {lineno = __LINE__; goto eRR;}
+
+    for(blocks=0; blocks<2; ++blocks) {
+      block_size = ((n_bytes-addr) < pgm->page_size) ? (n_bytes - addr) : pgm->page_size;
+      if (verbose >= 3)
+        fprintf(stderr, "%s: jtagmkII_paged_write32(): "
+                "block_size at addr %d is %d\n",
+                progname, addr, block_size);
+
+      u32_to_b4r(cmd + 6, m->offset + addr);
+      memset(cmd + 10, 0xff, pgm->page_size);
+      memcpy(cmd + 10, m->buf + addr, block_size);
+
+      status = jtagmkII_send(pgm, cmd, pgm->page_size + 10);
+      if(status<0) {lineno = __LINE__; goto eRR;}
+      status = jtagmkII_recv(pgm, &resp);
+      if (status<0) {lineno = __LINE__; goto eRR;}
+
+      if (verbose >= 3) {
+        putc('\n', stderr);
+        jtagmkII_prmsg(pgm, resp, status);
+      } else if (verbose == 2)
+        fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[0], status);
+      if (resp[0] != RSP_OK) {
+        fprintf(stderr,
+                "%s: jtagmkII_paged_write32(): "
+                "bad response to write memory command: %s\n",
+                progname, jtagmkII_get_rc(resp[0]));
+        free(resp);
+        free(cmd);
+        return -1;
+      }
+      free(resp);
+
+      addr += block_size;
+
+
+    }
+    status = jtagmkII_flash_write_page32(pgm, pageNum);
+    if(status < 0) {lineno = __LINE__; goto eRR;}
+  }
+  free(cmd);
+  serial_recv_timeout = otimeout;
+
+  status = jtagmkII_reset32(pgm, AVR32_SET4RUNNING);  // AVR32_SET4RUNNING | AVR32_RELEASE_JTAG
+  if(status < 0) {lineno = __LINE__; goto eRR;}
+
+  return addr;
+
+  eRR:
+    serial_recv_timeout = otimeout;
+    free(cmd);
+    fprintf(stderr,
+	    "%s: jtagmkII_paged_write32(): "
+	    "failed at line %d (status=%x val=%lx)\n",
+	    progname, lineno, status, val);
+    return -1;
+}
+
+
+static int jtagmkII_flash_lock32(PROGRAMMER * pgm, unsigned char lock, unsigned int page)
+{
+  int status, lineno, i;
+  unsigned long val, cmd=0;
+
+  for(i=0; i<256; ++i) {
+    val = jtagmkII_read_SABaddr(pgm, AVR32_FLASHC_FSR, 0x05);
+    if(val == ERROR_SAB) continue;
+    if(val & AVR32_FLASHC_FSR_RDY) break;
+  }
+  if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
+  if(!(val&AVR32_FLASHC_FSR_RDY)) {lineno = __LINE__; goto eRR;} // Flash better be ready
+
+  page <<= 8;
+  cmd = AVR32_FLASHC_FCMD_KEY | page | (lock ? AVR32_FLASHC_FCMD_LOCK : AVR32_FLASHC_FCMD_UNLOCK);
+  status = jtagmkII_write_SABaddr(pgm, AVR32_FLASHC_FCMD, 0x05, cmd);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+
+  return 0;
+
+  eRR:
+    fprintf(stderr,
+	    "%s: jtagmkII_flash_lock32(): "
+	    "failed at line %d page %d cmd %8.8lx\n",
+	    progname, lineno, page, cmd);
+    return -1;
+}
+
+static int jtagmkII_flash_erase32(PROGRAMMER * pgm, unsigned int page)
+{
+  int status, lineno, i;
+  unsigned long val=0, cmd=0, err=0;
+
+  for(i=0; i<256; ++i) {
+    val = jtagmkII_read_SABaddr(pgm, AVR32_FLASHC_FSR, 0x05);
+    if(val == ERROR_SAB) continue;
+    if(val & AVR32_FLASHC_FSR_RDY) break;
+  }
+  if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
+  if(!(val&AVR32_FLASHC_FSR_RDY)) {lineno = __LINE__; goto eRR;} // Flash better be ready
+
+  page <<= 8;
+  cmd = AVR32_FLASHC_FCMD_KEY | page | AVR32_FLASHC_FCMD_ERASE_PAGE;
+  status = jtagmkII_write_SABaddr(pgm, AVR32_FLASHC_FCMD, 0x05, cmd);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+
+//fprintf(stderr, "ERASE %x -> %x\n", cmd, AVR32_FLASHC_FCMD);
+
+  err = 0;
+  for(i=0; i<256; ++i) {
+    val = jtagmkII_read_SABaddr(pgm, AVR32_FLASHC_FSR, 0x05);
+    if(val == ERROR_SAB) continue;
+    err |= val;
+    if(val & AVR32_FLASHC_FSR_RDY) break;
+  }
+  if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
+  if(!(val & AVR32_FLASHC_FSR_RDY)) {lineno = __LINE__; goto eRR;}
+  if(err & AVR32_FLASHC_FSR_ERR) {lineno = __LINE__; goto eRR;}
+
+  return 0;
+
+  eRR:
+    fprintf(stderr,
+	    "%s: jtagmkII_flash_erase32(): "
+	    "failed at line %d page %d cmd %8.8lx val %lx\n",
+	    progname, lineno, page, cmd, val);
+    return -1;
+}
+
+static int jtagmkII_flash_write_page32(PROGRAMMER * pgm, unsigned int page)
+{
+  int status, lineno, i;
+  unsigned long val=0, cmd, err;
+
+  page <<= 8;
+  cmd = AVR32_FLASHC_FCMD_KEY | page | AVR32_FLASHC_FCMD_WRITE_PAGE;
+  status = jtagmkII_write_SABaddr(pgm, AVR32_FLASHC_FCMD, 0x05, cmd);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+
+  err = 0;
+  for(i=0; i<256; ++i) {
+    val = jtagmkII_read_SABaddr(pgm, AVR32_FLASHC_FSR, 0x05);
+    if(val == ERROR_SAB) continue;
+    err |= val;
+    if(val & AVR32_FLASHC_FSR_RDY) break;
+  }
+  if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
+  if(!(val & AVR32_FLASHC_FSR_RDY)) {lineno = __LINE__; goto eRR;}
+  if(err & AVR32_FLASHC_FSR_ERR) {lineno = __LINE__; goto eRR;}
+
+  return 0;
+
+  eRR:
+    fprintf(stderr,
+	    "%s: jtagmkII_flash_write_page32(): "
+	    "failed at line %d page %d cmd %8.8lx val %lx\n",
+	    progname, lineno, page, cmd, val);
+    return -1;
+}
+
+static int jtagmkII_flash_clear_pagebuffer32(PROGRAMMER * pgm)
+{
+  int status, lineno, i;
+  unsigned long val=0, cmd, err;
+
+  cmd = AVR32_FLASHC_FCMD_KEY | AVR32_FLASHC_FCMD_CLEAR_PAGE_BUFFER;
+  status = jtagmkII_write_SABaddr(pgm, AVR32_FLASHC_FCMD, 0x05, cmd);
+  if (status < 0) {lineno = __LINE__; goto eRR;}
+
+  err = 0;
+  for(i=0; i<256; ++i) {
+    val = jtagmkII_read_SABaddr(pgm, AVR32_FLASHC_FSR, 0x05);
+    if(val == ERROR_SAB) continue;
+    err |= val;
+    if(val & AVR32_FLASHC_FSR_RDY) break;
+  }
+  if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
+  if(!(val & AVR32_FLASHC_FSR_RDY)) {lineno = __LINE__; goto eRR;}
+  if(err & AVR32_FLASHC_FSR_ERR) {lineno = __LINE__; goto eRR;}
+
+  return 0;
+
+  eRR:
+    fprintf(stderr,
+	    "%s: jtagmkII_flash_clear_pagebuffer32(): "
+	    "failed at line %d cmd %8.8lx val %lx\n",
+	    progname, lineno, cmd, val);
+    return -1;
+}
+
+#ifdef __OBJC__
+#pragma mark -
+#endif
+
 void jtagmkII_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "JTAGMKII");
@@ -2496,1124 +3563,4 @@ void jtagmkII_avr32_initpgm(PROGRAMMER * pgm)
   pgm->teardown       = jtagmkII_teardown;
   pgm->page_size      = 256;
 }
-
-#ifdef __OBJC__
-#pragma mark -
-#endif
-
-#define AVR32_FLASHC_FCR                  0xFFFE1400
-#define AVR32_FLASHC_FCMD                 0xFFFE1404
-#define   AVR32_FLASHC_FCMD_KEY           0xA5000000
-#define   AVR32_FLASHC_FCMD_WRITE_PAGE             1
-#define   AVR32_FLASHC_FCMD_ERASE_PAGE             2
-#define   AVR32_FLASHC_FCMD_CLEAR_PAGE_BUFFER      3
-#define   AVR32_FLASHC_FCMD_LOCK                   4
-#define   AVR32_FLASHC_FCMD_UNLOCK                 5
-#define AVR32_FLASHC_FSR                  0xFFFE1408
-#define   AVR32_FLASHC_FSR_RDY            0x00000001
-#define   AVR32_FLASHC_FSR_ERR            0x00000008
-#define AVR32_FLASHC_FGPFRHI              0xFFFE140C
-#define AVR32_FLASHC_FGPFRLO              0xFFFE1410
-
-#define AVR32_DC                          0x00000008
-#define AVR32_DS                          0x00000010
-#define AVR32_DINST                       0x00000104
-#define AVR32_DCCPU                       0x00000110
-#define AVR32_DCEMU                       0x00000114
-#define AVR32_DCSR                        0x00000118
-
-#define AVR32_DC_ABORT                    0x80000000
-#define AVR32_DC_RESET                    0x40000000
-#define AVR32_DC_DBE                      0x00002000
-#define AVR32_DC_DBR                      0x00001000
-
-
-static int jtagmkII_avr32_reset(PROGRAMMER * pgm, unsigned char val, unsigned char ret1, unsigned char ret2)
-{
-  int status;
-  unsigned char buf[3], *resp;
-
-  if(verbose) fprintf(stderr,
-          "%s: jtagmkII_avr32_reset(%2.2x)\n",
-          progname, val);
-
-  buf[0] = CMND_GET_IR;
-  buf[1] = 0x0C;
-  status = jtagmkII_send(pgm, buf, 2);
-  if(status < 0) return -1;
-
-  status = jtagmkII_recv(pgm, &resp);
-  if (status != 2 || resp[0] != 0x87 || resp[1] != ret1) {
-    if(verbose) fprintf(stderr,
-	      "%s: jtagmkII_avr32_reset(): "
-	      "Get_IR, expecting %2.2x but got %2.2x\n",
-	      progname, ret1, resp[1]);
-
-    //return -1;
-  }
-  
-  buf[0] = CMND_GET_xxx;
-  buf[1] = 5;
-  buf[2] = val;
-  status = jtagmkII_send(pgm, buf, 3);
-  if(status < 0) return -1;
-
-  status = jtagmkII_recv(pgm, &resp);
-  if (status != 2 || resp[0] != 0x87 || resp[1] != ret2) {
-    if(verbose) fprintf(stderr,
-	      "%s: jtagmkII_avr32_reset(): "
-	      "Get_XXX, expecting %2.2x but got %2.2x\n",
-	      progname, ret2, resp[1]);
-    //return -1;
-  }
-
-  return 0;
-}
-
-#define AVR32_RESET_READ             0x0001
-#define AVR32_RESET_WRITE            0x0002
-#define AVR32_RESET_CHIP_ERASE       0x0004
-#define AVR32_SET4RUNNING            0x0008
-//#define AVR32_RESET_COMMON           (AVR32_RESET_READ | AVR32_RESET_WRITE | AVR32_RESET_CHIP_ERASE )
-
-// At init: AVR32_RESET_READ_IR | AVR32_RESET_READ_READ_CHIPINFO
-static int jtagmkII_reset32(PROGRAMMER * pgm, unsigned short flags)
-{
-  int status, j, lineno;
-  unsigned char *resp, buf[3];
-  unsigned long val=0;
-  unsigned long config0, config1;
-
-  if(verbose) fprintf(stderr,
-          "%s: jtagmkII_reset32(%2.2x)\n",
-          progname, flags);
-
-  status = -1;
-
-  // Happens at the start of a programming operation
-  if(flags & AVR32_RESET_READ) {
-    buf[0] = CMND_GET_IR;
-    buf[1] = 0x11;
-    status = jtagmkII_send(pgm, buf, 2);
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-
-    status = jtagmkII_recv(pgm, &resp);
-    if (status != 2 || resp[0] != 0x87 || resp[1] != 01)
-      {lineno = __LINE__; goto eRR;};
-  }
-  
-  if(flags & (AVR32_RESET_WRITE | AVR32_SET4RUNNING)) {
-    // AVR_RESET(0x1F)
-    status = jtagmkII_avr32_reset(pgm, 0x1F, 0x01, 0x00);
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-    // AVR_RESET(0x07)
-    status = jtagmkII_avr32_reset(pgm, 0x07, 0x11, 0x1F);
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-  }
-
-  //if(flags & AVR32_RESET_COMMON)
-  {
-    val = jtagmkII_read_SABaddr(pgm, AVR32_DS, 0x01);
-    if(val != 0) {lineno = __LINE__; goto eRR;}
-    val = jtagmkII_read_SABaddr(pgm, AVR32_DC, 0x01);
-    if(val != 0) {lineno = __LINE__; goto eRR;}
-  }
-  
-  if(flags & (AVR32_RESET_READ | AVR32_RESET_CHIP_ERASE)) {
-    status = jtagmkII_write_SABaddr(pgm, AVR32_DC, 0x01, AVR32_DC_DBE | AVR32_DC_DBR);
-    if(status < 0) return -1;
-  }
-  
-  if(flags & (AVR32_RESET_WRITE | AVR32_SET4RUNNING)) {
-    status = jtagmkII_write_SABaddr(pgm, AVR32_DC, 0x01, AVR32_DC_ABORT | AVR32_DC_RESET | AVR32_DC_DBE | AVR32_DC_DBR);
-    if(status < 0) return -1;
-    for(j=0; j<21; ++j) {
-      val = jtagmkII_read_SABaddr(pgm, AVR32_DS, 0x01);
-    }
-    if(val != 0x04000000) {lineno = __LINE__; goto eRR;}
-    
-    // AVR_RESET(0x00)
-    status = jtagmkII_avr32_reset(pgm, 0x00, 0x01, 0x07);
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-  }
-//  if(flags & (AVR32_RESET_READ | AVR32_RESET_WRITE))
-  {
-    for(j=0; j<2; ++j) {
-      val = jtagmkII_read_SABaddr(pgm, AVR32_DS, 0x01);
-      if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
-      if((val&0x05000020) != 0x05000020) {lineno = __LINE__; goto eRR;}
-    }
-  }
-
-  //if(flags & (AVR32_RESET_READ | AVR32_RESET_WRITE | AVR32_RESET_CHIP_ERASE))
-  {
-    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe7b00044);  // mtdr 272, R0
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-
-    val = jtagmkII_read_SABaddr(pgm, AVR32_DCSR, 0x01);
-    if(val != 0x00000001) {lineno = __LINE__; goto eRR;}
-    
-    val = jtagmkII_read_SABaddr(pgm, AVR32_DCCPU, 0x01);
-    if(val != 0x00000000) {lineno = __LINE__; goto eRR;}
-  }
-
-  // Read chip configuration - common for all
-  if(flags & (AVR32_RESET_READ | AVR32_RESET_WRITE | AVR32_RESET_CHIP_ERASE)) {
-    for(j=0; j<2; ++j) {
-      val = jtagmkII_read_SABaddr(pgm, AVR32_DS, 0x01);
-      if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
-      if((val&0x05000020) != 0x05000020) {lineno = __LINE__; goto eRR;}
-    }
-    
-    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe7b00044);  // mtdr 272, R0
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-    
-    val = jtagmkII_read_SABaddr(pgm, AVR32_DCSR, 0x01);
-    if(val != 0x00000001) {lineno = __LINE__; goto eRR;}
-    
-    val = jtagmkII_read_SABaddr(pgm, AVR32_DCCPU, 0x01);
-    if(val != 0x00000000) {lineno = __LINE__; goto eRR;}
-    
-    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe1b00040);  // mfsr R0, 256
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-    
-    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe7b00044);  // mtdr 272, R0
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-
-    val = jtagmkII_read_SABaddr(pgm, AVR32_DCSR, 0x01);
-    if(val != 0x00000001) {lineno = __LINE__; goto eRR;}
-    
-    val = jtagmkII_read_SABaddr(pgm, AVR32_DCCPU, 0x01);
-    if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
-    config0 = val;  // 0x0204098b
-
-    status = jtagmkII_write_SABaddr(pgm, AVR32_DCEMU, 0x01, 0x00000000);
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-
-    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe5b00045);  // mtdr R0, 276
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-    
-    val = jtagmkII_read_SABaddr(pgm, AVR32_DS, 0x01);
-    if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
-    if((val&0x05000020) != 0x05000020) {lineno = __LINE__; goto eRR;}
-
-    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe7b00044);  // mtdr 272, R0
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-
-    val = jtagmkII_read_SABaddr(pgm, AVR32_DCSR, 0x01);
-    if(val != 0x00000001) {lineno = __LINE__; goto eRR;}
-
-    val = jtagmkII_read_SABaddr(pgm, AVR32_DCCPU, 0x01);
-    if(val != 0x00000000) {lineno = __LINE__; goto eRR;}
-
-    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe1b00041);  // mfsr R0, 260
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe7b00044);  // mtdr 272, R0
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-    
-    val = jtagmkII_read_SABaddr(pgm, AVR32_DCSR, 0x01);
-    if(val != 0x00000001) {lineno = __LINE__; goto eRR;}
-    val = jtagmkII_read_SABaddr(pgm, AVR32_DCCPU, 0x01);
-    if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
-    config1 = val;  // 0x00800000
-  
-    status = jtagmkII_write_SABaddr(pgm, AVR32_DCEMU, 0x01, 0x00000000);
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe5b00045);  // mtdr R0, 276
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-
-    val = jtagmkII_read_SABaddr(pgm, 0x00000010, 0x06); // need to recheck who does this...
-    if(val != 0x00000000) {lineno = __LINE__; goto eRR;}
-  }
-  
-  if(flags & AVR32_RESET_CHIP_ERASE) {
-    status = jtagmkII_avr32_reset(pgm, 0x1f, 0x01, 0x00);
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-    status = jtagmkII_avr32_reset(pgm, 0x01, 0x11, 0x1f);
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-  }
-
-  if(flags & AVR32_SET4RUNNING) {
-    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe1b00014);  // mfsr R0, 80
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-    
-    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe7b00044);  // mtdr 272, R0
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-
-    val = jtagmkII_read_SABaddr(pgm, AVR32_DCSR, 0x01);
-    if(val != 0x00000001) {lineno = __LINE__; goto eRR;}
-    
-    val = jtagmkII_read_SABaddr(pgm, AVR32_DCCPU, 0x01);
-    if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
-    config0 = val;  // 0x0204098b
-
-    status = jtagmkII_write_SABaddr(pgm, AVR32_DCEMU, 0x01, 0x00000000);
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-
-    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xe5b00045);  // mfdr R0, 276
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-
-    val = jtagmkII_read_SABaddr(pgm, AVR32_DS, 0x01);
-    if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
-    if((val&0x05000020) != 0x05000020) {lineno = __LINE__; goto eRR;}
-
-    status = jtagmkII_write_SABaddr(pgm, AVR32_DINST, 0x01, 0xd623d703);  // retd
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-  }
-  
-  return 0;
-  
-  eRR:
-    fprintf(stderr,
-	    "%s: jtagmkII_reset32(): "
-	    "failed at line %d (status=%x val=%lx)\n",
-	    progname, lineno, status, val);
-    return -1;
-}
-
-static int jtagmkII_smc_init32(PROGRAMMER * pgm)
-{
-  int status, lineno;
-  unsigned long val;
-
-  // HMATRIX 0xFFFF1000
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1018, 0x05, 0x04000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1024, 0x05, 0x04000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1008, 0x05, 0x04000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1078, 0x05, 0x04000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1088, 0x05, 0x04000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1018, 0x05, 0x08000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1024, 0x05, 0x08000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1008, 0x05, 0x08000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1078, 0x05, 0x08000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1088, 0x05, 0x08000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1018, 0x05, 0x10000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1024, 0x05, 0x10000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1008, 0x05, 0x10000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1078, 0x05, 0x10000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1088, 0x05, 0x10000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1018, 0x05, 0x00020000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1024, 0x05, 0x00020000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1008, 0x05, 0x00020000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1078, 0x05, 0x00020000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1088, 0x05, 0x00020000); if(status < 0) {lineno = __LINE__; goto eRR;}
-
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1018, 0x05, 0x02000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1024, 0x05, 0x02000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1008, 0x05, 0x02000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1078, 0x05, 0x02000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xffff1088, 0x05, 0x02000000); if(status < 0) {lineno = __LINE__; goto eRR;}
-
-  status = jtagmkII_write_SABaddr(pgm, 0xfffe1c00, 0x05, 0x00010001); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xfffe1c04, 0x05, 0x05070a0b); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xfffe1c08, 0x05, 0x000b000c); if(status < 0) {lineno = __LINE__; goto eRR;}
-  status = jtagmkII_write_SABaddr(pgm, 0xfffe1c0c, 0x05, 0x00031103); if(status < 0) {lineno = __LINE__; goto eRR;}
-
-  // switchToClockSource
-  val = jtagmkII_read_SABaddr(pgm, 0xffff0c28, 0x05); if(val != 0x00000000) {lineno = __LINE__; goto eRR;} // OSC 0
-  status = jtagmkII_write_SABaddr(pgm, 0xffff0c28, 0x05, 0x0000607); if(status < 0) {lineno = __LINE__; goto eRR;}
-  val = jtagmkII_read_SABaddr(pgm, 0xffff0c00, 0x05); if(val != 0x00000000) {lineno = __LINE__; goto eRR;} // PLL 0
-  status = jtagmkII_write_SABaddr(pgm, 0xffff0c00, 0x05, 0x0000004); if(status < 0) {lineno = __LINE__; goto eRR;} // Power Manager
-  status = jtagmkII_write_SABaddr(pgm, 0xffff0c00, 0x05, 0x0000005); if(status < 0) {lineno = __LINE__; goto eRR;}
-
-  usleep(1000000);
-  
-  val = jtagmkII_read_SABaddr(pgm, 0xfffe1408, 0x05); if(val != 0x0000a001) {lineno = __LINE__; goto eRR;} // PLL 0
-
-  // need a small delay to let clock stabliize
-  {
-    usleep(50*1000);
-#if 0
-    struct timeval tm_ref, tm_new;
-    time_t t_ref, t_new;
-    
-    gettimeofday(&tm_ref, NULL);
-    while(1) {
-      gettimeofday(&tm_new, NULL);
-      if(tm_ref.tv_sec == tm_new.tv_sec) {
-        t_ref = tm_ref.tv_usec;
-        t_new = tm_new.tv_usec;
-      } else {
-        t_new = (tm_new.tv_sec - tm_ref.tv_sec) * 1000000 + tm_new.tv_usec;
-        t_ref = tm_ref.tv_usec;
-      }
-      // 1 ms 
-      if((t_new-t_ref) > 1000) break;
-    }
-#endif
-  }
-
-  return 0;
-  
-  eRR:
-    fprintf(stderr,
-	    "%s: jtagmkII_smc_init32(): "
-	    "failed at line %d\n",
-	    progname, lineno);
-    return -1;
-}
-
-
-/*
- * initialize the AVR device and prepare it to accept commands
- */
-static int jtagmkII_initialize32(PROGRAMMER * pgm, AVRPART * p)
-{
-  int status, j;
-  unsigned char buf[6], *resp;
-
-  if (jtagmkII_setparm(pgm, PAR_DAISY_CHAIN_INFO, PDATA(pgm)->jtagchain) < 0) {
-    fprintf(stderr, "%s: jtagmkII_initialize(): Failed to setup JTAG chain\n",
-            progname);
-    return -1;
-  }
-
-  free(PDATA(pgm)->flash_pagecache);
-  free(PDATA(pgm)->eeprom_pagecache);
-  if ((PDATA(pgm)->flash_pagecache = malloc(PDATA(pgm)->flash_pagesize)) == NULL) {
-    fprintf(stderr, "%s: jtagmkII_initialize(): Out of memory\n",
-	    progname);
-    return -1;
-  }
-  if ((PDATA(pgm)->eeprom_pagecache = malloc(PDATA(pgm)->eeprom_pagesize)) == NULL) {
-    fprintf(stderr, "%s: jtagmkII_initialize32(): Out of memory\n",
-	    progname);
-    free(PDATA(pgm)->flash_pagecache);
-    return -1;
-  }
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-
-  for(j=0; j<2; ++j) {
-    buf[0] = CMND_GET_IR;
-    buf[1] = 0x1;
-    if(jtagmkII_send(pgm, buf, 2) < 0)
-      return -1;
-    status = jtagmkII_recv(pgm, &resp);
-    if(status <= 0 || resp[0] != 0x87) {
-      if (verbose >= 2)
-        putc('\n', stderr);
-      fprintf(stderr,
-                "%s: jtagmkII_initialize32(): "
-                "timeout/error communicating with programmer (status %d)\n",
-                progname, status);
-      return -1;
-    }
-    free(resp);
-
-    memset(buf, 0, sizeof(buf));
-    buf[0] = CMND_GET_xxx;
-    buf[1] = 0x20;
-    if(jtagmkII_send(pgm, buf, 6) < 0)
-      return -1;
-    status = jtagmkII_recv(pgm, &resp);
-    if(status <= 0 || resp[0] != 0x87) {
-      if (verbose >= 2)
-        putc('\n', stderr);
-      fprintf(stderr,
-                "%s: jtagmkII_initialize32(): "
-                "timeout/error communicating with programmer (status %d)\n",
-                progname, status);
-      return -1;
-    }
-
-    if (status != 5 ||
-    resp[2] != p->signature[0] ||
-    resp[3] != p->signature[1] ||
-    resp[4] != p->signature[2]) {
-      fprintf(stderr,
-          "%s: Expected signature for %s is %02X %02X %02X\n",
-          progname, p->desc,
-          p->signature[0], p->signature[1], p->signature[2]);
-      if (!ovsigck) {
-        fprintf(stderr, "%sDouble check chip, "
-        "or use -F to override this check.\n",
-                progbuf);
-        return -1;
-      }
-    }
-    free(resp);
-  }
-
-  return 0;
-}
-
-static int jtagmkII_chip_erase32(PROGRAMMER * pgm, AVRPART * p)
-{
-  int status=0, loops;
-  unsigned char *resp, buf[3], x, ret[4], *retP;
-  unsigned long val=0;
-  unsigned int lineno;
-
-  if(verbose) fprintf(stderr,
-          "%s: jtagmkII_chip_erase32()\n",
-          progname);
-
-  status = jtagmkII_reset32(pgm, AVR32_RESET_CHIP_ERASE);
-  if(status != 0) {lineno = __LINE__; goto eRR;}
-
-  // sequence of IR transitions
-  ret[0] = 0x01;
-  ret[1] = 0x05;
-  ret[2] = 0x01;
-  ret[3] = 0x00;
-  
-  retP = ret;
-  for(loops=0; loops<1000; ++loops) {
-    buf[0] = CMND_GET_IR;
-    buf[1] = 0x0F;
-    status = jtagmkII_send(pgm, buf, 2);
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-
-    status = jtagmkII_recv(pgm, &resp);
-    if (status != 2 || resp[0] != 0x87) {
-      {lineno = __LINE__; goto eRR;}
-    }
-    x = resp[1];
-    free(resp);
-    if(x == *retP) ++retP;
-    if(*retP == 0x00) break;
-  }
-  if(loops == 1000) {lineno = __LINE__; goto eRR;}
-
-  status = jtagmkII_avr32_reset(pgm, 0x00, 0x01, 0x01);
-  if(status < 0) {lineno = __LINE__; goto eRR;}
-
-  val = jtagmkII_read_SABaddr(pgm, 0x00000010, 0x06);
-  if(val != 0x00000000) {lineno = __LINE__; goto eRR;}
-  
-  // AVR32 "special"
-  buf[0] = CMND_SET_PARAMETER;  
-  buf[1] = 0x03;
-  buf[2] = 0x02;
-  jtagmkII_send(pgm, buf, 3);
-  status = jtagmkII_recv(pgm, &resp);
-  if(status < 0 || resp[0] != RSP_OK) {lineno = __LINE__; goto eRR;}
-  free(resp);
-
-  return 0;
-  
-  eRR:
-    fprintf(stderr,
-	    "%s: jtagmkII_reset32(): "
-	    "failed at line %d (status=%x val=%lx)\n",
-	    progname, lineno, status, val);
-    return -1;
-}
-
-static unsigned long jtagmkII_read_SABaddr(PROGRAMMER * pgm, unsigned long addr, unsigned int prefix)
-{
-  unsigned char buf[6], *resp;
-  int status;
-  unsigned long val;
-  unsigned long otimeout = serial_recv_timeout;
-
-  serial_recv_timeout = 256;
-  
-  buf[0] = CMND_READ_SAB;
-  buf[1] = prefix;
-  u32_to_b4r(&buf[2], addr);
-
-  if(jtagmkII_send(pgm, buf, 6) < 0)
-    return ERROR_SAB;
-
-  status = jtagmkII_recv(pgm, &resp);
-  if(status <= 0 || resp[0] != 0x87) {
-    if (verbose >= 2)
-      putc('\n', stderr);
-    fprintf(stderr,
-	      "%s: jtagmkII_read_SABaddr(): "
-	      "timeout/error communicating with programmer (status %d) resp=%x\n",
-	      progname, status, resp[0]);
-    serial_recv_timeout = otimeout;
-    
-    if(status > 0) {
-      int i;
-      fprintf(stderr, "Cmd: ");
-      for(i=0; i<6; ++i) fprintf(stderr, "%2.2x ", buf[i]);
-      fprintf(stderr, "\n");
-      fprintf(stderr, "Data: ");
-      for(i=0; i<status; ++i) fprintf(stderr, "%2.2x ", resp[i]);
-      fprintf(stderr, "\n");
-    }
-    return ERROR_SAB;
-  }
-  
-  if(status != 5) {
-    if (verbose >= 2)
-      putc('\n', stderr);
-    fprintf(stderr,
-	      "%s: jtagmkII_read_SABaddr(): "
-	      "wrong number of bytes (status %d)\n",
-	      progname, status);
-    serial_recv_timeout = otimeout;
-    return ERROR_SAB;
-  }
-
-  val = b4_to_u32r(&resp[1]);
-  free(resp);
-
-  if (verbose) {
-    if (verbose >= 2)
-      putc('\n', stderr);
-    fprintf(stderr,
-	      "%s: jtagmkII_read_SABaddr(): "
-	      "OCD Register %lx -> %4.4lx\n",
-	      progname, addr, val);
-  }
-  serial_recv_timeout = otimeout;
-  return val;
-}
-
-static int jtagmkII_write_SABaddr(PROGRAMMER * pgm, unsigned long addr, unsigned int prefix, unsigned long val)
-{
-  unsigned char buf[10], *resp;
-  int status;
-  
-  buf[0] = CMND_WRITE_SAB;
-  buf[1] = prefix;
-  u32_to_b4r(&buf[2], addr);
-  u32_to_b4r(&buf[6], val);
-
-  if(jtagmkII_send(pgm, buf, 10) < 0)
-    return -1;
-
-  status = jtagmkII_recv(pgm, &resp);
-  if(status <= 0 || resp[0] != RSP_OK) {
-    if (verbose >= 2)
-      putc('\n', stderr);
-    fprintf(stderr,
-	      "%s: jtagmkII_write_SABaddr(): "
-	      "timeout/error communicating with programmer (status %d)\n",
-	      progname, status);
-    return -1;
-  }
-  
-
-  if (verbose) {
-    if (verbose >= 2)
-      putc('\n', stderr);
-    fprintf(stderr,
-	      "%s: jtagmkII_write_SABaddr(): "
-	      "OCD Register %lx -> %4.4lx\n",
-	      progname, addr, val);
-  }
-  return 0;
-}
-
-static int jtagmkII_open32(PROGRAMMER * pgm, char * port)
-{
-  int status;
-  unsigned char buf[6], *resp;
-  long baud;
-
-  if (verbose >= 2)
-    fprintf(stderr, "%s: jtagmkII_open32()\n", progname);
-
-  /*
-   * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
-   * attaching.  If the config file or command-line parameters specify
-   * a higher baud rate, we switch to it later on, after establishing
-   * the connection with the ICE.
-   */
-  baud = 19200;
-
-  /*
-   * If the port name starts with "usb", divert the serial routines
-   * to the USB ones.  The serial_open() function for USB overrides
-   * the meaning of the "baud" parameter to be the USB device ID to
-   * search for.
-   */
-  if (strncmp(port, "usb", 3) == 0) {
-#if defined(HAVE_LIBUSB)
-    serdev = &usb_serdev;
-    baud = USB_DEVICE_JTAGICEMKII;
-#else
-    fprintf(stderr, "avrdude was compiled without usb support.\n");
-    return -1;
-#endif
-  }
-
-  strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
-
-  /*
-   * drain any extraneous input
-   */
-  jtagmkII_drain(pgm, 0);
-
-  status = jtagmkII_getsync(pgm, -1);
-  if(status < 0) return -1;
-
-  // AVR32 "special"
-  buf[0] = CMND_SET_PARAMETER;
-  buf[1] = 0x2D;
-  buf[2] = 0x03;
-  jtagmkII_send(pgm, buf, 3);
-  status = jtagmkII_recv(pgm, &resp);
-  if(status < 0 || resp[0] != RSP_OK)
-    return -1;
-  free(resp);
-  
-  buf[1] = 0x03;
-  buf[2] = 0x02;
-  jtagmkII_send(pgm, buf, 3);
-  status = jtagmkII_recv(pgm, &resp);
-  if(status < 0 || resp[0] != RSP_OK)
-    return -1;
-  free(resp);
-
-  buf[1] = 0x03;
-  buf[2] = 0x04;
-  jtagmkII_send(pgm, buf, 3);
-  status = jtagmkII_recv(pgm, &resp);
-  if(status < 0 || resp[0] != RSP_OK)
-    return -1;
-  free(resp);
-
-  return 0;
-}
-
-static void jtagmkII_close32(PROGRAMMER * pgm)
-{
-  int status, lineno;
-  unsigned char *resp, buf[3], c;
-  unsigned long val=0;
-  
-  if (verbose >= 2)
-    fprintf(stderr, "%s: jtagmkII_close32()\n", progname);
-  
-  // AVR32 "special"
-  buf[0] = CMND_SET_PARAMETER;  
-  buf[1] = 0x03;
-  buf[2] = 0x02;
-  jtagmkII_send(pgm, buf, 3);
-  status = jtagmkII_recv(pgm, &resp);
-  if(status < 0 || resp[0] != RSP_OK) {lineno = __LINE__; goto eRR;}
-  free(resp);
-
-#if 0
-  if (PDATA(pgm)->device_descriptor_length) {
-    /* When in JTAG mode, restart target. */
-    buf[0] = CMND_GO;
-    if (verbose >= 2)
-      fprintf(stderr, "%s: jtagmkII_close(): Sending GO command: ",
-	      progname);
-    jtagmkII_send(pgm, buf, 1);
-
-    status = jtagmkII_recv(pgm, &resp);
-    if (status <= 0) {
-      if (verbose >= 2)
-	putc('\n', stderr);
-      fprintf(stderr,
-	      "%s: jtagmkII_close(): "
-	      "timeout/error communicating with programmer (status %d)\n",
-	      progname, status);
-    } else {
-      if (verbose >= 3) {
-	putc('\n', stderr);
-	jtagmkII_prmsg(pgm, resp, status);
-      } else if (verbose == 2)
-	fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[0], status);
-      c = resp[0];
-      free(resp);
-      if (c != RSP_OK) {
-	fprintf(stderr,
-		"%s: jtagmkII_close(): "
-		"bad response to GO command: %s\n",
-		progname, jtagmkII_get_rc(c));
-      }
-    }
-  }
-#endif
-
-  buf[0] = CMND_SIGN_OFF;
-  if (verbose >= 2)
-    fprintf(stderr, "%s: jtagmkII_close(): Sending sign-off command: ",
-	    progname);
-  jtagmkII_send(pgm, buf, 1);
-
-  status = jtagmkII_recv(pgm, &resp);
-  if (status <= 0) {
-    if (verbose >= 2)
-      putc('\n', stderr);
-    fprintf(stderr,
-	    "%s: jtagmkII_close(): "
-	    "timeout/error communicating with programmer (status %d)\n",
-	    progname, status);
-    return;
-  }
-  if (verbose >= 3) {
-    putc('\n', stderr);
-    jtagmkII_prmsg(pgm, resp, status);
-  } else if (verbose == 2)
-    fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[0], status);
-  c = resp[0];
-  free(resp);
-  if (c != RSP_OK) {
-    fprintf(stderr,
-	    "%s: jtagmkII_close(): "
-	    "bad response to sign-off command: %s\n",
-	    progname, jtagmkII_get_rc(c));
-  }
-
-  ret:
-    serial_close(&pgm->fd);
-    pgm->fd.ifd = -1;
-    return;
-
-  eRR:
-    fprintf(stderr,
-	    "%s: jtagmkII_reset32(): "
-	    "failed at line %d (status=%x val=%lx)\n",
-	    progname, lineno, status, val);
-    goto ret;
-}
-
-static int jtagmkII_paged_load32(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-			       int page_size, int n_bytes)
-{
-  unsigned int addr, block_size;
-  unsigned char cmd[7];
-  unsigned char *resp;
-  int lineno, status;
-  unsigned long val=0;
-  long otimeout = serial_recv_timeout;
-
-  if (verbose >= 2)
-    fprintf(stderr, "%s: jtagmkII_paged_load32(.., %s, %d, %d)\n",
-	    progname, m->desc, page_size, n_bytes);
-
-  serial_recv_timeout = 256;
-
-  if(!(p->flags & AVRPART_WRITE)) {
-    status = jtagmkII_reset32(pgm, AVR32_RESET_READ);
-    if(status != 0) {lineno = __LINE__; goto eRR;}
-  }
-  
-  // Init SMC and set clocks
-  if(!(p->flags & AVRPART_INIT_SMC)) {
-    status = jtagmkII_smc_init32(pgm);
-    if(status != 0) {lineno = __LINE__; goto eRR;} // PLL 0
-    p->flags |= AVRPART_INIT_SMC;
-  }
-  
-  // Init SMC and set clocks
-  if(!(p->flags & AVRPART_INIT_SMC)) {
-    status = jtagmkII_smc_init32(pgm);
-    if(status != 0) {lineno = __LINE__; goto eRR;} // PLL 0
-    p->flags |= AVRPART_INIT_SMC;
-  }
-
-  //fprintf(stderr, "\n pageSize=%d bytes=%d pages=%d m->offset=0x%x pgm->page_size %d\n", page_size, n_bytes, pages, m->offset, pgm->page_size);
-
-  cmd[0] = CMND_READ_MEMORY32;
-  cmd[1] = 0x40;
-  cmd[2] = 0x05;
-
-  addr = 0;
-  for (addr = 0; addr < n_bytes; addr += block_size) {
-    report_progress(addr, n_bytes, NULL);
-
-    block_size = ((n_bytes-addr) < pgm->page_size) ? (n_bytes - addr) : pgm->page_size;
-    if (verbose >= 3)
-      fprintf(stderr, "%s: jtagmkII_paged_load32(): "
-              "block_size at addr %d is %d\n",
-              progname, addr, block_size);
-
-    u32_to_b4r(cmd + 3, m->offset + addr);
-
-    status = jtagmkII_send(pgm, cmd, 7);  if(status<0) {lineno = __LINE__; goto eRR;}
-    status = jtagmkII_recv(pgm, &resp);   if(status<0) {lineno = __LINE__; goto eRR;}
-
-    if (verbose >= 3) {
-      putc('\n', stderr);
-      jtagmkII_prmsg(pgm, resp, status);
-    } else if (verbose == 2)
-      fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[0], status);
-    if (resp[0] != 0x87) {
-      fprintf(stderr,
-              "%s: jtagmkII_paged_load32(): "
-              "bad response to write memory command: %s\n",
-              progname, jtagmkII_get_rc(resp[0]));
-      free(resp);
-      return -1;
-    }
-    memcpy(m->buf + addr, resp + 1, block_size);
-    free(resp);
-
-  }
-
-  serial_recv_timeout = otimeout;
-
-  status = jtagmkII_reset32(pgm, AVR32_SET4RUNNING); 
-  if(status < 0) {lineno = __LINE__; goto eRR;}
-
-  return addr;
-  
-  eRR:
-    serial_recv_timeout = otimeout;
-    fprintf(stderr,
-	    "%s: jtagmkII_paged_load32(): "
-	    "failed at line %d (status=%x val=%lx)\n",
-	    progname, lineno, status, val);
-    return -1;
-}
-
-static int jtagmkII_paged_write32(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-				int page_size, int n_bytes)
-{
-  unsigned int addr, block_size;
-  unsigned char *cmd=NULL;
-  unsigned char *resp;
-  int lineno, status, pages, pageNum, blocks;
-  unsigned long val=0;
-  unsigned long otimeout = serial_recv_timeout;
-
-  serial_recv_timeout = 256;
-  
-  if(n_bytes == 0) return -1;
-
-  status = jtagmkII_reset32(pgm, AVR32_RESET_WRITE);
-  if(status != 0) {lineno = __LINE__; goto eRR;}
-  p->flags |= AVRPART_WRITE;
-
-  pages = (n_bytes-1)/page_size + 1;
-  //fprintf(stderr, "\n pageSize=%d bytes=%d pages=%d m->offset=0x%x pgm->page_size %d\n", page_size, n_bytes, pages, m->offset, pgm->page_size);
-
-  // Before any errors can happen
-  if ((cmd = malloc(pgm->page_size + 10)) == NULL) {
-    fprintf(stderr, "%s: jtagmkII_paged_write32(): Out of memory\n", progname);
-    return -1;
-  }
-
-  // Init SMC and set clocks
-  if(!(p->flags & AVRPART_INIT_SMC)) {
-    status = jtagmkII_smc_init32(pgm);
-    if(status != 0) {lineno = __LINE__; goto eRR;} // PLL 0
-    p->flags |= AVRPART_INIT_SMC;
-  }
-
-  // First unlock the pages
-  for(pageNum=0; pageNum < pages; ++pageNum) {
-    status =jtagmkII_flash_lock32(pgm, 0, pageNum);
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-  }
-
-  // Then erase them (guess could do this in the same loop above?)
-  for(pageNum=0; pageNum < pages; ++pageNum) {
-    status =jtagmkII_flash_erase32(pgm, pageNum);
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-  }
-
-  cmd[0] = CMND_WRITE_MEMORY32;
-  u32_to_b4r(&cmd[1], 0x40000000);  // who knows
-  cmd[5] = 0x5;
-
-  addr = 0;
-  for(pageNum=0; pageNum < pages; ++pageNum) {
-  
-    report_progress(addr, n_bytes, NULL);
-
-#if 0
-    val = jtagmkII_read_SABaddr(pgm, AVR32_FLASHC_FSR, 0x05);
-    if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
-    if(!(val&AVR32_FLASHC_FSR_RDY)) {lineno = __LINE__; goto eRR;} // Flash better be ready
-#endif
-    status = jtagmkII_flash_clear_pagebuffer32(pgm);  if(status != 0) {lineno = __LINE__; goto eRR;}
-
-    for(blocks=0; blocks<2; ++blocks) {
-      block_size = ((n_bytes-addr) < pgm->page_size) ? (n_bytes - addr) : pgm->page_size;
-      if (verbose >= 3)
-        fprintf(stderr, "%s: jtagmkII_paged_write32(): "
-                "block_size at addr %d is %d\n",
-                progname, addr, block_size);
-
-      u32_to_b4r(cmd + 6, m->offset + addr);
-      memset(cmd + 10, 0xff, pgm->page_size);
-      memcpy(cmd + 10, m->buf + addr, block_size);
-
-      status = jtagmkII_send(pgm, cmd, pgm->page_size + 10);  if(status<0) {lineno = __LINE__; goto eRR;}
-      status = jtagmkII_recv(pgm, &resp); if(status<0) {lineno = __LINE__; goto eRR;}
-
-      if (verbose >= 3) {
-        putc('\n', stderr);
-        jtagmkII_prmsg(pgm, resp, status);
-      } else if (verbose == 2)
-        fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[0], status);
-      if (resp[0] != RSP_OK) {
-        fprintf(stderr,
-                "%s: jtagmkII_paged_write32(): "
-                "bad response to write memory command: %s\n",
-                progname, jtagmkII_get_rc(resp[0]));
-        free(resp);
-        free(cmd);
-        return -1;
-      }
-      free(resp);
-
-      addr += block_size;
-
-
-    }
-    status = jtagmkII_flash_write_page32(pgm, pageNum);
-    if(status < 0) {lineno = __LINE__; goto eRR;}
-  }
-  free(cmd);
-  serial_recv_timeout = otimeout;
-
-  status = jtagmkII_reset32(pgm, AVR32_SET4RUNNING);  // AVR32_SET4RUNNING | AVR32_RELEASE_JTAG
-  if(status < 0) {lineno = __LINE__; goto eRR;}
-
-  return addr;
-  
-  eRR:
-    serial_recv_timeout = otimeout;
-    free(cmd);
-    fprintf(stderr,
-	    "%s: jtagmkII_paged_write32(): "
-	    "failed at line %d (status=%x val=%lx)\n",
-	    progname, lineno, status, val);
-    return -1;
-}
-
-
-static int jtagmkII_flash_lock32(PROGRAMMER * pgm, unsigned char lock, unsigned int page)
-{
-  int status, lineno, i;
-  unsigned long val, cmd=0;
-
-  for(i=0; i<256; ++i) {
-    val = jtagmkII_read_SABaddr(pgm, AVR32_FLASHC_FSR, 0x05);
-    if(val == ERROR_SAB) continue;
-    if(val & AVR32_FLASHC_FSR_RDY) break;
-  }
-  if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
-  if(!(val&AVR32_FLASHC_FSR_RDY)) {lineno = __LINE__; goto eRR;} // Flash better be ready
-  
-  page <<= 8;
-  cmd = AVR32_FLASHC_FCMD_KEY | page | (lock ? AVR32_FLASHC_FCMD_LOCK : AVR32_FLASHC_FCMD_UNLOCK);
-  status = jtagmkII_write_SABaddr(pgm, AVR32_FLASHC_FCMD, 0x05, cmd); if(status < 0) {lineno = __LINE__; goto eRR;}
-
-#if 0
-  val = jtagmkII_read_SABaddr(pgm, AVR32_FLASHC_FSR, 0x05);
-  if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
-  if(val & AVR32_FLASHC_FSR_ERR) {lineno = __LINE__; goto eRR;} // PLL 0
-#endif
-
-  return 0;
-  
-  eRR:
-    fprintf(stderr,
-	    "%s: jtagmkII_flash_lock32(): "
-	    "failed at line %d page %d cmd %8.8lx\n",
-	    progname, lineno, page, cmd);
-    return -1;
-}
-
-static int jtagmkII_flash_erase32(PROGRAMMER * pgm, unsigned int page)
-{
-  int status, lineno, i;
-  unsigned long val=0, cmd=0, err=0;
-
-  for(i=0; i<256; ++i) {
-    val = jtagmkII_read_SABaddr(pgm, AVR32_FLASHC_FSR, 0x05);
-    if(val == ERROR_SAB) continue;
-    if(val & AVR32_FLASHC_FSR_RDY) break;
-  }
-  if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
-  if(!(val&AVR32_FLASHC_FSR_RDY)) {lineno = __LINE__; goto eRR;} // Flash better be ready
-    
-  page <<= 8;
-  cmd = AVR32_FLASHC_FCMD_KEY | page | AVR32_FLASHC_FCMD_ERASE_PAGE;
-  status = jtagmkII_write_SABaddr(pgm, AVR32_FLASHC_FCMD, 0x05, cmd); if(status < 0) {lineno = __LINE__; goto eRR;}
-
-//fprintf(stderr, "ERASE %x -> %x\n", cmd, AVR32_FLASHC_FCMD);
-
-  err = 0;
-  for(i=0; i<256; ++i) {
-    val = jtagmkII_read_SABaddr(pgm, AVR32_FLASHC_FSR, 0x05);
-    if(val == ERROR_SAB) continue;
-    err |= val;
-    if(val & AVR32_FLASHC_FSR_RDY) break;
-  }
-  if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
-  if(!(val & AVR32_FLASHC_FSR_RDY)) {lineno = __LINE__; goto eRR;}
-  if(err & AVR32_FLASHC_FSR_ERR) {lineno = __LINE__; goto eRR;}
-
-  return 0;
-  
-  eRR:
-    fprintf(stderr,
-	    "%s: jtagmkII_flash_erase32(): "
-	    "failed at line %d page %d cmd %8.8lx val %lx\n",
-	    progname, lineno, page, cmd, val);
-    return -1;
-}
-
-static int jtagmkII_flash_write_page32(PROGRAMMER * pgm, unsigned int page)
-{
-  int status, lineno, i;
-  unsigned long val=0, cmd, err;
-  
-  page <<= 8;
-  cmd = AVR32_FLASHC_FCMD_KEY | page | AVR32_FLASHC_FCMD_WRITE_PAGE;
-  status = jtagmkII_write_SABaddr(pgm, AVR32_FLASHC_FCMD, 0x05, cmd); if(status < 0) {lineno = __LINE__; goto eRR;}
-
-  err = 0;
-  for(i=0; i<256; ++i) {
-    val = jtagmkII_read_SABaddr(pgm, AVR32_FLASHC_FSR, 0x05);
-    if(val == ERROR_SAB) continue;
-    err |= val;
-    if(val & AVR32_FLASHC_FSR_RDY) break;
-  }
-  if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
-  if(!(val & AVR32_FLASHC_FSR_RDY)) {lineno = __LINE__; goto eRR;}
-  if(err & AVR32_FLASHC_FSR_ERR) {lineno = __LINE__; goto eRR;}
-
-  return 0;
-  
-  eRR:
-    fprintf(stderr,
-	    "%s: jtagmkII_flash_write_page32(): "
-	    "failed at line %d page %d cmd %8.8lx val %lx\n",
-	    progname, lineno, page, cmd, val);
-    return -1;
-}
-static int jtagmkII_flash_clear_pagebuffer32(PROGRAMMER * pgm)
-{
-  int status, lineno, i;
-  unsigned long val=0, cmd, err;
-  
-  cmd = AVR32_FLASHC_FCMD_KEY | AVR32_FLASHC_FCMD_CLEAR_PAGE_BUFFER;
-  status = jtagmkII_write_SABaddr(pgm, AVR32_FLASHC_FCMD, 0x05, cmd); if(status < 0) {lineno = __LINE__; goto eRR;}
-
-  err = 0;
-  for(i=0; i<256; ++i) {
-    val = jtagmkII_read_SABaddr(pgm, AVR32_FLASHC_FSR, 0x05);
-    if(val == ERROR_SAB) continue;
-    err |= val;
-    if(val & AVR32_FLASHC_FSR_RDY) break;
-  }
-  if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
-  if(!(val & AVR32_FLASHC_FSR_RDY)) {lineno = __LINE__; goto eRR;}
-  if(err & AVR32_FLASHC_FSR_ERR) {lineno = __LINE__; goto eRR;}
-
-  return 0;
-  
-  eRR:
-    fprintf(stderr,
-	    "%s: jtagmkII_flash_clear_pagebuffer32(): "
-	    "failed at line %d cmd %8.8lx val %lx\n",
-	    progname, lineno, cmd, val);
-    return -1;
-}
-
-
-
-
-
-
 
