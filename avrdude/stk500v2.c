@@ -211,6 +211,15 @@ static const struct jtagispentry jtagispcmds[] = {
 };
 
 /*
+ * From XML file:
+  <REVISION>
+    <RC_ID_MAJOR>0</RC_ID_MAJOR>
+    <RC_ID_MINOR>56</RC_ID_MINOR>
+    <EC_ID_MAJOR>0</EC_ID_MAJOR>
+    <EC_ID_MINOR>1</EC_ID_MINOR>
+  </REVISION>
+ */
+/*
  * These two tables can be semi-automatically updated from
  * targetboards.xml using tools/get-stk600-cards.xsl.
  */
@@ -226,9 +235,11 @@ static const struct carddata routing_cards[] =
   { 0x10, "STK600-RC064M-10" },
   { 0x11, "STK600-RC100M-11" },
   { 0x13, "STK600-RC100X-13" },
+  { 0x15, "STK600-RC044X-15" },
   { 0x18, "STK600-RC100M-18" },
   { 0x19, "STK600-RCPWM-19" },
-  { 0x1B, "STK600-RC32U-20" },
+  { 0x1A, "STK600-RC064X-14" },
+  { 0x1B, "STK600-RC032U-20" },
   { 0x1C, "STK600-RC014T-12" },
   { 0x1E, "STK600-RC064U-17" },
   { 0x1F, "STK600-RCuC3B0-21" },
@@ -236,22 +247,51 @@ static const struct carddata routing_cards[] =
   { 0x21, "STK600-RC020T-23" },
   { 0x22, "STK600-RC044M-24" },
   { 0x23, "STK600-RC044U-25" },
+  { 0x24, "STK600-RCPWM-26" },
+  { 0x25, "STK600-RCuC3B48-27" },
+  { 0x27, "STK600-RC032M-29" },
+  { 0x28, "STK600-RC044M-30" },
+  { 0x29, "STK600-RC044M-31" },
+  { 0x2A, "STK600-RC014T-42" },
+  { 0x2B, "STK600-RC020T-43" },
+  { 0x30, "STK600-RCUC3A144-32" },
+  { 0x34, "STK600-RCUC3L0-34" },
+  { 0x38, "STK600-RCUC3C0-36" },
+  { 0x3B, "STK600-RCUC3C0-37" },
+  { 0x3E, "STK600-RCUC3A144-33" },
+  { 0x46, "STK600-RCuC3A100-28" },
   { 0x55, "STK600-RC064M-9" },
+  { 0x88, "STK600-RCUC3C1-38" },
+  { 0x8B, "STK600-RCUC3C1-39" },
   { 0xA0, "STK600-RC008T-7" },
+  { 0xB8, "STK600-RCUC3C2-40" },
+  { 0xBB, "STK600-RCUC3C2-41" },
 };
 
 static const struct carddata socket_cards[] =
 {
+  { 0x01, "STK600-TQFP48" },
   { 0x02, "STK600-TQFP32" },
   { 0x03, "STK600-TQFP100" },
   { 0x04, "STK600-SOIC" },
+  { 0x06, "STK600-TQFP144" },
   { 0x09, "STK600-TinyX3U" },
   { 0x0C, "STK600-TSSOP44" },
   { 0x0D, "STK600-TQFP44" },
   { 0x0E, "STK600-TQFP64-2" },
   { 0x0F, "STK600-ATMEGA2560" },
+  { 0x15, "STK600-MLF64" },
+  { 0x16, "STK600-ATXMEGAT0" },
+  { 0x18, "QT600-ATMEGA324-QM64" },
+  { 0x19, "STK600-ATMEGA128RFA1" },
+  { 0x1A, "QT600-ATTINY88-QT8" },
+  { 0x1B, "QT600-ATXMEGA128A1-QT16" },
+  { 0x1C, "QT600-AT32UC3L-QM64" },
+  { 0x1D, "STK600-HVE2" },
+  { 0x1E, "STK600-ATTINY10" },
   { 0x55, "STK600-TQFP64" },
   { 0x69, "STK600-uC3-144" },
+  { 0xF0, "STK600-ATXMEGA1281A1" },
   { 0xF1, "STK600-DIP" },
 };
 

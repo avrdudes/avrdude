@@ -1,5 +1,10 @@
 2010-01-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* stk500v2.c: Update STK600 routing and socket card data from XML
+	file.
+
+2010-01-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* stk500v2.c: Cleanup the open/close handling to avoid accessing
 	unallocated memory (in the atexit handler) in case of bailing out.
 	* main.c: (Ditto.)
