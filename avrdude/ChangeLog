@@ -1,5 +1,11 @@
 2010-01-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* stk500v2.c: Cleanup the open/close handling to avoid accessing
+	unallocated memory (in the atexit handler) in case of bailing out.
+	* main.c: (Ditto.)
+
+2010-01-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* jtagmkII.c: Stylistic changes: move #defines out into
 	jtagmkII_private.h, drop all #if 0 blocks, fold overly long lines,
 	move the *_initpgm() functions to the end of the file; while being

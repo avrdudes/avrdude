@@ -280,6 +280,7 @@ int main(int argc, char * argv [])
   int     safemode;    /* Enable safemode, 1=safemode on, 0=normal */
   int     silentsafe;  /* Don't ask about fuses, 1=silent, 0=normal */
   int     init_ok;     /* Device initialization worked well */
+  int     is_open;     /* Device open succeeded */
   unsigned char safemode_lfuse = 0xff;
   unsigned char safemode_hfuse = 0xff;
   unsigned char safemode_efuse = 0xff;
@@ -350,6 +351,7 @@ int main(int argc, char * argv [])
   ispdelay      = 0;
   safemode      = 1;       /* Safemode on by default */
   silentsafe    = 0;       /* Ask by default */
+  is_open       = 0;
 
   if (isatty(STDIN_FILENO) == 0)
       safemode  = 0;       /* Turn off safemode if this isn't a terminal */
@@ -789,6 +791,7 @@ int main(int argc, char * argv [])
     pgm->ppidata = 0; /* clear all bits at exit */
     goto main_exit;
   }
+  is_open = 1;
 
   if (calibrate) {
     /*
@@ -1243,12 +1246,13 @@ main_exit:
    * program complete
    */
 
+  if (is_open) {
+    pgm->powerdown(pgm);
 
-  pgm->powerdown(pgm);
+    pgm->disable(pgm);
 
-  pgm->disable(pgm);
-
-  pgm->rdy_led(pgm, OFF);
+    pgm->rdy_led(pgm, OFF);
+  }
 
   pgm->close(pgm);
 
