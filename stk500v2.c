@@ -271,6 +271,7 @@ static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v);
 static int stk600_set_sck_period(PROGRAMMER * pgm, double v);
 
 static void stk600_setup_xprog(PROGRAMMER * pgm);
+static void stk600_setup_isp(PROGRAMMER * pgm);
 static int stk600_xprog_program_enable(PROGRAMMER * pgm, AVRPART * p);
 
 static void stk500v2_setup(PROGRAMMER * pgm)
@@ -1056,13 +1057,17 @@ static int stk500hvsp_program_enable(PROGRAMMER * pgm, AVRPART * p)
 static int stk500v2_initialize(PROGRAMMER * pgm, AVRPART * p)
 {
 
-  if ((PDATA(pgm)->pgmtype == PGMTYPE_STK600 || PDATA(pgm)->pgmtype == PGMTYPE_AVRISP_MKII) != 0
+  if ((PDATA(pgm)->pgmtype == PGMTYPE_STK600 ||
+       PDATA(pgm)->pgmtype == PGMTYPE_AVRISP_MKII ||
+       PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII) != 0
      && (p->flags & AVRPART_HAS_PDI) != 0) {
     /*
      * This is an ATxmega device, must use XPROG protocol for the
      * remaining actions.
      */
     stk600_setup_xprog(pgm);
+  } else {
+    stk600_setup_isp(pgm);
   }
 
   return pgm->program_enable(pgm, p);
@@ -2783,9 +2788,8 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
   if (jtagmkII_getsync(pgm, EMULATOR_MODE_SPI) != 0) {
     fprintf(stderr, "%s: failed to sync with the JTAG ICE mkII in ISP mode\n",
             progname);
-    pgm->close(pgm);		/* sign off correctly */
     pgm->cookie = mycookie;
-    exit(1);
+    return -1;
   }
   pgm->cookie = mycookie;
 
@@ -2870,11 +2874,10 @@ static int stk500v2_dragon_isp_open(PROGRAMMER * pgm, char * port)
   mycookie = pgm->cookie;
   pgm->cookie = PDATA(pgm)->chained_pdata;
   if (jtagmkII_getsync(pgm, EMULATOR_MODE_SPI) != 0) {
-    fprintf(stderr, "%s: failed to sync with the JTAG ICE mkII in ISP mode\n",
+    fprintf(stderr, "%s: failed to sync with the AVR Dragon in ISP mode\n",
             progname);
-    pgm->close(pgm);		/* sign off correctly */
     pgm->cookie = mycookie;
-    exit(1);
+    return -1;
   }
   pgm->cookie = mycookie;
 
@@ -2942,11 +2945,10 @@ static int stk500v2_dragon_hv_open(PROGRAMMER * pgm, char * port)
   mycookie = pgm->cookie;
   pgm->cookie = PDATA(pgm)->chained_pdata;
   if (jtagmkII_getsync(pgm, EMULATOR_MODE_HV) != 0) {
-    fprintf(stderr, "%s: failed to sync with the JTAG ICE mkII in HV mode\n",
+    fprintf(stderr, "%s: failed to sync with the AVR Dragon in HV mode\n",
             progname);
-    pgm->close(pgm);		/* sign off correctly */
     pgm->cookie = mycookie;
-    exit(1);
+    return -1;
   }
   pgm->cookie = mycookie;
 
@@ -3443,6 +3445,21 @@ static void stk600_setup_xprog(PROGRAMMER * pgm)
     pgm->paged_load = stk600_xprog_paged_load;
     pgm->paged_write = stk600_xprog_paged_write;
     pgm->chip_erase = stk600_xprog_chip_erase;
+}
+
+
+/*
+ * Modify pgm's methods for ISP operation.
+ */
+static void stk600_setup_isp(PROGRAMMER * pgm)
+{
+    pgm->program_enable = stk500v2_program_enable;
+    pgm->disable = stk500v2_disable;
+    pgm->read_byte = avr_read_byte_default;
+    pgm->write_byte = avr_write_byte_default;
+    pgm->paged_load = stk500v2_paged_load;
+    pgm->paged_write = stk500v2_paged_write;
+    pgm->chip_erase = stk500v2_chip_erase;
 }
 
 
