@@ -119,6 +119,8 @@ static struct {
  * The following defines this programmer's use of that field.
  */
 #define PGM_FL_IS_DW		(0x0001)
+#define PGM_FL_IS_PDI           (0x0002)
+#define PGM_FL_IS_JTAG          (0x0004)
 
 static int jtagmkII_open(PROGRAMMER * pgm, char * port);
 
@@ -1185,6 +1187,10 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
     ifname = "debugWire";
     if (p->flags & AVRPART_HAS_DW)
       ok = 1;
+  } else if (pgm->flag & PGM_FL_IS_PDI) {
+    ifname = "PDI";
+    if (p->flags & AVRPART_HAS_PDI)
+      ok = 1;
   } else {
     ifname = "JTAG";
     if (p->flags & AVRPART_HAS_JTAG)
@@ -1210,7 +1216,7 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
 	serial_setspeed(&pgm->fd, pgm->baudrate);
     }
   }
-  if (!(pgm->flag & PGM_FL_IS_DW) && pgm->bitclock != 0.0) {
+  if ((pgm->flag & PGM_FL_IS_JTAG) && pgm->bitclock != 0.0) {
     if (verbose >= 2)
       fprintf(stderr, "%s: jtagmkII_initialize(): "
 	      "trying to set JTAG clock period to %.1f us\n",
@@ -1231,10 +1237,10 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
   jtagmkII_set_devdescr(pgm, p);
 
   /*
-   * If this is an ATxmega device, change the emulator mode from JTAG
-   * to JTAG_XMEGA.
+   * If this is an ATxmega device in JTAG mode, change the emulator
+   * mode from JTAG to JTAG_XMEGA.
    */
-  if (!(pgm->flag & PGM_FL_IS_DW) &&
+  if ((pgm->flag & PGM_FL_IS_JTAG) &&
       (p->flags & AVRPART_HAS_PDI))
     jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG_XMEGA);
 
@@ -1256,7 +1262,7 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
   if (jtagmkII_reset(pgm, 0x01) < 0)
     return -1;
 
-  if (!(pgm->flag & PGM_FL_IS_DW) && !(p->flags & AVRPART_HAS_PDI)) {
+  if ((pgm->flag & PGM_FL_IS_JTAG) && !(p->flags & AVRPART_HAS_PDI)) {
     strcpy(hfuse.desc, "hfuse");
     if (jtagmkII_read_byte(pgm, p, &hfuse, 1, &b) < 0)
       return -1;
@@ -1278,8 +1284,12 @@ static void jtagmkII_disable(PROGRAMMER * pgm)
   free(PDATA(pgm)->eeprom_pagecache);
   PDATA(pgm)->eeprom_pagecache = NULL;
 
-  if (!(pgm->flag & (PGM_FL_IS_DW | AVRPART_AVR32)))
-    (void)jtagmkII_program_disable(pgm);
+  /*
+   * jtagmkII_program_disable() doesn't do anything if the
+   * device is currently not in programming mode, so just
+   * call it unconditionally here.
+   */
+  (void)jtagmkII_program_disable(pgm);
 }
 
 static void jtagmkII_enable(PROGRAMMER * pgm)
@@ -1419,6 +1429,50 @@ static int jtagmkII_open_dw(PROGRAMMER * pgm, char * port)
   return 0;
 }
 
+static int jtagmkII_open_pdi(PROGRAMMER * pgm, char * port)
+{
+  long baud;
+
+  if (verbose >= 2)
+    fprintf(stderr, "%s: jtagmkII_open_pdi()\n", progname);
+
+  /*
+   * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
+   * attaching.  If the config file or command-line parameters specify
+   * a higher baud rate, we switch to it later on, after establishing
+   * the connection with the ICE.
+   */
+  baud = 19200;
+
+  /*
+   * If the port name starts with "usb", divert the serial routines
+   * to the USB ones.  The serial_open() function for USB overrides
+   * the meaning of the "baud" parameter to be the USB device ID to
+   * search for.
+   */
+  if (strncmp(port, "usb", 3) == 0) {
+#if defined(HAVE_LIBUSB)
+    serdev = &usb_serdev;
+    baud = USB_DEVICE_JTAGICEMKII;
+#else
+    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    return -1;
+#endif
+  }
+
+  strcpy(pgm->port, port);
+  serial_open(port, baud, &pgm->fd);
+
+  /*
+   * drain any extraneous input
+   */
+  jtagmkII_drain(pgm, 0);
+
+  jtagmkII_getsync(pgm, EMULATOR_MODE_PDI);
+
+  return 0;
+}
+
 
 static int jtagmkII_dragon_open(PROGRAMMER * pgm, char * port)
 {
@@ -1505,6 +1559,51 @@ static int jtagmkII_dragon_open_dw(PROGRAMMER * pgm, char * port)
   jtagmkII_drain(pgm, 0);
 
   jtagmkII_getsync(pgm, EMULATOR_MODE_DEBUGWIRE);
+
+  return 0;
+}
+
+
+static int jtagmkII_dragon_open_pdi(PROGRAMMER * pgm, char * port)
+{
+  long baud;
+
+  if (verbose >= 2)
+    fprintf(stderr, "%s: jtagmkII_dragon_open_pdi()\n", progname);
+
+  /*
+   * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
+   * attaching.  If the config file or command-line parameters specify
+   * a higher baud rate, we switch to it later on, after establishing
+   * the connection with the ICE.
+   */
+  baud = 19200;
+
+  /*
+   * If the port name starts with "usb", divert the serial routines
+   * to the USB ones.  The serial_open() function for USB overrides
+   * the meaning of the "baud" parameter to be the USB device ID to
+   * search for.
+   */
+  if (strncmp(port, "usb", 3) == 0) {
+#if defined(HAVE_LIBUSB)
+    serdev = &usb_serdev;
+    baud = USB_DEVICE_AVRDRAGON;
+#else
+    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    return -1;
+#endif
+  }
+
+  strcpy(pgm->port, port);
+  serial_open(port, baud, &pgm->fd);
+
+  /*
+   * drain any extraneous input
+   */
+  jtagmkII_drain(pgm, 0);
+
+  jtagmkII_getsync(pgm, EMULATOR_MODE_PDI);
 
   return 0;
 }
@@ -2308,7 +2407,7 @@ static void jtagmkII_print_parms1(PROGRAMMER * pgm, const char * p)
   fprintf(stderr, "%sVtarget         : %.1f V\n", p,
 	  b2_to_u16(vtarget) / 1000.0);
 
-  if (!(pgm->flag & PGM_FL_IS_DW)) {
+  if ((pgm->flag & PGM_FL_IS_JTAG)) {
     if (jtagmkII_getparm(pgm, PAR_OCD_JTAG_CLK, jtag_clock) < 0)
       return;
 
@@ -3438,6 +3537,7 @@ void jtagmkII_initpgm(PROGRAMMER * pgm)
   pgm->setup          = jtagmkII_setup;
   pgm->teardown       = jtagmkII_teardown;
   pgm->page_size      = 256;
+  pgm->flag           = PGM_FL_IS_JTAG;
 }
 
 void jtagmkII_dw_initpgm(PROGRAMMER * pgm)
@@ -3471,6 +3571,37 @@ void jtagmkII_dw_initpgm(PROGRAMMER * pgm)
 }
 
 
+void jtagmkII_pdi_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "JTAGMKII_PDI");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = jtagmkII_initialize;
+  pgm->display        = jtagmkII_display;
+  pgm->enable         = jtagmkII_enable;
+  pgm->disable        = jtagmkII_disable;
+  pgm->program_enable = jtagmkII_program_enable_dummy;
+  pgm->chip_erase     = jtagmkII_chip_erase;
+  pgm->open           = jtagmkII_open_pdi;
+  pgm->close          = jtagmkII_close;
+  pgm->read_byte      = jtagmkII_read_byte;
+  pgm->write_byte     = jtagmkII_write_byte;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = jtagmkII_paged_write;
+  pgm->paged_load     = jtagmkII_paged_load;
+  pgm->print_parms    = jtagmkII_print_parms;
+  pgm->setup          = jtagmkII_setup;
+  pgm->teardown       = jtagmkII_teardown;
+  pgm->page_size      = 256;
+  pgm->flag           = PGM_FL_IS_PDI;
+}
+
+
 void jtagmkII_dragon_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "DRAGON_JTAG");
@@ -3500,6 +3631,7 @@ void jtagmkII_dragon_initpgm(PROGRAMMER * pgm)
   pgm->setup          = jtagmkII_setup;
   pgm->teardown       = jtagmkII_teardown;
   pgm->page_size      = 256;
+  pgm->flag           = PGM_FL_IS_JTAG;
 }
 
 
@@ -3562,5 +3694,36 @@ void jtagmkII_avr32_initpgm(PROGRAMMER * pgm)
   pgm->setup          = jtagmkII_setup;
   pgm->teardown       = jtagmkII_teardown;
   pgm->page_size      = 256;
+  pgm->flag           = PGM_FL_IS_JTAG;
+}
+
+void jtagmkII_dragon_pdi_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "DRAGON_PDI");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = jtagmkII_initialize;
+  pgm->display        = jtagmkII_display;
+  pgm->enable         = jtagmkII_enable;
+  pgm->disable        = jtagmkII_disable;
+  pgm->program_enable = jtagmkII_program_enable_dummy;
+  pgm->chip_erase     = jtagmkII_chip_erase;
+  pgm->open           = jtagmkII_dragon_open_pdi;
+  pgm->close          = jtagmkII_close;
+  pgm->read_byte      = jtagmkII_read_byte;
+  pgm->write_byte     = jtagmkII_write_byte;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = jtagmkII_paged_write;
+  pgm->paged_load     = jtagmkII_paged_load;
+  pgm->print_parms    = jtagmkII_print_parms;
+  pgm->setup          = jtagmkII_setup;
+  pgm->teardown       = jtagmkII_teardown;
+  pgm->page_size      = 256;
+  pgm->flag           = PGM_FL_IS_PDI;
 }
 
