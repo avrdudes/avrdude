@@ -1,5 +1,13 @@
 2010-01-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by clint fisher:
+	patch #7038: Adding Atmega32U4 Device to avrdude.conf.in
+	* avrdude.conf.in (atmega32u4): New device.
+	* avrdude.1: Document the new device support.
+	* doc/avrdude.texi: (Dito.)
+
+2010-01-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Thomas Pircher:
 	patch #6927: Documentation patches
 	* doc/avrdude.texi: Fix various typos, and remove the last

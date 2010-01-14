@@ -332,6 +332,7 @@ Currently, the following MCU types are understood:
 @item @code{m3290} @tab ATmega3290
 @item @code{m329p} @tab ATmega329P
 @item @code{m3290p} @tab ATmega3290P
+@item @code{m32u4} @tab ATmega32U4
 @item @code{m48}   @tab ATmega48
 @item @code{m64}   @tab ATmega64
 @item @code{m640}  @tab ATmega640

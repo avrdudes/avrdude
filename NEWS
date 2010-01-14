@@ -10,6 +10,7 @@ Current:
   * New devices supported:
 
       - AVR32A0512 (JTAGMKII only)
+      - ATmega32U4
 
   * New programmers supported:
 
