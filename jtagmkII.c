@@ -678,10 +678,21 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
   unsigned char buf[3], *resp, c = 0xff;
   int status;
   unsigned int fwver, hwver;
+  int is_dragon;
 
   if (verbose >= 3)
     fprintf(stderr, "%s: jtagmkII_getsync()\n", progname);
 
+  if (strncmp(pgm->type, "JTAG", strlen("JTAG")) == 0) {
+    is_dragon = 0;
+  } else if (strncmp(pgm->type, "DRAGON", strlen("DRAGON")) == 0) {
+    is_dragon = 1;
+  } else {
+    fprintf(stderr,
+            "%s: Programmer is neither JTAG ICE mkII nor AVR Dragon\n",
+            progname);
+    return -1;
+  }
   for (tries = 0; tries < MAXTRIES; tries++) {
 
     /* Get the sign-on information. */
@@ -756,31 +767,50 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
    * There's no official documentation from Atmel about what firmware
    * revision matches what device descriptor length.  The algorithm
    * below has been found empirically.
-   *
-   * The original JTAG ICE mkII has hardware version 0, the AVR Dragon
-   * has hardware version 2 (on the slave MCU) and doesn't need the
-   * firmware version checks (by now).
    */
 #define FWVER(maj, min) ((maj << 8) | (min))
-  if (hwver == 0 && fwver < FWVER(3, 16)) {
+  if (!is_dragon && fwver < FWVER(3, 16)) {
     PDATA(pgm)->device_descriptor_length -= 2;
     fprintf(stderr,
 	    "%s: jtagmkII_getsync(): "
 	    "S_MCU firmware version might be too old to work correctly\n",
 	    progname);
-  } else if (hwver == 0 && fwver < FWVER(4, 0)) {
+  } else if (!is_dragon && fwver < FWVER(4, 0)) {
     PDATA(pgm)->device_descriptor_length -= 2;
   }
   if (verbose >= 2 && mode != EMULATOR_MODE_SPI)
     fprintf(stderr,
-	    "%s: jtagmkII_getsync(): Using a %zu-byte device descriptor\n",
-	    progname, PDATA(pgm)->device_descriptor_length);
-  if (mode == EMULATOR_MODE_SPI || mode == EMULATOR_MODE_HV) {
+	    "%s: jtagmkII_getsync(): Using a %u-byte device descriptor\n",
+	    progname, (unsigned)PDATA(pgm)->device_descriptor_length);
+  if (mode == EMULATOR_MODE_SPI) {
     PDATA(pgm)->device_descriptor_length = 0;
-    if (hwver == 0 && fwver < FWVER(4, 14)) {
+    if (!is_dragon && fwver < FWVER(4, 14)) {
       fprintf(stderr,
 	      "%s: jtagmkII_getsync(): ISP functionality requires firmware "
 	      "version >= 4.14\n",
+	      progname);
+      return -1;
+    }
+  }
+  if (mode == EMULATOR_MODE_PDI || mode == EMULATOR_MODE_JTAG_XMEGA) {
+    if (!is_dragon && mode == EMULATOR_MODE_PDI && hwver < 1) {
+      fprintf(stderr,
+	      "%s: jtagmkII_getsync(): Xmega PDI support requires hardware "
+	      "revision >= 1\n",
+	      progname);
+      return -1;
+    }
+    if (!is_dragon && fwver < FWVER(5, 37)) {
+      fprintf(stderr,
+	      "%s: jtagmkII_getsync(): Xmega support requires firmware "
+	      "version >= 5.37\n",
+	      progname);
+      return -1;
+    }
+    if (is_dragon && fwver < FWVER(6, 11)) {
+      fprintf(stderr,
+	      "%s: jtagmkII_getsync(): Xmega support requires firmware "
+	      "version >= 6.11\n",
 	      progname);
       return -1;
     }
@@ -1241,8 +1271,10 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
    * mode from JTAG to JTAG_XMEGA.
    */
   if ((pgm->flag & PGM_FL_IS_JTAG) &&
-      (p->flags & AVRPART_HAS_PDI))
-    jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG_XMEGA);
+      (p->flags & AVRPART_HAS_PDI)) {
+    if (jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG_XMEGA) < 0)
+      return -1;
+  }
 
   free(PDATA(pgm)->flash_pagecache);
   free(PDATA(pgm)->eeprom_pagecache);
@@ -1380,7 +1412,8 @@ static int jtagmkII_open(PROGRAMMER * pgm, char * port)
    */
   jtagmkII_drain(pgm, 0);
 
-  jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG);
+  if (jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG) < 0)
+    return -1;
 
   return 0;
 }
@@ -1424,7 +1457,8 @@ static int jtagmkII_open_dw(PROGRAMMER * pgm, char * port)
    */
   jtagmkII_drain(pgm, 0);
 
-  jtagmkII_getsync(pgm, EMULATOR_MODE_DEBUGWIRE);
+  if (jtagmkII_getsync(pgm, EMULATOR_MODE_DEBUGWIRE) < 0)
+    return -1;
 
   return 0;
 }
@@ -1468,7 +1502,8 @@ static int jtagmkII_open_pdi(PROGRAMMER * pgm, char * port)
    */
   jtagmkII_drain(pgm, 0);
 
-  jtagmkII_getsync(pgm, EMULATOR_MODE_PDI);
+  if (jtagmkII_getsync(pgm, EMULATOR_MODE_PDI) < 0)
+    return -1;
 
   return 0;
 }
@@ -1513,7 +1548,8 @@ static int jtagmkII_dragon_open(PROGRAMMER * pgm, char * port)
    */
   jtagmkII_drain(pgm, 0);
 
-  jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG);
+  if (jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG) < 0)
+    return -1;
 
   return 0;
 }
@@ -1558,7 +1594,8 @@ static int jtagmkII_dragon_open_dw(PROGRAMMER * pgm, char * port)
    */
   jtagmkII_drain(pgm, 0);
 
-  jtagmkII_getsync(pgm, EMULATOR_MODE_DEBUGWIRE);
+  if (jtagmkII_getsync(pgm, EMULATOR_MODE_DEBUGWIRE) < 0)
+    return -1;
 
   return 0;
 }
@@ -1603,7 +1640,8 @@ static int jtagmkII_dragon_open_pdi(PROGRAMMER * pgm, char * port)
    */
   jtagmkII_drain(pgm, 0);
 
-  jtagmkII_getsync(pgm, EMULATOR_MODE_PDI);
+  if (jtagmkII_getsync(pgm, EMULATOR_MODE_PDI) < 0)
+    return -1;
 
   return 0;
 }
@@ -2341,8 +2379,8 @@ static int jtagmkII_setparm(PROGRAMMER * pgm, unsigned char parm,
   memcpy(buf + 2, value, size);
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkII_setparm(): "
-	    "Sending set parameter command (parm 0x%02x, %zu bytes): ",
-	    progname, parm, size);
+	    "Sending set parameter command (parm 0x%02x, %u bytes): ",
+	    progname, parm, (unsigned)size);
   jtagmkII_send(pgm, buf, size + 2);
 
   status = jtagmkII_recv(pgm, &resp);

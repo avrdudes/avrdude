@@ -1,5 +1,14 @@
 2010-01-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* avrdude.1: Update documentation to match the reality (device
+	support, memory areas).
+	* doc/avrdude.texi: Update documentation to match the
+	reality (device support, programmer support, memory areas).
+	Merge buspirate-specific comments from avrdude.1.
+	* jtagmkII.c: Add some firmware feature checks.
+
+2010-01-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* jtagmkII.c: Implement PDI mode support for the JTAG ICE mkII
 	and the AVR Dragon.
 	* jtagmkII.h: (Dito.)
