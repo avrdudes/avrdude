@@ -1,4 +1,13 @@
-2010-01-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2010-01-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Thomas Pircher:
+	patch #6927: Documentation patches
+	* doc/avrdude.texi: Fix various typos, and remove the last
+	remnants of obsoleted options -i/-o/-m/-f.
+	* avrdude.1: Merge typo fixes from avrdude.texi where
+	applicable.
+
+2010-01-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* avrdude.1: Update documentation to match the reality (device
 	support, memory areas).

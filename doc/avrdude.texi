@@ -139,7 +139,7 @@ all chip memory types (eeprom, flash, fuse bits, lock bits, signature
 bytes) or via an interactive (terminal) mode. Using AVRDUDE from the
 command line works well for programming the entire memory of the chip
 from the contents of a file, while interactive mode is useful for
-exploring memory contents, modifing individual bytes of eeprom,
+exploring memory contents, modifying individual bytes of eeprom,
 programming fuse/lock bits, etc.
 
 AVRDUDE supports the following basic programmer types: Atmel's STK500,
@@ -177,12 +177,12 @@ opposed to being an external device.
 The fundamental difference between the two types lies in the
 protocol used to control the programmer. The avr910 protocol is very
 simplistic and can easily be used as the basis for a simple, home made
-programer since the firmware is available online. On the other hand,
+programmer since the firmware is available online. On the other hand,
 the STK500 protocol is more robust and complicated and the firmware is
 not openly available.
 The JTAG ICE also uses a serial communication protocol which is similar
 to the STK500 firmware version 2 one.  However, as the JTAG ICE is
-intented to allow on-chip debugging as well as memory programming, the
+intended to allow on-chip debugging as well as memory programming, the
 protocol is more sophisticated.
 (The JTAG ICE mkII protocol can also be run on top of USB.)
 Only the memory programming functionality of the JTAG ICE is supported
@@ -217,7 +217,7 @@ below for details.
 
 The USBasp ISP and USBtinyISP adapters are also supported, provided AVRDUDE
 has been compiled with libusb support.
-They both feature simple firwmare-only USB implementations, running on
+They both feature simple firmware-only USB implementations, running on
 an ATmega8 (or ATmega88), or ATtiny2313, respectively.
 
 
@@ -721,7 +721,7 @@ Disables the default behaviour of reading out the fuses three times before
 programming, then verifying at the end of programming that the fuses have not
 changed. If you want to change fuses you will need to specify this option,
 as avrdude will see the fuses have changed (even though you wanted to) and
-will change them back for your "saftey". This option was designed to
+will change them back for your "safety". This option was designed to
 prevent cases of fuse bits magically changing (usually called @emph{safemode}).
 
 @item -t
@@ -730,10 +730,9 @@ or downloading files.  See below for a detailed description of the
 terminal mode.
 
 @item -U @var{memtype}:@var{op}:@var{filename}[:@var{format}]
-Perform a memory operation, equivalent to specifing the @option{-m},
-@option{-i} or @option{-o}, and @option{-f} options, except that
-multiple @option{-U} optins can be specified in order to operate on
-mulitple memories on the same command-line invocation.  The
+Perform a memory operation.
+Multiple @option{-U} options can be specified in order to operate on
+multiple memories on the same command-line invocation.  The
 @var{memtype} field specifies the memory type to operate on. Use
 the @option{-v} option on the command line or the @code{part} command from
 terminal mode to display all the memory types supported by a particular
@@ -808,8 +807,8 @@ raw binary; little-endian byte order, in the case of the flash ROM data
 
 @itemx m
 immediate mode; actual byte values specified on the command line,
-seperated by commas or spaces in place of the @var{filename} field of
-the @option{-i}, @option{-o}, or @option{-U} options.  This is useful
+separated by commas or spaces in place of the @var{filename} field of
+the @option{-U} option.  This is useful
 for programming fuse bytes without having to create a single-byte file
 or enter terminal mode.  If the number specified begins with @code{0x},
 it is treated as a hex value.  If the number otherwise begins with a
@@ -1425,15 +1424,15 @@ directory as the executable.
 @table @code
 
 @item default_parallel = "@var{default-parallel-device}";
-Assign the default parallel port device.  Can be overidden using the
+Assign the default parallel port device.  Can be overridden using the
 @option{-P} option.
 
 @item default_serial = "@var{default-serial-device}";
-Assign the default serial port device.  Can be overidden using the
+Assign the default serial port device.  Can be overridden using the
 @option{-P} option.
 
 @item default_programmer = "@var{default-programmer-id}";
-Assign the default programmer id.  Can be overidden using the @option{-c}
+Assign the default programmer id.  Can be overridden using the @option{-c}
 option.
 
 @end table
@@ -1519,7 +1518,7 @@ part
 @subsection Instruction Format
 
 @noindent
-Instruction formats are specified as a comma seperated list of string
+Instruction formats are specified as a comma separated list of string
 values containing information (bit specifiers) about each of the 32 bits
 of the instruction.  Bit specifiers may be one of the following formats:
 
@@ -1827,7 +1826,7 @@ obtained.
 @subsubsection Linux Installation
 
 @noindent
-On rpm based linux systems (such as RedHat, SUSE, Mandrake, etc), you
+On rpm based Linux systems (such as RedHat, SUSE, Mandrake, etc), you
 can build and install the rpm binaries directly from the tarball:
 
 @example
@@ -2211,7 +2210,7 @@ Solution: This problem seems to appear with certain versions of Cygwin. Specifyi
 
 
 @item
-Problem: I'm using linux and my AVR910 programmer is really slow.
+Problem: I'm using Linux and my AVR910 programmer is really slow.
 
 Solution (short): @code{setserial @var{port} low_latency}
 
@@ -2231,7 +2230,7 @@ your own risk.
 
 
 @item
-Problem: I'm not using linux and my AVR910 programmer is really slow.
+Problem: I'm not using Linux and my AVR910 programmer is really slow.
 
 Solutions: The reasons for this are the same as above.
 If you know how to work around this on your OS, please let us know.
@@ -2279,7 +2278,7 @@ protocol.  The ICE needs to be connected to the target using the
 JTAG-to-ISP adapter, so the JTAG ICE mkII can be used as a debugWire
 initiator as well as an ISP programmer.  AVRDUDE will then be activated
 using the @var{jtag2isp} programmer type.  The initial ISP
-communication attempt will fail, but AVRDUDE then tries to iniate a
+communication attempt will fail, but AVRDUDE then tries to initiate a
 debugWire reset.  When successful, this will leave the target AVR in a
 state where it can accept standard ISP communication.  The ICE is then
 signed off (which will make it signing off from the USB as well), so
@@ -2316,7 +2315,7 @@ protocol to allow an in-circuit emulation of the smaller AVR devices,
 using the @var{/RESET} line.
 DebugWire mode is initiated by activating the @var{DWEN}
 fuse, and then power-cycling the target.
-While this mode is mainly intented for debugging/emulation, it
+While this mode is mainly intended for debugging/emulation, it
 also offers limited programming capabilities.
 Effectively, the only memory areas that can be read or programmed
 in this mode are flash ROM and EEPROM.
