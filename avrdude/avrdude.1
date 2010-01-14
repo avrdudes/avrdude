@@ -1,6 +1,6 @@
 .\"
 .\" avrdude - A Downloader/Uploader for AVR device programmers
-.\" Copyright (C) 2001, 2002, 2003, 2005 - 2009  Joerg Wunsch
+.\" Copyright (C) 2001, 2002, 2003, 2005 - 2010  Joerg Wunsch
 .\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE November 5, 2008
+.Dd DATE January 14, 2010
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -127,8 +127,11 @@ supported on a serial port.
 .Pp
 Atmel's JTAG ICE (both mkI and mkII) is supported as well to up- or download memory
 areas from/to an AVR target (no support for on-chip debugging).
-For the JTAG ICE mkII, JTAG, debugWire and ISP mode are supported.
+For the JTAG ICE mkII, JTAG, debugWire and ISP mode are supported, provided
+it has a firmware revision of at least 4.14 (decimal).
 See below for the limitations of debugWire.
+For ATxmega devices, the JTAG ICE mkII is supported in PDI mode, provided it
+has a revision 1 hardware and firmware version of at least 5.37 (decimal).
 .Pp
 The AVR Dragon is supported in all modes (ISP, JTAG, HVSP, PP, debugWire).
 When used in JTAG and debugWire mode, the AVR Dragon behaves similar to a
@@ -141,6 +144,8 @@ In particular, the Dragon starts out with a rather fast ISP clock
 frequency, so the
 .Fl B Ar bitclock
 option might be required to achieve a stable ISP communication.
+For ATxmega devices, the AVR Dragon is supported in PDI mode, provided it
+has a firmware version of at least 6.11 (decimal).
 .Pp
 The USBasp ISP and USBtinyISP adapters are also supported, provided
 .Nm avrdude
@@ -196,9 +201,6 @@ the format.  Currently, the following MCU types are understood:
 .TS
 ll.
 \fBOption tag\fP	\fBOfficial part name\fP
-c128	AT90CAN128
-pwm2	AT90PWM2
-pwm3	AT90PWM3
 1200	AT90S1200
 2313	AT90S2313
 2333	AT90S2333
@@ -208,6 +210,9 @@ pwm3	AT90PWM3
 4434	AT90S4434
 8515	AT90S8515
 8535	AT90S8535
+c128	AT90CAN128
+c32	AT90CAN32
+c64	AT90CAN64
 m103	ATmega103
 m128	ATmega128
 m1280	ATmega1280
@@ -219,34 +224,72 @@ m161	ATmega161
 m162	ATmega162
 m163	ATmega163
 m164	ATmega164
+m164p	ATmega164P
+m168	ATmega168
 m169	ATmega169
 m2560	ATmega2560 (**)
 m2561	ATmega2561 (**)
 m32	ATmega32
-m324	ATmega324
+m324p	ATmega324P
+m325	ATmega325
+m3250	ATmega3250
+m328p	ATmega328P
 m329	ATmega329
 m3290	ATmega3290
+m329p	ATmega329P
+m3290p	ATmega3290P
 m48	ATmega48
 m64	ATmega64
 m640	ATmega640
+m644p	ATmega644P
 m644	ATmega644
+m645	ATmega645
+m6450	ATmega6450
 m649	ATmega649
 m6490	ATmega6490
 m8	ATmega8
 m8515	ATmega8515
 m8535	ATmega8535
 m88	ATmega88
+pwm2	AT90PWM2
+pwm2b	AT90PWM2B
+pwm3	AT90PWM3
+pwm3b	AT90PWM3B
 t12	ATtiny12
 t13	ATtiny13
 t15	ATtiny15
 t2313	ATtiny2313
 t25	ATtiny25
 t26	ATtiny26
+t261	ATtiny261
+t44	ATtiny44
 t45	ATtiny45
+t461	ATtiny461
+t84	ATtiny84
 t85	ATtiny85
+t861	ATtiny861
+t88	ATtiny88
 ucr2	AT32uca0512
+usb1286	ATmega1286
+usb1287	ATmega1287
+usb162	ATmega162
+usb646	ATmega647
+usb647	ATmega647
+usb82	ATmega82
 x128a1	ATxmega128A1
 x128a1d	ATxmega128A1revD
+x128a3	ATxmega128A3
+x128a4	ATxmega128A4
+x16a4	ATxmega16A4
+x192a1	ATxmega192A1
+x192a3	ATxmega192A3
+x256a1	ATxmega256A1
+x256a3	ATxmega256A3
+x256a3b	ATxmega256A3B
+x32a4	ATxmega32A4
+x64a1	ATxmega64A1
+x64a3	ATxmega64A3
+x64a4	ATxmega64A4
 .TE
 .Bl -tag -width "(**) "
 .It "(*)"
@@ -540,6 +583,21 @@ The low fuse byte.
 The lock byte.
 .It signature
 The three device signature bytes (device ID).
+.It fuse Ns Em N
+The fuse bytes of ATxmega devices,
+.Em N
+is an integer number
+for each fuse supported by the device.
+.It application
+The application flash area of ATxmega devices.
+.It apptable
+The application table flash area of ATxmega devices.
+.It boot
+The boot flash area of ATxmega devices.
+.It prodsig
+The production signature (calibration) area of ATxmega devices.
+.It usersig
+The user signature area of ATxmega devices.
 .El
 .Pp
 The

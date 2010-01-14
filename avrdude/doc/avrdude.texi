@@ -30,7 +30,7 @@ For avrdude version @value{VERSION}, @value{UPDATED}.
 
 Copyright @copyright{} 2003, 2005 Brian Dean
 
-Copyright @copyright{} 2006 - 2009 J@"org Wunsch
+Copyright @copyright{} 2006 - 2010 J@"org Wunsch
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -187,11 +187,11 @@ protocol is more sophisticated.
 (The JTAG ICE mkII protocol can also be run on top of USB.)
 Only the memory programming functionality of the JTAG ICE is supported
 by AVRDUDE.
-For the JTAG ICE mkII, JTAG, debugWire and ISP mode are supported.
+For the JTAG ICE mkII, JTAG, debugWire and ISP mode are supported, provided
+it has a firmware revision of at least 4.14 (decimal).
 See below for the limitations of debugWire.
-
-The Arduino (which is very similar to the STK500 1.x) is supported via
-its own programmer type specification ``arduino''.
+For ATxmega devices, the JTAG ICE mkII is supported in PDI mode, provided it
+has a revision 1 hardware and firmware version of at least 5.37 (decimal).
 
 The AVR Dragon is supported in all modes (ISP, JTAG, HVSP, PP, debugWire).
 When used in JTAG and debugWire mode, the AVR Dragon behaves similar to a
@@ -203,6 +203,17 @@ comments will apply there.
 In particular, the Dragon starts out with a rather fast ISP clock
 frequency, so the @code{-B @var{bitclock}}
 option might be required to achieve a stable ISP communication.
+For ATxmega devices, the AVR Dragon is supported in PDI mode, provided it
+has a firmware version of at least 6.11 (decimal).
+
+The Arduino (which is very similar to the STK500 1.x) is supported via
+its own programmer type specification ``arduino''.
+
+The BusPirate is a versatile tool that can also be used as an AVR programmer.
+A single BusPirate can be connected to up to 3 independent AVRs. See
+the section on
+@emph{extended parameters}
+below for details.
 
 The USBasp ISP and USBtinyISP adapters are also supported, provided AVRDUDE
 has been compiled with libusb support.
@@ -284,9 +295,6 @@ datasheet so that you can enter the programming specifications.
 Currently, the following MCU types are understood:
 
 @multitable @columnfractions .15 .3
-@item @code{c128}  @tab AT90CAN128
-@item @code{pwm2}  @tab AT90PWM2
-@item @code{pwm3}  @tab AT90PWM3
 @item @code{1200}  @tab AT90S1200
 @item @code{2313}  @tab AT90S2313
 @item @code{2333}  @tab AT90S2333
@@ -296,6 +304,9 @@ Currently, the following MCU types are understood:
 @item @code{4434}  @tab AT90S4434
 @item @code{8515}  @tab AT90S8515
 @item @code{8535}  @tab AT90S8535
+@item @code{c128}  @tab AT90CAN128
+@item @code{c32}   @tab AT90CAN32
+@item @code{c64}   @tab AT90CAN64
 @item @code{m103}  @tab ATmega103
 @item @code{m128}  @tab ATmega128
 @item @code{m1280} @tab ATmega1280
@@ -307,33 +318,72 @@ Currently, the following MCU types are understood:
 @item @code{m162}  @tab ATmega162
 @item @code{m163}  @tab ATmega163
 @item @code{m164}  @tab ATmega164
+@item @code{m164p} @tab ATmega164P
+@item @code{m168}  @tab ATmega168
 @item @code{m169}  @tab ATmega169
 @item @code{m2560} @tab ATmega2560 (**)
 @item @code{m2561} @tab ATmega2561 (**)
 @item @code{m32}   @tab ATmega32
-@item @code{m324}  @tab ATmega324
+@item @code{m324p} @tab ATmega324P
+@item @code{m325}  @tab ATmega325
+@item @code{m3250} @tab ATmega3250
+@item @code{m328p} @tab ATmega328P
 @item @code{m329}  @tab ATmega329
 @item @code{m3290} @tab ATmega3290
+@item @code{m329p} @tab ATmega329P
+@item @code{m3290p} @tab ATmega3290P
 @item @code{m48}   @tab ATmega48
 @item @code{m64}   @tab ATmega64
 @item @code{m640}  @tab ATmega640
+@item @code{m644p} @tab ATmega644P
 @item @code{m644}  @tab ATmega644
+@item @code{m645}  @tab ATmega645
+@item @code{m6450} @tab ATmega6450
 @item @code{m649}  @tab ATmega649
 @item @code{m6490} @tab ATmega6490
 @item @code{m8}    @tab ATmega8
 @item @code{m8515} @tab ATmega8515
 @item @code{m8535} @tab ATmega8535
 @item @code{m88}   @tab ATmega88
+@item @code{pwm2}  @tab AT90PWM2
+@item @code{pwm2b} @tab AT90PWM2B
+@item @code{pwm3}  @tab AT90PWM3
+@item @code{pwm3b} @tab AT90PWM3B
 @item @code{t12}   @tab ATtiny12
 @item @code{t13}   @tab ATtiny13
 @item @code{t15}   @tab ATtiny15
 @item @code{t2313} @tab ATtiny2313
 @item @code{t25}   @tab ATtiny25
 @item @code{t26}   @tab ATtiny26
+@item @code{t261}  @tab ATtiny261
+@item @code{t44}   @tab ATtiny44
 @item @code{t45}   @tab ATtiny45
+@item @code{t461}  @tab ATtiny461
+@item @code{t84}   @tab ATtiny84
 @item @code{t85}   @tab ATtiny85
-@item @code{x128a1} @tab ATxmega128A1
+@item @code{t861}  @tab ATtiny861
+@item @code{t88}   @tab ATtiny88
+@item @code{ucr2}  @tab AT32uca0512
+@item @code{usb1286} @tab ATmega1286
+@item @code{usb1287} @tab ATmega1287
+@item @code{usb162}  @tab ATmega162
+@item @code{usb646}  @tab ATmega647
+@item @code{usb647}  @tab ATmega647
+@item @code{usb82}   @tab ATmega82
+@item @code{x128a1}  @tab ATxmega128A1
 @item @code{x128a1d} @tab ATxmega128A1revD
+@item @code{x128a3}  @tab ATxmega128A3
+@item @code{x128a4}  @tab ATxmega128A4
+@item @code{x16a4}   @tab ATxmega16A4
+@item @code{x192a1}  @tab ATxmega192A1
+@item @code{x192a3}  @tab ATxmega192A3
+@item @code{x256a1}  @tab ATxmega256A1
+@item @code{x256a3}  @tab ATxmega256A3
+@item @code{x256a3b} @tab ATxmega256A3B
+@item @code{x32a4}   @tab ATxmega32A4
+@item @code{x64a1}   @tab ATxmega64A1
+@item @code{x64a3}   @tab ATxmega64A3
+@item @code{x64a4}   @tab ATxmega64A4
 @end multitable
 
 (*)   The AT90S2323 and ATtiny22 use the same algorithm.
@@ -401,6 +451,8 @@ Altera ByteBlaster
 @item @code{bsd}         @tab
 Brian Dean's Programmer,@*
 @url{http://www.bsdhome.com/avrdude/}
+@item @code{buspirate}   @tab
+The Bus Pirate
 @item @code{butterfly}   @tab
 Atmel Butterfly Development Board
 @item @code{c2n232i}     @tab
@@ -420,6 +472,8 @@ AVR Dragon in high-voltage serial programming mode
 AVR Dragon in ISP mode
 @item @code{dragon_jtag} @tab
 AVR Dragon in JTAG mode
+@item @code{dragon_pdi} @tab
+AVR Dragon in PDI mode
 @item @code{dragon_pp}   @tab
 AVR Dragon in (high-voltage) parallel programming mode
 @item @code{dt006}       @tab
@@ -436,20 +490,26 @@ Futurlec.com programming cable
 Atmel JTAG ICE mkI, running at 115200 Bd
 @item @code{jtag1slow}   @tab
 Atmel JTAG ICE mkI, running at 19200 Bd
-@item @code{jtag2slow}   @tab
-Atmel JTAG ICE mkII (default speed 19200 Bd)
 @item @code{jtag2}       @tab
 Atmel JTAG ICE mkII, running at 115200 Bd
+@item @code{jtag2avr32}  @tab
+Atmel JTAG ICE mkII in AVR32 mode.
+@item @code{jtag2dw}     @tab
+Atmel JTAG ICE mkII in debugWire mode.
 @item @code{jtag2fast}   @tab
 Atmel JTAG ICE mkII, running at 115200 Bd
 @item @code{jtag2isp}    @tab
 Atmel JTAG ICE mkII in ISP mode.
-@item @code{jtag2dw}     @tab
-Atmel JTAG ICE mkII in debugWire mode.
+@item @code{jtag2pdi}    @tab
+Atmel JTAG ICE mkII in PDI mode.
+@item @code{jtag2slow}   @tab
+Atmel JTAG ICE mkII (default speed 19200 Bd)
 @item @code{jtagmkI}     @tab
 Atmel JTAG ICE mkI, running at 115200 Bd
 @item @code{jtagmkII}    @tab
 Atmel JTAG ICE mkII (default speed 19200 Bd)
+@item @code{jtagmkII_avr32} @tab
+Atmel JTAG ICE mkII in AVR32 mode.
 @item @code{mib510}      @tab
 Crossbow MIB510 programming board
 @item @code{pavr}        @tab
@@ -703,6 +763,19 @@ The low fuse byte.
 The lock byte.
 @item signature
 The three device signature bytes (device ID).
+@item fuse@emph{N}
+The fuse bytes of ATxmega devices, @emph{N} is an integer number
+for each fuse supported by the device.
+@item application
+The application flash area of ATxmega devices.
+@item apptable
+The application table flash area of ATxmega devices.
+@item boot
+The boot flash area of ATxmega devices.
+@item prodsig
+The production signature (calibration) area of ATxmega devices.
+@item usersig
+The user signature area of ATxmega devices.
 @end table
 
 The @var{op} field specifies what operation to perform:
@@ -854,6 +927,60 @@ Disables the default checking for block transfer capability.
 Use 
 @samp{no_blockmode} only if your @samp{AVR910} 
 programmer creates errors during initial sequence.
+@end table
+
+@item BusPirate
+
+The BusPirate programmer type accepts the following extended parameters:
+@table @code
+@item @samp{reset=cs,aux,aux2}
+The default setup assumes the BusPirate's CS output pin connected to
+the RESET pin on AVR side. It is however possible to have multiple AVRs
+connected to the same BP with MISO, MOSI and SCK lines common for all of them.
+In such a case one AVR should have its RESET connected to BusPirate's
+@emph{CS}
+pin, second AVR's RESET connected to BusPirate's
+@emph{AUX}
+pin and if your BusPirate has an
+@emph{AUX2}
+pin (only available on BusPirate version v1a with firmware 3.0 or newer)
+use that to activate RESET on the third AVR.
+
+It may be a good idea to decouple the BusPirate and the AVR's SPI buses from
+each other using a 3-state bus buffer. For example 74HC125 or 74HC244 are some
+good candidates with the latches driven by the appropriate reset pin (cs,
+aux or aux2). Otherwise the SPI traffic in one active circuit may interfere
+with programming the AVR in the other design.
+
+@item @samp{speed=@var{0..7}}
+@table @code
+@item 0
+30 kHz (default)
+@item 1
+125 kHz
+@item 2
+250 kHz
+@item 3
+1 MHz
+@item 4
+2 MHz
+@item 5
+2.6 MHz
+@item 6
+4 MHz
+@item 7
+8 MHz
+@end table
+
+@item @samp{ascii}
+Use ASCII mode even when the firmware supports BinMode (binary mode).
+BinMode is supported in firmware 2.7 and newer, older FW's either don't
+have BinMode or their BinMode is buggy. ASCII mode is slower and makes
+the above
+@samp{reset=}
+and
+@samp{speed=}
+parameters unavailable.
 @end table
 
 @end table
@@ -1524,32 +1651,61 @@ The following devices are supported by the respective STK600 routing
 and socket card:
 
 @multitable @columnfractions .25 .25 .5
-@headitem Routing card @tab Socket card @tab Devices
-@item @code{STK600-RC008T-2} @tab @code{STK600-DIP} @tab ATtiny11 ATtiny12 ATtiny13 ATtiny25 ATtiny45 ATtiny85
+Routing card @tab Socket card @tab Devices
+@item @code{} @tab @code{STK600-ATTINY10} @tab ATtiny4 ATtiny5 ATtiny9 ATtiny10
+@item @code{STK600-RC008T-2} @tab @code{STK600-DIP} @tab ATtiny11 ATtiny12 ATtiny13 ATtiny13A ATtiny25 ATtiny45 ATtiny85
 @item @code{STK600-RC008T-7} @tab @code{STK600-DIP} @tab ATtiny15
-@item @code{STK600-RC020T-1} @tab @code{STK600-DIP} @tab ATtiny2313
+@item @code{STK600-RC014T-42} @tab @code{STK600-SOIC} @tab ATtiny20
+@item @code{STK600-RC020T-1} @tab @code{STK600-DIP} @tab ATtiny2313 ATtiny2313A ATtiny4313
 @item @code{} @tab @code{STK600-TinyX3U} @tab ATtiny43U
-@item @code{STK600-RC014T-12} @tab @code{STK600-DIP} @tab ATtiny24 ATtiny44 ATtiny84
-@item @code{STK600-RC020T-8} @tab @code{STK600-DIP} @tab ATtiny26 ATtiny261 ATtiny461 ATtiny861
-@item @code{STK600-RC020T-23} @tab @code{STK600-SOIC} @tab ATtiny167
+@item @code{STK600-RC014T-12} @tab @code{STK600-DIP} @tab ATtiny24 ATtiny44 ATtiny84 ATtiny24A ATtiny44A
+@item @code{STK600-RC020T-8} @tab @code{STK600-DIP} @tab ATtiny26 ATtiny261 ATtiny261A ATtiny461 ATtiny861 ATtiny861A
+@item @code{STK600-RC020T-43} @tab @code{STK600-SOIC} @tab ATtiny261 ATtiny261A ATtiny461 ATtiny461A ATtiny861 ATtiny861A
+@item @code{STK600-RC020T-23} @tab @code{STK600-SOIC} @tab ATtiny87 ATtiny167
 @item @code{STK600-RC028T-3} @tab @code{STK600-DIP} @tab ATtiny28
-@item @code{STK600-RC028M-6} @tab @code{STK600-DIP} @tab ATtiny48 ATtiny88 ATmega8 ATmega48 ATmega88 ATmega168 ATmega48P ATmega88P ATmega168P ATmega328P
+@item @code{STK600-RC028M-6} @tab @code{STK600-DIP} @tab ATtiny48 ATtiny88 ATmega8 ATmega8A ATmega48 ATmega88 ATmega168 ATmega48P ATmega48PA ATmega88P ATmega88PA ATmega168P ATmega168PA ATmega328P
+@item @code{} @tab @code{QT600-ATTINY88-QT8} @tab ATtiny88
 @item @code{STK600-RC040M-4} @tab @code{STK600-DIP} @tab ATmega8515 ATmega162
-@item @code{STK600-RC040M-5} @tab @code{STK600-DIP} @tab ATmega8535 ATmega16 ATmega32 ATmega164P ATmega324P ATmega644 ATmega644P ATmega1284P
-@item @code{STK600-RC064M-9} @tab @code{STK600-TQFP64} @tab ATmega64 ATmega128 ATmega1281 ATmega2561 AT90CAN32 AT90CAN64 AT90CAN128
-@item @code{STK600-RC064M-10} @tab @code{STK600-TQFP64} @tab ATmega165 ATmega165P ATmega169 ATmega169P ATmega325 ATmega325P ATmega329 ATmega329P ATmega645 ATmega649
+@item @code{STK600-RC044M-30} @tab @code{STK600-TQFP44} @tab ATmega8515 ATmega162
+@item @code{STK600-RC040M-5} @tab @code{STK600-DIP} @tab ATmega8535 ATmega16 ATmega16A ATmega32 ATmega32A ATmega164P ATmega164PA ATmega324P ATmega324PA ATmega644 ATmega644P ATmega644PA ATmega1284P
+@item @code{STK600-RC044M-31} @tab @code{STK600-TQFP44} @tab ATmega8535 ATmega16 ATmega16A ATmega32 ATmega32A ATmega164P ATmega164PA ATmega324P ATmega324PA ATmega644 ATmega644P ATmega644PA ATmega1284P
+@item @code{} @tab @code{QT600-ATMEGA324-QM64} @tab ATmega324PA
+@item @code{STK600-RC032M-29} @tab @code{STK600-TQFP32} @tab ATmega8 ATmega8A ATmega48 ATmega88 ATmega168 ATmega48P ATmega48PA ATmega88P ATmega88PA ATmega168P ATmega168PA ATmega328P
+@item @code{STK600-RC064M-9} @tab @code{STK600-TQFP64} @tab ATmega64 ATmega64A ATmega128 ATmega128A ATmega1281 ATmega2561 AT90CAN32 AT90CAN64 AT90CAN128
+@item @code{STK600-RC064M-10} @tab @code{STK600-TQFP64} @tab ATmega165 ATmega165P ATmega169 ATmega169P ATmega169PA ATmega325 ATmega325P ATmega329 ATmega329P ATmega645 ATmega649 ATmega649P
 @item @code{STK600-RC100M-11} @tab @code{STK600-TQFP100} @tab ATmega640 ATmega1280 ATmega2560
 @item @code{} @tab @code{STK600-ATMEGA2560} @tab ATmega2560
 @item @code{STK600-RC100M-18} @tab @code{STK600-TQFP100} @tab ATmega3250 ATmega3250P ATmega3290 ATmega3290P ATmega6450 ATmega6490
-@item @code{STK600-RC32U-20} @tab @code{STK600-TQFP32} @tab AT90USB82 AT90USB162
-@item @code{STK600-RC044U-25} @tab @code{STK600-TQFP44} @tab ATmega32U4
-@item @code{STK600-RC064U-17} @tab @code{STK600-TQFP64} @tab AT90USB646 AT90USB1286 AT90USB647 AT90USB1287
-@item @code{STK600-RCPWM-22} @tab @code{STK600-TQFP32} @tab ATmega32C1 ATmega32M1
+@item @code{STK600-RC032U-20} @tab @code{STK600-TQFP32} @tab AT90USB82 AT90USB162 ATmega8U2 ATmega16U2 ATmega32U2 
+@item @code{STK600-RC044U-25} @tab @code{STK600-TQFP44} @tab ATmega16U4 ATmega32U4
+@item @code{STK600-RC064U-17} @tab @code{STK600-TQFP64} @tab ATmega32U6 AT90USB646 AT90USB1286 AT90USB647 AT90USB1287
+@item @code{STK600-RCPWM-22} @tab @code{STK600-TQFP32} @tab ATmega32C1 ATmega64C1 ATmega16M1 ATmega32M1 ATmega64M1
 @item @code{STK600-RCPWM-19} @tab @code{STK600-SOIC} @tab AT90PWM2 AT90PWM3 AT90PWM2B AT90PWM3B AT90PWM216 AT90PWM316
-@item @code{STK600-RC044M-24} @tab @code{STK600-TSSOP44} @tab ATmega32HVB
-@item @code{STK600-RC100X-13} @tab @code{STK600-TQFP100} @tab ATxmega128A1 ATxmega128A1_revD ATxmega64A1
+@item @code{STK600-RCPWM-26} @tab @code{STK600-SOIC} @tab AT90PWM81
+@item @code{STK600-RC044M-24} @tab @code{STK600-TSSOP44} @tab ATmega16HVB ATmega32HVB
+@item @code{} @tab @code{STK600-HVE2} @tab ATmega64HVE
+@item @code{} @tab @code{STK600-ATMEGA128RFA1} @tab ATmega128RFA1
+@item @code{STK600-RC100X-13} @tab @code{STK600-TQFP100} @tab ATxmega64A1 ATxmega128A1 ATxmega128A1_revD ATxmega128A1U
+@item @code{} @tab @code{STK600-ATXMEGA1281A1} @tab ATxmega128A1
+@item @code{} @tab @code{QT600-ATXMEGA128A1-QT16} @tab ATxmega128A1
+@item @code{STK600-RC064X-14} @tab @code{STK600-TQFP64} @tab ATxmega64A3 ATxmega128A3 ATxmega256A3 ATxmega64D3 ATxmega128D3 ATxmega192D3 ATxmega256D3
+@item @code{STK600-RC064X-14} @tab @code{STK600-MLF64} @tab ATxmega256A3B
+@item @code{STK600-RC044X-15} @tab @code{STK600-TQFP44} @tab ATxmega32A4 ATxmega16A4 ATxmega16D4 ATxmega32D4
+@item @code{} @tab @code{STK600-ATXMEGAT0} @tab ATxmega32T0
 @item @code{} @tab @code{STK600-uC3-144} @tab AT32UC3A0512 AT32UC3A0256 AT32UC3A0128
-@item @code{STK600-RCuC3B0-21} @tab @code{STK600-TQFP64-2} @tab AT32UC3B0256 AT32UC3B0128 AT32UC3B064
+@item @code{STK600-RCUC3A144-33} @tab @code{STK600-TQFP144} @tab AT32UC3A0512 AT32UC3A0256 AT32UC3A0128
+@item @code{STK600-RCuC3A100-28} @tab @code{STK600-TQFP100} @tab AT32UC3A1512 AT32UC3A1256 AT32UC3A1128
+@item @code{STK600-RCuC3B0-21} @tab @code{STK600-TQFP64-2} @tab AT32UC3B0256 AT32UC3B0512RevC AT32UC3B0512 AT32UC3B0128 AT32UC3B064 AT32UC3D1128
+@item @code{STK600-RCuC3B48-27} @tab @code{STK600-TQFP48} @tab AT32UC3B1256 AT32UC3B164
+@item @code{STK600-RCUC3A144-32} @tab @code{STK600-TQFP144} @tab AT32UC3A3512 AT32UC3A3256 AT32UC3A3128 AT32UC3A364 AT32UC3A3256S AT32UC3A3128S AT32UC3A364S
+@item @code{STK600-RCUC3C0-36} @tab @code{STK600-TQFP144} @tab AT32UC3C0512 AT32UC3C0256 AT32UC3C0128 AT32UC3C064
+@item @code{STK600-RCUC3C1-38} @tab @code{STK600-TQFP100} @tab AT32UC3C1512 AT32UC3C1256 AT32UC3C1128 AT32UC3C164
+@item @code{STK600-RCUC3C2-40} @tab @code{STK600-TQFP64-2} @tab AT32UC3C2512 AT32UC3C2256 AT32UC3C2128 AT32UC3C264
+@item @code{STK600-RCUC3C0-37} @tab @code{STK600-TQFP144} @tab AT32UC3C0512 AT32UC3C0256 AT32UC3C0128 AT32UC3C064
+@item @code{STK600-RCUC3C1-39} @tab @code{STK600-TQFP100} @tab AT32UC3C1512 AT32UC3C1256 AT32UC3C1128 AT32UC3C164
+@item @code{STK600-RCUC3C2-41} @tab @code{STK600-TQFP64-2} @tab AT32UC3C2512 AT32UC3C2256 AT32UC3C2128 AT32UC3C264
+@item @code{STK600-RCUC3L0-34} @tab @code{STK600-TQFP48} @tab AT32UC3L064 AT32UC3L032 AT32UC3L016
+@item @code{} @tab @code{QT600-AT32UC3L-QM64} @tab AT32UC3L064
 @end multitable
 
 Ensure the correct socket and routing card are mounted @emph{before}
