@@ -1,5 +1,13 @@
 2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* configure.ac: Bump version for post-5.8.
+
+2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac: Bump version for release 5.8.
+
+2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Soren Jorvang:
 	bug #28611: -i delay not being applied to all serial port
 	bit banging state transitions

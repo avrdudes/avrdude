@@ -5,6 +5,15 @@ Approximate change log for AVRDUDE by version.
 (For more detailed changes, see the ChangeLog file.)
 
 ----------------------------------------------------------------------
+Current:
+
+  * New devices supported:
+
+  * New programmers supported:
+
+  * Bugfixes
+
+
 Version 5.9:
 
   * New devices supported:
