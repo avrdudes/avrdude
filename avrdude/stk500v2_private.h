@@ -215,6 +215,11 @@
 #define PARAM2_EC_ID_TABLE_REV              0xC9
 
 /* STK600 XPROG section */
+// XPROG modes
+#define XPRG_MODE_PDI                       0
+#define XPRG_MODE_JTAG                      1
+#define XPRG_MODE_TPI                       2
+
 // XPROG commands
 #define XPRG_CMD_ENTER_PROGMODE             0x01
 #define XPRG_CMD_LEAVE_PROGMODE             0x02
@@ -242,6 +247,7 @@
 #define XPRG_ERASE_BOOT_PAGE                 6
 #define XPRG_ERASE_EEPROM_PAGE               7
 #define XPRG_ERASE_USERSIG                   8
+#define XPRG_ERASE_CONFIG                    9  // TPI only, prepare fuse write
 
 // Write mode flags
 #define XPRG_MEM_WRITE_ERASE                 0
@@ -263,6 +269,10 @@
 #define XPRG_PARAM_NVMBASE                  0x01
 // 2-byte page size
 #define XPRG_PARAM_EEPPAGESIZE              0x02
+// 1-byte, undocumented TPI param
+#define XPRG_PARAM_TPI_3                    0x03
+// 1-byte, undocumented TPI param
+#define XPRG_PARAM_TPI_4                    0x04
 
 // *****************[ STK answer constants ]***************************
 

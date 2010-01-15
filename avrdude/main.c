@@ -730,7 +730,7 @@ int main(int argc, char * argv [])
     auto_erase = 0;
   }
 
-  if(p->flags & AVRPART_HAS_PDI) {
+  if(p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_TPI)) {
     safemode = 0;
   }
 

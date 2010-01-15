@@ -149,6 +149,7 @@ flash            { yylval=NULL; return K_FLASH; }
 has_jtag         { yylval=NULL; return K_HAS_JTAG; }
 has_debugwire    { yylval=NULL; return K_HAS_DW; }
 has_pdi          { yylval=NULL; return K_HAS_PDI; }
+has_tpi          { yylval=NULL; return K_HAS_TPI; }
 id               { yylval=NULL; return K_ID; }
 idr              { yylval=NULL; return K_IDR; }
 is_avr32         { yylval=NULL; return K_IS_AVR32; }

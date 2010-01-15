@@ -350,20 +350,24 @@ Currently, the following MCU types are understood:
 @item @code{pwm2b} @tab AT90PWM2B
 @item @code{pwm3}  @tab AT90PWM3
 @item @code{pwm3b} @tab AT90PWM3B
-@item @code{t12}   @tab ATtiny12
+@item @code{t10}   @tab ATtiny10
+@item @code{t12}   @tab ATtiny12 (***)
 @item @code{t13}   @tab ATtiny13
 @item @code{t15}   @tab ATtiny15
 @item @code{t2313} @tab ATtiny2313
 @item @code{t25}   @tab ATtiny25
 @item @code{t26}   @tab ATtiny26
 @item @code{t261}  @tab ATtiny261
+@item @code{t4}    @tab ATtiny4
 @item @code{t44}   @tab ATtiny44
 @item @code{t45}   @tab ATtiny45
 @item @code{t461}  @tab ATtiny461
+@item @code{t5}    @tab ATtiny5
 @item @code{t84}   @tab ATtiny84
 @item @code{t85}   @tab ATtiny85
 @item @code{t861}  @tab ATtiny861
 @item @code{t88}   @tab ATtiny88
+@item @code{t9}    @tab ATtiny9
 @item @code{ucr2}  @tab AT32uca0512
 @item @code{usb1286} @tab ATmega1286
 @item @code{usb1287} @tab ATmega1287
@@ -392,6 +396,10 @@ Currently, the following MCU types are understood:
 (**)  Flash addressing above 128 KB is not supported by all
 programming hardware.  Known to work are jtag2, stk500v2,
 and bit-bang programmers.
+
+(***)
+The ATtiny11 uses the same algorithm, but can only be
+programmed in high-voltage serial mode.
 
 @item -b @var{baudrate}
 Override the RS-232 connection baud rate specified in the respective
@@ -440,7 +448,8 @@ Atmel AppNote AVR911 AVROSP (an alias for avr109)
 @item @code{avrisp}      @tab
 Atmel AVR ISP (an alias for stk500)
 @item @code{avrisp2}     @tab
-Atmel AVR ISP mkII (alias for stk500v2)
+Atmel AVR ISP mkII in ISP mode, in PDI mode for ATxmega devices, or
+in TPI mode for ATtiny4/5/9/10
 @item @code{avrispmkII}  @tab
 Atmel AVR ISP mkII (alias for stk500v2)
 @item @code{avrispv2}    @tab
@@ -540,7 +549,8 @@ Atmel STK500, running a version 1.x firmware
 @item @code{stk500v2}    @tab
 Atmel STK500, running a version 2.x firmware
 @item @code{stk600}      @tab
-Atmel STK600 in ISP mode, or in PDI mode for ATxmega devices
+Atmel STK600 in ISP mode, in PDI mode for ATxmega devices, or
+in TPI mode for ATtiny4/5/9/10
 @item @code{stk600hvsp}  @tab
 Atmel STK600 in high-voltage serial programming mode
 @item @code{stk600pp}    @tab
@@ -2335,6 +2345,66 @@ This sequence is automatically initiated by using the JTAG ICE mkII
 or AVR Dragon in ISP mode, when they detect that ISP mode cannot be
 entered.
 
+@item
+Problem: I want to use my JTAG ICE mkII or AVR Dragon to program an
+Xmega device through PDI.  The documentation tells me to use the
+@emph{XMEGA PDI adapter for JTAGICE mkII} that is supposed to ship
+with the kit, yet I don't have it.
+
+Solution: Use the following pin mapping:
+
+@multitable @columnfractions .2 .2 .2 .2
+@item @strong{JTAGICE} @tab @strong{Target} @tab @strong{Squid cab-} @tab @strong{PDI}
+@item @strong{mkII probe} @tab @strong{pins} @tab @strong{le colors} @tab @strong{header}
+@item 1 (TCK)   @tab         @tab Black  @tab
+@item 2 (GND)   @tab GND     @tab White  @tab 6
+@item 3 (TDO)   @tab         @tab Grey   @tab
+@item 4 (VTref) @tab VTref   @tab Purple @tab 2
+@item 5 (TMS)   @tab         @tab Blue   @tab
+@item 6 (nSRST) @tab PDI_CLK @tab Green  @tab 5
+@item 7 (N.C.)  @tab         @tab Yellow @tab
+@item 8 (nTRST) @tab         @tab Orange @tab
+@item 9 (TDI)   @tab PDI_DATA @tab Red   @tab 1
+@item 10 (GND)  @tab         @tab Brown  @tab
+@end multitable
+
+
+@item
+Problem: I want to use my AVRISP mkII to program an
+ATtiny4/5/9/10 device through TPI.  How to connect the pins?
+
+Solution: Use the following pin mapping:
+
+@multitable @columnfractions .2 .2 .2
+@item @strong{AVRISP} @tab @strong{Target} @tab @strong{ATtiny}
+@item @strong{connector} @tab @strong{pins} @tab @strong{pin #}
+@item 1 (MISO)  @tab TPIDATA  @tab 1
+@item 2 (VTref) @tab Vcc      @tab 5
+@item 3 (SCK)   @tab TPICLK   @tab 3
+@item 4 (MOSI)  @tab          @tab
+@item 5 (RESET) @tab /RESET   @tab 6
+@item 6 (GND)   @tab GND      @tab 2
+@end multitable
+
+@item
+Problem: My ATtiny4/5/9/10 reads out fine, but any attempt to program
+it (through TPI) fails.  Instead, the memory retains the old contents.
+
+Solution: Mind the limited programming supply voltage range of these
+devices.
+
+In-circuit programming through TPI is only guaranteed by the datasheet
+at Vcc = 5 V.
+
+@item
+Problem: My ATxmega@dots{}A1/A2/A3 cannot be programmed through PDI with
+my AVR Dragon.  Programming through a JTAG ICE mkII works though, as does
+programming through JTAG.
+
+Solution: None by this time (2010 Q1).
+
+It is said that the AVR Dragon can only program devices from the A4
+Xmega sub-family.
 
 @end itemize
 
