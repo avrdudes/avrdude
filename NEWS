@@ -11,12 +11,17 @@ Current:
 
       - AVR32A0512 (JTAGMKII only)
       - ATmega32U4
+      - ATtiny4
+      - ATtiny5
+      - ATtiny9
+      - ATtiny10
 
   * New programmers supported:
 
       - BusPirate
       - Arduino
       - JTAGICEmkII and AVR Dragon in PDI mode (ATxmega devices)
+      - STK600 and AVRISP mkII in TPI mode (ATtiny4/5/9/10)
 
   * Bugfixes
 

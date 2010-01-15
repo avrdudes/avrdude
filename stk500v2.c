@@ -3,7 +3,7 @@
  * Copyright (C) 2005 Erik Walthinsen
  * Copyright (C) 2002-2004 Brian S. Dean <bsd@bsdhome.com>
  * Copyright (C) 2006 David Moore
- * Copyright (C) 2006,2007 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2006,2007,2010 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1100,7 +1100,7 @@ static int stk500v2_initialize(PROGRAMMER * pgm, AVRPART * p)
   if ((PDATA(pgm)->pgmtype == PGMTYPE_STK600 ||
        PDATA(pgm)->pgmtype == PGMTYPE_AVRISP_MKII ||
        PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII) != 0
-     && (p->flags & AVRPART_HAS_PDI) != 0) {
+      && (p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_TPI)) != 0) {
     /*
      * This is an ATxmega device, must use XPROG protocol for the
      * remaining actions.
@@ -2409,9 +2409,11 @@ static int stk600_set_vtarget(PROGRAMMER * pgm, double v)
    * Vtarget on the STK600 can only be adjusted while not being in
    * programming mode.
    */
-  pgm->disable(pgm);
+  if (PDATA(pgm)->lastpart)
+      pgm->disable(pgm);
   rv = stk500v2_setparm(pgm, PARAM_VTARGET, utarg);
-  pgm->program_enable(pgm, PDATA(pgm)->lastpart);
+  if (PDATA(pgm)->lastpart)
+      pgm->program_enable(pgm, PDATA(pgm)->lastpart);
 
   return rv;
 }
@@ -3044,72 +3046,106 @@ static int stk600_xprog_program_enable(PROGRAMMER * pgm, AVRPART * p)
     unsigned char buf[16];
     unsigned int eepagesize = 42;
     unsigned int nvm_base;
-    AVRMEM *mem;
+    AVRMEM *mem = NULL;
+    int use_tpi;
 
-    if (p->nvm_base == 0) {
-        fprintf(stderr,
-                "%s: stk600_xprog_program_enable(): no nvm_base parameter for XPROG device\n",
-                progname);
-        return -1;
-    }
-    if ((mem = avr_locate_mem(p, "eeprom")) != NULL) {
-        if (mem->page_size == 0) {
+    use_tpi = (p->flags & AVRPART_HAS_TPI) != 0;
+
+    if (!use_tpi) {
+        if (p->nvm_base == 0) {
             fprintf(stderr,
-                    "%s: stk600_xprog_program_enable(): no EEPROM page_size parameter for XPROG device\n",
+            "%s: stk600_xprog_program_enable(): no nvm_base parameter for PDI device\n",
                     progname);
             return -1;
         }
-        eepagesize = mem->page_size;
+        if ((mem = avr_locate_mem(p, "eeprom")) != NULL) {
+            if (mem->page_size == 0) {
+                fprintf(stderr,
+                "%s: stk600_xprog_program_enable(): no EEPROM page_size parameter for PDI device\n",
+                        progname);
+                return -1;
+            }
+            eepagesize = mem->page_size;
+        }
     }
 
     buf[0] = CMD_XPROG_SETMODE;
-    buf[1] = 0;                 /* PDI mode */
+    buf[1] = use_tpi? XPRG_MODE_TPI: XPRG_MODE_PDI;
     if (stk500v2_command(pgm, buf, 2, sizeof(buf)) < 0) {
         fprintf(stderr,
-                "%s: stk600_xprog_program_enable(): CMD_XPROG_SETMODE failed\n",
-                progname);
+        "%s: stk600_xprog_program_enable(): CMD_XPROG_SETMODE(XPRG_MODE_%s) failed\n",
+                progname, use_tpi? "TPI": "PDI");
         return -1;
     }
 
     buf[0] = XPRG_CMD_ENTER_PROGMODE;
     if (stk600_xprog_command(pgm, buf, 1, 2) < 0) {
         fprintf(stderr,
-                "%s: stk600_xprog_program_enable(): XPRG_CMD_ENTER_PROGMODE failed\n",
+        "%s: stk600_xprog_program_enable(): XPRG_CMD_ENTER_PROGMODE failed\n",
                 progname);
         return -1;
     }
 
-    buf[0] = XPRG_CMD_SET_PARAM;
-    buf[1] = XPRG_PARAM_NVMBASE;
-    nvm_base = p->nvm_base;
-    /*
-     * The 0x01000000 appears to be an indication to the programmer
-     * that the respective address is located in IO (i.e., SRAM)
-     * memory address space rather than flash.  This is not documented
-     * anywhere in AVR079 but matches what AVR Studio does.
-     */
-    nvm_base |= 0x01000000;
-    buf[2] = nvm_base >> 24;
-    buf[3] = nvm_base >> 16;
-    buf[4] = nvm_base >> 8;
-    buf[5] = nvm_base;
-    if (stk600_xprog_command(pgm, buf, 6, 2) < 0) {
-        fprintf(stderr,
-                "%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_NVMBASE) failed\n",
-                progname);
-        return -1;
-    }
+    if (use_tpi) {
+        /*
+         * Whatever all that might mean, it matches what AVR Studio
+         * does.
+         */
+        if (stk500v2_setparm_real(pgm, PARAM_DISCHARGEDELAY, 232) < 0)
+            return -1;
 
-    if (mem != NULL) {
         buf[0] = XPRG_CMD_SET_PARAM;
-        buf[1] = XPRG_PARAM_EEPPAGESIZE;
-        buf[2] = eepagesize >> 8;
-        buf[3] = eepagesize;
-        if (stk600_xprog_command(pgm, buf, 4, 2) < 0) {
+        buf[1] = XPRG_PARAM_TPI_3;
+        buf[2] = 51;
+        if (stk600_xprog_command(pgm, buf, 3, 2) < 0) {
             fprintf(stderr,
-                    "%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_EEPPAGESIZE) failed\n",
+            "%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_TPI_3) failed\n",
                     progname);
             return -1;
+        }
+
+        buf[0] = XPRG_CMD_SET_PARAM;
+        buf[1] = XPRG_PARAM_TPI_4;
+        buf[2] = 50;
+        if (stk600_xprog_command(pgm, buf, 3, 2) < 0) {
+            fprintf(stderr,
+            "%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_TPI_4) failed\n",
+                    progname);
+            return -1;
+        }
+    } else {
+        buf[0] = XPRG_CMD_SET_PARAM;
+        buf[1] = XPRG_PARAM_NVMBASE;
+        nvm_base = p->nvm_base;
+        /*
+         * The 0x01000000 appears to be an indication to the programmer
+         * that the respective address is located in IO (i.e., SRAM)
+         * memory address space rather than flash.  This is not documented
+         * anywhere in AVR079 but matches what AVR Studio does.
+         */
+        nvm_base |= 0x01000000;
+        buf[2] = nvm_base >> 24;
+        buf[3] = nvm_base >> 16;
+        buf[4] = nvm_base >> 8;
+        buf[5] = nvm_base;
+        if (stk600_xprog_command(pgm, buf, 6, 2) < 0) {
+            fprintf(stderr,
+            "%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_NVMBASE) failed\n",
+                    progname);
+            return -1;
+        }
+
+        if (mem != NULL) {
+            buf[0] = XPRG_CMD_SET_PARAM;
+            buf[1] = XPRG_PARAM_EEPPAGESIZE;
+            buf[2] = eepagesize >> 8;
+            buf[3] = eepagesize;
+            if (stk600_xprog_command(pgm, buf, 4, 2) < 0) {
+                fprintf(stderr,
+                "%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_EEPPAGESIZE) failed\n",
+                        progname);
+                return -1;
+            }
         }
     }
 
@@ -3123,7 +3159,7 @@ static void stk600_xprog_disable(PROGRAMMER * pgm)
     buf[0] = XPRG_CMD_LEAVE_PROGMODE;
     if (stk600_xprog_command(pgm, buf, 1, 2) < 0) {
         fprintf(stderr,
-                "%s: stk600_xprog_program_enable(): XPRG_CMD_LEAVE_PROGMODE failed\n",
+                "%s: stk600_xprog_program_disable(): XPRG_CMD_LEAVE_PROGMODE failed\n",
                 progname);
     }
 }
@@ -3131,20 +3167,31 @@ static void stk600_xprog_disable(PROGRAMMER * pgm)
 static int stk600_xprog_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 				   unsigned long addr, unsigned char data)
 {
-    unsigned char b[10];
+    unsigned char b[9 + 256];
+    int need_erase = 0;
+    unsigned char write_size = 1;
+    unsigned char memcode;
+
+    memset(b, 0, sizeof(b));
 
     if (strcmp(mem->desc, "flash") == 0) {
-        b[1] = XPRG_MEM_TYPE_APPL;
+        memcode = XPRG_MEM_TYPE_APPL;
     } else if (strcmp(mem->desc, "boot") == 0) {
-        b[1] = XPRG_MEM_TYPE_BOOT;
+        memcode = XPRG_MEM_TYPE_BOOT;
     } else if (strcmp(mem->desc, "eeprom") == 0) {
-        b[1] = XPRG_MEM_TYPE_EEPROM;
+        memcode = XPRG_MEM_TYPE_EEPROM;
     } else if (strcmp(mem->desc, "lockbits") == 0) {
-        b[1] = XPRG_MEM_TYPE_LOCKBITS;
+        memcode = XPRG_MEM_TYPE_LOCKBITS;
     } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
-        b[1] = XPRG_MEM_TYPE_FUSE;
+        memcode = XPRG_MEM_TYPE_FUSE;
+        if (p->flags & AVRPART_HAS_TPI)
+            /*
+             * TPI devices need a mystic erase prior to writing their
+             * fuses.
+             */
+            need_erase = 1;
     } else if (strcmp(mem->desc, "usersig") == 0) {
-        b[1] = XPRG_MEM_TYPE_USERSIG;
+        memcode = XPRG_MEM_TYPE_USERSIG;
     } else {
         fprintf(stderr,
                 "%s: stk600_xprog_write_byte(): unknown memory \"%s\"\n",
@@ -3153,16 +3200,42 @@ static int stk600_xprog_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     }
     addr += mem->offset;
 
+    if (need_erase) {
+        b[0] = XPRG_CMD_ERASE;
+        b[1] = XPRG_ERASE_CONFIG;
+        b[2] = mem->offset >> 24;
+        b[3] = mem->offset >> 16;
+        b[4] = mem->offset >> 8;
+        b[5] = mem->offset + 1;
+        if (stk600_xprog_command(pgm, b, 6, 2) < 0) {
+	    fprintf(stderr,
+	    "%s: stk600_xprog_chip_erase(): XPRG_CMD_ERASE(XPRG_ERASE_CONFIG) failed\n",
+		    progname);
+	    return -1;
+	}
+    }
+
+    if (p->flags & AVRPART_HAS_TPI) {
+        /*
+         * Some TPI memories (configuration aka. fuse) require a
+         * larger write block size.  We record that as a blocksize in
+         * avrdude.conf.
+         */
+        if (mem->blocksize != 0)
+            write_size = mem->blocksize;
+    }
+
     b[0] = XPRG_CMD_WRITE_MEM;
+    b[1] = memcode;
     b[2] = 0;			/* pagemode: non-paged write */
     b[3] = addr >> 24;
     b[4] = addr >> 16;
     b[5] = addr >> 8;
     b[6] = addr;
     b[7] = 0;
-    b[8] = 1;
+    b[8] = write_size;
     b[9] = data;
-    if (stk600_xprog_command(pgm, b, 10, 2) < 0) {
+    if (stk600_xprog_command(pgm, b, 9 + write_size, 2) < 0) {
         fprintf(stderr,
                 "%s: stk600_xprog_write_byte(): XPRG_CMD_WRITE_MEM failed\n",
                 progname);
@@ -3460,10 +3533,25 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 static int stk600_xprog_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {
     unsigned char b[6];
+    AVRMEM *mem;
+    unsigned int addr = 0;
+
+    if (p->flags & AVRPART_HAS_TPI) {
+        if ((mem = avr_locate_mem(p, "flash")) == NULL) {
+            fprintf(stderr,
+            "%s: stk600_xprog_chip_erase(): no FLASH definition found for TPI device\n",
+                    progname);
+            return -1;
+        }
+        addr = mem->offset + 1;
+    }
 
     b[0] = XPRG_CMD_ERASE;
     b[1] = XPRG_ERASE_CHIP;
-    b[2] = b[3] = b[4] = b[5] = 0;
+    b[2] = addr >> 24;
+    b[3] = addr >> 16;
+    b[4] = addr >> 8;
+    b[5] = addr;
     if (stk600_xprog_command(pgm, b, 6, 2) < 0) {
 	    fprintf(stderr,
 		    "%s: stk600_xprog_chip_erase(): XPRG_CMD_ERASE(XPRG_ERASE_CHIP) failed\n",

@@ -1,3 +1,15 @@
+2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* stk500v2_private.h: Implement TPI mode for AVRISPmkII/STK600
+	* config_gram.y: (Dito.)
+	* avrpart.h: (Dito.)
+	* stk500v2.c: (Dito.)
+	* main.c: (Dito.)
+	* lexer.l: (Dito.)
+	* avrdude.conf.in: Add ATtiny4/5/9/10
+	* avrdude.1: Document TPI and new device support.
+	* doc/avrdude.texi: (Dito.)
+
 2010-01-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by clint fisher:

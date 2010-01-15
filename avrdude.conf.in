@@ -39,6 +39,8 @@
 #       desc             = <description> ;        # quoted string
 #       has_jtag         = <yes/no> ;             # part has JTAG i/f
 #       has_debugwire    = <yes/no> ;             # part has debugWire i/f
+#       has_pdi          = <yes/no> ;             # part has PDI i/f
+#       has_tpi          = <yes/no> ;             # part has TPI i/f
 #       devicecode       = <num> ;            # deprecated, use stk500_devcode
 #       stk500_devcode   = <num> ;                # numeric
 #       avr910_devcode   = <num> ;                # numeric
@@ -185,7 +187,7 @@
 #      http://www.atmel.com/atmel/acrobat/doc2525.pdf
 #
 
-#define ATTINY10    0x10
+#define ATTINY10    0x10  /* the _old_ one that never existed! */
 #define ATTINY11    0x11
 #define ATTINY12    0x12
 #define ATTINY15    0x13
@@ -15315,4 +15317,164 @@ part
         offset			= 0x80000000;
     ;
 ;
+
+#------------------------------------------------------------
+# ATtiny4
+#------------------------------------------------------------
+
+part
+    id		= "t4";
+    desc	= "ATtiny4";
+    signature	= 0x1e 0x8f 0x0a;
+    has_tpi	= yes;
+
+    memory "flash"
+        size		= 512;
+        offset		= 0x4000;
+        page_size	= 16;
+        blocksize	= 128;
+    ;
+
+    memory "signature"
+        size		= 3;
+        offset		= 0x3fc0;
+    ;
+
+    memory "fuse"
+        size		= 1;
+        offset		= 0x3f40;
+	blocksize	= 4;
+    ;
+
+    memory "calibration"
+        size		= 1;
+        offset		= 0x3f80;
+    ;
+
+    memory "lockbits"
+        size		= 1;
+        offset		= 0x3f00;
+    ;
+;
+
+
+#------------------------------------------------------------
+# ATtiny5
+#------------------------------------------------------------
+
+part
+    id		= "t5";
+    desc	= "ATtiny5";
+    signature	= 0x1e 0x8f 0x09;
+    has_tpi	= yes;
+
+    memory "flash"
+        size		= 512;
+        offset		= 0x4000;
+        page_size	= 16;
+        blocksize	= 128;
+    ;
+
+    memory "signature"
+        size		= 3;
+        offset		= 0x3fc0;
+    ;
+
+    memory "fuse"
+        size		= 1;
+        offset		= 0x3f40;
+	blocksize	= 4;
+    ;
+
+    memory "calibration"
+        size		= 1;
+        offset		= 0x3f80;
+    ;
+
+    memory "lockbits"
+        size		= 1;
+        offset		= 0x3f00;
+    ;
+;
+
+
+#------------------------------------------------------------
+# ATtiny9
+#------------------------------------------------------------
+
+part
+    id		= "t8";
+    desc	= "ATtiny9";
+    signature	= 0x1e 0x90 0x08;
+    has_tpi	= yes;
+
+    memory "flash"
+        size		= 1024;
+        offset		= 0x4000;
+        page_size	= 16;
+        blocksize	= 128;
+    ;
+
+    memory "signature"
+        size		= 3;
+        offset		= 0x3fc0;
+    ;
+
+    memory "fuse"
+        size		= 1;
+        offset		= 0x3f40;
+	blocksize	= 4;
+    ;
+
+    memory "calibration"
+        size		= 1;
+        offset		= 0x3f80;
+    ;
+
+    memory "lockbits"
+        size		= 1;
+        offset		= 0x3f00;
+    ;
+;
+
+
+#------------------------------------------------------------
+# ATtiny10
+#------------------------------------------------------------
+
+part
+    id		= "t10";
+    desc	= "ATtiny10";
+    signature	= 0x1e 0x90 0x03;
+    has_tpi	= yes;
+
+    memory "flash"
+        size		= 1024;
+        offset		= 0x4000;
+        page_size	= 16;
+        blocksize	= 128;
+    ;
+
+    memory "signature"
+        size		= 3;
+        offset		= 0x3fc0;
+    ;
+
+    memory "fuse"
+        size		= 1;
+        offset		= 0x3f40;
+	blocksize	= 4;
+    ;
+
+    memory "calibration"
+        size		= 1;
+        offset		= 0x3f80;
+    ;
+
+    memory "lockbits"
+        size		= 1;
+        offset		= 0x3f00;
+    ;
+;
+
 

@@ -211,6 +211,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_HAS_JTAG		/* MCU has JTAG i/f. */
 %token K_HAS_DW			/* MCU has debugWire i/f. */
 %token K_HAS_PDI                /* MCU has PDI i/f rather than ISP (ATxmega). */
+%token K_HAS_TPI                /* MCU has TPI i/f rather than ISP (ATtiny4/5/9/10). */
 %token K_IDR			/* address of OCD register in IO space */
 %token K_IS_AVR32               /* chip is in the avr32 family */
 %token K_RAMPZ			/* address of RAMPZ reg. in IO space */
@@ -1074,6 +1075,16 @@ part_parm :
         current_part->flags |= AVRPART_HAS_PDI;
       else if ($3->primary == K_NO)
         current_part->flags &= ~AVRPART_HAS_PDI;
+
+      free_token($3);
+    } |
+
+  K_HAS_TPI TKN_EQUAL yesno
+    {
+      if ($3->primary == K_YES)
+        current_part->flags |= AVRPART_HAS_TPI;
+      else if ($3->primary == K_NO)
+        current_part->flags &= ~AVRPART_HAS_TPI;
 
       free_token($3);
     } |

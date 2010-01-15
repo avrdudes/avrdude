@@ -119,6 +119,7 @@ below for details.
 Atmel's STK600 programmer is supported in ISP and high-voltage
 programming modes, and connects through the USB.
 For ATxmega devices, the STK600 is supported in PDI mode.
+For ATtiny4/5/9/10 devices, the STK600 and AVRISP mkII are supported in TPI mode.
 .Pp
 The simple serial programmer described in Atmel's application note
 AVR910, and the bootloader described in Atmel's application note
@@ -256,20 +257,24 @@ pwm2	AT90PWM2
 pwm2b	AT90PWM2B
 pwm3	AT90PWM3
 pwm3b	AT90PWM3B
-t12	ATtiny12
+t10	ATtiny10
+t12	ATtiny12 (***)
 t13	ATtiny13
 t15	ATtiny15
 t2313	ATtiny2313
 t25	ATtiny25
 t26	ATtiny26
 t261	ATtiny261
+t4	ATtiny4
 t44	ATtiny44
 t45	ATtiny45
 t461	ATtiny461
+t5	ATtiny5
 t84	ATtiny84
 t85	ATtiny85
 t861	ATtiny861
 t88	ATtiny88
+t9	ATtiny9
 ucr2	AT32uca0512
 usb1286	ATmega1286
 usb1287	ATmega1287
@@ -299,6 +304,9 @@ The AT90S2323 and ATtiny22 use the same algorithm.
 Flash addressing above 128 KB is not supported by all
 programming hardware.  Known to work are jtag2, stk500v2,
 and bit-bang programmers.
+.It "(***)"
+The ATtiny11 uses the same algorithm, but can only be
+programmed in high-voltage serial mode.
 .El
 .It Fl b Ar baudrate
 Override the RS-232 connection baud rate specified in the respective
