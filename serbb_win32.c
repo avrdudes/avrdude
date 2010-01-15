@@ -125,6 +125,10 @@ static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
                 LocalFree(lpMsgBuf);
                 exit(1);
         }
+
+	if (pgm->ispdelay > 1)
+	  bitbang_delay(pgm->ispdelay);
+
         return 0;
 }
 
@@ -227,12 +231,7 @@ static int serbb_highpulsepin(PROGRAMMER * pgm, int pin)
           return -1;
 
         serbb_setpin(pgm, pin, 1);
-	if (pgm->ispdelay > 1)
-	  bitbang_delay(pgm->ispdelay);
-
         serbb_setpin(pgm, pin, 0);
-	if (pgm->ispdelay > 1)
-	  bitbang_delay(pgm->ispdelay);
 
         return 0;
 }

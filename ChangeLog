@@ -1,5 +1,13 @@
 2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Soren Jorvang:
+	bug #28611: -i delay not being applied to all serial port
+	bit banging state transitions
+	* serbb_win32.c: Apply ispdelay everywhere.
+	* serbb_posix.c: (Dito.)
+
+2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* stk500v2_private.h: Implement TPI mode for AVRISPmkII/STK600
 	* config_gram.y: (Dito.)
 	* avrpart.h: (Dito.)
