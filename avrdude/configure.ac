@@ -196,11 +196,11 @@ case $target in
 		DEFAULT_PAR_PORT="unknown"
 		DEFAULT_SER_PORT="/dev/ttyS0"
 		;;
-	i[[3456]]86-*-freebsd*|amd64-*-freebsd*)
+	i[[3456]]86-*-*freebsd*|amd64-*-*freebsd*)
 		DEFAULT_PAR_PORT="/dev/ppi0"
 		DEFAULT_SER_PORT="/dev/cuaa0"
 		;;
-	*-*-freebsd*)
+	*-*-*freebsd*)
 		DEFAULT_PAR_PORT="unknown"
 		DEFAULT_SER_PORT="/dev/cuaa0"
 		;;

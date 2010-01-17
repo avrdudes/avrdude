@@ -28,7 +28,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-#if defined(__FreeBSD__)
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 # include "freebsd_ppi.h"
 #elif defined(__linux__)
 # include "linux_ppdev.h"
