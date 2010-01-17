@@ -1090,42 +1090,57 @@ static int jtagmkII_program_enable(PROGRAMMER * pgm)
 {
   int status;
   unsigned char buf[1], *resp, c;
+  int use_ext_reset;
 
   if (PDATA(pgm)->prog_enabled)
     return 0;
 
-  buf[0] = CMND_ENTER_PROGMODE;
-  if (verbose >= 2)
-    fprintf(stderr, "%s: jtagmkII_program_enable(): "
-	    "Sending enter progmode command: ",
-	    progname);
-  jtagmkII_send(pgm, buf, 1);
-
-  status = jtagmkII_recv(pgm, &resp);
-  if (status <= 0) {
+  for (use_ext_reset = 0; use_ext_reset <= 1; use_ext_reset++) {
+    buf[0] = CMND_ENTER_PROGMODE;
     if (verbose >= 2)
+      fprintf(stderr, "%s: jtagmkII_program_enable(): "
+	      "Sending enter progmode command: ",
+	      progname);
+    jtagmkII_send(pgm, buf, 1);
+
+    status = jtagmkII_recv(pgm, &resp);
+    if (status <= 0) {
+      if (verbose >= 2)
+	putc('\n', stderr);
+      fprintf(stderr,
+	      "%s: jtagmkII_program_enable(): "
+	      "timeout/error communicating with programmer (status %d)\n",
+	      progname, status);
+      return -1;
+    }
+    if (verbose >= 3) {
       putc('\n', stderr);
-    fprintf(stderr,
-	    "%s: jtagmkII_program_enable(): "
-	    "timeout/error communicating with programmer (status %d)\n",
-	    progname, status);
-    return -1;
-  }
-  if (verbose >= 3) {
-    putc('\n', stderr);
-    jtagmkII_prmsg(pgm, resp, status);
-  } else if (verbose == 2)
-    fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[0], status);
-  c = resp[0];
-  free(resp);
-  if (c != RSP_OK) {
-    fprintf(stderr,
-	    "%s: jtagmkII_program_enable(): "
-	    "bad response to enter progmode command: %s\n",
-	    progname, jtagmkII_get_rc(c));
-    if (c == RSP_ILLEGAL_JTAG_ID)
-      fprintf(stderr, "%s: JTAGEN fuse disabled?\n", progname);
-    return -1;
+      jtagmkII_prmsg(pgm, resp, status);
+    } else if (verbose == 2)
+      fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[0], status);
+    c = resp[0];
+    free(resp);
+    if (c != RSP_OK) {
+      fprintf(stderr,
+	      "%s: jtagmkII_program_enable(): "
+	      "bad response to enter progmode command: %s\n",
+	      progname, jtagmkII_get_rc(c));
+      if (c == RSP_ILLEGAL_JTAG_ID) {
+	if (use_ext_reset == 0) {
+	  unsigned char parm[] = { 1};
+	  if (verbose > 0)
+	    fprintf(stderr,
+		    "%s: retrying with external reset applied\n",
+		    progname);
+
+	  (void)jtagmkII_setparm(pgm, PAR_EXTERNAL_RESET, parm);
+	  continue;
+	}
+
+	fprintf(stderr, "%s: JTAGEN fuse disabled?\n", progname);
+	return -1;
+      }
+    }
   }
 
   PDATA(pgm)->prog_enabled = 1;
@@ -2365,6 +2380,7 @@ static int jtagmkII_setparm(PROGRAMMER * pgm, unsigned char parm,
   case PAR_OCD_VTARGET: size = 2; break;
   case PAR_OCD_JTAG_CLK: size = 1; break;
   case PAR_TIMERS_RUNNING: size = 1; break;
+  case PAR_EXTERNAL_RESET: size = 1; break;
   case PAR_DAISY_CHAIN_INFO: size = 4; break;
   case PAR_PDI_OFFSET_START:
   case PAR_PDI_OFFSET_END: size = 4; break;
