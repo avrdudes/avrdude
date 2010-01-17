@@ -1,5 +1,13 @@
 2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Aurelien Jarno:
+	* configure.ac: Fix build for GNU/kFreeBSD, fix FreeBSD
+	default serial port name.
+	* ppi.c: Fix build for GNU/kFreeBSD.
+	* par.c: (Dito.)
+
+2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* configure.ac: Bump version for post-5.8.
 
 2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
