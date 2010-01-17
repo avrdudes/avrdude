@@ -1,5 +1,11 @@
 2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* jtagmkII.c: If entering JTAG mode fails with a bad JTAG ID
+	message, retry with external reset applied (in case the target
+	is in sleep mode or has asserted the JTD bit).
+
+2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Aurelien Jarno:
 	* configure.ac: Fix build for GNU/kFreeBSD, fix FreeBSD
 	default serial port name.
