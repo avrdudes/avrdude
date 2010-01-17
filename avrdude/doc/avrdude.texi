@@ -1904,7 +1904,7 @@ The following table lists the default names for a given system.
   @tab @strong{Default Serial Port}
 @item FreeBSD
   @tab @code{/dev/ppi0}
-  @tab @code{/dev/cuaa0}
+  @tab @code{/dev/cuad0}
 @item Linux
   @tab @code{/dev/parport0}
   @tab @code{/dev/ttyS0}
