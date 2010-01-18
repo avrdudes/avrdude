@@ -1,3 +1,9 @@
+2010-01-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #28660: Problem with loading intel hex rom files that exceed
+	0x10000 bytes
+	* fileio.c: Revert the changes from r851 and r880, respectively.
+
 2010-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Michael biebl:
