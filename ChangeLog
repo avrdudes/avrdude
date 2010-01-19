@@ -1,3 +1,10 @@
+2010-01-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #28677: Cygwin's GCC no longer supports -mno-cygwin option
+	* configure.ac: For Win32 environments, add a check whether the
+	compiler understands the -mno-cygwin option.  If not, don't use
+	it but suggest using a different compiler.
+
 2010-01-18  David Hoerl <dhoerl@mac.com>
 
 	bug #28660: Problem with loading intel hex rom files that exceed
