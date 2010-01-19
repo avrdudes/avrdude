@@ -1,5 +1,13 @@
 2010-01-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* configure.ac: Bump for post-5.10.
+
+2010-01-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac: Released version 5.10.
+
+2010-01-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #28677: Cygwin's GCC no longer supports -mno-cygwin option
 	* configure.ac: For Win32 environments, add a check whether the
 	compiler understands the -mno-cygwin option.  If not, don't use
