@@ -374,6 +374,7 @@ int gettimeofday(struct timeval *tv, struct timezone *unused){
 
 #endif
 
+#if !defined(HAVE_USLEEP)
 int usleep(unsigned int us)
 {
 	int has_highperf;
@@ -384,7 +385,7 @@ int usleep(unsigned int us)
 	// verify - increasing the delay helps sometimes but not
 	// realiably. There must be some other problem. Maybe just
 	// with my test-hardware maybe in the code-base.
-	//// us=(unsigned long) (us*1.5);	
+	//// us=(unsigned long) (us*1.5);
 
 	has_highperf=QueryPerformanceFrequency(&freq);
 
@@ -393,7 +394,7 @@ int usleep(unsigned int us)
 	if (has_highperf) {
 		QueryPerformanceCounter(&start);
 		loopend.QuadPart=start.QuadPart+freq.QuadPart*us/(1000*1000);
-		do { 
+		do {
 			QueryPerformanceCounter(&stop);
 		} while (stop.QuadPart<=loopend.QuadPart);
 	}
@@ -405,11 +406,12 @@ int usleep(unsigned int us)
 
 		DEBUG_QueryPerformanceCounter(&stop);
 	}
-	
+
     DEBUG_DisplayTimingInfo(start, stop, freq, us, has_highperf);
 
     return 0;
 }
+#endif  /* !HAVE_USLEEP */
 
 #endif
 

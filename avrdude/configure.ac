@@ -77,7 +77,7 @@ AC_C_CONST
 AC_HEADER_TIME
 
 # Checks for library functions.
-AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul gettimeofday])
+AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul gettimeofday usleep])
 
 AC_MSG_CHECKING([for a Win32 HID libray])
 SAVED_LIBS="${LIBS}"
@@ -273,7 +273,7 @@ case $target in
 			# does this compiler support -mno-cygwin?
 			AC_MSG_CHECKING([if $CC accepts -mno-cygwin])
 
-			safe_CFLAGS=$CFLAGS
+			safe_CFLAGS="$CFLAGS"
 			CFLAGS="$ENABLE_WARNINGS -mno-cygwin"
 
 			AC_TRY_COMPILE(, [ int main () { return 0 ; } ], [
@@ -283,7 +283,7 @@ case $target in
 				no_cygwin=no
 				AC_MSG_RESULT([no])
 				])
-			CFLAGS=$safe_CFLAGS
+			CFLAGS="$safe_CFLAGS"
 
 			if test x$no_cygwin = xyes; then
 				CFLAGS="${CFLAGS} -mno-cygwin"
@@ -295,9 +295,26 @@ case $target in
 				AC_MSG_NOTICE([])
 			fi
 		fi
+
+		AC_MSG_CHECKING([if linker accepts -static])
+
+		safe_LDFLAGS="$LDFLAGS"
+		LDFLAGS="${LDFLAGS} -static"
+		AC_TRY_LINK(, [ int main () { return 0 ; } ], [
+			can_link_static=yes
+			AC_MSG_RESULT([yes])
+			], [
+			can_link_static_cygwin=no
+			AC_MSG_RESULT([no])
+			])
+		LDFLAGS="$safe_LDFLAGS"
+
+		if test x$can_link_static = xyes; then
+			LDFLAGS="${LDFLAGS} -static"
+		fi
+
 		WINDOWS_DIRS="windows"
 		CFLAGS="${CFLAGS} -DWIN32NATIVE"
-		LDFLAGS="${LDFLAGS} -static"
 		;;
 esac
 AC_SUBST(WINDOWS_DIRS,$WINDOWS_DIRS)

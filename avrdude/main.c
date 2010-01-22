@@ -1131,7 +1131,7 @@ int main(int argc, char * argv [])
        else
             safemode_response = yes;
        
-       if (tolower(safemode_response[0]) == 'y') {
+       if (tolower((int)(safemode_response[0])) == 'y') {
               
             /* Enough chit-chat, time to program some fuses and check them */
             if (safemode_writefuse (safemode_fuse, "fuse", pgm, p,
@@ -1159,7 +1159,7 @@ int main(int argc, char * argv [])
        else
             safemode_response = yes;
        
-       if (tolower(safemode_response[0]) == 'y') {
+       if (tolower((int)(safemode_response[0])) == 'y') {
               
             /* Enough chit-chat, time to program some fuses and check them */
             if (safemode_writefuse (safemode_lfuse, "lfuse", pgm, p,
@@ -1184,7 +1184,7 @@ int main(int argc, char * argv [])
             safemode_response = terminal_get_input("Would you like this fuse to be changed back? [y/n] ");
        else
             safemode_response = yes;
-       if (tolower(safemode_response[0]) == 'y') {
+       if (tolower((int)(safemode_response[0])) == 'y') {
 
             /* Enough chit-chat, time to program some fuses and check them */
             if (safemode_writefuse(safemode_hfuse, "hfuse", pgm, p,
@@ -1209,7 +1209,7 @@ int main(int argc, char * argv [])
             safemode_response = terminal_get_input("Would you like this fuse to be changed back? [y/n] ");
        else
             safemode_response = yes;
-       if (tolower(safemode_response[0]) == 'y') {
+       if (tolower((int)(safemode_response[0])) == 'y') {
               
             /* Enough chit-chat, time to program some fuses and check them */
             if (safemode_writefuse (safemode_efuse, "efuse", pgm, p,
