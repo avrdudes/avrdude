@@ -1,3 +1,18 @@
+2010-01-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Cleanup Cygwin builds.
+	* windows/Makefile.am (loaddrv_LDFLAGS): remove, the -mno-cygwin
+	flag is supposed to be set in CFLAGS by ./configure
+	* configure.ac: add a check for the presence of usleep(), add a
+	check whether the linker accepts -static
+	* avrdude.h: protect prototype for usleep by !defined(HAVE_USLEEP)
+	* ppwin.c (usleep): protect by !defined(HAVE_USLEEP)
+	* main.c: silence "array subscript of type char" compiler warnings
+	by casting all arguments to tolower()/toupper() and isspace()/
+	isdigit()/ispunct() to "int"
+	* butterfly.c: (Dito.)
+	* avr910.c: (Dito.)
+
 2010-01-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* configure.ac: Bump for post-5.10.

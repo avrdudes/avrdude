@@ -39,14 +39,9 @@ extern int quell_progress;	/* quiteness level (-q, -qq) */
 extern "C" {
 #endif
 
-/* usleep replacements */
-/* sleep Windows in ms, Unix usleep in us
- #define usleep(us) Sleep((us)<20000?20:us/1000)
- #define usleep(us) Sleep(us/1000)
- #define ANTIWARP 3
- #define usleep(us) Sleep(us/1000*ANTIWARP)
-*/
+#if !defined(HAVE_USLEEP)
 int usleep(unsigned int us);
+#endif
 
 #if !defined(HAVE_GETTIMEOFDAY)
 struct timezone;

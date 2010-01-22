@@ -423,7 +423,7 @@ static int butterfly_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   {
     cmd[0] = 'B';
     cmd[1] = 0;
-    if ((cmd[3] = toupper(m->desc[0])) == 'E') {	/* write to eeprom */
+    if ((cmd[3] = toupper((int)(m->desc[0]))) == 'E') {	/* write to eeprom */
       cmd[2] = 1;
       cmd[4] = value;
       size = 5;
@@ -572,7 +572,7 @@ static int butterfly_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   cmd = malloc(4+blocksize);
   if (!cmd) return -1;
   cmd[0] = 'B';
-  cmd[3] = toupper(m->desc[0]);
+  cmd[3] = toupper((int)(m->desc[0]));
 
   while (addr < max_addr) {
     if ((max_addr - addr) < blocksize) {
@@ -613,7 +613,7 @@ static int butterfly_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     int blocksize = PDATA(pgm)->buffersize;
 
     cmd[0] = 'g';
-    cmd[3] = toupper(m->desc[0]);
+    cmd[3] = toupper((int)(m->desc[0]));
 
     if (use_ext_addr) {
       butterfly_set_extaddr(pgm, addr);
