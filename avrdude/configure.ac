@@ -66,6 +66,16 @@ if test x$have_libusb = xyes; then
 fi
 AC_SUBST(LIBUSB, $LIBUSB)
 
+AH_TEMPLATE([HAVE_LIBFTDI], 
+            [Define if FTDI support is enabled via libftdi])
+AC_CHECK_LIB([ftdi], [ftdi_init], [have_libftdi=yes])
+if test x$have_libftdi = xyes; then
+   LIBFTDI="-lftdi"
+   AC_DEFINE([HAVE_LIBFTDI])
+fi
+AC_SUBST(LIBFTDI, $LIBFTDI)
+
+
 # Checks for header files.
 AC_CHECK_HEADERS([limits.h stdlib.h string.h])
 AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h termios.h unistd.h])

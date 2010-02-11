@@ -82,6 +82,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_PAGED
 
 %token K_ARDUINO
+%token K_AVRFTDI
 %token K_BAUDRATE
 %token K_BS2
 %token K_BUFF
@@ -150,6 +151,10 @@ static int parse_cmdbits(OPCODE * op);
 %token K_AVR910
 %token K_USBASP
 %token K_USBTINY
+%token K_USBPID
+%token K_USBPRODUCT
+%token K_USBVENDOR
+%token K_USBVID
 %token K_BUTTERFLY
 %token K_TYPE
 %token K_VCC
@@ -432,6 +437,12 @@ prog_parm :
     }
   } |
 
+  K_TYPE TKN_EQUAL K_AVRFTDI {
+    {
+      avrftdi_initpgm(current_prog);
+    }
+  } |
+
   K_TYPE TKN_EQUAL K_BUSPIRATE {
     {
       buspirate_initpgm(current_prog);
@@ -591,6 +602,34 @@ prog_parm :
     }
   } |
 
+  K_USBVID TKN_EQUAL TKN_NUMBER {
+    {
+      current_prog->usbvid = $3->value.number;
+    }
+  } |
+
+  K_USBPID TKN_EQUAL TKN_NUMBER {
+    {
+      current_prog->usbpid = $3->value.number;
+    }
+  } |
+
+  K_USBVENDOR TKN_EQUAL TKN_STRING {
+    {
+      strncpy(current_prog->usbvendor, $3->value.string, PGM_USBSTRINGLEN);
+      current_prog->usbvendor[PGM_USBSTRINGLEN-1] = 0;
+      free_token($3);
+    }
+  } |
+
+  K_USBPRODUCT TKN_EQUAL TKN_STRING {
+    {
+      strncpy(current_prog->usbproduct, $3->value.string, PGM_USBSTRINGLEN);
+      current_prog->usbproduct[PGM_USBSTRINGLEN-1] = 0;
+      free_token($3);
+    }
+  } |
+  
   K_BAUDRATE TKN_EQUAL TKN_NUMBER {
     {
       current_prog->baudrate = $3->value.number;
