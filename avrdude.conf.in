@@ -321,6 +321,16 @@ programmer
 ;
 
 programmer
+  id	= "avrftdi";
+  desc	= "FT2232D based generic programmer";
+  type	= avrftdi;
+  usbvid     = 0x0403;
+  usbpid     = 0x6010;
+  usbvendor  = "";
+  usbproduct = "";
+;
+
+programmer
   id    = "avrisp";
   desc  = "Atmel AVR ISP";
   type  = stk500;
