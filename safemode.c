@@ -150,7 +150,7 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
         return -1;
     }
     else if ((fusegood == 1) && (verbose > 0)) {
-        printf("%s: safemode: fuse reads as %X\n", progname, safemode_fuse);
+        fprintf(stderr, "%s: safemode: fuse reads as %X\n", progname, safemode_fuse);
     }
 
 
@@ -205,7 +205,7 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
         return -1;
     }
     else if ((fusegood == 1) && (verbose > 0)) {
-        printf("%s: safemode: lfuse reads as %X\n", progname, safemode_lfuse);
+        fprintf(stderr, "%s: safemode: lfuse reads as %X\n", progname, safemode_lfuse);
     }
 
   /* Read hfuse three times */  
@@ -258,7 +258,7 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
        return -2;
     }
     else if ((fusegood == 1) && (verbose > 0)){
-        printf("%s: safemode: hfuse reads as %X\n", progname, safemode_hfuse);
+        fprintf(stderr, "%s: safemode: hfuse reads as %X\n", progname, safemode_hfuse);
     }
 
   /* Read efuse three times */  
@@ -311,7 +311,7 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
         return -3;
         }
     else if ((fusegood == 1) && (verbose > 0)) {
-        printf("%s: safemode: efuse reads as %X\n", progname, safemode_efuse);
+        fprintf(stderr, "%s: safemode: efuse reads as %X\n", progname, safemode_efuse);
         }
 
   *lfuse = safemode_lfuse;
