@@ -418,7 +418,7 @@ static void buspirate_reset_from_binmode(struct programmer_t *pgm)
 	}
 
 	if (verbose)
-		printf("BusPirate is back in the text mode\n");
+		fprintf(stderr, "BusPirate is back in the text mode\n");
 }
 
 static int buspirate_start_spi_mode_bin(struct programmer_t *pgm)
@@ -437,7 +437,8 @@ static int buspirate_start_spi_mode_bin(struct programmer_t *pgm)
 		return -1;
 	}
 	if (verbose)
-		printf("BusPirate binmode version: %d\n", PDATA(pgm)->binmode_version);
+		fprintf(stderr, "BusPirate binmode version: %d\n",
+			PDATA(pgm)->binmode_version);
 
 	pgm->flag |= BP_FLAG_IN_BINMODE;
 
@@ -452,7 +453,8 @@ static int buspirate_start_spi_mode_bin(struct programmer_t *pgm)
 		return -1;
 	}
 	if (verbose)
-		printf("BusPirate SPI version: %d\n", PDATA(pgm)->bin_spi_version);
+		fprintf(stderr, "BusPirate SPI version: %d\n",
+			PDATA(pgm)->bin_spi_version);
 
 	/* 0b0100wxyz - Configure peripherals w=power, x=pull-ups/aux2, y=AUX, z=CS
 	 * we want power (0x48) and all reset pins high. */
@@ -517,7 +519,7 @@ static int buspirate_start_spi_mode_ascii(struct programmer_t *pgm)
 		}
 		if (buspirate_is_prompt(rcvd)) {
 			if (strncmp(rcvd, "SPI>", 4) == 0) {
-				printf("BusPirate is now configured for SPI\n");
+				fprintf(stderr, "BusPirate is now configured for SPI\n");
 				break;
 			}
 			/* Not yet 'SPI>' prompt */
@@ -538,7 +540,7 @@ static void buspirate_enable(struct programmer_t *pgm)
 	int fw_v1 = 0, fw_v2 = 0;
 	int rc, print_banner = 0;
 
-	printf("Detecting BusPirate...\n");
+	fprintf(stderr, "Detecting BusPirate...\n");
 
 	/* Call buspirate_send_bin() instead of buspirate_send() 
 	 * because we don't know if BP is in text or bin mode */
@@ -568,7 +570,7 @@ static void buspirate_enable(struct programmer_t *pgm)
 		sscanf(rcvd, "Bus Pirate %9s", PDATA(pgm)->hw_version);
 		sscanf(rcvd, "Firmware v%d.%d", &fw_v1, &fw_v2);
 		if (print_banner)
-			printf("**  %s", rcvd);
+			fprintf(stderr, "**  %s", rcvd);
 	}
 
 	PDATA(pgm)->fw_version = 100 * fw_v1 + fw_v2;
@@ -581,12 +583,12 @@ static void buspirate_enable(struct programmer_t *pgm)
 		exit(1);
 
 	if (PDATA(pgm)->fw_version >= FW_BINMODE_VER && !(pgm->flag & BP_FLAG_XPARM_FORCE_ASCII)) {
-		printf("BusPirate: using BINARY mode\n");
+		fprintf(stderr, "BusPirate: using BINARY mode\n");
 		if (buspirate_start_spi_mode_bin(pgm) < 0)
 			fprintf(stderr, "%s: Failed to start binary SPI mode\n", progname);
 	}
 	if (!pgm->flag & BP_FLAG_IN_BINMODE) {
-		printf("BusPirate: using ASCII mode\n");
+		fprintf(stderr, "BusPirate: using ASCII mode\n");
 		if (buspirate_start_spi_mode_ascii(pgm) < 0) {
 			fprintf(stderr, "%s: Failed to start ascii SPI mode\n", progname);
 			exit(1);

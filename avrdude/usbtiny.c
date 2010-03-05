@@ -135,7 +135,7 @@ static int usb_in (PROGRAMMER * pgm,
 static void check_retries (PROGRAMMER * pgm, const char* operation)
 {
   if (PDATA(pgm)->retries > 0 && quell_progress < 2) {
-    printf("%s: %d retries during %s\n", progname,
+    fprintf(stderr, "%s: %d retries during %s\n", progname,
            PDATA(pgm)->retries, operation);
   }
   PDATA(pgm)->retries = 0;
@@ -268,7 +268,7 @@ static int usbtiny_set_sck_period (PROGRAMMER *pgm, double v)
     PDATA(pgm)->sck_period = SCK_MAX;
 
   if (verbose) {
-    printf( "%s: Setting SCK period to %d usec\n", progname,
+    fprintf(stderr, "%s: Setting SCK period to %d usec\n", progname,
 	    PDATA(pgm)->sck_period );
   }
 
@@ -295,7 +295,7 @@ static int usbtiny_initialize (PROGRAMMER *pgm, AVRPART *p )
     // -B option not specified: use default
     PDATA(pgm)->sck_period = SCK_DEFAULT;
     if	(verbose) {
-      printf( "%s: Using SCK period of %d usec\n",
+      fprintf(stderr, "%s: Using SCK period of %d usec\n",
 	      progname, PDATA(pgm)->sck_period );
     }
     if (usb_control(pgm,  USBTINY_POWERUP,
@@ -351,7 +351,7 @@ static int usbtiny_cmd(PROGRAMMER * pgm, unsigned char cmd[4], unsigned char res
   check_retries(pgm, "SPI command");
   if (verbose > 1) {
     // print out the data we sent and received
-    printf( "CMD: [%02x %02x %02x %02x] [%02x %02x %02x %02x]\n",
+    fprintf(stderr, "CMD: [%02x %02x %02x %02x] [%02x %02x %02x %02x]\n",
 	    cmd[0], cmd[1], cmd[2], cmd[3],
 	    res[0], res[1], res[2], res[3] );
   }

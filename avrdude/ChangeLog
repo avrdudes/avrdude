@@ -1,3 +1,9 @@
+2010-03-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* buspirate.c: Replace printf() by fprintf(stderr)
+	* safemode.c: (Dito.)
+	* usbtiny.c: (Dito.)
+
 2010-01-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Cleanup Cygwin builds.
