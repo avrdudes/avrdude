@@ -230,12 +230,12 @@ static int ser_set_dtr_rts(union filedescriptor *fdp, int is_on)
   }
 
   if (is_on) {
-    /* Clear DTR and RTS */
-    ctl &= ~(TIOCM_DTR | TIOCM_RTS);
-  }
-  else {
     /* Set DTR and RTS */
     ctl |= (TIOCM_DTR | TIOCM_RTS);
+  }
+  else {
+    /* Clear DTR and RTS */
+    ctl &= ~(TIOCM_DTR | TIOCM_RTS);
   }
 
   r = ioctl(fdp->ifd, TIOCMSET, &ctl);

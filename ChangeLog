@@ -1,3 +1,8 @@
+2010-03-08  Michal Ludvig <mludvig@logix.net.nz>
+
+	* ser_posix.c(ser_set_dtr_rts): Fixed DTR on/off to make
+	  Arduino auto-reset work. (bug #29108, patch #7100)
+
 2010-03-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* buspirate.c: Replace printf() by fprintf(stderr)
