@@ -39,15 +39,73 @@
 #include "pgm.h"
 #include "usbasp.h"
 
-#ifdef HAVE_LIBUSB
-#include <usb.h>
+#if defined(HAVE_LIBUSB) || defined(HAVE_LIBUSB_1_0)
+
+#ifdef HAVE_LIBUSB_1_0
+# define USE_LIBUSB_1_0
+#endif
+
+#if defined(USE_LIBUSB_1_0)
+# if defined(HAVE_LIBUSB_1_0_LIBUSB_H)
+#  include <libusb-1.0/libusb.h>
+# else
+#  include <libusb.h>
+# endif
+#else
+# include <usb.h>
+#endif
+
+#ifdef USE_LIBUSB_1_0
+
+static libusb_context *ctx = NULL;
+
+static int libusb_to_errno(int result)
+{
+	switch (result) {
+	case LIBUSB_SUCCESS:
+		return 0;
+	case LIBUSB_ERROR_IO:
+		return EIO;
+	case LIBUSB_ERROR_INVALID_PARAM:
+		return EINVAL;
+	case LIBUSB_ERROR_ACCESS:
+		return EACCES;
+	case LIBUSB_ERROR_NO_DEVICE:
+		return ENXIO;
+	case LIBUSB_ERROR_NOT_FOUND:
+		return ENOENT;
+	case LIBUSB_ERROR_BUSY:
+		return EBUSY;
+	case LIBUSB_ERROR_TIMEOUT:
+		return ETIMEDOUT;
+	case LIBUSB_ERROR_OVERFLOW:
+		return EOVERFLOW;
+	case LIBUSB_ERROR_PIPE:
+		return EPIPE;
+	case LIBUSB_ERROR_INTERRUPTED:
+		return EINTR;
+	case LIBUSB_ERROR_NO_MEM:
+		return ENOMEM;
+	case LIBUSB_ERROR_NOT_SUPPORTED:
+		return ENOSYS;
+	default:
+		return ERANGE;
+	}
+}
+
+#endif
+
 
 /*
  * Private data for this programmer.
  */
 struct pdata
 {
+#ifdef USE_LIBUSB_1_0
+  libusb_device_handle *usbhandle;
+#else
   usb_dev_handle *usbhandle;
+#endif
   int sckfreq_hz; 
 };
 
@@ -78,6 +136,20 @@ static int usbasp_transmit(PROGRAMMER * pgm,
 			   unsigned char send[4], unsigned char * buffer, int buffersize)
 {
   int nbytes;
+#ifdef USE_LIBUSB_1_0
+  nbytes = libusb_control_transfer(PDATA(pgm)->usbhandle,
+				   (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | (receive << 7)) & 0xff,
+				   functionid & 0xff, 
+				   ((send[1] << 8) | send[0]) &  0xffff, 
+				   ((send[3] << 8) | send[2]) & 0xffff, 
+				   (char *)buffer, 
+				   buffersize & 0xffff,
+				   5000);
+  if(nbytes < 0){
+    fprintf(stderr, "%s: error: usbasp_transmit: %s\n", progname, strerror(libusb_to_errno(nbytes)));
+    exit(1);
+  }
+#else
   nbytes = usb_control_msg(PDATA(pgm)->usbhandle,
 			   USB_TYPE_VENDOR | USB_RECIP_DEVICE | (receive << 7),
 			   functionid,
@@ -89,7 +161,7 @@ static int usbasp_transmit(PROGRAMMER * pgm,
     fprintf(stderr, "%s: error: usbasp_transmit: %s\n", progname, usb_strerror());
     exit(1);
   }
-
+#endif
   return nbytes;
 }
 
@@ -100,14 +172,93 @@ static int usbasp_transmit(PROGRAMMER * pgm,
  * DEVELOPMENT Software GmbH (www.obdev.at) to meet conditions for
  * shared VID/PID
  */
+#ifdef USE_LIBUSB_1_0
+static int usbOpenDevice(libusb_device_handle **device, int vendor,
+			 char *vendorName, int product, char *productName)
+{
+    libusb_device_handle *handle = NULL;
+    int                  errorCode = USB_ERROR_NOTFOUND;
+    static int           didUsbInit = 0;
+    int j;
+    int r;
+
+    if(!didUsbInit){
+        didUsbInit = 1;
+        libusb_init(&ctx);
+    }
+    
+    libusb_device **dev_list;
+    int dev_list_len = libusb_get_device_list(ctx, &dev_list);
+
+    for (j=0; j<dev_list_len; ++j) {
+        libusb_device *dev = dev_list[j];
+        struct libusb_device_descriptor descriptor;
+	libusb_get_device_descriptor(dev, &descriptor);
+	if (descriptor.idVendor == vendor && descriptor.idProduct == product) {
+            char    string[256];
+	    /* we need to open the device in order to query strings */
+            r = libusb_open(dev, &handle);
+            if (!handle) {
+                 errorCode = USB_ERROR_ACCESS;
+                 fprintf(stderr,
+			    "%s: Warning: cannot open USB device: %s\n",
+			    progname, strerror(libusb_to_errno(r)));
+                    continue;
+                }
+                if (vendorName == NULL && productName == NULL) {
+		    /* name does not matter */
+                    break;
+                }
+                /* now check whether the names match: */
+		r = libusb_get_string_descriptor_ascii(handle, descriptor.iManufacturer & 0xff, string, sizeof(string));
+                if (r < 0) {
+                    errorCode = USB_ERROR_IO;
+                    fprintf(stderr,
+			    "%s: Warning: cannot query manufacturer for device: %s\n",
+			    progname, strerror(libusb_to_errno(r)));
+                } else {
+                    errorCode = USB_ERROR_NOTFOUND;
+		    if (verbose > 1)
+		        fprintf(stderr,
+				"%s: seen device from vendor ->%s<-\n",
+				progname, string);
+                    if (strcmp(string, vendorName) == 0){
+			r = libusb_get_string_descriptor_ascii(handle, descriptor.iProduct & 0xff, string, sizeof(string));
+                        if (r < 0) {
+                            errorCode = USB_ERROR_IO;
+                            fprintf(stderr,
+				    "%s: Warning: cannot query product for device: %s\n",
+				    progname, strerror(libusb_to_errno(r)));
+                        } else {
+                            errorCode = USB_ERROR_NOTFOUND;
+			    if (verbose > 1)
+			        fprintf(stderr,
+					"%s: seen product ->%s<-\n",
+					progname, string);
+                            if(strcmp(string, productName) == 0)
+                                break;
+                        }
+                    }
+                }
+                libusb_close(handle);
+                handle = NULL;
+            }
+    }
+    if (handle != NULL){
+        errorCode = 0;
+        *device = handle;
+    }
+    return errorCode;
+}
+#else
 static int usbOpenDevice(usb_dev_handle **device, int vendor,
 			 char *vendorName, int product, char *productName)
 {
-struct usb_bus      *bus;
-struct usb_device   *dev;
-usb_dev_handle      *handle = NULL;
-int                 errorCode = USB_ERROR_NOTFOUND;
-static int          didUsbInit = 0;
+struct usb_bus       *bus;
+struct usb_device    *dev;
+usb_dev_handle       *handle = NULL;
+int                  errorCode = USB_ERROR_NOTFOUND;
+static int           didUsbInit = 0;
 
     if(!didUsbInit){
         didUsbInit = 1;
@@ -180,13 +331,26 @@ static int          didUsbInit = 0;
     }
     return errorCode;
 }
-
+#endif
 
 static int usbasp_open(PROGRAMMER * pgm, char * port)
 {
+#ifdef USE_LIBUSB_1_0
+  libusb_init(&ctx);
+#else
   usb_init();
-
-  if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_SHARED_VID, "www.fischl.de",
+#endif
+  if(strcasecmp(port, "nibobee") == 0) {
+    if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_NIBOBEE_VID, "www.nicai-systems.com",
+		    USBASP_NIBOBEE_PID, "NIBObee") != 0) {
+      fprintf(stderr,
+	      "%s: error: could not find USB device "
+	      "\"NIBObee\" with vid=0x%x pid=0x%x\n",
+  	      progname, USBASP_NIBOBEE_VID, USBASP_NIBOBEE_PID);
+      exit(1);
+      
+    }
+  } else if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_SHARED_VID, "www.fischl.de",
 		    USBASP_SHARED_PID, "USBasp") != 0) {
 
     /* check if device with old VID/PID is available */
@@ -220,7 +384,11 @@ static void usbasp_close(PROGRAMMER * pgm)
   memset(temp, 0, sizeof(temp));
   usbasp_transmit(pgm, 1, USBASP_FUNC_DISCONNECT, temp, temp, sizeof(temp));
 
+#ifdef USE_LIBUSB_1_0
+  libusb_close(PDATA(pgm)->usbhandle);
+#else
   usb_close(PDATA(pgm)->usbhandle);
+#endif
 }
 
 
