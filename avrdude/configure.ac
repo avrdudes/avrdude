@@ -66,11 +66,30 @@ if test x$have_libusb = xyes; then
 fi
 AC_SUBST(LIBUSB, $LIBUSB)
 
+AH_TEMPLATE([HAVE_LIBUSB_1_0],
+            [Define if USB support is enabled via libusb 1.0])
+AC_CHECK_LIB([usb-1.0], [libusb_init], [have_libusb_1_0=yes])
+if test x$have_libusb_1_0 = xyes; then
+   case $target in
+       *-*-darwin*)
+               LIBUSB_1_0="-lusb-1.0 -framework CoreFoundation -framework IOKit"
+               ;;
+       *)
+               LIBUSB_1_0="-lusb-1.0"
+               ;;
+   esac
+   AC_DEFINE([HAVE_LIBUSB_1_0])
+   AC_CHECK_HEADERS([libusb-1.0/libusb.h])
+   AC_CHECK_HEADERS([libusb.h])
+fi
+AC_SUBST(LIBUSB_1_0, $LIBUSB_1_0)
+
 # Checks for header files.
 AC_CHECK_HEADERS([limits.h stdlib.h string.h])
 AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h termios.h unistd.h])
 AC_CHECK_HEADERS([ddk/hidsdi.h],,,[#include <windows.h>
 #include <setupapi.h>])
+
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
