@@ -1967,7 +1967,8 @@ A Windows executable of avrdude is included in WinAVR which can be found at
 @url{http://sourceforge.net/projects/winavr}. WinAVR is a suite of executable, 
 open source software development tools for the AVR for the Windows platform.
 
-To build avrdude from the source You must have Cygwin (@url{http://www.cygwin.com/}).
+There are two options to build avrdude from source under Windows.
+The first one is to use Cygwin (@url{http://www.cygwin.com/}).
 
 To build and install from the source tarball for Windows (using Cygwin):
 
@@ -1981,6 +1982,17 @@ $ ./configure LDFLAGS="-static" --prefix=$PREFIX --datadir=$PREFIX
 $ make
 $ make install
 @end example
+
+Note that recent versions of Cygwin (starting with 1.7) removed the
+MinGW support from the compiler that is needed in order to build a
+native Win32 API binary that does not require to install the Cygwin
+library @code{cygwin1.dll} at run-time.  Either try using an older
+compiler version that still supports MinGW builds, or use MinGW
+(@url{http://www.mingw.org/}) directly.
+
+@c
+@c XXX Please add more detailed instructions here.
+@c
 
 
 @c

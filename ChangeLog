@@ -1,3 +1,10 @@
+2010-03-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #29263: Can't build avrdude on windows using latest cygwin 1.7.1
+	* doc/avrdude.texi: Remove the recommendation for building
+	Win32 binaries under Cygwin; mention MinGW as an alternative
+	environment.
+
 2010-03-08  Michal Ludvig <mludvig@logix.net.nz>
 
 	* ser_posix.c(ser_set_dtr_rts): Fixed DTR on/off to make
