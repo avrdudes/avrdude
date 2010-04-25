@@ -140,14 +140,14 @@ static int usbasp_transmit(PROGRAMMER * pgm,
   nbytes = libusb_control_transfer(PDATA(pgm)->usbhandle,
 				   (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | (receive << 7)) & 0xff,
 				   functionid & 0xff, 
-				   ((send[1] << 8) | send[0]) &  0xffff, 
+				   ((send[1] << 8) | send[0]) & 0xffff, 
 				   ((send[3] << 8) | send[2]) & 0xffff, 
 				   (char *)buffer, 
 				   buffersize & 0xffff,
 				   5000);
   if(nbytes < 0){
     fprintf(stderr, "%s: error: usbasp_transmit: %s\n", progname, strerror(libusb_to_errno(nbytes)));
-    exit(1);
+    return -1;
   }
 #else
   nbytes = usb_control_msg(PDATA(pgm)->usbhandle,
@@ -159,7 +159,7 @@ static int usbasp_transmit(PROGRAMMER * pgm,
 			   5000);
   if(nbytes < 0){
     fprintf(stderr, "%s: error: usbasp_transmit: %s\n", progname, usb_strerror());
-    exit(1);
+    return -1;
   }
 #endif
   return nbytes;
@@ -347,7 +347,7 @@ static int usbasp_open(PROGRAMMER * pgm, char * port)
 	      "%s: error: could not find USB device "
 	      "\"NIBObee\" with vid=0x%x pid=0x%x\n",
   	      progname, USBASP_NIBOBEE_VID, USBASP_NIBOBEE_PID);
-      exit(1);
+      return -1;
       
     }
   } else if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_SHARED_VID, "www.fischl.de",
@@ -362,7 +362,7 @@ static int usbasp_open(PROGRAMMER * pgm, char * port)
 	      "%s: error: could not find USB device "
 	      "\"USBasp\" with vid=0x%x pid=0x%x\n",
   	      progname, USBASP_SHARED_VID, USBASP_SHARED_PID);
-      exit(1);
+      return -1;
 
     } else {
 
@@ -380,15 +380,16 @@ static int usbasp_open(PROGRAMMER * pgm, char * port)
 
 static void usbasp_close(PROGRAMMER * pgm)
 {
-  unsigned char temp[4];
-  memset(temp, 0, sizeof(temp));
-  usbasp_transmit(pgm, 1, USBASP_FUNC_DISCONNECT, temp, temp, sizeof(temp));
-
+  if (PDATA(pgm)->usbhandle!=NULL) {
+    unsigned char temp[4];
+    memset(temp, 0, sizeof(temp));
+    usbasp_transmit(pgm, 1, USBASP_FUNC_DISCONNECT, temp, temp, sizeof(temp));
 #ifdef USE_LIBUSB_1_0
-  libusb_close(PDATA(pgm)->usbhandle);
+    libusb_close(PDATA(pgm)->usbhandle);
 #else
-  usb_close(PDATA(pgm)->usbhandle);
+    usb_close(PDATA(pgm)->usbhandle);
 #endif
+  }
 }
 
 
@@ -544,7 +545,7 @@ static int usbasp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     if (n != blocksize) {
       fprintf(stderr, "%s: error: wrong reading bytes %x\n",
 	      progname, n);
-      exit(1);
+      return -3;
     }
 
     buffer += blocksize;
@@ -616,7 +617,7 @@ static int usbasp_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     if (n != blocksize) {
       fprintf(stderr, "%s: error: wrong count at writing %x\n",
 	      progname, n);
-      exit(1);
+      return -3;        
     }
 
 
@@ -738,11 +739,11 @@ void usbasp_initpgm(PROGRAMMER * pgm)
    * optional functions
    */
 
-  pgm->paged_write = usbasp_paged_write;
-  pgm->paged_load = usbasp_paged_load;
+  pgm->paged_write    = usbasp_paged_write;
+  pgm->paged_load     = usbasp_paged_load;
   pgm->setup          = usbasp_setup;
   pgm->teardown       = usbasp_teardown;
-  pgm->set_sck_period	= usbasp_set_sck_period;
+  pgm->set_sck_period = usbasp_set_sck_period;
 
 }
 
@@ -754,7 +755,7 @@ static int usbasp_nousb_open (struct programmer_t *pgm, char * name)
   fprintf(stderr, "%s: error: no usb support. please compile again with libusb installed.\n",
 	  progname);
 
-  exit(1);
+  return -1;
 }
 
 void usbasp_initpgm(PROGRAMMER * pgm)
