@@ -1,3 +1,9 @@
+2010-06-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #29913: 246 Byte Bug - AVRdude crashes
+	doc/avrdude.texi (Troubleshooting): Mention the libusb 0.1 API
+	wrapper issue that is present in some Linux versions.
+
 2010-03-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #29263: Can't build avrdude on windows using latest cygwin 1.7.1
