@@ -2418,6 +2418,19 @@ Solution: None by this time (2010 Q1).
 It is said that the AVR Dragon can only program devices from the A4
 Xmega sub-family.
 
+@item
+Problem: when programming with an AVRISPmkII or STK600, AVRDUDE hangs
+when programming files of a certain size (e.g. 246 bytes).  Other
+(larger or smaller) sizes work though.
+
+Solution: This is a bug caused by an incorrect handling of zero-length
+packets (ZLPs) in some versions of the libusb 0.1 API wrapper that ships
+with libusb 1.x in certain Linux distributions.  All Linux systems with
+kernel versions < 2.6.31 and libusb >= 1.0.0 < 1.0.3 are reported to be
+affected by this.
+
+See also: @url{http://www.libusb.org/ticket/6}
+
 @end itemize
 
 
