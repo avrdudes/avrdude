@@ -1,3 +1,7 @@
+2010-07-12  Nils Springob <nils@nicai-systems.de>
+        
+	* avrdude.conf.in (atmega88p): New device.
+
 2010-06-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #29913: 246 Byte Bug - AVRdude crashes
