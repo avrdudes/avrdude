@@ -256,8 +256,9 @@ static int buspirate_send(struct programmer_t *pgm, char *str)
 
 static int buspirate_is_prompt(char *str)
 {
-	/* Prompt ends with '>' all other input probably ends with '\n' */
-	return (str[strlen(str) - 1] == '>');
+	/* Prompt ends with '>' or '> '
+	 * all other input probably ends with '\n' */
+	return (str[strlen(str) - 1] == '>' || str[strlen(str) - 2] == '>');
 }
 
 static int buspirate_expect(struct programmer_t *pgm, char *send,
@@ -536,6 +537,7 @@ static int buspirate_start_spi_mode_ascii(struct programmer_t *pgm)
 static void buspirate_enable(struct programmer_t *pgm)
 {
 	unsigned char *reset_str = "#\n";
+	unsigned char *accept_str = "y\n";
 	char *rcvd;
 	int fw_v1 = 0, fw_v2 = 0;
 	int rc, print_banner = 0;
@@ -558,6 +560,9 @@ static void buspirate_enable(struct programmer_t *pgm)
 			/* re-run buspirate_enable() */
 			buspirate_enable(pgm);
 			return;
+		}
+		if (strncmp(rcvd, "Are you sure?", 13) == 0) {
+			buspirate_send_bin(pgm, accept_str, strlen(accept_str));
 		}
 		if (strncmp(rcvd, "RESET", 5) == 0) {
 			print_banner = 1;
