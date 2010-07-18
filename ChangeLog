@@ -1,5 +1,10 @@
+2010-07-19  Michal Ludvig <mludvig@logix.net.nz>
+
+	* buspirate.c: Added compatibility with BusPirate "NewUI" firmware 5.x
+	  (contributed by Kari Knuuttila)
+
 2010-07-12  Nils Springob <nils@nicai-systems.de>
-        
+
 	* avrdude.conf.in (atmega88p): New device.
 
 2010-06-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
