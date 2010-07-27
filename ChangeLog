@@ -1,3 +1,10 @@
+2010-07-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #30566: MinGW + Ubuntu 9.04
+	* stk500v2.c (stk500v2_open): use same condition to refer to the AVR
+	Doper support as used in the definition in ser_avrdoper.c.
+	(Thanks to Christian Starkjohann for the analysis of the problem.)
+
 2010-07-19  Michal Ludvig <mludvig@logix.net.nz>
 
 	* buspirate.c: Added compatibility with BusPirate "NewUI" firmware 5.x
