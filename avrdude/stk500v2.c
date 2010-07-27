@@ -1285,7 +1285,7 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
   PDATA(pgm)->pgmtype = PGMTYPE_UNKNOWN;
 
   if(strcasecmp(port, "avrdoper") == 0){
-#if defined(HAVE_LIBUSB) || defined(WIN32NATIVE)
+#if defined(HAVE_LIBUSB) || (defined(WIN32NATIVE) && defined(HAVE_LIBHID))
     serdev = &avrdoper_serdev;
     PDATA(pgm)->pgmtype = PGMTYPE_STK500;
 #else
