@@ -1420,7 +1420,9 @@ static int jtagmkII_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -1465,7 +1467,9 @@ static int jtagmkII_open_dw(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -1510,7 +1514,9 @@ static int jtagmkII_open_pdi(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -1556,7 +1562,9 @@ static int jtagmkII_dragon_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -1602,7 +1610,9 @@ static int jtagmkII_dragon_open_dw(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -1648,7 +1658,9 @@ static int jtagmkII_dragon_open_pdi(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -3118,7 +3130,9 @@ static int jtagmkII_open32(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input

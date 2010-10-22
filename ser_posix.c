@@ -247,7 +247,7 @@ static int ser_set_dtr_rts(union filedescriptor *fdp, int is_on)
   return 0;
 }
 
-static void ser_open(char * port, long baud, union filedescriptor *fdp)
+static int ser_open(char * port, long baud, union filedescriptor *fdp)
 {
   int rc;
   int fd;
@@ -258,7 +258,7 @@ static void ser_open(char * port, long baud, union filedescriptor *fdp)
    */
   if (strncmp(port, "net:", strlen("net:")) == 0) {
     net_open(port + strlen("net:"), fdp);
-    return;
+    return 0;
   }
 
   /*
@@ -268,7 +268,7 @@ static void ser_open(char * port, long baud, union filedescriptor *fdp)
   if (fd < 0) {
     fprintf(stderr, "%s: ser_open(): can't open device \"%s\": %s\n",
             progname, port, strerror(errno));
-    exit(1);
+    return -1;
   }
 
   fdp->ifd = fd;
@@ -281,8 +281,10 @@ static void ser_open(char * port, long baud, union filedescriptor *fdp)
     fprintf(stderr, 
             "%s: ser_open(): can't set attributes for device \"%s\": %s\n",
             progname, port, strerror(-rc));
-    exit(1);
+    close(fd);
+    return -1;
   }
+  return 0;
 }
 
 

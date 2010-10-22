@@ -504,7 +504,7 @@ static char *usbErrorText(int usbErrno)
 
 /* ------------------------------------------------------------------------- */
 
-static void avrdoper_open(char *port, long baud, union filedescriptor *fdp)
+static int avrdoper_open(char *port, long baud, union filedescriptor *fdp)
 {
     int rval;
     char *vname = "obdev.at";
@@ -514,7 +514,9 @@ static void avrdoper_open(char *port, long baud, union filedescriptor *fdp)
     if(rval != 0){
         fprintf(stderr, "%s: avrdoper_open(): %s\n", progname, usbErrorText(rval));
         exit(1);
+	//return -1;
     }
+    return 0;
 }
 
 /* ------------------------------------------------------------------------- */

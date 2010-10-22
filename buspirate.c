@@ -374,7 +374,9 @@ static int buspirate_open(struct programmer_t *pgm, char * port)
 		pgm->baudrate = 115200;
 
 	strcpy(pgm->port, port);
-	serial_open(port, pgm->baudrate, &pgm->fd);
+	if (serial_open(port, pgm->baudrate, &pgm->fd)==-1) {
+	  return -1;
+	}
 
 	/* drain any extraneous input */
 	serial_drain(&pgm->fd, 0);
