@@ -112,7 +112,7 @@ static int ser_setspeed(union filedescriptor *fd, long baud)
 }
 
 
-static void ser_open(char * port, long baud, union filedescriptor *fdp)
+static int ser_open(char * port, long baud, union filedescriptor *fdp)
 {
 	LPVOID lpMsgBuf;
 	HANDLE hComPort=INVALID_HANDLE_VALUE;
@@ -129,7 +129,7 @@ static void ser_open(char * port, long baud, union filedescriptor *fdp)
 			"%s: ser_open(): network connects are currently not"
 			"implemented for Win32 environments\n",
 			progname);
-		exit(1);
+		return -1;
 	}
 
 	if (strncasecmp(port, "com", strlen("com")) == 0) {
@@ -166,7 +166,7 @@ static void ser_open(char * port, long baud, union filedescriptor *fdp)
 		fprintf(stderr, "%s: ser_open(): can't open device \"%s\": %s\n",
 				progname, port, (char*)lpMsgBuf);
 		LocalFree( lpMsgBuf );
-		exit(1);
+		return -1;
 	}
 
 	if (!SetupComm(hComPort, W32SERBUFSIZE, W32SERBUFSIZE))
@@ -174,7 +174,7 @@ static void ser_open(char * port, long baud, union filedescriptor *fdp)
 		CloseHandle(hComPort);
 		fprintf(stderr, "%s: ser_open(): can't set buffers for \"%s\"\n",
 				progname, port);
-		exit(1);
+		return -1;
 	}
 
         fdp->pfd = (void *)hComPort;
@@ -183,7 +183,7 @@ static void ser_open(char * port, long baud, union filedescriptor *fdp)
 		CloseHandle(hComPort);
 		fprintf(stderr, "%s: ser_open(): can't set com-state for \"%s\"\n",
 				progname, port);
-		exit(1);
+		return -1;
 	}
 
 	if (!serial_w32SetTimeOut(hComPort,0))
@@ -191,12 +191,13 @@ static void ser_open(char * port, long baud, union filedescriptor *fdp)
 		CloseHandle(hComPort);
 		fprintf(stderr, "%s: ser_open(): can't set initial timeout for \"%s\"\n",
 				progname, port);
-		exit(1);
+		return -1;
 	}
 
 	if (newname != 0) {
 	    free(newname);
 	}
+	return 0;
 }
 
 
