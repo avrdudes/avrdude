@@ -673,7 +673,9 @@ static int jtagmkI_open(PROGRAMMER * pgm, char * port)
       fprintf(stderr,
               "%s: jtagmkI_open(): trying to sync at baud rate %ld:\n",
               progname, baudtab[i].baud);
-    serial_open(port, baudtab[i].baud, &pgm->fd);
+    if (serial_open(port, baudtab[i].baud, &pgm->fd)==-1) {
+      return -1;
+    }
 
     /*
      * drain any extraneous input

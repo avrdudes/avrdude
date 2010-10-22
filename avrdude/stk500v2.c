@@ -1313,7 +1313,9 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -1363,7 +1365,9 @@ static int stk600_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -2818,7 +2822,9 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -2906,7 +2912,9 @@ static int stk500v2_dragon_isp_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
@@ -2977,7 +2985,9 @@ static int stk500v2_dragon_hv_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, baud, &pgm->fd);
+  if (serial_open(port, baud, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input

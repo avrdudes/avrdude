@@ -1,3 +1,18 @@
+2010-10-22  Nils Springob <nils@nicai-systems.de>
+
+	* serial.h: serial_open() calls will now return -1 on error (no call to exit())
+	* buspirate.c: (Dito.)
+	* jtagmkII.c: (Dito.)
+	* butterfly.c: (Dito.)
+	* jtagmkI.c: (Dito.)
+	* arduino.c: (Dito.)
+	* avr910.c: (Dito.)
+	* stk500.c: (Dito.)
+	* ser_avrdoper.c: (Dito.)
+	* stk500v2.c: (Dito.)
+	* ser_posix.c: (Dito.)
+	* usb_libusb.c: (Dito.)
+
 2010-07-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #30566: MinGW + Ubuntu 9.04

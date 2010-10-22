@@ -383,7 +383,9 @@ static int avr910_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  serial_open(port, pgm->baudrate, &pgm->fd);
+  if (serial_open(port, pgm->baudrate, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input

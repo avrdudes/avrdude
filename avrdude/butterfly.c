@@ -356,7 +356,9 @@ static int butterfly_open(PROGRAMMER * pgm, char * port)
   if(pgm->baudrate == 0) {
     pgm->baudrate = 19200;
   }
-  serial_open(port, pgm->baudrate, &pgm->fd);
+  if (serial_open(port, pgm->baudrate, &pgm->fd)==-1) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input

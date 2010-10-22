@@ -56,7 +56,7 @@ static int usb_interface;
  * The "baud" parameter is meaningless for USB devices, so we reuse it
  * to pass the desired USB device ID.
  */
-static void usbdev_open(char * port, long baud, union filedescriptor *fd)
+static int usbdev_open(char * port, long baud, union filedescriptor *fd)
 {
   char string[256];
   char product[256];
@@ -220,7 +220,7 @@ static void usbdev_open(char * port, long baud, union filedescriptor *fd)
 			      progname, USBDEV_BULK_EP_READ);
 		      fd->usb.ep = USBDEV_BULK_EP_READ;
 		    }
-                  return;
+                  return 0;
 		}
 	      trynext:
 	      usb_close(udev);
