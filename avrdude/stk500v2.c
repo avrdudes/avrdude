@@ -800,6 +800,32 @@ retry:
         /*
          * Decode STK500v2 errors.
          */
+        if (buf[1] >= STATUS_CMD_TOUT && buf[1] < 0xa0) {
+            const char *msg;
+            char msgbuf[30];
+            switch (buf[1]) {
+            case STATUS_CMD_TOUT:
+                msg = "Command timed out";
+                break;
+
+            case STATUS_RDY_BSY_TOUT:
+                msg = "Sampling of the RDY/nBSY pin timed out";
+                break;
+
+            case STATUS_SET_PARAM_MISSING:
+                msg = "The `Set Device Parameters' have not been "
+                    "executed in advance of this command";
+
+            default:
+                sprintf(msgbuf, "unknown, code 0x%02x", buf[1]);
+                msg = msgbuf;
+                break;
+            }
+            if (quell_progress < 2)
+                fprintf(stderr, "%s: stk500v2_command(): warning: %s\n",
+                        progname, msg);
+            buf[1] = STATUS_CMD_OK; /* pretend success */
+        }
         if (buf[1] == STATUS_CMD_OK)
             return status;
         if (buf[1] == STATUS_CMD_FAILED)
