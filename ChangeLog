@@ -1,3 +1,8 @@
+2010-12-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avrdude.conf.in (ATmega128RFA1): Bump two timing values in order to
+	  improve ISP programming stability, in particular with the STK600.
+
 2010-12-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* stk500v2.c (stk500v2_command): Detect warning status codes.
