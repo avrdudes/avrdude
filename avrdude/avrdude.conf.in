@@ -11338,7 +11338,7 @@ part
     has_jtag         = yes;
 #    stk500_devcode   = 0xB2;
 #    avr910_devcode   = 0x43;
-    chip_erase_delay = 9000;
+    chip_erase_delay = 55000;
     pagel            = 0xD7;
     bs2              = 0xE2;
     reset            = dedicated;
@@ -11453,7 +11453,7 @@ part
                           "  x   x   x   x      x   x   x   x";
 
 	mode		= 0x41;
-	delay		= 10;
+	delay		= 20;
 	blocksize	= 256;
 	readsize	= 256;
       ;
