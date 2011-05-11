@@ -1,34 +1,9 @@
 #! /bin/sh
 
-# autoconf-2.59 or 2.61, 2.62 is known to work
-
 : ${AUTOHEADER="autoheader${AC_VER}"}
 : ${AUTOCONF="autoconf${AC_VER}"}
-
-# automake-1.9.x or 1.10 is known to work
-
 : ${ACLOCAL="aclocal${AM_VER}"}
 : ${AUTOMAKE="automake${AM_VER}"}
-
-# Verify autoconf version
-
-AUTOCONF_VER=`(${AUTOCONF} --version 2>/dev/null | head -n 1 | \
-              cut -d ' ' -f 4) 2>/dev/null`
-if [ "$AUTOCONF_VER" != "2.59" -a "$AUTOCONF_VER" != "2.61" -a "$AUTOCONF_VER" != "2.62" ]
-then
-	echo "Warning: This program is tested with autoconf version 2.59, 2.61 and 2.62."
-	echo "You are using `${AUTOCONF} --version | head -n 1`."
-fi
-
-# Verify automake version
-
-AUTOMAKE_VER=`(${AUTOMAKE} --version | head -n 1 | \
-              cut -d ' ' -f 4 | cut -d '.' -f -2) 2>/dev/null`
-if [ "$AUTOMAKE_VER" != "1.9" -a "$AUTOMAKE_VER" != "1.10" ]
-then
-	echo "Warning: This program is tested with automake version 1.9 and 1.10."
-	echo "You are using `${AUTOMAKE} --version | head -n 1`."
-fi
 
 export ACLOCAL AUTOHEADER AUTOCONF AUTOMAKE
 
