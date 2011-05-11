@@ -4064,7 +4064,7 @@ part
 # similar to ATmega324P
 
 part
-    id               = "m324p";
+    id               = "m324pa";
     desc             = "ATmega324PA";
     has_jtag         = yes;
     stk500_devcode   = 0x82; # no STK500v1 support, use the ATmega16 one
