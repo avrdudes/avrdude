@@ -1,3 +1,9 @@
+2011-05-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* usb_libusb.c: Bump timeout values to allow for slow clock
+	speeds.
+	* jtagmkII.c: (Ditto.)
+
 2011-03-04  Eric B. Weddington  <eric.weddington@atmel.com>
 
 	Thanks to Vitaly Chernookiy for the patch.
