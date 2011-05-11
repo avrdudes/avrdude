@@ -1,5 +1,9 @@
 2011-05-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* avrdude.conf.in: Fix abbreviated name for ATmega324PA.
+
+2011-05-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Lech Perczak:
 	bug #30946: Added support for ATmega8/16/32U2
 	* avrdude.conf.in: Add ATmega8/16/32U2 entries.
