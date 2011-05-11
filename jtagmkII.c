@@ -483,7 +483,7 @@ static int jtagmkII_recv_frame(PROGRAMMER * pgm, unsigned char **msg,
   unsigned short checksum = 0;
 
   struct timeval tv;
-  double timeoutval = 5;	/* seconds */
+  double timeoutval = 100;	/* seconds */
   double tstart, tnow;
 
   if (verbose >= 4)

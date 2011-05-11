@@ -269,7 +269,7 @@ static int usbdev_send(union filedescriptor *fd, unsigned char *bp, size_t mlen)
    */
   do {
     tx_size = (mlen < USBDEV_MAX_XFER)? mlen: USBDEV_MAX_XFER;
-    rv = usb_bulk_write(udev, USBDEV_BULK_EP_WRITE, (char *)bp, tx_size, 5000);
+    rv = usb_bulk_write(udev, USBDEV_BULK_EP_WRITE, (char *)bp, tx_size, 100000);
     if (rv != tx_size)
     {
         fprintf(stderr, "%s: usbdev_send(): wrote %d out of %d bytes, err = %s\n",
@@ -315,7 +315,7 @@ usb_fill_buf(usb_dev_handle *udev, int ep)
 {
   int rv;
 
-  rv = usb_bulk_read(udev, ep, usbbuf, USBDEV_MAX_XFER, 5000);
+  rv = usb_bulk_read(udev, ep, usbbuf, USBDEV_MAX_XFER, 100000);
   if (rv < 0)
     {
       if (verbose > 1)
@@ -393,7 +393,7 @@ static int usbdev_recv_frame(union filedescriptor *fd, unsigned char *buf, size_
   do
     {
       rv = usb_bulk_read(udev, fd->usb.ep, usbbuf,
-			 USBDEV_MAX_XFER, 10000);
+			 USBDEV_MAX_XFER, 100000);
       if (rv < 0)
 	{
 	  if (verbose > 1)
