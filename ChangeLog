@@ -1,5 +1,11 @@
 2011-05-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by David A Lyons:
+	patch #7393: Adding ATtiny4313 Device to avrdude.conf.in
+	* avrdude.conf.in: Add ATtiny4313 data.
+
+2011-05-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* usb_libusb.c: Bump timeout values to allow for slow clock
 	speeds.
 	* jtagmkII.c: (Ditto.)
