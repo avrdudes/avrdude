@@ -9,6 +9,8 @@ Current:
 
   * New devices supported:
       - ATmega88P
+      - ATmega8U2/16U2/32U2
+      - ATtiny4313
 
   * New programmers supported:
 
