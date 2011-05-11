@@ -1,5 +1,9 @@
 2011-05-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* avrdude.conf.in: Add support for ATmega168P.
+
+2011-05-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* avrdude.conf.in: Fix abbreviated name for ATmega324PA.
 
 2011-05-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>

@@ -8,7 +8,7 @@ Approximate change log for AVRDUDE by version.
 Current:
 
   * New devices supported:
-      - ATmega88P
+      - ATmega88P/168P
       - ATmega8U2/16U2/32U2
       - ATtiny4313
 
