@@ -16641,22 +16641,26 @@ part
     memory "signature"
         size		= 3;
         offset		= 0x3fc0;
+        page_size	= 16;
     ;
 
     memory "fuse"
         size		= 1;
         offset		= 0x3f40;
+        page_size	= 16;
 	blocksize	= 4;
     ;
 
     memory "calibration"
         size		= 1;
         offset		= 0x3f80;
+        page_size	= 16;
     ;
 
     memory "lockbits"
         size		= 1;
         offset		= 0x3f00;
+        page_size	= 16;
     ;
 ;
 
@@ -16681,22 +16685,26 @@ part
     memory "signature"
         size		= 3;
         offset		= 0x3fc0;
+        page_size	= 16;
     ;
 
     memory "fuse"
         size		= 1;
         offset		= 0x3f40;
+        page_size	= 16;
 	blocksize	= 4;
     ;
 
     memory "calibration"
         size		= 1;
         offset		= 0x3f80;
+        page_size	= 16;
     ;
 
     memory "lockbits"
         size		= 1;
         offset		= 0x3f00;
+        page_size	= 16;
     ;
 ;
 
@@ -16721,22 +16729,26 @@ part
     memory "signature"
         size		= 3;
         offset		= 0x3fc0;
+        page_size	= 16;
     ;
 
     memory "fuse"
         size		= 1;
         offset		= 0x3f40;
+        page_size	= 16;
 	blocksize	= 4;
     ;
 
     memory "calibration"
         size		= 1;
         offset		= 0x3f80;
+        page_size	= 16;
     ;
 
     memory "lockbits"
         size		= 1;
         offset		= 0x3f00;
+        page_size	= 16;
     ;
 ;
 
@@ -16761,22 +16773,26 @@ part
     memory "signature"
         size		= 3;
         offset		= 0x3fc0;
+        page_size	= 16;
     ;
 
     memory "fuse"
         size		= 1;
         offset		= 0x3f40;
+        page_size	= 16;
 	blocksize	= 4;
     ;
 
     memory "calibration"
         size		= 1;
         offset		= 0x3f80;
+        page_size	= 16;
     ;
 
     memory "lockbits"
         size		= 1;
         offset		= 0x3f00;
+        page_size	= 16;
     ;
 ;
 
