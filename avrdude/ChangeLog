@@ -1,3 +1,7 @@
+2011-06-16  Thomas Fischl <tfischl@gmx.de>
+
+	* avrdude.conf.in: Fix part id of ATtiny9.
+
 2011-05-28  Thomas Fischl <tfischl@gmx.de>
 
 	Based on patch #7440 commited by Slawomir Fraś:
