@@ -1034,21 +1034,6 @@ int fileio(int op, char * filename, FILEFMT format,
   if (rc < 0)
     return -1;
 
-#if defined(WIN32NATIVE)
-  /* Open Raw Binary format in binary mode on Windows.*/
-  if(format == FMT_RBIN)
-  {
-      if(fio.op == FIO_READ)
-      {
-          fio.mode = "rb";
-      }
-      if(fio.op == FIO_WRITE)
-      {
-          fio.mode = "wb";
-      }
-  }
-#endif
-
   /* point at the requested memory buffer */
   buf = mem->buf;
   if (fio.op == FIO_READ)
@@ -1099,6 +1084,21 @@ int fileio(int op, char * filename, FILEFMT format,
               progname, fio.iodesc, fname, fmtstr(format));
     }
   }
+
+#if defined(WIN32NATIVE)
+  /* Open Raw Binary format in binary mode on Windows.*/
+  if(format == FMT_RBIN)
+  {
+      if(fio.op == FIO_READ)
+      {
+          fio.mode = "rb";
+      }
+      if(fio.op == FIO_WRITE)
+      {
+          fio.mode = "wb";
+      }
+  }
+#endif
 
   if (format != FMT_IMM) {
     if (!using_stdio) {

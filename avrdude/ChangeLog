@@ -1,3 +1,11 @@
+2011-08-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Contributed by tixiv@gmx.net:
+	bug #33345: File auto detection as binary doesn't open
+	file in binary mode on Windows
+	* fileio.c: Move the decision about opening files in
+	binary mode until before the fopen() call.
+
 2011-06-16  Thomas Fischl <tfischl@gmx.de>
 
 	* avrdude.conf.in: Fix part id of ATtiny9.
