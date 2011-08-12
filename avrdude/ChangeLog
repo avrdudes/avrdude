@@ -1,5 +1,10 @@
 2011-08-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* usbasp.c: Add <stdint.h> so this actually compiles
+	again.
+
+2011-08-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Contributed by tixiv@gmx.net:
 	bug #33345: File auto detection as binary doesn't open
 	file in binary mode on Windows
