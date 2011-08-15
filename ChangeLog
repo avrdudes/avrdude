@@ -1,3 +1,11 @@
+2011-08-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Nic Jones:
+	bug #32539: [Documentation][Patch] Man page is misleading
+	re: Dragon & PDI
+	* doc/avrdude.texi: Update information about PDI connections
+	on AVR Dragon
+
 2011-08-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* usbasp.c: Add <stdint.h> so this actually compiles
