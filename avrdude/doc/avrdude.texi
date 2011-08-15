@@ -193,11 +193,11 @@ See below for the limitations of debugWire.
 For ATxmega devices, the JTAG ICE mkII is supported in PDI mode, provided it
 has a revision 1 hardware and firmware version of at least 5.37 (decimal).
 
-The AVR Dragon is supported in all modes (ISP, JTAG, HVSP, PP, debugWire).
+The AVR Dragon is supported in all modes (ISP, JTAG, PDI, HVSP, PP, debugWire).
 When used in JTAG and debugWire mode, the AVR Dragon behaves similar to a
 JTAG ICE mkII, so all device-specific comments for that device
 will apply as well.
-When used in ISP mode, the AVR Dragon behaves similar to an
+When used in ISP and PDI mode, the AVR Dragon behaves similar to an
 AVRISP mkII (or JTAG ICE mkII in ISP mode), so all device-specific
 comments will apply there.
 In particular, the Dragon starts out with a rather fast ISP clock
@@ -2358,7 +2358,7 @@ or AVR Dragon in ISP mode, when they detect that ISP mode cannot be
 entered.
 
 @item
-Problem: I want to use my JTAG ICE mkII or AVR Dragon to program an
+Problem: I want to use my JTAG ICE mkII to program an
 Xmega device through PDI.  The documentation tells me to use the
 @emph{XMEGA PDI adapter for JTAGICE mkII} that is supposed to ship
 with the kit, yet I don't have it.
@@ -2380,6 +2380,22 @@ Solution: Use the following pin mapping:
 @item 10 (GND)  @tab         @tab Brown  @tab
 @end multitable
 
+@item
+Problem: I want to use my AVR Dragon to program an
+Xmega device through PDI.  
+
+Solution: Use the 6 pin ISP header on the Dragon and the following pin mapping:
+
+@multitable @columnfractions .2 .2
+@item @strong{Dragon} @tab @strong{Target}
+@item @strong{ISP Header} @tab @strong{pins}
+@item 1 (MISO)  @tab PDI_DATA
+@item 2 (VCC)   @tab VCC
+@item 3 (SCK)   @tab 
+@item 4 (MOSI)  @tab 
+@item 5 (RESET) @tab PDI_CLK / RST
+@item 6 (GND)   @tab GND
+@end multitable
 
 @item
 Problem: I want to use my AVRISP mkII to program an
