@@ -1,5 +1,15 @@
 2011-08-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #29636: AVRDude issues invalid CMD_CHECK_TARGET_CONNECTION
+	on the AVRISP-MKII
+	* stk500v2.c (stk500v2_program_enable): Rewrite the logic to
+	explain ISP activation failures.
+	* stk500v2_private.h: Fix the various STATUS_* constants;
+	AVR069 and AVR079 disagreed in their values, even though they
+	are apparently implementing the same logic behind.
+
+2011-08-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #29650: Programming timeouts in ATmega128RFA1 are too slow
 	* avrdude.conf.in (ATmega128RFA1): Bump write delay values for flash and
 	EEPROM to 50 ms.

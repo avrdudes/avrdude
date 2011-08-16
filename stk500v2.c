@@ -973,15 +973,38 @@ static struct
   { STATUS_CONN_FAIL_SCK, "SCK fail" },
   { STATUS_TGT_NOT_DETECTED, "Target not detected" },
   { STATUS_TGT_REVERSE_INSERTED, "Target reverse inserted" },
-  { STATUS_CONN_FAIL_MOSI | STATUS_CONN_FAIL_RST,
-    "MOSI and RST fail" },
-  { STATUS_CONN_FAIL_MOSI | STATUS_CONN_FAIL_RST | STATUS_CONN_FAIL_SCK,
-    "MOSI, RST, and SCK fail" },
-  { STATUS_CONN_FAIL_RST | STATUS_CONN_FAIL_SCK,
-    "RST and SCK fail" },
-  { STATUS_CONN_FAIL_MOSI | STATUS_CONN_FAIL_SCK,
-    "MOSI and SCK fail" },
 };
+
+/*
+ * Max length of returned message is the sum of all the description
+ * strings in the table above, plus 2 characters for separation.
+ * Currently, this is 76 chars.
+ */
+static void
+stk500v2_translate_conn_status(unsigned char status, char *msg)
+{
+    size_t i;
+    int need_comma;
+
+    *msg = 0;
+    need_comma = 0;
+
+    for (i = 0;
+         i < sizeof connection_status / sizeof connection_status[0];
+         i++)
+    {
+        if ((status & connection_status[i].state) != 0)
+        {
+            if (need_comma)
+                strcat(msg, ", ");
+            strcat(msg, connection_status[i].description);
+            need_comma = 1;
+        }
+    }
+    if (*msg == 0)
+        sprintf(msg, "Unknown status 0x%02x", status);
+}
+
 
 /*
  * issue the 'program enable' command to the AVR device
@@ -989,8 +1012,7 @@ static struct
 static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
 {
   unsigned char buf[16];
-  size_t i;
-  const char *msg;
+  char msg[100];             /* see remarks above about size needed */
   int rv;
 
   PDATA(pgm)->lastpart = p;
@@ -1006,31 +1028,6 @@ static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
       /* Activate AVR-style (low active) RESET */
       stk500v2_setparm_real(pgm, PARAM_RESET_POLARITY, 0x01);
 
-  if (PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
-    buf[0] = CMD_CHECK_TARGET_CONNECTION;
-    if (stk500v2_command(pgm, buf, 1, sizeof(buf)) < 0) {
-      fprintf(stderr, "%s: stk500v2_program_enable(): cannot get connection status\n",
-            progname);
-      return -1;
-    }
-    if (buf[2] != STATUS_ISP_READY) {
-      msg = "Unknown";
-
-      for (i = 0;
-           i < sizeof connection_status / sizeof connection_status[0];
-           i++)
-        if (connection_status[i].state == (unsigned)buf[2]) {
-          msg = connection_status[i].description;
-          break;
-        }
-
-      fprintf(stderr, "%s: stk500v2_program_enable():"
-              " bad STK600 connection status: %s (0x%02x)\n",
-            progname, msg, buf[2]);
-      return -1;
-    }
-  }
-
   buf[0] = CMD_ENTER_PROGMODE_ISP;
   buf[1] = p->timeout;
   buf[2] = p->stabdelay;
@@ -1045,26 +1042,26 @@ static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
   rv = stk500v2_command(pgm, buf, 12, sizeof(buf));
 
   if (rv < 0) {
-    buf[0] = CMD_CHECK_TARGET_CONNECTION;
-    if (stk500v2_command(pgm, buf, 1, sizeof(buf)) < 0) {
-      fprintf(stderr, "%s: stk500v2_program_enable(): cannot get connection status\n",
-            progname);
-      return -1;
+    switch (PDATA(pgm)->pgmtype)
+    {
+    case PGMTYPE_STK600:
+    case PGMTYPE_AVRISP_MKII:
+        if (stk500v2_getparm(pgm, PARAM_STATUS_TGT_CONN, &buf[0]) != 0) {
+            fprintf(stderr,
+                    "%s: stk500v2_program_enable(): cannot get connection status\n",
+                    progname);
+        } else {
+            stk500v2_translate_conn_status(buf[0], msg);
+            fprintf(stderr, "%s: stk500v2_program_enable():"
+                    " bad AVRISPmkII connection status: %s\n",
+                    progname, msg);
+        }
+        break;
+
+    default:
+        /* cannot report anything for other pgmtypes */
+        break;
     }
-
-    msg = "Unknown";
-
-    for (i = 0;
-	 i < sizeof connection_status / sizeof connection_status[0];
-	 i++)
-      if (connection_status[i].state == (unsigned)buf[2]) {
-	msg = connection_status[i].description;
-	break;
-      }
-
-    fprintf(stderr, "%s: stk500v2_program_enable():"
-	    " bad STK600 connection status: %s (0x%02x)\n",
-            progname, msg, buf[2]);
   }
 
   return rv;
