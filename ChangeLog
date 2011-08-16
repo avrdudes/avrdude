@@ -1,5 +1,12 @@
 2011-08-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Darcy Houlahan:
+	bug #29694: error in avrdude.conf for attiny84 eeprom
+	* avrdude.conf.in (ATtiny84, ATtiny85): fix A7 bit in EEPROM write
+	command.
+
+2011-08-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Durant Gilles:
 	* avrdude.conf.in (ATtiny4313): Fix flash addressing bits for manual ISP
 	algorithm.
