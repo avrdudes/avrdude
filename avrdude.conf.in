@@ -11949,8 +11949,8 @@ part
         paged           = no; /* leave this "no" */
         page_size       = 8;  /* for parallel programming */
         size            = 4096;
-        min_write_delay = 9000;
-        max_write_delay = 9000;
+        min_write_delay = 50000;
+        max_write_delay = 50000;
         readback_p1     = 0x00;
         readback_p2     = 0x00;
         read            = "  1   0   1   0      0   0   0   0",
@@ -11984,8 +11984,8 @@ part
         size            = 131072;
         page_size       = 256;
         num_pages       = 512;
-        min_write_delay = 4500;
-        max_write_delay = 4500;
+        min_write_delay = 50000;
+        max_write_delay = 50000;
         readback_p1     = 0x00;
         readback_p2     = 0x00;
         read_lo         = "  0   0   1   0      0   0   0   0",

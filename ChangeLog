@@ -1,5 +1,11 @@
 2011-08-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #29650: Programming timeouts in ATmega128RFA1 are too slow
+	* avrdude.conf.in (ATmega128RFA1): Bump write delay values for flash and
+	EEPROM to 50 ms.
+
+2011-08-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* avrdude.conf.in (ATmega8515, ATmega8535, ATmega48, ATmega88, ATmega88P,
 	ATtiny88, ATmega168, ATmega168P, ATmega328P): Bump delay value for STK500v2
 	EEPROM write operation to 5, according to the respective XML files.
