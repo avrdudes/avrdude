@@ -1270,7 +1270,8 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
       return -1;
   }
 
-  if (jtagmkII_setparm(pgm, PAR_DAISY_CHAIN_INFO, PDATA(pgm)->jtagchain) < 0) {
+  if ((pgm->flag & PGM_FL_IS_JTAG) &&
+      jtagmkII_setparm(pgm, PAR_DAISY_CHAIN_INFO, PDATA(pgm)->jtagchain) < 0) {
     fprintf(stderr, "%s: jtagmkII_initialize(): Failed to setup JTAG chain\n",
             progname);
     return -1;

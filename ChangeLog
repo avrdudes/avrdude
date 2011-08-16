@@ -1,5 +1,12 @@
 2011-08-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Timon Van Overveldt:
+	bug #30268: Debugwire broken in avrdude-5.10
+	* jtagmkII.c (jtagmkII_initialize): only try setting up a JTAG chain when
+	the programmer is using JTAG.
+
+2011-08-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #29636: AVRDude issues invalid CMD_CHECK_TARGET_CONNECTION
 	on the AVRISP-MKII
 	* stk500v2.c (stk500v2_program_enable): Rewrite the logic to
