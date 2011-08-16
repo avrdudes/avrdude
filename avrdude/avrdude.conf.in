@@ -10825,7 +10825,7 @@ part
                            "a7 a6 a5 a4  a3 a2 a1 a0   o o o o  o o o o";
 
          write           = "1  1  0  0   0  0  0  0    0 0 0 x  x x x a8",
-                           "a8 a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+                           "a7 a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
 
 	loadpage_lo	= "  1   1   0   0      0   0   0   1",
 			  "  0   0   0   0      0   0   0   0",
@@ -12510,7 +12510,7 @@ part
                            "a7 a6 a5 a4  a3 a2 a1 a0   o o o o  o o o o";
 
          write           = "1  1  0  0   0  0  0  0    0 0 0 x  x x x a8",
-                           "a8 a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+                           "a7 a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
 
 	loadpage_lo	= "  1   1   0   0      0   0   0   1",
 			  "  0   0   0   0      0   0   0   0",
