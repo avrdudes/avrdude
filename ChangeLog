@@ -1,5 +1,11 @@
 2011-08-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Durant Gilles:
+	* avrdude.conf.in (ATtiny4313): Fix flash addressing bits for manual ISP
+	algorithm.
+
+2011-08-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Philip:
 	bug #31386: A "BUILD.svn" or similar "how to get started" doc would be helpful
 	* BUILD-FROM-SVN: New file.
