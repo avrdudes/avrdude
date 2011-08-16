@@ -137,11 +137,11 @@
 #define STATUS_CMD_ILLEGAL_PARAMETER        0xCA
 
 // Status
+#define STATUS_ISP_READY                    0x00
 #define STATUS_CONN_FAIL_MOSI               0x01
 #define STATUS_CONN_FAIL_RST                0x02
 #define STATUS_CONN_FAIL_SCK                0x04
-#define STATUS_TGT_NOT_DETECTED             0x00
-#define STATUS_ISP_READY                    0x10
+#define STATUS_TGT_NOT_DETECTED             0x10
 #define STATUS_TGT_REVERSE_INSERTED         0x20
 
 // hw_status
