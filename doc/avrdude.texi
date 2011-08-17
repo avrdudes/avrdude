@@ -30,7 +30,7 @@ For avrdude version @value{VERSION}, @value{UPDATED}.
 
 Copyright @copyright{} 2003, 2005 Brian Dean
 
-Copyright @copyright{} 2006 - 2010 J@"org Wunsch
+Copyright @copyright{} 2006 - 2011 J@"org Wunsch
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -706,6 +706,11 @@ For the USB programmer "AVR-Doper" running in HID mode, the port must
 be specified as @var{avrdoper}. Libusb support is required on Unix
 but not on Windows. For more information about AVR-Doper see
 @url{http://www.obdev.at/avrusb/avrdoper.html}.
+
+For the USBtinyISP, which is a simplicistic device not implementing
+serial numbers, multiple devices can be distinguished by their
+location in the USB hierarchy.
+@xref{Troubleshooting} for examples.
 
 For programmers that attach to a serial port using some kind of
 higher level protocol (as opposed to bit-bang style programmers),
@@ -2324,9 +2329,26 @@ The pin mapping for the JTAG-to-ISP adapter is:
 Problem: Multiple USBasp or USBtinyISP programmers connected simultaneously are not
 found.
 
-Solution: none at this time.  The simplicity of these programmers
-doesn't offer a method to distinguish multiple programmers that are
-connected simultaneously, so effectively only one of them is supported.
+Solution: The USBtinyISP code supports distinguishing multiple
+programmers based on their bus:device connection tuple that describes
+their place in the USB hierarchy on a specific host.  This tuple can
+be added to the @var{-P usb} option, similar to adding a serial number
+on other USB-based programmers.
+
+The actual naming convention for the bus and device names is
+operating-system dependant; AVRDUDE will print out what it found
+on the bus when running it with (at least) one @var{-v} option.
+By specifying a string that cannot match any existing device
+(for example, @var{-P usb:xxx}), the scan will list all possible
+candidate devices found on the bus.
+
+Examples:
+@example
+avrdude -c usbtiny -p atmega8 -P usb:003:025 (Linux)
+avrdude -c usbtiny -p atmega8 -P usb:/dev/usb:/dev/ugen1.3 (FreeBSD 8+)
+avrdude -c usbtiny -p atmega8 \
+  -P usb:bus-0/\\.\libusb0-0001--0x1781-0x0c9f (Windows)
+@end example
 
 @item
 Problem: I cannot do @dots{} when the target is in debugWire mode.

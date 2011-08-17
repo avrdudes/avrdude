@@ -1,6 +1,6 @@
 .\"
 .\" avrdude - A Downloader/Uploader for AVR device programmers
-.\" Copyright (C) 2001, 2002, 2003, 2005 - 2010  Joerg Wunsch
+.\" Copyright (C) 2001, 2002, 2003, 2005 - 2011  Joerg Wunsch
 .\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE January 14, 2010
+.Dd DATE August 17, 2011
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -510,6 +510,12 @@ be specified as
 .Ar avrdoper.
 Libusb support is required on Unix but not on Windows. For more
 information about AVR-Doper see http://www.obdev.at/avrusb/avrdoper.html.
+.Pp
+For the USBtinyISP, which is a simplicistic device not implementing
+serial numbers, multiple devices can be distinguished by their
+location in the USB hierarchy.  See the the respective
+.Em Troubleshooting
+entry in the detailed documentation for examples.
 .Pp
 For programmers that attach to a serial port using some kind of
 higher level protocol (as opposed to bit-bang style programmers),
