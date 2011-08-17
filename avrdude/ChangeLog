@@ -1,3 +1,12 @@
+2011-08-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Grygoriy Fuchedzhy:
+	bug #31779: Add support for addressing usbtinyisp with -P option
+	* usbtiny.c (usbtiny_open): Add logic to distinguish multiple USBtinyISP
+	programmers by their bus:device tuple.
+	* doc/avrdude.texi: Document the new functionality.
+	* avrdude.1: (Ditto.)
+
 2011-08-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Timon Van Overveldt:
