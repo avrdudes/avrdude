@@ -2347,7 +2347,7 @@ Examples:
 avrdude -c usbtiny -p atmega8 -P usb:003:025 (Linux)
 avrdude -c usbtiny -p atmega8 -P usb:/dev/usb:/dev/ugen1.3 (FreeBSD 8+)
 avrdude -c usbtiny -p atmega8 \
-  -P usb:bus-0/\\.\libusb0-0001--0x1781-0x0c9f (Windows)
+  -P usb:bus-0:\\.\libusb0-0001--0x1781-0x0c9f (Windows)
 @end example
 
 @item
