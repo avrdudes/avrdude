@@ -1,5 +1,12 @@
 2011-08-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #29585: Fix license
+	* doc/avrdude.texi: Add FDL as an option to the licensing
+	statement, as the savannah administration would like it
+	that way.
+
+2011-08-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Darell Tan:
 	patch #7244: TPI bitbang implementation
 	* bitbang.c: Add TPI bitbang stuff.
