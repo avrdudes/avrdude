@@ -52,6 +52,9 @@ Permission is granted to copy and distribute translations of this manual
 into another language, under the above conditions for modified versions,
 except that this permission notice may be stated in a translation approved
 by the Free Software Foundation.
+
+Alternatively, this documentation may be copied and distributed under
+the terms of the GNU Free Documentation License (FDL), version 1.3.
 @end ifinfo
 
 @titlepage
