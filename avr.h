@@ -37,6 +37,7 @@ extern FP_UpdateProgress update_progress;
 extern "C" {
 #endif
 
+int avr_tpi_poll_nvmbsy(PROGRAMMER *pgm);
 int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 			  unsigned long addr, unsigned char * value);
 
