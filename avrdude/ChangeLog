@@ -1,3 +1,18 @@
+2011-08-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Darell Tan:
+	patch #7244: TPI bitbang implementation
+	* bitbang.c: Add TPI bitbang stuff.
+	* bitbang.h: (Ditto.)
+	* avr.c: (Ditto.)
+	* avr.h: (Ditto.)
+	* pgm.c: (Ditto.)
+	* pgm.h: (Ditto.)
+	* serbb_posix.c: Wire bitbang_cmd_tpi into the struct pgm.
+	* serbb_win32.c: (Ditto.)
+	* par.c: (Ditto.)
+	* doc/avrdude.texi: Document the TPI bitbang support.
+
 2011-08-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Grygoriy Fuchedzhy:

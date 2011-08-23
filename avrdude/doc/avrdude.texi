@@ -2437,6 +2437,44 @@ Solution: Use the following pin mapping:
 @end multitable
 
 @item
+Problem: I want to program an ATtiny4/5/9/10 device using a serial/parallel 
+bitbang programmer.  How to connect the pins?
+
+Solution: Since TPI has only 1 pin for bi-directional data transfer, both 
+@var{MISO} and @var{MOSI} pins should be connected to the @var{TPIDATA} pin 
+on the ATtiny device.
+However, a 1K resistor should be placed between the @var{MOSI} and @var{TPIDATA}.
+The @var{MISO} pin connects to @var{TPIDATA} directly.
+The @var{SCK} pin is connected to @var{TPICLK}.
+
+In addition, the @var{Vcc}, @var{/RESET} and @var{GND} pins should 
+be connected to their respective ports on the ATtiny device.
+
+@item
+Problem: How can I use a FTDI FT232R USB-to-Serial device for bitbang programming?
+
+Solution: When connecting the FT232 directly to the pins of the target Atmel device, 
+the polarity of the pins defined in the @code{programmer} definition should be 
+inverted by prefixing a tilde. For example, the @var{dasa} programmer would 
+look like this when connected via a FT232R device (notice the tildes in 
+front of pins 7, 4, 3 and 8):
+
+@example
+programmer
+  id    = "dasa_ftdi";
+  desc  = "serial port banging, reset=rts sck=dtr mosi=txd miso=cts";
+  type  = serbb;
+  reset = ~7;
+  sck   = ~4;
+  mosi  = ~3;
+  miso  = ~8;
+;
+@end example
+
+Note that this uses the FT232 device as a normal serial port, not using the 
+FTDI drivers in the special bitbang mode.
+
+@item
 Problem: My ATtiny4/5/9/10 reads out fine, but any attempt to program
 it (through TPI) fails.  Instead, the memory retains the old contents.
 

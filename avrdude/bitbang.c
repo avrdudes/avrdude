@@ -2,6 +2,7 @@
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bsdhome.com>
  * Copyright (C) 2005 Michael Holzt <kju-avr@fqdn.org>
+ * Copyright 2011 Darell Tan
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +40,7 @@
 #include "pgm.h"
 #include "par.h"
 #include "serbb.h"
+#include "tpi.h"
 
 static int delay_decrement;
 
@@ -212,6 +214,93 @@ static unsigned char bitbang_txrx(PROGRAMMER * pgm, unsigned char byte)
   return rbyte;
 }
 
+static int bitbang_tpi_clk(PROGRAMMER * pgm) 
+{
+  unsigned char r = 0;
+  pgm->setpin(pgm, pgm->pinno[PIN_AVR_SCK], 1);
+
+  r = pgm->getpin(pgm, pgm->pinno[PIN_AVR_MISO]);
+
+  pgm->setpin(pgm, pgm->pinno[PIN_AVR_SCK], 0);
+
+  return r;
+}
+
+void bitbang_tpi_tx(PROGRAMMER * pgm, unsigned char byte) 
+{
+  int i;
+  unsigned char b, parity;
+
+  /* start bit */
+  pgm->setpin(pgm, pgm->pinno[PIN_AVR_MOSI], 0);
+  bitbang_tpi_clk(pgm);
+
+  parity = 0;
+  for (i = 0; i <= 7; i++) {
+    b = (byte >> i) & 0x01;
+    parity ^= b;
+
+    /* set the data input line as desired */
+    pgm->setpin(pgm, pgm->pinno[PIN_AVR_MOSI], b);
+    bitbang_tpi_clk(pgm);
+  }
+  
+  /* parity bit */
+  pgm->setpin(pgm, pgm->pinno[PIN_AVR_MOSI], parity);
+  bitbang_tpi_clk(pgm);
+
+  /* 2 stop bits */
+  pgm->setpin(pgm, pgm->pinno[PIN_AVR_MOSI], 1);
+  bitbang_tpi_clk(pgm);
+  bitbang_tpi_clk(pgm);
+}
+
+int bitbang_tpi_rx(PROGRAMMER * pgm) 
+{
+  int i;
+  unsigned char b, rbyte, parity;
+
+  /* make sure pin is on for "pullup" */
+  pgm->setpin(pgm, pgm->pinno[PIN_AVR_MOSI], 1);
+
+  /* wait for start bit (up to 10 bits) */
+  b = 1;
+  for (i = 0; i < 10; i++) {
+    b = bitbang_tpi_clk(pgm);
+    if (b == 0)
+      break;
+  }
+  if (b != 0) {
+    fprintf(stderr, "bitbang_tpi_rx: start bit not received correctly\n");
+    return -1;
+  }
+
+  rbyte = 0;
+  parity = 0;
+  for (i=0; i<=7; i++) {
+    b = bitbang_tpi_clk(pgm);
+    parity ^= b;
+
+    rbyte |= b << i;
+  }
+
+  /* parity bit */
+  if (bitbang_tpi_clk(pgm) != parity) {
+    fprintf(stderr, "bitbang_tpi_rx: parity bit is wrong\n");
+    return -1;
+  }
+
+  /* 2 stop bits */
+  b = 1;
+  b &= bitbang_tpi_clk(pgm);
+  b &= bitbang_tpi_clk(pgm);
+  if (b != 1) {
+    fprintf(stderr, "bitbang_tpi_rx: stop bits not received correctly\n");
+    return -1;
+  }
+  
+  return rbyte;
+}
 
 int bitbang_rdy_led(PROGRAMMER * pgm, int value)
 {
@@ -267,6 +356,44 @@ int bitbang_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
   return 0;
 }
 
+int bitbang_cmd_tpi(PROGRAMMER * pgm, unsigned char cmd[], 
+                       int cmd_len, unsigned char res[], int res_len) 
+{
+  int i, r;
+
+  pgm->pgm_led(pgm, ON);
+
+  for (i=0; i<cmd_len; i++) {
+    bitbang_tpi_tx(pgm, cmd[i]);
+  }
+
+  r = 0;
+  for (i=0; i<res_len; i++) {
+    r = bitbang_tpi_rx(pgm);
+    if (r == -1)
+      break;
+    res[i] = r;
+  }
+
+  if(verbose >= 2)
+  {
+    fprintf(stderr, "bitbang_cmd_tpi(): [ ");
+    for(i = 0; i < cmd_len; i++)
+      fprintf(stderr, "%02X ", cmd[i]);
+    fprintf(stderr, "] [ ");
+    for(i = 0; i < res_len; i++)
+    {
+      fprintf(stderr, "%02X ", res[i]);
+    }
+    fprintf(stderr, "]\n");
+  }
+
+  pgm->pgm_led(pgm, OFF);
+  if (r == -1)
+    return -1;
+  return 0;
+}
+
 /*
  * transmit bytes via SPI and return the results; 'cmd' and
  * 'res' must point to data buffers
@@ -308,6 +435,39 @@ int bitbang_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {
   unsigned char cmd[4];
   unsigned char res[4];
+  AVRMEM *mem;
+
+  if (p->flags & AVRPART_HAS_TPI) {
+    pgm->pgm_led(pgm, ON);
+
+    while (avr_tpi_poll_nvmbsy(pgm));
+
+    /* NVMCMD <- CHIP_ERASE */
+    bitbang_tpi_tx(pgm, TPI_CMD_SOUT | TPI_SIO_ADDR(TPI_IOREG_NVMCMD));
+    bitbang_tpi_tx(pgm, TPI_NVMCMD_CHIP_ERASE); /* CHIP_ERASE */
+
+    /* Set Pointer Register */
+    mem = avr_locate_mem(p, "flash");
+    if (mem == NULL) {
+      fprintf(stderr, "No flash memory to erase for part %s\n",
+          p->desc);
+      return -1;
+    }
+    bitbang_tpi_tx(pgm, TPI_CMD_SSTPR | 0);
+    bitbang_tpi_tx(pgm, (mem->offset & 0xFF) | 1);  /* high byte */
+    bitbang_tpi_tx(pgm, TPI_CMD_SSTPR | 1);
+    bitbang_tpi_tx(pgm, (mem->offset >> 8) & 0xFF);
+
+    /* write dummy value to start erase */
+    bitbang_tpi_tx(pgm, TPI_CMD_SST);
+    bitbang_tpi_tx(pgm, 0xFF);
+
+    while (avr_tpi_poll_nvmbsy(pgm));
+
+    pgm->pgm_led(pgm, OFF);
+
+    return 0;
+  }
 
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
     fprintf(stderr, "chip erase instruction not defined for part \"%s\"\n",
@@ -336,6 +496,19 @@ int bitbang_program_enable(PROGRAMMER * pgm, AVRPART * p)
 {
   unsigned char cmd[4];
   unsigned char res[4];
+  int i;
+
+  if (p->flags & AVRPART_HAS_TPI) {
+    /* enable NVM programming */
+    bitbang_tpi_tx(pgm, TPI_CMD_SKEY);
+    for (i = sizeof(tpi_skey) - 1; i >= 0; i--)
+      bitbang_tpi_tx(pgm, tpi_skey[i]);
+
+    /* check NVMEN bit */
+    bitbang_tpi_tx(pgm, TPI_CMD_SLDCS | TPI_REG_TPISR);
+    i = bitbang_tpi_rx(pgm);
+    return (i != -1 && (i & TPI_REG_TPISR_NVMEN)) ? 0 : -2;
+  }
 
   if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
     fprintf(stderr, "program enable instruction not defined for part \"%s\"\n",
@@ -360,17 +533,68 @@ int bitbang_initialize(PROGRAMMER * pgm, AVRPART * p)
 {
   int rc;
   int tries;
+  int i;
 
   bitbang_calibrate_delay();
 
   pgm->powerup(pgm);
   usleep(20000);
 
+  /* TPIDATA is a single line, so MISO & MOSI should be connected */
+  if (p->flags & AVRPART_HAS_TPI) {
+    /* make sure cmd_tpi() is defined */
+    if (pgm->cmd_tpi == NULL) {
+      fprintf(stderr, "%s: Error: %s programmer does not support TPI\n",
+          progname, pgm->type);
+      return -1;
+    }
+
+	/* bring RESET high first */
+    pgm->setpin(pgm, pgm->pinno[PIN_AVR_RESET], 1);
+	usleep(1000);
+
+    if (verbose >= 2)
+      fprintf(stderr, "doing MOSI-MISO link check\n");
+
+    pgm->setpin(pgm, pgm->pinno[PIN_AVR_MOSI], 0);
+    if (pgm->getpin(pgm, pgm->pinno[PIN_AVR_MISO]) != 0) {
+      fprintf(stderr, "MOSI->MISO 0 failed\n");
+      return -1;
+    }
+    pgm->setpin(pgm, pgm->pinno[PIN_AVR_MOSI], 1);
+    if (pgm->getpin(pgm, pgm->pinno[PIN_AVR_MISO]) != 1) {
+      fprintf(stderr, "MOSI->MISO 1 failed\n");
+      return -1;
+    }
+
+    if (verbose >= 2)
+      fprintf(stderr, "MOSI-MISO link present\n");
+  }
+
   pgm->setpin(pgm, pgm->pinno[PIN_AVR_SCK], 0);
   pgm->setpin(pgm, pgm->pinno[PIN_AVR_RESET], 0);
   usleep(20000);
 
-  pgm->highpulsepin(pgm, pgm->pinno[PIN_AVR_RESET]);
+  if (p->flags & AVRPART_HAS_TPI) {
+    /* keep TPIDATA high for 16 clock cycles */
+    pgm->setpin(pgm, pgm->pinno[PIN_AVR_MOSI], 1);
+    for (i = 0; i < 16; i++)
+      pgm->highpulsepin(pgm, pgm->pinno[PIN_AVR_SCK]);
+
+    /* remove extra guard timing bits */
+    bitbang_tpi_tx(pgm, TPI_CMD_SSTCS | TPI_REG_TPIPCR);
+    bitbang_tpi_tx(pgm, 0x7);
+
+    /* read TPI ident reg */
+    bitbang_tpi_tx(pgm, TPI_CMD_SLDCS | TPI_REG_TPIIR);
+    rc = bitbang_tpi_rx(pgm);
+    if (rc != 0x80) {
+      fprintf(stderr, "TPIIR not correct\n");
+      return -1;
+    }
+  } else {
+    pgm->highpulsepin(pgm, pgm->pinno[PIN_AVR_RESET]);
+  }
 
   usleep(20000); /* 20 ms XXX should be a per-chip parameter */
 

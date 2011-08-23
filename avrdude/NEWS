@@ -13,6 +13,8 @@ Current:
       - ATtiny4313
 
   * New programmers supported:
+      - TPI programming through bitbang programmers (both, serial
+        and parallel ones)
 
   * Bugfixes
 

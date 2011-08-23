@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright 2011 Darell Tan
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,10 +37,53 @@
 #include "ppi.h"
 #include "safemode.h"
 #include "update.h"
+#include "tpi.h"
 
 FP_UpdateProgress update_progress;
 
 #define DEBUG 0
+
+/* TPI: returns 1 if NVM controller busy, 0 if free */
+int avr_tpi_poll_nvmbsy(PROGRAMMER *pgm)
+{
+  unsigned char cmd;
+  unsigned char res;
+  int rc = 0;
+
+  cmd = TPI_CMD_SIN | TPI_SIO_ADDR(TPI_IOREG_NVMCSR);
+  rc = pgm->cmd_tpi(pgm, &cmd, 1, &res, 1);
+  return (rc & TPI_IOREG_NVMCSR_NVMBSY);
+}
+
+/* TPI: setup NVMCMD register and pointer register (PR) for read/write/erase */
+static int avr_tpi_setup_rw(PROGRAMMER * pgm, AVRMEM * mem,
+			    unsigned long addr, unsigned char nvmcmd)
+{
+  unsigned char cmd[4];
+  int rc;
+
+  /* set NVMCMD register */
+  cmd[0] = TPI_CMD_SOUT | TPI_SIO_ADDR(TPI_IOREG_NVMCMD);
+  cmd[1] = nvmcmd;
+  rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+  if (rc == -1)
+    return -1;
+
+  /* set Pointer Register (PR) */
+  cmd[0] = TPI_CMD_SSTPR | 0;
+  cmd[1] = (mem->offset + addr) & 0xFF;
+  rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+  if (rc == -1)
+    return -1;
+
+  cmd[0] = TPI_CMD_SSTPR | 1;
+  cmd[1] = ((mem->offset + addr) >> 8) & 0xFF;
+  rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+  if (rc == -1)
+    return -1;
+
+  return 0;
+}
 
 int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem, 
                           unsigned long addr, unsigned char * value)
@@ -47,6 +91,7 @@ int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   unsigned char cmd[4];
   unsigned char res[4];
   unsigned char data;
+  int r;
   OPCODE * readop, * lext;
 
   if (pgm->cmd == NULL) {
@@ -59,6 +104,27 @@ int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
   pgm->pgm_led(pgm, ON);
   pgm->err_led(pgm, OFF);
+
+  if (p->flags & AVRPART_HAS_TPI) {
+    if (pgm->cmd_tpi == NULL) {
+      fprintf(stderr, "%s: Error: %s programmer does not support TPI\n",
+          progname, pgm->type);
+      return -1;
+    }
+
+    while (avr_tpi_poll_nvmbsy(pgm));
+
+    /* setup for read */
+    avr_tpi_setup_rw(pgm, mem, addr, TPI_NVMCMD_NO_OPERATION);
+
+    /* load byte */
+    cmd[0] = TPI_CMD_SLD;
+    r = pgm->cmd_tpi(pgm, cmd, 1, value, 1);
+    if (r == -1) 
+      return -1;
+
+    return 0;
+  }
 
   /*
    * figure out what opcode to use
@@ -151,6 +217,7 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
   unsigned char    rbyte;
   unsigned long    i;
   unsigned char  * buf;
+  unsigned char    cmd[4];
   AVRMEM * mem;
   int rc;
 
@@ -170,6 +237,33 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
    * start with all 0xff
    */
   memset(buf, 0xff, size);
+
+  /* supports "paged load" thru post-increment */
+  if ((p->flags & AVRPART_HAS_TPI) && mem->page_size != 0) {
+    if (pgm->cmd_tpi == NULL) {
+      fprintf(stderr, "%s: Error: %s programmer does not support TPI\n",
+          progname, pgm->type);
+      return -1;
+    }
+
+    while (avr_tpi_poll_nvmbsy(pgm));
+
+    /* setup for read (NOOP) */
+    avr_tpi_setup_rw(pgm, mem, 0, TPI_NVMCMD_NO_OPERATION);
+
+    /* load bytes */
+    for (i = 0; i < size; i++) {
+      cmd[0] = TPI_CMD_SLD_PI;
+      rc = pgm->cmd_tpi(pgm, cmd, 1, &buf[i], 1);
+      if (rc == -1) {
+        fprintf(stderr, "avr_read(): error reading address 0x%04lx\n", i);
+        return -1;
+      }
+
+      report_progress(i, size, NULL);
+    }
+    return avr_mem_hiaddr(mem);
+  }
 
   if (pgm->paged_load != NULL && mem->page_size != 0) {
     /*
@@ -301,6 +395,52 @@ int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 	    "provide a cmd() method.\n",
 	    progname, pgm->type);
     return -1;
+  }
+
+  if (p->flags & AVRPART_HAS_TPI) {
+    if (pgm->cmd_tpi == NULL) {
+      fprintf(stderr, "%s: Error: %s programmer does not support TPI\n",
+          progname, pgm->type);
+      return -1;
+    }
+
+    if (strcmp(mem->desc, "flash") == 0) {
+      fprintf(stderr, "Writing a byte to flash is not supported for %s\n", p->desc);
+      return -1;
+    } else if ((mem->offset + addr) & 1) {
+      fprintf(stderr, "Writing a byte to an odd location is not supported for %s\n", p->desc);
+      return -1;
+    }
+
+    while (avr_tpi_poll_nvmbsy(pgm));
+
+    /* must erase fuse first */
+    if (strcmp(mem->desc, "fuse") == 0) {
+      /* setup for SECTION_ERASE (high byte) */
+      avr_tpi_setup_rw(pgm, mem, addr | 1, TPI_NVMCMD_SECTION_ERASE);
+
+      /* write dummy byte */
+      cmd[0] = TPI_CMD_SST;
+      cmd[1] = 0xFF;
+      rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+
+      while (avr_tpi_poll_nvmbsy(pgm));
+    }
+
+    /* setup for WORD_WRITE */
+    avr_tpi_setup_rw(pgm, mem, addr, TPI_NVMCMD_WORD_WRITE);
+
+    cmd[0] = TPI_CMD_SST_PI;
+    cmd[1] = data;
+    rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+    /* dummy high byte to start WORD_WRITE */
+    cmd[0] = TPI_CMD_SST_PI;
+    cmd[1] = data;
+    rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+
+    while (avr_tpi_poll_nvmbsy(pgm));
+
+    return 0;
   }
 
   if (!mem->paged) {
@@ -540,6 +680,7 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
   long             i;
   unsigned char    data;
   int              werror;
+  unsigned char    cmd[4];
   AVRMEM         * m;
 
   m = avr_locate_mem(p, memtype);
@@ -564,6 +705,40 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
             "%sOnly %d bytes will actually be written\n",
             progname, size, wsize,
             progbuf, wsize);
+  }
+
+
+  if ((p->flags & AVRPART_HAS_TPI) && m->page_size != 0) {
+    if (pgm->cmd_tpi == NULL) {
+      fprintf(stderr,
+          "%s: Error: %s programmer does not support TPI\n",
+          progname, pgm->type);
+      return -1;
+    }
+
+    while (avr_tpi_poll_nvmbsy(pgm));
+
+    /* setup for WORD_WRITE */
+    avr_tpi_setup_rw(pgm, m, 0, TPI_NVMCMD_WORD_WRITE);
+
+    /* make sure it's aligned to a word boundary */
+    if (wsize & 0x1) {
+      wsize++;
+    }
+
+    /* write words, low byte first */
+    for (i = 0; i < wsize; i++) {
+      cmd[0] = TPI_CMD_SST_PI;
+      cmd[1] = m->buf[i];
+      rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+
+      cmd[1] = m->buf[++i];
+      rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+
+      while (avr_tpi_poll_nvmbsy(pgm));
+      report_progress(i, wsize, NULL);
+    }
+    return i;
   }
 
   if (pgm->paged_write != NULL && m->page_size != 0) {
