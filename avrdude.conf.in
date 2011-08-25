@@ -32,6 +32,14 @@
 #       rdyled   = <num> ;                          # pin number
 #       pgmled   = <num> ;                          # pin number
 #       vfyled   = <num> ;                          # pin number
+#  			usbvid   = <hexnum>;												# USB VID (Vendor ID)
+#       usbpid   = <hexnum>;												#	USB PID (Product ID)
+#       usbdev   = <interface>;											# USB interface or other device info 
+#       usbvendor = <vendorname>;										#	USB Vendor Name
+#       usbproduct = <productname>;									# USB Product Name
+#       usbsn    = <serialno>;                      # USB Serial Number
+#
+#        To invert a bit, use = ~ <num>, the spaces are important.
 #     ;
 #
 #   part
@@ -318,6 +326,73 @@ programmer
   id    = "arduino";
   desc  = "Arduino";
   type  = arduino;
+;
+# this will interface with the chips on these programmers:
+#
+# http://real.kiev.ua/old/avreal/en/adapters
+# http://www.amontec.com/jtagkey.shtml, jtagkey-tiny.shtml
+# http://www.olimex.com/dev/arm-usb-ocd.html, arm-usb-tiny.html
+# http://www.ethernut.de/en/hardware/turtelizer/index.html
+# http://elk.informatik.fh-augsburg.de/hhweb/doc/openocd/usbjtag/usbjtag.html
+# http://dangerousprototypes.com/docs/FT2232_breakout_board
+# http://www.ftdichip.com/Products/Modules/DLPModules.htm,DLP-2232*,DLP-USB1232H
+# http://flashrom.org/FT2232SPI_Programmer
+# 
+# The drivers will look for a specific device and use the first one found.
+# If you have mulitple devices, then look for unique information (like SN)
+# And fill that in here.
+
+programmer
+  id	= "avrftdi";
+  desc	= "FT2232D based generic programmer";
+  type	= avrftdi;
+  usbvid     = 0x0403;
+  usbpid     = 0x6010;
+  usbvendor  = "";
+  usbproduct = "";
+  usbdev     = "A";
+  usbsn      = "";
+#ISP-signals - lower ACBUS-Nibble (default)
+  reset  = 4;
+  sck    = 1;
+  mosi   = 2;
+  miso   = 3;
+#LED SIGNALs - higher ACBUS-Nibble
+#  errled = 5;
+#  rdyled = 6;
+#  pgmled = 7;
+#  vfyled = 8;
+#Buffer Signal - ADBUS - Nibble
+#  buff   = 9;
+;
+# This is an implementation of the above with a buffer IC (74AC244) and
+# 4 LEDs directly attached, active low. The buff and reset pins are
+# understood (by avrdude) to be active low, so there's no
+# need to invert the bits.
+programmer
+  id	= "2232HIO";
+  desc	= "FT2232H based generic programmer";
+  type	= avrftdi;
+  usbvid     = 0x0403;
+# Note: This PID is reserved for generic H devices and 
+# should be programmed into the EEPROM
+#  usbpid     = 0x8A48;
+   usbpid    = 0x6010;
+  usbdev = "A";
+  usbvendor  = "";
+  usbproduct = "";
+  usbsn      = "";
+#ISP-signals 
+  reset  = 4;
+  sck    = 1;
+  mosi   = 2;
+  miso   = 3;
+  buff   = 5;
+#LED SIGNALs 
+  errled = ~ 12;
+  rdyled = ~ 15;
+  pgmled = ~ 14;
+  vfyled = ~ 13;
 ;
 
 programmer

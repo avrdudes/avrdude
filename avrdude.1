@@ -148,11 +148,16 @@ option might be required to achieve a stable ISP communication.
 For ATxmega devices, the AVR Dragon is supported in PDI mode, provided it
 has a firmware version of at least 6.11 (decimal).
 .Pp
-The USBasp ISP and USBtinyISP adapters are also supported, provided
+The avrftdi, USBasp ISP and USBtinyISP adapters are also supported, provided
 .Nm avrdude
 has been compiled with libusb support.
-They both feature simple firmware-only USB implementations, running on
-an ATmega8 (or ATmega88), or ATtiny2313, respectively.
+USBasp ISP and USBtinyISP both feature simple firmware-only USB implementations, 
+running on an ATmega8 (or ATmega88), or ATtiny2313, respectively. If libftdi has 
+has been compiled in 
+.Nm avrdude ,
+the avrftdi device adds support for many programmers using FTDI's 2232C/D/H 
+and 4232H parts running in MPSSE mode, which hard-codes (in the chip) 
+SCK to bit 1, MOSI to bit 2, and MISO to bit 3. Reset is usually bit 4.
 .Pp
 Input files can be provided, and output files can be written in
 different file formats, such as raw binary files containing the data
@@ -1041,3 +1046,9 @@ This also applies to the STK500 and STK600 in parallel programming mode.
 The USBasp and USBtinyISP drivers do not offer any option to distinguish multiple
 devices connected simultaneously, so effectively only a single device
 is supported.
+.Pp
+The avrftdi driver allows to select specific devices using any combination of vid,pid
+serial number (usbsn) vendor description (usbvendoror part description (usbproduct)
+as seen with lsusb or whatever tool used to view USB device information. Multiple 
+devices can be on the bus at the same time. For the H parts, which have multiple MPSSE
+interfaces, the interface can also be selected.  It defaults to interface 'A'.

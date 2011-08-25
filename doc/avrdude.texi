@@ -169,9 +169,14 @@ emulated on top of USB is likely to not work at all, or to work
 abysmally slow.
 
 The STK500, JTAG ICE, avr910, and avr109/butterfly use the serial port to communicate with the PC.
-The STK600, JTAG ICE mkII, AVRISP mkII, USBasp, and USBtinyISP
+The STK600, JTAG ICE mkII, AVRISP mkII, USBasp, avrftdi (and derivitives), and USBtinyISP
 programmers communicate through the USB, using @code{libusb} as a
 platform abstraction layer.
+The avrftdi adds support for the FT2232C/D, FT2232H, and FT4232H devices. These all use 
+the MPSSE mode, which has a specific pin mapping. Bit 1 (the lsb of the byte in the config
+file) is SCK. Bit 2 is MOSI, and Bit 3 is MISO. Bit 4 usually reset. The 2232C/D parts
+are only supported on interface A, but the H parts can be either A or B (specified by the
+usbdev config parameter).
 The STK500, STK600, JTAG ICE, and avr910 contain on-board logic to control the programming of the target
 device.
 The avr109 bootloader implements a protocol similar to avr910, but is

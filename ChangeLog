@@ -1,3 +1,22 @@
+2011-08-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Doug Springer, based on work by
+	Wolfgang Moser, Ville Voipio, Hannes Weisbach
+	patch #7486: Patch to add FT2232C/D, FT2232H, FT4232H,
+	usbvid, usbpid, usbdev for USB support - Based on #7062
+	* avrftdi.c: New file.
+	* avrftdi.h: (Ditto.)
+	* configure.ac: Add check for libftdi.
+	* config_gram.y: Add AVRFTDI and per-programmer USB string
+	keywords.
+	* lexer.l: (Ditto.)
+	* avrdude.conf.in: Add avrftdi and 2232HIO programmers.
+	* pgm.h: Add USB parameters.
+	* Makefile.am: Add avrftdi.c and avrftdi.h.
+	* AUTHORS: Mention the new authors.
+	* avrdude.1: Document the changes.
+	* doc/avrdude.texi: (Ditto.)
+
 2011-08-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #29585: Fix license
