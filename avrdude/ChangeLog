@@ -1,5 +1,11 @@
 2011-08-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* configure.ac: Add a check for FreeBSD's libusb-1.0
+	compatible library that is found in libusb.a/.so on
+	FreeBSD 8+.
+
+2011-08-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Doug Springer, based on work by
 	Wolfgang Moser, Ville Voipio, Hannes Weisbach
 	patch #7486: Patch to add FT2232C/D, FT2232H, FT4232H,
