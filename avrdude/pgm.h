@@ -36,6 +36,7 @@
 #define PGM_DESCLEN 80
 #define PGM_PORTLEN PATH_MAX
 #define PGM_TYPELEN 32
+#define PGM_USBSTRINGLEN 256
 
 typedef enum {
   EXIT_VCC_UNSPEC,
@@ -60,6 +61,9 @@ typedef struct programmer_t {
   int ppidata;
   int ppictrl;
   int baudrate;
+  int usbvid, usbpid;
+  char usbdev[PGM_USBSTRINGLEN], usbsn[PGM_USBSTRINGLEN];
+  char usbvendor[PGM_USBSTRINGLEN], usbproduct[PGM_USBSTRINGLEN];
   double bitclock;    /* JTAG ICE clock period in microseconds */
   int ispdelay;    /* ISP clock delay */
   union filedescriptor fd;

@@ -15,6 +15,7 @@ Current:
   * New programmers supported:
       - TPI programming through bitbang programmers (both, serial
         and parallel ones)
+      - FT2232 (and relatives) based programmers (MPSSE bitbang mode)
 
   * Bugfixes
 
