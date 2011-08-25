@@ -1,5 +1,13 @@
 2011-08-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Fix warnings.
+	* ser_avrdoper.c: add <stdlib.h> so exit() is declared.
+	* usbtiny.c (usbtiny_open): provide an initializer to a
+	"may be used uninitialized" variable (since GCC could not
+	fully detect the logic behind).
+
+2011-08-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* configure.ac: Add a check for FreeBSD's libusb-1.0
 	compatible library that is found in libusb.a/.so on
 	FreeBSD 8+.

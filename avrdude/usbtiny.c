@@ -197,7 +197,7 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
 {
   struct usb_bus      *bus;
   struct usb_device   *dev = 0;
-  char *bus_name;
+  char *bus_name = NULL;
   char *dev_name = NULL;
 
   // if no -P was given or '-P usb' was given
