@@ -77,10 +77,14 @@ static int libusb_to_errno(int result)
 		return ENOENT;
 	case LIBUSB_ERROR_BUSY:
 		return EBUSY;
+#ifdef ETIMEDOUT
 	case LIBUSB_ERROR_TIMEOUT:
 		return ETIMEDOUT;
+#endif
+#ifdef EOVERFLOW
 	case LIBUSB_ERROR_OVERFLOW:
 		return EOVERFLOW;
+#endif
 	case LIBUSB_ERROR_PIPE:
 		return EPIPE;
 	case LIBUSB_ERROR_INTERRUPTED:
