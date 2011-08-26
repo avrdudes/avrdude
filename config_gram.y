@@ -94,6 +94,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_DEFAULT_PARALLEL
 %token K_DEFAULT_PROGRAMMER
 %token K_DEFAULT_SERIAL
+%token K_DEFAULT_BITCLOCK
 %token K_DESC
 %token K_DEVICECODE
 %token K_DRAGON_DW
@@ -272,6 +273,11 @@ def :
   K_DEFAULT_SERIAL TKN_EQUAL TKN_STRING TKN_SEMI {
     strncpy(default_serial, $3->value.string, PATH_MAX);
     default_serial[PATH_MAX-1] = 0;
+    free_token($3);
+  } |
+
+  K_DEFAULT_BITCLOCK TKN_EQUAL TKN_NUMBER TKN_SEMI {
+    default_bitclock = $3->value.number;
     free_token($3);
   }
 ;

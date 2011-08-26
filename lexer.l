@@ -135,6 +135,7 @@ desc             { yylval=NULL; return K_DESC; }
 default_parallel { yylval=NULL; return K_DEFAULT_PARALLEL; }
 default_programmer { yylval=NULL; return K_DEFAULT_PROGRAMMER; }
 default_serial   { yylval=NULL; return K_DEFAULT_SERIAL; }
+default_bitclock { yylval=NULL; return K_DEFAULT_BITCLOCK; }
 devicecode       { yylval=NULL; return K_DEVICECODE; }
 dragon_dw        { yylval=NULL; return K_DRAGON_DW; }
 dragon_hvsp      { yylval=NULL; return K_DRAGON_HVSP; }

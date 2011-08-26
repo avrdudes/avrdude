@@ -427,6 +427,8 @@ Unlike certain parameters in the STK500, the JTAG ICE resets all its
 parameters to default values when the programming software signs
 off from the ICE, so for MCUs running at lower clock speeds, this
 parameter must be specified on the command-line.
+It can also be set in the configuration file by using the 'default_bitclock'
+keyword.
 
 @item -c @var{programmer-id}
 Specify the programmer to be used.  AVRDUDE knows about several common
@@ -1483,6 +1485,10 @@ Assign the default serial port device.  Can be overridden using the
 
 @item default_programmer = "@var{default-programmer-id}";
 Assign the default programmer id.  Can be overridden using the @option{-c}
+option.
+
+@item default_bitclock = "@var{default-bitclock}";
+Assign the default bitclock value.  Can be overridden using the @option{-B}
 option.
 
 @end table
