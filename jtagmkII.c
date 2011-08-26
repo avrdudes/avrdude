@@ -843,12 +843,11 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
 	 * program.
 	 */
 	(void)jtagmkII_reset(pgm, 0x04);
-	jtagmkII_close(pgm);
 	fprintf(stderr,
 		"%s: Target prepared for ISP, signed off.\n"
 		"%s: Please restart %s without power-cycling the target.\n",
 		progname, progname, progname);
-	exit(0);
+        return JTAGII_GETSYNC_FAIL_GRACEFUL;
       }
     } else {
       return -1;

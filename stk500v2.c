@@ -2816,6 +2816,7 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
 {
   long baud;
   void *mycookie;
+  int rv;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: stk500v2_jtagmkII_open()\n", progname);
@@ -2856,9 +2857,11 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
 
   mycookie = pgm->cookie;
   pgm->cookie = PDATA(pgm)->chained_pdata;
-  if (jtagmkII_getsync(pgm, EMULATOR_MODE_SPI) != 0) {
-    fprintf(stderr, "%s: failed to sync with the JTAG ICE mkII in ISP mode\n",
-            progname);
+  if ((rv = jtagmkII_getsync(pgm, EMULATOR_MODE_SPI)) != 0) {
+    if (rv != JTAGII_GETSYNC_FAIL_GRACEFUL)
+        fprintf(stderr,
+                "%s: failed to sync with the JTAG ICE mkII in ISP mode\n",
+                progname);
     pgm->cookie = mycookie;
     return -1;
   }

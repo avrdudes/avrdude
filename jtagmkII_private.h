@@ -356,3 +356,8 @@ struct device_descriptor
   unsigned char EECRAddress[2]; /* EECR memory-mapped IO address */
 };
 #endif /* JTAGMKII_PRIVATE_EXPORTED */
+
+/* return code from jtagmkII_getsync() to indicate a "graceful"
+ * failure, i.e. an attempt to enable ISP failed and should be
+ * eventually retried */
+#define JTAGII_GETSYNC_FAIL_GRACEFUL (-2)
