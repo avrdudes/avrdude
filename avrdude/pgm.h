@@ -50,6 +50,12 @@ typedef enum {
   EXIT_RESET_DISABLED
 } exit_reset_t;
 
+typedef enum {
+  EXIT_DATAHIGH_UNSPEC,
+  EXIT_DATAHIGH_ENABLED,
+  EXIT_DATAHIGH_DISABLED
+} exit_datahigh_t;
+
 typedef struct programmer_t {
   LISTID id;
   char desc[PGM_DESCLEN];
@@ -58,6 +64,7 @@ typedef struct programmer_t {
   unsigned int pinno[N_PINS];
   exit_vcc_t exit_vcc;
   exit_reset_t exit_reset;
+  exit_datahigh_t exit_datahigh;
   int ppidata;
   int ppictrl;
   int baudrate;

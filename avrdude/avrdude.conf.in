@@ -790,7 +790,8 @@ programmer
 # From the contributor of the "xil" jtag cable:
 # The "vcc" definition isn't really vcc (the cable gets its power from
 # the programming circuit) but is necessary to switch one of the
-# buffer lines (trying to add it to the "buff" lines doesn't work).
+# buffer lines (trying to add it to the "buff" lines doesn't work in 
+# avrdude versions before 5.5j).
 # With this, TMS connects to RESET, TDI to MOSI, TDO to MISO and TCK
 # to SCK (plus vcc/gnd of course)
 programmer

@@ -303,6 +303,21 @@ static void par_close(PROGRAMMER * pgm)
     /* Leave it alone. */
     break;
   }
+
+  switch (pgm->exit_datahigh) {
+  case EXIT_DATAHIGH_ENABLED:
+    ppi_setall(&pgm->fd, PPIDATA, 0xff);
+    break;
+
+  case EXIT_DATAHIGH_DISABLED:
+    ppi_setall(&pgm->fd, PPIDATA, 0x00);
+    break;
+
+  case EXIT_DATAHIGH_UNSPEC:
+    /* Leave it alone. */
+    break;
+  }
+
   switch (pgm->exit_vcc) {
   case EXIT_VCC_ENABLED:
     par_setmany(pgm, pgm->pinno[PPI_AVR_VCC], 1);
@@ -387,6 +402,12 @@ static int par_parseexitspecs(PROGRAMMER * pgm, char *s)
     else if (strcmp(cp, "novcc") == 0) {
       pgm->exit_vcc = EXIT_VCC_DISABLED;
     }
+    else if (strcmp(cp, "d_high") == 0) {
+      pgm->exit_datahigh = EXIT_DATAHIGH_ENABLED;
+    }
+    else if (strcmp(cp, "d_low") == 0) {
+      pgm->exit_datahigh = EXIT_DATAHIGH_DISABLED;
+    }
     else {
       return -1;
     }
@@ -402,6 +423,7 @@ void par_initpgm(PROGRAMMER * pgm)
 
   pgm->exit_vcc = EXIT_VCC_UNSPEC;
   pgm->exit_reset = EXIT_RESET_UNSPEC;
+  pgm->exit_datahigh = EXIT_DATAHIGH_UNSPEC;
 
   pgm->rdy_led        = bitbang_rdy_led;
   pgm->err_led        = bitbang_err_led;

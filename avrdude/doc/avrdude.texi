@@ -638,6 +638,14 @@ can be used to supply `Vcc' power to the MCU.
 This option will pull the `Vcc' pins of the parallel port down at
 program exit.
 
+@itemx d_high
+This option will leave the 8 data pins on the parallel port active
+(i. e. high).
+
+@itemx d_low
+This option will leave the 8 data pins on the parallel port inactive
+(i. e. low).
+
 @end table
 
 Multiple @var{exitspec} arguments can be separated with commas.
