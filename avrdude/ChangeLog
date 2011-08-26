@@ -1,5 +1,17 @@
 2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #33114: Segfault after setting the DWEN fuse with Dragon
+	* jtagII.c (jtagmkII_getsync): Instead of exit()ing from
+	deep within the tree when detecting the "need debugWIRE"
+	situation, properly pass this up as a return code.
+	* jtagII_private.h (JTAGII_GETSYNC_FAIL_GRACEFUL): New constant.
+	* stk500v2.c (stk500v2_jtagmkII_open): Don't tell anything
+	anymore when receiving a JTAGII_GETSYNC_FAIL_GRACEFUL from
+	jtagmkII_getsync(); silently give up (all necessary has been
+	said already).
+
+2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Reported by Jason Hecker:
 	* usbasp.c (libusb_to_errno): Conditionalize some error codes
 	that apparently are lacking on MinGW.
