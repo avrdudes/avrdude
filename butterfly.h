@@ -27,6 +27,7 @@ extern "C" {
 #endif
 
 void butterfly_initpgm (PROGRAMMER * pgm);
+void butterfly_mk_initpgm (PROGRAMMER * pgm);
 
 #ifdef __cplusplus
 }

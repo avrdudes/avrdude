@@ -43,6 +43,7 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
+#include <unistd.h>
 
 #include "avrdude.h"
 #include "avr.h"
@@ -205,6 +206,7 @@ static void butterfly_powerdown(PROGRAMMER * pgm)
   return;
 }
 
+#define IS_BUTTERFLY_MK 0x0001
 
 /*
  * initialize the AVR device and prepare it to accept commands
@@ -223,26 +225,61 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
    * for plain avr109 bootloaders but does not harm there either.
    */
   fprintf(stderr, "Connecting to programmer: ");
-  do {
-    putc('.', stderr);
-    butterfly_send(pgm, "\033", 1);
-    butterfly_drain(pgm, 0);
-    butterfly_send(pgm, "S", 1);
-    butterfly_recv(pgm, &c, 1);
-    if (c != '?') {
-        putc('\n', stderr);
-        /*
-         * Got a useful response, continue getting the programmer
-         * identifier. Programmer returns exactly 7 chars _without_
-         * the null.
-         */
-      id[0] = c;
-      butterfly_recv(pgm, &id[1], sizeof(id)-2);
-      id[sizeof(id)-1] = '\0';
+  if (pgm->flag & IS_BUTTERFLY_MK)
+    {
+      char mk_reset_cmd[6] = {"#aR@S\r"};
+      unsigned char mk_timeout = 0;
+
+      putc('.', stderr);
+      butterfly_send(pgm, mk_reset_cmd, sizeof(mk_reset_cmd));
+      usleep(20000); 
+
+      do
+	{
+	  c = 27; 
+	  butterfly_send(pgm, &c, 1);
+	  usleep(20000);
+	  c = 0xaa;
+	  usleep(80000);
+	  butterfly_send(pgm, &c, 1);
+	  if (mk_timeout % 10 == 0) putc('.', stderr);
+	} while (mk_timeout++ < 10);
+
+      butterfly_recv(pgm, &c, 1);
+      if ( c != 'M' && c != '?') 
+        { 
+          fprintf(stderr, "\nConnection FAILED.");
+          exit(1);
+        }
+      else
+        {
+	  id[0] = 'M'; id[1] = 'K'; id[2] = '2'; id[3] = 0;
+	}
     }
-  } while (c == '?');
+  else
+    {
+      do {
+	putc('.', stderr);
+	butterfly_send(pgm, "\033", 1);
+	butterfly_drain(pgm, 0);
+	butterfly_send(pgm, "S", 1);
+	butterfly_recv(pgm, &c, 1);
+	if (c != '?') {
+	    putc('\n', stderr);
+	    /*
+	     * Got a useful response, continue getting the programmer
+	     * identifier. Programmer returns exactly 7 chars _without_
+	     * the null.
+	     */
+	  id[0] = c;
+	  butterfly_recv(pgm, &id[1], sizeof(id)-2);
+	  id[sizeof(id)-1] = '\0';
+	}
+      } while (c == '?');
+    }
 
   /* Get the HW and SW versions to see if the programmer is present. */
+  butterfly_drain(pgm, 0);
 
   butterfly_send(pgm, "V", 1);
   butterfly_recv(pgm, sw, sizeof(sw));
@@ -327,6 +364,7 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
 	    progname, (unsigned)buf[1]);
 
   butterfly_enter_prog_mode(pgm);
+  butterfly_drain(pgm, 0);
 
   return 0;
 }
@@ -665,7 +703,7 @@ static int butterfly_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 
 void butterfly_initpgm(PROGRAMMER * pgm)
 {
-  strcpy(pgm->type, "avr910");
+  strcpy(pgm->type, "butterfly");
 
   /*
    * mandatory functions
@@ -698,4 +736,12 @@ void butterfly_initpgm(PROGRAMMER * pgm)
 
   pgm->setup          = butterfly_setup;
   pgm->teardown       = butterfly_teardown;
+  pgm->flag = 0;
+}
+
+void butterfly_mk_initpgm(PROGRAMMER * pgm)
+{
+  butterfly_initpgm(pgm);
+  strcpy(pgm->type, "butterfly_mk");
+  pgm->flag = IS_BUTTERFLY_MK;
 }
