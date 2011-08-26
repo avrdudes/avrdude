@@ -332,7 +332,9 @@ Currently, the following MCU types are understood:
 @item @code{m164}  @tab ATmega164
 @item @code{m164p} @tab ATmega164P
 @item @code{m168}  @tab ATmega168
+@item @code{m168p} @tab ATmega168P
 @item @code{m169}  @tab ATmega169
+@item @code{m16u2} @tab ATmega16U2
 @item @code{m2560} @tab ATmega2560 (**)
 @item @code{m2561} @tab ATmega2561 (**)
 @item @code{m32}   @tab ATmega32
@@ -344,6 +346,7 @@ Currently, the following MCU types are understood:
 @item @code{m3290} @tab ATmega3290
 @item @code{m329p} @tab ATmega329P
 @item @code{m3290p} @tab ATmega3290P
+@item @code{m32u2} @tab ATmega32U2
 @item @code{m32u4} @tab ATmega32U4
 @item @code{m48}   @tab ATmega48
 @item @code{m64}   @tab ATmega64
@@ -358,6 +361,8 @@ Currently, the following MCU types are understood:
 @item @code{m8515} @tab ATmega8515
 @item @code{m8535} @tab ATmega8535
 @item @code{m88}   @tab ATmega88
+@item @code{m88p}  @tab ATmega88P
+@item @code{m8u2}  @tab ATmega8U2
 @item @code{pwm2}  @tab AT90PWM2
 @item @code{pwm2b} @tab AT90PWM2B
 @item @code{pwm3}  @tab AT90PWM3
@@ -371,6 +376,7 @@ Currently, the following MCU types are understood:
 @item @code{t26}   @tab ATtiny26
 @item @code{t261}  @tab ATtiny261
 @item @code{t4}    @tab ATtiny4
+@item @code{t4313} @tab ATtiny4313
 @item @code{t44}   @tab ATtiny44
 @item @code{t45}   @tab ATtiny45
 @item @code{t461}  @tab ATtiny461
