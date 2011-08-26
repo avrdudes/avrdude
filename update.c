@@ -259,7 +259,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
     }
     rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1);
     if (rc < 0) {
-      fprintf(stderr, "%s: write to file '%s' failed\n",
+      fprintf(stderr, "%s: read from file '%s' failed\n",
               progname, upd->filename);
       return -1;
     }
