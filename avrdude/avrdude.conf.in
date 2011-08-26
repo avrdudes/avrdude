@@ -396,6 +396,29 @@ programmer
 ;
 
 programmer
+  id    = "jtagkey";
+  desc  = "Amontec JTAGKey, JTAGKey-Tiny and JTAGKey2";
+  type  = avrftdi;
+  usbvid     = 0x0403;
+# Note: This PID is used in all JTAGKey variants
+  usbpid    = 0xCFF8;
+  usbdev = "A";
+  usbvendor  = "";
+  usbproduct = "";
+  usbsn      = "";
+#ISP-signals => 20 - Pin connector on JTAGKey
+  reset  = 4; # TMS 7 violet
+  sck    = 1; # TCK 9 white
+  mosi   = 2; # TDI 5 green
+  miso   = 3; # TDO 13 orange
+  buff   = 5;
+# VTG           VREF 1 brown with red tip
+# GND           GND 20 black
+# The colors are on the 20 pin breakout cable
+# from Amontec
+;
+
+programmer
   id    = "avrisp";
   desc  = "Atmel AVR ISP";
   type  = stk500;

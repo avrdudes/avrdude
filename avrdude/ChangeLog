@@ -1,5 +1,11 @@
 2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by an anonymous contributor on the mailinglist:
+	* avrdude.conf (jtagkey): Add a definition for the Amontec
+	JTAGKey
+
+2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Juergen Weigert:
 	bug #22720: avrdude-5.5 ignores buff settings in avrdude.conf
 	(Note that the actual bug the subject is about has been fixed
