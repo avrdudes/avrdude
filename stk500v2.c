@@ -69,6 +69,12 @@
 
 #define STK500V2_XTAL 7372800U
 
+// Timeout (in seconds) for waiting for serial response
+#define SERIAL_TIMEOUT 2
+
+// Retry count
+#define RETRIES 5
+
 #if 0
 #define DEBUG(...) fprintf(stderr, __VA_ARGS__)
 #else
@@ -86,46 +92,6 @@ enum hvmode
   PPMODE, HVSPMODE
 };
 
-
-/*
- * Private data for this programmer.
- */
-struct pdata
-{
-  /*
-   * See stk500pp_read_byte() for an explanation of the flash and
-   * EEPROM page caches.
-   */
-  unsigned char *flash_pagecache;
-  unsigned long flash_pageaddr;
-  unsigned int flash_pagesize;
-
-  unsigned char *eeprom_pagecache;
-  unsigned long eeprom_pageaddr;
-  unsigned int eeprom_pagesize;
-
-  unsigned char command_sequence;
-
-    enum
-    {
-        PGMTYPE_UNKNOWN,
-        PGMTYPE_STK500,
-        PGMTYPE_AVRISP,
-        PGMTYPE_AVRISP_MKII,
-        PGMTYPE_JTAGICE_MKII,
-        PGMTYPE_STK600,
-    }
-        pgmtype;
-
-  AVRPART *lastpart;
-
-  /*
-   * Chained pdata for the JTAG ICE mkII backend.  This is used when
-   * calling the backend functions for ISP/HVSP/PP programming
-   * functionality of the JTAG ICE mkII and AVR Dragon.
-   */
-  void *chained_pdata;
-};
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
@@ -314,7 +280,7 @@ static void stk600_setup_xprog(PROGRAMMER * pgm);
 static void stk600_setup_isp(PROGRAMMER * pgm);
 static int stk600_xprog_program_enable(PROGRAMMER * pgm, AVRPART * p);
 
-static void stk500v2_setup(PROGRAMMER * pgm)
+void stk500v2_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
     fprintf(stderr,
@@ -350,7 +316,7 @@ static void stk500v2_jtagmkII_setup(PROGRAMMER * pgm)
   PDATA(pgm)->chained_pdata = theircookie;
 }
 
-static void stk500v2_teardown(PROGRAMMER * pgm)
+void stk500v2_teardown(PROGRAMMER * pgm)
 {
   free(pgm->cookie);
 }
@@ -486,7 +452,7 @@ static int stk500v2_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 }
 
 
-static int stk500v2_drain(PROGRAMMER * pgm, int display)
+int stk500v2_drain(PROGRAMMER * pgm, int display)
 {
   return serial_drain(&pgm->fd, display);
 }
@@ -554,7 +520,7 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
   int timeout = 0;
   unsigned char c, checksum = 0;
 
-  long timeoutval = 5;		// seconds
+  long timeoutval = SERIAL_TIMEOUT;		// seconds
   struct timeval tv;
   double tstart, tnow;
 
@@ -647,7 +613,7 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
      tnow = tv.tv_sec;
      if (tnow-tstart > timeoutval) {			// wuff - signed/unsigned/overflow
       timedout:
-       fprintf(stderr, "%s: stk500_2_ReceiveMessage(): timeout\n",
+       fprintf(stderr, "%s: stk500v2_ReceiveMessage(): timeout\n",
                progname);
        return -1;
      }
@@ -660,7 +626,7 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) 
 
 
 
-static int stk500v2_getsync(PROGRAMMER * pgm) {
+int stk500v2_getsync(PROGRAMMER * pgm) {
   int tries = 0;
   unsigned char buf[1], resp[32];
   int status;
@@ -713,7 +679,7 @@ retry:
 		progname, pgmname[PDATA(pgm)->pgmtype]);
       return 0;
     } else {
-      if (tries > 33) {
+      if (tries > RETRIES) {
         fprintf(stderr,
                 "%s: stk500v2_getsync(): can't communicate with device: resp=0x%02x\n",
                 progname, resp[0]);
@@ -724,7 +690,7 @@ retry:
 
   // or if we got a timeout
   } else if (status == -1) {
-    if (tries > 33) {
+    if (tries > RETRIES) {
       fprintf(stderr,"%s: stk500v2_getsync(): timeout communicating with programmer\n",
               progname);
       return -1;
@@ -733,7 +699,7 @@ retry:
 
   // or any other error
   } else {
-    if (tries > 33) {
+    if (tries > RETRIES) {
       fprintf(stderr,"%s: stk500v2_getsync(): error communicating with programmer: (%d)\n",
               progname,status);
     } else
@@ -750,7 +716,7 @@ static int stk500v2_command(PROGRAMMER * pgm, unsigned char * buf,
   int status;
 
   DEBUG("STK500V2: stk500v2_command(");
-  for (i=0;i<len;i++) DEBUG("0x%02hhx ",buf[i]);
+  for (i=0;i<len;i++) DEBUG("0x%02x ",buf[i]);
   DEBUG(", %d)\n",len);
 
 retry:
@@ -840,7 +806,7 @@ retry:
   // otherwise try to sync up again
   status = stk500v2_getsync(pgm);
   if (status != 0) {
-    if (tries > 33) {
+    if (tries > RETRIES) {
       fprintf(stderr,"%s: stk500v2_command(): failed miserably to execute command 0x%02x\n",
               progname,buf[0]);
       return -1;

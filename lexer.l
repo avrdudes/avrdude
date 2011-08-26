@@ -206,6 +206,7 @@ usbvendor        { yylval=NULL; return K_USBVENDOR; }
 usbvid           { yylval=NULL; return K_USBVID; }
 vcc              { yylval=NULL; return K_VCC; }
 vfyled           { yylval=NULL; return K_VFYLED; }
+wiring           { yylval=NULL; return K_WIRING; }
 
 timeout          { yylval=NULL; return K_TIMEOUT; }
 stabdelay        { yylval=NULL; return K_STABDELAY; }

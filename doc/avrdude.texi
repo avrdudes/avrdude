@@ -214,6 +214,10 @@ option might be required to achieve a stable ISP communication.
 For ATxmega devices, the AVR Dragon is supported in PDI mode, provided it
 has a firmware version of at least 6.11 (decimal).
 
+Wiring boards are supported, utilizing STK500 V2.x protocol, but
+a simple DTR/RTS toggle to set the boards into programming mode.
+The programmer type is ``wiring''.
+
 The Arduino (which is very similar to the STK500 1.x) is supported via
 its own programmer type specification ``arduino''.
 
@@ -571,6 +575,9 @@ USBtiny simple USB programmer,@*
 @url{http://www.ladyada.net/make/usbtinyisp/}
 @item @code{xil}         @tab
 Xilinx JTAG cable
+@item @code{wiring}      @tab
+Wiring board, utilizing STK500 V2.x protocol,@*
+@url{http://wiring.org.co/}
 @end multitable
 
 
@@ -1012,6 +1019,17 @@ the above
 and
 @samp{speed=}
 parameters unavailable.
+@end table
+
+@item Wiring
+
+When using the Wiring programmer type, the
+following optional extended parameter is accepted:
+@table @code
+@item @samp{snooze=@var{0..32767}}
+After performing the port open phase, AVRDUDE will wait/snooze for
+@var{snooze} milliseconds before continuing to the protocol sync phase.
+No toggling of DTR/RTS is performed if @var{snooze} > 0.
 @end table
 
 @end table

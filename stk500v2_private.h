@@ -9,6 +9,8 @@
 //*
 //**************************************************************************
 
+#include "pgm.h"
+
 // *****************[ STK message constants ]***************************
 
 #define MESSAGE_START                       0x1B        //= ESC = 27 decimal
@@ -277,4 +279,44 @@
 // *****************[ STK answer constants ]***************************
 
 #define ANSWER_CKSUM_ERROR                  0xB0
+
+/*
+ * Private data for this programmer.
+ */
+struct pdata
+{
+  /*
+   * See stk500pp_read_byte() for an explanation of the flash and
+   * EEPROM page caches.
+   */
+  unsigned char *flash_pagecache;
+  unsigned long flash_pageaddr;
+  unsigned int flash_pagesize;
+
+  unsigned char *eeprom_pagecache;
+  unsigned long eeprom_pageaddr;
+  unsigned int eeprom_pagesize;
+
+  unsigned char command_sequence;
+
+    enum
+    {
+        PGMTYPE_UNKNOWN,
+        PGMTYPE_STK500,
+        PGMTYPE_AVRISP,
+        PGMTYPE_AVRISP_MKII,
+        PGMTYPE_JTAGICE_MKII,
+        PGMTYPE_STK600,
+    }
+        pgmtype;
+
+  AVRPART *lastpart;
+
+  /*
+   * Chained pdata for the JTAG ICE mkII backend.  This is used when
+   * calling the backend functions for ISP/HVSP/PP programming
+   * functionality of the JTAG ICE mkII and AVR Dragon.
+   */
+  void *chained_pdata;
+};
 

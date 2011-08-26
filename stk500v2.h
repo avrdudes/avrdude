@@ -38,6 +38,11 @@ void stk600_initpgm (PROGRAMMER * pgm);
 void stk600hvsp_initpgm (PROGRAMMER * pgm);
 void stk600pp_initpgm (PROGRAMMER * pgm);
 
+void stk500v2_setup(PROGRAMMER * pgm);
+void stk500v2_teardown(PROGRAMMER * pgm);
+int stk500v2_drain(PROGRAMMER * pgm, int display);
+int stk500v2_getsync(PROGRAMMER * pgm);
+
 #ifdef __cplusplus
 }
 #endif
