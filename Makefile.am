@@ -39,6 +39,8 @@ CLEANFILES = \
 	config_gram.h \
 	lexer.c
 
+BUILT_SOURCES = $(CLEANFILES)
+
 #SUBDIRS      = doc @WINDOWS_DIRS@
 #DIST_SUBDIRS = doc windows
 
