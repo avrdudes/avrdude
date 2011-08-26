@@ -16,6 +16,7 @@ Current:
       - TPI programming through bitbang programmers (both, serial
         and parallel ones)
       - FT2232 (and relatives) based programmers (MPSSE bitbang mode)
+      - Wiring environment (http://wiring.org.co/)
 
   * Bugfixes
 

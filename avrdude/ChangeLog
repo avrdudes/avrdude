@@ -1,5 +1,23 @@
 2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Brett Hagman:
+	Add support for the "Wiring" board/bootloader
+	* wiring.c: New file.
+	* wiring.h: (Ditto.)
+	* Makefile.am: Add new files.
+	* stk500v2_private.h: Reorganize so some functions and struct
+	pdata are globally known.
+	* stk500v2.c: (Ditto.)
+	* stk500v2.h: (Ditto.)
+	* lexer.l: Add new programmer keywords.
+	* config_gram.y: (Ditto.)
+	* avrdude.conf.in: Add "wiring" programmer entry.
+	* avrdude.1: Document the new programmer.
+	* doc/avrdude.texi: (Ditto.)
+	* AUTHORS: Add Brett Hagman.
+
+2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by an anonymous contributor on the mailinglist:
 	* avrdude.conf (jtagkey): Add a definition for the Amontec
 	JTAGKey

@@ -107,6 +107,10 @@ Using firmware version 2, high-voltage programming is also supported,
 both parallel and serial
 (programmer types stk500pp and stk500hvsp).
 .Pp
+Wiring boards are supported, utilizing STK500 V2.x protocol, but
+a simple DTR/RTS toggle is used to set the boards into programming mode.
+The programmer type is ``wiring''.
+.Pp
 The Arduino (which is very similar to the STK500 1.x) is supported via
 its own programmer type specification ``arduino''.
 .Pp
@@ -974,6 +978,18 @@ the above
 and 
 .Ar speed=
 parameters unavailable. 
+.El
+.It Ar Wiring
+When using the Wiring programmer type, the
+following optional extended parameter is accepted:
+.Bl -tag -offset indent -width indent
+.It Ar snooze=<0..32767>
+After performing the port open phase, AVRDUDE will wait/snooze for
+.Ar snooze
+milliseconds before continuing to the protocol sync phase.
+No toggling of DTR/RTS is performed if
+.Ar snooze
+is greater than 0.
 .El
 .El
 .Sh FILES

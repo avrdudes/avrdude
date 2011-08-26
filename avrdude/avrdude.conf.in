@@ -21,7 +21,7 @@
 #                  jtagmki | jtagmkii | jtagmkii_isp | jtagmkii_dw |
 #                  jtagmkII_avr32 | jtagmkii_pdi |
 #                  dragon_dw | dragon_jtag | dragon_isp | dragon_pp |
-#                  dragon_hvsp | dragon_pdi | arduino; # programmer type
+#                  dragon_hvsp | dragon_pdi | arduino | wiring; # programmer type
 #       baudrate = <num> ;                          # baudrate for avr910-programmer
 #       vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
 #       reset    = <num> ;                          # pin number
@@ -321,6 +321,15 @@ default_serial     = "@DEFAULT_SER_PORT@";
 #
 # PROGRAMMER DEFINITIONS
 #
+
+# http://wiring.org.co/
+# Basically STK500v2 protocol, with some glue to trigger the
+# bootloader.
+programmer
+  id    = "wiring";
+  desc  = "Wiring";
+  type  = wiring;
+;
 
 programmer
   id    = "arduino";
