@@ -1,5 +1,10 @@
 2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #33811: Parallel make fails
+	* Makefile.am (BUILT_SOURCES): Add this macro.
+
+2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #33114: Segfault after setting the DWEN fuse with Dragon
 	* jtagII.c (jtagmkII_getsync): Instead of exit()ing from
 	deep within the tree when detecting the "need debugWIRE"
