@@ -57,6 +57,7 @@ extern LISTID       programmers;
 extern char         default_programmer[];
 extern char         default_parallel[];
 extern char         default_serial[];
+extern double       default_bitclock;
 
 
 

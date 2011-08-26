@@ -330,6 +330,10 @@ Unlike certain parameters in the STK500, the JTAG ICE resets all its
 parameters to default values when the programming software signs
 off from the ICE, so for MCUs running at lower clock speeds, this
 parameter must be specified on the command-line.
+You can use the 'default_bitclock' keyword in your
+.Pa ${HOME}/.avrduderc
+file to assign a default value to keep from having to specify this
+option on every invocation.
 .It Fl c Ar programmer-id
 Use the pin configuration specified by the argument.  Pin
 configurations are read from the config file (see the

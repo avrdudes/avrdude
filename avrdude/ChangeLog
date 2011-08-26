@@ -1,7 +1,21 @@
 2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Stefan Tomanek:
+	patch #7542: add default_bitclock to configuration files
+	* config.c: Add the new keyword and its handling.
+	* config.h: (Ditto.)
+	* config_gram.y: (Ditto.)
+	* avrdude.conf.in: (Ditto.)
+	* main.c: (Ditto.)
+	* lexer.l: (Ditto.)
+	* avrdude.1: Document the change.
+	* doc/avrdude.texi: (Ditto.)
+
+2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Brett Hagman:
-	Add support for the "Wiring" board/bootloader
+	patch #7603: wiring - programmer type for Wiring boards
+	(based on STK500v2)
 	* wiring.c: New file.
 	* wiring.h: (Ditto.)
 	* Makefile.am: Add new files.

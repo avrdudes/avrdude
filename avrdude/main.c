@@ -314,6 +314,7 @@ int main(int argc, char * argv [])
 
   default_parallel[0] = 0;
   default_serial[0]   = 0;
+  default_bitclock    = 0.0;
 
   init_config();
 
@@ -606,6 +607,10 @@ int main(int argc, char * argv [])
         exit(1);
       }
     }
+  }
+  // set bitclock from configuration files unless changed by command line
+  if (default_bitclock > 0 && bitclock == 0.0) {
+    bitclock = default_bitclock;
   }
 
   if (verbose) {
