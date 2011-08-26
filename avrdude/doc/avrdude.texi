@@ -443,6 +443,10 @@ and change the pin definitions to match that of the unknown programmer.
 Currently, the following programmer ids are understood and supported:
 
 @multitable @columnfractions .2 .6
+@item @code{2232HIO}     @tab
+FT2232H based generic programmer
+@item @code{89isp}       @tab
+Atmel at89isp cable
 @item @code{abcmini}     @tab
 ABCmini Board, aka Dick Smith HOTCHIP
 @item @code{alf}         @tab
@@ -459,6 +463,8 @@ Atmel AppNote AVR109 Boot Loader
 Atmel Low Cost Serial Programmer
 @item @code{avr911}      @tab
 Atmel AppNote AVR911 AVROSP (an alias for avr109)
+@item @code{avrftdi}     @tab
+FT2232D based generic programmer
 @item @code{avrisp}      @tab
 Atmel AVR ISP (an alias for stk500)
 @item @code{avrisp2}     @tab
@@ -575,11 +581,11 @@ USBasp,@*
 @item @code{usbtiny}     @tab
 USBtiny simple USB programmer,@*
 @url{http://www.ladyada.net/make/usbtinyisp/}
-@item @code{xil}         @tab
-Xilinx JTAG cable
 @item @code{wiring}      @tab
 Wiring board, utilizing STK500 V2.x protocol,@*
 @url{http://wiring.org.co/}
+@item @code{xil}         @tab
+Xilinx JTAG cable
 @end multitable
 
 
