@@ -17,6 +17,7 @@ Current:
         and parallel ones)
       - FT2232 (and relatives) based programmers (MPSSE bitbang mode)
       - Wiring environment (http://wiring.org.co/)
+      - butterfly-style bootloader of the Mikrokopter.de device
 
   * Bugfixes
 

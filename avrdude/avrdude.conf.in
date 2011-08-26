@@ -551,6 +551,19 @@ programmer
   desc  = "Atmel AppNote AVR911 AVROSP";
   type  = butterfly;
 ;
+ 
+# suggested in http://forum.mikrokopter.de/topic-post48317.html
+programmer
+  id    = "mkbutterfly";
+  desc  = "Mikrokopter.de Butterfly";
+  type  = butterfly_mk;
+;
+
+programmer
+  id    = "butterfly_mk";
+  desc  = "Mikrokopter.de Butterfly";
+  type  = butterfly_mk;
+;
 
 programmer
   id    = "jtagmkI";

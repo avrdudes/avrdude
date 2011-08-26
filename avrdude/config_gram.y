@@ -161,6 +161,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_USBVENDOR
 %token K_USBVID
 %token K_BUTTERFLY
+%token K_BUTTERFLY_MK
 %token K_TYPE
 %token K_VCC
 %token K_VFYLED
@@ -505,6 +506,12 @@ prog_parm :
   K_TYPE TKN_EQUAL K_BUTTERFLY {
     { 
       butterfly_initpgm(current_prog);
+    }
+  } |
+
+  K_TYPE TKN_EQUAL K_BUTTERFLY_MK {
+    { 
+      butterfly_mk_initpgm(current_prog);
     }
   } |
 

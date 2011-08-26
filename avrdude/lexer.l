@@ -130,6 +130,7 @@ bs2              { yylval=NULL; return K_BS2; }
 buff             { yylval=NULL; return K_BUFF; }
 buspirate        { yylval=NULL; return K_BUSPIRATE; }
 butterfly        { yylval=NULL; return K_BUTTERFLY; }
+butterfly_mk     { yylval=NULL; return K_BUTTERFLY_MK; }
 chip_erase_delay { yylval=NULL; return K_CHIP_ERASE_DELAY; }
 desc             { yylval=NULL; return K_DESC; }
 default_parallel { yylval=NULL; return K_DEFAULT_PARALLEL; }

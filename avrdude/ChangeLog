@@ -1,5 +1,16 @@
 2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Juergen Weigert:
+	patch #7056: adding support for mikrokopter bootloader to butterfly
+	* butterfly.c: Add some specific logic to handle the
+	mikrokopter.de butterfly bootloader.
+	* butterfly.h: Add one related function declaration.
+	* config_gram.y: Add butterfly_mk keyword.
+	* lexer.l: (Ditto.)
+	* avrdude.conf.in: Add entry for butterfly_mk.
+
+2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Stefan Tomanek:
 	patch #7542: add default_bitclock to configuration files
 	* config.c: Add the new keyword and its handling.
