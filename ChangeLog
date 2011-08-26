@@ -1,3 +1,9 @@
+2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Reported by Jason Hecker:
+	* usbasp.c (libusb_to_errno): Conditionalize some error codes
+	that apparently are lacking on MinGW.
+
 2011-08-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Fix warnings.
