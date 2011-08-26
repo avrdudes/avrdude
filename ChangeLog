@@ -1,5 +1,10 @@
 2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* configure.ac: add -lusb as "other libraries" when checking
+	for libftdi.
+
+2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Juergen Weigert:
 	patch #7056: adding support for mikrokopter bootloader to butterfly
 	* butterfly.c: Add some specific logic to handle the
