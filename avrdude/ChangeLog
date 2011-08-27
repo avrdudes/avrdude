@@ -1,3 +1,7 @@
+2011-08-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac: Bump version for releasing AVRDUDE 5.11.
+
 2011-08-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* avrdude.1: Update the list of supported AVR devices.
