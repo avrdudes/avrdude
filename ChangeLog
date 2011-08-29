@@ -1,3 +1,18 @@
+2011-08-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #34027: avrdude AT90S1200 Problem (part 1 - bitbang
+	programmers)
+	* config_gram.y: Introduce new keyword "is_at90s1200".
+	* lexer.l: (Ditto.)
+	* avrdude.conf.in: Applew new keyword to the AT90S1200 device.
+	* avrpart.h: Introduce new flag AVRPART_IS_AT90S1200, reflecting
+	the is_at90s1200 configuration keyword.
+	* bitbang.c (bitbang_initialize): Replace existing test for
+	AT90S1200 by AVRPART_IS_AT90S1200
+	* avr.c (avr_write_byte_default): Avoid the pre-write reading for
+	the AT90S1200, as this appears to sometimes corrupt the high byte
+	by pre-programming the low byte just written into it.
+
 2011-08-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* configure.ac: Bump version for post-5.11.

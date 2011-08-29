@@ -155,6 +155,7 @@ has_pdi          { yylval=NULL; return K_HAS_PDI; }
 has_tpi          { yylval=NULL; return K_HAS_TPI; }
 id               { yylval=NULL; return K_ID; }
 idr              { yylval=NULL; return K_IDR; }
+is_at90s1200     { yylval=NULL; return K_IS_AT90S1200; }
 is_avr32         { yylval=NULL; return K_IS_AVR32; }
 jtagmki          { yylval=NULL; return K_JTAG_MKI; }
 jtagmkii         { yylval=NULL; return K_JTAG_MKII; }

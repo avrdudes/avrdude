@@ -443,11 +443,17 @@ int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     return 0;
   }
 
-  if (!mem->paged) {
+  if (!mem->paged &&
+      (p->flags & AVRPART_IS_AT90S1200) == 0) {
     /* 
      * check to see if the write is necessary by reading the existing
      * value and only write if we are changing the value; we can't
      * use this optimization for paged addressing.
+     *
+     * For mysterious reasons, on the AT90S1200, this read operation
+     * sometimes causes the high byte of the same word to be
+     * programmed to the value of the low byte that has just been
+     * programmed before.  Avoid that optimization on this device.
      */
     rc = pgm->read_byte(pgm, p, mem, addr, &b);
     if (rc != 0) {

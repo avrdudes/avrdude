@@ -225,6 +225,7 @@ static int parse_cmdbits(OPCODE * op);
 %token K_HAS_PDI                /* MCU has PDI i/f rather than ISP (ATxmega). */
 %token K_HAS_TPI                /* MCU has TPI i/f rather than ISP (ATtiny4/5/9/10). */
 %token K_IDR			/* address of OCD register in IO space */
+%token K_IS_AT90S1200		/* chip is an AT90S1200 (needs special treatment) */
 %token K_IS_AVR32               /* chip is in the avr32 family */
 %token K_RAMPZ			/* address of RAMPZ reg. in IO space */
 %token K_SPMCR			/* address of SPMC[S]R in memory space */
@@ -1166,6 +1167,16 @@ part_parm :
       free_token($3);
     } |
 
+  K_IS_AT90S1200 TKN_EQUAL yesno
+    {
+      if ($3->primary == K_YES)
+        current_part->flags |= AVRPART_IS_AT90S1200;
+      else if ($3->primary == K_NO)
+        current_part->flags &= AVRPART_IS_AT90S1200;
+
+      free_token($3);
+    } |
+
   K_IS_AVR32 TKN_EQUAL yesno
     {
       if ($3->primary == K_YES)
@@ -1175,7 +1186,7 @@ part_parm :
 
       free_token($3);
     } |
-    
+
   K_ALLOWFULLPAGEBITSTREAM TKN_EQUAL yesno
     {
       if ($3->primary == K_YES)
