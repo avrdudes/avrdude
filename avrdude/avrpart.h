@@ -93,6 +93,7 @@ typedef struct opcode {
 #define AVRPART_INIT_SMC       0x0200  /* part will undergo chip erase */
 #define AVRPART_WRITE          0x0400  /* at least one write operation specified */
 #define AVRPART_HAS_TPI        0x0800  /* part has TPI i/f rather than ISP (ATtiny4/5/9/10) */
+#define AVRPART_IS_AT90S1200   0x1000  /* part is an AT90S1200 (needs special treatment) */
 
 #define AVR_DESCLEN 64
 #define AVR_IDLEN   32
