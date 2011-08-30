@@ -1,5 +1,12 @@
 2011-08-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #34027: avrdude AT90S1200 Problem (part 2 - stk500v2 and relatives)
+	* stk500v2.c (stk500v2_initialize): For the AT90S1200, release
+	/RESET for a moment before reinitializing, as this is required by
+	its programming protocol.
+
+2011-08-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* configure.ac: In AC_CHECK_LIB for libftdi, check for
 	ftdi_usb_get_strings() rathern than ftdi_init(), as this is a more
 	specific thing to search for in order to make sure getting a
