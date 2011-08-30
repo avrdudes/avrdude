@@ -307,7 +307,7 @@ datasheet so that you can enter the programming specifications.
 Currently, the following MCU types are understood:
 
 @multitable @columnfractions .15 .3
-@item @code{1200}  @tab AT90S1200
+@item @code{1200}  @tab AT90S1200 (****)
 @item @code{2313}  @tab AT90S2313
 @item @code{2333}  @tab AT90S2333
 @item @code{2343}  @tab AT90S2343 (*)
@@ -418,6 +418,12 @@ and bit-bang programmers.
 (***)
 The ATtiny11 uses the same algorithm, but can only be
 programmed in high-voltage serial mode.
+
+(****)
+The ISP programming protocol of the AT90S1200 differs in subtle ways
+from that of other AVRs.  Thus, not all programmers support this
+device.  Known to work are all direct bitbang programmers, and all
+programmers talking the STK500v2 protocol.
 
 @item -b @var{baudrate}
 Override the RS-232 connection baud rate specified in the respective
