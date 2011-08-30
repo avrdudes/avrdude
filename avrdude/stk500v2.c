@@ -1099,6 +1099,14 @@ static int stk500v2_initialize(PROGRAMMER * pgm, AVRPART * p)
     stk600_setup_isp(pgm);
   }
 
+  if (p->flags & AVRPART_IS_AT90S1200) {
+    /*
+     * AT90S1200 needs a positive reset pulse after a chip erase.
+     */
+    pgm->disable(pgm);
+    usleep(10000);
+  }
+
   return pgm->program_enable(pgm, p);
 }
 
