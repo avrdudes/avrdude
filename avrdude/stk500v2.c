@@ -787,18 +787,20 @@ retry:
                 msg = msgbuf;
                 break;
             }
-            if (quell_progress < 2)
+            if (quell_progress < 2) {
                 fprintf(stderr, "%s: stk500v2_command(): warning: %s\n",
                         progname, msg);
-            buf[1] = STATUS_CMD_OK; /* pretend success */
-        }
-        if (buf[1] == STATUS_CMD_OK)
+            }
+        } else if (buf[1] == STATUS_CMD_OK) {
             return status;
-        if (buf[1] == STATUS_CMD_FAILED)
-            fprintf(stderr, "%s: stk500v2_command(): command failed\n", progname);
-        else
+        } else if (buf[1] == STATUS_CMD_FAILED) {
+            fprintf(stderr,
+                    "%s: stk500v2_command(): command failed\n",
+                    progname);
+        } else {
             fprintf(stderr, "%s: stk500v2_command(): unknown status 0x%02x\n",
                     progname, buf[1]);
+        }
         return -1;
     }
   }
