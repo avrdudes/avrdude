@@ -100,6 +100,9 @@ typedef struct opcode {
 #define CTL_STACK_SIZE 32
 #define FLASH_INSTR_SIZE 3
 #define EEPROM_INSTR_SIZE 20
+
+#define TAG_ALLOCATED          1    /* memory byte is allocated */
+
 typedef struct avrpart {
   char          desc[AVR_DESCLEN];  /* long part name */
   char          id[AVR_IDLEN];      /* short part name */
@@ -185,6 +188,7 @@ typedef struct avrmem {
   int pollindex;              /* stk500 v2 xml file parameter */
 
   unsigned char * buf;        /* pointer to memory buffer */
+  unsigned char * tags;       /* allocation tags */
   OPCODE * op[AVR_OP_MAX];    /* opcodes */
 } AVRMEM;
 

@@ -96,9 +96,11 @@ typedef struct programmer_t {
   int  (*open)           (struct programmer_t * pgm, char * port);
   void (*close)          (struct programmer_t * pgm);
   int  (*paged_write)    (struct programmer_t * pgm, AVRPART * p, AVRMEM * m, 
-                          int page_size, int n_bytes);
+                          unsigned int page_size, unsigned int baseaddr,
+                          unsigned int n_bytes);
   int  (*paged_load)     (struct programmer_t * pgm, AVRPART * p, AVRMEM * m,
-                          int page_size, int n_bytes);
+                          unsigned int page_size, unsigned int baseaddr,
+                          unsigned int n_bytes);
   void (*write_setup)    (struct programmer_t * pgm, AVRPART * p, AVRMEM * m);
   int  (*write_byte)     (struct programmer_t * pgm, AVRPART * p, AVRMEM * m,
                           unsigned long addr, unsigned char value);

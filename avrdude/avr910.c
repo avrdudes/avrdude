@@ -506,12 +506,12 @@ static int avr910_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 
 static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
-                                    int page_size, int n_bytes)
+                                    unsigned int page_size,
+                                    unsigned int addr, unsigned int n_bytes)
 {
   unsigned char cmd[] = {'c', 'C'};
   char buf[2];
-  unsigned int addr = 0;
-  unsigned int max_addr = n_bytes;
+  unsigned int max_addr = addr + n_bytes;
   unsigned int page_addr;
   int page_bytes = page_size;
   int page_wr_cmd_pending = 0;
@@ -548,8 +548,6 @@ static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     else if ((PDATA(pgm)->has_auto_incr_addr != 'Y') && ((addr & 0x01) == 0)) {
       avr910_set_addr(pgm, addr>>1);
     }
-
-    report_progress (addr, max_addr, NULL);
   }
 
   /* If we didn't send the page wr cmd after the last byte written in the
@@ -567,11 +565,12 @@ static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 
 static int avr910_paged_write_eeprom(PROGRAMMER * pgm, AVRPART * p,
-                                     AVRMEM * m, int page_size, int n_bytes)
+                                     AVRMEM * m,
+                                     unsigned int page_size,
+                                     unsigned int addr, unsigned int n_bytes)
 {
   char cmd[2];
-  unsigned int addr = 0;
-  unsigned int max_addr = n_bytes;
+  unsigned int max_addr = addr + n_bytes;
 
   avr910_set_addr(pgm, addr);
 
@@ -588,8 +587,6 @@ static int avr910_paged_write_eeprom(PROGRAMMER * pgm, AVRPART * p,
     if (PDATA(pgm)->has_auto_incr_addr != 'Y') {
       avr910_set_addr(pgm, addr);
     }
-
-    report_progress (addr, max_addr, NULL);
   }
 
   return addr;
@@ -597,22 +594,22 @@ static int avr910_paged_write_eeprom(PROGRAMMER * pgm, AVRPART * p,
 
 
 static int avr910_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-                              int page_size, int n_bytes)
+                              unsigned int page_size,
+                              unsigned int addr, unsigned int n_bytes)
 {
   int rval = 0;
   if (PDATA(pgm)->use_blockmode == 0) {
     if (strcmp(m->desc, "flash") == 0) {
-      rval = avr910_paged_write_flash(pgm, p, m, page_size, n_bytes);
+      rval = avr910_paged_write_flash(pgm, p, m, page_size, addr, n_bytes);
     } else if (strcmp(m->desc, "eeprom") == 0) {
-      rval = avr910_paged_write_eeprom(pgm, p, m, page_size, n_bytes);
+      rval = avr910_paged_write_eeprom(pgm, p, m, page_size, addr, n_bytes);
     } else {
       rval = -2;
     }
   }
 
   if (PDATA(pgm)->use_blockmode == 1) {
-    unsigned int addr = 0;
-    unsigned int max_addr = n_bytes;
+    unsigned int max_addr = addr + n_bytes;
     char *cmd;
     unsigned int blocksize = PDATA(pgm)->buffersize;
 
@@ -640,8 +637,6 @@ static int avr910_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       avr910_vfy_cmd_sent(pgm, "write block");
 
       addr += blocksize;
-
-      report_progress (addr, max_addr, NULL);
     } /* while */
     free(cmd);
 
@@ -651,79 +646,41 @@ static int avr910_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
-                             int page_size, int n_bytes)
+static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+                             unsigned int page_size,
+                             unsigned int addr, unsigned int n_bytes)
 {
-  char cmd;
-  int rd_size = 1;
-  unsigned int addr = 0;
+  char cmd[4];
+  int rd_size;
   unsigned int max_addr;
   char buf[2];
   int rval=0;
 
-  if (PDATA(pgm)->use_blockmode == 0) {
+  max_addr = addr + n_bytes;
 
-    if (strcmp(m->desc, "flash") == 0) {
-      cmd = 'R';
-      rd_size = 2;                /* read two bytes per addr */
-    } else if (strcmp(m->desc, "eeprom") == 0) {
-      cmd = 'd';
-      rd_size = 1;
-    } else {
-      rval = -2;
-    }
-
-    max_addr = n_bytes/rd_size;
-
-    avr910_set_addr(pgm, addr);
-
-    while (addr < max_addr) {
-      avr910_send(pgm, &cmd, 1);
-      if (cmd == 'R') {
-        /* The 'R' command returns two bytes, MSB first, we need to put the data
-           into the memory buffer LSB first. */
-        avr910_recv(pgm, buf, 2);
-        m->buf[addr*2]   = buf[1];  /* LSB */
-        m->buf[addr*2+1] = buf[0];  /* MSB */
-      }
-      else {
-        avr910_recv(pgm, (char *)&m->buf[addr], 1);
-      }
-
-      addr++;
-
-      if (PDATA(pgm)->has_auto_incr_addr != 'Y') {
-        avr910_set_addr(pgm, addr);
-      }
-
-      report_progress (addr, max_addr, NULL);
-    }
-
-    rval = addr * rd_size;
+  if (strcmp(m->desc, "flash") == 0) {
+    cmd[0] = 'R';
+    rd_size = 2;                /* read two bytes per addr */
+  } else if (strcmp(m->desc, "eeprom") == 0) {
+    cmd[0] = 'd';
+    rd_size = 1;
+  } else {
+    return -2;
   }
 
-  if (PDATA(pgm)->use_blockmode == 1) {
-    unsigned int addr = 0;
-    unsigned int max_addr = n_bytes;
-    int rd_size = 1;
-
-    /* check parameter syntax: only "flash" or "eeprom" is allowed */
-    if (strcmp(m->desc, "flash") && strcmp(m->desc, "eeprom"))
-      rval = -2;
-
-  	/* use buffered mode */
-    char cmd[4];
+  if (PDATA(pgm)->use_blockmode) {
+    /* use buffered mode */
     int blocksize = PDATA(pgm)->buffersize;
 
     cmd[0] = 'g';
     cmd[3] = toupper((int)(m->desc[0]));
 
-    avr910_set_addr(pgm, addr);
+    avr910_set_addr(pgm, addr / rd_size);
 
     while (addr < max_addr) {
       if ((max_addr - addr) < blocksize) {
         blocksize = max_addr - addr;
-      };
+      }
       cmd[1] = (blocksize >> 8) & 0xff;
       cmd[2] = blocksize & 0xff;
 
@@ -731,11 +688,34 @@ static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       avr910_recv(pgm, (char *)&m->buf[addr], blocksize);
 
       addr += blocksize;
-
-      report_progress (addr, max_addr, NULL);
     }
 
-    rval = addr * rd_size;
+    rval = addr;
+  } else {
+
+    avr910_set_addr(pgm, addr / rd_size);
+
+    while (addr < max_addr) {
+      avr910_send(pgm, cmd, 1);
+      if (rd_size == 2) {
+        /* The 'R' command returns two bytes, MSB first, we need to put the data
+           into the memory buffer LSB first. */
+        avr910_recv(pgm, buf, 2);
+        m->buf[addr]   = buf[1];  /* LSB */
+        m->buf[addr + 1] = buf[0];  /* MSB */
+      }
+      else {
+        avr910_recv(pgm, (char *)&m->buf[addr], 1);
+      }
+
+      addr += rd_size;
+
+      if (PDATA(pgm)->has_auto_incr_addr != 'Y') {
+        avr910_set_addr(pgm, addr / rd_size);
+      }
+    }
+
+    rval = addr;
   }
 
   return rval;

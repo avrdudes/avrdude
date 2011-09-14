@@ -233,6 +233,12 @@ int avr_initmem(AVRPART * p)
               progname, m->desc, m->size);
       return -1;
     }
+    m->tags = (unsigned char *) malloc(m->size);
+    if (m->tags == NULL) {
+      fprintf(stderr, "%s: can't alloc buffer for %s size of %d bytes\n",
+              progname, m->desc, m->size);
+      return -1;
+    }
   }
 
   return 0;
@@ -254,7 +260,16 @@ AVRMEM * avr_dup_mem(AVRMEM * m)
             n->size);
     exit(1);
   }
-  memset(n->buf, 0, n->size);
+  memcpy(n->buf, m->buf, n->size);
+
+  n->tags = (unsigned char *)malloc(n->size);
+  if (n->tags == NULL) {
+    fprintf(stderr,
+            "avr_dup_mem(): out of memory (memsize=%d)\n",
+            n->size);
+    exit(1);
+  }
+  memcpy(n->tags, m->tags, n->size);
 
   return n;
 }

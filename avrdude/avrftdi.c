@@ -740,8 +740,6 @@ static int avrftdi_eeprom_write(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
 		E(avrftdi_transmit(TX, cmd, cmd, 4) < 0);
 
 		usleep((m->max_write_delay));
-		if(verbose < 3)
-			report_progress(add, len, NULL);
 	}
 	return len;
 }
@@ -764,8 +762,6 @@ static int avrftdi_eeprom_read(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
 		E(avrftdi_transmit(TRX, cmd, cmd, 4) < 0);
 
 		avr_get_output(m->op[AVR_OP_READ], cmd, bufptr++);
-		if(verbose < 3)
-			report_progress(add, len, NULL);
 	}
 
 	memcpy(m->buf, buffer, len);
@@ -973,8 +969,6 @@ static int avrftdi_flash_read(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 				o_ptr = o_buf;
 			}
 		}
-		if (verbose < 3)
-			report_progress(2 * address, len, NULL);
 	}
 	memcpy(m->buf, buffer, sizeof(buffer));
 

@@ -206,37 +206,33 @@ int avr_mem_hiaddr(AVRMEM * mem)
 
 /*
  * Read the entirety of the specified memory type into the
- * corresponding buffer of the avrpart pointed to by 'p'.  If size =
- * 0, read the entire contents, otherwise, read 'size' bytes.
+ * corresponding buffer of the avrpart pointed to by 'p'.
+ * If v is non-NULL, verify against v's memory area, only
+ * those cells that are tagged TAG_ALLOCATED are verified.
  *
  * Return the number of bytes read, or < 0 if an error occurs.  
  */
-int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size, 
-             int verbose)
+int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
+             AVRPART * v, int verb)
 {
-  unsigned char    rbyte;
-  unsigned long    i;
-  unsigned char  * buf;
+  unsigned long    i, lastaddr;
   unsigned char    cmd[4];
-  AVRMEM * mem;
+  AVRMEM * mem, * vmem = NULL;
   int rc;
 
   mem = avr_locate_mem(p, memtype);
+  if (v != NULL)
+      vmem = avr_locate_mem(v, memtype);
   if (mem == NULL) {
     fprintf(stderr, "No \"%s\" memory for part %s\n",
             memtype, p->desc);
     return -1;
   }
 
-  buf  = mem->buf;
-  if (size == 0) {
-    size = mem->size;
-  }
-
   /*
    * start with all 0xff
    */
-  memset(buf, 0xff, size);
+  memset(mem->buf, 0xff, mem->size);
 
   /* supports "paged load" thru post-increment */
   if ((p->flags & AVRPART_HAS_TPI) && mem->page_size != 0) {
@@ -252,32 +248,70 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
     avr_tpi_setup_rw(pgm, mem, 0, TPI_NVMCMD_NO_OPERATION);
 
     /* load bytes */
-    for (i = 0; i < size; i++) {
-      cmd[0] = TPI_CMD_SLD_PI;
-      rc = pgm->cmd_tpi(pgm, cmd, 1, &buf[i], 1);
-      if (rc == -1) {
-        fprintf(stderr, "avr_read(): error reading address 0x%04lx\n", i);
-        return -1;
+    for (lastaddr = i = 0; i < mem->size; i++) {
+      if (vmem == NULL ||
+          (vmem->tags[i] & TAG_ALLOCATED) != 0)
+      {
+        if (lastaddr != i) {
+          /* need to setup new address */
+          avr_tpi_setup_rw(pgm, mem, i, TPI_NVMCMD_NO_OPERATION);
+          lastaddr = i;
+        }
+        cmd[0] = TPI_CMD_SLD_PI;
+        rc = pgm->cmd_tpi(pgm, cmd, 1, mem->buf + i, 1);
+        lastaddr++;
+        if (rc == -1) {
+          fprintf(stderr, "avr_read(): error reading address 0x%04lx\n", i);
+          return -1;
+        }
       }
-
-      report_progress(i, size, NULL);
+      report_progress(i, mem->size, NULL);
     }
     return avr_mem_hiaddr(mem);
   }
 
   if (pgm->paged_load != NULL && mem->page_size != 0) {
     /*
-     * the programmer supports a paged mode read, perhaps more
-     * efficiently than we can read it directly, so use its routine
-     * instead
+     * the programmer supports a paged mode read
      */
-    rc = pgm->paged_load(pgm, p, mem, mem->page_size, size);
-    if (rc >= 0) {
+    int need_read, failure;
+    unsigned int pageaddr;
+
+    for (pageaddr = 0, failure = 0;
+         !failure && pageaddr < mem->size;
+         pageaddr += mem->page_size) {
+      /* check whether this page must be read */
+      for (i = pageaddr, need_read = 0;
+           i < pageaddr + mem->page_size;
+           i++)
+        if (vmem == NULL /* no verify, read everything */ ||
+            (vmem->tags[i] & TAG_ALLOCATED) != 0 /* verify, do only
+                                                    read pages that
+                                                    are needed in
+                                                    input file */) {
+          need_read = 1;
+          break;
+        }
+      if (need_read) {
+        i = pgm->paged_load(pgm, p, mem, mem->page_size,
+                            pageaddr, mem->page_size);
+        if (i < 0)
+          /* paged load failed, fall back to byte-at-a-time read below */
+          failure = 1;
+      } else if (verbose >= 3) {
+        fprintf(stderr,
+                "%s: avr_read(): skipping page %u: no interesting data\n",
+                progname, pageaddr / mem->page_size);
+      }
+      report_progress(pageaddr, mem->size, NULL);
+    }
+    if (!failure) {
       if (strcasecmp(mem->desc, "flash") == 0)
         return avr_mem_hiaddr(mem);
       else
-        return rc;
+        return mem->size;
     }
+    /* else: fall back to byte-at-a-time write, for historical reasons */
   }
 
   if (strcmp(mem->desc, "signature") == 0) {
@@ -286,18 +320,21 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
     }
   }
 
-  for (i=0; i<size; i++) {
-    rc = pgm->read_byte(pgm, p, mem, i, &rbyte);
-    if (rc != 0) {
-      fprintf(stderr, "avr_read(): error reading address 0x%04lx\n", i);
-      if (rc == -1) 
-        fprintf(stderr, 
-                "    read operation not supported for memory \"%s\"\n",
-                memtype);
-      return -2;
+  for (i=0; i < mem->size; i++) {
+    if (vmem == NULL ||
+	(vmem->tags[i] & TAG_ALLOCATED) != 0)
+    {
+      rc = pgm->read_byte(pgm, p, mem, i, mem->buf + i);
+      if (rc != 0) {
+	fprintf(stderr, "avr_read(): error reading address 0x%04lx\n", i);
+	if (rc == -1) 
+	  fprintf(stderr, 
+		  "    read operation not supported for memory \"%s\"\n",
+		  memtype);
+	return -2;
+      }
     }
-    buf[i] = rbyte;
-    report_progress(i, size, NULL);
+    report_progress(i, mem->size, NULL);
   }
 
   if (strcasecmp(mem->desc, "flash") == 0)
@@ -679,11 +716,12 @@ int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
  * Return the number of bytes written, or -1 if an error occurs.
  */
 int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size, 
-              int verbose)
+              int verb)
 {
   int              rc;
+  int              newpage, page_tainted, flush_page, do_write;
   int              wsize;
-  long             i;
+  unsigned int     i, lastaddr;
   unsigned char    data;
   int              werror;
   unsigned char    cmd[4];
@@ -733,15 +771,27 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
     }
 
     /* write words, low byte first */
-    for (i = 0; i < wsize; i++) {
-      cmd[0] = TPI_CMD_SST_PI;
-      cmd[1] = m->buf[i];
-      rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+    for (lastaddr = i = 0; i < wsize; i += 2) {
+      if ((m->tags[i] & TAG_ALLOCATED) != 0 ||
+          (m->tags[i + 1] & TAG_ALLOCATED) != 0) {
 
-      cmd[1] = m->buf[++i];
-      rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+        if (lastaddr != i) {
+          /* need to setup new address */
+          avr_tpi_setup_rw(pgm, m, i, TPI_NVMCMD_WORD_WRITE);
+          lastaddr = i;
+        }
 
-      while (avr_tpi_poll_nvmbsy(pgm));
+        cmd[0] = TPI_CMD_SST_PI;
+        cmd[1] = m->buf[i];
+        rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+
+        cmd[1] = m->buf[i + 1];
+        rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+
+        lastaddr += 2;
+
+        while (avr_tpi_poll_nvmbsy(pgm));
+      }
       report_progress(i, wsize, NULL);
     }
     return i;
@@ -749,48 +799,110 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
 
   if (pgm->paged_write != NULL && m->page_size != 0) {
     /*
-     * the programmer supports a paged mode write, perhaps more
-     * efficiently than we can read it directly, so use its routine
-     * instead
+     * the programmer supports a paged mode write
      */
-    if ((i = pgm->paged_write(pgm, p, m, m->page_size, size)) >= 0)
-      return i;
+    int need_write, failure;
+    unsigned int pageaddr;
+
+    for (pageaddr = 0, failure = 0;
+         !failure && pageaddr < wsize;
+         pageaddr += m->page_size) {
+      /* check whether this page must be written to */
+      for (i = pageaddr, need_write = 0;
+           i < pageaddr + m->page_size;
+           i++)
+        if ((m->tags[i] & TAG_ALLOCATED) != 0) {
+          need_write = 1;
+          break;
+        }
+      if (need_write) {
+          i = pgm->paged_write(pgm, p, m, m->page_size, pageaddr, m->page_size);
+        if (i < 0)
+          /* paged write failed, fall back to byte-at-a-time write below */
+          failure = 1;
+      } else if (verbose >= 3) {
+        fprintf(stderr,
+                "%s: avr_write(): skipping page %u: no interesting data\n",
+                progname, pageaddr / m->page_size);
+      }
+      report_progress(pageaddr, m->size, NULL);
+    }
+    if (!failure)
+      return wsize;
+    /* else: fall back to byte-at-a-time write, for historical reasons */
   }
 
   if (pgm->write_setup) {
       pgm->write_setup(pgm, p, m);
   }
 
+  newpage = 1;
+  page_tainted = 0;
+  flush_page = 0;
+
   for (i=0; i<wsize; i++) {
     data = m->buf[i];
     report_progress(i, wsize, NULL);
 
-    rc = avr_write_byte(pgm, p, m, i, data);
-    if (rc) {
-      fprintf(stderr, " ***failed;  ");
-      fprintf(stderr, "\n");
-      pgm->err_led(pgm, ON);
-      werror = 1;
+    /*
+     * Find out whether the write action must be invoked for this
+     * byte.
+     *
+     * For non-paged memory, this only happens if TAG_ALLOCATED is
+     * set for the byte.
+     *
+     * For paged memory, TAG_ALLOCATED also invokes the write
+     * operation, which is actually a page buffer fill only.  This
+     * "taints" the page, and upon encountering the last byte of each
+     * tainted page, the write operation must also be invoked in order
+     * to actually write the page buffer to memory.
+     */
+    do_write = (m->tags[i] & TAG_ALLOCATED) != 0;
+    if (m->paged) {
+      if (newpage) {
+        page_tainted = do_write;
+      } else {
+        page_tainted |= do_write;
+      }
+      if (i % m->page_size == m->page_size - 1 ||
+          i == wsize - 1) {
+        /* last byte this page */
+        flush_page = page_tainted;
+        newpage = 1;
+      } else {
+        flush_page = newpage = 0;
+      }
     }
 
-    if (m->paged) {
-      /*
-       * check to see if it is time to flush the page with a page
-       * write
-       */
-      if (((i % m->page_size) == m->page_size-1) ||
-          (i == wsize-1)) {
-        rc = avr_write_page(pgm, p, m, i);
-        if (rc) {
-          fprintf(stderr,
-                  " *** page %ld (addresses 0x%04lx - 0x%04lx) failed "
-                  "to write\n",
-                  i % m->page_size, 
-                  i - m->page_size + 1, i);
-          fprintf(stderr, "\n");
-          pgm->err_led(pgm, ON);
+    if (!do_write && !flush_page) {
+      continue;
+    }
+
+    if (do_write) {
+      rc = avr_write_byte(pgm, p, m, i, data);
+      if (rc) {
+        fprintf(stderr, " ***failed;  ");
+        fprintf(stderr, "\n");
+        pgm->err_led(pgm, ON);
+        werror = 1;
+      }
+    }
+
+    /*
+     * check to see if it is time to flush the page with a page
+     * write
+     */
+    if (flush_page) {
+      rc = avr_write_page(pgm, p, m, i);
+      if (rc) {
+        fprintf(stderr,
+                " *** page %d (addresses 0x%04x - 0x%04x) failed "
+                "to write\n",
+                i % m->page_size, 
+                i - m->page_size + 1, i);
+        fprintf(stderr, "\n");
+        pgm->err_led(pgm, ON);
           werror = 1;
-        }
       }
     }
 
@@ -875,7 +987,8 @@ int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size)
   }
 
   for (i=0; i<size; i++) {
-    if (buf1[i] != buf2[i]) {
+    if ((b->tags[i] & TAG_ALLOCATED) != 0 &&
+        buf1[i] != buf2[i]) {
       fprintf(stderr, 
               "%s: verification error, first mismatch at byte 0x%04x\n"
               "%s0x%02x != 0x%02x\n",
