@@ -48,8 +48,6 @@
 static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value);
 static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value);
 static void stk500_print_parms1(PROGRAMMER * pgm, const char * p);
-static int stk500_is_page_empty(unsigned int address, int page_size, 
-    const unsigned char *buf);
 
 
 static int stk500_send(PROGRAMMER * pgm, unsigned char * buf, size_t len)
@@ -739,28 +737,18 @@ static int stk500_loadaddr(PROGRAMMER * pgm, unsigned int addr)
 }
 
 
-static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
-                              int page_size, int n_bytes)
+static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+                              unsigned int page_size,
+                              unsigned int addr, unsigned int n_bytes)
 {
   unsigned char buf[page_size + 16];
   int memtype;
-  unsigned int addr;
   int a_div;
   int block_size;
   int tries;
   unsigned int n;
   unsigned int i;
   int flash;
-
-  if (page_size == 0) {
-    // MIB510 uses page size of 256 bytes
-    if (strcmp(ldata(lfirst(pgm->id)), "mib510") == 0) {
-      page_size = 256;
-    }
-    else {
-      page_size = 128;
-    }
-  }
 
   if (strcmp(m->desc, "flash") == 0) {
     memtype = 'F';
@@ -779,19 +767,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   else
     a_div = 1;
 
-  if (n_bytes > m->size) {
-    n_bytes = m->size;
-    n = m->size;
-  }
-  else {
-    if ((n_bytes % page_size) != 0) {
-      n = n_bytes + page_size - (n_bytes % page_size);
-    }
-    else {
-      n = n_bytes;
-    }
-  }
-
+  n = addr + n_bytes;
 #if 0
   fprintf(stderr, 
           "n_bytes   = %d\n"
@@ -801,23 +777,15 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
           n_bytes, n, a_div, page_size);
 #endif     
 
-  for (addr = 0; addr < n; addr += page_size) {
-    report_progress (addr, n_bytes, NULL);
-    
+  for (; addr < n; addr += block_size) {
     // MIB510 uses fixed blocks size of 256 bytes
-    if ((strcmp(ldata(lfirst(pgm->id)), "mib510") != 0) &&
-	(addr + page_size > n_bytes)) {
-	   block_size = n_bytes % page_size;
-	}
-	else {
-	   block_size = page_size;
-	}
-  
-    /* Only skip on empty page if programming flash. */
-    if (flash) {
-      if (stk500_is_page_empty(addr, block_size, m->buf)) {
-          continue;
-      }
+    if (strcmp(ldata(lfirst(pgm->id)), "mib510") == 0) {
+      block_size = 256;
+    } else {
+      if (n - addr < page_size)
+        block_size = n - addr;
+      else
+        block_size = page_size;
     }
     tries = 0;
   retry:
@@ -870,27 +838,12 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return n_bytes;
 }
 
-static int stk500_is_page_empty(unsigned int address, int page_size, 
-                                const unsigned char *buf)
-{
-    int i;
-    for(i = 0; i < page_size; i++) {
-        if(buf[address + i] != 0xFF) {
-            /* Page is not empty. */
-            return(0);
-        }
-    }
-    
-    /* Page is empty. */
-    return(1);
-}
-
-static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
-                             int page_size, int n_bytes)
+static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+                             unsigned int page_size,
+                             unsigned int addr, unsigned int n_bytes)
 {
   unsigned char buf[16];
   int memtype;
-  unsigned int addr;
   int a_div;
   int tries;
   unsigned int n;
@@ -911,31 +864,18 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   else
     a_div = 1;
 
-  if (n_bytes > m->size) {
-    n_bytes = m->size;
-    n = m->size;
-  }
-  else {
-    if ((n_bytes % page_size) != 0) {
-      n = n_bytes + page_size - (n_bytes % page_size);
-    }
-    else {
-      n = n_bytes;
-    }
-  }
-
-  for (addr = 0; addr < n; addr += page_size) {
-    report_progress (addr, n_bytes, NULL);
-
+  n = addr + n_bytes;
+  for (; addr < n; addr += block_size) {
     // MIB510 uses fixed blocks size of 256 bytes
-    if ((strcmp(ldata(lfirst(pgm->id)), "mib510") != 0) &&
-	(addr + page_size > n_bytes)) {
-	   block_size = n_bytes % page_size;
-	}
-	else {
-	   block_size = page_size;
-	}
-  
+    if (strcmp(ldata(lfirst(pgm->id)), "mib510") == 0) {
+      block_size = 256;
+    } else {
+      if (n - addr < page_size)
+        block_size = n - addr;
+      else
+        block_size = page_size;
+    }
+
     tries = 0;
   retry:
     tries++;

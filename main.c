@@ -250,7 +250,6 @@ int main(int argc, char * argv [])
   int              ch;          /* options flag */
   int              len;         /* length for various strings */
   struct avrpart * p;           /* which avr part we are programming */
-  struct avrpart * v;           /* used for verify */
   AVRMEM         * sig;         /* signature data */
   struct stat      sb;
   UPDATE         * upd;
@@ -739,13 +738,13 @@ int main(int argc, char * argv [])
     safemode = 0;
   }
 
-  /*
-   * set up seperate instances of the avr part, one for use in
-   * programming, one for use in verifying.  These are separate
-   * because they need separate flash and eeprom buffer space
-   */
-  p = avr_dup_part(p);
-  v = avr_dup_part(p);
+
+  if (avr_initmem(p) != 0)
+  {
+    fprintf(stderr, "\n%s: failed to initialize memories\n",
+            progname);
+    exit(1);
+  }
 
   /*
    * open the programmer
@@ -1081,7 +1080,7 @@ int main(int argc, char * argv [])
 
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
     upd = ldata(ln);
-    rc = do_op(pgm, p, upd, nowrite, verify);
+    rc = do_op(pgm, p, upd, nowrite);
     if (rc) {
       exitrc = 1;
       break;

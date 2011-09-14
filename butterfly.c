@@ -582,11 +582,11 @@ static int butterfly_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 
 
-static int butterfly_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
-                              int page_size, int n_bytes)
+static int butterfly_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+                                 unsigned int page_size,
+                                 unsigned int addr, unsigned int n_bytes)
 {
-  unsigned int addr = 0;
-  unsigned int max_addr = n_bytes;
+  unsigned int max_addr = addr + n_bytes;
   char *cmd;
   unsigned int blocksize = PDATA(pgm)->buffersize;
   int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
@@ -626,8 +626,6 @@ static int butterfly_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     butterfly_vfy_cmd_sent(pgm, "write block");
 
     addr += blocksize;
-
-    report_progress (addr, max_addr, NULL);
   } /* while */
   free(cmd);
 
@@ -636,11 +634,11 @@ static int butterfly_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 
 
-static int butterfly_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
-                             int page_size, int n_bytes)
+static int butterfly_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+                                unsigned int page_size,
+                                unsigned int addr, unsigned int n_bytes)
 {
-  unsigned int addr = 0;
-  unsigned int max_addr = n_bytes;
+  unsigned int max_addr = addr + n_bytes;
   int rd_size = 1;
   int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
 
@@ -671,8 +669,6 @@ static int butterfly_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       butterfly_recv(pgm, (char *)&m->buf[addr], blocksize);
 
       addr += blocksize;
-
-      report_progress (addr, max_addr, NULL);
     } /* while */
   }
 

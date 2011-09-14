@@ -46,7 +46,7 @@ extern UPDATE * dup_update(UPDATE * upd);
 extern UPDATE * new_update(int op, char * memtype, int filefmt,
 			   char * filename);
 extern int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd,
-		 int nowrite, int verify);
+		 int nowrite);
 
 #ifdef __cplusplus
 }

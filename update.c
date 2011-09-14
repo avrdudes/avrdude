@@ -200,8 +200,7 @@ UPDATE * new_update(int op, char * memtype, int filefmt, char * filename)
   return u;
 }
 
-int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
-          int verify)
+int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite)
 {
   struct avrpart * v;
   AVRMEM * mem;
@@ -307,8 +306,6 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
      */
     pgm->vfy_led(pgm, ON);
 
-    v = avr_dup_part(p);
-
     if (quell_progress < 2) {
       fprintf(stderr, "%s: verifying %s memory against %s:\n",
             progname, mem->desc, upd->filename);
@@ -323,6 +320,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
               progname, upd->filename);
       return -1;
     }
+    v = avr_dup_part(p);
     size = rc;
     if (quell_progress < 2) {
       fprintf(stderr, "%s: input file %s contains %d bytes\n",
@@ -332,7 +330,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite,
     }
 
     report_progress (0,1,"Reading");
-    rc = avr_read(pgm, v, upd->memtype, size, 1);
+    rc = avr_read(pgm, p, upd->memtype, v, 1);
     if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n",
               progname, mem->desc, rc);

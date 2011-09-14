@@ -52,30 +52,30 @@ static int b2ihex(unsigned char * inbuf, int bufsize,
              char * outfile, FILE * outf);
 
 static int ihex2b(char * infile, FILE * inf,
-             unsigned char * outbuf, int bufsize);
+             AVRMEM * mem, int bufsize);
 
 static int b2srec(unsigned char * inbuf, int bufsize, 
            int recsize, int startaddr,
            char * outfile, FILE * outf);
 
 static int srec2b(char * infile, FILE * inf,
-             unsigned char * outbuf, int bufsize);
+             AVRMEM * mem, int bufsize);
 
 static int ihex_readrec(struct ihexrec * ihex, char * rec);
 
 static int srec_readrec(struct ihexrec * srec, char * rec);
 
 static int fileio_rbin(struct fioparms * fio,
-                  char * filename, FILE * f, unsigned char * buf, int size);
+                  char * filename, FILE * f, AVRMEM * mem, int size);
 
 static int fileio_ihex(struct fioparms * fio, 
-                  char * filename, FILE * f, unsigned char * buf, int size);
+                  char * filename, FILE * f, AVRMEM * mem, int size);
 
 static int fileio_srec(struct fioparms * fio,
-                  char * filename, FILE * f, unsigned char * buf, int size);
+                  char * filename, FILE * f, AVRMEM * mem, int size);
 
 static int fileio_num(struct fioparms * fio,
-		char * filename, FILE * f, unsigned char * buf, int size,
+		char * filename, FILE * f, AVRMEM * mem, int size,
 		FILEFMT fmt);
 
 static int fmt_autodetect(char * fname);
@@ -262,10 +262,9 @@ static int ihex_readrec(struct ihexrec * ihex, char * rec)
  *
  * */
 static int ihex2b(char * infile, FILE * inf,
-             unsigned char * outbuf, int bufsize)
+             AVRMEM * mem, int bufsize)
 {
   char buffer [ MAX_LINE_LEN ];
-  unsigned char * buf;
   unsigned int nextaddr, baseaddr, maxaddr, offsetaddr;
   int i;
   int lineno;
@@ -274,7 +273,6 @@ static int ihex2b(char * infile, FILE * inf,
   int rc;
 
   lineno      = 0;
-  buf         = outbuf;
   baseaddr    = 0;
   maxaddr     = 0;
   offsetaddr  = 0;
@@ -311,7 +309,8 @@ static int ihex2b(char * infile, FILE * inf,
           return -1;
         }
         for (i=0; i<ihex.reclen; i++) {
-          buf[nextaddr+i-offsetaddr] = ihex.data[i];
+          mem->buf[nextaddr+i-offsetaddr] = ihex.data[i];
+          mem->tags[nextaddr+i-offsetaddr] = TAG_ALLOCATED;
         }
         if (nextaddr+ihex.reclen > maxaddr)
           maxaddr = nextaddr+ihex.reclen;
@@ -540,10 +539,9 @@ static int srec_readrec(struct ihexrec * srec, char * rec)
 
 
 static int srec2b(char * infile, FILE * inf,
-           unsigned char * outbuf, int bufsize)
+           AVRMEM * mem, int bufsize)
 {
   char buffer [ MAX_LINE_LEN ];
-  unsigned char * buf;
   unsigned int nextaddr, baseaddr, maxaddr;
   int i;
   int lineno;
@@ -556,7 +554,6 @@ static int srec2b(char * infile, FILE * inf,
   char * msg = 0;
 
   lineno   = 0;
-  buf      = outbuf;
   baseaddr = 0;
   maxaddr  = 0;
   reccount = 0;
@@ -642,8 +639,10 @@ static int srec2b(char * infile, FILE * inf,
         fprintf(stderr, msg, progname, nextaddr+srec.reclen, lineno, infile);
         return -1;
       }
-      for (i=0; i<srec.reclen; i++) 
-        buf[nextaddr+i] = srec.data[i];
+      for (i=0; i<srec.reclen; i++) {
+        mem->buf[nextaddr+i] = srec.data[i];
+        mem->tags[nextaddr+i] = TAG_ALLOCATED;
+      }
       if (nextaddr+srec.reclen > maxaddr)
         maxaddr = nextaddr+srec.reclen;
       reccount++;	
@@ -700,13 +699,16 @@ static char *itoa_simple(int n, char *buf, int base)
 
 
 static int fileio_rbin(struct fioparms * fio,
-                  char * filename, FILE * f, unsigned char * buf, int size)
+                  char * filename, FILE * f, AVRMEM * mem, int size)
 {
   int rc;
+  unsigned char *buf = mem->buf;
 
   switch (fio->op) {
     case FIO_READ:
       rc = fread(buf, 1, size, f);
+      if (rc > 0)
+        memset(mem->tags, TAG_ALLOCATED, rc);
       break;
     case FIO_WRITE:
       rc = fwrite(buf, 1, size, f);
@@ -730,7 +732,7 @@ static int fileio_rbin(struct fioparms * fio,
 
 
 static int fileio_imm(struct fioparms * fio,
-               char * filename, FILE * f, unsigned char * buf, int size)
+               char * filename, FILE * f, AVRMEM * mem, int size)
 {
   int rc = 0;
   char * e, * p;
@@ -753,7 +755,8 @@ static int fileio_imm(struct fioparms * fio,
                   progname, p);
           return -1;
         }
-        buf[loc++] = b;
+        mem->buf[loc] = b;
+        mem->tags[loc++] = TAG_ALLOCATED;
         p = strtok(NULL, " ,");
         rc = loc;
       }
@@ -777,20 +780,20 @@ static int fileio_imm(struct fioparms * fio,
 
 
 static int fileio_ihex(struct fioparms * fio, 
-                  char * filename, FILE * f, unsigned char * buf, int size)
+                  char * filename, FILE * f, AVRMEM * mem, int size)
 {
   int rc;
 
   switch (fio->op) {
     case FIO_WRITE:
-      rc = b2ihex(buf, size, 32, 0, filename, f);
+      rc = b2ihex(mem->buf, size, 32, 0, filename, f);
       if (rc < 0) {
         return -1;
       }
       break;
 
     case FIO_READ:
-      rc = ihex2b(filename, f, buf, size);
+      rc = ihex2b(filename, f, mem, size);
       if (rc < 0)
         return -1;
       break;
@@ -807,20 +810,20 @@ static int fileio_ihex(struct fioparms * fio,
 
 
 static int fileio_srec(struct fioparms * fio,
-                  char * filename, FILE * f, unsigned char * buf, int size)
+                  char * filename, FILE * f, AVRMEM * mem, int size)
 {
   int rc;
 
   switch (fio->op) {
     case FIO_WRITE:
-      rc = b2srec(buf, size, 32, 0, filename, f);
+      rc = b2srec(mem->buf, size, 32, 0, filename, f);
       if (rc < 0) {
         return -1;
       }
       break;
 
     case FIO_READ:
-      rc = srec2b(filename, f, buf, size);
+      rc = srec2b(filename, f, mem, size);
       if (rc < 0)
         return -1;
       break;
@@ -838,7 +841,7 @@ static int fileio_srec(struct fioparms * fio,
 
 
 static int fileio_num(struct fioparms * fio,
-	       char * filename, FILE * f, unsigned char * buf, int size,
+	       char * filename, FILE * f, AVRMEM * mem, int size,
 	       FILEFMT fmt)
 {
   const char *prefix;
@@ -883,7 +886,7 @@ static int fileio_num(struct fioparms * fio,
       if (putc(',', f) == EOF)
 	goto writeerr;
     }
-    num = (unsigned int)buf[i];
+    num = (unsigned int)(mem->buf[i]);
     /*
      * For a base of 8 and a value < 8 to convert, don't write the
      * prefix.  The conversion will be indistinguishable from a
@@ -1017,7 +1020,6 @@ int fileio(int op, char * filename, FILEFMT format,
   int rc;
   FILE * f;
   char * fname;
-  unsigned char * buf;
   struct fioparms fio;
   AVRMEM * mem;
   int using_stdio;
@@ -1034,15 +1036,14 @@ int fileio(int op, char * filename, FILEFMT format,
   if (rc < 0)
     return -1;
 
-  /* point at the requested memory buffer */
-  buf = mem->buf;
   if (fio.op == FIO_READ)
     size = mem->size;
 
   if (fio.op == FIO_READ) {
     /* 0xff fill unspecified memory */
-    memset(buf, 0xff, size);
+    memset(mem->buf, 0xff, size);
   }
+  memset(mem->tags, 0, size);
 
   using_stdio = 0;
 
@@ -1113,26 +1114,26 @@ int fileio(int op, char * filename, FILEFMT format,
 
   switch (format) {
     case FMT_IHEX:
-      rc = fileio_ihex(&fio, fname, f, buf, size);
+      rc = fileio_ihex(&fio, fname, f, mem, size);
       break;
 
     case FMT_SREC:
-      rc = fileio_srec(&fio, fname, f, buf, size);
+      rc = fileio_srec(&fio, fname, f, mem, size);
       break;
 
     case FMT_RBIN:
-      rc = fileio_rbin(&fio, fname, f, buf, size);
+      rc = fileio_rbin(&fio, fname, f, mem, size);
       break;
 
     case FMT_IMM:
-      rc = fileio_imm(&fio, fname, f, buf, size);
+      rc = fileio_imm(&fio, fname, f, mem, size);
       break;
 
     case FMT_HEX:
     case FMT_DEC:
     case FMT_OCT:
     case FMT_BIN:
-      rc = fileio_num(&fio, fname, f, buf, size, format);
+      rc = fileio_num(&fio, fname, f, mem, size, format);
       break;
 
     default:
