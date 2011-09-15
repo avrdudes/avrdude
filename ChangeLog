@@ -1,5 +1,10 @@
 2011-09-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* avrftdi.c: Remove stray printf()s by fprintf(stderr)
+	* usbtiny.c: (Ditto.)
+
+2011-09-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* main.c: Restrict the cyclecounter readout to those cases where
 	it has been explicitly requested (by -y or -Y), rather than always
 	attempting to read the last EEPROM bytes.
