@@ -226,7 +226,9 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
       if (dev->descriptor.idVendor == USBTINY_VENDOR
 	  && dev->descriptor.idProduct == USBTINY_PRODUCT ) {   // found match?
     if(verbose)
-      printf("avrdude: usbdev_open(): Found USBtinyISP, bus:device: %s:%s\n", bus->dirname, dev->filename);
+      fprintf(stderr,
+	      "%s: usbdev_open(): Found USBtinyISP, bus:device: %s:%s\n",
+	      progname, bus->dirname, dev->filename);
     // if -P was given, match device by device name and bus name
     if(name != NULL &&
       (NULL == dev_name ||

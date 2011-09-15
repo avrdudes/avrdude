@@ -145,7 +145,8 @@ static int add_pin(PROGRAMMER *pgm, int pinfunc)
 	else if(TYPE_2232H == ftype)
 		mlim=15;
 	else{
-		printf("Unknown type %d (0x%x)\n",ftype,ftype);
+		fprintf(stderr, "Unknown type %d (0x%x)\n",
+			ftype, ftype);
 		mlim=15;
 	}
 	/* check that the pin number is in range */
@@ -205,8 +206,8 @@ static int add_pins(PROGRAMMER *pgm, int pinfunc)
 	else if (TYPE_2232H == ftype)
 		mlim = 16;
 	else{
-		printf("Unknown type %d (0x%x)\n",
-		       ftype, ftype);
+		fprintf(stderr, "Unknown type %d (0x%x)\n",
+			ftype, ftype);
 		mlim = 16;
 	}
 	if (mask >= 1 << mlim) {
@@ -262,7 +263,7 @@ static int write_flush(void)
 #endif
 
 	if (verbose > 3)
-		printf("FTDI LOG: %02x %02x %02x %02x %02x %02x\n",
+		fprintf(stderr, "FTDI LOG: %02x %02x %02x %02x %02x %02x\n",
 		       buf[0], buf[1], buf[2], buf[3], buf[4], buf[5]);
 
 	/* we need to flush here, because set_pin is used as reset.
