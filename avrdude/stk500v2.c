@@ -787,18 +787,20 @@ retry:
                 msg = msgbuf;
                 break;
             }
-            if (quell_progress < 2)
+            if (quell_progress < 2) {
                 fprintf(stderr, "%s: stk500v2_command(): warning: %s\n",
                         progname, msg);
-            buf[1] = STATUS_CMD_OK; /* pretend success */
-        }
-        if (buf[1] == STATUS_CMD_OK)
+            }
+        } else if (buf[1] == STATUS_CMD_OK) {
             return status;
-        if (buf[1] == STATUS_CMD_FAILED)
-            fprintf(stderr, "%s: stk500v2_command(): command failed\n", progname);
-        else
+        } else if (buf[1] == STATUS_CMD_FAILED) {
+            fprintf(stderr,
+                    "%s: stk500v2_command(): command failed\n",
+                    progname);
+        } else {
             fprintf(stderr, "%s: stk500v2_command(): unknown status 0x%02x\n",
                     progname, buf[1]);
+        }
         return -1;
     }
   }
@@ -1097,6 +1099,14 @@ static int stk500v2_initialize(PROGRAMMER * pgm, AVRPART * p)
     stk600_setup_xprog(pgm);
   } else {
     stk600_setup_isp(pgm);
+  }
+
+  if (p->flags & AVRPART_IS_AT90S1200) {
+    /*
+     * AT90S1200 needs a positive reset pulse after a chip erase.
+     */
+    pgm->disable(pgm);
+    usleep(10000);
   }
 
   return pgm->program_enable(pgm, p);
@@ -3328,6 +3338,16 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
             use_ext_addr = (1UL << 31);
     } else if (strcmp(mem->desc, "eeprom") == 0) {
         memtype = XPRG_MEM_TYPE_EEPROM;
+    } else if (strcmp(mem->desc, "signature") == 0) {
+        memtype = XPRG_MEM_TYPE_APPL;
+    } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
+        memtype = XPRG_MEM_TYPE_FUSE;
+    } else if (strcmp(mem->desc, "lockbits") == 0) {
+        memtype = XPRG_MEM_TYPE_LOCKBITS;
+    } else if (strcmp(mem->desc, "calibration") == 0) {
+        memtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
+    } else if (strcmp(mem->desc, "usersig") == 0) {
+        memtype = XPRG_MEM_TYPE_USERSIG;
     } else {
         fprintf(stderr,
                 "%s: stk600_xprog_paged_load(): unknown paged memory \"%s\"\n",
@@ -3419,6 +3439,21 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     } else if (strcmp(mem->desc, "eeprom") == 0) {
         memtype = XPRG_MEM_TYPE_EEPROM;
         writemode = (1 << XPRG_MEM_WRITE_WRITE) | (1 << XPRG_MEM_WRITE_ERASE);
+    } else if (strcmp(mem->desc, "signature") == 0) {
+        memtype = XPRG_MEM_TYPE_APPL;
+        writemode = (1 << XPRG_MEM_WRITE_WRITE);
+    } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
+        memtype = XPRG_MEM_TYPE_FUSE;
+        writemode = (1 << XPRG_MEM_WRITE_WRITE);
+    } else if (strcmp(mem->desc, "lockbits") == 0) {
+        memtype = XPRG_MEM_TYPE_LOCKBITS;
+        writemode = (1 << XPRG_MEM_WRITE_WRITE);
+    } else if (strcmp(mem->desc, "calibration") == 0) {
+        memtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
+        writemode = (1 << XPRG_MEM_WRITE_WRITE);
+    } else if (strcmp(mem->desc, "usersig") == 0) {
+        memtype = XPRG_MEM_TYPE_USERSIG;
+        writemode = (1 << XPRG_MEM_WRITE_WRITE);
     } else {
         fprintf(stderr,
                 "%s: stk600_xprog_paged_write(): unknown paged memory \"%s\"\n",

@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE August 17, 2011
+.Dd DATE August 30, 2011
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -211,7 +211,7 @@ the format.  Currently, the following MCU types are understood:
 .TS
 ll.
 \fBOption tag\fP	\fBOfficial part name\fP
-1200	AT90S1200
+1200	AT90S1200 (****)
 2313	AT90S2313
 2333	AT90S2333
 2343	AT90S2343 (*)
@@ -322,6 +322,11 @@ and bit-bang programmers.
 .It "(***)"
 The ATtiny11 uses the same algorithm, but can only be
 programmed in high-voltage serial mode.
+.It "(****)"
+The ISP programming protocol of the AT90S1200 differs in subtle ways
+from that of other AVRs.  Thus, not all programmers support this
+device.  Known to work are all direct bitbang programmers, and all
+programmers talking the STK500v2 protocol.
 .El
 .It Fl b Ar baudrate
 Override the RS-232 connection baud rate specified in the respective

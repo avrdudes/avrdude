@@ -5,7 +5,14 @@ Approximate change log for AVRDUDE by version.
 (For more detailed changes, see the ChangeLog file.)
 
 ----------------------------------------------------------------------
-Current:
+Version 5.11.1:
+
+  * Bugfixes
+      (see ChangeLog for details)
+      - Fix AT90S1200 (bug #34027: avrdude AT90S1200 Problem)
+      - Fix TPI devices for STK600/AVRISPmkII (no bug ID)
+
+Version 5.11:
 
   * New devices supported:
       - ATmega88P/168P

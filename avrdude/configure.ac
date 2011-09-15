@@ -24,7 +24,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(avrdude, 5.11, avrdude-dev@nongnu.org)
+AC_INIT(avrdude, 5.11.1rc, avrdude-dev@nongnu.org)
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
@@ -105,7 +105,7 @@ fi
 AC_SUBST(LIBUSB_1_0, $LIBUSB_1_0)
 AH_TEMPLATE([HAVE_LIBFTDI],
             [Define if FTDI support is enabled via libftdi])
-AC_CHECK_LIB([ftdi], [ftdi_init], [have_libftdi=yes], [], [-lusb])
+AC_CHECK_LIB([ftdi], [ftdi_usb_get_strings], [have_libftdi=yes], [], [-lusb])
 if test x$have_libftdi = xyes; then
    LIBFTDI="-lftdi -lusb"
    AC_DEFINE([HAVE_LIBFTDI])
