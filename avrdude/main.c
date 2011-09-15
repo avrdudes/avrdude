@@ -1005,8 +1005,7 @@ int main(int argc, char * argv [])
    *
    * The cycle count will be displayed anytime it will be changed later.
    */
-  if (init_ok && !(p->flags & AVRPART_AVR32) && 
-      (set_cycles == -1) && ((erase == 0) || (do_cycles == 0))) {
+  if (init_ok && !(p->flags & AVRPART_AVR32) && do_cycles) {
     /*
      * see if the cycle count in the last four bytes of eeprom seems
      * reasonable
@@ -1015,9 +1014,8 @@ int main(int argc, char * argv [])
     if (quell_progress < 2) {
       if ((rc >= 0) && (cycles != 0)) {
         fprintf(stderr,
-              "%s: current erase-rewrite cycle count is %d%s\n",
-              progname, cycles,
-              do_cycles ? "" : " (if being tracked)");
+              "%s: current erase-rewrite cycle count is %d\n",
+              progname, cycles);
       }
     }
   }
