@@ -235,12 +235,8 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
   memset(mem->buf, 0xff, mem->size);
 
   /* supports "paged load" thru post-increment */
-  if ((p->flags & AVRPART_HAS_TPI) && mem->page_size != 0) {
-    if (pgm->cmd_tpi == NULL) {
-      fprintf(stderr, "%s: Error: %s programmer does not support TPI\n",
-          progname, pgm->type);
-      return -1;
-    }
+  if ((p->flags & AVRPART_HAS_TPI) && mem->page_size != 0 &&
+      pgm->cmd_tpi != NULL) {
 
     while (avr_tpi_poll_nvmbsy(pgm));
 
@@ -752,13 +748,8 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
   }
 
 
-  if ((p->flags & AVRPART_HAS_TPI) && m->page_size != 0) {
-    if (pgm->cmd_tpi == NULL) {
-      fprintf(stderr,
-          "%s: Error: %s programmer does not support TPI\n",
-          progname, pgm->type);
-      return -1;
-    }
+  if ((p->flags & AVRPART_HAS_TPI) && m->page_size != 0 &&
+      pgm->cmd_tpi != NULL) {
 
     while (avr_tpi_poll_nvmbsy(pgm));
 
