@@ -1,5 +1,9 @@
 2011-09-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* configure.ac: Bump version for releasing AVRDUDE 5.11.1.
+
+2011-09-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* stk500v2.c (stk600_xprog_paged_load, stk600_xprog_paged_write):
 	Fix regression in the AVRISPmkII/STK600 TPI handling introduced
 	by the USBasp's TPI implementation which added a pagesize even for
