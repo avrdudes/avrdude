@@ -1,11 +1,55 @@
 2011-09-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* stk500v2.c (stk600_xprog_paged_load, stk600_xprog_paged_write):
+	Fix regression in the AVRISPmkII/STK600 TPI handling introduced
+	by the USBasp's TPI implementation which added a pagesize even for
+	the minor memory regions of TPI devices.  Also fix wrong offset
+	introduced by the memory tagging patch.
+
+2011-09-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* avr.c (avr_read, avr_write): Don't bail out on TPI parts if
 	their programmer doesn't provide a (low-level) cmd_tpi method;
 	instead, fall back to the normal programmer methods which are
 	supposed to handle the situation.
 	This fixes a regression where the recent bitbang-TPI implementation
 	broke TPI handling of STK600/AVRISPmkII.
+
+2011-09-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Mega-commit to bring in memory tagging.
+	Each memory image byte is now tagged as it's being read from a file.
+	Only bytes read from a file will be written or verified (modulo page
+	granularity requirements).
+	* avrpart.h: Add memory tags.
+	* avrpart.c: Allocate and initialize tag area.
+	* update.h: Drop unused parameter "verify" from do_op().
+	* pgm.h: Add parameter base_addr to the paged_load and paged_write
+	methods, respectively.
+	* avr.h: New parameter to avr_read: second AVRPART to verify against.
+	* fileio.c: Track all memory regions that have been read from an
+	input file by tagging them.
+	* update.c: Call avr_read() with the new parameter list.
+	* main.c: Call avr_initmem() to initialize the memory regions, rather
+	than trying to duplicate an unitialized part, and then let the
+	original part rot away.
+	* avr.c: Implement the heart of the new featureset.  For paged memory
+	areas, when writing or verifying, call the paged_write and paged_load
+	methods, respectively, once per page instead of on the entire memory.
+	When writing, only write bytes or pages that have content read from a
+	file.  Whe verifying, only read memory bytes or pages where the
+	verification data have been read from a file.  Only verify those bytes
+	that have been read from a file.
+	* avrftdi.c: Implement the new API for paged_load and paged_write,
+	respectively.
+	* jtagmkII.c: (Ditto.)
+	* butterfly.c: (Ditto.)
+	* jtagmkI.c: (Ditto.)
+	* avr910.c: (Ditto.)
+	* stk500.c: (Ditto.)
+	* usbasp.c: (Ditto.)
+	* stk500v2.c: (Ditto.)
+	* usbtiny.c: (Ditto.)
 
 2011-09-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 

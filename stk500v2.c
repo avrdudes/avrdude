@@ -3317,13 +3317,24 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
             use_ext_addr = (1UL << 31);
     } else if (strcmp(mem->desc, "eeprom") == 0) {
         memtype = XPRG_MEM_TYPE_EEPROM;
+    } else if (strcmp(mem->desc, "signature") == 0) {
+        memtype = XPRG_MEM_TYPE_APPL;
+    } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
+        memtype = XPRG_MEM_TYPE_FUSE;
+    } else if (strcmp(mem->desc, "lockbits") == 0) {
+        memtype = XPRG_MEM_TYPE_LOCKBITS;
+    } else if (strcmp(mem->desc, "calibration") == 0) {
+        memtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
+    } else if (strcmp(mem->desc, "usersig") == 0) {
+        memtype = XPRG_MEM_TYPE_USERSIG;
     } else {
         fprintf(stderr,
                 "%s: stk600_xprog_paged_load(): unknown paged memory \"%s\"\n",
                 progname, mem->desc);
         return -1;
     }
-    addr = mem->offset;
+    offset = addr;
+    addr += mem->offset;
 
     if ((b = malloc(page_size + 2)) == NULL) {
 	fprintf(stderr,
@@ -3335,7 +3346,6 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     if (stk500v2_loadaddr(pgm, use_ext_addr) < 0)
         return -1;
 
-    offset = 0;
     while (n_bytes != 0) {
 	b[0] = XPRG_CMD_READ_MEM;
 	b[1] = memtype;
@@ -3407,12 +3417,28 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     } else if (strcmp(mem->desc, "eeprom") == 0) {
         memtype = XPRG_MEM_TYPE_EEPROM;
         writemode = (1 << XPRG_MEM_WRITE_WRITE) | (1 << XPRG_MEM_WRITE_ERASE);
+    } else if (strcmp(mem->desc, "signature") == 0) {
+        memtype = XPRG_MEM_TYPE_APPL;
+        writemode = (1 << XPRG_MEM_WRITE_WRITE);
+    } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
+        memtype = XPRG_MEM_TYPE_FUSE;
+        writemode = (1 << XPRG_MEM_WRITE_WRITE);
+    } else if (strcmp(mem->desc, "lockbits") == 0) {
+        memtype = XPRG_MEM_TYPE_LOCKBITS;
+        writemode = (1 << XPRG_MEM_WRITE_WRITE);
+    } else if (strcmp(mem->desc, "calibration") == 0) {
+        memtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
+        writemode = (1 << XPRG_MEM_WRITE_WRITE);
+    } else if (strcmp(mem->desc, "usersig") == 0) {
+        memtype = XPRG_MEM_TYPE_USERSIG;
+        writemode = (1 << XPRG_MEM_WRITE_WRITE);
     } else {
         fprintf(stderr,
                 "%s: stk600_xprog_paged_write(): unknown paged memory \"%s\"\n",
                 progname, mem->desc);
         return -1;
     }
+    offset = addr;
     addr += mem->offset;
 
     if ((b = malloc(page_size + 9)) == NULL) {
@@ -3425,7 +3451,6 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     if (stk500v2_loadaddr(pgm, use_ext_addr) < 0)
         return -1;
 
-    offset = 0;
     while (n_bytes != 0) {
 	if (page_size > 256) {
 	    /*
