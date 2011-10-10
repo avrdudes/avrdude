@@ -52,14 +52,14 @@ static int b2ihex(unsigned char * inbuf, int bufsize,
              char * outfile, FILE * outf);
 
 static int ihex2b(char * infile, FILE * inf,
-             AVRMEM * mem, int bufsize);
+             AVRMEM * mem, int bufsize, unsigned int fileoffset);
 
 static int b2srec(unsigned char * inbuf, int bufsize, 
            int recsize, int startaddr,
            char * outfile, FILE * outf);
 
 static int srec2b(char * infile, FILE * inf,
-             AVRMEM * mem, int bufsize);
+             AVRMEM * mem, int bufsize, unsigned int fileoffset);
 
 static int ihex_readrec(struct ihexrec * ihex, char * rec);
 
@@ -262,21 +262,20 @@ static int ihex_readrec(struct ihexrec * ihex, char * rec)
  *
  * */
 static int ihex2b(char * infile, FILE * inf,
-             AVRMEM * mem, int bufsize)
+             AVRMEM * mem, int bufsize, unsigned int fileoffset)
 {
   char buffer [ MAX_LINE_LEN ];
-  unsigned int nextaddr, baseaddr, maxaddr, offsetaddr;
+  unsigned int nextaddr, baseaddr, maxaddr;
   int i;
   int lineno;
   int len;
   struct ihexrec ihex;
   int rc;
 
-  lineno      = 0;
-  baseaddr    = 0;
-  maxaddr     = 0;
-  offsetaddr  = 0;
-  nextaddr    = 0;
+  lineno   = 0;
+  baseaddr = 0;
+  maxaddr  = 0;
+  nextaddr = 0;
 
   while (fgets((char *)buffer,MAX_LINE_LEN,inf)!=NULL) {
     lineno++;
@@ -301,23 +300,29 @@ static int ihex2b(char * infile, FILE * inf,
 
     switch (ihex.rectyp) {
       case 0: /* data record */
-        nextaddr = ihex.loadofs + baseaddr;
-        if ((nextaddr + ihex.reclen) > (bufsize+offsetaddr)) {
+        if (fileoffset != 0 && baseaddr < fileoffset) {
+          fprintf(stderr, 
+                  "%s: ERROR: address 0x%04x out of range (below fileoffset 0x%x) at line %d of %s\n",
+                  progname, baseaddr, fileoffset, lineno, infile);
+          return -1;
+        }
+        nextaddr = ihex.loadofs + baseaddr - fileoffset;
+        if (nextaddr + ihex.reclen > bufsize) {
           fprintf(stderr, 
                   "%s: ERROR: address 0x%04x out of range at line %d of %s\n",
                   progname, nextaddr+ihex.reclen, lineno, infile);
           return -1;
         }
         for (i=0; i<ihex.reclen; i++) {
-          mem->buf[nextaddr+i-offsetaddr] = ihex.data[i];
-          mem->tags[nextaddr+i-offsetaddr] = TAG_ALLOCATED;
+          mem->buf[nextaddr+i] = ihex.data[i];
+          mem->tags[nextaddr+i] = TAG_ALLOCATED;
         }
         if (nextaddr+ihex.reclen > maxaddr)
           maxaddr = nextaddr+ihex.reclen;
         break;
 
       case 1: /* end of file record */
-        return maxaddr-offsetaddr;
+        return maxaddr;
         break;
 
       case 2: /* extended segment address record */
@@ -330,7 +335,6 @@ static int ihex2b(char * infile, FILE * inf,
 
       case 4: /* extended linear address record */
         baseaddr = (ihex.data[0] << 8 | ihex.data[1]) << 16;
-        if(nextaddr == 0) offsetaddr = baseaddr;	// if provided before any data, then remember it
         break;
 
       case 5: /* start linear address record */
@@ -353,7 +357,7 @@ static int ihex2b(char * infile, FILE * inf,
           "file \"%s\"\n",
           progname, infile);
 
-  return maxaddr-offsetaddr;
+  return maxaddr;
 }
 
 static int b2srec(unsigned char * inbuf, int bufsize, 
@@ -539,10 +543,10 @@ static int srec_readrec(struct ihexrec * srec, char * rec)
 
 
 static int srec2b(char * infile, FILE * inf,
-           AVRMEM * mem, int bufsize)
+           AVRMEM * mem, int bufsize, unsigned int fileoffset)
 {
   char buffer [ MAX_LINE_LEN ];
-  unsigned int nextaddr, baseaddr, maxaddr;
+  unsigned int nextaddr, maxaddr;
   int i;
   int lineno;
   int len;
@@ -554,7 +558,6 @@ static int srec2b(char * infile, FILE * inf,
   char * msg = 0;
 
   lineno   = 0;
-  baseaddr = 0;
   maxaddr  = 0;
   reccount = 0;
 
@@ -588,17 +591,17 @@ static int srec2b(char * infile, FILE * inf,
 
       case 0x31: /* S1 - 16 bit address data record */
         datarec=1;
-        msg="%s: ERROR: address 0x%04x out of range at line %d of %s\n";    
+        msg="%s: ERROR: address 0x%04x out of range %sat line %d of %s\n";
         break;
 
       case 0x32: /* S2 - 24 bit address data record */
         datarec=1;
-        msg="%s: ERROR: address 0x%06x out of range at line %d of %s\n";
+        msg="%s: ERROR: address 0x%06x out of range %sat line %d of %s\n";
         break;
 
       case 0x33: /* S3 - 32 bit address data record */
         datarec=1;
-        msg="%s: ERROR: address 0x%08x out of range at line %d of %s\n";
+        msg="%s: ERROR: address 0x%08x out of range %sat line %d of %s\n";
         break;
 
       case 0x34: /* S4 - symbol record (LSI extension) */
@@ -634,9 +637,17 @@ static int srec2b(char * infile, FILE * inf,
     }
 
     if (datarec == 1) {
-      nextaddr = srec.loadofs + baseaddr;
+      nextaddr = srec.loadofs;
+      if (nextaddr < fileoffset) {
+        fprintf(stderr, msg, progname, nextaddr,
+                "(below fileoffset) ",
+                lineno, infile);
+        return -1;
+      }
+      nextaddr -= fileoffset;
       if (nextaddr + srec.reclen > bufsize) {
-        fprintf(stderr, msg, progname, nextaddr+srec.reclen, lineno, infile);
+        fprintf(stderr, msg, progname, nextaddr+srec.reclen, "",
+                lineno, infile);
         return -1;
       }
       for (i=0; i<srec.reclen; i++) {
@@ -786,14 +797,14 @@ static int fileio_ihex(struct fioparms * fio,
 
   switch (fio->op) {
     case FIO_WRITE:
-      rc = b2ihex(mem->buf, size, 32, 0, filename, f);
+      rc = b2ihex(mem->buf, size, 32, fio->fileoffset, filename, f);
       if (rc < 0) {
         return -1;
       }
       break;
 
     case FIO_READ:
-      rc = ihex2b(filename, f, mem, size);
+      rc = ihex2b(filename, f, mem, size, fio->fileoffset);
       if (rc < 0)
         return -1;
       break;
@@ -816,14 +827,14 @@ static int fileio_srec(struct fioparms * fio,
 
   switch (fio->op) {
     case FIO_WRITE:
-      rc = b2srec(mem->buf, size, 32, 0, filename, f);
+      rc = b2srec(mem->buf, size, 32, fio->fileoffset, filename, f);
       if (rc < 0) {
         return -1;
       }
       break;
 
     case FIO_READ:
-      rc = srec2b(filename, f, mem, size);
+      rc = srec2b(filename, f, mem, size, fio->fileoffset);
       if (rc < 0)
         return -1;
       break;
@@ -912,7 +923,8 @@ static int fileio_num(struct fioparms * fio,
 }
 
 
-int fileio_setparms(int op, struct fioparms * fp)
+int fileio_setparms(int op, struct fioparms * fp,
+                    struct avrpart * p, AVRMEM * m)
 {
   fp->op = op;
 
@@ -936,6 +948,19 @@ int fileio_setparms(int op, struct fioparms * fp)
               progname, op);
       return -1;
       break;
+  }
+
+  /*
+   * AVR32 devices maintain their load offset within the file itself,
+   * but AVRDUDE maintains all memory images 0-based.
+   */
+  if ((p->flags & AVRPART_AVR32) != 0)
+  {
+    fp->fileoffset = m->offset;
+  }
+  else
+  {
+    fp->fileoffset = 0;
   }
 
   return 0;
@@ -1032,7 +1057,7 @@ int fileio(int op, char * filename, FILEFMT format,
     return -1;
   }
 
-  rc = fileio_setparms(op, &fio);
+  rc = fileio_setparms(op, &fio, p, mem);
   if (rc < 0)
     return -1;
 
