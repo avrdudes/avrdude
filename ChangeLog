@@ -1,3 +1,14 @@
+2011-10-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #34518: loading intel hex files > 64k using record-type 4
+	(Extended Linear Address Record)
+	fileio.c: Replace the change from r928 (handling of 0x8000000
+	offset in AVR32 files) by a completely different logic that no
+	longer breaks hex files for other devices starting with an
+	offset; also apply a similar change to S-record files, as well
+	as when writing files.
+	fileio.c: (Ditto.)
+
 2011-09-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* avrftdi.c: Remove stray printf()s by fprintf(stderr)

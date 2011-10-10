@@ -40,6 +40,7 @@ struct fioparms {
   char * iodesc;
   char * dir;
   char * rw;
+  unsigned int fileoffset;
 };
 
 enum {
@@ -52,8 +53,6 @@ extern "C" {
 #endif
 
 char * fmtstr(FILEFMT format);
-
-int fileio_setparms(int op, struct fioparms * fp);
 
 int fileio(int op, char * filename, FILEFMT format,
            struct avrpart * p, char * memtype, int size);
