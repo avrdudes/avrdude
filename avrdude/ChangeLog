@@ -1,3 +1,7 @@
+2011-10-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac: Replace "cvs" in version number by "svn".
+
 2011-10-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #34518: loading intel hex files > 64k using record-type 4
