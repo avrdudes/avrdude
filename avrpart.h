@@ -221,8 +221,8 @@ void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose);
 typedef void (*walk_avrparts_cb)(const char *name, const char *desc,
                                  const char *cfgname, int cfglineno,
                                  void *cookie);
-void walk_avrparts(LISTID programmers, walk_avrparts_cb cb, void *cookie);
-
+void walk_avrparts(LISTID avrparts, walk_avrparts_cb cb, void *cookie);
+void sort_avrparts(LISTID avrparts);
 #ifdef __cplusplus
 }
 #endif

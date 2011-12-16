@@ -140,6 +140,8 @@ typedef void (*walk_programmers_cb)(const char *name, const char *desc,
                                     void *cookie);
 void walk_programmers(LISTID programmers, walk_programmers_cb cb, void *cookie);
 
+void sort_programmers(LISTID programmers);
+
 #ifdef __cplusplus
 }
 #endif
