@@ -218,11 +218,37 @@ PROGRAMMER * locate_programmer(LISTID programmers, const char * configid)
 void walk_programmers(LISTID programmers, walk_programmers_cb cb, void *cookie)
 {
   LNODEID ln1;
+  LNODEID ln2;
   PROGRAMMER * p;
 
   for (ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
     p = ldata(ln1);
-    cb((char *)ldata(lfirst(p->id)), p->desc, p->config_file, p->lineno, cookie);
+    for (ln2=lfirst(p->id); ln2; ln2=lnext(ln2)) {
+      cb(ldata(ln2), p->desc, p->config_file, p->lineno, cookie);
+    }
   }
+}
+
+/*
+ * Compare function to sort the list of programmers
+ */
+static int sort_programmer_compare(PROGRAMMER * p1,PROGRAMMER * p2)
+{
+  char* id1;
+  char* id2;
+  if(p1 == NULL || p2 == NULL) {
+    return 0;
+  }
+  id1 = ldata(lfirst(p1->id));
+  id2 = ldata(lfirst(p2->id));
+  return strncasecmp(id1,id2,AVR_IDLEN);
+}
+
+/*
+ * Sort the list of programmers given as "programmers"
+ */
+void sort_programmers(LISTID programmers)
+{
+  lsort(programmers,(int (*)(void*, void*)) sort_programmer_compare);
 }
 

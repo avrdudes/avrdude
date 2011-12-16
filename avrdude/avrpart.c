@@ -470,6 +470,24 @@ void walk_avrparts(LISTID avrparts, walk_avrparts_cb cb, void *cookie)
   }
 }
 
+/*
+ * Compare function to sort the list of programmers
+ */
+static int sort_avrparts_compare(AVRPART * p1,AVRPART * p2)
+{
+  if(p1 == NULL || p2 == NULL) {
+    return 0;
+  }
+  return strncasecmp(p1->desc,p2->desc,AVR_IDLEN);
+}
+
+/*
+ * Sort the list of programmers given as "programmers"
+ */
+void sort_avrparts(LISTID avrparts)
+{
+  lsort(avrparts,(int (*)(void*, void*)) sort_avrparts_compare);
+}
 
 
 static char * reset_disp_str(int r)

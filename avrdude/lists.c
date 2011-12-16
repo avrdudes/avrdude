@@ -1280,6 +1280,43 @@ lsrch ( LISTID lid, void * p, int (* compare)(void * p1, void * p2) )
   return NULL;
 }
 
+/*----------------------------------------------------------------------
+|  lsort
+|
+|  sort list - sorts list inplace (using bubble sort)
+|
+ ----------------------------------------------------------------------*/
+void
+lsort ( LISTID lid, int (* compare)(void * p1, void * p2) )
+{
+  LIST * l;
+  LISTNODE * lt; /* this */
+  LISTNODE * ln; /* next */
+  int unsorted = 1;
+
+  l = (LIST *)lid;
+
+  CKLMAGIC(l);
+
+  while(unsorted){
+    lt = l->top;
+    unsorted = 0;
+    while (lt!=NULL) {
+      CKMAGIC(lt);
+      ln = lt->next;
+      if (ln!= NULL && compare(lt->data,ln->data) > 0) {
+        void * p = ln->data;
+        ln->data = lt->data;
+        lt->data = p;
+        unsorted = 1;
+      }
+      lt = ln;
+    }
+  }
+
+  CKLMAGIC(l);
+}
+
 
 int lprint ( FILE * f, LISTID lid )
 {

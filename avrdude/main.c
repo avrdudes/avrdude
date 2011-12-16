@@ -198,9 +198,13 @@ static void list_programmers_callback(const char *name, const char *desc,
                                       void *cookie)
 {
     struct list_walk_cookie *c = (struct list_walk_cookie *)cookie;
-
-    fprintf(c->f, "%s%-8s = %-30s [%s:%d]\n",
-            c->prefix, name, desc, cfgname, cfglineno);
+    if (verbose){
+        fprintf(c->f, "%s%-16s = %-30s [%s:%d]\n",
+                c->prefix, name, desc, cfgname, cfglineno);
+    } else {
+        fprintf(c->f, "%s%-16s = %-s\n",
+                c->prefix, name, desc);
+    }
 }
 
 static void list_programmers(FILE * f, const char *prefix, LISTID programmers)
@@ -209,6 +213,8 @@ static void list_programmers(FILE * f, const char *prefix, LISTID programmers)
 
     c.f = f;
     c.prefix = prefix;
+
+    sort_programmers(programmers);
 
     walk_programmers(programmers, list_programmers_callback, &c);
 }
@@ -219,8 +225,13 @@ static void list_avrparts_callback(const char *name, const char *desc,
 {
     struct list_walk_cookie *c = (struct list_walk_cookie *)cookie;
 
-    fprintf(c->f, "%s%-4s = %-15s [%s:%d]\n",
-            c->prefix, name, desc, cfgname, cfglineno);
+    if (verbose){
+        fprintf(c->f, "%s%-8s = %-18s [%s:%d]\n",
+                c->prefix, name, desc, cfgname, cfglineno);
+    } else {
+        fprintf(c->f, "%s%-8s = %s\n",
+                c->prefix, name, desc);
+    }
 }
 
 static void list_parts(FILE * f, const char *prefix, LISTID avrparts)
@@ -229,6 +240,8 @@ static void list_parts(FILE * f, const char *prefix, LISTID avrparts)
 
     c.f = f;
     c.prefix = prefix;
+
+    sort_avrparts(avrparts);
 
     walk_avrparts(avrparts, list_avrparts_callback, &c);
 }

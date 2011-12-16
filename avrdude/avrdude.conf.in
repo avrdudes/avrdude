@@ -2558,7 +2558,7 @@ part
 
 part
     id               = "m103";
-    desc             = "ATMEGA103";
+    desc             = "ATmega103";
     stk500_devcode   = 0xB1;
     avr910_devcode   = 0x41;
     signature        = 0x1e 0x97 0x01;
@@ -2698,7 +2698,7 @@ part
 
 part
     id               = "m64";
-    desc             = "ATMEGA64";
+    desc             = "ATmega64";
     has_jtag         = yes;
     stk500_devcode   = 0xA0;
     avr910_devcode   = 0x45;
@@ -2879,7 +2879,7 @@ part
 
 part
     id               = "m128";
-    desc             = "ATMEGA128";
+    desc             = "ATmega128";
     has_jtag         = yes;
     stk500_devcode   = 0xB2;
     avr910_devcode   = 0x43;
@@ -3628,7 +3628,7 @@ part
 
 part
     id               = "m16";
-    desc             = "ATMEGA16";
+    desc             = "ATmega16";
     has_jtag         = yes;
     stk500_devcode   = 0x82;
     avr910_devcode   = 0x74;
@@ -3806,7 +3806,7 @@ part
 
 part
     id               = "m164p";
-    desc             = "ATMEGA164P";
+    desc             = "ATmega164P";
     has_jtag         = yes;
     stk500_devcode   = 0x82; # no STK500v1 support, use the ATmega16 one
     avr910_devcode   = 0x74;
@@ -3997,7 +3997,7 @@ part
 
 part
     id               = "m324p";
-    desc             = "ATMEGA324P";
+    desc             = "ATmega324P";
     has_jtag         = yes;
     stk500_devcode   = 0x82; # no STK500v1 support, use the ATmega16 one
     avr910_devcode   = 0x74;
@@ -4379,7 +4379,7 @@ part
 
 part
     id               = "m644";
-    desc             = "ATMEGA644";
+    desc             = "ATmega644";
     has_jtag         = yes;
     stk500_devcode   = 0x82; # no STK500v1 support, use the ATmega16 one
     avr910_devcode   = 0x74;
@@ -4569,7 +4569,7 @@ part
 
 part
     id               = "m644p";
-    desc             = "ATMEGA644P";
+    desc             = "ATmega644P";
     has_jtag         = yes;
     stk500_devcode   = 0x82; # no STK500v1 support, use the ATmega16 one
     avr910_devcode   = 0x74;
@@ -4761,7 +4761,7 @@ part
 
 part
     id               = "m1284p";
-    desc             = "ATMEGA1284P";
+    desc             = "ATmega1284P";
     has_jtag         = yes;
     stk500_devcode   = 0x82; # no STK500v1 support, use the ATmega16 one
     avr910_devcode   = 0x74;
@@ -4951,7 +4951,7 @@ part
 
 part
     id               = "m162";
-    desc             = "ATMEGA162";
+    desc             = "ATmega162";
     has_jtag         = yes;
     stk500_devcode   = 0x83;
     avr910_devcode   = 0x63;
@@ -5147,7 +5147,7 @@ part
 
 part
     id               = "m163";
-    desc             = "ATMEGA163";
+    desc             = "ATmega163";
     stk500_devcode   = 0x81;
     avr910_devcode   = 0x64;
     signature        = 0x1e 0x94 0x02;
@@ -5305,7 +5305,7 @@ part
 
 part
     id               = "m169";
-    desc             = "ATMEGA169";
+    desc             = "ATmega169";
     has_jtag         = yes;
     stk500_devcode   = 0x85;
     avr910_devcode   = 0x78;
@@ -5485,7 +5485,7 @@ part
 
 part
     id               = "m329";
-    desc             = "ATMEGA329";
+    desc             = "ATmega329";
     has_jtag         = yes;
 #    stk500_devcode   = 0x85; # no STK500 support, only STK500v2
 #    avr910_devcode   = 0x?;  # try the ATmega169 one:
@@ -5669,7 +5669,7 @@ part
 
 part
     id               = "m329p";
-    desc             = "ATMEGA329P";
+    desc             = "ATmega329P";
     has_jtag         = yes;
 #    stk500_devcode   = 0x85; # no STK500 support, only STK500v2
 #    avr910_devcode   = 0x?;  # try the ATmega169 one:
@@ -5854,7 +5854,7 @@ part
 
 part
     id               = "m3290";
-    desc             = "ATMEGA3290";
+    desc             = "ATmega3290";
     has_jtag         = yes;
 #    stk500_devcode   = 0x85; # no STK500 support, only STK500v2
 #    avr910_devcode   = 0x?;  # try the ATmega169 one:
@@ -6039,7 +6039,7 @@ part
 
 part
     id               = "m3290p";
-    desc             = "ATMEGA3290P";
+    desc             = "ATmega3290P";
     has_jtag         = yes;
 #    stk500_devcode   = 0x85; # no STK500 support, only STK500v2
 #    avr910_devcode   = 0x?;  # try the ATmega169 one:
@@ -6222,7 +6222,7 @@ part
 
 part
     id               = "m649";
-    desc             = "ATMEGA649";
+    desc             = "ATmega649";
     has_jtag         = yes;
 #    stk500_devcode   = 0x85; # no STK500 support, only STK500v2
 #    avr910_devcode   = 0x?;  # try the ATmega169 one:
@@ -6407,7 +6407,7 @@ part
 
 part
     id               = "m6490";
-    desc             = "ATMEGA6490";
+    desc             = "ATmega6490";
     has_jtag         = yes;
 #    stk500_devcode   = 0x85; # no STK500 support, only STK500v2
 #    avr910_devcode   = 0x?;  # try the ATmega169 one:
@@ -6600,7 +6600,7 @@ part
 
 part
     id               = "m32";
-    desc             = "ATMEGA32";
+    desc             = "ATmega32";
     has_jtag         = yes;
     stk500_devcode   = 0x91;
     avr910_devcode   = 0x72;
@@ -6775,7 +6775,7 @@ part
 
 part
     id               = "m161";
-    desc             = "ATMEGA161";
+    desc             = "ATmega161";
     stk500_devcode   = 0x80;
     avr910_devcode   = 0x60;
     signature        = 0x1e 0x94 0x01;
@@ -6915,7 +6915,7 @@ part
 
 part
     id               = "m8";
-    desc             = "ATMEGA8";
+    desc             = "ATmega8";
     stk500_devcode   = 0x70;
     avr910_devcode   = 0x76;
     signature        = 0x1e 0x93 0x07;
@@ -7076,7 +7076,7 @@ part
 
 part
     id               = "m8515";
-    desc             = "ATMEGA8515";
+    desc             = "ATmega8515";
     stk500_devcode   = 0x63;
     avr910_devcode   = 0x3A;
     signature        = 0x1e 0x93 0x06;
@@ -7234,7 +7234,7 @@ part
 
 part
     id               = "m8535";
-    desc             = "ATMEGA8535";
+    desc             = "ATmega8535";
     stk500_devcode   = 0x64;
     avr910_devcode   = 0x69;
     signature        = 0x1e 0x93 0x08;
@@ -7392,7 +7392,7 @@ part
 
 part
     id                  = "t26";
-    desc                = "ATTINY26";
+    desc                = "ATtiny26";
     stk500_devcode      = 0x21;
     avr910_devcode      = 0x5e;
     signature           = 0x1e 0x91 0x09;
@@ -7549,7 +7549,7 @@ part
 
 part
     id                  = "t261";
-    desc                = "ATTINY261";
+    desc                = "ATtiny261";
      has_debugwire = yes;
      flash_instr   = 0xB4, 0x00, 0x10;
      eeprom_instr  = 0xBB, 0xFF, 0xBB, 0xEE, 0xBB, 0xCC, 0xB2, 0x0D,
@@ -7738,7 +7738,7 @@ part
 
 part
     id                  = "t461";
-    desc                = "ATTINY461";
+    desc                = "ATtiny461";
      has_debugwire = yes;
      flash_instr   = 0xB4, 0x00, 0x10;
      eeprom_instr  = 0xBB, 0xFF, 0xBB, 0xEE, 0xBB, 0xCC, 0xB2, 0x0D,
@@ -7927,7 +7927,7 @@ part
 
 part
     id                  = "t861";
-    desc                = "ATTINY861";
+    desc                = "ATtiny861";
      has_debugwire = yes;
      flash_instr   = 0xB4, 0x00, 0x10;
      eeprom_instr  = 0xBB, 0xFF, 0xBB, 0xEE, 0xBB, 0xCC, 0xB2, 0x0D,
@@ -8115,7 +8115,7 @@ part
 
 part
     id               = "m48";
-    desc             = "ATMEGA48";
+    desc             = "ATmega48";
      has_debugwire = yes;
      flash_instr   = 0xB6, 0x01, 0x11;
      eeprom_instr  = 0xBD, 0xF2, 0xBD, 0xE1, 0xBB, 0xCF, 0xB4, 0x00,
@@ -8302,7 +8302,7 @@ part
 
 part
     id               = "m88";
-    desc             = "ATMEGA88";
+    desc             = "ATmega88";
      has_debugwire = yes;
      flash_instr   = 0xB6, 0x01, 0x11;
      eeprom_instr  = 0xBD, 0xF2, 0xBD, 0xE1, 0xBB, 0xCF, 0xB4, 0x00,
@@ -8488,7 +8488,7 @@ part
 
 part
     id               = "m88p";
-    desc             = "ATMEGA88P";
+    desc             = "ATmega88P";
      has_debugwire = yes;
      flash_instr   = 0xB6, 0x01, 0x11;
      eeprom_instr  = 0xBD, 0xF2, 0xBD, 0xE1, 0xBB, 0xCF, 0xB4, 0x00,
@@ -8675,7 +8675,7 @@ part
 
 part
     id              = "m168";
-    desc            = "ATMEGA168";
+    desc            = "ATmega168";
      has_debugwire = yes;
      flash_instr   = 0xB6, 0x01, 0x11;
      eeprom_instr  = 0xBD, 0xF2, 0xBD, 0xE1, 0xBB, 0xCF, 0xB4, 0x00,
@@ -8863,7 +8863,7 @@ part
 
 part
     id              = "m168p";
-    desc            = "ATMEGA168P";
+    desc            = "ATmega168P";
      has_debugwire = yes;
      flash_instr   = 0xB6, 0x01, 0x11;
      eeprom_instr  = 0xBD, 0xF2, 0xBD, 0xE1, 0xBB, 0xCF, 0xB4, 0x00,
@@ -9051,7 +9051,7 @@ part
 
 part
     id               = "t88";
-    desc             = "attiny88";
+    desc             = "ATtiny88";
      has_debugwire = yes;
      flash_instr   = 0xB6, 0x01, 0x11;
      eeprom_instr  = 0xBD, 0xF2, 0xBD, 0xE1, 0xBB, 0xCF, 0xB4, 0x00,
@@ -9237,7 +9237,7 @@ part
 
 part
     id			= "m328p";
-    desc		= "ATMEGA328P";
+    desc		= "ATmega328P";
     has_debugwire	= yes;
     flash_instr		= 0xB6, 0x01, 0x11;
     eeprom_instr	= 0xBD, 0xF2, 0xBD, 0xE1, 0xBB, 0xCF, 0xB4, 0x00,
@@ -11065,7 +11065,7 @@ part
 
 part
     id               = "m640";
-    desc             = "ATMEGA640";
+    desc             = "ATmega640";
     signature        = 0x1e 0x96 0x08;
     has_jtag         = yes;
 #    stk500_devcode   = 0xB2;
@@ -11253,7 +11253,7 @@ part
 
 part
     id               = "m1280";
-    desc             = "ATMEGA1280";
+    desc             = "ATmega1280";
     signature        = 0x1e 0x97 0x03;
     has_jtag         = yes;
 #    stk500_devcode   = 0xB2;
@@ -11442,7 +11442,7 @@ part
 
 part
     id               = "m1281";
-    desc             = "ATMEGA1281";
+    desc             = "ATmega1281";
     signature        = 0x1e 0x97 0x04;
     has_jtag         = yes;
 #    stk500_devcode   = 0xB2;
@@ -11630,7 +11630,7 @@ part
 
 part
     id               = "m2560";
-    desc             = "ATMEGA2560";
+    desc             = "ATmega2560";
     signature        = 0x1e 0x98 0x01;
     has_jtag         = yes;
 #    stk500_devcode   = 0xB2;
@@ -11823,7 +11823,7 @@ part
 
 part
     id               = "m2561";
-    desc             = "ATMEGA2561";
+    desc             = "ATmega2561";
     signature        = 0x1e 0x98 0x02;
     has_jtag         = yes;
 #    stk500_devcode   = 0xB2;
@@ -12017,7 +12017,7 @@ part
 
 part
     id               = "m128rfa1";
-    desc             = "ATMEGA128RFA1";
+    desc             = "ATmega128RFA1";
     signature        = 0x1e 0xa7 0x01;
     has_jtag         = yes;
 #    stk500_devcode   = 0xB2;
@@ -14614,7 +14614,7 @@ part
 
 part
     id               = "m325";
-    desc             = "ATMEGA325";
+    desc             = "ATmega325";
     signature        = 0x1e 0x95 0x05;
     has_jtag         = yes;
 #   stk500_devcode   = 0x??; # No STK500v1 support?
@@ -14803,7 +14803,7 @@ part
 
 part
     id               = "m645";
-    desc             = "ATMEGA645";
+    desc             = "ATmega645";
     signature        = 0x1E 0x96 0x05;
     has_jtag         = yes;
 #   stk500_devcode   = 0x??; # No STK500v1 support?
@@ -14992,7 +14992,7 @@ part
 
 part
     id               = "m3250";
-    desc             = "ATMEGA3250";
+    desc             = "ATmega3250";
     signature        = 0x1E 0x95 0x06;
     has_jtag         = yes;
 #   stk500_devcode   = 0x??; # No STK500v1 support?
@@ -15181,7 +15181,7 @@ part
 
 part
     id               = "m6450";
-    desc             = "ATMEGA6450";
+    desc             = "ATmega6450";
     signature        = 0x1E 0x96 0x06;
     has_jtag         = yes;
 #   stk500_devcode   = 0x??; # No STK500v1 support?
@@ -15365,12 +15365,12 @@ part
   ;
 
 #------------------------------------------------------------
-# ATXMEGA64A1
+# ATxmega64A1
 #------------------------------------------------------------
 
 part
     id		= "x64a1";
-    desc	= "ATXMEGA64A1";
+    desc	= "ATxmega64A1";
     signature	= 0x1e 0x96 0x4e;
     has_jtag	= yes;
     has_pdi	= yes;
@@ -15462,12 +15462,12 @@ part
 ;
 
 #------------------------------------------------------------
-# ATXMEGA128A1
+# ATxmega128A1
 #------------------------------------------------------------
 
 part
     id		= "x128a1";
-    desc	= "ATXMEGA128A1";
+    desc	= "ATxmega128A1";
     signature	= 0x1e 0x97 0x4c;
     has_jtag	= yes;
     has_pdi	= yes;
@@ -15559,12 +15559,12 @@ part
 ;
 
 #------------------------------------------------------------
-# ATXMEGA128A1REVD
+# ATxmega128A1RevD
 #------------------------------------------------------------
 
 part
     id		= "x128a1d";
-    desc	= "ATXMEGA128A1REVD";
+    desc	= "ATxmega128A1RevD";
     signature	= 0x1e 0x97 0x41;
     has_jtag	= yes;
     has_pdi	= yes;
@@ -15656,12 +15656,12 @@ part
 ;
 
 #------------------------------------------------------------
-# ATXMEGA192A1
+# ATxmega192A1
 #------------------------------------------------------------
 
 part
     id		= "x192a1";
-    desc	= "ATXMEGA192A1";
+    desc	= "ATxmega192A1";
     signature	= 0x1e 0x97 0x4e;
     has_jtag	= yes;
     has_pdi	= yes;
@@ -15753,12 +15753,12 @@ part
 ;
 
 #------------------------------------------------------------
-# ATXMEGA256A1
+# ATxmega256A1
 #------------------------------------------------------------
 
 part
     id		= "x256a1";
-    desc	= "ATXMEGA256A1";
+    desc	= "ATxmega256A1";
     signature	= 0x1e 0x98 0x46;
     has_jtag	= yes;
     has_pdi	= yes;
@@ -15850,12 +15850,12 @@ part
 ;
 
 #------------------------------------------------------------
-# ATXMEGA64A3
+# ATxmega64A3
 #------------------------------------------------------------
 
 part
     id		= "x64a3";
-    desc	= "ATXMEGA64A3";
+    desc	= "ATxmega64A3";
     signature	= 0x1e 0x96 0x42;
     has_jtag	= yes;
     has_pdi	= yes;
@@ -15947,12 +15947,12 @@ part
 ;
 
 #------------------------------------------------------------
-# ATXMEGA128A3
+# ATxmega128A3
 #------------------------------------------------------------
 
 part
     id		= "x128a3";
-    desc	= "ATXMEGA128A3";
+    desc	= "ATxmega128A3";
     signature	= 0x1e 0x97 0x42;
     has_jtag	= yes;
     has_pdi	= yes;
@@ -16044,12 +16044,12 @@ part
 ;
 
 #------------------------------------------------------------
-# ATXMEGA192A3
+# ATxmega192A3
 #------------------------------------------------------------
 
 part
     id		= "x192a3";
-    desc	= "ATXMEGA192A3";
+    desc	= "ATxmega192A3";
     signature	= 0x1e 0x97 0x44;
     has_jtag	= yes;
     has_pdi	= yes;
@@ -16141,12 +16141,12 @@ part
 ;
 
 #------------------------------------------------------------
-# ATXMEGA256A3
+# ATxmega256A3
 #------------------------------------------------------------
 
 part
     id		= "x256a3";
-    desc	= "ATXMEGA256A3";
+    desc	= "ATxmega256A3";
     signature	= 0x1e 0x98 0x42;
     has_jtag	= yes;
     has_pdi	= yes;
@@ -16238,12 +16238,12 @@ part
 ;
 
 #------------------------------------------------------------
-# ATXMEGA256A3B
+# ATxmega256A3B
 #------------------------------------------------------------
 
 part
     id		= "x256a3b";
-    desc	= "ATXMEGA256A3B";
+    desc	= "ATxmega256A3B";
     signature	= 0x1e 0x98 0x43;
     has_jtag	= yes;
     has_pdi	= yes;
@@ -16335,12 +16335,12 @@ part
 ;
 
 #------------------------------------------------------------
-# ATXMEGA16A4
+# ATxmega16A4
 #------------------------------------------------------------
 
 part
     id		= "x16a4";
-    desc	= "ATXMEGA16A4";
+    desc	= "ATxmega16A4";
     signature	= 0x1e 0x94 0x41;
     has_jtag	= yes;
     has_pdi	= yes;
@@ -16432,12 +16432,12 @@ part
 ;
 
 #------------------------------------------------------------
-# ATXMEGA32A4
+# ATxmega32A4
 #------------------------------------------------------------
 
 part
     id		= "x32a4";
-    desc	= "ATXMEGA32A4";
+    desc	= "ATxmega32A4";
     signature	= 0x1e 0x95 0x41;
     has_jtag	= yes;
     has_pdi	= yes;
@@ -16529,12 +16529,12 @@ part
 ;
 
 #------------------------------------------------------------
-# ATXMEGA64A4
+# ATxmega64A4
 #------------------------------------------------------------
 
 part
     id		= "x64a4";
-    desc	= "ATXMEGA64A4";
+    desc	= "ATxmega64A4";
     signature	= 0x1e 0x96 0x46;
     has_jtag	= yes;
     has_pdi	= yes;
@@ -16626,12 +16626,12 @@ part
 ;
 
 #------------------------------------------------------------
-# ATXMEGA128A4
+# ATxmega128A4
 #------------------------------------------------------------
 
 part
     id		= "x128a4";
-    desc	= "ATXMEGA128A4";
+    desc	= "ATxmega128A4";
     signature	= 0x1e 0x97 0x46;
     has_jtag	= yes;
     has_pdi	= yes;

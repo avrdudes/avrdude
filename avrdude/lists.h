@@ -104,6 +104,8 @@ void     * lrmv_d  ( LISTID lid, void * data_ptr );
 
 LISTID     lcat    ( LISTID lid1, LISTID lid2 );
 
+void       lsort   ( LISTID lid, int (*compare)(void * p1, void * p2));
+
 void     * lsrch   ( LISTID lid, void * p, int (*compare)(void *p1,void *p2));
 
 int        lprint  ( FILE * f, LISTID lid );
