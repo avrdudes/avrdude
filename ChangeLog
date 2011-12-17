@@ -1,3 +1,41 @@
+2011-12-17  Rene Liebscher <R.Liebscher@gmx.de>
+
+	patch #7680: Fixing timeout problem in ser_recv in ser_win32.c
+	* ser_win32.c: Return -1 at timeout in ser_recv().
+
+2011-12-17  Rene Liebscher <R.Liebscher@gmx.de>
+
+	* config_gram.y: Fixed another memory leak, when define an operation
+	more than once
+	* avrdude.conf.in: Fixed double definition at ATmega6490
+
+2011-12-17  Rene Liebscher <R.Liebscher@gmx.de>
+
+	* config_gram.y: Restructuring and compacting programmer definition 
+	part of grammar (in preparation of patch #7688)
+
+2011-12-17  Rene Liebscher <R.Liebscher@gmx.de>
+
+	* avrdude.conf.in: Update documentation of programmer definition
+	* doc/avrdude.texi: Update documentation of programmer definition 
+	and add list of implemented programmer types
+
+2011-12-17  Rene Liebscher <R.Liebscher@gmx.de>
+
+	patch #7667: Minor memory handling fixes
+	* config_gram.y: Added several free_token() calls.
+
+2011-12-16  Rene Liebscher <R.Liebscher@gmx.de>
+
+	patch #7671: Sorting programmers and parts lists for console output
+	* avrdude.conf.in: change part desc of several parts to common pattern
+	AT(mega|tiny|xmega)[0-9]+[A-Z]* (Upper case AT, lower case in middle)
+	* list.[ch]: added sorting function lsort()
+	* pgm.[ch]: added function sort_programmers()
+	* avrpart.[ch]: added function sort_avrparts()
+	* main.c: use sort functions in list_programmers() and list_parts()
+	* main.c: list functions show config file info only at verbose mode
+
 2011-10-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* configure.ac: Replace "cvs" in version number by "svn".

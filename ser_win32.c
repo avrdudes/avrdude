@@ -314,6 +314,15 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 		exit(1);
 	}
 
+	/* time out detected */
+	if (read == 0) {
+		if (verbose > 1)
+		fprintf(stderr,
+			"%s: ser_recv(): programmer is not responding\n",
+			progname);
+		return -1;
+	}
+
 	p = buf;
 
 	if (verbose > 3)
