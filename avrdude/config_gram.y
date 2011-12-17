@@ -1153,6 +1153,12 @@ part_parm :
       opnum = which_opcode($1);
       op = avr_new_opcode();
       parse_cmdbits(op);
+      if (current_part->op[opnum] != NULL) {
+        fprintf(stderr,
+              "%s: warning at %s:%d: operation redefined\n",
+              progname, infile, lineno);
+        free(current_part->op[opnum]);
+      }
       current_part->op[opnum] = op;
 
       free_token($1);
@@ -1274,6 +1280,12 @@ mem_spec :
       opnum = which_opcode($1);
       op = avr_new_opcode();
       parse_cmdbits(op);
+      if (current_mem->op[opnum] != NULL) {
+        fprintf(stderr,
+              "%s: warning at %s:%d: operation redefined\n",
+              progname, infile, lineno);
+        free(current_mem->op[opnum]);
+      }
       current_mem->op[opnum] = op;
 
       free_token($1);
