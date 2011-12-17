@@ -6478,16 +6478,6 @@ part
 			  "  i   i   i   i      i   i   i   i";
 
 	writepage	= "  1   1   0   0      0   0   1   0",
-			  "  0   0   x   x      x   x   x  a8",
-			  " a7  a6  a5  a4     a3   0   0   0",
-			  "  x   x   x   x      x   x   x   x";
-
-	loadpage_lo	= "  1   1   0   0      0   0   0   1",
-			  "  0   0   0   0      0   0   0   0",
-			  "  0   0   0   0      0  a2  a1  a0",
-			  "  i   i   i   i      i   i   i   i";
-
-	writepage	= "  1   1   0   0      0   0   1   0",
 			  "  0   0   x   x      x a10  a9  a8",
 			  " a7  a6  a5  a4     a3   0   0   0",
 			  "  x   x   x   x      x   x   x   x";
