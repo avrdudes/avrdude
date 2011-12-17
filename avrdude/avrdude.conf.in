@@ -24,6 +24,7 @@
 #                  dragon_hvsp | dragon_pdi | arduino | wiring; # programmer type
 #       baudrate = <num> ;                          # baudrate for avr910-programmer
 #       vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
+#       buff     = <num1> [, <num2> ... ] ;         # pin number(s)
 #       reset    = <num> ;                          # pin number
 #       sck      = <num> ;                          # pin number
 #       mosi     = <num> ;                          # pin number
@@ -32,11 +33,11 @@
 #       rdyled   = <num> ;                          # pin number
 #       pgmled   = <num> ;                          # pin number
 #       vfyled   = <num> ;                          # pin number
-#  			usbvid   = <hexnum>;												# USB VID (Vendor ID)
-#       usbpid   = <hexnum>;												#	USB PID (Product ID)
-#       usbdev   = <interface>;											# USB interface or other device info 
-#       usbvendor = <vendorname>;										#	USB Vendor Name
-#       usbproduct = <productname>;									# USB Product Name
+#       usbvid   = <hexnum>;                        # USB VID (Vendor ID)
+#       usbpid   = <hexnum>;                        # USB PID (Product ID)
+#       usbdev   = <interface>;                     # USB interface or other device info 
+#       usbvendor = <vendorname>;                   # USB Vendor Name
+#       usbproduct = <productname>;                 # USB Product Name
 #       usbsn    = <serialno>;                      # USB Serial Number
 #
 #        To invert a bit, use = ~ <num>, the spaces are important.

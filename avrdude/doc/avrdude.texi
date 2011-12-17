@@ -1523,11 +1523,12 @@ The format of the programmer definition is as follows:
 
 @smallexample
 programmer
-    id     = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
+    id       = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
     desc     = <description> ;                  # quoted string
-    type     = par | stk500 ;                   # programmer type
+    type     = par | stk500 | ... ;             # programmer type (see below for a list)
     baudrate = <num> ;                          # baudrate for serial ports
     vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
+    buff     = <num1> [, <num2> ... ] ;         # pin number(s)
     reset    = <num> ;                          # pin number
     sck      = <num> ;                          # pin number
     mosi     = <num> ;                          # pin number
@@ -1536,9 +1537,54 @@ programmer
     rdyled   = <num> ;                          # pin number
     pgmled   = <num> ;                          # pin number
     vfyled   = <num> ;                          # pin number
+    usbvid   = <hexnum>;                        # USB VID (Vendor ID)
+    usbpid   = <hexnum>;                        # USB PID (Product ID)
+    usbdev   = <interface>;                     # USB interface or other device info 
+    usbvendor = <vendorname>;                   # USB Vendor Name
+    usbproduct = <productname>;                 # USB Product Name
+    usbsn    = <serialno>;                      # USB Serial Number
   ;
 @end smallexample
 
+@noindent
+To invert a bit in the pin definitions, use @code{= ~ <num>}.
+
+@noindent
+Following programmer types are currently implemented:
+
+@multitable @columnfractions .25 .6
+@item @code{arduino}  @tab Arduino
+@item @code{avr910}  @tab avr910
+@item @code{avrftdi}  @tab avrftdi
+@item @code{buspirate}  @tab BusPirate
+@item @code{butterfly}  @tab butterfly
+@item @code{butterfly_mk}  @tab butterfly_mk
+@item @code{dragon_dw}  @tab DRAGON_DW
+@item @code{dragon_hvsp}  @tab DRAGON_HVSP
+@item @code{dragon_isp}  @tab DRAGON_ISP
+@item @code{dragon_jtag}  @tab DRAGON_JTAG
+@item @code{dragon_pdi}  @tab DRAGON_PDI
+@item @code{dragon_pp}  @tab DRAGON_PP
+@item @code{jtagmki}  @tab JTAGMKI
+@item @code{jtagmkii}  @tab JTAGMKII
+@item @code{jtagmkii_avr32}  @tab JTAGMKII_AVR32
+@item @code{jtagmkii_dw}  @tab JTAGMKII_DW
+@item @code{jtagmkii_isp}  @tab JTAGMKII_ISP
+@item @code{jtagmkii_pdi}  @tab JTAGMKII_PDI
+@item @code{par}  @tab PPI
+@item @code{serbb}  @tab SERBB
+@item @code{stk500}  @tab STK500
+@item @code{stk500generic}  @tab STK500GENERIC
+@item @code{stk500hvsp}  @tab STK500HVSP
+@item @code{stk500pp}  @tab STK500PP
+@item @code{stk500v2}  @tab STK500V2
+@item @code{stk600}  @tab STK600
+@item @code{stk600hvsp}  @tab STK600HVSP
+@item @code{stk600pp}  @tab STK600PP
+@item @code{usbasp}  @tab usbasp
+@item @code{usbtiny}  @tab USBtiny
+@item @code{wiring}  @tab Wiring
+@end multitable
 
 @c
 @c Node
