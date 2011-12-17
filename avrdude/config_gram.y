@@ -62,7 +62,8 @@ int yyerror(char * errmsg);
 static int assign_pin(int pinno, TOKEN * v, int invert);
 static int which_opcode(TOKEN * opcode);
 static int parse_cmdbits(OPCODE * op);
- 
+
+static int pin_name;
 %}
 
 %token K_READ
@@ -286,13 +287,8 @@ def :
 
 
 prog_def :
-  K_PROGRAMMER 
-    { current_prog = pgm_new();
-      strcpy(current_prog->config_file, infile);
-      current_prog->lineno = lineno;
-    }
-    prog_parms
-    { 
+  prog_decl prog_parms
+    {
       if (lsize(current_prog->id) == 0) {
         fprintf(stderr,
                 "%s: error at %s:%d: required parameter id not specified\n",
@@ -304,8 +300,17 @@ prog_def :
                 progname, infile, lineno);
         exit(1);
       }
-      PUSH(programmers, current_prog); 
-      current_prog = NULL; 
+      PUSH(programmers, current_prog);
+      current_prog = NULL;
+    }
+;
+
+
+prog_decl :
+  K_PROGRAMMER
+    { current_prog = pgm_new();
+      strcpy(current_prog->config_file, infile);
+      current_prog->lineno = lineno;
     }
 ;
 
@@ -383,16 +388,14 @@ num_list :
   num_list TKN_COMMA TKN_NUMBER { ladd(number_list, $3); }
 ;
 
-
 prog_parms :
   prog_parm TKN_SEMI |
   prog_parms prog_parm TKN_SEMI
 ;
 
-
 prog_parm :
   K_ID TKN_EQUAL string_list {
-    { 
+    {
       TOKEN * t;
       while (lsize(string_list)) {
         t = lrmv_n(string_list, 1);
@@ -401,231 +404,64 @@ prog_parm :
       }
     }
   } |
-
-  K_TYPE TKN_EQUAL K_PAR {
-    { 
-      par_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_SERBB {
-    {
-      serbb_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_STK500 {
-    { 
-      stk500_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_STK500V2 {
-    {
-      stk500v2_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_WIRING {
-    {
-      wiring_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_STK500HVSP {
-    {
-      stk500hvsp_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_STK500PP {
-    {
-      stk500pp_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_STK500GENERIC {
-    {
-      stk500generic_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_ARDUINO {
-    { 
-      arduino_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_AVRFTDI {
-    {
-      avrftdi_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_BUSPIRATE {
-    {
-      buspirate_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_STK600 {
-    {
-      stk600_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_STK600HVSP {
-    {
-      stk600hvsp_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_STK600PP {
-    {
-      stk600pp_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_AVR910 {
-    { 
-      avr910_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_USBASP {
-    {
-      usbasp_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_USBTINY {
-    {
-      usbtiny_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_BUTTERFLY {
-    { 
-      butterfly_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_BUTTERFLY_MK {
-    { 
-      butterfly_mk_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_JTAG_MKI {
-    {
-      jtagmkI_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_JTAG_MKII {
-    {
-      jtagmkII_initpgm(current_prog);
-    }
-  } |
-  K_TYPE TKN_EQUAL K_JTAG_MKII_AVR32 {
-    {
-      jtagmkII_avr32_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_JTAG_MKII_DW {
-    {
-      jtagmkII_dw_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_JTAG_MKII_ISP {
-    {
-      stk500v2_jtagmkII_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_JTAG_MKII_PDI {
-    {
-      jtagmkII_pdi_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_DRAGON_DW {
-    {
-      jtagmkII_dragon_dw_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_DRAGON_HVSP {
-    {
-      stk500v2_dragon_hvsp_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_DRAGON_ISP {
-    {
-      stk500v2_dragon_isp_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_DRAGON_JTAG {
-    {
-      jtagmkII_dragon_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_DRAGON_PDI {
-    {
-      jtagmkII_dragon_pdi_initpgm(current_prog);
-    }
-  } |
-
-  K_TYPE TKN_EQUAL K_DRAGON_PP {
-    {
-      stk500v2_dragon_pp_initpgm(current_prog);
-    }
-  } |
-
+  prog_parm_type
+  |
+  prog_parm_pins
+  |
+  prog_parm_usb
+  |
   K_DESC TKN_EQUAL TKN_STRING {
     strncpy(current_prog->desc, $3->value.string, PGM_DESCLEN);
     current_prog->desc[PGM_DESCLEN-1] = 0;
     free_token($3);
   } |
-
-  K_VCC TKN_EQUAL num_list {
-    { 
-      TOKEN * t;
-      int pin;
-
-      current_prog->pinno[PPI_AVR_VCC] = 0;
-
-      while (lsize(number_list)) {
-        t = lrmv_n(number_list, 1);
-        pin = t->value.number;
-        current_prog->pinno[PPI_AVR_VCC] |= (1 << pin);
-
-        free_token(t);
-      }
+  K_BAUDRATE TKN_EQUAL TKN_NUMBER {
+    {
+      current_prog->baudrate = $3->value.number;
+      free_token($3);
     }
-  } |
+  }
+;
 
-  K_BUFF TKN_EQUAL num_list {
-    { 
-      TOKEN * t;
-      int pin;
+prog_parm_type:
+  K_TYPE TKN_EQUAL prog_parm_type_id
+;
 
-      current_prog->pinno[PPI_AVR_BUFF] = 0;
+prog_parm_type_id:
+  K_PAR             { par_initpgm(current_prog); } |
+  K_SERBB           { serbb_initpgm(current_prog); } |
+  K_STK500          { stk500_initpgm(current_prog); } |
+  K_STK500V2        { stk500v2_initpgm(current_prog); } |
+  K_WIRING          { wiring_initpgm(current_prog); } |
+  K_STK500HVSP      { stk500hvsp_initpgm(current_prog); } |
+  K_STK500PP        { stk500pp_initpgm(current_prog); } |
+  K_STK500GENERIC   { stk500generic_initpgm(current_prog); } |
+  K_ARDUINO         { arduino_initpgm(current_prog); } |
+  K_AVRFTDI         { avrftdi_initpgm(current_prog); } |
+  K_BUSPIRATE       { buspirate_initpgm(current_prog); } |
+  K_STK600          { stk600_initpgm(current_prog); } |
+  K_STK600HVSP      { stk600hvsp_initpgm(current_prog); } |
+  K_STK600PP        { stk600pp_initpgm(current_prog); } |
+  K_AVR910          { avr910_initpgm(current_prog); } |
+  K_USBASP          { usbasp_initpgm(current_prog); } |
+  K_USBTINY         { usbtiny_initpgm(current_prog); } |
+  K_BUTTERFLY       { butterfly_initpgm(current_prog); } |
+  K_BUTTERFLY_MK    { butterfly_mk_initpgm(current_prog); } |
+  K_JTAG_MKI        { jtagmkI_initpgm(current_prog); } |
+  K_JTAG_MKII       { jtagmkII_initpgm(current_prog); } |
+  K_JTAG_MKII_AVR32 { jtagmkII_avr32_initpgm(current_prog); } |
+  K_JTAG_MKII_DW    { jtagmkII_dw_initpgm(current_prog); } |
+  K_JTAG_MKII_ISP   { stk500v2_jtagmkII_initpgm(current_prog); } |
+  K_JTAG_MKII_PDI   { jtagmkII_pdi_initpgm(current_prog); } |
+  K_DRAGON_DW       { jtagmkII_dragon_dw_initpgm(current_prog); } |
+  K_DRAGON_HVSP     { stk500v2_dragon_hvsp_initpgm(current_prog); } |
+  K_DRAGON_ISP      { stk500v2_dragon_isp_initpgm(current_prog); } |
+  K_DRAGON_JTAG     { jtagmkII_dragon_initpgm(current_prog); } |
+  K_DRAGON_PDI      { jtagmkII_dragon_pdi_initpgm(current_prog); } |
+  K_DRAGON_PP       { stk500v2_dragon_pp_initpgm(current_prog); }
+;
 
-      while (lsize(number_list)) {
-        t = lrmv_n(number_list, 1);
-        pin = t->value.number;
-        current_prog->pinno[PPI_AVR_BUFF] |= (1 << pin);
-
-        free_token(t);
-      }
-    }
-  } |
+prog_parm_usb:
   K_USBDEV TKN_EQUAL TKN_STRING {
     {
       strncpy(current_prog->usbdev, $3->value.string, PGM_USBSTRINGLEN);
@@ -639,14 +475,12 @@ prog_parm :
       free_token($3);
     }
   } |
-
   K_USBPID TKN_EQUAL TKN_NUMBER {
     {
       current_prog->usbpid = $3->value.number;
       free_token($3);
     }
   } |
-
   K_USBSN TKN_EQUAL TKN_STRING {
     {
       strncpy(current_prog->usbsn, $3->value.string, PGM_USBSTRINGLEN);
@@ -654,7 +488,6 @@ prog_parm :
       free_token($3);
     }
   } |
-  
   K_USBVENDOR TKN_EQUAL TKN_STRING {
     {
       strncpy(current_prog->usbvendor, $3->value.string, PGM_USBSTRINGLEN);
@@ -662,45 +495,52 @@ prog_parm :
       free_token($3);
     }
   } |
-
   K_USBPRODUCT TKN_EQUAL TKN_STRING {
     {
       strncpy(current_prog->usbproduct, $3->value.string, PGM_USBSTRINGLEN);
       current_prog->usbproduct[PGM_USBSTRINGLEN-1] = 0;
       free_token($3);
     }
-  } |
-  
-  K_BAUDRATE TKN_EQUAL TKN_NUMBER {
-    {
-      current_prog->baudrate = $3->value.number;
-      free_token($3);
-    }
-  } |
-
-  K_RESET  TKN_EQUAL TKN_NUMBER { free_token($1); 
-                                  assign_pin(PIN_AVR_RESET, $3, 0); } |
-  K_SCK    TKN_EQUAL TKN_NUMBER { free_token($1); 
-                                  assign_pin(PIN_AVR_SCK, $3, 0); } |
-  K_MOSI   TKN_EQUAL TKN_NUMBER { assign_pin(PIN_AVR_MOSI, $3, 0); } |
-  K_MISO   TKN_EQUAL TKN_NUMBER { assign_pin(PIN_AVR_MISO, $3, 0); } |
-  K_ERRLED TKN_EQUAL TKN_NUMBER { assign_pin(PIN_LED_ERR, $3, 0); } |
-  K_RDYLED TKN_EQUAL TKN_NUMBER { assign_pin(PIN_LED_RDY, $3, 0); } |
-  K_PGMLED TKN_EQUAL TKN_NUMBER { assign_pin(PIN_LED_PGM, $3, 0); } |
-  K_VFYLED TKN_EQUAL TKN_NUMBER { assign_pin(PIN_LED_VFY, $3, 0); } |
-
-  K_RESET  TKN_EQUAL TKN_TILDE TKN_NUMBER { free_token($1); 
-                                  assign_pin(PIN_AVR_RESET, $4, 1); } |
-  K_SCK    TKN_EQUAL TKN_TILDE TKN_NUMBER { free_token($1); 
-                                  assign_pin(PIN_AVR_SCK, $4, 1); } |
-  K_MOSI   TKN_EQUAL TKN_TILDE TKN_NUMBER { assign_pin(PIN_AVR_MOSI, $4, 1); } |
-  K_MISO   TKN_EQUAL TKN_TILDE TKN_NUMBER { assign_pin(PIN_AVR_MISO, $4, 1); } |
-  K_ERRLED TKN_EQUAL TKN_TILDE TKN_NUMBER { assign_pin(PIN_LED_ERR, $4, 1); } |
-  K_RDYLED TKN_EQUAL TKN_TILDE TKN_NUMBER { assign_pin(PIN_LED_RDY, $4, 1); } |
-  K_PGMLED TKN_EQUAL TKN_TILDE TKN_NUMBER { assign_pin(PIN_LED_PGM, $4, 1); } |
-  K_VFYLED TKN_EQUAL TKN_TILDE TKN_NUMBER { assign_pin(PIN_LED_VFY, $4, 1); }
+  }
 ;
 
+pin_number:
+  TKN_NUMBER { assign_pin(pin_name, $1, 0);  }
+  |
+  TKN_TILDE TKN_NUMBER { assign_pin(pin_name, $2, 1); }
+;
+
+pin_list:
+  num_list {
+    {
+      TOKEN * t;
+      int pin;
+
+      current_prog->pinno[pin_name] = 0;
+
+      while (lsize(number_list)) {
+        t = lrmv_n(number_list, 1);
+        pin = t->value.number;
+        current_prog->pinno[pin_name] |= (1 << pin);
+
+        free_token(t);
+      }
+    }
+  }
+;
+
+prog_parm_pins:
+  K_VCC    TKN_EQUAL {pin_name = PPI_AVR_VCC;  } pin_list |
+  K_BUFF   TKN_EQUAL {pin_name = PPI_AVR_BUFF; } pin_list |
+  K_RESET  TKN_EQUAL {pin_name = PIN_AVR_RESET;} pin_number { free_token($1); } |
+  K_SCK    TKN_EQUAL {pin_name = PIN_AVR_SCK;  } pin_number { free_token($1); } |
+  K_MOSI   TKN_EQUAL {pin_name = PIN_AVR_MOSI; } pin_number |
+  K_MISO   TKN_EQUAL {pin_name = PIN_AVR_MISO; } pin_number |
+  K_ERRLED TKN_EQUAL {pin_name = PIN_LED_ERR;  } pin_number |
+  K_RDYLED TKN_EQUAL {pin_name = PIN_LED_RDY;  } pin_number |
+  K_PGMLED TKN_EQUAL {pin_name = PIN_LED_PGM;  } pin_number |
+  K_VFYLED TKN_EQUAL {pin_name = PIN_LED_VFY;  } pin_number
+;
 
 opcode :
   K_READ         |
@@ -1478,7 +1318,6 @@ static int assign_pin(int pinno, TOKEN * v, int invert)
 
   return 0;
 }
-
 
 static int which_opcode(TOKEN * opcode)
 {
