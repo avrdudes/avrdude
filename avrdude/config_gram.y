@@ -636,12 +636,14 @@ prog_parm :
   K_USBVID TKN_EQUAL TKN_NUMBER {
     {
       current_prog->usbvid = $3->value.number;
+      free_token($3);
     }
   } |
 
   K_USBPID TKN_EQUAL TKN_NUMBER {
     {
       current_prog->usbpid = $3->value.number;
+      free_token($3);
     }
   } |
 
@@ -672,6 +674,7 @@ prog_parm :
   K_BAUDRATE TKN_EQUAL TKN_NUMBER {
     {
       current_prog->baudrate = $3->value.number;
+      free_token($3);
     }
   } |
 
@@ -1292,7 +1295,8 @@ part_parm :
   K_MEMORY TKN_STRING 
     { 
       current_mem = avr_new_memtype(); 
-      strcpy(current_mem->desc, strdup($2->value.string)); 
+      strncpy(current_mem->desc, $2->value.string, AVR_MEMDESCLEN); 
+      current_mem->desc[AVR_MEMDESCLEN-1] = 0;
       free_token($2); 
     } 
     mem_specs 
@@ -1458,6 +1462,7 @@ static int assign_pin(int pinno, TOKEN * v, int invert)
   int value;
 
   value = v->value.number;
+  free_token(v);
 
   if ((value <= 0) || (value >= 18)) {
     fprintf(stderr, 
