@@ -1,3 +1,8 @@
+2011-12-22  Rene Liebscher <R.Liebscher@gmx.de>
+
+	* configure.ac: Add writing of definition of confsubst to config.status, 
+	so it can run alone, not only called by configure.
+
 2011-12-17  Rene Liebscher <R.Liebscher@gmx.de>
 
 	patch #7680: Fixing timeout problem in ser_recv in ser_win32.c
