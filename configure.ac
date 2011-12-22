@@ -285,7 +285,6 @@ if test "$enabled_parport" = "yes"; then
 else
 	confsubst="-e /^@HAVE_PARPORT_BEGIN@/,/^@HAVE_PARPORT_END@/d"
 fi
-export confsubst
 
 # If we are compiling with gcc, enable all warning and make warnings errors.
 if test "$GCC" = yes; then
@@ -380,6 +379,7 @@ AC_CONFIG_FILES([
 # avrdude.conf file.
 
 AC_CONFIG_FILES([avrdude.conf.tmp:avrdude.conf.in],
-		[sed $confsubst avrdude.conf.tmp > avrdude.conf])
+		[sed $confsubst avrdude.conf.tmp > avrdude.conf],
+		[confsubst="$confsubst"])
 
 AC_OUTPUT
