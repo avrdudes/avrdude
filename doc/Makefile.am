@@ -45,6 +45,10 @@ avrdude.info: parts.texi
 avrdude.dvi: parts.texi
 avrdude.pdf: parts.texi
 
+# if it does not exist make this first
+../avrdude$(EXEEXT):
+	$(MAKE) -C .. avrdude$(EXEEXT)
+
 parts.texi: ../avrdude$(EXEEXT) ../avrdude.conf parts_comments.txt Makefile
 	../avrdude$(EXEEXT) -C ../avrdude.conf -p \? 2>&1 \
 	| $(AWK) '$$2 ~ /^=$$/ {printf("@item @code{%s} @tab %s\n",$$1,$$3)}' \
