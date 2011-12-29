@@ -177,6 +177,7 @@ paged            { yylval=NULL; return K_PAGED; }
 pagel            { yylval=NULL; return K_PAGEL; }
 par              { yylval=NULL; return K_PAR; }
 parallel         { yylval=NULL; return K_PARALLEL; }
+parent           { yylval=NULL; return K_PARENT; }
 part             { yylval=NULL; return K_PART; }
 pgmled           { yylval=NULL; return K_PGMLED; }
 programmer       { yylval=NULL; return K_PROGRAMMER; }

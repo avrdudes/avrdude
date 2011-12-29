@@ -1529,13 +1529,34 @@ part
 @end smallexample
 
 @menu
+* Parent Part::
 * Instruction Format::
 @end menu
 
 @c
 @c Node
 @c
-@node Instruction Format,  , Part Definitions, Part Definitions
+@node Parent Part, Instruction Format, Part Definitions, Part Definitions
+@subsection Parent Part
+
+@noindent
+Parts can also inherit parameters from previously defined parts
+using the following syntax. In this case specified integer and 
+string values override parameter values from the parent part. New 
+memory definitions are added to the definitions inherited from the 
+parent.
+
+@smallexample
+   part parent <id>                              # quoted string
+       id               = <id> ;                 # quoted string
+       <any set of other parameters from the list above>
+     ;
+@end smallexample
+
+@c
+@c Node
+@c
+@node Instruction Format,  , Parent Part, Part Definitions
 @subsection Instruction Format
 
 @noindent
