@@ -2,6 +2,12 @@
 
 	patch #7687: Autogenerating programmers and parts lists for docs
 	(generating the parts lists, programmers lists follows later)
+	* doc/Makefile.am: Add rule how to create avrdude before generating parts list
+
+2011-12-29  Rene Liebscher <R.Liebscher@gmx.de>
+
+	patch #7687: Autogenerating programmers and parts lists for docs
+	(generating the parts lists, programmers lists follows later)
 	* doc/avrdude.texi: Add include of generated table of parts
 	* doc/Makefile.am: Add generating of table of parts in parts.texi
 	* doc/parts_comments.txt: Adding file containing part commenz references
