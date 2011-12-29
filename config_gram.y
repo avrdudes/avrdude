@@ -128,6 +128,7 @@ static int pin_name;
 %token K_PAGEL
 %token K_PAR
 %token K_PARALLEL
+%token K_PARENT
 %token K_PART
 %token K_PGMLED
 %token K_PROGRAMMER
@@ -316,13 +317,7 @@ prog_decl :
 
 
 part_def :
-  K_PART
-    {
-      current_part = avr_new_part();
-      strcpy(current_part->config_file, infile);
-      current_part->lineno = lineno;
-    }
-    part_parms 
+  part_decl part_parms 
     { 
       LNODEID ln;
       AVRMEM * m;
@@ -376,6 +371,30 @@ part_def :
     }
 ;
 
+part_decl :
+  K_PART
+    {
+      current_part = avr_new_part();
+      strcpy(current_part->config_file, infile);
+      current_part->lineno = lineno;
+    } |
+  K_PART K_PARENT TKN_STRING 
+    {
+      AVRPART * parent_part = locate_part(part_list, $3->value.string);
+      if (parent_part == NULL) {
+        fprintf(stderr, 
+              "%s: error at %s:%d: can't find parent part",
+              progname, infile, lineno);
+        exit(1);
+      }
+
+      current_part = avr_dup_part(parent_part);
+      strcpy(current_part->config_file, infile);
+      current_part->lineno = lineno;
+
+      free_token($3);
+    }
+;
 
 string_list :
   TKN_STRING { ladd(string_list, $1); } |
@@ -632,19 +651,11 @@ part_parm :
       unsigned nbytes;
       int ok;
 
-      if (current_part->ctl_stack_type != CTL_STACK_NONE)
-	{
-	  fprintf(stderr,
-		  "%s: error at line %d of %s: "
-		  "control stack already defined\n",
-		  progname, lineno, infile);
-	  exit(1);
-	}
-
       current_part->ctl_stack_type = CTL_STACK_PP;
       nbytes = 0;
       ok = 1;
 
+      memset(current_part->controlstack, 0, CTL_STACK_SIZE);
       while (lsize(number_list)) {
         t = lrmv_n(number_list, 1);
 	if (nbytes < CTL_STACK_SIZE)
@@ -674,19 +685,11 @@ part_parm :
       unsigned nbytes;
       int ok;
 
-      if (current_part->ctl_stack_type != CTL_STACK_NONE)
-	{
-	  fprintf(stderr,
-		  "%s: error at line %d of %s: "
-		  "control stack already defined\n",
-		  progname, lineno, infile);
-	  exit(1);
-	}
-
       current_part->ctl_stack_type = CTL_STACK_HVSP;
       nbytes = 0;
       ok = 1;
 
+      memset(current_part->controlstack, 0, CTL_STACK_SIZE);
       while (lsize(number_list)) {
         t = lrmv_n(number_list, 1);
 	if (nbytes < CTL_STACK_SIZE)
@@ -719,6 +722,7 @@ part_parm :
       nbytes = 0;
       ok = 1;
 
+      memset(current_part->flash_instr, 0, FLASH_INSTR_SIZE);
       while (lsize(number_list)) {
         t = lrmv_n(number_list, 1);
 	if (nbytes < FLASH_INSTR_SIZE)
@@ -751,6 +755,7 @@ part_parm :
       nbytes = 0;
       ok = 1;
 
+      memset(current_part->eeprom_instr, 0, EEPROM_INSTR_SIZE);
       while (lsize(number_list)) {
         t = lrmv_n(number_list, 1);
 	if (nbytes < EEPROM_INSTR_SIZE)
@@ -1154,9 +1159,9 @@ part_parm :
       op = avr_new_opcode();
       parse_cmdbits(op);
       if (current_part->op[opnum] != NULL) {
-        fprintf(stderr,
+        /*fprintf(stderr,
               "%s: warning at %s:%d: operation redefined\n",
-              progname, infile, lineno);
+              progname, infile, lineno);*/
         free(current_part->op[opnum]);
       }
       current_part->op[opnum] = op;
@@ -1281,9 +1286,9 @@ mem_spec :
       op = avr_new_opcode();
       parse_cmdbits(op);
       if (current_mem->op[opnum] != NULL) {
-        fprintf(stderr,
+        /*fprintf(stderr,
               "%s: warning at %s:%d: operation redefined\n",
-              progname, infile, lineno);
+              progname, infile, lineno);*/
         free(current_mem->op[opnum]);
       }
       current_mem->op[opnum] = op;

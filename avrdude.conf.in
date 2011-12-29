@@ -138,6 +138,17 @@
 # values.  If a required parameter is left empty, AVRDUDE will
 # complain.
 #
+# Parts can also inherit parameters from previously defined parts
+# using the following syntax. In this case specified integer and 
+# string values override parameter values from the parent part. New 
+# memory definitions are added to the definitions inherited from the 
+# parent.
+#
+#   part parent <id>                              # quoted string
+#       id               = <id> ;                 # quoted string
+#       <any set of other parameters from the list above>
+#     ;
+#
 # NOTES:
 #   * 'devicecode' is the device code used by the STK500 (see codes 
 #       listed below)
@@ -9223,12 +9234,12 @@ part
   ;
 
 #------------------------------------------------------------
-# ATmega328P
+# ATmega328
 #------------------------------------------------------------
 
 part
-    id			= "m328p";
-    desc		= "ATmega328P";
+    id			= "m328";
+    desc		= "ATmega328";
     has_debugwire	= yes;
     flash_instr		= 0xB6, 0x01, 0x11;
     eeprom_instr	= 0xBD, 0xF2, 0xBD, 0xE1, 0xBB, 0xCF, 0xB4, 0x00,
@@ -9236,7 +9247,7 @@ part
 			  0x99, 0xF9, 0xBB, 0xAF;
     stk500_devcode	= 0x86;
     # avr910_devcode	= 0x;
-    signature		= 0x1e 0x95 0x0F;
+    signature		= 0x1e 0x95 0x14;
     pagel		= 0xd7;
     bs2			= 0xc2;
     chip_erase_delay	= 9000;
@@ -9408,6 +9419,12 @@ part
 	read = "0 0 1 1 0 0 0 0 0 0 0 x x x x x",
 	       "x x x x x x a1 a0 o o o o o o o o";
     ;
+;
+
+part parent "m328"
+    id			= "m328p";
+    desc		= "ATmega328P";
+    signature		= 0x1e 0x95 0x0F;
 ;
 
 #------------------------------------------------------------

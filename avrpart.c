@@ -47,6 +47,26 @@ OPCODE * avr_new_opcode(void)
   return m;
 }
 
+static OPCODE * avr_dup_opcode(OPCODE * op)
+{
+  OPCODE * m;
+  
+  /* this makes life easier */
+  if (op == NULL) {
+    return NULL;
+  }
+
+  m = (OPCODE *)malloc(sizeof(*m));
+  if (m == NULL) {
+    fprintf(stderr, "avr_dup_opcode(): out of memory\n");
+    exit(1);
+  }
+
+  memcpy(m, op, sizeof(*m));
+
+  return m;
+}
+
 
 /*
  * avr_set_bits()
@@ -248,28 +268,37 @@ int avr_initmem(AVRPART * p)
 AVRMEM * avr_dup_mem(AVRMEM * m)
 {
   AVRMEM * n;
+  int i;
 
   n = avr_new_memtype();
 
   *n = *m;
 
-  n->buf = (unsigned char *)malloc(n->size);
-  if (n->buf == NULL) {
-    fprintf(stderr,
-            "avr_dup_mem(): out of memory (memsize=%d)\n",
-            n->size);
-    exit(1);
+  if (m->buf != NULL) {
+    n->buf = (unsigned char *)malloc(n->size);
+    if (n->buf == NULL) {
+      fprintf(stderr,
+              "avr_dup_mem(): out of memory (memsize=%d)\n",
+              n->size);
+      exit(1);
+    }
+    memcpy(n->buf, m->buf, n->size);
   }
-  memcpy(n->buf, m->buf, n->size);
 
-  n->tags = (unsigned char *)malloc(n->size);
-  if (n->tags == NULL) {
-    fprintf(stderr,
-            "avr_dup_mem(): out of memory (memsize=%d)\n",
-            n->size);
-    exit(1);
+  if (m->tags != NULL) {
+    n->tags = (unsigned char *)malloc(n->size);
+    if (n->tags == NULL) {
+      fprintf(stderr,
+              "avr_dup_mem(): out of memory (memsize=%d)\n",
+              n->size);
+      exit(1);
+    }
+    memcpy(n->tags, m->tags, n->size);
   }
-  memcpy(n->tags, m->tags, n->size);
+
+  for (i = 0; i < AVR_OP_MAX; i++) {
+    n->op[i] = avr_dup_opcode(n->op[i]);
+  }
 
   return n;
 }
@@ -398,6 +427,7 @@ AVRPART * avr_dup_part(AVRPART * d)
   AVRPART * p;
   LISTID save;
   LNODEID ln;
+  int i;
 
   p = avr_new_part();
   save = p->mem;
@@ -408,6 +438,10 @@ AVRPART * avr_dup_part(AVRPART * d)
 
   for (ln=lfirst(d->mem); ln; ln=lnext(ln)) {
     ladd(p->mem, avr_dup_mem(ldata(ln)));
+  }
+
+  for (i = 0; i < AVR_OP_MAX; i++) {
+    p->op[i] = avr_dup_opcode(p->op[i]);
   }
 
   return p;
