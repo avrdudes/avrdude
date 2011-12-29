@@ -307,106 +307,7 @@ datasheet so that you can enter the programming specifications.
 Currently, the following MCU types are understood:
 
 @multitable @columnfractions .15 .3
-@item @code{1200}  @tab AT90S1200 (****)
-@item @code{2313}  @tab AT90S2313
-@item @code{2333}  @tab AT90S2333
-@item @code{2343}  @tab AT90S2343 (*)
-@item @code{4414}  @tab AT90S4414
-@item @code{4433}  @tab AT90S4433
-@item @code{4434}  @tab AT90S4434
-@item @code{8515}  @tab AT90S8515
-@item @code{8535}  @tab AT90S8535
-@item @code{c128}  @tab AT90CAN128
-@item @code{c32}   @tab AT90CAN32
-@item @code{c64}   @tab AT90CAN64
-@item @code{m103}  @tab ATmega103
-@item @code{m128}  @tab ATmega128
-@item @code{m1280} @tab ATmega1280
-@item @code{m1281} @tab ATmega1281
-@item @code{m1284p} @tab ATmega1284P
-@item @code{m128rfa1} @tab ATmega128RFA1
-@item @code{m16}   @tab ATmega16
-@item @code{m161}  @tab ATmega161
-@item @code{m162}  @tab ATmega162
-@item @code{m163}  @tab ATmega163
-@item @code{m164}  @tab ATmega164
-@item @code{m164p} @tab ATmega164P
-@item @code{m168}  @tab ATmega168
-@item @code{m168p} @tab ATmega168P
-@item @code{m169}  @tab ATmega169
-@item @code{m16u2} @tab ATmega16U2
-@item @code{m2560} @tab ATmega2560 (**)
-@item @code{m2561} @tab ATmega2561 (**)
-@item @code{m32}   @tab ATmega32
-@item @code{m324p} @tab ATmega324P
-@item @code{m325}  @tab ATmega325
-@item @code{m3250} @tab ATmega3250
-@item @code{m328p} @tab ATmega328P
-@item @code{m329}  @tab ATmega329
-@item @code{m3290} @tab ATmega3290
-@item @code{m329p} @tab ATmega329P
-@item @code{m3290p} @tab ATmega3290P
-@item @code{m32u2} @tab ATmega32U2
-@item @code{m32u4} @tab ATmega32U4
-@item @code{m48}   @tab ATmega48
-@item @code{m64}   @tab ATmega64
-@item @code{m640}  @tab ATmega640
-@item @code{m644p} @tab ATmega644P
-@item @code{m644}  @tab ATmega644
-@item @code{m645}  @tab ATmega645
-@item @code{m6450} @tab ATmega6450
-@item @code{m649}  @tab ATmega649
-@item @code{m6490} @tab ATmega6490
-@item @code{m8}    @tab ATmega8
-@item @code{m8515} @tab ATmega8515
-@item @code{m8535} @tab ATmega8535
-@item @code{m88}   @tab ATmega88
-@item @code{m88p}  @tab ATmega88P
-@item @code{m8u2}  @tab ATmega8U2
-@item @code{pwm2}  @tab AT90PWM2
-@item @code{pwm2b} @tab AT90PWM2B
-@item @code{pwm3}  @tab AT90PWM3
-@item @code{pwm3b} @tab AT90PWM3B
-@item @code{t10}   @tab ATtiny10
-@item @code{t12}   @tab ATtiny12 (***)
-@item @code{t13}   @tab ATtiny13
-@item @code{t15}   @tab ATtiny15
-@item @code{t2313} @tab ATtiny2313
-@item @code{t25}   @tab ATtiny25
-@item @code{t26}   @tab ATtiny26
-@item @code{t261}  @tab ATtiny261
-@item @code{t4}    @tab ATtiny4
-@item @code{t4313} @tab ATtiny4313
-@item @code{t44}   @tab ATtiny44
-@item @code{t45}   @tab ATtiny45
-@item @code{t461}  @tab ATtiny461
-@item @code{t5}    @tab ATtiny5
-@item @code{t84}   @tab ATtiny84
-@item @code{t85}   @tab ATtiny85
-@item @code{t861}  @tab ATtiny861
-@item @code{t88}   @tab ATtiny88
-@item @code{t9}    @tab ATtiny9
-@item @code{ucr2}  @tab AT32uca0512
-@item @code{usb1286} @tab ATmega1286
-@item @code{usb1287} @tab ATmega1287
-@item @code{usb162}  @tab ATmega162
-@item @code{usb646}  @tab ATmega647
-@item @code{usb647}  @tab ATmega647
-@item @code{usb82}   @tab ATmega82
-@item @code{x128a1}  @tab ATxmega128A1
-@item @code{x128a1d} @tab ATxmega128A1revD
-@item @code{x128a3}  @tab ATxmega128A3
-@item @code{x128a4}  @tab ATxmega128A4
-@item @code{x16a4}   @tab ATxmega16A4
-@item @code{x192a1}  @tab ATxmega192A1
-@item @code{x192a3}  @tab ATxmega192A3
-@item @code{x256a1}  @tab ATxmega256A1
-@item @code{x256a3}  @tab ATxmega256A3
-@item @code{x256a3b} @tab ATxmega256A3B
-@item @code{x32a4}   @tab ATxmega32A4
-@item @code{x64a1}   @tab ATxmega64A1
-@item @code{x64a3}   @tab ATxmega64A3
-@item @code{x64a4}   @tab ATxmega64A4
+@include parts.texi
 @end multitable
 
 (*)   The AT90S2323 and ATtiny22 use the same algorithm.
@@ -416,7 +317,7 @@ programming hardware.  Known to work are jtag2, stk500v2,
 and bit-bang programmers.
 
 (***)
-The ATtiny11 uses the same algorithm, but can only be
+The ATtiny11 can only be
 programmed in high-voltage serial mode.
 
 (****)

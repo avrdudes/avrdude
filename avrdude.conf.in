@@ -15555,7 +15555,7 @@ part
 
 part
     id		= "x128a1d";
-    desc	= "ATxmega128A1RevD";
+    desc	= "ATxmega128A1revD";
     signature	= 0x1e 0x97 0x41;
     has_jtag	= yes;
     has_pdi	= yes;

@@ -1,6 +1,16 @@
+2011-12-29  Rene Liebscher <R.Liebscher@gmx.de>
+
+	patch #7687: Autogenerating programmers and parts lists for docs
+	(generating the parts lists, programmers lists follows later)
+	* doc/avrdude.texi: Add include of generated table of parts
+	* doc/Makefile.am: Add generating of table of parts in parts.texi
+	* doc/parts_comments.txt: Adding file containing part commenz references
+	* avrdude.1: Remove table of parts and mention "-p ?" option
+	* avrpart.c: Use AVR_DESCLEN for strncasecmp at list sorting
+
 2011-12-22  Rene Liebscher <R.Liebscher@gmx.de>
 
-	* configure.ac: Add writing of definition of confsubst to config.status, 
+	* configure.ac: Add writing of definition of confsubst to config.status,
 	so it can run alone, not only called by configure.
 
 2011-12-17  Rene Liebscher <R.Liebscher@gmx.de>
