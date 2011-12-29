@@ -478,7 +478,7 @@ static int sort_avrparts_compare(AVRPART * p1,AVRPART * p2)
   if(p1 == NULL || p2 == NULL) {
     return 0;
   }
-  return strncasecmp(p1->desc,p2->desc,AVR_IDLEN);
+  return strncasecmp(p1->desc,p2->desc,AVR_DESCLEN);
 }
 
 /*
