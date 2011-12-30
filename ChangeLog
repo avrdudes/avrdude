@@ -1,5 +1,11 @@
 2011-12-30  Rene Liebscher <R.Liebscher@gmx.de>
 
+	* avrdude.conf.in: Added is_at90s1200 option to part description
+	* doc/avrdude.texi: Added missing options to part definition
+	* config_gram.y: Fixed resetting of is_at90s1200 and is_avr32 flags
+
+2011-12-30  Rene Liebscher <R.Liebscher@gmx.de>
+
 	patch #7693: Fix config file atmel URLs
 	* avrdude.conf.in: Updated URLs
 	* avrpart.h: Updated URLs

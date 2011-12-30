@@ -1497,14 +1497,71 @@ Following programmer types are currently implemented:
 part
     id               = <id> ;                 # quoted string
     desc             = <description> ;        # quoted string
+    has_jtag         = <yes/no> ;             # part has JTAG i/f
+    has_debugwire    = <yes/no> ;             # part has debugWire i/f
+    has_pdi          = <yes/no> ;             # part has PDI i/f
+    has_tpi          = <yes/no> ;             # part has TPI i/f
     devicecode       = <num> ;                # numeric
-    chip_erase_delay = <num> ;                # micro-seconds
-    pagel            = <num> ;                # pin name in hex, i.e., 0xD7
-    bs2              = <num> ;                # pin name in hex, i.e., 0xA0
+    stk500_devcode   = <num> ;                # numeric
+    avr910_devcode   = <num> ;                # numeric
+    signature        = <num> <num> <num> ;    # signature bytes
     reset            = dedicated | io;
     retry_pulse      = reset | sck;
     pgm_enable       = <instruction format> ;
     chip_erase       = <instruction format> ;
+    chip_erase_delay = <num> ;                # micro-seconds
+    # STK500 parameters (parallel programming IO lines)
+    pagel            = <num> ;                # pin name in hex, i.e., 0xD7
+    bs2              = <num> ;                # pin name in hex, i.e., 0xA0
+    serial           = <yes/no> ;             # can use serial downloading
+    parallel         = <yes/no/pseudo>;       # can use par. programming
+    # STK500v2 parameters, to be taken from Atmel's XML files
+    timeout          = <num> ;
+    stabdelay        = <num> ;
+    cmdexedelay      = <num> ;
+    synchloops       = <num> ;
+    bytedelay        = <num> ;
+    pollvalue        = <num> ;
+    pollindex        = <num> ;
+    predelay         = <num> ;
+    postdelay        = <num> ;
+    pollmethod       = <num> ;
+    mode             = <num> ;
+    delay            = <num> ;
+    blocksize        = <num> ;
+    readsize         = <num> ;
+    hvspcmdexedelay  = <num> ;
+    # STK500v2 HV programming parameters, from XML
+    pp_controlstack  = <num>, <num>, ...;     # PP only
+    hvsp_controlstack = <num>, <num>, ...;    # HVSP only
+    hventerstabdelay = <num>;
+    progmodedelay    = <num>;                 # PP only
+    latchcycles      = <num>;
+    togglevtg        = <num>;
+    poweroffdelay    = <num>;
+    resetdelayms     = <num>;
+    resetdelayus     = <num>;
+    hvleavestabdelay = <num>;
+    resetdelay       = <num>;
+    synchcycles      = <num>;                 # HVSP only
+    chiperasepulsewidth = <num>;              # PP only
+    chiperasepolltimeout = <num>;
+    chiperasetime    = <num>;                 # HVSP only
+    programfusepulsewidth = <num>;            # PP only
+    programfusepolltimeout = <num>;
+    programlockpulsewidth = <num>;            # PP only
+    programlockpolltimeout = <num>;
+    # JTAG ICE mkII parameters, also from XML files
+    allowfullpagebitstream = <yes/no> ;
+    enablepageprogramming = <yes/no> ;
+    idr              = <num> ;                # IO addr of IDR (OCD) reg.
+    rampz            = <num> ;                # IO addr of RAMPZ reg.
+    spmcr            = <num> ;                # mem addr of SPMC[S]R reg.
+    eecr             = <num> ;                # mem addr of EECR reg.
+                                              # (only when != 0x3c)
+    is_at90s1200     = <yes/no> ;             # AT90S1200 part
+    is_avr32         = <yes/no> ;             # AVR32 part
+
     memory <memtype>
         paged           = <yes/no> ;          # yes / no
         size            = <num> ;             # bytes
