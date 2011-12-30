@@ -62,9 +62,15 @@ static struct baud_mapping baud_lookup_table [] = {
   { 9600,   B9600 },
   { 19200,  B19200 },
   { 38400,  B38400 },
+#ifdef B57600
   { 57600,  B57600 },
+#endif
+#ifdef B115200
   { 115200, B115200 },
+#endif
+#ifdef B230400
   { 230400, B230400 },
+#endif
   { 0,      0 }                 /* Terminator. */
 };
 
