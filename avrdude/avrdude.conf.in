@@ -109,6 +109,7 @@
 #       spmcr            = <num> ;                # mem addr of SPMC[S]R reg.
 #       eecr             = <num> ;                # mem addr of EECR reg.
 #                                                 # (only when != 0x3c)
+#       is_at90s1200     = <yes/no> ;             # AT90S1200 part
 #       is_avr32         = <yes/no> ;             # AVR32 part
 #
 #       memory <memtype>

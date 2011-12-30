@@ -1020,7 +1020,7 @@ part_parm :
       if ($3->primary == K_YES)
         current_part->flags |= AVRPART_IS_AT90S1200;
       else if ($3->primary == K_NO)
-        current_part->flags &= AVRPART_IS_AT90S1200;
+        current_part->flags &= ~AVRPART_IS_AT90S1200;
 
       free_token($3);
     } |
@@ -1030,7 +1030,7 @@ part_parm :
       if ($3->primary == K_YES)
         current_part->flags |= AVRPART_AVR32;
       else if ($3->primary == K_NO)
-        current_part->flags &= AVRPART_AVR32;
+        current_part->flags &= ~AVRPART_AVR32;
 
       free_token($3);
     } |
