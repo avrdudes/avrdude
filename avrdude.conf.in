@@ -167,7 +167,7 @@
 #     This flag was added to work around a problem with the
 #     at90s4433/2333's; see the at90s4433 errata at:
 #
-#         http://www.atmel.com/atmel/acrobat/doc1280.pdf
+#         http://www.atmel.com/dyn/resources/prod_documents/doc1280.pdf
 #
 # INSTRUCTION FORMATS
 #
@@ -204,7 +204,7 @@
 # section avr061.zip which accompanies the application note
 # AVR061 available from:
 #
-#      http://www.atmel.com/atmel/acrobat/doc2525.pdf
+#      http://www.atmel.com/dyn/resources/prod_documents/doc2525.pdf
 #
 
 #define ATTINY10    0x10  /* the _old_ one that never existed! */

@@ -1620,7 +1620,7 @@ write = "1  1  0  0   0  0  0  0   x x x x  x x x x",
 The @code{devicecode} parameter is the device code used by the STK500
 and is obtained from the software section (@code{avr061.zip}) of
 Atmel's AVR061 application note available from
-@url{http://www.atmel.com/atmel/acrobat/doc2525.pdf}.
+@url{http://www.atmel.com/dyn/resources/prod_documents/doc2525.pdf}.
 
 @item
 Not all memory types will implement all instructions.
@@ -1645,7 +1645,7 @@ defined for the programmer, a message indicating that the device needs a
 power-cycle is printed out.  This flag was added to work around a
 problem with the at90s4433/2333's; see the at90s4433 errata at:
 
-         @url{http://www.atmel.com/atmel/acrobat/doc1280.pdf}
+         @url{http://www.atmel.com/dyn/resources/prod_documents/doc1280.pdf}
 
 @item
 The boot loader from application note AVR109 (and thus also the AVR
