@@ -1,3 +1,9 @@
+2012-01-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Reported by Jason Kotzin:
+	* usbasp.c (usbasp_spi_paged_load, usbasp_spi_paged_write):
+	Fix buffer address calculation.
+
 2012-01-03  Rene Liebscher <R.Liebscher@gmx.de>
 
 	patch #7629 add support for atmega48p
