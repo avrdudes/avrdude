@@ -612,7 +612,7 @@ static int usbasp_spi_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   unsigned char cmd[4];
   int wbytes = n_bytes;
   int blocksize;
-  unsigned char * buffer = m->buf;
+  unsigned char *buffer = m->buf + address;
   int function;
 
   if (strcmp(m->desc, "flash") == 0) {
@@ -676,7 +676,7 @@ static int usbasp_spi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   unsigned char cmd[4];
   int wbytes = n_bytes;
   int blocksize;
-  unsigned char * buffer = m->buf;
+  unsigned char *buffer = m->buf + address;
   unsigned char blockflags = USBASP_BLOCKFLAG_FIRST;
   int function;
 
