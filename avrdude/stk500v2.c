@@ -3343,8 +3343,10 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
         return -1;
     }
 
-    if (stk500v2_loadaddr(pgm, use_ext_addr) < 0)
+    if (stk500v2_loadaddr(pgm, use_ext_addr) < 0) {
+        free(b);
         return -1;
+    }
 
     while (n_bytes != 0) {
 	b[0] = XPRG_CMD_READ_MEM;
@@ -3359,6 +3361,7 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 	    fprintf(stderr,
 		    "%s: stk600_xprog_paged_load(): XPRG_CMD_READ_MEM failed\n",
 		    progname);
+	    free(b);
 	    return -1;
 	}
 	memcpy(mem->buf + offset, b + 2, page_size);
@@ -3448,8 +3451,10 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
         return -1;
     }
 
-    if (stk500v2_loadaddr(pgm, use_ext_addr) < 0)
+    if (stk500v2_loadaddr(pgm, use_ext_addr) < 0) {
+        free(b);
         return -1;
+    }
 
     while (n_bytes != 0) {
 	if (page_size > 256) {
@@ -3466,6 +3471,7 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 		fprintf(stderr,
 			"%s: stk600_xprog_paged_write(): page size not multiple of 256\n",
 			progname);
+		free(b);
 		return -1;
 	    }
 	    unsigned int chunk;
@@ -3494,6 +3500,7 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 		    fprintf(stderr,
 			    "%s: stk600_xprog_paged_write(): XPRG_CMD_WRITE_MEM failed\n",
 			    progname);
+		    free(b);
 		    return -1;
 		}
 		if (n_bytes < 256)
@@ -3528,6 +3535,7 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 		fprintf(stderr,
 			"%s: stk600_xprog_paged_write(): XPRG_CMD_WRITE_MEM failed\n",
 			progname);
+		free(b);
 		return -1;
 	    }
 	    if (n_bytes < page_size)
