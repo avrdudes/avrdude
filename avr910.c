@@ -165,8 +165,7 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
   char hw[2];
   char buf[10];
   char type;
-  char c, devtype_1st;
-  int dev_supported = 0;
+  char c;
   AVRPART * part;
 
   /* Get the programmer identifier. Programmer returns exactly 7 chars
@@ -223,6 +222,8 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
   }
 
   if (PDATA(pgm)->devcode == 0) {
+    char devtype_1st;
+    int dev_supported = 0;
 
     /* Get list of devices that the programmer supports. */
 
@@ -614,14 +615,15 @@ static int avr910_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     unsigned int blocksize = PDATA(pgm)->buffersize;
 
     if (strcmp(m->desc, "flash") && strcmp(m->desc, "eeprom"))
-      rval = -2;
+      return -2;
 
     if (m->desc[0] == 'e')
       blocksize = 1;		/* Write to eeprom single bytes only */
     avr910_set_addr(pgm, addr);
 
     cmd = malloc(4 + blocksize);
-    if (!cmd) rval = -1;
+    if (!cmd) return -1;
+     
     cmd[0] = 'B';
     cmd[3] = toupper((int)(m->desc[0]));
 

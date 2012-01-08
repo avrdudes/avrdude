@@ -644,7 +644,9 @@ static void avrftdi_display(PROGRAMMER * pgm, const char *p)
 
 static int avrftdi_cmd(PROGRAMMER * pgm, unsigned char cmd[4], unsigned char res[4])
 {
-	return avrftdi_transmit(TRX, cmd, res, sizeof(cmd));
+	/* Do not use 'sizeof(cmd)'. => message from cppcheck:
+	   Using sizeof for array given as function argument returns the size of pointer. */
+	return avrftdi_transmit(TRX, cmd, res, 4);
 }
 
 

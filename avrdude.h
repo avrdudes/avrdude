@@ -46,11 +46,11 @@ int usleep(unsigned int us);
 #if !defined(HAVE_GETTIMEOFDAY)
 struct timezone;
 int gettimeofday(struct timeval *tv, struct timezone *tz);
+#endif /* HAVE_GETTIMEOFDAY */
+
 #ifdef __cplusplus
 }
 #endif
-#endif /* HAVE_GETTIMEOFDAY */
-
 #endif /* defined(WIN32NATIVE) */
 
 #endif

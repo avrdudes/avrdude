@@ -482,7 +482,6 @@ static void usbasp_display(PROGRAMMER * pgm, const char * p)
 /* Universal functions: for both SPI and TPI */
 static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p)
 {
-  int dly;
   unsigned char temp[4];
   unsigned char res[4];
   IMPORT_PDATA(pgm);
@@ -500,7 +499,7 @@ static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p)
   if(pdata->use_tpi)
   {
     /* calc tpiclk delay */
-    dly = 1500000.0 * pgm->bitclock;
+    int dly = 1500000.0 * pgm->bitclock;
     if(dly < 1)
         dly = 1;
     else if(dly > 2047)
@@ -550,8 +549,10 @@ static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p)
 static int usbasp_spi_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
                    unsigned char res[4])
 {
+  /* Do not use 'sizeof(res)'. => message from cppcheck:
+     Using sizeof for array given as function argument returns the size of pointer. */
   int nbytes =
-    usbasp_transmit(pgm, 1, USBASP_FUNC_TRANSMIT, cmd, res, sizeof(res));
+    usbasp_transmit(pgm, 1, USBASP_FUNC_TRANSMIT, cmd, res, 4);
 
   if(nbytes != 4){
     fprintf(stderr, "%s: error: wrong responds size\n",

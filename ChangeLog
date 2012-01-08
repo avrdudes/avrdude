@@ -1,3 +1,16 @@
+2012-01-08  Rene Liebscher <R.Liebscher@gmx.de>
+
+	Fixed following findings reported by cppcheck
+	* avr910.c:625 (error) Possible null pointer dereference: cmd - otherwise it is redundant to check if cmd is null at line 624
+	* avr910.c:626 (error) Possible null pointer dereference: cmd - otherwise it is redundant to check if cmd is null at line 624
+	* avr910.c:168 (information) The scope of the variable 'devtype_1st' can be reduced
+	* avr910.c:169 (information) The scope of the variable 'dev_supported' can be reduced
+	* avrftdi.c:647 (error) Using sizeof for array given as function argument returns the size of pointer.
+	* stk500v2.c:3347 (error) Memory leak: b
+	* stk500v2.c:3452 (error) Memory leak: b
+	* usbasp.c:554 (error) Using sizeof for array given as function argument returns the size of pointer.
+	* usbasp.c:485 (information) The scope of the variable 'dly' can be reduced
+
 2012-01-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Reported by Jason Kotzin:
