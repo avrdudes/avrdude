@@ -513,6 +513,14 @@ specified, AVRDUDE reads the configuration file from
 /usr/local/etc/avrdude.conf (FreeBSD and Linux). See Appendix A for
 the method of searching for the configuration file for Windows.
 
+If @var{config-file} is written as @var{+filename}
+then this file is read after the system wide and user configuration 
+files. This can be used to add entries to the configuration
+without patching your system wide configuration file. It can be used 
+several times, the files are read in same order as given on the command 
+line.
+
+
 @item -D
 Disable auto erase for flash.  When the -U option with flash memory is 
 specified, avrdude will perform a chip erase before starting any of the 

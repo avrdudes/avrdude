@@ -1,3 +1,10 @@
+2012-01-10  Rene Liebscher <R.Liebscher@gmx.de>
+
+	patch #7699 Read additional config files
+	* main.c: Added reading of additional config files
+	* avrdude.1: updated man page
+	* doc/avrdude.texi: updated documentation
+
 2012-01-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Bob Frazier:

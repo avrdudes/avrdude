@@ -75,6 +75,8 @@ static LISTID updates;
 
 static LISTID extended_params;
 
+static LISTID additional_config_files;
+
 static PROGRAMMER * pgm;
 
 /*
@@ -342,6 +344,12 @@ int main(int argc, char * argv [])
     exit(1);
   }
 
+  additional_config_files = lcreat(NULL, 0);
+  if (additional_config_files == NULL) {
+    fprintf(stderr, "%s: cannot initialize additional config files list\n", progname);
+    exit(1);
+  }
+
   partdesc      = NULL;
   port          = default_parallel;
   erase         = 0;
@@ -448,8 +456,12 @@ int main(int argc, char * argv [])
         break;
 
       case 'C': /* system wide configuration file */
-        strncpy(sys_config, optarg, PATH_MAX);
-        sys_config[PATH_MAX-1] = 0;
+        if (optarg[0] == '+') {
+          ladd(additional_config_files, optarg+1);
+        } else {
+          strncpy(sys_config, optarg, PATH_MAX);
+          sys_config[PATH_MAX-1] = 0;
+        }
         break;
 
       case 'D': /* disable auto erase */
@@ -620,6 +632,28 @@ int main(int argc, char * argv [])
       }
     }
   }
+
+  if (lsize(additional_config_files) > 0) {
+    LNODEID ln1;
+    const char * p = NULL;
+
+    for (ln1=lfirst(additional_config_files); ln1; ln1=lnext(ln1)) {
+      p = ldata(ln1);
+      if (verbose) {
+        fprintf(stderr, "%sAdditional configuration file is \"%s\"\n",
+                progbuf, p);
+      }
+
+      rc = read_config(p);
+      if (rc) {
+        fprintf(stderr,
+                "%s: error reading additional configuration file \"%s\"\n",
+                progname, p);
+        exit(1);
+      }
+    }
+  }
+
   // set bitclock from configuration files unless changed by command line
   if (default_bitclock > 0 && bitclock == 0.0) {
     bitclock = default_bitclock;
