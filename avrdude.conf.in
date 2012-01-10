@@ -366,9 +366,9 @@ programmer
 # And fill that in here.
 
 programmer
-  id	= "avrftdi";
-  desc	= "FT2232D based generic programmer";
-  type	= avrftdi;
+  id         = "avrftdi";
+  desc       = "FT2232D based generic programmer";
+  type       = avrftdi;
   usbvid     = 0x0403;
   usbpid     = 0x6010;
   usbvendor  = "";
@@ -393,15 +393,15 @@ programmer
 # understood (by avrdude) to be active low, so there's no
 # need to invert the bits.
 programmer
-  id	= "2232HIO";
-  desc	= "FT2232H based generic programmer";
-  type	= avrftdi;
+  id         = "2232HIO";
+  desc       = "FT2232H based generic programmer";
+  type       = avrftdi;
   usbvid     = 0x0403;
 # Note: This PID is reserved for generic H devices and 
 # should be programmed into the EEPROM
 #  usbpid     = 0x8A48;
-   usbpid    = 0x6010;
-  usbdev = "A";
+  usbpid     = 0x6010;
+  usbdev     = "A";
   usbvendor  = "";
   usbproduct = "";
   usbsn      = "";
@@ -419,13 +419,13 @@ programmer
 ;
 
 programmer
-  id    = "jtagkey";
-  desc  = "Amontec JTAGKey, JTAGKey-Tiny and JTAGKey2";
-  type  = avrftdi;
+  id         = "jtagkey";
+  desc       = "Amontec JTAGKey, JTAGKey-Tiny and JTAGKey2";
+  type       = avrftdi;
   usbvid     = 0x0403;
 # Note: This PID is used in all JTAGKey variants
-  usbpid    = 0xCFF8;
-  usbdev = "A";
+  usbpid     = 0xCFF8;
+  usbdev     = "A";
   usbvendor  = "";
   usbproduct = "";
   usbsn      = "";
@@ -439,6 +439,37 @@ programmer
 # GND           GND 20 black
 # The colors are on the 20 pin breakout cable
 # from Amontec
+;
+
+# On the adapter you can read "O-Link". On the PCB is printed "OpenJTAG v3.1"
+# You can find it as "OpenJTAG ARM JTAG USB" in the internet. 
+# (But there are also several projects called Open JTAG, eg. 
+# http://www.openjtag.org, which are completely different.)
+#   http://www.100ask.net/shop/english.html (website seems to be outdated)
+#   http://item.taobao.com/item.htm?id=1559277013
+#   http://www.micro4you.com/store/openjtag-arm-jtag-usb.html (schematics!)
+# some other sources which call it O-Link
+#   http://www.andahammer.com/olink/
+#   http://www.developmentboard.net/31-o-link-debugger.html
+#   http://armwerks.com/catalog/o-link-debugger-copy/
+# or just have a look at ebay ...
+# It is basically the same entry as jtagkey with different usb ids.
+programmer
+  id         = "o-link";
+  desc       = "O-Link, OpenJTAG from www.100ask.net";
+  type       = avrftdi;
+  usbvid     = 0x1457;
+  usbpid     = 0x5118;
+  usbdev     = "A";
+  usbvendor  = "www.100ask.net";
+  usbproduct = "USB<=>JTAG&RS232";
+  usbsn      = "";
+# for pin connections see jtagkey
+  reset  = 4;
+  sck    = 1;
+  mosi   = 2;
+  miso   = 3;
+  buff   = 5;
 ;
 
 programmer

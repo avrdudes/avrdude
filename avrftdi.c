@@ -468,6 +468,7 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 			memset(serial, 0, 255);
 			devlist_ptr = devlist_ptr->next;
 		} while (devlist_ptr);
+		ftdi_list_free(&devlist);
 	} else {
 		fprintf(stderr,
 			"%s: No devices with Vendor-ID:Product-ID %04x:%04x found.\n",
@@ -479,7 +480,6 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 		fprintf(stderr,
 			"%s: No devices with VID:PID %04x:%04x and SN '%s' found.\n",
 			progname, vid, pid, pgm->usbsn);
-		ftdi_list_free(&devlist);
 		return -1;
 	}
 	if (verbose) {
@@ -709,7 +709,7 @@ static int avrftdi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 
 
 /* Load extended address byte command */
-static int avrftdi_lext(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m, int address)
+static int avrftdi_lext(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m, unsigned int address)
 {
 	unsigned char buf[] = {0x11, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00};
 
@@ -727,15 +727,15 @@ static int avrftdi_lext(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m, int address)
 }
 
 static int avrftdi_eeprom_write(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
-				int page_size, int len)
+		unsigned int page_size, unsigned int addr, unsigned int len)
 {
 	unsigned char cmd[4];
 	unsigned char *data = m->buf;
-	int add;
+	unsigned int add;
 
 	avr_set_bits(m->op[AVR_OP_WRITE], cmd);
 
-	for (add = 0; add < len; add++)
+	for (add = addr; add < addr + len; add++)
 	{
 		avr_set_addr(m->op[AVR_OP_WRITE], cmd, add);
 		avr_set_input(m->op[AVR_OP_WRITE], cmd, *data++);
@@ -748,16 +748,15 @@ static int avrftdi_eeprom_write(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
 }
 
 static int avrftdi_eeprom_read(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
-			       int page_size, int len)
+		unsigned int page_size, unsigned int addr, unsigned int len)
 {
 	unsigned char cmd[4];
 	unsigned char buffer[len], *bufptr = buffer;
-
-	int add;
+	unsigned int add;
 
 	memset(buffer, 0, sizeof(buffer));
 
-	for (add = 0; add < len; add++)
+	for (add = addr; add < addr + len; add++)
 	{
 		avr_set_bits(m->op[AVR_OP_READ], cmd);
 		avr_set_addr(m->op[AVR_OP_READ], cmd, add);
@@ -767,32 +766,23 @@ static int avrftdi_eeprom_read(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
 		avr_get_output(m->op[AVR_OP_READ], cmd, bufptr++);
 	}
 
-	memcpy(m->buf, buffer, len);
+	memcpy(m->buf + addr, buffer, len);
 	return len;
 }
 
 static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-			       int page_size, int len)
+		unsigned int page_size, unsigned int addr, unsigned int len)
 {
 	int i;
-	int address = 0, buf_size;
-	int bytes = len;
-	int blocksize;
+	unsigned int address = addr/2, buf_size;
+	unsigned int address_prev_block = ~address; /* start address of previous block,
+	                                            init to different than address */
+	unsigned int bytes = len;
+	unsigned int blocksize;
 	int use_lext_address = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
-	unsigned char *buf, *bufptr;
+	unsigned char buf[4*len+4], *bufptr = buf;
 	unsigned char *buffer = m->buf;
 	unsigned char byte;
-
-
-	buf = (unsigned char*) malloc(4 * len + 4);
-	if (buf == NULL) {
-		fprintf(stderr,
-			"%s (avrftdi_flash_write): error allocating memory\n",
-			p->desc);
-		exit (-1);
-	}
-
-	bufptr = buf;
 
 	/* pre-check opcodes */
 	if (m->op[AVR_OP_LOADPAGE_LO] == NULL) {
@@ -832,9 +822,10 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 		 * is only available on 256k parts.  64k word is 128k
 		 * bytes.
 		 */
-		if (use_lext_address && !(bytes & 0x1ffff)) {
+		if(use_lext_address && ((address & 0xffff0000) != (address_prev_block & 0xffff0000))) {
 			avrftdi_lext(pgm, p, m, address);
 		}
+		address_prev_block = address;
 
 		for (i = 0; i < blocksize; i++) {
 			/*setting word*/
@@ -889,13 +880,13 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 		}
 
 		if (verbose < 3)
-			report_progress(2 * address, len, NULL);
+			report_progress(2 * address - addr, len, NULL);
 	}
 	return len;
 }
 
 static int avrftdi_flash_read(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-			      int page_size, int len)
+		unsigned int page_size, unsigned int addr, unsigned int len)
 {
 	/*
 	 *Reading from flash
@@ -904,9 +895,11 @@ static int avrftdi_flash_read(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	int i, buf_index, buf_size = 0, psize = m->page_size;
 	unsigned char o_buf[4*len+4], *o_ptr = o_buf;
 	unsigned char i_buf[4*len+4];
-	int address = 0;
-	int bytes = len;
-	int blocksize;
+	unsigned int address = addr/2;
+	unsigned int address_prev_block = ~address; /* start address of previous block,
+	                                            init to different than address */
+	unsigned int bytes = len;
+	unsigned int blocksize;
 	unsigned char buffer[m->size], *bufptr = buffer;
 
 	memset(o_buf, 0, sizeof(o_buf));
@@ -936,9 +929,10 @@ static int avrftdi_flash_read(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 			bytes = 0;
 		}
 
-		if(use_lext_address && !(bytes & 0x1ffff)) {
+		if(use_lext_address && ((address & 0xffff0000) != (address_prev_block & 0xffff0000))) {
 			avrftdi_lext(pgm, p, m, address);
 		}
+		address_prev_block = address;
 
 		for(i = 0; i < blocksize; i++) {
 			if(verbose > 3)
@@ -973,29 +967,29 @@ static int avrftdi_flash_read(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 			}
 		}
 	}
-	memcpy(m->buf, buffer, sizeof(buffer));
+	memcpy(m->buf + addr, buffer, len);
 
 	return len;
 }
 
 static int avrftdi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-			       int page_size, int n_bytes)
+		unsigned int page_size, unsigned int addr, unsigned int n_bytes)
 {
 	if (strcmp(m->desc, "flash") == 0)
-		return avrftdi_flash_write(pgm, p, m, page_size, n_bytes);
+		return avrftdi_flash_write(pgm, p, m, page_size, addr, n_bytes);
 	else if (strcmp(m->desc, "eeprom") == 0)
-		return avrftdi_eeprom_write(pgm, p, m, page_size, n_bytes);
+		return avrftdi_eeprom_write(pgm, p, m, page_size, addr, n_bytes);
 	else
 		return -2;
 }
 
 static int avrftdi_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-			      int page_size, int n_bytes)
+		unsigned int page_size, unsigned int addr, unsigned int n_bytes)
 {
 	if (strcmp(m->desc, "flash") == 0)
-		return avrftdi_flash_read(pgm, p, m, page_size, n_bytes);
+		return avrftdi_flash_read(pgm, p, m, page_size, addr, n_bytes);
 	else if(strcmp(m->desc, "eeprom") == 0)
-		return avrftdi_eeprom_read(pgm, p, m, page_size, n_bytes);
+		return avrftdi_eeprom_read(pgm, p, m, page_size, addr, n_bytes);
 	else
 		return -2;
 }
