@@ -12,6 +12,22 @@ Current:
   * New programmers supported:
 
   * Bugfixes
+      - bug #34027: avrdude AT90S1200 Problem
+      - bug #34518: loading intel hex files > 64k using record-type 4
+
+  * Keep track of input file contents
+
+      Memory segments are being tracked to remember whether they've
+      been actually read from a file.  Only segments that came from a
+      file are being programmed into the device, or considered for
+      verification.  This drastically improves handling speed for
+      sparse files (e.g. files that have a second bootloader segment),
+      and it ensures the device contents is actually compared for
+      everything mentioned in the file (even in case the file has
+      large 0xFF blocks).
+
+  * The EEPROM contents for the cyclecounter is only read when
+    explicitly requested by a -y or -Y option.
 
 
 Version 5.11:
