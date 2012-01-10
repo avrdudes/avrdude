@@ -269,6 +269,16 @@ submit a patch back to the author so that it can be incorporated for
 the next version).  See the config file, located at
 .Pa ${PREFIX}/etc/avrdude.conf ,
 which contains a description of the format.
+.Pp
+If 
+.Ar config-file
+is written as
+.Pa +filename
+then this file is read after the system wide and user configuration
+files. This can be used to add entries to the configuration
+without patching your system wide configuration file. It can be used
+several times, the files are read in same order as given on the command
+line.
 .It Fl D
 Disable auto erase for flash.  When the
 .Fl U
