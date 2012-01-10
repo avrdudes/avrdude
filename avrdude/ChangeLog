@@ -1,3 +1,11 @@
+2012-01-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Bob Frazier:
+	bug #35208: avrdude 5.11 on freebsd 8.2-STABLE does not reset
+	Arduino Uno properly
+	* arduino.c (arduino_open): Bump the timeout between pulling
+	the DTR and RTS lines low and high.
+
 2012-01-08  Rene Liebscher <R.Liebscher@gmx.de>
 
 	Fixed following findings reported by cppcheck
