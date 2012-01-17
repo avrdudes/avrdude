@@ -55,6 +55,13 @@ extern char * yytext;
 
 #define DEBUG 0
 
+void cleanup_config(void)
+{
+  ldestroy_cb(part_list,avr_free_part);
+  ldestroy_cb(programmers,pgm_free);
+  ldestroy_cb(string_list,free_token);
+  ldestroy_cb(number_list,free_token);
+}
 
 int init_config(void)
 {
@@ -62,7 +69,7 @@ int init_config(void)
   number_list  = lcreat(NULL, 0);
   current_prog = NULL;
   current_part = NULL;
-  current_mem  = 0;
+  current_mem  = NULL;
   part_list    = lcreat(NULL, 0);
   programmers  = lcreat(NULL, 0);
 
@@ -300,6 +307,11 @@ int read_config(const char * file)
   yyin   = f;
 
   yyparse();
+
+#ifdef HAVE_YYLEX_DESTROY
+  /* reset lexer and free any allocated memory */
+  yylex_destroy();
+#endif
 
   fclose(f);
 

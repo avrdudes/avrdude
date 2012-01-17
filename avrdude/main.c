@@ -71,11 +71,11 @@ struct list_walk_cookie
     const char *prefix;
 };
 
-static LISTID updates;
+static LISTID updates = NULL;
 
-static LISTID extended_params;
+static LISTID extended_params = NULL;
 
-static LISTID additional_config_files;
+static LISTID additional_config_files = NULL;
 
 static PROGRAMMER * pgm;
 
@@ -254,6 +254,24 @@ static void exithook(void)
         pgm->teardown(pgm);
 }
 
+static void cleanup_main(void)
+{
+    if (updates) {
+        ldestroy_cb(updates,free_update);
+        updates = NULL;
+    }
+    if (extended_params) {
+        ldestroy(extended_params);
+        extended_params = NULL;
+    }
+    if (additional_config_files) {
+        ldestroy(additional_config_files);
+        additional_config_files = NULL;
+    }
+
+    cleanup_config();
+}
+
 /*
  * main routine
  */
@@ -331,6 +349,8 @@ int main(int argc, char * argv [])
   default_bitclock    = 0.0;
 
   init_config();
+
+  atexit(cleanup_main);
 
   updates = lcreat(NULL, 0);
   if (updates == NULL) {

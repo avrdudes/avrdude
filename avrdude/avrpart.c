@@ -67,6 +67,10 @@ static OPCODE * avr_dup_opcode(OPCODE * op)
   return m;
 }
 
+void avr_free_opcode(OPCODE * op)
+{
+  free(op);
+}
 
 /*
  * avr_set_bits()
@@ -303,6 +307,27 @@ AVRMEM * avr_dup_mem(AVRMEM * m)
   return n;
 }
 
+void avr_free_mem(AVRMEM * m)
+{
+    int i;
+    if (m->buf != NULL) {
+      free(m->buf);
+      m->buf = NULL;
+    }
+    if (m->tags != NULL) {
+      free(m->tags);
+      m->tags = NULL;
+    }
+    for(i=0;i<sizeof(m->op)/sizeof(m->op[0]);i++)
+    {
+      if (m->op[i] != NULL)
+      {
+        avr_free_opcode(m->op[i]);
+        m->op[i] = NULL;
+      }
+    }
+    free(m);
+}
 
 AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
 {
@@ -447,6 +472,21 @@ AVRPART * avr_dup_part(AVRPART * d)
   return p;
 }
 
+void avr_free_part(AVRPART * d)
+{
+int i;
+	ldestroy_cb(d->mem,avr_free_mem);
+	d->mem = NULL;
+    for(i=0;i<sizeof(d->op)/sizeof(d->op[0]);i++)
+    {
+    	if (d->op[i] != NULL)
+    	{
+    		avr_free_opcode(d->op[i]);
+    		d->op[i] = NULL;
+    	}
+    }
+	free(d);
+}
 
 AVRPART * locate_part(LISTID parts, char * partdesc)
 {

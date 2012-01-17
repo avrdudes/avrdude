@@ -305,6 +305,7 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor,
             handle = NULL;
         }
     }
+    libusb_free_device_list(dev_list,1);
     if (handle != NULL){
         errorCode = 0;
         *device = handle;
@@ -401,11 +402,7 @@ static int           didUsbInit = 0;
 /* Interface - prog. */
 static int usbasp_open(PROGRAMMER * pgm, char * port)
 {
-#ifdef USE_LIBUSB_1_0
-  libusb_init(&ctx);
-#else
-  usb_init();
-#endif
+  /* usb_init will be done in usbOpenDevice */
   if (usbOpenDevice(&PDATA(pgm)->usbhandle, pgm->usbvid, pgm->usbvendor,
 		  pgm->usbpid, pgm->usbproduct) != 0) {
     /* try alternatives */
@@ -474,6 +471,11 @@ static void usbasp_close(PROGRAMMER * pgm)
     usb_close(PDATA(pgm)->usbhandle);
 #endif
   }
+#ifdef USE_LIBUSB_1_0
+  libusb_exit(ctx);
+#else
+  /* nothing for usb 0.1 ? */
+#endif
 }
 
 

@@ -131,6 +131,7 @@ extern "C" {
 #endif
 
 PROGRAMMER * pgm_new(void);
+void         pgm_free(PROGRAMMER * const p);
 
 void programmer_display(PROGRAMMER * pgm, const char * p);
 PROGRAMMER * locate_programmer(LISTID programmers, const char * configid);

@@ -198,6 +198,7 @@ extern "C" {
 
 /* Functions for OPCODE structures */
 OPCODE * avr_new_opcode(void);
+void     avr_free_opcode(OPCODE * op);
 int avr_set_bits(OPCODE * op, unsigned char * cmd);
 int avr_set_addr(OPCODE * op, unsigned char * cmd, unsigned long addr);
 int avr_set_input(OPCODE * op, unsigned char * cmd, unsigned char data);
@@ -207,6 +208,7 @@ int avr_get_output(OPCODE * op, unsigned char * res, unsigned char * data);
 AVRMEM * avr_new_memtype(void);
 int avr_initmem(AVRPART * p);
 AVRMEM * avr_dup_mem(AVRMEM * m);
+void     avr_free_mem(AVRMEM * m);
 AVRMEM * avr_locate_mem(AVRPART * p, char * desc);
 void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, int type,
                      int verbose);
@@ -214,6 +216,7 @@ void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, int type,
 /* Functions for AVRPART structures */
 AVRPART * avr_new_part(void);
 AVRPART * avr_dup_part(AVRPART * d);
+void      avr_free_part(AVRPART * d);
 AVRPART * locate_part(LISTID parts, char * partdesc);
 AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode);
 void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose);

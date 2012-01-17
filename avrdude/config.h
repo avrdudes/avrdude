@@ -78,6 +78,8 @@ int yyparse(void);
 
 int init_config(void);
 
+void cleanup_config(void);
+
 TOKEN * new_token(int primary);
 
 void free_token(TOKEN * tkn);
