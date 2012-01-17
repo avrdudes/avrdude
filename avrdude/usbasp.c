@@ -262,45 +262,48 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor,
 			    "%s: Warning: cannot open USB device: %s\n",
 			    progname, strerror(libusb_to_errno(r)));
                     continue;
-                }
-                if (vendorName == NULL && productName == NULL) {
-		    /* name does not matter */
-                    break;
-                }
-                /* now check whether the names match: */
-		r = libusb_get_string_descriptor_ascii(handle, descriptor.iManufacturer & 0xff, string, sizeof(string));
-                if (r < 0) {
+            }
+            errorCode = 0;
+            /* now check whether the names match: */
+            /* if vendorName not given ignore it (any vendor matches) */
+	    r = libusb_get_string_descriptor_ascii(handle, descriptor.iManufacturer & 0xff, string, sizeof(string));
+            if (r < 0) {
+                if ((vendorName != NULL) && (vendorName[0] != 0)) {
                     errorCode = USB_ERROR_IO;
                     fprintf(stderr,
 			    "%s: Warning: cannot query manufacturer for device: %s\n",
 			    progname, strerror(libusb_to_errno(r)));
-                } else {
+		}
+            } else {
+		if (verbose > 1)
+		    fprintf(stderr,
+			    "%s: seen device from vendor ->%s<-\n",
+			    progname, string);
+                if ((vendorName != NULL) && (vendorName[0] != 0) && (strcmp(string, vendorName) != 0))
                     errorCode = USB_ERROR_NOTFOUND;
-		    if (verbose > 1)
-		        fprintf(stderr,
-				"%s: seen device from vendor ->%s<-\n",
-				progname, string);
-                    if (strcmp(string, vendorName) == 0){
-			r = libusb_get_string_descriptor_ascii(handle, descriptor.iProduct & 0xff, string, sizeof(string));
-                        if (r < 0) {
-                            errorCode = USB_ERROR_IO;
-                            fprintf(stderr,
-				    "%s: Warning: cannot query product for device: %s\n",
-				    progname, strerror(libusb_to_errno(r)));
-                        } else {
-                            errorCode = USB_ERROR_NOTFOUND;
-			    if (verbose > 1)
-			        fprintf(stderr,
-					"%s: seen product ->%s<-\n",
-					progname, string);
-                            if(strcmp(string, productName) == 0)
-                                break;
-                        }
-                    }
-                }
-                libusb_close(handle);
-                handle = NULL;
             }
+            /* if productName not given ignore it (any product matches) */
+	    r = libusb_get_string_descriptor_ascii(handle, descriptor.iProduct & 0xff, string, sizeof(string));
+            if (r < 0) {
+                if ((productName != NULL) && (productName[0] != 0)) {
+                    errorCode = USB_ERROR_IO;
+                    fprintf(stderr,
+			    "%s: Warning: cannot query product for device: %s\n",
+			    progname, strerror(libusb_to_errno(r)));
+		}
+            } else {
+		if (verbose > 1)
+		    fprintf(stderr,
+			    "%s: seen product ->%s<-\n",
+			    progname, string);
+                if((productName != NULL) && (productName[0] != 0) && (strcmp(string, productName) != 0))
+                    errorCode = USB_ERROR_NOTFOUND;
+            }
+            if (errorCode == 0)
+                break;
+            libusb_close(handle);
+            handle = NULL;
+        }
     }
     if (handle != NULL){
         errorCode = 0;
@@ -339,43 +342,46 @@ static int           didUsbInit = 0;
 			    progname, usb_strerror());
                     continue;
                 }
-                if(vendorName == NULL && productName == NULL){
-		    /* name does not matter */
-                    break;
-                }
+                errorCode = 0;
                 /* now check whether the names match: */
+                /* if vendorName not given ignore it (any vendor matches) */
                 len = usb_get_string_simple(handle, dev->descriptor.iManufacturer,
 					    string, sizeof(string));
                 if(len < 0){
+                    if ((vendorName != NULL) && (vendorName[0] != 0)) {
                     errorCode = USB_ERROR_IO;
                     fprintf(stderr,
 			    "%s: Warning: cannot query manufacturer for device: %s\n",
 			    progname, usb_strerror());
-                }else{
-                    errorCode = USB_ERROR_NOTFOUND;
+		    }
+                } else {
 		    if (verbose > 1)
 		        fprintf(stderr,
 				"%s: seen device from vendor ->%s<-\n",
 				progname, string);
-                    if(strcmp(string, vendorName) == 0){
-                        len = usb_get_string_simple(handle, dev->descriptor.iProduct,
-						    string, sizeof(string));
-                        if(len < 0){
-                            errorCode = USB_ERROR_IO;
-                            fprintf(stderr,
-				    "%s: Warning: cannot query product for device: %s\n",
-				    progname, usb_strerror());
-                        }else{
-                            errorCode = USB_ERROR_NOTFOUND;
-			    if (verbose > 1)
-			        fprintf(stderr,
-					"%s: seen product ->%s<-\n",
-					progname, string);
-                            if(strcmp(string, productName) == 0)
-                                break;
-                        }
-                    }
+                    if((vendorName != NULL) && (vendorName[0] != 0) && (strcmp(string, vendorName) != 0))
+                        errorCode = USB_ERROR_NOTFOUND;
                 }
+                /* if productName not given ignore it (any product matches) */
+                len = usb_get_string_simple(handle, dev->descriptor.iProduct,
+					    string, sizeof(string));
+                if(len < 0){
+                    if ((productName != NULL) && (productName[0] != 0)) {
+                        errorCode = USB_ERROR_IO;
+                        fprintf(stderr,
+			        "%s: Warning: cannot query product for device: %s\n",
+			        progname, usb_strerror());
+		    }
+                } else {
+		    if (verbose > 1)
+			fprintf(stderr,
+				"%s: seen product ->%s<-\n",
+				progname, string);
+                    if((productName != NULL) && (productName[0] != 0) && (strcmp(string, productName) != 0))
+                        errorCode = USB_ERROR_NOTFOUND;
+                }
+                if (errorCode == 0)
+                    break;
                 usb_close(handle);
                 handle = NULL;
             }
@@ -400,38 +406,51 @@ static int usbasp_open(PROGRAMMER * pgm, char * port)
 #else
   usb_init();
 #endif
-  if(strcasecmp(port, "nibobee") == 0) {
-    if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_NIBOBEE_VID, "www.nicai-systems.com",
-		    USBASP_NIBOBEE_PID, "NIBObee") != 0) {
-      fprintf(stderr,
-	      "%s: error: could not find USB device "
-	      "\"NIBObee\" with vid=0x%x pid=0x%x\n",
-  	      progname, USBASP_NIBOBEE_VID, USBASP_NIBOBEE_PID);
-      return -1;
-      
+  if (usbOpenDevice(&PDATA(pgm)->usbhandle, pgm->usbvid, pgm->usbvendor,
+		  pgm->usbpid, pgm->usbproduct) != 0) {
+    /* try alternatives */
+    if(strcasecmp(ldata(lfirst(pgm->id)), "usbasp") == 0) {
+    /* for id usbasp autodetect some variants */
+      if(strcasecmp(port, "nibobee") == 0) {
+        fprintf(stderr,
+	        "%s: warning: Using \"-C usbasp -P nibobee\" is deprecated,"
+	        "use \"-C nibobee\" instead.\n",
+	        progname);
+        if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_NIBOBEE_VID, "www.nicai-systems.com",
+		        USBASP_NIBOBEE_PID, "NIBObee") != 0) {
+          fprintf(stderr,
+	          "%s: error: could not find USB device "
+	          "\"NIBObee\" with vid=0x%x pid=0x%x\n",
+	          progname, USBASP_NIBOBEE_VID, USBASP_NIBOBEE_PID);
+          return -1;
+        }
+        return 0;
+      }
+      /* check if device with old VID/PID is available */
+      if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_OLD_VID, "www.fischl.de",
+		             USBASP_OLD_PID, "USBasp") == 0) {
+        /* found USBasp with old IDs */
+        fprintf(stderr,
+		"%s: Warning: Found USB device \"USBasp\" with "
+	        "old VID/PID! Please update firmware of USBasp!\n",
+	        progname);
+	return 0;
+      }
+    /* original USBasp is specified in config file, so no need to check it again here */
+    /* no alternative found => fall through to generic error message */
     }
-  } else if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_SHARED_VID, "www.fischl.de",
-		    USBASP_SHARED_PID, "USBasp") != 0) {
 
-    /* check if device with old VID/PID is available */
-    if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_OLD_VID, "www.fischl.de",
-		      USBASP_OLD_PID, "USBasp") != 0) {
-
-      /* no USBasp found */
-      fprintf(stderr,
-	      "%s: error: could not find USB device "
-	      "\"USBasp\" with vid=0x%x pid=0x%x\n",
-  	      progname, USBASP_SHARED_VID, USBASP_SHARED_PID);
-      return -1;
-
-    } else {
-
-      /* found USBasp with old IDs */
-      fprintf(stderr,
-	      "%s: Warning: Found USB device \"USBasp\" with "
-	      "old VID/PID! Please update firmware of USBasp!\n",
-  	      progname);
+    fprintf(stderr,
+            "%s: error: could not find USB device with vid=0x%x pid=0x%x",
+            progname, pgm->usbvid, pgm->usbpid);
+    if (pgm->usbvendor[0] != 0) {
+       fprintf(stderr, " vendor='%s'", pgm->usbvendor);
     }
+    if (pgm->usbproduct[0] != 0) {
+       fprintf(stderr, " product='%s'", pgm->usbproduct);
+    }
+    fprintf(stderr,"\n");
+    return -1;
   }
 
   return 0;

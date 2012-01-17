@@ -570,6 +570,44 @@ programmer
   id    = "usbasp";
   desc  = "USBasp, http://www.fischl.de/usbasp/";
   type  = usbasp;
+  usbvid     = 0x16C0; # VOTI
+  usbpid     = 0x05DC; # Obdev's free shared PID
+  usbvendor  = "www.fischl.de";
+  usbproduct = "USBasp";
+
+  # following variants are autodetected for id "usbasp"
+
+  # original usbasp from fischl.de
+  # see above "usbasp"
+
+  # old usbasp from fischl.de
+  #usbvid     = 0x03EB; # ATMEL
+  #usbpid     = 0xC7B4; # (unoffical) USBasp
+  #usbvendor  = "www.fischl.de";
+  #usbproduct = "USBasp";
+
+  # NIBObee (only if -P nibobee is given on command line)
+  # see below "nibobee"
+;
+
+programmer
+  id    = "nibobee";
+  desc  = "NIBObee";
+  type  = usbasp;
+  usbvid     = 0x16C0; # VOTI
+  usbpid     = 0x092F; # NIBObee PID
+  usbvendor  = "www.nicai-systems.com";
+  usbproduct = "NIBObee";
+;
+
+programmer
+  id    = "usbasp-clone";
+  desc  = "Any usbasp clone with correct VID/PID";
+  type  = usbasp;
+  usbvid    = 0x16C0; # VOTI
+  usbpid    = 0x05DC; # Obdev's free shared PID
+  #usbvendor  = "";
+  #usbproduct = "";
 ;
 
 programmer
