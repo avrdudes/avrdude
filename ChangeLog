@@ -1,5 +1,32 @@
 2012-01-17  Rene Liebscher <R.Liebscher@gmx.de>
 
+	bug #34302: Feature request : device configuration with parent classes
+	* config_gram.y: if memory section is overwritten old entry is removed
+	
+	(not in original patch)
+	* config_gram.y: if programmer or part is defined twice, a warning is
+	output and the first instance is removed
+	
+	General cleanup and free functions, so valgrind does not report any lost
+	blocks at program end.
+	* avrpart.[hc]: added avr_free_(opcode|mem|part) functions
+	* pgm.[hc]: added pgm_free function
+	* update.[hc]: added free_update functions
+	* config.[hc]: added cleanup_config function, use yylex_destroy to reset
+	the lexer after usage. (So it can be reused.)
+	* main.c: add cleanup_main function which is called by atexit() (This 
+	frees all lists so that at program exit only really lost memory is 
+	reported by valgrind.)
+	* usbasp.c: added libusb_free_device_list() and libusb_exit() calls to
+	avoid lost memory
+	* buspirate.c: moved memory allocation from initpgm to setup and added 
+	free in teardown
+	* configure.ac: add definition of HAVE_YYLEX_DESTROY if $LEX is flex.
+	* Makefile.am: added . in front of SUBDIRS to build avrdude before trying
+	to use it for creating the part list for the docs.
+
+2012-01-17  Rene Liebscher <R.Liebscher@gmx.de>
+
 	* usbasp.c: USB vid/pid/vendor/product from config file are used, for
 	id "usbasp" nibobee and old usbasp are tried as they were currently
 	implemented within usbasp

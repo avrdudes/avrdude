@@ -40,6 +40,12 @@ AC_PROG_INSTALL
 AC_PROG_YACC
 AC_PROG_LEX
 AC_PROG_RANLIB
+AH_TEMPLATE([HAVE_YYLEX_DESTROY],
+            [Define if lex/flex has yylex_destroy])
+# flex should have this
+if test "x$LEX" == xflex; then
+   AC_DEFINE([HAVE_YYLEX_DESTROY])
+fi
 
 dnl Makefile.am:77: compiling `config_gram.c' with per-target flags requires `AM_PROG_CC_C_O' in `configure.ac'
 AM_PROG_CC_C_O

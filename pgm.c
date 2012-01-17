@@ -135,6 +135,17 @@ PROGRAMMER * pgm_new(void)
   return pgm;
 }
 
+void pgm_free(PROGRAMMER * const p)
+{
+  ldestroy_cb(p->id,free);
+  p->id = NULL;
+  /* this is done by pgm_teardown, but usually cookie is not set to NULL */
+  /* if (p->cookie !=NULL) {
+    free(p->cookie);
+    p->cookie = NULL;
+  }*/
+  free(p);
+}
 
 static void pgm_default(void)
 {

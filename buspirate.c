@@ -760,6 +760,22 @@ static int buspirate_chip_erase(struct programmer_t *pgm, AVRPART * p)
 	return 0;
 }
 
+/* Interface - management */
+static void buspirate_setup(struct programmer_t *pgm)
+{
+	/* Allocate private data */
+	if ((pgm->cookie = calloc(1, sizeof(struct pdata))) == 0) {
+		fprintf(stderr, "%s: buspirate_initpgm(): Out of memory allocating private data\n",
+			progname);
+		exit(1);
+	}
+}
+
+static void buspirate_teardown(struct programmer_t *pgm)
+{
+	free(pgm->cookie);
+}
+
 void buspirate_initpgm(struct programmer_t *pgm)
 {
 	strcpy(pgm->type, "BusPirate");
@@ -785,11 +801,7 @@ void buspirate_initpgm(struct programmer_t *pgm)
 	/* Support functions */
 	pgm->parseextparams = buspirate_parseextparms;
 
-	/* Allocate private data */
-	if ((pgm->cookie = calloc(1, sizeof(struct pdata))) == 0) {
-		fprintf(stderr, "%s: buspirate_initpgm(): Out of memory allocating private data\n",
-			progname);
-		exit(1);
-	}
+	pgm->setup          = buspirate_setup;
+	pgm->teardown       = buspirate_teardown;
 }
 

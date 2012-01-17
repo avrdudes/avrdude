@@ -200,6 +200,22 @@ UPDATE * new_update(int op, char * memtype, int filefmt, char * filename)
   return u;
 }
 
+void free_update(UPDATE * u)
+{
+    if (u != NULL) {
+	if(u->memtype != NULL) {
+	    free(u->memtype);
+	    u->memtype = NULL;
+	}
+	if(u->filename != NULL) {
+	    free(u->filename);
+	    u->filename = NULL;
+	}
+	free(u);
+    }
+}
+
+
 int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite)
 {
   struct avrpart * v;

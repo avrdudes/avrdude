@@ -290,6 +290,8 @@ def :
 prog_def :
   prog_decl prog_parms
     {
+      PROGRAMMER * existing_prog;
+      char * id;
       if (lsize(current_prog->id) == 0) {
         fprintf(stderr,
                 "%s: error at %s:%d: required parameter id not specified\n",
@@ -300,6 +302,16 @@ prog_def :
         fprintf(stderr, "%s: error at %s:%d: programmer type not specified\n",
                 progname, infile, lineno);
         exit(1);
+      }
+      id = ldata(lfirst(current_prog->id));
+      existing_prog = locate_programmer(programmers, id);
+      if (existing_prog) {
+        fprintf(stderr, "%s: warning at %s:%d: programmer %s overwrites "
+                "previous definition %s:%d.\n",
+                progname, infile, current_prog->lineno,
+                id, existing_prog->config_file, existing_prog->lineno);
+        lrmv_d(programmers, existing_prog);
+        pgm_free(existing_prog);
       }
       PUSH(programmers, current_prog);
       current_prog = NULL;
@@ -321,6 +333,7 @@ part_def :
     { 
       LNODEID ln;
       AVRMEM * m;
+      AVRPART * existing_part;
 
       if (current_part->id[0] == 0) {
         fprintf(stderr,
@@ -366,6 +379,15 @@ part_def :
         }
       }
 
+      existing_part = locate_part(part_list, current_part->id);
+      if (existing_part) {
+        fprintf(stderr, "%s: warning at %s:%d: part %s overwrites "
+                "previous definition %s:%d.\n",
+                progname, infile, current_part->lineno, current_part->id,
+                existing_part->config_file, existing_part->lineno);
+        lrmv_d(part_list, existing_part);
+        avr_free_part(existing_part);
+      }
       PUSH(part_list, current_part); 
       current_part = NULL; 
     }
@@ -1146,6 +1168,13 @@ part_parm :
     } 
     mem_specs 
     { 
+      AVRMEM * existing_mem;
+
+      existing_mem = avr_locate_mem(current_part, current_mem->desc);
+      if (existing_mem != NULL) {
+        lrmv_d(current_part->mem, existing_mem);
+        avr_free_mem(existing_mem);
+      }
       ladd(current_part->mem, current_mem); 
       current_mem = NULL; 
     } |
@@ -1162,7 +1191,7 @@ part_parm :
         /*fprintf(stderr,
               "%s: warning at %s:%d: operation redefined\n",
               progname, infile, lineno);*/
-        free(current_part->op[opnum]);
+        avr_free_opcode(current_part->op[opnum]);
       }
       current_part->op[opnum] = op;
 
@@ -1289,7 +1318,7 @@ mem_spec :
         /*fprintf(stderr,
               "%s: warning at %s:%d: operation redefined\n",
               progname, infile, lineno);*/
-        free(current_mem->op[opnum]);
+        avr_free_opcode(current_mem->op[opnum]);
       }
       current_mem->op[opnum] = op;
 
