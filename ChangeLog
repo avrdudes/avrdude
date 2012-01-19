@@ -1,3 +1,9 @@
+2012-01-19  Rene Liebscher <R.Liebscher@gmx.de>
+
+	* avr.c: Unsigned variable was used for return code of paged_write/load
+	functions. So a negative return code led never to a fallback to byte
+	functions.
+
 2012-01-17  Rene Liebscher <R.Liebscher@gmx.de>
 
 	bug #34302: Feature request : device configuration with parent classes

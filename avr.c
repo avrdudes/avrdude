@@ -289,9 +289,9 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
           break;
         }
       if (need_read) {
-        i = pgm->paged_load(pgm, p, mem, mem->page_size,
+        rc = pgm->paged_load(pgm, p, mem, mem->page_size,
                             pageaddr, mem->page_size);
-        if (i < 0)
+        if (rc < 0)
           /* paged load failed, fall back to byte-at-a-time read below */
           failure = 1;
       } else if (verbose >= 3) {
@@ -807,8 +807,8 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
           break;
         }
       if (need_write) {
-          i = pgm->paged_write(pgm, p, m, m->page_size, pageaddr, m->page_size);
-        if (i < 0)
+          rc = pgm->paged_write(pgm, p, m, m->page_size, pageaddr, m->page_size);
+        if (rc < 0)
           /* paged write failed, fall back to byte-at-a-time write below */
           failure = 1;
       } else if (verbose >= 3) {
