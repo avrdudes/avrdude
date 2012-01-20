@@ -40,7 +40,13 @@
 #include "usbtiny.h"
 
 #if defined(HAVE_LIBUSB)      // we use LIBUSB to talk to the board
-#include <usb.h>
+#if defined(HAVE_USB_H)
+#  include <usb.h>
+#elif defined(HAVE_LUSB0_USB_H)
+#  include <lusb0_usb.h>
+#else
+#  error "libusb needs either <usb.h> or <lusb0_usb.h>"
+#endif
 
 #ifndef HAVE_UINT_T
 typedef	unsigned int	uint_t;

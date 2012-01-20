@@ -53,7 +53,13 @@
 #  include <libusb.h>
 # endif
 #else
-# include <usb.h>
+# if defined(HAVE_USB_H)
+#  include <usb.h>
+# elif defined(HAVE_LUSB0_USB_H)
+#  include <lusb0_usb.h>
+# else
+#  error "libusb needs either <usb.h> or <lusb0_usb.h>"
+# endif
 #endif
 
 #ifdef USE_LIBUSB_1_0
