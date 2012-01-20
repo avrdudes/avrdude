@@ -42,7 +42,13 @@
 #ifdef HAVE_LIBFTDI
 
 #include <ftdi.h>
-#include <usb.h>
+#if defined(HAVE_USB_H)
+#  include <usb.h>
+#elif defined(HAVE_LUSB0_USB_H)
+#  include <lusb0_usb.h>
+#else
+#  error "libusb needs either <usb.h> or <lusb0_usb.h>"
+#endif
 
 /* This is for running the code without having a FTDI-device.
  * The generated code is useless! For debugging purposes only.

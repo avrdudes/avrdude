@@ -1,3 +1,13 @@
+2012-01-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac: Check for presence of lusb_usb.h as an alternative
+	to usb.h; libusb-win32 switched to this name in version 1.2.5.0.
+	* avrftdi.c: Decide whether to include <usb.h>, or <lusb0_usb.h>.
+	* ser_avrdoper.c: (Dito.)
+	* usbasp.c: (Dito.)
+	* usb_libusb.c: (Dito.)
+	* usbtiny.c: (Dito.)
+
 2012-01-19  Rene Liebscher <R.Liebscher@gmx.de>
 
 	* avr.c: Unsigned variable was used for return code of paged_write/load

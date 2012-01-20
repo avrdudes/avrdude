@@ -69,6 +69,8 @@ if test x$have_libusb = xyes; then
                ;;
    esac
    AC_DEFINE([HAVE_LIBUSB])
+   AC_CHECK_HEADERS([usb.h])
+   AC_CHECK_HEADERS([lusb0_usb.h])
 fi
 AC_SUBST(LIBUSB, $LIBUSB)
 
