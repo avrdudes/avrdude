@@ -298,7 +298,7 @@ prog_def :
                 progname, infile, lineno);
         exit(1);
       }
-      if (current_prog->type[0] == 0) {
+      if (current_prog->initpgm == NULL) {
         fprintf(stderr, "%s: error at %s:%d: programmer type not specified\n",
                 progname, infile, lineno);
         exit(1);
@@ -324,6 +324,21 @@ prog_decl :
     { current_prog = pgm_new();
       strcpy(current_prog->config_file, infile);
       current_prog->lineno = lineno;
+    }
+    |
+  K_PROGRAMMER K_PARENT TKN_STRING
+    {
+      struct programmer_t * pgm = locate_programmer(programmers, $3->value.string);
+      if (pgm == NULL) {
+        fprintf(stderr,
+                "%s: error at %s:%d: parent programmer %s not found\n",
+                progname, infile, lineno, $3->value.string);
+        exit(1);
+      }
+      current_prog = pgm_dup(pgm);
+      strcpy(current_prog->config_file, infile);
+      current_prog->lineno = lineno;
+      free_token($3);
     }
 ;
 
@@ -469,37 +484,37 @@ prog_parm_type:
 ;
 
 prog_parm_type_id:
-  K_PAR             { par_initpgm(current_prog); } |
-  K_SERBB           { serbb_initpgm(current_prog); } |
-  K_STK500          { stk500_initpgm(current_prog); } |
-  K_STK500V2        { stk500v2_initpgm(current_prog); } |
-  K_WIRING          { wiring_initpgm(current_prog); } |
-  K_STK500HVSP      { stk500hvsp_initpgm(current_prog); } |
-  K_STK500PP        { stk500pp_initpgm(current_prog); } |
-  K_STK500GENERIC   { stk500generic_initpgm(current_prog); } |
-  K_ARDUINO         { arduino_initpgm(current_prog); } |
-  K_AVRFTDI         { avrftdi_initpgm(current_prog); } |
-  K_BUSPIRATE       { buspirate_initpgm(current_prog); } |
-  K_STK600          { stk600_initpgm(current_prog); } |
-  K_STK600HVSP      { stk600hvsp_initpgm(current_prog); } |
-  K_STK600PP        { stk600pp_initpgm(current_prog); } |
-  K_AVR910          { avr910_initpgm(current_prog); } |
-  K_USBASP          { usbasp_initpgm(current_prog); } |
-  K_USBTINY         { usbtiny_initpgm(current_prog); } |
-  K_BUTTERFLY       { butterfly_initpgm(current_prog); } |
-  K_BUTTERFLY_MK    { butterfly_mk_initpgm(current_prog); } |
-  K_JTAG_MKI        { jtagmkI_initpgm(current_prog); } |
-  K_JTAG_MKII       { jtagmkII_initpgm(current_prog); } |
-  K_JTAG_MKII_AVR32 { jtagmkII_avr32_initpgm(current_prog); } |
-  K_JTAG_MKII_DW    { jtagmkII_dw_initpgm(current_prog); } |
-  K_JTAG_MKII_ISP   { stk500v2_jtagmkII_initpgm(current_prog); } |
-  K_JTAG_MKII_PDI   { jtagmkII_pdi_initpgm(current_prog); } |
-  K_DRAGON_DW       { jtagmkII_dragon_dw_initpgm(current_prog); } |
-  K_DRAGON_HVSP     { stk500v2_dragon_hvsp_initpgm(current_prog); } |
-  K_DRAGON_ISP      { stk500v2_dragon_isp_initpgm(current_prog); } |
-  K_DRAGON_JTAG     { jtagmkII_dragon_initpgm(current_prog); } |
-  K_DRAGON_PDI      { jtagmkII_dragon_pdi_initpgm(current_prog); } |
-  K_DRAGON_PP       { stk500v2_dragon_pp_initpgm(current_prog); }
+  K_PAR             { current_prog->initpgm = par_initpgm; } |
+  K_SERBB           { current_prog->initpgm = serbb_initpgm; } |
+  K_STK500          { current_prog->initpgm = stk500_initpgm; } |
+  K_STK500V2        { current_prog->initpgm = stk500v2_initpgm; } |
+  K_WIRING          { current_prog->initpgm = wiring_initpgm; } |
+  K_STK500HVSP      { current_prog->initpgm = stk500hvsp_initpgm; } |
+  K_STK500PP        { current_prog->initpgm = stk500pp_initpgm; } |
+  K_STK500GENERIC   { current_prog->initpgm = stk500generic_initpgm; } |
+  K_ARDUINO         { current_prog->initpgm = arduino_initpgm; } |
+  K_AVRFTDI         { current_prog->initpgm = avrftdi_initpgm; } |
+  K_BUSPIRATE       { current_prog->initpgm = buspirate_initpgm; } |
+  K_STK600          { current_prog->initpgm = stk600_initpgm; } |
+  K_STK600HVSP      { current_prog->initpgm = stk600hvsp_initpgm; } |
+  K_STK600PP        { current_prog->initpgm = stk600pp_initpgm; } |
+  K_AVR910          { current_prog->initpgm = avr910_initpgm; } |
+  K_USBASP          { current_prog->initpgm = usbasp_initpgm; } |
+  K_USBTINY         { current_prog->initpgm = usbtiny_initpgm; } |
+  K_BUTTERFLY       { current_prog->initpgm = butterfly_initpgm; } |
+  K_BUTTERFLY_MK    { current_prog->initpgm = butterfly_mk_initpgm; } |
+  K_JTAG_MKI        { current_prog->initpgm = jtagmkI_initpgm; } |
+  K_JTAG_MKII       { current_prog->initpgm = jtagmkII_initpgm; } |
+  K_JTAG_MKII_AVR32 { current_prog->initpgm = jtagmkII_avr32_initpgm; } |
+  K_JTAG_MKII_DW    { current_prog->initpgm = jtagmkII_dw_initpgm; } |
+  K_JTAG_MKII_ISP   { current_prog->initpgm = stk500v2_jtagmkII_initpgm; } |
+  K_JTAG_MKII_PDI   { current_prog->initpgm = jtagmkII_pdi_initpgm; } |
+  K_DRAGON_DW       { current_prog->initpgm = jtagmkII_dragon_dw_initpgm; } |
+  K_DRAGON_HVSP     { current_prog->initpgm = stk500v2_dragon_hvsp_initpgm; } |
+  K_DRAGON_ISP      { current_prog->initpgm = stk500v2_dragon_isp_initpgm; } |
+  K_DRAGON_JTAG     { current_prog->initpgm = jtagmkII_dragon_initpgm; } |
+  K_DRAGON_PDI      { current_prog->initpgm = jtagmkII_dragon_pdi_initpgm; } |
+  K_DRAGON_PP       { current_prog->initpgm = stk500v2_dragon_pp_initpgm; }
 ;
 
 prog_parm_usb:
@@ -549,6 +564,8 @@ pin_number:
   TKN_NUMBER { assign_pin(pin_name, $1, 0);  }
   |
   TKN_TILDE TKN_NUMBER { assign_pin(pin_name, $2, 1); }
+  |
+  /* empty */ { current_prog->pinno[pin_name] = 0; }
 ;
 
 pin_list:
@@ -567,6 +584,10 @@ pin_list:
         free_token(t);
       }
     }
+  }
+  |
+  /* empty */ {
+    current_prog->pinno[pin_name] = 0;
   }
 ;
 

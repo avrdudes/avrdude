@@ -13,6 +13,7 @@
 # Possible entry formats are:
 #
 #   programmer
+#       parent <id>                                 # optional parent
 #       id       = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
 #       desc     = <description> ;                  # quoted string
 #       type     = par | stk500 | stk500v2 | stk500pp | stk500hvsp | stk500generic |
@@ -454,22 +455,13 @@ programmer
 #   http://armwerks.com/catalog/o-link-debugger-copy/
 # or just have a look at ebay ...
 # It is basically the same entry as jtagkey with different usb ids.
-programmer
+programmer parent "jtagkey"
   id         = "o-link";
   desc       = "O-Link, OpenJTAG from www.100ask.net";
-  type       = avrftdi;
   usbvid     = 0x1457;
   usbpid     = 0x5118;
-  usbdev     = "A";
   usbvendor  = "www.100ask.net";
   usbproduct = "USB<=>JTAG&RS232";
-  usbsn      = "";
-# for pin connections see jtagkey
-  reset  = 4;
-  sck    = 1;
-  mosi   = 2;
-  miso   = 3;
-  buff   = 5;
 ;
 
 programmer
@@ -490,10 +482,8 @@ programmer
   type  =  stk500v2;
 ;
 
-programmer
+programmer parent "avrispmkII"
   id    = "avrisp2";
-  desc  = "Atmel AVR ISP mkII";
-  type  =  stk500v2;
 ;
 
 programmer
@@ -641,10 +631,8 @@ programmer
   type  = butterfly_mk;
 ;
 
-programmer
+programmer parent "mkbutterfly"
   id    = "butterfly_mk";
-  desc  = "Mikrokopter.de Butterfly";
-  type  = butterfly_mk;
 ;
 
 programmer
@@ -655,19 +643,14 @@ programmer
 ;
 
 # easier to type
-programmer
+programmer parent "jtagmkI"
   id    = "jtag1";
-  desc  = "Atmel JTAG ICE (mkI)";
-  baudrate = 115200;    # default is 115200
-  type  = jtagmki;
 ;
 
 # easier to type
-programmer
+programmer parent "jtag1"
   id    = "jtag1slow";
-  desc  = "Atmel JTAG ICE (mkI)";
   baudrate = 19200;
-  type  = jtagmki;
 ;
 
 programmer
@@ -678,27 +661,19 @@ programmer
 ;
 
 # easier to type
-programmer
+programmer parent "jtagmkII"
   id    = "jtag2slow";
-  desc  = "Atmel JTAG ICE mkII";
-  baudrate = 19200;    # default is 19200
-  type  = jtagmkii;
 ;
 
 # JTAG ICE mkII @ 115200 Bd
-programmer
+programmer parent "jtag2slow"
   id    = "jtag2fast";
-  desc  = "Atmel JTAG ICE mkII";
   baudrate = 115200;
-  type  = jtagmkii;
 ;
 
 # make the fast one the default, people will love that
-programmer
+programmer parent "jtag2fast"
   id    = "jtag2";
-  desc  = "Atmel JTAG ICE mkII";
-  baudrate = 115200;
-  type  = jtagmkii;
 ;
 
 # JTAG ICE mkII in ISP mode
@@ -825,15 +800,9 @@ programmer
 # except that there is a LED indicating that the
 # programming is currently in progress.
 
-programmer
+programmer parent "stk200"
   id    = "pony-stk200";
   desc  = "Pony Prog STK200";
-  type  = par;
-  buff  = 4, 5;
-  sck   = 6;
-  mosi  = 7;
-  reset = 9;
-  miso  = 10;
   pgmled = 8; 
 ;
 
@@ -847,14 +816,9 @@ programmer
   miso  = 11;
 ;
 
-programmer
+programmer parent "dt006"
   id    = "bascom";
   desc  = "Bascom SAMPLE programming cable";
-  type  = par;
-  reset = 4;
-  sck   = 5;
-  mosi  = 2;
-  miso  = 11;
 ;
 
 programmer
@@ -979,16 +943,11 @@ programmer
 
 # It is almost same as pony-stk200, except vcc on pin 5 to auto
 # disconnect port (download on http://electropol.free.fr)
-programmer
+programmer parent "pony-stk200"
   id    = "frank-stk200";
   desc  = "Frank STK200";
-  type  = par;
+  buff  = ; # delete buff pin assignment
   vcc   = 5;
-  sck   = 6;
-  mosi  = 7;
-  reset = 9;
-  miso  = 10;
-  pgmled = 8;
 ;
 
 # The AT98ISP Cable is a simple parallel dongle for AT89 family.
@@ -1040,14 +999,9 @@ programmer
 # Same as above, different name
 # reset=!txd sck=rts mosi=dtr miso=cts
 
-programmer
+programmer parent "ponyser"
   id    = "siprog";
   desc  = "Lancos SI-Prog <http://www.lancos.com/siprogsch.html>";
-  type  = serbb;
-  reset = ~3;
-  sck   = 7;
-  mosi  = 4;
-  miso  = 8;
 ;
 
 # unknown (dasa in uisp)
