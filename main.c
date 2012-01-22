@@ -727,6 +727,15 @@ int main(int argc, char * argv [])
     exit(1);
   }
 
+  if (pgm->initpgm) {
+    pgm->initpgm(pgm);
+  } else {
+    fprintf(stderr,
+            "\n%s: Can't initialize the programmer.\n\n",
+            progname);
+    exit(1);
+  }
+
   if (pgm->setup) {
     pgm->setup(pgm);
   }

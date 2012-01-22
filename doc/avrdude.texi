@@ -1432,6 +1432,7 @@ The format of the programmer definition is as follows:
 
 @smallexample
 programmer
+    parent <id>                                 # <id> is a quoted string
     id       = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
     desc     = <description> ;                  # quoted string
     type     = par | stk500 | ... ;             # programmer type (see below for a list)
@@ -1454,6 +1455,10 @@ programmer
     usbsn    = <serialno>;                      # USB Serial Number
   ;
 @end smallexample
+
+@noindent
+If a parent is specified, all settings of it (except its ids) are used for the new 
+programmer. These values can be changed by new setting them for the new programmer.
 
 @noindent
 To invert a bit in the pin definitions, use @code{= ~ <num>}.

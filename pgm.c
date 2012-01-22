@@ -82,6 +82,7 @@ PROGRAMMER * pgm_new(void)
   pgm->config_file[0] = 0;
   pgm->lineno = 0;
   pgm->baudrate = 0;
+  pgm->initpgm = NULL;
 
   for (i=0; i<N_PINS; i++)
     pgm->pinno[i] = 0;
@@ -146,6 +147,25 @@ void pgm_free(PROGRAMMER * const p)
   }*/
   free(p);
 }
+
+PROGRAMMER * pgm_dup(const PROGRAMMER const * src)
+{
+  PROGRAMMER * pgm;
+
+  pgm = (PROGRAMMER *)malloc(sizeof(*pgm));
+  if (pgm == NULL) {
+    fprintf(stderr, "%s: out of memory allocating programmer structure\n",
+            progname);
+    exit(1);
+  }
+
+  memcpy(pgm, src, sizeof(*pgm));
+
+  pgm->id = lcreat(NULL, 0);
+
+  return pgm;
+}
+
 
 static void pgm_default(void)
 {

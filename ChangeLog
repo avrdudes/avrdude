@@ -1,3 +1,16 @@
+2012-01-22  Rene Liebscher <R.Liebscher@gmx.de>
+
+	patch #7688: Implement parent programmers feature
+	* avrdude.conf.in: updated documentation comment and some programmers 
+	have now parents
+	* config_gram.y: initpgm will now called at first use of programmer 
+	in main. parser sets only the function pointer in the pgm structure.
+	Pin and pin lists definitions can now be empty to remove the parents
+	setting.
+	* doc/avrdude.texi: updated documentation
+	* main.c: added call to pgm->initpgm after locate_programmer
+	* pgm.[hc]: added field initpgm in structure, added function pgm_dup
+
 2012-01-21  Rene Liebscher <R.Liebscher@gmx.de>
 
 	bug #21797: AT90PWM316: New part description

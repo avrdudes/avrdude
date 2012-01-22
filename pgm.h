@@ -61,6 +61,7 @@ typedef struct programmer_t {
   char desc[PGM_DESCLEN];
   char type[PGM_TYPELEN];
   char port[PGM_PORTLEN];
+  void (*initpgm)(struct programmer_t * pgm);
   unsigned int pinno[N_PINS];
   exit_vcc_t exit_vcc;
   exit_reset_t exit_reset;
@@ -131,6 +132,7 @@ extern "C" {
 #endif
 
 PROGRAMMER * pgm_new(void);
+PROGRAMMER * pgm_dup(const PROGRAMMER const * src);
 void         pgm_free(PROGRAMMER * const p);
 
 void programmer_display(PROGRAMMER * pgm, const char * p);
