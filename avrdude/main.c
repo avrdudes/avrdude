@@ -227,7 +227,11 @@ static void list_avrparts_callback(const char *name, const char *desc,
 {
     struct list_walk_cookie *c = (struct list_walk_cookie *)cookie;
 
-    if (verbose){
+    /* hide ids starting with '.' */
+    if ((verbose < 2) && (name[0] == '.'))
+        return;
+
+    if (verbose) {
         fprintf(c->f, "%s%-8s = %-18s [%s:%d]\n",
                 c->prefix, name, desc, cfgname, cfglineno);
     } else {
