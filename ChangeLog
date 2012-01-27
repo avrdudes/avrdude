@@ -1,3 +1,9 @@
+2012-01-27  Rene Liebscher <R.Liebscher@gmx.de>
+
+	* avrdude.conf.in: used parent parts for some other parts, added 
+	abstract .xmega part as parent for xmegas
+	* main.c: hide parts starting with '.' from parts list
+
 2012-01-22  Rene Liebscher <R.Liebscher@gmx.de>
 
 	patch #7688: Implement parent programmers feature
