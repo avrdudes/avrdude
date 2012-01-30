@@ -375,7 +375,7 @@ int main(int argc, char * argv [])
   }
 
   partdesc      = NULL;
-  port          = default_parallel;
+  port          = NULL;
   erase         = 0;
   calibrate     = 0;
   auto_erase    = 1;
@@ -763,16 +763,23 @@ int main(int argc, char * argv [])
     }
   }
 
-  if ((strcmp(pgm->type, "STK500") == 0) ||
-      (strcmp(pgm->type, "avr910") == 0) ||
-      (strcmp(pgm->type, "BusPirate") == 0) ||
-      (strcmp(pgm->type, "STK500V2") == 0) ||
-      (strcmp(pgm->type, "JTAGMKII") == 0)) {
-    if (port == default_parallel) {
-      port = default_serial;
+  if (port == NULL) {
+    switch (pgm->conntype)
+    {
+      case CONNTYPE_PARALLEL:
+        port = default_parallel;
+        break;
+
+      case CONNTYPE_SERIAL:
+        port = default_serial;
+        break;
+
+      case CONNTYPE_USB:
+        port = DEFAULT_USB;
+        break;
     }
   }
-  
+
   if (partdesc == NULL) {
     fprintf(stderr,
             "%s: No AVR part has been specified, use \"-p Part\"\n\n",

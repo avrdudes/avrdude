@@ -1,3 +1,18 @@
+2012-01-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Add a connection_type attribute to each programmer, rather than
+	trying to hard-code the default port name in main.c.
+	* pgm.h: Add conntype to struct pgm.
+	* lexer.l: Extend grammar for connection_type.
+	* config_gram.y: (Dito.)
+	* config.h: Add DEFAULT_USB, for symmetry with default_parallel
+	and default_serial.
+	* main.c: Replace old default portname hack by avrdude.conf-based
+	knowledge.
+	* usbtiny.c: Drop an old hack that's no longer necessary.
+	* avrdude.conf.in: Add connection_type to each programmer
+	definition.
+
 2012-01-27  Rene Liebscher <R.Liebscher@gmx.de>
 
 	* avrdude.conf.in: used parent parts for some other parts, added 

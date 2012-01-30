@@ -91,6 +91,7 @@ static int pin_name;
 %token K_BUFF
 %token K_BUSPIRATE
 %token K_CHIP_ERASE_DELAY
+%token K_CONNTYPE
 %token K_DEDICATED
 %token K_DEFAULT_PARALLEL
 %token K_DEFAULT_PROGRAMMER
@@ -154,6 +155,7 @@ static int pin_name;
 %token K_STK600HVSP
 %token K_STK600PP
 %token K_AVR910
+%token K_USB
 %token K_USBASP
 %token K_USBDEV
 %token K_USBSN
@@ -466,6 +468,8 @@ prog_parm :
   |
   prog_parm_usb
   |
+  prog_parm_conntype
+  |
   K_DESC TKN_EQUAL TKN_STRING {
     strncpy(current_prog->desc, $3->value.string, PGM_DESCLEN);
     current_prog->desc[PGM_DESCLEN-1] = 0;
@@ -515,6 +519,16 @@ prog_parm_type_id:
   K_DRAGON_JTAG     { current_prog->initpgm = jtagmkII_dragon_initpgm; } |
   K_DRAGON_PDI      { current_prog->initpgm = jtagmkII_dragon_pdi_initpgm; } |
   K_DRAGON_PP       { current_prog->initpgm = stk500v2_dragon_pp_initpgm; }
+;
+
+prog_parm_conntype:
+  K_CONNTYPE TKN_EQUAL prog_parm_conntype_id
+;
+
+prog_parm_conntype_id:
+  K_PARALLEL        { current_prog->conntype = CONNTYPE_PARALLEL; } |
+  K_SERIAL          { current_prog->conntype = CONNTYPE_SERIAL; } |
+  K_USB             { current_prog->conntype = CONNTYPE_USB; }
 ;
 
 prog_parm_usb:

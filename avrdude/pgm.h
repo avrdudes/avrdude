@@ -56,6 +56,12 @@ typedef enum {
   EXIT_DATAHIGH_DISABLED
 } exit_datahigh_t;
 
+typedef enum {
+  CONNTYPE_PARALLEL,
+  CONNTYPE_SERIAL,
+  CONNTYPE_USB
+} conntype_t;
+
 typedef struct programmer_t {
   LISTID id;
   char desc[PGM_DESCLEN];
@@ -66,6 +72,7 @@ typedef struct programmer_t {
   exit_vcc_t exit_vcc;
   exit_reset_t exit_reset;
   exit_datahigh_t exit_datahigh;
+  conntype_t conntype;
   int ppidata;
   int ppictrl;
   int baudrate;
