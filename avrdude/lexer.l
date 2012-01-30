@@ -35,8 +35,6 @@
 #include "config_gram.h"
 #include "lists.h"
 
-#define YY_NO_UNPUT
-
 %}
 
 DIGIT    [0-9]
@@ -47,6 +45,7 @@ SIGN     [+-]
 %x strng
 %x incl
 %x comment
+%option nounput
 
 /* Bump resources for classic lex. */
 %e2000

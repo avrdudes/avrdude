@@ -1,5 +1,10 @@
 2012-01-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* lexer.l: Replace the old, now-defunct #define YY_NO_UNPUT by
+	the new %option nounput.  This gets rid of a compiler warning.
+
+2012-01-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Add a connection_type attribute to each programmer, rather than
 	trying to hard-code the default port name in main.c.
 	* pgm.h: Add conntype to struct pgm.
