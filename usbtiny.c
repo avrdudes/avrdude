@@ -207,7 +207,7 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
   char *dev_name = NULL;
 
   // if no -P was given or '-P usb' was given
-  if(name == default_parallel || strcmp(name, "usb") == 0)
+  if(strcmp(name, "usb") == 0)
     name = NULL;
   else {
     // calculate bus and device names from -P option

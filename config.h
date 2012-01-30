@@ -59,6 +59,9 @@ extern char         default_parallel[];
 extern char         default_serial[];
 extern double       default_bitclock;
 
+/* This name is fixed, it's only here for symmetry with
+ * default_parallel and default_serial. */
+#define DEFAULT_USB "usb"
 
 
 #if !defined(HAS_YYSTYPE)
