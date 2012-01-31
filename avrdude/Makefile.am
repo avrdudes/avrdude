@@ -125,6 +125,8 @@ libavrdude_a_SOURCES = \
 	par.h \
 	pgm.c \
 	pgm.h \
+	pgm_type.c \
+	pgm_type.h \
 	pindefs.h \
 	ppi.c \
 	ppi.h \

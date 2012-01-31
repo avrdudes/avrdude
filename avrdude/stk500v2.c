@@ -52,6 +52,7 @@
 #include "avr.h"
 #include "pgm.h"
 #include "stk500_private.h"	// temp until all code converted
+#include "stk500v2.h"
 #include "stk500v2_private.h"
 #include "serial.h"
 #include "usbdevs.h"
@@ -3611,6 +3612,7 @@ static void stk600_setup_isp(PROGRAMMER * pgm)
     pgm->chip_erase = stk500v2_chip_erase;
 }
 
+const char stk500v2_desc[] = "Atmel STK500 Version 2.x firmware";
 
 void stk500v2_initpgm(PROGRAMMER * pgm)
 {
@@ -3647,6 +3649,8 @@ void stk500v2_initpgm(PROGRAMMER * pgm)
   pgm->page_size      = 256;
 }
 
+const char stk500pp_desc[] = "Atmel STK500 V2 in parallel programming mode";
+
 void stk500pp_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "STK500PP");
@@ -3679,6 +3683,8 @@ void stk500pp_initpgm(PROGRAMMER * pgm)
   pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
 }
+
+const char stk500hvsp_desc[] = "Atmel STK500 V2 in high-voltage serial programming mode";
 
 void stk500hvsp_initpgm(PROGRAMMER * pgm)
 {
@@ -3713,6 +3719,8 @@ void stk500hvsp_initpgm(PROGRAMMER * pgm)
   pgm->page_size      = 256;
 }
 
+const char stk500v2_jtagmkII_desc[] = "Atmel JTAG ICE mkII in ISP mode";
+
 void stk500v2_jtagmkII_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "JTAGMKII_ISP");
@@ -3745,6 +3753,8 @@ void stk500v2_jtagmkII_initpgm(PROGRAMMER * pgm)
   pgm->page_size      = 256;
 }
 
+const char stk500v2_dragon_isp_desc[] = "Atmel AVR Dragon in ISP mode";
+
 void stk500v2_dragon_isp_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "DRAGON_ISP");
@@ -3775,6 +3785,8 @@ void stk500v2_dragon_isp_initpgm(PROGRAMMER * pgm)
   pgm->teardown       = stk500v2_jtagmkII_teardown;
   pgm->page_size      = 256;
 }
+
+const char stk500v2_dragon_pp_desc[] = "Atmel AVR Dragon in PP mode";
 
 void stk500v2_dragon_pp_initpgm(PROGRAMMER * pgm)
 {
@@ -3809,6 +3821,8 @@ void stk500v2_dragon_pp_initpgm(PROGRAMMER * pgm)
   pgm->page_size      = 256;
 }
 
+const char stk500v2_dragon_hvsp_desc[] = "Atmel AVR Dragon in HVSP mode";
+
 void stk500v2_dragon_hvsp_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "DRAGON_HVSP");
@@ -3841,6 +3855,8 @@ void stk500v2_dragon_hvsp_initpgm(PROGRAMMER * pgm)
   pgm->teardown       = stk500v2_jtagmkII_teardown;
   pgm->page_size      = 256;
 }
+
+const char stk600_desc[] = "Atmel STK600";
 
 void stk600_initpgm(PROGRAMMER * pgm)
 {
@@ -3877,6 +3893,8 @@ void stk600_initpgm(PROGRAMMER * pgm)
   pgm->page_size      = 256;
 }
 
+const char stk600pp_desc[] = "Atmel STK600 in parallel programming mode";
+
 void stk600pp_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "STK600PP");
@@ -3909,6 +3927,8 @@ void stk600pp_initpgm(PROGRAMMER * pgm)
   pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
 }
+
+const char stk600hvsp_desc[] = "Atmel STK600 in high-voltage serial programming mode";
 
 void stk600hvsp_initpgm(PROGRAMMER * pgm)
 {

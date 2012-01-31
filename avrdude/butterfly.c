@@ -696,6 +696,7 @@ static int butterfly_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
   return 3;
 }
 
+const char butterfly_desc[] = "Atmel Butterfly evaluation board; Atmel AppNotes AVR109, AVR911";
 
 void butterfly_initpgm(PROGRAMMER * pgm)
 {
@@ -734,6 +735,8 @@ void butterfly_initpgm(PROGRAMMER * pgm)
   pgm->teardown       = butterfly_teardown;
   pgm->flag = 0;
 }
+
+const char butterfly_mk_desc[] = "Mikrokopter.de Butterfly";
 
 void butterfly_mk_initpgm(PROGRAMMER * pgm)
 {

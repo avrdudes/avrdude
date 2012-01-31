@@ -51,6 +51,7 @@
 #include "stk500v2_private.h"
 #include "stk500v2.h"
 #include "serial.h"
+#include "wiring.h"
 
 /*
  * Private data for this programmer.
@@ -218,6 +219,8 @@ static void wiring_close(PROGRAMMER * pgm)
   serial_close(&pgm->fd);
   pgm->fd.ifd = -1;
 }
+
+const char wiring_desc[] = "http://wiring.org.co/, Basically STK500v2 protocol, with some glue to trigger the bootloader.";
 
 void wiring_initpgm(PROGRAMMER * pgm)
 {

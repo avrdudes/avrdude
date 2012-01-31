@@ -57,10 +57,10 @@ extern char * yytext;
 
 void cleanup_config(void)
 {
-  ldestroy_cb(part_list,avr_free_part);
-  ldestroy_cb(programmers,pgm_free);
-  ldestroy_cb(string_list,free_token);
-  ldestroy_cb(number_list,free_token);
+  ldestroy_cb(part_list, (void(*)(void*))avr_free_part);
+  ldestroy_cb(programmers, (void(*)(void*))pgm_free);
+  ldestroy_cb(string_list, (void(*)(void*))free_token);
+  ldestroy_cb(number_list, (void(*)(void*))free_token);
 }
 
 int init_config(void)
@@ -89,7 +89,7 @@ int yywrap()
 
 int yyerror(char * errmsg)
 {
-  fprintf(stderr, "%s at %s:%d\n", errmsg, infile, lineno);
+  fprintf(stderr, "%s: %s at %s:%d\n", progname, errmsg, infile, lineno);
   exit(1);
 }
 
@@ -290,6 +290,11 @@ char * dup_string(const char * str)
 
   return s;
 }
+
+#ifdef HAVE_YYLEX_DESTROY
+/* reset lexer and free any allocated memory */
+extern int yylex_destroy(void);
+#endif
 
 int read_config(const char * file)
 {

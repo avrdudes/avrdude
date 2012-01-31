@@ -40,6 +40,7 @@
 #include "avrdude.h"
 #include "avr.h"
 #include "pgm.h"
+#include "stk500.h"
 #include "stk500_private.h"
 #include "serial.h"
 
@@ -1270,6 +1271,7 @@ static void stk500_print_parms(PROGRAMMER * pgm)
   stk500_print_parms1(pgm, "");
 }
 
+const char stk500_desc[] = "Atmel STK500 Version 1.x firmware";
 
 void stk500_initpgm(PROGRAMMER * pgm)
 {

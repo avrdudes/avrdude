@@ -33,6 +33,13 @@ int  jtagmkII_getsync(PROGRAMMER * pgm, int mode);
 int  jtagmkII_getparm(PROGRAMMER * pgm, unsigned char parm,
 		      unsigned char * value);
 
+extern const char jtagmkII_desc[];
+extern const char jtagmkII_avr32_desc[];
+extern const char jtagmkII_dw_desc[];
+extern const char jtagmkII_pdi_desc[];
+extern const char jtagmkII_dragon_desc[];
+extern const char jtagmkII_dragon_dw_desc[];
+extern const char jtagmkII_dragon_pdi_desc[];
 void jtagmkII_initpgm (PROGRAMMER * pgm);
 void jtagmkII_avr32_initpgm (PROGRAMMER * pgm);
 void jtagmkII_dw_initpgm (PROGRAMMER * pgm);

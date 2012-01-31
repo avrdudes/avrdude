@@ -1161,3 +1161,6 @@ void usbasp_initpgm(PROGRAMMER * pgm)
 }
 
 #endif  /* HAVE_LIBUSB */
+
+const char usbasp_desc[] = "USBasp programmer, see http://www.fischl.de/usbasp/";
+

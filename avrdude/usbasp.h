@@ -140,6 +140,7 @@ typedef struct sckoptions_t {
 extern "C" {
 #endif
 
+extern const char usbasp_desc[];
 void usbasp_initpgm (PROGRAMMER * pgm);
 
 #ifdef __cplusplus

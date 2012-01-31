@@ -22,6 +22,7 @@
 #ifndef stk500generic_h__
 #define stk500generic_h__
 
+extern const char stk500generic_desc[];
 void stk500generic_initpgm (PROGRAMMER * pgm);
 
 #endif

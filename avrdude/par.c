@@ -42,6 +42,7 @@
 #include "pgm.h"
 #include "ppi.h"
 #include "bitbang.h"
+#include "par.h"
 
 #if HAVE_PARPORT
 
@@ -416,6 +417,8 @@ static int par_parseexitspecs(PROGRAMMER * pgm, char *s)
 
   return 0;
 }
+
+const char par_desc[] = "Parallel port bitbanging";
 
 void par_initpgm(PROGRAMMER * pgm)
 {

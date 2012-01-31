@@ -37,6 +37,7 @@
 #include "stk500_private.h"
 #include "stk500.h"
 #include "serial.h"
+#include "arduino.h"
 
 /* read signature bytes - arduino version */
 static int arduino_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
@@ -116,9 +117,11 @@ static void arduino_close(PROGRAMMER * pgm)
   pgm->fd.ifd = -1;
 }
 
+const char arduino_desc[] = "Arduino programmer";
+
 void arduino_initpgm(PROGRAMMER * pgm)
 {
-	/* This is mostly a STK500; just the signature is read
+  /* This is mostly a STK500; just the signature is read
      differently than on real STK500v1 
      and the DTR signal is set when opening the serial port
      for the Auto-Reset feature */
