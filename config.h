@@ -95,8 +95,6 @@ TOKEN * hexnumber(char * text);
 
 TOKEN * string(char * text);
 
-TOKEN * id(char * text);
-
 TOKEN * keyword(int primary);
 
 void print_token(TOKEN * tkn);

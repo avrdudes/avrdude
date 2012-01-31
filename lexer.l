@@ -43,7 +43,6 @@
 
 DIGIT    [0-9]
 HEXDIGIT [0-9a-fA-F]
-ID       [_a-zA-Z][_a-zA-Z0-9]*
 SIGN     [+-]
 
 %x strng

@@ -115,9 +115,8 @@ TOKEN * new_token(int primary)
 void free_token(TOKEN * tkn)
 {
   if (tkn) {
-    switch (tkn->primary) {
-      case TKN_STRING:
-      case TKN_ID:
+    switch (tkn->value.type) {
+      case V_STR:
         if (tkn->value.string)
           free(tkn->value.string);
         tkn->value.string = NULL;
@@ -207,31 +206,6 @@ TOKEN * string(char * text)
 }
 
 
-TOKEN * id(char * text)
-{
-  struct token_t * tkn;
-  int len;
-
-  tkn = new_token(TKN_ID);
-
-  len = strlen(text);
-
-  tkn->value.type   = V_STR;
-  tkn->value.string = (char *) malloc(len+1);
-  if (tkn->value.string == NULL) {
-    fprintf(stderr, "id(): out of memory\n");
-    exit(1);
-  }
-  strcpy(tkn->value.string, text);
-
-#if DEBUG
-  fprintf(stderr, "ID(%s)\n", tkn->value.string);
-#endif
-
-  return tkn;
-}
-
-
 TOKEN * keyword(int primary)
 {
   struct token_t * tkn;
@@ -248,20 +222,16 @@ void print_token(TOKEN * tkn)
     return;
 
   fprintf(stderr, "token = %d = ", tkn->primary);
-  switch (tkn->primary) {
-    case TKN_NUMBER: 
+  switch (tkn->value.type) {
+    case V_NUM: 
       fprintf(stderr, "NUMBER, value=%g", tkn->value.number); 
       break;
 
-    case TKN_STRING: 
+    case V_STR: 
       fprintf(stderr, "STRING, value=%s", tkn->value.string); 
       break;
 
-    case TKN_ID:  
-      fprintf(stderr, "ID,     value=%s", tkn->value.string); 
-      break;
-
-    default:     
+    default: 
       fprintf(stderr, "<other>"); 
       break;
   }
