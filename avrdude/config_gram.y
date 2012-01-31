@@ -200,7 +200,6 @@ static int pin_name;
 %token TKN_TILDE
 %token TKN_NUMBER
 %token TKN_STRING
-%token TKN_ID
 
 %start configuration
 
