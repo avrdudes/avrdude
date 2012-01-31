@@ -1,5 +1,15 @@
 2012-01-31  Rene Liebscher <R.Liebscher@gmx.de>
 
+	patch #7437 modifications to Bus Pirate module
+	patch #7686 Updating buspirate ascii mode to current firmware, use AUX
+	            as clock generator, and setting of serial receive timeout
+	* buspirate.c: added paged_write, changed binary mode setup/detection,
+	  added clock output on AUX pin
+	* avrdude.1: updated documentation
+	* doc/avrdude.texi: updated documentation
+
+2012-01-31  Rene Liebscher <R.Liebscher@gmx.de>
+
 	Parser does not need to know all programmer types now, new programmers
 	will update only the table in pgm_type.c.
 	* config_gram.y, lexer.l: removed programmer type keywords,

@@ -882,7 +882,7 @@ each other using a 3-state bus buffer. For example 74HC125 or 74HC244 are some
 good candidates with the latches driven by the appropriate reset pin (cs, 
 aux or aux2). Otherwise the SPI traffic in one active circuit may interfere
 with programming the AVR in the other design.
-.It Ar speed=<0..7>
+.It Ar spifreq=<0..7>
 BusPirate to AVR SPI speed:
 .Bd -literal
 0 ..  30 kHz   (default)
@@ -895,14 +895,36 @@ BusPirate to AVR SPI speed:
 7 ..   8 MHz
 .Ed
 .It Ar ascii
-Use ASCII mode even when the firmware supports BinMode (binary mode). 
+Attempt to ASCII mode even when the firmware supports BinMode (binary mode). 
 BinMode is supported in firmware 2.7 and newer, older FW's either don't
 have BinMode or their BinMode is buggy. ASCII mode is slower and makes 
 the above
 .Ar reset=
 and 
-.Ar speed=
-parameters unavailable. 
+.Ar spifreq=
+parameters unavailable. Be aware that ASCII mode is not guaranteed to work
+with newer firmware versions, and is retained only to maintain compatability
+with older firmware versions.
+.It Ar nopagedwrite
+Firmware versions 5.10 and newer support a binary mode SPI command that enables
+whole pages to be written to AVR flash memory at once, resulting in a
+significant write speed increase. If use of this mode is not desirable for some
+reason, this option disables it.
+.It Ar cpufreq=<125..4000>
+This sets the AUX pin to output a frequency of 
+.Ar n
+kHz. Connecting
+the AUX pin to the XTAL1 pin of your MCU, you can provide it a clock, 
+for example when it needs an external clock because of wrong fuses settings.
+This setting is only available in ASCII mode. (The lower limit was chosen so
+the CPU frequency is at least for four times the SPI frequency which is in 
+ASCII mode 30kHz.)  
+.It Ar serial_recv_timeout=<1...>
+This sets the serial receive timeout to the given value. 
+The timeout happens every time avrdude waits for the BusPirate prompt. 
+Especially in ascii mode this happens very often, so setting a smaller value 
+can speed up programming a lot. 
+The default value is 100ms. Using 10ms might work in most cases. 
 .El
 .It Ar Wiring
 When using the Wiring programmer type, the
