@@ -23,7 +23,7 @@
 
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ(2.57)
+AC_PREREQ(2.60)
 AC_INIT(avrdude, 5.11svn, avrdude-dev@nongnu.org)
 
 AC_CANONICAL_BUILD
