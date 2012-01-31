@@ -478,7 +478,7 @@ lcreat ( void * liststruct, int elements )
 |  at the same time.
  --------------------------------------------------*/
 void 
-ldestroy_cb ( LISTID lid, void (*ucleanup)() )
+ldestroy_cb ( LISTID lid, void (*ucleanup)(void * data_ptr) )
 {
   LIST * l;
   LISTNODE * ln;

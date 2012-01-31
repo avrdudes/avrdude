@@ -34,6 +34,7 @@
 
 #include "avrdude.h"
 #include "pgm.h"
+#include "stk500generic.h"
 #include "stk500.h"
 #include "stk500v2.h"
 
@@ -80,6 +81,7 @@ static void stk500generic_teardown(PROGRAMMER * pgm)
   pgm->teardown(pgm);
 }
 
+const char stk500generic_desc[] = "Atmel STK500, autodetect firmware version";
 
 void stk500generic_initpgm(PROGRAMMER * pgm)
 {

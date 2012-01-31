@@ -1074,3 +1074,5 @@ void avrftdi_initpgm(PROGRAMMER * pgm)
 
 #endif /*HAVE_LIBUSB*/
 
+const char avrftdi_desc[] = "Interface to the MPSSE Engine of FTDI Chips using libftdi.";
+

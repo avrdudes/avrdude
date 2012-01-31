@@ -37,6 +37,7 @@
 #include "avr.h"
 #include "crc16.h"
 #include "pgm.h"
+#include "jtagmkI.h"
 #include "jtagmkI_private.h"
 #include "serial.h"
 
@@ -1372,6 +1373,7 @@ static void jtagmkI_print_parms(PROGRAMMER * pgm)
   jtagmkI_print_parms1(pgm, "");
 }
 
+const char jtagmkI_desc[] = "Atmel JTAG ICE mkI";
 
 void jtagmkI_initpgm(PROGRAMMER * pgm)
 {

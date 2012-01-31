@@ -35,6 +35,10 @@
 #include "config_gram.h"
 #include "lists.h"
 
+#ifndef YYERRCODE
+#define YYERRCODE 256
+#endif
+
 %}
 
 DIGIT    [0-9]
@@ -116,20 +120,12 @@ SIGN     [+-]
             exit(1); }
 
 allowfullpagebitstream { yylval=NULL; return K_ALLOWFULLPAGEBITSTREAM; }
-arduino          { yylval=NULL; return K_ARDUINO; }
-avr910           { yylval=NULL; return K_AVR910; }
 avr910_devcode   { yylval=NULL; return K_AVR910_DEVCODE; }
-avrftdi          { yylval=NULL; return K_AVRFTDI; }
-usbasp           { yylval=NULL; return K_USBASP; }
-usbtiny          { yylval=NULL; return K_USBTINY; }
 bank_size        { yylval=NULL; return K_PAGE_SIZE; }
 banked           { yylval=NULL; return K_PAGED; }
 baudrate         { yylval=NULL; return K_BAUDRATE; }
 bs2              { yylval=NULL; return K_BS2; }
 buff             { yylval=NULL; return K_BUFF; }
-buspirate        { yylval=NULL; return K_BUSPIRATE; }
-butterfly        { yylval=NULL; return K_BUTTERFLY; }
-butterfly_mk     { yylval=NULL; return K_BUTTERFLY_MK; }
 chip_erase_delay { yylval=NULL; return K_CHIP_ERASE_DELAY; }
 connection_type  { yylval=NULL; return K_CONNTYPE; }
 desc             { yylval=NULL; return K_DESC; }
@@ -138,12 +134,6 @@ default_programmer { yylval=NULL; return K_DEFAULT_PROGRAMMER; }
 default_serial   { yylval=NULL; return K_DEFAULT_SERIAL; }
 default_bitclock { yylval=NULL; return K_DEFAULT_BITCLOCK; }
 devicecode       { yylval=NULL; return K_DEVICECODE; }
-dragon_dw        { yylval=NULL; return K_DRAGON_DW; }
-dragon_hvsp      { yylval=NULL; return K_DRAGON_HVSP; }
-dragon_isp       { yylval=NULL; return K_DRAGON_ISP; }
-dragon_jtag      { yylval=NULL; return K_DRAGON_JTAG; }
-dragon_pdi       { yylval=NULL; return K_DRAGON_PDI; }
-dragon_pp        { yylval=NULL; return K_DRAGON_PP; }
 eecr             { yylval=NULL; return K_EECR; }
 eeprom           { yylval=NULL; return K_EEPROM; }
 enablepageprogramming { yylval=NULL; return K_ENABLEPAGEPROGRAMMING; }
@@ -157,12 +147,6 @@ id               { yylval=NULL; return K_ID; }
 idr              { yylval=NULL; return K_IDR; }
 is_at90s1200     { yylval=NULL; return K_IS_AT90S1200; }
 is_avr32         { yylval=NULL; return K_IS_AVR32; }
-jtagmki          { yylval=NULL; return K_JTAG_MKI; }
-jtagmkii         { yylval=NULL; return K_JTAG_MKII; }
-jtagmkii_avr32   { yylval=NULL; return K_JTAG_MKII_AVR32; }
-jtagmkii_dw      { yylval=NULL; return K_JTAG_MKII_DW; }
-jtagmkii_isp     { yylval=NULL; return K_JTAG_MKII_ISP; }
-jtagmkii_pdi     { yylval=NULL; return K_JTAG_MKII_PDI; }
 max_write_delay  { yylval=NULL; return K_MAX_WRITE_DELAY; }
 memory           { yylval=NULL; return K_MEMORY; }
 min_write_delay  { yylval=NULL; return K_MIN_WRITE_DELAY; }
@@ -175,7 +159,6 @@ offset           { yylval=NULL; return K_OFFSET; }
 page_size        { yylval=NULL; return K_PAGE_SIZE; }
 paged            { yylval=NULL; return K_PAGED; }
 pagel            { yylval=NULL; return K_PAGEL; }
-par              { yylval=NULL; return K_PAR; }
 parallel         { yylval=NULL; return K_PARALLEL; }
 parent           { yylval=NULL; return K_PARENT; }
 part             { yylval=NULL; return K_PART; }
@@ -187,20 +170,11 @@ rdyled           { yylval=NULL; return K_RDYLED; }
 readback_p1      { yylval=NULL; return K_READBACK_P1; }
 readback_p2      { yylval=NULL; return K_READBACK_P2; }
 retry_pulse      { yylval=NULL; return K_RETRY_PULSE; }
-serbb            { yylval=NULL; return K_SERBB; }
 serial           { yylval=NULL; return K_SERIAL; }
 signature        { yylval=NULL; return K_SIGNATURE; }
 size             { yylval=NULL; return K_SIZE; }
 spmcr            { yylval=NULL; return K_SPMCR; }
-stk500           { yylval=NULL; return K_STK500; }
-stk500hvsp       { yylval=NULL; return K_STK500HVSP; }
-stk500pp         { yylval=NULL; return K_STK500PP; }
-stk500v2         { yylval=NULL; return K_STK500V2; }
-stk500generic    { yylval=NULL; return K_STK500GENERIC; }
 stk500_devcode   { yylval=NULL; return K_STK500_DEVCODE; }
-stk600           { yylval=NULL; return K_STK600; }
-stk600hvsp       { yylval=NULL; return K_STK600HVSP; }
-stk600pp         { yylval=NULL; return K_STK600PP; }
 type             { yylval=NULL; return K_TYPE; }
 usb              { yylval=NULL; return K_USB; }
 usbdev           { yylval=NULL; return K_USBDEV; }
@@ -211,7 +185,6 @@ usbvendor        { yylval=NULL; return K_USBVENDOR; }
 usbvid           { yylval=NULL; return K_USBVID; }
 vcc              { yylval=NULL; return K_VCC; }
 vfyled           { yylval=NULL; return K_VFYLED; }
-wiring           { yylval=NULL; return K_WIRING; }
 
 timeout          { yylval=NULL; return K_TIMEOUT; }
 stabdelay        { yylval=NULL; return K_STABDELAY; }
@@ -285,10 +258,9 @@ c: { fprintf(stderr, "error at %s:%d: possible old-style config file entry\n",
              infile, lineno);
      fprintf(stderr, "  Update your config file (see %s%s for a sample)\n",
              CONFIG_DIR, "/avrdude.conf.sample");
-     exit(1); }
+     return YYERRCODE; }
 
-. { fprintf(stderr, "error at %s:%d unrecognized character: \"%s\"\n", 
-            infile, lineno, yytext); exit(1); }
+. { return YYERRCODE; }
 
 %%
 

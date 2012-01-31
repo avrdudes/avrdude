@@ -25,6 +25,7 @@
 #ifndef buspirate_h
 #define buspirate_h
 
+extern const char buspirate_desc[];
 void buspirate_initpgm (struct programmer_t *pgm);
 
 #endif

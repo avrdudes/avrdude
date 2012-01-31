@@ -38,6 +38,7 @@
 #include "pindefs.h"
 #include "pgm.h"
 #include "bitbang.h"
+#include "serbb.h"
 
 /* cached status lines */
 static int dtr, rts, txd;
@@ -343,6 +344,8 @@ static void serbb_close(PROGRAMMER *pgm)
 
 	hComPort = INVALID_HANDLE_VALUE;
 }
+
+const char serbb_desc[] = "Serial port bitbanging";
 
 void serbb_initpgm(PROGRAMMER *pgm)
 {

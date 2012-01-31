@@ -538,7 +538,7 @@ static int usbtiny_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return n_bytes;
 }
 
-extern void usbtiny_initpgm ( PROGRAMMER* pgm )
+void usbtiny_initpgm ( PROGRAMMER* pgm )
 {
   strcpy(pgm->type, "USBtiny");
 
@@ -584,3 +584,6 @@ void usbtiny_initpgm(PROGRAMMER * pgm)
 }
 
 #endif /* HAVE_LIBUSB */
+
+const char usbtiny_desc[] = "Driver for \"usbtiny\"-type programmers";
+

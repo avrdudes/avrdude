@@ -55,6 +55,7 @@
 #include "term.h"
 #include "safemode.h"
 #include "update.h"
+#include "pgm_type.h"
 
 
 /* Get VERSION from ac_cfg.h */
@@ -221,6 +222,24 @@ static void list_programmers(FILE * f, const char *prefix, LISTID programmers)
     walk_programmers(programmers, list_programmers_callback, &c);
 }
 
+static void list_programmer_types_callback(const char *name, const char *desc,
+                                      void *cookie)
+{
+    struct list_walk_cookie *c = (struct list_walk_cookie *)cookie;
+    fprintf(c->f, "%s%-16s = %-s\n",
+                c->prefix, name, desc);
+}
+
+static void list_programmer_types(FILE * f, const char *prefix)
+{
+    struct list_walk_cookie c;
+
+    c.f = f;
+    c.prefix = prefix;
+
+    walk_programmer_types(list_programmer_types_callback, &c);
+}
+
 static void list_avrparts_callback(const char *name, const char *desc,
                                    const char *cfgname, int cfglineno,
                                    void *cookie)
@@ -261,7 +280,7 @@ static void exithook(void)
 static void cleanup_main(void)
 {
     if (updates) {
-        ldestroy_cb(updates,free_update);
+        ldestroy_cb(updates, (void(*)(void*))free_update);
         updates = NULL;
     }
     if (extended_params) {
@@ -702,6 +721,13 @@ int main(int argc, char * argv [])
       fprintf(stderr, "\n");
       fprintf(stderr,"Valid programmers are:\n");
       list_programmers(stderr, "  ", programmers);
+      fprintf(stderr,"\n");
+      exit(1);
+    }
+    if (strcmp(programmer, "?type") == 0) {
+      fprintf(stderr, "\n");
+      fprintf(stderr,"Valid programmer types are:\n");
+      list_programmer_types(stderr, "  ");
       fprintf(stderr,"\n");
       exit(1);
     }

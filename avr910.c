@@ -744,6 +744,7 @@ static int avr910_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
   return 3;
 }
 
+const char avr910_desc[] = "Serial programmers using protocol described in application note AVR910";
 
 void avr910_initpgm(PROGRAMMER * pgm)
 {

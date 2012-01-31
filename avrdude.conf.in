@@ -344,14 +344,14 @@ default_serial     = "@DEFAULT_SER_PORT@";
 programmer
   id    = "wiring";
   desc  = "Wiring";
-  type  = wiring;
+  type  = "wiring";
   connection_type = serial;
 ;
 
 programmer
   id    = "arduino";
   desc  = "Arduino";
-  type  = arduino;
+  type  = "arduino";
   connection_type = serial;
 ;
 # this will interface with the chips on these programmers:
@@ -372,7 +372,7 @@ programmer
 programmer
   id         = "avrftdi";
   desc       = "FT2232D based generic programmer";
-  type       = avrftdi;
+  type       = "avrftdi";
   connection_type = usb;
   usbvid     = 0x0403;
   usbpid     = 0x6010;
@@ -400,7 +400,7 @@ programmer
 programmer
   id         = "2232HIO";
   desc       = "FT2232H based generic programmer";
-  type       = avrftdi;
+  type       = "avrftdi";
   connection_type = usb;
   usbvid     = 0x0403;
 # Note: This PID is reserved for generic H devices and 
@@ -427,7 +427,7 @@ programmer
 programmer
   id         = "jtagkey";
   desc       = "Amontec JTAGKey, JTAGKey-Tiny and JTAGKey2";
-  type       = avrftdi;
+  type       = "avrftdi";
   connection_type = usb;
   usbvid     = 0x0403;
 # Note: This PID is used in all JTAGKey variants
@@ -473,21 +473,21 @@ programmer parent "jtagkey"
 programmer
   id    = "avrisp";
   desc  = "Atmel AVR ISP";
-  type  = stk500;
+  type  = "stk500";
   connection_type = serial;
 ;
 
 programmer
   id    = "avrispv2";
   desc  = "Atmel AVR ISP V2";
-  type  =  stk500v2;
+  type  =  "stk500v2";
   connection_type = serial;
 ;
 
 programmer
   id    = "avrispmkII";
   desc  = "Atmel AVR ISP mkII";
-  type  =  stk500v2;
+  type  =  "stk500v2";
   connection_type = usb;
 ;
 
@@ -498,7 +498,7 @@ programmer parent "avrispmkII"
 programmer
   id    = "buspirate";
   desc  = "The Bus Pirate";
-  type  = buspirate;
+  type  = "buspirate";
   connection_type = serial;
 ;
 
@@ -509,77 +509,77 @@ programmer
 programmer
   id    = "stk500";
   desc  = "Atmel STK500";
-  type  = stk500generic;
+  type  = "stk500generic";
   connection_type = serial;
 ;
 
 programmer
   id    = "stk500v1";
   desc  = "Atmel STK500 Version 1.x firmware";
-  type  = stk500;
+  type  = "stk500";
   connection_type = serial;
 ;
 
 programmer
   id    = "mib510";
   desc  = "Crossbow MIB510 programming board";
-  type  = stk500;
+  type  = "stk500";
   connection_type = serial;
 ;
 
 programmer
   id    = "stk500v2";
   desc  = "Atmel STK500 Version 2.x firmware";
-  type  = stk500v2;
+  type  = "stk500v2";
   connection_type = serial;
 ;
 
 programmer
   id    = "stk500pp";
   desc  = "Atmel STK500 V2 in parallel programming mode";
-  type  = stk500pp;
+  type  = "stk500pp";
   connection_type = serial;
 ;
 
 programmer
   id    = "stk500hvsp";
   desc  = "Atmel STK500 V2 in high-voltage serial programming mode";
-  type  = stk500hvsp;
+  type  = "stk500hvsp";
   connection_type = serial;
 ;
 
 programmer
   id    = "stk600";
   desc  = "Atmel STK600";
-  type  = stk600;
+  type  = "stk600";
   connection_type = usb;
 ;
 
 programmer
   id    = "stk600pp";
   desc  = "Atmel STK600 in parallel programming mode";
-  type  = stk600pp;
+  type  = "stk600pp";
   connection_type = usb;
 ;
 
 programmer
   id    = "stk600hvsp";
   desc  = "Atmel STK600 in high-voltage serial programming mode";
-  type  = stk600hvsp;
+  type  = "stk600hvsp";
   connection_type = usb;
 ;
 
 programmer
   id    = "avr910";
   desc  = "Atmel Low Cost Serial Programmer";
-  type  = avr910;
+  type  = "avr910";
   connection_type = serial;
 ;
 
 programmer
   id    = "usbasp";
   desc  = "USBasp, http://www.fischl.de/usbasp/";
-  type  = usbasp;
+  type  = "usbasp";
   connection_type = usb;
   usbvid     = 0x16C0; # VOTI
   usbpid     = 0x05DC; # Obdev's free shared PID
@@ -604,7 +604,7 @@ programmer
 programmer
   id    = "nibobee";
   desc  = "NIBObee";
-  type  = usbasp;
+  type  = "usbasp";
   connection_type = usb;
   usbvid     = 0x16C0; # VOTI
   usbpid     = 0x092F; # NIBObee PID
@@ -615,7 +615,7 @@ programmer
 programmer
   id    = "usbasp-clone";
   desc  = "Any usbasp clone with correct VID/PID";
-  type  = usbasp;
+  type  = "usbasp";
   connection_type = usb;
   usbvid    = 0x16C0; # VOTI
   usbpid    = 0x05DC; # Obdev's free shared PID
@@ -626,28 +626,28 @@ programmer
 programmer
   id    = "usbtiny";
   desc  = "USBtiny simple USB programmer, http://www.ladyada.net/make/usbtinyisp/";
-  type  = usbtiny;
+  type  = "usbtiny";
   connection_type = usb;
 ;
 
 programmer
   id    = "butterfly";
   desc  = "Atmel Butterfly Development Board";
-  type  = butterfly;
+  type  = "butterfly";
   connection_type = serial;
 ;
 
 programmer
   id    = "avr109";
   desc  = "Atmel AppNote AVR109 Boot Loader";
-  type  = butterfly;
+  type  = "butterfly";
   connection_type = serial;
 ;
 
 programmer
   id    = "avr911";
   desc  = "Atmel AppNote AVR911 AVROSP";
-  type  = butterfly;
+  type  = "butterfly";
   connection_type = serial;
 ;
  
@@ -655,7 +655,7 @@ programmer
 programmer
   id    = "mkbutterfly";
   desc  = "Mikrokopter.de Butterfly";
-  type  = butterfly_mk;
+  type  = "butterfly_mk";
   connection_type = serial;
 ;
 
@@ -667,7 +667,7 @@ programmer
   id    = "jtagmkI";
   desc  = "Atmel JTAG ICE (mkI)";
   baudrate = 115200;    # default is 115200
-  type  = jtagmki;
+  type  = "jtagmki";
   connection_type = serial;
 ;
 
@@ -691,7 +691,7 @@ programmer
   id    = "jtagmkII";
   desc  = "Atmel JTAG ICE mkII";
   baudrate = 19200;    # default is 19200
-  type  = jtagmkii;
+  type  = "jtagmkii";
   connection_type = usb;
 ;
 
@@ -716,7 +716,7 @@ programmer
   id    = "jtag2isp";
   desc  = "Atmel JTAG ICE mkII in ISP mode";
   baudrate = 115200;
-  type  = jtagmkii_isp;
+  type  = "jtagmkii_isp";
   connection_type = usb;
 ;
 
@@ -725,7 +725,7 @@ programmer
   id    = "jtag2dw";
   desc  = "Atmel JTAG ICE mkII in debugWire mode";
   baudrate = 115200;
-  type  = jtagmkii_dw;
+  type  = "jtagmkii_dw";
   connection_type = usb;
 ;
 
@@ -734,7 +734,7 @@ programmer
   id    = "jtagmkII_avr32";
   desc  = "Atmel JTAG ICE mkII im AVR32 mode";
   baudrate = 115200;
-  type  = jtagmkii_avr32;
+  type  = "jtagmkii_avr32";
   connection_type = usb;
 ;
 
@@ -743,7 +743,7 @@ programmer
   id    = "jtag2avr32";
   desc  = "Atmel JTAG ICE mkII im AVR32 mode";
   baudrate = 115200;
-  type  = jtagmkii_avr32;
+  type  = "jtagmkii_avr32";
   connection_type = usb;
 ;
 
@@ -752,7 +752,7 @@ programmer
   id    = "jtag2pdi";
   desc  = "Atmel JTAG ICE mkII PDI mode";
   baudrate = 115200;
-  type  = jtagmkii_pdi;
+  type  = "jtagmkii_pdi";
   connection_type = usb;
 ;
 
@@ -761,7 +761,7 @@ programmer
   id    = "dragon_jtag";
   desc  = "Atmel AVR Dragon in JTAG mode";
   baudrate = 115200;
-  type  = dragon_jtag;
+  type  = "dragon_jtag";
   connection_type = usb;
 ;
 
@@ -770,7 +770,7 @@ programmer
   id    = "dragon_isp";
   desc  = "Atmel AVR Dragon in ISP mode";
   baudrate = 115200;
-  type  = dragon_isp;
+  type  = "dragon_isp";
   connection_type = usb;
 ;
 
@@ -779,7 +779,7 @@ programmer
   id    = "dragon_pp";
   desc  = "Atmel AVR Dragon in PP mode";
   baudrate = 115200;
-  type  = dragon_pp;
+  type  = "dragon_pp";
   connection_type = usb;
 ;
 
@@ -788,7 +788,7 @@ programmer
   id    = "dragon_hvsp";
   desc  = "Atmel AVR Dragon in HVSP mode";
   baudrate = 115200;
-  type  = dragon_hvsp;
+  type  = "dragon_hvsp";
   connection_type = usb;
 ;
 
@@ -797,7 +797,7 @@ programmer
   id    = "dragon_dw";
   desc  = "Atmel AVR Dragon in debugWire mode";
   baudrate = 115200;
-  type  = dragon_dw;
+  type  = "dragon_dw";
   connection_type = usb;
 ;
 
@@ -806,14 +806,14 @@ programmer
   id    = "dragon_pdi";
   desc  = "Atmel AVR Dragon in PDI mode";
   baudrate = 115200;
-  type  = dragon_pdi;
+  type  = "dragon_pdi";
   connection_type = usb;
 ;
 
 programmer
   id    = "pavr";
   desc  = "Jason Kyle's pAVR Serial Programmer";
-  type  = avr910;
+  type  = "avr910";
   connection_type = serial;
 ;
 
@@ -823,7 +823,7 @@ programmer
 programmer
   id    = "bsd";
   desc  = "Brian Dean's Programmer, http://www.bsdhome.com/avrdude/";
-  type  = par;
+  type  = "par";
   connection_type = parallel;
   vcc   = 2, 3, 4, 5;
   reset = 7;
@@ -835,7 +835,7 @@ programmer
 programmer
   id    = "stk200";
   desc  = "STK200";
-  type  = par;
+  type  = "par";
   connection_type = parallel;
   buff  = 4, 5;
   sck   = 6;
@@ -858,7 +858,7 @@ programmer parent "stk200"
 programmer
   id    = "dt006";
   desc  = "Dontronics DT006";
-  type  = par;
+  type  = "par";
   connection_type = parallel;
   reset = 4;
   sck   = 5;
@@ -874,7 +874,7 @@ programmer parent "dt006"
 programmer
   id     = "alf";
   desc   = "Nightshade ALF-PgmAVR, http://nightshade.homeip.net/";
-  type   = par;
+  type   = "par";
   connection_type = parallel;
   vcc    = 2, 3, 4, 5;
   buff   = 6;
@@ -891,7 +891,7 @@ programmer
 programmer
   id    = "sp12";
   desc  = "Steve Bolt's Programmer";
-  type  = par;
+  type  = "par";
   connection_type = parallel;
   vcc   = 4,5,6,7,8;
   reset = 3;
@@ -903,7 +903,7 @@ programmer
 programmer
   id     = "picoweb";
   desc   = "Picoweb Programming Cable, http://www.picoweb.net/";
-  type   = par;
+  type   = "par";
   connection_type = parallel;
   reset  = 2;
   sck    = 3;
@@ -914,7 +914,7 @@ programmer
 programmer
   id    = "abcmini";
   desc  = "ABCmini Board, aka Dick Smith HOTCHIP";
-  type  = par;
+  type  = "par";
   connection_type = parallel;
   reset = 4;
   sck   = 3;
@@ -925,7 +925,7 @@ programmer
 programmer
   id    = "futurlec";
   desc  = "Futurlec.com programming cable.";
-  type  = par;
+  type  = "par";
   connection_type = parallel;
   reset = 3;
   sck   = 2;
@@ -944,7 +944,7 @@ programmer
 programmer
   id    = "xil";
   desc  = "Xilinx JTAG cable";
-  type  = par;
+  type  = "par";
   connection_type = parallel;
   mosi  = 2;
   sck   = 3;
@@ -958,7 +958,7 @@ programmer
 programmer
   id = "dapa";
   desc = "Direct AVR Parallel Access cable";
-  type = par;
+  type = "par";
   connection_type = parallel;
   vcc   = 3;
   reset = 16;
@@ -970,7 +970,7 @@ programmer
 programmer
   id    = "atisp";
   desc  = "AT-ISP V1.1 programming cable for AVR-SDK1 from <http://micro-research.co.th/> micro-research.co.th";
-  type  = par;
+  type  = "par";
   connection_type = parallel;
   reset = ~6;
   sck   = ~8;
@@ -981,7 +981,7 @@ programmer
 programmer
   id    = "ere-isp-avr";
   desc  = "ERE ISP-AVR <http://www.ere.co.th/download/sch050713.pdf>";
-  type  = par;
+  type  = "par";
   connection_type = parallel;
   reset = ~4;
   sck   = 3;
@@ -992,7 +992,7 @@ programmer
 programmer
   id    = "blaster";
   desc  = "Altera ByteBlaster";
-  type  = par;
+  type  = "par";
   connection_type = parallel;
   sck   = 2;
   miso  = 11;
@@ -1015,7 +1015,7 @@ programmer parent "pony-stk200"
 programmer
   id = "89isp";
   desc = "Atmel at89isp cable";
-  type = par;
+  type = "par";
   connection_type = parallel;
   reset = 17;
   sck = 1;
@@ -1050,7 +1050,7 @@ programmer
 programmer
   id    = "ponyser";
   desc  = "design ponyprog serial, reset=!txd sck=rts mosi=dtr miso=cts";
-  type  = serbb;
+  type  = "serbb";
   connection_type = serial;
   reset = ~3;
   sck   = 7;
@@ -1072,7 +1072,7 @@ programmer parent "ponyser"
 programmer
   id    = "dasa";
   desc  = "serial port banging, reset=rts sck=dtr mosi=txd miso=cts";
-  type  = serbb;
+  type  = "serbb";
   connection_type = serial;
   reset = 7;
   sck   = 4;
@@ -1086,7 +1086,7 @@ programmer
 programmer
   id    = "dasa3";
   desc  = "serial port banging, reset=!dtr sck=rts mosi=txd miso=cts";
-  type  = serbb;
+  type  = "serbb";
   connection_type = serial;
   reset = ~4;
   sck   = 7;
@@ -1100,7 +1100,7 @@ programmer
 programmer
   id    = "c2n232i";
   desc  = "serial port banging, reset=dtr sck=!rts mosi=!txd miso=!cts";
-  type  = serbb;
+  type  = "serbb";
   connection_type = serial;
   reset = 4;
   sck   = ~7;

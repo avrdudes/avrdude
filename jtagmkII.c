@@ -3577,6 +3577,8 @@ static int jtagmkII_flash_clear_pagebuffer32(PROGRAMMER * pgm)
 #pragma mark -
 #endif
 
+const char jtagmkII_desc[] = "Atmel JTAG ICE mkII";
+
 void jtagmkII_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "JTAGMKII");
@@ -3609,6 +3611,8 @@ void jtagmkII_initpgm(PROGRAMMER * pgm)
   pgm->flag           = PGM_FL_IS_JTAG;
 }
 
+const char jtagmkII_dw_desc[] = "Atmel JTAG ICE mkII in debugWire mode";
+
 void jtagmkII_dw_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "JTAGMKII_DW");
@@ -3639,6 +3643,7 @@ void jtagmkII_dw_initpgm(PROGRAMMER * pgm)
   pgm->flag           = PGM_FL_IS_DW;
 }
 
+const char jtagmkII_pdi_desc[] = "Atmel JTAG ICE mkII in PDI mode";
 
 void jtagmkII_pdi_initpgm(PROGRAMMER * pgm)
 {
@@ -3670,6 +3675,7 @@ void jtagmkII_pdi_initpgm(PROGRAMMER * pgm)
   pgm->flag           = PGM_FL_IS_PDI;
 }
 
+const char jtagmkII_dragon_desc[] = "Atmel AVR Dragon in JTAG mode";
 
 void jtagmkII_dragon_initpgm(PROGRAMMER * pgm)
 {
@@ -3703,6 +3709,7 @@ void jtagmkII_dragon_initpgm(PROGRAMMER * pgm)
   pgm->flag           = PGM_FL_IS_JTAG;
 }
 
+const char jtagmkII_dragon_dw_desc[] = "Atmel AVR Dragon in debugWire mode";
 
 void jtagmkII_dragon_dw_initpgm(PROGRAMMER * pgm)
 {
@@ -3733,6 +3740,8 @@ void jtagmkII_dragon_dw_initpgm(PROGRAMMER * pgm)
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_DW;
 }
+
+const char jtagmkII_avr32_desc[] = "Atmel JTAG ICE mkII in AVR32 mode";
 
 void jtagmkII_avr32_initpgm(PROGRAMMER * pgm)
 {
@@ -3765,6 +3774,8 @@ void jtagmkII_avr32_initpgm(PROGRAMMER * pgm)
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_JTAG;
 }
+
+const char jtagmkII_dragon_pdi_desc[] = "Atmel AVR Dragon in PDI mode";
 
 void jtagmkII_dragon_pdi_initpgm(PROGRAMMER * pgm)
 {

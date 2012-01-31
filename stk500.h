@@ -26,6 +26,7 @@
 extern "C" {
 #endif
 
+extern const char stk500_desc[];
 void stk500_initpgm (PROGRAMMER * pgm);
 
 /* used by arduino.c to avoid duplicate code */

@@ -75,7 +75,7 @@ extern "C" {
 
 LISTID     lcreat      ( void * liststruct, int poolsize );
 void       ldestroy    ( LISTID lid );
-void       ldestroy_cb ( LISTID lid, void (*ucleanup)() );
+void       ldestroy_cb ( LISTID lid, void (*ucleanup)(void * data_ptr) );
 
 LNODEID    lfirst ( LISTID  ); /* head of the list */
 LNODEID    llast  ( LISTID  ); /* tail of the list */

@@ -45,6 +45,7 @@ extern "C" {
 #define E_VOID(x) if ((x)) { fprintf(stdout, "%s:%d %s() %s: %s (%d)\n\t%s\n", __FILE__, __LINE__, __FUNCTION__, \
 	#x, strerror(errno), errno, ftdi_get_error_string(&ftdic)); }
 
+extern const char avrftdi_desc[];
 void avrftdi_initpgm        (PROGRAMMER * pgm);
 
 #ifdef __cplusplus

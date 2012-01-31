@@ -1,3 +1,17 @@
+2012-01-31  Rene Liebscher <R.Liebscher@gmx.de>
+
+	Parser does not need to know all programmer types now, new programmers
+	will update only the table in pgm_type.c.
+	* config_gram.y, lexer.l: removed programmer type keywords,
+	use now locate_programmer_type() function
+	* pgm_type.[ch]: added new files for table of programmer types
+	* main.c: allow list of programmer types by -c ?type
+	* avrdude.conf.in: changed all type keywords to quoted strings
+	* doc/avrdude.texi: changed description of type definition, list
+	of valid types is now included from generated file
+	* doc/Makefile.am: generate list of programmer types for doc
+	* all programmers [hc]: add xxx_desc string for description of programmer
+
 2012-01-30  Rene Liebscher <R.Liebscher@gmx.de>
 
 	* configure.ac: fixed detection of yylex_destroy availability

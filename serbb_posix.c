@@ -42,6 +42,7 @@
 #include "pindefs.h"
 #include "pgm.h"
 #include "bitbang.h"
+#include "serbb.h"
 
 #undef DEBUG
 
@@ -282,6 +283,8 @@ static void serbb_close(PROGRAMMER *pgm)
   }
   return;
 }
+
+const char serbb_desc[] = "Serial port bitbanging";
 
 void serbb_initpgm(PROGRAMMER *pgm)
 {

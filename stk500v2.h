@@ -27,6 +27,16 @@
 extern "C" {
 #endif
 
+extern const char stk500v2_desc[];
+extern const char stk500hvsp_desc[];
+extern const char stk500pp_desc[];
+extern const char stk500v2_jtagmkII_desc[];
+extern const char stk500v2_dragon_hvsp_desc[];
+extern const char stk500v2_dragon_isp_desc[];
+extern const char stk500v2_dragon_pp_desc[];
+extern const char stk600_desc[];
+extern const char stk600hvsp_desc[];
+extern const char stk600pp_desc[];
 void stk500v2_initpgm (PROGRAMMER * pgm);
 void stk500hvsp_initpgm (PROGRAMMER * pgm);
 void stk500pp_initpgm (PROGRAMMER * pgm);

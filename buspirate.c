@@ -775,6 +775,7 @@ static void buspirate_teardown(struct programmer_t *pgm)
 {
 	free(pgm->cookie);
 }
+const char buspirate_desc[] = "Using the Bus Pirate's SPI interface for programming";
 
 void buspirate_initpgm(struct programmer_t *pgm)
 {

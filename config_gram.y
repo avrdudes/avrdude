@@ -36,20 +36,8 @@
 #include "pindefs.h"
 #include "ppi.h"
 #include "pgm.h"
-#include "stk500.h"
-#include "arduino.h"
-#include "buspirate.h"
-#include "stk500v2.h"
-#include "wiring.h"
-#include "stk500generic.h"
-#include "avr910.h"
-#include "butterfly.h"
-#include "usbasp.h"
-#include "usbtiny.h"
+#include "pgm_type.h"
 #include "avr.h"
-#include "jtagmkI.h"
-#include "jtagmkII.h"
-#include "avrftdi.h"
 
 #if defined(WIN32NATIVE)
 #define strtok_r( _s, _sep, _lasts ) \
@@ -84,12 +72,9 @@ static int pin_name;
 %token K_PAGE_SIZE
 %token K_PAGED
 
-%token K_ARDUINO
-%token K_AVRFTDI
 %token K_BAUDRATE
 %token K_BS2
 %token K_BUFF
-%token K_BUSPIRATE
 %token K_CHIP_ERASE_DELAY
 %token K_CONNTYPE
 %token K_DEDICATED
@@ -99,12 +84,6 @@ static int pin_name;
 %token K_DEFAULT_BITCLOCK
 %token K_DESC
 %token K_DEVICECODE
-%token K_DRAGON_DW
-%token K_DRAGON_HVSP
-%token K_DRAGON_ISP
-%token K_DRAGON_JTAG
-%token K_DRAGON_PDI
-%token K_DRAGON_PP
 %token K_STK500_DEVCODE
 %token K_AVR910_DEVCODE
 %token K_EEPROM
@@ -112,12 +91,6 @@ static int pin_name;
 %token K_FLASH
 %token K_ID
 %token K_IO
-%token K_JTAG_MKI
-%token K_JTAG_MKII
-%token K_JTAG_MKII_AVR32
-%token K_JTAG_MKII_DW
-%token K_JTAG_MKII_ISP
-%token K_JTAG_MKII_PDI
 %token K_LOADPAGE
 %token K_MAX_WRITE_DELAY
 %token K_MIN_WRITE_DELAY
@@ -127,7 +100,6 @@ static int pin_name;
 %token K_NVM_BASE
 %token K_OFFSET
 %token K_PAGEL
-%token K_PAR
 %token K_PARALLEL
 %token K_PARENT
 %token K_PART
@@ -141,35 +113,20 @@ static int pin_name;
 %token K_READMEM
 %token K_RESET
 %token K_RETRY_PULSE
-%token K_SERBB
 %token K_SERIAL
 %token K_SCK
 %token K_SIGNATURE
 %token K_SIZE
-%token K_STK500
-%token K_STK500HVSP
-%token K_STK500PP
-%token K_STK500V2
-%token K_STK500GENERIC
-%token K_STK600
-%token K_STK600HVSP
-%token K_STK600PP
-%token K_AVR910
 %token K_USB
-%token K_USBASP
 %token K_USBDEV
 %token K_USBSN
-%token K_USBTINY
 %token K_USBPID
 %token K_USBPRODUCT
 %token K_USBVENDOR
 %token K_USBVID
-%token K_BUTTERFLY
-%token K_BUTTERFLY_MK
 %token K_TYPE
 %token K_VCC
 %token K_VFYLED
-%token K_WIRING
 
 %token K_NO
 %token K_YES
@@ -488,37 +445,24 @@ prog_parm_type:
 ;
 
 prog_parm_type_id:
-  K_PAR             { current_prog->initpgm = par_initpgm; } |
-  K_SERBB           { current_prog->initpgm = serbb_initpgm; } |
-  K_STK500          { current_prog->initpgm = stk500_initpgm; } |
-  K_STK500V2        { current_prog->initpgm = stk500v2_initpgm; } |
-  K_WIRING          { current_prog->initpgm = wiring_initpgm; } |
-  K_STK500HVSP      { current_prog->initpgm = stk500hvsp_initpgm; } |
-  K_STK500PP        { current_prog->initpgm = stk500pp_initpgm; } |
-  K_STK500GENERIC   { current_prog->initpgm = stk500generic_initpgm; } |
-  K_ARDUINO         { current_prog->initpgm = arduino_initpgm; } |
-  K_AVRFTDI         { current_prog->initpgm = avrftdi_initpgm; } |
-  K_BUSPIRATE       { current_prog->initpgm = buspirate_initpgm; } |
-  K_STK600          { current_prog->initpgm = stk600_initpgm; } |
-  K_STK600HVSP      { current_prog->initpgm = stk600hvsp_initpgm; } |
-  K_STK600PP        { current_prog->initpgm = stk600pp_initpgm; } |
-  K_AVR910          { current_prog->initpgm = avr910_initpgm; } |
-  K_USBASP          { current_prog->initpgm = usbasp_initpgm; } |
-  K_USBTINY         { current_prog->initpgm = usbtiny_initpgm; } |
-  K_BUTTERFLY       { current_prog->initpgm = butterfly_initpgm; } |
-  K_BUTTERFLY_MK    { current_prog->initpgm = butterfly_mk_initpgm; } |
-  K_JTAG_MKI        { current_prog->initpgm = jtagmkI_initpgm; } |
-  K_JTAG_MKII       { current_prog->initpgm = jtagmkII_initpgm; } |
-  K_JTAG_MKII_AVR32 { current_prog->initpgm = jtagmkII_avr32_initpgm; } |
-  K_JTAG_MKII_DW    { current_prog->initpgm = jtagmkII_dw_initpgm; } |
-  K_JTAG_MKII_ISP   { current_prog->initpgm = stk500v2_jtagmkII_initpgm; } |
-  K_JTAG_MKII_PDI   { current_prog->initpgm = jtagmkII_pdi_initpgm; } |
-  K_DRAGON_DW       { current_prog->initpgm = jtagmkII_dragon_dw_initpgm; } |
-  K_DRAGON_HVSP     { current_prog->initpgm = stk500v2_dragon_hvsp_initpgm; } |
-  K_DRAGON_ISP      { current_prog->initpgm = stk500v2_dragon_isp_initpgm; } |
-  K_DRAGON_JTAG     { current_prog->initpgm = jtagmkII_dragon_initpgm; } |
-  K_DRAGON_PDI      { current_prog->initpgm = jtagmkII_dragon_pdi_initpgm; } |
-  K_DRAGON_PP       { current_prog->initpgm = stk500v2_dragon_pp_initpgm; }
+  TKN_STRING        {
+  const struct programmer_type_t * pgm_type = locate_programmer_type($1->value.string);
+    if (pgm_type == NULL) {
+        fprintf(stderr,
+                "%s: error at %s:%d: programmer type %s not found\n",
+                progname, infile, lineno, $1->value.string);
+        exit(1);
+    }
+    current_prog->initpgm = pgm_type->initpgm;
+    free_token($1); 
+}
+  | error
+{
+        fprintf(stderr,
+                "%s: error at %s:%d: programmer type must be written as \"id_type\"\n",
+                progname, infile, lineno);
+        exit(1);
+}
 ;
 
 prog_parm_conntype:
