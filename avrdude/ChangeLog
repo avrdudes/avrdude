@@ -1,3 +1,7 @@
+2012-02-01  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* lexer.l: Sort keyword tokens into alphabetic order.
+
 2012-01-31  Rene Liebscher <R.Liebscher@gmx.de>
 
 	* config_gram.y, lexer.l: removed unused ID/TKN_ID definitions
