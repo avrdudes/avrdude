@@ -178,25 +178,6 @@ static int par_highpulsepin(PROGRAMMER * pgm, int pin)
   return 0;
 }
 
-static char * pins_to_str(unsigned int pmask)
-{
-  static char buf[64];
-  int pin;
-  char b2[8];
-
-  buf[0] = 0;
-  for (pin = 1; pin <= 17; pin++) {
-    if (pmask & (1 << pin)) {
-      sprintf(b2, "%d", pin);
-      if (buf[0] != 0)
-        strcat(buf, ",");
-      strcat(buf, b2);
-    }
-  }
-
-  return buf;
-}
-
 /*
  * apply power to the AVR processor
  */
@@ -337,52 +318,6 @@ static void par_close(PROGRAMMER * pgm)
   pgm->fd.ifd = -1;
 }
 
-static void par_display(PROGRAMMER * pgm, const char * p)
-{
-  char vccpins[64];
-  char buffpins[64];
-
-  if (pgm->pinno[PPI_AVR_VCC]) {
-    snprintf(vccpins, sizeof(vccpins), "%s",
-             pins_to_str(pgm->pinno[PPI_AVR_VCC]));
-  }
-  else {
-    strcpy(vccpins, " (not used)");
-  }
-
-  if (pgm->pinno[PPI_AVR_BUFF]) {
-    snprintf(buffpins, sizeof(buffpins), "%s",
-             pins_to_str(pgm->pinno[PPI_AVR_BUFF]));
-  }
-  else {
-    strcpy(buffpins, " (not used)");
-  }
-
-  fprintf(stderr, 
-          "%s  VCC     = %s\n"
-          "%s  BUFF    = %s\n"
-          "%s  RESET   = %d\n"
-          "%s  SCK     = %d\n"
-          "%s  MOSI    = %d\n"
-          "%s  MISO    = %d\n"
-          "%s  ERR LED = %d\n"
-          "%s  RDY LED = %d\n"
-          "%s  PGM LED = %d\n"
-          "%s  VFY LED = %d\n",
-
-          p, vccpins,
-          p, buffpins,
-          p, pgm->pinno[PIN_AVR_RESET],
-          p, pgm->pinno[PIN_AVR_SCK],
-          p, pgm->pinno[PIN_AVR_MOSI],
-          p, pgm->pinno[PIN_AVR_MISO],
-          p, pgm->pinno[PIN_LED_ERR],
-          p, pgm->pinno[PIN_LED_RDY],
-          p, pgm->pinno[PIN_LED_PGM],
-          p, pgm->pinno[PIN_LED_VFY]);
-}
-
-
 /*
  * parse the -E string
  */
@@ -433,7 +368,7 @@ void par_initpgm(PROGRAMMER * pgm)
   pgm->pgm_led        = bitbang_pgm_led;
   pgm->vfy_led        = bitbang_vfy_led;
   pgm->initialize     = bitbang_initialize;
-  pgm->display        = par_display;
+  pgm->display        = pgm_display_generic;
   pgm->enable         = par_enable;
   pgm->disable        = par_disable;
   pgm->powerup        = par_powerup;

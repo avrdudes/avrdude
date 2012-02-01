@@ -135,7 +135,7 @@ AH_TEMPLATE([HAVE_LIBFTDI],
             [Define if FTDI support is enabled via libftdi])
 AC_CHECK_LIB([ftdi], [ftdi_usb_get_strings], [have_libftdi=yes], [], [-lusb])
 if test x$have_libftdi = xyes; then
-   LIBFTDI="-lftdi -lusb"
+   LIBFTDI="-lftdi -lusb -lpthread"
    AC_DEFINE([HAVE_LIBFTDI])
 fi
 AC_SUBST(LIBFTDI, $LIBFTDI)

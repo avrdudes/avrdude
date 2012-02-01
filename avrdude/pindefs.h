@@ -22,6 +22,8 @@
 #ifndef __pindefs_h__
 #define __pindefs_h__
 
+#include <limits.h>
+
 enum {
   PPI_AVR_VCC=1,
   PPI_AVR_BUFF,
@@ -35,8 +37,8 @@ enum {
   PIN_LED_VFY,
   N_PINS
 };
-#define PIN_INVERSE 0x80	/* flag for inverted pin in serbb */
-#define PIN_MASK    0x7f
+#define PIN_MASK    (UINT_MAX>>1)
+#define PIN_INVERSE (~(PIN_MASK))	/* flag for inverted pin in serbb */
 
 #define LED_ON(fd,pin)  ppi_setpin(fd,pin,0)
 #define LED_OFF(fd,pin) ppi_setpin(fd,pin,1)

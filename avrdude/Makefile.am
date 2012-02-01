@@ -91,6 +91,8 @@ libavrdude_a_SOURCES = \
 	avr.h \
 	avr910.c \
 	avr910.h \
+	ft245r.c \
+	ft245r.h \
 	avrdude.h \
 	avrftdi.c \
 	avrftdi.h \

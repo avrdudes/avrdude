@@ -1,3 +1,14 @@
+2012-02-01  Rene Liebscher <R.Liebscher@gmx.de>
+
+	bug #30559 Ft232 bit-bang support
+	* ft245r.[ch]: new programmer type implementation
+	* configure.ac: add pthread as link library
+	* avrdude.conf.in: added some new programmers
+	* Makefile.am: added new source files to compile
+	* pindefs.h: change PIN_MASK, PIN_INVERSE to highest bit of unsigned int
+	* pgm.[ch]: added generic function to print pin assignments (taken from par.c)
+	* par.c: moved pin assigment print function to pgm.c
+
 2012-02-01  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* lexer.l: Sort keyword tokens into alphabetic order.
