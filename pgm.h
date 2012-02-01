@@ -143,6 +143,15 @@ PROGRAMMER * pgm_dup(const PROGRAMMER const * src);
 void         pgm_free(PROGRAMMER * const p);
 
 void programmer_display(PROGRAMMER * pgm, const char * p);
+
+/* show is a mask like this (1<<PIN_AVR_SCK)|(1<<PIN_AVR_MOSI)| ... */
+#define SHOW_ALL_PINS (~0u)
+#define SHOW_PPI_PINS ((1<<PPI_AVR_VCC)|(1<<PPI_AVR_BUFF))
+#define SHOW_AVR_PINS ((1<<PIN_AVR_RESET)|(1<<PIN_AVR_SCK)|(1<<PIN_AVR_MOSI)|(1<<PIN_AVR_MISO))
+#define SHOW_LED_PINS ((1<<PIN_LED_ERR)|(1<<PIN_LED_RDY)|(1<<PIN_LED_PGM)|(1<<PIN_LED_VFY))
+void pgm_display_generic_mask(PROGRAMMER * pgm, const char * p, unsigned int show);
+void pgm_display_generic(PROGRAMMER * pgm, const char * p);
+
 PROGRAMMER * locate_programmer(LISTID programmers, const char * configid);
 
 typedef void (*walk_programmers_cb)(const char *name, const char *desc,

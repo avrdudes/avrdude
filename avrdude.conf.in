@@ -16,13 +16,8 @@
 #       parent <id>                                 # optional parent
 #       id       = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
 #       desc     = <description> ;                  # quoted string
-#       type     = par | stk500 | stk500v2 | stk500pp | stk500hvsp | stk500generic |
-#                  stk600 | stk600pp | stk600hvsp |
-#                  avr910 | butterfly | usbasp |
-#                  jtagmki | jtagmkii | jtagmkii_isp | jtagmkii_dw |
-#                  jtagmkII_avr32 | jtagmkii_pdi |
-#                  dragon_dw | dragon_jtag | dragon_isp | dragon_pp |
-#                  dragon_hvsp | dragon_pdi | arduino | wiring; # programmer type
+#       type     = <type>;                          # programmer type, quoted string
+#                          # supported programmer types can be listed by "-c ?type"
 #       connection_type = parallel | serial | usb
 #       baudrate = <num> ;                          # baudrate for avr910-programmer
 #       vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
@@ -574,6 +569,59 @@ programmer
   desc  = "Atmel Low Cost Serial Programmer";
   type  = "avr910";
   connection_type = serial;
+;
+
+programmer
+  id    = "ft245r";
+  desc  = "FT245R Synchronous BitBang";
+  type  = "ftdi_syncbb";
+  connection_type = usb;
+  miso  = 2; # D1
+  sck   = 1; # D0
+  mosi  = 3; # D2
+  reset = 5; # D4
+;
+
+programmer
+  id    = "ft232r";
+  desc  = "FT232R Synchronous BitBang";
+  type  = "ftdi_syncbb";
+  connection_type = usb;
+  miso  = 2;  # RxD
+  sck   = 1;  # RTS
+  mosi  = 3;  # TxD
+  reset = 5;  # DTR
+;
+
+# see http://www.bitwizard.nl/wiki/index.php/FTDI_ATmega
+programmer
+  id    = "bwmega";
+  desc  = "BitWizard ftdi_atmega builtin programmer";
+  type  = "ftdi_syncbb";
+  connection_type = usb;
+  miso  = 6;  # DSR
+  sck   = 7;  # DCD
+  mosi  = 4;  # CTS
+  reset = 8;  # RI
+;
+
+# see http://www.geocities.jp/arduino_diecimila/bootloader/index_en.html
+# Note: pins are numbered from 1!
+programmer
+  id    = "arduino-ft232r";
+  desc  = "Arduino: FT232R connected to ISP";
+  type  = "ftdi_syncbb";
+  connection_type = usb;
+  miso  = 4;  # CTS X3(1)
+  sck   = 6;  # DSR X3(2)
+  mosi  = 7;  # DCD X3(3)
+  reset = 8;  # RI  X3(4)
+;
+
+# website mentioned above uses this id
+programmer parent "arduino-ft232r"
+  id    = "diecimila";
+  desc  = "alias for arduino-ft232r";
 ;
 
 programmer
