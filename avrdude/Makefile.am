@@ -91,8 +91,6 @@ libavrdude_a_SOURCES = \
 	avr.h \
 	avr910.c \
 	avr910.h \
-	ft245r.c \
-	ft245r.h \
 	avrdude.h \
 	avrftdi.c \
 	avrftdi.h \
@@ -113,6 +111,8 @@ libavrdude_a_SOURCES = \
 	fileio.c \
 	fileio.h \
 	freebsd_ppi.h \
+	ft245r.c \
+	ft245r.h \
 	jtagmkI.c \
 	jtagmkI.h \
 	jtagmkI_private.h \
