@@ -28,6 +28,11 @@
 #include <errno.h>
 #include <ctype.h>
 
+#ifdef HAVE_LIBELF
+#include <libelf.h>
+#define EM_AVR32 0x18ad         /* inofficial */
+#endif
+
 #include "avrdude.h"
 #include "avr.h"
 #include "fileio.h"
@@ -74,6 +79,16 @@ static int fileio_ihex(struct fioparms * fio,
 static int fileio_srec(struct fioparms * fio,
                   char * filename, FILE * f, AVRMEM * mem, int size);
 
+#ifdef HAVE_LIBELF
+static int elf2b(char * infile, FILE * inf,
+                 AVRMEM * mem, struct avrpart * p,
+                 int bufsize, unsigned int fileoffset);
+
+static int fileio_elf(struct fioparms * fio,
+                      char * filename, FILE * f, AVRMEM * mem,
+                      struct avrpart * p, int size);
+#endif
+
 static int fileio_num(struct fioparms * fio,
 		char * filename, FILE * f, AVRMEM * mem, int size,
 		FILEFMT fmt);
@@ -89,6 +104,7 @@ char * fmtstr(FILEFMT format)
     case FMT_SREC : return "Motorola S-Record"; break;
     case FMT_IHEX : return "Intel Hex"; break;
     case FMT_RBIN : return "raw binary"; break;
+    case FMT_ELF  : return "ELF"; break;
     default       : return "invalid format"; break;
   };
 }
@@ -669,6 +685,307 @@ static int srec2b(char * infile, FILE * inf,
   return maxaddr;
 }
 
+#ifdef HAVE_LIBELF
+/*
+ * Return the ELF section descriptor that corresponds to program
+ * header `ph'.  The program header is expected to be of p_type
+ * PT_LOAD, and to have a nonzero p_filesz.  (PT_LOAD sections with a
+ * zero p_filesz are typically RAM sections that are not initialized
+ * by file data, e.g. ".bss".)
+ */
+static Elf_Scn *elf_get_scn(Elf *e, Elf32_Phdr *ph, Elf32_Shdr **shptr)
+{
+  Elf_Scn *s = NULL;
+
+  while ((s = elf_nextscn(e, s)) != NULL) {
+    Elf32_Shdr *sh;
+    size_t ndx = elf_ndxscn(s);
+    if ((sh = elf32_getshdr(s)) == NULL) {
+      fprintf(stderr,
+              "%s: ERROR: Error reading section #%u header: %s\n",
+              progname, (unsigned int)ndx, elf_errmsg(-1));
+      continue;
+    }
+    if ((sh->sh_flags & SHF_ALLOC) == 0 ||
+        sh->sh_type != SHT_PROGBITS)
+      /* we are only interested in PROGBITS, ALLOC sections */
+      continue;
+    if (ph->p_vaddr == sh->sh_addr &&
+        ph->p_offset == sh->sh_offset) {
+      /* yeah, we found it */
+      *shptr = sh;
+      return s;
+    }
+  }
+
+  fprintf(stderr,
+          "%s: ERROR: Cannot find a matching section for "
+          "program header entry @p_vaddr 0x%x\n",
+          progname, ph->p_vaddr);
+  return NULL;
+}
+
+static int elf_mem_limits(AVRMEM *mem, struct avrpart * p,
+                          unsigned int *lowbound,
+                          unsigned int *highbound,
+                          unsigned int *fileoff)
+{
+  int rv = 0;
+
+  if (p->flags & AVRPART_AVR32) {
+    if (strcmp(mem->desc, "flash") == 0) {
+      *lowbound = 0x80000000;
+      *highbound = 0xffffffff;
+      *fileoff = 0;
+    } else {
+      rv = -1;
+    }
+  } else {
+    if (strcmp(mem->desc, "flash") == 0) {
+      *lowbound = 0;
+      *highbound = 0x7ffff;       /* max 8 MiB */
+      *fileoff = 0;
+    } else if (strcmp(mem->desc, "eeprom") == 0) {
+      *lowbound = 0x810000;
+      *highbound = 0x81ffff;      /* max 64 KiB */
+      *fileoff = 0;
+    } else if (strcmp(mem->desc, "lfuse") == 0) {
+      *lowbound = 0x820000;
+      *highbound = 0x82ffff;
+      *fileoff = 0;
+    } else if (strcmp(mem->desc, "hfuse") == 0) {
+      *lowbound = 0x820000;
+      *highbound = 0x82ffff;
+      *fileoff = 1;
+    } else if (strcmp(mem->desc, "efuse") == 0) {
+      *lowbound = 0x820000;
+      *highbound = 0x82ffff;
+      *fileoff = 2;
+    } else if (strncmp(mem->desc, "fuse", 4) == 0 &&
+               (mem->desc[4] >= '0' && mem->desc[4] <= '9')) {
+      /* Xmega fuseN */
+      *lowbound = 0x820000;
+      *highbound = 0x82ffff;
+      *fileoff = mem->desc[4] - '0';
+    } else if (strcmp(mem->desc, "lock") == 0) {
+      *lowbound = 0x830000;
+      *highbound = 0x83ffff;
+      *fileoff = 0;
+    } else {
+      rv = -1;
+    }
+  }
+
+  return rv;
+}
+
+
+static int elf2b(char * infile, FILE * inf,
+                 AVRMEM * mem, struct avrpart * p,
+                 int bufsize, unsigned int fileoffset)
+{
+  Elf *e;
+  int rv = -1;
+  unsigned int low, high, foff;
+
+  if (elf_mem_limits(mem, p, &low, &high, &foff) != 0) {
+    fprintf(stderr,
+            "%s: ERROR: Cannot handle \"%s\" memory region from ELF file\n",
+            progname, mem->desc);
+    return -1;
+  }
+
+  if (elf_version(EV_CURRENT) == EV_NONE) {
+    fprintf(stderr,
+            "%s: ERROR: ELF library initialization failed: %s\n",
+            progname, elf_errmsg(-1));
+    return -1;
+  }
+  if ((e = elf_begin(fileno(inf), ELF_C_READ, NULL)) == NULL) {
+    fprintf(stderr,
+            "%s: ERROR: Cannot open \"%s\" as an ELF file: %s\n",
+            progname, infile, elf_errmsg(-1));
+    return -1;
+  }
+  if (elf_kind(e) != ELF_K_ELF) {
+    fprintf(stderr,
+            "%s: ERROR: Cannot use \"%s\" as an ELF input file\n",
+            progname, infile);
+    goto done;
+  }
+
+  size_t i, isize;
+  const char *id = elf_getident(e, &isize);
+
+  if (id == NULL) {
+    fprintf(stderr,
+            "%s: ERROR: Error reading ident area of \"%s\": %s\n",
+            progname, infile, elf_errmsg(-1));
+    goto done;
+  }
+
+  const char *endianname;
+  unsigned char endianess;
+  if (p->flags & AVRPART_AVR32) {
+    endianess = ELFDATA2MSB;
+    endianname = "little";
+  } else {
+    endianess = ELFDATA2LSB;
+    endianname = "big";
+  }
+  if (id[EI_CLASS] != ELFCLASS32 ||
+      id[EI_DATA] != endianess) {
+    fprintf(stderr,
+            "%s: ERROR: ELF file \"%s\" is not a "
+            "32-bit, %s-endian file that was expected\n",
+            progname, infile, endianname);
+    goto done;
+  }
+
+  Elf32_Ehdr *eh;
+  if ((eh = elf32_getehdr(e)) == NULL) {
+    fprintf(stderr,
+            "%s: ERROR: Error reading ehdr of \"%s\": %s\n",
+            progname, infile, elf_errmsg(-1));
+    goto done;
+  }
+
+  if (eh->e_type != ET_EXEC) {
+    fprintf(stderr,
+            "%s: ERROR: ELF file \"%s\" is not an executable file\n",
+            progname, infile);
+    goto done;
+  }
+
+  const char *mname;
+  uint16_t machine;
+  if (p->flags & AVRPART_AVR32) {
+    machine = EM_AVR32;
+    mname = "AVR32";
+  } else {
+    machine = EM_AVR;
+    mname = "AVR";
+  }
+  if (eh->e_machine != machine) {
+    fprintf(stderr,
+            "%s: ERROR: ELF file \"%s\" is not for machine %s\n",
+            progname, infile, mname);
+    goto done;
+  }
+  if (eh->e_phnum == 0xffff /* PN_XNUM */) {
+    fprintf(stderr,
+            "%s: ERROR: ELF file \"%s\" uses extended "
+            "program header numbers which are not expected\n",
+            progname, infile);
+    goto done;
+  }
+
+  Elf32_Phdr *ph;
+  if ((ph = elf32_getphdr(e)) == NULL) {
+    fprintf(stderr,
+            "%s: ERROR: Error reading program header table of \"%s\": %s\n",
+            progname, infile, elf_errmsg(-1));
+    goto done;
+  }
+
+  /*
+   * Walk the program header table, pick up entries that are of type
+   * PT_LOAD, and have a non-zero p_filesz.
+   */
+  for (i = 0; i < eh->e_phnum; i++) {
+    if (ph[i].p_type != PT_LOAD ||
+        ph[i].p_filesz == 0)
+      continue;
+
+    if (verbose >= 2) {
+      fprintf(stderr,
+              "%s: Considering PT_LOAD program header entry #%d:\n"
+              "    p_vaddr 0x%x, p_paddr 0x%x, p_filesz %d\n",
+              progname, i, ph[i].p_vaddr, ph[i].p_paddr, ph[i].p_filesz);
+    }
+    if (ph[i].p_paddr >= low &&
+        ph[i].p_paddr < high) {
+      /* OK */
+    } else {
+      if (verbose >= 2) {
+        fprintf(stderr,
+                "    => skipping, inappropriate for \"%s\" memory region\n",
+                mem->desc);
+      }
+      continue;
+    }
+    /*
+     * 1-byte sized memory regions are special: they are used for fuse
+     * bits, where multiple regions (in the config file) map to a
+     * single, larger region in the ELF file (e.g. "lfuse", "hfuse",
+     * and "efuse" all map to ".fuse").  We silently accept a larger
+     * ELF file region for these, and extract the actual byte to write
+     * from it, using the "foff" offset obtained above.
+     */
+    if (mem->size != 1 &&
+        ph[i].p_paddr + ph[i].p_filesz > mem->size) {
+      fprintf(stderr,
+              "%s: ERROR: program header entry #%d does not fit into \"%s\" memory:\n"
+              "    0x%x + %u > %u\n",
+              progname, i, mem->desc, ph[i].p_paddr, ph[i].p_filesz, mem->size);
+      continue;
+    }
+
+    Elf32_Shdr *sh;
+    Elf_Scn *s = elf_get_scn(e, ph + i, &sh);
+    if (s == NULL)
+      continue;
+
+    if ((sh->sh_flags & SHF_ALLOC) && sh->sh_size) {
+      Elf_Data *d = NULL;
+      while ((d = elf_getdata(s, d)) != NULL) {
+        if (verbose >= 2) {
+          fprintf(stderr,
+                  "    Data block: d_buf 0x%x, d_off 0x%x, d_size %d\n",
+                  (unsigned int)d->d_buf, (unsigned int)d->d_off, d->d_size);
+        }
+        if (mem->size == 1) {
+          if (d->d_off != 0) {
+            fprintf(stderr,
+                    "%s: ERROR: unexpected data block at offset != 0\n",
+                    progname);
+          } else if (foff >= d->d_size) {
+            fprintf(stderr,
+                    "%s: ERROR: ELF file section does not contain byte at offset %d\n",
+                    progname, foff);
+          } else {
+            if (verbose >= 2) {
+              fprintf(stderr,
+                      "    Extracting one byte from file offset %d\n",
+                      foff);
+            }
+            mem->buf[0] = ((unsigned char *)d->d_buf)[foff];
+            mem->tags[0] = TAG_ALLOCATED;
+            rv = 1;
+          }
+        } else {
+          unsigned int idx;
+
+          idx = ph[i].p_paddr - low + d->d_off;
+          if ((int)(idx + d->d_size) > rv)
+            rv = idx + d->d_size;
+          if (verbose >= 3) {
+            fprintf(stderr,
+                    "    Writing %d bytes to mem offset 0x%x\n",
+                    d->d_size, idx);
+          }
+          memcpy(mem->buf + idx, d->d_buf, d->d_size);
+          memset(mem->tags + idx, TAG_ALLOCATED, d->d_size);
+        }
+      }
+    }
+  }
+done:
+  (void)elf_end(e);
+  return rv;
+}
+#endif  /* HAVE_LIBELF */
+
 /*
  * Simple itoa() implementation.  Caller needs to allocate enough
  * space in buf.  Only positive integers are handled.
@@ -851,6 +1168,36 @@ static int fileio_srec(struct fioparms * fio,
 }
 
 
+#ifdef HAVE_LIBELF
+static int fileio_elf(struct fioparms * fio,
+                      char * filename, FILE * f, AVRMEM * mem,
+                      struct avrpart * p, int size)
+{
+  int rc;
+
+  switch (fio->op) {
+    case FIO_WRITE:
+      fprintf(stderr, "%s: ERROR: write operation not (yet) "
+              "supported for ELF\n",
+              progname);
+      return -1;
+      break;
+
+    case FIO_READ:
+      rc = elf2b(filename, f, mem, p, size, fio->fileoffset);
+      return rc;
+
+    default:
+      fprintf(stderr, "%s: ERROR: invalid Motorola S-Records file I/O "
+              "operation=%d\n",
+              progname, fio->op);
+      return -1;
+      break;
+  }
+}
+
+#endif
+
 static int fileio_num(struct fioparms * fio,
 	       char * filename, FILE * f, AVRMEM * mem, int size,
 	       FILEFMT fmt)
@@ -975,6 +1322,7 @@ static int fmt_autodetect(char * fname)
   int i;
   int len;
   int found;
+  int first = 1;
 
   f = fopen(fname, "r");
   if (f == NULL) {
@@ -984,6 +1332,14 @@ static int fmt_autodetect(char * fname)
   }
 
   while (fgets((char *)buf, MAX_LINE_LEN, f)!=NULL) {
+    /* check for ELF file */
+    if (first &&
+        (buf[0] == 0177 && buf[1] == 'E' &&
+         buf[2] == 'L' && buf[3] == 'F')) {
+      fclose(f);
+      return FMT_ELF;
+    }
+
     buf[MAX_LINE_LEN-1] = 0;
     len = strlen((char *)buf);
     if (buf[len-1] == '\n')
@@ -1031,6 +1387,8 @@ static int fmt_autodetect(char * fname)
         return FMT_SREC;
       }
     }
+
+    first = 0;
   }
 
   fclose(f);
@@ -1148,6 +1506,18 @@ int fileio(int op, char * filename, FILEFMT format,
 
     case FMT_RBIN:
       rc = fileio_rbin(&fio, fname, f, mem, size);
+      break;
+
+    case FMT_ELF:
+#ifdef HAVE_LIBELF
+      rc = fileio_elf(&fio, fname, f, mem, p, size);
+#else
+      fprintf(stderr,
+              "%s: can't handle ELF file %s, "
+              "ELF file support was not compiled in\n",
+              progname, fname);
+      rc = -1;
+#endif
       break;
 
     case FMT_IMM:

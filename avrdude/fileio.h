@@ -31,7 +31,8 @@ typedef enum {
   FMT_HEX,
   FMT_DEC,
   FMT_OCT,
-  FMT_BIN
+  FMT_BIN,
+  FMT_ELF
 } FILEFMT;
 
 struct fioparms {
