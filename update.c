@@ -138,6 +138,7 @@ UPDATE * parse_op(char * s)
       case 's': upd->format = FMT_SREC; break;
       case 'i': upd->format = FMT_IHEX; break;
       case 'r': upd->format = FMT_RBIN; break;
+      case 'e': upd->format = FMT_ELF; break;
       case 'm': upd->format = FMT_IMM; break;
       case 'b': upd->format = FMT_BIN; break;
       case 'd': upd->format = FMT_DEC; break;

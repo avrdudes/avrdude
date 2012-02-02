@@ -74,6 +74,20 @@ AM_PROG_CC_C_O
 AC_CHECK_LIB([termcap], [tputs])
 AC_CHECK_LIB([ncurses], [tputs])
 AC_CHECK_LIB([readline], [readline])
+AH_TEMPLATE([HAVE_LIBELF],
+            [Define if ELF support is enabled via libelf])
+AC_CHECK_LIB([elf], [elf_begin], [have_libelf=yes])
+if test x$have_libelf = xyes; then
+   case $target in
+       *)
+               LIBELF="-lelf"
+               ;;
+   esac
+   AC_DEFINE([HAVE_LIBELF])
+   AC_CHECK_HEADERS([libelf.h])
+fi
+AC_SUBST(LIBELF, $LIBELF)
+
 AC_SEARCH_LIBS([gethostent], [nsl])
 AC_SEARCH_LIBS([setsockopt], [socket])
 AH_TEMPLATE([HAVE_LIBUSB],

@@ -1,3 +1,16 @@
+2012-02-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Implement ELF file reading (finally).  Requires libelf(3) to be
+	present on the host system.
+	* configure.ac (HAVE_LIBELF): Add logic to detect presence of
+	libelf(3)
+	* Makefile.am (avrdude_LDADD): Add @LIBELF@
+	* fileio.h (FILEFMT): add FMT_ELF
+	* fileio.c: Implement ELF file reader.
+	* update.c (parse_op): add 'e' format specifier
+	* avrdude.1: Document the ELF file reading capability
+	* doc/avrdude.texi: (Dito.)
+
 2012-02-01  Rene Liebscher <R.Liebscher@gmx.de>
 
 	bug #30559 Ft232 bit-bang support

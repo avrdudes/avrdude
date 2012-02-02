@@ -773,6 +773,10 @@ Motorola S-record
 @itemx r
 raw binary; little-endian byte order, in the case of the flash ROM data
 
+@itemx e
+ELF (Executable and Linkable Format), the final output file from the
+linker; currently only accepted as an input file
+
 @itemx m
 immediate mode; actual byte values specified on the command line,
 separated by commas or spaces in place of the @var{filename} field of

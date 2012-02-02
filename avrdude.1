@@ -19,7 +19,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE August 30, 2011
+.Dd DATE February 2, 2012
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -172,6 +172,14 @@ like
 as a standalone assembler, or
 .Xr avr-objcopy 1
 for the final stage of the GNU toolchain for the AVR microcontroller.
+.Pp
+Provided
+.Xr libelf 3
+was present when compiling
+.Nm avrdude ,
+the input file can also be the final ELF file as produced by the linker.
+The appropriate ELF section(s) will be examined, according to the memory
+area to write to.
 .Pp
 .Nm Avrdude
 can program the EEPROM and flash ROM memory cells of supported AVR
@@ -583,6 +591,8 @@ Intel Hex
 Motorola S-record
 .It Ar r
 raw binary; little-endian byte order, in the case of the flash ROM data
+.It Ar e
+ELF (Executable and Linkable Format)
 .It Ar m
 immediate; actual byte values specified on the command line, separated
 by commas or spaces.  This is good for programming fuse bytes without
@@ -984,6 +994,7 @@ normal ISP communication.
 .Sh SEE ALSO
 .Xr avr-objcopy 1 ,
 .Xr ppi 4 ,
+.Xr libelf 3,
 .Xr readline 3
 .Pp
 The AVR microcontroller product description can be found at
