@@ -59,6 +59,7 @@
 #include <errno.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <stdint.h>
 
 #include "avrdude.h"
 #include "avr.h"
