@@ -1,5 +1,10 @@
 2012-02-03  Rene Liebscher <R.Liebscher@gmx.de>
 
+	patch #7715 FT4232H support
+	* avrdude.conf.in: added programmer 4232h
+
+2012-02-03  Rene Liebscher <R.Liebscher@gmx.de>
+
 	patch #7687: Autogenerating programmers and parts lists for docs
 	(generating the programmers lists)
 	* doc/avrdude.texi: Add include of generated table of programmers
