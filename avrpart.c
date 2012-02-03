@@ -475,7 +475,7 @@ AVRPART * avr_dup_part(AVRPART * d)
 void avr_free_part(AVRPART * d)
 {
 int i;
-	ldestroy_cb(d->mem,avr_free_mem);
+	ldestroy_cb(d->mem, (void(*)(void *))avr_free_mem);
 	d->mem = NULL;
     for(i=0;i<sizeof(d->op)/sizeof(d->op[0]);i++)
     {

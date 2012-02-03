@@ -12686,22 +12686,26 @@ part parent "x128a3"
 #------------------------------------------------------------
 
 part
-    id		= "ucr2";
-    desc	= "32UC3A0512";
+    id		= "uc3a0512";
+    desc	= "AT32UC3A0512";
     signature	= 0xED 0xC0 0x3F;
     has_jtag	= yes;
-    is_avr32    = yes;
+    is_avr32	= yes;
 
     memory "flash"
         paged           = yes;
-        page_size		= 512;               # bytes
-        readsize		= 512;				 # bytes
-        num_pages       = 1024;              # could be set dynamicly
-        size			= 0x00080000;		 # could be set dynamicly
-        offset			= 0x80000000;
+        page_size       = 512;           # bytes
+        readsize        = 512;           # bytes
+        num_pages       = 1024;          # could be set dynamicly
+        size            = 0x00080000;    # could be set dynamicly
+        offset          = 0x80000000;
     ;
 ;
 
+part parent "uc3a0512"
+    id		= "ucr2";
+    desc	= "deprecated, use 'uc3a0512'";
+;
 #------------------------------------------------------------
 # ATtiny4
 #------------------------------------------------------------
