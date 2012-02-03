@@ -22,6 +22,7 @@
 #
 
 CLEANFILES = \
+	programmers.texi \
 	parts.texi \
 	programmer_types.texi \
 	version.texi \
@@ -33,7 +34,7 @@ all-local: info html ps pdf
 
 html: avrdude-html/avrdude.html
 
-avrdude-html/avrdude.html: $(srcdir)/$(info_TEXINFOS) $(srcdir)/parts.texi $(srcdir)/programmer_types.texi
+avrdude-html/avrdude.html: $(srcdir)/$(info_TEXINFOS) $(srcdir)/programmers.texi $(srcdir)/parts.texi $(srcdir)/programmer_types.texi
 	texi2html -split_node $(srcdir)/$(info_TEXINFOS)
 	if [ -e ./avrdude.html -o -e ./avrdude_1.html ]; then \
 	 mkdir -p avrdude-html ; \
@@ -42,20 +43,25 @@ avrdude-html/avrdude.html: $(srcdir)/$(info_TEXINFOS) $(srcdir)/parts.texi $(src
 	 mv -f avrdude avrdude-html; \
 	fi;
 
-avrdude.info: parts.texi programmer_types.texi
-avrdude.dvi: parts.texi programmer_types.texi
-avrdude.pdf: parts.texi programmer_types.texi
+avrdude.info: programmers.texi parts.texi programmer_types.texi
+avrdude.dvi: programmers.texi parts.texi programmer_types.texi
+avrdude.pdf: programmers.texi parts.texi programmer_types.texi
 
 # if it does not exist make this first
 ../avrdude$(EXEEXT):
 	$(MAKE) -C .. avrdude$(EXEEXT)
+
+programmers.texi: ../avrdude$(EXEEXT) ../avrdude.conf Makefile
+	../avrdude$(EXEEXT) -C ../avrdude.conf -c \? 2>&1 \
+	| $(AWK) '$$2 ~ /^=$$/ {printf("@item @code{%s} @tab %s\n",$$1,gensub("[^=]+=[ \t]*","",1))}' \
+	| sed "s# *,\? *<\?\(http://[^ \t>]*\)>\?#,@*\n@url{\1}#g" \
+	>programmers.texi
 
 programmer_types.texi: ../avrdude$(EXEEXT) ../avrdude.conf Makefile
 	../avrdude$(EXEEXT) -C ../avrdude.conf -c \?type 2>&1 \
 	| $(AWK) '$$2 ~ /^=$$/ {printf("@item @code{%s} @tab %s\n",$$1,gensub("[^=]+=[ \t]*","",1))}' \
 	| sed "s#<\?\(http://[^ \t,>]*\)>\?#@url{\1}#g" \
 	>programmer_types.texi
-
 
 parts.texi: ../avrdude$(EXEEXT) ../avrdude.conf parts_comments.txt Makefile
 	../avrdude$(EXEEXT) -C ../avrdude.conf -p \? 2>&1 \
