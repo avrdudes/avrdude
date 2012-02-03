@@ -29,6 +29,9 @@ Current:
   * The EEPROM contents for the cyclecounter is only read when
     explicitly requested by a -y or -Y option.
 
+  * The -U option now accepts ELF files as input files, and extracts
+    the appropriate section contents that matches the requested memory
+    region.
 
 Version 5.11:
 
