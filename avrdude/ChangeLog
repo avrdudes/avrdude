@@ -1,5 +1,9 @@
 2012-02-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* fileio.c (fileio_elf): Fix a copy'n-paste-o.
+
+2012-02-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* par.c (par_desc): Move to end of file, outside the #if
 	HAVE_PARPORT
 

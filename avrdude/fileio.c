@@ -1188,7 +1188,7 @@ static int fileio_elf(struct fioparms * fio,
       return rc;
 
     default:
-      fprintf(stderr, "%s: ERROR: invalid Motorola S-Records file I/O "
+      fprintf(stderr, "%s: ERROR: invalid ELF file I/O "
               "operation=%d\n",
               progname, fio->op);
       return -1;
