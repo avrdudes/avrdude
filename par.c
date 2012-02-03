@@ -353,8 +353,6 @@ static int par_parseexitspecs(PROGRAMMER * pgm, char *s)
   return 0;
 }
 
-const char par_desc[] = "Parallel port bitbanging";
-
 void par_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "PPI");
@@ -398,3 +396,5 @@ void par_initpgm(PROGRAMMER * pgm)
 }
 
 #endif /* HAVE_PARPORT */
+
+const char par_desc[] = "Parallel port bitbanging";

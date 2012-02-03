@@ -1,3 +1,8 @@
+2012-02-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* par.c (par_desc): Move to end of file, outside the #if
+	HAVE_PARPORT
+
 2012-02-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Implement ELF file reading (finally).  Requires libelf(3) to be
