@@ -158,8 +158,8 @@ static void update_progress_tty (int percent, double etime, char *hdr)
   }
 
   if (percent == 100) {
+    if (!last) fprintf (stderr, "\n\n");
     last = 1;
-    fprintf (stderr, "\n\n");
   }
 
   setvbuf(stderr, (char*)NULL, _IOLBF, 0);

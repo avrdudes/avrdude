@@ -787,7 +787,7 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	unsigned int blocksize;
 	int use_lext_address = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
 	unsigned char buf[4*len+4], *bufptr = buf;
-	unsigned char *buffer = m->buf;
+	unsigned char *buffer = &m->buf[addr];
 	unsigned char byte;
 
 	/* pre-check opcodes */

@@ -1,3 +1,10 @@
+2012-02-04  Rene Liebscher <R.Liebscher@gmx.de>
+
+	patch #7717 avrftdi_flash_write is broken
+	* avrftdi.c: fixed wrong buffer address initialization in paged_write
+	bug #35296 Extraneous newlines in output.
+	* main.c: fixed output of newlines at 100% progress
+
 2012-02-03  Rene Liebscher <R.Liebscher@gmx.de>
 
 	patch #7715 FT4232H support
