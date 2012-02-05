@@ -526,6 +526,8 @@ static void ft245r_close(PROGRAMMER * pgm) {
     // I think the switch to BB mode and back flushes the buffer.
     ftdi_set_bitmode(handle, 0, BITMODE_SYNCBB); // set Synchronous BitBang, all in puts
     ftdi_set_bitmode(handle, 0, BITMODE_RESET); // disable Synchronous BitBang
+    pthread_cancel(readerthread);
+    pthread_join(readerthread, NULL);
     ftdi_usb_close(handle);
     ftdi_deinit (handle);
     free(handle);

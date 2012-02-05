@@ -1,3 +1,8 @@
+2012-02-05  Rene Liebscher <R.Liebscher@gmx.de>
+
+	bug #30559 Ft232 bit-bang support
+	* ft245r.c: cancel reader thread before exiting program
+
 2012-02-04  Rene Liebscher <R.Liebscher@gmx.de>
 
 	patch #7717 avrftdi_flash_write is broken
