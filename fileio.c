@@ -27,6 +27,7 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
+#include <stdint.h>
 
 #ifdef HAVE_LIBELF
 #include <libelf.h>
