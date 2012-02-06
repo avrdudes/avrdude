@@ -736,7 +736,7 @@ static int avrftdi_eeprom_write(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
 		unsigned int page_size, unsigned int addr, unsigned int len)
 {
 	unsigned char cmd[4];
-	unsigned char *data = m->buf;
+	unsigned char *data = &m->buf[addr];
 	unsigned int add;
 
 	avr_set_bits(m->op[AVR_OP_WRITE], cmd);
