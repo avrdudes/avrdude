@@ -22,28 +22,12 @@
 #ifndef avrftdi_h
 #define avrfdti_h
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define SCK 0x01
-#define SDO 0x02
-#define SDI 0x04
-
-#define RX 0x20
-#define TX 0x11
-
-#define TRX (RX | TX)
-
-#define TYPE_C_D 0x500
-#define TYPE_H   0x700
-#define TYPE_4H  0x800
-
-#define E(x) if ((x)) { fprintf(stdout, "%s:%d %s() %s: %s (%d)\n\t%s\n", __FILE__, __LINE__, __FUNCTION__, \
-	#x, strerror(errno), errno, ftdi_get_error_string(&ftdic)); return -1; }
-
-#define E_VOID(x) if ((x)) { fprintf(stdout, "%s:%d %s() %s: %s (%d)\n\t%s\n", __FILE__, __LINE__, __FUNCTION__, \
-	#x, strerror(errno), errno, ftdi_get_error_string(&ftdic)); }
 
 extern const char avrftdi_desc[];
 void avrftdi_initpgm        (PROGRAMMER * pgm);
