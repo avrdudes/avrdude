@@ -1,3 +1,9 @@
+2012-02-11  Rene Liebscher <R.Liebscher@gmx.de>
+
+	patch #7718: Merge global data of avrftdi in a private data structure
+	* avrftdi.[ch]: moved global data into private data structure, moved
+	private defines from header file into source file
+
 2012-02-06  Rene Liebscher <R.Liebscher@gmx.de>
 
 	patch #7720 Bug in EEPROM write
