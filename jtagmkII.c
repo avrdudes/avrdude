@@ -1685,6 +1685,39 @@ void jtagmkII_close(PROGRAMMER * pgm)
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkII_close()\n", progname);
 
+  if (pgm->flag & PGM_FL_IS_PDI) {
+    /* When in PDI mode, restart target. */
+    buf[0] = CMND_GO;
+    if (verbose >= 2)
+      fprintf(stderr, "%s: jtagmkII_close(): Sending GO command: ",
+	      progname);
+    jtagmkII_send(pgm, buf, 1);
+
+    status = jtagmkII_recv(pgm, &resp);
+    if (status <= 0) {
+      if (verbose >= 2)
+	putc('\n', stderr);
+      fprintf(stderr,
+	      "%s: jtagmkII_close(): "
+	      "timeout/error communicating with programmer (status %d)\n",
+	      progname, status);
+    } else {
+      if (verbose >= 3) {
+	putc('\n', stderr);
+	jtagmkII_prmsg(pgm, resp, status);
+      } else if (verbose == 2)
+	fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[0], status);
+      c = resp[0];
+      free(resp);
+      if (c != RSP_OK) {
+	fprintf(stderr,
+		"%s: jtagmkII_close(): "
+		"bad response to GO command: %s\n",
+		progname, jtagmkII_get_rc(c));
+      }
+    }
+  }
+
   buf[0] = CMND_SIGN_OFF;
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkII_close(): Sending sign-off command: ",
