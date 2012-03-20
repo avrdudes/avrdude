@@ -1,9 +1,10 @@
 2012-03-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* jtagmkII.c (jtagmkII_close): The GO command before signing off
-	turned out to do more harm than good; on the Xmega, it caused exactly
-	the opposite reaction, the CPU stopped.  Even without it, after the
-	RESET command, the target is running already.  So, drop the GO.
+	turned out to be not required for normal megaAVR devices, and to
+	cause the exact opposite (i.e. the target stopping) on Xmega
+	devices being programmed to JTAG.  However, programming Xmega
+	devcies through PDI *does* need the GO command.
 
 2012-03-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
