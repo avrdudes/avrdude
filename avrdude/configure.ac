@@ -425,3 +425,38 @@ AC_CONFIG_FILES([avrdude.conf.tmp:avrdude.conf.in],
 		[confsubst="$confsubst"])
 
 AC_OUTPUT
+
+echo ""
+echo ""
+echo "Configuration summary:"
+echo "----------------------"
+
+if test x$have_libelf = xyes; then
+   echo "DO HAVE    libelf"
+else
+   echo "DON'T HAVE libelf"
+fi
+
+if test x$have_libusb = xyes; then
+   echo "DO HAVE    libusb"
+else
+   echo "DON'T HAVE libusb"
+fi
+
+if test x$have_libusb_1_0 = xyes; then
+   echo "DO HAVE    libusb_1_0"
+else
+   echo "DON'T HAVE libusb_1_0"
+fi
+
+if test x$have_libftdi = xyes; then
+   echo "DO HAVE    libftdi"
+else
+   echo "DON'T HAVE libftdi"
+fi
+
+if test x$have_libhid = xyes; then
+   echo "DO HAVE    libhid"
+else
+   echo "DON'T HAVE libhid"
+fi
