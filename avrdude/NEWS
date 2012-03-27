@@ -8,12 +8,35 @@ Approximate change log for AVRDUDE by version.
 Current:
 
   * New devices supported:
+    - ATmega48P (patch #7629 add support for atmega48p)
+    - AT90PWM316 (bug #21797: AT90PWM316: New part description)
 
   * New programmers supported:
+    - avrftdi
+      + o-link (patch #7672 adding support for O-Link (FTDI based JTAG) as programmer)
+      + 4232h (patch #7715 FT4232H support)
+    - usbasp
+      + nibobee (previously specified as '-c usbasp -P nibobee)
+      + usbasp-clone (same as usbasp but ignores vendor and product string, checks only vid/pid)
+    - ftdi_syncbb (new type for synchronous bitbanging with ft232r/ft245r)
+      + ft245r (FT245R Synchronous BitBang, miso = D1, sck = D0, mosi = D2, reset = D4)
+      + ft232r (FT232R Synchronous BitBang, miso = RxD, sck = RTS, mosi = TxD, reset = DTR)
+      + bwmega (BitWizard ftdi_atmega builtin programmer, miso = DSR, sck = DCD, mosi = CTS, reset = RI)
+      + arduino-ft232r (Arduino: FT232R connected to ISP, miso = CTS X3(1), sck = DSR X3(2), mosi = DCD X3(3), reset = RI  X3(4))
+      + diecimila (alias for arduino-ft232r)
 
   * Bugfixes
       - bug #34027: avrdude AT90S1200 Problem
       - bug #34518: loading intel hex files > 64k using record-type 4
+      - patch #7667: Minor memory handling fixes
+      - patch #7680: Fixing timeout problem in ser_recv in ser_win32.c
+      - patch #7693: Fix config file atmel URLs (+ URLs in avrdude.texi and avrpart.h)
+      - bug #21663: AT90PWM efuse incorrect, bug #30438: efuse bits written as 0 on at90pwmxx parts
+      - bug #35261: avrftdi uses wrong interface in avrftdi_paged_(write|load)
+      - patch #7437 modifications to Bus Pirate module
+      - patch #7686 Updating buspirate ascii mode to current firmware, use AUX as clock generator, and setting of serial receive timeout
+      - bug #34768 Proposition: Change the name of the AVR32 devices
+      - patch #7718: Merge global data of avrftdi in a private data structure
 
   * Keep track of input file contents
 
@@ -32,7 +55,31 @@ Current:
   * The -U option now accepts ELF files as input files, and extracts
     the appropriate section contents that matches the requested memory
     region.
+  
+  * Programmers and parts lists
+    They are now sorted at output with '-c ?'/'-p ?'. (patch #7671: Sorting programmers and parts lists for console output)
+    Programmers and parts lists in documentation generated from lists mentioned above. (patch #7687: Autogenerating programmers and parts lists for docs)
+    Output list of programmer types with '-c ?type', add list to documentation
+  
+  * Configuration files now accepts parent parts/programmers, parts starting with '.' (eg. .xmega) are not included in output parts list and can be used as abstract parents
+    (bug #34302: Feature request : device configuration with parent classes)
+    (patch #7688: Implement parent programmers feature)
+      
+  * Additional config files which are read after default can be specified on command line using '-C +filename'
+    (patch #7699 Read additional config files)
+    
+  * Programmer types in configuration file are no longer keywords but specified as string.
+    So you need to change 'type = XYZ;' to 'type = "XYZ";' in own config files.
+    (internal: The parser does not need to know all programmer types now, new programmers will update only the table in pgm_type.c.)
 
+  * Internals:
+    - Restructuring and compacting programmer definition part of grammar for config file.
+    - Cleanup of parser code, removing unused definitions/functions. Using yylex_destroy if available.
+  
+    - Fixed some more memory leaks, added cleanup code at program exit (to minimize the number of non-freed memory blocks reported by valgrind)
+    - Fixed some findings reported by cppcheck.
+
+    
 Version 5.11:
 
   * New devices supported:
