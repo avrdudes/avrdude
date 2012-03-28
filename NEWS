@@ -50,6 +50,11 @@ Current:
       - bug #34768 Proposition: Change the name of the AVR32 devices
       - patch #7718: Merge global data of avrftdi in a private data
         structure
+      - bug #35208: avrdude 5.11 on freebsd 8.2-STABLE does not reset
+        Arduino Uno properly
+      - bug #34518: loading intel hex files > 64k using record-type 4
+        (Extended Linear Address Record)
+      - bug #34027: avrdude AT90S1200 Problem
 
   * Keep track of input file contents
 
