@@ -3166,13 +3166,15 @@ static int stk600_xprog_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
     memset(b, 0, sizeof(b));
 
-    if (strcmp(mem->desc, "flash") == 0) {
+    if (strcmp(mem->desc, "flash") == 0 ||
+        strcmp(mem->desc, "application") == 0 ||
+        strcmp(mem->desc, "apptable") == 0) {
         memcode = XPRG_MEM_TYPE_APPL;
     } else if (strcmp(mem->desc, "boot") == 0) {
         memcode = XPRG_MEM_TYPE_BOOT;
     } else if (strcmp(mem->desc, "eeprom") == 0) {
         memcode = XPRG_MEM_TYPE_EEPROM;
-    } else if (strcmp(mem->desc, "lockbits") == 0) {
+    } else if (strncmp(mem->desc, "lock", strlen("lock")) == 0) {
         memcode = XPRG_MEM_TYPE_LOCKBITS;
     } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
         memcode = XPRG_MEM_TYPE_FUSE;
@@ -3242,7 +3244,9 @@ static int stk600_xprog_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 {
     unsigned char b[8];
 
-    if (strcmp(mem->desc, "flash") == 0) {
+    if (strcmp(mem->desc, "flash") == 0 ||
+        strcmp(mem->desc, "application") == 0 ||
+        strcmp(mem->desc, "apptable") == 0) {
         b[1] = XPRG_MEM_TYPE_APPL;
     } else if (strcmp(mem->desc, "boot") == 0) {
         b[1] = XPRG_MEM_TYPE_BOOT;
@@ -3252,7 +3256,7 @@ static int stk600_xprog_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
         b[1] = XPRG_MEM_TYPE_APPL;
     } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
         b[1] = XPRG_MEM_TYPE_FUSE;
-    } else if (strcmp(mem->desc, "lockbits") == 0) {
+    } else if (strncmp(mem->desc, "lock", strlen("lock")) == 0) {
         b[1] = XPRG_MEM_TYPE_LOCKBITS;
     } else if (strcmp(mem->desc, "calibration") == 0) {
         b[1] = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
@@ -3306,7 +3310,9 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
      * This is probably what AVR079 means when writing about the
      * "TIF address space".
      */
-    if (strcmp(mem->desc, "flash") == 0) {
+    if (strcmp(mem->desc, "flash") == 0 ||
+        strcmp(mem->desc, "application") == 0 ||
+        strcmp(mem->desc, "apptable") == 0) {
         memtype = XPRG_MEM_TYPE_APPL;
         if (mem->size > 64 * 1024)
             use_ext_addr = (1UL << 31);
@@ -3322,7 +3328,7 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
         memtype = XPRG_MEM_TYPE_APPL;
     } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
         memtype = XPRG_MEM_TYPE_FUSE;
-    } else if (strcmp(mem->desc, "lockbits") == 0) {
+    } else if (strncmp(mem->desc, "lock", strlen("lock")) == 0) {
         memtype = XPRG_MEM_TYPE_LOCKBITS;
     } else if (strcmp(mem->desc, "calibration") == 0) {
         memtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
@@ -3406,7 +3412,9 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
      * This is probably what AVR079 means when writing about the
      * "TIF address space".
      */
-    if (strcmp(mem->desc, "flash") == 0) {
+    if (strcmp(mem->desc, "flash") == 0 ||
+        strcmp(mem->desc, "application") == 0 ||
+        strcmp(mem->desc, "apptable") == 0) {
         memtype = XPRG_MEM_TYPE_APPL;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
         if (mem->size > 64 * 1024)
@@ -3427,7 +3435,7 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
         memtype = XPRG_MEM_TYPE_FUSE;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
-    } else if (strcmp(mem->desc, "lockbits") == 0) {
+    } else if (strncmp(mem->desc, "lock", strlen("lock")) == 0) {
         memtype = XPRG_MEM_TYPE_LOCKBITS;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
     } else if (strcmp(mem->desc, "calibration") == 0) {

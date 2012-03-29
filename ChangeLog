@@ -1,3 +1,15 @@
+2012-03-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #30451: Accessing some Xmega memory sections gives not
+	supported error
+	* stk500v2.c: Handle all Xmega memory sections (except
+	"prodsig" which is not documented in AVR079)
+	* fileio.c: Treat the "boot", "application", and "apptable"
+	regions (which are actually subregions of "flash") all as
+	being flash, i.e. suppress trailing 0xFF bytes when reading
+	them
+	* avr.c: (Dito.)
+
 2012-03-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* jtagmkII.c (jtagmkII_close): The GO command before signing off

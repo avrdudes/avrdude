@@ -1539,7 +1539,10 @@ int fileio(int op, char * filename, FILEFMT format,
   }
 
   if (rc > 0) {
-    if ((op == FIO_READ) && (strcasecmp(mem->desc, "flash") == 0)) {
+    if ((op == FIO_READ) && (strcasecmp(mem->desc, "flash") == 0 ||
+                             strcasecmp(mem->desc, "application") == 0 ||
+                             strcasecmp(mem->desc, "apptable") == 0 ||
+                             strcasecmp(mem->desc, "boot") == 0)) {
       /*
        * if we are reading flash, just mark the size as being the
        * highest non-0xff byte
