@@ -302,7 +302,10 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
       report_progress(pageaddr, mem->size, NULL);
     }
     if (!failure) {
-      if (strcasecmp(mem->desc, "flash") == 0)
+      if (strcasecmp(mem->desc, "flash") == 0 ||
+          strcasecmp(mem->desc, "application") == 0 ||
+          strcasecmp(mem->desc, "apptable") == 0 ||
+          strcasecmp(mem->desc, "boot") == 0)
         return avr_mem_hiaddr(mem);
       else
         return mem->size;
@@ -333,7 +336,10 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
     report_progress(i, mem->size, NULL);
   }
 
-  if (strcasecmp(mem->desc, "flash") == 0)
+  if (strcasecmp(mem->desc, "flash") == 0 ||
+      strcasecmp(mem->desc, "application") == 0 ||
+      strcasecmp(mem->desc, "apptable") == 0 ||
+      strcasecmp(mem->desc, "boot") == 0)
     return avr_mem_hiaddr(mem);
   else
     return i;

@@ -55,6 +55,8 @@ Current:
       - bug #34518: loading intel hex files > 64k using record-type 4
         (Extended Linear Address Record)
       - bug #34027: avrdude AT90S1200 Problem
+      - bug #30451: Accessing some Xmega memory sections gives not
+        supported error
 
   * Keep track of input file contents
 
