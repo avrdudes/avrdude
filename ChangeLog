@@ -1,5 +1,13 @@
 2012-03-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #28744: Can't load bootloader to xmega128a1 (part 1, fix for
+	firmware < V7.x)
+	* jtagmkII.c: When going to write to the boot section of flash,
+	use MTYPE_BOOT_FLASH rather than MTYPE_FLASH
+	* jtagmkII_private.h: add MTYPE_BOOT_FLASH constant
+
+2012-03-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* jtagmkII_private.h: Sort commands, response codes and events
 	into numerical order.
 
