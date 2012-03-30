@@ -75,194 +75,193 @@
 #endif /* JTAGMKII_PRIVATE_EXPORTED */
 
 /* ICE command codes */
-#define CMND_CHIP_ERASE 0x13
-#define CMND_CLEAR_EVENTS 0x22
-#define CMND_CLR_BREAK 0x1A
-#define CMND_ENTER_PROGMODE 0x14
-#define CMND_ERASEPAGE_SPM 0x0D
-#define CMND_FORCED_STOP 0x0A
-#define CMND_GET_BREAK 0x12
-#define CMND_GET_PARAMETER 0x03
-#define CMND_GET_SIGN_ON 0x01
-#define CMND_GET_SYNC 0x0f
-#define CMND_GO 0x08
-#define CMND_ISP_PACKET 0x2F
-#define CMND_LEAVE_PROGMODE 0x15
-#define CMND_READ_MEMORY 0x05
-#define CMND_READ_PC 0x07
-#define CMND_RESET 0x0B
-#define CMND_RESTORE_TARGET 0x23
-#define CMND_RUN_TO_ADDR 0x1C
-#define CMND_SELFTEST 0x10
-#define CMND_SET_BREAK 0x11
+#define CMND_SIGN_OFF              0x00
+#define CMND_GET_SIGN_ON           0x01
+#define CMND_SET_PARAMETER         0x02
+#define CMND_GET_PARAMETER         0x03
+#define CMND_WRITE_MEMORY          0x04
+#define CMND_READ_MEMORY           0x05
+#define CMND_WRITE_PC              0x06
+#define CMND_READ_PC               0x07
+#define CMND_GO                    0x08
+#define CMND_SINGLE_STEP           0x09
+#define CMND_FORCED_STOP           0x0A
+#define CMND_RESET                 0x0B
 #define CMND_SET_DEVICE_DESCRIPTOR 0x0C
-#define CMND_SET_N_PARAMETERS 0x16
-#define CMND_SET_PARAMETER 0x02
-#define CMND_SIGN_OFF 0x00
-#define CMND_SINGLE_STEP 0x09
-#define CMND_SPI_CMD 0x1D
-#define CMND_WRITE_MEMORY 0x04
-#define CMND_WRITE_PC 0x06
-#define CMND_XMEGA_ERASE 0x34
-// AVR32 - DFH
-#define CMND_GET_IR 0x24
-#define CMND_GET_xxx 0x25
-#define CMND_WRITE_SAB 0x28
-#define CMND_READ_SAB 0x29
-#define CMND_RESET_AVR 0x2B
-#define CMND_READ_MEMORY32 0x2C
-#define CMND_WRITE_MEMORY32 0x2D
+#define CMND_ERASEPAGE_SPM         0x0D
+#define CMND_GET_SYNC              0x0f
+#define CMND_SELFTEST              0x10
+#define CMND_SET_BREAK             0x11
+#define CMND_GET_BREAK             0x12
+#define CMND_CHIP_ERASE            0x13
+#define CMND_ENTER_PROGMODE        0x14
+#define CMND_LEAVE_PROGMODE        0x15
+#define CMND_SET_N_PARAMETERS      0x16
+#define CMND_CLR_BREAK             0x1A
+#define CMND_RUN_TO_ADDR           0x1C
+#define CMND_SPI_CMD               0x1D
+#define CMND_CLEAR_EVENTS          0x22
+#define CMND_RESTORE_TARGET        0x23
+#define CMND_GET_IR                0x24
+#define CMND_GET_xxx               0x25
+#define CMND_WRITE_SAB             0x28
+#define CMND_READ_SAB              0x29
+#define CMND_RESET_AVR             0x2B
+#define CMND_READ_MEMORY32         0x2C
+#define CMND_WRITE_MEMORY32        0x2D
+#define CMND_ISP_PACKET            0x2F
+#define CMND_XMEGA_ERASE           0x34
 
 
 /* ICE responses */
-#define RSP_DEBUGWIRE_SYNC_FAILED 0xAC
-#define RSP_FAILED 0xA0
-#define RSP_GET_BREAK 0x83
-#define RSP_ILLEGAL_BREAKPOINT 0xA8
-#define RSP_ILLEGAL_COMMAND 0xAA
-#define RSP_ILLEGAL_EMULATOR_MODE 0xA4
-#define RSP_ILLEGAL_JTAG_ID 0xA9
-#define RSP_ILLEGAL_MCU_STATE 0xA5
-#define RSP_ILLEGAL_MEMORY_TYPE 0xA2
-#define RSP_ILLEGAL_MEMORY_RANGE 0xA3
-#define RSP_ILLEGAL_PARAMETER 0xA1
-#define RSP_ILLEGAL_POWER_STATE 0xAD
-#define RSP_ILLEGAL_VALUE 0xA6
-#define RSP_MEMORY 0x82
-#define RSP_NO_TARGET_POWER 0xAB
-#define RSP_OK 0x80
-#define RSP_PARAMETER 0x81
-#define RSP_PC 0x84
-#define RSP_SELFTEST 0x85
-#define RSP_SET_N_PARAMETERS 0xA7
-#define RSP_SIGN_ON 0x86
-#define RSP_SPI_DATA 0x88
+#define RSP_OK                     0x80
+#define RSP_PARAMETER              0x81
+#define RSP_MEMORY                 0x82
+#define RSP_GET_BREAK              0x83
+#define RSP_PC                     0x84
+#define RSP_SELFTEST               0x85
+#define RSP_SIGN_ON                0x86
+#define RSP_SPI_DATA               0x88
+#define RSP_FAILED                 0xA0
+#define RSP_ILLEGAL_PARAMETER      0xA1
+#define RSP_ILLEGAL_MEMORY_TYPE    0xA2
+#define RSP_ILLEGAL_MEMORY_RANGE   0xA3
+#define RSP_ILLEGAL_EMULATOR_MODE  0xA4
+#define RSP_ILLEGAL_MCU_STATE      0xA5
+#define RSP_ILLEGAL_VALUE          0xA6
+#define RSP_SET_N_PARAMETERS       0xA7
+#define RSP_ILLEGAL_BREAKPOINT     0xA8
+#define RSP_ILLEGAL_JTAG_ID        0xA9
+#define RSP_ILLEGAL_COMMAND        0xAA
+#define RSP_NO_TARGET_POWER        0xAB
+#define RSP_DEBUGWIRE_SYNC_FAILED  0xAC
+#define RSP_ILLEGAL_POWER_STATE    0xAD
 
 /* ICE events */
-#define EVT_BREAK 0xE0
-#define EVT_DEBUG 0xE6
-#define EVT_ERROR_PHY_FORCE_BREAK_TIMEOUT 0xE2
-#define EVT_ERROR_PHY_MAX_BIT_LENGTH_DIFF 0xED
-#define EVT_ERROR_PHY_OPT_RECEIVE_TIMEOUT 0xF9
-#define EVT_ERROR_PHY_OPT_RECEIVED_BREAK 0xFA
-#define EVT_ERROR_PHY_RECEIVED_BREAK 0xF8
-#define EVT_ERROR_PHY_RECEIVE_TIMEOUT 0xF7
+#define EVT_BREAK                           0xE0
+#define EVT_RUN                             0xE1
+#define EVT_ERROR_PHY_FORCE_BREAK_TIMEOUT   0xE2
 #define EVT_ERROR_PHY_RELEASE_BREAK_TIMEOUT 0xE3
-#define EVT_ERROR_PHY_SYNC_OUT_OF_RANGE 0xF5
-#define EVT_ERROR_PHY_SYNC_TIMEOUT 0xF0
-#define EVT_ERROR_PHY_SYNC_TIMEOUT_BAUD 0xF4
-#define EVT_ERROR_PHY_SYNC_WAIT_TIMEOUT 0xF6
-#define EVT_RESULT_PHY_NO_ACTIVITY 0xFB
-#define EVT_EXT_RESET 0xE7
-#define EVT_ICE_POWER_ERROR_STATE 0xEA
-#define EVT_ICE_POWER_OK 0xEB
-#define EVT_IDR_DIRTY 0xEC
-#define EVT_NONE 0xEF
-#define EVT_PDSB_BREAK 0xF2
-#define EVT_PDSMB_BREAK 0xF3
-#define EVT_PROGRAM_BREAK 0xF1
-#define EVT_RUN 0xE1
-#define EVT_TARGET_POWER_OFF 0xE5
-#define EVT_TARGET_POWER_ON 0xE4
-#define EVT_TARGET_SLEEP 0xE8
-#define EVT_TARGET_WAKEUP 0xE9
+#define EVT_TARGET_POWER_ON                 0xE4
+#define EVT_TARGET_POWER_OFF                0xE5
+#define EVT_DEBUG                           0xE6
+#define EVT_EXT_RESET                       0xE7
+#define EVT_TARGET_SLEEP                    0xE8
+#define EVT_TARGET_WAKEUP                   0xE9
+#define EVT_ICE_POWER_ERROR_STATE           0xEA
+#define EVT_ICE_POWER_OK                    0xEB
+#define EVT_IDR_DIRTY                       0xEC
+#define EVT_ERROR_PHY_MAX_BIT_LENGTH_DIFF   0xED
+#define EVT_NONE                            0xEF
+#define EVT_ERROR_PHY_SYNC_TIMEOUT          0xF0
+#define EVT_PROGRAM_BREAK                   0xF1
+#define EVT_PDSB_BREAK                      0xF2
+#define EVT_PDSMB_BREAK                     0xF3
+#define EVT_ERROR_PHY_SYNC_TIMEOUT_BAUD     0xF4
+#define EVT_ERROR_PHY_SYNC_OUT_OF_RANGE     0xF5
+#define EVT_ERROR_PHY_SYNC_WAIT_TIMEOUT     0xF6
+#define EVT_ERROR_PHY_RECEIVE_TIMEOUT       0xF7
+#define EVT_ERROR_PHY_RECEIVED_BREAK        0xF8
+#define EVT_ERROR_PHY_OPT_RECEIVE_TIMEOUT   0xF9
+#define EVT_ERROR_PHY_OPT_RECEIVED_BREAK    0xFA
+#define EVT_RESULT_PHY_NO_ACTIVITY          0xFB
 
 /* memory types for CMND_{READ,WRITE}_MEMORY */
-#define MTYPE_IO_SHADOW 0x30	/* cached IO registers? */
-#define MTYPE_SRAM 0x20		/* target's SRAM or [ext.] IO registers */
-#define MTYPE_EEPROM 0x22	/* EEPROM, what way? */
-#define MTYPE_EVENT 0x60	/* ICE event memory */
-#define MTYPE_SPM 0xA0		/* flash through LPM/SPM */
-#define MTYPE_FLASH_PAGE 0xB0	/* flash in programming mode */
+#define MTYPE_IO_SHADOW   0x30	/* cached IO registers? */
+#define MTYPE_SRAM        0x20	/* target's SRAM or [ext.] IO registers */
+#define MTYPE_EEPROM      0x22	/* EEPROM, what way? */
+#define MTYPE_EVENT       0x60	/* ICE event memory */
+#define MTYPE_SPM         0xA0	/* flash through LPM/SPM */
+#define MTYPE_FLASH_PAGE  0xB0	/* flash in programming mode */
 #define MTYPE_EEPROM_PAGE 0xB1	/* EEPROM in programming mode */
-#define MTYPE_FUSE_BITS 0xB2	/* fuse bits in programming mode */
-#define MTYPE_LOCK_BITS 0xB3	/* lock bits in programming mode */
-#define MTYPE_SIGN_JTAG 0xB4	/* signature in programming mode */
+#define MTYPE_FUSE_BITS   0xB2	/* fuse bits in programming mode */
+#define MTYPE_LOCK_BITS   0xB3	/* lock bits in programming mode */
+#define MTYPE_SIGN_JTAG   0xB4	/* signature in programming mode */
 #define MTYPE_OSCCAL_BYTE 0xB5	/* osccal cells in programming mode */
-#define MTYPE_CAN 0xB6		/* CAN mailbox */
-#define MTYPE_FLASH 0xc0	/* xmega flash - undocumented in AVR067 */
-#define MTYPE_USERSIG 0xc5	/* xmega user signature - undocumented in AVR067 */
-#define MTYPE_PRODSIG 0xc6	/* xmega production signature - undocumented in AVR067 */
+#define MTYPE_CAN         0xB6	/* CAN mailbox */
+#define MTYPE_FLASH       0xc0	/* xmega flash - undocumented in AVR067 */
+#define MTYPE_USERSIG     0xc5	/* xmega user signature - undocumented in AVR067 */
+#define MTYPE_PRODSIG     0xc6	/* xmega production signature - undocumented in AVR067 */
 
 /* (some) ICE parameters, for CMND_{GET,SET}_PARAMETER */
-#define PAR_HW_VERSION 0x01
-#define PAR_FW_VERSION 0x02
-#define PAR_EMULATOR_MODE 0x03
-# define EMULATOR_MODE_DEBUGWIRE 0x00
-# define EMULATOR_MODE_JTAG 0x01
-# define EMULATOR_MODE_HV 0x02	/* HVSP or PP mode of AVR Dragon */
-# define EMULATOR_MODE_SPI 0x03
-# define EMULATOR_MODE_JTAG_AVR32 0x04
-# define EMULATOR_MODE_JTAG_XMEGA 0x05
-# define EMULATOR_MODE_PDI 0x06
-#define PAR_IREG 0x04
-#define PAR_BAUD_RATE 0x05
-# define PAR_BAUD_2400 0x01
-# define PAR_BAUD_4800 0x02
-# define PAR_BAUD_9600 0x03
-# define PAR_BAUD_19200 0x04	/* default */
-# define PAR_BAUD_38400 0x05
-# define PAR_BAUD_57600 0x06
-# define PAR_BAUD_115200 0x07
-# define PAR_BAUD_14400 0x08
-#define PAR_OCD_VTARGET 0x06
-#define PAR_OCD_JTAG_CLK 0x07
-#define PAR_OCD_BREAK_CAUSE 0x08
-#define PAR_TIMERS_RUNNING 0x09
-#define PAR_BREAK_ON_CHANGE_FLOW 0x0A
-#define PAR_BREAK_ADDR1 0x0B
-#define PAR_BREAK_ADDR2 0x0C
-#define PAR_COMBBREAKCTRL 0x0D
-#define PAR_JTAGID 0x0E
-#define PAR_UNITS_BEFORE 0x0F
-#define PAR_UNITS_AFTER 0x10
-#define PAR_BIT_BEFORE 0x11
-#define PAR_BIT_ATER 0x12
-#define PAR_EXTERNAL_RESET 0x13
-#define PAR_FLASH_PAGE_SIZE 0x14
-#define PAR_EEPROM_PAGE_SIZE 0x15
-#define PAR_UNUSED1 0x16
-#define PAR_PSB0 0x17
-#define PAR_PSB1 0x18
-#define PAR_PROTOCOL_DEBUG_EVENT 0x19
-#define PAR_MCU_STATE 0x1A
-# define STOPPED 0x00
-# define RUNNING 0x01
-# define PROGRAMMING 0x02
-#define PAR_DAISY_CHAIN_INFO 0x1B
-#define PAR_BOOT_ADDRESS 0x1C
-#define PAR_TARGET_SIGNATURE 0x1D
-#define PAR_DEBUGWIRE_BAUDRATE 0x1E
-#define PAR_PROGRAM_ENTRY_POINT 0x1F
-#define PAR_PDI_OFFSET_START 0x32
-#define PAR_PDI_OFFSET_END 0x33
-#define PAR_PACKET_PARSING_ERRORS 0x40
-#define PAR_VALID_PACKETS_RECEIVED 0x41
-#define PAR_INTERCOMMUNICATION_TX_FAILURES 0x42
-#define PAR_INTERCOMMUNICATION_RX_FAILURES 0x43
-#define PAR_CRC_ERRORS 0x44
-#define PAR_POWER_SOURCE 0x45
-# define POWER_EXTERNAL 0x00
-# define POWER_USB 0x01
-#define PAR_CAN_FLAG 0x22
-# define DONT_READ_CAN_MAILBOX 0x00
-# define READ_CAN_MAILBOX 0x01
-#define PAR_ENABLE_IDR_IN_RUN_MODE 0x23
-# define ACCESS_OSCCAL 0x00
-# define ACCESS_IDR 0x01
+#define PAR_HW_VERSION                         0x01
+#define PAR_FW_VERSION                         0x02
+#define PAR_EMULATOR_MODE                      0x03
+# define EMULATOR_MODE_DEBUGWIRE                 0x00
+# define EMULATOR_MODE_JTAG                      0x01
+# define EMULATOR_MODE_HV                        0x02	/* HVSP or PP mode of AVR Dragon */
+# define EMULATOR_MODE_SPI                       0x03
+# define EMULATOR_MODE_JTAG_AVR32                0x04
+# define EMULATOR_MODE_JTAG_XMEGA                0x05
+# define EMULATOR_MODE_PDI                       0x06
+#define PAR_IREG                               0x04
+#define PAR_BAUD_RATE                          0x05
+# define PAR_BAUD_2400                           0x01
+# define PAR_BAUD_4800                           0x02
+# define PAR_BAUD_9600                           0x03
+# define PAR_BAUD_19200                          0x04	/* default */
+# define PAR_BAUD_38400                          0x05
+# define PAR_BAUD_57600                          0x06
+# define PAR_BAUD_115200                         0x07
+# define PAR_BAUD_14400                          0x08
+#define PAR_OCD_VTARGET                        0x06
+#define PAR_OCD_JTAG_CLK                       0x07
+#define PAR_OCD_BREAK_CAUSE                    0x08
+#define PAR_TIMERS_RUNNING                     0x09
+#define PAR_BREAK_ON_CHANGE_FLOW               0x0A
+#define PAR_BREAK_ADDR1                        0x0B
+#define PAR_BREAK_ADDR2                        0x0C
+#define PAR_COMBBREAKCTRL                      0x0D
+#define PAR_JTAGID                             0x0E
+#define PAR_UNITS_BEFORE                       0x0F
+#define PAR_UNITS_AFTER                        0x10
+#define PAR_BIT_BEFORE                         0x11
+#define PAR_BIT_ATER                           0x12
+#define PAR_EXTERNAL_RESET                     0x13
+#define PAR_FLASH_PAGE_SIZE                    0x14
+#define PAR_EEPROM_PAGE_SIZE                   0x15
+#define PAR_UNUSED1                            0x16
+#define PAR_PSB0                               0x17
+#define PAR_PSB1                               0x18
+#define PAR_PROTOCOL_DEBUG_EVENT               0x19
+#define PAR_MCU_STATE                          0x1A
+# define STOPPED                                 0x00
+# define RUNNING                                 0x01
+# define PROGRAMMING                             0x02
+#define PAR_DAISY_CHAIN_INFO                   0x1B
+#define PAR_BOOT_ADDRESS                       0x1C
+#define PAR_TARGET_SIGNATURE                   0x1D
+#define PAR_DEBUGWIRE_BAUDRATE                 0x1E
+#define PAR_PROGRAM_ENTRY_POINT                0x1F
+#define PAR_PDI_OFFSET_START                   0x32
+#define PAR_PDI_OFFSET_END                     0x33
+#define PAR_PACKET_PARSING_ERRORS              0x40
+#define PAR_VALID_PACKETS_RECEIVED             0x41
+#define PAR_INTERCOMMUNICATION_TX_FAILURES     0x42
+#define PAR_INTERCOMMUNICATION_RX_FAILURES     0x43
+#define PAR_CRC_ERRORS                         0x44
+#define PAR_POWER_SOURCE                       0x45
+# define POWER_EXTERNAL                          0x00
+# define POWER_USB                               0x01
+#define PAR_CAN_FLAG                           0x22
+# define DONT_READ_CAN_MAILBOX                   0x00
+# define READ_CAN_MAILBOX                        0x01
+#define PAR_ENABLE_IDR_IN_RUN_MODE             0x23
+# define ACCESS_OSCCAL                           0x00
+# define ACCESS_IDR                              0x01
 #define PAR_ALLOW_PAGEPROGRAMMING_IN_SCANCHAIN 0x24
-# define PAGEPROG_NOT_ALLOWED 0x00
-# define PAGEPROG_ALLOWED 0x01
+# define PAGEPROG_NOT_ALLOWED                    0x00
+# define PAGEPROG_ALLOWED                        0x01
 
 /* Xmega erase memory types, for CMND_XMEGA_ERASE */
-#define XMEGA_ERASE_CHIP 0x00
-#define XMEGA_ERASE_APP 0x01
-#define XMEGA_ERASE_BOOT 0x02
-#define XMEGA_ERASE_EEPROM 0x03
-#define XMEGA_ERASE_APP_PAGE 0x04
-#define XMEGA_ERASE_BOOT_PAGE 0x05
+#define XMEGA_ERASE_CHIP        0x00
+#define XMEGA_ERASE_APP         0x01
+#define XMEGA_ERASE_BOOT        0x02
+#define XMEGA_ERASE_EEPROM      0x03
+#define XMEGA_ERASE_APP_PAGE    0x04
+#define XMEGA_ERASE_BOOT_PAGE   0x05
 #define XMEGA_ERASE_EEPROM_PAGE 0x06
-#define XMEGA_ERASE_USERSIG 0x07
+#define XMEGA_ERASE_USERSIG     0x07
 
 /* AVR32 related definitions */
 #define AVR32_FLASHC_FCR                  0xFFFE1400

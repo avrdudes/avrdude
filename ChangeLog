@@ -1,3 +1,8 @@
+2012-03-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtagmkII_private.h: Sort commands, response codes and events
+	into numerical order.
+
 2012-03-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #30451: Accessing some Xmega memory sections gives not
