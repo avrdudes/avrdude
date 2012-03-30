@@ -34,6 +34,7 @@
 #include "ac_cfg.h"
 
 #include <ctype.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -78,6 +79,9 @@ struct pdata
 
   /* The length of the device descriptor is firmware-dependent. */
   size_t device_descriptor_length;
+
+  /* Start address of Xmega boot area */
+  unsigned long boot_start;
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
@@ -138,6 +142,7 @@ static void jtagmkII_print_parms1(PROGRAMMER * pgm, const char * p);
 static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                                 unsigned int page_size,
                                 unsigned int addr, unsigned int n_bytes);
+static unsigned char jtagmkII_memtype(PROGRAMMER * pgm, AVRPART * p, unsigned long addr);
 
 // AVR32
 #define ERROR_SAB 0xFFFFFFFF
@@ -1284,6 +1289,7 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
    */
   jtagmkII_set_devdescr(pgm, p);
 
+  PDATA(pgm)->boot_start = ULONG_MAX;
   /*
    * If this is an ATxmega device in JTAG mode, change the emulator
    * mode from JTAG to JTAG_XMEGA.
@@ -1292,6 +1298,19 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
       (p->flags & AVRPART_HAS_PDI)) {
     if (jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG_XMEGA) < 0)
       return -1;
+    /*
+     * Find out where the border between application and boot area
+     * is.
+     */
+    AVRMEM *bootmem = avr_locate_mem(p, "boot");
+    AVRMEM *flashmem = avr_locate_mem(p, "flash");
+    if (bootmem == NULL || flashmem == NULL) {
+      fprintf(stderr,
+              "%s: jtagmkII_initialize(): Cannot locate \"flash\" and \"boot\" memories in description\n",
+              progname);
+    } else {
+      PDATA(pgm)->boot_start = bootmem->offset - flashmem->offset;
+    }
   }
 
   free(PDATA(pgm)->flash_pagecache);
@@ -1761,7 +1780,7 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   unsigned char *cmd;
   unsigned char *resp;
   unsigned char par[4];
-  int status, tries;
+  int status, tries, dynamic_memtype = 0;
   long otimeout = serial_recv_timeout;
 
   if (verbose >= 2)
@@ -1787,10 +1806,13 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   }
 
   cmd[0] = CMND_WRITE_MEMORY;
-  cmd[1] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_FLASH : MTYPE_FLASH_PAGE;
+  cmd[1] = jtagmkII_memtype(pgm, p, addr);
   if (strcmp(m->desc, "flash") == 0) {
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
     page_size = PDATA(pgm)->flash_pagesize;
+    if (p->flags & AVRPART_HAS_PDI)
+      /* dynamically decide between flash/boot memtype */
+      dynamic_memtype = 1;
   } else if (strcmp(m->desc, "eeprom") == 0) {
     if (pgm->flag & PGM_FL_IS_DW) {
       /*
@@ -1810,6 +1832,8 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[1] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_EEPROM : MTYPE_EEPROM_PAGE;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
     page_size = PDATA(pgm)->eeprom_pagesize;
+  } else if ( ( strcmp(m->desc, "usersig") == 0 ) ) {
+    cmd[1] = MTYPE_USERSIG;
   }
   serial_recv_timeout = 100;
   for (; addr < maxaddr; addr += page_size) {
@@ -1821,6 +1845,9 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       fprintf(stderr, "%s: jtagmkII_paged_write(): "
 	      "block_size at addr %d is %d\n",
 	      progname, addr, block_size);
+
+    if (dynamic_memtype)
+      cmd[1] = jtagmkII_memtype(pgm, p, addr);
 
     u32_to_b4(cmd + 2, page_size);
     u32_to_b4(cmd + 6, addr+m->offset );
@@ -2504,6 +2531,19 @@ static void jtagmkII_print_parms(PROGRAMMER * pgm)
 {
   jtagmkII_print_parms1(pgm, "");
 }
+
+static unsigned char jtagmkII_memtype(PROGRAMMER * pgm, AVRPART * p, unsigned long addr)
+{
+  if ( p->flags & AVRPART_HAS_PDI ) {
+    if (addr >= PDATA(pgm)->boot_start)
+      return MTYPE_BOOT_FLASH;
+    else
+      return MTYPE_FLASH;
+  } else {
+    return MTYPE_SPM;
+  }
+}
+
 
 #ifdef __OBJC__
 #pragma mark -
