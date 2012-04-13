@@ -57,6 +57,7 @@ Current:
       - bug #34027: avrdude AT90S1200 Problem
       - bug #30451: Accessing some Xmega memory sections gives not
         supported error
+      - bug #28744: Can't load bootloader to xmega128a1
 
   * Keep track of input file contents
 

@@ -1,3 +1,16 @@
+2012-04-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #28744: Can't load bootloader to xmega128a1 (part 2, fix for
+	firmware >= V7.x)
+	* jtagmkII.c: Add firmware-version dependent handling of Xmega parameters.
+	V7.x firmware expects the NVM offsets being specified through the Xmega
+	parameters command, but left out as part of the memory address itself.
+	* jtagmkII_private.h: Add CMND_SET_XMEGA_PARAMS, and struct xmega_device_desc.
+	* config_gram.y: Add mcu_base keyword.
+	* avrpart.h: (Dito.)
+	* lexer.l: (Dito.)
+	* avrdude.conf.in (.xmega): add mcu_base, and data memory segment.
+
 2012-03-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #28744: Can't load bootloader to xmega128a1 (part 1, fix for
