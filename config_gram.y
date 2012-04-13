@@ -93,6 +93,7 @@ static int pin_name;
 %token K_IO
 %token K_LOADPAGE
 %token K_MAX_WRITE_DELAY
+%token K_MCU_BASE
 %token K_MIN_WRITE_DELAY
 %token K_MISO
 %token K_MOSI
@@ -1076,6 +1077,12 @@ part_parm :
   K_EECR TKN_EQUAL TKN_NUMBER
     {
       current_part->eecr = $3->value.number;
+      free_token($3);
+    } |
+
+  K_MCU_BASE TKN_EQUAL TKN_NUMBER
+    {
+      current_part->mcu_base = $3->value.number;
       free_token($3);
     } |
 

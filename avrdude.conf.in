@@ -12286,6 +12286,7 @@ part
     has_jtag	= yes;
     has_pdi	= yes;
     nvm_base	= 0x01c0;
+    mcu_base	= 0x0090;
 
     memory "prodsig"
         size		= 0x200;
@@ -12334,6 +12335,11 @@ part
     memory "lock"
         size		= 1;
         offset		= 0x8f0027;
+    ;
+
+    memory "data"
+        # SRAM, only used to supply the offset
+        offset		= 0x1000000;
     ;
 ;
 

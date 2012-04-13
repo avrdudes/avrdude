@@ -167,6 +167,7 @@ load_ext_addr    { yylval=new_token(K_LOAD_EXT_ADDR); return K_LOAD_EXT_ADDR; }
 loadpage_hi      { yylval=new_token(K_LOADPAGE_HI); return K_LOADPAGE_HI; }
 loadpage_lo      { yylval=new_token(K_LOADPAGE_LO); return K_LOADPAGE_LO; }
 max_write_delay  { yylval=NULL; return K_MAX_WRITE_DELAY; }
+mcu_base         { yylval=NULL; return K_MCU_BASE; }
 memory           { yylval=NULL; return K_MEMORY; }
 min_write_delay  { yylval=NULL; return K_MIN_WRITE_DELAY; }
 miso             { yylval=NULL; return K_MISO; }
