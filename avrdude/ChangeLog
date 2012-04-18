@@ -1,5 +1,12 @@
 2012-04-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* fileio.c (elf2b): When checking the bounds of the current
+	program header segment, subtract `low' from ph[n].p_paddr in order
+	to correct the magic section offsets for the AVR's non-flash
+	memory regions.
+
+2012-04-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* fileio.c (elf_get_scn): Rather than trying to just match whether
 	any given section maps straight to a program header segment, use a
 	more sophisticated decision that matches any section as long as it
