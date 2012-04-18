@@ -948,7 +948,7 @@ static int elf2b(char * infile, FILE * inf,
      * from it, using the "foff" offset obtained above.
      */
     if (mem->size != 1 &&
-        ph[i].p_paddr + ph[i].p_filesz > mem->size) {
+        ph[i].p_paddr - low + ph[i].p_filesz > mem->size) {
       fprintf(stderr,
               "%s: ERROR: program header entry #%d does not fit into \"%s\" memory:\n"
               "    0x%x + %u > %u\n",
