@@ -688,6 +688,28 @@ static int srec2b(char * infile, FILE * inf,
 
 #ifdef HAVE_LIBELF
 /*
+ * Determine whether the ELF file section pointed to by `sh' fits
+ * completely into the program header segment pointed to by `ph'.
+ *
+ * Assumes the section has been checked already before to actually
+ * contain data (SHF_ALLOC, SHT_PROGBITS, sh_size > 0).
+ *
+ * Sometimes, program header segments might be larger than the actual
+ * file sections.  On VM architectures, this is used to allow mmapping
+ * the entire ELF file "as is" (including things like the program
+ * header table itself).
+ */
+static inline
+int is_section_in_segment(Elf32_Shdr *sh, Elf32_Phdr *ph)
+{
+    if (sh->sh_offset < ph->p_offset)
+        return 0;
+    if (sh->sh_offset + sh->sh_size > ph->p_offset + ph->p_filesz)
+        return 0;
+    return 1;
+}
+
+/*
  * Return the ELF section descriptor that corresponds to program
  * header `ph'.  The program header is expected to be of p_type
  * PT_LOAD, and to have a nonzero p_filesz.  (PT_LOAD sections with a
@@ -711,8 +733,10 @@ static Elf_Scn *elf_get_scn(Elf *e, Elf32_Phdr *ph, Elf32_Shdr **shptr)
         sh->sh_type != SHT_PROGBITS)
       /* we are only interested in PROGBITS, ALLOC sections */
       continue;
-    if (ph->p_vaddr == sh->sh_addr &&
-        ph->p_offset == sh->sh_offset) {
+    if (sh->sh_size == 0)
+      /* we are not interested in empty sections */
+      continue;
+    if (is_section_in_segment(sh, ph)) {
       /* yeah, we found it */
       *shptr = sh;
       return s;

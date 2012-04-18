@@ -1,3 +1,13 @@
+2012-04-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* fileio.c (elf_get_scn): Rather than trying to just match whether
+	any given section maps straight to a program header segment, use a
+	more sophisticated decision that matches any section as long as it
+	fits into the segment.  This is needed for situations where the
+	program header segment spans a larger area than the section data
+	provided.  (This can e.g. happen in an ELF file that contains no
+	data at address 0, like a bootloader only.)
+
 2012-04-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #28744: Can't load bootloader to xmega128a1 (part 2, fix for
