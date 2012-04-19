@@ -312,6 +312,9 @@ struct pdata
 
   AVRPART *lastpart;
 
+  /* Start address of Xmega boot area */
+  unsigned long boot_start;
+
   /*
    * Chained pdata for the JTAG ICE mkII backend.  This is used when
    * calling the backend functions for ISP/HVSP/PP programming

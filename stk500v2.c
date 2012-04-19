@@ -289,6 +289,7 @@ void stk500v2_setup(PROGRAMMER * pgm)
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
   PDATA(pgm)->command_sequence = 1;
+  PDATA(pgm)->boot_start = ULONG_MAX;
 }
 
 static void stk500v2_jtagmkII_setup(PROGRAMMER * pgm)
@@ -1095,6 +1096,21 @@ static int stk500v2_initialize(PROGRAMMER * pgm, AVRPART * p)
      * This is an ATxmega device, must use XPROG protocol for the
      * remaining actions.
      */
+    if ((p->flags & AVRPART_HAS_PDI) != 0) {
+      /*
+       * Find out where the border between application and boot area
+       * is.
+       */
+      AVRMEM *bootmem = avr_locate_mem(p, "boot");
+      AVRMEM *flashmem = avr_locate_mem(p, "flash");
+      if (bootmem == NULL || flashmem == NULL) {
+        fprintf(stderr,
+                "%s: stk500v2_initialize(): Cannot locate \"flash\" and \"boot\" memories in description\n",
+                progname);
+      } else {
+        PDATA(pgm)->boot_start = bootmem->offset - flashmem->offset;
+      }
+    }
     stk600_setup_xprog(pgm);
   } else {
     stk600_setup_isp(pgm);
@@ -3144,6 +3160,15 @@ static int stk600_xprog_program_enable(PROGRAMMER * pgm, AVRPART * p)
     return 0;
 }
 
+static unsigned char stk600_xprog_memtype(PROGRAMMER * pgm, unsigned long addr)
+{
+    if (addr >= PDATA(pgm)->boot_start)
+        return XPRG_MEM_TYPE_BOOT;
+    else
+        return XPRG_MEM_TYPE_APPL;
+}
+
+
 static void stk600_xprog_disable(PROGRAMMER * pgm)
 {
     unsigned char buf[2];
@@ -3166,9 +3191,10 @@ static int stk600_xprog_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
     memset(b, 0, sizeof(b));
 
-    if (strcmp(mem->desc, "flash") == 0 ||
-        strcmp(mem->desc, "application") == 0 ||
-        strcmp(mem->desc, "apptable") == 0) {
+    if (strcmp(mem->desc, "flash") == 0) {
+        memcode = stk600_xprog_memtype(pgm, addr);
+    } else if (strcmp(mem->desc, "application") == 0 ||
+               strcmp(mem->desc, "apptable") == 0) {
         memcode = XPRG_MEM_TYPE_APPL;
     } else if (strcmp(mem->desc, "boot") == 0) {
         memcode = XPRG_MEM_TYPE_BOOT;
@@ -3244,9 +3270,10 @@ static int stk600_xprog_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 {
     unsigned char b[8];
 
-    if (strcmp(mem->desc, "flash") == 0 ||
-        strcmp(mem->desc, "application") == 0 ||
-        strcmp(mem->desc, "apptable") == 0) {
+    if (strcmp(mem->desc, "flash") == 0) {
+        b[1] = stk600_xprog_memtype(pgm, addr);
+    } else if (strcmp(mem->desc, "application") == 0 ||
+               strcmp(mem->desc, "apptable") == 0) {
         b[1] = XPRG_MEM_TYPE_APPL;
     } else if (strcmp(mem->desc, "boot") == 0) {
         b[1] = XPRG_MEM_TYPE_BOOT;
@@ -3295,7 +3322,7 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     unsigned char *b;
     unsigned int offset;
     unsigned char memtype;
-    int n_bytes_orig = n_bytes;
+    int n_bytes_orig = n_bytes, dynamic_memtype = 0;
     unsigned long use_ext_addr = 0;
 
     /*
@@ -3310,9 +3337,13 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
      * This is probably what AVR079 means when writing about the
      * "TIF address space".
      */
-    if (strcmp(mem->desc, "flash") == 0 ||
-        strcmp(mem->desc, "application") == 0 ||
-        strcmp(mem->desc, "apptable") == 0) {
+    if (strcmp(mem->desc, "flash") == 0) {
+        memtype = 0;
+        dynamic_memtype = 1;
+        if (mem->size > 64 * 1024)
+            use_ext_addr = (1UL << 31);
+    } else if (strcmp(mem->desc, "application") == 0 ||
+               strcmp(mem->desc, "apptable") == 0) {
         memtype = XPRG_MEM_TYPE_APPL;
         if (mem->size > 64 * 1024)
             use_ext_addr = (1UL << 31);
@@ -3356,6 +3387,9 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     }
 
     while (n_bytes != 0) {
+	if (dynamic_memtype)
+	    memtype = stk600_xprog_memtype(pgm, addr - mem->offset);
+
 	b[0] = XPRG_CMD_READ_MEM;
 	b[1] = memtype;
 	b[2] = addr >> 24;
@@ -3391,7 +3425,7 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     unsigned char *b;
     unsigned int offset;
     unsigned char memtype;
-    int n_bytes_orig = n_bytes;
+    int n_bytes_orig = n_bytes, dynamic_memtype = 0;
     size_t writesize;
     unsigned long use_ext_addr = 0;
     unsigned char writemode;
@@ -3412,9 +3446,14 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
      * This is probably what AVR079 means when writing about the
      * "TIF address space".
      */
-    if (strcmp(mem->desc, "flash") == 0 ||
-        strcmp(mem->desc, "application") == 0 ||
-        strcmp(mem->desc, "apptable") == 0) {
+    if (strcmp(mem->desc, "flash") == 0) {
+        memtype = 0;
+        dynamic_memtype = 1;
+        writemode = (1 << XPRG_MEM_WRITE_WRITE);
+        if (mem->size > 64 * 1024)
+            use_ext_addr = (1UL << 31);
+    } else if (strcmp(mem->desc, "application") == 0 ||
+               strcmp(mem->desc, "apptable") == 0) {
         memtype = XPRG_MEM_TYPE_APPL;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
         if (mem->size > 64 * 1024)
@@ -3466,6 +3505,10 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     }
 
     while (n_bytes != 0) {
+
+	if (dynamic_memtype)
+	    memtype = stk600_xprog_memtype(pgm, addr - mem->offset);
+
 	if (page_size > 256) {
 	    /*
 	     * AVR079 is not quite clear.  While it suggests that
