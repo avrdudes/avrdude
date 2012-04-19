@@ -1,3 +1,9 @@
+2012-04-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* stk500v2_private.h (struct pdata): add boot_start
+	* stk500v2.c: For the "flash" pseudo-memory of Xmega devices,
+	distinguish addresses between "application" and "boot" area.
+
 2012-04-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* fileio.c (elf2b): When checking the bounds of the current
