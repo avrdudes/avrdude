@@ -1,5 +1,12 @@
 2012-04-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #29019: pagel/bs2 warning when uploading using stk500 to xmega
+	* stk500.c (stk500_initialize): Insert dummy values for PAGEL and
+	BS2 if they are not present in the config file, in order to be able
+	to proceed with the stk500_set_extended_parms() anyway.
+
+2012-04-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* stk500v2_private.h (struct pdata): add boot_start
 	* stk500v2.c: For the "flash" pseudo-memory of Xmega devices,
 	distinguish addresses between "application" and "boot" area.

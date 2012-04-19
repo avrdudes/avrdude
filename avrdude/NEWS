@@ -58,6 +58,7 @@ Current:
       - bug #30451: Accessing some Xmega memory sections gives not
         supported error
       - bug #28744: Can't load bootloader to xmega128a1
+      - bug #29019: pagel/bs2 warning when uploading using stk500 to xmega
 
   * Keep track of input file contents
 
