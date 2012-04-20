@@ -1,3 +1,10 @@
+2012-04-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avrdude.conf.in (ATxmega16D4, ATxmega32D4, ATxmega64D4,
+	ATxmega128D4): New devices.  As Xmega D doesn't feature a fuse0
+	memory cell, move that one out from the generic .xmega part into
+	the individual Xmega A parts.
+
 2012-04-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #29019: pagel/bs2 warning when uploading using stk500 to xmega
