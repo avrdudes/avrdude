@@ -989,6 +989,11 @@ int main(int argc, char * argv [])
    * are valid.
    */
   if(!(p->flags & AVRPART_AVR32)) {
+    int attempt = 0;
+    int waittime = 10000;       /* 10 ms */
+
+  sig_again:
+    usleep(waittime);
     if (init_ok) {
       rc = avr_signature(pgm, p);
       if (rc != 0) {
@@ -1022,11 +1027,17 @@ int main(int argc, char * argv [])
         if (sig->buf[i] != 0x00)
           zz = 0;
       }
-      if (quell_progress < 2) {
-        fprintf(stderr, "\n");
-      }
-
       if (ff || zz) {
+        if (++attempt < 3) {
+          waittime *= 5;
+          if (quell_progress < 2) {
+              fprintf(stderr, " (retrying)\n");
+          }
+          goto sig_again;
+        }
+        if (quell_progress < 2) {
+            fprintf(stderr, "\n");
+        }
         fprintf(stderr,
                 "%s: Yikes!  Invalid device signature.\n", progname);
         if (!ovsigck) {
@@ -1037,23 +1048,27 @@ int main(int argc, char * argv [])
           exitrc = 1;
           goto main_exit;
         }
+      } else {
+        if (quell_progress < 2) {
+          fprintf(stderr, "\n");
+        }
       }
-    }
-    
-    if (sig->size != 3 ||
-    sig->buf[0] != p->signature[0] ||
-    sig->buf[1] != p->signature[1] ||
-    sig->buf[2] != p->signature[2]) {
-      fprintf(stderr,
-          "%s: Expected signature for %s is %02X %02X %02X\n",
-          progname, p->desc,
-          p->signature[0], p->signature[1], p->signature[2]);
-      if (!ovsigck) {
-        fprintf(stderr, "%sDouble check chip, "
-        "or use -F to override this check.\n",
-                progbuf);
-        exitrc = 1;
-        goto main_exit;
+
+      if (sig->size != 3 ||
+          sig->buf[0] != p->signature[0] ||
+          sig->buf[1] != p->signature[1] ||
+          sig->buf[2] != p->signature[2]) {
+        fprintf(stderr,
+                "%s: Expected signature for %s is %02X %02X %02X\n",
+                progname, p->desc,
+                p->signature[0], p->signature[1], p->signature[2]);
+        if (!ovsigck) {
+          fprintf(stderr, "%sDouble check chip, "
+                  "or use -F to override this check.\n",
+                  progbuf);
+          exitrc = 1;
+          goto main_exit;
+        }
       }
     }
   }

@@ -60,6 +60,8 @@ Current:
         supported error
       - bug #28744: Can't load bootloader to xmega128a1
       - bug #29019: pagel/bs2 warning when uploading using stk500 to xmega
+      - bug #30756: When setting SUT to 64ms on XMEGA, avrdude doesn't
+        read device signature
 
   * Keep track of input file contents
 
