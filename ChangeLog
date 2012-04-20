@@ -1,5 +1,12 @@
 2012-04-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #30756: When setting SUT to 64ms on XMEGA, avrdude doesn't
+	read device signature
+	* main.c: When reading the signature yields 0x000000 or 0xffffff,
+	retry (up to twice) after some progressive delay.
+
+2012-04-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* avrdude.conf.in (ATxmega16D4, ATxmega32D4, ATxmega64D4,
 	ATxmega128D4): New devices.  As Xmega D doesn't feature a fuse0
 	memory cell, move that one out from the generic .xmega part into
