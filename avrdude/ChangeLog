@@ -1,3 +1,13 @@
+2012-04-24  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* fileio.c: Rework the way ELF file sections are considered: while
+	scanning the program header table, the offsets from a program
+	header entry must never be used directly when checking the bounds
+	of the current AVR memory region.  Instead, they must always be
+	checked based on the corresponding section's entry.  That way,
+	Xmega devices now properly take into account whether the segment
+	fits into any of the application/apptable/boot memory region.
+
 2012-04-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #30756: When setting SUT to 64ms on XMEGA, avrdude doesn't
