@@ -860,6 +860,30 @@ int main(int argc, char * argv [])
   }
 
   /*
+   * Now that we know which part we are going to program, locate any
+   * -U options using the default memory region, and fill in the
+   * device-dependent default region name, either "application" (for
+   * Xmega devices), or "flash" (everything else).
+   */
+  for (ln=lfirst(updates); ln; ln=lnext(ln)) {
+    upd = ldata(ln);
+    if (upd->memtype == NULL) {
+      const char *mtype = (p->flags & AVRPART_HAS_PDI)? "application": "flash";
+      if (verbose >= 2) {
+        fprintf(stderr,
+                "%s: defaulting memtype in -U %c:%s option to \"%s\"\n",
+                progname,
+                (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v',
+                upd->filename, mtype);
+      }
+      if ((upd->memtype = strdup(mtype)) == NULL) {
+        fprintf(stderr, "%s: out of memory\n", progname);
+        exit(1);
+      }
+    }
+  }
+
+  /*
    * open the programmer
    */
   if (port[0] == 0) {

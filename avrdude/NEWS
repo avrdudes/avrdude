@@ -81,6 +81,11 @@ Current:
     the appropriate section contents that matches the requested memory
     region.
 
+  * Specifying a -U option without a memory type (short form of
+    option argument list) now defaults to "application" memory for
+    Xmega devices, and "flash" for everything else.  This ensures
+    the bootloader is not touched.
+
   * Programmers and parts lists
 
     They are now sorted at output with '-c ?'/'-p ?'. (patch #7671:
