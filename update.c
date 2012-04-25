@@ -54,17 +54,13 @@ UPDATE * parse_op(char * s)
   buf[i] = 0;
 
   if (*p != ':') {
-    upd->memtype = (char *)malloc(strlen("flash")+1);
-    if (upd->memtype == NULL) {
-      outofmem:
-      fprintf(stderr, "%s: out of memory\n", progname);
-      exit(1);
-    }
-    strcpy(upd->memtype, "flash");
+    upd->memtype = NULL;        /* default memtype, "flash", or "application" */
     upd->op = DEVICE_WRITE;
     upd->filename = (char *)malloc(strlen(buf) + 1);
-    if (upd->filename == NULL)
-      goto outofmem;
+    if (upd->filename == NULL) {
+        fprintf(stderr, "%s: out of memory\n", progname);
+        exit(1);
+    }
     strcpy(upd->filename, buf);
     upd->format = FMT_AUTO;
     return upd;
@@ -177,7 +173,10 @@ UPDATE * dup_update(UPDATE * upd)
 
   memcpy(u, upd, sizeof(UPDATE));
 
-  u->memtype = strdup(upd->memtype);
+  if (upd->memtype != NULL)
+    u->memtype = strdup(upd->memtype);
+  else
+    u->memtype = NULL;
   u->filename = strdup(upd->filename);
 
   return u;

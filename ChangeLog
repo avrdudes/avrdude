@@ -1,3 +1,11 @@
+2012-04-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* update.c (parse_op): do not assume default memtype here
+	* main.c: after locating the part information, determine default
+	memtype for all update options that didn't have a memtype
+	specified; this is "application" for Xmega parts, and "flash" for
+	everything else.
+
 2012-04-24  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* fileio.c: Rework the way ELF file sections are considered: while
