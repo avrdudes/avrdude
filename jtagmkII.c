@@ -1891,7 +1891,6 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   }
 
   cmd[0] = CMND_WRITE_MEMORY;
-  cmd[1] = jtagmkII_memtype(pgm, p, addr);
   if (strcmp(m->desc, "flash") == 0) {
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
     page_size = PDATA(pgm)->flash_pagesize;
@@ -1919,6 +1918,12 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     page_size = PDATA(pgm)->eeprom_pagesize;
   } else if ( ( strcmp(m->desc, "usersig") == 0 ) ) {
     cmd[1] = MTYPE_USERSIG;
+  } else if ( ( strcmp(m->desc, "boot") == 0 ) ) {
+    cmd[1] = MTYPE_BOOT_FLASH;
+  } else if ( p->flags & AVRPART_HAS_PDI ) {
+    cmd[1] = MTYPE_FLASH;
+  } else {
+    cmd[1] = MTYPE_SPM;
   }
   serial_recv_timeout = 100;
   for (; addr < maxaddr; addr += page_size) {
@@ -2022,7 +2027,6 @@ static int jtagmkII_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   page_size = m->readsize;
 
   cmd[0] = CMND_READ_MEMORY;
-  cmd[1] = jtagmkII_memtype(pgm, p, addr);
   if (strcmp(m->desc, "flash") == 0) {
     if (p->flags & AVRPART_HAS_PDI)
       /* dynamically decide between flash/boot memtype */
@@ -2035,6 +2039,12 @@ static int jtagmkII_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[1] = MTYPE_PRODSIG;
   } else if ( ( strcmp(m->desc, "usersig") == 0 ) ) {
     cmd[1] = MTYPE_USERSIG;
+  } else if ( ( strcmp(m->desc, "boot") == 0 ) ) {
+    cmd[1] = MTYPE_BOOT_FLASH;
+  } else if ( p->flags & AVRPART_HAS_PDI ) {
+    cmd[1] = MTYPE_FLASH;
+  } else {
+    cmd[1] = MTYPE_SPM;
   }
   serial_recv_timeout = 100;
   for (; addr < maxaddr; addr += page_size) {
