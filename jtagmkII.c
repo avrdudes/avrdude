@@ -1894,6 +1894,7 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   if (strcmp(m->desc, "flash") == 0) {
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
     page_size = PDATA(pgm)->flash_pagesize;
+    cmd[1] = jtagmkII_memtype(pgm, p, addr);
     if (p->flags & AVRPART_HAS_PDI)
       /* dynamically decide between flash/boot memtype */
       dynamic_memtype = 1;
@@ -2028,6 +2029,7 @@ static int jtagmkII_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   cmd[0] = CMND_READ_MEMORY;
   if (strcmp(m->desc, "flash") == 0) {
+    cmd[1] = jtagmkII_memtype(pgm, p, addr);
     if (p->flags & AVRPART_HAS_PDI)
       /* dynamically decide between flash/boot memtype */
       dynamic_memtype = 1;
