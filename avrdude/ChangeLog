@@ -1,3 +1,8 @@
+2012-04-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtagmkII.c (jtagmkII_paged_load, jtagmkII_paged_write): fix bug
+	in memory type calculation for Xmega "boot" memory region.
+
 2012-04-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* update.c (parse_op): do not assume default memtype here
