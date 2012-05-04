@@ -2167,6 +2167,15 @@ static int stk500hvsp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
+static int stk500v2_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+                               unsigned int addr)
+{
+  fprintf(stderr,
+          "%s: stk500v2_page_erase(): this function must never be called\n",
+          progname);
+  return -1;
+}
+
 static int stk500v2_set_vtarget(PROGRAMMER * pgm, double v)
 {
   unsigned char uaref, utarg;
@@ -3536,11 +3545,7 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                 }
 		b[0] = XPRG_CMD_WRITE_MEM;
 		b[1] = memtype;
-		if (chunk + 256 == page_size) {
-		    b[2] = writemode;	/* last chunk */
-		} else {
-		    b[2] = 0;	/* initial/intermediate chunk: just download */
-		}
+		b[2] = writemode;
 		b[3] = addr >> 24;
 		b[4] = addr >> 16;
 		b[5] = addr >> 8;
@@ -3634,6 +3639,42 @@ static int stk600_xprog_chip_erase(PROGRAMMER * pgm, AVRPART * p)
     return 0;
 }
 
+static int stk600_xprog_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+                                   unsigned int addr)
+{
+    unsigned char b[6];
+
+    if (strcmp(m->desc, "flash") == 0) {
+      b[1] = stk600_xprog_memtype(pgm, addr - m->offset) == XPRG_MEM_TYPE_APPL?
+        XPRG_ERASE_APP_PAGE: XPRG_ERASE_BOOT_PAGE;
+    } else if (strcmp(m->desc, "application") == 0 ||
+               strcmp(m->desc, "apptable") == 0) {
+      b[1] = XPRG_ERASE_APP_PAGE;
+    } else if (strcmp(m->desc, "boot") == 0) {
+      b[1] = XPRG_ERASE_BOOT_PAGE;
+    } else if (strcmp(m->desc, "eeprom") == 0) {
+      b[1] = XPRG_ERASE_EEPROM_PAGE;
+    } else {
+      fprintf(stderr,
+              "%s: stk600_xprog_page_erase(): unknown paged memory \"%s\"\n",
+              progname, m->desc);
+      return -1;
+    }
+    addr += m->offset;
+    b[0] = XPRG_CMD_ERASE;
+    b[2] = addr >> 24;
+    b[3] = addr >> 16;
+    b[4] = addr >> 8;
+    b[5] = addr;
+    if (stk600_xprog_command(pgm, b, 6, 2) < 0) {
+	    fprintf(stderr,
+		    "%s: stk600_xprog_page_erase(): XPRG_CMD_ERASE(%d) failed\n",
+		    progname, b[1]);
+	    return -1;
+	}
+    return 0;
+}
+
 /*
  * Modify pgm's methods for XPROG operation.
  */
@@ -3645,6 +3686,7 @@ static void stk600_setup_xprog(PROGRAMMER * pgm)
     pgm->write_byte = stk600_xprog_write_byte;
     pgm->paged_load = stk600_xprog_paged_load;
     pgm->paged_write = stk600_xprog_paged_write;
+    pgm->page_erase = stk600_xprog_page_erase;
     pgm->chip_erase = stk600_xprog_chip_erase;
 }
 
@@ -3660,6 +3702,7 @@ static void stk600_setup_isp(PROGRAMMER * pgm)
     pgm->write_byte = avr_write_byte_default;
     pgm->paged_load = stk500v2_paged_load;
     pgm->paged_write = stk500v2_paged_write;
+    pgm->page_erase = stk500v2_page_erase;
     pgm->chip_erase = stk500v2_chip_erase;
 }
 
@@ -3689,6 +3732,7 @@ void stk500v2_initpgm(PROGRAMMER * pgm)
    */
   pgm->paged_write    = stk500v2_paged_write;
   pgm->paged_load     = stk500v2_paged_load;
+  pgm->page_erase     = stk500v2_page_erase;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_vtarget    = stk500v2_set_vtarget;
   pgm->set_varef      = stk500v2_set_varef;
@@ -3796,6 +3840,7 @@ void stk500v2_jtagmkII_initpgm(PROGRAMMER * pgm)
    */
   pgm->paged_write    = stk500v2_paged_write;
   pgm->paged_load     = stk500v2_paged_load;
+  pgm->page_erase     = stk500v2_page_erase;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
   pgm->perform_osccal = stk500v2_perform_osccal;
@@ -3830,6 +3875,7 @@ void stk500v2_dragon_isp_initpgm(PROGRAMMER * pgm)
    */
   pgm->paged_write    = stk500v2_paged_write;
   pgm->paged_load     = stk500v2_paged_load;
+  pgm->page_erase     = stk500v2_page_erase;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
   pgm->setup          = stk500v2_jtagmkII_setup;
@@ -3933,6 +3979,7 @@ void stk600_initpgm(PROGRAMMER * pgm)
    */
   pgm->paged_write    = stk500v2_paged_write;
   pgm->paged_load     = stk500v2_paged_load;
+  pgm->page_erase     = stk500v2_page_erase;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_vtarget    = stk600_set_vtarget;
   pgm->set_varef      = stk600_set_varef;
