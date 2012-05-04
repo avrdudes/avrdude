@@ -12291,14 +12291,14 @@ part
     memory "prodsig"
         size		= 0x200;
         offset		= 0x8e0200;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "usersig"
         size		= 0x200;
         offset		= 0x8e0400;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
@@ -12358,28 +12358,28 @@ part parent ".xmega"
     memory "application"
         size		= 0x00010000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "apptable"
         size		= 0x00001000;
         offset		= 0x0080f000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "boot"
         size		= 0x00001000;
         offset		= 0x00810000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "flash"
         size		= 0x00011000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
@@ -12408,28 +12408,28 @@ part parent ".xmega"
     memory "application"
         size		= 0x00020000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "apptable"
         size		= 0x00002000;
         offset		= 0x0081e000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "boot"
         size		= 0x00002000;
         offset		= 0x00820000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "flash"
         size		= 0x00022000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
@@ -12468,28 +12468,28 @@ part parent ".xmega"
     memory "application"
         size		= 0x00030000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "apptable"
         size		= 0x00002000;
         offset		= 0x0082e000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "boot"
         size		= 0x00002000;
         offset		= 0x00830000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "flash"
         size		= 0x00032000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
@@ -12518,28 +12518,28 @@ part parent ".xmega"
     memory "application"
         size		= 0x00040000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "apptable"
         size		= 0x00002000;
         offset		= 0x0083e000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "boot"
         size		= 0x00002000;
         offset		= 0x00840000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "flash"
         size		= 0x00042000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
@@ -12618,14 +12618,14 @@ part parent ".xmega"
     memory "application"
         size		= 0x00004000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "apptable"
         size		= 0x00001000;
         offset		= 0x00803000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
@@ -12639,7 +12639,7 @@ part parent ".xmega"
     memory "flash"
         size		= 0x00005000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
@@ -12668,28 +12668,28 @@ part parent ".xmega"
     memory "application"
         size		= 0x00008000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "apptable"
         size		= 0x00001000;
         offset		= 0x00807000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "boot"
         size		= 0x00001000;
         offset		= 0x00808000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "flash"
         size		= 0x00009000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
@@ -12738,28 +12738,28 @@ part parent ".xmega"
     memory "application"
         size		= 0x00004000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "apptable"
         size		= 0x00001000;
         offset		= 0x00803000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "boot"
         size		= 0x00001000;
         offset		= 0x00804000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "flash"
         size		= 0x00005000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 ;
@@ -12784,28 +12784,28 @@ part parent ".xmega"
     memory "application"
         size		= 0x00008000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "apptable"
         size		= 0x00001000;
         offset		= 0x00807000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "boot"
         size		= 0x00001000;
         offset		= 0x00808000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "flash"
         size		= 0x00009000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 ;
@@ -12830,7 +12830,7 @@ part parent ".xmega"
     memory "application"
         size		= 0x00010000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
@@ -12844,14 +12844,14 @@ part parent ".xmega"
     memory "boot"
         size		= 0x00001000;
         offset		= 0x00810000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
     memory "flash"
         size		= 0x00011000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 ;
@@ -12876,7 +12876,7 @@ part parent ".xmega"
     memory "application"
         size		= 0x00020000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
@@ -12886,7 +12886,7 @@ part parent ".xmega"
         # XML file also says it's 8 KiB, use this.
         size		= 0x00002000;
         offset		= 0x0081e000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 
@@ -12900,7 +12900,7 @@ part parent ".xmega"
     memory "flash"
         size		= 0x00022000;
         offset		= 0x0800000;
-        page_size	= 0x100;
+        page_size	= 0x200;
         readsize	= 0x100;
     ;
 ;

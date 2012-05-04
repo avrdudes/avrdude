@@ -216,7 +216,7 @@ void free_update(UPDATE * u)
 }
 
 
-int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite)
+int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags flags)
 {
   struct avrpart * v;
   AVRMEM * mem;
@@ -239,7 +239,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite)
             progname, mem->desc);
 	  }
     report_progress(0,1,"Reading");
-    rc = avr_read(pgm, p, upd->memtype, 0, 1);
+    rc = avr_read(pgm, p, upd->memtype, 0);
     if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n",
               progname, mem->desc, rc);
@@ -288,9 +288,9 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite)
             progname, mem->desc, size);
 	  }
 
-    if (!nowrite) {
+    if (!(flags & UF_NOWRITE)) {
       report_progress(0,1,"Writing");
-      rc = avr_write(pgm, p, upd->memtype, size, 1);
+      rc = avr_write(pgm, p, upd->memtype, size, (flags & UF_AUTO_ERASE) != 0);
       report_progress(1,1,NULL);
     }
     else {
@@ -346,7 +346,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, int nowrite)
     }
 
     report_progress (0,1,"Reading");
-    rc = avr_read(pgm, p, upd->memtype, v, 1);
+    rc = avr_read(pgm, p, upd->memtype, v);
     if (rc < 0) {
       fprintf(stderr, "%s: failed to read all of %s memory, rc=%d\n",
               progname, mem->desc, rc);
