@@ -1171,8 +1171,12 @@ static int stk500hv_initialize(PROGRAMMER * pgm, AVRPART * p, enum hvmode mode)
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
     if (strcmp(m->desc, "flash") == 0) {
-      if (m->page_size > 0)
-	PDATA(pgm)->flash_pagesize = m->page_size;
+      if (m->page_size > 0) {
+        if (m->page_size > 256)
+          PDATA(pgm)->flash_pagesize = 256;
+        else
+          PDATA(pgm)->flash_pagesize = m->page_size;
+      }
     } else if (strcmp(m->desc, "eeprom") == 0) {
       if (m->page_size > 0)
 	PDATA(pgm)->eeprom_pagesize = m->page_size;
@@ -1456,9 +1460,7 @@ static int stk500hv_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   if (strcmp(mem->desc, "flash") == 0) {
     buf[0] = mode == PPMODE? CMD_READ_FLASH_PP: CMD_READ_FLASH_HVSP;
     cmdlen = 3;
-    pagesize = mem->page_size;
-    if (pagesize == 0)
-      pagesize = 2;
+    pagesize = PDATA(pgm)->flash_pagesize;
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->flash_pageaddr;
     cache_ptr = PDATA(pgm)->flash_pagecache;
@@ -1587,9 +1589,7 @@ static int stk500hv_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
   if (strcmp(mem->desc, "flash") == 0) {
     buf[0] = mode == PPMODE? CMD_PROGRAM_FLASH_PP: CMD_PROGRAM_FLASH_HVSP;
-    pagesize = mem->page_size;
-    if (pagesize == 0)
-      pagesize = 2;
+    pagesize = PDATA(pgm)->flash_pagesize;
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->flash_pageaddr;
     cache_ptr = PDATA(pgm)->flash_pagecache;

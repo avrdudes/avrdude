@@ -1,3 +1,19 @@
+2012-05-04  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Xmega page erase implementation for JTAGICEmkII
+	* jtagmkII.c: Handle flash pages sizes > 256 bytes, implement
+	page_erase() method
+	* avrdude.conf.in: Change flash pagesize for all Xmega devices
+	to 512 bytes
+	* avr.c: Implement auto_erase, using page_erase if available
+	* avr.h: Remove unused parameters from avr_read(), replace
+	unused parameter in avr_write)() by auto_erase
+	* stk500v2.c: Handle flash page sizes > 256 bytes
+	* update.c (do_op): Handle new updateflags parameter
+	* main.c: Implement auto_erase as page_erase if possible
+	* update.h (enum updateflags): New enum
+	* pgm.h (struct programmer_t): Add page_erase method
+
 2012-04-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* jtagmkII.c (jtagmkII_paged_load, jtagmkII_paged_write): fix bug

@@ -86,6 +86,9 @@ Current:
     Xmega devices, and "flash" for everything else.  This ensures
     the bootloader is not touched.
 
+  * For programmers that support it, the default erase method is a
+    page erase now, rather than a chip erase (Xmega only).
+
   * Programmers and parts lists
 
     They are now sorted at output with '-c ?'/'-p ?'. (patch #7671:

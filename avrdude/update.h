@@ -29,6 +29,12 @@ enum {
   DEVICE_VERIFY
 };
 
+enum updateflags {
+  UF_NONE = 0,
+  UF_NOWRITE = 1,
+  UF_AUTO_ERASE = 2,
+};
+
 
 typedef struct update_t {
   char * memtype;
@@ -47,7 +53,7 @@ extern UPDATE * new_update(int op, char * memtype, int filefmt,
 			   char * filename);
 extern void free_update(UPDATE * upd);
 extern int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd,
-		 int nowrite);
+		 enum updateflags flags);
 
 #ifdef __cplusplus
 }

@@ -315,11 +315,8 @@ int main(int argc, char * argv [])
   /* options / operating mode variables */
   int     erase;       /* 1=erase chip, 0=don't */
   int     calibrate;   /* 1=calibrate RC oscillator, 0=don't */
-  int     auto_erase;  /* 0=never erase unless explicity told to do
-                          so, 1=erase if we are going to program flash */
   char  * port;        /* device port (/dev/xxx) */
   int     terminal;    /* 1=enter terminal mode, 0=don't */
-  int     nowrite;     /* don't actually write anything to the chip */
   int     verify;      /* perform a verify operation */
   char  * exitspecs;   /* exit specs string from command line */
   char  * programmer;  /* programmer id */
@@ -336,6 +333,7 @@ int main(int argc, char * argv [])
   int     silentsafe;  /* Don't ask about fuses, 1=silent, 0=normal */
   int     init_ok;     /* Device initialization worked well */
   int     is_open;     /* Device open succeeded */
+  enum updateflags uflags = UF_AUTO_ERASE; /* Flags for do_op() */
   unsigned char safemode_lfuse = 0xff;
   unsigned char safemode_hfuse = 0xff;
   unsigned char safemode_efuse = 0xff;
@@ -397,11 +395,9 @@ int main(int argc, char * argv [])
   port          = NULL;
   erase         = 0;
   calibrate     = 0;
-  auto_erase    = 1;
   p             = NULL;
   ovsigck       = 0;
   terminal      = 0;
-  nowrite       = 0;
   verify        = 1;        /* on by default */
   quell_progress = 0;
   exitspecs     = NULL;
@@ -508,11 +504,12 @@ int main(int argc, char * argv [])
         break;
 
       case 'D': /* disable auto erase */
-        auto_erase = 0;
+        uflags &= ~UF_AUTO_ERASE;
         break;
 
       case 'e': /* perform a chip erase */
         erase = 1;
+        uflags &= ~UF_AUTO_ERASE;
         break;
 
       case 'E':
@@ -524,7 +521,7 @@ int main(int argc, char * argv [])
         break;
 
       case 'n':
-        nowrite = 1;
+        uflags |= UF_NOWRITE;
         break;
 
       case 'O': /* perform RC oscillator calibration */
@@ -844,7 +841,6 @@ int main(int argc, char * argv [])
 
   if(p->flags & AVRPART_AVR32) {
     safemode = 0;
-    auto_erase = 0;
   }
 
   if(p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_TPI)) {
@@ -1131,23 +1127,36 @@ int main(int argc, char * argv [])
     }
   }
 
-  if ((erase == 0) && (auto_erase == 1)) {
-    AVRMEM * m;
-    for (ln=lfirst(updates); ln; ln=lnext(ln)) {
-      upd = ldata(ln);
-      m = avr_locate_mem(p, upd->memtype);
-      if (m == NULL)
-        continue;
-      if ((strcasecmp(m->desc, "flash") == 0) && (upd->op == DEVICE_WRITE)) {
-        erase = 1;
-        if (quell_progress < 2) {
-          fprintf(stderr,
-                "%s: NOTE: FLASH memory has been specified, an erase cycle "
-                "will be performed\n"
-                "%sTo disable this feature, specify the -D option.\n",
-                progname, progbuf);
+  if (uflags & UF_AUTO_ERASE) {
+    if ((p->flags & AVRPART_HAS_PDI) && pgm->page_erase != NULL &&
+        lsize(updates) > 0) {
+      if (quell_progress < 2) {
+        fprintf(stderr,
+                "%s: NOTE: Programmer supports page erase for Xmega devices.\n"
+                "%sEach page will be erased before programming it, but no chip erase is performed.\n"
+                "%sTo disable page erases, specify the -D option; for a chip-erase, use the -e option.\n",
+                progname, progbuf, progbuf);
+      }
+    } else {
+      AVRMEM * m;
+      const char *memname = (p->flags & AVRPART_HAS_PDI)? "application": "flash";
+      for (ln=lfirst(updates); ln; ln=lnext(ln)) {
+        upd = ldata(ln);
+        m = avr_locate_mem(p, upd->memtype);
+        if (m == NULL)
+          continue;
+        if ((strcasecmp(m->desc, memname) == 0) && (upd->op == DEVICE_WRITE)) {
+          erase = 1;
+          uflags &= ~UF_AUTO_ERASE;
+          if (quell_progress < 2) {
+            fprintf(stderr,
+                    "%s: NOTE: \"%s\" memory has been specified, an erase cycle "
+                    "will be performed\n"
+                    "%sTo disable this feature, specify the -D option.\n",
+                    progname, memname, progbuf);
+          }
+          break;
         }
-        break;
       }
     }
   }
@@ -1199,7 +1208,7 @@ int main(int argc, char * argv [])
      * erase the chip's flash and eeprom memories, this is required
      * before the chip can accept new programming
      */
-    if (nowrite) {
+    if (uflags & UF_NOWRITE) {
       fprintf(stderr,
 	      "%s: conflicting -e and -n options specified, NOT erasing chip\n",
 	      progname);
@@ -1230,7 +1239,7 @@ int main(int argc, char * argv [])
 
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
     upd = ldata(ln);
-    rc = do_op(pgm, p, upd, nowrite);
+    rc = do_op(pgm, p, upd, uflags);
     if (rc) {
       exitrc = 1;
       break;

@@ -109,6 +109,8 @@ typedef struct programmer_t {
   int  (*paged_load)     (struct programmer_t * pgm, AVRPART * p, AVRMEM * m,
                           unsigned int page_size, unsigned int baseaddr,
                           unsigned int n_bytes);
+  int  (*page_erase)     (struct programmer_t * pgm, AVRPART * p, AVRMEM * m,
+                          unsigned int baseaddr);
   void (*write_setup)    (struct programmer_t * pgm, AVRPART * p, AVRMEM * m);
   int  (*write_byte)     (struct programmer_t * pgm, AVRPART * p, AVRMEM * m,
                           unsigned long addr, unsigned char value);
