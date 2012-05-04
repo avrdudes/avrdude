@@ -1,5 +1,10 @@
 2012-05-04  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Xmega page erase implementation for XPROG (AVRISPmkII, STK600)
+	* stk500v2.c (stk600_xprog_page_erase): New function.
+
+2012-05-04  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Xmega page erase implementation for JTAGICEmkII
 	* jtagmkII.c: Handle flash pages sizes > 256 bytes, implement
 	page_erase() method
