@@ -1,3 +1,9 @@
+2012-06-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* usbtiny.c (usbtiny_paged_load, usbtiny_paged_write):
+	fix breakage introduced by the recent page handling reorg;
+	it used to cause an infinite loop
+
 2012-05-04  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Xmega page erase implementation for XPROG (AVRISPmkII, STK600)
