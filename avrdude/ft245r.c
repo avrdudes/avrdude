@@ -70,6 +70,8 @@
 #include "bitbang.h"
 #include "ft245r.h"
 
+#ifdef HAVE_PTHREAD_H
+
 #include <pthread.h>
 #include <semaphore.h>
 
@@ -829,6 +831,26 @@ void ft245r_initpgm(PROGRAMMER * pgm) {
     strcpy(pgm->type, "ftdi_syncbb");
     pgm->open = ft245r_noftdi_open;
 }
+#endif
+#else
+
+static int ft245r_nopthread_open (struct programmer_t *pgm, char * name) {
+    fprintf(stderr,
+            "%s: error: no pthread support. Please compile again with pthread installed."
+#if defined(_WIN32)
+            " See http://sourceware.org/pthreads-win32/."
+#endif
+            "\n",
+            progname);
+
+    exit(1);
+}
+
+void ft245r_initpgm(PROGRAMMER * pgm) {
+    strcpy(pgm->type, "ftdi_syncbb");
+    pgm->open = ft245r_nopthread_open;
+}
+
 #endif
 
 const char ft245r_desc[] = "FT245R/FT232R Synchronous BitBangMode Programmer";
