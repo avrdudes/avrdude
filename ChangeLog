@@ -1,3 +1,9 @@
+2012-06-13  Rene Liebscher <R.Liebscher@gmx.de>
+
+	* configure.ac: Check for presence of <pthread.h>
+	* ft245r.c: Depend on HAVE_PTHREAD_H
+	* Makefile.am: Add -lpthread if needed.
+
 2012-06-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* usbtiny.c (usbtiny_paged_load, usbtiny_paged_write):

@@ -149,10 +149,17 @@ AH_TEMPLATE([HAVE_LIBFTDI],
             [Define if FTDI support is enabled via libftdi])
 AC_CHECK_LIB([ftdi], [ftdi_usb_get_strings], [have_libftdi=yes], [], [-lusb])
 if test x$have_libftdi = xyes; then
-   LIBFTDI="-lftdi -lusb -lpthread"
+   LIBFTDI="-lftdi -lusb"
    AC_DEFINE([HAVE_LIBFTDI])
 fi
 AC_SUBST(LIBFTDI, $LIBFTDI)
+AC_CHECK_HEADERS([pthread.h])
+# as there exits header file only pthread implementations for Windows, check if we have a library
+AC_CHECK_LIB([pthread], [pthread_create], [have_pthread=yes])
+if test x$have_pthread = xyes; then
+   LIBPTHREAD="-lpthread"
+fi
+AC_SUBST(LIBPTHREAD, $LIBPTHREAD)
 # Checks for header files.
 AC_CHECK_HEADERS([limits.h stdlib.h string.h])
 AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h termios.h unistd.h])
@@ -460,3 +467,10 @@ if test x$have_libhid = xyes; then
 else
    echo "DON'T HAVE libhid"
 fi
+
+if test x$have_pthread = xyes; then
+   echo "DO HAVE    pthread"
+else
+   echo "DON'T HAVE pthread"
+fi
+
