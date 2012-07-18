@@ -30,7 +30,11 @@
 #include <stdint.h>
 
 #ifdef HAVE_LIBELF
+#ifdef HAVE_LIBELF_H
 #include <libelf.h>
+#elif defined(HAVE_LIBELF_LIBELF_H)
+#include <libelf/libelf.h>
+#endif
 #define EM_AVR32 0x18ad         /* inofficial */
 #endif
 
