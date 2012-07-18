@@ -1,3 +1,9 @@
+2012-07-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac: check for libelf.h also in libelf/
+	* fileio.c: include <libelf/libelf.h> if configure found this
+	to be the case
+
 2012-06-13  Rene Liebscher <R.Liebscher@gmx.de>
 
 	* configure.ac: Check for presence of <pthread.h>

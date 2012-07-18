@@ -84,7 +84,7 @@ if test x$have_libelf = xyes; then
                ;;
    esac
    AC_DEFINE([HAVE_LIBELF])
-   AC_CHECK_HEADERS([libelf.h])
+   AC_CHECK_HEADERS([libelf.h libelf/libelf.h])
 fi
 AC_SUBST(LIBELF, $LIBELF)
 
