@@ -221,6 +221,7 @@ void      avr_free_part(AVRPART * d);
 AVRPART * locate_part(LISTID parts, char * partdesc);
 AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode);
 void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose);
+const char * avr_pin_name(int);
 
 typedef void (*walk_avrparts_cb)(const char *name, const char *desc,
                                  const char *cfgname, int cfglineno,
