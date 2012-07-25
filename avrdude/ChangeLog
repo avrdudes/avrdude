@@ -3,6 +3,10 @@
 	* jtagmkII.c (jtagmkII_memtype): return MTYPE_FLASH rather than
 	MTYPE_SPM for non-Xmega flash regions
 
+2012-07-20 Hannes Weisbach <hannes_weisbach@gmx.net>
+
+	* avrpart.c, avrpart.h: adds avr_pin_name()
+
 2012-07-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* configure.ac: check for libelf.h also in libelf/
