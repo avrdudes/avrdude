@@ -2762,7 +2762,7 @@ static unsigned char jtagmkII_memtype(PROGRAMMER * pgm, AVRPART * p, unsigned lo
     else
       return MTYPE_FLASH;
   } else {
-    return MTYPE_SPM;
+    return MTYPE_FLASH_PAGE;
   }
 }
 
