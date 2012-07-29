@@ -1,3 +1,8 @@
+2012-07-29  Hannes Weisbach <hannes_weisbach@gmx.net>
+
+	* avrftdi.c: bugfixes (synchronisation) and maintenance (paged programming,
+	nicer output, separation of parameter checking and actual code)
+
 2012-07-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* jtagmkII.c (jtagmkII_memtype): return MTYPE_FLASH rather than
