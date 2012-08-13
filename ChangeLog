@@ -1,3 +1,8 @@
+2012-08-13  Hannes Weisbach <hannes_weisbach@gmx.net>
+
+	* avrftdi.c: fixes pin_limit for different FTDI devices (there was a mixup
+	between 2232C and 2232H)
+
 2012-07-29  Hannes Weisbach <hannes_weisbach@gmx.net>
 
 	* avrftdi.c: bugfixes (synchronisation) and maintenance (paged programming,
