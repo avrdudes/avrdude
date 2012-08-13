@@ -764,15 +764,24 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 
 	/* set pin limit depending on chip type */
 	switch(pdata->ftdic->type) {
+#if 0
+		//TODO: issue an error - no MPSSE. hint the user to syncbb?
+		case TYPE_AM:
+		case TYPE_BM:
+		case TYPE_R:
+#endif
 		case TYPE_2232C:
-			pdata->pin_limit = 15;
-			break;
-		case TYPE_2232H:
 			pdata->pin_limit = 11;
 			break;
+		case TYPE_2232H:
+		case TYPE_232H:
+			pdata->pin_limit = 15;
+			break;
 		case TYPE_4232H:
-		default:
 			pdata->pin_limit = 7;
+			break;
+		default:
+		//TODO: error/unsupported device
 	}
 	
 	/* add SCK, MOSI and RESET as output pins - MISO needs no configuration */
