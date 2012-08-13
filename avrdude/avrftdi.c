@@ -782,6 +782,7 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 			break;
 		default:
 		//TODO: error/unsupported device
+			break;
 	}
 	
 	/* add SCK, MOSI and RESET as output pins - MISO needs no configuration */
