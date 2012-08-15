@@ -839,6 +839,26 @@ After performing the port open phase, AVRDUDE will wait/snooze for
 No toggling of DTR/RTS is performed if @var{snooze} > 0.
 @end table
 
+@item PICkit2
+Connection to the PICkit2 programmer:
+@multitable @columnfractions .05 .3
+@item @code{(AVR)} @tab      @code{(PICkit2)}
+@item @code{RST} @tab      @code{VPP/MCLR (1) }
+@item @code{VDD} @tab      @code{VDD Target (2) -- possibly optional if AVR self powered }
+@item @code{GND} @tab      @code{GND (3) }
+@item @code{MISO} @tab      @code{PGD (4) }
+@item @code{SCLK} @tab      @code{PDC (5) }
+@item @code{OSI} @tab      @code{AUX (6) }
+@end multitable
+
+Extended commandline parameters:
+@table @code
+@item @samp{clockrate=@var{rate}}
+Sets the SPI clocking rate in Hz (default is 100kHz). Alternately the -B or -i options can be used to set the period.
+@item @samp{timeout=@var{usb-transaction-timeout}}
+Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
+@end table
+
 @end table
 
 @page

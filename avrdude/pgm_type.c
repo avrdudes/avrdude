@@ -39,6 +39,7 @@
 #include "jtagmkI.h"
 #include "jtagmkII.h"
 #include "par.h"
+#include "pickit2.h"
 #include "ppi.h"
 #include "serbb.h"
 #include "stk500.h"
@@ -70,6 +71,7 @@ const PROGRAMMER_TYPE const programmers_types[] = {
         {"jtagmkii_isp", stk500v2_jtagmkII_initpgm, stk500v2_jtagmkII_desc},
         {"jtagmkii_pdi", jtagmkII_pdi_initpgm, jtagmkII_pdi_desc},
         {"par", par_initpgm, par_desc},
+        {"pickit2", pickit2_initpgm, pickit2_desc},
         {"serbb", serbb_initpgm, serbb_desc},
         {"stk500", stk500_initpgm, stk500_desc},
         {"stk500generic", stk500generic_initpgm, stk500generic_desc},
