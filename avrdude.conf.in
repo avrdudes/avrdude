@@ -873,6 +873,13 @@ programmer
   connection_type = serial;
 ;
 
+programmer
+  id    = "pickit2";
+  desc  = "MicroChip's PICkit2 Programmer";
+  type  = "pickit2";
+  connection_type = usb;
+;
+
 @HAVE_PARPORT_BEGIN@  Inclusion of the following depends on --enable-parport
 # Parallel port programmers.
 

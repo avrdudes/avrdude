@@ -948,6 +948,25 @@ No toggling of DTR/RTS is performed if
 .Ar snooze
 is greater than 0.
 .El
+.It Ar PICkit2
+Connection to the PICkit2 programmer:
+.Bd -literal
+(AVR)    (PICkit2)
+RST  -   VPP/MCLR (1) 
+VDD  -   VDD Target (2) -- possibly optional if AVR self powered 
+GND  -   GND (3) 
+MISO -   PGD (4) 
+SCLK -   PDC (5) 
+MOSI -   AUX (6) 
+
+.Ed
+Extended commandline parameters:
+.Bl -tag -offset indent -width indent
+.It Ar clockrate=<rate>
+Sets the SPI clocking rate in Hz (default is 100kHz). Alternately the -B or -i options can be used to set the period.
+.It Ar timeout=<usb-transaction-timeout>
+Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
+.El
 .El
 .Sh FILES
 .Bl -tag -offset indent -width /dev/ppi0XXX

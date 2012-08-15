@@ -1,5 +1,15 @@
 2012-08-15  Rene Liebscher <R.Liebscher@gmx.de>
 
+	patch #7184 Support for PICKit2 programmer
+	* Makefile.am: add pickit2 files
+	* pickit2.[ch]: new programmer implementation
+	* pgm_type.c: add pickit to list
+	* avrdude.1: documentation for pickit2
+	* doc/avrdude.texi: documentation for pickit2
+	* avrdude.conf.in: add pickit2 programmer entry
+
+2012-08-15  Rene Liebscher <R.Liebscher@gmx.de>
+
 	bug #30559 Ft232 bit-bang support, see comment #30
 	* ft245r.c: added semaphore workaround for MacOS X,
 	            added pthread_testcancel in reader thread
