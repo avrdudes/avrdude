@@ -1,3 +1,12 @@
+2012-08-15  Rene Liebscher <R.Liebscher@gmx.de>
+
+	bug #30559 Ft232 bit-bang support, see comment #30
+	* ft245r.c: added semaphore workaround for MacOS X,
+	            added pthread_testcancel in reader thread
+	
+	* configure.ac: added check for TYPE_232H in libftdi (not in libftdi < 0.20)
+	* avrftdi.c: do not use TYPE_232H if not declared
+
 2012-08-13  Hannes Weisbach <hannes_weisbach@gmx.net>
 
 	* avrftdi.c: fixes pin_limit for different FTDI devices (there was a mixup

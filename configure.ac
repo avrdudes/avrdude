@@ -147,10 +147,16 @@ fi
 AC_SUBST(LIBUSB_1_0, $LIBUSB_1_0)
 AH_TEMPLATE([HAVE_LIBFTDI],
             [Define if FTDI support is enabled via libftdi])
+AH_TEMPLATE([HAVE_LIBFTDI_TYPE_232H],
+            [Define if libftdi supports FT232H, libftdi version >= 0.20])
 AC_CHECK_LIB([ftdi], [ftdi_usb_get_strings], [have_libftdi=yes], [], [-lusb])
 if test x$have_libftdi = xyes; then
    LIBFTDI="-lftdi -lusb"
    AC_DEFINE([HAVE_LIBFTDI])
+   AC_CHECK_DECL(TYPE_232H,[have_libftdi_FT232H=yes], [], [[#include <ftdi.h>]])
+   if test x$have_libftdi_FT232H = xyes; then
+      AC_DEFINE([HAVE_LIBFTDI_TYPE_232H])
+   fi
 fi
 AC_SUBST(LIBFTDI, $LIBFTDI)
 AC_CHECK_HEADERS([pthread.h])

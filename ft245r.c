@@ -73,7 +73,19 @@
 #ifdef HAVE_PTHREAD_H
 
 #include <pthread.h>
+
+#ifdef __APPLE__
+/* Mac OS X defines sem_init but actually does not implement them */
+#include <dispatch/dispatch.h>
+
+typedef dispatch_semaphore_t	sem_t;
+
+#define sem_init(psem,x,val)	*psem = dispatch_semaphore_create(val)
+#define sem_post(psem)		dispatch_semaphore_signal(*psem)
+#define sem_wait(psem)		dispatch_semaphore_wait(*psem, DISPATCH_TIME_FOREVER)
+#else
 #include <semaphore.h>
+#endif
 
 #ifdef HAVE_LIBFTDI
 
@@ -130,6 +142,7 @@ static void *reader (void *arg) {
     int br, i;
 
     while (1) {
+        pthread_testcancel();
         br = ftdi_read_data (handle, buf, sizeof(buf));
         for (i=0; i<br; i++)
             add_to_buf (buf[i]);
