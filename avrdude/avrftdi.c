@@ -774,7 +774,9 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 			pdata->pin_limit = 11;
 			break;
 		case TYPE_2232H:
+#ifdef HAVE_LIBFTDI_TYPE_232H
 		case TYPE_232H:
+#endif
 			pdata->pin_limit = 15;
 			break;
 		case TYPE_4232H:
