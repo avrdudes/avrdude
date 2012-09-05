@@ -1,3 +1,9 @@
+2012-09-05  Rene Liebscher <R.Liebscher@gmx.de>
+
+	* doc/Makefile.am: add $(srcdir) to name of generated files, so BSD make
+	                   find the files ( GNU make sees no difference if the 
+	                   file is called version.texi or ./version.texi )
+
 2012-08-15  Rene Liebscher <R.Liebscher@gmx.de>
 
 	patch #7184 Support for PICKit2 programmer
