@@ -1,3 +1,9 @@
+2012-09-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* doc/Makefile.am: add EXTRA_DIST, replace $(srcdir) by
+	$(builddir) for generated files, so "make distcheck"
+	works again
+
 2012-09-05  Rene Liebscher <R.Liebscher@gmx.de>
 
 	* doc/Makefile.am: add $(srcdir) to name of generated files, so BSD make
