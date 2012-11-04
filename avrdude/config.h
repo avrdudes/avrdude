@@ -29,11 +29,14 @@
 
 #define MAX_STR_CONST 1024
 
-enum { V_NONE, V_NUM, V_STR };
+enum { V_NONE, V_NUM, V_NUM_REAL, V_STR };
 typedef struct value_t {
   int      type;
-  double   number;
-  char   * string;
+  /*union { TODO: use an anonymous union here ? */
+    int      number;
+    double   number_real;
+    char   * string;
+  /*};*/
 } VALUE;
 
 
@@ -90,6 +93,8 @@ void free_token(TOKEN * tkn);
 void free_tokens(int n, ...);
 
 TOKEN * number(char * text);
+
+TOKEN * number_real(char * text);
 
 TOKEN * hexnumber(char * text);
 

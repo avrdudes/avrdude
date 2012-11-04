@@ -1,3 +1,12 @@
+2012-11-04  Rene Liebscher <R.Liebscher@gmx.de>
+
+	* lexer.l,config_gram.y,config.[hc]: changed reading of numbers to integers
+	        except of default_bitclock which is the only real number.
+	        No signs are allowed as negative values do not make sense for current
+	        config values.
+	* buspirate.c: include own header file buspirate.h
+	* doc/.cvsignore: add programmers.texi to ignore list
+
 2012-09-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* doc/Makefile.am: add EXTRA_DIST, replace $(srcdir) by
