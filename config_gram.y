@@ -200,11 +200,23 @@ static int pin_name;
 %token TKN_SEMI
 %token TKN_TILDE
 %token TKN_NUMBER
+%token TKN_NUMBER_REAL
 %token TKN_STRING
 
 %start configuration
 
 %%
+
+number_real : 
+ TKN_NUMBER {
+    $$ = $1;
+    /* convert value to real */
+    $$->value.number_real = $$->value.number;
+    $$->value.type = V_NUM_REAL;
+  } |
+  TKN_NUMBER_REAL {
+    $$ = $1;
+  }
 
 configuration :
   /* empty */ | config
@@ -239,8 +251,8 @@ def :
     free_token($3);
   } |
 
-  K_DEFAULT_BITCLOCK TKN_EQUAL TKN_NUMBER TKN_SEMI {
-    default_bitclock = $3->value.number;
+  K_DEFAULT_BITCLOCK TKN_EQUAL number_real TKN_SEMI {
+    default_bitclock = $3->value.number_real;
     free_token($3);
   }
 ;

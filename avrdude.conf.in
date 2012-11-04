@@ -326,7 +326,7 @@
 #
 default_parallel   = "@DEFAULT_PAR_PORT@";
 default_serial     = "@DEFAULT_SER_PORT@";
-# default_bitclock = 2.5
+# default_bitclock = 2.5;
 
 
 #

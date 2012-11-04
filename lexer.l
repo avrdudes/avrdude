@@ -57,9 +57,12 @@ SIGN     [+-]
 
 %%
 
-{SIGN}*{DIGIT}+            { yylval = number(yytext); return TKN_NUMBER; }
-{SIGN}*{DIGIT}+"."{DIGIT}* { yylval = number(yytext); return TKN_NUMBER; }
-{SIGN}*"."{DIGIT}*         { yylval = number(yytext); return TKN_NUMBER; }
+#{SIGN}*{DIGIT}+            { yylval = number(yytext); return TKN_NUMBER; }
+#{SIGN}*{DIGIT}+"."{DIGIT}* { yylval = number_real(yytext); return TKN_NUMBER_REAL; }
+#{SIGN}*"."{DIGIT}*         { yylval = number_real(yytext); return TKN_NUMBER_REAL; }
+{DIGIT}+            { yylval = number(yytext); return TKN_NUMBER; }
+{DIGIT}+"."{DIGIT}* { yylval = number_real(yytext); return TKN_NUMBER_REAL; }
+"."{DIGIT}+         { yylval = number_real(yytext); return TKN_NUMBER_REAL; }
 
 "\""      { string_buf_ptr = string_buf; BEGIN(strng); }
 

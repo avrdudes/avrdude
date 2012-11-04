@@ -50,6 +50,7 @@
 #include "avr.h"
 #include "pgm.h"
 #include "serial.h"
+#include "buspirate.h"
 
 /* ====== Private data structure ====== */
 /* CS and AUX pin bitmasks in
