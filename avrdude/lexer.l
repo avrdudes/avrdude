@@ -248,6 +248,8 @@ yes              { yylval=new_token(K_YES); return K_YES; }
 "="       { yylval = NULL; pyytext(); return TKN_EQUAL; }
 ";"       { yylval = NULL; pyytext(); return TKN_SEMI; }
 "~"       { yylval = NULL; pyytext(); return TKN_TILDE; }
+"("       { yylval = NULL; pyytext(); return TKN_LEFT_PAREN; }
+")"       { yylval = NULL; pyytext(); return TKN_RIGHT_PAREN; }
 
 "\n"      { lineno++; }
 [ \r\t]+  { /* ignore whitespace */ }

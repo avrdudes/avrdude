@@ -106,11 +106,14 @@ static int par_setpin(PROGRAMMER * pgm, int pin, int value)
 
 static void par_setmany(PROGRAMMER * pgm, unsigned int pinset, int value)
 {
-  int pin;
+  int pin, mask;
+
+  /* mask is anything non-pin - needs to be applied to each par_setpin to preserve inversion */
+  mask = pinset & (~PIN_MASK);
 
   for (pin = 1; pin <= 17; pin++) {
     if (pinset & (1 << pin))
-      par_setpin(pgm, pin, value);
+      par_setpin(pgm, pin | mask, value);
   }
 }
 

@@ -38,6 +38,9 @@
 #       usbsn    = <serialno>;                      # USB Serial Number
 #
 #        To invert a bit, use = ~ <num>, the spaces are important.
+#        For a pin list all pins must be inverted.
+#        A single pin can be specified as usual = ~ <num>, for lists
+#        specify it as follows = ~ ( <num> [, <num2> ... ] ) .
 #     ;
 #
 #   part
@@ -471,6 +474,28 @@ programmer parent "jtagkey"
   usbpid     = 0x5118;
   usbvendor  = "www.100ask.net";
   usbproduct = "USB<=>JTAG&RS232";
+;
+
+# Only Rev. A boards.
+# Schematic and user manual: http://www.cs.put.poznan.pl/wswitala/download/pdf/811EVBK.pdf
+programmer
+  id         = "lm3s811";
+  desc       = "Luminary Micro LM3S811 Eval Board (Rev. A)";
+  type       = "avrftdi";
+  connection_type = usb;
+  usbvid     = 0x0403;
+  usbpid     = 0xbcd9;
+  usbvendor  = "LMI";
+  usbproduct = "LM3S811 Evaluation Board";
+  usbdev     = "A";
+  usbsn      = "";
+#ISP-signals - lower ACBUS-Nibble (default)
+  reset  = 4;
+  sck    = 1;
+  mosi   = 2;
+  miso   = 3;
+# Enable correct buffers
+  buff   = ~8;
 ;
 
 programmer
@@ -1065,7 +1090,7 @@ programmer
 ;
 
 # It is almost same as pony-stk200, except vcc on pin 5 to auto
-# disconnect port (download on http://electropol.free.fr)
+# disconnect port (download on http://electropol.free.fr/spip/spip.php?article27)
 programmer parent "pony-stk200"
   id    = "frank-stk200";
   desc  = "Frank STK200";
