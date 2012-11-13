@@ -129,7 +129,7 @@ ftdi_pin_name(avrftdi_t* pdata, int pin)
 	/* This is FTDI's naming scheme.
 	 * probably 'D' is for data and 'C' for control
 	 */
-	if(pin < 8)
+	if(pin <= 8)
 		port = 'D';
 	else
 		port = 'C';
@@ -517,6 +517,11 @@ static int set_led_vfy(struct programmer_t * pgm, int value)
 	return set_pin(pgm, PIN_LED_VFY, value);
 }
 
+/* Send 'buf_size' bytes from 'cmd' to device and return data from device in
+ * buffer 'data'.
+ * Write is only performed when mode contains MPSSE_DO_WRITE.
+ * Read is only performed when mode contains MPSSE_DO_READ.
+ */
 static int avrftdi_transmit(avrftdi_t* pdata, unsigned char mode, unsigned char *cmd,
 			    unsigned char *data, int buf_size)
 {

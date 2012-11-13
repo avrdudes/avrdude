@@ -1,3 +1,13 @@
+2012-11-13  Rene Liebscher <R.Liebscher@gmx.de>
+
+	bug #35186 inverting pins with "~" doesn't work for pin lists (i.e. vcc)
+	bug #37727 Add support for LM3S811 dev board as a programmer
+	* lexer.l,config_gram.y: accepting inverted pins at pin lists 
+	        syntax: ~num or ~(num,num,...)
+	* par.c: par_set_many_bits is now usable with inverted pins
+	* avrftdi.c: fixed wrong index in ftdi_pin_name
+	* avrdude.conf.in: added programmer lm3s811
+
 2012-11-04  Rene Liebscher <R.Liebscher@gmx.de>
 
 	* lexer.l,config_gram.y,config.[hc]: changed reading of numbers to integers

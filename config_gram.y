@@ -48,6 +48,7 @@ int yylex(void);
 int yyerror(char * errmsg);
 
 static int assign_pin(int pinno, TOKEN * v, int invert);
+static int assign_pin_list(int invert);
 static int which_opcode(TOKEN * opcode);
 static int parse_cmdbits(OPCODE * op);
 
@@ -199,6 +200,8 @@ static int pin_name;
 %token TKN_EQUAL
 %token TKN_SEMI
 %token TKN_TILDE
+%token TKN_LEFT_PAREN
+%token TKN_RIGHT_PAREN
 %token TKN_NUMBER
 %token TKN_NUMBER_REAL
 %token TKN_STRING
@@ -539,22 +542,11 @@ pin_number:
 ;
 
 pin_list:
-  num_list {
-    {
-      TOKEN * t;
-      int pin;
-
-      current_prog->pinno[pin_name] = 0;
-
-      while (lsize(number_list)) {
-        t = lrmv_n(number_list, 1);
-        pin = t->value.number;
-        current_prog->pinno[pin_name] |= (1 << pin);
-
-        free_token(t);
-      }
-    }
-  }
+  num_list            { assign_pin_list(0); }
+  |
+  TKN_TILDE TKN_NUMBER { assign_pin(pin_name, $2, 1); }
+  |
+  TKN_TILDE TKN_LEFT_PAREN num_list TKN_RIGHT_PAREN { assign_pin_list(1); }
   |
   /* empty */ {
     current_prog->pinno[pin_name] = 0;
@@ -1331,7 +1323,8 @@ mem_spec :
 static char * vtypestr(int type)
 {
   switch (type) {
-    case V_NUM : return "NUMERIC";
+    case V_NUM : return "INTEGER";
+    case V_NUM_REAL: return "REAL";
     case V_STR : return "STRING";
     default:
       return "<UNKNOWN>";
@@ -1358,6 +1351,24 @@ static int assign_pin(int pinno, TOKEN * v, int invert)
     value |= PIN_INVERSE;
 
   current_prog->pinno[pinno] = value;
+
+  return 0;
+}
+
+static int assign_pin_list(int invert)
+{
+  TOKEN * t;
+  int pin;
+
+  current_prog->pinno[pin_name] = 0;
+  while (lsize(number_list)) {
+    t = lrmv_n(number_list, 1);
+    pin = t->value.number;
+    current_prog->pinno[pin_name] |= (1 << pin);
+    if (invert)
+      current_prog->pinno[pin_name] |= PIN_INVERSE;
+    free_token(t);
+  }
 
   return 0;
 }
