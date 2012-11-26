@@ -1542,6 +1542,10 @@ static int jtagmkII_open(PROGRAMMER * pgm, char * port)
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
     baud = USB_DEVICE_JTAGICEMKII;
+    pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_MKII;
+    pgm->fd.usb.rep = USBDEV_BULK_EP_READ_MKII;
+    pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_MKII;
+    pgm->fd.usb.eep = 0;           /* no seperate EP for events */
 #else
     fprintf(stderr, "avrdude was compiled without usb support.\n");
     return -1;
@@ -1589,6 +1593,10 @@ static int jtagmkII_open_dw(PROGRAMMER * pgm, char * port)
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
     baud = USB_DEVICE_JTAGICEMKII;
+    pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_MKII;
+    pgm->fd.usb.rep = USBDEV_BULK_EP_READ_MKII;
+    pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_MKII;
+    pgm->fd.usb.eep = 0;           /* no seperate EP for events */
 #else
     fprintf(stderr, "avrdude was compiled without usb support.\n");
     return -1;
@@ -1636,6 +1644,10 @@ static int jtagmkII_open_pdi(PROGRAMMER * pgm, char * port)
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
     baud = USB_DEVICE_JTAGICEMKII;
+    pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_MKII;
+    pgm->fd.usb.rep = USBDEV_BULK_EP_READ_MKII;
+    pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_MKII;
+    pgm->fd.usb.eep = 0;           /* no seperate EP for events */
 #else
     fprintf(stderr, "avrdude was compiled without usb support.\n");
     return -1;
@@ -1684,6 +1696,10 @@ static int jtagmkII_dragon_open(PROGRAMMER * pgm, char * port)
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
     baud = USB_DEVICE_AVRDRAGON;
+    pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_MKII;
+    pgm->fd.usb.rep = USBDEV_BULK_EP_READ_MKII;
+    pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_MKII;
+    pgm->fd.usb.eep = 0;           /* no seperate EP for events */
 #else
     fprintf(stderr, "avrdude was compiled without usb support.\n");
     return -1;
@@ -1732,6 +1748,10 @@ static int jtagmkII_dragon_open_dw(PROGRAMMER * pgm, char * port)
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
     baud = USB_DEVICE_AVRDRAGON;
+    pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_MKII;
+    pgm->fd.usb.rep = USBDEV_BULK_EP_READ_MKII;
+    pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_MKII;
+    pgm->fd.usb.eep = 0;           /* no seperate EP for events */
 #else
     fprintf(stderr, "avrdude was compiled without usb support.\n");
     return -1;
@@ -1780,6 +1800,10 @@ static int jtagmkII_dragon_open_pdi(PROGRAMMER * pgm, char * port)
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
     baud = USB_DEVICE_AVRDRAGON;
+    pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_MKII;
+    pgm->fd.usb.rep = USBDEV_BULK_EP_READ_MKII;
+    pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_MKII;
+    pgm->fd.usb.eep = 0;           /* no seperate EP for events */
 #else
     fprintf(stderr, "avrdude was compiled without usb support.\n");
     return -1;
@@ -3411,6 +3435,10 @@ static int jtagmkII_open32(PROGRAMMER * pgm, char * port)
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
     baud = USB_DEVICE_JTAGICEMKII;
+    pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_MKII;
+    pgm->fd.usb.rep = USBDEV_BULK_EP_READ_MKII;
+    pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_MKII;
+    pgm->fd.usb.eep = 0;           /* no seperate EP for events */
 #else
     fprintf(stderr, "avrdude was compiled without usb support.\n");
     return -1;

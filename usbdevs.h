@@ -31,12 +31,9 @@
 #define USB_DEVICE_STK600      0x2106
 #define USB_DEVICE_AVRDRAGON   0x2107
 
-/*
- * Should we query the endpoint number and max transfer size from USB?
- * After all, the JTAG ICE mkII docs document these values.
- */
-#define USBDEV_BULK_EP_WRITE 0x02
-#define USBDEV_BULK_EP_READ  0x82
-#define USBDEV_MAX_XFER 64
+/* JTAGICEmkII */
+#define USBDEV_BULK_EP_WRITE_MKII 0x02
+#define USBDEV_BULK_EP_READ_MKII  0x82
+#define USBDEV_MAX_XFER_MKII 64
 
 #endif  /* usbdevs_h */
