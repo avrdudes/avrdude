@@ -1,3 +1,12 @@
+2012-11-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtagmkII.c: Change all the USB details (endpoint numbers,
+	max transfer size etc.) to a per-programmer adjustable value.
+	* serial.h: (Dito.)
+	* stk500v2.c: (Dito.)
+	* usbdevs.h: (Dito.)
+	* usb_libusb.c: (Dito.)
+
 2012-11-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* buspirate.c: Replace outdated FSF postal address by a reference to

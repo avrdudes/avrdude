@@ -37,7 +37,10 @@ union filedescriptor
   struct
   {
     void *handle;
-    int ep;
+    int rep;                    /* bulk read endpoint */
+    int wep;                    /* bulk write endpoint */
+    int eep;                    /* event read endpoint */
+    int max_xfer;               /* max transfer size */
   } usb;
 };
 
