@@ -892,6 +892,28 @@ programmer
 ;
 
 programmer
+  id    = "jtag3";
+  desc  = "Atmel AVR JTAGICE3 in JTAG mode";
+  type  = "jtagice3";
+  connection_type = usb;
+;
+
+programmer
+  id    = "jtag3pdi";
+  desc  = "Atmel AVR JTAGICE3 in PDI mode";
+  type  = "jtagice3_pdi";
+  connection_type = usb;
+;
+
+programmer
+  id    = "jtag3dw";
+  desc  = "Atmel AVR JTAGICE3 in debugWIRE mode";
+  type  = "jtagice3_dw";
+  connection_type = usb;
+;
+
+
+programmer
   id    = "pavr";
   desc  = "Jason Kyle's pAVR Serial Programmer";
   type  = "avr910";

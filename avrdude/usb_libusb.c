@@ -52,7 +52,7 @@
 #  undef interface
 #endif
 
-static char usbbuf[USBDEV_MAX_XFER_MKII];
+static char usbbuf[USBDEV_MAX_XFER_3];
 static int buflen = -1, bufptr;
 
 static int usb_interface;
@@ -399,6 +399,32 @@ static int usbdev_recv_frame(union filedescriptor *fd, unsigned char *buf, size_
   int i;
   unsigned char * p = buf;
 
+  /* If there's an event EP, and it has data pending, return it first. */
+  if (fd->usb.eep != 0)
+  {
+      rv = usb_bulk_read(udev, fd->usb.eep, usbbuf,
+                         fd->usb.max_xfer, 1);
+      if (rv > 4)
+      {
+	  if (verbose >= 3)
+	  {
+	      unsigned short evtserial = (usbbuf[3] << 8) | usbbuf[2];
+	      fprintf(stderr, "Event serial # 0x%04x, replaced by 0xffff\n",
+		      evtserial);
+	  }
+	  usbbuf[3] = usbbuf[2] = 0xff;
+	  memcpy(buf, usbbuf + 2, rv - 2);
+	  n = rv - 2;
+	  goto printout;
+      }
+      else if (rv > 0)
+      {
+	  fprintf(stderr, "Short event len = %d, ignored.\n", rv);
+	  n = rv;
+	  goto printout;
+      }
+  }
+
   n = 0;
   do
     {
@@ -426,6 +452,7 @@ static int usbdev_recv_frame(union filedescriptor *fd, unsigned char *buf, size_
   if (nbytes < 0)
     return -1;
 
+  printout:
   if (verbose > 3)
   {
       i = n;
