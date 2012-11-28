@@ -120,6 +120,9 @@ libavrdude_a_SOURCES = \
 	jtagmkII.c \
 	jtagmkII.h \
 	jtagmkII_private.h \
+	jtag3.c \
+	jtag3.h \
+	jtag3_private.h \
 	linux_ppdev.h \
 	lists.c \
 	lists.h \

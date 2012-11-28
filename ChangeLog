@@ -1,3 +1,19 @@
+2012-11-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	First support for Atmel JTAGICE3.  Guessed from USB sniffer
+	traces made by Knut Schwichtenberg, and by similarity to
+	JTAGICEmkII.
+	Still quite incomplete, just megaAVR/JTAG is done by now.
+	* jtag3.c: New file.
+	* jtag3.h: (Dito.)
+	* jtag3_private.h: (Dito.)
+	* pgm_type.c: Add new programmers
+	* avrdude.conf.in: (Dito.)
+	* usbdevs.h: Add new parameters
+	* Makefile.am: Add new files
+	* usb_libusb.c: Handle separate event endpoint, and larger
+	(USB 2.0) packet sizes
+
 2012-11-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* jtagmkII.c: Change all the USB details (endpoint numbers,

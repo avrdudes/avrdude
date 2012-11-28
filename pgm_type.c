@@ -37,6 +37,7 @@
 #include "ft245r.h"
 #include "jtagmkI.h"
 #include "jtagmkII.h"
+#include "jtag3.h"
 #include "par.h"
 #include "pickit2.h"
 #include "ppi.h"
@@ -69,6 +70,9 @@ const PROGRAMMER_TYPE const programmers_types[] = {
         {"jtagmkii_dw", jtagmkII_dw_initpgm, jtagmkII_dw_desc},
         {"jtagmkii_isp", stk500v2_jtagmkII_initpgm, stk500v2_jtagmkII_desc},
         {"jtagmkii_pdi", jtagmkII_pdi_initpgm, jtagmkII_pdi_desc},
+        {"jtagice3", jtag3_initpgm, jtag3_desc},
+        {"jtagice3_pdi", jtag3_pdi_initpgm, jtag3_pdi_desc},
+        {"jtagice3_dw", jtag3_dw_initpgm, jtag3_dw_desc},
         {"par", par_initpgm, par_desc},
         {"pickit2", pickit2_initpgm, pickit2_desc},
         {"serbb", serbb_initpgm, serbb_desc},
