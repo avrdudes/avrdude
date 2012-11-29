@@ -65,6 +65,7 @@ Current:
       - bug #29019: pagel/bs2 warning when uploading using stk500 to xmega
       - bug #30756: When setting SUT to 64ms on XMEGA, avrdude doesn't
         read device signature
+      - bug #37265: wrong page sizes for XMega64xx in avrdude.conf
 
   * Keep track of input file contents
 

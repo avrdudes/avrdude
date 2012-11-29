@@ -1,5 +1,11 @@
 2012-11-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #37265: wrong page sizes for XMega64xx in avrdude.conf
+	* avrdude.conf.in: Fix page sizes for all Xmega devices,
+	by cross-checking against Atmel Studio's device XML files
+
+2012-11-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* jtag3.c: Fill in the missing pieces for Xmega support (both,
 	PDI and JTAG).
 	* jtagmkII.c (jtagmkII_set_xmega_params): Use "fuse1" rather
