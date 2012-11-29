@@ -1,5 +1,10 @@
 2012-11-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* avrdude.conf.in: Remove "has_jtag" from Xmega A4 and D4
+	devices, as they only have PDI.
+
+2012-11-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #37265: wrong page sizes for XMega64xx in avrdude.conf
 	* avrdude.conf.in: Fix page sizes for all Xmega devices,
 	by cross-checking against Atmel Studio's device XML files

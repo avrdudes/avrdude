@@ -12759,6 +12759,7 @@ part parent ".xmegasmall"
     id		= "x16a4";
     desc	= "ATxmega16A4";
     signature	= 0x1e 0x94 0x41;
+    has_jtag	= no;
 
     memory "eeprom"
         size		= 0x0400;
@@ -12809,6 +12810,7 @@ part parent ".xmegasmall"
     id		= "x32a4";
     desc	= "ATxmega32A4";
     signature	= 0x1e 0x95 0x41;
+    has_jtag	= no;
 
     memory "eeprom"
         size		= 0x0400;
@@ -12859,6 +12861,7 @@ part parent "x64a3"
     id		= "x64a4";
     desc	= "ATxmega64A4";
     signature	= 0x1e 0x96 0x46;
+    has_jtag	= no;
 ;
 
 #------------------------------------------------------------
@@ -12869,6 +12872,7 @@ part parent "x128a3"
     id		= "x128a4";
     desc	= "ATxmega128A4";
     signature	= 0x1e 0x97 0x46;
+    has_jtag	= no;
 ;
 
 #------------------------------------------------------------
@@ -12879,6 +12883,7 @@ part parent ".xmegasmall"
     id		= "x16d4";
     desc	= "ATxmega16D4";
     signature	= 0x1e 0x94 0x42;
+    has_jtag	= no;
 
     memory "eeprom"
         size		= 0x0400;
@@ -12925,6 +12930,7 @@ part parent ".xmegasmall"
     id		= "x32d4";
     desc	= "ATxmega32D4";
     signature	= 0x1e 0x95 0x42;
+    has_jtag	= no;
 
     memory "eeprom"
         size		= 0x0400;
@@ -12971,6 +12977,7 @@ part parent ".xmegasmall"
     id		= "x64d4";
     desc	= "ATxmega64D4";
     signature	= 0x1e 0x96 0x47;
+    has_jtag	= no;
 
     memory "eeprom"
         size		= 0x0400;
@@ -13017,6 +13024,7 @@ part parent ".xmegasmall"
     id		= "x128d4";
     desc	= "ATxmega128D4";
     signature	= 0x1e 0x97 0x47;
+    has_jtag	= no;
 
     memory "eeprom"
         size		= 0x0800;
