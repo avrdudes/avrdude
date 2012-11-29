@@ -278,6 +278,10 @@ static void jtag3_prmsg(PROGRAMMER * pgm, unsigned char * data, size_t len)
 	  case RSP3_FAIL_WRONG_MODE:
 	    strcpy(reason, "wrong (programming) mode");
 	    break;
+
+	  case RSP3_FAIL_PDI:
+	    strcpy(reason, "PDI failure");
+	    break;
 	}
 	fprintf(stderr, ", reason: %s\n", reason);
       }
@@ -1164,11 +1168,7 @@ void jtag3_close(PROGRAMMER * pgm)
 static int jtag3_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                                unsigned int addr)
 {
-#if 0
-  unsigned char cmd[6];
-  unsigned char *resp;
-  int status, tries;
-  long otimeout = serial_recv_timeout;
+  unsigned char cmd[8], *resp;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: jtag3_page_erase(.., %s, 0x%x)\n",
@@ -1179,88 +1179,35 @@ static int jtag3_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	    progname);
     return -1;
   }
-  if ((pgm->flag & PGM_FL_IS_DW)) {
-    fprintf(stderr, "%s: jtag3_page_erase: not applicable to debugWIRE\n",
-	    progname);
-    return -1;
-  }
 
   if (jtag3_program_enable(pgm) < 0)
     return -1;
 
-  cmd[0] = CMND_XMEGA_ERASE;
+  cmd[0] = SCOPE_AVR;
+  cmd[1] = CMD3_ERASE_MEMORY;
+  cmd[2] = 0;
+
   if (strcmp(m->desc, "flash") == 0) {
     if (jtag3_memtype(pgm, p, addr) == MTYPE_FLASH)
-      cmd[1] = XMEGA_ERASE_APP_PAGE;
+      cmd[3] = XMEGA_ERASE_APP_PAGE;
     else
-      cmd[1] = XMEGA_ERASE_BOOT_PAGE;
+      cmd[3] = XMEGA_ERASE_BOOT_PAGE;
   } else if (strcmp(m->desc, "eeprom") == 0) {
-    cmd[1] = XMEGA_ERASE_EEPROM_PAGE;
+    cmd[3] = XMEGA_ERASE_EEPROM_PAGE;
   } else if ( ( strcmp(m->desc, "usersig") == 0 ) ) {
-    cmd[1] = XMEGA_ERASE_USERSIG;
+    cmd[3] = XMEGA_ERASE_USERSIG;
   } else if ( ( strcmp(m->desc, "boot") == 0 ) ) {
-    cmd[1] = XMEGA_ERASE_BOOT_PAGE;
+    cmd[3] = XMEGA_ERASE_BOOT_PAGE;
   } else {
-    cmd[1] = XMEGA_ERASE_APP_PAGE;
+    cmd[3] = XMEGA_ERASE_APP_PAGE;
   }
-  serial_recv_timeout = 100;
 
-  /*
-   * Don't use jtag3_memaddr() here.  While with all other
-   * commands, firmware 7+ doesn't require the NVM offsets being
-   * applied, the erase page commands make an exception, and do
-   * require the NVM offsets as part of the (page) address.
-   */
-  u32_to_b4(cmd + 2, addr + m->offset);
+  u32_to_b4(cmd + 4, addr + m->offset);
 
-  tries = 0;
-
-  retry:
-  if (verbose >= 2)
-    fprintf(stderr, "%s: jtag3_page_erase(): "
-            "Sending xmega erase command: ",
-            progname);
-  jtag3_send(pgm, cmd, sizeof cmd);
-
-  status = jtag3_recv(pgm, &resp);
-  if (status <= 0) {
-    if (verbose >= 2)
-      putc('\n', stderr);
-    if (verbose >= 1)
-      fprintf(stderr,
-              "%s: jtag3_page_erase(): "
-              "timeout/error communicating with programmer (status %d)\n",
-              progname, status);
-    if (tries++ < 4) {
-      serial_recv_timeout *= 2;
-      goto retry;
-    }
-    fprintf(stderr,
-            "%s: jtag3_page_erase(): fatal timeout/"
-            "error communicating with programmer (status %d)\n",
-            progname, status);
-    serial_recv_timeout = otimeout;
+  if (jtag3_command(pgm, cmd, 8, &resp, "page erase") < 0)
     return -1;
-  }
-  if (verbose >= 3) {
-    putc('\n', stderr);
-    jtag3_prmsg(pgm, resp, status);
-  } else if (verbose == 2)
-    fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[1], status);
-  if (resp[1] != RSP_OK) {
-    fprintf(stderr,
-            "%s: jtag3_page_erase(): "
-            "bad response to xmega erase command: %s\n",
-            progname, jtag3_get_rc(resp[1]));
-    free(resp);
-    serial_recv_timeout = otimeout;
-    return -1;
-  }
+
   free(resp);
-
-  serial_recv_timeout = otimeout;
-
-#endif
   return 0;
 }
 

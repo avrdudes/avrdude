@@ -2,6 +2,7 @@
 
 	* avrdude.conf.in: Remove "has_jtag" from Xmega A4 and D4
 	devices, as they only have PDI.
+	* jtag3.c (jtag3_page_erase): Actually implement this.
 
 2012-11-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
