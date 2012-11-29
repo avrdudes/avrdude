@@ -12469,10 +12469,33 @@ part
 
 
 #------------------------------------------------------------
-# ATxmega64A1
+# ATxmega??? common values, devices with page size of 256
 #------------------------------------------------------------
 
 part parent ".xmega"
+    id		= ".xmegasmall";
+    desc	= "ATxmega??? common values, devices with page size 256";
+    memory "prodsig"
+        size		= 0x100;
+        offset		= 0x8e0200;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+
+    memory "usersig"
+        size		= 0x100;
+        offset		= 0x8e0400;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
+;
+
+
+#------------------------------------------------------------
+# ATxmega64A1
+#------------------------------------------------------------
+
+part parent ".xmegasmall"
     id		= "x64a1";
     desc	= "ATxmega64A1";
     signature	= 0x1e 0x96 0x4e;
@@ -12487,28 +12510,28 @@ part parent ".xmega"
     memory "application"
         size		= 0x00010000;
         offset		= 0x0800000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
     memory "apptable"
         size		= 0x00001000;
         offset		= 0x0080f000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
     memory "boot"
         size		= 0x00001000;
         offset		= 0x00810000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
     memory "flash"
         size		= 0x00011000;
         offset		= 0x0800000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
@@ -12732,7 +12755,7 @@ part parent "x256a3"
 # ATxmega16A4
 #------------------------------------------------------------
 
-part parent ".xmega"
+part parent ".xmegasmall"
     id		= "x16a4";
     desc	= "ATxmega16A4";
     signature	= 0x1e 0x94 0x41;
@@ -12747,14 +12770,14 @@ part parent ".xmega"
     memory "application"
         size		= 0x00004000;
         offset		= 0x0800000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
     memory "apptable"
         size		= 0x00001000;
         offset		= 0x00803000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
@@ -12768,7 +12791,7 @@ part parent ".xmega"
     memory "flash"
         size		= 0x00005000;
         offset		= 0x0800000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
@@ -12782,7 +12805,7 @@ part parent ".xmega"
 # ATxmega32A4
 #------------------------------------------------------------
 
-part parent ".xmega"
+part parent ".xmegasmall"
     id		= "x32a4";
     desc	= "ATxmega32A4";
     signature	= 0x1e 0x95 0x41;
@@ -12797,28 +12820,28 @@ part parent ".xmega"
     memory "application"
         size		= 0x00008000;
         offset		= 0x0800000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
     memory "apptable"
         size		= 0x00001000;
         offset		= 0x00807000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
     memory "boot"
         size		= 0x00001000;
         offset		= 0x00808000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
     memory "flash"
         size		= 0x00009000;
         offset		= 0x0800000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
@@ -12852,7 +12875,7 @@ part parent "x128a3"
 # ATxmega16D4
 #------------------------------------------------------------
 
-part parent ".xmega"
+part parent ".xmegasmall"
     id		= "x16d4";
     desc	= "ATxmega16D4";
     signature	= 0x1e 0x94 0x42;
@@ -12867,28 +12890,28 @@ part parent ".xmega"
     memory "application"
         size		= 0x00004000;
         offset		= 0x0800000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
     memory "apptable"
         size		= 0x00001000;
         offset		= 0x00803000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
     memory "boot"
         size		= 0x00001000;
         offset		= 0x00804000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
     memory "flash"
         size		= 0x00005000;
         offset		= 0x0800000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 ;
@@ -12898,7 +12921,7 @@ part parent ".xmega"
 # ATxmega32D4
 #------------------------------------------------------------
 
-part parent ".xmega"
+part parent ".xmegasmall"
     id		= "x32d4";
     desc	= "ATxmega32D4";
     signature	= 0x1e 0x95 0x42;
@@ -12913,28 +12936,28 @@ part parent ".xmega"
     memory "application"
         size		= 0x00008000;
         offset		= 0x0800000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
     memory "apptable"
         size		= 0x00001000;
         offset		= 0x00807000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
     memory "boot"
         size		= 0x00001000;
         offset		= 0x00808000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
     memory "flash"
         size		= 0x00009000;
         offset		= 0x0800000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 ;
@@ -12944,7 +12967,7 @@ part parent ".xmega"
 # ATxmega64D4
 #------------------------------------------------------------
 
-part parent ".xmega"
+part parent ".xmegasmall"
     id		= "x64d4";
     desc	= "ATxmega64D4";
     signature	= 0x1e 0x96 0x47;
@@ -12959,7 +12982,7 @@ part parent ".xmega"
     memory "application"
         size		= 0x00010000;
         offset		= 0x0800000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
@@ -12973,14 +12996,14 @@ part parent ".xmega"
     memory "boot"
         size		= 0x00001000;
         offset		= 0x00810000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
     memory "flash"
         size		= 0x00011000;
         offset		= 0x0800000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 ;
@@ -12990,7 +13013,7 @@ part parent ".xmega"
 # ATxmega128D4
 #------------------------------------------------------------
 
-part parent ".xmega"
+part parent ".xmegasmall"
     id		= "x128d4";
     desc	= "ATxmega128D4";
     signature	= 0x1e 0x97 0x47;
@@ -13005,7 +13028,7 @@ part parent ".xmega"
     memory "application"
         size		= 0x00020000;
         offset		= 0x0800000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
@@ -13015,7 +13038,7 @@ part parent ".xmega"
         # XML file also says it's 8 KiB, use this.
         size		= 0x00002000;
         offset		= 0x0081e000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 
@@ -13029,7 +13052,7 @@ part parent ".xmega"
     memory "flash"
         size		= 0x00022000;
         offset		= 0x0800000;
-        page_size	= 0x200;
+        page_size	= 0x100;
         readsize	= 0x100;
     ;
 ;
