@@ -1,5 +1,13 @@
 2012-11-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* jtag3.c: Fill in the missing pieces for Xmega support (both,
+	PDI and JTAG).
+	* jtagmkII.c (jtagmkII_set_xmega_params): Use "fuse1" rather
+	than "fuse0" memory space to fill in the NVM offset from, as
+	there is no "fuse0" on some Xmega devices.
+
+2012-11-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* avrdude.conf.in (ATmega256RFR2, ATmega128RFR2, ATmega64RFR2):
 	New devices
 

@@ -759,6 +759,42 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
   if ((p->flags & AVRPART_HAS_PDI))
   {
     struct xmega_device_desc xd;
+    LNODEID ln;
+    AVRMEM * m;
+
+    u16_to_b2(xd.nvm_base_addr, p->nvm_base);
+    u16_to_b2(xd.mcu_base_addr, p->mcu_base);
+
+    for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
+      m = ldata(ln);
+      if (strcmp(m->desc, "flash") == 0) {
+        PDATA(pgm)->flash_pagesize = m->page_size;
+	u16_to_b2(xd.flash_page_size, m->page_size);
+      } else if (strcmp(m->desc, "eeprom") == 0) {
+	xd.eeprom_page_size = m->page_size;
+	u16_to_b2(xd.eeprom_size, m->size);
+	u32_to_b4(xd.nvm_eeprom_offset, m->offset);
+      } else if (strcmp(m->desc, "application") == 0) {
+	u32_to_b4(xd.app_size, m->size);
+	u32_to_b4(xd.nvm_app_offset, m->offset);
+      } else if (strcmp(m->desc, "boot") == 0) {
+	u16_to_b2(xd.boot_size, m->size);
+	u32_to_b4(xd.nvm_boot_offset, m->offset);
+      } else if (strcmp(m->desc, "fuse1") == 0) {
+	u32_to_b4(xd.nvm_fuse_offset, m->offset & ~7);
+      } else if (strcmp(m->desc, "lock") == 0) {
+	u32_to_b4(xd.nvm_lock_offset, m->offset);
+      } else if (strcmp(m->desc, "usersig") == 0) {
+	u32_to_b4(xd.nvm_user_sig_offset, m->offset);
+      } else if (strcmp(m->desc, "prodsig") == 0) {
+	u32_to_b4(xd.nvm_prod_sig_offset, m->offset);
+      } else if (strcmp(m->desc, "data") == 0) {
+	u32_to_b4(xd.nvm_data_offset, m->offset);
+      }
+    }
+
+    if (jtag3_setparm(pgm, SCOPE_AVR, 2, PARM3_DEVICEDESC, (unsigned char *)&xd, sizeof xd) < 0)
+      return -1;
   }
   else
   {
@@ -784,21 +820,19 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
     }
 
     //md.sram_offset[2] = p->sram;  // do we need it?
-    u16_to_b2(md.sram_offset, 0x200);
     md.ocd_revision = 3;        /* XXX! */
     md.always_one = 1;
     md.allow_full_page_bitstream = (p->flags & AVRPART_ALLOWFULLPAGEBITSTREAM) != 0;
     md.idr_address = p->idr;
 
     if (p->eecr == 0)
-      p->eecr = 0x1f;		/* matches most "modern" mega/tiny AVRs */
-    md.eearh_address = p->eecr + 3;
-    md.eearl_address = p->eecr + 2;
-    md.eecr_address = p->eecr;
-    md.eedr_address = p->eecr + 1;
+      p->eecr = 0x3f;		/* matches most "modern" mega/tiny AVRs */
+    md.eearh_address = p->eecr - 0x20 + 3;
+    md.eearl_address = p->eecr - 0x20 + 2;
+    md.eecr_address = p->eecr - 0x20;
+    md.eedr_address = p->eecr - 0x20 + 1;
     md.spmcr_address = p->spmcr;
     //md.osccal_address = p->osccal;  // do we need it at all?
-    md.osccal_address = 0x46;	/* XXX */
 
     if (jtag3_setparm(pgm, SCOPE_AVR, 2, PARM3_DEVICEDESC, (unsigned char *)&md, sizeof md) < 0)
       return -1;
@@ -826,6 +860,23 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
 	    progname, resp[3], resp[4], resp[5], resp[6]);
 
   free(resp);
+
+  PDATA(pgm)->boot_start = ULONG_MAX;
+  if ((p->flags & AVRPART_HAS_PDI)) {
+    /*
+     * Find out where the border between application and boot area
+     * is.
+     */
+    AVRMEM *bootmem = avr_locate_mem(p, "boot");
+    AVRMEM *flashmem = avr_locate_mem(p, "flash");
+    if (bootmem == NULL || flashmem == NULL) {
+      fprintf(stderr,
+	      "%s: jtagmk3_initialize(): Cannot locate \"flash\" and \"boot\" memories in description\n",
+	      progname);
+    } else {
+      PDATA(pgm)->boot_start = bootmem->offset - flashmem->offset;
+    }
+  }
 
   free(PDATA(pgm)->flash_pagecache);
   free(PDATA(pgm)->eeprom_pagecache);
@@ -1854,12 +1905,7 @@ static unsigned char jtag3_memtype(PROGRAMMER * pgm, AVRPART * p, unsigned long 
 
 static unsigned int jtag3_memaddr(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, unsigned long addr)
 {
-#if 0
-  /*
-   * Xmega devices handled by V7+ firmware don't want to be told their
-   * m->offset within the write memory command.
-   */
-  if (PDATA(pgm)->fwver >= 0x700 && (p->flags & AVRPART_HAS_PDI) != 0) {
+  if ((p->flags & AVRPART_HAS_PDI) != 0) {
     if (addr >= PDATA(pgm)->boot_start)
       /*
        * all memories but "flash" are smaller than boot_start anyway, so
@@ -1871,12 +1917,9 @@ static unsigned int jtag3_memaddr(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, uns
       return addr;
   }
   /*
-   * Old firmware, or non-Xmega device.  Non-Xmega (and non-AVR32)
-   * devices always have an m->offset of 0, so we don't have to
-   * distinguish them here.
+   * Non-Xmega device.
    */
-#endif
-  return addr + m->offset;
+  return addr;
 }
 
 
