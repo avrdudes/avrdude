@@ -1,3 +1,8 @@
+2012-11-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avrdude.conf.in (ATmega256RFR2, ATmega128RFR2, ATmega64RFR2):
+	New devices
+
 2012-11-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	First support for Atmel JTAGICE3.  Guessed from USB sniffer

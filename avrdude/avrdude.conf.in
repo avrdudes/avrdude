@@ -9881,6 +9881,81 @@ part parent "m2561"
   ;
 
 #------------------------------------------------------------
+# ATmega256RFR2
+#------------------------------------------------------------
+
+part parent "m2561"
+    id               = "m256rfr2";
+    desc             = "ATmega256RFR2";
+    signature        = 0x1e 0xa8 0x02;
+    chip_erase_delay = 55000;
+    bs2              = 0xE2;
+
+  ;
+
+#------------------------------------------------------------
+# ATmega128RFR2
+#------------------------------------------------------------
+
+part parent "m128rfa1"
+    id               = "m128rfr2";
+    desc             = "ATmega128RFR2";
+    signature        = 0x1e 0xa7 0x02;
+
+  ;
+
+#------------------------------------------------------------
+# ATmega64RFR2
+#------------------------------------------------------------
+
+part parent "m128rfa1"
+    id               = "m64rfr2";
+    desc             = "ATmega64RFR2";
+    signature        = 0x1e 0xa6 0x02;
+
+
+    memory "flash"
+        paged           = yes;
+        size            = 65536;
+        page_size       = 256;
+        num_pages       = 256;
+        min_write_delay = 50000;
+        max_write_delay = 50000;
+        readback_p1     = 0x00;
+        readback_p2     = 0x00;
+        read_lo         = "  0   0   1   0      0   0   0   0",
+                          "  0 a14 a13 a12    a11 a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
+
+        read_hi         = "  0   0   1   0      1   0   0   0",
+                          "  0 a14 a13 a12    a11 a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
+
+        loadpage_lo     = "  0   1   0   0      0   0   0   0",
+                          "  x   x   x   x      x   x   x   x",
+                          "  x  a6  a5  a4     a3  a2  a1  a0",
+                          "  i   i   i   i      i   i   i   i";
+
+        loadpage_hi     = "  0   1   0   0      1   0   0   0",
+                          "  x   x   x   x      x   x   x   x",
+                          "  x  a6  a5  a4     a3  a2  a1  a0",
+                          "  i   i   i   i      i   i   i   i";
+
+        writepage       = "  0   1   0   0      1   1   0   0",
+                          "  0 a14 a13 a12    a11 a10  a9  a8",
+                          " a7   x   x   x      x   x   x   x",
+                          "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x41;
+	delay		= 20;
+	blocksize	= 256;
+	readsize	= 256;
+      ;
+  ;
+
+#------------------------------------------------------------
 # ATtiny24
 #------------------------------------------------------------
 
