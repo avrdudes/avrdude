@@ -145,17 +145,6 @@ b4_to_u32(unsigned char *b)
 
   return l;
 }
-static unsigned long
-b4_to_u32r(unsigned char *b)
-{
-  unsigned long l;
-  l = b[3];
-  l += (unsigned)b[2] << 8;
-  l += (unsigned)b[1] << 16;
-  l += (unsigned)b[0] << 24;
-
-  return l;
-}
 
 static void
 u32_to_b4(unsigned char *b, unsigned long l)
@@ -164,14 +153,6 @@ u32_to_b4(unsigned char *b, unsigned long l)
   b[1] = (l >> 8) & 0xff;
   b[2] = (l >> 16) & 0xff;
   b[3] = (l >> 24) & 0xff;
-}
-static void
-u32_to_b4r(unsigned char *b, unsigned long l)
-{
-  b[3] = l & 0xff;
-  b[2] = (l >> 8) & 0xff;
-  b[1] = (l >> 16) & 0xff;
-  b[0] = (l >> 24) & 0xff;
 }
 
 static unsigned short
@@ -320,12 +301,56 @@ static void jtag3_prmsg(PROGRAMMER * pgm, unsigned char * data, size_t len)
       }
       break;
 
-#if 0
-  case EVT_BREAK:
-    fprintf(stderr, "BREAK event");
-    if (len >= 6) {
-      fprintf(stderr, ", PC = 0x%lx, reason ", b4_to_u32(data + 1));
-      switch (data[5]) {
+  default:
+    fprintf(stderr, "unknown message 0x%02x\n", data[1]);
+  }
+}
+
+static void jtag3_prevent(PROGRAMMER * pgm, unsigned char * data, size_t len)
+{
+  int i;
+
+  if (verbose >= 4) {
+    fprintf(stderr, "Raw event:\n");
+
+    for (i = 0; i < len; i++) {
+      fprintf(stderr, "%02x ", data[i]);
+      if (i % 16 == 15)
+	putc('\n', stderr);
+      else
+	putchar(' ');
+    }
+    if (i % 16 != 0)
+      putc('\n', stderr);
+  }
+
+  fprintf(stderr, "Event serial 0x%04x, ",
+	  (data[3] << 8) | data[2]);
+
+  switch (data[4]) {
+    case SCOPE_INFO:
+      fprintf(stderr, "[info] ");
+      break;
+
+    case SCOPE_GENERAL:
+      fprintf(stderr, "[general] ");
+      break;
+
+    case SCOPE_AVR:
+      fprintf(stderr, "[AVR] ");
+      break;
+
+    default:
+      fprintf(stderr, "[scope 0x%02x] ", data[0]);
+      break;
+  }
+
+  switch (data[5]) {
+  case EVT3_BREAK:
+    fprintf(stderr, "BREAK");
+    if (len >= 11) {
+      fprintf(stderr, ", PC = 0x%lx, reason ", b4_to_u32(data + 6));
+      switch (data[10]) {
       case 0x00:
 	fprintf(stderr, "unspecified");
 	break;
@@ -339,19 +364,38 @@ static void jtag3_prmsg(PROGRAMMER * pgm, unsigned char * data, size_t len)
 	fprintf(stderr, "data break PDMSB");
 	break;
       default:
-	fprintf(stderr, "unknown: 0x%02x", data[5]);
+	fprintf(stderr, "unknown: 0x%02x", data[10]);
       }
+      /* There are two more bytes of data which always appear to be
+       * 0x01, 0x00.  Purpose unknown. */
     }
-    putc('\n', stderr);
     break;
 
-  putc('\n', stderr);
-#endif
+  case EVT3_SLEEP:
+    if (len >= 8 && data[7] == 0)
+      fprintf(stderr, "sleeping");
+    else if (len >= 8 && data[7] == 1)
+      fprintf(stderr, "wakeup");
+    else
+      fprintf(stderr, "unknown SLEEP event");
+    break;
+
+  case EVT3_POWER:
+    if (len >= 8 && data[7] == 0)
+      fprintf(stderr, "power-down");
+    else if (len >= 8 && data[7] == 1)
+      fprintf(stderr, "power-up");
+    else
+      fprintf(stderr, "unknown POWER event");
+    break;
 
   default:
-    fprintf(stderr, "unknown message 0x%02x\n", data[1]);
+    fprintf(stderr, "UNKNOWN 0x%02x", data[5]);
+    break;
   }
+  putc('\n', stderr);
 }
+
 
 
 int jtag3_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
@@ -439,6 +483,15 @@ int jtag3_recv(PROGRAMMER * pgm, unsigned char **msg) {
     if ((rv = jtag3_recv_frame(pgm, msg)) <= 0)
       return rv;
 
+    if ((rv & USB_RECV_FLAG_EVENT) != 0) {
+      if (verbose >= 3)
+	jtag3_prevent(pgm, *msg, rv & USB_RECV_LENGTH_MASK);
+
+      free(*msg);
+      continue;
+    }
+
+    rv &= USB_RECV_LENGTH_MASK;
     r_seqno = ((*msg)[2] << 8) | (*msg)[1];
     if (verbose >= 3)
       fprintf(stderr, "%s: jtag3_recv(): "
@@ -457,16 +510,11 @@ int jtag3_recv(PROGRAMMER * pgm, unsigned char **msg) {
 
       return rv;
     }
-    if (r_seqno == 0xffff) {
-      if (verbose >= 3)
-	fprintf(stderr, "%s: jtag3_recv(): got asynchronous event\n",
-		progname);
-    } else {
-      if (verbose >= 2)
-	fprintf(stderr, "%s: jtag3_recv(): "
-		"got wrong sequence number, %u != %u\n",
-		progname, r_seqno, PDATA(pgm)->command_sequence);
-    }
+    if (verbose >= 2)
+      fprintf(stderr, "%s: jtag3_recv(): "
+	      "got wrong sequence number, %u != %u\n",
+	      progname, r_seqno, PDATA(pgm)->command_sequence);
+
     free(*msg);
   }
 }
@@ -662,7 +710,7 @@ static int jtag3_program_disable(PROGRAMMER * pgm)
   buf[1] = CMD3_LEAVE_PROGMODE;
   buf[2] = 0;
 
-  if (jtag3_command(pgm, buf, 3, &resp, "enter progmode") < 0)
+  if (jtag3_command(pgm, buf, 3, &resp, "leave progmode") < 0)
     return -1;
 
   free(resp);

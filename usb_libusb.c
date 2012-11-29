@@ -406,22 +406,15 @@ static int usbdev_recv_frame(union filedescriptor *fd, unsigned char *buf, size_
                          fd->usb.max_xfer, 1);
       if (rv > 4)
       {
-	  if (verbose >= 3)
-	  {
-	      unsigned short evtserial = (usbbuf[3] << 8) | usbbuf[2];
-	      fprintf(stderr, "Event serial # 0x%04x, replaced by 0xffff\n",
-		      evtserial);
-	  }
-	  usbbuf[3] = usbbuf[2] = 0xff;
-	  memcpy(buf, usbbuf + 2, rv - 2);
-	  n = rv - 2;
+	  memcpy(buf, usbbuf, rv);
+	  n = rv;
+	  n |= USB_RECV_FLAG_EVENT;
 	  goto printout;
       }
       else if (rv > 0)
       {
 	  fprintf(stderr, "Short event len = %d, ignored.\n", rv);
-	  n = rv;
-	  goto printout;
+	  /* fallthrough */
       }
   }
 
@@ -455,7 +448,7 @@ static int usbdev_recv_frame(union filedescriptor *fd, unsigned char *buf, size_
   printout:
   if (verbose > 3)
   {
-      i = n;
+      i = n & USB_RECV_LENGTH_MASK;
       fprintf(stderr, "%s: Recv: ", progname);
 
       while (i) {

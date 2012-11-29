@@ -43,4 +43,13 @@
 #define USBDEV_EVT_EP_READ_3      0x83
 #define USBDEV_MAX_XFER_3    512
 
+/*
+ * When operating on the JTAGICE3, usbdev_recv_frame() returns an
+ * indication in the upper bits of the return value whether the
+ * message has been received from the event endpoint rather than the
+ * normal conversation endpoint.
+ */
+#define USB_RECV_LENGTH_MASK   0x0fff /* up to 4 KiB */
+#define USB_RECV_FLAG_EVENT    0x1000
+
 #endif  /* usbdevs_h */
