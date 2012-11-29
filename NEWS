@@ -35,7 +35,7 @@ Current:
         X3(1), sck = DSR X3(2), mosi = DCD X3(3), reset = RI X3(4))
       + diecimila (alias for arduino-ft232r)
 
-    - Atmel JTAGICE3 (megaAVR/JTAG only so far)
+    - Atmel JTAGICE3 (megaAVR/JTAG, Xmega/JTAG/PDI only so far)
 
   * Bugfixes
       - bug #34027: avrdude AT90S1200 Problem

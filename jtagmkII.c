@@ -1078,8 +1078,8 @@ static void jtagmkII_set_xmega_params(PROGRAMMER * pgm, AVRPART * p)
     } else if (strcmp(m->desc, "boot") == 0) {
       u16_to_b2(sendbuf.dd.boot_size, m->size);
       u32_to_b4(sendbuf.dd.nvm_boot_offset, m->offset);
-    } else if (strcmp(m->desc, "fuse0") == 0) {
-      u32_to_b4(sendbuf.dd.nvm_fuse_offset, m->offset);
+    } else if (strcmp(m->desc, "fuse1") == 0) {
+      u32_to_b4(sendbuf.dd.nvm_fuse_offset, m->offset & ~7);
     } else if (strcmp(m->desc, "lock") == 0) {
       u32_to_b4(sendbuf.dd.nvm_lock_offset, m->offset);
     } else if (strcmp(m->desc, "usersig") == 0) {
