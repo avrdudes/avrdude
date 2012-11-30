@@ -1,5 +1,14 @@
 2012-11-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* jtag3.c (jtag3_read_byte, jtag3_write_byte): Remove the
+	m->offset from addr, JTAGICE3 doesn't need it anymore (similar
+	to JTAGICEmkII with 7+ firmware)
+	* jtag3.c (jtag3_read_byte): Allow for full-page reads of
+	EEPROM also for Xmega and debugWIRE, allow for signature
+	read in debugWIRE
+
+2012-11-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* jtag3_private.h: Add two more error detail codes I stumbled
 	across during development
 	* jtag3.c: (Dito.)
