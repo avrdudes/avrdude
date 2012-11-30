@@ -1,3 +1,11 @@
+2012-11-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtag3_private.h: Add two more error detail codes I stumbled
+	across during development
+	* jtag3.c: (Dito.)
+	* usb_libusb.c: Reduce timeouts from 100 to 10 s, still long
+	enough, but not getting cold feet when something goes wrong.
+
 2012-11-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* jtag3.c: Handle events returned by the ICE

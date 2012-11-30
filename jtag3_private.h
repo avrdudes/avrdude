@@ -138,6 +138,8 @@
 #  define RSP3_FAIL_NO_ANSWER           0x20
 #  define RSP3_FAIL_NO_TARGET_POWER     0x22
 #  define RSP3_FAIL_WRONG_MODE          0x32 /* progmode vs. non-prog */
+#  define RSP3_FAIL_UNSUPP_MEMORY       0x34 /* unsupported memory type */
+#  define RSP3_FAIL_WRONG_LENGTH        0x35 /* wrong lenth for mem access */
 #  define RSP3_FAIL_NOT_UNDERSTOOD      0x91
 
 /* ICE events */
