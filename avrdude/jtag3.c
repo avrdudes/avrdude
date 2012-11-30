@@ -263,6 +263,14 @@ static void jtag3_prmsg(PROGRAMMER * pgm, unsigned char * data, size_t len)
 	  case RSP3_FAIL_PDI:
 	    strcpy(reason, "PDI failure");
 	    break;
+
+	  case RSP3_FAIL_UNSUPP_MEMORY:
+	    strcpy(reason, "unsupported memory type");
+	    break;
+
+	  case RSP3_FAIL_WRONG_LENGTH:
+	    strcpy(reason, "wrong length in memory access");
+	    break;
 	}
 	fprintf(stderr, ", reason: %s\n", reason);
       }
@@ -537,6 +545,7 @@ static int jtag3_command(PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdle
     fprintf(stderr,
 	    "%s: %s command: timeout/error communicating with programmer (status %d)\n",
 	    progname, descr, status);
+    return -1;
   } else if (verbose >= 3) {
     putc('\n', stderr);
     jtag3_prmsg(pgm, *resp, status);
