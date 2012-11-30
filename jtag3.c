@@ -1474,7 +1474,6 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   cmd[1] = CMD3_READ_MEMORY;
   cmd[2] = 0;
 
-  addr += mem->offset;
   cmd[3] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_FLASH : MTYPE_FLASH_PAGE;
   if (strcmp(mem->desc, "flash") == 0 ||
       strcmp(mem->desc, "application") == 0 ||
@@ -1486,15 +1485,14 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     cache_ptr = PDATA(pgm)->flash_pagecache;
   } else if (strcmp(mem->desc, "eeprom") == 0) {
     if ( (pgm->flag & PGM_FL_IS_DW) || ( p->flags & AVRPART_HAS_PDI ) ) {
-      /* debugWire cannot use page access for EEPROM */
       cmd[3] = MTYPE_EEPROM;
     } else {
       cmd[3] = MTYPE_EEPROM_PAGE;
-      pagesize = mem->page_size;
-      paddr = addr & ~(pagesize - 1);
-      paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
-      cache_ptr = PDATA(pgm)->eeprom_pagecache;
     }
+    pagesize = mem->page_size;
+    paddr = addr & ~(pagesize - 1);
+    paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
+    cache_ptr = PDATA(pgm)->eeprom_pagecache;
   } else if (strcmp(mem->desc, "lfuse") == 0) {
     cmd[3] = MTYPE_FUSE_BITS;
     addr = 0;
@@ -1525,38 +1523,36 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
   } else if (strcmp(mem->desc, "signature") == 0) {
+    static unsigned char signature_cache[2];
+
     cmd[3] = MTYPE_SIGN_JTAG;
 
-    if (pgm->flag & PGM_FL_IS_DW) {
-#if 0
-      /*
-       * In debugWire mode, there is no accessible memory area to read
-       * the signature from, but the essential two bytes can be read
-       * as a parameter from the ICE.
-       */
-      unsigned char parm[4];
+    /*
+     * dW can read out the signature on JTAGICE3, but only allows
+     * for a full three-byte read.  We cache them in a local
+     * variable to avoid multiple reads.  This optimization does not
+     * harm for other connection types either.
+     */
+    u32_to_b4(cmd + 8, 3);
+    u32_to_b4(cmd + 4, 0);
 
-      switch (addr) {
-      case 0:
-	*value = 0x1E;		/* Atmel vendor ID */
-	break;
-
-      case 1:
-      case 2:
-	if (jtag3_getparm(pgm, PAR_TARGET_SIGNATURE, parm) < 0)
-	  return -1;
-	*value = parm[2 - addr];
-	break;
-
-      default:
-	fprintf(stderr, "%s: illegal address %lu for signature memory\n",
-		progname, addr);
+    if (addr == 0) {
+      if ((status = jtag3_command(pgm, cmd, 12, &resp, "read memory")) < 0)
 	return -1;
-      }
-      return 0;
-#endif
-    }
 
+      signature_cache[0] = resp[4];
+      signature_cache[1] = resp[5];
+      *value = resp[3];
+      free(resp);
+      return 0;
+    } else if (addr <= 2) {
+      *value = signature_cache[addr - 1];
+      return 0;
+    } else {
+      /* should not happen */
+      fprintf(stderr, "address out of range for signature memory: %u\n", addr);
+      return -1;
+    }
   }
 
   /*
@@ -1622,8 +1618,6 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   if (verbose >= 2)
     fprintf(stderr, "%s: jtag3_write_byte(.., %s, 0x%lx, ...)\n",
 	    progname, mem->desc, addr);
-
-  addr += mem->offset;
 
   cmd[0] = SCOPE_AVR;
   cmd[1] = CMD3_WRITE_MEMORY;
