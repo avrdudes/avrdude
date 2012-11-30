@@ -271,6 +271,10 @@ static void jtag3_prmsg(PROGRAMMER * pgm, unsigned char * data, size_t len)
 	  case RSP3_FAIL_WRONG_LENGTH:
 	    strcpy(reason, "wrong length in memory access");
 	    break;
+
+	  case RSP3_FAIL_DEBUGWIRE:
+	    strcpy(reason, "debugWIRE communication failed");
+	    break;
 	}
 	fprintf(stderr, ", reason: %s\n", reason);
       }

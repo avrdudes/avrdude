@@ -134,6 +134,7 @@
 #define RSP3_STATUS_MASK           0xE0
 
 /* possible failure codes that could be appended to RSP3_FAILED: */
+#  define RSP3_FAIL_DEBUGWIRE           0x10
 #  define RSP3_FAIL_PDI                 0x1B
 #  define RSP3_FAIL_NO_ANSWER           0x20
 #  define RSP3_FAIL_NO_TARGET_POWER     0x22
