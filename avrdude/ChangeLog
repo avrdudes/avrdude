@@ -1,5 +1,10 @@
 2012-12-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* jtag3.c: Remove unused code that was left over from
+	cloning the jtagmkII.c implementation
+
+2012-12-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* pgm_type.c: Add "jtagice3_isp" programmer hook
 	* avrdude.conf.in: Add "jtag3isp" programmer
 	* jtag3.c: jtag3_setparm() is now public

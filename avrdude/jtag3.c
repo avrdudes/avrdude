@@ -104,7 +104,6 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                                 unsigned long addr, unsigned char * value);
 static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                                 unsigned long addr, unsigned char data);
-static int jtag3_reset(PROGRAMMER * pgm, unsigned char flags);
 static int jtag3_set_sck_period(PROGRAMMER * pgm, double v);
 static void jtag3_print_parms1(PROGRAMMER * pgm, const char * p);
 static int jtag3_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
@@ -619,61 +618,6 @@ static int jtag3_chip_erase_dw(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
-/*
- * Reset the target.
- */
-static int jtag3_reset(PROGRAMMER * pgm, unsigned char flags)
-{
-#if 0
-  int status;
-  unsigned char buf[2], *resp, c;
-
-  /*
-   * In debugWire mode, don't reset.  Do a forced stop, and tell the
-   * ICE to stop any timers, too.
-   */
-  if (pgm->flag & PGM_FL_IS_DW) {
-    unsigned char parm[] = { 0 };
-
-    (void)jtag3_setparm(pgm, PAR_TIMERS_RUNNING, parm);
-  }
-
-  buf[0] = (pgm->flag & PGM_FL_IS_DW)? CMND_FORCED_STOP: CMND_RESET;
-  buf[1] = (pgm->flag & PGM_FL_IS_DW)? 1: flags;
-  if (verbose >= 2)
-    fprintf(stderr, "%s: jtag3_reset(): Sending %s command: ",
-	    progname, (pgm->flag & PGM_FL_IS_DW)? "stop": "reset");
-  jtag3_send(pgm, buf, 2);
-
-  status = jtag3_recv(pgm, &resp);
-  if (status <= 0) {
-    if (verbose >= 2)
-      putc('\n', stderr);
-    fprintf(stderr,
-	    "%s: jtag3_reset(): "
-	    "timeout/error communicating with programmer (status %d)\n",
-	    progname, status);
-    return -1;
-  }
-  if (verbose >= 3) {
-    putc('\n', stderr);
-    jtag3_prmsg(pgm, resp, status);
-  } else if (verbose == 2)
-    fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[1], status);
-  c = resp[1];
-  free(resp);
-  if (c != RSP_OK) {
-    fprintf(stderr,
-	    "%s: jtag3_reset(): "
-	    "bad response to reset command: %s\n",
-	    progname, jtag3_get_rc(c));
-    return -1;
-  }
-
-#endif
-  return 0;
-}
-
 static int jtag3_program_enable_dummy(PROGRAMMER * pgm, AVRPART * p)
 {
   return 0;
@@ -726,7 +670,6 @@ static int jtag3_program_disable(PROGRAMMER * pgm)
   free(resp);
 
   PDATA(pgm)->prog_enabled = 0;
-  //(void)jtag3_reset(pgm, 0x01);
 
   return 0;
 }
@@ -955,9 +898,6 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
   }
   PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
 
-  if (jtag3_reset(pgm, 0x01) < 0)
-    return -1;
-
   if ((pgm->flag & PGM_FL_IS_JTAG) && !(p->flags & AVRPART_HAS_PDI)) {
     strcpy(hfuse.desc, "hfuse");
     if (jtag3_read_byte(pgm, p, &hfuse, 1, &b) < 0)
@@ -1170,41 +1110,6 @@ void jtag3_close(PROGRAMMER * pgm)
 
   if (verbose >= 2)
     fprintf(stderr, "%s: jtag3_close()\n", progname);
-
-#if 0
-  if (pgm->flag & PGM_FL_IS_PDI) {
-    /* When in PDI mode, restart target. */
-    buf[0] = CMND_GO;
-    if (verbose >= 2)
-      fprintf(stderr, "%s: jtag3_close(): Sending GO command: ",
-	      progname);
-    jtag3_send(pgm, buf, 1);
-
-    status = jtag3_recv(pgm, &resp);
-    if (status <= 0) {
-      if (verbose >= 2)
-	putc('\n', stderr);
-      fprintf(stderr,
-	      "%s: jtag3_close(): "
-	      "timeout/error communicating with programmer (status %d)\n",
-	      progname, status);
-    } else {
-      if (verbose >= 3) {
-	putc('\n', stderr);
-	jtag3_prmsg(pgm, resp, status);
-      } else if (verbose == 2)
-	fprintf(stderr, "0x%02x (%d bytes msg)\n", resp[1], status);
-      c = resp[1];
-      free(resp);
-      if (c != RSP_OK) {
-	fprintf(stderr,
-		"%s: jtag3_close(): "
-		"bad response to GO command: %s\n",
-		progname, jtag3_get_rc(c));
-      }
-    }
-  }
-#endif
 
   buf[0] = SCOPE_AVR;
   buf[1] = CMD3_SIGN_OFF;
