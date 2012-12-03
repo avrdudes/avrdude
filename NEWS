@@ -35,6 +35,8 @@ Current:
         X3(1), sck = DSR X3(2), mosi = DCD X3(3), reset = RI X3(4))
       + diecimila (alias for arduino-ft232r)
 
+    - pickit2
+
     - Atmel JTAGICE3
 
   * Bugfixes
