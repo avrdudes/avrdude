@@ -109,6 +109,8 @@
 #define CMD3_GET_PARAMETER         0x02
 #define CMD3_SIGN_ON               0x10
 #define CMD3_SIGN_OFF              0x11 /* takes one parameter? */
+#define CMD3_START_DW_DEBUG        0x13
+#define CMD3_MONCON_DISABLE        0x17
 
 /* AVR ISP scope: no commands of its own */
 

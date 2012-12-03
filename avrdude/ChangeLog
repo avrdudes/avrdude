@@ -1,3 +1,12 @@
+2012-12-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtag3.c: Make jtag3_command() public
+	* jtag3.h: (Dito.)
+	* jtag3_private.h: Add two new commands
+	* stk500v2.c: Implement the "MonCon disable" hack that
+	allows temporarily falling back to ISP when trying to
+	talk to a part that has debugWIRE enabled
+
 2012-12-03  Rene Liebscher <R.Liebscher@gmx.de>
 
 	* pickit2.c: reordered #includes for non-usb configuration

@@ -98,9 +98,6 @@ struct pdata
 
 static int jtag3_open(PROGRAMMER * pgm, char * port);
 
-static int jtag3_command(PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen,
-			 unsigned char **resp, const char *descr);
-
 static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p);
 static int jtag3_chip_erase(PROGRAMMER * pgm, AVRPART * p);
 static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
@@ -530,8 +527,8 @@ int jtag3_recv(PROGRAMMER * pgm, unsigned char **msg) {
   }
 }
 
-static int jtag3_command(PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen,
-			 unsigned char **resp, const char *descr)
+ int jtag3_command(PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen,
+		   unsigned char **resp, const char *descr)
 {
   int status;
   unsigned char c;
