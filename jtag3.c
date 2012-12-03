@@ -70,6 +70,9 @@ struct pdata
 
   /* Start address of Xmega boot area */
   unsigned long boot_start;
+
+  /* Function to set the appropriate clock parameter */
+  int (*set_sck)(PROGRAMMER *, unsigned char *);
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
@@ -674,6 +677,22 @@ static int jtag3_program_disable(PROGRAMMER * pgm)
   return 0;
 }
 
+static int jtag3_set_sck_xmega_pdi(PROGRAMMER *pgm, unsigned char *clk)
+{
+    return jtag3_setparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_PDI, clk, 2);
+}
+
+static int jtag3_set_sck_xmega_jtag(PROGRAMMER *pgm, unsigned char *clk)
+{
+    return jtag3_setparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_JTAG, clk, 2);
+}
+
+static int jtag3_set_sck_mega_jtag(PROGRAMMER *pgm, unsigned char *clk)
+{
+    return jtag3_setparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_PROG, clk, 2);
+}
+
+
 /*
  * initialize the AVR device and prepare it to accept commands
  */
@@ -722,7 +741,15 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
   if (jtag3_setparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, parm, 1) < 0)
     return -1;
 
-  if (conn == PARM3_CONN_JTAG && pgm->bitclock != 0.0)
+  if (conn == PARM3_CONN_PDI)
+    PDATA(pgm)->set_sck = jtag3_set_sck_xmega_pdi;
+  else if (conn == PARM3_CONN_JTAG) {
+    if (p->flags & AVRPART_HAS_PDI)
+      PDATA(pgm)->set_sck = jtag3_set_sck_xmega_jtag;
+    else
+      PDATA(pgm)->set_sck = jtag3_set_sck_mega_jtag;
+  }
+  if (pgm->bitclock != 0.0 && PDATA(pgm)->set_sck != NULL)
   {
     unsigned int clock = 1E-3 / pgm->bitclock; /* kHz */
     if (verbose >= 2)
@@ -731,23 +758,10 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
 	      progname, clock);
     parm[0] = clock & 0xff;
     parm[1] = (clock >> 8) & 0xff;
-    if (jtag3_setparm(pgm, SCOPE_AVR, 1,
-		      ((p->flags & AVRPART_HAS_PDI)? PARM3_CLK_XMEGA_JTAG: PARM3_CLK_MEGA_PROG),
-		      parm, 2) < 0)
+    if (PDATA(pgm)->set_sck(pgm, parm) < 0)
       return -1;
   }
-  if (conn == PARM3_CONN_PDI && pgm->bitclock != 0.0)
-  {
-    unsigned int clock = 1E-3 / pgm->bitclock; /* kHz */
-    if (verbose >= 2)
-      fprintf(stderr, "%s: jtag3_initialize(): "
-	      "trying to set PDI clock to %u kHz\n",
-	      progname, clock);
-    parm[0] = clock & 0xff;
-    parm[1] = (clock >> 8) & 0xff;
-    if (jtag3_setparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_PDI, parm, 2) < 0)
-      return -1;
-  }
+
   if (conn == PARM3_CONN_JTAG)
   {
     if (verbose >= 2)
@@ -1609,22 +1623,19 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
  */
 static int jtag3_set_sck_period(PROGRAMMER * pgm, double v)
 {
-#if 0
-  unsigned char dur;
+  unsigned char parm[2];
+  unsigned int clock = 1E-3 / v; /* kHz */
 
-  v = 1 / v;			/* convert to frequency */
-  if (v >= 6.4e6)
-    dur = 0;
-  else if (v >= 2.8e6)
-    dur = 1;
-  else if (v >= 20.9e3)
-    dur = (unsigned char)(5.35e6 / v);
-  else
-    dur = 255;
+  parm[0] = clock & 0xff;
+  parm[1] = (clock >> 8) & 0xff;
 
-  return jtag3_setparm(pgm, PAR_OCD_JTAG_CLK, &dur);
-#endif
-  return 0;
+  if (PDATA(pgm)->set_sck == NULL) {
+    fprintf(stderr, "%s: No backend to set the SCK period for\n",
+	    progname);
+    return -1;
+  }
+
+  return (PDATA(pgm)->set_sck(pgm, parm) < 0)? -1: 0;
 }
 
 
@@ -1707,7 +1718,8 @@ int jtag3_setparm(PROGRAMMER * pgm, unsigned char scope,
   status = jtag3_command(pgm, buf, length + 6, &resp, descr);
 
   free(buf);
-  free(resp);
+  if (status > 0)
+    free(resp);
 
   return status;
 }
@@ -1921,6 +1933,7 @@ void jtag3_pdi_initpgm(PROGRAMMER * pgm)
   pgm->paged_load     = jtag3_paged_load;
   pgm->page_erase     = jtag3_page_erase;
   pgm->print_parms    = jtag3_print_parms;
+  pgm->set_sck_period = jtag3_set_sck_period;
   pgm->setup          = jtag3_setup;
   pgm->teardown       = jtag3_teardown;
   pgm->page_size      = 256;
