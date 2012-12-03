@@ -18,7 +18,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE February 2, 2012
+.Dd DATE December 3, 2012
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -59,7 +59,7 @@ microcontrollers.
 supports Atmel's STK500 programmer,
 Atmel's AVRISP and AVRISP mkII devices,
 Atmel's STK600,
-Atmel's JTAG ICE (both mkI and mkII, the latter also in ISP mode),
+Atmel's JTAG ICE (mkI, mkII and 3, the latter two also in ISP mode),
 programmers complying to AppNote AVR910 and AVR109 (including the Butterfly),
 as well as a simple hard-wired
 programmer connected directly to a
@@ -129,13 +129,15 @@ AVR910, and the bootloader described in Atmel's application note
 AVR109 (which is also used by the AVR Butterfly evaluation board), are
 supported on a serial port.
 .Pp
-Atmel's JTAG ICE (both mkI and mkII) is supported as well to up- or download memory
+Atmel's JTAG ICE (mkI, mkII, and 3) is supported as well to up- or download memory
 areas from/to an AVR target (no support for on-chip debugging).
 For the JTAG ICE mkII, JTAG, debugWire and ISP mode are supported, provided
 it has a firmware revision of at least 4.14 (decimal).
+JTAGICE3 also supports all of JTAG, debugWIRE, and ISP mode.
 See below for the limitations of debugWire.
 For ATxmega devices, the JTAG ICE mkII is supported in PDI mode, provided it
 has a revision 1 hardware and firmware version of at least 5.37 (decimal).
+For ATxmega devices, the JTAGICE3 is supported in PDI mode.
 .Pp
 The AVR Dragon is supported in all modes (ISP, JTAG, HVSP, PP, debugWire).
 When used in JTAG and debugWire mode, the AVR Dragon behaves similar to a
@@ -432,7 +434,7 @@ language notation (i. e., hexadecimal values are prefixed by
 .Ql 0x
 ).
 .Pp
-For the JTAG ICE mkII, if
+For the JTAG ICE mkII and JTAGICE3, if
 .Nm
 has been configured with libusb support,
 .Ar port
@@ -440,7 +442,7 @@ can alternatively be specified as
 .Pa usb Ns Op \&: Ns Ar serialno .
 This will cause
 .Nm
-to search a JTAG ICE mkII on USB.
+to search the programmer on USB.
 If
 .Ar serialno
 is also specified, it will be matched against the serial number read
@@ -770,7 +772,7 @@ microseconds.
 Note that unlike STK500 settings, this setting will be reverted to
 its default value (approximately 1 microsecond) when the programming
 software signs off from the JTAG ICE.
-This parameter can also be used on the JTAG ICE mkII to specify the
+This parameter can also be used on the JTAG ICE mkII and JTAGICE3 to specify the
 ISP clock period when operating the ICE in ISP mode.
 .It Ar parms
 .Em STK500 and STK600 programmer only:
@@ -829,8 +831,9 @@ entered.
 .Ss Programmers accepting extended parameters
 .Bl -tag -offset indent -width indent
 .It Ar JTAG ICE mkII
+.It Ar JTAGICE3
 .It Ar AVR Dragon
-When using the JTAG ICE mkII or AVR Dragon in JTAG mode, the
+When using the JTAG ICE mkII, JTAGICE3 or AVR Dragon in JTAG mode, the
 following extended parameter is accepted:
 .Bl -tag -offset indent -width indent
 .It Ar jtagchain=UB,UA,BB,BA

@@ -185,6 +185,27 @@ int avr_get_output(OPCODE * op, unsigned char * res, unsigned char * data)
 }
 
 
+/*
+ * avr_get_output_index()
+ *
+ * Calculate the byte number of the output data based on the
+ * opcode data.
+ */
+int avr_get_output_index(OPCODE * op)
+{
+  int i, j;
+
+  for (i=0; i<32; i++) {
+    if (op->bit[i].type == AVR_CMDBIT_OUTPUT) {
+      j = 3 - i / 8;
+      return j;
+    }
+  }
+
+  return -1;
+}
+
+
 static char * avr_op_str(int op)
 {
   switch (op) {

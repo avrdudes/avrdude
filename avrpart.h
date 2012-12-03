@@ -203,6 +203,7 @@ int avr_set_bits(OPCODE * op, unsigned char * cmd);
 int avr_set_addr(OPCODE * op, unsigned char * cmd, unsigned long addr);
 int avr_set_input(OPCODE * op, unsigned char * cmd, unsigned char data);
 int avr_get_output(OPCODE * op, unsigned char * res, unsigned char * data);
+int avr_get_output_index(OPCODE * op);
 
 /* Functions for AVRMEM structures */
 AVRMEM * avr_new_memtype(void);

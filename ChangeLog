@@ -1,3 +1,19 @@
+2012-12-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* pgm_type.c: Add "jtagice3_isp" programmer hook
+	* avrdude.conf.in: Add "jtag3isp" programmer
+	* jtag3.c: jtag3_setparm() is now public
+	* jtag3.h: (Dito)
+	* stk500v2_private.h: Command 0x1D is CMD_SPI_MULTI only
+	for STK500v2, AVRISPmkII, and JTAGICEmkII; for JTAGICE3,
+	it's CMD_SET_SCK now; also add CMD_GET_SCK
+	* avrpart.c (avr_get_output_index): New function
+	* avrpart.h: (Dito)
+	* stk500v2.c: Implement the pasthrough programmer glue logic
+	for JTAGICE3 in ISP mode
+	* stk500v2.h: (Dito)
+	* avrdude.1: Document the JTAGICE3 support.
+
 2012-11-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* jtag3.c (jtag3_read_byte, jtag3_write_byte): Remove the
