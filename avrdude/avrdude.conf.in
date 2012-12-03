@@ -912,6 +912,13 @@ programmer
   connection_type = usb;
 ;
 
+programmer
+  id    = "jtag3isp";
+  desc  = "Atmel AVR JTAGICE3 in ISP mode";
+  type  = "jtagice3_isp";
+  connection_type = usb;
+;
+
 
 programmer
   id    = "pavr";

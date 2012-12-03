@@ -106,9 +106,6 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                                 unsigned long addr, unsigned char data);
 static int jtag3_reset(PROGRAMMER * pgm, unsigned char flags);
 static int jtag3_set_sck_period(PROGRAMMER * pgm, double v);
-static int jtag3_setparm(PROGRAMMER * pgm, unsigned char scope,
-			 unsigned char section, unsigned char parm,
-			 unsigned char *value, unsigned char length);
 static void jtag3_print_parms1(PROGRAMMER * pgm, const char * p);
 static int jtag3_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                                 unsigned int page_size,
@@ -1554,7 +1551,7 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       return 0;
     } else {
       /* should not happen */
-      fprintf(stderr, "address out of range for signature memory: %u\n", addr);
+      fprintf(stderr, "address out of range for signature memory: %lu\n", addr);
       return -1;
     }
   }
@@ -1773,9 +1770,9 @@ int jtag3_getparm(PROGRAMMER * pgm, unsigned char scope,
 /*
  * Write an emulator parameter.
  */
-static int jtag3_setparm(PROGRAMMER * pgm, unsigned char scope,
-			 unsigned char section, unsigned char parm,
-			 unsigned char *value, unsigned char length)
+int jtag3_setparm(PROGRAMMER * pgm, unsigned char scope,
+		  unsigned char section, unsigned char parm,
+		  unsigned char *value, unsigned char length)
 {
   int status;
   unsigned char *buf, *resp;

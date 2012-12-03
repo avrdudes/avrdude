@@ -73,6 +73,7 @@ const PROGRAMMER_TYPE const programmers_types[] = {
         {"jtagice3", jtag3_initpgm, jtag3_desc},
         {"jtagice3_pdi", jtag3_pdi_initpgm, jtag3_pdi_desc},
         {"jtagice3_dw", jtag3_dw_initpgm, jtag3_dw_desc},
+        {"jtagice3_isp", stk500v2_jtag3_initpgm, stk500v2_jtag3_desc},
         {"par", par_initpgm, par_desc},
         {"pickit2", pickit2_initpgm, pickit2_desc},
         {"serbb", serbb_initpgm, serbb_desc},

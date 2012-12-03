@@ -32,6 +32,9 @@ int  jtag3_getsync(PROGRAMMER * pgm, int mode);
 int  jtag3_getparm(PROGRAMMER * pgm, unsigned char scope,
 		   unsigned char section, unsigned char parm,
 		   unsigned char *value, unsigned char length);
+int jtag3_setparm(PROGRAMMER * pgm, unsigned char scope,
+		  unsigned char section, unsigned char parm,
+		  unsigned char *value, unsigned char length);
 extern const char jtag3_desc[];
 extern const char jtag3_dw_desc[];
 extern const char jtag3_pdi_desc[];
