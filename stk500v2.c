@@ -1150,6 +1150,52 @@ static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
         }
         break;
 
+    case PGMTYPE_JTAGICE3:
+        if (buf[1] == STATUS_CMD_FAILED &&
+            (p->flags & AVRPART_HAS_DW) != 0) {
+            void *mycookie;
+            unsigned char cmd[4], *resp;
+
+            /* Try debugWIRE, and MONCON_DISABLE */
+            if (verbose >= 2)
+                fprintf(stderr,
+                        "%s: No response in ISP mode, trying debugWIRE\n",
+                        progname);
+
+            mycookie = pgm->cookie;
+            pgm->cookie = PDATA(pgm)->chained_pdata;
+
+            cmd[0] = PARM3_CONN_DW;
+            if (jtag3_setparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, cmd, 1) < 0) {
+                pgm->cookie = mycookie;
+                break;
+            }
+
+            cmd[0] = SCOPE_AVR;
+
+            cmd[1] = CMD3_SIGN_ON;
+            cmd[2] = cmd[3] = 0;
+            if (jtag3_command(pgm, cmd, 4, &resp, "AVR sign-on") >= 0) {
+                free(resp);
+
+                cmd[1] = CMD3_START_DW_DEBUG;
+                if (jtag3_command(pgm, cmd, 4, &resp, "start DW debug") >= 0) {
+                    free(resp);
+
+                    cmd[1] = CMD3_MONCON_DISABLE;
+                    if (jtag3_command(pgm, cmd, 3, &resp, "MonCon disable") >= 0)
+                        free(resp);
+
+                    fprintf(stderr,
+                            "%s: Target prepared for ISP, signed off.\n"
+                            "%s: Please restart %s without power-cycling the target.\n",
+                            progname, progname, progname);
+                }
+            }
+            pgm->cookie = mycookie;
+        }
+        break;
+
     default:
         /* cannot report anything for other pgmtypes */
         break;
