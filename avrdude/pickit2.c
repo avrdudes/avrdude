@@ -45,23 +45,16 @@
 
 #include "ac_cfg.h"
 
-#if defined(HAVE_LIBUSB) || (defined(WIN32NATIVE) && defined(HAVE_LIBHID))
-
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-#include <limits.h>
-#include <unistd.h>
-#include <sys/time.h>
-#include <time.h>
 #include <inttypes.h>
 
 #include "avrdude.h"
 #include "avr.h"
 #include "pgm.h"
-#include "usbdevs.h"
+
+#if defined(HAVE_LIBUSB) || (defined(WIN32NATIVE) && defined(HAVE_LIBHID))
 
 #if (defined(WIN32NATIVE) && defined(HAVE_LIBHID))
 #include <windows.h>
