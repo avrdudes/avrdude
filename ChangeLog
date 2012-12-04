@@ -1,3 +1,13 @@
+2012-12-04  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* config_gram.y: Implement the "ocdrev" keyword
+	* avrpart.c: (Dito)
+	* avrpart.h: (Dito)
+	* lexer.l: (Dito)
+	* avrdude.conf.in: Add "ocdrev" key/value pairs, based
+	on the AS6 XML file information.
+	* jtag3.c: Use the ocdrev in the parameter block.
+
 2012-12-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* jtag3.c: Make jtag3_command() public

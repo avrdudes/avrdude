@@ -157,6 +157,7 @@ typedef struct avrpart {
   unsigned short eecr;              /* JTAC ICE mkII XML file parameter */
   unsigned int mcu_base;            /* Base address of MCU control block in ATxmega devices */
   unsigned int nvm_base;            /* Base address of NVM controller in ATxmega devices */
+  int           ocdrev;             /* OCD revision (JTAGICE3 parameter, from AS6 XML files) */
 
   OPCODE      * op[AVR_OP_MAX];     /* opcodes */
 

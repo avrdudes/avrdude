@@ -179,6 +179,7 @@ no               { yylval=new_token(K_NO); return K_NO; }
 num_banks        { yylval=NULL; return K_NUM_PAGES; }
 num_pages        { yylval=NULL; return K_NUM_PAGES; }
 nvm_base         { yylval=NULL; return K_NVM_BASE; }
+ocdrev           { yylval=NULL; return K_OCDREV; }
 offset           { yylval=NULL; return K_OFFSET; }
 page_size        { yylval=NULL; return K_PAGE_SIZE; }
 paged            { yylval=NULL; return K_PAGED; }

@@ -817,6 +817,7 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
     struct mega_device_desc md;
     LNODEID ln;
     AVRMEM * m;
+    unsigned int flashsize;
 
     memset(&md, 0, sizeof md);
 
@@ -825,7 +826,7 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
       if (strcmp(m->desc, "flash") == 0) {
 	PDATA(pgm)->flash_pagesize = m->page_size;
 	u16_to_b2(md.flash_page_size, m->page_size);
-	u32_to_b4(md.flash_size, m->size);
+	u32_to_b4(md.flash_size, (flashsize = m->size));
 	// do we need it?  just a wild guess
 	u32_to_b4(md.boot_address, (m->size - m->page_size * 4) / 2);
       } else if (strcmp(m->desc, "eeprom") == 0) {
@@ -836,7 +837,23 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
     }
 
     //md.sram_offset[2] = p->sram;  // do we need it?
-    md.ocd_revision = 3;        /* XXX! */
+    if (p->ocdrev == -1) {
+      int ocdrev;
+
+      /* lacking a proper definition, guess the OCD revision */
+      if (p->flags & AVRPART_HAS_DW)
+	ocdrev = 1;		/* exception: ATtiny13, 2313, 4313 */
+      else if (flashsize > 128 * 1024)
+	ocdrev = 4;
+      else
+	ocdrev = 3;		/* many exceptions from that, actually */
+      fprintf(stderr,
+	      "%s: part definition for %s lacks \"ocdrev\"; guessing %d\n",
+	      progname, p->desc, ocdrev);
+      md.ocd_revision = ocdrev;
+    } else {
+      md.ocd_revision = p->ocdrev;
+    }
     md.always_one = 1;
     md.allow_full_page_bitstream = (p->flags & AVRPART_ALLOWFULLPAGEBITSTREAM) != 0;
     md.idr_address = p->idr;
