@@ -460,6 +460,7 @@ AVRPART * avr_new_part(void)
   p->lineno = 0;
   memset(p->signature, 0xFF, 3);
   p->ctl_stack_type = CTL_STACK_NONE;
+  p->ocdrev = -1;
 
   p->mem = lcreat(NULL, 0);
 

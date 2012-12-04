@@ -1481,6 +1481,8 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
 
+    ocdrev              = 0;
+
     memory "eeprom"
         size            = 64;
         page_size       = 4;
@@ -2966,6 +2968,8 @@ part
     spmcr               = 0x68;
     allowfullpagebitstream = yes;
 
+    ocdrev              = 2;
+
     memory "eeprom"
         paged           = no; /* leave this "no" */
         page_size       = 8;  /* for parallel programming */
@@ -3148,6 +3152,8 @@ part
     rampz               = 0x3b;
     allowfullpagebitstream = yes;
 
+    ocdrev              = 1;
+
     memory "eeprom"
         paged           = no; /* leave this "no" */
         page_size       = 8;  /* for parallel programming */
@@ -3326,6 +3332,8 @@ part
     rampz               = 0x3b;
     eecr                = 0x3f;
     allowfullpagebitstream = no;
+
+    ocdrev              = 3;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -3517,6 +3525,8 @@ part
     eecr                = 0x3f;
     allowfullpagebitstream = no;
 
+    ocdrev              = 3;
+
     memory "eeprom"
         paged           = no; /* leave this "no" */
         page_size       = 8;  /* for parallel programming */
@@ -3707,6 +3717,8 @@ part
     eecr                = 0x3f;
     allowfullpagebitstream = no;
 
+    ocdrev              = 3;
+
     memory "eeprom"
         paged           = no; /* leave this "no" */
         page_size       = 8;  /* for parallel programming */
@@ -3896,6 +3908,8 @@ part
     spmcr               = 0x57;
     allowfullpagebitstream = yes;
 
+    ocdrev              = 2;
+
     memory "eeprom"
         paged           = no; /* leave this "no" */
         page_size       = 4;  /* for parallel programming */
@@ -4033,6 +4047,8 @@ part parent "m16"
     poweroffdelay       = 15;
     resetdelayms        = 1;
     allowfullpagebitstream = no;
+
+    ocdrev              = 3;
   ;
 
 
@@ -4092,6 +4108,8 @@ part
     idr                 = 0x31;
     spmcr               = 0x57;
     allowfullpagebitstream = no;
+
+    ocdrev              = 3;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -4237,6 +4255,8 @@ part parent "m324p"
     id               = "m324pa";
     desc             = "ATmega324PA";
     signature        = 0x1e 0x95 0x11;
+
+    ocdrev              = 3;
   ;
 
 
@@ -4296,6 +4316,8 @@ part
     idr                 = 0x31;
     spmcr               = 0x57;
     allowfullpagebitstream = no;
+
+    ocdrev              = 3;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -4440,6 +4462,8 @@ part parent "m644"
     id               = "m644p";
     desc             = "ATmega644P";
     signature        = 0x1e 0x96 0x0a;
+
+    ocdrev              = 3;
   ;
 
 
@@ -4500,6 +4524,8 @@ part
     idr                 = 0x31;
     spmcr               = 0x57;
     allowfullpagebitstream = no;
+
+    ocdrev              = 3;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -4660,6 +4686,8 @@ part
 
     chip_erase       = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
                        "x x x x  x x x x    x x x x  x x x x";
+
+    ocdrev              = 2;
 
     memory "flash"
         paged           = yes;
@@ -5041,6 +5069,8 @@ part
     idr                 = 0x31;
     spmcr               = 0x57;
 
+    ocdrev              = 2;
+
    memory "eeprom"
         paged           = no; /* leave this "no" */
         page_size       = 4;  /* for parallel programming */
@@ -5222,6 +5252,8 @@ part
     idr                 = 0x31;
     spmcr               = 0x57;
 
+    ocdrev              = 3;
+
    memory "eeprom"
         paged           = no; /* leave this "no" */
         page_size       = 4;  /* for parallel programming */
@@ -5362,6 +5394,8 @@ part parent "m329"
     id               = "m329p";
     desc             = "ATmega329P";
     signature        = 0x1e 0x95 0x0b;
+
+    ocdrev              = 3;
   ;
 
 #------------------------------------------------------------
@@ -5374,6 +5408,8 @@ part parent "m329"
     id               = "m3290";
     desc             = "ATmega3290";
     signature        = 0x1e 0x95 0x04;
+
+    ocdrev              = 3;
   ;
 
 #------------------------------------------------------------
@@ -5386,6 +5422,8 @@ part parent "m3290"
     id               = "m3290p";
     desc             = "ATmega3290P";
     signature        = 0x1e 0x95 0x0c;
+
+    ocdrev              = 3;
   ;
 
 #------------------------------------------------------------
@@ -5439,6 +5477,8 @@ part
 
     idr                 = 0x31;
     spmcr               = 0x57;
+
+    ocdrev              = 3;
 
    memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -5581,6 +5621,8 @@ part parent "m649"
     id               = "m6490";
     desc             = "ATmega6490";
     signature        = 0x1e 0x96 0x04;
+
+    ocdrev              = 3;
   ;
 
 #------------------------------------------------------------
@@ -5637,6 +5679,8 @@ part
     idr                 = 0x31;
     spmcr               = 0x57;
     allowfullpagebitstream = yes;
+
+    ocdrev              = 2;
 
    memory "eeprom"
         paged           = no;   /* leave this "no" */
@@ -6588,6 +6632,8 @@ part
     programlockpulsewidth = 0;
     programlockpolltimeout = 5;
 
+    ocdrev              = 1;
+
     memory "eeprom"
         paged           = no;
         size            = 128;
@@ -6776,6 +6822,8 @@ part
     programfusepolltimeout = 5;
     programlockpulsewidth = 0;
     programlockpolltimeout = 5;
+
+    ocdrev              = 1;
 
     memory "eeprom"
         paged           = no;
@@ -6966,6 +7014,8 @@ part
     programlockpulsewidth = 0;
     programlockpolltimeout = 5;
 
+    ocdrev              = 1;
+
     memory "eeprom"
         paged           = no;
         size            = 512;
@@ -7154,6 +7204,8 @@ part
     programlockpulsewidth = 0;
     programlockpolltimeout = 5;
 
+    ocdrev              = 1;
+
     memory "eeprom"
         paged           = no;
         page_size       = 4;
@@ -7292,6 +7344,8 @@ part parent "m48"
     id               = "m48p";
     desc             = "ATmega48P";
     signature        = 0x1e 0x92 0x0a;
+
+    ocdrev              = 1;
   ;
 
 #------------------------------------------------------------
@@ -7349,6 +7403,8 @@ part
     programfusepolltimeout = 5;
     programlockpulsewidth = 0;
     programlockpolltimeout = 5;
+
+    ocdrev              = 1;
 
     memory "eeprom"
         paged           = no;
@@ -7488,6 +7544,8 @@ part parent "m88"
     id               = "m88p";
     desc             = "ATmega88P";
     signature        = 0x1e 0x93 0x0f;
+
+    ocdrev              = 1;
   ;
 
 #------------------------------------------------------------
@@ -7545,6 +7603,8 @@ part
     programfusepolltimeout = 5;
     programlockpulsewidth = 0;
     programlockpolltimeout = 5;
+
+    ocdrev              = 1;
 
     memory "eeprom"
         paged           = no;
@@ -7686,6 +7746,8 @@ part parent "m168"
     id              = "m168p";
     desc            = "ATmega168P";
     signature       = 0x1e 0x94 0x0b;
+
+    ocdrev              = 1;
 ;
 
 #------------------------------------------------------------
@@ -7743,6 +7805,8 @@ part
     programfusepolltimeout = 5;
     programlockpulsewidth = 0;
     programlockpolltimeout = 5;
+
+    ocdrev              = 1;
 
     memory "eeprom"
         paged           = no;
@@ -7930,6 +7994,8 @@ part
     programlockpulsewidth = 0;
     programlockpolltimeout = 5;
 
+    ocdrev              = 1;
+
     memory "eeprom"
 	paged		= no;
 	page_size	= 4;
@@ -8066,6 +8132,8 @@ part parent "m328"
     id			= "m328p";
     desc		= "ATmega328P";
     signature		= 0x1e 0x95 0x0F;
+
+    ocdrev              = 1;
 ;
 
 #------------------------------------------------------------
@@ -8125,6 +8193,8 @@ part
     programfusepolltimeout = 5;
     programlockpulsewidth = 0;
     programlockpolltimeout = 5;
+
+    ocdrev              = 0;
 
      memory "eeprom"
          size            = 128;
@@ -8312,6 +8382,8 @@ part
     programfusepolltimeout = 5;
     programlockpulsewidth = 0;
     programlockpolltimeout = 5;
+
+    ocdrev              = 0;
 
      memory "eeprom"
          size            = 256;
@@ -8639,6 +8711,8 @@ part parent "pwm2"
      id            = "pwm2b";
      desc          = "AT90PWM2B";
      signature     = 0x1e 0x93 0x83;
+
+    ocdrev              = 1;
   ;
 
 #------------------------------------------------------------
@@ -8650,6 +8724,8 @@ part parent "pwm2"
 part parent "pwm2b"
      id            = "pwm3b";
      desc          = "AT90PWM3B";
+
+    ocdrev              = 1;
   ;
 
 #------------------------------------------------------------
@@ -8662,6 +8738,8 @@ part parent "pwm3b"
      id            = "pwm316";
      desc          = "AT90PWM316";
      signature     = 0x1e 0x94 0x83;
+
+    ocdrev              = 1;
 
     memory "flash"
         paged           = yes;
@@ -8761,6 +8839,8 @@ part
     chiperasetime       = 0;
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
+
+    ocdrev              = 1;
 
      memory "eeprom"
          size            = 128;
@@ -8942,6 +9022,8 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
 
+    ocdrev              = 1;
+
      memory "eeprom"
          size            = 256;
          page_size       = 4;
@@ -9120,6 +9202,8 @@ part
     chiperasetime       = 0;
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
+
+    ocdrev              = 1;
 
      memory "eeprom"
          size            = 512;
@@ -9300,6 +9384,8 @@ part
     spmcr               = 0x57;
     rampz               = 0x3b;
     allowfullpagebitstream = no;
+
+    ocdrev              = 3;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -9489,6 +9575,8 @@ part
     rampz               = 0x3b;
     allowfullpagebitstream = no;
 
+    ocdrev              = 3;
+
     memory "eeprom"
         paged           = no; /* leave this "no" */
         page_size       = 8;  /* for parallel programming */
@@ -9629,6 +9717,8 @@ part parent "m1280"
     id               = "m1281";
     desc             = "ATmega1281";
     signature        = 0x1e 0x97 0x04;
+
+    ocdrev              = 3;
   ;
 
 #------------------------------------------------------------
@@ -9687,6 +9777,8 @@ part
     spmcr               = 0x57;
     rampz               = 0x3b;
     allowfullpagebitstream = no;
+
+    ocdrev              = 4;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -9832,6 +9924,8 @@ part parent "m2560"
     id               = "m2561";
     desc             = "ATmega2561";
     signature        = 0x1e 0x98 0x02;
+
+    ocdrev              = 4;
   ;
 
 #------------------------------------------------------------
@@ -9845,6 +9939,8 @@ part parent "m2561"
     signature        = 0x1e 0xa7 0x01;
     chip_erase_delay = 55000;
     bs2              = 0xE2;
+
+    ocdrev              = 3;
 
     memory "flash"
         paged           = yes;
@@ -9898,6 +9994,8 @@ part parent "m2561"
     chip_erase_delay = 55000;
     bs2              = 0xE2;
 
+
+    ocdrev              = 4;
   ;
 
 #------------------------------------------------------------
@@ -9909,6 +10007,8 @@ part parent "m128rfa1"
     desc             = "ATmega128RFR2";
     signature        = 0x1e 0xa7 0x02;
 
+
+    ocdrev              = 3;
   ;
 
 #------------------------------------------------------------
@@ -9920,6 +10020,8 @@ part parent "m128rfa1"
     desc             = "ATmega64RFR2";
     signature        = 0x1e 0xa6 0x02;
 
+
+    ocdrev              = 3;
 
     memory "flash"
         paged           = yes;
@@ -10019,6 +10121,8 @@ part
     chiperasetime       = 0;
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
+
+    ocdrev              = 1;
 
      memory "eeprom"
          size            = 128;
@@ -10202,6 +10306,8 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
 
+    ocdrev              = 1;
+
      memory "eeprom"
          size            = 256;
         paged           = no;
@@ -10384,6 +10490,8 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
 
+    ocdrev              = 1;
+
      memory "eeprom"
          size            = 512;
         paged           = no;
@@ -10565,6 +10673,8 @@ part
     spmcr               = 0x57;
     rampz               = 0x3b;
     allowfullpagebitstream = no;
+
+    ocdrev              = 3;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -10754,6 +10864,8 @@ part
     rampz               = 0x3b;
     allowfullpagebitstream = no;
 
+    ocdrev              = 3;
+
     memory "eeprom"
         paged           = no; /* leave this "no" */
         page_size       = 8;  /* for parallel programming */
@@ -10894,6 +11006,8 @@ part parent "usb646"
     id               = "usb647";
     desc             = "AT90USB647";
     signature        = 0x1e 0x96 0x82;
+
+    ocdrev              = 3;
   ;
 
 #------------------------------------------------------------
@@ -10952,6 +11066,8 @@ part
     spmcr               = 0x57;
     rampz               = 0x3b;
     allowfullpagebitstream = no;
+
+    ocdrev              = 3;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -11093,6 +11209,8 @@ part parent "usb1286"
     id               = "usb1287";
     desc             = "AT90USB1287";
     signature        = 0x1e 0x97 0x82;
+
+    ocdrev              = 3;
   ;
 
 #------------------------------------------------------------
@@ -11143,6 +11261,8 @@ part
     programfusepolltimeout = 5;
     programlockpulsewidth = 0;
     programlockpolltimeout = 5;
+
+    ocdrev              = 1;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -11327,6 +11447,8 @@ part
     programfusepolltimeout = 5;
     programlockpulsewidth = 0;
     programlockpolltimeout = 5;
+
+    ocdrev              = 1;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -11514,6 +11636,8 @@ part
     programlockpulsewidth = 0;
     programlockpolltimeout = 5;
 
+    ocdrev              = 1;
+
     memory "eeprom"
         paged           = no; /* leave this "no" */
         page_size       = 4;  /* for parallel programming */
@@ -11698,6 +11822,8 @@ part
     programfusepolltimeout = 5;
     programlockpulsewidth = 0;
     programlockpolltimeout = 5;
+
+    ocdrev              = 1;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -11884,6 +12010,8 @@ part
     programlockpulsewidth = 0;
     programlockpolltimeout = 5;
 
+    ocdrev              = 1;
+
     memory "eeprom"
         paged           = no; /* leave this "no" */
         page_size       = 4;  /* for parallel programming */
@@ -12069,6 +12197,8 @@ part
     idr                 = 0x31;
     spmcr               = 0x57;
     allowfullpagebitstream = no;
+
+    ocdrev              = 3;
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
@@ -12259,6 +12389,8 @@ part
     spmcr               = 0x57;
     allowfullpagebitstream = no;
 
+    ocdrev              = 3;
+
     memory "eeprom"
         paged           = no; /* leave this "no" */
         page_size       = 8;  /* for parallel programming */
@@ -12400,6 +12532,8 @@ part parent "m325"
     id               = "m3250";
     desc             = "ATmega3250";
     signature        = 0x1E 0x95 0x06;
+
+    ocdrev              = 3;
   ;
 
 #------------------------------------------------------------
@@ -12410,6 +12544,8 @@ part parent "m645"
     id               = "m6450";
     desc             = "ATmega6450";
     signature        = 0x1E 0x96 0x06;
+
+    ocdrev              = 3;
   ;
 
 #------------------------------------------------------------

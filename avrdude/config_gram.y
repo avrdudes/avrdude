@@ -99,6 +99,7 @@ static int pin_name;
 %token K_MOSI
 %token K_NUM_PAGES
 %token K_NVM_BASE
+%token K_OCDREV
 %token K_OFFSET
 %token K_PAGEL
 %token K_PARALLEL
@@ -1092,6 +1093,12 @@ part_parm :
   K_NVM_BASE TKN_EQUAL TKN_NUMBER
     {
       current_part->nvm_base = $3->value.number;
+      free_token($3);
+    } |
+
+  K_OCDREV          TKN_EQUAL TKN_NUMBER
+    {
+      current_part->ocdrev = $3->value.number;
       free_token($3);
     } |
 
