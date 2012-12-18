@@ -1435,8 +1435,22 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
   }
   PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
 
-  if (jtagmkII_reset(pgm, 0x01) < 0)
-    return -1;
+  if (PDATA(pgm)->fwver >= 0x700 && (p->flags & AVRPART_HAS_PDI)) {
+    /*
+     * Work around for
+     * https://savannah.nongnu.org/bugs/index.php?37942
+     *
+     * Firmware version 7.24 (at least) on the Dragon behaves very
+     * strange when it gets a RESET request here.  All subsequent
+     * responses are completely off, so the emulator becomes unusable.
+     * This appears to be a firmware bug (earlier versions, at least
+     * 7.14, didn't experience this), but by omitting the RESET for
+     * Xmega devices, we can work around it.
+     */
+  } else {
+    if (jtagmkII_reset(pgm, 0x01) < 0)
+      return -1;
+  }
 
   if ((pgm->flag & PGM_FL_IS_JTAG) && !(p->flags & AVRPART_HAS_PDI)) {
     strcpy(hfuse.desc, "hfuse");
