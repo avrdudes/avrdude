@@ -1666,8 +1666,8 @@ static int stk600_open(PROGRAMMER * pgm, char * port)
     PDATA(pgm)->pgmtype = PGMTYPE_STK600;
     pgm->set_sck_period = stk600_set_sck_period;
     pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_MKII;
-    pgm->fd.usb.rep = USBDEV_BULK_EP_READ_MKII;
-    pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_MKII;
+    pgm->fd.usb.rep = USBDEV_BULK_EP_READ_STK600;
+    pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_STK600;
     pgm->fd.usb.eep = 0;           /* no seperate EP for events */
 #else
     fprintf(stderr, "avrdude was compiled without usb support.\n");

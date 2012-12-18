@@ -1,5 +1,12 @@
 2012-12-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* usbdefs.h (USBDEV_BULK_EP_WRITE_STK600)
+	(USBDEV_BULK_EP_READ_STK600): new define values
+	* stk500v2.c (stk600_open): use the STK600 EP values,
+	as they are different from AVRISPmkII
+
+2012-12-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #37942: Latest SVN can't program in dragon_jtag mode
 	* jtagmkII.c (jtagmkII_initialize): For Xmega devices, and
 	firmware >= 7.x, don't trigger a RESET, in order to work around a
