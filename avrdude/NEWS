@@ -68,6 +68,7 @@ Current:
       - bug #30756: When setting SUT to 64ms on XMEGA, avrdude doesn't
         read device signature
       - bug #37265: wrong page sizes for XMega64xx in avrdude.conf
+      - bug #37942: Latest SVN can't program in dragon_jtag mode
 
   * Keep track of input file contents
 
