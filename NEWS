@@ -16,7 +16,7 @@ Current:
   * New programmers supported:
     - avrftdi
       + o-link (patch #7672 adding support for O-Link (FTDI based
-        JTAG) as progr ammer)
+        JTAG) as programmer)
       + 4232h (patch #7715 FT4232H support)
 
     - usbasp
