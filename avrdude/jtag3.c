@@ -701,6 +701,36 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
   unsigned char cmd[4], *resp, b;
   int status;
 
+  /*
+   * At least, as of firmware 2.12, the JTAGICE3 doesn't handle
+   * splitting packets correctly.  On a large transfer, the first
+   * split packets are correct, but remaining packets contain just
+   * garbage.
+   *
+   * We move the check here so in case future firmware versions fix
+   * this, the check below can be made dependended on the actual
+   * firmware level.  Retrieving the firmware version can always be
+   * accomplished with USB 1.1 (64 byte max) packets.
+   *
+   * Allow to override the check by -F (so users could try on newer
+   * firmware), but warn loudly.
+   */
+  if (jtag3_getparm(pgm, SCOPE_GENERAL, 0, PARM3_FW_MAJOR, parm, 2) < 0)
+    return -1;
+  if (pgm->fd.usb.max_xfer < USBDEV_MAX_XFER_3) {
+    fprintf(stderr,
+	    "%s: the JTAGICE3's firmware %d.%d is broken on USB 1.1 connections, sorry\n",
+	    progname, parm[0], parm[1]);
+    if (ovsigck) {
+      fprintf(stderr,
+	      "%s: forced to continue by option -F; THIS PUTS THE DEVICE'S DATA INTEGRITY AT RISK!\n",
+	      progname);
+    } else {
+      serial_close(&pgm->fd);
+      return -1;
+    }
+  }
+
   if (pgm->flag & PGM_FL_IS_DW) {
     ifname = "debugWire";
     if (p->flags & AVRPART_HAS_DW)

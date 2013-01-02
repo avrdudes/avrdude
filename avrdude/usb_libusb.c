@@ -230,6 +230,22 @@ static int usbdev_open(char * port, long baud, union filedescriptor *fd)
 		      fd->usb.rep = USBDEV_BULK_EP_READ_MKII;
 		    }
 		  }
+		  for (i = 0; i < dev->config[0].interface[0].altsetting[0].bNumEndpoints; i++)
+		    {
+		      if ((dev->config[0].interface[0].altsetting[0].endpoint[i].bEndpointAddress == fd->usb.rep ||
+			   dev->config[0].interface[0].altsetting[0].endpoint[i].bEndpointAddress == fd->usb.wep) &&
+			  dev->config[0].interface[0].altsetting[0].endpoint[i].wMaxPacketSize < fd->usb.max_xfer)
+			{
+			  if (verbose != 0)
+			    fprintf(stderr,
+				    "%s: max packet size expected %d, but found %d due to EP 0x%02x's wMaxPacketSize\n",
+				    progname,
+				    fd->usb.max_xfer,
+				    dev->config[0].interface[0].altsetting[0].endpoint[i].wMaxPacketSize,
+				    dev->config[0].interface[0].altsetting[0].endpoint[i].bEndpointAddress);
+			  fd->usb.max_xfer = dev->config[0].interface[0].altsetting[0].endpoint[i].wMaxPacketSize;
+			}
+		    }
                   return 0;
 		}
 	      trynext:
