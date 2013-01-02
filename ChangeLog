@@ -1,3 +1,13 @@
 2013-01-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* usb_libusb.c (usbdev_open): Downgrade the max transfer size for
+	the main data endpoints when being forced so by the USB; this can
+	happen when attaching the JTAGICE3 to a USB 1.1 connection
+	* jtag3.c (jtag3_initialize): When detecting a downgraded max
+	transfer size on the JTAGICE3 (presumably, due to being connected
+	to USB 1.1 only), bail out as its firmware cannot properly handle
+	this (by now)
+
+2013-01-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* ChangeLog: annual ChangeLog rotation time
