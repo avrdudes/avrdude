@@ -1,3 +1,9 @@
+2013-01-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtagmkI.c (jtagmkI_prmsg): replace a putchar() by putc(...stderr)
+	* jtagmkII.c (jtagmkII_prmsg): (Dito.)
+	* jtag3.c (jtag3_prevent, jtag3_prmsg): (Dito.)
+
 2013-01-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* usb_libusb.c (usbdev_open): Downgrade the max transfer size for
