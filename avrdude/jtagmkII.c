@@ -293,7 +293,7 @@ static void jtagmkII_prmsg(PROGRAMMER * pgm, unsigned char * data, size_t len)
       if (i % 16 == 15)
 	putc('\n', stderr);
       else
-	putchar(' ');
+	putc(' ', stderr);
     }
     if (i % 16 != 0)
       putc('\n', stderr);
