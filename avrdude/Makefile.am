@@ -31,6 +31,7 @@ EXTRA_DIST   = \
 	ChangeLog-2009 \
 	ChangeLog-2010 \
 	ChangeLog-2011 \
+	ChangeLog-2012 \
 	avrdude.1 \
 	avrdude.spec \
 	bootstrap
@@ -123,6 +124,8 @@ libavrdude_a_SOURCES = \
 	jtag3.c \
 	jtag3.h \
 	jtag3_private.h \
+	linuxgpio.c \
+	linuxgpio.h \
 	linux_ppdev.h \
 	lists.c \
 	lists.h \

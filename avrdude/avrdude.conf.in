@@ -1142,7 +1142,28 @@ programmer
 
 @HAVE_PARPORT_END@
 
+#This programmer bitbangs GPIO lines using the Linux sysfs GPIO interface
 #
+#To enable it set the configuration below to match the GPIO lines connected to the
+#relevant ISP header pins and uncomment the entry definition. In case you don't
+#have the required permissions to edit this system wide config file put the
+#entry in a separate <your name>.conf file and use it with -C+<your name>.conf
+#on the command line.
+#
+#To check if your avrdude build has support for the linuxgpio programmer compiled in,
+#use -c?type on the command line and look for linuxgpio in the list. If it's not available
+#you need pass the --enable-linuxgpio=yes option to configure and recompile avrdude.
+#
+#programmer
+#  id    = "linuxgpio";
+#  desc  = "Use the Linux sysfs interface to bitbang GPIO lines";
+#  type  = "linuxgpio";
+#  reset = ?;
+#  sck   = ?;
+#  mosi  = ?;
+#  miso  = ?;
+#;
+
 # some ultra cheap programmers use bitbanging on the 
 # serialport.
 #

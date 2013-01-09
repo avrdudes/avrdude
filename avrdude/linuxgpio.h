@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2013 Radoslav Kolev <radoslav@kolev.info>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,32 +13,24 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id$ */
+/* $Id: par.h 722 2007-01-24 22:43:46Z joerg_wunsch $ */
 
-#ifndef __pindefs_h__
-#define __pindefs_h__
+#ifndef linuxgpio_h
+#define linuxgpio_h
 
-#include <limits.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-enum {
-  PPI_AVR_VCC=1,
-  PPI_AVR_BUFF,
-  PIN_AVR_RESET,
-  PIN_AVR_SCK,
-  PIN_AVR_MOSI,
-  PIN_AVR_MISO,
-  PIN_LED_ERR,
-  PIN_LED_RDY,
-  PIN_LED_PGM,
-  PIN_LED_VFY,
-  N_PINS
-};
-#define PIN_MASK    (UINT_MAX>>1)
-#define PIN_INVERSE (~(PIN_MASK))	/* flag for inverted pin in serbb */
-#define PIN_MIN     1   /* smallest allowed pin number */
-#define PIN_MAX     255 /* largest allowed pin number */
+extern const char linuxgpio_desc[];
+void linuxgpio_initpgm        (PROGRAMMER * pgm);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

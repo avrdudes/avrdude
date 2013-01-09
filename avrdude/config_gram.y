@@ -1346,11 +1346,11 @@ static int assign_pin(int pinno, TOKEN * v, int invert)
   value = v->value.number;
   free_token(v);
 
-  if ((value <= 0) || (value >= 18)) {
+  if ((value < PIN_MIN) || (value > PIN_MAX)) {
     fprintf(stderr, 
             "%s: error at line %d of %s: pin must be in the "
-            "range 1-17\n",
-            progname, lineno, infile);
+            "range %d-%d\n",
+            progname, lineno, infile, PIN_MIN, PIN_MAX);
     exit(1);
   }
   if (invert)

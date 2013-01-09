@@ -168,6 +168,18 @@ attached to a physical serial port.  Connecting to a serial port
 emulated on top of USB is likely to not work at all, or to work
 abysmally slow.
 
+If you happen to have a Linux system with at least 4 hardware GPIOs 
+available (like almost all embedded Linux boards) you can do without 
+any additional hardware - just connect them to the MOSI, MISO, RESET 
+and SCK pins on the AVR and use the linuxgpio programmer type. It bitbangs
+the lines using the Linux sysfs GPIO interface. Of course, care should
+be taken about voltage level compatibility. Also, although not strictrly 
+required, it is strongly advisable to protect the GPIO pins from 
+overcurrent situations in some way. The simplest would be to just put
+some resistors in series or better yet use a 3-state buffer driver like
+the 74HC244. Have a look at http://kolev.info/avrdude-linuxgpio for a more
+detailed tutorial about using this programmer type.
+
 The STK500, JTAG ICE, avr910, and avr109/butterfly use the serial port to communicate with the PC.
 The STK600, JTAG ICE mkII, AVRISP mkII, USBasp, avrftdi (and derivitives), and USBtinyISP
 programmers communicate through the USB, using @code{libusb} as a
