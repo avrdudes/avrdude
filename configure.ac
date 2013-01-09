@@ -271,6 +271,18 @@ AC_ARG_ENABLE(
 		*)   AC_MSG_ERROR(bad value ${enableval} for enable-parport option) ;;
 		esac],
 	[enabled_parport=yes])
+	
+AC_ARG_ENABLE(
+	[linuxgpio],
+	AC_HELP_STRING(
+		[--enable-linuxgpio],
+		[Enable the Linux sysfs GPIO interface programmer type]),
+	[case "${enableval}" in
+		yes) enabled_linuxgpio=yes ;;
+		no)  enabled_linuxgpio=no ;;
+		*)   AC_MSG_ERROR(bad value ${enableval} for enable-linuxgpio option) ;;
+		esac],
+	[enabled_linuxgpio=no])	
 
 DIST_SUBDIRS_AC='doc windows'
 
@@ -339,6 +351,15 @@ if test "$enabled_parport" = "yes"; then
 else
 	confsubst="-e /^@HAVE_PARPORT_BEGIN@/,/^@HAVE_PARPORT_END@/d"
 fi
+
+
+if test "$enabled_linuxgpio" = "yes"; then
+	AC_DEFINE(HAVE_LINUXGPIO, 1, [Linux sysfs GPIO support enabled])
+	confsubst="$confsubst -e /^@HAVE_LINUXGPIO_/d"
+else
+	confsubst="$confsubst -e /^@HAVE_LINUXGPIO_BEGIN@/,/^@HAVE_LINUXGPIO_END@/d"
+fi
+
 
 # If we are compiling with gcc, enable all warning and make warnings errors.
 if test "$GCC" = yes; then
@@ -477,5 +498,23 @@ if test x$have_pthread = xyes; then
    echo "DO HAVE    pthread"
 else
    echo "DON'T HAVE pthread"
+fi
+
+if test x$enabled_doc = xyes; then
+   echo "ENABLED    doc"
+else
+   echo "DISABLED   doc"
+fi
+
+if test x$enabled_parport = xyes; then
+   echo "ENABLED    parport"
+else
+   echo "DISABLED   parport"
+fi
+
+if test x$enabled_linuxgpio = xyes; then
+   echo "ENABLED    linuxgpio"
+else
+   echo "DISABLED   linuxgpio"
 fi
 

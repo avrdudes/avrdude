@@ -14,6 +14,10 @@ Current:
     - ATmega256RFR2, ATmega128RFR2, ATmega64RFR2
 
   * New programmers supported:
+    - linuxgpio
+      + any (embedded) Linux system with 4 GPIOs available can be used
+        as a programmer with little or no additional hardware.
+
     - avrftdi
       + o-link (patch #7672 adding support for O-Link (FTDI based
         JTAG) as programmer)
