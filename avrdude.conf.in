@@ -366,6 +366,11 @@ programmer
 # The drivers will look for a specific device and use the first one found.
 # If you have mulitple devices, then look for unique information (like SN)
 # And fill that in here.
+#
+# Note that the pin numbers for the main ISP signals (reset, sck,
+# mosi, miso) are fixed and cannot be changed, since they must match
+# the way the Multi-Protocol Synchronous Serial Engine (MPSSE) of
+# these FTDI ICs has been designed.
 
 programmer
   id         = "avrftdi";
@@ -378,17 +383,17 @@ programmer
   usbproduct = "";
   usbdev     = "A";
   usbsn      = "";
-#ISP-signals - lower ACBUS-Nibble (default)
+#ISP-signals - lower ADBUS-Nibble (default)
   reset  = 4;
   sck    = 1;
   mosi   = 2;
   miso   = 3;
-#LED SIGNALs - higher ACBUS-Nibble
+#LED SIGNALs - higher ADBUS-Nibble
 #  errled = 5;
 #  rdyled = 6;
 #  pgmled = 7;
 #  vfyled = 8;
-#Buffer Signal - ADBUS - Nibble
+#Buffer Signal - ACBUS - Nibble
 #  buff   = 9;
 ;
 # This is an implementation of the above with a buffer IC (74AC244) and
