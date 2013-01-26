@@ -1,3 +1,10 @@
+2013-01-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #38172: avrftdi: Incorrect information in avrdude.conf
+	* avrdude.conf.in (avrftdi): fix comments about ACBUS vs. ADBUS;
+	add a comment that the MPSSE signals are fixed by the FTDI
+	hardware and cannot be changed
+
 2013-01-09  Rene Liebscher <R.Liebscher@gmx.de>
 
 	patch #7165 Add support for bitbanging GPIO lines using the Linux sysf GPIO interface
