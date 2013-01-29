@@ -1,3 +1,9 @@
+2013-01-29  Rene Liebscher <R.Liebscher@gmx.de>
+
+	patch #7932 Read USBtiny VID and PID from avrdude.conf if provided.
+	* avrdude.conf.in: added usbpid, usbvid to usbtiny
+	* usbtiny.[ch]: use usbpid, usbpid if provided in config file
+
 2013-01-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #38172: avrftdi: Incorrect information in avrdude.conf

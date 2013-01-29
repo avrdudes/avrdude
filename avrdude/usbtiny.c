@@ -204,6 +204,7 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
   struct usb_device   *dev = 0;
   char *bus_name = NULL;
   char *dev_name = NULL;
+  int vid, pid;
 
   // if no -P was given or '-P usb' was given
   if(strcmp(name, "usb") == 0)
@@ -225,11 +226,22 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
 
   PDATA(pgm)->usb_handle = NULL;
 
+  if (pgm->usbvid)
+    vid = pgm->usbvid;
+  else
+    vid = USBTINY_VENDOR_DEFAULT;
+  
+  if (pgm->usbpid)
+    pid = pgm->usbpid;
+  else
+    pid = USBTINY_PRODUCT_DEFAULT;
+  
+
   // now we iterate through all the busses and devices
   for ( bus = usb_busses; bus; bus = bus->next ) {
     for	( dev = bus->devices; dev; dev = dev->next ) {
-      if (dev->descriptor.idVendor == USBTINY_VENDOR
-	  && dev->descriptor.idProduct == USBTINY_PRODUCT ) {   // found match?
+      if (dev->descriptor.idVendor == vid
+	  && dev->descriptor.idProduct == pid ) {   // found match?
     if(verbose)
       fprintf(stderr,
 	      "%s: usbdev_open(): Found USBtinyISP, bus:device: %s:%s\n",
@@ -259,7 +271,7 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
   }
   if (!PDATA(pgm)->usb_handle) {
     fprintf( stderr, "%s: Error: Could not find USBtiny device (0x%x/0x%x)\n",
-	     progname, USBTINY_VENDOR, USBTINY_PRODUCT );
+	     progname, vid, pid );
     return -1;
   }
 
