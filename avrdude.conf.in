@@ -714,6 +714,8 @@ programmer
   desc  = "USBtiny simple USB programmer, http://www.ladyada.net/make/usbtinyisp/";
   type  = "usbtiny";
   connection_type = usb;
+  usbvid     = 0x1781;
+  usbpid     = 0x0c9f;
 ;
 
 programmer
