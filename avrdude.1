@@ -946,6 +946,11 @@ Firmware versions 5.10 and newer support a binary mode SPI command that enables
 whole pages to be written to AVR flash memory at once, resulting in a
 significant write speed increase. If use of this mode is not desirable for some
 reason, this option disables it.
+.It Ar nopagedread
+Newer firmware versions support in binary mode SPI command some AVR Extended 
+Commands. Using the "Bulk Memory Read from Flash" results in a
+significant read speed increase. If use of this mode is not desirable for some
+reason, this option disables it.
 .It Ar cpufreq=<125..4000>
 This sets the AUX pin to output a frequency of 
 .Ar n

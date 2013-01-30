@@ -1,5 +1,12 @@
 2013-01-30  Rene Liebscher <R.Liebscher@gmx.de>
 
+	patch #7936 Patch to support BusPirate AVR Extended Commands mode
+	* buspirate.c: added support for BusPirate AVR Extended Commands mode
+	* avrdude.1: added doc for nopagedread parameter
+	* doc/avrdude.texi: added doc for nopagedread parameter
+
+2013-01-30  Rene Liebscher <R.Liebscher@gmx.de>
+
 	patch #7723 Bus Pirate “raw-wire” mode which can run down to 5 kHz
 	* buspirate.c: added raw wire mode
 	* avrdude.1: added doc for rawfreq parameter

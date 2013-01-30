@@ -65,6 +65,7 @@
 #define BP_FLAG_NOPAGEDWRITE        (1<<4)
 #define BP_FLAG_XPARM_CPUFREQ       (1<<5)
 #define BP_FLAG_XPARM_RAWFREQ       (1<<6)
+#define BP_FLAG_NOPAGEDREAD         (1<<7)
 
 struct pdata
 {
@@ -265,8 +266,14 @@ static int buspirate_expect(struct programmer_t *pgm, char *send,
 	while (1) {
 		rcvd = buspirate_readline(pgm, NULL, 0);
 
-		if (strncmp(rcvd, expect, expect_len) == 0)
-			got_it = 1;
+		if (strncmp(rcvd, expect, expect_len) == 0) {
+			if (! wait_for_prompt) {
+				serial_drain(&pgm->fd, 0);
+				return 1;
+			} else {
+				got_it = 1;
+			}
+		}
 
 		if (buspirate_is_prompt(rcvd))
 			break;
@@ -359,6 +366,10 @@ buspirate_parseextparms(struct programmer_t *pgm, LISTID extparms)
 			continue;
 		}
 
+		if (strcmp(extended_param, "nopagedread") == 0) {
+			pgm->flag |= BP_FLAG_NOPAGEDREAD;
+			continue;
+		}
 		if (sscanf(extended_param, "serial_recv_timeout=%d", &serial_recv_timeout) == 1) {
 			if (serial_recv_timeout < 1) {
 				fprintf(stderr, "BusPirate: serial_recv_timeout must be greater 0.\n");
@@ -472,6 +483,7 @@ static int buspirate_start_mode_bin(struct programmer_t *pgm)
 			.config = 0x8C,
 		};
 		pgm->flag |= BP_FLAG_NOPAGEDWRITE;
+		pgm->flag |= BP_FLAG_NOPAGEDREAD;
 	} else {
 		submode = &(const struct submode){
 			.name = "SPI",
@@ -488,6 +500,7 @@ static int buspirate_start_mode_bin(struct programmer_t *pgm)
 	}
 	
 	char buf[20] = { '\0' };
+	unsigned int ver = 0;
 
 	/* == Switch to binmode - send 20x '\0' == */
 	buspirate_send_bin(pgm, buf, sizeof(buf));
@@ -525,6 +538,7 @@ static int buspirate_start_mode_bin(struct programmer_t *pgm)
 	if (pgm->flag & BP_FLAG_NOPAGEDWRITE) {
 		if (verbose)
 			fprintf(stderr, "%s: Paged flash write disabled.\n", progname);
+		pgm->paged_write = NULL;
 	} else {
 		/* Check for write-then-read without !CS/CS and disable paged_write if absent: */
 		strncpy(buf, "\x5\x0\x0\x0\x0", 5);
@@ -534,6 +548,7 @@ static int buspirate_start_mode_bin(struct programmer_t *pgm)
 
 			/* Disable paged write: */
 			pgm->flag |= BP_FLAG_NOPAGEDWRITE;
+			pgm->paged_write = NULL;
 
 			/* Return to SPI mode (0x00s have landed us back in binary bitbang mode): */
 			buf[0] = 0x1;
@@ -561,6 +576,25 @@ static int buspirate_start_mode_bin(struct programmer_t *pgm)
 
 	/* Submode config */
 	buspirate_expect_bin_byte(pgm, submode->config, 0x01);
+
+	/* AVR Extended Commands - test for existence */
+	if (pgm->flag & BP_FLAG_NOPAGEDREAD) {
+		if (verbose)
+			fprintf(stderr, "%s: Paged flash read disabled.\n", progname);
+		pgm->paged_load = NULL;
+	} else {
+		if (buspirate_expect_bin_byte(pgm, 0x06, 0x01)) {
+			strncpy(buf, "\x1\x0\x0", 3);
+			buspirate_send_bin(pgm, buf, 1);
+			buspirate_recv_bin(pgm, buf, 3);
+			ver = buf[1] << 8 | buf[2];
+			if (verbose) fprintf(stderr, "AVR Extended Commands version %d\n", ver);
+		} else {
+			if (verbose) fprintf(stderr, "AVR Extended Commands not found.\n");
+			pgm->flag |= BP_FLAG_NOPAGEDREAD;
+			pgm->paged_load = NULL;
+		}		
+	}
 
 	return 0;
 }
@@ -603,7 +637,7 @@ static int buspirate_start_spi_mode_ascii(struct programmer_t *pgm)
 		}
 		if (buspirate_is_prompt(rcvd)) {
 			if (strncmp(rcvd, "SPI>", 4) == 0) {
-				fprintf(stderr, "BusPirate is now configured for SPI\n");
+				if (verbose) fprintf(stderr, "BusPirate is now configured for SPI\n");
 				break;
 			}
 			/* Not yet 'SPI>' prompt */
@@ -809,6 +843,62 @@ static int buspirate_cmd(struct programmer_t *pgm,
 		return buspirate_cmd_ascii(pgm, cmd, res);
 }
 
+/* Paged load function which utilizes the AVR Extended Commands set */
+static int buspirate_paged_load(
+		PROGRAMMER *pgm,
+		AVRPART *p,
+		AVRMEM *m,
+		unsigned int page_size,
+		unsigned int address,
+		unsigned int n_bytes)
+{
+	unsigned char commandbuf[10];
+	unsigned char buf[275];
+	unsigned int addr = 0;
+
+	if (verbose > 1) fprintf(stderr, "BusPirate: buspirate_paged_load(..,%s,%d,%d,%d)\n",m->desc,m->page_size,address,n_bytes);
+
+	// This should never happen, but still...
+	if (pgm->flag & BP_FLAG_NOPAGEDREAD) {
+		fprintf(stderr, "BusPirate: buspirate_paged_load() called while in nopagedread mode!\n");
+		return -1;
+	}
+
+	// determine what type of memory to read, only flash is supported
+	if (strcmp(m->desc, "flash") != 0) {
+		return -1;	
+	}
+
+	// send command to read data
+	strncpy(commandbuf, "\x6\x2", 2);
+
+	// send start address (in WORDS, not bytes!)
+	commandbuf[2] = (address >> 1 >> 24) & 0xff;
+	commandbuf[3] = (address >> 1>> 16) & 0xff;
+	commandbuf[4] = (address >> 1 >> 8) & 0xff;
+	commandbuf[5] = (address >> 1) & 0xff;
+
+	// send number of bytes to fetch (in BYTES)
+	commandbuf[6] = (n_bytes >> 24) & 0xff;
+	commandbuf[7] = (n_bytes >> 16) & 0xff;
+	commandbuf[8] = (n_bytes >> 8) & 0xff;
+	commandbuf[9] = (n_bytes) & 0xff;
+
+	buspirate_send_bin(pgm, commandbuf, 10);
+	buspirate_recv_bin(pgm, buf, 1);
+	buspirate_recv_bin(pgm, buf, 1);
+
+	if (buf[0] != 0x01) {
+		fprintf(stderr, "BusPirate: Paged Read command returned zero.\n");
+		return -1;
+	}
+
+	for (addr = 0; addr < n_bytes; addr++) {	
+		buspirate_recv_bin(pgm, &m->buf[addr+address], 1);
+	}
+
+	return n_bytes;
+}
 /* Paged write function which utilizes the Bus Pirate's "Write then Read" binary SPI instruction */
 static int buspirate_paged_write(struct programmer_t *pgm,
 		AVRPART *p,
@@ -1027,6 +1117,7 @@ void buspirate_initpgm(struct programmer_t *pgm)
 	pgm->write_byte     = avr_write_byte_default;
 
 	pgm->paged_write    = buspirate_paged_write;
+	pgm->paged_load	    = buspirate_paged_load;
 
 	/* Support functions */
 	pgm->parseextparams = buspirate_parseextparms;
