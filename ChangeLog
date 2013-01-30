@@ -1,5 +1,12 @@
 2013-01-30  Rene Liebscher <R.Liebscher@gmx.de>
 
+	patch #7724 Add TPI support for Bus Pirate using bitbang mode
+	* buspirate.[ch]: added support for BusPirate Bitbanging
+	* pgm_type.c: added entry for buspirate_bb
+	* avrdude.conf.in: added entry for buspirate_bb
+
+2013-01-30  Rene Liebscher <R.Liebscher@gmx.de>
+
 	patch #7936 Patch to support BusPirate AVR Extended Commands mode
 	* buspirate.c: added support for BusPirate AVR Extended Commands mode
 	* avrdude.1: added doc for nopagedread parameter

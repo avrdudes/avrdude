@@ -56,6 +56,7 @@ const PROGRAMMER_TYPE const programmers_types[] = {
         {"avr910", avr910_initpgm, avr910_desc},
         {"avrftdi", avrftdi_initpgm, avrftdi_desc},
         {"buspirate", buspirate_initpgm, buspirate_desc},
+        {"buspirate_bb", buspirate_bb_initpgm, buspirate_bb_desc},
         {"butterfly", butterfly_initpgm, butterfly_desc},
         {"butterfly_mk", butterfly_mk_initpgm, butterfly_mk_desc},
         {"dragon_dw", jtagmkII_dragon_dw_initpgm, jtagmkII_dragon_dw_desc},

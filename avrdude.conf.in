@@ -552,6 +552,20 @@ programmer
   connection_type = serial;
 ;
 
+programmer
+  id    = "buspirate_bb";
+  desc  = "The Bus Pirate (bitbang interface, supports TPI)";
+  type  = "buspirate_bb";
+  connection_type = serial;
+  # pins are bits in bitbang byte (numbers are 87654321)
+  # 1|POWER|PULLUP|AUX|MOSI|CLK|MISO|CS
+  reset  = 1;
+  sck    = 3;
+  mosi   = 4;
+  miso   = 2;
+  #vcc    = 7; This is internally set independent of this setting.
+;
+
 # This is supposed to be the "default" STK500 entry.
 # Attempts to select the correct firmware version
 # by probing for it.  Better use one of the entries
