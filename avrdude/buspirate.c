@@ -64,15 +64,14 @@
 #define BP_FLAG_XPARM_SPIFREQ       (1<<3)
 #define BP_FLAG_NOPAGEDWRITE        (1<<4)
 #define BP_FLAG_XPARM_CPUFREQ       (1<<5)
+#define BP_FLAG_XPARM_RAWFREQ       (1<<6)
 
 struct pdata
 {
-	char	hw_version[10];
-	int	fw_version;		/* = 100*fw_major + fw_minor */
 	int	binmode_version;
-	int	bin_spi_version;
+	int	submode_version;
 	int	current_peripherals_config;
-	int	spifreq;		/* 0..7 - see buspirate manual for what freq each value means */
+	int	spifreq;		/* For "set speed" commands */
 	int	cpufreq;		/* (125)..4000 kHz - see buspirate manual */
 	int	serial_recv_timeout; /* timeout in ms, default 100 */
 	int	reset;			/* See BP_RESET_* above */
@@ -305,8 +304,22 @@ buspirate_parseextparms(struct programmer_t *pgm, LISTID extparms)
 				fprintf(stderr, "BusPirate: see BusPirate manual for details.\n");
 				return -1;
 			}
+			pgm->flag = (pgm->flag & ~BP_FLAG_XPARM_RAWFREQ) |
+				BP_FLAG_XPARM_SPIFREQ;
 			PDATA(pgm)->spifreq = spifreq;
-			pgm->flag |= BP_FLAG_XPARM_SPIFREQ;
+			continue;
+		}
+		
+		unsigned rawfreq;
+		if (sscanf(extended_param, "rawfreq=%u", &rawfreq) == 1) {
+			if (rawfreq >= 4) {
+				fprintf(stderr, "BusPirate: rawfreq must be "
+					"between 0 and 3.\n");
+				return -1;
+			}
+			pgm->flag = (pgm->flag & ~BP_FLAG_XPARM_SPIFREQ) |
+				BP_FLAG_XPARM_RAWFREQ;
+			PDATA(pgm)->spifreq = rawfreq;
 			continue;
 		}
 
@@ -371,7 +384,8 @@ buspirate_verifyconfig(struct programmer_t *pgm)
 		return -1;
 	}
 
-	if ((pgm->flag & BP_FLAG_XPARM_SPIFREQ) && buspirate_uses_ascii(pgm)) {
+	if (( (pgm->flag & BP_FLAG_XPARM_SPIFREQ) ||
+	(pgm->flag & BP_FLAG_XPARM_RAWFREQ) ) && buspirate_uses_ascii(pgm)) {
 		fprintf(stderr, "BusPirate: SPI speed selection is not supported in ASCII mode\n");
 		return -1;
 	}
@@ -442,8 +456,37 @@ static void buspirate_reset_from_binmode(struct programmer_t *pgm)
 		fprintf(stderr, "BusPirate is back in the text mode\n");
 }
 
-static int buspirate_start_spi_mode_bin(struct programmer_t *pgm)
+static int buspirate_start_mode_bin(struct programmer_t *pgm)
 {
+	const struct submode {
+		const char *name;  /* Name of mode for user messages */
+		char enter;  /* Command to enter from base binary mode */
+		const char *entered_format;  /* Response, for "scanf" */
+		char config;  /* Command to setup submode parameters */
+	} *submode;
+	if (pgm->flag & BP_FLAG_XPARM_RAWFREQ) {
+		submode = &(const struct submode){
+			.name = "Raw-wire",
+			.enter = 0x05,
+			.entered_format = "RAW%d",
+			.config = 0x8C,
+		};
+		pgm->flag |= BP_FLAG_NOPAGEDWRITE;
+	} else {
+		submode = &(const struct submode){
+			.name = "SPI",
+			.enter = 0x01,
+			.entered_format = "SPI%d",
+			
+			/* 1000wxyz - SPI config, w=HiZ(0)/3.3v(1), x=CLK idle, y=CLK edge, z=SMP sample
+			 * we want: 3.3V(1), idle low(0), data change on
+			 *          trailing edge (1), sample in the middle
+			 *          of the pulse (0)
+			 *       => 0b10001010 = 0x8a */
+			.config = 0x8A,
+		};
+	}
+	
 	char buf[20] = { '\0' };
 
 	/* == Switch to binmode - send 20x '\0' == */
@@ -463,19 +506,21 @@ static int buspirate_start_spi_mode_bin(struct programmer_t *pgm)
 
 	pgm->flag |= BP_FLAG_IN_BINMODE;
 
-	/* == Enter SPI mode == */
-	buf[0] = 0x01;	/* Enter raw SPI mode */
+	/* == Set protocol sub-mode of binary mode == */
+	buf[0] = submode->enter;
 	buspirate_send_bin(pgm, buf, 1);
 	memset(buf, 0, sizeof(buf));
 	buspirate_recv_bin(pgm, buf, 4);
-	if (sscanf(buf, "SPI%d", &PDATA(pgm)->bin_spi_version) != 1) {
-		fprintf(stderr, "SPI mode not confirmed: '%s'\n", buf);
+	if (sscanf(buf, submode->entered_format,
+	&PDATA(pgm)->submode_version) != 1) {
+		fprintf(stderr, "%s mode not confirmed: '%s'\n",
+			submode->name, buf);
 		buspirate_reset_from_binmode(pgm);
 		return -1;
 	}
 	if (verbose)
-		fprintf(stderr, "BusPirate SPI version: %d\n",
-			PDATA(pgm)->bin_spi_version);
+		fprintf(stderr, "BusPirate %s version: %d\n",
+			submode->name, PDATA(pgm)->submode_version);
 
 	if (pgm->flag & BP_FLAG_NOPAGEDWRITE) {
 		if (verbose)
@@ -511,17 +556,11 @@ static int buspirate_start_spi_mode_bin(struct programmer_t *pgm)
 	buspirate_expect_bin_byte(pgm, PDATA(pgm)->current_peripherals_config, 0x01);
 	usleep(50000);	// sleep for 50ms after power up
 
-	/* 01100xxx -  SPI speed
-	 * xxx = 000=30kHz, 001=125kHz, 010=250kHz, 011=1MHz,
-	 *       100=2MHz, 101=2.6MHz, 110=4MHz, 111=8MHz
-	 * use 30kHz = 0x60 */
+	/* 01100xxx -  Set speed */
 	buspirate_expect_bin_byte(pgm, 0x60 | PDATA(pgm)->spifreq, 0x01);
 
-	/* 1000wxyz - SPI config, w=HiZ(0)/3.3v(1), x=CLK idle, y=CLK edge, z=SMP sample
-	 * we want: 3.3V(1), idle low(0), data change on trailing edge (1),
-	 *          sample in the middle of the pulse (0)
-	 *       => 0b10001010 = 0x8a */
-	buspirate_expect_bin_byte(pgm, 0x8A, 0x01);
+	/* Submode config */
+	buspirate_expect_bin_byte(pgm, submode->config, 0x01);
 
 	return 0;
 }
@@ -600,10 +639,10 @@ static void buspirate_enable(struct programmer_t *pgm)
 		serial_drain(&pgm->fd, 0);
 
 		/* Attempt to enter binary mode: */
-		if (buspirate_start_spi_mode_bin(pgm) >= 0)
+		if (buspirate_start_mode_bin(pgm) >= 0)
 			return;
 		else
-			fprintf(stderr, "%s: Failed to start binary SPI mode, falling back to ASCII...\n", progname);
+			fprintf(stderr, "%s: Failed to start binary mode, falling back to ASCII...\n", progname);
 	}
 
 	fprintf(stderr, "Attempting to initiate BusPirate ASCII mode...\n");
@@ -665,7 +704,7 @@ static int buspirate_initialize(struct programmer_t *pgm, AVRPART * p)
 static void buspirate_powerup(struct programmer_t *pgm)
 {
 	if (pgm->flag & BP_FLAG_IN_BINMODE) {
-		/* Powerup in BinMode is handled in SPI init */
+		/* Powerup in BinMode is handled in binary mode init */
 		return;
 	} else {
 		if (buspirate_expect(pgm, "W\n", "Power supplies ON", 1)) {
@@ -716,7 +755,7 @@ static int buspirate_cmd_bin(struct programmer_t *pgm,
 				unsigned char cmd[4],
 				unsigned char res[4])
 {
-	/* 0001xxxx - Bulk SPI transfer, send/read 1-16 bytes (0=1byte!)
+	/* 0001xxxx - Bulk transfer, send/read 1-16 bytes (0=1byte!)
 	 * we are sending 4 bytes -> 0x13 */
 	if (!buspirate_expect_bin_byte(pgm, 0x13, 0x01))
 		return -1;

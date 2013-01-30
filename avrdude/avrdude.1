@@ -907,7 +907,7 @@ good candidates with the latches driven by the appropriate reset pin (cs,
 aux or aux2). Otherwise the SPI traffic in one active circuit may interfere
 with programming the AVR in the other design.
 .It Ar spifreq=<0..7>
-BusPirate to AVR SPI speed:
+The SPI speed for the Bus Pirate's binary SPI mode:
 .Bd -literal
 0 ..  30 kHz   (default)
 1 .. 125 kHz
@@ -918,14 +918,26 @@ BusPirate to AVR SPI speed:
 6 ..   4 MHz
 7 ..   8 MHz
 .Ed
+.It Ar rawfreq=<0..3>
+Sets the SPI speed and uses the Bus Pirate's binary "raw-wire" mode:
+.Bd -literal
+0 ..   5 kHz
+1 ..  50 kHz
+2 .. 100 kHz   (Firmware v4.2+ only)
+3 .. 400 kHz   (v4.2+)
+.Ed
+.Pp
+The only advantage of the "raw-wire" mode is the different SPI frequencies
+available. Paged writing is not implemented in this mode.
 .It Ar ascii
-Attempt to ASCII mode even when the firmware supports BinMode (binary mode). 
+Attempt to use ASCII mode even when the firmware supports BinMode (binary
+mode). 
 BinMode is supported in firmware 2.7 and newer, older FW's either don't
 have BinMode or their BinMode is buggy. ASCII mode is slower and makes 
 the above
-.Ar reset=
+.Ar reset= , spifreq=
 and 
-.Ar spifreq=
+.Ar rawfreq=
 parameters unavailable. Be aware that ASCII mode is not guaranteed to work
 with newer firmware versions, and is retained only to maintain compatability
 with older firmware versions.
