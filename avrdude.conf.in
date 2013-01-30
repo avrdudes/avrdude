@@ -481,6 +481,23 @@ programmer parent "jtagkey"
   usbproduct = "USB<=>JTAG&RS232";
 ;
 
+# http://wiki.openmoko.org/wiki/Debug_Board_v3
+programmer
+  id    = "openmoko";
+  desc  = "Openmoko debug board (v3)";
+  type  = "avrftdi";
+  usbvid     = 0x1457;
+  usbpid    = 0x5118;
+  usbdev = "A";
+  usbvendor  = "";
+  usbproduct = "";
+  usbsn      = "";
+  reset  = 4; # TMS 7
+  sck    = 1; # TCK 9
+  mosi   = 2; # TDI 5
+  miso   = 3; # TDO 13
+;
+
 # Only Rev. A boards.
 # Schematic and user manual: http://www.cs.put.poznan.pl/wswitala/download/pdf/811EVBK.pdf
 programmer
