@@ -44,6 +44,8 @@ Current:
 
     - Atmel JTAGICE3
 
+    - buspirate_bb (TPI programming using the BusPirate in bitbang mode)
+
   * Bugfixes
       - bug #34027: avrdude AT90S1200 Problem
       - bug #34518: loading intel hex files > 64k using record-type 4

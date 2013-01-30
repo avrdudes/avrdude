@@ -49,6 +49,7 @@
 #include "avr.h"
 #include "pgm.h"
 #include "serial.h"
+#include "bitbang.h"
 #include "buspirate.h"
 
 /* ====== Private data structure ====== */
@@ -76,6 +77,9 @@ struct pdata
 	int	cpufreq;		/* (125)..4000 kHz - see buspirate manual */
 	int	serial_recv_timeout; /* timeout in ms, default 100 */
 	int	reset;			/* See BP_RESET_* above */
+	unsigned char pin_dir;		/* Last written pin direction for bitbang mode */
+	unsigned char pin_val;		/* Last written pin values for bitbang mode */
+	int     unread_bytes;		/* How many bytes we expected, but ignored */
 };
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
@@ -1124,4 +1128,186 @@ void buspirate_initpgm(struct programmer_t *pgm)
 
 	pgm->setup          = buspirate_setup;
 	pgm->teardown       = buspirate_teardown;
+}
+
+/* Bitbang support */
+
+static void buspirate_bb_enable(struct programmer_t *pgm)
+{
+	char buf[20] = { '\0' };
+
+	bitbang_check_prerequisites(pgm);
+
+	fprintf(stderr, "Attempting to initiate BusPirate bitbang binary mode...\n");
+
+	/* Send two CRs to ensure we're not in a sub-menu of the UI if we're in ASCII mode: */
+	buspirate_send_bin(pgm, "\n\n", 2);
+
+	/* Clear input buffer: */
+	serial_drain(&pgm->fd, 0);
+
+	/* == Switch to binmode - send 20x '\0' == */
+	buspirate_send_bin(pgm, buf, sizeof(buf));
+
+	/* Expecting 'BBIOx' reply */
+	memset(buf, 0, sizeof(buf));
+	buspirate_recv_bin(pgm, buf, 5);
+	if (sscanf(buf, "BBIO%d", &PDATA(pgm)->binmode_version) != 1) {
+		fprintf(stderr, "Binary mode not confirmed: '%s'\n", buf);
+		buspirate_reset_from_binmode(pgm);
+		exit(1);
+	}
+	fprintf(stderr, "BusPirate binmode version: %d\n",
+		PDATA(pgm)->binmode_version);
+
+	pgm->flag |= BP_FLAG_IN_BINMODE;
+
+	/* Set pin directions and an initial pin status (all high) */
+	PDATA(pgm)->pin_dir = 0x12;  /* AUX, MISO input; everything else output */
+	buf[0] = PDATA(pgm)->pin_dir | 0x40;
+	buspirate_send_bin(pgm, buf, 1);
+	buspirate_recv_bin(pgm, buf, 1);
+
+	PDATA(pgm)->pin_val = 0x3f; /* PULLUP, AUX, MOSI, CLK, MISO, CS high */
+	buf[0] = PDATA(pgm)->pin_val | 0x80;
+	buspirate_send_bin(pgm, buf, 1);
+	buspirate_recv_bin(pgm, buf, 1);
+
+	/* Done */
+	return;
+}
+
+/* 
+   Direction:
+   010xxxxx
+   Input (1) or output (0):
+   AUX|MOSI|CLK|MISO|CS
+
+   Output value:
+   1xxxxxxx 
+   High (1) or low(0): 
+   1|POWER|PULLUP|AUX|MOSI|CLK|MISO|CS
+   
+   Both respond with a byte with current status:
+   0|POWER|PULLUP|AUX|MOSI|CLK|MISO|CS
+*/
+static int buspirate_bb_getpin(struct programmer_t *pgm, int pin)
+{
+	unsigned char buf[10];
+	int value = 0;
+
+	if (pin & PIN_INVERSE) {
+		pin &= PIN_MASK;
+		value = 1;
+	}
+
+	if (pin < 1 || pin > 5)
+		return -1;
+	
+	buf[0] = PDATA(pgm)->pin_dir | 0x40;
+	if (buspirate_send_bin(pgm, buf, 1) < 0)
+		return -1;
+	/* Read all of the previously-expected-but-unread bytes */
+	while (PDATA(pgm)->unread_bytes > 0) {
+		if (buspirate_recv_bin(pgm, buf, 1) < 0)
+			return -1;
+		PDATA(pgm)->unread_bytes--;
+	}
+		
+	/* Now read the actual response */
+	if (buspirate_recv_bin(pgm, buf, 1) < 0)
+		return -1;	
+
+	if (buf[0] & (1 << (pin - 1)))
+		value ^= 1;
+
+	if (verbose > 1)
+		printf("get pin %d = %d\n", pin, value);
+
+	return value;
+}
+
+static int buspirate_bb_setpin(struct programmer_t *pgm, int pin, int value)
+{
+	unsigned char buf[10];
+
+	if (pin & PIN_INVERSE) {
+		value = !value;
+		pin &= PIN_MASK;
+	}
+
+	if ((pin < 1 || pin > 5) && (pin != 7)) // 7 is POWER
+		return -1;
+
+	if (verbose > 1)
+		printf("set pin %d = %d\n", pin, value);
+
+	if (value)
+		PDATA(pgm)->pin_val |= (1 << (pin - 1));
+	else 
+		PDATA(pgm)->pin_val &= ~(1 << (pin - 1));
+		
+	buf[0] = PDATA(pgm)->pin_val | 0x80;
+	if (buspirate_send_bin(pgm, buf, 1) < 0)
+		return -1;
+	/* We'll get a byte back, but we don't need to read it now.
+	   This is just a quick optimization that saves some USB
+	   round trips, improving read times by a factor of 3. */
+	PDATA(pgm)->unread_bytes++;
+
+	return 0;
+}
+
+static int buspirate_bb_highpulsepin(struct programmer_t *pgm, int pin)
+{
+	int ret;
+	ret = buspirate_bb_setpin(pgm, pin, 1);
+	if (ret < 0)
+		return ret;
+	return buspirate_bb_setpin(pgm, pin, 0);
+}
+
+static void buspirate_bb_powerup(struct programmer_t *pgm)
+{
+	buspirate_bb_setpin(pgm, 7, 1);
+}
+
+static void buspirate_bb_powerdown(struct programmer_t *pgm)
+{
+	buspirate_bb_setpin(pgm, 7, 0);
+}
+
+const char buspirate_bb_desc[] = "Using the Bus Pirate's bitbang interface for programming";
+
+void buspirate_bb_initpgm(struct programmer_t *pgm)
+{
+	strcpy(pgm->type, "BusPirate_BB");
+
+	pgm->display        = buspirate_dummy_6;
+
+	/* BusPirate itself related methods */
+	pgm->setup          = buspirate_setup;
+	pgm->teardown       = buspirate_teardown;
+	pgm->open           = buspirate_open;
+	pgm->close          = buspirate_close;
+	pgm->enable         = buspirate_bb_enable;
+	pgm->disable        = buspirate_disable;
+
+	/* Chip related methods */
+	pgm->initialize     = bitbang_initialize;
+	pgm->rdy_led        = bitbang_rdy_led;
+	pgm->err_led        = bitbang_err_led;
+	pgm->pgm_led        = bitbang_pgm_led;
+	pgm->vfy_led        = bitbang_vfy_led;
+	pgm->program_enable = bitbang_program_enable;
+	pgm->chip_erase     = bitbang_chip_erase;
+	pgm->cmd            = bitbang_cmd;
+	pgm->cmd_tpi        = bitbang_cmd_tpi;
+	pgm->powerup        = buspirate_bb_powerup;
+	pgm->powerdown      = buspirate_bb_powerdown;
+	pgm->setpin         = buspirate_bb_setpin;
+	pgm->getpin         = buspirate_bb_getpin;
+	pgm->highpulsepin   = buspirate_bb_highpulsepin;
+	pgm->read_byte      = avr_read_byte_default;
+	pgm->write_byte     = avr_write_byte_default;
 }
