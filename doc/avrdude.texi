@@ -805,14 +805,29 @@ with programming the AVR in the other design.
 @item @code{7} @tab   8 MHz
 @end multitable
 
+@item @samp{rawfreq=0..3}
+Sets the SPI speed and uses the Bus Pirate's binary ``raw-wire'' mode instead
+of the default binary SPI mode:
+
+@multitable @columnfractions .05 .3
+@item @code{0} @tab 5 kHz
+@item @code{1} @tab 50 kHz
+@item @code{2} @tab 100 kHz (Firmware v4.2+ only)
+@item @code{3} @tab 400 kHz (v4.2+)
+@end multitable
+
+The only advantage of the ``raw-wire'' mode is that different SPI frequencies
+are available. Paged writing is not implemented in this mode.
+
 @item @samp{ascii}
-Attempt to ASCII mode even when the firmware supports BinMode (binary mode).
+Attempt to use ASCII mode even when the firmware supports BinMode (binary
+mode).
 BinMode is supported in firmware 2.7 and newer, older FW's either don't
 have BinMode or their BinMode is buggy. ASCII mode is slower and makes
 the above
-@samp{reset=}
+@samp{reset=}, @samp{spifreq=}
 and
-@samp{spifreq=}
+@samp{rawfreq=}
 parameters unavailable. Be aware that ASCII mode is not guaranteed to work
 with newer firmware versions, and is retained only to maintain compatability
 with older firmware versions.
