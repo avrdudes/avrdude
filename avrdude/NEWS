@@ -11,7 +11,8 @@ Current:
     - ATmega48P (patch #7629 add support for atmega48p)
     - AT90PWM316 (bug #21797: AT90PWM316: New part description)
     - ATxmega16D4, ATxmega32D4, ATxmega64D4, ATxmega128D4
-    - ATmega256RFR2, ATmega128RFR2, ATmega64RFR2
+    - ATmega256RFR2, ATmega128RFR2, ATmega64RFR2, ATmega2564RFR2,
+      ATmega1284RFR2, ATmega644RFR2
 
   * New programmers supported:
     - linuxgpio
