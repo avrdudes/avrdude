@@ -1,3 +1,8 @@
+2013-03-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avrdude.conf.in (ATmega2564RFR2, ATmega1284RFR2, ATmega644RFR2):
+	New devices
+
 2013-01-30  Rene Liebscher <R.Liebscher@gmx.de>
 
 	patch #7724 Add TPI support for Bus Pirate using bitbang mode
