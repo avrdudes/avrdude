@@ -1,3 +1,8 @@
+2013-04-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac(AC_CONFIG_HEADERS): Replace the old AM_CONFIG_HEADER
+	by this; automake 1.13+ barfs.
+
 2013-03-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* avrdude.conf.in (ATmega2564RFR2, ATmega1284RFR2, ATmega644RFR2):

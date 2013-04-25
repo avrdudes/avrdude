@@ -31,7 +31,7 @@ AC_CANONICAL_TARGET
 
 AC_CONFIG_SRCDIR([main.c])
 AM_INIT_AUTOMAKE
-AM_CONFIG_HEADER(ac_cfg.h)
+AC_CONFIG_HEADERS(ac_cfg.h)
 
 # Checks for programs.
 AC_PROG_CC
