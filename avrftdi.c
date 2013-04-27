@@ -41,17 +41,11 @@
 #include "tpi.h"
 #include "usbasp.h"
 
-#ifdef HAVE_LIBUSB
-#ifdef HAVE_LIBFTDI
+#ifdef HAVE_LIBUSB_1_0
+#ifdef HAVE_LIBFTDI1
 
-#include <ftdi.h>
-#if defined(HAVE_USB_H)
-#  include <usb.h>
-#elif defined(HAVE_LUSB0_USB_H)
-#  include <lusb0_usb.h>
-#else
-#  error "libusb needs either <usb.h> or <lusb0_usb.h>"
-#endif
+#include <libusb-1.0/libusb.h>
+#include <libftdi1/ftdi.h>
 
 enum { FTDI_SCK = 1, FTDI_MOSI, FTDI_MISO, FTDI_RESET };
 #define FTDI_DEFAULT_MASK ( (1 << (FTDI_SCK - 1)) | (1 << (FTDI_MOSI - 1)) )
@@ -147,7 +141,7 @@ static void
 avrftdi_print(int level, const char * fmt, ...)
 {
 	va_list ap;
-	if(verbose > level)
+	if(verbose >= level)
 	{
 		fprintf(stderr, "avrftdi: ");
 		va_start(ap, fmt);
@@ -612,11 +606,8 @@ static int write_flush(avrftdi_t* pdata)
 
 static int avrftdi_open(PROGRAMMER * pgm, char *port)
 {
-	int vid, pid, interface, snfound;
-	char serial[255], *foundsn;
-	struct ftdi_device_list* devlist;
-	struct ftdi_device_list* devlist_ptr;
-	struct usb_device *found_dev;
+	int vid, pid, interface, index, err;
+	char * serial, *desc;
 	
 	avrftdi_t* pdata = to_pdata(pgm);
 
@@ -626,10 +617,7 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 
 	/* use vid/pid in following priority: config,
 	 * defaults. cmd-line is currently not supported */
-	snfound = 0;
-	foundsn = NULL;
-	memset(serial, 0, sizeof(serial));
-
+	
 	if (pgm->usbvid)
 		vid = pgm->usbvid;
 	else
@@ -641,7 +629,15 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 		pid = 0x6010;
 
 	if (0 == pgm->usbsn[0]) /* we don't care about SN. Use first avail. */
-		snfound = 1;
+		serial = NULL;
+	else
+		serial = pgm->usbsn;
+
+	/* not used yet, but i put them here, just in case someone does needs or
+	 * wants to implement this.
+	 */
+	desc = NULL;
+	index = 0;
 
 	if (pgm->usbdev[0] == 'a' || pgm->usbdev[0] == 'A')
 		interface = INTERFACE_A;
@@ -654,75 +650,32 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 		interface = INTERFACE_A;
 	}
 
-	/**************
-	 * USB lookup *
-	 **************/
-
-#ifndef DRYRUN
-	found_dev = NULL;
-	if (ftdi_usb_find_all(pdata->ftdic, &devlist, vid, pid)) {
-		devlist_ptr = devlist;
-		do {
-			ftdi_usb_get_strings(pdata->ftdic, devlist_ptr->dev,
-					     NULL, 0, NULL, 0, serial, sizeof(serial));
-
-			avrftdi_print(1, "%s: device: %s, serial number: %s type 0x%04x found\n",
-					progname, devlist_ptr->dev->filename,	serial,
-					devlist_ptr->dev->descriptor.bcdDevice);
-
-			if (!snfound) {
-				if (strcmp(pgm->usbsn, serial) == 0){
-					foundsn = strdup(serial);
-					snfound = 1;
-					found_dev = devlist_ptr->dev;
-				}
-			}else {
-				if (NULL == found_dev)
-					found_dev = devlist_ptr->dev;
-				if (NULL == foundsn)
-					foundsn = strdup(serial);
-			}
-			memset(serial, 0, 255);
-			devlist_ptr = devlist_ptr->next;
-		} while (devlist_ptr);
-		ftdi_list_free(&devlist);
-	} else {
-		fprintf(stderr,
-			"%s: No devices with Vendor-ID:Product-ID %04x:%04x found.\n",
-			progname, vid, pid);
-		ftdi_list_free(&devlist);
-		return -1;
-	}
-	if (!snfound) {
-		fprintf(stderr,
-			"%s: No devices with VID:PID %04x:%04x and SN '%s' found.\n",
-			progname, vid, pid, pgm->usbsn);
-		return -1;
-	}
-
-	avrftdi_print(1,
-			"%s: Using device VID:PID %04x:%04x and SN '%s' on interface %c.\n",
-			progname, vid, pid, foundsn, INTERFACE_A == interface? 'A': 'B');
-	
-	free(foundsn);
-#endif
-
 	/****************
 	 * Device setup *
 	 ****************/
 
 	E(ftdi_set_interface(pdata->ftdic, interface) < 0, pdata->ftdic);
-	E(ftdi_usb_open_dev(pdata->ftdic,found_dev) <0, pdata->ftdic);
-	E(ftdi_usb_reset(pdata->ftdic) < 0, pdata->ftdic);
+	
+	err = ftdi_usb_open_desc_index(pdata->ftdic, vid, pid, desc, serial, index);
+	if(err) {
+		avrftdi_print(0, "Error %d occured: %s\n", err, ftdi_get_error_string(pdata->ftdic));
+		//stupid hack, because avrdude calls pgm->close() even when pgm->open() fails
+		//and usb_dev is intialized to the last usb device from probing
+		pdata->ftdic->usb_dev = NULL;
+		return err;
+	} else {
+		avrftdi_print(1,
+			"Using device VID:PID %04x:%04x and SN '%s' on interface %c.\n",
+			vid, pid, serial, INTERFACE_A == interface? 'A': 'B');
+	}
+	
+	//E(ftdi_usb_open_dev(pdata->ftdic, found_dev) <0, pdata->ftdic);
 	ftdi_set_latency_timer(pdata->ftdic, 1);
 
-#ifndef DRYRUN
 	/* set SPI mode */
 	E(ftdi_set_bitmode(pdata->ftdic, 0, BITMODE_RESET) < 0, pdata->ftdic);
 	E(ftdi_set_bitmode(pdata->ftdic, pdata->pin_direction & 0xff, BITMODE_MPSSE) < 0, pdata->ftdic);
 	E(ftdi_usb_purge_buffers(pdata->ftdic), pdata->ftdic);
-
-#endif
 
 	if (pgm->baudrate) {
 		set_frequency(pdata, pgm->baudrate);
@@ -778,9 +731,7 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 			pdata->pin_limit = 11;
 			break;
 		case TYPE_2232H:
-#ifdef HAVE_LIBFTDI_TYPE_232H
 		case TYPE_232H:
-#endif
 			pdata->pin_limit = 15;
 			break;
 		case TYPE_4232H:
@@ -1322,12 +1273,12 @@ void avrftdi_initpgm(PROGRAMMER * pgm)
 	pgm->vfy_led = set_led_vfy;
 }
 
-#else /*HAVE_LIBFTDI*/
+#else /*HAVE_LIBFTDI1*/
 
 static int avrftdi_noftdi_open (struct programmer_t *pgm, char * name)
 {
 	fprintf(stderr,
-		"%s: error: no libftdi support. please compile again with libftdi installed.\n",
+		"%s: Error: no libftdi1 support. Install libftdi1 and run configure/make again.\n",
 		progname);
 
 	exit(1);
@@ -1339,14 +1290,14 @@ void avrftdi_initpgm(PROGRAMMER * pgm)
 	pgm->open = avrftdi_noftdi_open;
 }
 
-#endif  /* HAVE_LIBFTDI */
+#endif  /* HAVE_LIBFTDI1 */
 
-#else /*HAVE_LIBUSB*/
+#else /*HAVE_LIBUSB_1_0*/
 
 static int avrftdi_nousb_open (struct programmer_t *pgm, char * name)
 {
 	fprintf(stderr,
-		"%s: error: no usb support. please compile again with libusb installed.\n",
+		"%s: Error: no USB support. Install libusb-1.0 and run configure/make again.\n",
 		progname);
 
 	exit(1);
@@ -1358,7 +1309,7 @@ void avrftdi_initpgm(PROGRAMMER * pgm)
 	pgm->open = avrftdi_nousb_open;
 }
 
-#endif /*HAVE_LIBUSB*/
+#endif /*HAVE_LIBUSB_1_0*/
 
 const char avrftdi_desc[] = "Interface to the MPSSE Engine of FTDI Chips using libftdi.";
 
