@@ -7,6 +7,10 @@
 	error messages. avrftdi_print is changed so that a message is printed when
 	the verbosity level is greater or equal the message level, to have always-on
 	messages.
+	Fix a bug where the RX fifo of the FTDI chip is full, resulting in STALL/NAK
+	of the ongoing OUT request and subsequently timeout, because an IN request
+	cannot be issued due to the synchronous part of libftdi. This should fix
+	#38831 and #38659.
 	
 2013-04-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
