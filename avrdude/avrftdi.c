@@ -95,6 +95,8 @@ typedef struct avrftdi_s {
 	uint16_t led_mask;
 	/* total number of pins supported by a programmer. varies with FTDI chips */
 	int pin_limit;
+	/* internal RX buffer of the device. needed for INOUT transfers */
+	int rx_buffer_size;
 } avrftdi_t;
 
 static int write_flush(avrftdi_t *);
@@ -513,44 +515,65 @@ static int set_led_vfy(struct programmer_t * pgm, int value)
 /* Send 'buf_size' bytes from 'cmd' to device and return data from device in
  * buffer 'data'.
  * Write is only performed when mode contains MPSSE_DO_WRITE.
- * Read is only performed when mode contains MPSSE_DO_READ.
+ * Read is only performed when mode contains MPSSE_DO_WRITE and MPSSE_DO_READ.
  */
-static int avrftdi_transmit(avrftdi_t* pdata, unsigned char mode, unsigned char *cmd,
+static int avrftdi_transmit(avrftdi_t* pdata, unsigned char mode, unsigned char *buf,
 			    unsigned char *data, int buf_size)
 {
-	int k = 0;
-	int n;
-	unsigned char buf[4 + buf_size];
+	size_t blocksize;
+	size_t bsize;
+	size_t remaining = buf_size;
+	size_t written = 0;
+	
+	unsigned char cmd[3];
+//	unsigned char si = SEND_IMMEDIATE;
 
-	if (mode & MPSSE_DO_WRITE) {
-		buf[0] = mode | MPSSE_WRITE_NEG;
-		buf[1] = ((buf_size - 1) & 0xff);
-		buf[2] = (((buf_size - 1) >> 8) & 0xff);
+	cmd[0] = mode | MPSSE_WRITE_NEG;
+	cmd[1] = ((buf_size - 1) & 0xff);
+	cmd[2] = (((buf_size - 1) >> 8) & 0xff);
 
-		memcpy(buf + 3, cmd, buf_size);
-		buf[buf_size + 3] = 0x87;
+	//if we are not reading back, we can just write the data out
+	if(!(mode & MPSSE_DO_READ))
+		blocksize = buf_size;
+	else
+		blocksize = pdata->rx_buffer_size;
 
 #ifndef DRYRUN
-		E(ftdi_write_data(pdata->ftdic, buf, buf_size + 4) != buf_size + 4, pdata->ftdic);
+	E(ftdi_write_data(pdata->ftdic, cmd, sizeof(cmd)) != sizeof(cmd), pdata->ftdic);
 #endif
-	}
 
-	if (mode & MPSSE_DO_READ) {
-		memset(buf, 0, sizeof(buf));
-		do {
+	while(remaining)
+	{
+		size_t transfer_size = (remaining > blocksize) ? blocksize : remaining;
+
 #ifndef DRYRUN
-			n = ftdi_read_data(pdata->ftdic, buf + k, buf_size - k);
-			E(n < 0, pdata->ftdic);
-#else
-			n = buf_size - k;
+		E(ftdi_write_data(pdata->ftdic, &buf[written], transfer_size) != transfer_size, pdata->ftdic);
 #endif
-			k += n;
-		} while (k < buf_size);
+#if 0
+		if(remaining < blocksize)
+			E(ftdi_write_data(pdata->ftdic, &si, sizeof(si)) != sizeof(si), pdata->ftdic);
+#endif
 
-		memcpy(data, buf, buf_size);
+		if (mode & MPSSE_DO_READ) {
+			int n;
+			int k = 0;
+			do {
+	#ifndef DRYRUN
+				n = ftdi_read_data(pdata->ftdic, &data[written + k], transfer_size - k);
+				E(n < 0, pdata->ftdic);
+	#else
+				n = transfer_size - k;
+	#endif
+				k += n;
+			} while (k < transfer_size);
+
+		}
+		
+		written += transfer_size;
+		remaining -= transfer_size;
 	}
-
-	return k;
+	
+	return written;
 }
 
 static int write_flush(avrftdi_t* pdata)
@@ -721,24 +744,33 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 
 	/* set pin limit depending on chip type */
 	switch(pdata->ftdic->type) {
-#if 0
-		//TODO: issue an error - no MPSSE. hint the user to syncbb?
 		case TYPE_AM:
 		case TYPE_BM:
 		case TYPE_R:
-#endif
+			avrftdi_print(0, "Found unsupported device type AM, BM or R. " \
+				"avrftdi cannot work with your chip. Try the 'synbb' programmer.\n");
 		case TYPE_2232C:
 			pdata->pin_limit = 11;
+			pdata->rx_buffer_size = 384;
 			break;
 		case TYPE_2232H:
+			pdata->pin_limit = 15;
+			pdata->rx_buffer_size = 4096;
+			break;
 		case TYPE_232H:
 			pdata->pin_limit = 15;
+			pdata->rx_buffer_size = 1024;
 			break;
 		case TYPE_4232H:
 			pdata->pin_limit = 7;
+			pdata->rx_buffer_size = 2048;
 			break;
 		default:
-		//TODO: error/unsupported device
+			avrftdi_print(0, "Found unkown device %x. " \
+				"I will do my best to work with it, but no guarantees ...\n",
+				pdata->ftdic->type);
+			pdata->pin_limit = 7;
+			pdata->rx_buffer_size = pdata->ftdic->max_packet_size;
 			break;
 	}
 	
