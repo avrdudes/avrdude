@@ -1,3 +1,13 @@
+2013-04-27  Hannes Weisbach <hannes_weisbach@gmx.net>
+
+	* configure.ac: Add libftdi1 library check, remove TYPE_232H DECL check
+	* Makefile.am: Add @LIBFTDI1@ to avrdude_LDADD
+	* avrftdi.c: Update from libftdi0 to libftdi1. Use libftdi1's function to
+	find a device by vid/pid/serial instead of doing it ourself and add/update
+	error messages. avrftdi_print is changed so that a message is printed when
+	the verbosity level is greater or equal the message level, to have always-on
+	messages.
+	
 2013-04-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* configure.ac(AC_CONFIG_HEADERS): Replace the old AM_CONFIG_HEADER

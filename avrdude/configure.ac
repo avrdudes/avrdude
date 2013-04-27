@@ -152,12 +152,16 @@ AC_CHECK_LIB([ftdi], [ftdi_usb_get_strings], [have_libftdi=yes], [], [-lusb])
 if test x$have_libftdi = xyes; then
    LIBFTDI="-lftdi -lusb"
    AC_DEFINE([HAVE_LIBFTDI])
-   AC_CHECK_DECL(TYPE_232H,[have_libftdi_FT232H=yes], [], [[#include <ftdi.h>]])
-   if test x$have_libftdi_FT232H = xyes; then
-      AC_DEFINE([HAVE_LIBFTDI_TYPE_232H])
-   fi
 fi
 AC_SUBST(LIBFTDI, $LIBFTDI)
+AH_TEMPLATE([HAVE_LIBFTDI1],
+            [Define if FTDI support is enabled via libftdi1])
+AC_CHECK_LIB([ftdi1], [ftdi_new], [have_libftdi1=yes], [], [-lusb-1.0])
+if test x$have_libftdi1 = xyes; then
+	LIBFTDI1="-lftdi1"
+	AC_DEFINE([HAVE_LIBFTDI1])
+fi
+AC_SUBST(LIBFTDI1, $LIBFTDI1)
 AC_CHECK_HEADERS([pthread.h])
 # as there exits header file only pthread implementations for Windows, check if we have a library
 AC_CHECK_LIB([pthread], [pthread_create], [have_pthread=yes])
@@ -486,6 +490,12 @@ if test x$have_libftdi = xyes; then
    echo "DO HAVE    libftdi"
 else
    echo "DON'T HAVE libftdi"
+fi
+
+if test x$have_libftdi1 = xyes; then
+   echo "DO HAVE    libftdi1"
+else
+   echo "DON'T HAVE libftdi1"
 fi
 
 if test x$have_libhid = xyes; then
