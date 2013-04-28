@@ -48,7 +48,7 @@
 #include <libftdi1/ftdi.h>
 
 enum { FTDI_SCK = 1, FTDI_MOSI, FTDI_MISO, FTDI_RESET };
-enum { ERROR, WARN, INFO, DEBUG, TRACE };
+enum { ERR, WARN, INFO, DEBUG, TRACE };
 
 #define __log(lvl, fmt, ...)                                  \
   do {                                                        \
@@ -56,7 +56,7 @@ enum { ERROR, WARN, INFO, DEBUG, TRACE };
 	} while(0)
 
 
-#define log_err(fmt, ...)   __log(ERROR, fmt, ##__VA_ARGS__)
+#define log_err(fmt, ...)   __log(ERR, fmt, ##__VA_ARGS__)
 #define log_warn(fmt, ...)  __log(WARN,  fmt, ##__VA_ARGS__)
 #define log_info(fmt, ...)  __log(INFO,  fmt, ##__VA_ARGS__)
 #define log_debug(fmt, ...) __log(DEBUG, fmt, ##__VA_ARGS__)
@@ -161,7 +161,7 @@ static void avrftdi_log(int level, const char * func, int line,
 		if(!skip_prefix)
 		{
 			switch(level) {
-				case ERROR: fprintf(stderr, "E "); break;
+				case ERR: fprintf(stderr, "E "); break;
 				case WARN:  fprintf(stderr, "W "); break;
 				case INFO:  fprintf(stderr, "I "); break;
 				case DEBUG: fprintf(stderr, "D "); break;
