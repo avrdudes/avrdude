@@ -48,29 +48,38 @@
 #include <libftdi1/ftdi.h>
 
 enum { FTDI_SCK = 1, FTDI_MOSI, FTDI_MISO, FTDI_RESET };
+enum { ERROR, WARN, INFO, DEBUG, TRACE };
+
+#define __log(lvl, fmt, ...)                                  \
+  do {                                                        \
+    avrftdi_log(lvl, __func__, __LINE__, fmt, ##__VA_ARGS__); \
+	} while(0)
+
+
+#define log_err(fmt, ...)   __log(ERROR, fmt, ##__VA_ARGS__)
+#define log_warn(fmt, ...)  __log(WARN,  fmt, ##__VA_ARGS__)
+#define log_info(fmt, ...)  __log(INFO,  fmt, ##__VA_ARGS__)
+#define log_debug(fmt, ...) __log(DEBUG, fmt, ##__VA_ARGS__)
+#define log_trace(fmt, ...) __log(TRACE, fmt, ##__VA_ARGS__)
+
 #define FTDI_DEFAULT_MASK ( (1 << (FTDI_SCK - 1)) | (1 << (FTDI_MOSI - 1)) )
 
 #define E(x, ftdi)                                                  \
-	do {                                                              \
-		if ((x))                                                        \
-		{                                                               \
-			fprintf(stderr, "%s:%d %s() %s: %s (%d)\n\t%s\n",             \
-					__FILE__, __LINE__, __FUNCTION__,                         \
-					#x, strerror(errno), errno, ftdi_get_error_string(ftdi)); \
-			return -1;                                                    \
-		}                                                               \
-	} while(0);
+  do {                                                              \
+    if ((x)) {                                                      \
+      log_err("%s: %s (%d) %s",                                     \
+          #x, strerror(errno), errno, ftdi_get_error_string(ftdi)); \
+      return -1;                                                    \
+    }                                                               \
+  } while(0)
 
 #define E_VOID(x, ftdi)                                             \
-	do {                                                              \
-		if ((x))                                                        \
-		{                                                               \
-			fprintf(stderr, "%s:%d %s() %s: %s (%d)\n\t%s\n",             \
-					__FILE__, __LINE__, __FUNCTION__,                         \
-	 			 #x, strerror(errno), errno, ftdi_get_error_string(ftdi));  \
-		}                                                               \
-	} while(0);
-
+  do {                                                              \
+    if ((x)) {                                                      \
+      log_err("%s: %s (%d) %s",                                     \
+          #x, strerror(errno), errno, ftdi_get_error_string(ftdi)); \
+    }                                                               \
+  } while(0)
 
 #define to_pdata(pgm) \
 	((avrftdi_t *)((pgm)->cookie))
@@ -136,20 +145,40 @@ ftdi_pin_name(avrftdi_t* pdata, int pin)
 
 /*
  * output function, to save if(vebose>level)-constructs. also prefixes output
- * with "avrftdi" to identify were messages came from.
- * TODO: make this a macro, so that __LINE_ and __func__ macros can be used.
+ * with "avrftdi function-name(line-number):" to identify were messages came
+ * from.
+ * This function is the backend of the log_*-macros, but it can be used
+ * directly.
  */
-static void
-avrftdi_print(int level, const char * fmt, ...)
-{
+static void avrftdi_log(int level, const char * func, int line,
+		const char * fmt, ...) {
+	static int skip_prefix = 0;
+	const char *p = fmt;
 	va_list ap;
+
 	if(verbose >= level)
 	{
-		fprintf(stderr, "avrftdi: ");
+		if(!skip_prefix)
+		{
+			switch(level) {
+				case ERROR: fprintf(stderr, "E "); break;
+				case WARN:  fprintf(stderr, "W "); break;
+				case INFO:  fprintf(stderr, "I "); break;
+				case DEBUG: fprintf(stderr, "D "); break;
+				case TRACE: fprintf(stderr, "T "); break;
+				default: fprintf(stderr, "  ");
+			}
+			fprintf(stderr, "%s(%d): ", func, line);
+		}
 		va_start(ap, fmt);
 		vfprintf(stderr, fmt, ap);
 		va_end(ap);
 	}
+
+	skip_prefix = 1;
+	while(*p++)
+		if(*p == '\n' && !(*(p+1)))
+			skip_prefix = 0;
 }
 
 /*
@@ -186,25 +215,19 @@ static int set_frequency(avrftdi_t* ftdi, uint32_t freq)
 	/* divisor on 6000000 / freq - 1 */
 	divisor = (6000000 / freq) - 1;
 	if (divisor < 0) {
-		fprintf(stderr,
-			"%s failure: Frequency too high (%u > 6 MHz)\n",
-			progname, freq);
-		fprintf(stderr,
-			"resetting Frequency to 6MHz\n");
+		log_warn("Frequency too high (%u > 6 MHz)\n", freq);
+		log_warn("Resetting Frequency to 6MHz\n");
 		divisor = 0;
 	}
 
 	if (divisor > 65535) {
-		fprintf(stderr,
-			"%s failure: Frequency too low (%u < 91.553 Hz)\n",
-			progname, freq);
-		fprintf(stderr,
-			"resetting Frequency to 91.553Hz\n");
+		log_warn("Frequency too low (%u < 91.553 Hz)\n", freq);
+		log_warn("Resetting Frequency to 91.553Hz\n");
 		divisor = 65535;
 	}
 
-	avrftdi_print(0, "frequency: %d\n", 6000000/(divisor+1));
-	avrftdi_print(1, "clock divisor: 0x%04x\n", divisor);
+	log_info("Using frequency: %d\n", 6000000/(divisor+1));
+	log_info("Clock divisor: 0x%04x\n", divisor);
 
 	buf[0] = TCK_DIVISOR;
 	buf[1] = (uint8_t)(divisor & 0xff);
@@ -235,25 +258,24 @@ static int add_pin(PROGRAMMER *pgm, int pinfunc)
 	/* not configured */
 	if(!pin)
 	{
-		avrftdi_print(0, "Pin %s not configured\n", avr_pin_name(pinfunc));
+		log_warn("Pin %s not configured\n", avr_pin_name(pinfunc));
 		return 0;
 	}
 
 	/* check that the pin number is in range */
 	if (pin > pdata->pin_limit)
 	{
-		fprintf(stderr,
-			"%s invalid pin definition for pin %s. Configured as pin %d, but highest pin is %d.\n",
-			progname, avr_pin_name(pinfunc), pin, pdata->pin_limit);
+		log_warn("Invalid pin definition for pin %s.\n", avr_pin_name(pinfunc));
+		log_warn("Configured as pin %d, but highest pin is %d.\n",
+		         pin, pdata->pin_limit);
 		fail = 1;
 	}
 
 	/* check if the pin is still available */
 	if (pdata->pin_direction & pin_mask)
 	{
-		fprintf(stderr,
-			"%s failure: pin %d (%s) is used twice. The second use is %s.\n",
-			progname, pin, ftdi_pin_name(pdata, pin), avr_pin_name(pinfunc));
+		log_warn("Pin %d (%s) is used twice. The second use is %s.\n",
+		         pin, ftdi_pin_name(pdata, pin), avr_pin_name(pinfunc));
 		fail = 1;
 	}
 
@@ -266,20 +288,20 @@ static int add_pin(PROGRAMMER *pgm, int pinfunc)
 	{
 		if(pinfunc == PIN_AVR_RESET)
 		{
-			fprintf(stderr, "Aborting, since the reset pin is wrongly configured\n");
+			log_err("Aborting, since the reset pin is wrongly configured\n");
 			return -1;
 		}
 		else
 		{
-			fprintf(stdout, "Ignoring wrongly configured pin.\n");
+			log_warn("Ignoring wrongly configured pin.\n");
 			return 0;
 		}
 	}
 
 	/* all checks passed - do actual work */
-	avrftdi_print(0, "Configure pin %d (%s) as %s (%s active)\n",
-			pin, ftdi_pin_name(pdata, pin),
-			avr_pin_name(pinfunc), (inverted) ? "low": "high");
+	log_info("Configure pin %d (%s) as %s (%s active)\n",	pin,
+	         ftdi_pin_name(pdata, pin), avr_pin_name(pinfunc),
+					 (inverted) ? "low": "high");
 
 	{
 		/* create mask */
@@ -312,7 +334,7 @@ static int add_pin(PROGRAMMER *pgm, int pinfunc)
  */
 static int add_pins(PROGRAMMER *pgm, int pinfunc)
 {
-	int pin, inverted, fail;
+	int pin, inverted;
 	uint32_t pin_mask, pin_bit;
 	avrftdi_t* pdata = to_pdata(pgm);
 
@@ -322,11 +344,10 @@ static int add_pins(PROGRAMMER *pgm, int pinfunc)
 
 	if(!pin_mask)
 	{
-		avrftdi_print(0, "Pins for %s not configured.\n", avr_pin_name(pinfunc));
+		log_warn("Pins for %s not configured.\n", avr_pin_name(pinfunc));
 		return 0;
 	}
 
-	fail = 0;
 	/* check every configured pin */
 	for(pin = 0; (1 << pin) & (PIN_MASK); pin++)
 	{
@@ -340,29 +361,19 @@ static int add_pins(PROGRAMMER *pgm, int pinfunc)
 		/* 0 is not a valid pin, see above, we use 1 << (pin - 1) to create pin_bit */
 		if(pin + 1 > pdata->pin_limit)
 		{
-			fprintf(stderr,
-				"%s invalid pin definition for pin %s. Configured as pin %d, but highest pin is %d.\n",
-				progname, avr_pin_name(pinfunc), pin + 1, pdata->pin_limit);
-			fail = 1;
+			log_warn("Invalid pin definition for pin %s.\n", avr_pin_name(pinfunc));
+			log_warn("Configured as pin %d, but highest pin is %d.\n", pin + 1,
+			         pdata->pin_limit);
+			log_warn("Ignoring wrongly configured pins.\n");
 		}
 
 		if(pin_bit & pdata->pin_direction)
 		{
-			fprintf(stderr,
-				"%s failure: pin %d (%s) is used twice. The second use is %s.\n",
-				progname, pin, ftdi_pin_name(pdata, pin), avr_pin_name(pinfunc));
-			fail = 1;
+			log_warn("Failure: pin %d (%s) is used twice. The second use is %s.\n",
+			         pin, ftdi_pin_name(pdata, pin), avr_pin_name(pinfunc));
+			log_warn("Ignoring wrongly configured pins.\n");
 		}
 
-	}
-
-	/* we can ignore those, because only VCC and BUFF pins, can have multiples.
-	 * VCC and BUFF are not essential
-	 */
-	if(fail)
-	{
-			fprintf(stdout, "Ignoring wrongly configured pins.\n");
-			return 0;
 	}
 
 	/* conditional output */
@@ -375,9 +386,9 @@ static int add_pins(PROGRAMMER *pgm, int pinfunc)
 			continue;
 
 		/* remember, we count from 1, not 0 */
-		avrftdi_print(0, "Configured pin %d (%s) as %s (%s active)\n",
-			pin+1, ftdi_pin_name(pdata, pin+1),
-			avr_pin_name(pinfunc), (inverted) ? "low": "high");
+		log_info("Configured pin %d (%s) as %s (%s active)\n", pin + 1,
+		         ftdi_pin_name(pdata, pin+1), avr_pin_name(pinfunc),
+						 (inverted) ? "low": "high");
 	}
 
 	/* do the work */
@@ -426,9 +437,9 @@ static int set_pin(PROGRAMMER * pgm, int pinfunc, int value)
 	if (value)
 		value = pin_mask;
 
-	avrftdi_print(1, "Setting pin %d (%s) as %s: %s (%s active)\n", pin,
-			ftdi_pin_name(pdata, pin), avr_pin_name(pinfunc),
-			(value) ? "high" : "low", (inverted) ? "low" : "high");
+	log_debug("Setting pin %d (%s) as %s: %s (%s active)\n", pin,
+	          ftdi_pin_name(pdata, pin), avr_pin_name(pinfunc),
+	          (value) ? "high" : "low", (inverted) ? "low" : "high");
 
 	/* set bits depending on value */
 	//tval = (pdata->pin_value & (~pin_mask)) | pin_mask;
@@ -475,9 +486,9 @@ static int set_pins(PROGRAMMER * pgm, int pinfunc, int value)
 			continue;
 
 		/* remember, we count from 1, not 0 */
-		avrftdi_print(0, "Setting pin %d (%s) as %s: %s (%s active)\n",
-			pin+1, ftdi_pin_name(pdata, pin+1), avr_pin_name(pinfunc),
-			(value) ? "high" : "low", (inverted) ? "low": "high");
+		log_debug("Setting pin %d (%s) as %s: %s (%s active)\n", pin + 1,
+		          ftdi_pin_name(pdata, pin+1), avr_pin_name(pinfunc),
+			        (value) ? "high" : "low", (inverted) ? "low": "high");
 	}
 
 	/* set bits depending on value */
@@ -521,7 +532,6 @@ static int avrftdi_transmit(avrftdi_t* pdata, unsigned char mode, unsigned char 
 			    unsigned char *data, int buf_size)
 {
 	size_t blocksize;
-	size_t bsize;
 	size_t remaining = buf_size;
 	size_t written = 0;
 	
@@ -580,9 +590,8 @@ static int write_flush(avrftdi_t* pdata)
 {
 	unsigned char buf[6];
 
-	avrftdi_print(2, 
-			"%s info: direction: 0x%04x, value: 0x%04x\n",
-			progname, pdata->pin_direction, pdata->pin_value);
+	log_debug("Setting pin direction (0x%04x) and value (0x%04x)\n",
+	          pdata->pin_direction, pdata->pin_value);
 
 	buf[0] = SET_BITS_LOW;
 	buf[1] = (pdata->pin_value) & 0xff;
@@ -596,8 +605,8 @@ static int write_flush(avrftdi_t* pdata)
 
 #endif
 
-	avrftdi_print(3, "FTDI LOG: %02x %02x %02x %02x %02x %02x\n",
-		       buf[0], buf[1], buf[2], buf[3], buf[4], buf[5]);
+	log_trace("Set pins command: %02x %02x %02x %02x %02x %02x\n",
+	          buf[0], buf[1], buf[2], buf[3], buf[4], buf[5]);
 
 	/* we need to flush here, because set_pin is used as reset.
 	 * if we want to sleep reset periods, we must be certain the
@@ -613,7 +622,6 @@ static int write_flush(avrftdi_t* pdata)
 
 	unsigned char cmd[] = { GET_BITS_LOW, SEND_IMMEDIATE };
 	unsigned int n;
-	int num = 0;
 	E(ftdi_write_data(pdata->ftdic, cmd, sizeof(cmd)) != sizeof(cmd), pdata->ftdic);
 	do
 	{
@@ -667,9 +675,7 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 	else if (pgm->usbdev[0] == 'b' || pgm->usbdev[0] == 'B')
 		interface = INTERFACE_B;
 	else {
-		fprintf(stderr,
-			"%s: Invalid interface '%s'. Setting to Interface A\n",
-			progname, pgm->usbdev);
+		log_warn("Invalid interface '%s'. Setting to Interface A\n", pgm->usbdev);
 		interface = INTERFACE_A;
 	}
 
@@ -681,18 +687,16 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 	
 	err = ftdi_usb_open_desc_index(pdata->ftdic, vid, pid, desc, serial, index);
 	if(err) {
-		avrftdi_print(0, "Error %d occured: %s\n", err, ftdi_get_error_string(pdata->ftdic));
+		log_err("Error %d occured: %s\n", err, ftdi_get_error_string(pdata->ftdic));
 		//stupid hack, because avrdude calls pgm->close() even when pgm->open() fails
 		//and usb_dev is intialized to the last usb device from probing
 		pdata->ftdic->usb_dev = NULL;
 		return err;
 	} else {
-		avrftdi_print(1,
-			"Using device VID:PID %04x:%04x and SN '%s' on interface %c.\n",
-			vid, pid, serial, INTERFACE_A == interface? 'A': 'B');
+		log_info("Using device VID:PID %04x:%04x and SN '%s' on interface %c.\n",
+		         vid, pid, serial, INTERFACE_A == interface? 'A': 'B');
 	}
 	
-	//E(ftdi_usb_open_dev(pdata->ftdic, found_dev) <0, pdata->ftdic);
 	ftdi_set_latency_timer(pdata->ftdic, 1);
 
 	/* set SPI mode */
@@ -716,27 +720,25 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 		|| FTDI_MOSI != pgm->pinno[PIN_AVR_MOSI]
 		|| FTDI_MISO != pgm->pinno[PIN_AVR_MISO])
 	{
-		fprintf(stderr, "%s failure: pinning for FTDI MPSSE must be:\n", progname);
-		fprintf(stderr, "\t%s: 1, %s: 2, %s: 3(is: %d,%d,%d)\n",
-			avr_pin_name(PIN_AVR_SCK), avr_pin_name(PIN_AVR_MOSI),
-			avr_pin_name(PIN_AVR_MISO), pgm->pinno[PIN_AVR_SCK],
-			pgm->pinno[PIN_AVR_MOSI],	pgm->pinno[PIN_AVR_MISO]);
+		log_warn("Pin configuration for FTDI MPSSE must be:\n");
+		log_warn("%s: 1, %s: 2, %s: 3(is: %d,%d,%d)\n", avr_pin_name(PIN_AVR_SCK),
+		         avr_pin_name(PIN_AVR_MOSI), avr_pin_name(PIN_AVR_MISO),
+						 pgm->pinno[PIN_AVR_SCK],	pgm->pinno[PIN_AVR_MOSI],
+						 pgm->pinno[PIN_AVR_MISO]);
 
-		fprintf(stderr, "Setting pins accordingly ...\n");
+		log_warn("Setting pins accordingly ...\n");
 			pgm->pinno[PIN_AVR_SCK] = FTDI_SCK;
 			pgm->pinno[PIN_AVR_MOSI] = FTDI_MOSI;
 			pgm->pinno[PIN_AVR_MISO] = FTDI_MISO;
 	}
 	
-	avrftdi_print(1, "reset pin value: %x\n", pgm->pinno[PIN_AVR_RESET]-1);
+	log_info("RESET pin value: %x\n", pgm->pinno[PIN_AVR_RESET]-1);
 
 	if ( pgm->pinno[PIN_AVR_RESET] < FTDI_RESET
 		|| pgm->pinno[PIN_AVR_RESET] == 0)
 	{
-		fprintf(stderr,
-			"%s failure: RESET pin clashes with data pin or is not set.\n",
-			progname);
-		fprintf(stderr, "Setting to default-value 4\n");
+		log_warn("RESET pin clashes with data pin or is not set.\n");
+		log_warn("Setting to default-value 4\n");
 		pgm->pinno[PIN_AVR_RESET] = FTDI_RESET;
 	}
 	
@@ -747,8 +749,9 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 		case TYPE_AM:
 		case TYPE_BM:
 		case TYPE_R:
-			avrftdi_print(0, "Found unsupported device type AM, BM or R. " \
-				"avrftdi cannot work with your chip. Try the 'synbb' programmer.\n");
+			log_err("Found unsupported device type AM, BM or R. avrftdi ");
+			log_err("cannot work with your chip. Try the 'synbb' programmer.\n");
+			return -1;
 		case TYPE_2232C:
 			pdata->pin_limit = 11;
 			pdata->rx_buffer_size = 384;
@@ -766,9 +769,8 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 			pdata->rx_buffer_size = 2048;
 			break;
 		default:
-			avrftdi_print(0, "Found unkown device %x. " \
-				"I will do my best to work with it, but no guarantees ...\n",
-				pdata->ftdic->type);
+			log_warn("Found unkown device %x. I will do my ", pdata->ftdic->type);
+			log_warn("best to work with it, but no guarantees ...\n");
 			pdata->pin_limit = 7;
 			pdata->rx_buffer_size = pdata->ftdic->max_packet_size;
 			break;
@@ -788,8 +790,8 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 	if (add_pin(pgm, PIN_LED_PGM)) return -1;
 	if (add_pin(pgm, PIN_LED_VFY)) return -1;
 
-	avrftdi_print(1, "pin direction mask: %04x\n", pdata->pin_direction);
-	avrftdi_print(1, "pin value mask: %04x\n", pdata->pin_value);
+	log_info("Pin direction mask: %04x\n", pdata->pin_direction);
+	log_info("Pin value mask: %04x\n", pdata->pin_value);
 
 	/**********************************************
 	 * set the ready LED and set our direction up *
@@ -808,9 +810,9 @@ static void avrftdi_close(PROGRAMMER * pgm)
 	if(pdata->ftdic->usb_dev) {
 		set_pins(pgm, PPI_AVR_BUFF, ON);
 		set_pin(pgm, PIN_AVR_RESET, ON);
-		/**Stop driving the pins - except for the LEDs */
-		
-		avrftdi_print(1, "LED Mask=0x%04x value =0x%04x &=0x%04x\n",
+
+		/* Stop driving the pins - except for the LEDs */
+		log_info("LED Mask=0x%04x value =0x%04x &=0x%04x\n",
 				pdata->led_mask, pdata->pin_value, pdata->led_mask & pdata->pin_value);
 		
 		pdata->pin_direction = pdata->led_mask;
@@ -828,8 +830,6 @@ static void avrftdi_close(PROGRAMMER * pgm)
 
 static int avrftdi_initialize(PROGRAMMER * pgm, AVRPART * p)
 {
-	avrftdi_t* pdata = to_pdata(pgm);
-
 	set_pin(pgm, PIN_AVR_RESET, OFF);
 	set_pins(pgm, PPI_AVR_BUFF, OFF);
 	set_pin(pgm, PIN_AVR_SCK, OFF);
@@ -881,9 +881,7 @@ static int avrftdi_program_enable(PROGRAMMER * pgm, AVRPART * p)
 	memset(buf, 0, sizeof(buf));
 
 	if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
-		fprintf(stderr,
-			"%s failure: Program Enable (PGM_ENABLE) command not defined for %s\n",
-			progname, p->desc);
+		log_err("AVR_OP_PGM_ENABLE command not defined for %s\n", p->desc);
 		return -1;
 	}
 
@@ -892,7 +890,7 @@ static int avrftdi_program_enable(PROGRAMMER * pgm, AVRPART * p)
 	for(i = 0; i < 4; i++) {
 		pgm->cmd(pgm, buf, buf);
 		if (buf[p->pollindex-1] != p->pollvalue) {
-			//try resetting
+			log_warn("Program enable command not successful. Retrying.\n");
 			set_pin(pgm, PIN_AVR_RESET, ON);
 			usleep(20);
 			set_pin(pgm, PIN_AVR_RESET, OFF);
@@ -900,6 +898,8 @@ static int avrftdi_program_enable(PROGRAMMER * pgm, AVRPART * p)
 		} else
 			return 0;
 	}
+
+	log_err("Device is not responding to program enable. Check connection.\n");
 #ifndef DRYRUN
 	return -1;
 #else
@@ -914,9 +914,7 @@ static int avrftdi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 	unsigned char res[4];
 
 	if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
-		fprintf(stderr,
-			"%s failure Chip Erase (CHIP_ERASE) command not defined for %s\n",
-			progname, p->desc);
+		log_err("AVR_OP_CHIP_ERASE command not defined for %s\n", p->desc);
 		return -1;
 	}
 
@@ -941,7 +939,7 @@ avrftdi_lext(avrftdi_t* pdata, AVRPART *p, AVRMEM *m, unsigned int address)
 	avr_set_bits(m->op[AVR_OP_LOAD_EXT_ADDR], &buf[3]);
 	avr_set_addr(m->op[AVR_OP_LOAD_EXT_ADDR], &buf[3], address);
 
-	if(verbose > 1)
+	if(verbose > TRACE)
 		buf_dump(buf, sizeof(buf),
 			 "load extended address command", 0, 16 * 3);
 
@@ -1015,23 +1013,17 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 	/* pre-check opcodes */
 	if (m->op[AVR_OP_LOADPAGE_LO] == NULL) {
-		fprintf(stderr,
-			"%s failure: %s command not defined for %s\n",
-			progname, "AVR_OP_LOADPAGE_LO", p->desc);
+		log_err("AVR_OP_LOADPAGE_LO command not defined for %s\n", p->desc);
 		return -1;
 	}
 	if (m->op[AVR_OP_LOADPAGE_HI] == NULL) {
-		fprintf(stderr,
-			"%s failure: %s command not defined for %s\n",
-			progname, "AVR_OP_LOADPAGE_HI", p->desc);
+		log_err("AVR_OP_LOADPAGE_HI command not defined for %s\n", p->desc);
 		return -1;
 	}
 
 	if(page_size != m->page_size) {
-		fprintf(stderr,
-			"%s: Something funny is going on. Parameter"
-			"page_size is %d, buf m->page_size is %d. Using"
-			"the latter.\n", progname, page_size, m->page_size);
+		log_warn("Parameter page_size is %d, ", page_size);
+		log_warn("but m->page_size is %d. Using the latter.\n", m->page_size);
 	}
 
 	page_size = m->page_size;
@@ -1053,7 +1045,7 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	 * like addr >> WORD_SHIFT, though */
 	for(word = addr/2; word < (len + addr)/2; word++)
 	{
-		avrftdi_print(2, "-< bytes = %d of %d\n", word * 2, len + addr);
+		log_debug("-< bytes = %d of %d\n", word * 2, len + addr);
 
 		/*setting word*/
 		avr_set_bits(m->op[AVR_OP_LOADPAGE_LO], bufptr);
@@ -1069,11 +1061,8 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 	/* issue write page command, if available */
 	if (m->op[AVR_OP_WRITEPAGE] == NULL) {
-		fprintf(stderr,
-			"%s failure: Write Page (WRITEPAGE) command not defined for %s\n",
-			progname, p->desc);
-		//FIXME: maybe not exit but return error code
-		exit(1);
+		log_err("AVR_OP_WRITEPAGE command not defined for %s\n", p->desc);
+		return -1;
 	} else {
 		avr_set_bits(m->op[AVR_OP_WRITEPAGE], bufptr);
 		/* setting page address highbyte */
@@ -1084,11 +1073,10 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 	buf_size = bufptr - buf;
 
-	if(verbose > 3)
+	if(verbose > TRACE)
 		buf_dump(buf, buf_size, "command buffer", 0, 16*2);
 
-	avrftdi_print(2, "%s info: buffer size: %d\n", progname, buf_size);
-
+	log_info("Transmitting buffer of size: %d\n", buf_size);
 	avrftdi_transmit(to_pdata(pgm), MPSSE_DO_WRITE, buf, buf, buf_size);
 
 	bufptr = buf;
@@ -1101,22 +1089,22 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 	if((poll_index < addr + len) && m->buf[poll_index] != 0xff)
 	{
-		avrftdi_print(2, "%s: using m->buf[%d] = 0x%02x as polling value ",
-				progname, poll_index, m->buf[poll_index]);
+		log_info("Using m->buf[%d] = 0x%02x as polling value ", poll_index,
+		         m->buf[poll_index]);
 		/* poll page write ready */
 		do {
-			avrftdi_print(2, ".");
+			log_info(".");
 
 			pgm->read_byte(pgm, p, m, poll_index, &poll_byte);
 		} while (m->buf[poll_index] != poll_byte);
 
-		avrftdi_print(2, "\n");
+		log_info("\n");
 	}
 	else
 	{
-		fprintf(stderr,	"%s: no suitable byte (!=0xff) for polling found.\n", progname);
-		fprintf(stderr, "%s: trying to sleep, but programming errors may occur.\n", progname);
-		fprintf(stderr, "%s: be sure to verify programmed memory (no -V option)\n", progname);
+		log_warn("No suitable byte (!=0xff) for polling found.\n");
+		log_warn("Trying to sleep instead, but programming errors may occur.\n");
+		log_warn("Be sure to verify programmed memory (no -V option)\n");
 		/* TODO sync write */
 		/* sleep */
 		usleep((m->max_write_delay));
@@ -1145,15 +1133,11 @@ static int avrftdi_flash_read(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 	/* pre-check opcodes */
 	if (m->op[AVR_OP_READ_LO] == NULL) {
-		fprintf(stderr,
-			"%s failure: %s command not defined for %s\n",
-			progname, "AVR_OP_READ_LO", p->desc);
+		log_err("AVR_OP_READ_LO command not defined for %s\n", p->desc);
 		return -1;
 	}
 	if (m->op[AVR_OP_READ_HI] == NULL) {
-		fprintf(stderr,
-			"%s failure: %s command not defined for %s\n",
-			progname, "AVR_OP_READ_HI", p->desc);
+		log_err("AVR_OP_READ_HI command not defined for %s\n", p->desc);
 		return -1;
 	}
 	
@@ -1179,13 +1163,13 @@ static int avrftdi_flash_read(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	 * if there was an error, we did not see, memory validation will
 	 * subsequently fail.
 	 */
-	if(verbose > 2) {
+	if(verbose > TRACE) {
 		buf_dump(o_buf, sizeof(o_buf), "o_buf", 0, 32);
 	}
 
 	avrftdi_transmit(to_pdata(pgm), MPSSE_DO_READ | MPSSE_DO_WRITE, o_buf, i_buf, len * 4);
 				
-	if(verbose > 2) {
+	if(verbose > TRACE) {
 		buf_dump(i_buf, sizeof(i_buf), "i_buf", 0, 32);
 	}
 
@@ -1204,7 +1188,7 @@ static int avrftdi_flash_read(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 		avr_get_output(readop, &i_buf[byte*4], &m->buf[addr+byte]);
 	}
 	
-	if(verbose > 2)
+	if(verbose > TRACE)
 		buf_dump(&m->buf[addr], page_size, "page:", 0, 32);
 
 	return len;
@@ -1244,7 +1228,7 @@ avrftdi_setup(PROGRAMMER * pgm)
 	pdata->ftdic = ftdi_new();
 	if(!pdata->ftdic)
 	{
-		fprintf(stderr, "%s: Error allocating memory.\n", progname);
+		log_err("Error allocating memory.\n");
 		exit(-ENOMEM);
 	}
 	E_VOID(ftdi_init(pdata->ftdic), pdata->ftdic);
@@ -1260,12 +1244,14 @@ avrftdi_teardown(PROGRAMMER * pgm)
 {
 	avrftdi_t* pdata = to_pdata(pgm);
 
+	if(pdata) {
 #ifndef DRYRUN
-	ftdi_deinit(pdata->ftdic);
-	ftdi_free(pdata->ftdic);
+		ftdi_deinit(pdata->ftdic);
+		ftdi_free(pdata->ftdic);
 #endif
 
-	free(pdata);
+		free(pdata);
+	}
 }
 
 void avrftdi_initpgm(PROGRAMMER * pgm)

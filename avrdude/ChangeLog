@@ -1,3 +1,12 @@
+2013-04-28  Hannes Weisbach <hannes_weisbach@gmx.net>
+
+	* avrftdic: Rework of textual output. Messages are divided by severity and
+	printed accordingly to the verbosity,	as specified by the user. The provided
+	severity level are (ERROR, WARN, INFO, DEBUG, TRACE). Where "ERROR" messages
+	are always printed. Shortcut-macros	including function, from which the
+	output was generated, and line number were also added.
+	Some log messages were updated and other code warnings removed.
+
 2013-04-27  Hannes Weisbach <hannes_weisbach@gmx.net>
 
 	* configure.ac: Add libftdi1 library check, remove TYPE_232H DECL check
