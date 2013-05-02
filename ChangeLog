@@ -1,6 +1,8 @@
 2013-04-30  Hannes Weisbach <hannes_weisbach@gmx.net>
 
 	* tpi.h: Add definition for TPI Identification Code
+	* avrftdi_tpi.c: Add TPI-support for FTDI-based programmers
+	* avrftdi_private.h: Add common include file for FTDI-based programmers
 
 2013-04-28  Hannes Weisbach <hannes_weisbach@gmx.net>
 

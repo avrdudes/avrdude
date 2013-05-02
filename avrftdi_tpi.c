@@ -97,9 +97,8 @@ avrftdi_tpi_initialize(PROGRAMMER * pgm, AVRPART * p)
 	/*wait at least 20ms bevor issuing spi commands to avr */
 	usleep(20 * 1000);
 	
-	log_info("Sending 16 init clock cycles ... ");
+	log_info("Sending 16 init clock cycles ...\n");
 	ret = ftdi_write_data(pdata->ftdic, buf, sizeof(buf));
-	log_info("Done.\n");
 
 	return ret;
 }
@@ -155,12 +154,10 @@ avrftdi_tpi_write_byte(PROGRAMMER * pgm, unsigned char byte)
 	buffer[3] = frame & 0xff;
 	buffer[4] = frame >> 8;
 	
-	log_debug("TPI frame: 0x%02x 0x%02x, data byte 0x%02x\n",
-			buffer[6], buffer[7], byte);
-	log_debug("FTDI raw data: 0x%02x 0x%02x 0x%02x  0x%02x 0x%02x\n",
-			buffer[0], buffer[1], buffer[2], buffer[3], buffer[4] /*, buffer[5], buffer[6], buffer[7]*/);
+	log_trace("Byte %02x, frame: %04x, MPSSE: 0x%02x 0x%02x 0x%02x  0x%02x 0x%02x\n",
+			byte, frame, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
 
-	avrftdi_debug_frame(frame);
+	//avrftdi_debug_frame(frame);
 	
 	E(ftdi_write_data(ftdic, buffer, sizeof(buffer)) != sizeof(buffer), ftdic);
 
@@ -181,15 +178,15 @@ avrftdi_tpi_read_byte(PROGRAMMER * pgm, unsigned char * byte)
 	
 	unsigned char buffer[4];
 
-	/* set it high, so the PDI won't detect we're driving the line */
+	/* set it high, so the TPI won't detect we're driving the line */
 	to_pdata(pgm)->set_pin(pgm, PIN_AVR_MOSI, ON);
 
-	buffer[0] = MPSSE_DO_READ | MPSSE_WRITE_NEG | MPSSE_LSB;
+	buffer[0] = MPSSE_DO_READ | MPSSE_LSB;
 	buffer[1] = (bytes-1) & 0xff;
 	buffer[2] = ((bytes-1) >> 8) & 0xff;
 	buffer[3] = SEND_IMMEDIATE;
 
-	log_info("Read request: 0x%02x 0x%02x 0x%02x 0x%02x\n",
+	log_trace("MPSSE: 0x%02x 0x%02x 0x%02x 0x%02x (Read frame)\n",
 			buffer[0], buffer[1], buffer[2], buffer[3]);
 
 	ftdi_write_data(to_pdata(pgm)->ftdic, buffer, 4);
@@ -243,9 +240,9 @@ avrftdi_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p)
 		log_info("Reading Identification register\n");
     avrftdi_tpi_write_byte(pgm, TPI_OP_SLDCS(TPIIR));
     err = avrftdi_tpi_read_byte(pgm, &byte);
-		if(err || byte != 0x80)
+		if(err || byte != TPI_IDENT_CODE)
 		{
-			log_warn("Error. Sending break.\n");
+			log_err("Error. Sending break.\n");
 			avrftdi_tpi_break(pgm);
 			avrftdi_tpi_break(pgm);
 			continue;
@@ -256,7 +253,7 @@ avrftdi_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p)
     err = avrftdi_tpi_read_byte(pgm, &byte);
 		if(err || !(byte & TPISR_NVMEN))
 		{
-			log_warn("Error. Sending break.\n");
+			log_err("Error. Sending break.\n");
 			avrftdi_tpi_break(pgm);
 			avrftdi_tpi_break(pgm);
 			continue;
@@ -280,6 +277,7 @@ avrftdi_tpi_nvm_waitbusy(PROGRAMMER * pgm)
 	{
 		avrftdi_tpi_write_byte(pgm, TPI_OP_SIN(NVMCSR));
     err = avrftdi_tpi_read_byte(pgm, &byte);		
+		//TODO usleep on bsy?
 		if(err || (byte & NVMCSR_BSY))
 			continue;
 		return 0;
@@ -328,7 +326,6 @@ avrftdi_tpi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   avrftdi_tpi_nvm_waitbusy(pgm);
   
   usleep(p->chip_erase_delay);
-  pgm->initialize(pgm, p);
 
 	return 0;
 }
@@ -341,10 +338,11 @@ avrftdi_tpi_disable(PROGRAMMER * pgm)
 	avrftdi_tpi_write_byte(pgm, 0);
 }
 
-#else /*HAVE_LIBFTDI*/
-#endif  /* HAVE_LIBFTDI */
+#else /* HAVE_LIBFTDI1 */
 
-#else /*HAVE_LIBUSB*/
+#endif  /* HAVE_LIBFTDI1 */
 
-#endif /*HAVE_LIBUSB*/
+#else /* HAVE_LIBUSB_1_0 */
+
+#endif /* HAVE_LIBUSB_1_0 */
 
