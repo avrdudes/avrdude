@@ -136,7 +136,7 @@ tpi_frame2byte(uint16_t frame, uint8_t * byte)
 static int
 avrftdi_tpi_break(PROGRAMMER * pgm)
 {
-	unsigned char buffer[] = { MPSSE_DO_WRITE | MPSSE_WRITE_NEG | MPSSE_LSB, 1, 0, 0x80, 0x01 };
+	unsigned char buffer[] = { MPSSE_DO_WRITE | MPSSE_WRITE_NEG | MPSSE_LSB, 1, 0, 0, 0 };
 	E(ftdi_write_data(to_pdata(pgm)->ftdic, buffer, sizeof(buffer)) != sizeof(buffer), to_pdata(pgm)->ftdic);
 
 	return 0;
