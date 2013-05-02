@@ -51,7 +51,7 @@ int avr_tpi_poll_nvmbsy(PROGRAMMER *pgm)
 
   cmd = TPI_CMD_SIN | TPI_SIO_ADDR(TPI_IOREG_NVMCSR);
   rc = pgm->cmd_tpi(pgm, &cmd, 1, &res, 1);
-  return (rc & TPI_IOREG_NVMCSR_NVMBSY);
+  return (res & TPI_IOREG_NVMCSR_NVMBSY);
 }
 
 /* TPI: setup NVMCMD register and pointer register (PR) for read/write/erase */
