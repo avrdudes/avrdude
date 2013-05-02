@@ -650,26 +650,19 @@ static int write_flush(avrftdi_t* pdata)
 	//E(ftdi_usb_purge_buffers(pdata->ftdic), pdata->ftdic);
 
 	unsigned char cmd[] = { GET_BITS_LOW, SEND_IMMEDIATE };
-	unsigned int n;
-	int retries = 0;
-	int num = 0;
 	E(ftdi_write_data(pdata->ftdic, cmd, sizeof(cmd)) != sizeof(cmd), pdata->ftdic);
+	
+	int num = 0;
 	do
 	{
-		n = ftdi_read_data(pdata->ftdic, cmd, 1);
+		int n = ftdi_read_data(pdata->ftdic, buf, sizeof(buf));
 		if(n > 0)
-		{
-			avrftdi_print(0, "Low byte lines: 0x%02x\n", cmd[0]);
 			num += n;
-		}
-		if(!n)
-		{
-			retries++;
-		}
 		E(n < 0, pdata->ftdic);
-	} while(retries < 1/*n < 1*/);
+	} while(num < 1);
 	
-	avrftdi_print(0, "Read %d extra bytes\n", num-1);
+	if(num > 1)
+		log_warn("Read %d extra bytes\n", num-1);
 #endif
 
 	return 0;
@@ -1302,7 +1295,6 @@ avrftdi_setup(PROGRAMMER * pgm)
 static void
 avrftdi_teardown(PROGRAMMER * pgm)
 {
-	fprintf(stderr, "\n%s: Unintializing programmer.\n", progname);
 	avrftdi_t* pdata = to_pdata(pgm);
 
 	if(pdata) {
