@@ -1,3 +1,7 @@
+2013-04-30  Hannes Weisbach <hannes_weisbach@gmx.net>
+
+	* tpi.h: Add definition for TPI Identification Code
+
 2013-04-28  Hannes Weisbach <hannes_weisbach@gmx.net>
 
 	* avrftdic: Rework of textual output. Messages are divided by severity and
