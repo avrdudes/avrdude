@@ -20,6 +20,8 @@
 #include <libusb-1.0/libusb.h>
 #include <libftdi1/ftdi.h>
 
+static void avrftdi_tpi_disable(PROGRAMMER *);
+
 static void
 avrftdi_debug_frame(uint16_t frame)
 {
@@ -75,9 +77,11 @@ avrftdi_tpi_initialize(PROGRAMMER * pgm, AVRPART * p)
 	pgm->program_enable = avrftdi_tpi_program_enable;
 	pgm->cmd_tpi = avrftdi_cmd_tpi;
 	pgm->chip_erase = avrftdi_tpi_chip_erase;
-	//pgm->read_byte = avrftdi_tpi_read_byte;
-	//pgm->write_byte = avrftdi_tpi_write_byte;
-	
+	pgm->disable = avrftdi_tpi_disable;
+
+	pgm->paged_load = NULL;
+	pgm->paged_write = NULL;
+
 	log_info("Setting /Reset pin low\n");
 	pdata->set_pin(pgm, PIN_AVR_RESET, OFF);
 	pdata->set_pin(pgm, PIN_AVR_SCK, OFF);
@@ -341,7 +345,15 @@ avrftdi_tpi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   usleep(p->chip_erase_delay);
   pgm->initialize(pgm, p);
 
-  return 0;
+	return 0;
+}
+
+static void
+avrftdi_tpi_disable(PROGRAMMER * pgm)
+{
+	log_info("Leaving Programming mode.\n");
+	avrftdi_tpi_write_byte(pgm, TPI_OP_SSTCS(TPIPCR));
+	avrftdi_tpi_write_byte(pgm, 0);
 }
 
 #else /*HAVE_LIBFTDI*/
