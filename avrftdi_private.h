@@ -3,11 +3,11 @@
 
 #include <stdint.h>
 
+#ifdef HAVE_LIBUSB_1_0
 #ifdef HAVE_LIBFTDI1
-#  include <libftdi1/ftdi.h>
-#else
-#  error "libftdi1 required for avrftdi."
-#endif
+
+#include <libusb-1.0/libusb.h>
+#include <libftdi1/ftdi.h>
 
 #include "pgm.h"
 
@@ -58,4 +58,16 @@ typedef struct avrftdi_s {
 } avrftdi_t;
 
 void avrftdi_print(int level, const char * fmt, ...);
+
+#else /* HAVE_LIBFTDI1 */
+
+#warning "libftdi1 required for programmer avrftdi."
+
+#endif  /* HAVE_LIBFTDI1 */
+
+#else /* HAVE_LIBUSB_1_0 */
+
+#warning "libusb-1.0 required for programmer avrftdi."
+
+#endif /* HAVE_LIBUSB_1_0 */
 
