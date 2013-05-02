@@ -104,7 +104,7 @@ avrftdi_tpi_initialize(PROGRAMMER * pgm, AVRPART * p)
 	return ret;
 }
 
-#define TPI_BIT_PAR 0x2000
+#define TPI_PARITY_MASK 0x2000
 
 static uint16_t
 tpi_byte2frame(uint8_t byte)
@@ -115,7 +115,7 @@ tpi_byte2frame(uint8_t byte)
 	frame |= ((byte << 5) & 0x1fe0);
 
 	if(parity)
-		frame |= TPI_BIT_PAR;
+		frame |= TPI_PARITY_MASK;
 	
 	return frame;
 }
@@ -123,19 +123,14 @@ tpi_byte2frame(uint8_t byte)
 static int
 tpi_frame2byte(uint16_t frame, uint8_t * byte)
 {
-	/* drop partity + 2 stop bits */
-	*byte = (frame >> 1) & 0xff;
+	/* drop idle and start bit(s) */
+	*byte = (frame >> 5) & 0xff;
 
 	int parity = __builtin_popcount(*byte) & 1;
-	int parity_rcvd = (frame & 0x200) ? 1 : 0;
+	int parity_rcvd = (frame & TPI_PARITY_MASK) ? 1 : 0;
 
-	log_info("Recevied frame with payload 0x%02x and %s parity\n",
-	         *byte, parity ? "odd" : "even");
-	
 	return parity != parity_rcvd;
 }
-
-#define TPI_FRAME_SIZE 2
 
 static int
 avrftdi_tpi_break(PROGRAMMER * pgm)
@@ -172,28 +167,19 @@ avrftdi_tpi_write_byte(PROGRAMMER * pgm, unsigned char byte)
 	return 0;
 }
 
+#define TPI_FRAME_SIZE 12
+#define TPI_IDLE_BITS   2
+
 static int
 avrftdi_tpi_read_byte(PROGRAMMER * pgm, unsigned char * byte)
 {
 	uint16_t frame;
 	
-	int guard_bits = to_pdata(pgm)->guard_bits;
-	int bytes = ((guard_bits + 7) / 8) + 2;
-	int i = 0, n = 0;
-
-	/* worst case size:
-	 * - 128 guard bits
-	 * - 2 default idle bits
-	 * - 12 frame bits
-	 * = 142 bits
-	 */
-	unsigned char buffer[18];
-
-	if(bytes > sizeof(buffer))
-		log_warn("Requested more bytes (%d) than available buffer space (%d)\n", bytes, sizeof(buffer));
-
-	log_info("Guard bit size (incl. default idle bits) is %d\n", guard_bits);
-	log_info("Reading %d bytes for guard bits + frame\n", bytes);
+	/* use 2 guard bits, 2 default idle bits + 12 frame bits = 16 bits total */
+	const int bytes = 3;
+	int err, i = 0;
+	
+	unsigned char buffer[4];
 
 	/* set it high, so the PDI won't detect we're driving the line */
 	to_pdata(pgm)->set_pin(pgm, PIN_AVR_MOSI, ON);
@@ -212,22 +198,24 @@ avrftdi_tpi_read_byte(PROGRAMMER * pgm, unsigned char * byte)
 
 	i = 0;
 	do {
-		n = ftdi_read_data(to_pdata(pgm)->ftdic, &buffer[i], bytes - i);
-		E(n < 0, to_pdata(pgm)->ftdic);
-		i += n;
+		int err = ftdi_read_data(to_pdata(pgm)->ftdic, &buffer[i], bytes - i);
+		E(err < 0, to_pdata(pgm)->ftdic);
+		i += err;
 	} while(i < bytes);
 
-	/* dismiss at least (guard_bits / 8) bytes */
-	i = guard_bits / 8;
-	frame = buffer[i] | (buffer[i+1] << 8);
 
-	/* now shift the rest of guard bits out */
-	i = guard_bits - (i*8);
-	frame >>= i;
+	log_trace("MPSSE: 0x%02x 0x%02x 0x%02x 0x%02x (Read frame)\n",
+			buffer[0], buffer[1], buffer[2], buffer[3]);
 
-	log_info("Received frame 0x%04x (LSB first)\n", frame);
 
-	return tpi_frame2byte(frame, byte);
+	frame = buffer[0] | (buffer[1] << 8);
+	
+	err = tpi_frame2byte(frame, byte);
+	log_trace("Frame: 0x%04x, byte: 0x%02x\n", frame, *byte);
+	
+	//avrftdi_debug_frame(frame);
+
+	return err;
 }
 
 int
@@ -240,12 +228,9 @@ avrftdi_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p)
 
 	log_info("TPI program enable\n");
 
-	//TODO determine guard time:
-	//-disable output possible -> guard time
-	//-else: minimum guard time
 	/* set guard time */
-	//avrftdi_tpi_write_byte(pgm, TPI_OP_SSTCS(TPIPCR));
-	//avrftdi_tpi_write_byte(pgm, TPIPCR_GT_2b);
+	avrftdi_tpi_write_byte(pgm, TPI_OP_SSTCS(TPIPCR));
+	avrftdi_tpi_write_byte(pgm, TPIPCR_GT_2b);
 
 	/* send SKEY */
   avrftdi_tpi_write_byte(pgm, TPI_CMD_SKEY);

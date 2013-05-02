@@ -1296,7 +1296,6 @@ avrftdi_setup(PROGRAMMER * pgm)
 	pdata->pin_value = 0;
 	pdata->pin_direction = 0;
 	pdata->led_mask = 0;
-	pdata->guard_bits = 128 + 2;
 	pdata->set_pin = &set_pin;
 }
 

@@ -50,8 +50,6 @@ typedef struct avrftdi_s {
 	int pin_limit;
 	/* internal RX buffer of the device. needed for INOUT transfers */
 	int rx_buffer_size;
-	/* number of guard bits for TPI. should be moved to struct PROGRAMMER */
-	int guard_bits;
 	/* function pointer to the set_pin function, so that we do not have to drag
 	 * it into global scope. it's a hack, but i think it's slightly better than
 	 * the alternative.
