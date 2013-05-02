@@ -11,6 +11,20 @@
 
 #include "pgm.h"
 
+enum { ERR, WARN, INFO, DEBUG, TRACE };
+
+#define __log(lvl, fmt, ...)                                  \
+  do {                                                        \
+    avrftdi_log(lvl, __func__, __LINE__, fmt, ##__VA_ARGS__); \
+	} while(0)
+
+
+#define log_err(fmt, ...)   __log(ERR, fmt, ##__VA_ARGS__)
+#define log_warn(fmt, ...)  __log(WARN,  fmt, ##__VA_ARGS__)
+#define log_info(fmt, ...)  __log(INFO,  fmt, ##__VA_ARGS__)
+#define log_debug(fmt, ...) __log(DEBUG, fmt, ##__VA_ARGS__)
+#define log_trace(fmt, ...) __log(TRACE, fmt, ##__VA_ARGS__)
+
 #define E(x, ftdi)                                                  \
 	do {                                                              \
 		if ((x))                                                        \

@@ -48,19 +48,6 @@
 #include <libftdi1/ftdi.h>
 
 enum { FTDI_SCK = 1, FTDI_MOSI, FTDI_MISO, FTDI_RESET };
-enum { ERR, WARN, INFO, DEBUG, TRACE };
-
-#define __log(lvl, fmt, ...)                                  \
-  do {                                                        \
-    avrftdi_log(lvl, __func__, __LINE__, fmt, ##__VA_ARGS__); \
-	} while(0)
-
-
-#define log_err(fmt, ...)   __log(ERR, fmt, ##__VA_ARGS__)
-#define log_warn(fmt, ...)  __log(WARN,  fmt, ##__VA_ARGS__)
-#define log_info(fmt, ...)  __log(INFO,  fmt, ##__VA_ARGS__)
-#define log_debug(fmt, ...) __log(DEBUG, fmt, ##__VA_ARGS__)
-#define log_trace(fmt, ...) __log(TRACE, fmt, ##__VA_ARGS__)
 
 #define FTDI_DEFAULT_MASK ( (1 << (FTDI_SCK - 1)) | (1 << (FTDI_MOSI - 1)) )
 
@@ -114,7 +101,7 @@ ftdi_pin_name(avrftdi_t* pdata, int pin)
  * This function is the backend of the log_*-macros, but it can be used
  * directly.
  */
-static void avrftdi_log(int level, const char * func, int line,
+void avrftdi_log(int level, const char * func, int line,
 		const char * fmt, ...) {
 	static int skip_prefix = 0;
 	const char *p = fmt;

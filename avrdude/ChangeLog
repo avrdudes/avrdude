@@ -3,6 +3,8 @@
 	* avrftdi_private.h: Add libusb-1.0 include to fix include order in windows.
 	* NEWS: Add notice avrftdi supporting TPI
 	* avr.c: Fix avr_tpi_poll_nvmbsy() - poll read data instead of return code
+	* avrftdi_private.h, avrftdi.c: move logging #defines to from avrftdi.c to
+	avrftdi_private.h, so that they are available for avrftdi_tpi, too.
 
 2013-04-30  Hannes Weisbach <hannes_weisbach@gmx.net>
 
