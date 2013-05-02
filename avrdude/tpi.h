@@ -28,9 +28,12 @@ extern "C" {
 static const unsigned char tpi_skey[] = { 0x12, 0x89, 0xAB, 0x45, 0xCD, 0xD8, 0x88, 0xFF };
 
 /* registers */
-#define TPI_REG_TPIIR	0x0F
-#define TPI_REG_TPIPCR	0x02
-#define TPI_REG_TPISR	0x00
+#define TPI_REG_TPIIR  0x0F
+
+#define TPI_IDENT_CODE 0x80
+
+#define TPI_REG_TPIPCR 0x02
+#define TPI_REG_TPISR  0x00
 
 #define TPI_REG_TPISR_NVMEN		(1 << 1)
 
