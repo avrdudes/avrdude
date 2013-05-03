@@ -181,9 +181,6 @@ avrftdi_tpi_read_byte(PROGRAMMER * pgm, unsigned char * byte)
 	
 	unsigned char buffer[4];
 
-	/* set it high, so the TPI won't detect we're driving the line */
-	to_pdata(pgm)->set_pin(pgm, PIN_AVR_MOSI, ON);
-
 	buffer[0] = MPSSE_DO_READ | MPSSE_LSB;
 	buffer[1] = (bytes-1) & 0xff;
 	buffer[2] = ((bytes-1) >> 8) & 0xff;
@@ -223,7 +220,6 @@ avrftdi_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p)
 {
 	int retry;
 	int err;
-	int i;
 	unsigned char cmd[2];
 	unsigned char response;
 
