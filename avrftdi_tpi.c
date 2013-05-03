@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <unistd.h>
 
+#include "avr.h"
 #include "pgm.h"
 #include "avrpart.h"
 #include "pindefs.h"
@@ -21,6 +22,8 @@
 #include <libftdi1/ftdi.h>
 
 static void avrftdi_tpi_disable(PROGRAMMER *);
+
+static const unsigned char tpi_skey_cmd[] = { TPI_CMD_SKEY, 0xff, 0x88, 0xd8, 0xcd, 0x45, 0xab, 0x89, 0x12 };
 
 static void
 avrftdi_debug_frame(uint16_t frame)
@@ -221,26 +224,26 @@ avrftdi_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p)
 	int retry;
 	int err;
 	int i;
-	unsigned char byte = 0;
+	unsigned char cmd[2];
+	unsigned char response;
 
 	log_info("TPI program enable\n");
 
 	/* set guard time */
-	avrftdi_tpi_write_byte(pgm, TPI_OP_SSTCS(TPIPCR));
-	avrftdi_tpi_write_byte(pgm, TPIPCR_GT_2b);
+	cmd[0] = TPI_OP_SSTCS(TPIPCR);
+	cmd[1] = TPIPCR_GT_2b;
+	pgm->cmd_tpi(pgm, cmd, sizeof(cmd), NULL, 0);
 
 	/* send SKEY */
-  avrftdi_tpi_write_byte(pgm, TPI_CMD_SKEY);
-	for(i = sizeof(tpi_skey) - 1; i >= 0; --i)
-  	avrftdi_tpi_write_byte(pgm, tpi_skey[i]);
+	pgm->cmd_tpi(pgm, tpi_skey_cmd, sizeof(tpi_skey_cmd), NULL, 0);
 
 	/* check if device is ready */
   for(retry = 0; retry < 10; retry++)
   {
 		log_info("Reading Identification register\n");
-    avrftdi_tpi_write_byte(pgm, TPI_OP_SLDCS(TPIIR));
-    err = avrftdi_tpi_read_byte(pgm, &byte);
-		if(err || byte != TPI_IDENT_CODE)
+		cmd[0] = TPI_OP_SLDCS(TPIIR);
+		err = pgm->cmd_tpi(pgm, cmd, 1, &response, sizeof(response));
+		if(err || response != TPI_IDENT_CODE)
 		{
 			log_err("Error. Sending break.\n");
 			avrftdi_tpi_break(pgm);
@@ -249,9 +252,9 @@ avrftdi_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p)
 		}
 
     log_info("Reading Status register\n");
-		avrftdi_tpi_write_byte(pgm, TPI_OP_SLDCS(TPISR));
-    err = avrftdi_tpi_read_byte(pgm, &byte);
-		if(err || !(byte & TPISR_NVMEN))
+		cmd[0] = TPI_OP_SLDCS(TPISR);
+		err = pgm->cmd_tpi(pgm, cmd, 1, &response, sizeof(response));
+		if(err || !(response & TPISR_NVMEN))
 		{
 			log_err("Error. Sending break.\n");
 			avrftdi_tpi_break(pgm);
@@ -269,16 +272,16 @@ avrftdi_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p)
 static int
 avrftdi_tpi_nvm_waitbusy(PROGRAMMER * pgm)
 {
-	unsigned char byte;
+	const unsigned char cmd = TPI_OP_SIN(NVMCSR);
+	unsigned char response;
 	int err;
 	int retry;
 
 	for(retry = 50; retry > 0; retry--)
 	{
-		avrftdi_tpi_write_byte(pgm, TPI_OP_SIN(NVMCSR));
-    err = avrftdi_tpi_read_byte(pgm, &byte);		
+		pgm->cmd_tpi(pgm, &cmd, sizeof(cmd), &response, sizeof(response));
 		//TODO usleep on bsy?
-		if(err || (byte & NVMCSR_BSY))
+		if(err || (response & NVMCSR_BSY))
 			continue;
 		return 0;
 	}
@@ -312,19 +315,19 @@ avrftdi_cmd_tpi(PROGRAMMER * pgm, unsigned char cmd[], int cmd_len,
 int
 avrftdi_tpi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {
-  /* Set PR to flash */
-  avrftdi_tpi_write_byte(pgm, TPI_OP_SSTPR(0));
-  avrftdi_tpi_write_byte(pgm, 0x01);
-  avrftdi_tpi_write_byte(pgm, TPI_OP_SSTPR(1));
-  avrftdi_tpi_write_byte(pgm, 0x40);
-  /* select ERASE */
-  avrftdi_tpi_write_byte(pgm, TPI_OP_SOUT(NVMCMD));
-  avrftdi_tpi_write_byte(pgm, NVMCMD_CHIP_ERASE);
-  /* dummy write */
-  avrftdi_tpi_write_byte(pgm, TPI_OP_SST_INC);
-  avrftdi_tpi_write_byte(pgm, 0x00);
-  avrftdi_tpi_nvm_waitbusy(pgm);
-  
+	unsigned char cmd [] = {
+		TPI_OP_SSTPR(0),
+		0x01,
+		TPI_OP_SSTPR(1),
+		0x40,
+		TPI_OP_SOUT(NVMCMD),
+		NVMCMD_CHIP_ERASE,
+		TPI_OP_SST_INC,
+		0x00 };
+	pgm->cmd_tpi(pgm, cmd, sizeof(cmd), NULL, 0);
+
+	avr_tpi_poll_nvmbsy(pgm);
+
   usleep(p->chip_erase_delay);
 
 	return 0;
@@ -333,9 +336,10 @@ avrftdi_tpi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 static void
 avrftdi_tpi_disable(PROGRAMMER * pgm)
 {
+	unsigned char cmd[] = {TPI_OP_SSTCS(TPIPCR), 0};
+	pgm->cmd_tpi(pgm, cmd, sizeof(cmd), NULL, 0);
+
 	log_info("Leaving Programming mode.\n");
-	avrftdi_tpi_write_byte(pgm, TPI_OP_SSTCS(TPIPCR));
-	avrftdi_tpi_write_byte(pgm, 0);
 }
 
 #else /* HAVE_LIBFTDI1 */
