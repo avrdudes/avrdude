@@ -289,6 +289,8 @@ void serbb_initpgm(PROGRAMMER *pgm)
 {
   strcpy(pgm->type, "SERBB");
 
+  pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed
+
   pgm->rdy_led        = bitbang_rdy_led;
   pgm->err_led        = bitbang_err_led;
   pgm->pgm_led        = bitbang_pgm_led;

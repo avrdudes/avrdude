@@ -288,6 +288,8 @@ prog_def :
         pgm_free(existing_prog);
       }
       PUSH(programmers, current_prog);
+//      pgm_fill_old_pins(current_prog); // TODO to be removed if old pin data no longer needed
+//      pgm_display_generic(current_prog, id);
       current_prog = NULL;
     }
 ;
@@ -533,24 +535,35 @@ prog_parm_usb:
   }
 ;
 
-pin_number:
+pin_number_non_empty:
   TKN_NUMBER { assign_pin(pin_name, $1, 0);  }
   |
   TKN_TILDE TKN_NUMBER { assign_pin(pin_name, $2, 1); }
-  |
-  /* empty */ { current_prog->pinno[pin_name] = 0; }
 ;
 
-pin_list:
-  num_list            { assign_pin_list(0); }
+pin_number:
+  pin_number_non_empty
   |
-  TKN_TILDE TKN_NUMBER { assign_pin(pin_name, $2, 1); }
+  /* empty */ { pin_clear_all(&(current_prog->pin[pin_name])); }
+;
+
+pin_list_element:
+  pin_number_non_empty
   |
   TKN_TILDE TKN_LEFT_PAREN num_list TKN_RIGHT_PAREN { assign_pin_list(1); }
+;
+
+pin_list_non_empty:
+  pin_list_element
   |
-  /* empty */ {
-    current_prog->pinno[pin_name] = 0;
-  }
+  pin_list_non_empty TKN_COMMA pin_list_element
+;
+
+
+pin_list:
+  pin_list_non_empty
+  |
+  /* empty */ { pin_clear_all(&(current_prog->pin[pin_name])); }
 ;
 
 prog_parm_pins:
@@ -1353,10 +1366,8 @@ static int assign_pin(int pinno, TOKEN * v, int invert)
             progname, lineno, infile, PIN_MIN, PIN_MAX);
     exit(1);
   }
-  if (invert)
-    value |= PIN_INVERSE;
 
-  current_prog->pinno[pinno] = value;
+  pin_set_value(&(current_prog->pin[pinno]), value, invert);
 
   return 0;
 }
@@ -1370,9 +1381,15 @@ static int assign_pin_list(int invert)
   while (lsize(number_list)) {
     t = lrmv_n(number_list, 1);
     pin = t->value.number;
-    current_prog->pinno[pin_name] |= (1 << pin);
-    if (invert)
-      current_prog->pinno[pin_name] |= PIN_INVERSE;
+    if ((pin < PIN_MIN) || (pin > PIN_MAX)) {
+      fprintf(stderr, 
+            "%s: error at line %d of %s: pin must be in the "
+            "range %d-%d\n",
+            progname, lineno, infile, PIN_MIN, PIN_MAX);
+      exit(1);
+      /* TODO clear list and free tokens if no exit is done */
+    }
+    pin_set_value(&(current_prog->pin[pin_name]), pin, invert);
     free_token(t);
   }
 

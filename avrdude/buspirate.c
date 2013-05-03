@@ -1283,6 +1283,8 @@ void buspirate_bb_initpgm(struct programmer_t *pgm)
 {
 	strcpy(pgm->type, "BusPirate_BB");
 
+	pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed
+
 	pgm->display        = buspirate_dummy_6;
 
 	/* BusPirate itself related methods */

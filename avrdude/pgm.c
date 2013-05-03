@@ -211,39 +211,31 @@ void programmer_display(PROGRAMMER * pgm, const char * p)
   pgm->display(pgm, p);
 }
 
-static char * pins_to_str(unsigned int pmask)
+static char * pins_to_str(const struct pindef_t * const pindef)
 {
-  static char buf[64];
+  static char buf[(PIN_MAX+1)*5]; // should be enough for PIN_MAX=255
+  char *p = buf;
+  int n;
   int pin;
-  char b2[8];
+  const char * fmt;
 
-  if ((pmask & PIN_MASK) == 0)
-     return " (not used)";
-
-  buf[0] = ' ';
-  buf[1] = 0;
-  for (pin = 0; pin <= 17; pin++) {
-    if (pmask & (1 << pin)) {
-      sprintf(b2, "%d", pin);
-      if (buf[1] != 0)
-        strcat(buf, ",");
-      strcat(buf, b2);
+  buf[0] = 0;
+  for (pin = PIN_MIN; pin <= PIN_MAX; pin++) {
+    int index = pin/PIN_FIELD_ELEMENT_SIZE;
+    int bit = pin%PIN_FIELD_ELEMENT_SIZE;
+    if (pindef->mask[index] & (1 << bit)) {
+      if (pindef->inverse[index] & (1 << bit)) {
+         fmt = (buf[0]==0)?"~%d":",~%d";
+      } else {
+         fmt = (buf[0]==0)?" %d":",%d";
+      }
+      n = sprintf(p, fmt, pin);
+      p += n;
     }
   }
 
-  return buf;
-}
-
-static char * pin_to_str(unsigned int pin)
-{
-  static char buf[12];
-
-  if ((pin & PIN_MASK) == 0)
+  if (buf[0] == 0)
      return " (not used)";
-
-  buf[0] = (pin & PIN_INVERSE)?'~':' ';
-  buf[1] = 0;
-  sprintf(buf+1, "%d", pin & PIN_MASK);
 
   return buf;
 }
@@ -251,25 +243,25 @@ static char * pin_to_str(unsigned int pin)
 void pgm_display_generic_mask(PROGRAMMER * pgm, const char * p, unsigned int show)
 {
   if(show & (1<<PPI_AVR_VCC)) 
-    fprintf(stderr, "%s  VCC     = %s\n", p, pins_to_str(pgm->pinno[PPI_AVR_VCC]));
+    fprintf(stderr, "%s  VCC     = %s\n", p, pins_to_str(&pgm->pin[PPI_AVR_VCC]));
   if(show & (1<<PPI_AVR_BUFF))
-    fprintf(stderr, "%s  BUFF    = %s\n", p, pins_to_str(pgm->pinno[PPI_AVR_BUFF]));
+    fprintf(stderr, "%s  BUFF    = %s\n", p, pins_to_str(&pgm->pin[PPI_AVR_BUFF]));
   if(show & (1<<PIN_AVR_RESET))
-    fprintf(stderr, "%s  RESET   = %s\n", p, pin_to_str(pgm->pinno[PIN_AVR_RESET]));
+    fprintf(stderr, "%s  RESET   = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_RESET]));
   if(show & (1<<PIN_AVR_SCK))
-    fprintf(stderr, "%s  SCK     = %s\n", p, pin_to_str(pgm->pinno[PIN_AVR_SCK]));
+    fprintf(stderr, "%s  SCK     = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_SCK]));
   if(show & (1<<PIN_AVR_MOSI))
-    fprintf(stderr, "%s  MOSI    = %s\n", p, pin_to_str(pgm->pinno[PIN_AVR_MOSI]));
+    fprintf(stderr, "%s  MOSI    = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_MOSI]));
   if(show & (1<<PIN_AVR_MISO))
-    fprintf(stderr, "%s  MISO    = %s\n", p, pin_to_str(pgm->pinno[PIN_AVR_MISO]));
+    fprintf(stderr, "%s  MISO    = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_MISO]));
   if(show & (1<<PIN_LED_ERR))
-    fprintf(stderr, "%s  ERR LED = %s\n", p, pin_to_str(pgm->pinno[PIN_LED_ERR]));
+    fprintf(stderr, "%s  ERR LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_ERR]));
   if(show & (1<<PIN_LED_RDY))
-    fprintf(stderr, "%s  RDY LED = %s\n", p, pin_to_str(pgm->pinno[PIN_LED_RDY]));
+    fprintf(stderr, "%s  RDY LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_RDY]));
   if(show & (1<<PIN_LED_PGM))
-    fprintf(stderr, "%s  PGM LED = %s\n", p, pin_to_str(pgm->pinno[PIN_LED_PGM]));
+    fprintf(stderr, "%s  PGM LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_PGM]));
   if(show & (1<<PIN_LED_VFY))
-    fprintf(stderr, "%s  VFY LED = %s\n", p, pin_to_str(pgm->pinno[PIN_LED_VFY]));
+    fprintf(stderr, "%s  VFY LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_VFY]));
 }
 
 void pgm_display_generic(PROGRAMMER * pgm, const char * p)

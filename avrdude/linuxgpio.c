@@ -216,7 +216,8 @@ static int linuxgpio_highpulsepin(PROGRAMMER * pgm, int pin)
 
 static void linuxgpio_display(PROGRAMMER *pgm, const char *p)
 {
-  /* MAYBE */
+    fprintf(stderr, "%sPin assignment  : /sys/class/gpio/gpio{n}\n",p);
+    pgm_display_generic_mask(pgm, p, SHOW_AVR_PINS);
 }
 
 static void linuxgpio_enable(PROGRAMMER *pgm)
@@ -310,6 +311,8 @@ static void linuxgpio_close(PROGRAMMER *pgm)
 void linuxgpio_initpgm(PROGRAMMER *pgm)
 {
   strcpy(pgm->type, "linuxgpio");
+
+  pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed
 
   pgm->rdy_led        = bitbang_rdy_led;
   pgm->err_led        = bitbang_err_led;

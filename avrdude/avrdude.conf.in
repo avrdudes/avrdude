@@ -645,10 +645,10 @@ programmer
   desc  = "FT245R Synchronous BitBang";
   type  = "ftdi_syncbb";
   connection_type = usb;
-  miso  = 2; # D1
-  sck   = 1; # D0
-  mosi  = 3; # D2
-  reset = 5; # D4
+  miso  = 1; # D1
+  sck   = 0; # D0
+  mosi  = 2; # D2
+  reset = 4; # D4
 ;
 
 programmer
@@ -656,10 +656,10 @@ programmer
   desc  = "FT232R Synchronous BitBang";
   type  = "ftdi_syncbb";
   connection_type = usb;
-  miso  = 2;  # RxD
-  sck   = 1;  # RTS
-  mosi  = 3;  # TxD
-  reset = 5;  # DTR
+  miso  = 1;  # RxD
+  sck   = 0;  # RTS
+  mosi  = 2;  # TxD
+  reset = 4;  # DTR
 ;
 
 # see http://www.bitwizard.nl/wiki/index.php/FTDI_ATmega
@@ -668,10 +668,10 @@ programmer
   desc  = "BitWizard ftdi_atmega builtin programmer";
   type  = "ftdi_syncbb";
   connection_type = usb;
-  miso  = 6;  # DSR
-  sck   = 7;  # DCD
-  mosi  = 4;  # CTS
-  reset = 8;  # RI
+  miso  = 5;  # DSR
+  sck   = 6;  # DCD
+  mosi  = 3;  # CTS
+  reset = 7;  # RI
 ;
 
 # see http://www.geocities.jp/arduino_diecimila/bootloader/index_en.html
@@ -681,10 +681,10 @@ programmer
   desc  = "Arduino: FT232R connected to ISP";
   type  = "ftdi_syncbb";
   connection_type = usb;
-  miso  = 4;  # CTS X3(1)
-  sck   = 6;  # DSR X3(2)
-  mosi  = 7;  # DCD X3(3)
-  reset = 8;  # RI  X3(4)
+  miso  = 3;  # CTS X3(1)
+  sck   = 5;  # DSR X3(2)
+  mosi  = 6;  # DCD X3(3)
+  reset = 7;  # RI  X3(4)
 ;
 
 # website mentioned above uses this id

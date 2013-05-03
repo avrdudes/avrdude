@@ -359,6 +359,8 @@ void par_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "PPI");
 
+  pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed
+
   pgm->exit_vcc = EXIT_VCC_UNSPEC;
   pgm->exit_reset = EXIT_RESET_UNSPEC;
   pgm->exit_datahigh = EXIT_DATAHIGH_UNSPEC;
