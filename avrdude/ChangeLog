@@ -2,6 +2,8 @@
 
 	* avrftdi_private.h: Remove update forward declaration from avrftdi_print to
 	avrftdi_log.
+	* avrftdi_tpi.c: Do all I/O in terms of pgm->cmd_tpi()-calls instead of
+	avrftdi_tpi_[read,write]_byte().
 
 2013-05-02  Hannes Weisbach <hannes_weisbach@gmx.net>
 
