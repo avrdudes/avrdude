@@ -71,7 +71,7 @@ typedef struct avrftdi_s {
 	int (*set_pin)(PROGRAMMER *, int, int);
 } avrftdi_t;
 
-void avrftdi_print(int level, const char * fmt, ...);
+void avrftdi_log(int level, const char * func, int line, const char * fmt, ...);
 
 #else /* HAVE_LIBFTDI1 */
 

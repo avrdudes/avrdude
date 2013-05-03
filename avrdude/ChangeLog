@@ -1,3 +1,8 @@
+2013-05-03  Hannes Weisbach <hannes_weisbach@gmx.net>
+
+	* avrftdi_private.h: Remove update forward declaration from avrftdi_print to
+	avrftdi_log.
+
 2013-05-02  Hannes Weisbach <hannes_weisbach@gmx.net>
 
 	* avrftdi_private.h: Add libusb-1.0 include to fix include order in windows.
