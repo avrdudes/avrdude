@@ -1,3 +1,17 @@
+2013-05-03  Rene Liebscher <R.Liebscher@gmx.de>
+
+	Create new pin definition data structures to support 0-based pin numbers,
+	and mixed inverse/non-inverse pin lists.
+	* avrftdi.c,buspirate.c,linuxgpio.c,par.c,serbb_*.c: added function call 
+          to fill old pinno entries from new pin definitions.
+	* pindefs.[hc]: added data struct and helper functions for new pin definitions
+	* avrdude.conf.in: pins in entries using ftdi_syncbb are now 0-based
+	* config_gram.y: allow combinations of inverted and non-inverted pins in pin lists
+	* ft245r.c: reworked to work directly with the new pin definitions,
+          pins are now 0-based, inverse pins are supported, buff is supported
+	* pgm.[ch]: added new pin definitions field to programmer structure, 
+          adapted pin display functions
+
 2013-05-03  Hannes Weisbach <hannes_weisbach@gmx.net>
 
 	* avrftdi_private.h: Remove update forward declaration from avrftdi_print to
@@ -42,7 +56,7 @@
 	of the ongoing OUT request and subsequently timeout, because an IN request
 	cannot be issued due to the synchronous part of libftdi. This should fix
 	#38831 and #38659.
-	
+
 2013-04-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* configure.ac(AC_CONFIG_HEADERS): Replace the old AM_CONFIG_HEADER

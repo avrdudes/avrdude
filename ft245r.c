@@ -25,10 +25,10 @@
 /* ft245r -- FT245R/FT232R Synchronous BitBangMode Programmer
   default pin assign
                FT232R / FT245R
-  miso  = 2;  # RxD   / D1
-  sck   = 1;  # RTS   / D0
-  mosi  = 3;  # TxD   / D2
-  reset = 5;  # DTR   / D4
+  miso  = 1;  # RxD   / D1
+  sck   = 0;  # RTS   / D0
+  mosi  = 2;  # TxD   / D2
+  reset = 4;  # DTR   / D4
 */
 
 /*
@@ -105,10 +105,9 @@ typedef dispatch_semaphore_t	sem_t;
 static struct ftdi_context *handle;
 
 static unsigned char ft245r_ddr;
-static unsigned char ft245r_sck;
-static unsigned char ft245r_mosi;
-static unsigned char ft245r_reset;
-static unsigned char ft245r_miso;
+static unsigned char ft245r_out;
+static unsigned char ft245r_in;
+static unsigned char saved_signature[3];
 
 #define BUFSIZE 0x2000
 
@@ -147,22 +146,6 @@ static void *reader (void *arg) {
             add_to_buf (buf[i]);
     }
     return NULL;
-}
-
-static inline void setmybits(unsigned char *data, int pins, int v) {
-    if (v) {
-        *data |= (pins >> 1);
-    } else {
-        *data &= ~(pins >> 1);
-    }
-}
-
-static inline void setmybit(unsigned char *data, int pinno, int v) {
-    if (v) {
-        *data |= (1 << (pinno-1));
-    } else {
-        *data &= ~(1 <<(pinno-1));
-    }
 }
 
 static int ft245r_send(PROGRAMMER * pgm, unsigned char * buf, size_t len) {
@@ -235,7 +218,6 @@ static int ft245r_chip_erase(PROGRAMMER * pgm, AVRPART * p) {
     return 0;
 }
 
-static unsigned char saved_signature[3];
 
 static void ft245r_set_bitclock(PROGRAMMER * pgm) {
     int r;
@@ -265,8 +247,19 @@ static void ft245r_set_bitclock(PROGRAMMER * pgm) {
 static int set_reset(PROGRAMMER * pgm, int val) {
     unsigned char buf[1];
 
-    buf[0] = 0;
-    if (val) buf[0] |= ft245r_reset;
+    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_RESET,val);
+    buf[0] = ft245r_out;
+
+    ft245r_send (pgm, buf, 1);
+    ft245r_recv (pgm, buf, 1);
+    return 0;
+}
+
+static int set_buff(PROGRAMMER * pgm, int val) {
+    unsigned char buf[1];
+
+    ft245r_out = SET_BITS_0(ft245r_out,pgm,PPI_AVR_BUFF,val);
+    buf[0] = ft245r_out;
 
     ft245r_send (pgm, buf, 1);
     ft245r_recv (pgm, buf, 1);
@@ -335,55 +328,65 @@ static int ft245r_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m) {
     return 3;
 }
 
-#define check_pin(s) {\
-    if ((pgm->pinno[s] & PIN_MASK) == 0) {\
-        fprintf(stderr,\
-                "%s: pin %s is not set\n",\
-                progname,#s);\
-        exit(1);\
-    }\
-    if ((pgm->pinno[s] & PIN_INVERSE) != 0) {\
-        fprintf(stderr,\
-                "%s: pin %s inverse is not supported.\n",\
-                progname,#s);\
-        exit(1);\
-    }\
+static int ft245r_check_pins(PROGRAMMER * pgm){
+    static const int pinlist[] = {PIN_AVR_SCK,PIN_AVR_MOSI,PIN_AVR_MISO,PIN_AVR_RESET,PPI_AVR_BUFF};
+    static const pinmask_t valid_pins[PIN_FIELD_SIZE] = { 0x000000ff }; // only lower 8 pins are allowed
+    pinmask_t already_used[PIN_FIELD_SIZE] = {0};
+    int i,j;
+
+    for( i=0; i<sizeof(pinlist)/sizeof(pinlist[0]); i++){
+        for( j=0; j<PIN_FIELD_SIZE; j++){
+            // check if it does not use any non valid pins
+            if(pgm->pin[pinlist[i]].mask[j] & ~valid_pins[j]){
+                fprintf(stderr,
+                    "%s: at least one pin is not a valid pin number\n",
+                    progname);
+                exit(1);
+            }
+            // check if it does not use same pins as other function
+            if(pgm->pin[pinlist[i]].mask[j] & already_used[j]){
+                fprintf(stderr,
+                    "%s: at least one pin is set for multiple functions.\n",
+                    progname);
+                exit(1);
+            }
+            already_used[j] |= pgm->pin[pinlist[i]].mask[j];
+        }
+    }
+    return 0;
 }
 
 /*
  * initialize the AVR device and prepare it to accept commands
  */
 static int ft245r_initialize(PROGRAMMER * pgm, AVRPART * p) {
-    check_pin(PIN_AVR_SCK);
-    check_pin(PIN_AVR_MOSI);
-    check_pin(PIN_AVR_MISO);
-    check_pin(PIN_AVR_RESET);
+
     return ft245r_program_enable(pgm, p);
 }
 
 static void ft245r_disable(PROGRAMMER * pgm) {
-    return;
+    set_buff(pgm,0);
 }
 
 
 static void ft245r_enable(PROGRAMMER * pgm) {
-    /* Do nothing. */
-    return;
+    set_buff(pgm,1);
 }
 
-static inline int set_data(unsigned char *buf, unsigned char data) {
+static inline int set_data(PROGRAMMER * pgm, unsigned char *buf, unsigned char data) {
     int j;
     int buf_pos = 0;
     unsigned char bit = 0x80;
 
     for (j=0; j<8; j++) {
-        buf[buf_pos] = 0;
-        if (data & bit) buf[buf_pos] |= ft245r_mosi;
+        ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_MOSI,data & bit);
+
+        ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,0);
+        buf[buf_pos] = ft245r_out;
         buf_pos++;
 
-        buf[buf_pos] = 0;
-        if (data & bit) buf[buf_pos] |= ft245r_mosi;
-        buf[buf_pos] |= ft245r_sck;
+        ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,1);
+        buf[buf_pos] = ft245r_out;
         buf_pos++;
 
         bit >>= 1;
@@ -391,7 +394,7 @@ static inline int set_data(unsigned char *buf, unsigned char data) {
     return buf_pos;
 }
 
-static inline unsigned char extract_data(unsigned char *buf, int offset) {
+static inline unsigned char extract_data(PROGRAMMER * pgm, unsigned char *buf, int offset) {
     int j;
     int buf_pos = 1;
     unsigned char bit = 0x80;
@@ -399,7 +402,7 @@ static inline unsigned char extract_data(unsigned char *buf, int offset) {
 
     buf += offset * (8 * FT245R_CYCLES);
     for (j=0; j<8; j++) {
-        if (buf[buf_pos] & ft245r_miso) {
+        if (GET_BITS_0(buf[buf_pos],pgm,PIN_AVR_MISO)) {
             r |= bit;
         }
         buf_pos += FT245R_CYCLES;
@@ -409,7 +412,7 @@ static inline unsigned char extract_data(unsigned char *buf, int offset) {
 }
 
 /* to check data */
-static inline unsigned char extract_data_out(unsigned char *buf, int offset) {
+static inline unsigned char extract_data_out(PROGRAMMER * pgm, unsigned char *buf, int offset) {
     int j;
     int buf_pos = 1;
     unsigned char bit = 0x80;
@@ -417,7 +420,7 @@ static inline unsigned char extract_data_out(unsigned char *buf, int offset) {
 
     buf += offset * (8 * FT245R_CYCLES);
     for (j=0; j<8; j++) {
-        if (buf[buf_pos] & ft245r_mosi) {
+        if (GET_BITS_0(buf[buf_pos],pgm,PIN_AVR_MOSI)) {
             r |= bit;
         }
         buf_pos += FT245R_CYCLES;
@@ -438,17 +441,17 @@ static int ft245r_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
 
     buf_pos = 0;
     for (i=0; i<4; i++) {
-        buf_pos += set_data(buf+buf_pos, cmd[i]);
+        buf_pos += set_data(pgm, buf+buf_pos, cmd[i]);
     }
     buf[buf_pos] = 0;
     buf_pos++;
 
     ft245r_send (pgm, buf, buf_pos);
     ft245r_recv (pgm, buf, buf_pos);
-    res[0] = extract_data(buf, 0);
-    res[1] = extract_data(buf, 1);
-    res[2] = extract_data(buf, 2);
-    res[3] = extract_data(buf, 3);
+    res[0] = extract_data(pgm, buf, 0);
+    res[1] = extract_data(pgm, buf, 1);
+    res[2] = extract_data(pgm, buf, 2);
+    res[3] = extract_data(pgm, buf, 3);
 
     return 0;
 }
@@ -457,6 +460,9 @@ static int ft245r_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
 static int ft245r_open(PROGRAMMER * pgm, char * port) {
     int rv;
     int devnum = -1;
+
+    ft245r_check_pins(pgm);
+
     strcpy(pgm->port, port);
 
     if (strcmp(port,DEFAULT_USB) != 0) {
@@ -502,19 +508,29 @@ static int ft245r_open(PROGRAMMER * pgm, char * port) {
     sem_init (&buf_space, 0, BUFSIZE);
     pthread_create (&readerthread, NULL, reader, handle);
 
-    ft245r_ddr = 0;
-    setmybit(&ft245r_ddr, pgm->pinno[PIN_AVR_SCK], 1);
-    setmybit(&ft245r_ddr, pgm->pinno[PIN_AVR_MOSI], 1);
-    setmybit(&ft245r_ddr, pgm->pinno[PIN_AVR_RESET], 1);
+    ft245r_ddr = 
+         pgm->pin[PIN_AVR_SCK].mask[0]
+       | pgm->pin[PIN_AVR_MOSI].mask[0]
+       | pgm->pin[PIN_AVR_RESET].mask[0]
+       | pgm->pin[PPI_AVR_BUFF].mask[0]
+       | pgm->pin[PPI_AVR_VCC].mask[0]
+       | pgm->pin[PIN_LED_ERR].mask[0]
+       | pgm->pin[PIN_LED_RDY].mask[0]
+       | pgm->pin[PIN_LED_PGM].mask[0]
+       | pgm->pin[PIN_LED_VFY].mask[0];
 
-    ft245r_sck = 0;
-    setmybit(&ft245r_sck, pgm->pinno[PIN_AVR_SCK], 1);
-    ft245r_mosi = 0;
-    setmybit(&ft245r_mosi, pgm->pinno[PIN_AVR_MOSI], 1);
-    ft245r_reset = 0;
-    setmybit(&ft245r_reset, pgm->pinno[PIN_AVR_RESET], 1);
-    ft245r_miso = 0;
-    setmybit(&ft245r_miso, pgm->pinno[PIN_AVR_MISO], 1);
+    /* set initial values for outputs, no reset everything else is off */
+    ft245r_out = 0;
+    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_RESET,1);
+    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,0);
+    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_MOSI,0);
+    ft245r_out = SET_BITS_0(ft245r_out,pgm,PPI_AVR_BUFF,0);
+    ft245r_out = SET_BITS_0(ft245r_out,pgm,PPI_AVR_VCC,0);
+    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_LED_ERR,0);
+    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_LED_RDY,0);
+    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_LED_PGM,0);
+    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_LED_VFY,0);
+
 
     rv = ftdi_set_bitmode(handle, ft245r_ddr, BITMODE_SYNCBB); // set Synchronous BitBang
 
@@ -532,6 +548,9 @@ static int ft245r_open(PROGRAMMER * pgm, char * port) {
      */
     ft245r_drain (pgm, 0);
 
+    ft245r_send (pgm, &ft245r_out, 1);
+    ft245r_recv (pgm, &ft245r_in, 1);
+
     return 0;
 }
 
@@ -548,8 +567,8 @@ static void ft245r_close(PROGRAMMER * pgm) {
 }
 
 static void ft245r_display(PROGRAMMER * pgm, const char * p) {
-    fprintf(stderr, "%sPin assignment  : 1..8 = DBUS0..7, 9..12 = GPIO0..3\n",p);
-    pgm_display_generic_mask(pgm, p, SHOW_AVR_PINS);
+    fprintf(stderr, "%sPin assignment  : 0..7 = DBUS0..7\n",p);/* , 8..11 = GPIO0..3\n",p);*/
+    pgm_display_generic_mask(pgm, p, SHOW_AVR_PINS|1<<PPI_AVR_BUFF);
 }
 
 static int ft245r_paged_write_gen(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
@@ -636,7 +655,7 @@ static int do_request(PROGRAMMER * pgm, AVRMEM *m) {
 
     ft245r_recv(pgm, buf, bytes);
     for (j=0; j<n; j++) {
-        m->buf[addr++] = extract_data(buf , (j * 4 + 3));
+        m->buf[addr++] = extract_data(pgm, buf , (j * 4 + 3));
     }
     return 1;
 }
@@ -653,10 +672,10 @@ static int ft245r_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
         buf_pos = 0;
         do_page_write = 0;
         for (j=0; j< FT245R_FRAGMENT_SIZE/8/FT245R_CYCLES/4; j++) {
-            buf_pos += set_data(buf+buf_pos, (addr & 1)?0x48:0x40 );
-            buf_pos += set_data(buf+buf_pos, (addr >> 9) & 0xff );
-            buf_pos += set_data(buf+buf_pos, (addr >> 1) & 0xff );
-            buf_pos += set_data(buf+buf_pos, m->buf[addr]);
+            buf_pos += set_data(pgm, buf+buf_pos, (addr & 1)?0x48:0x40 );
+            buf_pos += set_data(pgm, buf+buf_pos, (addr >> 9) & 0xff );
+            buf_pos += set_data(pgm, buf+buf_pos, (addr >> 1) & 0xff );
+            buf_pos += set_data(pgm, buf+buf_pos, m->buf[addr]);
             addr ++;
             i++;
             if ( (m->paged) &&
@@ -676,19 +695,20 @@ static int ft245r_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                 memset(cmd, 0, 4);
                 avr_set_bits(lext, cmd);
                 avr_set_addr(lext, cmd, addr_wk/2);
-                buf_pos += set_data(buf+buf_pos, cmd[0]);
-                buf_pos += set_data(buf+buf_pos, cmd[1]);
-                buf_pos += set_data(buf+buf_pos, cmd[2]);
-                buf_pos += set_data(buf+buf_pos, cmd[3]);
+                buf_pos += set_data(pgm, buf+buf_pos, cmd[0]);
+                buf_pos += set_data(pgm, buf+buf_pos, cmd[1]);
+                buf_pos += set_data(pgm, buf+buf_pos, cmd[2]);
+                buf_pos += set_data(pgm, buf+buf_pos, cmd[3]);
             }
-            buf_pos += set_data(buf+buf_pos, 0x4C); /* Issue Page Write */
-            buf_pos += set_data(buf+buf_pos,(addr_wk >> 9) & 0xff);
-            buf_pos += set_data(buf+buf_pos,(addr_wk >> 1) & 0xff);
-            buf_pos += set_data(buf+buf_pos, 0);
+            buf_pos += set_data(pgm, buf+buf_pos, 0x4C); /* Issue Page Write */
+            buf_pos += set_data(pgm, buf+buf_pos,(addr_wk >> 9) & 0xff);
+            buf_pos += set_data(pgm, buf+buf_pos,(addr_wk >> 1) & 0xff);
+            buf_pos += set_data(pgm, buf+buf_pos, 0);
         }
 #endif
         if (i >= n_bytes) {
-            buf[buf_pos++] = 0; // sck down
+            ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,0); // sck down
+            buf[buf_pos++] = ft245r_out;
         }
         ft245r_send(pgm, buf, buf_pos);
         put_request(addr_save, buf_pos, 0);
@@ -696,8 +716,8 @@ static int ft245r_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 #if 0
         fprintf(stderr, "send addr 0x%04x bufsize %d [%02x %02x] page_write %d\n",
                 addr_save,buf_pos,
-                extract_data_out(buf , (0*4 + 3) ),
-                extract_data_out(buf , (1*4 + 3) ),
+                extract_data_out(pgm, buf , (0*4 + 3) ),
+                extract_data_out(pgm, buf , (1*4 + 3) ),
                 do_page_write);
 #endif
         req_count++;
@@ -768,15 +788,16 @@ static int ft245r_paged_load_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
         addr_save = addr;
         for (j=0; j< FT245R_FRAGMENT_SIZE/8/FT245R_CYCLES/4; j++) {
             if (i >= n_bytes) break;
-            buf_pos += set_data(buf+buf_pos, (addr & 1)?0x28:0x20 );
-            buf_pos += set_data(buf+buf_pos, (addr >> 9) & 0xff );
-            buf_pos += set_data(buf+buf_pos, (addr >> 1) & 0xff );
-            buf_pos += set_data(buf+buf_pos, 0);
+            buf_pos += set_data(pgm, buf+buf_pos, (addr & 1)?0x28:0x20 );
+            buf_pos += set_data(pgm, buf+buf_pos, (addr >> 9) & 0xff );
+            buf_pos += set_data(pgm, buf+buf_pos, (addr >> 1) & 0xff );
+            buf_pos += set_data(pgm, buf+buf_pos, 0);
             addr ++;
             i++;
         }
         if (i >= n_bytes) {
-            buf[buf_pos++] = 0; // sck down
+            ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,0); // sck down
+            buf[buf_pos++] = ft245r_out;
         }
         n = j;
         ft245r_send(pgm, buf, buf_pos);

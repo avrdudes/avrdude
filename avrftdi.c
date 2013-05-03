@@ -1299,6 +1299,8 @@ void avrftdi_initpgm(PROGRAMMER * pgm)
 
 	strcpy(pgm->type, "avrftdi");
 
+	pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed
+
 	/*
 	 * mandatory functions
 	 */

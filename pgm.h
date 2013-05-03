@@ -68,6 +68,7 @@ typedef struct programmer_t {
   char port[PGM_PORTLEN];
   void (*initpgm)(struct programmer_t * pgm);
   unsigned int pinno[N_PINS];
+  struct pindef_t pin[N_PINS];
   exit_vcc_t exit_vcc;
   exit_reset_t exit_reset;
   exit_datahigh_t exit_datahigh;

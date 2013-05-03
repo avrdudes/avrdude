@@ -140,6 +140,7 @@ libavrdude_a_SOURCES = \
 	pgm_type.h \
 	pickit2.c \
 	pickit2.h \
+	pindefs.c \
 	pindefs.h \
 	ppi.c \
 	ppi.h \
