@@ -921,12 +921,6 @@ int main(int argc, char * argv [])
     pgm->ispdelay = ispdelay;
   }
 
-  if (verbose) {
-    avr_display(stderr, p, progbuf, verbose);
-    fprintf(stderr, "\n");
-    programmer_display(pgm, progbuf);
-  }
-
   rc = pgm->open(pgm, port);
   if (rc < 0) {
     exitrc = 1;
@@ -943,7 +937,7 @@ int main(int argc, char * argv [])
     if (pgm->perform_osccal == 0) {
       fprintf(stderr,
               "%s: programmer does not support RC oscillator calibration\n",
-              progname);
+	      progname);
       exitrc = 1;
     } else {
       fprintf(stderr, "%s: performing RC oscillator calibration\n", progname);
@@ -955,6 +949,12 @@ int main(int argc, char * argv [])
               progname);
     }
     goto main_exit;
+  }
+
+  if (verbose) {
+    avr_display(stderr, p, progbuf, verbose);
+    fprintf(stderr, "\n");
+    programmer_display(pgm, progbuf);
   }
 
   if (quell_progress < 2) {

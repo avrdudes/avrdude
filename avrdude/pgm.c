@@ -83,8 +83,10 @@ PROGRAMMER * pgm_new(void)
   pgm->baudrate = 0;
   pgm->initpgm = NULL;
 
-  for (i=0; i<N_PINS; i++)
+  for (i=0; i<N_PINS; i++) {
     pgm->pinno[i] = 0;
+    pin_clear_all(&(pgm->pin[i]));
+  }
 
   /*
    * mandatory functions - these are called without checking to see
@@ -211,34 +213,6 @@ void programmer_display(PROGRAMMER * pgm, const char * p)
   pgm->display(pgm, p);
 }
 
-static char * pins_to_str(const struct pindef_t * const pindef)
-{
-  static char buf[(PIN_MAX+1)*5]; // should be enough for PIN_MAX=255
-  char *p = buf;
-  int n;
-  int pin;
-  const char * fmt;
-
-  buf[0] = 0;
-  for (pin = PIN_MIN; pin <= PIN_MAX; pin++) {
-    int index = pin/PIN_FIELD_ELEMENT_SIZE;
-    int bit = pin%PIN_FIELD_ELEMENT_SIZE;
-    if (pindef->mask[index] & (1 << bit)) {
-      if (pindef->inverse[index] & (1 << bit)) {
-         fmt = (buf[0]==0)?"~%d":",~%d";
-      } else {
-         fmt = (buf[0]==0)?" %d":",%d";
-      }
-      n = sprintf(p, fmt, pin);
-      p += n;
-    }
-  }
-
-  if (buf[0] == 0)
-     return " (not used)";
-
-  return buf;
-}
 
 void pgm_display_generic_mask(PROGRAMMER * pgm, const char * p, unsigned int show)
 {

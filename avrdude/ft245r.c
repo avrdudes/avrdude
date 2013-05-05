@@ -328,34 +328,6 @@ static int ft245r_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m) {
     return 3;
 }
 
-static int ft245r_check_pins(PROGRAMMER * pgm){
-    static const int pinlist[] = {PIN_AVR_SCK,PIN_AVR_MOSI,PIN_AVR_MISO,PIN_AVR_RESET,PPI_AVR_BUFF};
-    static const pinmask_t valid_pins[PIN_FIELD_SIZE] = { 0x000000ff }; // only lower 8 pins are allowed
-    pinmask_t already_used[PIN_FIELD_SIZE] = {0};
-    int i,j;
-
-    for( i=0; i<sizeof(pinlist)/sizeof(pinlist[0]); i++){
-        for( j=0; j<PIN_FIELD_SIZE; j++){
-            // check if it does not use any non valid pins
-            if(pgm->pin[pinlist[i]].mask[j] & ~valid_pins[j]){
-                fprintf(stderr,
-                    "%s: at least one pin is not a valid pin number\n",
-                    progname);
-                exit(1);
-            }
-            // check if it does not use same pins as other function
-            if(pgm->pin[pinlist[i]].mask[j] & already_used[j]){
-                fprintf(stderr,
-                    "%s: at least one pin is set for multiple functions.\n",
-                    progname);
-                exit(1);
-            }
-            already_used[j] |= pgm->pin[pinlist[i]].mask[j];
-        }
-    }
-    return 0;
-}
-
 /*
  * initialize the AVR device and prepare it to accept commands
  */
@@ -456,12 +428,26 @@ static int ft245r_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
     return 0;
 }
 
+/* lower 8 pins are accepted, they might be also inverted */
+static const struct pindef_t valid_pins = {{0xff},{0xff}} ;
+
+static const struct pin_checklist_t pin_checklist[] = {
+    { PIN_AVR_SCK,  1, &valid_pins},
+    { PIN_AVR_MOSI, 1, &valid_pins},
+    { PIN_AVR_MISO, 1, &valid_pins},
+    { PIN_AVR_RESET,1, &valid_pins},
+    { PPI_AVR_BUFF, 0, &valid_pins},
+};
 
 static int ft245r_open(PROGRAMMER * pgm, char * port) {
     int rv;
     int devnum = -1;
 
-    ft245r_check_pins(pgm);
+    rv = pins_check(pgm,pin_checklist,sizeof(pin_checklist)/sizeof(pin_checklist[0]));
+    if(rv) {
+        pgm->display(pgm, progbuf);
+        return rv;
+    }
 
     strcpy(pgm->port, port);
 
@@ -556,14 +542,17 @@ static int ft245r_open(PROGRAMMER * pgm, char * port) {
 
 
 static void ft245r_close(PROGRAMMER * pgm) {
-    // I think the switch to BB mode and back flushes the buffer.
-    ftdi_set_bitmode(handle, 0, BITMODE_SYNCBB); // set Synchronous BitBang, all in puts
-    ftdi_set_bitmode(handle, 0, BITMODE_RESET); // disable Synchronous BitBang
-    pthread_cancel(readerthread);
-    pthread_join(readerthread, NULL);
-    ftdi_usb_close(handle);
-    ftdi_deinit (handle);
-    free(handle);
+    if (handle) {
+        // I think the switch to BB mode and back flushes the buffer.
+        ftdi_set_bitmode(handle, 0, BITMODE_SYNCBB); // set Synchronous BitBang, all in puts
+        ftdi_set_bitmode(handle, 0, BITMODE_RESET); // disable Synchronous BitBang
+        pthread_cancel(readerthread);
+        pthread_join(readerthread, NULL);
+        ftdi_usb_close(handle);
+        ftdi_deinit (handle);
+        free(handle);
+        handle = NULL;
+    }
 }
 
 static void ft245r_display(PROGRAMMER * pgm, const char * p) {
@@ -849,6 +838,8 @@ void ft245r_initpgm(PROGRAMMER * pgm) {
     pgm->paged_load = ft245r_paged_load;
 
     pgm->read_sig_bytes = ft245r_read_sig_bytes;
+
+    handle = NULL;
 }
 
 #else
