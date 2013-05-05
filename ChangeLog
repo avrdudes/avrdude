@@ -1,3 +1,14 @@
+2013-05-05  Rene Liebscher <R.Liebscher@gmx.de>
+
+	* main.c: revert to rev 1159 (doing pgm_display after pgm_open)
+	* avrpart.[ch]: moved avr_pin_name to pindefs.[ch]
+	* pgm.c: moved pins_to_str to pindefs.[ch], added initialization of 
+          new pin definitions in pgm_new()
+	* pindefs.[ch]: added moved functions from other files, added a lot of 
+          documentation, reformatted files using astyle to have consistent spacing,
+          added a new generic check function for pins
+	* ft245r.c: used new generic pin check function
+
 2013-05-03  Rene Liebscher <R.Liebscher@gmx.de>
 
 	Create new pin definition data structures to support 0-based pin numbers,

@@ -595,24 +595,6 @@ static char * reset_disp_str(int r)
 }
 
 
-const char * avr_pin_name(int pinno)
-{
-  switch (pinno) {
-    case PPI_AVR_VCC   : return "VCC";
-    case PPI_AVR_BUFF  : return "BUFF";
-    case PIN_AVR_RESET : return "RESET";
-    case PIN_AVR_SCK   : return "SCK";
-    case PIN_AVR_MOSI  : return "MOSI";
-    case PIN_AVR_MISO  : return "MISO";
-    case PIN_LED_ERR   : return "ERRLED";
-    case PIN_LED_RDY   : return "RDYLED";
-    case PIN_LED_PGM   : return "PGMLED";
-    case PIN_LED_VFY   : return "VFYLED";
-    default : return "<unknown>";
-  }
-}
-
-
 void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose)
 {
   int i;

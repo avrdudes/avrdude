@@ -35,7 +35,7 @@ typedef unsigned long pinmask_t;
 
 
 enum {
-  PPI_AVR_VCC=1,
+  PPI_AVR_VCC = 1,
   PPI_AVR_BUFF,
   PIN_AVR_RESET,
   PIN_AVR_SCK,
@@ -72,7 +72,7 @@ enum {
  * @param[in] x       input value
  * @param[in] pgm     the programmer whose pin definitions to use
  * @param[in] pinname the logical name of the pin (PIN_AVR_*, ...)
- * @param[in] level   the logical level (level != 0 => 1, level == 0 => 0), 
+ * @param[in] level   the logical level (level != 0 => 1, level == 0 => 0),
  *                      if the pin is defined as inverted the resulting bit is also inverted
  * @returns           the input value with the relevant bits modified
  */
@@ -106,16 +106,90 @@ enum {
  * Data structure to hold used pins by logical function (PIN_AVR_*, ...)
  */
 struct pindef_t {
-    pinmask_t mask[PIN_FIELD_SIZE]; ///< bitfield of used pins
-    pinmask_t inverse[PIN_FIELD_SIZE]; ///< bitfield of inverse/normal usage of used pins
+  pinmask_t mask[PIN_FIELD_SIZE]; ///< bitfield of used pins
+  pinmask_t inverse[PIN_FIELD_SIZE]; ///< bitfield of inverse/normal usage of used pins
 };
 
+/**
+ * Data structure to define a checklist of valid pins for each function.
+ */
+struct pin_checklist_t {
+  int pinname; ///< logical pinname eg. PIN_AVR_SCK
+  int mandatory; ///< is this a mandatory pin
+  const struct pindef_t* valid_pins; ///< mask defines allowed pins, inverse define is they might be used inverted
+};
+
+/**
+ * Adds a pin in the pin definition as normal or inverse pin.
+ *
+ * @param[out] pindef pin definition to update
+ * @param[in] pin number of pin [0..PIN_MAX]
+ * @param[in] inverse inverse (true) or normal (false) pin
+ */
 void pin_set_value(struct pindef_t * const pindef, const int pin, const bool inverse);
 
+/**
+ * Clear all defined pins in pindef.
+ *
+ * @param[out] pindef pin definition to clear
+ */
 void pin_clear_all(struct pindef_t * const pindef);
 
 struct programmer_t; /* forward declaration */
+
+/**
+ * Convert for given programmer new pin definitions to old pin definitions.
+ *
+ * @param[inout] pgm programmer whose pins shall be converted.
+ */
 void pgm_fill_old_pins(struct programmer_t * const pgm);
+
+/**
+ * This function checks all pin of pgm against the constraints given in the checklist.
+ * It checks if 
+ * @li any invalid pins are used
+ * @li valid pins are used inverted when not allowed
+ * @li any pins are used by more than one function
+ * @li any mandatory pin is not set all.
+ *
+ * In case of any error it report the wrong function and the pin numbers.
+ * For verbose >= 2 it also reports the possible correct values.
+ * For verbose >=3 it shows also which pins were ok.
+ *
+ * @param[in] pgm the programmer to check
+ * @param[in] checklist the constraint for the pins
+ * @param[in] size the number of entries in checklist
+ * @returns 0 if all pin definitions are valid, -1 otherwise
+ */
+int pins_check(const struct programmer_t * const pgm, const struct pin_checklist_t * const checklist, const int size);
+
+/**
+ * Returns the name of the pin as string.
+ * 
+ * @param pinname the pinname which we want as string.
+ * @returns a string with the pinname, or <unknown> if pinname is invalid.
+ */
+const char * avr_pin_name(int pinname);
+
+/**
+ * This function returns a string representation of defined pins eg. ~1,2,~4,~5,7
+ * Another execution of this function will overwrite the previous result in the static buffer.
+ *
+ * @param[in] pindef the pin definition for which we want the string representation
+ * @returns pointer to a static string.
+ */
+const char * pins_to_str(const struct pindef_t * const pindef);
+
+/**
+ * This function returns a string representation of pins in the mask eg. 1,3,5-7,9,12
+ * Another execution of this function will overwrite the previous result in the static buffer.
+ * Consecutive pin number are representated as start-end.
+ *
+ * @param[in] pinmask the pin mask for which we want the string representation
+ * @returns pointer to a static string.
+ */
+const char * pinmask_to_str(const pinmask_t * const pinmask);
+
 
 #endif
 
