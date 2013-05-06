@@ -30,7 +30,11 @@
 #include <stdint.h>
 typedef uint32_t pinmask_t;
 #else
+#if UINT_MAX >= 0xFFFFFFFF
+typedef unsigned int pinmask_t;
+#else
 typedef unsigned long pinmask_t;
+#endif
 #endif
 
 #include <stdbool.h>

@@ -1,3 +1,9 @@
+2013-05-05  Rene Liebscher <R.Liebscher@gmx.de>
+
+	* pindefs.h: use unsigned int if stdint.h is not available and UINT_MAX is 0xffffffff
+	otherwise use unsinged long
+	* ft245r.c: added support for more pin functions led, vcc, buff
+
 2013-05-06  Hannes Weisbach <hannes_weisbach@gmx.net>
 
 	* avrftdi_tpi.c: instead of private set_pin() function pointer use the one
