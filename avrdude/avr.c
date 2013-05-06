@@ -103,6 +103,56 @@ int avr_tpi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 	}
 }
 
+/* TPI program enable sequence */
+int avr_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p, unsigned char guard_time)
+{
+	int err, retry;
+	unsigned char cmd[2];
+	unsigned char response;
+
+	if(p->flags & AVRPART_HAS_TPI) {
+		/* set guard time */
+		cmd[0] = (TPI_CMD_SSTCS | TPI_REG_TPIPCR);
+		cmd[1] = guard_time;
+
+		err = pgm->cmd_tpi(pgm, cmd, sizeof(cmd), NULL, 0);
+    if(err)
+			return err;
+
+		/* read TPI ident reg */
+    cmd[0] = (TPI_CMD_SLDCS | TPI_REG_TPIIR);
+		err = pgm->cmd_tpi(pgm, cmd, 1, &response, sizeof(response));
+    if (err || response != TPI_IDENT_CODE) {
+      fprintf(stderr, "TPIIR not correct\n");
+      return -1;
+    }
+
+		/* send SKEY command + SKEY */
+		err = pgm->cmd_tpi(pgm, tpi_skey_cmd, sizeof(tpi_skey_cmd), NULL, 0);
+		if(err)
+			return err;
+
+		/* check if device is ready */
+		for(retry = 0; retry < 10; retry++)
+		{
+			cmd[0] =  (TPI_CMD_SLDCS | TPI_REG_TPISR);
+			err = pgm->cmd_tpi(pgm, cmd, 1, &response, sizeof(response));
+			if(err || !(response & TPI_REG_TPISR_NVMEN))
+				continue;
+
+			return 0;
+		}
+
+		fprintf(stderr, "Error enabling TPI external programming mode:");
+		fprintf(stderr, "Target does not reply\n");
+		return -1;
+
+	} else {
+		fprintf(stderr, "%s called for a part that has no TPI\n", __func__);
+		return -1;
+	}
+}
+
 /* TPI: setup NVMCMD register and pointer register (PR) for read/write/erase */
 static int avr_tpi_setup_rw(PROGRAMMER * pgm, AVRMEM * mem,
 			    unsigned long addr, unsigned char nvmcmd)
