@@ -46,6 +46,10 @@
 	avrftdi_tpi_[read,write]_byte().
 	Remove unnecessary set_pin call to set MOSI high, speeds up I/O.
 	Removes SKEY array, moves it to tpi.h.
+	Integrate new avr_tpi_[program_enable,chip_erase]() and functions into
+	avrftdi_tpi.
+	* avrftdi_tpi.h: Remove avrftdi_tpi_[program_enable,chip_erase] forward
+	declarations.
 	* avr.c: Adds avr_tpi_chip_erase() generic TPI chip erase function.
 	Adds avr_tpi_program_enable() - generic TPI external programming enable
 	function. Sets guard time, reads identification register, sends SKEY command
