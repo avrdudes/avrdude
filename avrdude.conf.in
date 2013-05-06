@@ -384,17 +384,17 @@ programmer
   usbdev     = "A";
   usbsn      = "";
 #ISP-signals - lower ADBUS-Nibble (default)
-  reset  = 4;
-  sck    = 1;
-  mosi   = 2;
-  miso   = 3;
+  reset  = 3;
+  sck    = 0;
+  mosi   = 1;
+  miso   = 2;
 #LED SIGNALs - higher ADBUS-Nibble
-#  errled = 5;
-#  rdyled = 6;
-#  pgmled = 7;
-#  vfyled = 8;
+#  errled = 4;
+#  rdyled = 5;
+#  pgmled = 6;
+#  vfyled = 7;
 #Buffer Signal - ACBUS - Nibble
-#  buff   = 9;
+#  buff   = 8;
 ;
 # This is an implementation of the above with a buffer IC (74AC244) and
 # 4 LEDs directly attached, active low. The buff and reset pins are
@@ -415,16 +415,16 @@ programmer
   usbproduct = "";
   usbsn      = "";
 #ISP-signals 
-  reset  = 4;
-  sck    = 1;
-  mosi   = 2;
-  miso   = 3;
-  buff   = 5;
+  reset  = 3;
+  sck    = 0;
+  mosi   = 1;
+  miso   = 2;
+  buff   = 4;
 #LED SIGNALs 
-  errled = ~ 12;
-  rdyled = ~ 15;
-  pgmled = ~ 14;
-  vfyled = ~ 13;
+  errled = ~ 11;
+  rdyled = ~ 14;
+  pgmled = ~ 13;
+  vfyled = ~ 12;
 ;
 
 #The FT4232H can be treated as FT2232H, but it has a different USB
@@ -448,11 +448,11 @@ programmer
   usbproduct = "";
   usbsn      = "";
 #ISP-signals => 20 - Pin connector on JTAGKey
-  reset  = 4; # TMS 7 violet
-  sck    = 1; # TCK 9 white
-  mosi   = 2; # TDI 5 green
-  miso   = 3; # TDO 13 orange
-  buff   = 5;
+  reset  = 3; # TMS 7 violet
+  sck    = 0; # TCK 9 white
+  mosi   = 1; # TDI 5 green
+  miso   = 2; # TDO 13 orange
+  buff   = 4;
 # VTG           VREF 1 brown with red tip
 # GND           GND 20 black
 # The colors are on the 20 pin breakout cable
@@ -492,10 +492,10 @@ programmer
   usbvendor  = "";
   usbproduct = "";
   usbsn      = "";
-  reset  = 4; # TMS 7
-  sck    = 1; # TCK 9
-  mosi   = 2; # TDI 5
-  miso   = 3; # TDO 13
+  reset  = 3; # TMS 7
+  sck    = 0; # TCK 9
+  mosi   = 1; # TDI 5
+  miso   = 2; # TDO 13
 ;
 
 # Only Rev. A boards.
@@ -512,12 +512,12 @@ programmer
   usbdev     = "A";
   usbsn      = "";
 #ISP-signals - lower ACBUS-Nibble (default)
-  reset  = 4;
-  sck    = 1;
-  mosi   = 2;
-  miso   = 3;
+  reset  = 3;
+  sck    = 0;
+  mosi   = 1;
+  miso   = 2;
 # Enable correct buffers
-  buff   = ~8;
+  buff   = ~7;
 ;
 
 programmer

@@ -10,6 +10,7 @@
 #include <libftdi1/ftdi.h>
 
 #include "pgm.h"
+#include "pindefs.h"
 
 enum { ERR, WARN, INFO, DEBUG, TRACE };
 
@@ -64,6 +65,8 @@ typedef struct avrftdi_s {
 	int pin_limit;
 	/* internal RX buffer of the device. needed for INOUT transfers */
 	int rx_buffer_size;
+	/* pin checklist. */
+ struct pin_checklist_t pin_checklist[N_PINS - 1];
 } avrftdi_t;
 
 void avrftdi_log(int level, const char * func, int line, const char * fmt, ...);

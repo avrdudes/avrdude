@@ -36,6 +36,7 @@
 #include "avrdude.h"
 #include "avr.h"
 #include "pgm.h"
+#include "pindefs.h"
 #include "avrftdi.h"
 #include "avrpart.h"
 #include "avrftdi_tpi.h"
@@ -47,9 +48,7 @@
 #include <libusb-1.0/libusb.h>
 #include <libftdi1/ftdi.h>
 
-enum { FTDI_SCK = 1, FTDI_MOSI, FTDI_MISO, FTDI_RESET };
-
-#define FTDI_DEFAULT_MASK ( (1 << (FTDI_SCK - 1)) | (1 << (FTDI_MOSI - 1)) )
+enum { FTDI_SCK = 0, FTDI_MOSI, FTDI_MISO, FTDI_RESET };
 
 /* This is for running the code without having a FTDI-device.
  * The generated code is useless! For debugging purposes only.
@@ -66,12 +65,11 @@ static int write_flush(avrftdi_t *);
  * the pin names used in FTDI datasheets.
  */
 static char*
-ftdi_pin_name(avrftdi_t* pdata, int pin)
+ftdi_pin_name(avrftdi_t* pdata, struct pindef_t pin)
 {
-	static char pin_name[16];
+	static char str[128];
 
 	char interface = '@';
-	char port;
 
 	/* INTERFACE_ANY is zero, so @ is used
 	 * INTERFACE_A is one, so '@' + 1 = 'A'
@@ -81,17 +79,39 @@ ftdi_pin_name(avrftdi_t* pdata, int pin)
 	 */
 	interface += pdata->ftdic->index;
 
-	/* This is FTDI's naming scheme.
-	 * probably 'D' is for data and 'C' for control
-	 */
-	if(pin <= 8)
-		port = 'D';
-	else
-		port = 'C';
+	int pinno;
+	int n = 0;
+	int mask = pin.mask[0];
 
-	snprintf(pin_name, sizeof(pin_name), "%c%cBUS%d", interface, port, pin-1);
+	const char * fmt;
 
-	return pin_name;
+	str[0] = 0;
+
+	for(pinno = 0; mask; mask >>= 1, pinno++) {
+		if(!(mask & 1))
+			continue;
+
+		int chars = 0;
+
+		char port;
+		/* This is FTDI's naming scheme.
+		 * probably 'D' is for data and 'C' for control
+		 */
+		if(pinno < 8)
+			port = 'D';
+		else
+			port = 'C';
+
+		if(str[0] == 0)
+			fmt = "%c%cBUS%d%n";
+		else
+			fmt = ", %c%cBUS%d%n";
+
+		snprintf(&str[n], sizeof(str) - n, fmt, interface, port, pinno, &chars);
+		n += chars;
+	}
+
+	return str;
 }
 
 /*
@@ -192,167 +212,6 @@ static int set_frequency(avrftdi_t* ftdi, uint32_t freq)
 }
 
 /*
- * Adds a single pin to the direction mask and sets the pin state inactive in
- * the value mask. the value of 'inactive' is chosen according to the pin
- * configuration (high or low active).
- */
-static int add_pin(PROGRAMMER *pgm, int pinfunc)
-{
-	int pin, pin_mask, inverted, fail;
-	avrftdi_t* pdata = to_pdata(pgm);
-	
-	fail = 0;
-	pin = pgm->pinno[pinfunc] & PIN_MASK;
-	inverted = pgm->pinno[pinfunc] & PIN_INVERSE;
-	pin_mask = (1 << (pin - 1));
-
-	/* not configured */
-	if(!pin)
-	{
-		log_warn("Pin %s not configured\n", avr_pin_name(pinfunc));
-		return 0;
-	}
-
-	/* check that the pin number is in range */
-	if (pin > pdata->pin_limit)
-	{
-		log_warn("Invalid pin definition for pin %s.\n", avr_pin_name(pinfunc));
-		log_warn("Configured as pin %d, but highest pin is %d.\n",
-		         pin, pdata->pin_limit);
-		fail = 1;
-	}
-
-	/* check if the pin is still available */
-	if (pdata->pin_direction & pin_mask)
-	{
-		log_warn("Pin %d (%s) is used twice. The second use is %s.\n",
-		         pin, ftdi_pin_name(pdata, pin), avr_pin_name(pinfunc));
-		fail = 1;
-	}
-
-	/* 
-	 * No need to fail for a wrongly configured led.
-	 * MISO, MOSI and SCK are fixed and correctly set during setup.
-	 * Maybe we should fail for wrongly configured VCC or BUFF pins?
-	 */
-	if(fail)
-	{
-		if(pinfunc == PIN_AVR_RESET)
-		{
-			log_err("Aborting, since the reset pin is wrongly configured\n");
-			return -1;
-		}
-		else
-		{
-			log_warn("Ignoring wrongly configured pin.\n");
-			return 0;
-		}
-	}
-
-	/* all checks passed - do actual work */
-	log_info("Configure pin %d (%s) as %s (%s active)\n",	pin,
-	         ftdi_pin_name(pdata, pin), avr_pin_name(pinfunc),
-					 (inverted) ? "low": "high");
-
-	{
-		/* create mask */
-		pdata->pin_direction |= pin_mask;
-		/* and set default value */
-		if(inverted)
-			pdata->pin_value |= pin_mask;
-		else
-			pdata->pin_value &= ~(pin_mask);
-	}
-
-	if(PIN_LED_ERR == pinfunc ||
-		 PIN_LED_VFY == pinfunc ||
-		 PIN_LED_RDY == pinfunc ||
-		 PIN_LED_PGM == pinfunc) {
-		pdata->led_mask |= pin_mask;
-	}
-	
-	return 0;
-}
-
-/*
- * Add pins by pin mask
- * Check an entire mask for correctness and plausibility. Performed checks are
- * the pin number is lower that the total number of pins and the pin is not
- * configured yet.
- * If at least one test fails, the entire mask is discarded.
- * These basic tests could possibly moved to avrdude core, since it does not
- * contain any tests (as far as I can tell).
- */
-static int add_pins(PROGRAMMER *pgm, int pinfunc)
-{
-	int pin, inverted;
-	uint32_t pin_mask, pin_bit;
-	avrftdi_t* pdata = to_pdata(pgm);
-
-	pin_mask = (pgm->pinno[pinfunc] & PIN_MASK) >> 1;
-	/* FIXME: I think you cannot inverse these multi-pin options */
-	inverted = pgm->pinno[pinfunc] & PIN_INVERSE;
-
-	if(!pin_mask)
-	{
-		log_warn("Pins for %s not configured.\n", avr_pin_name(pinfunc));
-		return 0;
-	}
-
-	/* check every configured pin */
-	for(pin = 0; (1 << pin) & (PIN_MASK); pin++)
-	{
-		pin_bit = 1 << pin;
-		
-		/* skip, if this pin is not in the mask to be configured */
-		if(!(pin_bit & pin_mask))
-			continue;
-		
-
-		/* 0 is not a valid pin, see above, we use 1 << (pin - 1) to create pin_bit */
-		if(pin + 1 > pdata->pin_limit)
-		{
-			log_warn("Invalid pin definition for pin %s.\n", avr_pin_name(pinfunc));
-			log_warn("Configured as pin %d, but highest pin is %d.\n", pin + 1,
-			         pdata->pin_limit);
-			log_warn("Ignoring wrongly configured pins.\n");
-		}
-
-		if(pin_bit & pdata->pin_direction)
-		{
-			log_warn("Failure: pin %d (%s) is used twice. The second use is %s.\n",
-			         pin, ftdi_pin_name(pdata, pin), avr_pin_name(pinfunc));
-			log_warn("Ignoring wrongly configured pins.\n");
-		}
-
-	}
-
-	/* conditional output */
-	for(pin = 0; (1 << pin) & (PIN_MASK); pin++)
-	{
-		pin_bit = 1 << pin;
-
-		/* skip if pin is not set */
-		if(!(pin_bit & pin_mask))
-			continue;
-
-		/* remember, we count from 1, not 0 */
-		log_info("Configured pin %d (%s) as %s (%s active)\n", pin + 1,
-		         ftdi_pin_name(pdata, pin+1), avr_pin_name(pinfunc),
-						 (inverted) ? "low": "high");
-	}
-
-	/* do the work */
-	pdata->pin_direction |= (uint16_t)pin_mask;
-	if(inverted)
-		pdata->pin_value |= pin_mask;
-	else
-		pdata->pin_value &= ~pin_mask;
-
-	return 0;
-}
-
-/*
  * This function sets or clears any pin, except SCK, MISO and MOSI. Depending
  * on the pin configuration, a non-zero value sets the pin in the 'active'
  * state (high active, low active) and a zero value sets the pin in the
@@ -362,92 +221,26 @@ static int add_pins(PROGRAMMER *pgm, int pinfunc)
  */
 static int set_pin(PROGRAMMER * pgm, int pinfunc, int value)
 {
-	
-	int pin, pin_mask;
-	int inverted;
-	
 	avrftdi_t* pdata = to_pdata(pgm);
-
-	pin = pgm->pinno[pinfunc] & PIN_MASK;
-	inverted = pgm->pinno[pinfunc] & PIN_INVERSE;
+	struct pindef_t pin = pgm->pin[pinfunc];
 	
-	pin_mask = 1 << (pin - 1);
-	
-	/* make value 0 or 1 and invert, if necessary */
-	value = (inverted) ? !value : !!value;
-	
-	if (!pin) {
+	if (pins_check(pgm, pdata->pin_checklist, N_PINS - 1)) {
 		/* this error message is really annoying, maybe use a ratelimit? */
 	/*
 		avrftdi_print(2, "%s info: Pin is zero, value: %d!\n",
 				progname, value);
 	*/
 		return 1;
+	
 	}
 
-	if (value)
-		value = pin_mask;
+	log_debug("Setting pin %s (%s) as %s: %s (%s active)\n",
+	          pinmask_to_str(pin.mask), ftdi_pin_name(pdata, pin),
+						avr_pin_name(pinfunc),
+	          (value) ? "high" : "low", (pin.inverse[0]) ? "low" : "high");
 
-	log_debug("Setting pin %d (%s) as %s: %s (%s active)\n", pin,
-	          ftdi_pin_name(pdata, pin), avr_pin_name(pinfunc),
-	          (value) ? "high" : "low", (inverted) ? "low" : "high");
+	pdata->pin_value = SET_BITS_0(pdata->pin_value, pgm, pinfunc, value);
 
-	/* set bits depending on value */
-	//tval = (pdata->pin_value & (~pin_mask)) | pin_mask;
-	pdata->pin_value ^= (-value ^ pdata->pin_value) & pin_mask;
-	//fprintf(stderr, "%x %x\n", tval, pdata->pin_value);
-	
-	return write_flush(pdata);
-}
-
-/*
- * This function sets or clears a group of pins - VCC or BUFF.
- * the semantics are the same as for single pins, described above.
- */
-static int set_pins(PROGRAMMER * pgm, int pinfunc, int value)
-{
-	int pin, pin_mask;
-	int inverted;
-	int pin_bit;
-	
-	avrftdi_t* pdata = to_pdata(pgm);
-
-	pin = pgm->pinno[pinfunc] & PIN_MASK;
-	inverted = pgm->pinno[pinfunc] & PIN_INVERSE;
-
-	pin_mask = pin >> 1;
-	
-	value = (inverted) ? !value : !!value;
-
-	if (!pin) {
-		/* dito above */
-		return 1;
-	}
-
-	if(value)
-		value = pin_mask;
-
-	/* conditional output */
-	for(pin = 0; (1 << pin) & (PIN_MASK); pin++)
-	{
-		pin_bit = 1 << pin;
-
-		/* skip if pin is not set */
-		if(!(pin_bit & pin_mask))
-			continue;
-
-		/* remember, we count from 1, not 0 */
-		log_debug("Setting pin %d (%s) as %s: %s (%s active)\n", pin + 1,
-		          ftdi_pin_name(pdata, pin+1), avr_pin_name(pinfunc),
-			        (value) ? "high" : "low", (inverted) ? "low": "high");
-	}
-
-	/* set bits depending on value */
-	/*pin_value ^= (-value ^ pin_value) & (1 << (pin - 1));  */
-	pdata->pin_value ^= (-value ^ pdata->pin_value) & pin_mask;
-
-	/*pdata->pin_value = (pdata->pin_value & (~pin_mask)) | value;*/
-	
 	return write_flush(pdata);
 }
 
@@ -656,6 +449,83 @@ static int write_flush(avrftdi_t* pdata)
 
 }
 
+static int avrftdi_pin_setup(PROGRAMMER * pgm)
+{
+	/*************
+	 * pin setup *
+	 *************/
+
+	int pin;
+
+	avrftdi_t* pdata = to_pdata(pgm);
+
+	/* SCK/MOSI/MISO are fixed and not invertable?*/
+	/* TODO: inverted SCK/MISO/MOSI */
+	static const struct pindef_t valid_pins_SCK  = {{0x01},{0x00}} ;
+	static const struct pindef_t valid_pins_MOSI = {{0x02},{0x00}} ;
+	static const struct pindef_t valid_pins_MISO = {{0x04},{0x00}} ;
+
+	/* value for 8/12/16 bit wide interface for other pins */
+	int valid_mask = ((1 << pdata->pin_limit) - 1);
+	/* mask out SCK/MISO/MOSI */
+	valid_mask &= ~((1 << FTDI_SCK) | (1 << FTDI_MOSI) | (1 << FTDI_MISO));
+
+	log_debug("Using valid mask: 0x%08x\n", valid_mask);
+	static struct pindef_t valid_pins_others;
+	valid_pins_others.mask[0] = valid_mask;
+	valid_pins_others.inverse[0] = valid_mask ;
+
+	/* build pin checklist */
+	for(pin = PPI_AVR_VCC; pin < N_PINS; ++pin) {
+		/* unfortunately, the pin name enum is one-based */
+		pdata->pin_checklist[pin - 1].pinname = pin;
+		pdata->pin_checklist[pin - 1].mandatory = 0;
+		pdata->pin_checklist[pin - 1].valid_pins = &valid_pins_others;
+	}
+	pdata->pin_checklist[PIN_AVR_SCK - 1].mandatory = 1;
+	pdata->pin_checklist[PIN_AVR_SCK - 1].valid_pins = &valid_pins_SCK;
+	pdata->pin_checklist[PIN_AVR_MOSI - 1].mandatory = 1;
+	pdata->pin_checklist[PIN_AVR_MOSI - 1].valid_pins = &valid_pins_MOSI;
+	pdata->pin_checklist[PIN_AVR_MISO - 1].mandatory = 1;
+	pdata->pin_checklist[PIN_AVR_MISO - 1].valid_pins = &valid_pins_MISO;
+
+
+	/* everything is an output, except MISO */
+	for(pin = PPI_AVR_VCC; pin < N_PINS; ++pin) {
+		pdata->pin_direction |= pgm->pin[pin].mask[0];
+		pdata->pin_value = SET_BITS_0(pdata->pin_value, pgm, pin, OFF);
+	}
+	pdata->pin_direction &= ~pgm->pin[PIN_AVR_MISO].mask[0];
+
+	for(pin = PIN_LED_ERR; pin < N_PINS; ++pin) {
+		pdata->led_mask |= pgm->pin[pin].mask[0];
+	}
+
+	/* assumes all checklists above have same number of entries */
+	if (pins_check(pgm, pdata->pin_checklist,N_PINS - 1)) {
+		log_err("Pin configuration for FTDI MPSSE must be:\n");
+		log_err("%s: 0, %s: 1, %s: 2 (is: %s, %s, %s)\n", avr_pin_name(PIN_AVR_SCK),
+		         avr_pin_name(PIN_AVR_MOSI), avr_pin_name(PIN_AVR_MISO),
+						 pins_to_str(&pgm->pin[PIN_AVR_SCK]),
+						 pins_to_str(&pgm->pin[PIN_AVR_MOSI]),
+						 pins_to_str(&pgm->pin[PIN_AVR_MISO]));
+		log_err("Please correct your cabling and/or configuration.\n");
+		log_err("If your hardware is fixed, consider using a bitbang programmer.\n");
+
+		return -1;
+	}
+
+	/*
+	 * TODO: No need to fail for a wrongly configured led or something.
+	 * Maybe we should only fail for SCK; MISO, MOSI, RST (and probably
+	 * VCC and BUFF).
+	 */
+
+	log_info("Pin direction mask: %04x\n", pdata->pin_direction);
+	log_info("Pin value mask: %04x\n", pdata->pin_value);
+
+	return 0;
+}
 
 static int avrftdi_open(PROGRAMMER * pgm, char *port)
 {
@@ -743,38 +613,6 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 		set_frequency(pdata, pgm->baudrate ? pgm->baudrate : 150000);
 	}
 
-	/*************
-	 * pin setup *
-	 *************/
-
-	if ( FTDI_SCK != pgm->pinno[PIN_AVR_SCK]
-		|| FTDI_MOSI != pgm->pinno[PIN_AVR_MOSI]
-		|| FTDI_MISO != pgm->pinno[PIN_AVR_MISO])
-	{
-		log_warn("Pin configuration for FTDI MPSSE must be:\n");
-		log_warn("%s: 1, %s: 2, %s: 3(is: %d,%d,%d)\n", avr_pin_name(PIN_AVR_SCK),
-		         avr_pin_name(PIN_AVR_MOSI), avr_pin_name(PIN_AVR_MISO),
-						 pgm->pinno[PIN_AVR_SCK],	pgm->pinno[PIN_AVR_MOSI],
-						 pgm->pinno[PIN_AVR_MISO]);
-
-		log_warn("Setting pins accordingly ...\n");
-			pgm->pinno[PIN_AVR_SCK] = FTDI_SCK;
-			pgm->pinno[PIN_AVR_MOSI] = FTDI_MOSI;
-			pgm->pinno[PIN_AVR_MISO] = FTDI_MISO;
-	}
-	
-	log_info("RESET pin value: %x\n", pgm->pinno[PIN_AVR_RESET]-1);
-
-	if ( pgm->pinno[PIN_AVR_RESET] < FTDI_RESET
-		|| pgm->pinno[PIN_AVR_RESET] == 0)
-	{
-		log_warn("RESET pin clashes with data pin or is not set.\n");
-		log_warn("Setting to default-value 4\n");
-		pgm->pinno[PIN_AVR_RESET] = FTDI_RESET;
-	}
-	
-	//pdata->pin_direction = (0x3 | (1 << (pgm->pinno[PIN_AVR_RESET] - 1)));
-
 	/* set pin limit depending on chip type */
 	switch(pdata->ftdic->type) {
 		case TYPE_AM:
@@ -784,44 +622,30 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 			log_err("cannot work with your chip. Try the 'synbb' programmer.\n");
 			return -1;
 		case TYPE_2232C:
-			pdata->pin_limit = 11;
+			pdata->pin_limit = 12;
 			pdata->rx_buffer_size = 384;
 			break;
 		case TYPE_2232H:
-			pdata->pin_limit = 15;
+			pdata->pin_limit = 16;
 			pdata->rx_buffer_size = 4096;
 			break;
 		case TYPE_232H:
-			pdata->pin_limit = 15;
+			pdata->pin_limit = 16;
 			pdata->rx_buffer_size = 1024;
 			break;
 		case TYPE_4232H:
-			pdata->pin_limit = 7;
+			pdata->pin_limit = 8;
 			pdata->rx_buffer_size = 2048;
 			break;
 		default:
 			log_warn("Found unkown device %x. I will do my ", pdata->ftdic->type);
 			log_warn("best to work with it, but no guarantees ...\n");
-			pdata->pin_limit = 7;
+			pdata->pin_limit = 8;
 			pdata->rx_buffer_size = pdata->ftdic->max_packet_size;
 			break;
 	}
 	
-	/* add SCK, MOSI and RESET as output pins - MISO needs no configuration */
-	if (add_pin(pgm, PIN_AVR_SCK)) return -1;
-	if (add_pin(pgm, PIN_AVR_MOSI)) return -1;
-	if (add_pin(pgm, PIN_AVR_RESET)) return -1;
-
-	/* gather the rest of the pins */
-	if (add_pins(pgm, PPI_AVR_VCC)) return -1;
-	if (add_pins(pgm, PPI_AVR_BUFF)) return -1;
-	if (add_pin(pgm, PIN_LED_ERR)) return -1;
-	if (add_pin(pgm, PIN_LED_RDY)) return -1;
-	if (add_pin(pgm, PIN_LED_PGM)) return -1;
-	if (add_pin(pgm, PIN_LED_VFY)) return -1;
-
-	log_info("Pin direction mask: %04x\n", pdata->pin_direction);
-	log_info("Pin value mask: %04x\n", pdata->pin_value);
+	avrftdi_pin_setup(pgm);
 
 	/**********************************************
 	 * set the ready LED and set our direction up *
@@ -838,13 +662,13 @@ static void avrftdi_close(PROGRAMMER * pgm)
 	avrftdi_t* pdata = to_pdata(pgm);
 
 	if(pdata->ftdic->usb_dev) {
-		set_pins(pgm, PPI_AVR_BUFF, ON);
+		set_pin(pgm, PPI_AVR_BUFF, ON);
 		set_pin(pgm, PIN_AVR_RESET, ON);
 
 		/* Stop driving the pins - except for the LEDs */
 		log_info("LED Mask=0x%04x value =0x%04x &=0x%04x\n",
 				pdata->led_mask, pdata->pin_value, pdata->led_mask & pdata->pin_value);
-		
+
 		pdata->pin_direction = pdata->led_mask;
 		pdata->pin_value &= pdata->led_mask;
 		write_flush(pdata);
@@ -868,7 +692,7 @@ static int avrftdi_initialize(PROGRAMMER * pgm, AVRPART * p)
 	else
 	{
 		set_pin(pgm, PIN_AVR_RESET, OFF);
-		set_pins(pgm, PPI_AVR_BUFF, OFF);
+		set_pin(pgm, PPI_AVR_BUFF, OFF);
 		set_pin(pgm, PIN_AVR_SCK, OFF);
 		/*use speed optimization with CAUTION*/
 		usleep(20 * 1000);
@@ -1297,8 +1121,6 @@ void avrftdi_initpgm(PROGRAMMER * pgm)
 {
 
 	strcpy(pgm->type, "avrftdi");
-
-	pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed
 
 	/*
 	 * mandatory functions
