@@ -1,3 +1,7 @@
+2013-05-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* pindefs.h: Include "ac_cfg.h" before testing for HAVE_* macros.
+
 2013-05-05  Rene Liebscher <R.Liebscher@gmx.de>
 
 	* main.c: revert to rev 1159 (doing pgm_display after pgm_open)
