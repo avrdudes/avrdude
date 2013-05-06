@@ -23,6 +23,8 @@
 
 #include <limits.h>
 
+#include "ac_cfg.h"
+
 /* lets try to select at least 32 bits */
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
