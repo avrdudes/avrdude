@@ -64,11 +64,6 @@ typedef struct avrftdi_s {
 	int pin_limit;
 	/* internal RX buffer of the device. needed for INOUT transfers */
 	int rx_buffer_size;
-	/* function pointer to the set_pin function, so that we do not have to drag
-	 * it into global scope. it's a hack, but i think it's slightly better than
-	 * the alternative.
-	 */
-	int (*set_pin)(PROGRAMMER *, int, int);
 } avrftdi_t;
 
 void avrftdi_log(int level, const char * func, int line, const char * fmt, ...);

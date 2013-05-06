@@ -1,3 +1,10 @@
+2013-05-06  Hannes Weisbach <hannes_weisbach@gmx.net>
+
+	* avrftdi_tpi.c: instead of private set_pin() function pointer use the one
+	declared in struct PROGRAMMER.
+	* avrftdi_private.h: remove set_pin function pointer
+	* avrftdi.c: remove set_pin function pointer init, add pgm->setpin init.
+
 2013-05-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* pindefs.h: Include "ac_cfg.h" before testing for HAVE_* macros.
