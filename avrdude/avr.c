@@ -54,6 +54,55 @@ int avr_tpi_poll_nvmbsy(PROGRAMMER *pgm)
   return (res & TPI_IOREG_NVMCSR_NVMBSY);
 }
 
+/* TPI chip erase sequence */
+int avr_tpi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
+{
+	int err;
+  AVRMEM *mem;
+
+  if (p->flags & AVRPART_HAS_TPI) {
+    pgm->pgm_led(pgm, ON);
+
+    /* Set Pointer Register */
+    mem = avr_locate_mem(p, "flash");
+    if (mem == NULL) {
+      fprintf(stderr, "No flash memory to erase for part %s\n",
+          p->desc);
+      return -1;
+    }
+
+		unsigned char cmd[] = {
+			/* write pointer register high byte */
+			(TPI_CMD_SSTPR | 0),
+			((mem->offset & 0xFF) | 1),
+			/* and low byte */
+			(TPI_CMD_SSTPR | 1),
+			((mem->offset >> 8) & 0xFF),
+	    /* write CHIP_ERASE command to NVMCMD register */
+			(TPI_CMD_SOUT | TPI_SIO_ADDR(TPI_IOREG_NVMCMD)),
+			TPI_NVMCMD_CHIP_ERASE,
+			/* write dummy value to start erase */
+			TPI_CMD_SST,
+			0xFF
+		};
+
+    while (avr_tpi_poll_nvmbsy(pgm));
+
+		err = pgm->cmd_tpi(pgm, cmd, sizeof(cmd), NULL, 0);
+		if(err)
+			return err;
+
+    while (avr_tpi_poll_nvmbsy(pgm));
+
+    pgm->pgm_led(pgm, OFF);
+
+    return 0;
+  } else {
+		fprintf(stderr, "%s called for a part that has no TPI\n", __func__);
+		return -1;
+	}
+}
+
 /* TPI: setup NVMCMD register and pointer register (PR) for read/write/erase */
 static int avr_tpi_setup_rw(PROGRAMMER * pgm, AVRMEM * mem,
 			    unsigned long addr, unsigned char nvmcmd)
