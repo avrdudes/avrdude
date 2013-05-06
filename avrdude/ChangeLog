@@ -2,8 +2,12 @@
 
 	* avrftdi_tpi.c: instead of private set_pin() function pointer use the one
 	declared in struct PROGRAMMER.
-	* avrftdi_private.h: remove set_pin function pointer
+	* avrftdi_private.h: remove set_pin function pointer. Add pin_checklist_t
+	member to check pgm->setpin calls during runtime.
 	* avrftdi.c: remove set_pin function pointer init, add pgm->setpin init.
+	Convert avrftdi to new 0-based pindefs infrastructure.
+	* avrdude.conf.in: Change all avrftdi-based programmers' pin definitions to
+	0-based.
 
 2013-05-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
