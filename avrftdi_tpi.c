@@ -22,6 +22,7 @@
 #include <libftdi1/ftdi.h>
 
 static void avrftdi_tpi_disable(PROGRAMMER *);
+static int avrftdi_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p);
 
 static void
 avrftdi_debug_frame(uint16_t frame)
@@ -77,7 +78,7 @@ avrftdi_tpi_initialize(PROGRAMMER * pgm, AVRPART * p)
 
 	pgm->program_enable = avrftdi_tpi_program_enable;
 	pgm->cmd_tpi = avrftdi_cmd_tpi;
-	pgm->chip_erase = avrftdi_tpi_chip_erase;
+	pgm->chip_erase = avr_tpi_chip_erase;
 	pgm->disable = avrftdi_tpi_disable;
 
 	pgm->paged_load = NULL;
@@ -213,74 +214,10 @@ avrftdi_tpi_read_byte(PROGRAMMER * pgm, unsigned char * byte)
 	return err;
 }
 
-int
+static int
 avrftdi_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p)
 {
-	int retry;
-	int err;
-	unsigned char cmd[2];
-	unsigned char response;
-
-	log_info("TPI program enable\n");
-
-	/* set guard time */
-	cmd[0] = TPI_OP_SSTCS(TPIPCR);
-	cmd[1] = TPIPCR_GT_2b;
-	pgm->cmd_tpi(pgm, cmd, sizeof(cmd), NULL, 0);
-
-	/* send SKEY */
-	pgm->cmd_tpi(pgm, tpi_skey_cmd, sizeof(tpi_skey_cmd), NULL, 0);
-
-	/* check if device is ready */
-  for(retry = 0; retry < 10; retry++)
-  {
-		log_info("Reading Identification register\n");
-		cmd[0] = TPI_OP_SLDCS(TPIIR);
-		err = pgm->cmd_tpi(pgm, cmd, 1, &response, sizeof(response));
-		if(err || response != TPI_IDENT_CODE)
-		{
-			log_err("Error. Sending break.\n");
-			avrftdi_tpi_break(pgm);
-			avrftdi_tpi_break(pgm);
-			continue;
-		}
-
-    log_info("Reading Status register\n");
-		cmd[0] = TPI_OP_SLDCS(TPISR);
-		err = pgm->cmd_tpi(pgm, cmd, 1, &response, sizeof(response));
-		if(err || !(response & TPISR_NVMEN))
-		{
-			log_err("Error. Sending break.\n");
-			avrftdi_tpi_break(pgm);
-			avrftdi_tpi_break(pgm);
-			continue;
-		}
-		
-		return 0;
-  }
-
-	log_err("Error connecting to target.\n");
-	return -1;
-}
-
-static int
-avrftdi_tpi_nvm_waitbusy(PROGRAMMER * pgm)
-{
-	const unsigned char cmd = TPI_OP_SIN(NVMCSR);
-	unsigned char response;
-	int err;
-	int retry;
-
-	for(retry = 50; retry > 0; retry--)
-	{
-		pgm->cmd_tpi(pgm, &cmd, sizeof(cmd), &response, sizeof(response));
-		//TODO usleep on bsy?
-		if(err || (response & NVMCSR_BSY))
-			continue;
-		return 0;
-	}
-
-	return -1;
+	return avr_tpi_program_enable(pgm, p, TPIPCR_GT_2b);
 }
 
 int
@@ -302,27 +239,6 @@ avrftdi_cmd_tpi(PROGRAMMER * pgm, unsigned char cmd[], int cmd_len,
 		if(err)
 			return err;
 	}
-
-	return 0;
-}
-
-int
-avrftdi_tpi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
-{
-	unsigned char cmd [] = {
-		TPI_OP_SSTPR(0),
-		0x01,
-		TPI_OP_SSTPR(1),
-		0x40,
-		TPI_OP_SOUT(NVMCMD),
-		NVMCMD_CHIP_ERASE,
-		TPI_OP_SST_INC,
-		0x00 };
-	pgm->cmd_tpi(pgm, cmd, sizeof(cmd), NULL, 0);
-
-	avr_tpi_poll_nvmbsy(pgm);
-
-  usleep(p->chip_erase_delay);
 
 	return 0;
 }
