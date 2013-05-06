@@ -23,8 +23,6 @@
 
 static void avrftdi_tpi_disable(PROGRAMMER *);
 
-static const unsigned char tpi_skey_cmd[] = { TPI_CMD_SKEY, 0xff, 0x88, 0xd8, 0xcd, 0x45, 0xab, 0x89, 0x12 };
-
 static void
 avrftdi_debug_frame(uint16_t frame)
 {

@@ -37,6 +37,8 @@ extern "C" {
 #endif
 
 int avr_tpi_poll_nvmbsy(PROGRAMMER *pgm);
+int avr_tpi_chip_erase(PROGRAMMER * pgm, AVRPART * p);
+int avr_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p, unsigned char guard_time);
 int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 			  unsigned long addr, unsigned char * value);
 

@@ -45,7 +45,13 @@
 	* avrftdi_tpi.c: Do all I/O in terms of pgm->cmd_tpi()-calls instead of
 	avrftdi_tpi_[read,write]_byte().
 	Remove unnecessary set_pin call to set MOSI high, speeds up I/O.
+	Removes SKEY array, moves it to tpi.h.
 	* avr.c: Adds avr_tpi_chip_erase() generic TPI chip erase function.
+	Adds avr_tpi_program_enable() - generic TPI external programming enable
+	function. Sets guard time, reads identification register, sends SKEY command
+	and key, checks NVMEN bit. The required guard time has to be passed as
+	parameter.
+	* tpi.h: Adds SKEY array including CMD_SKEY in "correct" order.
 
 2013-05-02  Hannes Weisbach <hannes_weisbach@gmx.net>
 
