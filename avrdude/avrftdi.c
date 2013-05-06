@@ -1276,7 +1276,6 @@ avrftdi_setup(PROGRAMMER * pgm)
 	pdata->pin_value = 0;
 	pdata->pin_direction = 0;
 	pdata->led_mask = 0;
-	pdata->set_pin = &set_pin;
 }
 
 static void
@@ -1323,6 +1322,8 @@ void avrftdi_initpgm(PROGRAMMER * pgm)
 
 	pgm->paged_write = avrftdi_paged_write;
 	pgm->paged_load = avrftdi_paged_load;
+
+	pgm->setpin = set_pin;
 
 	pgm->setup = avrftdi_setup;
 	pgm->teardown = avrftdi_teardown;

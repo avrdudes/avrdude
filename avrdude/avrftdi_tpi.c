@@ -86,17 +86,17 @@ avrftdi_tpi_initialize(PROGRAMMER * pgm, AVRPART * p)
 	pgm->paged_write = NULL;
 
 	log_info("Setting /Reset pin low\n");
-	pdata->set_pin(pgm, PIN_AVR_RESET, OFF);
-	pdata->set_pin(pgm, PIN_AVR_SCK, OFF);
-	pdata->set_pin(pgm, PIN_AVR_MOSI, ON);
+	pgm->setpin(pgm, PIN_AVR_RESET, OFF);
+	pgm->setpin(pgm, PIN_AVR_SCK, OFF);
+	pgm->setpin(pgm, PIN_AVR_MOSI, ON);
 	usleep(20 * 1000);
 
-	pdata->set_pin(pgm, PIN_AVR_RESET, ON);
+	pgm->setpin(pgm, PIN_AVR_RESET, ON);
 	/* worst case 128ms */
 	usleep(2 * 128 * 1000);
 
 	/*setting rst back to 0 */
-	pdata->set_pin(pgm, PIN_AVR_RESET, OFF);
+	pgm->setpin(pgm, PIN_AVR_RESET, OFF);
 	/*wait at least 20ms bevor issuing spi commands to avr */
 	usleep(20 * 1000);
 	
