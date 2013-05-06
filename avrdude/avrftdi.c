@@ -230,7 +230,7 @@ static int set_pin(PROGRAMMER * pgm, int pinfunc, int value)
 		avrftdi_print(2, "%s info: Pin is zero, value: %d!\n",
 				progname, value);
 	*/
-		return 1;
+		return -1;
 	
 	}
 
@@ -645,7 +645,8 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 			break;
 	}
 	
-	avrftdi_pin_setup(pgm);
+	if(avrftdi_pin_setup(pgm))
+		return -1;
 
 	/**********************************************
 	 * set the ready LED and set our direction up *
