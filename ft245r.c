@@ -244,10 +244,15 @@ static void ft245r_set_bitclock(PROGRAMMER * pgm) {
     }
 }
 
-static int set_reset(PROGRAMMER * pgm, int val) {
+static int set_pin(PROGRAMMER * pgm, int pinname, int val) {
     unsigned char buf[1];
 
-    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_RESET,val);
+    if (pgm->pin[pinname].mask[0] == 0) {
+        // ignore not defined pins (might be the led or vcc or buff if not needed)
+        return 0;
+    }
+
+    ft245r_out = SET_BITS_0(ft245r_out,pgm,pinname,val);
     buf[0] = ft245r_out;
 
     ft245r_send (pgm, buf, 1);
@@ -255,15 +260,35 @@ static int set_reset(PROGRAMMER * pgm, int val) {
     return 0;
 }
 
-static int set_buff(PROGRAMMER * pgm, int val) {
-    unsigned char buf[1];
+static int set_reset(PROGRAMMER * pgm, int value) {
+    return set_pin(pgm, PIN_AVR_RESET, value);
+}
 
-    ft245r_out = SET_BITS_0(ft245r_out,pgm,PPI_AVR_BUFF,val);
-    buf[0] = ft245r_out;
+static int set_buff(PROGRAMMER * pgm, int value) {
+    return set_pin(pgm, PPI_AVR_BUFF, value);
+}
 
-    ft245r_send (pgm, buf, 1);
-    ft245r_recv (pgm, buf, 1);
-    return 0;
+static int set_vcc(PROGRAMMER * pgm, int value) {
+    return set_pin(pgm, PPI_AVR_VCC, value);
+}
+
+/* these functions are callbacks, which go into the
+ * PROGRAMMER data structure ("optional functions")
+ */
+static int set_led_pgm(struct programmer_t * pgm, int value) {
+    return set_pin(pgm, PIN_LED_PGM, value);
+}
+
+static int set_led_rdy(struct programmer_t * pgm, int value) {
+    return set_pin(pgm, PIN_LED_RDY, value);
+}
+
+static int set_led_err(struct programmer_t * pgm, int value) {
+    return set_pin(pgm, PIN_LED_ERR, value);
+}
+
+static int set_led_vfy(struct programmer_t * pgm, int value) {
+    return set_pin(pgm, PIN_LED_VFY, value);
 }
 
 static int ft245r_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
@@ -336,12 +361,43 @@ static int ft245r_initialize(PROGRAMMER * pgm, AVRPART * p) {
     return ft245r_program_enable(pgm, p);
 }
 
+/*
+ * apply power to the AVR processor
+ */
+static void ft245r_powerup(PROGRAMMER * pgm)
+{
+    set_vcc(pgm,1); /* power up */
+    usleep(100);
+}
+
+
+/*
+ * remove power from the AVR processor
+ */
+static void ft245r_powerdown(PROGRAMMER * pgm)
+{
+    set_vcc(pgm,0); /* power down */
+}
+
+
 static void ft245r_disable(PROGRAMMER * pgm) {
     set_buff(pgm,0);
 }
 
 
 static void ft245r_enable(PROGRAMMER * pgm) {
+  /*
+   * Prepare to start talking to the connected device - pull reset low
+   * first, delay a few milliseconds, then enable the buffer.  This
+   * sequence allows the AVR to be reset before the buffer is enabled
+   * to avoid a short period of time where the AVR may be driving the
+   * programming lines at the same time the programmer tries to.  Of
+   * course, if a buffer is being used, then the /RESET line from the
+   * programmer needs to be directly connected to the AVR /RESET line
+   * and not via the buffer chip.
+   */
+    set_reset(pgm,0);
+    usleep(1);
     set_buff(pgm,1);
 }
 
@@ -557,7 +613,7 @@ static void ft245r_close(PROGRAMMER * pgm) {
 
 static void ft245r_display(PROGRAMMER * pgm, const char * p) {
     fprintf(stderr, "%sPin assignment  : 0..7 = DBUS0..7\n",p);/* , 8..11 = GPIO0..3\n",p);*/
-    pgm_display_generic_mask(pgm, p, SHOW_AVR_PINS|1<<PPI_AVR_BUFF);
+    pgm_display_generic_mask(pgm, p, SHOW_ALL_PINS);
 }
 
 static int ft245r_paged_write_gen(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
@@ -838,6 +894,13 @@ void ft245r_initpgm(PROGRAMMER * pgm) {
     pgm->paged_load = ft245r_paged_load;
 
     pgm->read_sig_bytes = ft245r_read_sig_bytes;
+
+    pgm->rdy_led        = set_led_rdy;
+    pgm->err_led        = set_led_err;
+    pgm->pgm_led        = set_led_pgm;
+    pgm->vfy_led        = set_led_vfy;
+    pgm->powerup        = ft245r_powerup;
+    pgm->powerdown      = ft245r_powerdown;
 
     handle = NULL;
 }
