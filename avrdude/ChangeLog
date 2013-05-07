@@ -3,6 +3,8 @@
 	* avrftdi_private.h: Change size of pin_checklist to N_PINS (from N_PINS-1)
 	* avrftdi.c: Adapt code to new size of pin_checklist. Remove pins_check()
 	from set_pin().
+	Add pgm->power[up|down] functions as well as fill pgm->enable|disable with
+	proper content as suggested by Rene Liebscher.
 
 2013-05-05  Rene Liebscher <R.Liebscher@gmx.de>
 
