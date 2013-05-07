@@ -66,7 +66,7 @@ typedef struct avrftdi_s {
 	/* internal RX buffer of the device. needed for INOUT transfers */
 	int rx_buffer_size;
 	/* pin checklist. */
- struct pin_checklist_t pin_checklist[N_PINS - 1];
+ struct pin_checklist_t pin_checklist[N_PINS];
 } avrftdi_t;
 
 void avrftdi_log(int level, const char * func, int line, const char * fmt, ...);
