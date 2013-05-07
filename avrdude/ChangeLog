@@ -1,3 +1,9 @@
+2013-05-07  Hannes Weisbach <hannes_weisbach@gmx.net>
+
+	* avrftdi_private.h: Change size of pin_checklist to N_PINS (from N_PINS-1)
+	* avrftdi.c: Adapt code to new size of pin_checklist. Remove pins_check()
+	from set_pin().
+
 2013-05-05  Rene Liebscher <R.Liebscher@gmx.de>
 
 	* pindefs.h: use unsigned int if stdint.h is not available and UINT_MAX is 0xffffffff

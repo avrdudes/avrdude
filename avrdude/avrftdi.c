@@ -224,14 +224,9 @@ static int set_pin(PROGRAMMER * pgm, int pinfunc, int value)
 	avrftdi_t* pdata = to_pdata(pgm);
 	struct pindef_t pin = pgm->pin[pinfunc];
 	
-	if (pins_check(pgm, pdata->pin_checklist, N_PINS - 1)) {
-		/* this error message is really annoying, maybe use a ratelimit? */
-	/*
-		avrftdi_print(2, "%s info: Pin is zero, value: %d!\n",
-				progname, value);
-	*/
-		return -1;
-	
+	if (pin.mask[0] == 0) {
+		// ignore not defined pins (might be the led or vcc or buff if not needed)
+		return 0;
 	}
 
 	log_debug("Setting pin %s (%s) as %s: %s (%s active)\n",
@@ -476,22 +471,21 @@ static int avrftdi_pin_setup(PROGRAMMER * pgm)
 	valid_pins_others.inverse[0] = valid_mask ;
 
 	/* build pin checklist */
-	for(pin = PPI_AVR_VCC; pin < N_PINS; ++pin) {
-		/* unfortunately, the pin name enum is one-based */
-		pdata->pin_checklist[pin - 1].pinname = pin;
-		pdata->pin_checklist[pin - 1].mandatory = 0;
-		pdata->pin_checklist[pin - 1].valid_pins = &valid_pins_others;
+	for(pin = 0; pin < N_PINS; ++pin) {
+		pdata->pin_checklist[pin].pinname = pin;
+		pdata->pin_checklist[pin].mandatory = 0;
+		pdata->pin_checklist[pin].valid_pins = &valid_pins_others;
 	}
-	pdata->pin_checklist[PIN_AVR_SCK - 1].mandatory = 1;
-	pdata->pin_checklist[PIN_AVR_SCK - 1].valid_pins = &valid_pins_SCK;
-	pdata->pin_checklist[PIN_AVR_MOSI - 1].mandatory = 1;
-	pdata->pin_checklist[PIN_AVR_MOSI - 1].valid_pins = &valid_pins_MOSI;
-	pdata->pin_checklist[PIN_AVR_MISO - 1].mandatory = 1;
-	pdata->pin_checklist[PIN_AVR_MISO - 1].valid_pins = &valid_pins_MISO;
-
+	pdata->pin_checklist[PIN_AVR_SCK].mandatory = 1;
+	pdata->pin_checklist[PIN_AVR_SCK].valid_pins = &valid_pins_SCK;
+	pdata->pin_checklist[PIN_AVR_MOSI].mandatory = 1;
+	pdata->pin_checklist[PIN_AVR_MOSI].valid_pins = &valid_pins_MOSI;
+	pdata->pin_checklist[PIN_AVR_MISO].mandatory = 1;
+	pdata->pin_checklist[PIN_AVR_MISO].valid_pins = &valid_pins_MISO;
+	pdata->pin_checklist[PIN_AVR_RESET].mandatory = 1;
 
 	/* everything is an output, except MISO */
-	for(pin = PPI_AVR_VCC; pin < N_PINS; ++pin) {
+	for(pin = 0; pin < N_PINS; ++pin) {
 		pdata->pin_direction |= pgm->pin[pin].mask[0];
 		pdata->pin_value = SET_BITS_0(pdata->pin_value, pgm, pin, OFF);
 	}
@@ -502,7 +496,7 @@ static int avrftdi_pin_setup(PROGRAMMER * pgm)
 	}
 
 	/* assumes all checklists above have same number of entries */
-	if (pins_check(pgm, pdata->pin_checklist,N_PINS - 1)) {
+	if (pins_check(pgm, pdata->pin_checklist,N_PINS)) {
 		log_err("Pin configuration for FTDI MPSSE must be:\n");
 		log_err("%s: 0, %s: 1, %s: 2 (is: %s, %s, %s)\n", avr_pin_name(PIN_AVR_SCK),
 		         avr_pin_name(PIN_AVR_MOSI), avr_pin_name(PIN_AVR_MISO),
