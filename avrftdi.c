@@ -239,8 +239,8 @@ static int set_pin(PROGRAMMER * pgm, int pinfunc, int value)
 	return write_flush(pdata);
 }
 
-/* these functions are callbacks, which go into the
- * PROGRAMMER data structure ("optional functions")
+/*
+ * Mandatory callbacks which boil down to GPIO.
  */
 static int set_led_pgm(struct programmer_t * pgm, int value)
 {
@@ -260,6 +260,26 @@ static int set_led_err(struct programmer_t * pgm, int value)
 static int set_led_vfy(struct programmer_t * pgm, int value)
 {
 	return set_pin(pgm, PIN_LED_VFY, value);
+}
+
+static void avrftdi_enable(PROGRAMMER * pgm)
+{
+	set_pin(pgm, PPI_AVR_BUFF, ON);
+}
+
+static void avrftdi_disable(PROGRAMMER * pgm)
+{
+	set_pin(pgm, PPI_AVR_BUFF, OFF);
+}
+
+static void avrftdi_powerup(PROGRAMMER * pgm)
+{
+	set_pin(pgm, PPI_AVR_VCC, ON);
+}
+
+static void avrftdi_powerdown(PROGRAMMER * pgm)
+{
+	set_pin(pgm, PPI_AVR_VCC, OFF);
 }
 
 /* Send 'buf_size' bytes from 'cmd' to device and return data from device in
@@ -638,7 +658,7 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 			pdata->rx_buffer_size = pdata->ftdic->max_packet_size;
 			break;
 	}
-	
+
 	if(avrftdi_pin_setup(pgm))
 		return -1;
 
@@ -657,7 +677,6 @@ static void avrftdi_close(PROGRAMMER * pgm)
 	avrftdi_t* pdata = to_pdata(pgm);
 
 	if(pdata->ftdic->usb_dev) {
-		set_pin(pgm, PPI_AVR_BUFF, ON);
 		set_pin(pgm, PIN_AVR_RESET, ON);
 
 		/* Stop driving the pins - except for the LEDs */
@@ -687,7 +706,6 @@ static int avrftdi_initialize(PROGRAMMER * pgm, AVRPART * p)
 	else
 	{
 		set_pin(pgm, PIN_AVR_RESET, OFF);
-		set_pin(pgm, PPI_AVR_BUFF, OFF);
 		set_pin(pgm, PIN_AVR_SCK, OFF);
 		/*use speed optimization with CAUTION*/
 		usleep(20 * 1000);
@@ -706,18 +724,9 @@ static int avrftdi_initialize(PROGRAMMER * pgm, AVRPART * p)
 	return pgm->program_enable(pgm, p);
 }
 
-static void avrftdi_disable(PROGRAMMER * pgm)
-{
-	return;
-}
-
-static void avrftdi_enable(PROGRAMMER * pgm)
-{
-	return;
-}
-
 static void avrftdi_display(PROGRAMMER * pgm, const char *p)
 {
+	// print the full pin definitiions as in ft245r ?
 	return;
 }
 
@@ -1125,6 +1134,8 @@ void avrftdi_initpgm(PROGRAMMER * pgm)
 	pgm->display = avrftdi_display;
 	pgm->enable = avrftdi_enable;
 	pgm->disable = avrftdi_disable;
+	pgm->powerup = avrftdi_powerup;
+	pgm->powerdown = avrftdi_powerdown;
 	pgm->program_enable = avrftdi_program_enable;
 	pgm->chip_erase = avrftdi_chip_erase;
 	pgm->cmd = avrftdi_cmd;
