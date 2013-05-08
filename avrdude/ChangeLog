@@ -1,3 +1,7 @@
+2013-05-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac (AC_INIT): Bump version to 6.0rc1.
+
 2013-05-07  Hannes Weisbach <hannes_weisbach@gmx.net>
 
 	* avrftdi_private.h: Change size of pin_checklist to N_PINS (from N_PINS-1)
