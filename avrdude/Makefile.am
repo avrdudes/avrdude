@@ -96,6 +96,7 @@ libavrdude_a_SOURCES = \
 	avrdude.h \
 	avrftdi.c \
 	avrftdi.h \
+	avrftdi_private.h \
 	avrftdi_tpi.c \
 	avrftdi_tpi.h \
 	avrpart.c \
