@@ -4,10 +4,14 @@
 #include <stdint.h>
 
 #ifdef HAVE_LIBUSB_1_0
-#ifdef HAVE_LIBFTDI1
+#if defined(HAVE_LIBFTDI1) || defined(HAVE_LIBFTDI)
 
 #include <libusb-1.0/libusb.h>
+#ifdef HAVE_LIBFTDI1
 #include <libftdi1/ftdi.h>
+#elif HAVE_LIBFTDI
+#include <ftdi.h>
+#endif
 
 #include "pgm.h"
 #include "pindefs.h"

@@ -86,13 +86,17 @@ typedef dispatch_semaphore_t	sem_t;
 #include <semaphore.h>
 #endif
 
-#ifdef HAVE_LIBFTDI
+#if defined(HAVE_LIBFTDI1) || defined(HAVE_LIBFTDI)
 
 #if defined(_WIN32)
 #include <windows.h>
 #endif
 
+#ifdef HAVE_LIBFTDI1
+#include <libftdi1/ftdi.h>
+#elif HAVE_LIBFTDI
 #include <ftdi.h>
+#endif
 
 
 #define FT245R_CYCLES	2
@@ -107,7 +111,6 @@ static struct ftdi_context *handle;
 static unsigned char ft245r_ddr;
 static unsigned char ft245r_out;
 static unsigned char ft245r_in;
-static unsigned char saved_signature[3];
 
 #define BUFSIZE 0x2000
 
@@ -191,15 +194,9 @@ static int ft245r_drain(PROGRAMMER * pgm, int display) {
     return 0;
 }
 
-static inline int ft245r_sync(PROGRAMMER * pgm) {
-    //printf ("sync.\n");
-    // The old code did something that evaluated to a no-op.
-
-    return 0;
-}
 
 static int ft245r_chip_erase(PROGRAMMER * pgm, AVRPART * p) {
-    unsigned char cmd[4];
+    unsigned char cmd[4] = {0,0,0,0};
     unsigned char res[4];
 
     if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
@@ -208,18 +205,14 @@ static int ft245r_chip_erase(PROGRAMMER * pgm, AVRPART * p) {
         return -1;
     }
 
-    memset(cmd, 0, sizeof(cmd));
-
     avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
     pgm->cmd(pgm, cmd, res);
     usleep(p->chip_erase_delay);
-    pgm->initialize(pgm, p);
-
-    return 0;
+    return pgm->initialize(pgm, p);
 }
 
 
-static void ft245r_set_bitclock(PROGRAMMER * pgm) {
+static int ft245r_set_bitclock(PROGRAMMER * pgm) {
     int r;
     int rate = 0;
 
@@ -240,8 +233,9 @@ static void ft245r_set_bitclock(PROGRAMMER * pgm) {
     if (r) {
         fprintf(stderr, "Set baudrate (%d) failed with error '%s'.\n",
                 rate, ftdi_get_error_string (handle));
-        exit (1);
+        return -1;
     }
+    return 0;
 }
 
 static int set_pin(PROGRAMMER * pgm, int pinname, int val) {
@@ -257,6 +251,8 @@ static int set_pin(PROGRAMMER * pgm, int pinname, int val) {
 
     ft245r_send (pgm, buf, 1);
     ft245r_recv (pgm, buf, 1);
+
+    ft245r_in = buf[0];
     return 0;
 }
 
@@ -291,82 +287,12 @@ static int set_led_vfy(struct programmer_t * pgm, int value) {
     return set_pin(pgm, PIN_LED_VFY, value);
 }
 
-static int ft245r_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
-                      unsigned char res[4]);
-/*
- * issue the 'program enable' command to the AVR device
- */
-static int ft245r_program_enable(PROGRAMMER * pgm, AVRPART * p) {
-    int retry_count = 0;
-    unsigned char cmd[4];
-    unsigned char res[4];
-    int i,reset_ok;
-
-    ft245r_set_bitclock(pgm);
-
-retry:
-    reset_ok = 0;
-    set_reset(pgm, 0);
-    usleep(5000); // 5ms
-    set_reset(pgm, 1);
-    usleep(5000); // 5ms
-    set_reset(pgm, 0);
-    usleep(5000); // 5ms
-
-    cmd[0] = 0xAC;
-    cmd[1] = 0x53;
-    cmd[2] = 0;
-    cmd[3] = 0;
-    ft245r_cmd(pgm, cmd, res);
-    if (res[2] == 0x53 ) reset_ok = 1;
-    for (i=0; i<3; i++) {
-        cmd[0] = 0x30;
-        cmd[1] = 0;
-        cmd[2] = i;
-        cmd[3] = 0;
-        ft245r_cmd(pgm, cmd, res);
-        saved_signature[i] = res[3];
-    }
-    if (reset_ok && (saved_signature[0] == 0x1e)) // success
-        return 0;
-
-    if (retry_count < 5) {
-        if (retry_count == 3) {
-            ft245r_drain (pgm, 0);
-            tail = head;
-        }
-        retry_count++;
-        goto retry;
-    }
-    if ((verbose>=1) || FT245R_DEBUG) {
-        fprintf(stderr,
-                "%s: ft245r_program_enable: failed\n", progname);
-        fflush(stderr);
-    }
-    return -1;
-}
-
-static int ft245r_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m) {
-    m->buf[0] = saved_signature[0];
-    m->buf[1] = saved_signature[1];
-    m->buf[2] = saved_signature[2];
-    return 3;
-}
-
-/*
- * initialize the AVR device and prepare it to accept commands
- */
-static int ft245r_initialize(PROGRAMMER * pgm, AVRPART * p) {
-
-    return ft245r_program_enable(pgm, p);
-}
-
 /*
  * apply power to the AVR processor
  */
 static void ft245r_powerup(PROGRAMMER * pgm)
 {
-    set_vcc(pgm,1); /* power up */
+    set_vcc(pgm, ON); /* power up */
     usleep(100);
 }
 
@@ -376,12 +302,12 @@ static void ft245r_powerup(PROGRAMMER * pgm)
  */
 static void ft245r_powerdown(PROGRAMMER * pgm)
 {
-    set_vcc(pgm,0); /* power down */
+    set_vcc(pgm, OFF); /* power down */
 }
 
 
 static void ft245r_disable(PROGRAMMER * pgm) {
-    set_buff(pgm,0);
+    set_buff(pgm, OFF);
 }
 
 
@@ -396,9 +322,75 @@ static void ft245r_enable(PROGRAMMER * pgm) {
    * programmer needs to be directly connected to the AVR /RESET line
    * and not via the buffer chip.
    */
-    set_reset(pgm,0);
+    set_reset(pgm, OFF);
     usleep(1);
-    set_buff(pgm,1);
+    set_buff(pgm, ON);
+}
+
+static int ft245r_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
+                      unsigned char res[4]);
+/*
+ * issue the 'program enable' command to the AVR device
+ */
+static int ft245r_program_enable(PROGRAMMER * pgm, AVRPART * p) {
+    unsigned char cmd[4] = {0,0,0,0};
+    unsigned char res[4];
+    int i;
+
+    if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
+        fprintf(stderr,
+                "%s: AVR_OP_PGM_ENABLE command not defined for %s\n", progname, p->desc);
+        fflush(stderr);
+        return -1;
+    }
+
+    avr_set_bits(p->op[AVR_OP_PGM_ENABLE], cmd);
+
+    for(i = 0; i < 4; i++) {
+        ft245r_cmd(pgm, cmd, res);
+            fprintf(stderr,
+                    "%s: %02x %02x %02x %02x => %02x %02x %02x %02x \n", progname, cmd[0], cmd[1], cmd[2], cmd[3], res[0], res[1], res[2], res[3] );
+            fflush(stderr);
+
+        if (res[p->pollindex-1] == p->pollvalue) return 0;
+
+        if ((verbose>=1) || FT245R_DEBUG) {
+            fprintf(stderr,
+                    "%s: Program enable command not successful. Retrying.\n", progname);
+            fflush(stderr);
+        }
+        set_pin(pgm, PIN_AVR_RESET, ON);
+        usleep(20);
+        set_pin(pgm, PIN_AVR_RESET, OFF);
+
+        if (i == 3) {
+            ft245r_drain(pgm, 0);
+            tail = head;
+        }
+    }
+
+    fprintf(stderr,
+            "%s: Device is not responding to program enable. Check connection.\n", progname);
+    fflush(stderr);
+
+    return -1;
+}
+
+/*
+ * initialize the AVR device and prepare it to accept commands
+ */
+static int ft245r_initialize(PROGRAMMER * pgm, AVRPART * p) {
+
+    ft245r_powerup(pgm);
+
+    set_reset(pgm, OFF);
+    usleep(5000); // 5ms
+    set_reset(pgm, ON);
+    usleep(5000); // 5ms
+    set_reset(pgm, OFF);
+    usleep(5000); // 5ms
+
+    return ft245r_program_enable(pgm, p);
 }
 
 static inline int set_data(PROGRAMMER * pgm, unsigned char *buf, unsigned char data) {
@@ -520,7 +512,7 @@ static int ft245r_open(PROGRAMMER * pgm, char * port) {
             fprintf(stderr,
                     "%s: invalid portname '%s': use 'ft[0-9]+'\n",
                     progname,port);
-            exit(1);
+            return -1;
         }
     } else {
         devnum = 0;
@@ -536,19 +528,8 @@ static int ft245r_open(PROGRAMMER * pgm, char * port) {
                                   devnum);
     if (rv) {
         fprintf (stderr, "can't open ftdi device %d. (%s)\n", devnum, ftdi_get_error_string(handle));
-        ftdi_deinit (handle);
-        free(handle);
-        exit (1);
+        goto cleanup_no_usb;
     }
-
-    /* We start a new thread to read the output from the FTDI. This is
-     * necessary because otherwise we'll deadlock. We cannot finish
-     * writing because the ftdi cannot send the results because we
-     * haven't provided a read buffer yet. */
-
-    sem_init (&buf_data, 0, 0);
-    sem_init (&buf_space, 0, BUFSIZE);
-    pthread_create (&readerthread, NULL, reader, handle);
 
     ft245r_ddr = 
          pgm->pin[PIN_AVR_SCK].mask[0]
@@ -575,16 +556,27 @@ static int ft245r_open(PROGRAMMER * pgm, char * port) {
 
 
     rv = ftdi_set_bitmode(handle, ft245r_ddr, BITMODE_SYNCBB); // set Synchronous BitBang
-
     if (rv) {
         fprintf(stderr,
                 "%s: Synchronous BitBangMode is not supported (%s)\n",
                 progname, ftdi_get_error_string(handle));
-        ftdi_usb_close(handle);
-        ftdi_deinit (handle);
-        free(handle);
-        exit(1);
+        goto cleanup;
     }
+
+    rv = ft245r_set_bitclock(pgm);
+    if (rv) {
+        goto cleanup;
+    }
+
+    /* We start a new thread to read the output from the FTDI. This is
+     * necessary because otherwise we'll deadlock. We cannot finish
+     * writing because the ftdi cannot send the results because we
+     * haven't provided a read buffer yet. */
+
+    sem_init (&buf_data, 0, 0);
+    sem_init (&buf_space, 0, BUFSIZE);
+    pthread_create (&readerthread, NULL, reader, handle);
+
     /*
      * drain any extraneous input
      */
@@ -594,6 +586,13 @@ static int ft245r_open(PROGRAMMER * pgm, char * port) {
     ft245r_recv (pgm, &ft245r_in, 1);
 
     return 0;
+
+cleanup:
+    ftdi_usb_close(handle);
+cleanup_no_usb:
+    ftdi_deinit (handle);
+    free(handle);
+    return -1;
 }
 
 
@@ -605,7 +604,7 @@ static void ft245r_close(PROGRAMMER * pgm) {
         pthread_cancel(readerthread);
         pthread_join(readerthread, NULL);
         ftdi_usb_close(handle);
-        ftdi_deinit (handle);
+        ftdi_deinit (handle); // TODO this works with libftdi 0.20, but hangs with 1.0
         free(handle);
         handle = NULL;
     }
@@ -892,8 +891,6 @@ void ft245r_initpgm(PROGRAMMER * pgm) {
      */
     pgm->paged_write = ft245r_paged_write;
     pgm->paged_load = ft245r_paged_load;
-
-    pgm->read_sig_bytes = ft245r_read_sig_bytes;
 
     pgm->rdy_led        = set_led_rdy;
     pgm->err_led        = set_led_err;

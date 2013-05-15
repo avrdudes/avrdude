@@ -1,3 +1,10 @@
+2013-05-15  Rene Liebscher <R.Liebscher@gmx.de>
+
+	* configure.ac: if both found libftdi and libftdi1 use only libftdi1
+	* avrdude.conf.in: fixed buff pins of avrftdi programmers (low active buffer need now inverted numbers)
+	* avrftdi*.*: accept also old libftdi (0.20 still works with it), added powerup to initialize
+	* ft245r.c: accept libftdi1, code cleanup and make it more similar to avrfdti (os they might be merged someday)
+
 2013-05-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* configure.ac (AC_INIT): Bump version to 6.0rc1.
