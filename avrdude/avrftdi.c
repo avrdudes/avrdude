@@ -43,10 +43,14 @@
 #include "avrftdi_private.h"
 
 #ifdef HAVE_LIBUSB_1_0
-#ifdef HAVE_LIBFTDI1
+#if defined(HAVE_LIBFTDI1) || defined(HAVE_LIBFTDI)
 
 #include <libusb-1.0/libusb.h>
+#ifdef HAVE_LIBFTDI1
 #include <libftdi1/ftdi.h>
+#elif HAVE_LIBFTDI
+#include <ftdi.h>
+#endif
 
 enum { FTDI_SCK = 0, FTDI_MOSI, FTDI_MISO, FTDI_RESET };
 
@@ -698,6 +702,8 @@ static void avrftdi_close(PROGRAMMER * pgm)
 
 static int avrftdi_initialize(PROGRAMMER * pgm, AVRPART * p)
 {
+	avrftdi_powerup(pgm);
+
 	if(p->flags & AVRPART_HAS_TPI)
 	{
 		/* see avrftdi_tpi.c */
