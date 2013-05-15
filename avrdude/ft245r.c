@@ -104,7 +104,7 @@ typedef dispatch_semaphore_t	sem_t;
 #define REQ_OUTSTANDINGS	10
 //#define USE_INLINE_WRITE_PAGE
 
-#define FT245R_DEBUG	1
+#define FT245R_DEBUG	0
 
 static struct ftdi_context *handle;
 
@@ -225,7 +225,7 @@ static int ft245r_set_bitclock(PROGRAMMER * pgm) {
         rate = 150000; /* should work for all ftdi chips and the avr default internal clock of 1MHz */
     }
 
-    if ((verbose>=1) || FT245R_DEBUG) {
+    if ((verbose>1) || FT245R_DEBUG) {
         fprintf(stderr," ft245r:  spi bitclk %d -> ft baudrate %d\n",
                 rate / 2, rate);
     }
@@ -348,9 +348,6 @@ static int ft245r_program_enable(PROGRAMMER * pgm, AVRPART * p) {
 
     for(i = 0; i < 4; i++) {
         ft245r_cmd(pgm, cmd, res);
-            fprintf(stderr,
-                    "%s: %02x %02x %02x %02x => %02x %02x %02x %02x \n", progname, cmd[0], cmd[1], cmd[2], cmd[3], res[0], res[1], res[2], res[3] );
-            fflush(stderr);
 
         if (res[p->pollindex-1] == p->pollvalue) return 0;
 
