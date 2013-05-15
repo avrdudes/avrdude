@@ -397,9 +397,7 @@ programmer
 #  buff   = 8;
 ;
 # This is an implementation of the above with a buffer IC (74AC244) and
-# 4 LEDs directly attached, active low. The buff and reset pins are
-# understood (by avrdude) to be active low, so there's no
-# need to invert the bits.
+# 4 LEDs directly attached, all active low.
 programmer
   id         = "2232HIO";
   desc       = "FT2232H based generic programmer";
@@ -419,7 +417,7 @@ programmer
   sck    = 0;
   mosi   = 1;
   miso   = 2;
-  buff   = 4;
+  buff   = ~4;
 #LED SIGNALs 
   errled = ~ 11;
   rdyled = ~ 14;
@@ -431,8 +429,8 @@ programmer
 #device ID of 0x6011.
 programmer parent "avrftdi"
   id         = "4232h";
-	desc       = "FT4232H based generic programmer";
-	usbpid     = 0x6011;
+  desc       = "FT4232H based generic programmer";
+  usbpid     = 0x6011;
 ;
 
 programmer
@@ -452,7 +450,7 @@ programmer
   sck    = 0; # TCK 9 white
   mosi   = 1; # TDI 5 green
   miso   = 2; # TDO 13 orange
-  buff   = 4;
+  buff   = ~4;
 # VTG           VREF 1 brown with red tip
 # GND           GND 20 black
 # The colors are on the 20 pin breakout cable
@@ -517,7 +515,7 @@ programmer
   mosi   = 1;
   miso   = 2;
 # Enable correct buffers
-  buff   = ~7;
+  buff   = 7;
 ;
 
 programmer
