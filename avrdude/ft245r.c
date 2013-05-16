@@ -69,7 +69,60 @@
 #include "bitbang.h"
 #include "ft245r.h"
 
-#ifdef HAVE_PTHREAD_H
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
+#if defined(HAVE_LIBFTDI1) && defined(HAVE_LIBUSB_1_0)
+# if defined(HAVE_LIBUSB_1_0_LIBUSB_H)
+#  include <libusb-1.0/libusb.h>
+# else
+#  include <libusb.h>
+# endif
+# include <libftdi1/ftdi.h>
+#elif defined(HAVE_LIBFTDI) && defined(HAVE_USB_H)
+/* ftdi.h includes usb.h */
+#include <ftdi.h>
+#else 
+#warning No libftdi or libusb support. Install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again.
+#define DO_NOT_BUILD_FT245R
+#endif
+
+#ifndef HAVE_PTHREAD_H
+
+static int ft245r_nopthread_open (struct programmer_t *pgm, char * name) {
+    fprintf(stderr,
+            "%s: error: no pthread support. Please compile again with pthread installed."
+#if defined(_WIN32)
+            " See http://sourceware.org/pthreads-win32/."
+#endif
+            "\n",
+            progname);
+
+    return -1;
+}
+
+void ft245r_initpgm(PROGRAMMER * pgm) {
+    strcpy(pgm->type, "ftdi_syncbb");
+    pgm->open = ft245r_nopthread_open;
+}
+
+#elif defined(DO_NOT_BUILD_FT245R)
+
+static int ft245r_noftdi_open (struct programmer_t *pgm, char * name) {
+    fprintf(stderr,
+            "%s: error: no libftdi or libusb support. Install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again.\n",
+            progname);
+
+    return -1;
+}
+
+void ft245r_initpgm(PROGRAMMER * pgm) {
+    strcpy(pgm->type, "ftdi_syncbb");
+    pgm->open = ft245r_noftdi_open;
+}
+
+#else
 
 #include <pthread.h>
 
@@ -85,19 +138,6 @@ typedef dispatch_semaphore_t	sem_t;
 #else
 #include <semaphore.h>
 #endif
-
-#if defined(HAVE_LIBFTDI1) || defined(HAVE_LIBFTDI)
-
-#if defined(_WIN32)
-#include <windows.h>
-#endif
-
-#ifdef HAVE_LIBFTDI1
-#include <libftdi1/ftdi.h>
-#elif HAVE_LIBFTDI
-#include <ftdi.h>
-#endif
-
 
 #define FT245R_CYCLES	2
 #define FT245R_FRAGMENT_SIZE  512
@@ -589,6 +629,7 @@ cleanup:
 cleanup_no_usb:
     ftdi_deinit (handle);
     free(handle);
+    handle = NULL;
     return -1;
 }
 
@@ -897,39 +938,6 @@ void ft245r_initpgm(PROGRAMMER * pgm) {
     pgm->powerdown      = ft245r_powerdown;
 
     handle = NULL;
-}
-
-#else
-static int ft245r_noftdi_open (struct programmer_t *pgm, char * name) {
-    fprintf(stderr,
-            "%s: error: no ftdi support. Please compile again with libftdi installed.\n",
-            progname);
-
-    exit(1);
-}
-
-void ft245r_initpgm(PROGRAMMER * pgm) {
-    strcpy(pgm->type, "ftdi_syncbb");
-    pgm->open = ft245r_noftdi_open;
-}
-#endif
-#else
-
-static int ft245r_nopthread_open (struct programmer_t *pgm, char * name) {
-    fprintf(stderr,
-            "%s: error: no pthread support. Please compile again with pthread installed."
-#if defined(_WIN32)
-            " See http://sourceware.org/pthreads-win32/."
-#endif
-            "\n",
-            progname);
-
-    exit(1);
-}
-
-void ft245r_initpgm(PROGRAMMER * pgm) {
-    strcpy(pgm->type, "ftdi_syncbb");
-    pgm->open = ft245r_nopthread_open;
 }
 
 #endif

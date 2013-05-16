@@ -1,3 +1,9 @@
+2013-05-16  Rene Liebscher <R.Liebscher@gmx.de>
+
+	* configure.ac: reactivate check for TYPE_232H, which does not exist in libftdi < 0.20
+	* avrftdi*.*: changed include check for libftdi/libusb, deactivate 232H if not available
+	* ft245r.c: changed include check for libftdi/libusb
+
 2013-05-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* main.c (main): Add option -l logfile.

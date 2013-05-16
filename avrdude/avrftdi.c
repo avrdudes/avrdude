@@ -42,15 +42,24 @@
 #include "avrftdi_tpi.h"
 #include "avrftdi_private.h"
 
-#ifdef HAVE_LIBUSB_1_0
-#if defined(HAVE_LIBFTDI1) || defined(HAVE_LIBFTDI)
+#ifdef DO_NOT_BUILD_AVRFTDI
 
-#include <libusb-1.0/libusb.h>
-#ifdef HAVE_LIBFTDI1
-#include <libftdi1/ftdi.h>
-#elif HAVE_LIBFTDI
-#include <ftdi.h>
-#endif
+static int avrftdi_noftdi_open (struct programmer_t *pgm, char * name)
+{
+	fprintf(stderr,
+		"%s: Error: no libftdi or libusb support. Install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again.\n",
+		progname);
+
+	return -1;
+}
+
+void avrftdi_initpgm(PROGRAMMER * pgm)
+{
+	strcpy(pgm->type, "avrftdi");
+	pgm->open = avrftdi_noftdi_open;
+}
+
+#else
 
 enum { FTDI_SCK = 0, FTDI_MOSI, FTDI_MISO, FTDI_RESET };
 
@@ -647,10 +656,14 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 			pdata->pin_limit = 16;
 			pdata->rx_buffer_size = 4096;
 			break;
+#ifdef HAVE_LIBFTDI_TYPE_232H
 		case TYPE_232H:
 			pdata->pin_limit = 16;
 			pdata->rx_buffer_size = 1024;
 			break;
+#else
+#warning No support for 232H, use a newer libftdi, version >= 0.20
+#endif
 		case TYPE_4232H:
 			pdata->pin_limit = 8;
 			pdata->rx_buffer_size = 2048;
@@ -1168,43 +1181,8 @@ void avrftdi_initpgm(PROGRAMMER * pgm)
 	pgm->vfy_led = set_led_vfy;
 }
 
-#else /*HAVE_LIBFTDI1*/
+#endif /* DO_NOT_BUILD_AVRFTDI */
 
-static int avrftdi_noftdi_open (struct programmer_t *pgm, char * name)
-{
-	fprintf(stderr,
-		"%s: Error: no libftdi1 support. Install libftdi1 and run configure/make again.\n",
-		progname);
-
-	exit(1);
-}
-
-void avrftdi_initpgm(PROGRAMMER * pgm)
-{
-	strcpy(pgm->type, "avrftdi");
-	pgm->open = avrftdi_noftdi_open;
-}
-
-#endif  /* HAVE_LIBFTDI1 */
-
-#else /*HAVE_LIBUSB_1_0*/
-
-static int avrftdi_nousb_open (struct programmer_t *pgm, char * name)
-{
-	fprintf(stderr,
-		"%s: Error: no USB support. Install libusb-1.0 and run configure/make again.\n",
-		progname);
-
-	exit(1);
-}
-
-void avrftdi_initpgm(PROGRAMMER * pgm)
-{
-	strcpy(pgm->type, "avrftdi");
-	pgm->open = avrftdi_nousb_open;
-}
-
-#endif /*HAVE_LIBUSB_1_0*/
 
 const char avrftdi_desc[] = "Interface to the MPSSE Engine of FTDI Chips using libftdi.";
 
