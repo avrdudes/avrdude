@@ -485,6 +485,11 @@ On Win32 operating systems, a preconfigured number of cycles per
 microsecond is assumed that might be off a bit for very fast or very
 slow machines.
 
+@item -l @var{logfile}
+Use @var{logfile} rather than @var{stderr} for diagnostics output.
+Note that initial diagnostic messages (during option parsing) are still
+written to @var{stderr} anyway.
+
 @item -n
 No-write - disables actually writing data to the MCU (useful for
 debugging AVRDUDE).
