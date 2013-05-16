@@ -129,6 +129,11 @@ Current:
 
     (patch #7699 Read additional config files)
 
+  * The new option -l logfile allows to redirect diagnostic messages
+    to a logfile rather than stdout.  Useful to record debugging
+    traces, in particular in environments which do not offer
+    shell-style redirection functionality for standard streams.
+
   * Programmer types in configuration file are no longer keywords but
     specified as string.
 

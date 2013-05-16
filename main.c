@@ -1,7 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2005  Brian S. Dean <bsd@bsdhome.com>
- * Copyright 2007-2009 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright 2007-2013 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -123,6 +123,7 @@ static void usage(void)
  "  -Y <number>                Initialize erase cycle # in EEPROM.\n"
  "  -v                         Verbose output. -v -v for more.\n"
  "  -q                         Quell progress output. -q -q for less.\n"
+ "  -l logfile                 Use logfile rather than stderr for diagnostics.\n"
  "  -?                         Display this usage.\n"
  "\navrdude version %s, URL: <http://savannah.nongnu.org/projects/avrdude/>\n"
           ,progname, version);
@@ -332,6 +333,7 @@ int main(int argc, char * argv [])
   int     silentsafe;  /* Don't ask about fuses, 1=silent, 0=normal */
   int     init_ok;     /* Device initialization worked well */
   int     is_open;     /* Device open succeeded */
+  char  * logfile;     /* Use logfile rather than stderr for diagnostics */
   enum updateflags uflags = UF_AUTO_ERASE; /* Flags for do_op() */
   unsigned char safemode_lfuse = 0xff;
   unsigned char safemode_hfuse = 0xff;
@@ -411,6 +413,7 @@ int main(int argc, char * argv [])
   safemode      = 1;       /* Safemode on by default */
   silentsafe    = 0;       /* Ask by default */
   is_open       = 0;
+  logfile       = NULL;
 
   if (isatty(STDIN_FILENO) == 0)
       safemode  = 0;       /* Turn off safemode if this isn't a terminal */
@@ -459,7 +462,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?b:B:c:C:DeE:Fi:np:OP:qstU:uvVx:yY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?b:B:c:C:DeE:Fi:l:np:OP:qstU:uvVx:yY:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -518,6 +521,10 @@ int main(int argc, char * argv [])
       case 'F': /* override invalid signature check */
         ovsigck = 1;
         break;
+
+      case 'l':
+	logfile = optarg;
+	break;
 
       case 'n':
         uflags |= UF_NOWRITE;
@@ -608,6 +615,15 @@ int main(int argc, char * argv [])
 
   }
 
+  if (logfile != NULL) {
+    FILE *newstderr = freopen(logfile, "w", stderr);
+    if (newstderr == NULL) {
+      /* Help!  There's no stderr to complain to anymore now. */
+      printf("Cannot create logfile \"%s\": %s\n",
+	     logfile, strerror(errno));
+      return 1;
+    }
+  }
 
   if (quell_progress == 0) {
     if (isatty (STDERR_FILENO))

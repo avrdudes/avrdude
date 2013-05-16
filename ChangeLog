@@ -1,3 +1,9 @@
+2013-05-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* main.c (main): Add option -l logfile.
+	* avrdude.1: Document -l option.
+	* doc/avrdude.texi: (Dito.)
+
 2013-05-15  Rene Liebscher <R.Liebscher@gmx.de>
 
 	* configure.ac: if both found libftdi and libftdi1 use only libftdi1
