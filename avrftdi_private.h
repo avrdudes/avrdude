@@ -3,15 +3,24 @@
 
 #include <stdint.h>
 
-#ifdef HAVE_LIBUSB_1_0
-#if defined(HAVE_LIBFTDI1) || defined(HAVE_LIBFTDI)
-
-#include <libusb-1.0/libusb.h>
-#ifdef HAVE_LIBFTDI1
-#include <libftdi1/ftdi.h>
-#elif HAVE_LIBFTDI
+#if defined(HAVE_LIBFTDI1) && defined(HAVE_LIBUSB_1_0)
+# if defined(HAVE_LIBUSB_1_0_LIBUSB_H)
+#  include <libusb-1.0/libusb.h>
+# else
+#  include <libusb.h>
+# endif
+# include <libftdi1/ftdi.h>
+# undef HAVE_LIBFTDI_TYPE_232H
+# define HAVE_LIBFTDI_TYPE_232H 1
+#elif defined(HAVE_LIBFTDI) && defined(HAVE_USB_H)
+/* ftdi.h includes usb.h */
 #include <ftdi.h>
+#else 
+#warning No libftdi or libusb support. Install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again.
+#define DO_NOT_BUILD_AVRFTDI
 #endif
+
+#ifndef DO_NOT_BUILD_AVRFTDI
 
 #include "pgm.h"
 #include "pindefs.h"
@@ -75,15 +84,5 @@ typedef struct avrftdi_s {
 
 void avrftdi_log(int level, const char * func, int line, const char * fmt, ...);
 
-#else /* HAVE_LIBFTDI1 */
-
-#warning "libftdi1 required for programmer avrftdi."
-
-#endif  /* HAVE_LIBFTDI1 */
-
-#else /* HAVE_LIBUSB_1_0 */
-
-#warning "libusb-1.0 required for programmer avrftdi."
-
-#endif /* HAVE_LIBUSB_1_0 */
+#endif /* DO_NOT_BUILD_AVRFDTI */
 

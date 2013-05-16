@@ -15,15 +15,7 @@
 #include "avrftdi_tpi.h"
 #include "avrftdi_private.h"
 
-#ifdef HAVE_LIBUSB_1_0
-#if defined(HAVE_LIBFTDI1) || defined(HAVE_LIBFTDI)
-
-#include <libusb-1.0/libusb.h>
-#ifdef HAVE_LIBFTDI1
-#include <libftdi1/ftdi.h>
-#elif HAVE_LIBFTDI
-#include <ftdi.h>
-#endif
+#ifndef DO_NOT_BUILD_AVRFTDI
 
 static void avrftdi_tpi_disable(PROGRAMMER *);
 static int avrftdi_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p);
@@ -256,11 +248,5 @@ avrftdi_tpi_disable(PROGRAMMER * pgm)
 	log_info("Leaving Programming mode.\n");
 }
 
-#else /* HAVE_LIBFTDI1 */
-
-#endif  /* HAVE_LIBFTDI1 */
-
-#else /* HAVE_LIBUSB_1_0 */
-
-#endif /* HAVE_LIBUSB_1_0 */
+#endif /* DO_NOT_BUILD_AVRFTDI */
 
