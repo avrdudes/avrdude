@@ -831,6 +831,8 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
 
   if(mode < 0) return 0;  // for AVR32
 
+  tries = 0;
+retry:
   /* Turn the ICE into JTAG or ISP mode as requested. */
   buf[0] = mode;
   if (jtagmkII_setparm(pgm, PAR_EMULATOR_MODE, buf) < 0) {
@@ -855,11 +857,17 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
 	 * program.
 	 */
 	(void)jtagmkII_reset(pgm, 0x04);
+	if (tries++ > 3) {
+	    fprintf(stderr,
+		    "%s: Failed to return from debugWIRE to ISP.\n",
+		    progname);
+	    return -1;
+	}
 	fprintf(stderr,
 		"%s: Target prepared for ISP, signed off.\n"
-		"%s: Please restart %s without power-cycling the target.\n",
-		progname, progname, progname);
-        return JTAGII_GETSYNC_FAIL_GRACEFUL;
+		"%s: Now retrying without power-cycling the target.\n",
+		progname, progname);
+        goto retry;
       }
     } else {
       return -1;

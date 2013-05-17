@@ -1105,7 +1105,7 @@ static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
 {
   unsigned char buf[16];
   char msg[100];             /* see remarks above about size needed */
-  int rv;
+  int rv, tries;
 
   PDATA(pgm)->lastpart = p;
 
@@ -1120,6 +1120,8 @@ static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
       /* Activate AVR-style (low active) RESET */
       stk500v2_setparm_real(pgm, PARAM_RESET_POLARITY, 0x01);
 
+  tries = 0;
+retry:
   buf[0] = CMD_ENTER_PROGMODE_ISP;
   buf[1] = p->timeout;
   buf[2] = p->stabdelay;
@@ -1185,14 +1187,20 @@ static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
                     cmd[1] = CMD3_MONCON_DISABLE;
                     if (jtag3_command(pgm, cmd, 3, &resp, "MonCon disable") >= 0)
                         free(resp);
-
-                    fprintf(stderr,
-                            "%s: Target prepared for ISP, signed off.\n"
-                            "%s: Please restart %s without power-cycling the target.\n",
-                            progname, progname, progname);
                 }
             }
             pgm->cookie = mycookie;
+            if (tries++ > 3) {
+                fprintf(stderr,
+                        "%s: Failed to return from debugWIRE to ISP.\n",
+                        progname);
+                break;
+            }
+            fprintf(stderr,
+                    "%s: Target prepared for ISP, signed off.\n"
+                    "%s: Now retrying without power-cycling the target.\n",
+                    progname, progname);
+            goto retry;
         }
         break;
 
