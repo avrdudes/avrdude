@@ -78,6 +78,8 @@ Current:
         read device signature
       - bug #37265: wrong page sizes for XMega64xx in avrdude.conf
       - bug #37942: Latest SVN can't program in dragon_jtag mode
+      - patch #7876 JTAGICE mkII fails to connect to attiny if debugwire
+        is enabled AND target has a very slow clock
 
   * Keep track of input file contents
 
@@ -133,6 +135,9 @@ Current:
     to a logfile rather than stdout.  Useful to record debugging
     traces, in particular in environments which do not offer
     shell-style redirection functionality for standard streams.
+
+  * When leaving debugWIRE mode, immediately retry with ISP rather
+    than bailing out completely.
 
   * Programmer types in configuration file are no longer keywords but
     specified as string.
