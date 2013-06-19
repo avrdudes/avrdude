@@ -1,3 +1,11 @@
+2013-06-19  Rene Liebscher <R.Liebscher@gmx.de>
+
+	use bitbanging on ftdi mpsse when wrong pins are used
+	* avrftdi.c, avrftdi_private.h: added additional pin check 
+	and bitbanging fallback
+	* pindefs.[ch]: added a flag to enable/disable output
+	* ft245r.c: changes because of added flag above
+
 2013-05-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by "Malte" and John McCorquodale:
