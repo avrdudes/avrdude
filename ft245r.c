@@ -528,7 +528,7 @@ static int ft245r_open(PROGRAMMER * pgm, char * port) {
     int rv;
     int devnum = -1;
 
-    rv = pins_check(pgm,pin_checklist,sizeof(pin_checklist)/sizeof(pin_checklist[0]));
+    rv = pins_check(pgm,pin_checklist,sizeof(pin_checklist)/sizeof(pin_checklist[0]), true);
     if(rv) {
         pgm->display(pgm, progbuf);
         return rv;

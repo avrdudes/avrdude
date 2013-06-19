@@ -201,7 +201,7 @@ const char * pinmask_to_str(const pinmask_t * const pinmask) {
  * @param[in] size the number of entries in checklist
  * @returns 0 if all pin definitions are valid, -1 otherwise
  */
-int pins_check(const struct programmer_t * const pgm, const struct pin_checklist_t * const checklist, const int size) {
+int pins_check(const struct programmer_t * const pgm, const struct pin_checklist_t * const checklist, const int size, bool output) {
   static const struct pindef_t no_valid_pins = {{0}, {0}}; // default value if check list does not contain anything else
   int rv = 0; // return value
   int pinname; // loop counter through pinnames
@@ -253,46 +253,53 @@ int pins_check(const struct programmer_t * const pgm, const struct pin_checklist
       already_used_all[segment] |= pgm->pin[pinname].mask[segment];
     }
     if(invalid) {
-      fprintf(stderr,
-              "%s: %s: Following pins are not valid pins for this function: %s\n",
-              progname, avr_pin_name(pinname), pinmask_to_str(invalid_used));
-      if(verbose >= 2) {
+      if(output) {
         fprintf(stderr,
-                "%s: %s: Valid pins for this function are: %s\n",
-                progname, avr_pin_name(pinname), pinmask_to_str(valid_pins->mask));
+                "%s: %s: Following pins are not valid pins for this function: %s\n",
+                progname, avr_pin_name(pinname), pinmask_to_str(invalid_used));
+        if(verbose >= 2) {
+          fprintf(stderr,
+                  "%s: %s: Valid pins for this function are: %s\n",
+                  progname, avr_pin_name(pinname), pinmask_to_str(valid_pins->mask));
+        }
       }
       is_ok = false;
     }
     if(inverse) {
-      fprintf(stderr,
+      if(output) {
+        fprintf(stderr,
               "%s: %s: Following pins are not usable as inverse pins for this function: %s\n",
               progname, avr_pin_name(pinname), pinmask_to_str(inverse_used));
-      if(verbose >= 2) {
-        fprintf(stderr,
-                "%s: %s: Valid inverse pins for this function are: %s\n",
-                progname, avr_pin_name(pinname), pinmask_to_str(valid_pins->inverse));
+        if(verbose >= 2) {
+          fprintf(stderr,
+                  "%s: %s: Valid inverse pins for this function are: %s\n",
+                  progname, avr_pin_name(pinname), pinmask_to_str(valid_pins->inverse));
+        }
       }
       is_ok = false;
     }
     if(used) {
-      fprintf(stderr,
-              "%s: %s: Following pins are set for other functions too: %s\n",
-              progname, avr_pin_name(pinname), pinmask_to_str(already_used));
-      is_ok = false;
+      if(output) {
+        fprintf(stderr,
+                "%s: %s: Following pins are set for other functions too: %s\n",
+                progname, avr_pin_name(pinname), pinmask_to_str(already_used));
+        is_ok = false;
+      }
     }
     if(!mandatory_used && is_mandatory && !invalid) {
-      fprintf(stderr,
-              "%s: %s: Mandatory pin is not defined.\n",
-              progname, avr_pin_name(pinname));
+      if(output) {
+        fprintf(stderr,
+                "%s: %s: Mandatory pin is not defined.\n",
+                progname, avr_pin_name(pinname));
+      }
       is_ok = false;
     }
     if(!is_ok) {
       rv = -1;
-    } else if(verbose >= 3) {
+    } else if(output && verbose >= 3) {
       fprintf(stderr,
               "%s: %s: Pin is ok.\n",
               progname, avr_pin_name(pinname));
-
     }
   }
   return rv;

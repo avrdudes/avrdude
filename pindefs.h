@@ -165,9 +165,10 @@ void pgm_fill_old_pins(struct programmer_t * const pgm);
  * @param[in] pgm the programmer to check
  * @param[in] checklist the constraint for the pins
  * @param[in] size the number of entries in checklist
+ * @param[in] output false suppresses error messages to the user
  * @returns 0 if all pin definitions are valid, -1 otherwise
  */
-int pins_check(const struct programmer_t * const pgm, const struct pin_checklist_t * const checklist, const int size);
+int pins_check(const struct programmer_t * const pgm, const struct pin_checklist_t * const checklist, const int size, const bool output);
 
 /**
  * Returns the name of the pin as string.
