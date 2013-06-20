@@ -242,7 +242,7 @@ int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 #if DEBUG
     fprintf(stderr, 
             "avr_read_byte(): operation not supported on memory type \"%s\"\n",
-            p->desc);
+            mem->desc);
 #endif
     return -1;
   }
@@ -256,14 +256,18 @@ int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
     avr_set_bits(lext, cmd);
     avr_set_addr(lext, cmd, addr);
-    pgm->cmd(pgm, cmd, res);
+    r = pgm->cmd(pgm, cmd, res);
+    if (r < 0)
+      return r;
   }
 
   memset(cmd, 0, sizeof(cmd));
 
   avr_set_bits(readop, cmd);
   avr_set_addr(readop, cmd, addr);
-  pgm->cmd(pgm, cmd, res);
+  r = pgm->cmd(pgm, cmd, res);
+  if (r < 0)
+    return r;
   data = 0;
   avr_get_output(readop, res, &data);
 
