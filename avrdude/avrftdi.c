@@ -356,7 +356,7 @@ static int avrftdi_transmit_bb(PROGRAMMER * pgm, unsigned char mode, unsigned ch
 	avrftdi_t* pdata = to_pdata(pgm);
 
 	// more than this does not work with FT2232D
-	blocksize = 16;//pdata->rx_buffer_size/2; // we are reading 2 bytes per data byte
+	blocksize = 12;//pdata->rx_buffer_size/2; // we are reading 2 bytes per data byte
 
 	while(remaining)
 	{
@@ -988,21 +988,20 @@ static int avrftdi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 
 /* Load extended address byte command */
 static int
-avrftdi_lext(avrftdi_t* pdata, AVRPART *p, AVRMEM *m, unsigned int address)
+avrftdi_lext(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m, unsigned int address)
 {
-	unsigned char buf[] =
-			{ MPSSE_DO_WRITE | MPSSE_WRITE_NEG, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00 };
+	unsigned char buf[] = { 0x00, 0x00, 0x00, 0x00 };
 
-	avr_set_bits(m->op[AVR_OP_LOAD_EXT_ADDR], &buf[3]);
-	avr_set_addr(m->op[AVR_OP_LOAD_EXT_ADDR], &buf[3], address);
+	avr_set_bits(m->op[AVR_OP_LOAD_EXT_ADDR], buf);
+	avr_set_addr(m->op[AVR_OP_LOAD_EXT_ADDR], buf, address);
 
 	if(verbose > TRACE)
 		buf_dump(buf, sizeof(buf),
 			 "load extended address command", 0, 16 * 3);
 
 #ifndef DRYRUN
-	E(ftdi_write_data(pdata->ftdic, buf, sizeof(buf)) != sizeof(buf),
-			pdata->ftdic);
+	if (0 > avrftdi_transmit(pgm, MPSSE_DO_WRITE, buf, buf, 4))
+		return -1;
 #endif
 	return 0;
 }
@@ -1014,14 +1013,15 @@ static int avrftdi_eeprom_write(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
 	unsigned char *data = &m->buf[addr];
 	unsigned int add;
 
-	avr_set_bits(m->op[AVR_OP_WRITE], &cmd[3]);
+	avr_set_bits(m->op[AVR_OP_WRITE], cmd);
 
 	for (add = addr; add < addr + len; add++)
 	{
 		avr_set_addr(m->op[AVR_OP_WRITE], cmd, add);
 		avr_set_input(m->op[AVR_OP_WRITE], cmd, *data++);
 
-		avrftdi_transmit(pgm, MPSSE_DO_WRITE, cmd, cmd, 4);
+		if (0 > avrftdi_transmit(pgm, MPSSE_DO_WRITE, cmd, cmd, 4))
+		    return -1;
 		usleep((m->max_write_delay));
 
 	}
@@ -1042,7 +1042,8 @@ static int avrftdi_eeprom_read(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
 		avr_set_bits(m->op[AVR_OP_READ], cmd);
 		avr_set_addr(m->op[AVR_OP_READ], cmd, add);
 
-		avrftdi_transmit(pgm, MPSSE_DO_READ | MPSSE_DO_WRITE, cmd, cmd, 4);
+		if (0 > avrftdi_transmit(pgm, MPSSE_DO_READ | MPSSE_DO_WRITE, cmd, cmd, 4))
+			return -1;
 
 		avr_get_output(m->op[AVR_OP_READ], cmd, bufptr++);
 	}
@@ -1092,7 +1093,8 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	 * write the command only once.
 	 */
 	if(use_lext_address && (((addr/2) & 0xffff0000))) {
-		avrftdi_lext(to_pdata(pgm), p, m, addr/2);
+		if (0 > avrftdi_lext(pgm, p, m, addr/2))
+			return -1;
 	}
 	
 	/* prepare the command stream for the whole page */
@@ -1132,7 +1134,8 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 		buf_dump(buf, buf_size, "command buffer", 0, 16*2);
 
 	log_info("Transmitting buffer of size: %d\n", buf_size);
-	avrftdi_transmit(pgm, MPSSE_DO_WRITE, buf, buf, buf_size);
+	if (0 > avrftdi_transmit(pgm, MPSSE_DO_WRITE, buf, buf, buf_size))
+		return -1;
 
 	bufptr = buf;
 	/* find a poll byte. we cannot poll a value of 0xff, so look
@@ -1164,7 +1167,7 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 		/* sleep */
 		usleep((m->max_write_delay));
 	}
-	
+
 	return len;
 }
 
@@ -1183,6 +1186,7 @@ static int avrftdi_flash_read(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	unsigned char i_buf[4*len+4];
 	unsigned int index;
 
+
 	memset(o_buf, 0, sizeof(o_buf));
 	memset(i_buf, 0, sizeof(i_buf));
 
@@ -1197,7 +1201,8 @@ static int avrftdi_flash_read(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	}
 	
 	if(use_lext_address && ((address & 0xffff0000))) {
-		avrftdi_lext(to_pdata(pgm), p, m, address);
+		if (0 > avrftdi_lext(pgm, p, m, address))
+			return -1;
 	}
 	
 	/* word addressing! */
@@ -1222,8 +1227,9 @@ static int avrftdi_flash_read(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 		buf_dump(o_buf, sizeof(o_buf), "o_buf", 0, 32);
 	}
 
-	avrftdi_transmit(pgm, MPSSE_DO_READ | MPSSE_DO_WRITE, o_buf, i_buf, len * 4);
-				
+	if (0 > avrftdi_transmit(pgm, MPSSE_DO_READ | MPSSE_DO_WRITE, o_buf, i_buf, len * 4))
+		return -1;
+
 	if(verbose > TRACE) {
 		buf_dump(i_buf, sizeof(i_buf), "i_buf", 0, 32);
 	}
@@ -1236,13 +1242,13 @@ static int avrftdi_flash_read(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 			readop = m->op[AVR_OP_READ_HI];
 		else
 			readop = m->op[AVR_OP_READ_LO];
-		
+
 		/* take 4 bytes and put the memory byte in the buffer at
 		 * offset addr + offset of the current byte
 		 */
 		avr_get_output(readop, &i_buf[byte*4], &m->buf[addr+byte]);
 	}
-	
+
 	if(verbose > TRACE)
 		buf_dump(&m->buf[addr], page_size, "page:", 0, 32);
 
