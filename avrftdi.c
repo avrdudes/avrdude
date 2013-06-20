@@ -699,7 +699,7 @@ static int avrftdi_pin_setup(PROGRAMMER * pgm)
 		return -1;
 	}
 
-	pdata->use_bitbanging = !pin_check_mpsse || 1;
+	pdata->use_bitbanging = !pin_check_mpsse;
 	if (pdata->use_bitbanging) log_info("Because of pin configuration fallback to bitbanging mode.\n");
 
 	/*
