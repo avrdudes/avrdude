@@ -944,7 +944,7 @@ static int elf2b(char * infile, FILE * inf,
   }
 
   size_t sndx;
-  if (elf_getshstrndx(e, &sndx) != 0) {
+  if (elf_getshdrstrndx(e, &sndx) != 0) {
     fprintf(stderr,
             "%s: ERROR: Error obtaining section name string table: %s\n",
             progname, elf_errmsg(-1));
