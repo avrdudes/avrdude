@@ -1,3 +1,8 @@
+2013-07-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* fileio.c (elf2b): replace elf_getshstrndx() by
+	elf_getshdrstrndx() as the former one is deprecated
+
 2013-06-19  Rene Liebscher <R.Liebscher@gmx.de>
 
 	use bitbanging on ftdi mpsse when wrong pins are used
