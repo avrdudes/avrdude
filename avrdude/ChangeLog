@@ -1,3 +1,9 @@
+2013-08-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #39893: Verification failure with AVRISPmkII and Xmega
+	* stk500v2.c (stk600_xprog_page_erase): Fix argument that is
+	passed to stk600_xprog_memtype()
+
 2013-07-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* fileio.c (elf2b): replace elf_getshstrndx() by
