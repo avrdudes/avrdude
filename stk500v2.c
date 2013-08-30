@@ -4313,7 +4313,7 @@ static int stk600_xprog_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     unsigned char b[6];
 
     if (strcmp(m->desc, "flash") == 0) {
-      b[1] = stk600_xprog_memtype(pgm, addr - m->offset) == XPRG_MEM_TYPE_APPL?
+      b[1] = stk600_xprog_memtype(pgm, addr) == XPRG_MEM_TYPE_APPL?
         XPRG_ERASE_APP_PAGE: XPRG_ERASE_BOOT_PAGE;
     } else if (strcmp(m->desc, "application") == 0 ||
                strcmp(m->desc, "apptable") == 0) {
