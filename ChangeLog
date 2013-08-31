@@ -1,3 +1,7 @@
+2013-08-31  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* usbasp.c (usbasp_transmit): Add -vvvv trace output.
+
 2013-08-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #39893: Verification failure with AVRISPmkII and Xmega
