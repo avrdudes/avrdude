@@ -191,6 +191,31 @@ static void usbasp_teardown(PROGRAMMER * pgm)
 }
 
 /* Internal functions */
+
+static const char *usbasp_get_funcname(unsigned char functionid)
+{
+  switch (functionid) {
+  case USBASP_FUNC_CONNECT:         return "USBASP_FUNC_CONNECT";         break;
+  case USBASP_FUNC_DISCONNECT:      return "USBASP_FUNC_DISCONNECT";      break;
+  case USBASP_FUNC_TRANSMIT:        return "USBASP_FUNC_TRANSMIT";        break;
+  case USBASP_FUNC_READFLASH:       return "USBASP_FUNC_READFLASH";       break;
+  case USBASP_FUNC_ENABLEPROG:      return "USBASP_FUNC_ENABLEPROG";      break;
+  case USBASP_FUNC_WRITEFLASH:      return "USBASP_FUNC_WRITEFLASH";      break;
+  case USBASP_FUNC_READEEPROM:      return "USBASP_FUNC_READEEPROM";      break;
+  case USBASP_FUNC_WRITEEEPROM:     return "USBASP_FUNC_WRITEEEPROM";     break;
+  case USBASP_FUNC_SETLONGADDRESS:  return "USBASP_FUNC_SETLONGADDRESS";  break;
+  case USBASP_FUNC_SETISPSCK:       return "USBASP_FUNC_SETISPSCK";       break;
+  case USBASP_FUNC_TPI_CONNECT:     return "USBASP_FUNC_TPI_CONNECT";     break;
+  case USBASP_FUNC_TPI_DISCONNECT:  return "USBASP_FUNC_TPI_DISCONNECT";  break;
+  case USBASP_FUNC_TPI_RAWREAD:     return "USBASP_FUNC_TPI_RAWREAD";     break;
+  case USBASP_FUNC_TPI_RAWWRITE:    return "USBASP_FUNC_TPI_RAWWRITE";    break;
+  case USBASP_FUNC_TPI_READBLOCK:   return "USBASP_FUNC_TPI_READBLOCK";   break;
+  case USBASP_FUNC_TPI_WRITEBLOCK:  return "USBASP_FUNC_TPI_WRITEBLOCK";  break;
+  case USBASP_FUNC_GETCAPABILITIES: return "USBASP_FUNC_GETCAPABILITIES"; break;
+  default:                          return "Unknown USBASP function";     break;
+  }
+}
+
 /*
  * wrapper for usb_control_msg call
  */
@@ -199,6 +224,21 @@ static int usbasp_transmit(PROGRAMMER * pgm,
 			   unsigned char send[4], unsigned char * buffer, int buffersize)
 {
   int nbytes;
+
+  if (verbose > 3) {
+    fprintf(stderr,
+	    "%s: usbasp_transmit(\"%s\", 0x%02x, 0x%02x, 0x%02x, 0x%02x)\n",
+	    progname,
+	    usbasp_get_funcname(functionid), send[0], send[1], send[2], send[3]);
+    if (!receive && buffersize > 0) {
+      int i;
+      fprintf(stderr, "%s => ", progbuf);
+      for (i = 0; i < buffersize; i++)
+	fprintf(stderr, "[%02x] ", buffer[i]);
+      fprintf(stderr, "\n");
+    }
+  }
+
 #ifdef USE_LIBUSB_1_0
   nbytes = libusb_control_transfer(PDATA(pgm)->usbhandle,
 				   (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | (receive << 7)) & 0xff,
@@ -225,6 +265,15 @@ static int usbasp_transmit(PROGRAMMER * pgm,
     return -1;
   }
 #endif
+
+  if (verbose > 3 && receive && nbytes > 0) {
+    int i;
+    fprintf(stderr, "%s<= ", progbuf);
+    for (i = 0; i < nbytes; i++)
+      fprintf(stderr, "[%02x] ", buffer[i]);
+    fprintf(stderr, "\n");
+  }
+
   return nbytes;
 }
 
