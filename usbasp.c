@@ -928,14 +928,24 @@ static int usbasp_tpi_nvm_waitbusy(PROGRAMMER * pgm)
 {
   int retry;
 
+  if (verbose > 2)
+    fprintf(stderr, "%s: usbasp_tpi_nvm_waitbusy() ...", progname);
 
   for(retry=50; retry>0; retry--)
   {
     usbasp_tpi_send_byte(pgm, TPI_OP_SIN(NVMCSR));
     if(usbasp_tpi_recv_byte(pgm) & NVMCSR_BSY)
       continue;
+
+    if (verbose > 2)
+      fprintf(stderr, " ready\n");
+
     return 0;
   }
+
+  if (verbose > 2)
+    fprintf(stderr, " failure\n");
+
   return -1;
 }
 
@@ -949,7 +959,9 @@ static int usbasp_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p)
 {
   int retry;
 
-  
+  if (verbose > 2)
+    fprintf(stderr, "%s: usbasp_tpi_program_enable()\n", progname);
+
   /* change guard time */
   usbasp_tpi_send_byte(pgm, TPI_OP_SSTCS(TPIPCR));
   usbasp_tpi_send_byte(pgm, TPIPCR_GT_2b);
@@ -987,6 +999,9 @@ static int usbasp_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p)
 
 static int usbasp_tpi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {
+  if (verbose > 2)
+    fprintf(stderr, "%s: usbasp_tpi_chip_erase()\n", progname);
+
   /* Set PR to flash */
   usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(0));
   usbasp_tpi_send_byte(pgm, 0x01);
@@ -1015,6 +1030,10 @@ static int usbasp_tpi_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   int readed, clen, n;
   uint16_t pr;
 
+
+  if (verbose > 2)
+    fprintf(stderr, "%s: usbasp_tpi_paged_load(\"%s\", 0x%0x, %d)\n",
+	    progname, m->desc, addr, n_bytes);
 
   dptr = m->buf;
   pr = addr + m->offset;
@@ -1056,6 +1075,10 @@ static int usbasp_tpi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   int writed, clen, n;
   uint16_t pr;
 
+
+  if (verbose > 2)
+    fprintf(stderr, "%s: usbasp_tpi_paged_write(\"%s\", 0x%0x, %d)\n",
+	    progname, m->desc, addr, n_bytes);
 
   sptr = m->buf;
   pr = addr + m->offset;
@@ -1134,6 +1157,10 @@ static int usbasp_tpi_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, unsig
   int n;
   uint16_t pr;
 
+
+  if (verbose > 2)
+    fprintf(stderr, "%s: usbasp_tpi_read_byte(\"%s\", 0x%0lx)\n",
+	    progname, m->desc, addr);
 
   pr = m->offset + addr;
 
