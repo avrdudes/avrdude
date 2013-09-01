@@ -1,3 +1,8 @@
+2013-09-01  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* usbasp.c: Add more trace output, by now only for the TPI
+	functions.
+
 2013-08-31  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* usbasp.c (usbasp_transmit): Add -vvvv trace output.
