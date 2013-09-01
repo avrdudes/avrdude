@@ -1,5 +1,15 @@
 2013-09-01  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* usbasp.c (usbasp_tpi_paged_load): Calculate correct
+	buffer address.
+	* usbasp.c (usbasp_tpi_paged_write): Calculate correct
+	buffer address; don't issue a SECTION_ERASE command for
+	each page (a CHIP_ERASE has been done before anyway);
+	remove the code that attempted to handle partial page
+	writes, as all writes are now done with a full page.
+
+2013-09-01  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* usbasp.c: Add more trace output, by now only for the TPI
 	functions.
 

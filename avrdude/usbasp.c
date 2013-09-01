@@ -1035,7 +1035,7 @@ static int usbasp_tpi_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     fprintf(stderr, "%s: usbasp_tpi_paged_load(\"%s\", 0x%0x, %d)\n",
 	    progname, m->desc, addr, n_bytes);
 
-  dptr = m->buf;
+  dptr = addr + m->buf;
   pr = addr + m->offset;
   readed = 0;
 
@@ -1070,7 +1070,6 @@ static int usbasp_tpi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                                   unsigned int addr, unsigned int n_bytes)
 {
   unsigned char cmd[4];
-  unsigned char dummy[8];
   unsigned char* sptr;
   int writed, clen, n;
   uint16_t pr;
@@ -1080,7 +1079,7 @@ static int usbasp_tpi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     fprintf(stderr, "%s: usbasp_tpi_paged_write(\"%s\", 0x%0x, %d)\n",
 	    progname, m->desc, addr, n_bytes);
 
-  sptr = m->buf;
+  sptr = addr + m->buf;
   pr = addr + m->offset;
   writed = 0;
 
@@ -1089,15 +1088,6 @@ static int usbasp_tpi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   usbasp_tpi_send_byte(pgm, (pr & 0xFF) | 1 );
   usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(1));
   usbasp_tpi_send_byte(pgm, (pr >> 8) );
-  /* select SECTIONERASE */
-  usbasp_tpi_send_byte(pgm, TPI_OP_SOUT(NVMCMD));
-  usbasp_tpi_send_byte(pgm, NVMCMD_SECTION_ERASE);
-  /* dummy write */
-  usbasp_tpi_send_byte(pgm, TPI_OP_SST);
-  usbasp_tpi_send_byte(pgm, 0x00);
-  usbasp_tpi_nvm_waitbusy(pgm);
-
-  usleep(p->chip_erase_delay);
 
   while(writed < n_bytes)
   {
@@ -1120,28 +1110,6 @@ static int usbasp_tpi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     writed += clen;
     pr += clen;
     sptr += clen;
-  }
-  
-  /* finishing write */
-  while((  clen = (-pr) & (m->page_size-1)  ) != 0)
-  {
-    if(clen > 8)
-      clen = 8;
-
-    memset(dummy, 0xFF, clen);
-
-    cmd[0] = pr & 0xFF;
-    cmd[1] = pr >> 8;
-    cmd[2] = 0;
-    cmd[3] = 0;
-    n = usbasp_transmit(pgm, 0, USBASP_FUNC_TPI_WRITEBLOCK, cmd, dummy, clen);
-    if(n != clen)
-    {
-      fprintf(stderr, "%s: error: wrong count at writing %x\n", progname, n);
-      return -3;
-    }
-
-    pr += clen;
   }
 
   return n_bytes;
