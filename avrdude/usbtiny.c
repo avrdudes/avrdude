@@ -180,7 +180,7 @@ static int usb_out (PROGRAMMER * pgm,
 // to get the information from AvrDude and send to the USBtiny
 static int usbtiny_avr_op (PROGRAMMER * pgm, AVRPART * p,
 			   int op,
-			   unsigned char res[4])
+			   unsigned char *res)
 {
   unsigned char	cmd[4];
 
@@ -383,7 +383,7 @@ static void usbtiny_powerdown(PROGRAMMER * pgm)
 
 /* Send a 4-byte SPI command to the USBtinyISP for execution
    This procedure is used by higher-level Avrdude procedures */
-static int usbtiny_cmd(PROGRAMMER * pgm, unsigned char cmd[4], unsigned char res[4])
+static int usbtiny_cmd(PROGRAMMER * pgm, const unsigned char *cmd, unsigned char *res)
 {
   int nbytes;
 

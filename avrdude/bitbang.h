@@ -37,12 +37,12 @@ int  bitbang_rdy_led        (PROGRAMMER * pgm, int value);
 int  bitbang_err_led        (PROGRAMMER * pgm, int value);
 int  bitbang_pgm_led        (PROGRAMMER * pgm, int value);
 int  bitbang_vfy_led        (PROGRAMMER * pgm, int value);
-int  bitbang_cmd            (PROGRAMMER * pgm, unsigned char cmd[4],
-                                unsigned char res[4]);
-int  bitbang_cmd_tpi        (PROGRAMMER * pgm, unsigned char cmd[], 
-                                int cmd_len, unsigned char res[], int res_len);
-int  bitbang_spi            (PROGRAMMER * pgm, unsigned char cmd[],
-                                unsigned char res[], int count);
+int  bitbang_cmd            (PROGRAMMER * pgm, const unsigned char *cmd,
+                                unsigned char *res);
+int  bitbang_cmd_tpi        (PROGRAMMER * pgm, const unsigned char *cmd,
+                                int cmd_len, unsigned char *res, int res_len);
+int  bitbang_spi            (PROGRAMMER * pgm, const unsigned char *cmd,
+                                unsigned char *res, int count);
 int  bitbang_chip_erase     (PROGRAMMER * pgm, AVRPART * p);
 int  bitbang_program_enable (PROGRAMMER * pgm, AVRPART * p);
 void bitbang_powerup        (PROGRAMMER * pgm);

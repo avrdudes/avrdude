@@ -790,8 +790,8 @@ static void buspirate_powerdown(struct programmer_t *pgm)
 }
 
 static int buspirate_cmd_bin(struct programmer_t *pgm,
-				unsigned char cmd[4],
-				unsigned char res[4])
+				const unsigned char *cmd,
+				unsigned char *res)
 {
 	/* 0001xxxx - Bulk transfer, send/read 1-16 bytes (0=1byte!)
 	 * we are sending 4 bytes -> 0x13 */
@@ -805,8 +805,8 @@ static int buspirate_cmd_bin(struct programmer_t *pgm,
 }
 
 static int buspirate_cmd_ascii(struct programmer_t *pgm,
-				unsigned char cmd[4],
-				unsigned char res[4])
+				const unsigned char *cmd,
+				unsigned char *res)
 {
 	char buf[25];
 	char *rcvd;
@@ -838,8 +838,8 @@ static int buspirate_cmd_ascii(struct programmer_t *pgm,
 }
 
 static int buspirate_cmd(struct programmer_t *pgm,
-				unsigned char cmd[4],
-				unsigned char res[4])
+				const unsigned char *cmd,
+				unsigned char *res)
 {
 	if (pgm->flag & BP_FLAG_IN_BINMODE)
 		return buspirate_cmd_bin(pgm, cmd, res);
