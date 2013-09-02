@@ -1,6 +1,14 @@
 2013-09-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #39794: warnings when building avrdude 6.0rc1 under CentOS 6.4
+	* pickit.c (usb_open_device): Use %p rather than %X to print "handle"
+	which is a pointer
+	* jtag3.c (jtag3_initialize): Initialize "flashsize" to be sure it
+	proceeds with a valid value.
+
+2013-09-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #39794: warnings when building avrdude 6.0rc1 under CentOS 6.4
 	* buspirate.c: Turn the "cmd" argument of the various methods into
 	a "const unsigned char *"; while doing this, declare all arrays being
 	passed as arguments to be pointers rather than arrays, as the latter
