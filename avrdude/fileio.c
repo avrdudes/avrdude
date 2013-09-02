@@ -372,12 +372,22 @@ static int ihex2b(char * infile, FILE * inf,
 
   } /* while */
 
-  fprintf(stderr, 
-          "%s: WARNING: no end of file record found for Intel Hex "
-          "file \"%s\"\n",
-          progname, infile);
+  if (maxaddr == 0) {
+    fprintf(stderr, 
+	    "%s: ERROR: No valid record found in Intel Hex "
+	    "file \"%s\"\n",
+	    progname, infile);
 
-  return maxaddr;
+    return -1;
+  }
+  else {
+    fprintf(stderr, 
+	    "%s: WARNING: no end of file record found for Intel Hex "
+	    "file \"%s\"\n",
+	    progname, infile);
+
+    return maxaddr;
+  }
 }
 
 static int b2srec(unsigned char * inbuf, int bufsize, 
