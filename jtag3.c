@@ -847,7 +847,7 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
     struct mega_device_desc md;
     LNODEID ln;
     AVRMEM * m;
-    unsigned int flashsize;
+    unsigned int flashsize = 0;
 
     memset(&md, 0, sizeof md);
 

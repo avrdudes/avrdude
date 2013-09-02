@@ -49,6 +49,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
+#include <unistd.h>
 
 #include "avrdude.h"
 #include "avr.h"
@@ -1167,7 +1168,7 @@ static int usb_open_device(struct usb_dev_handle **device, int vendor, int produ
                 {
                     if (verbose)
                     {
-                        fprintf(stderr, "Device 0x%4.4X seemed to open OK.\n", (int)handle);
+                        fprintf(stderr, "Device %p seemed to open OK.\n", handle);
                     }
 
                     if ((errorCode = usb_set_configuration(handle, 1)) < 0)
