@@ -651,11 +651,12 @@ static int usbasp_spi_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
 	    progname);
     return -1;
   }
-  if (verbose > 2)
+  if (verbose > 2) {
     if (verbose > 3)
       fprintf(stderr, "%s: usbasp_cpi_cmd()", progname);
     fprintf(stderr, " => 0x%02x, 0x%02x, 0x%02x, 0x%02x\n",
 	    res[0], res[1], res[2], res[3]);
+  }
 
   return 0;
 }
