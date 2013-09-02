@@ -85,6 +85,7 @@ Current:
       - bug #38023: avrdude doesn't return an error code when attempting
         to upload an invalid Intel HEX file
       - bug #39794: warnings when building avrdude 6.0rc1 under CentOS 6.4
+      - bug #35800: Compilation error on certain systems if parport is disabled
 
   * Keep track of input file contents
 
