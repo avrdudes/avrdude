@@ -1,5 +1,12 @@
 2013-09-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Robert Niemi:
+	bug #35800: Compilation error on certain systems if parport is disabled
+	* linux_ppdev.h: Conditionalize inclusion of <linux/parport.h> and
+	<linux/ppdev.h> on HAVE_PARPORT
+
+2013-09-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #39794: warnings when building avrdude 6.0rc1 under CentOS 6.4
 	* pickit.c (usb_open_device): Use %p rather than %X to print "handle"
 	which is a pointer

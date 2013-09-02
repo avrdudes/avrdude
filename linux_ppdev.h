@@ -24,8 +24,10 @@
 #define OBSOLETE__IOW _IOW
 
 #include <sys/ioctl.h>
+#ifdef HAVE_PARPORT
 #include <linux/parport.h>
 #include <linux/ppdev.h>
+#endif
 
 #include <stdlib.h>
 
