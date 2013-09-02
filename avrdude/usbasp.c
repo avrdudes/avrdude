@@ -456,6 +456,10 @@ static int           didUsbInit = 0;
 /* Interface - prog. */
 static int usbasp_open(PROGRAMMER * pgm, char * port)
 {
+  if (verbose > 2)
+    fprintf(stderr, "%s: usbasp_open(\"%s\")\n",
+	    progname, port);
+
   /* usb_init will be done in usbOpenDevice */
   if (usbOpenDevice(&PDATA(pgm)->usbhandle, pgm->usbvid, pgm->usbvendor,
 		  pgm->usbpid, pgm->usbproduct) != 0) {
@@ -509,6 +513,9 @@ static int usbasp_open(PROGRAMMER * pgm, char * port)
 
 static void usbasp_close(PROGRAMMER * pgm)
 {
+  if (verbose > 2)
+    fprintf(stderr, "%s: usbasp_close()\n", progname);
+
   if (PDATA(pgm)->usbhandle!=NULL) {
     unsigned char temp[4];
     memset(temp, 0, sizeof(temp));
@@ -561,6 +568,8 @@ static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p)
   unsigned char res[4];
   IMPORT_PDATA(pgm);
 
+  if (verbose > 2)
+    fprintf(stderr, "%s: usbasp_initialize()\n", progname);
 
   /* get capabilities */
   memset(temp, 0, sizeof(temp));
@@ -624,16 +633,29 @@ static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p)
 static int usbasp_spi_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
                    unsigned char res[4])
 {
+  if (verbose > 2)
+    fprintf(stderr, "%s: usbasp_cpi_cmd(0x%02x, 0x%02x, 0x%02x, 0x%02x)%s",
+	    progname, cmd[0], cmd[1], cmd[2], cmd[3],
+	    verbose > 3? "...\n": "");
+
   /* Do not use 'sizeof(res)'. => message from cppcheck:
      Using sizeof for array given as function argument returns the size of pointer. */
   int nbytes =
     usbasp_transmit(pgm, 1, USBASP_FUNC_TRANSMIT, cmd, res, 4);
 
   if(nbytes != 4){
+    if (verbose == 3)
+      putc('\n', stderr);
+
     fprintf(stderr, "%s: error: wrong responds size\n",
 	    progname);
     return -1;
   }
+  if (verbose > 2)
+    if (verbose > 3)
+      fprintf(stderr, "%s: usbasp_cpi_cmd()", progname);
+    fprintf(stderr, " => 0x%02x, 0x%02x, 0x%02x, 0x%02x\n",
+	    res[0], res[1], res[2], res[3]);
 
   return 0;
 }
@@ -646,6 +668,10 @@ static int usbasp_spi_program_enable(PROGRAMMER * pgm, AVRPART * p)
   memset(res, 0, sizeof(res));
 
   cmd[0] = 0;
+
+  if (verbose > 2)
+    fprintf(stderr, "%s: usbasp_program_enable()\n",
+	    progname);
 
   int nbytes =
     usbasp_transmit(pgm, 1, USBASP_FUNC_ENABLEPROG, cmd, res, sizeof(res));
@@ -663,6 +689,10 @@ static int usbasp_spi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {
   unsigned char cmd[4];
   unsigned char res[4];
+
+  if (verbose > 2)
+    fprintf(stderr, "%s: usbasp_chip_erase()\n",
+	    progname);
 
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
     fprintf(stderr, "chip erase instruction not defined for part \"%s\"\n",
@@ -690,6 +720,11 @@ static int usbasp_spi_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   int blocksize;
   unsigned char *buffer = m->buf + address;
   int function;
+
+  if (verbose > 2)
+    fprintf(stderr,
+	    "%s: usbasp_program_paged_load(\"%s\", 0x%x, %d)\n",
+	    progname, m->desc, address, n_bytes);
 
   if (strcmp(m->desc, "flash") == 0) {
     function = USBASP_FUNC_READFLASH;
@@ -755,6 +790,11 @@ static int usbasp_spi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   unsigned char *buffer = m->buf + address;
   unsigned char blockflags = USBASP_BLOCKFLAG_FIRST;
   int function;
+
+  if (verbose > 2)
+    fprintf(stderr,
+	    "%s: usbasp_program_paged_write(\"%s\", 0x%x, %d)\n",
+	    progname, m->desc, address, n_bytes);
 
   if (strcmp(m->desc, "flash") == 0) {
     function = USBASP_FUNC_WRITEFLASH;
@@ -840,6 +880,11 @@ static int usbasp_spi_set_sck_period(PROGRAMMER *pgm, double sckperiod)
   char clockoption = USBASP_ISP_SCK_AUTO;
   unsigned char res[4];
   unsigned char cmd[4];
+
+  if (verbose > 2)
+    fprintf(stderr,
+	    "%s: usbasp_spi_set_sck_period(%g)\n",
+	    progname, sckperiod);
 
   memset(cmd, 0, sizeof(cmd));
   memset(res, 0, sizeof(res));

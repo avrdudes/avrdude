@@ -1,3 +1,7 @@
+2013-09-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* usbasp.c: Add trace output for -vvv to non-TPI functions, too.
+
 2013-09-01  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* usbasp.c (usbasp_tpi_paged_load): Calculate correct

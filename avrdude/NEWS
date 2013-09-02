@@ -148,6 +148,9 @@ Current:
     programmer types now, new programmers will update only the table
     in pgm_type.c.)
 
+  * The USBasp programmer implementation now supports detailed traces
+    with -vvv, and device communication traces with -vvvv.
+
   * Internals:
 
     - Restructuring and compacting programmer definition part of
