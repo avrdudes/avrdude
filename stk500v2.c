@@ -529,7 +529,7 @@ int stk500v2_drain(PROGRAMMER * pgm, int display)
   return serial_drain(&pgm->fd, display);
 }
 
-static int stk500v2_recv_mk2(PROGRAMMER * pgm, unsigned char msg[],
+static int stk500v2_recv_mk2(PROGRAMMER * pgm, unsigned char *msg,
 			     size_t maxsize)
 {
   int rv;
@@ -543,7 +543,7 @@ static int stk500v2_recv_mk2(PROGRAMMER * pgm, unsigned char msg[],
   return rv;
 }
 
-static int stk500v2_jtagmkII_recv(PROGRAMMER * pgm, unsigned char msg[],
+static int stk500v2_jtagmkII_recv(PROGRAMMER * pgm, unsigned char *msg,
                                   size_t maxsize)
 {
   int rv;
@@ -585,7 +585,7 @@ static int stk500v2_jtagmkII_recv(PROGRAMMER * pgm, unsigned char msg[],
   return rv;
 }
 
-static int stk500v2_jtag3_recv(PROGRAMMER * pgm, unsigned char msg[],
+static int stk500v2_jtag3_recv(PROGRAMMER * pgm, unsigned char *msg,
 			       size_t maxsize)
 {
   int rv;
@@ -619,7 +619,7 @@ static int stk500v2_jtag3_recv(PROGRAMMER * pgm, unsigned char msg[],
   return rv;
 }
 
-static int stk500v2_recv(PROGRAMMER * pgm, unsigned char msg[], size_t maxsize) {
+static int stk500v2_recv(PROGRAMMER * pgm, unsigned char *msg, size_t maxsize) {
   enum states { sINIT, sSTART, sSEQNUM, sSIZE1, sSIZE2, sTOKEN, sDATA, sCSUM, sDONE }  state = sSTART;
   unsigned int msglen = 0;
   unsigned int curlen = 0;
@@ -933,8 +933,8 @@ retry:
   return 0;
 }
 
-static int stk500v2_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
-                        unsigned char res[4])
+static int stk500v2_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
+                        unsigned char *res)
 {
   unsigned char buf[8];
   int result;
@@ -970,8 +970,8 @@ static int stk500v2_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
 }
 
 
-static int stk500v2_jtag3_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
-			      unsigned char res[4])
+static int stk500v2_jtag3_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
+			      unsigned char *res)
 {
   fprintf(stderr,
 	  "%s: stk500v2_jtag3_cmd(): Not available in JTAGICE3\n",

@@ -330,8 +330,8 @@ int bitbang_vfy_led(PROGRAMMER * pgm, int value)
  * transmit an AVR device command and return the results; 'cmd' and
  * 'res' must point to at least a 4 byte data buffer
  */
-int bitbang_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
-                   unsigned char res[4])
+int bitbang_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
+                   unsigned char *res)
 {
   int i;
 
@@ -355,8 +355,8 @@ int bitbang_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
   return 0;
 }
 
-int bitbang_cmd_tpi(PROGRAMMER * pgm, unsigned char cmd[], 
-                       int cmd_len, unsigned char res[], int res_len) 
+int bitbang_cmd_tpi(PROGRAMMER * pgm, const unsigned char *cmd,
+                       int cmd_len, unsigned char *res, int res_len)
 {
   int i, r;
 
@@ -397,8 +397,8 @@ int bitbang_cmd_tpi(PROGRAMMER * pgm, unsigned char cmd[],
  * transmit bytes via SPI and return the results; 'cmd' and
  * 'res' must point to data buffers
  */
-int bitbang_spi(PROGRAMMER * pgm, unsigned char cmd[],
-                   unsigned char res[], int count)
+int bitbang_spi(PROGRAMMER * pgm, const unsigned char *cmd,
+                   unsigned char *res, int count)
 {
   int i;
 

@@ -20,6 +20,7 @@
 static void avrftdi_tpi_disable(PROGRAMMER *);
 static int avrftdi_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p);
 
+#ifdef notyet
 static void
 avrftdi_debug_frame(uint16_t frame)
 {
@@ -61,6 +62,7 @@ avrftdi_debug_frame(uint16_t frame)
 	log_debug("%s\n", line1);
 	//log_debug("%s\n", line2);
 }
+#endif /* notyet */
 
 int
 avrftdi_tpi_initialize(PROGRAMMER * pgm, AVRPART * p)
@@ -129,6 +131,7 @@ tpi_frame2byte(uint16_t frame, uint8_t * byte)
 	return parity != parity_rcvd;
 }
 
+#ifdef notyet
 static int
 avrftdi_tpi_break(PROGRAMMER * pgm)
 {
@@ -137,6 +140,7 @@ avrftdi_tpi_break(PROGRAMMER * pgm)
 
 	return 0;
 }
+#endif /* notyet */
 
 static int
 avrftdi_tpi_write_byte(PROGRAMMER * pgm, unsigned char byte)
@@ -217,8 +221,8 @@ avrftdi_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p)
 }
 
 int
-avrftdi_cmd_tpi(PROGRAMMER * pgm, unsigned char cmd[], int cmd_len,
-		unsigned char res[], int res_len)
+avrftdi_cmd_tpi(PROGRAMMER * pgm, const unsigned char *cmd, int cmd_len,
+		unsigned char *res, int res_len)
 {
 	int i, err = 0;
 

@@ -95,12 +95,12 @@ typedef struct programmer_t {
   void (*powerdown)      (struct programmer_t * pgm);
   int  (*program_enable) (struct programmer_t * pgm, AVRPART * p);
   int  (*chip_erase)     (struct programmer_t * pgm, AVRPART * p);
-  int  (*cmd)            (struct programmer_t * pgm, unsigned char cmd[4], 
-                          unsigned char res[4]);
-  int  (*cmd_tpi)        (struct programmer_t * pgm, unsigned char cmd[], 
+  int  (*cmd)            (struct programmer_t * pgm, const unsigned char *cmd,
+                          unsigned char *res);
+  int  (*cmd_tpi)        (struct programmer_t * pgm, const unsigned char *cmd,
                           int cmd_len, unsigned char res[], int res_len);
-  int  (*spi)            (struct programmer_t * pgm, unsigned char cmd[], 
-                          unsigned char res[], int count);
+  int  (*spi)            (struct programmer_t * pgm, const unsigned char *cmd,
+                          unsigned char *res, int count);
   int  (*open)           (struct programmer_t * pgm, char * port);
   void (*close)          (struct programmer_t * pgm);
   int  (*paged_write)    (struct programmer_t * pgm, AVRPART * p, AVRMEM * m, 

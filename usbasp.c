@@ -131,7 +131,9 @@ struct pdata
 static void usbasp_setup(PROGRAMMER * pgm);
 static void usbasp_teardown(PROGRAMMER * pgm);
 // internal functions
-static int usbasp_transmit(PROGRAMMER * pgm, unsigned char receive, unsigned char functionid, unsigned char send[4], unsigned char * buffer, int buffersize);
+static int usbasp_transmit(PROGRAMMER * pgm, unsigned char receive,
+			   unsigned char functionid, const unsigned char *send,
+			   unsigned char *buffer, int buffersize);
 #ifdef USE_LIBUSB_1_0
 static int usbOpenDevice(libusb_device_handle **device, int vendor, char *vendorName, int product, char *productName);
 #else
@@ -147,7 +149,7 @@ static void usbasp_display(PROGRAMMER * pgm, const char * p);
 // universal functions
 static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p);
 // SPI specific functions
-static int usbasp_spi_cmd(PROGRAMMER * pgm, unsigned char cmd[4], unsigned char res[4]);
+static int usbasp_spi_cmd(PROGRAMMER * pgm, const unsigned char *cmd, unsigned char *res);
 static int usbasp_spi_program_enable(PROGRAMMER * pgm, AVRPART * p);
 static int usbasp_spi_chip_erase(PROGRAMMER * pgm, AVRPART * p);
 static int usbasp_spi_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
@@ -159,7 +161,7 @@ static int usbasp_spi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 static int usbasp_spi_set_sck_period(PROGRAMMER *pgm, double sckperiod);
 // TPI specific functions
 static void usbasp_tpi_send_byte(PROGRAMMER * pgm, uint8_t b);
-static int usbasp_tpi_cmd(PROGRAMMER * pgm, unsigned char cmd[4], unsigned char res[4]);
+static int usbasp_tpi_cmd(PROGRAMMER * pgm, const unsigned char *cmd, unsigned char *res);
 static int usbasp_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p);
 static int usbasp_tpi_chip_erase(PROGRAMMER * pgm, AVRPART * p);
 static int usbasp_tpi_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
@@ -221,7 +223,8 @@ static const char *usbasp_get_funcname(unsigned char functionid)
  */
 static int usbasp_transmit(PROGRAMMER * pgm,
 			   unsigned char receive, unsigned char functionid,
-			   unsigned char send[4], unsigned char * buffer, int buffersize)
+			   const unsigned char *send,
+			   unsigned char *buffer, int buffersize)
 {
   int nbytes;
 
@@ -630,16 +633,14 @@ static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p)
 }
 
 /* SPI specific functions */
-static int usbasp_spi_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
-                   unsigned char res[4])
+static int usbasp_spi_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
+                   unsigned char *res)
 {
   if (verbose > 2)
     fprintf(stderr, "%s: usbasp_cpi_cmd(0x%02x, 0x%02x, 0x%02x, 0x%02x)%s",
 	    progname, cmd[0], cmd[1], cmd[2], cmd[3],
 	    verbose > 3? "...\n": "");
 
-  /* Do not use 'sizeof(res)'. => message from cppcheck:
-     Using sizeof for array given as function argument returns the size of pointer. */
   int nbytes =
     usbasp_transmit(pgm, 1, USBASP_FUNC_TRANSMIT, cmd, res, 4);
 
@@ -995,7 +996,7 @@ static int usbasp_tpi_nvm_waitbusy(PROGRAMMER * pgm)
   return -1;
 }
 
-static int usbasp_tpi_cmd(PROGRAMMER * pgm, unsigned char cmd[4], unsigned char res[4])
+static int usbasp_tpi_cmd(PROGRAMMER * pgm, const unsigned char *cmd, unsigned char *res)
 {
   fprintf(stderr, "%s: error: spi_cmd used in TPI mode: not allowed\n", progname);
   return -1;

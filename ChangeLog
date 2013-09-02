@@ -1,5 +1,26 @@
 2013-09-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #39794: warnings when building avrdude 6.0rc1 under CentOS 6.4
+	* buspirate.c: Turn the "cmd" argument of the various methods into
+	a "const unsigned char *"; while doing this, declare all arrays being
+	passed as arguments to be pointers rather than arrays, as the latter
+	obfuscates the way arrays are being passed to a callee in C.
+	* avrftdi.c: (Dito.)
+	* pickit2.c: (Dito.)
+	* ft245r.c: (Dito.)
+	* avr910.c: (Dito.)
+	* stk500.c: (Dito.)
+	* bitbang.c: (Dito.)
+	* bitbang.h: (Dito.)
+	* avrftdi_tpi.c: (Dito.)
+	* avrftdi_tpi.h: (Dito.)
+	* usbasp.c: (Dito.)
+	* stk500v2.c: (Dito.)
+	* pgm.h: (Dito.)
+	* usbtiny.c: (Dito.)
+
+2013-09-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #38023: avrdude doesn't return an error code when attempting
 	to upload an invalid Intel HEX file
 	* fileio.c (ihex2b): Turn the "No end of file record found" warning

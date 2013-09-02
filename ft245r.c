@@ -367,8 +367,8 @@ static void ft245r_enable(PROGRAMMER * pgm) {
     set_buff(pgm, ON);
 }
 
-static int ft245r_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
-                      unsigned char res[4]);
+static int ft245r_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
+                      unsigned char *res);
 /*
  * issue the 'program enable' command to the AVR device
  */
@@ -491,8 +491,8 @@ static inline unsigned char extract_data_out(PROGRAMMER * pgm, unsigned char *bu
  * transmit an AVR device command and return the results; 'cmd' and
  * 'res' must point to at least a 4 byte data buffer
  */
-static int ft245r_cmd(PROGRAMMER * pgm, unsigned char cmd[4],
-                      unsigned char res[4]) {
+static int ft245r_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
+                      unsigned char *res) {
     int i,buf_pos;
     unsigned char buf[128];
 

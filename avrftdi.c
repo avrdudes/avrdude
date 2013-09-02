@@ -171,7 +171,7 @@ void avrftdi_log(int level, const char * func, int line,
  * number of bytes which are printed on the first line (may be 0). after that
  * width bytes are printed on each line
  */
-static void buf_dump(unsigned char *buf, int len, char *desc,
+static void buf_dump(const unsigned char *buf, int len, char *desc,
 		     int offset, int width)
 {
 	int i;
@@ -347,7 +347,7 @@ static inline unsigned char extract_data(PROGRAMMER * pgm, unsigned char *buf, i
 }
 
 
-static int avrftdi_transmit_bb(PROGRAMMER * pgm, unsigned char mode, unsigned char *buf,
+static int avrftdi_transmit_bb(PROGRAMMER * pgm, unsigned char mode, const unsigned char *buf,
 			    unsigned char *data, int buf_size)
 {
 	size_t blocksize;
@@ -412,7 +412,7 @@ static int avrftdi_transmit_bb(PROGRAMMER * pgm, unsigned char mode, unsigned ch
  * Write is only performed when mode contains MPSSE_DO_WRITE.
  * Read is only performed when mode contains MPSSE_DO_WRITE and MPSSE_DO_READ.
  */
-static int avrftdi_transmit_mpsse(avrftdi_t* pdata, unsigned char mode, unsigned char *buf,
+static int avrftdi_transmit_mpsse(avrftdi_t* pdata, unsigned char mode, const unsigned char *buf,
 			    unsigned char *data, int buf_size)
 {
 	size_t blocksize;
@@ -470,7 +470,7 @@ static int avrftdi_transmit_mpsse(avrftdi_t* pdata, unsigned char mode, unsigned
 	return written;
 }
 
-static inline int avrftdi_transmit(PROGRAMMER * pgm, unsigned char mode, unsigned char *buf,
+static inline int avrftdi_transmit(PROGRAMMER * pgm, unsigned char mode, const unsigned char *buf,
 			    unsigned char *data, int buf_size)
 {
 	avrftdi_t* pdata = to_pdata(pgm);
@@ -479,6 +479,8 @@ static inline int avrftdi_transmit(PROGRAMMER * pgm, unsigned char mode, unsigne
 	else
 		return avrftdi_transmit_mpsse(pdata, mode, buf, data, buf_size);
 }
+
+#ifdef notyet
 /* this function tries to sync up with the FTDI. See FTDI application note AN_129.
  * AN_135 uses 0xab as bad command and enables/disables loopback around synchronisation.
  * This may fail if data is left in the buffer (i.e. avrdude aborted with ctrl-c)
@@ -543,6 +545,7 @@ retry:
 	}
 	return -1;
 }
+#endif /* notyet */
 
 static int write_flush(avrftdi_t* pdata)
 {
@@ -797,11 +800,11 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 	E(ftdi_set_bitmode(pdata->ftdic, pdata->pin_direction & 0xff, BITMODE_MPSSE) < 0, pdata->ftdic);
 	E(ftdi_usb_purge_buffers(pdata->ftdic), pdata->ftdic);
 
-/*
+#ifdef notyet
 	ret = ftdi_sync(pdata);
 	if(ret < 0)
 		return ret;
-*/
+#endif
 	write_flush(pdata);
 
 	if (pgm->baudrate) {
@@ -922,10 +925,8 @@ static void avrftdi_display(PROGRAMMER * pgm, const char *p)
 }
 
 
-static int avrftdi_cmd(PROGRAMMER * pgm, unsigned char cmd[4], unsigned char res[4])
+static int avrftdi_cmd(PROGRAMMER * pgm, const unsigned char *cmd, unsigned char *res)
 {
-	/* Do not use 'sizeof(cmd)'. => message from cppcheck:
-	   Using sizeof for array given as function argument returns the size of pointer. */
 	return avrftdi_transmit(pgm, MPSSE_DO_READ | MPSSE_DO_WRITE, cmd, res, 4);
 }
 
