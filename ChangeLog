@@ -1,5 +1,11 @@
 2013-09-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Travis Griggs:
+	bug #38307: Can't write usersig of an xmega256a3
+	* stk500v2.c (stk600_xprog_page_erase): allow erasing the usersig space.
+
+2013-09-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Robert Niemi:
 	bug #35800: Compilation error on certain systems if parport is disabled
 	* linux_ppdev.h: Conditionalize inclusion of <linux/parport.h> and
