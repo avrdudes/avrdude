@@ -81,6 +81,7 @@ Current:
       - patch #7876 JTAGICE mkII fails to connect to attiny if debugwire
         is enabled AND target has a very slow clock
       - bug #39893: Verification failure with AVRISPmkII and Xmega
+      - bug #38713: Compilation of the documentation breaks with texinfo-5
 
   * Keep track of input file contents
 

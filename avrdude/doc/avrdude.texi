@@ -422,7 +422,7 @@ as it has been found at startup.  This option modifies the state of the
 the exitspec arguments provided, as follows:
 
 @table @code
-@itemx reset
+@item reset
 The `/RESET' signal will be left activated at program exit, that is it
 will be held low, in order to keep the MCU in reset state afterwards.
 Note in particular that the programming algorithm for the AT90S1200
@@ -431,24 +431,24 @@ the MCU, so in case an external power supply is used for this MCU type,
 a previous invocation of AVRDUDE with this option specified is one of
 the possible ways to guarantee this condition.
 
-@itemx noreset
+@item noreset
 The `/RESET' line will be deactivated at program exit, thus allowing the
 MCU target program to run while the programming hardware remains
 connected.
 
-@itemx vcc
+@item vcc
 This option will leave those parallel port pins active (i. e. high) that
 can be used to supply `Vcc' power to the MCU.
 
-@itemx novcc
+@item novcc
 This option will pull the `Vcc' pins of the parallel port down at
 program exit.
 
-@itemx d_high
+@item d_high
 This option will leave the 8 data pins on the parallel port active
 (i. e. high).
 
-@itemx d_low
+@item d_low
 This option will leave the 8 data pins on the parallel port inactive
 (i. e. low).
 
@@ -537,7 +537,7 @@ but not on Windows. For more information about AVR-Doper see
 For the USBtinyISP, which is a simplicistic device not implementing
 serial numbers, multiple devices can be distinguished by their
 location in the USB hierarchy.
-@xref{Troubleshooting} for examples.
+@xref{Troubleshooting}, for examples.
 
 For programmers that attach to a serial port using some kind of
 higher level protocol (as opposed to bit-bang style programmers),
@@ -623,13 +623,13 @@ The user signature area of ATxmega devices.
 The @var{op} field specifies what operation to perform:
 
 @table @code
-@itemx r
+@item r
 read the specified device memory and write to the specified file
 
-@itemx w
+@item w
 read the specified file and write it to the specified device memory
 
-@itemx v
+@item v
 read the specified device memory and the specified file and perform a verify operation
 
 @end table
@@ -639,20 +639,20 @@ write.  The @var{format} field is optional and contains the format of
 the file to read or write.  Possible values are:
 
 @table @code
-@itemx i
+@item i
 Intel Hex
 
-@itemx s
+@item s
 Motorola S-record
 
-@itemx r
+@item r
 raw binary; little-endian byte order, in the case of the flash ROM data
 
-@itemx e
+@item e
 ELF (Executable and Linkable Format), the final output file from the
 linker; currently only accepted as an input file
 
-@itemx m
+@item m
 immediate mode; actual byte values specified on the command line,
 separated by commas or spaces in place of the @var{filename} field of
 the @option{-U} option.  This is useful
@@ -662,25 +662,25 @@ it is treated as a hex value.  If the number otherwise begins with a
 leading zero (@code{0}) it is treated as octal.  Otherwise, the value is
 treated as decimal.
 
-@itemx a
+@item a
 auto detect; valid for input only, and only if the input is not provided
 at stdin.
 
-@itemx d
+@item d
 decimal; this and the following formats are only valid on output.
 They generate one line of output for the respective memory section,
 forming a comma-separated list of the values.
 This can be particularly useful for subsequent processing, like for
 fuse bit settings.
 
-@itemx h
+@item h
 hexadecimal; each value will get the string @emph{0x} prepended.
 
-@itemx o
+@item o
 octal; each value will get a @emph{0}
 prepended unless it is less than 8 in which case it gets no prefix.
 
-@itemx b
+@item b
 binary; each value will get the string @emph{0b} prepended.
 
 @end table
@@ -1668,7 +1668,7 @@ The following devices are supported by the respective STK600 routing
 and socket card:
 
 @multitable @columnfractions .25 .25 .5
-Routing card @tab Socket card @tab Devices
+@headitem Routing card @tab Socket card @tab Devices
 @item @code{} @tab @code{STK600-ATTINY10} @tab ATtiny4 ATtiny5 ATtiny9 ATtiny10
 @item @code{STK600-RC008T-2} @tab @code{STK600-DIP} @tab ATtiny11 ATtiny12 ATtiny13 ATtiny13A ATtiny25 ATtiny45 ATtiny85
 @item @code{STK600-RC008T-7} @tab @code{STK600-DIP} @tab ATtiny15
