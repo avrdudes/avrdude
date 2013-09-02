@@ -86,6 +86,7 @@ Current:
         to upload an invalid Intel HEX file
       - bug #39794: warnings when building avrdude 6.0rc1 under CentOS 6.4
       - bug #35800: Compilation error on certain systems if parport is disabled
+      - bug #38307: Can't write usersig of an xmega256a3
 
   * Keep track of input file contents
 

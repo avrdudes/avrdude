@@ -4322,6 +4322,8 @@ static int stk600_xprog_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       b[1] = XPRG_ERASE_BOOT_PAGE;
     } else if (strcmp(m->desc, "eeprom") == 0) {
       b[1] = XPRG_ERASE_EEPROM_PAGE;
+    } else if (strcmp(m->desc, "usersig") == 0) {
+      b[1] = XPRG_ERASE_USERSIG;
     } else {
       fprintf(stderr,
               "%s: stk600_xprog_page_erase(): unknown paged memory \"%s\"\n",
