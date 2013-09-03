@@ -1,5 +1,11 @@
 2013-09-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #38580 Current svn head, xmega and fuses, all fuses tied to fuse0
+	* jtag3.c (jtag3_read_byte, jtag3_write_byte): Correctly apply the
+	relevant part of mem->offset as the address to operate on.
+
+2013-09-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* fileio.c: Fix "unused variable" warnings.
 	* avr.c: (Dito.)
 	* stk500v2.c: (Dito.)
