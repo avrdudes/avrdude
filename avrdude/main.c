@@ -82,7 +82,6 @@ static PROGRAMMER * pgm;
 /*
  * global options
  */
-int    do_cycles;   /* track erase-rewrite cycles */
 int    verbose;     /* verbose output */
 int    quell_progress; /* un-verebose output */
 int    ovsigck;     /* 1=override sig check, 0=don't */
@@ -323,8 +322,6 @@ int main(int argc, char * argv [])
   char  * partdesc;    /* part id */
   char    sys_config[PATH_MAX]; /* system wide config file */
   char    usr_config[PATH_MAX]; /* per-user config file */
-  int     cycles;      /* erase-rewrite cycles */
-  int     set_cycles;  /* value to set the erase-rewrite cycles to */
   char  * e;           /* for strtol() error checking */
   int     baudrate;    /* override default programmer baud rate */
   double  bitclock;    /* Specify programmer bit clock (JTAG ICE) */
@@ -405,8 +402,6 @@ int main(int argc, char * argv [])
   pgm           = NULL;
   programmer    = default_programmer;
   verbose       = 0;
-  do_cycles     = 0;
-  set_cycles    = -1;
   baudrate      = 0;
   bitclock      = 0.0;
   ispdelay      = 0;
@@ -588,17 +583,13 @@ int main(int argc, char * argv [])
         break;
 
       case 'y':
-        do_cycles = 1;
+        fprintf(stderr, "%s: erase cycle counter no longer supported\n",
+                progname);
         break;
 
       case 'Y':
-        set_cycles = strtol(optarg, &e, 0);
-        if ((e == optarg) || (*e != 0)) {
-          fprintf(stderr, "%s: invalid cycle count '%s'\n",
-                  progname, optarg);
-          exit(1);
-        }
-        do_cycles = 1;
+        fprintf(stderr, "%s: erase cycle counter no longer supported\n",
+                progname);
         break;
 
       case '?': /* help */
@@ -1172,48 +1163,6 @@ int main(int argc, char * argv [])
           }
           break;
         }
-      }
-    }
-  }
-
-  /*
-   * Display cycle count, if and only if it is not set later on.
-   *
-   * The cycle count will be displayed anytime it will be changed later.
-   */
-  if (init_ok && !(p->flags & AVRPART_AVR32) && do_cycles) {
-    /*
-     * see if the cycle count in the last four bytes of eeprom seems
-     * reasonable
-     */
-    rc = avr_get_cycle_count(pgm, p, &cycles);
-    if (quell_progress < 2) {
-      if ((rc >= 0) && (cycles != 0)) {
-        fprintf(stderr,
-              "%s: current erase-rewrite cycle count is %d\n",
-              progname, cycles);
-      }
-    }
-  }
-
-  if (init_ok && set_cycles != -1 && !(p->flags & AVRPART_AVR32)) {
-    rc = avr_get_cycle_count(pgm, p, &cycles);
-    if (rc == 0) {
-      /*
-       * only attempt to update the cycle counter if we can actually
-       * read the old value
-       */
-      cycles = set_cycles;
-      if (quell_progress < 2) {
-        fprintf(stderr, "%s: setting erase-rewrite cycle count to %d\n",
-              progname, cycles);
-      }
-      rc = avr_put_cycle_count(pgm, p, cycles);
-      if (rc < 0) {
-        fprintf(stderr,
-                "%s: WARNING: failed to update the erase-rewrite cycle "
-                "counter\n",
-                progname);
       }
     }
   }
