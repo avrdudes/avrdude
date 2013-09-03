@@ -612,13 +612,19 @@ static int avr910_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     unsigned int max_addr = addr + n_bytes;
     char *cmd;
     unsigned int blocksize = PDATA(pgm)->buffersize;
+    int wr_size;
 
     if (strcmp(m->desc, "flash") && strcmp(m->desc, "eeprom"))
       return -2;
 
-    if (m->desc[0] == 'e')
+    if (m->desc[0] == 'e') {
       blocksize = 1;		/* Write to eeprom single bytes only */
-    avr910_set_addr(pgm, addr);
+      wr_size = 1;
+    } else {
+      wr_size = 2;
+    }
+
+    avr910_set_addr(pgm, addr / wr_size);
 
     cmd = malloc(4 + blocksize);
     if (!cmd) return -1;
