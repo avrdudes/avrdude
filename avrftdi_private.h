@@ -78,6 +78,7 @@ typedef struct avrftdi_s {
 	int pin_limit;
 	/* internal RX buffer of the device. needed for INOUT transfers */
 	int rx_buffer_size;
+	int tx_buffer_size;
 	/* use bitbanging instead of mpsse spi */
 	bool use_bitbanging;
 } avrftdi_t;

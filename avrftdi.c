@@ -42,6 +42,13 @@
 #include "avrftdi_tpi.h"
 #include "avrftdi_private.h"
 
+#ifndef MAX
+#define MAX(a,b) ((a)>(b)?(a):(b))
+#endif
+#ifndef MIN
+#define MIN(a,b) ((a)<(b)?(a):(b))
+#endif
+
 #ifdef DO_NOT_BUILD_AVRFTDI
 
 static int avrftdi_noftdi_open (struct programmer_t *pgm, char * name)
@@ -350,13 +357,16 @@ static inline unsigned char extract_data(PROGRAMMER * pgm, unsigned char *buf, i
 static int avrftdi_transmit_bb(PROGRAMMER * pgm, unsigned char mode, const unsigned char *buf,
 			    unsigned char *data, int buf_size)
 {
-	size_t blocksize;
 	size_t remaining = buf_size;
 	size_t written = 0;
 	avrftdi_t* pdata = to_pdata(pgm);
+	size_t blocksize = pdata->rx_buffer_size/2; // we are reading 2 bytes per data byte
 
-	// more than this does not work with FT2232D
-	blocksize = 12;//pdata->rx_buffer_size/2; // we are reading 2 bytes per data byte
+	// determine a maximum size of data block
+	size_t max_size = MIN(pdata->ftdic->max_packet_size,pdata->tx_buffer_size);
+	// select block size so that resulting commands does not exceed max_size if possible
+	blocksize = MAX(1,(max_size-7)/((8*2*6)+(8*1*2)));
+	//fprintf(stderr,"blocksize %d \n",blocksize);
 
 	while(remaining)
 	{
@@ -826,15 +836,18 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 		case TYPE_2232C:
 			pdata->pin_limit = 12;
 			pdata->rx_buffer_size = 384;
+			pdata->tx_buffer_size = 128;
 			break;
 		case TYPE_2232H:
 			pdata->pin_limit = 16;
 			pdata->rx_buffer_size = 4096;
+			pdata->tx_buffer_size = 4096;
 			break;
 #ifdef HAVE_LIBFTDI_TYPE_232H
 		case TYPE_232H:
 			pdata->pin_limit = 16;
 			pdata->rx_buffer_size = 1024;
+			pdata->tx_buffer_size = 1024;
 			break;
 #else
 #warning No support for 232H, use a newer libftdi, version >= 0.20
@@ -842,12 +855,14 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 		case TYPE_4232H:
 			pdata->pin_limit = 8;
 			pdata->rx_buffer_size = 2048;
+			pdata->tx_buffer_size = 2048;
 			break;
 		default:
 			log_warn("Found unkown device %x. I will do my ", pdata->ftdic->type);
 			log_warn("best to work with it, but no guarantees ...\n");
 			pdata->pin_limit = 8;
 			pdata->rx_buffer_size = pdata->ftdic->max_packet_size;
+			pdata->tx_buffer_size = pdata->ftdic->max_packet_size;
 			break;
 	}
 

@@ -1,3 +1,8 @@
+2013-09-03  Rene Liebscher <R.Liebscher@gmx.de>
+
+	* avrftdi.c, avrftdi_private.h: added tx buffer size, and use 
+	smaller block sizes as larger sometimes hang
+
 2013-09-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* avrdude.h: Remove the erase cycle counter (options -y / -Y).
