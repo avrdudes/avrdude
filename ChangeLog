@@ -1,5 +1,11 @@
 2013-09-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #39691 Buffer overrun when reading EEPROM byte with JTAGICE3
+	* jtag3.c (jtag3_initialize): initialize the eeprom_pagesize
+	private attribute so the page cache will actually be usable
+
+2013-09-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #38580 Current svn head, xmega and fuses, all fuses tied to fuse0
 	* jtag3.c (jtag3_read_byte, jtag3_write_byte): Correctly apply the
 	relevant part of mem->offset as the address to operate on.

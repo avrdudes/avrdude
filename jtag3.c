@@ -817,6 +817,7 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
         PDATA(pgm)->flash_pagesize = m->page_size;
 	u16_to_b2(xd.flash_page_size, m->page_size);
       } else if (strcmp(m->desc, "eeprom") == 0) {
+	PDATA(pgm)->eeprom_pagesize = m->page_size;
 	xd.eeprom_page_size = m->page_size;
 	u16_to_b2(xd.eeprom_size, m->size);
 	u32_to_b4(xd.nvm_eeprom_offset, m->offset);
