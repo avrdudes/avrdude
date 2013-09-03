@@ -89,6 +89,7 @@ Current:
       - bug #38307: Can't write usersig of an xmega256a3
       - bug #38580 Current svn head, xmega and fuses, all fuses tied to fuse0
       - bug #39691 Buffer overrun when reading EEPROM byte with JTAGICE3
+      - bug #38951: AVR109 use byte offset instead of word offset
 
   * Keep track of input file contents
 

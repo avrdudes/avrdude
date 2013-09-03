@@ -1,6 +1,15 @@
+2013-09-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Fred (magister):
+	bug #38951: AVR109 use byte offset instead of word offset
+	patch #8045: AVR109 butterfly failing
+	* butterfly.c (butterfly_paged_load, butterfly_paged_write):
+	fix calculation of 'A' address when operating on flash memory.
+	It must be given in terms of 16-bit words rather than bytes.
+
 2013-09-03  Rene Liebscher <R.Liebscher@gmx.de>
 
-	* avrftdi.c, avrftdi_private.h: added tx buffer size, and use 
+	* avrftdi.c, avrftdi_private.h: added tx buffer size, and use
 	smaller block sizes as larger sometimes hang
 
 2013-09-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
