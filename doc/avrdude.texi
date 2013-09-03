@@ -709,27 +709,6 @@ an extended parameter.  The interpretation of the extended parameter
 depends on the programmer itself.  See below for a list of programmers
 accepting extended parameters.
 
-@item -y
-Tells AVRDUDE to use the last four bytes of the connected parts' EEPROM
-memory to track the number of times the device has been erased.  When
-this option is used and the @option{-e} flag is specified to generate a
-chip erase, the previous counter will be saved before the chip erase, it
-is then incremented, and written back after the erase cycle completes.
-Presumably, the device would only be erased just before being
-programmed, and thus, this can be utilized to give an indication of how
-many erase-rewrite cycles the part has undergone.  Since the FLASH
-memory can only endure a finite number of erase-rewrite cycles, one can
-use this option to track when a part is nearing the limit.  The typical
-limit for Atmel AVR FLASH is 1000 cycles.  Of course, if the
-application needs the last four bytes of EEPROM memory, this option
-should not be used.
-
-@item -Y @var{cycles}
-Instructs AVRDUDE to initialize the erase-rewrite cycle counter residing
-at the last four bytes of EEPROM memory to the specified value.  If the
-application needs the last four bytes of EEPROM memory, this option
-should not be used.
-
 @end table
 
 @page

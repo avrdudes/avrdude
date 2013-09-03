@@ -24,7 +24,6 @@
 extern char * progname;		/* name of program, for messages */
 extern char progbuf[];		/* spaces same length as progname */
 
-extern int do_cycles;		/* track erase-rewrite cycles (-y) */
 extern int ovsigck;		/* override signature check (-F) */
 extern int verbose;		/* verbosity level (-v, -vv, ...) */
 extern int quell_progress;	/* quiteness level (-q, -qq) */

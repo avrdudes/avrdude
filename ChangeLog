@@ -1,5 +1,13 @@
 2013-09-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* avrdude.h: Remove the erase cycle counter (options -y / -Y).
+	* avr.c: (Dito.)
+	* main.c: (Dito.)
+	* avrdude.1: Undocument -y / -Y.
+	* doc/avrdude.texi: (Dito.)
+
+2013-09-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #39691 Buffer overrun when reading EEPROM byte with JTAGICE3
 	* jtag3.c (jtag3_initialize): initialize the eeprom_pagesize
 	private attribute so the page cache will actually be usable

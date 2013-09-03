@@ -1172,30 +1172,9 @@ int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles)
 
 int avr_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {
-  int cycles;
   int rc;
 
-  if (do_cycles) {
-    rc = avr_get_cycle_count(pgm, p, &cycles);
-    /*
-     * Don't update the cycle counter, if read failed
-     */
-    if(rc != 0) {
-      do_cycles = 0;
-    }
-  }
-
   rc = pgm->chip_erase(pgm, p);
-
-  /*
-   * Don't update the cycle counter, if erase failed
-   */
-  if (do_cycles && (rc == 0)) {
-    cycles++;
-    fprintf(stderr, "%s: erase-rewrite cycle count is now %d\n",
-            progname, cycles);
-    avr_put_cycle_count(pgm, p, cycles);
-  }
 
   return rc;
 }

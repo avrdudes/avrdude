@@ -101,8 +101,8 @@ Current:
       everything mentioned in the file (even in case the file has
       large 0xFF blocks).
 
-  * The EEPROM contents for the cyclecounter is only read when
-    explicitly requested by a -y or -Y option.
+  * The eraes cycle counter (formerly options -y / -Y) has been
+    removed.
 
   * The -U option now accepts ELF files as input files, and extracts
     the appropriate section contents that matches the requested memory
