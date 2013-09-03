@@ -47,10 +47,9 @@ int avr_tpi_poll_nvmbsy(PROGRAMMER *pgm)
 {
   unsigned char cmd;
   unsigned char res;
-  int rc = 0;
 
   cmd = TPI_CMD_SIN | TPI_SIO_ADDR(TPI_IOREG_NVMCSR);
-  rc = pgm->cmd_tpi(pgm, &cmd, 1, &res, 1);
+  (void)pgm->cmd_tpi(pgm, &cmd, 1, &res, 1);
   return (res & TPI_IOREG_NVMCSR_NVMBSY);
 }
 

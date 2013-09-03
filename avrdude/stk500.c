@@ -751,15 +751,12 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   int tries;
   unsigned int n;
   unsigned int i;
-  int flash;
 
   if (strcmp(m->desc, "flash") == 0) {
     memtype = 'F';
-    flash = 1;
   }
   else if (strcmp(m->desc, "eeprom") == 0) {
     memtype = 'E';
-    flash = 0;
   }
   else {
     return -2;

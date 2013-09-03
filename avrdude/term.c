@@ -206,13 +206,12 @@ static int chardump_line(char * buffer, unsigned char * p, int n, int pad)
 static int hexdump_buf(FILE * f, int startaddr, unsigned char * buf, int len)
 {
   int addr;
-  int i, n;
+  int n;
   unsigned char * p;
   char dst1[80];
   char dst2[80];
 
   addr = startaddr;
-  i = 0;
   p = (unsigned char *)buf;
   while (len) {
     n = 16;

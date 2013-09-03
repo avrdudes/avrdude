@@ -314,7 +314,6 @@ static void ser_close(union filedescriptor *fd)
 
 static int ser_send(union filedescriptor *fd, unsigned char * buf, size_t buflen)
 {
-  struct timeval timeout, to2;
   int rc;
   unsigned char * p = buf;
   size_t len = buflen;
@@ -342,10 +341,6 @@ static int ser_send(union filedescriptor *fd, unsigned char * buf, size_t buflen
 
       fprintf(stderr, "\n");
   }
-
-  timeout.tv_sec = 0;
-  timeout.tv_usec = 500000;
-  to2 = timeout;
 
   while (len) {
     rc = write(fd->ifd, p, (len > 1024) ? 1024 : len);

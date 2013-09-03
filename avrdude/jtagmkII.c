@@ -2890,7 +2890,6 @@ static int jtagmkII_reset32(PROGRAMMER * pgm, unsigned short flags)
   int status, j, lineno;
   unsigned char *resp, buf[3];
   unsigned long val=0;
-  unsigned long config0, config1;
 
   if(verbose) fprintf(stderr,
           "%s: jtagmkII_reset32(%2.2x)\n",
@@ -2995,7 +2994,6 @@ static int jtagmkII_reset32(PROGRAMMER * pgm, unsigned short flags)
 
     val = jtagmkII_read_SABaddr(pgm, AVR32_DCCPU, 0x01);
     if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
-    config0 = val;  // 0x0204098b
 
     status = jtagmkII_write_SABaddr(pgm, AVR32_DCEMU, 0x01, 0x00000000);
     if(status < 0) {lineno = __LINE__; goto eRR;}
@@ -3025,7 +3023,6 @@ static int jtagmkII_reset32(PROGRAMMER * pgm, unsigned short flags)
     if(val != 0x00000001) {lineno = __LINE__; goto eRR;}
     val = jtagmkII_read_SABaddr(pgm, AVR32_DCCPU, 0x01);
     if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
-    config1 = val;  // 0x00800000
 
     status = jtagmkII_write_SABaddr(pgm, AVR32_DCEMU, 0x01, 0x00000000);
     if(status < 0) {lineno = __LINE__; goto eRR;}
@@ -3055,7 +3052,6 @@ static int jtagmkII_reset32(PROGRAMMER * pgm, unsigned short flags)
 
     val = jtagmkII_read_SABaddr(pgm, AVR32_DCCPU, 0x01);
     if(val == ERROR_SAB) {lineno = __LINE__; goto eRR;}
-    config0 = val;  // 0x0204098b
 
     status = jtagmkII_write_SABaddr(pgm, AVR32_DCEMU, 0x01, 0x00000000);
     if(status < 0) {lineno = __LINE__; goto eRR;}
