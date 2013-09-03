@@ -1478,6 +1478,7 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       unsupp = 1;
   } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
     cmd[3] = MTYPE_FUSE_BITS;
+    addr = mem->offset & 7;
   } else if (strcmp(mem->desc, "usersig") == 0) {
     cmd[3] = MTYPE_USERSIG;
   } else if (strcmp(mem->desc, "prodsig") == 0) {
@@ -1613,6 +1614,7 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       unsupp = 1;
   } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
     cmd[3] = MTYPE_FUSE_BITS;
+    addr = mem->offset & 7;
   } else if (strcmp(mem->desc, "usersig") == 0) {
     cmd[3] = MTYPE_USERSIG;
   } else if (strcmp(mem->desc, "prodsig") == 0) {
