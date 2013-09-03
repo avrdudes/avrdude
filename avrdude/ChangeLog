@@ -1,5 +1,12 @@
 2013-09-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Brane Ždralo:
+	patch #7769: Write flash fails for AVR910 programmers
+	* avr910.c (avr910_paged_write): Fix flash addresses in
+	'A' command.
+
+2013-09-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Fred (magister):
 	bug #38951: AVR109 use byte offset instead of word offset
 	patch #8045: AVR109 butterfly failing
