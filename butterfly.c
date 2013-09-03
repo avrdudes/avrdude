@@ -589,17 +589,18 @@ static int butterfly_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   char *cmd;
   unsigned int blocksize = PDATA(pgm)->buffersize;
   int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
+  unsigned int wr_size = 2;
 
   if (strcmp(m->desc, "flash") && strcmp(m->desc, "eeprom")) 
     return -2;
 
   if (m->desc[0] == 'e')
-    blocksize = 1;		/* Write to eeprom single bytes only */
+    wr_size = blocksize = 1;		/* Write to eeprom single bytes only */
 
   if (use_ext_addr) {
-    butterfly_set_extaddr(pgm, addr);
+    butterfly_set_extaddr(pgm, addr / wr_size);
   } else {
-    butterfly_set_addr(pgm, addr);
+    butterfly_set_addr(pgm, addr / wr_size);
   }
 
 #if 0
@@ -638,24 +639,27 @@ static int butterfly_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                                 unsigned int addr, unsigned int n_bytes)
 {
   unsigned int max_addr = addr + n_bytes;
-  int rd_size = 1;
+  int rd_size = 2;
+  int blocksize = PDATA(pgm)->buffersize;
   int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
 
   /* check parameter syntax: only "flash" or "eeprom" is allowed */
   if (strcmp(m->desc, "flash") && strcmp(m->desc, "eeprom")) 
     return -2;
 
+  if (m->desc[0] == 'e')
+    rd_size = blocksize = 1;		/* Read from eeprom single bytes only */
+
   {		/* use buffered mode */
     char cmd[4];
-    int blocksize = PDATA(pgm)->buffersize;
 
     cmd[0] = 'g';
     cmd[3] = toupper((int)(m->desc[0]));
 
     if (use_ext_addr) {
-      butterfly_set_extaddr(pgm, addr);
+      butterfly_set_extaddr(pgm, addr / rd_size);
     } else {
-      butterfly_set_addr(pgm, addr);
+      butterfly_set_addr(pgm, addr / rd_size);
     }
     while (addr < max_addr) {
       if ((max_addr - addr) < blocksize) {
