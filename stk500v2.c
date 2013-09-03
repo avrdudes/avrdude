@@ -2258,7 +2258,7 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                                 unsigned int page_size,
                                 unsigned int addr, unsigned int n_bytes)
 {
-  unsigned int block_size, last_addr, hiaddr, addrshift, use_ext_addr;
+  unsigned int block_size, last_addr, addrshift, use_ext_addr;
   unsigned int maxaddr = addr + n_bytes;
   unsigned char commandbuf[10];
   unsigned char buf[266];
@@ -2270,7 +2270,6 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
         m->desc, page_size, addr, n_bytes);
 
   if (page_size == 0) page_size = 256;
-  hiaddr = UINT_MAX;
   addrshift = 0;
   use_ext_addr = 0;
 
@@ -2391,7 +2390,7 @@ static int stk500hv_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                                 unsigned int addr, unsigned int n_bytes,
                                 enum hvmode mode)
 {
-  unsigned int block_size, last_addr, hiaddr, addrshift, use_ext_addr;
+  unsigned int block_size, last_addr, addrshift, use_ext_addr;
   unsigned int maxaddr = addr + n_bytes;
   unsigned char commandbuf[5], buf[266];
   int result;
@@ -2399,7 +2398,6 @@ static int stk500hv_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   DEBUG("STK500V2: stk500hv_paged_write(..,%s,%u,%u)\n",
         m->desc, page_size, addr, n_bytes);
 
-  hiaddr = UINT_MAX;
   addrshift = 0;
   use_ext_addr = 0;
 

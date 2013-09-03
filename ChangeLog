@@ -1,3 +1,13 @@
+2013-09-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* fileio.c: Fix "unused variable" warnings.
+	* avr.c: (Dito.)
+	* stk500v2.c: (Dito.)
+	* stk500.c: (Dito.)
+	* jtagmkII.c: (Dito.)
+	* term.c: (Dito.)
+	* ser_posix.c: (Dito.)
+
 2013-09-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Travis Griggs:

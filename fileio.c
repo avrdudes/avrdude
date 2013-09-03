@@ -1033,8 +1033,8 @@ static int elf2b(char * infile, FILE * inf,
       while ((d = elf_getdata(s, d)) != NULL) {
         if (verbose >= 2) {
           fprintf(stderr,
-                  "    Data block: d_buf 0x%x, d_off 0x%x, d_size %d\n",
-                  (unsigned int)d->d_buf, (unsigned int)d->d_off, d->d_size);
+                  "    Data block: d_buf %p, d_off 0x%x, d_size %d\n",
+                  d->d_buf, (unsigned int)d->d_off, d->d_size);
         }
         if (mem->size == 1) {
           if (d->d_off != 0) {
