@@ -13,6 +13,7 @@ Current:
     - ATxmega16D4, ATxmega32D4, ATxmega64D4, ATxmega128D4
     - ATmega256RFR2, ATmega128RFR2, ATmega64RFR2, ATmega2564RFR2,
       ATmega1284RFR2, ATmega644RFR2
+    - ATtiny1634
 
   * New programmers supported:
     - linuxgpio
@@ -91,6 +92,7 @@ Current:
       - bug #39691 Buffer overrun when reading EEPROM byte with JTAGICE3
       - bug #38951: AVR109 use byte offset instead of word offset
       - patch #7769: Write flash fails for AVR910 programmers
+      - bug #38732: Support for ATtiny1634
 
   * Keep track of input file contents
 
