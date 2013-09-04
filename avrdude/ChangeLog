@@ -1,3 +1,9 @@
+2013-09-04  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Matthias Neeracher:
+	bug #38732: Support for ATtiny1634
+	* avrdude.conf.in (ATtiny1634): New entry.
+
 2013-09-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Brane Ždralo:
