@@ -1,3 +1,16 @@
+2013-09-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Fix single-byte EEPROM updates on Xmega:
+	* jtag3_private.h (MTYPE_EEPROM_XMEGA): New define.
+	* jtag3.c (jtag3_write_byte): When updating flash or
+	EEPROM on Xmega devices, resort to jtag3_paged_write()
+	after filling and modifying the page cache.
+	* jtag3.c (jtag3_paged_write): use MTYPE_EEPROM_XMEGA
+	where appropriate.
+	* jtag3.c (jtag3_initialize): Open with debugging intent
+	for Xmega devices, so single-byte EEPROM updates will
+	work.
+
 2013-09-04  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Matthias Neeracher:

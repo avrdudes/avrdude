@@ -760,7 +760,10 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
   if (jtag3_setparm(pgm, SCOPE_AVR, 0, PARM3_ARCH, parm, 1) < 0)
     return -1;
 
-  parm[0] = PARM3_SESS_PROGRAMMING;
+  if (p->flags & AVRPART_HAS_PDI)
+    parm[0] = PARM3_SESS_DEBUGGING; /* to allow for EEPROM writes */
+  else
+    parm[0] = PARM3_SESS_PROGRAMMING;
   if (jtag3_setparm(pgm, SCOPE_AVR, 0, PARM3_SESS_PURPOSE, parm, 1) < 0)
     return -1;
 
@@ -1284,7 +1287,7 @@ static int jtag3_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       free(cmd);
       return n_bytes;
     }
-    cmd[3] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_EEPROM : MTYPE_EEPROM_PAGE;
+    cmd[3] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_EEPROM_XMEGA : MTYPE_EEPROM_PAGE;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if ( ( strcmp(m->desc, "usersig") == 0 ) ) {
     cmd[3] = MTYPE_USERSIG;
@@ -1579,7 +1582,9 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 {
   unsigned char cmd[14];
   unsigned char *resp;
+  unsigned char *cache_ptr = 0;
   int status, need_progmode = 1, unsupp = 0;
+  unsigned int pagesize = 0;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: jtag3_write_byte(.., %s, 0x%lx, ...)\n",
@@ -1591,12 +1596,16 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   cmd[3] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_FLASH : MTYPE_SPM;
   if (strcmp(mem->desc, "flash") == 0) {
      need_progmode = 0;
+     cache_ptr = PDATA(pgm)->flash_pagecache;
+     pagesize = PDATA(pgm)->flash_pagesize;
      PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
      if (pgm->flag & PGM_FL_IS_DW)
        unsupp = 1;
   } else if (strcmp(mem->desc, "eeprom") == 0) {
     cmd[3] = MTYPE_EEPROM;
     need_progmode = 0;
+    cache_ptr = PDATA(pgm)->eeprom_pagecache;
+    pagesize = PDATA(pgm)->eeprom_pagesize;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if (strcmp(mem->desc, "lfuse") == 0) {
     cmd[3] = MTYPE_FUSE_BITS;
@@ -1641,6 +1650,24 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     if (jtag3_program_enable(pgm) < 0)
       return -1;
   } else {
+    if (( p->flags & AVRPART_HAS_PDI ) != 0) {
+      /* flash or EEPROM write on Xmega: use paged algorithm */
+      /* step #1: ensure the page cache is up to date */
+      unsigned char dummy;
+      int i;
+      if (jtag3_read_byte(pgm, p, mem, addr, &dummy) < 0)
+	return -1;
+      /* step #2: update our value in page cache, and copy to mem-> */
+      cache_ptr[addr & (pagesize - 1)] = data;
+      addr &= ~(pagesize - 1);	/* page base address */
+      memcpy(mem->buf + addr, cache_ptr, pagesize);
+      /* step #3: write back */
+      i = jtag3_paged_write(pgm, p, mem, pagesize, addr, pagesize);
+      if (i < 0)
+	return -1;
+      else
+	return 0;
+    }
     if (jtag3_program_disable(pgm) < 0)
       return -1;
   }
