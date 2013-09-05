@@ -162,6 +162,7 @@
 #define MTYPE_OSCCAL_BYTE 0xB5	/* osccal cells in programming mode */
 #define MTYPE_FLASH       0xc0	/* xmega (app.) flash - undocumented in AVR067 */
 #define MTYPE_BOOT_FLASH  0xc1	/* xmega boot flash - undocumented in AVR067 */
+#define MTYPE_EEPROM_XMEGA 0xc4	/* xmega EEPROM in debug mode - undocumented in AVR067 */
 #define MTYPE_USERSIG     0xc5	/* xmega user signature - undocumented in AVR067 */
 #define MTYPE_PRODSIG     0xc6	/* xmega production signature - undocumented in AVR067 */
 
