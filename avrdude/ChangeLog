@@ -1,3 +1,12 @@
+2013-09-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Extend the single-byte algorithm to all devices, both flash and
+	EEPROM.  (Flash cells must have been erased before though.)
+	* jtag3.c (jtag3_initialize): OCDEN no longer needs to be
+	considered; a session with "programming" purpose is sufficient
+	* jtag3.c (jtag3_write_byte): Use the paged algorithm for all
+	flash and EEPROM areas, not just Xmega.
+
 2013-09-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Fix single-byte EEPROM updates on Xmega:
