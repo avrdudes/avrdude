@@ -78,17 +78,6 @@ struct pdata
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
 /*
- * The OCDEN fuse is bit 7 of the high fuse (hfuse).  In order to
- * perform memory operations on MTYPE_SPM and MTYPE_EEPROM, OCDEN
- * needs to be programmed.
- *
- * OCDEN should probably rather be defined via the configuration, but
- * if this ever changes to a different fuse byte for one MCU, quite
- * some code here needs to be generalized anyway.
- */
-#define OCDEN (1 << 7)
-
-/*
  * pgm->flag is marked as "for private use of the programmer".
  * The following defines this programmer's use of that field.
  */
@@ -695,10 +684,9 @@ static int jtag3_set_sck_mega_jtag(PROGRAMMER *pgm, unsigned char *clk)
  */
 static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
 {
-  AVRMEM hfuse;
   unsigned char conn = 0, parm[4];
   const char *ifname;
-  unsigned char cmd[4], *resp, b;
+  unsigned char cmd[4], *resp;
   int status;
 
   /*
@@ -760,10 +748,7 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
   if (jtag3_setparm(pgm, SCOPE_AVR, 0, PARM3_ARCH, parm, 1) < 0)
     return -1;
 
-  if (p->flags & AVRPART_HAS_PDI)
-    parm[0] = PARM3_SESS_DEBUGGING; /* to allow for EEPROM writes */
-  else
-    parm[0] = PARM3_SESS_PROGRAMMING;
+  parm[0] = PARM3_SESS_PROGRAMMING;
   if (jtag3_setparm(pgm, SCOPE_AVR, 0, PARM3_SESS_PURPOSE, parm, 1) < 0)
     return -1;
 
@@ -959,17 +944,6 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
     return -1;
   }
   PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-
-  if ((pgm->flag & PGM_FL_IS_JTAG) && !(p->flags & AVRPART_HAS_PDI)) {
-    strcpy(hfuse.desc, "hfuse");
-    if (jtag3_read_byte(pgm, p, &hfuse, 1, &b) < 0)
-      return -1;
-    if ((b & OCDEN) != 0)
-      fprintf(stderr,
-	      "%s: jtag3_initialize(): warning: OCDEN fuse not programmed, "
-	      "single-byte EEPROM updates not possible\n",
-	      progname);
-  }
 
   return 0;
 }
@@ -1583,7 +1557,7 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   unsigned char cmd[14];
   unsigned char *resp;
   unsigned char *cache_ptr = 0;
-  int status, need_progmode = 1, unsupp = 0;
+  int status, unsupp = 0;
   unsigned int pagesize = 0;
 
   if (verbose >= 2)
@@ -1595,15 +1569,12 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   cmd[2] = 0;
   cmd[3] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_FLASH : MTYPE_SPM;
   if (strcmp(mem->desc, "flash") == 0) {
-     need_progmode = 0;
      cache_ptr = PDATA(pgm)->flash_pagecache;
      pagesize = PDATA(pgm)->flash_pagesize;
      PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
      if (pgm->flag & PGM_FL_IS_DW)
        unsupp = 1;
   } else if (strcmp(mem->desc, "eeprom") == 0) {
-    cmd[3] = MTYPE_EEPROM;
-    need_progmode = 0;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
     pagesize = PDATA(pgm)->eeprom_pagesize;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
@@ -1646,31 +1617,30 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   if (unsupp)
     return -1;
 
-  if (need_progmode) {
-    if (jtag3_program_enable(pgm) < 0)
+  if (pagesize != 0) {
+    /* flash or EEPROM write: use paged algorithm */
+    unsigned char dummy;
+    int i;
+
+    /* step #1: ensure the page cache is up to date */
+    if (jtag3_read_byte(pgm, p, mem, addr, &dummy) < 0)
       return -1;
-  } else {
-    if (( p->flags & AVRPART_HAS_PDI ) != 0) {
-      /* flash or EEPROM write on Xmega: use paged algorithm */
-      /* step #1: ensure the page cache is up to date */
-      unsigned char dummy;
-      int i;
-      if (jtag3_read_byte(pgm, p, mem, addr, &dummy) < 0)
-	return -1;
-      /* step #2: update our value in page cache, and copy to mem-> */
-      cache_ptr[addr & (pagesize - 1)] = data;
-      addr &= ~(pagesize - 1);	/* page base address */
-      memcpy(mem->buf + addr, cache_ptr, pagesize);
-      /* step #3: write back */
-      i = jtag3_paged_write(pgm, p, mem, pagesize, addr, pagesize);
-      if (i < 0)
-	return -1;
-      else
-	return 0;
-    }
-    if (jtag3_program_disable(pgm) < 0)
+    /* step #2: update our value in page cache, and copy
+     * cache to mem->buf */
+    cache_ptr[addr & (pagesize - 1)] = data;
+    addr &= ~(pagesize - 1);	/* page base address */
+    memcpy(mem->buf + addr, cache_ptr, pagesize);
+    /* step #3: write back */
+    i = jtag3_paged_write(pgm, p, mem, pagesize, addr, pagesize);
+    if (i < 0)
       return -1;
+    else
+      return 0;
   }
+
+  /* non-paged writes go here */
+  if (jtag3_program_enable(pgm) < 0)
+    return -1;
 
   u32_to_b4(cmd + 8, 1);
   u32_to_b4(cmd + 4, addr);
