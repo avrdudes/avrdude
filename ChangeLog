@@ -1,3 +1,8 @@
+2013-09-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtag3.c (jtag3_write_byte): Do not attempt to start the paged
+	algorithm for EEPROM when being connected through debugWIRE.
+
 2013-09-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Extend the single-byte algorithm to all devices, both flash and
