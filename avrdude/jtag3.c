@@ -1575,8 +1575,12 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
      if (pgm->flag & PGM_FL_IS_DW)
        unsupp = 1;
   } else if (strcmp(mem->desc, "eeprom") == 0) {
-    cache_ptr = PDATA(pgm)->eeprom_pagecache;
-    pagesize = PDATA(pgm)->eeprom_pagesize;
+    if (pgm->flag & PGM_FL_IS_DW) {
+      cmd[3] = MTYPE_EEPROM;
+    } else {
+      cache_ptr = PDATA(pgm)->eeprom_pagecache;
+      pagesize = PDATA(pgm)->eeprom_pagesize;
+    }
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if (strcmp(mem->desc, "lfuse") == 0) {
     cmd[3] = MTYPE_FUSE_BITS;
@@ -1639,7 +1643,7 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   }
 
   /* non-paged writes go here */
-  if (jtag3_program_enable(pgm) < 0)
+  if (!(pgm->flag & PGM_FL_IS_DW) && jtag3_program_enable(pgm) < 0)
     return -1;
 
   u32_to_b4(cmd + 8, 1);
