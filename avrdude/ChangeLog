@@ -1,5 +1,13 @@
 2013-09-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Fix byte-wise EEPROM and flash writes on Xmega
+	* jtagmkII_private.h (MTYPE_EEPROM_XMEGA): New memory type.
+	* jtagmkII.c (jtagmkII_write_byte): For Xmega EEPROM, use
+	memory type MTYPE_EEPROM_XMEGA; for flash writes, always
+	write 2 bytes starting on an even address.
+
+2013-09-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* term.c: Implement the "verbose" terminal mode command.
 	* avrdude.1: Document this.
 	* doc/avrdude.texi: (Dito.)
