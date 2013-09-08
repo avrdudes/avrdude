@@ -2465,9 +2465,9 @@ fail:
 static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 			       unsigned long addr, unsigned char data)
 {
-  unsigned char cmd[11];
-  unsigned char *resp = NULL, writedata;
-  int status, tries, need_progmode = 1, unsupp = 0;
+  unsigned char cmd[12];
+  unsigned char *resp = NULL, writedata, writedata2 = 0xFF;
+  int status, tries, need_progmode = 1, unsupp = 0, writesize = 1;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkII_write_byte(.., %s, 0x%lx, ...)\n",
@@ -2479,12 +2479,19 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   cmd[0] = CMND_WRITE_MEMORY;
   cmd[1] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_FLASH : MTYPE_SPM;
   if (strcmp(mem->desc, "flash") == 0) {
+     if ((addr & 1) == 1) {
+       /* odd address = high byte */
+       writedata = 0xFF;	/* don't modify the low byte */
+       writedata2 = data;
+       addr &= ~1L;
+     }
+     writesize = 2;
      need_progmode = 0;
      PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
      if (pgm->flag & PGM_FL_IS_DW)
        unsupp = 1;
   } else if (strcmp(mem->desc, "eeprom") == 0) {
-    cmd[1] = MTYPE_EEPROM;
+    cmd[1] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_EEPROM_XMEGA: MTYPE_EEPROM;
     need_progmode = 0;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if (strcmp(mem->desc, "lfuse") == 0) {
@@ -2533,16 +2540,17 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       return -1;
   }
 
-  u32_to_b4(cmd + 2, 1);
+  u32_to_b4(cmd + 2, writesize);
   u32_to_b4(cmd + 6, addr);
   cmd[10] = writedata;
+  cmd[11] = writedata2;
 
   tries = 0;
   retry:
   if (verbose >= 2)
     fprintf(stderr, "%s: jtagmkII_write_byte(): Sending write memory command: ",
 	    progname);
-  jtagmkII_send(pgm, cmd, 11);
+  jtagmkII_send(pgm, cmd, 10 + writesize);
 
   status = jtagmkII_recv(pgm, &resp);
   if (status <= 0) {
