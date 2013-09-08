@@ -18,7 +18,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE September 3, 2013
+.Dd DATE September 8, 2013
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -662,6 +662,9 @@ This will only work if
 does not have a colon in it.
 .It Fl v
 Enable verbose output.
+More
+.Fl v
+options increase verbosity level.
 .It Fl V
 Disable automatic verify check when uploading data.
 .It Fl x Ar extended_param
@@ -777,6 +780,13 @@ Display the current voltage and master oscillator parameters.
 .Pp
 .Em JTAG ICE only:
 Display the current target supply voltage and JTAG bit clock rate/period.
+.It Ar verbose Op Ar level
+Change (when
+.Ar level
+is provided), or display the verbosity level.
+The initial verbosity level is controlled by the number of
+.Fl v
+options given on the commandline.
 .It Ar \&?
 .It Ar help
 Give a short on-line summary of the available commands.

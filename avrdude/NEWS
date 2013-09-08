@@ -163,6 +163,9 @@ Current:
   * The USBasp programmer implementation now supports detailed traces
     with -vvv, and device communication traces with -vvvv.
 
+  * The "verbose" terminal mode command allows to query or modify the
+    verbosity level.
+
   * Internals:
 
     - Restructuring and compacting programmer definition part of

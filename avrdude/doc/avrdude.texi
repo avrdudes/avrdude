@@ -699,6 +699,7 @@ This will only work if @var{filename} does not have a colon in it.
 
 @item -v
 Enable verbose output.
+More @code{-v} options increase verbosity level.
 
 @item -V
 Disable automatic verify check when uploading data.
@@ -1115,6 +1116,12 @@ device, read/write timing, etc.
 
 @item pgm
 Return to programming mode (from direct SPI mode).
+
+@item verbose [@var{level}]
+Change (when @var{level} is provided), or display the verbosity
+level.
+The initial verbosity level is controlled by the number of @code{-v} options
+given on the commandline.
 
 @item ?
 @itemx help

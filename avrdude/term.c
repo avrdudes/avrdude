@@ -93,6 +93,9 @@ static int cmd_spi   (PROGRAMMER * pgm, struct avrpart * p,
 static int cmd_pgm   (PROGRAMMER * pgm, struct avrpart * p,
 		      int argc, char *argv[]);
 
+static int cmd_verbose (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
+
 struct command cmd[] = {
   { "dump",  cmd_dump,  "dump memory  : %s <memtype> <addr> <N-Bytes>" },
   { "read",  cmd_dump,  "alias for dump" },
@@ -108,6 +111,7 @@ struct command cmd[] = {
   { "sck",   cmd_sck,   "set <SCK period> (STK500 only)" },
   { "spi",   cmd_spi,   "enter direct SPI mode" },
   { "pgm",   cmd_pgm,   "return to programming mode" },
+  { "verbose", cmd_verbose, "change verbosity" },
   { "help",  cmd_help,  "help" },
   { "?",     cmd_help,  "help" },
   { "quit",  cmd_quit,  "quit" }
@@ -756,6 +760,37 @@ static int cmd_pgm(PROGRAMMER * pgm, struct avrpart * p,
   pgm->setpin(pgm, pgm->pinno[PIN_AVR_RESET], 0);
   spi_mode = 0;
   pgm->initialize(pgm, p);
+  return 0;
+}
+
+static int cmd_verbose(PROGRAMMER * pgm, struct avrpart * p,
+		       int argc, char * argv[])
+{
+  int nverb;
+  char *endp;
+
+  if (argc != 1 && argc != 2) {
+    fprintf(stderr, "Usage: verbose [<value>]\n");
+    return -1;
+  }
+  if (argc == 1) {
+    fprintf(stderr, "Verbosity level: %d\n", verbose);
+    return 0;
+  }
+  nverb = strtol(argv[1], &endp, 0);
+  if (endp == argv[2]) {
+    fprintf(stderr, "%s: can't parse verbosity level \"%s\"\n",
+	    progname, argv[2]);
+    return -1;
+  }
+  if (nverb < 0) {
+    fprintf(stderr, "%s: verbosity level must be positive: %d\n",
+	    progname, nverb);
+    return -1;
+  }
+  verbose = nverb;
+  fprintf(stderr, "New verbosity level: %d\n", verbose);
+
   return 0;
 }
 
