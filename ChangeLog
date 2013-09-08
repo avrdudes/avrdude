@@ -1,3 +1,9 @@
+2013-09-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* term.c: Implement the "verbose" terminal mode command.
+	* avrdude.1: Document this.
+	* doc/avrdude.texi: (Dito.)
+
 2013-09-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* jtag3.c (jtag3_write_byte): Do not attempt to start the paged
