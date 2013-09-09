@@ -27,7 +27,7 @@ LIBUSB_PREFIX=${LIBUSB_PREFIX:-/WINDOWS/ProgramFiles/LibUSB-Win32}
 for CC in mingw32-gcc i686-w64-mingw32-gcc
 do
     touch foo.c
-    if ${cc} -c foo.c 2> /dev/null
+    if ${CC} -c foo.c 2> /dev/null
     then
 	rm -f foo.*
 	break
