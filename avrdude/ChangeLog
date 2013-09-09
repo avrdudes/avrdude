@@ -1,3 +1,8 @@
+2013-09-09  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac: check for ar and ranlib in the target tool
+	namespace, rather than on the host.
+
 2013-09-08  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Fix byte-wise EEPROM and flash writes on Xmega
