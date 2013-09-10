@@ -1,3 +1,10 @@
+2013-09-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Matthias Trute:
+	bug #36901 flashing Atmega32U4 EEPROM produces garbage on chip
+	* avrdude.conf.in (ATmega32U4): Fix EEPROM pagesize to 4, the
+	datasheet is wrong here.
+
 2013-09-09  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* configure.ac: check for ar and ranlib in the target tool

@@ -10765,7 +10765,7 @@ part
 
     memory "eeprom"
         paged           = no; /* leave this "no" */
-        page_size       = 8;  /* for parallel programming */
+        page_size       = 4;  /* for parallel programming */
         size            = 1024;
         min_write_delay = 9000;
         max_write_delay = 9000;
@@ -10792,8 +10792,8 @@ part
 			  "  x   x   x   x      x   x   x   x";
 
 	mode		= 0x41;
-	delay		= 10;
-	blocksize	= 8;
+	delay		= 20;
+	blocksize	= 4;
 	readsize	= 256;
       ;
 
