@@ -4104,6 +4104,7 @@ part parent "m16"
     poweroffdelay       = 15;
     resetdelayms        = 1;
     allowfullpagebitstream = no;
+    chip_erase_delay = 55000;
 
     ocdrev              = 3;
   ;
@@ -4124,7 +4125,7 @@ part
     signature        = 0x1e 0x95 0x08;
     pagel            = 0xd7;
     bs2              = 0xa0;
-    chip_erase_delay = 9000;
+    chip_erase_delay = 55000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
 
@@ -4332,7 +4333,7 @@ part
     signature        = 0x1e 0x96 0x09;
     pagel            = 0xd7;
     bs2              = 0xa0;
-    chip_erase_delay = 9000;
+    chip_erase_delay = 55000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
 
@@ -4540,7 +4541,7 @@ part
     signature        = 0x1e 0x97 0x05;
     pagel            = 0xd7;
     bs2              = 0xa0;
-    chip_erase_delay = 9000;
+    chip_erase_delay = 55000;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
                        "x x x x  x x x x    x x x x  x x x x";
 

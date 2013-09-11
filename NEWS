@@ -94,6 +94,7 @@ Current:
       - patch #7769: Write flash fails for AVR910 programmers
       - bug #38732: Support for ATtiny1634
       - bug #36901 flashing Atmega32U4 EEPROM produces garbage on chip
+      - bug #28344 chip_erase_delay too short for ATmega324P, 644, 644P, and 1284P
 
   * Keep track of input file contents
 
