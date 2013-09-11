@@ -1,3 +1,9 @@
+2013-09-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* fileio.c (fileio): Don't exit(1) if something goes wrong; return
+	-1 instead.  Don't refer to obsolete option -f to specify the file
+	format.
+
 2013-09-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Matthias Trute:
