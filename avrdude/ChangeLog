@@ -1,5 +1,12 @@
 2013-09-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #28344 chip_erase_delay too short for ATmega324P, 644, 644P, and 1284P
+	* avrdude.conf: Bump the chip_erase_delay for all ATmega*4 devices
+	to 55 ms.  While the datasheet still claims 9 ms, all the XML files
+	tell either 45 or 55 ms, depending on STK600 or not.
+
+2013-09-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* fileio.c (fileio): Don't exit(1) if something goes wrong; return
 	-1 instead.  Don't refer to obsolete option -f to specify the file
 	format.
