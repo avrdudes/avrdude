@@ -1542,9 +1542,9 @@ int fileio(int op, char * filename, FILEFMT format,
     if (using_stdio) {
       fprintf(stderr, 
               "%s: can't auto detect file format when using stdin/out.\n"
-              "     Please specify a file format using the -f option and try again.\n", 
-              progname);
-      exit(1);
+              "%s  Please specify a file format and try again.\n", 
+              progname, progbuf);
+      return -1;
     }
 
     format = fmt_autodetect(fname);
