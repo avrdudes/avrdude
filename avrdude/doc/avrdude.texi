@@ -70,7 +70,7 @@ Use @uref{http://savannah.nongnu.org/bugs/?group=avrdude} to report bugs.
 
 Copyright @copyright{} 2003,2005 Brian S. Dean
 
-Copyright @copyright{} 2006 - 2008 J@"org Wunsch
+Copyright @copyright{} 2006 - 2013 J@"org Wunsch
 @sp 2
 
 Permission is granted to make and distribute verbatim copies of
@@ -2494,6 +2494,24 @@ kernel versions < 2.6.31 and libusb >= 1.0.0 < 1.0.3 are reported to be
 affected by this.
 
 See also: @url{http://www.libusb.org/ticket/6}
+
+@item
+Problem: after flashing a firmware that reduces the target's clock
+speed (e.g. through the @code{CLKPR} register), further ISP connection
+attempts fail.
+
+Solution: Even though ISP starts with pulling @var{/RESET} low, the
+target continues to run at the internal clock speed as defined by the
+firmware running before.  Therefore, the ISP clock speed must be
+reduced appropriately (to less than 1/4 of the internal clock speed)
+using the -B option before the ISP initialization sequence will
+succeed.
+
+As that slows down the entire subsequent ISP session, it might make
+sense to just issue a @emph{chip erase} using the slow ISP clock
+(option @code{-e}), and then start a new session at higher speed.
+Option @code{-D} might be used there, to prevent another unneeded
+erase cycle.
 
 @end itemize
 
