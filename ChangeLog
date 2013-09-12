@@ -1,3 +1,9 @@
+2013-09-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #37768 Poll usbtiny 100 times at init time to handle low-clock devices
+	* doc/avrdude.texi: Add a FAQ entry about how to connect to a
+	target where the firmware has reduced the internal clock speed.
+
 2013-09-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #28344 chip_erase_delay too short for ATmega324P, 644, 644P, and 1284P
