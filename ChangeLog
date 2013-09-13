@@ -1,5 +1,11 @@
 2013-09-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Marc de Hoop:
+	patch #7606 ATtiny43u support
+	* avrdude.conf.in (ATtiny43U): New entry.
+
+2013-09-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	patch #5708 avrdude should make 10 synchronization attempts instead of just one
 	* stk500.c (stk500_getsync): Loop 10 times trying to get in
 	sync with the programmer.
