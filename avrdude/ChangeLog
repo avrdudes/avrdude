@@ -1,3 +1,8 @@
+2013-09-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #34277: avrdude reads wrong byte order if using avr911 (aka butterfly)
+	* butterfly.c (butterfly_read_byte_flash): Swap bytes received.
+
 2013-09-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #37768 Poll usbtiny 100 times at init time to handle low-clock devices
