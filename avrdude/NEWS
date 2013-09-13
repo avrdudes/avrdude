@@ -112,6 +112,7 @@ Current:
       - patch #7657: Add ATmega406 support for avrdude using DRAGON + JTAG
       - bug #35474: Feature request: print fuse values in safemode output.
       - patch #7710: usb_libusb: Check VID/PID before opening device
+      - [no-id]: Fix SCK period adjustment for STK500v2
 
   * Keep track of input file contents
 
