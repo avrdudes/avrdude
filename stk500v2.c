@@ -281,6 +281,7 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 static unsigned int stk500v2_mode_for_pagesize(unsigned int pagesize);
 
+static double stk500v2_sck_to_us(PROGRAMMER * pgm, unsigned char dur);
 static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v);
 
 static int stk600_set_sck_period(PROGRAMMER * pgm, double v);
@@ -2860,35 +2861,58 @@ static unsigned int stk500v2_mode_for_pagesize(unsigned int pagesize)
   exit(1);
 }
 
-/* This code assumes that each count of the SCK duration parameter
-   represents 8/f, where f is the clock frequency of the STK500V2 master
-   processors (not the target).  This number comes from Atmel
-   application note AVR061.  It appears that the STK500V2 bit bangs SCK.
-   For small duration values, the actual SCK width is larger than
-   expected.  As the duration value increases, the SCK width error
-   diminishes. */
+/*
+ * See pseudo-code in AVR068
+ *
+ * This algorithm only fits for the STK500 itself.  For the (old)
+ * AVRISP, the resulting ISP clock is only half.  While this would be
+ * easy to fix in the algorithm, we'd need to add another
+ * configuration flag for this to the config file.  Given the old
+ * AVRISP devices are virtually no longer around (and the AVRISPmkII
+ * uses a different algorithm below), it's probably not worth the
+ * hassle.
+ */
 static int stk500v2_set_sck_period(PROGRAMMER * pgm, double v)
 {
+  unsigned int d;
   unsigned char dur;
-  double min, max;
+  double f = 1 / v;
 
-  min = 8.0 / STK500V2_XTAL;
-  max = 255 * min;
-  dur = v / min + 0.5;
-
-  if (v < min) {
-      dur = 1;
-      fprintf(stderr,
-	      "%s: stk500v2_set_sck_period(): p = %.1f us too small, using %.1f us\n",
-	      progname, v / 1e-6, dur * min / 1e-6);
-  } else if (v > max) {
-      dur = 255;
-      fprintf(stderr,
-	      "%s: stk500v2_set_sck_period(): p = %.1f us too large, using %.1f us\n",
-	      progname, v / 1e-6, dur * min / 1e-6);
-  }
+  if (f >= 1.8432E6)
+    d = 0;
+  else if (f > 460.8E3)
+    d = 1;
+  else if (f > 115.2E3)
+    d = 2;
+  else if (f > 57.6E3)
+    d = 3;
+  else
+    d = (unsigned int)ceil(1 / (24 * f / (double)STK500V2_XTAL) - 10.0 / 12.0);
+  if (d >= 255)
+    d = 254;
+  dur = d;
 
   return stk500v2_setparm(pgm, PARAM_SCK_DURATION, dur);
+}
+
+static double stk500v2_sck_to_us(PROGRAMMER * pgm, unsigned char dur)
+{
+  double x;
+
+  if (dur == 0)
+    return 0.5425;
+  if (dur == 1)
+    return 2.17;
+  if (dur == 2)
+    return 8.68;
+  if (dur == 3)
+    return 17.36;
+
+  x = (double)dur + 10.0 / 12.0;
+  x = 1.0 / x;
+  x /= 24.0;
+  x *= (double)STK500V2_XTAL;
+  return 1E6 / x;
 }
 
 
@@ -3255,7 +3279,7 @@ static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p)
     stk500v2_getparm(pgm, PARAM_OSC_PSCALE, &osc_pscale);
     stk500v2_getparm(pgm, PARAM_OSC_CMATCH, &osc_cmatch);
     fprintf(stderr, "%sSCK period      : %.1f us\n", p,
-	  sck_duration * 8.0e6 / STK500V2_XTAL + 0.05);
+	    stk500v2_sck_to_us(pgm, sck_duration));
     fprintf(stderr, "%sVaref           : %.1f V\n", p, vadjust / 10.0);
     fprintf(stderr, "%sOscillator      : ", p);
     if (osc_pscale == 0)
