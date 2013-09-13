@@ -544,6 +544,17 @@ static int butterfly_read_byte_eeprom(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return 0;
 }
 
+static int butterfly_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, unsigned int addr)
+{
+  if (strcmp(m->desc, "flash") == 0)
+    return -1;            /* not supported */
+  if (strcmp(m->desc, "eeprom") == 0)
+    return 0;             /* nothing to do */
+  fprintf(stderr,
+          "%s: butterfly_page_erase() called on memory type \"%s\"\n",
+          progname, m->desc);
+  return -1;
+}
 
 static int butterfly_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                             unsigned long addr, unsigned char * value)
@@ -729,6 +740,7 @@ void butterfly_initpgm(PROGRAMMER * pgm)
    * optional functions
    */
 
+  pgm->page_erase = butterfly_page_erase;
   pgm->paged_write = butterfly_paged_write;
   pgm->paged_load = butterfly_paged_load;
 
