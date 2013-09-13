@@ -78,10 +78,11 @@ static int pin_name;
 %token K_CHIP_ERASE_DELAY
 %token K_CONNTYPE
 %token K_DEDICATED
+%token K_DEFAULT_BITCLOCK
 %token K_DEFAULT_PARALLEL
 %token K_DEFAULT_PROGRAMMER
+%token K_DEFAULT_SAFEMODE
 %token K_DEFAULT_SERIAL
-%token K_DEFAULT_BITCLOCK
 %token K_DESC
 %token K_DEVICECODE
 %token K_STK500_DEVCODE
@@ -256,6 +257,14 @@ def :
 
   K_DEFAULT_BITCLOCK TKN_EQUAL number_real TKN_SEMI {
     default_bitclock = $3->value.number_real;
+    free_token($3);
+  } |
+
+  K_DEFAULT_SAFEMODE TKN_EQUAL yesno TKN_SEMI {
+    if ($3->primary == K_YES)
+      default_safemode = 1;
+    else if ($3->primary == K_NO)
+      default_safemode = 0;
     free_token($3);
   }
 ;

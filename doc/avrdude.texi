@@ -567,6 +567,24 @@ as avrdude will see the fuses have changed (even though you wanted to) and
 will change them back for your "safety". This option was designed to
 prevent cases of fuse bits magically changing (usually called @emph{safemode}).
 
+If one of the configuration files contains a line
+
+@code{default_safemode = no;}
+
+safemode is disabled by default.
+The @option{-u} option's effect is negated in that case, i. e. it
+@emph{enables} safemode.
+
+Safemode is always disabled for AVR32, Xmega and TPI devices.
+
+@item -s
+Disable safemode prompting.  When safemode discovers that one or more
+fuse bits have unintentionally changed, it will prompt for
+confirmation regarding whether or not it should attempt to recover the
+fuse bit(s).  Specifying this flag disables the prompt and assumes
+that the fuse bit(s) should be recovered without asking for
+confirmation first.
+
 @item -t
 Tells AVRDUDE to enter the interactive ``terminal'' mode instead of up-
 or downloading files.  See below for a detailed description of the
