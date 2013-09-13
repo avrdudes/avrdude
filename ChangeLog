@@ -1,5 +1,11 @@
 2013-09-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by HubertB:
+	patch #7657 Add ATmega406 support for avrdude using DRAGON + JTAG
+	* avrdude.conf.in (ATmega406): New entry.
+
+2013-09-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Marc de Hoop:
 	patch #7606 ATtiny43u support
 	* avrdude.conf.in (ATtiny43U): New entry.

@@ -22,6 +22,7 @@ Current:
       ATxmega64A1U, ATxmega64A3U, ATxmega64A4U, ATxmega64B1,
       ATxmega64B3, ATxmega64C3, ATxmega64D3
     - ATtiny43U
+    - ATmega406
 
 
   * New programmers supported:
@@ -108,6 +109,7 @@ Current:
       - bug #35456: The progress bar for STK500V2 programmer is "wrong".
       - patch #5708 avrdude should make 10 synchronization attempts instead of just one
       - patch #7606 ATtiny43u support
+      - patch #7657 Add ATmega406 support for avrdude using DRAGON + JTAG
 
   * Keep track of input file contents
 
