@@ -1,5 +1,11 @@
 2013-09-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	patch #8176: butterfly.c (AVR109 protocol implementation) clean-up and bug-fixing
+	* butterfly.c (butterfly_page_erase): Add dummy function to avoid
+	segfault when writing to EEPROM.
+
+2013-09-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #35474 Feature request: print fuse values in safemode output
 	* config_gram.y: New configuration token "default_safemode".
 	* lexer.l: (Dito.)
