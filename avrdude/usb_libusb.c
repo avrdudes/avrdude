@@ -115,11 +115,11 @@ static int usbdev_open(char * port, long baud, union filedescriptor *fd)
     {
       for (dev = bus->devices; dev; dev = dev->next)
 	{
-	  udev = usb_open(dev);
-	  if (udev)
+	  if (dev->descriptor.idVendor == USB_VENDOR_ATMEL &&
+	      dev->descriptor.idProduct == (unsigned short)baud)
 	    {
-	      if (dev->descriptor.idVendor == USB_VENDOR_ATMEL &&
-		  dev->descriptor.idProduct == (unsigned short)baud)
+	      udev = usb_open(dev);
+	      if (udev)
 		{
 		  /* yeah, we found something */
 		  if (usb_get_string_simple(udev,
@@ -246,10 +246,14 @@ static int usbdev_open(char * port, long baud, union filedescriptor *fd)
 			  fd->usb.max_xfer = dev->config[0].interface[0].altsetting[0].endpoint[i].wMaxPacketSize;
 			}
 		    }
-                  return 0;
+		  return 0;
+		  trynext:
+		  usb_close(udev);
 		}
-	      trynext:
-	      usb_close(udev);
+	      else
+		fprintf(stderr,
+			"%s: usbdev_open(): cannot open device: %s\n",
+			progname, usb_strerror());
 	    }
 	}
     }

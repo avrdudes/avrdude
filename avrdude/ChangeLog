@@ -1,5 +1,12 @@
 2013-09-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Stephen Roe:
+	patch #7710: usb_libusb: Check VID/PID before opening device
+	* usb_libusb.c (usbdev_open): Swap the sequence of verifying the
+	VID:PID, and opening the device.
+
+2013-09-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	patch #8176: butterfly.c (AVR109 protocol implementation) clean-up and bug-fixing
 	* butterfly.c (butterfly_page_erase): Add dummy function to avoid
 	segfault when writing to EEPROM.
