@@ -383,7 +383,11 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
       for (i = pageaddr;
            i < pageaddr + mem->page_size;
            i++)
-        if ((mem->tags[i] & TAG_ALLOCATED) != 0) {
+        if (vmem == NULL /* no verify, read everything */ ||
+            (mem->tags[i] & TAG_ALLOCATED) != 0 /* verify, do only
+                                                    read pages that
+                                                    are needed in
+                                                    input file */) {
           npages++;
           break;
         }
