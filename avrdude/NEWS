@@ -105,6 +105,7 @@ Current:
       - bug #28344: chip_erase_delay too short for ATmega324P, 644, 644P, and 1284P
       - bug #34277: avrdude reads wrong byte order if using avr911 (aka butterfly)
       - bug #35456: The progress bar for STK500V2 programmer is "wrong".
+      - patch #5708 avrdude should make 10 synchronization attempts instead of just one
 
   * Keep track of input file contents
 

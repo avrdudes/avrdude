@@ -44,6 +44,7 @@
 #include "serial.h"
 
 #define STK500_XTAL 7372800U
+#define MAX_SYNC_ATTEMPTS 10
 
 static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value);
 static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value);
@@ -80,6 +81,7 @@ int stk500_drain(PROGRAMMER * pgm, int display)
 int stk500_getsync(PROGRAMMER * pgm)
 {
   unsigned char buf[32], resp[32];
+  int attempt;
 
   /*
    * get in sync */
@@ -95,13 +97,17 @@ int stk500_getsync(PROGRAMMER * pgm)
   stk500_send(pgm, buf, 2);
   stk500_drain(pgm, 0);
 
-  stk500_send(pgm, buf, 2);
-  if (stk500_recv(pgm, resp, 1) < 0)
-    return -1;
-  if (resp[0] != Resp_STK_INSYNC) {
-    fprintf(stderr, 
-            "%s: stk500_getsync(): not in sync: resp=0x%02x\n",
-            progname, resp[0]);
+  for (attempt = 0; attempt < MAX_SYNC_ATTEMPTS; attempt++) {
+    stk500_send(pgm, buf, 2);
+    stk500_recv(pgm, resp, 1);
+    if (resp[0] == Resp_STK_INSYNC){
+      break;
+    }
+    fprintf(stderr,
+            "%s: stk500_getsync() attempt %d of %d: not in sync: resp=0x%02x\n",
+            progname, attempt + 1, MAX_SYNC_ATTEMPTS, resp[0]);
+  }
+  if (attempt == MAX_SYNC_ATTEMPTS) {
     stk500_drain(pgm, 0);
     return -1;
   }
