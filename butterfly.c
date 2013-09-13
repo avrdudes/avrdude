@@ -521,13 +521,13 @@ static int butterfly_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     butterfly_recv(pgm, buf, sizeof(buf));
 
     if ((addr & 0x01) == 0) {
-      *value = buf[1];
+      *value = buf[0];
       cached = 1;
-      cvalue = buf[0];
+      cvalue = buf[1];
       caddr = addr;
     }
     else {
-      *value = buf[0];
+      *value = buf[1];
     }
   }
 
