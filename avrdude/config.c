@@ -35,6 +35,7 @@ char default_programmer[MAX_STR_CONST];
 char default_parallel[PATH_MAX];
 char default_serial[PATH_MAX];
 double default_bitclock;
+int default_safemode;
 
 char string_buf[MAX_STR_CONST];
 char *string_buf_ptr;

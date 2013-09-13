@@ -1,5 +1,17 @@
 2013-09-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #35474 Feature request: print fuse values in safemode output
+	* config_gram.y: New configuration token "default_safemode".
+	* lexer.l: (Dito.)
+	* avrdude.conf.in: (Dito.)
+	* config.h: Add variable default_safemode.
+	* config.c: (Dito.)
+	* main.c: Handle default_safemode, including -u option.
+	* avrdude.1: Document all this.
+	* doc/avrdude.texi: (Dito.)
+
+2013-09-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by HubertB:
 	patch #7657 Add ATmega406 support for avrdude using DRAGON + JTAG
 	* avrdude.conf.in (ATmega406): New entry.

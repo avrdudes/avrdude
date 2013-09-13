@@ -110,6 +110,7 @@ Current:
       - patch #5708 avrdude should make 10 synchronization attempts instead of just one
       - patch #7606 ATtiny43u support
       - patch #7657 Add ATmega406 support for avrdude using DRAGON + JTAG
+      - bug #35474 Feature request: print fuse values in safemode output.
 
   * Keep track of input file contents
 
@@ -122,7 +123,7 @@ Current:
       everything mentioned in the file (even in case the file has
       large 0xFF blocks).
 
-  * The eraes cycle counter (formerly options -y / -Y) has been
+  * The erase cycle counter (formerly options -y / -Y) has been
     removed.
 
   * The -U option now accepts ELF files as input files, and extracts
@@ -182,6 +183,9 @@ Current:
 
   * The "verbose" terminal mode command allows to query or modify the
     verbosity level.
+
+  * "Safemode" can now be turned off by default in a configuration
+    file.
 
   * Internals:
 

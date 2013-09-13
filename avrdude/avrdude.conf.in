@@ -325,11 +325,14 @@
 # ATmega169	0x78
 
 #
-# Overall avrdude defaults
+# Overall avrdude defaults; suitable for ~/.avrduderc
 #
 default_parallel   = "@DEFAULT_PAR_PORT@";
 default_serial     = "@DEFAULT_SER_PORT@";
 # default_bitclock = 2.5;
+
+# Turn off safemode by default
+#default_safemode  = no;
 
 
 #

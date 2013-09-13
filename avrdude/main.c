@@ -366,6 +366,7 @@ int main(int argc, char * argv [])
   default_parallel[0] = 0;
   default_serial[0]   = 0;
   default_bitclock    = 0.0;
+  default_safemode    = -1;
 
   init_config();
 
@@ -409,11 +410,6 @@ int main(int argc, char * argv [])
   silentsafe    = 0;       /* Ask by default */
   is_open       = 0;
   logfile       = NULL;
-
-  if (isatty(STDIN_FILENO) == 0)
-      safemode  = 0;       /* Turn off safemode if this isn't a terminal */
-
-
 
 #if defined(WIN32NATIVE)
 
@@ -844,6 +840,20 @@ int main(int argc, char * argv [])
       exit(1);
     }
   }
+
+  if (default_safemode == 0) {
+    /* configuration disables safemode: revert meaning of -u */
+    if (safemode == 0)
+      /* -u was given: enable safemode */
+      safemode = 1;
+    else
+      /* -u not given: turn off */
+      safemode = 0;
+  }
+
+  if (isatty(STDIN_FILENO) == 0 && silentsafe == 0)
+    safemode  = 0;       /* Turn off safemode if this isn't a terminal */
+
 
   if(p->flags & AVRPART_AVR32) {
     safemode = 0;
@@ -1353,7 +1363,8 @@ int main(int argc, char * argv [])
     if (quell_progress < 2) {
       fprintf(stderr, "%s: safemode: ", progname);
       if (failures == 0) {
-        fprintf(stderr, "Fuses OK\n");
+        fprintf(stderr, "Fuses OK (H:%02X, E:%02X, L:%02X)\n",
+                safemode_efuse, safemode_hfuse, safemode_lfuse);
       }
       else {
         fprintf(stderr, "Fuses not recovered, sorry\n");

@@ -60,6 +60,7 @@ extern char         default_programmer[];
 extern char         default_parallel[];
 extern char         default_serial[];
 extern double       default_bitclock;
+extern int          default_safemode;
 
 /* This name is fixed, it's only here for symmetry with
  * default_parallel and default_serial. */

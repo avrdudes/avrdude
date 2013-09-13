@@ -18,7 +18,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE September 8, 2013
+.Dd DATE September 13, 2013
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -531,6 +531,17 @@ prompt for instructions, unless the terminal is non-interactive, in
 which case safemode is disabled.  See the
 .Fl s
 option to disable safemode prompting.
+.Pp
+If one of the configuration files has a line
+.Dl "default_safemode = no;"
+safemode is disabled by default.
+The
+.Fl u
+option's effect is negated in that case, i. e. it
+.Em enables
+safemode.
+.Pp
+Safemode is always disabled for AVR32, Xmega and TPI devices.
 .It Xo Fl U Ar memtype Ns
 .Ar \&: Ns Ar op Ns
 .Ar \&: Ns Ar filename Ns
