@@ -1,5 +1,18 @@
 2013-09-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Contributed by Ricardo Martins:
+	bug #36384 ATxmega32A4 usersig size
+	* avrdude.conf.in: Revamp all the ATxmega* entries.  Add new
+	entries for ATxmega128A1U, ATxmega128A3U, ATxmega128A4U,
+	ATxmega128B1, ATxmega128B3, ATxmega128C3, ATxmega128D3,
+	ATxmega16A4U, ATxmega16C4, ATxmega192A3U, ATxmega192C3,
+	ATxmega192D3, ATxmega256A3BU, ATxmega256A3U, ATxmega256C3,
+	ATxmega256D3, ATxmega32A4U, ATxmega32C4, ATxmega384C3,
+	ATxmega384D3, ATxmega64A1U, ATxmega64A3U, ATxmega64A4U,
+	ATxmega64B1, ATxmega64B3, ATxmega64C3, ATxmega64D3
+
+2013-09-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #35456 The progress bar for STK500V2 programmer is "wrong".
 	* avr.c (avr_read, avr_write): Change the progress reporting for
 	paged read/write from per-address to per-considered-page.  This
