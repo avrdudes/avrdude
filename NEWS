@@ -88,14 +88,15 @@ Current:
       - bug #39794: warnings when building avrdude 6.0rc1 under CentOS 6.4
       - bug #35800: Compilation error on certain systems if parport is disabled
       - bug #38307: Can't write usersig of an xmega256a3
-      - bug #38580 Current svn head, xmega and fuses, all fuses tied to fuse0
-      - bug #39691 Buffer overrun when reading EEPROM byte with JTAGICE3
+      - bug #38580: Current svn head, xmega and fuses, all fuses tied to fuse0
+      - bug #39691: Buffer overrun when reading EEPROM byte with JTAGICE3
       - bug #38951: AVR109 use byte offset instead of word offset
       - patch #7769: Write flash fails for AVR910 programmers
       - bug #38732: Support for ATtiny1634
-      - bug #36901 flashing Atmega32U4 EEPROM produces garbage on chip
-      - bug #28344 chip_erase_delay too short for ATmega324P, 644, 644P, and 1284P
+      - bug #36901: flashing Atmega32U4 EEPROM produces garbage on chip
+      - bug #28344: chip_erase_delay too short for ATmega324P, 644, 644P, and 1284P
       - bug #34277: avrdude reads wrong byte order if using avr911 (aka butterfly)
+      - bug #35456: The progress bar for STK500V2 programmer is "wrong".
 
   * Keep track of input file contents
 
