@@ -34,8 +34,8 @@ Current:
       + o-link (patch #7672 adding support for O-Link (FTDI based
         JTAG) as programmer)
       + 4232h (patch #7715 FT4232H support)
-			- TPI support
-	  + openmoko (bug #37977 Support for Openmoko Debug Board)
+    - TPI support
+      + openmoko (bug #37977 Support for Openmoko Debug Board)
 
     - usbasp
       + nibobee (previously specified as '-c usbasp -P nibobee)
