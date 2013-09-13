@@ -14177,4 +14177,69 @@ part
     ;
 ;
 
+#------------------------------------------------------------
+# ATmega406
+#------------------------------------------------------------
+
+part
+    id				= "m406";
+    desc			= "ATMEGA406";
+    has_jtag			= yes;
+    signature			= 0x1e 0x95 0x07;
+
+    # STK500 parameters (parallel programming IO lines)
+    pagel			= 0xa7;
+    bs2				= 0xa0;
+    serial			= no;
+    parallel			= yes;
+
+    # STK500v2 HV programming parameters, from XML
+    pp_controlstack		= 0x0e, 0x1e, 0x0f, 0x1f, 0x2e, 0x3e, 0x2f, 0x3f,
+				  0x4e, 0x5e, 0x4f, 0x5f, 0x6e, 0x7e, 0x6f, 0x7f,
+				  0x66, 0x76, 0x67, 0x77, 0x6a, 0x7a, 0x6b, 0x7b,
+				  0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
+
+    # JTAG ICE mkII parameters, also from XML files
+    allowfullpagebitstream	= no;
+    enablepageprogramming	= yes;
+    idr				= 0x51;
+    rampz			= 0x00;
+    spmcr			= 0x57;
+    eecr			= 0x3f;
+
+    memory "eeprom"
+        paged		= no;
+        size		= 512;
+        page_size	= 4;
+        blocksize	= 4;
+	readsize	= 4;
+        num_pages	= 128;
+    ;
+
+    memory "flash"
+        paged		= yes;
+        size		= 40960;
+        page_size	= 128;
+        blocksize	= 128;
+	readsize	= 128;
+        num_pages	= 320;
+    ;
+
+    memory "hfuse"
+        size            = 1;
+    ;
+
+    memory "lfuse"
+        size            = 1;
+    ;
+
+    memory "lockbits"
+        size		= 1;
+    ;
+
+    memory "signature"
+        size            = 3;
+    ;
+;
+
 
