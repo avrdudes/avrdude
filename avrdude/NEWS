@@ -23,6 +23,7 @@ Current:
       ATxmega64B3, ATxmega64C3, ATxmega64D3
     - ATtiny43U
     - ATmega406
+    - ATxmega8E6, ATxmega16E5, ATxmega32E5
 
 
   * New programmers supported:

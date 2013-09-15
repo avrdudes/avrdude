@@ -13791,6 +13791,162 @@ part parent "x384c3"
 ;
 
 #------------------------------------------------------------
+# ATxmega8E5
+#------------------------------------------------------------
+
+part parent ".xmega"
+    id		= "x8e5";
+    desc	= "ATxmega8E5";
+    signature	= 0x1e 0x93 0x41;
+
+    memory "eeprom"
+        size		= 0x0200;
+        offset		= 0x08c0000;
+        page_size	= 0x20;
+        readsize	= 0x100;
+    ;
+
+    memory "application"
+        size		= 0x2000;
+        offset		= 0x0800000;
+        page_size	= 0x80;
+        readsize	= 0x100;
+    ;
+
+    memory "apptable"
+        size		= 0x800;
+        offset		= 0x00801800;
+        page_size	= 0x80;
+        readsize	= 0x100;
+    ;
+
+    memory "boot"
+        size		= 0x800;
+        offset		= 0x00804000;
+        page_size	= 0x80;
+        readsize	= 0x100;
+    ;
+
+    memory "flash"
+        size		= 0x2800;
+        offset		= 0x0800000;
+        page_size	= 0x80;
+        readsize	= 0x100;
+    ;
+
+    memory "usersig"
+        size            = 0x80;
+        offset          = 0x8e0400;
+        page_size       = 0x80;
+        readsize	= 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATxmega16E5
+#------------------------------------------------------------
+
+part parent ".xmega"
+    id		= "x16e5";
+    desc	= "ATxmega16E5";
+    signature	= 0x1e 0x94 0x45;
+
+    memory "eeprom"
+        size		= 0x0200;
+        offset		= 0x08c0000;
+        page_size	= 0x20;
+        readsize	= 0x100;
+    ;
+
+    memory "application"
+        size		= 0x4000;
+        offset		= 0x0800000;
+        page_size	= 0x80;
+        readsize	= 0x100;
+    ;
+
+    memory "apptable"
+        size		= 0x1000;
+        offset		= 0x00803000;
+        page_size	= 0x80;
+        readsize	= 0x100;
+    ;
+
+    memory "boot"
+        size		= 0x1000;
+        offset		= 0x00804000;
+        page_size	= 0x80;
+        readsize	= 0x100;
+    ;
+
+    memory "flash"
+        size		= 0x5000;
+        offset		= 0x0800000;
+        page_size	= 0x80;
+        readsize	= 0x100;
+    ;
+
+    memory "usersig"
+        size            = 0x80;
+        offset          = 0x8e0400;
+        page_size       = 0x80;
+        readsize	= 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATxmega32E5
+#------------------------------------------------------------
+
+part parent ".xmega"
+    id		= "x32e5";
+    desc	= "ATxmega32E5";
+    signature	= 0x1e 0x95 0x4c;
+
+    memory "eeprom"
+        size		= 0x0400;
+        offset		= 0x08c0000;
+        page_size	= 0x20;
+        readsize	= 0x100;
+    ;
+
+    memory "application"
+        size		= 0x8000;
+        offset		= 0x0800000;
+        page_size	= 0x80;
+        readsize	= 0x100;
+    ;
+
+    memory "apptable"
+        size		= 0x1000;
+        offset		= 0x00807000;
+        page_size	= 0x80;
+        readsize	= 0x100;
+    ;
+
+    memory "boot"
+        size		= 0x1000;
+        offset		= 0x00804000;
+        page_size	= 0x80;
+        readsize	= 0x100;
+    ;
+
+    memory "flash"
+        size		= 0x9000;
+        offset		= 0x0800000;
+        page_size	= 0x80;
+        readsize	= 0x100;
+    ;
+
+    memory "usersig"
+        size            = 0x80;
+        offset          = 0x8e0400;
+        page_size       = 0x80;
+        readsize	= 0x100;
+    ;
+;
+
+#------------------------------------------------------------
 # AVR32UC3A0512
 #------------------------------------------------------------
 

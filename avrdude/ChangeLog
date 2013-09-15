@@ -1,3 +1,10 @@
+2013-09-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Joakim Lubeck:
+	bug #40033: Support for the XMegaE5 family
+	* avrdude.conf.in (ATxmega8E6, ATxmega16E5, ATxmega32E5): New
+	entries.
+
 2013-09-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* stk500v2.c (stk500v2_set_sck_period): Revamp this to match the
