@@ -1,3 +1,11 @@
+2013-09-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Joakim Lubeck:
+	bug #40040: Support for ATtiny20 and ATtiny40
+	* avrdude.conf.in: Restructure the reduced-core tiny devices
+	to use a common entry .reduced_core_tiny; add ATtiny20 and
+	ATtiny40
+
 2013-09-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Joakim Lubeck:

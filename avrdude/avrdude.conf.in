@@ -14162,21 +14162,13 @@ part
 ;
 
 #------------------------------------------------------------
-# ATtiny4
+# Common values for reduced core tinys (4/5/9/10/20/40)
 #------------------------------------------------------------
 
 part
-    id		= "t4";
-    desc	= "ATtiny4";
-    signature	= 0x1e 0x8f 0x0a;
+    id		= ".reduced_core_tiny";
+    desc	= "Common values for reduced core tinys";
     has_tpi	= yes;
-
-    memory "flash"
-        size		= 512;
-        offset		= 0x4000;
-        page_size	= 16;
-        blocksize	= 128;
-    ;
 
     memory "signature"
         size		= 3;
@@ -14204,60 +14196,41 @@ part
     ;
 ;
 
+#------------------------------------------------------------
+# ATtiny4
+#------------------------------------------------------------
+
+part parent ".reduced_core_tiny"
+    id		= "t4";
+    desc	= "ATtiny4";
+    signature	= 0x1e 0x8f 0x0a;
+
+    memory "flash"
+        size		= 512;
+        offset		= 0x4000;
+        page_size	= 16;
+        blocksize	= 128;
+    ;
+;
 
 #------------------------------------------------------------
 # ATtiny5
 #------------------------------------------------------------
 
-part
+part parent "t4"
     id		= "t5";
     desc	= "ATtiny5";
     signature	= 0x1e 0x8f 0x09;
-    has_tpi	= yes;
-
-    memory "flash"
-        size		= 512;
-        offset		= 0x4000;
-        page_size	= 16;
-        blocksize	= 128;
-    ;
-
-    memory "signature"
-        size		= 3;
-        offset		= 0x3fc0;
-        page_size	= 16;
-    ;
-
-    memory "fuse"
-        size		= 1;
-        offset		= 0x3f40;
-        page_size	= 16;
-	blocksize	= 4;
-    ;
-
-    memory "calibration"
-        size		= 1;
-        offset		= 0x3f80;
-        page_size	= 16;
-    ;
-
-    memory "lockbits"
-        size		= 1;
-        offset		= 0x3f00;
-        page_size	= 16;
-    ;
 ;
-
 
 #------------------------------------------------------------
 # ATtiny9
 #------------------------------------------------------------
 
-part
+part parent ".reduced_core_tiny"
     id		= "t9";
     desc	= "ATtiny9";
     signature	= 0x1e 0x90 0x08;
-    has_tpi	= yes;
 
     memory "flash"
         size		= 1024;
@@ -14265,74 +14238,49 @@ part
         page_size	= 16;
         blocksize	= 128;
     ;
-
-    memory "signature"
-        size		= 3;
-        offset		= 0x3fc0;
-        page_size	= 16;
-    ;
-
-    memory "fuse"
-        size		= 1;
-        offset		= 0x3f40;
-        page_size	= 16;
-	blocksize	= 4;
-    ;
-
-    memory "calibration"
-        size		= 1;
-        offset		= 0x3f80;
-        page_size	= 16;
-    ;
-
-    memory "lockbits"
-        size		= 1;
-        offset		= 0x3f00;
-        page_size	= 16;
-    ;
 ;
-
 
 #------------------------------------------------------------
 # ATtiny10
 #------------------------------------------------------------
 
-part
+part parent "t9"
     id		= "t10";
     desc	= "ATtiny10";
     signature	= 0x1e 0x90 0x03;
-    has_tpi	= yes;
+;
+
+#------------------------------------------------------------
+# ATtiny20
+#------------------------------------------------------------
+
+part parent ".reduced_core_tiny"
+    id          = "t20";
+    desc        = "ATtiny20";
+    signature   = 0x1e 0x91 0x0F;
 
     memory "flash"
-        size		= 1024;
+        size            = 2048;
+        offset          = 0x4000;
+        page_size       = 16;
+        blocksize       = 128;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny40
+#------------------------------------------------------------
+
+part parent ".reduced_core_tiny"
+    id		= "t40";
+    desc	= "ATtiny40";
+    signature	= 0x1e 0x92 0x0E;
+
+    memory "flash"
+        size		= 4096;
         offset		= 0x4000;
-        page_size	= 16;
+        page_size	= 64;
         blocksize	= 128;
-    ;
-
-    memory "signature"
-        size		= 3;
-        offset		= 0x3fc0;
-        page_size	= 16;
-    ;
-
-    memory "fuse"
-        size		= 1;
-        offset		= 0x3f40;
-        page_size	= 16;
-	blocksize	= 4;
-    ;
-
-    memory "calibration"
-        size		= 1;
-        offset		= 0x3f80;
-        page_size	= 16;
-    ;
-
-    memory "lockbits"
-        size		= 1;
-        offset		= 0x3f00;
-        page_size	= 16;
     ;
 ;
 
