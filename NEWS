@@ -103,6 +103,7 @@ Current:
     - ATtiny43U
     - ATmega406
     - ATxmega8E5, ATxmega16E5, ATxmega32E5
+    - ATtiny20, ATtiny40
 
 
   * New programmers supported:
@@ -193,6 +194,7 @@ Current:
       - bug #35474: Feature request: print fuse values in safemode output.
       - patch #7710: usb_libusb: Check VID/PID before opening device
       - [no-id]: Fix SCK period adjustment for STK500v2
+      - bug #40040: Support for ATtiny20 and ATtiny40
 
   * Internals:
 
