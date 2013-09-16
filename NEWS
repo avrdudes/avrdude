@@ -41,7 +41,9 @@ Current:
 
     - The -U option now accepts ELF files as input files, and extracts
       the appropriate section contents that matches the requested memory
-      region.
+      region.  To enable this feature, the host system used for the
+      compilation must have a libelf around, including the respective
+      header files (i.e., package "libelf-devel" on many Linux systems).
 
     - Programmers and parts lists
 
