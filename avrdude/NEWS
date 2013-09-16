@@ -23,7 +23,7 @@ Current:
     - Specifying a -U option without a memory type (short form of
       option argument list) now defaults to "application" memory for
       Xmega devices, and "flash" for everything else.  This ensures
-      the bootloader is not touched.
+      the Xmega bootloader is not accidentally touched.
 
     - For programmers that support it, the default erase method is a
       page erase now, rather than a chip erase (Xmega only).
@@ -69,11 +69,11 @@ Current:
 
       (patch #7699 Read additional config files)
 
-    - "Safemode" can now be turned off by default in a configuration
-      file.
+    - "Safemode" can now be turned off by default from within a
+      configuration file (like ~/.avrduderc).
 
     - The new option -l logfile allows to redirect diagnostic messages
-      to a logfile rather than stdout.  Useful to record debugging
+      to a logfile rather than stderr.  Useful to record debugging
       traces, in particular in environments which do not offer
       shell-style redirection functionality for standard streams.
 
