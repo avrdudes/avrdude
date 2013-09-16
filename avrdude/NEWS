@@ -7,6 +7,83 @@ Approximate change log for AVRDUDE by version.
 ----------------------------------------------------------------------
 Current:
 
+  * Major changes compared to the previous version:
+
+    - Programmer types in configuration file are no longer keywords but
+      specified as string.
+
+      So you need to change 'type = XYZ;' to 'type = "XYZ";' in own
+      config files.  (internal: The parser does not need to know all
+      programmer types now, new programmers will update only the table
+      in pgm_type.c.)
+
+    - The erase cycle counter (formerly options -y / -Y) has been
+      removed.
+
+    - Specifying a -U option without a memory type (short form of
+      option argument list) now defaults to "application" memory for
+      Xmega devices, and "flash" for everything else.  This ensures
+      the bootloader is not touched.
+
+    - For programmers that support it, the default erase method is a
+      page erase now, rather than a chip erase (Xmega only).
+
+    - Keep track of input file contents
+
+      Memory segments are being tracked to remember whether they've
+      been actually read from a file.  Only segments that came from a
+      file are being programmed into the device, or considered for
+      verification.  This drastically improves handling speed for
+      sparse files (e.g. files that have a second bootloader segment),
+      and it ensures the device contents is actually compared for
+      everything mentioned in the file (even in case the file has
+      large 0xFF blocks).
+
+    - The -U option now accepts ELF files as input files, and extracts
+      the appropriate section contents that matches the requested memory
+      region.
+
+    - Programmers and parts lists
+
+      They are now sorted at output with '-c ?'/'-p ?'. (patch #7671:
+      Sorting programmers and parts lists for console output)
+
+      Programmers and parts lists in documentation generated from lists
+      mentioned above. (patch #7687: Autogenerating programmers and
+      parts lists for docs)
+
+      Output list of programmer types with '-c ?type', add list to
+      documentation
+
+    - Configuration files now accepts parent parts/programmers, parts
+      starting with '.' (eg. .xmega) are not included in output parts
+      list and can be used as abstract parents
+
+      (bug #34302: Feature request : device configuration with parent classes)
+      (patch #7688: Implement parent programmers feature)
+
+    - Additional config files which are read after default can be
+      specified on command line using '-C +filename'
+
+      (patch #7699 Read additional config files)
+
+    - "Safemode" can now be turned off by default in a configuration
+      file.
+
+    - The new option -l logfile allows to redirect diagnostic messages
+      to a logfile rather than stdout.  Useful to record debugging
+      traces, in particular in environments which do not offer
+      shell-style redirection functionality for standard streams.
+
+    - When leaving debugWIRE mode, immediately retry with ISP rather
+      than bailing out completely.
+
+    - The USBasp programmer implementation now supports detailed traces
+      with -vvv, and device communication traces with -vvvv.
+
+    - The "verbose" terminal mode command allows to query or modify the
+      verbosity level.
+
   * New devices supported:
     - ATmega48P (patch #7629 add support for atmega48p)
     - AT90PWM316 (bug #21797: AT90PWM316: New part description)
@@ -114,81 +191,6 @@ Current:
       - bug #35474: Feature request: print fuse values in safemode output.
       - patch #7710: usb_libusb: Check VID/PID before opening device
       - [no-id]: Fix SCK period adjustment for STK500v2
-
-  * Keep track of input file contents
-
-      Memory segments are being tracked to remember whether they've
-      been actually read from a file.  Only segments that came from a
-      file are being programmed into the device, or considered for
-      verification.  This drastically improves handling speed for
-      sparse files (e.g. files that have a second bootloader segment),
-      and it ensures the device contents is actually compared for
-      everything mentioned in the file (even in case the file has
-      large 0xFF blocks).
-
-  * The erase cycle counter (formerly options -y / -Y) has been
-    removed.
-
-  * The -U option now accepts ELF files as input files, and extracts
-    the appropriate section contents that matches the requested memory
-    region.
-
-  * Specifying a -U option without a memory type (short form of
-    option argument list) now defaults to "application" memory for
-    Xmega devices, and "flash" for everything else.  This ensures
-    the bootloader is not touched.
-
-  * For programmers that support it, the default erase method is a
-    page erase now, rather than a chip erase (Xmega only).
-
-  * Programmers and parts lists
-
-    They are now sorted at output with '-c ?'/'-p ?'. (patch #7671:
-    Sorting programmers and parts lists for console output)
-
-    Programmers and parts lists in documentation generated from lists
-    mentioned above. (patch #7687: Autogenerating programmers and
-    parts lists for docs)
-
-    Output list of programmer types with '-c ?type', add list to
-    documentation
-
-  * Configuration files now accepts parent parts/programmers, parts
-    starting with '.' (eg. .xmega) are not included in output parts
-    list and can be used as abstract parents
-
-    (bug #34302: Feature request : device configuration with parent classes)
-    (patch #7688: Implement parent programmers feature)
-
-  * Additional config files which are read after default can be
-    specified on command line using '-C +filename'
-
-    (patch #7699 Read additional config files)
-
-  * The new option -l logfile allows to redirect diagnostic messages
-    to a logfile rather than stdout.  Useful to record debugging
-    traces, in particular in environments which do not offer
-    shell-style redirection functionality for standard streams.
-
-  * When leaving debugWIRE mode, immediately retry with ISP rather
-    than bailing out completely.
-
-  * Programmer types in configuration file are no longer keywords but
-    specified as string.
-
-    So you need to change 'type = XYZ;' to 'type = "XYZ";' in own
-    config files.  (internal: The parser does not need to know all
-    programmer types now, new programmers will update only the table
-    in pgm_type.c.)
-
-  * The USBasp programmer implementation now supports detailed traces
-    with -vvv, and device communication traces with -vvvv.
-
-  * The "verbose" terminal mode command allows to query or modify the
-    verbosity level.
-
-  * "Safemode" can now be turned off by default in a configuration
-    file.
 
   * Internals:
 
