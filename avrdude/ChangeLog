@@ -1,5 +1,9 @@
 2013-09-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* configure.ac (AC_INIT): Bump version to 6.0.
+
+2013-09-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* jtag3.c (jtag3_initialize): Fix a buffer overflow by limiting
 	the flash page cache size to at most "readsize".  For Xmegas with
 	a page size of 512 bytes, the maximum USB packet size was
