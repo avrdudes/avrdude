@@ -802,7 +802,10 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
     for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
       m = ldata(ln);
       if (strcmp(m->desc, "flash") == 0) {
-        PDATA(pgm)->flash_pagesize = m->page_size;
+	if (m->readsize != 0 && m->readsize < m->page_size)
+	  PDATA(pgm)->flash_pagesize = m->readsize;
+	else
+	  PDATA(pgm)->flash_pagesize = m->page_size;
 	u16_to_b2(xd.flash_page_size, m->page_size);
       } else if (strcmp(m->desc, "eeprom") == 0) {
 	PDATA(pgm)->eeprom_pagesize = m->page_size;
@@ -843,7 +846,10 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
     for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
       m = ldata(ln);
       if (strcmp(m->desc, "flash") == 0) {
-	PDATA(pgm)->flash_pagesize = m->page_size;
+	if (m->readsize != 0 && m->readsize < m->page_size)
+	  PDATA(pgm)->flash_pagesize = m->readsize;
+	else
+	  PDATA(pgm)->flash_pagesize = m->page_size;
 	u16_to_b2(md.flash_page_size, m->page_size);
 	u32_to_b4(md.flash_size, (flashsize = m->size));
 	// do we need it?  just a wild guess
@@ -1421,6 +1427,7 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       strcmp(mem->desc, "application") == 0 ||
       strcmp(mem->desc, "apptable") == 0 ||
       strcmp(mem->desc, "boot") == 0) {
+    addr += mem->offset & (512 * 1024 - 1); /* max 512 KiB flash */
     pagesize = PDATA(pgm)->flash_pagesize;
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->flash_pageaddr;
