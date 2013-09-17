@@ -1,3 +1,14 @@
+2013-09-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtag3.c (jtag3_initialize): Fix a buffer overflow by limiting
+	the flash page cache size to at most "readsize".  For Xmegas with
+	a page size of 512 bytes, the maximum USB packet size was
+	overflowed, and subsequently, a memmove copied beyond the end of
+	the allocated buffer.
+	* jtag3.c (jtag3_read_byte): Add the correct offset also for the
+	various flash regions, so reading the apptable or boot regions
+	yields the correct data.
+
 2013-09-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Joakim Lubeck:
