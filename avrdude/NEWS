@@ -5,7 +5,7 @@ Approximate change log for AVRDUDE by version.
 (For more detailed changes, see the ChangeLog file.)
 
 ----------------------------------------------------------------------
-Version 6.0:
+Version 6.0.1:
 
   * Major changes compared to the previous version:
 
@@ -195,6 +195,7 @@ Version 6.0:
       - patch #7710: usb_libusb: Check VID/PID before opening device
       - [no-id]: Fix SCK period adjustment for STK500v2
       - bug #40040: Support for ATtiny20 and ATtiny40
+      - bug #40055: AVRDUDE segfaults when writing eeprom
 
   * Internals:
 
