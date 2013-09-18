@@ -1,5 +1,12 @@
 2013-09-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #40055: AVRDUDE segfaults when writing eeprom
+	* main.c: Always clear the UF_AUTO_ERASE flag if either a
+	non-Xmega device was found, or the programmer does not offer a
+	page_erase method.
+
+2013-09-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* configure.ac (AC_INIT): Bump version to post-6.0.
 
 2013-09-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>

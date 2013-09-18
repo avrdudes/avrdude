@@ -17,7 +17,7 @@ Current:
     - ...
 
   * Bugfixes
-    - bug #XXXX: xxx
+    - bug #40055: AVRDUDE segfaults when writing eeprom
     - patch #XXXX: xxx
 
   * Internals:

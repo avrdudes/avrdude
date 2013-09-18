@@ -1156,6 +1156,8 @@ int main(int argc, char * argv [])
     } else {
       AVRMEM * m;
       const char *memname = (p->flags & AVRPART_HAS_PDI)? "application": "flash";
+
+      uflags &= ~UF_AUTO_ERASE;
       for (ln=lfirst(updates); ln; ln=lnext(ln)) {
         upd = ldata(ln);
         m = avr_locate_mem(p, upd->memtype);
@@ -1163,7 +1165,6 @@ int main(int argc, char * argv [])
           continue;
         if ((strcasecmp(m->desc, memname) == 0) && (upd->op == DEVICE_WRITE)) {
           erase = 1;
-          uflags &= ~UF_AUTO_ERASE;
           if (quell_progress < 2) {
             fprintf(stderr,
                     "%s: NOTE: \"%s\" memory has been specified, an erase cycle "
