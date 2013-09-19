@@ -490,73 +490,6 @@ static inline int avrftdi_transmit(PROGRAMMER * pgm, unsigned char mode, const u
 		return avrftdi_transmit_mpsse(pdata, mode, buf, data, buf_size);
 }
 
-#ifdef notyet
-/* this function tries to sync up with the FTDI. See FTDI application note AN_129.
- * AN_135 uses 0xab as bad command and enables/disables loopback around synchronisation.
- * This may fail if data is left in the buffer (i.e. avrdude aborted with ctrl-c)
- * or the device is in an illegal state (i.e. a previous program).
- * If the FTDI is out of sync, the buffers are cleared ("purged") and the
- * sync is re-tried.
- * if it still fails, we return an error code. higher level code may than abort.
- * the device may be reset by unplugging the device and plugging it back in.
- * resetting the device did not always help for me.
- */
-static int ftdi_sync(avrftdi_t* pdata)
-{
-	unsigned char illegal_cmd[] = {0xaa};
-	unsigned char reply[2];
-	unsigned int i, n;
-	unsigned int retry = 0;
-	unsigned char latency;
-
-	ftdi_get_latency_timer(pdata->ftdic, &latency);
-	fprintf(stderr, "Latency: %d\n", latency);
-
-	do{
-		n = ftdi_read_data(pdata->ftdic, reply, 1);
-	} while(n > 0);
-retry:
-	/* send command "0xaa", which is an illegal command. */
-	E(ftdi_write_data(pdata->ftdic, illegal_cmd, sizeof(illegal_cmd)) != sizeof(illegal_cmd), pdata->ftdic);
-	
-	i = 0;
-	do {
-#ifndef DRYRUN
-		n = ftdi_read_data(pdata->ftdic, &reply[i], sizeof(reply) - i);
-		E(n < 0, pdata->ftdic);
-		//fprintf(stderr, "%s\n", ftdi_get_error_string(pdata->ftdic));
-#else
-		n = sizeof(reply) - i;
-#endif
-		i += n;
-	} while (i < sizeof(reply));
-
-	/* 0xfa is return code for illegal command - we expect that, since we issued an
-	 * illegal command (0xaa)
-	 * the next byte will be the illegal command, the FTDI is complaining about.
-	 */
-	if(reply[0] == 0xfa && reply[1] == illegal_cmd[0])
-	{
-		/* if the FTDI is complaining about the right thing, everything is fine */
-		fprintf(stderr, "FTDI is in sync.\n");
-		return 0;
-	}
-		else
-	{
-		fprintf(stderr, "FTDI out of sync. Received 0x%02x 0x%02x\n", reply[0], reply[1]);
-		if(retry < 4)
-		{
-			fprintf(stderr, "Trying to re-sync by purging buffers. Attempt\n");
-			E(ftdi_usb_purge_buffers(pdata->ftdic), pdata->ftdic);
-			retry++;
-			goto retry;
-		} else
-			fprintf(stderr, "Aborting. Try resetting or unplugging the device.\n");
-	}
-	return -1;
-}
-#endif /* notyet */
-
 static int write_flush(avrftdi_t* pdata)
 {
 	unsigned char buf[6];
@@ -810,11 +743,6 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 	E(ftdi_set_bitmode(pdata->ftdic, pdata->pin_direction & 0xff, BITMODE_MPSSE) < 0, pdata->ftdic);
 	E(ftdi_usb_purge_buffers(pdata->ftdic), pdata->ftdic);
 
-#ifdef notyet
-	ret = ftdi_sync(pdata);
-	if(ret < 0)
-		return ret;
-#endif
 	write_flush(pdata);
 
 	if (pgm->baudrate) {

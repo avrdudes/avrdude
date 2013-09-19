@@ -1,3 +1,8 @@
+2013-09-19  Hannes Weisbach <hannes_weisbach@gmx.net>
+
+	task #12798: Please cleanup #ifdef notyet entries in avrftdi.c
+	* avrftdi.c: ditto.
+
 2013-09-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #40055: AVRDUDE segfaults when writing eeprom
