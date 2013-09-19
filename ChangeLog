@@ -2,6 +2,7 @@
 
 	task #12798: Please cleanup #ifdef notyet entries in avrftdi.c
 	* avrftdi.c: ditto.
+	avrftdi.c: Remove DRYRUN-option.
 
 2013-09-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
