@@ -1364,7 +1364,7 @@ int main(int argc, char * argv [])
     if (quell_progress < 2) {
       fprintf(stderr, "%s: safemode: ", progname);
       if (failures == 0) {
-        fprintf(stderr, "Fuses OK (H:%02X, E:%02X, L:%02X)\n",
+        fprintf(stderr, "Fuses OK (E:%02X, H:%02X, L:%02X)\n",
                 safemode_efuse, safemode_hfuse, safemode_lfuse);
       }
       else {

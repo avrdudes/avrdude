@@ -1,3 +1,9 @@
+2013-09-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Daniel Rozsnyo:
+	bug #40085: Typo fix in fuses report (for 6.1-svn-20130917)
+	* main.c: Fix a typo.
+
 2013-09-19  Hannes Weisbach <hannes_weisbach@gmx.net>
 
 	task #12798: Please cleanup #ifdef notyet entries in avrftdi.c

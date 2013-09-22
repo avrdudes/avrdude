@@ -18,6 +18,7 @@ Current:
 
   * Bugfixes
     - bug #40055: AVRDUDE segfaults when writing eeprom
+    - bug #40085: Typo fix in fuses report (for 6.1-svn-20130917)
     - patch #XXXX: xxx
 
   * Internals:
