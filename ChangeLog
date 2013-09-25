@@ -1,3 +1,8 @@
+2013-09-25  Hannes Weisbach <hannes_weisbach@gmx.net>
+
+	First part of patch #7720:
+	* avrdude.conf.in: Add UM232H and C232H programmers
+
 2013-09-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Daniel Rozsnyo:
