@@ -90,7 +90,10 @@ static void pin_fill_old_pinlist(const struct pindef_t * const pindef, unsigned 
         fprintf(stderr, "Pins of higher index than max field size for old pinno found\n");
         exit(1);
       }
-      if(pindef->mask[i] == pindef->inverse[i]) {  /* all set bits in mask are set in inverse */
+      if (pindef->mask[i] == 0) {
+        /* this pin function is not using any pins */
+        *pinno = 0;
+      } else if(pindef->mask[i] == pindef->inverse[i]) {  /* all set bits in mask are set in inverse */
         *pinno = pindef->mask[i];
         *pinno |= PIN_INVERSE;
       } else if(pindef->mask[i] == ((~pindef->inverse[i]) & pindef->mask[i])) {  /* all set bits in mask are cleared in inverse */

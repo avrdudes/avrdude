@@ -1,3 +1,9 @@
+2013-11-30  Rene Liebscher <R.Liebscher@gmx.de>
+
+	bug #40748 linuxgpio doesn't work on Raspberry PI rev. 2.
+	* linuxgpio.c: fixed check for unused pins to ignore the inverse flag 
+	* pindefs.c: fixed fill_old_pinlist to not create an empty mask with inverse flag set
+
 2013-10-18  Nils Springob <nils@nicai-systems.de>
 
         * avrdude.conf.in (atmega1284): ATmega1284 variant added (same as ATmega1284p but with different signature)
