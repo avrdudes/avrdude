@@ -60,8 +60,9 @@ static int dtr, rts, txd;
 
 #define DB9PINS 9
 
-static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
+static int serbb_setpin(PROGRAMMER * pgm, int pinfunc, int value)
 {
+	int pin = pgm->pinno[pinfunc];
 	HANDLE hComPort = (HANDLE)pgm->fd.pfd;
         LPVOID lpMsgBuf;
         DWORD dwFunc;
@@ -132,8 +133,9 @@ static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
         return 0;
 }
 
-static int serbb_getpin(PROGRAMMER * pgm, int pin)
+static int serbb_getpin(PROGRAMMER * pgm, int pinfunc)
 {
+	int pin = pgm->pinno[pinfunc];
 	HANDLE hComPort = (HANDLE)pgm->fd.pfd;
         LPVOID lpMsgBuf;
         int invert, rv;
@@ -225,13 +227,14 @@ static int serbb_getpin(PROGRAMMER * pgm, int pin)
         return rv;
 }
 
-static int serbb_highpulsepin(PROGRAMMER * pgm, int pin)
+static int serbb_highpulsepin(PROGRAMMER * pgm, int pinfunc)
 {
+	    int pin = pgm->pinno[pinfunc];
         if ( (pin & PIN_MASK) < 1 || (pin & PIN_MASK) > DB9PINS )
           return -1;
 
-        serbb_setpin(pgm, pin, 1);
-        serbb_setpin(pgm, pin, 0);
+        serbb_setpin(pgm, pinfunc, 1);
+        serbb_setpin(pgm, pinfunc, 0);
 
         return 0;
 }
@@ -333,7 +336,7 @@ static void serbb_close(PROGRAMMER *pgm)
 	HANDLE hComPort=(HANDLE)pgm->fd.pfd;
 	if (hComPort != INVALID_HANDLE_VALUE)
 	{
-		pgm->setpin(pgm, pgm->pinno[PIN_AVR_RESET], 1);
+		pgm->setpin(pgm, PIN_AVR_RESET, 1);
 		CloseHandle (hComPort);
 	}
         if (verbose > 2)

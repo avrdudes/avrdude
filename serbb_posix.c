@@ -71,10 +71,11 @@ static char *serpins[DB9PINS + 1] =
   { "NONE", "CD", "RXD", "TXD", "DTR", "GND", "DSR", "RTS", "CTS", "RI" };
 #endif
 
-static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
+static int serbb_setpin(PROGRAMMER * pgm, int pinfunc, int value)
 {
   unsigned int	ctl;
   int           r;
+  int pin = pgm->pinno[pinfunc]; // get its value
 
   if (pin & PIN_INVERSE)
   {
@@ -127,11 +128,12 @@ static int serbb_setpin(PROGRAMMER * pgm, int pin, int value)
   return 0;
 }
 
-static int serbb_getpin(PROGRAMMER * pgm, int pin)
+static int serbb_getpin(PROGRAMMER * pgm, int pinfunc)
 {
   unsigned int	ctl;
   unsigned char invert;
   int           r;
+  int pin = pgm->pinno[pinfunc]; // get its value
 
   if (pin & PIN_INVERSE)
   {
@@ -177,13 +179,15 @@ static int serbb_getpin(PROGRAMMER * pgm, int pin)
   }
 }
 
-static int serbb_highpulsepin(PROGRAMMER * pgm, int pin)
+static int serbb_highpulsepin(PROGRAMMER * pgm, int pinfunc)
 {
+  int pin = pgm->pinno[pinfunc]; // replace pin name by its value
+
   if ( (pin & PIN_MASK) < 1 || (pin & PIN_MASK) > DB9PINS )
     return -1;
 
-  serbb_setpin(pgm, pin, 1);
-  serbb_setpin(pgm, pin, 0);
+  serbb_setpin(pgm, pinfunc, 1);
+  serbb_setpin(pgm, pinfunc, 0);
 
   return 0;
 }
@@ -277,7 +281,7 @@ static void serbb_close(PROGRAMMER *pgm)
   if (pgm->fd.ifd != -1)
   {
 	  (void)tcsetattr(pgm->fd.ifd, TCSANOW, &oldmode);
-	  pgm->setpin(pgm, pgm->pinno[PIN_AVR_RESET], 1);
+	  pgm->setpin(pgm, PIN_AVR_RESET, 1);
 	  close(pgm->fd.ifd);
   }
   return;

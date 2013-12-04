@@ -122,9 +122,9 @@ typedef struct programmer_t {
   int  (*set_varef)      (struct programmer_t * pgm, unsigned int chan, double v);
   int  (*set_fosc)       (struct programmer_t * pgm, double v);
   int  (*set_sck_period) (struct programmer_t * pgm, double v);
-  int  (*setpin)         (struct programmer_t * pgm, int pin, int value);
-  int  (*getpin)         (struct programmer_t * pgm, int pin);
-  int  (*highpulsepin)   (struct programmer_t * pgm, int pin);
+  int  (*setpin)         (struct programmer_t * pgm, int pinfunc, int value);
+  int  (*getpin)         (struct programmer_t * pgm, int pinfunc);
+  int  (*highpulsepin)   (struct programmer_t * pgm, int pinfunc);
   int  (*parseexitspecs) (struct programmer_t * pgm, char *s);
   int  (*perform_osccal) (struct programmer_t * pgm);
   int  (*parseextparams) (struct programmer_t * pgm, LISTID xparams);

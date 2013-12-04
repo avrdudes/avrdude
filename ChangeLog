@@ -1,3 +1,11 @@
+2013-12-04  Rene Liebscher <R.Liebscher@gmx.de>
+
+	Rework of bitbanging functions setpin, getpin, highpulsepin to make simplier use
+	of new pindefs data in pgm structure
+	* linuxgpio.c, bitbang.c, buspirate.c, par.c, pgm.h, term.c, serbb_*.c: changed 
+	  interface of setpin, getpin, highpulsepin to take pin function as parameter 
+	  (not the real number, which can be found by pgm->pinno[function])
+
 2013-11-30  Rene Liebscher <R.Liebscher@gmx.de>
 
 	bug #40748 linuxgpio doesn't work on Raspberry PI rev. 2.

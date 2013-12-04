@@ -749,7 +749,7 @@ static int cmd_help(PROGRAMMER * pgm, struct avrpart * p,
 static int cmd_spi(PROGRAMMER * pgm, struct avrpart * p,
         int argc, char * argv[])
 {
-  pgm->setpin(pgm, pgm->pinno[PIN_AVR_RESET], 1);
+  pgm->setpin(pgm, PIN_AVR_RESET, 1);
   spi_mode = 1;
   return 0;
 }
@@ -757,7 +757,7 @@ static int cmd_spi(PROGRAMMER * pgm, struct avrpart * p,
 static int cmd_pgm(PROGRAMMER * pgm, struct avrpart * p,
         int argc, char * argv[])
 {
-  pgm->setpin(pgm, pgm->pinno[PIN_AVR_RESET], 0);
+  pgm->setpin(pgm, PIN_AVR_RESET, 0);
   spi_mode = 0;
   pgm->initialize(pgm, p);
   return 0;

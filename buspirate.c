@@ -1191,10 +1191,11 @@ static void buspirate_bb_enable(struct programmer_t *pgm)
    Both respond with a byte with current status:
    0|POWER|PULLUP|AUX|MOSI|CLK|MISO|CS
 */
-static int buspirate_bb_getpin(struct programmer_t *pgm, int pin)
+static int buspirate_bb_getpin(struct programmer_t *pgm, int pinfunc)
 {
 	unsigned char buf[10];
 	int value = 0;
+	int pin = pgm->pinno[pinfunc];
 
 	if (pin & PIN_INVERSE) {
 		pin &= PIN_MASK;
@@ -1227,7 +1228,7 @@ static int buspirate_bb_getpin(struct programmer_t *pgm, int pin)
 	return value;
 }
 
-static int buspirate_bb_setpin(struct programmer_t *pgm, int pin, int value)
+static int buspirate_bb_setpin_internal(struct programmer_t *pgm, int pin, int value)
 {
 	unsigned char buf[10];
 
@@ -1258,23 +1259,29 @@ static int buspirate_bb_setpin(struct programmer_t *pgm, int pin, int value)
 	return 0;
 }
 
-static int buspirate_bb_highpulsepin(struct programmer_t *pgm, int pin)
+static int buspirate_bb_setpin(struct programmer_t *pgm, int pinfunc, int value)
+{
+	return buspirate_bb_setpin_internal(pgm, pgm->pinno[pinfunc], value);
+}
+
+
+static int buspirate_bb_highpulsepin(struct programmer_t *pgm, int pinfunc)
 {
 	int ret;
-	ret = buspirate_bb_setpin(pgm, pin, 1);
+	ret = buspirate_bb_setpin(pgm, pinfunc, 1);
 	if (ret < 0)
 		return ret;
-	return buspirate_bb_setpin(pgm, pin, 0);
+	return buspirate_bb_setpin(pgm, pinfunc, 0);
 }
 
 static void buspirate_bb_powerup(struct programmer_t *pgm)
 {
-	buspirate_bb_setpin(pgm, 7, 1);
+	buspirate_bb_setpin_internal(pgm, 7, 1);
 }
 
 static void buspirate_bb_powerdown(struct programmer_t *pgm)
 {
-	buspirate_bb_setpin(pgm, 7, 0);
+	buspirate_bb_setpin_internal(pgm, 7, 0);
 }
 
 const char buspirate_bb_desc[] = "Using the Bus Pirate's bitbang interface for programming";
