@@ -1,3 +1,8 @@
+2013-12-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #40817: Elf file support (possibly) not working on 6.0.1 windows build
+	* fileio.c (fileio): open file in binary mode also for FMT_ELF
+
 2013-12-04  Rene Liebscher <R.Liebscher@gmx.de>
 
 	Rework of bitbanging functions setpin, getpin, highpulsepin to make simplier use

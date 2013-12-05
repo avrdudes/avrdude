@@ -1416,7 +1416,11 @@ static int fmt_autodetect(char * fname)
   int found;
   int first = 1;
 
+#if defined(WIN32NATIVE)
   f = fopen(fname, "r");
+#else
+  f = fopen(fname, "rb");
+#endif
   if (f == NULL) {
     fprintf(stderr, "%s: error opening %s: %s\n",
             progname, fname, strerror(errno));
@@ -1562,8 +1566,8 @@ int fileio(int op, char * filename, FILEFMT format,
   }
 
 #if defined(WIN32NATIVE)
-  /* Open Raw Binary format in binary mode on Windows.*/
-  if(format == FMT_RBIN)
+  /* Open Raw Binary and ELF format in binary mode on Windows.*/
+  if(format == FMT_RBIN || format == FMT_ELF)
   {
       if(fio.op == FIO_READ)
       {
