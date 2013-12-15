@@ -149,7 +149,7 @@ void pgm_free(PROGRAMMER * const p)
   free(p);
 }
 
-PROGRAMMER * pgm_dup(const PROGRAMMER const * src)
+PROGRAMMER * pgm_dup(const PROGRAMMER * const src)
 {
   PROGRAMMER * pgm;
 

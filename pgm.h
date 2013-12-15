@@ -141,7 +141,7 @@ extern "C" {
 #endif
 
 PROGRAMMER * pgm_new(void);
-PROGRAMMER * pgm_dup(const PROGRAMMER const * src);
+PROGRAMMER * pgm_dup(const PROGRAMMER * const src);
 void         pgm_free(PROGRAMMER * const p);
 
 void programmer_display(PROGRAMMER * pgm, const char * p);
