@@ -716,8 +716,8 @@ programmer
   type  = "ftdi_syncbb";
   connection_type = usb;
   miso  = 1;  # RxD
-  sck   = 0;  # RTS
-  mosi  = 2;  # TxD
+  sck   = 0;  # TxD
+  mosi  = 2;  # RTS
   reset = 4;  # DTR
 ;
 
