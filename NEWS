@@ -14,12 +14,13 @@ Current:
     - ...
 
   * New programmers supported:
-    - ...
+    - FLIP v2 (Atmel DFU protocol)
 
   * Bugfixes
     - bug #40055: AVRDUDE segfaults when writing eeprom
     - bug #40085: Typo fix in fuses report (for 6.1-svn-20130917)
     - bug #40817: Elf file support (possibly) not working on 6.0.1 windows build
+    - patch #7896: DFU FLIPv2 programming support
     - patch #XXXX: xxx
 
   * Internals:

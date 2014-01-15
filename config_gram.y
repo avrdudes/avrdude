@@ -672,6 +672,13 @@ part_parm :
     }
   } |
 
+ K_USBPID TKN_EQUAL TKN_NUMBER {
+    {
+      current_part->usbpid = $3->value.number;
+      free_token($3);
+    }
+  } |
+
   K_PP_CONTROLSTACK TKN_EQUAL num_list {
     {
       TOKEN * t;

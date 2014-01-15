@@ -244,6 +244,8 @@ has been compiled with libusb support.
 They both feature simple firmware-only USB implementations, running on
 an ATmega8 (or ATmega88), or ATtiny2313, respectively.
 
+The Atmel DFU bootloader is supported in version 2 (Xmega devices).
+
 
 @menu
 * History::                     
@@ -1428,6 +1430,7 @@ part
     stk500_devcode   = <num> ;                # numeric
     avr910_devcode   = <num> ;                # numeric
     signature        = <num> <num> <num> ;    # signature bytes
+    usbpid           = <num> ;                # DFU USB PID
     reset            = dedicated | io;
     retry_pulse      = reset | sck;
     pgm_enable       = <instruction format> ;

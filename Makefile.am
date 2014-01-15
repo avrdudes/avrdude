@@ -113,8 +113,12 @@ libavrdude_a_SOURCES = \
 	confwin.h \
 	crc16.c \
 	crc16.h \
+	dfu.c \
+	dfu.h \
 	fileio.c \
 	fileio.h \
+	flip.c \
+	flip.h \
 	freebsd_ppi.h \
 	ft245r.c \
 	ft245r.h \

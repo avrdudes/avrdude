@@ -1,0 +1,20 @@
+2014-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Kirill Levchenko:
+	patch #7896: DFU FLIPv2 programming support
+	* pgm_type.c: Add the flip2 programmer type.
+	* config_gram.y: Allow for the usbid keyword in a device definition.
+	* avrdude.conf.in: Add usbpid values to those Xmega devices where
+	applicable.
+	* avrpart.h: Add usbpid device field.
+	* dfu.c: (New file.)
+	* dfu.h: (New file.)
+	* flip.c: (New file.)
+	* flip.h: (New file.)
+	* Makefile.am: Add new files.
+	* doc/avrdude.texi: Document the changes.
+	* avrdude.1: (Dito.)
+
+2014-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* ChangeLog-2013: Annual changelog rotation.

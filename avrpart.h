@@ -111,6 +111,7 @@ typedef struct avrpart {
   unsigned char pagel;              /* for parallel programming */
   unsigned char bs2;                /* for parallel programming */
   unsigned char signature[3];       /* expected value of signature bytes */
+  unsigned short usbpid;            /* USB DFU product ID (0 = none) */
   int           reset_disposition;  /* see RESET_ enums */
   int           retry_pulse;        /* retry program enable by pulsing
                                        this pin (PIN_AVR_*) */

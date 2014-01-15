@@ -34,6 +34,7 @@
 #include "avrftdi.h"
 #include "buspirate.h"
 #include "butterfly.h"
+#include "flip.h"
 #include "ft245r.h"
 #include "jtagmkI.h"
 #include "jtagmkII.h"
@@ -65,6 +66,7 @@ const PROGRAMMER_TYPE const programmers_types[] = {
         {"dragon_jtag", jtagmkII_dragon_initpgm, jtagmkII_dragon_desc},
         {"dragon_pdi", jtagmkII_dragon_pdi_initpgm, jtagmkII_dragon_pdi_desc},
         {"dragon_pp", stk500v2_dragon_pp_initpgm, stk500v2_dragon_pp_desc},
+        {"flip2", flip2_initpgm, flip2_desc},
         {"ftdi_syncbb", ft245r_initpgm, ft245r_desc},
         {"jtagmki", jtagmkI_initpgm, jtagmkI_desc},
         {"jtagmkii", jtagmkII_initpgm, jtagmkII_desc},
