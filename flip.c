@@ -301,6 +301,9 @@ int flip2_chip_erase(PROGRAMMER* pgm, AVRPART *part)
   int cmd_result = 0;
   int aux_result;
 
+  if (verbose > 1)
+    fprintf(stderr, "%s: flip_chip_erase()\n", progname);
+
   struct flip2_cmd cmd = {
     FLIP2_CMD_GROUP_EXEC, FLIP2_CMD_CHIP_ERASE, { 0xFF, 0, 0, 0 }
   };
@@ -339,7 +342,7 @@ int flip2_read_byte(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
   mem_unit = flip2_mem_unit(mem->desc);
 
   if (mem_unit == FLIP2_MEM_UNIT_UNKNOWN) {
-    fprintf(stderr, "%s: Error: " \
+    fprintf(stderr, "%s: Error: "
       "\"%s\" memory not accessible using FLIP",
       progname, mem->desc);
     if (strcmp(mem->desc, "flash") == 0)
@@ -362,7 +365,7 @@ int flip2_write_byte(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
   mem_unit = flip2_mem_unit(mem->desc);
 
   if (mem_unit == FLIP2_MEM_UNIT_UNKNOWN) {
-    fprintf(stderr, "%s: Error: " \
+    fprintf(stderr, "%s: Error: "
       "\"%s\" memory not accessible using FLIP",
       progname, mem->desc);
     if (strcmp(mem->desc, "flash") == 0)
@@ -392,7 +395,7 @@ int flip2_paged_load(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
   mem_unit = flip2_mem_unit(mem->desc);
 
   if (mem_unit == FLIP2_MEM_UNIT_UNKNOWN) {
-    fprintf(stderr, "%s: Error: " \
+    fprintf(stderr, "%s: Error: "
       "\"%s\" memory not accessible using FLIP",
       progname, mem->desc);
     if (strcmp(mem->desc, "flash") == 0)
@@ -411,11 +414,6 @@ int flip2_paged_load(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
   result = flip2_read_memory(FLIP2(pgm)->dfu, mem_unit, addr,
     mem->buf + addr, n_bytes);
 
-#if 0 /* DEBUG */
-  fprintf(stderr, "%s: Debug: flip2_read_memory(%s,0x%04X,0x%04X) = %d\n",
-    progname, mem->desc, addr, n_bytes, result);
-#endif
-
   return (result == 0) ? n_bytes : -1;
 }
 
@@ -431,7 +429,7 @@ int flip2_paged_write(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
   mem_unit = flip2_mem_unit(mem->desc);
 
   if (mem_unit == FLIP2_MEM_UNIT_UNKNOWN) {
-    fprintf(stderr, "%s: Error: " \
+    fprintf(stderr, "%s: Error: "
       "\"%s\" memory not accessible using FLIP",
       progname, mem->desc);
     if (strcmp(mem->desc, "flash") == 0)
@@ -450,12 +448,7 @@ int flip2_paged_write(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
   result = flip2_write_memory(FLIP2(pgm)->dfu, mem_unit, addr,
     mem->buf + addr, n_bytes);
 
-#if 0 /* DEBUG */
-  fprintf(stderr, "%s: Debug: flip2_write_memory(%s,0x%04X,0x%04X) = %d\n",
-    progname, mem->desc, addr, n_bytes, result);
-#endif
-
-  return 0;
+  return (result == 0) ? n_bytes : -1;
 }
 
 int flip2_read_sig_bytes(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem)
@@ -526,6 +519,11 @@ int flip2_read_memory(struct dfu_dev *dfu,
   int read_size;
   int result;
 
+  if (verbose > 1)
+    fprintf(stderr,
+            "%s: flip_read_memory(%s, 0x%04x, %d)\n",
+            progname, flip2_mem_unit_str(mem_unit), addr, size);
+
   result = flip2_set_mem_unit(dfu, mem_unit);
 
   if (result != 0) {
@@ -585,6 +583,11 @@ int flip2_write_memory(struct dfu_dev *dfu,
   const char * mem_name;
   int write_size;
   int result;
+
+  if (verbose > 1)
+    fprintf(stderr,
+            "%s: flip_write_memory(%s, 0x%04x, %d)\n",
+            progname, flip2_mem_unit_str(mem_unit), addr, size);
 
   result = flip2_set_mem_unit(dfu, mem_unit);
 

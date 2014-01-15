@@ -110,7 +110,7 @@ struct dfu_dev * dfu_open(char *port_spec)
    */
 
   if (strncmp(port_spec, "usb", 3) != 0) {
-    fprintf(stderr, "%s: Error: " \
+    fprintf(stderr, "%s: Error: "
       "Invalid port specification \"%s\" for USB device\n",
       progname, port_spec);
     return NULL;
@@ -168,7 +168,7 @@ int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid)
    */
 
   if (pid == 0 && dfu->dev_name == NULL) {
-    fprintf(stderr, "%s: Error: No DFU support for part; " \
+    fprintf(stderr, "%s: Error: No DFU support for part; "
       "specify PID in config or USB address (via -P) to override.\n",
       progname);
     return -1;
@@ -311,6 +311,10 @@ int dfu_getstatus(struct dfu_dev *dfu, struct dfu_status *status)
 {
   int result;
 
+  if (verbose > 3)
+    fprintf(stderr, "%s: dfu_getstatus(): issuing control IN message\n",
+            progname);
+
   result = usb_control_msg(dfu->dev_handle,
     0x80 | USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_GETSTATUS, 0, 0,
     (char*) status, sizeof(struct dfu_status), DFU_TIMEOUT);
@@ -328,10 +332,19 @@ int dfu_getstatus(struct dfu_dev *dfu, struct dfu_status *status)
   }
 
   if (result > sizeof(struct dfu_status)) {
-    fprintf(stderr, "%s: Error: Oversize read (should not happen); " \
+    fprintf(stderr, "%s: Error: Oversize read (should not happen); "
       "exiting\n", progname);
     exit(1);
   }
+
+  if (verbose > 3)
+    fprintf(stderr,
+            "%s: dfu_getstatus(): bStatus 0x%02x, bwPollTimeout %d, bState 0x%02x, iString %d\n",
+            progname,
+            status->bStatus,
+            status->bwPollTimeout[0] | (status->bwPollTimeout[1] << 8) | (status->bwPollTimeout[2] << 16),
+            status->bState,
+            status->iString);
 
   return 0;
 }
@@ -339,6 +352,10 @@ int dfu_getstatus(struct dfu_dev *dfu, struct dfu_status *status)
 int dfu_clrstatus(struct dfu_dev *dfu)
 {
   int result;
+
+  if (verbose > 3)
+    fprintf(stderr, "%s: dfu_clrstatus(): issuing control OUT message\n",
+            progname);
 
   result = usb_control_msg(dfu->dev_handle,
     USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_CLRSTATUS, 0, 0,
@@ -356,6 +373,11 @@ int dfu_clrstatus(struct dfu_dev *dfu)
 int dfu_dnload(struct dfu_dev *dfu, void *ptr, int size)
 {
   int result;
+
+  if (verbose > 3)
+    fprintf(stderr,
+            "%s: dfu_dnload(): issuing control OUT message, wIndex = %d, ptr = %p, size = %d\n",
+            progname, wIndex, ptr, size);
 
   result = usb_control_msg(dfu->dev_handle,
     USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_DNLOAD, wIndex++, 0,
@@ -386,6 +408,11 @@ int dfu_upload(struct dfu_dev *dfu, void *ptr, int size)
 {
   int result;
 
+  if (verbose > 3)
+    fprintf(stderr,
+            "%s: dfu_upload(): issuing control IN message, wIndex = %d, ptr = %p, size = %d\n",
+            progname, wIndex, ptr, size);
+
   result = usb_control_msg(dfu->dev_handle,
     0x80 | USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_UPLOAD, wIndex++, 0,
     ptr, size, DFU_TIMEOUT);
@@ -403,7 +430,7 @@ int dfu_upload(struct dfu_dev *dfu, void *ptr, int size)
   }
 
   if (result > size) {
-    fprintf(stderr, "%s: Error: Oversize read (should not happen); " \
+    fprintf(stderr, "%s: Error: Oversize read (should not happen); "
       "exiting\n", progname);
     exit(1);
   }

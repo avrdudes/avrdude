@@ -1,5 +1,10 @@
 2014-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* flip.c: Added some verbose-level messages (-vv)
+	* dfu.c: Added some verbose-level messages (-vvvv)
+
+2014-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Kirill Levchenko:
 	patch #7896: DFU FLIPv2 programming support
 	* pgm_type.c: Add the flip2 programmer type.
