@@ -118,8 +118,8 @@ libavrdude_a_SOURCES = \
 	dfu.h \
 	fileio.c \
 	fileio.h \
-	flip.c \
-	flip.h \
+	flip2.c \
+	flip2.h \
 	freebsd_ppi.h \
 	ft245r.c \
 	ft245r.h \

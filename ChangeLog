@@ -1,5 +1,13 @@
 2014-01-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* flip2.c: Rename from flip.c
+	* flip2.h: Rename from flip.h
+	* Makefile.am: Reflect the renaming.
+	* dfu.c: Update information how to get GPL.
+	* dfu.h: (Dito.)
+
+2014-01-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* flip.c (flip2_initialize): Check user is running on an Xmega
 	device.
 
