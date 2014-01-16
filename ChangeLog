@@ -1,3 +1,8 @@
+2014-01-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* flip.c (flip2_initialize): Check user is running on an Xmega
+	device.
+
 2014-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* flip.c: Added some verbose-level messages (-vv)

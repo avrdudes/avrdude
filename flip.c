@@ -234,6 +234,15 @@ int flip2_initialize(PROGRAMMER* pgm, AVRPART *part)
   vid = (pgm->usbvid != 0) ? pgm->usbvid : USB_VENDOR_ATMEL;
   pid = (pgm->usbpid != 0) ? pgm->usbpid : part->usbpid;
 
+  if (!ovsigck && !(part->flags & AVRPART_HAS_PDI)) {
+    fprintf(stderr,
+            "%s: \"flip2\" (FLIP protocol version 2) is for Xmega devices.\n"
+            "%s For AT90USB* or ATmega*U* devices, use \"flip1\".\n"
+            "%s (Use -F to bypass this check.)\n",
+            progname, progbuf, progbuf);
+    return -1;
+  }
+
   result = dfu_init(FLIP2(pgm)->dfu, vid, pid);
 
   if (result != 0)
