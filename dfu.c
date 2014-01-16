@@ -236,48 +236,6 @@ int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid)
       memcpy(&dfu->endp_desc, found->config->interface->altsetting->endpoint,
              sizeof(dfu->endp_desc));
 
-  /* Check if descriptor values are what we expect. */
-
-  if (dfu->dev_desc.idVendor != vid)
-    fprintf( stderr, "%s: Warning: USB idVendor = 0x%04X (expected 0x%04X)\n",
-      progname, dfu->dev_desc.idVendor, vid);
-
-  if (pid != 0 && dfu->dev_desc.idProduct != pid)
-    fprintf( stderr, "%s: Warning: USB idProduct = 0x%04X (expected 0x%04X)\n",
-      progname, dfu->dev_desc.idProduct, pid);
-
-  if (dfu->dev_desc.bNumConfigurations != 1)
-    fprintf( stderr, "%s: Warning: USB bNumConfigurations = %d (expected 1)\n",
-      progname, (int) dfu->dev_desc.bNumConfigurations);
-
-  if (dfu->conf_desc.bNumInterfaces != 1)
-    fprintf( stderr, "%s: Warning: USB bNumInterfaces = %d (expected 1)\n",
-      progname, (int) dfu->conf_desc.bNumInterfaces);
-
-  if (dfu->dev_desc.bDeviceClass != 0)
-    fprintf( stderr, "%s: Warning: USB bDeviceClass = %d (expected 0)\n",
-      progname, (int) dfu->dev_desc.bDeviceClass);
-
-  if (dfu->dev_desc.bDeviceSubClass != 0)
-    fprintf( stderr, "%s: Warning: USB bDeviceSubClass = %d (expected 0)\n",
-      progname, (int) dfu->dev_desc.bDeviceSubClass);
-
-  if (dfu->dev_desc.bDeviceProtocol != 0)
-    fprintf( stderr, "%s: Warning: USB bDeviceProtocol = %d (expected 0)\n",
-      progname, (int) dfu->dev_desc.bDeviceProtocol);
-
-  if (dfu->intf_desc.bInterfaceClass != 0xFF)
-    fprintf( stderr, "%s: Warning: USB bInterfaceClass = %d (expected 255)\n",
-      progname, (int) dfu->intf_desc.bInterfaceClass);
-
-  if (dfu->intf_desc.bInterfaceSubClass != 0)
-    fprintf( stderr, "%s: Warning: USB bInterfaceSubClass = %d (expected 0)\n",
-      progname, (int) dfu->intf_desc.bInterfaceSubClass);
-
-  if (dfu->intf_desc.bInterfaceProtocol != 0)
-    fprintf( stderr, "%s: Warning: USB bInterfaceSubClass = %d (expected 0)\n",
-      progname, (int) dfu->intf_desc.bInterfaceProtocol);
-
   /* Get strings. */
 
   dfu->manf_str = get_usb_string(dfu->dev_handle,

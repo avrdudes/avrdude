@@ -1,5 +1,12 @@
 2014-01-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* dfu.c (dfu_init): Move the descriptor checks up into the
+	FLIP protocol implementation.
+	* flip2.c (flip2_initialize): (Dito.)
+	* flip1.c (flip1_initialize): (Dito.)
+
+2014-01-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* flip2.c: Rename from flip.c
 	* flip2.h: Rename from flip.h
 	* Makefile.am: Reflect the renaming.

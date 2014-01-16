@@ -162,6 +162,7 @@ int flip1_initialize(PROGRAMMER* pgm, AVRPART *part)
 {
   unsigned short vid, pid;
   int result;
+  struct dfu_dev *dfu = FLIP1(pgm)->dfu;
 
   /* A note about return values. Negative return values from this function are
    * interpreted as failure by main(), from where this function is called.
@@ -198,6 +199,56 @@ int flip1_initialize(PROGRAMMER* pgm, AVRPART *part)
 
   if (result != 0)
     goto flip1_initialize_fail;
+
+  /* Check if descriptor values are what we expect. */
+
+  if (dfu->dev_desc.idVendor != vid)
+    fprintf( stderr, "%s: Warning: USB idVendor = 0x%04X (expected 0x%04X)\n",
+      progname, dfu->dev_desc.idVendor, vid);
+
+  if (pid != 0 && dfu->dev_desc.idProduct != pid)
+    fprintf( stderr, "%s: Warning: USB idProduct = 0x%04X (expected 0x%04X)\n",
+      progname, dfu->dev_desc.idProduct, pid);
+
+  if (dfu->dev_desc.bNumConfigurations != 1)
+    fprintf( stderr, "%s: Warning: USB bNumConfigurations = %d (expected 1)\n",
+      progname, (int) dfu->dev_desc.bNumConfigurations);
+
+  if (dfu->conf_desc.bNumInterfaces != 1)
+    fprintf( stderr, "%s: Warning: USB bNumInterfaces = %d (expected 1)\n",
+      progname, (int) dfu->conf_desc.bNumInterfaces);
+
+  if (dfu->dev_desc.bDeviceClass != 254)
+    fprintf( stderr, "%s: Warning: USB bDeviceClass = %d (expected 254)\n",
+      progname, (int) dfu->dev_desc.bDeviceClass);
+
+  if (dfu->dev_desc.bDeviceSubClass != 1)
+    fprintf( stderr, "%s: Warning: USB bDeviceSubClass = %d (expected 1)\n",
+      progname, (int) dfu->dev_desc.bDeviceSubClass);
+
+  if (dfu->dev_desc.bDeviceProtocol != 0)
+    fprintf( stderr, "%s: Warning: USB bDeviceProtocol = %d (expected 0)\n",
+      progname, (int) dfu->dev_desc.bDeviceProtocol);
+
+  /*
+   * doc7618 claims an interface class of FEh and a subclas 01h.
+   * However, as of today (2014-01-16), all values in the interface
+   * descriptor (except of bLength and bDescriptorType) are actually
+   * 0.  So rather don't check these.
+   */
+  if (0) {
+  if (dfu->intf_desc.bInterfaceClass != 254)
+    fprintf( stderr, "%s: Warning: USB bInterfaceClass = %d (expected 254)\n",
+      progname, (int) dfu->intf_desc.bInterfaceClass);
+
+  if (dfu->intf_desc.bInterfaceSubClass != 1)
+    fprintf( stderr, "%s: Warning: USB bInterfaceSubClass = %d (expected 1)\n",
+      progname, (int) dfu->intf_desc.bInterfaceSubClass);
+
+  if (dfu->intf_desc.bInterfaceProtocol != 0)
+    fprintf( stderr, "%s: Warning: USB bInterfaceSubClass = %d (expected 0)\n",
+      progname, (int) dfu->intf_desc.bInterfaceProtocol);
+  }
 
 #if 0
   result = flip1_read_memory(FLIP1(pgm)->dfu,
