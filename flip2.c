@@ -33,7 +33,7 @@
 #include <inttypes.h>
 #endif
 
-#include "flip.h"
+#include "flip2.h"
 #include "dfu.h"
 
 #include "avrdude.h"
@@ -57,7 +57,7 @@
 
 /* EXPORTED CONSTANT STRINGS */
 
-const char flip2_desc[] = "FLIPv2 USB DFU protocol (AVR4023)";
+const char flip2_desc[] = "FLIP USB DFU protocol version 2 (AVR4023)";
 
 /* PRIVATE DATA STRUCTURES */
 
