@@ -1033,8 +1033,15 @@ programmer
 ;
 
 programmer
+  id    = "flip1";
+  desc  = "FLIP USB DFU protocol version 1 (doc7618)";
+  type  = "flip1";
+  connection_type = usb;
+;
+
+programmer
   id    = "flip2";
-  desc  = "FLIPv2 USB DFU protocol (AVR4023)";
+  desc  = "FLIP USB DFU protocol version 2 (AVR4023)";
   type  = "flip2";
   connection_type = usb;
 ;
@@ -11155,6 +11162,7 @@ part
     id               = "m32u4";
     desc             = "ATmega32U4";
     signature        = 0x1e 0x95 0x87;
+    usbpid           = 0x2ff4;
     has_jtag         = yes;
 #    stk500_devcode   = 0xB2;
 #    avr910_devcode   = 0x43;
@@ -11345,6 +11353,7 @@ part
     id               = "usb646";
     desc             = "AT90USB646";
     signature        = 0x1e 0x96 0x82;
+    usbpid           = 0x2ff9;
     has_jtag         = yes;
 #    stk500_devcode   = 0xB2;
 #    avr910_devcode   = 0x43;
@@ -11548,6 +11557,7 @@ part
     id               = "usb1286";
     desc             = "AT90USB1286";
     signature        = 0x1e 0x97 0x82;
+    usbpid           = 0x2ffb;
     has_jtag         = yes;
 #    stk500_devcode   = 0xB2;
 #    avr910_devcode   = 0x43;
@@ -11753,6 +11763,7 @@ part
     has_jtag         = no;
     has_debugwire    = yes;
     signature        = 0x1e 0x94 0x82;
+    usbpid           = 0x2ffa;
     chip_erase_delay = 9000;
     reset            = io;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
@@ -11939,6 +11950,7 @@ part
     has_jtag         = no;
     has_debugwire    = yes;
     signature        = 0x1e 0x93 0x82;
+    usbpid           = 0x2ff7;
     chip_erase_delay = 9000;
     reset            = io;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
@@ -12127,6 +12139,7 @@ part
     has_jtag         = no;
     has_debugwire    = yes;
     signature        = 0x1e 0x95 0x8a;
+    usbpid           = 0x2ff0;
     chip_erase_delay = 9000;
     reset            = io;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
@@ -12314,6 +12327,7 @@ part
     has_jtag         = no;
     has_debugwire    = yes;
     signature        = 0x1e 0x94 0x89;
+    usbpid           = 0x2fef;
     chip_erase_delay = 9000;
     reset            = io;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
@@ -12501,6 +12515,7 @@ part
     has_jtag         = no;
     has_debugwire    = yes;
     signature        = 0x1e 0x93 0x89;
+    usbpid           = 0x2fee;
     chip_erase_delay = 9000;
     reset            = io;
     pgm_enable       = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
