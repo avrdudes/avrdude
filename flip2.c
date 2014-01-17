@@ -142,8 +142,6 @@ static int flip2_read_byte(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
   unsigned long addr, unsigned char *value);
 static int flip2_write_byte(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
   unsigned long addr, unsigned char value);
-static int flip2_page_erase(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
-  unsigned int base_addr);
 static int flip2_paged_load(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes);
 static int flip2_paged_write(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
@@ -188,7 +186,6 @@ void flip2_initpgm(PROGRAMMER *pgm)
   pgm->chip_erase       = flip2_chip_erase;
   pgm->open             = flip2_open;
   pgm->close            = flip2_close;
-  pgm->page_erase       = flip2_page_erase;
   pgm->paged_load       = flip2_paged_load;
   pgm->paged_write      = flip2_paged_write;
   pgm->read_byte        = flip2_read_byte;
@@ -428,12 +425,6 @@ int flip2_write_byte(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
   return flip2_write_memory(FLIP2(pgm)->dfu, mem_unit, addr, &value, 1);
 }
 
-int flip2_page_erase(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
-  unsigned int base_addr)
-{
-  return 0;
-}
-
 int flip2_paged_load(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes)
 {
@@ -522,7 +513,8 @@ void flip2_setup(PROGRAMMER * pgm)
   pgm->cookie = calloc(1, sizeof(struct flip2));
 
   if (pgm->cookie == NULL) {
-    perror(progname);
+    fprintf(stderr, "%s: Out of memory allocating private data structure\n",
+            progname);
     exit(1);
   }
 }

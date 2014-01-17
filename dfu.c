@@ -70,8 +70,6 @@ int dfu_upload(struct dfu_dev *dfu, void * ptr, int size) {
 
 /* If we DO have LibUSB, we can define the real functions. */
 
-#include <usb.h>
-
 /* DFU data structures and constants.
  */
 
@@ -81,12 +79,14 @@ int dfu_upload(struct dfu_dev *dfu, void * ptr, int size) {
 #define DFU_UPLOAD 2
 #define DFU_GETSTATUS 3
 #define DFU_CLRSTATUS 4
+#define DFU_GETSTATE 5          /* FLIPv1 only; not used */
+#define DFU_ABORT 6             /* FLIPv1 only */
 
 /* Block counter global variable. Incremented each time a DFU_DNLOAD command
  * is sent to the device.
  */
 
-static u_int16_t wIndex = 0;
+static uint16_t wIndex = 0;
 
 /* INTERNAL FUNCTION PROTOTYPES
  */
@@ -118,8 +118,8 @@ struct dfu_dev * dfu_open(char *port_spec)
   if(':' == port_spec[3]) {
       bus_name = strdup(port_spec + 3 + 1);
       if (bus_name == NULL) {
-        perror(progname);
-        exit(1);
+        fprintf(stderr, "%s: Out of memory in strdup\n", progname);
+        return NULL;
       }
 
       dev_name = strchr(bus_name, ':');
@@ -135,12 +135,13 @@ struct dfu_dev * dfu_open(char *port_spec)
 
   if (dfu == NULL)
   {
-    perror(progname);
-    exit(1);
+    fprintf(stderr, "%s: out of memory\n", progname);
+    return 0;
   }
 
   dfu->bus_name = bus_name;
   dfu->dev_name = dev_name;
+  dfu->timeout = DFU_TIMEOUT;
 
   /* LibUSB initialization. */
 
@@ -274,7 +275,7 @@ int dfu_getstatus(struct dfu_dev *dfu, struct dfu_status *status)
 
   result = usb_control_msg(dfu->dev_handle,
     0x80 | USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_GETSTATUS, 0, 0,
-    (char*) status, sizeof(struct dfu_status), DFU_TIMEOUT);
+    (char*) status, sizeof(struct dfu_status), dfu->timeout);
 
   if (result < 0) {
     fprintf(stderr, "%s: Error: Failed to get DFU status: %s\n",
@@ -316,7 +317,7 @@ int dfu_clrstatus(struct dfu_dev *dfu)
 
   result = usb_control_msg(dfu->dev_handle,
     USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_CLRSTATUS, 0, 0,
-    NULL, 0, DFU_TIMEOUT);
+    NULL, 0, dfu->timeout);
 
   if (result < 0) {
     fprintf(stderr, "%s: Error: Failed to clear DFU status: %s\n",
@@ -326,6 +327,28 @@ int dfu_clrstatus(struct dfu_dev *dfu)
 
   return 0;
 }
+
+int dfu_abort(struct dfu_dev *dfu)
+{
+  int result;
+
+  if (verbose > 3)
+    fprintf(stderr, "%s: dfu_abort(): issuing control OUT message\n",
+            progname);
+
+  result = usb_control_msg(dfu->dev_handle,
+    USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_ABORT, 0, 0,
+    NULL, 0, dfu->timeout);
+
+  if (result < 0) {
+    fprintf(stderr, "%s: Error: Failed to reset DFU state: %s\n",
+      progname, usb_strerror());
+    return -1;
+  }
+
+  return 0;
+}
+
 
 int dfu_dnload(struct dfu_dev *dfu, void *ptr, int size)
 {
@@ -338,7 +361,7 @@ int dfu_dnload(struct dfu_dev *dfu, void *ptr, int size)
 
   result = usb_control_msg(dfu->dev_handle,
     USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_DNLOAD, wIndex++, 0,
-    ptr, size, DFU_TIMEOUT);
+    ptr, size, dfu->timeout);
 
   if (result < 0) {
     fprintf(stderr, "%s: Error: DFU_DNLOAD failed: %s\n",
@@ -372,7 +395,7 @@ int dfu_upload(struct dfu_dev *dfu, void *ptr, int size)
 
   result = usb_control_msg(dfu->dev_handle,
     0x80 | USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_UPLOAD, wIndex++, 0,
-    ptr, size, DFU_TIMEOUT);
+    ptr, size, dfu->timeout);
 
   if (result < 0) {
     fprintf(stderr, "%s: Error: DFU_UPLOAD failed: %s\n",
@@ -442,8 +465,8 @@ char * get_usb_string(usb_dev_handle * dev_handle, int index) {
   str = malloc(result+1);
 
   if (str == NULL) {
-    perror(progname);
-    exit(1);
+    fprintf(stderr, "%s: Out of memory allocating a string\n", progname);
+    return 0;
   }
 
   memcpy(str, buffer, result);

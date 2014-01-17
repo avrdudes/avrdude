@@ -24,7 +24,13 @@
 #include "ac_cfg.h"
 
 #ifdef HAVE_LIBUSB
-#include <usb.h>
+#if defined(HAVE_USB_H)
+#  include <usb.h>
+#elif defined(HAVE_LUSB0_USB_H)
+#  include <lusb0_usb.h>
+#else
+#  error "libusb needs either <usb.h> or <lusb0_usb.h>"
+#endif
 #endif
 
 #include <limits.h>
@@ -49,6 +55,7 @@ struct dfu_dev
   struct usb_interface_descriptor intf_desc;
   struct usb_endpoint_descriptor endp_desc;
   char *manf_str, *prod_str, *serno_str;
+  unsigned int timeout;
 };
 
 #else
@@ -116,6 +123,7 @@ extern int dfu_getstatus(struct dfu_dev *dfu, struct dfu_status *status);
 extern int dfu_clrstatus(struct dfu_dev *dfu);
 extern int dfu_dnload(struct dfu_dev *dfu, void *ptr, int size);
 extern int dfu_upload(struct dfu_dev *dfu, void *ptr, int size);
+extern int dfu_abort(struct dfu_dev *dfu);
 
 extern void dfu_show_info(struct dfu_dev *dfu);
 

@@ -1,5 +1,12 @@
 2014-01-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* flip2.c (flip2_page_erase): Remove unimplemented function.
+	* dfu.h: Correctly conditionalize <usb.h> vs. <lusb0_usb.h>;
+	add adjustable timeout (struct dfu_dev); add dfu_abort()
+	* dfu.c (dfu_abort): New function; implement adjustable timeout.
+
+2014-01-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* configure.ac (libhid): Turn from AC_TRY_RUN into
 	AC_TRY_COMPILE, so it also works for cross-compilation
 	setups.
