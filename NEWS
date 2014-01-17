@@ -14,7 +14,8 @@ Current:
     - ...
 
   * New programmers supported:
-    - FLIP v2 (Atmel DFU protocol)
+    - Atmel DFU, using FLIP protocol version 1 (AT90USB and ATmega*U* devices),
+      or version 2 (Xmega devices)
 
   * Bugfixes
     - bug #40055: AVRDUDE segfaults when writing eeprom

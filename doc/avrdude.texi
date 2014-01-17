@@ -244,7 +244,9 @@ has been compiled with libusb support.
 They both feature simple firmware-only USB implementations, running on
 an ATmega8 (or ATmega88), or ATtiny2313, respectively.
 
-The Atmel DFU bootloader is supported in version 2 (Xmega devices).
+The Atmel DFU bootloader is supported in both, FLIP protocol version 1
+(AT90USB* and ATmega*U* devices), as well as version 2 (Xmega devices).
+See below for some hints about FLIP version 1 protocol behaviour.
 
 
 @menu
@@ -1658,12 +1660,13 @@ functionality does not make sense for these boot loaders.
 
 @menu
 * Atmel STK600::
+* Atmel DFU bootloader using FLIP version 1::
 @end menu
 
 @c
 @c Node
 @c
-@node Atmel STK600, , Programmer Specific Information, Programmer Specific Information
+@node Atmel STK600, Atmel DFU bootloader using FLIP version 1, Programmer Specific Information, Programmer Specific Information
 @section Atmel STK600
 
 @c
@@ -1755,6 +1758,34 @@ target is not found ready to be ISP programmed.
 High-voltage programming requires the target voltage to be set to at
 least 4.5 V in order to work.  This can be done using
 @emph{Terminal Mode}, see @ref{Terminal Mode Operation}.
+
+@c
+@c Node
+@c
+@node Atmel DFU bootloader using FLIP version 1, , Atmel STK600, Programmer Specific Information
+@section Atmel DFU bootloader using FLIP version 1
+
+Bootloaders using the FLIP protocol version 1 experience some very
+specific behaviour.
+
+These bootloaders have no option to access memory areas other than
+Flash and EEPROM.
+
+When the bootloader is started, it enters a @emph{security mode} where
+the only acceptable access is to query the device configuration
+parameters (which are used for the signature on AVR devices).  The
+only way to leave this mode is a @emph{chip erase}.  As a chip erase
+is normally implied by the @option{-U} option when reprogramming the
+flash, this peculiarity might not be very obvious immediately.
+
+Sometimes, a bootloader with security mode already disabled seems to
+no longer respond with sensible configuration data, but only 0xFF for
+all queries.  As these queries are used to obtain the equivalent of a
+signature, AVRDUDE can only continue in that situation by forcing the
+signature check to be overridden with the @option{-F} option.
+
+A @emph{chip erase} might leave the EEPROM unerased, at least on some
+versions of the bootloader.
 
 @c
 @c Node
