@@ -10058,7 +10058,7 @@ part
     desc             = "ATmega2560";
     signature        = 0x1e 0x98 0x01;
     has_jtag         = yes;
-#    stk500_devcode   = 0xB2;
+    stk500_devcode   = 0xB2;
 #    avr910_devcode   = 0x43;
     chip_erase_delay = 9000;
     pagel            = 0xD7;

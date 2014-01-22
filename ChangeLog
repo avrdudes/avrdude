@@ -1,3 +1,11 @@
+2014-01-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Contributed by Alan Horstmann:
+	Fix handling of devices > 128 KiB in stk500v1 protocol
+	* stk500.c: Implement extended address byte handling.
+	* avrdude.conf.in (ATmega2560): enable stk500_devcode so
+	STK500v1 protocol actually starts at all.
+
 2014-01-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* flip1.c: Implement the meat of FLIP version 1 protocol.

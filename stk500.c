@@ -1,7 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2002-2004 Brian S. Dean <bsd@bsdhome.com>
- * Copyright (C) 2008 Joerg Wunsch
+ * Copyright (C) 2008,2014 Joerg Wunsch
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,6 +45,15 @@
 
 #define STK500_XTAL 7372800U
 #define MAX_SYNC_ATTEMPTS 10
+
+struct pdata
+{
+  unsigned char ext_addr_byte; /* Record ext-addr byte set in the
+				* target device (if used) */
+};
+
+#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+
 
 static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value);
 static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value);
@@ -696,14 +705,31 @@ static void stk500_close(PROGRAMMER * pgm)
 }
 
 
-static int stk500_loadaddr(PROGRAMMER * pgm, unsigned int addr)
+static int stk500_loadaddr(PROGRAMMER * pgm, AVRMEM * mem, unsigned int addr)
 {
   unsigned char buf[16];
   int tries;
+  unsigned char ext_byte;
+  OPCODE * lext;
 
   tries = 0;
  retry:
   tries++;
+
+  /* To support flash > 64K words the correct Extended Address Byte is needed */
+  lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
+  if (lext != NULL) {
+    ext_byte = (addr >> 16) & 0xff;
+    if (ext_byte != PDATA(pgm)->ext_addr_byte) {
+      /* Either this is the first addr load, or a 64K word boundary is
+       * crossed, so set the ext addr byte */
+      avr_set_bits(lext, buf);
+      avr_set_addr(lext, buf, addr);
+      stk500_cmd(pgm, buf, buf);
+      PDATA(pgm)->ext_addr_byte = ext_byte;
+    }
+  }
+
   buf[0] = Cmnd_STK_LOAD_ADDRESS;
   buf[1] = addr & 0xff;
   buf[2] = (addr >> 8) & 0xff;
@@ -796,7 +822,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     tries = 0;
   retry:
     tries++;
-    stk500_loadaddr(pgm, addr/a_div);
+    stk500_loadaddr(pgm, m, addr/a_div);
 
     /* build command block and avoid multiple send commands as it leads to a crash
         of the silabs usb serial driver on mac os x */
@@ -885,7 +911,7 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     tries = 0;
   retry:
     tries++;
-    stk500_loadaddr(pgm, addr/a_div);
+    stk500_loadaddr(pgm, m, addr/a_div);
     buf[0] = Cmnd_STK_READ_PAGE;
     buf[1] = (block_size >> 8) & 0xff;
     buf[2] = block_size & 0xff;
@@ -1276,6 +1302,24 @@ static void stk500_print_parms(PROGRAMMER * pgm)
   stk500_print_parms1(pgm, "");
 }
 
+static void stk500_setup(PROGRAMMER * pgm)
+{
+  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
+    fprintf(stderr,
+	    "%s: stk500_setup(): Out of memory allocating private data\n",
+	    progname);
+    exit(1);
+  }
+  memset(pgm->cookie, 0, sizeof(struct pdata));
+  PDATA(pgm)->ext_addr_byte = 0xff; /* Ensures it is programmed before
+				     * first memory address */
+}
+
+static void stk500_teardown(PROGRAMMER * pgm)
+{
+  free(pgm->cookie);
+}
+
 const char stk500_desc[] = "Atmel STK500 Version 1.x firmware";
 
 void stk500_initpgm(PROGRAMMER * pgm)
@@ -1307,5 +1351,7 @@ void stk500_initpgm(PROGRAMMER * pgm)
   pgm->set_varef      = stk500_set_varef;
   pgm->set_fosc       = stk500_set_fosc;
   pgm->set_sck_period = stk500_set_sck_period;
+  pgm->setup          = stk500_setup;
+  pgm->teardown       = stk500_teardown;
   pgm->page_size      = 256;
 }
