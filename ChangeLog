@@ -1,7 +1,7 @@
 2014-01-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Contributed by Alan Horstmann:
-	Fix handling of devices > 128 KiB in stk500v1 protocol
+	bug #40897: AT Mega2560 not correctly programmed with stk500(v1) ISP (solution patch)
 	* stk500.c: Implement extended address byte handling.
 	* avrdude.conf.in (ATmega2560): enable stk500_devcode so
 	STK500v1 protocol actually starts at all.
