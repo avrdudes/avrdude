@@ -82,7 +82,7 @@ AC_CHECK_LIB([ncurses], [tputs])
 AC_CHECK_LIB([readline], [readline])
 AH_TEMPLATE([HAVE_LIBELF],
             [Define if ELF support is enabled via libelf])
-AC_CHECK_LIB([elf], [elf_begin], [have_libelf=yes])
+AC_CHECK_LIB([elf], [elf_getshdrstrndx], [have_libelf=yes])
 if test x$have_libelf = xyes; then
    case $target in
        *)

@@ -1,5 +1,11 @@
 2014-01-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* configure.ac (libelf): check against elf_getshdrstrndx() rather
+	than just elf_begin() only, so it is clear we found a sufficiently
+	recent libelf to work with.
+
+2014-01-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Contributed by Alan Horstmann:
 	bug #40897: AT Mega2560 not correctly programmed with stk500(v1) ISP (solution patch)
 	* stk500.c: Implement extended address byte handling.
