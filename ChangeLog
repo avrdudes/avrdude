@@ -1,3 +1,10 @@
+2014-01-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	[bug #41357] OS X: Avrdude messes with the usb stack?
+	* usb_libusb.c (usbdev_close): Only issue the usb_reset() for
+	Linux systems, as these are the only ones that seem to require
+	it under some circumstances.
+
 2014-01-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* configure.ac (libelf): check against elf_getshdrstrndx() rather
