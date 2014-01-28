@@ -1,3 +1,7 @@
+2014-01-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avrdude.conf.in (ATmega256RFR2 et al.): Fix EEPROM size.
+
 2014-01-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	[bug #41357] OS X: Avrdude messes with the usb stack?

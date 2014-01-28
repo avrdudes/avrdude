@@ -10319,8 +10319,42 @@ part parent "m2561"
     id               = "m256rfr2";
     desc             = "ATmega256RFR2";
     signature        = 0x1e 0xa8 0x02;
-    chip_erase_delay = 55000;
+    chip_erase_delay = 18500;
     bs2              = 0xE2;
+
+    memory "eeprom"
+        paged           = no; /* leave this "no" */
+        page_size       = 8;  /* for parallel programming */
+        size            = 8192;
+        min_write_delay = 13000;
+        max_write_delay = 13000;
+        readback_p1     = 0x00;
+        readback_p2     = 0x00;
+        read            = "  1   0   1   0      0   0   0   0",
+                          "  x   x   x a12    a11 a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
+
+        write           = "  1   1   0   0      0   0   0   0",
+                          "  x   x   x a12    a11 a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  i   i   i   i      i   i   i   i";
+
+	loadpage_lo	= "  1   1   0   0      0   0   0   1",
+			  "  0   0   0   0      0   0   0   0",
+			  "  0   0   0   0      0  a2  a1  a0",
+			  "  i   i   i   i      i   i   i   i";
+
+	writepage	= "  1   1   0   0      0   0   1   0",
+			  "  0   0   x a12    a11 a10  a9  a8",
+			  " a7  a6  a5  a4     a3   0   0   0",
+			  "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x41;
+	delay		= 10;
+	blocksize	= 8;
+	readsize	= 256;
+      ;
 
 
     ocdrev              = 4;
@@ -10390,6 +10424,42 @@ part parent "m128rfa1"
 	blocksize	= 256;
 	readsize	= 256;
       ;
+
+    memory "eeprom"
+        paged           = no; /* leave this "no" */
+        page_size       = 8;  /* for parallel programming */
+        size            = 2048;
+        min_write_delay = 13000;
+        max_write_delay = 13000;
+        readback_p1     = 0x00;
+        readback_p2     = 0x00;
+        read            = "  1   0   1   0      0   0   0   0",
+                          "  x   x   x   x      x a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
+
+        write           = "  1   1   0   0      0   0   0   0",
+                          "  x   x   x   x      x a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  i   i   i   i      i   i   i   i";
+
+	loadpage_lo	= "  1   1   0   0      0   0   0   1",
+			  "  0   0   0   0      0   0   0   0",
+			  "  0   0   0   0      0  a2  a1  a0",
+			  "  i   i   i   i      i   i   i   i";
+
+	writepage	= "  1   1   0   0      0   0   1   0",
+			  "  0   0   x   x      x a10  a9  a8",
+			  " a7  a6  a5  a4     a3   0   0   0",
+			  "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x41;
+	delay		= 10;
+	blocksize	= 8;
+	readsize	= 256;
+      ;
+
+
   ;
 
 #------------------------------------------------------------
