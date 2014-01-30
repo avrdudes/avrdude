@@ -1,3 +1,8 @@
+2014-01-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	[bug #41402] dfu.c missing include <stdint.h>
+	* dfu.c: include <stdint.h> where uint16_t is defined
+
 2014-01-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* avrdude.conf.in (ATmega256RFR2 et al.): Fix EEPROM size.
