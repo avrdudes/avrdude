@@ -375,6 +375,7 @@ static int avr910_parseextparms(PROGRAMMER * pgm, LISTID extparms)
 
 static int avr910_open(PROGRAMMER * pgm, char * port)
 {
+  union pinfo pinfo;
   /*
    *  If baudrate was not specified use 19.200 Baud
    */
@@ -383,7 +384,8 @@ static int avr910_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  if (serial_open(port, pgm->baudrate, &pgm->fd)==-1) {
+  pinfo.baud = pgm->baudrate;
+  if (serial_open(port, pinfo, &pgm->fd)==-1) {
     return -1;
   }
 

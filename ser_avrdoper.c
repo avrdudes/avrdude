@@ -510,7 +510,7 @@ static char *usbErrorText(int usbErrno)
 
 /* ------------------------------------------------------------------------- */
 
-static int avrdoper_open(char *port, long baud, union filedescriptor *fdp)
+static int avrdoper_open(char *port, union pinfo pinfo, union filedescriptor *fdp)
 {
     int rval;
     char *vname = "obdev.at";

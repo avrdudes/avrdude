@@ -1,3 +1,23 @@
+2014-02-21  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* serial.h: Change the second parameter of the ser_open method
+	from "baud" into a "union pinfo", so the USB parameters can be
+	passed without hacks.
+	* arduino.c: (Dito.)
+	* avr910.c: (Dito.)
+	* buspirate.c: (Dito.)
+	* butterfly.c: (Dito.)
+	* jtag3.c: (Dito.)
+	* jtagmkI.c: (Dito.)
+	* jtagmkII.c: (Dito.)
+	* ser_avrdoper.c: (Dito.)
+	* ser_posix.c: (Dito.)
+	* ser_win32.c: (Dito.)
+	* stk500.c: (Dito.)
+	* stk500v2.c: (Dito.)
+	* usb_libusb.c: (Dito.)
+	* wiring.c: (Dito.)
+
 2014-01-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	[bug #41402] dfu.c missing include <stdint.h>

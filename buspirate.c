@@ -416,12 +416,14 @@ buspirate_verifyconfig(struct programmer_t *pgm)
 /* ====== Programmer methods ======= */
 static int buspirate_open(struct programmer_t *pgm, char * port)
 {
+	union pinfo pinfo;
 	/* BusPirate runs at 115200 by default */
 	if(pgm->baudrate == 0)
 		pgm->baudrate = 115200;
 
+	pinfo.baud = pgm->baudrate;
 	strcpy(pgm->port, port);
-	if (serial_open(port, pgm->baudrate, &pgm->fd)==-1) {
+	if (serial_open(port, pinfo, &pgm->fd)==-1) {
 	  return -1;
 	}
 

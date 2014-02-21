@@ -153,9 +153,11 @@ static int wiring_open(PROGRAMMER * pgm, char * port)
 {
   int timetosnooze;
   void *mycookie = STK500V2PDATA(pgm)->chained_pdata;
+  union pinfo pinfo;
 
   strcpy(pgm->port, port);
-  serial_open(port, pgm->baudrate ? pgm->baudrate: 115200, &pgm->fd);
+  pinfo.baud = pgm->baudrate ? pgm->baudrate: 115200;
+  serial_open(port, pinfo, &pgm->fd);
 
   /* If we have a snoozetime, then we wait and do NOT toggle DTR/RTS */
 

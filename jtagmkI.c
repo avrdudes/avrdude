@@ -669,11 +669,13 @@ static int jtagmkI_open(PROGRAMMER * pgm, char * port)
   PDATA(pgm)->initial_baudrate = -1L;
 
   for (i = 0; i < sizeof(baudtab) / sizeof(baudtab[0]); i++) {
+    union pinfo pinfo;
+    pinfo.baud = baudtab[i].baud;
     if (verbose >= 2)
       fprintf(stderr,
               "%s: jtagmkI_open(): trying to sync at baud rate %ld:\n",
-              progname, baudtab[i].baud);
-    if (serial_open(port, baudtab[i].baud, &pgm->fd)==-1) {
+              progname, pinfo.baud);
+    if (serial_open(port, pinfo, &pgm->fd)==-1) {
       return -1;
     }
 

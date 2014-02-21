@@ -253,7 +253,7 @@ static int ser_set_dtr_rts(union filedescriptor *fdp, int is_on)
   return 0;
 }
 
-static int ser_open(char * port, long baud, union filedescriptor *fdp)
+static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
 {
   int rc;
   int fd;
@@ -281,7 +281,7 @@ static int ser_open(char * port, long baud, union filedescriptor *fdp)
   /*
    * set serial line attributes
    */
-  rc = ser_setspeed(fdp, baud);
+  rc = ser_setspeed(fdp, pinfo.baud);
   if (rc) {
     fprintf(stderr, 
             "%s: ser_open(): can't set attributes for device \"%s\": %s\n",

@@ -672,8 +672,10 @@ static void stk500_enable(PROGRAMMER * pgm)
 
 static int stk500_open(PROGRAMMER * pgm, char * port)
 {
+  union pinfo pinfo;
   strcpy(pgm->port, port);
-  if (serial_open(port, pgm->baudrate? pgm->baudrate: 115200, &pgm->fd)==-1) {
+  pinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
+  if (serial_open(port, pinfo, &pgm->fd)==-1) {
     return -1;
   }
 

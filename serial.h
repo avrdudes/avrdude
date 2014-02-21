@@ -44,10 +44,22 @@ union filedescriptor
   } usb;
 };
 
+union pinfo
+{
+  long baud;
+  struct
+  {
+    unsigned short vid;
+    unsigned short pid;
+    unsigned short flags;
+  } usbinfo;
+};
+
+
 struct serial_device
 {
   // open should return -1 on error, other values on success
-  int (*open)(char * port, long baud, union filedescriptor *fd); 
+  int (*open)(char * port, union pinfo pinfo, union filedescriptor *fd); 
   int (*setspeed)(union filedescriptor *fd, long baud);
   void (*close)(union filedescriptor *fd);
 

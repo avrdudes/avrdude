@@ -386,6 +386,7 @@ static void butterfly_enable(PROGRAMMER * pgm)
 
 static int butterfly_open(PROGRAMMER * pgm, char * port)
 {
+  union pinfo pinfo;
   strcpy(pgm->port, port);
   /*
    *  If baudrate was not specified use 19200 Baud
@@ -393,7 +394,8 @@ static int butterfly_open(PROGRAMMER * pgm, char * port)
   if(pgm->baudrate == 0) {
     pgm->baudrate = 19200;
   }
-  if (serial_open(port, pgm->baudrate, &pgm->fd)==-1) {
+  pinfo.baud = pgm->baudrate;
+  if (serial_open(port, pinfo, &pgm->fd)==-1) {
     return -1;
   }
 

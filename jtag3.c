@@ -1021,7 +1021,7 @@ static int jtag3_parseextparms(PROGRAMMER * pgm, LISTID extparms)
 
 static int jtag3_open(PROGRAMMER * pgm, char * port)
 {
-  long baud;
+  union pinfo pinfo;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: jtag3_open()\n", progname);
@@ -1034,7 +1034,9 @@ static int jtag3_open(PROGRAMMER * pgm, char * port)
   if (strncmp(port, "usb", 3) == 0) {
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev_frame;
-    baud = USB_DEVICE_JTAGICE3;
+    pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
+    pinfo.usbinfo.flags = 0;
+    pinfo.usbinfo.pid = USB_DEVICE_JTAGICE3;
     pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_3;
     pgm->fd.usb.rep = USBDEV_BULK_EP_READ_3;
     pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
@@ -1046,7 +1048,7 @@ static int jtag3_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  if (serial_open(port, baud, &pgm->fd)==-1) {
+  if (serial_open(port, pinfo, &pgm->fd)==-1) {
     return -1;
   }
 
@@ -1063,7 +1065,7 @@ static int jtag3_open(PROGRAMMER * pgm, char * port)
 
 static int jtag3_open_dw(PROGRAMMER * pgm, char * port)
 {
-  long baud;
+  union pinfo pinfo;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: jtag3_open_dw()\n", progname);
@@ -1076,7 +1078,9 @@ static int jtag3_open_dw(PROGRAMMER * pgm, char * port)
   if (strncmp(port, "usb", 3) == 0) {
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev_frame;
-    baud = USB_DEVICE_JTAGICE3;
+    pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
+    pinfo.usbinfo.flags = 0;
+    pinfo.usbinfo.pid = USB_DEVICE_JTAGICE3;
     pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_3;
     pgm->fd.usb.rep = USBDEV_BULK_EP_READ_3;
     pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
@@ -1088,7 +1092,7 @@ static int jtag3_open_dw(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  if (serial_open(port, baud, &pgm->fd)==-1) {
+  if (serial_open(port, pinfo, &pgm->fd)==-1) {
     return -1;
   }
 
@@ -1105,7 +1109,7 @@ static int jtag3_open_dw(PROGRAMMER * pgm, char * port)
 
 static int jtag3_open_pdi(PROGRAMMER * pgm, char * port)
 {
-  long baud;
+  union pinfo pinfo;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: jtag3_open_pdi()\n", progname);
@@ -1118,7 +1122,9 @@ static int jtag3_open_pdi(PROGRAMMER * pgm, char * port)
   if (strncmp(port, "usb", 3) == 0) {
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev_frame;
-    baud = USB_DEVICE_JTAGICE3;
+    pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
+    pinfo.usbinfo.flags = 0;
+    pinfo.usbinfo.pid = USB_DEVICE_JTAGICE3;
     pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_3;
     pgm->fd.usb.rep = USBDEV_BULK_EP_READ_3;
     pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
@@ -1130,7 +1136,7 @@ static int jtag3_open_pdi(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  if (serial_open(port, baud, &pgm->fd)==-1) {
+  if (serial_open(port, pinfo, &pgm->fd)==-1) {
     return -1;
   }
 
