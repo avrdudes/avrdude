@@ -1,3 +1,9 @@
+2014-02-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* usb_libusb.c (usbdev_recv_frame): Fix a bug where a new recv
+	request was issued even though all desired data had aldready
+	been received.
+
 2014-02-21  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* serial.h: Change the second parameter of the ser_open method

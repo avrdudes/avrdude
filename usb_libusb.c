@@ -460,7 +460,7 @@ static int usbdev_recv_frame(union filedescriptor *fd, unsigned char *buf, size_
       n += rv;
       nbytes -= rv;
     }
-  while (rv == fd->usb.max_xfer);
+  while (nbytes > 0 && rv == fd->usb.max_xfer);
 
   if (nbytes < 0)
     return -1;
