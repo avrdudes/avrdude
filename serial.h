@@ -41,6 +41,7 @@ union filedescriptor
     int wep;                    /* bulk write endpoint */
     int eep;                    /* event read endpoint */
     int max_xfer;               /* max transfer size */
+    int use_interrupt_xfer;     /* device uses interrupt transfers */
   } usb;
 };
 
@@ -52,6 +53,7 @@ union pinfo
     unsigned short vid;
     unsigned short pid;
     unsigned short flags;
+#define PINFO_FL_USEHID         0x0001
   } usbinfo;
 };
 

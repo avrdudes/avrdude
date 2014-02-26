@@ -994,6 +994,7 @@ programmer
   desc  = "Atmel AVR JTAGICE3 in JTAG mode";
   type  = "jtagice3";
   connection_type = usb;
+  usbpid = 0x2110;
 ;
 
 programmer
@@ -1001,6 +1002,7 @@ programmer
   desc  = "Atmel AVR JTAGICE3 in PDI mode";
   type  = "jtagice3_pdi";
   connection_type = usb;
+  usbpid = 0x2110;
 ;
 
 programmer
@@ -1008,6 +1010,7 @@ programmer
   desc  = "Atmel AVR JTAGICE3 in debugWIRE mode";
   type  = "jtagice3_dw";
   connection_type = usb;
+  usbpid = 0x2110;
 ;
 
 programmer
@@ -1015,6 +1018,47 @@ programmer
   desc  = "Atmel AVR JTAGICE3 in ISP mode";
   type  = "jtagice3_isp";
   connection_type = usb;
+  usbpid = 0x2110;
+;
+
+programmer
+  id    = "jtag3edbg";
+  desc  = "Atmel AVR JTAGICE3 in JTAG mode, EDBG protocol";
+  type  = "jtagice3";
+  connection_type = usb;
+  usbpid = 0x2140;
+;
+
+programmer
+  id    = "jtag3pdi_edbg";
+  desc  = "Atmel AVR JTAGICE3 in PDI mode, EDBG protocol";
+  type  = "jtagice3_pdi";
+  connection_type = usb;
+  usbpid = 0x2140;
+;
+
+programmer
+  id    = "jtag3dw_edbg";
+  desc  = "Atmel AVR JTAGICE3 in debugWIRE mode, EDBG protocol";
+  type  = "jtagice3_dw";
+  connection_type = usb;
+  usbpid = 0x2140;
+;
+
+programmer
+  id    = "jtag3isp_edbg";
+  desc  = "Atmel AVR JTAGICE3 in ISP mode, EDBG protocol";
+  type  = "jtagice3_isp";
+  connection_type = usb;
+  usbpid = 0x2140;
+;
+
+programmer
+  id    = "xplainedpro";
+  desc  = "Atmel AVR XplainedPro in JTAG mode";
+  type  = "jtagice3";
+  connection_type = usb;
+  usbpid = 0x2111;
 ;
 
 

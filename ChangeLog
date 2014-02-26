@@ -1,3 +1,15 @@
+2014-02-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtag3_private.h: Add EDBG/CMSIS-DAP specific constants.
+	* jtag3.c: Add EDBG/CMSIS-DAP protocol implementation.
+	* serial.h: (Dito.)
+	* usbdevs.h: (Dito.)
+	* usb_libusb.c: (Dito.)
+	* configure.ac: (Dito.)
+	* avrdude.conf.in: Add JTAGICE3 and XplainedPro entries using
+	EDBG.
+	* configure.ac: Bump version date.
+
 2014-02-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* usb_libusb.c (usbdev_recv_frame): Fix a bug where a new recv

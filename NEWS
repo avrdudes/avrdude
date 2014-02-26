@@ -8,7 +8,7 @@ Approximate change log for AVRDUDE by version.
 Current:
 
   * Major changes compared to the previous version:
-    - ...
+    - Atmel EDBG protocol support added (JTAGICE3, XplainedPro)
 
   * New devices supported:
     - ...
