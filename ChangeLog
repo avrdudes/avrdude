@@ -1,3 +1,8 @@
+2014-02-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* usb_libusb.c (usbdev_open): Replace all calls to exit(1) by
+	return -1
+
 2014-02-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* jtag3_private.h: Add EDBG/CMSIS-DAP specific constants.
