@@ -1,5 +1,10 @@
 2014-02-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* avrdude.1: Documentation update for EDBG.
+	* doc/avrdude.texi: (Dito.)
+
+2014-02-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* jtag3.c: For EDBG protocol, always use 512-byte block I/O.  The
 	lower layers will split this according to the EP's maxsize.  This
 	makes it work over USB 1.1 connections (albeit very slowly, due to

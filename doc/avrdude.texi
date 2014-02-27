@@ -148,7 +148,7 @@ programming fuse/lock bits, etc.
 AVRDUDE supports the following basic programmer types: Atmel's STK500,
 Atmel's AVRISP and AVRISP mkII devices,
 Atmel's STK600,
-Atmel's JTAG ICE (both mkI and mkII, the latter also in ISP mode), appnote
+Atmel's JTAG ICE (the original one, mkII, and 3, the latter two also in ISP mode), appnote
 avr910, appnote avr109 (including the AVR Butterfly),
 serial bit-bang adapters,
 and the PPI (parallel port interface). PPI represents a class
@@ -181,7 +181,7 @@ the 74HC244. Have a look at http://kolev.info/avrdude-linuxgpio for a more
 detailed tutorial about using this programmer type.
 
 The STK500, JTAG ICE, avr910, and avr109/butterfly use the serial port to communicate with the PC.
-The STK600, JTAG ICE mkII, AVRISP mkII, USBasp, avrftdi (and derivitives), and USBtinyISP
+The STK600, JTAG ICE mkII/3, AVRISP mkII, USBasp, avrftdi (and derivitives), and USBtinyISP
 programmers communicate through the USB, using @code{libusb} as a
 platform abstraction layer.
 The avrftdi adds support for the FT2232C/D, FT2232H, and FT4232H devices. These all use 
@@ -207,11 +207,14 @@ protocol is more sophisticated.
 (The JTAG ICE mkII protocol can also be run on top of USB.)
 Only the memory programming functionality of the JTAG ICE is supported
 by AVRDUDE.
-For the JTAG ICE mkII, JTAG, debugWire and ISP mode are supported, provided
+For the JTAG ICE mkII/3, JTAG, debugWire and ISP mode are supported, provided
 it has a firmware revision of at least 4.14 (decimal).
 See below for the limitations of debugWire.
-For ATxmega devices, the JTAG ICE mkII is supported in PDI mode, provided it
+For ATxmega devices, the JTAG ICE mkII/3 is supported in PDI mode, provided it
 has a revision 1 hardware and firmware version of at least 5.37 (decimal).
+
+Atmel's XplainedPro boards, using EDBG protocol (CMSIS-DAP compliant), are
+supported by teh ``jtag3'' programmer type.
 
 The AVR Dragon is supported in all modes (ISP, JTAG, PDI, HVSP, PP, debugWire).
 When used in JTAG and debugWire mode, the AVR Dragon behaves similar to a
@@ -743,10 +746,10 @@ accepting extended parameters.
 
 @table @code
 
-@item JTAG ICE mkII
+@item JTAG ICE mkII/3
 @itemx AVR Dragon
 
-When using the JTAG ICE mkII or AVR Dragon in JTAG mode, the
+When using the JTAG ICE mkII/3 or AVR Dragon in JTAG mode, the
 following extended parameter is accepted:
 @table @code
 @item @samp{jtagchain=UB,UA,BB,BA}
@@ -1188,7 +1191,7 @@ Set the JTAG ICE bit clock period to @var{period} microseconds.
 Note that unlike STK500 settings, this setting will be reverted to
 its default value (approximately 1 microsecond) when the programming
 software signs off from the JTAG ICE.
-This parameter can also be used on the JTAG ICE mkII to specify the
+This parameter can also be used on the JTAG ICE mkII/3 to specify the
 ISP clock period when operating the ICE in ISP mode.
 
 @item parms
@@ -1392,7 +1395,7 @@ programmer
     pgmled   = <num> ;                          # pin number
     vfyled   = <num> ;                          # pin number
     usbvid   = <hexnum>;                        # USB VID (Vendor ID)
-    usbpid   = <hexnum>;                        # USB PID (Product ID)
+    usbpid   = <hexnum> [, <hexnum> ...];       # USB PID (Product ID)
     usbdev   = <interface>;                     # USB interface or other device info 
     usbvendor = <vendorname>;                   # USB Vendor Name
     usbproduct = <productname>;                 # USB Product Name
@@ -1406,6 +1409,9 @@ programmer. These values can be changed by new setting them for the new programm
 
 @noindent
 To invert a bit in the pin definitions, use @code{= ~ <num>}.
+
+@noindent
+Not all programmer types can handle a list of USB PIDs.
 
 @noindent
 Following programmer types are currently implemented:
