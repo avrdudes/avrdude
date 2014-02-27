@@ -1279,43 +1279,58 @@ static int jtag3_parseextparms(PROGRAMMER * pgm, LISTID extparms)
   return rv;
 }
 
-
-static int jtag3_open(PROGRAMMER * pgm, char * port)
+int jtag3_open_common(PROGRAMMER * pgm, char * port)
 {
   union pinfo pinfo;
+  LNODEID usbpid;
+  int rv = -1;
 
-  if (verbose >= 2)
-    fprintf(stderr, "%s: jtag3_open()\n", progname);
+#if !defined(HAVE_LIBUSB)
+  fprintf(stderr, "avrdude was compiled without usb support.\n");
+  return -1;
+#endif
 
-  /*
-   * The serial_open() function for USB overrides
-   * the meaning of the "baud" parameter to be the USB device ID to
-   * search for.
-   */
-  if (strncmp(port, "usb", 3) == 0) {
-#if defined(HAVE_LIBUSB)
-    serdev = &usb_serdev_frame;
-    if (pgm->usbvid)
-      pinfo.usbinfo.vid = pgm->usbvid;
-    else
-      pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
-    pinfo.usbinfo.flags = 0;
-    if (pgm->usbpid)
-      pinfo.usbinfo.pid = pgm->usbpid;
-    else
-      pinfo.usbinfo.pid = USB_DEVICE_JTAGICE3;
+  if (strncmp(port, "usb", 3) != 0) {
+    fprintf(stderr,
+            "%s: jtag3_open_common(): JTAGICE3/EDBG port names must start with \"usb\"\n",
+            progname);
+    return -1;
+  }
+
+  serdev = &usb_serdev_frame;
+  if (pgm->usbvid)
+    pinfo.usbinfo.vid = pgm->usbvid;
+  else
+    pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
+
+  /* If the config entry did not specify a USB PID, insert the default one. */
+  if (lfirst(pgm->usbpid) == NULL)
+    ladd(pgm->usbpid, (void *)USB_DEVICE_JTAGICE3);
+
+  for (usbpid = lfirst(pgm->usbpid); rv < 0 && usbpid != NULL; usbpid = lnext(usbpid)) {
+    pinfo.usbinfo.flags = PINFO_FL_SILENT;
+    pinfo.usbinfo.pid = *(int *)(ldata(usbpid));
     pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_3;
     pgm->fd.usb.rep = USBDEV_BULK_EP_READ_3;
     pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
     pgm->fd.usb.eep = USBDEV_EVT_EP_READ_3;
-#else
-    fprintf(stderr, "avrdude was compiled without usb support.\n");
-    return -1;
-#endif
-  }
 
-  strcpy(pgm->port, port);
-  if (serial_open(port, pinfo, &pgm->fd)==-1) {
+    strcpy(pgm->port, port);
+    rv = serial_open(port, pinfo, &pgm->fd);
+  }
+  if (rv < 0) {
+    fprintf(stderr,
+            "%s: jtag3_open_common(): Did not find any device matching VID 0x%04x and PID list: ",
+            progname, (unsigned)pinfo.usbinfo.vid);
+    int notfirst = 0;
+    for (usbpid = lfirst(pgm->usbpid); usbpid != NULL; usbpid = lnext(usbpid)) {
+      if (notfirst)
+        fprintf(stderr, ", ");
+      fprintf(stderr, "0x%04x", (unsigned int)(*(int *)(ldata(usbpid))));
+      notfirst = 1;
+    }
+    fputc('\n', stderr);
+
     return -1;
   }
 
@@ -1334,6 +1349,19 @@ static int jtag3_open(PROGRAMMER * pgm, char * port)
    * drain any extraneous input
    */
   jtag3_drain(pgm, 0);
+
+  return 0;
+}
+
+
+
+static int jtag3_open(PROGRAMMER * pgm, char * port)
+{
+  if (verbose >= 2)
+    fprintf(stderr, "%s: jtag3_open()\n", progname);
+
+  if (jtag3_open_common(pgm, port) < 0)
+    return -1;
 
   if (jtag3_getsync(pgm, PARM3_CONN_JTAG) < 0)
     return -1;
@@ -1343,58 +1371,11 @@ static int jtag3_open(PROGRAMMER * pgm, char * port)
 
 static int jtag3_open_dw(PROGRAMMER * pgm, char * port)
 {
-  union pinfo pinfo;
-
   if (verbose >= 2)
     fprintf(stderr, "%s: jtag3_open_dw()\n", progname);
 
-  /*
-   * The serial_open() function for USB overrides
-   * the meaning of the "baud" parameter to be the USB device ID to
-   * search for.
-   */
-  if (strncmp(port, "usb", 3) == 0) {
-#if defined(HAVE_LIBUSB)
-    serdev = &usb_serdev_frame;
-    if (pgm->usbvid)
-      pinfo.usbinfo.vid = pgm->usbvid;
-    else
-      pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
-    pinfo.usbinfo.flags = 0;
-    if (pgm->usbpid)
-      pinfo.usbinfo.pid = pgm->usbpid;
-    else
-      pinfo.usbinfo.pid = USB_DEVICE_JTAGICE3;
-    pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_3;
-    pgm->fd.usb.rep = USBDEV_BULK_EP_READ_3;
-    pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
-    pgm->fd.usb.eep = USBDEV_EVT_EP_READ_3;
-#else
-    fprintf(stderr, "avrdude was compiled without usb support.\n");
+  if (jtag3_open_common(pgm, port) < 0)
     return -1;
-#endif
-  }
-
-  strcpy(pgm->port, port);
-  if (serial_open(port, pinfo, &pgm->fd)==-1) {
-    return -1;
-  }
-
-  if (pgm->fd.usb.eep == 0)
-  {
-    /* The event EP has been deleted by usb_open(), so we are
-       running on a CMSIS-DAP device, using EDBG protocol */
-    pgm->flag |= PGM_FL_IS_EDBG;
-    if (verbose)
-      fprintf(stderr,
-              "%s: Found CMSIS-DAP compliant device, using EDBG protocol\n",
-              progname);
-  }
-
-  /*
-   * drain any extraneous input
-   */
-  jtag3_drain(pgm, 0);
 
   if (jtag3_getsync(pgm, PARM3_CONN_DW) < 0)
     return -1;
@@ -1404,58 +1385,11 @@ static int jtag3_open_dw(PROGRAMMER * pgm, char * port)
 
 static int jtag3_open_pdi(PROGRAMMER * pgm, char * port)
 {
-  union pinfo pinfo;
-
   if (verbose >= 2)
     fprintf(stderr, "%s: jtag3_open_pdi()\n", progname);
 
-  /*
-   * The serial_open() function for USB overrides
-   * the meaning of the "baud" parameter to be the USB device ID to
-   * search for.
-   */
-  if (strncmp(port, "usb", 3) == 0) {
-#if defined(HAVE_LIBUSB)
-    serdev = &usb_serdev_frame;
-    if (pgm->usbvid)
-      pinfo.usbinfo.vid = pgm->usbvid;
-    else
-      pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
-    pinfo.usbinfo.flags = 0;
-    if (pgm->usbpid)
-      pinfo.usbinfo.pid = pgm->usbpid;
-    else
-      pinfo.usbinfo.pid = USB_DEVICE_JTAGICE3;
-    pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_3;
-    pgm->fd.usb.rep = USBDEV_BULK_EP_READ_3;
-    pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
-    pgm->fd.usb.eep = USBDEV_EVT_EP_READ_3;
-#else
-    fprintf(stderr, "avrdude was compiled without usb support.\n");
+  if (jtag3_open_common(pgm, port) < 0)
     return -1;
-#endif
-  }
-
-  strcpy(pgm->port, port);
-  if (serial_open(port, pinfo, &pgm->fd)==-1) {
-    return -1;
-  }
-
-  if (pgm->fd.usb.eep == 0)
-  {
-    /* The event EP has been deleted by usb_open(), so we are
-       running on a CMSIS-DAP device, using EDBG protocol */
-    pgm->flag |= PGM_FL_IS_EDBG;
-    if (verbose)
-      fprintf(stderr,
-              "%s: Found CMSIS-DAP compliant device, using EDBG protocol\n",
-              progname);
-  }
-
-  /*
-   * drain any extraneous input
-   */
-  jtag3_drain(pgm, 0);
 
   if (jtag3_getsync(pgm, PARM3_CONN_PDI) < 0)
     return -1;

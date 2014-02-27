@@ -41,6 +41,7 @@
 #include "avrpart.h"
 #include "avrftdi_tpi.h"
 #include "avrftdi_private.h"
+#include "usbdevs.h"
 
 #ifndef MAX
 #define MAX(a,b) ((a)>(b)?(a):(b))
@@ -666,12 +667,17 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 	if (pgm->usbvid)
 		vid = pgm->usbvid;
 	else
-		vid = 0x0403;
+		vid = USB_VENDOR_FTDI;
 
-	if (pgm->usbpid)
-		pid = pgm->usbpid;
-	else
-		pid = 0x6010;
+	LNODEID usbpid = lfirst(pgm->usbpid);
+	if (usbpid) {
+		pid = *(int *)(ldata(usbpid));
+		if (lnext(usbpid))
+			fprintf(stderr,
+				"%s: Warning: using PID 0x%04x, ignoring remaining PIDs in list\n",
+				progname, pid);
+	} else
+		pid = USB_DEVICE_FT2232;
 
 	if (0 == pgm->usbsn[0]) /* we don't care about SN. Use first avail. */
 		serial = NULL;

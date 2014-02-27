@@ -54,6 +54,7 @@ union pinfo
     unsigned short pid;
     unsigned short flags;
 #define PINFO_FL_USEHID         0x0001
+#define PINFO_FL_SILENT         0x0002  /* don't complain if not found */
   } usbinfo;
 };
 

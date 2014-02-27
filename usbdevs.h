@@ -34,6 +34,27 @@
 #define USB_DEVICE_XPLAINEDPRO 0x2111
 #define USB_DEVICE_JTAG3_EDBG  0x2140
 
+#define USB_VENDOR_FTDI        0x0403
+#define USB_DEVICE_FT2232      0x6010
+#define USB_DEVICE_FT245       0x6001
+
+#define	USBASP_SHARED_VID   0x16C0  /* VOTI */
+#define	USBASP_SHARED_PID   0x05DC  /* Obdev's free shared PID */
+
+#define	USBASP_OLD_VID      0x03EB  /* ATMEL */
+#define	USBASP_OLD_PID	    0xC7B4  /* (unoffical) USBasp */
+
+#define	USBASP_NIBOBEE_VID  0x16C0  /* VOTI */
+#define	USBASP_NIBOBEE_PID  0x092F  /* NIBObee PID */
+
+// these are specifically assigned to USBtiny,
+// if you need your own VID and PIDs you can get them for cheap from
+// www.mecanique.co.uk so please don't reuse these. Thanks!
+#define USBTINY_VENDOR_DEFAULT  0x1781
+#define USBTINY_PRODUCT_DEFAULT 0x0C9F
+
+
+
 /* JTAGICEmkII, AVRISPmkII */
 #define USBDEV_BULK_EP_WRITE_MKII 0x02
 #define USBDEV_BULK_EP_READ_MKII  0x82

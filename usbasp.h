@@ -23,16 +23,6 @@
 
 #include "avrpart.h"
 
-/* USB identifiers */
-#define	USBASP_SHARED_VID   0x16C0  /* VOTI */
-#define	USBASP_SHARED_PID   0x05DC  /* Obdev's free shared PID */
-
-#define	USBASP_OLD_VID      0x03EB  /* ATMEL */
-#define	USBASP_OLD_PID	    0xC7B4  /* (unoffical) USBasp */
-
-#define	USBASP_NIBOBEE_VID  0x16C0  /* VOTI */
-#define	USBASP_NIBOBEE_PID  0x092F  /* NIBObee PID */
-
 /* USB function call identifiers */
 #define USBASP_FUNC_CONNECT    1
 #define USBASP_FUNC_DISCONNECT 2

@@ -229,7 +229,16 @@ int flip2_initialize(PROGRAMMER* pgm, AVRPART *part)
    */
 
   vid = (pgm->usbvid != 0) ? pgm->usbvid : USB_VENDOR_ATMEL;
-  pid = (pgm->usbpid != 0) ? pgm->usbpid : part->usbpid;
+  LNODEID usbpid = lfirst(pgm->usbpid);
+  if (usbpid) {
+    pid = *(int *)(ldata(usbpid));
+    if (lnext(usbpid))
+      fprintf(stderr,
+	      "%s: Warning: using PID 0x%04x, ignoring remaining PIDs in list\n",
+	      progname, pid);
+  } else {
+    pid = part->usbpid;
+  }
 
   if (!ovsigck && !(part->flags & AVRPART_HAS_PDI)) {
     fprintf(stderr,

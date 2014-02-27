@@ -25,6 +25,7 @@
 extern "C" {
 #endif
 
+int  jtag3_open_common(PROGRAMMER * pgm, char * port);
 int  jtag3_send(PROGRAMMER * pgm, unsigned char * data, size_t len);
 int  jtag3_recv(PROGRAMMER * pgm, unsigned char **msg);
 void jtag3_close(PROGRAMMER * pgm);

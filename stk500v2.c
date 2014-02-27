@@ -602,8 +602,13 @@ static int stk500v2_jtag3_recv(PROGRAMMER * pgm, unsigned char *msg,
             progname);
     return -1;
   }
+  /* Getting more data than expected is a normal case for the EDBG
+     implementation of JTAGICE3, as they always request a full 512
+     octets from the ICE.  Thus, only complain at high verbose
+     levels. */
   if (rv - 1 > maxsize) {
-    fprintf(stderr,
+    if (verbose > 2)
+      fprintf(stderr,
             "%s: stk500v2_jtag3_recv(): got %u bytes, have only room for %u bytes\n",
             progname, (unsigned)rv - 1, (unsigned)maxsize);
     rv = maxsize;
@@ -3662,43 +3667,14 @@ static int stk500v2_dragon_hv_open(PROGRAMMER * pgm, char * port)
  */
 static int stk500v2_jtag3_open(PROGRAMMER * pgm, char * port)
 {
-  union pinfo pinfo;
   void *mycookie;
   int rv;
 
   if (verbose >= 2)
     fprintf(stderr, "%s: stk500v2_jtag3_open()\n", progname);
 
-  /*
-   * The serial_open() function for USB overrides
-   * the meaning of the "baud" parameter to be the USB device ID to
-   * search for.
-   */
-  if (strncmp(port, "usb", 3) == 0) {
-#if defined(HAVE_LIBUSB)
-    serdev = &usb_serdev_frame;
-    pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
-    pinfo.usbinfo.flags = 0;
-    pinfo.usbinfo.pid = USB_DEVICE_JTAGICE3;
-    pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_3;
-    pgm->fd.usb.rep = USBDEV_BULK_EP_READ_3;
-    pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
-    pgm->fd.usb.eep = USBDEV_EVT_EP_READ_3;
-#else
-    fprintf(stderr, "avrdude was compiled without usb support.\n");
+  if (jtag3_open_common(pgm, port) < 0)
     return -1;
-#endif
-  }
-
-  strcpy(pgm->port, port);
-  if (serial_open(port, pinfo, &pgm->fd)==-1) {
-    return -1;
-  }
-
-  /*
-   * drain any extraneous input
-   */
-  stk500v2_drain(pgm, 0);
 
   mycookie = pgm->cookie;
   pgm->cookie = PDATA(pgm)->chained_pdata;

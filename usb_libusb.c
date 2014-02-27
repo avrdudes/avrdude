@@ -310,8 +310,10 @@ static int usbdev_open(char * port, union pinfo pinfo, union filedescriptor *fd)
 	}
     }
 
-  fprintf(stderr, "%s: usbdev_open(): did not find any%s USB device \"%s\"\n",
-	  progname, serno? " (matching)": "", port);
+  if ((pinfo.usbinfo.flags & PINFO_FL_SILENT) == 0 || verbose > 0)
+      fprintf(stderr, "%s: usbdev_open(): did not find any%s USB device \"%s\" (0x%04x:0x%04x)\n",
+	      progname, serno? " (matching)": "", port,
+	      (unsigned)pinfo.usbinfo.vid, (unsigned)pinfo.usbinfo.pid);
   return -1;
 }
 

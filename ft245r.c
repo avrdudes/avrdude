@@ -68,6 +68,7 @@
 #include "config.h"
 #include "bitbang.h"
 #include "ft245r.h"
+#include "usbdevs.h"
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -557,9 +558,20 @@ static int ft245r_open(PROGRAMMER * pgm, char * port) {
 
     handle = malloc (sizeof (struct ftdi_context));
     ftdi_init(handle);
+    LNODEID usbpid = lfirst(pgm->usbpid);
+    int pid;
+    if (usbpid) {
+      pid = *(int *)(ldata(usbpid));
+      if (lnext(usbpid))
+	fprintf(stderr,
+		"%s: Warning: using PID 0x%04x, ignoring remaining PIDs in list\n",
+		progname, pid);
+    } else {
+      pid = USB_DEVICE_FT245;
+    }
     rv = ftdi_usb_open_desc_index(handle,
-                                  pgm->usbvid?pgm->usbvid:0x0403,
-                                  pgm->usbpid?pgm->usbpid:0x6001,
+                                  pgm->usbvid?pgm->usbvid:USB_VENDOR_FTDI,
+                                  pid,
                                   pgm->usbproduct[0]?pgm->usbproduct:NULL,
                                   pgm->usbsn[0]?pgm->usbsn:NULL,
                                   devnum);

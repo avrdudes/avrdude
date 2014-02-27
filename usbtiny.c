@@ -37,6 +37,7 @@
 #include "pgm.h"
 #include "config.h"
 #include "usbtiny.h"
+#include "usbdevs.h"
 
 #if defined(HAVE_LIBUSB)      // we use LIBUSB to talk to the board
 #if defined(HAVE_USB_H)
@@ -230,11 +231,17 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
     vid = pgm->usbvid;
   else
     vid = USBTINY_VENDOR_DEFAULT;
-  
-  if (pgm->usbpid)
-    pid = pgm->usbpid;
-  else
+
+  LNODEID usbpid = lfirst(pgm->usbpid);
+  if (usbpid) {
+    pid = *(int *)(ldata(usbpid));
+    if (lnext(usbpid))
+      fprintf(stderr,
+	      "%s: Warning: using PID 0x%04x, ignoring remaining PIDs in list\n",
+	      progname, pid);
+  } else {
     pid = USBTINY_PRODUCT_DEFAULT;
+  }
   
 
   // now we iterate through all the busses and devices

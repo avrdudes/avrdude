@@ -515,12 +515,7 @@ prog_parm_usb:
       free_token($3);
     }
   } |
-  K_USBPID TKN_EQUAL TKN_NUMBER {
-    {
-      current_prog->usbpid = $3->value.number;
-      free_token($3);
-    }
-  } |
+  K_USBPID TKN_EQUAL usb_pid_list |
   K_USBSN TKN_EQUAL TKN_STRING {
     {
       strncpy(current_prog->usbsn, $3->value.string, PGM_USBSTRINGLEN);
@@ -539,6 +534,29 @@ prog_parm_usb:
     {
       strncpy(current_prog->usbproduct, $3->value.string, PGM_USBSTRINGLEN);
       current_prog->usbproduct[PGM_USBSTRINGLEN-1] = 0;
+      free_token($3);
+    }
+  }
+;
+
+usb_pid_list:
+  TKN_NUMBER {
+    {
+      int *ip = malloc(sizeof(int));
+      if (ip) {
+        *ip = $1->value.number;
+        ladd(current_prog->usbpid, ip);
+      }
+      free_token($1);
+    }
+  } |
+  usb_pid_list TKN_COMMA TKN_NUMBER {
+    {
+      int *ip = malloc(sizeof(int));
+      if (ip) {
+        *ip = $3->value.number;
+        ladd(current_prog->usbpid, ip);
+      }
       free_token($3);
     }
   }

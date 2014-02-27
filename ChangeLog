@@ -1,5 +1,31 @@
 2014-02-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* config_gram.y: Turn the usbpid parameter of the programmer into
+	a list of PIDs.  Make the JTAGICE3 programmer handle a list of
+	PIDs, by trying each of them in sequence.  Use a single, central
+	jtag3_open_common() function to handle the common code of all
+	jtag3_open_* functions.  Centralize all USB VID/PID definitions in
+	usbdevs.h.
+	* flip1.c: (Dito.)
+	* ft245r.c: (Dito.)
+	* stk500v2.c: (Dito.)
+	* jtag3.c: (Dito.)
+	* jtag3.h: (Dito.)
+	* flip2.c: (Dito.)
+	* usbdevs.h: (Dito.)
+	* pgm.c: (Dito.)
+	* serial.h: (Dito.)
+	* pgm.h: (Dito.)
+	* usbtiny.c: (Dito.)
+	* usbasp.c: (Dito.)
+	* avrftdi.c: (Dito.)
+	* usbtiny.h: (Dito.)
+	* avrdude.conf.in: (Dito.)
+	* usbasp.h: (Dito.)
+	* usb_libusb.c: (Dito.)
+
+2014-02-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* usb_libusb.c (usbdev_open): Replace all calls to exit(1) by
 	return -1
 

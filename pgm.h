@@ -76,7 +76,8 @@ typedef struct programmer_t {
   int ppidata;
   int ppictrl;
   int baudrate;
-  int usbvid, usbpid;
+  int usbvid;
+  LISTID usbpid;
   char usbdev[PGM_USBSTRINGLEN], usbsn[PGM_USBSTRINGLEN];
   char usbvendor[PGM_USBSTRINGLEN], usbproduct[PGM_USBSTRINGLEN];
   double bitclock;    /* JTAG ICE clock period in microseconds */
