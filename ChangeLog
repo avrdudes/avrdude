@@ -1,5 +1,12 @@
 2014-02-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* jtag3.c: For EDBG protocol, always use 512-byte block I/O.  The
+	lower layers will split this according to the EP's maxsize.  This
+	makes it work over USB 1.1 connections (albeit very slowly, due to
+	the interrupt transfers used).
+
+2014-02-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* config_gram.y: Turn the usbpid parameter of the programmer into
 	a list of PIDs.  Make the JTAGICE3 programmer handle a list of
 	PIDs, by trying each of them in sequence.  Use a single, central

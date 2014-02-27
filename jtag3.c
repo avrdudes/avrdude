@@ -443,15 +443,15 @@ static int jtag3_edbg_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 
   if (verbose >= 4)
     {
-      memset(buf, 0, pgm->fd.usb.max_xfer);
-      memset(status, 0, pgm->fd.usb.max_xfer);
+      memset(buf, 0, USBDEV_MAX_XFER_3);
+      memset(status, 0, USBDEV_MAX_XFER_3);
     }
 
   if (verbose >= 3)
     fprintf(stderr, "\n%s: jtag3_edbg_send(): sending %lu bytes\n",
 	    progname, (unsigned long)len);
 
-  if (len + 8 > pgm->fd.usb.max_xfer)
+  if (len + 8 > USBDEV_MAX_XFER_3)
     {
       fprintf(stderr,
 	      "%s: jtag3_edbg_send(): Fragmentation not (yet) implemented!\n",
@@ -467,13 +467,13 @@ static int jtag3_edbg_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
   u16_to_b2(buf + 6, PDATA(pgm)->command_sequence);
   memcpy(buf + 8, data, len);
 
-  if (serial_send(&pgm->fd, buf, pgm->fd.usb.max_xfer) != 0) {
+  if (serial_send(&pgm->fd, buf, USBDEV_MAX_XFER_3) != 0) {
     fprintf(stderr,
 	    "%s: jtag3_edbg_send(): failed to send command to serial port\n",
 	    progname);
     return -1;
   }
-  rv = serial_recv(&pgm->fd, status, pgm->fd.usb.max_xfer);
+  rv = serial_recv(&pgm->fd, status, USBDEV_MAX_XFER_3);
 
   if (rv < 0) {
     /* timeout in receive */
@@ -679,7 +679,7 @@ static int jtag3_edbg_recv_frame(PROGRAMMER * pgm, unsigned char **msg) {
   if (verbose >= 4)
     fprintf(stderr, "%s: jtag3_edbg_recv():\n", progname);
 
-  if ((buf = malloc(pgm->fd.usb.max_xfer)) == NULL) {
+  if ((buf = malloc(USBDEV_MAX_XFER_3)) == NULL) {
     fprintf(stderr, "%s: jtag3_edbg_recv(): out of memory\n",
 	    progname);
     return -1;
@@ -687,14 +687,14 @@ static int jtag3_edbg_recv_frame(PROGRAMMER * pgm, unsigned char **msg) {
 
   buf[0] = EDBG_VENDOR_AVR_RSP;
 
-  if (serial_send(&pgm->fd, buf, pgm->fd.usb.max_xfer) != 0) {
+  if (serial_send(&pgm->fd, buf, USBDEV_MAX_XFER_3) != 0) {
     fprintf(stderr,
 	    "%s: jtag3_edbg_recv(): error sending CMSIS-DAP vendor command\n",
 	    progname);
     return -1;
   }
 
-  rv = serial_recv(&pgm->fd, buf, pgm->fd.usb.max_xfer);
+  rv = serial_recv(&pgm->fd, buf, USBDEV_MAX_XFER_3);
 
   if (rv < 0) {
     /* timeout in receive */
@@ -966,7 +966,7 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
    */
   if (jtag3_getparm(pgm, SCOPE_GENERAL, 0, PARM3_FW_MAJOR, parm, 2) < 0)
     return -1;
-  if (pgm->fd.usb.max_xfer < USBDEV_MAX_XFER_3) {
+  if (pgm->fd.usb.max_xfer < USBDEV_MAX_XFER_3 && (pgm->flag & PGM_FL_IS_EDBG) == 0) {
     fprintf(stderr,
 	    "%s: the JTAGICE3's firmware %d.%d is broken on USB 1.1 connections, sorry\n",
 	    progname, parm[0], parm[1]);
@@ -975,7 +975,6 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
 	      "%s: forced to continue by option -F; THIS PUTS THE DEVICE'S DATA INTEGRITY AT RISK!\n",
 	      progname);
     } else {
-      serial_close(&pgm->fd);
       return -1;
     }
   }
