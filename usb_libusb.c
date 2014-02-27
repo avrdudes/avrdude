@@ -320,7 +320,7 @@ static void usbdev_close(union filedescriptor *fd)
   usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
 
   if (udev == NULL)
-    return -1;
+    return;
 
   (void)usb_release_interface(udev, usb_interface);
 
