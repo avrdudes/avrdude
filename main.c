@@ -1391,9 +1391,9 @@ main_exit:
     pgm->disable(pgm);
 
     pgm->rdy_led(pgm, OFF);
-  }
 
-  pgm->close(pgm);
+    pgm->close(pgm);
+  }
 
   if (quell_progress < 2) {
     fprintf(stderr, "\n%s done.  Thank you.\n\n", progname);
