@@ -319,6 +319,9 @@ static void usbdev_close(union filedescriptor *fd)
 {
   usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
 
+  if (udev == NULL)
+    return -1;
+
   (void)usb_release_interface(udev, usb_interface);
 
 #if defined(__linux__)
@@ -341,6 +344,9 @@ static int usbdev_send(union filedescriptor *fd, unsigned char *bp, size_t mlen)
   int i = mlen;
   unsigned char * p = bp;
   int tx_size;
+
+  if (udev == NULL)
+    return -1;
 
   /*
    * Split the frame into multiple packets.  It's important to make
@@ -425,6 +431,9 @@ static int usbdev_recv(union filedescriptor *fd, unsigned char *buf, size_t nbyt
   int i, amnt;
   unsigned char * p = buf;
 
+  if (udev == NULL)
+    return -1;
+
   for (i = 0; nbytes > 0;)
     {
       if (buflen <= bufptr)
@@ -477,6 +486,9 @@ static int usbdev_recv_frame(union filedescriptor *fd, unsigned char *buf, size_
   int rv, n;
   int i;
   unsigned char * p = buf;
+
+  if (udev == NULL)
+    return -1;
 
   /* If there's an event EP, and it has data pending, return it first. */
   if (fd->usb.eep != 0)
@@ -557,6 +569,9 @@ static int usbdev_drain(union filedescriptor *fd, int display)
 {
   usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
   int rv;
+
+  if (udev == NULL)
+    return -1;
 
   do {
     if (fd->usb.use_interrupt_xfer)
