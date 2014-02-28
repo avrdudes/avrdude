@@ -150,6 +150,9 @@ For ATxmega devices, the JTAG ICE mkII is supported in PDI mode, provided it
 has a revision 1 hardware and firmware version of at least 5.37 (decimal).
 For ATxmega devices, the JTAGICE3 is supported in PDI mode.
 .Pp
+Atmel-ICE (ARM/AVR) is supported in all modes (JTAG, PDI for Xmega, debugWIRE,
+ISP).
+.Pp
 Atmel's XplainedPro boards, using the EDBG protocol (CMSIS-DAP compatible),
 are supported using the "jtag3" programmer type.
 .Pp
@@ -790,7 +793,7 @@ microseconds.
 Note that unlike STK500 settings, this setting will be reverted to
 its default value (approximately 1 microsecond) when the programming
 software signs off from the JTAG ICE.
-This parameter can also be used on the JTAG ICE mkII and JTAGICE3 to specify the
+This parameter can also be used on the JTAG ICE mkII, JTAGICE3, and Atmel-ICE to specify the
 ISP clock period when operating the ICE in ISP mode.
 .It Ar parms
 .Em STK500 and STK600 programmer only:
@@ -889,8 +892,9 @@ versions of the bootloader.
 .Bl -tag -offset indent -width indent
 .It Ar JTAG ICE mkII
 .It Ar JTAGICE3
+.It Ar Atmel-ICE
 .It Ar AVR Dragon
-When using the JTAG ICE mkII, JTAGICE3 or AVR Dragon in JTAG mode, the
+When using the JTAG ICE mkII, JTAGICE3, Atmel-ICE or AVR Dragon in JTAG mode, the
 following extended parameter is accepted:
 .Bl -tag -offset indent -width indent
 .It Ar jtagchain=UB,UA,BB,BA

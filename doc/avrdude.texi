@@ -213,6 +213,8 @@ See below for the limitations of debugWire.
 For ATxmega devices, the JTAG ICE mkII/3 is supported in PDI mode, provided it
 has a revision 1 hardware and firmware version of at least 5.37 (decimal).
 
+The Atmel-ICE (ARM/AVR) is supported (JTAG, PDI for Xmega, debugWIRE, ISP modes).
+
 Atmel's XplainedPro boards, using EDBG protocol (CMSIS-DAP compliant), are
 supported by teh ``jtag3'' programmer type.
 

@@ -1,5 +1,13 @@
 2014-02-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* avrdude.conf.in (atmelice, atmelice_pdi, atmelice_dw, atmelice_isp):
+	New entries.
+	* avrdude.1: Document the Atmel-ICE addition.
+	* doc/avrdude.texi: (Dito.)
+	* usbdevs.c (USB_DEVICE_ATMEL_ICE): New entry.
+
+2014-02-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* main.c: Bump copyright year.
 
 2014-02-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
