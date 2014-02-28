@@ -1,3 +1,7 @@
+2014-02-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtag3.c (jtag3_recv): avoid memmov'ing more data than available
+
 2014-02-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* avrdude.1: Documentation update for EDBG.

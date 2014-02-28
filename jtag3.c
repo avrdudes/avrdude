@@ -758,8 +758,8 @@ int jtag3_recv(PROGRAMMER * pgm, unsigned char **msg) {
        * the job easier for the caller.  We have to return the
        * original pointer though, as the caller must free() it.
        */
-      memmove(*msg, *msg + 3, rv);
       rv -= 3;
+      memmove(*msg, *msg + 3, rv);
 
       return rv;
     }
