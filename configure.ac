@@ -23,7 +23,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.60)
-AC_INIT(avrdude, 6.1, avrdude-dev@nongnu.org)
+AC_INIT(avrdude, 6.1-20140313, avrdude-dev@nongnu.org)
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST

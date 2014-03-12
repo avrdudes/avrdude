@@ -8,6 +8,20 @@ Approximate change log for AVRDUDE by version.
 Current:
 
   * Major changes compared to the previous version:
+    - ...
+
+  * New programmers supported:
+    - ...
+
+  * Bugfixes
+    - ...
+
+  * Internals:
+    - ...
+
+Version 6.1:
+
+  * Major changes compared to the previous version:
     - Atmel EDBG protocol support added (JTAGICE3, XplainedPro, Atmel-ICE)
 
   * New programmers supported:
