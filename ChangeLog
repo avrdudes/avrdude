@@ -1,5 +1,10 @@
 2014-03-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* pgm.c (pgm_free): Cleanup police: destroy the p->usbpid
+	list when freeing the programmer struct.
+
+2014-03-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #40782: Verify errors for object size > 16 k on x32e5 due
 	to typo in avrdude.conf
 	* avrdude.conf.in (ATmega8E5, ATmega32E5): fix boot location

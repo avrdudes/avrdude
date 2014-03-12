@@ -140,7 +140,8 @@ PROGRAMMER * pgm_new(void)
 
 void pgm_free(PROGRAMMER * const p)
 {
-  ldestroy_cb(p->id,free);
+  ldestroy_cb(p->id, free);
+  ldestroy_cb(p->usbpid, free);
   p->id = NULL;
   /* this is done by pgm_teardown, but usually cookie is not set to NULL */
   /* if (p->cookie !=NULL) {
