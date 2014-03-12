@@ -14233,7 +14233,7 @@ part parent ".xmega"
 
     memory "boot"
         size		= 0x800;
-        offset		= 0x00804000;
+        offset		= 0x00802000;
         page_size	= 0x80;
         readsize	= 0x100;
     ;
@@ -14337,7 +14337,7 @@ part parent ".xmega"
 
     memory "boot"
         size		= 0x1000;
-        offset		= 0x00804000;
+        offset		= 0x00808000;
         page_size	= 0x80;
         readsize	= 0x100;
     ;
