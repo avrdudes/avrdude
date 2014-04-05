@@ -10,6 +10,10 @@
 # identifies which part AVRDUDE is going to be programming and must match
 # one of the parts' "id" parameter.
 #
+# DO NOT MODIFY THIS FILE.  Modifications will be overwritten the next
+# time a "make install" is run.  For user-specific additions, use the
+# "-C +filename" commandline option.
+#
 # Possible entry formats are:
 #
 #   programmer

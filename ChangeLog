@@ -6,6 +6,7 @@
 	Using the -C +file option is a much better way for user
 	modifications.
 	* doc/avrdude.texi: (Dito.)
+	* avrdude.conf.in: Add a warning to not modify the file manually.
 
 2014-03-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
