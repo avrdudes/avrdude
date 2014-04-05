@@ -1,3 +1,12 @@
+2014-04-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avrdude.1: Remove the note that users might edit the system-wide
+	config file.  This file will be overwritten by the next
+	installation, so it's not a good idea to manually modify it.
+	Using the -C +file option is a much better way for user
+	modifications.
+	* doc/avrdude.texi: (Dito.)
+
 2014-03-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* configure.ac (AC_INIT): Bump version for post-6.1.

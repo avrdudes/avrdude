@@ -231,12 +231,7 @@ need to be specified to
 .It Fl p Ar partno
 This is the only option that is mandatory for every invocation of
 .Nm avrdude .
-It specifies the type of the MCU connected to the programmer.  These are read from the config file.  If
-.Nm avrdude
-does not know about a part that you have, simply add it to the config
-file (be sure and submit a patch back to the author so that it can be
-incorporated for the next version).  See the sample config file for
-the format. 
+It specifies the type of the MCU connected to the programmer.  These are read from the config file.
 For currently supported MCU types use ? as partno, this will print a list of partno ids and official part names on the terminal. (Both can be used with the -p option.)
 .Pp
 Following parts need special attention:

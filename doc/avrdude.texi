@@ -385,9 +385,7 @@ Currently, the following programmer ids are understood and supported:
 @item -C @var{config-file}
 Use the specified config file for configuration data.  This file
 contains all programmer and part definitions that AVRDUDE knows about.
-If you have a programmer or part that AVRDUDE does not know about, you
-can add it to the config file (be sure and submit a patch back to the
-author so that it can be incorporated for the next version).  If not
+If not
 specified, AVRDUDE reads the configuration file from
 /usr/local/etc/avrdude.conf (FreeBSD and Linux). See Appendix A for
 the method of searching for the configuration file for Windows.
