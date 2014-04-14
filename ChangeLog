@@ -1,3 +1,8 @@
+2014-04-14  Rene Liebscher <R.Liebscher@gmx.de>
+
+	bug #42056: double free or corruption triggered at exit
+	* pgm.c: copy usbpid list in pgm_dup
+
 2014-04-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* avrdude.1: Remove the note that users might edit the system-wide
