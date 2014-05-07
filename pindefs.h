@@ -59,7 +59,7 @@ enum {
 #define PIN_MIN     0   /* smallest allowed pin number */
 #define PIN_MAX     31  /* largest allowed pin number */
 
-#ifdef HAVE_LINUX_GPIO
+#ifdef HAVE_LINUXGPIO
 /* Embedded systems might have a lot more gpio than only 0-31 */
 #undef PIN_MAX
 #define PIN_MAX     255 /* largest allowed pin number */
