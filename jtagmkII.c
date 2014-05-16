@@ -449,7 +449,7 @@ int jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
     fprintf(stderr,
 	    "%s: jtagmkII_send(): failed to send command to serial port\n",
 	    progname);
-    exit(1);
+    return -1;
   }
 
   free(buf);

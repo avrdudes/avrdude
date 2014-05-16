@@ -92,7 +92,7 @@ static int butterfly_recv(PROGRAMMER * pgm, char * buf, size_t len)
     fprintf(stderr,
 	    "%s: butterfly_recv(): programmer is not responding\n",
 	    progname);
-    exit(1);
+    return -1;
   }
   return 0;
 }
@@ -104,7 +104,7 @@ static int butterfly_drain(PROGRAMMER * pgm, int display)
 }
 
 
-static void butterfly_vfy_cmd_sent(PROGRAMMER * pgm, char * errmsg)
+static int butterfly_vfy_cmd_sent(PROGRAMMER * pgm, char * errmsg)
 {
   char c;
 
@@ -112,8 +112,9 @@ static void butterfly_vfy_cmd_sent(PROGRAMMER * pgm, char * errmsg)
   if (c != '\r') {
     fprintf(stderr, "%s: error: programmer did not respond to command: %s\n",
             progname, errmsg);
-    exit(1);
+    return -1;
   }
+  return 0;
 }
 
 
@@ -155,7 +156,8 @@ static int butterfly_vfy_led(PROGRAMMER * pgm, int value)
 static int butterfly_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {
   butterfly_send(pgm, "e", 1);
-  butterfly_vfy_cmd_sent(pgm, "chip erase");
+  if (butterfly_vfy_cmd_sent(pgm, "chip erase") < 0)
+      return -1;
 
   return 0;
 }
@@ -248,7 +250,7 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
       if ( c != 'M' && c != '?') 
         { 
           fprintf(stderr, "\nConnection FAILED.");
-          exit(1);
+          return -1;
         }
       else
         {
@@ -317,7 +319,7 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
     fprintf(stderr,
             "%s: error: buffered memory access not supported. Maybe it isn't\n"\
             "a butterfly/AVR109 but a AVR910 device?\n", progname);
-    exit(1);
+    return -1;
   };
   butterfly_recv(pgm, &c, 1);
   PDATA(pgm)->buffersize = (unsigned int)(unsigned char)c<<8;
@@ -355,7 +357,8 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
   buf[1] = devtype_1st;
 
   butterfly_send(pgm, buf, 2);
-  butterfly_vfy_cmd_sent(pgm, "select device");
+  if (butterfly_vfy_cmd_sent(pgm, "select device") < 0)
+      return -1;
 
   if (verbose)
     fprintf(stderr,
@@ -490,7 +493,8 @@ static int butterfly_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     return -1;
 
   butterfly_send(pgm, cmd, size);
-  butterfly_vfy_cmd_sent(pgm, "write byte");
+  if (butterfly_vfy_cmd_sent(pgm, "write byte") < 0)
+      return -1;
 
   return 0;
 }
@@ -619,7 +623,8 @@ static int butterfly_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 #if 0
   usleep(1000000);
   butterfly_send(pgm, "y", 1);
-  butterfly_vfy_cmd_sent(pgm, "clear LED");
+  if (butterfly_vfy_cmd_sent(pgm, "clear LED") < 0)
+    return -1;
 #endif
 
   cmd = malloc(4+blocksize);
@@ -636,7 +641,8 @@ static int butterfly_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[2] = blocksize & 0xff;
 
     butterfly_send(pgm, cmd, 4+blocksize);
-    butterfly_vfy_cmd_sent(pgm, "write block");
+    if (butterfly_vfy_cmd_sent(pgm, "write block") < 0)
+      return -1;
 
     addr += blocksize;
   } /* while */

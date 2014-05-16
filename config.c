@@ -87,13 +87,6 @@ int yywrap()
 }
 
 
-int yyerror(char * errmsg)
-{
-  fprintf(stderr, "%s: %s at %s:%d\n", progname, errmsg, infile, lineno);
-  exit(1);
-}
-
-
 TOKEN * new_token(int primary)
 {
   TOKEN * tkn;
@@ -184,7 +177,6 @@ TOKEN * hexnumber(char * text)
   if ((e == text) || (*e != 0)) {
     fprintf(stderr, "error at %s:%d: can't scan hex number \"%s\"\n",
             infile, lineno, text);
-    exit(1);
   }
   
 #if DEBUG

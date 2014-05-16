@@ -347,7 +347,7 @@ static int ser_send(union filedescriptor *fd, unsigned char * buf, size_t buflen
     if (rc < 0) {
       fprintf(stderr, "%s: ser_send(): write error: %s\n",
               progname, strerror(errno));
-      exit(1);
+      return -1;
     }
     p += rc;
     len -= rc;
@@ -393,7 +393,7 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
       else {
         fprintf(stderr, "%s: ser_recv(): select(): %s\n",
                 progname, strerror(errno));
-        exit(1);
+        return -1;
       }
     }
 
@@ -401,7 +401,7 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
     if (rc < 0) {
       fprintf(stderr, "%s: ser_recv(): read error: %s\n",
               progname, strerror(errno));
-      exit(1);
+      return -1;
     }
     p += rc;
     len += rc;
@@ -468,7 +468,7 @@ static int ser_drain(union filedescriptor *fd, int display)
       else {
         fprintf(stderr, "%s: ser_drain(): select(): %s\n",
                 progname, strerror(errno));
-        exit(1);
+        return -1;
       }
     }
 
@@ -476,7 +476,7 @@ static int ser_drain(union filedescriptor *fd, int display)
     if (rc < 0) {
       fprintf(stderr, "%s: ser_drain(): read error: %s\n",
               progname, strerror(errno));
-      exit(1);
+      return -1;
     }
     if (display) {
       fprintf(stderr, "%02x ", buf);

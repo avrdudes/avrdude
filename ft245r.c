@@ -171,7 +171,6 @@ static void add_to_buf (unsigned char c) {
 
     if (nh == tail) {
         fprintf (stderr, "buffer overflow. Cannot happen!\n");
-        //exit (1);
     }
     buffer[head] = c;
     head = nh;

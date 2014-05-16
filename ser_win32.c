@@ -236,7 +236,7 @@ static int ser_send(union filedescriptor *fd, unsigned char * buf, size_t buflen
 	if (hComPort == INVALID_HANDLE_VALUE) {
 		fprintf(stderr, "%s: ser_send(): port not open\n",
               progname); 
-		exit(1);
+		return -1;
 	}
 
 	if (!len)
@@ -266,13 +266,13 @@ static int ser_send(union filedescriptor *fd, unsigned char * buf, size_t buflen
 	if (!WriteFile (hComPort, buf, buflen, &written, NULL)) {
 		fprintf(stderr, "%s: ser_send(): write error: %s\n",
               progname, "sorry no info avail"); // TODO
-		exit(1);
+		return -1;
 	}
 
 	if (written != buflen) {
 		fprintf(stderr, "%s: ser_send(): size/send mismatch\n",
               progname); 
-		exit(1);
+		return -1;
 	}
 
 	return 0;
@@ -290,7 +290,7 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 	if (hComPort == INVALID_HANDLE_VALUE) {
 		fprintf(stderr, "%s: ser_read(): port not open\n",
               progname); 
-		exit(1);
+		return -1;
 	}
 	
 	serial_w32SetTimeOut(hComPort, serial_recv_timeout);
@@ -310,7 +310,7 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 		fprintf(stderr, "%s: ser_recv(): read error: %s\n",
 			      progname, (char*)lpMsgBuf);
 		LocalFree( lpMsgBuf );
-		exit(1);
+		return -1;
 	}
 
 	/* time out detected */
@@ -359,7 +359,7 @@ static int ser_drain(union filedescriptor *fd, int display)
   	if (hComPort == INVALID_HANDLE_VALUE) {
 		fprintf(stderr, "%s: ser_drain(): port not open\n",
               progname); 
-		exit(1);
+		return -1;
 	}
 
 	serial_w32SetTimeOut(hComPort,250);
@@ -385,7 +385,7 @@ static int ser_drain(union filedescriptor *fd, int display)
 			fprintf(stderr, "%s: ser_drain(): read error: %s\n",
 					  progname, (char*)lpMsgBuf);
 			LocalFree( lpMsgBuf );
-			exit(1);
+			return -1;
 		}
 
 		if (read) { // data avail

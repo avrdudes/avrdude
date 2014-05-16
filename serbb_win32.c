@@ -124,7 +124,7 @@ static int serbb_setpin(PROGRAMMER * pgm, int pinfunc, int value)
                         progname, (char *)lpMsgBuf);
                 CloseHandle(hComPort);
                 LocalFree(lpMsgBuf);
-                exit(1);
+                return -1;
         }
 
 	if (pgm->ispdelay > 1)
@@ -171,7 +171,7 @@ static int serbb_getpin(PROGRAMMER * pgm, int pinfunc)
                                 progname, (char *)lpMsgBuf);
                         CloseHandle(hComPort);
                         LocalFree(lpMsgBuf);
-                        exit(1);
+                        return -1;
                 }
                 if (verbose > 4)
                         fprintf(stderr,
@@ -271,7 +271,8 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 	LPVOID lpMsgBuf;
 	HANDLE hComPort = INVALID_HANDLE_VALUE;
 
-	bitbang_check_prerequisites(pgm);
+	if (bitbang_check_prerequisites(pgm) < 0
+	    return -1;
 
 	hComPort = CreateFile(port, GENERIC_READ | GENERIC_WRITE, 0, NULL,
                               OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);

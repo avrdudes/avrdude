@@ -154,23 +154,23 @@ static int stk500_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
   stk500_send(pgm, buf, 6);
 
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return -1;
   if (buf[0] != Resp_STK_INSYNC) {
     fprintf(stderr, "%s: stk500_cmd(): programmer is out of sync\n", progname);
-    exit(1);
+    return -1;
   }
 
   res[0] = cmd[1];
   res[1] = cmd[2];
   res[2] = cmd[3];
   if (stk500_recv(pgm, &res[3], 1) < 0)
-    exit(1);
+    return -1;
 
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return -1;
   if (buf[0] != Resp_STK_OK) {
     fprintf(stderr, "%s: stk500_cmd(): protocol error\n", progname);
-    exit(1);
+    return -1;
   }
 
   return 0;
@@ -231,7 +231,7 @@ static int stk500_program_enable(PROGRAMMER * pgm, AVRPART * p)
 
   stk500_send(pgm, buf, 2);
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
       fprintf(stderr, "%s: stk500_program_enable(): can't get into sync\n",
@@ -251,7 +251,7 @@ static int stk500_program_enable(PROGRAMMER * pgm, AVRPART * p)
   }
 
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return -1;
   if (buf[0] == Resp_STK_OK) {
     return 0;
   }
@@ -298,7 +298,7 @@ static int stk500_set_extended_parms(PROGRAMMER * pgm, int n,
 
   stk500_send(pgm, buf, i+1);
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
       fprintf(stderr, "%s: stk500_set_extended_parms(): can't get into sync\n",
@@ -318,7 +318,7 @@ static int stk500_set_extended_parms(PROGRAMMER * pgm, int n,
   }
 
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return -1;
   if (buf[0] == Resp_STK_OK) {
     return 0;
   }
@@ -370,7 +370,7 @@ static int mib510_isp(PROGRAMMER * pgm, unsigned char cmd)
 
   stk500_send(pgm, buf, 9);
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
       fprintf(stderr, "%s: mib510_isp(): can't get into sync\n",
@@ -390,7 +390,7 @@ static int mib510_isp(PROGRAMMER * pgm, unsigned char cmd)
   }
 
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return -1;
   if (buf[0] == Resp_STK_OK) {
     return 0;
   }
@@ -542,7 +542,7 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
 
   stk500_send(pgm, buf, 22);
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
     fprintf(stderr,
             "%s: stk500_initialize(): programmer not in sync, resp=0x%02x\n", 
@@ -562,7 +562,7 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
   }
 
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return -1;
   if (buf[0] != Resp_STK_OK) {
     fprintf(stderr,
             "%s: stk500_initialize(): (b) protocol error, "
@@ -606,7 +606,7 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
     rc = stk500_set_extended_parms(pgm, n_extparms+1, buf);
     if (rc) {
       fprintf(stderr, "%s: stk500_initialize(): failed\n", progname);
-      exit(1);
+      return -1;
     }
   }
 
@@ -628,7 +628,7 @@ static void stk500_disable(PROGRAMMER * pgm)
 
   stk500_send(pgm, buf, 2);
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
       fprintf(stderr, "%s: stk500_disable(): can't get into sync\n",
@@ -648,7 +648,7 @@ static void stk500_disable(PROGRAMMER * pgm)
   }
 
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return;
   if (buf[0] == Resp_STK_OK) {
     return;
   }
@@ -740,7 +740,7 @@ static int stk500_loadaddr(PROGRAMMER * pgm, AVRMEM * mem, unsigned int addr)
   stk500_send(pgm, buf, 4);
 
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
       fprintf(stderr, "%s: stk500_loadaddr(): can't get into sync\n",
@@ -760,7 +760,7 @@ static int stk500_loadaddr(PROGRAMMER * pgm, AVRMEM * mem, unsigned int addr)
   }
 
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return -1;
   if (buf[0] == Resp_STK_OK) {
     return 0;
   }
@@ -839,7 +839,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     stk500_send( pgm, buf, i);
 
     if (stk500_recv(pgm, buf, 1) < 0)
-      exit(1);
+      return -1;
     if (buf[0] == Resp_STK_NOSYNC) {
       if (tries > 33) {
         fprintf(stderr, "\n%s: stk500_paged_write(): can't get into sync\n",
@@ -859,7 +859,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     }
     
     if (stk500_recv(pgm, buf, 1) < 0)
-      exit(1);
+      return -1;
     if (buf[0] != Resp_STK_OK) {
       fprintf(stderr,
               "\n%s: stk500_paged_write(): (a) protocol error, "
@@ -922,7 +922,7 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     stk500_send(pgm, buf, 5);
 
     if (stk500_recv(pgm, buf, 1) < 0)
-      exit(1);
+      return -1;
     if (buf[0] == Resp_STK_NOSYNC) {
       if (tries > 33) {
         fprintf(stderr, "\n%s: stk500_paged_load(): can't get into sync\n",
@@ -942,10 +942,10 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     }
 
     if (stk500_recv(pgm, &m->buf[addr], block_size) < 0)
-      exit(1);
+      return -1;
 
     if (stk500_recv(pgm, buf, 1) < 0)
-      exit(1);
+      return -1;
 
     if(strcmp(ldata(lfirst(pgm->id)), "mib510") == 0) {
       if (buf[0] != Resp_STK_INSYNC) {
@@ -1118,7 +1118,7 @@ static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
   stk500_send(pgm, buf, 3);
 
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
       fprintf(stderr, "\n%s: stk500_getparm(): can't get into sync\n",
@@ -1138,11 +1138,11 @@ static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
   }
 
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return -1;
   v = buf[0];
 
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return -1;
   if (buf[0] == Resp_STK_FAILED) {
     fprintf(stderr,
             "\n%s: stk500_getparm(): parameter 0x%02x failed\n",
@@ -1178,7 +1178,7 @@ static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value)
   stk500_send(pgm, buf, 4);
 
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
       fprintf(stderr, "\n%s: stk500_setparm(): can't get into sync\n",
@@ -1198,13 +1198,13 @@ static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value)
   }
 
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return -1;
   if (buf[0] == Resp_STK_OK)
     return 0;
 
   parm = buf[0];	/* if not STK_OK, we've been echoed parm here */
   if (stk500_recv(pgm, buf, 1) < 0)
-    exit(1);
+    return -1;
   if (buf[0] == Resp_STK_FAILED) {
     fprintf(stderr,
             "\n%s: stk500_setparm(): parameter 0x%02x failed\n",
@@ -1310,7 +1310,7 @@ static void stk500_setup(PROGRAMMER * pgm)
     fprintf(stderr,
 	    "%s: stk500_setup(): Out of memory allocating private data\n",
 	    progname);
-    exit(1);
+    return;
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
   PDATA(pgm)->ext_addr_byte = 0xff; /* Ensures it is programmed before

@@ -393,7 +393,7 @@ static int stk500v2_send_mk2(PROGRAMMER * pgm, unsigned char * data, size_t len)
 {
   if (serial_send(&pgm->fd, data, len) != 0) {
     fprintf(stderr,"%s: stk500_send_mk2(): failed to send command to serial port\n",progname);
-    exit(1);
+    return -1;
   }
 
   return 0;
@@ -518,7 +518,7 @@ static int stk500v2_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 
   if (serial_send(&pgm->fd, buf, len+6) != 0) {
     fprintf(stderr,"%s: stk500_send(): failed to send command to serial port\n",progname);
-    exit(1);
+    return -1;
   }
 
   return 0;
@@ -1562,7 +1562,6 @@ static void stk500hv_disable(PROGRAMMER * pgm, enum hvmode mode)
 	    "%s: stk500hv_disable(): "
 	    "failed to leave programming mode\n",
             progname);
-    exit(1);
   }
 
   return;
@@ -2086,7 +2085,10 @@ static int stk500hv_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
      */
     buf[3] = 0x80 | 0x40;
     if (pagesize > 2) {
-      buf[3] |= stk500v2_mode_for_pagesize(pagesize);
+      unsigned int rv = stk500v2_mode_for_pagesize(pagesize);
+      if (rv == 0)
+        return -1;
+      buf[3] |= rv;
       buf[3] |= 0x01;
     }
     buf[4] = mem->delay;
@@ -2441,7 +2443,10 @@ static int stk500hv_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
    */
   commandbuf[3] = 0x80 | 0x40;
   if (page_size > 2) {
-    commandbuf[3] |= stk500v2_mode_for_pagesize(page_size);
+    unsigned int rv = stk500v2_mode_for_pagesize(page_size);
+    if (rv == 0)
+      return -1;
+    commandbuf[3] |= rv;
     commandbuf[3] |= 0x01;
   }
   commandbuf[4] = m->delay;
@@ -2867,7 +2872,7 @@ static unsigned int stk500v2_mode_for_pagesize(unsigned int pagesize)
   fprintf(stderr,
 	  "%s: stk500v2_mode_for_pagesize(): invalid pagesize: %u\n",
 	  progname, pagesize);
-  exit(1);
+  return 0;
 }
 
 /*

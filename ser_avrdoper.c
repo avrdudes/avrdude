@@ -519,8 +519,7 @@ static int avrdoper_open(char *port, union pinfo pinfo, union filedescriptor *fd
     rval = usbOpenDevice(fdp, USB_VENDOR_ID, vname, USB_PRODUCT_ID, devname, 1);
     if(rval != 0){
         fprintf(stderr, "%s: avrdoper_open(): %s\n", progname, usbErrorText(rval));
-        exit(1);
-	//return -1;
+        return -1;
     }
     return 0;
 }
@@ -563,7 +562,7 @@ static int avrdoper_send(union filedescriptor *fdp, unsigned char *buf, size_t b
 			    reportDataSizes[lenIndex] + 2);
         if(rval != 0){
             fprintf(stderr, "%s: avrdoper_send(): %s\n", progname, usbErrorText(rval));
-            exit(1);
+            return -1;
         }
         buflen -= thisLen;
         buf += thisLen;
@@ -573,7 +572,7 @@ static int avrdoper_send(union filedescriptor *fdp, unsigned char *buf, size_t b
 
 /* ------------------------------------------------------------------------- */
 
-static void avrdoperFillBuffer(union filedescriptor *fdp)
+static int avrdoperFillBuffer(union filedescriptor *fdp)
 {
     int bytesPending = reportDataSizes[1];  /* guess how much data is buffered in device */
 
@@ -589,7 +588,7 @@ static void avrdoperFillBuffer(union filedescriptor *fdp)
 			      (char *)buffer, &len);
         if(usbErr != 0){
             fprintf(stderr, "%s: avrdoperFillBuffer(): %s\n", progname, usbErrorText(usbErr));
-            exit(1);
+            return -1;
         }
         if(verbose > 3)
             fprintf(stderr, "Received %d bytes data chunk of total %d\n", len - 2, buffer[1]);
@@ -601,11 +600,12 @@ static void avrdoperFillBuffer(union filedescriptor *fdp)
             fprintf(stderr,
 		    "%s: avrdoperFillBuffer(): internal error: buffer overflow\n",
 		    progname);
-            exit(1);
+            return -1;
         }
         memcpy(avrdoperRxBuffer + avrdoperRxLength, buffer + 2, len);
         avrdoperRxLength += len;
     }
+    return 0;
 }
 
 static int avrdoper_recv(union filedescriptor *fdp, unsigned char *buf, size_t buflen)
@@ -616,7 +616,8 @@ static int avrdoper_recv(union filedescriptor *fdp, unsigned char *buf, size_t b
     while(remaining > 0){
         int len, available = avrdoperRxLength - avrdoperRxPosition;
         if(available <= 0){ /* buffer is empty */
-            avrdoperFillBuffer(fdp);
+            if (avrdoperFillBuffer(fdp) < 0)
+                return -1;
             continue;
         }
         len = remaining < available ? remaining : available;
@@ -635,7 +636,8 @@ static int avrdoper_recv(union filedescriptor *fdp, unsigned char *buf, size_t b
 static int avrdoper_drain(union filedescriptor *fdp, int display)
 {
     do{
-        avrdoperFillBuffer(fdp);
+        if (avrdoperFillBuffer(fdp) < 0)
+            return -1;
     }while(avrdoperRxLength > 0);
     return 0;
 }

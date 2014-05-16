@@ -830,7 +830,7 @@ int flip2_write_max1k(struct dfu_dev *dfu,
   if (size > 0x400) {
     fprintf(stderr, "%s: Error: Write block too large (%hu > 1024)\n",
       progname, size);
-    exit(1);
+    return -1;
   }
 
   /* There are some special padding requirements for writes. The first packet

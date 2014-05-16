@@ -41,7 +41,7 @@ static int pgm_default_open (struct programmer_t *pgm, char * name)
 {
   fprintf (stderr, "\n%s: Fatal error: Programmer does not support open()",
                progname);
-  exit(1);
+  return -1;
 }
 
 static int  pgm_default_led (struct programmer_t * pgm, int value)

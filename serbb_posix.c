@@ -225,7 +225,8 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
   int flags;
   int r;
 
-  bitbang_check_prerequisites(pgm);
+  if (bitbang_check_prerequisites(pgm) < 0)
+    return -1;
 
   /* adapted from uisp code */
 

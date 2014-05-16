@@ -196,7 +196,7 @@ static int pickit2_open(PROGRAMMER * pgm, char * port)
         fprintf(stderr,
                 "%s: error: could not find PICkit2 with vid=0x%x pid=0x%x\n",
                 progname, PICKIT2_VID, PICKIT2_PID);
-        exit(1);
+        return -1;
     }
     else
     {
@@ -218,7 +218,7 @@ static int pickit2_open(PROGRAMMER * pgm, char * port)
         fprintf(stderr,
                 "%s: error: could not find PICkit2 with vid=0x%x pid=0x%x\n",
                 progname, PICKIT2_VID, PICKIT2_PID);
-        exit(1);
+        return -1;
     }
 #endif
 
@@ -1340,8 +1340,6 @@ static int pickit2_nousb_open (struct programmer_t *pgm, char * name) {
             "%s: error: no usb support. Please compile again with libusb installed.\n",
 #endif
             progname);
-
-    exit(1);
 }
 
 void pickit2_initpgm (PROGRAMMER * pgm)

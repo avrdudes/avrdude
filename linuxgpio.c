@@ -247,7 +247,8 @@ static int linuxgpio_open(PROGRAMMER *pgm, char *port)
 {
   int r, i, pin;
 
-  bitbang_check_prerequisites(pgm);
+  if (bitbang_check_prerequisites(pgm) < 0
+    return -1;
 
 
   for (i=0; i<N_GPIO; i++)

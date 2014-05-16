@@ -89,7 +89,7 @@ static int avr910_recv(PROGRAMMER * pgm, char * buf, size_t len)
     fprintf(stderr,
 	    "%s: avr910_recv(): programmer is not responding\n",
 	    progname);
-    exit(1);
+    return 1;
   }
   return 0;
 }
@@ -101,7 +101,7 @@ static int avr910_drain(PROGRAMMER * pgm, int display)
 }
 
 
-static void avr910_vfy_cmd_sent(PROGRAMMER * pgm, char * errmsg)
+static int avr910_vfy_cmd_sent(PROGRAMMER * pgm, char * errmsg)
 {
   char c;
 
@@ -109,8 +109,9 @@ static void avr910_vfy_cmd_sent(PROGRAMMER * pgm, char * errmsg)
   if (c != '\r') {
     fprintf(stderr, "%s: error: programmer did not respond to command: %s\n",
             progname, errmsg);
-    exit(1);
+    return 1;
   }
+  return 0;
 }
 
 
@@ -120,7 +121,8 @@ static void avr910_vfy_cmd_sent(PROGRAMMER * pgm, char * errmsg)
 static int avr910_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {
   avr910_send(pgm, "e", 1);
-  avr910_vfy_cmd_sent(pgm, "chip erase");
+  if (avr910_vfy_cmd_sent(pgm, "chip erase") < 0)
+    return -1;
 
   /*
    * avr910 firmware may not delay long enough
@@ -131,17 +133,17 @@ static int avr910_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 }
 
 
-static void avr910_enter_prog_mode(PROGRAMMER * pgm)
+static int avr910_enter_prog_mode(PROGRAMMER * pgm)
 {
   avr910_send(pgm, "P", 1);
-  avr910_vfy_cmd_sent(pgm, "enter prog mode");
+  return avr910_vfy_cmd_sent(pgm, "enter prog mode");
 }
 
 
-static void avr910_leave_prog_mode(PROGRAMMER * pgm)
+static int avr910_leave_prog_mode(PROGRAMMER * pgm)
 {
   avr910_send(pgm, "L", 1);
-  avr910_vfy_cmd_sent(pgm, "leave prog mode");
+  return avr910_vfy_cmd_sent(pgm, "leave prog mode");
 }
 
 
@@ -251,7 +253,7 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
 	      "%s: %s: selected device is not supported by programmer: %s\n",
 	      progname, ovsigck? "warning": "error", p->id);
       if (!ovsigck)
-	exit(1);
+	return -1;
     }
     /* If the user forced the selection, use the first device
        type that is supported by the programmer. */

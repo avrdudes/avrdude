@@ -1210,7 +1210,7 @@ avrftdi_setup(PROGRAMMER * pgm)
 	if(!pdata->ftdic)
 	{
 		log_err("Error allocating memory.\n");
-		exit(-ENOMEM);
+		exit(1);
 	}
 	E_VOID(ftdi_init(pdata->ftdic), pdata->ftdic);
 

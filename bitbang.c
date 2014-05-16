@@ -40,6 +40,7 @@
 #include "par.h"
 #include "serbb.h"
 #include "tpi.h"
+#include "bitbang.h"
 
 static int delay_decrement;
 
@@ -140,7 +141,7 @@ static void bitbang_calibrate_delay(void)
  * usleep()'s granularity is usually like 1 ms or 10 ms, so it's not
  * really suitable for short delays in bit-bang algorithms.
  */
-void bitbang_delay(int us)
+void bitbang_delay(unsigned int us)
 {
 #if defined(WIN32NATIVE)
   LARGE_INTEGER countNow, countEnd;
@@ -156,7 +157,7 @@ void bitbang_delay(int us)
   else /* no performance counters -- run normal uncalibrated delay */
   {
 #endif  /* WIN32NATIVE */
-  volatile int del = us * delay_decrement;
+  volatile unsigned int del = us * delay_decrement;
 
   while (del > 0)
     del--;
@@ -630,30 +631,36 @@ int bitbang_initialize(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
-static void verify_pin_assigned(PROGRAMMER * pgm, int pin, char * desc)
+static int verify_pin_assigned(PROGRAMMER * pgm, int pin, char * desc)
 {
   if (pgm->pinno[pin] == 0) {
     fprintf(stderr, "%s: error: no pin has been assigned for %s\n",
             progname, desc);
-    exit(1);
+    return -1;
   }
+  return 0;
 }
 
 
 /*
  * Verify all prerequisites for a bit-bang programmer are present.
  */
-void bitbang_check_prerequisites(PROGRAMMER *pgm)
+int bitbang_check_prerequisites(PROGRAMMER *pgm)
 {
 
-  verify_pin_assigned(pgm, PIN_AVR_RESET, "AVR RESET");
-  verify_pin_assigned(pgm, PIN_AVR_SCK,   "AVR SCK");
-  verify_pin_assigned(pgm, PIN_AVR_MISO,  "AVR MISO");
-  verify_pin_assigned(pgm, PIN_AVR_MOSI,  "AVR MOSI");
+  if (verify_pin_assigned(pgm, PIN_AVR_RESET, "AVR RESET") < 0)
+    return -1;
+  if (verify_pin_assigned(pgm, PIN_AVR_SCK,   "AVR SCK") < 0)
+    return -1;
+  if (verify_pin_assigned(pgm, PIN_AVR_MISO,  "AVR MISO") < 0)
+    return -1;
+  if (verify_pin_assigned(pgm, PIN_AVR_MOSI,  "AVR MOSI") < 0)
+    return -1;
 
   if (pgm->cmd == NULL) {
     fprintf(stderr, "%s: error: no cmd() method defined for bitbang programmer\n",
             progname);
-    exit(1);
+    return -1;
   }
+  return 0;
 }

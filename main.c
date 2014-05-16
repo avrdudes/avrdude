@@ -65,6 +65,13 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
                              multiline messages */
 
+int yyerror(char * errmsg)
+{
+  fprintf(stderr, "%s: %s at %s:%d\n", progname, errmsg, infile, lineno);
+  exit(1);
+}
+
+
 struct list_walk_cookie
 {
     FILE *f;

@@ -218,7 +218,7 @@ static int jtagmkI_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
     fprintf(stderr,
 	    "%s: jtagmkI_send(): failed to send command to serial port\n",
 	    progname);
-    exit(1);
+    return -1;
   }
 
   free(buf);
@@ -226,18 +226,19 @@ static int jtagmkI_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
   return 0;
 }
 
-static void jtagmkI_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
+static int jtagmkI_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 {
   if (serial_recv(&pgm->fd, buf, len) != 0) {
     fprintf(stderr,
 	    "\n%s: jtagmkI_recv(): failed to send command to serial port\n",
 	    progname);
-    exit(1);
+    return -1;
   }
   if (verbose >= 3) {
     putc('\n', stderr);
     jtagmkI_prmsg(pgm, buf, len);
   }
+  return 0;
 }
 
 
@@ -345,7 +346,8 @@ static int jtagmkI_getsync(PROGRAMMER * pgm)
 
   buf[0] = CMD_GET_SIGNON;
   jtagmkI_send(pgm, buf, 1);
-  jtagmkI_recv(pgm, resp, 9);
+  if (jtagmkI_recv(pgm, resp, 9) < 0)
+    return -1;
   if (verbose >= 2) {
     resp[8] = '\0';
     fprintf(stderr, "got %s\n", resp + 1);
@@ -366,7 +368,8 @@ static int jtagmkI_chip_erase(PROGRAMMER * pgm, AVRPART * p)
     fprintf(stderr, "%s: jtagmkI_chip_erase(): Sending chip erase command: ",
 	    progname);
   jtagmkI_send(pgm, buf, 1);
-  jtagmkI_recv(pgm, resp, 2);
+  if (jtagmkI_recv(pgm, resp, 2) < 0)
+    return -1;
   if (resp[0] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
@@ -416,7 +419,8 @@ static void jtagmkI_set_devdescr(PROGRAMMER * pgm, AVRPART * p)
 	    progname);
   jtagmkI_send(pgm, (unsigned char *)&sendbuf, sizeof(sendbuf));
 
-  jtagmkI_recv(pgm, resp, 2);
+  if (jtagmkI_recv(pgm, resp, 2) < 0)
+    return;
   if (resp[0] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
@@ -443,7 +447,8 @@ static int jtagmkI_reset(PROGRAMMER * pgm)
 	    progname);
   jtagmkI_send(pgm, buf, 1);
 
-  jtagmkI_recv(pgm, resp, 2);
+  if (jtagmkI_recv(pgm, resp, 2) < 0)
+    return -1;
   if (resp[0] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
@@ -480,7 +485,8 @@ static int jtagmkI_program_enable(PROGRAMMER * pgm)
 	    progname);
   jtagmkI_send(pgm, buf, 1);
 
-  jtagmkI_recv(pgm, resp, 2);
+  if (jtagmkI_recv(pgm, resp, 2) < 0)
+    return -1;
   if (resp[0] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
@@ -514,7 +520,8 @@ static int jtagmkI_program_disable(PROGRAMMER * pgm)
               progname);
     jtagmkI_send(pgm, buf, 1);
 
-    jtagmkI_recv(pgm, resp, 2);
+    if (jtagmkI_recv(pgm, resp, 2) < 0)
+      return -1;
     if (resp[0] != RESP_OK) {
       if (verbose >= 2)
         putc('\n', stderr);
@@ -588,7 +595,8 @@ static int jtagmkI_initialize(PROGRAMMER * pgm, AVRPART * p)
 
   cmd[0] = CMD_STOP;
   jtagmkI_send(pgm, cmd, 1);
-  jtagmkI_recv(pgm, resp, 5);
+  if (jtagmkI_recv(pgm, resp, 5) < 0)
+    return -1;
   if (resp[0] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
@@ -822,7 +830,8 @@ static int jtagmkI_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     /* First part, send the write command. */
     jtagmkI_send(pgm, cmd, 6);
-    jtagmkI_recv(pgm, resp, 1);
+    if (jtagmkI_recv(pgm, resp, 1) < 0)
+      return -1;
     if (resp[0] != RESP_OK) {
       if (verbose >= 2)
         putc('\n', stderr);
@@ -851,7 +860,8 @@ static int jtagmkI_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     /* Second, send the data command. */
     jtagmkI_send(pgm, datacmd, send_size + 1);
-    jtagmkI_recv(pgm, resp, 2);
+    if (jtagmkI_recv(pgm, resp, 2) < 0)
+      return -1;
     if (resp[1] != RESP_OK) {
       if (verbose >= 2)
         putc('\n', stderr);
@@ -944,7 +954,8 @@ static int jtagmkI_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	      progname);
 
     jtagmkI_send(pgm, cmd, 6);
-    jtagmkI_recv(pgm, resp, read_size + 3);
+    if (jtagmkI_recv(pgm, resp, read_size + 3) < 0)
+      return -1;
 
     if (resp[read_size + 3 - 1] != RESP_OK) {
       if (verbose >= 2)
@@ -1060,7 +1071,8 @@ static int jtagmkI_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   }
 
   jtagmkI_send(pgm, cmd, 6);
-  jtagmkI_recv(pgm, resp, respsize);
+  if (jtagmkI_recv(pgm, resp, respsize) < 0)
+    return -1;
 
   if (resp[respsize - 1] != RESP_OK) {
     if (verbose >= 2)
@@ -1069,7 +1081,7 @@ static int jtagmkI_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 	    "%s: jtagmkI_read_byte(): "
 	    "timeout/error communicating with programmer (resp %c)\n",
 	    progname, resp[respsize - 1]);
-    exit(1);
+    return -1;
   } else {
     if (verbose == 2)
       fprintf(stderr, "OK\n");
@@ -1146,7 +1158,8 @@ static int jtagmkI_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   }
   /* First part, send the write command. */
   jtagmkI_send(pgm, cmd, 6);
-  jtagmkI_recv(pgm, resp, 1);
+  if (jtagmkI_recv(pgm, resp, 1) < 0)
+    return -1;
   if (resp[0] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
@@ -1176,7 +1189,8 @@ static int jtagmkI_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     datacmd[1] = writedata;
   }
   jtagmkI_send(pgm, datacmd, len);
-  jtagmkI_recv(pgm, resp, 1);
+  if (jtagmkI_recv(pgm, resp, 1) < 0)
+    return -1;
   if (resp[0] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
@@ -1242,7 +1256,8 @@ static int jtagmkI_getparm(PROGRAMMER * pgm, unsigned char parm,
 	    progname, parm);
   jtagmkI_send(pgm, buf, 2);
 
-  jtagmkI_recv(pgm, resp, 3);
+  if (jtagmkI_recv(pgm, resp, 3) < 0)
+    return -1;
   if (resp[0] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
@@ -1288,7 +1303,8 @@ static int jtagmkI_setparm(PROGRAMMER * pgm, unsigned char parm,
 	    "Sending set parameter command (parm 0x%02x): ",
 	    progname, parm);
   jtagmkI_send(pgm, buf, 3);
-  jtagmkI_recv(pgm, resp, 2);
+  if (jtagmkI_recv(pgm, resp, 2) < 0)
+    return -1;
   if (resp[0] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);

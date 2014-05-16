@@ -1,3 +1,32 @@
+2014-05-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avr910.c: Replace all occurences of exit() in potential library
+	functions by appropriate return values
+	* avrftdi.c: (Dito.)
+	* bitbang.c: (Dito.)
+	* bitbang.h: (Dito.)
+	* buspirate.c: (Dito.)
+	* butterfly.c: (Dito.)
+	* config.c: (Dito.)
+	* flip2.c: (Dito.)
+	* ft245r.c: (Dito.)
+	* jtagmkI.c: (Dito.)
+	* jtagmkII.c: (Dito.)
+	* linuxgpio.c: (Dito.)
+	* main.c: (Dito.)
+	* par.c: (Dito.)
+	* pgm.c: (Dito.)
+	* pickit2.c: (Dito.)
+	* pindefs.c: (Dito.)
+	* pindefs.h: (Dito.)
+	* ser_avrdoper.c: (Dito.)
+	* ser_posix.c: (Dito.)
+	* ser_win32.c: (Dito.)
+	* serbb_posix.c: (Dito.)
+	* serbb_win32.c: (Dito.)
+	* stk500.c: (Dito.)
+	* stk500v2.c: (Dito.)
+
 2014-05-07  Rene Liebscher <R.Liebscher@gmx.de>
 
 	bug #42310: New part description for AT90PWM216

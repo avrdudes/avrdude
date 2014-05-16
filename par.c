@@ -237,13 +237,14 @@ static int par_open(PROGRAMMER * pgm, char * port)
 {
   int rc;
 
-  bitbang_check_prerequisites(pgm);
+  if (bitbang_check_prerequisites(pgm) < 0)
+    return -1;
 
   ppi_open(port, &pgm->fd);
   if (pgm->fd.ifd < 0) {
     fprintf(stderr, "%s: failed to open parallel port \"%s\"\n\n",
             progname, port);
-    exit(1);
+    return -1;
   }
 
   /*

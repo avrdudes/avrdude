@@ -148,7 +148,7 @@ struct programmer_t; /* forward declaration */
  *
  * @param[inout] pgm programmer whose pins shall be converted.
  */
-void pgm_fill_old_pins(struct programmer_t * const pgm);
+int pgm_fill_old_pins(struct programmer_t * const pgm);
 
 /**
  * This function checks all pin of pgm against the constraints given in the checklist.
