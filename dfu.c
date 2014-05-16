@@ -36,13 +36,13 @@
 
 #ifndef HAVE_LIBUSB
 
-int dfu_open(struct dfu_dev *dfu, char *port_name) {
+struct dfu_dev *dfu_open(char *port_name) {
   fprintf(stderr, "%s: Error: No USB support in this compile of avrdude\n",
     progname);
-  return -1;
+  return NULL;
 }
 
-int dfu_init(struct dfu_dev *dfu, unsigned short usb_pid) {
+int dfu_init(struct dfu_dev *dfu, unsigned short usb_vid, unsigned short usb_pid) {
   return -1;
 }
 

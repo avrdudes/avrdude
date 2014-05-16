@@ -1,5 +1,10 @@
 2014-05-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* dfu.c (dfu_open, dfu_init): Fix signature of the dummy functions
+	(in the !HAVE_LIBUSB case) to match prototypes.
+
+2014-05-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* avr910.c: Replace all occurences of exit() in potential library
 	functions by appropriate return values
 	* avrftdi.c: (Dito.)
