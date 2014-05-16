@@ -13,6 +13,8 @@ set -x
 
 rm -rf autom4te.cache
 
+libtoolize
+
 ${ACLOCAL}
 ${AUTOHEADER}
 ${AUTOCONF}

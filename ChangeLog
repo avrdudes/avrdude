@@ -1,5 +1,11 @@
 2014-05-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* configure.ac: Bump version, add libtool hooks
+	* Makefile.am: First attempt to define building a shared library
+	(not to be installed by now)
+
+2014-05-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* dfu.c (dfu_open, dfu_init): Fix signature of the dummy functions
 	(in the !HAVE_LIBUSB case) to match prototypes.
 

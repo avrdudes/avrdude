@@ -59,16 +59,19 @@ AM_YFLAGS    = -d
 avrdude_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
 
 libavrdude_a_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
+libavrdude_la_CPPFLAGS = $(libavrdude_a_CPPFLAGS)
 
 avrdude_CFLAGS   = @ENABLE_WARNINGS@
 
 libavrdude_a_CFLAGS   = @ENABLE_WARNINGS@
+libavrdude_la_CFLAGS  = $(libavrdude_a_CFLAGS)
 
 avrdude_LDADD  = $(top_builddir)/$(noinst_LIBRARIES) @LIBUSB_1_0@ @LIBUSB@ @LIBFTDI1@ @LIBFTDI@ @LIBHID@ @LIBELF@ @LIBPTHREAD@ -lm
 
 bin_PROGRAMS = avrdude
 
 noinst_LIBRARIES = libavrdude.a
+noinst_LTLIBRARIES = libavrdude.la
 
 # automake thinks these generated files should be in the distribution,
 # but this might cause trouble for some users, so we rather don't want
@@ -182,6 +185,8 @@ libavrdude_a_SOURCES = \
 	update.c \
 	wiring.h \
 	wiring.c
+libavrdude_la_SOURCES = $(libavrdude_a_SOURCES)
+libavrdude_la_LDFLAGS = -version-info 1:0
 
 avrdude_SOURCES = \
 	main.c \
