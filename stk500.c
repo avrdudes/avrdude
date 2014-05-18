@@ -72,9 +72,8 @@ static int stk500_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 
   rv = serial_recv(&pgm->fd, buf, len);
   if (rv < 0) {
-    fprintf(stderr,
-	    "%s: stk500_recv(): programmer is not responding\n",
-	    progname);
+    avrdude_message("%s: stk500_recv(): programmer is not responding\n",
+                    progname);
     return -1;
   }
   return 0;
@@ -112,9 +111,8 @@ int stk500_getsync(PROGRAMMER * pgm)
     if (resp[0] == Resp_STK_INSYNC){
       break;
     }
-    fprintf(stderr,
-            "%s: stk500_getsync() attempt %d of %d: not in sync: resp=0x%02x\n",
-            progname, attempt + 1, MAX_SYNC_ATTEMPTS, resp[0]);
+    avrdude_message("%s: stk500_getsync() attempt %d of %d: not in sync: resp=0x%02x\n",
+                    progname, attempt + 1, MAX_SYNC_ATTEMPTS, resp[0]);
   }
   if (attempt == MAX_SYNC_ATTEMPTS) {
     stk500_drain(pgm, 0);
@@ -124,10 +122,9 @@ int stk500_getsync(PROGRAMMER * pgm)
   if (stk500_recv(pgm, resp, 1) < 0)
     return -1;
   if (resp[0] != Resp_STK_OK) {
-    fprintf(stderr, 
-            "%s: stk500_getsync(): can't communicate with device: "
-            "resp=0x%02x\n",
-            progname, resp[0]);
+    avrdude_message("%s: stk500_getsync(): can't communicate with device: "
+                    "resp=0x%02x\n",
+                    progname, resp[0]);
     return -1;
   }
 
@@ -156,7 +153,7 @@ static int stk500_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
   if (stk500_recv(pgm, buf, 1) < 0)
     return -1;
   if (buf[0] != Resp_STK_INSYNC) {
-    fprintf(stderr, "%s: stk500_cmd(): programmer is out of sync\n", progname);
+    avrdude_message("%s: stk500_cmd(): programmer is out of sync\n", progname);
     return -1;
   }
 
@@ -169,7 +166,7 @@ static int stk500_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
   if (stk500_recv(pgm, buf, 1) < 0)
     return -1;
   if (buf[0] != Resp_STK_OK) {
-    fprintf(stderr, "%s: stk500_cmd(): protocol error\n", progname);
+    avrdude_message("%s: stk500_cmd(): protocol error\n", progname);
     return -1;
   }
 
@@ -187,15 +184,14 @@ static int stk500_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   unsigned char res[4];
 
   if (pgm->cmd == NULL) {
-    fprintf(stderr,
-	    "%s: Error: %s programmer uses stk500_chip_erase() but does not\n"
-	    "provide a cmd() method.\n",
-	    progname, pgm->type);
+    avrdude_message("%s: Error: %s programmer uses stk500_chip_erase() but does not\n"
+                    "provide a cmd() method.\n",
+                    progname, pgm->type);
     return -1;
   }
 
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
-    fprintf(stderr, "chip erase instruction not defined for part \"%s\"\n",
+    avrdude_message("chip erase instruction not defined for part \"%s\"\n",
             p->desc);
     return -1;
   }
@@ -234,7 +230,7 @@ static int stk500_program_enable(PROGRAMMER * pgm, AVRPART * p)
     return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
-      fprintf(stderr, "%s: stk500_program_enable(): can't get into sync\n",
+      avrdude_message("%s: stk500_program_enable(): can't get into sync\n",
               progname);
       return -1;
     }
@@ -243,10 +239,9 @@ static int stk500_program_enable(PROGRAMMER * pgm, AVRPART * p)
     goto retry;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
-    fprintf(stderr,
-            "%s: stk500_program_enable(): protocol error, "
-            "expect=0x%02x, resp=0x%02x\n", 
-            progname, Resp_STK_INSYNC, buf[0]);
+    avrdude_message("%s: stk500_program_enable(): protocol error, "
+                    "expect=0x%02x, resp=0x%02x\n",
+                    progname, Resp_STK_INSYNC, buf[0]);
     return -1;
   }
 
@@ -256,21 +251,20 @@ static int stk500_program_enable(PROGRAMMER * pgm, AVRPART * p)
     return 0;
   }
   else if (buf[0] == Resp_STK_NODEVICE) {
-    fprintf(stderr, "%s: stk500_program_enable(): no device\n",
+    avrdude_message("%s: stk500_program_enable(): no device\n",
             progname);
     return -1;
   }
 
   if(buf[0] == Resp_STK_FAILED)
   {
-      fprintf(stderr, 
-	      "%s: stk500_program_enable(): failed to enter programming mode\n", 
-		  progname);
+      avrdude_message("%s: stk500_program_enable(): failed to enter programming mode\n",
+                      progname);
 	  return -1;
   }
 
 
-  fprintf(stderr, "%s: stk500_program_enable(): unknown response=0x%02x\n",
+  avrdude_message("%s: stk500_program_enable(): unknown response=0x%02x\n",
           progname, buf[0]);
 
   return -1;
@@ -301,7 +295,7 @@ static int stk500_set_extended_parms(PROGRAMMER * pgm, int n,
     return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
-      fprintf(stderr, "%s: stk500_set_extended_parms(): can't get into sync\n",
+      avrdude_message("%s: stk500_set_extended_parms(): can't get into sync\n",
               progname);
       return -1;
     }
@@ -310,10 +304,9 @@ static int stk500_set_extended_parms(PROGRAMMER * pgm, int n,
     goto retry;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
-    fprintf(stderr,
-            "%s: stk500_set_extended_parms(): protocol error, "
-            "expect=0x%02x, resp=0x%02x\n", 
-            progname, Resp_STK_INSYNC, buf[0]);
+    avrdude_message("%s: stk500_set_extended_parms(): protocol error, "
+                    "expect=0x%02x, resp=0x%02x\n",
+                    progname, Resp_STK_INSYNC, buf[0]);
     return -1;
   }
 
@@ -323,22 +316,21 @@ static int stk500_set_extended_parms(PROGRAMMER * pgm, int n,
     return 0;
   }
   else if (buf[0] == Resp_STK_NODEVICE) {
-    fprintf(stderr, "%s: stk500_set_extended_parms(): no device\n",
+    avrdude_message("%s: stk500_set_extended_parms(): no device\n",
             progname);
     return -1;
   }
 
   if(buf[0] == Resp_STK_FAILED)
   {
-      fprintf(stderr, 
-	      "%s: stk500_set_extended_parms(): failed to set extended "
-              "device programming parameters\n", 
-              progname);
+      avrdude_message("%s: stk500_set_extended_parms(): failed to set extended "
+                      "device programming parameters\n",
+                      progname);
 	  return -1;
   }
 
 
-  fprintf(stderr, "%s: stk500_set_extended_parms(): unknown response=0x%02x\n",
+  avrdude_message("%s: stk500_set_extended_parms(): unknown response=0x%02x\n",
           progname, buf[0]);
 
   return -1;
@@ -373,7 +365,7 @@ static int mib510_isp(PROGRAMMER * pgm, unsigned char cmd)
     return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
-      fprintf(stderr, "%s: mib510_isp(): can't get into sync\n",
+      avrdude_message("%s: mib510_isp(): can't get into sync\n",
               progname);
       return -1;
     }
@@ -382,10 +374,9 @@ static int mib510_isp(PROGRAMMER * pgm, unsigned char cmd)
     goto retry;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
-    fprintf(stderr,
-            "%s: mib510_isp(): protocol error, "
-            "expect=0x%02x, resp=0x%02x\n",
-            progname, Resp_STK_INSYNC, buf[0]);
+    avrdude_message("%s: mib510_isp(): protocol error, "
+                    "expect=0x%02x, resp=0x%02x\n",
+                    progname, Resp_STK_INSYNC, buf[0]);
     return -1;
   }
 
@@ -395,21 +386,20 @@ static int mib510_isp(PROGRAMMER * pgm, unsigned char cmd)
     return 0;
   }
   else if (buf[0] == Resp_STK_NODEVICE) {
-    fprintf(stderr, "%s: mib510_isp(): no device\n",
+    avrdude_message("%s: mib510_isp(): no device\n",
             progname);
     return -1;
   }
 
   if (buf[0] == Resp_STK_FAILED)
   {
-      fprintf(stderr,
-          "%s: mib510_isp(): command %d failed\n",
-              progname, cmd);
+      avrdude_message("%s: mib510_isp(): command %d failed\n",
+                      progname, cmd);
       return -1;
   }
 
 
-  fprintf(stderr, "%s: mib510_isp(): unknown response=0x%02x\n",
+  avrdude_message("%s: mib510_isp(): unknown response=0x%02x\n",
           progname, buf[0]);
 
   return -1;
@@ -470,7 +460,7 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
   }
 
 #if 0
-  fprintf(stderr, "%s: stk500_initialize(): n_extparms = %d\n", 
+  avrdude_message("%s: stk500_initialize(): n_extparms = %d\n",
           progname, n_extparms);
 #endif
     
@@ -544,9 +534,8 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
   if (stk500_recv(pgm, buf, 1) < 0)
     return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
-    fprintf(stderr,
-            "%s: stk500_initialize(): programmer not in sync, resp=0x%02x\n", 
-            progname, buf[0]);
+    avrdude_message("%s: stk500_initialize(): programmer not in sync, resp=0x%02x\n",
+                    progname, buf[0]);
     if (tries > 33)
       return -1;
     if (stk500_getsync(pgm) < 0)
@@ -554,30 +543,27 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
     goto retry;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
-    fprintf(stderr,
-            "%s: stk500_initialize(): (a) protocol error, "
-            "expect=0x%02x, resp=0x%02x\n", 
-            progname, Resp_STK_INSYNC, buf[0]);
+    avrdude_message("%s: stk500_initialize(): (a) protocol error, "
+                    "expect=0x%02x, resp=0x%02x\n",
+                    progname, Resp_STK_INSYNC, buf[0]);
     return -1;
   }
 
   if (stk500_recv(pgm, buf, 1) < 0)
     return -1;
   if (buf[0] != Resp_STK_OK) {
-    fprintf(stderr,
-            "%s: stk500_initialize(): (b) protocol error, "
-            "expect=0x%02x, resp=0x%02x\n", 
-            progname, Resp_STK_OK, buf[0]);
+    avrdude_message("%s: stk500_initialize(): (b) protocol error, "
+                    "expect=0x%02x, resp=0x%02x\n",
+                    progname, Resp_STK_OK, buf[0]);
     return -1;
   }
 
   if (n_extparms) {
     if ((p->pagel == 0) || (p->bs2 == 0)) {
       if (verbose > 1)
-          fprintf(stderr,
-                  "%s: PAGEL and BS2 signals not defined in the configuration "
-                  "file for part %s, using dummy values\n",
-                  progname, p->desc);
+          avrdude_message("%s: PAGEL and BS2 signals not defined in the configuration "
+                          "file for part %s, using dummy values\n",
+                          progname, p->desc);
       buf[2] = 0xD7;            /* they look somehow possible, */
       buf[3] = 0xA0;            /* don't they? ;) */
     }
@@ -605,7 +591,7 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
 
     rc = stk500_set_extended_parms(pgm, n_extparms+1, buf);
     if (rc) {
-      fprintf(stderr, "%s: stk500_initialize(): failed\n", progname);
+      avrdude_message("%s: stk500_initialize(): failed\n", progname);
       return -1;
     }
   }
@@ -631,7 +617,7 @@ static void stk500_disable(PROGRAMMER * pgm)
     return;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
-      fprintf(stderr, "%s: stk500_disable(): can't get into sync\n",
+      avrdude_message("%s: stk500_disable(): can't get into sync\n",
               progname);
       return;
     }
@@ -640,10 +626,9 @@ static void stk500_disable(PROGRAMMER * pgm)
     goto retry;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
-    fprintf(stderr,
-            "%s: stk500_disable(): protocol error, expect=0x%02x, "
-            "resp=0x%02x\n", 
-            progname, Resp_STK_INSYNC, buf[0]);
+    avrdude_message("%s: stk500_disable(): protocol error, expect=0x%02x, "
+                    "resp=0x%02x\n",
+                    progname, Resp_STK_INSYNC, buf[0]);
     return;
   }
 
@@ -653,12 +638,12 @@ static void stk500_disable(PROGRAMMER * pgm)
     return;
   }
   else if (buf[0] == Resp_STK_NODEVICE) {
-    fprintf(stderr, "%s: stk500_disable(): no device\n",
+    avrdude_message("%s: stk500_disable(): no device\n",
             progname);
     return;
   }
 
-  fprintf(stderr, "%s: stk500_disable(): unknown response=0x%02x\n",
+  avrdude_message("%s: stk500_disable(): unknown response=0x%02x\n",
           progname, buf[0]);
 
   return;
@@ -743,7 +728,7 @@ static int stk500_loadaddr(PROGRAMMER * pgm, AVRMEM * mem, unsigned int addr)
     return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
-      fprintf(stderr, "%s: stk500_loadaddr(): can't get into sync\n",
+      avrdude_message("%s: stk500_loadaddr(): can't get into sync\n",
               progname);
       return -1;
     }
@@ -752,10 +737,9 @@ static int stk500_loadaddr(PROGRAMMER * pgm, AVRMEM * mem, unsigned int addr)
     goto retry;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
-    fprintf(stderr,
-            "%s: stk500_loadaddr(): (a) protocol error, "
-            "expect=0x%02x, resp=0x%02x\n", 
-            progname, Resp_STK_INSYNC, buf[0]);
+    avrdude_message("%s: stk500_loadaddr(): (a) protocol error, "
+                    "expect=0x%02x, resp=0x%02x\n",
+                    progname, Resp_STK_INSYNC, buf[0]);
     return -1;
   }
 
@@ -765,10 +749,9 @@ static int stk500_loadaddr(PROGRAMMER * pgm, AVRMEM * mem, unsigned int addr)
     return 0;
   }
 
-  fprintf(stderr,
-          "%s: loadaddr(): (b) protocol error, "
-          "expect=0x%02x, resp=0x%02x\n", 
-          progname, Resp_STK_INSYNC, buf[0]);
+  avrdude_message("%s: loadaddr(): (b) protocol error, "
+                  "expect=0x%02x, resp=0x%02x\n",
+                  progname, Resp_STK_INSYNC, buf[0]);
 
   return -1;
 }
@@ -803,12 +786,11 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   n = addr + n_bytes;
 #if 0
-  fprintf(stderr, 
-          "n_bytes   = %d\n"
-          "n         = %u\n"
-          "a_div     = %d\n"
-          "page_size = %d\n",
-          n_bytes, n, a_div, page_size);
+  avrdude_message("n_bytes   = %d\n"
+                  "n         = %u\n"
+                  "a_div     = %d\n"
+                  "page_size = %d\n",
+                  n_bytes, n, a_div, page_size);
 #endif     
 
   for (; addr < n; addr += block_size) {
@@ -842,7 +824,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       return -1;
     if (buf[0] == Resp_STK_NOSYNC) {
       if (tries > 33) {
-        fprintf(stderr, "\n%s: stk500_paged_write(): can't get into sync\n",
+        avrdude_message("\n%s: stk500_paged_write(): can't get into sync\n",
                 progname);
         return -3;
       }
@@ -851,20 +833,18 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       goto retry;
     }
     else if (buf[0] != Resp_STK_INSYNC) {
-      fprintf(stderr,
-              "\n%s: stk500_paged_write(): (a) protocol error, "
-              "expect=0x%02x, resp=0x%02x\n", 
-              progname, Resp_STK_INSYNC, buf[0]);
+      avrdude_message("\n%s: stk500_paged_write(): (a) protocol error, "
+                      "expect=0x%02x, resp=0x%02x\n",
+                      progname, Resp_STK_INSYNC, buf[0]);
       return -4;
     }
     
     if (stk500_recv(pgm, buf, 1) < 0)
       return -1;
     if (buf[0] != Resp_STK_OK) {
-      fprintf(stderr,
-              "\n%s: stk500_paged_write(): (a) protocol error, "
-              "expect=0x%02x, resp=0x%02x\n", 
-              progname, Resp_STK_INSYNC, buf[0]);
+      avrdude_message("\n%s: stk500_paged_write(): (a) protocol error, "
+                      "expect=0x%02x, resp=0x%02x\n",
+                      progname, Resp_STK_INSYNC, buf[0]);
       return -5;
     }
   }
@@ -925,7 +905,7 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       return -1;
     if (buf[0] == Resp_STK_NOSYNC) {
       if (tries > 33) {
-        fprintf(stderr, "\n%s: stk500_paged_load(): can't get into sync\n",
+        avrdude_message("\n%s: stk500_paged_load(): can't get into sync\n",
                 progname);
         return -3;
       }
@@ -934,10 +914,9 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       goto retry;
     }
     else if (buf[0] != Resp_STK_INSYNC) {
-      fprintf(stderr,
-              "\n%s: stk500_paged_load(): (a) protocol error, "
-              "expect=0x%02x, resp=0x%02x\n", 
-              progname, Resp_STK_INSYNC, buf[0]);
+      avrdude_message("\n%s: stk500_paged_load(): (a) protocol error, "
+                      "expect=0x%02x, resp=0x%02x\n",
+                      progname, Resp_STK_INSYNC, buf[0]);
       return -4;
     }
 
@@ -949,19 +928,17 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     if(strcmp(ldata(lfirst(pgm->id)), "mib510") == 0) {
       if (buf[0] != Resp_STK_INSYNC) {
-      fprintf(stderr,
-              "\n%s: stk500_paged_load(): (a) protocol error, "
-              "expect=0x%02x, resp=0x%02x\n", 
-              progname, Resp_STK_INSYNC, buf[0]);
+      avrdude_message("\n%s: stk500_paged_load(): (a) protocol error, "
+                      "expect=0x%02x, resp=0x%02x\n",
+                      progname, Resp_STK_INSYNC, buf[0]);
       return -5;
     }
   }
     else {
       if (buf[0] != Resp_STK_OK) {
-        fprintf(stderr,
-                "\n%s: stk500_paged_load(): (a) protocol error, "
-                "expect=0x%02x, resp=0x%02x\n",
-                progname, Resp_STK_OK, buf[0]);
+        avrdude_message("\n%s: stk500_paged_load(): (a) protocol error, "
+                        "expect=0x%02x, resp=0x%02x\n",
+                        progname, Resp_STK_OK, buf[0]);
         return -5;
       }
     }
@@ -978,16 +955,14 @@ static int stk500_set_vtarget(PROGRAMMER * pgm, double v)
   utarg = (unsigned)((v + 0.049) * 10);
 
   if (stk500_getparm(pgm, Parm_STK_VADJUST, &uaref) != 0) {
-    fprintf(stderr,
-	    "%s: stk500_set_vtarget(): cannot obtain V[aref]\n",
-	    progname);
+    avrdude_message("%s: stk500_set_vtarget(): cannot obtain V[aref]\n",
+                    progname);
     return -1;
   }
 
   if (uaref > utarg) {
-    fprintf(stderr,
-	    "%s: stk500_set_vtarget(): reducing V[aref] from %.1f to %.1f\n",
-	    progname, uaref / 10.0, v);
+    avrdude_message("%s: stk500_set_vtarget(): reducing V[aref] from %.1f to %.1f\n",
+                    progname, uaref / 10.0, v);
     if (stk500_setparm(pgm, Parm_STK_VADJUST, utarg)
 	!= 0)
       return -1;
@@ -1004,17 +979,15 @@ static int stk500_set_varef(PROGRAMMER * pgm, unsigned int chan /* unused */,
   uaref = (unsigned)((v + 0.049) * 10);
 
   if (stk500_getparm(pgm, Parm_STK_VTARGET, &utarg) != 0) {
-    fprintf(stderr,
-	    "%s: stk500_set_varef(): cannot obtain V[target]\n",
-	    progname);
+    avrdude_message("%s: stk500_set_varef(): cannot obtain V[target]\n",
+                    progname);
     return -1;
   }
 
   if (uaref > utarg) {
-    fprintf(stderr,
-	    "%s: stk500_set_varef(): V[aref] must not be greater than "
-	    "V[target] = %.1f\n",
-	    progname, utarg / 10.0);
+    avrdude_message("%s: stk500_set_varef(): V[aref] must not be greater than "
+                    "V[target] = %.1f\n",
+                    progname, utarg / 10.0);
     return -1;
   }
   return stk500_setparm(pgm, Parm_STK_VADJUST, uaref);
@@ -1041,9 +1014,8 @@ static int stk500_set_fosc(PROGRAMMER * pgm, double v)
         unit = "kHz";
       } else
         unit = "Hz";
-      fprintf(stderr,
-          "%s: stk500_set_fosc(): f = %.3f %s too high, using %.3f MHz\n",
-          progname, v, unit, STK500_XTAL / 2e6);
+      avrdude_message("%s: stk500_set_fosc(): f = %.3f %s too high, using %.3f MHz\n",
+                      progname, v, unit, STK500_XTAL / 2e6);
       fosc = STK500_XTAL / 2;
     } else
       fosc = (unsigned)v;
@@ -1057,7 +1029,7 @@ static int stk500_set_fosc(PROGRAMMER * pgm, double v)
       }
     }
     if (idx == sizeof(ps) / sizeof(ps[0])) {
-      fprintf(stderr, "%s: stk500_set_fosc(): f = %u Hz too low, %u Hz min\n",
+      avrdude_message("%s: stk500_set_fosc(): f = %u Hz too low, %u Hz min\n",
           progname, fosc, STK500_XTAL / (256 * 1024 * 2));
       return -1;
     }
@@ -1089,14 +1061,12 @@ static int stk500_set_sck_period(PROGRAMMER * pgm, double v)
   
   if (v < min) {
       dur = 1;
-      fprintf(stderr,
-	      "%s: stk500_set_sck_period(): p = %.1f us too small, using %.1f us\n",
-	      progname, v / 1e-6, dur * min / 1e-6);
+      avrdude_message("%s: stk500_set_sck_period(): p = %.1f us too small, using %.1f us\n",
+                      progname, v / 1e-6, dur * min / 1e-6);
   } else if (v > max) {
       dur = 255;
-      fprintf(stderr,
-	      "%s: stk500_set_sck_period(): p = %.1f us too large, using %.1f us\n",
-	      progname, v / 1e-6, dur * min / 1e-6);
+      avrdude_message("%s: stk500_set_sck_period(): p = %.1f us too large, using %.1f us\n",
+                      progname, v / 1e-6, dur * min / 1e-6);
   }
   
   return stk500_setparm(pgm, Parm_STK_SCK_DURATION, dur);
@@ -1121,7 +1091,7 @@ static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
     return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
-      fprintf(stderr, "\n%s: stk500_getparm(): can't get into sync\n",
+      avrdude_message("\n%s: stk500_getparm(): can't get into sync\n",
               progname);
       return -1;
     }
@@ -1130,10 +1100,9 @@ static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
     goto retry;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
-    fprintf(stderr,
-            "\n%s: stk500_getparm(): (a) protocol error, "
-            "expect=0x%02x, resp=0x%02x\n", 
-            progname, Resp_STK_INSYNC, buf[0]);
+    avrdude_message("\n%s: stk500_getparm(): (a) protocol error, "
+                    "expect=0x%02x, resp=0x%02x\n",
+                    progname, Resp_STK_INSYNC, buf[0]);
     return -2;
   }
 
@@ -1144,16 +1113,14 @@ static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
   if (stk500_recv(pgm, buf, 1) < 0)
     return -1;
   if (buf[0] == Resp_STK_FAILED) {
-    fprintf(stderr,
-            "\n%s: stk500_getparm(): parameter 0x%02x failed\n",
-            progname, v);
+    avrdude_message("\n%s: stk500_getparm(): parameter 0x%02x failed\n",
+                    progname, v);
     return -3;
   }
   else if (buf[0] != Resp_STK_OK) {
-    fprintf(stderr,
-            "\n%s: stk500_getparm(): (a) protocol error, "
-            "expect=0x%02x, resp=0x%02x\n", 
-            progname, Resp_STK_INSYNC, buf[0]);
+    avrdude_message("\n%s: stk500_getparm(): (a) protocol error, "
+                    "expect=0x%02x, resp=0x%02x\n",
+                    progname, Resp_STK_INSYNC, buf[0]);
     return -3;
   }
 
@@ -1181,7 +1148,7 @@ static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value)
     return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
-      fprintf(stderr, "\n%s: stk500_setparm(): can't get into sync\n",
+      avrdude_message("\n%s: stk500_setparm(): can't get into sync\n",
               progname);
       return -1;
     }
@@ -1190,10 +1157,9 @@ static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value)
     goto retry;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
-    fprintf(stderr,
-            "\n%s: stk500_setparm(): (a) protocol error, "
-            "expect=0x%02x, resp=0x%02x\n", 
-            progname, Resp_STK_INSYNC, buf[0]);
+    avrdude_message("\n%s: stk500_setparm(): (a) protocol error, "
+                    "expect=0x%02x, resp=0x%02x\n",
+                    progname, Resp_STK_INSYNC, buf[0]);
     return -2;
   }
 
@@ -1206,16 +1172,14 @@ static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value)
   if (stk500_recv(pgm, buf, 1) < 0)
     return -1;
   if (buf[0] == Resp_STK_FAILED) {
-    fprintf(stderr,
-            "\n%s: stk500_setparm(): parameter 0x%02x failed\n",
-            progname, parm);
+    avrdude_message("\n%s: stk500_setparm(): parameter 0x%02x failed\n",
+                    progname, parm);
     return -3;
   }
   else {
-    fprintf(stderr,
-            "\n%s: stk500_setparm(): (a) protocol error, "
-            "expect=0x%02x, resp=0x%02x\n", 
-            progname, Resp_STK_INSYNC, buf[0]);
+    avrdude_message("\n%s: stk500_setparm(): (a) protocol error, "
+                    "expect=0x%02x, resp=0x%02x\n",
+                    progname, Resp_STK_INSYNC, buf[0]);
     return -3;
   }
 }
@@ -1230,8 +1194,8 @@ static void stk500_display(PROGRAMMER * pgm, const char * p)
   stk500_getparm(pgm, Parm_STK_SW_MINOR, &min);
   stk500_getparm(pgm, Param_STK500_TOPCARD_DETECT, &topcard);
 
-  fprintf(stderr, "%sHardware Version: %d\n", p, hdw);
-  fprintf(stderr, "%sFirmware Version: %d.%d\n", p, maj, min);
+  avrdude_message("%sHardware Version: %d\n", p, hdw);
+  avrdude_message("%sFirmware Version: %d.%d\n", p, maj, min);
   if (topcard < 3) {
     const char *n = "Unknown";
 
@@ -1244,7 +1208,7 @@ static void stk500_display(PROGRAMMER * pgm, const char * p)
 	n = "STK501";
 	break;
     }
-    fprintf(stderr, "%sTopcard         : %s\n", p, n);
+    avrdude_message("%sTopcard         : %s\n", p, n);
   }
   stk500_print_parms1(pgm, p);
 
@@ -1262,11 +1226,11 @@ static void stk500_print_parms1(PROGRAMMER * pgm, const char * p)
   stk500_getparm(pgm, Parm_STK_OSC_CMATCH, &osc_cmatch);
   stk500_getparm(pgm, Parm_STK_SCK_DURATION, &sck_duration);
 
-  fprintf(stderr, "%sVtarget         : %.1f V\n", p, vtarget / 10.0);
-  fprintf(stderr, "%sVaref           : %.1f V\n", p, vadjust / 10.0);
-  fprintf(stderr, "%sOscillator      : ", p);
+  avrdude_message("%sVtarget         : %.1f V\n", p, vtarget / 10.0);
+  avrdude_message("%sVaref           : %.1f V\n", p, vadjust / 10.0);
+  avrdude_message("%sOscillator      : ", p);
   if (osc_pscale == 0)
-    fprintf(stderr, "Off\n");
+    avrdude_message("Off\n");
   else {
     int prescale = 1;
     double f = STK500_XTAL / 2;
@@ -1290,9 +1254,9 @@ static void stk500_print_parms1(PROGRAMMER * pgm, const char * p)
       unit = "kHz";
     } else
       unit = "Hz";
-    fprintf(stderr, "%.3f %s\n", f, unit);
+    avrdude_message("%.3f %s\n", f, unit);
   }
-  fprintf(stderr, "%sSCK period      : %.1f us\n", p, 
+  avrdude_message("%sSCK period      : %.1f us\n", p,
 	  sck_duration * 8.0e6 / STK500_XTAL + 0.05);
 
   return;
@@ -1307,9 +1271,8 @@ static void stk500_print_parms(PROGRAMMER * pgm)
 static void stk500_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    fprintf(stderr,
-	    "%s: stk500_setup(): Out of memory allocating private data\n",
-	    progname);
+    avrdude_message("%s: stk500_setup(): Out of memory allocating private data\n",
+                    progname);
     return;
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));

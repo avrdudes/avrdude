@@ -80,13 +80,13 @@
 #define RETRIES 5
 
 #if 0
-#define DEBUG(...) fprintf(stderr, __VA_ARGS__)
+#define DEBUG(...) avrdude_message(__VA_ARGS__)
 #else
 #define DEBUG(...)
 #endif
 
 #if 0
-#define DEBUGRECV(...) fprintf(stderr, __VA_ARGS__)
+#define DEBUGRECV(...) avrdude_message(__VA_ARGS__)
 #else
 #define DEBUGRECV(...)
 #endif
@@ -293,9 +293,8 @@ static int stk600_xprog_program_enable(PROGRAMMER * pgm, AVRPART * p);
 void stk500v2_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    fprintf(stderr,
-	    "%s: stk500v2_setup(): Out of memory allocating private data\n",
-	    progname);
+    avrdude_message("%s: stk500v2_setup(): Out of memory allocating private data\n",
+                    progname);
     exit(1);
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
@@ -308,9 +307,8 @@ static void stk500v2_jtagmkII_setup(PROGRAMMER * pgm)
   void *mycookie, *theircookie;
 
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    fprintf(stderr,
-	    "%s: stk500v2_setup(): Out of memory allocating private data\n",
-	    progname);
+    avrdude_message("%s: stk500v2_setup(): Out of memory allocating private data\n",
+                    progname);
     exit(1);
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
@@ -332,9 +330,8 @@ static void stk500v2_jtag3_setup(PROGRAMMER * pgm)
   void *mycookie, *theircookie;
 
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    fprintf(stderr,
-	    "%s: stk500v2_setup(): Out of memory allocating private data\n",
-	    progname);
+    avrdude_message("%s: stk500v2_setup(): Out of memory allocating private data\n",
+                    progname);
     exit(1);
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
@@ -392,7 +389,7 @@ b2_to_u16(unsigned char *b)
 static int stk500v2_send_mk2(PROGRAMMER * pgm, unsigned char * data, size_t len)
 {
   if (serial_send(&pgm->fd, data, len) != 0) {
-    fprintf(stderr,"%s: stk500_send_mk2(): failed to send command to serial port\n",progname);
+    avrdude_message("%s: stk500_send_mk2(): failed to send command to serial port\n",progname);
     return -1;
   }
 
@@ -425,7 +422,7 @@ static int stk500v2_jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t
 
   sz = get_jtagisp_return_size(data[0]);
   if (sz == 0) {
-    fprintf(stderr, "%s: unsupported encapsulated ISP command: %#x\n",
+    avrdude_message("%s: unsupported encapsulated ISP command: %#x\n",
 	    progname, data[0]);
     return -1;
   }
@@ -445,7 +442,7 @@ static int stk500v2_jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t
   }
 
   if ((cmdbuf = malloc(len + 3)) == NULL) {
-    fprintf(stderr, "%s: out of memory for command packet\n",
+    avrdude_message("%s: out of memory for command packet\n",
             progname);
     exit(1);
   }
@@ -472,7 +469,7 @@ static int stk500v2_jtag3_send(PROGRAMMER * pgm, unsigned char * data, size_t le
   void *mycookie;
 
   if ((cmdbuf = malloc(len + 1)) == NULL) {
-    fprintf(stderr, "%s: out of memory for command packet\n",
+    avrdude_message("%s: out of memory for command packet\n",
             progname);
     exit(1);
   }
@@ -517,7 +514,7 @@ static int stk500v2_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
   DEBUG(", %d)\n",len+6);
 
   if (serial_send(&pgm->fd, buf, len+6) != 0) {
-    fprintf(stderr,"%s: stk500_send(): failed to send command to serial port\n",progname);
+    avrdude_message("%s: stk500_send(): failed to send command to serial port\n",progname);
     return -1;
   }
 
@@ -537,7 +534,7 @@ static int stk500v2_recv_mk2(PROGRAMMER * pgm, unsigned char *msg,
 
   rv = serial_recv(&pgm->fd, msg, maxsize);
   if (rv < 0) {
-    fprintf(stderr, "%s: stk500v2_recv_mk2: error in USB receive\n", progname);
+    avrdude_message("%s: stk500v2_recv_mk2: error in USB receive\n", progname);
     return -1;
   }
 
@@ -556,29 +553,28 @@ static int stk500v2_jtagmkII_recv(PROGRAMMER * pgm, unsigned char *msg,
   rv = jtagmkII_recv(pgm, &jtagmsg);
   pgm->cookie = mycookie;
   if (rv <= 0) {
-    fprintf(stderr, "%s: stk500v2_jtagmkII_recv(): error in jtagmkII_recv()\n",
+    avrdude_message("%s: stk500v2_jtagmkII_recv(): error in jtagmkII_recv()\n",
             progname);
     return -1;
   }
   if (rv - 1 > maxsize) {
-    fprintf(stderr,
-            "%s: stk500v2_jtagmkII_recv(): got %u bytes, have only room for %u bytes\n",
-            progname, (unsigned)rv - 1, (unsigned)maxsize);
+    avrdude_message("%s: stk500v2_jtagmkII_recv(): got %u bytes, have only room for %u bytes\n",
+                    progname, (unsigned)rv - 1, (unsigned)maxsize);
     rv = maxsize;
   }
   switch (jtagmsg[0]) {
   case RSP_SPI_DATA:
     break;
   case RSP_FAILED:
-    fprintf(stderr, "%s: stk500v2_jtagmkII_recv(): failed\n",
+    avrdude_message("%s: stk500v2_jtagmkII_recv(): failed\n",
 	    progname);
     return -1;
   case RSP_ILLEGAL_MCU_STATE:
-    fprintf(stderr, "%s: stk500v2_jtagmkII_recv(): illegal MCU state\n",
+    avrdude_message("%s: stk500v2_jtagmkII_recv(): illegal MCU state\n",
 	    progname);
     return -1;
   default:
-    fprintf(stderr, "%s: stk500v2_jtagmkII_recv(): unknown status %d\n",
+    avrdude_message("%s: stk500v2_jtagmkII_recv(): unknown status %d\n",
 	    progname, jtagmsg[0]);
     return -1;
   }
@@ -598,7 +594,7 @@ static int stk500v2_jtag3_recv(PROGRAMMER * pgm, unsigned char *msg,
   rv = jtag3_recv(pgm, &jtagmsg);
   pgm->cookie = mycookie;
   if (rv <= 0) {
-    fprintf(stderr, "%s: stk500v2_jtag3_recv(): error in jtagmkII_recv()\n",
+    avrdude_message("%s: stk500v2_jtag3_recv(): error in jtagmkII_recv()\n",
             progname);
     return -1;
   }
@@ -608,15 +604,13 @@ static int stk500v2_jtag3_recv(PROGRAMMER * pgm, unsigned char *msg,
      levels. */
   if (rv - 1 > maxsize) {
     if (verbose > 2)
-      fprintf(stderr,
-            "%s: stk500v2_jtag3_recv(): got %u bytes, have only room for %u bytes\n",
-            progname, (unsigned)rv - 1, (unsigned)maxsize);
+      avrdude_message("%s: stk500v2_jtag3_recv(): got %u bytes, have only room for %u bytes\n",
+                      progname, (unsigned)rv - 1, (unsigned)maxsize);
     rv = maxsize;
   }
   if (jtagmsg[0] != SCOPE_AVR_ISP) {
-    fprintf(stderr,
-	    "%s: stk500v2_jtag3_recv(): message is not AVR ISP: 0x%02x\n",
-	    progname, jtagmsg[0]);
+    avrdude_message("%s: stk500v2_jtag3_recv(): message is not AVR ISP: 0x%02x\n",
+                    progname, jtagmsg[0]);
     free(jtagmsg);
     return -1;
   }
@@ -695,12 +689,12 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char *msg, size_t maxsize) {
         if (curlen < maxsize) {
           msg[curlen] = c;
         } else {
-          fprintf(stderr, "%s: stk500v2_recv(): buffer too small, received %d byte into %u byte buffer\n",
+          avrdude_message("%s: stk500v2_recv(): buffer too small, received %d byte into %u byte buffer\n",
                   progname,curlen,(unsigned int)maxsize);
           return -2;
         }
         if ((curlen == 0) && (msg[0] == ANSWER_CKSUM_ERROR)) {
-          fprintf(stderr, "%s: stk500v2_recv(): previous packet sent with wrong checksum\n",
+          avrdude_message("%s: stk500v2_recv(): previous packet sent with wrong checksum\n",
                   progname);
           return -3;
         }
@@ -712,13 +706,13 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char *msg, size_t maxsize) {
           state = sDONE;
         } else {
           state = sSTART;
-          fprintf(stderr, "%s: stk500v2_recv(): checksum error\n",
+          avrdude_message("%s: stk500v2_recv(): checksum error\n",
                   progname);
           return -4;
         }
         break;
       default:
-        fprintf(stderr, "%s: stk500v2_recv(): unknown state\n",
+        avrdude_message("%s: stk500v2_recv(): unknown state\n",
                 progname);
         return -5;
      } /* switch */
@@ -727,7 +721,7 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char *msg, size_t maxsize) {
      tnow = tv.tv_sec;
      if (tnow-tstart > timeoutval) {			// wuff - signed/unsigned/overflow
       timedout:
-       fprintf(stderr, "%s: stk500v2_ReceiveMessage(): timeout\n",
+       avrdude_message("%s: stk500v2_ReceiveMessage(): timeout\n",
                progname);
        return -1;
      }
@@ -782,22 +776,19 @@ retry:
       } else {
 	resp[siglen + 3] = 0;
 	if (verbose)
-	  fprintf(stderr,
-		  "%s: stk500v2_getsync(): got response from unknown "
-		  "programmer %s, assuming STK500\n",
-		  progname, resp + 3);
+	  avrdude_message("%s: stk500v2_getsync(): got response from unknown "
+                          "programmer %s, assuming STK500\n",
+                          progname, resp + 3);
 	PDATA(pgm)->pgmtype = PGMTYPE_STK500;
       }
       if (verbose >= 3)
-	fprintf(stderr,
-		"%s: stk500v2_getsync(): found %s programmer\n",
-		progname, pgmname[PDATA(pgm)->pgmtype]);
+	avrdude_message("%s: stk500v2_getsync(): found %s programmer\n",
+                        progname, pgmname[PDATA(pgm)->pgmtype]);
       return 0;
     } else {
       if (tries > RETRIES) {
-        fprintf(stderr,
-                "%s: stk500v2_getsync(): can't communicate with device: resp=0x%02x\n",
-                progname, resp[0]);
+        avrdude_message("%s: stk500v2_getsync(): can't communicate with device: resp=0x%02x\n",
+                        progname, resp[0]);
         return -6;
       } else
         goto retry;
@@ -806,7 +797,7 @@ retry:
   // or if we got a timeout
   } else if (status == -1) {
     if (tries > RETRIES) {
-      fprintf(stderr,"%s: stk500v2_getsync(): timeout communicating with programmer\n",
+      avrdude_message("%s: stk500v2_getsync(): timeout communicating with programmer\n",
               progname);
       return -1;
     } else
@@ -815,7 +806,7 @@ retry:
   // or any other error
   } else {
     if (tries > RETRIES) {
-      fprintf(stderr,"%s: stk500v2_getsync(): error communicating with programmer: (%d)\n",
+      avrdude_message("%s: stk500v2_getsync(): error communicating with programmer: (%d)\n",
               progname,status);
     } else
       goto retry;
@@ -846,7 +837,7 @@ retry:
   if (status > 0) {
     DEBUG(" = %d\n",status);
     if (status < 2) {
-      fprintf(stderr, "%s: stk500v2_command(): short reply\n", progname);
+      avrdude_message("%s: stk500v2_command(): short reply\n", progname);
       return -1;
     }
     if (buf[0] == CMD_XPROG_SETMODE || buf[0] == CMD_XPROG) {
@@ -870,7 +861,7 @@ retry:
             case XPRG_ERR_TIMEOUT:  msg = "Timeout"; break;
             default:                msg = "Unknown"; break;
             }
-            fprintf(stderr, "%s: stk500v2_command(): error in %s: %s\n",
+            avrdude_message("%s: stk500v2_command(): error in %s: %s\n",
                     progname,
                     (buf[0] == CMD_XPROG_SETMODE? "CMD_XPROG_SETMODE": "CMD_XPROG"),
                     msg);
@@ -903,21 +894,19 @@ retry:
                 break;
             }
             if (quell_progress < 2) {
-                fprintf(stderr, "%s: stk500v2_command(): warning: %s\n",
+                avrdude_message("%s: stk500v2_command(): warning: %s\n",
                         progname, msg);
             }
         } else if (buf[1] == STATUS_CMD_OK) {
             return status;
         } else if (buf[1] == STATUS_CMD_FAILED) {
-            fprintf(stderr,
-                    "%s: stk500v2_command(): command failed\n",
-                    progname);
+            avrdude_message("%s: stk500v2_command(): command failed\n",
+                            progname);
         } else if (buf[1] == STATUS_CMD_UNKNOWN) {
-            fprintf(stderr,
-                    "%s: stk500v2_command(): unknown command\n",
-                    progname);
+            avrdude_message("%s: stk500v2_command(): unknown command\n",
+                            progname);
         } else {
-            fprintf(stderr, "%s: stk500v2_command(): unknown status 0x%02x\n",
+            avrdude_message("%s: stk500v2_command(): unknown status 0x%02x\n",
                     progname, buf[1]);
         }
         return -1;
@@ -928,7 +917,7 @@ retry:
   status = stk500v2_getsync(pgm);
   if (status != 0) {
     if (tries > RETRIES) {
-      fprintf(stderr,"%s: stk500v2_command(): failed miserably to execute command 0x%02x\n",
+      avrdude_message("%s: stk500v2_command(): failed miserably to execute command 0x%02x\n",
               progname,buf[0]);
       return -1;
     } else
@@ -958,11 +947,11 @@ static int stk500v2_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
 
   result = stk500v2_command(pgm, buf, 8, sizeof(buf));
   if (result < 0) {
-    fprintf(stderr, "%s: stk500v2_cmd(): failed to send command\n",
+    avrdude_message("%s: stk500v2_cmd(): failed to send command\n",
             progname);
     return -1;
   } else if (result < 6) {
-    fprintf(stderr, "%s: stk500v2_cmd(): short reply, len = %d\n",
+    avrdude_message("%s: stk500v2_cmd(): short reply, len = %d\n",
             progname, result);
     return -1;
   }
@@ -979,9 +968,8 @@ static int stk500v2_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
 static int stk500v2_jtag3_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
 			      unsigned char *res)
 {
-  fprintf(stderr,
-	  "%s: stk500v2_jtag3_cmd(): Not available in JTAGICE3\n",
-	  progname);
+  avrdude_message("%s: stk500v2_jtag3_cmd(): Not available in JTAGICE3\n",
+                  progname);
 
   return -1;
 }
@@ -996,7 +984,7 @@ static int stk500v2_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   unsigned char buf[16];
 
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
-    fprintf(stderr, "%s: stk500v2_chip_erase: chip erase instruction not defined for part \"%s\"\n",
+    avrdude_message("%s: stk500v2_chip_erase: chip erase instruction not defined for part \"%s\"\n",
             progname, p->desc);
     return -1;
   }
@@ -1116,7 +1104,7 @@ static int stk500v2_program_enable(PROGRAMMER * pgm, AVRPART * p)
   PDATA(pgm)->lastpart = p;
 
   if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
-    fprintf(stderr, "%s: stk500v2_program_enable(): program enable instruction not defined for part \"%s\"\n",
+    avrdude_message("%s: stk500v2_program_enable(): program enable instruction not defined for part \"%s\"\n",
 	    progname, p->desc);
     return -1;
   }
@@ -1147,12 +1135,11 @@ retry:
     case PGMTYPE_STK600:
     case PGMTYPE_AVRISP_MKII:
         if (stk500v2_getparm(pgm, PARAM_STATUS_TGT_CONN, &buf[0]) != 0) {
-            fprintf(stderr,
-                    "%s: stk500v2_program_enable(): cannot get connection status\n",
-                    progname);
+            avrdude_message("%s: stk500v2_program_enable(): cannot get connection status\n",
+                            progname);
         } else {
             stk500v2_translate_conn_status(buf[0], msg);
-            fprintf(stderr, "%s: stk500v2_program_enable():"
+            avrdude_message("%s: stk500v2_program_enable():"
                     " bad AVRISPmkII connection status: %s\n",
                     progname, msg);
         }
@@ -1166,9 +1153,8 @@ retry:
 
             /* Try debugWIRE, and MONCON_DISABLE */
             if (verbose >= 2)
-                fprintf(stderr,
-                        "%s: No response in ISP mode, trying debugWIRE\n",
-                        progname);
+                avrdude_message("%s: No response in ISP mode, trying debugWIRE\n",
+                                progname);
 
             mycookie = pgm->cookie;
             pgm->cookie = PDATA(pgm)->chained_pdata;
@@ -1197,15 +1183,13 @@ retry:
             }
             pgm->cookie = mycookie;
             if (tries++ > 3) {
-                fprintf(stderr,
-                        "%s: Failed to return from debugWIRE to ISP.\n",
-                        progname);
+                avrdude_message("%s: Failed to return from debugWIRE to ISP.\n",
+                                progname);
                 break;
             }
-            fprintf(stderr,
-                    "%s: Target prepared for ISP, signed off.\n"
-                    "%s: Now retrying without power-cycling the target.\n",
-                    progname, progname);
+            avrdude_message("%s: Target prepared for ISP, signed off.\n"
+                            "%s: Now retrying without power-cycling the target.\n",
+                            progname, progname);
             goto retry;
         }
         break;
@@ -1287,9 +1271,8 @@ static int stk500v2_initialize(PROGRAMMER * pgm, AVRPART * p)
       AVRMEM *bootmem = avr_locate_mem(p, "boot");
       AVRMEM *flashmem = avr_locate_mem(p, "flash");
       if (bootmem == NULL || flashmem == NULL) {
-        fprintf(stderr,
-                "%s: stk500v2_initialize(): Cannot locate \"flash\" and \"boot\" memories in description\n",
-                progname);
+        avrdude_message("%s: stk500v2_initialize(): Cannot locate \"flash\" and \"boot\" memories in description\n",
+                        progname);
       } else {
         PDATA(pgm)->boot_start = bootmem->offset - flashmem->offset;
       }
@@ -1324,7 +1307,7 @@ static int stk500v2_jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
 
   if ((p->flags & AVRPART_HAS_PDI) ||
       (p->flags & AVRPART_HAS_TPI)) {
-    fprintf(stderr, "%s: jtag3_initialize(): part %s has no ISP interface\n",
+    avrdude_message("%s: jtag3_initialize(): part %s has no ISP interface\n",
 	    progname, p->desc);
     return -1;
   }
@@ -1386,12 +1369,12 @@ static int stk500v2_jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
   free(PDATA(pgm)->flash_pagecache);
   free(PDATA(pgm)->eeprom_pagecache);
   if ((PDATA(pgm)->flash_pagecache = malloc(PDATA(pgm)->flash_pagesize)) == NULL) {
-    fprintf(stderr, "%s: stk500hv_initialize(): Out of memory\n",
+    avrdude_message("%s: stk500hv_initialize(): Out of memory\n",
 	    progname);
     return -1;
   }
   if ((PDATA(pgm)->eeprom_pagecache = malloc(PDATA(pgm)->eeprom_pagesize)) == NULL) {
-    fprintf(stderr, "%s: stk500hv_initialize(): Out of memory\n",
+    avrdude_message("%s: stk500hv_initialize(): Out of memory\n",
 	    progname);
     free(PDATA(pgm)->flash_pagecache);
     return -1;
@@ -1413,12 +1396,11 @@ static int stk500hv_initialize(PROGRAMMER * pgm, AVRPART * p, enum hvmode mode)
   AVRMEM * m;
 
   if (p->ctl_stack_type != (mode == PPMODE? CTL_STACK_PP: CTL_STACK_HVSP)) {
-    fprintf(stderr,
-	    "%s: stk500hv_initialize(): "
-	    "%s programming control stack not defined for part \"%s\"\n",
-            progname,
-	    (mode == PPMODE? "parallel": "high-voltage serial"),
-	    p->desc);
+    avrdude_message("%s: stk500hv_initialize(): "
+                    "%s programming control stack not defined for part \"%s\"\n",
+                    progname,
+                    (mode == PPMODE? "parallel": "high-voltage serial"),
+                    p->desc);
     return -1;
   }
 
@@ -1428,10 +1410,9 @@ static int stk500hv_initialize(PROGRAMMER * pgm, AVRPART * p, enum hvmode mode)
   result = stk500v2_command(pgm, buf, CTL_STACK_SIZE + 1, sizeof(buf));
 
   if (result < 0) {
-    fprintf(stderr,
-	    "%s: stk500hv_initalize(): "
-	    "failed to set control stack\n",
-            progname);
+    avrdude_message("%s: stk500hv_initalize(): "
+                    "failed to set control stack\n",
+                    progname);
     return -1;
   }
 
@@ -1459,12 +1440,12 @@ static int stk500hv_initialize(PROGRAMMER * pgm, AVRPART * p, enum hvmode mode)
   free(PDATA(pgm)->flash_pagecache);
   free(PDATA(pgm)->eeprom_pagecache);
   if ((PDATA(pgm)->flash_pagecache = malloc(PDATA(pgm)->flash_pagesize)) == NULL) {
-    fprintf(stderr, "%s: stk500hv_initialize(): Out of memory\n",
+    avrdude_message("%s: stk500hv_initialize(): Out of memory\n",
 	    progname);
     return -1;
   }
   if ((PDATA(pgm)->eeprom_pagecache = malloc(PDATA(pgm)->eeprom_pagesize)) == NULL) {
-    fprintf(stderr, "%s: stk500hv_initialize(): Out of memory\n",
+    avrdude_message("%s: stk500hv_initialize(): Out of memory\n",
 	    progname);
     free(PDATA(pgm)->flash_pagecache);
     return -1;
@@ -1507,9 +1488,8 @@ static void stk500v2_jtag3_disable(PROGRAMMER * pgm)
   result = stk500v2_command(pgm, buf, 3, sizeof(buf));
 
   if (result < 0) {
-    fprintf(stderr,
-            "%s: stk500v2_disable(): failed to leave programming mode\n",
-            progname);
+    avrdude_message("%s: stk500v2_disable(): failed to leave programming mode\n",
+                    progname);
   }
 
   return;
@@ -1527,9 +1507,8 @@ static void stk500v2_disable(PROGRAMMER * pgm)
   result = stk500v2_command(pgm, buf, 3, sizeof(buf));
 
   if (result < 0) {
-    fprintf(stderr,
-            "%s: stk500v2_disable(): failed to leave programming mode\n",
-            progname);
+    avrdude_message("%s: stk500v2_disable(): failed to leave programming mode\n",
+                    progname);
   }
 
   return;
@@ -1558,10 +1537,9 @@ static void stk500hv_disable(PROGRAMMER * pgm, enum hvmode mode)
   result = stk500v2_command(pgm, buf, 3, sizeof(buf));
 
   if (result < 0) {
-    fprintf(stderr,
-	    "%s: stk500hv_disable(): "
-	    "failed to leave programming mode\n",
-            progname);
+    avrdude_message("%s: stk500hv_disable(): "
+                    "failed to leave programming mode\n",
+                    progname);
   }
 
   return;
@@ -1605,7 +1583,7 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
     serdev = &avrdoper_serdev;
     PDATA(pgm)->pgmtype = PGMTYPE_STK500;
 #else
-    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    avrdude_message("avrdude was compiled without usb support.\n");
     return -1;
 #endif
   }
@@ -1629,7 +1607,7 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
     pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_MKII;
     pgm->fd.usb.eep = 0;           /* no seperate EP for events */
 #else
-    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    avrdude_message("avrdude was compiled without usb support.\n");
     return -1;
 #endif
   }
@@ -1687,7 +1665,7 @@ static int stk600_open(PROGRAMMER * pgm, char * port)
     pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_STK600;
     pgm->fd.usb.eep = 0;           /* no seperate EP for events */
 #else
-    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    avrdude_message("avrdude was compiled without usb support.\n");
     return -1;
 #endif
   }
@@ -1740,9 +1718,8 @@ static int stk500v2_loadaddr(PROGRAMMER * pgm, unsigned int addr)
   result = stk500v2_command(pgm, buf, 5, sizeof(buf));
 
   if (result < 0) {
-    fprintf(stderr,
-            "%s: stk500v2_loadaddr(): failed to set load address\n",
-            progname);
+    avrdude_message("%s: stk500v2_loadaddr(): failed to set load address\n",
+                    progname);
     return -1;
   }
 
@@ -1764,7 +1741,7 @@ static int stk500hv_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   unsigned char *cache_ptr = NULL;
 
   if (verbose >= 2)
-    fprintf(stderr, "%s: stk500hv_read_byte(.., %s, 0x%lx, ...)\n",
+    avrdude_message("%s: stk500hv_read_byte(.., %s, 0x%lx, ...)\n",
 	    progname, mem->desc, addr);
 
   if (strcmp(mem->desc, "flash") == 0) {
@@ -1838,16 +1815,15 @@ static int stk500hv_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   }
 
   if (verbose >= 2)
-    fprintf(stderr, "%s: stk500hv_read_byte(): Sending read memory command: ",
+    avrdude_message("%s: stk500hv_read_byte(): Sending read memory command: ",
 	    progname);
 
   result = stk500v2_command(pgm, buf, cmdlen, sizeof(buf));
 
   if (result < 0) {
-    fprintf(stderr,
-	    "%s: stk500hv_read_byte(): "
-	    "timeout/error communicating with programmer\n",
-	    progname);
+    avrdude_message("%s: stk500hv_read_byte(): "
+                    "timeout/error communicating with programmer\n",
+                    progname);
     return -1;
   }
 
@@ -1897,7 +1873,7 @@ static int stk500isp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   OPCODE *op;
 
   if (verbose >= 2)
-    fprintf(stderr, "%s: stk500isp_read_byte(.., %s, 0x%lx, ...)\n",
+    avrdude_message("%s: stk500isp_read_byte(.., %s, 0x%lx, ...)\n",
 	    progname, mem->desc, addr);
 
   if (strcmp(mem->desc, "flash") == 0 ||
@@ -1952,32 +1928,29 @@ static int stk500isp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
   memset(buf + 1, 0, 5);
   if ((op = mem->op[AVR_OP_READ]) == NULL) {
-    fprintf(stderr,
-	    "%s: stk500isp_read_byte(): invalid operation AVR_OP_READ on %s memory\n",
-	    progname, mem->desc);
+    avrdude_message("%s: stk500isp_read_byte(): invalid operation AVR_OP_READ on %s memory\n",
+                    progname, mem->desc);
     return -1;
   }
   avr_set_bits(op, buf + 2);
   if ((pollidx = avr_get_output_index(op)) == -1) {
-    fprintf(stderr,
-	    "%s: stk500isp_read_byte(): cannot determine pollidx to read %s memory\n",
-	    progname, mem->desc);
+    avrdude_message("%s: stk500isp_read_byte(): cannot determine pollidx to read %s memory\n",
+                    progname, mem->desc);
     pollidx = 3;
   }
   buf[1] = pollidx + 1;
   avr_set_addr(op, buf + 2, addr);
 
   if (verbose >= 2)
-    fprintf(stderr, "%s: stk500isp_read_byte(): Sending read memory command: ",
+    avrdude_message("%s: stk500isp_read_byte(): Sending read memory command: ",
 	    progname);
 
   result = stk500v2_command(pgm, buf, 6, sizeof(buf));
 
   if (result < 0) {
-    fprintf(stderr,
-	    "%s: stk500isp_read_byte(): "
-	    "timeout/error communicating with programmer\n",
-	    progname);
+    avrdude_message("%s: stk500isp_read_byte(): "
+                    "timeout/error communicating with programmer\n",
+                    progname);
     return -1;
   }
 
@@ -2000,7 +1973,7 @@ static int stk500hv_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   unsigned char *cache_ptr = NULL;
 
   if (verbose >= 2)
-    fprintf(stderr, "%s: stk500hv_write_byte(.., %s, 0x%lx, ...)\n",
+    avrdude_message("%s: stk500hv_write_byte(.., %s, 0x%lx, ...)\n",
 	    progname, mem->desc, addr);
 
   if (strcmp(mem->desc, "flash") == 0) {
@@ -2048,10 +2021,9 @@ static int stk500hv_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     pulsewidth = p->programlockpulsewidth;
     timeout = p->programlockpolltimeout;
   } else {
-    fprintf(stderr,
-	    "%s: stk500hv_write_byte(): "
-	    "unsupported memory type: %s\n",
-	    progname, mem->desc);
+    avrdude_message("%s: stk500hv_write_byte(): "
+                    "unsupported memory type: %s\n",
+                    progname, mem->desc);
     return -1;
   }
 
@@ -2110,16 +2082,15 @@ static int stk500hv_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   }
 
   if (verbose >= 2)
-    fprintf(stderr, "%s: stk500hv_write_byte(): Sending write memory command: ",
+    avrdude_message("%s: stk500hv_write_byte(): Sending write memory command: ",
 	    progname);
 
   result = stk500v2_command(pgm, buf, cmdlen, sizeof(buf));
 
   if (result < 0) {
-    fprintf(stderr,
-	    "%s: stk500hv_write_byte(): "
-	    "timeout/error communicating with programmer\n",
-	    progname);
+    avrdude_message("%s: stk500hv_write_byte(): "
+                    "timeout/error communicating with programmer\n",
+                    progname);
     return -1;
   }
 
@@ -2164,7 +2135,7 @@ static int stk500isp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   OPCODE *op;
 
   if (verbose >= 2)
-    fprintf(stderr, "%s: stk500isp_write_byte(.., %s, 0x%lx, ...)\n",
+    avrdude_message("%s: stk500isp_write_byte(.., %s, 0x%lx, ...)\n",
 	    progname, mem->desc, addr);
 
   if (strcmp(mem->desc, "flash") == 0 ||
@@ -2216,18 +2187,16 @@ static int stk500isp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   } else if (strcmp(mem->desc, "lock") == 0) {
     buf[0] = CMD_PROGRAM_LOCK_ISP;
   } else {
-    fprintf(stderr,
-	    "%s: stk500isp_write_byte(): "
-	    "unsupported memory type: %s\n",
-	    progname, mem->desc);
+    avrdude_message("%s: stk500isp_write_byte(): "
+                    "unsupported memory type: %s\n",
+                    progname, mem->desc);
     return -1;
   }
 
   if ((op = mem->op[AVR_OP_WRITE]) == NULL) {
-    fprintf(stderr,
-	    "%s: stk500isp_write_byte(): "
-	    "no AVR_OP_WRITE for %s memory\n",
-	    progname, mem->desc);
+    avrdude_message("%s: stk500isp_write_byte(): "
+                    "no AVR_OP_WRITE for %s memory\n",
+                    progname, mem->desc);
     return -1;
   }
 
@@ -2236,16 +2205,15 @@ static int stk500isp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   avr_set_input(op, buf + 1, data);
 
   if (verbose >= 2)
-    fprintf(stderr, "%s: stk500isp_write_byte(): Sending write memory command: ",
+    avrdude_message("%s: stk500isp_write_byte(): Sending write memory command: ",
 	    progname);
 
   result = stk500v2_command(pgm, buf, 5, sizeof(buf));
 
   if (result < 0) {
-    fprintf(stderr,
-	    "%s: stk500isp_write_byte(): "
-	    "timeout/error communicating with programmer\n",
-	    progname);
+    avrdude_message("%s: stk500isp_write_byte(): "
+                    "timeout/error communicating with programmer\n",
+                    progname);
     return -1;
   }
 
@@ -2317,7 +2285,7 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     commandbuf[3] = m->mode | 0x80;		// yes, write the page to flash
 
     if (m->op[AVR_OP_LOADPAGE_LO] == NULL) {
-      fprintf(stderr, "%s: stk500v2_paged_write: loadpage instruction not defined for part \"%s\"\n",
+      avrdude_message("%s: stk500v2_paged_write: loadpage instruction not defined for part \"%s\"\n",
               progname, p->desc);
       return -1;
     }
@@ -2325,7 +2293,7 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     commandbuf[5] = cmds[0];
 
     if (m->op[AVR_OP_WRITEPAGE] == NULL) {
-      fprintf(stderr, "%s: stk500v2_paged_write: write page instruction not defined for part \"%s\"\n",
+      avrdude_message("%s: stk500v2_paged_write: write page instruction not defined for part \"%s\"\n",
               progname, p->desc);
       return -1;
     }
@@ -2338,7 +2306,7 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     commandbuf[3] = m->mode | 0x80;		// yes, write the words to flash
 
     if (wop == NULL) {
-      fprintf(stderr, "%s: stk500v2_paged_write: write instruction not defined for part \"%s\"\n",
+      avrdude_message("%s: stk500v2_paged_write: write instruction not defined for part \"%s\"\n",
               progname, p->desc);
       return -1;
     }
@@ -2349,7 +2317,7 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   // the read command is common to both methods
   if (rop == NULL) {
-    fprintf(stderr, "%s: stk500v2_paged_write: read instruction not defined for part \"%s\"\n",
+    avrdude_message("%s: stk500v2_paged_write: read instruction not defined for part \"%s\"\n",
             progname, p->desc);
     return -1;
   }
@@ -2384,9 +2352,8 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     result = stk500v2_command(pgm,buf,block_size+10, sizeof(buf));
     if (result < 0) {
-      fprintf(stderr,
-              "%s: stk500v2_paged_write: write command failed\n",
-              progname);
+      avrdude_message("%s: stk500v2_paged_write: write command failed\n",
+                      progname);
       return -1;
     }
   }
@@ -2480,9 +2447,8 @@ static int stk500hv_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     result = stk500v2_command(pgm, buf, page_size + 5, sizeof(buf));
     if (result < 0) {
-      fprintf(stderr,
-              "%s: stk500hv_paged_write: write command failed\n",
-              progname);
+      avrdude_message("%s: stk500hv_paged_write: write command failed\n",
+                      progname);
       return -1;
     }
   }
@@ -2554,7 +2520,7 @@ static int stk500v2_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   // the read command is common to both methods
   if (rop == NULL) {
-    fprintf(stderr, "%s: stk500v2_paged_load: read instruction not defined for part \"%s\"\n",
+    avrdude_message("%s: stk500v2_paged_load: read instruction not defined for part \"%s\"\n",
             progname, p->desc);
     return -1;
   }
@@ -2583,15 +2549,14 @@ static int stk500v2_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     result = stk500v2_command(pgm,buf,4,sizeof(buf));
     if (result < 0) {
-      fprintf(stderr,
-              "%s: stk500v2_paged_load: read command failed\n",
-              progname);
+      avrdude_message("%s: stk500v2_paged_load: read command failed\n",
+                      progname);
       return -1;
     }
 #if 0
     for (i=0;i<page_size;i++) {
-      fprintf(stderr,"%02X",buf[2+i]);
-      if (i%16 == 15) fprintf(stderr,"\n");
+      avrdude_message("%02X",buf[2+i]);
+      if (i%16 == 15) avrdude_message("\n");
     }
 #endif
 
@@ -2664,15 +2629,14 @@ static int stk500hv_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     result = stk500v2_command(pgm, buf, 3, sizeof(buf));
     if (result < 0) {
-      fprintf(stderr,
-              "%s: stk500hv_paged_load: read command failed\n",
-              progname);
+      avrdude_message("%s: stk500hv_paged_load: read command failed\n",
+                      progname);
       return -1;
     }
 #if 0
     for (i = 0; i < page_size; i++) {
-      fprintf(stderr, "%02X", buf[2 + i]);
-      if (i % 16 == 15) fprintf(stderr, "\n");
+      avrdude_message("%02X", buf[2 + i]);
+      if (i % 16 == 15) avrdude_message("\n");
     }
 #endif
 
@@ -2706,9 +2670,8 @@ static int stk500hvsp_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 static int stk500v2_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                                unsigned int addr)
 {
-  fprintf(stderr,
-          "%s: stk500v2_page_erase(): this function must never be called\n",
-          progname);
+  avrdude_message("%s: stk500v2_page_erase(): this function must never be called\n",
+                  progname);
   return -1;
 }
 
@@ -2719,16 +2682,14 @@ static int stk500v2_set_vtarget(PROGRAMMER * pgm, double v)
   utarg = (unsigned)((v + 0.049) * 10);
 
   if (stk500v2_getparm(pgm, PARAM_VADJUST, &uaref) != 0) {
-    fprintf(stderr,
-	    "%s: stk500v2_set_vtarget(): cannot obtain V[aref]\n",
-	    progname);
+    avrdude_message("%s: stk500v2_set_vtarget(): cannot obtain V[aref]\n",
+                    progname);
     return -1;
   }
 
   if (uaref > utarg) {
-    fprintf(stderr,
-	    "%s: stk500v2_set_vtarget(): reducing V[aref] from %.1f to %.1f\n",
-	    progname, uaref / 10.0, v);
+    avrdude_message("%s: stk500v2_set_vtarget(): reducing V[aref] from %.1f to %.1f\n",
+                    progname, uaref / 10.0, v);
     if (stk500v2_setparm(pgm, PARAM_VADJUST, utarg)
 	!= 0)
       return -1;
@@ -2745,17 +2706,15 @@ static int stk500v2_set_varef(PROGRAMMER * pgm, unsigned int chan /* unused */,
   uaref = (unsigned)((v + 0.049) * 10);
 
   if (stk500v2_getparm(pgm, PARAM_VTARGET, &utarg) != 0) {
-    fprintf(stderr,
-	    "%s: stk500v2_set_varef(): cannot obtain V[target]\n",
-	    progname);
+    avrdude_message("%s: stk500v2_set_varef(): cannot obtain V[target]\n",
+                    progname);
     return -1;
   }
 
   if (uaref > utarg) {
-    fprintf(stderr,
-	    "%s: stk500v2_set_varef(): V[aref] must not be greater than "
-	    "V[target] = %.1f\n",
-	    progname, utarg / 10.0);
+    avrdude_message("%s: stk500v2_set_varef(): V[aref] must not be greater than "
+                    "V[target] = %.1f\n",
+                    progname, utarg / 10.0);
     return -1;
   }
   return stk500v2_setparm(pgm, PARAM_VADJUST, uaref);
@@ -2783,9 +2742,8 @@ static int stk500v2_set_fosc(PROGRAMMER * pgm, double v)
         unit = "kHz";
       } else
         unit = "Hz";
-      fprintf(stderr,
-          "%s: stk500v2_set_fosc(): f = %.3f %s too high, using %.3f MHz\n",
-          progname, v, unit, STK500V2_XTAL / 2e6);
+      avrdude_message("%s: stk500v2_set_fosc(): f = %.3f %s too high, using %.3f MHz\n",
+                      progname, v, unit, STK500V2_XTAL / 2e6);
       fosc = STK500V2_XTAL / 2;
     } else
       fosc = (unsigned)v;
@@ -2799,7 +2757,7 @@ static int stk500v2_set_fosc(PROGRAMMER * pgm, double v)
       }
     }
     if (idx == sizeof(ps) / sizeof(ps[0])) {
-      fprintf(stderr, "%s: stk500v2_set_fosc(): f = %u Hz too low, %u Hz min\n",
+      avrdude_message("%s: stk500v2_set_fosc(): f = %u Hz too low, %u Hz min\n",
           progname, fosc, STK500V2_XTAL / (256 * 1024 * 2));
       return -1;
     }
@@ -2846,7 +2804,7 @@ static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v)
   }
 
   if (verbose > 2)
-    fprintf(stderr, "Using p = %.2f us for SCK (param = %d)\n",
+    avrdude_message("Using p = %.2f us for SCK (param = %d)\n",
 	    1000000 / avrispmkIIfreqs[i], i);
 
   return stk500v2_setparm(pgm, PARAM_SCK_DURATION, i);
@@ -2869,9 +2827,8 @@ static unsigned int stk500v2_mode_for_pagesize(unsigned int pagesize)
     case 64:   return 6u << 1;
     case 128:  return 7u << 1;
     }
-  fprintf(stderr,
-	  "%s: stk500v2_mode_for_pagesize(): invalid pagesize: %u\n",
-	  progname, pagesize);
+  avrdude_message("%s: stk500v2_mode_for_pagesize(): invalid pagesize: %u\n",
+                  progname, pagesize);
   return 0;
 }
 
@@ -2939,16 +2896,14 @@ static int stk600_set_vtarget(PROGRAMMER * pgm, double v)
   utarg = (unsigned)((v + 0.049) * 10);
 
   if (stk500v2_getparm2(pgm, PARAM2_AREF0, &uaref) != 0) {
-    fprintf(stderr,
-	    "%s: stk500v2_set_vtarget(): cannot obtain V[aref][0]\n",
-	    progname);
+    avrdude_message("%s: stk500v2_set_vtarget(): cannot obtain V[aref][0]\n",
+                    progname);
     return -1;
   }
 
   if (uaref > (unsigned)utarg * 10) {
-    fprintf(stderr,
-	    "%s: stk500v2_set_vtarget(): reducing V[aref][0] from %.2f to %.1f\n",
-	    progname, uaref / 100.0, v);
+    avrdude_message("%s: stk500v2_set_vtarget(): reducing V[aref][0] from %.2f to %.1f\n",
+                    progname, uaref / 100.0, v);
     uaref = 10 * (unsigned)utarg;
     if (stk500v2_setparm2(pgm, PARAM2_AREF0, uaref)
 	!= 0)
@@ -2956,16 +2911,14 @@ static int stk600_set_vtarget(PROGRAMMER * pgm, double v)
   }
 
   if (stk500v2_getparm2(pgm, PARAM2_AREF1, &uaref) != 0) {
-    fprintf(stderr,
-	    "%s: stk500v2_set_vtarget(): cannot obtain V[aref][1]\n",
-	    progname);
+    avrdude_message("%s: stk500v2_set_vtarget(): cannot obtain V[aref][1]\n",
+                    progname);
     return -1;
   }
 
   if (uaref > (unsigned)utarg * 10) {
-    fprintf(stderr,
-	    "%s: stk500v2_set_vtarget(): reducing V[aref][1] from %.2f to %.1f\n",
-	    progname, uaref / 100.0, v);
+    avrdude_message("%s: stk500v2_set_vtarget(): reducing V[aref][1] from %.2f to %.1f\n",
+                    progname, uaref / 100.0, v);
     uaref = 10 * (unsigned)utarg;
     if (stk500v2_setparm2(pgm, PARAM2_AREF1, uaref)
 	!= 0)
@@ -2994,17 +2947,15 @@ static int stk600_set_varef(PROGRAMMER * pgm, unsigned int chan, double v)
   uaref = (unsigned)((v + 0.0049) * 100);
 
   if (stk500v2_getparm(pgm, PARAM_VTARGET, &utarg) != 0) {
-    fprintf(stderr,
-	    "%s: stk500v2_set_varef(): cannot obtain V[target]\n",
-	    progname);
+    avrdude_message("%s: stk500v2_set_varef(): cannot obtain V[target]\n",
+                    progname);
     return -1;
   }
 
   if (uaref > (unsigned)utarg * 10) {
-    fprintf(stderr,
-	    "%s: stk500v2_set_varef(): V[aref] must not be greater than "
-	    "V[target] = %.1f\n",
-	    progname, utarg / 10.0);
+    avrdude_message("%s: stk500v2_set_varef(): V[aref] must not be greater than "
+                    "V[target] = %.1f\n",
+                    progname, utarg / 10.0);
     return -1;
   }
 
@@ -3017,9 +2968,8 @@ static int stk600_set_varef(PROGRAMMER * pgm, unsigned int chan, double v)
     return stk500v2_setparm2(pgm, PARAM2_AREF1, uaref);
 
   default:
-    fprintf(stderr,
-	    "%s: stk500v2_set_varef(): invalid channel %d\n",
-	    progname, chan);
+    avrdude_message("%s: stk500v2_set_varef(): invalid channel %d\n",
+                    progname, chan);
     return -1;
   }
 }
@@ -3078,7 +3028,7 @@ static int stk500v2_getparm(PROGRAMMER * pgm, unsigned char parm, unsigned char 
   buf[1] = parm;
 
   if (stk500v2_command(pgm, buf, 2, sizeof(buf)) < 0) {
-    fprintf(stderr,"%s: stk500v2_getparm(): failed to get parameter 0x%02x\n",
+    avrdude_message("%s: stk500v2_getparm(): failed to get parameter 0x%02x\n",
             progname, parm);
     return -1;
   }
@@ -3097,7 +3047,7 @@ static int stk500v2_setparm_real(PROGRAMMER * pgm, unsigned char parm, unsigned 
   buf[2] = value;
 
   if (stk500v2_command(pgm, buf, 3, sizeof(buf)) < 0) {
-    fprintf(stderr, "\n%s: stk500v2_setparm(): failed to set parameter 0x%02x\n",
+    avrdude_message("\n%s: stk500v2_setparm(): failed to set parameter 0x%02x\n",
             progname, parm);
     return -1;
   }
@@ -3112,11 +3062,11 @@ static int stk500v2_setparm(PROGRAMMER * pgm, unsigned char parm, unsigned char 
 
   res = stk500v2_getparm(pgm, parm, &current_value);
   if (res < 0)
-    fprintf(stderr, "%s: Unable to get parameter 0x%02x\n", progname, parm);
+    avrdude_message("%s: Unable to get parameter 0x%02x\n", progname, parm);
 
   // don't issue a write if the correct value is already set.
   if (value == current_value && verbose > 2) {
-    fprintf(stderr, "%s: Skipping paramter write; parameter value already set.\n", progname);
+    avrdude_message("%s: Skipping paramter write; parameter value already set.\n", progname);
     return 0;
   }
 
@@ -3131,7 +3081,7 @@ static int stk500v2_getparm2(PROGRAMMER * pgm, unsigned char parm, unsigned int 
   buf[1] = parm;
 
   if (stk500v2_command(pgm, buf, 2, sizeof(buf)) < 0) {
-    fprintf(stderr,"%s: stk500v2_getparm2(): failed to get parameter 0x%02x\n",
+    avrdude_message("%s: stk500v2_getparm2(): failed to get parameter 0x%02x\n",
             progname, parm);
     return -1;
   }
@@ -3151,7 +3101,7 @@ static int stk500v2_setparm2(PROGRAMMER * pgm, unsigned char parm, unsigned int 
   buf[3] = value;
 
   if (stk500v2_command(pgm, buf, 4, sizeof(buf)) < 0) {
-    fprintf(stderr, "\n%s: stk500v2_setparm2(): failed to set parameter 0x%02x\n",
+    avrdude_message("\n%s: stk500v2_setparm2(): failed to set parameter 0x%02x\n",
             progname, parm);
     return -1;
   }
@@ -3192,19 +3142,19 @@ static void stk500v2_display(PROGRAMMER * pgm, const char * p)
   }
   if (PDATA(pgm)->pgmtype != PGMTYPE_JTAGICE_MKII &&
       PDATA(pgm)->pgmtype != PGMTYPE_JTAGICE3) {
-    fprintf(stderr, "%sProgrammer Model: %s\n", p, pgmname);
+    avrdude_message("%sProgrammer Model: %s\n", p, pgmname);
     stk500v2_getparm(pgm, PARAM_HW_VER, &hdw);
     stk500v2_getparm(pgm, PARAM_SW_MAJOR, &maj);
     stk500v2_getparm(pgm, PARAM_SW_MINOR, &min);
-    fprintf(stderr, "%sHardware Version: %d\n", p, hdw);
-    fprintf(stderr, "%sFirmware Version Master : %d.%02d\n", p, maj, min);
+    avrdude_message("%sHardware Version: %d\n", p, hdw);
+    avrdude_message("%sFirmware Version Master : %d.%02d\n", p, maj, min);
     if (PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
       stk500v2_getparm(pgm, PARAM_SW_MAJOR_SLAVE1, &maj_s1);
       stk500v2_getparm(pgm, PARAM_SW_MINOR_SLAVE1, &min_s1);
       stk500v2_getparm(pgm, PARAM_SW_MAJOR_SLAVE2, &maj_s2);
       stk500v2_getparm(pgm, PARAM_SW_MINOR_SLAVE2, &min_s2);
-      fprintf(stderr, "%sFirmware Version Slave 1: %d.%02d\n", p, maj_s1, min_s1);
-      fprintf(stderr, "%sFirmware Version Slave 2: %d.%02d\n", p, maj_s2, min_s2);
+      avrdude_message("%sFirmware Version Slave 1: %d.%02d\n", p, maj_s1, min_s1);
+      avrdude_message("%sFirmware Version Slave 2: %d.%02d\n", p, maj_s2, min_s2);
     }
   }
 
@@ -3219,22 +3169,22 @@ static void stk500v2_display(PROGRAMMER * pgm, const char * p)
       case 0xDD: topcard_name = "STK520"; break;
       default: topcard_name = "Unknown"; break;
     }
-    fprintf(stderr, "%sTopcard         : %s\n", p, topcard_name);
+    avrdude_message("%sTopcard         : %s\n", p, topcard_name);
   } else if (PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
     stk500v2_getparm(pgm, PARAM_ROUTINGCARD_ID, &topcard);
-    fprintf(stderr, "%sRouting card    : %s\n", p,
+    avrdude_message("%sRouting card    : %s\n", p,
 	    stk600_get_cardname(routing_cards,
 				sizeof routing_cards / sizeof routing_cards[0],
 				topcard));
     stk500v2_getparm(pgm, PARAM_SOCKETCARD_ID, &topcard);
-    fprintf(stderr, "%sSocket card     : %s\n", p,
+    avrdude_message("%sSocket card     : %s\n", p,
 	    stk600_get_cardname(socket_cards,
 				sizeof socket_cards / sizeof socket_cards[0],
 				topcard));
     stk500v2_getparm2(pgm, PARAM2_RC_ID_TABLE_REV, &rev);
-    fprintf(stderr, "%sRC_ID table rev : %d\n", p, rev);
+    avrdude_message("%sRC_ID table rev : %d\n", p, rev);
     stk500v2_getparm2(pgm, PARAM2_EC_ID_TABLE_REV, &rev);
-    fprintf(stderr, "%sEC_ID table rev : %d\n", p, rev);
+    avrdude_message("%sEC_ID table rev : %d\n", p, rev);
   }
   stk500v2_print_parms1(pgm, p);
 
@@ -3271,19 +3221,19 @@ static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p)
     pgm->cookie = PDATA(pgm)->chained_pdata;
     jtagmkII_getparm(pgm, PAR_OCD_VTARGET, vtarget_jtag);
     pgm->cookie = mycookie;
-    fprintf(stderr, "%sVtarget         : %.1f V\n", p,
+    avrdude_message("%sVtarget         : %.1f V\n", p,
 	    b2_to_u16(vtarget_jtag) / 1000.0);
   } else if (PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE3) {
     mycookie = pgm->cookie;
     pgm->cookie = PDATA(pgm)->chained_pdata;
     jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, vtarget_jtag, 2);
     pgm->cookie = mycookie;
-    fprintf(stderr, "%sVtarget         : %.1f V\n", p,
+    avrdude_message("%sVtarget         : %.1f V\n", p,
 	    b2_to_u16(vtarget_jtag) / 1000.0);
 
   } else {
     stk500v2_getparm(pgm, PARAM_VTARGET, &vtarget);
-    fprintf(stderr, "%sVtarget         : %.1f V\n", p, vtarget / 10.0);
+    avrdude_message("%sVtarget         : %.1f V\n", p, vtarget / 10.0);
   }
 
   switch (PDATA(pgm)->pgmtype) {
@@ -3292,12 +3242,12 @@ static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p)
     stk500v2_getparm(pgm, PARAM_VADJUST, &vadjust);
     stk500v2_getparm(pgm, PARAM_OSC_PSCALE, &osc_pscale);
     stk500v2_getparm(pgm, PARAM_OSC_CMATCH, &osc_cmatch);
-    fprintf(stderr, "%sSCK period      : %.1f us\n", p,
+    avrdude_message("%sSCK period      : %.1f us\n", p,
 	    stk500v2_sck_to_us(pgm, sck_duration));
-    fprintf(stderr, "%sVaref           : %.1f V\n", p, vadjust / 10.0);
-    fprintf(stderr, "%sOscillator      : ", p);
+    avrdude_message("%sVaref           : %.1f V\n", p, vadjust / 10.0);
+    avrdude_message("%sOscillator      : ", p);
     if (osc_pscale == 0)
-      fprintf(stderr, "Off\n");
+      avrdude_message("Off\n");
     else {
       prescale = 1;
       f = STK500V2_XTAL / 2;
@@ -3313,14 +3263,14 @@ static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p)
       f /= prescale;
       f /= (osc_cmatch + 1);
       f = f_to_kHz_MHz(f, &unit);
-      fprintf(stderr, "%.3f %s\n", f, unit);
+      avrdude_message("%.3f %s\n", f, unit);
     }
     break;
 
   case PGMTYPE_AVRISP_MKII:
   case PGMTYPE_JTAGICE_MKII:
     stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration);
-    fprintf(stderr, "%sSCK period      : %.2f us\n", p,
+    avrdude_message("%sSCK period      : %.2f us\n", p,
 	    (float) 1000000 / avrispmkIIfreqs[sck_duration]);
     break;
 
@@ -3332,7 +3282,7 @@ static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p)
       if (stk500v2_jtag3_send(pgm, cmd, 1) >= 0 &&
 	  stk500v2_jtag3_recv(pgm, cmd, 4) >= 2) {
 	unsigned int sck = cmd[1] | (cmd[2] << 8);
-	fprintf(stderr, "%sSCK period      : %.2f us\n", p,
+	avrdude_message("%sSCK period      : %.2f us\n", p,
 		(float)(1E6 / (1000.0 * sck)));
       }
     }
@@ -3340,23 +3290,23 @@ static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p)
 
   case PGMTYPE_STK600:
     stk500v2_getparm2(pgm, PARAM2_AREF0, &varef);
-    fprintf(stderr, "%sVaref 0         : %.2f V\n", p, varef / 100.0);
+    avrdude_message("%sVaref 0         : %.2f V\n", p, varef / 100.0);
     stk500v2_getparm2(pgm, PARAM2_AREF1, &varef);
-    fprintf(stderr, "%sVaref 1         : %.2f V\n", p, varef / 100.0);
+    avrdude_message("%sVaref 1         : %.2f V\n", p, varef / 100.0);
     stk500v2_getparm2(pgm, PARAM2_SCK_DURATION, &sck_stk600);
-    fprintf(stderr, "%sSCK period      : %.2f us\n", p,
+    avrdude_message("%sSCK period      : %.2f us\n", p,
 	    (float) (sck_stk600 + 1) / 8.0);
     stk500v2_getparm2(pgm, PARAM2_CLOCK_CONF, &clock_conf);
     oct = (clock_conf & 0xf000) >> 12u;
     dac = (clock_conf & 0x0ffc) >> 2u;
     f = pow(2, (double)oct) * 2078.0 / (2 - (double)dac / 1024.0);
     f = f_to_kHz_MHz(f, &unit);
-    fprintf(stderr, "%sOscillator      : %.3f %s\n",
+    avrdude_message("%sOscillator      : %.3f %s\n",
             p, f, unit);
     break;
 
   default:
-    fprintf(stderr, "%sSCK period      : %.1f us\n", p,
+    avrdude_message("%sSCK period      : %.1f us\n", p,
 	  sck_duration * 8.0e6 / STK500V2_XTAL + 0.05);
     break;
   }
@@ -3379,7 +3329,7 @@ static int stk500v2_perform_osccal(PROGRAMMER * pgm)
 
   rv = stk500v2_command(pgm, buf, 1, sizeof(buf));
   if (rv < 0) {
-    fprintf(stderr, "%s: stk500v2_perform_osccal(): failed\n",
+    avrdude_message("%s: stk500v2_perform_osccal(): failed\n",
             progname);
     return -1;
   }
@@ -3404,7 +3354,7 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
   int rv;
 
   if (verbose >= 2)
-    fprintf(stderr, "%s: stk500v2_jtagmkII_open()\n", progname);
+    avrdude_message("%s: stk500v2_jtagmkII_open()\n", progname);
 
   /*
    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
@@ -3431,7 +3381,7 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
     pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_MKII;
     pgm->fd.usb.eep = 0;           /* no seperate EP for events */
 #else
-    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    avrdude_message("avrdude was compiled without usb support.\n");
     return -1;
 #endif
   }
@@ -3450,9 +3400,8 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
   pgm->cookie = PDATA(pgm)->chained_pdata;
   if ((rv = jtagmkII_getsync(pgm, EMULATOR_MODE_SPI)) != 0) {
     if (rv != JTAGII_GETSYNC_FAIL_GRACEFUL)
-        fprintf(stderr,
-                "%s: failed to sync with the JTAG ICE mkII in ISP mode\n",
-                progname);
+        avrdude_message("%s: failed to sync with the JTAG ICE mkII in ISP mode\n",
+                        progname);
     pgm->cookie = mycookie;
     return -1;
   }
@@ -3477,7 +3426,7 @@ static void stk500v2_jtagmkII_close(PROGRAMMER * pgm)
   void *mycookie;
 
   if (verbose >= 2)
-    fprintf(stderr, "%s: stk500v2_jtagmkII_close()\n", progname);
+    avrdude_message("%s: stk500v2_jtagmkII_close()\n", progname);
 
   mycookie = pgm->cookie;
   pgm->cookie = PDATA(pgm)->chained_pdata;
@@ -3494,7 +3443,7 @@ static void stk500v2_jtag3_close(PROGRAMMER * pgm)
   void *mycookie;
 
   if (verbose >= 2)
-    fprintf(stderr, "%s: stk500v2_jtag3_close()\n", progname);
+    avrdude_message("%s: stk500v2_jtag3_close()\n", progname);
 
   mycookie = pgm->cookie;
   pgm->cookie = PDATA(pgm)->chained_pdata;
@@ -3519,7 +3468,7 @@ static int stk500v2_dragon_isp_open(PROGRAMMER * pgm, char * port)
   void *mycookie;
 
   if (verbose >= 2)
-    fprintf(stderr, "%s: stk500v2_dragon_isp_open()\n", progname);
+    avrdude_message("%s: stk500v2_dragon_isp_open()\n", progname);
 
   /*
    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
@@ -3546,7 +3495,7 @@ static int stk500v2_dragon_isp_open(PROGRAMMER * pgm, char * port)
     pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_MKII;
     pgm->fd.usb.eep = 0;           /* no seperate EP for events */
 #else
-    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    avrdude_message("avrdude was compiled without usb support.\n");
     return -1;
 #endif
   }
@@ -3564,7 +3513,7 @@ static int stk500v2_dragon_isp_open(PROGRAMMER * pgm, char * port)
   mycookie = pgm->cookie;
   pgm->cookie = PDATA(pgm)->chained_pdata;
   if (jtagmkII_getsync(pgm, EMULATOR_MODE_SPI) != 0) {
-    fprintf(stderr, "%s: failed to sync with the AVR Dragon in ISP mode\n",
+    avrdude_message("%s: failed to sync with the AVR Dragon in ISP mode\n",
             progname);
     pgm->cookie = mycookie;
     return -1;
@@ -3598,7 +3547,7 @@ static int stk500v2_dragon_hv_open(PROGRAMMER * pgm, char * port)
   void *mycookie;
 
   if (verbose >= 2)
-    fprintf(stderr, "%s: stk500v2_dragon_hv_open()\n", progname);
+    avrdude_message("%s: stk500v2_dragon_hv_open()\n", progname);
 
   /*
    * The JTAG ICE mkII always starts with a baud rate of 19200 Bd upon
@@ -3625,7 +3574,7 @@ static int stk500v2_dragon_hv_open(PROGRAMMER * pgm, char * port)
     pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_MKII;
     pgm->fd.usb.eep = 0;           /* no seperate EP for events */
 #else
-    fprintf(stderr, "avrdude was compiled without usb support.\n");
+    avrdude_message("avrdude was compiled without usb support.\n");
     return -1;
 #endif
   }
@@ -3643,7 +3592,7 @@ static int stk500v2_dragon_hv_open(PROGRAMMER * pgm, char * port)
   mycookie = pgm->cookie;
   pgm->cookie = PDATA(pgm)->chained_pdata;
   if (jtagmkII_getsync(pgm, EMULATOR_MODE_HV) != 0) {
-    fprintf(stderr, "%s: failed to sync with the AVR Dragon in HV mode\n",
+    avrdude_message("%s: failed to sync with the AVR Dragon in HV mode\n",
             progname);
     pgm->cookie = mycookie;
     return -1;
@@ -3676,7 +3625,7 @@ static int stk500v2_jtag3_open(PROGRAMMER * pgm, char * port)
   int rv;
 
   if (verbose >= 2)
-    fprintf(stderr, "%s: stk500v2_jtag3_open()\n", progname);
+    avrdude_message("%s: stk500v2_jtag3_open()\n", progname);
 
   if (jtag3_open_common(pgm, port) < 0)
     return -1;
@@ -3685,9 +3634,8 @@ static int stk500v2_jtag3_open(PROGRAMMER * pgm, char * port)
   pgm->cookie = PDATA(pgm)->chained_pdata;
   if ((rv = jtag3_getsync(pgm, 42)) != 0) {
     if (rv != JTAGII_GETSYNC_FAIL_GRACEFUL)
-        fprintf(stderr,
-                "%s: failed to sync with the JTAGICE3 in ISP mode\n",
-                progname);
+        avrdude_message("%s: failed to sync with the JTAGICE3 in ISP mode\n",
+                        progname);
     pgm->cookie = mycookie;
     return -1;
   }
@@ -3720,7 +3668,7 @@ static int stk600_xprog_command(PROGRAMMER * pgm, unsigned char *b,
         s = cmdsize;
 
     if ((newb = malloc(s + 1)) == 0) {
-        fprintf(stderr, "%s: stk600_xprog_cmd(): out of memory\n",
+        avrdude_message("%s: stk600_xprog_cmd(): out of memory\n",
                 progname);
         return -1;
     }
@@ -3753,16 +3701,14 @@ static int stk600_xprog_program_enable(PROGRAMMER * pgm, AVRPART * p)
 
     if (!use_tpi) {
         if (p->nvm_base == 0) {
-            fprintf(stderr,
-            "%s: stk600_xprog_program_enable(): no nvm_base parameter for PDI device\n",
-                    progname);
+            avrdude_message("%s: stk600_xprog_program_enable(): no nvm_base parameter for PDI device\n",
+                            progname);
             return -1;
         }
         if ((mem = avr_locate_mem(p, "eeprom")) != NULL) {
             if (mem->page_size == 0) {
-                fprintf(stderr,
-                "%s: stk600_xprog_program_enable(): no EEPROM page_size parameter for PDI device\n",
-                        progname);
+                avrdude_message("%s: stk600_xprog_program_enable(): no EEPROM page_size parameter for PDI device\n",
+                                progname);
                 return -1;
             }
             eepagesize = mem->page_size;
@@ -3772,17 +3718,15 @@ static int stk600_xprog_program_enable(PROGRAMMER * pgm, AVRPART * p)
     buf[0] = CMD_XPROG_SETMODE;
     buf[1] = use_tpi? XPRG_MODE_TPI: XPRG_MODE_PDI;
     if (stk500v2_command(pgm, buf, 2, sizeof(buf)) < 0) {
-        fprintf(stderr,
-        "%s: stk600_xprog_program_enable(): CMD_XPROG_SETMODE(XPRG_MODE_%s) failed\n",
-                progname, use_tpi? "TPI": "PDI");
+        avrdude_message("%s: stk600_xprog_program_enable(): CMD_XPROG_SETMODE(XPRG_MODE_%s) failed\n",
+                        progname, use_tpi? "TPI": "PDI");
         return -1;
     }
 
     buf[0] = XPRG_CMD_ENTER_PROGMODE;
     if (stk600_xprog_command(pgm, buf, 1, 2) < 0) {
-        fprintf(stderr,
-        "%s: stk600_xprog_program_enable(): XPRG_CMD_ENTER_PROGMODE failed\n",
-                progname);
+        avrdude_message("%s: stk600_xprog_program_enable(): XPRG_CMD_ENTER_PROGMODE failed\n",
+                        progname);
         return -1;
     }
 
@@ -3798,9 +3742,8 @@ static int stk600_xprog_program_enable(PROGRAMMER * pgm, AVRPART * p)
         buf[1] = XPRG_PARAM_TPI_3;
         buf[2] = 51;
         if (stk600_xprog_command(pgm, buf, 3, 2) < 0) {
-            fprintf(stderr,
-            "%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_TPI_3) failed\n",
-                    progname);
+            avrdude_message("%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_TPI_3) failed\n",
+                            progname);
             return -1;
         }
 
@@ -3808,9 +3751,8 @@ static int stk600_xprog_program_enable(PROGRAMMER * pgm, AVRPART * p)
         buf[1] = XPRG_PARAM_TPI_4;
         buf[2] = 50;
         if (stk600_xprog_command(pgm, buf, 3, 2) < 0) {
-            fprintf(stderr,
-            "%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_TPI_4) failed\n",
-                    progname);
+            avrdude_message("%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_TPI_4) failed\n",
+                            progname);
             return -1;
         }
     } else {
@@ -3829,9 +3771,8 @@ static int stk600_xprog_program_enable(PROGRAMMER * pgm, AVRPART * p)
         buf[4] = nvm_base >> 8;
         buf[5] = nvm_base;
         if (stk600_xprog_command(pgm, buf, 6, 2) < 0) {
-            fprintf(stderr,
-            "%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_NVMBASE) failed\n",
-                    progname);
+            avrdude_message("%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_NVMBASE) failed\n",
+                            progname);
             return -1;
         }
 
@@ -3841,9 +3782,8 @@ static int stk600_xprog_program_enable(PROGRAMMER * pgm, AVRPART * p)
             buf[2] = eepagesize >> 8;
             buf[3] = eepagesize;
             if (stk600_xprog_command(pgm, buf, 4, 2) < 0) {
-                fprintf(stderr,
-                "%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_EEPPAGESIZE) failed\n",
-                        progname);
+                avrdude_message("%s: stk600_xprog_program_enable(): XPRG_CMD_SET_PARAM(XPRG_PARAM_EEPPAGESIZE) failed\n",
+                                progname);
                 return -1;
             }
         }
@@ -3867,9 +3807,8 @@ static void stk600_xprog_disable(PROGRAMMER * pgm)
 
     buf[0] = XPRG_CMD_LEAVE_PROGMODE;
     if (stk600_xprog_command(pgm, buf, 1, 2) < 0) {
-        fprintf(stderr,
-                "%s: stk600_xprog_program_disable(): XPRG_CMD_LEAVE_PROGMODE failed\n",
-                progname);
+        avrdude_message("%s: stk600_xprog_program_disable(): XPRG_CMD_LEAVE_PROGMODE failed\n",
+                        progname);
     }
 }
 
@@ -3905,9 +3844,8 @@ static int stk600_xprog_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     } else if (strcmp(mem->desc, "usersig") == 0) {
         memcode = XPRG_MEM_TYPE_USERSIG;
     } else {
-        fprintf(stderr,
-                "%s: stk600_xprog_write_byte(): unknown memory \"%s\"\n",
-                progname, mem->desc);
+        avrdude_message("%s: stk600_xprog_write_byte(): unknown memory \"%s\"\n",
+                        progname, mem->desc);
         return -1;
     }
     addr += mem->offset;
@@ -3920,9 +3858,8 @@ static int stk600_xprog_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
         b[4] = mem->offset >> 8;
         b[5] = mem->offset + 1;
         if (stk600_xprog_command(pgm, b, 6, 2) < 0) {
-	    fprintf(stderr,
-	    "%s: stk600_xprog_chip_erase(): XPRG_CMD_ERASE(XPRG_ERASE_CONFIG) failed\n",
-		    progname);
+	    avrdude_message("%s: stk600_xprog_chip_erase(): XPRG_CMD_ERASE(XPRG_ERASE_CONFIG) failed\n",
+                            progname);
 	    return -1;
 	}
     }
@@ -3948,9 +3885,8 @@ static int stk600_xprog_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     b[8] = write_size;
     b[9] = data;
     if (stk600_xprog_command(pgm, b, 9 + write_size, 2) < 0) {
-        fprintf(stderr,
-                "%s: stk600_xprog_write_byte(): XPRG_CMD_WRITE_MEM failed\n",
-                progname);
+        avrdude_message("%s: stk600_xprog_write_byte(): XPRG_CMD_WRITE_MEM failed\n",
+                        progname);
         return -1;
     }
     return 0;
@@ -3982,9 +3918,8 @@ static int stk600_xprog_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     } else if (strcmp(mem->desc, "usersig") == 0) {
         b[1] = XPRG_MEM_TYPE_USERSIG;
     } else {
-        fprintf(stderr,
-                "%s: stk600_xprog_read_byte(): unknown memory \"%s\"\n",
-                progname, mem->desc);
+        avrdude_message("%s: stk600_xprog_read_byte(): unknown memory \"%s\"\n",
+                        progname, mem->desc);
         return -1;
     }
     addr += mem->offset;
@@ -3997,9 +3932,8 @@ static int stk600_xprog_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     b[6] = 0;
     b[7] = 1;
     if (stk600_xprog_command(pgm, b, 8, 3) < 0) {
-        fprintf(stderr,
-                "%s: stk600_xprog_read_byte(): XPRG_CMD_READ_MEM failed\n",
-                progname);
+        avrdude_message("%s: stk600_xprog_read_byte(): XPRG_CMD_READ_MEM failed\n",
+                        progname);
         return -1;
     }
     *value = b[2];
@@ -4058,18 +3992,16 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     } else if (strcmp(mem->desc, "usersig") == 0) {
         memtype = XPRG_MEM_TYPE_USERSIG;
     } else {
-        fprintf(stderr,
-                "%s: stk600_xprog_paged_load(): unknown paged memory \"%s\"\n",
-                progname, mem->desc);
+        avrdude_message("%s: stk600_xprog_paged_load(): unknown paged memory \"%s\"\n",
+                        progname, mem->desc);
         return -1;
     }
     offset = addr;
     addr += mem->offset;
 
     if ((b = malloc(page_size + 2)) == NULL) {
-	fprintf(stderr,
-                "%s: stk600_xprog_paged_load(): out of memory\n",
-                progname);
+	avrdude_message("%s: stk600_xprog_paged_load(): out of memory\n",
+                        progname);
         return -1;
     }
 
@@ -4091,9 +4023,8 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 	b[6] = page_size >> 8;
 	b[7] = page_size;
 	if (stk600_xprog_command(pgm, b, 8, page_size + 2) < 0) {
-	    fprintf(stderr,
-		    "%s: stk600_xprog_paged_load(): XPRG_CMD_READ_MEM failed\n",
-		    progname);
+	    avrdude_message("%s: stk600_xprog_paged_load(): XPRG_CMD_READ_MEM failed\n",
+                            progname);
 	    free(b);
 	    return -1;
 	}
@@ -4127,9 +4058,8 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
      * transfer.
      */
     if (page_size > 512) {
-	fprintf(stderr,
-		"%s: stk600_xprog_paged_write(): cannot handle page size > 512\n",
-		progname);
+	avrdude_message("%s: stk600_xprog_paged_write(): cannot handle page size > 512\n",
+                        progname);
 	return -1;
     }
 
@@ -4176,18 +4106,16 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
         memtype = XPRG_MEM_TYPE_USERSIG;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
     } else {
-        fprintf(stderr,
-                "%s: stk600_xprog_paged_write(): unknown paged memory \"%s\"\n",
-                progname, mem->desc);
+        avrdude_message("%s: stk600_xprog_paged_write(): unknown paged memory \"%s\"\n",
+                        progname, mem->desc);
         return -1;
     }
     offset = addr;
     addr += mem->offset;
 
     if ((b = malloc(page_size + 9)) == NULL) {
-	fprintf(stderr,
-                "%s: stk600_xprog_paged_write(): out of memory\n",
-                progname);
+	avrdude_message("%s: stk600_xprog_paged_write(): out of memory\n",
+                        progname);
         return -1;
     }
 
@@ -4212,9 +4140,8 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 	     * erase page / write page bits in the final chunk helps.
 	     */
 	    if (page_size % 256 != 0) {
-		fprintf(stderr,
-			"%s: stk600_xprog_paged_write(): page size not multiple of 256\n",
-			progname);
+		avrdude_message("%s: stk600_xprog_paged_write(): page size not multiple of 256\n",
+                                progname);
 		free(b);
 		return -1;
 	    }
@@ -4237,9 +4164,8 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 		b[8] = 0;
 		memcpy(b + 9, mem->buf + offset, writesize);
 		if (stk600_xprog_command(pgm, b, 256 + 9, 2) < 0) {
-		    fprintf(stderr,
-			    "%s: stk600_xprog_paged_write(): XPRG_CMD_WRITE_MEM failed\n",
-			    progname);
+		    avrdude_message("%s: stk600_xprog_paged_write(): XPRG_CMD_WRITE_MEM failed\n",
+                                    progname);
 		    free(b);
 		    return -1;
 		}
@@ -4272,9 +4198,8 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 	    b[8] = page_size;
 	    memcpy(b + 9, mem->buf + offset, writesize);
 	    if (stk600_xprog_command(pgm, b, page_size + 9, 2) < 0) {
-		fprintf(stderr,
-			"%s: stk600_xprog_paged_write(): XPRG_CMD_WRITE_MEM failed\n",
-			progname);
+		avrdude_message("%s: stk600_xprog_paged_write(): XPRG_CMD_WRITE_MEM failed\n",
+                                progname);
 		free(b);
 		return -1;
 	    }
@@ -4299,9 +4224,8 @@ static int stk600_xprog_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 
     if (p->flags & AVRPART_HAS_TPI) {
         if ((mem = avr_locate_mem(p, "flash")) == NULL) {
-            fprintf(stderr,
-            "%s: stk600_xprog_chip_erase(): no FLASH definition found for TPI device\n",
-                    progname);
+            avrdude_message("%s: stk600_xprog_chip_erase(): no FLASH definition found for TPI device\n",
+                            progname);
             return -1;
         }
         addr = mem->offset + 1;
@@ -4314,9 +4238,8 @@ static int stk600_xprog_chip_erase(PROGRAMMER * pgm, AVRPART * p)
     b[4] = addr >> 8;
     b[5] = addr;
     if (stk600_xprog_command(pgm, b, 6, 2) < 0) {
-	    fprintf(stderr,
-		    "%s: stk600_xprog_chip_erase(): XPRG_CMD_ERASE(XPRG_ERASE_CHIP) failed\n",
-		    progname);
+	    avrdude_message("%s: stk600_xprog_chip_erase(): XPRG_CMD_ERASE(XPRG_ERASE_CHIP) failed\n",
+                            progname);
 	    return -1;
 	}
     return 0;
@@ -4340,9 +4263,8 @@ static int stk600_xprog_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     } else if (strcmp(m->desc, "usersig") == 0) {
       b[1] = XPRG_ERASE_USERSIG;
     } else {
-      fprintf(stderr,
-              "%s: stk600_xprog_page_erase(): unknown paged memory \"%s\"\n",
-              progname, m->desc);
+      avrdude_message("%s: stk600_xprog_page_erase(): unknown paged memory \"%s\"\n",
+                      progname, m->desc);
       return -1;
     }
     addr += m->offset;
@@ -4352,9 +4274,8 @@ static int stk600_xprog_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     b[4] = addr >> 8;
     b[5] = addr;
     if (stk600_xprog_command(pgm, b, 6, 2) < 0) {
-	    fprintf(stderr,
-		    "%s: stk600_xprog_page_erase(): XPRG_CMD_ERASE(%d) failed\n",
-		    progname, b[1]);
+	    avrdude_message("%s: stk600_xprog_page_erase(): XPRG_CMD_ERASE(%d) failed\n",
+                            progname, b[1]);
 	    return -1;
 	}
     return 0;

@@ -75,9 +75,8 @@ static void bitbang_calibrate_delay(void)
   {
     has_perfcount = 1;
     if (verbose >= 2)
-      fprintf(stderr,
-              "%s: Using performance counter for bitbang delays\n",
-              progname);
+      avrdude_message("%s: Using performance counter for bitbang delays\n",
+                      progname);
   }
   else
   {
@@ -91,9 +90,8 @@ static void bitbang_calibrate_delay(void)
      * comparable hardware.
      */
     if (verbose >= 2)
-      fprintf(stderr,
-      "%s: Using guessed per-microsecond delay count for bitbang delays\n",
-              progname);
+      avrdude_message("%s: Using guessed per-microsecond delay count for bitbang delays\n",
+                      progname);
     delay_decrement = 100;
   }
 #else  /* !WIN32NATIVE */
@@ -101,9 +99,8 @@ static void bitbang_calibrate_delay(void)
   volatile int i;
 
   if (verbose >= 2)
-    fprintf(stderr,
-	    "%s: Calibrating delay loop...",
-	    progname);
+    avrdude_message("%s: Calibrating delay loop...",
+                    progname);
   i = 0;
   done = 0;
   saved_alarmhandler = signal(SIGALRM, alarmhandler);
@@ -130,9 +127,8 @@ static void bitbang_calibrate_delay(void)
    */
   delay_decrement = -i / 100000;
   if (verbose >= 2)
-    fprintf(stderr,
-	    " calibrated to %d cycles per us\n",
-	    delay_decrement);
+    avrdude_message(" calibrated to %d cycles per us\n",
+                    delay_decrement);
 #endif /* WIN32NATIVE */
 }
 
@@ -271,7 +267,7 @@ int bitbang_tpi_rx(PROGRAMMER * pgm)
       break;
   }
   if (b != 0) {
-    fprintf(stderr, "bitbang_tpi_rx: start bit not received correctly\n");
+    avrdude_message("bitbang_tpi_rx: start bit not received correctly\n");
     return -1;
   }
 
@@ -286,7 +282,7 @@ int bitbang_tpi_rx(PROGRAMMER * pgm)
 
   /* parity bit */
   if (bitbang_tpi_clk(pgm) != parity) {
-    fprintf(stderr, "bitbang_tpi_rx: parity bit is wrong\n");
+    avrdude_message("bitbang_tpi_rx: parity bit is wrong\n");
     return -1;
   }
 
@@ -295,7 +291,7 @@ int bitbang_tpi_rx(PROGRAMMER * pgm)
   b &= bitbang_tpi_clk(pgm);
   b &= bitbang_tpi_clk(pgm);
   if (b != 1) {
-    fprintf(stderr, "bitbang_tpi_rx: stop bits not received correctly\n");
+    avrdude_message("bitbang_tpi_rx: stop bits not received correctly\n");
     return -1;
   }
   
@@ -342,15 +338,15 @@ int bitbang_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
 
     if(verbose >= 2)
 	{
-        fprintf(stderr, "bitbang_cmd(): [ ");
+        avrdude_message("bitbang_cmd(): [ ");
         for(i = 0; i < 4; i++)
-            fprintf(stderr, "%02X ", cmd[i]);
-        fprintf(stderr, "] [ ");
+            avrdude_message("%02X ", cmd[i]);
+        avrdude_message("] [ ");
         for(i = 0; i < 4; i++)
 		{
-            fprintf(stderr, "%02X ", res[i]);
+            avrdude_message("%02X ", res[i]);
 		}
-        fprintf(stderr, "]\n");
+        avrdude_message("]\n");
 	}
 
   return 0;
@@ -377,15 +373,15 @@ int bitbang_cmd_tpi(PROGRAMMER * pgm, const unsigned char *cmd,
 
   if(verbose >= 2)
   {
-    fprintf(stderr, "bitbang_cmd_tpi(): [ ");
+    avrdude_message("bitbang_cmd_tpi(): [ ");
     for(i = 0; i < cmd_len; i++)
-      fprintf(stderr, "%02X ", cmd[i]);
-    fprintf(stderr, "] [ ");
+      avrdude_message("%02X ", cmd[i]);
+    avrdude_message("] [ ");
     for(i = 0; i < res_len; i++)
     {
-      fprintf(stderr, "%02X ", res[i]);
+      avrdude_message("%02X ", res[i]);
     }
-    fprintf(stderr, "]\n");
+    avrdude_message("]\n");
   }
 
   pgm->pgm_led(pgm, OFF);
@@ -413,15 +409,15 @@ int bitbang_spi(PROGRAMMER * pgm, const unsigned char *cmd,
 
   if(verbose >= 2)
 	{
-        fprintf(stderr, "bitbang_cmd(): [ ");
+        avrdude_message("bitbang_cmd(): [ ");
         for(i = 0; i < count; i++)
-            fprintf(stderr, "%02X ", cmd[i]);
-        fprintf(stderr, "] [ ");
+            avrdude_message("%02X ", cmd[i]);
+        avrdude_message("] [ ");
         for(i = 0; i < count; i++)
 		{
-            fprintf(stderr, "%02X ", res[i]);
+            avrdude_message("%02X ", res[i]);
 		}
-        fprintf(stderr, "]\n");
+        avrdude_message("]\n");
 	}
 
   return 0;
@@ -449,7 +445,7 @@ int bitbang_chip_erase(PROGRAMMER * pgm, AVRPART * p)
     /* Set Pointer Register */
     mem = avr_locate_mem(p, "flash");
     if (mem == NULL) {
-      fprintf(stderr, "No flash memory to erase for part %s\n",
+      avrdude_message("No flash memory to erase for part %s\n",
           p->desc);
       return -1;
     }
@@ -470,7 +466,7 @@ int bitbang_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   }
 
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
-    fprintf(stderr, "chip erase instruction not defined for part \"%s\"\n",
+    avrdude_message("chip erase instruction not defined for part \"%s\"\n",
             p->desc);
     return -1;
   }
@@ -511,7 +507,7 @@ int bitbang_program_enable(PROGRAMMER * pgm, AVRPART * p)
   }
 
   if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
-    fprintf(stderr, "program enable instruction not defined for part \"%s\"\n",
+    avrdude_message("program enable instruction not defined for part \"%s\"\n",
             p->desc);
     return -1;
   }
@@ -544,7 +540,7 @@ int bitbang_initialize(PROGRAMMER * pgm, AVRPART * p)
   if (p->flags & AVRPART_HAS_TPI) {
     /* make sure cmd_tpi() is defined */
     if (pgm->cmd_tpi == NULL) {
-      fprintf(stderr, "%s: Error: %s programmer does not support TPI\n",
+      avrdude_message("%s: Error: %s programmer does not support TPI\n",
           progname, pgm->type);
       return -1;
     }
@@ -554,21 +550,21 @@ int bitbang_initialize(PROGRAMMER * pgm, AVRPART * p)
 	usleep(1000);
 
     if (verbose >= 2)
-      fprintf(stderr, "doing MOSI-MISO link check\n");
+      avrdude_message("doing MOSI-MISO link check\n");
 
     pgm->setpin(pgm, PIN_AVR_MOSI, 0);
     if (pgm->getpin(pgm, PIN_AVR_MISO) != 0) {
-      fprintf(stderr, "MOSI->MISO 0 failed\n");
+      avrdude_message("MOSI->MISO 0 failed\n");
       return -1;
     }
     pgm->setpin(pgm, PIN_AVR_MOSI, 1);
     if (pgm->getpin(pgm, PIN_AVR_MISO) != 1) {
-      fprintf(stderr, "MOSI->MISO 1 failed\n");
+      avrdude_message("MOSI->MISO 1 failed\n");
       return -1;
     }
 
     if (verbose >= 2)
-      fprintf(stderr, "MOSI-MISO link present\n");
+      avrdude_message("MOSI-MISO link present\n");
   }
 
   pgm->setpin(pgm, PIN_AVR_SCK, 0);
@@ -589,7 +585,7 @@ int bitbang_initialize(PROGRAMMER * pgm, AVRPART * p)
     bitbang_tpi_tx(pgm, TPI_CMD_SLDCS | TPI_REG_TPIIR);
     rc = bitbang_tpi_rx(pgm);
     if (rc != 0x80) {
-      fprintf(stderr, "TPIIR not correct\n");
+      avrdude_message("TPIIR not correct\n");
       return -1;
     }
   } else {
@@ -623,7 +619,7 @@ int bitbang_initialize(PROGRAMMER * pgm, AVRPART * p)
      * can't sync with the device, maybe it's not attached?
      */
     if (rc) {
-      fprintf(stderr, "%s: AVR device not responding\n", progname);
+      avrdude_message("%s: AVR device not responding\n", progname);
       return -1;
     }
   }
@@ -634,7 +630,7 @@ int bitbang_initialize(PROGRAMMER * pgm, AVRPART * p)
 static int verify_pin_assigned(PROGRAMMER * pgm, int pin, char * desc)
 {
   if (pgm->pinno[pin] == 0) {
-    fprintf(stderr, "%s: error: no pin has been assigned for %s\n",
+    avrdude_message("%s: error: no pin has been assigned for %s\n",
             progname, desc);
     return -1;
   }
@@ -658,7 +654,7 @@ int bitbang_check_prerequisites(PROGRAMMER *pgm)
     return -1;
 
   if (pgm->cmd == NULL) {
-    fprintf(stderr, "%s: error: no cmd() method defined for bitbang programmer\n",
+    avrdude_message("%s: error: no cmd() method defined for bitbang programmer\n",
             progname);
     return -1;
   }

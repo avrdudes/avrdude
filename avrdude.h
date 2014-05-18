@@ -28,6 +28,8 @@ extern int ovsigck;		/* override signature check (-F) */
 extern int verbose;		/* verbosity level (-v, -vv, ...) */
 extern int quell_progress;	/* quiteness level (-q, -qq) */
 
+int avrdude_message(const char *format, ...);
+
 #if defined(WIN32NATIVE)
 
 #include "ac_cfg.h"

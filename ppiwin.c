@@ -91,7 +91,7 @@ void ppi_open(char *port, union filedescriptor *fdp)
 
     if(fd < 0)
     {
-        fprintf(stderr, "%s: can't open device \"giveio\"\n\n", progname);
+        avrdude_message("%s: can't open device \"giveio\"\n\n", progname);
         fdp->ifd = -1;
         return;
     }
@@ -119,15 +119,14 @@ void ppi_open(char *port, union filedescriptor *fdp)
 	fd = strtol(port, &cp, 0);
 	if(*port == '\0' || *cp != '\0')
 	{
-	    fprintf(stderr,
-		    "%s: port name \"%s\" is neither lpt1/2/3 nor valid number\n",
-		    progname, port);
+	    avrdude_message("%s: port name \"%s\" is neither lpt1/2/3 nor valid number\n",
+                            progname, port);
 	    fd = -1;
 	}
     }
     if(fd < 0)
     {
-        fprintf(stderr, "%s: can't open device \"%s\"\n\n", progname, port);
+        avrdude_message("%s: can't open device \"%s\"\n\n", progname, port);
         fdp->ifd = -1;
         return;
     }
@@ -361,7 +360,7 @@ int gettimeofday(struct timeval *tv, struct timezone *unused){
        unsigned long dt;                                                   \
        dt = (unsigned long)((stop.QuadPart - start.QuadPart) * 1000 * 1000 \
                             / freq.QuadPart);                              \
-       fprintf(stderr,                                                     \
+       avrdude_message(\
                "hpt:%i usleep usec:%lu sleep msec:%lu timed usec:%lu\n",   \
                has_highperf, us, ((us + 999) / 1000), dt);                 \
      } while (0)

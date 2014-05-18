@@ -39,7 +39,7 @@ static void pgm_default_6 (struct programmer_t *, const char *);
 
 static int pgm_default_open (struct programmer_t *pgm, char * name)
 {
-  fprintf (stderr, "\n%s: Fatal error: Programmer does not support open()",
+  avrdude_message("\n%s: Fatal error: Programmer does not support open()",
                progname);
   return -1;
 }
@@ -68,7 +68,7 @@ PROGRAMMER * pgm_new(void)
 
   pgm = (PROGRAMMER *)malloc(sizeof(*pgm));
   if (pgm == NULL) {
-    fprintf(stderr, "%s: out of memory allocating programmer structure\n",
+    avrdude_message("%s: out of memory allocating programmer structure\n",
             progname);
     exit(1);
   }
@@ -159,7 +159,7 @@ PROGRAMMER * pgm_dup(const PROGRAMMER * const src)
 
   pgm = (PROGRAMMER *)malloc(sizeof(*pgm));
   if (pgm == NULL) {
-    fprintf(stderr, "%s: out of memory allocating programmer structure\n",
+    avrdude_message("%s: out of memory allocating programmer structure\n",
             progname);
     exit(1);
   }
@@ -172,7 +172,7 @@ PROGRAMMER * pgm_dup(const PROGRAMMER * const src)
   for (ln = lfirst(src->usbpid); ln; ln = lnext(ln)) {
     int *ip = malloc(sizeof(int));
     if (ip == NULL) {
-      fprintf(stderr, "%s: out of memory allocating programmer structure\n",
+      avrdude_message("%s: out of memory allocating programmer structure\n",
               progname);
       exit(1);
     }
@@ -186,7 +186,7 @@ PROGRAMMER * pgm_dup(const PROGRAMMER * const src)
 
 static void pgm_default(void)
 {
-  fprintf(stderr, "%s: programmer operation not supported\n", progname);
+  avrdude_message("%s: programmer operation not supported\n", progname);
 }
 
 
@@ -223,8 +223,8 @@ static void pgm_default_6 (struct programmer_t * pgm, const char * p)
 
 void programmer_display(PROGRAMMER * pgm, const char * p)
 {
-  fprintf(stderr, "%sProgrammer Type : %s\n", p, pgm->type);
-  fprintf(stderr, "%sDescription     : %s\n", p, pgm->desc);
+  avrdude_message("%sProgrammer Type : %s\n", p, pgm->type);
+  avrdude_message("%sDescription     : %s\n", p, pgm->desc);
 
   pgm->display(pgm, p);
 }
@@ -233,25 +233,25 @@ void programmer_display(PROGRAMMER * pgm, const char * p)
 void pgm_display_generic_mask(PROGRAMMER * pgm, const char * p, unsigned int show)
 {
   if(show & (1<<PPI_AVR_VCC)) 
-    fprintf(stderr, "%s  VCC     = %s\n", p, pins_to_str(&pgm->pin[PPI_AVR_VCC]));
+    avrdude_message("%s  VCC     = %s\n", p, pins_to_str(&pgm->pin[PPI_AVR_VCC]));
   if(show & (1<<PPI_AVR_BUFF))
-    fprintf(stderr, "%s  BUFF    = %s\n", p, pins_to_str(&pgm->pin[PPI_AVR_BUFF]));
+    avrdude_message("%s  BUFF    = %s\n", p, pins_to_str(&pgm->pin[PPI_AVR_BUFF]));
   if(show & (1<<PIN_AVR_RESET))
-    fprintf(stderr, "%s  RESET   = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_RESET]));
+    avrdude_message("%s  RESET   = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_RESET]));
   if(show & (1<<PIN_AVR_SCK))
-    fprintf(stderr, "%s  SCK     = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_SCK]));
+    avrdude_message("%s  SCK     = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_SCK]));
   if(show & (1<<PIN_AVR_MOSI))
-    fprintf(stderr, "%s  MOSI    = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_MOSI]));
+    avrdude_message("%s  MOSI    = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_MOSI]));
   if(show & (1<<PIN_AVR_MISO))
-    fprintf(stderr, "%s  MISO    = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_MISO]));
+    avrdude_message("%s  MISO    = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_MISO]));
   if(show & (1<<PIN_LED_ERR))
-    fprintf(stderr, "%s  ERR LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_ERR]));
+    avrdude_message("%s  ERR LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_ERR]));
   if(show & (1<<PIN_LED_RDY))
-    fprintf(stderr, "%s  RDY LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_RDY]));
+    avrdude_message("%s  RDY LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_RDY]));
   if(show & (1<<PIN_LED_PGM))
-    fprintf(stderr, "%s  PGM LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_PGM]));
+    avrdude_message("%s  PGM LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_PGM]));
   if(show & (1<<PIN_LED_VFY))
-    fprintf(stderr, "%s  VFY LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_VFY]));
+    avrdude_message("%s  VFY LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_VFY]));
 }
 
 void pgm_display_generic(PROGRAMMER * pgm, const char * p)

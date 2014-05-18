@@ -54,9 +54,8 @@
 
 static int avrftdi_noftdi_open (struct programmer_t *pgm, char * name)
 {
-	fprintf(stderr,
-		"%s: Error: no libftdi or libusb support. Install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again.\n",
-		progname);
+	avrdude_message("%s: Error: no libftdi or libusb support. Install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again.\n",
+                        progname);
 
 	return -1;
 }
@@ -145,17 +144,17 @@ void avrftdi_log(int level, const char * func, int line,
 		if(!skip_prefix)
 		{
 			switch(level) {
-				case ERR: fprintf(stderr, "E "); break;
-				case WARN:  fprintf(stderr, "W "); break;
-				case INFO:  fprintf(stderr, "I "); break;
-				case DEBUG: fprintf(stderr, "D "); break;
-				case TRACE: fprintf(stderr, "T "); break;
-				default: fprintf(stderr, "  ");
+				case ERR: avrdude_message("E "); break;
+				case WARN:  avrdude_message("W "); break;
+				case INFO:  avrdude_message("I "); break;
+				case DEBUG: avrdude_message("D "); break;
+				case TRACE: avrdude_message("T "); break;
+				default: avrdude_message("  ");
 			}
-			fprintf(stderr, "%s(%d): ", func, line);
+			avrdude_message("%s(%d): ", func, line);
 		}
 		va_start(ap, fmt);
-		vfprintf(stderr, fmt, ap);
+		vavrdude_message(fmt, ap);
 		va_end(ap);
 	}
 
@@ -175,16 +174,16 @@ static void buf_dump(const unsigned char *buf, int len, char *desc,
 		     int offset, int width)
 {
 	int i;
-	fprintf(stderr, "%s begin:\n", desc);
+	avrdude_message("%s begin:\n", desc);
 	for (i = 0; i < offset; i++)
-		fprintf(stderr, "%02x ", buf[i]);
-	fprintf(stderr, "\n");
+		avrdude_message("%02x ", buf[i]);
+	avrdude_message("\n");
 	for (i++; i <= len; i++) {
-		fprintf(stderr, "%02x ", buf[i-1]);
+		avrdude_message("%02x ", buf[i-1]);
 		if((i-offset) != 0 && (i-offset)%width == 0)
-		    fprintf(stderr, "\n");
+		    avrdude_message("\n");
 	}
-	fprintf(stderr, "%s end\n", desc);
+	avrdude_message("%s end\n", desc);
 }
 
 /*
@@ -357,7 +356,7 @@ static int avrftdi_transmit_bb(PROGRAMMER * pgm, unsigned char mode, const unsig
 	size_t max_size = MIN(pdata->ftdic->max_packet_size,pdata->tx_buffer_size);
 	// select block size so that resulting commands does not exceed max_size if possible
 	blocksize = MAX(1,(max_size-7)/((8*2*6)+(8*1*2)));
-	//fprintf(stderr,"blocksize %d \n",blocksize);
+	//avrdude_message("blocksize %d \n",blocksize);
 
 	while(remaining)
 	{
@@ -673,9 +672,8 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 	if (usbpid) {
 		pid = *(int *)(ldata(usbpid));
 		if (lnext(usbpid))
-			fprintf(stderr,
-				"%s: Warning: using PID 0x%04x, ignoring remaining PIDs in list\n",
-				progname, pid);
+			avrdude_message("%s: Warning: using PID 0x%04x, ignoring remaining PIDs in list\n",
+                                        progname, pid);
 	} else
 		pid = USB_DEVICE_FT2232;
 

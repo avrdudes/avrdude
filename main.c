@@ -33,6 +33,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -65,12 +66,21 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
                              multiline messages */
 
-int yyerror(char * errmsg)
+int avrdude_message(const char *format, ...)
 {
-  fprintf(stderr, "%s: %s at %s:%d\n", progname, errmsg, infile, lineno);
-  exit(1);
+    int rc;
+    va_list ap;
+    va_start(ap, format);
+    rc = vfprintf(stderr, format, ap);
+    va_end(ap);
+    return rc;
 }
 
+int yyerror(char * errmsg)
+{
+  avrdude_message("%s: %s at %s:%d\n", progname, errmsg, infile, lineno);
+  exit(1);
+}
 
 struct list_walk_cookie
 {
@@ -94,12 +104,14 @@ int    quell_progress; /* un-verebose output */
 int    ovsigck;     /* 1=override sig check, 0=don't */
 
 
+
+
 /*
  * usage message
  */
 static void usage(void)
 {
-  fprintf(stderr,
+  avrdude_message(
  "Usage: %s [options]\n"
  "Options:\n"
  "  -p <partno>                Required. Specify AVR device.\n"
@@ -153,18 +165,18 @@ static void update_progress_tty (int percent, double etime, char *hdr)
   }
 
   if (hdr) {
-    fprintf (stderr, "\n");
+    avrdude_message("\n");
     last = 0;
     header = hdr;
   }
 
   if (last == 0) {
-    fprintf(stderr, "\r%s | %s | %d%% %0.2fs", 
+    avrdude_message("\r%s | %s | %d%% %0.2fs",
             header, hashes, percent, etime);
   }
 
   if (percent == 100) {
-    if (!last) fprintf (stderr, "\n\n");
+    if (!last) avrdude_message("\n\n");
     last = 1;
   }
 
@@ -180,19 +192,19 @@ static void update_progress_no_tty (int percent, double etime, char *hdr)
   setvbuf(stderr, (char*)NULL, _IONBF, 0);
 
   if (hdr) {
-    fprintf (stderr, "\n%s | ", hdr);
+    avrdude_message("\n%s | ", hdr);
     last = 0;
     done = 0;
   }
   else {
     while ((cnt > last) && (done == 0)) {
-      fprintf (stderr, "#");
+      avrdude_message("#");
       cnt -=  2;
     }
   }
 
   if ((percent == 100) && (done == 0)) {
-    fprintf (stderr, " | 100%% %0.2fs\n\n", etime);
+    avrdude_message(" | 100%% %0.2fs\n\n", etime);
     last = 0;
     done = 1;
   }
@@ -381,19 +393,19 @@ int main(int argc, char * argv [])
 
   updates = lcreat(NULL, 0);
   if (updates == NULL) {
-    fprintf(stderr, "%s: cannot initialize updater list\n", progname);
+    avrdude_message("%s: cannot initialize updater list\n", progname);
     exit(1);
   }
 
   extended_params = lcreat(NULL, 0);
   if (extended_params == NULL) {
-    fprintf(stderr, "%s: cannot initialize extended parameter list\n", progname);
+    avrdude_message("%s: cannot initialize extended parameter list\n", progname);
     exit(1);
   }
 
   additional_config_files = lcreat(NULL, 0);
   if (additional_config_files == NULL) {
-    fprintf(stderr, "%s: cannot initialize additional config files list\n", progname);
+    avrdude_message("%s: cannot initialize additional config files list\n", progname);
     exit(1);
   }
 
@@ -466,7 +478,7 @@ int main(int argc, char * argv [])
       case 'b': /* override default programmer baud rate */
         baudrate = strtol(optarg, &e, 0);
         if ((e == optarg) || (*e != 0)) {
-          fprintf(stderr, "%s: invalid baud rate specified '%s'\n",
+          avrdude_message("%s: invalid baud rate specified '%s'\n",
                   progname, optarg);
           exit(1);
         }
@@ -475,7 +487,7 @@ int main(int argc, char * argv [])
       case 'B':	/* specify JTAG ICE bit clock period */
 	bitclock = strtod(optarg, &e);
 	if ((e == optarg) || (*e != 0) || bitclock == 0.0) {
-	  fprintf(stderr, "%s: invalid bit clock period specified '%s'\n",
+	  avrdude_message("%s: invalid bit clock period specified '%s'\n",
                   progname, optarg);
           exit(1);
         }
@@ -484,7 +496,7 @@ int main(int argc, char * argv [])
       case 'i':	/* specify isp clock delay */
 	ispdelay = strtol(optarg, &e,10);
 	if ((e == optarg) || (*e != 0) || ispdelay == 0) {
-	  fprintf(stderr, "%s: invalid isp clock delay specified '%s'\n",
+	  avrdude_message("%s: invalid isp clock delay specified '%s'\n",
                   progname, optarg);
           exit(1);
         }
@@ -560,7 +572,7 @@ int main(int argc, char * argv [])
       case 'U':
         upd = parse_op(optarg);
         if (upd == NULL) {
-          fprintf(stderr, "%s: error parsing update operation '%s'\n",
+          avrdude_message("%s: error parsing update operation '%s'\n",
                   progname, optarg);
           exit(1);
         }
@@ -586,12 +598,12 @@ int main(int argc, char * argv [])
         break;
 
       case 'y':
-        fprintf(stderr, "%s: erase cycle counter no longer supported\n",
+        avrdude_message("%s: erase cycle counter no longer supported\n",
                 progname);
         break;
 
       case 'Y':
-        fprintf(stderr, "%s: erase cycle counter no longer supported\n",
+        avrdude_message("%s: erase cycle counter no longer supported\n",
                 progname);
         break;
 
@@ -601,7 +613,7 @@ int main(int argc, char * argv [])
         break;
 
       default:
-        fprintf(stderr, "%s: invalid option -%c\n\n", progname, ch);
+        avrdude_message("%s: invalid option -%c\n\n", progname, ch);
         usage();
         exit(1);
         break;
@@ -637,45 +649,42 @@ int main(int argc, char * argv [])
      * Print out an identifying string so folks can tell what version
      * they are running
      */
-    fprintf(stderr,
-            "\n%s: Version %s, compiled on %s at %s\n"
-            "%sCopyright (c) 2000-2005 Brian Dean, http://www.bdmicro.com/\n"
-	    "%sCopyright (c) 2007-2014 Joerg Wunsch\n\n",
-            progname, version, __DATE__, __TIME__, progbuf, progbuf);
+    avrdude_message("\n%s: Version %s, compiled on %s at %s\n"
+                    "%sCopyright (c) 2000-2005 Brian Dean, http://www.bdmicro.com/\n"
+                    "%sCopyright (c) 2007-2014 Joerg Wunsch\n\n",
+                    progname, version, __DATE__, __TIME__, progbuf, progbuf);
   }
 
   if (verbose) {
-    fprintf(stderr, "%sSystem wide configuration file is \"%s\"\n",
+    avrdude_message("%sSystem wide configuration file is \"%s\"\n",
             progbuf, sys_config);
   }
 
   rc = read_config(sys_config);
   if (rc) {
-    fprintf(stderr,
-            "%s: error reading system wide configuration file \"%s\"\n",
-            progname, sys_config);
+    avrdude_message("%s: error reading system wide configuration file \"%s\"\n",
+                    progname, sys_config);
     exit(1);
   }
 
   if (usr_config[0] != 0) {
     if (verbose) {
-      fprintf(stderr, "%sUser configuration file is \"%s\"\n",
+      avrdude_message("%sUser configuration file is \"%s\"\n",
               progbuf, usr_config);
     }
 
     rc = stat(usr_config, &sb);
     if ((rc < 0) || ((sb.st_mode & S_IFREG) == 0)) {
       if (verbose) {
-        fprintf(stderr,
-                "%sUser configuration file does not exist or is not a "
-                "regular file, skipping\n",
-                progbuf);
+        avrdude_message("%sUser configuration file does not exist or is not a "
+                        "regular file, skipping\n",
+                        progbuf);
       }
     }
     else {
       rc = read_config(usr_config);
       if (rc) {
-        fprintf(stderr, "%s: error reading user configuration file \"%s\"\n",
+        avrdude_message("%s: error reading user configuration file \"%s\"\n",
                 progname, usr_config);
         exit(1);
       }
@@ -689,15 +698,14 @@ int main(int argc, char * argv [])
     for (ln1=lfirst(additional_config_files); ln1; ln1=lnext(ln1)) {
       p = ldata(ln1);
       if (verbose) {
-        fprintf(stderr, "%sAdditional configuration file is \"%s\"\n",
+        avrdude_message("%sAdditional configuration file is \"%s\"\n",
                 progbuf, p);
       }
 
       rc = read_config(p);
       if (rc) {
-        fprintf(stderr,
-                "%s: error reading additional configuration file \"%s\"\n",
-                progname, p);
+        avrdude_message("%s: error reading additional configuration file \"%s\"\n",
+                        progname, p);
         exit(1);
       }
     }
@@ -709,66 +717,62 @@ int main(int argc, char * argv [])
   }
 
   if (verbose) {
-    fprintf(stderr, "\n");
+    avrdude_message("\n");
   }
 
   if (partdesc) {
     if (strcmp(partdesc, "?") == 0) {
-      fprintf(stderr, "\n");
-      fprintf(stderr,"Valid parts are:\n");
+      avrdude_message("\n");
+      avrdude_message("Valid parts are:\n");
       list_parts(stderr, "  ", part_list);
-      fprintf(stderr, "\n");
+      avrdude_message("\n");
       exit(1);
     }
   }
 
   if (programmer) {
     if (strcmp(programmer, "?") == 0) {
-      fprintf(stderr, "\n");
-      fprintf(stderr,"Valid programmers are:\n");
+      avrdude_message("\n");
+      avrdude_message("Valid programmers are:\n");
       list_programmers(stderr, "  ", programmers);
-      fprintf(stderr,"\n");
+      avrdude_message("\n");
       exit(1);
     }
     if (strcmp(programmer, "?type") == 0) {
-      fprintf(stderr, "\n");
-      fprintf(stderr,"Valid programmer types are:\n");
+      avrdude_message("\n");
+      avrdude_message("Valid programmer types are:\n");
       list_programmer_types(stderr, "  ");
-      fprintf(stderr,"\n");
+      avrdude_message("\n");
       exit(1);
     }
   }
 
 
   if (programmer[0] == 0) {
-    fprintf(stderr,
-            "\n%s: no programmer has been specified on the command line "
-            "or the config file\n",
-            progname);
-    fprintf(stderr,
-            "%sSpecify a programmer using the -c option and try again\n\n",
-            progbuf);
+    avrdude_message("\n%s: no programmer has been specified on the command line "
+                    "or the config file\n",
+                    progname);
+    avrdude_message("%sSpecify a programmer using the -c option and try again\n\n",
+                    progbuf);
     exit(1);
   }
 
   pgm = locate_programmer(programmers, programmer);
   if (pgm == NULL) {
-    fprintf(stderr,"\n");
-    fprintf(stderr,
-            "%s: Can't find programmer id \"%s\"\n",
-            progname, programmer);
-    fprintf(stderr,"\nValid programmers are:\n");
+    avrdude_message("\n");
+    avrdude_message("%s: Can't find programmer id \"%s\"\n",
+                    progname, programmer);
+    avrdude_message("\nValid programmers are:\n");
     list_programmers(stderr, "  ", programmers);
-    fprintf(stderr,"\n");
+    avrdude_message("\n");
     exit(1);
   }
 
   if (pgm->initpgm) {
     pgm->initpgm(pgm);
   } else {
-    fprintf(stderr,
-            "\n%s: Can't initialize the programmer.\n\n",
-            progname);
+    avrdude_message("\n%s: Can't initialize the programmer.\n\n",
+                    progname);
     exit(1);
   }
 
@@ -781,15 +785,13 @@ int main(int argc, char * argv [])
 
   if (lsize(extended_params) > 0) {
     if (pgm->parseextparams == NULL) {
-      fprintf(stderr,
-              "%s: WARNING: Programmer doesn't support extended parameters,"
-              " -x option(s) ignored\n",
-              progname);
+      avrdude_message("%s: WARNING: Programmer doesn't support extended parameters,"
+                      " -x option(s) ignored\n",
+                      progname);
     } else {
       if (pgm->parseextparams(pgm, extended_params) < 0) {
-        fprintf(stderr,
-              "%s: Error parsing extended parameter list\n",
-              progname);
+        avrdude_message("%s: Error parsing extended parameter list\n",
+                        progname);
         exit(1);
       }
     }
@@ -813,33 +815,30 @@ int main(int argc, char * argv [])
   }
 
   if (partdesc == NULL) {
-    fprintf(stderr,
-            "%s: No AVR part has been specified, use \"-p Part\"\n\n",
-            progname);
-    fprintf(stderr,"Valid parts are:\n");
+    avrdude_message("%s: No AVR part has been specified, use \"-p Part\"\n\n",
+                    progname);
+    avrdude_message("Valid parts are:\n");
     list_parts(stderr, "  ", part_list);
-    fprintf(stderr, "\n");
+    avrdude_message("\n");
     exit(1);
   }
 
 
   p = locate_part(part_list, partdesc);
   if (p == NULL) {
-    fprintf(stderr,
-            "%s: AVR Part \"%s\" not found.\n\n",
-            progname, partdesc);
-    fprintf(stderr,"Valid parts are:\n");
+    avrdude_message("%s: AVR Part \"%s\" not found.\n\n",
+                    progname, partdesc);
+    avrdude_message("Valid parts are:\n");
     list_parts(stderr, "  ", part_list);
-    fprintf(stderr, "\n");
+    avrdude_message("\n");
     exit(1);
   }
 
 
   if (exitspecs != NULL) {
     if (pgm->parseexitspecs == NULL) {
-      fprintf(stderr,
-              "%s: WARNING: -E option not supported by this programmer type\n",
-              progname);
+      avrdude_message("%s: WARNING: -E option not supported by this programmer type\n",
+                      progname);
       exitspecs = NULL;
     }
     else if (pgm->parseexitspecs(pgm, exitspecs) < 0) {
@@ -873,7 +872,7 @@ int main(int argc, char * argv [])
 
   if (avr_initmem(p) != 0)
   {
-    fprintf(stderr, "\n%s: failed to initialize memories\n",
+    avrdude_message("\n%s: failed to initialize memories\n",
             progname);
     exit(1);
   }
@@ -889,14 +888,13 @@ int main(int argc, char * argv [])
     if (upd->memtype == NULL) {
       const char *mtype = (p->flags & AVRPART_HAS_PDI)? "application": "flash";
       if (verbose >= 2) {
-        fprintf(stderr,
-                "%s: defaulting memtype in -U %c:%s option to \"%s\"\n",
-                progname,
-                (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v',
-                upd->filename, mtype);
+        avrdude_message("%s: defaulting memtype in -U %c:%s option to \"%s\"\n",
+                        progname,
+                        (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v',
+                        upd->filename, mtype);
       }
       if ((upd->memtype = strdup(mtype)) == NULL) {
-        fprintf(stderr, "%s: out of memory\n", progname);
+        avrdude_message("%s: out of memory\n", progname);
         exit(1);
       }
     }
@@ -906,41 +904,41 @@ int main(int argc, char * argv [])
    * open the programmer
    */
   if (port[0] == 0) {
-    fprintf(stderr, "\n%s: no port has been specified on the command line "
+    avrdude_message("\n%s: no port has been specified on the command line "
             "or the config file\n",
             progname);
-    fprintf(stderr, "%sSpecify a port using the -P option and try again\n\n",
+    avrdude_message("%sSpecify a port using the -P option and try again\n\n",
             progbuf);
     exit(1);
   }
 
   if (verbose) {
-    fprintf(stderr, "%sUsing Port                    : %s\n", progbuf, port);
-    fprintf(stderr, "%sUsing Programmer              : %s\n", progbuf, programmer);
+    avrdude_message("%sUsing Port                    : %s\n", progbuf, port);
+    avrdude_message("%sUsing Programmer              : %s\n", progbuf, programmer);
     if ((strcmp(pgm->type, "avr910") == 0)) {
-	  fprintf(stderr, "%savr910_devcode (avrdude.conf) : ", progbuf);
-      if(p->avr910_devcode)fprintf(stderr, "0x%x\n", p->avr910_devcode);
-	  else fprintf(stderr, "none\n");
-    }  
+	  avrdude_message("%savr910_devcode (avrdude.conf) : ", progbuf);
+      if(p->avr910_devcode)avrdude_message("0x%x\n", p->avr910_devcode);
+	  else avrdude_message("none\n");
+    }
   }
 
   if (baudrate != 0) {
     if (verbose) {
-      fprintf(stderr, "%sOverriding Baud Rate          : %d\n", progbuf, baudrate);
+      avrdude_message("%sOverriding Baud Rate          : %d\n", progbuf, baudrate);
     }
     pgm->baudrate = baudrate;
   }
 
   if (bitclock != 0.0) {
     if (verbose) {
-      fprintf(stderr, "%sSetting bit clk period        : %.1f\n", progbuf, bitclock);
+      avrdude_message("%sSetting bit clk period        : %.1f\n", progbuf, bitclock);
     }
     pgm->bitclock = bitclock * 1e-6;
   }
 
   if (ispdelay != 0) {
     if (verbose) {
-      fprintf(stderr, "%sSetting isp clock delay        : %3i\n", progbuf, ispdelay);
+      avrdude_message("%sSetting isp clock delay        : %3i\n", progbuf, ispdelay);
     }
     pgm->ispdelay = ispdelay;
   }
@@ -959,30 +957,28 @@ int main(int argc, char * argv [])
      * as outlined in appnote AVR053
      */
     if (pgm->perform_osccal == 0) {
-      fprintf(stderr,
-              "%s: programmer does not support RC oscillator calibration\n",
-	      progname);
+      avrdude_message("%s: programmer does not support RC oscillator calibration\n",
+                      progname);
       exitrc = 1;
     } else {
-      fprintf(stderr, "%s: performing RC oscillator calibration\n", progname);
+      avrdude_message("%s: performing RC oscillator calibration\n", progname);
       exitrc = pgm->perform_osccal(pgm);
     }
     if (exitrc == 0 && quell_progress < 2) {
-      fprintf(stderr,
-              "%s: calibration value is now stored in EEPROM at address 0\n",
-              progname);
+      avrdude_message("%s: calibration value is now stored in EEPROM at address 0\n",
+                      progname);
     }
     goto main_exit;
   }
 
   if (verbose) {
     avr_display(stderr, p, progbuf, verbose);
-    fprintf(stderr, "\n");
+    avrdude_message("\n");
     programmer_display(pgm, progbuf);
   }
 
   if (quell_progress < 2) {
-    fprintf(stderr, "\n");
+    avrdude_message("\n");
   }
 
   exitrc = 0;
@@ -1005,9 +1001,9 @@ int main(int argc, char * argv [])
    */
   init_ok = (rc = pgm->initialize(pgm, p)) >= 0;
   if (!init_ok) {
-    fprintf(stderr, "%s: initialization failed, rc=%d\n", progname, rc);
+    avrdude_message("%s: initialization failed, rc=%d\n", progname, rc);
     if (!ovsigck) {
-      fprintf(stderr, "%sDouble check connections and try again, "
+      avrdude_message("%sDouble check connections and try again, "
               "or use -F to override\n"
               "%sthis check.\n\n",
               progbuf, progbuf);
@@ -1020,9 +1016,8 @@ int main(int argc, char * argv [])
   pgm->rdy_led(pgm, ON);
 
   if (quell_progress < 2) {
-    fprintf(stderr,
-            "%s: AVR device initialized and ready to accept instructions\n",
-            progname);
+    avrdude_message("%s: AVR device initialized and ready to accept instructions\n",
+                    progname);
   }
 
   /*
@@ -1040,7 +1035,7 @@ int main(int argc, char * argv [])
     if (init_ok) {
       rc = avr_signature(pgm, p);
       if (rc != 0) {
-        fprintf(stderr, "%s: error reading signature data, rc=%d\n",
+        avrdude_message("%s: error reading signature data, rc=%d\n",
           progname, rc);
         exitrc = 1;
         goto main_exit;
@@ -1049,21 +1044,20 @@ int main(int argc, char * argv [])
   
     sig = avr_locate_mem(p, "signature");
     if (sig == NULL) {
-      fprintf(stderr,
-              "%s: WARNING: signature data not defined for device \"%s\"\n",
-              progname, p->desc);
+      avrdude_message("%s: WARNING: signature data not defined for device \"%s\"\n",
+                      progname, p->desc);
     }
 
     if (sig != NULL) {
       int ff, zz;
 
       if (quell_progress < 2) {
-        fprintf(stderr, "%s: Device signature = 0x", progname);
+        avrdude_message("%s: Device signature = 0x", progname);
       }
       ff = zz = 1;
       for (i=0; i<sig->size; i++) {
         if (quell_progress < 2) {
-          fprintf(stderr, "%02x", sig->buf[i]);
+          avrdude_message("%02x", sig->buf[i]);
         }
         if (sig->buf[i] != 0xff)
           ff = 0;
@@ -1074,17 +1068,16 @@ int main(int argc, char * argv [])
         if (++attempt < 3) {
           waittime *= 5;
           if (quell_progress < 2) {
-              fprintf(stderr, " (retrying)\n");
+              avrdude_message(" (retrying)\n");
           }
           goto sig_again;
         }
         if (quell_progress < 2) {
-            fprintf(stderr, "\n");
+            avrdude_message("\n");
         }
-        fprintf(stderr,
-                "%s: Yikes!  Invalid device signature.\n", progname);
+        avrdude_message("%s: Yikes!  Invalid device signature.\n", progname);
         if (!ovsigck) {
-          fprintf(stderr, "%sDouble check connections and try again, "
+          avrdude_message("%sDouble check connections and try again, "
                   "or use -F to override\n"
                   "%sthis check.\n\n",
                   progbuf, progbuf);
@@ -1093,7 +1086,7 @@ int main(int argc, char * argv [])
         }
       } else {
         if (quell_progress < 2) {
-          fprintf(stderr, "\n");
+          avrdude_message("\n");
         }
       }
 
@@ -1101,12 +1094,11 @@ int main(int argc, char * argv [])
           sig->buf[0] != p->signature[0] ||
           sig->buf[1] != p->signature[1] ||
           sig->buf[2] != p->signature[2]) {
-        fprintf(stderr,
-                "%s: Expected signature for %s is %02X %02X %02X\n",
-                progname, p->desc,
-                p->signature[0], p->signature[1], p->signature[2]);
+        avrdude_message("%s: Expected signature for %s is %02X %02X %02X\n",
+                        progname, p->desc,
+                        p->signature[0], p->signature[1], p->signature[2]);
         if (!ovsigck) {
-          fprintf(stderr, "%sDouble check chip, "
+          avrdude_message("%sDouble check chip, "
                   "or use -F to override this check.\n",
                   progbuf);
           exitrc = 1;
@@ -1130,7 +1122,7 @@ int main(int argc, char * argv [])
 			{
 			  if (verbose > 0)
 				{
-				fprintf(stderr, "%s: safemode: Fuse reading not support by programmer.\n"
+				avrdude_message("%s: safemode: Fuse reading not support by programmer.\n"
                 	            "              Safemode disabled.\n", progname);
 				}
 	  		safemode = 0;
@@ -1138,7 +1130,7 @@ int main(int argc, char * argv [])
       else
 			{
 
-      		fprintf(stderr, "%s: safemode: To protect your AVR the programming "
+      		avrdude_message("%s: safemode: To protect your AVR the programming "
             				    "will be aborted\n",
                					 progname);
       		exitrc = 1;
@@ -1154,11 +1146,10 @@ int main(int argc, char * argv [])
     if ((p->flags & AVRPART_HAS_PDI) && pgm->page_erase != NULL &&
         lsize(updates) > 0) {
       if (quell_progress < 2) {
-        fprintf(stderr,
-                "%s: NOTE: Programmer supports page erase for Xmega devices.\n"
-                "%sEach page will be erased before programming it, but no chip erase is performed.\n"
-                "%sTo disable page erases, specify the -D option; for a chip-erase, use the -e option.\n",
-                progname, progbuf, progbuf);
+        avrdude_message("%s: NOTE: Programmer supports page erase for Xmega devices.\n"
+                        "%sEach page will be erased before programming it, but no chip erase is performed.\n"
+                        "%sTo disable page erases, specify the -D option; for a chip-erase, use the -e option.\n",
+                        progname, progbuf, progbuf);
       }
     } else {
       AVRMEM * m;
@@ -1173,11 +1164,10 @@ int main(int argc, char * argv [])
         if ((strcasecmp(m->desc, memname) == 0) && (upd->op == DEVICE_WRITE)) {
           erase = 1;
           if (quell_progress < 2) {
-            fprintf(stderr,
-                    "%s: NOTE: \"%s\" memory has been specified, an erase cycle "
-                    "will be performed\n"
-                    "%sTo disable this feature, specify the -D option.\n",
-                    progname, memname, progbuf);
+            avrdude_message("%s: NOTE: \"%s\" memory has been specified, an erase cycle "
+                            "will be performed\n"
+                            "%sTo disable this feature, specify the -D option.\n",
+                            progname, memname, progbuf);
           }
           break;
         }
@@ -1191,12 +1181,11 @@ int main(int argc, char * argv [])
      * before the chip can accept new programming
      */
     if (uflags & UF_NOWRITE) {
-      fprintf(stderr,
-	      "%s: conflicting -e and -n options specified, NOT erasing chip\n",
-	      progname);
+      avrdude_message("%s: conflicting -e and -n options specified, NOT erasing chip\n",
+                      progname);
     } else {
       if (quell_progress < 2) {
-      	fprintf(stderr, "%s: erasing chip\n", progname);
+      	avrdude_message("%s: erasing chip\n", progname);
       }
       exitrc = avr_chip_erase(pgm, p);
       if(exitrc) goto main_exit;
@@ -1241,7 +1230,7 @@ int main(int argc, char * argv [])
     char yes[1] = {'y'};
 
     if (quell_progress < 2) {
-      fprintf(stderr, "\n");
+      avrdude_message("\n");
     }
 
     //Restore the default fuse values
@@ -1252,20 +1241,19 @@ int main(int argc, char * argv [])
                            &safemodeafter_efuse, &safemodeafter_fuse, pgm, p, verbose) != 0) {
       /* Uh-oh.. try once more to read back fuses */
       if (safemode_readfuses(&safemodeafter_lfuse, &safemodeafter_hfuse,
-                             &safemodeafter_efuse, &safemodeafter_fuse, pgm, p, verbose) != 0) { 
-        fprintf(stderr,
-                "%s: safemode: Sorry, reading back fuses was unreliable. "
-                "I have given up and exited programming mode\n",
-                progname);
+                             &safemodeafter_efuse, &safemodeafter_fuse, pgm, p, verbose) != 0) {
+        avrdude_message("%s: safemode: Sorry, reading back fuses was unreliable. "
+                        "I have given up and exited programming mode\n",
+                        progname);
         exitrc = 1;
-        goto main_exit;		  
+        goto main_exit;        
       }
     }
     
     /* Now check what fuses are against what they should be */
     if (safemodeafter_fuse != safemode_fuse) {
       fuses_updated = 1;
-      fprintf(stderr, "%s: safemode: fuse changed! Was %x, and is now %x\n",
+      avrdude_message("%s: safemode: fuse changed! Was %x, and is now %x\n",
               progname, safemode_fuse, safemodeafter_fuse);
 
               
@@ -1281,10 +1269,10 @@ int main(int argc, char * argv [])
             /* Enough chit-chat, time to program some fuses and check them */
             if (safemode_writefuse (safemode_fuse, "fuse", pgm, p,
                                     10, verbose) == 0) {
-                fprintf(stderr, "%s: safemode: and is now rescued\n", progname);
+                avrdude_message("%s: safemode: and is now rescued\n", progname);
             }
             else {
-                fprintf(stderr, "%s: and COULD NOT be changed\n", progname);
+                avrdude_message("%s: and COULD NOT be changed\n", progname);
                 failures++;
             }
       }
@@ -1293,7 +1281,7 @@ int main(int argc, char * argv [])
     /* Now check what fuses are against what they should be */
     if (safemodeafter_lfuse != safemode_lfuse) {
       fuses_updated = 1;
-      fprintf(stderr, "%s: safemode: lfuse changed! Was %x, and is now %x\n",
+      avrdude_message("%s: safemode: lfuse changed! Was %x, and is now %x\n",
               progname, safemode_lfuse, safemodeafter_lfuse);
 
               
@@ -1309,10 +1297,10 @@ int main(int argc, char * argv [])
             /* Enough chit-chat, time to program some fuses and check them */
             if (safemode_writefuse (safemode_lfuse, "lfuse", pgm, p,
                                     10, verbose) == 0) {
-                fprintf(stderr, "%s: safemode: and is now rescued\n", progname);
+                avrdude_message("%s: safemode: and is now rescued\n", progname);
             }
             else {
-                fprintf(stderr, "%s: and COULD NOT be changed\n", progname);
+                avrdude_message("%s: and COULD NOT be changed\n", progname);
                 failures++;
             }
       }
@@ -1321,7 +1309,7 @@ int main(int argc, char * argv [])
     /* Now check what fuses are against what they should be */
     if (safemodeafter_hfuse != safemode_hfuse) {
       fuses_updated = 1;
-      fprintf(stderr, "%s: safemode: hfuse changed! Was %x, and is now %x\n",
+      avrdude_message("%s: safemode: hfuse changed! Was %x, and is now %x\n",
               progname, safemode_hfuse, safemodeafter_hfuse);
               
       /* Ask user - should we change them */
@@ -1334,10 +1322,10 @@ int main(int argc, char * argv [])
             /* Enough chit-chat, time to program some fuses and check them */
             if (safemode_writefuse(safemode_hfuse, "hfuse", pgm, p,
                                     10, verbose) == 0) {
-                fprintf(stderr, "%s: safemode: and is now rescued\n", progname);
+                avrdude_message("%s: safemode: and is now rescued\n", progname);
             }
             else {
-                fprintf(stderr, "%s: and COULD NOT be changed\n", progname);
+                avrdude_message("%s: and COULD NOT be changed\n", progname);
                 failures++;
             }
       }
@@ -1346,7 +1334,7 @@ int main(int argc, char * argv [])
     /* Now check what fuses are against what they should be */
     if (safemodeafter_efuse != safemode_efuse) {
       fuses_updated = 1;
-      fprintf(stderr, "%s: safemode: efuse changed! Was %x, and is now %x\n",
+      avrdude_message("%s: safemode: efuse changed! Was %x, and is now %x\n",
               progname, safemode_efuse, safemodeafter_efuse);
 
       /* Ask user - should we change them */
@@ -1359,23 +1347,23 @@ int main(int argc, char * argv [])
             /* Enough chit-chat, time to program some fuses and check them */
             if (safemode_writefuse (safemode_efuse, "efuse", pgm, p,
                                     10, verbose) == 0) {
-                fprintf(stderr, "%s: safemode: and is now rescued\n", progname);
+                avrdude_message("%s: safemode: and is now rescued\n", progname);
             }
             else {
-                fprintf(stderr, "%s: and COULD NOT be changed\n", progname);
+                avrdude_message("%s: and COULD NOT be changed\n", progname);
                 failures++;
             }
        }
     }
 
     if (quell_progress < 2) {
-      fprintf(stderr, "%s: safemode: ", progname);
+      avrdude_message("%s: safemode: ", progname);
       if (failures == 0) {
-        fprintf(stderr, "Fuses OK (E:%02X, H:%02X, L:%02X)\n",
+        avrdude_message("Fuses OK (E:%02X, H:%02X, L:%02X)\n",
                 safemode_efuse, safemode_hfuse, safemode_lfuse);
       }
       else {
-        fprintf(stderr, "Fuses not recovered, sorry\n");
+        avrdude_message("Fuses not recovered, sorry\n");
       }
     }
 
@@ -1403,7 +1391,7 @@ main_exit:
   }
 
   if (quell_progress < 2) {
-    fprintf(stderr, "\n%s done.  Thank you.\n\n", progname);
+    avrdude_message("\n%s done.  Thank you.\n\n", progname);
   }
 
   return exitrc;

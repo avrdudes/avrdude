@@ -33,7 +33,7 @@
 
 #define ppi_claim(fd)                                        \
   if (ioctl(fd, PPCLAIM)) {                                  \
-    fprintf(stderr, "%s: can't claim device \"%s\": %s\n\n", \
+    avrdude_message("%s: can't claim device \"%s\": %s\n\n", \
             progname, port, strerror(errno));                \
     close(fd);                                               \
     exit(1);                                                 \
@@ -41,7 +41,7 @@
 
 #define ppi_release(fd)                                      \
   if (ioctl(fd, PPRELEASE)) {                                \
-    fprintf(stderr, "%s: can't release device: %s\n\n",      \
+    avrdude_message("%s: can't release device: %s\n\n",      \
             progname, strerror(errno));                      \
     exit(1);                                                 \
   }
