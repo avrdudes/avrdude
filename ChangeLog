@@ -11,6 +11,7 @@
 	* fileio.h: (Dito.)
 	* safemode.h: (Dito.)
 	* update.h: (Dito.)
+	* pgm.h: (Dito.)
 	* pgm_type.h: (Dito.)
 	* config.h: (Dito.)
 	* confwin.h: (Dito.)
