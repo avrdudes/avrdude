@@ -36,14 +36,13 @@
     avrdude_message("%s: can't claim device \"%s\": %s\n\n", \
             progname, port, strerror(errno));                \
     close(fd);                                               \
-    exit(1);                                                 \
+    return -1;                                                 \
   }
 
 #define ppi_release(fd)                                      \
   if (ioctl(fd, PPRELEASE)) {                                \
     avrdude_message("%s: can't release device: %s\n\n",      \
             progname, strerror(errno));                      \
-    exit(1);                                                 \
   }
 
 #define DO_PPI_READ(fd, reg, valp) \

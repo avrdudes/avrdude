@@ -209,3 +209,5 @@ backup-avrdude-conf:
 		cp -pR ${DESTDIR}${sysconfdir}/avrdude.conf \
 			${DESTDIR}${sysconfdir}/avrdude.conf.bak; \
 	fi
+
+ACLOCAL_AMFLAGS = -I m4
