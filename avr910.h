@@ -21,8 +21,6 @@
 #ifndef avr910_h
 #define avr910_h
 
-#include "avrpart.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

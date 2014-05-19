@@ -26,7 +26,7 @@
 #include <string.h>
 
 #include "avrdude.h"
-#include "pgm.h"
+#include "libavrdude.h"
 
 static int  pgm_default_2 (struct programmer_t *, AVRPART *);
 static int  pgm_default_3 (struct programmer_t * pgm, AVRPART * p, AVRMEM * mem,

@@ -37,9 +37,8 @@
 #include <termios.h>
 
 #include "avrdude.h"
-#include "avr.h"
-#include "pindefs.h"
-#include "pgm.h"
+#include "libavrdude.h"
+
 #include "bitbang.h"
 #include "serbb.h"
 

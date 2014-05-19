@@ -19,9 +19,6 @@
 /* $Id$ */
 
 #include "ac_cfg.h"
-#include "dfu.h"
-
-#include "avrdude.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +26,11 @@
 #include <string.h>
 #include <limits.h>
 #include <unistd.h>
+
+#include "avrdude.h"
+#include "libavrdude.h"
+
+#include "dfu.h"
 
 #include "usbdevs.h" /* for USB_VENDOR_ATMEL */
 

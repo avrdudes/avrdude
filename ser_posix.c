@@ -43,7 +43,7 @@
 #include <unistd.h>
 
 #include "avrdude.h"
-#include "serial.h"
+#include "libavrdude.h"
 
 long serial_recv_timeout = 5000; /* ms */
 

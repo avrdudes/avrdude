@@ -45,10 +45,9 @@
 #include <unistd.h>
 
 #include "avrdude.h"
-#include "avr.h"
-#include "pgm.h"
+#include "libavrdude.h"
+
 #include "butterfly.h"
-#include "serial.h"
 
 /*
  * Private data for this programmer.

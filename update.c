@@ -26,11 +26,7 @@
 #include <time.h>
 
 #include "avrdude.h"
-#include "avr.h"
-#include "config.h"
-#include "confwin.h"
-#include "fileio.h"
-#include "update.h"
+#include "libavrdude.h"
 
 UPDATE * parse_op(char * s)
 {

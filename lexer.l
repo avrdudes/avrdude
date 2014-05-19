@@ -29,10 +29,9 @@
 #include <sys/stat.h>
 
 #include "avrdude.h"
+#include "libavrdude.h"
 
-#include "config.h"
 #include "config_gram.h"
-#include "lists.h"
 
 #ifndef YYERRCODE
 #define YYERRCODE 256

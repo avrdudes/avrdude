@@ -31,7 +31,6 @@ reg = register as defined in an enum in ppi.h. This must be converted
 
 
 #include "ac_cfg.h"
-#include "avrdude.h"
 
 #if defined (WIN32NATIVE)
 
@@ -45,7 +44,9 @@ reg = register as defined in an enum in ppi.h. This must be converted
 #include <sys/time.h>
 #include <windows.h>
 
-#include "serial.h"
+#include "avrdude.h"
+#include "libavrdude.h"
+
 #include "ppi.h"
 
 #define DEVICE_LPT1 "lpt1"

@@ -36,11 +36,9 @@
 #include <unistd.h>
 
 #include "avrdude.h"
-#include "avr.h"
-#include "config.h"
-#include "pgm.h"
+#include "libavrdude.h"
+
 #include "avr910.h"
-#include "serial.h"
 
 /*
  * Private data for this programmer.

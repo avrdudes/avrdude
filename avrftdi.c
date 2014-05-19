@@ -34,11 +34,9 @@
 #include <stdarg.h>
 
 #include "avrdude.h"
-#include "avr.h"
-#include "pgm.h"
-#include "pindefs.h"
+#include "libavrdude.h"
+
 #include "avrftdi.h"
-#include "avrpart.h"
 #include "avrftdi_tpi.h"
 #include "avrftdi_private.h"
 #include "usbdevs.h"

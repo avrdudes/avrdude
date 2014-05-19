@@ -52,8 +52,7 @@
 #include <unistd.h>
 
 #include "avrdude.h"
-#include "avr.h"
-#include "pgm.h"
+#include "libavrdude.h"
 
 #if defined(HAVE_LIBUSB) || (defined(WIN32NATIVE) && defined(HAVE_LIBHID))
 

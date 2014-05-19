@@ -36,12 +36,11 @@
 #include <time.h>
 
 #include "avrdude.h"
-#include "avr.h"
+#include "libavrdude.h"
+
 #include "crc16.h"
-#include "pgm.h"
 #include "jtag3.h"
 #include "jtag3_private.h"
-#include "serial.h"
 #include "usbdevs.h"
 
 /*

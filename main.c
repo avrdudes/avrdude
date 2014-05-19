@@ -45,15 +45,10 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 
-#include "avr.h"
-#include "config.h"
-#include "confwin.h"
-#include "fileio.h"
-#include "lists.h"
+#include "avrdude.h"
+#include "libavrdude.h"
+
 #include "term.h"
-#include "safemode.h"
-#include "update.h"
-#include "pgm_type.h"
 
 
 /* Get VERSION from ac_cfg.h */

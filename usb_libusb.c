@@ -44,7 +44,8 @@
 #endif
 
 #include "avrdude.h"
-#include "serial.h"
+#include "libavrdude.h"
+
 #include "usbdevs.h"
 
 #if defined(WIN32NATIVE)

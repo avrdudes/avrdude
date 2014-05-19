@@ -37,11 +37,10 @@
 #include <unistd.h>
 
 #include "avrdude.h"
-#include "avr.h"
-#include "pgm.h"
+#include "libavrdude.h"
+
 #include "stk500.h"
 #include "stk500_private.h"
-#include "serial.h"
 
 #define STK500_XTAL 7372800U
 #define MAX_SYNC_ATTEMPTS 10

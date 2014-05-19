@@ -71,7 +71,7 @@ avrdude_LDADD  = $(top_builddir)/$(noinst_LIBRARIES) @LIBUSB_1_0@ @LIBUSB@ @LIBF
 bin_PROGRAMS = avrdude
 
 noinst_LIBRARIES = libavrdude.a
-noinst_LTLIBRARIES = libavrdude.la
+lib_LTLIBRARIES = libavrdude.la
 
 # automake thinks these generated files should be in the distribution,
 # but this might cause trouble for some users, so we rather don't want
@@ -94,7 +94,6 @@ libavrdude_a_SOURCES = \
 	arduino.h \
 	arduino.c \
 	avr.c \
-	avr.h \
 	avr910.c \
 	avr910.h \
 	avrdude.h \
@@ -104,7 +103,6 @@ libavrdude_a_SOURCES = \
 	avrftdi_tpi.c \
 	avrftdi_tpi.h \
 	avrpart.c \
-	avrpart.h \
 	bitbang.c \
 	bitbang.h \
 	buspirate.c \
@@ -112,15 +110,12 @@ libavrdude_a_SOURCES = \
 	butterfly.c \
 	butterfly.h \
 	config.c \
-	config.h \
 	confwin.c \
-	confwin.h \
 	crc16.c \
 	crc16.h \
 	dfu.c \
 	dfu.h \
 	fileio.c \
-	fileio.h \
 	flip1.c \
 	flip1.h \
 	flip2.c \
@@ -137,28 +132,24 @@ libavrdude_a_SOURCES = \
 	jtag3.c \
 	jtag3.h \
 	jtag3_private.h \
+	libavrdude.h \
 	linuxgpio.c \
 	linuxgpio.h \
 	linux_ppdev.h \
 	lists.c \
-	lists.h \
 	my_ddk_hidsdi.h \
 	par.c \
 	par.h \
 	pgm.c \
 	pgm.h \
 	pgm_type.c \
-	pgm_type.h \
 	pickit2.c \
 	pickit2.h \
 	pindefs.c \
-	pindefs.h \
 	ppi.c \
 	ppi.h \
 	ppiwin.c \
 	safemode.c \
-	safemode.h \
-	serial.h \
 	serbb.h \
 	serbb_posix.c \
 	serbb_win32.c \
@@ -181,12 +172,13 @@ libavrdude_a_SOURCES = \
 	usb_libusb.c \
 	usbtiny.h \
 	usbtiny.c \
-	update.h \
 	update.c \
 	wiring.h \
 	wiring.c
 libavrdude_la_SOURCES = $(libavrdude_a_SOURCES)
 libavrdude_la_LDFLAGS = -version-info 1:0
+
+include_HEADERS = libavrdude.h
 
 avrdude_SOURCES = \
 	main.c \

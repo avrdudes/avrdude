@@ -27,8 +27,8 @@
 #include <string.h>
 
 #include "avrdude.h"
-#include "avr.h"
-#include "config.h"
+#include "libavrdude.h"
+
 #include "config_gram.h"
 
 char default_programmer[MAX_STR_CONST];

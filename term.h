@@ -21,8 +21,7 @@
 #ifndef term_h
 #define term_h
 
-#include "avr.h"
-#include "pgm.h"
+#include "libavrdude.h"
 
 #ifdef __cplusplus
 extern "C" {

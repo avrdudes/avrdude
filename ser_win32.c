@@ -23,15 +23,14 @@
  * Native Win32 serial interface for avrdude.
  */
 
-#include "avrdude.h"
-
 #if defined(WIN32NATIVE)
 
 #include <windows.h>
 #include <stdio.h>
 #include <ctype.h>   /* for isprint */
 
-#include "serial.h"
+#include "avrdude.h"
+#include "libavrdude.h"
 
 long serial_recv_timeout = 5000; /* ms */
 

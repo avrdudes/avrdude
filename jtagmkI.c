@@ -33,12 +33,11 @@
 #include <time.h>
 
 #include "avrdude.h"
-#include "avr.h"
+#include "libavrdude.h"
+
 #include "crc16.h"
-#include "pgm.h"
 #include "jtagmkI.h"
 #include "jtagmkI_private.h"
-#include "serial.h"
 
 /*
  * Private data for this programmer.

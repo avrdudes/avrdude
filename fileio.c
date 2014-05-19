@@ -38,8 +38,7 @@
 #endif
 
 #include "avrdude.h"
-#include "avr.h"
-#include "fileio.h"
+#include "libavrdude.h"
 
 
 #define IHEX_MAXDATA 256

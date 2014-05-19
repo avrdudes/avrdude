@@ -33,9 +33,8 @@
 #include <unistd.h>
 
 #include "avrdude.h"
-#include "avr.h"
-#include "pgm.h"
-#include "config.h"
+#include "libavrdude.h"
+
 #include "usbtiny.h"
 #include "usbdevs.h"
 

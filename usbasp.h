@@ -21,8 +21,6 @@
 #ifndef usbasp_h
 #define usbasp_h
 
-#include "avrpart.h"
-
 /* USB function call identifiers */
 #define USBASP_FUNC_CONNECT    1
 #define USBASP_FUNC_DISCONNECT 2

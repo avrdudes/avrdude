@@ -33,7 +33,7 @@
 #include <stdlib.h>
 
 #include "avrdude.h"
-#include "serial.h"
+#include "libavrdude.h"
 
 /* ------------------------------------------------------------------------ */
 

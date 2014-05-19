@@ -43,12 +43,11 @@
 #include <time.h>
 
 #include "avrdude.h"
-#include "avr.h"
+#include "libavrdude.h"
+
 #include "crc16.h"
-#include "pgm.h"
 #include "jtagmkII.h"
 #include "jtagmkII_private.h"
-#include "serial.h"
 #include "usbdevs.h"
 
 /*

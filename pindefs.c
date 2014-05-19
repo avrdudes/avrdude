@@ -21,9 +21,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "avrdude.h"
-#include "pindefs.h"
-#include "pgm.h"
+#include "libavrdude.h"
 
 /**
  * Adds a pin in the pin definition as normal or inverse pin.

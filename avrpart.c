@@ -24,8 +24,7 @@
 #include <string.h>
 
 #include "avrdude.h"
-#include "avrpart.h"
-#include "pindefs.h"
+#include "libavrdude.h"
 
 /***
  *** Elementary functions dealing with OPCODE structures

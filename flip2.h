@@ -21,8 +21,6 @@
 #ifndef flip2_h
 #define flip2_h
 
-#include "pgm.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

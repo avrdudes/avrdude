@@ -61,11 +61,8 @@
 #include <stdint.h>
 
 #include "avrdude.h"
-#include "avr.h"
-#include "avrpart.h"
-#include "pindefs.h"
-#include "pgm.h"
-#include "config.h"
+#include "libavrdude.h"
+
 #include "bitbang.h"
 #include "ft245r.h"
 #include "usbdevs.h"

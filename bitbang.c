@@ -34,9 +34,8 @@
 #endif
 
 #include "avrdude.h"
-#include "avr.h"
-#include "pindefs.h"
-#include "pgm.h"
+#include "libavrdude.h"
+
 #include "par.h"
 #include "serbb.h"
 #include "tpi.h"

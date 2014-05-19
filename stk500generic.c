@@ -32,7 +32,8 @@
 #include <string.h>
 
 #include "avrdude.h"
-#include "pgm.h"
+#include "libavrdude.h"
+
 #include "stk500generic.h"
 #include "stk500.h"
 #include "stk500v2.h"

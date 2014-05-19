@@ -20,9 +20,6 @@
 #ifndef usbtiny_h
 #define usbtiny_h
 
-#include "avrpart.h"
-
-
 // Generic requests to the USBtiny
 #define	USBTINY_ECHO 	     0      // echo test
 #define	USBTINY_READ         1	    // read byte (wIndex:address)

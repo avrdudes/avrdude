@@ -46,9 +46,8 @@
 #endif
 
 #include "avrdude.h"
-#include "avr.h"
-#include "pgm.h"
-#include "serial.h"
+#include "libavrdude.h"
+
 #include "bitbang.h"
 #include "buspirate.h"
 

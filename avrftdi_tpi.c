@@ -5,11 +5,9 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include "avr.h"
-#include "pgm.h"
-#include "avrpart.h"
-#include "pindefs.h"
-#include "tpi.h"
+#include "avrdude.h"
+#include "libavrdude.h"
+
 #include "usbasp.h"
 
 #include "avrftdi_tpi.h"

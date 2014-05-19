@@ -26,10 +26,9 @@
 #include <string.h>
 
 #include "avrdude.h"
-#include "pgm_type.h"
+#include "libavrdude.h"
 
 #include "arduino.h"
-#include "avr.h"
 #include "avr910.h"
 #include "avrftdi.h"
 #include "buspirate.h"

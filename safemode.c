@@ -22,10 +22,9 @@
 #include <stdio.h>
 
 #include "ac_cfg.h"
+
 #include "avrdude.h"
-#include "avr.h"
-#include "pgm.h"
-#include "safemode.h"
+#include "libavrdude.h"
 
 /* This value from ac_cfg.h */
 /* 

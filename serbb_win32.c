@@ -33,9 +33,9 @@
 #include <windows.h>
 #include <stdio.h>
 
-#include "avr.h"
-#include "pindefs.h"
-#include "pgm.h"
+#include "avrdude.h"
+#include "libavrdude.h"
+
 #include "bitbang.h"
 #include "serbb.h"
 

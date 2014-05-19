@@ -41,9 +41,8 @@
 #endif
 
 #include "avrdude.h"
-#include "avr.h"
-#include "pindefs.h"
-#include "pgm.h"
+#include "libavrdude.h"
+
 #include "ppi.h"
 
 enum {

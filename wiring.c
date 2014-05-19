@@ -46,10 +46,10 @@
 #include <unistd.h>
 
 #include "avrdude.h"
-#include "pgm.h"
+#include "libavrdude.h"
+
 #include "stk500v2_private.h"
 #include "stk500v2.h"
-#include "serial.h"
 #include "wiring.h"
 
 /*

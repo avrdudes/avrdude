@@ -34,12 +34,7 @@
 #endif
 
 #include "avrdude.h"
-#include "avr.h"
-#include "config.h"
-#include "lists.h"
-#include "pgm.h"
-#include "pindefs.h"
-#include "ppi.h"
+#include "term.h"
 
 struct command {
   char * name;

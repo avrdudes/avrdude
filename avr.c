@@ -29,13 +29,8 @@
 #include <time.h>
 
 #include "avrdude.h"
+#include "libavrdude.h"
 
-#include "avr.h"
-#include "lists.h"
-#include "pindefs.h"
-#include "ppi.h"
-#include "safemode.h"
-#include "update.h"
 #include "tpi.h"
 
 FP_UpdateProgress update_progress;

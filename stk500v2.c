@@ -48,12 +48,11 @@
 #include <time.h>
 
 #include "avrdude.h"
-#include "avr.h"
-#include "pgm.h"
+#include "libavrdude.h"
+
 #include "stk500_private.h"	// temp until all code converted
 #include "stk500v2.h"
 #include "stk500v2_private.h"
-#include "serial.h"
 #include "usbdevs.h"
 
 /*

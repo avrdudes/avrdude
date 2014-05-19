@@ -21,8 +21,6 @@
 #ifndef pickit2_h
 #define pickit2_h
 
-#include "avrpart.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

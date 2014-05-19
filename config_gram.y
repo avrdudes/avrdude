@@ -27,16 +27,11 @@
 #include <math.h>
 
 #include "avrdude.h"
+#include "libavrdude.h"
 
-#include "config.h"
-#include "lists.h"
 #include "par.h"
 #include "serbb.h"
-#include "pindefs.h"
 #include "ppi.h"
-#include "pgm.h"
-#include "pgm_type.h"
-#include "avr.h"
 
 #if defined(WIN32NATIVE)
 #define strtok_r( _s, _sep, _lasts ) \

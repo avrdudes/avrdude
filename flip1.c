@@ -36,13 +36,12 @@
 #include <inttypes.h>
 #endif
 
-#include "flip1.h"
-#include "dfu.h"
 
 #include "avrdude.h"
-#include "avr.h"
-#include "pgm.h"
+#include "libavrdude.h"
 
+#include "flip1.h"
+#include "dfu.h"
 #include "usbdevs.h" /* for USB_VENDOR_ATMEL */
 
 /* There are three versions of the FLIP protocol:
