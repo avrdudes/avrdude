@@ -163,6 +163,8 @@ static void flip1_setup(PROGRAMMER * pgm);
 static void flip1_teardown(PROGRAMMER * pgm);
 
 /* INTERNAL PROGRAMMER FUNCTION PROTOTYPES */
+#ifdef HAVE_LIBUSB
+// The internal ones are made conditional, as they're not defined further down #ifndef HAVE_LIBUSB
 
 static void flip1_show_info(struct flip1 *flip1);
 
@@ -175,6 +177,8 @@ static const char * flip1_status_str(const struct dfu_status *status);
 static const char * flip1_mem_unit_str(enum flip1_mem_unit mem_unit);
 static int flip1_set_mem_page(struct dfu_dev *dfu, unsigned short page_addr);
 static enum flip1_mem_unit flip1_mem_unit(const char *name);
+
+#endif /* HAVE_LIBUSB */
 
 /* THE INITPGM FUNCTION DEFINITIONS */
 
@@ -200,6 +204,7 @@ void flip1_initpgm(PROGRAMMER *pgm)
   pgm->teardown         = flip1_teardown;
 }
 
+#ifdef HAVE_LIBUSB
 /* EXPORTED PROGRAMMER FUNCTION DEFINITIONS */
 
 int flip1_open(PROGRAMMER *pgm, char *port_spec)
@@ -869,3 +874,82 @@ enum flip1_mem_unit flip1_mem_unit(const char *name) {
     return FLIP1_MEM_UNIT_EEPROM;
   return FLIP1_MEM_UNIT_UNKNOWN;
 }
+#else /* HAVE_LIBUSB */
+// Dummy functions
+int flip1_open(PROGRAMMER *pgm, char *port_spec)
+{
+  fprintf(stderr, "%s: Error: No USB support in this compile of avrdude\n",
+    progname);
+  return -1;
+}
+
+int flip1_initialize(PROGRAMMER* pgm, AVRPART *part)
+{
+  return -1;
+}
+
+void flip1_close(PROGRAMMER* pgm)
+{
+}
+
+void flip1_enable(PROGRAMMER* pgm)
+{
+}
+
+void flip1_disable(PROGRAMMER* pgm)
+{
+}
+
+void flip1_display(PROGRAMMER* pgm, const char *prefix)
+{
+}
+
+int flip1_program_enable(PROGRAMMER* pgm, AVRPART *part)
+{
+  return -1;
+}
+
+int flip1_chip_erase(PROGRAMMER* pgm, AVRPART *part)
+{
+  return -1;
+}
+
+int flip1_read_byte(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
+  unsigned long addr, unsigned char *value)
+{
+  return -1;
+}
+
+int flip1_write_byte(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
+  unsigned long addr, unsigned char value)
+{
+  return -1;
+}
+
+int flip1_paged_load(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
+  unsigned int page_size, unsigned int addr, unsigned int n_bytes)
+{
+  return -1;
+}
+
+int flip1_paged_write(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
+  unsigned int page_size, unsigned int addr, unsigned int n_bytes)
+{
+  return -1;
+}
+
+int flip1_read_sig_bytes(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem)
+{
+  return -1;
+}
+
+void flip1_setup(PROGRAMMER * pgm)
+{
+}
+
+void flip1_teardown(PROGRAMMER * pgm)
+{
+}
+
+
+#endif /* HAVE_LIBUSB */

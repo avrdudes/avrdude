@@ -1,5 +1,12 @@
 2014-05-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #41854: avrdude 6.1 does not compile on systems without libUSB
+	Submitted by Didrik Madheden:
+	* flip1.c: Provide dummy functions for the #ifndef HAVE_LIBUSB case
+	* flip2.c: (Dito.)
+
+2014-05-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* libavrdude.h: Join the former "public" header files (avr.h avrpart.h pindefs.h
 	serial.h fileio.h safemode.h update.h pgm_type.h config.h confwin.h lists.h) into
 	a single header that can be included by anyone wanting to link against the
