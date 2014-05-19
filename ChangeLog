@@ -1,5 +1,9 @@
 2014-05-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* main.c: Cleanup unused include files.
+
+2014-05-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* linux_ppdev.h: Caught two more instances of exit()
 	* configure.ac: Add AC_CONFIG_MACRO_DIR as suggested by libtoolize
 	* Makefile.am: add -I m4 to ACLOCAL_AMFLAGS as suggested by libtoolize

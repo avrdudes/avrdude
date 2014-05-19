@@ -50,8 +50,6 @@
 #include "confwin.h"
 #include "fileio.h"
 #include "lists.h"
-#include "par.h"
-#include "pindefs.h"
 #include "term.h"
 #include "safemode.h"
 #include "update.h"
