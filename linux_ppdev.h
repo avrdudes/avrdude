@@ -36,7 +36,7 @@
     avrdude_message("%s: can't claim device \"%s\": %s\n\n", \
             progname, port, strerror(errno));                \
     close(fd);                                               \
-    return -1;                                                 \
+    return;                                                 \
   }
 
 #define ppi_release(fd)                                      \
