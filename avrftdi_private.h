@@ -22,9 +22,6 @@
 
 #ifndef DO_NOT_BUILD_AVRFTDI
 
-#include "pgm.h"
-#include "pindefs.h"
-
 enum { ERR, WARN, INFO, DEBUG, TRACE };
 
 #define __log(lvl, fmt, ...)                                  \

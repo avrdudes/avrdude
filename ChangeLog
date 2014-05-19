@@ -23,6 +23,7 @@
 	* avr910.h: (Dito.)
 	* avr.c: (Dito.)
 	* avrftdi.c: (Dito.)
+	* avrftdi_private.h: (Dito.)
 	* avrftdi_tpi.c: (Dito.)
 	* avrftdi_tpi.h: (Dito.)
 	* avr.h: (Dito.)
