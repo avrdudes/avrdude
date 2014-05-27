@@ -246,7 +246,7 @@ static int linuxgpio_open(PROGRAMMER *pgm, char *port)
 {
   int r, i, pin;
 
-  if (bitbang_check_prerequisites(pgm) < 0
+  if (bitbang_check_prerequisites(pgm) < 0)
     return -1;
 
 
