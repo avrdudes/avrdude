@@ -474,27 +474,27 @@ programmer
 # J2: Pin 7 is SCK
 #   : Pin 8 is MOSI
 #   : Pin 9 is MISO
-#	: Pin 11 is RST
+#   : Pin 11 is RST
 #   : Pin 6 is ground
 # Use the -b flag to set the SPI clock rate eg -b 3750000 is the fastest I could get
 # a 16MHz Atmega1280 to program reliably.  The 232H is conveniently 5V tolerant.
 programmer
-  id	= "UM232H";
-  desc	= "FT232H based module from FTDI and Glyn.com.au";
-  type	= "avrftdi";
+  id         = "UM232H";
+  desc       = "FT232H based module from FTDI and Glyn.com.au";
+  type       = "avrftdi";
   usbvid     = 0x0403;
 # Note: This PID is reserved for generic 232H devices and
 # should be programmed into the EEPROM
-   usbpid    = 0x6014;
-  usbdev = "A";
+  usbpid     = 0x6014;
+  usbdev     = "A";
   usbvendor  = "";
   usbproduct = "";
   usbsn      = "";
 #ISP-signals
-  sck    = 1;
-  mosi   = 2;
-  miso   = 3;
-  reset  = 4;
+  sck    = 0;
+  mosi   = 1;
+  miso   = 2;
+  reset  = 3;
 ;
 
 # C232HM module from FTDI and Glyn.com.au.
@@ -506,22 +506,22 @@ programmer
 # Use the -b flag to set the SPI clock rate eg -b 3750000 is the fastest I could get
 # a 16MHz Atmega1280 to program reliably.  The 232H is conveniently 5V tolerant.
 programmer
-  id	= "C232HM";
-  desc	= "FT232H based module from FTDI and Glyn.com.au";
-  type	= "avrftdi";
+  id         = "C232HM";
+  desc       = "FT232H based module from FTDI and Glyn.com.au";
+  type       = "avrftdi";
   usbvid     = 0x0403;
 # Note: This PID is reserved for generic 232H devices and
 # should be programmed into the EEPROM
-   usbpid    = 0x6014;
-  usbdev = "A";
+  usbpid     = 0x6014;
+  usbdev     = "A";
   usbvendor  = "";
   usbproduct = "";
   usbsn      = "";
 #ISP-signals
-  sck    = 1;
-  mosi   = 2;
-  miso   = 3;
-  reset  = 4;
+  sck    = 0;
+  mosi   = 1;
+  miso   = 2;
+  reset  = 3;
 ;
 
 
