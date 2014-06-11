@@ -674,7 +674,7 @@ static int usbasp_spi_program_enable(PROGRAMMER * pgm, AVRPART * p)
     usbasp_transmit(pgm, 1, USBASP_FUNC_ENABLEPROG, cmd, res, sizeof(res));
 
   if ((nbytes != 1) | (res[0] != 0)) {
-    avrdude_message("%s: error: programm enable: target doesn't answer. %x \n",
+    avrdude_message("%s: error: program enable: target doesn't answer. %x \n",
 	    progname, res[0]);
     return -1;
   }
@@ -1029,7 +1029,7 @@ static int usbasp_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p)
   }
   if(retry >= 10)
   {
-    avrdude_message("%s: error: programm enable: target doesn't answer.\n", progname);
+    avrdude_message("%s: error: program enable: target doesn't answer.\n", progname);
     return -1;
   }
 

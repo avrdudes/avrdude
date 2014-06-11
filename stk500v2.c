@@ -3065,7 +3065,7 @@ static int stk500v2_setparm(PROGRAMMER * pgm, unsigned char parm, unsigned char 
 
   // don't issue a write if the correct value is already set.
   if (value == current_value && verbose > 2) {
-    avrdude_message("%s: Skipping paramter write; parameter value already set.\n", progname);
+    avrdude_message("%s: Skipping parameter write; parameter value already set.\n", progname);
     return 0;
   }
 

@@ -494,7 +494,7 @@ static int write_flush(avrftdi_t* pdata)
 	 * avr has got the reset signal when we start sleeping.
 	 * (it may be stuck in the USB stack or some USB hub)
 	 *
-	 * Add.: purge does NOT flush. It clears. Also, it is unkown, when the purge
+	 * Add.: purge does NOT flush. It clears. Also, it is unknown, when the purge
 	 * command actually arrives at the chip.
 	 * Use read pin status command as sync.
 	 */
@@ -765,7 +765,7 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 			pdata->tx_buffer_size = 2048;
 			break;
 		default:
-			log_warn("Found unkown device %x. I will do my ", pdata->ftdic->type);
+			log_warn("Found unknown device %x. I will do my ", pdata->ftdic->type);
 			log_warn("best to work with it, but no guarantees ...\n");
 			pdata->pin_limit = 8;
 			pdata->rx_buffer_size = pdata->ftdic->max_packet_size;
