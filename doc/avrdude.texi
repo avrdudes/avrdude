@@ -839,7 +839,7 @@ the above
 and
 @samp{rawfreq=}
 parameters unavailable. Be aware that ASCII mode is not guaranteed to work
-with newer firmware versions, and is retained only to maintain compatability
+with newer firmware versions, and is retained only to maintain compatibility
 with older firmware versions.
 
 @item @samp{nopagedwrite}
