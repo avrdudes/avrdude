@@ -85,7 +85,7 @@ static void wiring_setup(PROGRAMMER * pgm)
    * Now prepare our data
    */
   if ((mycookie = malloc(sizeof(struct wiringpdata))) == 0) {
-    avrdude_message("%s: wiring_setup(): Out of memory allocating private data\n",
+    avrdude_message(MSG_INFO, "%s: wiring_setup(): Out of memory allocating private data\n",
                     progname);
     exit(1);
   }
@@ -123,21 +123,19 @@ static int wiring_parseextparms(PROGRAMMER * pgm, LISTID extparms)
       int newsnooze;
       if (sscanf(extended_param, "snooze=%i", &newsnooze) != 1 ||
           newsnooze < 0) {
-        avrdude_message("%s: wiring_parseextparms(): invalid snooze time '%s'\n",
+        avrdude_message(MSG_INFO, "%s: wiring_parseextparms(): invalid snooze time '%s'\n",
                         progname, extended_param);
         rv = -1;
         continue;
       }
-      if (verbose >= 2) {
-        avrdude_message("%s: wiring_parseextparms(): snooze time set to %d ms\n",
-                        progname, newsnooze);
-      }
+      avrdude_message(MSG_NOTICE2, "%s: wiring_parseextparms(): snooze time set to %d ms\n",
+                      progname, newsnooze);
       WIRINGPDATA(mycookie)->snoozetime = newsnooze;
 
       continue;
     }
 
-    avrdude_message("%s: wiring_parseextparms(): invalid extended parameter '%s'\n",
+    avrdude_message(MSG_INFO, "%s: wiring_parseextparms(): invalid extended parameter '%s'\n",
                     progname, extended_param);
     rv = -1;
   }
@@ -160,27 +158,20 @@ static int wiring_open(PROGRAMMER * pgm, char * port)
   if (WIRINGPDATA(mycookie)->snoozetime > 0) {
     timetosnooze = WIRINGPDATA(mycookie)->snoozetime;
 
-    if (verbose >= 2) {
-      avrdude_message("%s: wiring_open(): snoozing for %d ms\n",
-                      progname, timetosnooze);
-    }
+    avrdude_message(MSG_NOTICE2, "%s: wiring_open(): snoozing for %d ms\n",
+                    progname, timetosnooze);
     while (timetosnooze--)
       usleep(1000);
-    if (verbose >= 2) {
-      avrdude_message("%s: wiring_open(): done snoozing\n",
-                      progname);
-    }
-
+    avrdude_message(MSG_NOTICE2, "%s: wiring_open(): done snoozing\n",
+                    progname);
   } else {
     /* Perform Wiring programming mode RESET.           */
     /* This effectively *releases* both DTR and RTS.    */
     /* i.e. both DTR and RTS rise to a HIGH logic level */
     /* since they are active LOW signals.               */
 
-    if (verbose >= 2) {
-      avrdude_message("%s: wiring_open(): releasing DTR/RTS\n",
-                      progname);
-    }
+    avrdude_message(MSG_NOTICE2, "%s: wiring_open(): releasing DTR/RTS\n",
+                    progname);
 
     serial_set_dtr_rts(&pgm->fd, 0);
     usleep(50*1000);
@@ -188,10 +179,8 @@ static int wiring_open(PROGRAMMER * pgm, char * port)
     /* After releasing for 50 milliseconds, DTR and RTS */
     /* are asserted (i.e. logic LOW) again.             */
 
-    if (verbose >= 2) {
-      avrdude_message("%s: wiring_open(): asserting DTR/RTS\n",
-                      progname);
-    }
+    avrdude_message(MSG_NOTICE2, "%s: wiring_open(): asserting DTR/RTS\n",
+                    progname);
 
     serial_set_dtr_rts(&pgm->fd, 1);
     usleep(50*1000);

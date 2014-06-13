@@ -812,10 +812,10 @@ extern "C" {
 
 /* Writes the specified fuse in fusename (can be "lfuse", "hfuse", or "efuse") and verifies it. Will try up to tries
 amount of times before giving up */
-int safemode_writefuse (unsigned char fuse, char * fusename, PROGRAMMER * pgm, AVRPART * p, int tries, int verbose);
+int safemode_writefuse (unsigned char fuse, char * fusename, PROGRAMMER * pgm, AVRPART * p, int tries);
 
 /* Reads the fuses three times, checking that all readings are the same. This will ensure that the before values aren't in error! */
-int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse, unsigned char * efuse, unsigned char * fuse, PROGRAMMER * pgm, AVRPART * p, int verbose);
+int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse, unsigned char * efuse, unsigned char * fuse, PROGRAMMER * pgm, AVRPART * p);
   
 /* This routine will store the current values pointed to by lfuse, hfuse, and efuse into an internal buffer in this routine
 when save is set to 1. When save is 0 (or not 1 really) it will copy the values from the internal buffer into the locations

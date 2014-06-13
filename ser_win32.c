@@ -69,8 +69,7 @@ static DWORD serial_baud_lookup(long baud)
    * If a non-standard BAUD rate is used, issue
    * a warning (if we are verbose) and return the raw rate
    */
-  if (verbose > 0)
-      avrdude_message("%s: serial_baud_lookup(): Using non-standard baud rate: %ld",
+  avrdude_message(MSG_NOTICE, "%s: serial_baud_lookup(): Using non-standard baud rate: %ld",
               progname, baud);
 
   return baud;
@@ -123,7 +122,7 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
 	 * This is curently not implemented for Win32.
 	 */
 	if (strncmp(port, "net:", strlen("net:")) == 0) {
-		avrdude_message("%s: ser_open(): network connects are currently not"
+		avrdude_message(MSG_INFO, "%s: ser_open(): network connects are currently not"
                                 "implemented for Win32 environments\n",
                                 progname);
 		return -1;
@@ -135,7 +134,7 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
 	    newname = malloc(strlen("\\\\.\\") + strlen(port) + 1);
 
 	    if (newname == 0) {
-		avrdude_message("%s: ser_open(): out of memory\n",
+		avrdude_message(MSG_INFO, "%s: ser_open(): out of memory\n",
                                 progname);
 		exit(1);
 	    }
@@ -159,7 +158,7 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
 			(LPTSTR) &lpMsgBuf,
 			0,
 			NULL);
-		avrdude_message("%s: ser_open(): can't open device \"%s\": %s\n",
+		avrdude_message(MSG_INFO, "%s: ser_open(): can't open device \"%s\": %s\n",
 				progname, port, (char*)lpMsgBuf);
 		LocalFree( lpMsgBuf );
 		return -1;
@@ -168,7 +167,7 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
 	if (!SetupComm(hComPort, W32SERBUFSIZE, W32SERBUFSIZE))
 	{
 		CloseHandle(hComPort);
-		avrdude_message("%s: ser_open(): can't set buffers for \"%s\"\n",
+		avrdude_message(MSG_INFO, "%s: ser_open(): can't set buffers for \"%s\"\n",
 				progname, port);
 		return -1;
 	}
@@ -177,7 +176,7 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
 	if (ser_setspeed(fdp, pinfo.baud) != 0)
 	{
 		CloseHandle(hComPort);
-		avrdude_message("%s: ser_open(): can't set com-state for \"%s\"\n",
+		avrdude_message(MSG_INFO, "%s: ser_open(): can't set com-state for \"%s\"\n",
 				progname, port);
 		return -1;
 	}
@@ -185,7 +184,7 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
 	if (!serial_w32SetTimeOut(hComPort,0))
 	{
 		CloseHandle(hComPort);
-		avrdude_message("%s: ser_open(): can't set initial timeout for \"%s\"\n",
+		avrdude_message(MSG_INFO, "%s: ser_open(): can't set initial timeout for \"%s\"\n",
 				progname, port);
 		return -1;
 	}
@@ -231,7 +230,7 @@ static int ser_send(union filedescriptor *fd, unsigned char * buf, size_t buflen
 	HANDLE hComPort=(HANDLE)fd->pfd;
 
 	if (hComPort == INVALID_HANDLE_VALUE) {
-		avrdude_message("%s: ser_send(): port not open\n",
+		avrdude_message(MSG_INFO, "%s: ser_send(): port not open\n",
               progname); 
 		return -1;
 	}
@@ -241,33 +240,33 @@ static int ser_send(union filedescriptor *fd, unsigned char * buf, size_t buflen
 
 	if (verbose > 3)
 	{
-		avrdude_message("%s: Send: ", progname);
+		avrdude_message(MSG_TRACE, "%s: Send: ", progname);
 
 		while (len) {
 			c = *b;
 			if (isprint(c)) {
-				avrdude_message("%c ", c);
+				avrdude_message(MSG_TRACE, "%c ", c);
 			}
 			else {
-				avrdude_message(". ");
+				avrdude_message(MSG_TRACE, ". ");
 			}
-			avrdude_message("[%02x] ", c);
+			avrdude_message(MSG_TRACE, "[%02x] ", c);
 			b++;
 			len--;
 		}
-      avrdude_message("\n");
+      avrdude_message(MSG_INFO, "\n");
 	}
 	
 	serial_w32SetTimeOut(hComPort,500);
 
 	if (!WriteFile (hComPort, buf, buflen, &written, NULL)) {
-		avrdude_message("%s: ser_send(): write error: %s\n",
+		avrdude_message(MSG_INFO, "%s: ser_send(): write error: %s\n",
               progname, "sorry no info avail"); // TODO
 		return -1;
 	}
 
 	if (written != buflen) {
-		avrdude_message("%s: ser_send(): size/send mismatch\n",
+		avrdude_message(MSG_INFO, "%s: ser_send(): size/send mismatch\n",
               progname); 
 		return -1;
 	}
@@ -285,7 +284,7 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 	HANDLE hComPort=(HANDLE)fd->pfd;
 	
 	if (hComPort == INVALID_HANDLE_VALUE) {
-		avrdude_message("%s: ser_read(): port not open\n",
+		avrdude_message(MSG_INFO, "%s: ser_read(): port not open\n",
               progname); 
 		return -1;
 	}
@@ -304,7 +303,7 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 			(LPTSTR) &lpMsgBuf,
 			0,
 			NULL 	);
-		avrdude_message("%s: ser_recv(): read error: %s\n",
+		avrdude_message(MSG_INFO, "%s: ser_recv(): read error: %s\n",
 			      progname, (char*)lpMsgBuf);
 		LocalFree( lpMsgBuf );
 		return -1;
@@ -312,8 +311,7 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 
 	/* time out detected */
 	if (read == 0) {
-		if (verbose > 1)
-		avrdude_message("%s: ser_recv(): programmer is not responding\n",
+		avrdude_message(MSG_NOTICE2, "%s: ser_recv(): programmer is not responding\n",
                                 progname);
 		return -1;
 	}
@@ -322,22 +320,22 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 
 	if (verbose > 3)
 	{
-		avrdude_message("%s: Recv: ", progname);
+		avrdude_message(MSG_TRACE, "%s: Recv: ", progname);
 
 		while (read) {
 			c = *p;
 			if (isprint(c)) {
-				avrdude_message("%c ", c);
+				avrdude_message(MSG_TRACE, "%c ", c);
 			}
 			else {
-				avrdude_message(". ");
+				avrdude_message(MSG_TRACE, ". ");
 			}
-			avrdude_message("[%02x] ", c);
+			avrdude_message(MSG_TRACE, "[%02x] ", c);
 
 			p++;
 			read--;
 		}
-		avrdude_message("\n");
+		avrdude_message(MSG_INFO, "\n");
 	}
   return 0;
 }
@@ -353,7 +351,7 @@ static int ser_drain(union filedescriptor *fd, int display)
 	HANDLE hComPort=(HANDLE)fd->pfd;
 
   	if (hComPort == INVALID_HANDLE_VALUE) {
-		avrdude_message("%s: ser_drain(): port not open\n",
+		avrdude_message(MSG_INFO, "%s: ser_drain(): port not open\n",
               progname); 
 		return -1;
 	}
@@ -361,7 +359,7 @@ static int ser_drain(union filedescriptor *fd, int display)
 	serial_w32SetTimeOut(hComPort,250);
   
 	if (display) {
-		avrdude_message("drain>");
+		avrdude_message(MSG_INFO, "drain>");
 	}
 
 	while (1) {
@@ -378,17 +376,17 @@ static int ser_drain(union filedescriptor *fd, int display)
 				(LPTSTR) &lpMsgBuf,
 				0,
 				NULL 	);
-			avrdude_message("%s: ser_drain(): read error: %s\n",
+			avrdude_message(MSG_INFO, "%s: ser_drain(): read error: %s\n",
 					  progname, (char*)lpMsgBuf);
 			LocalFree( lpMsgBuf );
 			return -1;
 		}
 
 		if (read) { // data avail
-			if (display) avrdude_message("%02x ", buf[0]);
+			if (display) avrdude_message(MSG_INFO, "%02x ", buf[0]);
 		}
 		else { // no more data
-			if (display) avrdude_message("<drain\n");
+			if (display) avrdude_message(MSG_INFO, "<drain\n");
 			break;
 		}
 	} // while

@@ -313,7 +313,7 @@ static int usbOpenDevice(union filedescriptor *fdp, int vendor, char *vendorName
                 handle = usb_open(dev); /* we need to open the device in order to query strings */
                 if(!handle){
                     errorCode = USB_ERROR_ACCESS;
-                    avrdude_message("Warning: cannot open USB device: %s\n",
+                    avrdude_message(MSG_INFO, "Warning: cannot open USB device: %s\n",
 			    usb_strerror());
                     continue;
                 }
@@ -325,21 +325,21 @@ static int usbOpenDevice(union filedescriptor *fdp, int vendor, char *vendorName
 					0x0409, string, sizeof(string));
                 if(len < 0){
                     errorCode = USB_ERROR_IO;
-                    avrdude_message("Warning: cannot query manufacturer for device: %s\n",
+                    avrdude_message(MSG_INFO, "Warning: cannot query manufacturer for device: %s\n",
                                     usb_strerror());
                 }else{
                     errorCode = USB_ERROR_NOTFOUND;
-                    /* avrdude_message("seen device from vendor ->%s<-\n", string); */
+                    /* avrdude_message(MSG_INFO, "seen device from vendor ->%s<-\n", string); */
                     if(strcmp(string, vendorName) == 0){
                         len = usbGetStringAscii(handle, dev->descriptor.iProduct,
 						0x0409, string, sizeof(string));
                         if(len < 0){
                             errorCode = USB_ERROR_IO;
-                            avrdude_message("Warning: cannot query product for device: %s\n",
+                            avrdude_message(MSG_INFO, "Warning: cannot query product for device: %s\n",
                                             usb_strerror());
                         }else{
                             errorCode = USB_ERROR_NOTFOUND;
-                            /* avrdude_message("seen product ->%s<-\n", string); */
+                            /* avrdude_message(MSG_INFO, "seen product ->%s<-\n", string); */
                             if(strcmp(string, productName) == 0)
                                 break;
                         }
@@ -355,7 +355,7 @@ static int usbOpenDevice(union filedescriptor *fdp, int vendor, char *vendorName
     if(handle != NULL){
         int rval, retries = 3;
         if(usb_set_configuration(handle, 1)){
-            avrdude_message("Warning: could not set configuration: %s\n",
+            avrdude_message(MSG_INFO, "Warning: could not set configuration: %s\n",
 		    usb_strerror());
         }
         /* now try to claim the interface and detach the kernel HID driver on
@@ -364,13 +364,13 @@ static int usbOpenDevice(union filedescriptor *fdp, int vendor, char *vendorName
         while((rval = usb_claim_interface(handle, 0)) != 0 && retries-- > 0){
 #ifdef LIBUSB_HAS_DETACH_KERNEL_DRIVER_NP
             if(usb_detach_kernel_driver_np(handle, 0) < 0){
-                avrdude_message("Warning: could not detach kernel HID driver: %s\n",
+                avrdude_message(MSG_INFO, "Warning: could not detach kernel HID driver: %s\n",
 			usb_strerror());
             }
 #endif
         }
         if(rval != 0)
-            avrdude_message("Warning: could not claim interface\n");
+            avrdude_message(MSG_INFO, "Warning: could not claim interface\n");
 /* Continue anyway, even if we could not claim the interface. Control transfers
  * should still work.
  */
@@ -403,7 +403,7 @@ static int usbSetReport(union filedescriptor *fdp, int reportType, char *buffer,
 				reportType << 8 | buffer[0], 0, buffer, len, 5000);
     if(bytesSent != len){
         if(bytesSent < 0)
-            avrdude_message("Error sending message: %s\n", usb_strerror());
+            avrdude_message(MSG_INFO, "Error sending message: %s\n", usb_strerror());
         return USB_ERROR_IO;
     }
     return 0;
@@ -424,7 +424,7 @@ static int usbGetReport(union filedescriptor *fdp, int reportType, int reportNum
 				    USB_RECIP_INTERFACE | USB_ENDPOINT_IN, USBRQ_HID_GET_REPORT,
 				    reportType << 8 | reportNumber, 0, buffer, maxLen, 5000);
     if(bytesReceived < 0){
-        avrdude_message("Error sending message: %s\n", usb_strerror());
+        avrdude_message(MSG_INFO, "Error sending message: %s\n", usb_strerror());
         return USB_ERROR_IO;
     }
     *len = bytesReceived;
@@ -448,11 +448,11 @@ static void dumpBlock(char *prefix, unsigned char *buf, int len)
     int i;
 
     if(len <= 8){   /* more compact format for short blocks */
-        avrdude_message("%s: %d bytes: ", prefix, len);
+        avrdude_message(MSG_INFO, "%s: %d bytes: ", prefix, len);
         for(i = 0; i < len; i++){
-            avrdude_message("%02x ", buf[i]);
+            avrdude_message(MSG_INFO, "%02x ", buf[i]);
         }
-        avrdude_message(" \"");
+        avrdude_message(MSG_INFO, " \"");
         for(i = 0; i < len; i++){
             if(buf[i] >= 0x20 && buf[i] < 0x7f){
                 fputc(buf[i], stderr);
@@ -460,20 +460,20 @@ static void dumpBlock(char *prefix, unsigned char *buf, int len)
                 fputc('.', stderr);
             }
         }
-        avrdude_message("\"\n");
+        avrdude_message(MSG_INFO, "\"\n");
     }else{
-        avrdude_message("%s: %d bytes:\n", prefix, len);
+        avrdude_message(MSG_INFO, "%s: %d bytes:\n", prefix, len);
         while(len > 0){
             for(i = 0; i < 16; i++){
                 if(i < len){
-                    avrdude_message("%02x ", buf[i]);
+                    avrdude_message(MSG_INFO, "%02x ", buf[i]);
                 }else{
-                    avrdude_message("   ");
+                    avrdude_message(MSG_INFO, "   ");
                 }
                 if(i == 7)
                     fputc(' ', stderr);
             }
-            avrdude_message("  \"");
+            avrdude_message(MSG_INFO, "  \"");
             for(i = 0; i < 16; i++){
                 if(i < len){
                     if(buf[i] >= 0x20 && buf[i] < 0x7f){
@@ -483,7 +483,7 @@ static void dumpBlock(char *prefix, unsigned char *buf, int len)
                     }
                 }
             }
-            avrdude_message("\"\n");
+            avrdude_message(MSG_INFO, "\"\n");
             buf += 16;
             len -= 16;
         }
@@ -516,7 +516,7 @@ static int avrdoper_open(char *port, union pinfo pinfo, union filedescriptor *fd
 
     rval = usbOpenDevice(fdp, USB_VENDOR_ID, vname, USB_PRODUCT_ID, devname, 1);
     if(rval != 0){
-        avrdude_message("%s: avrdoper_open(): %s\n", progname, usbErrorText(rval));
+        avrdude_message(MSG_INFO, "%s: avrdoper_open(): %s\n", progname, usbErrorText(rval));
         return -1;
     }
     return 0;
@@ -554,12 +554,11 @@ static int avrdoper_send(union filedescriptor *fdp, unsigned char *buf, size_t b
         buffer[0] = lenIndex + 1;   /* report ID */
         buffer[1] = thisLen;
         memcpy(buffer + 2, buf, thisLen);
-        if(verbose > 3)
-            avrdude_message("Sending %d bytes data chunk\n", thisLen);
+        avrdude_message(MSG_TRACE, "Sending %d bytes data chunk\n", thisLen);
         rval = usbSetReport(fdp, USB_HID_REPORT_TYPE_FEATURE, (char *)buffer,
 			    reportDataSizes[lenIndex] + 2);
         if(rval != 0){
-            avrdude_message("%s: avrdoper_send(): %s\n", progname, usbErrorText(rval));
+            avrdude_message(MSG_INFO, "%s: avrdoper_send(): %s\n", progname, usbErrorText(rval));
             return -1;
         }
         buflen -= thisLen;
@@ -585,17 +584,16 @@ static int avrdoperFillBuffer(union filedescriptor *fdp)
         usbErr = usbGetReport(fdp, USB_HID_REPORT_TYPE_FEATURE, lenIndex + 1,
 			      (char *)buffer, &len);
         if(usbErr != 0){
-            avrdude_message("%s: avrdoperFillBuffer(): %s\n", progname, usbErrorText(usbErr));
+            avrdude_message(MSG_INFO, "%s: avrdoperFillBuffer(): %s\n", progname, usbErrorText(usbErr));
             return -1;
         }
-        if(verbose > 3)
-            avrdude_message("Received %d bytes data chunk of total %d\n", len - 2, buffer[1]);
+        avrdude_message(MSG_TRACE, "Received %d bytes data chunk of total %d\n", len - 2, buffer[1]);
         len -= 2;   /* compensate for report ID and length byte */
         bytesPending = buffer[1] - len; /* amount still buffered */
         if(len > buffer[1])             /* cut away padding */
             len = buffer[1];
         if(avrdoperRxLength + len > sizeof(avrdoperRxBuffer)){
-            avrdude_message("%s: avrdoperFillBuffer(): internal error: buffer overflow\n",
+            avrdude_message(MSG_INFO, "%s: avrdoperFillBuffer(): internal error: buffer overflow\n",
                             progname);
             return -1;
         }
@@ -643,7 +641,7 @@ static int avrdoper_drain(union filedescriptor *fdp, int display)
 
 static int avrdoper_set_dtr_rts(union filedescriptor *fdp, int is_on)
 {
-	avrdude_message("%s: AVR-Doper doesn't support DTR/RTS setting\n", progname);
+	avrdude_message(MSG_INFO, "%s: AVR-Doper doesn't support DTR/RTS setting\n", progname);
     return -1;
 }
 

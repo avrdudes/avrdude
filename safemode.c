@@ -33,7 +33,7 @@
  * before giving up 
  */
 int safemode_writefuse (unsigned char fuse, char * fusename, PROGRAMMER * pgm,
-                        AVRPART * p, int tries, int verbose)
+                        AVRPART * p, int tries)
 {
   AVRMEM * m;
   unsigned char fuseread;
@@ -56,10 +56,8 @@ int safemode_writefuse (unsigned char fuse, char * fusename, PROGRAMMER * pgm,
         }
         
     /* Report information to user if needed */
-    if (verbose > 0) {
-      avrdude_message("%s: safemode: Wrote %s to %x, read as %x. %d attempts left\n",
+    avrdude_message(MSG_NOTICE, "%s: safemode: Wrote %s to %x, read as %x. %d attempts left\n",
                       progname, fusename, fuse, fuseread, tries-1);
-    }
     
     /* If fuse wrote OK, no need to keep going */
     if (fuse == fuseread) {
@@ -78,7 +76,7 @@ int safemode_writefuse (unsigned char fuse, char * fusename, PROGRAMMER * pgm,
  */
 int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse, 
                         unsigned char * efuse, unsigned char * fuse, 
-                        PROGRAMMER * pgm, AVRPART * p, int verbose)  
+                        PROGRAMMER * pgm, AVRPART * p)  
 {
 
   unsigned char value;
@@ -106,27 +104,18 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
         {
         allowfuseread = 0;
         }
-	if (verbose > 2)
-		{
-		avrdude_message("%s: safemode read 1, fuse value: %x\n",progname, safemode_fuse);
-		}
+        avrdude_message(MSG_DEBUG, "%s: safemode read 1, fuse value: %x\n",progname, safemode_fuse);
     if(pgm->read_byte(pgm, p, m, 0, &value) != 0)
         {
         allowfuseread = 0;
         }
-	if (verbose > 2)
-		{
-		avrdude_message("%s: safemode read 2, fuse value: %x\n",progname,  value);
-		}
+        avrdude_message(MSG_DEBUG, "%s: safemode read 2, fuse value: %x\n",progname,  value);
     if (value == safemode_fuse) {
         if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
             {
             allowfuseread = 0;
             }
-		if (verbose > 2)
-			{
-			avrdude_message("%s: safemode read 3, fuse value: %x\n",progname,  value);
-			}
+            avrdude_message(MSG_DEBUG, "%s: safemode read 3, fuse value: %x\n",progname,  value);
         if (value == safemode_fuse)
             {
             fusegood = 1; /* Fuse read OK three times */
@@ -141,12 +130,12 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
 		}
 
     if (fusegood == 0)   {
-        avrdude_message("%s: safemode: Verify error - unable to read fuse properly. "
+        avrdude_message(MSG_INFO, "%s: safemode: Verify error - unable to read fuse properly. "
                         "Programmer may not be reliable.\n", progname);
         return -1;
     }
-    else if ((fusegood == 1) && (verbose > 0)) {
-        avrdude_message("%s: safemode: fuse reads as %X\n", progname, safemode_fuse);
+    else if ((fusegood == 1)) {
+        avrdude_message(MSG_NOTICE, "%s: safemode: fuse reads as %X\n", progname, safemode_fuse);
     }
 
 
@@ -160,27 +149,18 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
         {
         allowfuseread = 0;
         }
-	if (verbose > 2)
-		{
-		avrdude_message("%s: safemode read 1, lfuse value: %x\n",progname,  safemode_lfuse);
-		}
+        avrdude_message(MSG_DEBUG, "%s: safemode read 1, lfuse value: %x\n",progname,  safemode_lfuse);
     if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
         {
         allowfuseread = 0;
         }
-	if (verbose > 2)
-		{
-		avrdude_message("%s: safemode read 2, lfuse value: %x\n",progname,  value);
-		}
+        avrdude_message(MSG_DEBUG, "%s: safemode read 2, lfuse value: %x\n",progname,  value);
     if (value == safemode_lfuse) {
         if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
             {
             allowfuseread = 0;
             }
-		if (verbose > 2)
-			{
-			avrdude_message("%s: safemode read 3, lfuse value: %x\n",progname,  value);
-			}
+            avrdude_message(MSG_DEBUG, "%s: safemode read 3, lfuse value: %x\n",progname,  value);
         if (value == safemode_lfuse){
         fusegood = 1; /* Fuse read OK three times */
         }
@@ -195,12 +175,12 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
 
 
     if (fusegood == 0)	 {
-        avrdude_message("%s: safemode: Verify error - unable to read lfuse properly. "
+        avrdude_message(MSG_INFO, "%s: safemode: Verify error - unable to read lfuse properly. "
                         "Programmer may not be reliable.\n", progname);
         return -1;
     }
-    else if ((fusegood == 1) && (verbose > 0)) {
-        avrdude_message("%s: safemode: lfuse reads as %X\n", progname, safemode_lfuse);
+    else if (fusegood == 1) {
+        avrdude_message(MSG_DEBUG, "%s: safemode: lfuse reads as %X\n", progname, safemode_lfuse);
     }
 
   /* Read hfuse three times */  
@@ -213,27 +193,18 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
         {
         allowfuseread = 0;
         }
-	if (verbose > 2)
-		{
-		avrdude_message("%s: safemode read 1, hfuse value: %x\n",progname,  safemode_hfuse);
-		}
+        avrdude_message(MSG_DEBUG, "%s: safemode read 1, hfuse value: %x\n",progname,  safemode_hfuse);
     if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
         {
         allowfuseread = 0;
         }
-	if (verbose > 2)
-		{
-		avrdude_message("%s: safemode read 2, hfuse value: %x\n",progname,  value);
-		}
+        avrdude_message(MSG_DEBUG, "%s: safemode read 2, hfuse value: %x\n",progname,  value);
     if (value == safemode_hfuse) {
         if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
             {
             allowfuseread = 0;
             }
-		if (verbose > 2)
-			{
-			avrdude_message("%s: safemode read 3, hfuse value: %x\n",progname, value);
-			}
+            avrdude_message(MSG_DEBUG, "%s: safemode read 3, hfuse value: %x\n",progname, value);
         if (value == safemode_hfuse){
              fusegood = 1; /* Fuse read OK three times */
         }
@@ -247,12 +218,12 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
 		}
 
     if (fusegood == 0)	 {
-            avrdude_message("%s: safemode: Verify error - unable to read hfuse properly. "
+            avrdude_message(MSG_INFO, "%s: safemode: Verify error - unable to read hfuse properly. "
                             "Programmer may not be reliable.\n", progname);
        return -2;
     }
-    else if ((fusegood == 1) && (verbose > 0)){
-        avrdude_message("%s: safemode: hfuse reads as %X\n", progname, safemode_hfuse);
+    else if (fusegood == 1){
+        avrdude_message(MSG_NOTICE, "%s: safemode: hfuse reads as %X\n", progname, safemode_hfuse);
     }
 
   /* Read efuse three times */  
@@ -265,27 +236,18 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
         {
         allowfuseread = 0;
         }
-	if (verbose > 2)
-		{
-		avrdude_message("%s: safemode read 1, efuse value: %x\n",progname, safemode_efuse);
-		}
+        avrdude_message(MSG_DEBUG, "%s: safemode read 1, efuse value: %x\n",progname, safemode_efuse);
     if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
         {
         allowfuseread = 0;
         }
-	if (verbose > 2)
-		{
-		avrdude_message("%s: safemode read 2, efuse value: %x\n",progname,  value);
-		}
+        avrdude_message(MSG_DEBUG, "%s: safemode read 2, efuse value: %x\n",progname,  value);
     if (value == safemode_efuse) {
         if (pgm->read_byte(pgm, p, m, 0, &value) != 0)
             {
             allowfuseread = 0;
             }
-		if (verbose > 2)
-			{
-			avrdude_message("%s: safemode read 3, efuse value: %x\n",progname, value);
-			}
+            avrdude_message(MSG_DEBUG, "%s: safemode read 3, efuse value: %x\n",progname, value);
         if (value == safemode_efuse){
              fusegood = 1; /* Fuse read OK three times */
         }
@@ -299,12 +261,12 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
 		}
  
     if (fusegood == 0)	 {
-        avrdude_message("%s: safemode: Verify error - unable to read efuse properly. "
+        avrdude_message(MSG_INFO, "%s: safemode: Verify error - unable to read efuse properly. "
                         "Programmer may not be reliable.\n", progname);
         return -3;
         }
-    else if ((fusegood == 1) && (verbose > 0)) {
-        avrdude_message("%s: safemode: efuse reads as %X\n", progname, safemode_efuse);
+    else if (fusegood == 1) {
+        avrdude_message(MSG_NOTICE, "%s: safemode: efuse reads as %X\n", progname, safemode_efuse);
         }
 
   *lfuse = safemode_lfuse;

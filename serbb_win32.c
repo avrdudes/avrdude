@@ -97,13 +97,11 @@ static int serbb_setpin(PROGRAMMER * pgm, int pinfunc, int value)
                 break;
 
         default:
-                if (verbose)
-                        avrdude_message("%s: serbb_setpin(): unknown pin %d\n",
+                avrdude_message(MSG_NOTICE, "%s: serbb_setpin(): unknown pin %d\n",
                                         progname, pin + 1);
                 return -1;
         }
-        if (verbose > 4)
-                avrdude_message("%s: serbb_setpin(): EscapeCommFunction(%s)\n",
+        avrdude_message(MSG_TRACE2, "%s: serbb_setpin(): EscapeCommFunction(%s)\n",
                                 progname, name);
         if (!EscapeCommFunction(hComPort, dwFunc))
         {
@@ -117,7 +115,7 @@ static int serbb_setpin(PROGRAMMER * pgm, int pinfunc, int value)
                         (LPTSTR) &lpMsgBuf,
                         0,
                         NULL);
-                avrdude_message("%s: serbb_setpin(): SetCommState() failed: %s\n",
+                avrdude_message(MSG_INFO, "%s: serbb_setpin(): SetCommState() failed: %s\n",
                                 progname, (char *)lpMsgBuf);
                 CloseHandle(hComPort);
                 LocalFree(lpMsgBuf);
@@ -163,14 +161,13 @@ static int serbb_getpin(PROGRAMMER * pgm, int pinfunc)
                                 (LPTSTR) &lpMsgBuf,
                                 0,
                                 NULL);
-                        avrdude_message("%s: serbb_setpin(): GetCommModemStatus() failed: %s\n",
+                        avrdude_message(MSG_INFO, "%s: serbb_setpin(): GetCommModemStatus() failed: %s\n",
                                         progname, (char *)lpMsgBuf);
                         CloseHandle(hComPort);
                         LocalFree(lpMsgBuf);
                         return -1;
                 }
-                if (verbose > 4)
-                        avrdude_message("%s: serbb_getpin(): GetCommState() => 0x%lx\n",
+                avrdude_message(MSG_TRACE2, "%s: serbb_getpin(): GetCommState() => 0x%lx\n",
                                         progname, modemstate);
                 switch (pin)
                 {
@@ -206,13 +203,11 @@ static int serbb_getpin(PROGRAMMER * pgm, int pinfunc)
                 name = "RTS";
                 break;
         default:
-                if (verbose)
-                        avrdude_message("%s: serbb_getpin(): unknown pin %d\n",
+                avrdude_message(MSG_NOTICE, "%s: serbb_getpin(): unknown pin %d\n",
                                         progname, pin + 1);
                 return -1;
         }
-        if (verbose > 4)
-                avrdude_message("%s: serbb_getpin(): return cached state for %s\n",
+        avrdude_message(MSG_TRACE2, "%s: serbb_getpin(): return cached state for %s\n",
                                 progname, name);
         if (invert)
                 rv = !rv;
@@ -281,7 +276,7 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 			(LPTSTR) &lpMsgBuf,
 			0,
 			NULL);
-		avrdude_message("%s: ser_open(): can't open device \"%s\": %s\n",
+		avrdude_message(MSG_INFO, "%s: ser_open(): can't open device \"%s\": %s\n",
                         progname, port, (char*)lpMsgBuf);
 		LocalFree(lpMsgBuf);
                 return -1;
@@ -290,7 +285,7 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 	if (!SetupComm(hComPort, W32SERBUFSIZE, W32SERBUFSIZE))
 	{
 		CloseHandle(hComPort);
-		avrdude_message("%s: ser_open(): can't set buffers for \"%s\"\n",
+		avrdude_message(MSG_INFO, "%s: ser_open(): can't set buffers for \"%s\"\n",
                         progname, port);
                 return -1;
 	}
@@ -309,12 +304,11 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 	if (!SetCommState(hComPort, &dcb))
 	{
 		CloseHandle(hComPort);
-		avrdude_message("%s: ser_open(): can't set com-state for \"%s\"\n",
+		avrdude_message(MSG_INFO, "%s: ser_open(): can't set com-state for \"%s\"\n",
                         progname, port);
                 return -1;
 	}
-        if (verbose > 2)
-                avrdude_message("%s: ser_open(): opened comm port \"%s\", handle 0x%x\n",
+        avrdude_message(MSG_DEBUG, "%s: ser_open(): opened comm port \"%s\", handle 0x%x\n",
                         progname, port, (int)hComPort);
 
         pgm->fd.pfd = (void *)hComPort;
@@ -332,8 +326,7 @@ static void serbb_close(PROGRAMMER *pgm)
 		pgm->setpin(pgm, PIN_AVR_RESET, 1);
 		CloseHandle (hComPort);
 	}
-        if (verbose > 2)
-                avrdude_message("%s: ser_close(): closed comm port handle 0x%x\n",
+        avrdude_message(MSG_DEBUG, "%s: ser_close(): closed comm port handle 0x%x\n",
                                 progname, (int)hComPort);
 
 	hComPort = INVALID_HANDLE_VALUE;

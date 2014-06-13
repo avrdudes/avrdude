@@ -93,7 +93,7 @@ TOKEN * new_token(int primary)
 
   tkn = (TOKEN *)malloc(sizeof(TOKEN));
   if (tkn == NULL) {
-    avrdude_message("new_token(): out of memory\n");
+    avrdude_message(MSG_INFO, "new_token(): out of memory\n");
     exit(1);
   }
 
@@ -145,7 +145,7 @@ TOKEN * number(char * text)
   tkn->value.number = atoi(text);
 
 #if DEBUG
-  avrdude_message("NUMBER(%d)\n", tkn->value.number);
+  avrdude_message(MSG_INFO, "NUMBER(%d)\n", tkn->value.number);
 #endif
 
   return tkn;
@@ -160,7 +160,7 @@ TOKEN * number_real(char * text)
   tkn->value.number_real = atof(text);
 
 #if DEBUG
-  avrdude_message("NUMBER(%g)\n", tkn->value.number_real);
+  avrdude_message(MSG_INFO, "NUMBER(%g)\n", tkn->value.number_real);
 #endif
 
   return tkn;
@@ -175,12 +175,12 @@ TOKEN * hexnumber(char * text)
   tkn->value.type   = V_NUM;
   tkn->value.number = strtoul(text, &e, 16);
   if ((e == text) || (*e != 0)) {
-    avrdude_message("error at %s:%d: can't scan hex number \"%s\"\n",
+    avrdude_message(MSG_INFO, "error at %s:%d: can't scan hex number \"%s\"\n",
             infile, lineno, text);
   }
   
 #if DEBUG
-  avrdude_message("HEXNUMBER(%g)\n", tkn->value.number);
+  avrdude_message(MSG_INFO, "HEXNUMBER(%g)\n", tkn->value.number);
 #endif
 
   return tkn;
@@ -199,13 +199,13 @@ TOKEN * string(char * text)
   tkn->value.type   = V_STR;
   tkn->value.string = (char *) malloc(len+1);
   if (tkn->value.string == NULL) {
-    avrdude_message("id(): out of memory\n");
+    avrdude_message(MSG_INFO, "id(): out of memory\n");
     exit(1);
   }
   strcpy(tkn->value.string, text);
 
 #if DEBUG
-  avrdude_message("STRING(%s)\n", tkn->value.string);
+  avrdude_message(MSG_INFO, "STRING(%s)\n", tkn->value.string);
 #endif
 
   return tkn;
@@ -227,33 +227,33 @@ void print_token(TOKEN * tkn)
   if (!tkn)
     return;
 
-  avrdude_message("token = %d = ", tkn->primary);
+  avrdude_message(MSG_INFO, "token = %d = ", tkn->primary);
   switch (tkn->value.type) {
     case V_NUM:
-      avrdude_message("NUMBER, value=%d", tkn->value.number);
+      avrdude_message(MSG_INFO, "NUMBER, value=%d", tkn->value.number);
       break;
 
     case V_NUM_REAL:
-      avrdude_message("NUMBER, value=%g", tkn->value.number_real);
+      avrdude_message(MSG_INFO, "NUMBER, value=%g", tkn->value.number_real);
       break;
 
     case V_STR:
-      avrdude_message("STRING, value=%s", tkn->value.string);
+      avrdude_message(MSG_INFO, "STRING, value=%s", tkn->value.string);
       break;
 
     default:
-      avrdude_message("<other>");
+      avrdude_message(MSG_INFO, "<other>");
       break;
   }
 
-  avrdude_message("\n");
+  avrdude_message(MSG_INFO, "\n");
 }
 
 
 void pyytext(void)
 {
 #if DEBUG
-  avrdude_message("TOKEN: \"%s\"\n", yytext);
+  avrdude_message(MSG_INFO, "TOKEN: \"%s\"\n", yytext);
 #endif
 }
 
@@ -264,7 +264,7 @@ char * dup_string(const char * str)
 
   s = strdup(str);
   if (s == NULL) {
-    avrdude_message("dup_string(): out of memory\n");
+    avrdude_message(MSG_INFO, "dup_string(): out of memory\n");
     exit(1);
   }
 
@@ -282,7 +282,7 @@ int read_config(const char * file)
 
   f = fopen(file, "r");
   if (f == NULL) {
-    avrdude_message("%s: can't open config file \"%s\": %s\n",
+    avrdude_message(MSG_INFO, "%s: can't open config file \"%s\": %s\n",
             progname, file, strerror(errno));
     return -1;
   }

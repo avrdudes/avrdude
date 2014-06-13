@@ -94,9 +94,9 @@ SIGN     [+-]
           }
           
           if (c == EOF) {
-            avrdude_message("error at %s:%d: EOF in comment\n", 
+            avrdude_message(MSG_INFO, "error at %s:%d: EOF in comment\n", 
                     infile, lineno);
-            avrdude_message("    comment started on line %d\n", 
+            avrdude_message(MSG_INFO, "    comment started on line %d\n", 
                     comment_start);
             exit(1);
             break;
@@ -115,7 +115,7 @@ SIGN     [+-]
 <strng>\\(.|\n)  *(string_buf_ptr++) = yytext[1];
 <strng>[^\\\n\"]+ { char *yptr = yytext; while (*yptr) 
                                          *(string_buf_ptr++) = *(yptr++); }
-<strng>\n { avrdude_message("error at line %d: unterminated character constant\n",
+<strng>\n { avrdude_message(MSG_INFO, "error at line %d: unterminated character constant\n",
             lineno); 
             exit(1); }
 
@@ -254,9 +254,9 @@ yes              { yylval=new_token(K_YES); return K_YES; }
 "\n"      { lineno++; }
 [ \r\t]+  { /* ignore whitespace */ }
 
-c: { avrdude_message("error at %s:%d: possible old-style config file entry\n",
+c: { avrdude_message(MSG_INFO, "error at %s:%d: possible old-style config file entry\n",
              infile, lineno);
-     avrdude_message("  Update your config file (see %s%s for a sample)\n",
+     avrdude_message(MSG_INFO, "  Update your config file (see %s%s for a sample)\n",
              CONFIG_DIR, "/avrdude.conf.sample");
      return YYERRCODE; }
 

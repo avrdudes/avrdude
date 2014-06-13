@@ -36,7 +36,7 @@ OPCODE * avr_new_opcode(void)
 
   m = (OPCODE *)malloc(sizeof(*m));
   if (m == NULL) {
-    avrdude_message("avr_new_opcode(): out of memory\n");
+    avrdude_message(MSG_INFO, "avr_new_opcode(): out of memory\n");
     exit(1);
   }
 
@@ -56,7 +56,7 @@ static OPCODE * avr_dup_opcode(OPCODE * op)
 
   m = (OPCODE *)malloc(sizeof(*m));
   if (m == NULL) {
-    avrdude_message("avr_dup_opcode(): out of memory\n");
+    avrdude_message(MSG_INFO, "avr_dup_opcode(): out of memory\n");
     exit(1);
   }
 
@@ -249,7 +249,7 @@ AVRMEM * avr_new_memtype(void)
 
   m = (AVRMEM *)malloc(sizeof(*m));
   if (m == NULL) {
-    avrdude_message("avr_new_memtype(): out of memory\n");
+    avrdude_message(MSG_INFO, "avr_new_memtype(): out of memory\n");
     exit(1);
   }
 
@@ -272,13 +272,13 @@ int avr_initmem(AVRPART * p)
     m = ldata(ln);
     m->buf = (unsigned char *) malloc(m->size);
     if (m->buf == NULL) {
-      avrdude_message("%s: can't alloc buffer for %s size of %d bytes\n",
+      avrdude_message(MSG_INFO, "%s: can't alloc buffer for %s size of %d bytes\n",
               progname, m->desc, m->size);
       return -1;
     }
     m->tags = (unsigned char *) malloc(m->size);
     if (m->tags == NULL) {
-      avrdude_message("%s: can't alloc buffer for %s size of %d bytes\n",
+      avrdude_message(MSG_INFO, "%s: can't alloc buffer for %s size of %d bytes\n",
               progname, m->desc, m->size);
       return -1;
     }
@@ -300,7 +300,7 @@ AVRMEM * avr_dup_mem(AVRMEM * m)
   if (m->buf != NULL) {
     n->buf = (unsigned char *)malloc(n->size);
     if (n->buf == NULL) {
-      avrdude_message("avr_dup_mem(): out of memory (memsize=%d)\n",
+      avrdude_message(MSG_INFO, "avr_dup_mem(): out of memory (memsize=%d)\n",
                       n->size);
       exit(1);
     }
@@ -310,7 +310,7 @@ AVRMEM * avr_dup_mem(AVRMEM * m)
   if (m->tags != NULL) {
     n->tags = (unsigned char *)malloc(n->size);
     if (n->tags == NULL) {
-      avrdude_message("avr_dup_mem(): out of memory (memsize=%d)\n",
+      avrdude_message(MSG_INFO, "avr_dup_mem(): out of memory (memsize=%d)\n",
                       n->size);
       exit(1);
     }
@@ -404,7 +404,7 @@ void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, int type,
             m->readback[0],
             m->readback[1]);
     if (verbose > 4) {
-      avrdude_message("%s  Memory Ops:\n"
+      avrdude_message(MSG_TRACE2, "%s  Memory Ops:\n"
                       "%s    Oeration     Inst Bit  Bit Type  Bitno  Value\n"
                       "%s    -----------  --------  --------  -----  -----\n",
                       prefix, prefix, prefix);
@@ -441,7 +441,7 @@ AVRPART * avr_new_part(void)
 
   p = (AVRPART *)malloc(sizeof(AVRPART));
   if (p == NULL) {
-    avrdude_message("new_part(): out of memory\n");
+    avrdude_message(MSG_INFO, "new_part(): out of memory\n");
     exit(1);
   }
 

@@ -57,7 +57,7 @@ struct pdata
 static void avr910_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    avrdude_message("%s: avr910_setup(): Out of memory allocating private data\n",
+    avrdude_message(MSG_INFO, "%s: avr910_setup(): Out of memory allocating private data\n",
                     progname);
     exit(1);
   }
@@ -83,7 +83,7 @@ static int avr910_recv(PROGRAMMER * pgm, char * buf, size_t len)
 
   rv = serial_recv(&pgm->fd, (unsigned char *)buf, len);
   if (rv < 0) {
-    avrdude_message("%s: avr910_recv(): programmer is not responding\n",
+    avrdude_message(MSG_INFO, "%s: avr910_recv(): programmer is not responding\n",
                     progname);
     return 1;
   }
@@ -103,7 +103,7 @@ static int avr910_vfy_cmd_sent(PROGRAMMER * pgm, char * errmsg)
 
   avr910_recv(pgm, &c, 1);
   if (c != '\r') {
-    avrdude_message("%s: error: programmer did not respond to command: %s\n",
+    avrdude_message(MSG_INFO, "%s: error: programmer did not respond to command: %s\n",
             progname, errmsg);
     return 1;
   }
@@ -185,16 +185,16 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
   avr910_send(pgm, "p", 1);
   avr910_recv(pgm, &type, 1);
 
-  avrdude_message("Found programmer: Id = \"%s\"; type = %c\n", id, type);
-  avrdude_message("    Software Version = %c.%c; ", sw[0], sw[1]);
-  avrdude_message("Hardware Version = %c.%c\n", hw[0], hw[1]);
+  avrdude_message(MSG_INFO, "Found programmer: Id = \"%s\"; type = %c\n", id, type);
+  avrdude_message(MSG_INFO, "    Software Version = %c.%c; ", sw[0], sw[1]);
+  avrdude_message(MSG_INFO, "Hardware Version = %c.%c\n", hw[0], hw[1]);
 
   /* See if programmer supports autoincrement of address. */
 
   avr910_send(pgm, "a", 1);
   avr910_recv(pgm, &PDATA(pgm)->has_auto_incr_addr, 1);
   if (PDATA(pgm)->has_auto_incr_addr == 'Y')
-      avrdude_message("Programmer supports auto addr increment.\n");
+      avrdude_message(MSG_INFO, "Programmer supports auto addr increment.\n");
 
   /* Check support for buffered memory access, ignore if not available */
 
@@ -206,7 +206,7 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
       PDATA(pgm)->buffersize = (unsigned int)(unsigned char)c<<8;
       avr910_recv(pgm, &c, 1);
       PDATA(pgm)->buffersize += (unsigned int)(unsigned char)c;
-      avrdude_message("Programmer supports buffered memory access with "
+      avrdude_message(MSG_INFO, "Programmer supports buffered memory access with "
                       "buffersize = %u bytes.\n",
                       PDATA(pgm)->buffersize);
       PDATA(pgm)->use_blockmode = 1;
@@ -224,7 +224,7 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
     /* Get list of devices that the programmer supports. */
 
     avr910_send(pgm, "t", 1);
-    avrdude_message("\nProgrammer supports the following devices:\n");
+    avrdude_message(MSG_INFO, "\nProgrammer supports the following devices:\n");
     devtype_1st = 0;
     while (1) {
       avr910_recv(pgm, &c, 1);
@@ -234,17 +234,17 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
 	break;
       part = locate_part_by_avr910_devcode(part_list, c);
 
-      avrdude_message("    Device code: 0x%02x = %s\n", c, part ?  part->desc : "(unknown)");
+      avrdude_message(MSG_INFO, "    Device code: 0x%02x = %s\n", c, part ?  part->desc : "(unknown)");
 
       /* FIXME: Need to lookup devcode and report the device. */
 
       if (p->avr910_devcode == c)
 	dev_supported = 1;
     };
-    avrdude_message("\n");
+    avrdude_message(MSG_INFO, "\n");
 
     if (!dev_supported) {
-      avrdude_message("%s: %s: selected device is not supported by programmer: %s\n",
+      avrdude_message(MSG_INFO, "%s: %s: selected device is not supported by programmer: %s\n",
                       progname, ovsigck? "warning": "error", p->id);
       if (!ovsigck)
 	return -1;
@@ -264,9 +264,8 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
   avr910_send(pgm, buf, 2);
   avr910_vfy_cmd_sent(pgm, "select device");
 
-  if (verbose)
-    avrdude_message("%s: avr910_devcode selected: 0x%02x\n",
-                    progname, (unsigned)buf[1]);
+  avrdude_message(MSG_NOTICE, "%s: avr910_devcode selected: 0x%02x\n",
+                  progname, (unsigned)buf[1]);
 
   avr910_enter_prog_mode(pgm);
 
@@ -332,30 +331,26 @@ static int avr910_parseextparms(PROGRAMMER * pgm, LISTID extparms)
       int devcode;
       if (sscanf(extended_param, "devcode=%i", &devcode) != 1 ||
 	  devcode <= 0 || devcode > 255) {
-        avrdude_message("%s: avr910_parseextparms(): invalid devcode '%s'\n",
+        avrdude_message(MSG_INFO, "%s: avr910_parseextparms(): invalid devcode '%s'\n",
                         progname, extended_param);
         rv = -1;
         continue;
       }
-      if (verbose >= 2) {
-        avrdude_message("%s: avr910_parseextparms(): devcode overwritten as 0x%02x\n",
-                        progname, devcode);
-      }
+      avrdude_message(MSG_NOTICE2, "%s: avr910_parseextparms(): devcode overwritten as 0x%02x\n",
+                      progname, devcode);
       PDATA(pgm)->devcode = devcode;
 
       continue;
     }
     if (strncmp(extended_param, "no_blockmode", strlen("no_blockmode")) == 0) {
-      if (verbose >= 2) {
-        avrdude_message("%s: avr910_parseextparms(-x): no testing for Blockmode\n",
-                        progname);
-      }
+      avrdude_message(MSG_NOTICE2, "%s: avr910_parseextparms(-x): no testing for Blockmode\n",
+                      progname);
       PDATA(pgm)->test_blockmode = 0;
 
       continue;
     }
 
-    avrdude_message("%s: avr910_parseextparms(): invalid extended parameter '%s'\n",
+    avrdude_message(MSG_INFO, "%s: avr910_parseextparms(): invalid extended parameter '%s'\n",
                     progname, extended_param);
     rv = -1;
   }
@@ -728,7 +723,7 @@ static int avr910_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
   unsigned char tmp;
 
   if (m->size < 3) {
-    avrdude_message("%s: memsize too small for sig byte read", progname);
+    avrdude_message(MSG_INFO, "%s: memsize too small for sig byte read", progname);
     return -1;
   }
 

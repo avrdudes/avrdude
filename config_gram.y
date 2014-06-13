@@ -271,19 +271,19 @@ prog_def :
       PROGRAMMER * existing_prog;
       char * id;
       if (lsize(current_prog->id) == 0) {
-        avrdude_message("%s: error at %s:%d: required parameter id not specified\n",
+        avrdude_message(MSG_INFO, "%s: error at %s:%d: required parameter id not specified\n",
                 progname, infile, lineno);
         exit(1);
       }
       if (current_prog->initpgm == NULL) {
-        avrdude_message("%s: error at %s:%d: programmer type not specified\n",
+        avrdude_message(MSG_INFO, "%s: error at %s:%d: programmer type not specified\n",
                 progname, infile, lineno);
         exit(1);
       }
       id = ldata(lfirst(current_prog->id));
       existing_prog = locate_programmer(programmers, id);
       if (existing_prog) {
-        avrdude_message("%s: warning at %s:%d: programmer %s overwrites "
+        avrdude_message(MSG_INFO, "%s: warning at %s:%d: programmer %s overwrites "
                 "previous definition %s:%d.\n",
                 progname, infile, current_prog->lineno,
                 id, existing_prog->config_file, existing_prog->lineno);
@@ -309,7 +309,7 @@ prog_decl :
     {
       struct programmer_t * pgm = locate_programmer(programmers, $3->value.string);
       if (pgm == NULL) {
-        avrdude_message("%s: error at %s:%d: parent programmer %s not found\n",
+        avrdude_message(MSG_INFO, "%s: error at %s:%d: parent programmer %s not found\n",
                 progname, infile, lineno, $3->value.string);
         exit(1);
       }
@@ -329,7 +329,7 @@ part_def :
       AVRPART * existing_part;
 
       if (current_part->id[0] == 0) {
-        avrdude_message("%s: error at %s:%d: required parameter id not specified\n",
+        avrdude_message(MSG_INFO, "%s: error at %s:%d: required parameter id not specified\n",
                 progname, infile, lineno);
         exit(1);
       }
@@ -343,19 +343,19 @@ part_def :
         m = ldata(ln);
         if (m->paged) {
           if (m->page_size == 0) {
-            avrdude_message("%s: error at %s:%d: must specify page_size for paged "
+            avrdude_message(MSG_INFO, "%s: error at %s:%d: must specify page_size for paged "
                     "memory\n",
                     progname, infile, lineno);
             exit(1);
           }
           if (m->num_pages == 0) {
-            avrdude_message("%s: error at %s:%d: must specify num_pages for paged "
+            avrdude_message(MSG_INFO, "%s: error at %s:%d: must specify num_pages for paged "
                     "memory\n",
                     progname, infile, lineno);
             exit(1);
           }
           if (m->size != m->page_size * m->num_pages) {
-            avrdude_message("%s: error at %s:%d: page size (%u) * num_pages (%u) = "
+            avrdude_message(MSG_INFO, "%s: error at %s:%d: page size (%u) * num_pages (%u) = "
                     "%u does not match memory size (%u)\n",
                     progname, infile, lineno,
                     m->page_size, 
@@ -370,7 +370,7 @@ part_def :
 
       existing_part = locate_part(part_list, current_part->id);
       if (existing_part) {
-        avrdude_message("%s: warning at %s:%d: part %s overwrites "
+        avrdude_message(MSG_INFO, "%s: warning at %s:%d: part %s overwrites "
                 "previous definition %s:%d.\n",
                 progname, infile, current_part->lineno, current_part->id,
                 existing_part->config_file, existing_part->lineno);
@@ -393,7 +393,7 @@ part_decl :
     {
       AVRPART * parent_part = locate_part(part_list, $3->value.string);
       if (parent_part == NULL) {
-        avrdude_message("%s: error at %s:%d: can't find parent part",
+        avrdude_message(MSG_INFO, "%s: error at %s:%d: can't find parent part",
               progname, infile, lineno);
         exit(1);
       }
@@ -462,7 +462,7 @@ prog_parm_type_id:
   TKN_STRING        {
   const struct programmer_type_t * pgm_type = locate_programmer_type($1->value.string);
     if (pgm_type == NULL) {
-        avrdude_message("%s: error at %s:%d: programmer type %s not found\n",
+        avrdude_message(MSG_INFO, "%s: error at %s:%d: programmer type %s not found\n",
                 progname, infile, lineno, $1->value.string);
         exit(1);
     }
@@ -471,7 +471,7 @@ prog_parm_type_id:
 }
   | error
 {
-        avrdude_message("%s: error at %s:%d: programmer type must be written as \"id_type\"\n",
+        avrdude_message(MSG_INFO, "%s: error at %s:%d: programmer type must be written as \"id_type\"\n",
                 progname, infile, lineno);
         exit(1);
 }
@@ -643,7 +643,7 @@ part_parm :
 
   K_DEVICECODE TKN_EQUAL TKN_NUMBER {
     {
-      avrdude_message("%s: error at %s:%d: devicecode is deprecated, use "
+      avrdude_message(MSG_INFO, "%s: error at %s:%d: devicecode is deprecated, use "
               "stk500_devcode instead\n",
               progname, infile, lineno);
       exit(1);
@@ -708,7 +708,7 @@ part_parm :
       }
       if (!ok)
 	{
-	  avrdude_message("%s: Warning: line %d of %s: "
+	  avrdude_message(MSG_INFO, "%s: Warning: line %d of %s: "
 		  "too many bytes in control stack\n",
                   progname, lineno, infile);
         }
@@ -741,7 +741,7 @@ part_parm :
       }
       if (!ok)
 	{
-	  avrdude_message("%s: Warning: line %d of %s: "
+	  avrdude_message(MSG_INFO, "%s: Warning: line %d of %s: "
 		  "too many bytes in control stack\n",
                   progname, lineno, infile);
         }
@@ -773,7 +773,7 @@ part_parm :
       }
       if (!ok)
 	{
-	  avrdude_message("%s: Warning: line %d of %s: "
+	  avrdude_message(MSG_INFO, "%s: Warning: line %d of %s: "
 		  "too many bytes in flash instructions\n",
                   progname, lineno, infile);
         }
@@ -805,7 +805,7 @@ part_parm :
       }
       if (!ok)
 	{
-	  avrdude_message("%s: Warning: line %d of %s: "
+	  avrdude_message(MSG_INFO, "%s: Warning: line %d of %s: "
 		  "too many bytes in EEPROM instructions\n",
                   progname, lineno, infile);
         }
@@ -1211,7 +1211,7 @@ part_parm :
       op = avr_new_opcode();
       parse_cmdbits(op);
       if (current_part->op[opnum] != NULL) {
-        /*avrdude_message("%s: warning at %s:%d: operation redefined\n",
+        /*avrdude_message(MSG_INFO, "%s: warning at %s:%d: operation redefined\n",
               progname, infile, lineno);*/
         avr_free_opcode(current_part->op[opnum]);
       }
@@ -1337,7 +1337,7 @@ mem_spec :
       op = avr_new_opcode();
       parse_cmdbits(op);
       if (current_mem->op[opnum] != NULL) {
-        /*avrdude_message("%s: warning at %s:%d: operation redefined\n",
+        /*avrdude_message(MSG_INFO, "%s: warning at %s:%d: operation redefined\n",
               progname, infile, lineno);*/
         avr_free_opcode(current_mem->op[opnum]);
       }
@@ -1373,7 +1373,7 @@ static int assign_pin(int pinno, TOKEN * v, int invert)
   free_token(v);
 
   if ((value < PIN_MIN) || (value > PIN_MAX)) {
-    avrdude_message("%s: error at line %d of %s: pin must be in the "
+    avrdude_message(MSG_INFO, "%s: error at line %d of %s: pin must be in the "
             "range %d-%d\n",
             progname, lineno, infile, PIN_MIN, PIN_MAX);
     exit(1);
@@ -1394,7 +1394,7 @@ static int assign_pin_list(int invert)
     t = lrmv_n(number_list, 1);
     pin = t->value.number;
     if ((pin < PIN_MIN) || (pin > PIN_MAX)) {
-      avrdude_message("%s: error at line %d of %s: pin must be in the "
+      avrdude_message(MSG_INFO, "%s: error at line %d of %s: pin must be in the "
             "range %d-%d\n",
             progname, lineno, infile, PIN_MIN, PIN_MAX);
       exit(1);
@@ -1423,7 +1423,7 @@ static int which_opcode(TOKEN * opcode)
     case K_CHIP_ERASE  : return AVR_OP_CHIP_ERASE; break;
     case K_PGM_ENABLE  : return AVR_OP_PGM_ENABLE; break;
     default :
-      avrdude_message("%s: error at %s:%d: invalid opcode\n",
+      avrdude_message(MSG_INFO, "%s: error at %s:%d: invalid opcode\n",
               progname, infile, lineno);
       exit(1);
       break;
@@ -1451,7 +1451,7 @@ static int parse_cmdbits(OPCODE * op)
 
       bitno--;
       if (bitno < 0) {
-        avrdude_message("%s: error at %s:%d: too many opcode bits for instruction\n",
+        avrdude_message(MSG_INFO, "%s: error at %s:%d: too many opcode bits for instruction\n",
                 progname, infile, lineno);
         exit(1);
       }
@@ -1459,7 +1459,7 @@ static int parse_cmdbits(OPCODE * op)
       len = strlen(s);
 
       if (len == 0) {
-        avrdude_message("%s: error at %s:%d: invalid bit specifier \"\"\n",
+        avrdude_message(MSG_INFO, "%s: error at %s:%d: invalid bit specifier \"\"\n",
                 progname, infile, lineno);
         exit(1);
       }
@@ -1499,7 +1499,7 @@ static int parse_cmdbits(OPCODE * op)
             op->bit[bitno].bitno = bitno % 8;
             break;
           default :
-            avrdude_message("%s: error at %s:%d: invalid bit specifier '%c'\n",
+            avrdude_message(MSG_INFO, "%s: error at %s:%d: invalid bit specifier '%c'\n",
                     progname, infile, lineno, ch);
             exit(1);
             break;
@@ -1510,7 +1510,7 @@ static int parse_cmdbits(OPCODE * op)
           q = &s[1];
           op->bit[bitno].bitno = strtol(q, &e, 0);
           if ((e == q)||(*e != 0)) {
-            avrdude_message("%s: error at %s:%d: can't parse bit number from \"%s\"\n",
+            avrdude_message(MSG_INFO, "%s: error at %s:%d: can't parse bit number from \"%s\"\n",
                     progname, infile, lineno, q);
             exit(1);
           }
@@ -1518,7 +1518,7 @@ static int parse_cmdbits(OPCODE * op)
           op->bit[bitno].value = 0;
         }
         else {
-          avrdude_message("%s: error at %s:%d: invalid bit specifier \"%s\"\n",
+          avrdude_message(MSG_INFO, "%s: error at %s:%d: invalid bit specifier \"%s\"\n",
                   progname, infile, lineno, s);
           exit(1);
         }

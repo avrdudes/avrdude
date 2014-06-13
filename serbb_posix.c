@@ -238,7 +238,7 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 
   r = tcgetattr(pgm->fd.ifd, &mode);
   if (r < 0) {
-    avrdude_message("%s: ", port);
+    avrdude_message(MSG_INFO, "%s: ", port);
     perror("tcgetattr");
     return(-1);
   }
@@ -252,7 +252,7 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
 
   r = tcsetattr(pgm->fd.ifd, TCSANOW, &mode);
   if (r < 0) {
-      avrdude_message("%s: ", port);
+      avrdude_message(MSG_INFO, "%s: ", port);
       perror("tcsetattr");
       return(-1);
   }
@@ -261,14 +261,14 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
   flags = fcntl(pgm->fd.ifd, F_GETFL, 0);
   if (flags == -1)
     {
-      avrdude_message("%s: Can not get flags: %s\n",
+      avrdude_message(MSG_INFO, "%s: Can not get flags: %s\n",
 	      progname, strerror(errno));
       return(-1);
     }
   flags &= ~O_NONBLOCK;
   if (fcntl(pgm->fd.ifd, F_SETFL, flags) == -1)
     {
-      avrdude_message("%s: Can not clear nonblock flag: %s\n",
+      avrdude_message(MSG_INFO, "%s: Can not clear nonblock flag: %s\n",
 	      progname, strerror(errno));
       return(-1);
     }

@@ -90,8 +90,7 @@ static speed_t serial_baud_lookup(long baud)
    * If a non-standard BAUD rate is used, issue
    * a warning (if we are verbose) and return the raw rate
    */
-  if (verbose > 0)
-      avrdude_message("%s: serial_baud_lookup(): Using non-standard baud rate: %ld",
+  avrdude_message(MSG_NOTICE, "%s: serial_baud_lookup(): Using non-standard baud rate: %ld",
               progname, baud);
 
   return baud;
@@ -111,7 +110,7 @@ static int ser_setspeed(union filedescriptor *fd, long baud)
    */
   rc = tcgetattr(fd->ifd, &termios);
   if (rc < 0) {
-    avrdude_message("%s: ser_setspeed(): tcgetattr() failed",
+    avrdude_message(MSG_INFO, "%s: ser_setspeed(): tcgetattr() failed",
             progname);
     return -errno;
   }
@@ -135,7 +134,7 @@ static int ser_setspeed(union filedescriptor *fd, long baud)
 
   rc = tcsetattr(fd->ifd, TCSANOW, &termios);
   if (rc < 0) {
-    avrdude_message("%s: ser_setspeed(): tcsetattr() failed\n",
+    avrdude_message(MSG_INFO, "%s: ser_setspeed(): tcsetattr() failed\n",
             progname);
     return -errno;
   }
@@ -167,13 +166,13 @@ net_open(const char *port, union filedescriptor *fdp)
   struct hostent *hp;
 
   if ((hstr = strdup(port)) == NULL) {
-    avrdude_message("%s: net_open(): Out of memory!\n",
+    avrdude_message(MSG_INFO, "%s: net_open(): Out of memory!\n",
 	    progname);
     return -1;
   }
 
   if (((pstr = strchr(hstr, ':')) == NULL) || (pstr == hstr)) {
-    avrdude_message("%s: net_open(): Mangled host:port string \"%s\"\n",
+    avrdude_message(MSG_INFO, "%s: net_open(): Mangled host:port string \"%s\"\n",
 	    progname, hstr);
     free(hstr);
     return -1;
@@ -187,14 +186,14 @@ net_open(const char *port, union filedescriptor *fdp)
   pnum = strtoul(pstr, &end, 10);
 
   if ((*pstr == '\0') || (*end != '\0') || (pnum == 0) || (pnum > 65535)) {
-    avrdude_message("%s: net_open(): Bad port number \"%s\"\n",
+    avrdude_message(MSG_INFO, "%s: net_open(): Bad port number \"%s\"\n",
 	    progname, pstr);
     free(hstr);
     return -1;
   }
 
   if ((hp = gethostbyname(hstr)) == NULL) {
-    avrdude_message("%s: net_open(): unknown host \"%s\"\n",
+    avrdude_message(MSG_INFO, "%s: net_open(): unknown host \"%s\"\n",
 	    progname, hstr);
     free(hstr);
     return -1;
@@ -203,7 +202,7 @@ net_open(const char *port, union filedescriptor *fdp)
   free(hstr);
 
   if ((fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-    avrdude_message("%s: net_open(): Cannot open socket: %s\n",
+    avrdude_message(MSG_INFO, "%s: net_open(): Cannot open socket: %s\n",
 	    progname, strerror(errno));
     return -1;
   }
@@ -214,7 +213,7 @@ net_open(const char *port, union filedescriptor *fdp)
   memcpy(&(sockaddr.sin_addr.s_addr), hp->h_addr, sizeof(struct in_addr));
 
   if (connect(fd, (struct sockaddr *)&sockaddr, sizeof(sockaddr))) {
-    avrdude_message("%s: net_open(): Connect failed: %s\n",
+    avrdude_message(MSG_INFO, "%s: net_open(): Connect failed: %s\n",
 	    progname, strerror(errno));
     return -1;
   }
@@ -271,7 +270,7 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
    */
   fd = open(port, O_RDWR | O_NOCTTY | O_NONBLOCK);
   if (fd < 0) {
-    avrdude_message("%s: ser_open(): can't open device \"%s\": %s\n",
+    avrdude_message(MSG_INFO, "%s: ser_open(): can't open device \"%s\": %s\n",
             progname, port, strerror(errno));
     return -1;
   }
@@ -283,7 +282,7 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
    */
   rc = ser_setspeed(fdp, pinfo.baud);
   if (rc) {
-    avrdude_message("%s: ser_open(): can't set attributes for device \"%s\": %s\n",
+    avrdude_message(MSG_INFO, "%s: ser_open(): can't set attributes for device \"%s\": %s\n",
                     progname, port, strerror(-rc));
     close(fd);
     return -1;
@@ -300,7 +299,7 @@ static void ser_close(union filedescriptor *fd)
   if (saved_original_termios) {
     int rc = tcsetattr(fd->ifd, TCSANOW | TCSADRAIN, &original_termios);
     if (rc) {
-      avrdude_message("%s: ser_close(): can't reset attributes for device: %s\n",
+      avrdude_message(MSG_INFO, "%s: ser_close(): can't reset attributes for device: %s\n",
                       progname, strerror(errno));
     }
     saved_original_termios = 0;
@@ -321,29 +320,29 @@ static int ser_send(union filedescriptor *fd, unsigned char * buf, size_t buflen
 
   if (verbose > 3)
   {
-      avrdude_message("%s: Send: ", progname);
+      avrdude_message(MSG_TRACE, "%s: Send: ", progname);
 
       while (buflen) {
         unsigned char c = *buf;
         if (isprint(c)) {
-          avrdude_message("%c ", c);
+          avrdude_message(MSG_TRACE, "%c ", c);
         }
         else {
-          avrdude_message(". ");
+          avrdude_message(MSG_TRACE, ". ");
         }
-        avrdude_message("[%02x] ", c);
+        avrdude_message(MSG_TRACE, "[%02x] ", c);
 
         buf++;
         buflen--;
       }
 
-      avrdude_message("\n");
+      avrdude_message(MSG_TRACE, "\n");
   }
 
   while (len) {
     rc = write(fd->ifd, p, (len > 1024) ? 1024 : len);
     if (rc < 0) {
-      avrdude_message("%s: ser_send(): write error: %s\n",
+      avrdude_message(MSG_INFO, "%s: ser_send(): write error: %s\n",
               progname, strerror(errno));
       return -1;
     }
@@ -375,19 +374,18 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 
     nfds = select(fd->ifd + 1, &rfds, NULL, NULL, &to2);
     if (nfds == 0) {
-      if (verbose > 1)
-	avrdude_message("%s: ser_recv(): programmer is not responding\n",
+      avrdude_message(MSG_NOTICE2, "%s: ser_recv(): programmer is not responding\n",
                         progname);
       return -1;
     }
     else if (nfds == -1) {
       if (errno == EINTR || errno == EAGAIN) {
-	avrdude_message("%s: ser_recv(): programmer is not responding,reselecting\n",
+	avrdude_message(MSG_INFO, "%s: ser_recv(): programmer is not responding,reselecting\n",
                         progname);
         goto reselect;
       }
       else {
-        avrdude_message("%s: ser_recv(): select(): %s\n",
+        avrdude_message(MSG_INFO, "%s: ser_recv(): select(): %s\n",
                 progname, strerror(errno));
         return -1;
       }
@@ -395,7 +393,7 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 
     rc = read(fd->ifd, p, (buflen - len > 1024) ? 1024 : buflen - len);
     if (rc < 0) {
-      avrdude_message("%s: ser_recv(): read error: %s\n",
+      avrdude_message(MSG_INFO, "%s: ser_recv(): read error: %s\n",
               progname, strerror(errno));
       return -1;
     }
@@ -407,22 +405,22 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 
   if (verbose > 3)
   {
-      avrdude_message("%s: Recv: ", progname);
+      avrdude_message(MSG_TRACE, "%s: Recv: ", progname);
 
       while (len) {
         unsigned char c = *p;
         if (isprint(c)) {
-          avrdude_message("%c ", c);
+          avrdude_message(MSG_TRACE, "%c ", c);
         }
         else {
-          avrdude_message(". ");
+          avrdude_message(MSG_TRACE, ". ");
         }
-        avrdude_message("[%02x] ", c);
+        avrdude_message(MSG_TRACE, "[%02x] ", c);
 
         p++;
         len--;
       }
-      avrdude_message("\n");
+      avrdude_message(MSG_TRACE, "\n");
   }
 
   return 0;
@@ -441,7 +439,7 @@ static int ser_drain(union filedescriptor *fd, int display)
   timeout.tv_usec = 250000;
 
   if (display) {
-    avrdude_message("drain>");
+    avrdude_message(MSG_INFO, "drain>");
   }
 
   while (1) {
@@ -452,7 +450,7 @@ static int ser_drain(union filedescriptor *fd, int display)
     nfds = select(fd->ifd + 1, &rfds, NULL, NULL, &timeout);
     if (nfds == 0) {
       if (display) {
-        avrdude_message("<drain\n");
+        avrdude_message(MSG_INFO, "<drain\n");
       }
       
       break;
@@ -462,7 +460,7 @@ static int ser_drain(union filedescriptor *fd, int display)
         goto reselect;
       }
       else {
-        avrdude_message("%s: ser_drain(): select(): %s\n",
+        avrdude_message(MSG_INFO, "%s: ser_drain(): select(): %s\n",
                 progname, strerror(errno));
         return -1;
       }
@@ -470,12 +468,12 @@ static int ser_drain(union filedescriptor *fd, int display)
 
     rc = read(fd->ifd, &buf, 1);
     if (rc < 0) {
-      avrdude_message("%s: ser_drain(): read error: %s\n",
+      avrdude_message(MSG_INFO, "%s: ser_drain(): read error: %s\n",
               progname, strerror(errno));
       return -1;
     }
     if (display) {
-      avrdude_message("%02x ", buf);
+      avrdude_message(MSG_INFO, "%02x ", buf);
     }
   }
 

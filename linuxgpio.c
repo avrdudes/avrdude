@@ -218,7 +218,7 @@ static int linuxgpio_highpulsepin(PROGRAMMER * pgm, int pinfunc)
 
 static void linuxgpio_display(PROGRAMMER *pgm, const char *p)
 {
-    avrdude_message("%sPin assignment  : /sys/class/gpio/gpio{n}\n",p);
+    avrdude_message(MSG_INFO, "%sPin assignment  : /sys/class/gpio/gpio{n}\n",p);
     pgm_display_generic_mask(pgm, p, SHOW_AVR_PINS);
 }
 
@@ -268,7 +268,7 @@ static int linuxgpio_open(PROGRAMMER *pgm, char *port)
          i == PIN_AVR_MISO ) {
         pin = pgm->pinno[i] & PIN_MASK;
         if ((r=linuxgpio_export(pin)) < 0) {
-            avrdude_message("Can't export GPIO %d, already exported/busy?: %s",
+            avrdude_message(MSG_INFO, "Can't export GPIO %d, already exported/busy?: %s",
                     pin, strerror(errno));
             return r;
         }
@@ -345,7 +345,7 @@ const char linuxgpio_desc[] = "GPIO bitbanging using the Linux sysfs interface";
 
 void linuxgpio_initpgm(PROGRAMMER * pgm)
 {
-  avrdude_message("%s: Linux sysfs GPIO support not available in this configuration\n",
+  avrdude_message(MSG_INFO, "%s: Linux sysfs GPIO support not available in this configuration\n",
                   progname);
 }
 

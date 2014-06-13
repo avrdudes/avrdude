@@ -45,7 +45,7 @@ static int arduino_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
   /* Signature byte reads are always 3 bytes. */
 
   if (m->size < 3) {
-    avrdude_message("%s: memsize too small for sig byte read", progname);
+    avrdude_message(MSG_INFO, "%s: memsize too small for sig byte read", progname);
     return -1;
   }
 
@@ -57,17 +57,17 @@ static int arduino_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
   if (serial_recv(&pgm->fd, buf, 5) < 0)
     return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
-    avrdude_message("%s: stk500_cmd(): programmer is out of sync\n",
+    avrdude_message(MSG_INFO, "%s: stk500_cmd(): programmer is out of sync\n",
 			progname);
 	return -1;
   } else if (buf[0] != Resp_STK_INSYNC) {
-    avrdude_message("\n%s: arduino_read_sig_bytes(): (a) protocol error, "
+    avrdude_message(MSG_INFO, "\n%s: arduino_read_sig_bytes(): (a) protocol error, "
                     "expect=0x%02x, resp=0x%02x\n",
                     progname, Resp_STK_INSYNC, buf[0]);
 	return -2;
   }
   if (buf[4] != Resp_STK_OK) {
-    avrdude_message("\n%s: arduino_read_sig_bytes(): (a) protocol error, "
+    avrdude_message(MSG_INFO, "\n%s: arduino_read_sig_bytes(): (a) protocol error, "
                     "expect=0x%02x, resp=0x%02x\n",
                     progname, Resp_STK_OK, buf[4]);
     return -3;
