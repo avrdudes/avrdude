@@ -1,5 +1,10 @@
 2014-06-17  Rene Liebscher <R.Liebscher@gmx.de>
 
+	* avrftdi_private.h: added missing msg level for avrdude_message 
+                             in E/E_VOID macros
+
+2014-06-17  Rene Liebscher <R.Liebscher@gmx.de>
+
 	Removing exit calls from config parser
 	* config.h: cleanup, left only internally needed definitions
 	* config.c: removed exit calls, use yyerror and yywarning
