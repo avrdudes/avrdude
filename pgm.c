@@ -70,7 +70,7 @@ PROGRAMMER * pgm_new(void)
   if (pgm == NULL) {
     avrdude_message(MSG_INFO, "%s: out of memory allocating programmer structure\n",
             progname);
-    exit(1);
+    return NULL;
   }
 
   memset(pgm, 0, sizeof(*pgm));
@@ -161,7 +161,7 @@ PROGRAMMER * pgm_dup(const PROGRAMMER * const src)
   if (pgm == NULL) {
     avrdude_message(MSG_INFO, "%s: out of memory allocating programmer structure\n",
             progname);
-    exit(1);
+    return NULL;
   }
 
   memcpy(pgm, src, sizeof(*pgm));

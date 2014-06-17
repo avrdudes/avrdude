@@ -71,11 +71,6 @@ int avrdude_message(const int msglvl, const char *format, ...)
     return rc;
 }
 
-int yyerror(char * errmsg)
-{
-  avrdude_message(MSG_INFO, "%s: %s at %s:%d\n", progname, errmsg, infile, lineno);
-  exit(1);
-}
 
 struct list_walk_cookie
 {

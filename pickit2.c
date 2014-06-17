@@ -1318,6 +1318,8 @@ static int pickit2_nousb_open (struct programmer_t *pgm, char * name) {
             "%s: error: no usb support. Please compile again with libusb installed.\n",
 #endif
             progname);
+
+    return -1;
 }
 
 void pickit2_initpgm (PROGRAMMER * pgm)

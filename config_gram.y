@@ -28,18 +28,19 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
-
-#include "par.h"
-#include "serbb.h"
-#include "ppi.h"
+#include "config.h"
 
 #if defined(WIN32NATIVE)
 #define strtok_r( _s, _sep, _lasts ) \
     ( *(_lasts) = strtok( (_s), (_sep) ) )
 #endif
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
 int yylex(void);
-int yyerror(char * errmsg);
+int yyerror(char * errmsg, ...);
+int yywarning(char * errmsg, ...);
 
 static int assign_pin(int pinno, TOKEN * v, int invert);
 static int assign_pin_list(int invert);
@@ -271,22 +272,22 @@ prog_def :
       PROGRAMMER * existing_prog;
       char * id;
       if (lsize(current_prog->id) == 0) {
-        avrdude_message(MSG_INFO, "%s: error at %s:%d: required parameter id not specified\n",
-                progname, infile, lineno);
-        exit(1);
+        yyerror("required parameter id not specified");
+        YYABORT;
       }
       if (current_prog->initpgm == NULL) {
-        avrdude_message(MSG_INFO, "%s: error at %s:%d: programmer type not specified\n",
-                progname, infile, lineno);
-        exit(1);
+        yyerror("programmer type not specified");
+        YYABORT;
       }
       id = ldata(lfirst(current_prog->id));
       existing_prog = locate_programmer(programmers, id);
       if (existing_prog) {
-        avrdude_message(MSG_INFO, "%s: warning at %s:%d: programmer %s overwrites "
-                "previous definition %s:%d.\n",
-                progname, infile, current_prog->lineno,
+        { /* temporarly set lineno to lineno of programmer start */
+          int temp = lineno; lineno = current_prog->lineno;
+          yywarning("programmer %s overwrites previous definition %s:%d.",
                 id, existing_prog->config_file, existing_prog->lineno);
+          lineno = temp;
+        }
         lrmv_d(programmers, existing_prog);
         pgm_free(existing_prog);
       }
@@ -301,6 +302,10 @@ prog_def :
 prog_decl :
   K_PROGRAMMER
     { current_prog = pgm_new();
+      if (current_prog == NULL) {
+        yyerror("could not create pgm instance");
+        YYABORT;
+      }
       strcpy(current_prog->config_file, infile);
       current_prog->lineno = lineno;
     }
@@ -309,11 +314,16 @@ prog_decl :
     {
       struct programmer_t * pgm = locate_programmer(programmers, $3->value.string);
       if (pgm == NULL) {
-        avrdude_message(MSG_INFO, "%s: error at %s:%d: parent programmer %s not found\n",
-                progname, infile, lineno, $3->value.string);
-        exit(1);
+        yyerror("parent programmer %s not found", $3->value.string);
+        free_token($3);
+        YYABORT;
       }
       current_prog = pgm_dup(pgm);
+      if (current_prog == NULL) {
+        yyerror("could not duplicate pgm instance");
+        free_token($3);
+        YYABORT;
+      }
       strcpy(current_prog->config_file, infile);
       current_prog->lineno = lineno;
       free_token($3);
@@ -329,9 +339,8 @@ part_def :
       AVRPART * existing_part;
 
       if (current_part->id[0] == 0) {
-        avrdude_message(MSG_INFO, "%s: error at %s:%d: required parameter id not specified\n",
-                progname, infile, lineno);
-        exit(1);
+        yyerror("required parameter id not specified");
+        YYABORT;
       }
 
       /*
@@ -343,26 +352,21 @@ part_def :
         m = ldata(ln);
         if (m->paged) {
           if (m->page_size == 0) {
-            avrdude_message(MSG_INFO, "%s: error at %s:%d: must specify page_size for paged "
-                    "memory\n",
-                    progname, infile, lineno);
-            exit(1);
+            yyerror("must specify page_size for paged memory");
+            YYABORT;
           }
           if (m->num_pages == 0) {
-            avrdude_message(MSG_INFO, "%s: error at %s:%d: must specify num_pages for paged "
-                    "memory\n",
-                    progname, infile, lineno);
-            exit(1);
+            yyerror("must specify num_pages for paged memory");
+            YYABORT;
           }
           if (m->size != m->page_size * m->num_pages) {
-            avrdude_message(MSG_INFO, "%s: error at %s:%d: page size (%u) * num_pages (%u) = "
-                    "%u does not match memory size (%u)\n",
-                    progname, infile, lineno,
-                    m->page_size, 
-                    m->num_pages, 
+            yyerror("page size (%u) * num_pages (%u) = "
+                    "%u does not match memory size (%u)",
+                    m->page_size,
+                    m->num_pages,
                     m->page_size * m->num_pages,
                     m->size);
-            exit(1);
+            YYABORT;
           }
 
         }
@@ -370,10 +374,13 @@ part_def :
 
       existing_part = locate_part(part_list, current_part->id);
       if (existing_part) {
-        avrdude_message(MSG_INFO, "%s: warning at %s:%d: part %s overwrites "
-                "previous definition %s:%d.\n",
-                progname, infile, current_part->lineno, current_part->id,
+        { /* temporarly set lineno to lineno of part start */
+          int temp = lineno; lineno = current_part->lineno;
+          yywarning("part %s overwrites previous definition %s:%d.",
+                current_part->id,
                 existing_part->config_file, existing_part->lineno);
+          lineno = temp;
+        }
         lrmv_d(part_list, existing_part);
         avr_free_part(existing_part);
       }
@@ -386,6 +393,10 @@ part_decl :
   K_PART
     {
       current_part = avr_new_part();
+      if (current_part == NULL) {
+        yyerror("could not create part instance");
+        YYABORT;
+      }
       strcpy(current_part->config_file, infile);
       current_part->lineno = lineno;
     } |
@@ -393,12 +404,17 @@ part_decl :
     {
       AVRPART * parent_part = locate_part(part_list, $3->value.string);
       if (parent_part == NULL) {
-        avrdude_message(MSG_INFO, "%s: error at %s:%d: can't find parent part",
-              progname, infile, lineno);
-        exit(1);
+        yyerror("can't find parent part");
+        free_token($3);
+        YYABORT;
       }
 
       current_part = avr_dup_part(parent_part);
+      if (current_part == NULL) {
+        yyerror("could not duplicate part instance");
+        free_token($3);
+        YYABORT;
+      }
       strcpy(current_part->config_file, infile);
       current_part->lineno = lineno;
 
@@ -426,10 +442,23 @@ prog_parm :
   K_ID TKN_EQUAL string_list {
     {
       TOKEN * t;
+      char *s;
+      int do_yyabort = 0;
       while (lsize(string_list)) {
         t = lrmv_n(string_list, 1);
-        ladd(current_prog->id, dup_string(t->value.string));
+        if (!do_yyabort) {
+          s = dup_string(t->value.string);
+          if (s == NULL) {
+            do_yyabort = 1;
+          } else {
+            ladd(current_prog->id, s);
+          }
+        }
+        /* if do_yyabort == 1 just make the list empty */
         free_token(t);
+      }
+      if (do_yyabort) {
+        YYABORT;
       }
     }
   } |
@@ -462,18 +491,17 @@ prog_parm_type_id:
   TKN_STRING        {
   const struct programmer_type_t * pgm_type = locate_programmer_type($1->value.string);
     if (pgm_type == NULL) {
-        avrdude_message(MSG_INFO, "%s: error at %s:%d: programmer type %s not found\n",
-                progname, infile, lineno, $1->value.string);
-        exit(1);
+        yyerror("programmer type %s not found", $1->value.string);
+        free_token($1); 
+        YYABORT;
     }
     current_prog->initpgm = pgm_type->initpgm;
     free_token($1); 
 }
   | error
 {
-        avrdude_message(MSG_INFO, "%s: error at %s:%d: programmer type must be written as \"id_type\"\n",
-                progname, infile, lineno);
-        exit(1);
+        yyerror("programmer type must be written as \"id_type\"");
+        YYABORT;
 }
 ;
 
@@ -549,9 +577,9 @@ usb_pid_list:
 ;
 
 pin_number_non_empty:
-  TKN_NUMBER { assign_pin(pin_name, $1, 0);  }
+  TKN_NUMBER { if(0 != assign_pin(pin_name, $1, 0)) YYABORT;  }
   |
-  TKN_TILDE TKN_NUMBER { assign_pin(pin_name, $2, 1); }
+  TKN_TILDE TKN_NUMBER { if(0 != assign_pin(pin_name, $2, 1)) YYABORT; }
 ;
 
 pin_number:
@@ -563,7 +591,7 @@ pin_number:
 pin_list_element:
   pin_number_non_empty
   |
-  TKN_TILDE TKN_LEFT_PAREN num_list TKN_RIGHT_PAREN { assign_pin_list(1); }
+  TKN_TILDE TKN_LEFT_PAREN num_list TKN_RIGHT_PAREN { if(0 != assign_pin_list(1)) YYABORT; }
 ;
 
 pin_list_non_empty:
@@ -643,10 +671,9 @@ part_parm :
 
   K_DEVICECODE TKN_EQUAL TKN_NUMBER {
     {
-      avrdude_message(MSG_INFO, "%s: error at %s:%d: devicecode is deprecated, use "
-              "stk500_devcode instead\n",
-              progname, infile, lineno);
-      exit(1);
+      yyerror("devicecode is deprecated, use "
+              "stk500_devcode instead");
+      YYABORT;
     }
   } |
 
@@ -708,9 +735,7 @@ part_parm :
       }
       if (!ok)
 	{
-	  avrdude_message(MSG_INFO, "%s: Warning: line %d of %s: "
-		  "too many bytes in control stack\n",
-                  progname, lineno, infile);
+	  yywarning("too many bytes in control stack");
         }
     }
   } |
@@ -741,9 +766,7 @@ part_parm :
       }
       if (!ok)
 	{
-	  avrdude_message(MSG_INFO, "%s: Warning: line %d of %s: "
-		  "too many bytes in control stack\n",
-                  progname, lineno, infile);
+	  yywarning("too many bytes in control stack");
         }
     }
   } |
@@ -773,9 +796,7 @@ part_parm :
       }
       if (!ok)
 	{
-	  avrdude_message(MSG_INFO, "%s: Warning: line %d of %s: "
-		  "too many bytes in flash instructions\n",
-                  progname, lineno, infile);
+	  yywarning("too many bytes in flash instructions");
         }
     }
   } |
@@ -805,9 +826,7 @@ part_parm :
       }
       if (!ok)
 	{
-	  avrdude_message(MSG_INFO, "%s: Warning: line %d of %s: "
-		  "too many bytes in EEPROM instructions\n",
-                  progname, lineno, infile);
+	  yywarning("too many bytes in EEPROM instructions");
         }
     }
   } |
@@ -1179,16 +1198,21 @@ part_parm :
     mem_specs |
 
   K_FLASH { current_mem = AVR_M_FLASH; }
-    mem_specs | 
+    mem_specs |
 */
 
   K_MEMORY TKN_STRING 
-    { 
-      current_mem = avr_new_memtype(); 
-      strncpy(current_mem->desc, $2->value.string, AVR_MEMDESCLEN); 
+    {
+      current_mem = avr_new_memtype();
+      if (current_mem == NULL) {
+        yyerror("could not create mem instance");
+        free_token($2);
+        YYABORT;
+      }
+      strncpy(current_mem->desc, $2->value.string, AVR_MEMDESCLEN);
       current_mem->desc[AVR_MEMDESCLEN-1] = 0;
-      free_token($2); 
-    } 
+      free_token($2);
+    }
     mem_specs 
     { 
       AVRMEM * existing_mem;
@@ -1208,11 +1232,16 @@ part_parm :
       OPCODE * op;
 
       opnum = which_opcode($1);
+      if (opnum < 0) YYABORT;
       op = avr_new_opcode();
-      parse_cmdbits(op);
+      if (op == NULL) {
+        yyerror("could not create opcode instance");
+        free_token($1);
+        YYABORT;
+      }
+      if(0 != parse_cmdbits(op)) YYABORT;
       if (current_part->op[opnum] != NULL) {
-        /*avrdude_message(MSG_INFO, "%s: warning at %s:%d: operation redefined\n",
-              progname, infile, lineno);*/
+        /*yywarning("operation redefined");*/
         avr_free_opcode(current_part->op[opnum]);
       }
       current_part->op[opnum] = op;
@@ -1334,11 +1363,16 @@ mem_spec :
       OPCODE * op;
 
       opnum = which_opcode($1);
+      if (opnum < 0) YYABORT;
       op = avr_new_opcode();
-      parse_cmdbits(op);
+      if (op == NULL) {
+        yyerror("could not create opcode instance");
+        free_token($1);
+        YYABORT;
+      }
+      if(0 != parse_cmdbits(op)) YYABORT;
       if (current_mem->op[opnum] != NULL) {
-        /*avrdude_message(MSG_INFO, "%s: warning at %s:%d: operation redefined\n",
-              progname, infile, lineno);*/
+        /*yywarning("operation redefined");*/
         avr_free_opcode(current_mem->op[opnum]);
       }
       current_mem->op[opnum] = op;
@@ -1373,10 +1407,8 @@ static int assign_pin(int pinno, TOKEN * v, int invert)
   free_token(v);
 
   if ((value < PIN_MIN) || (value > PIN_MAX)) {
-    avrdude_message(MSG_INFO, "%s: error at line %d of %s: pin must be in the "
-            "range %d-%d\n",
-            progname, lineno, infile, PIN_MIN, PIN_MAX);
-    exit(1);
+    yyerror("pin must be in the range " TOSTRING(PIN_MIN) "-"  TOSTRING(PIN_MAX));
+    return -1;
   }
 
   pin_set_value(&(current_prog->pin[pinno]), value, invert);
@@ -1388,23 +1420,23 @@ static int assign_pin_list(int invert)
 {
   TOKEN * t;
   int pin;
+  int rv = 0;
 
   current_prog->pinno[pin_name] = 0;
   while (lsize(number_list)) {
     t = lrmv_n(number_list, 1);
-    pin = t->value.number;
-    if ((pin < PIN_MIN) || (pin > PIN_MAX)) {
-      avrdude_message(MSG_INFO, "%s: error at line %d of %s: pin must be in the "
-            "range %d-%d\n",
-            progname, lineno, infile, PIN_MIN, PIN_MAX);
-      exit(1);
-      /* TODO clear list and free tokens if no exit is done */
+    if (rv == 0) {
+      pin = t->value.number;
+      if ((pin < PIN_MIN) || (pin > PIN_MAX)) {
+        yyerror("pin must be in the range " TOSTRING(PIN_MIN) "-"  TOSTRING(PIN_MAX));
+        rv = -1;
+      /* loop clears list and frees tokens */
+      }
+      pin_set_value(&(current_prog->pin[pin_name]), pin, invert);
     }
-    pin_set_value(&(current_prog->pin[pin_name]), pin, invert);
     free_token(t);
   }
-
-  return 0;
+  return rv;
 }
 
 static int which_opcode(TOKEN * opcode)
@@ -1423,9 +1455,8 @@ static int which_opcode(TOKEN * opcode)
     case K_CHIP_ERASE  : return AVR_OP_CHIP_ERASE; break;
     case K_PGM_ENABLE  : return AVR_OP_PGM_ENABLE; break;
     default :
-      avrdude_message(MSG_INFO, "%s: error at %s:%d: invalid opcode\n",
-              progname, infile, lineno);
-      exit(1);
+      yyerror("invalid opcode");
+      return -1;
       break;
   }
 }
@@ -1440,6 +1471,7 @@ static int parse_cmdbits(OPCODE * op)
   char * q;
   int len;
   char * s, *brkt = NULL;
+  int rv = 0;
 
   bitno = 32;
   while (lsize(string_list)) {
@@ -1447,21 +1479,21 @@ static int parse_cmdbits(OPCODE * op)
     t = lrmv_n(string_list, 1);
 
     s = strtok_r(t->value.string, " ", &brkt);
-    while (s != NULL) {
+    while (rv == 0 && s != NULL) {
 
       bitno--;
       if (bitno < 0) {
-        avrdude_message(MSG_INFO, "%s: error at %s:%d: too many opcode bits for instruction\n",
-                progname, infile, lineno);
-        exit(1);
+        yyerror("too many opcode bits for instruction");
+        rv = -1;
+        break;
       }
 
       len = strlen(s);
 
       if (len == 0) {
-        avrdude_message(MSG_INFO, "%s: error at %s:%d: invalid bit specifier \"\"\n",
-                progname, infile, lineno);
-        exit(1);
+        yyerror("invalid bit specifier \"\"");
+        rv = -1;
+        break;
       }
 
       ch = s[0];
@@ -1499,9 +1531,8 @@ static int parse_cmdbits(OPCODE * op)
             op->bit[bitno].bitno = bitno % 8;
             break;
           default :
-            avrdude_message(MSG_INFO, "%s: error at %s:%d: invalid bit specifier '%c'\n",
-                    progname, infile, lineno, ch);
-            exit(1);
+            yyerror("invalid bit specifier '%c'", ch);
+            rv = -1;
             break;
         }
       }
@@ -1510,28 +1541,26 @@ static int parse_cmdbits(OPCODE * op)
           q = &s[1];
           op->bit[bitno].bitno = strtol(q, &e, 0);
           if ((e == q)||(*e != 0)) {
-            avrdude_message(MSG_INFO, "%s: error at %s:%d: can't parse bit number from \"%s\"\n",
-                    progname, infile, lineno, q);
-            exit(1);
+            yyerror("can't parse bit number from \"%s\"", q);
+            rv = -1;
+            break;
           }
           op->bit[bitno].type = AVR_CMDBIT_ADDRESS;
           op->bit[bitno].value = 0;
         }
         else {
-          avrdude_message(MSG_INFO, "%s: error at %s:%d: invalid bit specifier \"%s\"\n",
-                  progname, infile, lineno, s);
-          exit(1);
+          yyerror("invalid bit specifier \"%s\"", s);
+          rv = -1;
+          break;
         }
       }
 
       s = strtok_r(NULL, " ", &brkt);
-    }
+    } /* while */
 
     free_token(t);
 
   }  /* while */
 
-  return 0;
+  return rv;
 }
-
-

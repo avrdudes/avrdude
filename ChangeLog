@@ -1,3 +1,16 @@
+2014-06-17  Rene Liebscher <R.Liebscher@gmx.de>
+
+	Removing exit calls from config parser
+	* config.h: cleanup, left only internally needed definitions
+	* config.c: removed exit calls, use yyerror and yywarning
+	* config_gram.y: (Dito.)
+	* lexer.l: (Dito.)
+	* libavrdude.h: removed internal definitions of config parser
+	* main.c: removed yyerror, it is now in config.c
+	* jtagmkII.c: added missing free in error case
+	* pgm.c: replaced exits by returns
+	* pickit2.c: add missing return
+
 2014-06-13  Axel Wachtler <axel@uracoli.de>
 	
         start removing global "verbose" variable, for avrdude library.

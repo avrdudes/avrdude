@@ -28,6 +28,7 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
+#include "config.h"
 
 #include "config_gram.h"
 
@@ -87,14 +88,48 @@ int yywrap()
 }
 
 
+int yyerror(char * errmsg, ...)
+{
+  va_list args;
+
+  char message[512];
+
+  va_start(args, errmsg);
+
+  vsnprintf(message, sizeof(message), errmsg, args);
+  avrdude_message(MSG_INFO, "%s: error at %s:%d: %s\n", progname, infile, lineno, message);
+
+  va_end(args);
+
+  return 0;
+}
+
+
+int yywarning(char * errmsg, ...)
+{
+  va_list args;
+
+  char message[512];
+
+  va_start(args, errmsg);
+
+  vsnprintf(message, sizeof(message), errmsg, args);
+  avrdude_message(MSG_INFO, "%s: warning at %s:%d: %s\n", progname, infile, lineno, message);
+
+  va_end(args);
+
+  return 0;
+}
+
+
 TOKEN * new_token(int primary)
 {
   TOKEN * tkn;
 
   tkn = (TOKEN *)malloc(sizeof(TOKEN));
   if (tkn == NULL) {
-    avrdude_message(MSG_INFO, "new_token(): out of memory\n");
-    exit(1);
+    yyerror("new_token(): out of memory");
+    return NULL;
   }
 
   memset(tkn, 0, sizeof(TOKEN));
@@ -141,6 +176,9 @@ TOKEN * number(char * text)
   struct token_t * tkn;
 
   tkn = new_token(TKN_NUMBER);
+  if (tkn == NULL) {
+      return NULL; /* yyerror already called */
+  }
   tkn->value.type   = V_NUM;
   tkn->value.number = atoi(text);
 
@@ -172,11 +210,14 @@ TOKEN * hexnumber(char * text)
   char * e;
 
   tkn = new_token(TKN_NUMBER);
+  if (tkn == NULL) {
+      return NULL; /* yyerror already called */
+  }
   tkn->value.type   = V_NUM;
   tkn->value.number = strtoul(text, &e, 16);
   if ((e == text) || (*e != 0)) {
-    avrdude_message(MSG_INFO, "error at %s:%d: can't scan hex number \"%s\"\n",
-            infile, lineno, text);
+    yyerror("can't scan hex number \"%s\"", text);
+    return NULL;
   }
   
 #if DEBUG
@@ -193,14 +234,17 @@ TOKEN * string(char * text)
   int len;
 
   tkn = new_token(TKN_STRING);
+  if (tkn == NULL) {
+      return NULL; /* yyerror already called */
+  }
 
   len = strlen(text);
 
   tkn->value.type   = V_STR;
   tkn->value.string = (char *) malloc(len+1);
   if (tkn->value.string == NULL) {
-    avrdude_message(MSG_INFO, "id(): out of memory\n");
-    exit(1);
+    yyerror("string(): out of memory");
+    return NULL;
   }
   strcpy(tkn->value.string, text);
 
@@ -264,8 +308,8 @@ char * dup_string(const char * str)
 
   s = strdup(str);
   if (s == NULL) {
-    avrdude_message(MSG_INFO, "dup_string(): out of memory\n");
-    exit(1);
+    yyerror("dup_string(): out of memory");
+    return NULL;
   }
 
   return s;
@@ -279,6 +323,7 @@ extern int yylex_destroy(void);
 int read_config(const char * file)
 {
   FILE * f;
+  int r;
 
   f = fopen(file, "r");
   if (f == NULL) {
@@ -291,7 +336,7 @@ int read_config(const char * file)
   infile = file;
   yyin   = f;
 
-  yyparse();
+  r = yyparse();
 
 #ifdef HAVE_YYLEX_DESTROY
   /* reset lexer and free any allocated memory */
@@ -300,5 +345,5 @@ int read_config(const char * file)
 
   fclose(f);
 
-  return 0;
+  return r;
 }
