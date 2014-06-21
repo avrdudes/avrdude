@@ -173,6 +173,7 @@ static void add_to_buf (unsigned char c) {
 }
 
 static void *reader (void *arg) {
+    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS,NULL);
     struct ftdi_context *handle = (struct ftdi_context *)(arg);
     unsigned char buf[0x1000];
     int br, i;
@@ -642,10 +643,10 @@ static void ft245r_close(PROGRAMMER * pgm) {
         // I think the switch to BB mode and back flushes the buffer.
         ftdi_set_bitmode(handle, 0, BITMODE_SYNCBB); // set Synchronous BitBang, all in puts
         ftdi_set_bitmode(handle, 0, BITMODE_RESET); // disable Synchronous BitBang
+        ftdi_usb_close(handle);
+        ftdi_deinit (handle);
         pthread_cancel(readerthread);
         pthread_join(readerthread, NULL);
-        ftdi_usb_close(handle);
-        ftdi_deinit (handle); // TODO this works with libftdi 0.20, but hangs with 1.0
         free(handle);
         handle = NULL;
     }
