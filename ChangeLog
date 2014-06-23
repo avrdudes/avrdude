@@ -1,3 +1,9 @@
+2014-06-23  Rene Liebscher <R.Liebscher@gmx.de>
+
+	* linux_ppdev.h: added missing msg level for avrdude_message
+                         in ppi_claim/ppi_release macros
+	* avrftdi.c: added break at end of default
+
 2014-06-21  Rene Liebscher <R.Liebscher@gmx.de>
 
 	patch #8419 fix ftdi_syncbb hang with libftdi 1

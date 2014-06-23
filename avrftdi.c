@@ -147,7 +147,7 @@ void avrftdi_log(int level, const char * func, int line,
 				case INFO:  avrdude_message(MSG_INFO, "I "); break;
 				case DEBUG: avrdude_message(MSG_INFO, "D "); break;
 				case TRACE: avrdude_message(MSG_INFO, "T "); break;
-				default: avrdude_message(MSG_INFO, "  ");
+				default: avrdude_message(MSG_INFO, "  "); break;
 			}
 			avrdude_message(MSG_INFO, "%s(%d): ", func, line);
 		}
