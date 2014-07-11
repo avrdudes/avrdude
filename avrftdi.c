@@ -152,7 +152,7 @@ void avrftdi_log(int level, const char * func, int line,
 			avrdude_message(MSG_INFO, "%s(%d): ", func, line);
 		}
 		va_start(ap, fmt);
-		avrdude_message(MSG_INFO, fmt, ap);
+		vfprintf(stderr, fmt, ap);
 		va_end(ap);
 	}
 

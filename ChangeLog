@@ -1,3 +1,7 @@
+2014-07-11  Axel Wachtler <axel@uracoli.de>
+        
+        * avrftdi.c: rollback to vfprintf, fixed error from -r1305, (patch #8463)
+        
 2014-06-23  Rene Liebscher <R.Liebscher@gmx.de>
 
 	* linux_ppdev.h: added missing msg level for avrdude_message
