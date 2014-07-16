@@ -52,7 +52,7 @@
 #include "wiring.h"
 
 
-const PROGRAMMER_TYPE const programmers_types[] = {
+const PROGRAMMER_TYPE programmers_types[] = {
         {"arduino", arduino_initpgm, arduino_desc},
         {"avr910", avr910_initpgm, avr910_desc},
         {"avrftdi", avrftdi_initpgm, avrftdi_desc},

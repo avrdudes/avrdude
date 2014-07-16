@@ -19,7 +19,7 @@
 /* $Id$ */
 
 #ifndef avrftdi_h
-#define avrfdti_h
+#define avrftdi_h
 
 #include <stdint.h>
 

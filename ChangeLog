@@ -1,3 +1,9 @@
+2014-07-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #42662 clang warnings under FreeBSD 10.x
+	* avrftdi.h: Fix header guard macro name.
+	* pgm_type.c (programmers_types): Remove duplicate "const".
+
 2014-07-16  Rene Liebscher <R.Liebscher@gmx.de>
 
 	bug #42662 clang warnings under FreeBSD 10.x
