@@ -545,7 +545,7 @@ struct serial_device
   int (*setspeed)(union filedescriptor *fd, long baud);
   void (*close)(union filedescriptor *fd);
 
-  int (*send)(union filedescriptor *fd, unsigned char * buf, size_t buflen);
+  int (*send)(union filedescriptor *fd, const unsigned char * buf, size_t buflen);
   int (*recv)(union filedescriptor *fd, unsigned char * buf, size_t buflen);
   int (*drain)(union filedescriptor *fd, int display);
 

@@ -75,13 +75,13 @@
 #endif
 
 #if 0
-#define DEBUG(...) do { avrdude_message(MSG_INFO, __VA_ARGS__); } while(0) 
+#define DEBUG(...) do { avrdude_message(MSG_DEBUG, __VA_ARGS__); } while(0) 
 #else
 #define DEBUG(...) ((void)0)
 #endif
 
 #if 0
-#define DEBUGRECV(...) do { avrdude_message(MSG_INFO, __VA_ARGS__); } while(0) 
+#define DEBUGRECV(...) do { avrdude_message(MSG_DEBUG, __VA_ARGS__); } while(0) 
 #else
 #define DEBUGRECV(...) ((void)0)
 #endif
@@ -108,7 +108,7 @@ static int usb_open_device(struct usb_dev_handle **dev, int vid, int pid);
 #define USB_ERROR_IO        5
 #endif  // WIN32NATIVE
 
-static int pickit2_write_report(PROGRAMMER *pgm, unsigned char report[65]);
+static int pickit2_write_report(PROGRAMMER *pgm, const unsigned char report[65]);
 static int pickit2_read_report(PROGRAMMER *pgm, unsigned char report[65]);
 
 #ifndef MIN
@@ -198,14 +198,14 @@ static int pickit2_open(PROGRAMMER * pgm, char * port)
     else
     {
         // get the device description while we're at it
-        short buff[PGM_DESCLEN], i;
-        HidD_GetProductString(PDATA(pgm)->usb_handle, buff, PGM_DESCLEN);
+        short buff[PGM_DESCLEN-1], i;
+        HidD_GetProductString(PDATA(pgm)->usb_handle, buff, PGM_DESCLEN-1);
 
-        // convert from wide chars
+        // convert from wide chars, but do not overwrite trailing '\0'
         memset(&(pgm->type), 0, PGM_DESCLEN);
-        for (i = 0; i < PGM_DESCLEN && buff[i]; i++)
+        for (i = 0; i < (PGM_DESCLEN-1) && buff[i]; i++)
         {
-            pgm->type[i] = (char)buff[i];
+            pgm->type[i] = (char)buff[i]; // TODO what about little/big endian???
         }
     }
 #else
@@ -255,17 +255,18 @@ static int pickit2_initialize(PROGRAMMER * pgm, AVRPART * p)
         pgm->set_sck_period(pgm, pgm->bitclock);
 
     /* connect to target device -- we'll just ask for the firmware version */
-    char report[65] = {0, CMD_GET_VERSION, CMD_END_OF_BUFFER};
+    static const unsigned char report[65] = {0, CMD_GET_VERSION, CMD_END_OF_BUFFER};
     if ((errorCode = pickit2_write_report(pgm, report)) > 0)
     {
-        memset(report, 0, sizeof(report));
+        unsigned char report[65] = {0};
+        //memset(report, 0, sizeof(report));
         if ((errorCode = pickit2_read_report(pgm, report)) >= 4)
         {
             avrdude_message(MSG_NOTICE, "%s: %s firmware version %d.%d.%d\n", progname, pgm->desc, (int)report[1], (int)report[2], (int)report[3]);
 
             // set the pins, apply reset,
             // TO DO: apply vtarget (if requested though -x option)
-            char report[65] =
+            unsigned char report[65] =
             {
                 0, CMD_SET_VDD_4(5),
                 CMD_SET_VPP_4(5),
@@ -321,7 +322,7 @@ static int pickit2_initialize(PROGRAMMER * pgm, AVRPART * p)
 static void pickit2_disable(PROGRAMMER * pgm)
 {
     /* make sure all pins are floating & all voltages are off */
-    uint8_t report[65] =
+    static const unsigned char report[65] =
     {
         0, CMD_EXEC_SCRIPT_2(8),
         SCR_SET_PINS_2(1,1,0,0),
@@ -430,16 +431,15 @@ static int  pickit2_program_enable(struct programmer_t * pgm, AVRPART * p)
     avr_set_bits(p->op[AVR_OP_PGM_ENABLE], cmd);
     pgm->cmd(pgm, cmd, res);
 
-    if (verbose)
     {
         int i;
-        avrdude_message(MSG_NOTICE, "program_enable(): sending command. Resp = ");
+        avrdude_message(MSG_DEBUG, "program_enable(): sending command. Resp = ");
 
         for (i = 0; i < 4; i++)
         {
-            avrdude_message(MSG_NOTICE, "%x ", (int)res[i]);
+            avrdude_message(MSG_DEBUG, "%x ", (int)res[i]);
         }
-        avrdude_message(MSG_NOTICE, "\n");
+        avrdude_message(MSG_DEBUG, "\n");
     }
 
     // check for sync character
@@ -837,7 +837,7 @@ static HANDLE open_hid(unsigned short vid, unsigned short pid)
     LONG                                Result;
 
     // were global, now just local scrap
-    int                                 Length = 0;
+    DWORD                               Length = 0;
     PSP_DEVICE_INTERFACE_DETAIL_DATA    detailData = NULL;
     HANDLE                              DeviceHandle=NULL;
     GUID                                HidGuid;
@@ -1087,7 +1087,7 @@ static int usb_read_interrupt(PROGRAMMER *pgm, void *buff, int size, int timeout
 }
 
 // simple write with timeout
-static int usb_write_interrupt(PROGRAMMER *pgm, void *buff, int size, int timeout)
+static int usb_write_interrupt(PROGRAMMER *pgm, const void *buff, int size, int timeout)
 {
     OVERLAPPED ovr;
     DWORD bytesWritten = 0;
@@ -1112,9 +1112,9 @@ static int usb_write_interrupt(PROGRAMMER *pgm, void *buff, int size, int timeou
     return bytesWritten > 0 ? bytesWritten : -1;
 }
 
-static int pickit2_write_report(PROGRAMMER * pgm, unsigned char report[65])
+static int pickit2_write_report(PROGRAMMER * pgm, const unsigned char report[65])
 {
-    return usb_write_interrupt(pgm, report, 65, PDATA(pgm)->transaction_timeout);
+    return usb_write_interrupt(pgm, report, 65, PDATA(pgm)->transaction_timeout); // XXX
 }
 
 static int pickit2_read_report(PROGRAMMER * pgm, unsigned char report[65])
@@ -1183,16 +1183,16 @@ static int usb_open_device(struct usb_dev_handle **device, int vendor, int produ
     return -1;
 }
 
-static int pickit2_write_report(PROGRAMMER * pgm, unsigned char report[65])
+static int pickit2_write_report(PROGRAMMER * pgm, const unsigned char report[65])
 {
     // endpoint 1 OUT??
-    return usb_interrupt_write(PDATA(pgm)->usb_handle, USB_ENDPOINT_OUT | 1, report+1, 64, PDATA(pgm)->transaction_timeout);
+    return usb_interrupt_write(PDATA(pgm)->usb_handle, USB_ENDPOINT_OUT | 1, (const char*)(report+1), 64, PDATA(pgm)->transaction_timeout);
 }
 
 static int pickit2_read_report(PROGRAMMER * pgm, unsigned char report[65])
 {
     // endpoint 1 IN??
-    return usb_interrupt_read(PDATA(pgm)->usb_handle, USB_ENDPOINT_IN | 1, report+1, 64, PDATA(pgm)->transaction_timeout);
+    return usb_interrupt_read(PDATA(pgm)->usb_handle, USB_ENDPOINT_IN | 1, (char*)(report+1), 64, PDATA(pgm)->transaction_timeout);
 }
 #endif  // WIN323NATIVE
 

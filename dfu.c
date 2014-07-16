@@ -139,7 +139,8 @@ struct dfu_dev * dfu_open(char *port_spec)
   if (dfu == NULL)
   {
     avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
-    return 0;
+    free(bus_name);
+    return NULL;
   }
 
   dfu->bus_name = bus_name;

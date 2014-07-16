@@ -321,12 +321,12 @@ static void usbdev_close(union filedescriptor *fd)
 }
 
 
-static int usbdev_send(union filedescriptor *fd, unsigned char *bp, size_t mlen)
+static int usbdev_send(union filedescriptor *fd, const unsigned char *bp, size_t mlen)
 {
   usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
   int rv;
   int i = mlen;
-  unsigned char * p = bp;
+  const unsigned char * p = bp;
   int tx_size;
 
   if (udev == NULL)
@@ -514,14 +514,30 @@ static int usbdev_recv_frame(union filedescriptor *fd, unsigned char *buf, size_
 	  memcpy (buf, usbbuf, rv);
 	  buf += rv;
 	}
+      else
+        {
+            return -1; // buffer overflow
+        }
 
       n += rv;
       nbytes -= rv;
     }
   while (nbytes > 0 && rv == fd->usb.max_xfer);
 
-  if (nbytes < 0)
-    return -1;
+/*
+ this ends when the buffer is completly filled (nbytes=0) or was too small (nbytes< 0)
+ or a short packet is found.
+ however we cannot say for nbytes=0 that there was really a packet completed, 
+ we had to check the last rv value than for a short packet,
+ but what happens if the packet does not end with a short packet?
+ and what if the buffer is filled without the packet was completed?
+
+ preconditions:
+    expected packet is not a multiple of usb.max_xfer. (prevents further waiting)
+
+    expected packet is shorter than the provided buffer (so it cannot filled completely)
+    or buffer size is not a multiple of usb.max_xfer. (so it can clearly detected if the buffer was overflown.)
+*/
 
   printout:
   if (verbose > 3)

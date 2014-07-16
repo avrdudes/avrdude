@@ -190,7 +190,7 @@ static void buf_dump(const unsigned char *buf, int len, char *desc,
  */
 static int set_frequency(avrftdi_t* ftdi, uint32_t freq)
 {
-	uint32_t divisor;
+	int32_t divisor;
 	uint8_t buf[3];
 
 	/* divisor on 6000000 / freq - 1 */
@@ -436,7 +436,7 @@ static int avrftdi_transmit_mpsse(avrftdi_t* pdata, unsigned char mode, const un
 	{
 		size_t transfer_size = (remaining > blocksize) ? blocksize : remaining;
 
-		E(ftdi_write_data(pdata->ftdic, &buf[written], transfer_size) != transfer_size, pdata->ftdic);
+		E(ftdi_write_data(pdata->ftdic, (unsigned char*)&buf[written], transfer_size) != transfer_size, pdata->ftdic);
 #if 0
 		if(remaining < blocksize)
 			E(ftdi_write_data(pdata->ftdic, &si, sizeof(si)) != sizeof(si), pdata->ftdic);

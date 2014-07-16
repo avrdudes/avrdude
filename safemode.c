@@ -27,10 +27,10 @@
 #include "libavrdude.h"
 
 /* This value from ac_cfg.h */
-/* 
+/*
  * Writes the specified fuse in fusename (can be "lfuse", "hfuse", or
  * "efuse") and verifies it. Will try up to tries amount of times
- * before giving up 
+ * before giving up
  */
 int safemode_writefuse (unsigned char fuse, char * fusename, PROGRAMMER * pgm,
                         AVRPART * p, int tries)
@@ -38,13 +38,13 @@ int safemode_writefuse (unsigned char fuse, char * fusename, PROGRAMMER * pgm,
   AVRMEM * m;
   unsigned char fuseread;
   int returnvalue = -1;
-  
+
   m = avr_locate_mem(p, fusename);
   if (m == NULL) {
     return -1;
     }
- 
-  /* Keep trying to write then read back the fuse values */   
+
+  /* Keep trying to write then read back the fuse values */
   while (tries > 0) {
     if (avr_write_byte(pgm, p, m, 0, fuse) != 0)
         {
@@ -54,11 +54,11 @@ int safemode_writefuse (unsigned char fuse, char * fusename, PROGRAMMER * pgm,
         {
         continue;
         }
-        
+
     /* Report information to user if needed */
     avrdude_message(MSG_NOTICE, "%s: safemode: Wrote %s to %x, read as %x. %d attempts left\n",
                       progname, fusename, fuse, fuseread, tries-1);
-    
+
     /* If fuse wrote OK, no need to keep going */
     if (fuse == fuseread) {
        tries = 0;
@@ -66,17 +66,17 @@ int safemode_writefuse (unsigned char fuse, char * fusename, PROGRAMMER * pgm,
     }
     tries--;
   }
-  
+
   return returnvalue;
 }
 
-/* 
+/*
  * Reads the fuses three times, checking that all readings are the
- * same. This will ensure that the before values aren't in error! 
+ * same. This will ensure that the before values aren't in error!
  */
-int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse, 
-                        unsigned char * efuse, unsigned char * fuse, 
-                        PROGRAMMER * pgm, AVRPART * p)  
+int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
+                        unsigned char * efuse, unsigned char * fuse,
+                        PROGRAMMER * pgm, AVRPART * p)
 {
 
   unsigned char value;
@@ -87,14 +87,14 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
   unsigned char safemode_efuse;
   unsigned char safemode_fuse;
   AVRMEM * m;
-  
+
   safemode_lfuse = *lfuse;
   safemode_hfuse = *hfuse;
   safemode_efuse = *efuse;
   safemode_fuse  = *fuse;
 
 
-  /* Read fuse three times */ 
+  /* Read fuse three times */
   fusegood = 2; /* If AVR device doesn't support this fuse, don't want
                    to generate a verify error */
   m = avr_locate_mem(p, "fuse");
@@ -121,25 +121,25 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
             fusegood = 1; /* Fuse read OK three times */
             }
     }
-  } 
+  }
 
-	//Programmer does not allow fuse reading.... no point trying anymore
+    //Programmer does not allow fuse reading.... no point trying anymore
     if (allowfuseread == 0)
-		{
-		return -5;
-		}
+        {
+        return -5;
+        }
 
-    if (fusegood == 0)   {
+    if (fusegood == 0) {
         avrdude_message(MSG_INFO, "%s: safemode: Verify error - unable to read fuse properly. "
                         "Programmer may not be reliable.\n", progname);
         return -1;
     }
-    else if ((fusegood == 1)) {
+    else if (fusegood == 1) {
         avrdude_message(MSG_NOTICE, "%s: safemode: fuse reads as %X\n", progname, safemode_fuse);
     }
 
 
-  /* Read lfuse three times */  
+  /* Read lfuse three times */
   fusegood = 2; /* If AVR device doesn't support this fuse, don't want
                    to generate a verify error */
   m = avr_locate_mem(p, "lfuse");
@@ -167,14 +167,14 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
     }
   }
 
-	//Programmer does not allow fuse reading.... no point trying anymore
+    //Programmer does not allow fuse reading.... no point trying anymore
     if (allowfuseread == 0)
-		{
-		return -5;
-		}
+        {
+        return -5;
+        }
 
 
-    if (fusegood == 0)	 {
+    if (fusegood == 0) {
         avrdude_message(MSG_INFO, "%s: safemode: Verify error - unable to read lfuse properly. "
                         "Programmer may not be reliable.\n", progname);
         return -1;
@@ -183,7 +183,7 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
         avrdude_message(MSG_DEBUG, "%s: safemode: lfuse reads as %X\n", progname, safemode_lfuse);
     }
 
-  /* Read hfuse three times */  
+  /* Read hfuse three times */
   fusegood = 2; /* If AVR device doesn't support this fuse, don't want
                    to generate a verify error */
   m = avr_locate_mem(p, "hfuse");
@@ -211,11 +211,11 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
     }
   }
 
-	//Programmer does not allow fuse reading.... no point trying anymore
+    //Programmer does not allow fuse reading.... no point trying anymore
     if (allowfuseread == 0)
-		{
-		return -5;
-		}
+        {
+        return -5;
+        }
 
     if (fusegood == 0)	 {
             avrdude_message(MSG_INFO, "%s: safemode: Verify error - unable to read hfuse properly. "
@@ -226,7 +226,7 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
         avrdude_message(MSG_NOTICE, "%s: safemode: hfuse reads as %X\n", progname, safemode_hfuse);
     }
 
-  /* Read efuse three times */  
+  /* Read efuse three times */
   fusegood = 2; /* If AVR device doesn't support this fuse, don't want
                    to generate a verify error */
   m = avr_locate_mem(p, "efuse");
@@ -253,14 +253,14 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
         }
     }
   }
-   
-	//Programmer does not allow fuse reading.... no point trying anymore
+
+    //Programmer does not allow fuse reading.... no point trying anymore
     if (allowfuseread == 0)
-		{
-		return -5;
-		}
- 
-    if (fusegood == 0)	 {
+        {
+        return -5;
+        }
+
+    if (fusegood == 0) {
         avrdude_message(MSG_INFO, "%s: safemode: Verify error - unable to read efuse properly. "
                         "Programmer may not be reliable.\n", progname);
         return -3;
@@ -294,11 +294,11 @@ int safemode_memfuses (int save, unsigned char * lfuse, unsigned char * hfuse,
   static unsigned char safemode_hfuse = 0xff;
   static unsigned char safemode_efuse = 0xff;
   static unsigned char safemode_fuse = 0xff;
-  
+
   switch (save) {
-    
+
     /* Save the fuses as safemode setting */
-    case 1:  
+    case 1:
         safemode_lfuse = *lfuse;
         safemode_hfuse = *hfuse;
         safemode_efuse = *efuse;
@@ -313,6 +313,6 @@ int safemode_memfuses (int save, unsigned char * lfuse, unsigned char * hfuse,
         *fuse  = safemode_fuse;
         break;
   }
-  
+
   return 0;
 }

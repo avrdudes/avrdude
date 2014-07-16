@@ -3194,7 +3194,7 @@ f_to_kHz_MHz(double f, const char **unit)
 
 static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p)
 {
-  unsigned char vtarget, vadjust, osc_pscale, osc_cmatch, sck_duration;
+  unsigned char vtarget, vadjust, osc_pscale, osc_cmatch, sck_duration =0; //XXX 0 is not correct, check caller
   unsigned int sck_stk600, clock_conf, dac, oct, varef;
   unsigned char vtarget_jtag[4];
   int prescale;

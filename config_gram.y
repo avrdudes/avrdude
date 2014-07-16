@@ -556,6 +556,11 @@ prog_parm_usb:
 usb_pid_list:
   TKN_NUMBER {
     {
+      /* overwrite pids, so clear the existing entries */
+      ldestroy_cb(current_prog->usbpid, free);
+      current_prog->usbpid = lcreat(NULL, 0);
+    }
+    {
       int *ip = malloc(sizeof(int));
       if (ip) {
         *ip = $1->value.number;

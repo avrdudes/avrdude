@@ -247,7 +247,7 @@ static int usbasp_transmit(PROGRAMMER * pgm,
 				   functionid & 0xff, 
 				   ((send[1] << 8) | send[0]) & 0xffff, 
 				   ((send[3] << 8) | send[2]) & 0xffff, 
-				   (char *)buffer, 
+				   buffer, 
 				   buffersize & 0xffff,
 				   5000);
   if(nbytes < 0){
@@ -321,7 +321,7 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor,
             errorCode = 0;
             /* now check whether the names match: */
             /* if vendorName not given ignore it (any vendor matches) */
-	    r = libusb_get_string_descriptor_ascii(handle, descriptor.iManufacturer & 0xff, string, sizeof(string));
+	    r = libusb_get_string_descriptor_ascii(handle, descriptor.iManufacturer & 0xff, (unsigned char*)string, sizeof(string));
             if (r < 0) {
                 if ((vendorName != NULL) && (vendorName[0] != 0)) {
                     errorCode = USB_ERROR_IO;
@@ -335,7 +335,7 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor,
                     errorCode = USB_ERROR_NOTFOUND;
             }
             /* if productName not given ignore it (any product matches) */
-	    r = libusb_get_string_descriptor_ascii(handle, descriptor.iProduct & 0xff, string, sizeof(string));
+	    r = libusb_get_string_descriptor_ascii(handle, descriptor.iProduct & 0xff, (unsigned char*)string, sizeof(string));
             if (r < 0) {
                 if ((productName != NULL) && (productName[0] != 0)) {
                     errorCode = USB_ERROR_IO;

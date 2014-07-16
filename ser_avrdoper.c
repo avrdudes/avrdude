@@ -443,7 +443,7 @@ static int usbGetReport(union filedescriptor *fdp, int reportType, int reportNum
 
 /* ------------------------------------------------------------------------- */
 
-static void dumpBlock(char *prefix, unsigned char *buf, int len)
+static void dumpBlock(const char *prefix, const unsigned char *buf, int len)
 {
     int i;
 
@@ -542,7 +542,7 @@ static int  chooseDataSize(int len)
     return i - 1;
 }
 
-static int avrdoper_send(union filedescriptor *fdp, unsigned char *buf, size_t buflen)
+static int avrdoper_send(union filedescriptor *fdp, const unsigned char *buf, size_t buflen)
 {
     if(verbose > 3)
         dumpBlock("Send", buf, buflen);

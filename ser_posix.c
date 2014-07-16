@@ -309,10 +309,10 @@ static void ser_close(union filedescriptor *fd)
 }
 
 
-static int ser_send(union filedescriptor *fd, unsigned char * buf, size_t buflen)
+static int ser_send(union filedescriptor *fd, const unsigned char * buf, size_t buflen)
 {
   int rc;
-  unsigned char * p = buf;
+  const unsigned char * p = buf;
   size_t len = buflen;
 
   if (!len)

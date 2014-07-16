@@ -1,7 +1,27 @@
+2014-07-16  Rene Liebscher <R.Liebscher@gmx.de>
+
+	bug #42662 clang warnings under FreeBSD 10.x
+	* avrftdi.c: remove warnings
+	* buspirate.c: (Dito.)
+	* dfu.c: (Dito.)
+	* fileio.c: (Dito.)
+	* libavrdude.h: (Dito.)
+	* pickit2.c: (Dito.)
+	* safemode.c: (Dito.)
+	* ser_avrdoper.c: (Dito.)
+	* ser_posix.c: (Dito.)
+	* ser_win32.c: (Dito.)
+	* stk500v2.c: (Dito.)
+	* usb_libusb.c: (Dito.)
+	* usbasp.c: (Dito.)
+
+	* config_gram.y: fix problem when using parent part with usbpid lists
+                         (existing list was extended not overwritten)
+
 2014-07-11  Axel Wachtler <axel@uracoli.de>
-        
-        * avrftdi.c: rollback to vfprintf, fixed error from -r1305, (patch #8463)
-        
+
+	* avrftdi.c: rollback to vfprintf, fixed error from -r1305, (patch #8463)
+
 2014-06-23  Rene Liebscher <R.Liebscher@gmx.de>
 
 	* linux_ppdev.h: added missing msg level for avrdude_message

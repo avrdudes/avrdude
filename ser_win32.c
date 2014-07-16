@@ -220,12 +220,12 @@ static int ser_set_dtr_rts(union filedescriptor *fd, int is_on)
 }
 
 
-static int ser_send(union filedescriptor *fd, unsigned char * buf, size_t buflen)
+static int ser_send(union filedescriptor *fd, const unsigned char * buf, size_t buflen)
 {
 	size_t len = buflen;
 	unsigned char c='\0';
 	DWORD written;
-        unsigned char * b = buf;
+        const unsigned char * b = buf;
 
 	HANDLE hComPort=(HANDLE)fd->pfd;
 

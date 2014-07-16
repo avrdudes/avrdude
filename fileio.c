@@ -1493,6 +1493,8 @@ int fileio(int op, char * filename, FILEFMT format,
   }
 
   if (format == FMT_AUTO) {
+    int format_detect;
+
     if (using_stdio) {
       avrdude_message(MSG_INFO, "%s: can't auto detect file format when using stdin/out.\n"
                       "%s  Please specify a file format and try again.\n",
@@ -1500,12 +1502,13 @@ int fileio(int op, char * filename, FILEFMT format,
       return -1;
     }
 
-    format = fmt_autodetect(fname);
-    if (format < 0) {
+    format_detect = fmt_autodetect(fname);
+    if (format_detect < 0) {
       avrdude_message(MSG_INFO, "%s: can't determine file format for %s, specify explicitly\n",
                       progname, fname);
       return -1;
     }
+    format = format_detect;
 
     if (quell_progress < 2) {
       avrdude_message(MSG_INFO, "%s: %s file %s auto detected as %s\n",
