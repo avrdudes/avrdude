@@ -328,6 +328,8 @@ AVRPART * avr_dup_part(AVRPART * d);
 void      avr_free_part(AVRPART * d);
 AVRPART * locate_part(LISTID parts, char * partdesc);
 AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode);
+AVRPART * locate_part_by_signature(LISTID parts, unsigned char * sig,
+                                   int sigsize);
 void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose);
 
 typedef void (*walk_avrparts_cb)(const char *name, const char *desc,

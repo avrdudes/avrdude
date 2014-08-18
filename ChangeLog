@@ -1,5 +1,13 @@
 2014-08-18  Rene Liebscher <R.Liebscher@gmx.de>
 
+	patch #8440 Print part id after signature
+	When printing the part signature also print the part id.
+	* avrpart.c (locate_part_by_signature): New function.
+	* libavrdude.h (locate_part_by_signature): New function.
+	* main.c (main): Use the new function to find the part and print its id.
+
+2014-08-18  Rene Liebscher <R.Liebscher@gmx.de>
+
 	patch #8511 Fix reset on FT245R
 	* ft245r.c: applied patch
 

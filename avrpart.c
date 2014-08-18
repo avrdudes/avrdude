@@ -540,6 +540,27 @@ AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode)
   return NULL;
 }
 
+AVRPART * locate_part_by_signature(LISTID parts, unsigned char * sig,
+                                   int sigsize)
+{
+  LNODEID ln1;
+  AVRPART * p = NULL;
+  int i;
+
+  if (sigsize == 3) {
+    for (ln1=lfirst(parts); ln1; ln1=lnext(ln1)) {
+      p = ldata(ln1);
+      for (i=0; i<3; i++)
+        if (p->signature[i] != sig[i])
+          break;
+      if (i == 3)
+        return p;
+    }
+  }
+
+  return NULL;
+}
+
 /*
  * Iterate over the list of avrparts given as "avrparts", and
  * call the callback function cb for each entry found.  cb is being

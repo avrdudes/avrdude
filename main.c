@@ -1033,6 +1033,14 @@ int main(int argc, char * argv [])
         if (sig->buf[i] != 0x00)
           zz = 0;
       }
+      if (quell_progress < 2) {
+        AVRPART * part;
+
+        part = locate_part_by_signature(part_list, sig->buf, sig->size);
+        if (part) {
+          avrdude_message(MSG_INFO, " (probably %s)", part->id);
+        }
+      }
       if (ff || zz) {
         if (++attempt < 3) {
           waittime *= 5;
