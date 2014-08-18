@@ -624,7 +624,7 @@ static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p)
 static int usbasp_spi_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
                    unsigned char *res)
 {
-  avrdude_message(MSG_DEBUG, "%s: usbasp_cpi_cmd(0x%02x, 0x%02x, 0x%02x, 0x%02x)%s",
+  avrdude_message(MSG_DEBUG, "%s: usbasp_spi_cmd(0x%02x, 0x%02x, 0x%02x, 0x%02x)%s",
 	    progname, cmd[0], cmd[1], cmd[2], cmd[3],
 	    verbose > 3? "...\n": "");
 
@@ -639,7 +639,7 @@ static int usbasp_spi_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
 	    progname);
     return -1;
   }
-  avrdude_message(MSG_TRACE, "%s: usbasp_cpi_cmd()", progname);
+  avrdude_message(MSG_TRACE, "%s: usbasp_spi_cmd()", progname);
   avrdude_message(MSG_DEBUG, " => 0x%02x, 0x%02x, 0x%02x, 0x%02x\n",
         res[0], res[1], res[2], res[3]);
 
