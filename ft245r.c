@@ -292,6 +292,10 @@ static int set_pin(PROGRAMMER * pgm, int pinname, int val) {
     return 0;
 }
 
+static int set_sck(PROGRAMMER * pgm, int value) {
+    return set_pin(pgm, PIN_AVR_SCK, value);
+}
+
 static int set_reset(PROGRAMMER * pgm, int value) {
     return set_pin(pgm, PIN_AVR_RESET, value);
 }
@@ -414,6 +418,12 @@ static int ft245r_program_enable(PROGRAMMER * pgm, AVRPART * p) {
  */
 static int ft245r_initialize(PROGRAMMER * pgm, AVRPART * p) {
 
+    /* Apply power between VCC and GND while RESET and SCK are set to “0”. In some systems,
+     * the programmer can not guarantee that SCK is held low during power-up. In this
+     * case, RESET must be given a positive pulse of at least two CPU clock cycles duration
+     * after SCK has been set to “0”.
+     */
+    set_sck(pgm, OFF);
     ft245r_powerup(pgm);
 
     set_reset(pgm, OFF);
@@ -421,7 +431,11 @@ static int ft245r_initialize(PROGRAMMER * pgm, AVRPART * p) {
     set_reset(pgm, ON);
     usleep(5000); // 5ms
     set_reset(pgm, OFF);
-    usleep(5000); // 5ms
+
+    /* Wait for at least 20 ms and enable serial programming by sending the Programming
+     * Enable serial instruction to pin MOSI.
+     */
+    usleep(20000); // 20ms
 
     return ft245r_program_enable(pgm, p);
 }
