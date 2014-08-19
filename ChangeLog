@@ -1,3 +1,8 @@
+2014-08-19  Rene Liebscher <R.Liebscher@gmx.de>
+
+	patch #7694 Add support for the atmega32m1
+	* avrdude.conf.in: added ATmega32M1
+
 2014-08-18  Rene Liebscher <R.Liebscher@gmx.de>
 
 	patch #8440 Print part id after signature
