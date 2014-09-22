@@ -565,21 +565,16 @@ static int usbdev_recv_frame(union filedescriptor *fd, unsigned char *buf, size_
 
 static int usbdev_drain(union filedescriptor *fd, int display)
 {
-  usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
-  int rv;
-
-  if (udev == NULL)
-    return -1;
-
-  do {
-    if (fd->usb.use_interrupt_xfer)
-      rv = usb_interrupt_read(udev, fd->usb.rep, usbbuf, fd->usb.max_xfer, 100);
-    else
-      rv = usb_bulk_read(udev, fd->usb.rep, usbbuf, fd->usb.max_xfer, 100);
-    if (rv > 0)
-      avrdude_message(MSG_TRACE, "%s: usbdev_drain(): flushed %d characters\n",
-	      progname, rv);
-  } while (rv > 0);
+  /*
+   * There is not much point in trying to flush any data
+   * on an USB endpoint, as the endpoint is supposed to
+   * start afresh after being configured from the host.
+   *
+   * As trying to flush the data here caused strange effects
+   * in some situations (see
+   * https://savannah.nongnu.org/bugs/index.php?43268 )
+   * better avoid it.
+   */
 
   return 0;
 }

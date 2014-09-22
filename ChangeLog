@@ -1,3 +1,8 @@
+2014-09-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #43268: usb_drain() call causes LUFA AVR-ISP MKII Code to Fail
+	* usb_libusb.c (usbdev_drain): Make this a dummy function only.
+
 2014-08-19  Rene Liebscher <R.Liebscher@gmx.de>
 
 	patch #7694 Add support for the atmega32m1
