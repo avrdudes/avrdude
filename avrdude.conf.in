@@ -6939,7 +6939,7 @@ part
                           "x x x x  x x x x  x x x i  i i i i";
 
         read            = "0 1 0 1  1 0 0 0  0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x  x x x o  o o o o";
+                          "x x x x  x x x x  o o o o  o o o o";
         min_write_delay = 9000;
         max_write_delay = 9000;
       ;
@@ -7130,7 +7130,7 @@ part
                           "x x x x  x x x x   x x x x  x x x i";
 
         read            = "0 1 0 1  0 0 0 0   0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x   x x x x  x x x o";
+                          "x x x x  x x x x   o o o o  o o o o";
         min_write_delay = 4500;
         max_write_delay = 4500;
       ;
@@ -7321,7 +7321,7 @@ part
                           "x x x x  x x x x   x x x x  x x x i";
 
         read            = "0 1 0 1  0 0 0 0   0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x   x x x x  x x x o";
+                          "x x x x  x x x x   o o o o  o o o o";
         min_write_delay = 4500;
         max_write_delay = 4500;
       ;
@@ -7512,7 +7512,7 @@ part
                           "x x x x  x x x x   x x x x  x x x i";
 
         read            = "0 1 0 1  0 0 0 0   0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x   x x x x  x x x o";
+                          "x x x x  x x x x   o o o o  o o o o";
         min_write_delay = 4500;
         max_write_delay = 4500;
       ;
@@ -7684,7 +7684,7 @@ part
         min_write_delay = 4500;
         max_write_delay = 4500;
         read            = "0 1 0 1  0 0 0 0   0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x   x x x x  x x x o";
+                          "x x x x  x x x x   o o o o  o o o o";
 
         write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 1 0 0",
                           "x x x x  x x x x   x x x x  x x x i";
@@ -7884,7 +7884,7 @@ part
         min_write_delay = 4500;
         max_write_delay = 4500;
         read            = "0 1 0 1  0 0 0 0   0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x   x x x x  x o o o";
+                          "x x x x  x x x x   o o o o  o o o o";
 
         write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 1 0 0",
                           "x x x x  x x x x   x x x x  x i i i";
@@ -8086,7 +8086,7 @@ part
         min_write_delay = 4500;
         max_write_delay = 4500;
         read            = "0 1 0 1 0 0 0 0 0 0 0 0 1 0 0 0",
-                          "x x x x x x x x x x x x x o o o";
+                          "x x x x x x x x o o o o o o o o";
         
         write           = "1 0 1 0 1 1 0 0 1 0 1 0 0 1 0 0",
                           "x x x x x x x x x x x x x i i i";
@@ -8286,7 +8286,7 @@ part
         min_write_delay = 4500;
         max_write_delay = 4500;
         read            = "0 1 0 1  0 0 0 0   0 0 0 0  1 0 0 0",
-                          "x x x x  x x x x   x x x x  x o o o";
+                          "x x x x  x x x x   o o o o  o o o o";
 
         write           = "1 0 1 0  1 1 0 0   1 0 1 0  0 1 0 0",
                           "x x x x  x x x x   x x x x  x x x i";
@@ -8476,7 +8476,7 @@ part
 	min_write_delay = 4500;
 	max_write_delay = 4500;
 	read = "0 1 0 1 0 0 0 0 0 0 0 0 1 0 0 0",
-	       "x x x x x x x x x x x x x o o o";
+	       "x x x x x x x x o o o o o o o o";
 
 	write = "1 0 1 0 1 1 0 0 1 0 1 0 0 1 0 0",
 	      	"x x x x x x x x x x x x x i i i";
@@ -14576,7 +14576,7 @@ part
         min_write_delay = 4500;
         max_write_delay = 4500;
         read            = "0 1 0 1 0 0 0 0 0 0 0 0 1 0 0 0",
-                          "x x x x x x x x x x x o o o o o";
+                          "x x x x x x x x o o o o o o o o";
 
         write           = "1 0 1 0 1 1 0 0 1 0 1 0 0 1 0 0",
                           "x x x x x x x x x x x i i i i i";

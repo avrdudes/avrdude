@@ -1,3 +1,14 @@
+2014-10-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #22248: Read efuse error
+	* avrdude.conf.in (m168, m328, m48, m88, t1634, t26, t261, t461,
+	t861, t88): In efuse (or hfuse for t26) read operation, turn all
+	bits in byte 3 from "x" to "o" (output); this is a first step
+	towards fixing the symptoms mentioned in the bug, by unifying the
+	behaviour between different AVRs.  Not touched are the historic
+	devices where the fuses are not documented to form a full byte
+	each (2333, 4433, 4434, 8535, m103, m161, m163).
+
 2014-09-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #43268: usb_drain() call causes LUFA AVR-ISP MKII Code to Fail
