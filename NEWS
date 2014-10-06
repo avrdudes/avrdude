@@ -8,7 +8,14 @@ Approximate change log for AVRDUDE by version.
 Current:
 
   * Major changes compared to the previous version:
-    - ...
+
+    - The stk500v2 implementation now uses its own higher-level
+      command implementation for byte-wide access, rather than the
+      historic SPI_MULTI command where all the low-level ISP
+      implementation had to be assembled manually inside AVRDUDE.  In
+      addition to the traditional STK500, this implementation is also
+      used by all the more modern Atmel tools (AVRISPmkII, JTAGICEmkII
+      in ISP mode, STK600 in ISP mode).
 
   * New programmers supported:
     - ...

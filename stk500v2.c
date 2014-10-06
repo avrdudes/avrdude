@@ -1249,6 +1249,8 @@ static int stk500hvsp_program_enable(PROGRAMMER * pgm, AVRPART * p)
  */
 static int stk500v2_initialize(PROGRAMMER * pgm, AVRPART * p)
 {
+  LNODEID ln;
+  AVRMEM * m;
 
   if ((PDATA(pgm)->pgmtype == PGMTYPE_STK600 ||
        PDATA(pgm)->pgmtype == PGMTYPE_AVRISP_MKII ||
@@ -1276,6 +1278,42 @@ static int stk500v2_initialize(PROGRAMMER * pgm, AVRPART * p)
   } else {
     stk600_setup_isp(pgm);
   }
+
+  /*
+   * Examine the avrpart's memory definitions, and initialize the page
+   * caches.  For devices/memory that are not page oriented, treat
+   * them as page size 1 for EEPROM, and 2 for flash.
+   */
+  PDATA(pgm)->flash_pagesize = 2;
+  PDATA(pgm)->eeprom_pagesize = 1;
+  for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
+    m = ldata(ln);
+    if (strcmp(m->desc, "flash") == 0) {
+      if (m->page_size > 0) {
+        if (m->page_size > 256)
+          PDATA(pgm)->flash_pagesize = 256;
+        else
+          PDATA(pgm)->flash_pagesize = m->page_size;
+      }
+    } else if (strcmp(m->desc, "eeprom") == 0) {
+      if (m->page_size > 0)
+	PDATA(pgm)->eeprom_pagesize = m->page_size;
+    }
+  }
+  free(PDATA(pgm)->flash_pagecache);
+  free(PDATA(pgm)->eeprom_pagecache);
+  if ((PDATA(pgm)->flash_pagecache = malloc(PDATA(pgm)->flash_pagesize)) == NULL) {
+    avrdude_message(MSG_INFO, "%s: stk500v2_initialize(): Out of memory\n",
+	    progname);
+    return -1;
+  }
+  if ((PDATA(pgm)->eeprom_pagecache = malloc(PDATA(pgm)->eeprom_pagesize)) == NULL) {
+    avrdude_message(MSG_INFO, "%s: stk500v2_initialize(): Out of memory\n",
+	    progname);
+    free(PDATA(pgm)->flash_pagecache);
+    return -1;
+  }
+  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
 
   if (p->flags & AVRPART_IS_AT90S1200) {
     /*
@@ -2143,20 +2181,19 @@ static int stk500isp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     }
 
     /*
-     * We use paged writes for flash and EEPROM.  As both, flash and
-     * EEPROM cells can only be programmed from `1' to `0' bits (even
-     * EEPROM does not support auto-erase in parallel mode), we just
-     * pre-fill the page cache with 0xff, so all those cells that are
-     * outside our current address will remain unaffected.
+     * We use paged writes for flash and EEPROM, reading back the
+     * current page first, modify the byte to write, and write out the
+     * entire page.
      */
-    memset(cache_ptr, 0xff, pagesize);
+    if (stk500v2_paged_load(pgm, p, mem, pagesize, paddr, pagesize) < 0)
+      return -1;
+
+    memcpy(cache_ptr, mem->buf + paddr, pagesize);
+    *paddr_ptr = paddr;
     cache_ptr[addr & (pagesize - 1)] = data;
-
     memcpy(mem->buf + paddr, cache_ptr, pagesize);
-    stk500v2_paged_write(pgm, p, mem, pagesize, addr, pagesize);
 
-    /* Invalidate the page cache. */
-    *paddr_ptr = (unsigned long)-1L;
+    stk500v2_paged_write(pgm, p, mem, pagesize, paddr, pagesize);
 
     return 0;
   }
@@ -4284,8 +4321,8 @@ static void stk600_setup_isp(PROGRAMMER * pgm)
 {
     pgm->program_enable = stk500v2_program_enable;
     pgm->disable = stk500v2_disable;
-    pgm->read_byte = avr_read_byte_default;
-    pgm->write_byte = avr_write_byte_default;
+    pgm->read_byte = stk500isp_read_byte;
+    pgm->write_byte = stk500isp_write_byte;
     pgm->paged_load = stk500v2_paged_load;
     pgm->paged_write = stk500v2_paged_write;
     pgm->page_erase = stk500v2_page_erase;
@@ -4310,8 +4347,8 @@ void stk500v2_initpgm(PROGRAMMER * pgm)
   pgm->cmd            = stk500v2_cmd;
   pgm->open           = stk500v2_open;
   pgm->close          = stk500v2_close;
-  pgm->read_byte      = avr_read_byte_default;
-  pgm->write_byte     = avr_write_byte_default;
+  pgm->read_byte      = stk500isp_read_byte;
+  pgm->write_byte     = stk500isp_write_byte;
 
   /*
    * optional functions
@@ -4418,8 +4455,8 @@ void stk500v2_jtagmkII_initpgm(PROGRAMMER * pgm)
   pgm->cmd            = stk500v2_cmd;
   pgm->open           = stk500v2_jtagmkII_open;
   pgm->close          = stk500v2_jtagmkII_close;
-  pgm->read_byte      = avr_read_byte_default;
-  pgm->write_byte     = avr_write_byte_default;
+  pgm->read_byte      = stk500isp_read_byte;
+  pgm->write_byte     = stk500isp_write_byte;
 
   /*
    * optional functions
@@ -4453,8 +4490,8 @@ void stk500v2_dragon_isp_initpgm(PROGRAMMER * pgm)
   pgm->cmd            = stk500v2_cmd;
   pgm->open           = stk500v2_dragon_isp_open;
   pgm->close          = stk500v2_jtagmkII_close;
-  pgm->read_byte      = avr_read_byte_default;
-  pgm->write_byte     = avr_write_byte_default;
+  pgm->read_byte      = stk500isp_read_byte;
+  pgm->write_byte     = stk500isp_write_byte;
 
   /*
    * optional functions
@@ -4557,8 +4594,8 @@ void stk600_initpgm(PROGRAMMER * pgm)
   pgm->cmd            = stk500v2_cmd;
   pgm->open           = stk600_open;
   pgm->close          = stk500v2_close;
-  pgm->read_byte      = avr_read_byte_default;
-  pgm->write_byte     = avr_write_byte_default;
+  pgm->read_byte      = stk500isp_read_byte;
+  pgm->write_byte     = stk500isp_write_byte;
 
   /*
    * optional functions

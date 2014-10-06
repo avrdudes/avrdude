@@ -1,5 +1,12 @@
 2014-10-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* stk500v2.c: Use stk500isp_read_byte/stk500isp_write_byte for
+	every byte-wide access (rather than JTAGICE3 only).  This finally
+	obsoletes the use of the prehistoric SPI_MULTI command where
+	AVRDUDE used to assemble all the low-level ISP stuff by itself.
+
+2014-10-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #22248: Read efuse error
 	* avrdude.conf.in (m168, m328, m48, m88, t1634, t26, t261, t461,
 	t861, t88): In efuse (or hfuse for t26) read operation, turn all
