@@ -2241,19 +2241,16 @@ static int stk500isp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     return -1;
   }
 
-  if (buf[0] == CMD_PROGRAM_FUSE_ISP) {
-    /*
-     * The JTAGICE3 needs one leave progmode / enter progmode cycle
-     * after writing fuses, before being able to read them back.
-     */
-    buf[0] = CMD_LEAVE_PROGMODE_ISP;
-    buf[1] = 1; // preDelay;
-    buf[2] = 1; // postDelay;
-
-    stk500v2_command(pgm, buf, 3, sizeof(buf));
-
-    pgm->program_enable(pgm, p);
-  }
+  /*
+   * Prevent verification readback to be too fast, see
+   * https://savannah.nongnu.org/bugs/index.php?42267
+   *
+   * After all, this is just an ugly hack working around some
+   * brokeness in the Atmel firmware starting with the AVRISPmkII (the
+   * old JTAGICEmkII isn't affected).  Let's hope 10 ms of additional
+   * delay are good enough for everyone.
+   */
+  usleep(10000);
 
   return 0;
 }

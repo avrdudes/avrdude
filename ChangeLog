@@ -1,3 +1,11 @@
+2014-10-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #42267: jtag3isp fails to read lock and fuse bytes directly
+	after changing lock byte
+	* stk500v2.c (stk500isp_write_byte): As a workaround for broken
+	tool firmware, add 10 ms of delay before returning from any
+	single-byte write operation.
+
 2014-10-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* stk500v2.c: Use stk500isp_read_byte/stk500isp_write_byte for
