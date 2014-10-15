@@ -1034,7 +1034,7 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
 	u32_to_b4(xd.nvm_boot_offset, m->offset);
       } else if (strcmp(m->desc, "fuse1") == 0) {
 	u32_to_b4(xd.nvm_fuse_offset, m->offset & ~7);
-      } else if (strcmp(m->desc, "lock") == 0) {
+      } else if (strncmp(m->desc, "lock", 4) == 0) {
 	u32_to_b4(xd.nvm_lock_offset, m->offset);
       } else if (strcmp(m->desc, "usersig") == 0) {
 	u32_to_b4(xd.nvm_user_sig_offset, m->offset);
@@ -1644,7 +1644,7 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     addr = 2;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (strcmp(mem->desc, "lock") == 0) {
+  } else if (strncmp(mem->desc, "lock", 4) == 0) {
     cmd[3] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -1797,7 +1797,7 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     cmd[3] = MTYPE_USERSIG;
   } else if (strcmp(mem->desc, "prodsig") == 0) {
     cmd[3] = MTYPE_PRODSIG;
-  } else if (strcmp(mem->desc, "lock") == 0) {
+  } else if (strncmp(mem->desc, "lock", 4) == 0) {
     cmd[3] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;

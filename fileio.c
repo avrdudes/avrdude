@@ -796,7 +796,7 @@ static int elf_mem_limits(AVRMEM *mem, struct avrpart * p,
       *lowbound = 0x820000;
       *highbound = 0x82ffff;
       *fileoff = mem->desc[4] - '0';
-    } else if (strcmp(mem->desc, "lock") == 0) {
+    } else if (strncmp(mem->desc, "lock", 4) == 0) {
       *lowbound = 0x830000;
       *highbound = 0x83ffff;
       *fileoff = 0;
