@@ -858,9 +858,7 @@ reason, this option disables it.
 This sets the @emph{AUX}  pin to output a frequency of @var{n} kHz. Connecting
 the @emph{AUX} pin to the XTAL1 pin of your MCU, you can provide it a clock, 
 for example when it needs an external clock because of wrong fuses settings.
-This setting is only available in ASCII mode. (The lower limit was chosen so
-the CPU frequency is at least for four times the SPI frequency which is in 
-ASCII mode 30kHz.)  
+Make sure the CPU frequency is at least four times the SPI frequency.  
 
 @item @samp{serial_recv_timeout=@var{1...}}
 This sets the serial receive timeout to the given value. 

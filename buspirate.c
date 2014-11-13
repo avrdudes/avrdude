@@ -74,7 +74,7 @@ struct pdata
 	int	current_peripherals_config;
 	int	spifreq;		/* For "set speed" commands */
 	int	cpufreq;		/* (125)..4000 kHz - see buspirate manual */
-	int	serial_recv_timeout; /* timeout in ms, default 100 */
+	int	serial_recv_timeout;    /* timeout in ms, default 100 */
 	int	reset;			/* See BP_RESET_* above */
 	unsigned char pin_dir;		/* Last written pin direction for bitbang mode */
 	unsigned char pin_val;		/* Last written pin values for bitbang mode */
@@ -204,8 +204,8 @@ static char *buspirate_readline_noexit(struct programmer_t *pgm, char *buf, size
 	}
 	serial_recv_timeout = orig_serial_recv_timeout;
 	avrdude_message(MSG_DEBUG, "%s: buspirate_readline(): %s%s",
-                progname, buf,
-                buf[strlen(buf) - 1] == '\n' ? "" : "\n");
+	                progname, buf,
+	                buf[strlen(buf) - 1] == '\n' ? "" : "\n");
 	if (! buf[0])
 		return NULL;
 
@@ -227,8 +227,9 @@ static char *buspirate_readline(struct programmer_t *pgm, char *buf, size_t len)
 static int buspirate_send(struct programmer_t *pgm, const char *str)
 {
 	int rc;
+	const char * readline;
 
-        avrdude_message(MSG_DEBUG, "%s: buspirate_send(): %s", progname, str);
+	avrdude_message(MSG_DEBUG, "%s: buspirate_send(): %s", progname, str);
 
 	if (pgm->flag & BP_FLAG_IN_BINMODE) {
 		avrdude_message(MSG_INFO, "BusPirate: Internal error: buspirate_send() called from binmode\n");
@@ -238,9 +239,13 @@ static int buspirate_send(struct programmer_t *pgm, const char *str)
 	rc = serial_send(&pgm->fd, (const unsigned char*)str, strlen(str));
 	if (rc)
 		return rc;
-	while (strcmp(buspirate_readline(pgm, NULL, 0), str) != 0)
-		/* keep reading until we get what we sent there */
-		;
+	do {
+		readline = buspirate_readline(pgm, NULL, 0);
+		if (readline == NULL)
+			return -1;
+	/* keep reading until we get what we sent there */
+	} while (strcmp(readline, str) != 0);
+
 	/* by now we should be in sync */
 	return 0;
 }
@@ -263,7 +268,9 @@ static int buspirate_expect(struct programmer_t *pgm, char *send,
 	buspirate_send(pgm, send);
 	while (1) {
 		rcvd = buspirate_readline(pgm, NULL, 0);
-
+		if (rcvd == NULL) {
+			return -1;
+		}
 		if (strncmp(rcvd, expect, expect_len) == 0) {
 			if (! wait_for_prompt) {
 				serial_drain(&pgm->fd, 0);
@@ -280,8 +287,7 @@ static int buspirate_expect(struct programmer_t *pgm, char *send,
 }
 
 /* ====== Do-nothing functions ====== */
-static void buspirate_dummy_6(struct programmer_t *pgm,
-				const char *p)
+static void buspirate_dummy_6(struct programmer_t *pgm, const char *p)
 {
 }
 
@@ -292,9 +298,10 @@ buspirate_parseextparms(struct programmer_t *pgm, LISTID extparms)
 	LNODEID ln;
 	const char *extended_param;
 	char reset[10];
-	char *preset = reset;	/* for strtok() */
-	int spifreq;
-	int cpufreq;
+	char *preset = reset; /* for strtok() */
+	unsigned int spifreq;
+	unsigned int rawfreq;
+	unsigned int cpufreq;
 	int serial_recv_timeout;
 
 	for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
@@ -303,32 +310,38 @@ buspirate_parseextparms(struct programmer_t *pgm, LISTID extparms)
 			pgm->flag |= BP_FLAG_XPARM_FORCE_ASCII;
 			continue;
 		}
-		if (sscanf(extended_param, "spifreq=%d", &spifreq) == 1) {
+
+		if (sscanf(extended_param, "spifreq=%u", &spifreq) == 1) {
 			if (spifreq & (~0x07)) {
 				avrdude_message(MSG_INFO, "BusPirate: spifreq must be between 0 and 7.\n");
 				avrdude_message(MSG_INFO, "BusPirate: see BusPirate manual for details.\n");
 				return -1;
 			}
-			pgm->flag = (pgm->flag & ~BP_FLAG_XPARM_RAWFREQ) |
-				BP_FLAG_XPARM_SPIFREQ;
+			if (pgm->flag & BP_FLAG_XPARM_RAWFREQ) {
+				avrdude_message(MSG_INFO, "BusPirate: set either spifreq or rawfreq\n");
+				return -1;
+			}
+			pgm->flag |=  BP_FLAG_XPARM_SPIFREQ;
 			PDATA(pgm)->spifreq = spifreq;
 			continue;
 		}
-		
-		unsigned rawfreq;
+
 		if (sscanf(extended_param, "rawfreq=%u", &rawfreq) == 1) {
 			if (rawfreq >= 4) {
 				avrdude_message(MSG_INFO, "BusPirate: rawfreq must be "
-					"between 0 and 3.\n");
+				                "between 0 and 3.\n");
 				return -1;
 			}
-			pgm->flag = (pgm->flag & ~BP_FLAG_XPARM_SPIFREQ) |
-				BP_FLAG_XPARM_RAWFREQ;
+			if (pgm->flag & BP_FLAG_XPARM_SPIFREQ) {
+				avrdude_message(MSG_INFO, "BusPirate: set either spifreq or rawfreq\n");
+				return -1;
+			}
+			pgm->flag |=  BP_FLAG_XPARM_RAWFREQ;
 			PDATA(pgm)->spifreq = rawfreq;
 			continue;
 		}
 
-		if (sscanf(extended_param, "cpufreq=%d", &cpufreq) == 1) {
+		if (sscanf(extended_param, "cpufreq=%u", &cpufreq) == 1) {
 			/* lower limit comes from 'cpufreq > 4 * spifreq', spifreq in ascii mode is 30kHz. */
 			if (cpufreq < 125 || cpufreq > 4000) {
 				avrdude_message(MSG_INFO, "BusPirate: cpufreq must be between 125 and 4000 kHz.\n");
@@ -343,7 +356,7 @@ buspirate_parseextparms(struct programmer_t *pgm, LISTID extparms)
 		if (sscanf(extended_param, "reset=%9s", reset) == 1) {
 			char *resetpin;
 			while ((resetpin = strtok(preset, ","))) {
-				preset = NULL;	/* for subsequent strtok() calls */
+				preset = NULL; /* for subsequent strtok() calls */
 				if (strcasecmp(resetpin, "cs") == 0)
 					PDATA(pgm)->reset |= BP_RESET_CS;
 				else if (strcasecmp(resetpin, "aux") == 0 || strcasecmp(reset, "aux1") == 0)
@@ -368,6 +381,7 @@ buspirate_parseextparms(struct programmer_t *pgm, LISTID extparms)
 			pgm->flag |= BP_FLAG_NOPAGEDREAD;
 			continue;
 		}
+
 		if (sscanf(extended_param, "serial_recv_timeout=%d", &serial_recv_timeout) == 1) {
 			if (serial_recv_timeout < 1) {
 				avrdude_message(MSG_INFO, "BusPirate: serial_recv_timeout must be greater 0.\n");
@@ -376,6 +390,9 @@ buspirate_parseextparms(struct programmer_t *pgm, LISTID extparms)
 			PDATA(pgm)->serial_recv_timeout = serial_recv_timeout;
 			continue;
 		}
+
+		avrdude_message(MSG_INFO, "BusPirate: do not understand extended param '%s'.\n", extended_param);
+		return -1;
 	}
 
 	return 0;
@@ -393,14 +410,9 @@ buspirate_verifyconfig(struct programmer_t *pgm)
 		return -1;
 	}
 
-	if (( (pgm->flag & BP_FLAG_XPARM_SPIFREQ) ||
-	(pgm->flag & BP_FLAG_XPARM_RAWFREQ) ) && buspirate_uses_ascii(pgm)) {
+	if (  ((pgm->flag & BP_FLAG_XPARM_SPIFREQ) || (pgm->flag & BP_FLAG_XPARM_RAWFREQ))
+	   && buspirate_uses_ascii(pgm)) {
 		avrdude_message(MSG_INFO, "BusPirate: SPI speed selection is not supported in ASCII mode\n");
-		return -1;
-	}
-
-	if ((pgm->flag & BP_FLAG_XPARM_CPUFREQ) && !buspirate_uses_ascii(pgm)) {
-		avrdude_message(MSG_INFO, "BusPirate: Setting cpufreq is only supported in ASCII mode\n");
 		return -1;
 	}
 
@@ -418,7 +430,7 @@ static int buspirate_open(struct programmer_t *pgm, char * port)
 	pinfo.baud = pgm->baudrate;
 	strcpy(pgm->port, port);
 	if (serial_open(port, pinfo, &pgm->fd)==-1) {
-	  return -1;
+		return -1;
 	}
 
 	/* drain any extraneous input */
@@ -437,8 +449,21 @@ static void buspirate_reset_from_binmode(struct programmer_t *pgm)
 {
 	unsigned char buf[10];
 
-	buf[0] = 0x00;	/* BinMode: revert to HiZ */
+	buf[0] = 0x00;	/* BinMode: revert to raw bitbang mode */
 	buspirate_send_bin(pgm, buf, 1);
+	buspirate_recv_bin(pgm, buf, 5);
+
+	if (pgm->flag & BP_FLAG_XPARM_CPUFREQ) {
+		/* disable pwm */
+		if (buspirate_expect_bin_byte(pgm, 0x13, 0x01) != 1) {
+			avrdude_message(MSG_INFO, "%s: warning: did not get a response to stop PWM command.\n", progname);
+		}
+	}
+	/* 0b0100wxyz - Configure peripherals w=power, x=pull-ups, y=AUX, z=CS
+	 * we want everything off -- 0b01000000 = 0x40 */
+	if (buspirate_expect_bin_byte(pgm, 0x40, 0x00) == 1) {
+		avrdude_message(MSG_INFO, "%s: warning: did not get a response to power off command.\n", progname);
+	}
 
 	buf[0] = 0x0F;	/* BinMode: reset */
 	buspirate_send_bin(pgm, buf, 1);
@@ -463,7 +488,7 @@ static void buspirate_reset_from_binmode(struct programmer_t *pgm)
 		return;
 	}
 
-        avrdude_message(MSG_NOTICE, "BusPirate is back in the text mode\n");
+	avrdude_message(MSG_NOTICE, "BusPirate is back in the text mode\n");
 }
 
 static int buspirate_start_mode_bin(struct programmer_t *pgm)
@@ -474,6 +499,7 @@ static int buspirate_start_mode_bin(struct programmer_t *pgm)
 		const char *entered_format;  /* Response, for "scanf" */
 		char config;  /* Command to setup submode parameters */
 	} *submode;
+
 	if (pgm->flag & BP_FLAG_XPARM_RAWFREQ) {
 		submode = &(const struct submode){
 			.name = "Raw-wire",
@@ -516,20 +542,42 @@ static int buspirate_start_mode_bin(struct programmer_t *pgm)
 
 	pgm->flag |= BP_FLAG_IN_BINMODE;
 
+	if (pgm->flag & BP_FLAG_XPARM_CPUFREQ) {
+		unsigned short pwm_duty;
+		unsigned short pwm_period;
+
+		pwm_period = 16000/(PDATA(pgm)->cpufreq) - 1; // oscillator runs at 32MHz, we don't use a prescaler
+		pwm_duty = pwm_period/2; // 50% duty cycle
+
+		avrdude_message(MSG_NOTICE, "Setting up PWM for cpufreq\n");
+		avrdude_message(MSG_DEBUG, "PWM settings: Prescaler=1, Duty Cycle=%hd, Period=%hd\n", pwm_duty, pwm_period);
+
+		buf[0] = 0x12; // pwm setup
+		buf[1] = 0; // prescaler 1
+		buf[2] = (char) ((pwm_duty >> 8) & 0xff); // duty cycle register, high byte
+		buf[3] = (char) pwm_duty & 0xff; // duty cycle register, low byte
+		buf[4] = (char) ((pwm_period >> 8) & 0xff); // period register, high byte
+		buf[5] = (char) pwm_period & 0xff; // period register, low byte
+		buspirate_send_bin(pgm, buf, 6);
+
+		buspirate_recv_bin(pgm, buf, 1);
+		if (buf[0] != 0x01)
+			avrdude_message(MSG_INFO, "cpufreq (PWM) setup failed\n");
+	}
+
 	/* == Set protocol sub-mode of binary mode == */
 	buf[0] = submode->enter;
 	buspirate_send_bin(pgm, buf, 1);
 	memset(buf, 0, sizeof(buf));
 	buspirate_recv_bin(pgm, buf, 4);
-	if (sscanf((const char*)buf, submode->entered_format,
-	&PDATA(pgm)->submode_version) != 1) {
+	if (sscanf((const char*)buf, submode->entered_format, &PDATA(pgm)->submode_version) != 1) {
 		avrdude_message(MSG_INFO, "%s mode not confirmed: '%s'\n",
-			submode->name, buf);
+		                submode->name, buf);
 		buspirate_reset_from_binmode(pgm);
 		return -1;
 	}
-	avrdude_message(MSG_NOTICE, "BusPirate %s version: %d\n",
-                submode->name, PDATA(pgm)->submode_version);
+	avrdude_message(MSG_NOTICE, "BusPirate %s version: %d\n", 
+	                submode->name, PDATA(pgm)->submode_version);
 
 	if (pgm->flag & BP_FLAG_NOPAGEDWRITE) {
                 avrdude_message(MSG_NOTICE, "%s: Paged flash write disabled.\n", progname);
@@ -549,12 +597,12 @@ static int buspirate_start_mode_bin(struct programmer_t *pgm)
 			buf[0] = 0x1;
 			buspirate_send_bin(pgm, buf, 1);
 
-                        avrdude_message(MSG_NOTICE, "%s: Disabling paged flash write. (Need BusPirate firmware >=v5.10.)\n", progname);
+			avrdude_message(MSG_NOTICE, "%s: Disabling paged flash write. (Need BusPirate firmware >=v5.10.)\n", progname);
 
 			/* Flush serial buffer: */
 			serial_drain(&pgm->fd, 0);
 		} else {
-                        avrdude_message(MSG_INFO, "%s: Paged flash write enabled.\n", progname);
+			avrdude_message(MSG_INFO, "%s: Paged flash write enabled.\n", progname);
 		}
 	}
 
@@ -563,7 +611,7 @@ static int buspirate_start_mode_bin(struct programmer_t *pgm)
 	PDATA(pgm)->current_peripherals_config  = 0x48 | PDATA(pgm)->reset;
 	if (buspirate_expect_bin_byte(pgm, PDATA(pgm)->current_peripherals_config, 0x01) < 0)
 		return -1;
-	usleep(50000);	// sleep for 50ms after power up
+	usleep(50000); // sleep for 50ms after power up
 
 	/* 01100xxx -  Set speed */
 	if (buspirate_expect_bin_byte(pgm, 0x60 | PDATA(pgm)->spifreq, 0x01) < 0)
@@ -609,6 +657,9 @@ static int buspirate_start_spi_mode_ascii(struct programmer_t *pgm)
 	buspirate_send(pgm, "m\n");
 	while(1) {
 		rcvd = buspirate_readline(pgm, NULL, 0);
+		if (rcvd == NULL) {
+			return -1;
+		}
 		if (spi_cmd == -1 && sscanf(rcvd, "%2d. %10s", &cmd, mode)) {
 			if (strcmp(mode, "SPI") == 0)
 				spi_cmd = cmd;
@@ -628,6 +679,9 @@ static int buspirate_start_spi_mode_ascii(struct programmer_t *pgm)
 	buf[0] = '\0';
 	while (1) {
 		rcvd = buspirate_readline(pgm, NULL, 0);
+		if (rcvd == NULL) {
+			return -1;
+		}
 		if (strstr(rcvd, "Normal (H=3.3V, L=GND)")) {
 			/* BP firmware 2.1 defaults to Open-drain output.
 			 * That doesn't work on my board, even with pull-up
@@ -724,8 +778,9 @@ static void buspirate_disable(struct programmer_t *pgm)
 	if (pgm->flag & BP_FLAG_IN_BINMODE) {
 		serial_recv_timeout = 100;
 		buspirate_reset_from_binmode(pgm);
-	} else
+	} else {
 		buspirate_expect(pgm, "#\n", "RESET", 1);
+	}
 }
 
 static int buspirate_initialize(struct programmer_t *pgm, AVRPART * p)
@@ -741,7 +796,7 @@ static void buspirate_powerup(struct programmer_t *pgm)
 		/* Powerup in BinMode is handled in binary mode init */
 		return;
 	} else {
-		if (buspirate_expect(pgm, "W\n", "Power supplies ON", 1)) {
+		if (buspirate_expect(pgm, "W\n", "POWER SUPPLIES ON", 1)) {
 			if (pgm->flag & BP_FLAG_XPARM_CPUFREQ) {
 				char buf[25];
 				int ok = 0;
@@ -768,17 +823,15 @@ static void buspirate_powerup(struct programmer_t *pgm)
 static void buspirate_powerdown(struct programmer_t *pgm)
 {
 	if (pgm->flag & BP_FLAG_IN_BINMODE) {
-		/* 0b0100wxyz - Configure peripherals w=power, x=pull-ups, y=AUX, z=CS
-		 * we want everything off -- 0b01000000 = 0x40 */
-		if (buspirate_expect_bin_byte(pgm, 0x40, 0x01))
-			return;
+		/* Powerdown in BinMode is handled in binary mode init */
+		return;
 	} else {
 		if (pgm->flag & BP_FLAG_XPARM_CPUFREQ) {
 			if (!buspirate_expect(pgm, "g\n", "PWM disabled", 1)) {
 				avrdude_message(MSG_INFO, "%s: warning: did not get a response to stop PWM command.\n", progname);
 			}
 		}
-		if (buspirate_expect(pgm, "w\n", "Power supplies OFF", 1))
+		if (buspirate_expect(pgm, "w\n", "POWER SUPPLIES OFF", 1))
 			return;
 	}
 
@@ -816,6 +869,9 @@ static int buspirate_cmd_ascii(struct programmer_t *pgm,
 	buspirate_send(pgm, buf);
 	while (i < 4) {
 		rcvd = buspirate_readline(pgm, NULL, 0);
+		if (rcvd == NULL) {
+			return -1;
+		}
 		/* WRITE: 0xAC READ: 0x04 */
 		if (sscanf(rcvd, "WRITE: 0x%2x READ: 0x%2x", &spi_write, &spi_read) == 2) {
 			res[i++] = spi_read;
@@ -869,7 +925,7 @@ static int buspirate_paged_load(
 
 	// determine what type of memory to read, only flash is supported
 	if (strcmp(m->desc, "flash") != 0) {
-		return -1;      
+		return -1;
 	}
 
 	// send command to read data
@@ -941,12 +997,12 @@ static int buspirate_paged_write(struct programmer_t *pgm,
 	/* pre-check opcodes */
 	if (m->op[AVR_OP_LOADPAGE_LO] == NULL) {
 		avrdude_message(MSG_INFO, "%s failure: %s command not defined for %s\n",
-                                progname, "AVR_OP_LOADPAGE_LO", p->desc);
+		                progname, "AVR_OP_LOADPAGE_LO", p->desc);
 		return -1;
 	}
 	if (m->op[AVR_OP_LOADPAGE_HI] == NULL) {
 		avrdude_message(MSG_INFO, "%s failure: %s command not defined for %s\n",
-                                progname, "AVR_OP_LOADPAGE_HI", p->desc);
+		                progname, "AVR_OP_LOADPAGE_HI", p->desc);
 		return -1;
 	}
 
@@ -1038,7 +1094,7 @@ static int buspirate_program_enable(struct programmer_t *pgm, AVRPART * p)
 
 	if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
 		avrdude_message(MSG_INFO, "program enable instruction not defined for part \"%s\"\n",
-                                p->desc);
+		                p->desc);
 		return -1;
 	}
 
@@ -1059,7 +1115,7 @@ static int buspirate_chip_erase(struct programmer_t *pgm, AVRPART * p)
 
 	if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
 		avrdude_message(MSG_INFO, "chip erase instruction not defined for part \"%s\"\n",
-                                p->desc);
+		                p->desc);
 		return -1;
 	}
 
@@ -1083,7 +1139,7 @@ static void buspirate_setup(struct programmer_t *pgm)
 	/* Allocate private data */
 	if ((pgm->cookie = calloc(1, sizeof(struct pdata))) == 0) {
 		avrdude_message(MSG_INFO, "%s: buspirate_initpgm(): Out of memory allocating private data\n",
-			progname);
+		                progname);
 		exit(1);
 	}
 	PDATA(pgm)->serial_recv_timeout = 100;
@@ -1134,7 +1190,7 @@ static void buspirate_bb_enable(struct programmer_t *pgm)
 	unsigned char buf[20] = { '\0' };
 
 	if (bitbang_check_prerequisites(pgm) < 0)
-	    return;             /* XXX should treat as error */
+		return;             /* XXX should treat as error */
 
 	avrdude_message(MSG_INFO, "Attempting to initiate BusPirate bitbang binary mode...\n");
 
@@ -1156,7 +1212,7 @@ static void buspirate_bb_enable(struct programmer_t *pgm)
 		return;
 	}
 	avrdude_message(MSG_INFO, "BusPirate binmode version: %d\n",
-		PDATA(pgm)->binmode_version);
+	                PDATA(pgm)->binmode_version);
 
 	pgm->flag |= BP_FLAG_IN_BINMODE;
 
@@ -1182,10 +1238,10 @@ static void buspirate_bb_enable(struct programmer_t *pgm)
    AUX|MOSI|CLK|MISO|CS
 
    Output value:
-   1xxxxxxx 
-   High (1) or low(0): 
+   1xxxxxxx
+   High (1) or low(0):
    1|POWER|PULLUP|AUX|MOSI|CLK|MISO|CS
-   
+
    Both respond with a byte with current status:
    0|POWER|PULLUP|AUX|MOSI|CLK|MISO|CS
 */
@@ -1202,7 +1258,7 @@ static int buspirate_bb_getpin(struct programmer_t *pgm, int pinfunc)
 
 	if (pin < 1 || pin > 5)
 		return -1;
-	
+
 	buf[0] = PDATA(pgm)->pin_dir | 0x40;
 	if (buspirate_send_bin(pgm, buf, 1) < 0)
 		return -1;
@@ -1212,10 +1268,10 @@ static int buspirate_bb_getpin(struct programmer_t *pgm, int pinfunc)
 			return -1;
 		PDATA(pgm)->unread_bytes--;
 	}
-		
+
 	/* Now read the actual response */
 	if (buspirate_recv_bin(pgm, buf, 1) < 0)
-		return -1;	
+		return -1;
 
 	if (buf[0] & (1 << (pin - 1)))
 		value ^= 1;
@@ -1243,7 +1299,7 @@ static int buspirate_bb_setpin_internal(struct programmer_t *pgm, int pin, int v
 		PDATA(pgm)->pin_val |= (1 << (pin - 1));
 	else 
 		PDATA(pgm)->pin_val &= ~(1 << (pin - 1));
-		
+
 	buf[0] = PDATA(pgm)->pin_val | 0x80;
 	if (buspirate_send_bin(pgm, buf, 1) < 0)
 		return -1;

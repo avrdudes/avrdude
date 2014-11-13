@@ -1001,9 +1001,7 @@ This sets the AUX pin to output a frequency of
 kHz. Connecting
 the AUX pin to the XTAL1 pin of your MCU, you can provide it a clock, 
 for example when it needs an external clock because of wrong fuses settings.
-This setting is only available in ASCII mode. (The lower limit was chosen so
-the CPU frequency is at least for four times the SPI frequency which is in 
-ASCII mode 30kHz.)  
+Make sure the CPU frequency is at least four times the SPI frequency.  
 .It Ar serial_recv_timeout=<1...>
 This sets the serial receive timeout to the given value. 
 The timeout happens every time avrdude waits for the BusPirate prompt. 
