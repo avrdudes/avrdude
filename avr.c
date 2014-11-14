@@ -1214,7 +1214,7 @@ void report_progress (int completed, int total, char *hdr)
 {
   static int last = 0;
   static double start_time;
-  int percent = (completed * 100) / total;
+  int percent = (total > 0) ? ((completed * 100) / total) : 100;
   struct timeval tv;
   double t;
 

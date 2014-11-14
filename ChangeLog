@@ -1,3 +1,9 @@
+2014-11-14  Rene Liebscher <R.Liebscher@gmx.de>
+
+	bug #40142 Floating point exception on Ubuntu 10.04
+	* avr.c: avoid division by zero in report_progress(), eg. when 
+	writing an empty eeprom file were total becomes 0
+
 2014-11-13  Rene Liebscher <R.Liebscher@gmx.de>
 
 	patch #8504 buspirate: Also support "cpufreq" extended parameter
