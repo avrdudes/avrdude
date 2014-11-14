@@ -759,6 +759,47 @@ programmer parent "arduino-ft232r"
   desc  = "alias for arduino-ft232r";
 ;
 
+# There is a ATmega328P kit PCB called "uncompatino".
+# This board allows ISP via its on-board FT232R.
+# This is designed like Arduino Duemilanove but has no standard ICPS header.
+# Its 4 pairs of pins are shorted to enable ftdi_syncbb.
+# http://akizukidenshi.com/catalog/g/gP-07487/
+# http://akizukidenshi.com/download/ds/akizuki/k6096_manual_20130816.pdf
+programmer
+  id    = "uncompatino";
+  desc  = "uncompatino with all pairs of pins shorted";
+  type  = "ftdi_syncbb";
+  connection_type = usb;
+  miso  = 3; # cts
+  sck   = 5; # dsr
+  mosi  = 6; # dcd
+  reset = 7; # ri
+;
+
+# FTDI USB to serial cable TTL-232R-5V with a custom adapter for ICSP
+# http://www.ftdichip.com/Products/Cables/USBTTLSerial.htm
+# http://www.ftdichip.com/Support/Documents/DataSheets/Cables/DS_TTL-232R_CABLES.pdf
+# For ICSP pinout see for example http://www.atmel.com/images/doc2562.pdf
+# (Figure 1. ISP6PIN header pinout and Table 1. Connections required for ISP ...)
+# TTL-232R GND 1 Black  -> ICPS GND   (pin 6)
+# TTL-232R CTS 2 Brown  -> ICPS MOSI  (pin 4)
+# TTL-232R VCC 3 Red    -> ICPS VCC   (pin 2)
+# TTL-232R TXD 4 Orange -> ICPS RESET (pin 5)
+# TTL-232R RXD 5 Yellow -> ICPS SCK   (pin 3)
+# TTL-232R RTS 6 Green  -> ICPS MISO  (pin 1)
+# Except for VCC and GND, you can connect arbitual pairs as long as 
+# the following table is adjusted.
+programmer
+  id    = "ttl232r";
+  desc  = "FTDI TTL232R-5V with ICSP adapter";
+  type  = "ftdi_syncbb";
+  connection_type = usb;
+  miso  = 2; # rts
+  sck   = 1; # rxd
+  mosi  = 3; # cts
+  reset = 0; # txd
+;
+
 programmer
   id    = "usbasp";
   desc  = "USBasp, http://www.fischl.de/usbasp/";
