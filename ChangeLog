@@ -1,3 +1,9 @@
+2014-11-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #43626: Inconsistent timeouts in stk500v2
+	* stk500v2.c (stk500v2_recv): Add a reference to the bug report
+	but don't change anything, lest to break it somehow
+
 2014-11-14  Rene Liebscher <R.Liebscher@gmx.de>
 
 	patch #8529 2 more ftdi_syncbb devices

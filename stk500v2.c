@@ -624,6 +624,11 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char *msg, size_t maxsize) {
   int timeout = 0;
   unsigned char c, checksum = 0;
 
+  /*
+   * The entire timeout handling here is not very consistent, see
+   *
+   * https://savannah.nongnu.org/bugs/index.php?43626
+   */
   long timeoutval = SERIAL_TIMEOUT;		// seconds
   struct timeval tv;
   double tstart, tnow;
