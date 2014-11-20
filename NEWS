@@ -24,6 +24,8 @@ Current:
     - bug #22248: Read efuse error (partial fix)
     - bug #42267: jtag3isp fails to read lock and fuse bytes directly
                   after changing lock byte
+    - bug #41561: AVRDUDE 6.0.1/USBasp doesn't write first bytes of
+                  flash page
 
   * Internals:
     - ...

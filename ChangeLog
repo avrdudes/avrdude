@@ -1,3 +1,11 @@
+2014-11-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #41561: AVRDUDE 6.0.1/USBasp doesn't write first bytes of
+	flash page
+	* usbasp.c (usbasp_spi_paged_write): Remove USBASP_BLOCKFLAG_LAST.
+	It is no longer needed, as we always write full pages now in paged
+	write mode.
+
 2014-11-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #43626: Inconsistent timeouts in stk500v2

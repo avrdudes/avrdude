@@ -795,7 +795,6 @@ static int usbasp_spi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
     if (wbytes <= blocksize) {
       blocksize = wbytes;
-      blockflags |= USBASP_BLOCKFLAG_LAST;
     }
     wbytes -= blocksize;
 
