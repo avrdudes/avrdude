@@ -1,5 +1,13 @@
 2014-11-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* main.c: Allow the -B option argument to be suffixed with Hz,
+	kHz, or MHz, in order to specify a bitclock frequency rather than
+	period.
+	* avrdude.1: Document the -B option changes.
+	* doc/avrdude.texi: (Dito.)
+
+2014-11-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #40870: config nitpick: ATtiny25/45/85 have 1 calibration byte not 2
 	* avrdude.conf.in (ATtiny25, ATtiny45, ATtiny85): Fix size of
 	"calibration" memory area

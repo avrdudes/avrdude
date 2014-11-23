@@ -17,6 +17,9 @@ Current:
       used by all the more modern Atmel tools (AVRISPmkII, JTAGICEmkII
       in ISP mode, STK600 in ISP mode).
 
+    - The -B option can be suffixed with "Hz", "kHz", or "MHz", in
+      order to specify a bitclock frequency rather than period.
+
   * New programmers supported:
     - ...
 
