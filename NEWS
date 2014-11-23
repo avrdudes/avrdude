@@ -28,6 +28,7 @@ Current:
                   flash page
     - bug #43078: AVRDUDE crashes after sucessfully reading/writing eeprom
     - bug #43137: Writing and reading incorrect pages when using jtagicemkI
+    - bug #40870: config nitpick: ATtiny25/45/85 have 1 calibration byte not 2
 
   * Internals:
     - ...

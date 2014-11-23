@@ -1,5 +1,11 @@
 2014-11-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #40870: config nitpick: ATtiny25/45/85 have 1 calibration byte not 2
+	* avrdude.conf.in (ATtiny25, ATtiny45, ATtiny85): Fix size of
+	"calibration" memory area
+
+2014-11-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #43137: Writing and reading incorrect pages when using jtagicemkI
 	* jtagmkI.c (jtagmkI_paged_write, jtagmkI_paged_load): correctly
 	calculate the size of a partial (non-pagesize) buffer
