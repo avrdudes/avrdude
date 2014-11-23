@@ -20,10 +20,29 @@ Current:
     - The -B option can be suffixed with "Hz", "kHz", or "MHz", in
       order to specify a bitclock frequency rather than period.
 
+    - Print part id after signature (patch #8440 )
+
+    - buspirate: Also support "cpufreq" extended parameter
+      in binary mode (patch #8504 )
+
+  * New devices supported:
+    - AT90PWM216 (bug #42310: New part description for AT90PWM216)
+    - ATmega32M1 (patch #7694 Add support for the atmega32m1)
+
   * New programmers supported:
-    - ...
+    - ftdi_syncbb
+      + uncompatino, ttl232r (FTDI TTL232R-5V with ICSP adapter)
+        (patch #8529 2 more ftdi_syncbb devices)
 
   * Bugfixes
+    - bug #42337 avrdude.conf updates for UM232H/CM232H
+    - bug #42056: double free or corruption triggered at exit
+    - bug #42158: Linux GPIO - Source Typo
+    - bug #42516 spelling-error-in-binary
+    - patch #8419 fix ftdi_syncbb hang with libftdi 1
+    - bug #43002 usbasp debug output typo
+    - patch #8511 Fix reset on FT245R
+    - bug #40142 Floating point exception on Ubuntu 10.04
     - bug #22248: Read efuse error (partial fix)
     - bug #42267: jtag3isp fails to read lock and fuse bytes directly
                   after changing lock byte
@@ -34,7 +53,8 @@ Current:
     - bug #40870: config nitpick: ATtiny25/45/85 have 1 calibration byte not 2
 
   * Internals:
-    - ...
+    - Removing exit calls from config parser
+    - bug #42662 clang warnings under FreeBSD 10.x
 
 Version 6.1:
 
