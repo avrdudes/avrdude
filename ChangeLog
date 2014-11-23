@@ -1,5 +1,11 @@
 2014-11-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #43137: Writing and reading incorrect pages when using jtagicemkI
+	* jtagmkI.c (jtagmkI_paged_write, jtagmkI_paged_load): correctly
+	calculate the size of a partial (non-pagesize) buffer
+
+2014-11-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #43078: AVRDUDE crashes after sucessfully reading/writing eeprom
 	* jtag3.c (jtag3_edbg_recv_frame): Return correct length as
 	reported in the response packet, rather than full 512 byte which

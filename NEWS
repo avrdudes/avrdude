@@ -27,6 +27,7 @@ Current:
     - bug #41561: AVRDUDE 6.0.1/USBasp doesn't write first bytes of
                   flash page
     - bug #43078: AVRDUDE crashes after sucessfully reading/writing eeprom
+    - bug #43137: Writing and reading incorrect pages when using jtagicemkI
 
   * Internals:
     - ...

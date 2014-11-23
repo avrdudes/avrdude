@@ -766,8 +766,8 @@ static int jtagmkI_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       return -1;
     }
 
-    if ((n_bytes-addr) < page_size)
-      block_size = n_bytes - addr;
+    if (n_bytes < page_size)
+      block_size = n_bytes;
     else
       block_size = page_size;
     avrdude_message(MSG_DEBUG, "%s: jtagmkI_paged_write(): "
@@ -886,8 +886,8 @@ static int jtagmkI_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       return -1;
     }
 
-    if ((n_bytes-addr) < page_size)
-      block_size = n_bytes - addr;
+    if (n_bytes < page_size)
+      block_size = n_bytes;
     else
       block_size = page_size;
     avrdude_message(MSG_DEBUG, "%s: jtagmkI_paged_load(): "
