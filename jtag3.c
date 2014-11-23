@@ -690,7 +690,7 @@ static int jtag3_edbg_recv_frame(PROGRAMMER * pgm, unsigned char **msg) {
 
   *msg = buf;
 
-  return rv;
+  return len;
 }
 
 int jtag3_recv(PROGRAMMER * pgm, unsigned char **msg) {

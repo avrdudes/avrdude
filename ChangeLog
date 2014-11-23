@@ -1,3 +1,12 @@
+2014-11-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #43078: AVRDUDE crashes after sucessfully reading/writing eeprom
+	* jtag3.c (jtag3_edbg_recv_frame): Return correct length as
+	reported in the response packet, rather than full 512 byte which
+	are always reported by the CMSIS-DAP layer.  Miscalculations
+	based on the wrongly reported length caused heap corruption
+	elsewhere, so this is presumably also a fix for bug #43078.
+
 2014-11-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #41561: AVRDUDE 6.0.1/USBasp doesn't write first bytes of

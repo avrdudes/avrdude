@@ -26,6 +26,7 @@ Current:
                   after changing lock byte
     - bug #41561: AVRDUDE 6.0.1/USBasp doesn't write first bytes of
                   flash page
+    - bug #43078: AVRDUDE crashes after sucessfully reading/writing eeprom
 
   * Internals:
     - ...
