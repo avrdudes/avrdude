@@ -836,29 +836,22 @@ static int jtag3_program_enable_dummy(PROGRAMMER * pgm, AVRPART * p)
 static int jtag3_program_enable(PROGRAMMER * pgm)
 {
   unsigned char buf[3], *resp;
-  int use_ext_reset;
 
   if (PDATA(pgm)->prog_enabled)
     return 0;
 
-  for (use_ext_reset = 0; use_ext_reset <= 1; use_ext_reset++) {
-    buf[0] = SCOPE_AVR;
-    buf[1] = CMD3_ENTER_PROGMODE;
-    buf[2] = 0;
+  buf[0] = SCOPE_AVR;
+  buf[1] = CMD3_ENTER_PROGMODE;
+  buf[2] = 0;
 
-    if (jtag3_command(pgm, buf, 3, &resp, "enter progmode") >= 0) {
-      free(resp);
-      break;
-    }
+  if (jtag3_command(pgm, buf, 3, &resp, "enter progmode") >= 0) {
+    free(resp);
+    PDATA(pgm)->prog_enabled = 1;
 
-    /* XXX activate external reset here */
-    avrdude_message(MSG_NOTICE, "%s: retrying with external reset applied\n",
-                      progname);
+    return 0;
   }
 
-  PDATA(pgm)->prog_enabled = 1;
-
-  return 0;
+  return -1;
 }
 
 static int jtag3_program_disable(PROGRAMMER * pgm)
@@ -1109,13 +1102,25 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
       return -1;
   }
 
-  cmd[0] = SCOPE_AVR;
-  cmd[1] = CMD3_SIGN_ON;
-  cmd[2] = 0;
-  cmd[3] = 0;			/* external reset */
+  int use_ext_reset;
 
-  if ((status = jtag3_command(pgm, cmd, 4, &resp, "AVR sign-on")) < 0)
+  for (use_ext_reset = 0; use_ext_reset <= 1; use_ext_reset++) {
+    cmd[0] = SCOPE_AVR;
+    cmd[1] = CMD3_SIGN_ON;
+    cmd[2] = 0;
+    cmd[3] = use_ext_reset;			/* external reset */
+
+    if ((status = jtag3_command(pgm, cmd, 4, &resp, "AVR sign-on")) >= 0)
+      break;
+
+    avrdude_message(MSG_INFO, "%s: retrying with external reset applied\n",
+		    progname);
+  }
+
+  if (use_ext_reset > 1) {
+    avrdude_message(MSG_INFO, "%s: JTAGEN fuse disabled?\n", progname);
     return -1;
+  }
 
   /*
    * Depending on the target connection, there are two different

@@ -1,3 +1,9 @@
+2014-11-24  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #42908: no external reset at JTAGICE3
+	* jtag3.c (jtag3_initialize): Retry with external reset applied if
+	the first sign-on attempt fails.
+
 2014-11-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* main.c: Allow the -B option argument to be suffixed with Hz,
