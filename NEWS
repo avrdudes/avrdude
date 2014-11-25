@@ -28,6 +28,9 @@ Current:
     - The "-P net:" syntax (forwarding of serial data over TCP) is now
       also implemented for Win32 systems.
 
+    - Allow for arbitrary serial baudrates under Linux (OSX and *BSD
+      could already handle it).
+
 
   * New devices supported:
     - AT90PWM216 (bug #42310: New part description for AT90PWM216)
@@ -57,6 +60,7 @@ Current:
     - bug #40870: config nitpick: ATtiny25/45/85 have 1 calibration byte not 2
     - bug #42908: no external reset at JTAGICE3
     - patch #8437: [PATCH] Serial-over-ethernet for Win32
+    - patch #8380: adds 500k 1M 2M baud to ser_posix.c
 
   * Internals:
     - Removing exit calls from config parser

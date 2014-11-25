@@ -1,5 +1,11 @@
 2014-11-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	patch #8380: adds 500k 1M 2M baud to ser_posix.c
+	* ser_posix.c: Add a hack to allow for arbitrary baud rates on
+	Linux
+
+2014-11-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	patch #8437: [PATCH] Serial-over-ethernet for Win32
 	* configure.ac: Check for ws2_32 library
 	* ser_win32.c: Add hooks for forwarding serial data over
