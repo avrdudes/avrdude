@@ -25,6 +25,10 @@ Current:
     - buspirate: Also support "cpufreq" extended parameter
       in binary mode (patch #8504 )
 
+    - The "-P net:" syntax (forwarding of serial data over TCP) is now
+      also implemented for Win32 systems.
+
+
   * New devices supported:
     - AT90PWM216 (bug #42310: New part description for AT90PWM216)
     - ATmega32M1 (patch #7694 Add support for the atmega32m1)
@@ -52,6 +56,7 @@ Current:
     - bug #43137: Writing and reading incorrect pages when using jtagicemkI
     - bug #40870: config nitpick: ATtiny25/45/85 have 1 calibration byte not 2
     - bug #42908: no external reset at JTAGICE3
+    - patch #8437: [PATCH] Serial-over-ethernet for Win32
 
   * Internals:
     - Removing exit calls from config parser

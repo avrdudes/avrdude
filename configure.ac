@@ -191,6 +191,9 @@ AC_CHECK_HEADERS([ddk/hidsdi.h],,,[#include <windows.h>
 AC_C_CONST
 AC_HEADER_TIME
 
+# WinSock2
+AC_CHECK_LIB([ws2_32], [puts])
+
 # Checks for library functions.
 AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul gettimeofday usleep])
 
