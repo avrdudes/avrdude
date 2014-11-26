@@ -339,11 +339,11 @@ static int ser_set_dtr_rts(union filedescriptor *fd, int is_on)
 }
 
 #ifdef HAVE_LIBWS2_32
-static int net_send(union filedescriptor *fd, unsigned char * buf, size_t buflen)
+static int net_send(union filedescriptor *fd, const unsigned char * buf, size_t buflen)
 {
 	LPVOID lpMsgBuf;
 	int rc;
-	unsigned char *p = buf;
+	const unsigned char *p = buf;
 	size_t len = buflen;
 
 	if (fd->ifd < 0) {

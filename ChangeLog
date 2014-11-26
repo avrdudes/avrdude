@@ -1,3 +1,8 @@
+2014-11-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* ser_win32.c (net_send): Properly declare argument 2 as being a
+	pointer to const data.
+
 2014-11-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	patch #8380: adds 500k 1M 2M baud to ser_posix.c
