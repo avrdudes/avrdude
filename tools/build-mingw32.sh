@@ -24,7 +24,7 @@
 MINGW32_PREFIX=${MINGW32_PREFIX:-/usr/local/mingw32}
 LIBUSB_PREFIX=${LIBUSB_PREFIX:-/WINDOWS/ProgramFiles/LibUSB-Win32}
 
-for CC in mingw32-gcc i686-w64-mingw32-gcc
+for CC in mingw32-gcc i686-w64-mingw32-gcc i586-mingw32msvc-gcc
 do
     touch foo.c
     if ${CC} -c foo.c 2> /dev/null
