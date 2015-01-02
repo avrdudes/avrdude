@@ -511,6 +511,20 @@ static int usbtiny_initialize (PROGRAMMER *pgm, AVRPART *p )
   return 0;
 }
 
+static int usbtiny_setpin(struct programmer_t * pgm, int pinfunc, int value)
+{
+  /* USBtiny is not a bit bang device, but it can set RESET */
+  if(pinfunc == PIN_AVR_RESET) {
+    if (usb_control(pgm, USBTINY_POWERUP,
+                    PDATA(pgm)->sck_period, value ? RESET_HIGH : RESET_LOW) < 0) {
+      return -1;
+    }
+    usleep(50000);
+    return 0;
+  }
+  return -1;
+}
+
 /* Tell the USBtiny to release the output pins, etc */
 static void usbtiny_powerdown(PROGRAMMER * pgm)
 {
@@ -576,6 +590,27 @@ int usbtiny_cmd_tpi(PROGRAMMER * pgm, const unsigned char *cmd,
     fprintf(stderr, "%s: unexpected cmd_len=%d/res_len=%d\n",
 	    __func__, cmd_len, res_len);
     return -1;
+  }
+  return 0;
+}
+
+static int usbtiny_spi(struct programmer_t * pgm, const unsigned char *cmd, unsigned char *res, int count)
+{
+  int i;
+
+  // Clear the receive buffer so we don't read old data in case of failure
+  memset(res, 0, count);
+
+  if (count % 4) {
+    avrdude_message(MSG_INFO, "Direct SPI write must be a multiple of 4 bytes for %s\n",
+            pgm->type);
+    return -1;
+  }
+
+  for (i = 0; i < count; i += 4) {
+    if (usbtiny_cmd(pgm, cmd + i, res + i) < 0) {
+      return -1;
+    }
   }
   return 0;
 }
@@ -759,6 +794,8 @@ void usbtiny_initpgm ( PROGRAMMER* pgm )
   pgm->set_sck_period	= usbtiny_set_sck_period;
   pgm->setup            = usbtiny_setup;
   pgm->teardown         = usbtiny_teardown;
+  pgm->setpin           = usbtiny_setpin;
+  pgm->spi              = usbtiny_spi;
 }
 
 #else  /* !HAVE_LIBUSB */
