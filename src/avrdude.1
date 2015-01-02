@@ -838,7 +838,7 @@ Display the device signature bytes.
 Enter direct SPI mode.  The
 .Em pgmled
 pin acts as slave select.
-.Em Only supported on parallel bitbang programmers.
+.Em Only supported on parallel bitbang programmers, and partially by USBtiny.
 .It Ar part
 Display the current part settings and parameters.  Includes chip
 specific information including all memory types supported by the
@@ -1271,7 +1271,8 @@ This also applies to the STK500 and STK600 in parallel programming mode.
 .Pp
 The USBasp and USBtinyISP drivers do not offer any option to distinguish multiple
 devices connected simultaneously, so effectively only a single device
-is supported.
+is supported.  Slave Select must be externally held low for direct SPI when
+using USBtinyISP, and send must be a multiple of four bytes.
 .Pp
 The avrftdi driver allows one to select specific devices using any combination of vid,pid
 serial number (usbsn) vendor description (usbvendoror part description (usbproduct)
