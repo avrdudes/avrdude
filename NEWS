@@ -61,6 +61,7 @@ Current:
     - bug #42908: no external reset at JTAGICE3
     - patch #8437: [PATCH] Serial-over-ethernet for Win32
     - patch #8380: adds 500k 1M 2M baud to ser_posix.c
+    - bug #44717: avrdude creates empty flash dump
 
   * Internals:
     - Removing exit calls from config parser

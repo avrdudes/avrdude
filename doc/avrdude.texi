@@ -717,6 +717,12 @@ Note that if @var{filename} contains a colon, the @var{format} field is
 no longer optional since the filename part following the colon would
 otherwise be misinterpreted as @var{format}.
 
+When reading any kind of flash memory area (including the various sub-areas
+in Xmega devices), the resulting output file will be truncated to not contain
+trailing 0xFF bytes which indicate unprogrammed (erased) memory.
+Thus, if the entire memory is unprogrammed, this will result in an output
+file that has no contents at all.
+
 As an abbreviation, the form @code{-U} @var{filename}
 is equivalent to specifying
 @code{-U} @emph{flash:w:}@var{filename}@emph{:a}.

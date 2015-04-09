@@ -670,6 +670,12 @@ field is no longer optional since the filename part following the colon
 would otherwise be misinterpreted as
 .Ar format .
 .Pp
+When reading any kind of flash memory area (including the various sub-areas
+in Xmega devices), the resulting output file will be truncated to not contain
+trailing 0xFF bytes which indicate unprogrammed (erased) memory.
+Thus, if the entire memory is unprogrammed, this will result in an output
+file that has no contents at all.
+.Pp
 As an abbreviation, the form
 .Fl U Ar filename
 is equivalent to specifying

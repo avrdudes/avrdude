@@ -243,6 +243,9 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     size = rc;
 
     if (quell_progress < 2) {
+      if (rc == 0)
+        avrdude_message(MSG_INFO, "%s: Flash is empty, resulting file has no contents.\n",
+                        progname);
       avrdude_message(MSG_INFO, "%s: writing output file \"%s\"\n",
                       progname,
                       strcmp(upd->filename, "-")==0 ? "<stdout>" : upd->filename);
