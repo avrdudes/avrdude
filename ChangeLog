@@ -1,0 +1,12 @@
+2015-04-09  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #44717: avrdude creates empty flash dump
+	* update.c (do_op): When about to write an empty flash dump file,
+	warn about this to avoid surprises.
+	* avrdude.1: Document the truncation of trailing 0xFF bytes for
+	flash memory areas.
+	* doc/avrdude.texi: (Dito.)
+
+2015-04-09  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Annual ChangeLog rotation.
