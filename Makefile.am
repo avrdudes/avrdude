@@ -110,6 +110,7 @@ libavrdude_a_SOURCES = \
 	butterfly.c \
 	butterfly.h \
 	config.c \
+	config.h \
 	confwin.c \
 	crc16.c \
 	crc16.h \
@@ -141,7 +142,6 @@ libavrdude_a_SOURCES = \
 	par.c \
 	par.h \
 	pgm.c \
-	pgm.h \
 	pgm_type.c \
 	pickit2.c \
 	pickit2.h \

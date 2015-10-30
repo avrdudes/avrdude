@@ -1,3 +1,8 @@
+2015-10-31  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* Makefile.am (libavrdude_a_SOURCES): reflect recent changes
+	(pgm.h is gone, config.h is new).
+
 2015-04-09  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #44717: avrdude creates empty flash dump
