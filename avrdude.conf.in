@@ -12810,8 +12810,8 @@ part
     memory "flash"
         paged           = yes;
         size            = 8192;
-        page_size       = 64;
-        num_pages       = 128;
+        page_size       = 128;
+        num_pages       = 64;
         min_write_delay = 4500;
         max_write_delay = 4500;
         readback_p1     = 0x00;
@@ -12843,7 +12843,7 @@ part
 
 	mode		= 0x41;
 	delay		= 6;
-	blocksize	= 64;
+	blocksize	= 128;
 	readsize	= 256;
       ;
 

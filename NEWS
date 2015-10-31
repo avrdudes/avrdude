@@ -42,6 +42,7 @@ Current:
         (patch #8529 2 more ftdi_syncbb devices)
 
   * Bugfixes
+    - bug #45727: Wrong atmega8u2 flash parameters
     - bug #46020: Add TIAO TUMPA to the conf file.
     - bug #46021: Please add read in the memory lock section of ATtiny85
     - bug #42337 avrdude.conf updates for UM232H/CM232H

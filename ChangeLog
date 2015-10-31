@@ -1,5 +1,11 @@
 2015-10-31  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Martino Facchin:
+	bug #45727: Wrong atmega8u2 flash parameters
+	* avrdude.conf.in (ATmega8U2): correct page and block size
+
+2015-10-31  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Pasquale Cocchini:
 	bug #46020: Add TIAO TUMPA to the conf file.
 	* avrdude.conf.in (tumpa): New entry.
