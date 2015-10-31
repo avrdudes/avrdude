@@ -586,6 +586,24 @@ programmer
   buff   = 7;
 ;
 
+# submitted as bug #46020
+programmer
+  id     = "tumpa";
+  desc   = "TIAO USB Multi-Protocol Adapter";
+  type   = "avrftdi";
+  connection_type = usb;
+  usbvid = 0x0403;
+  usbpid = 0x8A98;
+  usbdev = "A";
+  usbvendor = "TIAO";
+  usbproduct = "";
+  usbsn  = "";
+  sck    = 0; # TCK 9
+  mosi   = 1; # TDI 5
+  miso   = 2; # TDO 13
+  reset  = 3; # TMS 7
+;
+
 programmer
   id    = "avrisp";
   desc  = "Atmel AVR ISP";

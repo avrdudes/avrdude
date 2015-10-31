@@ -1,6 +1,12 @@
 2015-10-31  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Pasquale Cocchini:
+	bug #46020: Add TIAO TUMPA to the conf file.
+	* avrdude.conf.in (tumpa): New entry.
+
+2015-10-31  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Pasquale Cocchini:
 	bug #46021: Please add read in the memory lock section of ATtiny85
 	* avrdude.conf.in (ATtiny25/45/85): add read pattern for lock bits
 
