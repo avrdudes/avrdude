@@ -1,5 +1,9 @@
 2015-11-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* configure.ac: Bump for post-release 6.2.
+
+2015-11-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* configure.ac: Released version 6.2.
 
 2015-10-31  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
