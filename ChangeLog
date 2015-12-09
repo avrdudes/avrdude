@@ -1,3 +1,9 @@
+2015-12-09  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #46610: Floating point exception (core dumped) arch linux rpi2
+	bug #46483: version 6.2. ser_open(): can't set attributes for device
+	* ser_posix.c: Back out change from patch #8380
+
 2015-11-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* configure.ac: Bump for post-release 6.2.

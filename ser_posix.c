@@ -37,9 +37,6 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#ifdef __linux__
-#include <linux/serial.h>
-#endif
 
 #include <fcntl.h>
 #include <termios.h>
@@ -55,13 +52,8 @@ struct baud_mapping {
   speed_t speed;
 };
 
-static struct termios original_termios;
-static int saved_original_termios;
+/* There are a lot more baud rates we could handle, but what's the point? */
 
-#if !defined __linux__
-/* For linux this mapping is no longer needed.
- * (OSX and *BSD do not need this mapping either because for them,
- * Bxxx is the same as xxx.) */
 static struct baud_mapping baud_lookup_table [] = {
   { 1200,   B1200 },
   { 2400,   B2400 },
@@ -81,6 +73,8 @@ static struct baud_mapping baud_lookup_table [] = {
   { 0,      0 }                 /* Terminator. */
 };
 
+static struct termios original_termios;
+static int saved_original_termios;
 
 static speed_t serial_baud_lookup(long baud)
 {
@@ -101,19 +95,12 @@ static speed_t serial_baud_lookup(long baud)
 
   return baud;
 }
-#endif
 
 static int ser_setspeed(union filedescriptor *fd, long baud)
 {
   int rc;
   struct termios termios;
-#if defined __linux__
-  /* for linux no conversion is needed*/
-  speed_t speed = baud;
-#else
-  /* converting the baud rate to the bit set needed by posix way*/
   speed_t speed = serial_baud_lookup (baud);
-#endif
   
   if (!isatty(fd->ifd))
     return -ENOTTY;
@@ -141,79 +128,16 @@ static int ser_setspeed(union filedescriptor *fd, long baud)
   termios.c_cflag = (CS8 | CREAD | CLOCAL);
   termios.c_cc[VMIN]  = 1;
   termios.c_cc[VTIME] = 0;
-#ifdef __linux__
-  /* Support for custom baud rate for linux is implemented by setting
-   * a dummy baud rate of 38400 and manupulating the custom divider of
-   * the serial interface*/
-  struct serial_struct  ss;
-  int ioret = ioctl(fd->ifd, TIOCGSERIAL, &ss);
-  if (ioret < 0){
-    avrdude_message(MSG_INFO,
-		    "%s: Cannot get serial port settings. ioctl returned %d\n",
-		    progname, ioret);
-    return -errno;
-  }
-  ss.flags = (ss.flags & ~ASYNC_SPD_MASK) | ASYNC_SPD_CUST;
-  ss.custom_divisor = (ss.baud_base + (speed / 2)) / speed;
-  unsigned int closestSpeed = ss.baud_base / ss.custom_divisor;
 
-  if (closestSpeed < speed * 98 / 100 || closestSpeed > speed * 102 / 100) {
-    avrdude_message(MSG_INFO,
-		    "%s: Cannot set serial port speed to %d. Closest possible is %d\n",
-		    progname, speed, closestSpeed);
-    return -errno;
-  }
-  ioret= ioctl(fd->ifd, TIOCSSERIAL, &ss);
-  if (ioret < 0){
-    avrdude_message(MSG_INFO,
-		    "%s: Cannot set serial port speed to %d. ioctl returned %d\n",
-		    progname, speed, ioret);
-    return -errno;
-  }
-  if (cfsetispeed(&termios, B38400) < 0){
-    avrdude_message(MSG_INFO,
-		    "%s: cfsetispeed: failed to set dummy baud\n",
-		    progname);
-    return -errno;
-  }
-  if (cfsetospeed(&termios, B38400) < 0){
-    avrdude_message(MSG_INFO,
-		    "%s: cfsetospeed: failed to set dummy baud\n",
-		    progname);
-    return -errno;
-  }
-#else  /* !linux */
-  if (cfsetospeed(&termios, speed) < 0){
-    avrdude_message(MSG_INFO,
-		    "%s: cfsetospeed: failed to set speed: %d\n",
-		    progname, speed);
-    return -errno;
-  }
-  if (cfsetispeed(&termios, speed) < 0){
-    avrdude_message(MSG_INFO,
-		    "%s: cfsetispeed: failed to set speed: %d\n",
-		    progname, speed);
-    return -errno;
-  }
-#endif	/* linux */
+  cfsetospeed(&termios, speed);
+  cfsetispeed(&termios, speed);
+
   rc = tcsetattr(fd->ifd, TCSANOW, &termios);
   if (rc < 0) {
     avrdude_message(MSG_INFO, "%s: ser_setspeed(): tcsetattr() failed\n",
             progname);
     return -errno;
   }
-#ifdef __linux__
-  /* a bit more linux specific stuff to set custom baud rates*/
-  if (ioctl(fd->ifd, TIOCGSERIAL, &ss) < 0){
-    avrdude_message(MSG_INFO, "%s: ioctl: failed to get port settins\n", progname);
-    return -errno;
-  }
-  ss.flags &= ~ASYNC_SPD_MASK;
-  if (ioctl(fd->ifd, TIOCSSERIAL, &ss) < 0){
-    avrdude_message(MSG_INFO, "%s: ioctl: failed to set port settins\n", progname);
-    return -errno;
-  }
-#endif
 
   /*
    * Everything is now set up for a local line without modem control
