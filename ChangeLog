@@ -1,3 +1,8 @@
+2015-12-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avrdude.1 (-C): Do not suggest users might change the
+	default config file.  It will be overwritten by updates.
+
 2015-12-09  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #46610: Floating point exception (core dumped) arch linux rpi2
