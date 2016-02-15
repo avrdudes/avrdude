@@ -218,6 +218,9 @@ The Atmel-ICE (ARM/AVR) is supported (JTAG, PDI for Xmega, debugWIRE, ISP modes)
 Atmel's XplainedPro boards, using EDBG protocol (CMSIS-DAP compliant), are
 supported by the ``jtag3'' programmer type.
 
+Atmel's XplainedMini boards, using mEDBG protocol, are also
+supported by the ``jtag3'' programmer type.
+
 The AVR Dragon is supported in all modes (ISP, JTAG, PDI, HVSP, PP, debugWire).
 When used in JTAG and debugWire mode, the AVR Dragon behaves similar to a
 JTAG ICE mkII, so all device-specific comments for that device

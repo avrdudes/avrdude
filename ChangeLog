@@ -31,4 +31,7 @@
 	* avrdude.conf.in (xplainedmini, xplainedmini_dw): New entries.
 	* jtag3.c (jtag3_edbg_send, jtag3_edbg_recv_frame): Implement
 	fragmentation needed for the 64-byte EP size of the Xplained Mini
+	* avrdude.1: Document the change
+	* doc/avrdude.texi: (Dito.)
+
 

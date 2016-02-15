@@ -1,6 +1,6 @@
 .\"
 .\" avrdude - A Downloader/Uploader for AVR device programmers
-.\" Copyright (C) 2001, 2002, 2003, 2005 - 2014  Joerg Wunsch
+.\" Copyright (C) 2001, 2002, 2003, 2005 - 2016  Joerg Wunsch
 .\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE November 23, 2014
+.Dd DATE February 15, 2016
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -155,6 +155,9 @@ ISP).
 .Pp
 Atmel's XplainedPro boards, using the EDBG protocol (CMSIS-DAP compatible),
 are supported using the "jtag3" programmer type.
+.Pp
+Atmel's XplainedMini boards, using the mEDBG protocol,
+are also supported using the "jtag3" programmer type.
 .Pp
 The AVR Dragon is supported in all modes (ISP, JTAG, HVSP, PP, debugWire).
 When used in JTAG and debugWire mode, the AVR Dragon behaves similar to a
