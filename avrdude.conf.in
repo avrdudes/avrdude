@@ -7602,6 +7602,66 @@ part
 
 
 #------------------------------------------------------------
+# ATtiny28
+#------------------------------------------------------------
+
+# This is an HVPP-only device.
+
+part
+    id                  = "t28";
+    desc                = "ATtiny28";
+    stk500_devcode      = 0x22;
+    avr910_devcode      = 0x5c;
+    signature           = 0x1e 0x91 0x07;
+
+    pp_controlstack     =
+        0x0E, 0x1E, 0x0F, 0x1F, 0x2E, 0x3E, 0x2F, 0x3F,
+        0x4E, 0x5E, 0x4F, 0x5F, 0x6E, 0x7E, 0x6F, 0x7F,
+        0x66, 0x76, 0x67, 0x77, 0x6A, 0x7A, 0x6B, 0x7B,
+        0xBE, 0xFD, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
+    hventerstabdelay    = 100;
+    progmodedelay       = 0;
+    latchcycles         = 0;
+    togglevtg           = 0;
+    poweroffdelay       = 0;
+    resetdelayms        = 0;
+    resetdelayus        = 0;
+    hvleavestabdelay    = 15;
+    resetdelay          = 15;
+    chiperasepulsewidth = 0;
+    chiperasepolltimeout = 10;
+    programfusepulsewidth = 0;
+    programfusepolltimeout = 5;
+    programlockpulsewidth = 0;
+    programlockpolltimeout = 5;
+
+    memory "flash"
+        size            = 2048;
+        page_size       = 2;
+        readsize        = 256;
+        delay           = 5;
+    ;
+
+    memory "signature"
+        size            = 3;
+    ;
+
+    memory "lock"
+        size            = 1;
+    ;
+
+    memory "calibration"
+        size            = 1;
+    ;
+
+    memory "fuse"
+        size            = 1;
+    ;
+;
+
+
+
+#------------------------------------------------------------
 # ATmega48
 #------------------------------------------------------------
 

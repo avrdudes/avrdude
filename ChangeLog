@@ -1,9 +1,14 @@
 2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	patch #8735: ATtiny28 support in avrdude.conf
+	* avrdude.conf.in (ATtiny28): New device.
+
+2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* avrdude.conf.in (ATmega48PB, ATmega88PB, ATmega168PB): New
 	devices.
 
-016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	patch #8435: Implementing mEDBG CMSIS-DAP protocol
 	* usb_libusb.c: Add endpoint IDs for Xplained Mini, correctly

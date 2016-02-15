@@ -17,6 +17,7 @@ Current:
   * New devices supported:
 
     - ATmega48PB, ATmega88PB, ATmega168PB
+    - ATtiny28 (HVPP-only device)
 
   * New programmers supported:
 
@@ -25,6 +26,7 @@ Current:
   * Bugfixes
 
     - patch #8435: Implementing mEDBG CMSIS-DAP protocol
+    - patch #8735: ATtiny28 support in avrdude.conf
 
   * Internals:
 
