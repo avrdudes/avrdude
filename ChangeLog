@@ -1,5 +1,10 @@
 2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	patch #8894: Spelling in 6.2 doc
+	* doc/avrdude.texi: Various spelling fixes.
+
+2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	patch #8895: Spelling in 6.2 code
 	* avrftdi.c (avrftdi_open): Spell fix.
 

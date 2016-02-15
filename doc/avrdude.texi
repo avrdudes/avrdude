@@ -154,7 +154,7 @@ serial bit-bang adapters,
 and the PPI (parallel port interface). PPI represents a class
 of simple programmers where the programming lines are directly
 connected to the PC parallel port. Several pin configurations exist
-for several variations of the PPI programmers, and AVRDUDE can be be
+for several variations of the PPI programmers, and AVRDUDE can be
 configured to work with them by either specifying the appropriate
 programmer on the command line or by creating a new entry in its
 configuration file. All that's usually required for a new entry is to
@@ -173,7 +173,7 @@ available (like almost all embedded Linux boards) you can do without
 any additional hardware - just connect them to the MOSI, MISO, RESET 
 and SCK pins on the AVR and use the linuxgpio programmer type. It bitbangs
 the lines using the Linux sysfs GPIO interface. Of course, care should
-be taken about voltage level compatibility. Also, although not strictrly 
+be taken about voltage level compatibility. Also, although not strictly 
 required, it is strongly advisable to protect the GPIO pins from 
 overcurrent situations in some way. The simplest would be to just put
 some resistors in series or better yet use a 3-state buffer driver like
@@ -181,7 +181,7 @@ the 74HC244. Have a look at http://kolev.info/avrdude-linuxgpio for a more
 detailed tutorial about using this programmer type.
 
 The STK500, JTAG ICE, avr910, and avr109/butterfly use the serial port to communicate with the PC.
-The STK600, JTAG ICE mkII/3, AVRISP mkII, USBasp, avrftdi (and derivitives), and USBtinyISP
+The STK600, JTAG ICE mkII/3, AVRISP mkII, USBasp, avrftdi (and derivatives), and USBtinyISP
 programmers communicate through the USB, using @code{libusb} as a
 platform abstraction layer.
 The avrftdi adds support for the FT2232C/D, FT2232H, and FT4232H devices. These all use 
@@ -216,7 +216,7 @@ has a revision 1 hardware and firmware version of at least 5.37 (decimal).
 The Atmel-ICE (ARM/AVR) is supported (JTAG, PDI for Xmega, debugWIRE, ISP modes).
 
 Atmel's XplainedPro boards, using EDBG protocol (CMSIS-DAP compliant), are
-supported by teh ``jtag3'' programmer type.
+supported by the ``jtag3'' programmer type.
 
 The AVR Dragon is supported in all modes (ISP, JTAG, PDI, HVSP, PP, debugWire).
 When used in JTAG and debugWire mode, the AVR Dragon behaves similar to a
@@ -543,7 +543,7 @@ be specified as @var{avrdoper}. Libusb support is required on Unix
 but not on Windows. For more information about AVR-Doper see
 @url{http://www.obdev.at/avrusb/avrdoper.html}.
 
-For the USBtinyISP, which is a simplicistic device not implementing
+For the USBtinyISP, which is a simplistic device not implementing
 serial numbers, multiple devices can be distinguished by their
 location in the USB hierarchy.
 @xref{Troubleshooting}, for examples.
@@ -898,7 +898,7 @@ Connection to the PICkit2 programmer:
 @item @code{OSI} @tab      @code{AUX (6) }
 @end multitable
 
-Extended commandline parameters:
+Extended command line parameters:
 @table @code
 @item @samp{clockrate=@var{rate}}
 Sets the SPI clocking rate in Hz (default is 100kHz). Alternately the -B or -i options can be used to set the period.
@@ -1150,7 +1150,7 @@ Return to programming mode (from direct SPI mode).
 Change (when @var{level} is provided), or display the verbosity
 level.
 The initial verbosity level is controlled by the number of @code{-v} options
-given on the commandline.
+given on the command line.
 
 @item ?
 @itemx help
@@ -1329,7 +1329,7 @@ programmer work with AVRDUDE.
 
 AVRDUDE first looks for a system wide configuration file in a platform
 dependent location.  On Unix, this is usually
-@code{/usr/local/etc/avrdude.conf}, while on Windows it is usally in the
+@code{/usr/local/etc/avrdude.conf}, while on Windows it is usually in the
 same location as the executable file.  The name of this file can be
 changed using the @option{-C} command line option.  After the system wide
 configuration file is parsed, AVRDUDE looks for a per-user configuration
@@ -1657,7 +1657,7 @@ flash pages of the application section.
 
 Reading fuse and lock bits is fully supported.
 
-Note that due to the unability to write the fuse bits, the safemode
+Note that due to the inability to write the fuse bits, the safemode
 functionality does not make sense for these boot loaders.
 
 @end itemize
@@ -1842,7 +1842,7 @@ The default location of the install is into @code{/usr/local} so you
 will need to be sure that @code{/usr/local/bin} is in your @code{PATH}
 environment variable.
 
-If you do not have root access to your system, you can do the the
+If you do not have root access to your system, you can do the
 following instead:
 
 @example
@@ -1892,7 +1892,7 @@ obtained.
 @subsubsection Linux Installation
 
 @noindent
-On rpm based Linux systems (such as RedHat, SUSE, Mandrake, etc), you
+On rpm based Linux systems (such as RedHat, SUSE, Mandrake, etc.), you
 can build and install the rpm binaries directly from the tarball:
 
 @example
@@ -2386,7 +2386,7 @@ be added to the @var{-P usb} option, similar to adding a serial number
 on other USB-based programmers.
 
 The actual naming convention for the bus and device names is
-operating-system dependant; AVRDUDE will print out what it found
+operating-system dependent; AVRDUDE will print out what it found
 on the bus when running it with (at least) one @var{-v} option.
 By specifying a string that cannot match any existing device
 (for example, @var{-P usb:xxx}), the scan will list all possible
