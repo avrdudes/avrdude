@@ -16,6 +16,8 @@ Current:
 
   * New devices supported:
 
+    - ATmega48PB, ATmega88PB, ATmega168PB
+
   * New programmers supported:
 
     - Atmel mEDBG: xplainedmini, xplainedmini_dw

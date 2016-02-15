@@ -1,5 +1,10 @@
 2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* avrdude.conf.in (ATmega48PB, ATmega88PB, ATmega168PB): New
+	devices.
+
+016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	patch #8435: Implementing mEDBG CMSIS-DAP protocol
 	* usb_libusb.c: Add endpoint IDs for Xplained Mini, correctly
 	transfer trailing ZLP when needed
