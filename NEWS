@@ -9,6 +9,11 @@ Current:
 
   * Major changes compared to the previous version:
 
+    - Backout of
+      patch #8380: adds 500k 1M 2M baud to ser_posix.c
+      It broke the functionality in too many situations
+      (bug #46610)
+
   * New devices supported:
 
   * New programmers supported:
