@@ -703,7 +703,7 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 	
 	err = ftdi_usb_open_desc_index(pdata->ftdic, vid, pid, desc, serial, index);
 	if(err) {
-		log_err("Error %d occured: %s\n", err, ftdi_get_error_string(pdata->ftdic));
+		log_err("Error %d occurred: %s\n", err, ftdi_get_error_string(pdata->ftdic));
 		//stupid hack, because avrdude calls pgm->close() even when pgm->open() fails
 		//and usb_dev is intialized to the last usb device from probing
 		pdata->ftdic->usb_dev = NULL;

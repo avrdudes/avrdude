@@ -1,5 +1,10 @@
 2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	patch #8895: Spelling in 6.2 code
+	* avrftdi.c (avrftdi_open): Spell fix.
+
+2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	patch #8896: Silence cppcheck warnings in 6.2 code
 	* linuxgpio.c: Use %ud to print GPIO values.
 
