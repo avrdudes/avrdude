@@ -1,0 +1,9 @@
+2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	patch #8435: Implementing mEDBG CMSIS-DAP protocol
+	* usb_libusb.c: Add endpoint IDs for Xplained Mini, correctly
+	transfer trailing ZLP when needed
+	* avrdude.conf.in (xplainedmini, xplainedmini_dw): New entries.
+	* jtag3.c (jtag3_edbg_send, jtag3_edbg_recv_frame): Implement
+	fragmentation needed for the 64-byte EP size of the Xplained Mini
+

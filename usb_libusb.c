@@ -166,6 +166,13 @@ static int usbdev_open(char * port, union pinfo pinfo, union filedescriptor *fd)
 		      fd->usb.eep = 0;
 		  }
 
+		  if(strstr(product, "mEDBG") != NULL)
+		  {
+		      /* The AVR Xplained Mini uses different endpoints. */
+		      fd->usb.rep = 0x81;
+		      fd->usb.wep = 0x02;
+		  }
+
                   avrdude_message(MSG_NOTICE, "%s: usbdev_open(): Found %s, serno: %s\n",
                                     progname, product, string);
 		  if (serno != NULL)
@@ -353,7 +360,7 @@ static int usbdev_send(union filedescriptor *fd, const unsigned char *bp, size_t
     }
     bp += tx_size;
     mlen -= tx_size;
-  } while (tx_size == fd->usb.max_xfer);
+  } while (mlen > 0);
 
   if (verbose > 3)
   {

@@ -446,39 +446,66 @@ static int jtag3_edbg_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
   avrdude_message(MSG_DEBUG, "\n%s: jtag3_edbg_send(): sending %lu bytes\n",
 	    progname, (unsigned long)len);
 
-  if (len + 8 > USBDEV_MAX_XFER_3)
+  /* 4 bytes overhead for CMD, fragment #, and length info */
+  int max_xfer = pgm->fd.usb.max_xfer;
+  int nfragments = (len + max_xfer - 1) / max_xfer;
+  if (nfragments > 1)
     {
-      avrdude_message(MSG_INFO, "%s: jtag3_edbg_send(): Fragmentation not (yet) implemented!\n",
-                      progname);
-      return -1;
+      avrdude_message(MSG_DEBUG, "%s: jtag3_edbg_send(): fragmenting into %d packets\n",
+                      progname, nfragments);
     }
-  buf[0] = EDBG_VENDOR_AVR_CMD;
-  buf[1] = (1 << 4) | 1;	/* first out of a total of 1 fragments */
-  buf[2] = (len + 4) >> 8;
-  buf[3] = (len + 4) & 0xff;
-  buf[4] = TOKEN;
-  buf[5] = 0;                   /* dummy */
-  u16_to_b2(buf + 6, PDATA(pgm)->command_sequence);
-  memcpy(buf + 8, data, len);
-
-  if (serial_send(&pgm->fd, buf, USBDEV_MAX_XFER_3) != 0) {
-    avrdude_message(MSG_INFO, "%s: jtag3_edbg_send(): failed to send command to serial port\n",
-                    progname);
-    return -1;
-  }
-  rv = serial_recv(&pgm->fd, status, USBDEV_MAX_XFER_3);
-
-  if (rv < 0) {
-    /* timeout in receive */
-    avrdude_message(MSG_NOTICE2, "%s: jtag3_edbg_send(): Timeout receiving packet\n",
-                      progname);
-    return -1;
-  }
-  if (status[0] != EDBG_VENDOR_AVR_CMD || status[1] != 0x01)
+  int frag;
+  for (frag = 0; frag < nfragments; frag++)
     {
-      /* what to do in this case? */
-      avrdude_message(MSG_INFO, "%s: jtag3_edbg_send(): Unexpected response 0x%02x, 0x%02x\n",
-                      progname, status[0], status[1]);
+      int this_len;
+
+      /* All fragments have the (CMSIS-DAP layer) CMD, the fragment
+       * identifier, and the length field. */
+      buf[0] = EDBG_VENDOR_AVR_CMD;
+      buf[1] = ((frag + 1) << 4) | nfragments;
+
+      if (frag == 0)
+        {
+          /* Only first fragment has TOKEN and seq#, thus four bytes
+           * less payload than subsequent fragments. */
+          this_len = len < max_xfer - 8? len: max_xfer - 8;
+          buf[2] = (this_len + 4) >> 8;
+          buf[3] = (this_len + 4) & 0xff;
+          buf[4] = TOKEN;
+          buf[5] = 0;                   /* dummy */
+          u16_to_b2(buf + 6, PDATA(pgm)->command_sequence);
+          memcpy(buf + 8, data, this_len);
+        }
+      else
+        {
+          this_len = len < max_xfer - 4? len: max_xfer - 4;
+          buf[2] = (this_len) >> 8;
+          buf[3] = (this_len) & 0xff;
+          memcpy(buf + 4, data, this_len);
+        }
+
+      if (serial_send(&pgm->fd, buf, max_xfer) != 0) {
+        avrdude_message(MSG_INFO, "%s: jtag3_edbg_send(): failed to send command to serial port\n",
+                        progname);
+        return -1;
+      }
+      rv = serial_recv(&pgm->fd, status, max_xfer);
+
+      if (rv < 0) {
+        /* timeout in receive */
+        avrdude_message(MSG_NOTICE2, "%s: jtag3_edbg_send(): Timeout receiving packet\n",
+                        progname);
+        return -1;
+      }
+      if (status[0] != EDBG_VENDOR_AVR_CMD ||
+          (frag == nfragments - 1 && status[1] != 0x01))
+        {
+          /* what to do in this case? */
+          avrdude_message(MSG_INFO, "%s: jtag3_edbg_send(): Unexpected response 0x%02x, 0x%02x\n",
+                          progname, status[0], status[1]);
+        }
+      data += this_len;
+      len -= this_len;
     }
 
   return 0;
@@ -501,13 +528,13 @@ static int jtag3_edbg_prepare(PROGRAMMER * pgm)
 
   buf[0] = CMSISDAP_CMD_CONNECT;
   buf[1] = CMSISDAP_CONN_SWD;
-  if (serial_send(&pgm->fd, buf, USBDEV_MAX_XFER_3) != 0) {
+  if (serial_send(&pgm->fd, buf, pgm->fd.usb.max_xfer) != 0) {
     avrdude_message(MSG_INFO, "%s: jtag3_edbg_prepare(): failed to send command to serial port\n",
                     progname);
     return -1;
   }
-  rv = serial_recv(&pgm->fd, status, USBDEV_MAX_XFER_3);
-  if (rv != USBDEV_MAX_XFER_3) {
+  rv = serial_recv(&pgm->fd, status, pgm->fd.usb.max_xfer);
+  if (rv != pgm->fd.usb.max_xfer) {
     avrdude_message(MSG_INFO, "%s: jtag3_edbg_prepare(): failed to read from serial port (%d)\n",
                     progname, rv);
     return -1;
@@ -522,13 +549,13 @@ static int jtag3_edbg_prepare(PROGRAMMER * pgm)
   buf[0] = CMSISDAP_CMD_LED;
   buf[1] = CMSISDAP_LED_CONNECT;
   buf[2] = 1;
-  if (serial_send(&pgm->fd, buf, USBDEV_MAX_XFER_3) != 0) {
+  if (serial_send(&pgm->fd, buf, pgm->fd.usb.max_xfer) != 0) {
     avrdude_message(MSG_INFO, "%s: jtag3_edbg_prepare(): failed to send command to serial port\n",
                     progname);
     return -1;
   }
-  rv = serial_recv(&pgm->fd, status, USBDEV_MAX_XFER_3);
-  if (rv != USBDEV_MAX_XFER_3) {
+  rv = serial_recv(&pgm->fd, status, pgm->fd.usb.max_xfer);
+  if (rv != pgm->fd.usb.max_xfer) {
     avrdude_message(MSG_INFO, "%s: jtag3_edbg_prepare(): failed to read from serial port (%d)\n",
                     progname, rv);
     return -1;
@@ -560,13 +587,13 @@ static int jtag3_edbg_signoff(PROGRAMMER * pgm)
   buf[0] = CMSISDAP_CMD_LED;
   buf[1] = CMSISDAP_LED_CONNECT;
   buf[2] = 0;
-  if (serial_send(&pgm->fd, buf, USBDEV_MAX_XFER_3) != 0) {
+  if (serial_send(&pgm->fd, buf, pgm->fd.usb.max_xfer) != 0) {
     avrdude_message(MSG_INFO, "%s: jtag3_edbg_signoff(): failed to send command to serial port\n",
                     progname);
     return -1;
   }
-  rv = serial_recv(&pgm->fd, status, USBDEV_MAX_XFER_3);
-  if (rv != USBDEV_MAX_XFER_3) {
+  rv = serial_recv(&pgm->fd, status, pgm->fd.usb.max_xfer);
+  if (rv != pgm->fd.usb.max_xfer) {
     avrdude_message(MSG_INFO, "%s: jtag3_edbg_signoff(): failed to read from serial port (%d)\n",
                     progname, rv);
     return -1;
@@ -577,13 +604,13 @@ static int jtag3_edbg_signoff(PROGRAMMER * pgm)
                     progname, status[0], status[1]);
 
   buf[0] = CMSISDAP_CMD_DISCONNECT;
-  if (serial_send(&pgm->fd, buf, USBDEV_MAX_XFER_3) != 0) {
+  if (serial_send(&pgm->fd, buf, pgm->fd.usb.max_xfer) != 0) {
     avrdude_message(MSG_INFO, "%s: jtag3_edbg_signoff(): failed to send command to serial port\n",
                     progname);
     return -1;
   }
-  rv = serial_recv(&pgm->fd, status, USBDEV_MAX_XFER_3);
-  if (rv != USBDEV_MAX_XFER_3) {
+  rv = serial_recv(&pgm->fd, status, pgm->fd.usb.max_xfer);
+  if (rv != pgm->fd.usb.max_xfer) {
     avrdude_message(MSG_INFO, "%s: jtag3_edbg_signoff(): failed to read from serial port (%d)\n",
                     progname, rv);
     return -1;
@@ -644,8 +671,9 @@ static int jtag3_recv_frame(PROGRAMMER * pgm, unsigned char **msg) {
 }
 
 static int jtag3_edbg_recv_frame(PROGRAMMER * pgm, unsigned char **msg) {
-  int rv, len;
+  int rv, len = 0;
   unsigned char *buf = NULL;
+  unsigned char *request;
 
   avrdude_message(MSG_TRACE, "%s: jtag3_edbg_recv():\n", progname);
 
@@ -654,42 +682,92 @@ static int jtag3_edbg_recv_frame(PROGRAMMER * pgm, unsigned char **msg) {
 	    progname);
     return -1;
   }
-
-  buf[0] = EDBG_VENDOR_AVR_RSP;
-
-  if (serial_send(&pgm->fd, buf, USBDEV_MAX_XFER_3) != 0) {
-    avrdude_message(MSG_INFO, "%s: jtag3_edbg_recv(): error sending CMSIS-DAP vendor command\n",
-                    progname);
-    return -1;
-  }
-
-  rv = serial_recv(&pgm->fd, buf, USBDEV_MAX_XFER_3);
-
-  if (rv < 0) {
-    /* timeout in receive */
-    avrdude_message(MSG_NOTICE2, "%s: jtag3_edbg_recv(): Timeout receiving packet\n",
-                      progname);
+  if ((request = malloc(pgm->fd.usb.max_xfer)) == NULL) {
+    avrdude_message(MSG_INFO, "%s: jtag3_edbg_recv(): out of memory\n",
+	    progname);
     free(buf);
     return -1;
   }
 
-  if (buf[0] != EDBG_VENDOR_AVR_RSP ||
-      buf[1] != ((1 << 4) | 1)) {
-    avrdude_message(MSG_INFO, "%s: jtag3_edbg_recv(): Unexpected response 0x%02x, 0x%02x\n",
-                    progname, buf[0], buf[1]);
-    return -1;
-  }
-  /* calculate length from response; CMSIS-DAP response might be larger */
-  len = (buf[2] << 8) | buf[3];
-  if (len > rv + 4) {
-    avrdude_message(MSG_INFO, "%s: jtag3_edbg_recv(): Unexpected length value (%d > %d)\n",
-                    progname, len, rv + 4);
-    len = rv + 4;
-  }
-  memmove(buf, buf + 4, len);
-
   *msg = buf;
 
+  int nfrags = 0;
+  int thisfrag = 0;
+
+  do {
+    request[0] = EDBG_VENDOR_AVR_RSP;
+
+    if (serial_send(&pgm->fd, request, pgm->fd.usb.max_xfer) != 0) {
+      avrdude_message(MSG_INFO, "%s: jtag3_edbg_recv(): error sending CMSIS-DAP vendor command\n",
+                      progname);
+      free(request);
+      free(*msg);
+      return -1;
+    }
+
+    rv = serial_recv(&pgm->fd, buf, pgm->fd.usb.max_xfer);
+
+    if (rv < 0) {
+      /* timeout in receive */
+      avrdude_message(MSG_NOTICE2, "%s: jtag3_edbg_recv(): Timeout receiving packet\n",
+                      progname);
+      free(*msg);
+      free(request);
+      return -1;
+    }
+
+    if (buf[0] != EDBG_VENDOR_AVR_RSP) {
+      avrdude_message(MSG_INFO, "%s: jtag3_edbg_recv(): Unexpected response 0x%02x\n",
+                      progname, buf[0]);
+      free(*msg);
+      free(request);
+      return -1;
+    }
+
+    /* calculate fragment information */
+    if (thisfrag == 0) {
+      /* first fragment */
+      nfrags = buf[1] & 0x0F;
+      thisfrag = 1;
+    } else {
+      if (nfrags != (buf[1] & 0x0F)) {
+        avrdude_message(MSG_INFO,
+                        "%s: jtag3_edbg_recv(): "
+                        "Inconsistent # of fragments; had %d, now %d\n",
+                        progname, nfrags, (buf[1] & 0x0F));
+        free(*msg);
+        free(request);
+        return -1;
+      }
+    }
+    if (thisfrag != ((buf[1] >> 4) & 0x0F)) {
+      avrdude_message(MSG_INFO,
+                      "%s: jtag3_edbg_recv(): "
+                      "Inconsistent fragment number; expect %d, got %d\n",
+                      progname, thisfrag, ((buf[1] >> 4) & 0x0F));
+      free(*msg);
+      free(request);
+      return -1;
+    }
+
+    int thislen = (buf[2] << 8) | buf[3];
+    if (thislen > rv + 4) {
+      avrdude_message(MSG_INFO, "%s: jtag3_edbg_recv(): Unexpected length value (%d > %d)\n",
+                      progname, thislen, rv + 4);
+      thislen = rv + 4;
+    }
+    if (len + thislen > USBDEV_MAX_XFER_3) {
+      avrdude_message(MSG_INFO, "%s: jtag3_edbg_recv(): Length exceeds max size (%d > %d)\n",
+                      progname, len + thislen, USBDEV_MAX_XFER_3);
+      thislen = USBDEV_MAX_XFER_3 - len;
+    }
+    memmove(buf, buf + 4, thislen);
+    thisfrag++;
+    len += thislen;
+    buf += thislen;
+  } while (thisfrag <= nfrags);
+
+  free(request);
   return len;
 }
 

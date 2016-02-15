@@ -1095,6 +1095,22 @@ programmer
 ;
 
 programmer
+  id    = "xplainedmini";
+  desc  = "Atmel AVR XplainedMini in ISP mode";
+  type  = "jtagice3_isp";
+  connection_type = usb;
+  usbpid = 0x2145;
+;
+
+programmer
+  id    = "xplainedmini_dw";
+  desc  = "Atmel AVR XplainedMini in debugWIRE mode";
+  type  = "jtagice3_dw";
+  connection_type = usb;
+  usbpid = 0x2145;
+;
+
+programmer
   id    = "atmelice";
   desc  = "Atmel-ICE (ARM/AVR) in JTAG mode";
   type  = "jtagice3";

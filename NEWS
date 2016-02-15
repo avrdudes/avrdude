@@ -18,7 +18,11 @@ Current:
 
   * New programmers supported:
 
+    - Atmel mEDBG: xplainedmini, xplainedmini_dw
+
   * Bugfixes
+
+    - patch #8435: Implementing mEDBG CMSIS-DAP protocol
 
   * Internals:
 
