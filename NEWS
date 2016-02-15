@@ -27,6 +27,7 @@ Current:
 
     - patch #8435: Implementing mEDBG CMSIS-DAP protocol
     - patch #8735: ATtiny28 support in avrdude.conf
+    - patch #8896: Silence cppcheck warnings in 6.2 code
 
   * Internals:
 

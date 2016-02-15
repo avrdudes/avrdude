@@ -66,7 +66,7 @@ static int linuxgpio_export(unsigned int gpio)
     return fd;
   }
 
-  len = snprintf(buf, sizeof(buf), "%d", gpio);
+  len = snprintf(buf, sizeof(buf), "%ud", gpio);
   r = write(fd, buf, len);
   close(fd);
 
@@ -84,7 +84,7 @@ static int linuxgpio_unexport(unsigned int gpio)
     return fd;
   }
 
-  len = snprintf(buf, sizeof(buf), "%d", gpio);
+  len = snprintf(buf, sizeof(buf), "%ud", gpio);
   r = write(fd, buf, len);
   close(fd);
 
@@ -95,7 +95,7 @@ static int linuxgpio_openfd(unsigned int gpio)
 {
   char filepath[60];
 
-  snprintf(filepath, sizeof(filepath), "/sys/class/gpio/gpio%d/value", gpio);
+  snprintf(filepath, sizeof(filepath), "/sys/class/gpio/gpio%ud/value", gpio);
   return (open(filepath, O_RDWR));
 }
 
@@ -104,7 +104,7 @@ static int linuxgpio_dir(unsigned int gpio, unsigned int dir)
   int fd, r;
   char buf[60];
 
-  snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/direction", gpio);
+  snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%ud/direction", gpio);
 
   fd = open(buf, O_WRONLY);
   if (fd < 0) {

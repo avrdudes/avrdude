@@ -1,5 +1,10 @@
 2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	patch #8896: Silence cppcheck warnings in 6.2 code
+	* linuxgpio.c: Use %ud to print GPIO values.
+
+2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	patch #8735: ATtiny28 support in avrdude.conf
 	* avrdude.conf.in (ATtiny28): New device.
 
