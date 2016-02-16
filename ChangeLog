@@ -1,3 +1,7 @@
+2016-02-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac: Released version 6.3.
+
 2016-02-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	patch #8894: Spelling in 6.2 doc

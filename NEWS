@@ -5,14 +5,14 @@ Approximate change log for AVRDUDE by version.
 (For more detailed changes, see the ChangeLog file.)
 
 ----------------------------------------------------------------------
-Current:
+Version 6.3:
 
   * Major changes compared to the previous version:
 
     - Backout of
       patch #8380: adds 500k 1M 2M baud to ser_posix.c
       It broke the functionality in too many situations
-      (bug #46610)
+      (bug #46610/46483)
 
   * New devices supported:
 
@@ -25,12 +25,12 @@ Current:
 
   * Bugfixes
 
+    - bug #46610: Floating point exception (core dumped) arch linux rpi2
+    - bug #46483: version 6.2. ser_open(): can't set attributes for device
     - patch #8435: Implementing mEDBG CMSIS-DAP protocol
     - patch #8735: ATtiny28 support in avrdude.conf
     - patch #8896: Silence cppcheck warnings in 6.2 code
     - patch #8895: Spelling in 6.2 code
-
-  * Internals:
 
 
 Version 6.2:
