@@ -30,7 +30,7 @@ For avrdude version @value{VERSION}, @value{UPDATED}.
 
 Copyright @copyright{} 2003, 2005 Brian Dean
 
-Copyright @copyright{} 2006 - 2011 J@"org Wunsch
+Copyright @copyright{} 2006 - 2016 J@"org Wunsch
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
