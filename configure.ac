@@ -150,6 +150,25 @@ if test x$have_libusb_1_0 = xyes; then
    AC_CHECK_HEADERS([libusb.h])
 fi
 AC_SUBST(LIBUSB_1_0, $LIBUSB_1_0)
+
+AH_TEMPLATE([HAVE_LIBHIDAPI],
+            [Define if HID support is enabled via libhidapi])
+AC_SEARCH_LIBS([hid_init], [hidapi hidapi-libusb hidapi-hidraw], [have_libhidapi=yes])
+if test x$have_libhidapi = xyes; then
+   case $target in
+       *-*-darwin*)
+               LIBHIDAPI="-lhidapi -iframework CoreFoundation -framework IOKit"
+               ;;
+       *)
+               LIBHIDAPI="$ac_cv_lib_hid_init"
+               ;;
+   esac
+   AC_DEFINE([HAVE_LIBHIDAPI])
+   AC_CHECK_HEADERS([hidapi/hidapi.h])
+fi
+AC_SUBST(LIBHIDAPI, $LIBHIDAPI)
+
+
 AH_TEMPLATE([HAVE_LIBFTDI1],
             [Define if FTDI support is enabled via libftdi1])
 AH_TEMPLATE([HAVE_LIBFTDI],
@@ -519,6 +538,12 @@ if test x$have_libhid = xyes; then
    echo "DO HAVE    libhid"
 else
    echo "DON'T HAVE libhid"
+fi
+
+if test x$have_libhidapi = xyes; then
+   echo "DO HAVE    libhidapi"
+else
+   echo "DON'T HAVE libhidapi"
 fi
 
 if test x$have_pthread = xyes; then
