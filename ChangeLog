@@ -1,3 +1,12 @@
+2016-02-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtag3.c: add support for libhidapi as (optional) transport for
+	CMSIS-DAP compliant debuggers (JTAGICE3 with firmware 3+,
+	AtmelICE, EDBG, mEDBG)
+	* usb_hidapi.c: (New file)
+	* libavrdude.h: Mention usbhid_serdev
+	* configure.ac: Bump version date
+
 2016-02-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	(Obtained from patch #8717: pattch for mcprog and libhidapi support)

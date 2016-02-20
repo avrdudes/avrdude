@@ -9,6 +9,10 @@ Current:
 
   * Major changes compared to the previous version:
 
+    - libhidapi support (part of patch #8717)
+    - use libhidapi as (optional) transport for CMSIS-DAP compliant
+      debuggers (JTAGICE3 with firmware 3+, AtmelICE, EDBG, mEDBG)
+
   * New devices supported:
 
   * New programmers supported:
