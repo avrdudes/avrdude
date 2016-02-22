@@ -240,7 +240,7 @@ static int usbhid_send(union filedescriptor *fd, const unsigned char *bp, size_t
   int rv;
   int i = mlen;
   const unsigned char * p = bp;
-  unsigned char usbbuf[USBDEV_MAX_XFER_3];
+  unsigned char usbbuf[USBDEV_MAX_XFER_3 + 1];
 
 
   int tx_size;
