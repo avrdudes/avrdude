@@ -115,6 +115,7 @@ static int usbhid_open(char * port, union pinfo pinfo, union filedescriptor *fd)
           }
 	avrdude_message(MSG_DEBUG, "%s: usbhid_open(): serial number doesn't match\n",
                           progname);
+	walk = walk->next;
       }
       if (walk == NULL)
       {
