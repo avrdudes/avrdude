@@ -121,6 +121,7 @@ static int usbhid_open(char * port, union pinfo pinfo, union filedescriptor *fd)
       {
 	avrdude_message(MSG_INFO, "%s: usbhid_open(): No matching device found\n",
 			progname);
+	hid_free_enumeration(list);
 	return -1;
       }
       avrdude_message(MSG_DEBUG, "%s: usbhid_open(): Opening path %s\n",
