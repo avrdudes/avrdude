@@ -1,3 +1,7 @@
+2016-03-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* usb_hidapi.c (usbhid_recv): Bump read timeout to 300 ms.
+
 2016-02-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* jtag3.c: add support for libhidapi as (optional) transport for
