@@ -1315,7 +1315,7 @@ int jtag3_open_common(PROGRAMMER * pgm, char * port)
   int rv = -1;
 
 #if !defined(HAVE_LIBUSB) && !defined(HAVE_LIBHIDAPI)
-  avrdude_message(MSG_INFO, "avrdude was compiled without usb / HID API support.\n");
+  avrdude_message(MSG_INFO, "avrdude was compiled without USB or HIDAPI support.\n");
   return -1;
 #endif
 
@@ -1325,7 +1325,6 @@ int jtag3_open_common(PROGRAMMER * pgm, char * port)
     return -1;
   }
 
-  serdev = &usb_serdev_frame;
   if (pgm->usbvid)
     pinfo.usbinfo.vid = pgm->usbvid;
   else
@@ -1335,17 +1334,42 @@ int jtag3_open_common(PROGRAMMER * pgm, char * port)
   if (lfirst(pgm->usbpid) == NULL)
     ladd(pgm->usbpid, (void *)USB_DEVICE_JTAGICE3);
 
+#if defined(HAVE_LIBHIDAPI)
+  /*
+   * Try HIDAPI first.  LibUSB is more generic, but might then cause
+   * troubles for HID-class devices in some OSes (like Windows).
+   */
+  serdev = &usbhid_serdev;
   for (usbpid = lfirst(pgm->usbpid); rv < 0 && usbpid != NULL; usbpid = lnext(usbpid)) {
     pinfo.usbinfo.flags = PINFO_FL_SILENT;
     pinfo.usbinfo.pid = *(int *)(ldata(usbpid));
     pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_3;
     pgm->fd.usb.rep = USBDEV_BULK_EP_READ_3;
     pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
-    pgm->fd.usb.eep = USBDEV_EVT_EP_READ_3;
+    pgm->fd.usb.eep = 0;
 
     strcpy(pgm->port, port);
     rv = serial_open(port, pinfo, &pgm->fd);
   }
+  if (rv < 0) {
+#endif	/* HAVE_LIBHIDAPI */
+#if defined(HAVE_LIBUSB)
+    serdev = &usb_serdev_frame;
+    for (usbpid = lfirst(pgm->usbpid); rv < 0 && usbpid != NULL; usbpid = lnext(usbpid)) {
+      pinfo.usbinfo.flags = PINFO_FL_SILENT;
+      pinfo.usbinfo.pid = *(int *)(ldata(usbpid));
+      pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_3;
+      pgm->fd.usb.rep = USBDEV_BULK_EP_READ_3;
+      pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
+      pgm->fd.usb.eep = USBDEV_EVT_EP_READ_3;
+
+      strcpy(pgm->port, port);
+      rv = serial_open(port, pinfo, &pgm->fd);
+    }
+#endif	/* HAVE_LIBUSB */
+#if defined(HAVE_LIBHIDAPI)
+  }
+#endif
   if (rv < 0) {
     avrdude_message(MSG_INFO, "%s: jtag3_open_common(): Did not find any device matching VID 0x%04x and PID list: ",
                     progname, (unsigned)pinfo.usbinfo.vid);
