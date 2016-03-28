@@ -1,3 +1,8 @@
+2016-03-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #47550: Linux GPIO broken
+	* linuxgpio.c: Replace %ud by %u in snprintf calls.
+
 2016-03-02  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* usb_hidapi.c (usbhid_recv): Bump read timeout to 300 ms.

@@ -18,6 +18,7 @@ Current:
   * New programmers supported:
 
   * Bugfixes:
+    bug #47550: Linux GPIO broken
 
   * Internals:
 
