@@ -1,3 +1,8 @@
+2016-04-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* usb_hidapi.c (usbhid_open): Correctly calculate the
+	offset for serial number matching
+
 2016-03-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #47550: Linux GPIO broken

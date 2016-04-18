@@ -108,7 +108,9 @@ static int usbhid_open(char * port, union pinfo pinfo, union filedescriptor *fd)
       {
 	avrdude_message(MSG_NOTICE, "%s: usbhid_open(): Found %ls, serno: %ls\n",
 			progname, walk->product_string, walk->serial_number);
-	if (wcscmp(walk->serial_number + serlen, wserno) == 0)
+	size_t slen = wcslen(walk->serial_number);
+	if (slen >= serlen &&
+	    wcscmp(walk->serial_number + slen - serlen, wserno) == 0)
           {
 	    /* found matching serial number */
 	    break;
