@@ -1,3 +1,10 @@
+2016-04-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac (libftdi1): Rather than hardcoding the library
+	providing the libusb-1.0 API, use the result from the previous
+	probe.  This helps detecting libftdi1 on FreeBSD where the
+	libusb-1.0 API is provided by the system's libusb.
+
 2016-04-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* usb_hidapi.c (usbhid_open): Correctly calculate the

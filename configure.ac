@@ -175,7 +175,7 @@ AH_TEMPLATE([HAVE_LIBFTDI],
             [Define if FTDI support is enabled via libftdi])
 AH_TEMPLATE([HAVE_LIBFTDI_TYPE_232H],
             [Define if libftdi supports FT232H, libftdi version >= 0.20])
-AC_CHECK_LIB([ftdi1], [ftdi_new], [have_libftdi1=yes], [], [-lusb-1.0])
+AC_CHECK_LIB([ftdi1], [ftdi_new], [have_libftdi1=yes], [], [$LIBUSB_1_0])
 AC_CHECK_LIB([ftdi], [ftdi_usb_get_strings], [have_libftdi=yes], [], [-lusb])
 if test x$have_libftdi1 = xyes; then
    LIBFTDI1="-lftdi1"
