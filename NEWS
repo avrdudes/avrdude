@@ -17,6 +17,8 @@ Current:
 
   * New programmers supported:
 
+    - ehajo-isp (commercial version of USBtiny)
+
   * Bugfixes:
     bug #47550: Linux GPIO broken
 

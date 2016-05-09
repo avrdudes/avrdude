@@ -1,3 +1,8 @@
+2016-05-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Hannes Jochriem:
+	* avrdude.conf.in (ehajo-isp): New programmer.
+
 2016-04-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* configure.ac (libftdi1): Rather than hardcoding the library

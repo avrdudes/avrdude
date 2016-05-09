@@ -874,6 +874,16 @@ programmer
   usbpid     = 0x0c9f;
 ;
 
+# commercial version of USBtiny, using a separate VID/PID
+programmer
+  id    = "ehajo-isp";
+  desc  = "avr-isp-programmer from eHaJo, http://www.eHaJo.de";
+  type  = "usbtiny";
+  connection_type = usb;
+  usbvid     = 0x16D0;
+  usbpid     = 0x0BA5;
+;
+
 programmer
   id    = "butterfly";
   desc  = "Atmel Butterfly Development Board";
