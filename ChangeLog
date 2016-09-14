@@ -1,3 +1,8 @@
+2016-09-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* stk500v2.c (DEBUG, DEBUGRECV): define these unconditionally,
+	as MSG_TRACE2 messages.
+
 2016-05-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Hannes Jochriem:

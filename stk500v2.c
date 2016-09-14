@@ -78,17 +78,9 @@
 // Retry count
 #define RETRIES 5
 
-#if 0
-#define DEBUG(...) avrdude_message(MSG_INFO, __VA_ARGS__)
-#else
-#define DEBUG(...)
-#endif
+#define DEBUG(...) avrdude_message(MSG_TRACE2, __VA_ARGS__)
 
-#if 0
-#define DEBUGRECV(...) avrdude_message(MSG_INFO, __VA_ARGS__)
-#else
-#define DEBUGRECV(...)
-#endif
+#define DEBUGRECV(...) avrdude_message(MSG_TRACE2, __VA_ARGS__)
 
 enum hvmode
 {
