@@ -2168,6 +2168,9 @@ static int stk500isp_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       paddr = addr & ~(pagesize - 1);
       paddr_ptr = &PDATA(pgm)->flash_pageaddr;
       cache_ptr = PDATA(pgm)->flash_pagecache;
+      if ((mem->mode & 1) == 0)
+	/* old, unpaged device, really write single bytes */
+	pagesize = 1;
     } else {
       pagesize = mem->page_size;
       if (pagesize == 0)

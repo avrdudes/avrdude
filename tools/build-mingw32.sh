@@ -40,8 +40,8 @@ mkdir -p ${BUILDDIR} || { echo "Cannot create build dir $BUILDDIR"; exit 1; }
 
 cd ${BUILDDIR} || { echo "Cannot chdir to $BUILDDIR"; exit 1; }
 
-LDFLAGS="-L${MINGW32_PREFIX}/lib -L${LIBUSB_PREFIX}/lib/gcc"
-CPPFLAGS="-I${MINGW32_PREFIX}/include -I${LIBUSB_PREFIX}/include"
+LDFLAGS="-L${MINGW32_PREFIX}/lib -L${LIBUSB_PREFIX}/lib/gcc -L/tmp/libftdi1-1.3git_devkit_mingw32_13Dec2015/lib"
+CPPFLAGS="-I${MINGW32_PREFIX}/include -I${LIBUSB_PREFIX}/include -I/tmp/libftdi1-1.3git_devkit_mingw32_13Dec2015/include"
 
 env \
     CC="${CC}" \
