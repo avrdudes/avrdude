@@ -1,0 +1,5 @@
+2017-03-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Reported by Roger A. Krupski:
+	* safemode.c: Display lfuse at correct MSG level
+

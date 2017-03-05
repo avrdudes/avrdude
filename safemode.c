@@ -180,7 +180,7 @@ int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse,
         return -1;
     }
     else if (fusegood == 1) {
-        avrdude_message(MSG_DEBUG, "%s: safemode: lfuse reads as %X\n", progname, safemode_lfuse);
+        avrdude_message(MSG_NOTICE, "%s: safemode: lfuse reads as %X\n", progname, safemode_lfuse);
     }
 
   /* Read hfuse three times */

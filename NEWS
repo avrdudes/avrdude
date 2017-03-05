@@ -21,6 +21,7 @@ Current:
 
   * Bugfixes:
     bug #47550: Linux GPIO broken
+    [no-id]: message level for lfuse display in safemode.c wrong
 
   * Internals:
 
