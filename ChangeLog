@@ -1,5 +1,6 @@
 2017-03-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #47718: "lfuse reads as" not displayed in verbose mode - SOLUTION
 	Reported by Roger A. Krupski:
 	* safemode.c: Display lfuse at correct MSG level
 
