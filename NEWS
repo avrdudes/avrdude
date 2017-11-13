@@ -22,6 +22,7 @@ Current:
   * Bugfixes:
     bug #47550: Linux GPIO broken
     bug #47718: "lfuse reads as" not displayed in verbose mode - SOLUTION
+    bug #48084: Avoid compiled-in timestamp for reproducible release builds
 
   * Internals:
 

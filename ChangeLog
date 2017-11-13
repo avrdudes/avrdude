@@ -1,3 +1,8 @@
+2017-11-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #48084: Avoid compiled-in timestamp for reproducible release builds
+	* main.c: Remove "compiled on/at" string
+
 2017-03-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #47718: "lfuse reads as" not displayed in verbose mode - SOLUTION
