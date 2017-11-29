@@ -109,6 +109,7 @@
 #define CMD3_GET_PARAMETER         0x02
 #define CMD3_SIGN_ON               0x10
 #define CMD3_SIGN_OFF              0x11 /* takes one parameter? */
+#define CMD3_GET_ID                0x12
 #define CMD3_START_DW_DEBUG        0x13
 #define CMD3_MONCON_DISABLE        0x17
 
@@ -165,6 +166,7 @@
 #define MTYPE_EEPROM_XMEGA 0xc4	/* xmega EEPROM in debug mode - undocumented in AVR067 */
 #define MTYPE_USERSIG     0xc5	/* xmega user signature - undocumented in AVR067 */
 #define MTYPE_PRODSIG     0xc6	/* xmega production signature - undocumented in AVR067 */
+#define MTYPE_SIB         0xD3  /* AVR8X System Information Block */
 
 /*
  * Parameters are divided into sections, where the section number
@@ -189,6 +191,7 @@
 #  define PARM3_ARCH_TINY   1   /* also small megaAVR with ISP/DW only */
 #  define PARM3_ARCH_MEGA   2
 #  define PARM3_ARCH_XMEGA  3
+#  define PARM3_ARCH_UPDI   5   /* AVR devices with UPDI i/f */
 
 #define PARM3_SESS_PURPOSE 0x01 /* section 0, AVR scope, 1 byte */
 #  define PARM3_SESS_PROGRAMMING 1
@@ -199,6 +202,7 @@
 #  define PARM3_CONN_JTAG   4
 #  define PARM3_CONN_DW     5
 #  define PARM3_CONN_PDI    6
+#  define PARM3_CONN_UPDI   8
 
 
 #define PARM3_JTAGCHAIN   0x01  /* JTAG chain info, AVR scope (units
@@ -315,5 +319,14 @@ struct xmega_device_desc {
     unsigned char eeprom_page_size;	// EEPROM page size
     unsigned char nvm_base_addr[2];	// IO space base address of NVM controller
     unsigned char mcu_base_addr[2];	// IO space base address of MCU control
+};
+
+/* UPDI device descriptor */
+struct updi_device_desc {
+    unsigned char prog_base[2];
+    unsigned char flash_page_size;
+    unsigned char eeprom_page_size;
+    unsigned char nvm_base_addr[2];
+    unsigned char ocd_base_addr[2];
 };
 #endif /* JTAG3_PRIVATE_EXPORTED */

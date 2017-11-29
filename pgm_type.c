@@ -77,6 +77,7 @@ const PROGRAMMER_TYPE programmers_types[] = {
         {"jtagmkii_pdi", jtagmkII_pdi_initpgm, jtagmkII_pdi_desc},
         {"jtagice3", jtag3_initpgm, jtag3_desc},
         {"jtagice3_pdi", jtag3_pdi_initpgm, jtag3_pdi_desc},
+        {"jtagice3_updi", jtag3_updi_initpgm, jtag3_updi_desc},
         {"jtagice3_dw", jtag3_dw_initpgm, jtag3_dw_desc},
         {"jtagice3_isp", stk500v2_jtag3_initpgm, stk500v2_jtag3_desc},
         {"linuxgpio", linuxgpio_initpgm, linuxgpio_desc},

@@ -199,6 +199,7 @@ typedef struct opcode {
 #define AVRPART_WRITE          0x0400  /* at least one write operation specified */
 #define AVRPART_HAS_TPI        0x0800  /* part has TPI i/f rather than ISP (ATtiny4/5/9/10) */
 #define AVRPART_IS_AT90S1200   0x1000  /* part is an AT90S1200 (needs special treatment) */
+#define AVRPART_HAS_UPDI       0x2000  /* part has UPDI i/f (AVR8X) */
 
 #define AVR_DESCLEN 64
 #define AVR_IDLEN   32
@@ -264,6 +265,7 @@ typedef struct avrpart {
   unsigned short eecr;              /* JTAC ICE mkII XML file parameter */
   unsigned int mcu_base;            /* Base address of MCU control block in ATxmega devices */
   unsigned int nvm_base;            /* Base address of NVM controller in ATxmega devices */
+  unsigned int ocd_base;            /* Base address of OCD module in AVR8X/UPDI devices */
   int           ocdrev;             /* OCD revision (JTAGICE3 parameter, from AS6 XML files) */
 
   OPCODE      * op[AVR_OP_MAX];     /* opcodes */

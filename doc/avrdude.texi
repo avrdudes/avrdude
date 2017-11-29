@@ -1440,6 +1440,7 @@ part
     has_jtag         = <yes/no> ;             # part has JTAG i/f
     has_debugwire    = <yes/no> ;             # part has debugWire i/f
     has_pdi          = <yes/no> ;             # part has PDI i/f
+    has_updi         = <yes/no> ;             # part has UPDI i/f
     has_tpi          = <yes/no> ;             # part has TPI i/f
     devicecode       = <num> ;                # numeric
     stk500_devcode   = <num> ;                # numeric

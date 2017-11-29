@@ -41,9 +41,11 @@ int jtag3_command(PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen,
 extern const char jtag3_desc[];
 extern const char jtag3_dw_desc[];
 extern const char jtag3_pdi_desc[];
+extern const char jtag3_updi_desc[];
 void jtag3_initpgm (PROGRAMMER * pgm);
 void jtag3_dw_initpgm (PROGRAMMER * pgm);
 void jtag3_pdi_initpgm (PROGRAMMER * pgm);
+void jtag3_updi_initpgm (PROGRAMMER * pgm);
 
 /*
  * These functions are referenced from stk500v2.c for JTAGICE3 in

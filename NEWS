@@ -12,19 +12,25 @@ Current:
     - libhidapi support (part of patch #8717)
     - use libhidapi as (optional) transport for CMSIS-DAP compliant
       debuggers (JTAGICE3 with firmware 3+, AtmelICE, EDBG, mEDBG)
+    - UPDI support added (AVR8X family)
 
   * New devices supported:
 
     - ATmega328PB
+    - AVR8X family, ATtiny1617, ATtiny817
 
   * New programmers supported:
 
     - ehajo-isp (commercial version of USBtiny)
+    - XplainedPro in UPDI mode
 
   * Bugfixes:
     bug #47550: Linux GPIO broken
     bug #47718: "lfuse reads as" not displayed in verbose mode - SOLUTION
     bug #48084: Avoid compiled-in timestamp for reproducible release builds
+
+  * Patches:
+    patch #9482: Add support for UPDI and AVR8X
 
   * Internals:
 

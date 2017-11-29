@@ -84,6 +84,7 @@ struct pdata
 #define PGM_FL_IS_PDI           (0x0002)
 #define PGM_FL_IS_JTAG          (0x0004)
 #define PGM_FL_IS_EDBG          (0x0008)
+#define PGM_FL_IS_UPDI          (0x0010)
 
 static int jtag3_open(PROGRAMMER * pgm, char * port);
 static int jtag3_edbg_prepare(PROGRAMMER * pgm);
@@ -1014,6 +1015,10 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
     ifname = "PDI";
     if (p->flags & AVRPART_HAS_PDI)
       conn = PARM3_CONN_PDI;
+  } else if (pgm->flag & PGM_FL_IS_UPDI) {
+    ifname = "UPDI";
+    if (p->flags & AVRPART_HAS_UPDI)
+      conn = PARM3_CONN_UPDI;
   } else {
     ifname = "JTAG";
     if (p->flags & AVRPART_HAS_JTAG)
@@ -1028,6 +1033,8 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
 
   if (p->flags & AVRPART_HAS_PDI)
     parm[0] = PARM3_ARCH_XMEGA;
+  else if (p->flags & AVRPART_HAS_UPDI)
+    parm[0] = PARM3_ARCH_UPDI;
   else if (p->flags & AVRPART_HAS_DW)
     parm[0] = PARM3_ARCH_TINY;
   else
@@ -1043,7 +1050,7 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
   if (jtag3_setparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, parm, 1) < 0)
     return -1;
 
-  if (conn == PARM3_CONN_PDI)
+  if (conn == PARM3_CONN_PDI || conn == PARM3_CONN_UPDI)
     PDATA(pgm)->set_sck = jtag3_set_sck_xmega_pdi;
   else if (conn == PARM3_CONN_JTAG) {
     if (p->flags & AVRPART_HAS_PDI)
@@ -1115,6 +1122,50 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
 	u32_to_b4(xd.nvm_data_offset, m->offset);
       }
     }
+
+    if (jtag3_setparm(pgm, SCOPE_AVR, 2, PARM3_DEVICEDESC, (unsigned char *)&xd, sizeof xd) < 0)
+      return -1;
+  }
+  else if ((p->flags & AVRPART_HAS_UPDI))
+  {
+    struct updi_device_desc xd;
+    LNODEID ln;
+    AVRMEM *m;
+
+    u16_to_b2(xd.nvm_base_addr, p->nvm_base);
+    u16_to_b2(xd.ocd_base_addr, p->ocd_base);
+
+    for (ln = lfirst(p->mem); ln; ln = lnext(ln))
+    {
+      m = ldata(ln);
+      if (strcmp(m->desc, "flash") == 0)
+      {
+        u16_to_b2(xd.prog_base, m->offset);
+
+        if (m->readsize != 0 && m->readsize < m->page_size)
+          PDATA(pgm)->flash_pagesize = m->readsize;
+        else
+          PDATA(pgm)->flash_pagesize = m->page_size;
+        xd.flash_page_size = m->page_size;
+      }
+      else if (strcmp(m->desc, "eeprom") == 0)
+      {
+        PDATA(pgm)->eeprom_pagesize = m->page_size;
+        xd.eeprom_page_size = m->page_size;
+      }
+    }
+
+    avrdude_message(MSG_NOTICE2, "UPDI SET: \n\t"
+      "xd->prog_base=%x %x\n\t"
+      "xd->flash_page_size=%x\n\t"
+      "xd->eeprom_page_size=%x\n\t"
+      "xd->nvmctrl=%x %x\n\t"
+      "xd->ocd=%x %x\n",
+      xd.prog_base[0], xd.prog_base[1],
+      xd.flash_page_size,
+      xd.eeprom_page_size,
+      xd.nvm_base_addr[0], xd.nvm_base_addr[1],
+      xd.ocd_base_addr[0], xd.ocd_base_addr[1]);
 
     if (jtag3_setparm(pgm, SCOPE_AVR, 2, PARM3_DEVICEDESC, (unsigned char *)&xd, sizeof xd) < 0)
       return -1;
@@ -1443,6 +1494,18 @@ static int jtag3_open_pdi(PROGRAMMER * pgm, char * port)
   return 0;
 }
 
+static int jtag3_open_updi(PROGRAMMER * pgm, char * port)
+{
+  avrdude_message(MSG_NOTICE2, "%s: jtag3_open_updi()\n", progname);
+
+  if (jtag3_open_common(pgm, port) < 0)
+    return -1;
+
+  if (jtag3_getsync(pgm, PARM3_CONN_UPDI) < 0)
+    return -1;
+
+  return 0;
+}
 
 void jtag3_close(PROGRAMMER * pgm)
 {
@@ -1571,7 +1634,7 @@ static int jtag3_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[3] = MTYPE_USERSIG;
   } else if ( ( strcmp(m->desc, "boot") == 0 ) ) {
     cmd[3] = MTYPE_BOOT_FLASH;
-  } else if ( p->flags & AVRPART_HAS_PDI ) {
+  } else if ( p->flags & AVRPART_HAS_PDI || p->flags & AVRPART_HAS_UPDI ) {
     cmd[3] = MTYPE_FLASH;
   } else {
     cmd[3] = MTYPE_SPM;
@@ -1648,7 +1711,7 @@ static int jtag3_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       /* dynamically decide between flash/boot memtype */
       dynamic_memtype = 1;
   } else if (strcmp(m->desc, "eeprom") == 0) {
-    cmd[3] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_EEPROM : MTYPE_EEPROM_PAGE;
+    cmd[3] = ( p->flags & AVRPART_HAS_PDI || p->flags & AVRPART_HAS_UPDI ) ? MTYPE_EEPROM : MTYPE_EEPROM_PAGE;
     if (pgm->flag & PGM_FL_IS_DW)
       return -1;
   } else if ( ( strcmp(m->desc, "prodsig") == 0 ) ) {
@@ -1657,7 +1720,7 @@ static int jtag3_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[3] = MTYPE_USERSIG;
   } else if ( ( strcmp(m->desc, "boot") == 0 ) ) {
     cmd[3] = MTYPE_BOOT_FLASH;
-  } else if ( p->flags & AVRPART_HAS_PDI ) {
+  } else if ( p->flags & AVRPART_HAS_PDI || p->flags & AVRPART_HAS_UPDI ) {
     cmd[3] = MTYPE_FLASH;
   } else {
     cmd[3] = MTYPE_SPM;
@@ -1716,7 +1779,9 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   cmd[1] = CMD3_READ_MEMORY;
   cmd[2] = 0;
 
-  cmd[3] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_FLASH : MTYPE_FLASH_PAGE;
+  cmd[3] = ( p->flags & AVRPART_HAS_PDI || p->flags & AVRPART_HAS_UPDI ) ? MTYPE_FLASH : MTYPE_FLASH_PAGE;
+  if (p->flags & AVRPART_HAS_UPDI)
+      addr += mem->offset;
   if (strcmp(mem->desc, "flash") == 0 ||
       strcmp(mem->desc, "application") == 0 ||
       strcmp(mem->desc, "apptable") == 0 ||
@@ -1727,7 +1792,7 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     paddr_ptr = &PDATA(pgm)->flash_pageaddr;
     cache_ptr = PDATA(pgm)->flash_pagecache;
   } else if (strcmp(mem->desc, "eeprom") == 0) {
-    if ( (pgm->flag & PGM_FL_IS_DW) || ( p->flags & AVRPART_HAS_PDI ) ) {
+    if ( (pgm->flag & PGM_FL_IS_DW) || ( p->flags & AVRPART_HAS_PDI ) || ( p->flags & AVRPART_HAS_UPDI ) ) {
       cmd[3] = MTYPE_EEPROM;
     } else {
       cmd[3] = MTYPE_EEPROM_PAGE;
@@ -1757,7 +1822,8 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       unsupp = 1;
   } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
     cmd[3] = MTYPE_FUSE_BITS;
-    addr = mem->offset & 7;
+    if (!(p->flags & AVRPART_HAS_UPDI))
+      addr = mem->offset & 7;
   } else if (strcmp(mem->desc, "usersig") == 0) {
     cmd[3] = MTYPE_USERSIG;
   } else if (strcmp(mem->desc, "prodsig") == 0) {
@@ -1778,7 +1844,11 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
      * harm for other connection types either.
      */
     u32_to_b4(cmd + 8, 3);
-    u32_to_b4(cmd + 4, 0);
+    u32_to_b4(cmd + 4, mem->offset);
+
+    if (p->flags & AVRPART_HAS_UPDI){
+        addr -= mem->offset;
+    }
 
     if (addr == 0) {
       if ((status = jtag3_command(pgm, cmd, 12, &resp, "read memory")) < 0)
@@ -1867,7 +1937,9 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   cmd[0] = SCOPE_AVR;
   cmd[1] = CMD3_WRITE_MEMORY;
   cmd[2] = 0;
-  cmd[3] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_FLASH : MTYPE_SPM;
+  cmd[3] = ( p->flags & AVRPART_HAS_PDI || p->flags & AVRPART_HAS_UPDI ) ? MTYPE_FLASH : MTYPE_SPM;
+  if (p->flags & AVRPART_HAS_UPDI)
+      addr += mem->offset;
   if (strcmp(mem->desc, "flash") == 0) {
      cache_ptr = PDATA(pgm)->flash_pagecache;
      pagesize = PDATA(pgm)->flash_pagesize;
@@ -1899,8 +1971,11 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       unsupp = 1;
   } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
     cmd[3] = MTYPE_FUSE_BITS;
-    addr = mem->offset & 7;
+    if (!(p->flags & AVRPART_HAS_UPDI))
+      addr = mem->offset & 7;
   } else if (strcmp(mem->desc, "usersig") == 0) {
+    cmd[3] = MTYPE_USERSIG;
+  } else if (strcmp(mem->desc, "userrow") == 0) {
     cmd[3] = MTYPE_USERSIG;
   } else if (strcmp(mem->desc, "prodsig") == 0) {
     cmd[3] = MTYPE_PRODSIG;
@@ -2179,6 +2254,11 @@ static unsigned int jtag3_memaddr(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, uns
   /*
    * Non-Xmega device.
    */
+  if (p->flags & AVRPART_HAS_UPDI) {
+    if (strcmp(m->desc, "flash") != 0) {
+        addr += m->offset;
+    }
+  }
   return addr;
 }
 
@@ -2282,5 +2362,39 @@ void jtag3_pdi_initpgm(PROGRAMMER * pgm)
   pgm->teardown       = jtag3_teardown;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_PDI;
+}
+
+const char jtag3_updi_desc[] = "Atmel JTAGICE3 in UPDI mode";
+
+void jtag3_updi_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "JTAGICE3_UPDI");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = jtag3_initialize;
+  pgm->display        = jtag3_display;
+  pgm->enable         = jtag3_enable;
+  pgm->disable        = jtag3_disable;
+  pgm->program_enable = jtag3_program_enable_dummy;
+  pgm->chip_erase     = jtag3_chip_erase;
+  pgm->open           = jtag3_open_updi;
+  pgm->close          = jtag3_close;
+  pgm->read_byte      = jtag3_read_byte;
+  pgm->write_byte     = jtag3_write_byte;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = jtag3_paged_write;
+  pgm->paged_load     = jtag3_paged_load;
+  pgm->page_erase     = jtag3_page_erase;
+  pgm->print_parms    = jtag3_print_parms;
+  pgm->set_sck_period = jtag3_set_sck_period;
+  pgm->setup          = jtag3_setup;
+  pgm->teardown       = jtag3_teardown;
+  pgm->page_size      = 256;
+  pgm->flag           = PGM_FL_IS_UPDI;
 }
 

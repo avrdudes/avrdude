@@ -1,6 +1,22 @@
 2017-11-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Jan Egil Ruud <janegil.ruud@microchip.com>
+	patch #9482: Add support for UPDI and AVR8X
+	* avrdude.conf.in (xplainedpro_updi): New programmer
+	* avrdude.conf.in (.avr8x, ATtiny1617, ATtiny817): New device
+	family and devices
+	* config_gram.y: add K_OCD_BASE and K_HAS_UPDI
+	* lexer.l: (Ditto.)
+	* doc/avrdude.texi: Document "has_updi" flag
+	* jtag3.c: Implement UPDI
+	* jtag3.h: (Ditto.)
+	* jtag3_private.h: (Ditto.)
+	* libavrdude.h: Add ocd_base value and AVRPART_HAS_UPDI flag
+	* pgm_type.c: Add jtagice3_updi
+
+2017-11-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Jan Egil Ruud <janegil.ruud@microchip.com>
 	* avrdude.conf.in (ATmega328PB): New part
 
 2017-11-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
