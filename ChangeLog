@@ -1,3 +1,8 @@
+2017-11-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Jan Egil Ruud <janegil.ruud@microchip.com>
+	* avrdude.conf.in (ATmega328PB): New part
+
 2017-11-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #48084: Avoid compiled-in timestamp for reproducible release builds
