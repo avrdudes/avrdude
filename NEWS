@@ -23,6 +23,7 @@ Current:
 
     - ehajo-isp (commercial version of USBtiny)
     - XplainedPro in UPDI mode
+    - XplainedMini in UPDI mode
 
   * Bugfixes:
     bug #47550: Linux GPIO broken

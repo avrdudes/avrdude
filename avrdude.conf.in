@@ -1130,6 +1130,14 @@ programmer
 ;
 
 programmer
+  id    = "xplainedmini_updi";
+  desc  = "Atmel AVR XplainedMini in UPDI mode";
+  type  = "jtagice3_updi";
+  connection_type = usb;
+  usbpid = 0x2145;
+;
+
+programmer
   id    = "atmelice";
   desc  = "Atmel-ICE (ARM/AVR) in JTAG mode";
   type  = "jtagice3";
