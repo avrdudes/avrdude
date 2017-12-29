@@ -13,7 +13,11 @@ set -x
 
 rm -rf autom4te.cache
 
-libtoolize
+# MacOS calls it "glibtoolize", everyone else "libtoolize"
+# probe for that
+LIBTOOLIZE=libtoolize
+glibtoolize --version > /dev/null 2>&1 && LIBTOOLIZE=glibtoolize
+${LIBTOOLIZE}
 
 ${ACLOCAL}
 ${AUTOHEADER}
