@@ -1,6 +1,10 @@
 2017-12-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
-	* avrdude.conf.in (xplainedmini_updi): New programmer
+	Submitted by Jan Egil Ruud <janegil.ruud@microchip.com>
+	patch #9508: Add PowerDebugger and XPlained Mini in UPDI mode
+	* avrdude.conf.in (xplainedmini_updi, powerdebugger,
+	powerdebugger_pdi, powerdebugger_updi, powerdebugger_dw,
+	powerdebugger_isp): New programmers
 
 2017-12-29  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 

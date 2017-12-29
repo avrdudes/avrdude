@@ -1177,6 +1177,45 @@ programmer
   usbpid = 0x2141;
 ;
 
+programmer
+  id    = "powerdebugger";
+  desc  = "Atmel PowerDebugger (ARM/AVR) in JTAG mode";
+  type  = "jtagice3";
+  connection_type = usb;
+  usbpid = 0x2144;
+;
+
+programmer
+  id    = "powerdebugger_pdi";
+  desc  = "Atmel PowerDebugger (ARM/AVR) in PDI mode";
+  type  = "jtagice3_pdi";
+  connection_type = usb;
+  usbpid = 0x2144;
+;
+
+programmer
+  id    = "powerdebugger_updi";
+  desc  = "Atmel PowerDebugger (ARM/AVR) in UPDI mode";
+  type  = "jtagice3_updi";
+  connection_type = usb;
+  usbpid = 0x2144;
+;
+
+programmer
+  id    = "powerdebugger_dw";
+  desc  = "Atmel PowerDebugger (ARM/AVR) in debugWire mode";
+  type  = "jtagice3_dw";
+  connection_type = usb;
+  usbpid = 0x2144;
+;
+
+programmer
+  id    = "powerdebugger_isp";
+  desc  = "Atmel PowerDebugger (ARM/AVR) in ISP mode";
+  type  = "jtagice3_isp";
+  connection_type = usb;
+  usbpid = 0x2144;
+;
 
 programmer
   id    = "pavr";
