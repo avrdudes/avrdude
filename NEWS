@@ -33,6 +33,8 @@ Current:
 
   * Patches:
     patch #9482: Add support for UPDI and AVR8X
+    patch #9508: Add PowerDebugger and XPlained Mini in UPDI mode
+    patch #9507: Fix UPDI chip erase
 
   * Internals:
 

@@ -144,6 +144,7 @@
 #  define RSP3_FAIL_WRONG_MODE          0x32 /* progmode vs. non-prog */
 #  define RSP3_FAIL_UNSUPP_MEMORY       0x34 /* unsupported memory type */
 #  define RSP3_FAIL_WRONG_LENGTH        0x35 /* wrong lenth for mem access */
+#  define RSP3_FAIL_OCD_LOCKED          0x44 /* device is locked */
 #  define RSP3_FAIL_NOT_UNDERSTOOD      0x91
 
 /* ICE events */
@@ -167,6 +168,15 @@
 #define MTYPE_USERSIG     0xc5	/* xmega user signature - undocumented in AVR067 */
 #define MTYPE_PRODSIG     0xc6	/* xmega production signature - undocumented in AVR067 */
 #define MTYPE_SIB         0xD3  /* AVR8X System Information Block */
+
+/*
+ * SET and GET context definitions
+ */
+#define SET_GET_CTXT_CONFIG    0x00 /* Configuration */
+#define SET_GET_CTXT_PHYSICAL  0x01 /* Physical interface related */
+#define SET_GET_CTXT_DEVICE    0x02 /* Device specific settings */
+#define SET_GET_CTXT_OPTIONS   0x03 /* Option-related settings */
+#define SET_GET_CTXT_SESSION   0x04 /* Session-related settings */
 
 /*
  * Parameters are divided into sections, where the section number
@@ -209,12 +219,19 @@
                                  * before/after, bits before/after), 4
                                  * bytes */
 
+/*
+ * Physical context parameters
+ */
 #define PARM3_CLK_MEGA_PROG  0x20 /* section 1, AVR scope, 2 bytes (kHz) */
 #define PARM3_CLK_MEGA_DEBUG 0x21 /* section 1, AVR scope, 2 bytes (kHz) */
 #define PARM3_CLK_XMEGA_JTAG 0x30 /* section 1, AVR scope, 2 bytes (kHz) */
 #define PARM3_CLK_XMEGA_PDI  0x31 /* section 1, AVR scope, 2 bytes (kHz) */
 
-
+/*
+ * Options context parameters
+ */
+#define PARM3_OPT_12V_UPDI_ENABLE      0x06
+#define PARM3_OPT_CHIP_ERASE_TO_ENTER  0x07
 
 /* Xmega erase memory types, for CMND_XMEGA_ERASE */
 #define XMEGA_ERASE_CHIP        0x00

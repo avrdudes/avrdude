@@ -840,8 +840,14 @@ int jtag3_recv(PROGRAMMER * pgm, unsigned char **msg) {
 
   c = (*resp)[1];
   if ((c & RSP3_STATUS_MASK) != RSP3_OK) {
-    avrdude_message(MSG_INFO, "%s: bad response to %s command: 0x%02x\n",
-                    progname, descr, c);
+    if ((c == RSP3_FAILED) && ((*resp)[3] == RSP3_FAIL_OCD_LOCKED)) {
+      avrdude_message(MSG_INFO,
+		      "%s: Device is locked! Chip erase required to unlock.\n",
+		      progname);
+    } else {
+      avrdude_message(MSG_INFO, "%s: bad response to %s command: 0x%02x\n",
+		      progname, descr, c);
+    }
     free(*resp);
     resp = 0;
     return -1;
@@ -894,6 +900,34 @@ static int jtag3_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   free(resp);
   return 0;
 }
+
+/*
+ * UPDI 'chip erase' -> 'enter progmode' with chip erase key
+ */
+static int jtag3_chip_erase_updi(PROGRAMMER * pgm, AVRPART * p)
+{
+  unsigned char buf[8], *resp;
+
+  buf[0] = 1; /* Enable */
+  if (jtag3_setparm(pgm, SCOPE_AVR, SET_GET_CTXT_OPTIONS, PARM3_OPT_CHIP_ERASE_TO_ENTER, buf, 1) < 0)
+    return -1;
+
+  buf[0] = SCOPE_AVR;
+  buf[1] = CMD3_ENTER_PROGMODE;
+  buf[2] = 0;
+
+  if (jtag3_command(pgm, buf, 3, &resp, "enter progmode") < 0)
+    return -1;
+  PDATA(pgm)->prog_enabled = 1;
+
+  buf[0] = 0; /* Disable */
+  if (jtag3_setparm(pgm, SCOPE_AVR, SET_GET_CTXT_OPTIONS, PARM3_OPT_CHIP_ERASE_TO_ENTER, buf, 1) < 0)
+    return -1;
+
+  free(resp);
+  return 0;
+}
+
 
 /*
  * There is no chip erase functionality in debugWire mode.
@@ -2378,7 +2412,7 @@ void jtag3_updi_initpgm(PROGRAMMER * pgm)
   pgm->enable         = jtag3_enable;
   pgm->disable        = jtag3_disable;
   pgm->program_enable = jtag3_program_enable_dummy;
-  pgm->chip_erase     = jtag3_chip_erase;
+  pgm->chip_erase     = jtag3_chip_erase_updi;
   pgm->open           = jtag3_open_updi;
   pgm->close          = jtag3_close;
   pgm->read_byte      = jtag3_read_byte;
