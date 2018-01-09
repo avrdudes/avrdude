@@ -1,0 +1,26 @@
+2018-01-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Jan Egil Ruud <janegil.ruud@microchip.com>
+	patch #9507: Fix UPDI chip erase
+	* lexer.l (family_id): New keyword.
+	* config_gram.y: (Ditto)
+	* doc/avrdude.texi: Document new keyword
+	* avrdude.conf.in: Add family_id for avr8x devices
+	* avr.c: Pass error code up.
+	* jtag3.c: Pass error code from memory read up; implement
+	jtag3_read_sib()
+	* libavrdude.h: Add new items.
+	* main.c: Implement different chip erase handling required
+	for UPDI devices.
+
+2018-01-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Jan Egil Ruud <janegil.ruud@microchip.com>
+	patch #9506: Script to create device configuration stub from Atmel ATDF files
+	* avrdude.conf.in (ATtiny202, ATtiny204, ATtiny402, ATtiny404)
+	(ATtiny406, ATtiny804, ATtiny806, ATtiny807, ATtiny1604)
+	(ATtiny1606, ATtiny1607, ATtiny212, ATtiny214, ATtiny412)
+	(ATTiny414, ATtiny416, ATtiny417, ATtiny814, ATtiny816)
+	(ATtiny1614, ATtiny1616, ATtiny3214, ATtiny3216, ATtiny3217)
+	(ATmega3208, ATmega3209, ATmega4808, ATmega4809): New devices
+

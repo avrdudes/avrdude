@@ -1437,6 +1437,7 @@ Following programmer types are currently implemented:
 part
     id               = <id> ;                 # quoted string
     desc             = <description> ;        # quoted string
+    family_id        = <description> ;        # quoted string
     has_jtag         = <yes/no> ;             # part has JTAG i/f
     has_debugwire    = <yes/no> ;             # part has debugWire i/f
     has_pdi          = <yes/no> ;             # part has PDI i/f

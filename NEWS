@@ -17,7 +17,13 @@ Current:
   * New devices supported:
 
     - ATmega328PB
-    - AVR8X family, ATtiny1617, ATtiny817
+    - AVR8X family, ATtiny1617, ATtiny817, ATtiny202, ATtiny204,
+      ATtiny402, ATtiny404, ATtiny406, ATtiny804, ATtiny806,
+      ATtiny807, ATtiny1604, ATtiny1606, ATtiny1607, ATtiny212,
+      ATtiny214, ATtiny412, ATTiny414, ATtiny416, ATtiny417,
+      ATtiny814, ATtiny816, ATtiny1614, ATtiny1616, ATtiny3214,
+      ATtiny3216, ATtiny3217, ATmega3208, ATmega3209, ATmega4808,
+      ATmega4809
 
   * New programmers supported:
 

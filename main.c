@@ -1045,6 +1045,44 @@ int main(int argc, char * argv [])
     if (init_ok) {
       rc = avr_signature(pgm, p);
       if (rc != 0) {
+        // -68 == -(0x44) == -(RSP3_FAIL_OCD_LOCKED)
+        if ((rc == -68) && (p->flags & AVRPART_HAS_UPDI) && (attempt < 1)) {
+          attempt++;
+          if (pgm->read_sib) {
+             // Read SIB and compare FamilyID
+             char sib[AVR_SIBLEN + 1];
+             pgm->read_sib(pgm, p, sib);
+             avrdude_message(MSG_NOTICE, "%s: System Information Block: \"%s\"\n",
+                             progname, sib);
+            if (quell_progress < 2) {
+              avrdude_message(MSG_INFO, "%s: Received FamilyID: \"%.*s\"\n", progname, AVR_FAMILYIDLEN, sib);
+            }
+            if (strncmp(p->family_id, sib, AVR_FAMILYIDLEN)) {
+              avrdude_message(MSG_INFO, "%s: Expected FamilyID: \"%s\"\n", progname, p->family_id);
+              if (!ovsigck) {
+                avrdude_message(MSG_INFO, "%sDouble check chip, "
+                        "or use -F to override this check.\n",
+                        progbuf);
+                exitrc = 1;
+                goto main_exit;
+              }
+            }
+          }
+          if(erase) {
+            erase = 0;
+            if (uflags & UF_NOWRITE) {
+              avrdude_message(MSG_INFO, "%s: conflicting -e and -n options specified, NOT erasing chip\n",
+                              progname);
+            } else {
+              if (quell_progress < 2) {
+                avrdude_message(MSG_INFO, "%s: erasing chip\n", progname);
+              }
+              exitrc = avr_chip_erase(pgm, p);
+              if(exitrc) goto main_exit;
+              goto sig_again;
+            }
+          }
+        }
         avrdude_message(MSG_INFO, "%s: error reading signature data, rc=%d\n",
           progname, rc);
         exitrc = 1;

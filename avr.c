@@ -438,11 +438,15 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
     {
       rc = pgm->read_byte(pgm, p, mem, i, mem->buf + i);
       if (rc != 0) {
-	avrdude_message(MSG_INFO, "avr_read(): error reading address 0x%04lx\n", i);
-	if (rc == -1)
-	  avrdude_message(MSG_INFO, "    read operation not supported for memory \"%s\"\n",
+        avrdude_message(MSG_INFO, "avr_read(): error reading address 0x%04lx\n", i);
+        if (rc == -1) {
+          avrdude_message(MSG_INFO, "    read operation not supported for memory \"%s\"\n",
                           memtype);
-	return -2;
+          return -2;
+        }
+        avrdude_message(MSG_INFO, "    read operation failed for memory \"%s\"\n",
+                        memtype);
+        return rc;
       }
     }
     report_progress(i, mem->size, NULL);
@@ -1051,7 +1055,7 @@ int avr_signature(PROGRAMMER * pgm, AVRPART * p)
   if (rc < 0) {
     avrdude_message(MSG_INFO, "%s: error reading signature data for part \"%s\", rc=%d\n",
                     progname, p->desc, rc);
-    return -1;
+    return rc;
   }
   report_progress (1,1,NULL);
 

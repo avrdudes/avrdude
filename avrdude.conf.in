@@ -15140,26 +15140,482 @@ part
 ;
 
 #------------------------------------------------------------
-# ATtiny1617
+# AVR8X tiny family common values
 #------------------------------------------------------------
 
-part parent ".avr8x"
-    id		= "tn1617";
-    desc	= "ATtiny1617";
-    signature	= 0x1e 0x94 0x20;
+part parent    ".avr8x"
+    id			= ".avr8x_tiny";
+    desc		= "AVR8X tiny family common values";
+    family_id	= "tinyAVR";
+;
 
-    memory "eeprom"
-        size		= 0x0100;
-        offset		= 0x1400;
-        page_size	= 0x20;
-        readsize	= 0x100;
-    ;
+#------------------------------------------------------------
+# AVR8X mega family common values
+#------------------------------------------------------------
+
+part parent    ".avr8x"
+    id			= ".avr8x_mega";
+    desc		= "AVR8X mega family common values";
+    family_id	= "megaAVR";
+;
+
+#------------------------------------------------------------
+# ATtiny202
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t202";
+    desc      = "ATtiny202";
+    signature = 0x1E 0x91 0x23;
 
     memory "flash"
-        size		= 0x4000;
-        offset		= 0x8000;
-        page_size	= 0x40;
-        readsize	= 0x100;
+        size      = 0x800;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x40;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny204
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t204";
+    desc      = "ATtiny204";
+    signature = 0x1E 0x91 0x22;
+
+    memory "flash"
+        size      = 0x800;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x40;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny402
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t402";
+    desc      = "ATtiny402";
+    signature = 0x1E 0x92 0x23;
+
+    memory "flash"
+        size      = 0x1000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x80;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny404
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t404";
+    desc      = "ATtiny404";
+    signature = 0x1E 0x92 0x26;
+
+    memory "flash"
+        size      = 0x1000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x80;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny406
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t406";
+    desc      = "ATtiny406";
+    signature = 0x1E 0x92 0x25;
+
+    memory "flash"
+        size      = 0x1000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x80;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny804
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t804";
+    desc      = "ATtiny804";
+    signature = 0x1E 0x93 0x25;
+
+    memory "flash"
+        size      = 0x2000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x80;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny806
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t806";
+    desc      = "ATtiny806";
+    signature = 0x1E 0x93 0x24;
+
+    memory "flash"
+        size      = 0x2000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x80;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny807
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t807";
+    desc      = "ATtiny807";
+    signature = 0x1E 0x93 0x23;
+
+    memory "flash"
+        size      = 0x2000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x80;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny1604
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t1604";
+    desc      = "ATtiny1604";
+    signature = 0x1E 0x94 0x25;
+
+    memory "flash"
+        size      = 0x4000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny1606
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t1606";
+    desc      = "ATtiny1606";
+    signature = 0x1E 0x94 0x24;
+
+    memory "flash"
+        size      = 0x4000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny1607
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t1607";
+    desc      = "ATtiny1607";
+    signature = 0x1E 0x94 0x23;
+
+    memory "flash"
+        size      = 0x4000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny212
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t212";
+    desc      = "ATtiny212";
+    signature = 0x1E 0x91 0x21;
+
+    memory "flash"
+        size      = 0x800;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x40;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny214
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t214";
+    desc      = "ATtiny214";
+    signature = 0x1E 0x91 0x20;
+
+    memory "flash"
+        size      = 0x800;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x40;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny412
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t412";
+    desc      = "ATtiny412";
+    signature = 0x1E 0x92 0x23;
+
+    memory "flash"
+        size      = 0x1000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x80;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+
+#------------------------------------------------------------
+# ATtiny414
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t414";
+    desc      = "ATtiny414";
+    signature = 0x1E 0x92 0x22;
+
+    memory "flash"
+        size      = 0x1000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x80;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny416
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t416";
+    desc      = "ATtiny416";
+    signature = 0x1E 0x92 0x21;
+
+    memory "flash"
+        size      = 0x1000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x80;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+
+#------------------------------------------------------------
+# ATtiny417
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t417";
+    desc      = "ATtiny417";
+    signature = 0x1E 0x92 0x20;
+
+    memory "flash"
+        size      = 0x1000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x80;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+
+#------------------------------------------------------------
+# ATtiny814
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t814";
+    desc      = "ATtiny814";
+    signature = 0x1E 0x93 0x22;
+
+    memory "flash"
+        size      = 0x2000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x80;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+
+#------------------------------------------------------------
+# ATtiny816
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t816";
+    desc      = "ATtiny816";
+    signature = 0x1E 0x93 0x21;
+
+    memory "flash"
+        size      = 0x2000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x80;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
     ;
 ;
 
@@ -15167,22 +15623,262 @@ part parent ".avr8x"
 # ATtiny817
 #------------------------------------------------------------
 
-part parent ".avr8x"
-    id		= "tn817";
-    desc	= "ATtiny817";
-    signature	= 0x1e 0x93 0x20;
-
-    memory "eeprom"
-        size		= 0x0100;
-        offset		= 0x1400;
-        page_size	= 0x20;
-        readsize	= 0x100;
-    ;
+part parent    ".avr8x_tiny"
+    id        = "t817";
+    desc      = "ATtiny817";
+    signature = 0x1E 0x93 0x20;
 
     memory "flash"
-        size		= 0x2000;
-        offset		= 0x8000;
-        page_size	= 0x40;
-        readsize	= 0x100;
+        size      = 0x2000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x80;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny1614
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t1614";
+    desc      = "ATtiny1614";
+    signature = 0x1E 0x94 0x22;
+
+    memory "flash"
+        size      = 0x4000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny1616
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t1616";
+    desc      = "ATtiny1616";
+    signature = 0x1E 0x94 0x21;
+
+    memory "flash"
+        size      = 0x4000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny1617
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t1617";
+    desc      = "ATtiny1617";
+    signature = 0x1E 0x94 0x20;
+
+    memory "flash"
+        size      = 0x4000;
+        offset    = 0x8000;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x20;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny3214
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t3214";
+    desc      = "ATtiny3214";
+    signature = 0x1E 0x95 0x20;
+
+    memory "flash"
+        size      = 0x8000;
+        offset    = 0x8000;
+        page_size = 0x80;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny3216
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t3216";
+    desc      = "ATtiny3216";
+    signature = 0x1E 0x95 0x21;
+
+    memory "flash"
+        size      = 0x8000;
+        offset    = 0x8000;
+        page_size = 0x80;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny3217
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t3217";
+    desc      = "ATtiny3217";
+    signature = 0x1E 0x95 0x22;
+
+    memory "flash"
+        size      = 0x8000;
+        offset    = 0x8000;
+        page_size = 0x80;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATmega3208
+#------------------------------------------------------------
+
+part parent    ".avr8x_mega"
+    id        = "m3208";
+    desc      = "ATmega3208";
+    signature = 0x1E 0x95 0x52;
+
+    memory "flash"
+        size      = 0x8000;
+        offset    = 0x4000;
+        page_size = 0x80;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATmega3209
+#------------------------------------------------------------
+
+part parent    ".avr8x_mega"
+    id        = "m3209";
+    desc      = "ATmega3209";
+    signature = 0x1E 0x95 0x53;
+
+    memory "flash"
+        size      = 0x8000;
+        offset    = 0x4000;
+        page_size = 0x80;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATmega4808
+#------------------------------------------------------------
+
+part parent    ".avr8x_mega"
+    id        = "m4808";
+    desc      = "ATmega4808";
+    signature = 0x1E 0x96 0x50;
+
+    memory "flash"
+        size      = 0xC000;
+        offset    = 0x4000;
+        page_size = 0x80;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATmega4809
+#------------------------------------------------------------
+
+part parent    ".avr8x_mega"
+    id        = "m4809";
+    desc      = "ATmega4809";
+    signature = 0x1E 0x96 0x51;
+
+    memory "flash"
+        size      = 0xC000;
+        offset    = 0x4000;
+        page_size = 0x80;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x40;
+        readsize  = 0x100;
     ;
 ;

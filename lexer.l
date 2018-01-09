@@ -140,6 +140,7 @@ default_safemode { yylval=NULL; return K_DEFAULT_SAFEMODE; }
 default_serial   { yylval=NULL; return K_DEFAULT_SERIAL; }
 delay            { yylval=NULL; return K_DELAY; }
 desc             { yylval=NULL; return K_DESC; }
+family_id        { yylval=NULL; return K_FAMILY_ID; }
 devicecode       { yylval=NULL; return K_DEVICECODE; }
 eecr             { yylval=NULL; return K_EECR; }
 eeprom           { yylval=NULL; return K_EEPROM; }
