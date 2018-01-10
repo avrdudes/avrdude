@@ -33,6 +33,10 @@ EXTRA_DIST   = \
 	ChangeLog-2011 \
 	ChangeLog-2012 \
 	ChangeLog-2013 \
+	ChangeLog-2014 \
+	ChangeLog-2015 \
+	ChangeLog-2016 \
+	ChangeLog-2017 \
 	avrdude.1 \
 	avrdude.spec \
 	bootstrap
