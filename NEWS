@@ -41,8 +41,11 @@ Current:
     patch #9482: Add support for UPDI and AVR8X
     patch #9508: Add PowerDebugger and XPlained Mini in UPDI mode
     patch #9507: Fix UPDI chip erase
-
+    patch #9506: Script to create device configuration stub from Atmel
+                 ATDF files
   * Internals:
+    - New avrdude.conf keyword "family_id", used to verify SIB attributes
+      on AVR8X architecture if device is locked.
 
 
 Version 6.3:

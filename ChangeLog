@@ -1,5 +1,11 @@
 2018-01-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Morten Engelhardt Olsen
+	patch #9506: Script to create device configuration stub from Atmel ATDF files
+	* tools/atdf-to-avrdude.xslt: New script
+
+2018-01-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Jan Egil Ruud <janegil.ruud@microchip.com>
 	patch #9507: Fix UPDI chip erase
 	* lexer.l (family_id): New keyword.
