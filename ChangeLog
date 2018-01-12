@@ -1,3 +1,10 @@
+2018-01-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by David Mosberger-Tang
+	patch #8924: Enable TPI for usbtiny
+	* usbtiny.c: Extend to handle TPI targets
+	* configure.ac: Probe for <netinet/in.h>
+
 2018-01-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Yegor Yefremov:

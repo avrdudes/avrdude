@@ -47,6 +47,19 @@
 #  error "libusb needs either <usb.h> or <lusb0_usb.h>"
 #endif
 
+#include "tpi.h"
+
+#define TPIPCR_GT_0b	0x07
+#define TPI_STOP_BITS	0x03
+
+#ifdef HAVE_NETINET_IN_H
+#  include <netinet/in.h>
+#  define LITTLE_TO_BIG_16(x) (htons(x))
+#else
+// WIN32
+#  define LITTLE_TO_BIG_16(x) ((((x) << 8) & 0xFF00) | (((x) >> 8) & 0x00FF))
+#endif
+
 #ifndef HAVE_UINT_T
 typedef	unsigned int	uint_t;
 #endif
@@ -171,6 +184,109 @@ static int usb_out (PROGRAMMER * pgm,
   }
 
   return nbytes;
+}
+
+/* Reverse the bits in a byte.  Needed since TPI uses little-endian
+   bit order (LSB first) whereas SPI uses big-endian (MSB first).*/
+static unsigned char reverse(unsigned char b) {
+  return
+    (  (b & 0x01) << 7)
+    | ((b & 0x02) << 5)
+    | ((b & 0x04) << 3)
+    | ((b & 0x08) << 1)
+    | ((b & 0x10) >> 1)
+    | ((b & 0x20) >> 3)
+    | ((b & 0x40) >> 5)
+    | ((b & 0x80) >> 7);
+}
+
+/* Calculate even parity.  */
+static unsigned char tpi_parity(unsigned char b)
+{
+  unsigned char parity = 0;
+  int i;
+
+  for (i = 0; i < 8; ++i) {
+    if (b & 1)
+      parity ^= 1;
+    b >>= 1;
+  }
+  return parity;
+}
+
+/* Encode 1 start bit (0), 8 data bits, 1 parity, 2 stop bits (1)
+   inside 16 bits.  The data is padded to 16 bits by 4 leading 1s
+   (which will be ignored since they're not start bits).  This layout
+   enables a write to be followed by a read.  */
+static unsigned short tpi_frame(unsigned char b) {
+  return LITTLE_TO_BIG_16(0xf000 |
+			  (reverse(b) << 3) |
+			  tpi_parity(b) << 2 |
+			  TPI_STOP_BITS);
+}
+
+/* Transmit a single byte encapsulated in a 32-bit transfer.  Unused
+   bits are padded with 1s.  */
+static int usbtiny_tpi_tx(PROGRAMMER *pgm, unsigned char b0)
+{
+  unsigned char res[4];
+
+  if (usb_in(pgm, USBTINY_SPI, tpi_frame(b0), 0xffff,
+	     res, sizeof(res), 8 * sizeof(res) * PDATA(pgm)->sck_period) < 0)
+    return -1;
+  if (verbose > 1)
+    fprintf(stderr, "CMD_TPI_TX: [0x%02x]\n", b0);
+  return 1;
+}
+
+/* Transmit a two bytes encapsulated in a 32-bit transfer.  Unused
+   bits are padded with 1s.  */
+static int usbtiny_tpi_txtx(PROGRAMMER *pgm,
+			    unsigned char b0, unsigned char b1)
+{
+  unsigned char res[4];
+
+  if (usb_in(pgm, USBTINY_SPI, tpi_frame(b0), tpi_frame(b1),
+	     res, sizeof(res), 8 * sizeof(res) * PDATA(pgm)->sck_period) < 0)
+    return -1;
+  if (verbose > 1)
+    fprintf(stderr, "CMD_TPI_TX_TX: [0x%02x 0x%02x]\n", b0, b1);
+  return 1;
+}
+
+/* Transmit a byte then receive a byte, all encapsulated in a 32-bit
+   transfer.  Unused bits are padded with 1s.  This code assumes that
+   the start bit of the byte being received arrives within at most 2
+   TPICLKs.  We ensure this by calling avr_tpi_program_enable() with
+   delay==TPIPCR_GT_0b.  */
+static int usbtiny_tpi_txrx(PROGRAMMER *pgm, unsigned char b0)
+{
+  unsigned char res[4], r;
+  short w;
+
+  if (usb_in(pgm, USBTINY_SPI, tpi_frame(b0), 0xffff,
+	     res, sizeof(res), 8 * sizeof(res) * PDATA(pgm)->sck_period) < 0)
+    return -1;
+
+  w = (res[2] << 8) | res[3];
+  /* Look for start bit (there shoule be no more than two 1 bits): */
+  while (w < 0)
+    w <<= 1;
+  /* Now that we found the start bit, the top 9 bits contain the start
+     bit and the 8 data bits, but the latter in reverse order.  */
+  r = reverse(w >> 7);
+  if (tpi_parity(r) != ((w >> 6) & 1)) {
+    fprintf(stderr, "%s: parity bit is wrong\n", __func__);
+    return -1;
+  }
+  if (((w >> 4) & 0x3) != TPI_STOP_BITS) {
+    fprintf(stderr, "%s: stop bits not received correctly\n", __func__);
+    return -1;
+  }
+
+  if (verbose > 1)
+    fprintf(stderr, "CMD_TPI_TX_RX: [0x%02x -> 0x%02x]\n", b0, r);
+  return r;
 }
 
 // Sometimes we just need to know the SPI command for the part to perform
@@ -334,6 +450,7 @@ static int usbtiny_set_sck_period (PROGRAMMER *pgm, double v)
 static int usbtiny_initialize (PROGRAMMER *pgm, AVRPART *p )
 {
   unsigned char res[4];        // store the response from usbtinyisp
+  int tries;
 
   // Check for bit-clock and tell the usbtiny to adjust itself
   if (pgm->bitclock > 0.0) {
@@ -353,8 +470,40 @@ static int usbtiny_initialize (PROGRAMMER *pgm, AVRPART *p )
   // Let the device wake up.
   usleep(50000);
 
-  // Attempt to use the underlying avrdude methods to connect (MEME: is this kosher?)
-  if (! usbtiny_avr_op(pgm, p, AVR_OP_PGM_ENABLE, res)) {
+  if (p->flags & AVRPART_HAS_TPI) {
+    /* Since there is a single TPIDATA line, MOSI and MISO must be
+       linked together through a 1kOhm resistor.  Verify that
+       everything we send on MOSI gets mirrored back on MISO.  */
+    if (verbose >= 2)
+      fprintf(stderr, "doing MOSI-MISO link check\n");
+
+    memset(res, 0xaa, sizeof(res));
+    if (usb_in(pgm, USBTINY_SPI, LITTLE_TO_BIG_16(0x1234), LITTLE_TO_BIG_16(0x5678),
+	       res, 4, 32 * PDATA(pgm)->sck_period) < 0) {
+      fprintf(stderr, "usb_in() failed\n");
+      return -1;
+    }
+    if (res[0] != 0x12 || res[1] != 0x34 || res[2] != 0x56 || res[3] != 0x78) {
+      fprintf(stderr,
+	      "MOSI->MISO check failed (got 0x%02x 0x%02x 0x%02x 0x%02x)\n"
+	      "\tPlease verify that MISO is connected directly to TPIDATA and\n"
+	      "\tMOSI is connected to TPIDATA through a 1kOhm resistor.\n",
+	      res[0], res[1], res[2], res[3]);
+      return -1;
+    }
+
+    /* keep TPIDATA high for >= 16 clock cycles: */
+    if (usb_in(pgm, USBTINY_SPI, 0xffff, 0xffff, res, 4,
+	       32 * PDATA(pgm)->sck_period) < 0)
+    {
+      fprintf(stderr, "Unable to switch chip into TPI mode\n");
+      return -1;
+    }
+  }
+
+  for (tries = 0; tries < 4; ++tries) {
+    if (pgm->program_enable(pgm, p) >= 0)
+      break;
     // no response, RESET and try again
     if (usb_control(pgm, USBTINY_POWERUP,
 		    PDATA(pgm)->sck_period, RESET_HIGH) < 0 ||
@@ -362,11 +511,9 @@ static int usbtiny_initialize (PROGRAMMER *pgm, AVRPART *p )
 		    PDATA(pgm)->sck_period, RESET_LOW) < 0)
       return -1;
     usleep(50000);
-    if	( ! usbtiny_avr_op( pgm, p, AVR_OP_PGM_ENABLE, res)) {
-      // give up
-      return -1;
-    }
   }
+  if (tries >= 4)
+    return -1;
   return 0;
 }
 
@@ -403,10 +550,49 @@ static int usbtiny_cmd(PROGRAMMER * pgm, const unsigned char *cmd, unsigned char
 	  res[2] == cmd[1]);              // AVR's do a delayed-echo thing
 }
 
+int usbtiny_cmd_tpi(PROGRAMMER * pgm, const unsigned char *cmd,
+			int cmd_len, unsigned char *res, int res_len)
+{
+  unsigned char b0, b1;
+  int tx, rx, r;
+
+  /* Transmits command two bytes at the time until we're down to 0 or
+     1 command byte.  Then we're either done or we transmit the final
+     byte optionally followed by reading 1 byte.  With the current TPI
+     protocol, we never receive more than one byte.  */
+  for (tx = rx = 0; tx < cmd_len; ) {
+    b0 = cmd[tx++];
+    if (tx < cmd_len) {
+      b1 = cmd[tx++];
+      if (usbtiny_tpi_txtx(pgm, b0, b1) < 0)
+	return -1;
+    } else {
+      if (res_len > 0) {
+	if ((r = usbtiny_tpi_txrx(pgm, b0)) < 0)
+	  return -1;
+	res[rx++] = r;
+      } else {
+	if (usbtiny_tpi_tx(pgm, b0) < 0)
+	  return -1;
+      }
+    }
+  }
+
+  if (rx < res_len) {
+    fprintf(stderr, "%s: unexpected cmd_len=%d/res_len=%d\n",
+	    __func__, cmd_len, res_len);
+    return -1;
+  }
+  return 0;
+}
+
 /* Send the chip-erase command */
 static int usbtiny_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {
   unsigned char res[4];
+
+  if (p->flags & AVRPART_HAS_TPI)
+    return avr_tpi_chip_erase(pgm, p);
 
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
     avrdude_message(MSG_INFO, "Chip erase instruction not defined for part \"%s\"\n",
@@ -538,6 +724,16 @@ static int usbtiny_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return n_bytes;
 }
 
+static int usbtiny_program_enable(PROGRAMMER *pgm, AVRPART *p)
+{
+  unsigned char buf[4];
+
+  if (p->flags & AVRPART_HAS_TPI)
+    return avr_tpi_program_enable(pgm, p, TPIPCR_GT_0b);
+  else
+    return usbtiny_avr_op(pgm, p, AVR_OP_PGM_ENABLE, buf);
+}
+
 void usbtiny_initpgm ( PROGRAMMER* pgm )
 {
   strcpy(pgm->type, "USBtiny");
@@ -546,9 +742,10 @@ void usbtiny_initpgm ( PROGRAMMER* pgm )
   pgm->initialize	= usbtiny_initialize;
   pgm->enable	        = usbtiny_enable;
   pgm->disable	        = usbtiny_disable;
-  pgm->program_enable	= NULL;
+  pgm->program_enable	= usbtiny_program_enable;
   pgm->chip_erase	= usbtiny_chip_erase;
   pgm->cmd		= usbtiny_cmd;
+  pgm->cmd_tpi		= usbtiny_cmd_tpi;
   pgm->open		= usbtiny_open;
   pgm->close		= usbtiny_close;
   pgm->read_byte        = avr_read_byte_default;
