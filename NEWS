@@ -47,6 +47,7 @@ Current:
     patch #9506: Script to create device configuration stub from Atmel
                  ATDF files
     patch #9423: Support ATtiny841 and ATtiny441
+    patch #9530: Update URL to Ladyada's USBtinyISP page.
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes

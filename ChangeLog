@@ -1,5 +1,11 @@
 2018-01-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Submitted David Griffith:
+	patch #9530: Update URL to Ladyada's USBtinyISP page.
+	* avrdude.conf.in (usbtiny): Update URL
+
+2018-01-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Milan Kupcevic:
 	patch #9423: Support ATtiny841 and ATtiny441
 	bug #47376: ATtiny841 description missing in configuration file

@@ -868,7 +868,7 @@ programmer
 
 programmer
   id    = "usbtiny";
-  desc  = "USBtiny simple USB programmer, http://www.ladyada.net/make/usbtinyisp/";
+  desc  = "USBtiny simple USB programmer, https://learn.adafruit.com/usbtinyisp";
   type  = "usbtiny";
   connection_type = usb;
   usbvid     = 0x1781;
