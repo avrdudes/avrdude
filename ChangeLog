@@ -1,3 +1,11 @@
+2018-01-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Milan Kupcevic:
+	patch #9423: Support ATtiny841 and ATtiny441
+	bug #47376: ATtiny841 description missing in configuration file
+	bug #49455: support for tiny441
+	* avrdude.conf.in (ATtiny841, ATtiny441): New entries
+
 2018-01-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Morten Engelhardt Olsen

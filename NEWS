@@ -24,6 +24,7 @@ Current:
       ATtiny814, ATtiny816, ATtiny1614, ATtiny1616, ATtiny3214,
       ATtiny3216, ATtiny3217, ATmega3208, ATmega3209, ATmega4808,
       ATmega4809
+    - ATtiny841, ATtiny441
 
   * New programmers supported:
 
@@ -36,6 +37,8 @@ Current:
     bug #47550: Linux GPIO broken
     bug #47718: "lfuse reads as" not displayed in verbose mode - SOLUTION
     bug #48084: Avoid compiled-in timestamp for reproducible release builds
+    bug #47376: ATtiny841 description missing in configuration file
+    bug #49455: support for tiny441
 
   * Patches:
     patch #9482: Add support for UPDI and AVR8X
@@ -43,6 +46,8 @@ Current:
     patch #9507: Fix UPDI chip erase
     patch #9506: Script to create device configuration stub from Atmel
                  ATDF files
+    patch #9423: Support ATtiny841 and ATtiny441
+
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes
       on AVR8X architecture if device is locked.
