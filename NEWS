@@ -50,6 +50,7 @@ Current:
     patch #9423: Support ATtiny841 and ATtiny441
     patch #9530: Update URL to Ladyada's USBtinyISP page.
     patch #9317: Support atmega64m1 as part
+    patch #9222: Enable silent build
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes

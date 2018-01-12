@@ -16,6 +16,15 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+# In order to get verbose build messages rather than a summary line
+# only, either use
+#
+# ./configure --disable-silent-rules
+#
+# or run make like
+#
+# make V=1
+
 #
 # $Id$
 #

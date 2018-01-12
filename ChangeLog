@@ -1,5 +1,13 @@
 2018-01-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Yegor Yefremov:
+	patch #9222: Enable silent build
+	* configure.ac: Add AM_SILENT_RULES
+	* Makefile.am: Document how to run "make" to get verbose
+	build messages
+
+2018-01-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by: Kjetil Kjeka:
 	patch #9317: Support atmega64m1 as part
 	* avrdue.conf.in (ATmega64M1): New entry.
