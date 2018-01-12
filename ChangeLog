@@ -1,5 +1,11 @@
 2018-01-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by: Kjetil Kjeka:
+	patch #9317: Support atmega64m1 as part
+	* avrdue.conf.in (ATmega64M1): New entry.
+
+2018-01-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Submitted David Griffith:
 	patch #9530: Update URL to Ladyada's USBtinyISP page.
 	* avrdude.conf.in (usbtiny): Update URL

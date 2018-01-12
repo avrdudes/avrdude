@@ -25,6 +25,7 @@ Current:
       ATtiny3216, ATtiny3217, ATmega3208, ATmega3209, ATmega4808,
       ATmega4809
     - ATtiny841, ATtiny441
+    - ATmega64M1
 
   * New programmers supported:
 
@@ -48,6 +49,7 @@ Current:
                  ATDF files
     patch #9423: Support ATtiny841 and ATtiny441
     patch #9530: Update URL to Ladyada's USBtinyISP page.
+    patch #9317: Support atmega64m1 as part
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes
