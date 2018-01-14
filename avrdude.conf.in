@@ -866,6 +866,10 @@ programmer
   #usbproduct = "";
 ;
 
+# USBtiny can also be used for TPI programming.
+# In that case, a resistor of 1 kOhm is needed between MISO and MOSI
+# pins of the connector, and MISO (pin 1 of the 6-pin connector)
+# connects to TPIDATA.
 programmer
   id    = "usbtiny";
   desc  = "USBtiny simple USB programmer, https://learn.adafruit.com/usbtinyisp";
