@@ -26,7 +26,7 @@
 
 #include "ac_cfg.h"
 
-#if defined(HAVE_LIBUSB) || (defined(WIN32NATIVE) && defined(HAVE_LIBHID))
+#if defined(HAVE_LIBHIDAPI) || (defined(WIN32NATIVE) && defined(HAVE_LIBHID))
 
 #include <stdio.h>
 #include <string.h>
@@ -64,7 +64,102 @@ static int              avrdoperRxPosition = 0; /* amount of bytes already consu
 /* ------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------ */
 
-#if defined(WIN32NATIVE) && defined(HAVE_LIBHID)
+#if defined(HAVE_LIBHIDAPI)
+
+#include <hidapi/hidapi.h>
+
+/* ------------------------------------------------------------------------- */
+
+static int usbOpenDevice(union filedescriptor *fdp, int vendor, char *vendorName,
+			 int product, char *productName, int doReportIDs)
+{
+    hid_device *dev;
+
+    dev = hid_open(vendor, product, NULL);
+    if (dev == NULL)
+    {
+      avrdude_message(MSG_INFO, "%s: usbOpenDevice(): No device found\n",
+		    progname);
+      return USB_ERROR_NOTFOUND;
+    }
+    fdp->usb.handle = dev;
+    return USB_ERROR_NONE;
+}
+
+/* ------------------------------------------------------------------------- */
+
+static void usbCloseDevice(union filedescriptor *fdp)
+{
+  hid_device *udev = (hid_device *)fdp->usb.handle;
+  fdp->usb.handle = NULL;
+
+  if (udev == NULL)
+    return;
+
+  hid_close(udev);
+}
+
+/* ------------------------------------------------------------------------- */
+
+static int usbSetReport(union filedescriptor *fdp, int reportType, char *buffer, int len)
+{
+  hid_device *udev = (hid_device *)fdp->usb.handle;
+  int bytesSent = -1;
+
+  switch(reportType){
+  case USB_HID_REPORT_TYPE_INPUT:
+      break;
+  case USB_HID_REPORT_TYPE_OUTPUT:
+      bytesSent = hid_write(udev, (unsigned char*) buffer, len);
+      break;
+  case USB_HID_REPORT_TYPE_FEATURE:
+      bytesSent = hid_send_feature_report(udev, (unsigned char*) buffer, len);
+      break;
+  }
+
+  if(bytesSent != len){
+      if(bytesSent < 0)
+          avrdude_message(MSG_INFO, "Error sending message: %s\n", hid_error(udev));
+      return USB_ERROR_IO;
+  }
+  return USB_ERROR_NONE;
+}
+
+/* ------------------------------------------------------------------------- */
+
+static int usbGetReport(union filedescriptor *fdp, int reportType, int reportNumber,
+			char *buffer, int *len)
+{
+  hid_device *udev = (hid_device *)fdp->usb.handle;
+  int bytesReceived = -1;
+
+  switch(reportType){
+  case USB_HID_REPORT_TYPE_INPUT:
+      bytesReceived = hid_read_timeout(udev, (unsigned char*) buffer, *len, 300);
+      break;
+  case USB_HID_REPORT_TYPE_OUTPUT:
+      break;
+  case USB_HID_REPORT_TYPE_FEATURE:
+      bytesReceived = hid_get_feature_report(udev, (unsigned char*) buffer, *len);
+      break;
+  }
+  if(bytesReceived < 0){
+      avrdude_message(MSG_INFO, "Error sending message: %s\n", hid_error(udev));
+      return USB_ERROR_IO;
+  }
+  *len = bytesReceived;
+  return USB_ERROR_NONE;
+}
+/* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------ */
+
+#else /* !defined(HAVE_LIBHIDAPI) */
+
+/* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------ */
+
 
 #include <windows.h>
 #include <setupapi.h>
@@ -235,204 +330,6 @@ static int usbGetReport(union filedescriptor *fdp, int reportType, int reportNum
         break;
     }
     return rval == 0 ? USB_ERROR_IO : 0;
-}
-
-/* ------------------------------------------------------------------------ */
-/* ------------------------------------------------------------------------ */
-/* ------------------------------------------------------------------------ */
-
-#else /* !(WIN32NATIVE && HAVE_LIBHID) */
-
-/* ------------------------------------------------------------------------ */
-/* ------------------------------------------------------------------------ */
-/* ------------------------------------------------------------------------ */
-
-#if defined(HAVE_USB_H)
-#  include <usb.h>
-#elif defined(HAVE_LUSB0_USB_H)
-#  include <lusb0_usb.h>
-#else
-#  error "libusb needs either <usb.h> or <lusb0_usb.h>"
-#endif
-
-/* ------------------------------------------------------------------------- */
-
-#define USBRQ_HID_GET_REPORT    0x01
-#define USBRQ_HID_SET_REPORT    0x09
-
-static int  usesReportIDs;
-
-/* ------------------------------------------------------------------------- */
-
-static int  usbGetStringAscii(usb_dev_handle *dev, int index, int langid, char *buf, int buflen)
-{
-    char    buffer[256];
-    int     rval, i;
-
-    if((rval = usb_control_msg(dev, USB_ENDPOINT_IN, USB_REQ_GET_DESCRIPTOR,
-			       (USB_DT_STRING << 8) + index, langid, buffer,
-			       sizeof(buffer), 1000)) < 0)
-        return rval;
-    if(buffer[1] != USB_DT_STRING)
-        return 0;
-    if((unsigned char)buffer[0] < rval)
-        rval = (unsigned char)buffer[0];
-    rval /= 2;
-    /* lossy conversion to ISO Latin1 */
-    for(i=1;i<rval;i++){
-        if(i > buflen)  /* destination buffer overflow */
-            break;
-        buf[i-1] = buffer[2 * i];
-        if(buffer[2 * i + 1] != 0)  /* outside of ISO Latin1 range */
-            buf[i-1] = '?';
-    }
-    buf[i-1] = 0;
-    return i-1;
-}
-
-static int usbOpenDevice(union filedescriptor *fdp, int vendor, char *vendorName,
-			 int product, char *productName, int doReportIDs)
-{
-    struct usb_bus      *bus;
-    struct usb_device   *dev;
-    usb_dev_handle      *handle = NULL;
-    int                 errorCode = USB_ERROR_NOTFOUND;
-    static int          didUsbInit = 0;
-
-    if(!didUsbInit){
-        usb_init();
-        didUsbInit = 1;
-    }
-    usb_find_busses();
-    usb_find_devices();
-    for(bus=usb_get_busses(); bus; bus=bus->next){
-        for(dev=bus->devices; dev; dev=dev->next){
-            if(dev->descriptor.idVendor == vendor && dev->descriptor.idProduct == product){
-                char    string[256];
-                int     len;
-                handle = usb_open(dev); /* we need to open the device in order to query strings */
-                if(!handle){
-                    errorCode = USB_ERROR_ACCESS;
-                    avrdude_message(MSG_INFO, "Warning: cannot open USB device: %s\n",
-			    usb_strerror());
-                    continue;
-                }
-                if(vendorName == NULL && productName == NULL){  /* name does not matter */
-                    break;
-                }
-                /* now check whether the names match: */
-                len = usbGetStringAscii(handle, dev->descriptor.iManufacturer,
-					0x0409, string, sizeof(string));
-                if(len < 0){
-                    errorCode = USB_ERROR_IO;
-                    avrdude_message(MSG_INFO, "Warning: cannot query manufacturer for device: %s\n",
-                                    usb_strerror());
-                }else{
-                    errorCode = USB_ERROR_NOTFOUND;
-                    /* avrdude_message(MSG_INFO, "seen device from vendor ->%s<-\n", string); */
-                    if(strcmp(string, vendorName) == 0){
-                        len = usbGetStringAscii(handle, dev->descriptor.iProduct,
-						0x0409, string, sizeof(string));
-                        if(len < 0){
-                            errorCode = USB_ERROR_IO;
-                            avrdude_message(MSG_INFO, "Warning: cannot query product for device: %s\n",
-                                            usb_strerror());
-                        }else{
-                            errorCode = USB_ERROR_NOTFOUND;
-                            /* avrdude_message(MSG_INFO, "seen product ->%s<-\n", string); */
-                            if(strcmp(string, productName) == 0)
-                                break;
-                        }
-                    }
-                }
-                usb_close(handle);
-                handle = NULL;
-            }
-        }
-        if(handle)
-            break;
-    }
-    if(handle != NULL){
-        int rval, retries = 3;
-        if(usb_set_configuration(handle, 1)){
-            avrdude_message(MSG_INFO, "Warning: could not set configuration: %s\n",
-		    usb_strerror());
-        }
-        /* now try to claim the interface and detach the kernel HID driver on
-         * linux and other operating systems which support the call.
-         */
-        while((rval = usb_claim_interface(handle, 0)) != 0 && retries-- > 0){
-#ifdef LIBUSB_HAS_DETACH_KERNEL_DRIVER_NP
-            if(usb_detach_kernel_driver_np(handle, 0) < 0){
-                avrdude_message(MSG_INFO, "Warning: could not detach kernel HID driver: %s\n",
-			usb_strerror());
-            }
-#endif
-        }
-        if(rval != 0)
-            avrdude_message(MSG_INFO, "Warning: could not claim interface\n");
-/* Continue anyway, even if we could not claim the interface. Control transfers
- * should still work.
- */
-        errorCode = 0;
-        fdp->pfd = (void *)handle;
-        usesReportIDs = doReportIDs;
-    }
-    return errorCode;
-}
-
-/* ------------------------------------------------------------------------- */
-
-static void    usbCloseDevice(union filedescriptor *fdp)
-{
-    usb_close((usb_dev_handle *)fdp->pfd);
-}
-
-/* ------------------------------------------------------------------------- */
-
-static int usbSetReport(union filedescriptor *fdp, int reportType, char *buffer, int len)
-{
-    int bytesSent;
-
-    if(!usesReportIDs){
-        buffer++;   /* skip dummy report ID */
-        len--;
-    }
-    bytesSent = usb_control_msg((usb_dev_handle *)fdp->pfd, USB_TYPE_CLASS |
-				USB_RECIP_INTERFACE | USB_ENDPOINT_OUT, USBRQ_HID_SET_REPORT,
-				reportType << 8 | buffer[0], 0, buffer, len, 5000);
-    if(bytesSent != len){
-        if(bytesSent < 0)
-            avrdude_message(MSG_INFO, "Error sending message: %s\n", usb_strerror());
-        return USB_ERROR_IO;
-    }
-    return 0;
-}
-
-/* ------------------------------------------------------------------------- */
-
-static int usbGetReport(union filedescriptor *fdp, int reportType, int reportNumber,
-			char *buffer, int *len)
-{
-    int bytesReceived, maxLen = *len;
-
-    if(!usesReportIDs){
-        buffer++;   /* make room for dummy report ID */
-        maxLen--;
-    }
-    bytesReceived = usb_control_msg((usb_dev_handle *)fdp->pfd, USB_TYPE_CLASS |
-				    USB_RECIP_INTERFACE | USB_ENDPOINT_IN, USBRQ_HID_GET_REPORT,
-				    reportType << 8 | reportNumber, 0, buffer, maxLen, 5000);
-    if(bytesReceived < 0){
-        avrdude_message(MSG_INFO, "Error sending message: %s\n", usb_strerror());
-        return USB_ERROR_IO;
-    }
-    *len = bytesReceived;
-    if(!usesReportIDs){
-        buffer[-1] = reportNumber;  /* add dummy report ID */
-        len++;
-    }
-    return 0;
 }
 
 #endif  /* WIN32NATIVE */
@@ -658,4 +555,4 @@ struct serial_device avrdoper_serdev =
   .flags = SERDEV_FL_NONE,
 };
 
-#endif /* defined(HAVE_LIBUSB) || (defined(WIN32NATIVE) && defined(HAVE_LIBHID)) */
+#endif /* defined(HAVE_LIBHIDAPI) || (defined(WIN32NATIVE) && defined(HAVE_LIBHID)) */

@@ -14,6 +14,7 @@ Current:
       debuggers (JTAGICE3 with firmware 3+, AtmelICE, EDBG, mEDBG)
     - UPDI support added (AVR8X family)
     - TPI support for USBtinyISP
+    - AVR Doper uses libhidapi rather than raw libusb (patch #9033)
 
   * New devices supported:
 
@@ -53,6 +54,7 @@ Current:
     patch #9317: Support atmega64m1 as part
     patch #9222: Enable silent build
     patch #8924: Enable TPI for usbtiny
+    patch #9033: avrdoper backend uses libhidapi instead of libusb
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes

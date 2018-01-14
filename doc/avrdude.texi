@@ -542,8 +542,8 @@ As the AVRISP mkII device can only be talked to over USB, the very
 same method of specifying the port is required there.
 
 For the USB programmer "AVR-Doper" running in HID mode, the port must
-be specified as @var{avrdoper}. Libusb support is required on Unix
-but not on Windows. For more information about AVR-Doper see
+be specified as @var{avrdoper}. Libhidapi support is required on Unix
+and Mac OS but not on Windows. For more information about AVR-Doper see
 @url{http://www.obdev.at/avrusb/avrdoper.html}.
 
 For the USBtinyISP, which is a simplistic device not implementing

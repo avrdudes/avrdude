@@ -1,3 +1,12 @@
+2018-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Axel Simon:
+	patch #9033: avrdoper backend uses libhidapi instead of libusb
+	* ser_avrdoper: Add libhidapi implementation
+	* stk500v2.c: Adapt #ifdefs for LIBHIDAPI
+	* avrdude.1: Document change
+	* doc/avrdude.texi: (Dito)
+
 2018-01-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by David Mosberger-Tang
