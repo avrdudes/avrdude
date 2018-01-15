@@ -56,6 +56,7 @@ Current:
     patch #8924: Enable TPI for usbtiny
     patch #9033: avrdoper backend uses libhidapi instead of libusb
     patch #8580: FT245r support to select device by serial number
+    patch #8910: ATxmega32c4 and ATxmega16c4 have wrong signatures
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes

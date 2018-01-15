@@ -13766,7 +13766,7 @@ part parent ".xmega"
 part parent "x16a4u"
     id		= "x16c4";
     desc	= "ATxmega16C4";
-    signature	= 0x1e 0x95 0x44;
+    signature	= 0x1e 0x94 0x43;
 ;
 
 #------------------------------------------------------------
@@ -13855,7 +13855,7 @@ part parent ".xmega"
 part parent "x32a4u"
     id		= "x32c4";
     desc	= "ATxmega32C4";
-    signature	= 0x1e 0x94 0x43;
+    signature	= 0x1e 0x95 0x44;
 ;
 
 #------------------------------------------------------------

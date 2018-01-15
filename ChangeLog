@@ -1,3 +1,10 @@
+2018-01-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Nicolas BRULEZ
+	patch #8910: ATxmega32c4 and ATxmega16c4 have wrong signatures
+	bug #41388: ATxmega32c4 and ATxmega16c4 have wrong signatures
+	* avrdude.conf.in (ATxmega16C4, ATxmega32C4): Fix signatures
+
 2018-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Dennis Reimers:
