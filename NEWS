@@ -55,6 +55,7 @@ Current:
     patch #9222: Enable silent build
     patch #8924: Enable TPI for usbtiny
     patch #9033: avrdoper backend uses libhidapi instead of libusb
+    patch #8580: FT245r support to select device by serial number
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes
