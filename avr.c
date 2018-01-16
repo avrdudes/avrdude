@@ -1195,6 +1195,16 @@ int avr_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   return rc;
 }
 
+int avr_unlock(PROGRAMMER * pgm, AVRPART * p)
+{
+  int rc = -1;
+
+  if (pgm->unlock)
+    rc = pgm->unlock(pgm, p);
+
+  return rc;
+}
+
 /*
  * Report the progress of a read or write operation from/to the
  * device.

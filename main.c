@@ -1077,7 +1077,7 @@ int main(int argc, char * argv [])
               if (quell_progress < 2) {
                 avrdude_message(MSG_INFO, "%s: erasing chip\n", progname);
               }
-              exitrc = avr_chip_erase(pgm, p);
+              exitrc = avr_unlock(pgm, p);
               if(exitrc) goto main_exit;
               goto sig_again;
             }

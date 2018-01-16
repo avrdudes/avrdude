@@ -1,5 +1,18 @@
 2018-01-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Jan Egil Ruud <janegil.ruud@microchip.com>
+	patch #9507: Fix UPDI chip erase
+	* libavrdude.h (PROGRAMMER): add unlock method
+	* avr.c (avr_unlock): Generic unlock function
+	* jtag3.c: Implement unlock feature; avoid calling
+	jtag3_edbg_prepare() and jtag3_edbg_signoff() on XplainedMini
+	boards to work around a bug in early firmware versions;
+	implement "userrow" memory region
+	* main.c: Call avr_unlock() rather than avr_chip_erase() when
+	encountering a locked UPDI chip
+
+2018-01-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Nicolas BRULEZ
 	patch #8910: ATxmega32c4 and ATxmega16c4 have wrong signatures
 	bug #41388: ATxmega32c4 and ATxmega16c4 have wrong signatures

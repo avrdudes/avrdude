@@ -647,6 +647,7 @@ typedef struct programmer_t {
   void (*powerdown)      (struct programmer_t * pgm);
   int  (*program_enable) (struct programmer_t * pgm, AVRPART * p);
   int  (*chip_erase)     (struct programmer_t * pgm, AVRPART * p);
+  int  (*unlock)         (struct programmer_t * pgm, AVRPART * p);
   int  (*cmd)            (struct programmer_t * pgm, const unsigned char *cmd,
                           unsigned char *res);
   int  (*cmd_tpi)        (struct programmer_t * pgm, const unsigned char *cmd,
@@ -763,6 +764,8 @@ int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles);
 int avr_mem_hiaddr(AVRMEM * mem);
 
 int avr_chip_erase(PROGRAMMER * pgm, AVRPART * p);
+
+int avr_unlock(PROGRAMMER * pgm, AVRPART * p);
 
 void report_progress (int completed, int total, char *hdr);
 
