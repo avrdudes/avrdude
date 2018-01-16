@@ -58,6 +58,7 @@ Current:
     patch #8580: FT245r support to select device by serial number
     patch #8910: ATxmega32c4 and ATxmega16c4 have wrong signatures
     patch #8219: Fix boot_start for xmega devices on jtagmkII
+    patch #9185: Add extended_param to usbasp.c - erasing
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes
