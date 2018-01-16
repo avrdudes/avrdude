@@ -1047,6 +1047,15 @@ Sets the SPI clocking rate in Hz (default is 100kHz). Alternately the -B or -i o
 .It Ar timeout=<usb-transaction-timeout>
 Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
 .El
+.It Ar USBasp
+Extended parameters:
+.Bl -tag -offset indent -width indent
+.It Ar section_config
+Programmer will erase configuration section with option
+.Fl e
+(chip erase), rather than entire chip.
+Only applicable to TPI devices (ATtiny 4/5/9/10/20/40).
+.El
 .El
 .Sh FILES
 .Bl -tag -offset indent -width /dev/ppi0XXX

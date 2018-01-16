@@ -1,5 +1,15 @@
 2018-01-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Maciej:
+	patch #9185: Add extended_param to usbasp.c - erasing
+	configuration section in ATtiny 4...40 (TPI)
+	* usbasp.c: Implement extended parameter parsing, and modify
+	usbasp_tpi_chip_erase() appropriately
+	* avrdude.1: Document USBasp extended parameters
+	* doc/avrdude.texi: (Dito)
+
+2018-01-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Tom Carney:
 	patch #8219: Fix boot_start for xmega devices on jtagmkII
 	* jtagmkII.c (jtagmkII_initialize): Determine boarder between
