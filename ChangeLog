@@ -1,5 +1,12 @@
 2018-01-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Tom Carney:
+	patch #8219: Fix boot_start for xmega devices on jtagmkII
+	* jtagmkII.c (jtagmkII_initialize): Determine boarder between
+	application and boot area correctly.
+
+2018-01-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Jan Egil Ruud <janegil.ruud@microchip.com>
 	patch #9507: Fix UPDI chip erase
 	* libavrdude.h (PROGRAMMER): add unlock method

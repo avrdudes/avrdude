@@ -1346,12 +1346,7 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
     jtagmkII_set_devdescr(pgm, p);
 
   PDATA(pgm)->boot_start = ULONG_MAX;
-  /*
-   * If this is an ATxmega device in JTAG mode, change the emulator
-   * mode from JTAG to JTAG_XMEGA.
-   */
-  if ((pgm->flag & PGM_FL_IS_JTAG) &&
-      (p->flags & AVRPART_HAS_PDI)) {
+  if ((p->flags & AVRPART_HAS_PDI)) {
     /*
      * Find out where the border between application and boot area
      * is.
