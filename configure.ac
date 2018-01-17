@@ -218,7 +218,7 @@ AC_CHECK_HEADERS([netinet/in.h])
 AC_CHECK_LIB([ws2_32], [puts])
 
 # Checks for library functions.
-AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul gettimeofday usleep])
+AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul gettimeofday usleep getaddrinfo])
 
 AC_MSG_CHECKING([for a Win32 HID libray])
 SAVED_LIBS="${LIBS}"

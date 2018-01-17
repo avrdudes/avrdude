@@ -15,6 +15,7 @@ Current:
     - UPDI support added (AVR8X family)
     - TPI support for USBtinyISP
     - AVR Doper uses libhidapi rather than raw libusb (patch #9033)
+    - -P net:host:port can use IPv6 now (Posix systems only)
 
   * New devices supported:
 
@@ -59,6 +60,7 @@ Current:
     patch #8910: ATxmega32c4 and ATxmega16c4 have wrong signatures
     patch #8219: Fix boot_start for xmega devices on jtagmkII
     patch #9185: Add extended_param to usbasp.c - erasing
+    patch #8311: Add IPv6 support to the -Pnet:host:port option
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes
