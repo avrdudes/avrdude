@@ -16,6 +16,7 @@ Current:
     - TPI support for USBtinyISP
     - AVR Doper uses libhidapi rather than raw libusb (patch #9033)
     - -P net:host:port can use IPv6 now (Posix systems only)
+    - New configure option: -disable-libusb_1_0
 
   * New devices supported:
 
@@ -62,6 +63,7 @@ Current:
     patch #9185: Add extended_param to usbasp.c - erasing
     patch #8311: Add IPv6 support to the -Pnet:host:port option
     patch #9542: Correct "usersig" on avr8x devices
+    patch #8128: Added new option to configure.ac script
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes

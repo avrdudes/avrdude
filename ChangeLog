@@ -1,5 +1,11 @@
 2018-01-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Simone:
+	patch #8128: Added new option to configure.ac script
+	* configure.ac (disable-libusb_1_0): New option
+
+2018-01-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Jan Egil Ruud:
 	patch #9542: Correct "usersig" on avr8x devices
 	* avrdude.conf.in (.avr8x_tiny, .avr8x_mega): rename "userrow" to

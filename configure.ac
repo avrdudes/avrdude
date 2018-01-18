@@ -115,10 +115,22 @@ if test x$have_libusb = xyes; then
 fi
 AC_SUBST(LIBUSB, $LIBUSB)
 
+AC_ARG_ENABLE(
+	[libusb_1_0],
+	AC_HELP_STRING(
+		[--disable-libusb_1_0],
+		[Allow to build with libusb instead of libusb_1_0 if both are present]),
+	[case "${enableval}" in
+		yes) enabled_libusb_1_0=yes ;;
+		no)  enabled_libusb_1_0=no ;;
+		*)   AC_MSG_ERROR(bad value ${enableval} for enable-libusb_1_0 option) ;;
+		esac],
+	[enabled_libusb_1_0=yes])	
+
 AH_TEMPLATE([HAVE_LIBUSB_1_0],
             [Define if USB support is enabled via libusb 1.0])
 AC_CHECK_LIB([usb-1.0], [libusb_init], [have_libusb_1_0=yes])
-if test x$have_libusb_1_0 = xyes; then
+if test x$have_libusb_1_0 = xyes && test x$enabled_libusb_1_0 = xyes; then
    case $target in
        *-*-darwin*)
                LIBUSB_1_0="-lusb-1.0 -framework CoreFoundation -framework IOKit"
@@ -134,7 +146,7 @@ fi
 AH_TEMPLATE([HAVE_LIBUSB_1_0],
             [Define if USB support is enabled via a libusb-1.0 compatible libusb])
 AC_CHECK_LIB([usb], [libusb_init], [have_libusb_1_0=yes])
-if test x$have_libusb_1_0 = xyes; then
+if test x$have_libusb_1_0 = xyes test x$have_libusb_1_0 = xyes; then
    case $target in
        *-*-freebsd*)
                # FreeBSD 8+ has a native libusb-1.0 API compatible
@@ -517,7 +529,11 @@ else
 fi
 
 if test x$have_libusb_1_0 = xyes; then
-   echo "DO HAVE    libusb_1_0"
+   if test x$enabled_libusb_1_0 = xyes; then
+       echo "DO HAVE    libusb_1_0"
+   else
+       echo "DISABLED   libusb_1_0"
+   fi
 else
    echo "DON'T HAVE libusb_1_0"
 fi
