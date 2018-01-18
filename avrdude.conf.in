@@ -15219,13 +15219,6 @@ part
         offset		= 0x1100;
     ;
 
-    memory "userrow"
-        size		= 0x20;
-        offset		= 0x1300;
-        page_size	= 0x20;
-        readsize	= 0x100;
-    ;
-
     memory "prodsig"
         size		= 0x3D;
         offset		= 0x1103;
@@ -15297,6 +15290,13 @@ part parent    ".avr8x"
     id			= ".avr8x_tiny";
     desc		= "AVR8X tiny family common values";
     family_id	= "tinyAVR";
+
+    memory "usersig"
+        size		= 0x20;
+        offset		= 0x1300;
+        page_size	= 0x20;
+        readsize	= 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -15307,6 +15307,13 @@ part parent    ".avr8x"
     id			= ".avr8x_mega";
     desc		= "AVR8X mega family common values";
     family_id	= "megaAVR";
+
+    memory "usersig"
+        size		= 0x40;
+        offset		= 0x1300;
+        page_size	= 0x40;
+        readsize	= 0x100;
+    ;
 ;
 
 #------------------------------------------------------------

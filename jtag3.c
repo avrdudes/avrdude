@@ -1694,8 +1694,6 @@ static int jtag3_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if ( ( strcmp(m->desc, "usersig") == 0 ) ) {
     cmd[3] = MTYPE_USERSIG;
-  } else if ( ( strcmp(m->desc, "userrow") == 0 ) ) {
-    cmd[3] = MTYPE_USERSIG;
   } else if ( ( strcmp(m->desc, "boot") == 0 ) ) {
     cmd[3] = MTYPE_BOOT_FLASH;
   } else if ( p->flags & AVRPART_HAS_PDI || p->flags & AVRPART_HAS_UPDI ) {
@@ -1786,8 +1784,6 @@ static int jtag3_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   } else if ( ( strcmp(m->desc, "prodsig") == 0 ) ) {
     cmd[3] = MTYPE_PRODSIG;
   } else if ( ( strcmp(m->desc, "usersig") == 0 ) ) {
-    cmd[3] = MTYPE_USERSIG;
-  } else if ( ( strcmp(m->desc, "userrow") == 0 ) ) {
     cmd[3] = MTYPE_USERSIG;
   } else if ( ( strcmp(m->desc, "boot") == 0 ) ) {
     cmd[3] = MTYPE_BOOT_FLASH;
@@ -1900,8 +1896,6 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     if (!(p->flags & AVRPART_HAS_UPDI))
       addr = mem->offset & 7;
   } else if (strcmp(mem->desc, "usersig") == 0) {
-    cmd[3] = MTYPE_USERSIG;
-  } else if (strcmp(mem->desc, "userrow") == 0) {
     cmd[3] = MTYPE_USERSIG;
   } else if (strcmp(mem->desc, "prodsig") == 0) {
     cmd[3] = MTYPE_PRODSIG;
@@ -2051,8 +2045,6 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     if (!(p->flags & AVRPART_HAS_UPDI))
       addr = mem->offset & 7;
   } else if (strcmp(mem->desc, "usersig") == 0) {
-    cmd[3] = MTYPE_USERSIG;
-  } else if (strcmp(mem->desc, "userrow") == 0) {
     cmd[3] = MTYPE_USERSIG;
   } else if (strcmp(mem->desc, "prodsig") == 0) {
     cmd[3] = MTYPE_PRODSIG;
