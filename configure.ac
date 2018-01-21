@@ -146,7 +146,7 @@ fi
 AH_TEMPLATE([HAVE_LIBUSB_1_0],
             [Define if USB support is enabled via a libusb-1.0 compatible libusb])
 AC_CHECK_LIB([usb], [libusb_init], [have_libusb_1_0=yes])
-if test x$have_libusb_1_0 = xyes test x$have_libusb_1_0 = xyes; then
+if test x$have_libusb_1_0 = xyes && test x$enabled_libusb_1_0 = xyes; then
    case $target in
        *-*-freebsd*)
                # FreeBSD 8+ has a native libusb-1.0 API compatible
