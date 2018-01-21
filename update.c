@@ -113,7 +113,9 @@ UPDATE * parse_op(char * s)
   cp = p;
   p = strrchr(cp, ':');
   if (p == NULL) {
-    upd->format = FMT_AUTO;
+    // missing format, default to "AUTO" for write and verify,
+    // and to binary for read operations:
+    upd->format = upd->op == DEVICE_READ? FMT_RBIN: FMT_AUTO;
     fnlen = strlen(cp);
     upd->filename = (char *)malloc(fnlen + 1);
   } else {

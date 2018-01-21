@@ -1,3 +1,9 @@
+2018-01-21  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	patch #8444: Proposal for modifications in -B and -U command options managment
+	* update.c (parse_op): Default -U filename to RBIN for output
+	files
+
 2018-01-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Simone:
