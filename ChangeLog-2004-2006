@@ -1080,7 +1080,7 @@
 
 2005-09-18  Joerg Wunsch <j@uriah.heep.sax.de>
 
-	Add the serial bit-bang driver, contributed by Michael Holzt.
+	Add the serial bit-bang driver, contributed by Juliane Holzt.
 	* bitbang.h: New file.
 	* bitbang.c: New file.
 	* serbb.h: New file.
