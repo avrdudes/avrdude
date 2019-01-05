@@ -502,7 +502,7 @@ static int usbtiny_initialize (PROGRAMMER *pgm, AVRPART *p )
   }
 
   for (tries = 0; tries < 4; ++tries) {
-    if (pgm->program_enable(pgm, p) >= 0)
+    if (pgm->program_enable(pgm, p) == 0)
       break;
     // no response, RESET and try again
     if (usb_control(pgm, USBTINY_POWERUP,

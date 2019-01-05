@@ -66,6 +66,7 @@ Current:
     patch #8128: Added new option to configure.ac script
     patch #8444: Proposal for modifications in -B and -U command options managment (partially)
     patch #9735: spelling error fix: psuedo -> pseudo
+    patch #9728: Fix UsbTiny programmer
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes
