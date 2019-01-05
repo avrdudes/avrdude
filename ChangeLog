@@ -1,0 +1,5 @@
+2019-01-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Milan Kupcevic:
+	patch #9735: spelling error fix: psuedo -> pseudo
+	* avrpart.c (avr_display): Spelling fix

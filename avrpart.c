@@ -645,7 +645,7 @@ void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose)
           prefix, avr_pin_name(p->retry_pulse),
           prefix, (p->flags & AVRPART_SERIALOK) ? "yes" : "no",
           prefix, (p->flags & AVRPART_PARALLELOK) ?
-            ((p->flags & AVRPART_PSEUDOPARALLEL) ? "psuedo" : "yes") : "no",
+            ((p->flags & AVRPART_PSEUDOPARALLEL) ? "pseudo" : "yes") : "no",
           prefix, p->timeout,
           prefix, p->stabdelay,
           prefix, p->cmdexedelay,

@@ -64,8 +64,8 @@ Current:
     patch #8311: Add IPv6 support to the -Pnet:host:port option
     patch #9542: Correct "usersig" on avr8x devices
     patch #8128: Added new option to configure.ac script
-    patch #8444: Proposal for modifications in -B and -U command options managment
-    (partially)
+    patch #8444: Proposal for modifications in -B and -U command options managment (partially)
+    patch #9735: spelling error fix: psuedo -> pseudo
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes
