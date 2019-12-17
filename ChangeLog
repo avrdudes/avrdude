@@ -1,3 +1,10 @@
+2019-12-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Britton Kerin:
+	bug #57428: [PATCH] document when 'arduino' or 'wiring' should be used, and -D requirement of latter
+	* avrdude.1: Clarify
+	* doc/avrdude.texi: (dito)
+
 2019-01-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Milan Kupcevic:

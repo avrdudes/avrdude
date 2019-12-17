@@ -117,12 +117,15 @@ Using firmware version 2, high-voltage programming is also supported,
 both parallel and serial
 (programmer types stk500pp and stk500hvsp).
 .Pp
-Wiring boards are supported, utilizing STK500 V2.x protocol, but
-a simple DTR/RTS toggle is used to set the boards into programming mode.
-The programmer type is ``wiring''.
+Wiring boards (e.g. Arduino Mega 2560 Rev3) are supported, utilizing STK500
+V2.x protocol, but a simple DTR/RTS toggle is used to set the boards into
+programming mode.  The programmer type is ``wiring''.  Note that the -D option
+will likely be required in this case, because the bootloader will rewrite the
+program memory, but no true chip erase can be performed.
 .Pp
 The Arduino (which is very similar to the STK500 1.x) is supported via
-its own programmer type specification ``arduino''.
+its own programmer type specification ``arduino''.  This programmer works for
+the Arduino Uno Rev3.
 .Pp
 The BusPirate is a versatile tool that can also be used as an AVR programmer.
 A single BusPirate can be connected to up to 3 independent AVRs. See

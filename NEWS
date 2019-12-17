@@ -44,6 +44,7 @@ Current:
     bug #48084: Avoid compiled-in timestamp for reproducible release builds
     bug #47376: ATtiny841 description missing in configuration file
     bug #49455: support for tiny441
+    bug #57428: document when 'arduino' or 'wiring' should be used, and -D requirement of latter
 
   * Patches:
     patch #9482: Add support for UPDI and AVR8X
