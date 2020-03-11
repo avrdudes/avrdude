@@ -34,7 +34,9 @@
 #elif defined(HAVE_LIBELF_LIBELF_H)
 #include <libelf/libelf.h>
 #endif
-#define EM_AVR32 0x18ad         /* inofficial */
+#ifndef EM_AVR32
+#  define EM_AVR32 0x18ad         /* inofficial */
+#endif
 #endif
 
 #include "avrdude.h"
