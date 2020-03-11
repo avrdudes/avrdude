@@ -1,0 +1,20 @@
+2019-12-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Britton Kerin:
+	bug #57428: [PATCH] document when 'arduino' or 'wiring' should be used, and -D requirement of latter
+	* avrdude.1: Clarify
+	* doc/avrdude.texi: (dito)
+
+2019-01-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Milan Kupcevic:
+	patch #9735: spelling error fix: psuedo -> pseudo
+	* avrpart.c (avr_display): Spelling fix
+
+2019-01-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Martino Facchin:
+	patch #9728: Fix UsbTiny programmer
+	* usbtiny.c (usbtiny_initialize): Only consider
+	pgm->program_enable successful if returning 0
+
