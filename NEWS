@@ -68,6 +68,7 @@ Current:
     patch #8444: Proposal for modifications in -B and -U command options managment (partially)
     patch #9735: spelling error fix: psuedo -> pseudo
     patch #9728: Fix UsbTiny programmer
+    patch #9893: [PATCH] Reader reads ftdi handle after main thread close it
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes
