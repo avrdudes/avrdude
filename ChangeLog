@@ -1,0 +1,5 @@
+2020-03-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Fix compiler warnings
+	* avr.c: misleading indentation after spin loop
+	* fileio.c: EM_AVR32 might be defined in system <libelf.h>
