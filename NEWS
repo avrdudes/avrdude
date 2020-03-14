@@ -69,6 +69,7 @@ Current:
     patch #9735: spelling error fix: psuedo -> pseudo
     patch #9728: Fix UsbTiny programmer
     patch #9893: [PATCH] Reader reads ftdi handle after main thread close it
+    patch #9819: Address several leaks in SVN rev 1429
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes

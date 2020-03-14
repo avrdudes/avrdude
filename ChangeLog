@@ -1,3 +1,13 @@
+2020-03-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Adrian Klieber:
+	patch #9819: Address several leaks in SVN rev 1429
+	* config.c: Fix potential memory leak
+	* jtagmkII.c: (Dito.)
+	* stk500v2.c: (Dito.)
+	* update.c: (Dito.)
+	* windows/loaddrv.c: Fix file descriptor leak.
+
 2020-03-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by: kautism

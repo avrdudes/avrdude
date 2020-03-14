@@ -45,6 +45,7 @@ void DisplayErrorText(DWORD dwLastError) {
 int exists(char *filename) {
     FILE * pFile;
     pFile = fopen(filename, "r");
+    if (pFile) fclose(pFile);
     return pFile != NULL;
 }
 

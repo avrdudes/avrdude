@@ -604,6 +604,7 @@ static int jtagmkII_recv_frame(PROGRAMMER * pgm, unsigned char **msg,
      if (tnow - tstart > timeoutval) {
        avrdude_message(MSG_INFO, "%s: jtagmkII_recv_frame(): timeout\n",
                progname);
+       free(buf);
        return -1;
      }
 
@@ -741,6 +742,7 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
 	  avrdude_message(MSG_NOTICE, "Device ID:                       %s\n",
 		  resp + 16);
 	}
+	free(resp);
 	break;
       }
       free(resp);
@@ -3634,12 +3636,12 @@ static int jtagmkII_paged_write32(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     status = jtagmkII_flash_write_page32(pgm, pageNum);
     if(status < 0) {lineno = __LINE__; goto eRR;}
   }
-  free(cmd);
   serial_recv_timeout = otimeout;
 
   status = jtagmkII_reset32(pgm, AVR32_SET4RUNNING);  // AVR32_SET4RUNNING | AVR32_RELEASE_JTAG
   if(status < 0) {lineno = __LINE__; goto eRR;}
 
+  free(cmd);
   return addr;
 
   eRR:

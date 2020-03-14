@@ -217,6 +217,7 @@ TOKEN * hexnumber(char * text)
   tkn->value.number = strtoul(text, &e, 16);
   if ((e == text) || (*e != 0)) {
     yyerror("can't scan hex number \"%s\"", text);
+    free_token(tkn);
     return NULL;
   }
   
@@ -244,6 +245,7 @@ TOKEN * string(char * text)
   tkn->value.string = (char *) malloc(len+1);
   if (tkn->value.string == NULL) {
     yyerror("string(): out of memory");
+    free_token(tkn);
     return NULL;
   }
   strcpy(tkn->value.string, text);

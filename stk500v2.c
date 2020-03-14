@@ -348,6 +348,9 @@ static void stk500v2_jtagmkII_teardown(PROGRAMMER * pgm)
 {
   void *mycookie;
 
+  free(PDATA(pgm)->flash_pagecache);
+  free(PDATA(pgm)->eeprom_pagecache);
+
   mycookie = pgm->cookie;
   pgm->cookie = PDATA(pgm)->chained_pdata;
   jtagmkII_teardown(pgm);
@@ -570,6 +573,7 @@ static int stk500v2_jtagmkII_recv(PROGRAMMER * pgm, unsigned char *msg,
     return -1;
   }
   memcpy(msg, jtagmsg + 1, rv - 1);
+  free(jtagmsg);
   return rv;
 }
 
