@@ -254,6 +254,7 @@ AVRMEM * avr_new_memtype(void)
   }
 
   memset(m, 0, sizeof(*m));
+  m->page_size = 1; // ensure not 0
 
   return m;
 }

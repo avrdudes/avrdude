@@ -1310,7 +1310,13 @@ mem_spec :
 
   K_PAGE_SIZE       TKN_EQUAL TKN_NUMBER
     {
-      current_mem->page_size = $3->value.number;
+      int ps = $3->value.number;
+      if (ps <= 0)
+        avrdude_message(MSG_INFO,
+                        "%s, line %d: invalid page size %d, ignored\n",
+                        infile, lineno, ps);
+      else
+        current_mem->page_size = ps;
       free_token($3);
     } |
 
