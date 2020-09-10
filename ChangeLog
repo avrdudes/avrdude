@@ -1,3 +1,8 @@
+2020-09-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avrpart.c (avr_new_memtype): ensure page_size is at least 1
+	* config_gram.y (K_PAGE_SIZE): (Dito.)
+
 2020-03-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Adrian Klieber:
