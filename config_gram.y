@@ -672,7 +672,7 @@ part_parm :
 
   K_DESC TKN_EQUAL TKN_STRING 
     {
-      strncpy(current_part->desc, $3->value.string, AVR_DESCLEN);
+      strncpy(current_part->desc, $3->value.string, AVR_DESCLEN - 1);
       current_part->desc[AVR_DESCLEN-1] = 0;
       free_token($3);
     } |
@@ -1240,7 +1240,7 @@ part_parm :
         free_token($2);
         YYABORT;
       }
-      strncpy(current_mem->desc, $2->value.string, AVR_MEMDESCLEN);
+      strncpy(current_mem->desc, $2->value.string, AVR_MEMDESCLEN - 1);
       current_mem->desc[AVR_MEMDESCLEN-1] = 0;
       free_token($2);
     }

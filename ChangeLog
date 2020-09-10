@@ -1,5 +1,10 @@
 2020-09-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* config_gram.y (K_DESC): Enforce correct length in strncpy()
+	* config_gram.y (K_MEMORY): (Dito.)
+
+2020-09-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* avrpart.c (avr_new_memtype): ensure page_size is at least 1
 	* config_gram.y (K_PAGE_SIZE): (Dito.)
 
