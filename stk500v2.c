@@ -3158,8 +3158,9 @@ static const char *stk600_get_cardname(const struct carddata *table,
 
 static void stk500v2_display(PROGRAMMER * pgm, const char * p)
 {
-  unsigned char maj, min, hdw, topcard, maj_s1, min_s1, maj_s2, min_s2;
-  unsigned int rev;
+  unsigned char maj = 0, min = 0, hdw = 0, topcard = 0,
+                maj_s1 = 0, min_s1 = 0, maj_s2 = 0, min_s2 = 0;
+  unsigned int rev = 0;
   const char *topcard_name, *pgmname;
 
   switch (PDATA(pgm)->pgmtype) {
