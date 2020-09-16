@@ -1,3 +1,13 @@
+2020-09-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Adrian Klieber:
+	patch #9820: Fix some out-of-bounds/uninitialized issues
+	* stk500v2.c (stk500v2_display): fix uninitialized variables
+	* stk500v2.c (stk500v2_set_sck_period_mk2): fix loop limits
+	* pickit2.c (pickit2_open): Use pgm->desc to store description (WIN32 only)
+	* config_gram.y (K_PAGE_SIZE): ensure page_size is > 0
+	* avrpart.c (avr_new_memtype): initialize page_size to 1
+
 2020-09-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* config_gram.y (K_DESC): Enforce correct length in strncpy()
