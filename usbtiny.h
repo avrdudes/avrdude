@@ -45,7 +45,7 @@
 
 // The SCK speed can be set by avrdude, to allow programming of slow-clocked parts
 #define	SCK_MIN		1	// usec delay (target clock >= 4 MHz)
-#define	SCK_MAX		250	// usec (target clock >= 16 KHz)
+#define	SCK_MAX		250	// usec (target clock >= 16 kHz)
 #define	SCK_DEFAULT	10	// usec (target clock >= 0.4 MHz)
 
 // How much data, max, do we want to send in one USB packet?

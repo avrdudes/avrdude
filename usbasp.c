@@ -662,7 +662,7 @@ static int usbasp_spi_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
     if (verbose == 3)
       putc('\n', stderr);
 
-    avrdude_message(MSG_INFO, "%s: error: wrong responds size\n",
+    avrdude_message(MSG_INFO, "%s: error: wrong response size\n",
 	    progname);
     return -1;
   }
@@ -963,7 +963,7 @@ static int usbasp_tpi_recv_byte(PROGRAMMER * pgm)
 
   if(usbasp_transmit(pgm, 1, USBASP_FUNC_TPI_RAWREAD, temp, temp, sizeof(temp)) != 1)
   {
-    avrdude_message(MSG_INFO, "%s: error: wrong responds size\n", progname);
+    avrdude_message(MSG_INFO, "%s: error: wrong response size\n", progname);
     return -1;
   }
 

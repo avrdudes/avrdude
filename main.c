@@ -921,7 +921,7 @@ int main(int argc, char * argv [])
    */
   if (port[0] == 0) {
     avrdude_message(MSG_INFO, "\n%s: no port has been specified on the command line "
-            "or the config file\n",
+            "or in the config file\n",
             progname);
     avrdude_message(MSG_INFO, "%sSpecify a port using the -P option and try again\n\n",
             progbuf);
@@ -1176,7 +1176,7 @@ int main(int argc, char * argv [])
 	  //Check if the programmer just doesn't support reading
   	  if (rc == -5)
 			{
-				avrdude_message(MSG_NOTICE, "%s: safemode: Fuse reading not support by programmer.\n"
+				avrdude_message(MSG_NOTICE, "%s: safemode: Fuse reading not supported by programmer.\n"
 						"              Safemode disabled.\n", progname);
 			}
       else

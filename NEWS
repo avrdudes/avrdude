@@ -71,6 +71,7 @@ Current:
     patch #9893: [PATCH] Reader reads ftdi handle after main thread close it
     patch #9819: Address several leaks in SVN rev 1429
     patch #9820: Fix some out-of-bounds/uninitialized issues
+    patch #9818: correct typos in SVN rev 1429
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes

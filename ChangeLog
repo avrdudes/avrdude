@@ -1,6 +1,18 @@
 2020-09-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Adrian Klieber:
+	patch #9818: correct typos in SVN rev 1429
+	* buspirate.c: Fix typos.
+	* fileio.c: Fix typos.
+	* jtagmkII.c: Fix typos.
+	* main.c: Fix typos.
+	* term.c: Fix typos.
+	* usbasp.c: Fix typos.
+	* usbtiny.h: Fix typos.
+
+2020-09-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Adrian Klieber:
 	patch #9820: Fix some out-of-bounds/uninitialized issues
 	* stk500v2.c (stk500v2_display): fix uninitialized variables
 	* stk500v2.c (stk500v2_set_sck_period_mk2): fix loop limits

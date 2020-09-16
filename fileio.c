@@ -1172,7 +1172,7 @@ static int fileio_ihex(struct fioparms * fio,
       break;
 
     default:
-      avrdude_message(MSG_INFO, "%s: invalid Intex Hex file I/O operation=%d\n",
+      avrdude_message(MSG_INFO, "%s: invalid Intel Hex file I/O operation=%d\n",
               progname, fio->op);
       return -1;
       break;

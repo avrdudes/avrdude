@@ -342,7 +342,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
 
   if (argc < 4) {
     avrdude_message(MSG_INFO, "Usage: write <memtype> <addr> <byte1> "
-            "<byte2> ... byteN>\n");
+            "<byte2> ... <byteN>\n");
     return -1;
   }
 
@@ -624,7 +624,7 @@ static int cmd_fosc(PROGRAMMER * pgm, struct avrpart * p,
     return -2;
   }
   if ((rc = pgm->set_fosc(pgm, v)) != 0) {
-    avrdude_message(MSG_INFO, "%s (fosc): failed to set oscillator_frequency (rc = %d)\n",
+    avrdude_message(MSG_INFO, "%s (fosc): failed to set oscillator frequency (rc = %d)\n",
 	    progname, rc);
     return -3;
   }

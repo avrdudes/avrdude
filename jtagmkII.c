@@ -1916,7 +1916,7 @@ static int jtagmkII_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   retry:
     avrdude_message(MSG_NOTICE2, "%s: jtagmkII_page_erase(): "
-            "Sending xmega erase command: ",
+            "Sending Xmega erase command: ",
             progname);
   jtagmkII_send(pgm, cmd, sizeof cmd);
 
