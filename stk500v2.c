@@ -2823,9 +2823,15 @@ static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v)
 {
   int i;
 
-  for (i = 0; i < sizeof(avrispmkIIfreqs); i++) {
+  for (i = 0; i < sizeof(avrispmkIIfreqs) / sizeof(avrispmkIIfreqs[0]); i++) {
     if (1 / avrispmkIIfreqs[i] >= v)
       break;
+  }
+
+  if (i >= sizeof(avrispmkIIfreqs) / sizeof(avrispmkIIfreqs[0])) {
+    avrdude_message(MSG_INFO, "%s: stk500v2_set_sck_period_mk2(): "
+                    "invalid SCK period: %g\n", progname, v);
+    return -1;
   }
 
   avrdude_message(MSG_NOTICE2, "Using p = %.2f us for SCK (param = %d)\n",
