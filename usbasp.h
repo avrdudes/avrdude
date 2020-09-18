@@ -42,6 +42,7 @@
 
 /* USBASP capabilities */
 #define USBASP_CAP_TPI    0x01
+#define USBASP_CAP_3MHZ   (1 << 24)   // 3 MHz SCK in UsbAsp-flash firmware
 
 /* Block mode flags */
 #define USBASP_BLOCKFLAG_FIRST    1
@@ -65,6 +66,7 @@
 #define USBASP_ISP_SCK_375    10  /* 375 kHz   */
 #define USBASP_ISP_SCK_750    11  /* 750 kHz   */
 #define USBASP_ISP_SCK_1500   12  /* 1.5 MHz   */
+#define USBASP_ISP_SCK_3000   13  /*   3 MHz   only UsbAsp-flash firmware*/
 
 /* TPI instructions */
 #define TPI_OP_SLD      0x20

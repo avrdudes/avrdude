@@ -1,5 +1,12 @@
 2020-09-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Marcin Miskiewic
+	patch #9963: UsbAsp 3 MHz patch for UsbAsp-flash firmware
+	* usbasp.c: Implement 3 MHz clock option including capability check
+	* usbasp.h: (Dito.)
+
+2020-09-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Sven Schwermer:
 	patch #9966: Add JTAGICE3 in UPDI mode
 	* avrdude.conf (jtag3updi): New entry.

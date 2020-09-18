@@ -75,6 +75,7 @@ Current:
     patch #9818: correct typos in SVN rev 1429
     patch #9732: usbtiny_paged_load overflows buffer e.g. when reading EEPROM
     patch #9966: Add JTAGICE3 in UPDI mode
+    patch #9963: UsbAsp 3 MHz patch for UsbAsp-flash firmware
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes

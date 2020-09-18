@@ -121,6 +121,7 @@ struct pdata
   unsigned int capabilities;
   int use_tpi;
   int section_e;
+  int sck_3mhz;
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
@@ -597,6 +598,9 @@ static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p)
     pdata->capabilities = 0;
 
   pdata->use_tpi = ((pdata->capabilities & USBASP_CAP_TPI) != 0 && (p->flags & AVRPART_HAS_TPI) != 0) ? 1 : 0;
+  // query support for 3 MHz SCK in UsbAsp-flash firmware
+  // https://github.com/nofeletru/UsbAsp-flash
+  pdata->sck_3mhz = ((pdata->capabilities & USBASP_CAP_3MHZ) != 0) ? 1 :0;
 
   if(pdata->use_tpi)
   {
@@ -863,6 +867,7 @@ static int usbasp_spi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 /* The list of SCK frequencies in Hz supported by USBasp */
 static struct sckoptions_t usbaspSCKoptions[] = {
+  { USBASP_ISP_SCK_3000, 3000000 },
   { USBASP_ISP_SCK_1500, 1500000 },
   { USBASP_ISP_SCK_750, 750000 },
   { USBASP_ISP_SCK_375, 375000 },
@@ -908,14 +913,23 @@ static int usbasp_spi_set_sck_period(PROGRAMMER *pgm, double sckperiod)
 
     avrdude_message(MSG_NOTICE2, "%s: try to set SCK period to %g s (= %i Hz)\n", progname, sckperiod, sckfreq);
 
-    if (sckfreq >= usbaspSCKoptions[0].frequency) {
-      clockoption = usbaspSCKoptions[0].id;
-      usefreq = usbaspSCKoptions[0].frequency;
+    /* Check if programmer is capable of 3 MHz SCK, if not then ommit 3 MHz setting */
+    int i;
+    if (PDATA(pgm)->sck_3mhz) {
+      avrdude_message(MSG_NOTICE2, "%s: connected USBasp is capable of 3 MHz SCK\n",progname);
+      i = 0;
+    } else {
+      avrdude_message(MSG_NOTICE2, "%s: connected USBasp is not cabable of 3 MHz SCK\n",progname);
+      i = 1;
+    }
+    if (sckfreq >= usbaspSCKoptions[i].frequency) {
+      clockoption = usbaspSCKoptions[i].id;
+      usefreq = usbaspSCKoptions[i].frequency;
     } else {
 
       /* find clock option next to given clock */
-      int i;
-      for (i = 0; i < sizeof(usbaspSCKoptions) / sizeof(usbaspSCKoptions[0]); i++) {
+
+      for (; i < sizeof(usbaspSCKoptions) / sizeof(usbaspSCKoptions[0]); i++) {
         if (sckfreq >= usbaspSCKoptions[i].frequency - 1) { /* subtract 1 to compensate round errors */
           clockoption = usbaspSCKoptions[i].id;
           usefreq = usbaspSCKoptions[i].frequency;
