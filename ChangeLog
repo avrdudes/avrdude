@@ -1,3 +1,10 @@
+2020-09-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Joel Ray Holveck
+	patch #9732: usbtiny_paged_load overflows buffer e.g. when reading EEPROM
+	* usbtiny.c (usbtiny_paged_load, usbtiny_paged_write): ensure chunk
+	does not overflow memory area
+
 2020-09-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Adrian Klieber:
