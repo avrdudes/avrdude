@@ -1487,6 +1487,23 @@ programmer
 #  miso  = ?;
 #;
 
+
+# This programmer uses the built in linux SPI bus devices to program an
+# attached AVR. A GPIO accessed through the sysfs GPIO interface needs to
+# be specified for a reset pin since the linux SPI userspace functions do
+# not allow for control over the slave select/chip select signal.
+#
+# To use it, copy this snippet into your ~/.avrduderc, make sure the
+# 'reset' entry is configured correctly.
+#
+# programmer
+#   id = "linuxspi";
+#   desc = "Use Linux SPI device in /dev/spidev*";
+#   type = "linuxspi";
+#   reset = 25;
+#   baudrate=400000;
+# ;
+
 # some ultra cheap programmers use bitbanging on the 
 # serialport.
 #

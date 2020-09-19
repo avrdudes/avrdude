@@ -180,6 +180,33 @@ some resistors in series or better yet use a 3-state buffer driver like
 the 74HC244. Have a look at http://kolev.info/avrdude-linuxgpio for a more
 detailed tutorial about using this programmer type.
 
+Under a Linux installation with direct access to the SPI bus and GPIO
+pins, such as would be found on a Raspberry Pi, the ``linuxspi''
+programmer type can be used to directly connect to and program a chip
+using the built in interfaces on the computer. The requirements to use
+this type are that an SPI interface is exposed along with one GPIO
+pin. The GPIO serves as the reset output since the Linux SPI drivers
+do not hold slave select down when a transfer is not occuring and thus
+it cannot be used as the reset pin. A readily available level
+translator should be used between the SPI bus/reset GPIO and the chip
+to avoid potentially damaging the computer's SPI controller in the
+event that the chip is running at 5V and the SPI runs at 3.3V. The
+GPIO chosen for reset can be configured in the avrdude configuration
+file using the @code{reset} entry under the linuxspi programmer, or
+directly in the port specification. An external pull-up resistor
+should be connected between the AVR's reset pin and Vcc. If Vcc is not
+the same as the SPI voltage, this should be done on the AVR side of
+the level translator to protect the hardware from damage.
+
+A commented-out template for this programmer is provided in the
+avrdude configuration file.  To use it, clone that entry into the
+per-user configuration file, and configure the @code{reset} GPIO
+number accordingly. Linuxspi can be used as follows:
+
+@smallexample
+avrdude -c linuxspi -P /dev/spidev:/dev/gpiochip[:resetpin]
+@end smallexample
+
 The STK500, JTAG ICE, avr910, and avr109/butterfly use the serial port to communicate with the PC.
 The STK600, JTAG ICE mkII/3, AVRISP mkII, USBasp, avrftdi (and derivatives), and USBtinyISP
 programmers communicate through the USB, using @code{libusb} as a

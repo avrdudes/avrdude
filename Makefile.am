@@ -149,6 +149,8 @@ libavrdude_a_SOURCES = \
 	libavrdude.h \
 	linuxgpio.c \
 	linuxgpio.h \
+	linuxspi.c \
+	linuxspi.h \
 	linux_ppdev.h \
 	lists.c \
 	my_ddk_hidsdi.h \

@@ -1,3 +1,16 @@
+2020-09-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Ralf Ramsauer
+	patch #9816: Implement new programmer type: linuxspi
+	* linuxspi.c: (New file.)
+	* linuxspi.h: (New file.)
+	* Makefile.am: Add new files
+	* configure.ac: Add "linuxspi" --enable option
+	* avrdude.conf.in: Add "linuxspi" programmer template
+	* pgm_type.c: Include linuxspi programmer
+	* doc/avrdude.texi: Document new programmer
+	* avrdude.1: (Dito.)
+
 2020-09-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Marcin Miskiewic

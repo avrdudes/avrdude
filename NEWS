@@ -38,6 +38,7 @@ Current:
     - XplainedMini in UPDI mode
     - JTAGICE3 in UPDI mode
     - Atmel Powerdebugger in all modes (JTAG, PDI, UPDI, debugWIRE, ISP)
+    - linuxspi (direct SPI bus e.g. on Raspberry Pi devices)
 
   * Bugfixes:
     bug #47550: Linux GPIO broken
@@ -76,6 +77,7 @@ Current:
     patch #9732: usbtiny_paged_load overflows buffer e.g. when reading EEPROM
     patch #9966: Add JTAGICE3 in UPDI mode
     patch #9963: UsbAsp 3 MHz patch for UsbAsp-flash firmware
+    patch #9816: Implement new programmer type: linuxspi
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes
