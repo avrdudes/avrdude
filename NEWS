@@ -30,6 +30,7 @@ Current:
       ATmega4809
     - ATtiny841, ATtiny441
     - ATmega64M1
+    - ATmega324A
 
   * New programmers supported:
 
@@ -79,6 +80,7 @@ Current:
     patch #9963: UsbAsp 3 MHz patch for UsbAsp-flash firmware
     patch #9816: Implement new programmer type: linuxspi
     patch #9811: ATmega328pb has efuse bit 3
+    patch #9744: Patch for ATMega324A support
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes
