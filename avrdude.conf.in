@@ -8794,6 +8794,17 @@ part parent "m328"
     signature		= 0x1e 0x95 0x16;
 
     ocdrev              = 1;
+
+    memory "efuse"
+        size = 1;
+        min_write_delay = 4500;
+        max_write_delay = 4500;
+        read = "0 1 0 1 0 0 0 0 0 0 0 0 1 0 0 0",
+               "x x x x x x x x o o o o o o o o";
+
+        write = "1 0 1 0 1 1 0 0 1 0 1 0 0 1 0 0",
+                "x x x x x x x x x x x x i i i i";
+    ;
 ;
 
 #------------------------------------------------------------

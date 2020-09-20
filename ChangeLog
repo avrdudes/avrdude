@@ -1,3 +1,9 @@
+2020-09-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Ronald Sutherland
+	patch #9811: ATmega328pb has efuse bit 3
+	* avrdude.conf.in (m328pb): Add own efuse definition
+
 2020-09-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Ralf Ramsauer
