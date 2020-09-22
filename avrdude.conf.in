@@ -8833,6 +8833,7 @@ part parent "m328"
     bs2             = 0xe2;
 
     memory "efuse"
+        size = 1;
         read            = "0 1 0 1 0 0 0 0 0 0 0 0 1 0 0 0",
                           "x x x x x x x x o o o o o o o o";
         write           = "1 0 1 0 1 1 0 0 1 0 1 0 0 1 0 0",

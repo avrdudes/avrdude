@@ -1,3 +1,9 @@
+2020-09-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Reported by Hannes Wallnöfer:
+	* avrdude.conf.in (m32m1): add "size" parameter in "efuse"
+	section
+
 2020-09-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Björn Mellström

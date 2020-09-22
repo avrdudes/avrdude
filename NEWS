@@ -48,6 +48,8 @@ Current:
     bug #47376: ATtiny841 description missing in configuration file
     bug #49455: support for tiny441
     bug #57428: document when 'arduino' or 'wiring' should be used, and -D requirement of latter
+    bug #58095: error setting efuse on atmega328pb variant
+    no-id: efuse section on ATmega32M1 lacks 'size'
 
   * Patches:
     patch #9482: Add support for UPDI and AVR8X
