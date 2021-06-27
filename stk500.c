@@ -1118,7 +1118,7 @@ static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
   else if (buf[0] != Resp_STK_OK) {
     avrdude_message(MSG_INFO, "\n%s: stk500_getparm(): (a) protocol error, "
                     "expect=0x%02x, resp=0x%02x\n",
-                    progname, Resp_STK_INSYNC, buf[0]);
+                    progname, Resp_STK_OK, buf[0]);
     return -3;
   }
 
