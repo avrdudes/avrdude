@@ -1290,14 +1290,14 @@ static int stk500v2_initialize(PROGRAMMER * pgm, AVRPART * p)
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
     if (strcmp(m->desc, "flash") == 0) {
-      if (m->page_size > 0) {
+      if (m->page_size > 1) {
         if (m->page_size > 256)
           PDATA(pgm)->flash_pagesize = 256;
         else
           PDATA(pgm)->flash_pagesize = m->page_size;
       }
     } else if (strcmp(m->desc, "eeprom") == 0) {
-      if (m->page_size > 0)
+      if (m->page_size > 1)
 	PDATA(pgm)->eeprom_pagesize = m->page_size;
     }
   }
@@ -1389,14 +1389,14 @@ static int stk500v2_jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
     if (strcmp(m->desc, "flash") == 0) {
-      if (m->page_size > 0) {
+      if (m->page_size > 1) {
         if (m->page_size > 256)
           PDATA(pgm)->flash_pagesize = 256;
         else
           PDATA(pgm)->flash_pagesize = m->page_size;
       }
     } else if (strcmp(m->desc, "eeprom") == 0) {
-      if (m->page_size > 0)
+      if (m->page_size > 1)
 	PDATA(pgm)->eeprom_pagesize = m->page_size;
     }
   }
@@ -1460,14 +1460,14 @@ static int stk500hv_initialize(PROGRAMMER * pgm, AVRPART * p, enum hvmode mode)
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
     if (strcmp(m->desc, "flash") == 0) {
-      if (m->page_size > 0) {
+      if (m->page_size > 1) {
         if (m->page_size > 256)
           PDATA(pgm)->flash_pagesize = 256;
         else
           PDATA(pgm)->flash_pagesize = m->page_size;
       }
     } else if (strcmp(m->desc, "eeprom") == 0) {
-      if (m->page_size > 0)
+      if (m->page_size > 1)
 	PDATA(pgm)->eeprom_pagesize = m->page_size;
     }
   }
@@ -3731,7 +3731,7 @@ static int stk600_xprog_program_enable(PROGRAMMER * pgm, AVRPART * p)
             return -1;
         }
         if ((mem = avr_locate_mem(p, "eeprom")) != NULL) {
-            if (mem->page_size == 0) {
+            if (mem->page_size <= 1) {
                 avrdude_message(MSG_INFO, "%s: stk600_xprog_program_enable(): no EEPROM page_size parameter for PDI device\n",
                                 progname);
                 return -1;

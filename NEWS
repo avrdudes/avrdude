@@ -50,6 +50,7 @@ Current:
     bug #57428: document when 'arduino' or 'wiring' should be used, and -D requirement of latter
     bug #58095: error setting efuse on atmega328pb variant
     no-id: efuse section on ATmega32M1 lacks 'size'
+    bug #60753: Patch #1436 breaks multiple programmer/device combinations on MacOS BigSur
 
   * Patches:
     patch #9482: Add support for UPDI and AVR8X

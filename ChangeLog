@@ -1,0 +1,5 @@
+2021-06-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #60753: Patch #1436 breaks multiple programmer/device combinations on MacOS BigSur
+	* avr.c: compare page_size > 1 instead of != 0
+	* stk500v2.c: (Ditto.)
