@@ -1,0 +1,104 @@
+2020-09-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Reported by Hannes Wallnöfer:
+	* avrdude.conf.in (m32m1): add "size" parameter in "efuse"
+	section
+
+2020-09-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Björn Mellström
+	patch #9744: Patch for ATMega324A support
+	* avrdude.conf.in (m324a): New entry.
+
+2020-09-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Ronald Sutherland
+	patch #9811: ATmega328pb has efuse bit 3
+	* avrdude.conf.in (m328pb): Add own efuse definition
+
+2020-09-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Ralf Ramsauer
+	patch #9816: Implement new programmer type: linuxspi
+	* linuxspi.c: (New file.)
+	* linuxspi.h: (New file.)
+	* Makefile.am: Add new files
+	* configure.ac: Add "linuxspi" --enable option
+	* avrdude.conf.in: Add "linuxspi" programmer template
+	* pgm_type.c: Include linuxspi programmer
+	* doc/avrdude.texi: Document new programmer
+	* avrdude.1: (Dito.)
+
+2020-09-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Marcin Miskiewic
+	patch #9963: UsbAsp 3 MHz patch for UsbAsp-flash firmware
+	* usbasp.c: Implement 3 MHz clock option including capability check
+	* usbasp.h: (Dito.)
+
+2020-09-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Sven Schwermer:
+	patch #9966: Add JTAGICE3 in UPDI mode
+	* avrdude.conf (jtag3updi): New entry.
+
+2020-09-18  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Joel Ray Holveck
+	patch #9732: usbtiny_paged_load overflows buffer e.g. when reading EEPROM
+	* usbtiny.c (usbtiny_paged_load, usbtiny_paged_write): ensure chunk
+	does not overflow memory area
+
+2020-09-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Adrian Klieber:
+	patch #9818: correct typos in SVN rev 1429
+	* buspirate.c: Fix typos.
+	* fileio.c: Fix typos.
+	* jtagmkII.c: Fix typos.
+	* main.c: Fix typos.
+	* term.c: Fix typos.
+	* usbasp.c: Fix typos.
+	* usbtiny.h: Fix typos.
+
+2020-09-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Adrian Klieber:
+	patch #9820: Fix some out-of-bounds/uninitialized issues
+	* stk500v2.c (stk500v2_display): fix uninitialized variables
+	* stk500v2.c (stk500v2_set_sck_period_mk2): fix loop limits
+	* pickit2.c (pickit2_open): Use pgm->desc to store description (WIN32 only)
+	* config_gram.y (K_PAGE_SIZE): ensure page_size is > 0
+	* avrpart.c (avr_new_memtype): initialize page_size to 1
+
+2020-09-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* config_gram.y (K_DESC): Enforce correct length in strncpy()
+	* config_gram.y (K_MEMORY): (Dito.)
+
+2020-09-10  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avrpart.c (avr_new_memtype): ensure page_size is at least 1
+	* config_gram.y (K_PAGE_SIZE): (Dito.)
+
+2020-03-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Adrian Klieber:
+	patch #9819: Address several leaks in SVN rev 1429
+	* config.c: Fix potential memory leak
+	* jtagmkII.c: (Dito.)
+	* stk500v2.c: (Dito.)
+	* update.c: (Dito.)
+	* windows/loaddrv.c: Fix file descriptor leak.
+
+2020-03-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by: kautism
+	patch #9893: [PATCH] Reader reads ftdi handle after main thread close it
+	* ft245r.c: Wait until reader thread has been stopped before closing FTDI
+
+2020-03-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Fix compiler warnings
+	* avr.c: misleading indentation after spin loop
+	* fileio.c: EM_AVR32 might be defined in system <libelf.h>
