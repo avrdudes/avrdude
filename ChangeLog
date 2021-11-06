@@ -1,3 +1,18 @@
+2021-11-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Jan Egil Ruud:
+	patch #10000: Add support for extended UPDI device context
+	* avrdude.conf.in (pickit4_updi, snap_updi, pkobn_updi):
+	new programmers
+	* avrdude.conf.in (ATmega808, ATmega809, ATmega1608, ATmega1609)
+	(AVR DA, AVR DB): new devices
+	* jtag3.c: Add support for extended UPDI device context
+	* jtag3_private.h: (Dito.)
+	* tools/atdf-to-avrdude.xslt: Bug fixes
+	* usbdevs.h: Bump USBDEV_MAX_XFER_3 to 912
+	* doc/avrdude.texi: Document changes
+	* avrdude.1: (Dito)
+
 2021-06-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #60753: Patch #1436 breaks multiple programmer/device combinations on MacOS BigSur

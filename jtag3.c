@@ -1181,32 +1181,81 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
       m = ldata(ln);
       if (strcmp(m->desc, "flash") == 0)
       {
-        u16_to_b2(xd.prog_base, m->offset);
+        u16_to_b2(xd.prog_base, m->offset&0xFFFF);
+        xd.prog_base_msb = m->offset>>16;
 
         if (m->readsize != 0 && m->readsize < m->page_size)
           PDATA(pgm)->flash_pagesize = m->readsize;
         else
           PDATA(pgm)->flash_pagesize = m->page_size;
-        xd.flash_page_size = m->page_size;
+        xd.flash_page_size = m->page_size & 0xFF;
+        xd.flash_page_size_msb = (m->page_size)>>8;
+
+        u32_to_b4(xd.flash_bytes, m->size);
+
+        if (m->offset > 0xFFFF)
+          xd.address_mode = UPDI_ADDRESS_MODE_24BIT;
+        else
+          xd.address_mode = UPDI_ADDRESS_MODE_16BIT;
       }
       else if (strcmp(m->desc, "eeprom") == 0)
       {
         PDATA(pgm)->eeprom_pagesize = m->page_size;
         xd.eeprom_page_size = m->page_size;
+
+        u16_to_b2(xd.eeprom_bytes, m->size);
+        u16_to_b2(xd.eeprom_base, m->offset);
+      }
+      else if (strcmp(m->desc, "usersig") == 0)
+      {
+        u16_to_b2(xd.user_sig_bytes, m->size);
+        u16_to_b2(xd.user_sig_base, m->offset);
+      }
+      else if (strcmp(m->desc, "signature") == 0)
+      {
+        u16_to_b2(xd.signature_base, m->offset);
+        xd.device_id[0] = p->signature[1];
+        xd.device_id[1] = p->signature[2];
+      }
+      else if (strcmp(m->desc, "fuses") == 0)
+      {
+        xd.fuses_bytes = m->size;
+        u16_to_b2(xd.fuses_base, m->offset);
+      }
+      else if (strcmp(m->desc, "lock") == 0)
+      {
+        u16_to_b2(xd.lockbits_base, m->offset);
       }
     }
 
+    u16_to_b2(xd.default_min_div1_voltage, DEFAULT_MINIMUM_CHARACTERISED_DIV1_VOLTAGE_MV);
+    u16_to_b2(xd.default_min_div2_voltage, DEFAULT_MINIMUM_CHARACTERISED_DIV2_VOLTAGE_MV);
+    u16_to_b2(xd.default_min_div4_voltage, DEFAULT_MINIMUM_CHARACTERISED_DIV4_VOLTAGE_MV);
+    u16_to_b2(xd.default_min_div8_voltage, DEFAULT_MINIMUM_CHARACTERISED_DIV8_VOLTAGE_MV);
+    u16_to_b2(xd.pdi_pad_fmax, MAX_FREQUENCY_SHARED_UPDI_PIN);
+    xd.syscfg_offset = FUSES_SYSCFG0_OFFSET;
+    xd.syscfg_write_mask_and = 0xFF;
+    xd.syscfg_write_mask_or = 0x00;
+    xd.syscfg_erase_mask_and = 0xFF;
+    xd.syscfg_erase_mask_or = 0x00;
+
     avrdude_message(MSG_NOTICE2, "UPDI SET: \n\t"
+      "xd->prog_base_msb=%x\n\t"
       "xd->prog_base=%x %x\n\t"
+      "xd->flash_page_size_msb=%x\n\t"
       "xd->flash_page_size=%x\n\t"
       "xd->eeprom_page_size=%x\n\t"
       "xd->nvmctrl=%x %x\n\t"
-      "xd->ocd=%x %x\n",
+      "xd->ocd=%x %x\n\t",
+      "xd->address_mode=%x\n",
+      xd.prog_base_msb,
       xd.prog_base[0], xd.prog_base[1],
+      xd.flash_page_size_msb,
       xd.flash_page_size,
       xd.eeprom_page_size,
       xd.nvm_base_addr[0], xd.nvm_base_addr[1],
-      xd.ocd_base_addr[0], xd.ocd_base_addr[1]);
+      xd.ocd_base_addr[0], xd.ocd_base_addr[1],
+      xd.address_mode);
 
     if (jtag3_setparm(pgm, SCOPE_AVR, 2, PARM3_DEVICEDESC, (unsigned char *)&xd, sizeof xd) < 0)
       return -1;
@@ -1787,8 +1836,10 @@ static int jtag3_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[3] = MTYPE_USERSIG;
   } else if ( ( strcmp(m->desc, "boot") == 0 ) ) {
     cmd[3] = MTYPE_BOOT_FLASH;
-  } else if ( p->flags & AVRPART_HAS_PDI || p->flags & AVRPART_HAS_UPDI ) {
+  } else if ( p->flags & AVRPART_HAS_PDI ) {
     cmd[3] = MTYPE_FLASH;
+  } else if ( p->flags & AVRPART_HAS_UPDI ) {
+    cmd[3] = MTYPE_SRAM;
   } else {
     cmd[3] = MTYPE_SPM;
   }

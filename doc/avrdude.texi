@@ -287,6 +287,10 @@ The Atmel DFU bootloader is supported in both, FLIP protocol version 1
 (AT90USB* and ATmega*U* devices), as well as version 2 (Xmega devices).
 See below for some hints about FLIP version 1 protocol behaviour.
 
+The MPLAB(R) PICkit 4, MPLAB(R) SNAP, and Curiosity Nano boards are
+supported in UPDI mode. The Curiosity Nano board is dubbed ``PICkit on
+Board'', thus the name @code{pkobn_updi}.
+
 
 @menu
 * History::                     

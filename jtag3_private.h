@@ -284,6 +284,16 @@
 
 #define CMSISDAP_CMD_SWD_CONFIGURE 0x13 /* configure SWD protocol; (byte) */
 
+#define DEFAULT_MINIMUM_CHARACTERISED_DIV1_VOLTAGE_MV  4500   // Default minimum voltage for 32M => 4.5V
+#define DEFAULT_MINIMUM_CHARACTERISED_DIV2_VOLTAGE_MV  2700   // Default minimum voltage for 16M => 2.7V
+#define DEFAULT_MINIMUM_CHARACTERISED_DIV4_VOLTAGE_MV  2200   // Default minimum voltage for 8M  => 2.2V
+#define DEFAULT_MINIMUM_CHARACTERISED_DIV8_VOLTAGE_MV  1500   // Default minimum voltage for 4M  => 1.5V
+#define MAX_FREQUENCY_DEDICATED_UPDI_PIN  1500
+#define MAX_FREQUENCY_SHARED_UPDI_PIN     750
+#define UPDI_ADDRESS_MODE_16BIT 0
+#define UPDI_ADDRESS_MODE_24BIT 1
+#define FUSES_SYSCFG0_OFFSET 5
+
 #if !defined(JTAG3_PRIVATE_EXPORTED)
 
 struct mega_device_desc {
@@ -345,5 +355,39 @@ struct updi_device_desc {
     unsigned char eeprom_page_size;
     unsigned char nvm_base_addr[2];
     unsigned char ocd_base_addr[2];
+
+    // Configuration below, except for "Extended memory support", is only used by kits with
+    // embedded debuggers (XPlained, Curiosity, ...).
+    unsigned char default_min_div1_voltage[2];  // Default minimum voltage for 32M => 4.5V -> 4500
+    unsigned char default_min_div2_voltage[2];  // Default minimum voltage for 16M => 2.7V -> 2700
+    unsigned char default_min_div4_voltage[2];  // Default minimum voltage for 8M  => 2.2V -> 2200
+    unsigned char default_min_div8_voltage[2];  // Default minimum voltage for 4M  => 1.5V -> 1500
+
+    unsigned char pdi_pad_fmax[2];  // 750
+
+    unsigned char flash_bytes[4];     // Flash size in bytes
+    unsigned char eeprom_bytes[2];    // EEPROM size in bytes
+    unsigned char user_sig_bytes[2];  // UserSignture size in bytes
+    unsigned char fuses_bytes;        // Fuses size in bytes
+
+    unsigned char syscfg_offset;          // Offset of SYSCFG0 within FUSE space
+    unsigned char syscfg_write_mask_and;  // AND mask to apply to SYSCFG0 when writing
+    unsigned char syscfg_write_mask_or;   // OR mask to apply to SYSCFG0 when writing
+    unsigned char syscfg_erase_mask_and;  // AND mask to apply to SYSCFG0 after erase
+    unsigned char syscfg_erase_mask_or;   // OR mask to apply to SYSCFG0 after erase
+
+    unsigned char eeprom_base[2];          // Base address for EEPROM memory
+    unsigned char user_sig_base[2];  // Base address for UserSignature memory
+    unsigned char signature_base[2];       // Base address for Signature memory
+    unsigned char fuses_base[2];           // Base address for Fuses memory
+    unsigned char lockbits_base[2];        // Base address for Lockbits memory
+
+    unsigned char device_id[2];  // Two last bytes of the device ID
+
+    // Extended memory support. Needed for flash >= 64kb
+    unsigned char prog_base_msb;        // Extends prog_base, used in 24-bit mode
+    unsigned char flash_page_size_msb;  // Extends flash_page_size, used in 24-bit mode
+
+    unsigned char address_mode;  // 0x00 = 16-bit mode, 0x01 = 24-bit mode
 };
 #endif /* JTAG3_PRIVATE_EXPORTED */

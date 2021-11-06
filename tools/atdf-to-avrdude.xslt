@@ -154,6 +154,9 @@
             <xsl:when test="contains($device-name, 'ATmega')">
                 <xsl:value-of select="replace($device-name, 'ATmega', 'm')"/>
             </xsl:when>
+            <xsl:when test="starts-with($device-name, 'AVR')">
+                <xsl:value-of select="lower-case($device-name)"/>
+            </xsl:when>
             <xsl:otherwise>
                 <xsl:message terminate="yes">Unable to deduce device id from '<xsl:value-of select="$device-name"/>'</xsl:message>
             </xsl:otherwise>
@@ -166,6 +169,8 @@
         <xsl:choose>
             <xsl:when test="contains($device-name, 'ATtiny')">.avr8x_tiny</xsl:when>
             <xsl:when test="contains($device-name, 'ATmega')">.avr8x_mega</xsl:when>
+            <xsl:when test="matches($device-name, '^AVR[0-9]{1,3}D')">.avrdx</xsl:when>
+            <xsl:when test="matches($device-name, '^AVR[0-9]{1,3}E')">.avrex</xsl:when>
             <xsl:otherwise>
                 <xsl:message terminate="yes">Unable to deduce parent name from '<xsl:value-of select="$device-name"/>'</xsl:message>
             </xsl:otherwise>
