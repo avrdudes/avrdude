@@ -1,5 +1,12 @@
 2021-11-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Andrew D'Addesio:
+	bug #58078: [PATCH] buspirate: remove compound literals (fixes GCC>=9)
+	* buspirate.c (buspirate_start_mode_bin):
+	avoid propagating local scope compound literals
+
+2021-11-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Jan Egil Ruud:
 	patch #10000: Add support for extended UPDI device context
 	* avrdude.conf.in (pickit4_updi, snap_updi, pkobn_updi):

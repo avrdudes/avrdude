@@ -493,35 +493,31 @@ static void buspirate_reset_from_binmode(struct programmer_t *pgm)
 
 static int buspirate_start_mode_bin(struct programmer_t *pgm)
 {
-	const struct submode {
+	struct submode {
 		const char *name;  /* Name of mode for user messages */
 		char enter;  /* Command to enter from base binary mode */
 		const char *entered_format;  /* Response, for "scanf" */
 		char config;  /* Command to setup submode parameters */
-	} *submode;
+	} submode;
 
 	if (pgm->flag & BP_FLAG_XPARM_RAWFREQ) {
-		submode = &(const struct submode){
-			.name = "Raw-wire",
-			.enter = 0x05,
-			.entered_format = "RAW%1d",
-			.config = 0x8C,
-		};
+		submode.name = "Raw-wire";
+		submode.enter = 0x05;
+		submode.entered_format = "RAW%1d";
+		submode.config = 0x8C;
 		pgm->flag |= BP_FLAG_NOPAGEDWRITE;
 		pgm->flag |= BP_FLAG_NOPAGEDREAD;
 	} else {
-		submode = &(const struct submode){
-			.name = "SPI",
-			.enter = 0x01,
-			.entered_format = "SPI%1d",
-			
-			/* 1000wxyz - SPI config, w=HiZ(0)/3.3v(1), x=CLK idle, y=CLK edge, z=SMP sample
-			 * we want: 3.3V(1), idle low(0), data change on
-			 *          trailing edge (1), sample in the middle
-			 *          of the pulse (0)
-			 *       => 0b10001010 = 0x8a */
-			.config = 0x8A,
-		};
+		submode.name = "SPI";
+		submode.enter = 0x01;
+		submode.entered_format = "SPI%1d";
+
+		/* 1000wxyz - SPI config, w=HiZ(0)/3.3v(1), x=CLK idle, y=CLK edge, z=SMP sample
+		 * we want: 3.3V(1), idle low(0), data change on
+		 *          trailing edge (1), sample in the middle
+		 *          of the pulse (0)
+		 *       => 0b10001010 = 0x8a */
+		submode.config = 0x8A;
 	}
 
 	unsigned char buf[20] = { '\0' };
@@ -566,18 +562,18 @@ static int buspirate_start_mode_bin(struct programmer_t *pgm)
 	}
 
 	/* == Set protocol sub-mode of binary mode == */
-	buf[0] = submode->enter;
+	buf[0] = submode.enter;
 	buspirate_send_bin(pgm, buf, 1);
 	memset(buf, 0, sizeof(buf));
 	buspirate_recv_bin(pgm, buf, 4);
-	if (sscanf((const char*)buf, submode->entered_format, &PDATA(pgm)->submode_version) != 1) {
+	if (sscanf((const char*)buf, submode.entered_format, &PDATA(pgm)->submode_version) != 1) {
 		avrdude_message(MSG_INFO, "%s mode not confirmed: '%s'\n",
-		                submode->name, buf);
+		                submode.name, buf);
 		buspirate_reset_from_binmode(pgm);
 		return -1;
 	}
 	avrdude_message(MSG_NOTICE, "BusPirate %s version: %d\n", 
-	                submode->name, PDATA(pgm)->submode_version);
+	                submode.name, PDATA(pgm)->submode_version);
 
 	if (pgm->flag & BP_FLAG_NOPAGEDWRITE) {
                 avrdude_message(MSG_NOTICE, "%s: Paged flash write disabled.\n", progname);
@@ -618,7 +614,7 @@ static int buspirate_start_mode_bin(struct programmer_t *pgm)
 		return -1;
 
 	/* Submode config */
-	if (buspirate_expect_bin_byte(pgm, submode->config, 0x01) < 0)
+	if (buspirate_expect_bin_byte(pgm, submode.config, 0x01) < 0)
 		return -1;
 
 	/* AVR Extended Commands - test for existence */

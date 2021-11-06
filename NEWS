@@ -55,6 +55,7 @@ Current:
     no-id: efuse section on ATmega32M1 lacks 'size'
     bug #60753: Patch #1436 breaks multiple programmer/device combinations on MacOS BigSur
     bug #59525: Bogus error message because Copy/Paste typo in stk500.c
+    bug #58078: [PATCH] buspirate: remove compound literals (fixes GCC>=9)
 
   * Patches:
     patch #9482: Add support for UPDI and AVR8X
