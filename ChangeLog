@@ -1,5 +1,11 @@
 2021-11-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Britton Kerin:
+	bug #57453: [PATCH] fix reference to nonexistant -m option by changing to -U
+	* avrdude.1: replace -m option by -U
+
+2021-11-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Andrew D'Addesio:
 	bug #58078: [PATCH] buspirate: remove compound literals (fixes GCC>=9)
 	* buspirate.c (buspirate_start_mode_bin):
