@@ -34,6 +34,7 @@ Current:
     - ATmega324A
     - ATmega808, ATmega809, ATmega1608, ATmega1609, AVR DA, AVR DB
     - LGT8FX88P, LGT8FX168P, LGT8FX328P
+    - ATmega324PB
 
   * New programmers supported:
 
@@ -61,6 +62,7 @@ Current:
     bug #59227: Add new part. How does one get a part added to the CONF file?
     bug #55009: no efuses for m164a/pa
     bug #55734: USBtiny programming of ATmega328p broken by Patch #9278
+    bug #58495: Add atmega324pb support to avrdude.conf.in
 
   * Patches:
     patch #9482: Add support for UPDI and AVR8X

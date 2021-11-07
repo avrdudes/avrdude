@@ -1,5 +1,11 @@
 2021-11-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Matwey V. Kornilov:
+	bug #58495: Add atmega324pb support to avrdude.conf.in
+	* avrdude.conf.in (ATmega324PB): new entry
+
+2021-11-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #55734: USBtiny programming of ATmega328p broken by Patch #9278
 	* usbtiny.c (usbtiny_initialize): undo change from patch #9728
 
