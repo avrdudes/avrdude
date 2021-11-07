@@ -1,5 +1,10 @@
 2021-11-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #50517: Reading fails if "immediate mode" for output file format is selected - fileio: invalid operation=1
+	* update.c (do_op): refuse to write to "immediate format" argument
+
+2021-11-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Martin Thierer:
 	bug #60863: avrftdi programming error probably caused by multiple, consecutive empty pages
 	* avrftdi.c (avrftdi_flash_write): Skip empty pages

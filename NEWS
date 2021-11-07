@@ -64,6 +64,7 @@ Current:
     bug #55734: USBtiny programming of ATmega328p broken by Patch #9278
     bug #58495: Add atmega324pb support to avrdude.conf.in
     bug #60863: avrftdi programming error probably caused by multiple, consecutive empty pages
+    bug #50517: Reading fails if "immediate mode" for output file format is selected - fileio: invalid operation=1
 
   * Patches:
     patch #9482: Add support for UPDI and AVR8X

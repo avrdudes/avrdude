@@ -230,6 +230,12 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     /*
      * read out the specified device memory and write it to a file
      */
+    if (upd->format == FMT_IMM) {
+      avrdude_message(MSG_INFO,
+                      "%s: Invalid file format 'immediate' for output\n",
+                      progname, upd->filename);
+      return -1;
+    }
     if (quell_progress < 2) {
       avrdude_message(MSG_INFO, "%s: reading %s memory:\n",
             progname, mem->desc);
