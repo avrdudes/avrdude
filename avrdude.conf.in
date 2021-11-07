@@ -17032,3 +17032,31 @@ part parent    ".avrdx"
         readsize  = 0x100;
     ;
 ;
+
+#------------------------------------------------------------
+# Logic Green parts
+#------------------------------------------------------------
+
+part parent "m88"
+    id               = "lgt8fx88p";
+    desc             = "LGT8FX88P";
+    signature        = 0x1e 0x93 0x0f;
+
+    ocdrev              = 1;
+  ;
+
+part parent "m168"
+    id              = "lgt8fx168p";
+    desc            = "LGT8FX168P";
+    signature       = 0x1e 0x94 0x0b;
+
+    ocdrev              = 1;
+;
+
+part parent "m328"
+    id      = "lgt8fx328p";
+    desc    = "LGT8FX328P";
+    signature   = 0x1e 0x95 0x0F;
+
+    ocdrev              = 1;
+;

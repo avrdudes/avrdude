@@ -1,3 +1,9 @@
+2021-11-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by evan Venn:
+	bug #59227: Add new part. How does one get a part added to the CONF file?
+	* avrdude.conf.in (LGT8FX88P, LGT8FX168P, LGT8FX328P): new parts
+
 2021-11-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Britton Kerin:

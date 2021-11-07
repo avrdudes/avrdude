@@ -33,6 +33,7 @@ Current:
     - ATmega64M1
     - ATmega324A
     - ATmega808, ATmega809, ATmega1608, ATmega1609, AVR DA, AVR DB
+    - LGT8FX88P, LGT8FX168P, LGT8FX328P
 
   * New programmers supported:
 
@@ -57,6 +58,7 @@ Current:
     bug #59525: Bogus error message because Copy/Paste typo in stk500.c
     bug #58078: [PATCH] buspirate: remove compound literals (fixes GCC>=9)
     bug #57453: [PATCH] fix reference to nonexistant -m option by changing to -U
+    bug #59227: Add new part. How does one get a part added to the CONF file?
 
   * Patches:
     patch #9482: Add support for UPDI and AVR8X
