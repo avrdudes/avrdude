@@ -53,7 +53,7 @@ Current:
     bug #49455: support for tiny441
     bug #57428: document when 'arduino' or 'wiring' should be used, and -D requirement of latter
     bug #58095: error setting efuse on atmega328pb variant
-    no-id: efuse section on ATmega32M1 lacks 'size'
+    bug #51409: Can't program EFUSE on ATmega32M1
     bug #60753: Patch #1436 breaks multiple programmer/device combinations on MacOS BigSur
     bug #59525: Bogus error message because Copy/Paste typo in stk500.c
     bug #58078: [PATCH] buspirate: remove compound literals (fixes GCC>=9)
