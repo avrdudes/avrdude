@@ -35,6 +35,7 @@ Current:
     - ATmega808, ATmega809, ATmega1608, ATmega1609, AVR DA, AVR DB
     - LGT8FX88P, LGT8FX168P, LGT8FX328P
     - ATmega324PB
+    - ATmega8A
 
   * New programmers supported:
 

@@ -1,5 +1,9 @@
 2021-11-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* avrdude.conf.in (ATmega8A): new device (alias for ATmega8)
+
+2021-11-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #50517: Reading fails if "immediate mode" for output file format is selected - fileio: invalid operation=1
 	* update.c (do_op): refuse to write to "immediate format" argument
 
