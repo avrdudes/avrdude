@@ -59,6 +59,7 @@ Current:
     bug #58078: [PATCH] buspirate: remove compound literals (fixes GCC>=9)
     bug #57453: [PATCH] fix reference to nonexistant -m option by changing to -U
     bug #59227: Add new part. How does one get a part added to the CONF file?
+    bug #55009: no efuses for m164a/pa
 
   * Patches:
     patch #9482: Add support for UPDI and AVR8X

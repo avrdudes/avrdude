@@ -4419,22 +4419,22 @@ part
 # ATmega164P
 #------------------------------------------------------------
 
-# close to ATmega16
+# like ATmega324P, only smaller
 
-part parent "m16"
+part parent "m324p"
     id               = "m164p";
     desc             = "ATmega164P";
     signature        = 0x1e 0x94 0x0a;
 
-    progmodedelay       = 0;
-    latchcycles         = 5;
-    togglevtg           = 1;
-    poweroffdelay       = 15;
-    resetdelayms        = 1;
-    allowfullpagebitstream = no;
-    chip_erase_delay = 55000;
+    memory "eeprom"
+        size            = 512;
+        ;
 
-    ocdrev              = 3;
+    memory "flash"
+        paged           = yes;
+        size            = 16384;
+        num_pages       = 128;
+        ;
   ;
 
 
