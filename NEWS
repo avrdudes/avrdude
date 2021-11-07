@@ -46,6 +46,7 @@ Current:
     - Atmel Powerdebugger in all modes (JTAG, PDI, UPDI, debugWIRE, ISP)
     - linuxspi (direct SPI bus e.g. on Raspberry Pi devices)
     - PICkit4, Snap, PKoB
+    - iseavrprog
 
   * Bugfixes:
     bug #47550: Linux GPIO broken
@@ -100,6 +101,7 @@ Current:
     patch #9811: ATmega328pb has efuse bit 3
     patch #9744: Patch for ATMega324A support
     patch #10000: Add support for extended UPDI device context
+    patch #9697: Add iseavrprog support
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes

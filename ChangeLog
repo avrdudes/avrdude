@@ -1,5 +1,11 @@
 2021-11-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Michael Petersen:
+	patch #9697: Add iseavrprog support
+	* avrdude.conf.in (iseavrprog): New programmer
+
+2021-11-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #50630: Erase Cycle Counter options ( -y -Y n ) should be removed from usage Message
 	* main.c (usage): remove -y / -Y descriptions
 
