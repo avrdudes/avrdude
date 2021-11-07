@@ -1156,6 +1156,24 @@ static int usbasp_tpi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   pr = addr + m->offset;
   writed = 0;
 
+  /* must erase fuse first */
+  if(strcmp(m->desc, "fuse") == 0)
+  {
+    /* Set PR */
+    usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(0));
+    usbasp_tpi_send_byte(pgm, (pr & 0xFF) | 1 );
+    usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(1));
+    usbasp_tpi_send_byte(pgm, (pr >> 8) );
+    /* select SECTION_ERASE */
+    usbasp_tpi_send_byte(pgm, TPI_OP_SOUT(NVMCMD));
+    usbasp_tpi_send_byte(pgm, NVMCMD_SECTION_ERASE);
+    /* dummy write */
+    usbasp_tpi_send_byte(pgm, TPI_OP_SST_INC);
+    usbasp_tpi_send_byte(pgm, 0x00);
+
+    usbasp_tpi_nvm_waitbusy(pgm);
+  }
+
   /* Set PR to flash */
   usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(0));
   usbasp_tpi_send_byte(pgm, (pr & 0xFF) | 1 );

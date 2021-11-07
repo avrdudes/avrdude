@@ -1,5 +1,11 @@
 2021-11-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Martin Thierer:
+	patch #10017: uspasp / tpi: Automatically clear configuration byte (fuse) before writing it
+	* usbasp.c (usbasp_tpi_paged_write): clear fuse region before writing it
+
+2021-11-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Michael Petersen:
 	patch #9697: Add iseavrprog support
 	* avrdude.conf.in (iseavrprog): New programmer

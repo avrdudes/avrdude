@@ -102,6 +102,7 @@ Current:
     patch #9744: Patch for ATMega324A support
     patch #10000: Add support for extended UPDI device context
     patch #9697: Add iseavrprog support
+    patch #10017: uspasp / tpi: Automatically clear configuration byte (fuse) before writing it
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes
