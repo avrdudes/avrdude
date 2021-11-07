@@ -60,6 +60,7 @@ Current:
     bug #57453: [PATCH] fix reference to nonexistant -m option by changing to -U
     bug #59227: Add new part. How does one get a part added to the CONF file?
     bug #55009: no efuses for m164a/pa
+    bug #55734: USBtiny programming of ATmega328p broken by Patch #9278
 
   * Patches:
     patch #9482: Add support for UPDI and AVR8X
@@ -82,7 +83,6 @@ Current:
     patch #8128: Added new option to configure.ac script
     patch #8444: Proposal for modifications in -B and -U command options managment (partially)
     patch #9735: spelling error fix: psuedo -> pseudo
-    patch #9728: Fix UsbTiny programmer
     patch #9893: [PATCH] Reader reads ftdi handle after main thread close it
     patch #9819: Address several leaks in SVN rev 1429
     patch #9820: Fix some out-of-bounds/uninitialized issues

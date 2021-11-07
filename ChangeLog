@@ -1,5 +1,10 @@
 2021-11-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #55734: USBtiny programming of ATmega328p broken by Patch #9278
+	* usbtiny.c (usbtiny_initialize): undo change from patch #9728
+
+2021-11-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	bug #55009: no efuses for m164a/pa
 	* avrdude.conf.in (ATmega164P): derive from ATmega324P
 
