@@ -1,5 +1,11 @@
 2021-11-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Martin Thierer:
+	bug #60863: avrftdi programming error probably caused by multiple, consecutive empty pages
+	* avrftdi.c (avrftdi_flash_write): Skip empty pages
+
+2021-11-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Matwey V. Kornilov:
 	bug #58495: Add atmega324pb support to avrdude.conf.in
 	* avrdude.conf.in (ATmega324PB): new entry

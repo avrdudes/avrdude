@@ -1045,16 +1045,6 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 		bufptr += 4;
 	}
 
-	buf_size = bufptr - buf;
-
-	if(verbose > TRACE)
-		buf_dump(buf, buf_size, "command buffer", 0, 16*2);
-
-	log_info("Transmitting buffer of size: %d\n", buf_size);
-	if (0 > avrftdi_transmit(pgm, MPSSE_DO_WRITE, buf, buf, buf_size))
-		return -1;
-
-	bufptr = buf;
 	/* find a poll byte. we cannot poll a value of 0xff, so look
 	 * for a value != 0xff
 	 */
@@ -1064,6 +1054,17 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 	if((poll_index < addr + len) && m->buf[poll_index] != 0xff)
 	{
+		buf_size = bufptr - buf;
+
+		if(verbose > TRACE)
+			buf_dump(buf, buf_size, "command buffer", 0, 16*2);
+
+		log_info("Transmitting buffer of size: %d\n", buf_size);
+		if (0 > avrftdi_transmit(pgm, MPSSE_DO_WRITE, buf, buf, buf_size))
+			return -1;
+
+		bufptr = buf;
+
 		log_info("Using m->buf[%d] = 0x%02x as polling value ", poll_index,
 		         m->buf[poll_index]);
 		/* poll page write ready */
@@ -1077,9 +1078,7 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	}
 	else
 	{
-		log_warn("No suitable byte (!=0xff) for polling found.\n");
-		log_warn("Trying to sleep instead, but programming errors may occur.\n");
-		log_warn("Be sure to verify programmed memory (no -V option)\n");
+		log_warn("Skipping empty page (containing only 0xff bytes)\n");
 		/* TODO sync write */
 		/* sleep */
 		usleep((m->max_write_delay));
