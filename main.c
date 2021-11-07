@@ -127,8 +127,6 @@ static void usage(void)
  "  -t                         Enter terminal mode.\n"
  "  -E <exitspec>[,<exitspec>] List programmer exit specifications.\n"
  "  -x <extended_param>        Pass <extended_param> to programmer.\n"
- "  -y                         Count # erase cycles in EEPROM.\n"
- "  -Y <number>                Initialize erase cycle # in EEPROM.\n"
  "  -v                         Verbose output. -v -v for more.\n"
  "  -q                         Quell progress output. -q -q for less.\n"
  "  -l logfile                 Use logfile rather than stderr for diagnostics.\n"

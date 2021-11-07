@@ -66,6 +66,7 @@ Current:
     bug #58495: Add atmega324pb support to avrdude.conf.in
     bug #60863: avrftdi programming error probably caused by multiple, consecutive empty pages
     bug #50517: Reading fails if "immediate mode" for output file format is selected - fileio: invalid operation=1
+    bug #50630: Erase Cycle Counter options ( -y -Y n ) should be removed from usage Message
 
   * Patches:
     patch #9482: Add support for UPDI and AVR8X
