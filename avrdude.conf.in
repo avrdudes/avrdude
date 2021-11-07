@@ -4416,29 +4416,6 @@ part
 
 
 #------------------------------------------------------------
-# ATmega164P
-#------------------------------------------------------------
-
-# like ATmega324P, only smaller
-
-part parent "m324p"
-    id               = "m164p";
-    desc             = "ATmega164P";
-    signature        = 0x1e 0x94 0x0a;
-
-    memory "eeprom"
-        size            = 512;
-        ;
-
-    memory "flash"
-        paged           = yes;
-        size            = 16384;
-        num_pages       = 128;
-        ;
-  ;
-
-
-#------------------------------------------------------------
 # ATmega324P
 #------------------------------------------------------------
 
@@ -4627,6 +4604,31 @@ part
 
         read            = "0 0 1 1  1 0 0 0   0 0 0 x  x x x x",
                           "0 0 0 0  0 0 0 0   o o o o  o o o o";
+        ;
+  ;
+
+
+#------------------------------------------------------------
+# ATmega164P
+#------------------------------------------------------------
+
+# like ATmega324P, only smaller
+
+part parent "m324p"
+    id               = "m164p";
+    desc             = "ATmega164P";
+    signature        = 0x1e 0x94 0x0a;
+
+    memory "eeprom"
+        size            = 512;
+        page_size       = 4;
+        ;
+
+    memory "flash"
+        paged           = yes;
+        size            = 16384;
+        page_size       = 128;
+        num_pages       = 128;
         ;
   ;
 
