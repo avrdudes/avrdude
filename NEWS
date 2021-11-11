@@ -103,6 +103,7 @@ Current:
     patch #10000: Add support for extended UPDI device context
     patch #9697: Add iseavrprog support
     patch #10017: uspasp / tpi: Automatically clear configuration byte (fuse) before writing it
+    patch #8957: Allow reading prodsig memory from stk500v2 on xmega devices
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes

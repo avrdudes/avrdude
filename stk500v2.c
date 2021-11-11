@@ -3938,7 +3938,8 @@ static int stk600_xprog_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
         b[1] = XPRG_MEM_TYPE_FUSE;
     } else if (strncmp(mem->desc, "lock", strlen("lock")) == 0) {
         b[1] = XPRG_MEM_TYPE_LOCKBITS;
-    } else if (strcmp(mem->desc, "calibration") == 0) {
+    } else if (strcmp(mem->desc, "calibration") == 0 ||
+               strcmp(mem->desc, "prodsig") == 0) {
         b[1] = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
     } else if (strcmp(mem->desc, "usersig") == 0) {
         b[1] = XPRG_MEM_TYPE_USERSIG;
@@ -4012,7 +4013,8 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
         memtype = XPRG_MEM_TYPE_FUSE;
     } else if (strncmp(mem->desc, "lock", strlen("lock")) == 0) {
         memtype = XPRG_MEM_TYPE_LOCKBITS;
-    } else if (strcmp(mem->desc, "calibration") == 0) {
+    } else if (strcmp(mem->desc, "calibration") == 0 ||
+               strcmp(mem->desc, "prodsig") == 0) {
         memtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
     } else if (strcmp(mem->desc, "usersig") == 0) {
         memtype = XPRG_MEM_TYPE_USERSIG;

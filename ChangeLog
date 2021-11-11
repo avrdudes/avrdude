@@ -1,3 +1,10 @@
+2021-11-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Joseph Coffland:
+	patch #8957: Allow reading prodsig memory from stk500v2 on xmega devices
+	* stk500v2.c (stk600_xprog_read_byte, stk600_xprog_paged_load):
+	treat "prodsig" memory space as equivalent to "calibration"
+
 2021-11-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Martin Thierer:
