@@ -1,5 +1,12 @@
 2021-11-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Jon Thacker:
+	patch #9253: Fix for giving terminal_mode commands more than 20 arguments
+	* term.c (tokenize): fix realloc usage, pointer returned not necessarily
+	the same as pointer passed
+
+2021-11-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Martino Facchin:
 	patch #9110: Let reserved fuse bits to be read as *don't care*
 	* avr.c (compare_memory_masked): New function

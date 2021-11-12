@@ -780,11 +780,12 @@ static int cmd_verbose(PROGRAMMER * pgm, struct avrpart * p,
 
 static int tokenize(char * s, char *** argv)
 {
-  int     i, n, l, nargs, offset;
+  int     i, n, l, k, nargs, offset;
   int     len, slen;
   char  * buf;
   int     bufsize;
   char ** bufv;
+  char  * bufp;
   char  * q, * r;
   char  * nbuf;
   char ** av;
@@ -821,9 +822,15 @@ static int tokenize(char * s, char *** argv)
       /* realloc space for another 20 args */
       bufsize += 20;
       nargs   += 20;
+      bufp     = buf;
       buf      = realloc(buf, bufsize);
       bufv     = realloc(bufv, nargs*sizeof(char *));
       nbuf     = &buf[l];
+      /* correct bufv pointers */
+      k = buf - bufp;
+      for (i=0; i<n; i++) {
+          bufv[i] = bufv[i] + k;
+      }
       for (i=n; i<nargs; i++)
         bufv[i] = NULL;
     }
