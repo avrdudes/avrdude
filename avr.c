@@ -1063,6 +1063,30 @@ int avr_signature(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
+static uint8_t get_fuse_bitmask(AVRMEM * m) {
+  uint8_t bitmask_r = 0;
+  uint8_t bitmask_w = 0;
+  int i;
+
+  if (!m || m->size > 1) {
+    // not a fuse, compare bytes directly
+    return 0xFF;
+  }
+
+  // For fuses, only compare bytes that are actually written *and* read.
+  for (i = 0; i < 32; i++) {
+    if (m->op[AVR_OP_WRITE]->bit[i].type == AVR_CMDBIT_INPUT)
+      bitmask_w |= (1 << m->op[AVR_OP_WRITE]->bit[i].bitno);
+    if (m->op[AVR_OP_READ]->bit[i].type == AVR_CMDBIT_OUTPUT)
+      bitmask_r |= (1 << m->op[AVR_OP_READ]->bit[i].bitno);
+  }
+  return bitmask_r & bitmask_w;
+}
+
+int compare_memory_masked(AVRMEM * m, uint8_t b1, uint8_t b2) {
+  uint8_t bitmask = get_fuse_bitmask(m);
+  return (b1 & bitmask) != (b2 & bitmask);
+}
 
 /*
  * Verify the memory buffer of p with that of v.  The byte range of v,
@@ -1109,11 +1133,30 @@ int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size)
   for (i=0; i<size; i++) {
     if ((b->tags[i] & TAG_ALLOCATED) != 0 &&
         buf1[i] != buf2[i]) {
-      avrdude_message(MSG_INFO, "%s: verification error, first mismatch at byte 0x%04x\n"
-                      "%s0x%02x != 0x%02x\n",
-                      progname, i,
-                      progbuf, buf1[i], buf2[i]);
-      return -1;
+      uint8_t bitmask = get_fuse_bitmask(a);
+      if((buf1[i] & bitmask) != (buf2[i] & bitmask)) {
+        // Mismatch is not just in unused bits
+        avrdude_message(MSG_INFO, "%s: verification error, first mismatch at byte 0x%04x\n"
+                        "%s0x%02x != 0x%02x\n",
+                        progname, i,
+                        progbuf, buf1[i], buf2[i]);
+        return -1;
+      } else {
+        // Mismatch is only in unused bits
+        if ((buf1[i] | bitmask) != 0xff) {
+          // Programmer returned unused bits as 0, must be the part/programmer
+          avrdude_message(MSG_INFO, "%s: WARNING: ignoring mismatch in unused bits of \"%s\"\n"
+                          "%s(0x%02x != 0x%02x). To prevent this warning fix the part\n"
+                          "%sor programmer definition in the config file.\n",
+                          progname, memtype, progbuf, buf1[i], buf2[i], progbuf);
+        } else {
+          // Programmer returned unused bits as 1, must be the user
+          avrdude_message(MSG_INFO, "%s: WARNING: ignoring mismatch in unused bits of \"%s\"\n"
+                          "%s(0x%02x != 0x%02x). To prevent this warning set unused bits\n"
+                          "%sto 1 when writing (double check with your datasheet first).\n",
+                          progname, memtype, progbuf, buf1[i], buf2[i], progbuf);
+        }
+      }
     }
   }
 

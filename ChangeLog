@@ -1,3 +1,12 @@
+2021-11-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Martino Facchin:
+	patch #9110: Let reserved fuse bits to be read as *don't care*
+	* avr.c (compare_memory_masked): New function
+	* libavrdude.h: declare compare_memory_masked(); also, insist on C99
+	so <stdint.h> is required now
+	* main.c: Use compare_memory_masked() in safemode comparisons
+
 2021-11-11  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Joseph Coffland:

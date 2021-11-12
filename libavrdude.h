@@ -33,11 +33,7 @@
 #include <stdint.h>
 typedef uint32_t pinmask_t;
 #else
-#if UINT_MAX >= 0xFFFFFFFF
-typedef unsigned int pinmask_t;
-#else
-typedef unsigned long pinmask_t;
-#endif
+#error Need a C99 capable compiler
 #endif
 
 
@@ -342,6 +338,9 @@ typedef void (*walk_avrparts_cb)(const char *name, const char *desc,
                                  void *cookie);
 void walk_avrparts(LISTID avrparts, walk_avrparts_cb cb, void *cookie);
 void sort_avrparts(LISTID avrparts);
+
+int compare_memory_masked(AVRMEM * m, uint8_t buf1, uint8_t buf2);
+
 #ifdef __cplusplus
 }
 #endif
