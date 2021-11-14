@@ -1,5 +1,13 @@
 2021-11-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Ivan Frederiks:
+	patch #9079: Fix ftdi_syncbb teardown (supersedes #9893)
+	patch #9122: Fixed MISO sampling in ftdi_syncbb
+	patch #9123: ftdi_syncbb: use FT245R_CYCLES in ft245r_set_bitclock()
+	* ft245r.c: Various fixes for FT245-bitbang programmers
+
+2021-11-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by David Mosberger-Tang:
 	patch #9320: fix TPI RESET in bitbang.c
 	* bitbang.c (bitbang_initialize): wait for 128 ms after deasserting
