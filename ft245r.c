@@ -260,16 +260,16 @@ static int ft245r_set_bitclock(PROGRAMMER * pgm) {
 
     /* bitclock is second. 1us = 0.000001. Max rate for ft232r 750000 */
     if(pgm->bitclock) {
-        rate = (uint32_t)(1.0/pgm->bitclock) * 2;
+        rate = (uint32_t)(1.0/pgm->bitclock) * FT245R_CYCLES;
     } else if (pgm->baudrate) {
-        rate = pgm->baudrate * 2;
+        rate = pgm->baudrate * FT245R_CYCLES;
     } else {
         rate = 150000; /* should work for all ftdi chips and the avr default internal clock of 1MHz */
     }
 
     if (FT245R_DEBUG) {
         avrdude_message(MSG_NOTICE2, " ft245r:  spi bitclk %d -> ft baudrate %d\n",
-                rate / 2, rate);
+                rate / FT245R_CYCLES, rate);
     }
     r = ftdi_set_baudrate(handle, rate);
     if (r) {
