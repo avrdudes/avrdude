@@ -1,3 +1,10 @@
+2021-11-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by David Mosberger-Tang:
+	patch #9320: fix TPI RESET in bitbang.c
+	* bitbang.c (bitbang_initialize): wait for 128 ms after deasserting
+	/RESET (per datasheet), and keep /RESET low during MOSI/MISO link check
+
 2021-11-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Jon Thacker:

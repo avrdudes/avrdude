@@ -106,6 +106,7 @@ Current:
     patch #8957: Allow reading prodsig memory from stk500v2 on xmega devices
     patch #9110: Let reserved fuse bits to be read as *don't care*
     patch #9253: Fix for giving terminal_mode commands more than 20 arguments
+    patch #9320: fix TPI RESET in bitbang.c
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes

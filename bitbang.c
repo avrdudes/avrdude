@@ -542,7 +542,10 @@ int bitbang_initialize(PROGRAMMER * pgm, AVRPART * p)
 
 	/* bring RESET high first */
     pgm->setpin(pgm, PIN_AVR_RESET, 1);
-	usleep(1000);
+    usleep(128000);	/* wait t_TOUT (32-128ms) */
+
+    /* RESET must be LOW in case the existing code is driving the TPI pins: */
+    pgm->setpin(pgm, PIN_AVR_RESET, 0);
 
     avrdude_message(MSG_NOTICE2, "doing MOSI-MISO link check\n");
 
