@@ -173,16 +173,22 @@ static void add_to_buf (unsigned char c) {
 }
 
 static void *reader (void *arg) {
-    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS,NULL);
+    pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,NULL);
     struct ftdi_context *handle = (struct ftdi_context *)(arg);
     unsigned char buf[0x1000];
     int br, i;
 
     while (1) {
+        /* 'old_cancel_state' added for portability reasons,
+         * see pthread_setcancelstate() manual */
+        int old_cancel_state;
         pthread_testcancel();
+        /* isolate libftdi and libusb from cancellation requests to prevent unhandled behavior */
+        pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &old_cancel_state);
         br = ftdi_read_data (handle, buf, sizeof(buf));
         for (i=0; i<br; i++)
             add_to_buf (buf[i]);
+        pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &old_cancel_state);
     }
     return NULL;
 }
@@ -681,21 +687,14 @@ cleanup_no_usb:
 
 
 static void ft245r_close(PROGRAMMER * pgm) {
-    int retry_times = 0;
     if (handle) {
+        /* reader thread must be stopped before libftdi de-initialization */
+        pthread_cancel(readerthread);
+        pthread_join(readerthread, NULL);
         // I think the switch to BB mode and back flushes the buffer.
         ftdi_set_bitmode(handle, 0, BITMODE_SYNCBB); // set Synchronous BitBang, all in puts
         ftdi_set_bitmode(handle, 0, BITMODE_RESET); // disable Synchronous BitBang
         ftdi_usb_close(handle);
-        while(pthread_cancel(readerthread) && retry_times < 100) {
-            retry_times++;
-            usleep(100);
-        }
-        if (retry_times >= 100) {
-            avrdude_message(MSG_INFO, "Too many retry to close reader thread\n");
-        }
-
-        pthread_join(readerthread, NULL);
         ftdi_deinit (handle);
         free(handle);
         handle = NULL;
