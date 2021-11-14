@@ -469,7 +469,8 @@ static inline int set_data(PROGRAMMER * pgm, unsigned char *buf, unsigned char d
 
 static inline unsigned char extract_data(PROGRAMMER * pgm, unsigned char *buf, int offset) {
     int j;
-    int buf_pos = 1;
+    int buf_pos = FT245R_CYCLES; /* MISO data is valid AFTER rising SCK edge,
+                                            i.e. in next clock cycle */
     unsigned char bit = 0x80;
     unsigned char r = 0;
 
@@ -845,6 +846,11 @@ static int ft245r_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
             ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,0); // sck down
             buf[buf_pos++] = ft245r_out;
         }
+        else {
+            /* stretch sequence to allow correct readout, see extract_data() */
+            buf[buf_pos] = buf[buf_pos - 1];
+            buf_pos++;
+        }
         ft245r_send(pgm, buf, buf_pos);
         put_request(addr_save, buf_pos, 0);
         //ft245r_sync(pgm);
@@ -933,6 +939,11 @@ static int ft245r_paged_load_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
         if (i >= n_bytes) {
             ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,0); // sck down
             buf[buf_pos++] = ft245r_out;
+        }
+        else {
+            /* stretch sequence to allow correct readout, see extract_data() */
+            buf[buf_pos] = buf[buf_pos - 1];
+            buf_pos++;
         }
         n = j;
         ft245r_send(pgm, buf, buf_pos);
