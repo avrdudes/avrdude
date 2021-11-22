@@ -30,7 +30,7 @@ For avrdude version @value{VERSION}, @value{UPDATED}.
 
 Copyright @copyright{} 2003, 2005 Brian Dean
 
-Copyright @copyright{} 2006 - 2016 J@"org Wunsch
+Copyright @copyright{} 2006 - 2021 J@"org Wunsch
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -584,7 +584,22 @@ and Mac OS but not on Windows. For more information about AVR-Doper see
 For the USBtinyISP, which is a simplistic device not implementing
 serial numbers, multiple devices can be distinguished by their
 location in the USB hierarchy.
-@xref{Troubleshooting}, for examples.
+See the respective
+@xref{Troubleshooting} entry for examples.
+
+For the XBee programmer the target MCU is to be programmed wirelessly
+over a ZigBee mesh using the XBeeBoot bootloader.  The ZigBee 64-bit
+address for the target MCU's own XBee device must be supplied as a
+16-character hexadecimal value as a port prefix, followed by the
+@code{@@} character, and the serial device to connect to a second
+directly contactable XBee device associated with the same mesh (with
+a default baud rate of 9600).  This may look similar to:
+@code{0013a20000000001@/dev/tty.serial}.
+
+For diagnostic purposes, if the target MCU with an XBeeBoot
+bootloader is connected directly to the serial port, the
+64-bit address field can be omitted.  In this mode the
+default baud rate will be 19200.
 
 For programmers that attach to a serial port using some kind of
 higher level protocol (as opposed to bit-bang style programmers),
@@ -957,6 +972,22 @@ Programmer will erase
 configuration section with option '-e' (chip erase),
 rather than entire chip.
 Only applicable to TPI devices (ATtiny 4/5/9/10/20/40).
+@end table
+
+@item xbee
+Extended parameters:
+@table @code
+@item @samp{xbeeresetpin=@var{1..7}}
+Select the XBee pin @code{DIO<1..7>} that is connected to the MCU's
+‘/RESET’ line.  The programmer needs to know which DIO pin to use to
+reset into the bootloader.  The default (3) is the @code{DIO3} pin
+(XBee pin 17), but some commercial products use a different XBee
+pin.
+
+The remaining two necessary XBee-to-MCU connections are not selectable
+- the XBee @code{DOUT} pin (pin 2) must be connected to the MCU's
+‘RXD’ line, and the XBee @code{DIN} pin (pin 3) must be connected to
+the MCU's ‘TXD’ line.
 @end table
 
 @end table

@@ -190,7 +190,9 @@ libavrdude_a_SOURCES = \
 	usbtiny.c \
 	update.c \
 	wiring.h \
-	wiring.c
+	wiring.c \
+	xbee.h \
+	xbee.c
 libavrdude_la_SOURCES = $(libavrdude_a_SOURCES)
 libavrdude_la_LDFLAGS = -version-info 1:0
 

@@ -363,6 +363,14 @@ programmer
   type  = "arduino";
   connection_type = serial;
 ;
+
+programmer
+  id    = "xbee";
+  desc  = "XBee Series 2 Over-The-Air (XBeeBoot)";
+  type  = "xbee";
+  connection_type = serial;
+;
+
 # this will interface with the chips on these programmers:
 #
 # http://real.kiev.ua/old/avreal/en/adapters

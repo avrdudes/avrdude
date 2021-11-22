@@ -1,3 +1,15 @@
+2021-11-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by David Sainty:
+	patch #8719: Support Over-the-Air bootloading with XBeeBoot
+	* xbee.c: New programmer
+	* xbee.h: (Dito.)
+	* pgm_type.c: Add xbee.h
+	* avrdude.conf.in (xbee): New programmer
+	* Makefile.am (libavrdude_a_SOURCES): add xbee.c, xbee.h
+	* avrdude.1: document the new programmer
+	* doc/avrdude.texi: (Dito.)
+
 2021-11-14  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Ivan Frederiks:

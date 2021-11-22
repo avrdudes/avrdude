@@ -18,7 +18,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd DATE September 19, 2020
+.Dd DATE November 22, 2021
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -530,6 +530,22 @@ serial numbers, multiple devices can be distinguished by their
 location in the USB hierarchy.  See the the respective
 .Em Troubleshooting
 entry in the detailed documentation for examples.
+.Pp
+For the XBee programmer the target MCU is to be programmed wirelessly over a
+ZigBee mesh using the XBeeBoot bootloader.  The ZigBee 64-bit address for the
+target MCU's own XBee device must be supplied as a 16-character hexadecimal
+value as a
+.Ar port
+prefix, followed by the
+.Ql @
+character, and the serial device to connect to a second directly contactable
+XBee device associated with the same mesh (with a default baud rate of 9600).
+This may look similar to:
+.Pa 0013a20000000001@/dev/tty.serial .
+.Pp
+For diagnostic purposes, if the target MCU with an XBeeBoot bootloader is
+connected directly to the serial port, the 64-bit address field can be
+omitted.  In this mode the default baud rate will be 19200.
 .Pp
 For programmers that attach to a serial port using some kind of
 higher level protocol (as opposed to bit-bang style programmers),
@@ -1099,6 +1115,23 @@ Programmer will erase configuration section with option
 .Fl e
 (chip erase), rather than entire chip.
 Only applicable to TPI devices (ATtiny 4/5/9/10/20/40).
+.El
+.It Ar xbee
+Extended parameters:
+.Bl -tag -offset indent -width indent
+.It Ar xbeeresetpin=<1..7>
+Select the XBee pin DIO<1..7> that is connected to the MCU's
+.Ql /RESET
+line.  The programmer needs to know which DIO pin to use to reset into the
+bootloader.  The default (3) is the DIO3 pin (XBee pin 17), but some
+commercial products use a different XBee pin.
+.Pp
+The remaining two necessary XBee-to-MCU connections are not selectable - the
+XBee DOUT pin (pin 2) must be connected to the MCU's
+.Ql RXD
+line, and the XBee DIN pin (pin 3) must be connected to the MCU's
+.Ql TXD
+line.
 .El
 .El
 .Sh FILES
