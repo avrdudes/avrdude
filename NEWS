@@ -112,6 +112,7 @@ Current:
     patch #9122: Fixed MISO sampling in ftdi_syncbb
     patch #9123: ftdi_syncbb: use FT245R_CYCLES in ft245r_set_bitclock()
     patch #8719: Support Over-the-Air bootloading with XBeeBoot
+    patch #9757: Fix ATtiny817 Xplained Mini programmer
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes

@@ -1,3 +1,9 @@
+2021-11-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	patch #9757: Fix ATtiny817 Xplained Mini programmer
+	* jtag3.c (jtag3_getsync, jtag3_close): correctly extract
+	programmer name from list of names
+
 2021-11-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by David Sainty:

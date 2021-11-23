@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <errno.h>
 #include <unistd.h>
 #include <sys/time.h>
@@ -159,6 +160,11 @@ u16_to_b2(unsigned char *b, unsigned short l)
 {
   b[0] = l & 0xff;
   b[1] = (l >> 8) & 0xff;
+}
+
+static bool matches(const char *s, const char *pat)
+{
+  return strncmp(s, pat, strlen(pat)) == 0;
 }
 
 static void jtag3_print_data(unsigned char *b, size_t s)
@@ -866,12 +872,11 @@ int jtag3_getsync(PROGRAMMER * pgm, int mode) {
 
   /* XplainedMini boards do not need this, and early revisions had a
    * firmware bug where they complained about it. */
-  if (pgm->flag & PGM_FL_IS_EDBG) {
-    if (strcmp(pgm->id, "xplainedmini_updi") != 0) {
+  if ((pgm->flag & PGM_FL_IS_EDBG) &&
+      !matches(ldata(lfirst(pgm->id)), "xplainedmini")) {
       if (jtag3_edbg_prepare(pgm) < 0) {
         return -1;
       }
-    }
   }
 
   /* Get the sign-on information. */
@@ -1629,10 +1634,9 @@ void jtag3_close(PROGRAMMER * pgm)
 
   /* XplainedMini boards do not need this, and early revisions had a
    * firmware bug where they complained about it. */
-  if (pgm->flag & PGM_FL_IS_EDBG) {
-    if (strcmp(pgm->id, "xplainedmini_updi") != 0) {
+  if ((pgm->flag & PGM_FL_IS_EDBG) &&
+      !matches(ldata(lfirst(pgm->id)), "xplainedmini")) {
       jtag3_edbg_signoff(pgm);
-    }
   }
 
   serial_close(&pgm->fd);
