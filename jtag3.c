@@ -1158,7 +1158,7 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
 	u32_to_b4(xd.nvm_boot_offset, m->offset);
       } else if (strcmp(m->desc, "fuse1") == 0) {
 	u32_to_b4(xd.nvm_fuse_offset, m->offset & ~7);
-      } else if (strncmp(m->desc, "lock", 4) == 0) {
+      } else if (matches(m->desc, "lock")) {
 	u32_to_b4(xd.nvm_lock_offset, m->offset);
       } else if (strcmp(m->desc, "usersig") == 0) {
 	u32_to_b4(xd.nvm_user_sig_offset, m->offset);
@@ -1436,7 +1436,7 @@ static int jtag3_parseextparms(PROGRAMMER * pgm, LISTID extparms)
   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
 
-    if (strncmp(extended_param, "jtagchain=", strlen("jtagchain=")) == 0) {
+    if (matches(extended_param, "jtagchain=")) {
       unsigned int ub, ua, bb, ba;
       if (sscanf(extended_param, "jtagchain=%u,%u,%u,%u", &ub, &ua, &bb, &ba)
           != 4) {
@@ -1476,7 +1476,7 @@ int jtag3_open_common(PROGRAMMER * pgm, char * port)
   return -1;
 #endif
 
-  if (strncmp(port, "usb", 3) != 0) {
+  if (matches(port, "usb")) {
     avrdude_message(MSG_INFO, "%s: jtag3_open_common(): JTAGICE3/EDBG port names must start with \"usb\"\n",
                     progname);
     return -1;
@@ -1942,11 +1942,11 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     addr = 2;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (strncmp(mem->desc, "lock", 4) == 0) {
+  } else if (matches(mem->desc, "lock")) {
     cmd[3] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
+  } else if (matches(mem->desc, "fuse")) {
     cmd[3] = MTYPE_FUSE_BITS;
     if (!(p->flags & AVRPART_HAS_UPDI))
       addr = mem->offset & 7;
@@ -2095,7 +2095,7 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     addr = 2;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
+  } else if (matches(mem->desc, "fuse")) {
     cmd[3] = MTYPE_FUSE_BITS;
     if (!(p->flags & AVRPART_HAS_UPDI))
       addr = mem->offset & 7;
@@ -2103,7 +2103,7 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     cmd[3] = MTYPE_USERSIG;
   } else if (strcmp(mem->desc, "prodsig") == 0) {
     cmd[3] = MTYPE_PRODSIG;
-  } else if (strncmp(mem->desc, "lock", 4) == 0) {
+  } else if (matches(mem->desc, "lock")) {
     cmd[3] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -2404,7 +2404,7 @@ static unsigned int jtag3_memaddr(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, uns
     if (strcmp(m->desc, "fuses") == 0) {
         addr += m->offset;
     }
-    else if (strncmp(m->desc, "fuse", strlen("fuse")) == 0) {
+    else if (matches(m->desc, "fuse")) {
         addr = m->offset;
     }
     else if (strcmp(m->desc, "flash") != 0) {
