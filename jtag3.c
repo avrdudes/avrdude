@@ -1476,7 +1476,7 @@ int jtag3_open_common(PROGRAMMER * pgm, char * port)
   return -1;
 #endif
 
-  if (matches(port, "usb")) {
+  if (!matches(port, "usb")) {
     avrdude_message(MSG_INFO, "%s: jtag3_open_common(): JTAGICE3/EDBG port names must start with \"usb\"\n",
                     progname);
     return -1;
