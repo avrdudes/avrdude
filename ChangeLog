@@ -1,5 +1,12 @@
 2021-11-24  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by David Mosberger-Tang:
+	patch #9327: ft245r.c: add TPI support (patches 1-4)
+	* ft245r.c: add TPI support
+	* avrdude.conf.in (tc2030): New programmer
+
+2021-11-24  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* ft245r.c (ft245r_open): allow for picking a default
 	device if none has been provided by -P
 

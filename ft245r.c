@@ -67,6 +67,11 @@
 #include "ft245r.h"
 #include "usbdevs.h"
 
+#include "tpi.h"
+
+#define TPIPCR_GT_0b	0x07
+#define TPI_STOP_BITS	0x03
+
 #if defined(_WIN32)
 #include <windows.h>
 #endif
@@ -241,6 +246,9 @@ static int ft245r_chip_erase(PROGRAMMER * pgm, AVRPART * p) {
     unsigned char cmd[4] = {0,0,0,0};
     unsigned char res[4];
 
+    if (p->flags & AVRPART_HAS_TPI)
+      return avr_tpi_chip_erase(pgm, p);
+
     if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
         avrdude_message(MSG_INFO, "chip erase instruction not defined for part \"%s\"\n",
                 p->desc);
@@ -278,6 +286,16 @@ static int ft245r_set_bitclock(PROGRAMMER * pgm) {
         return -1;
     }
     return 0;
+}
+
+static int get_pin(PROGRAMMER *pgm, int pinname) {
+  uint8_t byte;
+
+  if (ftdi_read_pins(handle, &byte) != 0)
+    return -1;
+  if (FT245R_DEBUG)
+    avrdude_message(MSG_INFO, "%s: in 0x%02x\n", __func__, byte);
+  return GET_BITS_0(byte, pgm, pinname) != 0;
 }
 
 static int set_pin(PROGRAMMER * pgm, int pinname, int val) {
@@ -375,6 +393,8 @@ static void ft245r_enable(PROGRAMMER * pgm) {
 
 static int ft245r_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
                       unsigned char *res);
+static int ft245r_tpi_tx(PROGRAMMER * pgm, uint8_t byte);
+static int ft245r_tpi_rx(PROGRAMMER * pgm, uint8_t *bytep);
 /*
  * issue the 'program enable' command to the AVR device
  */
@@ -382,6 +402,9 @@ static int ft245r_program_enable(PROGRAMMER * pgm, AVRPART * p) {
     unsigned char cmd[4] = {0,0,0,0};
     unsigned char res[4];
     int i;
+
+    if (p->flags & AVRPART_HAS_TPI)
+      return avr_tpi_program_enable(pgm, p, TPIPCR_GT_0b);
 
     if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
         avrdude_message(MSG_INFO, "%s: AVR_OP_PGM_ENABLE command not defined for %s\n",
@@ -443,7 +466,64 @@ static int ft245r_initialize(PROGRAMMER * pgm, AVRPART * p) {
      */
     usleep(20000); // 20ms
 
+    if (p->flags & AVRPART_HAS_TPI) {
+	bool io_link_ok = true;
+	uint8_t byte;
+	int i;
+
+	/* Since there is a single TPIDATA line, MOSI and MISO must be
+	   linked together through a 1kOhm resistor.  Verify that
+	   everything we send on MOSI gets mirrored back on MISO.  */
+	set_pin(pgm, PIN_AVR_MOSI, 0);
+	if (get_pin(pgm, PIN_AVR_MISO) != 0) {
+	    io_link_ok = false;
+	    avrdude_message(MSG_INFO, "MOSI->MISO 0 failed\n");
+	    if (!ovsigck)
+		return -1;
+	}
+	set_pin(pgm, PIN_AVR_MOSI, 1);
+	if (get_pin(pgm, PIN_AVR_MISO) != 1) {
+	    io_link_ok = false;
+	    avrdude_message(MSG_INFO, "MOSI->MISO 1 failed\n");
+	    if (!ovsigck)
+		return -1;
+	}
+
+	if (io_link_ok)
+	    avrdude_message(MSG_NOTICE2, "MOSI-MISO link present\n");
+
+	/* keep TPIDATA high for 16 clock cycles */
+	set_pin(pgm, PIN_AVR_MOSI, 1);
+	for (i = 0; i < 16; i++) {
+	    set_sck(pgm, 1);
+	    set_sck(pgm, 0);
+	}
+
+	/* remove extra guard timing bits */
+	ft245r_tpi_tx(pgm, TPI_CMD_SSTCS | TPI_REG_TPIPCR);
+	ft245r_tpi_tx(pgm, 0x7);
+
+	/* read TPI ident reg */
+	ft245r_tpi_tx(pgm, TPI_CMD_SLDCS | TPI_REG_TPIIR);
+	ft245r_tpi_rx(pgm, &byte);
+	if (byte != 0x80) {
+	    avrdude_message(MSG_INFO, "TPIIR 0x%02x not correct\n", byte);
+	    return -1;
+	}
+    }
     return ft245r_program_enable(pgm, p);
+}
+
+static inline void add_bit(PROGRAMMER * pgm, unsigned char *buf, int *buf_pos,
+			   uint8_t bit) {
+    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_MOSI, bit);
+    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,0);
+    buf[*buf_pos] = ft245r_out;
+    (*buf_pos)++;
+
+    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,1);
+    buf[*buf_pos] = ft245r_out;
+    (*buf_pos)++;
 }
 
 static inline int set_data(PROGRAMMER * pgm, unsigned char *buf, unsigned char data) {
@@ -452,16 +532,7 @@ static inline int set_data(PROGRAMMER * pgm, unsigned char *buf, unsigned char d
     unsigned char bit = 0x80;
 
     for (j=0; j<8; j++) {
-        ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_MOSI,data & bit);
-
-        ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,0);
-        buf[buf_pos] = ft245r_out;
-        buf_pos++;
-
-        ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,1);
-        buf[buf_pos] = ft245r_out;
-        buf_pos++;
-
+	add_bit(pgm, buf, &buf_pos, (data & bit) != 0);
         bit >>= 1;
     }
     return buf_pos;
@@ -530,6 +601,123 @@ static int ft245r_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
     res[3] = extract_data(pgm, buf, 3);
 
     return 0;
+}
+
+static inline uint8_t extract_tpi_data(PROGRAMMER * pgm, unsigned char *buf,
+				       int *buf_pos) {
+    uint8_t bit = 0x1, byte = 0;
+    int j;
+
+    for (j = 0; j < 8; j++) {
+	(*buf_pos)++;	// skip over falling clock edge
+        if (GET_BITS_0(buf[(*buf_pos)++], pgm, PIN_AVR_MISO))
+            byte |= bit;
+        bit <<= 1;
+    }
+    return byte;
+}
+
+static inline int set_tpi_data(PROGRAMMER * pgm, unsigned char *buf,
+			       uint8_t byte) {
+    uint8_t bit = 0x1, parity = 0;
+    int j, buf_pos = 0;
+
+    // start bit:
+    add_bit(pgm, buf, &buf_pos, 0);
+
+    // 8 data bits:
+    for (j = 0; j < 8; j++) {
+	add_bit(pgm, buf, &buf_pos, (byte & bit) != 0);
+	parity ^= (byte & bit) != 0;
+        bit <<= 1;
+    }
+
+    // parity bit:
+    add_bit(pgm, buf, &buf_pos, parity);
+    // stop bits:
+    add_bit(pgm, buf, &buf_pos, 1);
+    add_bit(pgm, buf, &buf_pos, 1);
+    return buf_pos;
+}
+
+static int ft245r_tpi_tx(PROGRAMMER * pgm, uint8_t byte) {
+    uint8_t buf[128];
+    int len;
+
+    len = set_tpi_data(pgm, buf, byte);
+    ft245r_send(pgm, buf, len);
+    ft245r_recv(pgm, buf, len);
+    return 0;
+}
+
+static int ft245r_tpi_rx(PROGRAMMER * pgm, uint8_t *bytep) {
+    uint8_t buf[128], bit, parity;
+    int i, buf_pos = 0, len = 0;
+    uint32_t res, m, byte;
+
+    /* Allow for up to 4 bits before we must see start bit; during
+       that time, we must keep the MOSI line high. */
+    for (i = 0; i < 2; ++i)
+	len += set_data(pgm, &buf[len], 0xff);
+
+    ft245r_send(pgm, buf, len);
+    ft245r_recv(pgm, buf, len);
+
+    res = (extract_tpi_data(pgm, buf, &buf_pos)
+	   | ((uint32_t) extract_tpi_data(pgm, buf, &buf_pos) << 8));
+
+    /* Look for start bit: */
+    m = 0x1;
+    while (m & res)
+	m <<= 1;
+    if (m >= 0x10) {
+	avrdude_message(MSG_INFO, "%s: start bit missing (res=0x%04x)\n",
+			__func__, res);
+	return -1;
+    }
+    byte = parity = 0;
+    for (i = 0; i < 8; ++i) {
+	m <<= 1;
+	bit = (res & m) != 0;
+	parity ^= bit;
+	byte |= bit << i;
+    }
+    m <<= 1;
+    if (((res & m) != 0) != parity) {
+	avrdude_message(MSG_INFO, "%s: parity bit wrong\n", __func__);
+	return -1;
+    }
+    if (((res & (m << 1)) == 0) || ((res & (m << 2))) == 0) {
+	avrdude_message(MSG_INFO, "%s: stop bits wrong\n", __func__);
+	return -1;
+    }
+    *bytep = (uint8_t) byte;
+    return 0;
+}
+
+static int ft245r_cmd_tpi(PROGRAMMER * pgm, const unsigned char *cmd,
+			  int cmd_len, unsigned char *res, int res_len) {
+    int i, ret = 0;
+
+    pgm->pgm_led(pgm, ON);
+
+    for (i = 0; i < cmd_len; ++i)
+	ft245r_tpi_tx(pgm, cmd[i]);
+    for (i = 0; i < res_len; ++i)
+	if ((ret = ft245r_tpi_rx(pgm, &res[i])) < 0)
+	    break;
+    if (verbose >= 2) {
+	avrdude_message(MSG_NOTICE2, "%s: [ ", __func__);
+	for (i = 0; i < cmd_len; i++)
+	    avrdude_message(MSG_NOTICE2, "%02X ", cmd[i]);
+	avrdude_message(MSG_NOTICE2, "] [ ");
+	for(i = 0; i < res_len; i++)
+	    avrdude_message(MSG_NOTICE2, "%02X ", res[i]);
+	avrdude_message(MSG_NOTICE2, "]\n");
+    }
+
+    pgm->pgm_led(pgm, OFF);
+    return ret;
 }
 
 /* lower 8 pins are accepted, they might be also inverted */
@@ -985,6 +1173,7 @@ void ft245r_initpgm(PROGRAMMER * pgm) {
     pgm->program_enable = ft245r_program_enable;
     pgm->chip_erase     = ft245r_chip_erase;
     pgm->cmd            = ft245r_cmd;
+    pgm->cmd_tpi        = ft245r_cmd_tpi;
     pgm->open           = ft245r_open;
     pgm->close          = ft245r_close;
     pgm->read_byte      = avr_read_byte_default;

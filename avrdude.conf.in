@@ -780,6 +780,18 @@ programmer
   reset = 7;  # RI  X3(4)
 ;
 
+programmer
+  id    = "tc2030";
+  desc  = "Tag-Connect TC2030";
+  type  = "ftdi_syncbb";
+  connection_type = usb;
+  #                      FOR TPI devices:
+  mosi  = 0;  # TxD = D0 (wire to TPIDATA via 1k resistor)
+  miso  = 1;  # RxD = D1 (wire to TPIDATA directly)
+  sck   = 2;  # RTS = D2 (wire to SCK)
+  reset = 3;  # CTS = D3 (wire to ~RESET)
+;
+
 # website mentioned above uses this id
 programmer parent "arduino-ft232r"
   id    = "diecimila";
