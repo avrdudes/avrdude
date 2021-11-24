@@ -559,10 +559,11 @@ static int ft245r_open(PROGRAMMER * pgm, char * port) {
 
     // read device string cut after 8 chars (max. length of serial number)
     if ((sscanf(port, "usb:%8s", device) != 1)) {
-      avrdude_message(MSG_INFO,
-          "%s: ft245r_open(): invalid device identifier '%8s'\n",
-          progname, device);
-      return -1;
+      avrdude_message(MSG_NOTICE,
+          "%s: ft245r_open(): no device identifier in portname, using default\n",
+          progname);
+      pgm->usbsn[0] = 0;
+      devnum = 0;
     } else {
       if (strlen(device) == 8 ){ // serial number
         if (verbose >= 2) {
@@ -618,7 +619,8 @@ static int ft245r_open(PROGRAMMER * pgm, char * port) {
                                   pgm->usbsn[0]?pgm->usbsn:NULL,
                                   devnum);
     if (rv) {
-        avrdude_message(MSG_INFO, "can't open ftdi device %d. (%s)\n", devnum, ftdi_get_error_string(handle));
+        avrdude_message(MSG_INFO, "%s: can't open ftdi device: %s\n",
+                        progname, ftdi_get_error_string(handle));
         goto cleanup_no_usb;
     }
 
