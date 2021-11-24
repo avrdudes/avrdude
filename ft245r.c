@@ -161,6 +161,9 @@ static pthread_t readerthread;
 static sem_t buf_data, buf_space;
 static unsigned char buffer[BUFSIZE];
 static int head, tail;
+static struct {
+    int discard;	// # of bytes to discard during read
+} rx;
 
 static void add_to_buf (unsigned char c) {
     int nh;
@@ -206,15 +209,24 @@ static int ft245r_send(PROGRAMMER * pgm, unsigned char * buf, size_t len) {
     return 0;
 }
 
+static int ft245r_send_and_discard(PROGRAMMER * pgm, unsigned char * buf,
+				   size_t len) {
+    rx.discard += len;
+    return ft245r_send(pgm, buf, len);
+}
+
 static int ft245r_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len) {
-    int i;
+    int i = 0;
 
     // Copy over data from the circular buffer..
     // XXX This should timeout, and return error if there isn't enough
     // data.
-    for (i=0; i<len; i++) {
+    while (i < len) {
         sem_wait (&buf_data);
-        buf[i] = buffer[tail];
+	if (rx.discard > 0)
+	    --rx.discard;
+	else
+	    buf[i++] = buffer[tail];
         if (tail == (BUFSIZE -1)) tail = 0;
         else                      tail++;
         sem_post (&buf_space);
@@ -645,8 +657,7 @@ static int ft245r_tpi_tx(PROGRAMMER * pgm, uint8_t byte) {
     int len;
 
     len = set_tpi_data(pgm, buf, byte);
-    ft245r_send(pgm, buf, len);
-    ft245r_recv(pgm, buf, len);
+    ft245r_send_and_discard(pgm, buf, len);
     return 0;
 }
 
