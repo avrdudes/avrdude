@@ -836,6 +836,13 @@ static int ft245r_open(PROGRAMMER * pgm, char * port) {
     ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_LED_VFY,0);
 
 
+    rv = ftdi_set_latency_timer(handle, 1);
+    if (rv) {
+        avrdude_message(MSG_INFO, "%s: unable to set latency timer to 1 (%s)\n",
+                        progname, ftdi_get_error_string(handle));
+        goto cleanup;
+    }
+
     rv = ftdi_set_bitmode(handle, ft245r_ddr, BITMODE_SYNCBB); // set Synchronous BitBang
     if (rv) {
         avrdude_message(MSG_INFO, "%s: Synchronous BitBangMode is not supported (%s)\n",
