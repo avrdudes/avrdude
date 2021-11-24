@@ -1,3 +1,8 @@
+2021-11-24  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtag3.c (jtag3_edbg_recv_frame): Better handling for
+	fragment_info == 0x00 (no response available)
+
 2021-11-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* jtag3.c: Use matches() instead of strncmp()

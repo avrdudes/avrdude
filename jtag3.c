@@ -731,6 +731,19 @@ static int jtag3_edbg_recv_frame(PROGRAMMER * pgm, unsigned char **msg) {
       return -1;
     }
 
+    if (buf[1] == 0) {
+      // Documentation says:
+      // "FragmentInfo 0x00 indicates that no response data is
+      // available, and the rest of the packet is ignored."
+      avrdude_message(MSG_INFO,
+		      "%s: jtag3_edbg_recv(): "
+		      "No response available\n",
+		      progname);
+      free(*msg);
+      free(request);
+      return -1;
+    }
+
     /* calculate fragment information */
     if (thisfrag == 0) {
       /* first fragment */
