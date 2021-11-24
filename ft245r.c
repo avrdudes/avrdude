@@ -151,7 +151,6 @@ static struct ftdi_context *handle;
 
 static unsigned char ft245r_ddr;
 static unsigned char ft245r_out;
-static unsigned char ft245r_in;
 
 #define BUFSIZE 0x2000
 
@@ -321,10 +320,7 @@ static int set_pin(PROGRAMMER * pgm, int pinname, int val) {
     ft245r_out = SET_BITS_0(ft245r_out,pgm,pinname,val);
     buf[0] = ft245r_out;
 
-    ft245r_send (pgm, buf, 1);
-    ft245r_recv (pgm, buf, 1);
-
-    ft245r_in = buf[0];
+    ft245r_send_and_discard(pgm, buf, 1);
     return 0;
 }
 
@@ -880,8 +876,7 @@ static int ft245r_open(PROGRAMMER * pgm, char * port) {
      */
     ft245r_drain (pgm, 0);
 
-    ft245r_send (pgm, &ft245r_out, 1);
-    ft245r_recv (pgm, &ft245r_in, 1);
+    ft245r_send_and_discard(pgm, &ft245r_out, 1);
 
     return 0;
 
