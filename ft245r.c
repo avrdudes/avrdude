@@ -91,25 +91,7 @@
 #define DO_NOT_BUILD_FT245R
 #endif
 
-#ifndef HAVE_PTHREAD_H
-
-static int ft245r_nopthread_open (struct programmer_t *pgm, char * name) {
-    avrdude_message(MSG_INFO, "%s: error: no pthread support. Please compile again with pthread installed."
-#if defined(_WIN32)
-            " See http://sourceware.org/pthreads-win32/."
-#endif
-            "\n",
-            progname);
-
-    return -1;
-}
-
-void ft245r_initpgm(PROGRAMMER * pgm) {
-    strcpy(pgm->type, "ftdi_syncbb");
-    pgm->open = ft245r_nopthread_open;
-}
-
-#elif defined(DO_NOT_BUILD_FT245R)
+#if defined(DO_NOT_BUILD_FT245R)
 
 static int ft245r_noftdi_open (struct programmer_t *pgm, char * name) {
     avrdude_message(MSG_INFO, "%s: error: no libftdi or libusb support. Install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again.\n",
@@ -125,21 +107,6 @@ void ft245r_initpgm(PROGRAMMER * pgm) {
 
 #else
 
-#include <pthread.h>
-
-#ifdef __APPLE__
-/* Mac OS X defines sem_init but actually does not implement them */
-#include <dispatch/dispatch.h>
-
-typedef dispatch_semaphore_t	sem_t;
-
-#define sem_init(psem,x,val)	*psem = dispatch_semaphore_create(val)
-#define sem_post(psem)		dispatch_semaphore_signal(*psem)
-#define sem_wait(psem)		dispatch_semaphore_wait(*psem, DISPATCH_TIME_FOREVER)
-#else
-#include <semaphore.h>
-#endif
-
 #define FT245R_CYCLES	2
 #define FT245R_FRAGMENT_SIZE  512
 #define REQ_OUTSTANDINGS	10
@@ -152,92 +119,144 @@ static struct ftdi_context *handle;
 static unsigned char ft245r_ddr;
 static unsigned char ft245r_out;
 
-#define BUFSIZE 0x2000
+#define FT245R_BUFSIZE		0x2000	// receive buffer size
+#define FT245R_MIN_FIFO_SIZE	128	// min of FTDI RX/TX FIFO size
 
-// libftdi / libftd2xx compatibility functions.
+static struct {
+    int len;				// # of bytes in transmit buffer
+    uint8_t buf[FT245R_MIN_FIFO_SIZE];	// transmit buffer
+} tx;
 
-static pthread_t readerthread;
-static sem_t buf_data, buf_space;
-static unsigned char buffer[BUFSIZE];
-static int head, tail;
 static struct {
     int discard;	// # of bytes to discard during read
+    int pending;	// # of bytes that have been written since last read
+    int wr;		// write pointer
+    int rd;		// read pointer
+    uint8_t buf[FT245R_BUFSIZE];	// receive ring buffer
 } rx;
 
-static void add_to_buf (unsigned char c) {
-    int nh;
-
-    sem_wait (&buf_space);
-    if (head == (BUFSIZE -1)) nh = 0;
-    else                      nh = head + 1;
-
-    if (nh == tail) {
-        avrdude_message(MSG_INFO, "buffer overflow. Cannot happen!\n");
-    }
-    buffer[head] = c;
-    head = nh;
-    sem_post (&buf_data);
+// Discard all data from the receive buffer.
+static void ft245r_rx_buf_purge(PROGRAMMER * pgm) {
+    rx.rd = rx.wr = 0;
 }
 
-static void *reader (void *arg) {
-    pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,NULL);
-    struct ftdi_context *handle = (struct ftdi_context *)(arg);
-    unsigned char buf[0x1000];
-    int br, i;
+static void ft245r_rx_buf_put(PROGRAMMER * pgm, uint8_t byte) {
+    rx.buf[rx.wr++] = byte;
+    if (rx.wr >= sizeof(rx.buf))
+	rx.wr = 0;
+}
 
-    while (1) {
-        /* 'old_cancel_state' added for portability reasons,
-         * see pthread_setcancelstate() manual */
-        int old_cancel_state;
-        pthread_testcancel();
-        /* isolate libftdi and libusb from cancellation requests to prevent unhandled behavior */
-        pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &old_cancel_state);
-        br = ftdi_read_data (handle, buf, sizeof(buf));
-        for (i=0; i<br; i++)
-            add_to_buf (buf[i]);
-        pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &old_cancel_state);
+static uint8_t ft245r_rx_buf_get(PROGRAMMER * pgm) {
+    uint8_t byte = rx.buf[rx.rd++];
+    if (rx.rd >= sizeof(rx.buf))
+	rx.rd = 0;
+    return byte;
+}
+
+/* Fill receive buffer with data from the FTDI receive FIFO.  */
+static int ft245r_fill(PROGRAMMER * pgm) {
+    uint8_t raw[FT245R_MIN_FIFO_SIZE];
+    int i, nread;
+
+    nread = ftdi_read_data(handle, raw, rx.pending);
+    if (nread < 0)
+	return -1;
+    rx.pending -= nread;
+#if FT245R_DEBUG
+    avrdude_message(MSG_INFO, "%s: read %d bytes (pending=%d)\n",
+		    __func__, nread, rx.pending);
+#endif
+    for (i = 0; i < nread; ++i)
+	ft245r_rx_buf_put(pgm, raw[i]);
+    return nread;
+}
+
+/* Flush pending TX data to the FTDI send FIFO.  */
+static int ft245r_flush(PROGRAMMER * pgm) {
+    int rv, len = tx.len, avail;
+    uint8_t *src = tx.buf;
+
+    if (!len)
+	return 0;
+
+    while (len > 0) {
+	avail = FT245R_MIN_FIFO_SIZE - rx.pending;
+	if (avail <= 0) {
+	    avail = ft245r_fill(pgm);
+	    if (avail < 0) {
+		avrdude_message(MSG_INFO,
+				"%s: fill returned %d: %s\n",
+				__func__, avail, ftdi_get_error_string(handle));
+		return -1;
+	    }
+	}
+	if (avail > len)
+	    avail = len;
+
+#if FT245R_DEBUG
+	avrdude_message(MSG_INFO, "%s: writing %d bytes\n", __func__, avail);
+#endif
+	rv = ftdi_write_data(handle, src, avail);
+	if (rv != avail) {
+	    avrdude_message(MSG_INFO,
+			    "%s: write returned %d (expected %d): %s\n",
+			    __func__, rv, avail, ftdi_get_error_string(handle));
+	    return -1;
+	}
+	src += avail;
+	len -= avail;
+	rx.pending += avail;
     }
-    return NULL;
+    tx.len = 0;
+    return 0;
+}
+
+static int ft245r_send2(PROGRAMMER * pgm, unsigned char * buf, size_t len,
+			bool discard_rx_data) {
+    int i;
+
+    for (i = 0; i < len; ++i) {
+	if (discard_rx_data)
+	    ++rx.discard;
+	tx.buf[tx.len++] = buf[i];
+	if (tx.len >= FT245R_MIN_FIFO_SIZE)
+	    ft245r_flush(pgm);
+    }
+    return 0;
 }
 
 static int ft245r_send(PROGRAMMER * pgm, unsigned char * buf, size_t len) {
-    int rv;
-
-    rv = ftdi_write_data(handle, buf, len);
-    if (len != rv) return -1;
-    return 0;
+    return ft245r_send2(pgm, buf, len, false);
 }
 
 static int ft245r_send_and_discard(PROGRAMMER * pgm, unsigned char * buf,
 				   size_t len) {
-    rx.discard += len;
-    return ft245r_send(pgm, buf, len);
+    return ft245r_send2(pgm, buf, len, true);
 }
 
 static int ft245r_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len) {
-    int i = 0;
+    int i;
 
-    // Copy over data from the circular buffer..
-    // XXX This should timeout, and return error if there isn't enough
-    // data.
-    while (i < len) {
-        sem_wait (&buf_data);
-	if (rx.discard > 0)
-	    --rx.discard;
-	else
-	    buf[i++] = buffer[tail];
-        if (tail == (BUFSIZE -1)) tail = 0;
-        else                      tail++;
-        sem_post (&buf_space);
+    ft245r_flush(pgm);
+    ft245r_fill(pgm);
+
+#if FT245R_DEBUG
+    avrdude_message(MSG_INFO, "%s: discarding %d, consuming %zu bytes\n",
+		    __func__, rx.discard, len);
+#endif
+    while (rx.discard > 0) {
+	ft245r_rx_buf_get(pgm);
+	--rx.discard;
     }
 
+    for (i = 0; i < len; ++i)
+	buf[i] = ft245r_rx_buf_get(pgm);
     return 0;
 }
 
 
 static int ft245r_drain(PROGRAMMER * pgm, int display) {
     int r;
-    unsigned char t;
 
     // flush the buffer in the chip by changing the mode.....
     r = ftdi_set_bitmode(handle, 0, BITMODE_RESET); 	// reset
@@ -246,10 +265,15 @@ static int ft245r_drain(PROGRAMMER * pgm, int display) {
     if (r) return -1;
 
     // drain our buffer.
-    while (head != tail) {
-        ft245r_recv (pgm, &t, 1);
-    }
+    ft245r_rx_buf_purge(pgm);
     return 0;
+}
+
+
+/* Ensure any pending writes are sent to the FTDI chip before sleeping.  */
+static void ft245r_usleep(PROGRAMMER * pgm, useconds_t usec) {
+    ft245r_flush(pgm);
+    usleep(usec);
 }
 
 
@@ -268,7 +292,7 @@ static int ft245r_chip_erase(PROGRAMMER * pgm, AVRPART * p) {
 
     avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
     pgm->cmd(pgm, cmd, res);
-    usleep(p->chip_erase_delay);
+    ft245r_usleep(pgm, p->chip_erase_delay);
     return pgm->initialize(pgm, p);
 }
 
@@ -301,6 +325,8 @@ static int ft245r_set_bitclock(PROGRAMMER * pgm) {
 
 static int get_pin(PROGRAMMER *pgm, int pinname) {
   uint8_t byte;
+
+  ft245r_flush(pgm);
 
   if (ftdi_read_pins(handle, &byte) != 0)
     return -1;
@@ -365,7 +391,7 @@ static int set_led_vfy(struct programmer_t * pgm, int value) {
 static void ft245r_powerup(PROGRAMMER * pgm)
 {
     set_vcc(pgm, ON); /* power up */
-    usleep(100);
+    ft245r_usleep(pgm, 100);
 }
 
 
@@ -395,7 +421,7 @@ static void ft245r_enable(PROGRAMMER * pgm) {
    * and not via the buffer chip.
    */
     set_reset(pgm, OFF);
-    usleep(1);
+    ft245r_usleep(pgm, 1);
     set_buff(pgm, ON);
 }
 
@@ -434,12 +460,12 @@ static int ft245r_program_enable(PROGRAMMER * pgm, AVRPART * p) {
             fflush(stderr);
         }
         set_pin(pgm, PIN_AVR_RESET, ON);
-        usleep(20);
+        ft245r_usleep(pgm, 20);
         set_pin(pgm, PIN_AVR_RESET, OFF);
 
         if (i == 3) {
             ft245r_drain(pgm, 0);
-            tail = head;
+	    ft245r_rx_buf_purge(pgm);
         }
     }
 
@@ -464,15 +490,15 @@ static int ft245r_initialize(PROGRAMMER * pgm, AVRPART * p) {
     ft245r_powerup(pgm);
 
     set_reset(pgm, OFF);
-    usleep(5000); // 5ms
+    ft245r_usleep(pgm, 5000); // 5ms
     set_reset(pgm, ON);
-    usleep(5000); // 5ms
+    ft245r_usleep(pgm, 5000); // 5ms
     set_reset(pgm, OFF);
 
     /* Wait for at least 20 ms and enable serial programming by sending the Programming
      * Enable serial instruction to pin MOSI.
      */
-    usleep(20000); // 20ms
+    ft245r_usleep(pgm, 20000); // 20ms
 
     if (p->flags & AVRPART_HAS_TPI) {
 	bool io_link_ok = true;
@@ -862,15 +888,6 @@ static int ft245r_open(PROGRAMMER * pgm, char * port) {
         goto cleanup;
     }
 
-    /* We start a new thread to read the output from the FTDI. This is
-     * necessary because otherwise we'll deadlock. We cannot finish
-     * writing because the ftdi cannot send the results because we
-     * haven't provided a read buffer yet. */
-
-    sem_init (&buf_data, 0, 0);
-    sem_init (&buf_space, 0, BUFSIZE);
-    pthread_create (&readerthread, NULL, reader, handle);
-
     /*
      * drain any extraneous input
      */
@@ -892,9 +909,6 @@ cleanup_no_usb:
 
 static void ft245r_close(PROGRAMMER * pgm) {
     if (handle) {
-        /* reader thread must be stopped before libftdi de-initialization */
-        pthread_cancel(readerthread);
-        pthread_join(readerthread, NULL);
         // I think the switch to BB mode and back flushes the buffer.
         ftdi_set_bitmode(handle, 0, BITMODE_SYNCBB); // set Synchronous BitBang, all in puts
         ftdi_set_bitmode(handle, 0, BITMODE_RESET); // disable Synchronous BitBang
@@ -1071,7 +1085,7 @@ static int ft245r_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 #if defined(USE_INLINE_WRITE_PAGE)
             while (do_request(pgm, m))
                 ;
-            usleep(m->max_write_delay);
+            ft245r_usleep(pgm, m->max_write_delay);
 #else
             int addr_wk = addr_save - (addr_save % m->page_size);
             int rc;
