@@ -14,10 +14,12 @@ Current:
       debuggers (JTAGICE3 with firmware 3+, AtmelICE, EDBG, mEDBG)
     - UPDI support added (AVR8X family)
     - TPI support for USBtinyISP
+    - TPI support for ft245r
     - AVR Doper uses libhidapi rather than raw libusb (patch #9033)
     - -P net:host:port can use IPv6 now (Posix systems only)
     - New configure option: -disable-libusb_1_0
     - extended UPDI device context (> 64 Ki flash)
+    - major overhaul of ft245r driver (patch #9327/#9328)
 
   * New devices supported:
 
@@ -108,11 +110,13 @@ Current:
     patch #9110: Let reserved fuse bits to be read as *don't care*
     patch #9253: Fix for giving terminal_mode commands more than 20 arguments
     patch #9320: fix TPI RESET in bitbang.c
-    patch #9079: Fix ftdi_syncbb teardown (supersedes #9893)
+    patch #9079: Fix ftdi_syncbb teardown (supersedes #9893, superseded by #9328)
     patch #9122: Fixed MISO sampling in ftdi_syncbb
     patch #9123: ftdi_syncbb: use FT245R_CYCLES in ft245r_set_bitclock()
     patch #8719: Support Over-the-Air bootloading with XBeeBoot
     patch #9757: Fix ATtiny817 Xplained Mini programmer
+    patch #9327: ft245r.c: add TPI support (patches 1-4)
+    patch #9328: ft245r.c: add TPI support (patches 5-7)
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes

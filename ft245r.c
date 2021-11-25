@@ -59,6 +59,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <math.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -113,9 +114,26 @@ void ft245r_initpgm(PROGRAMMER * pgm) {
 //#define USE_INLINE_WRITE_PAGE
 
 #define FT245R_DEBUG	0
+/*
+  Some revisions of the FTDI chips mess up the timing in bitbang mode
+  unless the bitclock is set to the max (3MHz).  For example, see:
+
+  http://www.ftdichip.com/Support/Documents/TechnicalNotes/TN_120_FT232R%20Errata%20Technical%20Note.pdf
+
+  To work around this problem, set the macro below to 1 to always set
+  the bitclock to 3MHz and then issue the same byte repeatedly to get
+  the desired timing.
+
+*/
+#define FT245R_BITBANG_VARIABLE_PULSE_WIDTH_WORKAROUND 1
 
 static struct ftdi_context *handle;
 
+#if FT245R_BITBANG_VARIABLE_PULSE_WIDTH_WORKAROUND
+static unsigned int baud_multiplier;
+#else
+# define baud_multiplier 1		// this let's C compiler optimize
+#endif
 static unsigned char ft245r_ddr;
 static unsigned char ft245r_out;
 
@@ -213,14 +231,16 @@ static int ft245r_flush(PROGRAMMER * pgm) {
 
 static int ft245r_send2(PROGRAMMER * pgm, unsigned char * buf, size_t len,
 			bool discard_rx_data) {
-    int i;
+    int i, j;
 
     for (i = 0; i < len; ++i) {
-	if (discard_rx_data)
-	    ++rx.discard;
-	tx.buf[tx.len++] = buf[i];
-	if (tx.len >= FT245R_MIN_FIFO_SIZE)
-	    ft245r_flush(pgm);
+	for (j = 0; j < baud_multiplier; ++j) {
+	    if (discard_rx_data)
+		++rx.discard;
+	    tx.buf[tx.len++] = buf[i];
+	    if (tx.len >= FT245R_MIN_FIFO_SIZE)
+		ft245r_flush(pgm);
+	}
     }
     return 0;
 }
@@ -235,7 +255,7 @@ static int ft245r_send_and_discard(PROGRAMMER * pgm, unsigned char * buf,
 }
 
 static int ft245r_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len) {
-    int i;
+    int i, j;
 
     ft245r_flush(pgm);
     ft245r_fill(pgm);
@@ -249,8 +269,11 @@ static int ft245r_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len) {
 	--rx.discard;
     }
 
-    for (i = 0; i < len; ++i)
+    for (i = 0; i < len; ++i) {
 	buf[i] = ft245r_rx_buf_get(pgm);
+	for (j = 1; j < baud_multiplier; ++j)
+	    ft245r_rx_buf_get(pgm);
+    }
     return 0;
 }
 
@@ -298,23 +321,32 @@ static int ft245r_chip_erase(PROGRAMMER * pgm, AVRPART * p) {
 
 
 static int ft245r_set_bitclock(PROGRAMMER * pgm) {
-    int r;
-    int rate = 0;
+    // libftdi1 multiplies bitbang baudrate by 4:
+    int r, rate = 0, ftdi_rate = 3000000 / 4;
 
     /* bitclock is second. 1us = 0.000001. Max rate for ft232r 750000 */
     if(pgm->bitclock) {
-        rate = (uint32_t)(1.0/pgm->bitclock) * FT245R_CYCLES;
+        rate = (uint32_t)(1.0/pgm->bitclock);
     } else if (pgm->baudrate) {
-        rate = pgm->baudrate * FT245R_CYCLES;
+        rate = pgm->baudrate;
     } else {
         rate = 150000; /* should work for all ftdi chips and the avr default internal clock of 1MHz */
     }
 
-    if (FT245R_DEBUG) {
-        avrdude_message(MSG_NOTICE2, " ft245r:  spi bitclk %d -> ft baudrate %d\n",
-                rate / FT245R_CYCLES, rate);
-    }
-    r = ftdi_set_baudrate(handle, rate);
+#if FT245R_BITBANG_VARIABLE_PULSE_WIDTH_WORKAROUND
+    if (rate > 0 && rate < ftdi_rate)
+	baud_multiplier = round((ftdi_rate + rate - 1) / rate);
+    else
+	baud_multiplier = 1;
+#else
+    ftdi_rate = rate;
+#endif
+
+    avrdude_message(MSG_NOTICE2,
+		    "%s: bitclk %d -> FTDI rate %d, baud multiplier %d\n",
+		    __func__, rate, ftdi_rate, baud_multiplier);
+
+    r = ftdi_set_baudrate(handle, ftdi_rate);
     if (r) {
         avrdude_message(MSG_INFO, "Set baudrate (%d) failed with error '%s'.\n",
                 rate, ftdi_get_error_string (handle));
