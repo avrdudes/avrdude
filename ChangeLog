@@ -1,5 +1,11 @@
 2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Lars Ollén:
+	* linux_spi.c (linuxspi_open): ensure correct SPI mode is
+	set (submitted in the audit trail of patch #9816).
+
+2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	* linuxspi.c: Use -B <bitclock> rather than -b <baudrate>
 	to specify the clock rate
 

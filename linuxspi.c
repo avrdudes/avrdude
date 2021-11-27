@@ -166,6 +166,13 @@ static int linuxspi_open(PROGRAMMER *pgm, char *port)
         return -1;
     }
 
+    uint32_t mode = SPI_MODE_0 | SPI_NO_CS;
+    ret = ioctl(fd_spidev, SPI_IOC_WR_MODE32, &mode);
+    if (ret == -1) {
+        avrdude_message(MSG_INFO, "%s: error: Unable to set SPI mode %0X on %s\n",
+                        progname, mode, spidev);
+        goto close_spidev;
+    }
     fd_gpiochip = open(gpiochip, 0);
     if (fd_gpiochip < 0) {
         avrdude_message(MSG_INFO, "\n%s error: Unable to open the gpiochip %s", progname, gpiochip);
