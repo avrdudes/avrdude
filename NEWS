@@ -120,6 +120,7 @@ Current:
     patch #10027: linuxspi: Add reset pulse, according to AVR programming algorithm
     patch #10028: linuxspi: close() only when necessary
     patch #10029: linuxspi: Report GPIO_GET_LINEHANDLE_IOCTL errors
+    patch #10030: linuxspi: Support inverted GPIO pin
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes

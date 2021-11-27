@@ -164,7 +164,8 @@ static int linuxspi_open(PROGRAMMER *pgm, char *port)
 
     strcpy(req.consumer_label, progname);
     req.lines = 1;
-    req.lineoffsets[0] = pgm->pinno[PIN_AVR_RESET];
+    req.lineoffsets[0] = pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE;
+    req.default_values[0] = !!(pgm->pinno[PIN_AVR_RESET] & PIN_INVERSE);
     req.flags = GPIOHANDLE_REQUEST_OUTPUT;
 
     ret = ioctl(fd_gpiochip, GPIO_GET_LINEHANDLE_IOCTL, &req);

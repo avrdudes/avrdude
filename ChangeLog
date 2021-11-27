@@ -1,6 +1,13 @@
 2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Alex Sverdlin:
+	patch #10030: linuxspi: Support inverted GPIO pin
+	* linuxspi.c (linuxspi_open): Clear the inversion mask on request
+	and set default state to avoid short glitches on the GPIO line.
+
+2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Alex Sverdlin:
 	patch #10029: linuxspi: Report GPIO_GET_LINEHANDLE_IOCTL errors
 	* linuxspi.c (linuxspi_open): Report ioctl error
 
