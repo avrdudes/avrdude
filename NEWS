@@ -117,6 +117,7 @@ Current:
     patch #9757: Fix ATtiny817 Xplained Mini programmer
     patch #9327: ft245r.c: add TPI support (patches 1-4)
     patch #9328: ft245r.c: add TPI support (patches 5-7)
+    patch #10027: linuxspi: Add reset pulse, according to AVR programming algorithm
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes

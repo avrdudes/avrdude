@@ -98,12 +98,32 @@ static void linuxspi_teardown(PROGRAMMER* pgm)
 {
 }
 
+static int linuxspi_reset_mcu(PROGRAMMER *pgm, bool active)
+{
+    struct gpiohandle_data data;
+    int ret;
+
+    /*
+     * Set the reset state and keep it. The pin will be released and set back to
+     * its initial value, once the fd_gpiochip is closed.
+     */
+    data.values[0] = active ^ !(pgm->pinno[PIN_AVR_RESET] & PIN_INVERSE);
+    ret = ioctl(fd_linehandle, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
+    if (ret == -1) {
+        ret = -errno;
+        avrdude_message(MSG_INFO, "%s error: Unable to set GPIO line %d value\n",
+                        progname, pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE);
+        return ret;
+    }
+
+    return 0;
+}
+
 static int linuxspi_open(PROGRAMMER *pgm, char *port)
 {
     const char *port_error = "%s: error: Unknown port specification. Please use the format /dev/spidev:/dev/gpiochip[:resetno]\n";
     char *spidev, *gpiochip, *reset_pin;
     struct gpiohandle_request req;
-    struct gpiohandle_data data;
     int ret;
 
     if (!port || !strcmp(port, "unknown")) {
@@ -156,16 +176,9 @@ static int linuxspi_open(PROGRAMMER *pgm, char *port)
 
     fd_linehandle = req.fd;
 
-    /*
-     * Set the reset state and keep it. The pin will be released and set back to
-     * its initial value, once the fd_gpiochip is closed.
-     */
-    data.values[0] = !!(pgm->pinno[PIN_AVR_RESET] & PIN_INVERSE);
-    ret = ioctl(fd_linehandle, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
-    if (ret == -1) {
-        ret = -errno;
+    ret = linuxspi_reset_mcu(pgm, true);
+    if (ret)
         goto close_out;
-    }
 
     return 0;
 
@@ -239,8 +252,33 @@ static int linuxspi_program_enable(PROGRAMMER *pgm, AVRPART *p)
     avr_set_bits(p->op[AVR_OP_PGM_ENABLE], cmd); //set the cmd
     pgm->cmd(pgm, cmd, res);
 
-    if (res[2] != cmd[1])
+    if (res[2] != cmd[1]) {
+        /*
+         * From ATtiny441 datasheet:
+         *
+         * In some systems, the programmer can not guarantee that SCK is held low
+         * during power-up. In this case, RESET must be given a positive pulse after
+         * SCK has been set to '0'. The duration of the pulse must be at least t RST
+         * plus two CPU clock cycles. See Table 25-5 on page 240 for definition of
+         * minimum pulse width on RESET pin, t RST
+         * 2. Wait for at least 20 ms and then enable serial programming by sending
+         * the Programming Enable serial instruction to the MOSI pin
+         * 3. The serial programming instructions will not work if the communication
+         * is out of synchronization. When in sync, the second byte (0x53) will echo
+         * back when issuing the third byte of the Programming Enable instruction
+         * ...
+         * If the 0x53 did not echo back, give RESET a positive pulse and issue a
+         * new Programming Enable command
+         */
+        if (linuxspi_reset_mcu(pgm, false))
+            return -1;
+        usleep(3 + (pgm->baudrate ? 500000 / pgm->baudrate : 1));
+        if (linuxspi_reset_mcu(pgm, true))
+            return -1;
+        usleep(20000);
+
         return -2;
+    }
 
     return 0;
 }
