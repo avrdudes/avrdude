@@ -73,6 +73,7 @@ Current:
     bug #60863: avrftdi programming error probably caused by multiple, consecutive empty pages
     bug #50517: Reading fails if "immediate mode" for output file format is selected - fileio: invalid operation=1
     bug #50630: Erase Cycle Counter options ( -y -Y n ) should be removed from usage Message
+    bug #48767: ser_drain() for TCP on Windows doesn't work
 
   * Patches:
     patch #9482: Add support for UPDI and AVR8X
@@ -126,6 +127,7 @@ Current:
     patch #10031: linuxspi: Support GPIO uAPI v2
     (no-id): Improve documentation of linuxspi driver, provide portname default
     (no-id): Use -B <bitclock> rather than -b <baudrate> for linuxspi driver
+    patch #9304: [Bug #48767] Implemented WinSock variation of "ser_drain(...)" functionality
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes

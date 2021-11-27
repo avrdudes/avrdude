@@ -628,9 +628,95 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
   return 0;
 }
 
+#ifdef HAVE_LIBWS2_32
+static int net_drain(union filedescriptor *fd, int display)
+{
+	LPVOID lpMsgBuf;
+	struct timeval timeout;
+	fd_set rfds;
+	int nfds;
+	unsigned char buf;
+	int rc;
+
+	if (fd->ifd < 0) {
+		avrdude_message(MSG_INFO, "%s: ser_drain(): connection not open\n", progname);
+		exit(1);
+	}
+
+	if (display) {
+		avrdude_message(MSG_INFO, "drain>");
+	}
+
+	timeout.tv_sec  = 0;
+	timeout.tv_usec = 250000;
+
+	while (1) {
+		FD_ZERO(&rfds);
+		FD_SET(fd->ifd, &rfds);
+
+	reselect:
+		nfds = select(fd->ifd + 1, &rfds, NULL, NULL, &timeout);
+		if (nfds == 0) {
+			if (display) {
+				avrdude_message(MSG_INFO, "<drain\n");
+			}
+			break;
+		}
+		else if (nfds == -1) {
+			if (WSAGetLastError() == WSAEINTR || WSAGetLastError() == WSAEINPROGRESS) {
+				avrdude_message(MSG_NOTICE, "%s: ser_drain(): programmer is not responding, reselecting\n", progname);
+				goto reselect;
+			} else {
+				FormatMessage(
+					FORMAT_MESSAGE_ALLOCATE_BUFFER |
+					FORMAT_MESSAGE_FROM_SYSTEM |
+					FORMAT_MESSAGE_IGNORE_INSERTS,
+					NULL,
+					WSAGetLastError(),
+					MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+					(LPTSTR)&lpMsgBuf,
+					0,
+					NULL);
+				avrdude_message(MSG_INFO, "%s: ser_drain(): select(): %s\n", progname, (char *)lpMsgBuf);
+				LocalFree(lpMsgBuf);
+				exit(1);
+			}
+		}
+
+		rc = recv(fd->ifd, &buf, 1, 0);
+		if (rc < 0) {
+			FormatMessage(
+				FORMAT_MESSAGE_ALLOCATE_BUFFER |
+				FORMAT_MESSAGE_FROM_SYSTEM |
+				FORMAT_MESSAGE_IGNORE_INSERTS,
+				NULL,
+				WSAGetLastError(),
+				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+				(LPTSTR)&lpMsgBuf,
+				0,
+				NULL);
+			avrdude_message(MSG_INFO, "%s: ser_drain(): read error: %s\n", progname, (char *)lpMsgBuf);
+			LocalFree(lpMsgBuf);
+			exit(1);
+		}
+
+		if (display) {
+			avrdude_message(MSG_INFO, "%02x ", buf);
+		}
+	}
+
+	return 0;
+}
+#endif
 
 static int ser_drain(union filedescriptor *fd, int display)
 {
+#ifdef HAVE_LIBWS2_32
+	if (serial_over_ethernet) {
+		return net_drain(fd, display);
+	}
+#endif
+
 	// int rc;
 	unsigned char buf[10];
 	BOOL readres;

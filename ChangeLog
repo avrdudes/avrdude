@@ -1,5 +1,12 @@
 2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by Christopher Cooper:
+	patch #9304: [Bug #48767] Implemented WinSock variation of "ser_drain(...)" functionality
+	* ser_win32.c (ser_drain): Implement a network drain
+	function.
+
+2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Lars Ollén:
 	* linux_spi.c (linuxspi_open): ensure correct SPI mode is
 	set (submitted in the audit trail of patch #9816).
