@@ -1,5 +1,10 @@
 2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	bug #58440: linuxgpio PIN limit too low
+	* libavrdude.h (PIN_MAX): bump (for HAVE_LINUXGPIO) to 400
+
+2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by David Mosberger-Tang:
 	patch #8923: Enable TPI for linuxgpio
 	* linuxgpio.c (linuxgpio_initpgm): add cmd_tpi entry
