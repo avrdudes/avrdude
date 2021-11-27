@@ -157,7 +157,6 @@ static int linuxspi_open(PROGRAMMER *pgm, char *port)
 
     fd_gpiochip = open(gpiochip, 0);
     if (fd_gpiochip < 0) {
-        close(fd_spidev);
         avrdude_message(MSG_INFO, "\n%s error: Unable to open the gpiochip %s", progname, gpiochip);
         ret = -1;
         goto close_spidev;
@@ -193,6 +192,7 @@ close_spidev:
 
 static void linuxspi_close(PROGRAMMER *pgm)
 {
+    close(fd_linehandle);
     close(fd_spidev);
     close(fd_gpiochip);
 }
