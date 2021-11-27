@@ -1519,6 +1519,7 @@ programmer
 
 @HAVE_PARPORT_END@
 
+@HAVE_LINUXGPIO_BEGIN@
 #This programmer bitbangs GPIO lines using the Linux sysfs GPIO interface
 #
 #To enable it set the configuration below to match the GPIO lines connected to the
@@ -1540,23 +1541,22 @@ programmer
 #  mosi  = ?;
 #  miso  = ?;
 #;
+@HAVE_LINUXGPIO_END@
 
 
+@HAVE_LINUXSPI_BEGIN@
 # This programmer uses the built in linux SPI bus devices to program an
-# attached AVR. A GPIO accessed through the sysfs GPIO interface needs to
-# be specified for a reset pin since the linux SPI userspace functions do
-# not allow for control over the slave select/chip select signal.
+# attached AVR. The reset pin must be attached to a GPIO pin that
+# is otherwise unused (see gpioinfo(1)); the SPI bus CE pins are not
+# suitable since they would release /RESET too early.
 #
-# To use it, copy this snippet into your ~/.avrduderc, make sure the
-# 'reset' entry is configured correctly.
-#
-# programmer
-#   id = "linuxspi";
-#   desc = "Use Linux SPI device in /dev/spidev*";
-#   type = "linuxspi";
-#   reset = 25;
-#   baudrate=400000;
-# ;
+programmer
+   id = "linuxspi";
+   desc = "Use Linux SPI device in /dev/spidev*";
+   type = "linuxspi";
+   reset = 25;    # Pi GPIO number - this is J8:22
+;
+@HAVE_LINUXSPI_END@
 
 # some ultra cheap programmers use bitbanging on the 
 # serialport.

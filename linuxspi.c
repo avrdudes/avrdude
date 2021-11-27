@@ -131,14 +131,16 @@ static int linuxspi_reset_mcu(PROGRAMMER *pgm, bool active)
 
 static int linuxspi_open(PROGRAMMER *pgm, char *port)
 {
-    const char *port_error = "%s: error: Unknown port specification. Please use the format /dev/spidev:/dev/gpiochip[:resetno]\n";
+    const char *port_error =
+      "%s: error: Unknown port specification. "
+      "Please use the format /dev/spidev:/dev/gpiochip[:resetno]\n";
+    char port_default[] = "/dev/spidev0.0:/dev/gpiochip0";
     char *spidev, *gpiochip, *reset_pin;
     struct gpiohandle_request req;
     int ret;
 
-    if (!port || !strcmp(port, "unknown")) {
-        avrdude_message(MSG_INFO, "%s: error: No port specified. Port should point to an spidev device.\n", progname);
-        return -1;
+    if (!strcmp(port, "unknown")) {
+        port = port_default;
     }
 
     spidev = strtok(port, ":");

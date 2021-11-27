@@ -129,13 +129,10 @@ should be connected between the AVR's reset pin and Vcc. If Vcc is not
 the same as the SPI voltage, this should be done on the AVR side of
 the level translator to protect the hardware from damage.
 .Pp
-A commented-out template for this programmer is provided in the
-avrdude configuration file.  To use it, clone that entry into the
-per-user configuration file, and configure the
-.Li reset
-GPIO
-number accordingly. Linuxspi can be used as follows:
-.Dl avrdude -c linuxspi -P /dev/spidev:/dev/gpiochip[:resetpin]
+The
+.Fl P Ar portname
+option for this programmer defaults to
+.Li /dev/spidev0.0:/dev/gpiochip0 .
 .Pp
 Atmel's STK500 programmer is also supported and connects to a serial
 port.

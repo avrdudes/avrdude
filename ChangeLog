@@ -1,5 +1,16 @@
 2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Improve defaults and documentation of linuxspi
+	* avrdude.conf.in: use @HAVE_LINUXGPIO_BEGIN/END@ and
+	@HAVE_LINUXSPI_BEGIN/END@ brackets around respective config
+	snippets; values were already set in configure.ac.
+	* linuxspi.c (linuxspi_open): Provide a reasonable (for the
+	Raspberry Pi) default for the -P option
+	* avrdude.1: Extend linuxspi documentation
+	* doc/avrdude.texi: (Dito.)
+
+2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Alex Sverdlin:
 	patch #10031: linuxspi: Support GPIO uAPI v2
 	* linuxspi.c (linuxspi_reset_mcu, linuxspi_open): Since Linux

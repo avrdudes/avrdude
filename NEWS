@@ -20,6 +20,7 @@ Current:
     - New configure option: -disable-libusb_1_0
     - extended UPDI device context (> 64 Ki flash)
     - major overhaul of ft245r driver (patch #9327/#9328)
+    - some improvements in linuxspi driver
 
   * New devices supported:
 
@@ -122,6 +123,7 @@ Current:
     patch #10029: linuxspi: Report GPIO_GET_LINEHANDLE_IOCTL errors
     patch #10030: linuxspi: Support inverted GPIO pin
     patch #10031: linuxspi: Support GPIO uAPI v2
+    (no-id): Improve documentation of linuxspi driver, provide portname default
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes
