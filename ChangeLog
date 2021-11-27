@@ -1,5 +1,11 @@
 2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by David Mosberger-Tang:
+	patch #8923: Enable TPI for linuxgpio
+	* linuxgpio.c (linuxgpio_initpgm): add cmd_tpi entry
+
+2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by: Milan Kupcevic <milan@debian.org>
 	patch #8996: Remove lock byte read mask (bug#21954, bug#46759)
 	* avrdude.conf.in (ATmega48, ATmega88, ATmega168, ATmega328)

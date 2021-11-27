@@ -330,6 +330,7 @@ void linuxgpio_initpgm(PROGRAMMER *pgm)
   pgm->program_enable = bitbang_program_enable;
   pgm->chip_erase     = bitbang_chip_erase;
   pgm->cmd            = bitbang_cmd;
+  pgm->cmd_tpi        = bitbang_cmd_tpi;
   pgm->open           = linuxgpio_open;
   pgm->close          = linuxgpio_close;
   pgm->setpin         = linuxgpio_setpin;

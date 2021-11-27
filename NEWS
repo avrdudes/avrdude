@@ -15,6 +15,7 @@ Current:
     - UPDI support added (AVR8X family)
     - TPI support for USBtinyISP
     - TPI support for ft245r
+    - TPI support for linuxgpio
     - AVR Doper uses libhidapi rather than raw libusb (patch #9033)
     - -P net:host:port can use IPv6 now (Posix systems only)
     - New configure option: -disable-libusb_1_0
@@ -131,6 +132,7 @@ Current:
     (no-id): Use -B <bitclock> rather than -b <baudrate> for linuxspi driver
     patch #9304: [Bug #48767] Implemented WinSock variation of "ser_drain(...)" functionality
     patch #8996: Remove lock byte read mask (bug#21954, bug#46759)
+    patch #8923: Enable TPI for linuxgpio
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes
