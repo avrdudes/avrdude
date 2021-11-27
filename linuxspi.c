@@ -78,8 +78,7 @@ static int linuxspi_spi_duplex(PROGRAMMER *pgm, const unsigned char *tx, unsigne
         .rx_buf = (unsigned long)rx,
         .len = len,
         .delay_usecs = 1,
-        //should settle around 400Khz, a standard SPI speed. Adjust using baud parameter (-b)
-	.speed_hz = pgm->baudrate == 0 ? 400000 : pgm->baudrate,
+	.speed_hz = 1.0 / pgm->bitclock, // seconds to Hz
         .bits_per_word = 8,
     };
 
@@ -213,6 +212,19 @@ static int linuxspi_open(PROGRAMMER *pgm, char *port)
     if (ret)
         goto close_out;
 
+    if (pgm->baudrate != 0) {
+      avrdude_message(MSG_INFO,
+		      "%s: obsolete use of -b <clock> option for bit clock; use -B <clock>\n",
+		      progname);
+      pgm->bitclock = 1E6 / pgm->baudrate;
+    }
+    if (pgm->bitclock == 0) {
+      avrdude_message(MSG_NOTICE,
+		      "%s: defaulting bit clock to 200 kHz\n",
+		      progname);
+      pgm->bitclock = 5E-6; // 200 kHz - 5 µs
+    }
+
     return 0;
 
 close_out:
@@ -306,7 +318,7 @@ static int linuxspi_program_enable(PROGRAMMER *pgm, AVRPART *p)
          */
         if (linuxspi_reset_mcu(pgm, false))
             return -1;
-        usleep(3 + (pgm->baudrate ? 500000 / pgm->baudrate : 1));
+        usleep(5);
         if (linuxspi_reset_mcu(pgm, true))
             return -1;
         usleep(20000);

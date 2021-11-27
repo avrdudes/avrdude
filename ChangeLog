@@ -1,5 +1,10 @@
 2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	* linuxspi.c: Use -B <bitclock> rather than -b <baudrate>
+	to specify the clock rate
+
+2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Improve defaults and documentation of linuxspi
 	* avrdude.conf.in: use @HAVE_LINUXGPIO_BEGIN/END@ and
 	@HAVE_LINUXSPI_BEGIN/END@ brackets around respective config

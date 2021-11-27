@@ -21,6 +21,7 @@ Current:
     - extended UPDI device context (> 64 Ki flash)
     - major overhaul of ft245r driver (patch #9327/#9328)
     - some improvements in linuxspi driver
+    - Use -B <bitclock> rather than -b <baudrate> for linuxspi driver
 
   * New devices supported:
 
@@ -124,6 +125,7 @@ Current:
     patch #10030: linuxspi: Support inverted GPIO pin
     patch #10031: linuxspi: Support GPIO uAPI v2
     (no-id): Improve documentation of linuxspi driver, provide portname default
+    (no-id): Use -B <bitclock> rather than -b <baudrate> for linuxspi driver
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes
