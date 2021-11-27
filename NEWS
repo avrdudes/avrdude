@@ -78,6 +78,7 @@ Current:
     bug #48767: ser_drain() for TCP on Windows doesn't work
     bug #46759: avrdude 6.1 -> 6.2 regression: lock byte verification error
     bug #58440: linuxgpio PIN limit too low
+    bug #55462: wrong programmer id check in jtag3_getsync() and jtag3_close()
 
   * Patches:
     patch #9482: Add support for UPDI and AVR8X
