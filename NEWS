@@ -119,6 +119,7 @@ Current:
     patch #9328: ft245r.c: add TPI support (patches 5-7)
     patch #10027: linuxspi: Add reset pulse, according to AVR programming algorithm
     patch #10028: linuxspi: close() only when necessary
+    patch #10029: linuxspi: Report GPIO_GET_LINEHANDLE_IOCTL errors
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes

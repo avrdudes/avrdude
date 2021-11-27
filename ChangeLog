@@ -1,6 +1,12 @@
 2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Alex Sverdlin:
+	patch #10029: linuxspi: Report GPIO_GET_LINEHANDLE_IOCTL errors
+	* linuxspi.c (linuxspi_open): Report ioctl error
+
+2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Alex Sverdlin:
 	patch #10028: linuxspi: close() only when necessary
 	* linuxspi.c: unify descriptor closing
 

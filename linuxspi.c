@@ -170,6 +170,8 @@ static int linuxspi_open(PROGRAMMER *pgm, char *port)
     ret = ioctl(fd_gpiochip, GPIO_GET_LINEHANDLE_IOCTL, &req);
     if (ret == -1) {
         ret = -errno;
+        avrdude_message(MSG_INFO, "%s error: Unable to get GPIO line %d\n",
+                        progname, pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE);
         goto close_gpiochip;
     }
 
