@@ -1,5 +1,19 @@
 2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
+	Submitted by: Milan Kupcevic <milan@debian.org>
+	patch #8996: Remove lock byte read mask (bug#21954, bug#46759)
+	* avrdude.conf.in (ATmega48, ATmega88, ATmega168, ATmega328)
+	(ATmega32U4, ATmega640, ATmega1280, ATmega1281, ATmega2560)
+	(ATmega2561, ATmega8, ATtiny13, ATmega64, ATmega128, ATmega16)
+	(AT90CAN32, AT90CAN64, AT90CAN128, ATmega324, ATmega644)
+	(ATmega1284, ATmega161, ATmega162, ATmega163, ATmega169, ATmega32)
+	(ATmega329, ATmega649, ATmega8515, ATmega8535, ATtiny2313, ATtiny4313)
+	(AT90PWM2, AT90USB646, AT90USB1286, AT90USB162, AT90USB82, ATmega32U2)
+	(ATmega16U2, ATmega8U2, ATmega325, ATmega645, ATtiny1634): Remove
+	lock byte read mask (bug#46759).
+
+2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
 	Submitted by Christopher Cooper:
 	patch #9304: [Bug #48767] Implemented WinSock variation of "ser_drain(...)" functionality
 	* ser_win32.c (ser_drain): Implement a network drain

@@ -22,6 +22,7 @@ Current:
     - major overhaul of ft245r driver (patch #9327/#9328)
     - some improvements in linuxspi driver
     - Use -B <bitclock> rather than -b <baudrate> for linuxspi driver
+    - unused lock byte bits are not masked on read anymore
 
   * New devices supported:
 
@@ -74,6 +75,7 @@ Current:
     bug #50517: Reading fails if "immediate mode" for output file format is selected - fileio: invalid operation=1
     bug #50630: Erase Cycle Counter options ( -y -Y n ) should be removed from usage Message
     bug #48767: ser_drain() for TCP on Windows doesn't work
+    bug #46759: avrdude 6.1 -> 6.2 regression: lock byte verification error
 
   * Patches:
     patch #9482: Add support for UPDI and AVR8X
@@ -128,6 +130,7 @@ Current:
     (no-id): Improve documentation of linuxspi driver, provide portname default
     (no-id): Use -B <bitclock> rather than -b <baudrate> for linuxspi driver
     patch #9304: [Bug #48767] Implemented WinSock variation of "ser_drain(...)" functionality
+    patch #8996: Remove lock byte read mask (bug#21954, bug#46759)
 
   * Internals:
     - New avrdude.conf keyword "family_id", used to verify SIB attributes
