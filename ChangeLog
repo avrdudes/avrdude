@@ -1,6 +1,12 @@
 2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Alex Sverdlin:
+	patch #10028: linuxspi: close() only when necessary
+	* linuxspi.c: unify descriptor closing
+
+2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Alex Sverdlin:
 	patch #10027: linuxspi: Add reset pulse, according to AVR programming algorithm
 	* linuxspi.c (linuxspi_open, linuxspi_program_enable):
 	movw out reset code into linuxspi_reset_mcu()
