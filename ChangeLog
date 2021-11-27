@@ -1,6 +1,14 @@
 2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Alex Sverdlin:
+	patch #10031: linuxspi: Support GPIO uAPI v2
+	* linuxspi.c (linuxspi_reset_mcu, linuxspi_open): Since Linux
+	v5.10 GPIO ABI Version 1 is optional and depends on
+	CONFIG_GPIO_CDEV_V1.
+
+2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Alex Sverdlin:
 	patch #10030: linuxspi: Support inverted GPIO pin
 	* linuxspi.c (linuxspi_open): Clear the inversion mask on request
 	and set default state to avoid short glitches on the GPIO line.

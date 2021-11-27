@@ -109,6 +109,16 @@ static int linuxspi_reset_mcu(PROGRAMMER *pgm, bool active)
      */
     data.values[0] = active ^ !(pgm->pinno[PIN_AVR_RESET] & PIN_INVERSE);
     ret = ioctl(fd_linehandle, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
+#ifdef GPIO_V2_LINE_SET_VALUES_IOCTL
+    if (ret == -1) {
+        struct gpio_v2_line_values val;
+
+        val.mask = 1;
+        val.bits = active ^ !(pgm->pinno[PIN_AVR_RESET] & PIN_INVERSE);
+
+        ret = ioctl(fd_linehandle, GPIO_V2_LINE_SET_VALUES_IOCTL, &val);
+    }
+#endif
     if (ret == -1) {
         ret = -errno;
         avrdude_message(MSG_INFO, "%s error: Unable to set GPIO line %d value\n",
@@ -169,14 +179,33 @@ static int linuxspi_open(PROGRAMMER *pgm, char *port)
     req.flags = GPIOHANDLE_REQUEST_OUTPUT;
 
     ret = ioctl(fd_gpiochip, GPIO_GET_LINEHANDLE_IOCTL, &req);
+    if (ret != -1)
+        fd_linehandle = req.fd;
+#ifdef GPIO_V2_GET_LINE_IOCTL
+    if (ret == -1) {
+        struct gpio_v2_line_request reqv2;
+
+        memset(&reqv2, 0, sizeof(reqv2));
+        reqv2.offsets[0] = pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE;
+        strncpy(reqv2.consumer, progname, sizeof(reqv2.consumer) - 1);
+        reqv2.config.flags = GPIO_V2_LINE_FLAG_OUTPUT;
+        reqv2.config.num_attrs = 1;
+        reqv2.config.attrs[0].attr.id = GPIO_V2_LINE_ATTR_ID_OUTPUT_VALUES;
+        reqv2.config.attrs[0].attr.values = !!(pgm->pinno[PIN_AVR_RESET] & PIN_INVERSE);
+        reqv2.config.attrs[0].mask = 1;
+        reqv2.num_lines = 1;
+
+        ret = ioctl(fd_gpiochip, GPIO_V2_GET_LINE_IOCTL, &reqv2);
+        if (ret != -1)
+            fd_linehandle = reqv2.fd;
+    }
+#endif
     if (ret == -1) {
         ret = -errno;
         avrdude_message(MSG_INFO, "%s error: Unable to get GPIO line %d\n",
                         progname, pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE);
         goto close_gpiochip;
     }
-
-    fd_linehandle = req.fd;
 
     ret = linuxspi_reset_mcu(pgm, true);
     if (ret)
