@@ -153,6 +153,11 @@ static struct {
     uint8_t buf[FT245R_BUFSIZE];	// receive ring buffer
 } rx;
 
+static int ft245r_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
+                      unsigned char *res);
+static int ft245r_tpi_tx(PROGRAMMER * pgm, uint8_t byte);
+static int ft245r_tpi_rx(PROGRAMMER * pgm, uint8_t *bytep);
+
 // Discard all data from the receive buffer.
 static void ft245r_rx_buf_purge(PROGRAMMER * pgm) {
     rx.rd = rx.wr = 0;
@@ -457,10 +462,6 @@ static void ft245r_enable(PROGRAMMER * pgm) {
     set_buff(pgm, ON);
 }
 
-static int ft245r_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
-                      unsigned char *res);
-static int ft245r_tpi_tx(PROGRAMMER * pgm, uint8_t byte);
-static int ft245r_tpi_rx(PROGRAMMER * pgm, uint8_t *bytep);
 /*
  * issue the 'program enable' command to the AVR device
  */
