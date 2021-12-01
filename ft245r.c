@@ -125,7 +125,7 @@ void ft245r_initpgm(PROGRAMMER * pgm) {
   the desired timing.
 
 */
-#define FT245R_BITBANG_VARIABLE_PULSE_WIDTH_WORKAROUND 1
+#define FT245R_BITBANG_VARIABLE_PULSE_WIDTH_WORKAROUND 0
 
 static struct ftdi_context *handle;
 
