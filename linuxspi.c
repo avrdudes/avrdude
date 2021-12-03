@@ -245,6 +245,19 @@ close_spidev:
 
 static void linuxspi_close(PROGRAMMER *pgm)
 {
+    switch (pgm->exit_reset) {
+    case EXIT_RESET_ENABLED:
+        linuxspi_reset_mcu(pgm, true);
+        break;
+
+    case EXIT_RESET_DISABLED:
+        linuxspi_reset_mcu(pgm, false);
+        break;
+
+    default:
+        break;
+    }
+
     close(fd_linehandle);
     close(fd_spidev);
     close(fd_gpiochip);
@@ -354,6 +367,26 @@ static int linuxspi_chip_erase(PROGRAMMER *pgm, AVRPART *p)
     return 0;
 }
 
+static int linuxspi_parseexitspecs(PROGRAMMER *pgm, char *s)
+{
+    char *cp;
+
+    while ((cp = strtok(s, ","))) {
+        s = 0;
+        if (!strcmp(cp, "reset")) {
+            pgm->exit_reset = EXIT_RESET_ENABLED;
+            continue;
+        }
+        if (!strcmp(cp, "noreset")) {
+            pgm->exit_reset = EXIT_RESET_DISABLED;
+            continue;
+        }
+        return -1;
+    }
+
+    return 0;
+}
+
 void linuxspi_initpgm(PROGRAMMER *pgm)
 {
     strcpy(pgm->type, LINUXSPI);
@@ -376,6 +409,7 @@ void linuxspi_initpgm(PROGRAMMER *pgm)
     /* optional functions */
     pgm->setup          = linuxspi_setup;
     pgm->teardown       = linuxspi_teardown;
+    pgm->parseexitspecs = linuxspi_parseexitspecs;
 }
 
 const char linuxspi_desc[] = "SPI using Linux spidev driver";

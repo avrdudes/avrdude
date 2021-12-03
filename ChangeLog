@@ -1,3 +1,9 @@
+2021-12-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Alex Sverdlin:
+	patch #10153: linuxspi: Support "-E reset" and "-E noreset"
+	* linuxspi.c (linuxspi_parseexitspecs): New function
+
 2021-11-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #58440: linuxgpio PIN limit too low
