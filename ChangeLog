@@ -1,3 +1,8 @@
+2021-12-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac (AC_INIT): Bump version date
+	* configure.ac (enabled_parport): Default to "no"
+
 2021-12-03  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	Submitted by Alex Sverdlin:

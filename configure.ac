@@ -23,7 +23,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.60)
-AC_INIT(avrdude, 6.3-20171130, avrdude-dev@nongnu.org)
+AC_INIT(avrdude, 6.3-20211205, avrdude-dev@nongnu.org)
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
@@ -322,7 +322,7 @@ AC_ARG_ENABLE(
 		no)  enabled_parport=no ;;
 		*)   AC_MSG_ERROR(bad value ${enableval} for enable-parport option) ;;
 		esac],
-	[enabled_parport=yes])
+	[enabled_parport=no])
 	
 AC_ARG_ENABLE(
 	[linuxgpio],

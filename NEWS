@@ -24,6 +24,8 @@ Current:
     - some improvements in linuxspi driver
     - Use -B <bitclock> rather than -b <baudrate> for linuxspi driver
     - unused lock byte bits are not masked on read anymore
+    - parport support disabled by default; configure with
+      --enable-parport to explicitly enable it
 
   * New devices supported:
 
