@@ -1,3 +1,9 @@
+2021-12-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Dmitrii Chernukhin:
+	bug #58994: VPP PWM still enabled at the end of programming process
+	* pickit2.c (pickit2_disable): turn off VPP before shutting down
+
 2021-12-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	* configure.ac (AC_INIT): Bump version date

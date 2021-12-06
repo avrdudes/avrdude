@@ -330,6 +330,8 @@ static void pickit2_disable(PROGRAMMER * pgm)
         SCR_MCLR_GND_OFF,
         SCR_VPP_OFF,
         SCR_VDD_OFF,
+        SCR_VPP_PWM_OFF,
+        SCR_DELAY_2(.01),
         SCR_BUSY_LED_OFF,
         CMD_END_OF_BUFFER
     };
