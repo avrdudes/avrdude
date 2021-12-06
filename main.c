@@ -345,7 +345,6 @@ int main(int argc, char * argv [])
   unsigned char safemode_fuse = 0xff;
 
   char * safemode_response;
-  int fuses_specified = 0;
   int fuses_updated = 0;
 #if !defined(WIN32NATIVE)
   char  * homedir;
@@ -1423,7 +1422,7 @@ int main(int argc, char * argv [])
       }
     }
 
-    if (fuses_updated && fuses_specified) {
+    if (fuses_updated) {
       exitrc = 1;
     }
 
