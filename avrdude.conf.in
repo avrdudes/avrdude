@@ -614,6 +614,13 @@ programmer
 ;
 
 programmer
+  id    = "serialupdi";
+  desc  = "SerialUPDI";
+  type  = "serialupdi";
+  connection_type = serial;
+;
+
+programmer
   id    = "avrisp";
   desc  = "Atmel AVR ISP";
   type  = "stk500";
