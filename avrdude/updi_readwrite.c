@@ -153,7 +153,7 @@ int updi_read_data(PROGRAMMER * pgm, uint32_t address, uint8_t * buffer, uint16_
         # Do the read(s)
         return self.datalink.ld_ptr_inc(size)
 */
-  avrdude_message(MSG_DEBUG, "%s: Reading %d bytes from 0x%06X", progname, size, address);
+  avrdude_message(MSG_DEBUG, "%s: Reading %d bytes from 0x%06X\n", progname, size, address);
 
   if (size > UPDI_MAX_REPEAT_SIZE) {
     avrdude_message(MSG_INFO, "%s: Can't read that many bytes in one go\n", progname);

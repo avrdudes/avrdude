@@ -195,19 +195,33 @@ static int serialupdi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 static int serialupdi_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem, 
                                 unsigned long addr, unsigned char * value)
 {
-//  avrdude_message(MSG_INFO, "%s: error: read byte not implemented yet\n",
-//    	            progname);
   return updi_read_byte(pgm, mem->offset + addr, value);
-//  return -1;
 }
 
 static int serialupdi_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                                  unsigned int page_size,
                                  unsigned int addr, unsigned int n_bytes)
 {
-  avrdude_message(MSG_INFO, "%s: error: paged load not implemented yet\n",
-    	    progname);
-  return -1;
+  if (n_bytes > m->readsize) {
+    unsigned int read_offset = addr;
+    unsigned int remaining_bytes = n_bytes;
+    int read_bytes = 0;
+    int rc;
+    while (remaining_bytes > 0) {
+      rc = updi_read_data(pgm, m->offset + read_offset, m->buf + read_offset, m->readsize);
+      if (rc < 0) {
+        avrdude_message(MSG_INFO, "%s: Paged load operation failed\n", progname);
+        return rc;
+      } else {
+        read_bytes+=rc;
+        read_offset+=m->readsize;
+        remaining_bytes-=m->readsize;
+      }
+    }
+    return read_bytes;
+  } else {
+    return updi_read_data(pgm, m->offset + addr, m->buf, n_bytes);
+  }
 }
 
 static int serialupdi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
