@@ -1198,7 +1198,7 @@ static int xbeedev_open(char *port, union pinfo pinfo,
                   (unsigned int)xbs->xbee_address[6],
                   (unsigned int)xbs->xbee_address[7]);
 
-  if (pinfo.baud) {
+  if (pinfo.serialinfo.baud) {
     /*
      * User supplied the correct baud rate.
      */
@@ -1222,7 +1222,7 @@ static int xbeedev_open(char *port, union pinfo pinfo,
      * plugged in.  The doubled clock rate means a doubled serial
      * rate.  Double 9600 baud == 19200 baud.
      */
-    pinfo.baud = 19200;
+    pinfo.serialinfo.baud = 19200;
   } else {
     /*
      * In normal mode, default to 9600.
@@ -1234,10 +1234,11 @@ static int xbeedev_open(char *port, union pinfo pinfo,
      * XBee baud rate we should select.  The baud rate of the AVR
      * device is irrelevant.
      */
-    pinfo.baud = 9600;
+    pinfo.serialinfo.baud = 9600;
   }
+  pinfo.serialinfo.cflags = SERIAL_8N1;
 
-  avrdude_message(MSG_NOTICE, "%s: Baud %ld\n", progname, (long)pinfo.baud);
+  avrdude_message(MSG_NOTICE, "%s: Baud %ld\n", progname, (long)pinfo.serialinfo.baud);
 
   {
     const int rc = xbs->serialDevice->open(tty, pinfo,
@@ -1640,7 +1641,8 @@ static int xbee_open(PROGRAMMER *pgm, char *port)
 {
   union pinfo pinfo;
   strcpy(pgm->port, port);
-  pinfo.baud = pgm->baudrate;
+  pinfo.serialinfo.baud = pgm->baudrate;
+  pinfo.serialinfo.cflags = SERIAL_8N1;
 
   /* Wireless is lossier than normal serial */
   serial_recv_timeout = 1000;

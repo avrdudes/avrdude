@@ -427,7 +427,8 @@ static int buspirate_open(struct programmer_t *pgm, char * port)
 	if(pgm->baudrate == 0)
 		pgm->baudrate = 115200;
 
-	pinfo.baud = pgm->baudrate;
+	pinfo.serialinfo.baud = pgm->baudrate;
+	pinfo.serialinfo.cflags = SERIAL_8N1;
 	strcpy(pgm->port, port);
 	if (serial_open(port, pinfo, &pgm->fd)==-1) {
 		return -1;

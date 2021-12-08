@@ -1603,12 +1603,12 @@ static void stk500v2_enable(PROGRAMMER * pgm)
 
 static int stk500v2_open(PROGRAMMER * pgm, char * port)
 {
-  union pinfo pinfo = { .baud = 115200 };
+  union pinfo pinfo = { .serialinfo.baud = 115200, .serialinfo.cflags = SERIAL_8N1 };
 
   DEBUG("STK500V2: stk500v2_open()\n");
 
   if (pgm->baudrate)
-    pinfo.baud = pgm->baudrate;
+    pinfo.serialinfo.baud = pgm->baudrate;
 
   PDATA(pgm)->pgmtype = PGMTYPE_UNKNOWN;
 
@@ -1671,12 +1671,12 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
 
 static int stk600_open(PROGRAMMER * pgm, char * port)
 {
-  union pinfo pinfo = { .baud = 115200 };
+  union pinfo pinfo = { .serialinfo.baud = 115200, .serialinfo.cflags = SERIAL_8N1 };
 
   DEBUG("STK500V2: stk600_open()\n");
 
   if (pgm->baudrate)
-    pinfo.baud = pgm->baudrate;
+    pinfo.serialinfo.baud = pgm->baudrate;
 
   PDATA(pgm)->pgmtype = PGMTYPE_UNKNOWN;
 
@@ -3392,7 +3392,8 @@ static int stk500v2_jtagmkII_open(PROGRAMMER * pgm, char * port)
    * a higher baud rate, we switch to it later on, after establishing
    * the connection with the ICE.
    */
-  pinfo.baud = 19200;
+  pinfo.serialinfo.baud = 19200;
+  pinfo.serialinfo.cflags = SERIAL_8N1;
 
   /*
    * If the port name starts with "usb", divert the serial routines
@@ -3503,7 +3504,8 @@ static int stk500v2_dragon_isp_open(PROGRAMMER * pgm, char * port)
    * a higher baud rate, we switch to it later on, after establishing
    * the connection with the ICE.
    */
-  pinfo.baud = 19200;
+  pinfo.serialinfo.baud = 19200;
+  pinfo.serialinfo.cflags = SERIAL_8N1;
 
   /*
    * If the port name starts with "usb", divert the serial routines
@@ -3581,7 +3583,8 @@ static int stk500v2_dragon_hv_open(PROGRAMMER * pgm, char * port)
    * a higher baud rate, we switch to it later on, after establishing
    * the connection with the ICE.
    */
-  pinfo.baud = 19200;
+  pinfo.serialinfo.baud = 19200;
+  pinfo.serialinfo.cflags = SERIAL_8N1;
 
   /*
    * If the port name starts with "usb", divert the serial routines

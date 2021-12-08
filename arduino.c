@@ -84,7 +84,8 @@ static int arduino_open(PROGRAMMER * pgm, char * port)
 {
   union pinfo pinfo;
   strcpy(pgm->port, port);
-  pinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
+  pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
+  pinfo.serialinfo.cflags = SERIAL_8N1;
   if (serial_open(port, pinfo, &pgm->fd)==-1) {
     return -1;
   }
