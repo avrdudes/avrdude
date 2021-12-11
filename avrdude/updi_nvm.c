@@ -1239,17 +1239,15 @@ int updi_nvm_wait_ready(PROGRAMMER * pgm, AVRPART *p)
   gettimeofday (&tv, NULL);
   start_time = (tv.tv_sec * 1000000) + tv.tv_usec;
   do {
-    if (updi_read_byte(pgm, p->nvm_base + UPDI_NVMCTRL_STATUS, &status) < 0){
-      avrdude_message(MSG_INFO, "%s: Status read operation failed\n", progname);
-      return -1;
-    }
-    if (status & (1 << UPDI_NVM_STATUS_WRITE_ERROR)) {
-      avrdude_message(MSG_INFO, "%s: NVM error\n", progname);
-      return -1;
-    }
-    if (!(status & ((1 << UPDI_NVM_STATUS_EEPROM_BUSY) | 
-                    (1 << UPDI_NVM_STATUS_FLASH_BUSY)))) {
-      return 0;
+    if (updi_read_byte(pgm, p->nvm_base + UPDI_NVMCTRL_STATUS, &status) >= 0) {
+      if (status & (1 << UPDI_NVM_STATUS_WRITE_ERROR)) {
+        avrdude_message(MSG_INFO, "%s: NVM error\n", progname);
+        return -1;
+      }
+      if (!(status & ((1 << UPDI_NVM_STATUS_EEPROM_BUSY) | 
+                      (1 << UPDI_NVM_STATUS_FLASH_BUSY)))) {
+        return 0;
+      }
     }
     gettimeofday (&tv, NULL);
     current_time = (tv.tv_sec * 1000000) + tv.tv_usec;
