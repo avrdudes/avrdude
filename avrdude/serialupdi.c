@@ -489,6 +489,7 @@ static int serialupdi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
         rc = updi_nvm_write_flash(pgm, p, m->offset + write_offset, m->buf + write_offset, 
                                   remaining_bytes > m->page_size ? m->page_size : remaining_bytes);
       } else {
+        avrdude_message(MSG_INFO, "%s: Invalid memory type: <%s:%d>, 0x%06X, %d (0x%04X)\n", progname, m->desc, page_size, addr, n_bytes, n_bytes);
         rc = -1;
       }
 
@@ -508,6 +509,7 @@ static int serialupdi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     } else if (strcmp(m->desc, "flash")==0) {
       rc = updi_nvm_write_flash(pgm, p, m->offset+addr, m->buf+addr, n_bytes);
     } else {
+      avrdude_message(MSG_INFO, "%s: Invalid memory type: <%s:%d>, 0x%06X, %d (0x%04X)\n", progname, m->desc, page_size, addr, n_bytes, n_bytes);
       rc = -1;
     }
     return rc;

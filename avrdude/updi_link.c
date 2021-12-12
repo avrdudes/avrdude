@@ -526,6 +526,109 @@ int updi_link_st_ptr_inc16(PROGRAMMER * pgm, unsigned char * buffer, uint16_t wo
   return 0;
 }
 
+int updi_link_st_ptr_inc16_RSD(PROGRAMMER * pgm, unsigned char * buffer, uint16_t words, int blocksize) {
+/*
+    def st_ptr_inc16_RSD(self, data, blocksize):
+        """
+        Store a 16-bit word value to the pointer location with pointer post-increment
+        :param data: data to store
+        :blocksize: max number of bytes being sent -1 for all.
+                    Warning: This does not strictly honor blocksize for values < 6
+                    We always glob together the STCS(RSD) and REP commands.
+                    But this should pose no problems for compatibility, because your serial adapter can't deal with 6b chunks,
+                    none of pymcuprog would work!
+        """
+        self.logger.debug("ST16 to *ptr++ with RSD, data length: 0x%03X in blocks of:  %d", len(data), blocksize)
+
+        #for performance we glob everything together into one USB transfer....
+        repnumber= ((len(data) >> 1) -1)
+        data = [*data, *[constants.UPDI_PHY_SYNC, constants.UPDI_STCS | constants.UPDI_CS_CTRLA, 0x06]]
+
+        if blocksize == -1 :
+            # Send whole thing at once stcs + repeat + st + (data + stcs)
+            blocksize = 3 + 3 + 2 + len(data)
+        num = 0
+        firstpacket = []
+        if blocksize < 10 :
+            # very small block size - we send pair of 2-byte commands first.
+            firstpacket = [*[constants.UPDI_PHY_SYNC, constants.UPDI_STCS | constants.UPDI_CS_CTRLA, 0x0E],
+                            *[constants.UPDI_PHY_SYNC, constants.UPDI_REPEAT | constants.UPDI_REPEAT_BYTE, (repnumber & 0xFF)]]
+            data = [*[constants.UPDI_PHY_SYNC, constants.UPDI_ST | constants.UPDI_PTR_INC |constants.UPDI_DATA_16], *data]
+            num = 0
+        else:
+            firstpacket = [*[constants.UPDI_PHY_SYNC, constants.UPDI_STCS | constants.UPDI_CS_CTRLA , 0x0E],
+                            *[constants.UPDI_PHY_SYNC, constants.UPDI_REPEAT | constants.UPDI_REPEAT_BYTE, (repnumber & 0xFF)],
+                            *[constants.UPDI_PHY_SYNC, constants.UPDI_ST | constants.UPDI_PTR_INC | constants.UPDI_DATA_16],
+                            *data[:blocksize - 8]]
+            num = blocksize - 8
+        self.updi_phy.send( firstpacket )
+
+        # if finite block size, this is used.
+        while num < len(data):
+            data_slice = data[num:num+blocksize]
+            self.updi_phy.send(data_slice)
+            num += len(data_slice)
+*/
+  avrdude_message(MSG_DEBUG, "%s: ST16 to *ptr++ with RSD, data length: 0x%03X in blocks of: %d\n", progname, words * 2, blocksize);
+
+  unsigned int temp_buffer_size = 3 + 3 + 2 + (words * 2) + 3;
+  unsigned int num=0;
+  unsigned char* temp_buffer = malloc(temp_buffer_size);
+
+  if (temp_buffer == 0) {
+    avrdude_message(MSG_INFO, "%s: Allocating temporary buffer failed\n", progname);
+    return -1;
+  }
+
+  if (blocksize == -1) {
+    blocksize = temp_buffer_size;
+  }
+
+  temp_buffer[0] = UPDI_PHY_SYNC;
+  temp_buffer[1] = UPDI_STCS | UPDI_CS_CTRLA;
+  temp_buffer[2] = 0x0E;
+  temp_buffer[3] = UPDI_PHY_SYNC;
+  temp_buffer[4] = UPDI_REPEAT | UPDI_REPEAT_BYTE;
+  temp_buffer[5] = (words - 1) & 0xFF;
+  temp_buffer[6] = UPDI_PHY_SYNC;
+  temp_buffer[7] = UPDI_ST | UPDI_PTR_INC | UPDI_DATA_16;
+
+  memcpy(temp_buffer + 8, buffer, words * 2);
+
+  temp_buffer[temp_buffer_size-3] = UPDI_PHY_SYNC;
+  temp_buffer[temp_buffer_size-2] = UPDI_STCS | UPDI_CS_CTRLA;
+  temp_buffer[temp_buffer_size-1] = 0x06;
+
+  if (blocksize < 10) {
+    if (updi_physical_send(pgm, temp_buffer, 6) < 0) {
+      avrdude_message(MSG_INFO, "%s: Failed to send first package\n", progname);
+      free(temp_buffer);
+      return -1;
+    }
+    num = 6;
+  } 
+
+  while (num < temp_buffer_size) {
+    int next_package_size;
+
+    if (num + blocksize > temp_buffer_size) {
+      next_package_size = temp_buffer_size - num;
+    } else {
+      next_package_size = blocksize;
+    }
+
+    if (updi_physical_send(pgm, temp_buffer + num, next_package_size) < 0) {
+      avrdude_message(MSG_INFO, "%s: Failed to send package\n", progname);
+      free(temp_buffer);
+      return -1;
+    }
+
+    num+=next_package_size;
+  }
+  free(temp_buffer);
+  return 0;
+}
+
 int updi_link_repeat(PROGRAMMER * pgm, uint16_t repeats)
 {
 /*

@@ -42,6 +42,7 @@ int updi_link_ld_ptr_inc(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size
 int updi_link_ld_ptr_inc16(PROGRAMMER * pgm, unsigned char * buffer, uint16_t words);
 int updi_link_st_ptr_inc(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size);
 int updi_link_st_ptr_inc16(PROGRAMMER * pgm, unsigned char * buffer, uint16_t words);
+int updi_link_st_ptr_inc16_RSD(PROGRAMMER * pgm, unsigned char * buffer, uint16_t words, int blocksize);
 int updi_link_repeat(PROGRAMMER * pgm, uint16_t repeats);
 int updi_link_read_sib(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size);
 int updi_link_key(PROGRAMMER * pgm, unsigned char * buffer, uint8_t size_type, uint16_t size);

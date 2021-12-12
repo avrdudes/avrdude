@@ -312,9 +312,5 @@ int updi_write_data_words(PROGRAMMER * pgm, uint32_t address, uint8_t * buffer, 
     avrdude_message(MSG_INFO, "%s: ST_PTR operation failed\n", progname);
     return -1;
   }
-  if (updi_link_repeat(pgm, size >> 1) < 0) {
-    avrdude_message(MSG_INFO, "%s: Repeat operation failed\n", progname);
-    return -1;
-  }
-  return updi_link_st_ptr_inc16(pgm, buffer, size);
+  return updi_link_st_ptr_inc16_RSD(pgm, buffer, size >> 1, -1);
 }
