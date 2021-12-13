@@ -434,6 +434,9 @@ static int serialupdi_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 static int serialupdi_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
                                  unsigned long addr, unsigned char value)
 {
+  if (strstr(mem->desc, "fuse") != 0) {
+    return updi_nvm_write_fuse(pgm, p, mem->offset + addr, value);
+  }
   return updi_write_byte(pgm, mem->offset + addr, value);
 }
 
