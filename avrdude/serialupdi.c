@@ -461,7 +461,7 @@ static int serialupdi_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     }
     return read_bytes;
   } else {
-    return updi_read_data(pgm, m->offset + addr, m->buf, n_bytes);
+    return updi_read_data(pgm, m->offset + addr, m->buf + addr, n_bytes);
   }
 }
 
