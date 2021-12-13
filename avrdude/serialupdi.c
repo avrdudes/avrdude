@@ -437,6 +437,11 @@ static int serialupdi_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   if (strstr(mem->desc, "fuse") != 0) {
     return updi_nvm_write_fuse(pgm, p, mem->offset + addr, value);
   }
+  if (strcmp(mem->desc, "eeprom") == 0) {
+    unsigned char buffer[1];
+    buffer[0]=value;
+    return updi_nvm_write_eeprom(pgm, p, mem->offset + addr, buffer, 1);
+  }
   return updi_write_byte(pgm, mem->offset + addr, value);
 }
 
