@@ -1,0 +1,57 @@
+Installation Instructions
+*************************
+
+Use `./configure; make all; sudo make install' for Unix-like systems.
+
+Depending on your requirements, the following prerequisites are
+needed:
+
+* libelf including header files (for directly reading ELF files)
+* libusb 0.1 or 1.0 (or compatible), including header files
+* libftdi or libftdi1 (for direct access to FTDI devices)
+* libhidapi or libhid (for access to recent Atmel/Microchip dongles)
+
+If the header and/or library files for one of those are found in
+non-default locations, you can add them to configure, e.g.
+
+`./configure CPPFLAGS=-I/opt/local/include LDFLAGS=-L/opt/local/lib'
+
+as an example for MacOS using Macports.  MacOS Brew requires
+
+`./configure CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/Cellar'
+
+instead. (LDFLAGS and CPPFLAGS can also be supplied as environment
+variables to configure.)
+
+At the end of the configure script, a configuration summary is issued,
+like this:
+
+Configuration summary:
+----------------------
+DO HAVE    libelf
+DO HAVE    libusb
+DO HAVE    libusb_1_0
+DO HAVE    libftdi1
+DON'T HAVE libftdi
+DON'T HAVE libhid
+DO HAVE    libhidapi
+DO HAVE    pthread
+DISABLED   doc
+DISABLED   parport
+DISABLED   linuxgpio
+DISABLED   linuxspi
+
+Make sure all the features you are interested in have been found.
+
+For BSD-like systems, using GNU make (gmake) is not mandatory but
+appears to cause less troubles with the quite complex dependency graph
+that might be produced by autoconf/automake.
+
+For Windows, right now, a toolset like MinGW is required to compile
+AVRDUDE.
+
+Obviously, a working C compiler is needed. Tested compilers so far
+include GCC (in various versions) and Clang. The compiler needs to
+support (at least) C99 language level. For MacOS, either Xcode or the
+(smaller) Xcode Command Line tools are needed, for Windows, some port
+of GCC that supports generating native Windows executables.

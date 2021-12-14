@@ -83,6 +83,7 @@ Current:
     bug #55462: wrong programmer id check in jtag3_getsync() and jtag3_close()
     bug #58994: VPP PWM still enabled at the end of programming process
     bug #57338: if safemode has to change fuses avrdude should exit with non-zero exit code
+    bug #60575: Permission denied on macOS Big Sur
 
   * Patches:
     patch #9482: Add support for UPDI and AVR8X
