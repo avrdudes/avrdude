@@ -238,6 +238,8 @@ static int serialupdi_in_prog_mode(PROGRAMMER * pgm, uint8_t * in_prog_mode)
   return 0;
 }
 
+static int serialupdi_unlock(PROGRAMMER * pgm, AVRPART * p);
+
 static int serialupdi_enter_progmode(PROGRAMMER * pgm)
 {
 /*
@@ -283,8 +285,20 @@ def enter_progmode(self):
   uint8_t key_status;
 
   if (serialupdi_in_prog_mode(pgm, &in_prog_mode) < 0) {
-    avrdude_message(MSG_INFO, "%s: Checking UPDI NVM prog mode failed\n", progname);
-    return -1;
+    avrdude_message(MSG_INFO, "%s: Checking UPDI NVM prog mode failed, attempting reset\n", progname);
+    if (serialupdi_leave_progmode(pgm) < 0) {
+      avrdude_message(MSG_INFO, "%s: Unable to leave progmode\n", progname);
+      return -1;
+    }
+    if (updi_link_init(pgm) < 0) {
+      avrdude_message(MSG_INFO, "%s: UPDI link initialization failed\n", progname);
+      return -1;
+    }
+    avrdude_message(MSG_INFO, "%s: UPDI link initialization OK\n", progname);
+    if (serialupdi_in_prog_mode(pgm, &in_prog_mode) < 0) {
+      avrdude_message(MSG_INFO, "%s: Checking UPDI NVM prog mode failed again, exiting\n", progname);
+      return -1;
+    }
   }
   if (in_prog_mode) {
     avrdude_message(MSG_DEBUG, "%s: Already in prog mode\n", progname);
@@ -321,7 +335,16 @@ def enter_progmode(self):
 
   if (serialupdi_wait_for_unlock(pgm, 100) < 0) {
     avrdude_message(MSG_INFO, "%s: Failed to enter NVM programming mode: device is locked\n", progname);
-    return -1;
+    if (!ovsigck) {
+      return -1;
+    }
+    if (serialupdi_unlock(pgm, 0x00) < 0) {
+      return -1;
+    }
+    if (updi_link_init(pgm) < 0) {
+      return -1;
+    }
+    return serialupdi_enter_progmode(pgm);
   }
 
   if (serialupdi_in_prog_mode(pgm, &in_prog_mode) < 0) {
@@ -335,6 +358,18 @@ def enter_progmode(self):
   }
 
   avrdude_message(MSG_DEBUG, "%s: Entered NVM programming mode\n", progname);
+
+  updi_sib_info * sib_info = updi_get_sib_info(pgm);
+
+  if (updi_read_sib(pgm, sib_info->sib_string, 32) < 0) {
+    avrdude_message(MSG_INFO, "%s: Read SIB operation failed\n", progname);
+    return -1;
+  }
+  if (serialupdi_decode_sib(pgm, sib_info) < 0) {
+    avrdude_message(MSG_INFO, "%s: Decode SIB_INFO failed\n", progname);
+    return -1;
+  }
+
   return 0;
 }
 
@@ -368,21 +403,11 @@ static int serialupdi_leave_progmode(PROGRAMMER * pgm)
 
 static int serialupdi_initialize(PROGRAMMER * pgm, AVRPART * p)
 {
-  updi_sib_info * sib_info = updi_get_sib_info(pgm);
-
   if (updi_link_init(pgm) < 0) {
     avrdude_message(MSG_INFO, "%s: UPDI link initialization failed\n", progname);
     return -1;
   }
   avrdude_message(MSG_INFO, "%s: UPDI link initialization OK\n", progname);
-  if (updi_read_sib(pgm, sib_info->sib_string, 32) < 0) {
-    avrdude_message(MSG_INFO, "%s: Read SIB operation failed\n", progname);
-    return -1;
-  }
-  if (serialupdi_decode_sib(pgm, sib_info) < 0) {
-    avrdude_message(MSG_INFO, "%s: Decode SIB_INFO failed\n", progname);
-    return -1;
-  }
   if (serialupdi_enter_progmode(pgm) < 0) {
     avrdude_message(MSG_INFO, "%s: Unable to enter NVM programming mode\n", progname);
     return -1;
@@ -437,10 +462,18 @@ static int serialupdi_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   if (strstr(mem->desc, "fuse") != 0) {
     return updi_nvm_write_fuse(pgm, p, mem->offset + addr, value);
   }
+  if (strcmp(mem->desc, "lock") == 0) {
+    return updi_nvm_write_fuse(pgm, p, mem->offset + addr, value);
+  }
   if (strcmp(mem->desc, "eeprom") == 0) {
     unsigned char buffer[1];
     buffer[0]=value;
     return updi_nvm_write_eeprom(pgm, p, mem->offset + addr, buffer, 1);
+  }
+  if (strcmp(mem->desc, "flash") == 0) {
+    unsigned char buffer[1];
+    buffer[0]=value;
+    return updi_nvm_write_flash(pgm, p, mem->offset + addr, buffer, 1);
   }
   return updi_write_byte(pgm, mem->offset + addr, value);
 }
@@ -478,12 +511,6 @@ static int serialupdi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                                   unsigned int addr, unsigned int n_bytes)
 {
   int rc;
-
-  if (serialupdi_enter_progmode(pgm) < 0) {
-    avrdude_message(MSG_INFO, "%s: Unable to enter NVM programming mode\n", progname);
-    return -1;
-  }
-
   if (n_bytes > m->page_size) {
     unsigned int write_offset = addr;
     unsigned int remaining_bytes = n_bytes;
@@ -585,11 +612,6 @@ static int serialupdi_unlock(PROGRAMMER * pgm, AVRPART * p)
 
 static int serialupdi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {
-  if (serialupdi_enter_progmode(pgm) < 0) {
-    avrdude_message(MSG_INFO, "%s: Unable to enter NVM programming mode\n", progname);
-    return -1;
-  }
-
   if (updi_nvm_chip_erase(pgm, p) < 0) {
     avrdude_message(MSG_INFO, "%s: Chip erase failed, device might be locked, attempting unlock now\n", progname);
     return serialupdi_unlock(pgm, p);
