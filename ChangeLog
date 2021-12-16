@@ -1,3 +1,8 @@
+2021-12-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac (AC_INIT): Bump version to 6.4
+	* main.c: Remove unmaintained year numbers from Copyright
+
 2021-12-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
 
 	bug #57338: if safemode has to change fuses avrdude should exit with non-zero exit code
