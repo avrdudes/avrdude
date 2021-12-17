@@ -9,7 +9,10 @@ programming instruction to the AVR chip regardless of whether AVRDUDE
 implements that specific feature of a particular chip.
 
 AVRDUDE was originally written in 2003 by Brian S. Dean. Since 2006, AVRDUDE has been maintained by Jörg Wunsch,
-with the help of [various contributors](/avrdudes/avrdude/graphs/contributors).
+with the help of [various contributors](https://github.com/avrdudes/avrdude/graphs/contributors).
+
+The latest version of AVRDUDE is always available here:\
+<https://github.com/avrdudes/avrdude>
 
 ## Getting AVRDUDE for Windows
 
