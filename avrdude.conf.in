@@ -16562,6 +16562,13 @@ part
         readsize  = 0x4;
     ;
 
+    memory "userrow"
+        size      = 0x20;
+        offset    = 0x1080;
+        page_size = 0x20;
+        readsize  = 0x20;
+    ;
+
     memory "data"
         # SRAM, only used to supply the offset
         offset		= 0x1000000;
