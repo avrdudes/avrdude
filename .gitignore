@@ -1,3 +1,6 @@
+.deps/
+.libs/
+m4/
 *.diff
 *.patch
 y.output
@@ -5,9 +8,7 @@ y.tab.h
 lexer.c
 config_gram.c
 config_gram.h
-.cvsignore
 .depend
-.deps
 INSTALL
 Makefile.in
 Makefile
@@ -31,3 +32,26 @@ config.log
 config.status
 config.sub
 avrdude
+libtool
+ltmain.sh
+ylwrap
+
+*.o
+*.lo
+*.a
+*.la
+
+# Visual Studio
+.vs/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.log
+
+# Visual Studio code
+.vscode/
