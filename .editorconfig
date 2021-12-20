@@ -31,3 +31,9 @@ charset = utf-8
 tab_width = 2
 indent_size = 2
 indent_style = space
+
+[*.yml]
+charset = utf-8
+tab_width = 2
+indent_size = 2
+indent_style = space

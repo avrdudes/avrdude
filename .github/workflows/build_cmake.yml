@@ -1,0 +1,120 @@
+#
+# build_cmake.yml - GitHub build action for AVRDUDE
+# Copyright (C) 2021 Marius Greuel
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+
+name: CMake Build
+
+on:
+  push:
+  pull_request:
+  workflow_call:
+
+env:
+  BUILD_TYPE: RelWithDebInfo
+
+jobs:
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install prerequisites
+        run: >-
+          sudo apt-get install -y
+          build-essential
+          cmake
+          flex
+          bison
+          libelf-dev
+          libusb-dev
+          libftdi1-dev
+          libhidapi-dev
+      - name: Configure
+        run: cmake -DDEBUG_CMAKE=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B ${{github.workspace}}/build
+      - name: Build
+        run: cmake --build ../build
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-ubuntu
+          path: |
+            ${{github.workspace}}/build/*
+  build-macos:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ./src
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install prerequisites
+        run: >-
+          brew install
+          cmake
+          flex
+          bison
+          libelf
+          libusb
+          libftdi
+          hidapi
+      - name: Configure
+        run: cmake -DCMAKE_C_FLAGS=-I/usr/local/include -DCMAKE_EXE_LINKER_FLAGS=-L/usr/local/Cellar -DDEBUG_CMAKE=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B ${{github.workspace}}/build
+      - name: Build
+        run: cmake --build ../build
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-macos
+          path: |
+            ${{github.workspace}}/build/*
+  build-mingw:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+        working-directory: ./src
+    strategy:
+      matrix:
+        include:
+          - { sys: mingw32, env: i686 }
+          - { sys: mingw64, env: x86_64 }
+    steps:
+      - uses: actions/checkout@v2
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.sys}}
+          update: true
+          install: >-
+            base-devel
+            mingw-w64-${{matrix.env}}-gcc
+            mingw-w64-${{matrix.env}}-cmake
+            mingw-w64-${{matrix.env}}-libelf
+            mingw-w64-${{matrix.env}}-libusb
+            mingw-w64-${{matrix.env}}-libusb-compat-git
+            mingw-w64-${{matrix.env}}-hidapi
+            mingw-w64-${{matrix.env}}-libftdi
+      - name: Configure
+        run: cmake -G"MSYS Makefiles" -DDEBUG_CMAKE=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B ../build_${{matrix.sys}}
+      - name: Build
+        run: cmake --build ../build_${{matrix.sys}}
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-mingw-${{matrix.sys}}
+          path: |
+            ${{github.workspace}}/build_${{matrix.sys}}/*
