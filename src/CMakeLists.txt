@@ -184,6 +184,7 @@ endif()
 
 if(WIN32)
     set(HAVE_LIBWS2_32 1)
+    set(EXTRA_WINDOWS_SOURCES "${PROJECT_BINARY_DIR}/windows.rc")
     set(EXTRA_WINDOWS_LIBRARIES setupapi ws2_32)
     add_compile_definitions(WIN32NATIVE=1)
 endif()
@@ -320,6 +321,9 @@ message(STATUS "----------------------")
 configure_file(cmake_config.h.in ac_cfg.h)
 configure_file(avrdude.conf.in avrdude.conf)
 configure_file(avrdude.spec.in avrdude.spec)
+if(WIN32)
+    configure_file(windows.rc.in windows.rc)
+endif()
 
 # =====================================
 # Project
@@ -445,6 +449,7 @@ add_executable(avrdude
     main.c
     term.c
     term.h
+    "${EXTRA_WINDOWS_SOURCES}"
     )
 
 target_link_libraries(avrdude PUBLIC libavrdude)
