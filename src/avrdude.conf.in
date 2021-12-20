@@ -1311,7 +1311,7 @@ programmer
   connection_type = usb;
 ;
 
-@HAVE_PARPORT_BEGIN@  Inclusion of the following depends on --enable-parport
+@HAVE_PARPORT_BEGIN@
 # Parallel port programmers.
 
 programmer
