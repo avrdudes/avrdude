@@ -1647,6 +1647,17 @@ programmer
   miso  = ~8;
 ;
 
+# JTAG2UPDI
+# https://github.com/ElTangas/jtag2updi
+
+programmer
+  id    = "jtag2updi";
+  desc  = "JTAGv2 to UPDI bridge";
+  type  = "jtagmkii_pdi";
+  connection_type = serial;
+  baudrate = 115200;
+;
+
 #
 # PART DEFINITIONS
 #
