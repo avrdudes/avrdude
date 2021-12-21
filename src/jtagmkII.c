@@ -1254,15 +1254,38 @@ static unsigned char jtagmkII_get_baud(long baud)
     long baud;
     unsigned char val;
   } baudtab[] = {
-    { 2400L, PAR_BAUD_2400 },
-    { 4800L, PAR_BAUD_4800 },
-    { 9600L, PAR_BAUD_9600 },
-    { 19200L, PAR_BAUD_19200 },
-    { 38400L, PAR_BAUD_38400 },
-    { 57600L, PAR_BAUD_57600 },
-    { 115200L, PAR_BAUD_115200 },
-    { 14400L, PAR_BAUD_14400 },
-  };
+  { 2400L, PAR_BAUD_2400 },
+  { 4800L, PAR_BAUD_4800 },
+  { 9600L, PAR_BAUD_9600 },
+  { 19200L, PAR_BAUD_19200 },
+  { 38400L, PAR_BAUD_38400 },
+  { 57600L, PAR_BAUD_57600 },
+  { 115200L, PAR_BAUD_115200 },
+  { 14400L, PAR_BAUD_14400 },
+  /* Extension to jtagmkII protocol: extra baud rates, standard series. */
+  { 153600L, PAR_BAUD_153600 },
+  { 230400L, PAR_BAUD_230400 },
+  { 460800L, PAR_BAUD_460800 },
+  { 921600L, PAR_BAUD_921600 },
+  /* Extension to jtagmkII protocol: extra baud rates, binary series. */
+  { 128000L, PAR_BAUD_128000 },
+  { 256000L, PAR_BAUD_256000 },
+  { 512000L, PAR_BAUD_512000 },
+  { 1024000L, PAR_BAUD_1024000 },
+  /* Extension to jtagmkII protocol: extra baud rates, decimal series. */
+  { 150000L, PAR_BAUD_150000 },
+  { 200000L, PAR_BAUD_200000 },
+  { 250000L, PAR_BAUD_250000 },
+  { 300000L, PAR_BAUD_300000 },
+  { 400000L, PAR_BAUD_400000 },
+  { 500000L, PAR_BAUD_500000 },
+  { 600000L, PAR_BAUD_600000 },
+  { 666666L, PAR_BAUD_666666 },
+  { 1000000L, PAR_BAUD_1000000 },
+  { 1500000L, PAR_BAUD_1500000 },
+  { 2000000L, PAR_BAUD_2000000 },
+  { 3000000L, PAR_BAUD_3000000 },
+};
   int i;
 
   for (i = 0; i < sizeof baudtab / sizeof baudtab[0]; i++)
