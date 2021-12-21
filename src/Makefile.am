@@ -41,14 +41,13 @@ CLEANFILES = \
 
 BUILT_SOURCES = $(CLEANFILES)
 
-#SUBDIRS      = doc @WINDOWS_DIRS@
-#DIST_SUBDIRS = doc windows
+#SUBDIRS      = doc
+#DIST_SUBDIRS = doc
 
 # . lets build this directory before the following in SUBDIRS
 SUBDIRS = .
 # doc comes here, and we want to use the built avrdude to generate the parts list
 SUBDIRS += @SUBDIRS_AC@
-SUBDIRS += @WINDOWS_DIRS@
 DIST_SUBDIRS = @DIST_SUBDIRS_AC@
 
 AM_YFLAGS    = -d

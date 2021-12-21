@@ -348,7 +348,7 @@ AC_ARG_ENABLE(
 		esac],
 	[enabled_linuxspi=no])
 
-DIST_SUBDIRS_AC='doc windows'
+DIST_SUBDIRS_AC='doc'
 
 if test "$enabled_doc" = "yes"; then
 	SUBDIRS_AC='doc'
@@ -505,15 +505,12 @@ case $target in
 			LDFLAGS="${LDFLAGS} -static"
 		fi
 
-		WINDOWS_DIRS="windows"
 		CFLAGS="${CFLAGS} -DWIN32NATIVE"
 		;;
 esac
-AC_SUBST(WINDOWS_DIRS,$WINDOWS_DIRS)
 
 AC_CONFIG_FILES([
        doc/Makefile
-       windows/Makefile
        avrdude.spec
        Makefile
 ])

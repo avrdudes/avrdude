@@ -2108,9 +2108,7 @@ such as @option{--prefix}.
 * Windows Installation::        
 * Windows Configuration Files::  
 * Windows Port Names::          
-* Using the parallel port::     
 * Documentation::               
-* Credits.::                    
 @end menu
 
 @c
@@ -2213,7 +2211,7 @@ The directories that are listed in the PATH environment variable.
 @c
 @c Node
 @c
-@node Windows Port Names, Using the parallel port, Windows Configuration Files, Windows
+@node Windows Port Names, Windows Configuration Files, Windows
 @subsection Port Names
 
 @menu
@@ -2265,71 +2263,8 @@ language notation (i. e., hexadecimal values are prefixed by @code{0x}).
 
 @c
 @c Node
-@c 
-@node Using the parallel port, Documentation, Windows Port Names, Windows
-@subsection Using the parallel port
-
-@menu
-* Windows NT/2K/XP::            
-* Windows 95/98::               
-@end menu
-
 @c
-@c Node
-@c
-@node Windows NT/2K/XP, Windows 95/98, Using the parallel port, Using the parallel port
-@subsubsection Windows NT/2K/XP
-
-@noindent
-On Windows NT, 2000, and XP user applications cannot directly access the
-parallel port. However, kernel mode drivers can access the parallel port.
-giveio.sys is a driver that can allow user applications to set the state
-of the parallel port pins.
-
-Before using AVRDUDE, the giveio.sys driver must be loaded. The
-accompanying command-line program, loaddrv.exe, can do just that.
-
-To make things even easier there are 3 batch files that are also
-included:
-
-@enumerate
-@item install_giveio.bat
-Install and start the giveio driver.
-
-@item status_giveio.bat
-Check on the status of the giveio driver.
-
-@item remove_giveio.bat
-Stop and remove the giveio driver from memory.
-@end enumerate
-
-These 3 batch files calls the loaddrv program with various options to
-install, start, stop, and remove the driver.
-
-When you first execute install_giveio.bat, loaddrv.exe and giveio.sys
-must be in the current directory. When install_giveio.bat is executed it
-will copy giveio.sys from your current directory to your Windows
-directory. It will then load the driver from the Windows directory. This
-means that after the first time install_giveio is executed, you should 
-be able to subsequently execute the batch file from any directory and have
-it successfully start the driver.
-
-Note that you must have administrator privilege to load the giveio driver.
-
-@c
-@c Node
-@c
-@node Windows 95/98,  , Windows NT/2K/XP, Using the parallel port
-@subsubsection Windows 95/98
-
-@noindent
-On Windows 95 and 98 the giveio.sys driver is not needed.
-
-
-@c
-@c Node
-@c
-@node Documentation, Credits., Using the parallel port, Windows
+@node Documentation, Windows
 @subsection Documentation
 
 @noindent
@@ -2342,28 +2277,6 @@ info manual is installed in @code{/usr/local/info/avrdude.info}.
 Note that these locations can be altered by various configure options
 such as @option{--prefix} and @option{--datadir}.
 
-
-@c
-@c Node
-@c
-@node Credits.,  , Documentation, Windows
-@subsection Credits.
-
-@noindent
-Thanks to:
-
-@itemize @bullet
-@item
-Dale Roberts for the giveio driver.
-
-@item
-Paula Tomlinson for the loaddrv sources.
-
-@item
-Chris Liechti <cliechti@@gmx.net> for modifying loaddrv to be command
-line driven and for writing the batch files.
-
-@end itemize
 
 @c
 @c Node
