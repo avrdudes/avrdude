@@ -51,4 +51,4 @@ env \
     --host=$(../../config.guess) \
     --target=${tgt}
 
-make all
+${MAKE:-make} all

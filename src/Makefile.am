@@ -30,22 +30,6 @@
 #
 
 EXTRA_DIST   = \
-	ChangeLog \
-	ChangeLog-2001 \
-	ChangeLog-2002 \
-	ChangeLog-2003 \
-	ChangeLog-2004-2006 \
-	ChangeLog-2007 \
-	ChangeLog-2008 \
-	ChangeLog-2009 \
-	ChangeLog-2010 \
-	ChangeLog-2011 \
-	ChangeLog-2012 \
-	ChangeLog-2013 \
-	ChangeLog-2014 \
-	ChangeLog-2015 \
-	ChangeLog-2016 \
-	ChangeLog-2017 \
 	avrdude.1 \
 	avrdude.spec \
 	bootstrap
@@ -57,14 +41,13 @@ CLEANFILES = \
 
 BUILT_SOURCES = $(CLEANFILES)
 
-#SUBDIRS      = doc @WINDOWS_DIRS@
-#DIST_SUBDIRS = doc windows
+#SUBDIRS      = doc
+#DIST_SUBDIRS = doc
 
 # . lets build this directory before the following in SUBDIRS
 SUBDIRS = .
 # doc comes here, and we want to use the built avrdude to generate the parts list
 SUBDIRS += @SUBDIRS_AC@
-SUBDIRS += @WINDOWS_DIRS@
 DIST_SUBDIRS = @DIST_SUBDIRS_AC@
 
 AM_YFLAGS    = -d

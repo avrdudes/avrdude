@@ -1,0 +1,26 @@
+# EditorConfig: https://editorconfig.org
+
+root = true
+
+[{bootstrap,configure.ac,avrdude.spec.in,Makefile.am}]
+charset = utf-8
+tab_width = 4
+indent_size = 4
+indent_style = tab
+
+[avrdude.conf.in]
+indent_size = 4
+indent_style = space
+
+[*.{c,h,cpp,y}]
+tab_width = 4
+indent_size = 4
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+charset = utf-8
+tab_width = 2
+indent_size = 2
+indent_style = space

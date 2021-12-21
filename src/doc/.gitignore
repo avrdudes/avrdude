@@ -1,4 +1,5 @@
-.cvsignore
+avrdude.t2d/
+avrdude.t2p/
 Makefile
 Makefile.in
 avrdude-html

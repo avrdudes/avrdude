@@ -23,14 +23,14 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.60)
-AC_INIT(avrdude, 6.3-20211205, avrdude-dev@nongnu.org)
+AC_INIT(avrdude, 6.99-20211218, avrdude-dev@nongnu.org)
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
 AC_CONFIG_SRCDIR([main.c])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_HEADERS(ac_cfg.h)
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -348,7 +348,7 @@ AC_ARG_ENABLE(
 		esac],
 	[enabled_linuxspi=no])
 
-DIST_SUBDIRS_AC='doc windows'
+DIST_SUBDIRS_AC='doc'
 
 if test "$enabled_doc" = "yes"; then
 	SUBDIRS_AC='doc'
@@ -505,15 +505,12 @@ case $target in
 			LDFLAGS="${LDFLAGS} -static"
 		fi
 
-		WINDOWS_DIRS="windows"
 		CFLAGS="${CFLAGS} -DWIN32NATIVE"
 		;;
 esac
-AC_SUBST(WINDOWS_DIRS,$WINDOWS_DIRS)
 
 AC_CONFIG_FILES([
        doc/Makefile
-       windows/Makefile
        avrdude.spec
        Makefile
 ])

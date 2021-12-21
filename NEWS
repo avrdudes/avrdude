@@ -2,10 +2,30 @@ $Id$
 
 Approximate change log for AVRDUDE by version.
 
-(For more detailed changes, see the ChangeLog file.)
+(For detailed changes, see the version control system logs.)
 
 ----------------------------------------------------------------------
-Current:
+Changes since version 6.4:
+
+  * Major changes compared to the previous version:
+
+
+  * New devices supported:
+
+
+  * New programmers supported:
+
+
+  * Bugfixes:
+
+
+  * Patches:
+
+
+  * Internals:
+
+
+Version 6.4:
 
   * Major changes compared to the previous version:
 
@@ -83,6 +103,7 @@ Current:
     bug #55462: wrong programmer id check in jtag3_getsync() and jtag3_close()
     bug #58994: VPP PWM still enabled at the end of programming process
     bug #57338: if safemode has to change fuses avrdude should exit with non-zero exit code
+    bug #60575: Permission denied on macOS Big Sur
 
   * Patches:
     patch #9482: Add support for UPDI and AVR8X
