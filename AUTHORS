@@ -27,5 +27,11 @@ Contributors:
 	David Mosberger <davidm@egauge.net>
 	David Sainty
 
+Contributors to code no longer present:
+
+	Dale Roberts for the giveio driver
+	Paula Tomlinson for the loaddrv sources
+	Chris Liechti for loaddrv modifications
+
 For minor contributions, please see the ChangeLog files.
 
