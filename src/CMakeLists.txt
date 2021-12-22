@@ -398,6 +398,8 @@ add_library(libavrdude STATIC
     ser_avrdoper.c
     ser_posix.c
     ser_win32.c
+    serialupdi.c
+    serialupdi.h
     solaris_ecpp.h
     stk500.c
     stk500.h
@@ -408,6 +410,15 @@ add_library(libavrdude STATIC
     stk500generic.c
     stk500generic.h
     tpi.h
+    updi_constants.h
+    updi_link.c
+    updi_link.h
+    updi_nvm.c
+    updi_nvm.h
+    updi_readwrite.c
+    updi_readwrite.h
+    updi_state.c
+    updi_state.h
     usbasp.c
     usbasp.h
     usbdevs.h
@@ -423,7 +434,7 @@ add_library(libavrdude STATIC
     ${FLEX_Parser_OUTPUTS}
     ${BISON_Parser_OUTPUTS}
     )
-
+    
 target_include_directories(libavrdude
     PUBLIC
     "${PROJECT_SOURCE_DIR}"
