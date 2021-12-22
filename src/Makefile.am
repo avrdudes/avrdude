@@ -166,6 +166,17 @@ libavrdude_a_SOURCES = \
 	tpi.h \
 	usbasp.c \
 	usbasp.h \
+	serialupdi.c \
+	serialupdi.h \
+	updi_constants.h \
+	updi_link.c \
+	updi_link.h \
+	updi_state.c \
+	updi_state.h \
+	updi_readwrite.c \
+	updi_readwrite.h \
+	updi_nvm.c \
+	updi_nvm.h \
 	usbdevs.h \
 	usb_hidapi.c \
 	usb_libusb.c \

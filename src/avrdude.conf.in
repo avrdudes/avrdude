@@ -614,6 +614,13 @@ programmer
 ;
 
 programmer
+  id    = "serialupdi";
+  desc  = "SerialUPDI";
+  type  = "serialupdi";
+  connection_type = serial;
+;
+
+programmer
   id    = "avrisp";
   desc  = "Atmel AVR ISP";
   type  = "stk500";
@@ -16553,6 +16560,13 @@ part
         offset		= 0x1040;
         page_size = 0x1;
         readsize  = 0x4;
+    ;
+
+    memory "userrow"
+        size      = 0x20;
+        offset    = 0x1080;
+        page_size = 0x20;
+        readsize  = 0x20;
     ;
 
     memory "data"

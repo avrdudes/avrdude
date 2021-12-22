@@ -553,7 +553,7 @@ static int jtagmkI_initialize(PROGRAMMER * pgm, AVRPART * p)
                 progname, pgm->baudrate);
       if (jtagmkI_setparm(pgm, PARM_BITRATE, b) == 0) {
         PDATA(pgm)->initial_baudrate = pgm->baudrate; /* don't adjust again later */
-        serial_setspeed(&pgm->fd, pgm->baudrate);
+        serial_setparams(&pgm->fd, pgm->baudrate, SERIAL_8N1);
       }
     }
   }
@@ -648,9 +648,10 @@ static int jtagmkI_open(PROGRAMMER * pgm, char * port)
 
   for (i = 0; i < sizeof(baudtab) / sizeof(baudtab[0]); i++) {
     union pinfo pinfo;
-    pinfo.baud = baudtab[i].baud;
+    pinfo.serialinfo.baud = baudtab[i].baud;
+    pinfo.serialinfo.cflags = SERIAL_8N1;
     avrdude_message(MSG_NOTICE2, "%s: jtagmkI_open(): trying to sync at baud rate %ld:\n",
-                      progname, pinfo.baud);
+                      progname, pinfo.serialinfo.baud);
     if (serial_open(port, pinfo, &pgm->fd)==-1) {
       return -1;
     }
@@ -697,7 +698,7 @@ static void jtagmkI_close(PROGRAMMER * pgm)
                 "trying to set baudrate to %d\n",
                 progname, PDATA(pgm)->initial_baudrate);
       if (jtagmkI_setparm(pgm, PARM_BITRATE, b) == 0) {
-        serial_setspeed(&pgm->fd, pgm->baudrate);
+        serial_setparams(&pgm->fd, pgm->baudrate, SERIAL_8N1);
       }
     }
   }

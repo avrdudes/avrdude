@@ -54,6 +54,8 @@ static unsigned char serial_over_ethernet = 0;
 /* HANDLE hComPort=INVALID_HANDLE_VALUE; */
 
 static struct baud_mapping baud_lookup_table [] = {
+  { 300,    CBR_300 },
+  { 600,    CBR_600 },
   { 1200,   CBR_1200 },
   { 2400,   CBR_2400 },
   { 4800,   CBR_4800 },
@@ -97,7 +99,7 @@ static BOOL serial_w32SetTimeOut(HANDLE hComPort, DWORD timeout) // in ms
 	return SetCommTimeouts(hComPort, &ctmo);
 }
 
-static int ser_setspeed(union filedescriptor *fd, long baud)
+static int ser_setparams(union filedescriptor *fd, long baud, unsigned long cflags)
 {
 	if (serial_over_ethernet) {
 		return -ENOTTY;
@@ -111,9 +113,39 @@ static int ser_setspeed(union filedescriptor *fd, long baud)
 		dcb.fBinary = 1;
 		dcb.fDtrControl = DTR_CONTROL_DISABLE;
 		dcb.fRtsControl = RTS_CONTROL_DISABLE;
-		dcb.ByteSize = 8;
-		dcb.Parity = NOPARITY;
-		dcb.StopBits = ONESTOPBIT;
+		switch ((cflags & (SERIAL_CS5 | SERIAL_CS6 | SERIAL_CS7 | SERIAL_CS8))) {
+			case SERIAL_CS5:
+				dcb.ByteSize = 5;
+				break;
+			case SERIAL_CS6:
+				dcb.ByteSize = 6;
+				break;
+			case SERIAL_CS7:
+				dcb.ByteSize = 7;
+				break;
+			case SERIAL_CS8:
+				dcb.ByteSize = 8;
+				break;
+		}
+		switch ((cflags & (SERIAL_NO_PARITY | SERIAL_PARENB | SERIAL_PARODD))) {
+			case SERIAL_NO_PARITY:
+				dcb.Parity = NOPARITY;
+				break;
+			case SERIAL_PARENB:
+				dcb.Parity = EVENPARITY;
+				break;
+			case SERIAL_PARODD:
+				dcb.Parity = ODDPARITY;
+				break;
+		}
+		switch ((cflags & (SERIAL_NO_CSTOPB | SERIAL_CSTOPB))) {
+			case SERIAL_NO_CSTOPB:
+				dcb.StopBits = ONESTOPBIT;
+				break;
+			case SERIAL_CSTOPB:
+				dcb.StopBits = TWOSTOPBITS;
+				break;
+		}
 
 		if (!SetCommState(hComPort, &dcb))
 			return -1;
@@ -283,7 +315,7 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
 	}
 
         fdp->pfd = (void *)hComPort;
-	if (ser_setspeed(fdp, pinfo.baud) != 0)
+	if (ser_setparams(fdp, pinfo.serialinfo.baud, pinfo.serialinfo.cflags) != 0)
 	{
 		CloseHandle(hComPort);
 		avrdude_message(MSG_INFO, "%s: ser_open(): can't set com-state for \"%s\"\n",
@@ -770,7 +802,7 @@ static int ser_drain(union filedescriptor *fd, int display)
 struct serial_device serial_serdev =
 {
   .open = ser_open,
-  .setspeed = ser_setspeed,
+  .setparams = ser_setparams,
   .close = ser_close,
   .send = ser_send,
   .recv = ser_recv,

@@ -55,6 +55,8 @@ struct baud_mapping {
 /* There are a lot more baud rates we could handle, but what's the point? */
 
 static struct baud_mapping baud_lookup_table [] = {
+  { 300,    B300 },
+  { 600,    B600 },
   { 1200,   B1200 },
   { 2400,   B2400 },
   { 4800,   B4800 },
@@ -96,7 +98,20 @@ static speed_t serial_baud_lookup(long baud)
   return baud;
 }
 
-static int ser_setspeed(union filedescriptor *fd, long baud)
+static tcflag_t translate_flags(unsigned long cflags)
+{
+  return ((cflags & SERIAL_CS5)                      ? CS5    : 0) |
+         ((cflags & SERIAL_CS6)                      ? CS6    : 0) |
+         ((cflags & SERIAL_CS7)                      ? CS7    : 0) |
+         ((cflags & SERIAL_CS8)                      ? CS8    : 0) |
+         ((cflags & SERIAL_CSTOPB)                   ? CSTOPB : 0) |
+         ((cflags & SERIAL_CREAD)                    ? CREAD  : 0) |
+         ((cflags & (SERIAL_PARENB | SERIAL_PARODD)) ? PARENB : 0) |
+         ((cflags & SERIAL_PARODD)                   ? PARODD : 0) |
+         ((cflags & SERIAL_CLOCAL)                   ? CLOCAL : 0) ;
+}
+
+static int ser_setparams(union filedescriptor *fd, long baud, unsigned long cflags)
 {
   int rc;
   struct termios termios;
@@ -110,7 +125,7 @@ static int ser_setspeed(union filedescriptor *fd, long baud)
    */
   rc = tcgetattr(fd->ifd, &termios);
   if (rc < 0) {
-    avrdude_message(MSG_INFO, "%s: ser_setspeed(): tcgetattr() failed",
+    avrdude_message(MSG_INFO, "%s: ser_setparams(): tcgetattr() failed",
             progname);
     return -errno;
   }
@@ -125,7 +140,7 @@ static int ser_setspeed(union filedescriptor *fd, long baud)
   termios.c_iflag = IGNBRK;
   termios.c_oflag = 0;
   termios.c_lflag = 0;
-  termios.c_cflag = (CS8 | CREAD | CLOCAL);
+  termios.c_cflag = translate_flags(cflags);
   termios.c_cc[VMIN]  = 1;
   termios.c_cc[VTIME] = 0;
 
@@ -134,7 +149,7 @@ static int ser_setspeed(union filedescriptor *fd, long baud)
 
   rc = tcsetattr(fd->ifd, TCSANOW, &termios);
   if (rc < 0) {
-    avrdude_message(MSG_INFO, "%s: ser_setspeed(): tcsetattr() failed\n",
+    avrdude_message(MSG_INFO, "%s: ser_setparams(): tcsetattr() failed\n",
             progname);
     return -errno;
   }
@@ -298,7 +313,7 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
   /*
    * set serial line attributes
    */
-  rc = ser_setspeed(fdp, pinfo.baud);
+  rc = ser_setparams(fdp, pinfo.serialinfo.baud, pinfo.serialinfo.cflags);
   if (rc) {
     avrdude_message(MSG_INFO, "%s: ser_open(): can't set attributes for device \"%s\": %s\n",
                     progname, port, strerror(-rc));
@@ -307,7 +322,6 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
   }
   return 0;
 }
-
 
 static void ser_close(union filedescriptor *fd)
 {
@@ -501,7 +515,7 @@ static int ser_drain(union filedescriptor *fd, int display)
 struct serial_device serial_serdev =
 {
   .open = ser_open,
-  .setspeed = ser_setspeed,
+  .setparams = ser_setparams,
   .close = ser_close,
   .send = ser_send,
   .recv = ser_recv,

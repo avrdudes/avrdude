@@ -370,7 +370,8 @@ static int avr910_open(PROGRAMMER * pgm, char * port)
   }
 
   strcpy(pgm->port, port);
-  pinfo.baud = pgm->baudrate;
+  pinfo.serialinfo.baud = pgm->baudrate;
+  pinfo.serialinfo.cflags = SERIAL_8N1;
   if (serial_open(port, pinfo, &pgm->fd)==-1) {
     return -1;
   }

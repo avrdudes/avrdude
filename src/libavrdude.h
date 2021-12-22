@@ -530,9 +530,34 @@ union filedescriptor
   } usb;
 };
 
+#define SERIAL_CS5          0x0000
+#define SERIAL_CS6          0x0001
+#define SERIAL_CS7          0x0002
+#define SERIAL_CS8          0x0004
+
+#define SERIAL_NO_CSTOPB    0x0000
+#define SERIAL_CSTOPB       0x0008
+
+#define SERIAL_NO_CREAD     0x0000
+#define SERIAL_CREAD        0x0010
+
+#define SERIAL_NO_PARITY    0x0000
+#define SERIAL_PARENB       0x0020
+#define SERIAL_PARODD       0x0040
+
+#define SERIAL_NO_CLOCAL    0x0000
+#define SERIAL_CLOCAL       0x0080
+
+#define SERIAL_8N1 (SERIAL_CS8 | SERIAL_NO_CSTOPB | SERIAL_CREAD | SERIAL_NO_PARITY | SERIAL_CLOCAL)
+#define SERIAL_8E1 (SERIAL_CS8 | SERIAL_NO_CSTOPB | SERIAL_CREAD | SERIAL_PARENB    | SERIAL_CLOCAL)
+#define SERIAL_8E2 (SERIAL_CS8 | SERIAL_CSTOPB    | SERIAL_CREAD | SERIAL_PARENB    | SERIAL_CLOCAL)
+
 union pinfo
 {
-  long baud;
+  struct {
+    long baud;
+    unsigned long cflags;
+  } serialinfo;
   struct
   {
     unsigned short vid;
@@ -548,7 +573,7 @@ struct serial_device
 {
   // open should return -1 on error, other values on success
   int (*open)(char * port, union pinfo pinfo, union filedescriptor *fd); 
-  int (*setspeed)(union filedescriptor *fd, long baud);
+  int (*setparams)(union filedescriptor *fd, long baud, unsigned long cflags);
   void (*close)(union filedescriptor *fd);
 
   int (*send)(union filedescriptor *fd, const unsigned char * buf, size_t buflen);
@@ -570,7 +595,7 @@ extern struct serial_device avrdoper_serdev;
 extern struct serial_device usbhid_serdev;
 
 #define serial_open (serdev->open)
-#define serial_setspeed (serdev->setspeed)
+#define serial_setparams (serdev->setparams)
 #define serial_close (serdev->close)
 #define serial_send (serdev->send)
 #define serial_recv (serdev->recv)

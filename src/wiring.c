@@ -150,7 +150,8 @@ static int wiring_open(PROGRAMMER * pgm, char * port)
   union pinfo pinfo;
 
   strcpy(pgm->port, port);
-  pinfo.baud = pgm->baudrate ? pgm->baudrate: 115200;
+  pinfo.serialinfo.baud = pgm->baudrate ? pgm->baudrate: 115200;
+  pinfo.serialinfo.cflags = SERIAL_8N1;
   serial_open(port, pinfo, &pgm->fd);
 
   /* If we have a snoozetime, then we wait and do NOT toggle DTR/RTS */

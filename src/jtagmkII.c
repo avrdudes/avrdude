@@ -1312,7 +1312,7 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
 		"trying to set baudrate to %d\n",
 		progname, pgm->baudrate);
       if (jtagmkII_setparm(pgm, PAR_BAUD_RATE, &b) == 0)
-	serial_setspeed(&pgm->fd, pgm->baudrate);
+	serial_setparams(&pgm->fd, pgm->baudrate, SERIAL_8N1);
     }
   }
   if ((pgm->flag & PGM_FL_IS_JTAG) && pgm->bitclock != 0.0) {
@@ -1490,7 +1490,8 @@ static int jtagmkII_open(PROGRAMMER * pgm, char * port)
    * a higher baud rate, we switch to it later on, after establishing
    * the connection with the ICE.
    */
-  pinfo.baud = 19200;
+  pinfo.serialinfo.baud = 19200;
+  pinfo.serialinfo.cflags = SERIAL_8N1;
 
   /*
    * If the port name starts with "usb", divert the serial routines
@@ -1542,7 +1543,8 @@ static int jtagmkII_open_dw(PROGRAMMER * pgm, char * port)
    * a higher baud rate, we switch to it later on, after establishing
    * the connection with the ICE.
    */
-  pinfo.baud = 19200;
+  pinfo.serialinfo.baud = 19200;
+  pinfo.serialinfo.cflags = SERIAL_8N1;
 
   /*
    * If the port name starts with "usb", divert the serial routines
@@ -1594,7 +1596,8 @@ static int jtagmkII_open_pdi(PROGRAMMER * pgm, char * port)
    * a higher baud rate, we switch to it later on, after establishing
    * the connection with the ICE.
    */
-  pinfo.baud = 19200;
+  pinfo.serialinfo.baud = 19200;
+  pinfo.serialinfo.cflags = SERIAL_8N1;
 
   /*
    * If the port name starts with "usb", divert the serial routines
@@ -1647,7 +1650,8 @@ static int jtagmkII_dragon_open(PROGRAMMER * pgm, char * port)
    * a higher baud rate, we switch to it later on, after establishing
    * the connection with the ICE.
    */
-  pinfo.baud = 19200;
+  pinfo.serialinfo.baud = 19200;
+  pinfo.serialinfo.cflags = SERIAL_8N1;
 
   /*
    * If the port name starts with "usb", divert the serial routines
@@ -1700,7 +1704,8 @@ static int jtagmkII_dragon_open_dw(PROGRAMMER * pgm, char * port)
    * a higher baud rate, we switch to it later on, after establishing
    * the connection with the ICE.
    */
-  pinfo.baud = 19200;
+  pinfo.serialinfo.baud = 19200;
+  pinfo.serialinfo.cflags = SERIAL_8N1;
 
   /*
    * If the port name starts with "usb", divert the serial routines
@@ -1753,7 +1758,8 @@ static int jtagmkII_dragon_open_pdi(PROGRAMMER * pgm, char * port)
    * a higher baud rate, we switch to it later on, after establishing
    * the connection with the ICE.
    */
-  pinfo.baud = 19200;
+  pinfo.serialinfo.baud = 19200;
+  pinfo.serialinfo.cflags = SERIAL_8N1;
 
   /*
    * If the port name starts with "usb", divert the serial routines
@@ -3330,7 +3336,8 @@ static int jtagmkII_open32(PROGRAMMER * pgm, char * port)
    * a higher baud rate, we switch to it later on, after establishing
    * the connection with the ICE.
    */
-  pinfo.baud = 19200;
+  pinfo.serialinfo.baud = 19200;
+  pinfo.serialinfo.cflags = SERIAL_8N1;
 
   /*
    * If the port name starts with "usb", divert the serial routines
