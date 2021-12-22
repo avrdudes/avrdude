@@ -41,6 +41,11 @@ ylwrap
 *.a
 *.la
 
+# CMake
+out/
+build/
+build_*/
+
 # Visual Studio
 .vs/
 [Dd]ebug/
