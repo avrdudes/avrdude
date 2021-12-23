@@ -1318,7 +1318,9 @@ programmer
   connection_type = usb;
 ;
 
-@HAVE_PARPORT_BEGIN@
+#cmakedefine HAVE_PARPORT
+#if defined( HAVE_PARPORT )
+
 # Parallel port programmers.
 
 programmer
@@ -1524,9 +1526,11 @@ programmer
   miso = 10;
 ;
 
-@HAVE_PARPORT_END@
+#endif /* HAVE_PARPORT */
 
-@HAVE_LINUXGPIO_BEGIN@
+#cmakedefine HAVE_LINUXGPIO
+#if defined( HAVE_LINUXGPIO )
+
 #This programmer bitbangs GPIO lines using the Linux sysfs GPIO interface
 #
 #To enable it set the configuration below to match the GPIO lines connected to the
@@ -1548,10 +1552,13 @@ programmer
 #  mosi  = ?;
 #  miso  = ?;
 #;
-@HAVE_LINUXGPIO_END@
+
+#endif /* HAVE_LINUXGPIO */
 
 
-@HAVE_LINUXSPI_BEGIN@
+#cmakedefine HAVE_LINUXSPI
+#if defined( HAVE_LINUXSPI )
+
 # This programmer uses the built in linux SPI bus devices to program an
 # attached AVR. The reset pin must be attached to a GPIO pin that
 # is otherwise unused (see gpioinfo(1)); the SPI bus CE pins are not
@@ -1563,7 +1570,8 @@ programmer
    type = "linuxspi";
    reset = 25;    # Pi GPIO number - this is J8:22
 ;
-@HAVE_LINUXSPI_END@
+
+#endif /* HAVE_LINUXSPI */
 
 # some ultra cheap programmers use bitbanging on the 
 # serialport.
