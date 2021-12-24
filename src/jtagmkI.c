@@ -214,6 +214,7 @@ static int jtagmkI_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
   if (serial_send(&pgm->fd, buf, len + 2) != 0) {
     avrdude_message(MSG_INFO, "%s: jtagmkI_send(): failed to send command to serial port\n",
                     progname);
+    free(buf);
     return -1;
   }
 
