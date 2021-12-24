@@ -460,6 +460,8 @@ add_executable(avrdude
     main.c
     term.c
     term.h
+    whereami.c
+    whereami.h
     "${EXTRA_WINDOWS_SOURCES}"
     )
 

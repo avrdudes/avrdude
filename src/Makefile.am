@@ -194,6 +194,8 @@ include_HEADERS = libavrdude.h
 
 avrdude_SOURCES = \
 	main.c \
+	whereami.c \
+	whereami.h \
 	term.c \
 	term.h
 
