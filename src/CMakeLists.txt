@@ -329,8 +329,22 @@ message(STATUS "----------------------")
 # Configure files
 # =====================================
 
+macro(configure_option option)
+    if(${${option}})
+        string(REGEX REPLACE "(.*)@${option}_BEGIN@(.*)@${option}_END@(.*)" "\\1\\2\\3" conf_file "${conf_file}")
+    else()
+        string(REGEX REPLACE "(.*)@${option}_BEGIN@(.*)@${option}_END@(.*)" "\\1\\3" conf_file "${conf_file}")
+    endif()
+endmacro()
+
+file(READ avrdude.conf.in conf_file)
+configure_option(HAVE_PARPORT)
+configure_option(HAVE_LINUXGPIO)
+configure_option(HAVE_LINUXSPI)
+file(WRITE "${PROJECT_BINARY_DIR}/avrdude.conf.in" "${conf_file}")
+
 configure_file(cmake_config.h.in ac_cfg.h)
-configure_file(avrdude.conf.in avrdude.conf)
+configure_file("${PROJECT_BINARY_DIR}/avrdude.conf.in" avrdude.conf)
 configure_file(avrdude.spec.in avrdude.spec)
 if(WIN32)
     configure_file(windows.rc.in windows.rc)
