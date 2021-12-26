@@ -22,8 +22,6 @@
 
 #define VERSION "@PROJECT_VERSION@"
 
-#define CONFIG_DIR "${CONFIG_DIR}"
-
 /* Options */
 
 /* Linux sysfs GPIO support enabled */

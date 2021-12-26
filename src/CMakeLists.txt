@@ -48,15 +48,19 @@ set(AVRDUDE_EXTERNAL_PATH "${PROJECT_SOURCE_DIR}/external")
 find_package(FLEX)
 if(FLEX_FOUND)
     FLEX_TARGET(Parser lexer.l "${PROJECT_BINARY_DIR}/lexer.c")
+
+    if (FLEX_VERSION VERSION_GREATER_EQUAL 2.5.9)
+        set(HAVE_YYLEX_DESTROY 1)
+    endif()
 else()
-    message(SEND_ERROR "This CMake project requires flex, which is not installed on your system." )
+    message(SEND_ERROR "This CMake project requires 'flex', which is not installed on your system." )
 endif()
 
 find_package(BISON)
 if(BISON_FOUND)
     BISON_TARGET(Parser config_gram.y "${PROJECT_BINARY_DIR}/config_gram.c" DEFINES_FILE "${PROJECT_BINARY_DIR}/config_gram.h")
 else()
-    message(SEND_ERROR "This CMake project requires bison, which is not installed on your system." )
+    message(SEND_ERROR "This CMake project requires 'bison', which is not installed on your system." )
 endif()
 
 # =====================================
@@ -121,6 +125,11 @@ if(HAVE_LIBUSB_1_0)
     set(LIB_LIBUSB_1_0 ${HAVE_LIBUSB_1_0})
 endif()
 
+# FreeBSD's library 'libusb' supports both the libusb-0.1 and libusb-1.0 API.
+if (HAVE_LIBUSB AND CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+    set(HAVE_LIBUSB_1_0 ${HAVE_LIBUSB})
+endif()
+
 find_library(HAVE_LIBUSB_WIN32 NAMES libusb0.a usb0)
 
 if(HAVE_LIBUSB OR HAVE_LIBUSB_1_0 OR HAVE_LIBUSB_WIN32)
@@ -181,6 +190,8 @@ endif()
 # =====================================
 # Setup target specific options
 # =====================================
+
+add_compile_definitions(CONFIG_DIR=\"${CONFIG_DIR}\")
 
 if(WIN32)
     set(HAVE_LIBWS2_32 1)
