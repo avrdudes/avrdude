@@ -1,3 +1,4 @@
+.DS_Store
 .deps/
 .libs/
 m4/
@@ -16,6 +17,7 @@ ac_cfg.h.in
 aclocal.m4
 autom4te.cache
 configure
+configure~
 depcomp
 install-sh
 compile

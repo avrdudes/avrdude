@@ -307,6 +307,13 @@ The MPLAB(R) PICkit 4, MPLAB(R) SNAP, and Curiosity Nano boards are
 supported in UPDI mode. The Curiosity Nano board is dubbed ``PICkit on
 Board'', thus the name @code{pkobn_updi}.
 
+SerialUPDI programmer implementation is based on Microchip's 
+@emph{pymcuprog} (@url{https://github.com/microchip-pic-avr-tools/pymcuprog}) 
+utility, but it also contains some performance improvements included in
+Spence Kohde's @emph{DxCore} Arduino core (@url{https://github.com/SpenceKonde/DxCore}).
+In a nutshell, this programmer consists of simple USB->UART adapter, diode 
+and couple of resistors. It uses serial connection to provide UPDI interface. 
+@xref{SerialUPDI programmer} for more details and known issues.
 
 @menu
 * History::                     
@@ -1773,6 +1780,7 @@ functionality does not make sense for these boot loaders.
 @menu
 * Atmel STK600::
 * Atmel DFU bootloader using FLIP version 1::
+* SerialUPDI programmer::
 @end menu
 
 @c
@@ -1874,7 +1882,7 @@ least 4.5 V in order to work.  This can be done using
 @c
 @c Node
 @c
-@node Atmel DFU bootloader using FLIP version 1, , Atmel STK600, Programmer Specific Information
+@node Atmel DFU bootloader using FLIP version 1, SerialUPDI programmer , Atmel STK600, Programmer Specific Information
 @section Atmel DFU bootloader using FLIP version 1
 
 Bootloaders using the FLIP protocol version 1 experience some very
@@ -1898,6 +1906,109 @@ signature check to be overridden with the @option{-F} option.
 
 A @emph{chip erase} might leave the EEPROM unerased, at least on some
 versions of the bootloader.
+
+@c
+@c Node
+@c
+@node SerialUPDI programmer, , Atmel DFU bootloader using FLIP version 1, Programmer Specific Information
+@section SerialUPDI programmer
+
+SerialUPDI programmer can be used for programming UPDI-only devices
+using very simple serial connection.
+You can read more about the details here 
+@url{https://github.com/SpenceKonde/AVR-Guidance/blob/master/UPDI/jtag2updi.md}
+
+SerialUPDI programmer has been tested using FT232RL USB->UART interface
+with the following connection layout (copied from Spence Kohde's page linked
+above):
+
+@example
+--------------------                                 To Target device
+                DTR|                                  __________________
+                Rx |--------------,------------------| UPDI---\/\/---------->
+  Tx---/\/\/\---Tx |-------|<|---'          .--------| Gnd    470 ohm 
+    resistor    Vcc|---------------------------------| Vcc
+        1k      CTS|                     .`          |__________________
+                Gnd|--------------------' 
+--------------------
+@end example
+
+There are several limitations in current SerialUPDI/AVRDUDE integration,
+listed below.
+
+At the end of each run there are fuse values being presented to the user.
+For most of the UPDI-enabled devices these definitions (low fuse, high
+fuse, extended fuse) have no meaning whatsoever, as they have been 
+simply replaced by array of fuses: fuse0..9. Therefore you can simply
+ignore this particular line of AVRDUDE output.
+
+In connection to the above, @emph{safemode} has no meaning in context
+of UPDI devices and should be ignored.
+
+Currently available devices support only UPDI NVM programming model 0 
+and 2, but there is also experimental implementation of model 3 - not
+yet tested.
+
+One of the core AVRDUDE features is verification of the connection by
+reading device signature prior to any operation, but this operation
+is not possible on UPDI locked devices. Therefore, to be able to 
+connect to such a device, you have to provide @option{-F} to override
+this check.
+
+Please note: using @option{-F} during write operation to locked device 
+will force chip erase. Use carefully.
+
+Another issue you might notice is slow performance of EEPROM writing
+using SerialUPDI for AVR Dx devices. This can be addressed by changing
+@emph{avrdude.conf} section for this device - changing EEPROM page 
+size to 0x20 (instead of default 1), like so:
+
+@example
+#------------------------------------------------------------
+# AVR128DB28
+#------------------------------------------------------------
+
+part parent    ".avrdx"
+    id        = "avr128db28";
+    desc      = "AVR128DB28";
+    signature = 0x1E 0x97 0x0E;
+
+    memory "flash"
+        size      = 0x20000;
+        offset    = 0x800000;
+        page_size = 0x200;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x200;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+@end example
+
+USERROW memory has not been defined for new devices except for 
+experimental addition for AVR128DB28. The point of USERROW is to 
+provide ability to write configuration details to already locked
+device and currently SerialUPDI interface supports this feature,
+but it hasn't been tested on wide variety of chips. Treat this as
+something experimental at this point. Please note: on locked devices
+it's not possible to read back USERROW contents when written, so
+the automatic verification will most likely fail and to prevent
+error messages, use @option{-V}.
+
+Please note that SerialUPDI interface is pretty new and some
+issues are to be expected. In case you run into them, please
+make sure to run the intended command with debug output enabled
+(@option{-v -v -v}) and provide this verbose output with your
+bug report. You can also try to perform the same action using
+@emph{pymcuprog} (@url{https://github.com/microchip-pic-avr-tools/pymcuprog})
+utility with @option{-v debug} and provide its output too.
+You will notice that both outputs are pretty similar, and this
+was implemented like that on purpose - it was supposed to make
+analysis of UPDI protocol quirks easier.
 
 @c
 @c Node
