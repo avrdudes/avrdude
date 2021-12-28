@@ -467,6 +467,8 @@ add_library(libavrdude STATIC
     linuxspi.h
     linux_ppdev.h
     lists.c
+    micronucleus.c
+    micronucleus.h
     my_ddk_hidsdi.h
     par.c
     par.h
