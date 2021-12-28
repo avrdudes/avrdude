@@ -61,7 +61,7 @@ struct dfu_dev
 #else
 
 struct dfu_dev {
-  // empty
+  int dummy;
 };
 
 #endif

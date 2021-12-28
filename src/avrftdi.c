@@ -356,6 +356,16 @@ static int avrftdi_transmit_bb(PROGRAMMER * pgm, unsigned char mode, const unsig
 	blocksize = MAX(1,(max_size-7)/((8*2*6)+(8*1*2)));
 	//avrdude_message(MSG_INFO, "blocksize %d \n",blocksize);
 
+	size_t send_buffer_size = (8 * 2 * 6) * blocksize + (8 * 1 * 2) * blocksize + 7;
+	size_t recv_buffer_size = 2 * 16 * blocksize;
+#ifdef _MSC_VER
+	unsigned char* send_buffer = _alloca(send_buffer_size);
+	unsigned char* recv_buffer = _alloca(recv_buffer_size);
+#else
+	unsigned char send_buffer[send_buffer_size];
+	unsigned char recv_buffer[recv_buffer_size];
+#endif
+
 	while(remaining)
 	{
 
@@ -364,7 +374,6 @@ static int avrftdi_transmit_bb(PROGRAMMER * pgm, unsigned char mode, const unsig
 		// (8*2) outputs per data byte, 6 transmit bytes per output (SET_BITS_LOW/HIGH),
 		// (8*1) inputs per data byte,  2 transmit bytes per input  (GET_BITS_LOW/HIGH),
 		// 1x SEND_IMMEDIATE
-		unsigned char send_buffer[(8*2*6)*transfer_size+(8*1*2)*transfer_size+7];
 		int len = 0;
 		int i;
 		
@@ -384,7 +393,6 @@ static int avrftdi_transmit_bb(PROGRAMMER * pgm, unsigned char mode, const unsig
 
 		E(ftdi_write_data(pdata->ftdic, send_buffer, len) != len, pdata->ftdic);
 		if (mode & MPSSE_DO_READ) {
-		    unsigned char recv_buffer[2*16*transfer_size];
 			int n;
 			int k = 0;
 			do {
@@ -761,7 +769,11 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 			pdata->tx_buffer_size = 1024;
 			break;
 #else
+#ifdef _MSC_VER
+#pragma message("No support for 232H, use a newer libftdi, version >= 0.20")
+#else
 #warning No support for 232H, use a newer libftdi, version >= 0.20
+#endif
 #endif
 		case TYPE_4232H:
 			pdata->pin_limit = 8;
@@ -953,10 +965,16 @@ static int avrftdi_eeprom_read(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
 		unsigned int page_size, unsigned int addr, unsigned int len)
 {
 	unsigned char cmd[4];
-	unsigned char buffer[len], *bufptr = buffer;
 	unsigned int add;
+#ifdef _MSC_VER
+	unsigned char* buffer = _alloca(len);
+#else
+	unsigned char buffer[len];
+#endif
+	unsigned char* bufptr = buffer;
 
-	memset(buffer, 0, sizeof(buffer));
+	memset(buffer, 0, len);
+
 	for (add = addr; add < addr + len; add++)
 	{
 		memset(cmd, 0, sizeof(cmd));
@@ -984,9 +1002,15 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 	unsigned char poll_byte;
 	unsigned char *buffer = &m->buf[addr];
-	unsigned char buf[4*len+4], *bufptr = buf;
+	unsigned int alloc_size = 4 * len + 4;
+#ifdef _MSC_VER
+	unsigned char* buf = _alloca(alloc_size);
+#else
+	unsigned char buf[alloc_size];
+#endif
+	unsigned char* bufptr = buf;
 
-	memset(buf, 0, sizeof(buf));
+	memset(buf, 0, alloc_size);
 
 	/* pre-check opcodes */
 	if (m->op[AVR_OP_LOADPAGE_LO] == NULL) {
@@ -1102,13 +1126,18 @@ static int avrftdi_flash_read(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	int use_lext_address = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
 	unsigned int address = addr/2;
 
-	unsigned char o_buf[4*len+4];
-	unsigned char i_buf[4*len+4];
+	unsigned int buf_size = 4 * len + 4;
+#ifdef _MSC_VER
+	unsigned char* o_buf = _alloca(buf_size);
+	unsigned char* i_buf = _alloca(buf_size);
+#else
+	unsigned char o_buf[buf_size];
+	unsigned char i_buf[buf_size];
+#endif
 	unsigned int index;
 
-
-	memset(o_buf, 0, sizeof(o_buf));
-	memset(i_buf, 0, sizeof(i_buf));
+	memset(o_buf, 0, buf_size);
+	memset(i_buf, 0, buf_size);
 
 	/* pre-check opcodes */
 	if (m->op[AVR_OP_READ_LO] == NULL) {

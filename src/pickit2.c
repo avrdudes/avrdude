@@ -58,11 +58,7 @@
 
 #if (defined(WIN32NATIVE) && defined(HAVE_LIBHID))
 #include <windows.h>
-#if defined(HAVE_DDK_HIDSDI_H)
-#  include <ddk/hidsdi.h>
-#else
-#  include "my_ddk_hidsdi.h"
-#endif
+#include <hidsdi.h>
 #include <setupapi.h>
 #else
 #if defined(HAVE_USB_H)
@@ -94,7 +90,7 @@
 // win32native only:
 #if (defined(WIN32NATIVE) && defined(HAVE_LIBHID))
 static HANDLE open_hid(unsigned short vid, unsigned short pid);
-const char *usb_strerror()
+static const char *usb_strerror()
 {
     return "";
 }

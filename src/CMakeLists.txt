@@ -218,13 +218,13 @@ endif()
 # -------------------------------------
 # Find libhidapi
 
+find_library(HAVE_LIBHID NAMES hid)
+
 find_library(HAVE_LIBHIDAPI NAMES ${PREFERRED_LIBHIDAPI})
 if(HAVE_LIBHIDAPI)
     set(LIB_LIBHIDAPI ${HAVE_LIBHIDAPI})
     check_include_file(hidapi/hidapi.h HAVE_HIDAPI_HIDAPI_H)
 endif()
-
-find_library(HAVE_LIBHID NAMES hid)
 
 # -------------------------------------
 # Find libftdi
@@ -252,6 +252,44 @@ if(HAVE_LIBREADLINE)
 endif()
 
 # =====================================
+# Use local libraries if requested
+# =====================================
+
+if(USE_EXTERNAL)
+    if(EXISTS "${AVRDUDE_EXTERNAL_PATH}/libelf/CMakeLists.txt")
+        message(STATUS "Using local library 'libelf'")
+        add_subdirectory(${AVRDUDE_EXTERNAL_PATH}/libelf)
+        set(LIB_LIBELF libelf)
+        set(HAVE_LIBELF 1)
+        set(HAVE_LIBELF_H 1)
+    endif()
+
+    if(EXISTS "${AVRDUDE_EXTERNAL_PATH}/libusb/CMakeLists.txt")
+        message(STATUS "Using local library 'libusb'")
+        add_subdirectory(${AVRDUDE_EXTERNAL_PATH}/libusb)
+        set(LIB_LIBUSB libusb)
+        set(HAVE_LIBUSB 1)
+        set(HAVE_LUSB0_USB_H 1)
+    endif()
+
+    if(EXISTS "${AVRDUDE_EXTERNAL_PATH}/libhidapi/CMakeLists.txt")
+        message(STATUS "Using local library 'libhidapi'")
+        add_subdirectory(${AVRDUDE_EXTERNAL_PATH}/libhidapi)
+        set(LIB_LIBHIDAPI libhidapi)
+        set(HAVE_LIBHIDAPI 1)
+        set(HAVE_HIDAPI_HIDAPI_H 1)
+    endif()
+
+    if(EXISTS "${AVRDUDE_EXTERNAL_PATH}/libftdi/CMakeLists.txt")
+        message(STATUS "Using local library 'libftdi'")
+        add_subdirectory(${AVRDUDE_EXTERNAL_PATH}/libftdi)
+        set(LIB_LIBFTDI libftdi)
+        set(HAVE_LIBFTDI 1)
+        set(HAVE_LIBFTDI_TYPE_232H 1)
+    endif()
+endif()
+
+# =====================================
 # Setup target specific options
 # =====================================
 
@@ -267,6 +305,29 @@ endif()
 if(NOT WIN32)
     set(LIB_MATH m)
     #add_compile_options(-Wall -Wextra -pedantic)
+endif()
+
+if(MSVC)
+    # The following functions are implemented in the MSVC compatibility layer
+    set(HAVE_USLEEP 1)
+    set(HAVE_GETTIMEOFDAY 1)
+    set(HAVE_STRCASECMP 1)
+
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS=1)
+    add_compile_definitions(_CRT_NONSTDC_NO_WARNINGS=1)
+    add_compile_definitions(_WINSOCK_DEPRECATED_NO_WARNINGS=1)
+    add_compile_options(/W3)
+    add_compile_options(/wd5105) # warning C5105: macro expansion producing 'xxx' has undefined behavior
+
+    set(EXTRA_WINDOWS_SOURCES ${EXTRA_WINDOWS_SOURCES}
+        "${PROJECT_SOURCE_DIR}/msvc/getopt.c"
+        "${PROJECT_SOURCE_DIR}/msvc/gettimeofday.c"
+        "${PROJECT_SOURCE_DIR}/msvc/usleep.cpp"
+        )
+    set(EXTRA_WINDOWS_INCLUDES ${EXTRA_WINDOWS_INCLUDES}
+        "${PROJECT_SOURCE_DIR}/msvc"
+        "${PROJECT_SOURCE_DIR}/msvc/generated"
+        )
 endif()
 
 # =====================================
@@ -308,6 +369,7 @@ if (DEBUG_CMAKE)
     message(STATUS "HAVE_LIBUSB: ${HAVE_LIBUSB}")
     message(STATUS "HAVE_LIBUSB_1_0: ${HAVE_LIBUSB_1_0}")
     message(STATUS "HAVE_LIBUSB_WIN32: ${HAVE_LIBUSB_WIN32}")
+    message(STATUS "HAVE_LIBHID: ${HAVE_LIBHID}")
     message(STATUS "HAVE_LIBHIDAPI: ${HAVE_LIBHIDAPI}")
     message(STATUS "HAVE_LIBFTDI: ${HAVE_LIBFTDI}")
     message(STATUS "HAVE_LIBFTDI1: ${HAVE_LIBFTDI1}")
