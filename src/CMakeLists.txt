@@ -501,6 +501,8 @@ add_library(libavrdude STATIC
     stk500v2_private.h
     stk500generic.c
     stk500generic.h
+    teensy.c
+    teensy.h
     tpi.h
     updi_constants.h
     updi_link.c

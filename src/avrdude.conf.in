@@ -925,6 +925,15 @@ programmer
   usbpid = 0x0753;
 ;
 
+programmer
+  id = "teensy";
+  desc = "Teensy Bootloader";
+  type = "teensy";
+  connection_type = usb;
+  usbvid = 0x16C0;
+  usbpid = 0x0478;
+;
+
 # commercial version of USBtiny, using a separate VID/PID
 programmer
   id    = "iseavrprog";

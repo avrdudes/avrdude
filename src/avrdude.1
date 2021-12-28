@@ -249,6 +249,15 @@ See the section on
 .Em extended parameters
 for Micronucleus specific options.
 .Pp
+The Teensy bootloader is supported for all AVR boards.
+As the bootloader does not support reading from flash memory,
+use the
+.Fl V
+option to prevent AVRDUDE from verifing the flash memory.
+See the section on
+.Em extended parameters
+for Teensy specific options.
+.Pp
 Input files can be provided, and output files can be written in
 different file formats, such as raw binary files containing the data
 to download to the chip, Intel hex format, or Motorola S-record
@@ -1101,6 +1110,16 @@ can speed up programming a lot.
 The default value is 100ms. Using 10ms might work in most cases. 
 .El
 .It Ar Micronucleus bootloader
+.Bl -tag -offset indent -width indent
+.It Ar wait[=<timeout>]
+If the device is not connected, wait for the device to be plugged in.
+The optional
+.Ar timeout
+specifies the connection time-out in seconds.
+If no time-out is specified, AVRDUDE will wait indefinitely until the
+device is plugged in.
+.El
+.It Ar Teensy bootloader
 .Bl -tag -offset indent -width indent
 .It Ar wait[=<timeout>]
 If the device is not connected, wait for the device to be plugged in.
