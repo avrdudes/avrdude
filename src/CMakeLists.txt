@@ -30,15 +30,16 @@ option(BUILD_DOC "Enable building documents" OFF)
 option(HAVE_LINUXGPIO "Enable Linux sysfs GPIO support" OFF)
 option(HAVE_LINUXSPI "Enable Linux SPI support" OFF)
 option(HAVE_PARPORT "Enable parallel port support" OFF)
-option(USE_EXTERNAL "Use local code from the 'external' folder" OFF)
+option(USE_EXTERNAL "Use external libraries from AVRDUDE GitHub repositories" OFF)
 option(USE_LIBUSBWIN32 "Prefer libusb-win32 over libusb" OFF)
 option(DEBUG_CMAKE "Enable debugging output for this CMake project" OFF)
 
 include(CheckIncludeFile)
 include(CheckFunctionExists)
 include(CheckSymbolExists)
-include(GNUInstallDirs)
+include(FetchContent)
 include(FindPackageMessage)
+include(GNUInstallDirs)
 
 set(CONFIG_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}")
 set(AVRDUDE_FULL_VERSION ${CMAKE_PROJECT_VERSION})
@@ -252,41 +253,57 @@ if(HAVE_LIBREADLINE)
 endif()
 
 # =====================================
-# Use local libraries if requested
+# Use external libraries if requested
 # =====================================
 
 if(USE_EXTERNAL)
-    if(EXISTS "${AVRDUDE_EXTERNAL_PATH}/libelf/CMakeLists.txt")
-        message(STATUS "Using local library 'libelf'")
-        add_subdirectory(${AVRDUDE_EXTERNAL_PATH}/libelf)
-        set(LIB_LIBELF libelf)
-        set(HAVE_LIBELF 1)
-        set(HAVE_LIBELF_H 1)
-    endif()
+    FetchContent_Declare(libelf
+        GIT_REPOSITORY https://github.com/avrdudes/libelf.git
+        GIT_TAG e5a39bf19bd6598c42e09172be5a78ceec2a065c
+        )
 
-    if(EXISTS "${AVRDUDE_EXTERNAL_PATH}/libusb/CMakeLists.txt")
-        message(STATUS "Using local library 'libusb'")
-        add_subdirectory(${AVRDUDE_EXTERNAL_PATH}/libusb)
-        set(LIB_LIBUSB libusb)
-        set(HAVE_LIBUSB 1)
-        set(HAVE_LUSB0_USB_H 1)
-    endif()
+    FetchContent_Declare(libusb
+        GIT_REPOSITORY https://github.com/avrdudes/libusb.git
+        GIT_TAG 632bc25d04eff563cc00de29435b9a7ed6f4654c
+        )
 
-    if(EXISTS "${AVRDUDE_EXTERNAL_PATH}/libhidapi/CMakeLists.txt")
-        message(STATUS "Using local library 'libhidapi'")
-        add_subdirectory(${AVRDUDE_EXTERNAL_PATH}/libhidapi)
-        set(LIB_LIBHIDAPI libhidapi)
-        set(HAVE_LIBHIDAPI 1)
-        set(HAVE_HIDAPI_HIDAPI_H 1)
-    endif()
+    FetchContent_Declare(libhidapi
+        GIT_REPOSITORY https://github.com/avrdudes/libhidapi.git
+        GIT_TAG e3700e951f762ef92871ff4fc94586e4d1c042a6
+        )
 
-    if(EXISTS "${AVRDUDE_EXTERNAL_PATH}/libftdi/CMakeLists.txt")
-        message(STATUS "Using local library 'libftdi'")
-        add_subdirectory(${AVRDUDE_EXTERNAL_PATH}/libftdi)
-        set(LIB_LIBFTDI libftdi)
-        set(HAVE_LIBFTDI 1)
-        set(HAVE_LIBFTDI_TYPE_232H 1)
-    endif()
+    FetchContent_Declare(libftdi
+        GIT_REPOSITORY https://github.com/avrdudes/libftdi.git
+        GIT_TAG facd9b16336539b68e8e824ece994d3d3eb2f091
+        )
+
+    message(STATUS "Fetching external libraries, please wait...")
+    FetchContent_MakeAvailable(
+        libelf
+        libusb
+        libhidapi
+        libftdi
+        )
+
+    message(STATUS "Using external library 'libelf'")
+    set(LIB_LIBELF libelf)
+    set(HAVE_LIBELF 1)
+    set(HAVE_LIBELF_H 1)
+
+    message(STATUS "Using external library 'libusb'")
+    set(LIB_LIBUSB libusb)
+    set(HAVE_LIBUSB 1)
+    set(HAVE_LUSB0_USB_H 1)
+
+    message(STATUS "Using external library 'libhidapi'")
+    set(LIB_LIBHIDAPI libhidapi)
+    set(HAVE_LIBHIDAPI 1)
+    set(HAVE_HIDAPI_HIDAPI_H 1)
+
+    message(STATUS "Using external library 'libftdi'")
+    set(LIB_LIBFTDI libftdi)
+    set(HAVE_LIBFTDI 1)
+    set(HAVE_LIBFTDI_TYPE_232H 1)
 endif()
 
 # =====================================
