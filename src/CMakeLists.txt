@@ -21,7 +21,7 @@
 #     cmake --build build
 
 cmake_minimum_required(VERSION 3.12)
-project(avrdude VERSION 6.5.0.20211213)
+project(avrdude VERSION 6.99.20211218)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED True)
