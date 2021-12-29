@@ -42,7 +42,6 @@ include(GNUInstallDirs)
 
 set(CONFIG_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}")
 set(AVRDUDE_FULL_VERSION ${CMAKE_PROJECT_VERSION})
-set(AVRDUDE_EXTERNAL_PATH "${PROJECT_SOURCE_DIR}/external")
 
 # =====================================
 # Get Git commit info
@@ -356,6 +355,8 @@ message(STATUS "----------------------")
 if (DEBUG_CMAKE)
     message(STATUS "CMAKE_HOST_SYSTEM: ${CMAKE_HOST_SYSTEM}")
     message(STATUS "CMAKE_SYSTEM: ${CMAKE_SYSTEM}")
+    message(STATUS "CMAKE_FIND_ROOT_PATH: ${CMAKE_FIND_ROOT_PATH}")
+    message(STATUS "CMAKE_C_COMPILER: ${CMAKE_C_COMPILER}")
     message(STATUS "CONFIG_DIR: ${CONFIG_DIR}")
     message(STATUS "AVRDUDE_FULL_VERSION: ${AVRDUDE_FULL_VERSION}")
     message(STATUS "USE_EXTERNAL: ${USE_EXTERNAL}")
