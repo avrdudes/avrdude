@@ -16,7 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-name: CMake Build
+name: Build
 
 on:
   push:
@@ -27,7 +27,7 @@ env:
   BUILD_TYPE: RelWithDebInfo
 
 jobs:
-  build-ubuntu:
+  linux-x86_64:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -46,16 +46,22 @@ jobs:
           libftdi1-dev
           libhidapi-dev
       - name: Configure
-        run: cmake -DDEBUG_CMAKE=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B ${{github.workspace}}/build
+        run: >-
+          cmake
+          -D DEBUG_CMAKE=1
+          -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          -B ${{github.workspace}}/build
       - name: Build
-        run: cmake --build ../build
+        run: cmake --build ${{github.workspace}}/build
       - name: Archive build artifacts
+        if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: build-ubuntu
+          name: linux-x86_64
           path: |
             ${{github.workspace}}/build/*
-  build-macos:
+
+  macos-x86_64:
     runs-on: macos-latest
     defaults:
       run:
@@ -73,16 +79,23 @@ jobs:
           libftdi
           hidapi
       - name: Configure
-        run: cmake -DCMAKE_C_FLAGS=-I/usr/local/include -DCMAKE_EXE_LINKER_FLAGS=-L/usr/local/Cellar -DDEBUG_CMAKE=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B ${{github.workspace}}/build
+        run: >-
+          cmake
+          -D CMAKE_C_FLAGS=-I/usr/local/include
+          -D CMAKE_EXE_LINKER_FLAGS=-L/usr/local/Cellar
+          -D DEBUG_CMAKE=1
+          -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          -B ${{github.workspace}}/build
       - name: Build
-        run: cmake --build ../build
+        run: cmake --build ${{github.workspace}}/build
       - name: Archive build artifacts
+        if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: build-macos
+          name: macos-x86_64
           path: |
             ${{github.workspace}}/build/*
-  build-mingw:
+  mingw:
     runs-on: windows-latest
     defaults:
       run:
@@ -109,12 +122,18 @@ jobs:
             mingw-w64-${{matrix.env}}-hidapi
             mingw-w64-${{matrix.env}}-libftdi
       - name: Configure
-        run: cmake -G"MSYS Makefiles" -DDEBUG_CMAKE=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B ../build_${{matrix.sys}}
+        run: >-
+          cmake
+          -G"MSYS Makefiles"
+          -D DEBUG_CMAKE=1
+          -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          -B ../build
       - name: Build
-        run: cmake --build ../build_${{matrix.sys}}
+        run: cmake --build ../build
       - name: Archive build artifacts
+        if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: build-mingw-${{matrix.sys}}
+          name: mingw-${{matrix.env}}
           path: |
-            ${{github.workspace}}/build_${{matrix.sys}}/*
+            ${{github.workspace}}/build/*
