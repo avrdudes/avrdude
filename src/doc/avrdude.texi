@@ -315,6 +315,12 @@ In a nutshell, this programmer consists of simple USB->UART adapter, diode
 and couple of resistors. It uses serial connection to provide UPDI interface. 
 @xref{SerialUPDI programmer} for more details and known issues.
 
+The jtag2updi programmer is supported,
+and can program AVRs with a UPDI interface.
+Jtag2updi is just a firmware that can be uploaded to an AVR,
+which enables it to interface with avrdude using the jtagice mkii protocol
+via a serial link (@url{https://github.com/ElTangas/jtag2updi}).
+
 @menu
 * History::                     
 @end menu
