@@ -331,7 +331,7 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
 
   /* supports "paged load" thru post-increment */
   if ((p->flags & AVRPART_HAS_TPI) && mem->page_size > 1 &&
-      pgm->cmd_tpi != NULL) {
+      mem->size % mem->page_size == 0 && pgm->cmd_tpi != NULL) {
 
     while (avr_tpi_poll_nvmbsy(pgm));
 
@@ -361,7 +361,8 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
     return avr_mem_hiaddr(mem);
   }
 
-  if (pgm->paged_load != NULL && mem->page_size > 1) {
+  if (pgm->paged_load != NULL && mem->page_size > 1 &&
+      mem->size % mem->page_size == 0) {
     /*
      * the programmer supports a paged mode read
      */

@@ -222,6 +222,17 @@ supported in UPDI mode. The Curiosity Nano board is dubbed
 thus the name
 .Pa pkobn_updi .
 .Pp
+SerialUPDI programmer implementation is based on Microchip's
+.Em pymcuprog Li https://github.com/microchip-pic-avr-tools/pymcuprog
+utility, but it also contains some performance improvements included in
+Spence Kohde's
+.Em DxCore
+Arduino core
+.Li https://github.com/SpenceKonde/DCore .
+In a nutshell, this programmer consists of simple USB->UART adapter, diode
+and couple of resistors. It uses serial connection to provide UPDI interface.
+See the texinfo documentation for more details and known issues.
+.Pp
 Input files can be provided, and output files can be written in
 different file formats, such as raw binary files containing the data
 to download to the chip, Intel hex format, or Motorola S-record

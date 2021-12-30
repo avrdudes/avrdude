@@ -71,7 +71,7 @@ enum { FTDI_SCK = 0, FTDI_MOSI, FTDI_MISO, FTDI_RESET };
 static int write_flush(avrftdi_t *);
 
 /*
- * returns a human-readable name for a pin number. the name should match with
+ * returns a human-readable name for a pin number. The name should match with
  * the pin names used in FTDI datasheets.
  */
 static char*
@@ -125,7 +125,7 @@ ftdi_pin_name(avrftdi_t* pdata, struct pindef_t pin)
 }
 
 /*
- * output function, to save if(vebose>level)-constructs. also prefixes output
+ * output function, to save if(vebose>level)-constructs. Also prefixes output
  * with "avrftdi function-name(line-number):" to identify were messages came
  * from.
  * This function is the backend of the log_*-macros, but it can be used
@@ -163,9 +163,9 @@ void avrftdi_log(int level, const char * func, int line,
 }
 
 /*
- * helper function to print a binary buffer *buf of size len. begin and end of
- * the dump are enclosed in the string contained in *desc. offset denotes the
- * number of bytes which are printed on the first line (may be 0). after that
+ * helper function to print a binary buffer *buf of size len. Begin and end of
+ * the dump are enclosed in the string contained in *desc. Offset denotes the
+ * number of bytes which are printed on the first line (may be 0). After that
  * width bytes are printed on each line
  */
 static void buf_dump(const unsigned char *buf, int len, char *desc,
@@ -531,7 +531,7 @@ static int avrftdi_check_pins_bb(PROGRAMMER * pgm, bool output)
 	/* value for 8/12/16 bit wide interface */
 	int valid_mask = ((1 << pdata->pin_limit) - 1);
 
-	log_debug("Using valid mask bibanging: 0x%08x\n", valid_mask);
+	log_debug("Using valid mask bitbanging: 0x%08x\n", valid_mask);
 	static struct pindef_t valid_pins;
 	valid_pins.mask[0] = valid_mask;
 	valid_pins.inverse[0] = valid_mask ;
@@ -556,7 +556,7 @@ static int avrftdi_check_pins_mpsse(PROGRAMMER * pgm, bool output)
 
 	avrftdi_t* pdata = to_pdata(pgm);
 
-	/* SCK/MOSI/MISO are fixed and not invertable?*/
+	/* SCK/MOSI/MISO are fixed and not invertible?*/
 	/* TODO: inverted SCK/MISO/MOSI */
 	static const struct pindef_t valid_pins_SCK  = {{0x01},{0x00}} ;
 	static const struct pindef_t valid_pins_MOSI = {{0x02},{0x00}} ;
@@ -705,7 +705,7 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 	if(err) {
 		log_err("Error %d occurred: %s\n", err, ftdi_get_error_string(pdata->ftdic));
 		//stupid hack, because avrdude calls pgm->close() even when pgm->open() fails
-		//and usb_dev is intialized to the last usb device from probing
+		//and usb_dev is initialized to the last usb device from probing
 		pdata->ftdic->usb_dev = NULL;
 		return err;
 	} else {
@@ -831,7 +831,7 @@ static int avrftdi_initialize(PROGRAMMER * pgm, AVRPART * p)
 
 		/*setting rst back to 0 */
 		set_pin(pgm, PIN_AVR_RESET, OFF);
-		/*wait at least 20ms bevor issuing spi commands to avr */
+		/*wait at least 20ms before issuing spi commands to avr */
 		usleep(20 * 1000);
 	}
 
@@ -840,7 +840,7 @@ static int avrftdi_initialize(PROGRAMMER * pgm, AVRPART * p)
 
 static void avrftdi_display(PROGRAMMER * pgm, const char *p)
 {
-	// print the full pin definitiions as in ft245r ?
+	// print the full pin definitions as in ft245r ?
 	return;
 }
 
@@ -1045,7 +1045,7 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 		bufptr += 4;
 	}
 
-	/* find a poll byte. we cannot poll a value of 0xff, so look
+	/* find a poll byte. We cannot poll a value of 0xff, so look
 	 * for a value != 0xff
 	 */
 	for(poll_index = addr+len-1; poll_index > addr-1; poll_index--)
