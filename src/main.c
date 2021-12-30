@@ -485,10 +485,10 @@ int main(int argc, char * argv [])
     strcpy(sys_config, executable_dirpath);
     sys_config[PATH_MAX - 1] = '\0';
     i = strlen(sys_config);
-    if (i && (sys_config[i-1] != '/'))
+    if (i && (sys_config[i - 1] != '/'))
       strcat(sys_config, "/");
     strcat(sys_config, "../etc/avrdude.conf");
-    sys_config[PATH_MAX-1] = '\0';
+    sys_config[PATH_MAX - 1] = '\0';
     if (access(sys_config, F_OK) == 0) {
       sys_config_found = true;
     }
@@ -497,10 +497,10 @@ int main(int argc, char * argv [])
       strcpy(sys_config, executable_dirpath);
       sys_config[PATH_MAX - 1] = '\0';
       i = strlen(sys_config);
-      if (i && (sys_config[i-1] != '/'))
+      if (i && (sys_config[i - 1] != '/'))
         strcat(sys_config, "/");
       strcat(sys_config, "avrdude.conf");
-      sys_config[PATH_MAX-1] = '\0';
+      sys_config[PATH_MAX - 1] = '\0';
       if (access(sys_config, F_OK) == 0) {
         sys_config_found = true;
       }
@@ -513,7 +513,7 @@ int main(int argc, char * argv [])
 #else
     strcpy(sys_config, CONFIG_DIR);
     i = strlen(sys_config);
-    if (i && (sys_config[i-1] != '/'))
+    if (i && (sys_config[i - 1] != '/'))
       strcat(sys_config, "/");
     strcat(sys_config, "avrdude.conf");
 #endif
@@ -539,7 +539,7 @@ int main(int argc, char * argv [])
   if (homedir != NULL) {
     strcpy(usr_config, homedir);
     i = strlen(usr_config);
-    if (i && (usr_config[i-1] != '/'))
+    if (i && (usr_config[i - 1] != '/'))
       strcat(usr_config, "/");
     strcat(usr_config, ".avrduderc");
   }
