@@ -434,7 +434,7 @@ int main(int argc, char * argv [])
     PATH_MAX,
     &executable_dirpath_len
   );
-  if(
+  if (
     (executable_abspath_len != -1) &&
     (executable_abspath_len != 0) &&
     (executable_dirpath_len != -1) &&
@@ -448,11 +448,11 @@ int main(int argc, char * argv [])
 
     // Replace all backslashes with forward slashes
     i = 0;
-    while(true) {
-      if(executable_abspath[i] == '\0') {
+    while (true) {
+      if (executable_abspath[i] == '\0') {
         break;
       }
-      if(executable_abspath[i] == '\\') {
+      if (executable_abspath[i] == '\\') {
         executable_abspath[i] = '/';
       }
       i++;
@@ -480,7 +480,7 @@ int main(int argc, char * argv [])
    * 
    * When found, write the result into the 'sys_config' variable.
    */
-  if(executable_abspath_found) {
+  if (executable_abspath_found) {
     // 1. Check <dirpath of executable>/../etc/avrdude.conf
     strcpy(sys_config, executable_dirpath);
     sys_config[PATH_MAX - 1] = '\0';
@@ -489,7 +489,7 @@ int main(int argc, char * argv [])
       strcat(sys_config, "/");
     strcat(sys_config, "../etc/avrdude.conf");
     sys_config[PATH_MAX-1] = '\0';
-    if(access(sys_config, F_OK) == 0) {
+    if (access(sys_config, F_OK) == 0) {
       sys_config_found = true;
     }
     else {
@@ -501,12 +501,12 @@ int main(int argc, char * argv [])
         strcat(sys_config, "/");
       strcat(sys_config, "avrdude.conf");
       sys_config[PATH_MAX-1] = '\0';
-      if(access(sys_config, F_OK) == 0) {
+      if (access(sys_config, F_OK) == 0) {
         sys_config_found = true;
       }
     }
   }
-  if(!sys_config_found) {
+  if (!sys_config_found) {
     // 3. Check CONFIG_DIR/avrdude.conf
 #if defined(WIN32NATIVE)
     win_sys_config_set(sys_config);
@@ -517,7 +517,7 @@ int main(int argc, char * argv [])
       strcat(sys_config, "/");
     strcat(sys_config, "avrdude.conf");
 #endif
-    if(access(sys_config, F_OK) == 0) {
+    if (access(sys_config, F_OK) == 0) {
       sys_config_found = true;
     }
   }
