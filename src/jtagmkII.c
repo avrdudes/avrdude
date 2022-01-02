@@ -1305,6 +1305,14 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
   int ok;
   const char *ifname;
 
+  /* Abort and print error if programmer does not support the target microcontroller */
+  if ((strncmp(ldata(lfirst(pgm->id)), "jtag2updi", strlen("jtag2updi")) == 0 && p->flags & AVRPART_HAS_PDI) ||
+      (strncmp(ldata(lfirst(pgm->id)), "jtagmkII", strlen("jtagmkII")) == 0 && p->flags & AVRPART_HAS_UPDI)) {
+    avrdude_message(MSG_INFO, "Error: programmer %s does not support target %s\n\n",
+	  ldata(lfirst(pgm->id)), p->desc);
+    return -1;
+  }
+
   ok = 0;
   if (pgm->flag & PGM_FL_IS_DW) {
     ifname = "debugWire";
