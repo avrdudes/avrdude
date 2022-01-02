@@ -720,7 +720,11 @@ static int avrftdi_open(PROGRAMMER * pgm, char *port)
 	/* set SPI mode */
 	E(ftdi_set_bitmode(pdata->ftdic, 0, BITMODE_RESET) < 0, pdata->ftdic);
 	E(ftdi_set_bitmode(pdata->ftdic, pdata->pin_direction & 0xff, BITMODE_MPSSE) < 0, pdata->ftdic);
+#ifdef HAVE_FTDI_TCIOFLUSH
+	E(ftdi_tcioflush(pdata->ftdic), pdata->ftdic);
+#else
 	E(ftdi_usb_purge_buffers(pdata->ftdic), pdata->ftdic);
+#endif
 
 	write_flush(pdata);
 

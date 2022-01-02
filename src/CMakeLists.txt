@@ -36,6 +36,7 @@ option(DEBUG_CMAKE "Enable debugging output for this CMake project" OFF)
 
 include(CheckIncludeFile)
 include(CheckFunctionExists)
+include(CheckSymbolExists)
 include(GNUInstallDirs)
 
 set(CONFIG_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}")
@@ -177,6 +178,8 @@ find_library(HAVE_LIBFTDI1 NAMES ${PREFERRED_LIBFTDI1})
 if(HAVE_LIBFTDI1)
     set(LIB_LIBFTDI1 ${HAVE_LIBFTDI1})
     set(HAVE_LIBFTDI_TYPE_232H 1)
+    set(CMAKE_REQUIRED_LIBRARIES ${LIB_LIBFTDI1} ${LIB_LIBUSB} ${LIB_LIBUSB_1_0})
+    check_symbol_exists(ftdi_tcioflush "libftdi1/ftdi.h" HAVE_FTDI_TCIOFLUSH)
 endif()
 
 # -------------------------------------
