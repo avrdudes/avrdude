@@ -1387,8 +1387,10 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
     AVRMEM *bootmem = avr_locate_mem(p, "boot");
     AVRMEM *flashmem = avr_locate_mem(p, "flash");
     if (bootmem == NULL || flashmem == NULL) {
-      avrdude_message(MSG_INFO, "%s: jtagmkII_initialize(): Cannot locate \"flash\" and \"boot\" memories in description\n",
-                      progname);
+      if (strncmp(ldata(lfirst(pgm->id)), "jtagmkII", strlen("jtagmkII")) == 0) {
+        avrdude_message(MSG_INFO, "%s: jtagmkII_initialize(): Cannot locate \"flash\" and \"boot\" memories in description\n",
+          progname);
+      }
     } else {
       if (PDATA(pgm)->fwver < 0x700) {
         /* V7+ firmware does not need this anymore */
