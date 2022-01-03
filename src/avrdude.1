@@ -1147,8 +1147,16 @@ line.
 .It Pa /dev/ppi0
 default device to be used for communication with the programming
 hardware
-.It Pa ${PREFIX}/etc/avrdude.conf
+.It Pa avrdude.conf
 programmer and parts configuration file
+.Pp
+On Windows systems, this file is looked up in the same directory as the
+executable file.
+On all other systems, the file is first looked up in
+.Pa ../etc/ ,
+relative to the path of the executable, then in the same directory as
+the executable itself, and finally in the system default location
+.Pa ${PREFIX}/etc/avrdude.conf .
 .It Pa ${HOME}/.avrduderc
 programmer and parts configuration file (per-user overrides)
 .It Pa ~/.inputrc
