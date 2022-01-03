@@ -37,12 +37,13 @@ option(DEBUG_CMAKE "Enable debugging output for this CMake project" OFF)
 include(CheckIncludeFile)
 include(CheckFunctionExists)
 include(GNUInstallDirs)
+include(FindPackageMessage)
 
 set(CONFIG_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}")
 set(AVRDUDE_EXTERNAL_PATH "${PROJECT_SOURCE_DIR}/external")
 
 # =====================================
-# Detect Flex and Bison
+# Detect flex and yacc/bison
 # =====================================
 
 find_package(FLEX)
@@ -56,11 +57,26 @@ else()
     message(SEND_ERROR "This CMake project requires 'flex', which is not installed on your system." )
 endif()
 
-find_package(BISON)
+find_package(BISON QUIET)
 if(BISON_FOUND)
+    find_package_message(BISON "Found BISON: ${BISON_EXECUTABLE} (found version \"${BISON_VERSION}\")" "[${BISON_EXECUTABLE}][${BISON_VERSION}]")
     BISON_TARGET(Parser config_gram.y "${PROJECT_BINARY_DIR}/config_gram.c" DEFINES_FILE "${PROJECT_BINARY_DIR}/config_gram.h")
 else()
-    message(SEND_ERROR "This CMake project requires 'bison', which is not installed on your system." )
+    find_program(YACC_EXECUTABLE NAMES yacc byacc DOC "path to the yacc executable")
+    mark_as_advanced(YACC_EXECUTABLE)
+    if(YACC_EXECUTABLE)
+        find_package_message(YACC "Found YACC: ${YACC_EXECUTABLE}" "[${YACC_EXECUTABLE}]")
+        set(YACC_TARGET_outputs "${PROJECT_BINARY_DIR}/config_gram.c")
+        add_custom_command(OUTPUT ${YACC_TARGET_outputs}
+            COMMAND ${YACC_EXECUTABLE} -d -o ${YACC_TARGET_outputs} config_gram.y
+            VERBATIM
+            COMMENT "[YACC][Parser] Building parser with yacc"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            )
+        set(BISON_Parser_OUTPUTS ${YACC_TARGET_outputs})
+    else()
+        message(SEND_ERROR "This CMake project requires 'bison', 'yacc', or 'byacc', which is not installed on your system." )
+    endif()
 endif()
 
 # =====================================
