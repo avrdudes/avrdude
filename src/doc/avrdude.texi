@@ -448,10 +448,22 @@ Currently, the following programmer ids are understood and supported:
 @item -C @var{config-file}
 Use the specified config file for configuration data.  This file
 contains all programmer and part definitions that AVRDUDE knows about.
-If not
-specified, AVRDUDE reads the configuration file from
-/usr/local/etc/avrdude.conf (FreeBSD and Linux). See Appendix A for
-the method of searching for the configuration file for Windows.
+If not specified, AVRDUDE looks for the configuration file in the following
+two locations:
+
+@enumerate
+
+@item
+@code{<directory from which application loaded>/../etc/avrdude.conf}
+
+@item
+@code{<directory from which application loaded>/avrdude.conf}
+
+@end enumerate
+
+If not found there, the lookup procedure becomes platform dependent. On FreeBSD
+and Linux, AVRDUDE looks at @code{/usr/local/etc/avrdude.conf}. See Appendix A
+for the method of searching on Windows.
 
 If @var{config-file} is written as @var{+filename}
 then this file is read after the system wide and user configuration 
@@ -2295,6 +2307,10 @@ user configuration files. Below is the search method for locating the
 configuration files:
 
 @enumerate
+
+@item
+Only for the system configuration file:
+@code{<directory from which application loaded>/../etc/avrdude.conf}
 
 @item
 The directory from which the application loaded.
