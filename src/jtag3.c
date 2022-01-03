@@ -2305,6 +2305,31 @@ int jtag3_read_sib(PROGRAMMER * pgm, AVRPART * p, char * sib)
   return 0;
 }
 
+static int jtag3_set_vtarget(PROGRAMMER * pgm, double v)
+{
+  unsigned uaref, utarg;
+  unsigned char buf[2];
+
+  utarg = (unsigned)(v * 1000);
+
+  if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0) {
+    avrdude_message(MSG_INFO, "%s: jtag3_set_vtarget(): cannot obtain V[aref]\n",
+                    progname);
+    return -1;
+  }
+
+  uaref = b2_to_u16(buf);
+  u16_to_b2(buf, utarg);
+
+  avrdude_message(MSG_INFO, "%s: jtag3_set_vtarget(): changing V[target] from %.1f to %.1f\n",
+                  progname, uaref / 1000.0, v);
+
+  if (jtag3_setparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0)
+    return -1;
+
+  return 0;
+}
+
 static void jtag3_display(PROGRAMMER * pgm, const char * p)
 {
   unsigned char parms[5];
@@ -2564,5 +2589,12 @@ void jtag3_updi_initpgm(PROGRAMMER * pgm)
   pgm->flag           = PGM_FL_IS_UPDI;
   pgm->unlock         = jtag3_unlock_erase_key;
   pgm->read_sib       = jtag3_read_sib;
+
+  /*
+   * enable target voltage adjustment for PKOB/nEDBG boards
+   */
+  if (matches(ldata(lfirst(pgm->id)), "pkobn_updi")) {
+    pgm->set_vtarget  = jtag3_set_vtarget;
+  }
 }
 
