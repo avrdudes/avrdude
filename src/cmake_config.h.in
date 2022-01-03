@@ -20,7 +20,7 @@
 #include "msvc/msvc_compat.h"
 #endif
 
-#define VERSION "@PROJECT_VERSION@"
+#define VERSION "@AVRDUDE_FULL_VERSION@"
 
 /* Options */
 
