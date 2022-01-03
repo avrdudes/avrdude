@@ -21,7 +21,7 @@
 #     cmake --build build
 
 cmake_minimum_required(VERSION 3.12)
-project(avrdude VERSION 6.99.20211218)
+project(avrdude VERSION 6.99)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED True)
@@ -40,7 +40,52 @@ include(GNUInstallDirs)
 include(FindPackageMessage)
 
 set(CONFIG_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}")
+set(AVRDUDE_FULL_VERSION ${CMAKE_PROJECT_VERSION})
 set(AVRDUDE_EXTERNAL_PATH "${PROJECT_SOURCE_DIR}/external")
+
+# =====================================
+# Get Git commit info
+# =====================================
+
+# GIT_COMMIT_HASH -> hash of latest commit, e.g. b8b859f5
+# GIT_COMMIT_DATE -> date of latest commit, e.g. 20201231
+# GIT_COMMIT_YEAR -> year of latest commit, e.g. 2020
+
+find_package(Git)
+if(Git_FOUND)
+    execute_process(
+        COMMAND "${GIT_EXECUTABLE}" log -1 --format=%h
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+        OUTPUT_VARIABLE GIT_COMMIT_HASH
+        ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+
+    execute_process(
+        COMMAND "${GIT_EXECUTABLE}" log -1 --format=%ad --date=format:%Y%m%d
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+        OUTPUT_VARIABLE GIT_COMMIT_DATE
+        ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+
+    execute_process(
+        COMMAND "${GIT_EXECUTABLE}" log -1 --format=%ad --date=format:%Y
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+        OUTPUT_VARIABLE GIT_COMMIT_YEAR
+        ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+
+    execute_process(
+        COMMAND "${GIT_EXECUTABLE}" log -1 --tags --format=%h
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+        OUTPUT_VARIABLE GIT_TAG_HASH
+        ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+
+    # If the commit is not tagged, include the date and commit hash in the full version string.
+    if(NOT GIT_COMMIT_HASH STREQUAL GIT_TAG_HASH)
+        set(AVRDUDE_FULL_VERSION "${CMAKE_PROJECT_VERSION}-${GIT_COMMIT_DATE} (${GIT_COMMIT_HASH})")
+    endif()
+endif()
 
 # =====================================
 # Detect flex and yacc/bison
@@ -253,6 +298,7 @@ if (DEBUG_CMAKE)
     message(STATUS "CMAKE_HOST_SYSTEM: ${CMAKE_HOST_SYSTEM}")
     message(STATUS "CMAKE_SYSTEM: ${CMAKE_SYSTEM}")
     message(STATUS "CONFIG_DIR: ${CONFIG_DIR}")
+    message(STATUS "AVRDUDE_FULL_VERSION: ${AVRDUDE_FULL_VERSION}")
     message(STATUS "USE_EXTERNAL: ${USE_EXTERNAL}")
     message(STATUS "USE_LIBUSBWIN32: ${USE_LIBUSBWIN32}")
     message(STATUS "HAVE_LIBELF: ${HAVE_LIBELF}")
