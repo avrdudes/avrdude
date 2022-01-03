@@ -28,6 +28,7 @@ Changes since version 6.4:
     - CMake doesn't detect FreeBSD's libusb-1.0 (compatibility) #775
     - CMake doesn't correctly handle conditionals in avrdude.conf.in
       #776
+    - CMake: Recognize more than just bison #785
 
   * Pull requests:
 
@@ -43,6 +44,9 @@ Changes since version 6.4:
     - Fix avr_read() for page reads #784
     - Serialupdi manpage #787
     - Add PicKit4 and SNAP programmers #791
+    - Use yacc/byacc as an alternative to bison, closes #785 #793
+    - Derive program version string from last commit #794
+    - Find 'avrdude.conf' based on absolute path to executable #780
 
   * Internals:
 
