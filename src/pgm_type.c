@@ -41,6 +41,7 @@
 #include "jtag3.h"
 #include "linuxgpio.h"
 #include "linuxspi.h"
+#include "micronucleus.h"
 #include "par.h"
 #include "pickit2.h"
 #include "ppi.h"
@@ -85,6 +86,7 @@ const PROGRAMMER_TYPE programmers_types[] = {
         {"jtagice3_isp", stk500v2_jtag3_initpgm, stk500v2_jtag3_desc},
         {"linuxgpio", linuxgpio_initpgm, linuxgpio_desc},
         {"linuxspi", linuxspi_initpgm, linuxspi_desc},
+        {"micronucleus", micronucleus_initpgm, micronucleus_desc},
         {"par", par_initpgm, par_desc},
         {"pickit2", pickit2_initpgm, pickit2_desc},
         {"serbb", serbb_initpgm, serbb_desc},
