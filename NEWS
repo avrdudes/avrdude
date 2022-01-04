@@ -47,6 +47,7 @@ Changes since version 6.4:
     - Use yacc/byacc as an alternative to bison, closes #785 #793
     - Derive program version string from last commit #794
     - Find 'avrdude.conf' based on absolute path to executable #780
+    - buspirate: fix -Wtautological-constant-out-of-range-compare #796
 
   * Internals:
 
