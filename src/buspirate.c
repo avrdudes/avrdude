@@ -178,6 +178,7 @@ static int buspirate_getc(struct programmer_t *pgm)
 static char *buspirate_readline_noexit(struct programmer_t *pgm, char *buf, size_t len)
 {
 	char *buf_p;
+	int c;
 	long orig_serial_recv_timeout = serial_recv_timeout;
 
 	/* Static local buffer - this may come handy at times */
@@ -190,12 +191,12 @@ static char *buspirate_readline_noexit(struct programmer_t *pgm, char *buf, size
 	buf_p = buf;
 	memset(buf, 0, len);
 	while (buf_p < (buf + len - 1)) { /* keep the very last byte == 0 */
-		*buf_p = buspirate_getc(pgm);
-		if (*buf_p == '\r')
+		*buf_p = c = buspirate_getc(pgm);
+		if (c == '\r')
 			continue;
-		if (*buf_p == '\n')
+		if (c == '\n')
 			break;
-		if (*buf_p == EOF) {
+		if (c == EOF) {
 			*buf_p = '\0';
 			break;
 		}
