@@ -302,6 +302,17 @@ static void cleanup_main(void)
     cleanup_config();
 }
 
+static void replace_backslashes(char *s)
+{
+  // Replace all backslashes with forward slashes
+  for (int i = 0; i < strlen(s); i++) {
+    if (s[i] == '\\') {
+      s[i] = '/';
+    }
+  }
+}
+
+
 /*
  * main routine
  */
@@ -667,17 +678,7 @@ int main(int argc, char * argv [])
       // Make sure the string is null terminated
       executable_abspath[executable_abspath_len] = '\0';
 
-      // Replace all backslashes with forward slashes
-      i = 0;
-      while (true) {
-        if (executable_abspath[i] == '\0') {
-          break;
-        }
-        if (executable_abspath[i] == '\\') {
-          executable_abspath[i] = '/';
-        }
-        i++;
-      }
+      replace_backslashes(executable_abspath);
 
       // Define 'executable_dirpath' to be the path to the parent folder of the
       // executable.
