@@ -32,6 +32,8 @@
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "setupapi.lib")
 
+#define F_OK 0
+
 #define PATH_MAX _MAX_PATH
 
 #define __builtin_popcount __popcnt 
