@@ -21,6 +21,13 @@
 #ifndef avrdude_h
 #define avrdude_h
 
+#define SYSTEM_CONF_FILE "avrdude.conf"
+#if defined(WIN32NATIVE)
+#define USER_CONF_FILE "avrdude.rc"
+#else
+#define USER_CONF_FILE ".avrduderc"
+#endif
+
 extern char * progname;		/* name of program, for messages */
 extern char progbuf[];		/* spaces same length as progname */
 

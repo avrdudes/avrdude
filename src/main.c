@@ -708,7 +708,7 @@ int main(int argc, char * argv [])
       i = strlen(sys_config);
       if (i && (sys_config[i - 1] != '/'))
         strcat(sys_config, "/");
-      strcat(sys_config, "../etc/avrdude.conf");
+      strcat(sys_config, "../etc/" SYSTEM_CONF_FILE);
       sys_config[PATH_MAX - 1] = '\0';
       if (access(sys_config, F_OK) == 0) {
         sys_config_found = true;
@@ -720,7 +720,7 @@ int main(int argc, char * argv [])
         i = strlen(sys_config);
         if (i && (sys_config[i - 1] != '/'))
           strcat(sys_config, "/");
-        strcat(sys_config, "avrdude.conf");
+        strcat(sys_config, SYSTEM_CONF_FILE);
         sys_config[PATH_MAX - 1] = '\0';
         if (access(sys_config, F_OK) == 0) {
           sys_config_found = true;
@@ -736,7 +736,7 @@ int main(int argc, char * argv [])
       i = strlen(sys_config);
       if (i && (sys_config[i - 1] != '/'))
         strcat(sys_config, "/");
-      strcat(sys_config, "avrdude.conf");
+      strcat(sys_config, SYSTEM_CONF_FILE);
 #endif
       if (access(sys_config, F_OK) == 0) {
         sys_config_found = true;
@@ -751,7 +751,7 @@ int main(int argc, char * argv [])
   /*
    * USER CONFIG
    * -----------
-   * Determine the location of '.avrduderc'. Nothing changed here.
+   * Determine the location of '.avrduderc'.
    */
 #if defined(WIN32NATIVE)
   win_usr_config_set(usr_config);
@@ -763,7 +763,7 @@ int main(int argc, char * argv [])
     i = strlen(usr_config);
     if (i && (usr_config[i - 1] != '/'))
       strcat(usr_config, "/");
-    strcat(usr_config, ".avrduderc");
+    strcat(usr_config, USER_CONF_FILE);
   }
 #endif
 
