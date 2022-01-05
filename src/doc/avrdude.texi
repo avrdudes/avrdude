@@ -303,8 +303,8 @@ The Atmel DFU bootloader is supported in both, FLIP protocol version 1
 (AT90USB* and ATmega*U* devices), as well as version 2 (Xmega devices).
 See below for some hints about FLIP version 1 protocol behaviour.
 
-The MPLAB(R) PICkit 4, MPLAB(R) SNAP, and Curiosity Nano boards are
-supported in UPDI mode. The Curiosity Nano board is dubbed ``PICkit on
+The MPLAB(R) PICkit 4 and MPLAB(R) SNAP are supported in ISP, PDI and UPDI mode.
+The Curiosity Nano board is supported in UPDI mode. It is dubbed ``PICkit on
 Board'', thus the name @code{pkobn_updi}.
 
 SerialUPDI programmer implementation is based on Microchip's 
@@ -320,6 +320,12 @@ and can program AVRs with a UPDI interface.
 Jtag2updi is just a firmware that can be uploaded to an AVR,
 which enables it to interface with avrdude using the jtagice mkii protocol
 via a serial link (@url{https://github.com/ElTangas/jtag2updi}).
+
+The Micronucleus bootloader is supported for both protocol version V1
+and V2. As the bootloader does not support reading from flash memory,
+use the @code{-V} option to prevent AVRDUDE from verifing the flash memory.
+See the section on @emph{extended parameters}
+below for Micronucleus specific options.
 
 @menu
 * History::                     
@@ -454,10 +460,22 @@ Currently, the following programmer ids are understood and supported:
 @item -C @var{config-file}
 Use the specified config file for configuration data.  This file
 contains all programmer and part definitions that AVRDUDE knows about.
-If not
-specified, AVRDUDE reads the configuration file from
-/usr/local/etc/avrdude.conf (FreeBSD and Linux). See Appendix A for
-the method of searching for the configuration file for Windows.
+If not specified, AVRDUDE looks for the configuration file in the following
+two locations:
+
+@enumerate
+
+@item
+@code{<directory from which application loaded>/../etc/avrdude.conf}
+
+@item
+@code{<directory from which application loaded>/avrdude.conf}
+
+@end enumerate
+
+If not found there, the lookup procedure becomes platform dependent. On FreeBSD
+and Linux, AVRDUDE looks at @code{/usr/local/etc/avrdude.conf}. See Appendix A
+for the method of searching on Windows.
 
 If @var{config-file} is written as @var{+filename}
 then this file is read after the system wide and user configuration 
@@ -960,6 +978,18 @@ Especially in ascii mode this happens very often, so setting a smaller value
 can speed up programming a lot. 
 The default value is 100ms. Using 10ms might work in most cases.  
 
+@end table
+
+@item Micronucleus bootloader
+
+When using the Micronucleus programmer type, the
+following optional extended parameter is accepted:
+@table @code
+@item @samp{wait=@var{timeout}}
+If the device is not connected, wait for the device to be plugged in.
+The optional @var{timeout} specifies the connection time-out in seconds.
+If no time-out is specified, AVRDUDE will wait indefinitely until the
+device is plugged in.
 @end table
 
 @item Wiring
@@ -2301,6 +2331,10 @@ user configuration files. Below is the search method for locating the
 configuration files:
 
 @enumerate
+
+@item
+Only for the system configuration file:
+@code{<directory from which application loaded>/../etc/avrdude.conf}
 
 @item
 The directory from which the application loaded.

@@ -15,14 +15,43 @@ Changes since version 6.4:
 
   * New programmers supported:
 
+    - SerialUPDI (UPDI devices connected to serial port with few
+      passive parts)
+    - PicKit4 / SNAP (now also in ISP and PDI mode)
 
-  * Bugfixes:
+  * Issues fixed:
 
+    - Curiosity Nano and terminal mode #790 (only the actual bugs
+      reported)
+    - CMake doesn't correctly handle conditionals in avrdude.conf.in
+      #776
+    - CMake doesn't detect FreeBSD's libusb-1.0 (compatibility) #775
+    - CMake doesn't correctly handle conditionals in avrdude.conf.in
+      #776
+    - CMake: Recognize more than just bison #785
 
-  * Patches:
+  * Pull requests:
 
+    - GitHub Migration #765
+    - Update toplevel files. #767
+    - GitHub Migration part 2 #768
+    - Remove 'windows' folder with giveio.sys driver #769
+    - SerialUPDI implementation - release candidate 1 #772
+    - Fix typos #777
+    - Fix memory leaks #779
+    - As promised, documentation for SerialUPDI programmer #782
+    - Improve CMake project #783
+    - Fix avr_read() for page reads #784
+    - Serialupdi manpage #787
+    - Add PicKit4 and SNAP programmers #791
+    - Use yacc/byacc as an alternative to bison, closes #785 #793
+    - Derive program version string from last commit #794
+    - Find 'avrdude.conf' based on absolute path to executable #780
+    - buspirate: fix -Wtautological-constant-out-of-range-compare #796
 
   * Internals:
+
+    - Development moved to Github
 
 
 Version 6.4:

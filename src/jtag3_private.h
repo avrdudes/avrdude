@@ -189,8 +189,11 @@
 #define PARM3_FW_RELEASE  0x03  /* section 0, generic scope, 1 byte;
                                  * always asked for by Atmel Studio,
                                  * but never displayed there */
-#define PARM3_VTARGET     0x00  /* section 1, generic scope, 2 bytes,
-                                 * in millivolts */
+#define PARM3_VTARGET     0x00  /* section 1, generic scope, 2 bytes, in millivolts */
+#define PARM3_VBUF        0x01  /* section 1, generic scope, 2 bytes, bufferred target voltage reference */
+#define PARM3_VUSB        0x02  /* section 1, generic scope, 2 bytes, USB voltage */
+#define PARM3_VADJUST     0x20  /* section 1, generic scope, 2 bytes, set voltage */
+
 #define PARM3_DEVICEDESC  0x00  /* section 2, memory etc. configuration,
                                  * 31 bytes for tiny/mega AVR, 47 bytes
                                  * for Xmega; is also used in command

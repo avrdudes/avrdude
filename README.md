@@ -184,6 +184,3 @@ MacOS Brew requires
 ./configure CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/Cellar
 ```
 
-## License
-
-AVRDUDE is licensed under the [GNU GPLv2](./COPYING).

@@ -916,6 +916,15 @@ programmer
   usbpid     = 0x0BA5;
 ;
 
+programmer
+  id = "micronucleus";
+  desc = "Micronucleus Bootloader";
+  type = "micronucleus";
+  connection_type = usb;
+  usbvid = 0x16D0;
+  usbpid = 0x0753;
+;
+
 # commercial version of USBtiny, using a separate VID/PID
 programmer
   id    = "iseavrprog";
@@ -1275,9 +1284,41 @@ programmer
 ;
 
 programmer
+  id    = "pickit4_pdi";
+  desc  = "MPLAB(R) PICkit 4 in PDI mode";
+  type  = "jtagice3_pdi";
+  connection_type = usb;
+  usbpid = 0x2177, 0x2178, 0x2179;
+;
+
+programmer
+   id    = "pickit4_isp";
+   desc  = "MPLAB(R) PICkit 4 in ISP mode";
+   type  = "jtagice3_isp";
+   connection_type = usb;
+   usbpid = 0x2177, 0x2178, 0x2179;
+;
+
+programmer
   id    = "snap_updi";
   desc  = "MPLAB(R) SNAP in UPDI mode";
   type  = "jtagice3_updi";
+  connection_type = usb;
+  usbpid = 0x217F, 0x2180, 0x2181;
+;
+
+programmer
+  id    = "snap_pdi";
+  desc  = "MPLAB(R) SNAP in PDI mode";
+  type  = "jtagice3_pdi";
+  connection_type = usb;
+  usbpid = 0x217F, 0x2180, 0x2181;
+;
+
+programmer
+  id    = "snap_isp";
+  desc  = "MPLAB(R) SNAP in ISP mode";
+  type  = "jtagice3_isp";
   connection_type = usb;
   usbpid = 0x217F, 0x2180, 0x2181;
 ;

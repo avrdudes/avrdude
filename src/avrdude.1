@@ -216,8 +216,8 @@ The Atmel DFU bootloader is supported in both, FLIP protocol version 1
 (AT90USB* and ATmega*U* devices), as well as version 2 (Xmega devices).
 See below for some hints about FLIP version 1 protocol behaviour.
 .Pp
-The MPLAB(R) PICkit 4, MPLAB(R) SNAP, and Curiosity Nano boards are
-supported in UPDI mode. The Curiosity Nano board is dubbed
+The MPLAB(R) PICkit 4 and MPLAB(R) SNAP, are supported in ISP, PDI and UPDI mode.
+The Curiosity Nano board is supported in UPDI mode. It is dubbed
 .Dq PICkit on Board ,
 thus the name
 .Pa pkobn_updi .
@@ -239,6 +239,15 @@ Jtag2updi is just a firmware that can be uploaded to an AVR,
 which enables it to interface with avrdude using the jtagice mkii protocol
 via a serial link.
 .Li https://github.com/ElTangas/jtag2updi
+.Pp
+The Micronucleus bootloader is supported for both protocol version V1
+and V2. As the bootloader does not support reading from flash memory,
+use the
+.Fl V
+option to prevent AVRDUDE from verifing the flash memory.
+See the section on
+.Em extended parameters
+for Micronucleus specific options.
 .Pp
 Input files can be provided, and output files can be written in
 different file formats, such as raw binary files containing the data
@@ -1091,6 +1100,16 @@ Especially in ascii mode this happens very often, so setting a smaller value
 can speed up programming a lot. 
 The default value is 100ms. Using 10ms might work in most cases. 
 .El
+.It Ar Micronucleus bootloader
+.Bl -tag -offset indent -width indent
+.It Ar wait[=<timeout>]
+If the device is not connected, wait for the device to be plugged in.
+The optional
+.Ar timeout
+specifies the connection time-out in seconds.
+If no time-out is specified, AVRDUDE will wait indefinitely until the
+device is plugged in.
+.El
 .It Ar Wiring
 When using the Wiring programmer type, the
 following optional extended parameter is accepted:
@@ -1154,8 +1173,16 @@ line.
 .It Pa /dev/ppi0
 default device to be used for communication with the programming
 hardware
-.It Pa ${PREFIX}/etc/avrdude.conf
+.It Pa avrdude.conf
 programmer and parts configuration file
+.Pp
+On Windows systems, this file is looked up in the same directory as the
+executable file.
+On all other systems, the file is first looked up in
+.Pa ../etc/ ,
+relative to the path of the executable, then in the same directory as
+the executable itself, and finally in the system default location
+.Pa ${PREFIX}/etc/avrdude.conf .
 .It Pa ${HOME}/.avrduderc
 programmer and parts configuration file (per-user overrides)
 .It Pa ~/.inputrc
