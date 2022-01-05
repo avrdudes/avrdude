@@ -891,7 +891,7 @@ static int jtagmkII_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   int status, len;
   unsigned char buf[6], *resp, c;
 
-  if (p->flags & AVRPART_HAS_PDI) {
+  if (p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI)) {
     buf[0] = CMND_XMEGA_ERASE;
     buf[1] = XMEGA_ERASE_CHIP;
     memset(buf + 2, 0, 4);      /* address of area to be erased */
@@ -902,7 +902,7 @@ static int jtagmkII_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   }
   avrdude_message(MSG_NOTICE2, "%s: jtagmkII_chip_erase(): Sending %schip erase command: ",
                     progname,
-                    (p->flags & AVRPART_HAS_PDI)? "Xmega ": "");
+                    (p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI))? "Xmega ": "");
   jtagmkII_send(pgm, buf, len);
 
   status = jtagmkII_recv(pgm, &resp);
@@ -928,7 +928,7 @@ static int jtagmkII_chip_erase(PROGRAMMER * pgm, AVRPART * p)
     return -1;
   }
 
-  if (!(p->flags & AVRPART_HAS_PDI))
+  if (!(p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI)))
       pgm->initialize(pgm, p);
 
   return 0;
@@ -986,7 +986,7 @@ static void jtagmkII_set_devdescr(PROGRAMMER * pgm, AVRPART * p)
     }
   }
   sendbuf.dd.ucCacheType =
-    (p->flags & AVRPART_HAS_PDI)? 0x02 /* ATxmega */: 0x00;
+    (p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI))? 0x02 /* ATxmega */: 0x00;
 
   avrdude_message(MSG_NOTICE2, "%s: jtagmkII_set_devdescr(): "
 	    "Sending set device descriptor command: ",
@@ -1254,15 +1254,38 @@ static unsigned char jtagmkII_get_baud(long baud)
     long baud;
     unsigned char val;
   } baudtab[] = {
-    { 2400L, PAR_BAUD_2400 },
-    { 4800L, PAR_BAUD_4800 },
-    { 9600L, PAR_BAUD_9600 },
-    { 19200L, PAR_BAUD_19200 },
-    { 38400L, PAR_BAUD_38400 },
-    { 57600L, PAR_BAUD_57600 },
-    { 115200L, PAR_BAUD_115200 },
-    { 14400L, PAR_BAUD_14400 },
-  };
+  { 2400L, PAR_BAUD_2400 },
+  { 4800L, PAR_BAUD_4800 },
+  { 9600L, PAR_BAUD_9600 },
+  { 19200L, PAR_BAUD_19200 },
+  { 38400L, PAR_BAUD_38400 },
+  { 57600L, PAR_BAUD_57600 },
+  { 115200L, PAR_BAUD_115200 },
+  { 14400L, PAR_BAUD_14400 },
+  /* Extension to jtagmkII protocol: extra baud rates, standard series. */
+  { 153600L, PAR_BAUD_153600 },
+  { 230400L, PAR_BAUD_230400 },
+  { 460800L, PAR_BAUD_460800 },
+  { 921600L, PAR_BAUD_921600 },
+  /* Extension to jtagmkII protocol: extra baud rates, binary series. */
+  { 128000L, PAR_BAUD_128000 },
+  { 256000L, PAR_BAUD_256000 },
+  { 512000L, PAR_BAUD_512000 },
+  { 1024000L, PAR_BAUD_1024000 },
+  /* Extension to jtagmkII protocol: extra baud rates, decimal series. */
+  { 150000L, PAR_BAUD_150000 },
+  { 200000L, PAR_BAUD_200000 },
+  { 250000L, PAR_BAUD_250000 },
+  { 300000L, PAR_BAUD_300000 },
+  { 400000L, PAR_BAUD_400000 },
+  { 500000L, PAR_BAUD_500000 },
+  { 600000L, PAR_BAUD_600000 },
+  { 666666L, PAR_BAUD_666666 },
+  { 1000000L, PAR_BAUD_1000000 },
+  { 1500000L, PAR_BAUD_1500000 },
+  { 2000000L, PAR_BAUD_2000000 },
+  { 3000000L, PAR_BAUD_3000000 },
+};
   int i;
 
   for (i = 0; i < sizeof baudtab / sizeof baudtab[0]; i++)
@@ -1282,6 +1305,14 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
   int ok;
   const char *ifname;
 
+  /* Abort and print error if programmer does not support the target microcontroller */
+  if ((strncmp(ldata(lfirst(pgm->id)), "jtag2updi", strlen("jtag2updi")) == 0 && p->flags & AVRPART_HAS_PDI) ||
+      (strncmp(ldata(lfirst(pgm->id)), "jtagmkII", strlen("jtagmkII")) == 0 && p->flags & AVRPART_HAS_UPDI)) {
+    avrdude_message(MSG_INFO, "Error: programmer %s does not support target %s\n\n",
+	  ldata(lfirst(pgm->id)), p->desc);
+    return -1;
+  }
+
   ok = 0;
   if (pgm->flag & PGM_FL_IS_DW) {
     ifname = "debugWire";
@@ -1289,7 +1320,7 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
       ok = 1;
   } else if (pgm->flag & PGM_FL_IS_PDI) {
     ifname = "PDI";
-    if (p->flags & AVRPART_HAS_PDI)
+    if (p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI))
       ok = 1;
   } else {
     ifname = "JTAG";
@@ -1335,20 +1366,20 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
    * mode from JTAG to JTAG_XMEGA.
    */
   if ((pgm->flag & PGM_FL_IS_JTAG) &&
-      (p->flags & AVRPART_HAS_PDI)) {
+      (p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI))) {
     if (jtagmkII_getsync(pgm, EMULATOR_MODE_JTAG_XMEGA) < 0)
       return -1;
   }
   /*
    * Must set the device descriptor before entering programming mode.
    */
-  if (PDATA(pgm)->fwver >= 0x700 && (p->flags & AVRPART_HAS_PDI) != 0)
+  if (PDATA(pgm)->fwver >= 0x700 && (p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI)) != 0)
     jtagmkII_set_xmega_params(pgm, p);
   else
     jtagmkII_set_devdescr(pgm, p);
 
   PDATA(pgm)->boot_start = ULONG_MAX;
-  if ((p->flags & AVRPART_HAS_PDI)) {
+  if ((p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI))) {
     /*
      * Find out where the border between application and boot area
      * is.
@@ -1356,8 +1387,10 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
     AVRMEM *bootmem = avr_locate_mem(p, "boot");
     AVRMEM *flashmem = avr_locate_mem(p, "flash");
     if (bootmem == NULL || flashmem == NULL) {
-      avrdude_message(MSG_INFO, "%s: jtagmkII_initialize(): Cannot locate \"flash\" and \"boot\" memories in description\n",
-                      progname);
+      if (strncmp(ldata(lfirst(pgm->id)), "jtagmkII", strlen("jtagmkII")) == 0) {
+        avrdude_message(MSG_INFO, "%s: jtagmkII_initialize(): Cannot locate \"flash\" and \"boot\" memories in description\n",
+          progname);
+      }
     } else {
       if (PDATA(pgm)->fwver < 0x700) {
         /* V7+ firmware does not need this anymore */
@@ -1388,7 +1421,7 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
   }
   PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
 
-  if (PDATA(pgm)->fwver >= 0x700 && (p->flags & AVRPART_HAS_PDI)) {
+  if (PDATA(pgm)->fwver >= 0x700 && (p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI))) {
     /*
      * Work around for
      * https://savannah.nongnu.org/bugs/index.php?37942
@@ -1405,7 +1438,7 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
       return -1;
   }
 
-  if ((pgm->flag & PGM_FL_IS_JTAG) && !(p->flags & AVRPART_HAS_PDI)) {
+  if ((pgm->flag & PGM_FL_IS_JTAG) && !(p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI))) {
     strcpy(hfuse.desc, "hfuse");
     if (jtagmkII_read_byte(pgm, p, &hfuse, 1, &b) < 0)
       return -1;
@@ -1879,7 +1912,7 @@ static int jtagmkII_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   avrdude_message(MSG_NOTICE2, "%s: jtagmkII_page_erase(.., %s, 0x%x)\n",
 	    progname, m->desc, addr);
 
-  if (!(p->flags & AVRPART_HAS_PDI)) {
+  if (!(p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI))) {
     avrdude_message(MSG_INFO, "%s: jtagmkII_page_erase: not an Xmega device\n",
 	    progname);
     return -1;
@@ -1993,7 +2026,7 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   if (strcmp(m->desc, "flash") == 0) {
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
     cmd[1] = jtagmkII_memtype(pgm, p, addr);
-    if (p->flags & AVRPART_HAS_PDI)
+    if (p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI))
       /* dynamically decide between flash/boot memtype */
       dynamic_memtype = 1;
   } else if (strcmp(m->desc, "eeprom") == 0) {
@@ -2012,18 +2045,18 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       free(cmd);
       return n_bytes;
     }
-    cmd[1] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_EEPROM : MTYPE_EEPROM_PAGE;
+    cmd[1] = ( p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI) ) ? MTYPE_EEPROM : MTYPE_EEPROM_PAGE;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if ( ( strcmp(m->desc, "usersig") == 0 ) ) {
     cmd[1] = MTYPE_USERSIG;
   } else if ( ( strcmp(m->desc, "boot") == 0 ) ) {
     cmd[1] = MTYPE_BOOT_FLASH;
-  } else if ( p->flags & AVRPART_HAS_PDI ) {
+  } else if ( p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI) ) {
     cmd[1] = MTYPE_FLASH;
   } else {
     cmd[1] = MTYPE_SPM;
   }
-  serial_recv_timeout = 100;
+  serial_recv_timeout = 200;
   for (; addr < maxaddr; addr += page_size) {
     if ((maxaddr - addr) < page_size)
       block_size = maxaddr - addr;
@@ -2120,11 +2153,11 @@ static int jtagmkII_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   cmd[0] = CMND_READ_MEMORY;
   if (strcmp(m->desc, "flash") == 0) {
     cmd[1] = jtagmkII_memtype(pgm, p, addr);
-    if (p->flags & AVRPART_HAS_PDI)
+    if (p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI))
       /* dynamically decide between flash/boot memtype */
       dynamic_memtype = 1;
   } else if (strcmp(m->desc, "eeprom") == 0) {
-    cmd[1] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_EEPROM : MTYPE_EEPROM_PAGE;
+    cmd[1] = ( p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI) ) ? MTYPE_EEPROM : MTYPE_EEPROM_PAGE;
     if (pgm->flag & PGM_FL_IS_DW)
       return -1;
   } else if ( ( strcmp(m->desc, "prodsig") == 0 ) ) {
@@ -2133,7 +2166,7 @@ static int jtagmkII_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[1] = MTYPE_USERSIG;
   } else if ( ( strcmp(m->desc, "boot") == 0 ) ) {
     cmd[1] = MTYPE_BOOT_FLASH;
-  } else if ( p->flags & AVRPART_HAS_PDI ) {
+  } else if ( p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI) ) {
     cmd[1] = MTYPE_FLASH;
   } else {
     cmd[1] = MTYPE_SPM;
@@ -2218,7 +2251,7 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   unsupp = 0;
 
   addr += mem->offset;
-  cmd[1] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_FLASH : MTYPE_FLASH_PAGE;
+  cmd[1] = ( p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI) ) ? MTYPE_FLASH : MTYPE_FLASH_PAGE;
   if (strcmp(mem->desc, "flash") == 0 ||
       strcmp(mem->desc, "application") == 0 ||
       strcmp(mem->desc, "apptable") == 0 ||
@@ -2228,7 +2261,7 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     paddr_ptr = &PDATA(pgm)->flash_pageaddr;
     cache_ptr = PDATA(pgm)->flash_pagecache;
   } else if (strcmp(mem->desc, "eeprom") == 0) {
-    if ( (pgm->flag & PGM_FL_IS_DW) || ( p->flags & AVRPART_HAS_PDI ) ) {
+    if ( (pgm->flag & PGM_FL_IS_DW) || ( p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI) ) ) {
       /* debugWire cannot use page access for EEPROM */
       cmd[1] = MTYPE_EEPROM;
     } else {
@@ -2394,7 +2427,7 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
   writedata = data;
   cmd[0] = CMND_WRITE_MEMORY;
-  cmd[1] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_FLASH : MTYPE_SPM;
+  cmd[1] = ( p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI) ) ? MTYPE_FLASH : MTYPE_SPM;
   if (strcmp(mem->desc, "flash") == 0) {
      if ((addr & 1) == 1) {
        /* odd address = high byte */
@@ -2408,7 +2441,7 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
      if (pgm->flag & PGM_FL_IS_DW)
        unsupp = 1;
   } else if (strcmp(mem->desc, "eeprom") == 0) {
-    cmd[1] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_EEPROM_XMEGA: MTYPE_EEPROM;
+    cmd[1] = ( p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI) ) ? MTYPE_EEPROM_XMEGA: MTYPE_EEPROM;
     need_progmode = 0;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if (strcmp(mem->desc, "lfuse") == 0) {
@@ -2713,7 +2746,7 @@ static void jtagmkII_print_parms(PROGRAMMER * pgm)
 
 static unsigned char jtagmkII_memtype(PROGRAMMER * pgm, AVRPART * p, unsigned long addr)
 {
-  if ( p->flags & AVRPART_HAS_PDI ) {
+  if ( p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI) ) {
     if (addr >= PDATA(pgm)->boot_start)
       return MTYPE_BOOT_FLASH;
     else
@@ -2729,7 +2762,7 @@ static unsigned int jtagmkII_memaddr(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
    * Xmega devices handled by V7+ firmware don't want to be told their
    * m->offset within the write memory command.
    */
-  if (PDATA(pgm)->fwver >= 0x700 && (p->flags & AVRPART_HAS_PDI) != 0) {
+  if (PDATA(pgm)->fwver >= 0x700 && (p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI)) != 0) {
     if (addr >= PDATA(pgm)->boot_start)
       /*
        * all memories but "flash" are smaller than boot_start anyway, so
@@ -4024,4 +4057,3 @@ void jtagmkII_dragon_pdi_initpgm(PROGRAMMER * pgm)
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_PDI;
 }
-

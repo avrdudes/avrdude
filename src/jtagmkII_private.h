@@ -206,6 +206,29 @@
 # define PAR_BAUD_57600                          0x06
 # define PAR_BAUD_115200                         0x07
 # define PAR_BAUD_14400                          0x08
+/* Extension to jtagmkII protocol: extra baud rates, standard series. */
+# define PAR_BAUD_153600                         0x09
+# define PAR_BAUD_230400                         0x0A
+# define PAR_BAUD_460800                         0x0B
+# define PAR_BAUD_921600                         0x0C
+/* Extension to jtagmkII protocol: extra baud rates, binary series. */
+# define PAR_BAUD_128000                         0x0D
+# define PAR_BAUD_256000                         0x0E
+# define PAR_BAUD_512000                         0x0F
+# define PAR_BAUD_1024000                        0x10
+/* Extension to jtagmkII protocol: extra baud rates, decimal series. */
+# define PAR_BAUD_150000                         0x11
+# define PAR_BAUD_200000                         0x12
+# define PAR_BAUD_250000                         0x13
+# define PAR_BAUD_300000                         0x14
+# define PAR_BAUD_400000                         0x15
+# define PAR_BAUD_500000                         0x16
+# define PAR_BAUD_600000                         0x17
+# define PAR_BAUD_666666                         0x18
+# define PAR_BAUD_1000000                        0x19
+# define PAR_BAUD_1500000                        0x1A
+# define PAR_BAUD_2000000                        0x1B
+# define PAR_BAUD_3000000                        0x1C
 #define PAR_OCD_VTARGET                        0x06
 #define PAR_OCD_JTAG_CLK                       0x07
 #define PAR_OCD_BREAK_CAUSE                    0x08
