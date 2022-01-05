@@ -32,9 +32,20 @@
 
 #define PATH_MAX _MAX_PATH
 
-#define __builtin_popcount __popcnt 
-
 #define setvbuf msvc_setvbuf
+
+static inline int __builtin_popcount(unsigned int v)
+{
+    int count = 0;
+
+    while (v)
+    {
+        count += v & 1;
+        v >>= 1;
+    }
+
+    return count;
+}
 
 static inline int msvc_setvbuf(
     FILE* const public_stream,
