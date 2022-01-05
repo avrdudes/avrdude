@@ -37,6 +37,7 @@ avrdude
 libtool
 ltmain.sh
 ylwrap
+tags
 
 *.o
 *.lo
