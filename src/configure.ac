@@ -195,7 +195,7 @@ if test x$have_libftdi1 = xyes; then
    LIBFTDI1="-lftdi1"
    AC_DEFINE([HAVE_LIBFTDI1])
    AC_SUBST(LIBFTDI1, $LIBFTDI1)
-   LIBS="${LIBFTDI1}"
+   LIBS="${LIBS} ${LIBFTDI1}"
    AC_CHECK_FUNCS(ftdi_tcioflush)
 else
    if test x$have_libftdi = xyes; then
