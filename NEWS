@@ -49,6 +49,7 @@ Changes since version 6.4:
     - Find 'avrdude.conf' based on absolute path to executable #780
     - buspirate: fix -Wtautological-constant-out-of-range-compare #796
     - avrftdi: don't use the deprecated ftdi_usb_purge_buffers routine #792
+    - Ignore ctags index file #804
 
   * Internals:
 
