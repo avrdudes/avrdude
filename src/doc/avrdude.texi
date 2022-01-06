@@ -315,6 +315,18 @@ In a nutshell, this programmer consists of simple USB->UART adapter, diode
 and couple of resistors. It uses serial connection to provide UPDI interface. 
 @xref{SerialUPDI programmer} for more details and known issues.
 
+The jtag2updi programmer is supported,
+and can program AVRs with a UPDI interface.
+Jtag2updi is just a firmware that can be uploaded to an AVR,
+which enables it to interface with avrdude using the jtagice mkii protocol
+via a serial link (@url{https://github.com/ElTangas/jtag2updi}).
+
+The Micronucleus bootloader is supported for both protocol version V1
+and V2. As the bootloader does not support reading from flash memory,
+use the @code{-V} option to prevent AVRDUDE from verifing the flash memory.
+See the section on @emph{extended parameters}
+below for Micronucleus specific options.
+
 @menu
 * History::                     
 @end menu
@@ -966,6 +978,18 @@ Especially in ascii mode this happens very often, so setting a smaller value
 can speed up programming a lot. 
 The default value is 100ms. Using 10ms might work in most cases.  
 
+@end table
+
+@item Micronucleus bootloader
+
+When using the Micronucleus programmer type, the
+following optional extended parameter is accepted:
+@table @code
+@item @samp{wait=@var{timeout}}
+If the device is not connected, wait for the device to be plugged in.
+The optional @var{timeout} specifies the connection time-out in seconds.
+If no time-out is specified, AVRDUDE will wait indefinitely until the
+device is plugged in.
 @end table
 
 @item Wiring

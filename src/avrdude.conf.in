@@ -916,6 +916,15 @@ programmer
   usbpid     = 0x0BA5;
 ;
 
+programmer
+  id = "micronucleus";
+  desc = "Micronucleus Bootloader";
+  type = "micronucleus";
+  connection_type = usb;
+  usbvid = 0x16D0;
+  usbpid = 0x0753;
+;
+
 # commercial version of USBtiny, using a separate VID/PID
 programmer
   id    = "iseavrprog";
@@ -1677,6 +1686,17 @@ programmer
   sck   = ~7;
   mosi  = ~3;
   miso  = ~8;
+;
+
+# JTAG2UPDI
+# https://github.com/ElTangas/jtag2updi
+
+programmer
+  id    = "jtag2updi";
+  desc  = "JTAGv2 to UPDI bridge";
+  type  = "jtagmkii_pdi";
+  connection_type = serial;
+  baudrate = 115200;
 ;
 
 #

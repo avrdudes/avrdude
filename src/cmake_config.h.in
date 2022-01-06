@@ -50,6 +50,9 @@
 /* Define if lex/flex has yylex_destroy */
 #cmakedefine HAVE_YYLEX_DESTROY 1
 
+/* Define if ftdi1 has 'ftdi_tcioflush' function. */
+#cmakedefine HAVE_FTDI_TCIOFLUSH 1
+
 /* ----- Libraries and Headers ----- */
 
 /* Define to 1 if the system has the type `uint_t'. */
