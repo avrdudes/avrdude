@@ -29,6 +29,9 @@ Changes since version 6.4:
     - CMake doesn't correctly handle conditionals in avrdude.conf.in
       #776
     - CMake: Recognize more than just bison #785
+    - [bug #26007] ATTiny167 not supported #150
+    - [bug #47375] ATtiny102/104 descriptions missing in configuration
+      file #409
 
   * Pull requests:
 
@@ -51,6 +54,7 @@ Changes since version 6.4:
     - avrftdi: don't use the deprecated ftdi_usb_purge_buffers routine #792
     - Ignore ctags index file #804
     - term: fix memleakOnRealloc #806
+    - Add missing ATtiny targets to avrdude.conf #803
 
   * Internals:
 
