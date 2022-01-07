@@ -59,6 +59,7 @@ Changes since version 6.4:
     - Add missing ATtiny targets to avrdude.conf #803
     - Add support for Teensy bootloader #802
     - Conffile clean up #801
+    - Fix typos all over the code #807
 
   * Internals:
 
