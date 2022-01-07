@@ -63,6 +63,7 @@ Changes since version 6.4:
     - Conffile clean up #801
     - Fix typos all over the code #807
     - Add MSVC builds and better WinUSB/FTDI support #798
+    - buspirate: fix invalidScanfArgType_int warning #808
 
   * Internals:
 
