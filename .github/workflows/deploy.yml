@@ -1,0 +1,85 @@
+#
+# deploy.yml - GitHub deploy action for AVRDUDE
+# Copyright (C) 2021 Marius Greuel
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+
+name: Deploy
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    uses: avrdudes/avrdude/.github/workflows/build.yml@main
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        with:
+          tag_name: ${{github.ref}}
+          release_name: AVRDUDE ${{github.ref}}
+          body: "**[Release Notes:](https://github.com/avrdudes/avrdude/blob/main/NEWS)**"
+          draft: false
+          prerelease: false
+
+  asset-msvc:
+    needs: release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - { arch: x86 }
+          - { arch: x64 }
+          - { arch: arm64 }
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: msvc-${{matrix.arch}}
+
+      - name: Create release asset
+        run: >-
+          zip -j asset.zip
+          RelWithDebInfo/avrdude.exe
+          RelWithDebInfo/avrdude.pdb
+          avrdude.conf
+
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        with:
+          upload_url: ${{needs.release.outputs.upload_url}}
+          asset_path: ./asset.zip
+          asset_name: avrdude-${{github.ref_name}}-windows-${{matrix.arch}}.zip
+          asset_content_type: application/zip
+
+  #deploy:
+  #  needs: [asset-msvc]
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - name: Create package (Chocolatey)
+  #      run: echo TODO
