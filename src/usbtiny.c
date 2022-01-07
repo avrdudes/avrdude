@@ -109,7 +109,7 @@ static int usb_control (PROGRAMMER * pgm,
 			    USB_ENDPOINT_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
 			    requestid,
 			    val, index,           // 2 bytes each of data
-			    NULL, 0,              // no data buffer in control messge
+			    NULL, 0,              // no data buffer in control message
 			    USB_TIMEOUT );        // default timeout
   if(nbytes < 0){
     avrdude_message(MSG_INFO, "\n%s: error: usbtiny_transmit: %s\n", progname, usb_strerror());
@@ -128,7 +128,7 @@ static int usb_in (PROGRAMMER * pgm,
   int timeout;
   int i;
 
-  // calculate the amout of time we expect the process to take by
+  // calculate the amount of time we expect the process to take by
   // figuring the bit-clock time and buffer size and adding to the standard USB timeout.
   timeout = USB_TIMEOUT + (buflen * bitclk) / 1000;
 
@@ -167,7 +167,7 @@ static int usb_out (PROGRAMMER * pgm,
   int nbytes;
   int timeout;
 
-  // calculate the amout of time we expect the process to take by
+  // calculate the amount of time we expect the process to take by
   // figuring the bit-clock time and buffer size and adding to the standard USB timeout.
   timeout = USB_TIMEOUT + (buflen * bitclk) / 1000;
 
@@ -186,7 +186,7 @@ static int usb_out (PROGRAMMER * pgm,
   return nbytes;
 }
 
-/* Reverse the bits in a byte.  Needed since TPI uses little-endian
+/* Reverse the bits in a byte. Needed since TPI uses little-endian
    bit order (LSB first) whereas SPI uses big-endian (MSB first).*/
 static unsigned char reverse(unsigned char b) {
   return
@@ -200,7 +200,7 @@ static unsigned char reverse(unsigned char b) {
     | ((b & 0x80) >> 7);
 }
 
-/* Calculate even parity.  */
+/* Calculate even parity. */
 static unsigned char tpi_parity(unsigned char b)
 {
   unsigned char parity = 0;
@@ -215,9 +215,9 @@ static unsigned char tpi_parity(unsigned char b)
 }
 
 /* Encode 1 start bit (0), 8 data bits, 1 parity, 2 stop bits (1)
-   inside 16 bits.  The data is padded to 16 bits by 4 leading 1s
-   (which will be ignored since they're not start bits).  This layout
-   enables a write to be followed by a read.  */
+   inside 16 bits. The data is padded to 16 bits by 4 leading 1s
+   (which will be ignored since they're not start bits). This layout
+   enables a write to be followed by a read. */
 static unsigned short tpi_frame(unsigned char b) {
   return LITTLE_TO_BIG_16(0xf000 |
 			  (reverse(b) << 3) |
@@ -225,8 +225,8 @@ static unsigned short tpi_frame(unsigned char b) {
 			  TPI_STOP_BITS);
 }
 
-/* Transmit a single byte encapsulated in a 32-bit transfer.  Unused
-   bits are padded with 1s.  */
+/* Transmit a single byte encapsulated in a 32-bit transfer. Unused
+   bits are padded with 1s. */
 static int usbtiny_tpi_tx(PROGRAMMER *pgm, unsigned char b0)
 {
   unsigned char res[4];
@@ -239,8 +239,8 @@ static int usbtiny_tpi_tx(PROGRAMMER *pgm, unsigned char b0)
   return 1;
 }
 
-/* Transmit a two bytes encapsulated in a 32-bit transfer.  Unused
-   bits are padded with 1s.  */
+/* Transmit a two bytes encapsulated in a 32-bit transfer. Unused
+   bits are padded with 1s. */
 static int usbtiny_tpi_txtx(PROGRAMMER *pgm,
 			    unsigned char b0, unsigned char b1)
 {
@@ -269,11 +269,11 @@ static int usbtiny_tpi_txrx(PROGRAMMER *pgm, unsigned char b0)
     return -1;
 
   w = (res[2] << 8) | res[3];
-  /* Look for start bit (there shoule be no more than two 1 bits): */
+  /* Look for start bit (there should be no more than two 1 bits): */
   while (w < 0)
     w <<= 1;
   /* Now that we found the start bit, the top 9 bits contain the start
-     bit and the 8 data bits, but the latter in reverse order.  */
+     bit and the 8 data bits, but the latter in reverse order. */
   r = reverse(w >> 7);
   if (tpi_parity(r) != ((w >> 6) & 1)) {
     fprintf(stderr, "%s: parity bit is wrong\n", __func__);
@@ -336,7 +336,7 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
   }
 
   usb_init();                    // initialize the libusb system
-  usb_find_busses();             // have libusb scan all the usb busses available
+  usb_find_busses();             // have libusb scan all the usb buses available
   usb_find_devices();            // have libusb scan all the usb devices available
 
   PDATA(pgm)->usb_handle = NULL;
@@ -357,7 +357,7 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
   }
   
 
-  // now we iterate through all the busses and devices
+  // now we iterate through all the buses and devices
   for ( bus = usb_busses; bus; bus = bus->next ) {
     for	( dev = bus->devices; dev; dev = dev->next ) {
       if (dev->descriptor.idVendor == vid
@@ -557,9 +557,9 @@ int usbtiny_cmd_tpi(PROGRAMMER * pgm, const unsigned char *cmd,
   int tx, rx, r;
 
   /* Transmits command two bytes at the time until we're down to 0 or
-     1 command byte.  Then we're either done or we transmit the final
-     byte optionally followed by reading 1 byte.  With the current TPI
-     protocol, we never receive more than one byte.  */
+     1 command byte. Then we're either done or we transmit the final
+     byte optionally followed by reading 1 byte. With the current TPI
+     protocol, we never receive more than one byte. */
   for (tx = rx = 0; tx < cmd_len; ) {
     b0 = cmd[tx++];
     if (tx < cmd_len) {
@@ -714,7 +714,7 @@ static int usbtiny_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 		m->buf + addr,  // Pointer to data
 		chunk,          // Number of bytes to write
 		32 * PDATA(pgm)->sck_period + delay  // each byte gets turned into a
-	                             // 4-byte SPI cmd  usb_out() multiplies
+	                             // 4-byte SPI cmd usb_out() multiplies
 	                             // this per byte. Then add the cmd-delay
 		) < 0) {
       return -1;

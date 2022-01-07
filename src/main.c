@@ -1109,7 +1109,7 @@ int main(int argc, char * argv [])
   pgm->vfy_led(pgm, OFF);
 
   /*
-   * initialize the chip in preperation for accepting commands
+   * initialize the chip in preparation for accepting commands
    */
   init_ok = (rc = pgm->initialize(pgm, p)) >= 0;
   if (!init_ok) {

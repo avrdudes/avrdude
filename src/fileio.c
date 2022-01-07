@@ -35,7 +35,7 @@
 #include <libelf/libelf.h>
 #endif
 #ifndef EM_AVR32
-#  define EM_AVR32 0x18ad         /* inofficial */
+#  define EM_AVR32 0x18ad         /* unofficial */
 #endif
 #endif
 
@@ -273,9 +273,9 @@ static int ihex_readrec(struct ihexrec * ihex, char * rec)
 /*
  * Intel Hex to binary buffer
  *
- * Given an open file 'inf' which contains Intel Hex formated data,
+ * Given an open file 'inf' which contains Intel Hex formatted data,
  * parse the file and lay it out within the memory buffer pointed to
- * by outbuf.  The size of outbuf, 'bufsize' is honored; if data would
+ * by outbuf. The size of outbuf, 'bufsize' is honored; if data would
  * fall outsize of the memory buffer outbuf, an error is generated.
  *
  * Return the maximum memory address within 'outbuf' that was written.
@@ -1120,7 +1120,7 @@ static int fileio_imm(struct fioparms * fio,
       p = strtok(filename, " ,");
       while (p != NULL && loc < size) {
         b = strtoul(p, &e, 0);
-	/* check for binary formated (0b10101001) strings */
+	/* check for binary formatted (0b10101001) strings */
 	b = (strncmp (p, "0b", 2))?
 	    strtoul (p, &e, 0):
 	    strtoul (p + 2, &e, 2);
