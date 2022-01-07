@@ -48,7 +48,7 @@
 
 #include "usbdevs.h"
 
-#if defined(WIN32NATIVE)
+#if defined(WIN32)
 /* someone has defined "interface" to "struct" in Cygwin */
 #  undef interface
 #endif

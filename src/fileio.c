@@ -1369,7 +1369,7 @@ static int fmt_autodetect(char * fname)
   int found;
   int first = 1;
 
-#if defined(WIN32NATIVE)
+#if defined(WIN32)
   f = fopen(fname, "r");
 #else
   f = fopen(fname, "rb");
@@ -1518,7 +1518,7 @@ int fileio(int op, char * filename, FILEFMT format,
     }
   }
 
-#if defined(WIN32NATIVE)
+#if defined(WIN32)
   /* Open Raw Binary and ELF format in binary mode on Windows.*/
   if(format == FMT_RBIN || format == FMT_ELF)
   {

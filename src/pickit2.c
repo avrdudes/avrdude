@@ -54,9 +54,10 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 
-#if defined(HAVE_LIBUSB) || (defined(WIN32NATIVE) && defined(HAVE_LIBHID))
+#if defined(HAVE_LIBUSB) || (defined(WIN32) && defined(HAVE_LIBHID))
 
-#if (defined(WIN32NATIVE) && defined(HAVE_LIBHID))
+#if (defined(WIN32) && defined(HAVE_LIBHID))
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <hidsdi.h>
 #include <setupapi.h>
@@ -87,8 +88,7 @@
 
 #define SPI_MAX_CHUNK (64 - 10)    // max packet size less the command overhead
 
-// win32native only:
-#if (defined(WIN32NATIVE) && defined(HAVE_LIBHID))
+#if (defined(WIN32) && defined(HAVE_LIBHID))
 static HANDLE open_hid(unsigned short vid, unsigned short pid);
 static const char *usb_strerror()
 {
@@ -102,7 +102,7 @@ static int usb_open_device(struct usb_dev_handle **dev, int vid, int pid);
 #define USB_ERROR_NOTFOUND  2
 #define USB_ERROR_BUSY      16
 #define USB_ERROR_IO        5
-#endif  // WIN32NATIVE
+#endif  // WIN32
 
 static int pickit2_write_report(PROGRAMMER *pgm, const unsigned char report[65]);
 static int pickit2_read_report(PROGRAMMER *pgm, unsigned char report[65]);
@@ -116,7 +116,7 @@ static int pickit2_read_report(PROGRAMMER *pgm, unsigned char report[65]);
  */
 struct pdata
 {
-#if (defined(WIN32NATIVE) && defined(HAVE_LIBHID))
+#if (defined(WIN32) && defined(HAVE_LIBHID))
     HANDLE usb_handle, write_event, read_event;
 #else
     struct usb_dev_handle *usb_handle;     // LIBUSB STUFF
@@ -181,7 +181,7 @@ static void pickit2_teardown(PROGRAMMER * pgm)
 
 static int pickit2_open(PROGRAMMER * pgm, char * port)
 {
-#if (defined(WIN32NATIVE) && defined(HAVE_LIBHID))
+#if (defined(WIN32) && defined(HAVE_LIBHID))
     PDATA(pgm)->usb_handle = open_hid(PICKIT2_VID, PICKIT2_PID);
 
     if (PDATA(pgm)->usb_handle == INVALID_HANDLE_VALUE)
@@ -229,13 +229,13 @@ static int pickit2_open(PROGRAMMER * pgm, char * port)
 
 static void pickit2_close(PROGRAMMER * pgm)
 {
-#if (defined(WIN32NATIVE) && defined(HAVE_LIBHID))
+#if (defined(WIN32) && defined(HAVE_LIBHID))
     CloseHandle(PDATA(pgm)->usb_handle);
     CloseHandle(PDATA(pgm)->read_event);
     CloseHandle(PDATA(pgm)->write_event);
 #else
     usb_close(PDATA(pgm)->usb_handle);
-#endif  // WIN32NATIVE
+#endif  // WIN32
 }
 
 
@@ -810,7 +810,7 @@ static int pickit2_spi(struct programmer_t * pgm, const unsigned char *cmd,
     return n_bytes;
 }
 
-#if (defined(WIN32NATIVE) && defined(HAVE_LIBHID))
+#if (defined(WIN32) && defined(HAVE_LIBHID))
 /*
     Func: open_hid()
     Desc: finds & opens device having specified VID & PID.
@@ -1120,7 +1120,7 @@ static int pickit2_read_report(PROGRAMMER * pgm, unsigned char report[65])
     return usb_read_interrupt(pgm, report, 65, PDATA(pgm)->transaction_timeout);
 }
 
-#else   // WIN32NATIVE
+#else   // WIN32
 /* taken (modified) from avrdude usbasp.c */
 static int usb_open_device(struct usb_dev_handle **device, int vendor, int product)
 {
@@ -1184,7 +1184,7 @@ static int usb_open_device(struct usb_dev_handle **device, int vendor, int produ
 static int pickit2_write_report(PROGRAMMER * pgm, const unsigned char report[65])
 {
     // endpoint 1 OUT??
-    return usb_interrupt_write(PDATA(pgm)->usb_handle, USB_ENDPOINT_OUT | 1, (const char*)(report+1), 64, PDATA(pgm)->transaction_timeout);
+    return usb_interrupt_write(PDATA(pgm)->usb_handle, USB_ENDPOINT_OUT | 1, (char*)(report+1), 64, PDATA(pgm)->transaction_timeout);
 }
 
 static int pickit2_read_report(PROGRAMMER * pgm, unsigned char report[65])
@@ -1192,7 +1192,7 @@ static int pickit2_read_report(PROGRAMMER * pgm, unsigned char report[65])
     // endpoint 1 IN??
     return usb_interrupt_read(PDATA(pgm)->usb_handle, USB_ENDPOINT_IN | 1, (char*)(report+1), 64, PDATA(pgm)->transaction_timeout);
 }
-#endif  // WIN323NATIVE
+#endif  // WIN32
 
 static int  pickit2_parseextparams(struct programmer_t * pgm, LISTID extparms)
 {
@@ -1310,7 +1310,7 @@ void pickit2_initpgm (PROGRAMMER * pgm)
 #else
 static int pickit2_nousb_open (struct programmer_t *pgm, char * name) {
     avrdude_message(MSG_INFO, 
-#ifdef WIN32NATIVE
+#ifdef WIN32
             "%s: error: no usb or hid support. Please compile again with libusb or HID support from Win32 DDK installed.\n",
 #else
             "%s: error: no usb support. Please compile again with libusb installed.\n",
@@ -1332,7 +1332,7 @@ void pickit2_initpgm (PROGRAMMER * pgm)
     strncpy(pgm->type, "pickit2", sizeof(pgm->type));
 }
 
-#endif /* defined(HAVE_LIBUSB) || (defined(WIN32NATIVE) && defined(HAVE_LIBHID)) */
+#endif /* defined(HAVE_LIBUSB) || (defined(WIN32) && defined(HAVE_LIBHID)) */
 
 const char pickit2_desc[] = "Microchip's PICkit2 Programmer";
 

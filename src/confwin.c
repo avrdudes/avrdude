@@ -20,14 +20,12 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 
-#if defined(WIN32NATIVE)
+#if defined(WIN32)
 
-#include <limits.h>
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-
 static char *filename;
-
 
 void win_sys_config_set(char sys_config[PATH_MAX])
 {
@@ -38,7 +36,6 @@ void win_sys_config_set(char sys_config[PATH_MAX])
     return;
 }
 
-
 void win_usr_config_set(char usr_config[PATH_MAX])
 {
     usr_config[0] = 0;
@@ -48,7 +45,4 @@ void win_usr_config_set(char usr_config[PATH_MAX])
     return;
 }
 
-
 #endif
-
-

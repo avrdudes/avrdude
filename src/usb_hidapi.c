@@ -42,11 +42,6 @@
 
 #include "usbdevs.h"
 
-#if defined(WIN32NATIVE)
-/* someone has defined "interface" to "struct" in Cygwin */
-#  undef interface
-#endif
-
 /*
  * The "baud" parameter is meaningless for USB devices, so we reuse it
  * to pass the desired USB device ID.

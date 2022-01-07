@@ -52,13 +52,7 @@
 #define TPIPCR_GT_0b	0x07
 #define TPI_STOP_BITS	0x03
 
-#ifdef HAVE_NETINET_IN_H
-#  include <netinet/in.h>
-#  define LITTLE_TO_BIG_16(x) (htons(x))
-#else
-// WIN32
-#  define LITTLE_TO_BIG_16(x) ((((x) << 8) & 0xFF00) | (((x) >> 8) & 0x00FF))
-#endif
+#define LITTLE_TO_BIG_16(x) ((((x) << 8) & 0xFF00) | (((x) >> 8) & 0x00FF))
 
 #ifndef HAVE_UINT_T
 typedef	unsigned int	uint_t;

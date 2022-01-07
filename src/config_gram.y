@@ -30,7 +30,7 @@
 #include "libavrdude.h"
 #include "config.h"
 
-#if defined(WIN32NATIVE)
+#if defined(WIN32)
 #define strtok_r( _s, _sep, _lasts ) \
     ( *(_lasts) = strtok( (_s), (_sep) ) )
 #endif

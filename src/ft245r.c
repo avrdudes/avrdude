@@ -73,10 +73,6 @@
 #define TPIPCR_GT_0b	0x07
 #define TPI_STOP_BITS	0x03
 
-#if defined(_WIN32)
-#include <windows.h>
-#endif
-
 #if defined(HAVE_LIBFTDI1) && defined(HAVE_LIBUSB_1_0)
 # if defined(HAVE_LIBUSB_1_0_LIBUSB_H)
 #  include <libusb-1.0/libusb.h>

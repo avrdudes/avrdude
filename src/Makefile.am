@@ -138,7 +138,6 @@ libavrdude_a_SOURCES = \
 	lists.c \
 	micronucleus.c \
 	micronucleus.h \
-	my_ddk_hidsdi.h \
 	par.c \
 	par.h \
 	pgm.c \

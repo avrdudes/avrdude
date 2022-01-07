@@ -25,11 +25,12 @@
 
 #include "avrdude.h"
 
-#if defined(WIN32NATIVE)
+#if defined(WIN32)
 
 
 #include "ac_cfg.h"
 
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdio.h>
 
@@ -363,4 +364,4 @@ void serbb_initpgm(PROGRAMMER *pgm)
   pgm->write_byte     = avr_write_byte_default;
 }
 
-#endif  /* WIN32NATIVE */
+#endif  /* WIN32 */

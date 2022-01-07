@@ -27,15 +27,9 @@
 #include <stdio.h>
 #include <limits.h>
 #include <stdbool.h>
-
-/* lets try to select at least 32 bits */
-#ifdef HAVE_STDINT_H
 #include <stdint.h>
-typedef uint32_t pinmask_t;
-#else
-#error Need a C99 capable compiler
-#endif
 
+typedef uint32_t pinmask_t;
 
 /* formerly lists.h */
 
@@ -958,7 +952,7 @@ int read_config(const char * file);
 
 /* formerly confwin.h */
 
-#if defined(WIN32NATIVE)
+#if defined(WIN32)
 
 #ifdef __cplusplus
 extern "C" {
@@ -971,7 +965,7 @@ void win_usr_config_set(char usr_config[PATH_MAX]);
 }
 #endif
 
-#endif  /* WIN32NATIVE */
+#endif  /* WIN32 */
 
 
 #endif  /* libavrdude_h */
