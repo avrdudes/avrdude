@@ -299,7 +299,7 @@ endif()
 
 if(NOT WIN32)
     set(LIB_MATH m)
-    #add_compile_options(-Wall -Wextra -pedantic)
+    add_compile_options(-Wall) # -Wextra
 endif()
 
 if(MSVC)
