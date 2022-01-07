@@ -12,6 +12,7 @@ Changes since version 6.4:
 
   * New devices supported:
 
+    - ATtiny828, ATtiny87, ATtiny167, ATtiny48, ATtiny102, ATtiny104
 
   * New programmers supported:
 
