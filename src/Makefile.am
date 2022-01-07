@@ -165,6 +165,8 @@ libavrdude_a_SOURCES = \
 	stk500v2_private.h \
 	stk500generic.c \
 	stk500generic.h \
+	teensy.c \
+	teensy.h \
 	tpi.h \
 	usbasp.c \
 	usbasp.h \
