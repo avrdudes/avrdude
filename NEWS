@@ -9,6 +9,8 @@ Changes since version 6.4:
 
   * Major changes compared to the previous version:
 
+    - Completely revamped Windows support, including MSVC
+    - Started to add CMake (by now, parallel with autoconf/automake)
 
   * New devices supported:
 
@@ -60,6 +62,7 @@ Changes since version 6.4:
     - Add support for Teensy bootloader #802
     - Conffile clean up #801
     - Fix typos all over the code #807
+    - Add MSVC builds and better WinUSB/FTDI support #798
 
   * Internals:
 
