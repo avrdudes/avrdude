@@ -141,7 +141,7 @@ int updi_read_data(PROGRAMMER * pgm, uint32_t address, uint8_t * buffer, uint16_
         self.logger.debug("Reading %d bytes from 0x%04X", size, address)
         # Range check
         if size > constants.UPDI_MAX_REPEAT_SIZE:
-            raise PymcuprogError("Cant read that many bytes in one go")
+            raise PymcuprogError("Can't read that many bytes in one go")
 
         # Store the address
         self.datalink.st_ptr(address)
@@ -242,7 +242,7 @@ int updi_read_data_words(PROGRAMMER * pgm, uint32_t address, uint8_t * buffer, u
 
         # Range check
         if words > constants.UPDI_MAX_REPEAT_SIZE >> 1:
-            raise PymcuprogError("Cant read that many words in one go")
+            raise PymcuprogError("Can't read that many words in one go")
 
         # Store the address
         self.datalink.st_ptr(address)

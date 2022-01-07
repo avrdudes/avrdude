@@ -215,7 +215,7 @@ int flip2_initialize(PROGRAMMER* pgm, AVRPART *part)
   /* A note about return values. Negative return values from this function are
    * interpreted as failure by main(), from where this function is called.
    * However such failures are interpreted as a device signature check failure
-   * and the user is adviced to use the -F option to override this check. In
+   * and the user is advised to use the -F option to override this check. In
    * our case, this is misleading, so we defer reporting an error until another
    * function is called. Thus, we always return 0 (success) from initialize().
    * I don't like this, but I don't want to mess with main().

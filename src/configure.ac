@@ -234,7 +234,7 @@ AC_CHECK_LIB([ws2_32], [puts])
 # Checks for library functions.
 AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul gettimeofday usleep getaddrinfo])
 
-AC_MSG_CHECKING([for a Win32 HID libray])
+AC_MSG_CHECKING([for a Win32 HID library])
 SAVED_LIBS="${LIBS}"
 case $target in
         *-*-mingw32* | *-*-cygwin* | *-*-windows*)
@@ -435,7 +435,7 @@ else
 fi
 
 
-# If we are compiling with gcc, enable all warning and make warnings errors.
+# If we are compiling with gcc, enable all warnings and make warnings errors.
 if test "$GCC" = yes; then
     ENABLE_WARNINGS="-Wall"
 
@@ -519,7 +519,7 @@ AC_CONFIG_FILES([
 
 # The procedure to create avrdude.conf involves two steps.  First,
 # normal autoconf substitution will be applied, resulting in
-# avrdude.conf.tmp.  Finally, a sed command will be applied to filter
+# avrdude.conf.tmp. Finally, a sed command will be applied to filter
 # out unwanted parts (currently the parallel port programmer types)
 # based on previous configuration results, thereby producing the final
 # avrdude.conf file.

@@ -285,7 +285,7 @@ prog_def :
       id = ldata(lfirst(current_prog->id));
       existing_prog = locate_programmer(programmers, id);
       if (existing_prog) {
-        { /* temporarly set lineno to lineno of programmer start */
+        { /* temporarily set lineno to lineno of programmer start */
           int temp = lineno; lineno = current_prog->lineno;
           yywarning("programmer %s overwrites previous definition %s:%d.",
                 id, existing_prog->config_file, existing_prog->lineno);
@@ -377,7 +377,7 @@ part_def :
 
       existing_part = locate_part(part_list, current_part->id);
       if (existing_part) {
-        { /* temporarly set lineno to lineno of part start */
+        { /* temporarily set lineno to lineno of part start */
           int temp = lineno; lineno = current_part->lineno;
           yywarning("part %s overwrites previous definition %s:%d.",
                 current_part->id,
