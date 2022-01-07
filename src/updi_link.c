@@ -39,14 +39,9 @@
 #include "updi_constants.h"
 #include "updi_state.h"
 
-#include <sys/time.h>
-
-void msleep(int tms)
+static void msleep(int tms)
 {
-    struct timeval tv;
-    tv.tv_sec  = tms / 1000;
-    tv.tv_usec = (tms % 1000) * 1000;
-    select (0, NULL, NULL, NULL, &tv);
+    usleep(tms * 1000);
 }
 
 static int updi_physical_open(PROGRAMMER* pgm, int baudrate, unsigned long cflags)

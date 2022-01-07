@@ -19,7 +19,7 @@
 /* $Id$ */
 
 
-#if !defined(WIN32NATIVE)
+#if !defined(WIN32)
 
 #include "ac_cfg.h"
 
@@ -233,4 +233,4 @@ void ppi_close(union filedescriptor *fdp)
 
 #endif /* HAVE_PARPORT */
 
-#endif /* !WIN32NATIVE */
+#endif /* !WIN32 */

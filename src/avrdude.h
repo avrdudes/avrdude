@@ -16,13 +16,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
+ /* $Id$ */
 
 #ifndef avrdude_h
 #define avrdude_h
 
 #define SYSTEM_CONF_FILE "avrdude.conf"
-#if defined(WIN32NATIVE)
+#if defined(WIN32)
 #define USER_CONF_FILE "avrdude.rc"
 #else
 #define USER_CONF_FILE ".avrduderc"
@@ -43,28 +43,5 @@ int avrdude_message(const int msglvl, const char *format, ...);
 #define MSG_DEBUG   (3) /* displayed with -vvv */
 #define MSG_TRACE   (4) /* displayed with -vvvv, show trace communication */
 #define MSG_TRACE2  (5) /* displayed with -vvvvv */
-
-#if defined(WIN32NATIVE)
-
-#include "ac_cfg.h"
-#include <windows.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#if !defined(HAVE_USLEEP)
-int usleep(unsigned int us);
-#endif
-
-#if !defined(HAVE_GETTIMEOFDAY)
-struct timezone;
-int gettimeofday(struct timeval *tv, struct timezone *tz);
-#endif /* HAVE_GETTIMEOFDAY */
-
-#ifdef __cplusplus
-}
-#endif
-#endif /* defined(WIN32NATIVE) */
 
 #endif

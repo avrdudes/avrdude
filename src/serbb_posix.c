@@ -23,7 +23,7 @@
  * Posix serial bitbanging interface for avrdude.
  */
 
-#if !defined(WIN32NATIVE)
+#if !defined(WIN32)
 
 #include "ac_cfg.h"
 
@@ -318,4 +318,4 @@ void serbb_initpgm(PROGRAMMER *pgm)
   pgm->write_byte     = avr_write_byte_default;
 }
 
-#endif  /* WIN32NATIVE */
+#endif  /* WIN32 */

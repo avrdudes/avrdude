@@ -30,15 +30,15 @@ option(BUILD_DOC "Enable building documents" OFF)
 option(HAVE_LINUXGPIO "Enable Linux sysfs GPIO support" OFF)
 option(HAVE_LINUXSPI "Enable Linux SPI support" OFF)
 option(HAVE_PARPORT "Enable parallel port support" OFF)
-option(USE_EXTERNAL "Use local code from the 'external' folder" OFF)
+option(USE_EXTERNAL "Use external libraries from AVRDUDE GitHub repositories" OFF)
 option(USE_LIBUSBWIN32 "Prefer libusb-win32 over libusb" OFF)
 option(DEBUG_CMAKE "Enable debugging output for this CMake project" OFF)
 
 include(CheckIncludeFile)
-include(CheckFunctionExists)
 include(CheckSymbolExists)
-include(GNUInstallDirs)
+include(FetchContent)
 include(FindPackageMessage)
+include(GNUInstallDirs)
 
 set(CONFIG_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}")
 set(AVRDUDE_FULL_VERSION ${CMAKE_PROJECT_VERSION})
@@ -126,24 +126,6 @@ else()
 endif()
 
 # =====================================
-# Detect headers
-# =====================================
-
-check_include_file(stdint.h HAVE_STDINT_H)
-check_include_file(stdlib.h HAVE_STDLIB_H)
-check_include_file(inttypes.h HAVE_INTTYPES_H)
-check_include_file(netinet/in.h HAVE_NETINET_IN_H)
-
-# =====================================
-# Detect functions
-# =====================================
-
-check_function_exists(usleep HAVE_USLEEP)
-check_function_exists(getaddrinfo HAVE_GETADDRINFO)
-check_function_exists(gettimeofday HAVE_GETTIMEOFDAY)
-check_function_exists(strcasecmp HAVE_STRCASECMP)
-
-# =====================================
 # Detect installed libraries
 # =====================================
 
@@ -218,13 +200,13 @@ endif()
 # -------------------------------------
 # Find libhidapi
 
+find_library(HAVE_LIBHID NAMES hid)
+
 find_library(HAVE_LIBHIDAPI NAMES ${PREFERRED_LIBHIDAPI})
 if(HAVE_LIBHIDAPI)
     set(LIB_LIBHIDAPI ${HAVE_LIBHIDAPI})
     check_include_file(hidapi/hidapi.h HAVE_HIDAPI_HIDAPI_H)
 endif()
-
-find_library(HAVE_LIBHID NAMES hid)
 
 # -------------------------------------
 # Find libftdi
@@ -252,21 +234,95 @@ if(HAVE_LIBREADLINE)
 endif()
 
 # =====================================
+# Use external libraries if requested
+# =====================================
+
+if(USE_EXTERNAL)
+    FetchContent_Declare(libelf
+        GIT_REPOSITORY https://github.com/avrdudes/libelf.git
+        GIT_TAG e5a39bf19bd6598c42e09172be5a78ceec2a065c
+        )
+
+    FetchContent_Declare(libusb
+        GIT_REPOSITORY https://github.com/avrdudes/libusb.git
+        GIT_TAG 632bc25d04eff563cc00de29435b9a7ed6f4654c
+        )
+
+    FetchContent_Declare(libhidapi
+        GIT_REPOSITORY https://github.com/avrdudes/libhidapi.git
+        GIT_TAG e3700e951f762ef92871ff4fc94586e4d1c042a6
+        )
+
+    FetchContent_Declare(libftdi
+        GIT_REPOSITORY https://github.com/avrdudes/libftdi.git
+        GIT_TAG f3a54da710002a7d25a32a69e667a69ef84cc120
+        )
+
+    message(STATUS "Fetching external libraries, please wait...")
+    FetchContent_MakeAvailable(
+        libelf
+        libusb
+        libhidapi
+        libftdi
+        )
+
+    message(STATUS "Using external library 'libelf'")
+    set(LIB_LIBELF libelf)
+    set(HAVE_LIBELF 1)
+    set(HAVE_LIBELF_H 1)
+
+    message(STATUS "Using external library 'libusb'")
+    set(LIB_LIBUSB libusb)
+    set(HAVE_LIBUSB 1)
+    set(HAVE_LUSB0_USB_H 1)
+
+    message(STATUS "Using external library 'libhidapi'")
+    set(LIB_LIBHIDAPI libhidapi)
+    set(HAVE_LIBHIDAPI 1)
+    set(HAVE_HIDAPI_HIDAPI_H 1)
+
+    message(STATUS "Using external library 'libftdi'")
+    set(LIB_LIBFTDI libftdi)
+    set(HAVE_LIBFTDI 1)
+    set(HAVE_LIBFTDI_TYPE_232H 1)
+endif()
+
+# =====================================
 # Setup target specific options
 # =====================================
 
 add_compile_definitions(CONFIG_DIR=\"${CONFIG_DIR}\")
 
 if(WIN32)
-    set(HAVE_LIBWS2_32 1)
     set(EXTRA_WINDOWS_SOURCES "${PROJECT_BINARY_DIR}/windows.rc")
     set(EXTRA_WINDOWS_LIBRARIES setupapi ws2_32)
-    add_compile_definitions(WIN32NATIVE=1)
 endif()
 
 if(NOT WIN32)
     set(LIB_MATH m)
     #add_compile_options(-Wall -Wextra -pedantic)
+endif()
+
+if(MSVC)
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS=1)
+    add_compile_definitions(_CRT_NONSTDC_NO_WARNINGS=1)
+    add_compile_definitions(_WINSOCK_DEPRECATED_NO_WARNINGS=1)
+    add_compile_options(/W3)
+    add_compile_options(/wd4018) # warning C4018: signed/unsigned mismatch
+    add_compile_options(/wd4244) # warning C4244: conversion from '...' to '...', possible loss of data
+    add_compile_options(/wd4267) # warning C4267: conversion from '...' to '...', possible loss of data
+    add_compile_options(/wd5105) # warning C5105: macro expansion producing 'xxx' has undefined behavior
+    add_compile_options(/wd6255) # warning C6255: _alloca indicates failure by raising a stack overflow exception. Consider using _malloca instead
+
+    set(EXTRA_WINDOWS_SOURCES ${EXTRA_WINDOWS_SOURCES}
+        "${PROJECT_SOURCE_DIR}/msvc/getopt.c"
+        "${PROJECT_SOURCE_DIR}/msvc/gettimeofday.c"
+        "${PROJECT_SOURCE_DIR}/msvc/usleep.cpp"
+        )
+    set(EXTRA_WINDOWS_INCLUDES ${EXTRA_WINDOWS_INCLUDES}
+        "${PROJECT_SOURCE_DIR}/msvc"
+        "${PROJECT_SOURCE_DIR}/msvc/generated"
+        )
 endif()
 
 # =====================================
@@ -308,11 +364,11 @@ if (DEBUG_CMAKE)
     message(STATUS "HAVE_LIBUSB: ${HAVE_LIBUSB}")
     message(STATUS "HAVE_LIBUSB_1_0: ${HAVE_LIBUSB_1_0}")
     message(STATUS "HAVE_LIBUSB_WIN32: ${HAVE_LIBUSB_WIN32}")
+    message(STATUS "HAVE_LIBHID: ${HAVE_LIBHID}")
     message(STATUS "HAVE_LIBHIDAPI: ${HAVE_LIBHIDAPI}")
     message(STATUS "HAVE_LIBFTDI: ${HAVE_LIBFTDI}")
     message(STATUS "HAVE_LIBFTDI1: ${HAVE_LIBFTDI1}")
     message(STATUS "HAVE_LIBREADLINE: ${HAVE_LIBREADLINE}")
-    message(STATUS "HAVE_LIBWS2_32: ${HAVE_LIBWS2_32}")
     message(STATUS "HAVE_LIBELF_H: ${HAVE_LIBELF_H}")
     message(STATUS "HAVE_LIBELF_LIBELF_H: ${HAVE_LIBELF_LIBELF_H}")
     message(STATUS "HAVE_USB_H: ${HAVE_USB_H}")
@@ -472,7 +528,6 @@ add_library(libavrdude STATIC
     lists.c
     micronucleus.c
     micronucleus.h
-    my_ddk_hidsdi.h
     par.c
     par.h
     pgm.c

@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003-2004  Eric B. Weddington <eric@ecentral.com>
+ * Copyright (C) 2018 Marius Greuel
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,33 +16,28 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _TIME_H_
+#define _TIME_H_
 
-#include "avrdude.h"
-#include "libavrdude.h"
-
-#if defined(WIN32)
-
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
-static char *filename;
-
-void win_sys_config_set(char sys_config[PATH_MAX])
+// If you need both <windows.h> and <sys/time.h>,
+// make sure you include <windows.h> first.
+#ifndef _WINSOCKAPI_
+#ifndef _TIMEVAL_DEFINED
+#define _TIMEVAL_DEFINED
+struct timeval
 {
-    sys_config[0] = 0;
+    long tv_sec;
+    long tv_usec;
+};
+#endif /* _TIMEVAL_DEFINED */
+#endif /* _WINSOCKAPI_ */
 
-    /* Use Windows API call to search for the Windows default system config file.*/
-    SearchPath(NULL, SYSTEM_CONF_FILE, NULL, PATH_MAX, sys_config, &filename);
-    return;
-}
-
-void win_usr_config_set(char usr_config[PATH_MAX])
+struct timezone
 {
-    usr_config[0] = 0;
+    int tz_minuteswest;
+    int tz_dsttime;
+};
 
-    /* Use Windows API call to search for the Windows default user config file. */
-	SearchPath(NULL, USER_CONF_FILE, NULL, PATH_MAX, usr_config, &filename);
-    return;
-}
+int __cdecl gettimeofday(struct timeval* p, void* z);
 
 #endif

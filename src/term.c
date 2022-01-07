@@ -27,10 +27,8 @@
 #include <limits.h>
 
 #if defined(HAVE_LIBREADLINE)
-#if !defined(WIN32NATIVE)
 #  include <readline/readline.h>
 #  include <readline/history.h>
-#endif
 #endif
 
 #include "avrdude.h"
@@ -919,7 +917,7 @@ static int do_cmd(PROGRAMMER * pgm, struct avrpart * p,
 
 char * terminal_get_input(const char *prompt)
 {
-#if defined(HAVE_LIBREADLINE) && !defined(WIN32NATIVE)
+#if defined(HAVE_LIBREADLINE) && !defined(WIN32)
   char *input;
   input = readline(prompt);
   if ((input != NULL) && (strlen(input) >= 1))

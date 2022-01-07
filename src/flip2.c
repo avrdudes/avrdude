@@ -20,18 +20,13 @@
 
 #include "ac_cfg.h"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <limits.h>
 #include <unistd.h>
-
-#if HAVE_STDINT_H
-#include <stdint.h>
-#elif HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -617,7 +612,7 @@ int flip2_read_memory(struct dfu_dev *dfu,
       return -1;
     }
 
-    ptr += read_size;
+    ptr = (char*)ptr + read_size;
     addr += read_size;
     size -= read_size;
   }
@@ -680,7 +675,7 @@ int flip2_write_memory(struct dfu_dev *dfu,
       return -1;
     }
 
-    ptr += write_size;
+    ptr = (const char*)ptr + write_size;
     addr += write_size;
     size -= write_size;
   }

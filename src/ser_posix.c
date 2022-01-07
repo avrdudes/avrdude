@@ -23,7 +23,7 @@
  * Posix serial interface for avrdude.
  */
 
-#if !defined(WIN32NATIVE)
+#if !defined(WIN32)
 
 #include "ac_cfg.h"
 
@@ -174,7 +174,6 @@ static int ser_setparams(union filedescriptor *fd, long baud, unsigned long cfla
 static int
 net_open(const char *port, union filedescriptor *fdp)
 {
-#ifdef HAVE_GETADDRINFO
   char *hp, *hstr, *pstr;
   int s, fd, ret = -1;
   struct addrinfo hints;
@@ -247,12 +246,6 @@ net_open(const char *port, union filedescriptor *fdp)
 error:
   free(hp);
   return ret;
-#else
-  avrdude_message(MSG_INFO,
-	  "%s: Networking is not supported on your platform.\n"
-	  "If you need it, please open a bug report.\n", progname);
-  return -1;
-#endif /* HAVE_GETADDRINFO */
 }
 
 
@@ -526,4 +519,4 @@ struct serial_device serial_serdev =
 
 struct serial_device *serdev = &serial_serdev;
 
-#endif  /* WIN32NATIVE */
+#endif  /* WIN32 */

@@ -228,9 +228,6 @@ AC_HEADER_TIME
 
 AC_CHECK_HEADERS([netinet/in.h])
 
-# WinSock2
-AC_CHECK_LIB([ws2_32], [puts])
-
 # Checks for library functions.
 AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strtoul gettimeofday usleep getaddrinfo])
 
@@ -239,12 +236,7 @@ SAVED_LIBS="${LIBS}"
 case $target in
         *-*-mingw32* | *-*-cygwin* | *-*-windows*)
 		LIBHID="-lhid -lsetupapi"
-		if test $ac_cv_header_ddk_hidsdi_h = yes
-		then
-			HIDINCLUDE="#include <ddk/hidsdi.h>"
-		else
-			HIDINCLUDE="#include \"my_ddk_hidsdi.h\""
-		fi
+		HIDINCLUDE="#include <hidsdi.h>"
 		;;
 	*)
 		LIBHID=""

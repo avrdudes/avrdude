@@ -362,7 +362,7 @@ int main(int argc, char * argv [])
 
   char * safemode_response;
   int fuses_updated = 0;
-#if !defined(WIN32NATIVE)
+#if !defined(WIN32)
   char  * homedir;
 #endif
 
@@ -377,10 +377,10 @@ int main(int argc, char * argv [])
 
   progname = strrchr(argv[0],'/');
 
-#if defined (WIN32NATIVE)
+#if defined (WIN32)
   /* take care of backslash as dir sep in W32 */
   if (!progname) progname = strrchr(argv[0],'\\');
-#endif /* WIN32NATIVE */
+#endif /* WIN32 */
 
   if (progname)
     progname++;
@@ -730,7 +730,7 @@ int main(int argc, char * argv [])
     }
     if (!sys_config_found) {
       // 3. Check CONFIG_DIR/avrdude.conf
-#if defined(WIN32NATIVE)
+#if defined(WIN32)
       win_sys_config_set(sys_config);
 #else
       strcpy(sys_config, CONFIG_DIR);
@@ -754,7 +754,7 @@ int main(int argc, char * argv [])
    * -----------
    * Determine the location of '.avrduderc'.
    */
-#if defined(WIN32NATIVE)
+#if defined(WIN32)
   win_usr_config_set(usr_config);
 #else
   usr_config[0] = 0;
