@@ -760,11 +760,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                               unsigned int page_size,
                               unsigned int addr, unsigned int n_bytes)
 {
-#ifdef _MSC_VER
-  unsigned char* buf = _alloca(page_size + 16);
-#else
-  unsigned char buf[page_size + 16];
-#endif
+  unsigned char* buf = alloca(page_size + 16);
   int memtype;
   int a_div;
   int block_size;

@@ -22,11 +22,7 @@
 #include <stdlib.h>
 #include <io.h>
 #include <intrin.h> 
-
-#pragma warning(disable : 4018) // warning C4018: signed/unsigned mismatch
-#pragma warning(disable : 4244) // warning C4244: conversion from '...' to '...', possible loss of data
-#pragma warning(disable : 4267) // warning C4267: conversion from '...' to '...', possible loss of data
-#pragma warning(disable : 5105) // warning C5105: macro expansion producing 'defined' has undefined behavior
+#include <malloc.h> 
 
 #pragma comment(lib, "hid.lib")
 #pragma comment(lib, "ws2_32.lib")

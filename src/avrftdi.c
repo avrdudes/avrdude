@@ -356,15 +356,8 @@ static int avrftdi_transmit_bb(PROGRAMMER * pgm, unsigned char mode, const unsig
 	blocksize = MAX(1,(max_size-7)/((8*2*6)+(8*1*2)));
 	//avrdude_message(MSG_INFO, "blocksize %d \n",blocksize);
 
-	size_t send_buffer_size = (8 * 2 * 6) * blocksize + (8 * 1 * 2) * blocksize + 7;
-	size_t recv_buffer_size = 2 * 16 * blocksize;
-#ifdef _MSC_VER
-	unsigned char* send_buffer = _alloca(send_buffer_size);
-	unsigned char* recv_buffer = _alloca(recv_buffer_size);
-#else
-	unsigned char send_buffer[send_buffer_size];
-	unsigned char recv_buffer[recv_buffer_size];
-#endif
+	unsigned char* send_buffer = alloca((8 * 2 * 6) * blocksize + (8 * 1 * 2) * blocksize + 7);
+	unsigned char* recv_buffer = alloca(2 * 16 * blocksize);
 
 	while(remaining)
 	{
@@ -966,11 +959,7 @@ static int avrftdi_eeprom_read(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
 {
 	unsigned char cmd[4];
 	unsigned int add;
-#ifdef _MSC_VER
-	unsigned char* buffer = _alloca(len);
-#else
-	unsigned char buffer[len];
-#endif
+	unsigned char* buffer = alloca(len);
 	unsigned char* bufptr = buffer;
 
 	memset(buffer, 0, len);
@@ -998,19 +987,14 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	
 	unsigned int word;
 	unsigned int poll_index;
-	unsigned int buf_size;
 
 	unsigned char poll_byte;
 	unsigned char *buffer = &m->buf[addr];
-	unsigned int alloc_size = 4 * len + 4;
-#ifdef _MSC_VER
-	unsigned char* buf = _alloca(alloc_size);
-#else
-	unsigned char buf[alloc_size];
-#endif
+	unsigned int buf_size = 4 * len + 4;
+	unsigned char* buf = alloca(buf_size);
 	unsigned char* bufptr = buf;
 
-	memset(buf, 0, alloc_size);
+	memset(buf, 0, buf_size);
 
 	/* pre-check opcodes */
 	if (m->op[AVR_OP_LOADPAGE_LO] == NULL) {
@@ -1127,13 +1111,8 @@ static int avrftdi_flash_read(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	unsigned int address = addr/2;
 
 	unsigned int buf_size = 4 * len + 4;
-#ifdef _MSC_VER
-	unsigned char* o_buf = _alloca(buf_size);
-	unsigned char* i_buf = _alloca(buf_size);
-#else
-	unsigned char o_buf[buf_size];
-	unsigned char i_buf[buf_size];
-#endif
+	unsigned char* o_buf = alloca(buf_size);
+	unsigned char* i_buf = alloca(buf_size);
 	unsigned int index;
 
 	memset(o_buf, 0, buf_size);
