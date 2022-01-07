@@ -58,6 +58,7 @@ Changes since version 6.4:
     - term: fix memleakOnRealloc #806
     - Add missing ATtiny targets to avrdude.conf #803
     - Add support for Teensy bootloader #802
+    - Conffile clean up #801
 
   * Internals:
 
