@@ -583,6 +583,10 @@ static int serialupdi_initialize(PROGRAMMER * pgm, AVRPART * p)
   }
   avrdude_message(MSG_INFO, "%s: UPDI link initialization OK\n", progname);
 
+  if (updi_get_rts_mode(pgm) != RTS_MODE_DEFAULT) {
+    avrdude_message(MSG_INFO, "%s: Forcing serial DTR/RTS handshake lines %s\n", progname, updi_get_rts_mode(pgm) == RTS_MODE_LOW ? "LOW" : "HIGH");
+  }
+
   if (updi_read_cs(pgm, UPDI_ASI_SYS_STATUS, &value)<0) {
 
     /* let's try reset the connection */
