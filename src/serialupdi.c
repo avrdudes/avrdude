@@ -185,6 +185,10 @@ static void serialupdi_close(PROGRAMMER * pgm)
   if (serialupdi_leave_progmode(pgm) < 0) {
     avrdude_message(MSG_INFO, "%s: Unable to leave NVM programming mode\n", progname);
   }
+  if (updi_get_rts_mode(pgm) != RTS_MODE_DEFAULT) {
+    avrdude_message(MSG_INFO, "%s: Releasing DTR/RTS handshake lines\n", progname);
+  }
+
   updi_link_close(pgm);
 }
 
