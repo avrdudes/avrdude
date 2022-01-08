@@ -61,11 +61,19 @@ typedef struct
   char debug_version;
 } updi_sib_info;
 
+typedef enum
+{
+  RTS_MODE_DEFAULT,
+  RTS_MODE_LOW,
+  RTS_MODE_HIGH
+} updi_rts_mode;
+
 typedef struct
 {
   updi_sib_info sib_info;
   updi_datalink_mode datalink_mode;
   updi_nvm_mode nvm_mode;
+  updi_rts_mode rts_mode;
 } updi_state;
 
 #ifdef __cplusplus
@@ -77,6 +85,8 @@ updi_datalink_mode updi_get_datalink_mode(PROGRAMMER * pgm);
 void updi_set_datalink_mode(PROGRAMMER * pgm, updi_datalink_mode mode);
 updi_nvm_mode updi_get_nvm_mode(PROGRAMMER * pgm);
 void updi_set_nvm_mode(PROGRAMMER * pgm, updi_nvm_mode mode);
+updi_rts_mode updi_get_rts_mode(PROGRAMMER * pgm);
+void updi_set_rts_mode(PROGRAMMER * pgm, updi_rts_mode mode);
 
 #ifdef __cplusplus
 }

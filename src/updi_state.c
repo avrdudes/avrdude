@@ -53,3 +53,13 @@ void updi_set_nvm_mode(PROGRAMMER * pgm, updi_nvm_mode mode)
 {
   ((updi_state *)(pgm->cookie))->nvm_mode = mode;
 }
+
+updi_rts_mode updi_get_rts_mode(PROGRAMMER * pgm)
+{
+  return ((updi_state *)(pgm->cookie))->rts_mode;
+}
+
+void updi_set_rts_mode(PROGRAMMER * pgm, updi_rts_mode mode)
+{
+  ((updi_state *)(pgm->cookie))->rts_mode = mode;
+}

@@ -39,9 +39,16 @@
 #include "updi_constants.h"
 #include "updi_state.h"
 
-static void msleep(int tms)
+static void updi_set_rtsdtr_mode(PROGRAMMER* pgm)
 {
-    usleep(tms * 1000);
+  updi_rts_mode rts_mode = updi_get_rts_mode(pgm);
+
+  if (rts_mode == RTS_MODE_DEFAULT) {
+    return;
+  }
+
+  serial_set_dtr_rts(&pgm->fd, 0);
+  serial_set_dtr_rts(&pgm->fd, rts_mode == RTS_MODE_LOW ? 1 : 0);
 }
 
 static int updi_physical_open(PROGRAMMER* pgm, int baudrate, unsigned long cflags)
@@ -65,11 +72,17 @@ static int updi_physical_open(PROGRAMMER* pgm, int baudrate, unsigned long cflag
    */
   serial_drain(&pgm->fd, 0);
 
+  /*
+   * set RTS/DTR mode if needed
+   */
+  updi_set_rtsdtr_mode(pgm);
+
   return 0;
 }
 
 static void updi_physical_close(PROGRAMMER* pgm)
 {
+  serial_set_dtr_rts(&pgm->fd, 0);
   serial_close(&pgm->fd);
   pgm->fd.ifd = -1;
 }
@@ -124,28 +137,31 @@ static int updi_physical_send_double_break(PROGRAMMER * pgm)
 
   avrdude_message(MSG_DEBUG, "%s: Sending double break\n", progname);
 
-  updi_physical_close(pgm);
-
-  if (updi_physical_open(pgm, 300, SERIAL_8E1)==-1) {
-
+  if (serial_setparams(&pgm->fd, 300, SERIAL_8E1) < 0) {
     return -1;
   }
 
-  buffer[0] = UPDI_BREAK;
-
-  serial_send(&pgm->fd, buffer, 1);
-  serial_recv(&pgm->fd, buffer, 1);
-
-  msleep(100);
+  updi_set_rtsdtr_mode(pgm);
 
   buffer[0] = UPDI_BREAK;
 
   serial_send(&pgm->fd, buffer, 1);
   serial_recv(&pgm->fd, buffer, 1);
 
-  updi_physical_close(pgm);
+  usleep(100*1000);
 
-  return updi_physical_open(pgm, pgm->baudrate? pgm->baudrate: 115200, SERIAL_8E2);
+  buffer[0] = UPDI_BREAK;
+
+  serial_send(&pgm->fd, buffer, 1);
+  serial_recv(&pgm->fd, buffer, 1);
+
+  if (serial_setparams(&pgm->fd, pgm->baudrate? pgm->baudrate: 115200, SERIAL_8E2) < 0) {
+    return -1;
+  }
+
+  updi_set_rtsdtr_mode(pgm);
+
+  return 0;
 }
 
 int updi_physical_sib(PROGRAMMER * pgm, unsigned char * buffer, uint8_t size)

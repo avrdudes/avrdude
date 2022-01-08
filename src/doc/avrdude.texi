@@ -1067,6 +1067,18 @@ The remaining two necessary XBee-to-MCU connections are not selectable
 the MCU's ‘TXD’ line.
 @end table
 
+@item serialupdi
+Extended parameters:
+@table @code
+@item @samp{rtsdtr=low|high}
+Forces RTS/DTR lines to assume low or high state during the whole
+programming session. Some programmers might use this signal to 
+indicate UPDI programming state, but this is strictly hardware
+specific.
+
+When not provided, driver/OS default value will be used.
+@end table
+
 @end table
 
 @page
