@@ -9,15 +9,19 @@ Changes since version 6.4:
 
   * Major changes compared to the previous version:
 
+    - Completely revamped Windows support, including MSVC
+    - Started to add CMake (by now, parallel with autoconf/automake)
 
   * New devices supported:
 
+    - ATtiny828, ATtiny87, ATtiny167, ATtiny48, ATtiny102, ATtiny104
 
   * New programmers supported:
 
     - SerialUPDI (UPDI devices connected to serial port with few
       passive parts)
     - PicKit4 / SNAP (now also in ISP and PDI mode)
+    - Teensy bootloader (PR #802)
 
   * Issues fixed:
 
@@ -29,6 +33,9 @@ Changes since version 6.4:
     - CMake doesn't correctly handle conditionals in avrdude.conf.in
       #776
     - CMake: Recognize more than just bison #785
+    - [bug #26007] ATTiny167 not supported #150
+    - [bug #47375] ATtiny102/104 descriptions missing in configuration
+      file #409
 
   * Pull requests:
 
@@ -50,6 +57,14 @@ Changes since version 6.4:
     - buspirate: fix -Wtautological-constant-out-of-range-compare #796
     - avrftdi: don't use the deprecated ftdi_usb_purge_buffers routine #792
     - Ignore ctags index file #804
+    - term: fix memleakOnRealloc #806
+    - Add missing ATtiny targets to avrdude.conf #803
+    - Add support for Teensy bootloader #802
+    - Conffile clean up #801
+    - Fix typos all over the code #807
+    - Add MSVC builds and better WinUSB/FTDI support #798
+    - buspirate: fix invalidScanfArgType_int warning #808
+    - Ignore ac_cfg.h.in~ #810
 
   * Internals:
 

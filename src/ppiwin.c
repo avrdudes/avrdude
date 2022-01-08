@@ -32,8 +32,9 @@ reg = register as defined in an enum in ppi.h. This must be converted
 
 #include "ac_cfg.h"
 
-#if defined (WIN32NATIVE)
+#if defined(HAVE_PARPORT) && defined(WIN32)
 
+#define WIN32_LEAN_AND_MEAN
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -336,82 +337,4 @@ static void outb(unsigned char value, unsigned short port)
     return;
 }
 
-#if !defined(HAVE_GETTIMEOFDAY)
-struct timezone;
-int gettimeofday(struct timeval *tv, struct timezone *unused){
-// i've found only ms resolution, avrdude expects us
-
-	SYSTEMTIME st;
-	GetSystemTime(&st);
-  
-	tv->tv_sec=(long)(st.wSecond+st.wMinute*60+st.wHour*3600);
-	tv->tv_usec=(long)(st.wMilliseconds*1000);
-
-	return 0;
-}
-#endif /* HAVE_GETTIMEOFDAY */
-
-// #define W32USLEEPDBG
-
-#ifdef W32USLEEPDBG
-
-#  define DEBUG_QueryPerformanceCounter(arg) QueryPerformanceCounter(arg)
-#  define DEBUG_DisplayTimingInfo(start, stop, freq, us, has_highperf)     \
-     do {                                                                  \
-       unsigned long dt;                                                   \
-       dt = (unsigned long)((stop.QuadPart - start.QuadPart) * 1000 * 1000 \
-                            / freq.QuadPart);                              \
-       avrdude_message(MSG_INFO, \
-               "hpt:%i usleep usec:%lu sleep msec:%lu timed usec:%lu\n",   \
-               has_highperf, us, ((us + 999) / 1000), dt);                 \
-     } while (0)
-
-#else
-
-#  define DEBUG_QueryPerformanceCounter(arg)
-#  define DEBUG_DisplayTimingInfo(start, stop, freq, us, has_highperf)
-
 #endif
-
-#if !defined(HAVE_USLEEP)
-int usleep(unsigned int us)
-{
-	int has_highperf;
-	LARGE_INTEGER freq,start,stop,loopend;
-
-	// workaround: although usleep is very precise if using
-	// high-performance-timers there are sometimes problems with
-	// verify - increasing the delay helps sometimes but not
-	// realiably. There must be some other problem. Maybe just
-	// with my test-hardware maybe in the code-base.
-	//// us=(unsigned long) (us*1.5);
-
-	has_highperf=QueryPerformanceFrequency(&freq);
-
-	//has_highperf=0; // debug
-
-	if (has_highperf) {
-		QueryPerformanceCounter(&start);
-		loopend.QuadPart=start.QuadPart+freq.QuadPart*us/(1000*1000);
-		do {
-			QueryPerformanceCounter(&stop);
-		} while (stop.QuadPart<=loopend.QuadPart);
-	}
-	else {
-		DEBUG_QueryPerformanceCounter(&start);
-
-		Sleep(1);
-		Sleep( (DWORD)((us+999)/1000) );
-
-		DEBUG_QueryPerformanceCounter(&stop);
-	}
-
-    DEBUG_DisplayTimingInfo(start, stop, freq, us, has_highperf);
-
-    return 0;
-}
-#endif  /* !HAVE_USLEEP */
-
-#endif
-
-

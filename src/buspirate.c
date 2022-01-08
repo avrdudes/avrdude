@@ -41,9 +41,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#if defined(WIN32NATIVE)
-#  include <malloc.h>  /* for alloca() */
-#endif
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -860,7 +857,8 @@ static int buspirate_cmd_ascii(struct programmer_t *pgm,
 {
 	char buf[25];
 	char *rcvd;
-	int spi_write, spi_read, i = 0;
+	int i = 0;
+	unsigned int spi_write, spi_read;
 
 	snprintf(buf, sizeof(buf), "0x%02x 0x%02x 0x%02x 0x%02x\n",
 		cmd[0], cmd[1], cmd[2], cmd[3]);

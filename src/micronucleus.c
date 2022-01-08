@@ -119,7 +119,10 @@ static int micronucleus_check_connection(pdata_t* pdata)
         int result = usb_control_msg(
             pdata->usb_handle,
             USB_ENDPOINT_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-            MICRONUCLEUS_CMD_INFO, 0, 0, (char*)buffer, sizeof(buffer), MICRONUCLEUS_DEFAULT_TIMEOUT);
+            MICRONUCLEUS_CMD_INFO,
+            0, 0,
+            (char*)buffer, sizeof(buffer),
+            MICRONUCLEUS_DEFAULT_TIMEOUT);
         return result == sizeof(buffer) ? 0 : -1;
     }
     else
@@ -128,7 +131,10 @@ static int micronucleus_check_connection(pdata_t* pdata)
         int result = usb_control_msg(
             pdata->usb_handle,
             USB_ENDPOINT_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-            MICRONUCLEUS_CMD_INFO, 0, 0, (char*)buffer, sizeof(buffer), MICRONUCLEUS_DEFAULT_TIMEOUT);
+            MICRONUCLEUS_CMD_INFO,
+            0, 0,
+            (char*)buffer, sizeof(buffer),
+            MICRONUCLEUS_DEFAULT_TIMEOUT);
         return result == sizeof(buffer) ? 0 : -1;
     }
 }
@@ -160,7 +166,10 @@ static int micronucleus_get_bootloader_info_v1(pdata_t* pdata)
     int result = usb_control_msg(
         pdata->usb_handle,
         USB_ENDPOINT_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-        MICRONUCLEUS_CMD_INFO, 0, 0, (char*)buffer, sizeof(buffer), MICRONUCLEUS_DEFAULT_TIMEOUT);
+        MICRONUCLEUS_CMD_INFO,
+        0, 0,
+        (char*)buffer, sizeof(buffer),
+        MICRONUCLEUS_DEFAULT_TIMEOUT);
     if (result < 0)
     {
         avrdude_message(MSG_INFO, "%s: WARNING: Failed to get bootloader info block: %s\n",
@@ -226,7 +235,10 @@ static int micronucleus_get_bootloader_info_v2(pdata_t* pdata)
     int result = usb_control_msg(
         pdata->usb_handle,
         USB_ENDPOINT_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-        MICRONUCLEUS_CMD_INFO, 0, 0, (char*)buffer, sizeof(buffer), MICRONUCLEUS_DEFAULT_TIMEOUT);
+        MICRONUCLEUS_CMD_INFO,
+        0, 0,
+        (char*)buffer, sizeof(buffer),
+        MICRONUCLEUS_DEFAULT_TIMEOUT);
     if (result < 0)
     {
         avrdude_message(MSG_INFO, "%s: WARNING: Failed to get bootloader info block: %s\n",
@@ -291,7 +303,10 @@ static int micronucleus_erase_device(pdata_t* pdata)
     int result = usb_control_msg(
         pdata->usb_handle,
         USB_ENDPOINT_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-        MICRONUCLEUS_CMD_ERASE, 0, 0, NULL, 0, MICRONUCLEUS_DEFAULT_TIMEOUT);
+        MICRONUCLEUS_CMD_ERASE,
+        0, 0,
+        NULL, 0,
+        MICRONUCLEUS_DEFAULT_TIMEOUT);
     if (result < 0)
     {
         switch (result)
@@ -391,11 +406,12 @@ static void micronucleus_patch_user_vector(pdata_t* pdata, uint8_t* buffer)
 
 static int micronucleus_write_page_v1(pdata_t* pdata, uint32_t address, uint8_t* buffer, uint32_t size)
 {
-    int result = usb_control_msg(pdata->usb_handle,
+    int result = usb_control_msg(
+        pdata->usb_handle,
         USB_ENDPOINT_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
         MICRONUCLEUS_CMD_TRANSFER,
         size, address,
-        buffer, size,
+        (char*)buffer, size,
         MICRONUCLEUS_DEFAULT_TIMEOUT);
     if (result < 0)
     {
@@ -501,7 +517,10 @@ static int micronucleus_start(pdata_t* pdata)
     int result = usb_control_msg(
         pdata->usb_handle,
         USB_ENDPOINT_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-        MICRONUCLEUS_CMD_START, 0, 0, NULL, 0, MICRONUCLEUS_DEFAULT_TIMEOUT);
+        MICRONUCLEUS_CMD_START,
+        0, 0,
+        NULL, 0,
+        MICRONUCLEUS_DEFAULT_TIMEOUT);
     if (result < 0)
     {
         avrdude_message(MSG_INFO, "%s: WARNING: Failed is issue start command: %s\n", progname, usb_strerror());

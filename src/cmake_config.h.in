@@ -35,18 +35,6 @@
 
 /* ----- Functions ----- */
 
-/* Define to 1 if you have the `usleep' function. */
-#cmakedefine HAVE_USLEEP 1
-
-/* Define to 1 if you have the `getaddrinfo' function. */
-#cmakedefine HAVE_GETADDRINFO 1
-
-/* Define to 1 if you have the `gettimeofday' function. */
-#cmakedefine HAVE_GETTIMEOFDAY 1
-
-/* Define to 1 if you have the `strcasecmp' function. */
-#cmakedefine HAVE_STRCASECMP 1
-
 /* Define if lex/flex has yylex_destroy */
 #cmakedefine HAVE_YYLEX_DESTROY 1
 
@@ -60,15 +48,6 @@
 
 /* Define to 1 if the system has the type `ulong_t'. */
 #cmakedefine HAVE_ULONG_T 1
-
-/* Define to 1 if you have the <stdint.h> header file. */
-#cmakedefine HAVE_STDINT_H 1
-
-/* Define to 1 if you have the <stdlib.h> header file. */
-#cmakedefine HAVE_STDLIB_H 1
-
-/* Define to 1 if you have the <inttypes.h> header file. */
-#cmakedefine HAVE_INTTYPES_H 1
 
 /* Define if ELF support is enabled via libelf */
 #cmakedefine HAVE_LIBELF 1
@@ -120,9 +99,3 @@
 
 /* Define to 1 if you have the `readline' library (-lreadline). */
 #cmakedefine HAVE_LIBREADLINE 1
-
-/* Define to 1 if you have the `ws2_32' library (-lws2_32). */
-#cmakedefine HAVE_LIBWS2_32 1
-
-/* Define to 1 if you have the <netinet/in.h> header file. */
-#cmakedefine HAVE_NETINET_IN_H 1

@@ -138,7 +138,6 @@ libavrdude_a_SOURCES = \
 	lists.c \
 	micronucleus.c \
 	micronucleus.h \
-	my_ddk_hidsdi.h \
 	par.c \
 	par.h \
 	pgm.c \
@@ -165,6 +164,8 @@ libavrdude_a_SOURCES = \
 	stk500v2_private.h \
 	stk500generic.c \
 	stk500generic.h \
+	teensy.c \
+	teensy.h \
 	tpi.h \
 	usbasp.c \
 	usbasp.h \

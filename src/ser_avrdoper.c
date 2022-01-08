@@ -26,7 +26,7 @@
 
 #include "ac_cfg.h"
 
-#if defined(HAVE_LIBHIDAPI) || (defined(WIN32NATIVE) && defined(HAVE_LIBHID))
+#if defined(HAVE_LIBHIDAPI) || (defined(WIN32) && defined(HAVE_LIBHID))
 
 #include <stdio.h>
 #include <string.h>
@@ -161,15 +161,11 @@ static int usbGetReport(union filedescriptor *fdp, int reportType, int reportNum
 /* ------------------------------------------------------------------------ */
 
 
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <setupapi.h>
-
-#if defined(HAVE_DDK_HIDSDI_H)
-#  include <ddk/hidsdi.h>
-#else
-#  include "my_ddk_hidsdi.h"
-#endif
-#include <ddk/hidpi.h>
+#include <hidsdi.h>
+#include <hidpi.h>
 
 #ifdef USB_DEBUG
 #define DEBUG_PRINT(arg)    printf arg
@@ -332,7 +328,7 @@ static int usbGetReport(union filedescriptor *fdp, int reportType, int reportNum
     return rval == 0 ? USB_ERROR_IO : 0;
 }
 
-#endif  /* WIN32NATIVE */
+#endif  /* WIN32 */
 
 /* ------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------ */
@@ -555,4 +551,4 @@ struct serial_device avrdoper_serdev =
   .flags = SERDEV_FL_NONE,
 };
 
-#endif /* defined(HAVE_LIBHIDAPI) || (defined(WIN32NATIVE) && defined(HAVE_LIBHID)) */
+#endif /* defined(HAVE_LIBHIDAPI) || (defined(WIN32) && defined(HAVE_LIBHID)) */

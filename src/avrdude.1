@@ -115,7 +115,7 @@ programmer type can be used to directly connect to and program a chip
 using the built in interfaces on the computer. The requirements to use
 this type are that an SPI interface is exposed along with one GPIO
 pin. The GPIO serves as the reset output since the Linux SPI drivers
-do not hold slave select down when a transfer is not occuring and thus
+do not hold slave select down when a transfer is not occurring and thus
 it cannot be used as the reset pin. A readily available level
 translator should be used between the SPI bus/reset GPIO and the chip
 to avoid potentially damaging the computer's SPI controller in the
@@ -244,10 +244,19 @@ The Micronucleus bootloader is supported for both protocol version V1
 and V2. As the bootloader does not support reading from flash memory,
 use the
 .Fl V
-option to prevent AVRDUDE from verifing the flash memory.
+option to prevent AVRDUDE from verifying the flash memory.
 See the section on
 .Em extended parameters
 for Micronucleus specific options.
+.Pp
+The Teensy bootloader is supported for all AVR boards.
+As the bootloader does not support reading from flash memory,
+use the
+.Fl V
+option to prevent AVRDUDE from verifing the flash memory.
+See the section on
+.Em extended parameters
+for Teensy specific options.
 .Pp
 Input files can be provided, and output files can be written in
 different file formats, such as raw binary files containing the data
@@ -549,9 +558,9 @@ be specified as
 Libhidapi support is required on Unix and Mac OS but not on Windows. For more
 information about AVR-Doper see http://www.obdev.at/avrusb/avrdoper.html.
 .Pp
-For the USBtinyISP, which is a simplicistic device not implementing
+For the USBtinyISP, which is a simplistic device not implementing
 serial numbers, multiple devices can be distinguished by their
-location in the USB hierarchy.  See the the respective
+location in the USB hierarchy.  See the respective
 .Em Troubleshooting
 entry in the detailed documentation for examples.
 .Pp
@@ -599,10 +608,10 @@ Posix systems (by now).
 Disable (or quell) output of the progress bar while reading or writing
 to the device.  Specify it a second time for even quieter operation.
 .It Fl s
-Disable safemode prompting.  When safemode discovers that one or more
+Disable safemode prompting. When safemode discovers that one or more
 fuse bits have unintentionally changed, it will prompt for
 confirmation regarding whether or not it should attempt to recover the
-fuse bit(s).  Specifying this flag disables the prompt and assumes
+fuse bit(s). Specifying this flag disables the prompt and assumes
 that the fuse bit(s) should be recovered without asking for
 confirmation first.
 .It Fl t
@@ -1101,6 +1110,16 @@ can speed up programming a lot.
 The default value is 100ms. Using 10ms might work in most cases. 
 .El
 .It Ar Micronucleus bootloader
+.Bl -tag -offset indent -width indent
+.It Ar wait[=<timeout>]
+If the device is not connected, wait for the device to be plugged in.
+The optional
+.Ar timeout
+specifies the connection time-out in seconds.
+If no time-out is specified, AVRDUDE will wait indefinitely until the
+device is plugged in.
+.El
+.It Ar Teensy bootloader
 .Bl -tag -offset indent -width indent
 .It Ar wait[=<timeout>]
 If the device is not connected, wait for the device to be plugged in.

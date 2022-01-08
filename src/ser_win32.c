@@ -17,22 +17,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
-
 /*
  * Native Win32 serial interface for avrdude.
  */
 
 #include "ac_cfg.h"
 
-#if defined(WIN32NATIVE)
+#if defined(WIN32)
 
-#ifdef HAVE_LIBWS2_32
-/* winsock2.h must be included before windows.h from avrdude.h... */
-#  include <winsock2.h>
-#endif
-
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <winsock2.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>   /* for isprint */
 #include <errno.h>   /* ENOTTY */
@@ -154,7 +150,6 @@ static int ser_setparams(union filedescriptor *fd, long baud, unsigned long cfla
 	}
 }
 
-#ifdef HAVE_LIBWS2_32
 static int
 net_open(const char *port, union filedescriptor *fdp)
 {
@@ -246,7 +241,6 @@ net_open(const char *port, union filedescriptor *fdp)
 	serial_over_ethernet = 1;
 	return 0;
 }
-#endif
 
 
 static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
@@ -260,14 +254,7 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
 	 * handle it as a TCP connection to a terminal server.
 	 */
 	if (strncmp(port, "net:", strlen("net:")) == 0) {
-#ifdef HAVE_LIBWS2_32
 		return net_open(port + strlen("net:"), fdp);
-#else
-		avrdude_message(MSG_INFO, "%s: ser_open(): "
-				"not configured for TCP connections\n",
-                                progname);
-		return -1;
-#endif
 	}
 
 	if (strncasecmp(port, "com", strlen("com")) == 0) {
@@ -370,7 +357,6 @@ static int ser_set_dtr_rts(union filedescriptor *fd, int is_on)
 	}
 }
 
-#ifdef HAVE_LIBWS2_32
 static int net_send(union filedescriptor *fd, const unsigned char * buf, size_t buflen)
 {
 	LPVOID lpMsgBuf;
@@ -429,16 +415,13 @@ static int net_send(union filedescriptor *fd, const unsigned char * buf, size_t 
 
 	return 0;
 }
-#endif
 
 
 static int ser_send(union filedescriptor *fd, const unsigned char * buf, size_t buflen)
 {
-#ifdef HAVE_LIBWS2_32
 	if (serial_over_ethernet) {
 		return net_send(fd, buf, buflen);
 	}
-#endif
 
 	size_t len = buflen;
 	unsigned char c='\0';
@@ -493,7 +476,6 @@ static int ser_send(union filedescriptor *fd, const unsigned char * buf, size_t 
 }
 
 
-#ifdef HAVE_LIBWS2_32
 static int net_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen)
 {
 	LPVOID lpMsgBuf;
@@ -587,15 +569,12 @@ reselect:
 
 	return 0;
 }
-#endif
 
 static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen)
 {
-#ifdef HAVE_LIBWS2_32
 	if (serial_over_ethernet) {
 		return net_recv(fd, buf, buflen);
 	}
-#endif
 
 	unsigned char c;
 	unsigned char * p = buf;
@@ -660,7 +639,6 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
   return 0;
 }
 
-#ifdef HAVE_LIBWS2_32
 static int net_drain(union filedescriptor *fd, int display)
 {
 	LPVOID lpMsgBuf;
@@ -739,15 +717,12 @@ static int net_drain(union filedescriptor *fd, int display)
 
 	return 0;
 }
-#endif
 
 static int ser_drain(union filedescriptor *fd, int display)
 {
-#ifdef HAVE_LIBWS2_32
 	if (serial_over_ethernet) {
 		return net_drain(fd, display);
 	}
-#endif
 
 	// int rc;
 	unsigned char buf[10];
@@ -813,4 +788,4 @@ struct serial_device serial_serdev =
 
 struct serial_device *serdev = &serial_serdev;
 
-#endif /* WIN32NATIVE */
+#endif /* WIN32 */

@@ -302,6 +302,17 @@ static void cleanup_main(void)
     cleanup_config();
 }
 
+static void replace_backslashes(char *s)
+{
+  // Replace all backslashes with forward slashes
+  for (int i = 0; i < strlen(s); i++) {
+    if (s[i] == '\\') {
+      s[i] = '/';
+    }
+  }
+}
+
+
 /*
  * main routine
  */
@@ -351,7 +362,7 @@ int main(int argc, char * argv [])
 
   char * safemode_response;
   int fuses_updated = 0;
-#if !defined(WIN32NATIVE)
+#if !defined(WIN32)
   char  * homedir;
 #endif
 
@@ -362,12 +373,14 @@ int main(int argc, char * argv [])
   setvbuf(stdout, (char*)NULL, _IOLBF, 0);
   setvbuf(stderr, (char*)NULL, _IOLBF, 0);
 
+  sys_config[0] = '\0';
+
   progname = strrchr(argv[0],'/');
 
-#if defined (WIN32NATIVE)
+#if defined (WIN32)
   /* take care of backslash as dir sep in W32 */
   if (!progname) progname = strrchr(argv[0],'\\');
-#endif /* WIN32NATIVE */
+#endif /* WIN32 */
 
   if (progname)
     progname++;
@@ -421,131 +434,6 @@ int main(int argc, char * argv [])
   silentsafe    = 0;       /* Ask by default */
   is_open       = 0;
   logfile       = NULL;
-
-  /* 
-   * EXECUTABLE ABSPATH
-   * ------------------
-   * Determine the absolute path to avrdude executable. This will be used to
-   * locate the 'avrdude.conf' file later.
-   */
-  int executable_dirpath_len;
-  int executable_abspath_len = wai_getExecutablePath(
-    executable_abspath,
-    PATH_MAX,
-    &executable_dirpath_len
-  );
-  if (
-    (executable_abspath_len != -1) &&
-    (executable_abspath_len != 0) &&
-    (executable_dirpath_len != -1) &&
-    (executable_dirpath_len != 0)
-  ) {
-    // All requirements satisfied, executable path was found
-    executable_abspath_found = true;
-
-    // Make sure the string is null terminated
-    executable_abspath[executable_abspath_len] = '\0';
-
-    // Replace all backslashes with forward slashes
-    i = 0;
-    while (true) {
-      if (executable_abspath[i] == '\0') {
-        break;
-      }
-      if (executable_abspath[i] == '\\') {
-        executable_abspath[i] = '/';
-      }
-      i++;
-    }
-
-    // Define 'executable_dirpath' to be the path to the parent folder of the
-    // executable.
-    strcpy(executable_dirpath, executable_abspath);
-    executable_dirpath[executable_dirpath_len] = '\0';
-
-    // Debug output
-    // avrdude_message(MSG_INFO, "executable_abspath = %s\n", executable_abspath);
-    // avrdude_message(MSG_INFO, "executable_abspath_len = %i\n", executable_abspath_len);
-    // avrdude_message(MSG_INFO, "executable_dirpath = %s\n", executable_dirpath);
-    // avrdude_message(MSG_INFO, "executable_dirpath_len = %i\n", executable_dirpath_len);   
-  }
-
-  /*
-   * SYSTEM CONFIG
-   * -------------
-   * Determine the location of 'avrdude.conf'. Check in this order:
-   *  1. <dirpath of executable>/../etc/avrdude.conf
-   *  2. <dirpath of executable>/avrdude.conf
-   *  3. CONFIG_DIR/avrdude.conf
-   * 
-   * When found, write the result into the 'sys_config' variable.
-   */
-  if (executable_abspath_found) {
-    // 1. Check <dirpath of executable>/../etc/avrdude.conf
-    strcpy(sys_config, executable_dirpath);
-    sys_config[PATH_MAX - 1] = '\0';
-    i = strlen(sys_config);
-    if (i && (sys_config[i - 1] != '/'))
-      strcat(sys_config, "/");
-    strcat(sys_config, "../etc/avrdude.conf");
-    sys_config[PATH_MAX - 1] = '\0';
-    if (access(sys_config, F_OK) == 0) {
-      sys_config_found = true;
-    }
-    else {
-      // 2. Check <dirpath of executable>/avrdude.conf
-      strcpy(sys_config, executable_dirpath);
-      sys_config[PATH_MAX - 1] = '\0';
-      i = strlen(sys_config);
-      if (i && (sys_config[i - 1] != '/'))
-        strcat(sys_config, "/");
-      strcat(sys_config, "avrdude.conf");
-      sys_config[PATH_MAX - 1] = '\0';
-      if (access(sys_config, F_OK) == 0) {
-        sys_config_found = true;
-      }
-    }
-  }
-  if (!sys_config_found) {
-    // 3. Check CONFIG_DIR/avrdude.conf
-#if defined(WIN32NATIVE)
-    win_sys_config_set(sys_config);
-#else
-    strcpy(sys_config, CONFIG_DIR);
-    i = strlen(sys_config);
-    if (i && (sys_config[i - 1] != '/'))
-      strcat(sys_config, "/");
-    strcat(sys_config, "avrdude.conf");
-#endif
-    if (access(sys_config, F_OK) == 0) {
-      sys_config_found = true;
-    }
-  }
-  // Debug output
-  // avrdude_message(MSG_INFO, "sys_config = %s\n", sys_config);
-  // avrdude_message(MSG_INFO, "sys_config_found = %s\n", sys_config_found ? "true" : "false");
-  // avrdude_message(MSG_INFO, "\n");
-
-  /*
-   * USER CONFIG
-   * -----------
-   * Determine the location of '.avrduderc'. Nothing changed here.
-   */
-#if defined(WIN32NATIVE)
-  win_usr_config_set(usr_config);
-#else
-  usr_config[0] = 0;
-  homedir = getenv("HOME");
-  if (homedir != NULL) {
-    strcpy(usr_config, homedir);
-    i = strlen(usr_config);
-    if (i && (usr_config[i - 1] != '/'))
-      strcat(usr_config, "/");
-    strcat(usr_config, ".avrduderc");
-  }
-#endif
-
-
 
   len = strlen(progname) + 2;
   for (i=0; i<len; i++)
@@ -763,6 +651,122 @@ int main(int argc, char * argv [])
       return 1;
     }
   }
+
+  /* search for system configuration file unless -C conffile was given */
+  if (strlen(sys_config) == 0) {
+    /*
+     * EXECUTABLE ABSPATH
+     * ------------------
+     * Determine the absolute path to avrdude executable. This will be used to
+     * locate the 'avrdude.conf' file later.
+     */
+    int executable_dirpath_len;
+    int executable_abspath_len = wai_getExecutablePath(
+      executable_abspath,
+      PATH_MAX,
+      &executable_dirpath_len
+    );
+    if (
+        (executable_abspath_len != -1) &&
+        (executable_abspath_len != 0) &&
+        (executable_dirpath_len != -1) &&
+        (executable_dirpath_len != 0)
+        ) {
+      // All requirements satisfied, executable path was found
+      executable_abspath_found = true;
+
+      // Make sure the string is null terminated
+      executable_abspath[executable_abspath_len] = '\0';
+
+      replace_backslashes(executable_abspath);
+
+      // Define 'executable_dirpath' to be the path to the parent folder of the
+      // executable.
+      strcpy(executable_dirpath, executable_abspath);
+      executable_dirpath[executable_dirpath_len] = '\0';
+
+      // Debug output
+      avrdude_message(MSG_DEBUG, "executable_abspath = %s\n", executable_abspath);
+      avrdude_message(MSG_DEBUG, "executable_abspath_len = %i\n", executable_abspath_len);
+      avrdude_message(MSG_DEBUG, "executable_dirpath = %s\n", executable_dirpath);
+      avrdude_message(MSG_DEBUG, "executable_dirpath_len = %i\n", executable_dirpath_len);
+    }
+
+    /*
+     * SYSTEM CONFIG
+     * -------------
+     * Determine the location of 'avrdude.conf'. Check in this order:
+     *  1. <dirpath of executable>/../etc/avrdude.conf
+     *  2. <dirpath of executable>/avrdude.conf
+     *  3. CONFIG_DIR/avrdude.conf
+     *
+     * When found, write the result into the 'sys_config' variable.
+     */
+    if (executable_abspath_found) {
+      // 1. Check <dirpath of executable>/../etc/avrdude.conf
+      strcpy(sys_config, executable_dirpath);
+      sys_config[PATH_MAX - 1] = '\0';
+      i = strlen(sys_config);
+      if (i && (sys_config[i - 1] != '/'))
+        strcat(sys_config, "/");
+      strcat(sys_config, "../etc/" SYSTEM_CONF_FILE);
+      sys_config[PATH_MAX - 1] = '\0';
+      if (access(sys_config, F_OK) == 0) {
+        sys_config_found = true;
+      }
+      else {
+        // 2. Check <dirpath of executable>/avrdude.conf
+        strcpy(sys_config, executable_dirpath);
+        sys_config[PATH_MAX - 1] = '\0';
+        i = strlen(sys_config);
+        if (i && (sys_config[i - 1] != '/'))
+          strcat(sys_config, "/");
+        strcat(sys_config, SYSTEM_CONF_FILE);
+        sys_config[PATH_MAX - 1] = '\0';
+        if (access(sys_config, F_OK) == 0) {
+          sys_config_found = true;
+        }
+      }
+    }
+    if (!sys_config_found) {
+      // 3. Check CONFIG_DIR/avrdude.conf
+#if defined(WIN32)
+      win_sys_config_set(sys_config);
+#else
+      strcpy(sys_config, CONFIG_DIR);
+      i = strlen(sys_config);
+      if (i && (sys_config[i - 1] != '/'))
+        strcat(sys_config, "/");
+      strcat(sys_config, SYSTEM_CONF_FILE);
+#endif
+      if (access(sys_config, F_OK) == 0) {
+        sys_config_found = true;
+      }
+    }
+  }
+  // Debug output
+  avrdude_message(MSG_DEBUG, "sys_config = %s\n", sys_config);
+  avrdude_message(MSG_DEBUG, "sys_config_found = %s\n", sys_config_found ? "true" : "false");
+  avrdude_message(MSG_DEBUG, "\n");
+
+  /*
+   * USER CONFIG
+   * -----------
+   * Determine the location of '.avrduderc'.
+   */
+#if defined(WIN32)
+  win_usr_config_set(usr_config);
+#else
+  usr_config[0] = 0;
+  homedir = getenv("HOME");
+  if (homedir != NULL) {
+    strcpy(usr_config, homedir);
+    i = strlen(usr_config);
+    if (i && (usr_config[i - 1] != '/'))
+      strcat(usr_config, "/");
+    strcat(usr_config, USER_CONF_FILE);
+  }
+#endif
 
   if (quell_progress == 0) {
     if (isatty (STDERR_FILENO))
@@ -1109,7 +1113,7 @@ int main(int argc, char * argv [])
   pgm->vfy_led(pgm, OFF);
 
   /*
-   * initialize the chip in preperation for accepting commands
+   * initialize the chip in preparation for accepting commands
    */
   init_ok = (rc = pgm->initialize(pgm, p)) >= 0;
   if (!init_ok) {

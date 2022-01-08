@@ -66,7 +66,7 @@ static int fd_spidev, fd_gpiochip, fd_linehandle;
 
 /**
  * @brief Sends/receives a message in full duplex mode
- * @return -1 on failure, otherwise number of bytes sent/recieved
+ * @return -1 on failure, otherwise number of bytes sent/received
  */
 static int linuxspi_spi_duplex(PROGRAMMER *pgm, const unsigned char *tx, unsigned char *rx, int len)
 {

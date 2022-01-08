@@ -27,10 +27,8 @@
 #include <limits.h>
 
 #if defined(HAVE_LIBREADLINE)
-#if !defined(WIN32NATIVE)
 #  include <readline/readline.h>
 #  include <readline/history.h>
-#endif
 #endif
 
 #include "avrdude.h"
@@ -827,12 +825,26 @@ static int tokenize(char * s, char *** argv)
     nbuf[0]  = 0;
     n++;
     if ((n % 20) == 0) {
+      char *buf_tmp;
+      char **bufv_tmp;
       /* realloc space for another 20 args */
       bufsize += 20;
       nargs   += 20;
       bufp     = buf;
-      buf      = realloc(buf, bufsize);
-      bufv     = realloc(bufv, nargs*sizeof(char *));
+      buf_tmp  = realloc(buf, bufsize);
+      if (buf_tmp == NULL) {
+        free(buf);
+        free(bufv);
+        return -1;
+      }
+      buf = buf_tmp;
+      bufv_tmp = realloc(bufv, nargs*sizeof(char *));
+      if (bufv_tmp == NULL) {
+        free(buf);
+        free(bufv);
+        return -1;
+      }
+      bufv = bufv_tmp;
       nbuf     = &buf[l];
       /* correct bufv pointers */
       k = buf - bufp;
@@ -905,7 +917,7 @@ static int do_cmd(PROGRAMMER * pgm, struct avrpart * p,
 
 char * terminal_get_input(const char *prompt)
 {
-#if defined(HAVE_LIBREADLINE) && !defined(WIN32NATIVE)
+#if defined(HAVE_LIBREADLINE) && !defined(WIN32)
   char *input;
   input = readline(prompt);
   if ((input != NULL) && (strlen(input) >= 1))
@@ -950,6 +962,10 @@ int terminal_mode(PROGRAMMER * pgm, struct avrpart * p)
 
     /* tokenize command line */
     argc = tokenize(q, &argv);
+    if (argc < 0) {
+      free(cmdbuf);
+      return argc;
+    }
 
     fprintf(stdout, ">>> ");
     for (i=0; i<argc; i++)

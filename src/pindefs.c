@@ -146,7 +146,7 @@ int pgm_fill_old_pins(struct programmer_t * const pgm) {
 /**
  * This function returns a string representation of pins in the mask eg. 1,3,5-7,9,12
  * Another execution of this function will overwrite the previous result in the static buffer.
- * Consecutive pin number are representated as start-end.
+ * Consecutive pin number are represented as start-end.
  *
  * @param[in] pinmask the pin mask for which we want the string representation
  * @returns pointer to a static string.

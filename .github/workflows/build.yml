@@ -1,0 +1,241 @@
+#
+# build.yml - GitHub build action for AVRDUDE
+# Copyright (C) 2021 Marius Greuel
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_call:
+
+env:
+  BUILD_TYPE: RelWithDebInfo
+
+jobs:
+  linux-x86_64:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install prerequisites
+        run: >-
+          sudo apt-get install -y
+          build-essential
+          cmake
+          flex
+          bison
+          libelf-dev
+          libusb-dev
+          libusb-1.0-0-dev
+          libhidapi-dev
+          libftdi1-dev
+          libreadline-dev
+      - name: Configure
+        run: >-
+          cmake
+          -D DEBUG_CMAKE=1
+          -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          -B ../build
+      - name: Build
+        run: cmake --build ../build
+      - name: Archive build artifacts
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux-x86_64
+          path: |
+            build/
+            !**/*.d
+            !**/*.o
+
+  linux:
+    runs-on: ubuntu-latest
+    container: debian:11
+    defaults:
+      run:
+        working-directory: ./src
+    strategy:
+      matrix:
+        include:
+          - { arch: i386, processor: i686, prefix: i686-linux-gnu, inc-lib: i386-linux-gnu }
+          - { arch: armhf, processor: armhf, prefix: arm-linux-gnueabihf, inc-lib: arm-linux-gnueabihf }
+          - { arch: arm64, processor: aarch64, prefix: aarch64-linux-gnu, inc-lib: aarch64-linux-gnu }
+    steps:
+      - uses: actions/checkout@v2
+      - name: Add architecture
+        run: |
+          dpkg --add-architecture ${{matrix.arch}}
+          apt-get update
+      - name: Install prerequisites
+        run: >-
+          apt-get install -y
+          git
+          cmake
+          flex
+          bison
+          crossbuild-essential-${{matrix.arch}}
+          libelf-dev:${{matrix.arch}}
+          libusb-dev:${{matrix.arch}}
+          libusb-1.0-0-dev:${{matrix.arch}}
+          libhidapi-dev:${{matrix.arch}}
+          libftdi1-dev:${{matrix.arch}}
+          libreadline-dev:${{matrix.arch}}
+      - name: Configure
+        run: >-
+          cmake
+          -D DEBUG_CMAKE=1
+          -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          -D CMAKE_SYSTEM_NAME=Linux
+          -D CMAKE_SYSTEM_PROCESSOR=${{matrix.processor}}
+          -D CMAKE_C_COMPILER=${{matrix.prefix}}-gcc
+          -D CMAKE_FIND_ROOT_PATH=/usr/${{matrix.prefix}}
+          -D CMAKE_INCLUDE_PATH=/usr/include/${{matrix.inc-lib}}
+          -D CMAKE_LIBRARY_PATH=/usr/lib/${{matrix.inc-lib}}
+          -B ../build
+      - name: Build
+        run: cmake --build ../build
+      - name: Archive build artifacts
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux-${{matrix.processor}}
+          path: |
+            build/
+            !**/*.d
+            !**/*.o
+
+  macos-x86_64:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ./src
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install prerequisites
+        run: >-
+          brew install
+          cmake
+          flex
+          bison
+          libelf
+          libusb
+          hidapi
+          libftdi
+      - name: Configure
+        run: >-
+          cmake
+          -D CMAKE_C_FLAGS=-I/usr/local/include
+          -D CMAKE_EXE_LINKER_FLAGS=-L/usr/local/Cellar
+          -D DEBUG_CMAKE=1
+          -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          -B ../build
+      - name: Build
+        run: cmake --build ../build
+      - name: Archive build artifacts
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: macos-x86_64
+          path: |
+            build/
+            !**/*.d
+            !**/*.o
+
+  msvc:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: ./src
+    strategy:
+      matrix:
+        include:
+          - { arch: x86, platform: Win32 }
+          - { arch: x64, platform: x64 }
+          - { arch: arm64, platform: ARM64 }
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install prerequisites
+        run: choco install winflexbison3
+      - name: Configure
+        run: >-
+          cmake
+          -A ${{matrix.platform}}
+          -D DEBUG_CMAKE=1
+          -D CMAKE_SYSTEM_VERSION=11
+          -D CMAKE_C_FLAGS_RELWITHDEBINFO="/MT /GL /Zi /O2 /Ob1 /DNDEBUG"
+          -D CMAKE_CXX_FLAGS_RELWITHDEBINFO="/MT /GL /Zi /O2 /Ob1 /DNDEBUG"
+          -D CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO="/DEBUG /INCREMENTAL:NO /LTCG /OPT:REF /OPT:ICF"
+          -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          -D USE_EXTERNAL=1
+          -B ../build
+      - name: Build
+        run: cmake --build ../build --config ${{env.BUILD_TYPE}}
+      - name: Archive build artifacts
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: msvc-${{matrix.arch}}
+          path: |
+            build/
+            !**/_deps/
+            !**/*.obj
+
+  mingw:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+        working-directory: ./src
+    strategy:
+      matrix:
+        include:
+          - { sys: mingw32, env: i686 }
+          - { sys: mingw64, env: x86_64 }
+    steps:
+      - uses: actions/checkout@v2
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.sys}}
+          update: true
+          install: >-
+            base-devel
+            mingw-w64-${{matrix.env}}-gcc
+            mingw-w64-${{matrix.env}}-cmake
+            mingw-w64-${{matrix.env}}-libelf
+            mingw-w64-${{matrix.env}}-libusb
+            mingw-w64-${{matrix.env}}-libusb-compat-git
+            mingw-w64-${{matrix.env}}-hidapi
+            mingw-w64-${{matrix.env}}-libftdi
+      - name: Configure
+        run: >-
+          cmake
+          -G"MSYS Makefiles"
+          -D DEBUG_CMAKE=1
+          -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          -B ../build
+      - name: Build
+        run: cmake --build ../build
+      - name: Archive build artifacts
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: mingw-${{matrix.env}}
+          path: |
+            ${{github.workspace}}/build/*

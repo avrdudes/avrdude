@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id$ */
+ /* $Id$ */
 
 #include "ac_cfg.h"
 
@@ -28,9 +28,12 @@
 #include <unistd.h>
 #include <errno.h>
 
-#if !defined(WIN32NATIVE)
-#  include <signal.h>
-#  include <sys/time.h>
+#if defined(WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#else
+#include <signal.h>
+#include <sys/time.h>
 #endif
 
 #include "avrdude.h"
@@ -43,7 +46,7 @@
 
 static int delay_decrement;
 
-#if defined(WIN32NATIVE)
+#if defined(WIN32)
 static int has_perfcount;
 static LARGE_INTEGER freq;
 #else
@@ -57,14 +60,14 @@ static void alarmhandler(int signo)
   done = 1;
   signal(SIGALRM, saved_alarmhandler);
 }
-#endif /* WIN32NATIVE */
+#endif /* WIN32 */
 
 /*
  * Calibrate the microsecond delay loop below.
  */
 static void bitbang_calibrate_delay(void)
 {
-#if defined(WIN32NATIVE)
+#if defined(WIN32)
   /*
    * If the hardware supports a high-resolution performance counter,
    * we ultimately prefer that one, as it gives quite accurate delays
@@ -91,7 +94,7 @@ static void bitbang_calibrate_delay(void)
                     progname);
     delay_decrement = 100;
   }
-#else  /* !WIN32NATIVE */
+#else  /* !WIN32 */
   struct itimerval itv;
   volatile int i;
 
@@ -124,7 +127,7 @@ static void bitbang_calibrate_delay(void)
   delay_decrement = -i / 100000;
   avrdude_message(MSG_NOTICE2, " calibrated to %d cycles per us\n",
                   delay_decrement);
-#endif /* WIN32NATIVE */
+#endif /* WIN32 */
 }
 
 /*
@@ -134,7 +137,7 @@ static void bitbang_calibrate_delay(void)
  */
 void bitbang_delay(unsigned int us)
 {
-#if defined(WIN32NATIVE)
+#if defined(WIN32)
   LARGE_INTEGER countNow, countEnd;
 
   if (has_perfcount)
@@ -147,14 +150,14 @@ void bitbang_delay(unsigned int us)
   }
   else /* no performance counters -- run normal uncalibrated delay */
   {
-#endif  /* WIN32NATIVE */
+#endif  /* WIN32 */
   volatile unsigned int del = us * delay_decrement;
 
   while (del > 0)
     del--;
-#if defined(WIN32NATIVE)
+#if defined(WIN32)
   }
-#endif /* WIN32NATIVE */
+#endif /* WIN32 */
 }
 
 /*

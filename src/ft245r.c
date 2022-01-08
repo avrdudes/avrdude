@@ -73,10 +73,6 @@
 #define TPIPCR_GT_0b	0x07
 #define TPI_STOP_BITS	0x03
 
-#if defined(_WIN32)
-#include <windows.h>
-#endif
-
 #if defined(HAVE_LIBFTDI1) && defined(HAVE_LIBUSB_1_0)
 # if defined(HAVE_LIBUSB_1_0_LIBUSB_H)
 #  include <libusb-1.0/libusb.h>
@@ -84,11 +80,14 @@
 #  include <libusb.h>
 # endif
 # include <libftdi1/ftdi.h>
-#elif defined(HAVE_LIBFTDI) && defined(HAVE_USB_H)
-/* ftdi.h includes usb.h */
+#elif defined(HAVE_LIBFTDI)
 #include <ftdi.h>
 #else 
+#ifdef _MSC_VER
+#pragma message("No libftdi or libusb support. Install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again.")
+#else
 #warning No libftdi or libusb support. Install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again.
+#endif
 #define DO_NOT_BUILD_FT245R
 #endif
 

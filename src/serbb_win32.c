@@ -25,11 +25,12 @@
 
 #include "avrdude.h"
 
-#if defined(WIN32NATIVE)
+#if defined(WIN32)
 
 
 #include "ac_cfg.h"
 
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdio.h>
 
@@ -308,8 +309,8 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
                         progname, port);
                 return -1;
 	}
-        avrdude_message(MSG_DEBUG, "%s: ser_open(): opened comm port \"%s\", handle 0x%x\n",
-                        progname, port, (int)hComPort);
+        avrdude_message(MSG_DEBUG, "%s: ser_open(): opened comm port \"%s\", handle 0x%zx\n",
+                        progname, port, (INT_PTR)hComPort);
 
         pgm->fd.pfd = (void *)hComPort;
 
@@ -326,8 +327,8 @@ static void serbb_close(PROGRAMMER *pgm)
 		pgm->setpin(pgm, PIN_AVR_RESET, 1);
 		CloseHandle (hComPort);
 	}
-        avrdude_message(MSG_DEBUG, "%s: ser_close(): closed comm port handle 0x%x\n",
-                                progname, (int)hComPort);
+        avrdude_message(MSG_DEBUG, "%s: ser_close(): closed comm port handle 0x%zx\n",
+                                progname, (INT_PTR)hComPort);
 
 	hComPort = INVALID_HANDLE_VALUE;
 }
@@ -363,4 +364,4 @@ void serbb_initpgm(PROGRAMMER *pgm)
   pgm->write_byte     = avr_write_byte_default;
 }
 
-#endif  /* WIN32NATIVE */
+#endif  /* WIN32 */
