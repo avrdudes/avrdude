@@ -103,11 +103,28 @@ avrftdi_tpi_initialize(PROGRAMMER * pgm, AVRPART * p)
 
 #define TPI_PARITY_MASK 0x2000
 
+static inline int count1s(unsigned int x)
+{
+#if defined(__GNUC__)
+	return __builtin_popcount(x);
+#else
+	int count = 0;
+
+	while (x)
+	{
+		count += x & 1;
+		x >>= 1;
+	}
+
+	return count;
+#endif
+}
+
 static uint16_t
 tpi_byte2frame(uint8_t byte)
 {
 	uint16_t frame = 0xc00f;
-	int parity = __builtin_popcount(byte) & 1;
+	int parity = count1s(byte) & 1;
 
 	frame |= ((byte << 5) & 0x1fe0);
 
@@ -123,7 +140,7 @@ tpi_frame2byte(uint16_t frame, uint8_t * byte)
 	/* drop idle and start bit(s) */
 	*byte = (frame >> 5) & 0xff;
 
-	int parity = __builtin_popcount(*byte) & 1;
+	int parity = count1s(*byte) & 1;
 	int parity_rcvd = (frame & TPI_PARITY_MASK) ? 1 : 0;
 
 	return parity != parity_rcvd;
