@@ -372,9 +372,10 @@ AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
 }
 
 
-void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, int type,
-                     int verbose)
+void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
+                     int type, int verbose)
 {
+  static unsigned int prev_mem_offset, prev_mem_size;
   int i, j;
   char * optr;
 
@@ -393,17 +394,21 @@ void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, int type,
               "%s----------- ---- ----- ----- ---- ------ ------ ---- ------ ----- ----- ---------\n",
               prefix, prefix, prefix);
     }
-    fprintf(f,
-            "%s%-11s %4d %5d %5d %4d %-6s %6d %4d %6d %5d %5d 0x%02x 0x%02x\n",
-            prefix, m->desc, m->mode, m->delay, m->blocksize, m->pollindex,
-            m->paged ? "yes" : "no",
-            m->size,
-            m->page_size,
-            m->num_pages,
-            m->min_write_delay,
-            m->max_write_delay,
-            m->readback[0],
-            m->readback[1]);
+    if ((prev_mem_offset != m->offset || prev_mem_size != m->size) || (strcmp(p->family_id, "") == 0)) { // Don't print memory aliases
+      prev_mem_offset = m->offset;
+      prev_mem_size = m->size;
+      fprintf(f,
+              "%s%-11s %4d %5d %5d %4d %-6s %6d %4d %6d %5d %5d 0x%02x 0x%02x\n",
+              prefix, m->desc, m->mode, m->delay, m->blocksize, m->pollindex,
+              m->paged ? "yes" : "no",
+              m->size,
+              m->page_size,
+              m->num_pages,
+              m->min_write_delay,
+              m->max_write_delay,
+              m->readback[0],
+              m->readback[1]);
+    }
     if (verbose > 4) {
       avrdude_message(MSG_TRACE2, "%s  Memory Ops:\n"
                       "%s    Oeration     Inst Bit  Bit Type  Bitno  Value\n"
@@ -669,11 +674,11 @@ void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose)
   }
 
   if (verbose <= 2) {
-    avr_mem_display(px, f, NULL, 0, verbose);
+    avr_mem_display(px, f, NULL, p, 0, verbose);
   }
   for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
     m = ldata(ln);
-    avr_mem_display(px, f, m, i, verbose);
+    avr_mem_display(px, f, m, p, i, verbose);
   }
 
   if (buf)
