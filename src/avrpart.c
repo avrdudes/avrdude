@@ -626,40 +626,33 @@ void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose)
   LNODEID ln;
   AVRMEM * m;
 
-  fprintf(f,
-          "%sAVR Part                      : %s\n"
-          "%sChip Erase delay              : %d us\n"
-          "%sPAGEL                         : P%02X\n"
-          "%sBS2                           : P%02X\n"
-          "%sRESET disposition             : %s\n"
-          "%sRETRY pulse                   : %s\n"
-          "%sserial program mode           : %s\n"
-          "%sparallel program mode         : %s\n"
-          "%sTimeout                       : %d\n"
-          "%sStabDelay                     : %d\n"
-          "%sCmdexeDelay                   : %d\n"
-          "%sSyncLoops                     : %d\n"
-          "%sByteDelay                     : %d\n"
-          "%sPollIndex                     : %d\n"
-          "%sPollValue                     : 0x%02x\n"
-          "%sMemory Detail                 :\n\n",
-          prefix, p->desc,
-          prefix, p->chip_erase_delay,
-          prefix, p->pagel,
-          prefix, p->bs2,
-          prefix, reset_disp_str(p->reset_disposition),
-          prefix, avr_pin_name(p->retry_pulse),
-          prefix, (p->flags & AVRPART_SERIALOK) ? "yes" : "no",
-          prefix, (p->flags & AVRPART_PARALLELOK) ?
-            ((p->flags & AVRPART_PSEUDOPARALLEL) ? "pseudo" : "yes") : "no",
-          prefix, p->timeout,
-          prefix, p->stabdelay,
-          prefix, p->cmdexedelay,
-          prefix, p->synchloops,
-          prefix, p->bytedelay,
-          prefix, p->pollindex,
-          prefix, p->pollvalue,
-          prefix);
+  fprintf(  f, "%sAVR Part                      : %s\n", prefix, p->desc);
+  if (p->chip_erase_delay)
+    fprintf(f, "%sChip Erase delay              : %d us\n", prefix, p->chip_erase_delay);
+  if (p->pagel)
+    fprintf(f, "%sPAGEL                         : P%02X\n", prefix, p->pagel);
+  if (p->bs2)
+    fprintf(f, "%sBS2                           : P%02X\n", prefix, p->bs2);
+  fprintf(  f, "%sRESET disposition             : %s\n", prefix, reset_disp_str(p->reset_disposition));
+  fprintf(  f, "%sRETRY pulse                   : %s\n", prefix, avr_pin_name(p->retry_pulse));
+  fprintf(  f, "%sSerial program mode           : %s\n", prefix, (p->flags & AVRPART_SERIALOK) ? "yes" : "no");
+  fprintf(  f, "%sParallel program mode         : %s\n", prefix, (p->flags & AVRPART_PARALLELOK) ?
+         ((p->flags & AVRPART_PSEUDOPARALLEL) ? "pseudo" : "yes") : "no");
+  if(p->timeout)
+    fprintf(f, "%sTimeout                       : %d\n", prefix, p->timeout);
+  if(p->stabdelay)
+    fprintf(f, "%sStabDelay                     : %d\n", prefix, p->stabdelay);
+  if(p->cmdexedelay)
+    fprintf(f, "%sCmdexeDelay                   : %d\n", prefix, p->cmdexedelay);
+  if(p->synchloops)
+    fprintf(f, "%sSyncLoops                     : %d\n", prefix, p->synchloops);
+  if(p->bytedelay)
+    fprintf(f, "%sByteDelay                     : %d\n", prefix, p->bytedelay);
+  if(p->pollindex)
+    fprintf(f, "%sPollIndex                     : %d\n", prefix, p->pollindex);
+  if(p->pollvalue)
+    fprintf(f, "%sPollValue                     : 0x%02x\n", prefix, p->pollvalue);
+  fprintf(  f, "%sMemory Detail                 :\n\n", prefix);
 
   px = prefix;
   i = strlen(prefix) + 5;
