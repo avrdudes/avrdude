@@ -294,7 +294,7 @@ prog_def :
         lrmv_d(programmers, existing_prog);
         pgm_free(existing_prog);
       }
-      PUSH(programmers, current_prog);
+      LISTADD(programmers, current_prog);
 //      pgm_fill_old_pins(current_prog); // TODO to be removed if old pin data no longer needed
 //      pgm_display_generic(current_prog, id);
       current_prog = NULL;
@@ -387,7 +387,7 @@ part_def :
         lrmv_d(part_list, existing_part);
         avr_free_part(existing_part);
       }
-      PUSH(part_list, current_part); 
+      LISTADD(part_list, current_part); 
       current_part = NULL; 
     }
 ;
