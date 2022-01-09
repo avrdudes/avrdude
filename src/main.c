@@ -1061,6 +1061,9 @@ int main(int argc, char * argv [])
 
   rc = pgm->open(pgm, port);
   if (rc < 0) {
+    avrdude_message(MSG_INFO,
+                    "%s: opening programmer \"%s\" on port \"%s\" failed\n",
+                    progname, programmer, port);
     exitrc = 1;
     pgm->ppidata = 0; /* clear all bits at exit */
     goto main_exit;
