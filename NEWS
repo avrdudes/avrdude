@@ -36,6 +36,10 @@ Changes since version 6.4:
     - [bug #26007] ATTiny167 not supported #150
     - [bug #47375] ATtiny102/104 descriptions missing in configuration
       file #409
+    - No error message when connecting to a not-connected AVRISP mkII
+      programmer #813
+    - [bug #53180] missing programmer or bad -P option argument
+      doesn't result in error message #471
 
   * Pull requests:
 
@@ -65,6 +69,7 @@ Changes since version 6.4:
     - Add MSVC builds and better WinUSB/FTDI support #798
     - buspirate: fix invalidScanfArgType_int warning #808
     - Ignore ac_cfg.h.in~ #810
+    - Notify open failure #814
 
   * Internals:
 
