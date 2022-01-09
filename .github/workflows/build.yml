@@ -172,7 +172,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install prerequisites
-        run: choco install winflexbison3
+        # As Chocolatey is notoriously unreliable, install winflexbison3 directly from GitHub.
+        # run: choco install winflexbison3
+        run: |
+          curl https://github.com/lexxmark/winflexbison/releases/download/v2.5.24/win_flex_bison-2.5.24.zip --location --output winflexbison.zip
+          unzip winflexbison.zip -d ${{github.workspace}}\winflexbison
+          echo "${{github.workspace}}\winflexbison" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Configure
         run: >-
           cmake
@@ -238,4 +243,4 @@ jobs:
         with:
           name: mingw-${{matrix.env}}
           path: |
-            ${{github.workspace}}/build/*
+            build/
