@@ -104,9 +104,6 @@ static int usbdev_open(char * port, union pinfo pinfo, union filedescriptor *fd)
 	}
     }
 
-  if (fd->usb.max_xfer == 0)
-    fd->usb.max_xfer = USBDEV_MAX_XFER_MKII;
-
   usb_init();
 
   usb_find_busses();
@@ -246,43 +243,62 @@ static int usbdev_open(char * port, union pinfo pinfo, union filedescriptor *fd)
 		    }
 
 		  fd->usb.handle = udev;
-		  if (fd->usb.rep == 0)
+		  if (fd->usb.rep < 0)
 		    {
 		      /* Try finding out what our read endpoint is. */
 		      for (i = 0; i < dev->config[0].interface[iface].altsetting[0].bNumEndpoints; i++)
 			{
-			  int possible_ep = dev->config[0].interface[iface].altsetting[0].
-			  endpoint[i].bEndpointAddress;
+			  int possible_ep = dev->config[0].interface[iface].altsetting[0].endpoint[i].bEndpointAddress;
+			  int possible_ep_size = dev->config[0].interface[iface].altsetting[0].endpoint[i].wMaxPacketSize;
 
 			  if ((possible_ep & USB_ENDPOINT_DIR_MASK) != 0)
 			    {
-                              avrdude_message(MSG_NOTICE2, "%s: usbdev_open(): using read endpoint 0x%02x\n",
+				  avrdude_message(MSG_NOTICE2, "%s: usbdev_open(): using read endpoint 0x%02x\n",
                                                   progname, possible_ep);
 			      fd->usb.rep = possible_ep;
+				  //Take smaller endpoint size as max
+				  if ((fd->usb.max_xfer == 0) || (possible_ep_size < fd->usb.max_xfer))
+				  {
+				    fd->usb.max_xfer = possible_ep_size;
+				  }
 			      break;
 			    }
 			}
-		      if (fd->usb.rep == 0)
+		      if (fd->usb.rep < 0)
 			{
-			  avrdude_message(MSG_INFO, "%s: usbdev_open(): cannot find a read endpoint, using 0x%02x\n",
-                                          progname, USBDEV_BULK_EP_READ_MKII);
-			  fd->usb.rep = USBDEV_BULK_EP_READ_MKII;
+			  avrdude_message(MSG_INFO, "%s: usbdev_open(): ERROR: cannot find a read endpoint",
+                                          progname);
 			}
 		    }
-		  for (i = 0; i < dev->config[0].interface[iface].altsetting[0].bNumEndpoints; i++)
+
+		  if (fd->usb.wep < 0)
 		    {
-		      if ((dev->config[0].interface[iface].altsetting[0].endpoint[i].bEndpointAddress == fd->usb.rep ||
-			   dev->config[0].interface[iface].altsetting[0].endpoint[i].bEndpointAddress == fd->usb.wep) &&
-			  dev->config[0].interface[iface].altsetting[0].endpoint[i].wMaxPacketSize < fd->usb.max_xfer)
+		      /* Try finding out what our write endpoint is. */
+		      for (i = 0; i < dev->config[0].interface[iface].altsetting[0].bNumEndpoints; i++)
 			{
-                          avrdude_message(MSG_NOTICE, "%s: max packet size expected %d, but found %d due to EP 0x%02x's wMaxPacketSize\n",
-                                            progname,
-                                            fd->usb.max_xfer,
-                                            dev->config[0].interface[iface].altsetting[0].endpoint[i].wMaxPacketSize,
-                                            dev->config[0].interface[iface].altsetting[0].endpoint[i].bEndpointAddress);
-			  fd->usb.max_xfer = dev->config[0].interface[iface].altsetting[0].endpoint[i].wMaxPacketSize;
+			  int possible_ep = dev->config[0].interface[iface].altsetting[0].endpoint[i].bEndpointAddress;
+			  int possible_ep_size = dev->config[0].interface[iface].altsetting[0].endpoint[i].wMaxPacketSize;
+
+			  if ((possible_ep & USB_ENDPOINT_DIR_MASK) == 0)
+			    {
+				  avrdude_message(MSG_NOTICE2, "%s: usbdev_open(): using write endpoint 0x%02x\n",
+                                                  progname, possible_ep);
+			      fd->usb.wep = possible_ep;
+				  //Take smaller endpoint size as max
+				  if ((fd->usb.max_xfer == 0) || (possible_ep_size < fd->usb.max_xfer))
+				  {
+				    fd->usb.max_xfer = possible_ep_size;
+				  }
+			      break;
+			    }
+			}
+		      if (fd->usb.wep < 0)
+			{
+			  avrdude_message(MSG_INFO, "%s: usbdev_open(): ERROR: cannot find a write endpoint",
+                                          progname);
 			}
 		    }
+
 		  if (pinfo.usbinfo.flags & PINFO_FL_USEHID)
 		    {
 		      if (usb_control_msg(udev, 0x21, 0x0a /* SET_IDLE */, 0, 0, NULL, 0, 100) < 0)
