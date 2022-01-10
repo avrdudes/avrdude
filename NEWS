@@ -23,6 +23,7 @@ Changes since version 6.4:
       passive parts)
     - PicKit4 / SNAP (now also in ISP and PDI mode)
     - Teensy bootloader (PR #802)
+    - Micronucleus bootloader (PR #786)
 
   * Issues fixed:
 
@@ -75,6 +76,7 @@ Changes since version 6.4:
     - Notify open failure #814
     - Print expected part #817
     - pindefs: conform to the function declaration #818
+    - Add support for Micronucleus bootloader #786
 
   * Internals:
 
