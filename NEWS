@@ -73,6 +73,7 @@ Changes since version 6.4:
     - Ignore ac_cfg.h.in~ #810
     - Notify open failure #814
     - Print expected part #817
+    - pindefs: conform to the function declaration #818
 
   * Internals:
 
