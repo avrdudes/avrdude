@@ -177,7 +177,7 @@ be taken about voltage level compatibility. Also, although not strictly
 required, it is strongly advisable to protect the GPIO pins from 
 overcurrent situations in some way. The simplest would be to just put
 some resistors in series or better yet use a 3-state buffer driver like
-the 74HC244. Have a look at http://kolev.info/avrdude-linuxgpio for a more
+the 74HC244. Have a look at http://kolev.info/blog/2013/01/06/avrdude-linuxgpio/ for a more
 detailed tutorial about using this programmer type.
 
 Under a Linux installation with direct access to the SPI bus and GPIO

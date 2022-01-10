@@ -42,6 +42,7 @@ Changes since version 6.4:
     - [bug #53180] missing programmer or bad -P option argument
       doesn't result in error message #471
     - ATmega328P reported as lgt8fx328p #812
+    - [bug #48004] Dead link for linuxgpio in avrdude description #419
 
   * Pull requests:
 
