@@ -15,6 +15,7 @@ Changes since version 6.4:
   * New devices supported:
 
     - ATtiny828, ATtiny87, ATtiny167, ATtiny48, ATtiny102, ATtiny104
+    - LGT8F88P, LGT8F168P, LGT8F328P (fixed names of these parts)
 
   * New programmers supported:
 
