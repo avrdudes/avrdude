@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "ac_cfg.h"
 #include "avrdude.h"
 #include "libavrdude.h"
 
