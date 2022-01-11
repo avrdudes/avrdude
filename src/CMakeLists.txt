@@ -586,6 +586,8 @@ add_library(libavrdude
     ${BISON_Parser_OUTPUTS}
     )
     
+set_target_properties(libavrdude PROPERTIES PREFIX "")
+
 target_include_directories(libavrdude
     PUBLIC
     "${PROJECT_SOURCE_DIR}"
