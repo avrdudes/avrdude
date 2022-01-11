@@ -21,9 +21,6 @@
 #ifndef libavrdude_h
 #define libavrdude_h
 
-/* XXX should go away */
-#include "ac_cfg.h"
-
 #include <stdio.h>
 #include <limits.h>
 #include <stdbool.h>
