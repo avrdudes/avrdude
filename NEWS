@@ -77,6 +77,7 @@ Changes since version 6.4:
     - Print expected part #817
     - pindefs: conform to the function declaration #818
     - Add support for Micronucleus bootloader #786
+    - Remove ac_cfg.h from libavrdude.h #820
 
   * Internals:
 
