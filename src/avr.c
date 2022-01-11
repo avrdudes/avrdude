@@ -867,6 +867,11 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
   if ((p->flags & AVRPART_HAS_TPI) && m->page_size > 1 &&
       pgm->cmd_tpi != NULL) {
 
+    if (wsize == 1) {
+      /* fuse (configuration) memory: only single byte to write */
+      return avr_write_byte(pgm, p, m, 0, m->buf[0]) == 0? 1: -1;
+    }
+
     while (avr_tpi_poll_nvmbsy(pgm));
 
     /* setup for WORD_WRITE */
@@ -1073,6 +1078,11 @@ static uint8_t get_fuse_bitmask(AVRMEM * m) {
     // not a fuse, compare bytes directly
     return 0xFF;
   }
+
+  if (m->op[AVR_OP_WRITE] == NULL ||
+      m->op[AVR_OP_READ] == NULL)
+    // no memory operations provided by configuration, compare directly
+    return 0xFF;
 
   // For fuses, only compare bytes that are actually written *and* read.
   for (i = 0; i < 32; i++) {
