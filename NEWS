@@ -78,6 +78,7 @@ Changes since version 6.4:
     - pindefs: conform to the function declaration #818
     - Add support for Micronucleus bootloader #786
     - Remove ac_cfg.h from libavrdude.h #820
+    - CMake: enable dynamic-link library for libavrdude #826
 
   * Internals:
 
