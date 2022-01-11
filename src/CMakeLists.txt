@@ -586,7 +586,12 @@ add_library(libavrdude
     ${BISON_Parser_OUTPUTS}
     )
     
-set_target_properties(libavrdude PROPERTIES PREFIX "")
+set_target_properties(libavrdude PROPERTIES
+    PREFIX ""
+    PUBLIC_HEADER "libavrdude.h"
+    VERSION 1.0.0
+    SOVERSION 1
+    )
 
 target_include_directories(libavrdude
     PUBLIC
@@ -625,5 +630,10 @@ target_link_libraries(avrdude PUBLIC libavrdude)
 # =====================================
 
 install(TARGETS avrdude DESTINATION bin)
+install(TARGETS libavrdude
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    PUBLIC_HEADER DESTINATION include COMPONENT dev
+    )
 install(FILES "${PROJECT_BINARY_DIR}/avrdude.conf" TYPE SYSCONF)
 install(FILES avrdude.1 TYPE MAN)
