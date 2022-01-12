@@ -51,6 +51,8 @@ jobs:
         run: >-
           cmake
           -D DEBUG_CMAKE=1
+          -D HAVE_LINUXGPIO=1
+          -D HAVE_LINUXSPI=1
           -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           -B ../build
       - name: Build
@@ -59,11 +61,18 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: linux-x86_64
+          name: build-linux-x86_64
           path: |
             build/
             !**/*.d
             !**/*.o
+      - name: Archive executables
+        uses: actions/upload-artifact@v2
+        with:
+          name: avrdude-linux-x86_64
+          path: |
+            build/avrdude
+            build/avrdude.conf
 
   linux:
     runs-on: ubuntu-latest
@@ -101,6 +110,8 @@ jobs:
         run: >-
           cmake
           -D DEBUG_CMAKE=1
+          -D HAVE_LINUXGPIO=1
+          -D HAVE_LINUXSPI=1
           -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           -D CMAKE_SYSTEM_NAME=Linux
           -D CMAKE_SYSTEM_PROCESSOR=${{matrix.processor}}
@@ -115,11 +126,18 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: linux-${{matrix.processor}}
+          name: build-linux-${{matrix.processor}}
           path: |
             build/
             !**/*.d
             !**/*.o
+      - name: Archive executables
+        uses: actions/upload-artifact@v2
+        with:
+          name: avrdude-linux-${{matrix.processor}}
+          path: |
+            build/avrdude
+            build/avrdude.conf
 
   macos-x86_64:
     runs-on: macos-latest
@@ -152,11 +170,18 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: macos-x86_64
+          name: build-macos-x86_64
           path: |
             build/
             !**/*.d
             !**/*.o
+      - name: Archive executables
+        uses: actions/upload-artifact@v2
+        with:
+          name: avrdude-macos-x86_64
+          path: |
+            build/avrdude
+            build/avrdude.conf
 
   msvc:
     runs-on: windows-latest
@@ -196,11 +221,23 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: msvc-${{matrix.arch}}
+          name: build-msvc-${{matrix.arch}}
           path: |
             build/
             !**/_deps/
             !**/*.obj
+      - name: Move executables
+        run: |
+          mv ../build/RelWithDebInfo/avrdude.exe ../build
+          mv ../build/RelWithDebInfo/avrdude.pdb ../build
+      - name: Archive executables
+        uses: actions/upload-artifact@v2
+        with:
+          name: avrdude-msvc-${{matrix.arch}}
+          path: |
+            build/avrdude.exe
+            build/avrdude.pdb
+            build/avrdude.conf
 
   mingw:
     runs-on: windows-latest
@@ -241,6 +278,13 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: mingw-${{matrix.env}}
+          name: build-mingw-${{matrix.env}}
           path: |
             build/
+      - name: Archive executables
+        uses: actions/upload-artifact@v2
+        with:
+          name: avrdude-mingw-${{matrix.env}}
+          path: |
+            build/avrdude.exe
+            build/avrdude.conf
