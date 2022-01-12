@@ -366,6 +366,10 @@ int main(int argc, char * argv [])
   char  * homedir;
 #endif
 
+#ifdef _MSC_VER
+  _set_printf_count_output(1);
+#endif
+
   /*
    * Set line buffering for file descriptors so we see stdout and stderr
    * properly interleaved.
