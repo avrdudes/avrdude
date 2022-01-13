@@ -39,6 +39,7 @@ libtool
 ltmain.sh
 ylwrap
 tags
+cscope.out
 
 *.o
 *.lo
