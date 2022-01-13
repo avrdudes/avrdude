@@ -945,7 +945,7 @@ static int serialupdi_parseextparms(PROGRAMMER * pgm, LISTID extparms)
   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
 
-		if (sscanf(extended_param, "rtsdtr=%4s", rts_mode) == 1) {
+    if (sscanf(extended_param, "rtsdtr=%4s", rts_mode) == 1) {
       if (strcasecmp(rts_mode, "low") == 0) {
         updi_set_rts_mode(pgm, RTS_MODE_LOW);
       } else if (strcasecmp(rts_mode, "high") == 0) {
@@ -954,8 +954,8 @@ static int serialupdi_parseextparms(PROGRAMMER * pgm, LISTID extparms)
         avrdude_message(MSG_INFO, "%s: RTS/DTR mode must be LOW or HIGH\n", progname);
         return -1;
       }
-			continue;
-		}
+      continue;
+    }
 
     avrdude_message(MSG_INFO, "%s: serialupdi_parseextparms(): invalid extended parameter '%s'\n",
                     progname, extended_param);
