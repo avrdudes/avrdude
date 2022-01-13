@@ -16,6 +16,12 @@ Changes since version 6.4:
 
     - ATtiny828, ATtiny87, ATtiny167, ATtiny48, ATtiny102, ATtiny104
     - LGT8F88P, LGT8F168P, LGT8F328P (fixed names of these parts)
+    - ATmeg164A, ATmega169A, ATmega169P, ATmega169PA, ATmega329A,
+      ATmega329PA, ATmega3290, ATmega3290A, ATmega3290PA, ATmega649A,
+      ATmega649P, ATmega6490A, ATmega6490P, ATmega165, ATmega165A,
+      ATmega165P, ATmega165PA, ATmega325A, ATmega325P, ATmega325PA,
+      ATmega645A, ATmega645P, ATmega3250A, ATmega3250P, ATmega3250PA,
+      ATmega6450A, ATmega6450P
 
   * New programmers supported:
 
@@ -81,6 +87,7 @@ Changes since version 6.4:
     - Remove ac_cfg.h from libavrdude.h #820
     - CMake: enable dynamic-link library for libavrdude #826
     - Fix for TPI fuse write (issue #823) #828
+    - Add missing ATmega__5 and ATmega__9 targets to avrdude.conf #809
 
   * Internals:
 

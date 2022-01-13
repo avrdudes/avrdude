@@ -5930,6 +5930,7 @@ part
 part parent "m169"
     id               = "m169a";
     desc             = "ATmega169A";
+    signature        = 0x1E 0x94 0x11;
   ;
 
 #------------------------------------------------------------
@@ -14309,7 +14310,7 @@ part
 part
     id               = "m165";
     desc             = "ATmega165";
-    signature        = 0x1e 0x94 0x10;
+    signature        = 0x1e 0x94 0x07;
     has_jtag         = yes;
 #   stk500_devcode   = 0x??;
 #   avr910_devcode   = 0x??;
@@ -14501,6 +14502,7 @@ part
 part parent "m165"
     id               = "m165a";
     desc             = "ATmega165A";
+    signature        = 0x1e 0x94 0x10;
   ;
 
 #------------------------------------------------------------
