@@ -366,6 +366,10 @@ int main(int argc, char * argv [])
   char  * homedir;
 #endif
 
+#ifdef _MSC_VER
+  _set_printf_count_output(1);
+#endif
+
   /*
    * Set line buffering for file descriptors so we see stdout and stderr
    * properly interleaved.
@@ -1221,12 +1225,19 @@ int main(int argc, char * argv [])
         if (sig->buf[i] != 0x00)
           zz = 0;
       }
+
+      bool signature_matches =
+          sig->size == 3 &&
+          sig->buf[0] == p->signature[0] &&
+          sig->buf[1] == p->signature[1] &&
+          sig->buf[2] == p->signature[2];
+
       if (quell_progress < 2) {
         AVRPART * part;
 
         part = locate_part_by_signature(part_list, sig->buf, sig->size);
         if (part) {
-          avrdude_message(MSG_INFO, " (probably %s)", part->id);
+          avrdude_message(MSG_INFO, " (probably %s)", signature_matches ? p->id : part->id);
         }
       }
       if (ff || zz) {
@@ -1255,10 +1266,7 @@ int main(int argc, char * argv [])
         }
       }
 
-      if (sig->size != 3 ||
-          sig->buf[0] != p->signature[0] ||
-          sig->buf[1] != p->signature[1] ||
-          sig->buf[2] != p->signature[2]) {
+      if (!signature_matches) {
         avrdude_message(MSG_INFO, "%s: Expected signature for %s is %02X %02X %02X\n",
                         progname, p->desc,
                         p->signature[0], p->signature[1], p->signature[2]);

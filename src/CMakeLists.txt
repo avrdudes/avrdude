@@ -33,6 +33,7 @@ option(HAVE_PARPORT "Enable parallel port support" OFF)
 option(USE_EXTERNAL "Use external libraries from AVRDUDE GitHub repositories" OFF)
 option(USE_LIBUSBWIN32 "Prefer libusb-win32 over libusb" OFF)
 option(DEBUG_CMAKE "Enable debugging output for this CMake project" OFF)
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
 include(CheckIncludeFile)
 include(CheckSymbolExists)
@@ -476,7 +477,7 @@ endif()
 # Project
 # =====================================
 
-add_library(libavrdude STATIC
+add_library(libavrdude
     ac_cfg.h
     arduino.h
     arduino.c
@@ -585,6 +586,8 @@ add_library(libavrdude STATIC
     ${BISON_Parser_OUTPUTS}
     )
     
+set_target_properties(libavrdude PROPERTIES PREFIX "")
+
 target_include_directories(libavrdude
     PUBLIC
     "${PROJECT_SOURCE_DIR}"

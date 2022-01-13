@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "ac_cfg.h"
 #include "avrdude.h"
 #include "libavrdude.h"
 
@@ -217,7 +218,7 @@ const char * pinmask_to_str(const pinmask_t * const pinmask) {
  * @param[in] size the number of entries in checklist
  * @returns 0 if all pin definitions are valid, -1 otherwise
  */
-int pins_check(const struct programmer_t * const pgm, const struct pin_checklist_t * const checklist, const int size, bool output) {
+int pins_check(const struct programmer_t * const pgm, const struct pin_checklist_t * const checklist, const int size, const bool output) {
   static const struct pindef_t no_valid_pins = {{0}, {0}}; // default value if check list does not contain anything else
   int rv = 0; // return value
   int pinname; // loop counter through pinnames

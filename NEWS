@@ -15,6 +15,7 @@ Changes since version 6.4:
   * New devices supported:
 
     - ATtiny828, ATtiny87, ATtiny167, ATtiny48, ATtiny102, ATtiny104
+    - LGT8F88P, LGT8F168P, LGT8F328P (fixed names of these parts)
 
   * New programmers supported:
 
@@ -22,6 +23,7 @@ Changes since version 6.4:
       passive parts)
     - PicKit4 / SNAP (now also in ISP and PDI mode)
     - Teensy bootloader (PR #802)
+    - Micronucleus bootloader (PR #786)
 
   * Issues fixed:
 
@@ -40,6 +42,9 @@ Changes since version 6.4:
       programmer #813
     - [bug #53180] missing programmer or bad -P option argument
       doesn't result in error message #471
+    - ATmega328P reported as lgt8fx328p #812
+    - [bug #48004] Dead link for linuxgpio in avrdude description #419
+    - Segmentation fault when writing ATtiny104 fuse #823
 
   * Pull requests:
 
@@ -70,6 +75,12 @@ Changes since version 6.4:
     - buspirate: fix invalidScanfArgType_int warning #808
     - Ignore ac_cfg.h.in~ #810
     - Notify open failure #814
+    - Print expected part #817
+    - pindefs: conform to the function declaration #818
+    - Add support for Micronucleus bootloader #786
+    - Remove ac_cfg.h from libavrdude.h #820
+    - CMake: enable dynamic-link library for libavrdude #826
+    - Fix for TPI fuse write (issue #823) #828
 
   * Internals:
 

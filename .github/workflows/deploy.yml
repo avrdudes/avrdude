@@ -41,7 +41,7 @@ jobs:
         with:
           tag_name: ${{github.ref}}
           release_name: AVRDUDE ${{github.ref}}
-          body: "**[Release Notes:](https://github.com/avrdudes/avrdude/blob/main/NEWS)**"
+          body: "See **[Release Notes](https://github.com/avrdudes/avrdude/blob/main/NEWS)** for changes"
           draft: false
           prerelease: false
 
@@ -58,13 +58,13 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v2
         with:
-          name: msvc-${{matrix.arch}}
+          name: avrdude-msvc-${{matrix.arch}}
 
       - name: Create release asset
         run: >-
           zip -j asset.zip
-          RelWithDebInfo/avrdude.exe
-          RelWithDebInfo/avrdude.pdb
+          avrdude.exe
+          avrdude.pdb
           avrdude.conf
 
       - name: Upload release asset
