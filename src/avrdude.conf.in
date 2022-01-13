@@ -17519,6 +17519,78 @@ part parent    ".avr8x_tiny"
 ;
 
 #------------------------------------------------------------
+# ATtiny3224
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t3224";
+    desc      = "ATtiny3224";
+    signature = 0x1E 0x95 0x28;
+
+    memory "flash"
+        size      = 0x8000;
+        offset    = 0x8000;
+        page_size = 0x80;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny3226
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t3226";
+    desc      = "ATtiny3226";
+    signature = 0x1E 0x95 0x27;
+
+    memory "flash"
+        size      = 0x8000;
+        offset    = 0x8000;
+        page_size = 0x80;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# ATtiny3227
+#------------------------------------------------------------
+
+part parent    ".avr8x_tiny"
+    id        = "t3227";
+    desc      = "ATtiny3227";
+    signature = 0x1E 0x95 0x26;
+
+    memory "flash"
+        size      = 0x8000;
+        offset    = 0x8000;
+        page_size = 0x80;
+        readsize  = 0x100;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x40;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
 # ATmega808
 #------------------------------------------------------------
 
