@@ -18582,8 +18582,8 @@ part parent    ".avrdx"
 #------------------------------------------------------------
 
 part parent    ".avrdx"
-    id        = "avr32dd28";
-    desc      = "AVR32DD28";
+    id        = "avr32dd32";
+    desc      = "AVR32DD32";
     signature = 0x1E 0x95 0x38;
 
     memory "flash"
@@ -18691,6 +18691,286 @@ part parent    ".avrdx"
 
     memory "eeprom"
         size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR-Ex family common values
+#------------------------------------------------------------
+
+part parent    ".avrdx"
+    id			= ".avrex";
+    desc		= "AVR-Ex family common values";
+
+    memory "userrow"
+        size      = 0x40;
+        offset    = 0x1080;
+        page_size = 0x40;
+        readsize  = 0x40;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR8EA28
+#------------------------------------------------------------
+
+part parent    ".avrex"
+    id        = "avr8ea28";
+    desc      = "AVR8EA28";
+    signature = 0x1E 0x93 0x2C;
+
+    memory "flash"
+        size      = 0x2000;
+        offset    = 0x800000;
+        page_size = 0x40;
+        readsize  = 0x40;
+    ;
+
+    memory "eeprom"
+        size      = 0x200;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR8EA32
+#------------------------------------------------------------
+
+part parent    ".avrex"
+    id        = "avr8ea32";
+    desc      = "AVR8EA32";
+    signature = 0x1E 0x93 0x2B;
+
+    memory "flash"
+        size      = 0x2000;
+        offset    = 0x800000;
+        page_size = 0x40;
+        readsize  = 0x40;
+    ;
+
+    memory "eeprom"
+        size      = 0x200;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR16EA28
+#------------------------------------------------------------
+
+part parent    ".avrex"
+    id        = "avr16ea28";
+    desc      = "AVR16EA28";
+    signature = 0x1E 0x94 0x37;
+
+    memory "flash"
+        size      = 0x4000;
+        offset    = 0x800000;
+        page_size = 0x40;
+        readsize  = 0x40;
+    ;
+
+    memory "eeprom"
+        size      = 0x200;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR16EA32
+#------------------------------------------------------------
+
+part parent    ".avrex"
+    id        = "avr16ea32";
+    desc      = "AVR16EA32";
+    signature = 0x1E 0x94 0x36;
+
+    memory "flash"
+        size      = 0x4000;
+        offset    = 0x800000;
+        page_size = 0x40;
+        readsize  = 0x40;
+    ;
+
+    memory "eeprom"
+        size      = 0x200;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR16EA48
+#------------------------------------------------------------
+
+part parent    ".avrex"
+    id        = "avr16ea48";
+    desc      = "AVR16EA48";
+    signature = 0x1E 0x94 0x35;
+
+    memory "flash"
+        size      = 0x4000;
+        offset    = 0x800000;
+        page_size = 0x40;
+        readsize  = 0x40;
+    ;
+
+    memory "eeprom"
+        size      = 0x200;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR32EA28
+#------------------------------------------------------------
+
+part parent    ".avrex"
+    id        = "avr32ea28";
+    desc      = "AVR32EA28";
+    signature = 0x1E 0x95 0x3E;
+
+    memory "flash"
+        size      = 0x8000;
+        offset    = 0x800000;
+        page_size = 0x40;
+        readsize  = 0x40;
+    ;
+
+    memory "eeprom"
+        size      = 0x200;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR32EA32
+#------------------------------------------------------------
+
+part parent    ".avrex"
+    id        = "avr32ea32";
+    desc      = "AVR32EA32";
+    signature = 0x1E 0x95 0x3D;
+
+    memory "flash"
+        size      = 0x8000;
+        offset    = 0x800000;
+        page_size = 0x40;
+        readsize  = 0x40;
+    ;
+
+    memory "eeprom"
+        size      = 0x200;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR32EA48
+#------------------------------------------------------------
+
+part parent    ".avrex"
+    id        = "avr32ea48";
+    desc      = "AVR32EA48";
+    signature = 0x1E 0x95 0x3C;
+
+    memory "flash"
+        size      = 0x8000;
+        offset    = 0x800000;
+        page_size = 0x40;
+        readsize  = 0x40;
+    ;
+
+    memory "eeprom"
+        size      = 0x200;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR64EA28
+#------------------------------------------------------------
+
+part parent    ".avrex"
+    id        = "avr64ea28";
+    desc      = "AVR64EA28";
+    signature = 0x1E 0x96 0x20;
+
+    memory "flash"
+        size      = 0x10000;
+        offset    = 0x800000;
+        page_size = 0x80;
+        readsize  = 0x80;
+    ;
+
+    memory "eeprom"
+        size      = 0x200;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR64EA32
+#------------------------------------------------------------
+
+part parent    ".avrex"
+    id        = "avr64ea32";
+    desc      = "AVR64EA32";
+    signature = 0x1E 0x96 0x1F;
+
+    memory "flash"
+        size      = 0x10000;
+        offset    = 0x800000;
+        page_size = 0x80;
+        readsize  = 0x80;
+    ;
+
+    memory "eeprom"
+        size      = 0x200;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR64EA48
+#------------------------------------------------------------
+
+part parent    ".avrex"
+    id        = "avr64ea48";
+    desc      = "AVR64EA48";
+    signature = 0x1E 0x96 0x1E;
+
+    memory "flash"
+        size      = 0x10000;
+        offset    = 0x800000;
+        page_size = 0x80;
+        readsize  = 0x80;
+    ;
+
+    memory "eeprom"
+        size      = 0x200;
         offset    = 0x1400;
         page_size = 0x1;
         readsize  = 0x100;
