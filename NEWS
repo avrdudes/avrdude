@@ -92,6 +92,8 @@ Changes since version 6.4:
     - Fix for TPI fuse write (issue #823) #828
     - Add missing ATmega__5 and ATmega__9 targets to avrdude.conf #809
     - Add missing ATmega and ATtiny targets #832
+    - Added missing RTS/DTR management feature to serialupdi
+      programmer #811
 
   * Internals:
 
