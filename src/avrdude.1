@@ -1186,6 +1186,17 @@ line, and the XBee DIN pin (pin 3) must be connected to the MCU's
 .Ql TXD
 line.
 .El
+.It Ar serialupdi
+Extended parameters:
+.Bl -tag -offset indent -width indent
+.It Ar rtsdtr=low|high
+Forces RTS/DTR lines to assume low or high state during the whole
+programming session. Some programmers might use this signal to
+indicate UPDI programming state, but this is strictly hardware
+specific.
+.Pp
+When not provided, driver/OS default value will be used.
+.El
 .El
 .Sh FILES
 .Bl -tag -offset indent -width /dev/ppi0XXX

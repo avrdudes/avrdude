@@ -55,6 +55,7 @@ static void serialupdi_setup(PROGRAMMER * pgm)
     exit(1);
   }
   memset(pgm->cookie, 0, sizeof(updi_state));
+  updi_set_rts_mode(pgm, RTS_MODE_DEFAULT);
   updi_set_datalink_mode(pgm, UPDI_LINK_MODE_16BIT);
 }
 
@@ -184,6 +185,10 @@ static void serialupdi_close(PROGRAMMER * pgm)
   if (serialupdi_leave_progmode(pgm) < 0) {
     avrdude_message(MSG_INFO, "%s: Unable to leave NVM programming mode\n", progname);
   }
+  if (updi_get_rts_mode(pgm) != RTS_MODE_DEFAULT) {
+    avrdude_message(MSG_INFO, "%s: Releasing DTR/RTS handshake lines\n", progname);
+  }
+
   updi_link_close(pgm);
 }
 
@@ -582,6 +587,10 @@ static int serialupdi_initialize(PROGRAMMER * pgm, AVRPART * p)
   }
   avrdude_message(MSG_INFO, "%s: UPDI link initialization OK\n", progname);
 
+  if (updi_get_rts_mode(pgm) != RTS_MODE_DEFAULT) {
+    avrdude_message(MSG_INFO, "%s: Forcing serial DTR/RTS handshake lines %s\n", progname, updi_get_rts_mode(pgm) == RTS_MODE_LOW ? "LOW" : "HIGH");
+  }
+
   if (updi_read_cs(pgm, UPDI_ASI_SYS_STATUS, &value)<0) {
 
     /* let's try reset the connection */
@@ -926,6 +935,35 @@ static int serialupdi_read_sib(PROGRAMMER * pgm, AVRPART *p, char *sib) {
   return 0;
 }
 
+static int serialupdi_parseextparms(PROGRAMMER * pgm, LISTID extparms)
+{
+  LNODEID ln;
+  const char *extended_param;
+  char rts_mode[5];
+  int rv = 0;
+
+  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    extended_param = ldata(ln);
+
+    if (sscanf(extended_param, "rtsdtr=%4s", rts_mode) == 1) {
+      if (strcasecmp(rts_mode, "low") == 0) {
+        updi_set_rts_mode(pgm, RTS_MODE_LOW);
+      } else if (strcasecmp(rts_mode, "high") == 0) {
+        updi_set_rts_mode(pgm, RTS_MODE_HIGH);
+      } else {
+        avrdude_message(MSG_INFO, "%s: RTS/DTR mode must be LOW or HIGH\n", progname);
+        return -1;
+      }
+      continue;
+    }
+
+    avrdude_message(MSG_INFO, "%s: serialupdi_parseextparms(): invalid extended parameter '%s'\n",
+                    progname, extended_param);
+    rv = -1;
+  }
+
+  return rv;
+}
 
 void serialupdi_initpgm(PROGRAMMER * pgm)
 {
@@ -936,6 +974,7 @@ void serialupdi_initpgm(PROGRAMMER * pgm)
    */
 
   pgm->initialize     = serialupdi_initialize;
+  pgm->parseextparams = serialupdi_parseextparms;
   pgm->display        = serialupdi_display;
   pgm->enable         = serialupdi_enable;
   pgm->disable        = serialupdi_disable;
