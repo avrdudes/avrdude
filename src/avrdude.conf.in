@@ -18410,6 +18410,294 @@ part parent    ".avrdx"
 ;
 
 #------------------------------------------------------------
+# AVR16DD14
+#------------------------------------------------------------
+
+part parent    ".avrdx"
+    id        = "avr16dd14";
+    desc      = "AVR16DD14";
+    signature = 0x1E 0x94 0x34;
+
+    memory "flash"
+        size      = 0x4000;
+        offset    = 0x800000;
+        page_size = 0x200;
+        readsize  = 0x200;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR16DD20
+#------------------------------------------------------------
+
+part parent    ".avrdx"
+    id        = "avr16dd20";
+    desc      = "AVR16DD20";
+    signature = 0x1E 0x94 0x33;
+
+    memory "flash"
+        size      = 0x4000;
+        offset    = 0x800000;
+        page_size = 0x200;
+        readsize  = 0x200;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR16DD28
+#------------------------------------------------------------
+
+part parent    ".avrdx"
+    id        = "avr16dd28";
+    desc      = "AVR16DD28";
+    signature = 0x1E 0x94 0x32;
+
+    memory "flash"
+        size      = 0x4000;
+        offset    = 0x800000;
+        page_size = 0x200;
+        readsize  = 0x200;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR16DD32
+#------------------------------------------------------------
+
+part parent    ".avrdx"
+    id        = "avr16dd32";
+    desc      = "AVR16DD32";
+    signature = 0x1E 0x94 0x31;
+
+    memory "flash"
+        size      = 0x4000;
+        offset    = 0x800000;
+        page_size = 0x200;
+        readsize  = 0x200;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR32DD14
+#------------------------------------------------------------
+
+part parent    ".avrdx"
+    id        = "avr32dd14";
+    desc      = "AVR32DD14";
+    signature = 0x1E 0x95 0x3B;
+
+    memory "flash"
+        size      = 0x8000;
+        offset    = 0x800000;
+        page_size = 0x200;
+        readsize  = 0x200;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR32DD20
+#------------------------------------------------------------
+
+part parent    ".avrdx"
+    id        = "avr32dd20";
+    desc      = "AVR32DD20";
+    signature = 0x1E 0x95 0x3A;
+
+    memory "flash"
+        size      = 0x8000;
+        offset    = 0x800000;
+        page_size = 0x200;
+        readsize  = 0x200;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR32DD28
+#------------------------------------------------------------
+
+part parent    ".avrdx"
+    id        = "avr32dd28";
+    desc      = "AVR32DD28";
+    signature = 0x1E 0x95 0x39;
+
+    memory "flash"
+        size      = 0x8000;
+        offset    = 0x800000;
+        page_size = 0x200;
+        readsize  = 0x200;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR32DD32
+#------------------------------------------------------------
+
+part parent    ".avrdx"
+    id        = "avr32dd28";
+    desc      = "AVR32DD28";
+    signature = 0x1E 0x95 0x38;
+
+    memory "flash"
+        size      = 0x8000;
+        offset    = 0x800000;
+        page_size = 0x200;
+        readsize  = 0x200;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR64DD14
+#------------------------------------------------------------
+
+part parent    ".avrdx"
+    id        = "avr64dd14";
+    desc      = "AVR64DD14";
+    signature = 0x1E 0x96 0x1D;
+
+    memory "flash"
+        size      = 0x10000;
+        offset    = 0x800000;
+        page_size = 0x200;
+        readsize  = 0x200;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR64DD20
+#------------------------------------------------------------
+
+part parent    ".avrdx"
+    id        = "avr64dd20";
+    desc      = "AVR64DD20";
+    signature = 0x1E 0x96 0x1C;
+
+    memory "flash"
+        size      = 0x10000;
+        offset    = 0x800000;
+        page_size = 0x200;
+        readsize  = 0x200;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR64DD28
+#------------------------------------------------------------
+
+part parent    ".avrdx"
+    id        = "avr64dd28";
+    desc      = "AVR64DD28";
+    signature = 0x1E 0x96 0x1B;
+
+    memory "flash"
+        size      = 0x10000;
+        offset    = 0x800000;
+        page_size = 0x200;
+        readsize  = 0x200;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR64DD32
+#------------------------------------------------------------
+
+part parent    ".avrdx"
+    id        = "avr64dd32";
+    desc      = "AVR64DD32";
+    signature = 0x1E 0x96 0x1A;
+
+    memory "flash"
+        size      = 0x10000;
+        offset    = 0x800000;
+        page_size = 0x200;
+        readsize  = 0x200;
+    ;
+
+    memory "eeprom"
+        size      = 0x100;
+        offset    = 0x1400;
+        page_size = 0x1;
+        readsize  = 0x100;
+    ;
+;
+
+#------------------------------------------------------------
 # Logic Green parts
 #------------------------------------------------------------
 
