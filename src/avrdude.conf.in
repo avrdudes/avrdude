@@ -17429,6 +17429,18 @@ part
         readsize	= 0x7D;
     ;
 
+    memory "tempsense"
+        size		= 2;
+        offset		= 0x1104;
+        readsize	= 1;
+    ;
+
+    memory "sernum"
+        size		= 16;
+        offset		= 0x1110;
+        readsize	= 1;
+    ;
+
     memory "fuses"
         size		= 9;
         offset		= 0x1050;
@@ -17442,7 +17454,19 @@ part
         readsize  = 1;
     ;
 
+    memory "wdtcfg"
+        size		= 1;
+        offset		= 0x1050;
+        readsize  = 1;
+    ;
+
     memory "fuse1"
+        size		= 1;
+        offset		= 0x1051;
+        readsize  = 1;
+    ;
+
+    memory "bodcfg"
         size		= 1;
         offset		= 0x1051;
         readsize  = 1;
@@ -17454,7 +17478,19 @@ part
         readsize  = 1;
     ;
 
+    memory "osccfg"
+        size		= 1;
+        offset		= 0x1052;
+        readsize  = 1;
+    ;
+
     memory "fuse4"
+        size		= 1;
+        offset		= 0x1054;
+        readsize  = 1;
+    ;
+
+    memory "tcd0cfg"
         size		= 1;
         offset		= 0x1054;
         readsize  = 1;
@@ -17466,7 +17502,19 @@ part
         readsize  = 1;
     ;
 
+    memory "syscfg0"
+        size		= 1;
+        offset		= 0x1055;
+        readsize  = 1;
+    ;
+
     memory "fuse6"
+        size		= 1;
+        offset		= 0x1056;
+        readsize  = 1;
+    ;
+
+    memory "syscfg1"
         size		= 1;
         offset		= 0x1056;
         readsize  = 1;
@@ -17478,7 +17526,31 @@ part
         readsize  = 1;
     ;
 
+    memory "codesize"
+        size		= 1;
+        offset		= 0x1057;
+        readsize  = 1;
+    ;
+
+    memory "append"
+        size		= 1;
+        offset		= 0x1057;
+        readsize  = 1;
+    ;
+
     memory "fuse8"
+        size		= 1;
+        offset		= 0x1058;
+        readsize  = 1;
+    ;
+
+    memory "bootsize"
+        size		= 1;
+        offset		= 0x1058;
+        readsize  = 1;
+    ;
+
+    memory "bootend"
         size		= 1;
         offset		= 0x1058;
         readsize  = 1;
