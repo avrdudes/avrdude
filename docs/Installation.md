@@ -10,8 +10,6 @@ instructions, however you can always **[Build It Yourself]**.
 
 **AVRDUDE** can be downloaded from the **[Releases]** page.
 
----
-
 <br>
 
 ## Linux
@@ -24,8 +22,6 @@ the `avrdude` package to your system.
 ```sh
 sudo apt install avrdude
 ```
-
----
 
 <br>
 
