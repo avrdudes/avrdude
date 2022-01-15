@@ -1,60 +1,58 @@
-# AVRDUDE
 
-[![Build Status](https://github.com/avrdudes/avrdude/actions/workflows/build.yml/badge.svg)](https://github.com/avrdudes/avrdude/actions/workflows/build.yml)
+# AVRDUDE [![Build Badge]][Build Status]
 
-AVRDUDE - AVR Downloader Uploader - is a program for downloading and uploading
-the on-chip memories of Microchip’s [AVR microcontrollers](https://en.wikipedia.org/wiki/AVR_microcontrollers).
-It can program the Flash and EEPROM, and where supported by the programming
-protocol, it can program fuse and lock bits.
-AVRDUDE also supplies a direct instruction mode allowing one to issue any
-programming instruction to the AVR chip regardless of whether AVRDUDE
-implements that specific feature of a particular chip.
+***AVR*** ***D*** *ownloader* ***U*** *ploa* ***DE*** *er*
 
-AVRDUDE was originally written in 2003 by Brian S. Dean. Since 2006, AVRDUDE has been maintained by Jörg Wunsch,
-with the help of [various contributors](./AUTHORS).
+This is a program for **Downloading** and **Uploading** <br>
+on-chip memories of **[Microchip’s AVR Microcontrollers]**.
 
-The latest version of AVRDUDE is always available here:\
-<https://github.com/avrdudes/avrdude>
+---
 
-## Getting AVRDUDE for Windows
+**⸢ [Installation] ⸥ ⸢ [Usage] ⸥ ⸢ [Wiki] ⸥ ⸢ [Documentation] ⸥**
 
-To get AVRDUDE for Windows, install the latest version from the [Releases](http://download.savannah.gnu.org/releases/avrdude/) page.
+---
 
-Alternatively, you may [build AVRDUDE](https://github.com/avrdudes/avrdude/wiki) yourself from source.
+## Features
 
-## Getting AVRDUDE for Linux
+- Can program `Flash` & `EEPROM`
 
-To install AVRDUDE for Linux, install the package `avrdude` by running the following commands:
+- Is able to program `Fuse` & `Lock` bits.
 
-```console
-sudo apt-get install avrdude
-```
+- **Direct Instruction Mode**
 
-Alternatively, you may [build AVRDUDE](https://github.com/avrdudes/avrdude/wiki) yourself from source.
+  ***AVR*** *chips can be issues any programming* <br>
+  *instructions regardless of* ***AVRDUDEs*** *support* <br>
+  *for that specific feature of the particular chip.*
 
-## Getting AVRDUDE for MacOS
+---
 
-On MacOS, AVRDUDE can be installed through Mac Ports.
+## History
 
-Alternatively, you may [build AVRDUDE](https://github.com/avrdudes/avrdude/wiki) yourself from source.
+#### 2003
 
-## Using AVRDUDE
+**AVRDUDE** was originally written by <kbd>Brian S. Dean</kbd> .
 
-AVRDUDE is a command-line application. Run the command `avrdude` without any arguments for a list of options.
+#### 2006
 
-A typical command to program your HEX file into your AVR microcontroller looks like this:
+The project is being maintained by <kbd>**[Jörg Wunsch]**</kbd> , <br>
+as well the various **[Authors]** / **[Contributors]** .
 
-```console
-avrdude -c <programmer> -p <part> -U flash:w:<file>:i
-```
 
-For instance, to program an **Arduino Uno** connected to the serial port **COM1** with a HEX file called `blink.hex`,
-you would run the following command:
+<!----------------------------------------------------------------------------->
 
-```console
-avrdude -c arduino -P COM1 -b 115200 -p atmega328p -D -U flash:w:objs/blink.hex:i
-```
+[Installation]: docs/Installation.md
+[Usage]: docs/Usage.md
+[Wiki]: https://github.com/avrdudes/avrdude/wiki
+[Documentation]: http://download.savannah.gnu.org/releases/avrdude/avrdude-doc-6.4.pdf
 
-There are many different programmers and options that may be required for the programming to succeed.
 
-For more information, refer to the [AVRDUDE documentation](http://download.savannah.gnu.org/releases/avrdude/avrdude-doc-6.4.pdf).
+[Authors]: AUTHORS
+[Contributors]: https://github.com/avrdudes/avrdude/graphs/contributors
+[Jörg Wunsch]: https://github.com/dl8dtl
+
+
+[Microchip’s AVR Microcontrollers]: https://en.wikipedia.org/wiki/AVR_microcontrollers
+
+[Build Badge]: https://github.com/avrdudes/avrdude/actions/workflows/build.yml/badge.svg
+
+[Build Status]: https://github.com/avrdudes/avrdude/actions/workflows/build.yml
