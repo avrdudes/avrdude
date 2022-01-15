@@ -18422,7 +18422,7 @@ part parent    ".avrdx"
         size      = 0x4000;
         offset    = 0x800000;
         page_size = 0x200;
-        readsize  = 0x200;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
@@ -18446,7 +18446,7 @@ part parent    ".avrdx"
         size      = 0x4000;
         offset    = 0x800000;
         page_size = 0x200;
-        readsize  = 0x200;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
@@ -18470,7 +18470,7 @@ part parent    ".avrdx"
         size      = 0x4000;
         offset    = 0x800000;
         page_size = 0x200;
-        readsize  = 0x200;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
@@ -18494,7 +18494,7 @@ part parent    ".avrdx"
         size      = 0x4000;
         offset    = 0x800000;
         page_size = 0x200;
-        readsize  = 0x200;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
@@ -18518,7 +18518,7 @@ part parent    ".avrdx"
         size      = 0x8000;
         offset    = 0x800000;
         page_size = 0x200;
-        readsize  = 0x200;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
@@ -18542,7 +18542,7 @@ part parent    ".avrdx"
         size      = 0x8000;
         offset    = 0x800000;
         page_size = 0x200;
-        readsize  = 0x200;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
@@ -18566,7 +18566,7 @@ part parent    ".avrdx"
         size      = 0x8000;
         offset    = 0x800000;
         page_size = 0x200;
-        readsize  = 0x200;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
@@ -18590,7 +18590,7 @@ part parent    ".avrdx"
         size      = 0x8000;
         offset    = 0x800000;
         page_size = 0x200;
-        readsize  = 0x200;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
@@ -18614,7 +18614,7 @@ part parent    ".avrdx"
         size      = 0x10000;
         offset    = 0x800000;
         page_size = 0x200;
-        readsize  = 0x200;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
@@ -18638,7 +18638,7 @@ part parent    ".avrdx"
         size      = 0x10000;
         offset    = 0x800000;
         page_size = 0x200;
-        readsize  = 0x200;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
@@ -18662,7 +18662,7 @@ part parent    ".avrdx"
         size      = 0x10000;
         offset    = 0x800000;
         page_size = 0x200;
-        readsize  = 0x200;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
@@ -18686,7 +18686,7 @@ part parent    ".avrdx"
         size      = 0x10000;
         offset    = 0x800000;
         page_size = 0x200;
-        readsize  = 0x200;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
@@ -18726,13 +18726,13 @@ part parent    ".avrex"
         size      = 0x2000;
         offset    = 0x800000;
         page_size = 0x40;
-        readsize  = 0x40;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
         size      = 0x200;
         offset    = 0x1400;
-        page_size = 0x1;
+        page_size = 0x8;
         readsize  = 0x100;
     ;
 ;
@@ -18750,13 +18750,13 @@ part parent    ".avrex"
         size      = 0x2000;
         offset    = 0x800000;
         page_size = 0x40;
-        readsize  = 0x40;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
         size      = 0x200;
         offset    = 0x1400;
-        page_size = 0x1;
+        page_size = 0x8;
         readsize  = 0x100;
     ;
 ;
@@ -18774,13 +18774,13 @@ part parent    ".avrex"
         size      = 0x4000;
         offset    = 0x800000;
         page_size = 0x40;
-        readsize  = 0x40;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
         size      = 0x200;
         offset    = 0x1400;
-        page_size = 0x1;
+        page_size = 0x8;
         readsize  = 0x100;
     ;
 ;
@@ -18798,13 +18798,13 @@ part parent    ".avrex"
         size      = 0x4000;
         offset    = 0x800000;
         page_size = 0x40;
-        readsize  = 0x40;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
         size      = 0x200;
         offset    = 0x1400;
-        page_size = 0x1;
+        page_size = 0x8;
         readsize  = 0x100;
     ;
 ;
@@ -18822,13 +18822,13 @@ part parent    ".avrex"
         size      = 0x4000;
         offset    = 0x800000;
         page_size = 0x40;
-        readsize  = 0x40;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
         size      = 0x200;
         offset    = 0x1400;
-        page_size = 0x1;
+        page_size = 0x8;
         readsize  = 0x100;
     ;
 ;
@@ -18846,13 +18846,13 @@ part parent    ".avrex"
         size      = 0x8000;
         offset    = 0x800000;
         page_size = 0x40;
-        readsize  = 0x40;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
         size      = 0x200;
         offset    = 0x1400;
-        page_size = 0x1;
+        page_size = 0x8;
         readsize  = 0x100;
     ;
 ;
@@ -18870,13 +18870,13 @@ part parent    ".avrex"
         size      = 0x8000;
         offset    = 0x800000;
         page_size = 0x40;
-        readsize  = 0x40;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
         size      = 0x200;
         offset    = 0x1400;
-        page_size = 0x1;
+        page_size = 0x8;
         readsize  = 0x100;
     ;
 ;
@@ -18894,13 +18894,13 @@ part parent    ".avrex"
         size      = 0x8000;
         offset    = 0x800000;
         page_size = 0x40;
-        readsize  = 0x40;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
         size      = 0x200;
         offset    = 0x1400;
-        page_size = 0x1;
+        page_size = 0x8;
         readsize  = 0x100;
     ;
 ;
@@ -18918,13 +18918,13 @@ part parent    ".avrex"
         size      = 0x10000;
         offset    = 0x800000;
         page_size = 0x80;
-        readsize  = 0x80;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
         size      = 0x200;
         offset    = 0x1400;
-        page_size = 0x1;
+        page_size = 0x8;
         readsize  = 0x100;
     ;
 ;
@@ -18942,13 +18942,13 @@ part parent    ".avrex"
         size      = 0x10000;
         offset    = 0x800000;
         page_size = 0x80;
-        readsize  = 0x80;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
         size      = 0x200;
         offset    = 0x1400;
-        page_size = 0x1;
+        page_size = 0x8;
         readsize  = 0x100;
     ;
 ;
@@ -18966,13 +18966,13 @@ part parent    ".avrex"
         size      = 0x10000;
         offset    = 0x800000;
         page_size = 0x80;
-        readsize  = 0x80;
+        readsize  = 0x100;
     ;
 
     memory "eeprom"
         size      = 0x200;
         offset    = 0x1400;
-        page_size = 0x1;
+        page_size = 0x8;
         readsize  = 0x100;
     ;
 ;
