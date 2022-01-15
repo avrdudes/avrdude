@@ -39,6 +39,7 @@ as well the various **[Authors]** / **[Contributors]** .
 
 ---
 
+<br>
 
 ## Installation
 
@@ -71,6 +72,8 @@ sudo apt install avrdude
 **AVRDUDE** can be installed via `Mac Ports`.
 
 ---
+
+<br>
 
 ## Usage
 
@@ -114,8 +117,8 @@ that may be required for the programming to succeed.
 
 <!----------------------------------------------------------------------------->
 
-[Installation]: docs/Installation.md
-[Usage]: docs/Usage.md
+[Installation]: #Installation
+[Usage]: #Usage
 [Wiki]: https://github.com/avrdudes/avrdude/wiki
 [Documentation]: http://download.savannah.gnu.org/releases/avrdude/avrdude-doc-6.4.pdf
 
