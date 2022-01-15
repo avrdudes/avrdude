@@ -6,6 +6,8 @@
 *Run the `avrdude` command without* <br>
 *any arguments for a list of options.*
 
+<br>
+
 ---
 
 <br>
@@ -21,6 +23,8 @@ avrdude -c <Programmer> -p <Part> -U flash:w:<File>:i
 
 <br>
 
+##### Arduino Uno
+
 For instance, to program an `Arduino Uno` <br>
 connected to the serial port `COM1` with a <br>
 **HEX** file called `blink.hex`, you would use:
@@ -28,6 +32,8 @@ connected to the serial port `COM1` with a <br>
 ```sh
 avrdude -c arduino -P COM1 -b 115200 -p atmega328p -D -U flash:w:objs/blink.hex:i
 ```
+
+<br>
 
 ---
 
