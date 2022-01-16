@@ -25,6 +25,10 @@ Changes since version 6.4:
     - ATmega48A/48PA/88A/88PA/168A/168PA, ATmega164A/644A/644PA,
       ATmega16A/32A/64A/128A, ATtiny13A, ATtiny24A/44A/84A,
       ATtiny261A/461A/861A, ATtiny828R, ATtiny2313A, ATtiny1634R
+    - ATtiny3224, ATtiny3226 and ATtiny3227
+    - AVR16DD14/20/28/32, AVR32DD14/20/28/32 and AVR64DD14/20/28/32
+    - AVR8EA28/32, AVR16EA28/32/48, AVR32EA28/32/48 and AVR64EA28/32/64
+
 
   * New programmers supported:
 
@@ -94,6 +98,7 @@ Changes since version 6.4:
     - Add missing ATmega and ATtiny targets #832
     - Added missing RTS/DTR management feature to serialupdi
       programmer #811
+    - Add missing tinyAVR-2, AVR DD and AVR EA targets #836
 
   * Internals:
 
