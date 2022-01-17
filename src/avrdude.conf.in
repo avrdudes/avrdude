@@ -476,63 +476,47 @@ programmer
 # from Amontec
 ;
 
-# UM232H module from FTDI and Glyn.com.au.
-# See helix.air.net.au for detailed usage information.
-# J1: Connect pin 2 and 3 for USB power.
-# J2: Connect pin 2 and 3 for USB power.
-# J2: Pin 7 is SCK
-#   : Pin 8 is MOSI
-#   : Pin 9 is MISO
-#   : Pin 11 is RST
-#   : Pin 6 is ground
-# Use the -b flag to set the SPI clock rate eg -b 3750000 is the fastest I could get
-# a 16MHz Atmega1280 to program reliably.  The 232H is conveniently 5V tolerant.
 programmer
-  id         = "UM232H";
-  desc       = "FT232H based module from FTDI and Glyn.com.au";
+  id         = "ft232h";
+  desc       = "FT232H in MPSSE mode";
   type       = "avrftdi";
+  connection_type = usb;
   usbvid     = 0x0403;
-# Note: This PID is reserved for generic 232H devices and
-# should be programmed into the EEPROM
   usbpid     = 0x6014;
   usbdev     = "A";
   usbvendor  = "";
   usbproduct = "";
   usbsn      = "";
 #ISP-signals
-  sck    = 0;
-  mosi   = 1;
-  miso   = 2;
-  reset  = 3;
+  sck    = 0; # AD0 (TCK)
+  mosi   = 1; # AD1 (TDI)
+  miso   = 2; # AD2 (TDO)
+  reset  = 3; # AD3 (TMS)
 ;
 
-# C232HM module from FTDI and Glyn.com.au.
-# : Orange is SCK
-# : Yellow is MOSI
-# : Green is MISO
-# : Brown is RST
-# : Black is ground
+# Pin J2-7 (AD0) is SCK
+# Pin J2-8 (AD1) is MOSI
+# Pin J2-9 (AD2) is MISO
+# Pin J2-10 (AD3) is RESET
+# Pin J2-6 is GND
 # Use the -b flag to set the SPI clock rate eg -b 3750000 is the fastest I could get
 # a 16MHz Atmega1280 to program reliably.  The 232H is conveniently 5V tolerant.
-programmer
-  id         = "C232HM";
-  desc       = "FT232H based module from FTDI and Glyn.com.au";
-  type       = "avrftdi";
-  usbvid     = 0x0403;
-# Note: This PID is reserved for generic 232H devices and
-# should be programmed into the EEPROM
-  usbpid     = 0x6014;
-  usbdev     = "A";
-  usbvendor  = "";
-  usbproduct = "";
-  usbsn      = "";
-#ISP-signals
-  sck    = 0;
-  mosi   = 1;
-  miso   = 2;
-  reset  = 3;
+programmer parent "ft232h"
+  id    = "um232h";
+  desc  = "UM232H module from FTDI";
 ;
 
+# Orange (Pin 2) is SCK
+# Yellow (Pin 3) is MOSI
+# Green (Pin 4) is MISO
+# Brown (Pin 5) is RESET
+# Black (Pin 10) is GND
+# Use the -b flag to set the SPI clock rate eg -b 3750000 is the fastest I could get
+# a 16MHz Atmega1280 to program reliably.  The 232H is conveniently 5V tolerant.
+programmer parent "ft232h"
+  id    = "c232hm";
+  desc  = "C232HM cable from FTDI";
+;
 
 # On the adapter you can read "O-Link". On the PCB is printed "OpenJTAG v3.1"
 # You can find it as "OpenJTAG ARM JTAG USB" in the internet. 
