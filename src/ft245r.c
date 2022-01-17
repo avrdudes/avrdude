@@ -147,6 +147,7 @@ static struct {
 static struct {
     int discard;	// # of bytes to discard during read
     int pending;	// # of bytes that have been written since last read
+    int len;	// # of bytes in receive buffer
     int wr;		// write pointer
     int rd;		// read pointer
     uint8_t buf[FT245R_BUFSIZE];	// receive ring buffer
@@ -159,16 +160,19 @@ static int ft245r_tpi_rx(PROGRAMMER * pgm, uint8_t *bytep);
 
 // Discard all data from the receive buffer.
 static void ft245r_rx_buf_purge(PROGRAMMER * pgm) {
+    rx.len = 0;
     rx.rd = rx.wr = 0;
 }
 
 static void ft245r_rx_buf_put(PROGRAMMER * pgm, uint8_t byte) {
+    rx.len++;
     rx.buf[rx.wr++] = byte;
     if (rx.wr >= sizeof(rx.buf))
 	rx.wr = 0;
 }
 
 static uint8_t ft245r_rx_buf_get(PROGRAMMER * pgm) {
+    rx.len--;
     uint8_t byte = rx.buf[rx.rd++];
     if (rx.rd >= sizeof(rx.buf))
 	rx.rd = 0;
@@ -191,6 +195,20 @@ static int ft245r_fill(PROGRAMMER * pgm) {
     for (i = 0; i < nread; ++i)
 	ft245r_rx_buf_put(pgm, raw[i]);
     return nread;
+}
+
+static int ft245r_rx_buf_fill_and_get(PROGRAMMER* pgm)
+{
+    while (rx.len == 0)
+    {
+        int result = ft245r_fill(pgm);
+        if (result < 0)
+        {
+            return result;
+        }
+    }
+
+    return ft245r_rx_buf_get(pgm);
 }
 
 /* Flush pending TX data to the FTDI send FIFO.  */
@@ -266,17 +284,35 @@ static int ft245r_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len) {
 
 #if FT245R_DEBUG
     avrdude_message(MSG_INFO, "%s: discarding %d, consuming %zu bytes\n",
-		    __func__, rx.discard, len);
+        __func__, rx.discard, len);
 #endif
     while (rx.discard > 0) {
-	ft245r_rx_buf_get(pgm);
-	--rx.discard;
+        int result = ft245r_rx_buf_fill_and_get(pgm);
+        if (result < 0)
+        {
+            return result;
+        }
+
+        --rx.discard;
     }
 
-    for (i = 0; i < len; ++i) {
-	buf[i] = ft245r_rx_buf_get(pgm);
-	for (j = 1; j < baud_multiplier; ++j)
-	    ft245r_rx_buf_get(pgm);
+    for (i = 0; i < len; ++i)
+    {
+        int result = ft245r_rx_buf_fill_and_get(pgm);
+        if (result < 0)
+        {
+            return result;
+        }
+
+        buf[i] = (uint8_t)result;
+        for (j = 1; j < baud_multiplier; ++j)
+        {
+            result = ft245r_rx_buf_fill_and_get(pgm);
+            if (result < 0)
+            {
+                return result;
+            }
+        }
     }
     return 0;
 }
