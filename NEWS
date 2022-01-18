@@ -37,6 +37,7 @@ Changes since version 6.4:
     - PicKit4 / SNAP (now also in ISP and PDI mode)
     - Teensy bootloader (PR #802)
     - Micronucleus bootloader (PR #786)
+    - ft232h (generic variant, PR #842)
 
   * Issues fixed:
 
@@ -99,6 +100,7 @@ Changes since version 6.4:
     - Added missing RTS/DTR management feature to serialupdi
       programmer #811
     - Add missing tinyAVR-2, AVR DD and AVR EA targets #836
+    - Add a new programmer ft232h #842
 
   * Internals:
 
