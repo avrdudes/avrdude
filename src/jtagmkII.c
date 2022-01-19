@@ -675,7 +675,7 @@ int jtagmkII_recv(PROGRAMMER * pgm, unsigned char **msg) {
 
 int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
   int tries;
-#define MAXTRIES 33
+#define MAXTRIES 10
   unsigned char buf[3], *resp, c = 0xff;
   int status;
   unsigned int fwver, hwver;
@@ -696,15 +696,14 @@ int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
 
     /* Get the sign-on information. */
     buf[0] = CMND_GET_SIGN_ON;
-    avrdude_message(MSG_NOTICE2, "%s: jtagmkII_getsync(): Sending sign-on command: ",
-	      progname);
+    avrdude_message(MSG_NOTICE2, "%s: jtagmkII_getsync() attempt %d of %d: Sending sign-on command: ",
+	      progname, tries + 1, MAXTRIES);
     jtagmkII_send(pgm, buf, 1);
 
     status = jtagmkII_recv(pgm, &resp);
     if (status <= 0) {
-	avrdude_message(MSG_INFO, "%s: jtagmkII_getsync(): sign-on command: "
-		"status %d\n",
-		progname, status);
+	    avrdude_message(MSG_INFO, "%s: jtagmkII_getsync() attempt %d of %d: sign-on command: status %d\n",
+		      progname, tries + 1, MAXTRIES, status);
     } else if (verbose >= 3) {
       putc('\n', stderr);
       jtagmkII_prmsg(pgm, resp, status);
