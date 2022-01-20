@@ -330,7 +330,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
       avrdude_message(MSG_INFO, "%s: verifying %s memory against %s:\n",
             progname, mem->desc, upd->filename);
 
-      avrdude_message(MSG_INFO, "%s: load data %s data from input file %s:\n",
+      avrdude_message(MSG_NOTICE2, "%s: load data %s data from input file %s:\n",
             progname, mem->desc, upd->filename);
     }
 
@@ -343,9 +343,9 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     v = avr_dup_part(p);
     size = rc;
     if (quell_progress < 2) {
-      avrdude_message(MSG_INFO, "%s: input file %s contains %d bytes\n",
+      avrdude_message(MSG_NOTICE2, "%s: input file %s contains %d bytes\n",
             progname, upd->filename, size);
-      avrdude_message(MSG_INFO, "%s: reading on-chip %s data:\n",
+      avrdude_message(MSG_NOTICE2, "%s: reading on-chip %s data:\n",
             progname, mem->desc);
     }
 
@@ -363,7 +363,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
 
 
     if (quell_progress < 2) {
-      avrdude_message(MSG_INFO, "%s: verifying ...\n", progname);
+      avrdude_message(MSG_NOTICE2, "%s: verifying ...\n", progname);
     }
     rc = avr_verify(p, v, upd->memtype, size);
     if (rc < 0) {
