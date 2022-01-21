@@ -102,6 +102,8 @@ Changes since version 6.4:
     - Add missing tinyAVR-2, AVR DD and AVR EA targets #836
     - Add a new programmer ft232h #842
     - Reduce verbosity when setting fuses and uploading programs #845
+    - jtagmkii: Reduce the number of sync attempts to 10 + print
+      number of attempts #844
 
   * Internals:
 
