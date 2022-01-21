@@ -373,38 +373,65 @@ AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
 }
 
 
-void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, int type,
-                     int verbose)
+void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
+                     int type, int verbose)
 {
+  static LNODEID ln;
+  static AVRMEM * n;
+  static unsigned int prev_mem_offset, prev_mem_size;
   int i, j;
   char * optr;
 
   if (m == NULL) {
       fprintf(f,
-              "%s                       Block Poll               Page                       Polled\n"
-              "%sMemory Type Mode Delay Size  Indx Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
-              "%s----------- ---- ----- ----- ---- ------ ------ ---- ------ ----- ----- ---------\n",
+              "%s                                Block Poll               Page                       Polled\n"
+              "%sMemory Type Alias    Mode Delay Size  Indx Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
+              "%s----------- -------- ---- ----- ----- ---- ------ ------ ---- ------ ----- ----- ---------\n",
             prefix, prefix, prefix);
   }
   else {
     if (verbose > 2) {
       fprintf(f,
-              "%s                       Block Poll               Page                       Polled\n"
-              "%sMemory Type Mode Delay Size  Indx Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
-              "%s----------- ---- ----- ----- ---- ------ ------ ---- ------ ----- ----- ---------\n",
+              "%s                                Block Poll               Page                       Polled\n"
+              "%sMemory Type Alias    Mode Delay Size  Indx Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
+              "%s----------- -------- ---- ----- ----- ---- ------ ------ ---- ------ ----- ----- ---------\n",
               prefix, prefix, prefix);
     }
-    fprintf(f,
-            "%s%-11s %4d %5d %5d %4d %-6s %6d %4d %6d %5d %5d 0x%02x 0x%02x\n",
-            prefix, m->desc, m->mode, m->delay, m->blocksize, m->pollindex,
-            m->paged ? "yes" : "no",
-            m->size,
-            m->page_size,
-            m->num_pages,
-            m->min_write_delay,
-            m->max_write_delay,
-            m->readback[0],
-            m->readback[1]);
+
+    // Get the next memory section, and stop before going out of band
+    if (ln == NULL)
+      ln = lnext(lfirst(p->mem));
+    else
+      ln = lnext(ln);
+    if (ln != NULL)
+      n = ldata(ln);
+
+    // Only print memory section if the previous section printed isn't identical
+    if(prev_mem_offset != m->offset || prev_mem_size != m->size || (strcmp(p->family_id, "") == 0)) {
+      prev_mem_offset = m->offset;
+      prev_mem_size = m->size;
+      /* Show alias if the current and the next memory section has the same offset
+      and size, we're not out of band and a family_id is present */
+      char * mem_desc_alias = m->offset == n->offset && \
+                              m->size == n->size && \
+                              ln != NULL && \
+                              strcmp(p->family_id, "") != 0 ?
+                              n->desc : "";
+      fprintf(f,
+              "%s%-11s %-8s %4d %5d %5d %4d %-6s %6d %4d %6d %5d %5d 0x%02x 0x%02x\n",
+              prefix,
+              m->desc,
+              mem_desc_alias,
+              m->mode, m->delay, m->blocksize, m->pollindex,
+              m->paged ? "yes" : "no",
+              m->size,
+              m->page_size,
+              m->num_pages,
+              m->min_write_delay,
+              m->max_write_delay,
+              m->readback[0],
+              m->readback[1]);
+    }
     if (verbose > 4) {
       avrdude_message(MSG_TRACE2, "%s  Memory Ops:\n"
                       "%s    Oeration     Inst Bit  Bit Type  Bitno  Value\n"
@@ -622,40 +649,33 @@ void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose)
   LNODEID ln;
   AVRMEM * m;
 
-  fprintf(f,
-          "%sAVR Part                      : %s\n"
-          "%sChip Erase delay              : %d us\n"
-          "%sPAGEL                         : P%02X\n"
-          "%sBS2                           : P%02X\n"
-          "%sRESET disposition             : %s\n"
-          "%sRETRY pulse                   : %s\n"
-          "%sserial program mode           : %s\n"
-          "%sparallel program mode         : %s\n"
-          "%sTimeout                       : %d\n"
-          "%sStabDelay                     : %d\n"
-          "%sCmdexeDelay                   : %d\n"
-          "%sSyncLoops                     : %d\n"
-          "%sByteDelay                     : %d\n"
-          "%sPollIndex                     : %d\n"
-          "%sPollValue                     : 0x%02x\n"
-          "%sMemory Detail                 :\n\n",
-          prefix, p->desc,
-          prefix, p->chip_erase_delay,
-          prefix, p->pagel,
-          prefix, p->bs2,
-          prefix, reset_disp_str(p->reset_disposition),
-          prefix, avr_pin_name(p->retry_pulse),
-          prefix, (p->flags & AVRPART_SERIALOK) ? "yes" : "no",
-          prefix, (p->flags & AVRPART_PARALLELOK) ?
-            ((p->flags & AVRPART_PSEUDOPARALLEL) ? "pseudo" : "yes") : "no",
-          prefix, p->timeout,
-          prefix, p->stabdelay,
-          prefix, p->cmdexedelay,
-          prefix, p->synchloops,
-          prefix, p->bytedelay,
-          prefix, p->pollindex,
-          prefix, p->pollvalue,
-          prefix);
+  fprintf(  f, "%sAVR Part                      : %s\n", prefix, p->desc);
+  if (p->chip_erase_delay)
+    fprintf(f, "%sChip Erase delay              : %d us\n", prefix, p->chip_erase_delay);
+  if (p->pagel)
+    fprintf(f, "%sPAGEL                         : P%02X\n", prefix, p->pagel);
+  if (p->bs2)
+    fprintf(f, "%sBS2                           : P%02X\n", prefix, p->bs2);
+  fprintf(  f, "%sRESET disposition             : %s\n", prefix, reset_disp_str(p->reset_disposition));
+  fprintf(  f, "%sRETRY pulse                   : %s\n", prefix, avr_pin_name(p->retry_pulse));
+  fprintf(  f, "%sSerial program mode           : %s\n", prefix, (p->flags & AVRPART_SERIALOK) ? "yes" : "no");
+  fprintf(  f, "%sParallel program mode         : %s\n", prefix, (p->flags & AVRPART_PARALLELOK) ?
+         ((p->flags & AVRPART_PSEUDOPARALLEL) ? "pseudo" : "yes") : "no");
+  if(p->timeout)
+    fprintf(f, "%sTimeout                       : %d\n", prefix, p->timeout);
+  if(p->stabdelay)
+    fprintf(f, "%sStabDelay                     : %d\n", prefix, p->stabdelay);
+  if(p->cmdexedelay)
+    fprintf(f, "%sCmdexeDelay                   : %d\n", prefix, p->cmdexedelay);
+  if(p->synchloops)
+    fprintf(f, "%sSyncLoops                     : %d\n", prefix, p->synchloops);
+  if(p->bytedelay)
+    fprintf(f, "%sByteDelay                     : %d\n", prefix, p->bytedelay);
+  if(p->pollindex)
+    fprintf(f, "%sPollIndex                     : %d\n", prefix, p->pollindex);
+  if(p->pollvalue)
+    fprintf(f, "%sPollValue                     : 0x%02x\n", prefix, p->pollvalue);
+  fprintf(  f, "%sMemory Detail                 :\n\n", prefix);
 
   px = prefix;
   i = strlen(prefix) + 5;
@@ -670,11 +690,11 @@ void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose)
   }
 
   if (verbose <= 2) {
-    avr_mem_display(px, f, NULL, 0, verbose);
+    avr_mem_display(px, f, NULL, p, 0, verbose);
   }
   for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
     m = ldata(ln);
-    avr_mem_display(px, f, m, i, verbose);
+    avr_mem_display(px, f, m, p, i, verbose);
   }
 
   if (buf)

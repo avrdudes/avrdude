@@ -311,8 +311,8 @@ int avr_initmem(AVRPART * p);
 AVRMEM * avr_dup_mem(AVRMEM * m);
 void     avr_free_mem(AVRMEM * m);
 AVRMEM * avr_locate_mem(AVRPART * p, char * desc);
-void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, int type,
-                     int verbose);
+void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
+                     int type, int verbose);
 
 /* Functions for AVRPART structures */
 AVRPART * avr_new_part(void);
