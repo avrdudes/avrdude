@@ -109,6 +109,7 @@ Changes since version 6.4:
     - CMake: add initial support for installing lib and include files #829
     - Add SPI support to USBtiny #816
     - Add more memory sections to read from #815
+    - Add a build script for Unix-like systems #849
 
   * Internals:
 
