@@ -846,7 +846,7 @@ Version 4.3.0:
   * Added "Troubleshooting"-Appendix to the manual.
 
   * Add ATmega8515 support.
-    Contributed by: Matthias Weiﬂer <matthias@matwei.de>
+    Contributed by: Matthias Wei√üer <matthias@matwei.de>
 
   * Add ATmega64 support.
     Contributed by: Erik Christiansen <erik@dd.nec.com.au>
