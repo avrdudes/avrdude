@@ -11,6 +11,8 @@ Changes since version 6.4:
 
     - Completely revamped Windows support, including MSVC
     - Started to add CMake (by now, parallel with autoconf/automake)
+    - New-architecture devices (AVR8X mega and tiny) can access all
+      fuses, and memory display shows meaningful alias names
 
   * New devices supported:
 
@@ -106,6 +108,7 @@ Changes since version 6.4:
       number of attempts #844
     - CMake: add initial support for installing lib and include files #829
     - Add SPI support to USBtiny #816
+    - Add more memory sections to read from #815
 
   * Internals:
 
