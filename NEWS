@@ -105,6 +105,7 @@ Changes since version 6.4:
     - jtagmkii: Reduce the number of sync attempts to 10 + print
       number of attempts #844
     - CMake: add initial support for installing lib and include files #829
+    - Add SPI support to USBtiny #816
 
   * Internals:
 

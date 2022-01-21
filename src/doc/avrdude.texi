@@ -1309,7 +1309,9 @@ Display the device signature bytes.
 
 @item spi
 Enter direct SPI mode.  The @emph{pgmled} pin acts as slave select.
-@emph{Only supported on parallel bitbang programmers.}
+@emph{Only supported on parallel bitbang programmers, and partially by USBtiny.}
+Slave Select must be externally held low for direct SPI when
+using USBtinyISP, and send must be a multiple of four bytes.
 
 @item part
 Display the current part settings and parameters.  Includes chip
