@@ -101,6 +101,7 @@ Changes since version 6.4:
       programmer #811
     - Add missing tinyAVR-2, AVR DD and AVR EA targets #836
     - Add a new programmer ft232h #842
+    - Reduce verbosity when setting fuses and uploading programs #845
 
   * Internals:
 
@@ -845,7 +846,7 @@ Version 4.3.0:
   * Added "Troubleshooting"-Appendix to the manual.
 
   * Add ATmega8515 support.
-    Contributed by: Matthias Weiﬂer <matthias@matwei.de>
+    Contributed by: Matthias Wei√üer <matthias@matwei.de>
 
   * Add ATmega64 support.
     Contributed by: Erik Christiansen <erik@dd.nec.com.au>
