@@ -541,6 +541,10 @@ static int cmd_sig(PROGRAMMER * pgm, struct avrpart * p,
 static int cmd_quit(PROGRAMMER * pgm, struct avrpart * p,
 		    int argc, char * argv[])
 {
+  /* FUSE bit verify will fail if left in SPI mode */
+  if (spi_mode) {
+    cmd_pgm(pgm, p, 0, NULL);
+  }
   return 1;
 }
 
