@@ -66,42 +66,63 @@
 
 static libusb_context *ctx = NULL;
 
-static int libusb_to_errno(int result)
+static const char *errstr(int result)
 {
+	static msg[30];
+	int n = 0;
+
 	switch (result) {
 	case LIBUSB_SUCCESS:
-		return 0;
+		return "No error";
 	case LIBUSB_ERROR_IO:
-		return EIO;
+		n = EIO;
+		break;
 	case LIBUSB_ERROR_INVALID_PARAM:
-		return EINVAL;
+		n = EINVAL;
+		break;
 	case LIBUSB_ERROR_ACCESS:
-		return EACCES;
+		n = EACCES;
+		break;
 	case LIBUSB_ERROR_NO_DEVICE:
-		return ENXIO;
+		n = ENXIO;
+		break;
 	case LIBUSB_ERROR_NOT_FOUND:
-		return ENOENT;
+		n = ENOENT;
+		break;
 	case LIBUSB_ERROR_BUSY:
-		return EBUSY;
-#ifdef ETIMEDOUT
+		n = EBUSY;
+		break;
 	case LIBUSB_ERROR_TIMEOUT:
-		return ETIMEDOUT;
+#ifdef ETIMEDOUT
+		n = ETIMEDOUT;
+		break;
+#else
+		return "Operation timed out"
 #endif
-#ifdef EOVERFLOW
 	case LIBUSB_ERROR_OVERFLOW:
-		return EOVERFLOW;
+#ifdef EOVERFLOW
+		n = EOVERFLOW;
+		break;
+#else
+		return "Value too large to be stored in data type"
 #endif
 	case LIBUSB_ERROR_PIPE:
-		return EPIPE;
+		n = EPIPE;
+		break;
 	case LIBUSB_ERROR_INTERRUPTED:
-		return EINTR;
+		n = EINTR;
+		break;
 	case LIBUSB_ERROR_NO_MEM:
-		return ENOMEM;
+		n = ENOMEM;
+		break;
 	case LIBUSB_ERROR_NOT_SUPPORTED:
-		return ENOSYS;
+		n = ENOSYS;
+		break;
 	default:
-		return ERANGE;
+		snprintf(msg, sizeof msg, "Unknown libusb error: %d", result);
+		return msg;
 	}
+	return strerror(n);
 }
 
 #endif
@@ -279,7 +300,7 @@ static int usbasp_transmit(PROGRAMMER * pgm,
 				   buffersize & 0xffff,
 				   5000);
   if(nbytes < 0){
-    avrdude_message(MSG_INFO, "%s: error: usbasp_transmit: %s\n", progname, strerror(libusb_to_errno(nbytes)));
+    avrdude_message(MSG_INFO, "%s: error: usbasp_transmit: %s\n", progname, errstr(nbytes));
     return -1;
   }
 #else
@@ -343,7 +364,7 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor,
             if (!handle) {
                  errorCode = USB_ERROR_ACCESS;
                  avrdude_message(MSG_INFO, "%s: Warning: cannot open USB device: %s\n",
-                                 progname, strerror(libusb_to_errno(r)));
+                                 progname, errstr(r));
                     continue;
             }
             errorCode = 0;
@@ -354,7 +375,7 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor,
                 if ((vendorName != NULL) && (vendorName[0] != 0)) {
                     errorCode = USB_ERROR_IO;
                     avrdude_message(MSG_INFO, "%s: Warning: cannot query manufacturer for device: %s\n",
-                                    progname, strerror(libusb_to_errno(r)));
+                                    progname, errstr(r));
 		}
             } else {
                 avrdude_message(MSG_NOTICE2, "%s: seen device from vendor ->%s<-\n",
@@ -368,7 +389,7 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor,
                 if ((productName != NULL) && (productName[0] != 0)) {
                     errorCode = USB_ERROR_IO;
                     avrdude_message(MSG_INFO, "%s: Warning: cannot query product for device: %s\n",
-                                    progname, strerror(libusb_to_errno(r)));
+                                    progname, errstr(r));
 		}
             } else {
                 avrdude_message(MSG_NOTICE2, "%s: seen product ->%s<-\n",
