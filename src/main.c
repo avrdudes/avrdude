@@ -993,7 +993,7 @@ int main(int argc, char * argv [])
     safemode = 0;
   }
 
-  if(p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_TPI)) {
+  if(p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_TPI | AVRPART_HAS_UPDI)) {
     safemode = 0;
   }
 
