@@ -29,9 +29,6 @@ env:
 jobs:
   linux-x86_64:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src
     steps:
       - uses: actions/checkout@v2
       - name: Install prerequisites
@@ -53,9 +50,9 @@ jobs:
           -D HAVE_LINUXGPIO=1
           -D HAVE_LINUXSPI=1
           -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          -B ../build
+          -B build
       - name: Build
-        run: cmake --build ../build
+        run: cmake --build build
       - name: Archive build artifacts
         if: always()
         uses: actions/upload-artifact@v2
@@ -70,15 +67,12 @@ jobs:
         with:
           name: avrdude-linux-x86_64
           path: |
-            build/avrdude
-            build/avrdude.conf
+            build/src/avrdude
+            build/src/avrdude.conf
 
   linux:
     runs-on: ubuntu-latest
     container: debian:11
-    defaults:
-      run:
-        working-directory: ./src
     strategy:
       matrix:
         include:
@@ -117,9 +111,9 @@ jobs:
           -D CMAKE_FIND_ROOT_PATH=/usr/${{matrix.prefix}}
           -D CMAKE_INCLUDE_PATH=/usr/include/${{matrix.inc-lib}}
           -D CMAKE_LIBRARY_PATH=/usr/lib/${{matrix.inc-lib}}
-          -B ../build
+          -B build
       - name: Build
-        run: cmake --build ../build
+        run: cmake --build build
       - name: Archive build artifacts
         if: always()
         uses: actions/upload-artifact@v2
@@ -134,14 +128,11 @@ jobs:
         with:
           name: avrdude-linux-${{matrix.processor}}
           path: |
-            build/avrdude
-            build/avrdude.conf
+            build/src/avrdude
+            build/src/avrdude.conf
 
   macos-x86_64:
     runs-on: macos-latest
-    defaults:
-      run:
-        working-directory: ./src
     steps:
       - uses: actions/checkout@v2
       - name: Install prerequisites
@@ -161,9 +152,9 @@ jobs:
           -D CMAKE_EXE_LINKER_FLAGS=-L/usr/local/Cellar
           -D DEBUG_CMAKE=1
           -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          -B ../build
+          -B build
       - name: Build
-        run: cmake --build ../build
+        run: cmake --build build
       - name: Archive build artifacts
         if: always()
         uses: actions/upload-artifact@v2
@@ -178,14 +169,11 @@ jobs:
         with:
           name: avrdude-macos-x86_64
           path: |
-            build/avrdude
-            build/avrdude.conf
+            build/src/avrdude
+            build/src/avrdude.conf
 
   msvc:
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: ./src
     strategy:
       matrix:
         include:
@@ -212,9 +200,9 @@ jobs:
           -D CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO="/DEBUG /INCREMENTAL:NO /LTCG /OPT:REF /OPT:ICF"
           -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           -D USE_EXTERNAL=1
-          -B ../build
+          -B build
       - name: Build
-        run: cmake --build ../build --config ${{env.BUILD_TYPE}}
+        run: cmake --build build --config ${{env.BUILD_TYPE}}
       - name: Archive build artifacts
         if: always()
         uses: actions/upload-artifact@v2
@@ -226,23 +214,22 @@ jobs:
             !**/*.obj
       - name: Move executables
         run: |
-          mv ../build/RelWithDebInfo/avrdude.exe ../build
-          mv ../build/RelWithDebInfo/avrdude.pdb ../build
+          mv build/src/RelWithDebInfo/avrdude.exe build/src
+          mv build/src/RelWithDebInfo/avrdude.pdb build/src
       - name: Archive executables
         uses: actions/upload-artifact@v2
         with:
           name: avrdude-msvc-${{matrix.arch}}
           path: |
-            build/avrdude.exe
-            build/avrdude.pdb
-            build/avrdude.conf
+            build/src/avrdude.exe
+            build/src/avrdude.pdb
+            build/src/avrdude.conf
 
   mingw:
     runs-on: windows-latest
     defaults:
       run:
         shell: msys2 {0}
-        working-directory: ./src
     strategy:
       matrix:
         include:
@@ -269,9 +256,9 @@ jobs:
           -G"MSYS Makefiles"
           -D DEBUG_CMAKE=1
           -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          -B ../build
+          -B build
       - name: Build
-        run: cmake --build ../build
+        run: cmake --build build
       - name: Archive build artifacts
         if: always()
         uses: actions/upload-artifact@v2
@@ -284,5 +271,5 @@ jobs:
         with:
           name: avrdude-mingw-${{matrix.env}}
           path: |
-            build/avrdude.exe
-            build/avrdude.conf
+            build/src/avrdude.exe
+            build/src/avrdude.conf
