@@ -1209,7 +1209,8 @@ static void stk500_display(PROGRAMMER * pgm, const char * p)
     }
     avrdude_message(MSG_INFO, "%sTopcard         : %s\n", p, n);
   }
-  stk500_print_parms1(pgm, p);
+  if(strcmp(pgm->type, "Arduino") != 0)
+    stk500_print_parms1(pgm, p);
 
   return;
 }
