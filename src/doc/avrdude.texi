@@ -286,7 +286,11 @@ be performed.
 
 The Arduino (which is very similar to the STK500 1.x) is supported via
 its own programmer type specification ``arduino''.  This programmer works for
-the Arduino Uno Rev3.
+the Arduino Uno Rev3 or any AVR that runs the Optiboot bootloader.
+The number of connection retry attempts can be specified as an
+extended parameter. See the section on
+@emph{extended parameters}
+below for details.
 
 The BusPirate is a versatile tool that can also be used as an AVR programmer.
 A single BusPirate can be connected to up to 3 independent AVRs. See
@@ -310,7 +314,7 @@ Board'', thus the name @code{pkobn_updi}.
 SerialUPDI programmer implementation is based on Microchip's 
 @emph{pymcuprog} (@url{https://github.com/microchip-pic-avr-tools/pymcuprog}) 
 utility, but it also contains some performance improvements included in
-Spence Kohde's @emph{DxCore} Arduino core (@url{https://github.com/SpenceKonde/DxCore}).
+Spence Konde's @emph{DxCore} Arduino core (@url{https://github.com/SpenceKonde/DxCore}).
 In a nutshell, this programmer consists of simple USB->UART adapter, diode 
 and couple of resistors. It uses serial connection to provide UPDI interface. 
 @xref{SerialUPDI programmer} for more details and known issues.
@@ -896,6 +900,13 @@ Use
 @samp{no_blockmode} only if your @samp{AVR910} 
 programmer creates errors during initial sequence.
 @end table
+
+@item Arduino
+
+The Arduino programmer type accepts the following extended parameter:
+@table @code
+@item @samp{attemps=VALUE}
+Overide the default number of connection retry attempt by using @var{VALUE}.
 
 @item BusPirate
 
