@@ -150,7 +150,7 @@ program memory, but no true chip erase can be performed.
 .Pp
 The Arduino (which is very similar to the STK500 1.x) is supported via
 its own programmer type specification ``arduino''.  This programmer works for
-the Arduino Uno Rev3.
+the Arduino Uno Rev3 or any AVR that runs the Optiboot bootloader.
 .Pp
 The BusPirate is a versatile tool that can also be used as an AVR programmer.
 A single BusPirate can be connected to up to 3 independent AVRs. See
@@ -1030,6 +1030,12 @@ only if your
 .Ar AVR910
 programmer creates errors during initial sequence. 
 .El
+.It Ar Arduino
+.Bl -tag -offset indent -width indent
+.It Ar attemps[=<1..99>]
+Specify how many connection retry attemps to perform before exiting.
+Defaults to 10 if not specified.
+.El
 .It Ar buspirate
 .Bl -tag -offset indent -width indent
 .It Ar reset={cs,aux,aux2}
@@ -1186,6 +1192,12 @@ line, and the XBee DIN pin (pin 3) must be connected to the MCU's
 .Ql TXD
 line.
 .El
+.It Ar STK500
+.Bl -tag -offset indent -width indent
+.It Ar attemps[=<1..99>]
+Specify how many connection retry attemps to perform before exiting.
+Defaults to 10 if not specified.
+.El
 .It Ar serialupdi
 Extended parameters:
 .Bl -tag -offset indent -width indent
@@ -1267,7 +1279,7 @@ This man page by
 .el Joerg Wunsch.
 .Sh BUGS
 Please report bugs via
-.Dl "http://savannah.nongnu.org/bugs/?group=avrdude" .
+.Dl "https://github.com/avrdudes/avrdude/issues"
 .Pp
 The JTAG ICE programmers currently cannot write to the flash ROM
 one byte at a time.

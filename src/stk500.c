@@ -47,8 +47,8 @@
 
 struct pdata
 {
-  unsigned char ext_addr_byte; /* Record ext-addr byte set in the
-				* target device (if used) */
+  unsigned char ext_addr_byte; // Record ext-addr byte set in the target device (if used)
+  int retry_attempts; // Number of connection attempts provided by the user
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
@@ -89,6 +89,7 @@ int stk500_getsync(PROGRAMMER * pgm)
 {
   unsigned char buf[32], resp[32];
   int attempt;
+  int max_sync_attempts;
 
   /*
    * get in sync */
@@ -104,16 +105,21 @@ int stk500_getsync(PROGRAMMER * pgm)
   stk500_send(pgm, buf, 2);
   stk500_drain(pgm, 0);
 
-  for (attempt = 0; attempt < MAX_SYNC_ATTEMPTS; attempt++) {
+  if(PDATA(pgm)->retry_attempts)
+    max_sync_attempts = PDATA(pgm)->retry_attempts;
+  else
+    max_sync_attempts = MAX_SYNC_ATTEMPTS;
+
+  for (attempt = 0; attempt < max_sync_attempts; attempt++) {
     stk500_send(pgm, buf, 2);
     stk500_recv(pgm, resp, 1);
     if (resp[0] == Resp_STK_INSYNC){
       break;
     }
     avrdude_message(MSG_INFO, "%s: stk500_getsync() attempt %d of %d: not in sync: resp=0x%02x\n",
-                    progname, attempt + 1, MAX_SYNC_ATTEMPTS, resp[0]);
+                    progname, attempt + 1, max_sync_attempts, resp[0]);
   }
-  if (attempt == MAX_SYNC_ATTEMPTS) {
+  if (attempt == max_sync_attempts) {
     stk500_drain(pgm, 0);
     return -1;
   }
@@ -597,6 +603,30 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
   return pgm->program_enable(pgm, p);
 }
 
+static int stk500_parseextparms(PROGRAMMER * pgm, LISTID extparms)
+ {
+   LNODEID ln;
+   const char *extended_param;
+   int attempts;
+   int rv = 0;
+
+   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
+     extended_param = ldata(ln);
+
+     if (sscanf(extended_param, "attempts=%2d", &attempts) == 1) {
+       PDATA(pgm)->retry_attempts = attempts;
+       avrdude_message(MSG_INFO, "%s: serialupdi_parseextparms(): invalid extended parameter '%s'\n",
+                     progname, extended_param);
+       continue;
+     }
+
+     avrdude_message(MSG_INFO, "%s: stk500_parseextparms(): invalid extended parameter '%s'\n",
+                     progname, extended_param);
+     rv = -1;
+   }
+
+   return rv;
+ }
 
 static void stk500_disable(PROGRAMMER * pgm)
 {
@@ -1209,7 +1239,8 @@ static void stk500_display(PROGRAMMER * pgm, const char * p)
     }
     avrdude_message(MSG_INFO, "%sTopcard         : %s\n", p, n);
   }
-  stk500_print_parms1(pgm, p);
+  if(strcmp(pgm->type, "Arduino") != 0)
+    stk500_print_parms1(pgm, p);
 
   return;
 }
@@ -1294,6 +1325,7 @@ void stk500_initpgm(PROGRAMMER * pgm)
    * mandatory functions
    */
   pgm->initialize     = stk500_initialize;
+  pgm->parseextparams = stk500_parseextparms;
   pgm->display        = stk500_display;
   pgm->enable         = stk500_enable;
   pgm->disable        = stk500_disable;
