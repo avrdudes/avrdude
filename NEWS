@@ -61,6 +61,7 @@ Changes since version 6.4:
     - ATmega328P reported as lgt8fx328p #812
     - [bug #48004] Dead link for linuxgpio in avrdude description #419
     - Segmentation fault when writing ATtiny104 fuse #823
+    - USBasp returns ERANGE for unknown error #848
 
   * Pull requests:
 
@@ -110,6 +111,11 @@ Changes since version 6.4:
     - Add SPI support to USBtiny #816
     - Add more memory sections to read from #815
     - Add a build script for Unix-like systems #849
+    - Fix receive buffer implementation in ftdi_syncbb programmer #843
+    - CMake: split configuration in two files #852
+    - Set number of connection retry attempts for Arduino/STK500
+      programmer #854
+    - Fix libusb-1.0 error strings #850
 
   * Internals:
 
