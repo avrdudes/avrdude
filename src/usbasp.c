@@ -68,7 +68,7 @@ static libusb_context *ctx = NULL;
 
 static const char *errstr(int result)
 {
-	static msg[30];
+	static char msg[30];
 	int n = 0;
 
 	switch (result) {
