@@ -111,6 +111,14 @@ int stk500_getsync(PROGRAMMER * pgm)
     max_sync_attempts = MAX_SYNC_ATTEMPTS;
 
   for (attempt = 0; attempt < max_sync_attempts; attempt++) {
+    // Restart Arduino bootloader for every sync attempt
+    if (strcmp(pgm->type, "Arduino") == 0 && attempt > 0) {
+      serial_set_dtr_rts(&pgm->fd, 0); // Set DTR and RTS low
+      usleep(250*1000);
+      serial_set_dtr_rts(&pgm->fd, 1); // Set DTR and RTS back to high
+      usleep(50*1000);
+      stk500_drain(pgm, 0);
+    }
     stk500_send(pgm, buf, 2);
     stk500_recv(pgm, resp, 1);
     if (resp[0] == Resp_STK_INSYNC){
