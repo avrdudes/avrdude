@@ -623,8 +623,8 @@ static int stk500_parseextparms(PROGRAMMER * pgm, LISTID extparms)
 
      if (sscanf(extended_param, "attempts=%2d", &attempts) == 1) {
        PDATA(pgm)->retry_attempts = attempts;
-       avrdude_message(MSG_INFO, "%s: serialupdi_parseextparms(): invalid extended parameter '%s'\n",
-                     progname, extended_param);
+       avrdude_message(MSG_INFO, "%s: Setting number of retry attempts to %d\n",
+                     progname, attempts);
        continue;
      }
 
