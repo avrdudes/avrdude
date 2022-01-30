@@ -62,6 +62,7 @@ Changes since version 6.4:
     - [bug #48004] Dead link for linuxgpio in avrdude description #419
     - Segmentation fault when writing ATtiny104 fuse #823
     - USBasp returns ERANGE for unknown error #848
+    - Compiler warnings #856
 
   * Pull requests:
 
@@ -116,6 +117,8 @@ Changes since version 6.4:
     - Set number of connection retry attempts for Arduino/STK500
       programmer #854
     - Fix libusb-1.0 error strings #850
+    - Assign proper type to msg[] in errstr() #857
+    - Fix Arduino retry attempts #855
 
   * Internals:
 
