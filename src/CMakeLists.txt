@@ -268,5 +268,5 @@ install(TARGETS libavrdude
     ARCHIVE DESTINATION lib
     PUBLIC_HEADER DESTINATION include COMPONENT dev
     )
-install(FILES "${PROJECT_BINARY_DIR}/avrdude.conf" TYPE SYSCONF)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/avrdude.conf" TYPE SYSCONF)
 install(FILES avrdude.1 TYPE MAN)
