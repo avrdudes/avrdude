@@ -122,9 +122,6 @@ static void usage(void)
  "                             is performed in the order specified.\n"
  "  -n                         Do not write anything to the device.\n"
  "  -V                         Do not verify.\n"
- "  -u                         Disable safemode, default when running from a script.\n"
- "  -s                         Silent safemode operation, will not ask you if\n"
- "                             fuses should be changed back.\n"
  "  -t                         Enter terminal mode.\n"
  "  -E <exitspec>[,<exitspec>] List programmer exit specifications.\n"
  "  -x <extended_param>        Pass <extended_param> to programmer.\n"
@@ -349,19 +346,11 @@ int main(int argc, char * argv [])
   int     baudrate;    /* override default programmer baud rate */
   double  bitclock;    /* Specify programmer bit clock (JTAG ICE) */
   int     ispdelay;    /* Specify the delay for ISP clock */
-  int     safemode;    /* Enable safemode, 1=safemode on, 0=normal */
-  int     silentsafe;  /* Don't ask about fuses, 1=silent, 0=normal */
   int     init_ok;     /* Device initialization worked well */
   int     is_open;     /* Device open succeeded */
   char  * logfile;     /* Use logfile rather than stderr for diagnostics */
   enum updateflags uflags = UF_AUTO_ERASE; /* Flags for do_op() */
-  unsigned char safemode_lfuse = 0xff;
-  unsigned char safemode_hfuse = 0xff;
-  unsigned char safemode_efuse = 0xff;
-  unsigned char safemode_fuse = 0xff;
 
-  char * safemode_response;
-  int fuses_updated = 0;
 #if !defined(WIN32)
   char  * homedir;
 #endif
@@ -394,7 +383,6 @@ int main(int argc, char * argv [])
   default_parallel[0] = 0;
   default_serial[0]   = 0;
   default_bitclock    = 0.0;
-  default_safemode    = -1;
 
   init_config();
 
@@ -434,8 +422,6 @@ int main(int argc, char * argv [])
   baudrate      = 0;
   bitclock      = 0.0;
   ispdelay      = 0;
-  safemode      = 1;       /* Safemode on by default */
-  silentsafe    = 0;       /* Ask by default */
   is_open       = 0;
   logfile       = NULL;
 
@@ -581,17 +567,8 @@ int main(int argc, char * argv [])
         quell_progress++ ;
         break;
 
-      case 's' : /* Silent safemode */
-        silentsafe = 1;
-        safemode = 1;
-        break;
-        
       case 't': /* enter terminal mode */
         terminal = 1;
-        break;
-
-      case 'u' : /* Disable safemode */
-        safemode = 0;
         break;
 
       case 'U':
@@ -975,29 +952,6 @@ int main(int argc, char * argv [])
     }
   }
 
-  if (default_safemode == 0) {
-    /* configuration disables safemode: revert meaning of -u */
-    if (safemode == 0)
-      /* -u was given: enable safemode */
-      safemode = 1;
-    else
-      /* -u not given: turn off */
-      safemode = 0;
-  }
-
-  if (isatty(STDIN_FILENO) == 0 && silentsafe == 0)
-    safemode  = 0;       /* Turn off safemode if this isn't a terminal */
-
-
-  if(p->flags & AVRPART_AVR32) {
-    safemode = 0;
-  }
-
-  if(p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_TPI)) {
-    safemode = 0;
-  }
-
-
   if (avr_initmem(p) != 0)
   {
     avrdude_message(MSG_INFO, "\n%s: failed to initialize memories\n",
@@ -1281,36 +1235,6 @@ int main(int argc, char * argv [])
     }
   }
 
-  if (init_ok && safemode == 1) {
-    /* If safemode is enabled, go ahead and read the current low, high,
-       and extended fuse bytes as needed */
-
-    rc = safemode_readfuses(&safemode_lfuse, &safemode_hfuse,
-                           &safemode_efuse, &safemode_fuse, pgm, p);
-
-    if (rc != 0) {
-
-	  //Check if the programmer just doesn't support reading
-  	  if (rc == -5)
-			{
-				avrdude_message(MSG_NOTICE, "%s: safemode: Fuse reading not supported by programmer.\n"
-						"              Safemode disabled.\n", progname);
-			}
-      else
-			{
-
-      		avrdude_message(MSG_INFO, "%s: safemode: To protect your AVR the programming "
-            				    "will be aborted\n",
-               					 progname);
-      		exitrc = 1;
-		    goto main_exit;
-			}
-    } else {
-      //Save the fuses as default
-      safemode_memfuses(1, &safemode_lfuse, &safemode_hfuse, &safemode_efuse, &safemode_fuse);
-    }
-  }
-
   if (uflags & UF_AUTO_ERASE) {
     if ((p->flags & AVRPART_HAS_PDI) && pgm->page_erase != NULL &&
         lsize(updates) > 0) {
@@ -1385,169 +1309,6 @@ int main(int argc, char * argv [])
       break;
     }
   }
-
-  /* Right before we exit programming mode, which will make the fuse
-     bits active, check to make sure they are still correct */
-  if (safemode == 1) {
-    /* If safemode is enabled, go ahead and read the current low,
-     * high, and extended fuse bytes as needed */
-    unsigned char safemodeafter_lfuse = 0xff;
-    unsigned char safemodeafter_hfuse = 0xff;
-    unsigned char safemodeafter_efuse = 0xff;
-    unsigned char safemodeafter_fuse  = 0xff;
-    unsigned char failures = 0;
-    char yes[1] = {'y'};
-
-    if (quell_progress < 2) {
-      avrdude_message(MSG_INFO, "\n");
-    }
-
-    //Restore the default fuse values
-    safemode_memfuses(0, &safemode_lfuse, &safemode_hfuse, &safemode_efuse, &safemode_fuse);
-
-    /* Try reading back fuses, make sure they are reliable to read back */
-    if (safemode_readfuses(&safemodeafter_lfuse, &safemodeafter_hfuse,
-                           &safemodeafter_efuse, &safemodeafter_fuse, pgm, p) != 0) {
-      /* Uh-oh.. try once more to read back fuses */
-      if (safemode_readfuses(&safemodeafter_lfuse, &safemodeafter_hfuse,
-                             &safemodeafter_efuse, &safemodeafter_fuse, pgm, p) != 0) {
-        avrdude_message(MSG_INFO, "%s: safemode: Sorry, reading back fuses was unreliable. "
-                        "I have given up and exited programming mode\n",
-                        progname);
-        exitrc = 1;
-        goto main_exit;        
-      }
-    }
-    
-    AVRMEM * m;
-    
-    /* Now check what fuses are against what they should be */
-    m = avr_locate_mem(p, "fuse");
-    if (compare_memory_masked(m, safemodeafter_fuse, safemode_fuse)) {
-      fuses_updated = 1;
-      avrdude_message(MSG_INFO, "%s: safemode: fuse changed! Was %x, and is now %x\n",
-              progname, safemode_fuse, safemodeafter_fuse);
-
-              
-      /* Ask user - should we change them */
-       
-       if (silentsafe == 0)
-            safemode_response = terminal_get_input("Would you like this fuse to be changed back? [y/n] ");
-       else
-            safemode_response = yes;
-       
-       if (tolower((int)(safemode_response[0])) == 'y') {
-              
-            /* Enough chit-chat, time to program some fuses and check them */
-            if (safemode_writefuse (safemode_fuse, "fuse", pgm, p,
-                                    10) == 0) {
-                avrdude_message(MSG_INFO, "%s: safemode: and is now rescued\n", progname);
-            }
-            else {
-                avrdude_message(MSG_INFO, "%s: and COULD NOT be changed\n", progname);
-                failures++;
-            }
-      }
-    }
-
-    /* Now check what fuses are against what they should be */
-    m = avr_locate_mem(p, "lfuse");
-    if (compare_memory_masked(m, safemodeafter_lfuse, safemode_lfuse)) {
-      fuses_updated = 1;
-      avrdude_message(MSG_INFO, "%s: safemode: lfuse changed! Was %x, and is now %x\n",
-              progname, safemode_lfuse, safemodeafter_lfuse);
-
-              
-      /* Ask user - should we change them */
-       
-       if (silentsafe == 0)
-            safemode_response = terminal_get_input("Would you like this fuse to be changed back? [y/n] ");
-       else
-            safemode_response = yes;
-       
-       if (tolower((int)(safemode_response[0])) == 'y') {
-              
-            /* Enough chit-chat, time to program some fuses and check them */
-            if (safemode_writefuse (safemode_lfuse, "lfuse", pgm, p,
-                                    10) == 0) {
-                avrdude_message(MSG_INFO, "%s: safemode: and is now rescued\n", progname);
-            }
-            else {
-                avrdude_message(MSG_INFO, "%s: and COULD NOT be changed\n", progname);
-                failures++;
-            }
-      }
-    }
-
-    /* Now check what fuses are against what they should be */
-    m = avr_locate_mem(p, "hfuse");
-    if (compare_memory_masked(m, safemodeafter_hfuse, safemode_hfuse)) {
-      fuses_updated = 1;
-      avrdude_message(MSG_INFO, "%s: safemode: hfuse changed! Was %x, and is now %x\n",
-              progname, safemode_hfuse, safemodeafter_hfuse);
-              
-      /* Ask user - should we change them */
-       if (silentsafe == 0)
-            safemode_response = terminal_get_input("Would you like this fuse to be changed back? [y/n] ");
-       else
-            safemode_response = yes;
-       if (tolower((int)(safemode_response[0])) == 'y') {
-
-            /* Enough chit-chat, time to program some fuses and check them */
-            if (safemode_writefuse(safemode_hfuse, "hfuse", pgm, p,
-                                    10) == 0) {
-                avrdude_message(MSG_INFO, "%s: safemode: and is now rescued\n", progname);
-            }
-            else {
-                avrdude_message(MSG_INFO, "%s: and COULD NOT be changed\n", progname);
-                failures++;
-            }
-      }
-    }
-
-    /* Now check what fuses are against what they should be */
-    m = avr_locate_mem(p, "efuse");
-    if (compare_memory_masked(m, safemodeafter_efuse, safemode_efuse)) {
-      fuses_updated = 1;
-      avrdude_message(MSG_INFO, "%s: safemode: efuse changed! Was %x, and is now %x\n",
-              progname, safemode_efuse, safemodeafter_efuse);
-
-      /* Ask user - should we change them */
-       if (silentsafe == 0)
-            safemode_response = terminal_get_input("Would you like this fuse to be changed back? [y/n] ");
-       else
-            safemode_response = yes;
-       if (tolower((int)(safemode_response[0])) == 'y') {
-              
-            /* Enough chit-chat, time to program some fuses and check them */
-            if (safemode_writefuse (safemode_efuse, "efuse", pgm, p,
-                                    10) == 0) {
-                avrdude_message(MSG_INFO, "%s: safemode: and is now rescued\n", progname);
-            }
-            else {
-                avrdude_message(MSG_INFO, "%s: and COULD NOT be changed\n", progname);
-                failures++;
-            }
-       }
-    }
-
-    if (quell_progress < 2) {
-      avrdude_message(MSG_INFO, "%s: safemode: ", progname);
-      if (failures == 0) {
-        avrdude_message(MSG_INFO, "Fuses OK (E:%02X, H:%02X, L:%02X)\n",
-                safemodeafter_efuse, safemodeafter_hfuse, safemodeafter_lfuse);
-      }
-      else {
-        avrdude_message(MSG_INFO, "Fuses not recovered, sorry\n");
-      }
-    }
-
-    if (fuses_updated) {
-      exitrc = 1;
-    }
-
-  }
-
 
 main_exit:
 

@@ -607,40 +607,11 @@ Posix systems (by now).
 .It Fl q
 Disable (or quell) output of the progress bar while reading or writing
 to the device.  Specify it a second time for even quieter operation.
-.It Fl s
-Disable safemode prompting. When safemode discovers that one or more
-fuse bits have unintentionally changed, it will prompt for
-confirmation regarding whether or not it should attempt to recover the
-fuse bit(s). Specifying this flag disables the prompt and assumes
-that the fuse bit(s) should be recovered without asking for
-confirmation first.
 .It Fl t
 Tells
 .Nm
 to enter the interactive ``terminal'' mode instead of up- or downloading
 files.  See below for a detailed description of the terminal mode.
-.It Fl u
-Disable the safemode fuse bit checks.  Safemode is enabled by default
-and is intended to prevent unintentional fuse bit changes.  When
-enabled, safemode will issue a warning if the any fuse bits are found
-to be different at program exit than they were when
-.Nm
-was invoked.  Safemode won't alter fuse bits itself, but rather will
-prompt for instructions, unless the terminal is non-interactive, in
-which case safemode is disabled.  See the
-.Fl s
-option to disable safemode prompting.
-.Pp
-If one of the configuration files has a line
-.Dl "default_safemode = no;"
-safemode is disabled by default.
-The
-.Fl u
-option's effect is negated in that case, i. e. it
-.Em enables
-safemode.
-.Pp
-Safemode is always disabled for AVR32, Xmega and TPI devices.
 .It Xo Fl U Ar memtype Ns
 .Ar \&: Ns Ar op Ns
 .Ar \&: Ns Ar filename Ns

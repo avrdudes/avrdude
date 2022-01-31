@@ -13,6 +13,11 @@ Changes since version 6.4:
     - Started to add CMake (by now, parallel with autoconf/automake)
     - New-architecture devices (AVR8X mega and tiny) can access all
       fuses, and memory display shows meaningful alias names
+    - The "safemode" feature has been removed. The major class of
+      programmers it has been designed for (lowlevel bitbang
+      programmers on parallel or serial ports) virtually doesn't exist
+      anymore, and the fuse combination that was covered by it do not
+      match the fuses of modern AVR devices anyway.
 
   * New devices supported:
 

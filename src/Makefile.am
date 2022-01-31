@@ -148,7 +148,6 @@ libavrdude_a_SOURCES = \
 	ppi.c \
 	ppi.h \
 	ppiwin.c \
-	safemode.c \
 	serbb.h \
 	serbb_posix.c \
 	serbb_win32.c \
