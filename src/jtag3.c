@@ -1968,6 +1968,18 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     cmd[3] = MTYPE_USERSIG;
   } else if (strcmp(mem->desc, "prodsig") == 0) {
     cmd[3] = MTYPE_PRODSIG;
+  } else if (strcmp(mem->desc, "sernum") == 0) {
+    cmd[3] = MTYPE_SIGN_JTAG;
+  } else if (strcmp(mem->desc, "osccal16") == 0) {
+    cmd[3] = MTYPE_SIGN_JTAG;
+  } else if (strcmp(mem->desc, "osccal20") == 0) {
+    cmd[3] = MTYPE_SIGN_JTAG;
+  } else if (strcmp(mem->desc, "tempsense") == 0) {
+    cmd[3] = MTYPE_SIGN_JTAG;
+  } else if (strcmp(mem->desc, "osc16err") == 0) {
+    cmd[3] = MTYPE_SIGN_JTAG;
+  } else if (strcmp(mem->desc, "osc20err") == 0) {
+    cmd[3] = MTYPE_SIGN_JTAG;
   } else if (strcmp(mem->desc, "calibration") == 0) {
     cmd[3] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
@@ -2440,14 +2452,11 @@ static unsigned int jtag3_memaddr(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, uns
    * Non-Xmega device.
    */
   if (p->flags & AVRPART_HAS_UPDI) {
-    if (strcmp(m->desc, "fuses") == 0) {
-        addr += m->offset;
+    if (m->size == 1) {
+      addr = m->offset;
     }
-    else if (matches(m->desc, "fuse")) {
-        addr = m->offset;
-    }
-    else if (strcmp(m->desc, "flash") != 0) {
-        addr += m->offset;
+    else if (m->size > 1) {
+      addr += m->offset;
     }
   }
   return addr;
