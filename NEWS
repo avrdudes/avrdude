@@ -119,6 +119,7 @@ Changes since version 6.4:
     - Fix libusb-1.0 error strings #850
     - Assign proper type to msg[] in errstr() #857
     - Fix Arduino retry attempts #855
+    - CMake: use CMAKE_CURRENT_BINARY_DIR to locate avrdude.conf #858
 
   * Internals:
 
