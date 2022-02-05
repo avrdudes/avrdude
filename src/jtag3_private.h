@@ -236,6 +236,14 @@
 #define PARM3_OPT_12V_UPDI_ENABLE      0x06
 #define PARM3_OPT_CHIP_ERASE_TO_ENTER  0x07
 
+/*
+ * UPDI high-voltage enable modes
+ */
+#define PARM3_UPDI_HV_NONE              0x00  /* Do not use high-voltage */
+#define PARM3_UPDI_HV_SIMPLE_PULSE      0x01  /* Issue a single high-voltage pulse immediately*/
+#define PARM3_UPDI_HV_AUTO_POWER_TOGGLE 0x02  /* Toggle power automatically and then apply a high-voltage pulse */
+#define PARM3_UPDI_HV_USER_POWER_TOGGLE 0x03  /* The user toggles power, and the tool applies a high-voltage pulse on power-up */
+
 /* Xmega erase memory types, for CMND_XMEGA_ERASE */
 #define XMEGA_ERASE_CHIP        0x00
 #define XMEGA_ERASE_APP         0x01
