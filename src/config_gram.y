@@ -1279,27 +1279,6 @@ part_parm :
       current_part->op[opnum] = op;
 
       free_token($1);
-    } |
-
-  K_ALIAS TKN_STRING {
-      AVRMEM * existing_mem;
-
-      existing_mem = avr_locate_mem(current_part, $2->value.string);
-      if (existing_mem == NULL) {
-	yyerror("%s alias to non-existent memory %s",
-		current_mem->desc, $2->value.string);
-	free_token($2);
-	YYABORT;
-      }
-
-      // copy over existing mem to current except description
-      size_t offset = strlen(current_mem->descr);
-      uint8_t *target = (uint8_t *)current_mem + offset;
-      uint8_t *source = (uint8_t *)existing_mem + offset;
-      size_t len = sizeof(AVRMEM) - offset;
-      memcpy(target, source, len);
-
-      free_token($2);
     }
   }
 ;
@@ -1312,6 +1291,7 @@ yesno :
 
 mem_specs :
   mem_spec TKN_SEMI |
+  mem_alias TKN_SEMI |
   mem_specs mem_spec TKN_SEMI
 ;
 
@@ -1441,6 +1421,29 @@ mem_spec :
   }
 ;
 
+mem_alias :
+  K_ALIAS TKN_STRING
+  {
+      AVRMEM * existing_mem;
+
+      existing_mem = avr_locate_mem(current_part, $2->value.string);
+      if (existing_mem == NULL) {
+        yyerror("%s alias to non-existent memory %s",
+                current_mem->desc, $2->value.string);
+        free_token($2);
+        YYABORT;
+      }
+
+      // copy over existing mem to current except description
+      size_t offset = strlen(current_mem->desc);
+      uint8_t *target = (uint8_t *)current_mem + offset;
+      uint8_t *source = (uint8_t *)existing_mem + offset;
+      size_t len = sizeof(AVRMEM) - offset;
+      memcpy(target, source, len);
+
+      free_token($2);
+  }
+;
 
 %%
 
