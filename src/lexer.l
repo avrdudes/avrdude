@@ -117,6 +117,7 @@ SIGN     [+-]
 <strng>\n { yyerror("unterminated character constant");
             return YYERRCODE; }
 
+alias            { yylval=NULL; return K_ALIAS; }
 allowfullpagebitstream { yylval=NULL; return K_ALLOWFULLPAGEBITSTREAM; }
 avr910_devcode   { yylval=NULL; return K_AVR910_DEVCODE; }
 bank_size        { yylval=NULL; return K_PAGE_SIZE; }
