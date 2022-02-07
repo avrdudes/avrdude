@@ -425,6 +425,23 @@ AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
   return NULL;
 }
 
+AVRMEM_ALIAS * avr_find_memalias(AVRPART * p, AVRMEM * m_orig)
+{
+  AVRMEM_ALIAS * m;
+  LNODEID ln;
+
+  if (p->mem_alias == NULL)
+    return NULL;
+
+  for (ln=lfirst(p->mem_alias); ln; ln=lnext(ln)) {
+    m = ldata(ln);
+    if (m->aliased_mem == m_orig)
+      return m;
+  }
+
+  return NULL;
+}
+
 
 void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
                      int type, int verbose)
