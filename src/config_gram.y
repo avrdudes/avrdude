@@ -1442,7 +1442,9 @@ mem_alias :
       is_alias = true;
       AVRMEM_ALIAS * alias = avr_new_memalias();
 
-      strncpy(alias->desc, $2->value.string, AVR_MEMDESCLEN - 1);
+      // alias->desc and current_mem->desc have the same length
+      // definition, thus no need to check for length here
+      strcpy(alias->desc, current_mem->desc);
       alias->aliased_mem = existing_mem;
       ladd(current_part->mem_alias, alias);
 
