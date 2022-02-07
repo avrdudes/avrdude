@@ -341,6 +341,17 @@ AVRMEM * avr_dup_mem(AVRMEM * m)
   return n;
 }
 
+AVRMEM_ALIAS * avr_dup_memalias(AVRMEM_ALIAS * m)
+{
+  AVRMEM_ALIAS * n;
+
+  n = avr_new_memalias();
+
+  *n = *m;
+
+  return n;
+}
+
 void avr_free_mem(AVRMEM * m)
 {
     int i;
@@ -374,9 +385,6 @@ AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, char * desc)
   LNODEID ln;
   int matches;
   int l;
-
-  if (p->mem_alias == NULL)
-    return NULL;
 
   l = strlen(desc);
   matches = 0;
@@ -429,9 +437,6 @@ AVRMEM_ALIAS * avr_find_memalias(AVRPART * p, AVRMEM * m_orig)
 {
   AVRMEM_ALIAS * m;
   LNODEID ln;
-
-  if (p->mem_alias == NULL)
-    return NULL;
 
   for (ln=lfirst(p->mem_alias); ln; ln=lnext(ln)) {
     m = ldata(ln);
@@ -558,6 +563,7 @@ AVRPART * avr_new_part(void)
   p->ocdrev = -1;
 
   p->mem = lcreat(NULL, 0);
+  p->mem_alias = lcreat(NULL, 0);
 
   return p;
 }
@@ -566,19 +572,25 @@ AVRPART * avr_new_part(void)
 AVRPART * avr_dup_part(AVRPART * d)
 {
   AVRPART * p;
-  LISTID save;
+  LISTID save, save2;
   LNODEID ln;
   int i;
 
   p = avr_new_part();
   save = p->mem;
+  save2 = p->mem_alias;
 
   *p = *d;
 
   p->mem = save;
+  p->mem_alias = save2;
 
   for (ln=lfirst(d->mem); ln; ln=lnext(ln)) {
     ladd(p->mem, avr_dup_mem(ldata(ln)));
+  }
+
+  for (ln=lfirst(d->mem_alias); ln; ln=lnext(ln)) {
+    ladd(p->mem_alias, avr_dup_memalias(ldata(ln)));
   }
 
   for (i = 0; i < AVR_OP_MAX; i++) {
@@ -593,8 +605,7 @@ void avr_free_part(AVRPART * d)
 int i;
 	ldestroy_cb(d->mem, (void(*)(void *))avr_free_mem);
 	d->mem = NULL;
-	if (d->mem_alias != NULL)
-	  ldestroy_cb(d->mem_alias, (void(*)(void *))avr_free_memalias);
+	ldestroy_cb(d->mem_alias, (void(*)(void *))avr_free_memalias);
 	d->mem_alias = NULL;
     for(i=0;i<sizeof(d->op)/sizeof(d->op[0]);i++)
     {
