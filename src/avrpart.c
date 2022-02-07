@@ -375,6 +375,9 @@ AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, char * desc)
   int matches;
   int l;
 
+  if (p->mem_alias == NULL)
+    return NULL;
+
   l = strlen(desc);
   matches = 0;
   match = NULL;
@@ -573,7 +576,8 @@ void avr_free_part(AVRPART * d)
 int i;
 	ldestroy_cb(d->mem, (void(*)(void *))avr_free_mem);
 	d->mem = NULL;
-	ldestroy_cb(d->mem_alias, (void(*)(void *))avr_free_memalias);
+	if (d->mem_alias != NULL)
+	  ldestroy_cb(d->mem_alias, (void(*)(void *))avr_free_memalias);
 	d->mem_alias = NULL;
     for(i=0;i<sizeof(d->op)/sizeof(d->op[0]);i++)
     {
