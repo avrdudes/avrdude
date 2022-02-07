@@ -260,6 +260,21 @@ AVRMEM * avr_new_memtype(void)
   return m;
 }
 
+AVRMEM_ALIAS * avr_new_memalias(void)
+{
+  AVRMEM_ALIAS * m;
+
+  m = (AVRMEM_ALIAS *)malloc(sizeof(*m));
+  if (m == NULL) {
+    avrdude_message(MSG_INFO, "avr_new_memalias(): out of memory\n");
+    exit(1);
+  }
+
+  memset(m, 0, sizeof(*m));
+
+  return m;
+}
+
 
 /*
  * Allocate and initialize memory buffers for each of the device's
@@ -348,9 +363,39 @@ void avr_free_mem(AVRMEM * m)
     free(m);
 }
 
+void avr_free_memalias(AVRMEM_ALIAS * m)
+{
+  free(m);
+}
+
+AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, char * desc)
+{
+  AVRMEM_ALIAS * m, * match;
+  LNODEID ln;
+  int matches;
+  int l;
+
+  l = strlen(desc);
+  matches = 0;
+  match = NULL;
+  for (ln=lfirst(p->mem_alias); ln; ln=lnext(ln)) {
+    m = ldata(ln);
+    if (strncmp(desc, m->desc, l) == 0) {
+      match = m;
+      matches++;
+    }
+  }
+
+  if (matches == 1)
+    return match;
+
+  return NULL;
+}
+
 AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
 {
   AVRMEM * m, * match;
+  AVRMEM_ALIAS * alias;
   LNODEID ln;
   int matches;
   int l;
@@ -368,6 +413,11 @@ AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
 
   if (matches == 1)
     return match;
+
+  /* not yet found: look for matching alias name */
+  alias = avr_locate_memalias(p, desc);
+  if (alias != NULL)
+    return alias->aliased_mem;
 
   return NULL;
 }
@@ -523,6 +573,8 @@ void avr_free_part(AVRPART * d)
 int i;
 	ldestroy_cb(d->mem, (void(*)(void *))avr_free_mem);
 	d->mem = NULL;
+	ldestroy_cb(d->mem_alias, (void(*)(void *))avr_free_memalias);
+	d->mem_alias = NULL;
     for(i=0;i<sizeof(d->op)/sizeof(d->op[0]);i++)
     {
     	if (d->op[i] != NULL)

@@ -1254,7 +1254,12 @@ part_parm :
         lrmv_d(current_part->mem, existing_mem);
         avr_free_mem(existing_mem);
       }
-      ladd(current_part->mem, current_mem); 
+      if (is_alias) {
+        avr_free_mem(current_mem); // alias mem has been already entered below
+        is_alias = false;
+      } else {
+        ladd(current_part->mem, current_mem);
+      }
       current_mem = NULL; 
     } |
 
@@ -1434,12 +1439,12 @@ mem_alias :
         YYABORT;
       }
 
-      // copy over existing mem to current except description
-      size_t offset = strlen(current_mem->desc);
-      uint8_t *target = (uint8_t *)current_mem + offset;
-      uint8_t *source = (uint8_t *)existing_mem + offset;
-      size_t len = sizeof(AVRMEM) - offset;
-      memcpy(target, source, len);
+      is_alias = true;
+      AVRMEM_ALIAS * alias = avr_new_memalias();
+
+      strncpy(alias->desc, $2->value.string, AVR_MEMDESCLEN - 1);
+      alias->aliased_mem = existing_mem;
+      ladd(current_part->mem_alias, alias);
 
       free_token($2);
   }
