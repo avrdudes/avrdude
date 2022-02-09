@@ -573,7 +573,7 @@ AVRPART * avr_dup_part(AVRPART * d)
 {
   AVRPART * p;
   LISTID save, save2;
-  LNODEID ln;
+  LNODEID ln, ln2;
   int i;
 
   p = avr_new_part();
@@ -586,11 +586,21 @@ AVRPART * avr_dup_part(AVRPART * d)
   p->mem_alias = save2;
 
   for (ln=lfirst(d->mem); ln; ln=lnext(ln)) {
-    ladd(p->mem, avr_dup_mem(ldata(ln)));
-  }
-
-  for (ln=lfirst(d->mem_alias); ln; ln=lnext(ln)) {
-    ladd(p->mem_alias, avr_dup_memalias(ldata(ln)));
+    AVRMEM *m = ldata(ln);
+    AVRMEM *m2 = avr_dup_mem(m);
+    ladd(p->mem, m2);
+    // see if there is any alias for it
+    for (ln2=lfirst(d->mem_alias); ln2; ln2=lnext(ln2)) {
+      AVRMEM_ALIAS *a = ldata(ln2);
+      if (a->aliased_mem == m) {
+        // yes, duplicate it
+        AVRMEM_ALIAS *a2 = avr_dup_memalias(a);
+        // ... adjust the pointer ...
+        a2->aliased_mem = m2;
+        // ... and add to new list
+        ladd(p->mem_alias, a2);
+      }
+    }
   }
 
   for (i = 0; i < AVR_OP_MAX; i++) {
