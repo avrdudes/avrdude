@@ -1439,8 +1439,15 @@ mem_alias :
         YYABORT;
       }
 
+      // if this alias does already exist, drop the old one
+      AVRMEM_ALIAS * alias = avr_locate_memalias(current_part, current_mem->desc);
+      if (alias) {
+        lrmv_d(current_part->mem_alias, alias);
+        avr_free_memalias(alias);
+      }
+
       is_alias = true;
-      AVRMEM_ALIAS * alias = avr_new_memalias();
+      alias = avr_new_memalias();
 
       // alias->desc and current_mem->desc have the same length
       // definition, thus no need to check for length here
