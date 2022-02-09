@@ -403,6 +403,31 @@ AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, char * desc)
   return NULL;
 }
 
+AVRMEM * avr_locate_mem_noalias(AVRPART * p, char * desc)
+{
+  AVRMEM * m, * match;
+  LNODEID ln;
+  int matches;
+  int l;
+
+  l = strlen(desc);
+  matches = 0;
+  match = NULL;
+  for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+    m = ldata(ln);
+    if (strncmp(desc, m->desc, l) == 0) {
+      match = m;
+      matches++;
+    }
+  }
+
+  if (matches == 1)
+    return match;
+
+  return NULL;
+}
+
+
 AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
 {
   AVRMEM * m, * match;

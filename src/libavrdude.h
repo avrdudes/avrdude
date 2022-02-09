@@ -319,6 +319,7 @@ AVRMEM * avr_dup_mem(AVRMEM * m);
 void     avr_free_mem(AVRMEM * m);
 void     avr_free_memalias(AVRMEM_ALIAS * m);
 AVRMEM * avr_locate_mem(AVRPART * p, char * desc);
+AVRMEM * avr_locate_mem_noalias(AVRPART * p, char * desc);
 AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, char * desc);
 void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
                      int type, int verbose);

@@ -1249,7 +1249,7 @@ part_parm :
     { 
       AVRMEM * existing_mem;
 
-      existing_mem = avr_locate_mem(current_part, current_mem->desc);
+      existing_mem = avr_locate_mem_noalias(current_part, current_mem->desc);
       if (existing_mem != NULL) {
         lrmv_d(current_part->mem, existing_mem);
         avr_free_mem(existing_mem);
