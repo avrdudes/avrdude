@@ -126,6 +126,8 @@ Changes since version 6.4:
     - Fix Arduino retry attempts #855
     - CMake: use CMAKE_CURRENT_BINARY_DIR to locate avrdude.conf #858
     - Remove the "safemode" feature. #859
+    - Add support for reading from more memory sections #863
+    - Alias keyword #868
 
   * Internals:
 
