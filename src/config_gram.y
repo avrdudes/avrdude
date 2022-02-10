@@ -68,6 +68,7 @@ static int pin_name;
 %token K_PAGE_SIZE
 %token K_PAGED
 
+%token K_ALIAS
 %token K_BAUDRATE
 %token K_BS2
 %token K_BUFF
@@ -1238,13 +1239,24 @@ part_parm :
     mem_specs 
     { 
       AVRMEM * existing_mem;
+      AVRMEM_ALIAS * existing_alias;
 
-      existing_mem = avr_locate_mem(current_part, current_mem->desc);
+      existing_mem = avr_locate_mem_noalias(current_part, current_mem->desc);
       if (existing_mem != NULL) {
         lrmv_d(current_part->mem, existing_mem);
         avr_free_mem(existing_mem);
       }
-      ladd(current_part->mem, current_mem); 
+      existing_alias = avr_locate_memalias(current_part, current_mem->desc);
+      if (existing_alias != NULL) {
+        lrmv_d(current_part->mem_alias, existing_alias);
+        avr_free_memalias(existing_alias);
+      }
+      if (is_alias) {
+        avr_free_mem(current_mem); // alias mem has been already entered below
+        is_alias = false;
+      } else {
+        ladd(current_part->mem, current_mem);
+      }
       current_mem = NULL; 
     } |
 
@@ -1281,6 +1293,7 @@ yesno :
 
 mem_specs :
   mem_spec TKN_SEMI |
+  mem_alias TKN_SEMI |
   mem_specs mem_spec TKN_SEMI
 ;
 
@@ -1410,6 +1423,44 @@ mem_spec :
   }
 ;
 
+mem_alias :
+  K_ALIAS TKN_STRING
+  {
+      AVRMEM * existing_mem;
+
+      existing_mem = avr_locate_mem(current_part, $2->value.string);
+      if (existing_mem == NULL) {
+        yyerror("%s alias to non-existent memory %s",
+                current_mem->desc, $2->value.string);
+        free_token($2);
+        YYABORT;
+      }
+
+      // if this alias does already exist, drop the old one
+      AVRMEM_ALIAS * alias = avr_locate_memalias(current_part, current_mem->desc);
+      if (alias) {
+        lrmv_d(current_part->mem_alias, alias);
+        avr_free_memalias(alias);
+      }
+      // NB: we do *not* check whether any non-alias region of the
+      // same name does already exist, as that one could be pointed to
+      // by an(other) alias as well. If we destroyed it, the alias
+      // pointer would get stale. In case someone defines the same
+      // name both as a regular memory as well as an alias, the
+      // regular one will always be found first by avr_locate_mem().
+
+      is_alias = true;
+      alias = avr_new_memalias();
+
+      // alias->desc and current_mem->desc have the same length
+      // definition, thus no need to check for length here
+      strcpy(alias->desc, current_mem->desc);
+      alias->aliased_mem = existing_mem;
+      ladd(current_part->mem_alias, alias);
+
+      free_token($2);
+  }
+;
 
 %%
 

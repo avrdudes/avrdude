@@ -261,6 +261,7 @@ typedef struct avrpart {
   OPCODE      * op[AVR_OP_MAX];     /* opcodes */
 
   LISTID        mem;                /* avr memory definitions */
+  LISTID        mem_alias;          /* memory alias definitions */
   char          config_file[PATH_MAX]; /* config file where defined */
   int           lineno;                /* config file line number */
 } AVRPART;
@@ -292,6 +293,11 @@ typedef struct avrmem {
   OPCODE * op[AVR_OP_MAX];    /* opcodes */
 } AVRMEM;
 
+typedef struct avrmem_alias {
+  char desc[AVR_MEMDESCLEN];  /* alias name ("syscfg0" etc.) */
+  AVRMEM *aliased_mem;
+} AVRMEM_ALIAS;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -307,10 +313,15 @@ int avr_get_output_index(OPCODE * op);
 
 /* Functions for AVRMEM structures */
 AVRMEM * avr_new_memtype(void);
+AVRMEM_ALIAS * avr_new_memalias(void);
 int avr_initmem(AVRPART * p);
 AVRMEM * avr_dup_mem(AVRMEM * m);
 void     avr_free_mem(AVRMEM * m);
+void     avr_free_memalias(AVRMEM_ALIAS * m);
 AVRMEM * avr_locate_mem(AVRPART * p, char * desc);
+AVRMEM * avr_locate_mem_noalias(AVRPART * p, char * desc);
+AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, char * desc);
+AVRMEM_ALIAS * avr_find_memalias(AVRPART * p, AVRMEM * m_orig);
 void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
                      int type, int verbose);
 

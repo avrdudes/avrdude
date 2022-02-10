@@ -54,6 +54,7 @@ extern int          lineno;
 extern const char * infile;
 extern LISTID       string_list;
 extern LISTID       number_list;
+extern bool         is_alias; // current entry is alias
 
 
 #if !defined(HAS_YYSTYPE)

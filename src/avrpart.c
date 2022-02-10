@@ -260,6 +260,21 @@ AVRMEM * avr_new_memtype(void)
   return m;
 }
 
+AVRMEM_ALIAS * avr_new_memalias(void)
+{
+  AVRMEM_ALIAS * m;
+
+  m = (AVRMEM_ALIAS *)malloc(sizeof(*m));
+  if (m == NULL) {
+    avrdude_message(MSG_INFO, "avr_new_memalias(): out of memory\n");
+    exit(1);
+  }
+
+  memset(m, 0, sizeof(*m));
+
+  return m;
+}
+
 
 /*
  * Allocate and initialize memory buffers for each of the device's
@@ -326,6 +341,17 @@ AVRMEM * avr_dup_mem(AVRMEM * m)
   return n;
 }
 
+AVRMEM_ALIAS * avr_dup_memalias(AVRMEM_ALIAS * m)
+{
+  AVRMEM_ALIAS * n;
+
+  n = avr_new_memalias();
+
+  *n = *m;
+
+  return n;
+}
+
 void avr_free_mem(AVRMEM * m)
 {
     int i;
@@ -348,7 +374,36 @@ void avr_free_mem(AVRMEM * m)
     free(m);
 }
 
-AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
+void avr_free_memalias(AVRMEM_ALIAS * m)
+{
+  free(m);
+}
+
+AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, char * desc)
+{
+  AVRMEM_ALIAS * m, * match;
+  LNODEID ln;
+  int matches;
+  int l;
+
+  l = strlen(desc);
+  matches = 0;
+  match = NULL;
+  for (ln=lfirst(p->mem_alias); ln; ln=lnext(ln)) {
+    m = ldata(ln);
+    if (strncmp(desc, m->desc, l) == 0) {
+      match = m;
+      matches++;
+    }
+  }
+
+  if (matches == 1)
+    return match;
+
+  return NULL;
+}
+
+AVRMEM * avr_locate_mem_noalias(AVRPART * p, char * desc)
 {
   AVRMEM * m, * match;
   LNODEID ln;
@@ -373,11 +428,54 @@ AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
 }
 
 
+AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
+{
+  AVRMEM * m, * match;
+  AVRMEM_ALIAS * alias;
+  LNODEID ln;
+  int matches;
+  int l;
+
+  l = strlen(desc);
+  matches = 0;
+  match = NULL;
+  for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+    m = ldata(ln);
+    if (strncmp(desc, m->desc, l) == 0) {
+      match = m;
+      matches++;
+    }
+  }
+
+  if (matches == 1)
+    return match;
+
+  /* not yet found: look for matching alias name */
+  alias = avr_locate_memalias(p, desc);
+  if (alias != NULL)
+    return alias->aliased_mem;
+
+  return NULL;
+}
+
+AVRMEM_ALIAS * avr_find_memalias(AVRPART * p, AVRMEM * m_orig)
+{
+  AVRMEM_ALIAS * m;
+  LNODEID ln;
+
+  for (ln=lfirst(p->mem_alias); ln; ln=lnext(ln)) {
+    m = ldata(ln);
+    if (m->aliased_mem == m_orig)
+      return m;
+  }
+
+  return NULL;
+}
+
+
 void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
                      int type, int verbose)
 {
-  static LNODEID ln;
-  static AVRMEM * n;
   static unsigned int prev_mem_offset, prev_mem_size;
   int i, j;
   char * optr;
@@ -398,25 +496,14 @@ void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
               prefix, prefix, prefix);
     }
 
-    // Get the next memory section, and stop before going out of band
-    if (ln == NULL)
-      ln = lnext(lfirst(p->mem));
-    else
-      ln = lnext(ln);
-    if (ln != NULL)
-      n = ldata(ln);
-
     // Only print memory section if the previous section printed isn't identical
     if(prev_mem_offset != m->offset || prev_mem_size != m->size || (strcmp(p->family_id, "") == 0)) {
       prev_mem_offset = m->offset;
       prev_mem_size = m->size;
+      AVRMEM_ALIAS *ap = avr_find_memalias(p, m);
       /* Show alias if the current and the next memory section has the same offset
       and size, we're not out of band and a family_id is present */
-      char * mem_desc_alias = m->offset == n->offset && \
-                              m->size == n->size && \
-                              ln != NULL && \
-                              strcmp(p->family_id, "") != 0 ?
-                              n->desc : "";
+      char * mem_desc_alias = ap? ap->desc: "";
       fprintf(f,
               "%s%-11s %-8s %4d %5d %5d %4d %-6s %6d %4d %6d %5d %5d 0x%02x 0x%02x\n",
               prefix,
@@ -488,6 +575,7 @@ AVRPART * avr_new_part(void)
   p->ocdrev = -1;
 
   p->mem = lcreat(NULL, 0);
+  p->mem_alias = lcreat(NULL, 0);
 
   return p;
 }
@@ -496,19 +584,35 @@ AVRPART * avr_new_part(void)
 AVRPART * avr_dup_part(AVRPART * d)
 {
   AVRPART * p;
-  LISTID save;
-  LNODEID ln;
+  LISTID save, save2;
+  LNODEID ln, ln2;
   int i;
 
   p = avr_new_part();
   save = p->mem;
+  save2 = p->mem_alias;
 
   *p = *d;
 
   p->mem = save;
+  p->mem_alias = save2;
 
   for (ln=lfirst(d->mem); ln; ln=lnext(ln)) {
-    ladd(p->mem, avr_dup_mem(ldata(ln)));
+    AVRMEM *m = ldata(ln);
+    AVRMEM *m2 = avr_dup_mem(m);
+    ladd(p->mem, m2);
+    // see if there is any alias for it
+    for (ln2=lfirst(d->mem_alias); ln2; ln2=lnext(ln2)) {
+      AVRMEM_ALIAS *a = ldata(ln2);
+      if (a->aliased_mem == m) {
+        // yes, duplicate it
+        AVRMEM_ALIAS *a2 = avr_dup_memalias(a);
+        // ... adjust the pointer ...
+        a2->aliased_mem = m2;
+        // ... and add to new list
+        ladd(p->mem_alias, a2);
+      }
+    }
   }
 
   for (i = 0; i < AVR_OP_MAX; i++) {
@@ -523,6 +627,8 @@ void avr_free_part(AVRPART * d)
 int i;
 	ldestroy_cb(d->mem, (void(*)(void *))avr_free_mem);
 	d->mem = NULL;
+	ldestroy_cb(d->mem_alias, (void(*)(void *))avr_free_memalias);
+	d->mem_alias = NULL;
     for(i=0;i<sizeof(d->op)/sizeof(d->op[0]);i++)
     {
     	if (d->op[i] != NULL)
