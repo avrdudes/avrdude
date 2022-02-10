@@ -1248,11 +1248,17 @@ part_parm :
     mem_specs 
     { 
       AVRMEM * existing_mem;
+      AVRMEM_ALIAS * existing_alias;
 
       existing_mem = avr_locate_mem_noalias(current_part, current_mem->desc);
       if (existing_mem != NULL) {
         lrmv_d(current_part->mem, existing_mem);
         avr_free_mem(existing_mem);
+      }
+      existing_alias = avr_locate_memalias(current_part, current_mem->desc);
+      if (existing_alias != NULL) {
+        lrmv_d(current_part->mem_alias, existing_alias);
+        avr_free_memalias(existing_alias);
       }
       if (is_alias) {
         avr_free_mem(current_mem); // alias mem has been already entered below
@@ -1445,6 +1451,12 @@ mem_alias :
         lrmv_d(current_part->mem_alias, alias);
         avr_free_memalias(alias);
       }
+      // NB: we do *not* check whether any non-alias region of the
+      // same name does already exist, as that one could be pointed to
+      // by an(other) alias as well. If we destroyed it, the alias
+      // pointer would get stale. In case someone defines the same
+      // name both as a regular memory as well as an alias, the
+      // regular one will always be found first by avr_locate_mem().
 
       is_alias = true;
       alias = avr_new_memalias();
