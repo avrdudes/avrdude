@@ -476,8 +476,6 @@ AVRMEM_ALIAS * avr_find_memalias(AVRPART * p, AVRMEM * m_orig)
 void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
                      int type, int verbose)
 {
-  static LNODEID ln;
-  static AVRMEM * n;
   static unsigned int prev_mem_offset, prev_mem_size;
   int i, j;
   char * optr;
@@ -498,25 +496,14 @@ void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
               prefix, prefix, prefix);
     }
 
-    // Get the next memory section, and stop before going out of band
-    if (ln == NULL)
-      ln = lnext(lfirst(p->mem));
-    else
-      ln = lnext(ln);
-    if (ln != NULL)
-      n = ldata(ln);
-
     // Only print memory section if the previous section printed isn't identical
     if(prev_mem_offset != m->offset || prev_mem_size != m->size || (strcmp(p->family_id, "") == 0)) {
       prev_mem_offset = m->offset;
       prev_mem_size = m->size;
+      AVRMEM_ALIAS *ap = avr_find_memalias(p, m);
       /* Show alias if the current and the next memory section has the same offset
       and size, we're not out of band and a family_id is present */
-      char * mem_desc_alias = m->offset == n->offset && \
-                              m->size == n->size && \
-                              ln != NULL && \
-                              strcmp(p->family_id, "") != 0 ?
-                              n->desc : "";
+      char * mem_desc_alias = ap? ap->desc: "";
       fprintf(f,
               "%s%-11s %-8s %4d %5d %5d %4d %-6s %6d %4d %6d %5d %5d 0x%02x 0x%02x\n",
               prefix,
