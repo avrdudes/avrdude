@@ -2688,11 +2688,11 @@ static void jtagmkII_display(PROGRAMMER * pgm, const char * p)
       jtagmkII_getparm(pgm, PAR_FW_VERSION, fw) < 0)
     return;
 
-  avrdude_message(MSG_INFO, "%sM_MCU hardware version: %d\n", p, hw[0]);
-  avrdude_message(MSG_INFO, "%sM_MCU firmware version: %d.%02d\n", p, fw[1], fw[0]);
-  avrdude_message(MSG_INFO, "%sS_MCU hardware version: %d\n", p, hw[1]);
-  avrdude_message(MSG_INFO, "%sS_MCU firmware version: %d.%02d\n", p, fw[3], fw[2]);
-  avrdude_message(MSG_INFO, "%sSerial number:          %02x:%02x:%02x:%02x:%02x:%02x\n",
+  avrdude_message(MSG_INFO, "%sM_MCU HW version: %d\n", p, hw[0]);
+  avrdude_message(MSG_INFO, "%sM_MCU FW version: %d.%02d\n", p, fw[1], fw[0]);
+  avrdude_message(MSG_INFO, "%sS_MCU HW version: %d\n", p, hw[1]);
+  avrdude_message(MSG_INFO, "%sS_MCU FW version: %d.%02d\n", p, fw[3], fw[2]);
+  avrdude_message(MSG_INFO, "%sSerial number   : %02x:%02x:%02x:%02x:%02x:%02x\n",
 	  p, PDATA(pgm)->serno[0], PDATA(pgm)->serno[1], PDATA(pgm)->serno[2], PDATA(pgm)->serno[3], PDATA(pgm)->serno[4], PDATA(pgm)->serno[5]);
 
   jtagmkII_print_parms1(pgm, p);

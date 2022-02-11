@@ -1275,8 +1275,8 @@ static void jtagmkI_display(PROGRAMMER * pgm, const char * p)
       jtagmkI_getparm(pgm, PARM_SW_VERSION, &fw) < 0)
     return;
 
-  avrdude_message(MSG_INFO, "%sICE hardware version: 0x%02x\n", p, hw);
-  avrdude_message(MSG_INFO, "%sICE firmware version: 0x%02x\n", p, fw);
+  avrdude_message(MSG_INFO, "%sICE HW version: 0x%02x\n", p, hw);
+  avrdude_message(MSG_INFO, "%sICE FW version: 0x%02x\n", p, fw);
 
   jtagmkI_print_parms1(pgm, p);
 
@@ -1320,9 +1320,9 @@ static void jtagmkI_print_parms1(PROGRAMMER * pgm, const char * p)
     clk = 1e6;
   }
 
-  avrdude_message(MSG_INFO, "%sVtarget         : %.1f V\n", p,
+  avrdude_message(MSG_INFO, "%sVtarget       : %.1f V\n", p,
 	  6.25 * (unsigned)vtarget / 255.0);
-  avrdude_message(MSG_INFO, "%sJTAG clock      : %s (%.1f us)\n", p, clkstr,
+  avrdude_message(MSG_INFO, "%sJTAG clock    : %s (%.1f us)\n", p, clkstr,
 	  1.0e6 / clk);
 
   return;
