@@ -1129,7 +1129,7 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
     if (PDATA(pgm)->set_sck(pgm, parm) < 0)
       return -1;
   }
-
+  jtag3_print_parms1(pgm, progbuf);
   if (conn == PARM3_CONN_JTAG)
   {
     avrdude_message(MSG_NOTICE2, "%s: jtag3_initialize(): "
@@ -2376,14 +2376,12 @@ static void jtag3_display(PROGRAMMER * pgm, const char * p)
   memmove(resp, resp + 3, status - 3);
   resp[status - 3] = 0;
 
-  avrdude_message(MSG_INFO, "%sICE hardware version: %d\n", p, parms[0]);
-  avrdude_message(MSG_INFO, "%sICE firmware version: %d.%02d (rel. %d)\n", p,
+  avrdude_message(MSG_INFO, "%sICE HW version  : %d\n", p, parms[0]);
+  avrdude_message(MSG_INFO, "%sICE FW version  : %d.%02d (rel. %d)\n", p,
 	  parms[1], parms[2],
 	  (parms[3] | (parms[4] << 8)));
-  avrdude_message(MSG_INFO, "%sSerial number   : %s\n", p, resp);
+  avrdude_message(MSG_INFO, "%sSerial number   : %s", p, resp);
   free(resp);
-
-  jtag3_print_parms1(pgm, p);
 }
 
 
@@ -2395,27 +2393,39 @@ static void jtag3_print_parms1(PROGRAMMER * pgm, const char * p)
     return;
 
   avrdude_message(MSG_INFO, "%sVtarget         : %.2f V\n", p,
-	  b2_to_u16(buf) / 1000.0);
+    b2_to_u16(buf) / 1000.0);
 
   if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_PROG, buf, 2) < 0)
     return;
-  avrdude_message(MSG_INFO, "%sJTAG clock megaAVR/program: %u kHz\n", p,
-	  b2_to_u16(buf));
+
+  if (b2_to_u16(buf) > 0) {
+    avrdude_message(MSG_INFO, "%sJTAG clock megaAVR/program   : %u kHz\n", p,
+      b2_to_u16(buf));
+  }
 
   if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_DEBUG, buf, 2) < 0)
     return;
-  avrdude_message(MSG_INFO, "%sJTAG clock megaAVR/debug:   %u kHz\n", p,
-	  b2_to_u16(buf));
+
+  if (b2_to_u16(buf) > 0) {
+    avrdude_message(MSG_INFO, "%sJTAG clock megaAVR/debug     : %u kHz\n", p,
+      b2_to_u16(buf));
+  }
 
   if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_JTAG, buf, 2) < 0)
     return;
-  avrdude_message(MSG_INFO, "%sJTAG clock Xmega: %u kHz\n", p,
-	  b2_to_u16(buf));
+
+  if (b2_to_u16(buf) > 0) {
+    avrdude_message(MSG_INFO, "%sJTAG clock Xmega             : %u kHz\n", p,
+      b2_to_u16(buf));
+  }
 
   if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_PDI, buf, 2) < 0)
     return;
-  avrdude_message(MSG_INFO, "%sPDI clock Xmega : %u kHz\n", p,
-	  b2_to_u16(buf));
+
+  if (b2_to_u16(buf) > 0) {
+    avrdude_message(MSG_INFO, "%sPDI/UPDI clock Xmega/megaAVR : %u kHz\n\n", p,
+      b2_to_u16(buf));
+  }
 }
 
 static void jtag3_print_parms(PROGRAMMER * pgm)
