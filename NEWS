@@ -128,10 +128,13 @@ Changes since version 6.4:
     - Remove the "safemode" feature. #859
     - Add support for reading from more memory sections #863
     - Alias keyword #868
+    - Add fuse name aliases to avrdude.conf + tweak update.c #869
 
   * Internals:
 
     - Development moved to Github
+    - Addition of "alias" keyword to avrdude.conf.in syntax; used
+      for fuse name aliases right now
 
 
 Version 6.4:
