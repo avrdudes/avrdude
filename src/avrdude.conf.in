@@ -16628,9 +16628,7 @@ part
     ;
 
     memory "wdtcfg"
-        size		= 1;
-        offset		= 0x1280;
-        readsize  = 1;
+        alias "fuse0";
     ;
 
     memory "fuse1"
@@ -16640,9 +16638,7 @@ part
     ;
 
     memory "bodcfg"
-        size		= 1;
-        offset		= 0x1281;
-        readsize  = 1;
+        alias "fuse1";
     ;
 
     memory "fuse2"
@@ -16652,9 +16648,7 @@ part
     ;
 
     memory "osccfg"
-        size		= 1;
-        offset		= 0x1282;
-        readsize  = 1;
+        alias "fuse2";
     ;
 
     memory "fuse4"
@@ -16664,9 +16658,7 @@ part
     ;
 
     memory "tcd0cfg"
-        size		= 1;
-        offset		= 0x1284;
-        readsize  = 1;
+        alias "fuse4";
     ;
 
     memory "fuse5"
@@ -16676,9 +16668,7 @@ part
     ;
 
     memory "syscfg0"
-        size		= 1;
-        offset		= 0x1285;
-        readsize  = 1;
+        alias "fuse5";
     ;
 
     memory "fuse6"
@@ -16688,9 +16678,7 @@ part
     ;
 
     memory "syscfg1"
-        size		= 1;
-        offset		= 0x1286;
-        readsize  = 1;
+        alias "fuse6";
     ;
 
     memory "fuse7"
@@ -16700,9 +16688,11 @@ part
     ;
 
     memory "append"
-        size		= 1;
-        offset		= 0x1287;
-        readsize  = 1;
+        alias "fuse7";
+    ;
+
+    memory "codesize"
+        alias "fuse7";
     ;
 
     memory "fuse8"
@@ -16712,9 +16702,11 @@ part
     ;
 
     memory "bootend"
-        size		= 1;
-        offset		= 0x1288;
-        readsize  = 1;
+        alias "fuse8";
+    ;
+
+    memory "bootsize"
+        alias "fuse8";
     ;
 
     memory "lock"
@@ -17896,9 +17888,7 @@ part
     ;
 
     memory "wdtcfg"
-        size		= 1;
-        offset		= 0x1050;
-        readsize  = 1;
+        alias "fuse0";
     ;
 
     memory "fuse1"
@@ -17908,9 +17898,7 @@ part
     ;
 
     memory "bodcfg"
-        size		= 1;
-        offset		= 0x1051;
-        readsize  = 1;
+        alias "fuse1";
     ;
 
     memory "fuse2"
@@ -17920,9 +17908,7 @@ part
     ;
 
     memory "osccfg"
-        size		= 1;
-        offset		= 0x1052;
-        readsize  = 1;
+        alias "fuse2";
     ;
 
     memory "fuse4"
@@ -17932,9 +17918,7 @@ part
     ;
 
     memory "tcd0cfg"
-        size		= 1;
-        offset		= 0x1054;
-        readsize  = 1;
+        alias "fuse4";
     ;
 
     memory "fuse5"
@@ -17944,9 +17928,7 @@ part
     ;
 
     memory "syscfg0"
-        size		= 1;
-        offset		= 0x1055;
-        readsize  = 1;
+        alias "fuse5";
     ;
 
     memory "fuse6"
@@ -17956,9 +17938,7 @@ part
     ;
 
     memory "syscfg1"
-        size		= 1;
-        offset		= 0x1056;
-        readsize  = 1;
+        alias "fuse6";
     ;
 
     memory "fuse7"
@@ -17968,15 +17948,11 @@ part
     ;
 
     memory "codesize"
-        size		= 1;
-        offset		= 0x1057;
-        readsize  = 1;
+        alias "fuse7";
     ;
 
     memory "append"
-        size		= 1;
-        offset		= 0x1057;
-        readsize  = 1;
+        alias "fuse7";
     ;
 
     memory "fuse8"
@@ -17986,15 +17962,11 @@ part
     ;
 
     memory "bootsize"
-        size		= 1;
-        offset		= 0x1058;
-        readsize  = 1;
+        alias "fuse8";
     ;
 
     memory "bootend"
-        size		= 1;
-        offset		= 0x1058;
-        readsize  = 1;
+        alias "fuse8";
     ;
 
     memory "lock"
