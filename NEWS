@@ -129,6 +129,7 @@ Changes since version 6.4:
     - Add support for reading from more memory sections #863
     - Alias keyword #868
     - Add fuse name aliases to avrdude.conf + tweak update.c #869
+    - Print JTAG3 clocks after configuration + string formatting #853
 
   * Internals:
 
