@@ -161,6 +161,11 @@ static int updi_physical_send_double_break(PROGRAMMER * pgm)
 
   updi_set_rtsdtr_mode(pgm);
 
+  /*
+   * drain any extraneous input
+   */
+  serial_drain(&pgm->fd, 0);
+
   return 0;
 }
 
