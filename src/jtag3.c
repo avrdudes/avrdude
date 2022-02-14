@@ -2325,9 +2325,8 @@ static int jtag3_set_vtarget(PROGRAMMER * pgm, double v)
   utarg = (unsigned)(v * 1000);
 
   if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0) {
-    avrdude_message(MSG_INFO, "%s: jtag3_set_vtarget(): cannot obtain V[aref]\n",
+    avrdude_message(MSG_INFO, "%s: jtag3_set_vtarget(): cannot obtain V[target]\n",
                     progname);
-    return -1;
   }
 
   uaref = b2_to_u16(buf);
@@ -2336,8 +2335,11 @@ static int jtag3_set_vtarget(PROGRAMMER * pgm, double v)
   avrdude_message(MSG_INFO, "%s: jtag3_set_vtarget(): changing V[target] from %.1f to %.1f\n",
                   progname, uaref / 1000.0, v);
 
-  if (jtag3_setparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0)
+  if (jtag3_setparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0) {
+    avrdude_message(MSG_INFO, "%s: jtag3_set_vtarget(): cannot confirm new V[target] value\n",
+                    progname);
     return -1;
+  }
 
   return 0;
 }
