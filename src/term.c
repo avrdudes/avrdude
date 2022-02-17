@@ -336,7 +336,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   unsigned char b;
   int rc;
   int werror;
-  int write_mode;
+  int write_mode, start_offset;
   AVRMEM * mem;
 
   if (argc < 4) {
@@ -370,8 +370,8 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
-  // Figure out how many bytes to write to memory
-  if(strcmp(argv[5], "...") == 0) {
+  // Figure out how many bytes there is to write to memory
+  if(strcmp(argv[argc - 1], "...") == 0) {
     write_mode = WRITE_MODE_FILL;
     len = strtoul(argv[3], &e, 0);
     if (*e || (e == argv[3])) {
@@ -397,38 +397,34 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
-  if(write_mode == WRITE_MODE_STANDARD) {
-    for (i=3; i<argc; i++) {
-      unsigned char write_val = strtoul(argv[i], &e, 0);
-      if (*e || (e == argv[i])) {
-        // If passed argument is a single character
-        if(argv[i][1] == '\0') {
-          write_val = argv[i][0];
-        } else {
-          avrdude_message(MSG_INFO, "%s (write): can't parse byte \"%s\"\n",
-                  progname, argv[i]);
-          free(buf);
-          return -1;
-        }
+  if (write_mode == WRITE_MODE_STANDARD)
+    start_offset = 3; // Data to write from argument no. 3
+  else if (write_mode == WRITE_MODE_FILL)
+    start_offset = 4;
+  else {
+    avrdude_message(MSG_INFO, "%s (write): invalid write mode %d\n",
+                    progname, write_mode);
+    return -1;
+  }
+
+  unsigned char write_val;
+  for (i = start_offset; i < argc - start_offset + 3; i++) {
+    write_val = strtoul(argv[i], &e, 0);
+    if (*e || (e == argv[i])) {
+      // Accept if passed argument is a single character
+      if (argv[i][1] == '\0') {
+        write_val = argv[i][0];
+      } else {
+        avrdude_message(MSG_INFO, "%s (write ...): can't parse byte \"%s\"\n",
+              progname, argv[i]);
+        free(buf);
+        return -1;
       }
-      buf[i-3] = write_val;
     }
-  } else if(write_mode == WRITE_MODE_FILL) {
-    unsigned char fill_val = strtoul(argv[4], &e, 0);
-    if (*e || (e == argv[4])) {
-        // If passed argument is a single character
-        if(argv[4][1] == '\0') {
-          fill_val = argv[4][0];
-        } else {
-          avrdude_message(MSG_INFO, "%s (write ...): can't parse byte \"%s\"\n",
-                progname, argv[4]);
-          free(buf);
-          return -1;
-        }
-    }
-    for (i = 0; i < len; i++) {
-      buf[i] = fill_val;
-    }
+    buf[i - start_offset] = write_val;
+  }
+  for (; i < len + start_offset; i++) {
+    buf[i - start_offset] = write_val;
   }
 
   pgm->err_led(pgm, OFF);
