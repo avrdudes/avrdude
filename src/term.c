@@ -399,21 +399,32 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
 
   if(write_mode == WRITE_MODE_STANDARD) {
     for (i=3; i<argc; i++) {
-      buf[i-3] = strtoul(argv[i], &e, 0);
+      unsigned char write_val = strtoul(argv[i], &e, 0);
       if (*e || (e == argv[i])) {
-        avrdude_message(MSG_INFO, "%s (write): can't parse byte \"%s\"\n",
-                progname, argv[i]);
-        free(buf);
-        return -1;
+        // If passed argument is a single character
+        if(argv[i][1] == '\0') {
+          write_val = argv[i][0];
+        } else {
+          avrdude_message(MSG_INFO, "%s (write): can't parse byte \"%s\"\n",
+                  progname, argv[i]);
+          free(buf);
+          return -1;
+        }
       }
+      buf[i-3] = write_val;
     }
   } else if(write_mode == WRITE_MODE_FILL) {
     unsigned char fill_val = strtoul(argv[4], &e, 0);
     if (*e || (e == argv[4])) {
-        avrdude_message(MSG_INFO, "%s (write ...): can't parse byte \"%s\"\n",
+        // If passed argument is a single character
+        if(argv[4][1] == '\0') {
+          fill_val = argv[4][0];
+        } else {
+          avrdude_message(MSG_INFO, "%s (write ...): can't parse byte \"%s\"\n",
                 progname, argv[4]);
-        free(buf);
-        return -1;
+          free(buf);
+          return -1;
+        }
     }
     for (i = 0; i < len; i++) {
       buf[i] = fill_val;
