@@ -416,8 +416,8 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
         if (*e || (e == argv[i])) {
           ptr = NULL;
           // Try single character
-          if (argv[i][1] == '\0') {
-            write_val = argv[i][0];
+          if (argv[i][0] == '\'' && argv[i][2] == '\'') {
+            write_val = argv[i][1];
           } else {
             avrdude_message(MSG_INFO, "%s (write): can't parse data \"%s\"\n",
                   progname, argv[i]);
