@@ -371,7 +371,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   }
 
   // Figure out how many bytes there is to write to memory
-  if(strcmp(argv[argc - 1], "...") == 0) {
+  if (strcmp(argv[argc - 1], "...") == 0) {
     write_mode = WRITE_MODE_FILL;
     len = strtoul(argv[3], &e, 0);
     if (*e || (e == argv[3])) {
@@ -381,25 +381,18 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     }
   } else {
     write_mode = WRITE_MODE_STANDARD;
-    len = argc - 3;
   }
 
-  if ((addr + len) > maxsize) {
-    avrdude_message(MSG_INFO, "%s (write): selected address and # bytes exceed "
-                    "range for %s memory\n",
-                    progname, memtype);
-    return -1;
-  }
-
-  buf = malloc(len);
+  buf = malloc(mem->size);
   if (buf == NULL) {
     avrdude_message(MSG_INFO, "%s (write): out of memory\n", progname);
     return -1;
   }
 
-  if (write_mode == WRITE_MODE_STANDARD)
-    start_offset = 3; // Data to write from argument no. 3
-  else if (write_mode == WRITE_MODE_FILL)
+  if (write_mode == WRITE_MODE_STANDARD) {
+    start_offset = 3; // Argument number where data to write starts
+    len = argc - start_offset;
+  } else if (write_mode == WRITE_MODE_FILL)
     start_offset = 4;
   else {
     avrdude_message(MSG_INFO, "%s (write): invalid write mode %d\n",
@@ -407,29 +400,55 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
-  unsigned char write_val;
-  for (i = start_offset; i < argc - start_offset + 3; i++) {
-    write_val = strtoul(argv[i], &e, 0);
-    if (*e || (e == argv[i])) {
-      // Accept if passed argument is a single character
-      if (argv[i][1] == '\0') {
-        write_val = argv[i][0];
-      } else {
-        avrdude_message(MSG_INFO, "%s (write ...): can't parse byte \"%s\"\n",
-              progname, argv[i]);
-        free(buf);
-        return -1;
+  long write_val;
+  int bytes_grown = 0;
+  for (i = start_offset; i < len + start_offset - bytes_grown; i++) {
+    char* ptr = NULL;
+    // Handle the next argument
+    if (i < argc - start_offset + 3) {
+      // Try integers
+      write_val = strtol(argv[i], &e, 0);
+      if (*e || (e == argv[i])) {
+        // Try float
+        float f = strtof(argv[i], &e);
+        ptr = (char*)&f;
+        write_val = ((char)*(ptr+3)<<24) + ((char)*(ptr+2)<<16) + ((char)*(ptr+1)<<8) + (char)*ptr;
+        if (*e || (e == argv[i])) {
+          ptr = NULL;
+          // Try single character
+          if (argv[i][1] == '\0') {
+            write_val = argv[i][0];
+          } else {
+            avrdude_message(MSG_INFO, "%s (write): can't parse data \"%s\"\n",
+                  progname, argv[i]);
+            free(buf);
+            return -1;
+          }
+        }
       }
     }
-    buf[i - start_offset] = write_val;
+    buf[i - start_offset + bytes_grown]     = (write_val >> 0) & 0xFF;
+    if (write_val > 0xFF || ptr)
+      buf[i - start_offset + ++bytes_grown] = (write_val >> 8) & 0xFF;
+    if (write_val > 0xFFFF || ptr) {
+      buf[i - start_offset + ++bytes_grown] = (write_val >> 16) & 0xFF;
+      buf[i - start_offset + ++bytes_grown] = (write_val >> 24) & 0xFF;
+    }
   }
-  for (; i < len + start_offset; i++) {
-    buf[i - start_offset] = write_val;
+
+  // When in "fill" mode, the maximum size is already predefined
+  if (write_mode == WRITE_MODE_FILL)
+    bytes_grown = 0;
+
+  if ((addr + len + bytes_grown) > maxsize) {
+    avrdude_message(MSG_INFO, "%s (write): selected address and # bytes exceed "
+                    "range for %s memory\n",
+                    progname, memtype);
+    return -1;
   }
 
   pgm->err_led(pgm, OFF);
-  for (werror=0, i=0; i<len; i++) {
-
+  for (werror=0, i=0; i < (len + bytes_grown); i++) {
     rc = avr_write_byte(pgm, p, mem, addr+i, buf[i]);
     if (rc) {
       avrdude_message(MSG_INFO, "%s (write): error writing 0x%02x at 0x%05lx, rc=%d\n",
