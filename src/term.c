@@ -336,11 +336,13 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   unsigned char b;
   int rc;
   int werror;
+  int write_mode;
   AVRMEM * mem;
 
   if (argc < 4) {
-    avrdude_message(MSG_INFO, "Usage: write <memtype> <addr> <byte1> "
-            "<byte2> ... <byteN>\n");
+    avrdude_message(MSG_INFO,
+      "Usage: write <memtype> <start addr> <data1> <data2> <dataN>\n"
+      "       write <memtype> <start addr> <no. bytes> <data1> <dataN> <...>\n");
     return -1;
   }
 
@@ -368,8 +370,19 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
-  /* number of bytes to write at the specified address */
-  len = argc - 3;
+  // Figure out how many bytes to write to memory
+  if(strcmp(argv[5], "...") == 0) {
+    write_mode = WRITE_MODE_FILL;
+    len = strtoul(argv[3], &e, 0);
+    if (*e || (e == argv[3])) {
+      avrdude_message(MSG_INFO, "%s (write ...): can't parse address \"%s\"\n",
+            progname, argv[3]);
+      return -1;
+    }
+  } else {
+    write_mode = WRITE_MODE_STANDARD;
+    len = argc - 3;
+  }
 
   if ((addr + len) > maxsize) {
     avrdude_message(MSG_INFO, "%s (write): selected address and # bytes exceed "
@@ -384,13 +397,26 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
-  for (i=3; i<argc; i++) {
-    buf[i-3] = strtoul(argv[i], &e, 0);
-    if (*e || (e == argv[i])) {
-      avrdude_message(MSG_INFO, "%s (write): can't parse byte \"%s\"\n",
-              progname, argv[i]);
-      free(buf);
-      return -1;
+  if(write_mode == WRITE_MODE_STANDARD) {
+    for (i=3; i<argc; i++) {
+      buf[i-3] = strtoul(argv[i], &e, 0);
+      if (*e || (e == argv[i])) {
+        avrdude_message(MSG_INFO, "%s (write): can't parse byte \"%s\"\n",
+                progname, argv[i]);
+        free(buf);
+        return -1;
+      }
+    }
+  } else if(write_mode == WRITE_MODE_FILL) {
+    unsigned char fill_val = strtoul(argv[4], &e, 0);
+    if (*e || (e == argv[4])) {
+        avrdude_message(MSG_INFO, "%s (write ...): can't parse byte \"%s\"\n",
+                progname, argv[4]);
+        free(buf);
+        return -1;
+    }
+    for (i = 0; i < len; i++) {
+      buf[i] = fill_val;
     }
   }
 

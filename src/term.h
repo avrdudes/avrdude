@@ -27,6 +27,10 @@
 extern "C" {
 #endif
 
+// Macros for determining write mode
+#define WRITE_MODE_STANDARD 0
+#define WRITE_MODE_FILL     1
+
 int terminal_mode(PROGRAMMER * pgm, struct avrpart * p);
 char * terminal_get_input(const char *prompt);
 
