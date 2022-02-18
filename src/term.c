@@ -428,9 +428,9 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       }
     }
     buf[i - start_offset + bytes_grown]     = (write_val >> 0) & 0xFF;
-    if (write_val > 0xFF || ptr)
+    if (labs(write_val) > 0xFF || ptr)
       buf[i - start_offset + ++bytes_grown] = (write_val >> 8) & 0xFF;
-    if (write_val > 0xFFFF || ptr) {
+    if (labs(write_val) > 0xFFFF || ptr) {
       buf[i - start_offset + ++bytes_grown] = (write_val >> 16) & 0xFF;
       buf[i - start_offset + ++bytes_grown] = (write_val >> 24) & 0xFF;
     }
