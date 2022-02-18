@@ -131,6 +131,7 @@ Changes since version 6.4:
     - Add fuse name aliases to avrdude.conf + tweak update.c #869
     - Print JTAG3 clocks after configuration + string formatting #853
     - Tweak programmer info formatting strings #872
+    - Remove libhid support in ser_avrdoper.c in favor of libhidapi #882
 
   * Internals:
 

@@ -182,6 +182,9 @@ endif()
 # Find libhidapi
 
 find_library(HAVE_LIBHID NAMES hid)
+if(HAVE_LIBHID)
+    set(LIB_LIBHID ${HAVE_LIBHID})
+endif()
 
 find_library(HAVE_LIBHIDAPI NAMES ${PREFERRED_LIBHIDAPI})
 if(HAVE_LIBHIDAPI)
