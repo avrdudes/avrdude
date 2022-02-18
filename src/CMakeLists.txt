@@ -239,6 +239,7 @@ target_link_libraries(libavrdude
     ${LIB_LIBELF}
     ${LIB_LIBUSB}
     ${LIB_LIBUSB_1_0}
+    ${LIB_LIBHID}
     ${LIB_LIBHIDAPI}
     ${LIB_LIBFTDI}
     ${LIB_LIBFTDI1}
