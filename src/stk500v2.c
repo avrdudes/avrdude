@@ -1613,11 +1613,11 @@ static int stk500v2_open(PROGRAMMER * pgm, char * port)
   PDATA(pgm)->pgmtype = PGMTYPE_UNKNOWN;
 
   if(strcasecmp(port, "avrdoper") == 0){
-#if defined(HAVE_LIBHIDAPI) || (defined(WIN32) && defined(HAVE_LIBHID))
+#if defined(HAVE_LIBHIDAPI)
     serdev = &avrdoper_serdev;
     PDATA(pgm)->pgmtype = PGMTYPE_STK500;
 #else
-    avrdude_message(MSG_INFO, "avrdoper requires avrdude with hid support.\n");
+    avrdude_message(MSG_INFO, "avrdoper requires avrdude with libhidapi support.\n");
     return -1;
 #endif
   }
