@@ -132,6 +132,7 @@ Changes since version 6.4:
     - Print JTAG3 clocks after configuration + string formatting #853
     - Tweak programmer info formatting strings #872
     - Remove libhid support in ser_avrdoper.c in favor of libhidapi #882
+    - Reduce jtag3 output verbosity #877
 
   * Internals:
 
