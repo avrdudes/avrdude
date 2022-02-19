@@ -343,7 +343,9 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   if (argc < 4) {
     avrdude_message(MSG_INFO,
       "Usage: write <memtype> <start addr> <data1> <data2> <dataN>\n"
-      "       write <memtype> <start addr> <no. bytes> <data1> <dataN> <...>\n");
+      "       write <memtype> <start addr> <no. bytes> <data1> <dataN> <...>\n\n"
+      "       Add a suffix to manually specify the size for each field:\n"
+      "       H/h/S/s: 16-bit, L/l: 32-bit, F/f: 32-bit float\n");
     return -1;
   }
 
@@ -411,8 +413,22 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   int32_t bytes_grown = 0;
   for (i = start_offset; i < len + start_offset - bytes_grown; i++) {
     bool is_float = false;
+    uint8_t data_length = 0;
+
     // Handle the next argument
     if (i < argc - start_offset + 3) {
+      // Get suffix if present
+      char suffix = argv[i][strlen(argv[i]) - 1];
+      if ((suffix == 'F' || suffix == 'f' || suffix == 'L' || suffix == 'l') && \
+          strncmp(argv[i], "0x", 2) != 0) {
+        argv[i][strlen(argv[i]) - 1] = '\0';
+        data_length = 4;
+      } else if (suffix == 'H' || suffix == 'h' || suffix == 'S' || suffix == 's') {
+        argv[i][strlen(argv[i]) - 1] = '\0';
+        data_length = 2;
+      } else if (suffix == '\'') {
+        data_length = 1;
+      } 
       // Try integers
       data.i = strtol(argv[i], &e, 0);
       if (*e || (e == argv[i])) {
@@ -422,21 +438,31 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
         if (*e || (e == argv[i])) {
           is_float = false;
           // Try single character
-          if (argv[i][0] == '\'' && argv[i][2] == '\'') {
+          if (argv[i][0] == '\'') {
             data.i = argv[i][1];
           } else {
-            avrdude_message(MSG_INFO, "%s (write): can't parse data \"%s\"\n",
+            avrdude_message(MSG_INFO, "\n%s (write): can't parse data \"%s\"\n",
                   progname, argv[i]);
             free(buf);
             return -1;
           }
         }
       }
+      // Print warning if data size might be ambiguous
+      if(!data_length && \
+        (((strncmp(argv[i], "0x", 2) == 0) && strlen(argv[i]) > 3) || \
+        (data.i > 0xFF && strlen(argv[i]) > 2))) {
+        avrdude_message(MSG_INFO, "Warning: no size suffix specified for \"%s\". "
+                                  "Writing %d bytes\n",
+                                  argv[i],
+                                  is_float || labs(data.i) > 0xFFFF ? 4 : \
+                                  labs(data.i) > 0x00FF ? 2 : 1);
+      }
     }
     buf[i - start_offset + bytes_grown]     = data.a[0];
-    if (labs(data.i) > 0xFF || is_float)
+    if (is_float || labs(data.i) > 0x00FF || data_length >= 2)
       buf[i - start_offset + ++bytes_grown] = data.a[1];
-    if (labs(data.i) > 0xFFFF || is_float) {
+    if (is_float || labs(data.i) > 0xFFFF || data_length >= 4) {
       buf[i - start_offset + ++bytes_grown] = data.a[2];
       buf[i - start_offset + ++bytes_grown] = data.a[3];
     }
