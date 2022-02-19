@@ -198,7 +198,7 @@ int updi_physical_sib(PROGRAMMER * pgm, unsigned char * buffer, uint8_t size)
 
 int updi_link_open(PROGRAMMER * pgm) 
 {
-  char init_buffer[1];
+  unsigned char init_buffer[1];
 
   if (updi_physical_open(pgm, pgm->baudrate? pgm->baudrate: 115200, SERIAL_8E2) < 0) {
     return -1;
