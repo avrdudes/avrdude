@@ -23,6 +23,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
+//#include <stdint.h>
 #include <stdlib.h>
 #include <limits.h>
 
@@ -400,24 +401,29 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
-  long write_val;
-  int bytes_grown = 0;
+  // Union to represent the data to write to memory
+  union Data {
+    float f;
+    int32_t i;
+    uint8_t a[4];
+  } data;
+
+  int32_t bytes_grown = 0;
   for (i = start_offset; i < len + start_offset - bytes_grown; i++) {
-    char* ptr = NULL;
+    bool is_float = false;
     // Handle the next argument
     if (i < argc - start_offset + 3) {
       // Try integers
-      write_val = strtol(argv[i], &e, 0);
+      data.i = strtol(argv[i], &e, 0);
       if (*e || (e == argv[i])) {
         // Try float
-        float f = strtof(argv[i], &e);
-        ptr = (char*)&f;
-        write_val = ((char)*(ptr+3)<<24) + ((char)*(ptr+2)<<16) + ((char)*(ptr+1)<<8) + (char)*ptr;
+        data.f = strtof(argv[i], &e);
+        is_float = true;
         if (*e || (e == argv[i])) {
-          ptr = NULL;
+          is_float = false;
           // Try single character
           if (argv[i][0] == '\'' && argv[i][2] == '\'') {
-            write_val = argv[i][1];
+            data.i = argv[i][1];
           } else {
             avrdude_message(MSG_INFO, "%s (write): can't parse data \"%s\"\n",
                   progname, argv[i]);
@@ -427,12 +433,12 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
         }
       }
     }
-    buf[i - start_offset + bytes_grown]     = (write_val >> 0) & 0xFF;
-    if (labs(write_val) > 0xFF || ptr)
-      buf[i - start_offset + ++bytes_grown] = (write_val >> 8) & 0xFF;
-    if (labs(write_val) > 0xFFFF || ptr) {
-      buf[i - start_offset + ++bytes_grown] = (write_val >> 16) & 0xFF;
-      buf[i - start_offset + ++bytes_grown] = (write_val >> 24) & 0xFF;
+    buf[i - start_offset + bytes_grown]     = data.a[0];
+    if (labs(data.i) > 0xFF || is_float)
+      buf[i - start_offset + ++bytes_grown] = data.a[1];
+    if (labs(data.i) > 0xFFFF || is_float) {
+      buf[i - start_offset + ++bytes_grown] = data.a[2];
+      buf[i - start_offset + ++bytes_grown] = data.a[3];
     }
   }
 
