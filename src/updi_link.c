@@ -53,7 +53,7 @@ static void updi_set_rtsdtr_mode(PROGRAMMER* pgm)
 
 static int updi_physical_open(PROGRAMMER* pgm, int baudrate, unsigned long cflags)
 {
-  serial_recv_timeout = 100;
+  serial_recv_timeout = 1000;
   union pinfo pinfo;
 
   pinfo.serialinfo.baud = baudrate;
@@ -155,6 +155,8 @@ static int updi_physical_send_double_break(PROGRAMMER * pgm)
   serial_send(&pgm->fd, buffer, 1);
   serial_recv(&pgm->fd, buffer, 1);
 
+  serial_drain(&pgm->fd, 0);
+
   if (serial_setparams(&pgm->fd, pgm->baudrate? pgm->baudrate: 115200, SERIAL_8E2) < 0) {
     return -1;
   }
@@ -196,10 +198,14 @@ int updi_physical_sib(PROGRAMMER * pgm, unsigned char * buffer, uint8_t size)
 
 int updi_link_open(PROGRAMMER * pgm) 
 {
+  unsigned char init_buffer[1];
+
   if (updi_physical_open(pgm, pgm->baudrate? pgm->baudrate: 115200, SERIAL_8E2) < 0) {
     return -1;
   }
-  return updi_physical_send_double_break(pgm);
+
+  init_buffer[0]=UPDI_BREAK;
+  return updi_physical_send(pgm, init_buffer, 1);
 }
 
 void updi_link_close(PROGRAMMER * pgm)
