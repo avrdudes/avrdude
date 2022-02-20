@@ -416,7 +416,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       int64_t ll;
       uint8_t a[8];
     };
-  } data;
+  } data = {.bytes_grown = 0, .size = 0, .is_float = false, .ll = 0};
 
   for (i = start_offset; i < len + start_offset - data.bytes_grown; i++) {
     data.is_float = false;
