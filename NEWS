@@ -69,6 +69,7 @@ Changes since version 6.4:
     - USBasp returns ERANGE for unknown error #848
     - Compiler warnings #856
     - Can't get serialupdi to work #874
+    - Rework HID support for Windows #881
 
   * Pull requests:
 
