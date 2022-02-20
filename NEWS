@@ -70,6 +70,7 @@ Changes since version 6.4:
     - Compiler warnings #856
     - Can't get serialupdi to work #874
     - Rework HID support for Windows #881
+    - List of signing keys? #884
 
   * Pull requests:
 
