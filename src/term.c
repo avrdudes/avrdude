@@ -424,9 +424,14 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       } else if (suffix == 'L' || suffix == 'l') {
         argv[i][strlen(argv[i]) - 1] = '\0';
         data.size = 4;
-      } else if ((suffix == 'F' || suffix == 'f') && strncmp(argv[i], "0x", 2) != 0) {
+      } else if ((suffix == 'F' || suffix == 'f') &&
+          strncmp(argv[i], "0x", 2) != 0 && strncmp(argv[i], "-0x", 3) != 0) {
         argv[i][strlen(argv[i]) - 1] = '\0';
+        avrdude_message(MSG_INFO, "snip\n");
         data.size = 4;
+      } else if ((suffix == 'H' && lsuffix == 'H') || (suffix == 'h' && lsuffix == 'h')) {
+        argv[i][strlen(argv[i]) - 2] = '\0';
+        data.size = 1;
       } else if (suffix == 'H' || suffix == 'h' || suffix == 'S' || suffix == 's') {
         argv[i][strlen(argv[i]) - 1] = '\0';
         data.size = 2;
