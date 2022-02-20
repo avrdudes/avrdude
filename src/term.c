@@ -23,7 +23,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
-//#include <stdint.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <limits.h>
 
@@ -329,18 +329,6 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
 static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
 		     int argc, char * argv[])
 {
-  char * e;
-  int len, maxsize;
-  char * memtype;
-  long addr;
-  long i;
-  unsigned char * buf;
-  unsigned char b;
-  int rc;
-  int werror;
-  int write_mode, start_offset;
-  AVRMEM * mem;
-
   if (argc < 4) {
     avrdude_message(MSG_INFO,
       "Usage: write <memtype> <start addr> <data1> <data2> <dataN>\n"
@@ -350,19 +338,22 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
-  memtype = argv[1];
-
-  mem = avr_locate_mem(p, memtype);
+  int32_t i;
+  uint8_t write_mode;       // Operation mode, "standard" or "fill"
+  uint8_t start_offset;     // Which argc argument
+  int32_t len;              // Number of bytes to write to memory
+  char * memtype = argv[1]; // Memory name string
+  AVRMEM * mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
     avrdude_message(MSG_INFO, "\"%s\" memory type not defined for part \"%s\"\n",
             memtype, p->desc);
     return -1;
   }
+  uint32_t maxsize = mem->size;
 
-  maxsize = mem->size;
-
-  addr = strtoul(argv[2], &e, 0);
-  if (*e || (e == argv[2])) {
+  char * end_ptr;
+  int32_t addr = strtoul(argv[2], &end_ptr, 0);
+  if (*end_ptr || (end_ptr == argv[2])) {
     avrdude_message(MSG_INFO, "%s (write): can't parse address \"%s\"\n",
             progname, argv[2]);
     return -1;
@@ -377,8 +368,8 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   // Figure out how many bytes there is to write to memory
   if (strcmp(argv[argc - 1], "...") == 0) {
     write_mode = WRITE_MODE_FILL;
-    len = strtoul(argv[3], &e, 0);
-    if (*e || (e == argv[3])) {
+    len = strtoul(argv[3], &end_ptr, 0);
+    if (*end_ptr || (end_ptr == argv[3])) {
       avrdude_message(MSG_INFO, "%s (write ...): can't parse address \"%s\"\n",
             progname, argv[3]);
       return -1;
@@ -387,7 +378,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     write_mode = WRITE_MODE_STANDARD;
   }
 
-  buf = malloc(mem->size);
+  uint8_t * buf = malloc(mem->size);
   if (buf == NULL) {
     avrdude_message(MSG_INFO, "%s (write): out of memory\n", progname);
     return -1;
@@ -442,13 +433,14 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       } else if (suffix == '\'') {
         data.size = 1;
       }
+
       // Try integers
-      data.ll = strtoll(argv[i], &e, 0);
-      if (*e || (e == argv[i])) {
+      data.ll = strtoll(argv[i], &end_ptr, 0);
+      if (*end_ptr || (end_ptr == argv[i])) {
         // Try float
-        data.f = strtof(argv[i], &e);
+        data.f = strtof(argv[i], &end_ptr);
         data.is_float = true;
-        if (*e || (e == argv[i])) {
+        if (*end_ptr || (end_ptr == argv[i])) {
           data.is_float = false;
           // Try single character
           if (argv[i][0] == '\'') {
@@ -466,7 +458,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
         (((strncmp(argv[i], "0x", 2) == 0) && strlen(argv[i]) > 3) || \
         (data.ll > 0xFF && strlen(argv[i]) > 2))) {
         avrdude_message(MSG_INFO, "Warning: no size suffix specified for \"%s\". "
-                                  "Writing %d bytes\n",
+                                  "Writing %d byte(s)\n",
                                   argv[i],
                                   llabs(data.ll) > 0xFFFFFFFF ? 8 :
                                   llabs(data.ll) > 0x0000FFFF || data.is_float ? 4 : \
@@ -500,22 +492,24 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   }
 
   pgm->err_led(pgm, OFF);
-  for (werror=0, i=0; i < (len + data.bytes_grown); i++) {
-    rc = avr_write_byte(pgm, p, mem, addr+i, buf[i]);
+  bool werror = false;
+  for (i = 0; i < (len + data.bytes_grown); i++) {
+    int32_t rc = avr_write_byte(pgm, p, mem, addr+i, buf[i]);
     if (rc) {
       avrdude_message(MSG_INFO, "%s (write): error writing 0x%02x at 0x%05lx, rc=%d\n",
               progname, buf[i], addr+i, rc);
       if (rc == -1)
         avrdude_message(MSG_INFO, "write operation not supported on memory type \"%s\"\n",
                         mem->desc);
-      werror = 1;
+      werror = true;
     }
 
+    uint8_t b;
     rc = pgm->read_byte(pgm, p, mem, addr+i, &b);
     if (b != buf[i]) {
       avrdude_message(MSG_INFO, "%s (write): error writing 0x%02x at 0x%05lx cell=0x%02x\n",
                       progname, buf[i], addr+i, b);
-      werror = 1;
+      werror = true;
     }
 
     if (werror) {
