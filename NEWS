@@ -68,6 +68,7 @@ Changes since version 6.4:
     - Segmentation fault when writing ATtiny104 fuse #823
     - USBasp returns ERANGE for unknown error #848
     - Compiler warnings #856
+    - Can't get serialupdi to work #874
 
   * Pull requests:
 
