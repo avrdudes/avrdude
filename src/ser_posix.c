@@ -98,19 +98,6 @@ static speed_t serial_baud_lookup(long baud)
   return baud;
 }
 
-static tcflag_t translate_flags(unsigned long cflags)
-{
-  return ((cflags & SERIAL_CS5)                      ? CS5    : 0) |
-         ((cflags & SERIAL_CS6)                      ? CS6    : 0) |
-         ((cflags & SERIAL_CS7)                      ? CS7    : 0) |
-         ((cflags & SERIAL_CS8)                      ? CS8    : 0) |
-         ((cflags & SERIAL_CSTOPB)                   ? CSTOPB : 0) |
-         ((cflags & SERIAL_CREAD)                    ? CREAD  : 0) |
-         ((cflags & (SERIAL_PARENB | SERIAL_PARODD)) ? PARENB : 0) |
-         ((cflags & SERIAL_PARODD)                   ? PARODD : 0) |
-         ((cflags & SERIAL_CLOCAL)                   ? CLOCAL : 0) ;
-}
-
 static int ser_setparams(union filedescriptor *fd, long baud, unsigned long cflags)
 {
   int rc;
@@ -137,15 +124,78 @@ static int ser_setparams(union filedescriptor *fd, long baud, unsigned long cfla
     original_termios = termios;
   }
 
-  termios.c_iflag = IGNBRK;
-  termios.c_oflag = 0;
-  termios.c_lflag = 0;
-  termios.c_cflag = translate_flags(cflags);
-  termios.c_cc[VMIN]  = 1;
-  termios.c_cc[VTIME] = 0;
+  if (cflags & SERIAL_CREAD) {
+    termios.c_cflag |= CREAD; 
+  }
+  if (cflags & SERIAL_CLOCAL) {
+    termios.c_cflag |= CLOCAL;
+  }
+  termios.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL | ISIG | IEXTEN);
+#ifdef ECHOCTL
+  termios.c_lflag &= ~ECHOCTL;
+#endif /* ECHOCTL */
+#ifdef ECHOKE
+  termios.c_lflag &= ~ECHOKE;
+#endif /* ECHOKE */
+  termios.c_oflag &= ~(OPOST | ONLCR | OCRNL); 
+  termios.c_iflag &= ~(INLCR | IGNCR | ICRNL | IGNBRK);
+#ifdef IUCLC
+  termios.c_iflag &= ~IUCLC;
+#endif /* IUCLC */
+#ifdef PARMRK
+  termios.c_iflag &= ~PARMRK;
+#endif /* PARMRK */
 
   cfsetospeed(&termios, speed);
   cfsetispeed(&termios, speed);
+
+  termios.c_cflag &= ~CSIZE;
+  if (cflags & SERIAL_CS8) {
+    termios.c_cflag |= CS8;
+  }
+  if (cflags & SERIAL_CS7) {
+    termios.c_cflag |= CS7;
+  }
+  if (cflags & SERIAL_CS6) {
+    termios.c_cflag |= CS6;
+  }
+  if (cflags & SERIAL_CS5) {
+    termios.c_cflag |= CS5;
+  }
+
+  if (cflags & SERIAL_CSTOPB) {
+    termios.c_cflag |= CSTOPB;
+  } else {
+    termios.c_cflag &= ~CSTOPB;
+  }
+
+  termios.c_iflag &= ~(INPCK | ISTRIP);
+
+  if (cflags & (SERIAL_PARENB | SERIAL_PARODD)) {
+    termios.c_cflag |= PARENB;
+  } else {
+    termios.c_cflag &= ~PARENB;
+  }
+
+  if (cflags & SERIAL_PARODD) {
+    termios.c_cflag |= PARODD;
+  } else {
+    termios.c_cflag &= ~PARODD;
+  }
+
+#ifdef IXANY
+  termios.c_iflag &= ~IXANY;
+#endif /* IXANY */
+  termios.c_iflag &= ~(IXON | IXOFF);
+
+#ifdef CRTSCTS
+  termios.c_iflag &= ~CRTSCTS;
+#endif /* CRTSCTS */
+
+#ifdef CNEW_RTSCTS
+  termios.c_iflag &= ~CNEW_RTSCTS;
+#endif /* CRTSCTS */
+
 
   rc = tcsetattr(fd->ifd, TCSANOW, &termios);
   if (rc < 0) {
@@ -154,14 +204,8 @@ static int ser_setparams(union filedescriptor *fd, long baud, unsigned long cfla
     return -errno;
   }
 
-  /*
-   * Everything is now set up for a local line without modem control
-   * or flow control, so clear O_NONBLOCK again.
-   */
-  rc = fcntl(fd->ifd, F_GETFL, 0);
-  if (rc != -1)
-    fcntl(fd->ifd, F_SETFL, rc & ~O_NONBLOCK);
-
+  tcflush(fd->ifd, TCIFLUSH);
+  
   return 0;
 }
 
