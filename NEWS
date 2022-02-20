@@ -133,6 +133,9 @@ Changes since version 6.4:
     - Tweak programmer info formatting strings #872
     - Remove libhid support in ser_avrdoper.c in favor of libhidapi #882
     - Reduce jtag3 output verbosity #877
+    - Fix Curiosity Nano target voltage #878
+    - Smallest possible fix for PL2303HX #885
+    - Add missing USBtiny derived programmers #873
 
   * Internals:
 
