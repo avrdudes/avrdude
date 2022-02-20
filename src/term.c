@@ -427,7 +427,6 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       } else if ((suffix == 'F' || suffix == 'f') &&
           strncmp(argv[i], "0x", 2) != 0 && strncmp(argv[i], "-0x", 3) != 0) {
         argv[i][strlen(argv[i]) - 1] = '\0';
-        avrdude_message(MSG_INFO, "snip\n");
         data.size = 4;
       } else if ((suffix == 'H' && lsuffix == 'H') || (suffix == 'h' && lsuffix == 'h')) {
         argv[i][strlen(argv[i]) - 2] = '\0';
@@ -448,7 +447,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
         if (*end_ptr || (end_ptr == argv[i])) {
           data.is_float = false;
           // Try single character
-          if (argv[i][0] == '\'') {
+          if (argv[i][0] == '\'' && argv[i][2] == '\'') {
             data.ll = argv[i][1];
           } else {
             avrdude_message(MSG_INFO, "\n%s (write): can't parse data \"%s\"\n",
@@ -459,9 +458,16 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
         }
       }
       // Print warning if data size might be ambiguous
-      if(!data.size && \
-        (((strncmp(argv[i], "0x", 2) == 0) && strlen(argv[i]) > 3) || \
-        (data.ll > 0xFF && strlen(argv[i]) > 2))) {
+      bool is_hex       = (strncmp(argv[i], "0x",  2) == 0);
+      bool is_neg_hex   = (strncmp(argv[i], "-0x", 3) == 0);
+      bool leading_zero = (strncmp(argv[i], "0x0", 3) == 0);
+      int8_t hex_digits = (strlen(argv[i]) - 2);
+
+      if(!data.size                                                                      // No pre-defined size
+        && (is_neg_hex                                                                   // Hex with - sign in front
+        || (is_hex && leading_zero && (hex_digits & (hex_digits - 1)))                   // Hex with 3, 5, 6 or 7 digits
+        || (!is_hex && !data.is_float && llabs(data.ll) > 0xFF && strlen(argv[i]) > 2))) // Base10 int greater than 255
+      {
         avrdude_message(MSG_INFO, "Warning: no size suffix specified for \"%s\". "
                                   "Writing %d byte(s)\n",
                                   argv[i],
