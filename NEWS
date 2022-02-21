@@ -140,6 +140,7 @@ Changes since version 6.4:
     - Smallest possible fix for PL2303HX #885
     - Add missing USBtiny derived programmers #873
     - Cleanup of POSIX serial init code #886
+    - Avrdude terminal write improvements #880
 
   * Internals:
 
