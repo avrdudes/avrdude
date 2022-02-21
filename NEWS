@@ -141,6 +141,7 @@ Changes since version 6.4:
     - Add missing USBtiny derived programmers #873
     - Cleanup of POSIX serial init code #886
     - Avrdude terminal write improvements #880
+    - Add userrow and usersig aliases #888
 
   * Internals:
 
