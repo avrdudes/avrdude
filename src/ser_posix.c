@@ -505,7 +505,7 @@ static int ser_drain(union filedescriptor *fd, int display)
   unsigned char buf;
 
   timeout.tv_sec = 0;
-  timeout.tv_usec = 250000;
+  timeout.tv_usec = 100*1000;
 
   if (display) {
     avrdude_message(MSG_INFO, "drain>");
