@@ -881,6 +881,7 @@ The Arduino programmer type accepts the following extended parameter:
 @table @code
 @item @samp{attemps=VALUE}
 Overide the default number of connection retry attempt by using @var{VALUE}.
+@end table
 
 @item BusPirate
 
