@@ -16754,6 +16754,10 @@ part parent    ".avr8x"
         page_size	= 0x20;
         readsize	= 0x100;
     ;
+
+    memory "userrow"
+        alias "usersig";
+    ;
 ;
 
 #------------------------------------------------------------
@@ -16770,6 +16774,10 @@ part parent    ".avr8x"
         offset		= 0x1300;
         page_size	= 0x40;
         readsize	= 0x100;
+    ;
+
+        memory "userrow"
+        alias "usersig";
     ;
 ;
 
@@ -18001,6 +18009,10 @@ part
         readsize  = 0x20;
     ;
 
+    memory "usersig"
+        alias "userrow";
+    ;
+
     memory "data"
         # SRAM, only used to supply the offset
         offset		= 0x1000000;
@@ -18836,6 +18848,10 @@ part parent    ".avrdx"
         offset    = 0x1080;
         page_size = 0x40;
         readsize  = 0x40;
+    ;
+
+    memory "usersig"
+        alias "userrow";
     ;
 ;
 
