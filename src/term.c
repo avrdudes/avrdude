@@ -401,13 +401,14 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     int32_t bytes_grown;
     uint8_t size;
     bool is_float;
+    bool is_signed;
     // Data union
     union {
       float f;
       int64_t ll;
       uint8_t a[8];
     };
-  } data = {.bytes_grown = 0, .size = 0, .is_float = false, .ll = 0};
+  } data = {.bytes_grown = 0, .size = 0, .is_float = false, .ll = 0, .is_signed = false};
 
   for (i = start_offset; i < len + start_offset - data.bytes_grown; i++) {
     data.is_float = false;
@@ -457,12 +458,12 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
           }
         }
       }
+
       // Print warning if data size might be ambiguous
       bool is_hex       = (strncmp(argv[i], "0x",  2) == 0);
       bool is_neg_hex   = (strncmp(argv[i], "-0x", 3) == 0);
       bool leading_zero = (strncmp(argv[i], "0x0", 3) == 0);
       int8_t hex_digits = (strlen(argv[i]) - 2);
-
       if(!data.size                                                                      // No pre-defined size
         && (is_neg_hex                                                                   // Hex with - sign in front
         || (is_hex && leading_zero && (hex_digits & (hex_digits - 1)))                   // Hex with 3, 5, 6 or 7 digits
@@ -471,9 +472,21 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
         avrdude_message(MSG_INFO, "Warning: no size suffix specified for \"%s\". "
                                   "Writing %d byte(s)\n",
                                   argv[i],
-                                  llabs(data.ll) > 0xFFFFFFFF ? 8 :
-                                  llabs(data.ll) > 0x0000FFFF || data.is_float ? 4 : \
-                                  llabs(data.ll) > 0x000000FF ? 2 : 1);
+                                  llabs(data.ll) > UINT32_MAX ? 8 :
+                                  llabs(data.ll) > UINT16_MAX || data.is_float ? 4 : \
+                                  llabs(data.ll) > UINT8_MAX ? 2 : 1);
+      }
+      // Flag if signed integer and adjust size
+      if (data.ll < 0 && !data.is_float) {
+        data.is_signed = true;
+        if (data.ll < INT32_MIN)
+          data.size = 8;
+        else if (data.ll < INT16_MIN)
+          data.size = 4;
+        else if (data.ll < INT8_MIN)
+          data.size = 2;
+        else
+          data.size = 1;
       }
     }
     buf[i - start_offset + data.bytes_grown]     = data.a[0];
