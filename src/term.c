@@ -250,7 +250,7 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
 
   if (strncmp(prevmem, memtype, strlen(memtype)) != 0) {
     addr = 0;
-    len  = 64;
+    len  = 256;
     strncpy(prevmem, memtype, sizeof(prevmem)-1);
     prevmem[sizeof(prevmem)-1] = 0;
   }
