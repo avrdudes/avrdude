@@ -16748,15 +16748,15 @@ part parent    ".avr8x"
     desc		= "AVR8X tiny family common values";
     family_id	= "tinyAVR";
 
-    memory "usersig"
+    memory "userrow"
         size		= 0x20;
         offset		= 0x1300;
         page_size	= 0x20;
         readsize	= 0x100;
     ;
 
-    memory "userrow"
-        alias "usersig";
+    memory "usersig"
+        alias "userrow";
     ;
 ;
 
@@ -16769,15 +16769,15 @@ part parent    ".avr8x"
     desc		= "AVR8X mega family common values";
     family_id	= "megaAVR";
 
-    memory "usersig"
+    memory "userrow"
         size		= 0x40;
         offset		= 0x1300;
         page_size	= 0x40;
         readsize	= 0x100;
     ;
 
-        memory "userrow"
-        alias "usersig";
+    memory "usersig"
+        alias "userrow";
     ;
 ;
 
