@@ -71,6 +71,7 @@ Changes since version 6.4:
     - Can't get serialupdi to work #874
     - Rework HID support for Windows #881
     - List of signing keys? #884
+    - Pickit4 UPDI is writing at offset 0x4000 into flash instead of 0x0000. #892
 
   * Pull requests:
 
@@ -142,6 +143,7 @@ Changes since version 6.4:
     - Cleanup of POSIX serial init code #886
     - Avrdude terminal write improvements #880
     - Add userrow and usersig aliases #888
+    - For UPDI devices do not add offset when accessing flash. #895
 
   * Internals:
 
