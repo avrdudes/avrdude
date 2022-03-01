@@ -1265,7 +1265,7 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
       "xd->flash_page_size=%x\n\t"
       "xd->eeprom_page_size=%x\n\t"
       "xd->nvmctrl=%x %x\n\t"
-      "xd->ocd=%x %x\n\t",
+      "xd->ocd=%x %x\n\t"
       "xd->address_mode=%x\n",
       xd.prog_base_msb,
       xd.prog_base[0], xd.prog_base[1],
@@ -2465,7 +2465,10 @@ static unsigned int jtag3_memaddr(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, uns
    * Non-Xmega device.
    */
   if (p->flags & AVRPART_HAS_UPDI) {
-    if (m->size == 1) {
+    if (strcmp(m->desc, "flash") == 0) {
+      return addr;
+    }
+    else if (m->size == 1) {
       addr = m->offset;
     }
     else if (m->size > 1) {
