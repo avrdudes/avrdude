@@ -334,7 +334,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       "Usage: write <memtype> <start addr> <data1> <data2> <dataN>\n"
       "       write <memtype> <start addr> <no. bytes> <data1> <dataN> <...>\n\n"
       "       Add a suffix to manually specify the size for each field:\n"
-      "       H/h/S/s: 16-bit, L/l: 32-bit, LL/ll: 6-bit, F/f: 32-bit float\n");
+      "       HH/hh: 8-bit, H/h/S/s: 16-bit, L/l: 32-bit, LL/ll: 64-bit, F/f: 32-bit float\n");
     return -1;
   }
 
