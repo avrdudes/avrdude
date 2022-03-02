@@ -410,7 +410,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     };
   } data = {.bytes_grown = 0, .size = 0, .is_float = false, .ll = 0, .is_signed = false};
 
-  for (i = start_offset; i < len + start_offset - data.bytes_grown; i++) {
+  for (i = start_offset; i < len + start_offset; i++) {
     data.is_float = false;
     data.size = 0;
 
