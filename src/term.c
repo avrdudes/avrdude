@@ -149,12 +149,10 @@ static int nexttok(char * buf, char ** tok, char ** next)
 static int hexdump_line(char * buffer, unsigned char * p, int n, int pad)
 {
   char * hexdata = "0123456789abcdef";
-  char * b;
-  int i, j;
+  char * b = buffer;
+  int32_t i = 0;
+  int32_t j = 0;
 
-  b = buffer;
-
-  j = 0;
   for (i=0; i<n; i++) {
     if (i && ((i % 8) == 0))
       b[j++] = ' ';
@@ -183,7 +181,7 @@ static int chardump_line(char * buffer, unsigned char * p, int n, int pad)
   int i;
   char b [ 128 ];
 
-  for (i=0; i<n; i++) {
+  for (int32_t i = 0; i < n; i++) {
     memcpy(b, p, n);
     buffer[i] = '.';
     if (isalpha((int)(b[i])) || isdigit((int)(b[i])) || ispunct((int)(b[i])))
@@ -192,7 +190,7 @@ static int chardump_line(char * buffer, unsigned char * p, int n, int pad)
       buffer[i] = ' ';
   }
 
-  for (i=n; i<pad; i++)
+  for (i = n; i < pad; i++)
     buffer[i] = ' ';
 
   buffer[i] = 0;
@@ -203,16 +201,13 @@ static int chardump_line(char * buffer, unsigned char * p, int n, int pad)
 
 static int hexdump_buf(FILE * f, int startaddr, unsigned char * buf, int len)
 {
-  int addr;
-  int n;
-  unsigned char * p;
   char dst1[80];
   char dst2[80];
 
-  addr = startaddr;
-  p = (unsigned char *)buf;
+  int32_t addr = startaddr;
+  unsigned char * p = (unsigned char *)buf;
   while (len) {
-    n = 16;
+    int32_t n = 16;
     if (n > len)
       n = len;
     hexdump_line(dst1, p, n, 48);
@@ -230,83 +225,88 @@ static int hexdump_buf(FILE * f, int startaddr, unsigned char * buf, int len)
 static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
 		    int argc, char * argv[])
 {
-  static char prevmem[128] = {0};
-  char * e;
-  unsigned char * buf;
-  int maxsize;
-  unsigned long i;
-  static unsigned long addr=0;
-  static int len=64;
-  AVRMEM * mem;
-  char * memtype = NULL;
-  int rc;
-
-  if (!((argc == 2) || (argc == 4))) {
-    avrdude_message(MSG_INFO, "Usage: dump <memtype> [<addr> <len>]\n");
-    return -1;
+  if (argc < 2) {
+  avrdude_message(MSG_INFO, "Usage: %s <memtype> [<start addr> <len>]\n"
+                            "       %s <memtype> [<start addr> <...>]\n"
+                            "       %s <memtype> <...>\n"
+                            "       %s <memtype>\n",
+                            argv[0], argv[0], argv[0], argv[0]);
+  return -1;
   }
 
-  memtype = argv[1];
-
-  if (strncmp(prevmem, memtype, strlen(memtype)) != 0) {
-    addr = 0;
-    len  = 64;
-    strncpy(prevmem, memtype, sizeof(prevmem)-1);
-    prevmem[sizeof(prevmem)-1] = 0;
-  }
-
-  mem = avr_locate_mem(p, memtype);
+  enum { read_size = 256 };
+  static char prevmem[128] = {0x00};
+  char * memtype = argv[1];
+  AVRMEM * mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
     avrdude_message(MSG_INFO, "\"%s\" memory type not defined for part \"%s\"\n",
             memtype, p->desc);
     return -1;
   }
+  uint32_t maxsize = mem->size;
 
+  // Get start address if present
+  char * end_ptr;
+  static uint32_t addr = 0;
   if (argc == 4) {
-    addr = strtoul(argv[2], &e, 0);
-    if (*e || (e == argv[2])) {
-      avrdude_message(MSG_INFO, "%s (dump): can't parse address \"%s\"\n",
-              progname, argv[2]);
+    addr = strtoul(argv[2], &end_ptr, 0);
+    if (*end_ptr || (end_ptr == argv[2])) {
+      avrdude_message(MSG_INFO, "%s (%s): can't parse address \"%s\"\n",
+              progname, argv[0], argv[2]);
       return -1;
-    }
-
-    len = strtol(argv[3], &e, 0);
-    if (*e || (e == argv[3])) {
-      avrdude_message(MSG_INFO, "%s (dump): can't parse length \"%s\"\n",
-              progname, argv[3]);
+    } else if (addr >= maxsize) {
+      avrdude_message(MSG_INFO, "%s (%s): address 0x%05lx is out of range for %s memory\n",
+                      progname, argv[0], addr, mem->desc);
       return -1;
     }
   }
 
-  maxsize = mem->size;
-
-  if (addr >= maxsize) {
-    if (argc == 2) {
-      /* wrap around */
+  // Get no. bytes to read if present
+  static int32_t len = read_size;
+  if (argc >= 3) {
+    memset(prevmem, 0x00, sizeof(prevmem));
+    if (strcmp(argv[argc - 1], "...") == 0) {
+      if (argc == 3)
+        addr = 0;
+      len = maxsize - addr;
+    } else if (argc == 4) {
+      len = strtol(argv[3], &end_ptr, 0);
+      if (*end_ptr || (end_ptr == argv[3])) {
+        avrdude_message(MSG_INFO, "%s (%s): can't parse length \"%s\"\n",
+              progname, argv[0], argv[3]);
+        return -1;
+      }
+    } else {
+      len = read_size;
+    }
+  }
+  // No address or length specified
+  else if (argc == 2) {
+    if (strncmp(prevmem, memtype, strlen(memtype)) != 0) {
       addr = 0;
+      len  = read_size;
+      strncpy(prevmem, memtype, sizeof(prevmem) - 1);
+      prevmem[sizeof(prevmem) - 1] = 0;
     }
-    else {
-      avrdude_message(MSG_INFO, "%s (dump): address 0x%05lx is out of range for %s memory\n",
-                      progname, addr, mem->desc);
-      return -1;
-    }
+    if (addr >= maxsize)
+      addr = 0; // Wrap around
   }
 
-  /* trim len if nessary to not read past the end of memory */
+  // Trim len if nessary to not read past the end of memory
   if ((addr + len) > maxsize)
     len = maxsize - addr;
 
-  buf = malloc(len);
+  uint8_t * buf = malloc(len);
   if (buf == NULL) {
     avrdude_message(MSG_INFO, "%s (dump): out of memory\n", progname);
     return -1;
   }
 
-  for (i=0; i<len; i++) {
-    rc = pgm->read_byte(pgm, p, mem, addr+i, &buf[i]);
+  for (uint32_t i = 0; i < len; i++) {
+    int32_t rc = pgm->read_byte(pgm, p, mem, addr + i, &buf[i]);
     if (rc != 0) {
       avrdude_message(MSG_INFO, "error reading %s address 0x%05lx of part %s\n",
-              mem->desc, addr+i, p->desc);
+              mem->desc, addr + i, p->desc);
       if (rc == -1)
         avrdude_message(MSG_INFO, "read operation not supported on memory type \"%s\"\n",
                 mem->desc);
@@ -315,7 +315,6 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
   }
 
   hexdump_buf(stdout, addr, buf, len);
-
   fprintf(stdout, "\n");
 
   free(buf);
