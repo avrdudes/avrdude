@@ -334,7 +334,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       "Usage: write <memtype> <start addr> <data1> <data2> <dataN>\n"
       "       write <memtype> <start addr> <no. bytes> <data1> <dataN> <...>\n\n"
       "       Add a suffix to manually specify the size for each field:\n"
-      "       H/h/S/s: 16-bit, L/l: 32-bit, LL/ll: 6-bit, F/f: 32-bit float\n");
+      "       HH/hh: 8-bit, H/h/S/s: 16-bit, L/l: 32-bit, LL/ll: 64-bit, F/f: 32-bit float\n");
     return -1;
   }
 
@@ -365,9 +365,16 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
-  // Figure out how many bytes there is to write to memory
+  uint8_t * buf = malloc(mem->size);
+  if (buf == NULL) {
+    avrdude_message(MSG_INFO, "%s (write): out of memory\n", progname);
+    return -1;
+  }
+
+  // Find the first argument to write to flash and how many arguments to parse and write
   if (strcmp(argv[argc - 1], "...") == 0) {
     write_mode = WRITE_MODE_FILL;
+    start_offset = 4;
     len = strtoul(argv[3], &end_ptr, 0);
     if (*end_ptr || (end_ptr == argv[3])) {
       avrdude_message(MSG_INFO, "%s (write ...): can't parse address \"%s\"\n",
@@ -376,23 +383,8 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     }
   } else {
     write_mode = WRITE_MODE_STANDARD;
-  }
-
-  uint8_t * buf = malloc(mem->size);
-  if (buf == NULL) {
-    avrdude_message(MSG_INFO, "%s (write): out of memory\n", progname);
-    return -1;
-  }
-
-  if (write_mode == WRITE_MODE_STANDARD) {
-    start_offset = 3; // Argument number where data to write starts
+    start_offset = 3;
     len = argc - start_offset;
-  } else if (write_mode == WRITE_MODE_FILL)
-    start_offset = 4;
-  else {
-    avrdude_message(MSG_INFO, "%s (write): invalid write mode %d\n",
-                    progname, write_mode);
-    return -1;
   }
 
   // Structure related to data that is being written to memory
@@ -410,7 +402,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     };
   } data = {.bytes_grown = 0, .size = 0, .is_float = false, .ll = 0, .is_signed = false};
 
-  for (i = start_offset; i < len + start_offset - data.bytes_grown; i++) {
+  for (i = start_offset; i < len + start_offset; i++) {
     data.is_float = false;
     data.size = 0;
 
