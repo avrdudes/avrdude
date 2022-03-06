@@ -16,6 +16,10 @@ with the help of [various contributors](./AUTHORS).
 The latest version of AVRDUDE is always available here:\
 <https://github.com/avrdudes/avrdude>
 
+## Documentation
+
+Documentation is [here](https://dl8dtl.github.io/avrdude/).
+
 ## Getting AVRDUDE for Windows
 
 To get AVRDUDE for Windows, install the latest version from the [Releases](http://download.savannah.gnu.org/releases/avrdude/) page.
