@@ -1,0 +1,373 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created on March 3, 2022 by texi2html 5.0
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: A.1 Unix</title>
+
+<meta name="description" content="AVRDUDE: A.1 Unix">
+<meta name="keywords" content="AVRDUDE: A.1 Unix">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 5.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:pre}
+span.nolinebreak {white-space:pre}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Unix"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Unix-Installation" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Unix-1"></a>
+<h2 class="section">A.1 Unix</h2>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top"><a href="#Unix-Installation">A.1.1 Unix Installation</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">           
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Unix-Configuration-Files">A.1.2 Unix Configuration Files</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">    
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Unix-Port-Names">A.1.3 Unix Port Names</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">             
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Unix-Documentation">A.1.4 Unix Documentation</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">          
+</td></tr>
+</table>
+
+<hr>
+<a name="Unix-Installation"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Unix" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Unix" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#FreeBSD-Installation" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Unix-Installation-1"></a>
+<h3 class="subsection">A.1.1 Unix Installation</h3>
+
+<p>To build and install from the source tarball on Unix like systems:
+</p>
+<div class="example">
+<pre class="example">$ gunzip -c avrdude-6.99-20211218.tar.gz | tar xf -
+$ cd avrdude-6.99-20211218
+$ ./configure
+$ make
+$ su root -c 'make install'
+</pre></div>
+
+<p>The default location of the install is into <code>/usr/local</code> so you
+will need to be sure that <code>/usr/local/bin</code> is in your <code>PATH</code>
+environment variable.
+</p>
+<p>If you do not have root access to your system, you can do the
+following instead:
+</p>
+<div class="example">
+<pre class="example">$ gunzip -c avrdude-6.99-20211218.tar.gz | tar xf -
+$ cd avrdude-6.99-20211218
+$ ./configure --prefix=$HOME/local
+$ make
+$ make install
+</pre></div>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top"><a href="#FreeBSD-Installation">A.1.1.1 FreeBSD Installation</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">        
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Linux-Installation">A.1.1.2 Linux Installation</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">          
+</td></tr>
+</table>
+
+<hr>
+<a name="FreeBSD-Installation"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Unix-Installation" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Unix-Installation" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Linux-Installation" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="FreeBSD-Installation-1"></a>
+<h4 class="subsubsection">A.1.1.1 FreeBSD Installation</h4>
+
+<p>AVRDUDE is installed via the FreeBSD Ports Tree as follows:
+</p>
+<div class="example">
+<pre class="example">% su - root
+# cd /usr/ports/devel/avrdude
+# make install
+</pre></div>
+
+<p>If you wish to install from a pre-built package instead of the source,
+you can use the following instead:
+</p>
+<div class="example">
+<pre class="example">% su - root
+# pkg_add -r avrdude
+</pre></div>
+
+<p>Of course, you must be connected to the Internet for these methods to
+work, since that is where the source as well as the pre-built package is
+obtained.
+</p>
+<hr>
+<a name="Linux-Installation"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#FreeBSD-Installation" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Unix-Installation" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Unix-Configuration-Files" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Linux-Installation-1"></a>
+<h4 class="subsubsection">A.1.1.2 Linux Installation</h4>
+
+<p>On rpm based Linux systems (such as RedHat, SUSE, Mandrake, etc.), you
+can build and install the rpm binaries directly from the tarball:
+</p>
+<div class="example">
+<pre class="example">$ su - root
+# rpmbuild -tb avrdude-6.99-20211218.tar.gz
+# rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-6.99-20211218-1.i386.rpm
+</pre></div>
+
+<p>Note that the path to the resulting rpm package, differs from system
+to system. The above example is specific to RedHat.
+</p>
+<hr>
+<a name="Unix-Configuration-Files"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Linux-Installation" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Unix" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#FreeBSD-Configuration-Files" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Unix-Configuration-Files-1"></a>
+<h3 class="subsection">A.1.2 Unix Configuration Files</h3>
+
+<p>When AVRDUDE is build using the default &lsquo;<samp>--prefix</samp>&rsquo; configure
+option, the default configuration file for a Unix system is located at
+<code>/usr/local/etc/avrdude.conf</code>.  This can be overridden by using the
+&lsquo;<samp>-C</samp>&rsquo; command line option.  Additionally, the user&rsquo;s home directory
+is searched for a file named <code>.avrduderc</code>, and if found, is used to
+augment the system default configuration file.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top"><a href="#FreeBSD-Configuration-Files">A.1.2.1 FreeBSD Configuration Files</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">  
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Linux-Configuration-Files">A.1.2.2 Linux Configuration Files</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">   
+</td></tr>
+</table>
+
+<hr>
+<a name="FreeBSD-Configuration-Files"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Unix-Configuration-Files" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Unix-Configuration-Files" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Linux-Configuration-Files" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="FreeBSD-Configuration-Files-1"></a>
+<h4 class="subsubsection">A.1.2.1 FreeBSD Configuration Files</h4>
+
+<p>When AVRDUDE is installed using the FreeBSD ports system, the system
+configuration file is always <code>/usr/local/etc/avrdude.conf</code>.
+</p>
+<hr>
+<a name="Linux-Configuration-Files"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#FreeBSD-Configuration-Files" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Unix-Configuration-Files" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Unix-Port-Names" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Linux-Configuration-Files-1"></a>
+<h4 class="subsubsection">A.1.2.2 Linux Configuration Files</h4>
+
+<p>When AVRDUDE is installed using from an rpm package, the system
+configuration file will be always be <code>/etc/avrdude.conf</code>.
+</p>
+<hr>
+<a name="Unix-Port-Names"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Linux-Configuration-Files" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Unix" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Unix-Documentation" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Unix-Port-Names-1"></a>
+<h3 class="subsection">A.1.3 Unix Port Names</h3>
+
+<p>The parallel and serial port device file names are system specific.
+The following table lists the default names for a given system.
+</p>
+<table>
+<tr><td width="30%"><strong>System</strong></td><td width="30%"><strong>Default Parallel Port</strong></td><td width="30%"><strong>Default Serial Port</strong></td></tr>
+<tr><td width="30%">FreeBSD</td><td width="30%"><code>/dev/ppi0</code></td><td width="30%"><code>/dev/cuad0</code></td></tr>
+<tr><td width="30%">Linux</td><td width="30%"><code>/dev/parport0</code></td><td width="30%"><code>/dev/ttyS0</code></td></tr>
+<tr><td width="30%">Solaris</td><td width="30%"><code>/dev/printers/0</code></td><td width="30%"><code>/dev/term/a</code></td></tr>
+</table>
+
+<p>On FreeBSD systems, AVRDUDE uses the ppi(4) interface for
+accessing the parallel port and the sio(4) driver for serial port
+access.
+</p>
+<p>On Linux systems, AVRDUDE uses the ppdev interface for
+accessing the parallel port and the tty driver for serial port
+access.
+</p>
+<p>On Solaris systems, AVRDUDE uses the ecpp(7D) driver for
+accessing the parallel port and the asy(7D) driver for serial port
+access.
+</p>
+<hr>
+<a name="Unix-Documentation"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Unix-Port-Names" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Unix" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_20.html#Windows" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Unix-Documentation-1"></a>
+<h3 class="subsection">A.1.4 Unix Documentation</h3>
+
+<p>AVRDUDE installs a manual page as well as info, HTML and PDF
+documentation.  The manual page is installed in
+<code>/usr/local/man/man1</code> area, while the HTML and PDF documentation
+is installed in <code>/usr/local/share/doc/avrdude</code> directory.  The
+info manual is installed in <code>/usr/local/info/avrdude.info</code>.
+</p>
+<p>Note that these locations can be altered by various configure options
+such as &lsquo;<samp>--prefix</samp>&rsquo;.
+</p>
+<hr>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Unix-Port-Names" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Unix" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_20.html#Windows" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated on <i>March 3, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>

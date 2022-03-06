@@ -1,0 +1,378 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created on March 3, 2022 by texi2html 5.0
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: A.2 Windows</title>
+
+<meta name="description" content="AVRDUDE: A.2 Windows">
+<meta name="keywords" content="AVRDUDE: A.2 Windows">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 5.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:pre}
+span.nolinebreak {white-space:pre}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Windows"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_19.html#Unix-Documentation" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Windows-Installation" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Windows-1"></a>
+<h2 class="section">A.2 Windows</h2>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top"><a href="#Windows-Installation">A.2.1 Installation</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">        
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Windows-Configuration-Files">A.2.2 Configuration Files</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">  
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Windows-Port-Names">A.2.3 Port Names</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">          
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Documentation">A.2.4 Documentation</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">               
+</td></tr>
+</table>
+
+<hr>
+<a name="Windows-Installation"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Windows" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Windows" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Windows-Configuration-Files" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Installation"></a>
+<h3 class="subsection">A.2.1 Installation</h3>
+
+<p>A Windows executable of avrdude is included in WinAVR which can be found at
+<a href="http://sourceforge.net/projects/winavr">http://sourceforge.net/projects/winavr</a>. WinAVR is a suite of executable, 
+open source software development tools for the AVR for the Windows platform.
+</p>
+<p>There are two options to build avrdude from source under Windows.
+The first one is to use Cygwin (<a href="http://www.cygwin.com/">http://www.cygwin.com/</a>).
+</p>
+<p>To build and install from the source tarball for Windows (using Cygwin):
+</p>
+<div class="example">
+<pre class="example">$ set PREFIX=&lt;your install directory path&gt;
+$ export PREFIX
+$ gunzip -c avrdude-6.99-20211218.tar.gz | tar xf -
+$ cd avrdude-6.99-20211218
+$ ./configure LDFLAGS=&quot;-static&quot; --prefix=$PREFIX --datadir=$PREFIX 
+--sysconfdir=$PREFIX/bin --enable-versioned-doc=no
+$ make
+$ make install
+</pre></div>
+
+<p>Note that recent versions of Cygwin (starting with 1.7) removed the
+MinGW support from the compiler that is needed in order to build a
+native Win32 API binary that does not require to install the Cygwin
+library <code>cygwin1.dll</code> at run-time.  Either try using an older
+compiler version that still supports MinGW builds, or use MinGW
+(<a href="http://www.mingw.org/">http://www.mingw.org/</a>) directly.
+</p>
+
+
+<hr>
+<a name="Windows-Configuration-Files"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Windows-Installation" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Windows" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Configuration-file-names" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Configuration-Files"></a>
+<h3 class="subsection">A.2.2 Configuration Files</h3>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top"><a href="#Configuration-file-names">A.2.2.1 Configuration file names</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">    
+</td></tr>
+<tr><td align="left" valign="top"><a href="#How-AVRDUDE-finds-the-configuration-files_002e">A.2.2.2 How AVRDUDE finds the configuration files.</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">  
+</td></tr>
+</table>
+
+<hr>
+<a name="Configuration-file-names"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Windows-Configuration-Files" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Windows-Configuration-Files" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#How-AVRDUDE-finds-the-configuration-files_002e" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Configuration-file-names-1"></a>
+<h4 class="subsubsection">A.2.2.1 Configuration file names</h4>
+
+<p>AVRDUDE on Windows looks for a system configuration file name of
+<code>avrdude.conf</code> and looks for a user override configuration file of
+<code>avrdude.rc</code>.
+</p>
+<hr>
+<a name="How-AVRDUDE-finds-the-configuration-files_002e"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Configuration-file-names" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Windows-Configuration-Files" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Windows-Port-Names" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="How-AVRDUDE-finds-the-configuration-files_002e-1"></a>
+<h4 class="subsubsection">A.2.2.2 How AVRDUDE finds the configuration files.</h4>
+ 
+<p>AVRDUDE on Windows has a different way of searching for the system and
+user configuration files. Below is the search method for locating the
+configuration files:
+</p>
+<ol>
+<li>
+Only for the system configuration file:
+<code>&lt;directory from which application loaded&gt;/../etc/avrdude.conf</code>
+
+</li><li>
+The directory from which the application loaded.
+
+</li><li>
+The current directory.
+
+</li><li>
+The Windows system directory. On Windows NT, the name of this directory
+is <code>SYSTEM32</code>.
+
+</li><li>
+Windows NT: The 16-bit Windows system directory. The name of this
+directory is <code>SYSTEM</code>.
+
+</li><li>
+The Windows directory.
+
+</li><li>
+The directories that are listed in the PATH environment variable.
+
+</li></ol>
+
+
+<hr>
+<a name="Windows-Port-Names"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#How-AVRDUDE-finds-the-configuration-files_002e" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Windows" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Serial-Ports" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Port-Names"></a>
+<h3 class="subsection">A.2.3 Port Names</h3>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top"><a href="#Serial-Ports">A.2.3.1 Serial Ports</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">                
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Parallel-Ports">A.2.3.2 Parallel Ports</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">              
+</td></tr>
+</table>
+
+<hr>
+<a name="Serial-Ports"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Windows-Port-Names" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Windows-Port-Names" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Parallel-Ports" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Serial-Ports-1"></a>
+<h4 class="subsubsection">A.2.3.1 Serial Ports</h4>
+ 
+<p>When you select a serial port (i.e. when using an STK500) use the
+Windows serial port device names such as: com1, com2, etc.
+</p> 
+<hr>
+<a name="Parallel-Ports"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Serial-Ports" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Windows-Port-Names" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Documentation" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Parallel-Ports-1"></a>
+<h4 class="subsubsection">A.2.3.2 Parallel Ports</h4>
+
+<p>AVRDUDE will accept 3 Windows parallel port names: lpt1, lpt2, or
+lpt3.  Each of these names corresponds to a fixed parallel port base
+address:
+</p>
+<dl compact="compact">
+<dt><code>lpt1</code></dt>
+<dd><p>0x378
+</p>
+</dd>
+<dt><code>lpt2</code></dt>
+<dd><p>0x278
+</p>
+</dd>
+<dt><code>lpt3</code></dt>
+<dd><p>0x3BC
+</p>
+</dd>
+</dl>
+
+<p>On your desktop PC, lpt1 will be the most common choice. If you are
+using a laptop, you might have to use lpt3 instead of lpt1. Select the
+name of the port the corresponds to the base address of the parallel
+port that you want.
+</p>
+<p>If the parallel port can be accessed through a different
+address, this address can be specified directly, using the common C
+language notation (i. e., hexadecimal values are prefixed by <code>0x</code>).
+</p>
+<hr>
+<a name="Documentation"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Parallel-Ports" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Windows" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Documentation-1"></a>
+<h3 class="subsection">A.2.4 Documentation</h3>
+
+<p>AVRDUDE installs a manual page as well as info, HTML and PDF
+documentation.  The manual page is installed in
+<code>/usr/local/man/man1</code> area, while the HTML and PDF documentation
+is installed in <code>/usr/local/share/doc/avrdude</code> directory.  The
+info manual is installed in <code>/usr/local/info/avrdude.info</code>.
+</p>
+<p>Note that these locations can be altered by various configure options
+such as &lsquo;<samp>--prefix</samp>&rsquo; and &lsquo;<samp>--datadir</samp>&rsquo;.
+</p>
+
+<hr>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_18.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Parallel-Ports" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Windows" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_21.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated on <i>March 3, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>
