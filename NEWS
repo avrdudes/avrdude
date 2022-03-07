@@ -73,6 +73,7 @@ Changes since version 6.4:
     - List of signing keys? #884
     - Pickit4 UPDI is writing at offset 0x4000 into flash instead of 0x0000. #892
     - SerialUPDI programmer can't write to usersig/userrow in terminal mode #889
+    - Signature read command for ATmega165* was wrong (no-id)
 
   * Pull requests:
 
