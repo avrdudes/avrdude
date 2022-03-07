@@ -72,6 +72,7 @@ Changes since version 6.4:
     - Rework HID support for Windows #881
     - List of signing keys? #884
     - Pickit4 UPDI is writing at offset 0x4000 into flash instead of 0x0000. #892
+    - Signature read command for ATmega165* was wrong (no-id)
 
   * Pull requests:
 
