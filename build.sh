@@ -59,7 +59,7 @@ case "${ostype}" in
 	;;
 esac
 
-cmake ${build_flags} ${extra_enable} -D CMAKE_BUILD_TYPE=${build_type} -B build_${ostype} ||\
+cmake ${build_flags} ${extra_enable} -D CMAKE_VERBOSE_MAKEFILE:BOOL=ON -D CMAKE_BUILD_TYPE=${build_type} -B build_${ostype} ||\
     { echo "CMake failed."; exit 1; }
 cmake --build build_${ostype} ||\
     { echo "Build failed."; exit 1; }

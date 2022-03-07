@@ -28,6 +28,7 @@
 #include "ac_cfg.h"
 
 #include <ctype.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,6 +42,10 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <unistd.h>
+
+#ifdef __APPLE__
+# include <IOKit/serial/ioss.h>
+#endif
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -78,9 +83,11 @@ static struct baud_mapping baud_lookup_table [] = {
 static struct termios original_termios;
 static int saved_original_termios;
 
-static speed_t serial_baud_lookup(long baud)
+static speed_t serial_baud_lookup(long baud, bool *nonstandard)
 {
   struct baud_mapping *map = baud_lookup_table;
+
+  *nonstandard = false;
 
   while (map->baud) {
     if (map->baud == baud)
@@ -95,6 +102,8 @@ static speed_t serial_baud_lookup(long baud)
   avrdude_message(MSG_NOTICE, "%s: serial_baud_lookup(): Using non-standard baud rate: %ld",
               progname, baud);
 
+  *nonstandard = true;
+
   return baud;
 }
 
@@ -102,7 +111,8 @@ static int ser_setparams(union filedescriptor *fd, long baud, unsigned long cfla
 {
   int rc;
   struct termios termios;
-  speed_t speed = serial_baud_lookup (baud);
+  bool nonstandard;
+  speed_t speed = serial_baud_lookup (baud, &nonstandard);
   
   if (!isatty(fd->ifd))
     return -ENOTTY;
@@ -146,8 +156,16 @@ static int ser_setparams(union filedescriptor *fd, long baud, unsigned long cfla
   termios.c_iflag &= ~PARMRK;
 #endif /* PARMRK */
 
-  cfsetospeed(&termios, speed);
-  cfsetispeed(&termios, speed);
+  // MacOS doesn't handle nonstandard baudrate values in
+  // normal tcsetattr(), sigh.
+#ifdef __APPLE__
+  if (!nonstandard) {
+#endif
+    cfsetospeed(&termios, speed);
+    cfsetispeed(&termios, speed);
+#ifdef __APPLE__
+  }
+#endif
 
   termios.c_cflag &= ~CSIZE;
   if (cflags & SERIAL_CS8) {
@@ -203,6 +221,17 @@ static int ser_setparams(union filedescriptor *fd, long baud, unsigned long cfla
             progname);
     return -errno;
   }
+
+#ifdef __APPLE__
+  // handle nonstandard speed values the MacOS way
+  if (nonstandard) {
+    if (ioctl(fd->ifd, IOSSIOSPEED, &speed) < 0) {
+      avrdude_message(MSG_INFO, "%s: ser_setparams(): ioctrl(IOSSIOSPEED) failed\n",
+            progname);
+      return -errno;
+    }
+  }
+#endif // __APPLE__
 
   tcflush(fd->ifd, TCIFLUSH);
   
@@ -564,3 +593,4 @@ struct serial_device serial_serdev =
 struct serial_device *serdev = &serial_serdev;
 
 #endif  /* WIN32 */
+
