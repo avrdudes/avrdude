@@ -15457,6 +15457,13 @@ part parent "x128c3"
     id		= "x128d4";
     desc	= "ATxmega128D4";
     signature	= 0x1e 0x97 0x47;
+
+    memory "flash"
+        size		= 0x22000;
+        offset		= 0x800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
