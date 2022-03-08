@@ -14275,7 +14275,7 @@ part
 part
     id               = "m165";
     desc             = "ATmega165";
-    signature        = 0x1e 0x94 0x07;
+    signature        = 0x1e 0x94 0x10;
     has_jtag         = yes;
 #   stk500_devcode   = 0x??;
 #   avr910_devcode   = 0x??;
