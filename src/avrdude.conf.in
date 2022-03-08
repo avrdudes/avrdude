@@ -9776,6 +9776,18 @@ part parent "m328"
     signature       = 0x1e 0x96 0x84;
     bs2             = 0xe2;
 
+    memory "eeprom"
+        size            = 2048;
+        page_size       = 8;
+    ;
+
+    memory "flash"
+        paged           = yes;
+        size            = 65536;
+        page_size       = 256;
+        num_pages       = 256;
+    ;
+
     memory "efuse"
         size            = 1;
         min_write_delay = 4500;
