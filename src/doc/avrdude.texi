@@ -28,9 +28,7 @@ This file documents the avrdude program.
 
 For avrdude version @value{VERSION}, @value{UPDATED}.
 
-Copyright @copyright{} 2003, 2005 Brian Dean
-
-Copyright @copyright{} 2006 - 2021 J@"org Wunsch
+Copyright @copyright{} Brian Dean, J@"org Wunsch
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -66,11 +64,9 @@ the terms of the GNU Free Documentation License (FDL), version 1.3.
 @page
 Send comments on AVRDUDE to @w{@email{avrdude-dev@@nongnu.org}}.
 
-Use @uref{http://savannah.nongnu.org/bugs/?group=avrdude} to report bugs.
+Use @uref{https://github.com/avrdudes/avrdude/issues} to report bugs.
 
-Copyright @copyright{} 2003,2005 Brian S. Dean
-
-Copyright @copyright{} 2006 - 2013 J@"org Wunsch
+Copyright @copyright{} Brian S. Dean, J@"org Wunsch
 @sp 2
 
 Permission is granted to make and distribute verbatim copies of
@@ -104,11 +100,9 @@ For avrdude version @value{VERSION}, @value{UPDATED}.
 
 Send comments on AVRDUDE to @w{@email{avrdude-dev@@nongnu.org}}.
 
-Use @uref{http://savannah.nongnu.org/bugs/?group=avrdude} to report bugs.
+Use @uref{https://github.com/avrdudes/avrdude/issues} to report bugs.
 
-Copyright @copyright{} 2003,2005 Brian S. Dean
-
-Copyright @copyright{} 2006 J@"org Wunsch
+Copyright @copyright{} Brian S. Dean, J@"org Wunsch
 @end ifinfo
 
 @menu
@@ -353,12 +347,14 @@ AVRDUDE when interest grew in a Windows port of the software so that the
 name did not conflict with AVRPROG.EXE which is the name of Atmel's
 Windows programming software.
 
-The AVRDUDE source now resides in the public CVS repository on
-savannah.gnu.org (@url{http://savannah.gnu.org/projects/avrdude/}),
-where it continues to be enhanced and ported to other systems.  In
+For many years, the AVRDUDE source resided in public repositories on
+savannah.nongnu.org,
+where it continued to be enhanced and ported to other systems.  In
 addition to FreeBSD, AVRDUDE now runs on Linux and Windows.  The
 developers behind the porting effort primarily were Ted Roth, Eric
 Weddington, and Joerg Wunsch.
+
+In 2022, the project moved to Github (@url{https://github.com/avrdudes/avrdude/}).
 
 And in the spirit of many open source projects, this manual also draws
 on the work of others.  The initial revision was composed of parts of
@@ -2446,7 +2442,7 @@ such as @option{--prefix} and @option{--datadir}.
 @noindent
 In general, please report any bugs encountered via
 @*
-@url{http://savannah.nongnu.org/bugs/?group=avrdude}.
+@url{https://github.com/avrdudes/avrdude/issues}.
 
 
 @itemize @bullet
