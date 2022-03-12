@@ -3869,7 +3869,8 @@ static int stk600_xprog_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
              * fuses.
              */
             need_erase = 1;
-    } else if (strcmp(mem->desc, "usersig") == 0) {
+    } else if (strcmp(mem->desc, "usersig") == 0 ||
+               strcmp(mem->desc, "userrow") == 0) {
         memcode = XPRG_MEM_TYPE_USERSIG;
     } else {
         avrdude_message(MSG_INFO, "%s: stk600_xprog_write_byte(): unknown memory \"%s\"\n",
@@ -3944,7 +3945,8 @@ static int stk600_xprog_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     } else if (strcmp(mem->desc, "calibration") == 0 ||
                strcmp(mem->desc, "prodsig") == 0) {
         b[1] = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
-    } else if (strcmp(mem->desc, "usersig") == 0) {
+    } else if (strcmp(mem->desc, "usersig") == 0 ||
+               strcmp(mem->desc, "userrow") == 0) {
         b[1] = XPRG_MEM_TYPE_USERSIG;
     } else {
         avrdude_message(MSG_INFO, "%s: stk600_xprog_read_byte(): unknown memory \"%s\"\n",
@@ -4019,7 +4021,8 @@ static int stk600_xprog_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     } else if (strcmp(mem->desc, "calibration") == 0 ||
                strcmp(mem->desc, "prodsig") == 0) {
         memtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
-    } else if (strcmp(mem->desc, "usersig") == 0) {
+    } else if (strcmp(mem->desc, "usersig") == 0 ||
+               strcmp(mem->desc, "userrow") == 0) {
         memtype = XPRG_MEM_TYPE_USERSIG;
     } else {
         avrdude_message(MSG_INFO, "%s: stk600_xprog_paged_load(): unknown paged memory \"%s\"\n",
@@ -4132,7 +4135,8 @@ static int stk600_xprog_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     } else if (strcmp(mem->desc, "calibration") == 0) {
         memtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
-    } else if (strcmp(mem->desc, "usersig") == 0) {
+    } else if (strcmp(mem->desc, "usersig") == 0 ||
+               strcmp(mem->desc, "userrow") == 0) {
         memtype = XPRG_MEM_TYPE_USERSIG;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
     } else {
@@ -4290,7 +4294,8 @@ static int stk600_xprog_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       b[1] = XPRG_ERASE_BOOT_PAGE;
     } else if (strcmp(m->desc, "eeprom") == 0) {
       b[1] = XPRG_ERASE_EEPROM_PAGE;
-    } else if (strcmp(m->desc, "usersig") == 0) {
+    } else if (strcmp(m->desc, "usersig") == 0 ||
+               strcmp(m->desc, "userrow") == 0) {
       b[1] = XPRG_ERASE_USERSIG;
     } else {
       avrdude_message(MSG_INFO, "%s: stk600_xprog_page_erase(): unknown paged memory \"%s\"\n",
