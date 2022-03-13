@@ -62,9 +62,8 @@ the terms of the GNU Free Documentation License (FDL), version 1.3.
 @author by Brian S. Dean
 
 @page
-Send comments on AVRDUDE to @w{@email{avrdude-dev@@nongnu.org}}.
 
-Use @uref{https://github.com/avrdudes/avrdude/issues} to report bugs.
+Use @uref{https://github.com/avrdudes/avrdude/issues} to report bugs and ask questions.
 
 Copyright @copyright{} Brian S. Dean, J@"org Wunsch
 @sp 2
@@ -98,9 +97,7 @@ programs to Atmel AVR microcontrollers.
 
 For avrdude version @value{VERSION}, @value{UPDATED}.
 
-Send comments on AVRDUDE to @w{@email{avrdude-dev@@nongnu.org}}.
-
-Use @uref{https://github.com/avrdudes/avrdude/issues} to report bugs.
+Use @uref{https://github.com/avrdudes/avrdude/issues} to report bugs and ask questions.
 
 Copyright @copyright{} Brian S. Dean, J@"org Wunsch
 @end ifinfo
