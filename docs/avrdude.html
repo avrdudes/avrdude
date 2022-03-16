@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<!-- Created on March 13, 2022 by texi2html 5.0
+<!-- Created on March 16, 2022 by texi2html 5.0
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -41,6 +41,23 @@ span.nolinebreak {white-space:pre}
 span.roman {font-family:serif; font-weight:normal}
 span.sansserif {font-family:sans-serif; font-weight:normal}
 ul.no-bullet {list-style: none}
+body { background-color: #ffd; }
+h1 { text-shadow: .05em .05em #ccc; }
+table {
+  border: 3px solid #ccf;
+  background-color: white;
+}
+div.example {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+samp {
+  color: blue;
+}
+code {
+  color: green;
+}
+
 -->
 </style>
 
@@ -92,6 +109,7 @@ by the Free Software Foundation.
 <td valign="middle" align="left">[Index]</td>
 <td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
+<hr>
 
 
 <table class="menu" border="0" cellspacing="0">
@@ -103,11 +121,11 @@ by the Free Software Foundation.
 </td></tr>
 <tr><td align="left" valign="top"><a href="avrdude_9.html#Configuration-File">4 Configuration File</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">          
 </td></tr>
-<tr><td align="left" valign="top"><a href="avrdude_14.html#Programmer-Specific-Information">5 Programmer Specific Information</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top"><a href="avrdude_16.html#Programmer-Specific-Information">5 Programmer Specific Information</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top"><a href="avrdude_18.html#Platform-Dependent-Information">Appendix A Platform Dependent Information</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top"><a href="avrdude_20.html#Platform-Dependent-Information">Appendix A Platform Dependent Information</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top"><a href="avrdude_21.html#Troubleshooting">Appendix B Troubleshooting</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top"><a href="avrdude_39.html#Troubleshooting">Appendix B Troubleshooting</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 </table>
 
@@ -304,7 +322,7 @@ utility, but it also contains some performance improvements included in
 Spence Konde&rsquo;s <em>DxCore</em> Arduino core (<a href="https://github.com/SpenceKonde/DxCore">https://github.com/SpenceKonde/DxCore</a>).
 In a nutshell, this programmer consists of simple USB-&gt;UART adapter, diode 
 and couple of resistors. It uses serial connection to provide UPDI interface. 
-See section <a href="avrdude_17.html#SerialUPDI-programmer">SerialUPDI programmer</a> for more details and known issues.
+See section <a href="avrdude_19.html#SerialUPDI-programmer">SerialUPDI programmer</a> for more details and known issues.
 </p>
 <p>The jtag2updi programmer is supported,
 and can program AVRs with a UPDI interface.
@@ -336,10 +354,18 @@ below for Teensy specific options.
 <td valign="middle" align="left">[ Up ]</td>
 <td valign="middle" align="left">[<a href="avrdude_1.html#History" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left">[<a href="avrdude_2.html#Command-Line-Options" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
 <p>
  <font size="-1">
-  This document was generated on <i>March 13, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>March 16, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
  </font>
  <br>
 

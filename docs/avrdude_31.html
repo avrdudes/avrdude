@@ -10,10 +10,10 @@ Maintained by: Many creative people.
 Send bugs and suggestions to <texi2html-bug@nongnu.org>
 -->
 <head>
-<title>AVRDUDE: Appendix A Platform Dependent Information</title>
+<title>AVRDUDE: A.2.1 Installation</title>
 
-<meta name="description" content="AVRDUDE: Appendix A Platform Dependent Information">
-<meta name="keywords" content="AVRDUDE: Appendix A Platform Dependent Information">
+<meta name="description" content="AVRDUDE: A.2.1 Installation">
+<meta name="keywords" content="AVRDUDE: A.2.1 Installation">
 <meta name="resource-type" content="document">
 <meta name="distribution" content="global">
 <meta name="Generator" content="texi2html 5.0">
@@ -66,12 +66,12 @@ code {
 
 <body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
 
-<a name="Platform-Dependent-Information"></a>
+<a name="Windows-Installation"></a>
 <table class="header" cellpadding="1" cellspacing="1" border="0">
-<tr><td valign="middle" align="left">[<a href="avrdude_16.html#Programmer-Specific-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="avrdude_19.html#SerialUPDI-programmer" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[ Up ]</td>
-<td valign="middle" align="left">[<a href="avrdude_21.html#Unix" title="Next section in reading order"> &gt; </a>]</td>
+<tr><td valign="middle" align="left">[<a href="avrdude_20.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_30.html#Windows" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_30.html#Windows" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_32.html#Windows-Configuration-Files" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left">[<a href="avrdude_39.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -83,15 +83,37 @@ code {
 <td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
 <hr>
-<a name="Platform-Dependent-Information-1"></a>
-<h1 class="appendix">Appendix A Platform Dependent Information</h1>
+<a name="Installation"></a>
+<h3 class="subsection">A.2.1 Installation</h3>
 
-<table class="menu" border="0" cellspacing="0">
-<tr><td align="left" valign="top"><a href="avrdude_21.html#Unix">A.1 Unix</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="avrdude_30.html#Windows">A.2 Windows</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-</table>
+<p>A Windows executable of avrdude is included in WinAVR which can be found at
+<a href="http://sourceforge.net/projects/winavr">http://sourceforge.net/projects/winavr</a>. WinAVR is a suite of executable, 
+open source software development tools for the AVR for the Windows platform.
+</p>
+<p>There are two options to build avrdude from source under Windows.
+The first one is to use Cygwin (<a href="http://www.cygwin.com/">http://www.cygwin.com/</a>).
+</p>
+<p>To build and install from the source tarball for Windows (using Cygwin):
+</p>
+<div class="example">
+<pre class="example">$ set PREFIX=&lt;your install directory path&gt;
+$ export PREFIX
+$ gunzip -c avrdude-6.99-20211218.tar.gz | tar xf -
+$ cd avrdude-6.99-20211218
+$ ./configure LDFLAGS=&quot;-static&quot; --prefix=$PREFIX --datadir=$PREFIX 
+--sysconfdir=$PREFIX/bin --enable-versioned-doc=no
+$ make
+$ make install
+</pre></div>
+
+<p>Note that recent versions of Cygwin (starting with 1.7) removed the
+MinGW support from the compiler that is needed in order to build a
+native Win32 API binary that does not require to install the Cygwin
+library <code>cygwin1.dll</code> at run-time.  Either try using an older
+compiler version that still supports MinGW builds, or use MinGW
+(<a href="http://www.mingw.org/">http://www.mingw.org/</a>) directly.
+</p>
+
 
 <hr>
 <p>

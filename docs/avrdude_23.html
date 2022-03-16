@@ -10,10 +10,10 @@ Maintained by: Many creative people.
 Send bugs and suggestions to <texi2html-bug@nongnu.org>
 -->
 <head>
-<title>AVRDUDE: Appendix A Platform Dependent Information</title>
+<title>AVRDUDE: A.1.1.1 FreeBSD Installation</title>
 
-<meta name="description" content="AVRDUDE: Appendix A Platform Dependent Information">
-<meta name="keywords" content="AVRDUDE: Appendix A Platform Dependent Information">
+<meta name="description" content="AVRDUDE: A.1.1.1 FreeBSD Installation">
+<meta name="keywords" content="AVRDUDE: A.1.1.1 FreeBSD Installation">
 <meta name="resource-type" content="document">
 <meta name="distribution" content="global">
 <meta name="Generator" content="texi2html 5.0">
@@ -66,12 +66,12 @@ code {
 
 <body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
 
-<a name="Platform-Dependent-Information"></a>
+<a name="FreeBSD-Installation"></a>
 <table class="header" cellpadding="1" cellspacing="1" border="0">
-<tr><td valign="middle" align="left">[<a href="avrdude_16.html#Programmer-Specific-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="avrdude_19.html#SerialUPDI-programmer" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[ Up ]</td>
-<td valign="middle" align="left">[<a href="avrdude_21.html#Unix" title="Next section in reading order"> &gt; </a>]</td>
+<tr><td valign="middle" align="left">[<a href="avrdude_20.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_22.html#Unix-Installation" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_22.html#Unix-Installation" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_24.html#Linux-Installation" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left">[<a href="avrdude_39.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -83,16 +83,29 @@ code {
 <td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
 <hr>
-<a name="Platform-Dependent-Information-1"></a>
-<h1 class="appendix">Appendix A Platform Dependent Information</h1>
+<a name="FreeBSD-Installation-1"></a>
+<h4 class="subsubsection">A.1.1.1 FreeBSD Installation</h4>
 
-<table class="menu" border="0" cellspacing="0">
-<tr><td align="left" valign="top"><a href="avrdude_21.html#Unix">A.1 Unix</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="avrdude_30.html#Windows">A.2 Windows</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-</table>
+<p>AVRDUDE is installed via the FreeBSD Ports Tree as follows:
+</p>
+<div class="example">
+<pre class="example">% su - root
+# cd /usr/ports/devel/avrdude
+# make install
+</pre></div>
 
+<p>If you wish to install from a pre-built package instead of the source,
+you can use the following instead:
+</p>
+<div class="example">
+<pre class="example">% su - root
+# pkg_add -r avrdude
+</pre></div>
+
+<p>Of course, you must be connected to the Internet for these methods to
+work, since that is where the source as well as the pre-built package is
+obtained.
+</p>
 <hr>
 <p>
  <font size="-1">
