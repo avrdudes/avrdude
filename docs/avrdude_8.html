@@ -185,6 +185,31 @@ avrdude&gt;
 </pre></td></tr></table>
 </div>
 
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">% ./avrdude -c pkobn_updi -p avr128db48 -t
+
+         Vtarget                      : 4.71 V
+         PDI/UPDI clock Xmega/megaAVR : 100 kHz
+
+avrdude: AVR device initialized and ready to accept instructions
+
+Reading | ################################################## | 100% 0.01s
+
+avrdude: Device signature = 0x1e970c (probably avr128db48)
+avrdude&gt; write eeprom 0 1234567890 'A' 'V' 'R' 2.718282
+&gt;&gt;&gt; write eeprom 0 1234567890 'A' 'V' 'R' 2.718282 
+Warning: no size suffix specified for &quot;1234567890&quot;. Writing 4 byte(s)
+
+avrdude&gt; dump eeprom 0 32
+&gt;&gt;&gt; dump eeprom 0 32 
+0000  d2 02 96 49 41 56 52 55  f8 2d 40 ff ff ff ff ff  |...IAVRU.-.....|
+0010  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+
+avrdude&gt; q
+</pre></td></tr></table>
+</div>
+
 
 <hr>
 <table class="header" cellpadding="1" cellspacing="1" border="0">
