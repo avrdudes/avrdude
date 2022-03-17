@@ -110,6 +110,7 @@ Copyright @copyright{} Brian S. Dean, J@"org Wunsch
 * Programmer Specific Information::
 * Platform Dependent Information::
 * Troubleshooting::
+* Index::
 @end menu
 
 @c
@@ -2521,7 +2522,7 @@ such as @option{--prefix} and @option{--datadir}.
 @c
 @c Node
 @c
-@node Troubleshooting, ,Platform Dependent Information ,Top
+@node Troubleshooting,Index ,Platform Dependent Information ,Top
 @appendix Troubleshooting
 
 @noindent
@@ -2832,7 +2833,11 @@ erase cycle.
 
 @end itemize
 
+@node Index, , Troubleshooting, Top
 
+@unnumbered Concept Index
+
+@printindex cp
 
 @bye
 
