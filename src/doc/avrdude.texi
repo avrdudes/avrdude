@@ -1255,19 +1255,82 @@ The following commands are implemented:
 
 @table @code
 
-@item dump @var{memtype} @var{addr} @var{nbytes}
+@item dump @var{memtype} [@var{start_addr} [@var{nbytes}]]
 Read @var{nbytes} from the specified memory area, and display them in
 the usual hexadecimal and ASCII form.
 
-@item dump
+@item dump @var{memtype} [@var{start_addr}] @dots{}
+Start reading from @var{start_addr}, all the way to the last memory address.
+
+@item dump @var{memtype}
 Continue dumping the memory contents for another @var{nbytes} where the
 previous dump command left off.
 
-@item write @var{memtype} @var{addr} @var{byte1} @dots{} @var{byteN}
-Manually program the respective memory cells, starting at address addr,
-using the values @var{byte1} through @var{byteN}.  This feature is not
+@item write @var{memtype} @var{start_addr} @var{data1} @var{data2} @dots{} @var{dataN}
+Manually program the respective memory cells, starting at address @var{start_addr},
+using the values @var{data1} through @var{dataN}.  This feature is not
 implemented for bank-addressed memories such as the flash memory of
 ATMega devices.
+
+Items @var{dataN} can have the following formats:
+
+@multitable @columnfractions .3 .4 .3
+@item @strong{Type}
+@tab @strong{Example}
+@tab @strong{Size (bytes)}
+
+@item Character
+@tab @code{'A'}
+@tab 1
+
+@item Decimal integer
+@tab 12345
+@tab 1, 2, 4, or 8 (see below)
+
+@item Octal integer
+@tab 012345
+@tab 1, 2, 4, or 8 (see below)
+
+@item Hexadecimal integer
+@tab 0x12345
+@tab 1, 2, 4, or 8 (see below)
+
+@item Float
+@tab 3.1415926
+@tab 4
+
+@end multitable
+
+Integer constants can be 1, 2, 4, or 8 bytes long.
+By default, the smallest possible size will be used where
+the specified number just fits into.
+A specific size can be denoted by appending one of these suffixes:
+
+@table @code
+@item LL
+@itemx ll
+8 bytes / 64 bits
+@item L
+@itemx l
+4 bytes / 32 bits
+@item H
+@itemx h
+@itemx S
+@itemx s
+2 bytes / 16 bits
+@item HH
+@itemx hh
+1 byte / 8 bits
+@end table
+
+Similarly, floating-point constants can have an @code{F} or @code{f}
+appended, but only 32-bit floating-point values are supported.
+
+@item write @var{memtype} @var{start_addr} @var{data1} @var{data2} @var{dataN} @dots{}
+
+Similar to the above, but the entire memory region is written to.
+For that purpose, after writing the initial items, @var{dataN} is
+replicated as many times as needed to fill the memory area.
 
 @item erase
 Perform a chip erase.
@@ -1457,6 +1520,31 @@ avrdude> w lfuse 0 0x2f
 >>> w lfuse 0 0x2f 
 
 avrdude> 
+@end cartouche
+@end smallexample
+
+@smallexample
+@cartouche
+% avrdude -c pkobn_updi -p avr128db48 -t
+
+         Vtarget                      : 4.71 V
+         PDI/UPDI clock Xmega/megaAVR : 100 kHz
+
+avrdude: AVR device initialized and ready to accept instructions
+
+Reading | ################################################## | 100% 0.01s
+
+avrdude: Device signature = 0x1e970c (probably avr128db48)
+avrdude> write eeprom 0 1234567890 'A' 'V' 'R' 2.718282
+>>> write eeprom 0 1234567890 'A' 'V' 'R' 2.718282 
+Warning: no size suffix specified for "1234567890". Writing 4 byte(s)
+
+avrdude> dump eeprom 0 32
+>>> dump eeprom 0 32 
+0000  d2 02 96 49 41 56 52 55  f8 2d 40 ff ff ff ff ff  |...IAVRU.-@.....|
+0010  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+
+avrdude> q
 @end cartouche
 @end smallexample
 
