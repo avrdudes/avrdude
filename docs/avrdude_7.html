@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<!-- Created on March 17, 2022 by texi2html 5.0
+<!-- Created on March 18, 2022 by texi2html 5.0
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -83,82 +83,32 @@ code {
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
 <td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
-<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_40.html#Index" title="Index">Index</a>]</td>
 <td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
 <hr>
+<a name="index-Terminal-Mode"></a>
 <a name="Terminal-Mode-Commands-1"></a>
 <h2 class="section">3.1 Terminal Mode Commands</h2>
 
 <p>The following commands are implemented:
 </p>
 <dl compact="compact">
-<dt><code>dump <var>memtype</var> [<var>start_addr</var> [<var>nbytes</var>]]</code></dt>
+<dt><code>dump <var>memtype</var> <var>addr</var> <var>nbytes</var></code></dt>
 <dd><p>Read <var>nbytes</var> from the specified memory area, and display them in
 the usual hexadecimal and ASCII form.
 </p>
 </dd>
-<dt><code>dump <var>memtype</var> [<var>start_addr</var>] &hellip;</code></dt>
-<dd><p>Start reading from <var>start_addr</var>, all the way to the last memory address.
-</p>
-</dd>
-<dt><code>dump <var>memtype</var></code></dt>
+<dt><code>dump</code></dt>
 <dd><p>Continue dumping the memory contents for another <var>nbytes</var> where the
 previous dump command left off.
 </p>
 </dd>
-<dt><code>write <var>memtype</var> <var>start_addr</var> <var>data1</var> <var>data2</var> &hellip; <var>dataN</var></code></dt>
-<dd><p>Manually program the respective memory cells, starting at address <var>start_addr</var>,
-using the values <var>data1</var> through <var>dataN</var>.  This feature is not
+<dt><code>write <var>memtype</var> <var>addr</var> <var>byte1</var> &hellip; <var>byteN</var></code></dt>
+<dd><p>Manually program the respective memory cells, starting at address addr,
+using the values <var>byte1</var> through <var>byteN</var>.  This feature is not
 implemented for bank-addressed memories such as the flash memory of
 ATMega devices.
-</p>
-<p>Items <var>dataN</var> can have the following formats:
-</p>
-<table>
-<tr><td width="30%"><strong>Type</strong></td><td width="40%"><strong>Example</strong></td><td width="30%"><strong>Size (bytes)</strong></td></tr>
-<tr><td width="30%">Character</td><td width="40%"><code>'A'</code></td><td width="30%">1</td></tr>
-<tr><td width="30%">Decimal integer</td><td width="40%">12345</td><td width="30%">1, 2, 4, or 8 (see below)</td></tr>
-<tr><td width="30%">Octal integer</td><td width="40%">012345</td><td width="30%">1, 2, 4, or 8 (see below)</td></tr>
-<tr><td width="30%">Hexadecimal integer</td><td width="40%">0x12345</td><td width="30%">1, 2, 4, or 8 (see below)</td></tr>
-<tr><td width="30%">Float</td><td width="40%">3.1415926</td><td width="30%">4</td></tr>
-</table>
-
-<p>Integer constants can be 1, 2, 4, or 8 bytes long.
-By default, the smallest possible size will be used where
-the specified number just fits into.
-A specific size can be denoted by appending one of these suffixes:
-</p>
-<dl compact="compact">
-<dt><code>LL</code></dt>
-<dt><code>ll</code></dt>
-<dd><p>8 bytes / 64 bits
-</p></dd>
-<dt><code>L</code></dt>
-<dt><code>l</code></dt>
-<dd><p>4 bytes / 32 bits
-</p></dd>
-<dt><code>H</code></dt>
-<dt><code>h</code></dt>
-<dt><code>S</code></dt>
-<dt><code>s</code></dt>
-<dd><p>2 bytes / 16 bits
-</p></dd>
-<dt><code>HH</code></dt>
-<dt><code>hh</code></dt>
-<dd><p>1 byte / 8 bits
-</p></dd>
-</dl>
-
-<p>Similarly, floating-point constants can have an <code>F</code> or <code>f</code>
-appended, but only 32-bit floating-point values are supported.
-</p>
-</dd>
-<dt><code>write <var>memtype</var> <var>start_addr</var> <var>data1</var> <var>data2</var> <var>dataN</var> &hellip;</code></dt>
-<dd>
-<p>Similar to the above, but the entire memory region is written to.
-For that purpose, after writing the initial items, <var>dataN</var> is
-replicated as many times as needed to fill the memory area.
 </p>
 </dd>
 <dt><code>erase</code></dt>
@@ -275,12 +225,12 @@ Display the current target supply voltage and JTAG bit clock rate/period.
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
 <td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
-<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_40.html#Index" title="Index">Index</a>]</td>
 <td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
 <p>
  <font size="-1">
-  This document was generated on <i>March 17, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>March 18, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
  </font>
  <br>
 
