@@ -4,6 +4,10 @@ table {
   border: 3px solid #ccf;
   background-color: white;
 }
+div.smallexample {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
 div.example {
   background-color: #dfd;
   border: 3px solid #cfc;
