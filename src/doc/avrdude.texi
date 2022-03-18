@@ -1326,11 +1326,11 @@ A specific size can be denoted by appending one of these suffixes:
 Similarly, floating-point constants can have an @code{F} or @code{f}
 appended, but only 32-bit floating-point values are supported.
 
-@item write @var{memtype} @var{start_addr} @var{data1} @var{data2} @var{dataN} @dots{}
+@item write @var{memtype} @var{start_addr} @var{length} @var{data1} @var{data2} @var{dataN} @dots{}
 
-Similar to the above, but the entire memory region is written to.
+Similar to the above, but @var{length} byte of the memory are written.
 For that purpose, after writing the initial items, @var{dataN} is
-replicated as many times as needed to fill the memory area.
+replicated as many times as needed.
 
 @item erase
 Perform a chip erase.
