@@ -378,6 +378,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     if (*end_ptr || (end_ptr == argv[3])) {
       avrdude_message(MSG_INFO, "%s (write ...): can't parse address \"%s\"\n",
             progname, argv[3]);
+      free(buf);
       return -1;
     }
   } else {
@@ -503,6 +504,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     avrdude_message(MSG_INFO, "%s (write): selected address and # bytes exceed "
                     "range for %s memory\n",
                     progname, memtype);
+    free(buf);
     return -1;
   }
 
