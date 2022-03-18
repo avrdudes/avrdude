@@ -364,7 +364,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
-  uint8_t * buf = malloc(mem->size);
+  uint8_t * buf = malloc(mem->size + 0x10);
   if (buf == NULL) {
     avrdude_message(MSG_INFO, "%s (write): out of memory\n", progname);
     return -1;
