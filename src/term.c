@@ -506,6 +506,12 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
+  avrdude_message(MSG_NOTICE, "Info: Writing %d bytes starting from address 0x%02x",
+                  len + data.bytes_grown, addr);
+  if (write_mode == WRITE_MODE_FILL)
+    avrdude_message(MSG_NOTICE, ". Remaining space filled with %s", argv[argc - 2]);
+  avrdude_message(MSG_NOTICE, "\n");
+
   pgm->err_led(pgm, OFF);
   bool werror = false;
   for (i = 0; i < (len + data.bytes_grown); i++) {
