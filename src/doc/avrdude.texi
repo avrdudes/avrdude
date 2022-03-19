@@ -1443,6 +1443,7 @@ Display the current target supply voltage and JTAG bit clock rate/period.
 @c Node
 @c
 @node Terminal Mode Examples,  , Terminal Mode Commands, Terminal Mode Operation
+@cindex Terminal Mode
 @section Terminal Mode Examples
 
 @noindent
@@ -1567,6 +1568,22 @@ avrdude> q
 @end cartouche
 @end smallexample
 
+The following example demonstrates the second form of the @code{write}
+command where the last data value provided is used to fill up the
+indicated memory range.
+
+@smallexample
+@cartouche
+avrdude> write eeprom 0x00 0x20 'a' 'b' 'c' 0x11 0xcafe 0x55 ...
+>>> write eeprom 0x00 0x20 'a' 'b' 'c' 0x11 0xcafe 0x55 ... 
+
+avrdude> dump eeprom 0 0x30
+>>> dump eeprom 0 0x30 
+0000  61 62 63 11 fe ca 55 55  55 55 55 55 55 55 55 55  |abc...UUUUUUUUUU|
+0010  55 55 55 55 55 55 55 55  55 55 55 55 55 55 55 55  |UUUUUUUUUUUUUUUU|
+0020  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+@end cartouche
+@end smallexample
 
 @c
 @c Node
