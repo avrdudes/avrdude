@@ -1,0 +1,322 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created on December 16, 2021 by texi2html 5.0
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: 1 Introduction</title>
+
+<meta name="description" content="AVRDUDE: 1 Introduction">
+<meta name="keywords" content="AVRDUDE: 1 Introduction">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 5.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:pre}
+span.nolinebreak {white-space:pre}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<h1>AVRDUDE</h1>
+<h3 align="right">A program for download/uploading AVR microcontroller flash and eeprom.</h3>
+<h3 align="right">For AVRDUDE, Version 6.4, 29 November 2021.</h3>
+<strong>by Brian S. Dean</strong><br>
+
+
+<p>Send comments on AVRDUDE to <a href="mailto:<span class="nolinebreak">avrdude-dev</span>@nongnu.org"><span class="nolinebreak">avrdude-dev</span>@nongnu.org</a>.
+</p>
+<p>Use <a href="http://savannah.nongnu.org/bugs/?group=avrdude">http://savannah.nongnu.org/bugs/?group=avrdude</a> to report bugs.
+</p>
+<p>Copyright &copy; 2003,2005 Brian S. Dean
+</p>
+<p>Copyright &copy; 2006 - 2013 J&ouml;rg Wunsch
+</p><br>
+<br>
+
+<p>Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+</p>
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the entire
+resulting derived work is distributed under the terms of a permission
+notice identical to this one.
+</p>
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation approved
+by the Free Software Foundation.
+</p><hr>
+<a name="Top"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[ &lt;&lt; ]</td>
+<td valign="middle" align="left">[ &lt; ]</td>
+<td valign="middle" align="left">[ Up ]</td>
+<td valign="middle" align="left">[<a href="avrdude_1.html#History" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_2.html#Command-Line-Options" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top"><a href="#Introduction">1 Introduction</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">                
+</td></tr>
+<tr><td align="left" valign="top"><a href="avrdude_2.html#Command-Line-Options">2 Command Line Options</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="avrdude_6.html#Terminal-Mode-Operation">3 Terminal Mode Operation</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="avrdude_9.html#Configuration-File">4 Configuration File</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">          
+</td></tr>
+<tr><td align="left" valign="top"><a href="avrdude_14.html#Programmer-Specific-Information">5 Programmer Specific Information</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="avrdude_17.html#Platform-Dependent-Information">Appendix A Platform Dependent Information</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="avrdude_20.html#Troubleshooting">Appendix B Troubleshooting</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<a name="Introduction"></a>
+<a name="Introduction-1"></a>
+<h1 class="chapter">1 Introduction</h1>
+<a name="index-introduction"></a>
+
+<p>AVRDUDE - AVR Downloader Uploader - is a program for downloading and
+uploading the on-chip memories of Atmel&rsquo;s AVR microcontrollers. It can
+program the Flash and EEPROM, and where supported by the serial
+programming protocol, it can program fuse and lock bits. AVRDUDE also
+supplies a direct instruction mode allowing one to issue any programming
+instruction to the AVR chip regardless of whether AVRDUDE implements
+that specific feature of a particular chip.
+</p>
+<p>AVRDUDE can be used effectively via the command line to read or write
+all chip memory types (eeprom, flash, fuse bits, lock bits, signature
+bytes) or via an interactive (terminal) mode. Using AVRDUDE from the
+command line works well for programming the entire memory of the chip
+from the contents of a file, while interactive mode is useful for
+exploring memory contents, modifying individual bytes of eeprom,
+programming fuse/lock bits, etc.
+</p>
+<p>AVRDUDE supports the following basic programmer types: Atmel&rsquo;s STK500,
+Atmel&rsquo;s AVRISP and AVRISP mkII devices,
+Atmel&rsquo;s STK600,
+Atmel&rsquo;s JTAG ICE (the original one, mkII, and 3, the latter two also in ISP mode), appnote
+avr910, appnote avr109 (including the AVR Butterfly),
+serial bit-bang adapters,
+and the PPI (parallel port interface). PPI represents a class
+of simple programmers where the programming lines are directly
+connected to the PC parallel port. Several pin configurations exist
+for several variations of the PPI programmers, and AVRDUDE can be
+configured to work with them by either specifying the appropriate
+programmer on the command line or by creating a new entry in its
+configuration file. All that&rsquo;s usually required for a new entry is to
+tell AVRDUDE which pins to use for each programming function.
+</p>
+<p>A number of equally simple bit-bang programming adapters that connect
+to a serial port are supported as well, among them the popular
+Ponyprog serial adapter, and the DASA and DASA3 adapters that used to
+be supported by uisp(1).  Note that these adapters are meant to be
+attached to a physical serial port.  Connecting to a serial port
+emulated on top of USB is likely to not work at all, or to work
+abysmally slow.
+</p>
+<p>If you happen to have a Linux system with at least 4 hardware GPIOs 
+available (like almost all embedded Linux boards) you can do without 
+any additional hardware - just connect them to the MOSI, MISO, RESET 
+and SCK pins on the AVR and use the linuxgpio programmer type. It bitbangs
+the lines using the Linux sysfs GPIO interface. Of course, care should
+be taken about voltage level compatibility. Also, although not strictly 
+required, it is strongly advisable to protect the GPIO pins from 
+overcurrent situations in some way. The simplest would be to just put
+some resistors in series or better yet use a 3-state buffer driver like
+the 74HC244. Have a look at http://kolev.info/avrdude-linuxgpio for a more
+detailed tutorial about using this programmer type.
+</p>
+<p>Under a Linux installation with direct access to the SPI bus and GPIO
+pins, such as would be found on a Raspberry Pi, the &ldquo;linuxspi&rdquo;
+programmer type can be used to directly connect to and program a chip
+using the built in interfaces on the computer. The requirements to use
+this type are that an SPI interface is exposed along with one GPIO
+pin. The GPIO serves as the reset output since the Linux SPI drivers
+do not hold slave select down when a transfer is not occuring and thus
+it cannot be used as the reset pin. A readily available level
+translator should be used between the SPI bus/reset GPIO and the chip
+to avoid potentially damaging the computer&rsquo;s SPI controller in the
+event that the chip is running at 5V and the SPI runs at 3.3V. The
+GPIO chosen for reset can be configured in the avrdude configuration
+file using the <code>reset</code> entry under the linuxspi programmer, or
+directly in the port specification. An external pull-up resistor
+should be connected between the AVR&rsquo;s reset pin and Vcc. If Vcc is not
+the same as the SPI voltage, this should be done on the AVR side of
+the level translator to protect the hardware from damage.
+</p>
+<p>On a Raspberry Pi, header J8 provides access to the SPI and GPIO
+lines.
+</p>
+<p>Typically, pins 19, 21, and 23 are SPI MOSI, MISO, and SCK, while
+pins 24 and 26 would serve as CE outputs. So, close to these pins
+is pin 22 as GPIO25 which can be used as /RESET, and pin 25 can
+be used as GND.
+</p>
+<p>A typical programming cable would then look like:
+</p>
+<table>
+<tr><td width="15%"><code>J8 pin</code></td><td width="15%"><code>ISP pin</code></td><td width="30%"><code>Name</code></td></tr>
+<tr><td width="15%"><code>21</code></td><td width="15%"><code>1</code></td><td width="30%"><code>MISO</code></td></tr>
+<tr><td width="15%"><code>-</code></td><td width="15%"><code>2</code></td><td width="30%"><code>Vcc - leave open</code></td></tr>
+<tr><td width="15%"><code>23</code></td><td width="15%"><code>3</code></td><td width="30%"><code>SCK</code></td></tr>
+<tr><td width="15%"><code>19</code></td><td width="15%"><code>4</code></td><td width="30%"><code>MOSI</code></td></tr>
+<tr><td width="15%"><code>22</code></td><td width="15%"><code>5</code></td><td width="30%"><code>/RESET</code></td></tr>
+<tr><td width="15%"><code>25</code></td><td width="15%"><code>6</code></td><td width="30%"><code>GND</code></td></tr>
+</table>
+
+<p>(Mind the 3.3 V voltage level of the Raspberry Pi!)
+</p>
+<p>The <code>-P <var>portname</var></code> option defaults to
+<code>/dev/spidev0.0:/dev/gpiochip0</code> for this programmer.
+</p>
+<p>The STK500, JTAG ICE, avr910, and avr109/butterfly use the serial port to communicate with the PC.
+The STK600, JTAG ICE mkII/3, AVRISP mkII, USBasp, avrftdi (and derivatives), and USBtinyISP
+programmers communicate through the USB, using <code>libusb</code> as a
+platform abstraction layer.
+The avrftdi adds support for the FT2232C/D, FT2232H, and FT4232H devices. These all use 
+the MPSSE mode, which has a specific pin mapping. Bit 1 (the lsb of the byte in the config
+file) is SCK. Bit 2 is MOSI, and Bit 3 is MISO. Bit 4 usually reset. The 2232C/D parts
+are only supported on interface A, but the H parts can be either A or B (specified by the
+usbdev config parameter).
+The STK500, STK600, JTAG ICE, and avr910 contain on-board logic to control the programming of the target
+device.
+The avr109 bootloader implements a protocol similar to avr910, but is
+actually implemented in the boot area of the target&rsquo;s flash ROM, as
+opposed to being an external device.
+The fundamental difference between the two types lies in the
+protocol used to control the programmer. The avr910 protocol is very
+simplistic and can easily be used as the basis for a simple, home made
+programmer since the firmware is available online. On the other hand,
+the STK500 protocol is more robust and complicated and the firmware is
+not openly available.
+The JTAG ICE also uses a serial communication protocol which is similar
+to the STK500 firmware version 2 one.  However, as the JTAG ICE is
+intended to allow on-chip debugging as well as memory programming, the
+protocol is more sophisticated.
+(The JTAG ICE mkII protocol can also be run on top of USB.)
+Only the memory programming functionality of the JTAG ICE is supported
+by AVRDUDE.
+For the JTAG ICE mkII/3, JTAG, debugWire and ISP mode are supported, provided
+it has a firmware revision of at least 4.14 (decimal).
+See below for the limitations of debugWire.
+For ATxmega devices, the JTAG ICE mkII/3 is supported in PDI mode, provided it
+has a revision 1 hardware and firmware version of at least 5.37 (decimal).
+</p>
+<p>The Atmel-ICE (ARM/AVR) is supported (JTAG, PDI for Xmega, debugWIRE, ISP modes).
+</p>
+<p>Atmel&rsquo;s XplainedPro boards, using EDBG protocol (CMSIS-DAP compliant), are
+supported by the &ldquo;jtag3&rdquo; programmer type.
+</p>
+<p>Atmel&rsquo;s XplainedMini boards, using mEDBG protocol, are also
+supported by the &ldquo;jtag3&rdquo; programmer type.
+</p>
+<p>The AVR Dragon is supported in all modes (ISP, JTAG, PDI, HVSP, PP, debugWire).
+When used in JTAG and debugWire mode, the AVR Dragon behaves similar to a
+JTAG ICE mkII, so all device-specific comments for that device
+will apply as well.
+When used in ISP and PDI mode, the AVR Dragon behaves similar to an
+AVRISP mkII (or JTAG ICE mkII in ISP mode), so all device-specific
+comments will apply there.
+In particular, the Dragon starts out with a rather fast ISP clock
+frequency, so the <code>-B <var>bitclock</var></code>
+option might be required to achieve a stable ISP communication.
+For ATxmega devices, the AVR Dragon is supported in PDI mode, provided it
+has a firmware version of at least 6.11 (decimal).
+</p>
+<p>Wiring boards (e.g. Arduino Mega 2560 Rev3) are supported, utilizing
+STK500 V2.x protocol, but a simple DTR/RTS toggle to set the boards
+into programming mode.  The programmer type is &ldquo;wiring&rdquo;. Note that
+the -D option will likely be required in this case, because the
+bootloader will rewrite the program memory, but no true chip erase can
+be performed.
+</p>
+<p>The Arduino (which is very similar to the STK500 1.x) is supported via
+its own programmer type specification &ldquo;arduino&rdquo;.  This programmer works for
+the Arduino Uno Rev3.
+</p>
+<p>The BusPirate is a versatile tool that can also be used as an AVR programmer.
+A single BusPirate can be connected to up to 3 independent AVRs. See
+the section on
+<em>extended parameters</em>
+below for details.
+</p>
+<p>The USBasp ISP and USBtinyISP adapters are also supported, provided AVRDUDE
+has been compiled with libusb support.
+They both feature simple firmware-only USB implementations, running on
+an ATmega8 (or ATmega88), or ATtiny2313, respectively.
+</p>
+<p>The Atmel DFU bootloader is supported in both, FLIP protocol version 1
+(AT90USB* and ATmega*U* devices), as well as version 2 (Xmega devices).
+See below for some hints about FLIP version 1 protocol behaviour.
+</p>
+<p>The MPLAB(R) PICkit 4, MPLAB(R) SNAP, and Curiosity Nano boards are
+supported in UPDI mode. The Curiosity Nano board is dubbed &ldquo;PICkit on
+Board&rdquo;, thus the name <code>pkobn_updi</code>.
+</p>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top"><a href="avrdude_1.html#History">1.1 History and Credits</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">                     
+</td></tr>
+</table>
+
+<hr>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[ &lt;&lt; ]</td>
+<td valign="middle" align="left">[ &lt; ]</td>
+<td valign="middle" align="left">[ Up ]</td>
+<td valign="middle" align="left">[<a href="avrdude_1.html#History" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_2.html#Command-Line-Options" title="Next chapter"> &gt;&gt; </a>]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated on <i>December 16, 2021</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>

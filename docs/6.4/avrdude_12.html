@@ -1,0 +1,296 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created on December 16, 2021 by texi2html 5.0
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: 4.3 Part Definitions</title>
+
+<meta name="description" content="AVRDUDE: 4.3 Part Definitions">
+<meta name="keywords" content="AVRDUDE: 4.3 Part Definitions">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 5.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:pre}
+span.nolinebreak {white-space:pre}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Part-Definitions"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_9.html#Configuration-File" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_11.html#Programmer-Definitions" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_9.html#Configuration-File" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Parent-Part" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_14.html#Programmer-Specific-Information" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Part-Definitions-1"></a>
+<h2 class="section">4.3 Part Definitions</h2>
+
+<div class="smallexample">
+<pre class="smallexample">part
+    id               = &lt;id&gt; ;                 # quoted string
+    desc             = &lt;description&gt; ;        # quoted string
+    family_id        = &lt;description&gt; ;        # quoted string
+    has_jtag         = &lt;yes/no&gt; ;             # part has JTAG i/f
+    has_debugwire    = &lt;yes/no&gt; ;             # part has debugWire i/f
+    has_pdi          = &lt;yes/no&gt; ;             # part has PDI i/f
+    has_updi         = &lt;yes/no&gt; ;             # part has UPDI i/f
+    has_tpi          = &lt;yes/no&gt; ;             # part has TPI i/f
+    devicecode       = &lt;num&gt; ;                # numeric
+    stk500_devcode   = &lt;num&gt; ;                # numeric
+    avr910_devcode   = &lt;num&gt; ;                # numeric
+    signature        = &lt;num&gt; &lt;num&gt; &lt;num&gt; ;    # signature bytes
+    usbpid           = &lt;num&gt; ;                # DFU USB PID
+    reset            = dedicated | io;
+    retry_pulse      = reset | sck;
+    pgm_enable       = &lt;instruction format&gt; ;
+    chip_erase       = &lt;instruction format&gt; ;
+    chip_erase_delay = &lt;num&gt; ;                # micro-seconds
+    # STK500 parameters (parallel programming IO lines)
+    pagel            = &lt;num&gt; ;                # pin name in hex, i.e., 0xD7
+    bs2              = &lt;num&gt; ;                # pin name in hex, i.e., 0xA0
+    serial           = &lt;yes/no&gt; ;             # can use serial downloading
+    parallel         = &lt;yes/no/pseudo&gt;;       # can use par. programming
+    # STK500v2 parameters, to be taken from Atmel's XML files
+    timeout          = &lt;num&gt; ;
+    stabdelay        = &lt;num&gt; ;
+    cmdexedelay      = &lt;num&gt; ;
+    synchloops       = &lt;num&gt; ;
+    bytedelay        = &lt;num&gt; ;
+    pollvalue        = &lt;num&gt; ;
+    pollindex        = &lt;num&gt; ;
+    predelay         = &lt;num&gt; ;
+    postdelay        = &lt;num&gt; ;
+    pollmethod       = &lt;num&gt; ;
+    mode             = &lt;num&gt; ;
+    delay            = &lt;num&gt; ;
+    blocksize        = &lt;num&gt; ;
+    readsize         = &lt;num&gt; ;
+    hvspcmdexedelay  = &lt;num&gt; ;
+    # STK500v2 HV programming parameters, from XML
+    pp_controlstack  = &lt;num&gt;, &lt;num&gt;, ...;     # PP only
+    hvsp_controlstack = &lt;num&gt;, &lt;num&gt;, ...;    # HVSP only
+    hventerstabdelay = &lt;num&gt;;
+    progmodedelay    = &lt;num&gt;;                 # PP only
+    latchcycles      = &lt;num&gt;;
+    togglevtg        = &lt;num&gt;;
+    poweroffdelay    = &lt;num&gt;;
+    resetdelayms     = &lt;num&gt;;
+    resetdelayus     = &lt;num&gt;;
+    hvleavestabdelay = &lt;num&gt;;
+    resetdelay       = &lt;num&gt;;
+    synchcycles      = &lt;num&gt;;                 # HVSP only
+    chiperasepulsewidth = &lt;num&gt;;              # PP only
+    chiperasepolltimeout = &lt;num&gt;;
+    chiperasetime    = &lt;num&gt;;                 # HVSP only
+    programfusepulsewidth = &lt;num&gt;;            # PP only
+    programfusepolltimeout = &lt;num&gt;;
+    programlockpulsewidth = &lt;num&gt;;            # PP only
+    programlockpolltimeout = &lt;num&gt;;
+    # JTAG ICE mkII parameters, also from XML files
+    allowfullpagebitstream = &lt;yes/no&gt; ;
+    enablepageprogramming = &lt;yes/no&gt; ;
+    idr              = &lt;num&gt; ;                # IO addr of IDR (OCD) reg.
+    rampz            = &lt;num&gt; ;                # IO addr of RAMPZ reg.
+    spmcr            = &lt;num&gt; ;                # mem addr of SPMC[S]R reg.
+    eecr             = &lt;num&gt; ;                # mem addr of EECR reg.
+                                              # (only when != 0x3c)
+    is_at90s1200     = &lt;yes/no&gt; ;             # AT90S1200 part
+    is_avr32         = &lt;yes/no&gt; ;             # AVR32 part
+
+    memory &lt;memtype&gt;
+        paged           = &lt;yes/no&gt; ;          # yes / no
+        size            = &lt;num&gt; ;             # bytes
+        page_size       = &lt;num&gt; ;             # bytes
+        num_pages       = &lt;num&gt; ;             # numeric
+        min_write_delay = &lt;num&gt; ;             # micro-seconds
+        max_write_delay = &lt;num&gt; ;             # micro-seconds
+        readback_p1     = &lt;num&gt; ;             # byte value
+        readback_p2     = &lt;num&gt; ;             # byte value
+        pwroff_after_write = &lt;yes/no&gt; ;       # yes / no
+        read            = &lt;instruction format&gt; ;
+        write           = &lt;instruction format&gt; ;
+        read_lo         = &lt;instruction format&gt; ;
+        read_hi         = &lt;instruction format&gt; ;
+        write_lo        = &lt;instruction format&gt; ;
+        write_hi        = &lt;instruction format&gt; ;
+        loadpage_lo     = &lt;instruction format&gt; ;
+        loadpage_hi     = &lt;instruction format&gt; ;
+        writepage       = &lt;instruction format&gt; ;
+      ;
+  ;
+</pre></div>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top"><a href="#Parent-Part">4.3.1 Parent Part</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Instruction-Format">4.3.2 Instruction Format</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Parent-Part"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_9.html#Configuration-File" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Part-Definitions" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Part-Definitions" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Instruction-Format" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_14.html#Programmer-Specific-Information" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Parent-Part-1"></a>
+<h3 class="subsection">4.3.1 Parent Part</h3>
+
+<p>Parts can also inherit parameters from previously defined parts
+using the following syntax. In this case specified integer and 
+string values override parameter values from the parent part. New 
+memory definitions are added to the definitions inherited from the 
+parent.
+</p>
+<div class="smallexample">
+<pre class="smallexample">   part parent &lt;id&gt;                              # quoted string
+       id               = &lt;id&gt; ;                 # quoted string
+       &lt;any set of other parameters from the list above&gt;
+     ;
+</pre></div>
+
+<hr>
+<a name="Instruction-Format"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_9.html#Configuration-File" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Parent-Part" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Part-Definitions" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_13.html#Other-Notes" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_14.html#Programmer-Specific-Information" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Instruction-Format-1"></a>
+<h3 class="subsection">4.3.2 Instruction Format</h3>
+
+<p>Instruction formats are specified as a comma separated list of string
+values containing information (bit specifiers) about each of the 32 bits
+of the instruction.  Bit specifiers may be one of the following formats:
+</p>
+<dl compact="compact">
+<dt><code>1</code></dt>
+<dd><p>The bit is always set on input as well as output
+</p>
+</dd>
+<dt><code>0</code></dt>
+<dd><p>the bit is always clear on input as well as output
+</p>
+</dd>
+<dt><code>x</code></dt>
+<dd><p>the bit is ignored on input and output
+</p>
+</dd>
+<dt><code>a</code></dt>
+<dd><p>the bit is an address bit, the bit-number matches this bit specifier&rsquo;s
+position within the current instruction byte
+</p>
+</dd>
+<dt><code>a<var>N</var></code></dt>
+<dd><p>the bit is the <var>N</var>th address bit, bit-number = N, i.e., <code>a12</code>
+is address bit 12 on input, <code>a0</code> is address bit 0.
+</p>
+</dd>
+<dt><code>i</code></dt>
+<dd><p>the bit is an input data bit
+</p>
+</dd>
+<dt><code>o</code></dt>
+<dd><p>the bit is an output data bit
+</p>
+</dd>
+</dl>
+
+<p>Each instruction must be composed of 32 bit specifiers.  The instruction
+specification closely follows the instruction data provided in Atmel&rsquo;s
+data sheets for their parts.  For example, the EEPROM read and write
+instruction for an AT90S2313 AVR part could be encoded as:
+</p>
+<div class="smallexample">
+<pre class="smallexample">
+read  = &quot;1  0  1  0   0  0  0  0   x x x x  x x x x&quot;,
+        &quot;x a6 a5 a4  a3 a2 a1 a0   o o o o  o o o o&quot;;
+
+write = &quot;1  1  0  0   0  0  0  0   x x x x  x x x x&quot;,
+        &quot;x a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i&quot;;
+
+</pre></div>
+
+
+
+<hr>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_9.html#Configuration-File" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Parent-Part" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Part-Definitions" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_13.html#Other-Notes" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_14.html#Programmer-Specific-Information" title="Next chapter"> &gt;&gt; </a>]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated on <i>December 16, 2021</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>

@@ -1,0 +1,395 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created on December 16, 2021 by texi2html 5.0
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: Appendix B Troubleshooting</title>
+
+<meta name="description" content="AVRDUDE: Appendix B Troubleshooting">
+<meta name="keywords" content="AVRDUDE: Appendix B Troubleshooting">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 5.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:pre}
+span.nolinebreak {white-space:pre}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Troubleshooting"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_17.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_19.html#Credits_002e" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[ Up ]</td>
+<td valign="middle" align="left">[ &gt; ]</td>
+<td valign="middle" align="left">[ &gt;&gt; ]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[Index]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Troubleshooting-1"></a>
+<h1 class="appendix">Appendix B Troubleshooting</h1>
+
+<p>In general, please report any bugs encountered via
+<br>
+<a href="http://savannah.nongnu.org/bugs/?group=avrdude">http://savannah.nongnu.org/bugs/?group=avrdude</a>.
+</p>
+
+<ul>
+<li>
+Problem: I&rsquo;m using a serial programmer under Windows and get the following
+error:
+
+<p><code>avrdude: serial_open(): can't set attributes for device &quot;com1&quot;</code>,
+</p>
+<p>Solution: This problem seems to appear with certain versions of Cygwin. Specifying
+<code>&quot;/dev/com1&quot;</code> instead of <code>&quot;com1&quot;</code> should help.
+</p>
+
+</li><li>
+Problem: I&rsquo;m using Linux and my AVR910 programmer is really slow.
+
+<p>Solution (short): <code>setserial <var>port</var> low_latency</code>
+</p>
+<p>Solution (long):
+There are two problems here. First, the system may wait some time before it
+passes data from the serial port to the program. Under Linux the following
+command works around this (you may need root privileges for this).
+</p>
+<p><code>setserial <var>port</var> low_latency</code>
+</p>
+<p>Secondly, the serial interface chip may delay the interrupt for some time.
+This behaviour can be changed by setting the FIFO-threshold to one. Under Linux this
+can only be done by changing the kernel source in <code>drivers/char/serial.c</code>.
+Search the file for <code>UART_FCR_TRIGGER_8</code> and replace it with <code>UART_FCR_TRIGGER_1</code>. Note that overall performance might suffer if there
+is high throughput on serial lines. Also note that you are modifying the kernel at
+your own risk.
+</p>
+
+</li><li>
+Problem: I&rsquo;m not using Linux and my AVR910 programmer is really slow.
+
+<p>Solutions: The reasons for this are the same as above.
+If you know how to work around this on your OS, please let us know.
+</p>
+</li><li>
+Problem: Updating the flash ROM from terminal mode does not work with the
+JTAG ICEs.
+
+<p>Solution: None at this time.  Currently, the JTAG ICE code cannot
+write to the flash ROM one byte at a time.
+</p>
+</li><li>
+Problem: Page-mode programming the EEPROM (using the -U option) does
+not erase EEPROM cells before writing, and thus cannot overwrite any
+previous value != 0xff.
+
+<p>Solution: None.  This is an inherent feature of the way JTAG EEPROM
+programming works, and is documented that way in the Atmel AVR
+datasheets.
+In order to successfully program the EEPROM that way, a prior chip
+erase (with the EESAVE fuse unprogrammed) is required.
+This also applies to the STK500 and STK600 in high-voltage programming mode.
+</p>
+</li><li>
+Problem: How do I turn off the <var>DWEN</var> fuse?
+
+<p>Solution: If the <var>DWEN</var> (debugWire enable) fuse is activated,
+the <var>/RESET</var> pin is not functional anymore, so normal ISP
+communication cannot be established.
+There are two options to deactivate that fuse again: high-voltage
+programming, or getting the JTAG ICE mkII talk debugWire, and
+prepare the target AVR to accept normal ISP communication again.
+</p>
+<p>The first option requires a programmer that is capable of high-voltage
+programming (either serial or parallel, depending on the AVR device),
+for example the STK500.  In high-voltage programming mode, the
+<var>/RESET</var> pin is activated initially using a 12 V pulse (thus the
+name <em>high voltage</em>), so the target AVR can subsequently be
+reprogrammed, and the <var>DWEN</var> fuse can be cleared.  Typically, this
+operation cannot be performed while the AVR is located in the target
+circuit though.
+</p>
+<p>The second option requires a JTAG ICE mkII that can talk the debugWire
+protocol.  The ICE needs to be connected to the target using the
+JTAG-to-ISP adapter, so the JTAG ICE mkII can be used as a debugWire
+initiator as well as an ISP programmer.  AVRDUDE will then be activated
+using the <var>jtag2isp</var> programmer type.  The initial ISP
+communication attempt will fail, but AVRDUDE then tries to initiate a
+debugWire reset.  When successful, this will leave the target AVR in a
+state where it can accept standard ISP communication.  The ICE is then
+signed off (which will make it signing off from the USB as well), so
+AVRDUDE has to be called again afterwards.  This time, standard ISP
+communication can work, so the <var>DWEN</var> fuse can be cleared.
+</p>
+<p>The pin mapping for the JTAG-to-ISP adapter is:
+</p>
+<table>
+<tr><td width="20%"><strong>JTAG pin</strong></td><td width="20%"><strong>ISP pin</strong></td></tr>
+<tr><td width="20%">1</td><td width="20%">3</td></tr>
+<tr><td width="20%">2</td><td width="20%">6</td></tr>
+<tr><td width="20%">3</td><td width="20%">1</td></tr>
+<tr><td width="20%">4</td><td width="20%">2</td></tr>
+<tr><td width="20%">6</td><td width="20%">5</td></tr>
+<tr><td width="20%">9</td><td width="20%">4</td></tr>
+</table>
+
+</li><li>
+Problem: Multiple USBasp or USBtinyISP programmers connected simultaneously are not
+found.
+
+<p>Solution: The USBtinyISP code supports distinguishing multiple
+programmers based on their bus:device connection tuple that describes
+their place in the USB hierarchy on a specific host.  This tuple can
+be added to the <var>-P usb</var> option, similar to adding a serial number
+on other USB-based programmers.
+</p>
+<p>The actual naming convention for the bus and device names is
+operating-system dependent; AVRDUDE will print out what it found
+on the bus when running it with (at least) one <var>-v</var> option.
+By specifying a string that cannot match any existing device
+(for example, <var>-P usb:xxx</var>), the scan will list all possible
+candidate devices found on the bus.
+</p>
+<p>Examples:
+</p><div class="example">
+<pre class="example">avrdude -c usbtiny -p atmega8 -P usb:003:025 (Linux)
+avrdude -c usbtiny -p atmega8 -P usb:/dev/usb:/dev/ugen1.3 (FreeBSD 8+)
+avrdude -c usbtiny -p atmega8 \
+  -P usb:bus-0:\\.\libusb0-0001--0x1781-0x0c9f (Windows)
+</pre></div>
+
+</li><li>
+Problem: I cannot do &hellip; when the target is in debugWire mode.
+
+<p>Solution: debugWire mode imposes several limitations.
+</p>
+<p>The debugWire protocol is Atmel&rsquo;s proprietary one-wire (plus ground)
+protocol to allow an in-circuit emulation of the smaller AVR devices,
+using the <var>/RESET</var> line.
+DebugWire mode is initiated by activating the <var>DWEN</var>
+fuse, and then power-cycling the target.
+While this mode is mainly intended for debugging/emulation, it
+also offers limited programming capabilities.
+Effectively, the only memory areas that can be read or programmed
+in this mode are flash ROM and EEPROM.
+It is also possible to read out the signature.
+All other memory areas cannot be accessed.
+There is no
+<em>chip erase</em>
+functionality in debugWire mode; instead, while reprogramming the
+flash ROM, each flash ROM page is erased right before updating it.
+This is done transparently by the JTAG ICE mkII (or AVR Dragon).
+The only way back from debugWire mode is to initiate a special
+sequence of commands to the JTAG ICE mkII (or AVR Dragon), so the
+debugWire mode will be temporarily disabled, and the target can
+be accessed using normal ISP programming.
+This sequence is automatically initiated by using the JTAG ICE mkII
+or AVR Dragon in ISP mode, when they detect that ISP mode cannot be
+entered.
+</p>
+</li><li>
+Problem: I want to use my JTAG ICE mkII to program an
+Xmega device through PDI.  The documentation tells me to use the
+<em>XMEGA PDI adapter for JTAGICE mkII</em> that is supposed to ship
+with the kit, yet I don&rsquo;t have it.
+
+<p>Solution: Use the following pin mapping:
+</p>
+<table>
+<tr><td width="20%"><strong>JTAGICE</strong></td><td width="20%"><strong>Target</strong></td><td width="20%"><strong>Squid cab-</strong></td><td width="20%"><strong>PDI</strong></td></tr>
+<tr><td width="20%"><strong>mkII probe</strong></td><td width="20%"><strong>pins</strong></td><td width="20%"><strong>le colors</strong></td><td width="20%"><strong>header</strong></td></tr>
+<tr><td width="20%">1 (TCK)</td><td width="20%"></td><td width="20%">Black</td><td width="20%"></td></tr>
+<tr><td width="20%">2 (GND)</td><td width="20%">GND</td><td width="20%">White</td><td width="20%">6</td></tr>
+<tr><td width="20%">3 (TDO)</td><td width="20%"></td><td width="20%">Grey</td><td width="20%"></td></tr>
+<tr><td width="20%">4 (VTref)</td><td width="20%">VTref</td><td width="20%">Purple</td><td width="20%">2</td></tr>
+<tr><td width="20%">5 (TMS)</td><td width="20%"></td><td width="20%">Blue</td><td width="20%"></td></tr>
+<tr><td width="20%">6 (nSRST)</td><td width="20%">PDI_CLK</td><td width="20%">Green</td><td width="20%">5</td></tr>
+<tr><td width="20%">7 (N.C.)</td><td width="20%"></td><td width="20%">Yellow</td><td width="20%"></td></tr>
+<tr><td width="20%">8 (nTRST)</td><td width="20%"></td><td width="20%">Orange</td><td width="20%"></td></tr>
+<tr><td width="20%">9 (TDI)</td><td width="20%">PDI_DATA</td><td width="20%">Red</td><td width="20%">1</td></tr>
+<tr><td width="20%">10 (GND)</td><td width="20%"></td><td width="20%">Brown</td><td width="20%"></td></tr>
+</table>
+
+</li><li>
+Problem: I want to use my AVR Dragon to program an
+Xmega device through PDI.  
+
+<p>Solution: Use the 6 pin ISP header on the Dragon and the following pin mapping:
+</p>
+<table>
+<tr><td width="20%"><strong>Dragon</strong></td><td width="20%"><strong>Target</strong></td></tr>
+<tr><td width="20%"><strong>ISP Header</strong></td><td width="20%"><strong>pins</strong></td></tr>
+<tr><td width="20%">1 (MISO)</td><td width="20%">PDI_DATA</td></tr>
+<tr><td width="20%">2 (VCC)</td><td width="20%">VCC</td></tr>
+<tr><td width="20%">3 (SCK)</td><td width="20%"></td></tr>
+<tr><td width="20%">4 (MOSI)</td><td width="20%"></td></tr>
+<tr><td width="20%">5 (RESET)</td><td width="20%">PDI_CLK / RST</td></tr>
+<tr><td width="20%">6 (GND)</td><td width="20%">GND</td></tr>
+</table>
+
+</li><li>
+Problem: I want to use my AVRISP mkII to program an
+ATtiny4/5/9/10 device through TPI.  How to connect the pins?
+
+<p>Solution: Use the following pin mapping:
+</p>
+<table>
+<tr><td width="20%"><strong>AVRISP</strong></td><td width="20%"><strong>Target</strong></td><td width="20%"><strong>ATtiny</strong></td></tr>
+<tr><td width="20%"><strong>connector</strong></td><td width="20%"><strong>pins</strong></td><td width="20%"><strong>pin #</strong></td></tr>
+<tr><td width="20%">1 (MISO)</td><td width="20%">TPIDATA</td><td width="20%">1</td></tr>
+<tr><td width="20%">2 (VTref)</td><td width="20%">Vcc</td><td width="20%">5</td></tr>
+<tr><td width="20%">3 (SCK)</td><td width="20%">TPICLK</td><td width="20%">3</td></tr>
+<tr><td width="20%">4 (MOSI)</td><td width="20%"></td><td width="20%"></td></tr>
+<tr><td width="20%">5 (RESET)</td><td width="20%">/RESET</td><td width="20%">6</td></tr>
+<tr><td width="20%">6 (GND)</td><td width="20%">GND</td><td width="20%">2</td></tr>
+</table>
+
+</li><li>
+Problem: I want to program an ATtiny4/5/9/10 device using a serial/parallel 
+bitbang programmer.  How to connect the pins?
+
+<p>Solution: Since TPI has only 1 pin for bi-directional data transfer, both 
+<var>MISO</var> and <var>MOSI</var> pins should be connected to the <var>TPIDATA</var> pin 
+on the ATtiny device.
+However, a 1K resistor should be placed between the <var>MOSI</var> and <var>TPIDATA</var>.
+The <var>MISO</var> pin connects to <var>TPIDATA</var> directly.
+The <var>SCK</var> pin is connected to <var>TPICLK</var>.
+</p>
+<p>In addition, the <var>Vcc</var>, <var>/RESET</var> and <var>GND</var> pins should 
+be connected to their respective ports on the ATtiny device.
+</p>
+</li><li>
+Problem: How can I use a FTDI FT232R USB-to-Serial device for bitbang programming?
+
+<p>Solution: When connecting the FT232 directly to the pins of the target Atmel device, 
+the polarity of the pins defined in the <code>programmer</code> definition should be 
+inverted by prefixing a tilde. For example, the <var>dasa</var> programmer would 
+look like this when connected via a FT232R device (notice the tildes in 
+front of pins 7, 4, 3 and 8):
+</p>
+<div class="example">
+<pre class="example">programmer
+  id    = &quot;dasa_ftdi&quot;;
+  desc  = &quot;serial port banging, reset=rts sck=dtr mosi=txd miso=cts&quot;;
+  type  = serbb;
+  reset = ~7;
+  sck   = ~4;
+  mosi  = ~3;
+  miso  = ~8;
+;
+</pre></div>
+
+<p>Note that this uses the FT232 device as a normal serial port, not using the 
+FTDI drivers in the special bitbang mode.
+</p>
+</li><li>
+Problem: My ATtiny4/5/9/10 reads out fine, but any attempt to program
+it (through TPI) fails.  Instead, the memory retains the old contents.
+
+<p>Solution: Mind the limited programming supply voltage range of these
+devices.
+</p>
+<p>In-circuit programming through TPI is only guaranteed by the datasheet
+at Vcc = 5 V.
+</p>
+</li><li>
+Problem: My ATxmega&hellip;A1/A2/A3 cannot be programmed through PDI with
+my AVR Dragon.  Programming through a JTAG ICE mkII works though, as does
+programming through JTAG.
+
+<p>Solution: None by this time (2010 Q1).
+</p>
+<p>It is said that the AVR Dragon can only program devices from the A4
+Xmega sub-family.
+</p>
+</li><li>
+Problem: when programming with an AVRISPmkII or STK600, AVRDUDE hangs
+when programming files of a certain size (e.g. 246 bytes).  Other
+(larger or smaller) sizes work though.
+
+<p>Solution: This is a bug caused by an incorrect handling of zero-length
+packets (ZLPs) in some versions of the libusb 0.1 API wrapper that ships
+with libusb 1.x in certain Linux distributions.  All Linux systems with
+kernel versions &lt; 2.6.31 and libusb &gt;= 1.0.0 &lt; 1.0.3 are reported to be
+affected by this.
+</p>
+<p>See also: <a href="http://www.libusb.org/ticket/6">http://www.libusb.org/ticket/6</a>
+</p>
+</li><li>
+Problem: after flashing a firmware that reduces the target&rsquo;s clock
+speed (e.g. through the <code>CLKPR</code> register), further ISP connection
+attempts fail.
+
+<p>Solution: Even though ISP starts with pulling <var>/RESET</var> low, the
+target continues to run at the internal clock speed as defined by the
+firmware running before.  Therefore, the ISP clock speed must be
+reduced appropriately (to less than 1/4 of the internal clock speed)
+using the -B option before the ISP initialization sequence will
+succeed.
+</p>
+<p>As that slows down the entire subsequent ISP session, it might make
+sense to just issue a <em>chip erase</em> using the slow ISP clock
+(option <code>-e</code>), and then start a new session at higher speed.
+Option <code>-D</code> might be used there, to prevent another unneeded
+erase cycle.
+</p>
+</li></ul>
+
+
+
+<hr>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_17.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_19.html#Credits_002e" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[ Up ]</td>
+<td valign="middle" align="left">[ &gt; ]</td>
+<td valign="middle" align="left">[ &gt;&gt; ]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated on <i>December 16, 2021</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>
