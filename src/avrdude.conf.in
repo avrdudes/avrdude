@@ -5980,7 +5980,7 @@ part
 
 part parent "m329"
     id               = "m329a";
-    desc             = "ATmega329a";
+    desc             = "ATmega329A";
   ;
 
 #------------------------------------------------------------
@@ -9776,6 +9776,18 @@ part parent "m328"
     signature       = 0x1e 0x96 0x84;
     bs2             = 0xe2;
 
+    memory "eeprom"
+        size            = 2048;
+        page_size       = 8;
+    ;
+
+    memory "flash"
+        paged           = yes;
+        size            = 65536;
+        page_size       = 256;
+        num_pages       = 256;
+    ;
+
     memory "efuse"
         size            = 1;
         min_write_delay = 4500;
@@ -12549,7 +12561,7 @@ part parent "t84"
 
 part
     id            = "t43u";
-    desc          = "ATtiny43u";
+    desc          = "ATtiny43U";
     has_debugwire = yes;
     flash_instr   = 0xB4, 0x07, 0x17;
     eeprom_instr  = 0xBB, 0xFF, 0xBB, 0xEE, 0xBB, 0xCC, 0xB2, 0x0D,
@@ -14263,7 +14275,7 @@ part
 part
     id               = "m165";
     desc             = "ATmega165";
-    signature        = 0x1e 0x94 0x07;
+    signature        = 0x1e 0x94 0x10;
     has_jtag         = yes;
 #   stk500_devcode   = 0x??;
 #   avr910_devcode   = 0x??;
@@ -15445,6 +15457,13 @@ part parent "x128c3"
     id		= "x128d4";
     desc	= "ATxmega128D4";
     signature	= 0x1e 0x97 0x47;
+
+    memory "flash"
+        size		= 0x22000;
+        offset		= 0x800000;
+        page_size	= 0x100;
+        readsize	= 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -16513,7 +16532,7 @@ part parent ".reduced_core_tiny"
 
 part
     id				= "m406";
-    desc			= "ATMEGA406";
+    desc			= "ATmega406";
     has_jtag			= yes;
     signature			= 0x1e 0x95 0x07;
 
