@@ -18,7 +18,7 @@ The latest version of AVRDUDE is always available here:\
 
 ## Documentation
 
-Documentation is [here](https://dl8dtl.github.io/avrdude/).
+Documentation for current and previous releases is [on Github Pages](https://avrdudes.github.io/avrdude/).
 
 ## Getting AVRDUDE for Windows
 
