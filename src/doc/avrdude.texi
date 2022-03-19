@@ -110,6 +110,7 @@ Copyright @copyright{} Brian S. Dean, J@"org Wunsch
 * Programmer Specific Information::
 * Platform Dependent Information::
 * Troubleshooting::
+* Index::
 @end menu
 
 @c
@@ -118,7 +119,7 @@ Copyright @copyright{} Brian S. Dean, J@"org Wunsch
 @node Introduction, Command Line Options, Top, Top
 @comment  node-name,  next,  previous,  up
 @chapter Introduction
-@cindex introduction
+@cindex Introduction
 
 AVRDUDE - AVR Downloader Uploader - is a program for downloading and
 uploading the on-chip memories of Atmel's AVR microcontrollers. It can
@@ -135,6 +136,8 @@ command line works well for programming the entire memory of the chip
 from the contents of a file, while interactive mode is useful for
 exploring memory contents, modifying individual bytes of eeprom,
 programming fuse/lock bits, etc.
+
+@cindex Programmers supported
 
 AVRDUDE supports the following basic programmer types: Atmel's STK500,
 Atmel's AVRISP and AVRISP mkII devices,
@@ -336,6 +339,7 @@ below for Teensy specific options.
 @c Node
 @c
 @node History,  , Introduction, Introduction
+@cindex History
 @section History and Credits
 
 AVRDUDE was written by Brian S. Dean under the name of AVRPROG to run on
@@ -367,7 +371,6 @@ Roth.
 @c
 @node Command Line Options, Terminal Mode Operation, Introduction, Top
 @chapter Command Line Options
-@cindex options
 
 @menu
 * Option Descriptions::
@@ -379,6 +382,7 @@ Roth.
 @c Node
 @c
 @node Option Descriptions, Programmers accepting extended parameters, Command Line Options, Command Line Options
+@cindex Options (command-line)
 @section Option Descriptions
 
 @noindent
@@ -402,6 +406,8 @@ to AVRDUDE, it means that there is no config file entry for that part,
 but it can be added to the configuration file if you have the Atmel
 datasheet so that you can enter the programming specifications.
 Currently, the following MCU types are understood:
+
+@cindex Device support
 
 @multitable @columnfractions .15 .3
 @include parts.texi
@@ -453,6 +459,8 @@ there's a good chance that it can be easily added to the configuration
 file without any code changes to AVRDUDE.  Simply copy an existing entry
 and change the pin definitions to match that of the unknown programmer.
 Currently, the following programmer ids are understood and supported:
+
+@cindex Programmer support
 
 @multitable @columnfractions .2 .6
 @include programmers.texi
@@ -831,7 +839,7 @@ accepting extended parameters.
 @c
 @node Programmers accepting extended parameters, Example Command Line Invocations, Option Descriptions, Command Line Options
 @section Programmers accepting extended parameters
-
+@cindex @code{-x} AVR Dragon
 @table @code
 
 @item JTAG ICE mkII/3
@@ -848,6 +856,7 @@ Each AVR unit within the chain shifts by 4 bits.
 Other JTAG units might require a different bit shift count.
 @end table
 
+@cindex @code{-x} AVR910
 @item AVR910
 
 The AVR910 programmer type accepts the following extended parameter:
@@ -868,6 +877,7 @@ Use
 programmer creates errors during initial sequence.
 @end table
 
+@cindex @code{-x} Arduino
 @item Arduino
 
 The Arduino programmer type accepts the following extended parameter:
@@ -876,6 +886,7 @@ The Arduino programmer type accepts the following extended parameter:
 Overide the default number of connection retry attempt by using @var{VALUE}.
 @end table
 
+@cindex @code{-x} Buspirate
 @item BusPirate
 
 The BusPirate programmer type accepts the following extended parameters:
@@ -965,6 +976,7 @@ The default value is 100ms. Using 10ms might work in most cases.
 
 @end table
 
+@cindex @code{-x} Micronucleus bootloader
 @item Micronucleus bootloader
 
 When using the Micronucleus programmer type, the
@@ -977,6 +989,7 @@ If no time-out is specified, AVRDUDE will wait indefinitely until the
 device is plugged in.
 @end table
 
+@cindex @code{-x} Teensy bootloader
 @item Teensy bootloader
 
 When using the Teensy programmer type, the
@@ -989,6 +1002,7 @@ If no time-out is specified, AVRDUDE will wait indefinitely until the
 device is plugged in.
 @end table
 
+@cindex @code{-x} Wiring
 @item Wiring
 
 When using the Wiring programmer type, the
@@ -1000,6 +1014,7 @@ After performing the port open phase, AVRDUDE will wait/snooze for
 No toggling of DTR/RTS is performed if @var{snooze} > 0.
 @end table
 
+@cindex @code{-x} PICkit2
 @item PICkit2
 Connection to the PICkit2 programmer:
 @multitable @columnfractions .05 .3
@@ -1020,6 +1035,7 @@ Sets the SPI clocking rate in Hz (default is 100kHz). Alternately the -B or -i o
 Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
 @end table
 
+@cindex @code{-x} USBasp
 @item USBasp
 Extended parameters:
 @table @code
@@ -1030,6 +1046,7 @@ rather than entire chip.
 Only applicable to TPI devices (ATtiny 4/5/9/10/20/40).
 @end table
 
+@cindex @code{-x} xbee
 @item xbee
 Extended parameters:
 @table @code
@@ -1046,6 +1063,7 @@ The remaining two necessary XBee-to-MCU connections are not selectable
 the MCU's ‘TXD’ line.
 @end table
 
+@cindex @code{-x} serialupdi
 @item serialupdi
 Extended parameters:
 @table @code
@@ -1248,6 +1266,7 @@ commands can be recalled and edited.
 @end menu
 
 @node Terminal Mode Commands, Terminal Mode Examples, Terminal Mode Operation, Terminal Mode Operation
+@cindex Terminal Mode
 @section Terminal Mode Commands
 
 @noindent
@@ -1255,19 +1274,82 @@ The following commands are implemented:
 
 @table @code
 
-@item dump @var{memtype} @var{addr} @var{nbytes}
+@item dump @var{memtype} [@var{start_addr} [@var{nbytes}]]
 Read @var{nbytes} from the specified memory area, and display them in
 the usual hexadecimal and ASCII form.
 
-@item dump
+@item dump @var{memtype} [@var{start_addr}] @dots{}
+Start reading from @var{start_addr}, all the way to the last memory address.
+
+@item dump @var{memtype}
 Continue dumping the memory contents for another @var{nbytes} where the
 previous dump command left off.
 
-@item write @var{memtype} @var{addr} @var{byte1} @dots{} @var{byteN}
-Manually program the respective memory cells, starting at address addr,
-using the values @var{byte1} through @var{byteN}.  This feature is not
+@item write @var{memtype} @var{start_addr} @var{data1} @var{data2} @dots{} @var{dataN}
+Manually program the respective memory cells, starting at address @var{start_addr},
+using the values @var{data1} through @var{dataN}.  This feature is not
 implemented for bank-addressed memories such as the flash memory of
 ATMega devices.
+
+Items @var{dataN} can have the following formats:
+
+@multitable @columnfractions .3 .4 .3
+@item @strong{Type}
+@tab @strong{Example}
+@tab @strong{Size (bytes)}
+
+@item Character
+@tab @code{'A'}
+@tab 1
+
+@item Decimal integer
+@tab 12345
+@tab 1, 2, 4, or 8 (see below)
+
+@item Octal integer
+@tab 012345
+@tab 1, 2, 4, or 8 (see below)
+
+@item Hexadecimal integer
+@tab 0x12345
+@tab 1, 2, 4, or 8 (see below)
+
+@item Float
+@tab 3.1415926
+@tab 4
+
+@end multitable
+
+Integer constants can be 1, 2, 4, or 8 bytes long.
+By default, the smallest possible size will be used where
+the specified number just fits into.
+A specific size can be denoted by appending one of these suffixes:
+
+@table @code
+@item LL
+@itemx ll
+8 bytes / 64 bits
+@item L
+@itemx l
+4 bytes / 32 bits
+@item H
+@itemx h
+@itemx S
+@itemx s
+2 bytes / 16 bits
+@item HH
+@itemx hh
+1 byte / 8 bits
+@end table
+
+Similarly, floating-point constants can have an @code{F} or @code{f}
+appended, but only 32-bit floating-point values are supported.
+
+@item write @var{memtype} @var{start_addr} @var{length} @var{data1} @var{data2} @var{dataN} @dots{}
+
+Similar to the above, but @var{length} byte of the memory are written.
+For that purpose, after writing the initial items, @var{dataN} is
+replicated as many times as needed.
 
 @item erase
 Perform a chip erase.
@@ -1361,6 +1443,7 @@ Display the current target supply voltage and JTAG bit clock rate/period.
 @c Node
 @c
 @node Terminal Mode Examples,  , Terminal Mode Commands, Terminal Mode Operation
+@cindex Terminal Mode
 @section Terminal Mode Examples
 
 @noindent
@@ -1460,11 +1543,54 @@ avrdude>
 @end cartouche
 @end smallexample
 
+@smallexample
+@cartouche
+% avrdude -c pkobn_updi -p avr128db48 -t
+
+         Vtarget                      : 4.71 V
+         PDI/UPDI clock Xmega/megaAVR : 100 kHz
+
+avrdude: AVR device initialized and ready to accept instructions
+
+Reading | ################################################## | 100% 0.01s
+
+avrdude: Device signature = 0x1e970c (probably avr128db48)
+avrdude> write eeprom 0 1234567890 'A' 'V' 'R' 2.718282
+>>> write eeprom 0 1234567890 'A' 'V' 'R' 2.718282 
+Warning: no size suffix specified for "1234567890". Writing 4 byte(s)
+
+avrdude> dump eeprom 0 32
+>>> dump eeprom 0 32 
+0000  d2 02 96 49 41 56 52 55  f8 2d 40 ff ff ff ff ff  |...IAVRU.-@.....|
+0010  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+
+avrdude> q
+@end cartouche
+@end smallexample
+
+The following example demonstrates the second form of the @code{write}
+command where the last data value provided is used to fill up the
+indicated memory range.
+
+@smallexample
+@cartouche
+avrdude> write eeprom 0x00 0x20 'a' 'b' 'c' 0x11 0xcafe 0x55 ...
+>>> write eeprom 0x00 0x20 'a' 'b' 'c' 0x11 0xcafe 0x55 ... 
+
+avrdude> dump eeprom 0 0x30
+>>> dump eeprom 0 0x30 
+0000  61 62 63 11 fe ca 55 55  55 55 55 55 55 55 55 55  |abc...UUUUUUUUUU|
+0010  55 55 55 55 55 55 55 55  55 55 55 55 55 55 55 55  |UUUUUUUUUUUUUUUU|
+0020  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+@end cartouche
+@end smallexample
 
 @c
 @c Node
 @c
 @node Configuration File, Programmer Specific Information, Terminal Mode Operation, Top
+@cindex Configuration File
+@cindex @code{avrdude.conf}
 @chapter Configuration File
 
 @noindent
@@ -1827,6 +1953,7 @@ Reading fuse and lock bits is fully supported.
 @c Node
 @c
 @node Atmel STK600, Atmel DFU bootloader using FLIP version 1, Programmer Specific Information, Programmer Specific Information
+@cindex STK600
 @section Atmel STK600
 
 @c
@@ -1923,6 +2050,7 @@ least 4.5 V in order to work.  This can be done using
 @c Node
 @c
 @node Atmel DFU bootloader using FLIP version 1, SerialUPDI programmer , Atmel STK600, Programmer Specific Information
+@cindex DFU bootloader
 @section Atmel DFU bootloader using FLIP version 1
 
 Bootloaders using the FLIP protocol version 1 experience some very
@@ -1951,6 +2079,7 @@ versions of the bootloader.
 @c Node
 @c
 @node SerialUPDI programmer, , Atmel DFU bootloader using FLIP version 1, Programmer Specific Information
+@cindex SerialUPDI
 @section SerialUPDI programmer
 
 SerialUPDI programmer can be used for programming UPDI-only devices
@@ -2433,7 +2562,7 @@ such as @option{--prefix} and @option{--datadir}.
 @c
 @c Node
 @c
-@node Troubleshooting, ,Platform Dependent Information ,Top
+@node Troubleshooting,Index ,Platform Dependent Information ,Top
 @appendix Troubleshooting
 
 @noindent
@@ -2744,7 +2873,11 @@ erase cycle.
 
 @end itemize
 
+@node Index, , Troubleshooting, Top
 
+@unnumbered Concept Index
+
+@printindex cp
 
 @bye
 
