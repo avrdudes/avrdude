@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<!-- Created on March 18, 2022 by texi2html 5.0
+<!-- Created on March 19, 2022 by texi2html 5.0
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -87,6 +87,7 @@ code {
 <td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
 <hr>
+<a name="index-Terminal-Mode-1"></a>
 <a name="Terminal-Mode-Examples-1"></a>
 <h2 class="section">3.2 Terminal Mode Examples</h2>
 
@@ -210,6 +211,22 @@ avrdude&gt; q
 </pre></td></tr></table>
 </div>
 
+<p>The following example demonstrates the second form of the <code>write</code>
+command where the last data value provided is used to fill up the
+indicated memory range.
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">avrdude&gt; write eeprom 0x00 0x20 'a' 'b' 'c' 0x11 0xcafe 0x55 ...
+&gt;&gt;&gt; write eeprom 0x00 0x20 'a' 'b' 'c' 0x11 0xcafe 0x55 ... 
+
+avrdude&gt; dump eeprom 0 0x30
+&gt;&gt;&gt; dump eeprom 0 0x30 
+0000  61 62 63 11 fe ca 55 55  55 55 55 55 55 55 55 55  |abc...UUUUUUUUUU|
+0010  55 55 55 55 55 55 55 55  55 55 55 55 55 55 55 55  |UUUUUUUUUUUUUUUU|
+0020  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+</pre></td></tr></table>
+</div>
 
 <hr>
 <table class="header" cellpadding="1" cellspacing="1" border="0">
@@ -229,7 +246,7 @@ avrdude&gt; q
 </tr></table>
 <p>
  <font size="-1">
-  This document was generated on <i>March 18, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>March 19, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
  </font>
  <br>
 
