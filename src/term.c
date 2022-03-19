@@ -364,7 +364,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
-  uint8_t * buf = malloc(mem->size);
+  uint8_t * buf = malloc(mem->size + 0x10);
   if (buf == NULL) {
     avrdude_message(MSG_INFO, "%s (write): out of memory\n", progname);
     return -1;
@@ -378,6 +378,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     if (*end_ptr || (end_ptr == argv[3])) {
       avrdude_message(MSG_INFO, "%s (write ...): can't parse address \"%s\"\n",
             progname, argv[3]);
+      free(buf);
       return -1;
     }
   } else {
@@ -503,8 +504,15 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     avrdude_message(MSG_INFO, "%s (write): selected address and # bytes exceed "
                     "range for %s memory\n",
                     progname, memtype);
+    free(buf);
     return -1;
   }
+
+  avrdude_message(MSG_NOTICE, "Info: Writing %d bytes starting from address 0x%02x",
+                  len + data.bytes_grown, addr);
+  if (write_mode == WRITE_MODE_FILL)
+    avrdude_message(MSG_NOTICE, ". Remaining space filled with %s", argv[argc - 2]);
+  avrdude_message(MSG_NOTICE, "\n");
 
   pgm->err_led(pgm, OFF);
   bool werror = false;
