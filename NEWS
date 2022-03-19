@@ -18,6 +18,7 @@ Changes since version 6.4:
       programmers on parallel or serial ports) virtually doesn't exist
       anymore, and the fuse combination that was covered by it do not
       match the fuses of modern AVR devices anyway.
+    - Documentation now hosted on Github "pages"
 
   * New devices supported:
 
@@ -155,6 +156,7 @@ Changes since version 6.4:
     - Fix errors in Avrdude.conf #899
     - Minor terminal write improvements #902
     - Term docs #903
+    - Prepare online docs for Github pages #904
 
   * Internals:
 
