@@ -18,3 +18,22 @@ samp {
 code {
   color: green;
 }
+.footer {
+  margin-top: 10px;
+  font-size: 80%;
+}
+
+/*
+ * For large screens, put footer always at bottom of page.  For
+ * smaller screens, instead place it directly under the table, as
+ * otherwise the footer would be placed inside the table.
+ *
+ * The min-height value might need to be adjusted once there are
+ * more entries in the table.
+ */
+@media screen and (min-height: 500px) {
+  .footer {
+      position: fixed;
+      bottom: 0;
+  }
+}
