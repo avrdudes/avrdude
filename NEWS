@@ -76,6 +76,7 @@ Changes since version 6.4:
     - Signature read command for ATmega165* was wrong (no-id)
     - Cannot use non-standard baud rates for uploading on MacOS #771
     - Wrong values in avrdude.conf #897
+    - AVR-Eclipse plugin broken by missing -u commandline option #890
 
   * Pull requests:
 
