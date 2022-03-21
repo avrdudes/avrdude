@@ -1455,7 +1455,6 @@ Display part parameters, modify eeprom cells, perform a chip erase:
 
 avrdude: AVR device initialized and ready to accept instructions
 avrdude: Device signature = 0x1e9702
-avrdude: current erase-rewrite cycle count is 52 (if being tracked)
 avrdude> part
 >>> part 
 
@@ -1517,7 +1516,6 @@ display the factory defaults, then reprogram:
 
 avrdude: AVR device initialized and ready to accept instructions
 avrdude: Device signature = 0x1e9702
-avrdude: current erase-rewrite cycle count is 52 (if being tracked)
 avrdude> d efuse
 >>> d efuse 
 0000  fd                                                |.               |
