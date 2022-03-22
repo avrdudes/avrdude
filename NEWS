@@ -18,6 +18,12 @@ Changes since version 6.4:
       programmers on parallel or serial ports) virtually doesn't exist
       anymore, and the fuse combination that was covered by it do not
       match the fuses of modern AVR devices anyway.
+    - avrdude.conf is now being looked up in the location of the
+      executable file first, before considering the configured default
+      location; this eases a "portable use" where the entire suite is
+      not installed into its configured default location. (Basically
+      only relevant for unixoid systems; on Windows, this search order
+      has been used for many years already.)
 
   * New devices supported:
 
