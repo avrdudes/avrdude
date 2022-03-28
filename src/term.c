@@ -302,6 +302,7 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
+  report_progress(0, 1, "Reading");
   for (uint32_t i = 0; i < len; i++) {
     int32_t rc = pgm->read_byte(pgm, p, mem, addr + i, &buf[i]);
     if (rc != 0) {
@@ -312,7 +313,9 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
                 mem->desc);
       return -1;
     }
+    report_progress(i, len, NULL);
   }
+  report_progress(1, 1, NULL);
 
   hexdump_buf(stdout, addr, buf, len);
   fprintf(stdout, "\n");
@@ -508,7 +511,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
-  avrdude_message(MSG_NOTICE, "Info: Writing %d bytes starting from address 0x%02x",
+  avrdude_message(MSG_NOTICE, "\nInfo: Writing %d bytes starting from address 0x%02x",
                   len + data.bytes_grown, addr);
   if (write_mode == WRITE_MODE_FILL)
     avrdude_message(MSG_NOTICE, ". Remaining space filled with %s", argv[argc - 2]);
@@ -516,6 +519,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
 
   pgm->err_led(pgm, OFF);
   bool werror = false;
+  report_progress(0, 1, "Writing");
   for (i = 0; i < (len + data.bytes_grown); i++) {
     int32_t rc = avr_write_byte(pgm, p, mem, addr+i, buf[i]);
     if (rc) {
@@ -538,11 +542,12 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     if (werror) {
       pgm->err_led(pgm, ON);
     }
+
+    report_progress(i, (len + data.bytes_grown), NULL);
   }
+  report_progress(1, 1, NULL);
 
   free(buf);
-
-  fprintf(stdout, "\n");
 
   return 0;
 }
