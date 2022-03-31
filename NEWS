@@ -41,6 +41,7 @@ Changes since version 6.4:
     - ATtiny3224, ATtiny3226 and ATtiny3227
     - AVR16DD14/20/28/32, AVR32DD14/20/28/32 and AVR64DD14/20/28/32
     - AVR8EA28/32, AVR16EA28/32/48, AVR32EA28/32/48 and AVR64EA28/32/64
+    - ATmega16U4
 
 
   * New programmers supported:
@@ -162,6 +163,10 @@ Changes since version 6.4:
     - Fix errors in Avrdude.conf #899
     - Minor terminal write improvements #902
     - Term docs #903
+    - Add progressbar for read and write command #912
+    - Add MacOS serial/parallel port note #908
+    - Add ATmega16U4 to avrdude.conf #910
+    - Mask out unused ATmega32U4 efuse bits #909
 
   * Internals:
 
