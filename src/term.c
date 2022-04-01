@@ -126,12 +126,19 @@ static int nexttok(char * buf, char ** tok, char ** next)
     q++;
 
   /* isolate first token */
-  n = q+1;
-  while (*n && !isspace((int)*n))
+  n = q;
+  uint8_t quotes = 0;
+  while (*n && (!isspace((int)*n) || quotes)) {
+    if (*n == '\"')
+      quotes++;
+    else if (isspace((int)*n) && *(n-1) == '\"')
+      break;
     n++;
+  }
 
   if (*n) {
     *n = 0;
+    avrdude_message(MSG_INFO, "q: %s\n", q);
     n++;
   }
 
