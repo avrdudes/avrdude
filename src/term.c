@@ -138,7 +138,6 @@ static int nexttok(char * buf, char ** tok, char ** next)
 
   if (*n) {
     *n = 0;
-    avrdude_message(MSG_INFO, "q: %s\n", q);
     n++;
   }
 
@@ -462,13 +461,17 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
           if (argv[i][0] == '\'' && argv[i][2] == '\'') {
             data.ll = argv[i][1];
           } else {
-            // Try string that starts and ends with quote
+            // Try string that starts and ends with quotes
             if (argv[i][0] == '\"' && argv[i][strlen(argv[i]) - 1] == '\"') {
-              data.str_ptr = calloc(strlen(argv[i])+0x10, sizeof(char));
+              data.str_ptr = calloc(strlen(argv[i]), sizeof(char));
+              if (data.str_ptr == NULL) {
+                avrdude_message(MSG_INFO, "%s (write str): out of memory\n", progname);
+                return -1;
+              }
+              // Strip start and end quotes
               strncpy(data.str_ptr, argv[i] + 1, strlen(argv[i]) - 2);
-              avrdude_message(MSG_INFO, "argv: %s, malloc: %s\n", argv[i], data.str_ptr);
             } else {
-            avrdude_message(MSG_INFO, "\n%s (write): can't parse data \"%s\"\n",
+            avrdude_message(MSG_INFO, "\n%s (write): can't parse data '%s'\n",
                             progname, argv[i]);
             free(buf);
             return -1;
@@ -507,7 +510,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
           data.size = 1;
       }
     }
-    if(data.str_ptr != NULL) {
+    if(data.str_ptr) {
       for(int16_t j = 0; j < strlen(data.str_ptr); j++)
         buf[i - start_offset + data.bytes_grown++] = (uint8_t)data.str_ptr[j];
       free(data.str_ptr);
