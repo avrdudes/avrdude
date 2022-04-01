@@ -404,17 +404,26 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     uint8_t size;
     bool is_float;
     bool is_signed;
+    char * str_ptr;
     // Data union
     union {
       float f;
       int64_t ll;
       uint8_t a[8];
     };
-  } data = {.bytes_grown = 0, .size = 0, .is_float = false, .ll = 0, .is_signed = false};
+  } data = {
+    .bytes_grown = 0,
+    .size        = 0,
+    .is_float    = false,
+    .is_signed   = false,
+    .str_ptr     = NULL,
+    .ll = 0
+  };
 
   for (i = start_offset; i < len + start_offset; i++) {
     data.is_float = false;
     data.size = 0;
+    data.str_ptr = NULL;
 
     // Handle the next argument
     if (i < argc - start_offset + 3) {
@@ -453,10 +462,17 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
           if (argv[i][0] == '\'' && argv[i][2] == '\'') {
             data.ll = argv[i][1];
           } else {
+            // Try string that starts and ends with quote
+            if (argv[i][0] == '\"' && argv[i][strlen(argv[i]) - 1] == '\"') {
+              data.str_ptr = calloc(strlen(argv[i])+0x10, sizeof(char));
+              strncpy(data.str_ptr, argv[i] + 1, strlen(argv[i]) - 2);
+              avrdude_message(MSG_INFO, "argv: %s, malloc: %s\n", argv[i], data.str_ptr);
+            } else {
             avrdude_message(MSG_INFO, "\n%s (write): can't parse data \"%s\"\n",
-                  progname, argv[i]);
+                            progname, argv[i]);
             free(buf);
             return -1;
+            }
           }
         }
       }
@@ -491,18 +507,24 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
           data.size = 1;
       }
     }
-    buf[i - start_offset + data.bytes_grown]     = data.a[0];
-    if (llabs(data.ll) > 0x000000FF || data.size >= 2 || data.is_float)
-      buf[i - start_offset + ++data.bytes_grown] = data.a[1];
-    if (llabs(data.ll) > 0x0000FFFF || data.size >= 4 || data.is_float) {
-      buf[i - start_offset + ++data.bytes_grown] = data.a[2];
-      buf[i - start_offset + ++data.bytes_grown] = data.a[3];
-    }
-    if (llabs(data.ll) > 0xFFFFFFFF || data.size == 8) {
-      buf[i - start_offset + ++data.bytes_grown] = data.a[4];
-      buf[i - start_offset + ++data.bytes_grown] = data.a[5];
-      buf[i - start_offset + ++data.bytes_grown] = data.a[6];
-      buf[i - start_offset + ++data.bytes_grown] = data.a[7];
+    if(data.str_ptr != NULL) {
+      for(int16_t j = 0; j < strlen(data.str_ptr); j++)
+        buf[i - start_offset + data.bytes_grown++] = (uint8_t)data.str_ptr[j];
+      free(data.str_ptr);
+    } else {
+      buf[i - start_offset + data.bytes_grown]     = data.a[0];
+      if (llabs(data.ll) > 0x000000FF || data.size >= 2 || data.is_float)
+        buf[i - start_offset + ++data.bytes_grown] = data.a[1];
+      if (llabs(data.ll) > 0x0000FFFF || data.size >= 4 || data.is_float) {
+        buf[i - start_offset + ++data.bytes_grown] = data.a[2];
+        buf[i - start_offset + ++data.bytes_grown] = data.a[3];
+      }
+      if (llabs(data.ll) > 0xFFFFFFFF || data.size == 8) {
+        buf[i - start_offset + ++data.bytes_grown] = data.a[4];
+        buf[i - start_offset + ++data.bytes_grown] = data.a[5];
+        buf[i - start_offset + ++data.bytes_grown] = data.a[6];
+        buf[i - start_offset + ++data.bytes_grown] = data.a[7];
+      }
     }
   }
 
