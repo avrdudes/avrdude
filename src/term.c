@@ -422,10 +422,15 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   for (i = start_offset; i < len + start_offset; i++) {
     data.is_float = false;
     data.size = 0;
-    data.str_ptr = NULL;
 
     // Handle the next argument
     if (i < argc - start_offset + 3) {
+      // Free string pointer if already allocated
+      if(data.str_ptr) {
+        free(data.str_ptr);
+        data.str_ptr = NULL;
+      }
+
       // Get suffix if present
       char suffix  = argv[i][strlen(argv[i]) - 1];
       char lsuffix = argv[i][strlen(argv[i]) - 2];
@@ -474,6 +479,8 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
             avrdude_message(MSG_INFO, "\n%s (write): can't parse data '%s'\n",
                             progname, argv[i]);
             free(buf);
+            if(data.str_ptr != NULL)
+              free(data.str_ptr);
             return -1;
             }
           }
@@ -513,7 +520,6 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     if(data.str_ptr) {
       for(int16_t j = 0; j < strlen(data.str_ptr); j++)
         buf[i - start_offset + data.bytes_grown++] = (uint8_t)data.str_ptr[j];
-      free(data.str_ptr);
     } else {
       buf[i - start_offset + data.bytes_grown]     = data.a[0];
       if (llabs(data.ll) > 0x000000FF || data.size >= 2 || data.is_float)
@@ -542,6 +548,9 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     free(buf);
     return -1;
   }
+
+  if(data.str_ptr)
+    free(data.str_ptr);
 
   avrdude_message(MSG_NOTICE, "\nInfo: Writing %d bytes starting from address 0x%02x",
                   len + data.bytes_grown, addr);
