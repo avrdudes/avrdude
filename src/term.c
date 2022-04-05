@@ -126,9 +126,15 @@ static int nexttok(char * buf, char ** tok, char ** next)
     q++;
 
   /* isolate first token */
-  n = q+1;
-  while (*n && !isspace((int)*n))
+  n = q;
+  uint8_t quotes = 0;
+  while (*n && (!isspace((int)*n) || quotes)) {
+    if (*n == '\"')
+      quotes++;
+    else if (isspace((int)*n) && *(n-1) == '\"')
+      break;
     n++;
+  }
 
   if (*n) {
     *n = 0;
@@ -397,13 +403,21 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     uint8_t size;
     bool is_float;
     bool is_signed;
+    char * str_ptr;
     // Data union
     union {
       float f;
       int64_t ll;
       uint8_t a[8];
     };
-  } data = {.bytes_grown = 0, .size = 0, .is_float = false, .ll = 0, .is_signed = false};
+  } data = {
+    .bytes_grown = 0,
+    .size        = 0,
+    .is_float    = false,
+    .is_signed   = false,
+    .str_ptr     = NULL,
+    .ll = 0
+  };
 
   for (i = start_offset; i < len + start_offset; i++) {
     data.is_float = false;
@@ -411,6 +425,12 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
 
     // Handle the next argument
     if (i < argc - start_offset + 3) {
+      // Free string pointer if already allocated
+      if(data.str_ptr) {
+        free(data.str_ptr);
+        data.str_ptr = NULL;
+      }
+
       // Get suffix if present
       char suffix  = argv[i][strlen(argv[i]) - 1];
       char lsuffix = argv[i][strlen(argv[i]) - 2];
@@ -446,10 +466,23 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
           if (argv[i][0] == '\'' && argv[i][2] == '\'') {
             data.ll = argv[i][1];
           } else {
-            avrdude_message(MSG_INFO, "\n%s (write): can't parse data \"%s\"\n",
-                  progname, argv[i]);
+            // Try string that starts and ends with quotes
+            if (argv[i][0] == '\"' && argv[i][strlen(argv[i]) - 1] == '\"') {
+              data.str_ptr = calloc(strlen(argv[i]), sizeof(char));
+              if (data.str_ptr == NULL) {
+                avrdude_message(MSG_INFO, "%s (write str): out of memory\n", progname);
+                return -1;
+              }
+              // Strip start and end quotes
+              strncpy(data.str_ptr, argv[i] + 1, strlen(argv[i]) - 2);
+            } else {
+            avrdude_message(MSG_INFO, "\n%s (write): can't parse data '%s'\n",
+                            progname, argv[i]);
             free(buf);
+            if(data.str_ptr != NULL)
+              free(data.str_ptr);
             return -1;
+            }
           }
         }
       }
@@ -484,18 +517,23 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
           data.size = 1;
       }
     }
-    buf[i - start_offset + data.bytes_grown]     = data.a[0];
-    if (llabs(data.ll) > 0x000000FF || data.size >= 2 || data.is_float)
-      buf[i - start_offset + ++data.bytes_grown] = data.a[1];
-    if (llabs(data.ll) > 0x0000FFFF || data.size >= 4 || data.is_float) {
-      buf[i - start_offset + ++data.bytes_grown] = data.a[2];
-      buf[i - start_offset + ++data.bytes_grown] = data.a[3];
-    }
-    if (llabs(data.ll) > 0xFFFFFFFF || data.size == 8) {
-      buf[i - start_offset + ++data.bytes_grown] = data.a[4];
-      buf[i - start_offset + ++data.bytes_grown] = data.a[5];
-      buf[i - start_offset + ++data.bytes_grown] = data.a[6];
-      buf[i - start_offset + ++data.bytes_grown] = data.a[7];
+    if(data.str_ptr) {
+      for(int16_t j = 0; j < strlen(data.str_ptr); j++)
+        buf[i - start_offset + data.bytes_grown++] = (uint8_t)data.str_ptr[j];
+    } else {
+      buf[i - start_offset + data.bytes_grown]     = data.a[0];
+      if (llabs(data.ll) > 0x000000FF || data.size >= 2 || data.is_float)
+        buf[i - start_offset + ++data.bytes_grown] = data.a[1];
+      if (llabs(data.ll) > 0x0000FFFF || data.size >= 4 || data.is_float) {
+        buf[i - start_offset + ++data.bytes_grown] = data.a[2];
+        buf[i - start_offset + ++data.bytes_grown] = data.a[3];
+      }
+      if (llabs(data.ll) > 0xFFFFFFFF || data.size == 8) {
+        buf[i - start_offset + ++data.bytes_grown] = data.a[4];
+        buf[i - start_offset + ++data.bytes_grown] = data.a[5];
+        buf[i - start_offset + ++data.bytes_grown] = data.a[6];
+        buf[i - start_offset + ++data.bytes_grown] = data.a[7];
+      }
     }
   }
 
@@ -510,6 +548,9 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     free(buf);
     return -1;
   }
+
+  if(data.str_ptr)
+    free(data.str_ptr);
 
   avrdude_message(MSG_NOTICE, "\nInfo: Writing %d bytes starting from address 0x%02x",
                   len + data.bytes_grown, addr);
