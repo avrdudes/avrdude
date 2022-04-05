@@ -84,6 +84,9 @@ Changes since version 6.4:
     - Cannot use non-standard baud rates for uploading on MacOS #771
     - Wrong values in avrdude.conf #897
     - AVR-Eclipse plugin broken by missing -u commandline option #890
+    - Timeout passed to hid_read_timeout() is too short for instances
+      where the EDBG AVRISP 'Enter Programming Mode' command fails #900
+    - Terminal write mode doesn't support string input (yet) #913
 
   * Pull requests:
 
@@ -167,6 +170,8 @@ Changes since version 6.4:
     - Add MacOS serial/parallel port note #908
     - Add ATmega16U4 to avrdude.conf #910
     - Mask out unused ATmega32U4 efuse bits #909
+    - Increased timeout passed to hid_read_timeout() #901
+    - Add terminal write string functionality #914
 
   * Internals:
 
