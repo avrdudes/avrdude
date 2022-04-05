@@ -1553,14 +1553,16 @@ avrdude: AVR device initialized and ready to accept instructions
 Reading | ################################################## | 100% 0.01s
 
 avrdude: Device signature = 0x1e970c (probably avr128db48)
-avrdude> write eeprom 0 1234567890 'A' 'V' 'R' 2.718282
->>> write eeprom 0 1234567890 'A' 'V' 'R' 2.718282 
+avrdude> write eeprom 0 1234567890 'A' 'V' 'R' 2.718282 "Hello World!"
+>>> write eeprom 0 1234567890 'A' 'V' 'R' 2.718282 "Hello World!"
 Warning: no size suffix specified for "1234567890". Writing 4 byte(s)
+Info: Writing 24 bytes starting from address 0x00
 
 avrdude> dump eeprom 0 32
 >>> dump eeprom 0 32 
-0000  d2 02 96 49 41 56 52 55  f8 2d 40 ff ff ff ff ff  |...IAVRU.-@.....|
-0010  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+
+0000  d2 02 96 49 41 56 52 55  f8 2d 40 48 65 6c 6c 6f  |...IAVRU.-@Hello|
+0010  20 57 6f 72 6c 64 21 00  ff ff ff ff ff ff ff ff  | World!.........|
 
 avrdude> q
 @end cartouche
