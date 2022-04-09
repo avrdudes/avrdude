@@ -373,7 +373,8 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
-  uint8_t * buf = malloc(mem->size + 0x10);
+  // Allocate a buffer guaranteed to be large enough
+  uint8_t * buf = calloc(mem->size + 0x10 + strlen(argv[argc - 2]), sizeof(uint8_t));
   if (buf == NULL) {
     avrdude_message(MSG_INFO, "%s (write): out of memory\n", progname);
     return -1;
@@ -535,6 +536,10 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
         buf[i - start_offset + ++data.bytes_grown] = data.a[7];
       }
     }
+
+    // Make sure buf does not overflow
+    if (i - start_offset + data.bytes_grown > maxsize)
+      break;
   }
 
   // When in "fill" mode, the maximum size is already predefined
