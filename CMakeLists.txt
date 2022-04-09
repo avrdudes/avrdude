@@ -155,6 +155,11 @@ if (HAVE_LIBUSB AND CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     set(HAVE_LIBUSB_1_0 ${HAVE_LIBUSB})
 endif()
 
+# FreeBSD include directories append.
+IF(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+    include_directories(AFTER SYSTEM "/usr/local/include")
+endif()
+
 find_library(HAVE_LIBUSB_WIN32 NAMES libusb0.a usb0)
 
 if(HAVE_LIBUSB OR HAVE_LIBUSB_1_0 OR HAVE_LIBUSB_WIN32)
