@@ -87,6 +87,7 @@ Changes since version 6.4:
     - Timeout passed to hid_read_timeout() is too short for instances
       where the EDBG AVRISP 'Enter Programming Mode' command fails #900
     - Terminal write mode doesn't support string input (yet) #913
+    - Terminal mode: memory fill with strings may cause Avrdude to crash. #922
 
   * Pull requests:
 
@@ -172,6 +173,8 @@ Changes since version 6.4:
     - Mask out unused ATmega32U4 efuse bits #909
     - Increased timeout passed to hid_read_timeout() #901
     - Add terminal write string functionality #914
+    - Update documentation link to new URL #929
+    - Fix terminal write buffer overflow issue #924
 
   * Internals:
 
