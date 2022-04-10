@@ -593,6 +593,38 @@ programmer
   reset  = 3; # TMS 7
 ;
 
+# Kristech KT-LINK FT2232H interface with IO switching and voltage buffers.
+# Created on 20220410 by CeDeROM Tomasz CEDRO (www.cederom.io).
+# Interface DataSheet: https://kristech.pl/files/KT-LINK-UM-ENG.pdf
+# AVRDUDE FT2232H PIN NUMBER DECODE:
+#  | 0      | 1      | .. | 7      | 8      | 9      | .. | 15     |
+#  | ADBUS0 | ADBUS1 | .. | ADBUS7 | ACBUS0 | ACBUS1 | .. | ACBUS7 |
+# KT-LINK JTAG CONN:
+#  1=Vsense(->EXT13), 19=5V(EXT1->EXT3), 20=GND, 3=TPIRST, 9=TPICLK, 7=TPIDATA.
+# INTERNALS CONFIGURATION ("~" MEANS ACTIVE LOW):
+#  ~TRST_EN=10(ACBUS2), ~CLK_EN=14(ACBUS6), ~MOSI_EN=13(ACBUS5),
+#  TMS_SEL=5(ADBUS5), ~TMS_EN=12(ACBUS4), LED=~15(ACBUS7).
+# CONNECTION NOTES:
+#  * Connect EXT connector pin 1 with 3 to get 5V on JTAG connector pin 19.
+#  * Connect JTAG connector pin 1 to 5V (i.e. EXT pin 13 or JTAG pin 19).
+#  * For TPI connection use resistors: TDO --[470R]-- TPIDATA --[470R]-- TDI.
+#  * Powering target from JTAG pin 19 allows KT-LINK current measurement.
+programmer
+  id    = "ktlink";
+  desc  = "KT-LINK FT2232H interface with IO switching and voltage buffers.";
+  type  = "avrftdi";
+  connection_type = usb;
+  usbvid= 0x0403;
+  usbpid= 0xBBE2;
+  usbdev= "A";
+  reset = 8;
+  sck   = 0;
+  mosi  = 1;
+  miso  = 2;
+  buff  = ~10,~14,~13,5;
+  rdyled = ~15;
+;
+
 programmer
   id    = "serialupdi";
   desc  = "SerialUPDI";
