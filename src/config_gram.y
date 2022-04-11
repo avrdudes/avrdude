@@ -46,6 +46,11 @@ static int assign_pin(int pinno, TOKEN * v, int invert);
 static int assign_pin_list(int invert);
 static int which_opcode(TOKEN * opcode);
 static int parse_cmdbits(OPCODE * op, int opnum);
+static int intlog2(unsigned int n);
+static const char *opcodename(int what);
+static char cmdbitchar(CMDBIT cb);
+static OPCODE *op_addr_suggest(char *desc, OPCODE *op, int opnum, int memsize, int pagesize);
+static int op_diff_forgivable(OPCODE *opshould, OPCODE *opis);
 
 static int pin_name;
 %}
@@ -1414,6 +1419,36 @@ mem_spec :
       }
       current_mem->op[opnum] = op;
 
+      /* scrutinise address bits in SPI programming command if relevant parameters are known at this point */
+      if(current_mem->desc && current_mem->size > 0 && current_mem->page_size > 0) {
+        OPCODE *suggest = op_addr_suggest(current_mem->desc, op, opnum, current_mem->size, current_mem->page_size);
+        if(memcmp(suggest, op, sizeof *suggest)) { /* one or more address bits seem to be wrong, missing or superfluous */
+          int level = op_diff_forgivable(suggest, op)? MSG_NOTICE: MSG_INFO;
+          avrdude_message(level,
+            "%s: %s:%d defines %s SPI programming command %s for %s\n"
+            "  - its address bits are not compatible with memory size %d and/or pagesize %d%s\n"
+            "  - consider the following suggestion and consult the datasheet:\n"
+            "    %s = \"%c",
+            progname, infile, lineno, current_part->desc, opcodename(opnum), current_mem->desc,
+            current_mem->size, current_mem->page_size,
+              level == MSG_INFO?
+                ", and external SPI programming may not work":
+                " but superfluous address bits are unlikely to affect functionality",
+            opcodename(opnum), cmdbitchar(suggest->bit[31])
+          );
+          for(int i=30 /* sic */; i>=0; i--) {
+            char bc = cmdbitchar(suggest->bit[i]);
+            if(i%8 == 7)
+              avrdude_message(level, "  ");
+            avrdude_message(level, " %c", bc);
+            if(bc == 'a')
+              avrdude_message(level, "%d", suggest->bit[i].bitno);
+          }
+          avrdude_message(level, "\"\n");
+        }
+        free(suggest);
+      }
+
       free_token($1);
     }
   }
@@ -1639,3 +1674,179 @@ static int parse_cmdbits(OPCODE * op, int opnum)
 
   return rv;
 }
+
+/* returns position 0..31 of highest bit set or INT_MIN if no bit is set */
+static int intlog2(unsigned int n) {
+  int ret;
+
+  if(!n)
+    return INT_MIN;
+
+  for(ret = 0; n >>= 1; ret++)
+    continue;
+
+  return ret;
+}
+
+
+static char cmdbitchar(CMDBIT cb) {
+  switch(cb.type) {
+  case AVR_CMDBIT_IGNORE:
+    return 'x';
+  case AVR_CMDBIT_VALUE:
+    return cb.value? '1': '0';
+  case AVR_CMDBIT_ADDRESS:
+    return 'a';
+  case AVR_CMDBIT_INPUT:
+    return 'i';
+  case AVR_CMDBIT_OUTPUT:
+    return 'o';
+  default:
+    return '?';
+  }
+}
+
+
+static const char *opcodename(int what) {
+  switch(what) {
+  case AVR_OP_READ:
+    return "read";
+  case AVR_OP_WRITE:
+    return "write";
+  case AVR_OP_READ_LO:
+    return "read_lo";
+  case AVR_OP_READ_HI:
+    return "read_hi";
+  case AVR_OP_WRITE_LO:
+    return "write_lo";
+  case AVR_OP_WRITE_HI:
+    return "write_hi";
+  case AVR_OP_LOADPAGE_LO:
+    return "loadpage_lo";
+  case AVR_OP_LOADPAGE_HI:
+    return "loadpage_hi";
+  case AVR_OP_LOAD_EXT_ADDR:
+    return "load_ext_addr";
+  case AVR_OP_WRITEPAGE:
+    return "writepage";
+  case AVR_OP_CHIP_ERASE:
+    return "chip_erase";
+  case AVR_OP_PGM_ENABLE:
+    return "pgm_enable";
+  default:
+    return "???";
+  }
+}
+
+
+/* bitno must be in 0..15; memsize and pagesize are measured in words for flash and in bytes otherwise */
+static char shouldbe(int bitno, char isbit, int opnum, int memsize, int pagesize) {
+  int hi, lo;
+
+  /* compute range lo..hi of address bits, max range is 0..15 */
+  switch(opnum) {
+  case AVR_OP_READ:
+  case AVR_OP_WRITE:
+  case AVR_OP_READ_LO:
+  case AVR_OP_READ_HI:
+  case AVR_OP_WRITE_LO:
+  case AVR_OP_WRITE_HI:
+    lo = 0;
+    hi = intlog2(memsize-1);    /* memsize = 1 implies no addr bit needed */
+    break;
+
+  case AVR_OP_LOADPAGE_LO:
+  case AVR_OP_LOADPAGE_HI:
+    lo = 0;
+    hi = intlog2(pagesize-1);
+    break;
+
+  case AVR_OP_LOAD_EXT_ADDR:
+    lo = 0;
+    hi = intlog2(memsize-1)-16;
+    break;
+
+  case AVR_OP_WRITEPAGE:
+    lo = intlog2(pagesize);
+    hi = intlog2(memsize-1);
+    break;
+  
+  case AVR_OP_CHIP_ERASE:
+  case AVR_OP_PGM_ENABLE:
+  default:
+    lo = 0; 
+    hi = -1;
+    break;
+  }
+  
+  if(bitno < lo || bitno > hi)
+    return isbit == 'a'? '0': isbit;
+
+  return 'a';
+}
+
+
+/*
+ * Allocate and compute a new OPCODE for an SPI command. The returned reference to the new OPCODE
+ *   - Consists of the opcode bits of the argument op
+ *      + except where address bits are likely to be wrong for the SPI command opnum
+ *      + in which case the suggested command bits are appropriately modified
+ *   - Relies on the correct size (mem_nbytes) and page size (page_nbytes) of the memory named by desc
+ *   - Falls in line with datasheets of some 160 parts (though a datasheet's don't care might become '0')
+ *   - Can to be used for triggering a warning when not the same as the argument op
+ *   - Should be freed by the caller when no longer used
+ */
+static OPCODE *op_addr_suggest(char *desc, OPCODE *op, int opnum, int mem_nbytes, int page_nbytes) {
+  OPCODE *ret;
+  int isflash = !strcmp(desc, "flash"); /* SPI command parts only have one flash-type memory, "flash" */ 
+
+  ret = malloc(sizeof *ret);
+  if(!ret) {
+    avrdude_message(MSG_INFO, "op_addr_check(): out of memory\n");
+    exit(1);
+  }
+  memcpy(ret, op, sizeof *ret);
+ 
+  for(int i=0; i<32; i++) {
+    int is = cmdbitchar(op->bit[i]);
+
+    if(i < 8 || i > 23) {
+      if(is == 'a') {           /* 'a' bits are unheard of in Byte 0 and 3 of SPI commands; suggest a '0' */
+        ret->bit[i].type = AVR_CMDBIT_VALUE;
+        ret->bit[i].bitno = i % 8;
+        ret->bit[i].value = 0;
+      }
+    } else {                    /* middle two bytes of SPI command */
+      char sb = shouldbe(i-8, is, opnum, mem_nbytes>>isflash, page_nbytes>>isflash);
+      if(is == 'a' && (sb == '0' || sb == 'x')) { /* future extension of shouldbe() might return 'x' when given an incorrect 'a' */
+        ret->bit[i].type = sb == '0'? AVR_CMDBIT_VALUE: AVR_CMDBIT_IGNORE;
+        ret->bit[i].bitno = i % 8;
+        ret->bit[i].value = 0;
+      } else if(sb == 'a') {    /* suggest a numbering that is in line with some 160 known ISP-capable parts */
+        ret->bit[i].type = AVR_CMDBIT_ADDRESS;
+        ret->bit[i].bitno = opnum == AVR_OP_LOAD_EXT_ADDR? i+8: i-8;
+        ret->bit[i].value = 0;
+      }
+    }
+  }
+
+  return ret;
+}
+
+
+/* Are the discrepancies of the "should be" opcode wrt "is" opcode unlikely to affect functionality? */
+static int op_diff_forgivable(OPCODE *opshould, OPCODE *opis) {
+  int errors = 0, forgivable = 0;
+
+  for(int i=0; i<32; i++) {
+    if(memcmp(&opshould->bit[i], &opis->bit[i], sizeof opshould->bit[i])) { /* command bit i different? */
+      errors++;
+      if(i >= 8 && i < 24)
+        if(opshould->bit[i].type == AVR_CMDBIT_VALUE && opis->bit[i].type == AVR_CMDBIT_ADDRESS)
+          forgivable++;
+    }
+  }    
+
+  return errors == forgivable;
+}
+
