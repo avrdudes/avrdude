@@ -9820,6 +9820,8 @@ part parent "m328"
 
     memory "efuse"
         size = 1;
+        min_write_delay = 4500;
+        max_write_delay = 4500;
         read            = "0 1 0 1 0 0 0 0 0 0 0 0 1 0 0 0",
                           "x x x x x x x x o o o o o o o o";
         write           = "1 0 1 0 1 1 0 0 1 0 1 0 0 1 0 0",
@@ -9840,15 +9842,77 @@ part parent "m328"
     bs2             = 0xe2;
 
     memory "eeprom"
-        size            = 2048;
+	paged		= no;
         page_size       = 8;
+        size            = 2048;
+	min_write_delay = 3600;
+	max_write_delay = 3600;
+	readback_p1	= 0xff;
+	readback_p2	= 0xff;
+	read = " 1 0 1 0 0 0 0 0",
+	       " 0 0 0 x x a10 a9 a8",
+	       " a7 a6 a5 a4 a3 a2 a1 a0",
+	       " o o o o o o o o";
+
+	write = " 1 1 0 0 0 0 0 0",
+	      	" 0 0 0 x x a10 a9 a8",
+		" a7 a6 a5 a4 a3 a2 a1 a0",
+		" i i i i i i i i";
+
+	loadpage_lo = " 1 1 0 0 0 0 0 1",
+		      " 0 0 0 0 0 0 0 0",
+		      " 0 0 0 0 0 a2 a1 a0",
+		      " i i i i i i i i";
+
+	writepage = " 1 1 0 0 0 0 1 0",
+		    " 0 0 x x x a10 a9 a8",
+		    " a7 a6 a5 a4 a3 0 0 0",
+		    " x x x x x x x x";
+
+	mode		= 0x41;
+	delay		= 20;
+	blocksize	= 4;
+	readsize	= 256;
     ;
 
     memory "flash"
-        paged           = yes;
+	paged		= yes;
         size            = 65536;
         page_size       = 256;
         num_pages       = 256;
+	min_write_delay = 4500;
+	max_write_delay = 4500;
+	readback_p1	= 0xff;
+	readback_p2	= 0xff;
+	read_lo = " 0 0 1 0 0 0 0 0",
+		  " 0 a14 a13 a12 a11 a10 a9 a8",
+		  " a7 a6 a5 a4 a3 a2 a1 a0",
+		  " o o o o o o o o";
+
+	read_hi = " 0 0 1 0 1 0 0 0",
+		  " 0 a14 a13 a12 a11 a10 a9 a8",
+		  " a7 a6 a5 a4 a3 a2 a1 a0",
+		  " o o o o o o o o";
+
+	loadpage_lo = " 0 1 0 0 0 0 0 0",
+		      " 0 0 0 x x x x x",
+		      " x a6 a5 a4 a3 a2 a1 a0",
+		      " i i i i i i i i";
+
+	loadpage_hi = " 0 1 0 0 1 0 0 0",
+		      " 0 0 0 x x x x x",
+		      " x a6 a5 a4 a3 a2 a1 a0",
+		      " i i i i i i i i";
+
+	writepage = " 0 1 0 0 1 1 0 0",
+		    " 0 a14 a13 a12 a11 a10 a9 a8",
+		    " a7 x x x x x x x",
+		    " x x x x x x x x";
+
+	mode		= 0x41;
+	delay		= 6;
+	blocksize	= 128;
+	readsize	= 256;
     ;
 
     memory "efuse"
@@ -12796,7 +12860,7 @@ part
     memory "calibration"
         size            = 1;
         read            = "0  0  1  1   1  0  0  0    0 0 0 x  x x x x",
-                          "0  0  0  0   0  0  0  0    o o o o  o o o o";
+                          "0  0  0  0   0  0  0  0   o o o o  o o o o";
     ;
 ;
 
