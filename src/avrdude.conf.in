@@ -12621,10 +12621,10 @@ part
                 readback_p1     = 0xff;
                 readback_p2     = 0xff;
                 read            = "1  0  1  0   0  0  0  0    0 0 0 x  x x x x",
-                                   "0  0 a4  a3 a2 a1 a0   o o o o  o o o o";
+                                  "0  0 a5 a4  a3 a2 a1 a0    o o o o  o o o o";
 
                 write           = "1  1  0  0   0  0  0  0    0 0 0 x  x x x x",
-                                   "0  0 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+                                  "0  0 a5 a4  a3 a2 a1 a0    i i i i  i i i i";
 
                 loadpage_lo     = "  1   1   0   0      0   0   0   1",
                                   "  0   0   0   0      0   0   0   0",
