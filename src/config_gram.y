@@ -45,7 +45,7 @@ int yywarning(char * errmsg, ...);
 static int assign_pin(int pinno, TOKEN * v, int invert);
 static int assign_pin_list(int invert);
 static int which_opcode(TOKEN * opcode);
-static int parse_cmdbits(OPCODE * op);
+static int parse_cmdbits(OPCODE * op, int opnum);
 
 static int pin_name;
 %}
@@ -1267,7 +1267,8 @@ part_parm :
         free_token($1);
         YYABORT;
       }
-      if(0 != parse_cmdbits(op)) YYABORT;
+      if(0 != parse_cmdbits(op, opnum))
+        YYABORT;
       if (current_part->op[opnum] != NULL) {
         /*yywarning("operation redefined");*/
         avr_free_opcode(current_part->op[opnum]);
@@ -1405,7 +1406,8 @@ mem_spec :
         free_token($1);
         YYABORT;
       }
-      if(0 != parse_cmdbits(op)) YYABORT;
+      if(0 != parse_cmdbits(op, opnum))
+        YYABORT;
       if (current_mem->op[opnum] != NULL) {
         /*yywarning("operation redefined");*/
         avr_free_opcode(current_mem->op[opnum]);
@@ -1529,7 +1531,7 @@ static int which_opcode(TOKEN * opcode)
 }
 
 
-static int parse_cmdbits(OPCODE * op)
+static int parse_cmdbits(OPCODE * op, int opnum)
 {
   TOKEN * t;
   int bitno;
@@ -1585,7 +1587,10 @@ static int parse_cmdbits(OPCODE * op)
           case 'a':
             op->bit[bitno].type  = AVR_CMDBIT_ADDRESS;
             op->bit[bitno].value = 0;
-            op->bit[bitno].bitno = 8*(bitno/8) + bitno % 8;
+            op->bit[bitno].bitno = bitno < 8 || bitno > 23? 0:
+              opnum == AVR_OP_LOAD_EXT_ADDR? bitno+8: bitno-8; /* correct bit number for lone 'a' */
+            if(bitno < 8 || bitno > 23)
+              yywarning("address bits don't normally appear in Byte 0 or Byte 3 of SPI programming commands");
             break;
           case 'i':
             op->bit[bitno].type  = AVR_CMDBIT_INPUT;
