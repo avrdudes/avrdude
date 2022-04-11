@@ -571,6 +571,11 @@ int main(int argc, char * argv [])
         terminal = 1;
         break;
 
+      case 'u':
+        avrdude_message(MSG_INFO, "%s: \"safemode\" feature no longer supported\n",
+                progname);
+        break;
+
       case 'U':
         upd = parse_op(optarg);
         if (upd == NULL) {

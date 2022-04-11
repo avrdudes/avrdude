@@ -1174,7 +1174,8 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
 	u32_to_b4(xd.nvm_fuse_offset, m->offset & ~7);
       } else if (matches(m->desc, "lock")) {
 	u32_to_b4(xd.nvm_lock_offset, m->offset);
-      } else if (strcmp(m->desc, "usersig") == 0) {
+      } else if (strcmp(m->desc, "usersig") == 0 ||
+                 strcmp(m->desc, "userrow") == 0) {
 	u32_to_b4(xd.nvm_user_sig_offset, m->offset);
       } else if (strcmp(m->desc, "prodsig") == 0) {
 	u32_to_b4(xd.nvm_prod_sig_offset, m->offset);
@@ -1225,7 +1226,8 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
         u16_to_b2(xd.eeprom_bytes, m->size);
         u16_to_b2(xd.eeprom_base, m->offset);
       }
-      else if (strcmp(m->desc, "usersig") == 0)
+      else if (strcmp(m->desc, "usersig") == 0 ||
+               strcmp(m->desc, "userrow") == 0)
       {
         u16_to_b2(xd.user_sig_bytes, m->size);
         u16_to_b2(xd.user_sig_base, m->offset);
@@ -1265,7 +1267,7 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
       "xd->flash_page_size=%x\n\t"
       "xd->eeprom_page_size=%x\n\t"
       "xd->nvmctrl=%x %x\n\t"
-      "xd->ocd=%x %x\n\t",
+      "xd->ocd=%x %x\n\t"
       "xd->address_mode=%x\n",
       xd.prog_base_msb,
       xd.prog_base[0], xd.prog_base[1],
@@ -1686,9 +1688,10 @@ static int jtag3_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       cmd[3] = XMEGA_ERASE_BOOT_PAGE;
   } else if (strcmp(m->desc, "eeprom") == 0) {
     cmd[3] = XMEGA_ERASE_EEPROM_PAGE;
-  } else if ( ( strcmp(m->desc, "usersig") == 0 ) ) {
+  } else if (strcmp(m->desc, "usersig") == 0 ||
+             strcmp(m->desc, "userrow") == 0) {
     cmd[3] = XMEGA_ERASE_USERSIG;
-  } else if ( ( strcmp(m->desc, "boot") == 0 ) ) {
+  } else if (strcmp(m->desc, "boot") == 0) {
     cmd[3] = XMEGA_ERASE_BOOT_PAGE;
   } else {
     cmd[3] = XMEGA_ERASE_APP_PAGE;
@@ -1760,9 +1763,10 @@ static int jtag3_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     }
     cmd[3] = ( p->flags & AVRPART_HAS_PDI ) ? MTYPE_EEPROM_XMEGA : MTYPE_EEPROM_PAGE;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-  } else if ( ( strcmp(m->desc, "usersig") == 0 ) ) {
+  } else if (strcmp(m->desc, "usersig") == 0 ||
+             strcmp(m->desc, "userrow") == 0) {
     cmd[3] = MTYPE_USERSIG;
-  } else if ( ( strcmp(m->desc, "boot") == 0 ) ) {
+  } else if (strcmp(m->desc, "boot") == 0) {
     cmd[3] = MTYPE_BOOT_FLASH;
   } else if ( p->flags & AVRPART_HAS_PDI || p->flags & AVRPART_HAS_UPDI ) {
     cmd[3] = MTYPE_FLASH;
@@ -1849,11 +1853,12 @@ static int jtag3_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     cmd[3] = ( p->flags & AVRPART_HAS_PDI || p->flags & AVRPART_HAS_UPDI ) ? MTYPE_EEPROM : MTYPE_EEPROM_PAGE;
     if (pgm->flag & PGM_FL_IS_DW)
       return -1;
-  } else if ( ( strcmp(m->desc, "prodsig") == 0 ) ) {
+  } else if (strcmp(m->desc, "prodsig") == 0) {
     cmd[3] = MTYPE_PRODSIG;
-  } else if ( ( strcmp(m->desc, "usersig") == 0 ) ) {
+  } else if (strcmp(m->desc, "usersig") == 0 ||
+             strcmp(m->desc, "userrow") == 0) {
     cmd[3] = MTYPE_USERSIG;
-  } else if ( ( strcmp(m->desc, "boot") == 0 ) ) {
+  } else if (strcmp(m->desc, "boot") == 0) {
     cmd[3] = MTYPE_BOOT_FLASH;
   } else if ( p->flags & AVRPART_HAS_PDI ) {
     cmd[3] = MTYPE_FLASH;
@@ -1965,7 +1970,8 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     cmd[3] = MTYPE_FUSE_BITS;
     if (!(p->flags & AVRPART_HAS_UPDI))
       addr = mem->offset & 7;
-  } else if (strcmp(mem->desc, "usersig") == 0) {
+  } else if (strcmp(mem->desc, "usersig") == 0 ||
+             strcmp(mem->desc, "userrow") == 0) {
     cmd[3] = MTYPE_USERSIG;
   } else if (strcmp(mem->desc, "prodsig") == 0) {
     cmd[3] = MTYPE_PRODSIG;
@@ -2126,7 +2132,8 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     cmd[3] = MTYPE_FUSE_BITS;
     if (!(p->flags & AVRPART_HAS_UPDI))
       addr = mem->offset & 7;
-  } else if (strcmp(mem->desc, "usersig") == 0) {
+  } else if (strcmp(mem->desc, "usersig") == 0 ||
+             strcmp(mem->desc, "userrow") == 0) {
     cmd[3] = MTYPE_USERSIG;
   } else if (strcmp(mem->desc, "prodsig") == 0) {
     cmd[3] = MTYPE_PRODSIG;
@@ -2465,7 +2472,10 @@ static unsigned int jtag3_memaddr(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, uns
    * Non-Xmega device.
    */
   if (p->flags & AVRPART_HAS_UPDI) {
-    if (m->size == 1) {
+    if (strcmp(m->desc, "flash") == 0) {
+      return addr;
+    }
+    else if (m->size == 1) {
       addr = m->offset;
     }
     else if (m->size > 1) {

@@ -40,7 +40,7 @@ all-local: info html ps pdf
 html: avrdude-html/avrdude.html
 
 avrdude-html/avrdude.html: $(srcdir)/$(info_TEXINFOS) $(GENERATED_TEXINFOS)
-	texi2html -split_node $(srcdir)/$(info_TEXINFOS)
+	texi2html --split=node --css-include=$(srcdir)/avrdude.css $(srcdir)/$(info_TEXINFOS)
 	if [ -e ./avrdude.html -o -e ./avrdude_1.html ]; then \
 	 mkdir -p avrdude-html ; \
 	 mv -f *.html avrdude-html ; \

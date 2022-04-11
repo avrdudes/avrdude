@@ -18,6 +18,12 @@ Changes since version 6.4:
       programmers on parallel or serial ports) virtually doesn't exist
       anymore, and the fuse combination that was covered by it do not
       match the fuses of modern AVR devices anyway.
+    - avrdude.conf is now being looked up in the location of the
+      executable file first, before considering the configured default
+      location; this eases a "portable use" where the entire suite is
+      not installed into its configured default location. (Basically
+      only relevant for unixoid systems; on Windows, this search order
+      has been used for many years already.)
 
   * New devices supported:
 
@@ -35,6 +41,7 @@ Changes since version 6.4:
     - ATtiny3224, ATtiny3226 and ATtiny3227
     - AVR16DD14/20/28/32, AVR32DD14/20/28/32 and AVR64DD14/20/28/32
     - AVR8EA28/32, AVR16EA28/32/48, AVR32EA28/32/48 and AVR64EA28/32/64
+    - ATmega16U4
 
 
   * New programmers supported:
@@ -71,6 +78,16 @@ Changes since version 6.4:
     - Can't get serialupdi to work #874
     - Rework HID support for Windows #881
     - List of signing keys? #884
+    - Pickit4 UPDI is writing at offset 0x4000 into flash instead of 0x0000. #892
+    - SerialUPDI programmer can't write to usersig/userrow in terminal mode #889
+    - Signature read command for ATmega165* was wrong (no-id)
+    - Cannot use non-standard baud rates for uploading on MacOS #771
+    - Wrong values in avrdude.conf #897
+    - AVR-Eclipse plugin broken by missing -u commandline option #890
+    - Timeout passed to hid_read_timeout() is too short for instances
+      where the EDBG AVRISP 'Enter Programming Mode' command fails #900
+    - Terminal write mode doesn't support string input (yet) #913
+    - Terminal mode: memory fill with strings may cause Avrdude to crash. #922
 
   * Pull requests:
 
@@ -140,6 +157,24 @@ Changes since version 6.4:
     - Smallest possible fix for PL2303HX #885
     - Add missing USBtiny derived programmers #873
     - Cleanup of POSIX serial init code #886
+    - Avrdude terminal write improvements #880
+    - Add userrow and usersig aliases #888
+    - For UPDI devices do not add offset when accessing flash. #895
+    - Support both userrow and usersig names #893
+    - Fix ugly terminal write bug #896
+    - Improve terminal read functionality #894
+    - Macos nonstandard baudrates #898
+    - Fix errors in Avrdude.conf #899
+    - Minor terminal write improvements #902
+    - Term docs #903
+    - Add progressbar for read and write command #912
+    - Add MacOS serial/parallel port note #908
+    - Add ATmega16U4 to avrdude.conf #910
+    - Mask out unused ATmega32U4 efuse bits #909
+    - Increased timeout passed to hid_read_timeout() #901
+    - Add terminal write string functionality #914
+    - Update documentation link to new URL #929
+    - Fix terminal write buffer overflow issue #924
 
   * Internals:
 
