@@ -1629,5 +1629,8 @@ static int parse_cmdbits(OPCODE * op)
 
   }  /* while */
 
+  if(bitno > 0)
+    yywarning("too few opcode bits in instruction");
+
   return rv;
 }
