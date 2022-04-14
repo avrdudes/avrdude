@@ -2234,11 +2234,11 @@ part
     pagel               = 0xd7;
     bs2                 = 0xa0;
     chip_erase_delay    = 20000;
-    pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+    pgm_enable          = "1 0 1 0  1 1 0 0   0 1 0 1  0 0 1 1",
+                          "x x x x  x x x x   x x x x  x x x x";
 
-    chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+    chip_erase          = "1 0 1 0  1 1 0 0   1 0 0 0  0 0 0 0",
+                          "x x x x  x x x x   x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -2347,10 +2347,10 @@ part
     signature           = 0x1e 0x92 0x01;
     chip_erase_delay    = 20000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -2459,10 +2459,10 @@ part
     signature           = 0x1e 0x91 0x01;
     chip_erase_delay    = 20000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -2572,10 +2572,10 @@ part
     signature           = 0x1e 0x91 0x05;
     chip_erase_delay    = 20000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -2698,10 +2698,10 @@ part
     signature           = 0x1e 0x91 0x03;
     chip_erase_delay    = 18000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -2821,10 +2821,10 @@ part
     signature           = 0x1e 0x92 0x03;
     chip_erase_delay    = 20000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -2945,10 +2945,10 @@ part
     signature           = 0x1e 0x92 0x02;
     chip_erase_delay    = 20000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     memory "eeprom"
         size            = 256;
@@ -3026,10 +3026,10 @@ part
     signature           = 0x1e 0x93 0x01;
     chip_erase_delay    = 20000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -3139,10 +3139,10 @@ part
     signature           = 0x1e 0x93 0x03;
     chip_erase_delay    = 20000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -3259,10 +3259,10 @@ part
     signature           = 0x1e 0x97 0x01;
     chip_erase_delay    = 112000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -3397,10 +3397,10 @@ part
     bs2                 = 0xA0;
     reset               = dedicated;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -3581,10 +3581,10 @@ part
     bs2                 = 0xA0;
     reset               = dedicated;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -3765,10 +3765,10 @@ part
     bs2                 = 0xA0;
     reset               = dedicated;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -3949,10 +3949,10 @@ part
     bs2                 = 0xA0;
     reset               = dedicated;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -4133,10 +4133,10 @@ part
     bs2                 = 0xA0;
     reset               = dedicated;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -4317,10 +4317,10 @@ part
     bs2                 = 0xa0;
     chip_erase_delay    = 9000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -4496,10 +4496,10 @@ part
     bs2                 = 0xa0;
     chip_erase_delay    = 55000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -4803,10 +4803,10 @@ part
     bs2                 = 0xa0;
     chip_erase_delay    = 55000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -5014,10 +5014,10 @@ part
     bs2                 = 0xa0;
     chip_erase_delay    = 55000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -5211,10 +5211,10 @@ part
     allowfullpagebitstream = yes;
 
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     ocdrev              = 2;
 
@@ -5395,10 +5395,10 @@ part
     pagel               = 0xd7;
     bs2                 = 0xa0;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -5546,10 +5546,11 @@ part
     signature           = 0x1e 0x94 0x05;
     chip_erase_delay    = 9000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
+
     timeout             = 200;
     stabdelay           = 100;
     cmdexedelay         = 25;
@@ -5751,10 +5752,11 @@ part
     signature           = 0x1e 0x95 0x03;
     chip_erase_delay    = 9000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
+
     timeout             = 200;
     stabdelay           = 100;
     cmdexedelay         = 25;
@@ -5998,10 +6000,11 @@ part
     signature           = 0x1e 0x96 0x03;
     chip_erase_delay    = 9000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
+
     timeout             = 200;
     stabdelay           = 100;
     cmdexedelay         = 25;
@@ -6227,10 +6230,11 @@ part
     bs2                 = 0xa0;
     reset               = dedicated;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
+
     timeout             = 200;
     stabdelay           = 100;
     cmdexedelay         = 25;
@@ -6395,10 +6399,11 @@ part
     pagel               = 0xd7;
     bs2                 = 0xa0;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
+
     timeout             = 200;
     stabdelay           = 100;
     cmdexedelay         = 25;
@@ -6537,10 +6542,10 @@ part
     bs2                 = 0xc2;
     chip_erase_delay    = 10000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -6700,10 +6705,10 @@ part
     signature           = 0x1e 0x93 0x06;
     chip_erase_delay    = 9000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -6855,10 +6860,10 @@ part
     bs2                 = 0xa0;
     chip_erase_delay    = 9000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -7805,10 +7810,10 @@ part
     bs2                 = 0xc2;
     chip_erase_delay    = 45000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -8024,10 +8029,10 @@ part
     bs2                 = 0xc2;
     chip_erase_delay    = 9000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -8243,10 +8248,10 @@ part
     bs2                 = 0xc2;
     chip_erase_delay    = 9000;
     pgm_enable          = "1 0 1 0 1 1 0 0 0 1 0 1 0 0 1 1",
-                       "x x x x x x x x x x x x x x x x";
+                          "x x x x x x x x x x x x x x x x";
 
     chip_erase          = "1 0 1 0 1 1 0 0 1 0 0 x x x x x",
-                       "x x x x x x x x x x x x x x x x";
+                          "x x x x x x x x x x x x x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -8464,10 +8469,10 @@ part
     bs2                 = 0xc2;
     chip_erase_delay    = 15000;
     pgm_enable          = "1 0 1 0 1 1 0 0 0 1 0 1 0 0 1 1",
-                       "x x x x x x x x x x x x x x x x";
+                          "x x x x x x x x x x x x x x x x";
 
     chip_erase          = "1 0 1 0 1 1 0 0 1 0 0 x x x x x",
-                       "x x x x x x x x x x x x x x x x";
+                          "x x x x x x x x x x x x x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -8655,10 +8660,10 @@ part
     chip_erase_delay    = 15000;
 
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -8840,10 +8845,10 @@ part
     chip_erase_delay    = 15000;
 
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -9022,10 +9027,10 @@ part
     bs2                 = 0xc2;
     chip_erase_delay    = 15000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -9202,10 +9207,10 @@ part
     bs2                 = 0xc2;
     chip_erase_delay    = 9000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -9382,10 +9387,10 @@ part
     bs2                 = 0xc2;
     chip_erase_delay    = 9000;
     pgm_enable          = "1 0 1 0 1 1 0 0 0 1 0 1 0 0 1 1",
-                 "x x x x x x x x x x x x x x x x";
+                          "x x x x x x x x x x x x x x x x";
 
     chip_erase          = "1 0 1 0 1 1 0 0 1 0 0 x x x x x",
-                 "x x x x x x x x x x x x x x x x";
+                          "x x x x x x x x x x x x x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -9710,10 +9715,10 @@ part
     chip_erase_delay    = 9000;
 
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -9905,10 +9910,10 @@ part
     chip_erase_delay    = 9000;
 
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                        "x x x x  x x x x    x x x x  x x x x";
+                           "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                        "x x x x  x x x x    x x x x  x x x x";
+                           "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -10085,10 +10090,10 @@ part
     chip_erase_delay    = 9000;
 
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -10361,10 +10366,10 @@ part
     chip_erase_delay    = 4500;
 
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -10540,10 +10545,10 @@ part
     chip_erase_delay    = 4500;
 
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -10720,10 +10725,10 @@ part
     chip_erase_delay    = 4500;
 
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -10895,10 +10900,10 @@ part
     bs2                 = 0xA0;
     reset               = dedicated;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -11077,10 +11082,10 @@ part
     bs2                 = 0xA0;
     reset               = dedicated;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -11272,10 +11277,10 @@ part
     bs2                 = 0xA0;
     reset               = dedicated;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -11694,10 +11699,10 @@ part
     chip_erase_delay    = 4500;
 
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -11883,10 +11888,10 @@ part
     chip_erase_delay    = 4500;
 
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -12073,10 +12078,10 @@ part
     chip_erase_delay    = 4500;
 
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -12375,10 +12380,10 @@ part
     chip_erase_delay    = 1000;
 
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                        "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -12549,10 +12554,10 @@ part
     bs2                 = 0xA0;
     reset               = dedicated;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -12733,10 +12738,10 @@ part
     bs2                 = 0xA0;
     reset               = dedicated;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -12917,10 +12922,10 @@ part
     bs2                 = 0xA0;
     reset               = dedicated;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -13113,10 +13118,10 @@ part
     bs2                 = 0xA0;
     reset               = dedicated;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -13307,9 +13312,11 @@ part
     chip_erase_delay    = 9000;
     reset               = io;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
+
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
+
     pagel               = 0xD7;
     bs2                 = 0xC6;
 
@@ -13486,9 +13493,11 @@ part
     chip_erase_delay    = 9000;
     reset               = io;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
+
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
+
     pagel               = 0xD7;
     bs2                 = 0xC6;
 
@@ -13667,9 +13676,11 @@ part
     chip_erase_delay    = 9000;
     reset               = io;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
+
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
+
     pagel               = 0xD7;
     bs2                 = 0xC6;
 
@@ -13847,9 +13858,11 @@ part
     chip_erase_delay    = 9000;
     reset               = io;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
+
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
+
     pagel               = 0xD7;
     bs2                 = 0xC6;
 
@@ -14027,9 +14040,11 @@ part
     chip_erase_delay    = 9000;
     reset               = io;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
+
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 x  x x x x",
-                       "x x x x  x x x x    x x x x  x x x x";
+                          "x x x x  x x x x    x x x x  x x x x";
+
     pagel               = 0xD7;
     bs2                 = 0xC6;
 
@@ -14204,10 +14219,10 @@ part
     pagel               = 0xd7;
     bs2                 = 0xa0;
     pgm_enable          = "1 0 1 0  1 1 0 0   0 1 0 1  0 0 1 1",
-                       "x x x x  x x x x   x x x x  x x x x";
+                          "x x x x  x x x x   x x x x  x x x x";
 
     chip_erase          = "1 0 1 0  1 1 0 0   1 0 0 x  x x x x",
-                       "x x x x  x x x x   x x x x  x x x x";
+                          "x x x x  x x x x   x x x x  x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -14418,10 +14433,10 @@ part
     bs2                 = 0xa0;
     chip_erase_delay    = 9000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "0 0 0 0  0 0 0 0    0 0 0 0  0 0 0 0";
+                          "0 0 0 0  0 0 0 0    0 0 0 0  0 0 0 0";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "0 0 0 0  0 0 0 0    0 0 0 0  0 0 0 0";
+                          "0 0 0 0  0 0 0 0    0 0 0 0  0 0 0 0";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -14630,10 +14645,10 @@ part
     bs2                 = 0xa0;
     chip_erase_delay    = 9000;
     pgm_enable          = "1 0 1 0  1 1 0 0    0 1 0 1  0 0 1 1",
-                       "0 0 0 0  0 0 0 0    0 0 0 0  0 0 0 0";
+                          "0 0 0 0  0 0 0 0    0 0 0 0  0 0 0 0";
 
     chip_erase          = "1 0 1 0  1 1 0 0    1 0 0 0  0 0 0 0",
-                       "0 0 0 0  0 0 0 0    0 0 0 0  0 0 0 0";
+                          "0 0 0 0  0 0 0 0    0 0 0 0  0 0 0 0";
 
     timeout             = 200;
     stabdelay           = 100;
@@ -16087,10 +16102,10 @@ part
     reset               = io;
     chip_erase_delay    = 9000;
     pgm_enable          = "1 0 1 0 1 1 0 0 0 1 0 1 0 0 1 1",
-                       "x x x x x x x x x x x x x x x x";
+                          "x x x x x x x x x x x x x x x x";
 
     chip_erase          = "1 0 1 0 1 1 0 0 1 0 0 x x x x x",
-                       "x x x x x x x x x x x x x x x x";
+                          "x x x x x x x x x x x x x x x x";
 
     timeout             = 200;
     stabdelay           = 100;
