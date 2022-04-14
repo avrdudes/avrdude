@@ -1819,7 +1819,7 @@ static OPCODE *op_addr_suggest(char *desc, OPCODE *op, int opnum, int mem_nbytes
 
   ret = malloc(sizeof *ret);
   if(!ret) {
-    avrdude_message(MSG_INFO, "op_addr_check(): out of memory\n");
+    avrdude_message(MSG_INFO, "op_addr_suggest(): out of memory\n");
     exit(1);
   }
   memcpy(ret, op, sizeof *ret);
@@ -1859,7 +1859,7 @@ static int op_diff_forgivable(OPCODE *opshould, OPCODE *opis) {
     if(memcmp(&opshould->bit[i], &opis->bit[i], sizeof opshould->bit[i])) { /* command bit i different? */
       errors++;
       if(i >= 8 && i < 24)
-        if(opshould->bit[i].type == AVR_CMDBIT_VALUE && opis->bit[i].type == AVR_CMDBIT_ADDRESS)
+        if((opshould->bit[i].type == AVR_CMDBIT_VALUE || opshould->bit[i].type == AVR_CMDBIT_IGNORE) && opis->bit[i].type == AVR_CMDBIT_ADDRESS)
           forgivable++;
     }
   }
