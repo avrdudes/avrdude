@@ -84,10 +84,6 @@
 #       predelay         = <num> ;
 #       postdelay        = <num> ;
 #       pollmethod       = <num> ;
-#       mode             = <num> ;
-#       delay            = <num> ;
-#       blocksize        = <num> ;
-#       readsize         = <num> ;
 #       hvspcmdexedelay  = <num> ;
 #       # STK500v2 HV programming parameters, from XML
 #       pp_controlstack  = <num>, <num>, ...;   # PP only
@@ -122,6 +118,7 @@
 #
 #       memory <memtype>
 #           paged           = <yes/no> ;          # yes / no
+#           offset          = <num> ;             # memory offset
 #           size            = <num> ;             # bytes
 #           page_size       = <num> ;             # bytes
 #           num_pages       = <num> ;             # numeric
@@ -139,6 +136,10 @@
 #           loadpage_lo     = <instruction format> ;
 #           loadpage_hi     = <instruction format> ;
 #           writepage       = <instruction format> ;
+#           mode            = <num> ;             # STK500 v2 file parameter, to be taken from Atmel's XML files
+#           delay           = <num> ;             # STK500 v2 file parameter, to be taken from Atmel's XML files
+#           blocksize       = <num> ;             # STK500 v2 file parameter, to be taken from Atmel's XML files
+#           readsize        = <num> ;             # STK500 v2 file parameter, to be taken from Atmel's XML files
 #         ;
 #     ;
 #
@@ -191,8 +192,8 @@
 #
 #       'x'  = the bit is ignored on input and output
 #
-#       'a'  = the bit is an address bit, the bit-number matches this bit
-#              specifier's position within the current instruction byte
+#       'a'  = the bit is an address bit; from v 7.0 the bit-number is set to
+#              match the right bit position for the instruction to just work
 #
 #       'aN' = the bit is the Nth address bit, bit-number = N, i.e., a12
 #              is address bit 12 on input, a0 is address bit 0.
