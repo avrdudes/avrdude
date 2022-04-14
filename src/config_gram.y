@@ -215,7 +215,7 @@ static int pin_name;
 
 %%
 
-number_real : 
+number_real :
  TKN_NUMBER {
     $$ = $1;
     /* convert value to real */
@@ -332,8 +332,8 @@ prog_decl :
 
 
 part_def :
-  part_decl part_parms 
-    { 
+  part_decl part_parms
+    {
       LNODEID ln;
       AVRMEM * m;
       AVRPART * existing_part;
@@ -384,8 +384,8 @@ part_def :
         lrmv_d(part_list, existing_part);
         avr_free_part(existing_part);
       }
-      LISTADD(part_list, current_part); 
-      current_part = NULL; 
+      LISTADD(part_list, current_part);
+      current_part = NULL;
     }
 ;
 
@@ -400,7 +400,7 @@ part_decl :
       strcpy(current_part->config_file, infile);
       current_part->lineno = lineno;
     } |
-  K_PART K_PARENT TKN_STRING 
+  K_PART K_PARENT TKN_STRING
     {
       AVRPART * parent_part = locate_part(part_list, $3->value.string);
       if (parent_part == NULL) {
@@ -492,11 +492,11 @@ prog_parm_type_id:
   const struct programmer_type_t * pgm_type = locate_programmer_type($1->value.string);
     if (pgm_type == NULL) {
         yyerror("programmer type %s not found", $1->value.string);
-        free_token($1); 
+        free_token($1);
         YYABORT;
     }
     current_prog->initpgm = pgm_type->initpgm;
-    free_token($1); 
+    free_token($1);
 }
   | error
 {
@@ -660,14 +660,14 @@ retry_lines :
 ;
 
 part_parm :
-  K_ID TKN_EQUAL TKN_STRING 
+  K_ID TKN_EQUAL TKN_STRING
     {
       strncpy(current_part->id, $3->value.string, AVR_IDLEN);
       current_part->id[AVR_IDLEN-1] = 0;
       free_token($3);
     } |
 
-  K_DESC TKN_EQUAL TKN_STRING 
+  K_DESC TKN_EQUAL TKN_STRING
     {
       strncpy(current_part->desc, $3->value.string, AVR_DESCLEN - 1);
       current_part->desc[AVR_DESCLEN-1] = 0;
@@ -1229,7 +1229,7 @@ part_parm :
     mem_specs |
 */
 
-  K_MEMORY TKN_STRING 
+  K_MEMORY TKN_STRING
     {
       current_mem = avr_new_memtype();
       if (current_mem == NULL) {
@@ -1241,8 +1241,8 @@ part_parm :
       current_mem->desc[AVR_MEMDESCLEN-1] = 0;
       free_token($2);
     }
-    mem_specs 
-    { 
+    mem_specs
+    {
       AVRMEM * existing_mem;
 
       existing_mem = avr_locate_mem_noalias(current_part, current_mem->desc);
@@ -1256,11 +1256,11 @@ part_parm :
       } else {
         ladd(current_part->mem, current_mem);
       }
-      current_mem = NULL; 
+      current_mem = NULL;
     } |
 
   opcode TKN_EQUAL string_list {
-    { 
+    {
       int opnum;
       OPCODE * op;
 
@@ -1399,7 +1399,7 @@ mem_spec :
 
 
   opcode TKN_EQUAL string_list {
-    { 
+    {
       int opnum;
       OPCODE * op;
 
@@ -1424,27 +1424,44 @@ mem_spec :
         OPCODE *suggest = op_addr_suggest(current_mem->desc, op, opnum, current_mem->size, current_mem->page_size);
         if(memcmp(suggest, op, sizeof *suggest)) { /* one or more address bits seem to be wrong, missing or superfluous */
           int level = op_diff_forgivable(suggest, op)? MSG_NOTICE: MSG_INFO;
+
+          int hasaddrbit = 0;
+          for(int i=23; i>7; i--)
+             if(suggest->bit[i].type == AVR_CMDBIT_ADDRESS) {
+               hasaddrbit = 1;
+               break;
+             }
+
           avrdude_message(level,
             "%s: %s:%d defines %s SPI programming command %s for %s\n"
             "  - its address bits are not compatible with memory size %d and/or pagesize %d%s\n"
             "  - consider the following suggestion and consult the datasheet:\n"
-            "    %s = \"%c",
+            "        %-15s = ",
             progname, infile, lineno, current_part->desc, opcodename(opnum), current_mem->desc,
             current_mem->size, current_mem->page_size,
               level == MSG_INFO?
                 ", and external SPI programming may not work":
                 " but superfluous address bits are unlikely to affect functionality",
-            opcodename(opnum), cmdbitchar(suggest->bit[31])
+            opcodename(opnum)
           );
-          for(int i=30 /* sic */; i>=0; i--) {
+
+          avrdude_message(level, "\"%c", cmdbitchar(suggest->bit[31]));
+          for(int i=30; i>=0; i--) {
             char bc = cmdbitchar(suggest->bit[i]);
-            if(i%8 == 7)
-              avrdude_message(level, "  ");
-            avrdude_message(level, " %c", bc);
+            if(i%8 == 7) {
+              if((i/8 != 1 && hasaddrbit) || (i/8 == 1 && !hasaddrbit))
+                avrdude_message(level, "\",\n                          \"");
+              else if(i/8 != 1 && !hasaddrbit)
+                avrdude_message(level, "   ");
+              else
+                avrdude_message(level, " ");
+            } else
+              avrdude_message(level, " ");
+            avrdude_message(level, "%c", bc);
             if(bc == 'a')
               avrdude_message(level, "%d", suggest->bit[i].bitno);
           }
-          avrdude_message(level, "\"\n");
+          avrdude_message(level, "\";\n");
         }
         free(suggest);
       }
@@ -1770,15 +1787,15 @@ static char shouldbe(int bitno, char isbit, int opnum, int memsize, int pagesize
     lo = intlog2(pagesize);
     hi = intlog2(memsize-1);
     break;
-  
+
   case AVR_OP_CHIP_ERASE:
   case AVR_OP_PGM_ENABLE:
   default:
-    lo = 0; 
+    lo = 0;
     hi = -1;
     break;
   }
-  
+
   if(bitno < lo || bitno > hi)
     return isbit == 'a'? '0': isbit;
 
@@ -1798,7 +1815,7 @@ static char shouldbe(int bitno, char isbit, int opnum, int memsize, int pagesize
  */
 static OPCODE *op_addr_suggest(char *desc, OPCODE *op, int opnum, int mem_nbytes, int page_nbytes) {
   OPCODE *ret;
-  int isflash = !strcmp(desc, "flash"); /* SPI command parts only have one flash-type memory, "flash" */ 
+  int isflash = !strcmp(desc, "flash"); /* SPI command parts only have one flash-type memory, "flash" */
 
   ret = malloc(sizeof *ret);
   if(!ret) {
@@ -1806,7 +1823,7 @@ static OPCODE *op_addr_suggest(char *desc, OPCODE *op, int opnum, int mem_nbytes
     exit(1);
   }
   memcpy(ret, op, sizeof *ret);
- 
+
   for(int i=0; i<32; i++) {
     int is = cmdbitchar(op->bit[i]);
 
@@ -1845,7 +1862,7 @@ static int op_diff_forgivable(OPCODE *opshould, OPCODE *opis) {
         if(opshould->bit[i].type == AVR_CMDBIT_VALUE && opis->bit[i].type == AVR_CMDBIT_ADDRESS)
           forgivable++;
     }
-  }    
+  }
 
   return errors == forgivable;
 }
