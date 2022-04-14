@@ -152,7 +152,10 @@
 # using the following syntax. In this case specified integer and
 # string values override parameter values from the parent part. New
 # memory definitions are added to the definitions inherited from the
-# parent.
+# parent. If, however, a new memory definion refers to an existing
+# one of the same name for that part then, in the current code, the
+# existing memory definition is deleted, and all required parameters
+# need be defined for that memory.
 #
 #   part parent <id>                              # quoted string
 #       id               = <id> ;                 # quoted string
@@ -5848,7 +5851,6 @@ part
                           "x x x x x x x x x x a5 a4 a3 a2 a1 a0",
                           "i i i i i i i i";
 
-        # semi-automatically corrected: check part/datasheet
         writepage       = "0 1 0 0 1 1 0 0",
                           "x x a13 a12 a11 a10 a9 a8 a7 a6 x x x x x x",
                           "x x x x x x x x";
@@ -6096,7 +6098,6 @@ part
                           "x x x x x x x x x a6 a5 a4 a3 a2 a1 a0",
                           "i i i i i i i i";
 
-        # semi-automatically corrected: check part/datasheet
         writepage       = "0 1 0 0 1 1 0 0",
                           "x a14 a13 a12 a11 a10 a9 a8 a7 x x x x x x x",
                           "x x x x x x x x";
@@ -8712,7 +8713,6 @@ part
                           "0 0 x x x x x a8 a7 a6 a5 a4 a3 a2 a1 a0",
                           "o o o o o o o o";
 
-        # semi-automatically corrected: check part/datasheet
         write           = "1 1 0 0 0 0 0 0",
                           "0 0 x x x x x a8 a7 a6 a5 a4 a3 a2 a1 a0",
                           "i i i i i i i i";
@@ -8721,7 +8721,6 @@ part
                           "0 0 0 0 0 0 0 0 0 0 0 0 0 0 a1 a0",
                           "i i i i i i i i";
 
-        # semi-automatically corrected: check part/datasheet
         writepage       = "1 1 0 0 0 0 1 0",
                           "0 0 x x x x x a8 a7 a6 a5 a4 a3 a2 0 0",
                           "x x x x x x x x";
@@ -8897,7 +8896,6 @@ part
                           "0 0 x x x x x a8 a7 a6 a5 a4 a3 a2 a1 a0",
                           "o o o o o o o o";
 
-        # semi-automatically corrected: check part/datasheet
         write           = "1 1 0 0 0 0 0 0",
                           "0 0 x x x x x a8 a7 a6 a5 a4 a3 a2 a1 a0",
                           "i i i i i i i i";
@@ -8906,7 +8904,6 @@ part
                           "0 0 0 0 0 0 0 0 0 0 0 0 0 0 a1 a0",
                           "i i i i i i i i";
 
-        # semi-automatically corrected: check part/datasheet
         writepage       = "1 1 0 0 0 0 1 0",
                           "0 0 x x x x x a8 a7 a6 a5 a4 a3 a2 0 0",
                           "x x x x x x x x";
@@ -10146,7 +10143,6 @@ part
                           "0 0 0 0 0 0 0 0 0 0 0 0 0 0 a1 a0",
                           "i i i i i i i i";
 
-        # semi-automatically corrected: check part/datasheet
         writepage       = "1 1 0 0 0 0 1 0",
                           "0 0 x x x x x a8 a7 a6 a5 a4 a3 a2 0 0",
                           "x x x x x x x x";
@@ -11946,7 +11942,6 @@ part
                           "0 0 0 0 0 0 0 0 0 0 0 0 0 0 a1 a0",
                           "i i i i i i i i";
 
-        # semi-automatically corrected: check part/datasheet
         writepage       = "1 1 0 0 0 0 1 0",
                           "0 0 x x x x x x a7 a6 a5 a4 a3 a2 0 0",
                           "x x x x x x x x";
@@ -12136,7 +12131,6 @@ part
                           "0 0 0 0 0 0 0 0 0 0 0 0 0 0 a1 a0",
                           "i i i i i i i i";
 
-        # semi-automatically corrected: check part/datasheet
         writepage       = "1 1 0 0 0 0 1 0",
                           "0 0 x x x x x a8 a7 a6 a5 a4 a3 a2 0 0",
                           "x x x x x x x x";
@@ -12617,7 +12611,6 @@ part
                           "0 0 0 0 0 0 0 0 0 0 0 0 0 0 a1 a0",
                           "i i i i i i i i";
 
-        # semi-automatically corrected: check part/datasheet
         writepage       = "1 1 0 0 0 0 1 0",
                           "0 0 x x x 0 0 a8 a7 a6 a5 a4 a3 a2 0 0",
                           "x x x x x x x x";
@@ -12801,7 +12794,6 @@ part
                           "0 0 0 0 0 0 0 0 0 0 0 0 0 0 a1 a0",
                           "i i i i i i i i";
 
-        # semi-automatically corrected: check part/datasheet
         writepage       = "1 1 0 0 0 0 1 0",
                           "0 0 x x x 0 a9 a8 a7 a6 a5 a4 a3 a2 0 0",
                           "x x x x x x x x";
@@ -13181,7 +13173,6 @@ part
                           "0 0 0 0 0 0 0 0 0 0 0 0 0 a2 a1 a0",
                           "i i i i i i i i";
 
-        # semi-automatically corrected: check part/datasheet
         writepage       = "1 1 0 0 0 0 1 0",
                           "0 0 x x a11 a10 a9 a8 a7 a6 a5 a4 a3 0 0 0",
                           "x x x x x x x x";
@@ -16194,7 +16185,6 @@ part
                           "0 0 0 x x x x x x x 0 0 a3 a2 a1 a0",
                           "i i i i i i i i";
 
-        # semi-automatically corrected: check part/datasheet
         writepage       = "0 1 0 0 1 1 0 0",
                           "0 0 0 a12 a11 a10 a9 a8 a7 a6 a5 a4 x x x x",
                           "x x x x x x x x";
