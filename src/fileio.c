@@ -1594,7 +1594,10 @@ int fileio(int op, char * filename, FILEFMT format,
        * if we are reading flash, just mark the size as being the
        * highest non-0xff byte
        */
-      rc = avr_mem_hiaddr(mem);
+      int hiaddr = avr_mem_hiaddr(mem);
+
+      if(hiaddr < rc)           /* if trailing-0xff not disabled */
+        rc = hiaddr;
     }
   }
   if (format != FMT_IMM && !using_stdio) {

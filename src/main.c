@@ -528,6 +528,7 @@ int main(int argc, char * argv [])
 
       case 'D': /* disable auto erase */
         uflags &= ~UF_AUTO_ERASE;
+        avr_mem_hiaddr(NULL); /* disable trailing 0xff optimisation */
         break;
 
       case 'e': /* perform a chip erase */

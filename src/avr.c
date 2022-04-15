@@ -282,6 +282,16 @@ int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 int avr_mem_hiaddr(AVRMEM * mem)
 {
   int i, n;
+  static int disableffopt;
+
+  /* calling once with NULL disables any future trailing-0xff optimisation */
+  if(!mem) {
+    disableffopt = 1;
+    return 0;
+  }
+
+  if(disableffopt)
+    return mem->size;
 
   /* return the highest non-0xff address regardless of how much
      memory was read */
