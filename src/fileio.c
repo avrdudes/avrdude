@@ -1585,21 +1585,14 @@ int fileio(int op, char * filename, FILEFMT format,
       return -1;
   }
 
-  if (rc > 0) {
-    if ((op == FIO_READ) && (strcasecmp(mem->desc, "flash") == 0 ||
-                             strcasecmp(mem->desc, "application") == 0 ||
-                             strcasecmp(mem->desc, "apptable") == 0 ||
-                             strcasecmp(mem->desc, "boot") == 0)) {
-      /*
-       * if we are reading flash, just mark the size as being the
-       * highest non-0xff byte
-       */
-      int hiaddr = avr_mem_hiaddr(mem);
+  /* on reading flash set the size to location of highest non-0xff byte */
+  if (rc > 0 && op == FIO_READ) {
+    int hiaddr = avr_mem_hiaddr(mem);
 
-      if(hiaddr < rc)           /* if trailing-0xff not disabled */
-        rc = hiaddr;
-    }
+    if(hiaddr < rc)             /* if trailing-0xff not disabled */
+      rc = hiaddr;
   }
+
   if (format != FMT_IMM && !using_stdio) {
     fclose(f);
   }
