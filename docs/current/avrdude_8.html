@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<!-- Created on March 19, 2022 by texi2html 5.0
+<!-- Created on April 26, 2022 by texi2html 5.0
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -99,7 +99,6 @@ code {
 
 avrdude: AVR device initialized and ready to accept instructions
 avrdude: Device signature = 0x1e9702
-avrdude: current erase-rewrite cycle count is 52 (if being tracked)
 avrdude&gt; part
 &gt;&gt;&gt; part 
 
@@ -160,7 +159,6 @@ display the factory defaults, then reprogram:
 
 avrdude: AVR device initialized and ready to accept instructions
 avrdude: Device signature = 0x1e9702
-avrdude: current erase-rewrite cycle count is 52 (if being tracked)
 avrdude&gt; d efuse
 &gt;&gt;&gt; d efuse 
 0000  fd                                                |.               |
@@ -198,14 +196,16 @@ avrdude: AVR device initialized and ready to accept instructions
 Reading | ################################################## | 100% 0.01s
 
 avrdude: Device signature = 0x1e970c (probably avr128db48)
-avrdude&gt; write eeprom 0 1234567890 'A' 'V' 'R' 2.718282
-&gt;&gt;&gt; write eeprom 0 1234567890 'A' 'V' 'R' 2.718282 
+avrdude&gt; write eeprom 0 1234567890 'A' 'V' 'R' 2.718282 &quot;Hello World!&quot;
+&gt;&gt;&gt; write eeprom 0 1234567890 'A' 'V' 'R' 2.718282 &quot;Hello World!&quot;
 Warning: no size suffix specified for &quot;1234567890&quot;. Writing 4 byte(s)
+Info: Writing 24 bytes starting from address 0x00
 
 avrdude&gt; dump eeprom 0 32
 &gt;&gt;&gt; dump eeprom 0 32 
-0000  d2 02 96 49 41 56 52 55  f8 2d 40 ff ff ff ff ff  |...IAVRU.-.....|
-0010  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+
+0000  d2 02 96 49 41 56 52 55  f8 2d 40 48 65 6c 6c 6f  |...IAVRU.-@Hello|
+0010  20 57 6f 72 6c 64 21 00  ff ff ff ff ff ff ff ff  | World!.........|
 
 avrdude&gt; q
 </pre></td></tr></table>
@@ -246,7 +246,7 @@ avrdude&gt; dump eeprom 0 0x30
 </tr></table>
 <p>
  <font size="-1">
-  This document was generated on <i>March 19, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>April 26, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
  </font>
  <br>
 
