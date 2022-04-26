@@ -20,8 +20,14 @@ name: Build
 
 on:
   push:
+    branches-ignore:
+      - 'onlinedocs'
   pull_request:
+    branches-ignore:
+      - 'onlinedocs'
   workflow_call:
+    branches-ignore:
+      - 'onlinedocs'
 
 env:
   BUILD_TYPE: RelWithDebInfo
