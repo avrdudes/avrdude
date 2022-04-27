@@ -130,4 +130,7 @@ void arduino_initpgm(PROGRAMMER * pgm)
   pgm->read_sig_bytes = arduino_read_sig_bytes;
   pgm->open = arduino_open;
   pgm->close = arduino_close;
+
+  /* disable trailing-0xff removal when reading input files and avr flash */
+  avr_mem_hiaddr(NULL);
 }
