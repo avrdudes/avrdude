@@ -321,13 +321,13 @@ via a serial link (@url{https://github.com/ElTangas/jtag2updi}).
 
 The Micronucleus bootloader is supported for both protocol version V1
 and V2. As the bootloader does not support reading from flash memory,
-use the @code{-V} option to prevent AVRDUDE from verifing the flash memory.
+use the @code{-V} option to prevent AVRDUDE from verifying the flash memory.
 See the section on @emph{extended parameters}
 below for Micronucleus specific options.
 
 The Teensy bootloader is supported for all AVR boards.
 As the bootloader does not support reading from flash memory,
-use the @code{-V} option to prevent AVRDUDE from verifing the flash memory.
+use the @code{-V} option to prevent AVRDUDE from verifying the flash memory.
 See the section on @emph{extended parameters}
 below for Teensy specific options.
 
@@ -495,6 +495,16 @@ without patching your system wide configuration file. It can be used
 several times, the files are read in same order as given on the command 
 line.
 
+@item -A
+Disable the automatic removal of trailing-0xFF sequences in file
+input that is to be programmed to flash and in AVR reads from
+flash memory. Normally, trailing 0xFFs can be discarded, as flash
+programming requires the memory be erased to 0xFF beforehand. -A
+should be used when the programmer hardware, or bootloader
+software for that matter, does not carry out chip erase and
+instead handles the memory erase on a page level. The popular
+Arduino bootloader exhibits this behaviour; for this reason -A is
+engaged by default when specifying -c arduino.
 
 @item -D
 Disable auto erase for flash.  When the -U option with flash memory is 
@@ -506,6 +516,7 @@ use page erase before writing each page so no explicit chip erase
 is required.
 Note however that any page not affected by the current operation
 will retain its previous contents.
+Setting -D implies -A.
 
 @item -e
 Causes a chip erase to be executed.  This will reset the contents of the
