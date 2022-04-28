@@ -131,6 +131,5 @@ void arduino_initpgm(PROGRAMMER * pgm)
   pgm->open = arduino_open;
   pgm->close = arduino_close;
 
-  /* disable trailing-0xff removal when reading input files and avr flash */
-  avr_mem_hiaddr(NULL);
+  disable_trailing_ff_removal(); /* so that arduino bootloader can ignore chip erase */
 }

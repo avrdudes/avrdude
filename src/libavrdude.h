@@ -787,6 +787,7 @@ int avr_get_cycle_count(PROGRAMMER * pgm, AVRPART * p, int * cycles);
 
 int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles);
 
+#define disable_trailing_ff_removal() avr_mem_hiaddr(NULL)
 int avr_mem_hiaddr(AVRMEM * mem);
 
 int avr_chip_erase(PROGRAMMER * pgm, AVRPART * p);
