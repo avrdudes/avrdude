@@ -826,7 +826,8 @@ struct fioparms {
 
 enum {
   FIO_READ,
-  FIO_WRITE
+  FIO_WRITE,
+  FIO_READ_FOR_VERIFY,
 };
 
 #ifdef __cplusplus
@@ -835,7 +836,7 @@ extern "C" {
 
 char * fmtstr(FILEFMT format);
 
-int fileio(int op, char * filename, FILEFMT format,
+int fileio(int oprwv, char * filename, FILEFMT format,
            struct avrpart * p, char * memtype, int size);
 
 #ifdef __cplusplus
