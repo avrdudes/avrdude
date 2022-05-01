@@ -4741,16 +4741,79 @@ part parent "m324p"
     signature        = 0x1e 0x94 0x0a;
 
     memory "eeprom"
+        paged           = no; /* leave this "no" */
         size            = 512;
         page_size       = 4;
-        ;
+        min_write_delay = 9000;
+        max_write_delay = 9000;
+        readback_p1     = 0xff;
+        readback_p2     = 0xff;
+	read            = "  1   0   1   0      0   0   0   0",
+                          "  0   0   x   x      x a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
+
+	write           = "  1   1   0   0      0   0   0   0",
+                          "  0   0   x   x      x a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0", 
+                          "  i   i   i   i      i   i   i   i";
+
+	loadpage_lo	= "  1   1   0   0      0   0   0   1",
+			  "  0   0   0   0      0   0   0   0",
+			  "  0   0   0   0      0   0  a1  a0",
+			  "  i   i   i   i      i   i   i   i";
+
+	writepage	= "  1   1   0   0      0   0   1   0",
+			  "  0   0   x   x      x a10  a9  a8",
+			  " a7  a6  a5  a4     a3  a2   0   0",
+			  "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x41;
+	delay		= 10;
+	blocksize	= 128;
+	readsize	= 256;
+      ;
 
     memory "flash"
         paged           = yes;
         size            = 16384;
         page_size       = 128;
         num_pages       = 128;
+        min_write_delay = 4500;
+        max_write_delay = 4500;
+        readback_p1     = 0xff;
+        readback_p2     = 0xff;
+        read_lo         = "  0   0   1   0      0   0   0   0",
+                          "  0 a14 a13 a12    a11 a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
+
+        read_hi         = "  0   0   1   0      1   0   0   0",
+                          "  0 a14 a13 a12    a11 a10  a9  a8",
+                          " a7  a6  a5  a4     a3  a2  a1  a0",
+                          "  o   o   o   o      o   o   o   o";
+
+        loadpage_lo     = "  0   1   0   0      0   0   0   0",
+                          "  0   0   x   x      x   x   x   x",
+                          "  x   x  a5  a4     a3  a2  a1  a0",
+                          "  i   i   i   i      i   i   i   i";
+
+        loadpage_hi     = "  0   1   0   0      1   0   0   0",
+                          "  0   0   x   x      x   x   x   x",
+                          "  x   x  a5  a4     a3  a2  a1  a0",
+                          "  i   i   i   i      i   i   i   i";
+
+        writepage       = "  0   1   0   0      1   1   0   0",
+                          "  0 a14 a13 a12    a11 a10  a9  a8",
+                          " a7  a6   x   x      x   x   x   x",
+                          "  x   x   x   x      x   x   x   x";
+
+	mode		= 0x21;
+	delay		= 6;
+	blocksize	= 256;
+	readsize	= 256;
         ;
+
   ;
 
 #------------------------------------------------------------
@@ -5907,7 +5970,7 @@ part
                           "  i   i   i   i      i   i   i   i";
 
         writepage       = "  0   1   0   0      1   1   0   0",
-                          "  x   x   x a12    a11 a10  a9  a8",
+                          "  x a14 a13 a12    a11 a10  a9  a8",
                           " a7  a6   x   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
 
@@ -6161,7 +6224,7 @@ part
                           "  i   i   i   i      i   i   i   i";
 
         writepage       = "  0   1   0   0      1   1   0   0",
-                          "  x   x   x a12    a11 a10  a9  a8",
+                          "a15 a14 a13 a12    a11 a10  a9  a8",
                           " a7   x   x   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
 
@@ -8846,7 +8909,7 @@ part
                            "a7 a6 a5 a4  a3 a2 a1 a0   o o o o  o o o o";
 
          write           = "1  1  0  0   0  0  0  0    0 0 x x  x x x a8",
-                           "a8 a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+                           "a7 a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
 
   loadpage_lo   = "  1   1   0   0      0   0   0   1",
         "  0   0   0   0      0   0   0   0",
@@ -8854,8 +8917,8 @@ part
         "  i   i   i   i      i   i   i   i";
 
   writepage = "  1   1   0   0      0   0   1   0",
-        "  0   0   x   x      x   x   x   x",
-        "  0   0  a5  a4     a3  a2   0   0",
+        "  0   0   x   x      x   x   x  a8",
+        " a7  a6  a5  a4     a3  a2   0   0",
         "  x   x   x   x      x   x   x   x";
 
   mode      = 0x41;
@@ -9033,7 +9096,7 @@ part
                            "a7 a6 a5 a4  a3 a2 a1 a0   o o o o  o o o o";
 
          write           = "1  1  0  0   0  0  0  0    0 0 x x  x x x a8",
-                           "a8 a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
+                           "a7 a6 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
 
   loadpage_lo   = "  1   1   0   0      0   0   0   1",
         "  0   0   0   0      0   0   0   0",
@@ -9041,8 +9104,8 @@ part
         "  i   i   i   i      i   i   i   i";
 
   writepage = "  1   1   0   0      0   0   1   0",
-        "  0   0   x   x      x   x   x   x",
-        "  0   0  a5  a4     a3  a2   0   0",
+        "  0   0   x   x      x   x   x  a8",
+        " a7  a6  a5  a4     a3  a2   0   0",
         "  x   x   x   x      x   x   x   x";
 
   mode      = 0x41;
@@ -9777,8 +9840,37 @@ part parent "m328"
     bs2             = 0xe2;
 
     memory "eeprom"
+	paged		= no;
         size            = 2048;
         page_size       = 8;
+	min_write_delay = 3600;
+	max_write_delay = 3600;
+	readback_p1	= 0xff;
+	readback_p2	= 0xff;
+	read = " 1 0 1 0 0 0 0 0",
+	       " 0 0 0 x x x a9 a8",
+	       " a7 a6 a5 a4 a3 a2 a1 a0",
+	       " o o o o o o o o";
+
+	write = " 1 1 0 0 0 0 0 0",
+		" 0 0 0 x x x a9 a8",
+		" a7 a6 a5 a4 a3 a2 a1 a0",
+		" i i i i i i i i";
+
+	loadpage_lo = " 1 1 0 0 0 0 0 1",
+		      " 0 0 0 0 0 0 0 0",
+		      " 0 0 0 0 0 0 a1 a0",
+		      " i i i i i i i i";
+
+	writepage = " 1 1 0 0 0 0 1 0",
+		    " 0 0 x x x x a9 a8",
+		    " a7 a6 a5 a4 a3 a2 0 0",
+		    " x x x x x x x x";
+
+	mode		= 0x41;
+	delay		= 20;
+	blocksize	= 4;
+	readsize	= 256;
     ;
 
     memory "flash"
@@ -9786,6 +9878,40 @@ part parent "m328"
         size            = 65536;
         page_size       = 256;
         num_pages       = 256;
+	min_write_delay = 4500;
+	max_write_delay = 4500;
+	readback_p1	= 0xff;
+	readback_p2	= 0xff;
+	read_lo = " 0 0 1 0 0 0 0 0",
+		  " 0 0 a13 a12 a11 a10 a9 a8",
+		  " a7 a6 a5 a4 a3 a2 a1 a0",
+		  " o o o o o o o o";
+
+	read_hi = " 0 0 1 0 1 0 0 0",
+		  " 0 0 a13 a12 a11 a10 a9 a8",
+		  " a7 a6 a5 a4 a3 a2 a1 a0",
+		  " o o o o o o o o";
+
+	loadpage_lo = " 0 1 0 0 0 0 0 0",
+		      " 0 0 0 x x x x x",
+		      " x x a5 a4 a3 a2 a1 a0",
+		      " i i i i i i i i";
+
+	loadpage_hi = " 0 1 0 0 1 0 0 0",
+		      " 0 0 0 x x x x x",
+		      " x x a5 a4 a3 a2 a1 a0",
+		      " i i i i i i i i";
+
+	writepage = " 0 1 0 0 1 1 0 0",
+		    " 0 0 a13 a12 a11 a10 a9 a8",
+		    " a7 a6 x x x x x x",
+		    " x x x x x x x x";
+
+	mode		= 0x41;
+	delay		= 6;
+	blocksize	= 128;
+	readsize	= 256;
+
     ;
 
     memory "efuse"
@@ -10259,7 +10385,7 @@ part
 			  "  i   i   i   i      i   i   i   i";
 
 	writepage	= "  1   1   0   0      0   0   1   0",
-			  "  0   0   x   x      x   x   x   x",
+			  "  0   0   x   x      x   x   x  a8",
 			  " a7  a6  a5  a4     a3  a2   0   0",
 			  "  x   x   x   x      x   x   x   x";
 
@@ -12127,7 +12253,7 @@ part
 
 	writepage	= "  1   1   0   0      0   0   1   0",
 			  "  0   0   x   x      x   x   x   x",
-			  "  x  a6  a5  a4     a3  a2   0   0",
+			  " a7  a6  a5  a4     a3  a2   0   0",
 			  "  x   x   x   x      x   x   x   x";
 
 	mode		= 0x41;
@@ -12319,8 +12445,8 @@ part
 			  "  i   i   i   i      i   i   i   i";
 
 	writepage	= "  1   1   0   0      0   0   1   0",
-			  "  0   0   x   x      x   x   x   x",
-			  "  x  a6  a5  a4     a3  a2   0   0",
+			  "  0   0   x   x      x   x   x  a8",
+			  " a7  a6  a5  a4     a3  a2   0   0",
 			  "  x   x   x   x      x   x   x   x";
 
 	mode		= 0x41;
@@ -12621,7 +12747,7 @@ part
                 readback_p1     = 0xff;
                 readback_p2     = 0xff;
                 read            = "1  0  1  0   0  0  0  0    0 0 0 x  x x x x",
-                                   "0  0 a4  a3 a2 a1 a0   o o o o  o o o o";
+                                  "0  0 a5 a4  a3 a2 a1 a0    o o o o  o o o o";
 
                 write           = "1  1  0  0   0  0  0  0    0 0 0 x  x x x x",
                                    "0  0 a5 a4  a3 a2 a1 a0   i i i i  i i i i";
@@ -12690,6 +12816,8 @@ part
         size            = 1;
         write           = "1 0 1 0  1 1 0 0  1 1 1 x  x x x x",
                           "x x x x  x x x x  1 1 i i  i i i i";
+        read            = "0 1 0 1  1 0 0 0  0 0 0 0  0 0 0 0",
+                          "x x x x  x x x x  o o o o  o o o o";
         min_write_delay = 4500;
         max_write_delay = 4500;
     ;
@@ -13404,7 +13532,7 @@ part
 			  "  i   i   i   i      i   i   i   i";
 
 	writepage	= "  1   1   0   0      0   0   1   0",
-			  "  0   0   x   x      x a10  a9  a8",
+			  "  0   0   x   x    a11 a10  a9  a8",
 			  " a7  a6  a5  a4     a3   0   0   0",
 			  "  x   x   x   x      x   x   x   x";
 
@@ -16463,12 +16591,12 @@ part
         readback_p1     = 0xff;
         readback_p2     = 0xff;
         read_lo         = " 0 0 1 0 0 0 0 0",
-                          " 0 0 0 a12 a11 a10 a9 a8",
+                          " 0 0 a13 a12 a11 a10 a9 a8",
                           " a7 a6 a5 a4 a3 a2 a1 a0",
                           " o o o o o o o o";
 
         read_hi          = " 0 0 1 0 1 0 0 0",
-                           " 0 0 0 a12 a11 a10 a9 a8",
+                           " 0 0 a13 a12 a11 a10 a9 a8",
                            " a7 a6 a5 a4 a3 a2 a1 a0",
                            " o o o o o o o o";
 
@@ -16483,7 +16611,7 @@ part
                           " i i i i i i i i";
 
         writepage       = " 0 1 0 0 1 1 0 0",
-                          " 0 0 0 a12 a11 a10 a9 a8",
+                          " 0 0 a13 a12 a11 a10 a9 a8",
                           " a7 a6 x x x x x x",
                           " x x x x x x x x";
 
