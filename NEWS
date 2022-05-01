@@ -52,6 +52,8 @@ Changes since version 6.4:
     - Teensy bootloader (PR #802)
     - Micronucleus bootloader (PR #786)
     - ft232h (generic variant, PR #842)
+    - Kristech KT-LINK FT2232H interface with IO switching and voltage
+      buffers (PR #930)
 
   * Issues fixed:
 
@@ -89,6 +91,7 @@ Changes since version 6.4:
     - Terminal write mode doesn't support string input (yet) #913
     - Terminal mode: memory fill with strings may cause Avrdude to crash. #922
     - Some parts have wrong or missing ISP commands #915
+    - Incorrect -b conversion for linuxspi programmer #927
 
   * Pull requests:
 
@@ -176,6 +179,8 @@ Changes since version 6.4:
     - Add terminal write string functionality #914
     - Update documentation link to new URL #929
     - Fix terminal write buffer overflow issue #924
+    - Fix linuxspi baud to clock period calculation #931
+    - Added KT-LINK FT2232H interface with IO switching and voltage buffers. #930
 
   * Internals:
 
