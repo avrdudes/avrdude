@@ -9880,23 +9880,23 @@ part parent "m328"
 	readback_p1	= 0xff;
 	readback_p2	= 0xff;
 	read = " 1 0 1 0 0 0 0 0",
-	       " 0 0 0 x x x a9 a8",
+	       " 0 0 0 x x a10 a9 a8",
 	       " a7 a6 a5 a4 a3 a2 a1 a0",
 	       " o o o o o o o o";
 
 	write = " 1 1 0 0 0 0 0 0",
-		" 0 0 0 x x x a9 a8",
+		" 0 0 0 x x a10 a9 a8",
 		" a7 a6 a5 a4 a3 a2 a1 a0",
 		" i i i i i i i i";
 
 	loadpage_lo = " 1 1 0 0 0 0 0 1",
 		      " 0 0 0 0 0 0 0 0",
-		      " 0 0 0 0 0 0 a1 a0",
+		      " 0 0 0 0 0 a2 a1 a0",
 		      " i i i i i i i i";
 
 	writepage = " 1 1 0 0 0 0 1 0",
-		    " 0 0 x x x x a9 a8",
-		    " a7 a6 a5 a4 a3 a2 0 0",
+		    " 0 0 x x x a10 a9 a8",
+		    " a7 a6 a5 a4 a3 0 0 0",
 		    " x x x x x x x x";
 
 	mode		= 0x41;
@@ -9915,28 +9915,28 @@ part parent "m328"
 	readback_p1	= 0xff;
 	readback_p2	= 0xff;
 	read_lo = " 0 0 1 0 0 0 0 0",
-		  " 0 0 a13 a12 a11 a10 a9 a8",
+		  " a15 a14 a13 a12 a11 a10 a9 a8",
 		  " a7 a6 a5 a4 a3 a2 a1 a0",
 		  " o o o o o o o o";
 
 	read_hi = " 0 0 1 0 1 0 0 0",
-		  " 0 0 a13 a12 a11 a10 a9 a8",
+		  " a15 a14 a13 a12 a11 a10 a9 a8",
 		  " a7 a6 a5 a4 a3 a2 a1 a0",
 		  " o o o o o o o o";
 
 	loadpage_lo = " 0 1 0 0 0 0 0 0",
 		      " 0 0 0 x x x x x",
-		      " x x a5 a4 a3 a2 a1 a0",
+		      " x a6 a5 a4 a3 a2 a1 a0",
 		      " i i i i i i i i";
 
 	loadpage_hi = " 0 1 0 0 1 0 0 0",
 		      " 0 0 0 x x x x x",
-		      " x x a5 a4 a3 a2 a1 a0",
+		      " x a6 a5 a4 a3 a2 a1 a0",
 		      " i i i i i i i i";
 
 	writepage = " 0 1 0 0 1 1 0 0",
-		    " 0 0 a13 a12 a11 a10 a9 a8",
-		    " a7 a6 x x x x x x",
+		    " a15 a14 a13 a12 a11 a10 a9 a8",
+		    " a7 x x x x x x x",
 		    " x x x x x x x x";
 
 	mode		= 0x41;
@@ -12963,23 +12963,23 @@ part
         readback_p1     = 0x00;
         readback_p2     = 0x00;
         read            = "  1   0   1   0      0   0   0   0",
-                          "  x   x   x   x      x a10  a9  a8",
+                          "  x   x   x   x      x   x   x  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0",
                           "  o   o   o   o      o   o   o   o";
 
         write           = "  1   1   0   0      0   0   0   0",
-                          "  x   x   x   x      x a10  a9  a8",
+                          "  x   x   x   x      x   x   x  a8",
                           " a7  a6  a5  a4     a3  a2  a1  a0",
                           "  i   i   i   i      i   i   i   i";
 
 	loadpage_lo	= "  1   1   0   0      0   0   0   1",
 			  "  0   0   0   0      0   0   0   0",
-			  "  0   0   0   0      0  a2  a1  a0",
+			  "  0   0   0   0      0   0  a1  a0",
 			  "  i   i   i   i      i   i   i   i";
 
 	writepage	= "  1   1   0   0      0   0   1   0",
-			  "  0   0   x   x      x a10  a9  a8",
-			  " a7  a6  a5  a4     a3   0   0   0",
+			  "  0   0   x   x      x   x   x  a8",
+			  " a7  a6  a5  a4     a3  a2   0   0",
 			  "  x   x   x   x      x   x   x   x";
 
 	mode		= 0x41;
@@ -13165,12 +13165,12 @@ part
 
 	loadpage_lo	= "  1   1   0   0      0   0   0   1",
 			  "  0   0   0   0      0   0   0   0",
-			  "  0   0   0   0      0  a2  a1  a0",
+			  "  0   0   0   0      0   0  a1  a0",
 			  "  i   i   i   i      i   i   i   i";
 
 	writepage	= "  1   1   0   0      0   0   1   0",
 			  "  0   0   x   x      x a10  a9  a8",
-			  " a7  a6  a5  a4     a3   0   0   0",
+			  " a7  a6  a5  a4     a3  a2   0   0",
 			  "  x   x   x   x      x   x   x   x";
 
 	mode		= 0x41;
@@ -16634,17 +16634,17 @@ part
 
         loadpage_lo     = " 0 1 0 0 0 0 0 0",
                           " 0 0 0 x x x x x",
-                          " x x a5 a4 a3 a2 a1 a0",
+                          " x x x x a3 a2 a1 a0",
                           " i i i i i i i i";
 
         loadpage_hi     = " 0 1 0 0 1 0 0 0",
                           " 0 0 0 x x x x x",
-                          " x x a5 a4 a3 a2 a1 a0",
+                          " x x x x a3 a2 a1 a0",
                           " i i i i i i i i";
 
         writepage       = " 0 1 0 0 1 1 0 0",
                           " 0 0 a13 a12 a11 a10 a9 a8",
-                          " a7 a6 x x x x x x",
+                          " a7 a6 a5 a4 x x x x",
                           " x x x x x x x x";
 
         mode        = 0x41;
