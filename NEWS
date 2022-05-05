@@ -92,6 +92,7 @@ Changes since version 6.4:
     - Terminal mode: memory fill with strings may cause Avrdude to crash. #922
     - Some parts have wrong or missing ISP commands #915
     - Incorrect -b conversion for linuxspi programmer #927
+    - ATtiny43U calibration memory size #921
 
   * Pull requests:
 
