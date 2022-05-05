@@ -744,6 +744,19 @@ static int micronucleus_open(PROGRAMMER* pgm, char* port)
                     {
                         avrdude_message(MSG_INFO, "%s: ERROR: Failed to open USB device: %s\n", progname, usb_strerror());
                     }
+                    else
+                    {
+                        // Send a dummy request to check for a unresponsive USB device.
+                        int result = micronucleus_get_bootloader_info(pdata);
+                        if (result < 0)
+                        {
+                            avrdude_message(MSG_NOTICE, "%s: WARNING: Failed to probe device (error %d), skipping...\n",
+                                progname, result);
+
+                            usb_close(pdata->usb_handle);
+                            pdata->usb_handle = NULL;
+                        }
+                    }
                 }
             }
         }
