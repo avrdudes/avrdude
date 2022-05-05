@@ -738,7 +738,7 @@ static int micronucleus_open(PROGRAMMER* pgm, char* port)
                     {
                         if (show_unresponsive_device_message)
                         {
-                            avrdude_message(MSG_INFO, "%s: WARNING: Unresponsive Micronucleus device detected, please reconnect....\n",
+                            avrdude_message(MSG_INFO, "%s: WARNING: Unresponsive Micronucleus device detected, please reconnect...\n",
                                 progname);
 
                             show_unresponsive_device_message = false;
