@@ -1,0 +1,203 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created on May 7, 2022 by texi2html 5.0
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: 5.1 Atmel STK600</title>
+
+<meta name="description" content="AVRDUDE: 5.1 Atmel STK600">
+<meta name="keywords" content="AVRDUDE: 5.1 Atmel STK600">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 5.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:pre}
+span.nolinebreak {white-space:pre}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+body { background-color: #ffd; }
+h1 { text-shadow: .05em .05em #ccc; }
+table {
+  border: 3px solid #ccf;
+  background-color: white;
+}
+div.smallexample {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+div.example {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+samp {
+  color: blue;
+}
+code {
+  color: green;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Atmel-STK600"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_16.html#Programmer-Specific-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_16.html#Programmer-Specific-Information" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_16.html#Programmer-Specific-Information" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_18.html#Atmel-DFU-bootloader-using-FLIP-version-1" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_20.html#Platform-Dependent-Information" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_40.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<hr>
+<a name="index-STK600"></a>
+<a name="Atmel-STK600-1"></a>
+<h2 class="section">5.1 Atmel STK600</h2>
+
+<p>The following devices are supported by the respective STK600 routing
+and socket card:
+</p>
+<table>
+<thead><tr><th width="25%">Routing card</th><th width="25%">Socket card</th><th width="50%">Devices</th></tr></thead>
+<tr><td width="25%"><code></code></td><td width="25%"><code>STK600-ATTINY10</code></td><td width="50%">ATtiny4 ATtiny5 ATtiny9 ATtiny10</td></tr>
+<tr><td width="25%"><code>STK600-RC008T-2</code></td><td width="25%"><code>STK600-DIP</code></td><td width="50%">ATtiny11 ATtiny12 ATtiny13 ATtiny13A ATtiny25 ATtiny45 ATtiny85</td></tr>
+<tr><td width="25%"><code>STK600-RC008T-7</code></td><td width="25%"><code>STK600-DIP</code></td><td width="50%">ATtiny15</td></tr>
+<tr><td width="25%"><code>STK600-RC014T-42</code></td><td width="25%"><code>STK600-SOIC</code></td><td width="50%">ATtiny20</td></tr>
+<tr><td width="25%"><code>STK600-RC020T-1</code></td><td width="25%"><code>STK600-DIP</code></td><td width="50%">ATtiny2313 ATtiny2313A ATtiny4313</td></tr>
+<tr><td width="25%"><code></code></td><td width="25%"><code>STK600-TinyX3U</code></td><td width="50%">ATtiny43U</td></tr>
+<tr><td width="25%"><code>STK600-RC014T-12</code></td><td width="25%"><code>STK600-DIP</code></td><td width="50%">ATtiny24 ATtiny44 ATtiny84 ATtiny24A ATtiny44A</td></tr>
+<tr><td width="25%"><code>STK600-RC020T-8</code></td><td width="25%"><code>STK600-DIP</code></td><td width="50%">ATtiny26 ATtiny261 ATtiny261A ATtiny461 ATtiny861 ATtiny861A</td></tr>
+<tr><td width="25%"><code>STK600-RC020T-43</code></td><td width="25%"><code>STK600-SOIC</code></td><td width="50%">ATtiny261 ATtiny261A ATtiny461 ATtiny461A ATtiny861 ATtiny861A</td></tr>
+<tr><td width="25%"><code>STK600-RC020T-23</code></td><td width="25%"><code>STK600-SOIC</code></td><td width="50%">ATtiny87 ATtiny167</td></tr>
+<tr><td width="25%"><code>STK600-RC028T-3</code></td><td width="25%"><code>STK600-DIP</code></td><td width="50%">ATtiny28</td></tr>
+<tr><td width="25%"><code>STK600-RC028M-6</code></td><td width="25%"><code>STK600-DIP</code></td><td width="50%">ATtiny48 ATtiny88 ATmega8 ATmega8A ATmega48 ATmega88 ATmega168 ATmega48P ATmega48PA ATmega88P ATmega88PA ATmega168P ATmega168PA ATmega328P</td></tr>
+<tr><td width="25%"><code></code></td><td width="25%"><code>QT600-ATTINY88-QT8</code></td><td width="50%">ATtiny88</td></tr>
+<tr><td width="25%"><code>STK600-RC040M-4</code></td><td width="25%"><code>STK600-DIP</code></td><td width="50%">ATmega8515 ATmega162</td></tr>
+<tr><td width="25%"><code>STK600-RC044M-30</code></td><td width="25%"><code>STK600-TQFP44</code></td><td width="50%">ATmega8515 ATmega162</td></tr>
+<tr><td width="25%"><code>STK600-RC040M-5</code></td><td width="25%"><code>STK600-DIP</code></td><td width="50%">ATmega8535 ATmega16 ATmega16A ATmega32 ATmega32A ATmega164P ATmega164PA ATmega324P ATmega324PA ATmega644 ATmega644P ATmega644PA ATmega1284P</td></tr>
+<tr><td width="25%"><code>STK600-RC044M-31</code></td><td width="25%"><code>STK600-TQFP44</code></td><td width="50%">ATmega8535 ATmega16 ATmega16A ATmega32 ATmega32A ATmega164P ATmega164PA ATmega324P ATmega324PA ATmega644 ATmega644P ATmega644PA ATmega1284P</td></tr>
+<tr><td width="25%"><code></code></td><td width="25%"><code>QT600-ATMEGA324-QM64</code></td><td width="50%">ATmega324PA</td></tr>
+<tr><td width="25%"><code>STK600-RC032M-29</code></td><td width="25%"><code>STK600-TQFP32</code></td><td width="50%">ATmega8 ATmega8A ATmega48 ATmega88 ATmega168 ATmega48P ATmega48PA ATmega88P ATmega88PA ATmega168P ATmega168PA ATmega328P</td></tr>
+<tr><td width="25%"><code>STK600-RC064M-9</code></td><td width="25%"><code>STK600-TQFP64</code></td><td width="50%">ATmega64 ATmega64A ATmega128 ATmega128A ATmega1281 ATmega2561 AT90CAN32 AT90CAN64 AT90CAN128</td></tr>
+<tr><td width="25%"><code>STK600-RC064M-10</code></td><td width="25%"><code>STK600-TQFP64</code></td><td width="50%">ATmega165 ATmega165P ATmega169 ATmega169P ATmega169PA ATmega325 ATmega325P ATmega329 ATmega329P ATmega645 ATmega649 ATmega649P</td></tr>
+<tr><td width="25%"><code>STK600-RC100M-11</code></td><td width="25%"><code>STK600-TQFP100</code></td><td width="50%">ATmega640 ATmega1280 ATmega2560</td></tr>
+<tr><td width="25%"><code></code></td><td width="25%"><code>STK600-ATMEGA2560</code></td><td width="50%">ATmega2560</td></tr>
+<tr><td width="25%"><code>STK600-RC100M-18</code></td><td width="25%"><code>STK600-TQFP100</code></td><td width="50%">ATmega3250 ATmega3250P ATmega3290 ATmega3290P ATmega6450 ATmega6490</td></tr>
+<tr><td width="25%"><code>STK600-RC032U-20</code></td><td width="25%"><code>STK600-TQFP32</code></td><td width="50%">AT90USB82 AT90USB162 ATmega8U2 ATmega16U2 ATmega32U2</td></tr>
+<tr><td width="25%"><code>STK600-RC044U-25</code></td><td width="25%"><code>STK600-TQFP44</code></td><td width="50%">ATmega16U4 ATmega32U4</td></tr>
+<tr><td width="25%"><code>STK600-RC064U-17</code></td><td width="25%"><code>STK600-TQFP64</code></td><td width="50%">ATmega32U6 AT90USB646 AT90USB1286 AT90USB647 AT90USB1287</td></tr>
+<tr><td width="25%"><code>STK600-RCPWM-22</code></td><td width="25%"><code>STK600-TQFP32</code></td><td width="50%">ATmega32C1 ATmega64C1 ATmega16M1 ATmega32M1 ATmega64M1</td></tr>
+<tr><td width="25%"><code>STK600-RCPWM-19</code></td><td width="25%"><code>STK600-SOIC</code></td><td width="50%">AT90PWM2 AT90PWM3 AT90PWM2B AT90PWM3B AT90PWM216 AT90PWM316</td></tr>
+<tr><td width="25%"><code>STK600-RCPWM-26</code></td><td width="25%"><code>STK600-SOIC</code></td><td width="50%">AT90PWM81</td></tr>
+<tr><td width="25%"><code>STK600-RC044M-24</code></td><td width="25%"><code>STK600-TSSOP44</code></td><td width="50%">ATmega16HVB ATmega32HVB</td></tr>
+<tr><td width="25%"><code></code></td><td width="25%"><code>STK600-HVE2</code></td><td width="50%">ATmega64HVE</td></tr>
+<tr><td width="25%"><code></code></td><td width="25%"><code>STK600-ATMEGA128RFA1</code></td><td width="50%">ATmega128RFA1</td></tr>
+<tr><td width="25%"><code>STK600-RC100X-13</code></td><td width="25%"><code>STK600-TQFP100</code></td><td width="50%">ATxmega64A1 ATxmega128A1 ATxmega128A1_revD ATxmega128A1U</td></tr>
+<tr><td width="25%"><code></code></td><td width="25%"><code>STK600-ATXMEGA1281A1</code></td><td width="50%">ATxmega128A1</td></tr>
+<tr><td width="25%"><code></code></td><td width="25%"><code>QT600-ATXMEGA128A1-QT16</code></td><td width="50%">ATxmega128A1</td></tr>
+<tr><td width="25%"><code>STK600-RC064X-14</code></td><td width="25%"><code>STK600-TQFP64</code></td><td width="50%">ATxmega64A3 ATxmega128A3 ATxmega256A3 ATxmega64D3 ATxmega128D3 ATxmega192D3 ATxmega256D3</td></tr>
+<tr><td width="25%"><code>STK600-RC064X-14</code></td><td width="25%"><code>STK600-MLF64</code></td><td width="50%">ATxmega256A3B</td></tr>
+<tr><td width="25%"><code>STK600-RC044X-15</code></td><td width="25%"><code>STK600-TQFP44</code></td><td width="50%">ATxmega32A4 ATxmega16A4 ATxmega16D4 ATxmega32D4</td></tr>
+<tr><td width="25%"><code></code></td><td width="25%"><code>STK600-ATXMEGAT0</code></td><td width="50%">ATxmega32T0</td></tr>
+<tr><td width="25%"><code></code></td><td width="25%"><code>STK600-uC3-144</code></td><td width="50%">AT32UC3A0512 AT32UC3A0256 AT32UC3A0128</td></tr>
+<tr><td width="25%"><code>STK600-RCUC3A144-33</code></td><td width="25%"><code>STK600-TQFP144</code></td><td width="50%">AT32UC3A0512 AT32UC3A0256 AT32UC3A0128</td></tr>
+<tr><td width="25%"><code>STK600-RCuC3A100-28</code></td><td width="25%"><code>STK600-TQFP100</code></td><td width="50%">AT32UC3A1512 AT32UC3A1256 AT32UC3A1128</td></tr>
+<tr><td width="25%"><code>STK600-RCuC3B0-21</code></td><td width="25%"><code>STK600-TQFP64-2</code></td><td width="50%">AT32UC3B0256 AT32UC3B0512RevC AT32UC3B0512 AT32UC3B0128 AT32UC3B064 AT32UC3D1128</td></tr>
+<tr><td width="25%"><code>STK600-RCuC3B48-27</code></td><td width="25%"><code>STK600-TQFP48</code></td><td width="50%">AT32UC3B1256 AT32UC3B164</td></tr>
+<tr><td width="25%"><code>STK600-RCUC3A144-32</code></td><td width="25%"><code>STK600-TQFP144</code></td><td width="50%">AT32UC3A3512 AT32UC3A3256 AT32UC3A3128 AT32UC3A364 AT32UC3A3256S AT32UC3A3128S AT32UC3A364S</td></tr>
+<tr><td width="25%"><code>STK600-RCUC3C0-36</code></td><td width="25%"><code>STK600-TQFP144</code></td><td width="50%">AT32UC3C0512 AT32UC3C0256 AT32UC3C0128 AT32UC3C064</td></tr>
+<tr><td width="25%"><code>STK600-RCUC3C1-38</code></td><td width="25%"><code>STK600-TQFP100</code></td><td width="50%">AT32UC3C1512 AT32UC3C1256 AT32UC3C1128 AT32UC3C164</td></tr>
+<tr><td width="25%"><code>STK600-RCUC3C2-40</code></td><td width="25%"><code>STK600-TQFP64-2</code></td><td width="50%">AT32UC3C2512 AT32UC3C2256 AT32UC3C2128 AT32UC3C264</td></tr>
+<tr><td width="25%"><code>STK600-RCUC3C0-37</code></td><td width="25%"><code>STK600-TQFP144</code></td><td width="50%">AT32UC3C0512 AT32UC3C0256 AT32UC3C0128 AT32UC3C064</td></tr>
+<tr><td width="25%"><code>STK600-RCUC3C1-39</code></td><td width="25%"><code>STK600-TQFP100</code></td><td width="50%">AT32UC3C1512 AT32UC3C1256 AT32UC3C1128 AT32UC3C164</td></tr>
+<tr><td width="25%"><code>STK600-RCUC3C2-41</code></td><td width="25%"><code>STK600-TQFP64-2</code></td><td width="50%">AT32UC3C2512 AT32UC3C2256 AT32UC3C2128 AT32UC3C264</td></tr>
+<tr><td width="25%"><code>STK600-RCUC3L0-34</code></td><td width="25%"><code>STK600-TQFP48</code></td><td width="50%">AT32UC3L064 AT32UC3L032 AT32UC3L016</td></tr>
+<tr><td width="25%"><code></code></td><td width="25%"><code>QT600-AT32UC3L-QM64</code></td><td width="50%">AT32UC3L064</td></tr>
+</table>
+
+<p>Ensure the correct socket and routing card are mounted <em>before</em>
+powering on the STK600.  While the STK600 firmware ensures the socket
+and routing card mounted match each other (using a table stored
+internally in nonvolatile memory), it cannot handle the case where a
+wrong routing card is used, e. g. the routing card
+<code>STK600-RC040M-5</code> (which is meant for 40-pin DIP AVRs that have
+an ADC, with the power supply pins in the center of the package) was
+used but an ATmega8515 inserted (which uses the &ldquo;industry standard&rdquo;
+pinout with Vcc and GND at opposite corners).
+</p>
+<p>Note that for devices that use the routing card <code>STK600-RC008T-2</code>,
+in order to use ISP mode, the jumper for <code>AREF0</code> must be removed
+as it would otherwise block one of the ISP signals.  High-voltage
+serial programming can be used even with that jumper installed.
+</p>
+<p>The ISP system of the STK600 contains a detection against shortcuts
+and other wiring errors.  AVRDUDE initiates a connection check before
+trying to enter ISP programming mode, and display the result if the
+target is not found ready to be ISP programmed.
+</p>
+<p>High-voltage programming requires the target voltage to be set to at
+least 4.5 V in order to work.  This can be done using
+<em>Terminal Mode</em>, see <a href="avrdude_6.html#Terminal-Mode-Operation">Terminal Mode Operation</a>.
+</p>
+<hr>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_16.html#Programmer-Specific-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_16.html#Programmer-Specific-Information" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_16.html#Programmer-Specific-Information" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_18.html#Atmel-DFU-bootloader-using-FLIP-version-1" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_20.html#Platform-Dependent-Information" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_40.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated on <i>May 7, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created on May 7, 2022 by texi2html 5.0
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: A.2.1 Installation</title>
+
+<meta name="description" content="AVRDUDE: A.2.1 Installation">
+<meta name="keywords" content="AVRDUDE: A.2.1 Installation">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 5.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:pre}
+span.nolinebreak {white-space:pre}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+body { background-color: #ffd; }
+h1 { text-shadow: .05em .05em #ccc; }
+table {
+  border: 3px solid #ccf;
+  background-color: white;
+}
+div.smallexample {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+div.example {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+samp {
+  color: blue;
+}
+code {
+  color: green;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Windows-Installation"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_20.html#Platform-Dependent-Information" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_30.html#Windows" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_30.html#Windows" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_32.html#Windows-Configuration-Files" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_39.html#Troubleshooting" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_40.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<hr>
+<a name="Installation"></a>
+<h3 class="subsection">A.2.1 Installation</h3>
+
+<p>A Windows executable of avrdude is included in WinAVR which can be found at
+<a href="http://sourceforge.net/projects/winavr">http://sourceforge.net/projects/winavr</a>. WinAVR is a suite of executable, 
+open source software development tools for the AVR for the Windows platform.
+</p>
+<p>There are two options to build avrdude from source under Windows.
+The first one is to use Cygwin (<a href="http://www.cygwin.com/">http://www.cygwin.com/</a>).
+</p>
+<p>To build and install from the source tarball for Windows (using Cygwin):
+</p>
+<div class="example">
+<pre class="example">$ set PREFIX=&lt;your install directory path&gt;
+$ export PREFIX
+$ gunzip -c avrdude-7.0.tar.gz | tar xf -
+$ cd avrdude-7.0
+$ ./configure LDFLAGS=&quot;-static&quot; --prefix=$PREFIX --datadir=$PREFIX 
+--sysconfdir=$PREFIX/bin --enable-versioned-doc=no
+$ make
+$ make install
+</pre></div>
+
+<p>Note that recent versions of Cygwin (starting with 1.7) removed the
+MinGW support from the compiler that is needed in order to build a
+native Win32 API binary that does not require to install the Cygwin
+library <code>cygwin1.dll</code> at run-time.  Either try using an older
+compiler version that still supports MinGW builds, or use MinGW
+(<a href="http://www.mingw.org/">http://www.mingw.org/</a>) directly.
+</p>
+
+
+<hr>
+<p>
+ <font size="-1">
+  This document was generated on <i>May 7, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>

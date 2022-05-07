@@ -1,0 +1,255 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created on May 7, 2022 by texi2html 5.0
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: 3.2 Terminal Mode Examples</title>
+
+<meta name="description" content="AVRDUDE: 3.2 Terminal Mode Examples">
+<meta name="keywords" content="AVRDUDE: 3.2 Terminal Mode Examples">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 5.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:pre}
+span.nolinebreak {white-space:pre}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+body { background-color: #ffd; }
+h1 { text-shadow: .05em .05em #ccc; }
+table {
+  border: 3px solid #ccf;
+  background-color: white;
+}
+div.smallexample {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+div.example {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+samp {
+  color: blue;
+}
+code {
+  color: green;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Terminal-Mode-Examples"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_6.html#Terminal-Mode-Operation" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_7.html#Terminal-Mode-Commands" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_6.html#Terminal-Mode-Operation" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_9.html#Configuration-File" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_9.html#Configuration-File" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_40.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<hr>
+<a name="index-Terminal-Mode-1"></a>
+<a name="Terminal-Mode-Examples-1"></a>
+<h2 class="section">3.2 Terminal Mode Examples</h2>
+
+<p>Display part parameters, modify eeprom cells, perform a chip erase:
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">% avrdude -p m128 -c stk500 -t
+
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: Device signature = 0x1e9702
+avrdude&gt; part
+&gt;&gt;&gt; part 
+
+AVR Part              : ATMEGA128
+Chip Erase delay      : 9000 us
+PAGEL                 : PD7
+BS2                   : PA0
+RESET disposition     : dedicated
+RETRY pulse           : SCK
+serial program mode   : yes
+parallel program mode : yes
+Memory Detail         :
+
+                            Page                       Polled
+  Memory Type Paged  Size   Size #Pages MinW  MaxW   ReadBack
+  ----------- ------ ------ ---- ------ ----- ----- ---------
+  eeprom      no       4096    8     0  9000  9000 0xff 0xff
+  flash       yes    131072  256   512  4500  9000 0xff 0x00
+  lfuse       no          1    0     0     0     0 0x00 0x00
+  hfuse       no          1    0     0     0     0 0x00 0x00
+  efuse       no          1    0     0     0     0 0x00 0x00
+  lock        no          1    0     0     0     0 0x00 0x00
+  calibration no          1    0     0     0     0 0x00 0x00
+  signature   no          3    0     0     0     0 0x00 0x00
+
+avrdude&gt; dump eeprom 0 16
+&gt;&gt;&gt; dump eeprom 0 16 
+0000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+
+avrdude&gt; write eeprom 0 1 2 3 4
+&gt;&gt;&gt; write eeprom 0 1 2 3 4 
+
+avrdude&gt; dump eeprom 0 16
+&gt;&gt;&gt; dump eeprom 0 16 
+0000  01 02 03 04 ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+
+avrdude&gt; erase
+&gt;&gt;&gt; erase 
+avrdude: erasing chip
+avrdude&gt; dump eeprom 0 16
+&gt;&gt;&gt; dump eeprom 0 16 
+0000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+
+avrdude&gt; 
+</pre></td></tr></table>
+</div>
+
+
+<p>Program the fuse bits of an ATmega128 (disable M103 compatibility,
+enable high speed external crystal, enable brown-out detection, slowly
+rising power).  Note since we are working with fuse bits the -u (unsafe)
+option is specified, which allows you to modify the fuse bits. First 
+display the factory defaults, then reprogram:
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">% avrdude -p m128 -u -c stk500 -t
+
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: Device signature = 0x1e9702
+avrdude&gt; d efuse
+&gt;&gt;&gt; d efuse 
+0000  fd                                                |.               |
+
+avrdude&gt; d hfuse
+&gt;&gt;&gt; d hfuse 
+0000  99                                                |.               |
+
+avrdude&gt; d lfuse
+&gt;&gt;&gt; d lfuse 
+0000  e1                                                |.               |
+
+avrdude&gt; w efuse 0 0xff
+&gt;&gt;&gt; w efuse 0 0xff 
+
+avrdude&gt; w hfuse 0 0x89
+&gt;&gt;&gt; w hfuse 0 0x89 
+
+avrdude&gt; w lfuse 0 0x2f
+&gt;&gt;&gt; w lfuse 0 0x2f 
+
+avrdude&gt; 
+</pre></td></tr></table>
+</div>
+
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">% avrdude -c pkobn_updi -p avr128db48 -t
+
+         Vtarget                      : 4.71 V
+         PDI/UPDI clock Xmega/megaAVR : 100 kHz
+
+avrdude: AVR device initialized and ready to accept instructions
+
+Reading | ################################################## | 100% 0.01s
+
+avrdude: Device signature = 0x1e970c (probably avr128db48)
+avrdude&gt; write eeprom 0 1234567890 'A' 'V' 'R' 2.718282 &quot;Hello World!&quot;
+&gt;&gt;&gt; write eeprom 0 1234567890 'A' 'V' 'R' 2.718282 &quot;Hello World!&quot;
+Warning: no size suffix specified for &quot;1234567890&quot;. Writing 4 byte(s)
+Info: Writing 24 bytes starting from address 0x00
+
+avrdude&gt; dump eeprom 0 32
+&gt;&gt;&gt; dump eeprom 0 32 
+
+0000  d2 02 96 49 41 56 52 55  f8 2d 40 48 65 6c 6c 6f  |...IAVRU.-@Hello|
+0010  20 57 6f 72 6c 64 21 00  ff ff ff ff ff ff ff ff  | World!.........|
+
+avrdude&gt; q
+</pre></td></tr></table>
+</div>
+
+<p>The following example demonstrates the second form of the <code>write</code>
+command where the last data value provided is used to fill up the
+indicated memory range.
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">avrdude&gt; write eeprom 0x00 0x20 'a' 'b' 'c' 0x11 0xcafe 0x55 ...
+&gt;&gt;&gt; write eeprom 0x00 0x20 'a' 'b' 'c' 0x11 0xcafe 0x55 ... 
+
+avrdude&gt; dump eeprom 0 0x30
+&gt;&gt;&gt; dump eeprom 0 0x30 
+0000  61 62 63 11 fe ca 55 55  55 55 55 55 55 55 55 55  |abc...UUUUUUUUUU|
+0010  55 55 55 55 55 55 55 55  55 55 55 55 55 55 55 55  |UUUUUUUUUUUUUUUU|
+0020  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+</pre></td></tr></table>
+</div>
+
+<hr>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_6.html#Terminal-Mode-Operation" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_7.html#Terminal-Mode-Commands" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_6.html#Terminal-Mode-Operation" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_9.html#Configuration-File" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_9.html#Configuration-File" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_40.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated on <i>May 7, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>
