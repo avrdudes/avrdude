@@ -17,6 +17,8 @@ Changes since version 7.0:
 
   * Pull requests:
 
+    - Fix .Dd macro in manpage #949
+
   * Internals:
 
 Changes in version 7.0:
