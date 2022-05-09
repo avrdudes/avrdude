@@ -245,6 +245,7 @@ set_target_properties(objlib PROPERTIES
     POSITION_INDEPENDENT_CODE true)
 
 # staticlib
+set(BUILT_LIBS staticlib)
 add_library(staticlib STATIC $<TARGET_OBJECTS:objlib>)
 set_target_properties(staticlib PROPERTIES
     PREFIX ""
@@ -255,16 +256,19 @@ target_include_directories(staticlib PUBLIC ${includes})
 target_link_libraries(staticlib PUBLIC ${deplibs})
 
 # sharedlib
-add_library(sharedlib SHARED $<TARGET_OBJECTS:objlib>)
-set_target_properties(sharedlib PROPERTIES
-    PREFIX ""
-    OUTPUT_NAME "libavrdude"
-    PUBLIC_HEADER "libavrdude.h"
-    VERSION 1.0.0
-    SOVERSION 1
-    )
-target_include_directories(sharedlib PUBLIC ${includes})
-target_link_libraries(sharedlib PUBLIC ${deplibs})
+if(NOT WIN32) # cannot build shared DLLs with undefined references
+    set(BUILT_LIBS staticlib sharedlib)
+    add_library(sharedlib SHARED $<TARGET_OBJECTS:objlib>)
+    set_target_properties(sharedlib PROPERTIES
+        PREFIX ""
+        OUTPUT_NAME "libavrdude"
+        PUBLIC_HEADER "libavrdude.h"
+        VERSION 1.0.0
+        SOVERSION 1
+        )
+    target_include_directories(sharedlib PUBLIC ${includes})
+    target_link_libraries(sharedlib PUBLIC ${deplibs})
+endif()
 
 # executable
 add_executable(avrdude
@@ -275,17 +279,21 @@ add_executable(avrdude
     whereami.h
     "${EXTRA_WINDOWS_SOURCES}"
     )
-target_link_libraries(avrdude PUBLIC sharedlib)
+if (sharedlib IN_LIST BUILT_LIBS)
+    target_link_libraries(avrdude PUBLIC sharedlib)
+else()
+    target_link_libraries(avrdude PUBLIC staticlib)
+endif()
 
 # =====================================
 # Install
 # =====================================
 
-install(TARGETS avrdude DESTINATION bin)
-install(TARGETS staticlib sharedlib
+install(TARGETS ${BUILT_LIBS}
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     PUBLIC_HEADER DESTINATION include COMPONENT dev
     )
+install(TARGETS avrdude DESTINATION bin)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/avrdude.conf" TYPE SYSCONF)
 install(FILES avrdude.1 TYPE MAN)
