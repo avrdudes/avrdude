@@ -33,7 +33,6 @@ option(HAVE_PARPORT "Enable parallel port support" OFF)
 option(USE_EXTERNAL "Use external libraries from AVRDUDE GitHub repositories" OFF)
 option(USE_LIBUSBWIN32 "Prefer libusb-win32 over libusb" OFF)
 option(DEBUG_CMAKE "Enable debugging output for this CMake project" OFF)
-option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
 include(CheckIncludeFile)
 include(CheckSymbolExists)
