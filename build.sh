@@ -50,7 +50,13 @@ case "${ostype}" in
 	then
 	    build_flags="${build_flags} -D CMAKE_C_FLAGS=-I/opt/local/include -D CMAKE_EXE_LINKER_FLAGS=-L/opt/local/lib"
 	else
-	    build_flags="${build_flags} -D CMAKE_C_FLAGS=-I/usr/local/include -D CMAKE_EXE_LINKER_FLAGS=-L/usr/local/Cellar"
+            # Apple M1 (may be new version of homebrew also)
+            if [ -d /opt/homebrew ]  
+            then
+                build_flags="${build_flags} -D CMAKE_C_FLAGS=-I/usr/homebrew/include -D CMAKE_EXE_LINKER_FLAGS=-L/usr/homebrew/Cellar"
+            else
+                build_flags="${build_flags} -D CMAKE_C_FLAGS=-I/usr/local/include -D CMAKE_EXE_LINKER_FLAGS=-L/usr/local/Cellar"
+            fi
 	fi
 	;;
 
