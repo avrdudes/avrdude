@@ -47,8 +47,11 @@ endif()
 # Setup target specific options
 # =====================================
 
-include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 add_compile_definitions(CONFIG_DIR=\"${CONFIG_DIR}\")
+include_directories(
+    BEFORE ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    )
 
 if(WIN32)
     set(EXTRA_WINDOWS_SOURCES "${PROJECT_BINARY_DIR}/src/windows.rc")
@@ -110,7 +113,27 @@ endif()
 # Project
 # =====================================
 
-add_library(libavrdude
+set(includes
+    "${PROJECT_SOURCE_DIR}"
+    "${PROJECT_BINARY_DIR}"
+    "${LIBUSB_COMPAT_DIR}"
+    "${EXTRA_WINDOWS_INCLUDES}"
+    )
+set(deplibs
+    ${LIB_MATH}
+    ${LIB_LIBELF}
+    ${LIB_LIBUSB}
+    ${LIB_LIBUSB_1_0}
+    ${LIB_LIBHID}
+    ${LIB_LIBHIDAPI}
+    ${LIB_LIBFTDI}
+    ${LIB_LIBFTDI1}
+    ${LIB_LIBREADLINE}
+    ${EXTRA_WINDOWS_LIBRARIES}
+    )
+
+# objects
+add_library(objlib OBJECT
     ac_cfg.h
     arduino.h
     arduino.c
@@ -217,36 +240,33 @@ add_library(libavrdude
     ${FLEX_Parser_OUTPUTS}
     ${BISON_Parser_OUTPUTS}
     )
-    
-set_target_properties(libavrdude PROPERTIES
+target_include_directories(objlib PUBLIC ${includes})
+set_target_properties(objlib PROPERTIES
+    POSITION_INDEPENDENT_CODE true)
+
+# staticlib
+add_library(staticlib STATIC $<TARGET_OBJECTS:objlib>)
+set_target_properties(staticlib PROPERTIES
     PREFIX ""
+    OUTPUT_NAME "libavrdude"
+    PUBLIC_HEADER "libavrdude.h"
+    )
+target_include_directories(staticlib PUBLIC ${includes})
+target_link_libraries(staticlib PUBLIC ${deplibs})
+
+# sharedlib
+add_library(sharedlib SHARED $<TARGET_OBJECTS:objlib>)
+set_target_properties(sharedlib PROPERTIES
+    PREFIX ""
+    OUTPUT_NAME "libavrdude"
     PUBLIC_HEADER "libavrdude.h"
     VERSION 1.0.0
     SOVERSION 1
     )
+target_include_directories(sharedlib PUBLIC ${includes})
+target_link_libraries(sharedlib PUBLIC ${deplibs})
 
-target_include_directories(libavrdude
-    PUBLIC
-    "${PROJECT_SOURCE_DIR}"
-    "${PROJECT_BINARY_DIR}"
-    "${LIBUSB_COMPAT_DIR}"
-    "${EXTRA_WINDOWS_INCLUDES}"
-    )
-
-target_link_libraries(libavrdude
-    PUBLIC
-    ${LIB_MATH}
-    ${LIB_LIBELF}
-    ${LIB_LIBUSB}
-    ${LIB_LIBUSB_1_0}
-    ${LIB_LIBHID}
-    ${LIB_LIBHIDAPI}
-    ${LIB_LIBFTDI}
-    ${LIB_LIBFTDI1}
-    ${LIB_LIBREADLINE}
-    ${EXTRA_WINDOWS_LIBRARIES}
-    )
-
+# executable
 add_executable(avrdude
     main.c
     term.c
@@ -255,15 +275,14 @@ add_executable(avrdude
     whereami.h
     "${EXTRA_WINDOWS_SOURCES}"
     )
-
-target_link_libraries(avrdude PUBLIC libavrdude)
+target_link_libraries(avrdude PUBLIC sharedlib)
 
 # =====================================
 # Install
 # =====================================
 
 install(TARGETS avrdude DESTINATION bin)
-install(TARGETS libavrdude
+install(TARGETS staticlib sharedlib
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     PUBLIC_HEADER DESTINATION include COMPONENT dev
