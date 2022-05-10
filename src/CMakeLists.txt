@@ -256,7 +256,7 @@ target_include_directories(staticlib PUBLIC ${includes})
 target_link_libraries(staticlib PUBLIC ${deplibs})
 
 # sharedlib
-if(NOT WIN32) # cannot build shared DLLs with undefined references
+if(NOT WIN32 AND NOT APPLE) # shared lib cannot have undefined references
     set(BUILT_LIBS staticlib sharedlib)
     add_library(sharedlib SHARED $<TARGET_OBJECTS:objlib>)
     set_target_properties(sharedlib PROPERTIES
