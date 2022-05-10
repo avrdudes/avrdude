@@ -250,18 +250,16 @@ target_include_directories(staticlib PUBLIC ${includes})
 target_link_libraries(staticlib PUBLIC ${deplibs})
 
 # sharedlib
-if(NOT WIN32 AND NOT APPLE) # shared lib cannot have undefined references
-    add_library(sharedlib SHARED ${sources})
-    set_target_properties(sharedlib PROPERTIES
-        PREFIX ""
-        OUTPUT_NAME "libavrdude"
-        PUBLIC_HEADER "libavrdude.h"
-        VERSION 1.0.0
-        SOVERSION 1
-        )
-    target_include_directories(sharedlib PUBLIC ${includes})
-    target_link_libraries(sharedlib PUBLIC ${deplibs})
-endif()
+add_library(sharedlib SHARED ${sources})
+set_target_properties(sharedlib PROPERTIES
+    PREFIX ""
+    OUTPUT_NAME "libavrdude"
+    PUBLIC_HEADER "libavrdude.h"
+    VERSION 1.0.0
+    SOVERSION 1
+    )
+target_include_directories(sharedlib PUBLIC ${includes})
+target_link_libraries(sharedlib PUBLIC ${deplibs})
 
 # executable
 add_executable(avrdude
