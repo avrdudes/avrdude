@@ -113,27 +113,7 @@ endif()
 # Project
 # =====================================
 
-set(includes
-    "${PROJECT_SOURCE_DIR}"
-    "${PROJECT_BINARY_DIR}"
-    "${LIBUSB_COMPAT_DIR}"
-    "${EXTRA_WINDOWS_INCLUDES}"
-    )
-set(deplibs
-    ${LIB_MATH}
-    ${LIB_LIBELF}
-    ${LIB_LIBUSB}
-    ${LIB_LIBUSB_1_0}
-    ${LIB_LIBHID}
-    ${LIB_LIBHIDAPI}
-    ${LIB_LIBFTDI}
-    ${LIB_LIBFTDI1}
-    ${LIB_LIBREADLINE}
-    ${EXTRA_WINDOWS_LIBRARIES}
-    )
-
-# objects
-add_library(objlib OBJECT
+set(sources
     ac_cfg.h
     arduino.h
     arduino.c
@@ -240,13 +220,27 @@ add_library(objlib OBJECT
     ${FLEX_Parser_OUTPUTS}
     ${BISON_Parser_OUTPUTS}
     )
-target_include_directories(objlib PUBLIC ${includes})
-set_target_properties(objlib PROPERTIES
-    POSITION_INDEPENDENT_CODE true)
+set(includes
+    "${PROJECT_SOURCE_DIR}"
+    "${PROJECT_BINARY_DIR}"
+    "${LIBUSB_COMPAT_DIR}"
+    "${EXTRA_WINDOWS_INCLUDES}"
+    )
+set(deplibs
+    ${LIB_MATH}
+    ${LIB_LIBELF}
+    ${LIB_LIBUSB}
+    ${LIB_LIBUSB_1_0}
+    ${LIB_LIBHID}
+    ${LIB_LIBHIDAPI}
+    ${LIB_LIBFTDI}
+    ${LIB_LIBFTDI1}
+    ${LIB_LIBREADLINE}
+    ${EXTRA_WINDOWS_LIBRARIES}
+    )
 
 # staticlib
-set(BUILT_LIBS staticlib)
-add_library(staticlib STATIC $<TARGET_OBJECTS:objlib>)
+add_library(staticlib STATIC ${sources})
 set_target_properties(staticlib PROPERTIES
     PREFIX ""
     OUTPUT_NAME "libavrdude"
@@ -257,8 +251,7 @@ target_link_libraries(staticlib PUBLIC ${deplibs})
 
 # sharedlib
 if(NOT WIN32 AND NOT APPLE) # shared lib cannot have undefined references
-    set(BUILT_LIBS staticlib sharedlib)
-    add_library(sharedlib SHARED $<TARGET_OBJECTS:objlib>)
+    add_library(sharedlib SHARED ${sources})
     set_target_properties(sharedlib PROPERTIES
         PREFIX ""
         OUTPUT_NAME "libavrdude"
@@ -279,11 +272,7 @@ add_executable(avrdude
     whereami.h
     "${EXTRA_WINDOWS_SOURCES}"
     )
-if (sharedlib IN_LIST BUILT_LIBS)
-    target_link_libraries(avrdude PUBLIC sharedlib)
-else()
-    target_link_libraries(avrdude PUBLIC staticlib)
-endif()
+target_link_libraries(avrdude PUBLIC staticlib)
 
 # =====================================
 # Install
