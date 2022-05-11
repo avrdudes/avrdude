@@ -55,11 +55,6 @@ if(WIN32)
     set(EXTRA_WINDOWS_LIBRARIES setupapi ws2_32)
 endif()
 
-if(NOT WIN32)
-    set(LIB_MATH m)
-    add_compile_options(-Wall) # -Wextra
-endif()
-
 if(MSVC)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS=1)
     add_compile_definitions(_CRT_NONSTDC_NO_WARNINGS=1)
@@ -79,6 +74,9 @@ if(MSVC)
     set(EXTRA_WINDOWS_INCLUDES ${EXTRA_WINDOWS_INCLUDES}
         "msvc"
         )
+else()
+    set(LIB_MATH m)
+    add_compile_options(-Wall) # -Wextra
 endif()
 
 # =====================================
