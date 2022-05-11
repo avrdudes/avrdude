@@ -35,6 +35,13 @@ option(USE_LIBUSBWIN32 "Prefer libusb-win32 over libusb" OFF)
 option(DEBUG_CMAKE "Enable debugging output for this CMake project" OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
+if(WIN32)
+    # Prefer static libraries over DLLs on Windows
+    option(USE_STATIC_LIBS "Use static libraries" ON)
+else()
+    option(USE_STATIC_LIBS "Use static libraries" OFF)
+endif()
+
 include(CheckIncludeFile)
 include(CheckSymbolExists)
 include(FetchContent)
@@ -110,8 +117,7 @@ endif()
 # Detect installed libraries
 # =====================================
 
-# Prefer static libraries over DLLs on Windows
-if(WIN32)
+if(USE_STATIC_LIBS)
     set(PREFERRED_LIBELF libelf.a elf)
     set(PREFERRED_LIBUSB libusb.a usb)
     set(PREFERRED_LIBUSB_1_0 libusb-1.0.a usb-1.0)
