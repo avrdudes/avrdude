@@ -118,6 +118,7 @@ if(WIN32)
     set(PREFERRED_LIBHIDAPI libhidapi.a libhidapi-libusb.a libhidapi-hidraw.a hidapi hidapi-libusb hidapi-hidraw)
     set(PREFERRED_LIBFTDI libftdi.a ftdi)
     set(PREFERRED_LIBFTDI1 libftdi1.a ftdi1)
+    set(PREFERRED_LIBREADLINE libreadline.a)
 else()
     set(PREFERRED_LIBELF elf)
     set(PREFERRED_LIBUSB usb)
@@ -125,6 +126,7 @@ else()
     set(PREFERRED_LIBHIDAPI hidapi hidapi-libusb hidapi-hidraw)
     set(PREFERRED_LIBFTDI ftdi)
     set(PREFERRED_LIBFTDI1 ftdi1)
+    set(PREFERRED_LIBREADLINE readline)
 endif()
 
 # -------------------------------------
@@ -212,7 +214,7 @@ endif()
 # -------------------------------------
 # Find libreadline
 
-find_library(HAVE_LIBREADLINE NAMES readline)
+find_library(HAVE_LIBREADLINE NAMES ${PREFERRED_LIBREADLINE})
 if(HAVE_LIBREADLINE)
     set(LIB_LIBREADLINE ${HAVE_LIBREADLINE})
 endif()
