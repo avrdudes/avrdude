@@ -51,7 +51,7 @@ include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 add_compile_definitions(CONFIG_DIR=\"${CONFIG_DIR}\")
 
 if(WIN32)
-    set(EXTRA_WINDOWS_SOURCES "${PROJECT_BINARY_DIR}/src/windows.rc")
+    set(EXTRA_WINDOWS_RESOURCES "${PROJECT_BINARY_DIR}/src/windows.rc")
     set(EXTRA_WINDOWS_LIBRARIES setupapi ws2_32)
 endif()
 
@@ -216,6 +216,7 @@ add_library(libavrdude
     xbee.c
     ${FLEX_Parser_OUTPUTS}
     ${BISON_Parser_OUTPUTS}
+    "${EXTRA_WINDOWS_SOURCES}"
     )
     
 set_target_properties(libavrdude PROPERTIES
@@ -253,7 +254,7 @@ add_executable(avrdude
     term.h
     whereami.c
     whereami.h
-    "${EXTRA_WINDOWS_SOURCES}"
+    "${EXTRA_WINDOWS_RESOURCES}"
     )
 
 target_link_libraries(avrdude PUBLIC libavrdude)
