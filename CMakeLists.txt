@@ -281,6 +281,10 @@ endif()
 
 add_subdirectory(src)
 
+if(BUILD_DOC)
+    add_subdirectory(src/doc)
+endif()
+
 # =====================================
 # Configuration
 # =====================================

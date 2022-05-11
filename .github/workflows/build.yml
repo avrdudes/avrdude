@@ -47,9 +47,13 @@ jobs:
           libusb-1.0-0-dev
           libhidapi-dev
           libftdi1-dev
+          texinfo
+          texlive
+          texi2html
       - name: Configure
         run: >-
           cmake
+          -D BUILD_DOC=1
           -D DEBUG_CMAKE=1
           -D HAVE_LINUXGPIO=1
           -D HAVE_LINUXSPI=1
