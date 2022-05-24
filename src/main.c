@@ -26,7 +26,7 @@
  * For parallel port connected programmers, the pin definitions can be
  * changed via a config file.  See the config file for instructions on
  * how to add a programmer definition.
- *  
+ *
  */
 
 #include "ac_cfg.h"
@@ -102,7 +102,7 @@ int    ovsigck;     /* 1=override sig check, 0=don't */
  */
 static void usage(void)
 {
-  avrdude_message(MSG_INFO, 
+  avrdude_message(MSG_INFO,
  "Usage: %s [options]\n"
  "Options:\n"
  "  -p <partno>                Required. Specify AVR device.\n"
@@ -309,6 +309,119 @@ static void replace_backslashes(char *s)
   }
 }
 
+
+static char cmdbitchar(CMDBIT cb) {
+  switch(cb.type) {
+  case AVR_CMDBIT_IGNORE:
+    return 'x';
+  case AVR_CMDBIT_VALUE:
+    return cb.value? '1': '0';
+  case AVR_CMDBIT_ADDRESS:
+    return 'a';
+  case AVR_CMDBIT_INPUT:
+    return 'i';
+  case AVR_CMDBIT_OUTPUT:
+    return 'o';
+  default:
+    return '?';
+  }
+}
+
+static const char *opcodename(int what) {
+  switch(what) {
+  case AVR_OP_READ:
+    return "read";
+  case AVR_OP_WRITE:
+    return "write";
+  case AVR_OP_READ_LO:
+    return "read_lo";
+  case AVR_OP_READ_HI:
+    return "read_hi";
+  case AVR_OP_WRITE_LO:
+    return "write_lo";
+  case AVR_OP_WRITE_HI:
+    return "write_hi";
+  case AVR_OP_LOADPAGE_LO:
+    return "loadpage_lo";
+  case AVR_OP_LOADPAGE_HI:
+    return "loadpage_hi";
+  case AVR_OP_LOAD_EXT_ADDR:
+    return "load_ext_addr";
+  case AVR_OP_WRITEPAGE:
+    return "writepage";
+  case AVR_OP_CHIP_ERASE:
+    return "chip_erase";
+  case AVR_OP_PGM_ENABLE:
+    return "pgm_enable";
+  default:
+    return "???";
+  }
+}
+
+static void printopcode(AVRPART *p, const char *d, OPCODE **opa, int what) {
+  unsigned char cmd[4];
+  int i;
+
+  if(opa && opa[what]) {
+    memset(cmd, 0, sizeof cmd);
+    avr_set_bits(opa[what], cmd);
+
+    avrdude_message(MSG_INFO, ".op %s %s %s 0x%02x%02x%02x%02x ", p->desc, d, opcodename(what), cmd[0], cmd[1], cmd[2], cmd[3]);
+    for(i=31; i >= 0; i--) {
+      avrdude_message(MSG_INFO, "%c", cmdbitchar(opa[what]->bit[i]));
+      if(i%8 == 0)
+        avrdude_message(MSG_INFO, "%c", i? ' ': '\n');
+    }
+  }
+}
+
+static void printallopcodes(AVRPART *p, const char *d, OPCODE **opa) {
+  for(int i=0; i<AVR_OP_MAX; i++)
+    printopcode(p, d, opa, i);
+}
+
+
+/* returns position 0..31 of highest bit set or INT_MIN if no bit is set */
+static int intlog2(unsigned int n) {
+  int ret;
+
+  if(!n)
+    return INT_MIN;
+
+  for(ret = 0; n >>= 1; ret++)
+    continue;
+
+  return ret;
+}
+
+// check whether address bits are where they should be in ISP commands
+static void checkaddr(int memsize, int pagesize, int what, OPCODE *op, AVRPART *p, AVRMEM *m) {
+  int i, lo, hi;
+  const char *whatstr = opcodename(what);
+
+  lo = intlog2(pagesize);
+  hi = intlog2(memsize-1);
+
+  // address bits should be between positions lo and hi (and fall in line), outside should be 0 or don't care
+  for(i=0; i<16; i++) {         // ISP programming only deals with 16-bit addresses (words for flash, bytes for eeprom)
+    if(i < lo || i > hi) {
+      if(op->bit[i+8].type != AVR_CMDBIT_IGNORE && !(op->bit[i+8].type == AVR_CMDBIT_VALUE && op->bit[i+8].value == 0)) {
+        avrdude_message(MSG_INFO, ".cmdbit%d %s %s-%s outside addressable space should be x or 0, but is %c", i+8, p->desc, m->desc, whatstr, cmdbitchar(op->bit[i+8]));
+        if(op->bit[i+8].type == AVR_CMDBIT_ADDRESS)
+          avrdude_message(MSG_INFO, "%d", op->bit[i+8].bitno);
+        avrdude_message(MSG_INFO, "\n");
+      }
+    } else {
+      if(op->bit[i+8].type != AVR_CMDBIT_ADDRESS)
+        avrdude_message(MSG_INFO, ".cmdbit%d %s %s-%s is %c but should be a\n", i+8, p->desc, m->desc, whatstr, cmdbitchar(op->bit[i+8]));
+      else if(op->bit[i+8].bitno != i)
+        avrdude_message(MSG_INFO, ".cmdbit%d %s %s-%s inconsistent: a%d specified as a%d\n", i+8, p->desc, m->desc, whatstr, i, op->bit[i+8].bitno);
+    }
+  }
+  for(i=0; i<32; i++)           // command bits 8..23 should not contain address bits
+    if((i<8 || i>23) && op->bit[i].type == AVR_CMDBIT_ADDRESS)
+      avrdude_message(MSG_INFO, ".cmdbit%d %s %s-%s contains a%d which it shouldn't\n", i, p->desc, m->desc, whatstr, op->bit[i].bitno);
+}
 
 /*
  * main routine
@@ -830,6 +943,200 @@ int main(int argc, char * argv [])
 
   avrdude_message(MSG_NOTICE, "\n");
 
+  // print part descriptions for debugging avrdude.conf and exit
+  if(partdesc && 0 == strcmp(partdesc, "*")) {
+    int first = 1;
+
+    for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1)) {
+      AVRPART *p = ldata(ln1);
+      int flashsize = 0, flashoffset = 0, flashpagesize = 0, eepromsize = 0, eepromoffset = 0, eeprompagesize = 0;
+
+      if(p->mem) {
+        for(LNODEID lnm=lfirst(p->mem); lnm; lnm=lnext(lnm)) {
+          AVRMEM *m = ldata(lnm);
+          if(!flashsize && m->desc && 0==strcmp(m->desc, "flash")) {
+            flashsize = m->size;
+            flashpagesize = m->page_size;
+            flashoffset = m->offset;
+          }
+          if(!eepromsize && m->desc && 0==strcmp(m->desc, "eeprom")) {
+            eepromsize = m->size;
+            eepromoffset = m->offset;
+            eeprompagesize = m->page_size;
+          }
+        }
+      }
+
+#define AD_SPI_EN_CE_SIG      1
+#define AD_SPI_PROGMEM        2
+#define AD_SPI_PROGMEM_PAGED  4
+#define AD_SPI_LOAD_EXT_ADDR  8
+#define AD_SPI_EEPROM        16
+#define AD_SPI_EEPROM_PAGED  32
+#define AD_SPI_LOCK          64
+#define AD_SPI_CALIBRATION  128
+#define AD_SPI_LFUSE        256
+#define AD_SPI_HFUSE        512
+#define AD_SPI_EFUSE       1024
+
+      if(flashsize && !index(p->desc, ' ')) {
+        int len, ok, nfuses;
+        AVRMEM *m;
+        OPCODE *oc;
+
+        if(!first)
+          avrdude_message(MSG_INFO, "\n");
+        first = 0;
+
+        ok = 2047;
+        nfuses = 0;
+
+        if(!p->op[AVR_OP_PGM_ENABLE])
+          ok &= ~AD_SPI_EN_CE_SIG;
+
+        if(!p->op[AVR_OP_CHIP_ERASE])
+          ok &= ~AD_SPI_EN_CE_SIG;
+
+        if((m = avr_locate_mem(p, "flash"))) {
+          if((oc = m->op[AVR_OP_LOAD_EXT_ADDR])) {
+            // @@@ to do: check whether address is put at lsb of third byte
+          } else
+           ok &= ~AD_SPI_LOAD_EXT_ADDR;
+
+          if((oc = m->op[AVR_OP_READ_HI]))
+            checkaddr(m->size>>1, 1, AVR_OP_READ_HI, oc, p, m);
+          else
+            ok &= ~AD_SPI_PROGMEM;
+
+          if((oc = m->op[AVR_OP_READ_LO]))
+            checkaddr(m->size>>1, 1, AVR_OP_READ_LO, oc, p, m);
+          else
+            ok &= ~AD_SPI_PROGMEM;
+
+          if((oc = m->op[AVR_OP_WRITE_HI]))
+            checkaddr(m->size>>1, 1, AVR_OP_WRITE_HI, oc, p, m);
+          else
+            ok &= ~AD_SPI_PROGMEM;
+
+          if((oc = m->op[AVR_OP_WRITE_LO]))
+            checkaddr(m->size>>1, 1, AVR_OP_WRITE_LO, oc, p, m);
+          else
+            ok &= ~AD_SPI_PROGMEM;
+
+          if((oc = m->op[AVR_OP_LOADPAGE_HI]))
+            checkaddr(m->page_size>>1, 1, AVR_OP_LOADPAGE_HI, oc, p, m);
+          else
+            ok &= ~AD_SPI_PROGMEM_PAGED;
+
+          if((oc = m->op[AVR_OP_LOADPAGE_LO]))
+            checkaddr(m->page_size>>1, 1, AVR_OP_LOADPAGE_LO, oc, p, m);
+          else
+            ok &= ~AD_SPI_PROGMEM_PAGED;
+
+          if((oc = m->op[AVR_OP_WRITEPAGE]))
+            checkaddr(m->size>>1, m->page_size>>1, AVR_OP_WRITEPAGE, oc, p, m);
+          else
+            ok &= ~AD_SPI_PROGMEM_PAGED;
+        } else
+          ok &= ~(AD_SPI_PROGMEM_PAGED | AD_SPI_PROGMEM);
+
+        if((m = avr_locate_mem(p, "eeprom"))) {
+          if((oc = m->op[AVR_OP_READ])) {
+            checkaddr(m->size, 1, AVR_OP_READ, oc, p, m);
+          } else
+            ok &= ~AD_SPI_EEPROM;
+
+          if((oc = m->op[AVR_OP_WRITE])) {
+            checkaddr(m->size, 1, AVR_OP_WRITE, oc, p, m);
+          } else
+            ok &= ~AD_SPI_EEPROM;
+
+          if((oc = m->op[AVR_OP_LOADPAGE_LO])) {
+            checkaddr(m->page_size, 1, AVR_OP_LOADPAGE_LO, oc, p, m);
+          } else
+            ok &= ~AD_SPI_EEPROM_PAGED;
+
+          if((oc = m->op[AVR_OP_WRITEPAGE])) {
+            checkaddr(m->size, m->page_size, AVR_OP_WRITEPAGE, oc, p, m);
+          } else
+            ok &= ~AD_SPI_EEPROM_PAGED;
+        } else
+          ok &= ~(AD_SPI_EEPROM_PAGED | AD_SPI_EEPROM);
+
+        if((m = avr_locate_mem(p, "signature")) && (oc = m->op[AVR_OP_READ]))
+          checkaddr(m->size, 1, AVR_OP_READ, oc, p, m);
+        else
+          ok &= ~AD_SPI_EN_CE_SIG;
+
+        if((m = avr_locate_mem(p, "calibration")) && (oc = m->op[AVR_OP_READ]))
+          checkaddr(m->size, 1, AVR_OP_READ, oc, p, m);
+        else
+          ok &= ~AD_SPI_CALIBRATION;
+
+        // actually, some AT90S... parts cannot read, only write lock bits :-0
+        if( ! ((m = avr_locate_mem(p, "lock")) && m->op[AVR_OP_WRITE]))
+          ok &= ~AD_SPI_LOCK;
+
+        if(((m = avr_locate_mem(p, "fuse")) || (m = avr_locate_mem(p, "lfuse"))) && m->op[AVR_OP_READ] && m->op[AVR_OP_WRITE])
+          nfuses++;
+        else
+          ok &= ~AD_SPI_LFUSE;
+
+        if((m = avr_locate_mem(p, "hfuse")) && m->op[AVR_OP_READ] && m->op[AVR_OP_WRITE])
+          nfuses++;
+        else
+          ok &= ~AD_SPI_HFUSE;
+
+        if((m = avr_locate_mem(p, "efuse")) && m->op[AVR_OP_READ] && m->op[AVR_OP_WRITE])
+          nfuses++;
+        else
+          ok &= ~AD_SPI_EFUSE;
+
+        len = 16-strlen(p->desc);
+        avrdude_message(MSG_INFO, ".desc '%s' =>%*s [0x%02X, 0x%02X, 0x%02X, 0x%08x, 0x%05x, 0x%03x, 0x%06x, 0x%04x, 0x%03x, %d, 0x%03x, 0x%04x], # %s %d\n",
+          p->desc, len > 0? len: 0, "",
+          p->signature[0], p->signature[1], p->signature[2],
+          flashoffset, flashsize, flashpagesize,
+          eepromoffset, eepromsize, eeprompagesize,
+          nfuses,
+          ok,
+          p->flags,
+          p->config_file, p->lineno
+        );
+      }
+
+      printallopcodes(p, "part", p->op);
+      if(p->mem) {
+        for(LNODEID lnm=lfirst(p->mem); lnm; lnm=lnext(lnm)) {
+          AVRMEM *m = ldata(lnm);
+          if(m)
+            printallopcodes(p, m->desc, m->op);
+        }
+      }
+
+      // print wait delays for AVR family parts
+      if(!(p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI | AVRPART_HAS_TPI | AVRPART_AVR32)))
+        avrdude_message(MSG_INFO, ".wd_chip_erase %.3f ms %s\n", p->chip_erase_delay/1000.0, p->desc);
+      if(p->mem) {
+        for(LNODEID lnm=lfirst(p->mem); lnm; lnm=lnext(lnm)) {
+          AVRMEM *m = ldata(lnm);
+          // write delays not needed for read-only calibration and signature memories
+          if(strcmp(m->desc, "calibration") && strcmp(m->desc, "signature")) {
+            if(!(p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI | AVRPART_HAS_TPI | AVRPART_AVR32))) {
+              if(m->min_write_delay == m->max_write_delay)
+                 avrdude_message(MSG_INFO, ".wd_%s %.3f ms %s\n", m->desc, m->min_write_delay/1000.0, p->desc);
+              else {
+                 avrdude_message(MSG_INFO, ".wd_min_%s %.3f ms %s\n", m->desc, m->min_write_delay/1000.0, p->desc);
+                 avrdude_message(MSG_INFO, ".wd_max_%s %.3f ms %s\n", m->desc, m->max_write_delay/1000.0, p->desc);
+              }
+            }
+          }
+        }
+      }
+    }
+    exit(1);
+  }
+
   if (partdesc) {
     if (strcmp(partdesc, "?") == 0) {
       avrdude_message(MSG_INFO, "\n");
@@ -1161,7 +1468,7 @@ int main(int argc, char * argv [])
         goto main_exit;
       }
     }
-  
+
     sig = avr_locate_mem(p, "signature");
     if (sig == NULL) {
       avrdude_message(MSG_INFO, "%s: WARNING: signature data not defined for device \"%s\"\n",
