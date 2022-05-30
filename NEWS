@@ -18,6 +18,7 @@ Changes since version 7.0:
   * Pull requests:
 
     - Fix .Dd macro in manpage #949
+    - fix M1 homebrew path #950
 
   * Internals:
 
