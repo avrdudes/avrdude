@@ -6832,6 +6832,13 @@ part
                           "x x x x  x x x x   i i i i  i i i i";
       ;
 
+    # Required for Arduino IDE
+    # see: https://github.com/arduino/Arduino/issues/2075
+    #      https://github.com/arduino/Arduino/issues/2075#issuecomment-238031689
+    memory "efuse"
+        size            = 0;
+      ;
+
     memory "lock"
         size            = 1;
         min_write_delay = 2000;
