@@ -1116,9 +1116,8 @@ int main(int argc, char * argv [])
     usleep(waittime);
     if (init_ok) {
       rc = avr_signature(pgm, p);
-      if (rc != 0) {
-        // -68 == -(0x44) == -(RSP3_FAIL_OCD_LOCKED)
-        if ((rc == -68) && (p->flags & AVRPART_HAS_UPDI) && (attempt < 1)) {
+      if (rc != LIBAVRDUDE_SUCCESS) {
+        if ((rc == LIBAVRDUDE_SOFTFAIL) && (p->flags & AVRPART_HAS_UPDI) && (attempt < 1)) {
           attempt++;
           if (pgm->read_sib) {
              // Read SIB and compare FamilyID

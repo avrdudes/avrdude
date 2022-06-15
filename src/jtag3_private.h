@@ -145,6 +145,7 @@
 #  define RSP3_FAIL_UNSUPP_MEMORY       0x34 /* unsupported memory type */
 #  define RSP3_FAIL_WRONG_LENGTH        0x35 /* wrong lenth for mem access */
 #  define RSP3_FAIL_OCD_LOCKED          0x44 /* device is locked */
+#  define RSP3_FAIL_CRC_FAILURE         0x47 /* CRC failure in device */
 #  define RSP3_FAIL_NOT_UNDERSTOOD      0x91
 
 /* ICE events */
