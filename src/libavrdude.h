@@ -27,6 +27,16 @@
 #include <stdint.h>
 
 typedef uint32_t pinmask_t;
+/*
+ * Values returned by library functions.
+ * Some library functions also return a count, i.e. a positive
+ * number greater than 0.
+ */
+#define LIBAVRDUDE_SUCCESS 0
+#define LIBAVRDUDE_GENERAL_FAILURE (-1)
+#define LIBAVRDUDE_NOTSUPPORTED (-2) // operation not supported
+#define LIBAVRDUDE_SOFTFAIL (-3) // returned by avr_signature() if caller
+                                 // might proceed with chip erase
 
 /* formerly lists.h */
 
