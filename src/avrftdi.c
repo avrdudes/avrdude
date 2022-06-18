@@ -917,7 +917,14 @@ static int avrftdi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 static int
 avrftdi_lext(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m, unsigned int address)
 {
+	avrftdi_t *pdata = to_pdata(pgm);
 	unsigned char buf[] = { 0x00, 0x00, 0x00, 0x00 };
+
+	/* only send load extended address command if high byte changed */
+	if(pdata->lext_byte == (uint8_t) (address>>16))
+		return 0;
+
+	pdata->lext_byte = (uint8_t) (address>>16);
 
 	avr_set_bits(m->op[AVR_OP_LOAD_EXT_ADDR], buf);
 	avr_set_addr(m->op[AVR_OP_LOAD_EXT_ADDR], buf, address);
@@ -983,8 +990,6 @@ static int avrftdi_eeprom_read(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
 static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 		unsigned int page_size, unsigned int addr, unsigned int len)
 {
-	int use_lext_address = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
-	
 	unsigned int word;
 	unsigned int poll_index;
 
@@ -1013,22 +1018,12 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 	page_size = m->page_size;
 
-	/* if we do cross a 64k word boundary (or write the
-	 * first page), we need to issue a 'load extended
-	 * address byte' command, which is defined as 0x4d
-	 * 0x00 <address byte> 0x00.  As far as i know, this
-	 * is only available on 256k parts.  64k word is 128k
-	 * bytes.
-	 * write the command only once.
-	 */
-	if(use_lext_address && (((addr/2) & 0xffff0000))) {
-		if (0 > avrftdi_lext(pgm, p, m, addr/2))
-			return -1;
-	}
+	/* on large-flash devices > 128k issue extended address command when needed */
+	if(m->op[AVR_OP_LOAD_EXT_ADDR] && avrftdi_lext(pgm, p, m, addr/2) < 0)
+		return -1;
 	
 	/* prepare the command stream for the whole page */
-	/* addr is in bytes, but we program in words. addr/2 should be something
-	 * like addr >> WORD_SHIFT, though */
+	/* addr is in bytes, but we program in words. */
 	for(word = addr/2; word < (len + addr)/2; word++)
 	{
 		log_debug("-< bytes = %d of %d\n", word * 2, len + addr);
@@ -1107,7 +1102,6 @@ static int avrftdi_flash_read(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 {
 	OPCODE * readop;
 	int byte, word;
-	int use_lext_address = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
 	unsigned int address = addr/2;
 
 	unsigned int buf_size = 4 * len + 4;
@@ -1128,10 +1122,8 @@ static int avrftdi_flash_read(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 		return -1;
 	}
 	
-	if(use_lext_address && ((address & 0xffff0000))) {
-		if (0 > avrftdi_lext(pgm, p, m, address))
-			return -1;
-	}
+	if(m->op[AVR_OP_LOAD_EXT_ADDR] && avrftdi_lext(pgm, p, m, address) < 0)
+		return -1;
 	
 	/* word addressing! */
 	for(word = addr/2, index = 0; word < (addr + len)/2; word++)
@@ -1210,7 +1202,11 @@ avrftdi_setup(PROGRAMMER * pgm)
 {
 	avrftdi_t* pdata;
 
-	pgm->cookie = malloc(sizeof(avrftdi_t));
+	
+	if(!(pgm->cookie = calloc(sizeof(avrftdi_t), 1))) {
+		log_err("Error allocating memory.\n");
+		exit(1);
+	}
 	pdata = to_pdata(pgm);
 
 	pdata->ftdic = ftdi_new();
@@ -1224,6 +1220,7 @@ avrftdi_setup(PROGRAMMER * pgm)
 	pdata->pin_value = 0;
 	pdata->pin_direction = 0;
 	pdata->led_mask = 0;
+	pdata->lext_byte = 0xff;
 }
 
 static void
