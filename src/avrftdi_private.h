@@ -81,6 +81,8 @@ typedef struct avrftdi_s {
 	int tx_buffer_size;
 	/* use bitbanging instead of mpsse spi */
 	bool use_bitbanging;
+	/* bits 16-23 of extended 24-bit word flash address for parts with flash > 128k */
+	uint8_t lext_byte;
 } avrftdi_t;
 
 void avrftdi_log(int level, const char * func, int line, const char * fmt, ...);
