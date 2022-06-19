@@ -24,6 +24,8 @@ Changes since version 7.0:
     - Fix .Dd macro in manpage #949
     - fix M1 homebrew path #950
     - CMake Enhancements #962
+    - Reduce programmer desc string length in avrdude.conf
+      to < 80 characters #1000
 
   * Internals:
 
