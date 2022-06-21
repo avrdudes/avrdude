@@ -10043,7 +10043,7 @@ part
 			  "  x   x   x   x      x   x   x   x";
 
 	mode		= 0x41;
-	delay		= 12;
+	delay		= 6;
 	blocksize	= 4;
 	readsize	= 256;
        ;
@@ -10431,8 +10431,8 @@ part
          size            = 8192;
          page_size       = 64;
          num_pages       = 128;
-         min_write_delay = 30000;
-         max_write_delay = 30000;
+         min_write_delay = 4500;
+         max_write_delay = 4500;
          readback_p1     = 0xff;
          readback_p2     = 0xff;
          read_lo         = "  0   0   1   0    0   0   0   0",
@@ -11075,7 +11075,7 @@ part
 			  "  x   x   x   x      x   x   x   x";
 
 	mode		= 0x41;
-	delay		= 6;
+	delay		= 12;
 	blocksize	= 4;
 	readsize	= 256;
        ;
@@ -11084,8 +11084,8 @@ part
          size            = 8192;
          page_size       = 64;
          num_pages       = 128;
-         min_write_delay = 4500;
-         max_write_delay = 4500;
+         min_write_delay = 30000;
+         max_write_delay = 30000;
          readback_p1     = 0xff;
          readback_p2     = 0xff;
          read_lo         = "  0   0   1   0    0   0   0   0",
