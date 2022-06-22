@@ -313,12 +313,10 @@ static void jtag3_prmsg(PROGRAMMER * pgm, unsigned char * data, size_t len)
   }
 }
 
-static int jtag3_errcode(int status)
+static int jtag3_errcode(int reason)
 {
-  if (status >= LIBAVRDUDE_SUCCESS)
-    return status;
-  if (status == RSP3_FAIL_OCD_LOCKED ||
-      status == RSP3_FAIL_CRC_FAILURE)
+  if (reason == RSP3_FAIL_OCD_LOCKED ||
+      reason == RSP3_FAIL_CRC_FAILURE)
     return LIBAVRDUDE_SOFTFAIL;
   return LIBAVRDUDE_GENERAL_FAILURE;
 }
@@ -844,7 +842,7 @@ int jtag3_recv(PROGRAMMER * pgm, unsigned char **msg) {
   }
 }
 
- int jtag3_command(PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen,
+int jtag3_command(PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen,
 		   unsigned char **resp, const char *descr)
 {
   int status;
@@ -868,9 +866,10 @@ int jtag3_recv(PROGRAMMER * pgm, unsigned char **msg) {
     avrdude_message(MSG_NOTICE2, "0x%02x (%d bytes msg)\n", (*resp)[1], status);
   }
 
-  c = (*resp)[1];
-  if ((c & RSP3_STATUS_MASK) != RSP3_OK) {
-    if ((c == RSP3_FAILED) && ((*resp)[3] == RSP3_FAIL_OCD_LOCKED)) {
+  c = (*resp)[1] & RSP3_STATUS_MASK;
+  if (c != RSP3_OK) {
+    if ((c == RSP3_FAILED) && ((*resp)[3] == RSP3_FAIL_OCD_LOCKED ||
+			       (*resp)[3] == RSP3_FAIL_CRC_FAILURE)) {
       avrdude_message(MSG_INFO,
 		      "%s: Device is locked! Chip erase required to unlock.\n",
 		      progname);
@@ -881,11 +880,10 @@ int jtag3_recv(PROGRAMMER * pgm, unsigned char **msg) {
     status = (*resp)[3];
     free(*resp);
     resp = 0;
-
     return jtag3_errcode(status);
   }
 
-  return LIBAVRDUDE_SUCCESS;
+  return status;
 }
 
 
@@ -1001,7 +999,7 @@ static int jtag3_program_enable(PROGRAMMER * pgm)
     return LIBAVRDUDE_SUCCESS;
   }
 
-  return jtag3_errcode(status);
+  return status;
 }
 
 static int jtag3_program_disable(PROGRAMMER * pgm)
@@ -1932,7 +1930,7 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
   if (!(pgm->flag & PGM_FL_IS_DW))
     if ((status = jtag3_program_enable(pgm)) < 0)
-      return jtag3_errcode(status);
+      return status;
 
   cmd[0] = SCOPE_AVR;
   cmd[1] = CMD3_READ_MEMORY;
@@ -2018,7 +2016,7 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
     if (addr == 0) {
       if ((status = jtag3_command(pgm, cmd, 12, &resp, "read memory")) < 0)
-	return jtag3_errcode(status);
+	return status;
 
       signature_cache[0] = resp[4];
       signature_cache[1] = resp[5];
@@ -2068,7 +2066,7 @@ static int jtag3_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   }
 
   if ((status = jtag3_command(pgm, cmd, 12, &resp, "read memory")) < 0)
-    return jtag3_errcode(status);
+    return status;
 
   if (resp[1] != RSP3_DATA ||
       status < (pagesize? pagesize: 1) + 4) {
@@ -2196,7 +2194,7 @@ static int jtag3_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   cmd[13] = data;
 
   if ((status = jtag3_command(pgm, cmd, 14, &resp, "write memory")) < 0)
-    return jtag3_errcode(status);
+    return status;
 
   free(resp);
 
@@ -2327,7 +2325,7 @@ int jtag3_read_sib(PROGRAMMER * pgm, AVRPART * p, char * sib)
   u32_to_b4(cmd + 8, AVR_SIBLEN);
 
   if ((status = jtag3_command(pgm, cmd, 12, &resp, "read SIB")) < 0)
-	return jtag3_errcode(status);
+	return status;
 
   memcpy(sib, resp+3, AVR_SIBLEN);
   sib[AVR_SIBLEN] = 0; // Zero terminate string
