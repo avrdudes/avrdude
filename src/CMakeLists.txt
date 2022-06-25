@@ -51,13 +51,8 @@ include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 add_compile_definitions(CONFIG_DIR=\"${CONFIG_DIR}\")
 
 if(WIN32)
-    set(EXTRA_WINDOWS_SOURCES "${PROJECT_BINARY_DIR}/src/windows.rc")
+    set(EXTRA_WINDOWS_RESOURCES "${PROJECT_BINARY_DIR}/src/windows.rc")
     set(EXTRA_WINDOWS_LIBRARIES setupapi ws2_32)
-endif()
-
-if(NOT WIN32)
-    set(LIB_MATH m)
-    add_compile_options(-Wall) # -Wextra
 endif()
 
 if(MSVC)
@@ -79,6 +74,9 @@ if(MSVC)
     set(EXTRA_WINDOWS_INCLUDES ${EXTRA_WINDOWS_INCLUDES}
         "msvc"
         )
+else()
+    set(LIB_MATH m)
+    add_compile_options(-Wall) # -Wextra
 endif()
 
 # =====================================
@@ -173,7 +171,6 @@ add_library(libavrdude
     ppi.c
     ppi.h
     ppiwin.c
-    safemode.c
     serbb.h
     serbb_posix.c
     serbb_win32.c
@@ -217,6 +214,7 @@ add_library(libavrdude
     xbee.c
     ${FLEX_Parser_OUTPUTS}
     ${BISON_Parser_OUTPUTS}
+    "${EXTRA_WINDOWS_SOURCES}"
     )
     
 set_target_properties(libavrdude PROPERTIES
@@ -240,6 +238,7 @@ target_link_libraries(libavrdude
     ${LIB_LIBELF}
     ${LIB_LIBUSB}
     ${LIB_LIBUSB_1_0}
+    ${LIB_LIBHID}
     ${LIB_LIBHIDAPI}
     ${LIB_LIBFTDI}
     ${LIB_LIBFTDI1}
@@ -253,7 +252,7 @@ add_executable(avrdude
     term.h
     whereami.c
     whereami.h
-    "${EXTRA_WINDOWS_SOURCES}"
+    "${EXTRA_WINDOWS_RESOURCES}"
     )
 
 target_link_libraries(avrdude PUBLIC libavrdude)
@@ -264,9 +263,9 @@ target_link_libraries(avrdude PUBLIC libavrdude)
 
 install(TARGETS avrdude DESTINATION bin)
 install(TARGETS libavrdude
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION include COMPONENT dev
     )
-install(FILES "${PROJECT_BINARY_DIR}/avrdude.conf" TYPE SYSCONF)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/avrdude.conf" TYPE SYSCONF)
 install(FILES avrdude.1 TYPE MAN)

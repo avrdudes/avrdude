@@ -68,6 +68,7 @@ static int pin_name;
 %token K_PAGE_SIZE
 %token K_PAGED
 
+%token K_ALIAS
 %token K_BAUDRATE
 %token K_BS2
 %token K_BUFF
@@ -77,7 +78,6 @@ static int pin_name;
 %token K_DEFAULT_BITCLOCK
 %token K_DEFAULT_PARALLEL
 %token K_DEFAULT_PROGRAMMER
-%token K_DEFAULT_SAFEMODE
 %token K_DEFAULT_SERIAL
 %token K_DESC
 %token K_FAMILY_ID
@@ -256,14 +256,6 @@ def :
 
   K_DEFAULT_BITCLOCK TKN_EQUAL number_real TKN_SEMI {
     default_bitclock = $3->value.number_real;
-    free_token($3);
-  } |
-
-  K_DEFAULT_SAFEMODE TKN_EQUAL yesno TKN_SEMI {
-    if ($3->primary == K_YES)
-      default_safemode = 1;
-    else if ($3->primary == K_NO)
-      default_safemode = 0;
     free_token($3);
   }
 ;
@@ -1248,12 +1240,17 @@ part_parm :
     { 
       AVRMEM * existing_mem;
 
-      existing_mem = avr_locate_mem(current_part, current_mem->desc);
+      existing_mem = avr_locate_mem_noalias(current_part, current_mem->desc);
       if (existing_mem != NULL) {
         lrmv_d(current_part->mem, existing_mem);
         avr_free_mem(existing_mem);
       }
-      ladd(current_part->mem, current_mem); 
+      if (is_alias) {
+        avr_free_mem(current_mem); // alias mem has been already entered below
+        is_alias = false;
+      } else {
+        ladd(current_part->mem, current_mem);
+      }
       current_mem = NULL; 
     } |
 
@@ -1290,6 +1287,7 @@ yesno :
 
 mem_specs :
   mem_spec TKN_SEMI |
+  mem_alias TKN_SEMI |
   mem_specs mem_spec TKN_SEMI
 ;
 
@@ -1419,6 +1417,38 @@ mem_spec :
   }
 ;
 
+mem_alias :
+  K_ALIAS TKN_STRING
+  {
+      AVRMEM * existing_mem;
+
+      existing_mem = avr_locate_mem(current_part, $2->value.string);
+      if (existing_mem == NULL) {
+        yyerror("%s alias to non-existent memory %s",
+                current_mem->desc, $2->value.string);
+        free_token($2);
+        YYABORT;
+      }
+
+      // if this alias does already exist, drop the old one
+      AVRMEM_ALIAS * alias = avr_locate_memalias(current_part, current_mem->desc);
+      if (alias) {
+        lrmv_d(current_part->mem_alias, alias);
+        avr_free_memalias(alias);
+      }
+
+      is_alias = true;
+      alias = avr_new_memalias();
+
+      // alias->desc and current_mem->desc have the same length
+      // definition, thus no need to check for length here
+      strcpy(alias->desc, current_mem->desc);
+      alias->aliased_mem = existing_mem;
+      ladd(current_part->mem_alias, alias);
+
+      free_token($2);
+  }
+;
 
 %%
 

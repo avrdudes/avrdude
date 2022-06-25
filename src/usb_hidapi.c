@@ -291,7 +291,7 @@ static int usbhid_recv(union filedescriptor *fd, unsigned char *buf, size_t nbyt
   if (udev == NULL)
     return -1;
 
-  rv = i = hid_read_timeout(udev, buf, nbytes, 300);
+  rv = i = hid_read_timeout(udev, buf, nbytes, 10000);
   if (i != nbytes)
     avrdude_message(MSG_INFO,
 		    "%s: Short read, read only %d out of %u bytes\n",

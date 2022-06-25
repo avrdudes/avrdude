@@ -27,6 +27,11 @@
 extern "C" {
 #endif
 
+typedef enum {
+  WRITE_MODE_STANDARD = 0,
+  WRITE_MODE_FILL     = 1,
+} mode;
+
 int terminal_mode(PROGRAMMER * pgm, struct avrpart * p);
 char * terminal_get_input(const char *prompt);
 

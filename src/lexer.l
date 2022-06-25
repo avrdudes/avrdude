@@ -117,6 +117,7 @@ SIGN     [+-]
 <strng>\n { yyerror("unterminated character constant");
             return YYERRCODE; }
 
+alias            { yylval=NULL; return K_ALIAS; }
 allowfullpagebitstream { yylval=NULL; return K_ALLOWFULLPAGEBITSTREAM; }
 avr910_devcode   { yylval=NULL; return K_AVR910_DEVCODE; }
 bank_size        { yylval=NULL; return K_PAGE_SIZE; }
@@ -137,7 +138,6 @@ dedicated        { yylval=new_token(K_DEDICATED); return K_DEDICATED; }
 default_bitclock { yylval=NULL; return K_DEFAULT_BITCLOCK; }
 default_parallel { yylval=NULL; return K_DEFAULT_PARALLEL; }
 default_programmer { yylval=NULL; return K_DEFAULT_PROGRAMMER; }
-default_safemode { yylval=NULL; return K_DEFAULT_SAFEMODE; }
 default_serial   { yylval=NULL; return K_DEFAULT_SERIAL; }
 delay            { yylval=NULL; return K_DELAY; }
 desc             { yylval=NULL; return K_DESC; }

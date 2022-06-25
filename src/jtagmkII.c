@@ -1056,7 +1056,8 @@ static void jtagmkII_set_xmega_params(PROGRAMMER * pgm, AVRPART * p)
       u32_to_b4(sendbuf.dd.nvm_fuse_offset, m->offset & ~7);
     } else if (strncmp(m->desc, "lock", 4) == 0) {
       u32_to_b4(sendbuf.dd.nvm_lock_offset, m->offset);
-    } else if (strcmp(m->desc, "usersig") == 0) {
+    } else if (strcmp(m->desc, "usersig") == 0 ||
+               strcmp(m->desc, "userrow") == 0) {
       u32_to_b4(sendbuf.dd.nvm_user_sig_offset, m->offset);
     } else if (strcmp(m->desc, "prodsig") == 0) {
       u32_to_b4(sendbuf.dd.nvm_prod_sig_offset, m->offset);
@@ -1933,9 +1934,10 @@ static int jtagmkII_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       cmd[1] = XMEGA_ERASE_BOOT_PAGE;
   } else if (strcmp(m->desc, "eeprom") == 0) {
     cmd[1] = XMEGA_ERASE_EEPROM_PAGE;
-  } else if ( ( strcmp(m->desc, "usersig") == 0 ) ) {
+  } else if (strcmp(m->desc, "usersig") == 0 ||
+             strcmp(m->desc, "userrow") == 0) {
     cmd[1] = XMEGA_ERASE_USERSIG;
-  } else if ( ( strcmp(m->desc, "boot") == 0 ) ) {
+  } else if (strcmp(m->desc, "boot") == 0) {
     cmd[1] = XMEGA_ERASE_BOOT_PAGE;
   } else {
     cmd[1] = XMEGA_ERASE_APP_PAGE;
@@ -2044,13 +2046,14 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       free(cmd);
       return n_bytes;
     }
-    cmd[1] = ( p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI) ) ? MTYPE_EEPROM : MTYPE_EEPROM_PAGE;
+    cmd[1] = (p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI)) ? MTYPE_EEPROM : MTYPE_EEPROM_PAGE;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-  } else if ( ( strcmp(m->desc, "usersig") == 0 ) ) {
+  } else if (strcmp(m->desc, "usersig") == 0 ||
+             strcmp(m->desc, "userrow") == 0) {
     cmd[1] = MTYPE_USERSIG;
-  } else if ( ( strcmp(m->desc, "boot") == 0 ) ) {
+  } else if (strcmp(m->desc, "boot") == 0) {
     cmd[1] = MTYPE_BOOT_FLASH;
-  } else if ( p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI) ) {
+  } else if (p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI)) {
     cmd[1] = MTYPE_FLASH;
   } else {
     cmd[1] = MTYPE_SPM;
@@ -2156,16 +2159,17 @@ static int jtagmkII_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
       /* dynamically decide between flash/boot memtype */
       dynamic_memtype = 1;
   } else if (strcmp(m->desc, "eeprom") == 0) {
-    cmd[1] = ( p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI) ) ? MTYPE_EEPROM : MTYPE_EEPROM_PAGE;
+    cmd[1] = (p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI)) ? MTYPE_EEPROM : MTYPE_EEPROM_PAGE;
     if (pgm->flag & PGM_FL_IS_DW)
       return -1;
-  } else if ( ( strcmp(m->desc, "prodsig") == 0 ) ) {
+  } else if (strcmp(m->desc, "prodsig") == 0) {
     cmd[1] = MTYPE_PRODSIG;
-  } else if ( ( strcmp(m->desc, "usersig") == 0 ) ) {
+  } else if (strcmp(m->desc, "usersig") == 0 ||
+             strcmp(m->desc, "userrow") == 0) {
     cmd[1] = MTYPE_USERSIG;
-  } else if ( ( strcmp(m->desc, "boot") == 0 ) ) {
+  } else if (strcmp(m->desc, "boot") == 0) {
     cmd[1] = MTYPE_BOOT_FLASH;
-  } else if ( p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI) ) {
+  } else if (p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI)) {
     cmd[1] = MTYPE_FLASH;
   } else {
     cmd[1] = MTYPE_SPM;
@@ -2291,7 +2295,8 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       unsupp = 1;
   } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
-  } else if (strcmp(mem->desc, "usersig") == 0) {
+  } else if (strcmp(mem->desc, "usersig") == 0 ||
+             strcmp(mem->desc, "userrow") == 0) {
     cmd[1] = MTYPE_USERSIG;
   } else if (strcmp(mem->desc, "prodsig") == 0) {
     cmd[1] = MTYPE_PRODSIG;
@@ -2460,7 +2465,8 @@ static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       unsupp = 1;
   } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
-  } else if (strcmp(mem->desc, "usersig") == 0) {
+  } else if (strcmp(mem->desc, "usersig") == 0 ||
+             strcmp(mem->desc, "userrow") == 0) {
     cmd[1] = MTYPE_USERSIG;
   } else if (strcmp(mem->desc, "prodsig") == 0) {
     cmd[1] = MTYPE_PRODSIG;
@@ -2688,11 +2694,11 @@ static void jtagmkII_display(PROGRAMMER * pgm, const char * p)
       jtagmkII_getparm(pgm, PAR_FW_VERSION, fw) < 0)
     return;
 
-  avrdude_message(MSG_INFO, "%sM_MCU hardware version: %d\n", p, hw[0]);
-  avrdude_message(MSG_INFO, "%sM_MCU firmware version: %d.%02d\n", p, fw[1], fw[0]);
-  avrdude_message(MSG_INFO, "%sS_MCU hardware version: %d\n", p, hw[1]);
-  avrdude_message(MSG_INFO, "%sS_MCU firmware version: %d.%02d\n", p, fw[3], fw[2]);
-  avrdude_message(MSG_INFO, "%sSerial number:          %02x:%02x:%02x:%02x:%02x:%02x\n",
+  avrdude_message(MSG_INFO, "%sM_MCU HW version: %d\n", p, hw[0]);
+  avrdude_message(MSG_INFO, "%sM_MCU FW version: %d.%02d\n", p, fw[1], fw[0]);
+  avrdude_message(MSG_INFO, "%sS_MCU HW version: %d\n", p, hw[1]);
+  avrdude_message(MSG_INFO, "%sS_MCU FW version: %d.%02d\n", p, fw[3], fw[2]);
+  avrdude_message(MSG_INFO, "%sSerial number   : %02x:%02x:%02x:%02x:%02x:%02x\n",
 	  p, PDATA(pgm)->serno[0], PDATA(pgm)->serno[1], PDATA(pgm)->serno[2], PDATA(pgm)->serno[3], PDATA(pgm)->serno[4], PDATA(pgm)->serno[5]);
 
   jtagmkII_print_parms1(pgm, p);

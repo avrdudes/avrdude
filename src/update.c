@@ -227,6 +227,13 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     return -1;
   }
 
+  AVRMEM_ALIAS * alias_mem = avr_find_memalias(p, mem);
+  char alias_mem_desc[AVR_DESCLEN + 1] = "";
+  if(alias_mem) {
+    strcat(alias_mem_desc, "/");
+    strcat(alias_mem_desc, alias_mem->desc);
+  }
+  
   if (upd->op == DEVICE_READ) {
     /*
      * read out the specified device memory and write it to a file
@@ -238,14 +245,14 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
       return -1;
     }
     if (quell_progress < 2) {
-      avrdude_message(MSG_INFO, "%s: reading %s memory:\n",
-            progname, mem->desc);
+      avrdude_message(MSG_INFO, "%s: reading %s%s memory:\n",
+            progname, mem->desc, alias_mem_desc);
 	  }
     report_progress(0,1,"Reading");
     rc = avr_read(pgm, p, upd->memtype, 0);
     if (rc < 0) {
-      avrdude_message(MSG_INFO, "%s: failed to read all of %s memory, rc=%d\n",
-              progname, mem->desc, rc);
+      avrdude_message(MSG_INFO, "%s: failed to read all of %s%s memory, rc=%d\n",
+              progname, mem->desc, alias_mem_desc, rc);
       return -1;
     }
     report_progress(1,1,NULL);
@@ -288,8 +295,8 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
      * write the buffer contents to the selected memory type
      */
     if (quell_progress < 2) {
-      avrdude_message(MSG_INFO, "%s: writing %s (%d bytes):\n",
-            progname, mem->desc, size);
+      avrdude_message(MSG_INFO, "%s: writing %s%s (%d bytes):\n",
+            progname, mem->desc, alias_mem_desc, size);
 	  }
 
     if (!(flags & UF_NOWRITE)) {
@@ -306,16 +313,16 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     }
 
     if (rc < 0) {
-      avrdude_message(MSG_INFO, "%s: failed to write %s memory, rc=%d\n",
-              progname, mem->desc, rc);
+      avrdude_message(MSG_INFO, "%s: failed to write %s%s memory, rc=%d\n",
+              progname, mem->desc, alias_mem_desc, rc);
       return -1;
     }
 
     vsize = rc;
 
     if (quell_progress < 2) {
-      avrdude_message(MSG_INFO, "%s: %d bytes of %s written\n", progname,
-            vsize, mem->desc);
+      avrdude_message(MSG_INFO, "%s: %d bytes of %s%s written\n", progname,
+            vsize, mem->desc, alias_mem_desc);
     }
 
   }
@@ -327,11 +334,11 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     pgm->vfy_led(pgm, ON);
 
     if (quell_progress < 2) {
-      avrdude_message(MSG_INFO, "%s: verifying %s memory against %s:\n",
-            progname, mem->desc, upd->filename);
+      avrdude_message(MSG_INFO, "%s: verifying %s%s memory against %s:\n",
+            progname, mem->desc, alias_mem_desc, upd->filename);
 
-      avrdude_message(MSG_NOTICE2, "%s: load data %s data from input file %s:\n",
-            progname, mem->desc, upd->filename);
+      avrdude_message(MSG_NOTICE2, "%s: load data %s%s data from input file %s:\n",
+            progname, mem->desc, alias_mem_desc, upd->filename);
     }
 
     rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1);
@@ -345,15 +352,15 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     if (quell_progress < 2) {
       avrdude_message(MSG_NOTICE2, "%s: input file %s contains %d bytes\n",
             progname, upd->filename, size);
-      avrdude_message(MSG_NOTICE2, "%s: reading on-chip %s data:\n",
-            progname, mem->desc);
+      avrdude_message(MSG_NOTICE2, "%s: reading on-chip %s%s data:\n",
+            progname, mem->desc, alias_mem_desc);
     }
 
     report_progress (0,1,"Reading");
     rc = avr_read(pgm, p, upd->memtype, v);
     if (rc < 0) {
-      avrdude_message(MSG_INFO, "%s: failed to read all of %s memory, rc=%d\n",
-              progname, mem->desc, rc);
+      avrdude_message(MSG_INFO, "%s: failed to read all of %s%s memory, rc=%d\n",
+              progname, mem->desc, alias_mem_desc, rc);
       pgm->err_led(pgm, ON);
       avr_free_part(v);
       return -1;
@@ -375,8 +382,8 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     }
 
     if (quell_progress < 2) {
-      avrdude_message(MSG_INFO, "%s: %d bytes of %s verified\n",
-              progname, rc, mem->desc);
+      avrdude_message(MSG_INFO, "%s: %d bytes of %s%s verified\n",
+              progname, rc, mem->desc, alias_mem_desc);
     }
 
     pgm->vfy_led(pgm, OFF);

@@ -261,6 +261,7 @@ typedef struct avrpart {
   OPCODE      * op[AVR_OP_MAX];     /* opcodes */
 
   LISTID        mem;                /* avr memory definitions */
+  LISTID        mem_alias;          /* memory alias definitions */
   char          config_file[PATH_MAX]; /* config file where defined */
   int           lineno;                /* config file line number */
 } AVRPART;
@@ -292,6 +293,11 @@ typedef struct avrmem {
   OPCODE * op[AVR_OP_MAX];    /* opcodes */
 } AVRMEM;
 
+typedef struct avrmem_alias {
+  char desc[AVR_MEMDESCLEN];  /* alias name ("syscfg0" etc.) */
+  AVRMEM *aliased_mem;
+} AVRMEM_ALIAS;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -307,10 +313,15 @@ int avr_get_output_index(OPCODE * op);
 
 /* Functions for AVRMEM structures */
 AVRMEM * avr_new_memtype(void);
+AVRMEM_ALIAS * avr_new_memalias(void);
 int avr_initmem(AVRPART * p);
 AVRMEM * avr_dup_mem(AVRMEM * m);
 void     avr_free_mem(AVRMEM * m);
+void     avr_free_memalias(AVRMEM_ALIAS * m);
 AVRMEM * avr_locate_mem(AVRPART * p, char * desc);
+AVRMEM * avr_locate_mem_noalias(AVRPART * p, char * desc);
+AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, char * desc);
+AVRMEM_ALIAS * avr_find_memalias(AVRPART * p, AVRMEM * m_orig);
 void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
                      int type, int verbose);
 
@@ -831,30 +842,6 @@ int fileio(int op, char * filename, FILEFMT format,
 #endif
 
 
-/* formerly safemode.h */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/* Writes the specified fuse in fusename (can be "lfuse", "hfuse", or "efuse") and verifies it. Will try up to tries
-amount of times before giving up */
-int safemode_writefuse (unsigned char fuse, char * fusename, PROGRAMMER * pgm, AVRPART * p, int tries);
-
-/* Reads the fuses three times, checking that all readings are the same. This will ensure that the before values aren't in error! */
-int safemode_readfuses (unsigned char * lfuse, unsigned char * hfuse, unsigned char * efuse, unsigned char * fuse, PROGRAMMER * pgm, AVRPART * p);
-  
-/* This routine will store the current values pointed to by lfuse, hfuse, and efuse into an internal buffer in this routine
-when save is set to 1. When save is 0 (or not 1 really) it will copy the values from the internal buffer into the locations
-pointed to be lfuse, hfuse, and efuse. This allows you to change the fuse bits if needed from another routine (ie: have it so
-if user requests fuse bits are changed, the requested value is now verified */
-int safemode_memfuses (int save, unsigned char * lfuse, unsigned char * hfuse, unsigned char * efuse, unsigned char * fuse);
-
-#ifdef __cplusplus
-}
-#endif
-
-
 /* formerly update.h */
 
 enum {
@@ -926,7 +913,6 @@ extern char         default_programmer[];
 extern char         default_parallel[];
 extern char         default_serial[];
 extern double       default_bitclock;
-extern int          default_safemode;
 
 /* This name is fixed, it's only here for symmetry with
  * default_parallel and default_serial. */

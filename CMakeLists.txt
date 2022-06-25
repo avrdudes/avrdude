@@ -21,7 +21,7 @@
 #     cmake --build build
 
 cmake_minimum_required(VERSION 3.12)
-project(avrdude VERSION 6.99)
+project(avrdude VERSION 7.0)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED True)
@@ -34,6 +34,13 @@ option(USE_EXTERNAL "Use external libraries from AVRDUDE GitHub repositories" OF
 option(USE_LIBUSBWIN32 "Prefer libusb-win32 over libusb" OFF)
 option(DEBUG_CMAKE "Enable debugging output for this CMake project" OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+
+if(WIN32)
+    # Prefer static libraries over DLLs on Windows
+    option(USE_STATIC_LIBS "Use static libraries" ON)
+else()
+    option(USE_STATIC_LIBS "Use static libraries" OFF)
+endif()
 
 include(CheckIncludeFile)
 include(CheckSymbolExists)
@@ -110,14 +117,14 @@ endif()
 # Detect installed libraries
 # =====================================
 
-# Prefer static libraries over DLLs on Windows
-if(WIN32)
+if(USE_STATIC_LIBS)
     set(PREFERRED_LIBELF libelf.a elf)
     set(PREFERRED_LIBUSB libusb.a usb)
     set(PREFERRED_LIBUSB_1_0 libusb-1.0.a usb-1.0)
     set(PREFERRED_LIBHIDAPI libhidapi.a libhidapi-libusb.a libhidapi-hidraw.a hidapi hidapi-libusb hidapi-hidraw)
     set(PREFERRED_LIBFTDI libftdi.a ftdi)
     set(PREFERRED_LIBFTDI1 libftdi1.a ftdi1)
+    set(PREFERRED_LIBREADLINE libreadline.a)
 else()
     set(PREFERRED_LIBELF elf)
     set(PREFERRED_LIBUSB usb)
@@ -125,6 +132,7 @@ else()
     set(PREFERRED_LIBHIDAPI hidapi hidapi-libusb hidapi-hidraw)
     set(PREFERRED_LIBFTDI ftdi)
     set(PREFERRED_LIBFTDI1 ftdi1)
+    set(PREFERRED_LIBREADLINE readline)
 endif()
 
 # -------------------------------------
@@ -182,6 +190,9 @@ endif()
 # Find libhidapi
 
 find_library(HAVE_LIBHID NAMES hid)
+if(HAVE_LIBHID)
+    set(LIB_LIBHID ${HAVE_LIBHID})
+endif()
 
 find_library(HAVE_LIBHIDAPI NAMES ${PREFERRED_LIBHIDAPI})
 if(HAVE_LIBHIDAPI)
@@ -209,7 +220,7 @@ endif()
 # -------------------------------------
 # Find libreadline
 
-find_library(HAVE_LIBREADLINE NAMES readline)
+find_library(HAVE_LIBREADLINE NAMES ${PREFERRED_LIBREADLINE})
 if(HAVE_LIBREADLINE)
     set(LIB_LIBREADLINE ${HAVE_LIBREADLINE})
 endif()

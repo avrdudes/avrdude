@@ -16,6 +16,10 @@ with the help of [various contributors](./AUTHORS).
 The latest version of AVRDUDE is always available here:\
 <https://github.com/avrdudes/avrdude>
 
+## Documentation
+
+Documentation for current and previous releases is [on Github Pages](https://avrdudes.github.io/avrdude/).
+
 ## Getting AVRDUDE for Windows
 
 To get AVRDUDE for Windows, install the latest version from the [Releases](http://download.savannah.gnu.org/releases/avrdude/) page.
@@ -57,4 +61,4 @@ avrdude -c arduino -P COM1 -b 115200 -p atmega328p -D -U flash:w:objs/blink.hex:
 
 There are many different programmers and options that may be required for the programming to succeed.
 
-For more information, refer to the [AVRDUDE documentation](http://download.savannah.gnu.org/releases/avrdude/avrdude-doc-6.4.pdf).
+For more information, refer to the [AVRDUDE documentation](https://avrdudes.github.io/avrdude/).

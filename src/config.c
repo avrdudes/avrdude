@@ -36,7 +36,6 @@ char default_programmer[MAX_STR_CONST];
 char default_parallel[PATH_MAX];
 char default_serial[PATH_MAX];
 double default_bitclock;
-int default_safemode;
 
 char string_buf[MAX_STR_CONST];
 char *string_buf_ptr;
@@ -48,6 +47,7 @@ AVRPART    * current_part;
 AVRMEM     * current_mem;
 LISTID       part_list;
 LISTID       programmers;
+bool         is_alias;
 
 int    lineno;
 const char * infile;
@@ -73,6 +73,7 @@ int init_config(void)
   current_mem  = NULL;
   part_list    = lcreat(NULL, 0);
   programmers  = lcreat(NULL, 0);
+  is_alias     = false;
 
   lineno       = 1;
   infile       = NULL;
