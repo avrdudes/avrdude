@@ -17114,13 +17114,15 @@ part
 # AVR8X tiny family common values
 #------------------------------------------------------------
 
-part parent    ".avr8x"
-    id			= ".avr8x_tiny";
-    desc		= "AVR8X tiny family common values";
-    family_id	= "tinyAVR";
+part parent ".avr8x"
+    id			       = ".avr8x_tiny";
+    desc		       = "AVR8X tiny family common values";
+    family_id      = "tinyAVR";
+    # Shared UPDI pin, HV on UPDI pin
+    hvupdi_variant = 0;
 
     memory "userrow"
-        size		= 0x20;
+        size	  	= 0x20;
         offset		= 0x1300;
         page_size	= 0x20;
         readsize	= 0x100;
@@ -17135,13 +17137,15 @@ part parent    ".avr8x"
 # AVR8X mega family common values
 #------------------------------------------------------------
 
-part parent    ".avr8x"
-    id			= ".avr8x_mega";
-    desc		= "AVR8X mega family common values";
-    family_id	= "megaAVR";
+part parent ".avr8x"
+    id			       = ".avr8x_mega";
+    desc		       = "AVR8X mega family common values";
+    family_id	     = "megaAVR";
+    # Dedicated UPDI pin, no HV
+    hvupdi_variant = 1;
 
     memory "userrow"
-        size		= 0x40;
+        size		  = 0x40;
         offset		= 0x1300;
         page_size	= 0x40;
         readsize	= 0x100;
@@ -18240,11 +18244,13 @@ part parent    ".avr8x_mega"
 #------------------------------------------------------------
 
 part
-    id		= ".avrdx";
-    desc	= "AVR-Dx family common values";
-    has_updi	= yes;
-    nvm_base	= 0x1000;
-    ocd_base	= 0x0F80;
+    id             = ".avrdx";
+    desc           = "AVR-Dx family common values";
+    has_updi       = yes;
+    nvm_base       = 0x1000;
+    ocd_base       = 0x0F80;
+    # Dedicated UPDI pin, no HV
+    hvupdi_variant = 1;
 
     memory "signature"
         size		= 3;
@@ -19210,9 +19216,11 @@ part parent    ".avrdx"
 # AVR-Ex family common values
 #------------------------------------------------------------
 
-part parent    ".avrdx"
-    id			= ".avrex";
-    desc		= "AVR-Ex family common values";
+part parent ".avrdx"
+    id			       = ".avrex";
+    desc		       = "AVR-Ex family common values";
+    # Shared UPDI pin, HV on _RESET
+    hvupdi_variant = 2;
 
     memory "userrow"
         size      = 0x40;

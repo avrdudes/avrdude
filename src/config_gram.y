@@ -81,6 +81,7 @@ static int pin_name;
 %token K_DEFAULT_SERIAL
 %token K_DESC
 %token K_FAMILY_ID
+%token K_HVUPDI_VARIANT
 %token K_DEVICECODE
 %token K_STK500_DEVCODE
 %token K_AVR910_DEVCODE
@@ -673,6 +674,12 @@ part_parm :
     {
       strncpy(current_part->family_id, $3->value.string, AVR_FAMILYIDLEN);
       current_part->family_id[AVR_FAMILYIDLEN] = 0;
+      free_token($3);
+    } |
+
+  K_HVUPDI_VARIANT TKN_EQUAL TKN_NUMBER
+    {
+      current_part->hvupdi_variant = $3->value.number;
       free_token($3);
     } |
 
