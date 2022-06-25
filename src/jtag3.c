@@ -71,6 +71,9 @@ struct pdata
   /* Start address of Xmega boot area */
   unsigned long boot_start;
 
+  /* Flag for triggering HV UPDI */
+  bool use_hvupdi;
+
   /* Function to set the appropriate clock parameter */
   int (*set_sck)(PROGRAMMER *, unsigned char *);
 };
@@ -1249,10 +1252,12 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
       }
     }
 
-    parm[0] = PARM3_UPDI_HV_SIMPLE_PULSE;
-    if (jtag3_setparm(pgm, SCOPE_AVR, 3, PARM3_OPT_12V_UPDI_ENABLE, parm, 1) < 0)
-      return -1;
-
+    // Generate 12V UPDI pulse if user asks for it and  hardware supports it
+    if(p->flags & AVRPART_HAS_UPDI && PDATA(pgm)->use_hvupdi == true && p->hvupdi_variant == 0) {
+      parm[0] = PARM3_UPDI_HV_SIMPLE_PULSE;
+      if (jtag3_setparm(pgm, SCOPE_AVR, 3, PARM3_OPT_12V_UPDI_ENABLE, parm, 1) < 0)
+        return -1;
+    }
     u16_to_b2(xd.default_min_div1_voltage, DEFAULT_MINIMUM_CHARACTERISED_DIV1_VOLTAGE_MV);
     u16_to_b2(xd.default_min_div2_voltage, DEFAULT_MINIMUM_CHARACTERISED_DIV2_VOLTAGE_MV);
     u16_to_b2(xd.default_min_div4_voltage, DEFAULT_MINIMUM_CHARACTERISED_DIV4_VOLTAGE_MV);
@@ -1475,6 +1480,10 @@ static int jtag3_parseextparms(PROGRAMMER * pgm, LISTID extparms)
       PDATA(pgm)->jtagchain[2] = bb;
       PDATA(pgm)->jtagchain[3] = ba;
 
+      continue;
+    }
+    else if (matches(extended_param, "hvupdi") || matches(extended_param, "hvupdi=1")) {
+      PDATA(pgm)->use_hvupdi = true;
       continue;
     }
 
@@ -2601,6 +2610,7 @@ void jtag3_updi_initpgm(PROGRAMMER * pgm)
    * mandatory functions
    */
   pgm->initialize     = jtag3_initialize;
+  pgm->parseextparams = jtag3_parseextparms;
   pgm->display        = jtag3_display;
   pgm->enable         = jtag3_enable;
   pgm->disable        = jtag3_disable;
