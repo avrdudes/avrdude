@@ -250,7 +250,8 @@ See below for the limitations of debugWire.
 For ATxmega devices, the JTAG ICE mkII/3 is supported in PDI mode, provided it
 has a revision 1 hardware and firmware version of at least 5.37 (decimal).
 
-The Atmel-ICE (ARM/AVR) is supported (JTAG, PDI for Xmega, debugWIRE, ISP modes).
+The Atmel-ICE (ARM/AVR) is supported (JTAG, PDI for Xmega, debugWIRE, ISP,
+UPDI).
 
 Atmel's XplainedPro boards, using EDBG protocol (CMSIS-DAP compliant), are
 supported by the ``jtag3'' programmer type.
@@ -843,10 +844,15 @@ accepting extended parameters.
 @table @code
 
 @item JTAG ICE mkII/3
+@itemx Atmel-ICE
+@itemx PICkit 4
+@itemx MPLAB SNAP
+@itemx Power Debugger
 @itemx AVR Dragon
 
-When using the JTAG ICE mkII/3 or AVR Dragon in JTAG mode, the
-following extended parameter is accepted:
+When using the JTAG ICE mkII, JTAGICE3, Atmel-ICE, PICkit 4, MPLAB SNAP,
+Power Debugger or AVR Dragon in JTAG mode, the following extended parameter
+is accepted:
 @table @code
 @item @samp{jtagchain=UB,UA,BB,BA}
 Setup the JTAG scan chain for @var{UB} units before, @var{UA} units
@@ -854,6 +860,14 @@ after, @var{BB} bits before, and @var{BA} bits after the target AVR,
 respectively.
 Each AVR unit within the chain shifts by 4 bits.
 Other JTAG units might require a different bit shift count.
+@end table
+
+The PICkit 4 and the Power Debugger also supports high-voltage UPDI programming.
+This is used to enable a UPDI pin that has previously been set to RESET or
+GPIO mode. High-voltage UPDI can be utilized by using an extended parameter:
+@table @code
+@item @samp{hvupdi}
+Enable high-voltage UPDI initialization for targets that supports this.
 @end table
 
 @cindex @code{-x} AVR910
