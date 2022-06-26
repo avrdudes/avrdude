@@ -15,9 +15,17 @@ Changes since version 7.0:
 
   * Issues fixed:
 
+    - Fix micronucleus bootloader to check for unresponsive USB
+      devices #945
+    - Fix src/CMakeLists.txt to honor CMAKE_INSTALL_LIBDIR #972
+
   * Pull requests:
 
     - Fix .Dd macro in manpage #949
+    - fix M1 homebrew path #950
+    - CMake Enhancements #962
+    - Reduce programmer desc string length in avrdude.conf
+      to < 80 characters #1000
 
   * Internals:
 

@@ -947,9 +947,10 @@ programmer
 ;
 
 # commercial version of USBtiny, using a separate VID/PID
+# https://github.com/IowaScaledEngineering/ckt-avrprogrammer
 programmer
   id    = "iseavrprog";
-  desc  = "USBtiny-based USB programmer, https://github.com/IowaScaledEngineering/ckt-avrprogrammer";
+  desc  = "USBtiny-based programmer, https://iascaled.com";
   type  = "usbtiny";
   connection_type = usb;
   usbvid     = 0x1209;
