@@ -56,6 +56,8 @@ if(WIN32)
 endif()
 
 if(MSVC)
+    enable_language(CXX)
+
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS=1)
     add_compile_definitions(_CRT_NONSTDC_NO_WARNINGS=1)
     add_compile_definitions(_WINSOCK_DEPRECATED_NO_WARNINGS=1)
