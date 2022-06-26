@@ -1458,6 +1458,7 @@ static int jtag3_parseextparms(PROGRAMMER * pgm, LISTID extparms)
   LNODEID ln;
   const char *extended_param;
   int rv = 0;
+  avrdude_message(MSG_INFO, "id: %s, desc: %s, type: %s\n", ldata(lfirst(pgm->id)), pgm->desc, pgm->type);
 
   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
@@ -1482,7 +1483,9 @@ static int jtag3_parseextparms(PROGRAMMER * pgm, LISTID extparms)
 
       continue;
     }
-    else if (matches(extended_param, "hvupdi") || matches(extended_param, "hvupdi=1")) {
+
+    else if ((matches(extended_param, "hvupdi") || matches(extended_param, "hvupdi=1")) &&
+      (matches(ldata(lfirst(pgm->id)), "pickit4_updi") || matches(ldata(lfirst(pgm->id)), "powerdebugger_updi"))) {
       PDATA(pgm)->use_hvupdi = true;
       continue;
     }
