@@ -188,6 +188,10 @@ typedef struct opcode {
 #define AVRPART_IS_AT90S1200   0x1000  /* part is an AT90S1200 (needs special treatment) */
 #define AVRPART_HAS_UPDI       0x2000  /* part has UPDI i/f (AVR8X) */
 
+#define HV_UPDI_VARIANT_0      0 /* Shared UPDI/GPIO/RESET pin, HV on UPDI pin (tinyAVR0/1/2)*/
+#define HV_UPDI_VARIANT_1      1 /* Dedicated UPDI pin, no HV (megaAVR0/AVR-Dx) */
+#define HV_UPDI_VARIANT_2      2 /* Shared UPDI pin, HV on _RESET (AVR-Ex) */
+
 #define AVR_DESCLEN 64
 #define AVR_IDLEN   32
 #define AVR_FAMILYIDLEN 7
