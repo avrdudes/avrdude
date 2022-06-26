@@ -28,6 +28,7 @@ Changes since version 7.0:
     - Reduce programmer desc string length in avrdude.conf
       to < 80 characters #1000
     - Dragon JTAG fix #979
+    - adding support for all Linux baud rates v.2 #993
 
   * Internals:
 
