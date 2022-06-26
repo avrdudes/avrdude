@@ -329,6 +329,42 @@ static int intlog2(unsigned int n) {
   return ret;
 }
 
+// mnemonic characterisation of flags
+static char *parttype(AVRPART *p) {
+  static char type[1024];
+  
+  switch(p->flags & (AVRPART_HAS_PDI | AVRPART_AVR32 | AVRPART_HAS_TPI | AVRPART_HAS_UPDI)) {
+  case 0:                strcpy(type, "ISP"); break;
+  case AVRPART_HAS_PDI:  strcpy(type, "PDI"); break;
+  case AVRPART_AVR32:    strcpy(type, "AVR32"); break;
+  case AVRPART_HAS_TPI:  strcpy(type, "TPI"); break;
+  case AVRPART_HAS_UPDI: strcpy(type, "UPDI"); break;
+  default:               strcpy(type, "UNKNOWN"); break;
+  }
+  if((p->flags & AVRPART_SERIALOK) == 0)
+    strcat(type, "|NOTSERIAL");
+  if((p->flags & AVRPART_PARALLELOK) == 0)
+    strcat(type, "|NOTPARALLEL");
+  if(p->flags & AVRPART_PSEUDOPARALLEL)
+    strcat(type, "|PSEUDOPARALLEL");
+  if(p->flags & AVRPART_IS_AT90S1200)
+    strcat(type, "|IS_AT90S1200");
+
+  if(p->flags & AVRPART_HAS_DW)
+    strcat(type, "|DW");
+
+  if(p->flags & AVRPART_HAS_JTAG)
+    strcat(type, "|JTAG");
+  if(p->flags & AVRPART_ALLOWFULLPAGEBITSTREAM)
+    strcat(type, "|PAGEBITSTREAM");
+  if((p->flags & AVRPART_ENABLEPAGEPROGRAMMING) == 0)
+    strcat(type, "|NOPAGEPROGRAMMING");
+
+  return type;
+}
+
+
+
 // check whether address bits are where they should be in ISP commands
 static void checkaddr(int memsize, int pagesize, int what, OPCODE *op, AVRPART *p, AVRMEM *m) {
   int i, lo, hi;
@@ -1016,7 +1052,7 @@ int main(int argc, char * argv [])
           ok &= ~AD_SPI_EFUSE;
 
         len = 16-strlen(p->desc);
-        avrdude_message(MSG_INFO, ".desc '%s' =>%*s [0x%02X, 0x%02X, 0x%02X, 0x%08x, 0x%05x, 0x%03x, 0x%06x, 0x%04x, 0x%03x, %d, 0x%03x, 0x%04x], # %s %d\n",
+        avrdude_message(MSG_INFO, ".desc '%s' =>%*s [0x%02X, 0x%02X, 0x%02X, 0x%08x, 0x%05x, 0x%03x, 0x%06x, 0x%04x, 0x%03x, %d, 0x%03x, 0x%04x, '%s'], # %s %d\n",
           p->desc, len > 0? len: 0, "",
           p->signature[0], p->signature[1], p->signature[2],
           flashoffset, flashsize, flashpagesize,
@@ -1024,6 +1060,7 @@ int main(int argc, char * argv [])
           nfuses,
           ok,
           p->flags,
+          parttype(p),
           p->config_file, p->lineno
         );
       }
