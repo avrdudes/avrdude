@@ -223,7 +223,7 @@ static int linuxspi_open(PROGRAMMER *pgm, char *port)
       avrdude_message(MSG_INFO,
 		      "%s: obsolete use of -b <clock> option for bit clock; use -B <clock>\n",
 		      progname);
-      pgm->bitclock = 1E6 / pgm->baudrate;
+      pgm->bitclock = 1.0 / pgm->baudrate;
     }
     if (pgm->bitclock == 0) {
       avrdude_message(MSG_NOTICE,

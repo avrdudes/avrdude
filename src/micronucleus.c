@@ -139,6 +139,22 @@ static int micronucleus_check_connection(pdata_t* pdata)
     }
 }
 
+static bool micronucleus_is_device_responsive(pdata_t* pdata, struct usb_device* device)
+{
+    pdata->usb_handle = usb_open(device);
+    if (pdata->usb_handle == NULL)
+    {
+        return false;
+    }
+
+    int result = micronucleus_check_connection(pdata);
+
+    usb_close(pdata->usb_handle);
+    pdata->usb_handle = NULL;
+
+    return result >= 0;
+}
+
 static int micronucleus_reconnect(pdata_t* pdata)
 {
     struct usb_device* device = usb_device(pdata->usb_handle);
@@ -696,6 +712,7 @@ static int micronucleus_open(PROGRAMMER* pgm, char* port)
     usb_init();
 
     bool show_retry_message = true;
+    bool show_unresponsive_device_message = true;
 
     time_t start_time = time(NULL);
     for (;;)
@@ -716,6 +733,19 @@ static int micronucleus_open(PROGRAMMER* pgm, char* port)
                 {
                     pdata->major_version = (uint8_t)(device->descriptor.bcdDevice >> 8);
                     pdata->minor_version = (uint8_t)(device->descriptor.bcdDevice >> 0);
+
+                    if (!micronucleus_is_device_responsive(pdata, device))
+                    {
+                        if (show_unresponsive_device_message)
+                        {
+                            avrdude_message(MSG_INFO, "%s: WARNING: Unresponsive Micronucleus device detected, please reconnect...\n",
+                                progname);
+
+                            show_unresponsive_device_message = false;
+                        }
+
+                        continue;
+                    }
 
                     avrdude_message(MSG_NOTICE, "%s: Found device with Micronucleus V%d.%d, bus:device: %s:%s\n",
                         progname,
