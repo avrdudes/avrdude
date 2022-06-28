@@ -1256,7 +1256,8 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
     // Generate 12V UPDI pulse if user asks for it and hardware supports it
     if (p->flags & AVRPART_HAS_UPDI &&
         PDATA(pgm)->use_hvupdi == true &&
-        p->hvupdi_variant == HV_UPDI_VARIANT_0) {
+        (p->hvupdi_variant == HV_UPDI_VARIANT_0 ||
+        p->hvupdi_variant  == HV_UPDI_VARIANT_2)) {
       parm[0] = PARM3_UPDI_HV_SIMPLE_PULSE;
       if (jtag3_setparm(pgm, SCOPE_AVR, 3, PARM3_OPT_12V_UPDI_ENABLE, parm, 1) < 0)
         return -1;
