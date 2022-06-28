@@ -29,6 +29,9 @@ Changes since version 7.0:
       to < 80 characters #1000
     - Dragon JTAG fix #979
     - adding support for all Linux baud rates v.2 #993
+    - Replace internal knowledge in jtag3.c by a public API #996
+    - JTAG3 UPDI EEPROM fix #1013
+    - Treat x bits in .conf SPI commands as 0 #943
 
   * Internals:
 
