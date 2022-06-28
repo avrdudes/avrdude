@@ -439,16 +439,16 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
 	(vmem->tags[i] & TAG_ALLOCATED) != 0)
     {
       rc = pgm->read_byte(pgm, p, mem, i, mem->buf + i);
-      if (rc != 0) {
+      if (rc != LIBAVRDUDE_SUCCESS) {
         avrdude_message(MSG_INFO, "avr_read(): error reading address 0x%04lx\n", i);
-        if (rc == -1) {
+        if (rc == LIBAVRDUDE_GENERAL_FAILURE) {
           avrdude_message(MSG_INFO, "    read operation not supported for memory \"%s\"\n",
                           memtype);
-          return -2;
+          return LIBAVRDUDE_NOTSUPPORTED;
         }
         avrdude_message(MSG_INFO, "    read operation failed for memory \"%s\"\n",
                         memtype);
-        return rc;
+        return LIBAVRDUDE_SOFTFAIL;
       }
     }
     report_progress(i, mem->size, NULL);
@@ -1035,14 +1035,14 @@ int avr_signature(PROGRAMMER * pgm, AVRPART * p)
 
   report_progress (0,1,"Reading");
   rc = avr_read(pgm, p, "signature", 0);
-  if (rc < 0) {
+  if (rc < LIBAVRDUDE_SUCCESS) {
     avrdude_message(MSG_INFO, "%s: error reading signature data for part \"%s\", rc=%d\n",
                     progname, p->desc, rc);
     return rc;
   }
   report_progress (1,1,NULL);
 
-  return 0;
+  return LIBAVRDUDE_SUCCESS;
 }
 
 static uint8_t get_fuse_bitmask(AVRMEM * m) {

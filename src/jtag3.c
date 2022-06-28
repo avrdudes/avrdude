@@ -313,6 +313,14 @@ static void jtag3_prmsg(PROGRAMMER * pgm, unsigned char * data, size_t len)
   }
 }
 
+static int jtag3_errcode(int reason)
+{
+  if (reason == RSP3_FAIL_OCD_LOCKED ||
+      reason == RSP3_FAIL_CRC_FAILURE)
+    return LIBAVRDUDE_SOFTFAIL;
+  return LIBAVRDUDE_GENERAL_FAILURE;
+}
+
 static void jtag3_prevent(PROGRAMMER * pgm, unsigned char * data, size_t len)
 {
   int i;
@@ -834,7 +842,7 @@ int jtag3_recv(PROGRAMMER * pgm, unsigned char **msg) {
   }
 }
 
- int jtag3_command(PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen,
+int jtag3_command(PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen,
 		   unsigned char **resp, const char *descr)
 {
   int status;
@@ -850,7 +858,7 @@ int jtag3_recv(PROGRAMMER * pgm, unsigned char **msg) {
       putc('\n', stderr);
     avrdude_message(MSG_NOTICE2, "%s: %s command: timeout/error communicating with programmer (status %d)\n",
                     progname, descr, status);
-    return -1;
+    return LIBAVRDUDE_GENERAL_FAILURE;
   } else if (verbose >= 3) {
     putc('\n', stderr);
     jtag3_prmsg(pgm, *resp, status);
@@ -858,9 +866,10 @@ int jtag3_recv(PROGRAMMER * pgm, unsigned char **msg) {
     avrdude_message(MSG_NOTICE2, "0x%02x (%d bytes msg)\n", (*resp)[1], status);
   }
 
-  c = (*resp)[1];
-  if ((c & RSP3_STATUS_MASK) != RSP3_OK) {
-    if ((c == RSP3_FAILED) && ((*resp)[3] == RSP3_FAIL_OCD_LOCKED)) {
+  c = (*resp)[1] & RSP3_STATUS_MASK;
+  if (c != RSP3_OK) {
+    if ((c == RSP3_FAILED) && ((*resp)[3] == RSP3_FAIL_OCD_LOCKED ||
+			       (*resp)[3] == RSP3_FAIL_CRC_FAILURE)) {
       avrdude_message(MSG_INFO,
 		      "%s: Device is locked! Chip erase required to unlock.\n",
 		      progname);
@@ -871,7 +880,7 @@ int jtag3_recv(PROGRAMMER * pgm, unsigned char **msg) {
     status = (*resp)[3];
     free(*resp);
     resp = 0;
-    return -status;
+    return jtag3_errcode(status);
   }
 
   return status;
@@ -987,7 +996,7 @@ static int jtag3_program_enable(PROGRAMMER * pgm)
     free(resp);
     PDATA(pgm)->prog_enabled = 1;
 
-    return 0;
+    return LIBAVRDUDE_SUCCESS;
   }
 
   return status;
