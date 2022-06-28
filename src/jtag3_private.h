@@ -400,5 +400,7 @@ struct updi_device_desc {
     unsigned char flash_page_size_msb;  // Extends flash_page_size, used in 24-bit mode
 
     unsigned char address_mode;  // 0x00 = 16-bit mode, 0x01 = 24-bit mode
+
+    unsigned char hvupdi_variant; // Indicates the target UPDI HV implementation
 };
 #endif /* JTAG3_PRIVATE_EXPORTED */

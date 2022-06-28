@@ -1198,6 +1198,7 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
 
     u16_to_b2(xd.nvm_base_addr, p->nvm_base);
     u16_to_b2(xd.ocd_base_addr, p->ocd_base);
+    xd.hvupdi_variant = p->hvupdi_variant;
 
     for (ln = lfirst(p->mem); ln; ln = lnext(ln))
     {
