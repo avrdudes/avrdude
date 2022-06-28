@@ -135,6 +135,9 @@ add_library(libavrdude
     confwin.c
     crc16.c
     crc16.h
+    developer_opts.c
+    developer_opts.h
+    developer_opts_private.h
     dfu.c
     dfu.h
     fileio.c
