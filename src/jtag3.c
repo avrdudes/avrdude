@@ -1258,10 +1258,13 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
         PDATA(pgm)->use_hvupdi == true &&
         (p->hvupdi_variant == HV_UPDI_VARIANT_0 ||
         p->hvupdi_variant  == HV_UPDI_VARIANT_2)) {
+      avrdude_message(MSG_NOTICE, "%s: Sending HV pulse to %s pin\n",
+        progname, p->hvupdi_variant == HV_UPDI_VARIANT_0 ? "UPDI" : "RESET");
       parm[0] = PARM3_UPDI_HV_SIMPLE_PULSE;
       if (jtag3_setparm(pgm, SCOPE_AVR, 3, PARM3_OPT_12V_UPDI_ENABLE, parm, 1) < 0)
         return -1;
     }
+
     u16_to_b2(xd.default_min_div1_voltage, DEFAULT_MINIMUM_CHARACTERISED_DIV1_VOLTAGE_MV);
     u16_to_b2(xd.default_min_div2_voltage, DEFAULT_MINIMUM_CHARACTERISED_DIV2_VOLTAGE_MV);
     u16_to_b2(xd.default_min_div4_voltage, DEFAULT_MINIMUM_CHARACTERISED_DIV4_VOLTAGE_MV);
