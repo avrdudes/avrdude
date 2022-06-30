@@ -719,6 +719,7 @@ typedef struct programmer_t {
   int  lineno;                /* config file line number */
   void *cookie;		      /* for private use by the programmer */
   char flag;		      /* for private use of the programmer */
+  LISTID hvupdi_support;  /* List of UPDI HV variants the tool supports. See HV_UPDI_VARIANT_ */
 } PROGRAMMER;
 
 #ifdef __cplusplus
