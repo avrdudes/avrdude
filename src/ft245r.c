@@ -107,10 +107,10 @@ void ft245r_initpgm(PROGRAMMER * pgm) {
 
 #else
 
-#define FT245R_CYCLES	2
-#define FT245R_FRAGMENT_SIZE  512
-#define REQ_OUTSTANDINGS	10
-//#define USE_INLINE_WRITE_PAGE
+#define FT245R_CYCLES          2
+#define FT245R_CMD_SIZE       (4 * 8*FT245R_CYCLES)
+#define FT245R_FRAGMENT_SIZE  (8 * FT245R_CMD_SIZE)
+#define REQ_OUTSTANDINGS      10
 
 #define FT245R_DEBUG	0
 /*
@@ -992,39 +992,17 @@ static void ft245r_display(PROGRAMMER * pgm, const char * p) {
     pgm_display_generic_mask(pgm, p, SHOW_ALL_PINS);
 }
 
-static int ft245r_paged_write_gen(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-                                  unsigned int page_size, unsigned int addr,
-                                  unsigned int n_bytes) {
-    unsigned long i, pa;
-    int rc;
 
-    for (i=0; i<n_bytes; i++, addr++) {
-        rc = avr_write_byte_default(pgm, p, m, addr, m->buf[addr]);
-        if (rc != 0) {
+static int ft245r_paged_write_gen(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
+             unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
+
+    for(int i=0; i < (int) n_bytes; i++, addr++)
+        if(avr_write_byte_default(pgm, p, m, addr, m->buf[addr]) != 0)
             return -2;
-        }
 
-        if (m->paged) {
-            // Can this piece of code ever be activated?? Do AVRs exist that
-            // have paged non-flash memories? -- REW
-            // XXX Untested code below.
-            /*
-             * check to see if it is time to flush the page with a page
-             * write
-             */
-
-            if (((addr % m->page_size) == m->page_size-1) || (i == n_bytes-1)) {
-                pa = addr - (addr % m->page_size);
-
-                rc = avr_write_page(pgm, p, m, pa);
-                if (rc != 0) {
-                    return -2;
-                }
-            }
-        }
-    }
-    return i;
+    return n_bytes;
 }
+
 
 static struct ft245r_request {
     int addr;
@@ -1081,178 +1059,172 @@ static int do_request(PROGRAMMER * pgm, AVRMEM *m) {
     return 1;
 }
 
-static int ft245r_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-                                    int page_size, int addr, int n_bytes) {
-    unsigned int    i,j;
-    int addr_save,buf_pos,do_page_write,req_count;
-    unsigned char buf[FT245R_FRAGMENT_SIZE+1+128];
 
-    req_count = 0;
-    for (i=0; i<n_bytes; ) {
-        addr_save = addr;
-        buf_pos = 0;
-        do_page_write = 0;
-        for (j=0; j< FT245R_FRAGMENT_SIZE/8/FT245R_CYCLES/4; j++) {
-            buf_pos += set_data(pgm, buf+buf_pos, (addr & 1)?0x48:0x40 );
-            buf_pos += set_data(pgm, buf+buf_pos, (addr >> 9) & 0xff );
-            buf_pos += set_data(pgm, buf+buf_pos, (addr >> 1) & 0xff );
-            buf_pos += set_data(pgm, buf+buf_pos, m->buf[addr]);
-            addr ++;
-            i++;
-            if ( (m->paged) &&
-                    (((i % m->page_size) == 0) || (i == n_bytes))) {
-                do_page_write = 1;
-                break;
-            }
-        }
-#if defined(USE_INLINE_WRITE_PAGE)
-        if (do_page_write) {
-            int addr_wk = addr_save - (addr_save % m->page_size);
-            /* If this device has a "load extended address" command, issue it. */
-            if (m->op[AVR_OP_LOAD_EXT_ADDR]) {
-                unsigned char cmd[4];
-                OPCODE *lext = m->op[AVR_OP_LOAD_EXT_ADDR];
+static int ft245r_paged_write_flash(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
+             unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
-                memset(cmd, 0, 4);
-                avr_set_bits(lext, cmd);
-                avr_set_addr(lext, cmd, addr_wk/2);
-                buf_pos += set_data(pgm, buf+buf_pos, cmd[0]);
-                buf_pos += set_data(pgm, buf+buf_pos, cmd[1]);
-                buf_pos += set_data(pgm, buf+buf_pos, cmd[2]);
-                buf_pos += set_data(pgm, buf+buf_pos, cmd[3]);
+    int i, j, addr_save, buf_pos, req_count, do_page_write;
+    unsigned char buf[FT245R_FRAGMENT_SIZE+1];
+    unsigned char cmd[4];
+
+    if(m->op[AVR_OP_LOADPAGE_LO] == NULL || m->op[AVR_OP_LOADPAGE_HI] == NULL) {
+        avrdude_message(MSG_INFO, "AVR_OP_LOADPAGE_HI/LO command not defined for %s\n", p->desc);
+        return -1;
+    }
+
+    do_page_write = req_count = i = j = buf_pos = 0;
+    addr_save = addr;
+    while(i < (int) n_bytes) {
+        int spi = addr&1? AVR_OP_LOADPAGE_HI: AVR_OP_LOADPAGE_LO;
+
+        // put the SPI loadpage command as FT245R_CMD_SIZE bytes into buffer
+        memset(cmd, 0, sizeof cmd);
+        avr_set_bits(m->op[spi], cmd);
+        avr_set_addr(m->op[spi], cmd, addr/2);
+        avr_set_input(m->op[spi], cmd, m->buf[addr]);
+        for(int k=0; k<sizeof cmd; k++)
+           buf_pos += set_data(pgm, buf+buf_pos, cmd[k]);
+
+        i++; j++; addr++;
+
+        if(m->paged && (i%m->page_size == 0 || i >= (int) n_bytes))
+            do_page_write = 1;
+
+        // page boundary, finished or buffer exhausted? queue up requests
+        if(do_page_write || i >= (int) n_bytes || j >= FT245R_FRAGMENT_SIZE/FT245R_CMD_SIZE) {
+            if(i >= n_bytes) {
+                ft245r_out = SET_BITS_0(ft245r_out, pgm, PIN_AVR_SCK, 0); // SCK down
+                buf[buf_pos++] = ft245r_out;
+            } else {
+                // stretch sequence to allow correct readout, see extract_data()
+                buf[buf_pos] = buf[buf_pos - 1];
+                buf_pos++;
             }
-            buf_pos += set_data(pgm, buf+buf_pos, 0x4C); /* Issue Page Write */
-            buf_pos += set_data(pgm, buf+buf_pos,(addr_wk >> 9) & 0xff);
-            buf_pos += set_data(pgm, buf+buf_pos,(addr_wk >> 1) & 0xff);
-            buf_pos += set_data(pgm, buf+buf_pos, 0);
-        }
-#endif
-        if (i >= n_bytes) {
-            ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,0); // sck down
-            buf[buf_pos++] = ft245r_out;
-        }
-        else {
-            /* stretch sequence to allow correct readout, see extract_data() */
-            buf[buf_pos] = buf[buf_pos - 1];
-            buf_pos++;
-        }
-        ft245r_send(pgm, buf, buf_pos);
-        put_request(addr_save, buf_pos, 0);
-        //ft245r_sync(pgm);
-#if 0
-        avrdude_message(MSG_INFO, "send addr 0x%04x bufsize %d [%02x %02x] page_write %d\n",
-                addr_save,buf_pos,
-                extract_data_out(pgm, buf , (0*4 + 3) ),
-                extract_data_out(pgm, buf , (1*4 + 3) ),
-                do_page_write);
-#endif
-        req_count++;
-        if (req_count > REQ_OUTSTANDINGS)
-            do_request(pgm, m);
-        if (do_page_write) {
-#if defined(USE_INLINE_WRITE_PAGE)
-            while (do_request(pgm, m))
-                ;
-            ft245r_usleep(pgm, m->max_write_delay);
-#else
-            int addr_wk = addr_save - (addr_save % m->page_size);
-            int rc;
-            while (do_request(pgm, m))
-                ;
-            rc = avr_write_page(pgm, p, m, addr_wk);
-            if (rc != 0) {
-                return -2;
+            ft245r_send(pgm, buf, buf_pos);
+            put_request(addr_save, buf_pos, 0);
+
+            if(++req_count > REQ_OUTSTANDINGS)
+                do_request(pgm, m);
+
+            if(do_page_write) {
+                while(do_request(pgm, m))
+                    continue;
+                if(avr_write_page(pgm, p, m, addr_save - (addr_save % m->page_size)) != 0)
+                    return -2;
+                do_page_write = req_count = 0;
             }
-#endif
-            req_count = 0;
+
+            // reset buffer variables
+            j = buf_pos = 0;
+            addr_save = addr;
         }
     }
-    while (do_request(pgm, m))
-        ;
-    return i;
+
+    while(do_request(pgm, m))
+        continue;
+
+    return n_bytes;
 }
 
 
 static int ft245r_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-                              unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
-    if (strcmp(m->desc, "flash") == 0) {
+            unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
+
+    if(!n_bytes)
+        return 0;
+
+    if(strcmp(m->desc, "flash") == 0)
         return ft245r_paged_write_flash(pgm, p, m, page_size, addr, n_bytes);
-    } else if (strcmp(m->desc, "eeprom") == 0) {
+
+    if(strcmp(m->desc, "eeprom") == 0)
         return ft245r_paged_write_gen(pgm, p, m, page_size, addr, n_bytes);
-    } else {
-        return -2;
-    }
+
+    return -2;
 }
 
-static int ft245r_paged_load_gen(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-                                 unsigned int page_size, unsigned int addr,
-                                 int n_bytes) {
-    unsigned char    rbyte;
-    unsigned long    i;
-    int rc;
+static int ft245r_paged_load_gen(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
+             unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
-    for (i=0; i<n_bytes; i++) {
-        rc = avr_read_byte_default(pgm, p, m, i+addr, &rbyte);
-        if (rc != 0) {
+    for(int i=0; i < (int) n_bytes; i++) {
+        unsigned char rbyte;
+
+        if(avr_read_byte_default(pgm, p, m, addr+i, &rbyte) != 0)
             return -2;
-        }
-        m->buf[i+addr] = rbyte;
+
+        m->buf[addr+i] = rbyte;
     }
+
     return 0;
 }
 
-static int ft245r_paged_load_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-                                   unsigned int page_size, unsigned int addr,
-                                   unsigned int n_bytes) {
-    unsigned long    i,j,n;
-    int addr_save,buf_pos;
-    int req_count = 0;
+
+static int ft245r_paged_load_flash(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
+            unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
+
+    int i, j, addr_save, buf_pos, req_count;
     unsigned char buf[FT245R_FRAGMENT_SIZE+1];
+    unsigned char cmd[4];
 
-    for (i=0; i<n_bytes; ) {
-        buf_pos = 0;
-        addr_save = addr;
-        for (j=0; j< FT245R_FRAGMENT_SIZE/8/FT245R_CYCLES/4; j++) {
-            if (i >= n_bytes) break;
-            buf_pos += set_data(pgm, buf+buf_pos, (addr & 1)?0x28:0x20 );
-            buf_pos += set_data(pgm, buf+buf_pos, (addr >> 9) & 0xff );
-            buf_pos += set_data(pgm, buf+buf_pos, (addr >> 1) & 0xff );
-            buf_pos += set_data(pgm, buf+buf_pos, 0);
-            addr ++;
-            i++;
-        }
-        if (i >= n_bytes) {
-            ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,0); // sck down
-            buf[buf_pos++] = ft245r_out;
-        }
-        else {
-            /* stretch sequence to allow correct readout, see extract_data() */
-            buf[buf_pos] = buf[buf_pos - 1];
-            buf_pos++;
-        }
-        n = j;
-        ft245r_send(pgm, buf, buf_pos);
-        put_request(addr_save, buf_pos, n);
-        req_count++;
-        if (req_count > REQ_OUTSTANDINGS)
-            do_request(pgm, m);
-
+    if(m->op[AVR_OP_READ_LO] == NULL || m->op[AVR_OP_READ_HI] == NULL) {
+        avrdude_message(MSG_INFO, "AVR_OP_READ_HI/LO command not defined for %s\n", p->desc);
+        return -1;
     }
-    while (do_request(pgm, m))
-        ;
+
+    req_count = i = j = buf_pos = 0;
+    addr_save = addr;
+    while(i < (int) n_bytes) {
+        int spi = addr&1? AVR_OP_READ_HI: AVR_OP_READ_LO;
+
+        // put the SPI read command as FT245R_CMD_SIZE bytes into buffer
+        memset(cmd, 0, sizeof cmd);
+        avr_set_bits(m->op[spi], cmd);
+        avr_set_addr(m->op[spi], cmd, addr/2);
+        for(int k=0; k<sizeof cmd; k++)
+           buf_pos += set_data(pgm, buf+buf_pos, cmd[k]);
+
+        i++; j++; addr++;
+
+        // finished or buffer exhausted? queue up requests
+        if(i >= (int) n_bytes || j >= FT245R_FRAGMENT_SIZE/FT245R_CMD_SIZE) {
+            if(i >= (int) n_bytes) {
+                ft245r_out = SET_BITS_0(ft245r_out, pgm, PIN_AVR_SCK, 0); // SCK down
+                buf[buf_pos++] = ft245r_out;
+            } else {
+                // stretch sequence to allow correct readout, see extract_data()
+                buf[buf_pos] = buf[buf_pos - 1];
+                buf_pos++;
+            }
+            ft245r_send(pgm, buf, buf_pos);
+            put_request(addr_save, buf_pos, j);
+
+            if(++req_count > REQ_OUTSTANDINGS)
+                do_request(pgm, m);
+
+            // reset buffer variables
+            j = buf_pos = 0;
+            addr_save = addr;
+        }
+    }
+
+    while(do_request(pgm, m))
+        continue;
+
     return 0;
 }
 
-static int ft245r_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-                             unsigned int page_size, unsigned int addr,
-                             unsigned int n_bytes) {
-    if (strcmp(m->desc, "flash") == 0) {
+static int ft245r_paged_load(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
+             unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
+
+    if(!n_bytes)
+        return 0;
+
+    if(strcmp(m->desc, "flash") == 0)
         return ft245r_paged_load_flash(pgm, p, m, page_size, addr, n_bytes);
-    } else if (strcmp(m->desc, "eeprom") == 0) {
+
+   if(strcmp(m->desc, "eeprom") == 0)
         return ft245r_paged_load_gen(pgm, p, m, page_size, addr, n_bytes);
-    } else {
-        return -2;
-    }
+
+   return -2;
 }
 
 void ft245r_initpgm(PROGRAMMER * pgm) {
