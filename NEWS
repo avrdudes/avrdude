@@ -32,6 +32,8 @@ Changes since version 7.0:
     - Replace internal knowledge in jtag3.c by a public API #996
     - JTAG3 UPDI EEPROM fix #1013
     - Treat x bits in .conf SPI commands as 0 #943
+    - Fix avrftdi support for ATmega2560 et al #474
+    - Fix avrdude.conf timings for ATmega328PB and other parts #976
 
   * Internals:
 
