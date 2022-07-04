@@ -1170,6 +1170,19 @@ static int ft245r_paged_load_flash(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
         return -1;
     }
 
+    // always called with addr at page boundary, and n_bytes == m->page_size;
+    // hence, OK to prepend load extended address command (at most) once
+    if(m->op[AVR_OP_LOAD_EXT_ADDR]) {
+        memset(cmd, 0, sizeof cmd);
+	avr_set_bits(m->op[AVR_OP_LOAD_EXT_ADDR], cmd);
+	avr_set_addr(m->op[AVR_OP_LOAD_EXT_ADDR], cmd, addr/2);
+
+        buf_pos = 0;
+        for(int k=0; k<sizeof cmd; k++)
+            buf_pos += set_data(pgm, buf+buf_pos, cmd[k]);
+        ft245r_send_and_discard(pgm, buf, buf_pos);
+    }
+
     req_count = i = j = buf_pos = 0;
     addr_save = addr;
     while(i < (int) n_bytes) {
