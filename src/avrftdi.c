@@ -917,6 +917,10 @@ static int avrftdi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 static int
 avrftdi_lext(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m, unsigned int address)
 {
+	/* nothing to do if load extended address command unavailable */
+        if(m->op[AVR_OP_LOAD_EXT_ADDR] == NULL)
+		return 0;
+
 	avrftdi_t *pdata = to_pdata(pgm);
 	unsigned char buf[] = { 0x00, 0x00, 0x00, 0x00 };
 
@@ -1019,7 +1023,7 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	page_size = m->page_size;
 
 	/* on large-flash devices > 128k issue extended address command when needed */
-	if(m->op[AVR_OP_LOAD_EXT_ADDR] && avrftdi_lext(pgm, p, m, addr/2) < 0)
+	if(avrftdi_lext(pgm, p, m, addr/2) < 0)
 		return -1;
 	
 	/* prepare the command stream for the whole page */
@@ -1102,7 +1106,6 @@ static int avrftdi_flash_read(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 {
 	OPCODE * readop;
 	int byte, word;
-	unsigned int address = addr/2;
 
 	unsigned int buf_size = 4 * len + 4;
 	unsigned char* o_buf = alloca(buf_size);
@@ -1122,7 +1125,7 @@ static int avrftdi_flash_read(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 		return -1;
 	}
 	
-	if(m->op[AVR_OP_LOAD_EXT_ADDR] && avrftdi_lext(pgm, p, m, address) < 0)
+	if(avrftdi_lext(pgm, p, m, addr/2) < 0)
 		return -1;
 	
 	/* word addressing! */
