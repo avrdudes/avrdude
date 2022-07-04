@@ -5824,6 +5824,8 @@ part
 
     memory "efuse"
         size            = 1;
+        min_write_delay = 2000;
+        max_write_delay = 2000;
         write           = "1 0 1 0  1 1 0 0  1 0 1 0  0 1 0 0",
                           "x x x x  x x x x  x x x x  i i i i";
 
@@ -8214,6 +8216,7 @@ part parent "m48"
     id               = "m48pb";
     desc             = "ATmega48PB";
     signature        = 0x1e 0x92 0x10;
+    chip_erase_delay = 10500;
   ;
 
 #------------------------------------------------------------
@@ -8441,6 +8444,7 @@ part parent "m88"
     id               = "m88pb";
     desc             = "ATmega88PB";
     signature        = 0x1e 0x93 0x16;
+    chip_erase_delay = 10500;
   ;
 
 #------------------------------------------------------------
@@ -8670,6 +8674,7 @@ part parent "m168"
     id              = "m168pb";
     desc            = "ATmega168PB";
     signature       = 0x1e 0x94 0x15;
+    chip_erase_delay = 10500;
   ;
 
 #------------------------------------------------------------
@@ -9826,6 +9831,7 @@ part parent "m328"
     id              = "m328pb";
     desc            = "ATmega328PB";
     signature       = 0x1e 0x95 0x16;
+    chip_erase_delay = 10500;
 
     memory "efuse"
         size = 1;
@@ -9853,6 +9859,8 @@ part parent "m328"
 
     memory "efuse"
         size = 1;
+        min_write_delay = 4500;
+        max_write_delay = 4500;
         read            = "0 1 0 1 0 0 0 0 0 0 0 0 1 0 0 0",
                           "x x x x x x x x o o o o o o o o";
         write           = "1 0 1 0 1 1 0 0 1 0 1 0 0 1 0 0",
