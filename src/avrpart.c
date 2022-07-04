@@ -82,11 +82,11 @@ int avr_set_bits(OPCODE * op, unsigned char * cmd)
   unsigned char mask;
 
   for (i=0; i<32; i++) {
-    if (op->bit[i].type == AVR_CMDBIT_VALUE) {
+    if (op->bit[i].type == AVR_CMDBIT_VALUE || op->bit[i].type == AVR_CMDBIT_IGNORE) {
       j = 3 - i / 8;
       bit = i % 8;
       mask = 1 << bit;
-      if (op->bit[i].value)
+      if (op->bit[i].value && op->bit[i].type == AVR_CMDBIT_VALUE)
         cmd[j] = cmd[j] | mask;
       else
         cmd[j] = cmd[j] & ~mask;
