@@ -234,7 +234,7 @@ int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
   if (readop == NULL) {
 #if DEBUG
-    avrdude_message(MSG_INFO, "avr_read_byte(): operation not supported on memory type \"%s\"\n",
+    avrdude_message(MSG_INFO, "avr_read_byte_default(): operation not supported on memory type \"%s\"\n",
                     mem->desc);
 #endif
     return -1;
