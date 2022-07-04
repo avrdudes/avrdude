@@ -918,7 +918,7 @@ static int
 avrftdi_lext(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m, unsigned int address)
 {
 	/* nothing to do if load extended address command unavailable */
-        if(m->op[AVR_OP_LOAD_EXT_ADDR] == NULL)
+	if(m->op[AVR_OP_LOAD_EXT_ADDR] == NULL)
 		return 0;
 
 	avrftdi_t *pdata = to_pdata(pgm);
