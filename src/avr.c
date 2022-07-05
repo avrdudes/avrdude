@@ -650,7 +650,7 @@ int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
   if (writeop == NULL) {
 #if DEBUG
-    avrdude_message(MSG_INFO, "avr_write_byte(): write not supported for memory type \"%s\"\n",
+    avrdude_message(MSG_INFO, "avr_write_byte_default(): write not supported for memory type \"%s\"\n",
                     mem->desc);
 #endif
     return -1;
