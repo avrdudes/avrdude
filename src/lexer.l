@@ -159,6 +159,7 @@ hventerstabdelay { yylval=NULL; return K_HVENTERSTABDELAY; }
 hvleavestabdelay { yylval=NULL; return K_HVLEAVESTABDELAY; }
 hvsp_controlstack  { yylval=NULL; return K_HVSP_CONTROLSTACK; }
 hvspcmdexedelay  { yylval=NULL; return K_HVSPCMDEXEDELAY; }
+hvupdi_support   { yylval=NULL; return K_HVUPDI_SUPPORT; }
 hvupdi_variant   { yylval=NULL; return K_HVUPDI_VARIANT; }
 id               { yylval=NULL; return K_ID; }
 idr              { yylval=NULL; return K_IDR; }

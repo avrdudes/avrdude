@@ -83,6 +83,7 @@ PROGRAMMER * pgm_new(void)
   pgm->lineno = 0;
   pgm->baudrate = 0;
   pgm->initpgm = NULL;
+  pgm->hvupdi_support = lcreat(NULL, 0);
 
   for (i=0; i<N_PINS; i++) {
     pgm->pinno[i] = 0;

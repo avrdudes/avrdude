@@ -206,7 +206,7 @@ typedef struct avrpart {
   char          desc[AVR_DESCLEN];  /* long part name */
   char          id[AVR_IDLEN];      /* short part name */
   char          family_id[AVR_FAMILYIDLEN+1]; /* family id in the SIB (avr8x) */
-  int           hvupdi_variant;     /* 12V pulse on UPDI pin, no pin or RESET pin */
+  int           hvupdi_variant;     /* HV pulse on UPDI pin, no pin or RESET pin */
   int           stk500_devcode;     /* stk500 device code */
   int           avr910_devcode;     /* avr910 device code */
   int           chip_erase_delay;   /* microseconds */
@@ -719,6 +719,7 @@ typedef struct programmer_t {
   int  lineno;                /* config file line number */
   void *cookie;		      /* for private use by the programmer */
   char flag;		      /* for private use of the programmer */
+  LISTID hvupdi_support;  /* List of UPDI HV variants the tool supports. See HV_UPDI_VARIANT_ */
 } PROGRAMMER;
 
 #ifdef __cplusplus

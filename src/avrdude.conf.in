@@ -40,6 +40,7 @@
 #       usbvendor = <vendorname>;                   # USB Vendor Name
 #       usbproduct = <productname>;                 # USB Product Name
 #       usbsn    = <serialno>;                      # USB Serial Number
+#       hvupdi_support = <num> [, <num>, ... ] ;    # UPDI HV Variants Support
 #
 #        To invert a bit, use = ~ <num>, the spaces are important.
 #        For a pin list all pins must be inverted.
@@ -630,6 +631,7 @@ programmer
   desc  = "SerialUPDI";
   type  = "serialupdi";
   connection_type = serial;
+  hvupdi_support = 1;
 ;
 
 programmer
@@ -1177,6 +1179,7 @@ programmer
   type  = "jtagice3_updi";
   connection_type = usb;
   usbpid = 0x2110, 0x2140;
+  hvupdi_support = 1;
 ;
 
 programmer
@@ -1209,6 +1212,7 @@ programmer
   type  = "jtagice3_updi";
   connection_type = usb;
   usbpid = 0x2111;
+  hvupdi_support = 1;
 ;
 
 programmer
@@ -1233,6 +1237,7 @@ programmer
   type  = "jtagice3_updi";
   connection_type = usb;
   usbpid = 0x2145;
+  hvupdi_support = 1;
 ;
 
 programmer
@@ -1257,6 +1262,7 @@ programmer
   type  = "jtagice3_updi";
   connection_type = usb;
   usbpid = 0x2141;
+  hvupdi_support = 1;
 ;
 
 programmer
@@ -1297,6 +1303,7 @@ programmer
   type  = "jtagice3_updi";
   connection_type = usb;
   usbpid = 0x2144;
+  hvupdi_support = 0, 1;
 ;
 
 programmer
@@ -1321,6 +1328,7 @@ programmer
   type  = "jtagice3_updi";
   connection_type = usb;
   usbpid = 0x2177, 0x2178, 0x2179;
+  hvupdi_support = 0, 1, 2;
 ;
 
 programmer
@@ -1345,6 +1353,7 @@ programmer
   type  = "jtagice3_updi";
   connection_type = usb;
   usbpid = 0x217F, 0x2180, 0x2181;
+  hvupdi_support = 1;
 ;
 
 programmer
@@ -1369,6 +1378,7 @@ programmer
   type  = "jtagice3_updi";
   connection_type = usb;
   usbpid = 0x2175;
+  hvupdi_support = 1;
 ;
 
 programmer
@@ -1737,6 +1747,7 @@ programmer
   type  = "jtagmkii_pdi";
   connection_type = serial;
   baudrate = 115200;
+  hvupdi_support = 1;
 ;
 
 #

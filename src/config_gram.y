@@ -81,6 +81,7 @@ static int pin_name;
 %token K_DEFAULT_SERIAL
 %token K_DESC
 %token K_FAMILY_ID
+%token K_HVUPDI_SUPPORT
 %token K_HVUPDI_VARIANT
 %token K_DEVICECODE
 %token K_STK500_DEVCODE
@@ -476,7 +477,8 @@ prog_parm :
       current_prog->baudrate = $3->value.number;
       free_token($3);
     }
-  }
+  } |
+  prog_parm_updi
 ;
 
 prog_parm_type:
@@ -571,6 +573,38 @@ usb_pid_list:
       if (ip) {
         *ip = $3->value.number;
         ladd(current_prog->usbpid, ip);
+      }
+      free_token($3);
+    }
+  }
+;
+
+prog_parm_updi:
+  K_HVUPDI_SUPPORT TKN_EQUAL hvupdi_support_list
+;
+
+hvupdi_support_list:
+  TKN_NUMBER {
+    {
+      /* overwrite list entries, so clear the existing entries */
+      ldestroy_cb(current_prog->hvupdi_support, free);
+      current_prog->hvupdi_support = lcreat(NULL, 0);
+    }
+    {
+      int *ip = malloc(sizeof(int));
+      if (ip) {
+        *ip = $1->value.number;
+        ladd(current_prog->hvupdi_support, ip);
+      }
+      free_token($1);
+    }
+  } |
+  hvupdi_support_list TKN_COMMA TKN_NUMBER {
+    {
+      int *ip = malloc(sizeof(int));
+      if (ip) {
+        *ip = $3->value.number;
+        ladd(current_prog->hvupdi_support, ip);
       }
       free_token($3);
     }
