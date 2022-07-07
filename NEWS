@@ -18,6 +18,7 @@ Changes since version 7.0:
     - Fix micronucleus bootloader to check for unresponsive USB
       devices #945
     - Fix src/CMakeLists.txt to honor CMAKE_INSTALL_LIBDIR #972
+    - [bug #43898] atmega644p remains stopped after JTAG transaction #366
 
   * Pull requests:
 
@@ -26,6 +27,11 @@ Changes since version 7.0:
     - CMake Enhancements #962
     - Reduce programmer desc string length in avrdude.conf
       to < 80 characters #1000
+    - Dragon JTAG fix #979
+    - adding support for all Linux baud rates v.2 #993
+    - Replace internal knowledge in jtag3.c by a public API #996
+    - JTAG3 UPDI EEPROM fix #1013
+    - Treat x bits in .conf SPI commands as 0 #943
 
   * Internals:
 
