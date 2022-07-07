@@ -206,7 +206,7 @@ typedef struct avrpart {
   char          desc[AVR_DESCLEN];  /* long part name */
   char          id[AVR_IDLEN];      /* short part name */
   char          family_id[AVR_FAMILYIDLEN+1]; /* family id in the SIB (avr8x) */
-  int           hvupdi_variant;     /* 12V pulse on UPDI pin, no pin or RESET pin */
+  int           hvupdi_variant;     /* HV pulse on UPDI pin, no pin or RESET pin */
   int           stk500_devcode;     /* stk500 device code */
   int           avr910_devcode;     /* avr910 device code */
   int           chip_erase_delay;   /* microseconds */

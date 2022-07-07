@@ -1649,6 +1649,15 @@ static int jtag3_open_updi(PROGRAMMER * pgm, char * port)
 {
   avrdude_message(MSG_NOTICE2, "%s: jtag3_open_updi()\n", progname);
 
+  LNODEID ln;
+  unsigned int hv_sup;
+  avrdude_message(MSG_NOTICE2, "%s: HV UPDI support:", progname);
+  for (ln = lfirst(pgm->hvupdi_support); ln; ln = lnext(ln)) {
+    hv_sup = (unsigned int)(*(int *)ldata(ln));
+    avrdude_message(MSG_NOTICE2, " %d", hv_sup);
+  }
+  avrdude_message(MSG_NOTICE2, "\n", progname);
+
   if (jtag3_open_common(pgm, port) < 0)
     return -1;
 

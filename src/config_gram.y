@@ -477,7 +477,8 @@ prog_parm :
       current_prog->baudrate = $3->value.number;
       free_token($3);
     }
-  }
+  } |
+  prog_parm_updi
 ;
 
 prog_parm_type:
@@ -548,7 +549,6 @@ prog_parm_usb:
       free_token($3);
     }
   }
-  K_HVUPDI_SUPPORT TKN_EQUAL hvupdi_support_list
 ;
 
 usb_pid_list:
@@ -579,10 +579,14 @@ usb_pid_list:
   }
 ;
 
+prog_parm_updi:
+  K_HVUPDI_SUPPORT TKN_EQUAL hvupdi_support_list
+;
+
 hvupdi_support_list:
   TKN_NUMBER {
     {
-      /* overwrite pids, so clear the existing entries */
+      /* overwrite list entries, so clear the existing entries */
       ldestroy_cb(current_prog->hvupdi_support, free);
       current_prog->hvupdi_support = lcreat(NULL, 0);
     }
