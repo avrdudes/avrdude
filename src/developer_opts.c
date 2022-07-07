@@ -44,6 +44,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <fnmatch.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -67,6 +68,19 @@ static char cmdbitchar(CMDBIT cb) {
     return '?';
   }
 }
+
+static char *cmdbitstr(CMDBIT cb) {
+  char space[10];
+
+  *space = cmdbitchar(cb);
+  if(*space == 'a')
+    sprintf(space+1, "%d", cb.bitno);
+  else
+    space[1] = 0;
+
+  return strdup(space);
+}
+
 
 
 static const char *opcodename(int what) {
@@ -101,8 +115,11 @@ static const char *opcodename(int what) {
 }
 
 
-char *opcode2str(OPCODE *op, int detailed) {
+static char *opcode2str(OPCODE *op, int detailed) {
   char cb, space[1024], *sp = space;
+
+  if(!op)
+    return strdup("NULL");
 
   if(detailed)
     *sp++ = '"';
@@ -126,6 +143,42 @@ char *opcode2str(OPCODE *op, int detailed) {
   return strdup(space);
 }
 
+
+// return 0 if op code would encode (essentially) the same SPI command
+static int opcodecmp(OPCODE *op1, OPCODE *op2) {
+  char *opstr1, *opstr2, *p;
+  int cmp;
+
+  if(!op1 && !op2)
+    return 0;
+  if(!op1 || !op2)
+    return op1? -1: 1;
+
+  opstr1 = opcode2str(op1, 1);
+  opstr2 = opcode2str(op2, 1);
+  if(!opstr1 || !opstr2) {
+    dev_info("%s: out of memory\n", progname);
+    exit(1);
+  }
+
+  // don't care x and 0 are functionally equivalent
+  for(p=opstr1; *p; p++)
+    if(*p == 'x')
+      *p = '0';
+  for(p=opstr2; *p; p++)
+    if(*p == 'x')
+      *p = '0';
+
+  cmp = strcmp(opstr1, opstr2);
+  free(opstr1);
+  free(opstr2);
+
+  return cmp;
+}
+
+
+
+
 static void printopcode(AVRPART *p, const char *d, OPCODE *op, int what) {
   unsigned char cmd[4];
   int i;
@@ -134,11 +187,11 @@ static void printopcode(AVRPART *p, const char *d, OPCODE *op, int what) {
     memset(cmd, 0, sizeof cmd);
     avr_set_bits(op, cmd);
 
-    dev_info(".op %s %s %s 0x%02x%02x%02x%02x ", p->desc, d, opcodename(what), cmd[0], cmd[1], cmd[2], cmd[3]);
+    dev_info(".op\t%s\t%s\t%s\t0x%02x%02x%02x%02x\t", p->desc, d, opcodename(what), cmd[0], cmd[1], cmd[2], cmd[3]);
     for(i=31; i >= 0; i--) {
       dev_info("%c", cmdbitchar(op->bit[i]));
       if(i%8 == 0)
-        dev_info("%c", i? ' ': '\n');
+        dev_info("%c", i? '\t': '\n');
     }
   }
 }
@@ -175,6 +228,7 @@ static char *parttype(AVRPART *p) {
   case AVRPART_HAS_UPDI: strcpy(type, "UPDI"); break;
   default:               strcpy(type, "UNKNOWN"); break;
   }
+
   if((p->flags & AVRPART_SERIALOK) == 0)
     strcat(type, "|NOTSERIAL");
   if((p->flags & AVRPART_PARALLELOK) == 0)
@@ -210,248 +264,556 @@ static void checkaddr(int memsize, int pagesize, int what, OPCODE *op, AVRPART *
   for(i=0; i<16; i++) {         // ISP programming only deals with 16-bit addresses (words for flash, bytes for eeprom)
     if(i < lo || i > hi) {
       if(op->bit[i+8].type != AVR_CMDBIT_IGNORE && !(op->bit[i+8].type == AVR_CMDBIT_VALUE && op->bit[i+8].value == 0)) {
-        dev_info(".cmdbit%d %s %s-%s outside addressable space should be x or 0, but is %c", i+8, p->desc, m->desc, whatstr, cmdbitchar(op->bit[i+8]));
-        if(op->bit[i+8].type == AVR_CMDBIT_ADDRESS)
-          dev_info("%d", op->bit[i+8].bitno);
-        dev_info("\n");
+        char *cbs = cmdbitstr(op->bit[i+8]);
+        dev_info(".cmderr\t%s\t%s-%s\tbit %d outside addressable space should be x or 0 but is %s\n", p->desc, m->desc, whatstr, i+8, cbs? cbs: "NULL");
+        if(cbs)
+          free(cbs);
       }
     } else {
       if(op->bit[i+8].type != AVR_CMDBIT_ADDRESS)
-        dev_info(".cmdbit%d %s %s-%s is %c but should be a\n", i+8, p->desc, m->desc, whatstr, cmdbitchar(op->bit[i+8]));
+        dev_info(".cmderr\t%s\t%s-%s\tbit %d is %c but should be a\n", p->desc, m->desc, whatstr, i+8, cmdbitchar(op->bit[i+8]));
       else if(op->bit[i+8].bitno != i)
-        dev_info(".cmdbit%d %s %s-%s inconsistent: a%d specified as a%d\n", i+8, p->desc, m->desc, whatstr, i, op->bit[i+8].bitno);
+        dev_info(".cmderr\t%s\t%s-%s\tbit %d inconsistent: a%d specified as a%d\n", p->desc, m->desc, whatstr, i+8, i, op->bit[i+8].bitno);
     }
   }
   for(i=0; i<32; i++)           // command bits 8..23 should not contain address bits
     if((i<8 || i>23) && op->bit[i].type == AVR_CMDBIT_ADDRESS)
-      dev_info(".cmdbit%d %s %s-%s contains a%d which it shouldn't\n", i, p->desc, m->desc, whatstr, op->bit[i].bitno);
+      dev_info(".cmderr\t%s\t%s-%s\tbit %d contains a%d which it shouldn't\n", p->desc, m->desc, whatstr, i, op->bit[i].bitno);
 }
 
 
-void dev_stack_out(bool dot, AVRPART *p, char *name, unsigned char *stack, int ns) {
-  if(dot)
-    dev_info("%s\t%s\t", p->desc, name);
+static char *dev_sprintf(const char *fmt, ...) {
+  int size = 0;
+  char *p = NULL;
+  va_list ap;
+
+  // compute size
+  va_start(ap, fmt);
+  size = vsnprintf(p, size, fmt, ap);
+  va_end(ap);
+
+  if(size < 0)
+    return NULL;
+
+  size++;                       // for temrinating '\0'
+  if(!(p = malloc(size)))
+   return NULL;
+
+  va_start(ap, fmt);
+  size = vsnprintf(p, size, fmt, ap);
+  va_end(ap);
+
+  if(size < 0) {
+    free(p);
+    return NULL;
+  }
+
+  return p;
+}
+
+
+static int dev_nprinted;
+
+int dev_message(int msglvl, const char *fmt, ...) {
+  va_list ap;
+  int rc = 0;
+
+  if(verbose >= msglvl) {
+    va_start(ap, fmt);
+    rc = vfprintf(stderr, fmt, ap);
+    va_end(ap);
+    if(rc > 0)
+      dev_nprinted += rc;
+  }
+
+  return rc;
+}
+
+
+
+static int dev_part_strct_entry(bool tsv, char *col0, char *col1, char *col2, const char *name, char *cont) {
+  const char *n = name? name: "name_error";
+  const char *c = cont? cont: "cont_error";
+
+  if(tsv) {                     // tab separated values
+    if(col0) {
+      dev_info("%s\t", col0);
+      if(col1) {
+        dev_info("%s\t", col1);
+        if(col2) {
+          dev_info("%s\t", col2);
+        }
+      }
+    }
+    dev_info("%s\t%s\n", n, c);
+  } else {                      // grammar conform
+    int indent = col2 && strcmp(col2, "part");
+
+    printf("%*s%-*s = %s;\n", indent? 8: 4, "", indent? 15: 19, n, c);
+  }
+
+  if(cont)
+    free(cont);
+
+  return 1;
+}
+
+
+static const char *dev_controlstack_name(AVRPART *p) {
+  return
+    p->ctl_stack_type == CTL_STACK_PP? "pp_controlstack":
+    p->ctl_stack_type == CTL_STACK_HVSP? "hvsp_controlstack":
+    p->ctl_stack_type == CTL_STACK_NONE? "NONE":
+    "unknown_controlstack";
+}
+
+
+static void dev_stack_out(bool tsv, AVRPART *p, const char *name, unsigned char *stack, int ns) {
+  if(!strcmp(name, "NONE")) {
+    name = "pp_controlstack";
+    ns = 0;
+  }
+
+  if(tsv)
+    dev_info(".pt\t%s\t%s\t", p->desc, name);
   else
-    dev_info("    %-19s = ", name);
-  for(int i=0; i<ns; i++)
-    dev_info("0x%02x%s", stack[ns], i+1<ns? " ": dot? "\n": ";\n");
+    dev_info("    %-19s =%s", name, ns <=8? " ": "");
+
+  if(ns <= 0)
+    dev_info(tsv? "NULL\n": "NULL;\n");
+  else
+    for(int i=0; i<ns; i++)
+      dev_info("%s0x%02x%s", !tsv && ns > 8 && i%8 == 0? "\n        ": "", stack[i], i+1<ns? ", ": tsv? "\n": ";\n");
+}
+
+
+// order in which memories are processed, runtime adds unknown ones
+static const char *mem_order[100] = {
+  "eeprom",       "flash",        "application",  "apptable",
+  "boot",         "lfuse",        "hfuse",        "efuse",
+  "fuse",         "fuse0",        "wdtcfg",       "fuse1",
+  "bodcfg",       "fuse2",        "osccfg",       "fuse3",
+  "fuse4",        "tcd0cfg",      "fuse5",        "syscfg0",
+  "fuse6",        "syscfg1",      "fuse7",        "append",
+  "codesize",     "fuse8",        "fuse9",        "bootend",
+  "bootsize",     "fuses",        "lock",         "lockbits",
+  "tempsense",    "signature",    "prodsig",      "sernum",
+  "calibration",  "osccal16",     "osccal20",     "osc16err",
+  "osc20err",     "usersig",      "userrow",      "data",
+};
+
+static void add_mem_order(const char *str) {
+  for(int i=0; i < sizeof mem_order/sizeof *mem_order; i++) {
+    if(mem_order[i] && !strcmp(mem_order[i], str))
+      return;
+    if(!mem_order[i]) {
+      mem_order[i] = strdup(str);
+      return;
+    }
+  }
+  dev_info("%s: mem_order[] under-dimensioned in developer_opts.c; increase and recompile\n", progname);
+  exit(1);
+}
+
+
+static int intcmp(int a, int b) {
+  return a-b;
+}
+
+
+// deep copies for comparison and raw output
+
+typedef struct {
+  AVRMEM base;
+  OPCODE ops[AVR_OP_MAX];
+} AVRMEMdeep;
+
+static int avrmem_deep_copy(AVRMEMdeep *d, AVRMEM *m) {
+  int len;
+
+  d->base = *m;
+
+  // zap all bytes beyond terminating nul of desc array
+  len = strlen(m->desc)+1;
+  if(len < sizeof m->desc)
+    memset(d->base.desc + len, 0, sizeof m->desc - len);
+
+  // zap address values
+  d->base.buf = NULL;
+  d->base.tags = NULL;
+  for(int i=0; i<AVR_OP_MAX; i++)
+    d->base.op[i] = NULL;
+
+
+  // copy over the SPI operations themselves
+  memset(d->base.op, 0, sizeof d->base.op);
+  memset(d->ops, 0, sizeof d->ops);
+  for(int i=0; i<sizeof d->ops/sizeof *d->ops; i++)
+    if(m->op[i])
+      d->ops[i] = *m->op[i];
+
+  return 0;
+}
+
+static int memorycmp(AVRMEM *m1, AVRMEM *m2) {
+  AVRMEMdeep dm1, dm2;
+
+  if(!m1 && !m2)
+    return 0;
+
+  if(!m1 || !m2)
+    return m1? -1: 1;
+  
+  avrmem_deep_copy(&dm1, m1);
+  avrmem_deep_copy(&dm2, m2);
+
+  return memcmp(&dm1, &dm2, sizeof dm1);
+}
+
+
+typedef struct {
+  AVRPART base;
+  OPCODE ops[AVR_OP_MAX];
+  AVRMEMdeep mems[40];
+} AVRPARTdeep;
+
+static int avrpart_deep_copy(AVRPARTdeep *d, AVRPART *p) {
+  AVRMEM *m;
+  int len, di;
+
+  memset(d, 0, sizeof *d);
+
+  d->base = *p;
+
+  // remove location info
+  memset(d->base.config_file, 0, sizeof d->base.config_file);
+  d->base.lineno = 0;
+
+  // zap all bytes beyond terminating nul of desc, id and family_id array
+  len = strlen(p->desc);
+  if(len < sizeof p->desc)
+    memset(d->base.desc + len, 0, sizeof p->desc - len);
+
+  len = strlen(p->family_id);
+  if(len < sizeof p->family_id)
+    memset(d->base.family_id + len, 0, sizeof p->family_id - len);
+
+  len = strlen(p->id);
+  if(len < sizeof p->id)
+    memset(d->base.id + len, 0, sizeof p->id - len);
+
+  // zap address values
+  d->base.mem = NULL;
+  d->base.mem_alias = NULL;
+  for(int i=0; i<AVR_OP_MAX; i++)
+    d->base.op[i] = NULL;
+
+  // copy over the SPI operations
+  memset(d->base.op, 0, sizeof d->base.op);
+  memset(d->ops, 0, sizeof d->ops);
+  for(int i=0; i<AVR_OP_MAX; i++)
+    if(p->op[i])
+      d->ops[i] = *p->op[i];
+
+  // fill in all memories we got in defined order
+  di = 0;
+  for(int mi=0; mi < sizeof mem_order/sizeof *mem_order && mem_order[mi]; mi++) {
+    m = p->mem? avr_locate_mem(p, mem_order[mi]): NULL;
+    if(m) {
+      if(di >= sizeof d->mems/sizeof *d->mems) {
+        avrdude_message(MSG_INFO, "%s: ran out of mems[] space, increase size in AVRMEMdeep of developer_opts.c and recompile\n", progname);
+        exit(1);
+      }
+      avrmem_deep_copy(d->mems+di, m);
+      di++;
+    }
+  }
+
+  return di;
+}
+
+static char txtchar(unsigned char in) {
+  in &= 0x7f;
+  return in == ' '? '_': in > ' ' && in < 0x7f? in: '.';
+}
+
+
+static void dev_raw_dump(unsigned char *p, int nbytes, const char *name, const char *sub, int idx) {
+  unsigned char *end = p+nbytes;
+  int n = ((end - p) + 15)/16;
+
+  for(int i=0; i<n; i++, p += 16) {
+    dev_info("%s\t%s\t%02x%04x: ", name, sub, idx, i*16);
+    for(int j=0; j<16; j++)
+      dev_info("%02x", p+i*16+j<end? p[i*16+j]: 0);
+    dev_info(" ");
+    for(int j=0; j<16; j++)
+      dev_info("%c", txtchar(p+i*16+j<end? p[i*16+j]: 0));
+    dev_info("\n");
+  }
+}
+
+
+static void dev_part_raw(AVRPART *part) {
+  AVRPARTdeep dp;
+  int di = avrpart_deep_copy(&dp, part);
+
+  dev_raw_dump((unsigned char *) &dp.base, sizeof dp.base, part->desc, "part", 0);
+  dev_raw_dump((unsigned char *) &dp.ops, sizeof dp.ops, part->desc, "ops", 1);
+
+  for(int i=0; i<di; i++)
+    dev_raw_dump((unsigned char *) (dp.mems+i), sizeof dp.mems[i], part->desc, dp.mems[i].base.desc, i+2);
+}
+
+
+static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
+  char real_config_file[PATH_MAX];
+
+  if(!realpath(p->config_file, real_config_file))
+    memcpy(real_config_file, p->config_file, sizeof real_config_file);
+
+  dev_info("# %s %d\n", real_config_file, p->lineno);
+
+  if(!tsv)
+    dev_info("part\n");
+
+  __if_partout(strcmp, "\"%s\"", desc);
+  __if_partout(strcmp, "\"%s\"", id);
+  __if_partout(strcmp, "\"%s\"", family_id);
+  __if_partout(intcmp, "0x%02x", stk500_devcode);
+  __if_partout(intcmp, "0x%02x", avr910_devcode);
+  __if_partout(intcmp, "%d", chip_erase_delay);
+  __if_partout(intcmp, "0x%02x", pagel);
+  __if_partout(intcmp, "0x%02x", bs2);
+  __if_n_partout_str(memcmp, sizeof p->signature, dev_sprintf("0x%02x 0x%02x 0x%02x", p->signature[0], p->signature[1], p->signature[2]), signature);
+  __if_partout(intcmp, "0x%04x", usbpid);
+
+  if(!base || base->reset_disposition != p->reset_disposition)
+    __partout_str(strdup(p->reset_disposition == RESET_DEDICATED? "dedicated": p->reset_disposition == RESET_IO? "io": "unknown"), reset);
+
+  __if_partout_str(intcmp, strdup(p->retry_pulse == PIN_AVR_RESET? "reset": p->retry_pulse == PIN_AVR_SCK? "sck": "unknown"), retry_pulse);
+
+  if(!base || base->flags != p->flags) {
+    if(tsv) {
+      __partout("0x%04x", flags);
+    } else {
+      __if_flagout(AVRPART_HAS_JTAG, has_jtag);
+      __if_flagout(AVRPART_HAS_DW, has_debugwire);
+      __if_flagout(AVRPART_HAS_PDI, has_pdi);
+      __if_flagout(AVRPART_HAS_UPDI, has_updi);
+      __if_flagout(AVRPART_HAS_TPI, has_tpi);
+      __if_flagout(AVRPART_IS_AT90S1200, is_at90s1200);
+      __if_flagout(AVRPART_AVR32, is_avr32);
+      __if_flagout(AVRPART_ALLOWFULLPAGEBITSTREAM, allowfullpagebitstream);
+      __if_flagout(AVRPART_ENABLEPAGEPROGRAMMING, enablepageprogramming);
+      __if_flagout(AVRPART_SERIALOK, serial);
+
+      if(!base || (base->flags & (AVRPART_PARALLELOK | AVRPART_PSEUDOPARALLEL)) != (p->flags & (AVRPART_PARALLELOK | AVRPART_PSEUDOPARALLEL))) {
+        int par = p->flags & (AVRPART_PARALLELOK | AVRPART_PSEUDOPARALLEL);
+        __partout_str(strdup(par == 0? "no": par == AVRPART_PSEUDOPARALLEL? "unknown": AVRPART_PARALLELOK? "yes": "pseudo"), parallel);
+      }
+    }
+  }
+
+  __if_partout(intcmp, "%d", timeout);
+  __if_partout(intcmp, "%d", stabdelay);
+  __if_partout(intcmp, "%d", cmdexedelay);
+  __if_partout(intcmp, "%d", synchloops);
+  __if_partout(intcmp, "%d", bytedelay);
+  __if_partout(intcmp, "%d", pollindex);
+  __if_partout(intcmp, "0x%02x", pollvalue);
+  __if_partout(intcmp, "%d", predelay);
+  __if_partout(intcmp, "%d", postdelay);
+  __if_partout(intcmp, "%d", pollmethod);
+
+  if(!base  && p->ctl_stack_type != CTL_STACK_NONE)
+    dev_stack_out(tsv, p, dev_controlstack_name(p), p->controlstack, CTL_STACK_SIZE);
+
+  // @@@ may need to remove controlstack and set p->ctl_stack_type to CTL_STACK_NONE if base has controlstack?
+  if(base && (p->ctl_stack_type != base->ctl_stack_type || memcmp(base->controlstack, p->controlstack, sizeof base->controlstack)))
+    dev_stack_out(tsv, p, dev_controlstack_name(p), p->controlstack, CTL_STACK_SIZE);
+
+  if(!base || memcmp(base->flash_instr, p->flash_instr, sizeof base->flash_instr))
+    dev_stack_out(tsv, p, "flash_instr", p->flash_instr, FLASH_INSTR_SIZE);
+
+  if(!base || memcmp(base->eeprom_instr, p->eeprom_instr, sizeof base->eeprom_instr))
+    dev_stack_out(tsv, p, "eeprom_instr", p->eeprom_instr, EEPROM_INSTR_SIZE);
+
+  __if_partout(intcmp, "%d", hventerstabdelay);
+  __if_partout(intcmp, "%d", progmodedelay);
+  __if_partout(intcmp, "%d", latchcycles);
+  __if_partout(intcmp, "%d", togglevtg);
+  __if_partout(intcmp, "%d", poweroffdelay);
+  __if_partout(intcmp, "%d", resetdelayms);
+  __if_partout(intcmp, "%d", resetdelayus);
+  __if_partout(intcmp, "%d", hvleavestabdelay);
+  __if_partout(intcmp, "%d", resetdelay);
+  __if_partout(intcmp, "%d", chiperasepulsewidth);
+  __if_partout(intcmp, "%d", chiperasepolltimeout);
+  __if_partout(intcmp, "%d", chiperasetime);
+  __if_partout(intcmp, "%d", programfusepulsewidth);
+  __if_partout(intcmp, "%d", programfusepolltimeout);
+  __if_partout(intcmp, "%d", programlockpulsewidth);
+  __if_partout(intcmp, "%d", programlockpolltimeout);
+  __if_partout(intcmp, "%d", synchcycles);
+  __if_partout(intcmp, "%d", hvspcmdexedelay);
+  __if_partout(intcmp, "0x%02x", idr);
+  __if_partout(intcmp, "0x%02x", rampz);
+  __if_partout(intcmp, "0x%02x", spmcr);
+  __if_partout(intcmp, "0x%02x", eecr);  // why is eecr an unsigned short?
+  __if_partout(intcmp, "0x%04x", mcu_base);
+  __if_partout(intcmp, "0x%04x", nvm_base);
+  __if_partout(intcmp, "0x%04x", ocd_base);
+  __if_partout(intcmp, "%d", ocdrev);
+
+  for(int i=0; i < AVR_OP_MAX; i++)
+    if(!base || opcodecmp(p->op[i], base->op[i]))
+      dev_part_strct_entry(tsv, ".ptop", p->desc, "part", opcodename(i), opcode2str(p->op[i], !tsv));
+
+  for(int mi=0; mi < sizeof mem_order/sizeof *mem_order && mem_order[mi]; mi++) {
+    AVRMEM *m, *bm;
+
+    m = p->mem? avr_locate_mem(p, mem_order[mi]): NULL;
+    bm = base && base->mem? avr_locate_mem(base, mem_order[mi]): NULL;
+
+    if(!m && bm && !tsv)
+      dev_info("\n    memory \"%s\" = NULL;\n", bm->desc);
+
+    if(!m)
+      continue;
+
+    if(base && !bm)
+      bm = avr_new_memtype();
+
+    if(!tsv) {
+      if(!memorycmp(bm, m))     // same memory bit for bit, no need to instantiate
+        continue;
+
+      dev_info("\n    memory \"%s\"\n", m->desc);
+    }
+
+    __if_memout_yn(paged);
+    __if_memout(intcmp, m->size > 8192? "0x%x": "%d", size);
+    __if_memout(intcmp, "%d", page_size);
+    __if_memout(intcmp, "%d", num_pages); // why can AVRDUDE not compute this?
+    __if_memout(intcmp, "0x%x", offset);
+    __if_memout(intcmp, "%d", min_write_delay);
+    __if_memout(intcmp, "%d", max_write_delay);
+    __if_memout_yn(pwroff_after_write);
+    __if_n_memout_str(memcmp, 2, dev_sprintf("0x%02x 0x%02x", m->readback[0], m->readback[1]), readback);
+    __if_memout(intcmp, "%d", mode);
+    __if_memout(intcmp, "%d", delay);
+    __if_memout(intcmp, "%d", blocksize);
+    __if_memout(intcmp, "%d", readsize);
+    __if_memout(intcmp, "%d", pollindex);
+
+    for(int i=0; i < AVR_OP_MAX; i++)
+      if(!bm || opcodecmp(bm->op[i], m->op[i]))
+        dev_part_strct_entry(tsv, ".ptmmop", p->desc, m->desc, opcodename(i), opcode2str(m->op[i], !tsv));
+
+    if(!tsv)
+      dev_info("    ;\n");
+
+    for(LNODEID lnm=lfirst(p->mem_alias); lnm; lnm=lnext(lnm)) {
+      AVRMEM_ALIAS *ma = ldata(lnm);
+      if(ma->aliased_mem && !strcmp(ma->aliased_mem->desc, m->desc)) {
+        if(tsv)
+          dev_info(".ptmm\t%s\t%s\talias\t%s\n", p->desc, ma->desc, m->desc);
+        else
+          dev_info("\n    memory \"%s\"\n        alias \"%s\";\n    ;\n", ma->desc, m->desc);
+      }
+    }
+  }
+
+  if(!tsv)
+    dev_info(";\n");
 }
 
 
 // -p */[cdosw*]
 void dev_output_part_defs(char *partdesc) {
-  bool first = 1, cmdok, waits, opspi, descs, strct, all, dot;
+  bool cmdok, waits, opspi, descs, strct, cmpst, raw, all, tsv;
+  char *flags;
+  int nprinted;
+  AVRPART *nullpart = avr_new_part();
 
-  if(!*partdesc)
-    all = 1;
-  else if(*partdesc != '/' || (*partdesc == '/' && partdesc[1] && !strchr("cdosw*", partdesc[1]))) {
-    dev_info("%s: flags for developer option -p \\* not recognised\n", progname);
-    dev_info("  -p \\*/c  check address bits in SPI commands\n");
-    dev_info("  -p \\*/d  description of core part features\n");
-    dev_info("  -p \\*/o  opcodes for SPI programming parts and memories\n");
-    dev_info("  -p \\*/s  show avrdude.conf entries of parts\n");
-    dev_info("  -p \\*/ss show full avrdude.conf entry as tab separated table\n");
-    dev_info("  -p \\*/w  wd_... constants for ISP parts\n");
-    dev_info("  -p \\*/\\* all of the above except -p \\*/s\n");
-    dev_info("  -p \\*    same as -p\\*/\\*\n");
+  if((flags = strchr(partdesc, '/')))
+    *flags++ = 0;
+
+  if(!flags && !strcmp(partdesc, "*")) // treat -p * as if it was -p */*
+    flags = "*";
+
+  if(!*flags || !strchr("cdosSrw*t", *flags)) {
+    dev_info("%s: flags for developer option -p <wildcard>/<flags> not recognised\n", progname);
+    dev_info(
+      "Wildcard examples:\n"
+      "         * all known parts\n"
+      "  ATtiny10 just this part\n"
+      "  *32[0-9] matches ATmega329, ATmega325 and ATmega328\n"
+      "      *32? matches ATmega329, ATmega32A, ATmega325 and ATmega328\n"
+      "Flags (one or more of the characters below):\n"
+      "       c  check address bits in SPI commands and output errors\n"
+      "       d  description of core part features\n"
+      "       o  opcodes for SPI programming parts and memories\n"
+      "       S  show entries of avrdude.conf parts with all values\n"
+      "       s  show entries of avrdude.conf parts with necessary values\n"
+      "       r  show entries of avrdude.conf parts as raw dump\n"
+      "       w  wd_... constants for ISP parts\n"
+      "       *  all of the above except s\n"
+      "       t  use tab separated values as much as possible\n"
+      "Note:\n"
+      "  -p *      same as -p */*\n"
+    );
     return;
-  } else {
-    partdesc++;
-    all = !!strchr(partdesc, '*') || !strlen(partdesc);
   }
 
   // redirect stderr to stdout
   fflush(stderr); fflush(stdout); dup2(1, 2);
 
-  cmdok = all || !!strchr(partdesc, 'c');
-  descs = all || !!strchr(partdesc, 'd');
-  opspi = all || !!strchr(partdesc, 'o');
-  strct = all || !!strchr(partdesc, 's');
-  waits = all || !!strchr(partdesc, 'w');
-  dot = strlen(partdesc) != 1;
+  all = *flags == '*';
+  cmdok = all || !!strchr(flags, 'c');
+  descs = all || !!strchr(flags, 'd');
+  opspi = all || !!strchr(flags, 'o');
+  waits = all || !!strchr(flags, 'w');
+  strct = all || !!strchr(flags, 'S');
+  raw   = all || !!strchr(flags, 'r');
+  cmpst = !!strchr(flags, 's');
+  tsv   = !!strchr(flags, 't');
 
+
+  // go through all memories and add them to the memory order list
+  for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1)) {
+    AVRPART *p = ldata(ln1);
+    if(p->mem)
+      for(LNODEID lnm=lfirst(p->mem); lnm; lnm=lnext(lnm))
+         add_mem_order(((AVRMEM *) ldata(lnm))->desc);
+
+    // same for aliased memories (though probably not needed)
+    if(p->mem_alias)
+      for(LNODEID lnm=lfirst(p->mem_alias); lnm; lnm=lnext(lnm))
+         add_mem_order(((AVRMEM_ALIAS *) ldata(lnm))->desc);
+  }
+
+  nprinted = dev_nprinted;
   for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1)) {
     AVRPART *p = ldata(ln1);
     int flashsize, flashoffset, flashpagesize, eepromsize , eepromoffset, eeprompagesize;
 
-    if(strct) {
-      char space[1024], real_config_file[PATH_MAX];
-
-      if(!first)
+    if(!descs || tsv)
+      if(dev_nprinted > nprinted) {
         dev_info("\n");
-      first = 0;
-
-      if(!realpath(p->config_file, real_config_file))
-        memcpy(real_config_file, p->config_file, sizeof real_config_file);
-      dev_info("# %s %d\n", real_config_file, p->lineno);
-      
-      if(!dot)
-        dev_info("part\n");
-      dev_partout("\"%s\"", desc);
-      dev_partout("\"%s\"", id);
-      dev_partout("\"%s\"", family_id);
-      dev_partout("0x%02x", stk500_devcode);
-      dev_partout("0x%02x", avr910_devcode);
-      dev_partout("%d",     chip_erase_delay);
-      dev_partout("0x%02x", pagel);
-      dev_partout("0x%02x", bs2);
-      sprintf(space, "0x%02x 0x%02x 0x%02x", p->signature[0], p->signature[1], p->signature[2]);
-      dev_partout_str(space, signature);
-      dev_partout("0x%04x", usbpid);
-      sprintf(space, "%s", p->reset_disposition == RESET_DEDICATED? "dedicated": p->reset_disposition == RESET_IO? "io": "unknown");
-      dev_partout_str(space, reset);
-      sprintf(space, "%s", p->retry_pulse == PIN_AVR_RESET? "reset": p->retry_pulse == PIN_AVR_SCK? "sck": "unknown");
-      dev_partout_str(space, retry_pulse);
-
-      if(dot)
-        dev_info(".part\t%s\tflags\t0x%04x\n", p->desc, p->flags);
-      else {
-        dev_flagout("has_jtag", AVRPART_HAS_JTAG);
-        dev_flagout("has_debugwire", AVRPART_HAS_DW);
-        dev_flagout("has_pdi", AVRPART_HAS_PDI);
-        dev_flagout("has_updi", AVRPART_HAS_UPDI);
-        dev_flagout("has_tpi", AVRPART_HAS_TPI);
-        dev_flagout("is_at90s1200", AVRPART_IS_AT90S1200);
-        dev_flagout("is_avr32", AVRPART_AVR32);
-        dev_flagout("allowfullpagebitstream", AVRPART_ALLOWFULLPAGEBITSTREAM);
-        dev_flagout("enablepageprogramming", AVRPART_ENABLEPAGEPROGRAMMING);
-        dev_flagout("serial", AVRPART_SERIALOK);
-
-        switch(p->flags & (AVRPART_PARALLELOK | AVRPART_PSEUDOPARALLEL)) {
-        case 0:                      strcpy(space, "no"); break;
-        case AVRPART_PSEUDOPARALLEL: strcpy(space, "unknown"); break;
-        case AVRPART_PARALLELOK:     strcpy(space, "yes"); break;
-        default:                     strcpy(space, "pseudo"); break;
-        }
-        dev_info("    %-19s = %s;\n", "parallel", space);
+        nprinted = dev_nprinted;
       }
 
-      dev_partout("%d",     timeout);
-      dev_partout("%d",     stabdelay);
-      dev_partout("%d",     cmdexedelay);
-      dev_partout("%d",     synchloops);
-      dev_partout("%d",     bytedelay);
-      dev_partout("%d",     pollindex);
-      dev_partout("0x%02x", pollvalue);
-      dev_partout("%d",     predelay);
-      dev_partout("%d",     postdelay);
-      dev_partout("%d",     pollmethod);
+    // pattern match the name of the part with command line: FMP_CASEFOLD not available here :(
+    if(fnmatch(partdesc, p->desc, 0) && fnmatch(partdesc, p->id, 0))
+      continue;
 
-      sprintf(space, "%s", p->ctl_stack_type == CTL_STACK_PP? "pp_controlstack": p->ctl_stack_type == CTL_STACK_HVSP? "hvsp_controlstack": "unknown_controlstack");
-      if(p->ctl_stack_type != CTL_STACK_NONE)
-        dev_stack_out(dot, p, space, p->controlstack, CTL_STACK_SIZE);
-      dev_stack_out(dot, p, "flash_instr", p->flash_instr, FLASH_INSTR_SIZE);
-      dev_stack_out(dot, p, "eeprom_instr", p->eeprom_instr, EEPROM_INSTR_SIZE);
+    if(strct || cmpst)
+      dev_part_strct(p, tsv, cmpst? nullpart: NULL);
 
-/*
-  unsigned char controlstack[CTL_STACK_SIZE]; // stk500v2 PP/HVSP ctl stack
-  unsigned char flash_instr[FLASH_INSTR_SIZE]; // flash instructions (debugWire, JTAG)
-  unsigned char eeprom_instr[EEPROM_INSTR_SIZE]; // EEPROM instructions (debugWire, JTAG)
-*/
-
-      dev_partout("%d",     hventerstabdelay);
-      dev_partout("%d",     progmodedelay);
-      dev_partout("%d",     latchcycles);
-      dev_partout("%d",     togglevtg);
-      dev_partout("%d",     poweroffdelay);
-      dev_partout("%d",     resetdelayms);
-      dev_partout("%d",     resetdelayus);
-      dev_partout("%d",     hvleavestabdelay);
-      dev_partout("%d",     resetdelay);
-      dev_partout("%d",     chiperasepulsewidth);
-      dev_partout("%d",     chiperasepolltimeout);
-      dev_partout("%d",     chiperasetime);
-      dev_partout("%d",     programfusepulsewidth);
-      dev_partout("%d",     programfusepolltimeout);
-      dev_partout("%d",     programlockpulsewidth);
-      dev_partout("%d",     programlockpolltimeout);
-      dev_partout("%d",     synchcycles);
-      dev_partout("%d",     hvspcmdexedelay);
-
-      dev_partout("0x%02x", idr);
-      dev_partout("0x%02x", rampz);
-      dev_partout("0x%02x", spmcr);
-      dev_partout("0x%02x", eecr);  // why is eecr an unsigned short?
-
-      dev_partout("0x%04x", mcu_base);
-      dev_partout("0x%04x", nvm_base);
-      dev_partout("0x%04x", ocd_base);
-
-      if(p->ocdrev >= 0)
-        dev_partout("%d", ocdrev);
-      else
-        dev_partout("0x%8x", ocdrev);
-      
-      for(int i=0; i < AVR_OP_MAX; i++) {
-        if(p->op[i]) {
-          char *opc = opcode2str(p->op[i], !dot);
-
-          if(dot)
-            dev_info(".partop\t%s\t%s\t%s\n", p->desc, opcodename(i), opc? opc: "error");
-          else
-            dev_info("    %-19s = %s;\n", opcodename(i), opc? opc: "error");
-
-          if(opc)
-            free(opc);
-        }
-      }
-      if(p->mem) {
-        for(LNODEID lnm=lfirst(p->mem); lnm; lnm=lnext(lnm)) {
-          AVRMEM *m = ldata(lnm);
-          if(!dot)
-            dev_info("\n    memory \"%s\"\n", m->desc);
-
-          dev_memout_yn(paged);
-          if(m->size > 8192)
-            dev_memout("0x%x", size);
-          else
-            dev_memout("%d", size);
-          dev_memout("%d", page_size);
-          dev_memout("%d", num_pages); // why can AVRDUDE not compute this?
-          dev_memout("0x%x", offset);
-          dev_memout("%d", min_write_delay);
-          dev_memout("%d", max_write_delay);
-          dev_memout_yn(pwroff_after_write);
-          sprintf(space, "0x%02x 0x%02x", m->readback[0], m->readback[1]);
-          dev_memout_str(space, readback);
-          dev_memout("%d", mode);
-          dev_memout("%d", delay);
-          dev_memout("%d", blocksize);
-          dev_memout("%d", readsize);
-          dev_memout("%d", pollindex);
-
-          for(int i=0; i < AVR_OP_MAX; i++) {
-            if(m->op[i]) {
-              char *opc = opcode2str(m->op[i], !dot);
-
-              if(dot)
-                dev_info(".pmemop\t%s\t%s\t%s\t%s\n", p->desc, m->desc, opcodename(i), opc? opc: "error");
-              else
-                dev_info("        %-15s = %s;\n", opcodename(i), opc? opc: "error");
-
-              if(opc)
-                free(opc);
-            }
-          }
-
-          if(!dot)
-            dev_info("    ;\n");
-          for(LNODEID lnm=lfirst(p->mem_alias); lnm; lnm=lnext(lnm)) {
-            AVRMEM_ALIAS *ma = ldata(lnm);
-            if(ma->aliased_mem && !strcmp(ma->aliased_mem->desc, m->desc)) {
-              if(dot)
-                dev_info(".pmem\t%s\t%s\talias\t%s\n", p->desc, ma->desc, m->desc);
-              else
-                dev_info("\n    memory \"%s\"\n        alias \"%s\";\n    ;\n", ma->desc, m->desc);
-            }
-          }
-        }
-      }
-
-      if(!dot)
-        dev_info(";\n");
-    }
-
+    if(raw)
+      dev_part_raw(p);
 
     // identify core flash and eeprom parameters
 
@@ -477,10 +839,6 @@ void dev_output_part_defs(char *partdesc) {
       int ok, nfuses;
       AVRMEM *m;
       OPCODE *oc;
-
-      if(!first && all)
-        dev_info("\n");
-      first = 0;
 
       ok = 2047;
       nfuses = 0;
@@ -601,7 +959,8 @@ void dev_output_part_defs(char *partdesc) {
 
       if(descs) {
         int len = 16-strlen(p->desc);
-        dev_info(".desc '%s' =>%*s [0x%02X, 0x%02X, 0x%02X, 0x%08x, 0x%05x, 0x%03x, 0x%06x, 0x%04x, 0x%03x, %d, 0x%03x, 0x%04x, '%s'], # %s %d\n",
+        dev_info("%s '%s' =>%*s [0x%02X, 0x%02X, 0x%02X, 0x%08x, 0x%05x, 0x%03x, 0x%06x, 0x%04x, 0x%03x, %d, 0x%03x, 0x%04x, '%s'], # %s %d\n",
+          tsv || all? ".desc": " ",
           p->desc, len > 0? len: 0, "",
           p->signature[0], p->signature[1], p->signature[2],
           flashoffset, flashsize, flashpagesize,

@@ -830,9 +830,9 @@ int main(int argc, char * argv [])
 
   avrdude_message(MSG_NOTICE, "\n");
 
-  // developer option -p */[*codws] prints various aspects of part descriptions and exits
-  if(partdesc && *partdesc == '*') {
-    dev_output_part_defs(partdesc+1);
+  // developer option -p <wildcard>/[*codws] prints various aspects of part descriptions and exits
+  if(partdesc && (strcmp(partdesc, "*") == 0 || strchr(partdesc, '/'))) {
+    dev_output_part_defs(partdesc);
     exit(1);
   }
 

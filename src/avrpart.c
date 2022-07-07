@@ -379,12 +379,15 @@ void avr_free_memalias(AVRMEM_ALIAS * m)
   free(m);
 }
 
-AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, char * desc)
+AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, const char * desc)
 {
   AVRMEM_ALIAS * m, * match;
   LNODEID ln;
   int matches;
   int l;
+
+  if(!p || !desc || !p->mem_alias)
+    return NULL;
 
   l = strlen(desc);
   matches = 0;
@@ -403,12 +406,15 @@ AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, char * desc)
   return NULL;
 }
 
-AVRMEM * avr_locate_mem_noalias(AVRPART * p, char * desc)
+AVRMEM * avr_locate_mem_noalias(AVRPART * p, const char * desc)
 {
   AVRMEM * m, * match;
   LNODEID ln;
   int matches;
   int l;
+
+  if(!p || !desc || !p->mem)
+    return NULL;
 
   l = strlen(desc);
   matches = 0;
@@ -428,7 +434,7 @@ AVRMEM * avr_locate_mem_noalias(AVRPART * p, char * desc)
 }
 
 
-AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
+AVRMEM * avr_locate_mem(AVRPART * p, const char * desc)
 {
   AVRMEM * m, * match;
   AVRMEM_ALIAS * alias;
@@ -436,14 +442,19 @@ AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
   int matches;
   int l;
 
+  if(!p || !desc)
+    return NULL;
+
   l = strlen(desc);
   matches = 0;
   match = NULL;
-  for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
-    m = ldata(ln);
-    if (strncmp(desc, m->desc, l) == 0) {
-      match = m;
-      matches++;
+  if(p->mem) {
+    for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+      m = ldata(ln);
+      if (strncmp(desc, m->desc, l) == 0) {
+        match = m;
+        matches++;
+      }
     }
   }
 
@@ -640,11 +651,14 @@ int i;
 	free(d);
 }
 
-AVRPART * locate_part(LISTID parts, char * partdesc)
+AVRPART * locate_part(LISTID parts, const char * partdesc)
 {
   LNODEID ln1;
   AVRPART * p = NULL;
   int found;
+
+  if(!parts || !partdesc)
+    return NULL;
 
   found = 0;
 

@@ -318,9 +318,9 @@ int avr_initmem(AVRPART * p);
 AVRMEM * avr_dup_mem(AVRMEM * m);
 void     avr_free_mem(AVRMEM * m);
 void     avr_free_memalias(AVRMEM_ALIAS * m);
-AVRMEM * avr_locate_mem(AVRPART * p, char * desc);
-AVRMEM * avr_locate_mem_noalias(AVRPART * p, char * desc);
-AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, char * desc);
+AVRMEM * avr_locate_mem(AVRPART * p, const char * desc);
+AVRMEM * avr_locate_mem_noalias(AVRPART * p, const char * desc);
+AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, const char * desc);
 AVRMEM_ALIAS * avr_find_memalias(AVRPART * p, AVRMEM * m_orig);
 void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
                      int type, int verbose);
@@ -329,7 +329,7 @@ void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
 AVRPART * avr_new_part(void);
 AVRPART * avr_dup_part(AVRPART * d);
 void      avr_free_part(AVRPART * d);
-AVRPART * locate_part(LISTID parts, char * partdesc);
+AVRPART * locate_part(LISTID parts, const char * partdesc);
 AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode);
 AVRPART * locate_part_by_signature(LISTID parts, unsigned char * sig,
                                    int sigsize);
