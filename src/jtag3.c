@@ -1259,8 +1259,7 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
         PDATA(pgm)->use_hvupdi == true &&
         p->hvupdi_variant != HV_UPDI_VARIANT_1) {
       for (hvupdi_support = lfirst(pgm->hvupdi_support); hvupdi_support != NULL; hvupdi_support = lnext(hvupdi_support)) {
-        unsigned int sup = (unsigned int)(*(int *)(ldata(hvupdi_support)));
-        if(sup == p->hvupdi_variant) {
+        if(*(int *) ldata(hvupdi_support) == p->hvupdi_variant) {
           avrdude_message(MSG_NOTICE, "%s: Sending HV pulse to targets %s pin\n",
             progname, p->hvupdi_variant == HV_UPDI_VARIANT_0 ? "UPDI" : "RESET");
           parm[0] = PARM3_UPDI_HV_SIMPLE_PULSE;
@@ -1496,8 +1495,7 @@ static int jtag3_parseextparms(PROGRAMMER * pgm, LISTID extparms)
       continue;
     }
 
-    else if ((matches(extended_param, "hvupdi") || matches(extended_param, "hvupdi=1")) &&
-      (matches(ldata(lfirst(pgm->id)), "pickit4_updi") || matches(ldata(lfirst(pgm->id)), "powerdebugger_updi"))) {
+    else if (matches(extended_param, "hvupdi")) {
       PDATA(pgm)->use_hvupdi = true;
       continue;
     }
@@ -1650,12 +1648,9 @@ static int jtag3_open_updi(PROGRAMMER * pgm, char * port)
   avrdude_message(MSG_NOTICE2, "%s: jtag3_open_updi()\n", progname);
 
   LNODEID ln;
-  unsigned int hv_sup;
   avrdude_message(MSG_NOTICE2, "%s: HV UPDI support:", progname);
-  for (ln = lfirst(pgm->hvupdi_support); ln; ln = lnext(ln)) {
-    hv_sup = (unsigned int)(*(int *)ldata(ln));
-    avrdude_message(MSG_NOTICE2, " %d", hv_sup);
-  }
+  for (ln = lfirst(pgm->hvupdi_support); ln; ln = lnext(ln))
+    avrdude_message(MSG_NOTICE2, " %d", *(int *) ldata(ln));
   avrdude_message(MSG_NOTICE2, "\n", progname);
 
   if (jtag3_open_common(pgm, port) < 0)
