@@ -1495,7 +1495,7 @@ static int jtag3_parseextparms(PROGRAMMER * pgm, LISTID extparms)
       continue;
     }
 
-    else if (matches(extended_param, "hvupdi")) {
+    else if (strcmp(extended_param, "hvupdi") == 0) {
       PDATA(pgm)->use_hvupdi = true;
       continue;
     }
