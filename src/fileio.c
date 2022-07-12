@@ -1446,16 +1446,17 @@ static int fmt_autodetect(char * fname)
 
 
 
-int fileio(int op, char * filename, FILEFMT format, 
+int fileio(int oprwv, char * filename, FILEFMT format,
              struct avrpart * p, char * memtype, int size)
 {
-  int rc;
+  int op, rc;
   FILE * f;
   char * fname;
   struct fioparms fio;
   AVRMEM * mem;
   int using_stdio;
 
+  op = oprwv == FIO_READ_FOR_VERIFY? FIO_READ: oprwv;
   mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
     avrdude_message(MSG_INFO, "fileio(): memory type \"%s\" not configured for device \"%s\"\n",
@@ -1585,18 +1586,14 @@ int fileio(int op, char * filename, FILEFMT format,
       return -1;
   }
 
-  if (rc > 0) {
-    if ((op == FIO_READ) && (strcasecmp(mem->desc, "flash") == 0 ||
-                             strcasecmp(mem->desc, "application") == 0 ||
-                             strcasecmp(mem->desc, "apptable") == 0 ||
-                             strcasecmp(mem->desc, "boot") == 0)) {
-      /*
-       * if we are reading flash, just mark the size as being the
-       * highest non-0xff byte
-       */
-      rc = avr_mem_hiaddr(mem);
-    }
+  /* on reading flash other than for verify set the size to location of highest non-0xff byte */
+  if (rc > 0 && oprwv == FIO_READ) {
+    int hiaddr = avr_mem_hiaddr(mem);
+
+    if(hiaddr < rc)             /* if trailing-0xff not disabled */
+      rc = hiaddr;
   }
+
   if (format != FMT_IMM && !using_stdio) {
     fclose(f);
   }
