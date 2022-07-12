@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <errno.h>
 
 #if defined(HAVE_LIBREADLINE)
 #  include <readline/readline.h>
@@ -470,8 +471,9 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       }
 
       // Try integers
-      data.ll = strtoll(argi, &end_ptr, 0);
-      if (*end_ptr || (end_ptr == argi)) {
+      errno = 0;
+      data.ll = strtoull(argi, &end_ptr, 0);
+      if (!(end_ptr == argi || errno)) {
         // Try float
         data.f = strtof(argi, &end_ptr);
         data.is_float = true;
