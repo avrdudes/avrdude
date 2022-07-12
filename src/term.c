@@ -242,7 +242,7 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
   }
 
   enum { read_size = 256 };
-  static char prevmem[128] = {0x00};
+  static char prevmem[AVR_MEMDESCLEN] = {0x00};
   char * memtype = argv[1];
   AVRMEM * mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
