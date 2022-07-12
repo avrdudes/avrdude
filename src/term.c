@@ -417,6 +417,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     // Data union
     union {
       float f;
+      double d;
       int64_t ll;
       uint64_t ull;
       uint8_t a[8];
@@ -524,12 +525,19 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
         }
       }
 
-      if(!data.size) {          // Data item was not recognised as integer
-        // Try float
+      if(!data.size) {          // Try float
         data.f = strtof(argi, &end_ptr);
-        if (end_ptr != argi && toupper(*end_ptr) == 'F' && end_ptr[1] == 0) {
+        if (end_ptr != argi && toupper(*end_ptr) == 'F' && end_ptr[1] == 0)
           data.size = 4;
-        } else {
+      }
+
+      if(!data.size) {          // Try double
+        data.d = strtod(argi, &end_ptr);
+        if (end_ptr != argi && *end_ptr == 0)
+          data.size = 8;
+      }
+
+      if(!data.size) {
           // Try single character
           if (argi[0] == '\'' && argi[2] == '\'') {
             data.ll = argi[1];
@@ -553,7 +561,6 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
             return -1;
             }
           }
-        }
       }
     }
     if(data.str_ptr) {
