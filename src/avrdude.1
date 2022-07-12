@@ -18,7 +18,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd November 22, 2021
+.Dd July 12, 2022
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -31,6 +31,7 @@
 .Op Fl B Ar bitclock
 .Op Fl c Ar programmer-id
 .Op Fl C Ar config-file
+.Op Fl A
 .Op Fl D
 .Op Fl e
 .Oo Fl E Ar exitspec Ns
@@ -102,7 +103,7 @@ available (like almost all embedded Linux boards) you can do without
 any additional hardware - just connect them to the MOSI, MISO, RESET 
 and SCK pins on the AVR and use the linuxgpio programmer type. It bitbangs
 the lines using the Linux sysfs GPIO interface. Of course, care should
-be taken about voltage level compatibility. Also, although not strictrly 
+be taken about voltage level compatibility. Also, although not strictly
 required, it is strongly advisable to protect the GPIO pins from 
 overcurrent situations in some way. The simplest would be to just put
 some resistors in series or better yet use a 3-state buffer driver like
@@ -253,7 +254,7 @@ The Teensy bootloader is supported for all AVR boards.
 As the bootloader does not support reading from flash memory,
 use the
 .Fl V
-option to prevent AVRDUDE from verifing the flash memory.
+option to prevent AVRDUDE from verifying the flash memory.
 See the section on
 .Em extended parameters
 for Teensy specific options.
@@ -376,6 +377,20 @@ files. This can be used to add entries to the configuration
 without patching your system wide configuration file. It can be used
 several times, the files are read in same order as given on the command
 line.
+.It Fl A
+Disable the automatic removal of trailing-0xFF sequences in file
+input that is to be programmed to flash and in AVR reads from
+flash memory. Normally, trailing 0xFFs can be discarded, as flash
+programming requires the memory be erased to 0xFF beforehand.
+.Fl A
+should be used when the programmer hardware, or bootloader
+software for that matter, does not carry out chip erase and
+instead handles the memory erase on a page level. The popular
+Arduino bootloader exhibits this behaviour; for this reason
+.Fl A
+is engaged by default when specifying
+. Fl c
+arduino.
 .It Fl D
 Disable auto erase for flash.  When the
 .Fl U
@@ -389,6 +404,10 @@ use page erase before writing each page so no explicit chip erase
 is required.
 Note however that any page not affected by the current operation
 will retain its previous contents.
+Setting
+.Fl D
+implies
+.Fl A.
 .It Fl e
 Causes a chip erase to be executed.  This will reset the contents of the
 flash ROM and EEPROM to the value
