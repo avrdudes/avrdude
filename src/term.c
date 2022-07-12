@@ -396,7 +396,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     start_offset = 4;
     len = strtoul(argv[3], &end_ptr, 0);
     if (*end_ptr || (end_ptr == argv[3])) {
-      avrdude_message(MSG_INFO, "%s (write ...): can't parse address \"%s\"\n",
+      avrdude_message(MSG_INFO, "%s (write ...): can't parse length \"%s\"\n",
             progname, argv[3]);
       free(buf);
       return -1;
