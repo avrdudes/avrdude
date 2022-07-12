@@ -339,7 +339,7 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
 
 
 
-// convert the next n hex digits of s to a hex number
+// Convert the next n hex digits of s to a hex number
 static unsigned int tohex(const char *s, unsigned int n) {
   int ret, c;
 
@@ -422,7 +422,7 @@ static char *unescape(char *d, const char *s) {
       case 'b':
         *d = '\b';
         break;
-      case 'e':                 // non-standard ESC
+      case 'e':                 // Non-standard ESC
         *d = 27;
         break;
       case 'f':
@@ -458,54 +458,54 @@ static char *unescape(char *d, const char *s) {
       case '6':
       case '7':                 // 1-3 octal digits
         n = *s - '0';
-        for(k = 0; k < 2 && s[1] >= '0' && s[1] <= '7'; k++)  // max 2 more octal characters
+        for(k = 0; k < 2 && s[1] >= '0' && s[1] <= '7'; k++)  // Max 2 more octal characters
           n *= 8, n += s[1] - '0', s++;
         *d = n;
         break;
-      case 'x':                 // unlimited hex digits
+      case 'x':                 // Unlimited hex digits
         for(k = 0; isxdigit(s[k + 1]); k++)
           continue;
         if(k > 0) {
           *d = tohex(s + 1, k);
           s += k;
-        } else {                // no hex digits after \x? copy \x
+        } else {                // No hex digits after \x? copy \x
           *d++ = '\\';
           *d = 'x';
         }
         break;
-      case 'u':                 // exactly 4 hex digits and valid unicode
+      case 'u':                 // Exactly 4 hex digits and valid unicode
         if(isxdigit(s[1]) && isxdigit(s[2]) && isxdigit(s[3]) && isxdigit(s[4]) &&
           (n = wc_to_utf8str(tohex(s+1, 4), d))) {
           d += n - 1;
           s += 4;
-        } else {                // invalid \u sequence? copy \u
+        } else {                // Invalid \u sequence? copy \u
           *d++ = '\\';
           *d = 'u';
         }
         break;
-      case 'U':                 // exactly 6 hex digits and valid unicode
+      case 'U':                 // Exactly 6 hex digits and valid unicode
         if(isxdigit(s[1]) && isxdigit(s[2]) && isxdigit(s[3]) && isxdigit(s[4]) && isxdigit(s[5]) && isxdigit(s[6]) &&
           (n = wc_to_utf8str(tohex(s+1, 6), d))) {
           d += n - 1;
           s += 6;
-        } else {                // invalid \U sequence? copy \U
+        } else {                // Invalid \U sequence? copy \U
           *d++ = '\\';
           *d = 'U';
         }
         break;
-      default:                  // keep the escape sequence (C would warn and remove \)
+      default:                  // Keep the escape sequence (C would warn and remove \)
         *d++ = '\\';
         *d = *s;
       }
       break;
 
-    default:                    // not an escape sequence: just copy the character
+    default:                    // Not an escape sequence: just copy the character
       *d = *s;
     }
     d++;
     s++;
   }
-  *d = *s;                      // terminate
+  *d = *s;                      // Terminate
 
   return ret;
 }
@@ -681,7 +681,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
         data.str_ptr = NULL;
       }
 
-      // remove trailing comma to allow cut and paste of lists
+      // Remove trailing comma to allow cut and paste of lists
       if(arglen > 0 && argi[arglen-1] == ',')
         argi[--arglen] = 0;
 
@@ -692,7 +692,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
         unsigned int nu=0, nl=0, nh=0, ns=0, nx=0;
         char *p;
 
-        // parse suffixes: ULL, LL, UL, L ... UHH, HH
+        // Parse suffixes: ULL, LL, UL, L ... UHH, HH
         for(p=end_ptr; *p; p++)
           switch(toupper(*p)) {
           case 'U': nu++; break;
@@ -702,10 +702,10 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
           default: nx++;
           }
 
-        if(nx==0 && nu<2 && nl<3 && nh<3 && ns<2) { // could be valid integer suffix
-          if(nu==0 || toupper(*end_ptr) == 'U' || toupper(p[-1]) == 'U') { // if U, then must be at start or end
-            bool is_hex = strncasecmp(argi, "0x", 2) == 0; // ordinary hex: "0x..." without explicit +/- sign
-            bool is_signed = !(nu || is_hex);              // neither explicitly unsigned nor ordinary hex
+        if(nx==0 && nu<2 && nl<3 && nh<3 && ns<2) { // Could be valid integer suffix
+          if(nu==0 || toupper(*end_ptr) == 'U' || toupper(p[-1]) == 'U') { // If U, then must be at start or end
+            bool is_hex = strncasecmp(argi, "0x", 2) == 0; // Ordinary hex: 0x... without explicit +/- sign
+            bool is_signed = !(nu || is_hex);              // Neither explicitly unsigned nor ordinary hex
             bool is_outside_int64_t = 0;
             bool is_out_of_range = 0;
             int nhexdigs = p-argi-2;
@@ -715,13 +715,13 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
               is_outside_int64_t = errno == ERANGE;
             }
 
-            if(nl==0 && ns==0 && nh==0) { // no explicit data size
-              // ordinary hex numbers have "implicit" size, given by number of hex digits, including leading zeros
+            if(nl==0 && ns==0 && nh==0) { // No explicit data size
+              // Ordinary hex numbers have implicit size given by number of hex digits, including leading zeros
               if(is_hex) {
                 data.size = nhexdigs > 8? 8: nhexdigs > 4? 4: nhexdigs > 2? 2: 1;
 
               } else if(is_signed) {
-                // smallest size that fits signed representation
+                // Smallest size that fits signed representation
                 data.size =
                   is_outside_int64_t? 8:
                   data.ll < INT32_MIN || data.ll > INT32_MAX? 8:
@@ -729,7 +729,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
                   data.ll < INT8_MIN  || data.ll > INT8_MAX? 2: 1;
 
               } else {
-                // smallest size that fits unsigned representation
+                // Smallest size that fits unsigned representation
                 data.size =
                   data.ull > UINT32_MAX? 8:
                   data.ull > UINT16_MAX? 4:
@@ -767,7 +767,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
 
       if(!data.size) {          // Try double now that input was rejected as integer
         data.d = strtod(argi, &end_ptr);
-        // Do not accept valid doubles that are integer rejects (eg, 078 or ULL overflows)
+        // Do not accept valid mantissa-only doubles that are integer rejects (eg, 078 or ULL overflows)
         if (end_ptr != argi && *end_ptr == 0)
           if (!is_mantissa_only(argi))
             data.size = 8;
@@ -790,7 +790,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
           // Strip start and end quotes, and unescape C string
           strncpy(s, argi+1, arglen-2);
           unescape(s, s);
-          if (*argi == '\'') { // single C-style character
+          if (*argi == '\'') { // Single C-style character
             if(*s && s[1])
               avrdude_message(MSG_INFO, "%s (write): only using first character of %s\n",
                 progname, argi);
