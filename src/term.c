@@ -232,13 +232,15 @@ static int hexdump_buf(FILE * f, int startaddr, unsigned char * buf, int len)
 static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
 		    int argc, char * argv[])
 {
-  if (argc < 2) {
-  avrdude_message(MSG_INFO, "Usage: %s <memtype> [<start addr> <len>]\n"
-                            "       %s <memtype> [<start addr> <...>]\n"
-                            "       %s <memtype> <...>\n"
-                            "       %s <memtype>\n",
-                            argv[0], argv[0], argv[0], argv[0]);
-  return -1;
+  if (argc < 2 || argc > 4) {
+    avrdude_message(MSG_INFO,
+      "Usage: %s <memory> <addr> <len>\n"
+      "       %s <memory> <addr> ...\n"
+      "       %s <memory> <addr>\n"
+      "       %s <memory> ...\n"
+      "       %s <memory>\n",
+      argv[0], argv[0], argv[0], argv[0], argv[0]);
+    return -1;
   }
 
   enum { read_size = 256 };
