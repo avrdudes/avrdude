@@ -255,7 +255,8 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
   // Get start address if present
   char * end_ptr;
   static uint32_t addr = 0;
-  if (argc == 4) {
+
+  if (argc >= 3 && strcmp(argv[2], "...") != 0) {
     addr = strtoul(argv[2], &end_ptr, 0);
     if (*end_ptr || (end_ptr == argv[2])) {
       avrdude_message(MSG_INFO, "%s (%s): can't parse address \"%s\"\n",
