@@ -316,11 +316,11 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
   for (int i = 0; i < len; i++) {
     int rc = pgm->read_byte(pgm, p, mem, addr + i, &buf[i]);
     if (rc != 0) {
-      avrdude_message(MSG_INFO, "error reading %s address 0x%05lx of part %s\n",
-        mem->desc, (long) addr + i, p->desc);
+      avrdude_message(MSG_INFO, "%s (dump): error reading %s address 0x%05lx of part %s\n",
+        progname, mem->desc, (long) addr + i, p->desc);
       if (rc == -1)
-        avrdude_message(MSG_INFO, "read operation not supported on memory type %s\n",
-          mem->desc);
+        avrdude_message(MSG_INFO, "%*sread operation not supported on memory type %s\n",
+          (int) strlen(progname)+9, "", mem->desc);
       return -1;
     }
     report_progress(i, len, NULL);
@@ -597,8 +597,8 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   char * memtype = argv[1]; // Memory name string
   AVRMEM * mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
-    avrdude_message(MSG_INFO, "%s memory type not defined for part %s\n",
-      memtype, p->desc);
+    avrdude_message(MSG_INFO, "%s (write): %s memory type not defined for part %s\n",
+      progname, memtype, p->desc);
     return -1;
   }
   int maxsize = mem->size;
@@ -853,10 +853,10 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   if(data.str_ptr)
     free(data.str_ptr);
 
-  avrdude_message(MSG_NOTICE, "\nInfo: Writing %d bytes starting from address 0x%02lx",
+  avrdude_message(MSG_NOTICE, "Info: writing %d bytes starting from address 0x%02lx",
     len + data.bytes_grown, (long) addr);
   if (write_mode == WRITE_MODE_FILL)
-    avrdude_message(MSG_NOTICE, ". Remaining space filled with %s", argv[argc - 2]);
+    avrdude_message(MSG_NOTICE, "; remaining space filled with %s", argv[argc - 2]);
   avrdude_message(MSG_NOTICE, "\n");
 
   pgm->err_led(pgm, OFF);
@@ -868,8 +868,8 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       avrdude_message(MSG_INFO, "%s (write): error writing 0x%02x at 0x%05lx, rc=%d\n",
         progname, buf[i], (long) addr+i, (int) rc);
       if (rc == -1)
-        avrdude_message(MSG_INFO, "write operation not supported on memory type %s\n",
-          mem->desc);
+        avrdude_message(MSG_INFO, "%*swrite operation not supported on memory type %s\n",
+          (int) strlen(progname)+10, "", mem->desc);
       werror = true;
     }
 
