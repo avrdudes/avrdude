@@ -426,6 +426,9 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
 
     // Handle the next argument
     if (i < argc - start_offset + 3) {
+      char *argi = argv[i];
+      size_t arglen = strlen(argi);
+
       // Free string pointer if already allocated
       if(data.str_ptr) {
         free(data.str_ptr);
@@ -433,52 +436,55 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       }
 
       // Get suffix if present
-      char suffix  = argv[i][strlen(argv[i]) - 1];
-      char lsuffix = argv[i][strlen(argv[i]) - 2];
-      if ((suffix == 'L' && lsuffix == 'L') || (suffix == 'l' && lsuffix == 'l')) {
-        argv[i][strlen(argv[i]) - 2] = '\0';
-        data.size = 8;
-      } else if (suffix == 'L' || suffix == 'l') {
-        argv[i][strlen(argv[i]) - 1] = '\0';
-        data.size = 4;
-      } else if ((suffix == 'F' || suffix == 'f') &&
-          strncmp(argv[i], "0x", 2) != 0 && strncmp(argv[i], "-0x", 3) != 0) {
-        argv[i][strlen(argv[i]) - 1] = '\0';
-        data.size = 4;
-      } else if ((suffix == 'H' && lsuffix == 'H') || (suffix == 'h' && lsuffix == 'h')) {
-        argv[i][strlen(argv[i]) - 2] = '\0';
-        data.size = 1;
-      } else if (suffix == 'H' || suffix == 'h' || suffix == 'S' || suffix == 's') {
-        argv[i][strlen(argv[i]) - 1] = '\0';
-        data.size = 2;
-      } else if (suffix == '\'') {
-        data.size = 1;
+      char suffix = 0, lsuffix = 0;
+      if(arglen > 1) {
+        suffix  = argi[arglen - 1];
+        lsuffix = argi[arglen - 2];
+        if ((suffix == 'L' && lsuffix == 'L') || (suffix == 'l' && lsuffix == 'l')) {
+          argi[arglen -= 2] = '\0';
+          data.size = 8;
+        } else if (suffix == 'L' || suffix == 'l') {
+          argi[--arglen] = '\0';
+          data.size = 4;
+        } else if ((suffix == 'F' || suffix == 'f') &&
+            strncmp(argi, "0x", 2) != 0 && strncmp(argi, "-0x", 3) != 0) {
+          argi[--arglen] = '\0';
+          data.size = 4;
+        } else if ((suffix == 'H' && lsuffix == 'H') || (suffix == 'h' && lsuffix == 'h')) {
+          argi[arglen -= 2] = '\0';
+          data.size = 1;
+        } else if (suffix == 'H' || suffix == 'h' || suffix == 'S' || suffix == 's') {
+          argi[--arglen] = '\0';
+          data.size = 2;
+        } else if (suffix == '\'') {
+          data.size = 1;
+        }
       }
 
       // Try integers
-      data.ll = strtoll(argv[i], &end_ptr, 0);
-      if (*end_ptr || (end_ptr == argv[i])) {
+      data.ll = strtoll(argi, &end_ptr, 0);
+      if (*end_ptr || (end_ptr == argi)) {
         // Try float
-        data.f = strtof(argv[i], &end_ptr);
+        data.f = strtof(argi, &end_ptr);
         data.is_float = true;
-        if (*end_ptr || (end_ptr == argv[i])) {
+        if (*end_ptr || (end_ptr == argi)) {
           data.is_float = false;
           // Try single character
-          if (argv[i][0] == '\'' && argv[i][2] == '\'') {
-            data.ll = argv[i][1];
+          if (argi[0] == '\'' && argi[2] == '\'') {
+            data.ll = argi[1];
           } else {
             // Try string that starts and ends with quotes
-            if (argv[i][0] == '\"' && argv[i][strlen(argv[i]) - 1] == '\"') {
-              data.str_ptr = calloc(strlen(argv[i]), sizeof(char));
+            if (argi[0] == '\"' && argi[arglen - 1] == '\"') {
+              data.str_ptr = calloc(arglen, sizeof(char));
               if (data.str_ptr == NULL) {
                 avrdude_message(MSG_INFO, "%s (write str): out of memory\n", progname);
                 return -1;
               }
               // Strip start and end quotes
-              strncpy(data.str_ptr, argv[i] + 1, strlen(argv[i]) - 2);
+              strncpy(data.str_ptr, argi + 1, arglen - 2);
             } else {
             avrdude_message(MSG_INFO, "\n%s (write): can't parse data '%s'\n",
-                            progname, argv[i]);
+                            progname, argi);
             free(buf);
             if(data.str_ptr != NULL)
               free(data.str_ptr);
@@ -489,18 +495,18 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       }
 
       // Print warning if data size might be ambiguous
-      bool is_hex       = (strncmp(argv[i], "0x",  2) == 0);
-      bool is_neg_hex   = (strncmp(argv[i], "-0x", 3) == 0);
-      bool leading_zero = (strncmp(argv[i], "0x0", 3) == 0);
-      int8_t hex_digits = (strlen(argv[i]) - 2);
-      if(!data.size                                                                      // No pre-defined size
-        && (is_neg_hex                                                                   // Hex with - sign in front
-        || (is_hex && leading_zero && (hex_digits & (hex_digits - 1)))                   // Hex with 3, 5, 6 or 7 digits
-        || (!is_hex && !data.is_float && llabs(data.ll) > 0xFF && strlen(argv[i]) > 2))) // Base10 int greater than 255
+      bool is_hex       = (strncmp(argi, "0x",  2) == 0);
+      bool is_neg_hex   = (strncmp(argi, "-0x", 3) == 0);
+      bool leading_zero = (strncmp(argi, "0x0", 3) == 0);
+      int8_t hex_digits = (arglen - 2);
+      if(!data.size                                                             // No pre-defined size
+        && (is_neg_hex                                                          // Hex with - sign in front
+        || (is_hex && leading_zero && (hex_digits & (hex_digits - 1)))          // Hex with 3, 5, 6 or 7 digits
+        || (!is_hex && !data.is_float && llabs(data.ll) > 0xFF && arglen > 2))) // Base10 int greater than 255
       {
         avrdude_message(MSG_INFO, "Warning: no size suffix specified for \"%s\". "
                                   "Writing %d byte(s)\n",
-                                  argv[i],
+                                  argi,
                                   llabs(data.ll) > UINT32_MAX ? 8 :
                                   llabs(data.ll) > UINT16_MAX || data.is_float ? 4 : \
                                   llabs(data.ll) > UINT8_MAX ? 2 : 1);
