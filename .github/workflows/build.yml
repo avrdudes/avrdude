@@ -20,7 +20,11 @@ name: Build
 
 on:
   push:
+    branches-ignore:
+      - 'onlinedocs'
   pull_request:
+    branches-ignore:
+      - 'onlinedocs'
   workflow_call:
 
 env:
