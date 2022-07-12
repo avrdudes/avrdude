@@ -616,6 +616,10 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
         data.str_ptr = NULL;
       }
 
+      // remove trailing comma to allow cut and paste of lists
+      if(arglen > 0 && argi[arglen-1] == ',')
+        argi[--arglen] = 0;
+
       // Try integers and assign data size
       errno = 0;
       data.ull = strtoull(argi, &end_ptr, 0);
