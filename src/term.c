@@ -335,6 +335,179 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
 }
 
 
+
+// convert the next n hex digits of s to a hex number
+static unsigned int tohex(const char *s, unsigned int n) {
+  int ret, c;
+
+  ret = 0;
+  while(n--) {
+    ret *= 16;
+    c = *s++;
+    ret += c >= '0' && c <= '9'? c - '0': c >= 'a' && c <= 'f'? c - 'a' + 10: c - 'A' + 10;
+  }
+
+  return ret;
+}
+
+/*
+ * Create a utf-8 character sequence from a single unicode character.
+ * Permissive for some invalid unicode sequences but not for those with
+ * high bit set). Returns numbers of characters written (0-6).
+ */
+static int wc_to_utf8str(unsigned int wc, char *str) {
+  if(!(wc & ~0x7fu)) {
+    *str = (char) wc;
+    return 1;
+  }
+  if(!(wc & ~0x7ffu)) {
+    *str++ = (char) ((wc >> 6) | 0xc0);
+    *str++ = (char) ((wc & 0x3f) | 0x80);
+    return 2;
+  }
+  if(!(wc & ~0xffffu)) {
+    *str++ = (char) ((wc >> 12) | 0xe0);
+    *str++ = (char) (((wc >> 6) & 0x3f) | 0x80);
+    *str++ = (char) ((wc & 0x3f) | 0x80);
+    return 3;
+  }
+  if(!(wc & ~0x1fffffu)) {
+    *str++ = (char) ((wc >> 18) | 0xf0);
+    *str++ = (char) (((wc >> 12) & 0x3f) | 0x80);
+    *str++ = (char) (((wc >> 6) & 0x3f) | 0x80);
+    *str++ = (char) ((wc & 0x3f) | 0x80);
+    return 4;
+  }
+  if(!(wc & ~0x3ffffffu)) {
+    *str++ = (char) ((wc >> 24) | 0xf8);
+    *str++ = (char) (((wc >> 18) & 0x3f) | 0x80);
+    *str++ = (char) (((wc >> 12) & 0x3f) | 0x80);
+    *str++ = (char) (((wc >> 6) & 0x3f) | 0x80);
+    *str++ = (char) ((wc & 0x3f) | 0x80);
+    return 5;
+  }
+  if(!(wc & ~0x7fffffffu)) {
+    *str++ = (char) ((wc >> 30) | 0xfc);
+    *str++ = (char) (((wc >> 24) & 0x3f) | 0x80);
+    *str++ = (char) (((wc >> 18) & 0x3f) | 0x80);
+    *str++ = (char) (((wc >> 12) & 0x3f) | 0x80);
+    *str++ = (char) (((wc >> 6) & 0x3f) | 0x80);
+    *str++ = (char) ((wc & 0x3f) | 0x80);
+    return 6;
+  }
+  return 0;
+}
+
+// Unescape C-style strings, destination d must hold enough space (and can be source s)
+static char *unescape(char *d, const char *s) {
+  char *ret = d;
+  int n, k;
+
+  while(*s) {
+    switch (*s) {
+    case '\\':
+      switch (*++s) {
+      case 'n':
+        *d = '\n';
+        break;
+      case 't':
+        *d = '\t';
+        break;
+      case 'a':
+        *d = '\a';
+        break;
+      case 'b':
+        *d = '\b';
+        break;
+      case 'e':                 // non-standard ESC
+        *d = 27;
+        break;
+      case 'f':
+        *d = '\f';
+        break;
+      case 'r':
+        *d = '\r';
+        break;
+      case 'v':
+        *d = '\v';
+        break;
+      case '?':
+        *d = '?';
+        break;
+      case '`':
+        *d = '`';
+        break;
+      case '"':
+        *d = '"';
+        break;
+      case '\'':
+        *d = '\'';
+        break;
+      case '\\':
+        *d = '\\';
+        break;
+      case '0':
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':                 // 1-3 octal digits
+        n = *s - '0';
+        for(k = 0; k < 2 && s[1] >= '0' && s[1] <= '7'; k++)  // max 2 more octal characters
+          n *= 8, n += s[1] - '0', s++;
+        *d = n;
+        break;
+      case 'x':                 // unlimited hex digits
+        for(k = 0; isxdigit(s[k + 1]); k++)
+          continue;
+        if(k > 0) {
+          *d = tohex(s + 1, k);
+          s += k;
+        } else {                // no hex digits after \x? copy \x
+          *d++ = '\\';
+          *d = 'x';
+        }
+        break;
+      case 'u':                 // exactly 4 hex digits and valid unicode
+        if(isxdigit(s[1]) && isxdigit(s[2]) && isxdigit(s[3]) && isxdigit(s[4]) &&
+          (n = wc_to_utf8str(tohex(s+1, 4), d))) {
+          d += n - 1;
+          s += 4;
+        } else {                // invalid \u sequence? copy \u
+          *d++ = '\\';
+          *d = 'u';
+        }
+        break;
+      case 'U':                 // exactly 6 hex digits and valid unicode
+        if(isxdigit(s[1]) && isxdigit(s[2]) && isxdigit(s[3]) && isxdigit(s[4]) && isxdigit(s[5]) && isxdigit(s[6]) &&
+          (n = wc_to_utf8str(tohex(s+1, 6), d))) {
+          d += n - 1;
+          s += 6;
+        } else {                // invalid \U sequence? copy \U
+          *d++ = '\\';
+          *d = 'U';
+        }
+        break;
+      default:                  // keep the escape sequence (C would warn and remove \)
+        *d++ = '\\';
+        *d = *s;
+      }
+      break;
+
+    default:                    // not an escape sequence: just copy the character
+      *d = *s;
+    }
+    d++;
+    s++;
+  }
+  *d = *s;                      // terminate
+
+  return ret;
+}
+
+
 static size_t maxstrlen(int argc, char **argv) {
   size_t max = 0;
 
@@ -537,32 +710,38 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
           data.size = 8;
       }
 
-      if(!data.size) {
-          // Try single character
-          if (argi[0] == '\'' && argi[2] == '\'') {
-            data.ll = argi[1];
-            data.size = 1;
-          } else {
-            // Try string that starts and ends with quotes
-            if (argi[0] == '\"' && argi[arglen - 1] == '\"') {
-              data.str_ptr = calloc(arglen, sizeof(char));
-              if (data.str_ptr == NULL) {
-                avrdude_message(MSG_INFO, "%s (write str): out of memory\n", progname);
-                return -1;
-              }
-              // Strip start and end quotes
-              strncpy(data.str_ptr, argi + 1, arglen - 2);
-            } else {
-            avrdude_message(MSG_INFO, "\n%s (write): can't parse data '%s'\n",
-                            progname, argi);
+      if(!data.size) {          // Try C-style string or single character
+        if ((*argi == '\'' && argi[arglen-1] == '\'') || (*argi == '\"' && argi[arglen-1] == '\"')) {
+          char *s = calloc(arglen-1, 1);
+          if (s == NULL) {
+            avrdude_message(MSG_INFO, "%s (write str): out of memory\n", progname);
             free(buf);
-            if(data.str_ptr != NULL)
-              free(data.str_ptr);
             return -1;
-            }
           }
+          // Strip start and end quotes, and unescape C string
+          strncpy(s, argi+1, arglen-2);
+          unescape(s, s);
+          if (*argi == '\'') { // single C-style character
+            if(*s && s[1])
+              avrdude_message(MSG_INFO, "%s (write): only using first character of %s\n",
+                          progname, argi);
+            data.ll = *s;
+            data.size = 1;
+            free(s);
+          } else {             // C-style string
+            data.str_ptr = s;
+          }
+        } else {
+          avrdude_message(MSG_INFO, "\n%s (write): can't parse data '%s'\n",
+                          progname, argi);
+          free(buf);
+          if(data.str_ptr != NULL)
+            free(data.str_ptr);
+          return -1;
+        }
       }
     }
+
     if(data.str_ptr) {
       for(int16_t j = 0; j < strlen(data.str_ptr); j++)
         buf[i - start_offset + data.bytes_grown++] = (uint8_t)data.str_ptr[j];
