@@ -421,13 +421,13 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   };
 
   for (i = start_offset; i < len + start_offset; i++) {
-    data.is_float = false;
-    data.size = 0;
-
     // Handle the next argument
     if (i < argc - start_offset + 3) {
       char *argi = argv[i];
       size_t arglen = strlen(argi);
+
+      data.is_float = false;
+      data.size = 0;
 
       // Free string pointer if already allocated
       if(data.str_ptr) {
