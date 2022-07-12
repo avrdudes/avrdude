@@ -130,4 +130,6 @@ void arduino_initpgm(PROGRAMMER * pgm)
   pgm->read_sig_bytes = arduino_read_sig_bytes;
   pgm->open = arduino_open;
   pgm->close = arduino_close;
+
+  disable_trailing_ff_removal(); /* so that arduino bootloader can ignore chip erase */
 }
