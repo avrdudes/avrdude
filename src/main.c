@@ -110,7 +110,8 @@ static void usage(void)
  "  -B <bitclock>              Specify JTAG/STK500v2 bit clock period (us).\n"
  "  -C <config-file>           Specify location of configuration file.\n"
  "  -c <programmer>            Specify programmer type.\n"
- "  -D                         Disable auto erase for flash memory\n"
+ "  -A                         Disable trailing-0xff removal from file and AVR read.\n"
+ "  -D                         Disable auto erase for flash memory; implies -A.\n"
  "  -i <delay>                 ISP Clock Delay [in microseconds]\n"
  "  -P <port>                  Specify connection port.\n"
  "  -F                         Override invalid signature check.\n"
@@ -442,7 +443,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?b:B:c:C:DeE:Fi:l:np:OP:qstU:uvVx:yY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:np:OP:qstU:uvVx:yY:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -528,6 +529,10 @@ int main(int argc, char * argv [])
 
       case 'D': /* disable auto erase */
         uflags &= ~UF_AUTO_ERASE;
+        /* fall through */
+
+      case 'A': /* explicit disabling of trailing-0xff removal */
+        disable_trailing_ff_removal();
         break;
 
       case 'e': /* perform a chip erase */

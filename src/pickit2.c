@@ -491,18 +491,15 @@ static int  pickit2_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
     pgm->pgm_led(pgm, ON);
 
+    if (lext) {
+       memset(cmd, 0, sizeof(cmd));
+       avr_set_bits(lext, cmd);
+       avr_set_addr(lext, cmd, addr/2);
+       pgm->cmd(pgm, cmd, res);
+    }
+
     for (addr_base = addr; addr_base < max_addr; )
     {
-        if ((addr_base == 0 || (addr_base % /*ext_address_boundary*/ 65536) == 0)
-                && lext != NULL)
-        {
-            memset(cmd, 0, sizeof(cmd));
-
-            avr_set_bits(lext, cmd);
-            avr_set_addr(lext, cmd, addr_base);
-            pgm->cmd(pgm, cmd, res);
-        }
-
         // bytes to send in the next packet -- not necessary as pickit2_spi() handles breaking up
         // the data into packets -- but we need to keep transfers frequent so that we can update the
         // status indicator bar

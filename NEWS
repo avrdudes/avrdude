@@ -32,6 +32,12 @@ Changes since version 7.0:
     - Replace internal knowledge in jtag3.c by a public API #996
     - JTAG3 UPDI EEPROM fix #1013
     - Treat x bits in .conf SPI commands as 0 #943
+    - Fix avrftdi support for ATmega2560 et al #998
+    - Fix avrdude.conf timings for ATmega328PB and other parts #1001
+    - Fix PICKit2 ATmega2560 flash paged flash read #1023
+    - Fix ft245r paged read for ATmega2560 et al #1018
+    - Add option -A that supresses trailing 0xff optimisation
+      and automatically do so for -c arduino #936
 
   * Internals:
 

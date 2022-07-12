@@ -797,6 +797,7 @@ int avr_get_cycle_count(PROGRAMMER * pgm, AVRPART * p, int * cycles);
 
 int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles);
 
+#define disable_trailing_ff_removal() avr_mem_hiaddr(NULL)
 int avr_mem_hiaddr(AVRMEM * mem);
 
 int avr_chip_erase(PROGRAMMER * pgm, AVRPART * p);
@@ -835,7 +836,8 @@ struct fioparms {
 
 enum {
   FIO_READ,
-  FIO_WRITE
+  FIO_WRITE,
+  FIO_READ_FOR_VERIFY,
 };
 
 #ifdef __cplusplus
@@ -844,7 +846,7 @@ extern "C" {
 
 char * fmtstr(FILEFMT format);
 
-int fileio(int op, char * filename, FILEFMT format,
+int fileio(int oprwv, char * filename, FILEFMT format,
            struct avrpart * p, char * memtype, int size);
 
 #ifdef __cplusplus

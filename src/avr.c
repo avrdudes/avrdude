@@ -234,7 +234,7 @@ int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
   if (readop == NULL) {
 #if DEBUG
-    avrdude_message(MSG_INFO, "avr_read_byte(): operation not supported on memory type \"%s\"\n",
+    avrdude_message(MSG_INFO, "avr_read_byte_default(): operation not supported on memory type \"%s\"\n",
                     mem->desc);
 #endif
     return -1;
@@ -278,10 +278,28 @@ int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
  * value. This is useful for determining where to stop when dealing
  * with "flash" memory, since writing 0xff to flash is typically a
  * no-op. Always return an even number since flash is word addressed.
+ * Only apply this optimisation on flash-type memory.
  */
 int avr_mem_hiaddr(AVRMEM * mem)
 {
   int i, n;
+  static int disableffopt;
+
+  /* calling once with NULL disables any future trailing-0xff optimisation */
+  if(!mem) {
+    disableffopt = 1;
+    return 0;
+  }
+
+  if(disableffopt)
+    return mem->size;
+
+  /* if the memory is not a flash-type memory do not remove trailing 0xff */
+  if(strcasecmp(mem->desc, "flash") &&
+     strcasecmp(mem->desc, "application") &&
+     strcasecmp(mem->desc, "apptable") &&
+     strcasecmp(mem->desc, "boot"))
+    return mem->size;
 
   /* return the highest non-0xff address regardless of how much
      memory was read */
@@ -416,15 +434,8 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
       nread++;
       report_progress(nread, npages, NULL);
     }
-    if (!failure) {
-      if (strcasecmp(mem->desc, "flash") == 0 ||
-          strcasecmp(mem->desc, "application") == 0 ||
-          strcasecmp(mem->desc, "apptable") == 0 ||
-          strcasecmp(mem->desc, "boot") == 0)
-        return avr_mem_hiaddr(mem);
-      else
-        return mem->size;
-    }
+    if (!failure)
+      return avr_mem_hiaddr(mem);
     /* else: fall back to byte-at-a-time write, for historical reasons */
   }
 
@@ -454,13 +465,7 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
     report_progress(i, mem->size, NULL);
   }
 
-  if (strcasecmp(mem->desc, "flash") == 0 ||
-      strcasecmp(mem->desc, "application") == 0 ||
-      strcasecmp(mem->desc, "apptable") == 0 ||
-      strcasecmp(mem->desc, "boot") == 0)
-    return avr_mem_hiaddr(mem);
-  else
-    return i;
+  return avr_mem_hiaddr(mem);
 }
 
 
@@ -650,7 +655,7 @@ int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
   if (writeop == NULL) {
 #if DEBUG
-    avrdude_message(MSG_INFO, "avr_write_byte(): write not supported for memory type \"%s\"\n",
+    avrdude_message(MSG_INFO, "avr_write_byte_default(): write not supported for memory type \"%s\"\n",
                     mem->desc);
 #endif
     return -1;
