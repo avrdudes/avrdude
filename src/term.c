@@ -438,22 +438,22 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       // Get suffix if present
       char suffix = 0, lsuffix = 0;
       if(arglen > 1) {
-        suffix  = argi[arglen - 1];
-        lsuffix = argi[arglen - 2];
-        if ((suffix == 'L' && lsuffix == 'L') || (suffix == 'l' && lsuffix == 'l')) {
+        suffix  = toupper(argi[arglen - 1]);
+        lsuffix = toupper(argi[arglen - 2]);
+        if (suffix == 'L' && lsuffix == 'L') {
           argi[arglen -= 2] = '\0';
           data.size = 8;
         } else if (suffix == 'L' || suffix == 'l') {
           argi[--arglen] = '\0';
           data.size = 4;
-        } else if ((suffix == 'F' || suffix == 'f') &&
+        } else if ((suffix == 'F') &&
             strncmp(argi, "0x", 2) != 0 && strncmp(argi, "-0x", 3) != 0) {
           argi[--arglen] = '\0';
           data.size = 4;
-        } else if ((suffix == 'H' && lsuffix == 'H') || (suffix == 'h' && lsuffix == 'h')) {
+        } else if (suffix == 'H' && lsuffix == 'H') {
           argi[arglen -= 2] = '\0';
           data.size = 1;
-        } else if (suffix == 'H' || suffix == 'h' || suffix == 'S' || suffix == 's') {
+        } else if (suffix == 'H' || suffix == 'S') {
           argi[--arglen] = '\0';
           data.size = 2;
         } else if (suffix == '\'') {
