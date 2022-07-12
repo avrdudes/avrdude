@@ -1477,7 +1477,7 @@ int terminal_mode(PROGRAMMER * pgm, struct avrpart * p)
       return argc;
     }
 
-#if 0
+#if defined(WIN32)
     fprintf(stdout, ">>> ");
     for (int i=0; i<argc; i++)
       fprintf(stdout, "%s ", argv[i]);
