@@ -419,6 +419,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     union {
       float f;
       int64_t ll;
+      uint64_t ull;
       uint8_t a[8];
     };
   } data = {
@@ -444,44 +445,99 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
         data.str_ptr = NULL;
       }
 
-      // Get suffix if present
-      char suffix = 0, lsuffix = 0;
-      if(arglen > 1) {
-        suffix  = toupper(argi[arglen - 1]);
-        lsuffix = toupper(argi[arglen - 2]);
-        if (suffix == 'L' && lsuffix == 'L') {
-          argi[arglen -= 2] = '\0';
-          data.size = 8;
-        } else if (suffix == 'L' || suffix == 'l') {
-          argi[--arglen] = '\0';
-          data.size = 4;
-        } else if ((suffix == 'F') &&
-            strncmp(argi, "0x", 2) && strncmp(argi, "-0x", 3) && strncmp(argi, "+0x", 3)) {
-          argi[--arglen] = '\0';
-          data.size = 4;
-        } else if (suffix == 'H' && lsuffix == 'H') {
-          argi[arglen -= 2] = '\0';
-          data.size = 1;
-        } else if (suffix == 'H' || suffix == 'S') {
-          argi[--arglen] = '\0';
-          data.size = 2;
-        } else if (suffix == '\'') {
-          data.size = 1;
+      // Try integers and assign data size
+      errno = 0;
+      data.ull = strtoull(argi, &end_ptr, 0);
+      if (!(end_ptr == argi || errno)) {
+        unsigned int nu=0, nl=0, nh=0, ns=0, nx=0;
+        char *p;
+
+        // parse suffixes: ULL, LL, UL, L ... UHH, HH
+        for(p=end_ptr; *p; p++)
+          switch(toupper(*p)) {
+          case 'U': nu++; break;
+          case 'L': nl++; break;
+          case 'H': nh++; break;
+          case 'S': ns++; break;
+          default: nx++;
+          }
+
+        if(nx==0 && nu<2 && nl<3 && nh<3 && ns<2) { // could be valid integer suffix
+          if(nu==0 || toupper(*end_ptr) == 'U' || toupper(p[-1]) == 'U') { // if U, then must be at start or end
+            bool is_hex = strncasecmp(argi, "0x", 2) == 0; // ordinary hex: "0x..." without explicit +/- sign
+            bool is_signed = !(nu || is_hex);              // neither explicitly unsigned nor ordinary hex
+            bool is_outside_int64_t = 0;
+            bool is_out_of_range = 0;
+            int nhexdigs = p-argi-2;
+
+            if(is_signed) {   // Is input in range for int64_t?
+              errno = 0; (void) strtoll(argi, NULL, 0);
+              is_outside_int64_t = errno == ERANGE;
+            }
+
+            if(nl==0 && ns==0 && nh==0) { // no explicit data size
+              // ordinary hex numbers have "implicit" size, given by number of hex digits, including leading zeros
+              if(is_hex) {
+                data.size = nhexdigs > 8? 8: nhexdigs > 4? 4: nhexdigs > 2? 2: 1;
+
+              } else if(is_signed) {
+                // smallest size that fits signed representation
+                data.size =
+                  is_outside_int64_t? 8:
+                  data.ll < INT32_MIN || data.ll > INT32_MAX? 8:
+                  data.ll < INT16_MIN || data.ll > INT16_MAX? 4:
+                  data.ll < INT8_MIN  || data.ll > INT8_MAX? 2: 1;
+
+              } else {
+                // smallest size that fits unsigned representation
+                data.size =
+                  data.ull > UINT32_MAX? 8:
+                  data.ull > UINT16_MAX? 4:
+                  data.ull > UINT8_MAX? 2: 1;
+              }
+            } else if(nl==0 && nh==2 && ns==0) { // HH
+              data.size = 1;
+              if(is_outside_int64_t || (is_signed && (data.ll < INT8_MIN  || data.ll > INT8_MAX))) {
+                is_out_of_range = 1;
+                data.ll = (int8_t) data.ll;
+              }
+            } else if(nl==0 && ((nh==1 && ns==0) || (nh==0 && ns==1))) { // H or S
+              data.size = 2;
+              if(is_outside_int64_t || (is_signed && (data.ll < INT16_MIN  || data.ll > INT16_MAX))) {
+                is_out_of_range = 1;
+                data.ll = (int16_t) data.ll;
+              }
+            } else if(nl==1 && nh==0 && ns==0) { // L
+              data.size = 4;
+              if(is_outside_int64_t || (is_signed && (data.ll < INT32_MIN  || data.ll > INT32_MAX))) {
+                is_out_of_range = 1;
+                data.ll = (int32_t) data.ll;
+              }
+            } else if(nl==2 && nh==0 && ns==0) { // LL
+              data.size = 8;
+            }
+
+            if(is_outside_int64_t || is_out_of_range)
+              avrdude_message(MSG_INFO, "%s (write): %s out of int%d_t range, "
+                "interpreted as %d-byte %lld%s; consider 'U' suffix\n",
+                progname, argi, data.size*8, data.size, data.ll,
+                is_out_of_range? " (unlikely what you want)": ""
+              );
+          }
         }
       }
 
-      // Try integers
-      errno = 0;
-      data.ll = strtoull(argi, &end_ptr, 0);
-      if (!(end_ptr == argi || errno)) {
+      if(!data.size) {          // Data item was not recognised as integer
         // Try float
         data.f = strtof(argi, &end_ptr);
-        data.is_float = true;
-        if (*end_ptr || (end_ptr == argi)) {
-          data.is_float = false;
+        if (end_ptr != argi && toupper(*end_ptr) == 'F' && end_ptr[1] == 0) {
+          data.is_float = true;
+          data.size = 4;
+        } else {
           // Try single character
           if (argi[0] == '\'' && argi[2] == '\'') {
             data.ll = argi[1];
+            data.size = 1;
           } else {
             // Try string that starts and ends with quotes
             if (argi[0] == '\"' && argi[arglen - 1] == '\"') {
@@ -502,35 +558,6 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
             }
           }
         }
-      }
-
-      // Print warning if data size might be ambiguous
-      bool is_hex       = (strncmp(argi, "0x",  2) == 0);
-      bool is_neg_hex   = (strncmp(argi, "-0x", 3) == 0);
-      bool leading_zero = (strncmp(argi, "0x0", 3) == 0);
-      int8_t hex_digits = (arglen - 2);
-      if(!data.size                                                             // No pre-defined size
-        && (is_neg_hex                                                          // Hex with - sign in front
-        || (is_hex && leading_zero && (hex_digits & (hex_digits - 1)))          // Hex with 3, 5, 6 or 7 digits
-        || (!is_hex && !data.is_float && llabs(data.ll) > 0xFF && arglen > 2))) // Base10 int greater than 255
-      {
-        avrdude_message(MSG_INFO, "Warning: no size suffix specified for \"%s\". "
-                                  "Writing %d byte(s)\n",
-                                  argi,
-                                  llabs(data.ll) > UINT32_MAX ? 8 :
-                                  llabs(data.ll) > UINT16_MAX || data.is_float ? 4 : \
-                                  llabs(data.ll) > UINT8_MAX ? 2 : 1);
-      }
-      // Adjust size if signed integer
-      if (data.ll < 0 && !data.is_float) {
-        if (data.ll < INT32_MIN)
-          data.size = 8;
-        else if (data.ll < INT16_MIN)
-          data.size = 4;
-        else if (data.ll < INT8_MIN)
-          data.size = 2;
-        else
-          data.size = 1;
       }
     }
     if(data.str_ptr) {
@@ -912,7 +939,7 @@ static int cmd_help(PROGRAMMER * pgm, struct avrpart * p,
     fprintf(stdout, cmd[i].desc, cmd[i].name);
     fprintf(stdout, "\n");
   }
-  fprintf(stdout, 
+  fprintf(stdout,
           "\nUse the 'part' command to display valid memory types for use with the\n"
           "'dump' and 'write' commands.\n\n");
 
@@ -989,9 +1016,9 @@ static int tokenize(char * s, char *** argv)
 
   slen = strlen(s);
 
-  /* 
+  /*
    * initialize allow for 20 arguments, use realloc to grow this if
-   * necessary 
+   * necessary
    */
   nargs   = 20;
   bufsize = slen + 20;
@@ -1047,7 +1074,7 @@ static int tokenize(char * s, char *** argv)
     }
   }
 
-  /* 
+  /*
    * We have parsed all the args, n == argc, bufv contains an array of
    * pointers to each arg, and buf points to one memory block that
    * contains all the args, back to back, seperated by a nul
@@ -1140,7 +1167,7 @@ int terminal_mode(PROGRAMMER * pgm, struct avrpart * p)
 
   rc = 0;
   while ((cmdbuf = terminal_get_input("avrdude> ")) != NULL) {
-    /* 
+    /*
      * find the start of the command, skipping any white space
      */
     q = cmdbuf;
@@ -1175,5 +1202,3 @@ int terminal_mode(PROGRAMMER * pgm, struct avrpart * p)
 
   return rc;
 }
-
-
