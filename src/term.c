@@ -334,6 +334,16 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
 }
 
 
+static size_t maxstrlen(int argc, char **argv) {
+  size_t max = 0;
+
+  for(int i=0; i<argc; i++)
+    if(strlen(argv[i]) > max)
+      max = strlen(argv[i]);
+
+  return max;
+}
+
 static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
 		     int argc, char * argv[])
 {
@@ -374,7 +384,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   }
 
   // Allocate a buffer guaranteed to be large enough
-  uint8_t * buf = calloc(mem->size + 0x10 + strlen(argv[argc - 2]), sizeof(uint8_t));
+  uint8_t * buf = calloc(mem->size + 0x10 + maxstrlen(argc-3, argv+3), sizeof(uint8_t));
   if (buf == NULL) {
     avrdude_message(MSG_INFO, "%s (write): out of memory\n", progname);
     return -1;
