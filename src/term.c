@@ -523,10 +523,33 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
 {
   if (argc < 4) {
     avrdude_message(MSG_INFO,
-      "Usage: write <memtype> <start addr> <data1> <data2> <dataN>\n"
-      "       write <memtype> <start addr> <no. bytes> <data1> <dataN> <...>\n\n"
-      "       Add a suffix to manually specify the size for each field:\n"
-      "       HH/hh: 8-bit, H/h/S/s: 16-bit, L/l: 32-bit, LL/ll: 64-bit, F/f: 32-bit float\n");
+      "Usage: write <memory> <addr> <data>[,] {<data>[,]} \n"
+      "       write <memory> <addr> <len> <data>[,] {<data>[,]} ...\n"
+      "\n"
+      "Ellipsis ... writes <len> bytes padded by repeating the last <data> item.\n"
+      "\n"
+      "<data> can be hexadecimal, octal or decimal integers, double, float or\n"
+      "C-style strings and chars. For numbers, an optional case-insensitive suffix\n"
+      "specifies the data size: HH: 8 bit, H/S: 16 bit, L: 32 bit, LL: 64 bit, F:\n"
+      "32-bit float. Hexadecimal floating point notation is supported. The\n"
+      "ambiguous trailing F in 0x1.8F makes the number be interpreted as double;\n"
+      "use a zero exponent as in 0x1.8p0F to denote a hexadecimal float.\n"
+      "\n"
+      "An optional U suffix makes a number unsigned. Ordinary 0x hex numbers are\n"
+      "always treated as unsigned. +0x or -0x hex numbers are treated as signed\n"
+      "unless they have a U suffix. Unsigned integers cannot be larger than 2^64-1.\n"
+      "If n is an unsigned integer then -n is also a valid unsigned integer as in C.\n"
+      "Signed integers must fall into the [-2^63, 2^63-1] range or a correspondingly\n"
+      "smaller range when a suffix specifies a smaller type. Out of range signed\n"
+      "numbers trigger a warning.\n"
+      "\n"
+      "Ordinary 0x hex numbers with n hex digits (counting leading zeros) use\n"
+      "the smallest size of 1, 2, 4 and 8 bytes that can accommodate any n-digit hex\n"
+      "number. If a suffix specifies a size explicitly the corresponding number of\n"
+      "least significant bytes are written. Otherwise, signed and unsigned integers\n"
+      "alike occupy the smallest of 1, 2, 4, or 8 bytes needed to accommodate them\n"
+      "in their respective representation.\n"
+    );
     return -1;
   }
 
