@@ -91,6 +91,9 @@ static int cmd_pgm   (PROGRAMMER * pgm, struct avrpart * p,
 static int cmd_verbose (PROGRAMMER * pgm, struct avrpart * p,
 		      int argc, char *argv[]);
 
+static int cmd_quell (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
+
 struct command cmd[] = {
   { "dump",  cmd_dump,  "%s <memory> [<addr> <len> | <addr> ... | <addr> | ...]" },
   { "read",  cmd_dump,  "alias for dump" },
@@ -107,6 +110,7 @@ struct command cmd[] = {
   { "spi",   cmd_spi,   "enter direct SPI mode" },
   { "pgm",   cmd_pgm,   "return to programming mode" },
   { "verbose", cmd_verbose, "change verbosity" },
+  { "quell", cmd_quell, "set quell level for progress bars" },
   { "help",  cmd_help,  "help" },
   { "?",     cmd_help,  "help" },
   { "quit",  cmd_quit,  "quit" }
@@ -1253,6 +1257,40 @@ static int cmd_verbose(PROGRAMMER * pgm, struct avrpart * p,
   }
   verbose = nverb;
   avrdude_message(MSG_INFO, "New verbosity level: %d\n", verbose);
+
+  return 0;
+}
+
+static int cmd_quell(PROGRAMMER * pgm, struct avrpart * p,
+		       int argc, char * argv[])
+{
+  int nquell;
+  char *endp;
+
+  if (argc != 1 && argc != 2) {
+    avrdude_message(MSG_INFO, "Usage: quell [<value>]\n");
+    return -1;
+  }
+  if (argc == 1) {
+    avrdude_message(MSG_INFO, "Quell level: %d\n", quell_progress);
+    return 0;
+  }
+  nquell = strtol(argv[1], &endp, 0);
+  if (endp == argv[1] || *endp) {
+    avrdude_message(MSG_INFO, "%s (quell): can't parse quell level %s\n",
+      progname, argv[1]);
+    return -1;
+  }
+  if (nquell < 0) {
+    avrdude_message(MSG_INFO, "%s: quell level must not be negative: %d\n",
+      progname, nquell);
+    return -1;
+  }
+  quell_progress = nquell;
+  avrdude_message(MSG_INFO, "New quell level: %d\n", quell_progress);
+
+  if(quell_progress > 0)
+    update_progress = NULL;
 
   return 0;
 }
