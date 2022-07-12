@@ -1254,17 +1254,21 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
     }
 
     // Generate UPDI high-voltage pulse if user asks for it and hardware supports it
-    LNODEID hvupdi_support;
+    LNODEID support;
     if (p->flags & AVRPART_HAS_UPDI &&
         PDATA(pgm)->use_hvupdi == true &&
         p->hvupdi_variant != HV_UPDI_VARIANT_1) {
-      for (hvupdi_support = lfirst(pgm->hvupdi_support); hvupdi_support != NULL; hvupdi_support = lnext(hvupdi_support)) {
-        if(*(int *) ldata(hvupdi_support) == p->hvupdi_variant) {
+      parm[0] = PARM3_UPDI_HV_NONE;
+      for (support = lfirst(pgm->hvupdi_support); support != NULL; support = lnext(support)) {
+        if(*(int *) ldata(support) == p->hvupdi_variant) {
           avrdude_message(MSG_NOTICE, "%s: Sending HV pulse to targets %s pin\n",
             progname, p->hvupdi_variant == HV_UPDI_VARIANT_0 ? "UPDI" : "RESET");
           parm[0] = PARM3_UPDI_HV_SIMPLE_PULSE;
           break;
         }
+        if (parm[0] == PARM3_UPDI_HV_NONE)
+          avrdude_message(MSG_INFO, "%s: %s does not support sending HV pulse to target %s\n",
+            progname, pgm->desc, p->desc);
       }
       if (jtag3_setparm(pgm, SCOPE_AVR, 3, PARM3_OPT_12V_UPDI_ENABLE, parm, 1) < 0)
         return -1;
@@ -1495,7 +1499,8 @@ static int jtag3_parseextparms(PROGRAMMER * pgm, LISTID extparms)
       continue;
     }
 
-    else if (strcmp(extended_param, "hvupdi") == 0) {
+    else if ((strcmp(extended_param, "hvupdi") == 0) &&
+             (lsize(pgm->hvupdi_support) > 1)) {
       PDATA(pgm)->use_hvupdi = true;
       continue;
     }
