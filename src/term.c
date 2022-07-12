@@ -447,7 +447,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
           argi[--arglen] = '\0';
           data.size = 4;
         } else if ((suffix == 'F') &&
-            strncmp(argi, "0x", 2) != 0 && strncmp(argi, "-0x", 3) != 0) {
+            strncmp(argi, "0x", 2) && strncmp(argi, "-0x", 3) && strncmp(argi, "+0x", 3)) {
           argi[--arglen] = '\0';
           data.size = 4;
         } else if (suffix == 'H' && lsuffix == 'H') {
