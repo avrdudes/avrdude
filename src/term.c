@@ -1241,13 +1241,13 @@ static int cmd_verbose(PROGRAMMER * pgm, struct avrpart * p,
     return 0;
   }
   nverb = strtol(argv[1], &endp, 0);
-  if (endp == argv[2]) {
-    avrdude_message(MSG_INFO, "%s: can't parse verbosity level %s\n",
-      progname, argv[2]);
+  if (endp == argv[1] || *endp) {
+    avrdude_message(MSG_INFO, "%s (verbose): can't parse verbosity level %s\n",
+      progname, argv[1]);
     return -1;
   }
   if (nverb < 0) {
-    avrdude_message(MSG_INFO, "%s: verbosity level must be positive: %d\n",
+    avrdude_message(MSG_INFO, "%s: verbosity level must not be negative: %d\n",
       progname, nverb);
     return -1;
   }
