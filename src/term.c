@@ -248,8 +248,8 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
   char * memtype = argv[1];
   AVRMEM * mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
-    avrdude_message(MSG_INFO, "\"%s\" memory type not defined for part \"%s\"\n",
-            memtype, p->desc);
+    avrdude_message(MSG_INFO, "%s (dump): %s memory type not defined for part %s\n",
+      progname, memtype, p->desc);
     return -1;
   }
   uint32_t maxsize = mem->size;
@@ -261,12 +261,12 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
   if (argc >= 3 && strcmp(argv[2], "...") != 0) {
     addr = strtoul(argv[2], &end_ptr, 0);
     if (*end_ptr || (end_ptr == argv[2])) {
-      avrdude_message(MSG_INFO, "%s (%s): can't parse address \"%s\"\n",
-              progname, argv[0], argv[2]);
+      avrdude_message(MSG_INFO, "%s (dump): can't parse address %s\n",
+        progname, argv[2]);
       return -1;
     } else if (addr >= maxsize) {
-      avrdude_message(MSG_INFO, "%s (%s): address 0x%05lx is out of range for %s memory\n",
-                      progname, argv[0], addr, mem->desc);
+      avrdude_message(MSG_INFO, "%s (dump): address 0x%05lx is out of range for %s memory\n",
+        progname, (long) addr, mem->desc);
       return -1;
     }
   }
@@ -282,8 +282,8 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
     } else if (argc == 4) {
       len = strtol(argv[3], &end_ptr, 0);
       if (*end_ptr || (end_ptr == argv[3])) {
-        avrdude_message(MSG_INFO, "%s (%s): can't parse length \"%s\"\n",
-              progname, argv[0], argv[3]);
+        avrdude_message(MSG_INFO, "%s (dump): can't parse length %s\n",
+          progname, argv[3]);
         return -1;
       }
     } else {
@@ -317,10 +317,10 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
     int32_t rc = pgm->read_byte(pgm, p, mem, addr + i, &buf[i]);
     if (rc != 0) {
       avrdude_message(MSG_INFO, "error reading %s address 0x%05lx of part %s\n",
-              mem->desc, addr + i, p->desc);
+        mem->desc, (long) addr + i, p->desc);
       if (rc == -1)
-        avrdude_message(MSG_INFO, "read operation not supported on memory type \"%s\"\n",
-                mem->desc);
+        avrdude_message(MSG_INFO, "read operation not supported on memory type %s\n",
+          mem->desc);
       return -1;
     }
     report_progress(i, len, NULL);
@@ -573,8 +573,8 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   char * memtype = argv[1]; // Memory name string
   AVRMEM * mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
-    avrdude_message(MSG_INFO, "\"%s\" memory type not defined for part \"%s\"\n",
-            memtype, p->desc);
+    avrdude_message(MSG_INFO, "%s memory type not defined for part %s\n",
+      memtype, p->desc);
     return -1;
   }
   uint32_t maxsize = mem->size;
@@ -582,14 +582,14 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   char * end_ptr;
   int32_t addr = strtoul(argv[2], &end_ptr, 0);
   if (*end_ptr || (end_ptr == argv[2])) {
-    avrdude_message(MSG_INFO, "%s (write): can't parse address \"%s\"\n",
-            progname, argv[2]);
+    avrdude_message(MSG_INFO, "%s (write): can't parse address %s\n",
+      progname, argv[2]);
     return -1;
   }
 
   if (addr > maxsize) {
     avrdude_message(MSG_INFO, "%s (write): address 0x%05lx is out of range for %s memory\n",
-                    progname, addr, memtype);
+      progname, (long) addr, memtype);
     return -1;
   }
 
@@ -606,8 +606,8 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     start_offset = 4;
     len = strtoul(argv[3], &end_ptr, 0);
     if (*end_ptr || (end_ptr == argv[3])) {
-      avrdude_message(MSG_INFO, "%s (write ...): can't parse length \"%s\"\n",
-            progname, argv[3]);
+      avrdude_message(MSG_INFO, "%s (write ...): can't parse length %s\n",
+        progname, argv[3]);
       free(buf);
       return -1;
     }
@@ -639,7 +639,8 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   };
 
   if(sizeof(long long) != sizeof(int64_t) || (data.a[0]^data.a[7]) != 1)
-    avrdude_message(MSG_INFO, "%s (write): assumption on data types not met? check source and recompile\n", progname);
+    avrdude_message(MSG_INFO, "%s (write): assumption on data types not met? "
+      "Check source and recompile\n", progname);
   bool is_big_endian = data.a[7];
 
   for (i = start_offset; i < len + start_offset; i++) {
@@ -734,10 +735,8 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
 
             if(is_outside_int64_t || is_out_of_range)
               avrdude_message(MSG_INFO, "%s (write): %s out of int%d_t range, "
-                "interpreted as %d-byte %lld%s; consider 'U' suffix\n",
-                progname, argi, data.size*8, data.size, data.ll,
-                is_out_of_range? " (unlikely what you want)": ""
-              );
+                "interpreted as %d-byte %lld; consider 'U' suffix\n",
+                progname, argi, data.size*8, data.size, data.ll);
           }
         }
       }
@@ -768,7 +767,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
           if (*argi == '\'') { // single C-style character
             if(*s && s[1])
               avrdude_message(MSG_INFO, "%s (write): only using first character of %s\n",
-                          progname, argi);
+                progname, argi);
             data.ll = *s;
             data.size = 1;
             free(s);
@@ -776,8 +775,8 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
             data.str_ptr = s;
           }
         } else {
-          avrdude_message(MSG_INFO, "\n%s (write): can't parse data '%s'\n",
-                          progname, argi);
+          avrdude_message(MSG_INFO, "%s (write): can't parse data %s\n",
+            progname, argi);
           free(buf);
           if(data.str_ptr != NULL)
             free(data.str_ptr);
@@ -819,8 +818,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
 
   if ((addr + len + data.bytes_grown) > maxsize) {
     avrdude_message(MSG_INFO, "%s (write): selected address and # bytes exceed "
-                    "range for %s memory\n",
-                    progname, memtype);
+      "range for %s memory\n", progname, memtype);
     free(buf);
     return -1;
   }
@@ -828,8 +826,8 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   if(data.str_ptr)
     free(data.str_ptr);
 
-  avrdude_message(MSG_NOTICE, "\nInfo: Writing %d bytes starting from address 0x%02x",
-                  len + data.bytes_grown, addr);
+  avrdude_message(MSG_NOTICE, "\nInfo: Writing %d bytes starting from address 0x%02lx",
+    len + data.bytes_grown, (long) addr);
   if (write_mode == WRITE_MODE_FILL)
     avrdude_message(MSG_NOTICE, ". Remaining space filled with %s", argv[argc - 2]);
   avrdude_message(MSG_NOTICE, "\n");
@@ -841,10 +839,10 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     int32_t rc = avr_write_byte(pgm, p, mem, addr+i, buf[i]);
     if (rc) {
       avrdude_message(MSG_INFO, "%s (write): error writing 0x%02x at 0x%05lx, rc=%d\n",
-              progname, buf[i], addr+i, rc);
+        progname, buf[i], (long) addr+i, (int) rc);
       if (rc == -1)
-        avrdude_message(MSG_INFO, "write operation not supported on memory type \"%s\"\n",
-                        mem->desc);
+        avrdude_message(MSG_INFO, "write operation not supported on memory type %s\n",
+          mem->desc);
       werror = true;
     }
 
@@ -852,7 +850,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     rc = pgm->read_byte(pgm, p, mem, addr+i, &b);
     if (b != buf[i]) {
       avrdude_message(MSG_INFO, "%s (write): error writing 0x%02x at 0x%05lx cell=0x%02x\n",
-                      progname, buf[i], addr+i, b);
+        progname, buf[i], (long) addr+i, b);
       werror = true;
     }
 
@@ -879,14 +877,14 @@ static int cmd_send(PROGRAMMER * pgm, struct avrpart * p,
   int len;
 
   if (pgm->cmd == NULL) {
-    avrdude_message(MSG_INFO, "The %s programmer does not support direct ISP commands.\n",
-                    pgm->type);
+    avrdude_message(MSG_INFO, "%s (send): the %s programmer does not support direct ISP commands\n",
+      progname, pgm->type);
     return -1;
   }
 
   if (spi_mode && (pgm->spi == NULL)) {
-    avrdude_message(MSG_INFO, "The %s programmer does not support direct SPI transfers.\n",
-                    pgm->type);
+    avrdude_message(MSG_INFO, "%s (send): the %s programmer does not support direct SPI transfers\n",
+      progname, pgm->type);
     return -1;
   }
 
@@ -905,8 +903,8 @@ static int cmd_send(PROGRAMMER * pgm, struct avrpart * p,
   for (i=1; i<argc; i++) {
     cmd[i-1] = strtoul(argv[i], &e, 0);
     if (*e || (e == argv[i])) {
-      avrdude_message(MSG_INFO, "%s (send): can't parse byte \"%s\"\n",
-              progname, argv[i]);
+      avrdude_message(MSG_INFO, "%s (send): can't parse byte %s\n",
+        progname, argv[i]);
       return -1;
     }
   }
@@ -961,14 +959,14 @@ static int cmd_sig(PROGRAMMER * pgm, struct avrpart * p,
 
   rc = avr_signature(pgm, p);
   if (rc != 0) {
-    avrdude_message(MSG_INFO, "error reading signature data, rc=%d\n",
-            rc);
+    avrdude_message(MSG_INFO, "%s (sig): error reading signature data, rc=%d\n",
+      prgname, rc);
   }
 
   m = avr_locate_mem(p, "signature");
   if (m == NULL) {
-    avrdude_message(MSG_INFO, "signature data not defined for device \"%s\"\n",
-                    p->desc);
+    avrdude_message(MSG_INFO, "%s (sig): signature data not defined for device %s\n",
+      progname, p->desc);
   }
   else {
     fprintf(stdout, "Device signature = 0x");
@@ -997,8 +995,7 @@ static int cmd_parms(PROGRAMMER * pgm, struct avrpart * p,
 {
   if (pgm->print_parms == NULL) {
     avrdude_message(MSG_INFO, "%s (parms): the %s programmer does not support "
-                    "adjustable parameters\n",
-                    progname, pgm->type);
+      "adjustable parameters\n", progname, pgm->type);
     return -1;
   }
   pgm->print_parms(pgm);
@@ -1020,18 +1017,18 @@ static int cmd_vtarg(PROGRAMMER * pgm, struct avrpart * p,
   }
   v = strtod(argv[1], &endp);
   if (endp == argv[1]) {
-    avrdude_message(MSG_INFO, "%s (vtarg): can't parse voltage \"%s\"\n",
-            progname, argv[1]);
+    avrdude_message(MSG_INFO, "%s (vtarg): can't parse voltage %s\n",
+      progname, argv[1]);
     return -1;
   }
   if (pgm->set_vtarget == NULL) {
     avrdude_message(MSG_INFO, "%s (vtarg): the %s programmer cannot set V[target]\n",
-	    progname, pgm->type);
+      progname, pgm->type);
     return -2;
   }
   if ((rc = pgm->set_vtarget(pgm, v)) != 0) {
     avrdude_message(MSG_INFO, "%s (vtarg): failed to set V[target] (rc = %d)\n",
-	    progname, rc);
+      progname, rc);
     return -3;
   }
   return 0;
@@ -1054,8 +1051,8 @@ static int cmd_fosc(PROGRAMMER * pgm, struct avrpart * p,
     if (strcmp(argv[1], "off") == 0)
       v = 0.0;
     else {
-      avrdude_message(MSG_INFO, "%s (fosc): can't parse frequency \"%s\"\n",
-	      progname, argv[1]);
+      avrdude_message(MSG_INFO, "%s (fosc): can't parse frequency %s\n",
+        progname, argv[1]);
       return -1;
     }
   }
@@ -1065,12 +1062,12 @@ static int cmd_fosc(PROGRAMMER * pgm, struct avrpart * p,
     v *= 1e3;
   if (pgm->set_fosc == NULL) {
     avrdude_message(MSG_INFO, "%s (fosc): the %s programmer cannot set oscillator frequency\n",
-                    progname, pgm->type);
+      progname, pgm->type);
     return -2;
   }
   if ((rc = pgm->set_fosc(pgm, v)) != 0) {
     avrdude_message(MSG_INFO, "%s (fosc): failed to set oscillator frequency (rc = %d)\n",
-	    progname, rc);
+      progname, rc);
     return -3;
   }
   return 0;
@@ -1090,19 +1087,19 @@ static int cmd_sck(PROGRAMMER * pgm, struct avrpart * p,
   }
   v = strtod(argv[1], &endp);
   if (endp == argv[1]) {
-    avrdude_message(MSG_INFO, "%s (sck): can't parse period \"%s\"\n",
-	    progname, argv[1]);
+    avrdude_message(MSG_INFO, "%s (sck): can't parse period %s\n",
+      progname, argv[1]);
     return -1;
   }
   v *= 1e-6;			/* Convert from microseconds to seconds. */
   if (pgm->set_sck_period == NULL) {
     avrdude_message(MSG_INFO, "%s (sck): the %s programmer cannot set SCK period\n",
-                    progname, pgm->type);
+      progname, pgm->type);
     return -2;
   }
   if ((rc = pgm->set_sck_period(pgm, v)) != 0) {
     avrdude_message(MSG_INFO, "%s (sck): failed to set SCK period (rc = %d)\n",
-	    progname, rc);
+      progname, rc);
     return -3;
   }
   return 0;
@@ -1125,32 +1122,32 @@ static int cmd_varef(PROGRAMMER * pgm, struct avrpart * p,
     chan = 0;
     v = strtod(argv[1], &endp);
     if (endp == argv[1]) {
-      avrdude_message(MSG_INFO, "%s (varef): can't parse voltage \"%s\"\n",
-              progname, argv[1]);
+      avrdude_message(MSG_INFO, "%s (varef): can't parse voltage %s\n",
+        progname, argv[1]);
       return -1;
     }
   } else {
     chan = strtoul(argv[1], &endp, 10);
     if (endp == argv[1]) {
-      avrdude_message(MSG_INFO, "%s (varef): can't parse channel \"%s\"\n",
-              progname, argv[1]);
+      avrdude_message(MSG_INFO, "%s (varef): can't parse channel %s\n",
+        progname, argv[1]);
       return -1;
     }
     v = strtod(argv[2], &endp);
     if (endp == argv[2]) {
-      avrdude_message(MSG_INFO, "%s (varef): can't parse voltage \"%s\"\n",
-              progname, argv[2]);
+      avrdude_message(MSG_INFO, "%s (varef): can't parse voltage %s\n",
+        progname, argv[2]);
       return -1;
     }
   }
   if (pgm->set_varef == NULL) {
     avrdude_message(MSG_INFO, "%s (varef): the %s programmer cannot set V[aref]\n",
-	    progname, pgm->type);
+      progname, pgm->type);
     return -2;
   }
   if ((rc = pgm->set_varef(pgm, chan, v)) != 0) {
     avrdude_message(MSG_INFO, "%s (varef): failed to set V[aref] (rc = %d)\n",
-	    progname, rc);
+      progname, rc);
     return -3;
   }
   return 0;
@@ -1183,7 +1180,8 @@ static int cmd_spi(PROGRAMMER * pgm, struct avrpart * p,
     spi_mode = 1;
     return 0;
   }
-  avrdude_message(MSG_INFO, "`spi' command unavailable for this programmer type\n");
+  avrdude_message(MSG_INFO, "%s: spi command unavailable for this programmer type\n",
+    progname);
   return -1;
 }
 
@@ -1196,7 +1194,8 @@ static int cmd_pgm(PROGRAMMER * pgm, struct avrpart * p,
     pgm->initialize(pgm, p);
     return 0;
   }
-  avrdude_message(MSG_INFO, "`pgm' command unavailable for this programmer type\n");
+  avrdude_message(MSG_INFO, "%s: pgm command unavailable for this programmer type\n",
+    progname);
   return -1;
 }
 
@@ -1216,13 +1215,13 @@ static int cmd_verbose(PROGRAMMER * pgm, struct avrpart * p,
   }
   nverb = strtol(argv[1], &endp, 0);
   if (endp == argv[2]) {
-    avrdude_message(MSG_INFO, "%s: can't parse verbosity level \"%s\"\n",
-	    progname, argv[2]);
+    avrdude_message(MSG_INFO, "%s: can't parse verbosity level %s\n",
+      progname, argv[2]);
     return -1;
   }
   if (nverb < 0) {
     avrdude_message(MSG_INFO, "%s: verbosity level must be positive: %d\n",
-	    progname, nverb);
+      progname, nverb);
     return -1;
   }
   verbose = nverb;
@@ -1344,8 +1343,8 @@ static int do_cmd(PROGRAMMER * pgm, struct avrpart * p,
     }
     else if (strncasecmp(argv[0], cmd[i].name, len)==0) {
       if (hold != -1) {
-        avrdude_message(MSG_INFO, "%s: command \"%s\" is ambiguous\n",
-                progname, argv[0]);
+        avrdude_message(MSG_INFO, "%s (cmd): command %s is ambiguous\n",
+          progname, argv[0]);
         return -1;
       }
       hold = i;
@@ -1355,8 +1354,8 @@ static int do_cmd(PROGRAMMER * pgm, struct avrpart * p,
   if (hold != -1)
     return cmd[hold].func(pgm, p, argc, argv);
 
-  avrdude_message(MSG_INFO, "%s: invalid command \"%s\"\n",
-          progname, argv[0]);
+  avrdude_message(MSG_INFO, "%s (cmd): invalid command %s\n",
+    progname, argv[0]);
 
   return -1;
 }
