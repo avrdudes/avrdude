@@ -531,6 +531,30 @@ static void change_endian(void *p, int size) {
 }
 
 
+// Looks like a double mantissa in hex or dec notation
+static int is_mantissa_only(char *p) {
+  char *digs;
+
+  if(*p == '+' || *p == '-')
+    p++;
+
+  if(*p == '0' && (p[1] == 'x' || p[1] == 'X')) {
+    p += 2;
+    digs = "0123456789abcdefABCDEF";
+  } else
+    digs = "0123456789";
+
+  if(!*p)
+    return 0;
+
+  while(*p)
+    if(!strchr(digs, *p++))
+      return 0;
+
+  return 1;
+}
+
+
 static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
 		     int argc, char * argv[])
 {
@@ -741,16 +765,18 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
         }
       }
 
+      if(!data.size) {          // Try double now that input was rejected as integer
+        data.d = strtod(argi, &end_ptr);
+        // Do not accept valid doubles that are integer rejects (eg, 078 or ULL overflows)
+        if (end_ptr != argi && *end_ptr == 0)
+          if (!is_mantissa_only(argi))
+            data.size = 8;
+      }
+
       if(!data.size) {          // Try float
         data.f = strtof(argi, &end_ptr);
         if (end_ptr != argi && toupper(*end_ptr) == 'F' && end_ptr[1] == 0)
           data.size = 4;
-      }
-
-      if(!data.size) {          // Try double
-        data.d = strtod(argi, &end_ptr);
-        if (end_ptr != argi && *end_ptr == 0)
-          data.size = 8;
       }
 
       if(!data.size) {          // Try C-style string or single character
@@ -774,16 +800,17 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
           } else {             // C-style string
             data.str_ptr = s;
           }
-        } else {
-          avrdude_message(MSG_INFO, "%s (write): can't parse data %s\n",
-            progname, argi);
-          free(buf);
-          if(data.str_ptr != NULL)
-            free(data.str_ptr);
-          return -1;
         }
       }
-      // ensure we have little endian representation in data.a
+
+      if(!data.size && !data.str_ptr) {
+        avrdude_message(MSG_INFO, "%s (write): can't parse data %s\n",
+          progname, argi);
+        free(buf);
+        return -1;
+      }
+
+      // Assume endianness is the same for double and int, and ensure little endian representation
       if(is_big_endian && data.size > 1)
         change_endian(data.a, data.size);
     }
