@@ -413,7 +413,6 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     // Data info
     int32_t bytes_grown;
     uint8_t size;
-    bool is_float;
     char * str_ptr;
     // Data union
     union {
@@ -425,7 +424,6 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   } data = {
     .bytes_grown = 0,
     .size        = 0,
-    .is_float    = false,
     .str_ptr     = NULL,
     .ll = 0
   };
@@ -436,7 +434,6 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       char *argi = argv[i];
       size_t arglen = strlen(argi);
 
-      data.is_float = false;
       data.size = 0;
 
       // Free string pointer if already allocated
@@ -531,7 +528,6 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
         // Try float
         data.f = strtof(argi, &end_ptr);
         if (end_ptr != argi && toupper(*end_ptr) == 'F' && end_ptr[1] == 0) {
-          data.is_float = true;
           data.size = 4;
         } else {
           // Try single character
@@ -565,9 +561,9 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
         buf[i - start_offset + data.bytes_grown++] = (uint8_t)data.str_ptr[j];
     } else {
       buf[i - start_offset + data.bytes_grown]     = data.a[0];
-      if (llabs(data.ll) > 0x000000FF || data.size >= 2 || data.is_float)
+      if (llabs(data.ll) > 0x000000FF || data.size >= 2)
         buf[i - start_offset + ++data.bytes_grown] = data.a[1];
-      if (llabs(data.ll) > 0x0000FFFF || data.size >= 4 || data.is_float) {
+      if (llabs(data.ll) > 0x0000FFFF || data.size >= 4) {
         buf[i - start_offset + ++data.bytes_grown] = data.a[2];
         buf[i - start_offset + ++data.bytes_grown] = data.a[3];
       }
