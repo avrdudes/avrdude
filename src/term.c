@@ -413,7 +413,6 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     int32_t bytes_grown;
     uint8_t size;
     bool is_float;
-    bool is_signed;
     char * str_ptr;
     // Data union
     union {
@@ -425,7 +424,6 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     .bytes_grown = 0,
     .size        = 0,
     .is_float    = false,
-    .is_signed   = false,
     .str_ptr     = NULL,
     .ll = 0
   };
@@ -521,9 +519,8 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
                                   llabs(data.ll) > UINT16_MAX || data.is_float ? 4 : \
                                   llabs(data.ll) > UINT8_MAX ? 2 : 1);
       }
-      // Flag if signed integer and adjust size
+      // Adjust size if signed integer
       if (data.ll < 0 && !data.is_float) {
-        data.is_signed = true;
         if (data.ll < INT32_MIN)
           data.size = 8;
         else if (data.ll < INT16_MIN)
