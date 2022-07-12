@@ -518,6 +518,16 @@ static size_t maxstrlen(int argc, char **argv) {
   return max;
 }
 
+
+// Change data item p of size bytes from big endian to little endian and vice versa
+static void change_endian(void *p, int size) {
+  uint8_t tmp, *w = p;
+
+  for(int i=0; i<size/2; i++)
+    tmp = w[i], w[i] = w[size-i-1], w[size-i-1] = tmp;
+}
+
+
 static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
 		     int argc, char * argv[])
 {
@@ -622,8 +632,12 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     .bytes_grown = 0,
     .size        = 0,
     .str_ptr     = NULL,
-    .ll = 0
+    .ull         = 1
   };
+
+  if(sizeof(long long) != sizeof(int64_t) || (data.a[0]^data.a[7]) != 1)
+    avrdude_message(MSG_INFO, "%s (write): assumption on data types not met? check source and recompile\n", progname);
+  bool is_big_endian = data.a[7];
 
   for (i = start_offset; i < len + start_offset; i++) {
     // Handle the next argument
@@ -767,6 +781,9 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
           return -1;
         }
       }
+      // ensure we have little endian representation in data.a
+      if(is_big_endian && data.size > 1)
+        change_endian(data.a, data.size);
     }
 
     if(data.str_ptr) {
