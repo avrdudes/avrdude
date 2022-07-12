@@ -1388,7 +1388,6 @@ char * terminal_get_input(const char *prompt)
 int terminal_mode(PROGRAMMER * pgm, struct avrpart * p)
 {
   char  * cmdbuf;
-  int     i;
   char  * q;
   int     rc;
   int     argc;
@@ -1414,10 +1413,12 @@ int terminal_mode(PROGRAMMER * pgm, struct avrpart * p)
       return argc;
     }
 
+#if 0
     fprintf(stdout, ">>> ");
-    for (i=0; i<argc; i++)
+    for (int i=0; i<argc; i++)
       fprintf(stdout, "%s ", argv[i]);
     fprintf(stdout, "\n");
+#endif
 
     /* run the command */
     rc = do_cmd(pgm, p, argc, argv);
