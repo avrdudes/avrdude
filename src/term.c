@@ -112,7 +112,7 @@ struct command cmd[] = {
   { "quit",  cmd_quit,  "quit" }
 };
 
-#define NCMDS (sizeof(cmd)/sizeof(struct command))
+#define NCMDS ((int)(sizeof(cmd)/sizeof(struct command)))
 
 
 
@@ -157,8 +157,8 @@ static int hexdump_line(char * buffer, unsigned char * p, int n, int pad)
 {
   char * hexdata = "0123456789abcdef";
   char * b = buffer;
-  int32_t i = 0;
-  int32_t j = 0;
+  int i = 0;
+  int j = 0;
 
   for (i=0; i<n; i++) {
     if (i && ((i % 8) == 0))
@@ -188,7 +188,7 @@ static int chardump_line(char * buffer, unsigned char * p, int n, int pad)
   int i;
   char b [ 128 ];
 
-  for (int32_t i = 0; i < n; i++) {
+  for (int i = 0; i < n; i++) {
     memcpy(b, p, n);
     buffer[i] = '.';
     if (isalpha((int)(b[i])) || isdigit((int)(b[i])) || ispunct((int)(b[i])))
@@ -211,10 +211,10 @@ static int hexdump_buf(FILE * f, int startaddr, unsigned char * buf, int len)
   char dst1[80];
   char dst2[80];
 
-  int32_t addr = startaddr;
+  int addr = startaddr;
   unsigned char * p = (unsigned char *)buf;
   while (len) {
-    int32_t n = 16;
+    int n = 16;
     if (n > len)
       n = len;
     hexdump_line(dst1, p, n, 48);
@@ -252,11 +252,11 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
       progname, memtype, p->desc);
     return -1;
   }
-  uint32_t maxsize = mem->size;
+  int maxsize = mem->size;
 
   // Get start address if present
   char * end_ptr;
-  static uint32_t addr = 0;
+  static int addr = 0;
 
   if (argc >= 3 && strcmp(argv[2], "...") != 0) {
     addr = strtoul(argv[2], &end_ptr, 0);
@@ -272,7 +272,7 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
   }
 
   // Get no. bytes to read if present
-  static int32_t len = read_size;
+  static int len = read_size;
   if (argc >= 3) {
     memset(prevmem, 0x00, sizeof(prevmem));
     if (strcmp(argv[argc - 1], "...") == 0) {
@@ -313,8 +313,8 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
   }
 
   report_progress(0, 1, "Reading");
-  for (uint32_t i = 0; i < len; i++) {
-    int32_t rc = pgm->read_byte(pgm, p, mem, addr + i, &buf[i]);
+  for (int i = 0; i < len; i++) {
+    int rc = pgm->read_byte(pgm, p, mem, addr + i, &buf[i]);
     if (rc != 0) {
       avrdude_message(MSG_INFO, "error reading %s address 0x%05lx of part %s\n",
         mem->desc, (long) addr + i, p->desc);
@@ -566,10 +566,10 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
 
-  int32_t i;
+  int i;
   uint8_t write_mode;       // Operation mode, "standard" or "fill"
   uint8_t start_offset;     // Which argc argument
-  int32_t len;              // Number of bytes to write to memory
+  int len;                  // Number of bytes to write to memory
   char * memtype = argv[1]; // Memory name string
   AVRMEM * mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
@@ -577,10 +577,10 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       memtype, p->desc);
     return -1;
   }
-  uint32_t maxsize = mem->size;
+  int maxsize = mem->size;
 
   char * end_ptr;
-  int32_t addr = strtoul(argv[2], &end_ptr, 0);
+  int addr = strtoul(argv[2], &end_ptr, 0);
   if (*end_ptr || (end_ptr == argv[2])) {
     avrdude_message(MSG_INFO, "%s (write): can't parse address %s\n",
       progname, argv[2]);
@@ -620,7 +620,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   // Structure related to data that is being written to memory
   struct Data {
     // Data info
-    int32_t bytes_grown;
+    int bytes_grown;
     uint8_t size;
     char * str_ptr;
     // Data union
@@ -789,7 +789,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     }
 
     if(data.str_ptr) {
-      for(int16_t j = 0; j < strlen(data.str_ptr); j++)
+      for(size_t j = 0; j < strlen(data.str_ptr); j++)
         buf[i - start_offset + data.bytes_grown++] = (uint8_t)data.str_ptr[j];
     } else {
       buf[i - start_offset + data.bytes_grown]     = data.a[0];
@@ -836,7 +836,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   bool werror = false;
   report_progress(0, 1, "Writing");
   for (i = 0; i < (len + data.bytes_grown); i++) {
-    int32_t rc = avr_write_byte(pgm, p, mem, addr+i, buf[i]);
+    int rc = avr_write_byte(pgm, p, mem, addr+i, buf[i]);
     if (rc) {
       avrdude_message(MSG_INFO, "%s (write): error writing 0x%02x at 0x%05lx, rc=%d\n",
         progname, buf[i], (long) addr+i, (int) rc);
@@ -960,7 +960,7 @@ static int cmd_sig(PROGRAMMER * pgm, struct avrpart * p,
   rc = avr_signature(pgm, p);
   if (rc != 0) {
     avrdude_message(MSG_INFO, "%s (sig): error reading signature data, rc=%d\n",
-      prgname, rc);
+      progname, rc);
   }
 
   m = avr_locate_mem(p, "signature");
