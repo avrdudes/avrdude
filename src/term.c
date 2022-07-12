@@ -92,13 +92,13 @@ static int cmd_verbose (PROGRAMMER * pgm, struct avrpart * p,
 		      int argc, char *argv[]);
 
 struct command cmd[] = {
-  { "dump",  cmd_dump,  "dump memory  : %s <memtype> <addr> <N-Bytes>" },
+  { "dump",  cmd_dump,  "%s <memory> [<addr> <len> | <addr> ... | <addr> | ...]" },
   { "read",  cmd_dump,  "alias for dump" },
-  { "write", cmd_write, "write memory : %s <memtype> <addr> <b1> <b2> ... <bN>" },
+  { "write", cmd_write, "%s <memory> <addr> [<data>[,] {<data>[,]} | <len> <data>[,] {<data>[,]} ...]" },
   { "erase", cmd_erase, "perform a chip erase" },
   { "sig",   cmd_sig,   "display device signature bytes" },
   { "part",  cmd_part,  "display the current part information" },
-  { "send",  cmd_send,  "send a raw command : %s <b1> <b2> <b3> <b4>" },
+  { "send",  cmd_send,  "send a raw command: %s <b1> <b2> <b3> <b4>" },
   { "parms", cmd_parms, "display adjustable parameters (STK500 and Curiosity Nano only)" },
   { "vtarg", cmd_vtarg, "set <V[target]> (STK500 and Curiosity Nano only)" },
   { "varef", cmd_varef, "set <V[aref]> (STK500 only)" },
@@ -1162,9 +1162,9 @@ static int cmd_help(PROGRAMMER * pgm, struct avrpart * p,
 {
   int i;
 
-  fprintf(stdout, "Valid commands:\n\n");
+  fprintf(stdout, "Valid commands:\n");
   for (i=0; i<NCMDS; i++) {
-    fprintf(stdout, "  %-6s : ", cmd[i].name);
+    fprintf(stdout, "  %-7s : ", cmd[i].name);
     fprintf(stdout, cmd[i].desc, cmd[i].name);
     fprintf(stdout, "\n");
   }
