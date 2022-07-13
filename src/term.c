@@ -124,19 +124,19 @@ static int spi_mode = 0;
 
 static int nexttok(char * buf, char ** tok, char ** next)
 {
-  char * q, * n;
+  unsigned char *q, *n;
 
-  q = buf;
-  while (isspace((int)*q))
+  q = (unsigned char *) buf;
+  while (isspace(*q))
     q++;
 
   /* isolate first token */
   n = q;
   uint8_t quotes = 0;
-  while (*n && (!isspace((int)*n) || quotes)) {
+  while (*n && (!isspace(*n) || quotes)) {
     if (*n == '\"')
       quotes++;
-    else if (isspace((int)*n) && *(n-1) == '\"')
+    else if (isspace(*n) && *(n-1) == '\"')
       break;
     n++;
   }
@@ -147,11 +147,11 @@ static int nexttok(char * buf, char ** tok, char ** next)
   }
 
   /* find start of next token */
-  while (isspace((int)*n))
+  while (isspace(*n))
     n++;
 
-  *tok  = q;
-  *next = n;
+  *tok  = (char *) q;
+  *next = (char *) n;
 
   return 0;
 }
@@ -190,14 +190,17 @@ static int hexdump_line(char * buffer, unsigned char * p, int n, int pad)
 static int chardump_line(char * buffer, unsigned char * p, int n, int pad)
 {
   int i;
-  char b [ 128 ];
+  unsigned char b[128];
 
+  // sanity check
+  n = n < 1? 1: n > sizeof b? sizeof b: n;
+
+  memcpy(b, p, n);
   for (int i = 0; i < n; i++) {
-    memcpy(b, p, n);
     buffer[i] = '.';
-    if (isalpha((int)(b[i])) || isdigit((int)(b[i])) || ispunct((int)(b[i])))
+    if (isalpha(b[i]) || isdigit(b[i]) || ispunct(b[i]))
       buffer[i] = b[i];
-    else if (isspace((int)(b[i])))
+    else if (isspace(b[i]))
       buffer[i] = ' ';
   }
 
@@ -344,7 +347,7 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
 
 
 // Convert the next n hex digits of s to a hex number
-static unsigned int tohex(const char *s, unsigned int n) {
+static unsigned int tohex(const unsigned char *s, unsigned int n) {
   int ret, c;
 
   ret = 0;
@@ -362,7 +365,7 @@ static unsigned int tohex(const char *s, unsigned int n) {
  * Permissive for some invalid unicode sequences but not for those with
  * high bit set). Returns numbers of characters written (0-6).
  */
-static int wc_to_utf8str(unsigned int wc, char *str) {
+static int wc_to_utf8str(unsigned int wc, unsigned char *str) {
   if(!(wc & ~0x7fu)) {
     *str = (char) wc;
     return 1;
@@ -406,8 +409,8 @@ static int wc_to_utf8str(unsigned int wc, char *str) {
 }
 
 // Unescape C-style strings, destination d must hold enough space (and can be source s)
-static char *unescape(char *d, const char *s) {
-  char *ret = d;
+static unsigned char *unescape(unsigned char *d, const unsigned char *s) {
+  unsigned char *ret = d;
   int n, k;
 
   while(*s) {
@@ -650,7 +653,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     // Data info
     int bytes_grown;
     uint8_t size;
-    char * str_ptr;
+    char *str_ptr;
     // Data union
     union {
       float f;
@@ -793,7 +796,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
           }
           // Strip start and end quotes, and unescape C string
           strncpy(s, argi+1, arglen-2);
-          unescape(s, s);
+          unescape((unsigned char *) s, (unsigned char *) s);
           if (*argi == '\'') { // Single C-style character
             if(*s && s[1])
               avrdude_message(MSG_INFO, "%s (write): only using first character of %s\n",
@@ -1463,7 +1466,7 @@ int terminal_mode(PROGRAMMER * pgm, struct avrpart * p)
      * find the start of the command, skipping any white space
      */
     q = cmdbuf;
-    while (*q && isspace((int)*q))
+    while (*q && isspace((unsigned char) *q))
       q++;
 
     /* skip blank lines and comments */
