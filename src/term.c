@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <unistd.h>
 #include <errno.h>
 
 #if defined(HAVE_LIBREADLINE)
@@ -343,7 +344,6 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
 
   return 0;
 }
-
 
 
 // Convert the next n hex digits of s to a hex number
@@ -1294,6 +1294,8 @@ static int cmd_quell(PROGRAMMER * pgm, struct avrpart * p,
 
   if(quell_progress > 0)
     update_progress = NULL;
+  else
+    terminal_setup_update_progress();
 
   return 0;
 }
@@ -1498,4 +1500,84 @@ int terminal_mode(PROGRAMMER * pgm, struct avrpart * p)
   }
 
   return rc;
+}
+
+
+static void update_progress_tty (int percent, double etime, char *hdr)
+{
+  static char hashes[51];
+  static char *header;
+  static int last = 0;
+  int i;
+
+  setvbuf(stderr, (char*)NULL, _IONBF, 0);
+
+  hashes[50] = 0;
+
+  memset (hashes, ' ', 50);
+  for (i=0; i<percent; i+=2) {
+    hashes[i/2] = '#';
+  }
+
+  if (hdr) {
+    avrdude_message(MSG_INFO, "\n");
+    last = 0;
+    header = hdr;
+  }
+
+  if (last == 0) {
+    avrdude_message(MSG_INFO, "\r%s | %s | %d%% %0.2fs",
+            header, hashes, percent, etime);
+  }
+
+  if (percent == 100) {
+    if (!last) avrdude_message(MSG_INFO, "\n\n");
+    last = 1;
+  }
+
+  setvbuf(stderr, (char*)NULL, _IOLBF, 0);
+}
+
+static void update_progress_no_tty (int percent, double etime, char *hdr)
+{
+  static int done = 0;
+  static int last = 0;
+  int cnt = (percent>>1)*2;
+
+  setvbuf(stderr, (char*)NULL, _IONBF, 0);
+
+  if (hdr) {
+    avrdude_message(MSG_INFO, "\n%s | ", hdr);
+    last = 0;
+    done = 0;
+  }
+  else {
+    while ((cnt > last) && (done == 0)) {
+      avrdude_message(MSG_INFO, "#");
+      cnt -=  2;
+    }
+  }
+
+  if ((percent == 100) && (done == 0)) {
+    avrdude_message(MSG_INFO, " | 100%% %0.2fs\n\n", etime);
+    last = 0;
+    done = 1;
+  }
+  else
+    last = (percent>>1)*2;    /* Make last a multiple of 2. */
+
+  setvbuf(stderr, (char*)NULL, _IOLBF, 0);
+}
+
+void terminal_setup_update_progress() {
+  if (isatty (STDERR_FILENO))
+    update_progress = update_progress_tty;
+  else {
+    update_progress = update_progress_no_tty;
+    /* disable all buffering of stderr for compatibility with
+       software that captures and redirects output to a GUI
+       i.e. Programmers Notepad */
+    setvbuf( stderr, NULL, _IONBF, 0 );
+    setvbuf( stdout, NULL, _IONBF, 0 );
+  }
 }

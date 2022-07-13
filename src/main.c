@@ -135,72 +135,6 @@ static void usage(void)
 }
 
 
-static void update_progress_tty (int percent, double etime, char *hdr)
-{
-  static char hashes[51];
-  static char *header;
-  static int last = 0;
-  int i;
-
-  setvbuf(stderr, (char*)NULL, _IONBF, 0);
-
-  hashes[50] = 0;
-
-  memset (hashes, ' ', 50);
-  for (i=0; i<percent; i+=2) {
-    hashes[i/2] = '#';
-  }
-
-  if (hdr) {
-    avrdude_message(MSG_INFO, "\n");
-    last = 0;
-    header = hdr;
-  }
-
-  if (last == 0) {
-    avrdude_message(MSG_INFO, "\r%s | %s | %d%% %0.2fs",
-            header, hashes, percent, etime);
-  }
-
-  if (percent == 100) {
-    if (!last) avrdude_message(MSG_INFO, "\n\n");
-    last = 1;
-  }
-
-  setvbuf(stderr, (char*)NULL, _IOLBF, 0);
-}
-
-static void update_progress_no_tty (int percent, double etime, char *hdr)
-{
-  static int done = 0;
-  static int last = 0;
-  int cnt = (percent>>1)*2;
-
-  setvbuf(stderr, (char*)NULL, _IONBF, 0);
-
-  if (hdr) {
-    avrdude_message(MSG_INFO, "\n%s | ", hdr);
-    last = 0;
-    done = 0;
-  }
-  else {
-    while ((cnt > last) && (done == 0)) {
-      avrdude_message(MSG_INFO, "#");
-      cnt -=  2;
-    }
-  }
-
-  if ((percent == 100) && (done == 0)) {
-    avrdude_message(MSG_INFO, " | 100%% %0.2fs\n\n", etime);
-    last = 0;
-    done = 1;
-  }
-  else
-    last = (percent>>1)*2;    /* Make last a multiple of 2. */
-
-  setvbuf(stderr, (char*)NULL, _IOLBF, 0);
-}
-
 static void list_programmers_callback(const char *name, const char *desc,
                                       const char *cfgname, int cfglineno,
                                       void *cookie)
@@ -759,18 +693,8 @@ int main(int argc, char * argv [])
   }
 #endif
 
-  if (quell_progress == 0) {
-    if (isatty (STDERR_FILENO))
-      update_progress = update_progress_tty;
-    else {
-      update_progress = update_progress_no_tty;
-      /* disable all buffering of stderr for compatibility with
-         software that captures and redirects output to a GUI
-         i.e. Programmers Notepad */
-      setvbuf( stderr, NULL, _IONBF, 0 );
-      setvbuf( stdout, NULL, _IONBF, 0 );
-    }
-  }
+  if (quell_progress == 0)
+    terminal_setup_update_progress();
 
   /*
    * Print out an identifying string so folks can tell what version
