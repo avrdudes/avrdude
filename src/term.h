@@ -35,6 +35,7 @@ typedef enum {
 int terminal_mode(PROGRAMMER * pgm, struct avrpart * p);
 char * terminal_get_input(const char *prompt);
 void terminal_setup_update_progress();
+int terminal_message(const int msglvl, const char *format, ...);
 
 #ifdef __cplusplus
 }
