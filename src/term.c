@@ -626,7 +626,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   }
 
   // Allocate a buffer guaranteed to be large enough
-  uint8_t * buf = calloc(mem->size + 0x10 + maxstrlen(argc-3, argv+3), sizeof(uint8_t));
+  uint8_t * buf = calloc(mem->size + sizeof(long double) + 8 + maxstrlen(argc-3, argv+3)+1, sizeof(uint8_t));
   if (buf == NULL) {
     terminal_message(MSG_INFO, "%s (write): out of memory\n", progname);
     return -1;
@@ -659,9 +659,10 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     union {
       float f;
       double d;
+      long double ld;
       int64_t ll;
       uint64_t ull;
-      uint8_t a[8];
+      uint8_t a[sizeof(long double) > 8? sizeof(long double): 8];
     };
   } data = {
     .bytes_grown = 0,
@@ -773,7 +774,13 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
         }
       }
 
-      if(!data.size) {          // Try double now that input was rejected as integer
+      if(!data.size) {          // Try long double now that input was rejected as integer
+        data.ld = strtold(argi, &end_ptr);
+        if (end_ptr != argi && toupper(*end_ptr) == 'L' && end_ptr[1] == 0)
+          data.size = sizeof(data.ld);
+      }
+
+      if(!data.size) {          // Try double
         data.d = strtod(argi, &end_ptr);
         // Do not accept valid mantissa-only doubles that are integer rejects (eg, 078 or ULL overflows)
         if (end_ptr != argi && *end_ptr == 0)
@@ -826,20 +833,10 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     if(data.str_ptr) {
       for(size_t j = 0; j < strlen(data.str_ptr); j++)
         buf[i - start_offset + data.bytes_grown++] = (uint8_t)data.str_ptr[j];
-    } else {
-      buf[i - start_offset + data.bytes_grown]     = data.a[0];
-      if (llabs(data.ll) > 0x000000FF || data.size >= 2)
-        buf[i - start_offset + ++data.bytes_grown] = data.a[1];
-      if (llabs(data.ll) > 0x0000FFFF || data.size >= 4) {
-        buf[i - start_offset + ++data.bytes_grown] = data.a[2];
-        buf[i - start_offset + ++data.bytes_grown] = data.a[3];
-      }
-      if (llabs(data.ll) > 0xFFFFFFFF || data.size == 8) {
-        buf[i - start_offset + ++data.bytes_grown] = data.a[4];
-        buf[i - start_offset + ++data.bytes_grown] = data.a[5];
-        buf[i - start_offset + ++data.bytes_grown] = data.a[6];
-        buf[i - start_offset + ++data.bytes_grown] = data.a[7];
-      }
+    } else if(data.size > 0) {
+      for(int k=0; k<data.size; k++)
+        buf[i - start_offset + data.bytes_grown + k] = data.a[k];
+      data.bytes_grown += data.size-1;
     }
 
     // Make sure buf does not overflow
