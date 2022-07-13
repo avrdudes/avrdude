@@ -1266,9 +1266,11 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
           parm[0] = PARM3_UPDI_HV_SIMPLE_PULSE;
           break;
         }
-        if (parm[0] == PARM3_UPDI_HV_NONE)
+        if (parm[0] == PARM3_UPDI_HV_NONE) {
           avrdude_message(MSG_INFO, "%s: %s does not support sending HV pulse to target %s\n",
             progname, pgm->desc, p->desc);
+          return -1;
+        }
       }
       if (jtag3_setparm(pgm, SCOPE_AVR, 3, PARM3_OPT_12V_UPDI_ENABLE, parm, 1) < 0)
         return -1;
