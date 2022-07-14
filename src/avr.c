@@ -858,15 +858,11 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
     /* setup for WORD_WRITE */
     avr_tpi_setup_rw(pgm, m, 0, TPI_NVMCMD_WORD_WRITE);
 
-    /* make sure it's aligned to a word boundary */
-    if (wsize & 0x1) {
-      wsize++;
-    }
-
     /* write words, low byte first */
     for (lastaddr = i = 0; i < wsize; i += 2) {
+      bool have_two_bytes = i + 1 < wsize;
       if ((m->tags[i] & TAG_ALLOCATED) != 0 ||
-          (m->tags[i + 1] & TAG_ALLOCATED) != 0) {
+          (have_two_bytes && m->tags[i + 1] & TAG_ALLOCATED) != 0) {
 
         if (lastaddr != i) {
           /* need to setup new address */
@@ -878,8 +874,11 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
         cmd[1] = m->buf[i];
         rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
 
-        cmd[1] = m->buf[i + 1];
-        rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+        if (have_two_bytes)
+        {
+          cmd[1] = m->buf[i + 1];
+          rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+        }
 
         lastaddr += 2;
 
@@ -887,7 +886,7 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
       }
       report_progress(i, wsize, NULL);
     }
-    return i;
+    return wsize;
   }
 
   if (pgm->paged_write != NULL && m->page_size > 1) {
