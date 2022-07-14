@@ -198,13 +198,9 @@ static int chardump_line(char * buffer, unsigned char * p, int n, int pad)
   n = n < 1? 1: n > sizeof b? sizeof b: n;
 
   memcpy(b, p, n);
-  for (int i = 0; i < n; i++) {
-    buffer[i] = '.';
-    if (isalpha(b[i]) || isdigit(b[i]) || ispunct(b[i]))
-      buffer[i] = b[i];
-    else if (isspace(b[i]))
-      buffer[i] = ' ';
-  }
+  for (int i = 0; i < n; i++)
+    buffer[i] = isascii(b[i]) && isspace(b[i])? ' ':
+      isascii(b[i]) && isgraph(b[i])? b[i]: '.';
 
   for (i = n; i < pad; i++)
     buffer[i] = ' ';
