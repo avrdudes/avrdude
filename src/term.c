@@ -573,15 +573,16 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       "\n"
       "Ellipsis ... writes <len> bytes padded by repeating the last <data> item.\n"
       "\n"
-      "<data> can be hexadecimal, octal or decimal integers, double, float or\n"
-      "C-style strings and chars. For integers, an optional case-insensitive suffix\n"
-      "specifies the data size: HH: 8 bit, H/S: 16 bit, L: 32 bit or LL: 64 bit.\n"
-      "Floating point types follow the C convention (add F for 32-bit float or L for\n"
-      "long double). Hexadecimal floating point notation is supported. The ambiguous\n"
-      "trailing F in 0x1.8F makes the number be interpreted as double; use a zero\n"
-      "exponent as in 0x1.8p0F to denote a hexadecimal float.\n"
+      "<data> can be hexadecimal, octal or decimal integers, floating point numbers\n"
+      "or C-style strings and characters. For integers, an optional case-insensitive\n"
+      "suffix specifies the data size: HH 8 bit, H/S 16 bit, L 32 bit, LL 64 bit.\n"
+      "Suffix D indicates a 64-bit double, F a 32-bit float, whilst a floating point\n"
+      "number without suffix  defaults to 32-bit float. Hexadecimal floating point\n"
+      "notation is supported. An ambiguous trailing suffix, eg, 0x1.8D, is read as\n"
+      "no-suffix float where D is part of the mantissa; use a zero exponent 0x1.8p0D\n"
+      "to clarify.\n"
       "\n"
-      "An optional U suffix makes a number unsigned. Ordinary 0x hex numbers are\n"
+      "An optional U suffix makes integers unsigned. Ordinary 0x hex integers are\n"
       "always treated as unsigned. +0x or -0x hex numbers are treated as signed\n"
       "unless they have a U suffix. Unsigned integers cannot be larger than 2^64-1.\n"
       "If n is an unsigned integer then -n is also a valid unsigned integer as in C.\n"
@@ -589,12 +590,12 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       "smaller range when a suffix specifies a smaller type. Out of range signed\n"
       "numbers trigger a warning.\n"
       "\n"
-      "Ordinary 0x hex numbers with n hex digits (counting leading zeros) use\n"
-      "the smallest size of 1, 2, 4 and 8 bytes that can accommodate any n-digit hex\n"
-      "number. If a suffix specifies a size explicitly the corresponding number of\n"
-      "least significant bytes are written. Otherwise, signed and unsigned integers\n"
-      "alike occupy the smallest of 1, 2, 4, or 8 bytes needed to accommodate them\n"
-      "in their respective representation.\n"
+      "Ordinary 0x hex integers with n hex digits (counting leading zeros) use the\n"
+      "smallest size of 1, 2, 4 and 8 bytes that can accommodate any n-digit hex\n"
+      "integer. If an integer suffix specifies a size explicitly the corresponding\n"
+      "number of least significant bytes are written. Otherwise, signed and unsigned\n"
+      "integers alike occupy the smallest of 1, 2, 4, or 8 bytes needed to\n"
+      "accommodate them in their respective representation.\n"
     );
     return -1;
   }
@@ -627,7 +628,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   }
 
   // Allocate a buffer guaranteed to be large enough
-  uint8_t * buf = calloc(mem->size + sizeof(long double) + 8 + maxstrlen(argc-3, argv+3)+1, sizeof(uint8_t));
+  uint8_t * buf = calloc(mem->size + 8 + maxstrlen(argc-3, argv+3)+1, sizeof(uint8_t));
   if (buf == NULL) {
     terminal_message(MSG_INFO, "%s (write): out of memory\n", progname);
     return -1;
@@ -660,10 +661,9 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     union {
       float f;
       double d;
-      long double ld;
       int64_t ll;
       uint64_t ull;
-      uint8_t a[sizeof(long double) > 8? sizeof(long double): 8];
+      uint8_t a[8];
     };
   } data = {
     .bytes_grown = 0,
@@ -775,24 +775,20 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
         }
       }
 
-      if(!data.size) {          // Try long double now that input was rejected as integer
-        data.ld = strtold(argi, &end_ptr);
-        if (end_ptr != argi && toupper(*end_ptr) == 'L' && end_ptr[1] == 0)
-          data.size = sizeof(data.ld);
-      }
-
-      if(!data.size) {          // Try double
+      if(!data.size) {          // Try double now that input was rejected as integer
         data.d = strtod(argi, &end_ptr);
-        // Do not accept valid mantissa-only doubles that are integer rejects (eg, 078 or ULL overflows)
-        if (end_ptr != argi && *end_ptr == 0)
-          if (!is_mantissa_only(argi))
-            data.size = 8;
+        if (end_ptr != argi && toupper(*end_ptr) == 'D' && end_ptr[1] == 0)
+          data.size = 8;
       }
 
       if(!data.size) {          // Try float
         data.f = strtof(argi, &end_ptr);
         if (end_ptr != argi && toupper(*end_ptr) == 'F' && end_ptr[1] == 0)
           data.size = 4;
+        if (end_ptr != argi && *end_ptr == 0) // no suffix defaults to float but ...
+        // ... do not accept valid mantissa-only floats that are integer rejects (eg, 078 or ULL overflows)
+          if (!is_mantissa_only(argi))
+            data.size = 4;
       }
 
       if(!data.size) {          // Try C-style string or single character
