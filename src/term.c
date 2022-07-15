@@ -136,9 +136,12 @@ static int nexttok(char * buf, char ** tok, char ** next)
   n = q;
   uint8_t quotes = 0;
   while (*n && (!isspace(*n) || quotes)) {
-    if (*n == '\"')
+    // poor man's quote and escape processing
+    if (*n == '"' || *n == '\'')
       quotes++;
-    else if (isspace(*n) && *(n-1) == '\"')
+    else if(*n == '\\' && n[1])
+      n++;
+    else if (isspace(*n) && (n > q+1) && (n[-1] == '"' || n[-1] == '\''))
       break;
     n++;
   }
@@ -787,7 +790,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
             data.size = 4;
       }
 
-      if(!data.size) {          // Try C-style string or single character
+      if(!data.size && arglen > 1) { // Try C-style string or single character
         if ((*argi == '\'' && argi[arglen-1] == '\'') || (*argi == '\"' && argi[arglen-1] == '\"')) {
           char *s = calloc(arglen-1, 1);
           if (s == NULL) {
