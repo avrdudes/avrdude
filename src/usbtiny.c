@@ -657,15 +657,39 @@ static int usbtiny_paged_load (PROGRAMMER * pgm, AVRPART * p, AVRMEM* m,
                                unsigned int addr, unsigned int n_bytes)
 {
   unsigned int maxaddr = addr + n_bytes;
-  int chunk;
-  int function;
-
+  int chunk, function;
+  OPCODE *lext, *readop;
+  unsigned char cmd[8];
 
   // First determine what we're doing
-  if (strcmp( m->desc, "flash" ) == 0) {
-    function = USBTINY_FLASH_READ;
-  } else {
-    function = USBTINY_EEPROM_READ;
+  function = strcmp(m->desc, "eeprom")==0?
+    USBTINY_EEPROM_READ: USBTINY_FLASH_READ;
+
+  // paged_load() only called for pages, so OK to set ext addr once at start
+  if((lext = m->op[AVR_OP_LOAD_EXT_ADDR])) {
+    memset(cmd, 0, sizeof(cmd));
+    avr_set_bits(lext, cmd);
+    avr_set_addr(lext, cmd, addr/2);
+    if(pgm->cmd(pgm, cmd, cmd+4) < 0)
+      return -1;
+  }
+
+  // Byte acces as work around to correctly read flash above 64 kiB
+  if(function == USBTINY_FLASH_READ && addr >= 0x10000) {
+    for(unsigned int i=0; i<n_bytes; i++, addr++) {
+      if(!(readop = m->op[addr&1? AVR_OP_READ_HI: AVR_OP_READ_LO]))
+        return -1;
+
+      memset(cmd, 0, sizeof(cmd));
+      avr_set_bits(readop, cmd);
+      avr_set_addr(readop, cmd, addr/2);
+      if(pgm->cmd(pgm, cmd, cmd+4) < 0)
+        return -1;
+      m->buf[addr] = 0;
+      avr_get_output(readop, cmd+4, m->buf + addr);
+    }
+
+    return n_bytes;
   }
 
   for (; addr < maxaddr; addr += chunk) {
