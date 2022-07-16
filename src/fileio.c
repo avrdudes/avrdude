@@ -59,10 +59,11 @@ struct ihexrec {
 
 static int b2ihex(unsigned char * inbuf, int bufsize, 
              int recsize, int startaddr,
-             char * outfile, FILE * outf);
+             char * outfile, FILE * outf, FILEFMT ffmt);
 
 static int ihex2b(char * infile, FILE * inf,
-             AVRMEM * mem, int bufsize, unsigned int fileoffset);
+             AVRMEM * mem, int bufsize, unsigned int fileoffset,
+             FILEFMT ffmt);
 
 static int b2srec(unsigned char * inbuf, int bufsize, 
            int recsize, int startaddr,
@@ -79,7 +80,8 @@ static int fileio_rbin(struct fioparms * fio,
                   char * filename, FILE * f, AVRMEM * mem, int size);
 
 static int fileio_ihex(struct fioparms * fio, 
-                  char * filename, FILE * f, AVRMEM * mem, int size);
+                  char * filename, FILE * f, AVRMEM * mem, int size,
+                  FILEFMT ffmt);
 
 static int fileio_srec(struct fioparms * fio,
                   char * filename, FILE * f, AVRMEM * mem, int size);
@@ -108,6 +110,7 @@ char * fmtstr(FILEFMT format)
     case FMT_AUTO : return "auto-detect"; break;
     case FMT_SREC : return "Motorola S-Record"; break;
     case FMT_IHEX : return "Intel Hex"; break;
+    case FMT_IHXC : return "Intel Hex with comments"; break;
     case FMT_RBIN : return "raw binary"; break;
     case FMT_ELF  : return "ELF"; break;
     default       : return "invalid format"; break;
@@ -115,10 +118,9 @@ char * fmtstr(FILEFMT format)
 }
 
 
-
 static int b2ihex(unsigned char * inbuf, int bufsize, 
            int recsize, int startaddr,
-           char * outfile, FILE * outf)
+           char * outfile, FILE * outf, FILEFMT ffmt)
 {
   unsigned char * buf;
   unsigned int nextaddr;
@@ -154,8 +156,20 @@ static int b2ihex(unsigned char * inbuf, int bufsize,
         cksum += buf[i];
       }
       cksum = -cksum;
-      fprintf(outf, "%02X\n", cksum);
-      
+      fprintf(outf, "%02X", cksum);
+
+      if(ffmt == FMT_IHXC) { /* Print comment with address and ASCII dump */
+        for(i=n; i<recsize; i++)
+          fprintf(outf, "  ");
+        fprintf(outf, " // %05x> ", n_64k*0x10000 + nextaddr);
+        for (i=0; i<n; i++) {
+          unsigned char c = buf[i] & 0x7f;
+          /* Print space as _ so that line is one word */
+          putc(c == ' '? '_': c < ' ' || c == 0x7f? '.': c, outf);
+        }
+      }
+      putc('\n', outf);
+
       nextaddr += n;
       nbytes   += n;
     }
@@ -283,7 +297,8 @@ static int ihex_readrec(struct ihexrec * ihex, char * rec)
  *
  * */
 static int ihex2b(char * infile, FILE * inf,
-             AVRMEM * mem, int bufsize, unsigned int fileoffset)
+             AVRMEM * mem, int bufsize, unsigned int fileoffset,
+             FILEFMT ffmt)
 {
   char buffer [ MAX_LINE_LEN ];
   unsigned int nextaddr, baseaddr, maxaddr;
@@ -312,11 +327,18 @@ static int ihex2b(char * infile, FILE * inf,
       return -1;
     }
     else if (rc != ihex.cksum) {
-      avrdude_message(MSG_INFO, "%s: ERROR: checksum mismatch at line %d of \"%s\"\n",
-              progname, lineno, infile);
-      avrdude_message(MSG_INFO, "%s: checksum=0x%02x, computed checksum=0x%02x\n",
-              progname, ihex.cksum, rc);
-      return -1;
+      if(ffmt == FMT_IHEX) {
+        avrdude_message(MSG_INFO, "%s: ERROR: checksum mismatch at line %d of \"%s\"\n",
+                progname, lineno, infile);
+        avrdude_message(MSG_INFO, "%s: checksum=0x%02x, computed checksum=0x%02x\n",
+                progname, ihex.cksum, rc);
+        return -1;
+      } else {                  /* Just warn with more permissive format FMT_IHXC */
+        avrdude_message(MSG_NOTICE, "%s: warning: checksum mismatch at line %d of \"%s\"\n",
+                progname, lineno, infile);
+        avrdude_message(MSG_NOTICE, "%s: checksum=0x%02x, computed checksum=0x%02x\n",
+                progname, ihex.cksum, rc);
+      }
     }
 
     switch (ihex.rectyp) {
@@ -1152,21 +1174,22 @@ static int fileio_imm(struct fioparms * fio,
 }
 
 
-static int fileio_ihex(struct fioparms * fio, 
-                  char * filename, FILE * f, AVRMEM * mem, int size)
+static int fileio_ihex(struct fioparms * fio,
+                  char * filename, FILE * f, AVRMEM * mem, int size,
+                  FILEFMT ffmt)
 {
   int rc;
 
   switch (fio->op) {
     case FIO_WRITE:
-      rc = b2ihex(mem->buf, size, 32, fio->fileoffset, filename, f);
+      rc = b2ihex(mem->buf, size, 32, fio->fileoffset, filename, f, ffmt);
       if (rc < 0) {
         return -1;
       }
       break;
 
     case FIO_READ:
-      rc = ihex2b(filename, f, mem, size, fio->fileoffset);
+      rc = ihex2b(filename, f, mem, size, fio->fileoffset, ffmt);
       if (rc < 0)
         return -1;
       break;
@@ -1547,7 +1570,8 @@ int fileio(int oprwv, char * filename, FILEFMT format,
 
   switch (format) {
     case FMT_IHEX:
-      rc = fileio_ihex(&fio, fname, f, mem, size);
+    case FMT_IHXC:
+      rc = fileio_ihex(&fio, fname, f, mem, size, format);
       break;
 
     case FMT_SREC:

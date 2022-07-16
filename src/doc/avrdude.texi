@@ -768,6 +768,9 @@ the file to read or write.  Possible values are:
 @item i
 Intel Hex
 
+@item I
+Intel Hex with comments on download and tolerance of checksum errors on upload
+
 @item s
 Motorola S-record
 

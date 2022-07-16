@@ -822,7 +822,8 @@ typedef enum {
   FMT_DEC,
   FMT_OCT,
   FMT_BIN,
-  FMT_ELF
+  FMT_ELF,
+  FMT_IHXC,
 } FILEFMT;
 
 struct fioparms {
