@@ -1058,7 +1058,7 @@ static int jtagmkI_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 {
   unsigned char cmd[6], datacmd[1 * 2 + 1];
   unsigned char resp[1], writedata;
-  int len, need_progmode = 1;
+  int len, need_progmode = 1, need_dummy_read = 0;
 
   avrdude_message(MSG_NOTICE2, "%s: jtagmkI_write_byte(.., %s, 0x%lx, ...)\n",
 	    progname, mem->desc, addr);
@@ -1075,17 +1075,22 @@ static int jtagmkI_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if (strcmp(mem->desc, "lfuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
+    need_dummy_read = 1;
     addr = 0;
   } else if (strcmp(mem->desc, "hfuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
+    need_dummy_read = 1;
     addr = 1;
   } else if (strcmp(mem->desc, "efuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
+    need_dummy_read = 1;
     addr = 2;
   } else if (strcmp(mem->desc, "lock") == 0) {
     cmd[1] = MTYPE_LOCK_BITS;
+    need_dummy_read = 1;
   } else if (strcmp(mem->desc, "calibration") == 0) {
     cmd[1] = MTYPE_OSCCAL_BYTE;
+    need_dummy_read = 1;
   } else if (strcmp(mem->desc, "signature") == 0) {
     cmd[1] = MTYPE_SIGN_JTAG;
   }
@@ -1154,6 +1159,8 @@ static int jtagmkI_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
       avrdude_message(MSG_NOTICE2, "OK\n");
   }
 
+  if(need_dummy_read)
+    jtagmkI_recv(pgm, resp, 1);
   return 0;
 }
 
