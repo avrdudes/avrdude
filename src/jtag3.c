@@ -71,6 +71,9 @@ struct pdata
   /* Start address of Xmega boot area */
   unsigned long boot_start;
 
+  /* Flag for triggering HV UPDI */
+  bool use_hvupdi;
+
   /* Function to set the appropriate clock parameter */
   int (*set_sck)(PROGRAMMER *, unsigned char *);
 };
@@ -1204,6 +1207,7 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
 
     u16_to_b2(xd.nvm_base_addr, p->nvm_base);
     u16_to_b2(xd.ocd_base_addr, p->ocd_base);
+    xd.hvupdi_variant = p->hvupdi_variant;
 
     for (ln = lfirst(p->mem); ln; ln = lnext(ln))
     {
@@ -1256,6 +1260,29 @@ static int jtag3_initialize(PROGRAMMER * pgm, AVRPART * p)
       {
         u16_to_b2(xd.lockbits_base, m->offset);
       }
+    }
+
+    // Generate UPDI high-voltage pulse if user asks for it and hardware supports it
+    LNODEID support;
+    if (p->flags & AVRPART_HAS_UPDI &&
+        PDATA(pgm)->use_hvupdi == true &&
+        p->hvupdi_variant != HV_UPDI_VARIANT_1) {
+      parm[0] = PARM3_UPDI_HV_NONE;
+      for (support = lfirst(pgm->hvupdi_support); support != NULL; support = lnext(support)) {
+        if(*(int *) ldata(support) == p->hvupdi_variant) {
+          avrdude_message(MSG_NOTICE, "%s: Sending HV pulse to targets %s pin\n",
+            progname, p->hvupdi_variant == HV_UPDI_VARIANT_0 ? "UPDI" : "RESET");
+          parm[0] = PARM3_UPDI_HV_SIMPLE_PULSE;
+          break;
+        }
+        if (parm[0] == PARM3_UPDI_HV_NONE) {
+          avrdude_message(MSG_INFO, "%s: %s does not support sending HV pulse to target %s\n",
+            progname, pgm->desc, p->desc);
+          return -1;
+        }
+      }
+      if (jtag3_setparm(pgm, SCOPE_AVR, 3, PARM3_OPT_12V_UPDI_ENABLE, parm, 1) < 0)
+        return -1;
     }
 
     u16_to_b2(xd.default_min_div1_voltage, DEFAULT_MINIMUM_CHARACTERISED_DIV1_VOLTAGE_MV);
@@ -1483,6 +1510,12 @@ static int jtag3_parseextparms(PROGRAMMER * pgm, LISTID extparms)
       continue;
     }
 
+    else if ((strcmp(extended_param, "hvupdi") == 0) &&
+             (lsize(pgm->hvupdi_support) > 1)) {
+      PDATA(pgm)->use_hvupdi = true;
+      continue;
+    }
+
     avrdude_message(MSG_INFO, "%s: jtag3_parseextparms(): invalid extended parameter '%s'\n",
                     progname, extended_param);
     rv = -1;
@@ -1629,6 +1662,12 @@ static int jtag3_open_pdi(PROGRAMMER * pgm, char * port)
 static int jtag3_open_updi(PROGRAMMER * pgm, char * port)
 {
   avrdude_message(MSG_NOTICE2, "%s: jtag3_open_updi()\n", progname);
+
+  LNODEID ln;
+  avrdude_message(MSG_NOTICE2, "%s: HV UPDI support:", progname);
+  for (ln = lfirst(pgm->hvupdi_support); ln; ln = lnext(ln))
+    avrdude_message(MSG_NOTICE2, " %d", *(int *) ldata(ln));
+  avrdude_message(MSG_NOTICE2, "\n", progname);
 
   if (jtag3_open_common(pgm, port) < 0)
     return -1;
@@ -2606,6 +2645,7 @@ void jtag3_updi_initpgm(PROGRAMMER * pgm)
    * mandatory functions
    */
   pgm->initialize     = jtag3_initialize;
+  pgm->parseextparams = jtag3_parseextparms;
   pgm->display        = jtag3_display;
   pgm->enable         = jtag3_enable;
   pgm->disable        = jtag3_disable;

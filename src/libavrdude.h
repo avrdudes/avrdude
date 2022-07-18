@@ -198,6 +198,10 @@ typedef struct opcode {
 #define AVRPART_IS_AT90S1200   0x1000  /* part is an AT90S1200 (needs special treatment) */
 #define AVRPART_HAS_UPDI       0x2000  /* part has UPDI i/f (AVR8X) */
 
+#define HV_UPDI_VARIANT_0      0 /* Shared UPDI/GPIO/RESET pin, HV on UPDI pin (tinyAVR0/1/2)*/
+#define HV_UPDI_VARIANT_1      1 /* Dedicated UPDI pin, no HV (megaAVR0/AVR-Dx) */
+#define HV_UPDI_VARIANT_2      2 /* Shared UPDI pin, HV on _RESET (AVR-Ex) */
+
 #define AVR_DESCLEN 64
 #define AVR_IDLEN   32
 #define AVR_FAMILYIDLEN 7
@@ -212,6 +216,7 @@ typedef struct avrpart {
   char          desc[AVR_DESCLEN];  /* long part name */
   char          id[AVR_IDLEN];      /* short part name */
   char          family_id[AVR_FAMILYIDLEN+1]; /* family id in the SIB (avr8x) */
+  int           hvupdi_variant;     /* HV pulse on UPDI pin, no pin or RESET pin */
   int           stk500_devcode;     /* stk500 device code */
   int           avr910_devcode;     /* avr910 device code */
   int           chip_erase_delay;   /* microseconds */
@@ -725,6 +730,7 @@ typedef struct programmer_t {
   int  lineno;                /* config file line number */
   void *cookie;		      /* for private use by the programmer */
   char flag;		      /* for private use of the programmer */
+  LISTID hvupdi_support;  /* List of UPDI HV variants the tool supports. See HV_UPDI_VARIANT_ */
 } PROGRAMMER;
 
 #ifdef __cplusplus

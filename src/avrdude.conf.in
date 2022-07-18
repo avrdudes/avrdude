@@ -40,6 +40,7 @@
 #       usbvendor = <vendorname>;                   # USB Vendor Name
 #       usbproduct = <productname>;                 # USB Product Name
 #       usbsn    = <serialno>;                      # USB Serial Number
+#       hvupdi_support = <num> [, <num>, ... ] ;    # UPDI HV Variants Support
 #
 #        To invert a bit, use = ~ <num>, the spaces are important.
 #        For a pin list all pins must be inverted.
@@ -631,6 +632,7 @@ programmer
   desc  = "SerialUPDI";
   type  = "serialupdi";
   connection_type = serial;
+  hvupdi_support = 1;
 ;
 
 programmer
@@ -1178,6 +1180,7 @@ programmer
   type  = "jtagice3_updi";
   connection_type = usb;
   usbpid = 0x2110, 0x2140;
+  hvupdi_support = 1;
 ;
 
 programmer
@@ -1210,6 +1213,7 @@ programmer
   type  = "jtagice3_updi";
   connection_type = usb;
   usbpid = 0x2111;
+  hvupdi_support = 1;
 ;
 
 programmer
@@ -1234,6 +1238,7 @@ programmer
   type  = "jtagice3_updi";
   connection_type = usb;
   usbpid = 0x2145;
+  hvupdi_support = 1;
 ;
 
 programmer
@@ -1258,6 +1263,7 @@ programmer
   type  = "jtagice3_updi";
   connection_type = usb;
   usbpid = 0x2141;
+  hvupdi_support = 1;
 ;
 
 programmer
@@ -1298,6 +1304,7 @@ programmer
   type  = "jtagice3_updi";
   connection_type = usb;
   usbpid = 0x2144;
+  hvupdi_support = 0, 1;
 ;
 
 programmer
@@ -1322,6 +1329,7 @@ programmer
   type  = "jtagice3_updi";
   connection_type = usb;
   usbpid = 0x2177, 0x2178, 0x2179;
+  hvupdi_support = 0, 1, 2;
 ;
 
 programmer
@@ -1346,6 +1354,7 @@ programmer
   type  = "jtagice3_updi";
   connection_type = usb;
   usbpid = 0x217F, 0x2180, 0x2181;
+  hvupdi_support = 1;
 ;
 
 programmer
@@ -1370,6 +1379,7 @@ programmer
   type  = "jtagice3_updi";
   connection_type = usb;
   usbpid = 0x2175;
+  hvupdi_support = 1;
 ;
 
 programmer
@@ -1739,6 +1749,7 @@ programmer
   type  = "jtagmkii_pdi";
   connection_type = serial;
   baudrate = 115200;
+  hvupdi_support = 1;
 ;
 
 #
@@ -17124,13 +17135,15 @@ part
 # AVR8X tiny family common values
 #------------------------------------------------------------
 
-part parent    ".avr8x"
-    id			= ".avr8x_tiny";
-    desc		= "AVR8X tiny family common values";
-    family_id	= "tinyAVR";
+part parent ".avr8x"
+    id			       = ".avr8x_tiny";
+    desc		       = "AVR8X tiny family common values";
+    family_id      = "tinyAVR";
+    # Shared UPDI pin, HV on UPDI pin
+    hvupdi_variant = 0;
 
     memory "userrow"
-        size		= 0x20;
+        size	  	= 0x20;
         offset		= 0x1300;
         page_size	= 0x20;
         readsize	= 0x100;
@@ -17145,13 +17158,15 @@ part parent    ".avr8x"
 # AVR8X mega family common values
 #------------------------------------------------------------
 
-part parent    ".avr8x"
-    id			= ".avr8x_mega";
-    desc		= "AVR8X mega family common values";
-    family_id	= "megaAVR";
+part parent ".avr8x"
+    id			       = ".avr8x_mega";
+    desc		       = "AVR8X mega family common values";
+    family_id	     = "megaAVR";
+    # Dedicated UPDI pin, no HV
+    hvupdi_variant = 1;
 
     memory "userrow"
-        size		= 0x40;
+        size		  = 0x40;
         offset		= 0x1300;
         page_size	= 0x40;
         readsize	= 0x100;
@@ -18250,11 +18265,13 @@ part parent    ".avr8x_mega"
 #------------------------------------------------------------
 
 part
-    id		= ".avrdx";
-    desc	= "AVR-Dx family common values";
-    has_updi	= yes;
-    nvm_base	= 0x1000;
-    ocd_base	= 0x0F80;
+    id             = ".avrdx";
+    desc           = "AVR-Dx family common values";
+    has_updi       = yes;
+    nvm_base       = 0x1000;
+    ocd_base       = 0x0F80;
+    # Dedicated UPDI pin, no HV
+    hvupdi_variant = 1;
 
     memory "signature"
         size		= 3;
@@ -18936,6 +18953,7 @@ part parent    ".avrdx"
     id        = "avr16dd14";
     desc      = "AVR16DD14";
     signature = 0x1E 0x94 0x34;
+    hvupdi_variant = 2;
 
     memory "flash"
         size      = 0x4000;
@@ -18960,6 +18978,7 @@ part parent    ".avrdx"
     id        = "avr16dd20";
     desc      = "AVR16DD20";
     signature = 0x1E 0x94 0x33;
+    hvupdi_variant = 2;
 
     memory "flash"
         size      = 0x4000;
@@ -18984,6 +19003,7 @@ part parent    ".avrdx"
     id        = "avr16dd28";
     desc      = "AVR16DD28";
     signature = 0x1E 0x94 0x32;
+    hvupdi_variant = 2;
 
     memory "flash"
         size      = 0x4000;
@@ -19008,6 +19028,7 @@ part parent    ".avrdx"
     id        = "avr16dd32";
     desc      = "AVR16DD32";
     signature = 0x1E 0x94 0x31;
+    hvupdi_variant = 2;
 
     memory "flash"
         size      = 0x4000;
@@ -19032,6 +19053,7 @@ part parent    ".avrdx"
     id        = "avr32dd14";
     desc      = "AVR32DD14";
     signature = 0x1E 0x95 0x3B;
+    hvupdi_variant = 2;
 
     memory "flash"
         size      = 0x8000;
@@ -19056,6 +19078,7 @@ part parent    ".avrdx"
     id        = "avr32dd20";
     desc      = "AVR32DD20";
     signature = 0x1E 0x95 0x3A;
+    hvupdi_variant = 2;
 
     memory "flash"
         size      = 0x8000;
@@ -19080,6 +19103,7 @@ part parent    ".avrdx"
     id        = "avr32dd28";
     desc      = "AVR32DD28";
     signature = 0x1E 0x95 0x39;
+    hvupdi_variant = 2;
 
     memory "flash"
         size      = 0x8000;
@@ -19104,6 +19128,7 @@ part parent    ".avrdx"
     id        = "avr32dd32";
     desc      = "AVR32DD32";
     signature = 0x1E 0x95 0x38;
+    hvupdi_variant = 2;
 
     memory "flash"
         size      = 0x8000;
@@ -19128,6 +19153,7 @@ part parent    ".avrdx"
     id        = "avr64dd14";
     desc      = "AVR64DD14";
     signature = 0x1E 0x96 0x1D;
+    hvupdi_variant = 2;
 
     memory "flash"
         size      = 0x10000;
@@ -19152,6 +19178,7 @@ part parent    ".avrdx"
     id        = "avr64dd20";
     desc      = "AVR64DD20";
     signature = 0x1E 0x96 0x1C;
+    hvupdi_variant = 2;
 
     memory "flash"
         size      = 0x10000;
@@ -19176,6 +19203,7 @@ part parent    ".avrdx"
     id        = "avr64dd28";
     desc      = "AVR64DD28";
     signature = 0x1E 0x96 0x1B;
+    hvupdi_variant = 2;
 
     memory "flash"
         size      = 0x10000;
@@ -19200,6 +19228,7 @@ part parent    ".avrdx"
     id        = "avr64dd32";
     desc      = "AVR64DD32";
     signature = 0x1E 0x96 0x1A;
+    hvupdi_variant = 2;
 
     memory "flash"
         size      = 0x10000;
@@ -19220,9 +19249,11 @@ part parent    ".avrdx"
 # AVR-Ex family common values
 #------------------------------------------------------------
 
-part parent    ".avrdx"
-    id			= ".avrex";
-    desc		= "AVR-Ex family common values";
+part parent ".avrdx"
+    id			       = ".avrex";
+    desc		       = "AVR-Ex family common values";
+    # Shared UPDI pin, HV on _RESET
+    hvupdi_variant = 2;
 
     memory "userrow"
         size      = 0x40;

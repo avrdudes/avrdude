@@ -180,7 +180,7 @@ has a revision 1 hardware and firmware version of at least 5.37 (decimal).
 For ATxmega devices, the JTAGICE3 is supported in PDI mode.
 .Pp
 Atmel-ICE (ARM/AVR) is supported in all modes (JTAG, PDI for Xmega, debugWIRE,
-ISP).
+ISP, UPDI).
 .Pp
 Atmel's XplainedPro boards, using the EDBG protocol (CMSIS-DAP compatible),
 are supported using the "jtag3" programmer type.
@@ -226,7 +226,7 @@ thus the name
 SerialUPDI programmer implementation is based on Microchip's
 .Em pymcuprog Li https://github.com/microchip-pic-avr-tools/pymcuprog
 utility, but it also contains some performance improvements included in
-Spence Kohde's
+Spence Konde's
 .Em DxCore
 Arduino core
 .Li https://github.com/SpenceKonde/DxCore .
@@ -978,9 +978,13 @@ versions of the bootloader.
 .It Ar JTAG ICE mkII
 .It Ar JTAGICE3
 .It Ar Atmel-ICE
+.It Ar Power Debugger
+.It Ar PICkit 4
+.It Ar MPLAB SNAP
 .It Ar AVR Dragon
-When using the JTAG ICE mkII, JTAGICE3, Atmel-ICE or AVR Dragon in JTAG mode, the
-following extended parameter is accepted:
+When using the JTAG ICE mkII, JTAGICE3, Atmel-ICE, PICkit 4, MPLAB SNAP,
+Power Debugger or AVR Dragon in JTAG mode, the following extended parameter
+is accepted:
 .Bl -tag -offset indent -width indent
 .It Ar jtagchain=UB,UA,BB,BA
 Setup the JTAG scan chain for
@@ -994,6 +998,14 @@ bits before, and
 bits after the target AVR, respectively.
 Each AVR unit within the chain shifts by 4 bits.
 Other JTAG units might require a different bit shift count.
+.El
+.Pp
+The PICkit 4 and the Power Debugger also supports high-voltage UPDI programming.
+This is used to enable a UPDI pin that has previously been set to RESET or
+GPIO mode. High-voltage UPDI can be utilized by using an extended parameter:
+.Bl -tag -offset indent -width indent
+.It Ar hvupdi
+Enable high-voltage UPDI initialization for targets that supports this.
 .El
 .It Ar AVR910
 .Bl -tag -offset indent -width indent

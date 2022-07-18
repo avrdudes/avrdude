@@ -573,6 +573,7 @@ AVRPART * avr_new_part(void)
   memset(p->signature, 0xFF, 3);
   p->ctl_stack_type = CTL_STACK_NONE;
   p->ocdrev = -1;
+  p->hvupdi_variant = -1;
 
   p->mem = lcreat(NULL, 0);
   p->mem_alias = lcreat(NULL, 0);
