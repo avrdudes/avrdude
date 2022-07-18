@@ -79,8 +79,11 @@ static int pin_name;
 %token K_DEFAULT_PARALLEL
 %token K_DEFAULT_PROGRAMMER
 %token K_DEFAULT_SERIAL
+%token K_DEFAULT_SPI
 %token K_DESC
 %token K_FAMILY_ID
+%token K_HVUPDI_SUPPORT
+%token K_HVUPDI_VARIANT
 %token K_DEVICECODE
 %token K_STK500_DEVCODE
 %token K_AVR910_DEVCODE
@@ -115,6 +118,7 @@ static int pin_name;
 %token K_RESET
 %token K_RETRY_PULSE
 %token K_SERIAL
+%token K_SPI
 %token K_SCK
 %token K_SIGNATURE
 %token K_SIZE
@@ -251,6 +255,12 @@ def :
   K_DEFAULT_SERIAL TKN_EQUAL TKN_STRING TKN_SEMI {
     strncpy(default_serial, $3->value.string, PATH_MAX);
     default_serial[PATH_MAX-1] = 0;
+    free_token($3);
+  } |
+
+  K_DEFAULT_SPI TKN_EQUAL TKN_STRING TKN_SEMI {
+    strncpy(default_spi, $3->value.string, PATH_MAX);
+    default_spi[PATH_MAX-1] = 0;
     free_token($3);
   } |
 
@@ -475,7 +485,8 @@ prog_parm :
       current_prog->baudrate = $3->value.number;
       free_token($3);
     }
-  }
+  } |
+  prog_parm_updi
 ;
 
 prog_parm_type:
@@ -507,7 +518,8 @@ prog_parm_conntype:
 prog_parm_conntype_id:
   K_PARALLEL        { current_prog->conntype = CONNTYPE_PARALLEL; } |
   K_SERIAL          { current_prog->conntype = CONNTYPE_SERIAL; } |
-  K_USB             { current_prog->conntype = CONNTYPE_USB; }
+  K_USB             { current_prog->conntype = CONNTYPE_USB; } |
+  K_SPI             { current_prog->conntype = CONNTYPE_SPI; }
 ;
 
 prog_parm_usb:
@@ -570,6 +582,38 @@ usb_pid_list:
       if (ip) {
         *ip = $3->value.number;
         ladd(current_prog->usbpid, ip);
+      }
+      free_token($3);
+    }
+  }
+;
+
+prog_parm_updi:
+  K_HVUPDI_SUPPORT TKN_EQUAL hvupdi_support_list
+;
+
+hvupdi_support_list:
+  TKN_NUMBER {
+    {
+      /* overwrite list entries, so clear the existing entries */
+      ldestroy_cb(current_prog->hvupdi_support, free);
+      current_prog->hvupdi_support = lcreat(NULL, 0);
+    }
+    {
+      int *ip = malloc(sizeof(int));
+      if (ip) {
+        *ip = $1->value.number;
+        ladd(current_prog->hvupdi_support, ip);
+      }
+      free_token($1);
+    }
+  } |
+  hvupdi_support_list TKN_COMMA TKN_NUMBER {
+    {
+      int *ip = malloc(sizeof(int));
+      if (ip) {
+        *ip = $3->value.number;
+        ladd(current_prog->hvupdi_support, ip);
       }
       free_token($3);
     }
@@ -673,6 +717,12 @@ part_parm :
     {
       strncpy(current_part->family_id, $3->value.string, AVR_FAMILYIDLEN);
       current_part->family_id[AVR_FAMILYIDLEN] = 0;
+      free_token($3);
+    } |
+
+  K_HVUPDI_VARIANT TKN_EQUAL TKN_NUMBER
+    {
+      current_part->hvupdi_variant = $3->value.number;
       free_token($3);
     } |
 
