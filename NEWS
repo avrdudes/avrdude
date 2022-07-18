@@ -38,6 +38,12 @@ Changes since version 7.0:
     - Fix ft245r paged read for ATmega2560 et al #1018
     - Add option -A that supresses trailing 0xff optimisation
       and automatically do so for -c arduino #936
+    - Fix linuxspi default port #933 
+    - Add support for high-voltage UPDI im jtag3.c #1015
+    - Fix terminal write edge cases;
+      add one read mode;
+      add quell command #1025
+    - Fix usbtiny read for parts with more than 64 kB flash #1029 
 
   * Internals:
 
