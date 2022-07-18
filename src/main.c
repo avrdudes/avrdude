@@ -383,6 +383,7 @@ int main(int argc, char * argv [])
 
   default_parallel[0] = 0;
   default_serial[0]   = 0;
+  default_spi[0]      = 0;
   default_bitclock    = 0.0;
 
   init_config();
@@ -926,6 +927,12 @@ int main(int argc, char * argv [])
       case CONNTYPE_USB:
         port = DEFAULT_USB;
         break;
+
+#ifdef HAVE_LINUXSPI
+      case CONNTYPE_SPI:
+        port = *default_spi ? default_spi : "unknown";
+        break;
+#endif
     }
   }
 

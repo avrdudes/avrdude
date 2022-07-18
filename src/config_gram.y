@@ -79,6 +79,7 @@ static int pin_name;
 %token K_DEFAULT_PARALLEL
 %token K_DEFAULT_PROGRAMMER
 %token K_DEFAULT_SERIAL
+%token K_DEFAULT_SPI
 %token K_DESC
 %token K_FAMILY_ID
 %token K_DEVICECODE
@@ -115,6 +116,7 @@ static int pin_name;
 %token K_RESET
 %token K_RETRY_PULSE
 %token K_SERIAL
+%token K_SPI
 %token K_SCK
 %token K_SIGNATURE
 %token K_SIZE
@@ -251,6 +253,12 @@ def :
   K_DEFAULT_SERIAL TKN_EQUAL TKN_STRING TKN_SEMI {
     strncpy(default_serial, $3->value.string, PATH_MAX);
     default_serial[PATH_MAX-1] = 0;
+    free_token($3);
+  } |
+
+  K_DEFAULT_SPI TKN_EQUAL TKN_STRING TKN_SEMI {
+    strncpy(default_spi, $3->value.string, PATH_MAX);
+    default_spi[PATH_MAX-1] = 0;
     free_token($3);
   } |
 
@@ -507,7 +515,8 @@ prog_parm_conntype:
 prog_parm_conntype_id:
   K_PARALLEL        { current_prog->conntype = CONNTYPE_PARALLEL; } |
   K_SERIAL          { current_prog->conntype = CONNTYPE_SERIAL; } |
-  K_USB             { current_prog->conntype = CONNTYPE_USB; }
+  K_USB             { current_prog->conntype = CONNTYPE_USB; } |
+  K_SPI             { current_prog->conntype = CONNTYPE_SPI; }
 ;
 
 prog_parm_usb:

@@ -645,7 +645,8 @@ typedef enum {
 typedef enum {
   CONNTYPE_PARALLEL,
   CONNTYPE_SERIAL,
-  CONNTYPE_USB
+  CONNTYPE_USB,
+  CONNTYPE_SPI
 } conntype_t;
 
 typedef struct programmer_t {
@@ -924,6 +925,7 @@ extern LISTID       programmers;
 extern char         default_programmer[];
 extern char         default_parallel[];
 extern char         default_serial[];
+extern char         default_spi[];
 extern double       default_bitclock;
 
 /* This name is fixed, it's only here for symmetry with

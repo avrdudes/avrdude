@@ -22,7 +22,7 @@
 #       desc     = <description> ;                  # quoted string
 #       type     = <type>;                          # programmer type, quoted string
 #                          # supported programmer types can be listed by "-c ?type"
-#       connection_type = parallel | serial | usb
+#       connection_type = parallel | serial | usb | spi
 #       baudrate = <num> ;                          # baudrate for avr910-programmer
 #       vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
 #       buff     = <num1> [, <num2> ... ] ;         # pin number(s)
@@ -337,6 +337,7 @@
 #
 default_parallel   = "@DEFAULT_PAR_PORT@";
 default_serial     = "@DEFAULT_SER_PORT@";
+default_spi        = "@DEFAULT_SPI_PORT@";
 # default_bitclock = 2.5;
 
 #
@@ -1642,6 +1643,7 @@ programmer
    id = "linuxspi";
    desc = "Use Linux SPI device in /dev/spidev*";
    type = "linuxspi";
+   connection_type = spi;
    reset = 25;    # Pi GPIO number - this is J8:22
 ;
 @HAVE_LINUXSPI_END@
