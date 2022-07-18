@@ -50,8 +50,8 @@ extern FILE       * yyin;
 extern PROGRAMMER * current_prog;
 extern AVRPART    * current_part;
 extern AVRMEM     * current_mem;
-extern int          lineno;
-extern const char * infile;
+extern int          cfg_lineno;
+extern char       * cfg_infile;
 extern LISTID       string_list;
 extern LISTID       number_list;
 extern bool         is_alias; // current entry is alias
@@ -96,6 +96,8 @@ void print_token(TOKEN * tkn);
 void pyytext(void);
 
 char * dup_string(const char * str);
+
+char * cache_string(const char * file);
 
 #ifdef __cplusplus
 }
