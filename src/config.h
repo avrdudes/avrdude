@@ -25,6 +25,10 @@
 
 #include "libavrdude.h"
 
+#if defined(WIN32) || defined(_MSC_VER) || defined(__MINGW32__)
+#define realpath(N,R) _fullpath((R), (N), PATH_MAX)
+#endif
+
 
 #define MAX_STR_CONST 1024
 
@@ -50,8 +54,8 @@ extern FILE       * yyin;
 extern PROGRAMMER * current_prog;
 extern AVRPART    * current_part;
 extern AVRMEM     * current_mem;
-extern int          lineno;
-extern const char * infile;
+extern int          cfg_lineno;
+extern char       * cfg_infile;
 extern LISTID       string_list;
 extern LISTID       number_list;
 extern bool         is_alias; // current entry is alias
@@ -96,6 +100,8 @@ void print_token(TOKEN * tkn);
 void pyytext(void);
 
 char * dup_string(const char * str);
+
+char * cache_string(const char * file);
 
 #ifdef __cplusplus
 }

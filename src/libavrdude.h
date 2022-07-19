@@ -277,8 +277,8 @@ typedef struct avrpart {
 
   LISTID        mem;                /* avr memory definitions */
   LISTID        mem_alias;          /* memory alias definitions */
-  char          config_file[PATH_MAX]; /* config file where defined */
-  int           lineno;                /* config file line number */
+  char          *config_file;       /* config file where defined */
+  int           lineno;             /* config file line number */
 } AVRPART;
 
 #define AVR_MEMDESCLEN 64
@@ -726,7 +726,7 @@ typedef struct programmer_t {
   int  (*parseextparams) (struct programmer_t * pgm, LISTID xparams);
   void (*setup)          (struct programmer_t * pgm);
   void (*teardown)       (struct programmer_t * pgm);
-  char config_file[PATH_MAX]; /* config file where defined */
+  char *config_file;          /* config file where defined */
   int  lineno;                /* config file line number */
   void *cookie;		      /* for private use by the programmer */
   char flag;		      /* for private use of the programmer */

@@ -79,7 +79,7 @@ PROGRAMMER * pgm_new(void)
   pgm->usbpid = lcreat(NULL, 0);
   pgm->desc[0] = 0;
   pgm->type[0] = 0;
-  pgm->config_file[0] = 0;
+  pgm->config_file = NULL;
   pgm->lineno = 0;
   pgm->baudrate = 0;
   pgm->initpgm = NULL;

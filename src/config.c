@@ -50,8 +50,8 @@ LISTID       part_list;
 LISTID       programmers;
 bool         is_alias;
 
-int    lineno;
-const char * infile;
+int    cfg_lineno;
+char * cfg_infile;
 
 extern char * yytext;
 
@@ -76,8 +76,8 @@ int init_config(void)
   programmers  = lcreat(NULL, 0);
   is_alias     = false;
 
-  lineno       = 1;
-  infile       = NULL;
+  cfg_lineno   = 1;
+  cfg_infile   = NULL;
 
   return 0;
 }
@@ -99,7 +99,7 @@ int yyerror(char * errmsg, ...)
   va_start(args, errmsg);
 
   vsnprintf(message, sizeof(message), errmsg, args);
-  avrdude_message(MSG_INFO, "%s: error at %s:%d: %s\n", progname, infile, lineno, message);
+  avrdude_message(MSG_INFO, "%s: error at %s:%d: %s\n", progname, cfg_infile, cfg_lineno, message);
 
   va_end(args);
 
@@ -116,7 +116,7 @@ int yywarning(char * errmsg, ...)
   va_start(args, errmsg);
 
   vsnprintf(message, sizeof(message), errmsg, args);
-  avrdude_message(MSG_INFO, "%s: warning at %s:%d: %s\n", progname, infile, lineno, message);
+  avrdude_message(MSG_INFO, "%s: warning at %s:%d: %s\n", progname, cfg_infile, cfg_lineno, message);
 
   va_end(args);
 
@@ -329,15 +329,22 @@ int read_config(const char * file)
   FILE * f;
   int r;
 
-  f = fopen(file, "r");
-  if (f == NULL) {
-    avrdude_message(MSG_INFO, "%s: can't open config file \"%s\": %s\n",
+  if(!(cfg_infile = realpath(file, NULL))) {
+    avrdude_message(MSG_INFO, "%s: can't determine realpath() of config file \"%s\": %s\n",
             progname, file, strerror(errno));
     return -1;
   }
 
-  lineno = 1;
-  infile = file;
+  f = fopen(cfg_infile, "r");
+  if (f == NULL) {
+    avrdude_message(MSG_INFO, "%s: can't open config file \"%s\": %s\n",
+            progname, cfg_infile, strerror(errno));
+    free(cfg_infile);
+    cfg_infile = NULL;
+    return -1;
+  }
+
+  cfg_lineno = 1;
   yyin   = f;
 
   r = yyparse();
@@ -349,5 +356,41 @@ int read_config(const char * file)
 
   fclose(f);
 
+  if(cfg_infile) {
+    free(cfg_infile);
+    cfg_infile = NULL;
+  }
+
   return r;
+}
+
+
+// Linear-search cache for a few often-referenced strings
+char *cache_string(const char *file) {
+  static char **fnames;
+  static int n=0;
+
+  if(!file)
+    return NULL;
+
+  // Exists in cache?
+  for(int i=0; i<n; i++)
+    if(strcmp(fnames[i], file) == 0)
+      return fnames[i];
+
+  // Expand cache?
+  if(n%128 == 0) {
+    if(!(fnames = realloc(fnames, (n+128)*sizeof*fnames))) {
+      yyerror("cache_string(): out of memory");
+      return NULL;
+    }
+  }
+
+  fnames[n] = strdup(file);
+  if(!fnames[n]) {
+    yyerror("cache_string(): out of memory");
+    return NULL;
+  }
+
+  return fnames[n++];
 }
