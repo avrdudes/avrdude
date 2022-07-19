@@ -115,25 +115,41 @@ static const char *opcodename(int what) {
 }
 
 
-static char *opcode2str(OPCODE *op, int detailed) {
+// Unique string representation of an opcode
+static char *opcode2str(OPCODE *op, int opnum, int detailed) {
   char cb, space[1024], *sp = space;
+  int compact = 1;
 
   if(!op)
     return strdup("NULL");
 
+  // Can the opcode be printed in a compact way? Only if address bits are systematic.
+  for(int i=31; i >= 0; i--)
+    if(op->bit[i].type == AVR_CMDBIT_ADDRESS)
+      if(i<8 || i>23 || op->bit[i].bitno != (opnum == AVR_OP_LOAD_EXT_ADDR? i+8: i-8))
+        compact = 0;
+
   if(detailed)
     *sp++ = '"';
+
   for(int i=31; i >= 0; i--) {
     *sp++ = cb = cmdbitchar(op->bit[i]);
-    if(detailed && cb == 'a') {
-      sprintf(sp, "%d", op->bit[i].bitno);
-      sp += strlen(sp);
-    }
-    if(i) {
-      if(detailed)
-        *sp++ = ' ';
-      if(i%8 == 0)
-        *sp++ = ' ';
+    if(compact) {
+      if(i && i%8 == 0)
+        *sp++ = '-', *sp++ = '-';
+      else if(i && i%4 == 0)
+        *sp++ = '.';
+    } else {
+      if(cb == 'a') {
+        sprintf(sp, "%d", op->bit[i].bitno);
+        sp += strlen(sp);
+      }
+      if(i) {
+        if(detailed)
+          *sp++ = ' ';
+        if(i%8 == 0)
+          *sp++ = ' ';
+      }
     }
   }
   if(detailed)
@@ -145,7 +161,7 @@ static char *opcode2str(OPCODE *op, int detailed) {
 
 
 // return 0 if op code would encode (essentially) the same SPI command
-static int opcodecmp(OPCODE *op1, OPCODE *op2) {
+static int opcodecmp(OPCODE *op1, OPCODE *op2, int opnum) {
   char *opstr1, *opstr2, *p;
   int cmp;
 
@@ -154,8 +170,8 @@ static int opcodecmp(OPCODE *op1, OPCODE *op2) {
   if(!op1 || !op2)
     return op1? -1: 1;
 
-  opstr1 = opcode2str(op1, 1);
-  opstr2 = opcode2str(op2, 1);
+  opstr1 = opcode2str(op1, opnum, 1);
+  opstr2 = opcode2str(op2, opnum, 1);
   if(!opstr1 || !opstr2) {
     dev_info("%s: out of memory\n", progname);
     exit(1);
@@ -663,8 +679,8 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
   _if_partout(intcmp, "%d", ocdrev);
 
   for(int i=0; i < AVR_OP_MAX; i++)
-    if(!base || opcodecmp(p->op[i], base->op[i]))
-      dev_part_strct_entry(tsv, ".ptop", p->desc, "part", opcodename(i), opcode2str(p->op[i], !tsv));
+    if(!base || opcodecmp(p->op[i], base->op[i], i))
+      dev_part_strct_entry(tsv, ".ptop", p->desc, "part", opcodename(i), opcode2str(p->op[i], i, !tsv));
 
   for(int mi=0; mi < sizeof mem_order/sizeof *mem_order && mem_order[mi]; mi++) {
     AVRMEM *m, *bm;
@@ -704,8 +720,8 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
     _if_memout(intcmp, "%d", pollindex);
 
     for(int i=0; i < AVR_OP_MAX; i++)
-      if(!bm || opcodecmp(bm->op[i], m->op[i]))
-        dev_part_strct_entry(tsv, ".ptmmop", p->desc, m->desc, opcodename(i), opcode2str(m->op[i], !tsv));
+      if(!bm || opcodecmp(bm->op[i], m->op[i], i))
+        dev_part_strct_entry(tsv, ".ptmmop", p->desc, m->desc, opcodename(i), opcode2str(m->op[i], i, !tsv));
 
     if(!tsv)
       dev_info("    ;\n");
