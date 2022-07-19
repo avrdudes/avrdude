@@ -288,10 +288,10 @@ prog_def :
       existing_prog = locate_programmer(programmers, id);
       if (existing_prog) {
         { /* temporarily set lineno to lineno of programmer start */
-          int temp = lineno; lineno = current_prog->lineno;
+          int temp = cfg_lineno; cfg_lineno = current_prog->lineno;
           yywarning("programmer %s overwrites previous definition %s:%d.",
                 id, existing_prog->config_file, existing_prog->lineno);
-          lineno = temp;
+          cfg_lineno = temp;
         }
         lrmv_d(programmers, existing_prog);
         pgm_free(existing_prog);
@@ -311,8 +311,8 @@ prog_decl :
         yyerror("could not create pgm instance");
         YYABORT;
       }
-      strcpy(current_prog->config_file, infile);
-      current_prog->lineno = lineno;
+      current_prog->config_file = cache_string(cfg_infile);
+      current_prog->lineno = cfg_lineno;
     }
     |
   K_PROGRAMMER K_PARENT TKN_STRING
@@ -329,8 +329,8 @@ prog_decl :
         free_token($3);
         YYABORT;
       }
-      strcpy(current_prog->config_file, infile);
-      current_prog->lineno = lineno;
+      current_prog->config_file = cache_string(cfg_infile);
+      current_prog->lineno = cfg_lineno;
       free_token($3);
     }
 ;
@@ -380,11 +380,11 @@ part_def :
       existing_part = locate_part(part_list, current_part->id);
       if (existing_part) {
         { /* temporarily set lineno to lineno of part start */
-          int temp = lineno; lineno = current_part->lineno;
+          int temp = cfg_lineno; cfg_lineno = current_part->lineno;
           yywarning("part %s overwrites previous definition %s:%d.",
                 current_part->id,
                 existing_part->config_file, existing_part->lineno);
-          lineno = temp;
+          cfg_lineno = temp;
         }
         lrmv_d(part_list, existing_part);
         avr_free_part(existing_part);
@@ -402,8 +402,8 @@ part_decl :
         yyerror("could not create part instance");
         YYABORT;
       }
-      strcpy(current_part->config_file, infile);
-      current_part->lineno = lineno;
+      current_part->config_file = cache_string(cfg_infile);
+      current_part->lineno = cfg_lineno;
     } |
   K_PART K_PARENT TKN_STRING 
     {
@@ -420,8 +420,8 @@ part_decl :
         free_token($3);
         YYABORT;
       }
-      strcpy(current_part->config_file, infile);
-      current_part->lineno = lineno;
+      current_part->config_file = cache_string(cfg_infile);
+      current_part->lineno = cfg_lineno;
 
       free_token($3);
     }
@@ -1362,7 +1362,7 @@ mem_spec :
       if (ps <= 0)
         avrdude_message(MSG_INFO,
                         "%s, line %d: invalid page size %d, ignored\n",
-                        infile, lineno, ps);
+                        cfg_infile, cfg_lineno, ps);
       else
         current_mem->page_size = ps;
       free_token($3);

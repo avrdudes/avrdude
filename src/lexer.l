@@ -73,19 +73,19 @@ SIGN     [+-]
 #   { /* The following eats '#' style comments to end of line */
        BEGIN(comment); }
 <comment>[^\n] { /* eat comments */ }
-<comment>\n { lineno++; BEGIN(INITIAL); }
+<comment>\n { cfg_lineno++; BEGIN(INITIAL); }
 
 
 "/*" {  /* The following eats multiline C style comments */
         int c;
         int comment_start;
         
-        comment_start = lineno;
+        comment_start = cfg_lineno;
         while (1) {
           while (((c = input()) != '*') && (c != EOF)) {
             /* eat up text of comment, but keep counting lines */
             if (c == '\n')
-              lineno++;
+              cfg_lineno++;
           }
           
           if (c == '*') {
@@ -256,7 +256,7 @@ yes              { yylval=new_token(K_YES); return K_YES; }
 "("       { yylval = NULL; pyytext(); return TKN_LEFT_PAREN; }
 ")"       { yylval = NULL; pyytext(); return TKN_RIGHT_PAREN; }
 
-"\n"      { lineno++; }
+"\n"      { cfg_lineno++; }
 [ \r\t]+  { /* ignore whitespace */ }
 
 c: { yyerror("possible old-style config file entry\n"
