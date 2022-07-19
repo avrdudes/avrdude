@@ -183,6 +183,7 @@ typedef struct opcode {
 } OPCODE;
 
 
+/* Any changes here, please also reflect in dev_part_strct() of developer_opts.c */
 #define AVRPART_SERIALOK       0x0001  /* part supports serial programming */
 #define AVRPART_PARALLELOK     0x0002  /* part supports parallel programming */
 #define AVRPART_PSEUDOPARALLEL 0x0004  /* part has pseudo parallel support */
@@ -212,6 +213,7 @@ typedef struct opcode {
 
 #define TAG_ALLOCATED          1    /* memory byte is allocated */
 
+/* Any changes here, please also reflect in dev_part_strct() of developer_opts.c */
 typedef struct avrpart {
   char          desc[AVR_DESCLEN];  /* long part name */
   char          id[AVR_IDLEN];      /* short part name */
