@@ -485,8 +485,7 @@ static int avrpart_deep_copy(AVRPARTdeep *d, AVRPART *p) {
 
   d->base = *p;
 
-  // remove location info
-  memset(d->base.config_file, 0, sizeof d->base.config_file);
+  d->base.config_file = NULL;
   d->base.lineno = 0;
 
   // zap all bytes beyond terminating nul of desc, id and family_id array
@@ -567,64 +566,60 @@ static void dev_part_raw(AVRPART *part) {
 
 
 static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
-  char real_config_file[PATH_MAX];
-
-  if(!realpath(p->config_file, real_config_file))
-    memcpy(real_config_file, p->config_file, sizeof real_config_file);
-
-  dev_info("# %s %d\n", real_config_file, p->lineno);
+  dev_info("# %s %d\n", p->config_file, p->lineno);
 
   if(!tsv)
     dev_info("part\n");
 
-  __if_partout(strcmp, "\"%s\"", desc);
-  __if_partout(strcmp, "\"%s\"", id);
-  __if_partout(strcmp, "\"%s\"", family_id);
-  __if_partout(intcmp, "0x%02x", stk500_devcode);
-  __if_partout(intcmp, "0x%02x", avr910_devcode);
-  __if_partout(intcmp, "%d", chip_erase_delay);
-  __if_partout(intcmp, "0x%02x", pagel);
-  __if_partout(intcmp, "0x%02x", bs2);
-  __if_n_partout_str(memcmp, sizeof p->signature, dev_sprintf("0x%02x 0x%02x 0x%02x", p->signature[0], p->signature[1], p->signature[2]), signature);
-  __if_partout(intcmp, "0x%04x", usbpid);
+  _if_partout(strcmp, "\"%s\"", desc);
+  _if_partout(strcmp, "\"%s\"", id);
+  _if_partout(strcmp, "\"%s\"", family_id);
+  _if_partout(intcmp, "%d", hvupdi_variant);
+  _if_partout(intcmp, "0x%02x", stk500_devcode);
+  _if_partout(intcmp, "0x%02x", avr910_devcode);
+  _if_partout(intcmp, "%d", chip_erase_delay);
+  _if_partout(intcmp, "0x%02x", pagel);
+  _if_partout(intcmp, "0x%02x", bs2);
+  _if_n_partout_str(memcmp, sizeof p->signature, dev_sprintf("0x%02x 0x%02x 0x%02x", p->signature[0], p->signature[1], p->signature[2]), signature);
+  _if_partout(intcmp, "0x%04x", usbpid);
 
   if(!base || base->reset_disposition != p->reset_disposition)
-    __partout_str(strdup(p->reset_disposition == RESET_DEDICATED? "dedicated": p->reset_disposition == RESET_IO? "io": "unknown"), reset);
+    _partout_str(strdup(p->reset_disposition == RESET_DEDICATED? "dedicated": p->reset_disposition == RESET_IO? "io": "unknown"), reset);
 
-  __if_partout_str(intcmp, strdup(p->retry_pulse == PIN_AVR_RESET? "reset": p->retry_pulse == PIN_AVR_SCK? "sck": "unknown"), retry_pulse);
+  _if_partout_str(intcmp, strdup(p->retry_pulse == PIN_AVR_RESET? "reset": p->retry_pulse == PIN_AVR_SCK? "sck": "unknown"), retry_pulse);
 
   if(!base || base->flags != p->flags) {
     if(tsv) {
-      __partout("0x%04x", flags);
+      _partout("0x%04x", flags);
     } else {
-      __if_flagout(AVRPART_HAS_JTAG, has_jtag);
-      __if_flagout(AVRPART_HAS_DW, has_debugwire);
-      __if_flagout(AVRPART_HAS_PDI, has_pdi);
-      __if_flagout(AVRPART_HAS_UPDI, has_updi);
-      __if_flagout(AVRPART_HAS_TPI, has_tpi);
-      __if_flagout(AVRPART_IS_AT90S1200, is_at90s1200);
-      __if_flagout(AVRPART_AVR32, is_avr32);
-      __if_flagout(AVRPART_ALLOWFULLPAGEBITSTREAM, allowfullpagebitstream);
-      __if_flagout(AVRPART_ENABLEPAGEPROGRAMMING, enablepageprogramming);
-      __if_flagout(AVRPART_SERIALOK, serial);
+      _if_flagout(AVRPART_HAS_JTAG, has_jtag);
+      _if_flagout(AVRPART_HAS_DW, has_debugwire);
+      _if_flagout(AVRPART_HAS_PDI, has_pdi);
+      _if_flagout(AVRPART_HAS_UPDI, has_updi);
+      _if_flagout(AVRPART_HAS_TPI, has_tpi);
+      _if_flagout(AVRPART_IS_AT90S1200, is_at90s1200);
+      _if_flagout(AVRPART_AVR32, is_avr32);
+      _if_flagout(AVRPART_ALLOWFULLPAGEBITSTREAM, allowfullpagebitstream);
+      _if_flagout(AVRPART_ENABLEPAGEPROGRAMMING, enablepageprogramming);
+      _if_flagout(AVRPART_SERIALOK, serial);
 
       if(!base || (base->flags & (AVRPART_PARALLELOK | AVRPART_PSEUDOPARALLEL)) != (p->flags & (AVRPART_PARALLELOK | AVRPART_PSEUDOPARALLEL))) {
         int par = p->flags & (AVRPART_PARALLELOK | AVRPART_PSEUDOPARALLEL);
-        __partout_str(strdup(par == 0? "no": par == AVRPART_PSEUDOPARALLEL? "unknown": AVRPART_PARALLELOK? "yes": "pseudo"), parallel);
+        _partout_str(strdup(par == 0? "no": par == AVRPART_PSEUDOPARALLEL? "unknown": AVRPART_PARALLELOK? "yes": "pseudo"), parallel);
       }
     }
   }
 
-  __if_partout(intcmp, "%d", timeout);
-  __if_partout(intcmp, "%d", stabdelay);
-  __if_partout(intcmp, "%d", cmdexedelay);
-  __if_partout(intcmp, "%d", synchloops);
-  __if_partout(intcmp, "%d", bytedelay);
-  __if_partout(intcmp, "%d", pollindex);
-  __if_partout(intcmp, "0x%02x", pollvalue);
-  __if_partout(intcmp, "%d", predelay);
-  __if_partout(intcmp, "%d", postdelay);
-  __if_partout(intcmp, "%d", pollmethod);
+  _if_partout(intcmp, "%d", timeout);
+  _if_partout(intcmp, "%d", stabdelay);
+  _if_partout(intcmp, "%d", cmdexedelay);
+  _if_partout(intcmp, "%d", synchloops);
+  _if_partout(intcmp, "%d", bytedelay);
+  _if_partout(intcmp, "%d", pollindex);
+  _if_partout(intcmp, "0x%02x", pollvalue);
+  _if_partout(intcmp, "%d", predelay);
+  _if_partout(intcmp, "%d", postdelay);
+  _if_partout(intcmp, "%d", pollmethod);
 
   if(!base  && p->ctl_stack_type != CTL_STACK_NONE)
     dev_stack_out(tsv, p, dev_controlstack_name(p), p->controlstack, CTL_STACK_SIZE);
@@ -639,32 +634,33 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
   if(!base || memcmp(base->eeprom_instr, p->eeprom_instr, sizeof base->eeprom_instr))
     dev_stack_out(tsv, p, "eeprom_instr", p->eeprom_instr, EEPROM_INSTR_SIZE);
 
-  __if_partout(intcmp, "%d", hventerstabdelay);
-  __if_partout(intcmp, "%d", progmodedelay);
-  __if_partout(intcmp, "%d", latchcycles);
-  __if_partout(intcmp, "%d", togglevtg);
-  __if_partout(intcmp, "%d", poweroffdelay);
-  __if_partout(intcmp, "%d", resetdelayms);
-  __if_partout(intcmp, "%d", resetdelayus);
-  __if_partout(intcmp, "%d", hvleavestabdelay);
-  __if_partout(intcmp, "%d", resetdelay);
-  __if_partout(intcmp, "%d", chiperasepulsewidth);
-  __if_partout(intcmp, "%d", chiperasepolltimeout);
-  __if_partout(intcmp, "%d", chiperasetime);
-  __if_partout(intcmp, "%d", programfusepulsewidth);
-  __if_partout(intcmp, "%d", programfusepolltimeout);
-  __if_partout(intcmp, "%d", programlockpulsewidth);
-  __if_partout(intcmp, "%d", programlockpolltimeout);
-  __if_partout(intcmp, "%d", synchcycles);
-  __if_partout(intcmp, "%d", hvspcmdexedelay);
-  __if_partout(intcmp, "0x%02x", idr);
-  __if_partout(intcmp, "0x%02x", rampz);
-  __if_partout(intcmp, "0x%02x", spmcr);
-  __if_partout(intcmp, "0x%02x", eecr);  // why is eecr an unsigned short?
-  __if_partout(intcmp, "0x%04x", mcu_base);
-  __if_partout(intcmp, "0x%04x", nvm_base);
-  __if_partout(intcmp, "0x%04x", ocd_base);
-  __if_partout(intcmp, "%d", ocdrev);
+  _if_partout(intcmp, "%d", hventerstabdelay);
+  _if_partout(intcmp, "%d", progmodedelay);
+  _if_partout(intcmp, "%d", latchcycles);
+  _if_partout(intcmp, "%d", togglevtg);
+  _if_partout(intcmp, "%d", poweroffdelay);
+  _if_partout(intcmp, "%d", resetdelayms);
+  _if_partout(intcmp, "%d", resetdelayus);
+  _if_partout(intcmp, "%d", hvleavestabdelay);
+  _if_partout(intcmp, "%d", resetdelay);
+  _if_partout(intcmp, "%d", chiperasepulsewidth);
+  _if_partout(intcmp, "%d", chiperasepolltimeout);
+  _if_partout(intcmp, "%d", chiperasetime);
+  _if_partout(intcmp, "%d", programfusepulsewidth);
+  _if_partout(intcmp, "%d", programfusepolltimeout);
+  _if_partout(intcmp, "%d", programlockpulsewidth);
+  _if_partout(intcmp, "%d", programlockpolltimeout);
+  _if_partout(intcmp, "%d", synchcycles);
+  _if_partout(intcmp, "%d", hvspcmdexedelay);
+
+  _if_partout(intcmp, "0x%02x", idr);
+  _if_partout(intcmp, "0x%02x", rampz);
+  _if_partout(intcmp, "0x%02x", spmcr);
+  _if_partout(intcmp, "0x%02x", eecr);  // why is eecr an unsigned short?
+  _if_partout(intcmp, "0x%04x", mcu_base);
+  _if_partout(intcmp, "0x%04x", nvm_base);
+  _if_partout(intcmp, "0x%04x", ocd_base);
+  _if_partout(intcmp, "%d", ocdrev);
 
   for(int i=0; i < AVR_OP_MAX; i++)
     if(!base || opcodecmp(p->op[i], base->op[i]))
@@ -692,20 +688,20 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
       dev_info("\n    memory \"%s\"\n", m->desc);
     }
 
-    __if_memout_yn(paged);
-    __if_memout(intcmp, m->size > 8192? "0x%x": "%d", size);
-    __if_memout(intcmp, "%d", page_size);
-    __if_memout(intcmp, "%d", num_pages); // why can AVRDUDE not compute this?
-    __if_memout(intcmp, "0x%x", offset);
-    __if_memout(intcmp, "%d", min_write_delay);
-    __if_memout(intcmp, "%d", max_write_delay);
-    __if_memout_yn(pwroff_after_write);
-    __if_n_memout_str(memcmp, 2, dev_sprintf("0x%02x 0x%02x", m->readback[0], m->readback[1]), readback);
-    __if_memout(intcmp, "%d", mode);
-    __if_memout(intcmp, "%d", delay);
-    __if_memout(intcmp, "%d", blocksize);
-    __if_memout(intcmp, "%d", readsize);
-    __if_memout(intcmp, "%d", pollindex);
+    _if_memout_yn(paged);
+    _if_memout(intcmp, m->size > 8192? "0x%x": "%d", size);
+    _if_memout(intcmp, "%d", page_size);
+    _if_memout(intcmp, "%d", num_pages); // why can AVRDUDE not compute this?
+    _if_memout(intcmp, "0x%x", offset);
+    _if_memout(intcmp, "%d", min_write_delay);
+    _if_memout(intcmp, "%d", max_write_delay);
+    _if_memout_yn(pwroff_after_write);
+    _if_n_memout_str(memcmp, 2, dev_sprintf("0x%02x 0x%02x", m->readback[0], m->readback[1]), readback);
+    _if_memout(intcmp, "%d", mode);
+    _if_memout(intcmp, "%d", delay);
+    _if_memout(intcmp, "%d", blocksize);
+    _if_memout(intcmp, "%d", readsize);
+    _if_memout(intcmp, "%d", pollindex);
 
     for(int i=0; i < AVR_OP_MAX; i++)
       if(!bm || opcodecmp(bm->op[i], m->op[i]))
