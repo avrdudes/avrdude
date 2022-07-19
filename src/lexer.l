@@ -213,6 +213,7 @@ rdyled           { yylval=NULL; return K_RDYLED; }
 read             { yylval=new_token(K_READ); return K_READ; }
 read_hi          { yylval=new_token(K_READ_HI); return K_READ_HI; }
 read_lo          { yylval=new_token(K_READ_LO); return K_READ_LO; }
+readback         { yylval=NULL; return K_READBACK; }
 readback_p1      { yylval=NULL; return K_READBACK_P1; }
 readback_p2      { yylval=NULL; return K_READBACK_P2; }
 readsize        { yylval=NULL; return K_READSIZE; }
