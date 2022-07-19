@@ -1242,8 +1242,12 @@ int main(int argc, char * argv [])
 
 
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
+    UPDATE * prev = upd;
     upd = ldata(ln);
-    rc = do_op(pgm, p, upd, uflags);
+
+    if (strcmp(prev->memtype, upd->memtype) != 0 || avr_locate_mem(p, upd->memtype) != NULL)
+      rc = do_op(pgm, p, upd, uflags);
+
     if (rc) {
       exitrc = 1;
       break;
