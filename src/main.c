@@ -858,11 +858,11 @@ int main(int argc, char * argv [])
         port = DEFAULT_USB;
         break;
 
-#ifdef HAVE_LINUXSPI
       case CONNTYPE_SPI:
-        port = *default_spi ? default_spi : "unknown";
-        break;
+#ifdef HAVE_LINUXSPI
+        port = *default_spi? default_spi: "unknown";
 #endif
+        break;
     }
   }
 
