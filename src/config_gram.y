@@ -800,6 +800,13 @@ part_parm :
     }
   } |
 
+  K_PP_CONTROLSTACK TKN_EQUAL K_NULL {
+    {
+      current_part->ctl_stack_type = CTL_STACK_NONE;
+      memset(current_part->controlstack, 0, CTL_STACK_SIZE);
+    }
+  } |
+
   K_HVSP_CONTROLSTACK TKN_EQUAL num_list {
     {
       TOKEN * t;
@@ -828,6 +835,13 @@ part_parm :
 	{
 	  yywarning("too many bytes in control stack");
         }
+    }
+  } |
+
+  K_HVSP_CONTROLSTACK TKN_EQUAL K_NULL {
+    {
+      current_part->ctl_stack_type = CTL_STACK_NONE;
+      memset(current_part->controlstack, 0, CTL_STACK_SIZE);
     }
   } |
 
@@ -861,6 +875,12 @@ part_parm :
     }
   } |
 
+  K_FLASH_INSTR TKN_EQUAL K_NULL {
+    {
+      memset(current_part->flash_instr, 0, FLASH_INSTR_SIZE);
+    }
+  } |
+
   K_EEPROM_INSTR TKN_EQUAL num_list {
     {
       TOKEN * t;
@@ -888,6 +908,12 @@ part_parm :
 	{
 	  yywarning("too many bytes in EEPROM instructions");
         }
+    }
+  } |
+
+  K_EEPROM_INSTR TKN_EQUAL K_NULL {
+    {
+      memset(current_part->eeprom_instr, 0, EEPROM_INSTR_SIZE);
     }
   } |
 

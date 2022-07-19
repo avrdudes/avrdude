@@ -363,13 +363,13 @@ static const char *dev_controlstack_name(AVRPART *p) {
   return
     p->ctl_stack_type == CTL_STACK_PP? "pp_controlstack":
     p->ctl_stack_type == CTL_STACK_HVSP? "hvsp_controlstack":
-    p->ctl_stack_type == CTL_STACK_NONE? "NONE":
+    p->ctl_stack_type == CTL_STACK_NONE? "NULL":
     "unknown_controlstack";
 }
 
 
 static void dev_stack_out(bool tsv, AVRPART *p, const char *name, unsigned char *stack, int ns) {
-  if(!strcmp(name, "NONE")) {
+  if(!strcmp(name, "NULL")) {
     name = "pp_controlstack";
     ns = 0;
   }
