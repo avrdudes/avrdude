@@ -25,6 +25,10 @@
 
 #include "libavrdude.h"
 
+#if defined(WIN32) || defined(_MSC_VER) || defined(__MINGW32__)
+#define realpath(N,R) _fullpath((R), (N), PATH_MAX)
+#endif
+
 
 #define MAX_STR_CONST 1024
 
