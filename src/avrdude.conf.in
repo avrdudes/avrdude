@@ -11845,6 +11845,8 @@ part parent "m2561"
                           " a7   x   x   x      x   x   x   x",
                           "  x   x   x   x      x   x   x   x";
 
+        load_ext_addr   = NULL;
+
 	mode		= 0x41;
 	delay		= 20;
 	blocksize	= 256;
