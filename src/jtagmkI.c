@@ -1072,6 +1072,7 @@ static int jtagmkI_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   } else if (strcmp(mem->desc, "eeprom") == 0) {
     cmd[1] = MTYPE_EEPROM;
     need_progmode = 0;
+    need_dummy_read = 1;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if (strcmp(mem->desc, "lfuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
