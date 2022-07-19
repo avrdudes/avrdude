@@ -30,6 +30,10 @@
 #include "libavrdude.h"
 #include "config.h"
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+#define realpath(N,R) _fullpath((R), (N), PATH_MAX)
+#endif
+
 #if defined(WIN32)
 #define strtok_r( _s, _sep, _lasts ) \
     ( *(_lasts) = strtok( (_s), (_sep) ) )
