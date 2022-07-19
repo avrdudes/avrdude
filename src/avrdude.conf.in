@@ -12,7 +12,7 @@
 #
 # DO NOT MODIFY THIS FILE.  Modifications will be overwritten the next
 # time a "make install" is run.  For user-specific additions, use the
-# "-C +filename" commandline option.
+# "-C +filename" command line option.
 #
 # Possible entry formats are:
 #
@@ -34,12 +34,12 @@
 #       rdyled   = <num> ;                          # pin number
 #       pgmled   = <num> ;                          # pin number
 #       vfyled   = <num> ;                          # pin number
-#       usbvid   = <hexnum>;                        # USB VID (Vendor ID)
-#       usbpid   = <hexnum> [, <hexnum> ...]        # USB PID (Product ID) (1)
-#       usbdev   = <interface>;                     # USB interface or other device info 
-#       usbvendor = <vendorname>;                   # USB Vendor Name
-#       usbproduct = <productname>;                 # USB Product Name
-#       usbsn    = <serialno>;                      # USB Serial Number
+#       usbvid   = <hexnum> ;                       # USB VID (Vendor ID)
+#       usbpid   = <hexnum> [, <hexnum> ...] ;      # USB PID (Product ID) (1)
+#       usbdev   = <interface> ;                    # USB interface or other device info
+#       usbvendor = <vendorname> ;                  # USB Vendor Name
+#       usbproduct = <productname> ;                # USB Product Name
+#       usbsn    = <serialno> ;                     # USB Serial Number
 #       hvupdi_support = <num> [, <num>, ... ] ;    # UPDI HV Variants Support
 #
 #        To invert a bit, use = ~ <num>, the spaces are important.
@@ -48,32 +48,34 @@
 #        specify it as follows = ~ ( <num> [, <num2> ... ] ) .
 #
 #        (1) Not all programmer types can process a list of PIDs.
-#     ;
+#   ;
 #
 #   part
-#       id               = <id> ;                 # quoted string
 #       desc             = <description> ;        # quoted string
+#       id               = <id> ;                 # quoted string
+#       family_id        = <id> ;                 # quoted string, eg, "megaAVR" or "tinyAVR"
+#       hvupdi_variant   = <num> ;                # numeric -1 (n/a) or 0..2
+#       devicecode       = <num> ;                # deprecated, use stk500_devcode
+#       stk500_devcode   = <num> ;                # numeric
+#       avr910_devcode   = <num> ;                # numeric
 #       has_jtag         = <yes/no> ;             # part has JTAG i/f
 #       has_debugwire    = <yes/no> ;             # part has debugWire i/f
 #       has_pdi          = <yes/no> ;             # part has PDI i/f
 #       has_updi         = <yes/no> ;             # part has UPDI i/f
 #       has_tpi          = <yes/no> ;             # part has TPI i/f
-#       devicecode       = <num> ;            # deprecated, use stk500_devcode
-#       stk500_devcode   = <num> ;                # numeric
-#       avr910_devcode   = <num> ;                # numeric
+#       is_at90s1200     = <yes/no> ;             # AT90S1200 part
+#       is_avr32         = <yes/no> ;             # AVR32 part
 #       signature        = <num> <num> <num> ;    # signature bytes
 #       usbpid           = <num> ;                # DFU USB PID
 #       chip_erase_delay = <num> ;                # micro-seconds
-#       reset            = dedicated | io;
-#       retry_pulse      = reset | sck;
-#       pgm_enable       = <instruction format> ;
-#       chip_erase       = <instruction format> ;
+#       reset            = dedicated | io ;
+#       retry_pulse      = reset | sck ;
 #       chip_erase_delay = <num> ;                # chip erase delay (us)
 #       # STK500 parameters (parallel programming IO lines)
 #       pagel            = <num> ;                # pin name in hex, i.e., 0xD7
 #       bs2              = <num> ;                # pin name in hex, i.e., 0xA0
 #       serial           = <yes/no> ;             # can use serial downloading
-#       parallel         = <yes/no/pseudo>;       # can use par. programming
+#       parallel         = <yes/no/pseudo> ;      # can use par. programming
 #       # STK500v2 parameters, to be taken from Atmel's XML files
 #       timeout          = <num> ;
 #       stabdelay        = <num> ;
@@ -85,52 +87,59 @@
 #       predelay         = <num> ;
 #       postdelay        = <num> ;
 #       pollmethod       = <num> ;
-#       mode             = <num> ;
-#       delay            = <num> ;
-#       blocksize        = <num> ;
-#       readsize         = <num> ;
 #       hvspcmdexedelay  = <num> ;
 #       # STK500v2 HV programming parameters, from XML
-#       pp_controlstack  = <num>, <num>, ...;   # PP only
-#       hvsp_controlstack = <num>, <num>, ...;  # HVSP only
-#       hventerstabdelay = <num>;
-#       progmodedelay    = <num>;               # PP only
-#       latchcycles      = <num>;
-#       togglevtg        = <num>;
-#       poweroffdelay    = <num>;
-#       resetdelayms     = <num>;
-#       resetdelayus     = <num>;
-#       hvleavestabdelay = <num>;
-#       resetdelay       = <num>;
-#       synchcycles      = <num>;               # HVSP only
-#       chiperasepulsewidth = <num>;            # PP only
-#       chiperasepolltimeout = <num>;
-#       chiperasetime    = <num>;               # HVSP only
-#       programfusepulsewidth = <num>;          # PP only
-#       programfusepolltimeout = <num>;
-#       programlockpulsewidth = <num>;          # PP only
-#       programlockpolltimeout = <num>;
+#       pp_controlstack  = <num>, <num>, ... ;  # PP only
+#       hvsp_controlstack = <num>, <num>, ... ; # HVSP only
+#       flash_instr      = <num>, <num>, <num> ;
+#       eeprom_instr     = <num>, <num>, ... ;
+#       hventerstabdelay = <num> ;
+#       progmodedelay    = <num> ;              # PP only
+#       latchcycles      = <num> ;
+#       togglevtg        = <num> ;
+#       poweroffdelay    = <num> ;
+#       resetdelayms     = <num> ;
+#       resetdelayus     = <num> ;
+#       hvleavestabdelay = <num> ;
+#       resetdelay       = <num> ;
+#       synchcycles      = <num> ;               # HVSP only
+#       chiperasepulsewidth = <num> ;            # PP only
+#       chiperasepolltimeout = <num> ;
+#       chiperasetime    = <num> ;               # HVSP only
+#       programfusepulsewidth = <num> ;          # PP only
+#       programfusepolltimeout = <num> ;
+#       programlockpulsewidth = <num> ;          # PP only
+#       programlockpolltimeout = <num> ;
 #       # JTAG ICE mkII parameters, also from XML files
 #       allowfullpagebitstream = <yes/no> ;
 #       enablepageprogramming = <yes/no> ;
-#       idr              = <num> ;                # IO addr of IDR (OCD) reg.
-#       rampz            = <num> ;                # IO addr of RAMPZ reg.
-#       spmcr            = <num> ;                # mem addr of SPMC[S]R reg.
-#       eecr             = <num> ;                # mem addr of EECR reg.
-#                                                 # (only when != 0x3c)
-#       is_at90s1200     = <yes/no> ;             # AT90S1200 part
-#       is_avr32         = <yes/no> ;             # AVR32 part
+#       idr              = <num> ;               # IO addr of IDR (OCD) reg
+#       rampz            = <num> ;               # IO addr of RAMPZ reg
+#       spmcr            = <num> ;               # mem addr of SPMC[S]R reg
+#       eecr             = <num> ;               # mem addr of EECR reg only when != 0x3c
+#       mcu_base         = <num> ;
+#       nvm_base         = <num> ;
+#       ocd_base         = <num> ;
+#       ocdrev           = <num> ;
+#       pgm_enable       = <instruction format> ;
+#       chip_erase       = <instruction format> ;
 #
 #       memory <memtype>
-#           paged           = <yes/no> ;          # yes / no
+#           paged           = <yes/no> ;          # yes/no (flash only, do not use for EEPROM)
+#           offset          = <num> ;             # memory offset
 #           size            = <num> ;             # bytes
 #           page_size       = <num> ;             # bytes
 #           num_pages       = <num> ;             # numeric
 #           min_write_delay = <num> ;             # micro-seconds
 #           max_write_delay = <num> ;             # micro-seconds
-#           readback_p1     = <num> ;             # byte value
-#           readback_p2     = <num> ;             # byte value
-#           pwroff_after_write = <yes/no> ;       # yes / no
+#           readback        = <num> <num> ;       # pair of byte values
+#           readback_p1     = <num> ;             # byte value (first component)
+#           readback_p2     = <num> ;             # byte value (second component)
+#           pwroff_after_write = <yes/no> ;       # yes/no
+#           mode            = <num> ;             # STK500 v2 file parameter, to be taken from Atmel's XML files
+#           delay           = <num> ;             #   "
+#           blocksize       = <num> ;             #   "
+#           readsize        = <num> ;             #   "
 #           read            = <instruction format> ;
 #           write           = <instruction format> ;
 #           read_lo         = <instruction format> ;
@@ -140,11 +149,12 @@
 #           loadpage_lo     = <instruction format> ;
 #           loadpage_hi     = <instruction format> ;
 #           writepage       = <instruction format> ;
-#         ;
-#     ;
+#       ;
+#   ;
 #
 # If any of the above parameters are not specified, the default value
-# of 0 is used for numerics or the empty string ("") for string
+# of 0 is used for numerics (except for hvupdi_variant and ocdrev,
+# where the default value is -1) or the empty string ("") for string
 # values.  If a required parameter is left empty, AVRDUDE will
 # complain.
 #
@@ -152,7 +162,12 @@
 # using the following syntax. In this case specified integer and 
 # string values override parameter values from the parent part. New 
 # memory definitions are added to the definitions inherited from the 
-# parent.
+# parent. If, however, a new memory definition refers to an existing
+# one of the same name for that part then, from v7.1, the existing
+# memory definition is extended, and components overwritten with new
+# values. Assigning NULL removes an inherited SPI instruction format,
+# memory definition, control stack, eeprom or flash instruction, eg,
+# as in  memory "efuse" = NULL;
 #
 #   part parent <id>                              # quoted string
 #       id               = <id> ;                 # quoted string
@@ -181,7 +196,7 @@
 #
 # INSTRUCTION FORMATS
 #
-#    Instruction formats are specified as a comma seperated list of
+#    Instruction formats are specified as a comma separated list of
 #    string values containing information (bit specifiers) about each
 #    of the 32 bits of the instruction.  Bit specifiers may be one of
 #    the following formats:
@@ -190,10 +205,11 @@
 #
 #       '0'  = the bit is always clear on input as well as output
 #
-#       'x'  = the bit is ignored on input and output
+#       'x'  = the bit is ignored on input and output and set as 0
 #
-#       'a'  = the bit is an address bit, the bit-number matches this bit
-#              specifier's position within the current instruction byte
+#       'a'  = the bit is an address bit; from v 7.1 the bit-number
+#              is set to match the right bit position for the
+#              instruction to "just work"
 #
 #       'aN' = the bit is the Nth address bit, bit-number = N, i.e., a12
 #              is address bit 12 on input, a0 is address bit 0.
@@ -202,11 +218,28 @@
 #
 #       'o'  = the bit is an output data bit
 #
-#    Each instruction must be composed of 32 bit specifiers.  The
+#    Each instruction must be composed of 32 bit specifiers. The
 #    instruction specification closely follows the instruction data
-#    provided in Atmel's data sheets for their parts.
+#    provided in Atmel's data sheets for their parts. Note that flash
+#    addresses always refer to *word* addresses whilst all other
+#    memory types specify *byte* addresses.
 #
-# See below for some examples.
+#    Example for signature read on the ATmega328P:
+#      read = "0 0 1 1 0 0 0 0",  "0 0 0 x x x x x",
+#             "x x x x x x a1 a0",  "o o o o o o o o";
+#
+#   As the address bit numbers in the SPI opcodes are highly
+#   systematic, they don't really need to be specified. A compact
+#   version of the format specification neither uses bit-numbers for
+#   address lines nor spaces. If such a string is longer than 7
+#   characters, then the characters 0, 1, x, a, i and o will be
+#   recognised as the corresponding bit, whilst any of the characters
+#   ., -, _ or / can act as arbitrary visual separators, which are
+#   ignored. Examples:
+#
+#     loadpage_lo = "0100.0000--000x.xxxx--xxaa.aaaa--iiii.iiii";
+#
+#     loadpage_lo = "0100.0000", "000x.xxxx", "xxaa.aaaa", "iiii.iiii";
 #
 #
 # The following are STK500 part device codes to use for the
