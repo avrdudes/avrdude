@@ -112,6 +112,7 @@ static int pin_name;
 %token K_PSEUDO
 %token K_PWROFF_AFTER_WRITE
 %token K_RDYLED
+%token K_READBACK
 %token K_READBACK_P1
 %token K_READBACK_P2
 %token K_READMEM
@@ -1397,6 +1398,14 @@ mem_spec :
     {
       current_mem->pwroff_after_write = $3->primary == K_YES ? 1 : 0;
       free_token($3);
+    } |
+
+  K_READBACK        TKN_EQUAL TKN_NUMBER TKN_NUMBER
+    {
+      current_mem->readback[0] = $3->value.number;
+      current_mem->readback[1] = $4->value.number;
+      free_token($3);
+      free_token($4);
     } |
 
   K_READBACK_P1     TKN_EQUAL TKN_NUMBER
