@@ -222,9 +222,9 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
 
   mem = avr_locate_mem(p, upd->memtype);
   if (mem == NULL) {
-    avrdude_message(MSG_INFO, "\"%s\" memory type not defined for part \"%s\"\n",
-            upd->memtype, p->desc);
-    return -1;
+    avrdude_message(MSG_INFO, "%s: warning: \"%s\" memory type not defined for part \"%s\"\n\n",
+            progname, upd->memtype, p->desc);
+    return 0;
   }
 
   AVRMEM_ALIAS * alias_mem = avr_find_memalias(p, mem);
