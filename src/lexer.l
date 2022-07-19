@@ -176,6 +176,7 @@ miso             { yylval=NULL; return K_MISO; }
 mode             { yylval=NULL; return K_MODE; }
 mosi             { yylval=NULL; return K_MOSI; }
 no               { yylval=new_token(K_NO); return K_NO; }
+NULL             { yylval=NULL; return K_NULL; }
 num_banks        { yylval=NULL; return K_NUM_PAGES; }
 num_pages        { yylval=NULL; return K_NUM_PAGES; }
 nvm_base         { yylval=NULL; return K_NVM_BASE; }

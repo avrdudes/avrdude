@@ -50,6 +50,8 @@ static int parse_cmdbits(OPCODE * op, int opnum);
 static int pin_name;
 %}
 
+%token K_NULL;
+
 %token K_READ
 %token K_WRITE
 %token K_READ_LO
@@ -1328,6 +1330,19 @@ part_parm :
 
       free_token($1);
     }
+  } |
+
+  opcode TKN_EQUAL K_NULL {
+    {
+      int opnum = which_opcode($1);
+      if(opnum < 0)
+         YYABORT;
+      if(current_part->op[opnum] != NULL)
+        avr_free_opcode(current_part->op[opnum]);
+      current_part->op[opnum] = NULL;
+
+      free_token($1);
+    }
   }
 ;
 
@@ -1472,6 +1487,19 @@ mem_spec :
         avr_free_opcode(current_mem->op[opnum]);
       }
       current_mem->op[opnum] = op;
+
+      free_token($1);
+    }
+  } |
+
+  opcode TKN_EQUAL K_NULL {
+    {
+      int opnum = which_opcode($1);
+      if(opnum < 0)
+         YYABORT;
+      if(current_mem->op[opnum] != NULL)
+        avr_free_opcode(current_mem->op[opnum]);
+      current_mem->op[opnum] = NULL;
 
       free_token($1);
     }
