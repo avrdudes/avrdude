@@ -1304,31 +1304,27 @@ part_parm :
 */
 
   K_MEMORY TKN_STRING 
-    {
-      current_mem = avr_new_memtype();
-      if (current_mem == NULL) {
-        yyerror("could not create mem instance");
-        free_token($2);
-        YYABORT;
+    { /* select memory for extension or create if not there */
+      AVRMEM *mem = avr_locate_mem_noalias(current_part, $2->value.string);
+      if(!mem) {
+        if(!(mem = avr_new_memtype())) {
+          yyerror("could not create mem instance");
+          free_token($2);
+          YYABORT;
+        }
+        strncpy(mem->desc, $2->value.string, AVR_MEMDESCLEN - 1);
+        mem->desc[AVR_MEMDESCLEN-1] = 0;
+        ladd(current_part->mem, mem);
       }
-      strncpy(current_mem->desc, $2->value.string, AVR_MEMDESCLEN - 1);
-      current_mem->desc[AVR_MEMDESCLEN-1] = 0;
+      current_mem = mem;
       free_token($2);
     }
     mem_specs 
-    { 
-      AVRMEM * existing_mem;
-
-      existing_mem = avr_locate_mem_noalias(current_part, current_mem->desc);
-      if (existing_mem != NULL) {
-        lrmv_d(current_part->mem, existing_mem);
-        avr_free_mem(existing_mem);
-      }
-      if (is_alias) {
-        avr_free_mem(current_mem); // alias mem has been already entered below
+    {
+      if (is_alias) {           // alias mem has been already entered
+        lrmv_d(current_part->mem, current_mem);
+        avr_free_mem(current_mem);
         is_alias = false;
-      } else {
-        ladd(current_part->mem, current_mem);
       }
       current_mem = NULL; 
     } |
