@@ -1306,7 +1306,16 @@ part_parm :
       }
       current_mem = NULL; 
     } |
-
+  K_MEMORY TKN_STRING TKN_EQUAL K_NULL
+   {
+      AVRMEM *existing_mem = avr_locate_mem_noalias(current_part, $2->value.string);
+      if (existing_mem != NULL) {
+        lrmv_d(current_part->mem, existing_mem);
+        avr_free_mem(existing_mem);
+      }
+      free_token($2);
+      current_mem = NULL;
+    } |
   opcode TKN_EQUAL string_list {
     { 
       int opnum;
