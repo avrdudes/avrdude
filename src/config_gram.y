@@ -1653,7 +1653,6 @@ static int parse_cmdbits(OPCODE * op, int opnum)
 {
   TOKEN * t;
   int bitno;
-  char ch;
   char * e;
   char * q;
   int len;
@@ -1665,10 +1664,18 @@ static int parse_cmdbits(OPCODE * op, int opnum)
 
     t = lrmv_n(string_list, 1);
 
-    s = strtok_r(t->value.string, " ", &brkt);
+    char *str = t->value.string;
+    // Compact alternative specification? (eg, "0100.0000--000x.xxxx--xxaa.aaaa--iiii.iiii")
+    char bit[2] = {0, 0}, *cc = str;
+    int compact = !strchr(str, ' ') && strlen(str) > 7;
+
+    bit[0] = *cc++;
+    s = !compact? strtok_r(str, " ", &brkt): *bit? bit: NULL;
     while (rv == 0 && s != NULL) {
 
-      bitno--;
+      // Ignore visual grouping characters in compact mode
+      if(*s != '.' && *s != '-' && *s != '_' && *s !='/')
+        bitno--;
       if (bitno < 0) {
         yyerror("too many opcode bits for instruction");
         rv = -1;
@@ -1683,10 +1690,8 @@ static int parse_cmdbits(OPCODE * op, int opnum)
         break;
       }
 
-      ch = s[0];
-
       if (len == 1) {
-        switch (ch) {
+        switch (*s) {
           case '1':
             op->bit[bitno].type  = AVR_CMDBIT_VALUE;
             op->bit[bitno].value = 1;
@@ -1720,14 +1725,19 @@ static int parse_cmdbits(OPCODE * op, int opnum)
             op->bit[bitno].value = 0;
             op->bit[bitno].bitno = bitno % 8;
             break;
+          case '.':
+          case '-':
+          case '_':
+          case '/':
+            break;
           default :
-            yyerror("invalid bit specifier '%c'", ch);
+            yyerror("invalid bit specifier '%c'", *s);
             rv = -1;
             break;
         }
       }
       else {
-        if (ch == 'a') {
+        if (*s == 'a') {
           q = &s[1];
           op->bit[bitno].bitno = strtol(q, &e, 0);
           if ((e == q)||(*e != 0)) {
@@ -1745,7 +1755,8 @@ static int parse_cmdbits(OPCODE * op, int opnum)
         }
       }
 
-      s = strtok_r(NULL, " ", &brkt);
+      bit[0] = *cc++;
+      s = !compact? strtok_r(NULL, " ", &brkt): *bit? bit: NULL;
     } /* while */
 
     free_token(t);
