@@ -44,7 +44,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <fnmatch.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -742,6 +741,127 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
 }
 
 
+
+/*
+ * Match STRING against the partname pattern PATTERN, returning 1 if it
+ * matches, 0 if not. NOTE: part_match() is a modified old copy of !fnmatch()
+ * from the GNU C Library (published under GLP v2). Used for portability.
+ */
+
+#define FOLD(c)	({ int _c = (unsigned char) (c); isascii(_c)? tolower(_c): _c; })
+
+static int part_match(const char *pattern, const char *string) {
+  unsigned char c;
+  const char *p = pattern, *n = string;
+
+  if(!*n)                       // AVRDUDE specialty: empty string never matches
+    return 0;
+
+  while((c = FOLD(*p++))) {
+    switch(c) {
+    case '?':
+      if(*n == 0)
+        return 0;
+      break;
+
+    case '\\':
+      c = FOLD(*p++);
+      if(FOLD(*n) != c)
+        return 0;
+      break;
+
+    case '*':
+      for(c = *p++; c == '?' || c == '*'; c = *p++)
+        if(c == '?' && *n++ == 0)
+          return 0;
+
+      if(c == 0)
+        return 1;
+
+      {
+        unsigned char c1 = FOLD(c == '\\'? *p : c); // This char
+
+        for(--p; *n; ++n)       // Recursively check reminder of string for *
+          if((c == '[' || FOLD(*n) == c1) && part_match(p, n) == 1)
+            return 1;
+        return 0;
+      }
+
+    case '[':
+      {
+        int negate;
+
+        if(*n == 0)
+          return 0;
+
+        negate = (*p == '!' || *p == '^');
+        if(negate)
+          ++p;
+
+        c = *p++;
+        for(;;) {
+          unsigned char cstart = c, cend = c;
+
+          if(c == '\\')
+            cstart = cend = *p++;
+
+          cstart = cend = FOLD(cstart);
+
+          if(c == 0)            // [ (unterminated)
+            return 0;
+
+          c = *p++;
+          c = FOLD(c);
+
+          if(c == '-' && *p != ']') {
+            cend = *p++;
+            if(cend == '\\')
+              cend = *p++;
+            if(cend == 0)
+              return 0;
+            cend = FOLD(cend);
+
+            c = *p++;
+          }
+
+          if(FOLD(*n) >= cstart && FOLD(*n) <= cend)
+            goto matched;
+
+          if(c == ']')
+            break;
+        }
+        if(!negate)
+          return 0;
+        break;
+
+      matched:;
+        while(c != ']') {       // Skip the rest of the [...] that already matched
+
+          if(c == 0)            // [... (unterminated)
+            return 0;
+
+          c = *p++;
+          if(c == '\\')         // XXX 1003.2d11 is unclear if this is right
+            ++p;
+        }
+        if(negate)
+          return 0;
+      }
+      break;
+
+    default:
+      if(c != FOLD(*n))
+        return 0;
+    }
+
+    ++n;
+  }
+
+  return *n == 0;
+}
+
+
+
 // -p */[cdosw*]
 void dev_output_part_defs(char *partdesc) {
   bool cmdok, waits, opspi, descs, strct, cmpst, raw, all, tsv;
@@ -817,8 +937,7 @@ void dev_output_part_defs(char *partdesc) {
         nprinted = dev_nprinted;
       }
 
-    // pattern match the name of the part with command line: FMP_CASEFOLD not available here :(
-    if(fnmatch(partdesc, p->desc, 0) && fnmatch(partdesc, p->id, 0))
+    if(!part_match(partdesc, p->desc) && !part_match(partdesc, p->id))
       continue;
 
     if(strct || cmpst)
