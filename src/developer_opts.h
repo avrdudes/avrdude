@@ -19,6 +19,11 @@
 #ifndef developer_opts_h
 #define developer_opts_h
 
-void dev_output_part_defs();
+char cmdbitchar(CMDBIT cb);
+char *cmdbitstr(CMDBIT cb);
+const char *opcodename(int opcode);
+int intlog2(unsigned int n);
+int part_match(const char *pattern, const char *string);
+void dev_output_part_defs(char *partdesc);
 
 #endif
