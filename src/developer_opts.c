@@ -82,8 +82,8 @@ char *cmdbitstr(CMDBIT cb) {
 }
 
 
-const char *opcodename(int opcode) {
-  switch(opcode) {
+const char *opcodename(int opnum) {
+  switch(opnum) {
   case AVR_OP_READ:
     return "read";
   case AVR_OP_WRITE:
@@ -115,7 +115,7 @@ const char *opcodename(int opcode) {
 
 
 // Unique string representation of an opcode
-static char *opcode2str(OPCODE *op, int opnum, int detailed) {
+char *opcode2str(OPCODE *op, int opnum, int detailed) {
   char cb, space[1024], *sp = space;
   int compact = 1;
 
@@ -160,7 +160,7 @@ static char *opcode2str(OPCODE *op, int opnum, int detailed) {
 
 
 // return 0 if op code would encode (essentially) the same SPI command
-static int opcodecmp(OPCODE *op1, OPCODE *op2, int opnum) {
+int opcodecmp(OPCODE *op1, OPCODE *op2, int opnum) {
   char *opstr1, *opstr2, *p;
   int cmp;
 
@@ -192,7 +192,7 @@ static int opcodecmp(OPCODE *op1, OPCODE *op2, int opnum) {
 }
 
 
-static void printopcode(AVRPART *p, const char *d, OPCODE *op, int what) {
+static void printopcode(AVRPART *p, const char *d, OPCODE *op, int opnum) {
   unsigned char cmd[4];
   int i;
 
@@ -200,7 +200,7 @@ static void printopcode(AVRPART *p, const char *d, OPCODE *op, int what) {
     memset(cmd, 0, sizeof cmd);
     avr_set_bits(op, cmd);
 
-    dev_info(".op\t%s\t%s\t%s\t0x%02x%02x%02x%02x\t", p->desc, d, opcodename(what), cmd[0], cmd[1], cmd[2], cmd[3]);
+    dev_info(".op\t%s\t%s\t%s\t0x%02x%02x%02x%02x\t", p->desc, d, opcodename(opnum), cmd[0], cmd[1], cmd[2], cmd[3]);
     for(i=31; i >= 0; i--) {
       dev_info("%c", cmdbitchar(op->bit[i]));
       if(i%8 == 0)
@@ -266,9 +266,9 @@ static char *parttype(AVRPART *p) {
 
 
 // check whether address bits are where they should be in ISP commands
-static void checkaddr(int memsize, int pagesize, int what, OPCODE *op, AVRPART *p, AVRMEM *m) {
+static void checkaddr(int memsize, int pagesize, int opnum, OPCODE *op, AVRPART *p, AVRMEM *m) {
   int i, lo, hi;
-  const char *whatstr = opcodename(what);
+  const char *opstr = opcodename(opnum);
 
   lo = intlog2(pagesize);
   hi = intlog2(memsize-1);
@@ -278,20 +278,20 @@ static void checkaddr(int memsize, int pagesize, int what, OPCODE *op, AVRPART *
     if(i < lo || i > hi) {
       if(op->bit[i+8].type != AVR_CMDBIT_IGNORE && !(op->bit[i+8].type == AVR_CMDBIT_VALUE && op->bit[i+8].value == 0)) {
         char *cbs = cmdbitstr(op->bit[i+8]);
-        dev_info(".cmderr\t%s\t%s-%s\tbit %d outside addressable space should be x or 0 but is %s\n", p->desc, m->desc, whatstr, i+8, cbs? cbs: "NULL");
+        dev_info(".cmderr\t%s\t%s-%s\tbit %d outside addressable space should be x or 0 but is %s\n", p->desc, m->desc, opstr, i+8, cbs? cbs: "NULL");
         if(cbs)
           free(cbs);
       }
     } else {
       if(op->bit[i+8].type != AVR_CMDBIT_ADDRESS)
-        dev_info(".cmderr\t%s\t%s-%s\tbit %d is %c but should be a\n", p->desc, m->desc, whatstr, i+8, cmdbitchar(op->bit[i+8]));
+        dev_info(".cmderr\t%s\t%s-%s\tbit %d is %c but should be a\n", p->desc, m->desc, opstr, i+8, cmdbitchar(op->bit[i+8]));
       else if(op->bit[i+8].bitno != i)
-        dev_info(".cmderr\t%s\t%s-%s\tbit %d inconsistent: a%d specified as a%d\n", p->desc, m->desc, whatstr, i+8, i, op->bit[i+8].bitno);
+        dev_info(".cmderr\t%s\t%s-%s\tbit %d inconsistent: a%d specified as a%d\n", p->desc, m->desc, opstr, i+8, i, op->bit[i+8].bitno);
     }
   }
   for(i=0; i<32; i++)           // command bits 8..23 should not contain address bits
     if((i<8 || i>23) && op->bit[i].type == AVR_CMDBIT_ADDRESS)
-      dev_info(".cmderr\t%s\t%s-%s\tbit %d contains a%d which it shouldn't\n", p->desc, m->desc, whatstr, i, op->bit[i].bitno);
+      dev_info(".cmderr\t%s\t%s-%s\tbit %d contains a%d which it shouldn't\n", p->desc, m->desc, opstr, i, op->bit[i].bitno);
 }
 
 
@@ -857,7 +857,6 @@ int part_match(const char *pattern, const char *string) {
 
   return *n == 0;
 }
-
 
 
 // -p */[cdosw*]
