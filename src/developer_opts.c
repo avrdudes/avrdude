@@ -51,7 +51,7 @@
 #include "developer_opts.h"
 #include "developer_opts_private.h"
 
-static char cmdbitchar(CMDBIT cb) {
+char cmdbitchar(CMDBIT cb) {
   switch(cb.type) {
   case AVR_CMDBIT_IGNORE:
     return 'x';
@@ -68,8 +68,9 @@ static char cmdbitchar(CMDBIT cb) {
   }
 }
 
-static char *cmdbitstr(CMDBIT cb) {
-  char space[10];
+
+char *cmdbitstr(CMDBIT cb) {
+  char space[32];
 
   *space = cmdbitchar(cb);
   if(*space == 'a')
@@ -81,9 +82,8 @@ static char *cmdbitstr(CMDBIT cb) {
 }
 
 
-
-static const char *opcodename(int what) {
-  switch(what) {
+const char *opcodename(int opcode) {
+  switch(opcode) {
   case AVR_OP_READ:
     return "read";
   case AVR_OP_WRITE:
@@ -192,8 +192,6 @@ static int opcodecmp(OPCODE *op1, OPCODE *op2, int opnum) {
 }
 
 
-
-
 static void printopcode(AVRPART *p, const char *d, OPCODE *op, int what) {
   unsigned char cmd[4];
   int i;
@@ -218,7 +216,7 @@ static void printallopcodes(AVRPART *p, const char *d, OPCODE **opa) {
 
 
 // returns position 0..31 of highest bit set or INT_MIN if no bit is set
-static int intlog2(unsigned int n) {
+int intlog2(unsigned int n) {
   int ret;
 
   if(!n)
@@ -402,7 +400,7 @@ static void dev_stack_out(bool tsv, AVRPART *p, const char *name, unsigned char 
 }
 
 
-// order in which memories are processed, runtime adds unknown ones
+// order in which memories are processed, runtime adds unknown ones (but there shouldn't be any)
 static const char *mem_order[100] = {
   "eeprom",       "flash",        "application",  "apptable",
   "boot",         "lfuse",        "hfuse",        "efuse",
@@ -750,7 +748,7 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
 
 #define FOLD(c)	({ int _c = (unsigned char) (c); isascii(_c)? tolower(_c): _c; })
 
-static int part_match(const char *pattern, const char *string) {
+int part_match(const char *pattern, const char *string) {
   unsigned char c;
   const char *p = pattern, *n = string;
 
