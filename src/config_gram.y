@@ -29,6 +29,7 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 #include "config.h"
+#include "developer_opts.h"
 
 #if defined(WIN32)
 #define strtok_r( _s, _sep, _lasts ) \
@@ -1325,6 +1326,16 @@ part_parm :
         lrmv_d(current_part->mem, current_mem);
         avr_free_mem(current_mem);
         is_alias = false;
+      } else {                  // check all opcodes re necessary address bits
+        unsigned char cmd[4] = { 0, 0, 0, 0, };
+        int bn;
+
+        for(int i=0; i<AVR_OP_MAX; i++)
+          if(current_mem && current_mem->op[i]) {
+            if((bn = avr_set_addr_mem(current_mem, i, cmd, 0UL)) > 0)
+              yywarning("%s's %s %s misses a necessary address bit a%d",
+                 current_part->desc, current_mem->desc, opcodename(i), bn-1);
+            }
       }
       current_mem = NULL; 
     } |
