@@ -21,7 +21,9 @@
 
 char cmdbitchar(CMDBIT cb);
 char *cmdbitstr(CMDBIT cb);
-const char *opcodename(int opcode);
+const char *opcodename(int opnum);
+char *opcode2str(OPCODE *op, int opnum, int detailed);
+int opcodecmp(OPCODE *op1, OPCODE *op2, int opnum);
 int intlog2(unsigned int n);
 int part_match(const char *pattern, const char *string);
 void dev_output_part_defs(char *partdesc);
