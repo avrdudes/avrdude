@@ -295,6 +295,100 @@ static void checkaddr(int memsize, int pagesize, int opnum, OPCODE *op, AVRPART 
 }
 
 
+/*
+ * avr_set_addr_mem()
+ *
+ * Set address bits in the specified command based on the memory, opcode and
+ * address; addr must be a word address for flash or, for all other memories,
+ * a byte address; returns 0 on success and -1 on error (no memory or no
+ * opcode) or, if positive, bn+1 where bn is bit number of the highest
+ * necessary bit that the opcode does not provide.
+ */
+int avr_set_addr_mem(AVRMEM *mem, int opnum, unsigned char *cmd, unsigned long addr) {
+  int ret, isflash, lo, hi, memsize, pagesize;
+  OPCODE *op;
+
+  if(!mem)
+    return -1;
+
+  if(!(op = mem->op[opnum]))
+    return -1;
+
+  isflash = !strcmp(mem->desc, "flash"); // ISP parts have only one flash-like memory
+  memsize = mem->size >> isflash;        // word addresses for flash
+  pagesize = mem->page_size >> isflash;
+
+  // compute range lo..hi of needed address bits
+  switch(opnum) {
+  case AVR_OP_READ:
+  case AVR_OP_WRITE:
+  case AVR_OP_READ_LO:
+  case AVR_OP_READ_HI:
+  case AVR_OP_WRITE_LO:
+  case AVR_OP_WRITE_HI:
+    lo = 0;
+    hi = intlog2(memsize-1);    // memsize = 1 implies no addr bit is needed
+    break;
+
+  case AVR_OP_LOADPAGE_LO:
+  case AVR_OP_LOADPAGE_HI:
+    lo = 0;
+    hi = intlog2(pagesize-1);
+    break;
+
+  case AVR_OP_LOAD_EXT_ADDR:
+    lo = 16;
+    hi = intlog2(memsize-1);
+    break;
+
+  case AVR_OP_WRITEPAGE:
+    lo = intlog2(pagesize);
+    hi = intlog2(memsize-1);
+    break;
+
+  case AVR_OP_CHIP_ERASE:
+  case AVR_OP_PGM_ENABLE:
+  default:
+    lo = 0;
+    hi = -1;
+    break;
+  }
+
+  // Unless it's load extended address, ISP chips only deal with 16 bit addresses
+  if(opnum != AVR_OP_LOAD_EXT_ADDR && hi > 15)
+    hi = 15;
+
+  unsigned char avail[32];
+  memset(avail, 0, sizeof avail);
+
+  for(int i=0; i<32; i++) {
+    if(op->bit[i].type == AVR_CMDBIT_ADDRESS) {
+      int bitno, j, bit;
+      unsigned char mask;
+
+      bitno = op->bit[i].bitno & 31;
+      j = 3 - i / 8;
+      bit = i % 8;
+      mask = 1 << bit;
+      avail[bitno] = 1;
+
+      // 'a' bit with number outside bit range [lo, hi] is set to 0
+      if (bitno >= lo && bitno <= hi? (addr >> bitno) & 1: 0)
+        cmd[j] = cmd[j] | mask;
+      else
+        cmd[j] = cmd[j] & ~mask;
+    }
+  }
+
+  ret = 0;
+  if(lo >= 0 && hi < 32 && lo <= hi)
+    for(int bn=lo; bn <= hi; bn++)
+      if(!avail[bn])            // necessary bit bn misses in opcode
+        ret = bn+1;
+
+  return ret;
+}
+
 static char *dev_sprintf(const char *fmt, ...) {
   int size = 0;
   char *p = NULL;
