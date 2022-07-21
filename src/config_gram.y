@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <errno.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -1662,12 +1663,10 @@ static int which_opcode(TOKEN * opcode)
 
 static int parse_cmdbits(OPCODE * op, int opnum)
 {
-  TOKEN * t;
+  TOKEN *t;
   int bitno;
-  char * e;
-  char * q;
   int len;
-  char * s, *brkt = NULL;
+  char *s, *brkt = NULL;
   int rv = 0;
 
   bitno = 32;
@@ -1724,7 +1723,7 @@ static int parse_cmdbits(OPCODE * op, int opnum)
             op->bit[bitno].bitno = bitno < 8 || bitno > 23? 0:
               opnum == AVR_OP_LOAD_EXT_ADDR? bitno+8: bitno-8; /* correct bit number for lone 'a' */
             if(bitno < 8 || bitno > 23)
-              yywarning("address bits don't normally appear in Byte 0 or Byte 3 of SPI programming commands");
+              yywarning("address bits don't normally appear in Bytes 0 or 3 of SPI commands");
             break;
           case 'i':
             op->bit[bitno].type  = AVR_CMDBIT_INPUT;
@@ -1749,13 +1748,27 @@ static int parse_cmdbits(OPCODE * op, int opnum)
       }
       else {
         if (*s == 'a') {
-          q = &s[1];
-          op->bit[bitno].bitno = strtol(q, &e, 0);
-          if ((e == q)||(*e != 0)) {
-            yyerror("can't parse bit number from \"%s\"", q);
-            rv = -1;
-            break;
+          int sb, bn;
+          char *e, *q;
+
+          q = s+1;
+          errno = 0;
+          bn = strtol(q, &e, 0); // address line
+          if (e == q || *e != 0 || errno) {
+            yywarning("can't parse bit number from a%s", q);
+            bn = 0;
           }
+
+          sb = opnum == AVR_OP_LOAD_EXT_ADDR? bitno+8: bitno-8; // should be this number
+          if(bitno < 8 || bitno > 23)
+            yywarning("address bits don't normally appear in Bytes 0 or 3 of SPI commands");
+          else if((bn & 31) != sb)
+            yywarning("a%d would normally be expected to be a%d", bn, sb);
+          else if(bn < 0 || bn > 31)
+            yywarning("invalid address bit a%d, using a%d", bn, bn & 31);
+
+          op->bit[bitno].bitno = bn & 31;
+
           op->bit[bitno].type = AVR_CMDBIT_ADDRESS;
           op->bit[bitno].value = 0;
         }
