@@ -510,7 +510,7 @@ static const char *mem_order[100] = {
 };
 
 static void add_mem_order(const char *str) {
-  for(int i=0; i < sizeof mem_order/sizeof *mem_order; i++) {
+  for(size_t i=0; i < sizeof mem_order/sizeof *mem_order; i++) {
     if(mem_order[i] && !strcmp(mem_order[i], str))
       return;
     if(!mem_order[i]) {
@@ -536,7 +536,7 @@ typedef struct {
 } AVRMEMdeep;
 
 static int avrmem_deep_copy(AVRMEMdeep *d, AVRMEM *m) {
-  int len;
+  size_t len;
 
   d->base = *m;
 
@@ -555,7 +555,7 @@ static int avrmem_deep_copy(AVRMEMdeep *d, AVRMEM *m) {
   // copy over the SPI operations themselves
   memset(d->base.op, 0, sizeof d->base.op);
   memset(d->ops, 0, sizeof d->ops);
-  for(int i=0; i<sizeof d->ops/sizeof *d->ops; i++)
+  for(size_t i=0; i<sizeof d->ops/sizeof *d->ops; i++)
     if(m->op[i])
       d->ops[i] = *m->op[i];
 
@@ -586,7 +586,7 @@ typedef struct {
 
 static int avrpart_deep_copy(AVRPARTdeep *d, AVRPART *p) {
   AVRMEM *m;
-  int len, di;
+  size_t len, di;
 
   memset(d, 0, sizeof *d);
 
@@ -623,7 +623,7 @@ static int avrpart_deep_copy(AVRPARTdeep *d, AVRPART *p) {
 
   // fill in all memories we got in defined order
   di = 0;
-  for(int mi=0; mi < sizeof mem_order/sizeof *mem_order && mem_order[mi]; mi++) {
+  for(size_t mi=0; mi < sizeof mem_order/sizeof *mem_order && mem_order[mi]; mi++) {
     m = p->mem? avr_locate_mem(p, mem_order[mi]): NULL;
     if(m) {
       if(di >= sizeof d->mems/sizeof *d->mems) {
@@ -773,7 +773,7 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
     if(!base || opcodecmp(p->op[i], base->op[i], i))
       dev_part_strct_entry(tsv, ".ptop", p->desc, "part", opcodename(i), opcode2str(p->op[i], i, !tsv));
 
-  for(int mi=0; mi < sizeof mem_order/sizeof *mem_order && mem_order[mi]; mi++) {
+  for(size_t mi=0; mi < sizeof mem_order/sizeof *mem_order && mem_order[mi]; mi++) {
     AVRMEM *m, *bm;
 
     m = p->mem? avr_locate_mem(p, mem_order[mi]): NULL;
@@ -840,7 +840,9 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
  * from the GNU C Library (published under GLP v2). Used for portability.
  */
 
-#define FOLD(c)	({ int _c = (unsigned char) (c); isascii(_c)? tolower(_c): _c; })
+inline static int fold(int c) {
+  return (c >= 'A' && c <= 'Z')? c+('a'-'A'): c;
+}
 
 int part_match(const char *pattern, const char *string) {
   unsigned char c;
@@ -849,7 +851,7 @@ int part_match(const char *pattern, const char *string) {
   if(!*n)                       // AVRDUDE specialty: empty string never matches
     return 0;
 
-  while((c = FOLD(*p++))) {
+  while((c = fold(*p++))) {
     switch(c) {
     case '?':
       if(*n == 0)
@@ -857,8 +859,8 @@ int part_match(const char *pattern, const char *string) {
       break;
 
     case '\\':
-      c = FOLD(*p++);
-      if(FOLD(*n) != c)
+      c = fold(*p++);
+      if(fold(*n) != c)
         return 0;
       break;
 
@@ -871,10 +873,10 @@ int part_match(const char *pattern, const char *string) {
         return 1;
 
       {
-        unsigned char c1 = FOLD(c == '\\'? *p : c); // This char
+        unsigned char c1 = fold(c == '\\'? *p : c); // This char
 
         for(--p; *n; ++n)       // Recursively check reminder of string for *
-          if((c == '[' || FOLD(*n) == c1) && part_match(p, n) == 1)
+          if((c == '[' || fold(*n) == c1) && part_match(p, n) == 1)
             return 1;
         return 0;
       }
@@ -897,13 +899,13 @@ int part_match(const char *pattern, const char *string) {
           if(c == '\\')
             cstart = cend = *p++;
 
-          cstart = cend = FOLD(cstart);
+          cstart = cend = fold(cstart);
 
           if(c == 0)            // [ (unterminated)
             return 0;
 
           c = *p++;
-          c = FOLD(c);
+          c = fold(c);
 
           if(c == '-' && *p != ']') {
             cend = *p++;
@@ -911,12 +913,12 @@ int part_match(const char *pattern, const char *string) {
               cend = *p++;
             if(cend == 0)
               return 0;
-            cend = FOLD(cend);
+            cend = fold(cend);
 
             c = *p++;
           }
 
-          if(FOLD(*n) >= cstart && FOLD(*n) <= cend)
+          if(fold(*n) >= cstart && fold(*n) <= cend)
             goto matched;
 
           if(c == ']')
@@ -942,7 +944,7 @@ int part_match(const char *pattern, const char *string) {
       break;
 
     default:
-      if(c != FOLD(*n))
+      if(c != fold(*n))
         return 0;
     }
 
@@ -1043,12 +1045,12 @@ void dev_output_part_defs(char *partdesc) {
     if(p->mem) {
       for(LNODEID lnm=lfirst(p->mem); lnm; lnm=lnext(lnm)) {
         AVRMEM *m = ldata(lnm);
-        if(!flashsize && m->desc && 0==strcmp(m->desc, "flash")) {
+        if(!flashsize && 0==strcmp(m->desc, "flash")) {
           flashsize = m->size;
           flashpagesize = m->page_size;
           flashoffset = m->offset;
         }
-        if(!eepromsize && m->desc && 0==strcmp(m->desc, "eeprom")) {
+        if(!eepromsize && 0==strcmp(m->desc, "eeprom")) {
           eepromsize = m->size;
           eepromoffset = m->offset;
           eeprompagesize = m->page_size;
@@ -1057,7 +1059,7 @@ void dev_output_part_defs(char *partdesc) {
     }
 
     // "real" entries don't seem to have a space in their desc (a bit hackey)
-    if(flashsize && !index(p->desc, ' ')) {
+    if(flashsize && !strchr(p->desc, ' ')) {
       int ok, nfuses;
       AVRMEM *m;
       OPCODE *oc;
