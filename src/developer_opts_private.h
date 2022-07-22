@@ -54,61 +54,61 @@ static int dev_message(int msglvl, const char *fmt, ...);
 #define _partout(fmt, component) \
   dev_part_strct_entry(tsv, ".pt", p->desc, NULL, #component, dev_sprintf(fmt, p->component))
 
-#define _if_partout(cmp, fmt, component) ({ \
+#define _if_partout(cmp, fmt, component) do { \
   if(!base || cmp(base->component, p->component)) \
     dev_part_strct_entry(tsv, ".pt", p->desc, NULL, #component, dev_sprintf(fmt, p->component)); \
-})
+} while(0)
 
-#define _if_n_partout(cmp, n, fmt, component) ({ \
+#define _if_n_partout(cmp, n, fmt, component) do { \
   if(!base || cmp(base->component, p->component, n)) \
     dev_part_strct_entry(tsv, ".pt", p->desc, NULL, #component, dev_sprintf(fmt, p->component)); \
-})
+} while(0)
 
 #define _partout_str(result, component) \
   dev_part_strct_entry(tsv, ".pt", p->desc, NULL, #component, result)
 
-#define _if_partout_str(cmp, result, component) ({ \
+#define _if_partout_str(cmp, result, component) do { \
   if(!base || cmp(base->component, p->component)) \
     dev_part_strct_entry(tsv, ".pt", p->desc, NULL, #component, result); \
-})
+} while(0)
 
-#define _if_n_partout_str(cmp, n, result, component) ({ \
+#define _if_n_partout_str(cmp, n, result, component) do { \
   if(!base || cmp(base->component, p->component, n)) \
     dev_part_strct_entry(tsv, ".pt", p->desc, NULL, #component, result); \
-})
+} while(0)
 
 
 #define _memout(fmt, component) \
   dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc, #component, dev_sprintf(fmt, m->component))
 
-#define _if_memout(cmp, fmt, component) ({ \
+#define _if_memout(cmp, fmt, component) do { \
   if(!bm || cmp(bm->component, m->component)) \
     dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc, #component, dev_sprintf(fmt, m->component)); \
-})
+} while(0)
 
 #define _memout_str(result, component) \
   dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc, #component, result)
 
-#define _if_n_memout_str(cmp, n, result, component) ({ \
+#define _if_n_memout_str(cmp, n, result, component) do { \
   if(!bm || cmp(bm->component, m->component, n)) \
     dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc, #component, result); \
-})
+} while(0)
 
 #define _memout_yn(component) \
   dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc, #component, strdup(m->component? "yes": "no"))
 
-#define _if_memout_yn(component) ({ \
+#define _if_memout_yn(component) do { \
   if(!bm || bm->component != m->component) \
     dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc, #component, strdup(m->component? "yes": "no")); \
-})
+} while(0)
 
 #define _flagout(mask, name) \
   _partout_str(strdup(p->flags & (mask)? "yes": "no"), name)
 
-#define _if_flagout(mask, name) ({ \
+#define _if_flagout(mask, name) do { \
   if(!base || (base->flags & (mask)) != (p->flags & (mask))) \
     _partout_str(strdup(p->flags & (mask)? "yes": "no"), name); \
-})
+} while(0)
 
 #define _cmderr(result, component) \
   dev_part_strct_entry(tsv, ".cmderr", p->desc, m->desc, #component, result)
