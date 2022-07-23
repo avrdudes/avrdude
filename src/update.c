@@ -278,6 +278,34 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
      * write the selected device memory using data from a file; first
      * read the data from the specified file
      */
+    const char *name = 0;
+    switch (upd->format) {
+    case FMT_HEX:
+      name = "hex";
+      break;
+
+    case FMT_DEC:
+      name = "decimal";
+      break;
+
+    case FMT_OCT:
+      name = "octal";
+      break;
+
+    case FMT_BIN:
+      name = "binary";
+      break;
+
+    default:
+      // no action needed
+      break;
+    }
+    if (name != 0) {
+      avrdude_message(MSG_INFO,
+                      "%s: Invalid file format '%s' for input\n",
+                      progname, name, upd->filename);
+      return -1;
+    }
     if (quell_progress < 2) {
       avrdude_message(MSG_INFO, "%s: reading input file \"%s\"\n",
                       progname,
