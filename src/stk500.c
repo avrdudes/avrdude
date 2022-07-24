@@ -212,7 +212,6 @@ static int stk500_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   pgm->pgm_led(pgm, ON);
 
   memset(cmd, 0, sizeof(cmd));
-
   avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
   pgm->cmd(pgm, cmd, res);
   usleep(p->chip_erase_delay);
@@ -745,8 +744,8 @@ static int stk500_loadaddr(PROGRAMMER * pgm, AVRMEM * mem, unsigned int addr)
   if (lext != NULL) {
     ext_byte = (addr >> 16) & 0xff;
     if (ext_byte != PDATA(pgm)->ext_addr_byte) {
-      /* Either this is the first addr load, or a 64K word boundary is
-       * crossed, so set the ext addr byte */
+      /* Either this is the first addr load, or a different 64K word section */
+      memset(buf, 0, 4);
       avr_set_bits(lext, buf);
       avr_set_addr(lext, buf, addr);
       stk500_cmd(pgm, buf, buf);
