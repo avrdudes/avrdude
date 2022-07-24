@@ -971,13 +971,13 @@ void dev_output_part_defs(char *partdesc) {
   if(!*flags || !strchr("cdosSrw*t", *flags)) {
     dev_info("%s: flags for developer option -p <wildcard>/<flags> not recognised\n", progname);
     dev_info(
-      "Wildcard examples:\n"
+      "Wildcard examples (these need protecting in the shell through quoting):\n"
       "         * all known parts\n"
       "  ATtiny10 just this part\n"
       "  *32[0-9] matches ATmega329, ATmega325 and ATmega328\n"
       "      *32? matches ATmega329, ATmega32A, ATmega325 and ATmega328\n"
       "Flags (one or more of the characters below):\n"
-      "       c  check address bits in SPI commands and output errors\n"
+      "       c  check and report errors in address bits of SPI commands\n"
       "       d  description of core part features\n"
       "       o  opcodes for SPI programming parts and memories\n"
       "       S  show entries of avrdude.conf parts with all values\n"
@@ -986,8 +986,18 @@ void dev_output_part_defs(char *partdesc) {
       "       w  wd_... constants for ISP parts\n"
       "       *  all of the above except s\n"
       "       t  use tab separated values as much as possible\n"
-      "Note:\n"
-      "  -p *      same as -p */*\n"
+      "Examples:\n"
+      "  $ avrdude -p ATmega328P/s\n"
+      "  $ avrdude -p m328*/st | grep chip_erase_delay\n"
+      "  avrdude -p*/r | sort\n"
+      "Notes:\n"
+      "  -p * is the same as -p */*\n"
+      "  This help message is printed using any unrecognised flag, eg, -p/h\n"
+      "  Leaving no space after -p can be an OK substitute for quoting in shells\n"
+      "  /s and /S outputs are designed to be used as input in avrdude.conf\n"
+      "  Sorted /r output should stay invariant when rearranging avrdude.conf\n"
+      "  The /c, /o and /w flags are less generic and may be removed sometime\n"
+      "  These options are just to help development, so not further documented\n"
     );
     return;
   }
