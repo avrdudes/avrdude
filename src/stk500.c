@@ -1034,7 +1034,8 @@ static int stk500_set_fosc(PROGRAMMER * pgm, double v)
   static unsigned ps[] = {
     1, 8, 32, 64, 128, 256, 1024
   };
-  int idx, rc;
+  size_t idx;
+  int rc;
 
   prescale = cmatch = 0;
   if (v > 0.0) {
