@@ -119,6 +119,7 @@ int stk500_getsync(PROGRAMMER * pgm)
     }
 
     stk500_send(pgm, buf, 2);
+    resp[0] = 0;
     if(stk500_recv(pgm, resp, 1) >= 0 && resp[0] == Resp_STK_INSYNC)
       break;
 
@@ -202,8 +203,8 @@ static int stk500_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   }
 
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
-    avrdude_message(MSG_INFO, "chip erase instruction not defined for part \"%s\"\n",
-            p->desc);
+    avrdude_message(MSG_INFO, "%s: chip erase instruction not defined for part \"%s\"\n",
+            progname, p->desc);
     return -1;
   }
 
@@ -779,13 +780,12 @@ static int stk500_loadaddr(PROGRAMMER * pgm, AVRMEM * mem, unsigned int addr)
 
   if (stk500_recv(pgm, buf, 1) < 0)
     return -1;
-  if (buf[0] == Resp_STK_OK) {
+  if (buf[0] == Resp_STK_OK)
     return 0;
-  }
 
-  avrdude_message(MSG_INFO, "%s: loadaddr(): (b) protocol error, "
+  avrdude_message(MSG_INFO, "%s: stk500_loadaddr(): (b) protocol error, "
                   "expect=0x%02x, resp=0x%02x\n",
-                  progname, Resp_STK_INSYNC, buf[0]);
+                  progname, Resp_STK_OK, buf[0]);
 
   return -1;
 }
@@ -876,9 +876,9 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     if (stk500_recv(pgm, buf, 1) < 0)
       return -1;
     if (buf[0] != Resp_STK_OK) {
-      avrdude_message(MSG_INFO, "\n%s: stk500_paged_write(): (a) protocol error, "
+      avrdude_message(MSG_INFO, "\n%s: stk500_paged_write(): (b) protocol error, "
                       "expect=0x%02x, resp=0x%02x\n",
-                      progname, Resp_STK_INSYNC, buf[0]);
+                      progname, Resp_STK_OK, buf[0]);
       return -5;
     }
   }
@@ -970,7 +970,7 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   }
     else {
       if (buf[0] != Resp_STK_OK) {
-        avrdude_message(MSG_INFO, "\n%s: stk500_paged_load(): (a) protocol error, "
+        avrdude_message(MSG_INFO, "\n%s: stk500_paged_load(): (b) protocol error, "
                         "expect=0x%02x, resp=0x%02x\n",
                         progname, Resp_STK_OK, buf[0]);
         return -5;
@@ -1152,7 +1152,7 @@ static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
     return -3;
   }
   else if (buf[0] != Resp_STK_OK) {
-    avrdude_message(MSG_INFO, "\n%s: stk500_getparm(): (a) protocol error, "
+    avrdude_message(MSG_INFO, "\n%s: stk500_getparm(): (b) protocol error, "
                     "expect=0x%02x, resp=0x%02x\n",
                     progname, Resp_STK_OK, buf[0]);
     return -3;
@@ -1211,9 +1211,9 @@ static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value)
     return -3;
   }
   else {
-    avrdude_message(MSG_INFO, "\n%s: stk500_setparm(): (a) protocol error, "
+    avrdude_message(MSG_INFO, "\n%s: stk500_setparm(): (b) protocol error, "
                     "expect=0x%02x, resp=0x%02x\n",
-                    progname, Resp_STK_INSYNC, buf[0]);
+                    progname, Resp_STK_OK, buf[0]);
     return -3;
   }
 }
