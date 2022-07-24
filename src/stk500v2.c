@@ -991,6 +991,7 @@ static int stk500v2_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   buf[0] = CMD_CHIP_ERASE_ISP;
   buf[1] = p->chip_erase_delay / 1000;
   buf[2] = 0;	// use delay (?)
+  memset(buf+3, 0, 4);
   avr_set_bits(p->op[AVR_OP_CHIP_ERASE], buf+3);
   result = stk500v2_command(pgm, buf, 7, sizeof(buf));
   usleep(p->chip_erase_delay);
@@ -1121,8 +1122,8 @@ retry:
   buf[5] = p->bytedelay;
   buf[6] = p->pollvalue;
   buf[7] = p->pollindex;
+  memset(buf+8, 0, 4);
   avr_set_bits(p->op[AVR_OP_PGM_ENABLE], buf+8);
-  buf[10] = buf[11] = 0;
 
   rv = stk500v2_command(pgm, buf, 12, sizeof(buf));
 
@@ -1957,12 +1958,12 @@ static int stk500isp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     buf[0] = CMD_READ_SIGNATURE_ISP;
   }
 
-  memset(buf + 1, 0, 5);
   if ((op = mem->op[AVR_OP_READ]) == NULL) {
     avrdude_message(MSG_INFO, "%s: stk500isp_read_byte(): invalid operation AVR_OP_READ on %s memory\n",
                     progname, mem->desc);
     return -1;
   }
+  memset(buf+2, 0, 4);
   avr_set_bits(op, buf + 2);
   if ((pollidx = avr_get_output_index(op)) == -1) {
     avrdude_message(MSG_INFO, "%s: stk500isp_read_byte(): cannot determine pollidx to read %s memory\n",
@@ -2314,6 +2315,7 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
               progname, p->desc);
       return -1;
     }
+    memset(cmds, 0, sizeof cmds);
     avr_set_bits(m->op[AVR_OP_LOADPAGE_LO], cmds);
     commandbuf[5] = cmds[0];
 
@@ -2322,6 +2324,8 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
               progname, p->desc);
       return -1;
     }
+
+    memset(cmds, 0, sizeof cmds);
     avr_set_bits(m->op[AVR_OP_WRITEPAGE], cmds);
     commandbuf[6] = cmds[0];
 
@@ -2335,6 +2339,7 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
               progname, p->desc);
       return -1;
     }
+    memset(cmds, 0, sizeof cmds);
     avr_set_bits(wop, cmds);
     commandbuf[5] = cmds[0];
     commandbuf[6] = 0;
@@ -2346,6 +2351,7 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
             progname, p->desc);
     return -1;
   }
+  memset(cmds, 0, sizeof cmds);
   avr_set_bits(rop, cmds);
   commandbuf[7] = cmds[0];
 
@@ -2549,6 +2555,7 @@ static int stk500v2_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
             progname, p->desc);
     return -1;
   }
+  memset(cmds, 0, sizeof cmds);
   avr_set_bits(rop, cmds);
   commandbuf[3] = cmds[0];
 
