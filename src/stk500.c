@@ -91,8 +91,6 @@ int stk500_getsync(PROGRAMMER * pgm)
   int attempt;
   int max_sync_attempts;
 
-  /*
-   * get in sync */
   buf[0] = Cmnd_STK_GET_SYNC;
   buf[1] = Sync_CRC_EOP;
   
@@ -119,11 +117,11 @@ int stk500_getsync(PROGRAMMER * pgm)
       usleep(50*1000);
       stk500_drain(pgm, 0);
     }
+
     stk500_send(pgm, buf, 2);
-    stk500_recv(pgm, resp, 1);
-    if (resp[0] == Resp_STK_INSYNC){
+    if(stk500_recv(pgm, resp, 1) >= 0 && resp[0] == Resp_STK_INSYNC)
       break;
-    }
+
     avrdude_message(MSG_INFO, "%s: stk500_getsync() attempt %d of %d: not in sync: resp=0x%02x\n",
                     progname, attempt + 1, max_sync_attempts, resp[0]);
   }
