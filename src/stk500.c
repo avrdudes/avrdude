@@ -805,18 +805,19 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   if (strcmp(m->desc, "flash") == 0) {
     memtype = 'F';
-  }
-  else if (strcmp(m->desc, "eeprom") == 0) {
+    a_div = 2;
+  } else if (strcmp(m->desc, "eeprom") == 0) {
     memtype = 'E';
-  }
-  else {
+    /*
+     * The STK original 500 v1 protocol actually expects a_div = 1, but the
+     * v1.x FW of the STK500 kit has been superseded by v2 FW in the mid
+     * 2000s. Since optiboot, arduino as ISP and others assume a_div = 2,
+     * better use that. See https://github.com/avrdudes/avrdude/issues/967
+     */
+    a_div = 2;
+  } else {
     return -2;
   }
-
-  if ((m->op[AVR_OP_LOADPAGE_LO]) || (m->op[AVR_OP_READ_LO]))
-    a_div = 2;
-  else
-    a_div = 1;
 
   n = addr + n_bytes;
 #if 0
@@ -825,7 +826,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                   "a_div     = %d\n"
                   "page_size = %d\n",
                   n_bytes, n, a_div, page_size);
-#endif     
+#endif
 
   for (; addr < n; addr += block_size) {
     // MIB510 uses fixed blocks size of 256 bytes
@@ -872,7 +873,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                       progname, Resp_STK_INSYNC, buf[0]);
       return -4;
     }
-    
+
     if (stk500_recv(pgm, buf, 1) < 0)
       return -1;
     if (buf[0] != Resp_STK_OK) {
@@ -899,18 +900,19 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   if (strcmp(m->desc, "flash") == 0) {
     memtype = 'F';
-  }
-  else if (strcmp(m->desc, "eeprom") == 0) {
+    a_div = 2;
+  } else if (strcmp(m->desc, "eeprom") == 0) {
     memtype = 'E';
-  }
-  else {
+    /*
+     * The STK original 500 v1 protocol actually expects a_div = 1, but the
+     * v1.x FW of the STK500 kit has been superseded by v2 FW in the mid
+     * 2000s. Since optiboot, arduino as ISP and others assume a_div = 2,
+     * better use that. See https://github.com/avrdudes/avrdude/issues/967
+     */
+    a_div = 2;
+  } else {
     return -2;
   }
-
-  if ((m->op[AVR_OP_LOADPAGE_LO]) || (m->op[AVR_OP_READ_LO]))
-    a_div = 2;
-  else
-    a_div = 1;
 
   n = addr + n_bytes;
   for (; addr < n; addr += block_size) {
