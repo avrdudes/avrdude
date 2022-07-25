@@ -673,10 +673,13 @@ static void dev_part_raw(AVRPART *part) {
 
 
 static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
-  dev_info("# %s %d\n", p->config_file, p->lineno);
 
-  if(!tsv)
-    dev_info("part\n");
+  if(!tsv) {
+    dev_info("#------------------------------------------------------------\n");
+    dev_info("# %s\n", p->desc);
+    dev_info("#------------------------------------------------------------\n");
+    dev_info("\npart\n");
+  }
 
   _if_partout(strcmp, "\"%s\"", desc);
   _if_partout(strcmp, "\"%s\"", id);
