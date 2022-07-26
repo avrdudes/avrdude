@@ -135,9 +135,6 @@ add_library(libavrdude
     confwin.c
     crc16.c
     crc16.h
-    developer_opts.c
-    developer_opts.h
-    developer_opts_private.h
     dfu.c
     dfu.h
     fileio.c
@@ -255,6 +252,9 @@ add_executable(avrdude
     main.c
     term.c
     term.h
+    developer_opts.c
+    developer_opts.h
+    developer_opts_private.h
     whereami.c
     whereami.h
     "${EXTRA_WINDOWS_RESOURCES}"
