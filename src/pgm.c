@@ -79,6 +79,7 @@ PROGRAMMER * pgm_new(void)
   pgm->usbpid = lcreat(NULL, 0);
   pgm->desc[0] = 0;
   pgm->type[0] = 0;
+  pgm->parent_id = NULL;
   pgm->config_file = NULL;
   pgm->lineno = 0;
   pgm->baudrate = 0;
@@ -145,11 +146,8 @@ void pgm_free(PROGRAMMER * const p)
   ldestroy_cb(p->usbpid, free);
   p->id = NULL;
   p->usbpid = NULL;
-  /* this is done by pgm_teardown, but usually cookie is not set to NULL */
-  /* if (p->cookie !=NULL) {
-    free(p->cookie);
-    p->cookie = NULL;
-  }*/
+  /* do not free p->parent_id nor p->config_file */
+  /* p->cookie is freed by pgm_teardown */
   free(p);
 }
 
@@ -169,7 +167,6 @@ PROGRAMMER * pgm_dup(const PROGRAMMER * const src)
 
   pgm->id = lcreat(NULL, 0);
   pgm->usbpid = lcreat(NULL, 0);
-
   for (ln = lfirst(src->usbpid); ln; ln = lnext(ln)) {
     int *ip = malloc(sizeof(int));
     if (ip == NULL) {

@@ -25,10 +25,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <errno.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
 #include "config.h"
+#include "developer_opts.h"
 
 #if defined(WIN32)
 #define strtok_r( _s, _sep, _lasts ) \
@@ -45,10 +47,12 @@ int yywarning(char * errmsg, ...);
 static int assign_pin(int pinno, TOKEN * v, int invert);
 static int assign_pin_list(int invert);
 static int which_opcode(TOKEN * opcode);
-static int parse_cmdbits(OPCODE * op);
+static int parse_cmdbits(OPCODE * op, int opnum);
 
 static int pin_name;
 %}
+
+%token K_NULL;
 
 %token K_READ
 %token K_WRITE
@@ -112,6 +116,7 @@ static int pin_name;
 %token K_PSEUDO
 %token K_PWROFF_AFTER_WRITE
 %token K_RDYLED
+%token K_READBACK
 %token K_READBACK_P1
 %token K_READBACK_P2
 %token K_READMEM
@@ -329,6 +334,7 @@ prog_decl :
         free_token($3);
         YYABORT;
       }
+      current_prog->parent_id = cache_string($3->value.string);
       current_prog->config_file = cache_string(cfg_infile);
       current_prog->lineno = cfg_lineno;
       free_token($3);
@@ -420,6 +426,7 @@ part_decl :
         free_token($3);
         YYABORT;
       }
+      current_part->parent_id = cache_string($3->value.string);
       current_part->config_file = cache_string(cfg_infile);
       current_part->lineno = cfg_lineno;
 
@@ -797,6 +804,13 @@ part_parm :
     }
   } |
 
+  K_PP_CONTROLSTACK TKN_EQUAL K_NULL {
+    {
+      current_part->ctl_stack_type = CTL_STACK_NONE;
+      memset(current_part->controlstack, 0, CTL_STACK_SIZE);
+    }
+  } |
+
   K_HVSP_CONTROLSTACK TKN_EQUAL num_list {
     {
       TOKEN * t;
@@ -825,6 +839,13 @@ part_parm :
 	{
 	  yywarning("too many bytes in control stack");
         }
+    }
+  } |
+
+  K_HVSP_CONTROLSTACK TKN_EQUAL K_NULL {
+    {
+      current_part->ctl_stack_type = CTL_STACK_NONE;
+      memset(current_part->controlstack, 0, CTL_STACK_SIZE);
     }
   } |
 
@@ -858,6 +879,12 @@ part_parm :
     }
   } |
 
+  K_FLASH_INSTR TKN_EQUAL K_NULL {
+    {
+      memset(current_part->flash_instr, 0, FLASH_INSTR_SIZE);
+    }
+  } |
+
   K_EEPROM_INSTR TKN_EQUAL num_list {
     {
       TOKEN * t;
@@ -885,6 +912,12 @@ part_parm :
 	{
 	  yywarning("too many bytes in EEPROM instructions");
         }
+    }
+  } |
+
+  K_EEPROM_INSTR TKN_EQUAL K_NULL {
+    {
+      memset(current_part->eeprom_instr, 0, EEPROM_INSTR_SIZE);
     }
   } |
 
@@ -1275,35 +1308,50 @@ part_parm :
 */
 
   K_MEMORY TKN_STRING 
-    {
-      current_mem = avr_new_memtype();
-      if (current_mem == NULL) {
-        yyerror("could not create mem instance");
-        free_token($2);
-        YYABORT;
+    { /* select memory for extension or create if not there */
+      AVRMEM *mem = avr_locate_mem_noalias(current_part, $2->value.string);
+      if(!mem) {
+        if(!(mem = avr_new_memtype())) {
+          yyerror("could not create mem instance");
+          free_token($2);
+          YYABORT;
+        }
+        strncpy(mem->desc, $2->value.string, AVR_MEMDESCLEN - 1);
+        mem->desc[AVR_MEMDESCLEN-1] = 0;
+        ladd(current_part->mem, mem);
       }
-      strncpy(current_mem->desc, $2->value.string, AVR_MEMDESCLEN - 1);
-      current_mem->desc[AVR_MEMDESCLEN-1] = 0;
+      current_mem = mem;
       free_token($2);
     }
     mem_specs 
-    { 
-      AVRMEM * existing_mem;
+    {
+      if (is_alias) {           // alias mem has been already entered
+        lrmv_d(current_part->mem, current_mem);
+        avr_free_mem(current_mem);
+        is_alias = false;
+      } else {                  // check all opcodes re necessary address bits
+        unsigned char cmd[4] = { 0, 0, 0, 0, };
+        int bn;
 
-      existing_mem = avr_locate_mem_noalias(current_part, current_mem->desc);
+        for(int i=0; i<AVR_OP_MAX; i++)
+          if(current_mem && current_mem->op[i]) {
+            if((bn = avr_set_addr_mem(current_mem, i, cmd, 0UL)) > 0)
+              yywarning("%s's %s %s misses a necessary address bit a%d",
+                 current_part->desc, current_mem->desc, opcodename(i), bn-1);
+            }
+      }
+      current_mem = NULL; 
+    } |
+  K_MEMORY TKN_STRING TKN_EQUAL K_NULL
+   {
+      AVRMEM *existing_mem = avr_locate_mem_noalias(current_part, $2->value.string);
       if (existing_mem != NULL) {
         lrmv_d(current_part->mem, existing_mem);
         avr_free_mem(existing_mem);
       }
-      if (is_alias) {
-        avr_free_mem(current_mem); // alias mem has been already entered below
-        is_alias = false;
-      } else {
-        ladd(current_part->mem, current_mem);
-      }
-      current_mem = NULL; 
+      free_token($2);
+      current_mem = NULL;
     } |
-
   opcode TKN_EQUAL string_list {
     { 
       int opnum;
@@ -1317,12 +1365,26 @@ part_parm :
         free_token($1);
         YYABORT;
       }
-      if(0 != parse_cmdbits(op)) YYABORT;
+      if(0 != parse_cmdbits(op, opnum))
+        YYABORT;
       if (current_part->op[opnum] != NULL) {
         /*yywarning("operation redefined");*/
         avr_free_opcode(current_part->op[opnum]);
       }
       current_part->op[opnum] = op;
+
+      free_token($1);
+    }
+  } |
+
+  opcode TKN_EQUAL K_NULL {
+    {
+      int opnum = which_opcode($1);
+      if(opnum < 0)
+         YYABORT;
+      if(current_part->op[opnum] != NULL)
+        avr_free_opcode(current_part->op[opnum]);
+      current_part->op[opnum] = NULL;
 
       free_token($1);
     }
@@ -1398,6 +1460,14 @@ mem_spec :
       free_token($3);
     } |
 
+  K_READBACK        TKN_EQUAL TKN_NUMBER TKN_NUMBER
+    {
+      current_mem->readback[0] = $3->value.number;
+      current_mem->readback[1] = $4->value.number;
+      free_token($3);
+      free_token($4);
+    } |
+
   K_READBACK_P1     TKN_EQUAL TKN_NUMBER
     {
       current_mem->readback[0] = $3->value.number;
@@ -1455,12 +1525,26 @@ mem_spec :
         free_token($1);
         YYABORT;
       }
-      if(0 != parse_cmdbits(op)) YYABORT;
+      if(0 != parse_cmdbits(op, opnum))
+        YYABORT;
       if (current_mem->op[opnum] != NULL) {
         /*yywarning("operation redefined");*/
         avr_free_opcode(current_mem->op[opnum]);
       }
       current_mem->op[opnum] = op;
+
+      free_token($1);
+    }
+  } |
+
+  opcode TKN_EQUAL K_NULL {
+    {
+      int opnum = which_opcode($1);
+      if(opnum < 0)
+         YYABORT;
+      if(current_mem->op[opnum] != NULL)
+        avr_free_opcode(current_mem->op[opnum]);
+      current_mem->op[opnum] = NULL;
 
       free_token($1);
     }
@@ -1579,15 +1663,12 @@ static int which_opcode(TOKEN * opcode)
 }
 
 
-static int parse_cmdbits(OPCODE * op)
+static int parse_cmdbits(OPCODE * op, int opnum)
 {
-  TOKEN * t;
+  TOKEN *t;
   int bitno;
-  char ch;
-  char * e;
-  char * q;
   int len;
-  char * s, *brkt = NULL;
+  char *s, *brkt = NULL;
   int rv = 0;
 
   bitno = 32;
@@ -1595,10 +1676,18 @@ static int parse_cmdbits(OPCODE * op)
 
     t = lrmv_n(string_list, 1);
 
-    s = strtok_r(t->value.string, " ", &brkt);
+    char *str = t->value.string;
+    // Compact alternative specification? (eg, "0100.0000--000x.xxxx--xxaa.aaaa--iiii.iiii")
+    char bit[2] = {0, 0}, *cc = str;
+    int compact = !strchr(str, ' ') && strlen(str) > 7;
+
+    bit[0] = *cc++;
+    s = !compact? strtok_r(str, " ", &brkt): *bit? bit: NULL;
     while (rv == 0 && s != NULL) {
 
-      bitno--;
+      // Ignore visual grouping characters in compact mode
+      if(*s != '.' && *s != '-' && *s != '_' && *s !='/')
+        bitno--;
       if (bitno < 0) {
         yyerror("too many opcode bits for instruction");
         rv = -1;
@@ -1613,10 +1702,8 @@ static int parse_cmdbits(OPCODE * op)
         break;
       }
 
-      ch = s[0];
-
       if (len == 1) {
-        switch (ch) {
+        switch (*s) {
           case '1':
             op->bit[bitno].type  = AVR_CMDBIT_VALUE;
             op->bit[bitno].value = 1;
@@ -1635,7 +1722,10 @@ static int parse_cmdbits(OPCODE * op)
           case 'a':
             op->bit[bitno].type  = AVR_CMDBIT_ADDRESS;
             op->bit[bitno].value = 0;
-            op->bit[bitno].bitno = 8*(bitno/8) + bitno % 8;
+            op->bit[bitno].bitno = bitno < 8 || bitno > 23? 0:
+              opnum == AVR_OP_LOAD_EXT_ADDR? bitno+8: bitno-8; /* correct bit number for lone 'a' */
+            if(bitno < 8 || bitno > 23)
+              yywarning("address bits don't normally appear in Bytes 0 or 3 of SPI commands");
             break;
           case 'i':
             op->bit[bitno].type  = AVR_CMDBIT_INPUT;
@@ -1647,21 +1737,40 @@ static int parse_cmdbits(OPCODE * op)
             op->bit[bitno].value = 0;
             op->bit[bitno].bitno = bitno % 8;
             break;
+          case '.':
+          case '-':
+          case '_':
+          case '/':
+            break;
           default :
-            yyerror("invalid bit specifier '%c'", ch);
+            yyerror("invalid bit specifier '%c'", *s);
             rv = -1;
             break;
         }
       }
       else {
-        if (ch == 'a') {
-          q = &s[1];
-          op->bit[bitno].bitno = strtol(q, &e, 0);
-          if ((e == q)||(*e != 0)) {
-            yyerror("can't parse bit number from \"%s\"", q);
-            rv = -1;
-            break;
+        if (*s == 'a') {
+          int sb, bn;
+          char *e, *q;
+
+          q = s+1;
+          errno = 0;
+          bn = strtol(q, &e, 0); // address line
+          if (e == q || *e != 0 || errno) {
+            yywarning("can't parse bit number from a%s", q);
+            bn = 0;
           }
+
+          sb = opnum == AVR_OP_LOAD_EXT_ADDR? bitno+8: bitno-8; // should be this number
+          if(bitno < 8 || bitno > 23)
+            yywarning("address bits don't normally appear in Bytes 0 or 3 of SPI commands");
+          else if((bn & 31) != sb)
+            yywarning("a%d would normally be expected to be a%d", bn, sb);
+          else if(bn < 0 || bn > 31)
+            yywarning("invalid address bit a%d, using a%d", bn, bn & 31);
+
+          op->bit[bitno].bitno = bn & 31;
+
           op->bit[bitno].type = AVR_CMDBIT_ADDRESS;
           op->bit[bitno].value = 0;
         }
@@ -1672,12 +1781,16 @@ static int parse_cmdbits(OPCODE * op)
         }
       }
 
-      s = strtok_r(NULL, " ", &brkt);
+      bit[0] = *cc++;
+      s = !compact? strtok_r(NULL, " ", &brkt): *bit? bit: NULL;
     } /* while */
 
     free_token(t);
 
   }  /* while */
+
+  if(bitno > 0)
+    yywarning("too few opcode bits in instruction");
 
   return rv;
 }
