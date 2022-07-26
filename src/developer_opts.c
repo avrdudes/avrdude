@@ -592,6 +592,7 @@ static int avrpart_deep_copy(AVRPARTdeep *d, AVRPART *p) {
 
   d->base = *p;
 
+  d->base.parent_id = NULL;
   d->base.config_file = NULL;
   d->base.lineno = 0;
 
@@ -678,7 +679,10 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
     dev_info("#------------------------------------------------------------\n");
     dev_info("# %s\n", p->desc);
     dev_info("#------------------------------------------------------------\n");
-    dev_info("\npart\n");
+    if(p->parent_id)
+      dev_info("\npart parent \"%s\"\n", p->parent_id);
+    else
+      dev_info("\npart\n");
   }
 
   _if_partout(strcmp, "\"%s\"", desc);
@@ -1047,7 +1051,7 @@ void dev_output_part_defs(char *partdesc) {
       continue;
 
     if(strct || cmpst)
-      dev_part_strct(p, tsv, cmpst? nullpart: NULL);
+      dev_part_strct(p, tsv, !cmpst? NULL: p->parent_id? locate_part(part_list, p->parent_id): nullpart);
 
     if(raw)
       dev_part_raw(p);

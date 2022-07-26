@@ -354,7 +354,6 @@ AVRMEM_ALIAS * avr_dup_memalias(AVRMEM_ALIAS * m)
 
 void avr_free_mem(AVRMEM * m)
 {
-    int i;
     if (m->buf != NULL) {
       free(m->buf);
       m->buf = NULL;
@@ -363,7 +362,7 @@ void avr_free_mem(AVRMEM * m)
       free(m->tags);
       m->tags = NULL;
     }
-    for(i=0;i<sizeof(m->op)/sizeof(m->op[0]);i++)
+    for(size_t i=0; i<sizeof(m->op)/sizeof(m->op[0]); i++)
     {
       if (m->op[i] != NULL)
       {
@@ -487,7 +486,8 @@ AVRMEM_ALIAS * avr_find_memalias(AVRPART * p, AVRMEM * m_orig)
 void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
                      int type, int verbose)
 {
-  static unsigned int prev_mem_offset, prev_mem_size;
+  static unsigned int prev_mem_offset;
+  static int prev_mem_size;
   int i, j;
   char * optr;
 
@@ -579,6 +579,7 @@ AVRPART * avr_new_part(void)
   p->reset_disposition = RESET_DEDICATED;
   p->retry_pulse = PIN_AVR_SCK;
   p->flags = AVRPART_SERIALOK | AVRPART_PARALLELOK | AVRPART_ENABLEPAGEPROGRAMMING;
+  p->parent_id = NULL;
   p->config_file = NULL;
   p->lineno = 0;
   memset(p->signature, 0xFF, 3);
@@ -608,7 +609,6 @@ AVRPART * avr_dup_part(AVRPART * d)
 
   p->mem = save;
   p->mem_alias = save2;
-
   for (ln=lfirst(d->mem); ln; ln=lnext(ln)) {
     AVRMEM *m = ldata(ln);
     AVRMEM *m2 = avr_dup_mem(m);
@@ -636,20 +636,18 @@ AVRPART * avr_dup_part(AVRPART * d)
 
 void avr_free_part(AVRPART * d)
 {
-int i;
-	ldestroy_cb(d->mem, (void(*)(void *))avr_free_mem);
-	d->mem = NULL;
-	ldestroy_cb(d->mem_alias, (void(*)(void *))avr_free_memalias);
-	d->mem_alias = NULL;
-    for(i=0;i<sizeof(d->op)/sizeof(d->op[0]);i++)
-    {
-    	if (d->op[i] != NULL)
-    	{
-    		avr_free_opcode(d->op[i]);
-    		d->op[i] = NULL;
-    	}
+  ldestroy_cb(d->mem, (void(*)(void *))avr_free_mem);
+  d->mem = NULL;
+  ldestroy_cb(d->mem_alias, (void(*)(void *))avr_free_memalias);
+  d->mem_alias = NULL;
+  /* do not free d->parent_id and d->config_file */
+  for(size_t i=0; i<sizeof(d->op)/sizeof(d->op[0]); i++) {
+    if (d->op[i] != NULL) {
+      avr_free_opcode(d->op[i]);
+      d->op[i] = NULL;
     }
-	free(d);
+  }
+  free(d);
 }
 
 AVRPART * locate_part(LISTID parts, const char * partdesc)
