@@ -320,14 +320,22 @@ typedef struct avrmem_alias {
 extern "C" {
 #endif
 
+
+int intlog2(unsigned int n);
+
 /* Functions for OPCODE structures */
 OPCODE * avr_new_opcode(void);
 void     avr_free_opcode(OPCODE * op);
 int avr_set_bits(OPCODE * op, unsigned char * cmd);
 int avr_set_addr(OPCODE * op, unsigned char * cmd, unsigned long addr);
+int avr_set_addr_mem(AVRMEM *mem, int opnum, unsigned char *cmd, unsigned long addr);
 int avr_set_input(OPCODE * op, unsigned char * cmd, unsigned char data);
 int avr_get_output(OPCODE * op, unsigned char * res, unsigned char * data);
 int avr_get_output_index(OPCODE * op);
+char cmdbitchar(CMDBIT cb);
+char *cmdbitstr(CMDBIT cb);
+const char *opcodename(int opnum);
+char *opcode2str(OPCODE *op, int opnum, int detailed);
 
 /* Functions for AVRMEM structures */
 AVRMEM * avr_new_memtype(void);
@@ -358,6 +366,8 @@ typedef void (*walk_avrparts_cb)(const char *name, const char *desc,
                                  void *cookie);
 void walk_avrparts(LISTID avrparts, walk_avrparts_cb cb, void *cookie);
 void sort_avrparts(LISTID avrparts);
+
+int part_match(const char *pattern, const char *string);
 
 int compare_memory_masked(AVRMEM * m, uint8_t buf1, uint8_t buf2);
 

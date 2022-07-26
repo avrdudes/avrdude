@@ -19,14 +19,6 @@
 #ifndef developer_opts_h
 #define developer_opts_h
 
-char cmdbitchar(CMDBIT cb);
-char *cmdbitstr(CMDBIT cb);
-const char *opcodename(int opnum);
-char *opcode2str(OPCODE *op, int opnum, int detailed);
-int opcodecmp(OPCODE *op1, OPCODE *op2, int opnum);
-int intlog2(unsigned int n);
-int avr_set_addr_mem(AVRMEM *mem, int opnum, unsigned char *cmd, unsigned long addr);
-int part_match(const char *pattern, const char *string);
 void dev_output_part_defs(char *partdesc);
 
 #endif

@@ -160,7 +160,7 @@ char *opcode2str(OPCODE *op, int opnum, int detailed) {
 
 
 // return 0 if op code would encode (essentially) the same SPI command
-int opcodecmp(OPCODE *op1, OPCODE *op2, int opnum) {
+static int opcodecmp(OPCODE *op1, OPCODE *op2, int opnum) {
   char *opstr1, *opstr2, *p;
   int cmp;
 
