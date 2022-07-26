@@ -217,6 +217,7 @@ typedef struct opcode {
 typedef struct avrpart {
   char          desc[AVR_DESCLEN];  /* long part name */
   char          id[AVR_IDLEN];      /* short part name */
+  char        * parent_id;          /* parent id if set, for -p.../s */
   char          family_id[AVR_FAMILYIDLEN+1]; /* family id in the SIB (avr8x) */
   int           hvupdi_variant;     /* HV pulse on UPDI pin, no pin or RESET pin */
   int           stk500_devcode;     /* stk500 device code */
@@ -661,6 +662,7 @@ typedef struct programmer_t {
   char desc[PGM_DESCLEN];
   char type[PGM_TYPELEN];
   char port[PGM_PORTLEN];
+  char *parent_id;
   void (*initpgm)(struct programmer_t * pgm);
   unsigned int pinno[N_PINS];
   struct pindef_t pin[N_PINS];

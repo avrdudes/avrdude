@@ -334,6 +334,7 @@ prog_decl :
         free_token($3);
         YYABORT;
       }
+      current_prog->parent_id = cache_string($3->value.string);
       current_prog->config_file = cache_string(cfg_infile);
       current_prog->lineno = cfg_lineno;
       free_token($3);
@@ -425,6 +426,7 @@ part_decl :
         free_token($3);
         YYABORT;
       }
+      current_part->parent_id = cache_string($3->value.string);
       current_part->config_file = cache_string(cfg_infile);
       current_part->lineno = cfg_lineno;
 
