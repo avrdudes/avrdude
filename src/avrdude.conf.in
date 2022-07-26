@@ -1734,7 +1734,7 @@ programmer
 programmer
   id    = "jtag2updi";
   desc  = "JTAGv2 to UPDI bridge";
-  type  = "jtagmkii_pdi";
+  type  = "jtagmkii_updi";
   connection_type = serial;
   baudrate = 115200;
 ;
