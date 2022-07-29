@@ -80,6 +80,7 @@ const PROGRAMMER_TYPE programmers_types[] = {
         {"jtagmkii_dw", jtagmkII_dw_initpgm, jtagmkII_dw_desc},
         {"jtagmkii_isp", stk500v2_jtagmkII_initpgm, stk500v2_jtagmkII_desc},
         {"jtagmkii_pdi", jtagmkII_pdi_initpgm, jtagmkII_pdi_desc},
+        {"jtagmkii_updi", jtagmkII_updi_initpgm, jtagmkII_updi_desc},
         {"jtagice3", jtag3_initpgm, jtag3_desc},
         {"jtagice3_pdi", jtag3_pdi_initpgm, jtag3_pdi_desc},
         {"jtagice3_updi", jtag3_updi_initpgm, jtag3_updi_desc},
