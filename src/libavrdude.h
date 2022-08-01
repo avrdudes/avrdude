@@ -873,6 +873,7 @@ enum updateflags {
   UF_NONE = 0,
   UF_NOWRITE = 1,
   UF_AUTO_ERASE = 2,
+  UF_VERIFY = 4,
 };
 
 
@@ -882,6 +883,17 @@ typedef struct update_t {
   char * filename;
   int    format;
 } UPDATE;
+
+typedef struct {                // File reads for flash can exclude trailing 0xff, which are cut off
+  int nbytes,                   // Number of bytes set including 0xff but excluding cut off, trailing 0xff
+      nsections,                // Number of consecutive sections in source excluding cut off, trailing 0xff
+      npages,                   // Number of memory pages needed excluding pages solely with trailing 0xff
+      nfill,                    // Number of fill bytes to make up full pages that are needed
+      ntrailing,                // Number of trailing 0xff in source
+      firstaddr,                // First address set in [0, mem->size-1]
+      lastaddr;                 // Highest address set by input file
+} Filestats;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -894,6 +906,14 @@ extern UPDATE * new_update(int op, char * memtype, int filefmt,
 extern void free_update(UPDATE * upd);
 extern int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd,
 		 enum updateflags flags);
+
+extern int memstats(struct avrpart *p, char *memtype, int size, Filestats *fsp);
+
+// Convenience functions for printing
+const char *plural(int x);
+const char *inname(const char *fn);
+const char *outname(const char *fn);
+const char *interval(int a, int b);
 
 #ifdef __cplusplus
 }
