@@ -230,9 +230,9 @@ int memstats(struct avrpart *p, char *memtype, int size, Filestats *fsp) {
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
-  if(mem->page_size < 1 || mem->size < 1 || mem->size % mem->page_size) {
-    avrdude_message(MSG_INFO, "%s: %s %s size %d or page size %d not set\n",
-      progname, p->desc, memtype, mem->size, mem->page_size);
+  if(mem->page_size < 1) {
+    avrdude_message(MSG_INFO, "%s: %s %s page size %d not set\n",
+      progname, p->desc, memtype, mem->page_size);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
