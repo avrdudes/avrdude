@@ -237,7 +237,7 @@ static void cleanup_main(void)
 static void replace_backslashes(char *s)
 {
   // Replace all backslashes with forward slashes
-  for (int i = 0; i < strlen(s); i++) {
+  for (size_t i = 0; i < strlen(s); i++) {
     if (s[i] == '\\') {
       s[i] = '/';
     }

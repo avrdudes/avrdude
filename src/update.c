@@ -45,7 +45,7 @@ UPDATE * parse_op(char * s)
 
   i = 0;
   p = s;
-  while ((i < (sizeof(buf)-1) && *p && (*p != ':')))
+  while (i < (int) sizeof(buf)-1 && *p && *p != ':')
     buf[i++] = *p++;
   buf[i] = 0;
 
@@ -303,7 +303,7 @@ const char *outname(const char *fn) {
 const char *interval(int a, int b) {
   // Cyclic buffer for 20+ temporary interval strings each max 41 bytes at 64-bit int
   static char space[20*41 + 80], *sp;
-  if(!sp || sp-space > sizeof space - 80)
+  if(!sp || sp-space > (int) sizeof space - 80)
     sp = space;
 
   char *ret = sp;
