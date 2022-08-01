@@ -384,8 +384,8 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
 
     rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1);
     if (quell_progress < 2)
-      avrdude_message(MSG_INFO, "%s: reading input file %s\n",
-        progname, inname(upd->filename));
+      avrdude_message(MSG_INFO, "%s: reading input file %s for %s%s\n",
+        progname, inname(upd->filename), mem->desc, alias_mem_desc);
     if (rc < 0) {
       avrdude_message(MSG_INFO, "%s: read from file %s failed\n",
         progname, inname(upd->filename));
