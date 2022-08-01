@@ -242,6 +242,7 @@ int memstats(struct avrpart *p, char *memtype, int size, Filestats *fsp) {
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
+  ret.lastaddr = -1;
   int firstset = 0, insection = 0;
   // Scan all memory
   for(int addr = 0; addr < mem->size; ) {
@@ -308,9 +309,9 @@ const char *interval(int a, int b) {
 
   char *ret = sp;
 
-  sprintf(sp, a? "[0x%x": "[0", a);
+  sprintf(sp, a == -1? "[-1": a? "[0x%x": "[0", a);
   sp += strlen(sp);
-  sprintf(sp, b? ", 0x%x]": ", 0]", b);
+  sprintf(sp, b == -1? ", -1]": b?", 0x%x]": ", 0]", b);
 
   // Advance beyond return string in temporary ring buffer
   sp += strlen(sp)+1;
