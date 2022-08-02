@@ -231,11 +231,9 @@ int memstats(struct avrpart *p, char *memtype, int size, Filestats *fsp) {
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
-  if(mem->page_size < 1) {
-    avrdude_message(MSG_INFO, "%s: %s %s page size %d not set\n",
-      progname, p->desc, memtype, mem->page_size);
-    return LIBAVRDUDE_GENERAL_FAILURE;
-  }
+  int pgsize = mem->page_size;
+  if(pgsize < 1)
+    pgsize = 1;
 
   if(size < 0 || size > mem->size) {
     avrdude_message(MSG_INFO, "%s: memstats() size %d at odds with %s %s size %d\n",
@@ -249,7 +247,7 @@ int memstats(struct avrpart *p, char *memtype, int size, Filestats *fsp) {
   for(int addr = 0; addr < mem->size; ) {
     int pageset = 0;
     // Go page by page
-    for(int pgi = 0; pgi < mem->page_size; pgi++, addr++) {
+    for(int pgi = 0; pgi < pgsize; pgi++, addr++) {
       if(mem->tags[addr] & TAG_ALLOCATED) {
         if(!firstset) {
           firstset = 1;
