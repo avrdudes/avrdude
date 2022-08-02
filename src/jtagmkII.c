@@ -1306,9 +1306,9 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
   const char *ifname;
 
   /* Abort and print error if programmer does not support the target microcontroller */
-  if ((strncmp(ldata(lfirst(pgm->id)), "jtag2updi", strlen("jtag2updi")) == 0 && p->flags & AVRPART_HAS_PDI) ||
+  if ((strncmp(pgm->type, "JTAGMKII_UPDI", strlen("JTAGMKII_UPDI")) == 0 && !(p->flags & AVRPART_HAS_UPDI)) ||
       (strncmp(ldata(lfirst(pgm->id)), "jtagmkII", strlen("jtagmkII")) == 0 && p->flags & AVRPART_HAS_UPDI)) {
-    avrdude_message(MSG_INFO, "Error: programmer %s does not support target %s\n\n",
+    avrdude_message(MSG_INFO, "ERROR: programmer %s does not support target %s\n\n",
 	  ldata(lfirst(pgm->id)), p->desc);
     return -1;
   }
@@ -3901,6 +3901,39 @@ const char jtagmkII_pdi_desc[] = "Atmel JTAG ICE mkII in PDI mode";
 void jtagmkII_pdi_initpgm(PROGRAMMER * pgm)
 {
   strcpy(pgm->type, "JTAGMKII_PDI");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = jtagmkII_initialize;
+  pgm->display        = jtagmkII_display;
+  pgm->enable         = jtagmkII_enable;
+  pgm->disable        = jtagmkII_disable;
+  pgm->program_enable = jtagmkII_program_enable_INFO;
+  pgm->chip_erase     = jtagmkII_chip_erase;
+  pgm->open           = jtagmkII_open_pdi;
+  pgm->close          = jtagmkII_close;
+  pgm->read_byte      = jtagmkII_read_byte;
+  pgm->write_byte     = jtagmkII_write_byte;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = jtagmkII_paged_write;
+  pgm->paged_load     = jtagmkII_paged_load;
+  pgm->page_erase     = jtagmkII_page_erase;
+  pgm->print_parms    = jtagmkII_print_parms;
+  pgm->setup          = jtagmkII_setup;
+  pgm->teardown       = jtagmkII_teardown;
+  pgm->page_size      = 256;
+  pgm->flag           = PGM_FL_IS_PDI;
+}
+
+const char jtagmkII_updi_desc[] = "Atmel JTAG ICE mkII in UPDI mode";
+
+void jtagmkII_updi_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "JTAGMKII_UPDI");
 
   /*
    * mandatory functions
