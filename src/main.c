@@ -26,7 +26,7 @@
  * For parallel port connected programmers, the pin definitions can be
  * changed via a config file.  See the config file for instructions on
  * how to add a programmer definition.
- *  
+ *
  */
 
 #include "ac_cfg.h"
@@ -50,7 +50,7 @@
 #include "libavrdude.h"
 
 #include "term.h"
-
+#include "developer_opts.h"
 
 /* Get VERSION from ac_cfg.h */
 char * version      = VERSION;
@@ -102,7 +102,7 @@ int    ovsigck;     /* 1=override sig check, 0=don't */
  */
 static void usage(void)
 {
-  avrdude_message(MSG_INFO, 
+  avrdude_message(MSG_INFO,
  "Usage: %s [options]\n"
  "Options:\n"
  "  -p <partno>                Required. Specify AVR device.\n"
@@ -761,6 +761,12 @@ int main(int argc, char * argv [])
 
   avrdude_message(MSG_NOTICE, "\n");
 
+  // developer option -p <wildcard>/[*codws] prints various aspects of part descriptions and exits
+  if(partdesc && (strcmp(partdesc, "*") == 0 || strchr(partdesc, '/'))) {
+    dev_output_part_defs(partdesc);
+    exit(1);
+  }
+
   if (partdesc) {
     if (strcmp(partdesc, "?") == 0) {
       avrdude_message(MSG_INFO, "\n");
@@ -1097,7 +1103,7 @@ int main(int argc, char * argv [])
         goto main_exit;
       }
     }
-  
+
     sig = avr_locate_mem(p, "signature");
     if (sig == NULL) {
       avrdude_message(MSG_INFO, "%s: WARNING: signature data not defined for device \"%s\"\n",
