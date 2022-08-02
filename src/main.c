@@ -237,7 +237,7 @@ static void cleanup_main(void)
 static void replace_backslashes(char *s)
 {
   // Replace all backslashes with forward slashes
-  for (int i = 0; i < strlen(s); i++) {
+  for (size_t i = 0; i < strlen(s); i++) {
     if (s[i] == '\\') {
       s[i] = '/';
     }
@@ -267,7 +267,6 @@ int main(int argc, char * argv [])
   int     calibrate;   /* 1=calibrate RC oscillator, 0=don't */
   char  * port;        /* device port (/dev/xxx) */
   int     terminal;    /* 1=enter terminal mode, 0=don't */
-  int     verify;      /* perform a verify operation */
   char  * exitspecs;   /* exit specs string from command line */
   char  * programmer;  /* programmer id */
   char  * partdesc;    /* part id */
@@ -284,7 +283,7 @@ int main(int argc, char * argv [])
   int     init_ok;     /* Device initialization worked well */
   int     is_open;     /* Device open succeeded */
   char  * logfile;     /* Use logfile rather than stderr for diagnostics */
-  enum updateflags uflags = UF_AUTO_ERASE; /* Flags for do_op() */
+  enum updateflags uflags = UF_AUTO_ERASE | UF_VERIFY; /* Flags for do_op() */
 
 #if !defined(WIN32)
   char  * homedir;
@@ -349,7 +348,6 @@ int main(int argc, char * argv [])
   p             = NULL;
   ovsigck       = 0;
   terminal      = 0;
-  verify        = 1;        /* on by default */
   quell_progress = 0;
   exitspecs     = NULL;
   pgm           = NULL;
@@ -525,12 +523,6 @@ int main(int argc, char * argv [])
           exit(1);
         }
         ladd(updates, upd);
-
-        if (verify && upd->op == DEVICE_WRITE) {
-          upd = dup_update(upd);
-          upd->op = DEVICE_VERIFY;
-          ladd(updates, upd);
-        }
         break;
 
       case 'v':
@@ -538,7 +530,7 @@ int main(int argc, char * argv [])
         break;
 
       case 'V':
-        verify = 0;
+        uflags &= ~UF_VERIFY;
         break;
 
       case 'x':
