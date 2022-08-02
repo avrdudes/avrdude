@@ -1243,7 +1243,7 @@ int main(int argc, char * argv [])
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
     upd = ldata(ln);
     rc = do_op(pgm, p, upd, uflags);
-    if (rc) {
+    if (rc && rc != LIBAVRDUDE_SOFTFAIL) {
       exitrc = 1;
       break;
     }
