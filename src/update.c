@@ -62,6 +62,12 @@ UPDATE * parse_op(char * s)
     return upd;
   }
 
+  if (!avr_mem_is_known(buf)) {
+    avrdude_message(MSG_INFO, "%s: unknown memory type %s\n", progname, buf);
+    free(upd);
+    return NULL;
+  }
+
   upd->memtype = (char *)malloc(strlen(buf)+1);
   if (upd->memtype == NULL) {
     avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
