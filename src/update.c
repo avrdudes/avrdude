@@ -310,9 +310,9 @@ const char *interval(int a, int b) {
 
   char *ret = sp;
 
-  sprintf(sp, a == -1? "[-1": a? "[0x%x": "[0", a);
+  sprintf(sp, a<16? "[%d": "[0x%x", a);
   sp += strlen(sp);
-  sprintf(sp, b == -1? ", -1]": b?", 0x%x]": ", 0]", b);
+  sprintf(sp, b<16? ", %d]": ", 0x%x]", b);
 
   // Advance beyond return string in temporary ring buffer
   sp += strlen(sp)+1;
