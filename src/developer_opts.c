@@ -280,35 +280,6 @@ static void dev_stack_out(bool tsv, AVRPART *p, const char *name, unsigned char 
 }
 
 
-// order in which memories are processed, runtime adds unknown ones (but there shouldn't be any)
-static const char *mem_order[100] = {
-  "eeprom",       "flash",        "application",  "apptable",
-  "boot",         "lfuse",        "hfuse",        "efuse",
-  "fuse",         "fuse0",        "wdtcfg",       "fuse1",
-  "bodcfg",       "fuse2",        "osccfg",       "fuse3",
-  "fuse4",        "tcd0cfg",      "fuse5",        "syscfg0",
-  "fuse6",        "syscfg1",      "fuse7",        "append",
-  "codesize",     "fuse8",        "fuse9",        "bootend",
-  "bootsize",     "fuses",        "lock",         "lockbits",
-  "tempsense",    "signature",    "prodsig",      "sernum",
-  "calibration",  "osccal16",     "osccal20",     "osc16err",
-  "osc20err",     "usersig",      "userrow",      "data",
-};
-
-static void add_mem_order(const char *str) {
-  for(size_t i=0; i < sizeof mem_order/sizeof *mem_order; i++) {
-    if(mem_order[i] && !strcmp(mem_order[i], str))
-      return;
-    if(!mem_order[i]) {
-      mem_order[i] = strdup(str);
-      return;
-    }
-  }
-  dev_info("%s: mem_order[] under-dimensioned in developer_opts.c; increase and recompile\n", progname);
-  exit(1);
-}
-
-
 static int intcmp(int a, int b) {
   return a-b;
 }
@@ -410,8 +381,8 @@ static int avrpart_deep_copy(AVRPARTdeep *d, AVRPART *p) {
 
   // fill in all memories we got in defined order
   di = 0;
-  for(size_t mi=0; mi < sizeof mem_order/sizeof *mem_order && mem_order[mi]; mi++) {
-    m = p->mem? avr_locate_mem(p, mem_order[mi]): NULL;
+  for(size_t mi=0; mi < sizeof avr_mem_order/sizeof *avr_mem_order && avr_mem_order[mi]; mi++) {
+    m = p->mem? avr_locate_mem(p, avr_mem_order[mi]): NULL;
     if(m) {
       if(di >= sizeof d->mems/sizeof *d->mems) {
         avrdude_message(MSG_INFO, "%s: ran out of mems[] space, increase size in AVRMEMdeep of developer_opts.c and recompile\n", progname);
@@ -566,11 +537,11 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
     if(!base || opcodecmp(p->op[i], base->op[i], i))
       dev_part_strct_entry(tsv, ".ptop", p->desc, "part", opcodename(i), opcode2str(p->op[i], i, !tsv));
 
-  for(size_t mi=0; mi < sizeof mem_order/sizeof *mem_order && mem_order[mi]; mi++) {
+  for(size_t mi=0; mi < sizeof avr_mem_order/sizeof *avr_mem_order && avr_mem_order[mi]; mi++) {
     AVRMEM *m, *bm;
 
-    m = p->mem? avr_locate_mem(p, mem_order[mi]): NULL;
-    bm = base && base->mem? avr_locate_mem(base, mem_order[mi]): NULL;
+    m = p->mem? avr_locate_mem(p, avr_mem_order[mi]): NULL;
+    bm = base && base->mem? avr_locate_mem(base, avr_mem_order[mi]): NULL;
 
     if(!m && bm && !tsv)
       dev_info("\n    memory \"%s\" = NULL;\n", bm->desc);
@@ -694,12 +665,12 @@ void dev_output_part_defs(char *partdesc) {
     AVRPART *p = ldata(ln1);
     if(p->mem)
       for(LNODEID lnm=lfirst(p->mem); lnm; lnm=lnext(lnm))
-         add_mem_order(((AVRMEM *) ldata(lnm))->desc);
+        avr_add_mem_order(((AVRMEM *) ldata(lnm))->desc);
 
     // same for aliased memories (though probably not needed)
     if(p->mem_alias)
       for(LNODEID lnm=lfirst(p->mem_alias); lnm; lnm=lnext(lnm))
-         add_mem_order(((AVRMEM_ALIAS *) ldata(lnm))->desc);
+        avr_add_mem_order(((AVRMEM_ALIAS *) ldata(lnm))->desc);
   }
 
   nprinted = dev_nprinted;

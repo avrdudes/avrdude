@@ -1220,7 +1220,46 @@ int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles)
   }
 
   return 0;
+}
+
+
+// Typical order in which memories show in avrdude.conf, runtime adds unknown ones (if any)
+const char *avr_mem_order[100] = {
+  "eeprom",       "flash",        "application",  "apptable",
+  "boot",         "lfuse",        "hfuse",        "efuse",
+  "fuse",         "fuse0",        "wdtcfg",       "fuse1",
+  "bodcfg",       "fuse2",        "osccfg",       "fuse3",
+  "fuse4",        "tcd0cfg",      "fuse5",        "syscfg0",
+  "fuse6",        "syscfg1",      "fuse7",        "append",
+  "codesize",     "fuse8",        "fuse9",        "bootend",
+  "bootsize",     "fuses",        "lock",         "lockbits",
+  "tempsense",    "signature",    "prodsig",      "sernum",
+  "calibration",  "osccal16",     "osccal20",     "osc16err",
+  "osc20err",     "usersig",      "userrow",      "data",
+};
+
+void avr_add_mem_order(const char *str) {
+  for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++) {
+    if(avr_mem_order[i] && !strcmp(avr_mem_order[i], str))
+      return;
+    if(!avr_mem_order[i]) {
+      avr_mem_order[i] = strdup(str);
+      return;
+    }
   }
+  avrdude_message(MSG_INFO,
+    "%s: avr_mem_order[] under-dimensioned in avr.c; increase and recompile\n",
+    progname);
+  exit(1);
+}
+
+int avr_known_mem(const char *str) {
+  for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++)
+    if(avr_mem_order[i] && !strcmp(avr_mem_order[i], str))
+      return 1;
+  return 0;
+}
+
 
 int avr_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 {

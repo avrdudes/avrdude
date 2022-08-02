@@ -783,6 +783,7 @@ void sort_programmers(LISTID programmers);
 typedef void (*FP_UpdateProgress)(int percent, double etime, char *hdr);
 
 extern struct avrpart parts[];
+extern const char *avr_mem_order[100];
 
 extern FP_UpdateProgress update_progress;
 
@@ -817,6 +818,10 @@ int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size);
 int avr_get_cycle_count(PROGRAMMER * pgm, AVRPART * p, int * cycles);
 
 int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles);
+
+void avr_add_mem_order(const char *str);
+
+int avr_known_mem(const char *str);
 
 #define disable_trailing_ff_removal() avr_mem_hiaddr(NULL)
 int avr_mem_hiaddr(AVRMEM * mem);
