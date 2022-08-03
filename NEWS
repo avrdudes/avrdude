@@ -44,6 +44,16 @@ Changes since version 7.0:
       add one read mode;
       add quell command #1025
     - Fix usbtiny read for parts with more than 64 kB flash #1029 
+    - CMakeLists.txt: fix build without C++ #1016 
+    - Provide file format I: Intel HEX with comments that ignores
+      checksum errors #1030
+    - Enable writing fuse and lock bits for AVR-JTAGICE #1031
+    - Ignore -s flag as safemode is no longer supported #1033
+    - Developer options to describe parts and 
+      extend avrdude.conf syntax #1040
+    - Deprecate original STK500 v1 protocol in favour of optiboot
+      and Arduino as ISP #1046 
+    - Add jtagmkii_updi programmer option #1048
 
   * Internals:
 
