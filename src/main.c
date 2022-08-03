@@ -751,6 +751,7 @@ int main(int argc, char * argv [])
     bitclock = default_bitclock;
   }
 
+
   avrdude_message(MSG_NOTICE, "\n");
 
   // developer option -p <wildcard>/[*codws] prints various aspects of part descriptions and exits
@@ -918,6 +919,12 @@ int main(int argc, char * argv [])
         exit(1);
       }
     }
+
+    if (!avr_mem_might_be_known(upd->memtype)) {
+      avrdude_message(MSG_INFO, "%s: unknown memory type %s\n", progname, upd->memtype);
+      exit(1);
+    }
+    // TODO: check whether filename other than "-" is readable/writable
   }
 
   /*

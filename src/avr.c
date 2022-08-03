@@ -1254,9 +1254,18 @@ void avr_add_mem_order(const char *str) {
 }
 
 int avr_mem_is_known(const char *str) {
-  for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++)
-    if(avr_mem_order[i] && !strcmp(avr_mem_order[i], str))
-      return 1;
+  if(str && *str)
+    for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++)
+      if(avr_mem_order[i] && !strcmp(avr_mem_order[i], str))
+        return 1;
+  return 0;
+}
+
+int avr_mem_might_be_known(const char *str) {
+  if(str && *str)
+    for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++)
+      if(avr_mem_order[i] && !strncmp(avr_mem_order[i], str, strlen(str)))
+        return 1;
   return 0;
 }
 
