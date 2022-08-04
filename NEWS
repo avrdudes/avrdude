@@ -54,6 +54,11 @@ Changes since version 7.0:
     - Deprecate original STK500 v1 protocol in favour of optiboot
       and Arduino as ISP #1046 
     - Add jtagmkii_updi programmer option #1048
+    - Enable stdin verification, display correct number of bytes
+      written/verified, check -U memory names against spelling
+      errors and exit but skip -U memory updates with known
+      memories that the part lacks #1053
+    - Handle invalid -U file format specifiers for input #1042
 
   * Internals:
 
