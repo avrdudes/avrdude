@@ -287,20 +287,20 @@ int memstats(struct avrpart *p, char *memtype, int size, Filestats *fsp) {
 
 
 // Convenience functions for printing
-const char *plural(int x) {
+const char *update_plural(int x) {
   return x==1? "": "s";
 }
 
-const char *inname(const char *fn) {
+const char *update_inname(const char *fn) {
   return !fn? "???": strcmp(fn, "-")? fn: "<stdin>";
 }
 
-const char *outname(const char *fn) {
+const char *update_outname(const char *fn) {
   return !fn? "???": strcmp(fn, "-")? fn: "<stdout>";
 }
 
 // Return sth like "[0, 0x1ff]"
-const char *interval(int a, int b) {
+const char *update_interval(int a, int b) {
   // Cyclic buffer for 20+ temporary interval strings each max 41 bytes at 64-bit int
   static char space[20*41 + 80], *sp;
   if(!sp || sp-space > (int) sizeof space - 80)
@@ -369,12 +369,12 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
         avrdude_message(MSG_INFO, "%s: flash is empty, resulting file has no contents\n",
           progname);
       avrdude_message(MSG_INFO, "%s: writing output file %s\n",
-        progname, outname(upd->filename));
+        progname, update_outname(upd->filename));
     }
     rc = fileio(FIO_WRITE, upd->filename, upd->format, p, upd->memtype, size);
     if (rc < 0) {
       avrdude_message(MSG_INFO, "%s: write to file %s failed\n",
-        progname, outname(upd->filename));
+        progname, update_outname(upd->filename));
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
     break;
@@ -385,10 +385,10 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1);
     if (quell_progress < 2)
       avrdude_message(MSG_INFO, "%s: reading input file %s for %s%s\n",
-        progname, inname(upd->filename), mem->desc, alias_mem_desc);
+        progname, update_inname(upd->filename), mem->desc, alias_mem_desc);
     if (rc < 0) {
       avrdude_message(MSG_INFO, "%s: read from file %s failed\n",
-        progname, inname(upd->filename));
+        progname, update_inname(upd->filename));
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
     size = rc;
@@ -401,17 +401,17 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
 
       avrdude_message(level, "%*s with %d byte%s in %d section%s within %s\n",
         (int) strlen(progname)+1, "",
-        fs.nbytes, plural(fs.nbytes),
-        fs.nsections, plural(fs.nsections),
-        interval(fs.firstaddr, fs.lastaddr));
+        fs.nbytes, update_plural(fs.nbytes),
+        fs.nsections, update_plural(fs.nsections),
+        update_interval(fs.firstaddr, fs.lastaddr));
       if(mem->page_size > 1) {
         avrdude_message(level, "%*s using %d page%s and %d pad byte%s",
           (int) strlen(progname)+1, "",
-          fs.npages, plural(fs.npages),
-          fs.nfill, plural(fs.nfill));
+          fs.npages, update_plural(fs.npages),
+          fs.nfill, update_plural(fs.nfill));
         if(fs.ntrailing)
           avrdude_message(level, ", cutting off %d trailing 0xff byte%s",
-            fs.ntrailing, plural(fs.ntrailing));
+            fs.ntrailing, update_plural(fs.ntrailing));
         avrdude_message(level, "\n");
       }
     }
@@ -419,7 +419,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     // Write the buffer contents to the selected memory type
     if (quell_progress < 2)
       avrdude_message(MSG_INFO, "%s: writing %d byte%s %s%s ...\n",
-        progname, fs.nbytes, plural(fs.nbytes), mem->desc, alias_mem_desc);
+        progname, fs.nbytes, update_plural(fs.nbytes), mem->desc, alias_mem_desc);
 
     if (!(flags & UF_NOWRITE)) {
       report_progress(0, 1, "Writing");
@@ -438,7 +438,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
 
     if (quell_progress < 2)
       avrdude_message(MSG_INFO, "%s: %d byte%s of %s%s written\n",
-        progname, fs.nbytes, plural(fs.nbytes), mem->desc, alias_mem_desc);
+        progname, fs.nbytes, update_plural(fs.nbytes), mem->desc, alias_mem_desc);
 
     // Fall through for (default) auto verify, ie, unless -V was specified
     if (!(flags & UF_VERIFY))
@@ -452,11 +452,11 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
 
     if (quell_progress < 2) {
       avrdude_message(MSG_INFO, "%s: verifying %s%s memory against %s\n",
-        progname, mem->desc, alias_mem_desc, inname(upd->filename));
+        progname, mem->desc, alias_mem_desc, update_inname(upd->filename));
 
       if (userverify)
         avrdude_message(MSG_NOTICE, "%s: load %s%s data from input file %s\n",
-          progname, mem->desc, alias_mem_desc, inname(upd->filename));
+          progname, mem->desc, alias_mem_desc, update_inname(upd->filename));
     }
 
     // No need to read file when fallen through from DEVICE_WRITE
@@ -465,7 +465,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
 
       if (rc < 0) {
         avrdude_message(MSG_INFO, "%s: read from file %s failed\n",
-          progname, inname(upd->filename));
+          progname, update_inname(upd->filename));
         return LIBAVRDUDE_GENERAL_FAILURE;
       }
       size = rc;
@@ -482,7 +482,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     if (quell_progress < 2) {
       if (userverify)
         avrdude_message(MSG_NOTICE, "%s: input file %s contains %d byte%s\n",
-          progname, inname(upd->filename), fs.nbytes, plural(fs.nbytes));
+          progname, update_inname(upd->filename), fs.nbytes, update_plural(fs.nbytes));
       avrdude_message(MSG_NOTICE2, "%s: reading on-chip %s%s data ...\n",
         progname, mem->desc, alias_mem_desc);
     }
@@ -513,7 +513,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     if (quell_progress < 2) {
       int verified = fs.nbytes+fs.ntrailing;
       avrdude_message(MSG_INFO, "%s: %d byte%s of %s%s verified\n",
-        progname, verified, plural(verified), mem->desc, alias_mem_desc);
+        progname, verified, update_plural(verified), mem->desc, alias_mem_desc);
     }
 
     pgm->vfy_led(pgm, OFF);

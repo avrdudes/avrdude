@@ -931,10 +931,10 @@ extern int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd,
 extern int memstats(struct avrpart *p, char *memtype, int size, Filestats *fsp);
 
 // Convenience functions for printing
-const char *plural(int x);
-const char *inname(const char *fn);
-const char *outname(const char *fn);
-const char *interval(int a, int b);
+const char *update_plural(int x);
+const char *update_inname(const char *fn);
+const char *update_outname(const char *fn);
+const char *update_interval(int a, int b);
 
 #ifdef __cplusplus
 }
