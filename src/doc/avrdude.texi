@@ -809,13 +809,16 @@ fuse bit settings.
 
 @item h
 hexadecimal; each value will get the string @emph{0x} prepended.
+Only valid on output.
 
 @item o
 octal; each value will get a @emph{0}
 prepended unless it is less than 8 in which case it gets no prefix.
+Only valid on output.
 
 @item b
 binary; each value will get the string @emph{0b} prepended.
+Only valid on output.
 
 @end table
 

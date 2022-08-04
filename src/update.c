@@ -354,6 +354,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
         progname, mem->desc, alias_mem_desc);
 
     report_progress(0, 1, "Reading");
+    
     rc = avr_read(pgm, p, upd->memtype, 0);
     report_progress(1, 1, NULL);
     if (rc < 0) {

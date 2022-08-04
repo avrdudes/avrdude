@@ -1157,6 +1157,13 @@ static int fileio_imm(struct fioparms * fio,
         rc = loc;
       }
       break;
+
+    case FIO_WRITE:
+      avrdude_message(MSG_INFO,
+                      "%s: Invalid file format 'immediate' for output\n",
+                      progname);
+      return -1;
+
     default:
       avrdude_message(MSG_INFO, "%s: fileio: invalid operation=%d\n",
               progname, fio->op);
@@ -1271,27 +1278,32 @@ static int fileio_num(struct fioparms * fio,
 	       FILEFMT fmt)
 {
   const char *prefix;
+  const char *name;
   char cbuf[20];
   int base, i, num;
 
   switch (fmt) {
     case FMT_HEX:
+      name = "hex";
       prefix = "0x";
       base = 16;
       break;
 
     default:
     case FMT_DEC:
+      name = "decimal";
       prefix = "";
       base = 10;
       break;
 
     case FMT_OCT:
+      name = "octal";
       prefix = "0";
       base = 8;
       break;
 
     case FMT_BIN:
+      name = "binary";
       prefix = "0b";
       base = 2;
       break;
@@ -1301,6 +1313,13 @@ static int fileio_num(struct fioparms * fio,
   switch (fio->op) {
     case FIO_WRITE:
       break;
+
+    case FIO_READ:
+      avrdude_message(MSG_INFO,
+                      "%s: Invalid file format '%s' for input\n",
+                      progname, name);
+      return -1;
+
     default:
       avrdude_message(MSG_INFO, "%s: fileio: invalid operation=%d\n",
               progname, fio->op);
