@@ -57,12 +57,9 @@ SIGN     [+-]
 
 %%
 
-#{SIGN}*{DIGIT}+            { yylval = number(yytext); return TKN_NUMBER; }
-#{SIGN}*{DIGIT}+"."{DIGIT}* { yylval = number_real(yytext); return TKN_NUMBER_REAL; }
-#{SIGN}*"."{DIGIT}*         { yylval = number_real(yytext); return TKN_NUMBER_REAL; }
-{DIGIT}+            { yylval = number(yytext); return TKN_NUMBER; }
-{DIGIT}+"."{DIGIT}* { yylval = number_real(yytext); return TKN_NUMBER_REAL; }
-"."{DIGIT}+         { yylval = number_real(yytext); return TKN_NUMBER_REAL; }
+{SIGN}?{DIGIT}+            { yylval = number(yytext); return TKN_NUMBER; }
+{SIGN}?{DIGIT}+"."{DIGIT}* { yylval = number_real(yytext); return TKN_NUMBER_REAL; }
+{SIGN}?"."{DIGIT}+         { yylval = number_real(yytext); return TKN_NUMBER_REAL; }
 
 "\""      { string_buf_ptr = string_buf; BEGIN(strng); }
 
@@ -179,6 +176,7 @@ miso             { yylval=NULL; return K_MISO; }
 mode             { yylval=NULL; return K_MODE; }
 mosi             { yylval=NULL; return K_MOSI; }
 no               { yylval=new_token(K_NO); return K_NO; }
+NULL             { yylval=NULL; return K_NULL; }
 num_banks        { yylval=NULL; return K_NUM_PAGES; }
 num_pages        { yylval=NULL; return K_NUM_PAGES; }
 nvm_base         { yylval=NULL; return K_NVM_BASE; }
@@ -213,6 +211,7 @@ rdyled           { yylval=NULL; return K_RDYLED; }
 read             { yylval=new_token(K_READ); return K_READ; }
 read_hi          { yylval=new_token(K_READ_HI); return K_READ_HI; }
 read_lo          { yylval=new_token(K_READ_LO); return K_READ_LO; }
+readback         { yylval=NULL; return K_READBACK; }
 readback_p1      { yylval=NULL; return K_READBACK_P1; }
 readback_p2      { yylval=NULL; return K_READBACK_P2; }
 readsize        { yylval=NULL; return K_READSIZE; }

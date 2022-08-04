@@ -26,7 +26,7 @@
  * For parallel port connected programmers, the pin definitions can be
  * changed via a config file.  See the config file for instructions on
  * how to add a programmer definition.
- *  
+ *
  */
 
 #include "ac_cfg.h"
@@ -50,7 +50,7 @@
 #include "libavrdude.h"
 
 #include "term.h"
-
+#include "developer_opts.h"
 
 /* Get VERSION from ac_cfg.h */
 char * version      = VERSION;
@@ -102,7 +102,7 @@ int    ovsigck;     /* 1=override sig check, 0=don't */
  */
 static void usage(void)
 {
-  avrdude_message(MSG_INFO, 
+  avrdude_message(MSG_INFO,
  "Usage: %s [options]\n"
  "Options:\n"
  "  -p <partno>                Required. Specify AVR device.\n"
@@ -237,7 +237,7 @@ static void cleanup_main(void)
 static void replace_backslashes(char *s)
 {
   // Replace all backslashes with forward slashes
-  for (int i = 0; i < strlen(s); i++) {
+  for (size_t i = 0; i < strlen(s); i++) {
     if (s[i] == '\\') {
       s[i] = '/';
     }
@@ -267,7 +267,6 @@ int main(int argc, char * argv [])
   int     calibrate;   /* 1=calibrate RC oscillator, 0=don't */
   char  * port;        /* device port (/dev/xxx) */
   int     terminal;    /* 1=enter terminal mode, 0=don't */
-  int     verify;      /* perform a verify operation */
   char  * exitspecs;   /* exit specs string from command line */
   char  * programmer;  /* programmer id */
   char  * partdesc;    /* part id */
@@ -284,7 +283,7 @@ int main(int argc, char * argv [])
   int     init_ok;     /* Device initialization worked well */
   int     is_open;     /* Device open succeeded */
   char  * logfile;     /* Use logfile rather than stderr for diagnostics */
-  enum updateflags uflags = UF_AUTO_ERASE; /* Flags for do_op() */
+  enum updateflags uflags = UF_AUTO_ERASE | UF_VERIFY; /* Flags for do_op() */
 
 #if !defined(WIN32)
   char  * homedir;
@@ -349,7 +348,6 @@ int main(int argc, char * argv [])
   p             = NULL;
   ovsigck       = 0;
   terminal      = 0;
-  verify        = 1;        /* on by default */
   quell_progress = 0;
   exitspecs     = NULL;
   pgm           = NULL;
@@ -511,6 +509,7 @@ int main(int argc, char * argv [])
         terminal = 1;
         break;
 
+      case 's':
       case 'u':
         avrdude_message(MSG_INFO, "%s: \"safemode\" feature no longer supported\n",
                 progname);
@@ -524,12 +523,6 @@ int main(int argc, char * argv [])
           exit(1);
         }
         ladd(updates, upd);
-
-        if (verify && upd->op == DEVICE_WRITE) {
-          upd = dup_update(upd);
-          upd->op = DEVICE_VERIFY;
-          ladd(updates, upd);
-        }
         break;
 
       case 'v':
@@ -537,7 +530,7 @@ int main(int argc, char * argv [])
         break;
 
       case 'V':
-        verify = 0;
+        uflags &= ~UF_VERIFY;
         break;
 
       case 'x':
@@ -758,7 +751,14 @@ int main(int argc, char * argv [])
     bitclock = default_bitclock;
   }
 
+
   avrdude_message(MSG_NOTICE, "\n");
+
+  // developer option -p <wildcard>/[*codws] prints various aspects of part descriptions and exits
+  if(partdesc && (strcmp(partdesc, "*") == 0 || strchr(partdesc, '/'))) {
+    dev_output_part_defs(partdesc);
+    exit(1);
+  }
 
   if (partdesc) {
     if (strcmp(partdesc, "?") == 0) {
@@ -919,6 +919,12 @@ int main(int argc, char * argv [])
         exit(1);
       }
     }
+
+    if (!avr_mem_might_be_known(upd->memtype)) {
+      avrdude_message(MSG_INFO, "%s: unknown memory type %s\n", progname, upd->memtype);
+      exit(1);
+    }
+    // TODO: check whether filename other than "-" is readable/writable
   }
 
   /*
@@ -1096,7 +1102,7 @@ int main(int argc, char * argv [])
         goto main_exit;
       }
     }
-  
+
     sig = avr_locate_mem(p, "signature");
     if (sig == NULL) {
       avrdude_message(MSG_INFO, "%s: WARNING: signature data not defined for device \"%s\"\n",
@@ -1244,7 +1250,7 @@ int main(int argc, char * argv [])
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
     upd = ldata(ln);
     rc = do_op(pgm, p, upd, uflags);
-    if (rc) {
+    if (rc && rc != LIBAVRDUDE_SOFTFAIL) {
       exitrc = 1;
       break;
     }

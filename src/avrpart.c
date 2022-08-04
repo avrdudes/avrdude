@@ -71,6 +71,21 @@ void avr_free_opcode(OPCODE * op)
   free(op);
 }
 
+
+// returns position 0..31 of highest bit set or INT_MIN if no bit is set
+int intlog2(unsigned int n) {
+  int ret;
+
+  if(!n)
+    return INT_MIN;
+
+  for(ret = 0; n >>= 1; ret++)
+    continue;
+
+  return ret;
+}
+
+
 /*
  * avr_set_bits()
  *
@@ -123,6 +138,101 @@ int avr_set_addr(OPCODE * op, unsigned char * cmd, unsigned long addr)
   }
 
   return 0;
+}
+
+
+/*
+ * avr_set_addr_mem()
+ *
+ * Set address bits in the specified command based on the memory, opcode and
+ * address; addr must be a word address for flash or, for all other memories,
+ * a byte address; returns 0 on success and -1 on error (no memory or no
+ * opcode) or, if positive, bn+1 where bn is bit number of the highest
+ * necessary bit that the opcode does not provide.
+ */
+int avr_set_addr_mem(AVRMEM *mem, int opnum, unsigned char *cmd, unsigned long addr) {
+  int ret, isflash, lo, hi, memsize, pagesize;
+  OPCODE *op;
+
+  if(!mem)
+    return -1;
+
+  if(!(op = mem->op[opnum]))
+    return -1;
+
+  isflash = !strcmp(mem->desc, "flash"); // ISP parts have only one flash-like memory
+  memsize = mem->size >> isflash;        // word addresses for flash
+  pagesize = mem->page_size >> isflash;
+
+  // compute range lo..hi of needed address bits
+  switch(opnum) {
+  case AVR_OP_READ:
+  case AVR_OP_WRITE:
+  case AVR_OP_READ_LO:
+  case AVR_OP_READ_HI:
+  case AVR_OP_WRITE_LO:
+  case AVR_OP_WRITE_HI:
+    lo = 0;
+    hi = intlog2(memsize-1);    // memsize = 1 implies no addr bit is needed
+    break;
+
+  case AVR_OP_LOADPAGE_LO:
+  case AVR_OP_LOADPAGE_HI:
+    lo = 0;
+    hi = intlog2(pagesize-1);
+    break;
+
+  case AVR_OP_LOAD_EXT_ADDR:
+    lo = 16;
+    hi = intlog2(memsize-1);
+    break;
+
+  case AVR_OP_WRITEPAGE:
+    lo = intlog2(pagesize);
+    hi = intlog2(memsize-1);
+    break;
+
+  case AVR_OP_CHIP_ERASE:
+  case AVR_OP_PGM_ENABLE:
+  default:
+    lo = 0;
+    hi = -1;
+    break;
+  }
+
+  // Unless it's load extended address, ISP chips only deal with 16 bit addresses
+  if(opnum != AVR_OP_LOAD_EXT_ADDR && hi > 15)
+    hi = 15;
+
+  unsigned char avail[32];
+  memset(avail, 0, sizeof avail);
+
+  for(int i=0; i<32; i++) {
+    if(op->bit[i].type == AVR_CMDBIT_ADDRESS) {
+      int bitno, j, bit;
+      unsigned char mask;
+
+      bitno = op->bit[i].bitno & 31;
+      j = 3 - i / 8;
+      bit = i % 8;
+      mask = 1 << bit;
+      avail[bitno] = 1;
+
+      // 'a' bit with number outside bit range [lo, hi] is set to 0
+      if (bitno >= lo && bitno <= hi? (addr >> bitno) & 1: 0)
+        cmd[j] = cmd[j] | mask;
+      else
+        cmd[j] = cmd[j] & ~mask;
+    }
+  }
+
+  ret = 0;
+  if(lo >= 0 && hi < 32 && lo <= hi)
+    for(int bn=lo; bn <= hi; bn++)
+      if(!avail[bn])            // necessary bit bn misses in opcode
+        ret = bn+1;
+
+  return ret;
 }
 
 
@@ -239,7 +349,6 @@ static char * bittype(int type)
 }
 
 
-
 /***
  *** Elementary functions dealing with AVRMEM structures
  ***/
@@ -354,7 +463,6 @@ AVRMEM_ALIAS * avr_dup_memalias(AVRMEM_ALIAS * m)
 
 void avr_free_mem(AVRMEM * m)
 {
-    int i;
     if (m->buf != NULL) {
       free(m->buf);
       m->buf = NULL;
@@ -363,7 +471,7 @@ void avr_free_mem(AVRMEM * m)
       free(m->tags);
       m->tags = NULL;
     }
-    for(i=0;i<sizeof(m->op)/sizeof(m->op[0]);i++)
+    for(size_t i=0; i<sizeof(m->op)/sizeof(m->op[0]); i++)
     {
       if (m->op[i] != NULL)
       {
@@ -379,12 +487,15 @@ void avr_free_memalias(AVRMEM_ALIAS * m)
   free(m);
 }
 
-AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, char * desc)
+AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, const char * desc)
 {
   AVRMEM_ALIAS * m, * match;
   LNODEID ln;
   int matches;
   int l;
+
+  if(!p || !desc || !p->mem_alias)
+    return NULL;
 
   l = strlen(desc);
   matches = 0;
@@ -403,12 +514,15 @@ AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, char * desc)
   return NULL;
 }
 
-AVRMEM * avr_locate_mem_noalias(AVRPART * p, char * desc)
+AVRMEM * avr_locate_mem_noalias(AVRPART * p, const char * desc)
 {
   AVRMEM * m, * match;
   LNODEID ln;
   int matches;
   int l;
+
+  if(!p || !desc || !p->mem)
+    return NULL;
 
   l = strlen(desc);
   matches = 0;
@@ -428,7 +542,7 @@ AVRMEM * avr_locate_mem_noalias(AVRPART * p, char * desc)
 }
 
 
-AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
+AVRMEM * avr_locate_mem(AVRPART * p, const char * desc)
 {
   AVRMEM * m, * match;
   AVRMEM_ALIAS * alias;
@@ -436,14 +550,19 @@ AVRMEM * avr_locate_mem(AVRPART * p, char * desc)
   int matches;
   int l;
 
+  if(!p || !desc)
+    return NULL;
+
   l = strlen(desc);
   matches = 0;
   match = NULL;
-  for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
-    m = ldata(ln);
-    if (strncmp(desc, m->desc, l) == 0) {
-      match = m;
-      matches++;
+  if(p->mem) {
+    for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+      m = ldata(ln);
+      if (strncmp(desc, m->desc, l) == 0) {
+        match = m;
+        matches++;
+      }
     }
   }
 
@@ -476,7 +595,8 @@ AVRMEM_ALIAS * avr_find_memalias(AVRPART * p, AVRMEM * m_orig)
 void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
                      int type, int verbose)
 {
-  static unsigned int prev_mem_offset, prev_mem_size;
+  static unsigned int prev_mem_offset;
+  static int prev_mem_size;
   int i, j;
   char * optr;
 
@@ -545,11 +665,9 @@ void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
 }
 
 
-
 /*
  * Elementary functions dealing with AVRPART structures
  */
-
 
 AVRPART * avr_new_part(void)
 {
@@ -568,6 +686,7 @@ AVRPART * avr_new_part(void)
   p->reset_disposition = RESET_DEDICATED;
   p->retry_pulse = PIN_AVR_SCK;
   p->flags = AVRPART_SERIALOK | AVRPART_PARALLELOK | AVRPART_ENABLEPAGEPROGRAMMING;
+  p->parent_id = NULL;
   p->config_file = NULL;
   p->lineno = 0;
   memset(p->signature, 0xFF, 3);
@@ -597,7 +716,6 @@ AVRPART * avr_dup_part(AVRPART * d)
 
   p->mem = save;
   p->mem_alias = save2;
-
   for (ln=lfirst(d->mem); ln; ln=lnext(ln)) {
     AVRMEM *m = ldata(ln);
     AVRMEM *m2 = avr_dup_mem(m);
@@ -625,27 +743,28 @@ AVRPART * avr_dup_part(AVRPART * d)
 
 void avr_free_part(AVRPART * d)
 {
-int i;
-	ldestroy_cb(d->mem, (void(*)(void *))avr_free_mem);
-	d->mem = NULL;
-	ldestroy_cb(d->mem_alias, (void(*)(void *))avr_free_memalias);
-	d->mem_alias = NULL;
-    for(i=0;i<sizeof(d->op)/sizeof(d->op[0]);i++)
-    {
-    	if (d->op[i] != NULL)
-    	{
-    		avr_free_opcode(d->op[i]);
-    		d->op[i] = NULL;
-    	}
+  ldestroy_cb(d->mem, (void(*)(void *))avr_free_mem);
+  d->mem = NULL;
+  ldestroy_cb(d->mem_alias, (void(*)(void *))avr_free_memalias);
+  d->mem_alias = NULL;
+  /* do not free d->parent_id and d->config_file */
+  for(size_t i=0; i<sizeof(d->op)/sizeof(d->op[0]); i++) {
+    if (d->op[i] != NULL) {
+      avr_free_opcode(d->op[i]);
+      d->op[i] = NULL;
     }
-	free(d);
+  }
+  free(d);
 }
 
-AVRPART * locate_part(LISTID parts, char * partdesc)
+AVRPART * locate_part(LISTID parts, const char * partdesc)
 {
   LNODEID ln1;
   AVRPART * p = NULL;
   int found;
+
+  if(!parts || !partdesc)
+    return NULL;
 
   found = 0;
 
@@ -806,4 +925,233 @@ void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose)
 
   if (buf)
     free(buf);
+}
+
+
+char cmdbitchar(CMDBIT cb) {
+  switch(cb.type) {
+  case AVR_CMDBIT_IGNORE:
+    return 'x';
+  case AVR_CMDBIT_VALUE:
+    return cb.value? '1': '0';
+  case AVR_CMDBIT_ADDRESS:
+    return 'a';
+  case AVR_CMDBIT_INPUT:
+    return 'i';
+  case AVR_CMDBIT_OUTPUT:
+    return 'o';
+  default:
+    return '?';
+  }
+}
+
+
+char *cmdbitstr(CMDBIT cb) {
+  char space[32];
+
+  *space = cmdbitchar(cb);
+  if(*space == 'a')
+    sprintf(space+1, "%d", cb.bitno);
+  else
+    space[1] = 0;
+
+  return strdup(space);
+}
+
+
+const char *opcodename(int opnum) {
+  switch(opnum) {
+  case AVR_OP_READ:
+    return "read";
+  case AVR_OP_WRITE:
+    return "write";
+  case AVR_OP_READ_LO:
+    return "read_lo";
+  case AVR_OP_READ_HI:
+    return "read_hi";
+  case AVR_OP_WRITE_LO:
+    return "write_lo";
+  case AVR_OP_WRITE_HI:
+    return "write_hi";
+  case AVR_OP_LOADPAGE_LO:
+    return "loadpage_lo";
+  case AVR_OP_LOADPAGE_HI:
+    return "loadpage_hi";
+  case AVR_OP_LOAD_EXT_ADDR:
+    return "load_ext_addr";
+  case AVR_OP_WRITEPAGE:
+    return "writepage";
+  case AVR_OP_CHIP_ERASE:
+    return "chip_erase";
+  case AVR_OP_PGM_ENABLE:
+    return "pgm_enable";
+  default:
+    return "???";
+  }
+}
+
+
+// Unique string representation of an opcode
+char *opcode2str(OPCODE *op, int opnum, int detailed) {
+  char cb, space[1024], *sp = space;
+  int compact = 1;
+
+  if(!op)
+    return strdup("NULL");
+
+  // Can the opcode be printed in a compact way? Only if address bits are systematic.
+  for(int i=31; i >= 0; i--)
+    if(op->bit[i].type == AVR_CMDBIT_ADDRESS)
+      if(i<8 || i>23 || op->bit[i].bitno != (opnum == AVR_OP_LOAD_EXT_ADDR? i+8: i-8))
+        compact = 0;
+
+  if(detailed)
+    *sp++ = '"';
+
+  for(int i=31; i >= 0; i--) {
+    *sp++ = cb = cmdbitchar(op->bit[i]);
+    if(compact) {
+      if(i && i%8 == 0)
+        *sp++ = '-', *sp++ = '-';
+      else if(i && i%4 == 0)
+        *sp++ = '.';
+    } else {
+      if(cb == 'a') {
+        sprintf(sp, "%d", op->bit[i].bitno);
+        sp += strlen(sp);
+      }
+      if(i) {
+        if(detailed)
+          *sp++ = ' ';
+        if(i%8 == 0)
+          *sp++ = ' ';
+      }
+    }
+  }
+  if(detailed)
+    *sp++ = '"';
+  *sp = 0;
+
+  return strdup(space);
+}
+
+
+/*
+ * Match STRING against the partname pattern PATTERN, returning 1 if it
+ * matches, 0 if not. NOTE: part_match() is a modified old copy of !fnmatch()
+ * from the GNU C Library (published under GLP v2). Used for portability.
+ */
+
+inline static int fold(int c) {
+  return (c >= 'A' && c <= 'Z')? c+('a'-'A'): c;
+}
+
+int part_match(const char *pattern, const char *string) {
+  unsigned char c;
+  const char *p = pattern, *n = string;
+
+  if(!*n)                       // AVRDUDE specialty: empty string never matches
+    return 0;
+
+  while((c = fold(*p++))) {
+    switch(c) {
+    case '?':
+      if(*n == 0)
+        return 0;
+      break;
+
+    case '\\':
+      c = fold(*p++);
+      if(fold(*n) != c)
+        return 0;
+      break;
+
+    case '*':
+      for(c = *p++; c == '?' || c == '*'; c = *p++)
+        if(c == '?' && *n++ == 0)
+          return 0;
+
+      if(c == 0)
+        return 1;
+
+      {
+        unsigned char c1 = fold(c == '\\'? *p : c); // This char
+
+        for(--p; *n; ++n)       // Recursively check reminder of string for *
+          if((c == '[' || fold(*n) == c1) && part_match(p, n) == 1)
+            return 1;
+        return 0;
+      }
+
+    case '[':
+      {
+        int negate;
+
+        if(*n == 0)
+          return 0;
+
+        negate = (*p == '!' || *p == '^');
+        if(negate)
+          ++p;
+
+        c = *p++;
+        for(;;) {
+          unsigned char cstart = c, cend = c;
+
+          if(c == '\\')
+            cstart = cend = *p++;
+
+          cstart = cend = fold(cstart);
+
+          if(c == 0)            // [ (unterminated)
+            return 0;
+
+          c = *p++;
+          c = fold(c);
+
+          if(c == '-' && *p != ']') {
+            cend = *p++;
+            if(cend == '\\')
+              cend = *p++;
+            if(cend == 0)
+              return 0;
+            cend = fold(cend);
+
+            c = *p++;
+          }
+
+          if(fold(*n) >= cstart && fold(*n) <= cend)
+            goto matched;
+
+          if(c == ']')
+            break;
+        }
+        if(!negate)
+          return 0;
+        break;
+
+      matched:;
+        while(c != ']') {       // Skip the rest of the [...] that already matched
+
+          if(c == 0)            // [... (unterminated)
+            return 0;
+
+          c = *p++;
+          if(c == '\\')         // XXX 1003.2d11 is unclear if this is right
+            ++p;
+        }
+        if(negate)
+          return 0;
+      }
+      break;
+
+    default:
+      if(c != fold(*n))
+        return 0;
+    }
+
+    ++n;
+  }
+
+  return *n == 0;
 }

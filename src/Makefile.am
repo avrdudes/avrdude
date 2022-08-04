@@ -198,6 +198,9 @@ avrdude_SOURCES = \
 	main.c \
 	whereami.c \
 	whereami.h \
+	developer_opts.c \
+	developer_opts.h \
+	developer_opts_private.h \
 	term.c \
 	term.h
 

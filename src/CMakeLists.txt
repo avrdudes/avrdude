@@ -56,6 +56,8 @@ if(WIN32)
 endif()
 
 if(MSVC)
+    enable_language(CXX)
+
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS=1)
     add_compile_definitions(_CRT_NONSTDC_NO_WARNINGS=1)
     add_compile_definitions(_WINSOCK_DEPRECATED_NO_WARNINGS=1)
@@ -250,6 +252,9 @@ add_executable(avrdude
     main.c
     term.c
     term.h
+    developer_opts.c
+    developer_opts.h
+    developer_opts_private.h
     whereami.c
     whereami.h
     "${EXTRA_WINDOWS_RESOURCES}"

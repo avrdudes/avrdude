@@ -392,9 +392,7 @@ static int stk500v2_send_mk2(PROGRAMMER * pgm, unsigned char * data, size_t len)
 
 static unsigned short get_jtagisp_return_size(unsigned char cmd)
 {
-  int i;
-
-  for (i = 0; i < sizeof jtagispcmds / sizeof jtagispcmds[0]; i++)
+  for (size_t i = 0; i < sizeof jtagispcmds / sizeof jtagispcmds[0]; i++)
     if (jtagispcmds[i].cmd == cmd)
       return jtagispcmds[i].size;
 
@@ -481,7 +479,6 @@ static int stk500v2_jtag3_send(PROGRAMMER * pgm, unsigned char * data, size_t le
 static int stk500v2_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 {
   unsigned char buf[275 + 6];		// max MESSAGE_BODY of 275 bytes, 6 bytes overhead
-  int i;
 
   if (PDATA(pgm)->pgmtype == PGMTYPE_AVRISP_MKII ||
       PDATA(pgm)->pgmtype == PGMTYPE_STK600)
@@ -500,12 +497,13 @@ static int stk500v2_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 
   // calculate the XOR checksum
   buf[5+len] = 0;
-  for (i=0;i<5+len;i++)
+  for (size_t i=0; i<5+len; i++)
     buf[5+len] ^= buf[i];
 
   DEBUG("STK500V2: stk500v2_send(");
-  for (i=0;i<len+6;i++) DEBUG("0x%02x ",buf[i]);
-  DEBUG(", %d)\n",len+6);
+  for (size_t i=0; i<len+6; i++)
+    DEBUG("0x%02x ", buf[i]);
+  DEBUG(", %d)\n", (int) len+6);
 
   if (serial_send(&pgm->fd, buf, len+6) != 0) {
     avrdude_message(MSG_INFO, "%s: stk500_send(): failed to send command to serial port\n",progname);
@@ -551,9 +549,9 @@ static int stk500v2_jtagmkII_recv(PROGRAMMER * pgm, unsigned char *msg,
             progname);
     return -1;
   }
-  if (rv - 1 > maxsize) {
+  if ((size_t) rv - 1 > maxsize) {
     avrdude_message(MSG_INFO, "%s: stk500v2_jtagmkII_recv(): got %u bytes, have only room for %u bytes\n",
-                    progname, (unsigned)rv - 1, (unsigned)maxsize);
+                    progname, (unsigned) rv - 1, (unsigned) maxsize);
     rv = maxsize;
   }
   switch (jtagmsg[0]) {
@@ -597,9 +595,9 @@ static int stk500v2_jtag3_recv(PROGRAMMER * pgm, unsigned char *msg,
      implementation of JTAGICE3, as they always request a full 512
      octets from the ICE.  Thus, only complain at high verbose
      levels. */
-  if (rv - 1 > maxsize) {
+  if ((size_t) rv - 1 > maxsize) {
     avrdude_message(MSG_DEBUG, "%s: stk500v2_jtag3_recv(): got %u bytes, have only room for %u bytes\n",
-                      progname, (unsigned)rv - 1, (unsigned)maxsize);
+                      progname, (unsigned) rv - 1, (unsigned) maxsize);
     rv = maxsize;
   }
   if (jtagmsg[0] != SCOPE_AVR_ISP) {
@@ -814,13 +812,13 @@ retry:
 
 static int stk500v2_command(PROGRAMMER * pgm, unsigned char * buf,
                             size_t len, size_t maxlen) {
-  int i;
   int tries = 0;
   int status;
 
   DEBUG("STK500V2: stk500v2_command(");
-  for (i=0;i<len;i++) DEBUG("0x%02x ",buf[i]);
-  DEBUG(", %d)\n",len);
+  for (size_t i=0; i<len; i++)
+     DEBUG("0x%02x ",buf[i]);
+  DEBUG(", %d)\n", (int) len);
 
 retry:
   tries++;
@@ -991,6 +989,7 @@ static int stk500v2_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   buf[0] = CMD_CHIP_ERASE_ISP;
   buf[1] = p->chip_erase_delay / 1000;
   buf[2] = 0;	// use delay (?)
+  memset(buf+3, 0, 4);
   avr_set_bits(p->op[AVR_OP_CHIP_ERASE], buf+3);
   result = stk500v2_command(pgm, buf, 7, sizeof(buf));
   usleep(p->chip_erase_delay);
@@ -1121,8 +1120,8 @@ retry:
   buf[5] = p->bytedelay;
   buf[6] = p->pollvalue;
   buf[7] = p->pollindex;
+  memset(buf+8, 0, 4);
   avr_set_bits(p->op[AVR_OP_PGM_ENABLE], buf+8);
-  buf[10] = buf[11] = 0;
 
   rv = stk500v2_command(pgm, buf, 12, sizeof(buf));
 
@@ -1957,12 +1956,12 @@ static int stk500isp_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
     buf[0] = CMD_READ_SIGNATURE_ISP;
   }
 
-  memset(buf + 1, 0, 5);
   if ((op = mem->op[AVR_OP_READ]) == NULL) {
     avrdude_message(MSG_INFO, "%s: stk500isp_read_byte(): invalid operation AVR_OP_READ on %s memory\n",
                     progname, mem->desc);
     return -1;
   }
+  memset(buf+2, 0, 4);
   avr_set_bits(op, buf + 2);
   if ((pollidx = avr_get_output_index(op)) == -1) {
     avrdude_message(MSG_INFO, "%s: stk500isp_read_byte(): cannot determine pollidx to read %s memory\n",
@@ -2314,6 +2313,7 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
               progname, p->desc);
       return -1;
     }
+    memset(cmds, 0, sizeof cmds);
     avr_set_bits(m->op[AVR_OP_LOADPAGE_LO], cmds);
     commandbuf[5] = cmds[0];
 
@@ -2322,6 +2322,8 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
               progname, p->desc);
       return -1;
     }
+
+    memset(cmds, 0, sizeof cmds);
     avr_set_bits(m->op[AVR_OP_WRITEPAGE], cmds);
     commandbuf[6] = cmds[0];
 
@@ -2335,6 +2337,7 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
               progname, p->desc);
       return -1;
     }
+    memset(cmds, 0, sizeof cmds);
     avr_set_bits(wop, cmds);
     commandbuf[5] = cmds[0];
     commandbuf[6] = 0;
@@ -2346,6 +2349,7 @@ static int stk500v2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
             progname, p->desc);
     return -1;
   }
+  memset(cmds, 0, sizeof cmds);
   avr_set_bits(rop, cmds);
   commandbuf[7] = cmds[0];
 
@@ -2549,6 +2553,7 @@ static int stk500v2_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
             progname, p->desc);
     return -1;
   }
+  memset(cmds, 0, sizeof cmds);
   avr_set_bits(rop, cmds);
   commandbuf[3] = cmds[0];
 
@@ -2753,7 +2758,8 @@ static int stk500v2_set_fosc(PROGRAMMER * pgm, double v)
   static unsigned ps[] = {
     1, 8, 32, 64, 128, 256, 1024
   };
-  int idx, rc;
+  size_t idx;
+  int rc;
 
   prescale = cmatch = 0;
   if (v > 0.0) {
@@ -2774,7 +2780,7 @@ static int stk500v2_set_fosc(PROGRAMMER * pgm, double v)
       fosc = (unsigned)v;
 
     for (idx = 0; idx < sizeof(ps) / sizeof(ps[0]); idx++) {
-      if (fosc >= STK500V2_XTAL / (256 * ps[idx] * 2)) {
+      if ((unsigned) fosc >= STK500V2_XTAL / (256 * ps[idx] * 2)) {
         /* this prescaler value can handle our frequency */
         prescale = idx + 1;
         cmatch = (unsigned)(STK500V2_XTAL / (2 * fosc * ps[idx])) - 1;
@@ -2821,7 +2827,7 @@ static double avrispmkIIfreqs[] = {
 
 static int stk500v2_set_sck_period_mk2(PROGRAMMER * pgm, double v)
 {
-  int i;
+  size_t i;
 
   for (i = 0; i < sizeof(avrispmkIIfreqs) / sizeof(avrispmkIIfreqs[0]); i++) {
     if (1 / avrispmkIIfreqs[i] >= v)

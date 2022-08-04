@@ -183,6 +183,7 @@ typedef struct opcode {
 } OPCODE;
 
 
+/* Any changes here, please also reflect in dev_part_strct() of developer_opts.c */
 #define AVRPART_SERIALOK       0x0001  /* part supports serial programming */
 #define AVRPART_PARALLELOK     0x0002  /* part supports parallel programming */
 #define AVRPART_PSEUDOPARALLEL 0x0004  /* part has pseudo parallel support */
@@ -212,9 +213,11 @@ typedef struct opcode {
 
 #define TAG_ALLOCATED          1    /* memory byte is allocated */
 
+/* Any changes here, please also reflect in dev_part_strct() of developer_opts.c */
 typedef struct avrpart {
   char          desc[AVR_DESCLEN];  /* long part name */
   char          id[AVR_IDLEN];      /* short part name */
+  char        * parent_id;          /* parent id if set, for -p.../s */
   char          family_id[AVR_FAMILYIDLEN+1]; /* family id in the SIB (avr8x) */
   int           hvupdi_variant;     /* HV pulse on UPDI pin, no pin or RESET pin */
   int           stk500_devcode;     /* stk500 device code */
@@ -317,14 +320,22 @@ typedef struct avrmem_alias {
 extern "C" {
 #endif
 
+
+int intlog2(unsigned int n);
+
 /* Functions for OPCODE structures */
 OPCODE * avr_new_opcode(void);
 void     avr_free_opcode(OPCODE * op);
 int avr_set_bits(OPCODE * op, unsigned char * cmd);
 int avr_set_addr(OPCODE * op, unsigned char * cmd, unsigned long addr);
+int avr_set_addr_mem(AVRMEM *mem, int opnum, unsigned char *cmd, unsigned long addr);
 int avr_set_input(OPCODE * op, unsigned char * cmd, unsigned char data);
 int avr_get_output(OPCODE * op, unsigned char * res, unsigned char * data);
 int avr_get_output_index(OPCODE * op);
+char cmdbitchar(CMDBIT cb);
+char *cmdbitstr(CMDBIT cb);
+const char *opcodename(int opnum);
+char *opcode2str(OPCODE *op, int opnum, int detailed);
 
 /* Functions for AVRMEM structures */
 AVRMEM * avr_new_memtype(void);
@@ -333,9 +344,9 @@ int avr_initmem(AVRPART * p);
 AVRMEM * avr_dup_mem(AVRMEM * m);
 void     avr_free_mem(AVRMEM * m);
 void     avr_free_memalias(AVRMEM_ALIAS * m);
-AVRMEM * avr_locate_mem(AVRPART * p, char * desc);
-AVRMEM * avr_locate_mem_noalias(AVRPART * p, char * desc);
-AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, char * desc);
+AVRMEM * avr_locate_mem(AVRPART * p, const char * desc);
+AVRMEM * avr_locate_mem_noalias(AVRPART * p, const char * desc);
+AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, const char * desc);
 AVRMEM_ALIAS * avr_find_memalias(AVRPART * p, AVRMEM * m_orig);
 void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
                      int type, int verbose);
@@ -344,7 +355,7 @@ void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
 AVRPART * avr_new_part(void);
 AVRPART * avr_dup_part(AVRPART * d);
 void      avr_free_part(AVRPART * d);
-AVRPART * locate_part(LISTID parts, char * partdesc);
+AVRPART * locate_part(LISTID parts, const char * partdesc);
 AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode);
 AVRPART * locate_part_by_signature(LISTID parts, unsigned char * sig,
                                    int sigsize);
@@ -355,6 +366,8 @@ typedef void (*walk_avrparts_cb)(const char *name, const char *desc,
                                  void *cookie);
 void walk_avrparts(LISTID avrparts, walk_avrparts_cb cb, void *cookie);
 void sort_avrparts(LISTID avrparts);
+
+int part_match(const char *pattern, const char *string);
 
 int compare_memory_masked(AVRMEM * m, uint8_t buf1, uint8_t buf2);
 
@@ -659,6 +672,7 @@ typedef struct programmer_t {
   char desc[PGM_DESCLEN];
   char type[PGM_TYPELEN];
   char port[PGM_PORTLEN];
+  char *parent_id;
   void (*initpgm)(struct programmer_t * pgm);
   unsigned int pinno[N_PINS];
   struct pindef_t pin[N_PINS];
@@ -769,6 +783,7 @@ void sort_programmers(LISTID programmers);
 typedef void (*FP_UpdateProgress)(int percent, double etime, char *hdr);
 
 extern struct avrpart parts[];
+extern const char *avr_mem_order[100];
 
 extern FP_UpdateProgress update_progress;
 
@@ -804,6 +819,11 @@ int avr_get_cycle_count(PROGRAMMER * pgm, AVRPART * p, int * cycles);
 
 int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles);
 
+void avr_add_mem_order(const char *str);
+
+int avr_mem_is_known(const char *str);
+int avr_mem_might_be_known(const char *str);
+
 #define disable_trailing_ff_removal() avr_mem_hiaddr(NULL)
 int avr_mem_hiaddr(AVRMEM * mem);
 
@@ -829,7 +849,8 @@ typedef enum {
   FMT_DEC,
   FMT_OCT,
   FMT_BIN,
-  FMT_ELF
+  FMT_ELF,
+  FMT_IHXC,
 } FILEFMT;
 
 struct fioparms {
@@ -873,6 +894,7 @@ enum updateflags {
   UF_NONE = 0,
   UF_NOWRITE = 1,
   UF_AUTO_ERASE = 2,
+  UF_VERIFY = 4,
 };
 
 
@@ -882,6 +904,17 @@ typedef struct update_t {
   char * filename;
   int    format;
 } UPDATE;
+
+typedef struct {                // File reads for flash can exclude trailing 0xff, which are cut off
+  int nbytes,                   // Number of bytes set including 0xff but excluding cut off, trailing 0xff
+      nsections,                // Number of consecutive sections in source excluding cut off, trailing 0xff
+      npages,                   // Number of memory pages needed excluding pages solely with trailing 0xff
+      nfill,                    // Number of fill bytes to make up full pages that are needed
+      ntrailing,                // Number of trailing 0xff in source
+      firstaddr,                // First address set in [0, mem->size-1]
+      lastaddr;                 // Highest address set by input file
+} Filestats;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -894,6 +927,14 @@ extern UPDATE * new_update(int op, char * memtype, int filefmt,
 extern void free_update(UPDATE * upd);
 extern int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd,
 		 enum updateflags flags);
+
+extern int memstats(struct avrpart *p, char *memtype, int size, Filestats *fsp);
+
+// Convenience functions for printing
+const char *plural(int x);
+const char *inname(const char *fn);
+const char *outname(const char *fn);
+const char *interval(int a, int b);
 
 #ifdef __cplusplus
 }

@@ -91,8 +91,6 @@ int stk500_getsync(PROGRAMMER * pgm)
   int attempt;
   int max_sync_attempts;
 
-  /*
-   * get in sync */
   buf[0] = Cmnd_STK_GET_SYNC;
   buf[1] = Sync_CRC_EOP;
   
@@ -119,11 +117,12 @@ int stk500_getsync(PROGRAMMER * pgm)
       usleep(50*1000);
       stk500_drain(pgm, 0);
     }
+
     stk500_send(pgm, buf, 2);
-    stk500_recv(pgm, resp, 1);
-    if (resp[0] == Resp_STK_INSYNC){
+    resp[0] = 0;
+    if(stk500_recv(pgm, resp, 1) >= 0 && resp[0] == Resp_STK_INSYNC)
       break;
-    }
+
     avrdude_message(MSG_INFO, "%s: stk500_getsync() attempt %d of %d: not in sync: resp=0x%02x\n",
                     progname, attempt + 1, max_sync_attempts, resp[0]);
   }
@@ -204,15 +203,14 @@ static int stk500_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   }
 
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
-    avrdude_message(MSG_INFO, "chip erase instruction not defined for part \"%s\"\n",
-            p->desc);
+    avrdude_message(MSG_INFO, "%s: chip erase instruction not defined for part \"%s\"\n",
+            progname, p->desc);
     return -1;
   }
 
   pgm->pgm_led(pgm, ON);
 
   memset(cmd, 0, sizeof(cmd));
-
   avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
   pgm->cmd(pgm, cmd, res);
   usleep(p->chip_erase_delay);
@@ -745,8 +743,8 @@ static int stk500_loadaddr(PROGRAMMER * pgm, AVRMEM * mem, unsigned int addr)
   if (lext != NULL) {
     ext_byte = (addr >> 16) & 0xff;
     if (ext_byte != PDATA(pgm)->ext_addr_byte) {
-      /* Either this is the first addr load, or a 64K word boundary is
-       * crossed, so set the ext addr byte */
+      /* Either this is the first addr load, or a different 64K word section */
+      memset(buf, 0, 4);
       avr_set_bits(lext, buf);
       avr_set_addr(lext, buf, addr);
       stk500_cmd(pgm, buf, buf);
@@ -782,13 +780,12 @@ static int stk500_loadaddr(PROGRAMMER * pgm, AVRMEM * mem, unsigned int addr)
 
   if (stk500_recv(pgm, buf, 1) < 0)
     return -1;
-  if (buf[0] == Resp_STK_OK) {
+  if (buf[0] == Resp_STK_OK)
     return 0;
-  }
 
-  avrdude_message(MSG_INFO, "%s: loadaddr(): (b) protocol error, "
+  avrdude_message(MSG_INFO, "%s: stk500_loadaddr(): (b) protocol error, "
                   "expect=0x%02x, resp=0x%02x\n",
-                  progname, Resp_STK_INSYNC, buf[0]);
+                  progname, Resp_STK_OK, buf[0]);
 
   return -1;
 }
@@ -808,18 +805,19 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   if (strcmp(m->desc, "flash") == 0) {
     memtype = 'F';
-  }
-  else if (strcmp(m->desc, "eeprom") == 0) {
+    a_div = 2;
+  } else if (strcmp(m->desc, "eeprom") == 0) {
     memtype = 'E';
-  }
-  else {
+    /*
+     * The STK original 500 v1 protocol actually expects a_div = 1, but the
+     * v1.x FW of the STK500 kit has been superseded by v2 FW in the mid
+     * 2000s. Since optiboot, arduino as ISP and others assume a_div = 2,
+     * better use that. See https://github.com/avrdudes/avrdude/issues/967
+     */
+    a_div = 2;
+  } else {
     return -2;
   }
-
-  if ((m->op[AVR_OP_LOADPAGE_LO]) || (m->op[AVR_OP_READ_LO]))
-    a_div = 2;
-  else
-    a_div = 1;
 
   n = addr + n_bytes;
 #if 0
@@ -828,7 +826,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                   "a_div     = %d\n"
                   "page_size = %d\n",
                   n_bytes, n, a_div, page_size);
-#endif     
+#endif
 
   for (; addr < n; addr += block_size) {
     // MIB510 uses fixed blocks size of 256 bytes
@@ -875,13 +873,13 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
                       progname, Resp_STK_INSYNC, buf[0]);
       return -4;
     }
-    
+
     if (stk500_recv(pgm, buf, 1) < 0)
       return -1;
     if (buf[0] != Resp_STK_OK) {
-      avrdude_message(MSG_INFO, "\n%s: stk500_paged_write(): (a) protocol error, "
+      avrdude_message(MSG_INFO, "\n%s: stk500_paged_write(): (b) protocol error, "
                       "expect=0x%02x, resp=0x%02x\n",
-                      progname, Resp_STK_INSYNC, buf[0]);
+                      progname, Resp_STK_OK, buf[0]);
       return -5;
     }
   }
@@ -902,18 +900,19 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   if (strcmp(m->desc, "flash") == 0) {
     memtype = 'F';
-  }
-  else if (strcmp(m->desc, "eeprom") == 0) {
+    a_div = 2;
+  } else if (strcmp(m->desc, "eeprom") == 0) {
     memtype = 'E';
-  }
-  else {
+    /*
+     * The STK original 500 v1 protocol actually expects a_div = 1, but the
+     * v1.x FW of the STK500 kit has been superseded by v2 FW in the mid
+     * 2000s. Since optiboot, arduino as ISP and others assume a_div = 2,
+     * better use that. See https://github.com/avrdudes/avrdude/issues/967
+     */
+    a_div = 2;
+  } else {
     return -2;
   }
-
-  if ((m->op[AVR_OP_LOADPAGE_LO]) || (m->op[AVR_OP_READ_LO]))
-    a_div = 2;
-  else
-    a_div = 1;
 
   n = addr + n_bytes;
   for (; addr < n; addr += block_size) {
@@ -973,7 +972,7 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   }
     else {
       if (buf[0] != Resp_STK_OK) {
-        avrdude_message(MSG_INFO, "\n%s: stk500_paged_load(): (a) protocol error, "
+        avrdude_message(MSG_INFO, "\n%s: stk500_paged_load(): (b) protocol error, "
                         "expect=0x%02x, resp=0x%02x\n",
                         progname, Resp_STK_OK, buf[0]);
         return -5;
@@ -1037,7 +1036,8 @@ static int stk500_set_fosc(PROGRAMMER * pgm, double v)
   static unsigned ps[] = {
     1, 8, 32, 64, 128, 256, 1024
   };
-  int idx, rc;
+  size_t idx;
+  int rc;
 
   prescale = cmatch = 0;
   if (v > 0.0) {
@@ -1155,7 +1155,7 @@ static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
     return -3;
   }
   else if (buf[0] != Resp_STK_OK) {
-    avrdude_message(MSG_INFO, "\n%s: stk500_getparm(): (a) protocol error, "
+    avrdude_message(MSG_INFO, "\n%s: stk500_getparm(): (b) protocol error, "
                     "expect=0x%02x, resp=0x%02x\n",
                     progname, Resp_STK_OK, buf[0]);
     return -3;
@@ -1214,9 +1214,9 @@ static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value)
     return -3;
   }
   else {
-    avrdude_message(MSG_INFO, "\n%s: stk500_setparm(): (a) protocol error, "
+    avrdude_message(MSG_INFO, "\n%s: stk500_setparm(): (b) protocol error, "
                     "expect=0x%02x, resp=0x%02x\n",
-                    progname, Resp_STK_INSYNC, buf[0]);
+                    progname, Resp_STK_OK, buf[0]);
     return -3;
   }
 }
