@@ -1320,6 +1320,7 @@ part_parm :
         mem->desc[AVR_MEMDESCLEN-1] = 0;
         ladd(current_part->mem, mem);
       }
+      avr_add_mem_order($2->value.string);
       current_mem = mem;
       free_token($2);
     }

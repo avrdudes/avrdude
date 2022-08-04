@@ -783,6 +783,7 @@ void sort_programmers(LISTID programmers);
 typedef void (*FP_UpdateProgress)(int percent, double etime, char *hdr);
 
 extern struct avrpart parts[];
+extern const char *avr_mem_order[100];
 
 extern FP_UpdateProgress update_progress;
 
@@ -817,6 +818,11 @@ int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size);
 int avr_get_cycle_count(PROGRAMMER * pgm, AVRPART * p, int * cycles);
 
 int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles);
+
+void avr_add_mem_order(const char *str);
+
+int avr_mem_is_known(const char *str);
+int avr_mem_might_be_known(const char *str);
 
 #define disable_trailing_ff_removal() avr_mem_hiaddr(NULL)
 int avr_mem_hiaddr(AVRMEM * mem);
@@ -888,6 +894,7 @@ enum updateflags {
   UF_NONE = 0,
   UF_NOWRITE = 1,
   UF_AUTO_ERASE = 2,
+  UF_VERIFY = 4,
 };
 
 
@@ -897,6 +904,17 @@ typedef struct update_t {
   char * filename;
   int    format;
 } UPDATE;
+
+typedef struct {                // File reads for flash can exclude trailing 0xff, which are cut off
+  int nbytes,                   // Number of bytes set including 0xff but excluding cut off, trailing 0xff
+      nsections,                // Number of consecutive sections in source excluding cut off, trailing 0xff
+      npages,                   // Number of memory pages needed excluding pages solely with trailing 0xff
+      nfill,                    // Number of fill bytes to make up full pages that are needed
+      ntrailing,                // Number of trailing 0xff in source
+      firstaddr,                // First address set in [0, mem->size-1]
+      lastaddr;                 // Highest address set by input file
+} Filestats;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -909,6 +927,14 @@ extern UPDATE * new_update(int op, char * memtype, int filefmt,
 extern void free_update(UPDATE * upd);
 extern int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd,
 		 enum updateflags flags);
+
+extern int memstats(struct avrpart *p, char *memtype, int size, Filestats *fsp);
+
+// Convenience functions for printing
+const char *plural(int x);
+const char *inname(const char *fn);
+const char *outname(const char *fn);
+const char *interval(int a, int b);
 
 #ifdef __cplusplus
 }
