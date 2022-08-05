@@ -24,6 +24,9 @@
 #include <errno.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "ac_cfg.h"
 #include "avrdude.h"
@@ -319,6 +322,147 @@ const char *update_interval(int a, int b) {
 }
 
 
+// Helper functions for dry run to determine file access
+
+int update_is_okfile(const char *fn) {
+  struct stat info;
+
+  // File exists and is a regular file or a character file, eg, /dev/urandom
+  return fn && *fn && stat(fn, &info) == 0 && !!(info.st_mode & (S_IFREG | S_IFCHR));
+}
+
+int update_is_writeable(const char *fn) {
+  if(!fn || !*fn)
+    return 0;
+
+  // Assume writing to stdout will be OK
+  if(!strcmp(fn, "-"))
+    return 1;
+
+  // File exists? If so return whether it's readable and an OK file type
+  if(access(fn, F_OK) == 0)
+    return access(fn, W_OK) == 0 && update_is_okfile(fn);
+
+  // File does not exist: try to create it
+  FILE *test = fopen(fn, "w");
+  if(test) {
+    unlink(fn);
+    fclose(test);
+  }
+  return !!test;
+}
+
+int update_is_readable(const char *fn) {
+  if(!fn || !*fn)
+    return 0;
+
+  // Assume reading from stdin will be OK
+  if(!strcmp(fn, "-"))
+    return 1;
+
+  // File exists, is readable by the process and an OK file type?
+  return access(fn, R_OK) == 0 && update_is_okfile(fn);
+}
+
+
+static void ioerror(const char *iotype, UPDATE *upd) {
+  avrdude_message(MSG_INFO, "%s: file %s is not %s",
+    progname, update_outname(upd->filename), iotype);
+  if(errno) {
+    char buf[1024];
+    strerror_r(errno, buf, sizeof buf);
+    avrdude_message(MSG_INFO, ". %s", buf);
+  } else if(upd->filename && *upd->filename)
+    avrdude_message(MSG_INFO, " (not a regular or character file?)");
+   avrdude_message(MSG_INFO, "\n");
+}
+
+// Basic checks to reveal serious failure before programming
+int update_dryrun(struct avrpart *p, UPDATE *upd) {
+  static char **wrote;
+  static int nfwritten;
+
+  int known, format_detect, ret = LIBAVRDUDE_SUCCESS;
+
+  /*
+   * Reject an update if memory name is not known amongst any part (suspect a typo)
+   * but accept when the specific part does not have it (allow unifying i/faces)
+   */
+  if(!avr_mem_might_be_known(upd->memtype)) {
+    avrdude_message(MSG_INFO, "%s: unknown memory type %s\n", progname, upd->memtype);
+    ret = LIBAVRDUDE_GENERAL_FAILURE;
+  } else if(p && !avr_locate_mem(p, upd->memtype))
+    ret = LIBAVRDUDE_SOFTFAIL;
+
+  known = 0;
+  // Necessary to check whether the file is readable?
+  if(upd->op == DEVICE_VERIFY || upd->op == DEVICE_WRITE || upd->format == FMT_AUTO) {
+    if(upd->format != FMT_IMM) {
+      // Need to read the file: was it written before, so will be known?
+      for(int i = 0; i < nfwritten; i++)
+        if(!wrote || (upd->filename && !strcmp(wrote[i], upd->filename)))
+          known = 1;
+
+      errno = 0;
+      if(!known && !update_is_readable(upd->filename)) {
+        ioerror("readable", upd);
+        ret = LIBAVRDUDE_GENERAL_FAILURE;
+        known = 1;                // Pretend we know it, so no auto detect needed
+      }
+    }
+  }
+
+  if(!known && upd->format == FMT_AUTO) {
+    if(!strcmp(upd->filename, "-")) {
+      avrdude_message(MSG_INFO, "%s: can't auto detect file format for stdin/out, "
+        "specify explicitly\n", progname);
+      ret = LIBAVRDUDE_GENERAL_FAILURE;
+    } else if((format_detect = fileio_fmt_autodetect(upd->filename)) < 0) {
+      avrdude_message(MSG_INFO, "%s: can't determine file format for %s, specify explicitly\n",
+        progname, upd->filename);
+      ret = LIBAVRDUDE_GENERAL_FAILURE;
+    } else {
+      // Set format now, no need to repeat auto detection later
+      upd->format = format_detect;
+      if(quell_progress < 2)
+        avrdude_message(MSG_NOTICE, "%s: %s file %s auto detected as %s\n",
+          progname, upd->op == DEVICE_READ? "output": "input", upd->filename,
+            fileio_fmtstr(upd->format));
+    }
+  }
+
+  switch(upd->op) {
+  case DEVICE_READ:
+    if(upd->format == FMT_IMM) {
+      avrdude_message(MSG_INFO,
+        "%s: invalid file format 'immediate' for output\n", progname);
+      ret = LIBAVRDUDE_GENERAL_FAILURE;
+    } else {
+      errno = 0;
+      if(!update_is_writeable(upd->filename)) {
+        ioerror("writeable", upd);
+        ret = LIBAVRDUDE_GENERAL_FAILURE;
+      } else if(upd->filename) { // Record filename (other than stdout) is available for future reads
+        if(strcmp(upd->filename, "-") && (wrote = realloc(wrote, sizeof(*wrote) * (nfwritten+1))))
+          wrote[nfwritten++] = upd->filename;
+      }
+    }
+    break;
+
+  case DEVICE_VERIFY:           // Already checked that file is readable
+  case DEVICE_WRITE:
+    break;
+
+  default:
+    avrdude_message(MSG_INFO, "%s: invalid update operation (%d) requested\n",
+      progname, upd->op);
+    ret = LIBAVRDUDE_GENERAL_FAILURE;
+  }
+
+  return ret;
+}
+
+
 int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags flags)
 {
   struct avrpart * v;
@@ -346,7 +490,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     // Read out the specified device memory and write it to a file
     if (upd->format == FMT_IMM) {
       avrdude_message(MSG_INFO,
-        "%s: Invalid file format 'immediate' for output\n", progname);
+        "%s: invalid file format 'immediate' for output\n", progname);
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
     if (quell_progress < 2)
@@ -383,15 +527,15 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     // Write the selected device memory using data from a file
 
     rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1);
-    if (quell_progress < 2)
-      avrdude_message(MSG_INFO, "%s: reading input file %s for %s%s\n",
-        progname, update_inname(upd->filename), mem->desc, alias_mem_desc);
     if (rc < 0) {
       avrdude_message(MSG_INFO, "%s: read from file %s failed\n",
         progname, update_inname(upd->filename));
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
     size = rc;
+    if (quell_progress < 2)
+      avrdude_message(MSG_INFO, "%s: reading input file %s for %s%s\n",
+        progname, update_inname(upd->filename), mem->desc, alias_mem_desc);
 
     if(memstats(p, upd->memtype, size, &fs) < 0)
       return LIBAVRDUDE_GENERAL_FAILURE;

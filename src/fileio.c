@@ -100,11 +100,8 @@ static int fileio_num(struct fioparms * fio,
 		char * filename, FILE * f, AVRMEM * mem, int size,
 		FILEFMT fmt);
 
-static int fmt_autodetect(char * fname);
 
-
-
-char * fmtstr(FILEFMT format)
+char * fileio_fmtstr(FILEFMT format)
 {
   switch (format) {
     case FMT_AUTO : return "auto-detect"; break;
@@ -1402,7 +1399,7 @@ int fileio_setparms(int op, struct fioparms * fp,
 
 
 
-static int fmt_autodetect(char * fname)
+int fileio_fmt_autodetect(const char * fname)
 {
   FILE * f;
   unsigned char buf[MAX_LINE_LEN];
@@ -1547,7 +1544,7 @@ int fileio(int oprwv, char * filename, FILEFMT format,
       return -1;
     }
 
-    format_detect = fmt_autodetect(fname);
+    format_detect = fileio_fmt_autodetect(fname);
     if (format_detect < 0) {
       avrdude_message(MSG_INFO, "%s: can't determine file format for %s, specify explicitly\n",
                       progname, fname);
@@ -1556,8 +1553,8 @@ int fileio(int oprwv, char * filename, FILEFMT format,
     format = format_detect;
 
     if (quell_progress < 2) {
-      avrdude_message(MSG_INFO, "%s: %s file %s auto detected as %s\n",
-              progname, fio.iodesc, fname, fmtstr(format));
+      avrdude_message(MSG_NOTICE, "%s: %s file %s auto detected as %s\n",
+              progname, fio.iodesc, fname, fileio_fmtstr(format));
     }
   }
 
