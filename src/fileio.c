@@ -346,7 +346,7 @@ static int ihex2b(char * infile, FILE * inf,
           return -1;
         }
         nextaddr = ihex.loadofs + baseaddr - fileoffset;
-        if (nextaddr + ihex.reclen > bufsize) {
+        if (nextaddr + ihex.reclen > (unsigned) bufsize) {
           avrdude_message(MSG_INFO, "%s: ERROR: address 0x%04x out of range at line %d of %s\n",
                           progname, nextaddr+ihex.reclen, lineno, infile);
           return -1;
@@ -412,7 +412,6 @@ static int b2srec(unsigned char * inbuf, int bufsize,
   unsigned char * buf;
   unsigned int nextaddr;
   int n, nbytes, addr_width;
-  int i;
   unsigned char cksum;
 
   char * tmpl=0;
@@ -460,10 +459,10 @@ static int b2srec(unsigned char * inbuf, int bufsize,
 
       cksum += n + addr_width + 1;
 
-      for (i=addr_width; i>0; i--) 
+      for (int i=addr_width; i>0; i--)
         cksum += (nextaddr >> (i-1) * 8) & 0xff;
 
-      for (i=nextaddr; i<nextaddr + n; i++) {
+      for (unsigned i=nextaddr; i<nextaddr + n; i++) {
         fprintf(outf, "%02X", buf[i]);
         cksum += buf[i];
       }
@@ -494,7 +493,7 @@ static int b2srec(unsigned char * inbuf, int bufsize,
     addr_width = 3;
     tmpl="S9%02X%06X";
   }
-  else if (startaddr <= 0xffffffff) {
+  else if ((unsigned) startaddr <= 0xffffffff) {
     addr_width = 4;
     tmpl="S9%02X%08X";
   }
@@ -502,7 +501,7 @@ static int b2srec(unsigned char * inbuf, int bufsize,
   fprintf(outf, tmpl, n + addr_width + 1, nextaddr);
 
   cksum += n + addr_width +1;
-  for (i=addr_width; i>0; i--) 
+  for (int i=addr_width; i>0; i--)
     cksum += (nextaddr >> (i - 1) * 8) & 0xff;
   cksum = 0xff - cksum;
   fprintf(outf, "%02X\n", cksum);
@@ -597,7 +596,7 @@ static int srec2b(char * infile, FILE * inf,
   int len;
   struct ihexrec srec;
   int rc;
-  int reccount;
+  unsigned int reccount;
   unsigned char datarec;
 
   char * msg = 0;
@@ -687,7 +686,7 @@ static int srec2b(char * infile, FILE * inf,
         return -1;
       }
       nextaddr -= fileoffset;
-      if (nextaddr + srec.reclen > bufsize) {
+      if (nextaddr + srec.reclen > (unsigned) bufsize) {
         avrdude_message(MSG_INFO, msg, progname, nextaddr+srec.reclen, "",
                 lineno, infile);
         return -1;
@@ -1006,8 +1005,7 @@ static int elf2b(char * infile, FILE * inf,
        * ELF file region for these, and extract the actual byte to write
        * from it, using the "foff" offset obtained above.
        */
-      if (mem->size != 1 &&
-          sh->sh_size > mem->size) {
+      if (mem->size != 1 && sh->sh_size > (unsigned) mem->size) {
         avrdude_message(MSG_INFO, "%s: ERROR: section \"%s\" does not fit into \"%s\" memory:\n"
                         "    0x%x + %u > %u\n",
                         progname, sname, mem->desc,
@@ -1507,7 +1505,7 @@ int fileio(int oprwv, char * filename, FILEFMT format,
   if (rc < 0)
     return -1;
 
-  if (fio.op == FIO_READ)
+  if (size < 0 || fio.op == FIO_READ)
     size = mem->size;
 
   if (fio.op == FIO_READ) {
