@@ -368,13 +368,11 @@ int update_is_readable(const char *fn) {
 static void ioerror(const char *iotype, UPDATE *upd) {
   avrdude_message(MSG_INFO, "%s: file %s is not %s",
     progname, update_outname(upd->filename), iotype);
-  if(errno) {
-    char buf[1024];
-    strerror_r(errno, buf, sizeof buf);
-    avrdude_message(MSG_INFO, ". %s", buf);
-  } else if(upd->filename && *upd->filename)
+  if(errno)
+    avrdude_message(MSG_INFO, ". %s", strerror(errno));
+  else if(upd->filename && *upd->filename)
     avrdude_message(MSG_INFO, " (not a regular or character file?)");
-   avrdude_message(MSG_INFO, "\n");
+  avrdude_message(MSG_INFO, "\n");
 }
 
 // Basic checks to reveal serious failure before programming
