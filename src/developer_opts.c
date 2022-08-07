@@ -601,7 +601,7 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
 
 // -p */[cdosw*]
 void dev_output_part_defs(char *partdesc) {
-  bool cmdok, waits, opspi, descs, strct, cmpst, raw, all, tsv;
+  bool cmdok, waits, opspi, descs, astrc, strct, cmpst, raw, all, tsv;
   char *flags;
   int nprinted;
   AVRPART *nullpart = avr_new_part();
@@ -612,7 +612,7 @@ void dev_output_part_defs(char *partdesc) {
   if(!flags && !strcmp(partdesc, "*")) // treat -p * as if it was -p */*
     flags = "*";
 
-  if(!*flags || !strchr("cdosSrw*t", *flags)) {
+  if(!*flags || !strchr("cdoASsrw*t", *flags)) {
     dev_info("%s: flags for developer option -p <wildcard>/<flags> not recognised\n", progname);
     dev_info(
       "Wildcard examples (these need protecting in the shell through quoting):\n"
@@ -621,14 +621,15 @@ void dev_output_part_defs(char *partdesc) {
       "  *32[0-9] matches ATmega329, ATmega325 and ATmega328\n"
       "      *32? matches ATmega329, ATmega32A, ATmega325 and ATmega328\n"
       "Flags (one or more of the characters below):\n"
-      "       c  check and report errors in address bits of SPI commands\n"
       "       d  description of core part features\n"
-      "       o  opcodes for SPI programming parts and memories\n"
-      "       S  show entries of avrdude.conf parts with all values\n"
-      "       s  show entries of avrdude.conf parts with necessary values\n"
+      "       A  show entries of avrdude.conf parts with all values\n"
+      "       S  show entries of avrdude.conf parts with necessary values\n"
+      "       s  show short entries of avrdude.conf parts using parent\n"
       "       r  show entries of avrdude.conf parts as raw dump\n"
+      "       c  check and report errors in address bits of SPI commands\n"
+      "       o  opcodes for SPI programming parts and memories\n"
       "       w  wd_... constants for ISP parts\n"
-      "       *  all of the above except s\n"
+      "       *  all of the above except s and S\n"
       "       t  use tab separated values as much as possible\n"
       "Examples:\n"
       "  $ avrdude -p ATmega328P/s\n"
@@ -638,7 +639,7 @@ void dev_output_part_defs(char *partdesc) {
       "  -p * is the same as -p */*\n"
       "  This help message is printed using any unrecognised flag, eg, -p/h\n"
       "  Leaving no space after -p can be an OK substitute for quoting in shells\n"
-      "  /s and /S outputs are designed to be used as input in avrdude.conf\n"
+      "  /s, /S and /A outputs are designed to be used as input in avrdude.conf\n"
       "  Sorted /r output should stay invariant when rearranging avrdude.conf\n"
       "  The /c, /o and /w flags are less generic and may be removed sometime\n"
       "  These options are just to help development, so not further documented\n"
@@ -654,8 +655,9 @@ void dev_output_part_defs(char *partdesc) {
   descs = all || !!strchr(flags, 'd');
   opspi = all || !!strchr(flags, 'o');
   waits = all || !!strchr(flags, 'w');
-  strct = all || !!strchr(flags, 'S');
+  astrc = all || !!strchr(flags, 'A');
   raw   = all || !!strchr(flags, 'r');
+  strct = !!strchr(flags, 'S');
   cmpst = !!strchr(flags, 's');
   tsv   = !!strchr(flags, 't');
 
@@ -687,8 +689,11 @@ void dev_output_part_defs(char *partdesc) {
     if(!part_match(partdesc, p->desc) && !part_match(partdesc, p->id))
       continue;
 
-    if(strct || cmpst)
-      dev_part_strct(p, tsv, !cmpst? NULL: p->parent_id? locate_part(part_list, p->parent_id): nullpart);
+    if(astrc || strct || cmpst)
+      dev_part_strct(p, tsv,
+        astrc? NULL:
+        strct? nullpart:
+        p->parent_id? locate_part(part_list, p->parent_id): nullpart);
 
     if(raw)
       dev_part_raw(p);
