@@ -532,8 +532,7 @@ prog_parm_conntype_id:
 prog_parm_usb:
   K_USBDEV TKN_EQUAL TKN_STRING {
     {
-      strncpy(current_prog->usbdev, $3->value.string, PGM_USBSTRINGLEN);
-      current_prog->usbdev[PGM_USBSTRINGLEN-1] = 0;
+      current_prog->usbdev = cache_string($3->value.string);
       free_token($3);
     }
   } |
@@ -546,22 +545,19 @@ prog_parm_usb:
   K_USBPID TKN_EQUAL usb_pid_list |
   K_USBSN TKN_EQUAL TKN_STRING {
     {
-      strncpy(current_prog->usbsn, $3->value.string, PGM_USBSTRINGLEN);
-      current_prog->usbsn[PGM_USBSTRINGLEN-1] = 0;
+      current_prog->usbsn = cache_string($3->value.string);
       free_token($3);
     }
   } |
   K_USBVENDOR TKN_EQUAL TKN_STRING {
     {
-      strncpy(current_prog->usbvendor, $3->value.string, PGM_USBSTRINGLEN);
-      current_prog->usbvendor[PGM_USBSTRINGLEN-1] = 0;
+      current_prog->usbvendor = cache_string($3->value.string);
       free_token($3);
     }
   } |
   K_USBPRODUCT TKN_EQUAL TKN_STRING {
     {
-      strncpy(current_prog->usbproduct, $3->value.string, PGM_USBSTRINGLEN);
-      current_prog->usbproduct[PGM_USBSTRINGLEN-1] = 0;
+      current_prog->usbproduct = cache_string($3->value.string);
       free_token($3);
     }
   }

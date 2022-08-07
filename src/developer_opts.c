@@ -436,7 +436,7 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
     dev_info("#------------------------------------------------------------\n");
     dev_info("# %s\n", p->desc);
     dev_info("#------------------------------------------------------------\n");
-    if(p->parent_id)
+    if(p->parent_id && *p->parent_id)
       dev_info("\npart parent \"%s\"\n", p->parent_id);
     else
       dev_info("\npart\n");
@@ -597,9 +597,7 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
 }
 
 
-
-
-// -p */[cdosw*]
+// -p */[dASsrcow*t]
 void dev_output_part_defs(char *partdesc) {
   bool cmdok, waits, opspi, descs, astrc, strct, cmpst, raw, all, tsv;
   char *flags;
@@ -693,7 +691,7 @@ void dev_output_part_defs(char *partdesc) {
       dev_part_strct(p, tsv,
         astrc? NULL:
         strct? nullpart:
-        p->parent_id? locate_part(part_list, p->parent_id): nullpart);
+        p->parent_id && *p->parent_id? locate_part(part_list, p->parent_id): nullpart);
 
     if(raw)
       dev_part_raw(p);
@@ -889,5 +887,121 @@ void dev_output_part_defs(char *partdesc) {
         }
       }
     }
+  }
+}
+
+
+static void dev_pgm_raw(PROGRAMMER *pgm) {
+  PROGRAMMER dp;
+
+  memcpy(&dp, pgm, sizeof dp);
+  dev_raw_dump((unsigned char *) &dp, sizeof dp, pgm->desc, "pgm", 0);
+}
+
+
+static void dev_pgm_strct(PROGRAMMER *pgm, bool tsv, PROGRAMMER *base) {
+  if(!tsv) {
+    int firstid = 1;
+
+    dev_info("#------------------------------------------------------------\n");
+    dev_info("# ");
+    for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
+      if(!firstid)
+        dev_info("/");
+      firstid = 0;
+      dev_info("%s", ldata(ln));
+    }
+    dev_info("\n");
+    dev_info("#------------------------------------------------------------\n");
+    if(pgm->parent_id && *pgm->parent_id)
+      dev_info("\nprogrammer parent \"%s\"\n", pgm->parent_id);
+    else
+      dev_info("\nprogrammer\n");
+  }
+
+  if(!tsv)
+    dev_info(";\n");
+}
+
+
+// -c */[ASsrt]
+void dev_output_pgm_defs(char *pgmid) {
+  bool astrc, strct, cmpst, raw, tsv;
+  char *flags;
+  int nprinted;
+  PROGRAMMER *nullpgm = pgm_new();
+
+  if((flags = strchr(pgmid, '/')))
+    *flags++ = 0;
+
+  if(!flags && !strcmp(pgmid, "*")) // treat -c * as if it was -c */A
+    flags = "A";
+
+  if(!*flags || !strchr("ASsrt", *flags)) {
+    dev_info("%s: flags for developer option -c <wildcard>/<flags> not recognised\n", progname);
+    dev_info(
+      "Wildcard examples (these need protecting in the shell through quoting):\n"
+      "         * all known programmers\n"
+      "   avrftdi just this programmer\n"
+      "  jtag*pdi matches jtag2pdi, jtag3pdi, jtag3updi and jtag2updi\n"
+      "  jtag?pdi matches jtag2pdi and jtag3pdi\n"
+      "Flags (one or more of the characters below):\n"
+      "       A  show entries of avrdude.conf programmers with all values\n"
+      "       S  show entries of avrdude.conf programmers with necessary values\n"
+      "       s  show short entries of avrdude.conf programmers using parent\n"
+      "       r  show entries of avrdude.conf programmers as raw dump\n"
+      "       t  use tab separated values as much as possible\n"
+      "Examples:\n"
+      "  $ avrdude -c usbasp/s\n"
+      "  $ avrdude -c */st | grep baudrate\n"
+      "  $ avrdude -c */r | sort\n"
+      "Notes:\n"
+      "  -c * is the same as -c */A\n"
+      "  This help message is printed using any unrecognised flag, eg, -c/h\n"
+      "  Leaving no space after -c can be an OK substitute for quoting in shells\n"
+      "  /s, /S and /A outputs are designed to be used as input in avrdude.conf\n"
+      "  Sorted /r output should stay invariant when rearranging avrdude.conf\n"
+      "  These options are just to help development, so not further documented\n"
+    );
+    return;
+  }
+
+  // redirect stderr to stdout
+  fflush(stderr); fflush(stdout); dup2(1, 2);
+
+  astrc = !!strchr(flags, 'A');
+  strct = !!strchr(flags, 'S');
+  cmpst = !!strchr(flags, 's');
+  raw   = !!strchr(flags, 'r');
+  tsv   = !!strchr(flags, 't');
+
+  nprinted = dev_nprinted;
+
+  LNODEID ln1, ln2;
+  for(ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
+    PROGRAMMER *pgm = ldata(ln1);
+    int matched = 0;
+    for(ln2=lfirst(pgm->id); ln2; ln2=lnext(ln2)) {
+      if(part_match(pgmid, ldata(ln2))) {
+        matched = 1;
+        break;
+      }
+    }
+    if(!matched)
+      continue;
+
+    if(dev_nprinted > nprinted) {
+      dev_info("\n");
+      nprinted = dev_nprinted;
+    }
+
+    if(astrc || strct || cmpst)
+      dev_pgm_strct(pgm, tsv,
+        astrc? NULL:
+        strct? nullpgm:
+        pgm->parent_id && *pgm->parent_id? locate_programmer(programmers, pgm->parent_id): nullpgm);
+
+    if(raw)
+      dev_pgm_raw(pgm);
   }
 }

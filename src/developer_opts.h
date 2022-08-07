@@ -20,5 +20,6 @@
 #define developer_opts_h
 
 void dev_output_part_defs(char *partdesc);
+void dev_output_pgm_defs(char *programmer);
 
 #endif

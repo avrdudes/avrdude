@@ -672,6 +672,7 @@ void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
 AVRPART * avr_new_part(void)
 {
   AVRPART * p;
+  char *nulp = cache_string("");
 
   p = (AVRPART *)malloc(sizeof(AVRPART));
   if (p == NULL) {
@@ -686,8 +687,8 @@ AVRPART * avr_new_part(void)
   p->reset_disposition = RESET_DEDICATED;
   p->retry_pulse = PIN_AVR_SCK;
   p->flags = AVRPART_SERIALOK | AVRPART_PARALLELOK | AVRPART_ENABLEPAGEPROGRAMMING;
-  p->parent_id = NULL;
-  p->config_file = NULL;
+  p->parent_id = nulp;
+  p->config_file = nulp;
   p->lineno = 0;
   memset(p->signature, 0xFF, 3);
   p->ctl_stack_type = CTL_STACK_NONE;

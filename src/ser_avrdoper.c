@@ -65,8 +65,8 @@ static int              avrdoperRxPosition = 0; /* amount of bytes already consu
 /* ------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------ */
 
-static int usbOpenDevice(union filedescriptor *fdp, int vendor, char *vendorName,
-			 int product, char *productName, int doReportIDs)
+static int usbOpenDevice(union filedescriptor *fdp, int vendor, const char *vendorName,
+			 int product, const char *productName, int doReportIDs)
 {
     hid_device *dev;
 

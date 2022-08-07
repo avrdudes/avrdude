@@ -754,7 +754,7 @@ int main(int argc, char * argv [])
 
   avrdude_message(MSG_NOTICE, "\n");
 
-  // developer option -p <wildcard>/[*codws] prints various aspects of part descriptions and exits
+  // Developer option -p <wildcard>/[dASsrcow*t] prints part description(s) and exits
   if(partdesc && (strcmp(partdesc, "*") == 0 || strchr(partdesc, '/'))) {
     dev_output_part_defs(partdesc);
     exit(1);
@@ -768,6 +768,12 @@ int main(int argc, char * argv [])
       avrdude_message(MSG_INFO, "\n");
       exit(1);
     }
+  }
+
+  // Developer option -c <wildcard>/[ASsrt] prints programmer description(s) and exits
+  if(programmer && (strcmp(programmer, "*") == 0 || strchr(programmer, '/'))) {
+    dev_output_pgm_defs(programmer);
+    exit(1);
   }
 
   if (programmer) {

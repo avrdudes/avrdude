@@ -65,6 +65,7 @@ PROGRAMMER * pgm_new(void)
 {
   int i;
   PROGRAMMER * pgm;
+  char *nulp = cache_string("");
 
   pgm = (PROGRAMMER *)malloc(sizeof(*pgm));
   if (pgm == NULL) {
@@ -79,12 +80,17 @@ PROGRAMMER * pgm_new(void)
   pgm->usbpid = lcreat(NULL, 0);
   pgm->desc[0] = 0;
   pgm->type[0] = 0;
-  pgm->parent_id = NULL;
-  pgm->config_file = NULL;
+  pgm->parent_id = nulp;
+  pgm->config_file = nulp;
   pgm->lineno = 0;
   pgm->baudrate = 0;
   pgm->initpgm = NULL;
   pgm->hvupdi_support = lcreat(NULL, 0);
+
+  pgm->usbdev = nulp;
+  pgm->usbsn = nulp;
+  pgm->usbvendor = nulp;
+  pgm->usbproduct = nulp;
 
   for (i=0; i<N_PINS; i++) {
     pgm->pinno[i] = 0;
@@ -146,7 +152,7 @@ void pgm_free(PROGRAMMER * const p)
   ldestroy_cb(p->usbpid, free);
   p->id = NULL;
   p->usbpid = NULL;
-  /* do not free p->parent_id nor p->config_file */
+  /* do not free p->parent_id, p->config_file, p->usbdev, p->usbsn, p->usbvendor or p-> usbproduct */
   /* p->cookie is freed by pgm_teardown */
   free(p);
 }

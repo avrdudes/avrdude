@@ -101,8 +101,6 @@ void pyytext(void);
 
 char * dup_string(const char * str);
 
-char * cache_string(const char * file);
-
 #ifdef __cplusplus
 }
 #endif

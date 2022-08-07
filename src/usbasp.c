@@ -160,9 +160,9 @@ static int usbasp_transmit(PROGRAMMER * pgm, unsigned char receive,
 			   unsigned char functionid, const unsigned char *send,
 			   unsigned char *buffer, int buffersize);
 #ifdef USE_LIBUSB_1_0
-static int usbOpenDevice(libusb_device_handle **device, int vendor, char *vendorName, int product, char *productName);
+static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *vendorName, int product, const char *productName);
 #else
-static int usbOpenDevice(usb_dev_handle **device, int vendor, char *vendorName, int product, char *productName);
+static int usbOpenDevice(usb_dev_handle **device, int vendor, const char *vendorName, int product, const char *productName);
 #endif
 // interface - prog.
 static int usbasp_open(PROGRAMMER * pgm, char * port);
@@ -337,7 +337,7 @@ static int usbasp_transmit(PROGRAMMER * pgm,
  */
 #ifdef USE_LIBUSB_1_0
 static int usbOpenDevice(libusb_device_handle **device, int vendor,
-			 char *vendorName, int product, char *productName)
+			 const char *vendorName, int product, const char *productName)
 {
     libusb_device_handle *handle = NULL;
     int                  errorCode = USB_ERROR_NOTFOUND;
@@ -412,7 +412,7 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor,
 }
 #else
 static int usbOpenDevice(usb_dev_handle **device, int vendor,
-			 char *vendorName, int product, char *productName)
+			 const char *vendorName, int product, const char *productName)
 {
 struct usb_bus       *bus;
 struct usb_device    *dev;
