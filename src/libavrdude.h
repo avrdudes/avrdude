@@ -666,13 +666,13 @@ typedef enum {
   CONNTYPE_SPI
 } conntype_t;
 
+/* Any changes here, please also reflect in dev_pgm_strct() of developer_opts.c */
 typedef struct programmer_t {
   LISTID id;
   char desc[PGM_DESCLEN];
   char type[PGM_TYPELEN];
   char port[PGM_PORTLEN];
   const char *parent_id;
-  void (*initpgm)(struct programmer_t * pgm);
   unsigned int pinno[N_PINS];
   struct pindef_t pin[N_PINS];
   exit_vcc_t exit_vcc;
@@ -684,11 +684,16 @@ typedef struct programmer_t {
   int baudrate;
   int usbvid;
   LISTID usbpid;
+  LISTID hvupdi_support;         // List of UPDI HV variants the tool supports, see HV_UPDI_VARIANT_x
   const char *usbdev, *usbsn, *usbvendor, *usbproduct;
-  double bitclock;    /* JTAG ICE clock period in microseconds */
-  int ispdelay;    /* ISP clock delay */
+  double bitclock;              // JTAG ICE clock period in microseconds
+  int ispdelay;                 // ISP clock delay
+  int  page_size;               // Page size if the programmer supports paged write/load
+
+  // Values below are not set by config_gram.y; first one must be fd for dev_pgm_raw()
   union filedescriptor fd;
-  int  page_size;  /* page size if the programmer supports paged write/load */
+  void (*initpgm)(struct programmer_t * pgm);
+
   int  (*rdy_led)        (struct programmer_t * pgm, int value);
   int  (*err_led)        (struct programmer_t * pgm, int value);
   int  (*pgm_led)        (struct programmer_t * pgm, int value);
@@ -738,11 +743,10 @@ typedef struct programmer_t {
   int  (*parseextparams) (struct programmer_t * pgm, LISTID xparams);
   void (*setup)          (struct programmer_t * pgm);
   void (*teardown)       (struct programmer_t * pgm);
-  const char *config_file;    /* config file where defined */
-  int  lineno;                /* config file line number */
-  void *cookie;		      /* for private use by the programmer */
-  char flag;		      /* for private use of the programmer */
-  LISTID hvupdi_support;  /* List of UPDI HV variants the tool supports. See HV_UPDI_VARIANT_ */
+  const char *config_file;      // Config file where defined
+  int  lineno;                  // Config file line number
+  void *cookie;                 // For private use by the programmer
+  char flag;                    // For private use of the programmer
 } PROGRAMMER;
 
 #ifdef __cplusplus

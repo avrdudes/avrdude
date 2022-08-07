@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <whereami.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -51,7 +52,7 @@
 #include "developer_opts.h"
 #include "developer_opts_private.h"
 
-// return 0 if op code would encode (essentially) the same SPI command
+// Return 0 if op code would encode (essentially) the same SPI command
 static int opcodecmp(OPCODE *op1, OPCODE *op2, int opnum) {
   char *opstr1, *opstr2, *p;
   int cmp;
@@ -68,7 +69,7 @@ static int opcodecmp(OPCODE *op1, OPCODE *op2, int opnum) {
     exit(1);
   }
 
-  // don't care x and 0 are functionally equivalent
+  // Don't care x and 0 are functionally equivalent
   for(p=opstr1; *p; p++)
     if(*p == 'x')
       *p = '0';
@@ -108,7 +109,7 @@ static void printallopcodes(AVRPART *p, const char *d, OPCODE **opa) {
 
 
 
-// mnemonic characterisation of flags
+// Mnemonic characterisation of flags
 static char *parttype(AVRPART *p) {
   static char type[1024];
 
@@ -144,7 +145,7 @@ static char *parttype(AVRPART *p) {
 }
 
 
-// check whether address bits are where they should be in ISP commands
+// Check whether address bits are where they should be in ISP commands
 static void checkaddr(int memsize, int pagesize, int opnum, OPCODE *op, AVRPART *p, AVRMEM *m) {
   int i, lo, hi;
   const char *opstr = opcodename(opnum);
@@ -152,7 +153,7 @@ static void checkaddr(int memsize, int pagesize, int opnum, OPCODE *op, AVRPART 
   lo = intlog2(pagesize);
   hi = intlog2(memsize-1);
 
-  // address bits should be between positions lo and hi (and fall in line), outside should be 0 or don't care
+  // Address bits should be between positions lo and hi (and fall in line), outside should be 0 or don't care
   for(i=0; i<16; i++) {         // ISP programming only deals with 16-bit addresses (words for flash, bytes for eeprom)
     if(i < lo || i > hi) {
       if(op->bit[i+8].type != AVR_CMDBIT_IGNORE && !(op->bit[i+8].type == AVR_CMDBIT_VALUE && op->bit[i+8].value == 0)) {
@@ -168,7 +169,7 @@ static void checkaddr(int memsize, int pagesize, int opnum, OPCODE *op, AVRPART 
         dev_info(".cmderr\t%s\t%s-%s\tbit %d inconsistent: a%d specified as a%d\n", p->desc, m->desc, opstr, i+8, i, op->bit[i+8].bitno);
     }
   }
-  for(i=0; i<32; i++)           // command bits 8..23 should not contain address bits
+  for(i=0; i<32; i++)           // Command bits 8..23 should not contain address bits
     if((i<8 || i>23) && op->bit[i].type == AVR_CMDBIT_ADDRESS)
       dev_info(".cmderr\t%s\t%s-%s\tbit %d contains a%d which it shouldn't\n", p->desc, m->desc, opstr, i, op->bit[i].bitno);
 }
@@ -180,7 +181,7 @@ static char *dev_sprintf(const char *fmt, ...) {
   char *p = NULL;
   va_list ap;
 
-  // compute size
+  // Compute size
   va_start(ap, fmt);
   size = vsnprintf(p, size, fmt, ap);
   va_end(ap);
@@ -188,7 +189,7 @@ static char *dev_sprintf(const char *fmt, ...) {
   if(size < 0)
     return NULL;
 
-  size++;                       // for temrinating '\0'
+  size++;                       // For temrinating '\0'
   if(!(p = malloc(size)))
    return NULL;
 
@@ -228,7 +229,7 @@ static int dev_part_strct_entry(bool tsv, char *col0, char *col1, char *col2, co
   const char *n = name? name: "name_error";
   const char *c = cont? cont: "cont_error";
 
-  if(tsv) {                     // tab separated values
+  if(tsv) {                     // Tab separated values
     if(col0) {
       dev_info("%s\t", col0);
       if(col1) {
@@ -239,7 +240,7 @@ static int dev_part_strct_entry(bool tsv, char *col0, char *col1, char *col2, co
       }
     }
     dev_info("%s\t%s\n", n, c);
-  } else {                      // grammar conform
+  } else {                      // Grammar conform
     int indent = col2 && strcmp(col2, "part");
 
     printf("%*s%-*s = %s;\n", indent? 8: 4, "", indent? 15: 19, n, c);
@@ -285,7 +286,7 @@ static int intcmp(int a, int b) {
 }
 
 
-// deep copies for comparison and raw output
+// Deep copies for comparison and raw output
 
 typedef struct {
   AVRMEM base;
@@ -297,19 +298,19 @@ static int avrmem_deep_copy(AVRMEMdeep *d, AVRMEM *m) {
 
   d->base = *m;
 
-  // zap all bytes beyond terminating nul of desc array
+  // Zap all bytes beyond terminating nul of desc array
   len = strlen(m->desc)+1;
   if(len < sizeof m->desc)
     memset(d->base.desc + len, 0, sizeof m->desc - len);
 
-  // zap address values
+  // Zap address values
   d->base.buf = NULL;
   d->base.tags = NULL;
   for(int i=0; i<AVR_OP_MAX; i++)
     d->base.op[i] = NULL;
 
 
-  // copy over the SPI operations themselves
+  // Copy over the SPI operations themselves
   memset(d->base.op, 0, sizeof d->base.op);
   memset(d->ops, 0, sizeof d->ops);
   for(size_t i=0; i<sizeof d->ops/sizeof *d->ops; i++)
@@ -353,7 +354,7 @@ static int avrpart_deep_copy(AVRPARTdeep *d, AVRPART *p) {
   d->base.config_file = NULL;
   d->base.lineno = 0;
 
-  // zap all bytes beyond terminating nul of desc, id and family_id array
+  // Zap all bytes beyond terminating nul of desc, id and family_id array
   len = strlen(p->desc);
   if(len < sizeof p->desc)
     memset(d->base.desc + len, 0, sizeof p->desc - len);
@@ -366,20 +367,20 @@ static int avrpart_deep_copy(AVRPARTdeep *d, AVRPART *p) {
   if(len < sizeof p->id)
     memset(d->base.id + len, 0, sizeof p->id - len);
 
-  // zap address values
+  // Zap address values
   d->base.mem = NULL;
   d->base.mem_alias = NULL;
   for(int i=0; i<AVR_OP_MAX; i++)
     d->base.op[i] = NULL;
 
-  // copy over the SPI operations
+  // Copy over the SPI operations
   memset(d->base.op, 0, sizeof d->base.op);
   memset(d->ops, 0, sizeof d->ops);
   for(int i=0; i<AVR_OP_MAX; i++)
     if(p->op[i])
       d->ops[i] = *p->op[i];
 
-  // fill in all memories we got in defined order
+  // Fill in all memories we got in defined order
   di = 0;
   for(size_t mi=0; mi < sizeof avr_mem_order/sizeof *avr_mem_order && avr_mem_order[mi]; mi++) {
     m = p->mem? avr_locate_mem(p, avr_mem_order[mi]): NULL;
@@ -396,23 +397,28 @@ static int avrpart_deep_copy(AVRPARTdeep *d, AVRPART *p) {
   return di;
 }
 
+
 static char txtchar(unsigned char in) {
   in &= 0x7f;
   return in == ' '? '_': in > ' ' && in < 0x7f? in: '.';
 }
 
+static void dev_raw_dump(const char *p, int nbytes, const char *name, const char *sub, int idx) {
+  int n = (nbytes + 31)/32;
 
-static void dev_raw_dump(unsigned char *p, int nbytes, const char *name, const char *sub, int idx) {
-  unsigned char *end = p+nbytes;
-  int n = ((end - p) + 15)/16;
-
-  for(int i=0; i<n; i++, p += 16) {
-    dev_info("%s\t%s\t%02x%04x: ", name, sub, idx, i*16);
-    for(int j=0; j<16; j++)
-      dev_info("%02x", p+i*16+j<end? p[i*16+j]: 0);
+  for(int i=0; i<n; i++, p += 32, nbytes -= 32) {
+    dev_info("%s\t%s\t%02x%03x0: ", name, sub, idx, 2*i);
+    for(int j=0; j<32; j++) {
+      if(j && j%8 == 0)
+        dev_info(" ");
+      if(j < nbytes)
+        dev_info("%02x", (unsigned char) p[j]);
+      else
+        dev_info("  ");
+    }
     dev_info(" ");
-    for(int j=0; j<16; j++)
-      dev_info("%c", txtchar(p+i*16+j<end? p[i*16+j]: 0));
+    for(int j=0; j<32 && j < nbytes; j++)
+      dev_info("%c", txtchar((unsigned char) p[j]));
     dev_info("\n");
   }
 }
@@ -422,11 +428,11 @@ static void dev_part_raw(AVRPART *part) {
   AVRPARTdeep dp;
   int di = avrpart_deep_copy(&dp, part);
 
-  dev_raw_dump((unsigned char *) &dp.base, sizeof dp.base, part->desc, "part", 0);
-  dev_raw_dump((unsigned char *) &dp.ops, sizeof dp.ops, part->desc, "ops", 1);
+  dev_raw_dump((char *) &dp.base, sizeof dp.base, part->desc, "part", 0);
+  dev_raw_dump((char *) &dp.ops, sizeof dp.ops, part->desc, "ops", 1);
 
   for(int i=0; i<di; i++)
-    dev_raw_dump((unsigned char *) (dp.mems+i), sizeof dp.mems[i], part->desc, dp.mems[i].base.desc, i+2);
+    dev_raw_dump((char *) (dp.mems+i), sizeof dp.mems[i], part->desc, dp.mems[i].base.desc, i+2);
 }
 
 
@@ -527,7 +533,7 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
   _if_partout(intcmp, "0x%02x", idr);
   _if_partout(intcmp, "0x%02x", rampz);
   _if_partout(intcmp, "0x%02x", spmcr);
-  _if_partout(intcmp, "0x%02x", eecr);  // why is eecr an unsigned short?
+  _if_partout(intcmp, "0x%02x", eecr);  // Why is eecr an unsigned short?
   _if_partout(intcmp, "0x%04x", mcu_base);
   _if_partout(intcmp, "0x%04x", nvm_base);
   _if_partout(intcmp, "0x%04x", ocd_base);
@@ -553,7 +559,7 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
       bm = avr_new_memtype();
 
     if(!tsv) {
-      if(!memorycmp(bm, m))     // same memory bit for bit, no need to instantiate
+      if(!memorycmp(bm, m))     // Same memory bit for bit, no need to instantiate
         continue;
 
       dev_info("\n    memory \"%s\"\n", m->desc);
@@ -562,7 +568,7 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
     _if_memout_yn(paged);
     _if_memout(intcmp, m->size > 8192? "0x%x": "%d", size);
     _if_memout(intcmp, "%d", page_size);
-    _if_memout(intcmp, "%d", num_pages); // why can AVRDUDE not compute this?
+    _if_memout(intcmp, "%d", num_pages);
     _if_memout(intcmp, "0x%x", offset);
     _if_memout(intcmp, "%d", min_write_delay);
     _if_memout(intcmp, "%d", max_write_delay);
@@ -607,7 +613,7 @@ void dev_output_part_defs(char *partdesc) {
   if((flags = strchr(partdesc, '/')))
     *flags++ = 0;
 
-  if(!flags && !strcmp(partdesc, "*")) // treat -p * as if it was -p */*
+  if(!flags && !strcmp(partdesc, "*")) // Treat -p * as if it was -p */*
     flags = "*";
 
   if(!*flags || !strchr("cdoASsrw*t", *flags)) {
@@ -645,7 +651,7 @@ void dev_output_part_defs(char *partdesc) {
     return;
   }
 
-  // redirect stderr to stdout
+  // Redirect stderr to stdout
   fflush(stderr); fflush(stdout); dup2(1, 2);
 
   all = *flags == '*';
@@ -660,14 +666,14 @@ void dev_output_part_defs(char *partdesc) {
   tsv   = !!strchr(flags, 't');
 
 
-  // go through all memories and add them to the memory order list
+  // Go through all memories and add them to the memory order list
   for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1)) {
     AVRPART *p = ldata(ln1);
     if(p->mem)
       for(LNODEID lnm=lfirst(p->mem); lnm; lnm=lnext(lnm))
         avr_add_mem_order(((AVRMEM *) ldata(lnm))->desc);
 
-    // same for aliased memories (though probably not needed)
+    // Same for aliased memories (though probably not needed)
     if(p->mem_alias)
       for(LNODEID lnm=lfirst(p->mem_alias); lnm; lnm=lnext(lnm))
         avr_add_mem_order(((AVRMEM_ALIAS *) ldata(lnm))->desc);
@@ -696,7 +702,7 @@ void dev_output_part_defs(char *partdesc) {
     if(raw)
       dev_part_raw(p);
 
-    // identify core flash and eeprom parameters
+    // Identify core flash and eeprom parameters
 
     flashsize = flashoffset = flashpagesize = eepromsize = eepromoffset = eeprompagesize = 0;
     if(p->mem) {
@@ -715,7 +721,7 @@ void dev_output_part_defs(char *partdesc) {
       }
     }
 
-    // "real" entries don't seem to have a space in their desc (a bit hackey)
+    // "Real" entries don't seem to have a space in their desc (a bit hackey)
     if(flashsize && !strchr(p->desc, ' ')) {
       int ok, nfuses;
       AVRMEM *m;
@@ -819,7 +825,7 @@ void dev_output_part_defs(char *partdesc) {
       } else
         ok &= ~DEV_SPI_CALIBRATION;
 
-      // actually, some AT90S... parts cannot read, only write lock bits :-0
+      // Actually, some AT90S... parts cannot read, only write lock bits :-0
       if( ! ((m = avr_locate_mem(p, "lock")) && m->op[AVR_OP_WRITE]))
         ok &= ~DEV_SPI_LOCK;
 
@@ -866,14 +872,14 @@ void dev_output_part_defs(char *partdesc) {
       }
     }
 
-    // print wait delays for AVR family parts
+    // Print wait delays for AVR family parts
     if(waits) {
       if(!(p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI | AVRPART_HAS_TPI | AVRPART_AVR32)))
         dev_info(".wd_chip_erase %.3f ms %s\n", p->chip_erase_delay/1000.0, p->desc);
       if(p->mem) {
         for(LNODEID lnm=lfirst(p->mem); lnm; lnm=lnext(lnm)) {
           AVRMEM *m = ldata(lnm);
-          // write delays not needed for read-only calibration and signature memories
+          // Write delays not needed for read-only calibration and signature memories
           if(strcmp(m->desc, "calibration") && strcmp(m->desc, "signature")) {
             if(!(p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI | AVRPART_HAS_TPI | AVRPART_AVR32))) {
               if(m->min_write_delay == m->max_write_delay)
@@ -893,9 +899,45 @@ void dev_output_part_defs(char *partdesc) {
 
 static void dev_pgm_raw(PROGRAMMER *pgm) {
   PROGRAMMER dp;
+  int len, idx;
+  char *id = ldata(lfirst(pgm->id));
+  LNODEID ln;
 
   memcpy(&dp, pgm, sizeof dp);
-  dev_raw_dump((unsigned char *) &dp, sizeof dp, pgm->desc, "pgm", 0);
+
+  // Dump id, usbpid and hvupdi_support lists
+  for(idx=0, ln=lfirst(dp.id); ln; ln=lnext(ln))
+    dev_raw_dump(ldata(ln), strlen(ldata(ln))+1, id, "id", idx++);
+  for(idx=0, ln=lfirst(dp.usbpid); ln; ln=lnext(ln))
+    dev_raw_dump(ldata(ln), sizeof(int), id, "usbpid", idx++);
+  for(idx=0, ln=lfirst(dp.hvupdi_support); ln; ln=lnext(ln))
+    dev_raw_dump(ldata(ln), sizeof(int), id, "hvupdi_", idx++);
+
+  // Dump cache_string values
+  if(dp.usbdev && *dp.usbdev)
+    dev_raw_dump(dp.usbdev, strlen(dp.usbdev)+1, id, "usbdev", 0);
+  if(dp.usbsn && *dp.usbsn)
+    dev_raw_dump(dp.usbsn, strlen(dp.usbsn)+1, id, "usbsn", 0);
+  if(dp.usbvendor && *dp.usbvendor)
+    dev_raw_dump(dp.usbvendor, strlen(dp.usbvendor)+1, id, "usbvend", 0);
+  if(dp.usbproduct && *dp.usbproduct)
+    dev_raw_dump(dp.usbproduct, strlen(dp.usbproduct)+1, id, "usbprod", 0);
+
+  // Zap all bytes beyond terminating nul of desc, type and port array
+  if((len = strlen(dp.desc)+1) < sizeof dp.desc)
+    memset(dp.desc + len, 0, sizeof dp.desc - len);
+  if((len = strlen(dp.type)+1) < sizeof dp.type)
+    memset(dp.type + len, 0, sizeof dp.type - len);
+  if((len = strlen(dp.port)+1) < sizeof dp.port)
+    memset(dp.port + len, 0, sizeof dp.port - len);
+
+  // Zap address values
+  dp.id = NULL;
+  dp.parent_id = NULL;
+  dp.initpgm = NULL;
+
+  // Only dump contents of PROGRAMMER struct up to and excluding the fd component
+  dev_raw_dump((char *) &dp, offsetof(PROGRAMMER, fd), id, "pgm", 0);
 }
 
 
@@ -934,7 +976,7 @@ void dev_output_pgm_defs(char *pgmid) {
   if((flags = strchr(pgmid, '/')))
     *flags++ = 0;
 
-  if(!flags && !strcmp(pgmid, "*")) // treat -c * as if it was -c */A
+  if(!flags && !strcmp(pgmid, "*")) // Treat -c * as if it was -c */A
     flags = "A";
 
   if(!*flags || !strchr("ASsrt", *flags)) {
@@ -966,7 +1008,7 @@ void dev_output_pgm_defs(char *pgmid) {
     return;
   }
 
-  // redirect stderr to stdout
+  // Redirect stderr to stdout
   fflush(stderr); fflush(stdout); dup2(1, 2);
 
   astrc = !!strchr(flags, 'A');
