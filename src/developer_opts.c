@@ -1055,8 +1055,8 @@ void dev_output_pgm_defs(char *pgmid) {
   if((flags = strchr(pgmid, '/')))
     *flags++ = 0;
 
-  if(!flags && !strcmp(pgmid, "*")) // Treat -c * as if it was -c */A
-    flags = "A";
+  if(!flags && !strcmp(pgmid, "*")) // Treat -c * as if it was -c */s
+    flags = "s";
 
   if(!*flags || !strchr("ASsrt", *flags)) {
     dev_info("%s: flags for developer option -c <wildcard>/<flags> not recognised\n", progname);
@@ -1077,7 +1077,7 @@ void dev_output_pgm_defs(char *pgmid) {
       "  $ avrdude -c */st | grep baudrate\n"
       "  $ avrdude -c */r | sort\n"
       "Notes:\n"
-      "  -c * is the same as -c */A\n"
+      "  -c * is the same as -c */s\n"
       "  This help message is printed using any unrecognised flag, eg, -c/h\n"
       "  Leaving no space after -c can be an OK substitute for quoting in shells\n"
       "  /s, /S and /A outputs are designed to be used as input in avrdude.conf\n"
