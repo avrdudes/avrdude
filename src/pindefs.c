@@ -361,7 +361,7 @@ char *pins_to_strdup(const struct pindef_t * const pindef) {
     if(pindef->mask[index] & (1 << bit)) {
       if(*buf)
          *p++ = ',', *p++=' ';
-      p += sprintf(p, "~%d" + !(pindef->inverse[index] & (1 << bit)), pin);
+      p += sprintf(p, pindef->inverse[index] & (1 << bit)? "~%d": "%d", pin);
     }
   }
 
