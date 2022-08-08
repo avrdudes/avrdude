@@ -101,6 +101,8 @@ void pyytext(void);
 
 char * dup_string(const char * str);
 
+int capture_comment_char(int c);
+
 #ifdef __cplusplus
 }
 #endif

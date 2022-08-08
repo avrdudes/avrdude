@@ -752,13 +752,21 @@ int main(int argc, char * argv [])
   }
 
 
-  avrdude_message(MSG_NOTICE, "\n");
-
+  int dev_opts = 0;
+  // Developer option -c <wildcard>/[ASsrt] prints programmer description(s) and exits
+  if(programmer && (strcmp(programmer, "*") == 0 || strchr(programmer, '/'))) {
+    dev_output_pgm_defs(programmer);
+    dev_opts = 1;
+  }
   // Developer option -p <wildcard>/[dASsrcow*t] prints part description(s) and exits
   if(partdesc && (strcmp(partdesc, "*") == 0 || strchr(partdesc, '/'))) {
     dev_output_part_defs(partdesc);
-    exit(1);
+    dev_opts = 1;
   }
+  if(dev_opts)
+    exit(0);
+
+  avrdude_message(MSG_NOTICE, "\n");
 
   if (partdesc) {
     if (strcmp(partdesc, "?") == 0) {
@@ -768,12 +776,6 @@ int main(int argc, char * argv [])
       avrdude_message(MSG_INFO, "\n");
       exit(1);
     }
-  }
-
-  // Developer option -c <wildcard>/[ASsrt] prints programmer description(s) and exits
-  if(programmer && (strcmp(programmer, "*") == 0 || strchr(programmer, '/'))) {
-    dev_output_pgm_defs(programmer);
-    exit(1);
   }
 
   if (programmer) {

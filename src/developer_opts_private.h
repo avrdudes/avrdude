@@ -51,6 +51,22 @@ static int dev_message(int msglvl, const char *fmt, ...);
 #define dev_notice(...)  dev_message(DEV_NOTICE,  __VA_ARGS__)
 #define dev_notice2(...) dev_message(DEV_NOTICE2, __VA_ARGS__)
 
+#define _pgmout(fmt, component) \
+  dev_part_strct_entry(tsv, ".prog", id, NULL, #component, dev_sprintf(fmt, pgm->component))
+
+#define _pgmout_fmt(name, fmt, what) \
+  dev_part_strct_entry(tsv, ".prog", id, NULL, name, dev_sprintf(fmt, what))
+
+#define _if_pgmout(cmp, fmt, component) do { \
+  if(!base || cmp(base->component, pgm->component)) \
+    dev_part_strct_entry(tsv, ".prog", id, NULL, #component, dev_sprintf(fmt, pgm->component)); \
+} while(0)
+
+#define _if_pgmout_str(cmp, result, component) do { \
+  if(!base || cmp(base->component, pgm->component)) \
+    dev_part_strct_entry(tsv, ".prog", id, NULL, #component, result); \
+} while(0)
+
 #define _partout(fmt, component) \
   dev_part_strct_entry(tsv, ".pt", p->desc, NULL, #component, dev_sprintf(fmt, p->component))
 

@@ -613,8 +613,8 @@ void dev_output_part_defs(char *partdesc) {
   if((flags = strchr(partdesc, '/')))
     *flags++ = 0;
 
-  if(!flags && !strcmp(partdesc, "*")) // Treat -p * as if it was -p */*
-    flags = "*";
+  if(!flags && !strcmp(partdesc, "*")) // Treat -p * as if it was -p */s
+    flags = "s";
 
   if(!*flags || !strchr("cdoASsrw*t", *flags)) {
     dev_info("%s: flags for developer option -p <wildcard>/<flags> not recognised\n", progname);
@@ -640,7 +640,7 @@ void dev_output_part_defs(char *partdesc) {
       "  $ avrdude -p m328*/st | grep chip_erase_delay\n"
       "  avrdude -p*/r | sort\n"
       "Notes:\n"
-      "  -p * is the same as -p */*\n"
+      "  -p * is the same as -p */s\n"
       "  This help message is printed using any unrecognised flag, eg, -p/h\n"
       "  Leaving no space after -p can be an OK substitute for quoting in shells\n"
       "  /s, /S and /A outputs are designed to be used as input in avrdude.conf\n"
@@ -935,19 +935,37 @@ static void dev_pgm_raw(PROGRAMMER *pgm) {
   dp.id = NULL;
   dp.parent_id = NULL;
   dp.initpgm = NULL;
+  dp.usbpid = NULL;
+  dp.usbdev = NULL;
+  dp.usbsn = NULL;
+  dp.usbvendor = NULL;
+  dp.usbproduct = NULL;
+  dp.hvupdi_support = NULL;
 
   // Only dump contents of PROGRAMMER struct up to and excluding the fd component
   dev_raw_dump((char *) &dp, offsetof(PROGRAMMER, fd), id, "pgm", 0);
 }
 
 
-static void dev_pgm_strct(PROGRAMMER *pgm, bool tsv, PROGRAMMER *base) {
-  if(!tsv) {
-    int firstid = 1;
+static const char *connstr(conntype_t conntype) {
+  switch(conntype) {
+  case CONNTYPE_PARALLEL: return "parallel";
+  case CONNTYPE_SERIAL: return "serial";
+  case CONNTYPE_USB: return "usb";
+  case CONNTYPE_SPI: return "spi";
+  default: return "<unknown>";
+  }
+}
 
+static void dev_pgm_strct(PROGRAMMER *pgm, bool tsv, PROGRAMMER *base) {
+  char *id = ldata(lfirst(pgm->id));
+  LNODEID ln;
+  int firstid;
+
+  if(!tsv) {
     dev_info("#------------------------------------------------------------\n");
     dev_info("# ");
-    for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
+    for(firstid=1, ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
       if(!firstid)
         dev_info("/");
       firstid = 0;
@@ -960,6 +978,67 @@ static void dev_pgm_strct(PROGRAMMER *pgm, bool tsv, PROGRAMMER *base) {
     else
       dev_info("\nprogrammer\n");
   }
+
+  if(tsv)
+    dev_info(".prog\t%s\tid\t", id);
+  else
+    dev_info("    %-19s = ", "id");
+  for(firstid=1, ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
+    if(!firstid)
+      dev_info(", ");
+    firstid = 0;
+    dev_info("\"%s\"", ldata(ln));
+  }
+  dev_info(tsv? "\n": ";\n");
+
+  _if_pgmout(strcmp, "\"%s\"", desc);
+  _pgmout_fmt("type", "\"%s\"", locate_programmer_type_id(pgm->initpgm));
+  _pgmout_fmt("connection_type", "%s", connstr(pgm->conntype));
+  _if_pgmout(intcmp, "%d", baudrate);
+
+  _if_pgmout(intcmp, "0x%04x", usbvid);
+
+  if(pgm->usbpid && lfirst(pgm->usbpid)) {
+    if(tsv)
+      dev_info(".prog\t%s\tusbpid\t", id);
+    else
+      dev_info("    %-19s = ", "usbpid");
+    for(firstid=1, ln=lfirst(pgm->usbpid); ln; ln=lnext(ln)) {
+      if(!firstid)
+        dev_info(", ");
+      firstid = 0;
+      dev_info("0x%04x", *(unsigned int *) ldata(ln));
+    }
+    dev_info(tsv? "\n": ";\n");
+  }
+
+  _if_pgmout(strcmp, "\"%s\"", usbdev);
+  _if_pgmout(strcmp, "\"%s\"", usbsn);
+  _if_pgmout(strcmp, "\"%s\"", usbvendor);
+  _if_pgmout(strcmp, "\"%s\"", usbproduct);
+
+  for(int i=0; i<N_PINS; i++) {
+    char *str = pins_to_strdup(pgm->pin+i);
+    if(str && *str)
+      _pgmout_fmt(avr_pin_lcname(i), "%s", str);
+    if(str)
+      free(str);
+  }
+
+  if(pgm->hvupdi_support && lfirst(pgm->hvupdi_support)) {
+    if(tsv)
+      dev_info(".prog\t%s\thvupdu_support\t", id);
+    else
+      dev_info("    %-19s = ", "hvupdi_support");
+    for(firstid=1, ln=lfirst(pgm->hvupdi_support); ln; ln=lnext(ln)) {
+      if(!firstid)
+        dev_info(", ");
+      firstid = 0;
+      dev_info("%d", *(unsigned int *) ldata(ln));
+    }
+    dev_info(tsv? "\n": ";\n");
+  }
+
 
   if(!tsv)
     dev_info(";\n");

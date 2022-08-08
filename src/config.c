@@ -366,7 +366,7 @@ int read_config(const char * file)
 
 
 // Linear-search cache for a few often-referenced strings
-char *cache_string(const char *file) {
+const char *cache_string(const char *file) {
   static char **fnames;
   static int n=0;
 
@@ -393,4 +393,9 @@ char *cache_string(const char *file) {
   }
 
   return fnames[n++];
+}
+
+// Captures comments during parsing
+int capture_comment_char(int c) {
+  return c;
 }

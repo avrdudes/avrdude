@@ -516,7 +516,15 @@ int pins_check(const struct programmer_t * const pgm, const struct pin_checklist
 const char * avr_pin_name(int pinname);
 
 /**
- * This function returns a string representation of defined pins eg. ~1,2,~4,~5,7
+ * Returns the name of the pin as lowercase string.
+ *
+ * @param pinname the pinname which we want as string.
+ * @returns a lowercase string with the pinname, or <unknown> if pinname is invalid.
+ */
+const char * avr_pin_lcname(int pinname);
+
+/**
+ * This function returns a string of defined pins, eg, ~1,2,~4,~5,7 or " (not used)"
  * Another execution of this function will overwrite the previous result in the static buffer.
  *
  * @param[in] pindef the pin definition for which we want the string representation
@@ -525,9 +533,17 @@ const char * avr_pin_name(int pinname);
 const char * pins_to_str(const struct pindef_t * const pindef);
 
 /**
- * This function returns a string representation of pins in the mask eg. 1,3,5-7,9,12
+ * This function returns a string of defined pins, eg, ~1, 2, ~4, ~5, 7 or ""
+ *
+ * @param[in] pindef the pin definition for which we want the string representation
+ * @returns a pointer to a string, which was created by strdup (NULL if out of memory)
+ */
+char *pins_to_strdup(const struct pindef_t * const pindef);
+
+/**
+ * This function returns a string representation of pins in the mask, eg, 1,3,5-7,9,12
  * Another execution of this function will overwrite the previous result in the static buffer.
- * Consecutive pin number are representated as start-end.
+ * Consecutive pin number are represented as start-end.
  *
  * @param[in] pinmask the pin mask for which we want the string representation
  * @returns pointer to a static string.
@@ -670,29 +686,32 @@ typedef enum {
 typedef struct programmer_t {
   LISTID id;
   char desc[PGM_DESCLEN];
-  char type[PGM_TYPELEN];
-  char port[PGM_PORTLEN];
-  const char *parent_id;
-  unsigned int pinno[N_PINS];
+  void (*initpgm)(struct programmer_t *pgm);
+  const char *parent_id;        // Used by developer options -c*/[sr...]
   struct pindef_t pin[N_PINS];
-  exit_vcc_t exit_vcc;
-  exit_reset_t exit_reset;
-  exit_datahigh_t exit_datahigh;
   conntype_t conntype;
-  int ppidata;
-  int ppictrl;
   int baudrate;
   int usbvid;
   LISTID usbpid;
-  LISTID hvupdi_support;         // List of UPDI HV variants the tool supports, see HV_UPDI_VARIANT_x
-  const char *usbdev, *usbsn, *usbvendor, *usbproduct;
-  double bitclock;              // JTAG ICE clock period in microseconds
-  int ispdelay;                 // ISP clock delay
-  int  page_size;               // Page size if the programmer supports paged write/load
+  const char *usbdev;
+  const char *usbsn;
+  const char *usbvendor;
+  const char *usbproduct;
+  LISTID hvupdi_support;        // List of UPDI HV variants the tool supports, see HV_UPDI_VARIANT_x
 
-  // Values below are not set by config_gram.y; first one must be fd for dev_pgm_raw()
+  // Values below are not set by config_gram.y; make sure fd is first for dev_pgm_raw()
   union filedescriptor fd;
-  void (*initpgm)(struct programmer_t * pgm);
+  char type[PGM_TYPELEN];
+  char port[PGM_PORTLEN];
+  unsigned int pinno[N_PINS];   // TODO to be removed if old pin data no longer needed
+  exit_vcc_t exit_vcc;          // Should these be set in avrdude.conf?
+  exit_reset_t exit_reset;
+  exit_datahigh_t exit_datahigh;
+  int ppidata;
+  int ppictrl;
+  int ispdelay;                 // ISP clock delay
+  int page_size;                // Page size if the programmer supports paged write/load
+  double bitclock;              // JTAG ICE clock period in microseconds
 
   int  (*rdy_led)        (struct programmer_t * pgm, int value);
   int  (*err_led)        (struct programmer_t * pgm, int value);
@@ -957,7 +976,9 @@ typedef struct programmer_type_t {
 extern "C" {
 #endif
 
-const PROGRAMMER_TYPE * locate_programmer_type(/*LISTID programmer_types, */const char * id);
+const PROGRAMMER_TYPE *locate_programmer_type(const char *id);
+
+const char *locate_programmer_type_id(const void (*initpgm)(struct programmer_t *pgm));
 
 typedef void (*walk_programmer_types_cb)(const char *id, const char *desc,
                                     void *cookie);
@@ -991,7 +1012,7 @@ void cleanup_config(void);
 
 int read_config(const char * file);
 
-char *cache_string(const char *file);
+const char *cache_string(const char *file);
 
 #ifdef __cplusplus
 }

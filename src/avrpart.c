@@ -672,7 +672,7 @@ void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
 AVRPART * avr_new_part(void)
 {
   AVRPART * p;
-  char *nulp = cache_string("");
+  const char *nulp = cache_string("");
 
   p = (AVRPART *)malloc(sizeof(AVRPART));
   if (p == NULL) {

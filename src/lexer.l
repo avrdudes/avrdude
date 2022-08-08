@@ -67,13 +67,20 @@ SIGN     [+-]
 
 
 
-#   { /* The following eats '#' style comments to end of line */
+#   { /* The following captures all '#' style comments to end of line */
        BEGIN(comment); }
-<comment>[^\n] { /* eat comments */ }
-<comment>\n { cfg_lineno++; BEGIN(INITIAL); }
+<comment>[^\n]*\n+ { /* eat comments */
+  capture_comment_char('#');
+  for(int i=0; yytext[i]; i++) {
+    capture_comment_char(yytext[i]);
+    if(yytext[i] == '\n')
+      cfg_lineno++;
+  }
+  BEGIN(INITIAL);
+}
 
 
-"/*" {  /* The following eats multiline C style comments */
+"/*" {  /* The following eats multiline C style comments, they are not captured */
         int c;
         int comment_start;
         

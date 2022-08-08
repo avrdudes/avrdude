@@ -65,7 +65,7 @@ PROGRAMMER * pgm_new(void)
 {
   int i;
   PROGRAMMER * pgm;
-  char *nulp = cache_string("");
+  const char *nulp = cache_string("");
 
   pgm = (PROGRAMMER *)malloc(sizeof(*pgm));
   if (pgm == NULL) {
