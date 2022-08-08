@@ -978,7 +978,7 @@ extern "C" {
 
 const PROGRAMMER_TYPE *locate_programmer_type(const char *id);
 
-const char *locate_programmer_type_id(const void (*initpgm)(struct programmer_t *pgm));
+const char *locate_programmer_type_id(void (*initpgm)(struct programmer_t *pgm));
 
 typedef void (*walk_programmer_types_cb)(const char *id, const char *desc,
                                     void *cookie);
