@@ -533,7 +533,7 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
   _if_partout(intcmp, "0x%02x", idr);
   _if_partout(intcmp, "0x%02x", rampz);
   _if_partout(intcmp, "0x%02x", spmcr);
-  _if_partout(intcmp, "0x%02x", eecr);  // Why is eecr an unsigned short?
+  _if_partout(intcmp, "0x%02x", eecr);
   _if_partout(intcmp, "0x%04x", mcu_base);
   _if_partout(intcmp, "0x%04x", nvm_base);
   _if_partout(intcmp, "0x%04x", ocd_base);
