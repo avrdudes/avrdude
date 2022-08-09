@@ -30,8 +30,6 @@
 #endif
 
 
-#define MAX_STR_CONST 1024
-
 enum { V_NONE, V_NUM, V_NUM_REAL, V_STR };
 typedef struct value_t {
   int      type;

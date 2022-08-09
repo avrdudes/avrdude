@@ -246,26 +246,22 @@ def :
   part_def TKN_SEMI |
 
   K_DEFAULT_PROGRAMMER TKN_EQUAL TKN_STRING TKN_SEMI {
-    strncpy(default_programmer, $3->value.string, MAX_STR_CONST);
-    default_programmer[MAX_STR_CONST-1] = 0;
+    default_programmer = cache_string($3->value.string);
     free_token($3);
   } |
 
   K_DEFAULT_PARALLEL TKN_EQUAL TKN_STRING TKN_SEMI {
-    strncpy(default_parallel, $3->value.string, PATH_MAX);
-    default_parallel[PATH_MAX-1] = 0;
+    default_parallel = cache_string($3->value.string);
     free_token($3);
   } |
 
   K_DEFAULT_SERIAL TKN_EQUAL TKN_STRING TKN_SEMI {
-    strncpy(default_serial, $3->value.string, PATH_MAX);
-    default_serial[PATH_MAX-1] = 0;
+    default_serial = cache_string($3->value.string);
     free_token($3);
   } |
 
   K_DEFAULT_SPI TKN_EQUAL TKN_STRING TKN_SEMI {
-    strncpy(default_spi, $3->value.string, PATH_MAX);
-    default_spi[PATH_MAX-1] = 0;
+    default_spi = cache_string($3->value.string);
     free_token($3);
   } |
 

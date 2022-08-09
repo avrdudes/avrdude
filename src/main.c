@@ -314,10 +314,11 @@ int main(int argc, char * argv [])
   else
     progname = argv[0];
 
-  default_parallel[0] = 0;
-  default_serial[0]   = 0;
-  default_spi[0]      = 0;
-  default_bitclock    = 0.0;
+  default_programmer = "";
+  default_parallel   = "";
+  default_serial     = "";
+  default_spi        = "";
+  default_bitclock   = 0.0;
 
   init_config();
 
@@ -351,7 +352,7 @@ int main(int argc, char * argv [])
   quell_progress = 0;
   exitspecs     = NULL;
   pgm           = NULL;
-  programmer    = default_programmer;
+  programmer    = cfg_strdup("main()", default_programmer);
   verbose       = 0;
   baudrate      = 0;
   bitclock      = 0.0;
@@ -755,7 +756,7 @@ int main(int argc, char * argv [])
   int dev_opts = 0;
   // Developer option -c <wildcard>/[ASsrt] prints programmer description(s) and exits
   if(programmer && (strcmp(programmer, "*") == 0 || strchr(programmer, '/'))) {
-    dev_output_pgm_defs(programmer);
+    dev_output_pgm_defs(cfg_strdup("main()", programmer));
     dev_opts = 1;
   }
   // Developer option -p <wildcard>/[dASsrcow*t] prints part description(s) and exits
@@ -849,11 +850,11 @@ int main(int argc, char * argv [])
     switch (pgm->conntype)
     {
       case CONNTYPE_PARALLEL:
-        port = default_parallel;
+        port = cfg_strdup("main()", default_parallel);
         break;
 
       case CONNTYPE_SERIAL:
-        port = default_serial;
+        port = cfg_strdup("main()", default_serial);
         break;
 
       case CONNTYPE_USB:

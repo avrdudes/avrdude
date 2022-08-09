@@ -992,10 +992,10 @@ void walk_programmer_types(/*LISTID programmer_types,*/ walk_programmer_types_cb
 
 extern LISTID       part_list;
 extern LISTID       programmers;
-extern char         default_programmer[];
-extern char         default_parallel[];
-extern char         default_serial[];
-extern char         default_spi[];
+extern const char *default_programmer;
+extern const char *default_parallel;
+extern const char *default_serial;
+extern const char *default_spi;
 extern double       default_bitclock;
 
 /* This name is fixed, it's only here for symmetry with

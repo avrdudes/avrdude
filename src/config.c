@@ -33,10 +33,10 @@
 
 #include "config_gram.h"
 
-char default_programmer[MAX_STR_CONST];
-char default_parallel[PATH_MAX];
-char default_serial[PATH_MAX];
-char default_spi[PATH_MAX];
+const char *default_programmer;
+const char *default_parallel;
+const char *default_serial;
+const char *default_spi;
 double default_bitclock;
 
 LISTID       string_list;
