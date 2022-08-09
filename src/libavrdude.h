@@ -536,7 +536,7 @@ const char * pins_to_str(const struct pindef_t * const pindef);
  * This function returns a string of defined pins, eg, ~1, 2, ~4, ~5, 7 or ""
  *
  * @param[in] pindef the pin definition for which we want the string representation
- * @returns a pointer to a string, which was created by strdup (NULL if out of memory)
+ * @returns a pointer to a string, which was created by strdup
  */
 char *pins_to_strdup(const struct pindef_t * const pindef);
 
@@ -1006,6 +1006,10 @@ extern double       default_bitclock;
 extern "C" {
 #endif
 
+void *cfg_malloc(const char *funcname, size_t n);
+
+char *cfg_strdup(const char *funcname, const char *s);
+
 int init_config(void);
 
 void cleanup_config(void);
@@ -1013,6 +1017,12 @@ void cleanup_config(void);
 int read_config(const char * file);
 
 const char *cache_string(const char *file);
+
+unsigned char *cfg_unescapeu(unsigned char *d, const unsigned char *s);
+
+char *cfg_unescape(char *d, const char *s);
+
+char *cfg_escape(const char *s);
 
 #ifdef __cplusplus
 }

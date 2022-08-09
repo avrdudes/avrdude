@@ -187,20 +187,17 @@ static char *dev_sprintf(const char *fmt, ...) {
   va_end(ap);
 
   if(size < 0)
-    return NULL;
+    return cfg_strdup("dev_sprintf()", "");
 
-  size++;                       // For temrinating '\0'
-  if(!(p = malloc(size)))
-   return NULL;
+  size++;                       // For terminating '\0'
+  p = cfg_malloc("dev_sprintf()", size);
 
   va_start(ap, fmt);
   size = vsnprintf(p, size, fmt, ap);
   va_end(ap);
 
-  if(size < 0) {
-    free(p);
-    return NULL;
-  }
+  if(size < 0)
+    *p = 0;
 
   return p;
 }
@@ -438,9 +435,10 @@ static void dev_part_raw(AVRPART *part) {
 
 static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
 
+  char *descstr = cfg_escape(p->desc);
   if(!tsv) {
     dev_info("#------------------------------------------------------------\n");
-    dev_info("# %s\n", p->desc);
+    dev_info("# %.*s\n", strlen(descstr+1)-1, descstr+1);
     dev_info("#------------------------------------------------------------\n");
     if(p->parent_id && *p->parent_id)
       dev_info("\npart parent \"%s\"\n", p->parent_id);
@@ -448,9 +446,9 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
       dev_info("\npart\n");
   }
 
-  _if_partout(strcmp, "\"%s\"", desc);
-  _if_partout(strcmp, "\"%s\"", id);
-  _if_partout(strcmp, "\"%s\"", family_id);
+  _if_partout_str(strcmp, descstr, desc);
+  _if_partout_str(strcmp, cfg_escape(p->id), id);
+  _if_partout_str(strcmp, cfg_escape(p->family_id), family_id);
   _if_partout(intcmp, "%d", hvupdi_variant);
   _if_partout(intcmp, "0x%02x", stk500_devcode);
   _if_partout(intcmp, "0x%02x", avr910_devcode);
@@ -461,9 +459,13 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
   _if_partout(intcmp, "0x%04x", usbpid);
 
   if(!base || base->reset_disposition != p->reset_disposition)
-    _partout_str(strdup(p->reset_disposition == RESET_DEDICATED? "dedicated": p->reset_disposition == RESET_IO? "io": "unknown"), reset);
+    _partout_str(cfg_strdup("dev_part_strct()",
+       p->reset_disposition == RESET_DEDICATED? "dedicated": p->reset_disposition == RESET_IO? "io": "unknown"),
+       reset);
 
-  _if_partout_str(intcmp, strdup(p->retry_pulse == PIN_AVR_RESET? "reset": p->retry_pulse == PIN_AVR_SCK? "sck": "unknown"), retry_pulse);
+  _if_partout_str(intcmp, cfg_strdup("dev_part_strct()",
+     p->retry_pulse == PIN_AVR_RESET? "reset": p->retry_pulse == PIN_AVR_SCK? "sck": "unknown"),
+     retry_pulse);
 
   if(!base || base->flags != p->flags) {
     if(tsv) {
@@ -482,7 +484,9 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
 
       if(!base || (base->flags & (AVRPART_PARALLELOK | AVRPART_PSEUDOPARALLEL)) != (p->flags & (AVRPART_PARALLELOK | AVRPART_PSEUDOPARALLEL))) {
         int par = p->flags & (AVRPART_PARALLELOK | AVRPART_PSEUDOPARALLEL);
-        _partout_str(strdup(par == 0? "no": par == AVRPART_PSEUDOPARALLEL? "unknown": AVRPART_PARALLELOK? "yes": "pseudo"), parallel);
+        _partout_str(cfg_strdup("dev_part_strct()",
+          par == 0? "no": par == AVRPART_PSEUDOPARALLEL? "unknown": AVRPART_PARALLELOK? "yes": "pseudo"),
+          parallel);
       }
     }
   }
@@ -984,13 +988,16 @@ static void dev_pgm_strct(PROGRAMMER *pgm, bool tsv, PROGRAMMER *base) {
     if(!firstid)
       dev_info(", ");
     firstid = 0;
-    dev_info("\"%s\"", ldata(ln));
+    char *str = cfg_escape(ldata(ln));
+    dev_info("%s", str);
+    free(str);
   }
   dev_info(tsv? "\n": ";\n");
 
-  _if_pgmout(strcmp, "\"%s\"", desc);
+  _if_pgmout_str(strcmp, cfg_escape(pgm->desc), desc);
   _pgmout_fmt("type", "\"%s\"", locate_programmer_type_id(pgm->initpgm));
-  _pgmout_fmt("connection_type", "%s", connstr(pgm->conntype));
+  if(!base || base->conntype != pgm->conntype)
+    _pgmout_fmt("connection_type", "%s", connstr(pgm->conntype));
   _if_pgmout(intcmp, "%d", baudrate);
 
   _if_pgmout(intcmp, "0x%04x", usbvid);
@@ -1009,10 +1016,10 @@ static void dev_pgm_strct(PROGRAMMER *pgm, bool tsv, PROGRAMMER *base) {
     dev_info(tsv? "\n": ";\n");
   }
 
-  _if_pgmout(strcmp, "\"%s\"", usbdev);
-  _if_pgmout(strcmp, "\"%s\"", usbsn);
-  _if_pgmout(strcmp, "\"%s\"", usbvendor);
-  _if_pgmout(strcmp, "\"%s\"", usbproduct);
+  _if_pgmout_str(strcmp, cfg_escape(pgm->usbdev), usbdev);
+  _if_pgmout_str(strcmp, cfg_escape(pgm->usbsn), usbsn);
+  _if_pgmout_str(strcmp, cfg_escape(pgm->usbvendor), usbvendor);
+  _if_pgmout_str(strcmp, cfg_escape(pgm->usbproduct), usbproduct);
 
   for(int i=0; i<N_PINS; i++) {
     char *str = pins_to_strdup(pgm->pin+i);

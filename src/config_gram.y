@@ -453,24 +453,10 @@ prog_parms :
 prog_parm :
   K_ID TKN_EQUAL string_list {
     {
-      TOKEN * t;
-      char *s;
-      int do_yyabort = 0;
       while (lsize(string_list)) {
-        t = lrmv_n(string_list, 1);
-        if (!do_yyabort) {
-          s = dup_string(t->value.string);
-          if (s == NULL) {
-            do_yyabort = 1;
-          } else {
-            ladd(current_prog->id, s);
-          }
-        }
-        /* if do_yyabort == 1 just make the list empty */
+        TOKEN *t = lrmv_n(string_list, 1);
+        ladd(current_prog->id, cfg_strdup("config_gram.y", t->value.string));
         free_token(t);
-      }
-      if (do_yyabort) {
-        YYABORT;
       }
     }
   } |

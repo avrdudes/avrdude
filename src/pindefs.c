@@ -350,7 +350,7 @@ const char * pins_to_str(const struct pindef_t * const pindef) {
  * This function returns a string of defined pins, eg, ~1, 2, ~4, ~5, 7 or ""
  *
  * @param[in] pindef the pin definition for which we want the string representation
- * @returns a pointer to a string, which was created by strdup (NULL if out of memory)
+ * @returns a pointer to a string, which was created by strdup
  */
 char *pins_to_strdup(const struct pindef_t * const pindef) {
   char buf[6*(PIN_MAX+1)], *p = buf;
@@ -365,7 +365,7 @@ char *pins_to_strdup(const struct pindef_t * const pindef) {
     }
   }
 
-  return strdup(buf);
+  return cfg_strdup("pins_to_strdup()", buf);
 }
 
 /**

@@ -922,10 +922,7 @@ int main(int argc, char * argv [])
                       progname,
                       (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v',
                       upd->filename, mtype);
-      if ((upd->memtype = strdup(mtype)) == NULL) {
-        avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
-        exit(1);
-      }
+      upd->memtype = cfg_strdup("main()", mtype);
     }
 
     if (!avr_mem_might_be_known(upd->memtype)) {

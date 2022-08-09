@@ -1243,7 +1243,7 @@ void avr_add_mem_order(const char *str) {
     if(avr_mem_order[i] && !strcmp(avr_mem_order[i], str))
       return;
     if(!avr_mem_order[i]) {
-      avr_mem_order[i] = strdup(str);
+      avr_mem_order[i] = cfg_strdup("avr_mem_order()", str);
       return;
     }
   }

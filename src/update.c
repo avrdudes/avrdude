@@ -37,11 +37,7 @@ UPDATE * parse_op(char * s)
   int i;
   size_t fnlen;
 
-  upd = (UPDATE *)malloc(sizeof(UPDATE));
-  if (upd == NULL) {
-    avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
-    exit(1);
-  }
+  upd = (UPDATE *) cfg_malloc("parse_op()", sizeof(UPDATE));
 
   i = 0;
   p = s;
@@ -52,22 +48,12 @@ UPDATE * parse_op(char * s)
   if (*p != ':') {
     upd->memtype = NULL;        /* default memtype, "flash", or "application" */
     upd->op = DEVICE_WRITE;
-    upd->filename = (char *)malloc(strlen(buf) + 1);
-    if (upd->filename == NULL) {
-        avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
-        exit(1);
-    }
-    strcpy(upd->filename, buf);
+    upd->filename = cfg_strdup("parse_op()", buf);
     upd->format = FMT_AUTO;
     return upd;
   }
 
-  upd->memtype = (char *)malloc(strlen(buf)+1);
-  if (upd->memtype == NULL) {
-    avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
-    exit(1);
-  }
-  strcpy(upd->memtype, buf);
+  upd->memtype = cfg_strdup("parse_op()", buf);
 
   p++;
   if (*p == 'r') {
@@ -118,10 +104,10 @@ UPDATE * parse_op(char * s)
     // and to binary for read operations:
     upd->format = upd->op == DEVICE_READ? FMT_RBIN: FMT_AUTO;
     fnlen = strlen(cp);
-    upd->filename = (char *)malloc(fnlen + 1);
+    upd->filename = (char *) cfg_malloc("parse_op()", fnlen + 1);
   } else {
     fnlen = p - cp;
-    upd->filename = (char *)malloc(fnlen +1);
+    upd->filename = (char *) cfg_malloc("parse_op()", fnlen +1);
     c = *++p;
     if (c && p[1])
       /* More than one char - force failure below. */
@@ -147,12 +133,6 @@ UPDATE * parse_op(char * s)
     }
   }
 
-  if (upd->filename == NULL) {
-    avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
-    free(upd->memtype);
-    free(upd);
-    return NULL;
-  }
   memcpy(upd->filename, cp, fnlen);
   upd->filename[fnlen] = 0;
 
@@ -163,19 +143,15 @@ UPDATE * dup_update(UPDATE * upd)
 {
   UPDATE * u;
 
-  u = (UPDATE *)malloc(sizeof(UPDATE));
-  if (u == NULL) {
-    avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
-    exit(1);
-  }
+  u = (UPDATE *) cfg_malloc("dup_update()", sizeof(UPDATE));
 
   memcpy(u, upd, sizeof(UPDATE));
 
   if (upd->memtype != NULL)
-    u->memtype = strdup(upd->memtype);
+    u->memtype = cfg_strdup("dup_update()", upd->memtype);
   else
     u->memtype = NULL;
-  u->filename = strdup(upd->filename);
+  u->filename = cfg_strdup("dup_update()", upd->filename);
 
   return u;
 }
@@ -184,14 +160,10 @@ UPDATE * new_update(int op, char * memtype, int filefmt, char * filename)
 {
   UPDATE * u;
 
-  u = (UPDATE *)malloc(sizeof(UPDATE));
-  if (u == NULL) {
-    avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
-    exit(1);
-  }
+  u = (UPDATE *) cfg_malloc("new_update()", sizeof(UPDATE));
 
-  u->memtype = strdup(memtype);
-  u->filename = strdup(filename);
+  u->memtype = cfg_strdup("new_update()", memtype);
+  u->filename = cfg_strdup("new_update()", filename);
   u->op = op;
   u->format = filefmt;
 

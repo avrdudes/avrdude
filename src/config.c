@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -37,9 +38,6 @@ char default_parallel[PATH_MAX];
 char default_serial[PATH_MAX];
 char default_spi[PATH_MAX];
 double default_bitclock;
-
-char string_buf[MAX_STR_CONST];
-char *string_buf_ptr;
 
 LISTID       string_list;
 LISTID       number_list;
@@ -82,6 +80,25 @@ int init_config(void)
   return 0;
 }
 
+void *cfg_malloc(const char *funcname, size_t n) {
+  void *ret = malloc(n);
+  if(!ret) {
+    avrdude_message(MSG_INFO, "%s: out of memory in %s\n", progname, funcname);
+    exit(1);
+  }
+  memset(ret, 0, n);
+  return ret;
+}
+
+
+char *cfg_strdup(const char *funcname, const char *s) {
+  char *ret = strdup(s);
+  if(!ret) {
+    avrdude_message(MSG_INFO, "%s: out of memory in %s\n", progname, funcname);
+    exit(1);
+  }
+  return ret;
+}
 
 
 int yywrap()
@@ -124,20 +141,9 @@ int yywarning(char * errmsg, ...)
 }
 
 
-TOKEN * new_token(int primary)
-{
-  TOKEN * tkn;
-
-  tkn = (TOKEN *)malloc(sizeof(TOKEN));
-  if (tkn == NULL) {
-    yyerror("new_token(): out of memory");
-    return NULL;
-  }
-
-  memset(tkn, 0, sizeof(TOKEN));
-
+TOKEN * new_token(int primary) {
+  TOKEN * tkn = (TOKEN *) cfg_malloc("new_token()", sizeof(TOKEN));
   tkn->primary = primary;
-
   return tkn;
 }
 
@@ -173,14 +179,8 @@ void free_tokens(int n, ...)
 
 
 
-TOKEN * number(char * text)
-{
-  struct token_t * tkn;
-
-  tkn = new_token(TKN_NUMBER);
-  if (tkn == NULL) {
-      return NULL; /* yyerror already called */
-  }
+TOKEN *number(const char *text) {
+  struct token_t *tkn = new_token(TKN_NUMBER);
   tkn->value.type   = V_NUM;
   tkn->value.number = atoi(text);
 
@@ -191,11 +191,8 @@ TOKEN * number(char * text)
   return tkn;
 }
 
-TOKEN * number_real(char * text)
-{
-  struct token_t * tkn;
-
-  tkn = new_token(TKN_NUMBER);
+TOKEN *number_real(const char *text) {
+  struct token_t * tkn = new_token(TKN_NUMBER);
   tkn->value.type   = V_NUM_REAL;
   tkn->value.number_real = atof(text);
 
@@ -206,15 +203,10 @@ TOKEN * number_real(char * text)
   return tkn;
 }
 
-TOKEN * hexnumber(char * text)
-{
-  struct token_t * tkn;
+TOKEN *hexnumber(const char *text) {
+  struct token_t *tkn = new_token(TKN_NUMBER);
   char * e;
 
-  tkn = new_token(TKN_NUMBER);
-  if (tkn == NULL) {
-      return NULL; /* yyerror already called */
-  }
   tkn->value.type   = V_NUM;
   tkn->value.number = strtoul(text, &e, 16);
   if ((e == text) || (*e != 0)) {
@@ -231,26 +223,10 @@ TOKEN * hexnumber(char * text)
 }
 
 
-TOKEN * string(char * text)
-{
-  struct token_t * tkn;
-  int len;
-
-  tkn = new_token(TKN_STRING);
-  if (tkn == NULL) {
-      return NULL; /* yyerror already called */
-  }
-
-  len = strlen(text);
-
+TOKEN *string(const char *text) {
+  struct token_t *tkn = new_token(TKN_STRING);
   tkn->value.type   = V_STR;
-  tkn->value.string = (char *) malloc(len+1);
-  if (tkn->value.string == NULL) {
-    yyerror("string(): out of memory");
-    free_token(tkn);
-    return NULL;
-  }
-  strcpy(tkn->value.string, text);
+  tkn->value.string = cfg_strdup("string()", text);
 
 #if DEBUG
   avrdude_message(MSG_INFO, "STRING(%s)\n", tkn->value.string);
@@ -260,13 +236,8 @@ TOKEN * string(char * text)
 }
 
 
-TOKEN * keyword(int primary)
-{
-  struct token_t * tkn;
-
-  tkn = new_token(primary);
-
-  return tkn;
+TOKEN * keyword(int primary) {
+  return new_token(primary);
 }
 
 
@@ -305,19 +276,6 @@ void pyytext(void)
 #endif
 }
 
-
-char * dup_string(const char * str)
-{
-  char * s;
-
-  s = strdup(str);
-  if (s == NULL) {
-    yyerror("dup_string(): out of memory");
-    return NULL;
-  }
-
-  return s;
-}
 
 #ifdef HAVE_YYLEX_DESTROY
 /* reset lexer and free any allocated memory */
@@ -386,11 +344,7 @@ const char *cache_string(const char *file) {
     }
   }
 
-  fnames[n] = strdup(file);
-  if(!fnames[n]) {
-    yyerror("cache_string(): out of memory");
-    return NULL;
-  }
+  fnames[n] = cfg_strdup("cache_string()", file);
 
   return fnames[n++];
 }
@@ -398,4 +352,228 @@ const char *cache_string(const char *file) {
 // Captures comments during parsing
 int capture_comment_char(int c) {
   return c;
+}
+
+
+// Convert the next n hex digits of s to a hex number
+static unsigned int tohex(const unsigned char *s, unsigned int n) {
+  int ret, c;
+
+  ret = 0;
+  while(n--) {
+    ret *= 16;
+    c = *s++;
+    ret += c >= '0' && c <= '9'? c - '0': c >= 'a' && c <= 'f'? c - 'a' + 10: c - 'A' + 10;
+  }
+
+  return ret;
+}
+
+/*
+ * Create a utf-8 character sequence from a single unicode character.
+ * Permissive for some invalid unicode sequences but not for those with
+ * high bit set). Returns numbers of characters written (0-6).
+ */
+static int wc_to_utf8str(unsigned int wc, unsigned char *str) {
+  if(!(wc & ~0x7fu)) {
+    *str = (char) wc;
+    return 1;
+  }
+  if(!(wc & ~0x7ffu)) {
+    *str++ = (char) ((wc >> 6) | 0xc0);
+    *str++ = (char) ((wc & 0x3f) | 0x80);
+    return 2;
+  }
+  if(!(wc & ~0xffffu)) {
+    *str++ = (char) ((wc >> 12) | 0xe0);
+    *str++ = (char) (((wc >> 6) & 0x3f) | 0x80);
+    *str++ = (char) ((wc & 0x3f) | 0x80);
+    return 3;
+  }
+  if(!(wc & ~0x1fffffu)) {
+    *str++ = (char) ((wc >> 18) | 0xf0);
+    *str++ = (char) (((wc >> 12) & 0x3f) | 0x80);
+    *str++ = (char) (((wc >> 6) & 0x3f) | 0x80);
+    *str++ = (char) ((wc & 0x3f) | 0x80);
+    return 4;
+  }
+  if(!(wc & ~0x3ffffffu)) {
+    *str++ = (char) ((wc >> 24) | 0xf8);
+    *str++ = (char) (((wc >> 18) & 0x3f) | 0x80);
+    *str++ = (char) (((wc >> 12) & 0x3f) | 0x80);
+    *str++ = (char) (((wc >> 6) & 0x3f) | 0x80);
+    *str++ = (char) ((wc & 0x3f) | 0x80);
+    return 5;
+  }
+  if(!(wc & ~0x7fffffffu)) {
+    *str++ = (char) ((wc >> 30) | 0xfc);
+    *str++ = (char) (((wc >> 24) & 0x3f) | 0x80);
+    *str++ = (char) (((wc >> 18) & 0x3f) | 0x80);
+    *str++ = (char) (((wc >> 12) & 0x3f) | 0x80);
+    *str++ = (char) (((wc >> 6) & 0x3f) | 0x80);
+    *str++ = (char) ((wc & 0x3f) | 0x80);
+    return 6;
+  }
+  return 0;
+}
+
+// Unescape C-style strings, destination d must hold enough space (and can be source s)
+unsigned char *cfg_unescapeu(unsigned char *d, const unsigned char *s) {
+  unsigned char *ret = d;
+  int n, k;
+
+  while(*s) {
+    switch (*s) {
+    case '\\':
+      switch (*++s) {
+      case 'n':
+        *d = '\n';
+        break;
+      case 't':
+        *d = '\t';
+        break;
+      case 'a':
+        *d = '\a';
+        break;
+      case 'b':
+        *d = '\b';
+        break;
+      case 'e':                 // Non-standard ESC
+        *d = 27;
+        break;
+      case 'f':
+        *d = '\f';
+        break;
+      case 'r':
+        *d = '\r';
+        break;
+      case 'v':
+        *d = '\v';
+        break;
+      case '?':
+        *d = '?';
+        break;
+      case '`':
+        *d = '`';
+        break;
+      case '"':
+        *d = '"';
+        break;
+      case '\'':
+        *d = '\'';
+        break;
+      case '\\':
+        *d = '\\';
+        break;
+      case '0':
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':                 // 1-3 octal digits
+        n = *s - '0';
+        for(k = 0; k < 2 && s[1] >= '0' && s[1] <= '7'; k++)  // Max 2 more octal characters
+          n *= 8, n += s[1] - '0', s++;
+        *d = n;
+        break;
+      case 'x':                 // Unlimited hex digits
+        for(k = 0; isxdigit(s[k + 1]); k++)
+          continue;
+        if(k > 0) {
+          *d = tohex(s + 1, k);
+          s += k;
+        } else {                // No hex digits after \x? copy \x
+          *d++ = '\\';
+          *d = 'x';
+        }
+        break;
+      case 'u':                 // Exactly 4 hex digits and valid unicode
+        if(isxdigit(s[1]) && isxdigit(s[2]) && isxdigit(s[3]) && isxdigit(s[4]) &&
+          (n = wc_to_utf8str(tohex(s+1, 4), d))) {
+          d += n - 1;
+          s += 4;
+        } else {                // Invalid \u sequence? copy \u
+          *d++ = '\\';
+          *d = 'u';
+        }
+        break;
+      case 'U':                 // Exactly 6 hex digits and valid unicode
+        if(isxdigit(s[1]) && isxdigit(s[2]) && isxdigit(s[3]) && isxdigit(s[4]) && isxdigit(s[5]) && isxdigit(s[6]) &&
+          (n = wc_to_utf8str(tohex(s+1, 6), d))) {
+          d += n - 1;
+          s += 6;
+        } else {                // Invalid \U sequence? copy \U
+          *d++ = '\\';
+          *d = 'U';
+        }
+        break;
+      default:                  // Keep the escape sequence (C would warn and remove \)
+        *d++ = '\\';
+        *d = *s;
+      }
+      break;
+
+    default:                    // Not an escape sequence: just copy the character
+      *d = *s;
+    }
+    d++;
+    s++;
+  }
+  *d = *s;                      // Terminate
+
+  return ret;
+}
+
+// Unescape C-style strings, destination d must hold enough space (and can be source s)
+char *cfg_unescape(char *d, const char *s) {
+  return (char *) cfg_unescapeu((unsigned char *) d, (const unsigned char *) s);
+}
+
+// Return an escaped string that looks like a C-style input string incl quotes, memory is malloc()ed
+char *cfg_escape(const char *s) {
+  char *ret = (char *) cfg_malloc("cfg_escape()", 4*strlen(s)+2+3), *d = ret;
+
+  *d++ = '"';
+  for(; *s; s++) {
+    switch(*s) {
+    case '\n':
+      *d++ = '\\'; *d++ = 'n';
+      break;
+    case '\t':
+      *d++ = '\\'; *d++ = 't';
+      break;
+    case '\a':
+      *d++ = '\\'; *d++ = 'a';
+      break;
+    case '\b':
+      *d++ = '\\'; *d++ = 'b';
+      break;
+    case '\f':
+      *d++ = '\\'; *d++ = 'f';
+      break;
+#if '\r' != '\n'
+    case '\r':
+      *d++ = '\\'; *d++ = 'r';
+      break;
+#endif
+    case '\v':
+      *d++ = '\\'; *d++ = 'v';
+      break;
+    case '\"':
+      *d++ = '\\'; *d++ = '\"';
+      break;
+    default:
+      if(*s == 0x7f || (*s >= 0 && *s < 32)) {
+        sprintf(d, "\\%03o", *s);
+        d += strlen(d);
+      } else
+        *d++ = *s;
+    }
+  }
+  *d++ = '"';
+  *d = 0;
+
+  return ret;
 }

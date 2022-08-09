@@ -67,14 +67,7 @@ PROGRAMMER * pgm_new(void)
   PROGRAMMER * pgm;
   const char *nulp = cache_string("");
 
-  pgm = (PROGRAMMER *)malloc(sizeof(*pgm));
-  if (pgm == NULL) {
-    avrdude_message(MSG_INFO, "%s: out of memory allocating programmer structure\n",
-            progname);
-    return NULL;
-  }
-
-  memset(pgm, 0, sizeof(*pgm));
+  pgm = (PROGRAMMER *) cfg_malloc("pgm_new()", sizeof(*pgm));
 
   pgm->id = lcreat(NULL, 0);
   pgm->usbpid = lcreat(NULL, 0);
@@ -162,24 +155,13 @@ PROGRAMMER * pgm_dup(const PROGRAMMER * const src)
   PROGRAMMER * pgm;
   LNODEID ln;
 
-  pgm = (PROGRAMMER *)malloc(sizeof(*pgm));
-  if (pgm == NULL) {
-    avrdude_message(MSG_INFO, "%s: out of memory allocating programmer structure\n",
-            progname);
-    return NULL;
-  }
-
+  pgm = (PROGRAMMER *) cfg_malloc("pgm_dup()", sizeof(*pgm));
   memcpy(pgm, src, sizeof(*pgm));
 
   pgm->id = lcreat(NULL, 0);
   pgm->usbpid = lcreat(NULL, 0);
   for (ln = lfirst(src->usbpid); ln; ln = lnext(ln)) {
-    int *ip = malloc(sizeof(int));
-    if (ip == NULL) {
-      avrdude_message(MSG_INFO, "%s: out of memory allocating programmer structure\n",
-              progname);
-      exit(1);
-    }
+    int *ip = cfg_malloc("pgm_dup()", sizeof(int));
     *ip = *(int *) ldata(ln);
     ladd(pgm->usbpid, ip);
   }

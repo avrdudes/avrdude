@@ -35,11 +35,11 @@
 enum { V_NONE, V_NUM, V_NUM_REAL, V_STR };
 typedef struct value_t {
   int      type;
-  /*union { TODO: use an anonymous union here ? */
+  union {
     int      number;
     double   number_real;
     char   * string;
-  /*};*/
+  };
 } VALUE;
 
 
@@ -66,40 +66,35 @@ extern bool         is_alias; // current entry is alias
 #endif
 extern YYSTYPE yylval;
 
-extern char string_buf[MAX_STR_CONST];
-extern char *string_buf_ptr;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 int yyparse(void);
 
-int yyerror(char * errmsg, ...);
+int yyerror(char *errmsg, ...);
 
-int yywarning(char * errmsg, ...);
+int yywarning(char *errmsg, ...);
 
-TOKEN * new_token(int primary);
+TOKEN *new_token(int primary);
 
-void free_token(TOKEN * tkn);
+void free_token(TOKEN *tkn);
 
 void free_tokens(int n, ...);
 
-TOKEN * number(char * text);
+TOKEN *number(const char *text);
 
-TOKEN * number_real(char * text);
+TOKEN *number_real(const char *text);
 
-TOKEN * hexnumber(char * text);
+TOKEN *hexnumber(const char *text);
 
-TOKEN * string(char * text);
+TOKEN *string(const char *text);
 
-TOKEN * keyword(int primary);
+TOKEN *keyword(int primary);
 
-void print_token(TOKEN * tkn);
+void print_token(TOKEN *tkn);
 
 void pyytext(void);
-
-char * dup_string(const char * str);
 
 int capture_comment_char(int c);
 

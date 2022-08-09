@@ -45,7 +45,6 @@ DIGIT    [0-9]
 HEXDIGIT [0-9a-fA-F]
 SIGN     [+-]
 
-%x strng
 %x incl
 %x comment
 %option nounput
@@ -61,11 +60,18 @@ SIGN     [+-]
 {SIGN}?{DIGIT}+"."{DIGIT}* { yylval = number_real(yytext); return TKN_NUMBER_REAL; }
 {SIGN}?"."{DIGIT}+         { yylval = number_real(yytext); return TKN_NUMBER_REAL; }
 
-"\""      { string_buf_ptr = string_buf; BEGIN(strng); }
+["]([^"\\\n]|\\.|\\\n)*["] {
+  char *str= cfg_strdup("lexer.l", yytext);
+  cfg_unescape(str, str+1);
+  size_t len = strlen(str);
+  if(len)
+    str[len-1] = 0;
+  yylval = string(str);
+  free(str);
+  return TKN_STRING;
+}
 
 0x{HEXDIGIT}+ { yylval = hexnumber(yytext); return TKN_NUMBER; }
-
-
 
 #   { /* The following captures all '#' style comments to end of line */
        BEGIN(comment); }
@@ -106,20 +112,6 @@ SIGN     [+-]
         }
      }
 
-
-<strng>\" { *string_buf_ptr = 0; string_buf_ptr = string_buf;
-             yylval = string(string_buf_ptr); BEGIN(INITIAL); return TKN_STRING; }
-<strng>\\n  *string_buf_ptr++ = '\n';
-<strng>\\t  *string_buf_ptr++ = '\t';
-<strng>\\r  *string_buf_ptr++ = '\r';
-<strng>\\b  *string_buf_ptr++ = '\b';
-<strng>\\f  *string_buf_ptr++ = '\f';
-<strng>\\(.|\n)  *(string_buf_ptr++) = yytext[1];
-<strng>[^\\\n\"]+ { char *yptr = yytext; while (*yptr) 
-                                         *(string_buf_ptr++) = *(yptr++); }
-
-<strng>\n { yyerror("unterminated character constant");
-            return YYERRCODE; }
 
 alias            { yylval=NULL; return K_ALIAS; }
 allowfullpagebitstream { yylval=NULL; return K_ALLOWFULLPAGEBITSTREAM; }

@@ -956,7 +956,7 @@ char *cmdbitstr(CMDBIT cb) {
   else
     space[1] = 0;
 
-  return strdup(space);
+  return cfg_strdup("cmdbitstr()", space);
 }
 
 
@@ -998,7 +998,7 @@ char *opcode2str(OPCODE *op, int opnum, int detailed) {
   int compact = 1;
 
   if(!op)
-    return strdup("NULL");
+    return cfg_strdup("opcode2str()", "NULL");
 
   // Can the opcode be printed in a compact way? Only if address bits are systematic.
   for(int i=31; i >= 0; i--)
@@ -1033,7 +1033,7 @@ char *opcode2str(OPCODE *op, int opnum, int detailed) {
     *sp++ = '"';
   *sp = 0;
 
-  return strdup(space);
+  return cfg_strdup("opcode2str()", space);
 }
 
 
