@@ -214,7 +214,7 @@ int dev_message(int msglvl, const char *fmt, ...) {
 
   if(verbose >= msglvl) {
     va_start(ap, fmt);
-    rc = vfprintf(stderr, fmt, ap);
+    rc = vfprintf(stdout, fmt, ap);
     va_end(ap);
     if(rc > 0)
       dev_nprinted += rc;
@@ -651,9 +651,6 @@ void dev_output_part_defs(char *partdesc) {
     return;
   }
 
-  // Redirect stderr to stdout
-  fflush(stderr); fflush(stdout); dup2(1, 2);
-
   all = *flags == '*';
   cmdok = all || !!strchr(flags, 'c');
   descs = all || !!strchr(flags, 'd');
@@ -1086,9 +1083,6 @@ void dev_output_pgm_defs(char *pgmid) {
     );
     return;
   }
-
-  // Redirect stderr to stdout
-  fflush(stderr); fflush(stdout); dup2(1, 2);
 
   astrc = !!strchr(flags, 'A');
   strct = !!strchr(flags, 'S');
