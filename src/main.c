@@ -1073,9 +1073,9 @@ int main(int argc, char * argv [])
              pgm->read_sib(pgm, p, sib);
              avrdude_message(MSG_NOTICE, "%s: System Information Block: \"%s\"\n",
                              progname, sib);
-            if (quell_progress < 2) {
+            if (quell_progress < 2)
               avrdude_message(MSG_INFO, "%s: Received FamilyID: \"%.*s\"\n", progname, AVR_FAMILYIDLEN, sib);
-            }
+
             if (strncmp(p->family_id, sib, AVR_FAMILYIDLEN)) {
               avrdude_message(MSG_INFO, "%s: Expected FamilyID: \"%s\"\n", progname, p->family_id);
               if (!ovsigck) {
@@ -1093,9 +1093,8 @@ int main(int argc, char * argv [])
               avrdude_message(MSG_INFO, "%s: conflicting -e and -n options specified, NOT erasing chip\n",
                               progname);
             } else {
-              if (quell_progress < 2) {
+              if (quell_progress < 2)
                 avrdude_message(MSG_INFO, "%s: erasing chip\n", progname);
-              }
               exitrc = avr_unlock(pgm, p);
               if(exitrc) goto main_exit;
               goto sig_again;
@@ -1229,9 +1228,8 @@ int main(int argc, char * argv [])
       avrdude_message(MSG_INFO, "%s: conflicting -e and -n options specified, NOT erasing chip\n",
                       progname);
     } else {
-      if (quell_progress < 2) {
+      if (quell_progress < 2)
       	avrdude_message(MSG_INFO, "%s: erasing chip\n", progname);
-      }
       exitrc = avr_chip_erase(pgm, p);
       if(exitrc) goto main_exit;
     }

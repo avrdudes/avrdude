@@ -203,8 +203,6 @@ typedef struct opcode {
 #define HV_UPDI_VARIANT_1      1 /* Dedicated UPDI pin, no HV (megaAVR0/AVR-Dx) */
 #define HV_UPDI_VARIANT_2      2 /* Shared UPDI pin, HV on _RESET (AVR-Ex) */
 
-#define AVR_DESCLEN 64
-#define AVR_IDLEN   32
 #define AVR_FAMILYIDLEN 7
 #define AVR_SIBLEN 16
 #define CTL_STACK_SIZE 32
@@ -215,10 +213,10 @@ typedef struct opcode {
 
 /* Any changes here, please also reflect in dev_part_strct() of developer_opts.c */
 typedef struct avrpart {
-  char          desc[AVR_DESCLEN];  /* long part name */
-  char          id[AVR_IDLEN];      /* short part name */
+  const char  * desc;               /* long part name */
+  const char  * id;                 /* short part name */
   const char  * parent_id;          /* parent id if set, for -p.../s */
-  char          family_id[AVR_FAMILYIDLEN+1]; /* family id in the SIB (avr8x) */
+  const char  * family_id;          /* family id in the SIB (avr8x) */
   int           hvupdi_variant;     /* HV pulse on UPDI pin, no pin or RESET pin */
   int           stk500_devcode;     /* stk500 device code */
   int           avr910_devcode;     /* avr910 device code */
@@ -286,7 +284,7 @@ typedef struct avrpart {
 
 #define AVR_MEMDESCLEN 64
 typedef struct avrmem {
-  char desc[AVR_MEMDESCLEN];  /* memory description ("flash", "eeprom", etc) */
+  const char *desc;           /* memory description ("flash", "eeprom", etc) */
   int paged;                  /* page addressed (e.g. ATmega flash) */
   int size;                   /* total memory size in bytes */
   int page_size;              /* size of memory page (if page addressed) */
@@ -312,7 +310,7 @@ typedef struct avrmem {
 } AVRMEM;
 
 typedef struct avrmem_alias {
-  char desc[AVR_MEMDESCLEN];  /* alias name ("syscfg0" etc.) */
+  const char *desc;           /* alias name ("syscfg0" etc.) */
   AVRMEM *aliased_mem;
 } AVRMEM_ALIAS;
 
@@ -330,8 +328,8 @@ int avr_set_bits(OPCODE * op, unsigned char * cmd);
 int avr_set_addr(OPCODE * op, unsigned char * cmd, unsigned long addr);
 int avr_set_addr_mem(AVRMEM *mem, int opnum, unsigned char *cmd, unsigned long addr);
 int avr_set_input(OPCODE * op, unsigned char * cmd, unsigned char data);
-int avr_get_output(OPCODE * op, unsigned char * res, unsigned char * data);
-int avr_get_output_index(OPCODE * op);
+int avr_get_output(const OPCODE *op, const unsigned char *res, unsigned char *data);
+int avr_get_output_index(const OPCODE *op);
 char cmdbitchar(CMDBIT cb);
 char *cmdbitstr(CMDBIT cb);
 const char *opcodename(int opnum);
@@ -340,26 +338,26 @@ char *opcode2str(OPCODE *op, int opnum, int detailed);
 /* Functions for AVRMEM structures */
 AVRMEM * avr_new_memtype(void);
 AVRMEM_ALIAS * avr_new_memalias(void);
-int avr_initmem(AVRPART * p);
-AVRMEM * avr_dup_mem(AVRMEM * m);
+int avr_initmem(const AVRPART *p);
+AVRMEM * avr_dup_mem(const AVRMEM *m);
 void     avr_free_mem(AVRMEM * m);
 void     avr_free_memalias(AVRMEM_ALIAS * m);
-AVRMEM * avr_locate_mem(AVRPART * p, const char * desc);
-AVRMEM * avr_locate_mem_noalias(AVRPART * p, const char * desc);
-AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, const char * desc);
-AVRMEM_ALIAS * avr_find_memalias(AVRPART * p, AVRMEM * m_orig);
-void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
-                     int type, int verbose);
+AVRMEM * avr_locate_mem(const AVRPART *p, const char *desc);
+AVRMEM * avr_locate_mem_noalias(const AVRPART *p, const char *desc);
+AVRMEM_ALIAS * avr_locate_memalias(const AVRPART *p, const char *desc);
+AVRMEM_ALIAS * avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig);
+void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
+                     const AVRPART *p, int verbose);
 
 /* Functions for AVRPART structures */
 AVRPART * avr_new_part(void);
-AVRPART * avr_dup_part(AVRPART * d);
+AVRPART * avr_dup_part(const AVRPART *d);
 void      avr_free_part(AVRPART * d);
-AVRPART * locate_part(LISTID parts, const char * partdesc);
-AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode);
-AVRPART * locate_part_by_signature(LISTID parts, unsigned char * sig,
+AVRPART * locate_part(const LISTID parts, const char *partdesc);
+AVRPART * locate_part_by_avr910_devcode(const LISTID parts, int devcode);
+AVRPART * locate_part_by_signature(const LISTID parts, unsigned char *sig,
                                    int sigsize);
-void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose);
+void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose);
 
 typedef void (*walk_avrparts_cb)(const char *name, const char *desc,
                                  const char *cfgname, int cfglineno,
@@ -653,7 +651,6 @@ extern struct serial_device usbhid_serdev;
 #define ON  1
 #define OFF 0
 
-#define PGM_DESCLEN 80
 #define PGM_PORTLEN PATH_MAX
 #define PGM_TYPELEN 32
 
@@ -685,7 +682,7 @@ typedef enum {
 /* Any changes here, please also reflect in dev_pgm_strct() of developer_opts.c */
 typedef struct programmer_t {
   LISTID id;
-  char desc[PGM_DESCLEN];
+  const char *desc;
   void (*initpgm)(struct programmer_t *pgm);
   const char *parent_id;        // Used by developer options -c*/[sr...]
   struct pindef_t pin[N_PINS];
@@ -762,6 +759,7 @@ typedef struct programmer_t {
   int  (*parseextparams) (struct programmer_t * pgm, LISTID xparams);
   void (*setup)          (struct programmer_t * pgm);
   void (*teardown)       (struct programmer_t * pgm);
+
   const char *config_file;      // Config file where defined
   int  lineno;                  // Config file line number
   void *cookie;                 // For private use by the programmer
@@ -773,8 +771,8 @@ extern "C" {
 #endif
 
 PROGRAMMER * pgm_new(void);
-PROGRAMMER * pgm_dup(const PROGRAMMER * const src);
-void         pgm_free(PROGRAMMER * const p);
+PROGRAMMER * pgm_dup(const PROGRAMMER *src);
+void         pgm_free(PROGRAMMER *p);
 
 void programmer_display(PROGRAMMER * pgm, const char * p);
 
@@ -783,10 +781,10 @@ void programmer_display(PROGRAMMER * pgm, const char * p);
 #define SHOW_PPI_PINS ((1<<PPI_AVR_VCC)|(1<<PPI_AVR_BUFF))
 #define SHOW_AVR_PINS ((1<<PIN_AVR_RESET)|(1<<PIN_AVR_SCK)|(1<<PIN_AVR_MOSI)|(1<<PIN_AVR_MISO))
 #define SHOW_LED_PINS ((1<<PIN_LED_ERR)|(1<<PIN_LED_RDY)|(1<<PIN_LED_PGM)|(1<<PIN_LED_VFY))
-void pgm_display_generic_mask(PROGRAMMER * pgm, const char * p, unsigned int show);
-void pgm_display_generic(PROGRAMMER * pgm, const char * p);
+void pgm_display_generic_mask(const PROGRAMMER *pgm, const char *p, unsigned int show);
+void pgm_display_generic(const PROGRAMMER *pgm, const char *p);
 
-PROGRAMMER * locate_programmer(LISTID programmers, const char * configid);
+PROGRAMMER *locate_programmer(const LISTID programmers, const char *configid);
 
 typedef void (*walk_programmers_cb)(const char *name, const char *desc,
                                     const char *cfgname, int cfglineno,

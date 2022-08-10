@@ -1439,7 +1439,7 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
   }
 
   if ((pgm->flag & PGM_FL_IS_JTAG) && !(p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI))) {
-    strcpy(hfuse.desc, "hfuse");
+    hfuse.desc = cache_string("hfuse");
     if (jtagmkII_read_byte(pgm, p, &hfuse, 1, &b) < 0)
       return -1;
     if ((b & OCDEN) != 0)

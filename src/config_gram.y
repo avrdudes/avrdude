@@ -308,10 +308,6 @@ prog_def :
 prog_decl :
   K_PROGRAMMER
     { current_prog = pgm_new();
-      if (current_prog == NULL) {
-        yyerror("could not create pgm instance");
-        YYABORT;
-      }
       current_prog->config_file = cache_string(cfg_infile);
       current_prog->lineno = cfg_lineno;
     }
@@ -325,11 +321,6 @@ prog_decl :
         YYABORT;
       }
       current_prog = pgm_dup(pgm);
-      if (current_prog == NULL) {
-        yyerror("could not duplicate pgm instance");
-        free_token($3);
-        YYABORT;
-      }
       current_prog->parent_id = cache_string($3->value.string);
       current_prog->config_file = cache_string(cfg_infile);
       current_prog->lineno = cfg_lineno;
@@ -400,10 +391,6 @@ part_decl :
   K_PART
     {
       current_part = avr_new_part();
-      if (current_part == NULL) {
-        yyerror("could not create part instance");
-        YYABORT;
-      }
       current_part->config_file = cache_string(cfg_infile);
       current_part->lineno = cfg_lineno;
     } |
@@ -417,11 +404,6 @@ part_decl :
       }
 
       current_part = avr_dup_part(parent_part);
-      if (current_part == NULL) {
-        yyerror("could not duplicate part instance");
-        free_token($3);
-        YYABORT;
-      }
       current_part->parent_id = cache_string($3->value.string);
       current_part->config_file = cache_string(cfg_infile);
       current_part->lineno = cfg_lineno;
@@ -465,8 +447,7 @@ prog_parm :
   prog_parm_conntype
   |
   K_DESC TKN_EQUAL TKN_STRING {
-    strncpy(current_prog->desc, $3->value.string, PGM_DESCLEN);
-    current_prog->desc[PGM_DESCLEN-1] = 0;
+    current_prog->desc = cache_string($3->value.string);
     free_token($3);
   } |
   K_BAUDRATE TKN_EQUAL TKN_NUMBER {
@@ -686,22 +667,19 @@ retry_lines :
 part_parm :
   K_ID TKN_EQUAL TKN_STRING 
     {
-      strncpy(current_part->id, $3->value.string, AVR_IDLEN);
-      current_part->id[AVR_IDLEN-1] = 0;
+      current_part->id = cache_string($3->value.string);
       free_token($3);
     } |
 
   K_DESC TKN_EQUAL TKN_STRING 
     {
-      strncpy(current_part->desc, $3->value.string, AVR_DESCLEN - 1);
-      current_part->desc[AVR_DESCLEN-1] = 0;
+      current_part->desc = cache_string($3->value.string);
       free_token($3);
     } |
 
   K_FAMILY_ID TKN_EQUAL TKN_STRING
     {
-      strncpy(current_part->family_id, $3->value.string, AVR_FAMILYIDLEN);
-      current_part->family_id[AVR_FAMILYIDLEN] = 0;
+      current_part->family_id = cache_string($3->value.string);
       free_token($3);
     } |
 
@@ -1289,13 +1267,8 @@ part_parm :
     { /* select memory for extension or create if not there */
       AVRMEM *mem = avr_locate_mem_noalias(current_part, $2->value.string);
       if(!mem) {
-        if(!(mem = avr_new_memtype())) {
-          yyerror("could not create mem instance");
-          free_token($2);
-          YYABORT;
-        }
-        strncpy(mem->desc, $2->value.string, AVR_MEMDESCLEN - 1);
-        mem->desc[AVR_MEMDESCLEN-1] = 0;
+        mem = avr_new_memtype();
+        mem->desc = cache_string($2->value.string);
         ladd(current_part->mem, mem);
       }
       avr_add_mem_order($2->value.string);
@@ -1339,11 +1312,6 @@ part_parm :
       opnum = which_opcode($1);
       if (opnum < 0) YYABORT;
       op = avr_new_opcode();
-      if (op == NULL) {
-        yyerror("could not create opcode instance");
-        free_token($1);
-        YYABORT;
-      }
       if(0 != parse_cmdbits(op, opnum))
         YYABORT;
       if (current_part->op[opnum] != NULL) {
@@ -1500,11 +1468,6 @@ mem_spec :
       opnum = which_opcode($1);
       if (opnum < 0) YYABORT;
       op = avr_new_opcode();
-      if (op == NULL) {
-        yyerror("could not create opcode instance");
-        free_token($1);
-        YYABORT;
-      }
       if(0 != parse_cmdbits(op, opnum))
         YYABORT;
       if (current_mem->op[opnum] != NULL) {
@@ -1553,10 +1516,7 @@ mem_alias :
 
       is_alias = true;
       alias = avr_new_memalias();
-
-      // alias->desc and current_mem->desc have the same length
-      // definition, thus no need to check for length here
-      strcpy(alias->desc, current_mem->desc);
+      alias->desc = current_mem->desc;
       alias->aliased_mem = existing_mem;
       ladd(current_part->mem_alias, alias);
 

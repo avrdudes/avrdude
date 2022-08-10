@@ -193,16 +193,18 @@ static int pickit2_open(PROGRAMMER * pgm, char * port)
     }
     else
     {
-        // get the device description while we're at it
-        short buff[PGM_DESCLEN-1], i;
-        HidD_GetProductString(PDATA(pgm)->usb_handle, buff, PGM_DESCLEN-1);
+        // Get the device description while we're at it and overlay it on pgm->desc
+        short wbuf[80-1];
+        char *cbuf = cfg_malloc("pickit2_open()", sizeof wbuf/sizeof*wbuf + (pgm->desc? strlen(pgm->desc): 0) + 2);
+        HidD_GetProductString(PDATA(pgm)->usb_handle, wbuf, sizeof wbuf/sizeof*wbuf);
 
-        // convert from wide chars, but do not overwrite trailing '\0'
-        memset(&(pgm->desc), 0, PGM_DESCLEN);
-        for (i = 0; i < (PGM_DESCLEN-1) && buff[i]; i++)
-        {
-            pgm->desc[i] = (char)buff[i]; // TODO what about little/big endian???
-        }
+        if(pgm->desc && *pgm->desc)
+          strcpy(cbuf, pgm->desc);
+
+        // Convert from wide chars and overlay over initial part of desc
+        for (int i = 0; i < sizeof wbuf/sizeof*wbuf && wbuf[i]; i++)
+          cbuf[i] = (char) wbuf[i]; // TODO what about little/big endian???
+        pgm->desc = cache_string(cbuf);
     }
 #else
     if (usb_open_device(&(PDATA(pgm)->usb_handle), PICKIT2_VID, PICKIT2_PID) < 0)

@@ -609,7 +609,7 @@ static int jtagmkI_initialize(PROGRAMMER * pgm, AVRPART * p)
   if (jtagmkI_reset(pgm) < 0)
     return -1;
 
-  strcpy(hfuse.desc, "hfuse");
+  hfuse.desc = cache_string("hfuse");
   if (jtagmkI_read_byte(pgm, p, &hfuse, 1, &b) < 0)
     return -1;
   if ((b & OCDEN) != 0)

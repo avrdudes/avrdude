@@ -94,7 +94,7 @@ void print_token(TOKEN *tkn);
 
 void pyytext(void);
 
-int capture_comment_char(int c);
+void capture_comment_str(const char *str);
 
 #ifdef __cplusplus
 }

@@ -83,10 +83,21 @@ int init_config(void)
 void *cfg_malloc(const char *funcname, size_t n) {
   void *ret = malloc(n);
   if(!ret) {
-    avrdude_message(MSG_INFO, "%s: out of memory in %s\n", progname, funcname);
+    avrdude_message(MSG_INFO, "%s: out of memory in %s (needed %lu bytes)\n", progname, funcname, (unsigned long) n);
     exit(1);
   }
   memset(ret, 0, n);
+  return ret;
+}
+
+void *cfg_realloc(const char *funcname, void *p, size_t n) {
+  void *ret;
+
+  if(!(ret = p? realloc(p, n): calloc(1, n))) {
+    avrdude_message(MSG_INFO, "%s: out of memory in %s (needed %lu bytes)\n", progname, funcname, (unsigned long) n);
+    exit(1);
+  }
+
   return ret;
 }
 
@@ -323,35 +334,45 @@ int read_config(const char * file)
 }
 
 
-// Linear-search cache for a few often-referenced strings
-const char *cache_string(const char *file) {
-  static char **fnames;
-  static int n=0;
+// Adapted version of a neat empirical hash function from comp.lang.c by Daniel Bernstein
+unsigned strhash(const char *str) {
+  unsigned c, hash = 5381, n = 0;
 
-  if(!file)
-    return NULL;
+  while((c = (unsigned char) *str++) && n++ < 20)
+    hash = 33*hash ^ c;
 
-  // Exists in cache?
-  for(int i=0; i<n; i++)
-    if(strcmp(fnames[i], file) == 0)
-      return fnames[i];
+  return hash;
+}
 
-  // Expand cache?
-  if(n%128 == 0) {
-    if(!(fnames = realloc(fnames, (n+128)*sizeof*fnames))) {
-      yyerror("cache_string(): out of memory");
-      return NULL;
-    }
-  }
 
-  fnames[n] = cfg_strdup("cache_string()", file);
+static char **hstrings[1<<12];
 
-  return fnames[n++];
+// Return a copy of the argument as hashed string
+const char *cache_string(const char *p) {
+  int h, k;
+  char **hs;
+
+  if(!p)
+    p = "(NULL)";
+
+  h = strhash(p) % (sizeof hstrings/sizeof*hstrings);
+  if(!(hs=hstrings[h]))
+    hs = hstrings[h] = (char **) cfg_realloc("cache_string()", NULL, (16+1)*sizeof**hstrings);
+
+  for(k=0; hs[k]; k++)
+    if(*p == *hs[k] && !strcmp(p, hs[k]))
+      return hs[k];
+
+  if(k && k%16 == 0)
+    hstrings[h] = (char **) cfg_realloc("cache_string()", hstrings[h], (k+16+1)*sizeof**hstrings);
+
+  hstrings[h][k+1]=NULL;
+
+  return hstrings[h][k] = cfg_strdup("cache_string()", p);
 }
 
 // Captures comments during parsing
-int capture_comment_char(int c) {
-  return c;
+void capture_comment_str(const char *p) {
 }
 
 
@@ -426,6 +447,12 @@ unsigned char *cfg_unescapeu(unsigned char *d, const unsigned char *s) {
     switch (*s) {
     case '\\':
       switch (*++s) {
+      case '\n':                // String continuation over new line
+#if '\n' != '\r'
+      case '\r':
+#endif
+        --d;
+        break;
       case 'n':
         *d = '\n';
         break;

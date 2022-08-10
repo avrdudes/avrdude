@@ -222,7 +222,7 @@ int dev_message(int msglvl, const char *fmt, ...) {
 
 
 
-static int dev_part_strct_entry(bool tsv, char *col0, char *col1, char *col2, const char *name, char *cont) {
+static int dev_part_strct_entry(bool tsv, const char *col0, const char *col1, const char *col2, const char *name, char *cont) {
   const char *n = name? name: "name_error";
   const char *c = cont? cont: "cont_error";
 
@@ -286,23 +286,22 @@ static int intcmp(int a, int b) {
 // Deep copies for comparison and raw output
 
 typedef struct {
+  char descbuf[32];
   AVRMEM base;
   OPCODE ops[AVR_OP_MAX];
 } AVRMEMdeep;
 
 static int avrmem_deep_copy(AVRMEMdeep *d, AVRMEM *m) {
-  size_t len;
-
   d->base = *m;
 
-  // Zap all bytes beyond terminating nul of desc array
-  len = strlen(m->desc)+1;
-  if(len < sizeof m->desc)
-    memset(d->base.desc + len, 0, sizeof m->desc - len);
+  // Note memory desc (name, really) is limited to 31 char here
+  memset(d->descbuf, 0, sizeof d->descbuf);
+  strncpy(d->descbuf, m->desc, sizeof d->descbuf-1);
 
   // Zap address values
   d->base.buf = NULL;
   d->base.tags = NULL;
+  d->base.desc = NULL;
   for(int i=0; i<AVR_OP_MAX; i++)
     d->base.op[i] = NULL;
 
@@ -334,6 +333,9 @@ static int memorycmp(AVRMEM *m1, AVRMEM *m2) {
 
 
 typedef struct {
+  char descbuf[64];
+  char idbuf[32];
+  char family_idbuf[16];
   AVRPART base;
   OPCODE ops[AVR_OP_MAX];
   AVRMEMdeep mems[40];
@@ -341,7 +343,7 @@ typedef struct {
 
 static int avrpart_deep_copy(AVRPARTdeep *d, AVRPART *p) {
   AVRMEM *m;
-  size_t len, di;
+  size_t di;
 
   memset(d, 0, sizeof *d);
 
@@ -351,20 +353,21 @@ static int avrpart_deep_copy(AVRPARTdeep *d, AVRPART *p) {
   d->base.config_file = NULL;
   d->base.lineno = 0;
 
-  // Zap all bytes beyond terminating nul of desc, id and family_id array
-  len = strlen(p->desc);
-  if(len < sizeof p->desc)
-    memset(d->base.desc + len, 0, sizeof p->desc - len);
-
-  len = strlen(p->family_id);
-  if(len < sizeof p->family_id)
-    memset(d->base.family_id + len, 0, sizeof p->family_id - len);
-
-  len = strlen(p->id);
-  if(len < sizeof p->id)
-    memset(d->base.id + len, 0, sizeof p->id - len);
+  // Copy over desc, id, and family_id
+  memset(d->descbuf, 0, sizeof d->descbuf);
+  if(d->descbuf)
+    strncpy(d->descbuf, p->desc, sizeof d->descbuf-1);
+  memset(d->idbuf, 0, sizeof d->idbuf);
+  if(d->idbuf)
+    strncpy(d->idbuf, p->id, sizeof d->idbuf-1);
+  memset(d->family_idbuf, 0, sizeof d->family_idbuf);
+  if(d->family_idbuf)
+    strncpy(d->family_idbuf, p->family_id, sizeof d->family_idbuf-1);
 
   // Zap address values
+  d->base.desc = NULL;
+  d->base.id = NULL;
+  d->base.family_id = NULL;
   d->base.mem = NULL;
   d->base.mem_alias = NULL;
   for(int i=0; i<AVR_OP_MAX; i++)
@@ -397,14 +400,14 @@ static int avrpart_deep_copy(AVRPARTdeep *d, AVRPART *p) {
 
 static char txtchar(unsigned char in) {
   in &= 0x7f;
-  return in == ' '? '_': in > ' ' && in < 0x7f? in: '.';
+  return in == 0? '.': in > ' ' && in < 0x7f? in: '_';
 }
 
 static void dev_raw_dump(const char *p, int nbytes, const char *name, const char *sub, int idx) {
   int n = (nbytes + 31)/32;
 
   for(int i=0; i<n; i++, p += 32, nbytes -= 32) {
-    dev_info("%s\t%s\t%02x%03x0: ", name, sub, idx, 2*i);
+    dev_info("%s\t%s\t%02x.%03x0: ", name, sub, idx, 2*i);
     for(int j=0; j<32; j++) {
       if(j && j%8 == 0)
         dev_info(" ");
@@ -429,7 +432,7 @@ static void dev_part_raw(AVRPART *part) {
   dev_raw_dump((char *) &dp.ops, sizeof dp.ops, part->desc, "ops", 1);
 
   for(int i=0; i<di; i++)
-    dev_raw_dump((char *) (dp.mems+i), sizeof dp.mems[i], part->desc, dp.mems[i].base.desc, i+2);
+    dev_raw_dump((char *) (dp.mems+i), sizeof dp.mems[i], part->desc, dp.mems[i].descbuf, i+2);
 }
 
 
@@ -680,7 +683,10 @@ void dev_output_part_defs(char *partdesc) {
         avr_add_mem_order(((AVRMEM_ALIAS *) ldata(lnm))->desc);
   }
 
-  nprinted = dev_nprinted;
+  if((nprinted = dev_nprinted)) {
+    dev_info("\n");
+    nprinted = dev_nprinted;
+  }
   for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1)) {
     AVRPART *p = ldata(ln1);
     int flashsize, flashoffset, flashpagesize, eepromsize , eepromoffset, eeprompagesize;
@@ -914,6 +920,8 @@ static void dev_pgm_raw(PROGRAMMER *pgm) {
   for(idx=0, ln=lfirst(dp.hvupdi_support); ln; ln=lnext(ln))
     dev_raw_dump(ldata(ln), sizeof(int), id, "hvupdi_", idx++);
 
+  if(dp.desc)
+    dev_raw_dump(dp.desc, strlen(dp.desc)+1, id, "desc", 0);
   // Dump cache_string values
   if(dp.usbdev && *dp.usbdev)
     dev_raw_dump(dp.usbdev, strlen(dp.usbdev)+1, id, "usbdev", 0);
@@ -925,14 +933,13 @@ static void dev_pgm_raw(PROGRAMMER *pgm) {
     dev_raw_dump(dp.usbproduct, strlen(dp.usbproduct)+1, id, "usbprod", 0);
 
   // Zap all bytes beyond terminating nul of desc, type and port array
-  if((len = strlen(dp.desc)+1) < sizeof dp.desc)
-    memset(dp.desc + len, 0, sizeof dp.desc - len);
   if((len = strlen(dp.type)+1) < sizeof dp.type)
     memset(dp.type + len, 0, sizeof dp.type - len);
   if((len = strlen(dp.port)+1) < sizeof dp.port)
     memset(dp.port + len, 0, sizeof dp.port - len);
 
   // Zap address values
+  dp.desc = NULL;
   dp.id = NULL;
   dp.parent_id = NULL;
   dp.initpgm = NULL;

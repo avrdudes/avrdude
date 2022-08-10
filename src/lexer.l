@@ -45,8 +45,6 @@ DIGIT    [0-9]
 HEXDIGIT [0-9a-fA-F]
 SIGN     [+-]
 
-%x incl
-%x comment
 %option nounput
 
 /* Bump resources for classic lex. */
@@ -73,16 +71,12 @@ SIGN     [+-]
 
 0x{HEXDIGIT}+ { yylval = hexnumber(yytext); return TKN_NUMBER; }
 
-#   { /* The following captures all '#' style comments to end of line */
-       BEGIN(comment); }
-<comment>[^\n]*\n+ { /* eat comments */
-  capture_comment_char('#');
+#[^\n]*\n+ { /* record and skip # comments */
+  capture_comment_str(yytext);
   for(int i=0; yytext[i]; i++) {
-    capture_comment_char(yytext[i]);
     if(yytext[i] == '\n')
       cfg_lineno++;
   }
-  BEGIN(INITIAL);
 }
 
 

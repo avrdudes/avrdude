@@ -1,4 +1,3 @@
-
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
@@ -31,44 +30,23 @@
  *** Elementary functions dealing with OPCODE structures
  ***/
 
-OPCODE * avr_new_opcode(void)
-{
-  OPCODE * m;
-
-  m = (OPCODE *)malloc(sizeof(*m));
-  if (m == NULL) {
-    avrdude_message(MSG_INFO, "avr_new_opcode(): out of memory\n");
-    exit(1);
-  }
-
-  memset(m, 0, sizeof(*m));
-
-  return m;
+OPCODE *avr_new_opcode(void) {
+  return (OPCODE *) cfg_malloc("avr_new_opcode()", sizeof(OPCODE));
 }
 
-static OPCODE * avr_dup_opcode(OPCODE * op)
-{
-  OPCODE * m;
-  
-  /* this makes life easier */
-  if (op == NULL) {
+static OPCODE *avr_dup_opcode(const OPCODE *op) {
+  if(op == NULL)                // Caller wants NULL if op == NULL
     return NULL;
-  }
 
-  m = (OPCODE *)malloc(sizeof(*m));
-  if (m == NULL) {
-    avrdude_message(MSG_INFO, "avr_dup_opcode(): out of memory\n");
-    exit(1);
-  }
-
+  OPCODE *m = (OPCODE *) cfg_malloc("avr_dup_opcode()", sizeof(*m));
   memcpy(m, op, sizeof(*m));
 
   return m;
 }
 
-void avr_free_opcode(OPCODE * op)
-{
-  free(op);
+void avr_free_opcode(OPCODE *op) {
+  if(op)
+    free(op);
 }
 
 
@@ -268,11 +246,10 @@ int avr_set_input(OPCODE * op, unsigned char * cmd, unsigned char data)
 /*
  * avr_get_output()
  *
- * Retreive output data bits from the command results based on the
+ * Retrieve output data bits from the command results based on the
  * opcode data.
  */
-int avr_get_output(OPCODE * op, unsigned char * res, unsigned char * data)
-{
+int avr_get_output(const OPCODE *op, const unsigned char *res, unsigned char *data) {
   int i, j, bit;
   unsigned char value;
   unsigned char mask;
@@ -301,8 +278,7 @@ int avr_get_output(OPCODE * op, unsigned char * res, unsigned char * data)
  * Calculate the byte number of the output data based on the
  * opcode data.
  */
-int avr_get_output_index(OPCODE * op)
-{
+int avr_get_output_index(const OPCODE *op) {
   int i, j;
 
   for (i=0; i<32; i++) {
@@ -353,34 +329,17 @@ static char * bittype(int type)
  *** Elementary functions dealing with AVRMEM structures
  ***/
 
-AVRMEM * avr_new_memtype(void)
-{
-  AVRMEM * m;
-
-  m = (AVRMEM *)malloc(sizeof(*m));
-  if (m == NULL) {
-    avrdude_message(MSG_INFO, "avr_new_memtype(): out of memory\n");
-    exit(1);
-  }
-
-  memset(m, 0, sizeof(*m));
+AVRMEM *avr_new_memtype(void) {
+  AVRMEM *m = (AVRMEM *) cfg_malloc("avr_new_memtype()", sizeof(*m));
+  m->desc = cache_string("");
   m->page_size = 1; // ensure not 0
 
   return m;
 }
 
-AVRMEM_ALIAS * avr_new_memalias(void)
-{
-  AVRMEM_ALIAS * m;
-
-  m = (AVRMEM_ALIAS *)malloc(sizeof(*m));
-  if (m == NULL) {
-    avrdude_message(MSG_INFO, "avr_new_memalias(): out of memory\n");
-    exit(1);
-  }
-
-  memset(m, 0, sizeof(*m));
-
+AVRMEM_ALIAS *avr_new_memalias(void) {
+  AVRMEM_ALIAS *m = (AVRMEM_ALIAS *) cfg_malloc("avr_new_memalias()", sizeof*m);
+  m->desc = cache_string("");
   return m;
 }
 
@@ -389,106 +348,79 @@ AVRMEM_ALIAS * avr_new_memalias(void)
  * Allocate and initialize memory buffers for each of the device's
  * defined memory regions.
  */
-int avr_initmem(AVRPART * p)
-{
-  LNODEID ln;
-  AVRMEM * m;
+int avr_initmem(const AVRPART *p) {
+  if(p == NULL || p->mem == NULL)
+    return -1;
 
-  for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
-    m = ldata(ln);
-    m->buf = (unsigned char *) malloc(m->size);
-    if (m->buf == NULL) {
-      avrdude_message(MSG_INFO, "%s: can't alloc buffer for %s size of %d bytes\n",
-              progname, m->desc, m->size);
-      return -1;
-    }
-    m->tags = (unsigned char *) malloc(m->size);
-    if (m->tags == NULL) {
-      avrdude_message(MSG_INFO, "%s: can't alloc buffer for %s size of %d bytes\n",
-              progname, m->desc, m->size);
-      return -1;
-    }
+  for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+    AVRMEM *m = ldata(ln);
+    m->buf  = (unsigned char *) cfg_malloc("avr_initmem()", m->size);
+    m->tags = (unsigned char *) cfg_malloc("avr_initmem()", m->size);
   }
 
   return 0;
 }
 
 
-AVRMEM * avr_dup_mem(AVRMEM * m)
-{
-  AVRMEM * n;
-  int i;
+AVRMEM *avr_dup_mem(const AVRMEM *m) {
+  AVRMEM *n = avr_new_memtype();
 
-  n = avr_new_memtype();
+  if(m) {
+    *n = *m;
 
-  *n = *m;
-
-  if (m->buf != NULL) {
-    n->buf = (unsigned char *)malloc(n->size);
-    if (n->buf == NULL) {
-      avrdude_message(MSG_INFO, "avr_dup_mem(): out of memory (memsize=%d)\n",
-                      n->size);
-      exit(1);
+    if(m->buf) {
+      n->buf = (unsigned char *) cfg_malloc("avr_dup_mem()", n->size);
+      memcpy(n->buf, m->buf, n->size);
     }
-    memcpy(n->buf, m->buf, n->size);
-  }
 
-  if (m->tags != NULL) {
-    n->tags = (unsigned char *)malloc(n->size);
-    if (n->tags == NULL) {
-      avrdude_message(MSG_INFO, "avr_dup_mem(): out of memory (memsize=%d)\n",
-                      n->size);
-      exit(1);
+    if(m->tags) {
+      n->tags = (unsigned char *) cfg_malloc("avr_dup_mem()", n->size);
+      memcpy(n->tags, m->tags, n->size);
     }
-    memcpy(n->tags, m->tags, n->size);
-  }
 
-  for (i = 0; i < AVR_OP_MAX; i++) {
-    n->op[i] = avr_dup_opcode(n->op[i]);
+    for(int i = 0; i < AVR_OP_MAX; i++)
+      n->op[i] = avr_dup_opcode(n->op[i]);
   }
 
   return n;
 }
 
-AVRMEM_ALIAS * avr_dup_memalias(AVRMEM_ALIAS * m)
-{
-  AVRMEM_ALIAS * n;
+AVRMEM_ALIAS *avr_dup_memalias(const AVRMEM_ALIAS *m) {
+  AVRMEM_ALIAS *n = avr_new_memalias();
 
-  n = avr_new_memalias();
-
-  *n = *m;
+  if(m)
+    *n = *m;
 
   return n;
 }
 
-void avr_free_mem(AVRMEM * m)
-{
-    if (m->buf != NULL) {
-      free(m->buf);
-      m->buf = NULL;
-    }
-    if (m->tags != NULL) {
-      free(m->tags);
-      m->tags = NULL;
-    }
-    for(size_t i=0; i<sizeof(m->op)/sizeof(m->op[0]); i++)
-    {
-      if (m->op[i] != NULL)
-      {
-        avr_free_opcode(m->op[i]);
-        m->op[i] = NULL;
-      }
-    }
-    free(m);
-}
+void avr_free_mem(AVRMEM * m) {
+  if(m == NULL)
+    return;
 
-void avr_free_memalias(AVRMEM_ALIAS * m)
-{
+  if(m->buf) {
+    free(m->buf);
+    m->buf = NULL;
+  }
+  if(m->tags) {
+    free(m->tags);
+    m->tags = NULL;
+  }
+  for(size_t i=0; i<sizeof(m->op)/sizeof(m->op[0]); i++) {
+    if(m->op[i]) {
+      avr_free_opcode(m->op[i]);
+      m->op[i] = NULL;
+    }
+  }
   free(m);
 }
 
-AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, const char * desc)
-{
+void avr_free_memalias(AVRMEM_ALIAS *m) {
+  if(m)
+    free(m);
+}
+
+AVRMEM_ALIAS *avr_locate_memalias(const AVRPART *p, const char *desc) {
   AVRMEM_ALIAS * m, * match;
   LNODEID ln;
   int matches;
@@ -514,8 +446,7 @@ AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, const char * desc)
   return NULL;
 }
 
-AVRMEM * avr_locate_mem_noalias(AVRPART * p, const char * desc)
-{
+AVRMEM *avr_locate_mem_noalias(const AVRPART *p, const char *desc) {
   AVRMEM * m, * match;
   LNODEID ln;
   int matches;
@@ -542,8 +473,7 @@ AVRMEM * avr_locate_mem_noalias(AVRPART * p, const char * desc)
 }
 
 
-AVRMEM * avr_locate_mem(AVRPART * p, const char * desc)
-{
+AVRMEM *avr_locate_mem(const AVRPART *p, const char *desc) {
   AVRMEM * m, * match;
   AVRMEM_ALIAS * alias;
   LNODEID ln;
@@ -577,24 +507,20 @@ AVRMEM * avr_locate_mem(AVRPART * p, const char * desc)
   return NULL;
 }
 
-AVRMEM_ALIAS * avr_find_memalias(AVRPART * p, AVRMEM * m_orig)
-{
-  AVRMEM_ALIAS * m;
-  LNODEID ln;
-
-  for (ln=lfirst(p->mem_alias); ln; ln=lnext(ln)) {
-    m = ldata(ln);
-    if (m->aliased_mem == m_orig)
-      return m;
-  }
+AVRMEM_ALIAS *avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig) {
+  if(p && p->mem_alias && m_orig)
+    for(LNODEID ln=lfirst(p->mem_alias); ln; ln=lnext(ln)) {
+      AVRMEM_ALIAS *m = ldata(ln);
+      if(m->aliased_mem == m_orig)
+        return m;
+    }
 
   return NULL;
 }
 
 
-void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
-                     int type, int verbose)
-{
+void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
+                     const AVRPART *p, int verbose) {
   static unsigned int prev_mem_offset;
   static int prev_mem_size;
   int i, j;
@@ -623,7 +549,7 @@ void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
       AVRMEM_ALIAS *ap = avr_find_memalias(p, m);
       /* Show alias if the current and the next memory section has the same offset
       and size, we're not out of band and a family_id is present */
-      char * mem_desc_alias = ap? ap->desc: "";
+      const char *mem_desc_alias = ap? ap->desc: "";
       fprintf(f,
               "%s%-11s %-8s %4d %5d %5d %4d %-6s %6d %4d %6d %5d %5d 0x%02x 0x%02x\n",
               prefix,
@@ -669,74 +595,63 @@ void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
  * Elementary functions dealing with AVRPART structures
  */
 
-AVRPART * avr_new_part(void)
-{
-  AVRPART * p;
+AVRPART *avr_new_part(void) {
+  AVRPART *p = (AVRPART *) cfg_malloc("avr_new_part()", sizeof(AVRPART));
   const char *nulp = cache_string("");
-
-  p = (AVRPART *)malloc(sizeof(AVRPART));
-  if (p == NULL) {
-    avrdude_message(MSG_INFO, "new_part(): out of memory\n");
-    exit(1);
-  }
 
   memset(p, 0, sizeof(*p));
 
-  p->id[0]   = 0;
-  p->desc[0] = 0;
+  // Initialise const char * and LISTID entities
+  p->desc = nulp;
+  p->id = nulp;
+  p->parent_id = nulp;
+  p->family_id = nulp;
+  p->config_file = nulp;
+  p->mem = lcreat(NULL, 0);
+  p->mem_alias = lcreat(NULL, 0);
+
+  // Default values
+  p->hvupdi_variant = -1;
+  memset(p->signature, 0xFF, 3);
   p->reset_disposition = RESET_DEDICATED;
   p->retry_pulse = PIN_AVR_SCK;
   p->flags = AVRPART_SERIALOK | AVRPART_PARALLELOK | AVRPART_ENABLEPAGEPROGRAMMING;
-  p->parent_id = nulp;
-  p->config_file = nulp;
-  p->lineno = 0;
-  memset(p->signature, 0xFF, 3);
   p->ctl_stack_type = CTL_STACK_NONE;
   p->ocdrev = -1;
-  p->hvupdi_variant = -1;
-
-  p->mem = lcreat(NULL, 0);
-  p->mem_alias = lcreat(NULL, 0);
+  p->lineno = 0;
 
   return p;
 }
 
 
-AVRPART * avr_dup_part(AVRPART * d)
-{
-  AVRPART * p;
-  LISTID save, save2;
-  LNODEID ln, ln2;
-  int i;
+AVRPART *avr_dup_part(const AVRPART *d) {
+  AVRPART *p = avr_new_part();
 
-  p = avr_new_part();
-  save = p->mem;
-  save2 = p->mem_alias;
+  if(d) {
+    *p = *d;
 
-  *p = *d;
+    // Duplicate the memory and alias chains
+    p->mem = lcreat(NULL, 0);
+    p->mem_alias = lcreat(NULL, 0);
 
-  p->mem = save;
-  p->mem_alias = save2;
-  for (ln=lfirst(d->mem); ln; ln=lnext(ln)) {
-    AVRMEM *m = ldata(ln);
-    AVRMEM *m2 = avr_dup_mem(m);
-    ladd(p->mem, m2);
-    // see if there is any alias for it
-    for (ln2=lfirst(d->mem_alias); ln2; ln2=lnext(ln2)) {
-      AVRMEM_ALIAS *a = ldata(ln2);
-      if (a->aliased_mem == m) {
-        // yes, duplicate it
-        AVRMEM_ALIAS *a2 = avr_dup_memalias(a);
-        // ... adjust the pointer ...
-        a2->aliased_mem = m2;
-        // ... and add to new list
-        ladd(p->mem_alias, a2);
+    for(LNODEID ln=lfirst(d->mem); ln; ln=lnext(ln)) {
+      AVRMEM *m = ldata(ln);
+      AVRMEM *m2 = avr_dup_mem(m);
+      ladd(p->mem, m2);
+      // See if there is any alias for it
+      for(LNODEID ln2=lfirst(d->mem_alias); ln2; ln2=lnext(ln2)) {
+        AVRMEM_ALIAS *a = ldata(ln2);
+        if (a->aliased_mem == m) {
+          // Yes, duplicate it, adjust the pointer and add to new list
+          AVRMEM_ALIAS *a2 = avr_dup_memalias(a);
+          a2->aliased_mem = m2;
+          ladd(p->mem_alias, a2);
+        }
       }
     }
-  }
 
-  for (i = 0; i < AVR_OP_MAX; i++) {
-    p->op[i] = avr_dup_opcode(p->op[i]);
+    for(int i = 0; i < AVR_OP_MAX; i++)
+      p->op[i] = avr_dup_opcode(p->op[i]);
   }
 
   return p;
@@ -758,61 +673,45 @@ void avr_free_part(AVRPART * d)
   free(d);
 }
 
-AVRPART * locate_part(LISTID parts, const char * partdesc)
-{
-  LNODEID ln1;
+AVRPART *locate_part(const LISTID parts, const char *partdesc) {
   AVRPART * p = NULL;
-  int found;
+  int found = 0;
 
   if(!parts || !partdesc)
     return NULL;
 
-  found = 0;
-
-  for (ln1=lfirst(parts); ln1 && !found; ln1=lnext(ln1)) {
+  for (LNODEID ln1=lfirst(parts); ln1 && !found; ln1=lnext(ln1)) {
     p = ldata(ln1);
     if ((strcasecmp(partdesc, p->id) == 0) ||
         (strcasecmp(partdesc, p->desc) == 0))
       found = 1;
   }
 
-  if (found)
-    return p;
-
-  return NULL;
+  return found? p: NULL;
 }
 
-AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode)
-{
-  LNODEID ln1;
-  AVRPART * p = NULL;
-
-  for (ln1=lfirst(parts); ln1; ln1=lnext(ln1)) {
-    p = ldata(ln1);
-    if (p->avr910_devcode == devcode)
-      return p;
-  }
-
-  return NULL;
-}
-
-AVRPART * locate_part_by_signature(LISTID parts, unsigned char * sig,
-                                   int sigsize)
-{
-  LNODEID ln1;
-  AVRPART * p = NULL;
-  int i;
-
-  if (sigsize == 3) {
-    for (ln1=lfirst(parts); ln1; ln1=lnext(ln1)) {
-      p = ldata(ln1);
-      for (i=0; i<3; i++)
-        if (p->signature[i] != sig[i])
-          break;
-      if (i == 3)
+AVRPART *locate_part_by_avr910_devcode(const LISTID parts, int devcode) {
+  if(parts)
+    for (LNODEID ln1=lfirst(parts); ln1; ln1=lnext(ln1)) {
+      AVRPART * p = ldata(ln1);
+      if (p->avr910_devcode == devcode)
         return p;
     }
-  }
+
+  return NULL;
+}
+
+AVRPART *locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize) {
+  if(parts && sigsize == 3)
+    for(LNODEID ln1=lfirst(parts); ln1; ln1=lnext(ln1)) {
+      AVRPART *p = ldata(ln1);
+      int i;
+      for(i=0; i<3; i++)
+        if(p->signature[i] != sig[i])
+          break;
+      if(i == 3)
+        return p;
+    }
 
   return NULL;
 }
@@ -841,12 +740,11 @@ void walk_avrparts(LISTID avrparts, walk_avrparts_cb cb, void *cookie)
 /*
  * Compare function to sort the list of programmers
  */
-static int sort_avrparts_compare(AVRPART * p1,AVRPART * p2)
-{
-  if(p1 == NULL || p2 == NULL) {
+static int sort_avrparts_compare(const AVRPART *p1, const AVRPART *p2) {
+  if(p1 == NULL || p1->desc == NULL || p2 == NULL || p2->desc == NULL)
     return 0;
-  }
-  return strncasecmp(p1->desc,p2->desc,AVR_DESCLEN);
+
+  return strcasecmp(p1->desc, p2->desc);
 }
 
 /*
@@ -868,9 +766,7 @@ static char * reset_disp_str(int r)
 }
 
 
-void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose)
-{
-  int i;
+void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose) {
   char * buf;
   const char * px;
   LNODEID ln;
@@ -905,23 +801,17 @@ void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose)
   fprintf(  f, "%sMemory Detail                 :\n\n", prefix);
 
   px = prefix;
-  i = strlen(prefix) + 5;
-  buf = (char *)malloc(i);
-  if (buf == NULL) {
-    /* ugh, this is not important enough to bail, just ignore it */
-  }
-  else {
-    strcpy(buf, prefix);
-    strcat(buf, "  ");
-    px = buf;
-  }
+  buf = (char *)cfg_malloc("avr_display()", strlen(prefix) + 5);
+  strcpy(buf, prefix);
+  strcat(buf, "  ");
+  px = buf;
 
-  if (verbose <= 2) {
-    avr_mem_display(px, f, NULL, p, 0, verbose);
-  }
+  if (verbose <= 2)
+    avr_mem_display(px, f, NULL, p, verbose);
+
   for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
     m = ldata(ln);
-    avr_mem_display(px, f, m, p, i, verbose);
+    avr_mem_display(px, f, m, p, verbose);
   }
 
   if (buf)

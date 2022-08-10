@@ -306,11 +306,11 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     return LIBAVRDUDE_SOFTFAIL;
   }
 
-  AVRMEM_ALIAS * alias_mem = avr_find_memalias(p, mem);
-  char alias_mem_desc[AVR_DESCLEN + 1] = "";
-  if(alias_mem) {
-    strcat(alias_mem_desc, "/");
-    strcat(alias_mem_desc, alias_mem->desc);
+  AVRMEM_ALIAS *alias_mem = avr_find_memalias(p, mem);
+  char *alias_mem_desc = cfg_malloc("do_op()", 2 + (alias_mem && alias_mem->desc? strlen(alias_mem->desc): 0));
+  if(alias_mem && alias_mem->desc && *alias_mem->desc) {
+    *alias_mem_desc = '/';
+    strcpy(alias_mem_desc+1, alias_mem->desc);
   }
   
   switch (upd->op) {
