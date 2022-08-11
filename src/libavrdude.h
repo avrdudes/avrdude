@@ -215,7 +215,8 @@ typedef struct opcode {
 typedef struct avrpart {
   const char  * desc;               /* long part name */
   const char  * id;                 /* short part name */
-  const char  * parent_id;          /* parent id if set, for -p.../s */
+  LISTID        comments;           // Used by developer options -p*/[ASsr...]
+  const char  * parent_id;          /* Used by developer options */
   const char  * family_id;          /* family id in the SIB (avr8x) */
   int           hvupdi_variant;     /* HV pulse on UPDI pin, no pin or RESET pin */
   int           stk500_devcode;     /* stk500 device code */
@@ -285,6 +286,7 @@ typedef struct avrpart {
 #define AVR_MEMDESCLEN 64
 typedef struct avrmem {
   const char *desc;           /* memory description ("flash", "eeprom", etc) */
+  LISTID comments;            // Used by developer options -p*/[ASsr...]
   int paged;                  /* page addressed (e.g. ATmega flash) */
   int size;                   /* total memory size in bytes */
   int page_size;              /* size of memory page (if page addressed) */
@@ -684,7 +686,8 @@ typedef struct programmer_t {
   LISTID id;
   const char *desc;
   void (*initpgm)(struct programmer_t *pgm);
-  const char *parent_id;        // Used by developer options -c*/[sr...]
+  LISTID        comments;       // Used by developer options -c*/[ASsr...]
+  const char *parent_id;        // Used by developer options
   struct pindef_t pin[N_PINS];
   conntype_t conntype;
   int baudrate;

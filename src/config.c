@@ -371,10 +371,98 @@ const char *cache_string(const char *p) {
   return hstrings[h][k] = cfg_strdup("cache_string()", p);
 }
 
-// Captures comments during parsing
-void capture_comment_str(const char *p) {
+
+static LISTID cfg_comms;        // A chain of comment lines
+static LISTID cfg_prologue;     // Comment lines at start of avrdude.conf
+static char *lkw;               // Last seen keyword
+static int lkw_lineno;          // Line number of that
+
+static LISTID cfg_strctcomms;   // Passed on to config_gram.y
+static LISTID cfg_pushedcomms;  // Temporarily pushed main comments
+static int cfg_pushed;          // ... for memory sections
+
+COMMENT *locate_comment(const LISTID comments, const char *where, int rhs) {
+  if(comments)
+    for(LNODEID ln=lfirst(comments); ln; ln=lnext(ln)) {
+      COMMENT *n = ldata(ln);
+      if(n && rhs == n->rhs && n->kw && strcmp(where, n->kw) == 0)
+        return n;
+    }
+
+  return NULL;
 }
 
+static void addcomment(int rhs) {
+  if(lkw) {
+    COMMENT *node = cfg_malloc("addcomment()", sizeof(*node));
+    node->rhs = rhs;
+    node->kw = cfg_strdup("addcomment()", lkw);
+    node->comms = cfg_comms;
+    cfg_comms = NULL;
+    if(!cfg_strctcomms)
+      cfg_strctcomms = lcreat(NULL, 0);
+    ladd(cfg_strctcomms, node);
+  }
+}
+
+// Capture prologue during parsing (triggered by lexer.l)
+void cfg_capture_prologue(void) {
+  cfg_prologue = cfg_comms;
+  cfg_comms = NULL;
+}
+
+LISTID cfg_get_prologue(void) {
+  return cfg_prologue;
+}
+
+// Captures comments during parsing
+void capture_comment_str(const char *com, int lineno) {
+  if(!cfg_comms)
+    cfg_comms = lcreat(NULL, 0);
+  ladd(cfg_comms, cfg_strdup("capture_comment_str()", com));
+
+  // Last keyword lineno is the same as this comment's
+  if(lkw && lkw_lineno == lineno)
+    addcomment(1);              // Register comms to show right of lkw = ...;
+}
+
+// Capture assignments (keywords left of =) and associate comments to them
+void capture_lvalue_kw(const char *kw, int lineno) {
+  if(!strcmp(kw, "memory")) {   // Push part comments and start memory comments
+    if(!cfg_pushed) {           // config_gram.y pops the part comments
+      cfg_pushed = 1;
+      cfg_pushedcomms = cfg_strctcomms;
+      cfg_strctcomms = NULL;
+    }
+  }
+
+  if(!strcmp(kw, "programmer") || !strcmp(kw, "part") || !strcmp(kw, "memory"))
+    kw = "*";                   // Show comment before programmer/part/memory
+
+  if(lkw)
+    free(lkw);
+  lkw = cfg_strdup("capture_lvalue_kw()", kw);
+  lkw_lineno = lineno;
+  if(cfg_comms)                 // Accrued list of # one-line comments
+    addcomment(0);              // Register comment to appear before lkw assignment
+}
+
+// config_gram.y calls this once for each programmer/part/memory structure
+LISTID cfg_move_comments(void) {
+  capture_lvalue_kw(";", -1);
+
+  LISTID ret = cfg_strctcomms;
+  cfg_strctcomms = NULL;
+  return ret;
+}
+
+// config_gram.y calls this after ingressing the memory structure
+void cfg_pop_comms(void) {
+  if(cfg_pushed) {
+    cfg_pushed = 0;
+    cfg_strctcomms = cfg_pushedcomms;
+  }
+}
 
 // Convert the next n hex digits of s to a hex number
 static unsigned int tohex(const unsigned char *s, unsigned int n) {
@@ -558,12 +646,12 @@ char *cfg_unescape(char *d, const char *s) {
   return (char *) cfg_unescapeu((unsigned char *) d, (const unsigned char *) s);
 }
 
-// Return an escaped string that looks like a C-style input string incl quotes, memory is malloc()ed
+// Return an escaped string that looks like a C-style input string incl quotes, memory is malloc'd
 char *cfg_escape(const char *s) {
-  char *ret = (char *) cfg_malloc("cfg_escape()", 4*strlen(s)+2+3), *d = ret;
+  char buf[50*1024], *d = buf;
 
   *d++ = '"';
-  for(; *s; s++) {
+  for(; *s && d-buf < sizeof buf-7; s++) {
     switch(*s) {
     case '\n':
       *d++ = '\\'; *d++ = 'n';
@@ -602,5 +690,5 @@ char *cfg_escape(const char *s) {
   *d++ = '"';
   *d = 0;
 
-  return ret;
+  return cfg_strdup("cfg_escape()", buf);
 }

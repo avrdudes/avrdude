@@ -30,6 +30,13 @@
 #endif
 
 
+typedef struct {
+  char *kw;                     // Keyword near the comments
+  LISTID comms;                 // Chained list of comments
+  int rhs;                      // Comments to print rhs of keyword line
+} COMMENT;
+
+
 enum { V_NONE, V_NUM, V_NUM_REAL, V_STR };
 typedef struct value_t {
   int      type;
@@ -94,7 +101,19 @@ void print_token(TOKEN *tkn);
 
 void pyytext(void);
 
-void capture_comment_str(const char *str);
+COMMENT *locate_comment(const LISTID comments, const char *where, int rhs);
+
+void cfg_capture_prologue(void);
+
+LISTID cfg_get_prologue(void);
+
+void capture_comment_str(const char *com, int lineno);
+
+void capture_lvalue_kw(const char *kw, int lineno);
+
+LISTID cfg_move_comments(void);
+
+void cfg_pop_comms(void);
 
 #ifdef __cplusplus
 }

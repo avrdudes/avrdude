@@ -244,6 +244,14 @@ static void replace_backslashes(char *s)
   }
 }
 
+// Return 2 if string is * or starts with */, 1 if string contains /, 0 otherwise
+static int dev_opt(char *str) {
+  return
+    !str? 0:
+    !strcmp(str, "*") || !strncmp(str, "*/", 2)? 2:
+    !!strchr(str, '/');
+}
+
 
 /*
  * main routine
@@ -752,20 +760,14 @@ int main(int argc, char * argv [])
     bitclock = default_bitclock;
   }
 
+  // Developer options to print parts and/or programmer entries of avrdude.conf
+  int dev_opt_c = dev_opt(programmer); // -c <wildcard>/[sSArt]
+  int dev_opt_p = dev_opt(partdesc);   // -p <wildcard>/[dsSArcow*t]
 
-  int dev_opts = 0;
-  // Developer option -c <wildcard>/[ASsrt] prints programmer description(s) and exits
-  if(programmer && (strcmp(programmer, "*") == 0 || strchr(programmer, '/'))) {
-    dev_output_pgm_defs(cfg_strdup("main()", programmer));
-    dev_opts = 1;
-  }
-  // Developer option -p <wildcard>/[dASsrcow*t] prints part description(s) and exits
-  if(partdesc && (strcmp(partdesc, "*") == 0 || strchr(partdesc, '/'))) {
-    dev_output_part_defs(partdesc);
-    dev_opts = 1;
-  }
-  if(dev_opts)
+  if(dev_opt_c || dev_opt_p) {  // See -c/h and or -p/h
+    dev_output_pgm_part(dev_opt_c, programmer, dev_opt_p, partdesc);
     exit(0);
+  }
 
   avrdude_message(MSG_NOTICE, "\n");
 

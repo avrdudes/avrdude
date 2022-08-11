@@ -48,6 +48,7 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
+#include "config.h"
 
 #include "developer_opts.h"
 #include "developer_opts_private.h"
@@ -221,8 +222,49 @@ int dev_message(int msglvl, const char *fmt, ...) {
 }
 
 
+// Any of the strings in the list contains subs as substring?
+int dev_has_subsstr_comms(const LISTID comms, const char *subs) {
+  if(comms)
+    for(LNODEID ln=lfirst(comms); ln; ln=lnext(ln))
+       if(strstr((char *) ldata(ln), subs))
+         return 1;
+  return 0;
+}
 
-static int dev_part_strct_entry(bool tsv, const char *col0, const char *col1, const char *col2, const char *name, char *cont) {
+// Print a chained list of strings
+void dev_print_comment(const LISTID comms) {
+  if(comms)
+    for(LNODEID ln=lfirst(comms); ln; ln=lnext(ln))
+       dev_info("%s", (char *) ldata(ln));
+}
+
+// Conditional output of part, memory or programmer's comments field
+static void dev_cout(const LISTID comms, const char *name, int rhs, int elself) {
+  COMMENT *cp;
+
+  if((cp = locate_comment(comms, name, rhs)))
+    dev_print_comment(cp->comms);
+  else if(elself)
+    dev_info("\n");
+}
+
+// Print part->comments, mem->comments or pgm->comments (for debugging)
+void dev_print_kw_comments(const LISTID comms) {
+  if(comms)
+    for(LNODEID ln=lfirst(comms); ln; ln=lnext(ln)) {
+      COMMENT *n = ldata(ln);
+      if(n && n->comms) {
+        dev_info(">>> %s %c\n", n->kw, n->rhs? '>': '<');
+        dev_print_comment(n->comms);
+      }
+    }
+}
+
+// Ideally all assignment outputs run via this function
+static int dev_part_strct_entry(bool tsv,               // Print as spreadsheet?
+  const char *col0, const char *col1, const char *col2, // Descriptors of item
+  const char *name, char *cont, const LISTID comms) {   // Name, contents and comments
+
   const char *n = name? name: "name_error";
   const char *c = cont? cont: "cont_error";
 
@@ -239,8 +281,9 @@ static int dev_part_strct_entry(bool tsv, const char *col0, const char *col1, co
     dev_info("%s\t%s\n", n, c);
   } else {                      // Grammar conform
     int indent = col2 && strcmp(col2, "part");
-
-    printf("%*s%-*s = %s;\n", indent? 8: 4, "", indent? 15: 19, n, c);
+    dev_cout(comms, n, 0, 0); // Print comments before the line
+    dev_info("%*s%-*s = %s;", indent? 8: 4, "", indent? 15: 19, n, c);
+    dev_cout(comms, n, 1, 1);  // Print comments on rhs
   }
 
   if(cont)
@@ -267,14 +310,18 @@ static void dev_stack_out(bool tsv, AVRPART *p, const char *name, unsigned char 
 
   if(tsv)
     dev_info(".pt\t%s\t%s\t", p->desc, name);
-  else
+  else {
+    dev_cout(p->comments, name, 0, 0);
     dev_info("    %-19s =%s", name, ns <=8? " ": "");
+  }
 
   if(ns <= 0)
-    dev_info(tsv? "NULL\n": "NULL;\n");
+    dev_info(tsv? "NULL\n": "NULL;");
   else
     for(int i=0; i<ns; i++)
-      dev_info("%s0x%02x%s", !tsv && ns > 8 && i%8 == 0? "\n        ": "", stack[i], i+1<ns? ", ": tsv? "\n": ";\n");
+      dev_info("%s0x%02x%s", !tsv && ns > 8 && i%8 == 0? "\n        ": "", stack[i], i+1<ns? ", ": tsv? "\n": ";");
+
+  dev_cout(p->comments, name, 1, 1);
 }
 
 
@@ -291,7 +338,7 @@ typedef struct {
   OPCODE ops[AVR_OP_MAX];
 } AVRMEMdeep;
 
-static int avrmem_deep_copy(AVRMEMdeep *d, AVRMEM *m) {
+static int avrmem_deep_copy(AVRMEMdeep *d, const AVRMEM *m) {
   d->base = *m;
 
   // Note memory desc (name, really) is limited to 31 char here
@@ -299,17 +346,16 @@ static int avrmem_deep_copy(AVRMEMdeep *d, AVRMEM *m) {
   strncpy(d->descbuf, m->desc, sizeof d->descbuf-1);
 
   // Zap address values
+  d->base.comments = NULL;
   d->base.buf = NULL;
   d->base.tags = NULL;
   d->base.desc = NULL;
   for(int i=0; i<AVR_OP_MAX; i++)
     d->base.op[i] = NULL;
 
-
   // Copy over the SPI operations themselves
-  memset(d->base.op, 0, sizeof d->base.op);
   memset(d->ops, 0, sizeof d->ops);
-  for(size_t i=0; i<sizeof d->ops/sizeof *d->ops; i++)
+  for(size_t i=0; i<AVR_OP_MAX; i++)
     if(m->op[i])
       d->ops[i] = *m->op[i];
 
@@ -324,7 +370,7 @@ static int memorycmp(AVRMEM *m1, AVRMEM *m2) {
 
   if(!m1 || !m2)
     return m1? -1: 1;
-  
+
   avrmem_deep_copy(&dm1, m1);
   avrmem_deep_copy(&dm2, m2);
 
@@ -341,7 +387,7 @@ typedef struct {
   AVRMEMdeep mems[40];
 } AVRPARTdeep;
 
-static int avrpart_deep_copy(AVRPARTdeep *d, AVRPART *p) {
+static int avrpart_deep_copy(AVRPARTdeep *d, const AVRPART *p) {
   AVRMEM *m;
   size_t di;
 
@@ -349,6 +395,7 @@ static int avrpart_deep_copy(AVRPARTdeep *d, AVRPART *p) {
 
   d->base = *p;
 
+  d->base.comments = NULL;
   d->base.parent_id = NULL;
   d->base.config_file = NULL;
   d->base.lineno = 0;
@@ -373,8 +420,7 @@ static int avrpart_deep_copy(AVRPARTdeep *d, AVRPART *p) {
   for(int i=0; i<AVR_OP_MAX; i++)
     d->base.op[i] = NULL;
 
-  // Copy over the SPI operations
-  memset(d->base.op, 0, sizeof d->base.op);
+  // Copy over all used SPI operations
   memset(d->ops, 0, sizeof d->ops);
   for(int i=0; i<AVR_OP_MAX; i++)
     if(p->op[i])
@@ -403,7 +449,8 @@ static char txtchar(unsigned char in) {
   return in == 0? '.': in > ' ' && in < 0x7f? in: '_';
 }
 
-static void dev_raw_dump(const char *p, int nbytes, const char *name, const char *sub, int idx) {
+static void dev_raw_dump(const void *v, int nbytes, const char *name, const char *sub, int idx) {
+  const unsigned char *p = v;
   int n = (nbytes + 31)/32;
 
   for(int i=0; i<n; i++, p += 32, nbytes -= 32) {
@@ -412,41 +459,69 @@ static void dev_raw_dump(const char *p, int nbytes, const char *name, const char
       if(j && j%8 == 0)
         dev_info(" ");
       if(j < nbytes)
-        dev_info("%02x", (unsigned char) p[j]);
+        dev_info("%02x", p[j]);
       else
         dev_info("  ");
     }
     dev_info(" ");
     for(int j=0; j<32 && j < nbytes; j++)
-      dev_info("%c", txtchar((unsigned char) p[j]));
+      dev_info("%c", txtchar(p[j]));
     dev_info("\n");
   }
 }
 
+static int _is_all_zero(const void *p, size_t n) {
+  const char *q = (const char *) p;
+  return n <= 0 || (*q == 0 && memcmp(q, q+1, n-1) == 0);
+}
+
+static char *opsnm(const char *pre, int opnum) {
+  static char ret[128];
+  sprintf(ret, "%.31s.%.95s", pre, opcodename(opnum));
+  return ret;
+}
 
 static void dev_part_raw(AVRPART *part) {
   AVRPARTdeep dp;
   int di = avrpart_deep_copy(&dp, part);
 
-  dev_raw_dump((char *) &dp.base, sizeof dp.base, part->desc, "part", 0);
-  dev_raw_dump((char *) &dp.ops, sizeof dp.ops, part->desc, "ops", 1);
+  dev_raw_dump(&dp.base, sizeof dp.base, part->desc, "part", 0);
+  for(int i=0; i<AVR_OP_MAX; i++)
+    if(!_is_all_zero(dp.ops+i, sizeof*dp.ops))
+      dev_raw_dump(dp.ops+i, sizeof*dp.ops, part->desc, opsnm("part", i), 1);
 
-  for(int i=0; i<di; i++)
-    dev_raw_dump((char *) (dp.mems+i), sizeof dp.mems[i], part->desc, dp.mems[i].descbuf, i+2);
+  for(int i=0; i<di; i++) {
+    char *nm = dp.mems[i].descbuf;
+
+    dev_raw_dump(nm, sizeof dp.mems[i].descbuf, part->desc, nm, i+2);
+    dev_raw_dump(&dp.mems[i].base, sizeof dp.mems[i].base, part->desc, nm, i+2);
+    for(int j=0; j<AVR_OP_MAX; j++)
+      if(!_is_all_zero(dp.mems[i].ops+j, sizeof(OPCODE)))
+        dev_raw_dump(dp.mems[i].ops+j, sizeof(OPCODE), part->desc, opsnm(nm, j), i+2);
+  }
 }
 
 
 static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
-
   char *descstr = cfg_escape(p->desc);
+  COMMENT *cp;
+
   if(!tsv) {
-    dev_info("#------------------------------------------------------------\n");
-    dev_info("# %.*s\n", strlen(descstr+1)-1, descstr+1);
-    dev_info("#------------------------------------------------------------\n");
+    const char *del = "#------------------------------------------------------------";
+    cp = locate_comment(p->comments, "*", 0);
+
+    if(!cp || !dev_has_subsstr_comms(cp->comms, del)) {
+      dev_info("%s\n", del);
+      dev_info("# %.*s\n", strlen(descstr)-2, descstr+1); // Remove double quotes
+      dev_info("%s\n\n", del);
+    }
+    if(cp)
+      dev_print_comment(cp->comms);
+
     if(p->parent_id && *p->parent_id)
-      dev_info("\npart parent \"%s\"\n", p->parent_id);
+      dev_info("part parent \"%s\"\n", p->parent_id);
     else
-      dev_info("\npart\n");
+      dev_info("part\n");
   }
 
   _if_partout_str(strcmp, descstr, desc);
@@ -548,7 +623,7 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
 
   for(int i=0; i < AVR_OP_MAX; i++)
     if(!base || opcodecmp(p->op[i], base->op[i], i))
-      dev_part_strct_entry(tsv, ".ptop", p->desc, "part", opcodename(i), opcode2str(p->op[i], i, !tsv));
+      dev_part_strct_entry(tsv, ".ptop", p->desc, "part", opcodename(i), opcode2str(p->op[i], i, !tsv), p->comments);
 
   for(size_t mi=0; mi < sizeof avr_mem_order/sizeof *avr_mem_order && avr_mem_order[mi]; mi++) {
     AVRMEM *m, *bm;
@@ -569,7 +644,8 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
       if(!memorycmp(bm, m))     // Same memory bit for bit, no need to instantiate
         continue;
 
-      dev_info("\n    memory \"%s\"\n", m->desc);
+      dev_cout(m->comments, "*", 0, 1);
+      dev_info("    memory \"%s\"\n", m->desc);
     }
 
     _if_memout_yn(paged);
@@ -589,10 +665,12 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
 
     for(int i=0; i < AVR_OP_MAX; i++)
       if(!bm || opcodecmp(bm->op[i], m->op[i], i))
-        dev_part_strct_entry(tsv, ".ptmmop", p->desc, m->desc, opcodename(i), opcode2str(m->op[i], i, !tsv));
+        dev_part_strct_entry(tsv, ".ptmmop", p->desc, m->desc, opcodename(i), opcode2str(m->op[i], i, !tsv), m->comments);
 
-    if(!tsv)
+    if(!tsv) {
+      dev_cout(m->comments, ";", 0, 0);
       dev_info("    ;\n");
+    }
 
     for(LNODEID lnm=lfirst(p->mem_alias); lnm; lnm=lnext(lnm)) {
       AVRMEM_ALIAS *ma = ldata(lnm);
@@ -605,8 +683,37 @@ static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
     }
   }
 
-  if(!tsv)
+  if(!tsv) {
+    dev_cout(p->comments, ";", 0, 0);
     dev_info(";\n");
+  }
+}
+
+
+void dev_output_pgm_part(int dev_opt_c, char *programmer, int dev_opt_p, char *partdesc) {
+  if(dev_opt_c == 2 && dev_opt_p == 2) {
+    char *p;
+
+    dev_print_comment(cfg_get_prologue());
+
+    dev_info("default_programmer = %s;\n", p = cfg_escape(default_programmer)); free(p);
+    dev_info("default_parallel   = %s;\n", p = cfg_escape(default_parallel)); free(p);
+    dev_info("default_serial     = %s;\n", p = cfg_escape(default_serial)); free(p);
+    dev_info("default_spi        = %s;\n", p = cfg_escape(default_spi)); free(p);
+
+    dev_info("\n#\n# PROGRAMMER DEFINITIONS\n#\n\n");
+  }
+
+  if(dev_opt_c)
+    dev_output_pgm_defs(cfg_strdup("main()", programmer));
+
+  if(dev_opt_p == 2 && dev_opt_c)
+    dev_info("\n");
+  if(dev_opt_p == 2)
+    dev_info("#\n# PART DEFINITIONS\n#\n");
+
+  if(dev_opt_p)
+    dev_output_part_defs(cfg_strdup("main()", partdesc));
 }
 
 
@@ -941,6 +1048,7 @@ static void dev_pgm_raw(PROGRAMMER *pgm) {
   // Zap address values
   dp.desc = NULL;
   dp.id = NULL;
+  dp.comments = NULL;
   dp.parent_id = NULL;
   dp.initpgm = NULL;
   dp.usbpid = NULL;
@@ -968,29 +1076,38 @@ static const char *connstr(conntype_t conntype) {
 static void dev_pgm_strct(PROGRAMMER *pgm, bool tsv, PROGRAMMER *base) {
   char *id = ldata(lfirst(pgm->id));
   LNODEID ln;
+  COMMENT *cp;
   int firstid;
 
   if(!tsv) {
-    dev_info("#------------------------------------------------------------\n");
-    dev_info("# ");
-    for(firstid=1, ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
-      if(!firstid)
-        dev_info("/");
-      firstid = 0;
-      dev_info("%s", ldata(ln));
+    const char *del = "#------------------------------------------------------------";
+    cp = locate_comment(pgm->comments, "*", 0);
+
+    if(!cp || !dev_has_subsstr_comms(cp->comms, del)) {
+      dev_info("%s\n# ", del);
+      for(firstid=1, ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
+        if(!firstid)
+          dev_info("/");
+        firstid = 0;
+        dev_info("%s", ldata(ln));
+      }
+      dev_info("\n%s\n\n", del);
     }
-    dev_info("\n");
-    dev_info("#------------------------------------------------------------\n");
+    if(cp)
+      dev_print_comment(cp->comms);
+
     if(pgm->parent_id && *pgm->parent_id)
-      dev_info("\nprogrammer parent \"%s\"\n", pgm->parent_id);
+      dev_info("programmer parent \"%s\"\n", pgm->parent_id);
     else
-      dev_info("\nprogrammer\n");
+      dev_info("programmer\n");
   }
 
   if(tsv)
     dev_info(".prog\t%s\tid\t", id);
-  else
+  else {
+    dev_cout(pgm->comments, "id", 0, 0);
     dev_info("    %-19s = ", "id");
+  }
   for(firstid=1, ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
     if(!firstid)
       dev_info(", ");
@@ -999,7 +1116,12 @@ static void dev_pgm_strct(PROGRAMMER *pgm, bool tsv, PROGRAMMER *base) {
     dev_info("%s", str);
     free(str);
   }
-  dev_info(tsv? "\n": ";\n");
+  if(tsv)
+    dev_info("\n");
+  else {
+    dev_info(";");
+    dev_cout(pgm->comments, "id", 1, 1);
+  }
 
   _if_pgmout_str(strcmp, cfg_escape(pgm->desc), desc);
   _pgmout_fmt("type", "\"%s\"", locate_programmer_type_id(pgm->initpgm));
@@ -1012,15 +1134,22 @@ static void dev_pgm_strct(PROGRAMMER *pgm, bool tsv, PROGRAMMER *base) {
   if(pgm->usbpid && lfirst(pgm->usbpid)) {
     if(tsv)
       dev_info(".prog\t%s\tusbpid\t", id);
-    else
+    else {
+      dev_cout(pgm->comments, "usbpid", 0, 0);
       dev_info("    %-19s = ", "usbpid");
+    }
     for(firstid=1, ln=lfirst(pgm->usbpid); ln; ln=lnext(ln)) {
       if(!firstid)
         dev_info(", ");
       firstid = 0;
       dev_info("0x%04x", *(unsigned int *) ldata(ln));
     }
-    dev_info(tsv? "\n": ";\n");
+    if(tsv)
+      dev_info("\n");
+    else {
+      dev_info(";");
+      dev_cout(pgm->comments, "usbpid", 1, 1);
+    }
   }
 
   _if_pgmout_str(strcmp, cfg_escape(pgm->usbdev), usbdev);
@@ -1039,20 +1168,28 @@ static void dev_pgm_strct(PROGRAMMER *pgm, bool tsv, PROGRAMMER *base) {
   if(pgm->hvupdi_support && lfirst(pgm->hvupdi_support)) {
     if(tsv)
       dev_info(".prog\t%s\thvupdu_support\t", id);
-    else
+    else {
+      dev_cout(pgm->comments, "hvupdi_support", 0, 0);
       dev_info("    %-19s = ", "hvupdi_support");
+    }
     for(firstid=1, ln=lfirst(pgm->hvupdi_support); ln; ln=lnext(ln)) {
       if(!firstid)
         dev_info(", ");
       firstid = 0;
       dev_info("%d", *(unsigned int *) ldata(ln));
     }
-    dev_info(tsv? "\n": ";\n");
+    if(tsv)
+      dev_info("\n");
+    else {
+      dev_info(";");
+      dev_cout(pgm->comments, "hvupdi_support", 1, 1);
+    }
   }
 
-
-  if(!tsv)
+  if(!tsv) {
+    dev_cout(pgm->comments, ";", 0, 0);
     dev_info(";\n");
+  }
 }
 
 

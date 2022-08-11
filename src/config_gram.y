@@ -297,6 +297,7 @@ prog_def :
         lrmv_d(programmers, existing_prog);
         pgm_free(existing_prog);
       }
+      current_prog->comments = cfg_move_comments();
       LISTADD(programmers, current_prog);
 //      pgm_fill_old_pins(current_prog); // TODO to be removed if old pin data no longer needed
 //      pgm_display_generic(current_prog, id);
@@ -322,6 +323,7 @@ prog_decl :
       }
       current_prog = pgm_dup(pgm);
       current_prog->parent_id = cache_string($3->value.string);
+      current_prog->comments = NULL;
       current_prog->config_file = cache_string(cfg_infile);
       current_prog->lineno = cfg_lineno;
       free_token($3);
@@ -341,32 +343,33 @@ part_def :
         YYABORT;
       }
 
-      /*
-       * perform some sanity checking, and compute the number of bits
-       * to shift a page for constructing the page address for
-       * page-addressed memories.
-       */
+      // Sanity checks for memory sizes and compute/override num_pages entry
       for (ln=lfirst(current_part->mem); ln; ln=lnext(ln)) {
         m = ldata(ln);
         if (m->paged) {
-          if (m->page_size == 0) {
-            yyerror("must specify page_size for paged memory");
+          if (m->size <= 0) {
+            yyerror("must specify a positive size for paged memory %s", m->desc);
             YYABORT;
           }
-          if (m->num_pages == 0) {
-            yyerror("must specify num_pages for paged memory");
+          if (m->page_size <= 0) {
+            yyerror("must specify a positive page size for paged memory %s", m->desc);
             YYABORT;
           }
-          if (m->size != m->page_size * m->num_pages) {
-            yyerror("page size (%u) * num_pages (%u) = "
-                    "%u does not match memory size (%u)",
-                    m->page_size,
-                    m->num_pages,
-                    m->page_size * m->num_pages,
-                    m->size);
+          // Code base relies on page_size being a power of 2 in some places
+          if (m->page_size & (m->page_size - 1)) {
+            yyerror("page size must be a power of 2 for paged memory %s", m->desc);
             YYABORT;
           }
+          // Code base relies on size being a multiple of page_size
+          if (m->size % m->page_size) {
+            yyerror("size must be a multiple of page size for paged memory %s", m->desc);
+            YYABORT;
+          }
+          // Warn if num_pages was specified but is inconsistent with size and page size
+          if (m->num_pages && m->num_pages != m->size / m->page_size)
+            yywarning("overriding num_page to be %d for memory %s", m->size/m->page_size, m->desc);
 
+          m->num_pages = m->size / m->page_size;
         }
       }
 
@@ -382,6 +385,8 @@ part_def :
         lrmv_d(part_list, existing_part);
         avr_free_part(existing_part);
       }
+
+      current_part->comments = cfg_move_comments();
       LISTADD(part_list, current_part); 
       current_part = NULL; 
     }
@@ -405,6 +410,7 @@ part_decl :
 
       current_part = avr_dup_part(parent_part);
       current_part->parent_id = cache_string($3->value.string);
+      current_part->comments = NULL;
       current_part->config_file = cache_string(cfg_infile);
       current_part->lineno = cfg_lineno;
 
@@ -1291,7 +1297,9 @@ part_parm :
               yywarning("%s's %s %s misses a necessary address bit a%d",
                  current_part->desc, current_mem->desc, opcodename(i), bn-1);
             }
+        current_mem->comments = cfg_move_comments();
       }
+      cfg_pop_comms();
       current_mem = NULL; 
     } |
   K_MEMORY TKN_STRING TKN_EQUAL K_NULL
@@ -1302,6 +1310,7 @@ part_parm :
         avr_free_mem(existing_mem);
       }
       free_token($2);
+      cfg_pop_comms();
       current_mem = NULL;
     } |
   opcode TKN_EQUAL string_list {
