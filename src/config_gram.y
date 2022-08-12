@@ -1356,8 +1356,7 @@ yesno :
 mem_specs :
   mem_spec TKN_SEMI |
   mem_alias TKN_SEMI |
-  mem_specs mem_spec TKN_SEMI |
-  /* empty */
+  mem_specs mem_spec TKN_SEMI
 ;
 
 
