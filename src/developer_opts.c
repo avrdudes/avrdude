@@ -402,14 +402,11 @@ static int avrpart_deep_copy(AVRPARTdeep *d, const AVRPART *p) {
 
   // Copy over desc, id, and family_id
   memset(d->descbuf, 0, sizeof d->descbuf);
-  if(d->descbuf)
-    strncpy(d->descbuf, p->desc, sizeof d->descbuf-1);
+  strncpy(d->descbuf, p->desc, sizeof d->descbuf-1);
   memset(d->idbuf, 0, sizeof d->idbuf);
-  if(d->idbuf)
-    strncpy(d->idbuf, p->id, sizeof d->idbuf-1);
+  strncpy(d->idbuf, p->id, sizeof d->idbuf-1);
   memset(d->family_idbuf, 0, sizeof d->family_idbuf);
-  if(d->family_idbuf)
-    strncpy(d->family_idbuf, p->family_id, sizeof d->family_idbuf-1);
+  strncpy(d->family_idbuf, p->family_id, sizeof d->family_idbuf-1);
 
   // Zap address values
   d->base.desc = NULL;

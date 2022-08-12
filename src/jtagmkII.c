@@ -488,7 +488,6 @@ static int jtagmkII_recv_frame(PROGRAMMER * pgm, unsigned char **msg,
   int rv;
   unsigned char c, *buf = NULL, header[8];
   unsigned short r_seqno = 0;
-  unsigned short checksum = 0;
 
   struct timeval tv;
   double timeoutval = 100;	/* seconds */
@@ -521,7 +520,6 @@ static int jtagmkII_recv_frame(PROGRAMMER * pgm, unsigned char **msg,
       if (serial_recv(&pgm->fd, &c, 1) != 0)
 	goto timedout;
     }
-    checksum ^= c;
 
     if (state < sDATA)
       header[headeridx++] = c;
