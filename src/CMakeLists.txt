@@ -273,4 +273,6 @@ install(TARGETS libavrdude
     PUBLIC_HEADER DESTINATION include COMPONENT dev
     )
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/avrdude.conf" TYPE SYSCONF)
-install(FILES avrdude.1 TYPE MAN)
+install(FILES "avrdude.1"
+	DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"
+	)
