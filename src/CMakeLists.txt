@@ -262,6 +262,14 @@ add_executable(avrdude
 
 target_link_libraries(avrdude PUBLIC libavrdude)
 
+if (BUILD_DOC)
+	if ("${CMAKE_CROSSCOMPILING}" OR "${MSVC}")
+		message(WARNING "Document build not supported for neither cross-builds nor Windows. Either refer to online documentation, build with native toolchain, get documentation from release tarball or try to build with CYGWIN or MINGW instead")
+	else()
+		add_subdirectory(doc)
+	endif()
+endif()
+
 # =====================================
 # Install
 # =====================================

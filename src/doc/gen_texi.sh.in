@@ -1,0 +1,105 @@
+#!/bin/sh -e
+
+if [ -n "@SCRIPT_DEBUG@" ]
+then
+	set -x
+fi
+
+# ======================================
+# CMake
+# ======================================
+
+AWK_BIN="@AWK_BIN@"
+
+COMMENTS="@COMMENTS@"
+
+MAIN_DOC="@MAIN_TEXI@"
+
+GEN_VERSION_SCRIPT="@GEN_VERSION_SCRIPT@"
+
+AWK_SCRIPT="@AWK_SCRIPT@"
+
+# ======================================
+# Params
+# ======================================
+
+OUT_FILE="${1}"
+MAIN_EXE="${2}"
+
+if [ -z "${OUT_FILE}" ]
+then
+	exit 2
+fi
+
+if [ -z "${MAIN_EXE}" ]
+then
+	exit 2
+fi
+
+# ======================================
+# Functions
+# ======================================
+
+call_avrdude()
+{
+	local args="${1}"
+	local expr="${2}"
+	${MAIN_EXE} \
+		${args} 2>&1 \
+		| ${AWK_BIN} -f ${AWK_SCRIPT} \
+		| sed "${expr}"
+}
+
+# ======================================
+# Delegate
+# ======================================
+
+# This one is a special case so handle it before the others
+if [ "${OUT_FILE}" = "version.texi" ]
+then
+	./${GEN_VERSION_SCRIPT} ${OUT_FILE}
+	exit 0
+fi
+
+# ======================================
+# Prepare
+# ======================================
+
+AVRDUDE_ARGS=
+
+# The following will be set to some unitelligible gibberish that somehow works.
+# Don't ask me "HOW" - I'm just pressing the buttons here...
+# Originated from Makefile.am with some adaptions regarding escaping
+SED_EXPR=
+
+case ${OUT_FILE} in
+programmers.texi)
+	AVRDUDE_ARGS="-c ?"
+	SED_EXPR='s# *,\? *<\?\(http://[^ \t>]*\)>\?#,@*\n@url{\1}#g'
+	;;
+programmer_types.texi)
+	AVRDUDE_ARGS="-c ? type"
+	SED_EXPR='s#<\?\(http://[^ \t,>]*\)>\?#@url{\1}#g'
+	;;
+parts.texi)
+	AVRDUDE_ARGS="-p ?"
+	SED_EXPR=$(sed 's:\([^ \t]*\)[ \t]*\(.*\):s/\1$/\1 \2/g:g' < ${COMMENTS})
+	;;
+*)
+	exit 22
+	;;
+esac
+
+# ======================================
+# Run
+# ======================================
+
+call_avrdude \
+	"${AVRDUDE_ARGS}" \
+	"${SED_EXPR}" \
+	> "${OUT_FILE}"
+
+if [ ! -s "${OUT_FILE}" ]
+then
+	exit 2
+fi

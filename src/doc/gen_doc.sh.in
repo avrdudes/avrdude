@@ -1,0 +1,72 @@
+#!/bin/sh -e
+
+if [ -n "@SCRIPT_DEBUG@" ]
+then
+	set -x
+	LOG_FILE="@CMAKE_BINARY_DIR@@CMAKE_FILES_DIRECTORY@/CMakeOutput.log"
+else
+	LOG_FILE="/dev/null"
+fi
+
+# ======================================
+# CMake
+# ======================================
+
+MAIN_TEXI="@MAIN_TEXI@"
+STYLE_SHEET="@STYLE_SHEET@"
+MAKEINFO_BIN="@MAKEINFO_BIN@"
+
+# ======================================
+# Params
+# ======================================
+
+TYPE="${1}"
+OUT_FILE="${2}"
+
+if [ -z "${TYPE}" ]
+then
+	exit 2
+fi
+
+if [ -z "${OUT_FILE}" ]
+then
+	exit 2
+fi
+
+# ======================================
+# Prepare
+# ======================================
+
+FMT_ARGS=
+
+case "${TYPE}" in
+pdf|ps|dvi)
+	FMT_ARGS=" \
+		"
+	;;
+html)
+	FMT_ARGS=" \
+		--css-include=${STYLE_SHEET} \
+		"
+	;;
+*)
+	exit 22
+	;;
+esac
+
+# ======================================
+# Run
+# ======================================
+
+${MAKEINFO_BIN} \
+	--output ${OUT_FILE} \
+	--${TYPE} \
+	${FMT_ARGS} \
+	${MAIN_TEXI} \
+	>> ${LOG_FILE} 2>&1 \
+	;
+
+if [ ! -e "${OUT_FILE}" ]
+then
+	exit 2
+fi

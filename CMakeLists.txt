@@ -23,6 +23,9 @@
 cmake_minimum_required(VERSION 3.12)
 project(avrdude VERSION 7.0 LANGUAGES C)
 
+# moved here from src/configure.ac
+set(PROJ_VERSION_DATE "20220508")
+
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED True)
 

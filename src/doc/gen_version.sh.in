@@ -1,0 +1,94 @@
+#!/bin/sh -e
+
+if [ -n "@SCRIPT_DEBUG@" ]
+then
+	set -x
+fi
+
+# ======================================
+# CMake
+# ======================================
+
+STAT_CALL=
+DATE_CALL=
+MAIN_DOC="@MAIN_TEXI@"
+
+PROJ_VERSION="@AVRDUDE_FULL_VERSION@"
+
+PLATFORM="@PLATFORM@"
+
+UPDATE_TIME=
+UPDATE_TIME_FULL=
+
+# ======================================
+# Constants
+# ======================================
+
+DATE_FMT="%B %Y"
+DATE_FMT_FULL="%e. ${DATE_FMT}"
+
+DATE_LOCALE=C
+
+# ======================================
+# Params
+# ======================================
+
+OUT_FILE="${1}"
+
+if [ -z "${OUT_FILE}" ]
+then
+	exit 2
+fi
+
+# ======================================
+# Functions
+# ======================================
+
+set_update_time()
+{
+	local epoch=$(${STAT_CALL} ${MAIN_DOC})
+
+	local call="${DATE_CALL}${epoch}"
+
+	UPDATE_TIME=$(LC_TIME=${DATE_LOCALE} ${call} +"${DATE_FMT}")
+	UPDATE_TIME_FULL=$(LC_TIME=${DATE_LOCALE} ${call} +"${DATE_FMT_FULL}")
+}
+
+build_version()
+{
+	set_update_time
+
+	echo "@set UPDATED ${UPDATE_TIME_FULL}"
+	echo "@set UPDATED-MONTH ${UPDATE_TIME}"
+	echo "@set EDITION ${PROJ_VERSION}"
+	echo "@set VERSION ${PROJ_VERSION}"
+}
+
+# ======================================
+# Prepare
+# ======================================
+
+case "${PLATFORM}" in
+	CYGWIN*|Linux|MINGW)
+		STAT_CALL="stat --printf=%Y"
+		DATE_CALL="date --date=@"
+		;;
+	*BSD|Darwin)
+		STAT_CALL="stat -f %m"
+		DATE_CALL="date -j -f %s "
+		;;
+	*)
+		exit 22
+		;;
+esac
+
+# ======================================
+# Run
+# ======================================
+
+build_version > ${OUT_FILE}
+
+if [ ! -s "${OUT_FILE}" ]
+then
+	exit 2
+fi
