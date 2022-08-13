@@ -423,88 +423,63 @@ void avr_free_memalias(AVRMEM_ALIAS *m) {
 AVRMEM_ALIAS *avr_locate_memalias(const AVRPART *p, const char *desc) {
   AVRMEM_ALIAS * m, * match;
   LNODEID ln;
-  int matches;
+  int matches, exact;
   int l;
 
   if(!p || !desc || !p->mem_alias)
     return NULL;
 
   l = strlen(desc);
-  matches = 0;
+  matches = exact = 0;
   match = NULL;
   for (ln=lfirst(p->mem_alias); ln; ln=lnext(ln)) {
     m = ldata(ln);
-    if (strncmp(desc, m->desc, l) == 0) {
+    if (strncmp(m->desc, desc, l) == 0) { // Partial initial match
       match = m;
       matches++;
+      if(m->desc[l] == 0)       // Exact match between arg and memory
+        exact++;
     }
   }
 
-  if (matches == 1)
-    return match;
-
-  return NULL;
+  return exact == 1 || matches == 1? match: NULL;
 }
 
 AVRMEM *avr_locate_mem_noalias(const AVRPART *p, const char *desc) {
   AVRMEM * m, * match;
   LNODEID ln;
-  int matches;
+  int matches, exact;
   int l;
 
   if(!p || !desc || !p->mem)
     return NULL;
 
   l = strlen(desc);
-  matches = 0;
+  matches = exact = 0;
   match = NULL;
   for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
     m = ldata(ln);
-    if (strncmp(desc, m->desc, l) == 0) {
+    if (strncmp(m->desc, desc, l) == 0) { // Partial initial match
       match = m;
       matches++;
+      if(m->desc[l] == 0)       // Exact match between arg and memory
+        exact++;
     }
   }
 
-  if (matches == 1)
-    return match;
-
-  return NULL;
+  return exact == 1 || matches == 1? match: NULL;
 }
 
 
 AVRMEM *avr_locate_mem(const AVRPART *p, const char *desc) {
-  AVRMEM * m, * match;
-  AVRMEM_ALIAS * alias;
-  LNODEID ln;
-  int matches;
-  int l;
+  AVRMEM *m = avr_locate_mem_noalias(p, desc);
 
-  if(!p || !desc)
-    return NULL;
+  if(m)
+    return m;
 
-  l = strlen(desc);
-  matches = 0;
-  match = NULL;
-  if(p->mem) {
-    for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
-      m = ldata(ln);
-      if (strncmp(desc, m->desc, l) == 0) {
-        match = m;
-        matches++;
-      }
-    }
-  }
-
-  if (matches == 1)
-    return match;
-
-  /* not yet found: look for matching alias name */
-  alias = avr_locate_memalias(p, desc);
-  if (alias != NULL)
-    return alias->aliased_mem;
-
-  return NULL;
+  // Not yet found: look for matching alias name
+  AVRMEM_ALIAS *a = avr_locate_memalias(p, desc);
+  return a? a->aliased_mem: NULL;
 }
 
 AVRMEM_ALIAS *avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig) {
