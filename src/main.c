@@ -140,6 +140,10 @@ static void list_programmers_callback(const char *name, const char *desc,
                                       void *cookie)
 {
     struct list_walk_cookie *c = (struct list_walk_cookie *)cookie;
+
+    if (*name == 0 || *name == '.')
+       return;
+
     if (verbose){
         fprintf(c->f, "%s%-16s = %-30s [%s:%d]\n",
                 c->prefix, name, desc, cfgname, cfglineno);
