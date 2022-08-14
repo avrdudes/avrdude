@@ -59,6 +59,14 @@ Changes since version 7.0:
       errors and exit but skip -U memory updates with known
       memories that the part lacks #1053
     - Handle invalid -U file format specifiers for input #1042
+    - Implement a dry run for -U updates before opening the
+      programmer #1056
+    - Implement -c <wildcard>/dev_options for printing avrdude.conf
+      show comments with -p*/s or -c*/s; Reduce -p */r raw output;
+      specifying the full memory name now always works; stop
+      listing programmers where id starts with dot  #1059
+    - Fix logfile short option in man-page; fix install dir for man
+      page #1063
 
   * Internals:
 
