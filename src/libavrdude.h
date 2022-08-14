@@ -872,7 +872,9 @@ enum {
 extern "C" {
 #endif
 
-char * fmtstr(FILEFMT format);
+char * fileio_fmtstr(FILEFMT format);
+
+int fileio_fmt_autodetect(const char * fname);
 
 int fileio(int oprwv, char * filename, FILEFMT format,
            struct avrpart * p, char * memtype, int size);
@@ -935,6 +937,14 @@ const char *update_plural(int x);
 const char *update_inname(const char *fn);
 const char *update_outname(const char *fn);
 const char *update_interval(int a, int b);
+
+// Helper functions for dry run to determine file access
+int update_is_okfile(const char *fn);
+int update_is_writeable(const char *fn);
+int update_is_readable(const char *fn);
+
+int update_dryrun(struct avrpart *p, UPDATE *upd);
+
 
 #ifdef __cplusplus
 }

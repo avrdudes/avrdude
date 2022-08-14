@@ -901,11 +901,13 @@ int main(int argc, char * argv [])
   }
 
   /*
-   * Now that we know which part we are going to program, locate any
-   * -U options using the default memory region, and fill in the
-   * device-dependent default region name, either "application" (for
-   * Xmega devices), or "flash" (everything else).
+   * Now that we know which part we are going to program, locate any -U
+   * options using the default memory region, fill in the device-dependent
+   * default region name ("application" for Xmega parts or "flash" otherwise)
+   * and check for basic problems with memory names or file access with a
+   * view to exit before programming.
    */
+  int doexit = 0;
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
     upd = ldata(ln);
     if (upd->memtype == NULL) {
@@ -920,12 +922,12 @@ int main(int argc, char * argv [])
       }
     }
 
-    if (!avr_mem_might_be_known(upd->memtype)) {
-      avrdude_message(MSG_INFO, "%s: unknown memory type %s\n", progname, upd->memtype);
-      exit(1);
-    }
-    // TODO: check whether filename other than "-" is readable/writable
+    rc = update_dryrun(p, upd);
+    if (rc && rc != LIBAVRDUDE_SOFTFAIL)
+      doexit = 1;
   }
+  if(doexit)
+    exit(1);
 
   /*
    * open the programmer

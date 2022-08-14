@@ -28,6 +28,11 @@
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "setupapi.lib")
 
+#define strerror_r(errno,buf,len) strerror_s(buf,len,errno)
+
+#define R_OK 4
+#define W_OK 2
+#define X_OK 1
 #define F_OK 0
 
 #define PATH_MAX _MAX_PATH
