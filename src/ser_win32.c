@@ -393,7 +393,7 @@ static int net_send(union filedescriptor *fd, const unsigned char * buf, size_t 
 	}
 
 	while (len) {
-		rc = send(fd->ifd, p, (len > 1024) ? 1024 : len, 0);
+		rc = send(fd->ifd, (const char *) p, (len > 1024)? 1024: len, 0);
 		if (rc < 0) {
 			FormatMessage(
 				FORMAT_MESSAGE_ALLOCATE_BUFFER |
@@ -527,7 +527,7 @@ reselect:
 			}
 		}
 
-		rc = recv(fd->ifd, p, (buflen - len > 1024) ? 1024 : buflen - len, 0);
+		rc = recv(fd->ifd, (char *) p, (buflen - len > 1024)? 1024: buflen - len, 0);
 		if (rc < 0) {
 			FormatMessage(
 				FORMAT_MESSAGE_ALLOCATE_BUFFER |
@@ -693,7 +693,7 @@ static int net_drain(union filedescriptor *fd, int display)
 			}
 		}
 
-		rc = recv(fd->ifd, &buf, 1, 0);
+		rc = recv(fd->ifd, (char *) &buf, 1, 0);
 		if (rc < 0) {
 			FormatMessage(
 				FORMAT_MESSAGE_ALLOCATE_BUFFER |

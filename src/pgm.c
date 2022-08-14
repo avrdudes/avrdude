@@ -61,32 +61,29 @@ static void pgm_default_powerup_powerdown (struct programmer_t * pgm)
 }
 
 
-PROGRAMMER * pgm_new(void)
-{
-  int i;
-  PROGRAMMER * pgm;
+PROGRAMMER *pgm_new(void) {
+  PROGRAMMER *pgm = (PROGRAMMER *) cfg_malloc("pgm_new()", sizeof(*pgm));
+  const char *nulp = cache_string("");
 
-  pgm = (PROGRAMMER *)malloc(sizeof(*pgm));
-  if (pgm == NULL) {
-    avrdude_message(MSG_INFO, "%s: out of memory allocating programmer structure\n",
-            progname);
-    return NULL;
-  }
-
-  memset(pgm, 0, sizeof(*pgm));
-
+  // Initialise const char * and LISTID entities
   pgm->id = lcreat(NULL, 0);
   pgm->usbpid = lcreat(NULL, 0);
-  pgm->desc[0] = 0;
-  pgm->type[0] = 0;
-  pgm->parent_id = NULL;
-  pgm->config_file = NULL;
+  pgm->hvupdi_support = lcreat(NULL, 0);
+  pgm->desc = nulp;
+  pgm->parent_id = nulp;
+  pgm->usbdev = nulp;
+  pgm->usbsn = nulp;
+  pgm->usbvendor = nulp;
+  pgm->usbproduct = nulp;
+  pgm->config_file = nulp;
+
+  // Default values
+  pgm->initpgm = NULL;
   pgm->lineno = 0;
   pgm->baudrate = 0;
-  pgm->initpgm = NULL;
-  pgm->hvupdi_support = lcreat(NULL, 0);
 
-  for (i=0; i<N_PINS; i++) {
+  // Clear pin array
+  for(int i=0; i<N_PINS; i++) {
     pgm->pinno[i] = 0;
     pin_clear_all(&(pgm->pin[i]));
   }
@@ -122,60 +119,70 @@ PROGRAMMER * pgm_new(void)
    * optional functions - these are checked to make sure they are
    * assigned before they are called
    */
+  pgm->unlock         = NULL;
   pgm->cmd            = NULL;
   pgm->cmd_tpi        = NULL;
   pgm->spi            = NULL;
   pgm->paged_write    = NULL;
   pgm->paged_load     = NULL;
+  pgm->page_erase     = NULL;
   pgm->write_setup    = NULL;
   pgm->read_sig_bytes = NULL;
+  pgm->read_sib       = NULL;
+  pgm->print_parms    = NULL;
   pgm->set_vtarget    = NULL;
   pgm->set_varef      = NULL;
   pgm->set_fosc       = NULL;
+  pgm->set_sck_period = NULL;
+  pgm->setpin         = NULL;
+  pgm->getpin         = NULL;
+  pgm->highpulsepin   = NULL;
+  pgm->parseexitspecs = NULL;
   pgm->perform_osccal = NULL;
   pgm->parseextparams = NULL;
   pgm->setup          = NULL;
   pgm->teardown       = NULL;
 
+  // For allocating "global" memory by the programmer
+  pgm->cookie          = NULL;
+
   return pgm;
 }
 
-void pgm_free(PROGRAMMER * const p)
-{
-  ldestroy_cb(p->id, free);
-  ldestroy_cb(p->usbpid, free);
-  p->id = NULL;
-  p->usbpid = NULL;
-  /* do not free p->parent_id nor p->config_file */
-  /* p->cookie is freed by pgm_teardown */
-  free(p);
+void pgm_free(PROGRAMMER *p) {
+  if(p) {
+    ldestroy_cb(p->id, free);
+    ldestroy_cb(p->usbpid, free);
+    ldestroy_cb(p->hvupdi_support, free);
+    p->id = NULL;
+    p->usbpid = NULL;
+    p->hvupdi_support = NULL;
+    // Never free const char *, eg, p->desc, which are set by cache_string()
+    // p->cookie is freed by pgm_teardown
+    free(p);
+  }
 }
 
-PROGRAMMER * pgm_dup(const PROGRAMMER * const src)
-{
-  PROGRAMMER * pgm;
-  LNODEID ln;
+PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
+  PROGRAMMER *pgm = pgm_new();
 
-  pgm = (PROGRAMMER *)malloc(sizeof(*pgm));
-  if (pgm == NULL) {
-    avrdude_message(MSG_INFO, "%s: out of memory allocating programmer structure\n",
-            progname);
-    return NULL;
-  }
+  if(src) {
+    memcpy(pgm, src, sizeof(*pgm));
+    pgm->id = lcreat(NULL, 0);
+    pgm->usbpid = lcreat(NULL, 0);
+    pgm->hvupdi_support = lcreat(NULL, 0);
 
-  memcpy(pgm, src, sizeof(*pgm));
-
-  pgm->id = lcreat(NULL, 0);
-  pgm->usbpid = lcreat(NULL, 0);
-  for (ln = lfirst(src->usbpid); ln; ln = lnext(ln)) {
-    int *ip = malloc(sizeof(int));
-    if (ip == NULL) {
-      avrdude_message(MSG_INFO, "%s: out of memory allocating programmer structure\n",
-              progname);
-      exit(1);
+    // Leave id list empty but copy usbpid and hvupdi_support over
+    for(LNODEID ln = lfirst(src->hvupdi_support); ln; ln = lnext(ln)) {
+      int *ip = cfg_malloc("pgm_dup()", sizeof(int));
+      *ip = *(int *) ldata(ln);
+      ladd(pgm->hvupdi_support, ip);
     }
-    *ip = *(int *) ldata(ln);
-    ladd(pgm->usbpid, ip);
+    for(LNODEID ln = lfirst(src->usbpid); ln; ln = lnext(ln)) {
+      int *ip = cfg_malloc("pgm_dup()", sizeof(int));
+      *ip = *(int *) ldata(ln);
+      ladd(pgm->usbpid, ip);
+    }
   }
 
   return pgm;
@@ -219,8 +226,7 @@ static void pgm_default_6 (struct programmer_t * pgm, const char * p)
 }
 
 
-void programmer_display(PROGRAMMER * pgm, const char * p)
-{
+void programmer_display(PROGRAMMER *pgm, const char * p) {
   avrdude_message(MSG_INFO, "%sProgrammer Type : %s\n", p, pgm->type);
   avrdude_message(MSG_INFO, "%sDescription     : %s\n", p, pgm->desc);
 
@@ -228,8 +234,7 @@ void programmer_display(PROGRAMMER * pgm, const char * p)
 }
 
 
-void pgm_display_generic_mask(PROGRAMMER * pgm, const char * p, unsigned int show)
-{
+void pgm_display_generic_mask(const PROGRAMMER *pgm, const char *p, unsigned int show) {
   if(show & (1<<PPI_AVR_VCC)) 
     avrdude_message(MSG_INFO, "%s  VCC     = %s\n", p, pins_to_str(&pgm->pin[PPI_AVR_VCC]));
   if(show & (1<<PPI_AVR_BUFF))
@@ -252,33 +257,22 @@ void pgm_display_generic_mask(PROGRAMMER * pgm, const char * p, unsigned int sho
     avrdude_message(MSG_INFO, "%s  VFY LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_VFY]));
 }
 
-void pgm_display_generic(PROGRAMMER * pgm, const char * p)
-{
+void pgm_display_generic(const PROGRAMMER *pgm, const char *p) {
   pgm_display_generic_mask(pgm, p, SHOW_ALL_PINS);
 }
 
-PROGRAMMER * locate_programmer(LISTID programmers, const char * configid)
-{
-  LNODEID ln1, ln2;
-  PROGRAMMER * p = NULL;
-  const char * id;
-  int found;
+PROGRAMMER *locate_programmer(const LISTID programmers, const char *configid) {
+  PROGRAMMER *p = NULL;
+  int found = 0;
 
-  found = 0;
-
-  for (ln1=lfirst(programmers); ln1 && !found; ln1=lnext(ln1)) {
+  for(LNODEID ln1=lfirst(programmers); ln1 && !found; ln1=lnext(ln1)) {
     p = ldata(ln1);
-    for (ln2=lfirst(p->id); ln2 && !found; ln2=lnext(ln2)) {
-      id = ldata(ln2);
-      if (strcasecmp(configid, id) == 0)
+    for(LNODEID ln2=lfirst(p->id); ln2 && !found; ln2=lnext(ln2))
+      if(strcasecmp(configid, (const char *) ldata(ln2)) == 0)
         found = 1;
-    }
   }
 
-  if (found)
-    return p;
-
-  return NULL;
+  return found? p: NULL;
 }
 
 /*
@@ -308,16 +302,11 @@ void walk_programmers(LISTID programmers, walk_programmers_cb cb, void *cookie)
 /*
  * Compare function to sort the list of programmers
  */
-static int sort_programmer_compare(PROGRAMMER * p1,PROGRAMMER * p2)
-{
-  char* id1;
-  char* id2;
-  if(p1 == NULL || p2 == NULL) {
+static int sort_programmer_compare(const PROGRAMMER *p1, const PROGRAMMER *p2) {
+  if(p1 == NULL || p1->id == NULL || p2 == NULL || p2->id == NULL)
     return 0;
-  }
-  id1 = ldata(lfirst(p1->id));
-  id2 = ldata(lfirst(p2->id));
-  return strncasecmp(id1,id2,AVR_IDLEN);
+
+  return strcasecmp(ldata(lfirst(p1->id)), ldata(lfirst(p2->id)));
 }
 
 /*

@@ -312,7 +312,7 @@ int pins_check(const struct programmer_t * const pgm, const struct pin_checklist
 }
 
 /**
- * This function returns a string representation of defined pins eg. ~1,2,~4,~5,7
+ * This function returns a string of defined pins, eg, ~1,2,~4,~5,7 or " (not used)"
  * Another execution of this function will overwrite the previous result in the static buffer.
  *
  * @param[in] pindef the pin definition for which we want the string representation
@@ -347,6 +347,28 @@ const char * pins_to_str(const struct pindef_t * const pindef) {
 }
 
 /**
+ * This function returns a string of defined pins, eg, ~1, 2, ~4, ~5, 7 or ""
+ *
+ * @param[in] pindef the pin definition for which we want the string representation
+ * @returns a pointer to a string, which was created by strdup
+ */
+char *pins_to_strdup(const struct pindef_t * const pindef) {
+  char buf[6*(PIN_MAX+1)], *p = buf;
+
+  *buf = 0;
+  for(int pin = PIN_MIN; pin <= PIN_MAX; pin++) {
+    int index = pin / PIN_FIELD_ELEMENT_SIZE, bit = pin % PIN_FIELD_ELEMENT_SIZE;
+    if(pindef->mask[index] & (1 << bit)) {
+      if(*buf)
+         *p++ = ',', *p++=' ';
+      p += sprintf(p, pindef->inverse[index] & (1 << bit)? "~%d": "%d", pin);
+    }
+  }
+
+  return cfg_strdup("pins_to_strdup()", buf);
+}
+
+/**
  * Returns the name of the pin as string.
  *
  * @param pinname the pinname which we want as string.
@@ -369,3 +391,24 @@ const char * avr_pin_name(int pinname) {
 }
 
 
+/**
+ * Returns the name of the pin as string.
+ *
+ * @param pinname the pinname which we want as string.
+ * @returns a lowercase string with the pinname, or <unknown> if pinname is invalid.
+ */
+const char * avr_pin_lcname(int pinname) {
+  switch(pinname) {
+  case PPI_AVR_VCC   : return "vcc";
+  case PPI_AVR_BUFF  : return "buff";
+  case PIN_AVR_RESET : return "reset";
+  case PIN_AVR_SCK   : return "sck";
+  case PIN_AVR_MOSI  : return "mosi";
+  case PIN_AVR_MISO  : return "miso";
+  case PIN_LED_ERR   : return "errled";
+  case PIN_LED_RDY   : return "rdyled";
+  case PIN_LED_PGM   : return "pgmled";
+  case PIN_LED_VFY   : return "vfyled";
+  default : return "<unknown>";
+  }
+}

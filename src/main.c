@@ -140,6 +140,10 @@ static void list_programmers_callback(const char *name, const char *desc,
                                       void *cookie)
 {
     struct list_walk_cookie *c = (struct list_walk_cookie *)cookie;
+
+    if (*name == 0 || *name == '.')
+       return;
+
     if (verbose){
         fprintf(c->f, "%s%-16s = %-30s [%s:%d]\n",
                 c->prefix, name, desc, cfgname, cfglineno);
@@ -244,6 +248,14 @@ static void replace_backslashes(char *s)
   }
 }
 
+// Return 2 if string is * or starts with */, 1 if string contains /, 0 otherwise
+static int dev_opt(char *str) {
+  return
+    !str? 0:
+    !strcmp(str, "*") || !strncmp(str, "*/", 2)? 2:
+    !!strchr(str, '/');
+}
+
 
 /*
  * main routine
@@ -314,10 +326,11 @@ int main(int argc, char * argv [])
   else
     progname = argv[0];
 
-  default_parallel[0] = 0;
-  default_serial[0]   = 0;
-  default_spi[0]      = 0;
-  default_bitclock    = 0.0;
+  default_programmer = "";
+  default_parallel   = "";
+  default_serial     = "";
+  default_spi        = "";
+  default_bitclock   = 0.0;
 
   init_config();
 
@@ -351,7 +364,7 @@ int main(int argc, char * argv [])
   quell_progress = 0;
   exitspecs     = NULL;
   pgm           = NULL;
-  programmer    = default_programmer;
+  programmer    = cfg_strdup("main()", default_programmer);
   verbose       = 0;
   baudrate      = 0;
   bitclock      = 0.0;
@@ -751,14 +764,16 @@ int main(int argc, char * argv [])
     bitclock = default_bitclock;
   }
 
+  // Developer options to print parts and/or programmer entries of avrdude.conf
+  int dev_opt_c = dev_opt(programmer); // -c <wildcard>/[sSArt]
+  int dev_opt_p = dev_opt(partdesc);   // -p <wildcard>/[dsSArcow*t]
+
+  if(dev_opt_c || dev_opt_p) {  // See -c/h and or -p/h
+    dev_output_pgm_part(dev_opt_c, programmer, dev_opt_p, partdesc);
+    exit(0);
+  }
 
   avrdude_message(MSG_NOTICE, "\n");
-
-  // developer option -p <wildcard>/[*codws] prints various aspects of part descriptions and exits
-  if(partdesc && (strcmp(partdesc, "*") == 0 || strchr(partdesc, '/'))) {
-    dev_output_part_defs(partdesc);
-    exit(1);
-  }
 
   if (partdesc) {
     if (strcmp(partdesc, "?") == 0) {
@@ -841,11 +856,11 @@ int main(int argc, char * argv [])
     switch (pgm->conntype)
     {
       case CONNTYPE_PARALLEL:
-        port = default_parallel;
+        port = cfg_strdup("main()", default_parallel);
         break;
 
       case CONNTYPE_SERIAL:
-        port = default_serial;
+        port = cfg_strdup("main()", default_serial);
         break;
 
       case CONNTYPE_USB:
@@ -916,10 +931,7 @@ int main(int argc, char * argv [])
                       progname,
                       (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v',
                       upd->filename, mtype);
-      if ((upd->memtype = strdup(mtype)) == NULL) {
-        avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
-        exit(1);
-      }
+      upd->memtype = cfg_strdup("main()", mtype);
     }
 
     rc = update_dryrun(p, upd);
@@ -1069,9 +1081,9 @@ int main(int argc, char * argv [])
              pgm->read_sib(pgm, p, sib);
              avrdude_message(MSG_NOTICE, "%s: System Information Block: \"%s\"\n",
                              progname, sib);
-            if (quell_progress < 2) {
+            if (quell_progress < 2)
               avrdude_message(MSG_INFO, "%s: Received FamilyID: \"%.*s\"\n", progname, AVR_FAMILYIDLEN, sib);
-            }
+
             if (strncmp(p->family_id, sib, AVR_FAMILYIDLEN)) {
               avrdude_message(MSG_INFO, "%s: Expected FamilyID: \"%s\"\n", progname, p->family_id);
               if (!ovsigck) {
@@ -1089,9 +1101,8 @@ int main(int argc, char * argv [])
               avrdude_message(MSG_INFO, "%s: conflicting -e and -n options specified, NOT erasing chip\n",
                               progname);
             } else {
-              if (quell_progress < 2) {
+              if (quell_progress < 2)
                 avrdude_message(MSG_INFO, "%s: erasing chip\n", progname);
-              }
               exitrc = avr_unlock(pgm, p);
               if(exitrc) goto main_exit;
               goto sig_again;
@@ -1225,9 +1236,8 @@ int main(int argc, char * argv [])
       avrdude_message(MSG_INFO, "%s: conflicting -e and -n options specified, NOT erasing chip\n",
                       progname);
     } else {
-      if (quell_progress < 2) {
+      if (quell_progress < 2)
       	avrdude_message(MSG_INFO, "%s: erasing chip\n", progname);
-      }
       exitrc = avr_chip_erase(pgm, p);
       if(exitrc) goto main_exit;
     }

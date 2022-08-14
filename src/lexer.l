@@ -39,15 +39,21 @@
 #define YYERRCODE 256
 #endif
 
+/* capture lvalue keywords to associate comments with that assignment */
+#define ccap() capture_lvalue_kw(yytext, cfg_lineno)
+
+static void adjust_cfg_lineno(const char *p) {
+  while(*p)
+    if(*p++ == '\n')
+      cfg_lineno++;
+}
+
 %}
 
 DIGIT    [0-9]
 HEXDIGIT [0-9a-fA-F]
 SIGN     [+-]
 
-%x strng
-%x incl
-%x comment
 %option nounput
 
 /* Bump resources for classic lex. */
@@ -61,19 +67,34 @@ SIGN     [+-]
 {SIGN}?{DIGIT}+"."{DIGIT}* { yylval = number_real(yytext); return TKN_NUMBER_REAL; }
 {SIGN}?"."{DIGIT}+         { yylval = number_real(yytext); return TKN_NUMBER_REAL; }
 
-"\""      { string_buf_ptr = string_buf; BEGIN(strng); }
+["]([^"\\\n]|\\.|\\\n)*["] {
+  char *str= cfg_strdup("lexer.l", yytext);
+  cfg_unescape(str, str+1);
+  size_t len = strlen(str);
+  if(len)
+    str[len-1] = 0;
+  yylval = string(str);
+  free(str);
+  return TKN_STRING;
+}
 
 0x{HEXDIGIT}+ { yylval = hexnumber(yytext); return TKN_NUMBER; }
 
+#\n#\ PROGRAMMER\ DEFINITIONS\n#\n+ { /* Record comments so far as prologue and skip */
+  cfg_capture_prologue();
+  adjust_cfg_lineno(yytext);
+}
 
+#\n#\ PART\ DEFINITIONS\n#\n+ { /* Ignore part definions header */
+  adjust_cfg_lineno(yytext);
+}
 
-#   { /* The following eats '#' style comments to end of line */
-       BEGIN(comment); }
-<comment>[^\n] { /* eat comments */ }
-<comment>\n { cfg_lineno++; BEGIN(INITIAL); }
+[ \t]*#[^\n]*\n+ { /* Record and skip # comments including preceding white space */
+  capture_comment_str(yytext, cfg_lineno);
+  adjust_cfg_lineno(yytext);
+}
 
-
-"/*" {  /* The following eats multiline C style comments */
+"/*" {  /* The following eats multiline C style comments, they are not captured */
         int c;
         int comment_start;
         
@@ -100,152 +121,138 @@ SIGN     [+-]
      }
 
 
-<strng>\" { *string_buf_ptr = 0; string_buf_ptr = string_buf;
-             yylval = string(string_buf_ptr); BEGIN(INITIAL); return TKN_STRING; }
-<strng>\\n  *string_buf_ptr++ = '\n';
-<strng>\\t  *string_buf_ptr++ = '\t';
-<strng>\\r  *string_buf_ptr++ = '\r';
-<strng>\\b  *string_buf_ptr++ = '\b';
-<strng>\\f  *string_buf_ptr++ = '\f';
-<strng>\\(.|\n)  *(string_buf_ptr++) = yytext[1];
-<strng>[^\\\n\"]+ { char *yptr = yytext; while (*yptr) 
-                                         *(string_buf_ptr++) = *(yptr++); }
-
-<strng>\n { yyerror("unterminated character constant");
-            return YYERRCODE; }
-
 alias            { yylval=NULL; return K_ALIAS; }
-allowfullpagebitstream { yylval=NULL; return K_ALLOWFULLPAGEBITSTREAM; }
-avr910_devcode   { yylval=NULL; return K_AVR910_DEVCODE; }
+allowfullpagebitstream { yylval=NULL; ccap(); return K_ALLOWFULLPAGEBITSTREAM; }
+avr910_devcode   { yylval=NULL; ccap(); return K_AVR910_DEVCODE; }
 bank_size        { yylval=NULL; return K_PAGE_SIZE; }
 banked           { yylval=NULL; return K_PAGED; }
-baudrate         { yylval=NULL; return K_BAUDRATE; }
-blocksize        { yylval=NULL; return K_BLOCKSIZE; }
-bs2              { yylval=NULL; return K_BS2; }
-buff             { yylval=NULL; return K_BUFF; }
-bytedelay        { yylval=NULL; return K_BYTEDELAY; }
-chip_erase       { yylval=new_token(K_CHIP_ERASE); return K_CHIP_ERASE; }
-chip_erase_delay { yylval=NULL; return K_CHIP_ERASE_DELAY; }
-chiperasepolltimeout { yylval=NULL; return K_CHIPERASEPOLLTIMEOUT; }
-chiperasepulsewidth { yylval=NULL; return K_CHIPERASEPULSEWIDTH; }
-chiperasetime    { yylval=NULL; return K_CHIPERASETIME; }
-cmdexedelay      { yylval=NULL; return K_CMDEXEDELAY; }
-connection_type  { yylval=NULL; return K_CONNTYPE; }
+baudrate         { yylval=NULL; ccap(); return K_BAUDRATE; }
+blocksize        { yylval=NULL; ccap(); return K_BLOCKSIZE; }
+bs2              { yylval=NULL; ccap(); return K_BS2; }
+buff             { yylval=NULL; ccap(); return K_BUFF; }
+bytedelay        { yylval=NULL; ccap(); return K_BYTEDELAY; }
+chip_erase       { yylval=new_token(K_CHIP_ERASE); ccap(); return K_CHIP_ERASE; }
+chip_erase_delay { yylval=NULL; ccap(); return K_CHIP_ERASE_DELAY; }
+chiperasepolltimeout { yylval=NULL; ccap(); return K_CHIPERASEPOLLTIMEOUT; }
+chiperasepulsewidth { yylval=NULL; ccap(); return K_CHIPERASEPULSEWIDTH; }
+chiperasetime    { yylval=NULL; ccap(); return K_CHIPERASETIME; }
+cmdexedelay      { yylval=NULL; ccap(); return K_CMDEXEDELAY; }
+connection_type  { yylval=NULL; ccap(); return K_CONNTYPE; }
 dedicated        { yylval=new_token(K_DEDICATED); return K_DEDICATED; }
 default_bitclock { yylval=NULL; return K_DEFAULT_BITCLOCK; }
 default_parallel { yylval=NULL; return K_DEFAULT_PARALLEL; }
 default_programmer { yylval=NULL; return K_DEFAULT_PROGRAMMER; }
 default_serial   { yylval=NULL; return K_DEFAULT_SERIAL; }
 default_spi      { yylval=NULL; return K_DEFAULT_SPI; }
-delay            { yylval=NULL; return K_DELAY; }
-desc             { yylval=NULL; return K_DESC; }
-family_id        { yylval=NULL; return K_FAMILY_ID; }
-devicecode       { yylval=NULL; return K_DEVICECODE; }
-eecr             { yylval=NULL; return K_EECR; }
+delay            { yylval=NULL; ccap(); return K_DELAY; }
+desc             { yylval=NULL; ccap(); return K_DESC; }
+devicecode       { yylval=NULL; ccap(); return K_DEVICECODE; }
+eecr             { yylval=NULL; ccap(); return K_EECR; }
 eeprom           { yylval=NULL; return K_EEPROM; }
-eeprom_instr     { yylval=NULL; return K_EEPROM_INSTR; }
-enablepageprogramming { yylval=NULL; return K_ENABLEPAGEPROGRAMMING; }
-errled           { yylval=NULL; return K_ERRLED; }
+eeprom_instr     { yylval=NULL; ccap(); return K_EEPROM_INSTR; }
+enablepageprogramming { yylval=NULL; ccap(); return K_ENABLEPAGEPROGRAMMING; }
+errled           { yylval=NULL; ccap(); return K_ERRLED; }
+family_id        { yylval=NULL; ccap(); return K_FAMILY_ID; }
 flash            { yylval=NULL; return K_FLASH; }
-flash_instr      { yylval=NULL; return K_FLASH_INSTR; }
-has_debugwire    { yylval=NULL; return K_HAS_DW; }
-has_jtag         { yylval=NULL; return K_HAS_JTAG; }
-has_pdi          { yylval=NULL; return K_HAS_PDI; }
-has_tpi          { yylval=NULL; return K_HAS_TPI; }
-has_updi         { yylval=NULL; return K_HAS_UPDI; }
-hventerstabdelay { yylval=NULL; return K_HVENTERSTABDELAY; }
-hvleavestabdelay { yylval=NULL; return K_HVLEAVESTABDELAY; }
-hvsp_controlstack  { yylval=NULL; return K_HVSP_CONTROLSTACK; }
-hvspcmdexedelay  { yylval=NULL; return K_HVSPCMDEXEDELAY; }
-hvupdi_support   { yylval=NULL; return K_HVUPDI_SUPPORT; }
-hvupdi_variant   { yylval=NULL; return K_HVUPDI_VARIANT; }
-id               { yylval=NULL; return K_ID; }
-idr              { yylval=NULL; return K_IDR; }
+flash_instr      { yylval=NULL; ccap(); return K_FLASH_INSTR; }
+has_debugwire    { yylval=NULL; ccap(); return K_HAS_DW; }
+has_jtag         { yylval=NULL; ccap(); return K_HAS_JTAG; }
+has_pdi          { yylval=NULL; ccap(); return K_HAS_PDI; }
+has_tpi          { yylval=NULL; ccap(); return K_HAS_TPI; }
+has_updi         { yylval=NULL; ccap(); return K_HAS_UPDI; }
+hventerstabdelay { yylval=NULL; ccap(); return K_HVENTERSTABDELAY; }
+hvleavestabdelay { yylval=NULL; ccap(); return K_HVLEAVESTABDELAY; }
+hvsp_controlstack  { yylval=NULL; ccap(); return K_HVSP_CONTROLSTACK; }
+hvspcmdexedelay  { yylval=NULL; ccap(); return K_HVSPCMDEXEDELAY; }
+hvupdi_support   { yylval=NULL; ccap(); return K_HVUPDI_SUPPORT; }
+hvupdi_variant   { yylval=NULL; ccap(); return K_HVUPDI_VARIANT; }
+id               { yylval=NULL; ccap(); return K_ID; }
+idr              { yylval=NULL; ccap(); return K_IDR; }
 io               { yylval=new_token(K_IO); return K_IO; }
-is_at90s1200     { yylval=NULL; return K_IS_AT90S1200; }
-is_avr32         { yylval=NULL; return K_IS_AVR32; }
-latchcycles      { yylval=NULL; return K_LATCHCYCLES; }
-load_ext_addr    { yylval=new_token(K_LOAD_EXT_ADDR); return K_LOAD_EXT_ADDR; }
-loadpage_hi      { yylval=new_token(K_LOADPAGE_HI); return K_LOADPAGE_HI; }
-loadpage_lo      { yylval=new_token(K_LOADPAGE_LO); return K_LOADPAGE_LO; }
-max_write_delay  { yylval=NULL; return K_MAX_WRITE_DELAY; }
-mcu_base         { yylval=NULL; return K_MCU_BASE; }
-memory           { yylval=NULL; return K_MEMORY; }
-min_write_delay  { yylval=NULL; return K_MIN_WRITE_DELAY; }
-miso             { yylval=NULL; return K_MISO; }
-mode             { yylval=NULL; return K_MODE; }
-mosi             { yylval=NULL; return K_MOSI; }
+is_at90s1200     { yylval=NULL; ccap(); return K_IS_AT90S1200; }
+is_avr32         { yylval=NULL; ccap(); return K_IS_AVR32; }
+latchcycles      { yylval=NULL; ccap(); return K_LATCHCYCLES; }
+load_ext_addr    { yylval=new_token(K_LOAD_EXT_ADDR); ccap(); return K_LOAD_EXT_ADDR; }
+loadpage_hi      { yylval=new_token(K_LOADPAGE_HI); ccap(); return K_LOADPAGE_HI; }
+loadpage_lo      { yylval=new_token(K_LOADPAGE_LO); ccap(); return K_LOADPAGE_LO; }
+max_write_delay  { yylval=NULL; ccap(); return K_MAX_WRITE_DELAY; }
+mcu_base         { yylval=NULL; ccap(); return K_MCU_BASE; }
+memory           { yylval=NULL; ccap(); return K_MEMORY; }
+min_write_delay  { yylval=NULL; ccap(); return K_MIN_WRITE_DELAY; }
+miso             { yylval=NULL; ccap(); return K_MISO; }
+mode             { yylval=NULL; ccap(); return K_MODE; }
+mosi             { yylval=NULL; ccap(); return K_MOSI; }
 no               { yylval=new_token(K_NO); return K_NO; }
 NULL             { yylval=NULL; return K_NULL; }
 num_banks        { yylval=NULL; return K_NUM_PAGES; }
-num_pages        { yylval=NULL; return K_NUM_PAGES; }
-nvm_base         { yylval=NULL; return K_NVM_BASE; }
-ocd_base         { yylval=NULL; return K_OCD_BASE; }
-ocdrev           { yylval=NULL; return K_OCDREV; }
-offset           { yylval=NULL; return K_OFFSET; }
-page_size        { yylval=NULL; return K_PAGE_SIZE; }
-paged            { yylval=NULL; return K_PAGED; }
-pagel            { yylval=NULL; return K_PAGEL; }
-parallel         { yylval=NULL; return K_PARALLEL; }
+num_pages        { yylval=NULL; ccap(); return K_NUM_PAGES; }
+nvm_base         { yylval=NULL; ccap(); return K_NVM_BASE; }
+ocd_base         { yylval=NULL; ccap(); return K_OCD_BASE; }
+ocdrev           { yylval=NULL; ccap(); return K_OCDREV; }
+offset           { yylval=NULL; ccap(); return K_OFFSET; }
+paged            { yylval=NULL; ccap(); return K_PAGED; }
+pagel            { yylval=NULL; ccap(); return K_PAGEL; }
+page_size        { yylval=NULL; ccap(); return K_PAGE_SIZE; }
+parallel         { yylval=NULL; ccap(); return K_PARALLEL; }
 parent           { yylval=NULL; return K_PARENT; }
-part             { yylval=NULL; return K_PART; }
-pgm_enable       { yylval=new_token(K_PGM_ENABLE); return K_PGM_ENABLE; }
-pgmled           { yylval=NULL; return K_PGMLED; }
-pollindex        { yylval=NULL; return K_POLLINDEX; }
-pollmethod       { yylval=NULL; return K_POLLMETHOD; }
-pollvalue        { yylval=NULL; return K_POLLVALUE; }
-postdelay        { yylval=NULL; return K_POSTDELAY; }
-poweroffdelay    { yylval=NULL; return K_POWEROFFDELAY; }
-pp_controlstack  { yylval=NULL; return K_PP_CONTROLSTACK; }
-predelay         { yylval=NULL; return K_PREDELAY; }
-progmodedelay    { yylval=NULL; return K_PROGMODEDELAY; }
-programfusepolltimeout { yylval=NULL; return K_PROGRAMFUSEPOLLTIMEOUT; }
-programfusepulsewidth { yylval=NULL; return K_PROGRAMFUSEPULSEWIDTH; }
-programlockpolltimeout { yylval=NULL; return K_PROGRAMLOCKPOLLTIMEOUT; }
-programlockpulsewidth { yylval=NULL; return K_PROGRAMLOCKPULSEWIDTH; }
-programmer       { yylval=NULL; return K_PROGRAMMER; }
+part             { yylval=NULL; ccap(); return K_PART; }
+pgm_enable       { yylval=new_token(K_PGM_ENABLE); ccap(); return K_PGM_ENABLE; }
+pgmled           { yylval=NULL; ccap(); return K_PGMLED; }
+pollindex        { yylval=NULL; ccap(); return K_POLLINDEX; }
+pollmethod       { yylval=NULL; ccap(); return K_POLLMETHOD; }
+pollvalue        { yylval=NULL; ccap(); return K_POLLVALUE; }
+postdelay        { yylval=NULL; ccap(); return K_POSTDELAY; }
+poweroffdelay    { yylval=NULL; ccap(); return K_POWEROFFDELAY; }
+pp_controlstack  { yylval=NULL; ccap(); return K_PP_CONTROLSTACK; }
+predelay         { yylval=NULL; ccap(); return K_PREDELAY; }
+progmodedelay    { yylval=NULL; ccap(); return K_PROGMODEDELAY; }
+programfusepolltimeout { yylval=NULL; ccap(); return K_PROGRAMFUSEPOLLTIMEOUT; }
+programfusepulsewidth { yylval=NULL; ccap(); return K_PROGRAMFUSEPULSEWIDTH; }
+programlockpolltimeout { yylval=NULL; ccap(); return K_PROGRAMLOCKPOLLTIMEOUT; }
+programlockpulsewidth { yylval=NULL; ccap(); return K_PROGRAMLOCKPULSEWIDTH; }
+programmer       { yylval=NULL; ccap(); return K_PROGRAMMER; }
 pseudo           { yylval=new_token(K_PSEUDO); return K_PSEUDO; }
-pwroff_after_write { yylval=NULL; return K_PWROFF_AFTER_WRITE; }
-rampz            { yylval=NULL; return K_RAMPZ; }
-rdyled           { yylval=NULL; return K_RDYLED; }
-read             { yylval=new_token(K_READ); return K_READ; }
-read_hi          { yylval=new_token(K_READ_HI); return K_READ_HI; }
-read_lo          { yylval=new_token(K_READ_LO); return K_READ_LO; }
-readback         { yylval=NULL; return K_READBACK; }
-readback_p1      { yylval=NULL; return K_READBACK_P1; }
-readback_p2      { yylval=NULL; return K_READBACK_P2; }
-readsize        { yylval=NULL; return K_READSIZE; }
-reset            { yylval=new_token(K_RESET); return K_RESET; }
-resetdelay       { yylval=NULL; return K_RESETDELAY; }
-resetdelayms     { yylval=NULL; return K_RESETDELAYMS; }
-resetdelayus     { yylval=NULL; return K_RESETDELAYUS; }
-retry_pulse      { yylval=NULL; return K_RETRY_PULSE; }
-sck              { yylval=new_token(K_SCK); return K_SCK; }
-serial           { yylval=NULL; return K_SERIAL; }
-signature        { yylval=NULL; return K_SIGNATURE; }
-size             { yylval=NULL; return K_SIZE; }
+pwroff_after_write { yylval=NULL; ccap(); return K_PWROFF_AFTER_WRITE; }
+rampz            { yylval=NULL; ccap(); return K_RAMPZ; }
+rdyled           { yylval=NULL; ccap(); return K_RDYLED; }
+read             { yylval=new_token(K_READ); ccap(); return K_READ; }
+read_hi          { yylval=new_token(K_READ_HI); ccap(); return K_READ_HI; }
+read_lo          { yylval=new_token(K_READ_LO); ccap(); return K_READ_LO; }
+readback         { yylval=NULL; ccap(); return K_READBACK; }
+readback_p1      { yylval=NULL; ccap(); return K_READBACK_P1; }
+readback_p2      { yylval=NULL; ccap(); return K_READBACK_P2; }
+readsize        { yylval=NULL; ccap(); return K_READSIZE; }
+reset            { yylval=new_token(K_RESET); ccap(); return K_RESET; }
+resetdelay       { yylval=NULL; ccap(); return K_RESETDELAY; }
+resetdelayms     { yylval=NULL; ccap(); return K_RESETDELAYMS; }
+resetdelayus     { yylval=NULL; ccap(); return K_RESETDELAYUS; }
+retry_pulse      { yylval=NULL; ccap(); return K_RETRY_PULSE; }
+sck              { yylval=new_token(K_SCK); ccap(); return K_SCK; }
+serial           { yylval=NULL; ccap(); return K_SERIAL; }
+signature        { yylval=NULL; ccap(); return K_SIGNATURE; }
+size             { yylval=NULL; ccap(); return K_SIZE; }
 spi              { yylval=NULL; return K_SPI; }
-spmcr            { yylval=NULL; return K_SPMCR; }
-stabdelay        { yylval=NULL; return K_STABDELAY; }
-stk500_devcode   { yylval=NULL; return K_STK500_DEVCODE; }
-synchcycles      { yylval=NULL; return K_SYNCHCYCLES; }
-synchloops       { yylval=NULL; return K_SYNCHLOOPS; }
-timeout          { yylval=NULL; return K_TIMEOUT; }
-togglevtg        { yylval=NULL; return K_TOGGLEVTG; }
-type             { yylval=NULL; return K_TYPE; }
+spmcr            { yylval=NULL; ccap(); return K_SPMCR; }
+stabdelay        { yylval=NULL; ccap(); return K_STABDELAY; }
+stk500_devcode   { yylval=NULL; ccap(); return K_STK500_DEVCODE; }
+synchcycles      { yylval=NULL; ccap(); return K_SYNCHCYCLES; }
+synchloops       { yylval=NULL; ccap(); return K_SYNCHLOOPS; }
+timeout          { yylval=NULL; ccap(); return K_TIMEOUT; }
+togglevtg        { yylval=NULL; ccap(); return K_TOGGLEVTG; }
+type             { yylval=NULL; ccap(); return K_TYPE; }
 usb              { yylval=NULL; return K_USB; }
-usbdev           { yylval=NULL; return K_USBDEV; }
-usbpid           { yylval=NULL; return K_USBPID; }
-usbproduct       { yylval=NULL; return K_USBPRODUCT; }
-usbsn            { yylval=NULL; return K_USBSN; }
-usbvendor        { yylval=NULL; return K_USBVENDOR; }
-usbvid           { yylval=NULL; return K_USBVID; }
-vcc              { yylval=NULL; return K_VCC; }
-vfyled           { yylval=NULL; return K_VFYLED; }
-write            { yylval=new_token(K_WRITE); return K_WRITE; }
-write_hi         { yylval=new_token(K_WRITE_HI); return K_WRITE_HI; }
-write_lo         { yylval=new_token(K_WRITE_LO); return K_WRITE_LO; }
-writepage        { yylval=new_token(K_WRITEPAGE); return K_WRITEPAGE; }
+usbdev           { yylval=NULL; ccap(); return K_USBDEV; }
+usbpid           { yylval=NULL; ccap(); return K_USBPID; }
+usbproduct       { yylval=NULL; ccap(); return K_USBPRODUCT; }
+usbsn            { yylval=NULL; ccap(); return K_USBSN; }
+usbvendor        { yylval=NULL; ccap(); return K_USBVENDOR; }
+usbvid           { yylval=NULL; ccap(); return K_USBVID; }
+vcc              { yylval=NULL; ccap(); return K_VCC; }
+vfyled           { yylval=NULL; ccap(); return K_VFYLED; }
+write            { yylval=new_token(K_WRITE); ccap(); return K_WRITE; }
+write_hi         { yylval=new_token(K_WRITE_HI); ccap(); return K_WRITE_HI; }
+write_lo         { yylval=new_token(K_WRITE_LO); ccap(); return K_WRITE_LO; }
+writepage        { yylval=new_token(K_WRITEPAGE); ccap(); return K_WRITEPAGE; }
 yes              { yylval=new_token(K_YES); return K_YES; }
 
 ","       { yylval = NULL; pyytext(); return TKN_COMMA; }

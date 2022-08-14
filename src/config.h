@@ -30,16 +30,21 @@
 #endif
 
 
-#define MAX_STR_CONST 1024
+typedef struct {
+  char *kw;                     // Keyword near the comments
+  LISTID comms;                 // Chained list of comments
+  int rhs;                      // Comments to print rhs of keyword line
+} COMMENT;
+
 
 enum { V_NONE, V_NUM, V_NUM_REAL, V_STR };
 typedef struct value_t {
   int      type;
-  /*union { TODO: use an anonymous union here ? */
+  union {
     int      number;
     double   number_real;
     char   * string;
-  /*};*/
+  };
 } VALUE;
 
 
@@ -66,42 +71,49 @@ extern bool         is_alias; // current entry is alias
 #endif
 extern YYSTYPE yylval;
 
-extern char string_buf[MAX_STR_CONST];
-extern char *string_buf_ptr;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 int yyparse(void);
 
-int yyerror(char * errmsg, ...);
+int yyerror(char *errmsg, ...);
 
-int yywarning(char * errmsg, ...);
+int yywarning(char *errmsg, ...);
 
-TOKEN * new_token(int primary);
+TOKEN *new_token(int primary);
 
-void free_token(TOKEN * tkn);
+void free_token(TOKEN *tkn);
 
 void free_tokens(int n, ...);
 
-TOKEN * number(char * text);
+TOKEN *number(const char *text);
 
-TOKEN * number_real(char * text);
+TOKEN *number_real(const char *text);
 
-TOKEN * hexnumber(char * text);
+TOKEN *hexnumber(const char *text);
 
-TOKEN * string(char * text);
+TOKEN *string(const char *text);
 
-TOKEN * keyword(int primary);
+TOKEN *keyword(int primary);
 
-void print_token(TOKEN * tkn);
+void print_token(TOKEN *tkn);
 
 void pyytext(void);
 
-char * dup_string(const char * str);
+COMMENT *locate_comment(const LISTID comments, const char *where, int rhs);
 
-char * cache_string(const char * file);
+void cfg_capture_prologue(void);
+
+LISTID cfg_get_prologue(void);
+
+void capture_comment_str(const char *com, int lineno);
+
+void capture_lvalue_kw(const char *kw, int lineno);
+
+LISTID cfg_move_comments(void);
+
+void cfg_pop_comms(void);
 
 #ifdef __cplusplus
 }

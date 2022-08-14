@@ -3093,12 +3093,14 @@ static int stk500v2_setparm_real(PROGRAMMER * pgm, unsigned char parm, unsigned 
 
 static int stk500v2_setparm(PROGRAMMER * pgm, unsigned char parm, unsigned char value)
 {
-  unsigned char current_value;
+  unsigned char current_value = value;
   int res;
 
   res = stk500v2_getparm(pgm, parm, &current_value);
-  if (res < 0)
+  if (res < 0) {
     avrdude_message(MSG_INFO, "%s: Unable to get parameter 0x%02x\n", progname, parm);
+    return -1;
+  }
 
   // don't issue a write if the correct value is already set.
   if (value == current_value) {
@@ -3245,13 +3247,15 @@ f_to_kHz_MHz(double f, const char **unit)
 
 static void stk500v2_print_parms1(PROGRAMMER * pgm, const char * p)
 {
-  unsigned char vtarget, vadjust, osc_pscale, osc_cmatch, sck_duration =0; //XXX 0 is not correct, check caller
+  unsigned char vtarget = 0, vadjust = 0, osc_pscale = 0, osc_cmatch = 0, sck_duration =0; //XXX 0 is not correct, check caller
   unsigned int sck_stk600, clock_conf, dac, oct, varef;
   unsigned char vtarget_jtag[4];
   int prescale;
   double f;
   const char *unit;
   void *mycookie;
+
+  memset(vtarget_jtag, 0, sizeof vtarget_jtag);
 
   if (PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII) {
     mycookie = pgm->cookie;

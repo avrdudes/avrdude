@@ -851,7 +851,7 @@ static int ft245r_open(PROGRAMMER * pgm, char * port) {
       avrdude_message(MSG_NOTICE,
           "%s: ft245r_open(): no device identifier in portname, using default\n",
           progname);
-      pgm->usbsn[0] = 0;
+      pgm->usbsn = cache_string("");
       devnum = 0;
     } else {
       if (strlen(device) == 8 ){ // serial number
@@ -863,7 +863,7 @@ static int ft245r_open(PROGRAMMER * pgm, char * port) {
               device);
         }
         // copy serial number to pgm struct
-        strcpy(pgm->usbsn, device);
+        pgm->usbsn = cache_string(device);
         // and use first device with matching serial (should be unique)
         devnum = 0;
       }

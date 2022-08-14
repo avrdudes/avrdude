@@ -203,8 +203,6 @@ typedef struct opcode {
 #define HV_UPDI_VARIANT_1      1 /* Dedicated UPDI pin, no HV (megaAVR0/AVR-Dx) */
 #define HV_UPDI_VARIANT_2      2 /* Shared UPDI pin, HV on _RESET (AVR-Ex) */
 
-#define AVR_DESCLEN 64
-#define AVR_IDLEN   32
 #define AVR_FAMILYIDLEN 7
 #define AVR_SIBLEN 16
 #define CTL_STACK_SIZE 32
@@ -215,10 +213,11 @@ typedef struct opcode {
 
 /* Any changes here, please also reflect in dev_part_strct() of developer_opts.c */
 typedef struct avrpart {
-  char          desc[AVR_DESCLEN];  /* long part name */
-  char          id[AVR_IDLEN];      /* short part name */
-  char        * parent_id;          /* parent id if set, for -p.../s */
-  char          family_id[AVR_FAMILYIDLEN+1]; /* family id in the SIB (avr8x) */
+  const char  * desc;               /* long part name */
+  const char  * id;                 /* short part name */
+  LISTID        comments;           // Used by developer options -p*/[ASsr...]
+  const char  * parent_id;          /* Used by developer options */
+  const char  * family_id;          /* family id in the SIB (avr8x) */
   int           hvupdi_variant;     /* HV pulse on UPDI pin, no pin or RESET pin */
   int           stk500_devcode;     /* stk500 device code */
   int           avr910_devcode;     /* avr910 device code */
@@ -270,7 +269,7 @@ typedef struct avrpart {
   unsigned char idr;                /* JTAG ICE mkII XML file parameter */
   unsigned char rampz;              /* JTAG ICE mkII XML file parameter */
   unsigned char spmcr;              /* JTAG ICE mkII XML file parameter */
-  unsigned short eecr;              /* JTAC ICE mkII XML file parameter */
+  unsigned char eecr;               /* JTAC ICE mkII XML file parameter */
   unsigned int mcu_base;            /* Base address of MCU control block in ATxmega devices */
   unsigned int nvm_base;            /* Base address of NVM controller in ATxmega devices */
   unsigned int ocd_base;            /* Base address of OCD module in AVR8X/UPDI devices */
@@ -280,13 +279,14 @@ typedef struct avrpart {
 
   LISTID        mem;                /* avr memory definitions */
   LISTID        mem_alias;          /* memory alias definitions */
-  char          *config_file;       /* config file where defined */
+  const char  * config_file;        /* config file where defined */
   int           lineno;             /* config file line number */
 } AVRPART;
 
 #define AVR_MEMDESCLEN 64
 typedef struct avrmem {
-  char desc[AVR_MEMDESCLEN];  /* memory description ("flash", "eeprom", etc) */
+  const char *desc;           /* memory description ("flash", "eeprom", etc) */
+  LISTID comments;            // Used by developer options -p*/[ASsr...]
   int paged;                  /* page addressed (e.g. ATmega flash) */
   int size;                   /* total memory size in bytes */
   int page_size;              /* size of memory page (if page addressed) */
@@ -312,7 +312,7 @@ typedef struct avrmem {
 } AVRMEM;
 
 typedef struct avrmem_alias {
-  char desc[AVR_MEMDESCLEN];  /* alias name ("syscfg0" etc.) */
+  const char *desc;           /* alias name ("syscfg0" etc.) */
   AVRMEM *aliased_mem;
 } AVRMEM_ALIAS;
 
@@ -330,8 +330,8 @@ int avr_set_bits(OPCODE * op, unsigned char * cmd);
 int avr_set_addr(OPCODE * op, unsigned char * cmd, unsigned long addr);
 int avr_set_addr_mem(AVRMEM *mem, int opnum, unsigned char *cmd, unsigned long addr);
 int avr_set_input(OPCODE * op, unsigned char * cmd, unsigned char data);
-int avr_get_output(OPCODE * op, unsigned char * res, unsigned char * data);
-int avr_get_output_index(OPCODE * op);
+int avr_get_output(const OPCODE *op, const unsigned char *res, unsigned char *data);
+int avr_get_output_index(const OPCODE *op);
 char cmdbitchar(CMDBIT cb);
 char *cmdbitstr(CMDBIT cb);
 const char *opcodename(int opnum);
@@ -340,26 +340,26 @@ char *opcode2str(OPCODE *op, int opnum, int detailed);
 /* Functions for AVRMEM structures */
 AVRMEM * avr_new_memtype(void);
 AVRMEM_ALIAS * avr_new_memalias(void);
-int avr_initmem(AVRPART * p);
-AVRMEM * avr_dup_mem(AVRMEM * m);
+int avr_initmem(const AVRPART *p);
+AVRMEM * avr_dup_mem(const AVRMEM *m);
 void     avr_free_mem(AVRMEM * m);
 void     avr_free_memalias(AVRMEM_ALIAS * m);
-AVRMEM * avr_locate_mem(AVRPART * p, const char * desc);
-AVRMEM * avr_locate_mem_noalias(AVRPART * p, const char * desc);
-AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, const char * desc);
-AVRMEM_ALIAS * avr_find_memalias(AVRPART * p, AVRMEM * m_orig);
-void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
-                     int type, int verbose);
+AVRMEM * avr_locate_mem(const AVRPART *p, const char *desc);
+AVRMEM * avr_locate_mem_noalias(const AVRPART *p, const char *desc);
+AVRMEM_ALIAS * avr_locate_memalias(const AVRPART *p, const char *desc);
+AVRMEM_ALIAS * avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig);
+void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
+                     const AVRPART *p, int verbose);
 
 /* Functions for AVRPART structures */
 AVRPART * avr_new_part(void);
-AVRPART * avr_dup_part(AVRPART * d);
+AVRPART * avr_dup_part(const AVRPART *d);
 void      avr_free_part(AVRPART * d);
-AVRPART * locate_part(LISTID parts, const char * partdesc);
-AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode);
-AVRPART * locate_part_by_signature(LISTID parts, unsigned char * sig,
+AVRPART * locate_part(const LISTID parts, const char *partdesc);
+AVRPART * locate_part_by_avr910_devcode(const LISTID parts, int devcode);
+AVRPART * locate_part_by_signature(const LISTID parts, unsigned char *sig,
                                    int sigsize);
-void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose);
+void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose);
 
 typedef void (*walk_avrparts_cb)(const char *name, const char *desc,
                                  const char *cfgname, int cfglineno,
@@ -516,7 +516,15 @@ int pins_check(const struct programmer_t * const pgm, const struct pin_checklist
 const char * avr_pin_name(int pinname);
 
 /**
- * This function returns a string representation of defined pins eg. ~1,2,~4,~5,7
+ * Returns the name of the pin as lowercase string.
+ *
+ * @param pinname the pinname which we want as string.
+ * @returns a lowercase string with the pinname, or <unknown> if pinname is invalid.
+ */
+const char * avr_pin_lcname(int pinname);
+
+/**
+ * This function returns a string of defined pins, eg, ~1,2,~4,~5,7 or " (not used)"
  * Another execution of this function will overwrite the previous result in the static buffer.
  *
  * @param[in] pindef the pin definition for which we want the string representation
@@ -525,9 +533,17 @@ const char * avr_pin_name(int pinname);
 const char * pins_to_str(const struct pindef_t * const pindef);
 
 /**
- * This function returns a string representation of pins in the mask eg. 1,3,5-7,9,12
+ * This function returns a string of defined pins, eg, ~1, 2, ~4, ~5, 7 or ""
+ *
+ * @param[in] pindef the pin definition for which we want the string representation
+ * @returns a pointer to a string, which was created by strdup
+ */
+char *pins_to_strdup(const struct pindef_t * const pindef);
+
+/**
+ * This function returns a string representation of pins in the mask, eg, 1,3,5-7,9,12
  * Another execution of this function will overwrite the previous result in the static buffer.
- * Consecutive pin number are representated as start-end.
+ * Consecutive pin number are represented as start-end.
  *
  * @param[in] pinmask the pin mask for which we want the string representation
  * @returns pointer to a static string.
@@ -637,10 +653,8 @@ extern struct serial_device usbhid_serdev;
 #define ON  1
 #define OFF 0
 
-#define PGM_DESCLEN 80
 #define PGM_PORTLEN PATH_MAX
 #define PGM_TYPELEN 32
-#define PGM_USBSTRINGLEN 256
 
 typedef enum {
   EXIT_VCC_UNSPEC,
@@ -667,30 +681,38 @@ typedef enum {
   CONNTYPE_SPI
 } conntype_t;
 
+/* Any changes here, please also reflect in dev_pgm_strct() of developer_opts.c */
 typedef struct programmer_t {
   LISTID id;
-  char desc[PGM_DESCLEN];
-  char type[PGM_TYPELEN];
-  char port[PGM_PORTLEN];
-  char *parent_id;
-  void (*initpgm)(struct programmer_t * pgm);
-  unsigned int pinno[N_PINS];
+  const char *desc;
+  void (*initpgm)(struct programmer_t *pgm);
+  LISTID        comments;       // Used by developer options -c*/[ASsr...]
+  const char *parent_id;        // Used by developer options
   struct pindef_t pin[N_PINS];
-  exit_vcc_t exit_vcc;
-  exit_reset_t exit_reset;
-  exit_datahigh_t exit_datahigh;
   conntype_t conntype;
-  int ppidata;
-  int ppictrl;
   int baudrate;
   int usbvid;
   LISTID usbpid;
-  char usbdev[PGM_USBSTRINGLEN], usbsn[PGM_USBSTRINGLEN];
-  char usbvendor[PGM_USBSTRINGLEN], usbproduct[PGM_USBSTRINGLEN];
-  double bitclock;    /* JTAG ICE clock period in microseconds */
-  int ispdelay;    /* ISP clock delay */
+  const char *usbdev;
+  const char *usbsn;
+  const char *usbvendor;
+  const char *usbproduct;
+  LISTID hvupdi_support;        // List of UPDI HV variants the tool supports, see HV_UPDI_VARIANT_x
+
+  // Values below are not set by config_gram.y; make sure fd is first for dev_pgm_raw()
   union filedescriptor fd;
-  int  page_size;  /* page size if the programmer supports paged write/load */
+  char type[PGM_TYPELEN];
+  char port[PGM_PORTLEN];
+  unsigned int pinno[N_PINS];   // TODO to be removed if old pin data no longer needed
+  exit_vcc_t exit_vcc;          // Should these be set in avrdude.conf?
+  exit_reset_t exit_reset;
+  exit_datahigh_t exit_datahigh;
+  int ppidata;
+  int ppictrl;
+  int ispdelay;                 // ISP clock delay
+  int page_size;                // Page size if the programmer supports paged write/load
+  double bitclock;              // JTAG ICE clock period in microseconds
+
   int  (*rdy_led)        (struct programmer_t * pgm, int value);
   int  (*err_led)        (struct programmer_t * pgm, int value);
   int  (*pgm_led)        (struct programmer_t * pgm, int value);
@@ -740,11 +762,11 @@ typedef struct programmer_t {
   int  (*parseextparams) (struct programmer_t * pgm, LISTID xparams);
   void (*setup)          (struct programmer_t * pgm);
   void (*teardown)       (struct programmer_t * pgm);
-  char *config_file;          /* config file where defined */
-  int  lineno;                /* config file line number */
-  void *cookie;		      /* for private use by the programmer */
-  char flag;		      /* for private use of the programmer */
-  LISTID hvupdi_support;  /* List of UPDI HV variants the tool supports. See HV_UPDI_VARIANT_ */
+
+  const char *config_file;      // Config file where defined
+  int  lineno;                  // Config file line number
+  void *cookie;                 // For private use by the programmer
+  char flag;                    // For private use of the programmer
 } PROGRAMMER;
 
 #ifdef __cplusplus
@@ -752,8 +774,8 @@ extern "C" {
 #endif
 
 PROGRAMMER * pgm_new(void);
-PROGRAMMER * pgm_dup(const PROGRAMMER * const src);
-void         pgm_free(PROGRAMMER * const p);
+PROGRAMMER * pgm_dup(const PROGRAMMER *src);
+void         pgm_free(PROGRAMMER *p);
 
 void programmer_display(PROGRAMMER * pgm, const char * p);
 
@@ -762,10 +784,10 @@ void programmer_display(PROGRAMMER * pgm, const char * p);
 #define SHOW_PPI_PINS ((1<<PPI_AVR_VCC)|(1<<PPI_AVR_BUFF))
 #define SHOW_AVR_PINS ((1<<PIN_AVR_RESET)|(1<<PIN_AVR_SCK)|(1<<PIN_AVR_MOSI)|(1<<PIN_AVR_MISO))
 #define SHOW_LED_PINS ((1<<PIN_LED_ERR)|(1<<PIN_LED_RDY)|(1<<PIN_LED_PGM)|(1<<PIN_LED_VFY))
-void pgm_display_generic_mask(PROGRAMMER * pgm, const char * p, unsigned int show);
-void pgm_display_generic(PROGRAMMER * pgm, const char * p);
+void pgm_display_generic_mask(const PROGRAMMER *pgm, const char *p, unsigned int show);
+void pgm_display_generic(const PROGRAMMER *pgm, const char *p);
 
-PROGRAMMER * locate_programmer(LISTID programmers, const char * configid);
+PROGRAMMER *locate_programmer(const LISTID programmers, const char *configid);
 
 typedef void (*walk_programmers_cb)(const char *name, const char *desc,
                                     const char *cfgname, int cfglineno,
@@ -965,7 +987,9 @@ typedef struct programmer_type_t {
 extern "C" {
 #endif
 
-const PROGRAMMER_TYPE * locate_programmer_type(/*LISTID programmer_types, */const char * id);
+const PROGRAMMER_TYPE *locate_programmer_type(const char *id);
+
+const char *locate_programmer_type_id(void (*initpgm)(struct programmer_t *pgm));
 
 typedef void (*walk_programmer_types_cb)(const char *id, const char *desc,
                                     void *cookie);
@@ -979,10 +1003,10 @@ void walk_programmer_types(/*LISTID programmer_types,*/ walk_programmer_types_cb
 
 extern LISTID       part_list;
 extern LISTID       programmers;
-extern char         default_programmer[];
-extern char         default_parallel[];
-extern char         default_serial[];
-extern char         default_spi[];
+extern const char *default_programmer;
+extern const char *default_parallel;
+extern const char *default_serial;
+extern const char *default_spi;
 extern double       default_bitclock;
 
 /* This name is fixed, it's only here for symmetry with
@@ -993,11 +1017,23 @@ extern double       default_bitclock;
 extern "C" {
 #endif
 
+void *cfg_malloc(const char *funcname, size_t n);
+
+char *cfg_strdup(const char *funcname, const char *s);
+
 int init_config(void);
 
 void cleanup_config(void);
 
 int read_config(const char * file);
+
+const char *cache_string(const char *file);
+
+unsigned char *cfg_unescapeu(unsigned char *d, const unsigned char *s);
+
+char *cfg_unescape(char *d, const char *s);
+
+char *cfg_escape(const char *s);
 
 #ifdef __cplusplus
 }

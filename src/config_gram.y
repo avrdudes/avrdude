@@ -246,26 +246,22 @@ def :
   part_def TKN_SEMI |
 
   K_DEFAULT_PROGRAMMER TKN_EQUAL TKN_STRING TKN_SEMI {
-    strncpy(default_programmer, $3->value.string, MAX_STR_CONST);
-    default_programmer[MAX_STR_CONST-1] = 0;
+    default_programmer = cache_string($3->value.string);
     free_token($3);
   } |
 
   K_DEFAULT_PARALLEL TKN_EQUAL TKN_STRING TKN_SEMI {
-    strncpy(default_parallel, $3->value.string, PATH_MAX);
-    default_parallel[PATH_MAX-1] = 0;
+    default_parallel = cache_string($3->value.string);
     free_token($3);
   } |
 
   K_DEFAULT_SERIAL TKN_EQUAL TKN_STRING TKN_SEMI {
-    strncpy(default_serial, $3->value.string, PATH_MAX);
-    default_serial[PATH_MAX-1] = 0;
+    default_serial = cache_string($3->value.string);
     free_token($3);
   } |
 
   K_DEFAULT_SPI TKN_EQUAL TKN_STRING TKN_SEMI {
-    strncpy(default_spi, $3->value.string, PATH_MAX);
-    default_spi[PATH_MAX-1] = 0;
+    default_spi = cache_string($3->value.string);
     free_token($3);
   } |
 
@@ -301,6 +297,7 @@ prog_def :
         lrmv_d(programmers, existing_prog);
         pgm_free(existing_prog);
       }
+      current_prog->comments = cfg_move_comments();
       LISTADD(programmers, current_prog);
 //      pgm_fill_old_pins(current_prog); // TODO to be removed if old pin data no longer needed
 //      pgm_display_generic(current_prog, id);
@@ -312,10 +309,6 @@ prog_def :
 prog_decl :
   K_PROGRAMMER
     { current_prog = pgm_new();
-      if (current_prog == NULL) {
-        yyerror("could not create pgm instance");
-        YYABORT;
-      }
       current_prog->config_file = cache_string(cfg_infile);
       current_prog->lineno = cfg_lineno;
     }
@@ -329,12 +322,8 @@ prog_decl :
         YYABORT;
       }
       current_prog = pgm_dup(pgm);
-      if (current_prog == NULL) {
-        yyerror("could not duplicate pgm instance");
-        free_token($3);
-        YYABORT;
-      }
       current_prog->parent_id = cache_string($3->value.string);
+      current_prog->comments = NULL;
       current_prog->config_file = cache_string(cfg_infile);
       current_prog->lineno = cfg_lineno;
       free_token($3);
@@ -354,32 +343,33 @@ part_def :
         YYABORT;
       }
 
-      /*
-       * perform some sanity checking, and compute the number of bits
-       * to shift a page for constructing the page address for
-       * page-addressed memories.
-       */
+      // Sanity checks for memory sizes and compute/override num_pages entry
       for (ln=lfirst(current_part->mem); ln; ln=lnext(ln)) {
         m = ldata(ln);
         if (m->paged) {
-          if (m->page_size == 0) {
-            yyerror("must specify page_size for paged memory");
+          if (m->size <= 0) {
+            yyerror("must specify a positive size for paged memory %s", m->desc);
             YYABORT;
           }
-          if (m->num_pages == 0) {
-            yyerror("must specify num_pages for paged memory");
+          if (m->page_size <= 0) {
+            yyerror("must specify a positive page size for paged memory %s", m->desc);
             YYABORT;
           }
-          if (m->size != m->page_size * m->num_pages) {
-            yyerror("page size (%u) * num_pages (%u) = "
-                    "%u does not match memory size (%u)",
-                    m->page_size,
-                    m->num_pages,
-                    m->page_size * m->num_pages,
-                    m->size);
+          // Code base relies on page_size being a power of 2 in some places
+          if (m->page_size & (m->page_size - 1)) {
+            yyerror("page size must be a power of 2 for paged memory %s", m->desc);
             YYABORT;
           }
+          // Code base relies on size being a multiple of page_size
+          if (m->size % m->page_size) {
+            yyerror("size must be a multiple of page size for paged memory %s", m->desc);
+            YYABORT;
+          }
+          // Warn if num_pages was specified but is inconsistent with size and page size
+          if (m->num_pages && m->num_pages != m->size / m->page_size)
+            yywarning("overriding num_page to be %d for memory %s", m->size/m->page_size, m->desc);
 
+          m->num_pages = m->size / m->page_size;
         }
       }
 
@@ -395,6 +385,8 @@ part_def :
         lrmv_d(part_list, existing_part);
         avr_free_part(existing_part);
       }
+
+      current_part->comments = cfg_move_comments();
       LISTADD(part_list, current_part); 
       current_part = NULL; 
     }
@@ -404,10 +396,6 @@ part_decl :
   K_PART
     {
       current_part = avr_new_part();
-      if (current_part == NULL) {
-        yyerror("could not create part instance");
-        YYABORT;
-      }
       current_part->config_file = cache_string(cfg_infile);
       current_part->lineno = cfg_lineno;
     } |
@@ -421,12 +409,8 @@ part_decl :
       }
 
       current_part = avr_dup_part(parent_part);
-      if (current_part == NULL) {
-        yyerror("could not duplicate part instance");
-        free_token($3);
-        YYABORT;
-      }
       current_part->parent_id = cache_string($3->value.string);
+      current_part->comments = NULL;
       current_part->config_file = cache_string(cfg_infile);
       current_part->lineno = cfg_lineno;
 
@@ -453,24 +437,10 @@ prog_parms :
 prog_parm :
   K_ID TKN_EQUAL string_list {
     {
-      TOKEN * t;
-      char *s;
-      int do_yyabort = 0;
       while (lsize(string_list)) {
-        t = lrmv_n(string_list, 1);
-        if (!do_yyabort) {
-          s = dup_string(t->value.string);
-          if (s == NULL) {
-            do_yyabort = 1;
-          } else {
-            ladd(current_prog->id, s);
-          }
-        }
-        /* if do_yyabort == 1 just make the list empty */
+        TOKEN *t = lrmv_n(string_list, 1);
+        ladd(current_prog->id, cfg_strdup("config_gram.y", t->value.string));
         free_token(t);
-      }
-      if (do_yyabort) {
-        YYABORT;
       }
     }
   } |
@@ -483,8 +453,7 @@ prog_parm :
   prog_parm_conntype
   |
   K_DESC TKN_EQUAL TKN_STRING {
-    strncpy(current_prog->desc, $3->value.string, PGM_DESCLEN);
-    current_prog->desc[PGM_DESCLEN-1] = 0;
+    current_prog->desc = cache_string($3->value.string);
     free_token($3);
   } |
   K_BAUDRATE TKN_EQUAL TKN_NUMBER {
@@ -532,8 +501,7 @@ prog_parm_conntype_id:
 prog_parm_usb:
   K_USBDEV TKN_EQUAL TKN_STRING {
     {
-      strncpy(current_prog->usbdev, $3->value.string, PGM_USBSTRINGLEN);
-      current_prog->usbdev[PGM_USBSTRINGLEN-1] = 0;
+      current_prog->usbdev = cache_string($3->value.string);
       free_token($3);
     }
   } |
@@ -546,22 +514,19 @@ prog_parm_usb:
   K_USBPID TKN_EQUAL usb_pid_list |
   K_USBSN TKN_EQUAL TKN_STRING {
     {
-      strncpy(current_prog->usbsn, $3->value.string, PGM_USBSTRINGLEN);
-      current_prog->usbsn[PGM_USBSTRINGLEN-1] = 0;
+      current_prog->usbsn = cache_string($3->value.string);
       free_token($3);
     }
   } |
   K_USBVENDOR TKN_EQUAL TKN_STRING {
     {
-      strncpy(current_prog->usbvendor, $3->value.string, PGM_USBSTRINGLEN);
-      current_prog->usbvendor[PGM_USBSTRINGLEN-1] = 0;
+      current_prog->usbvendor = cache_string($3->value.string);
       free_token($3);
     }
   } |
   K_USBPRODUCT TKN_EQUAL TKN_STRING {
     {
-      strncpy(current_prog->usbproduct, $3->value.string, PGM_USBSTRINGLEN);
-      current_prog->usbproduct[PGM_USBSTRINGLEN-1] = 0;
+      current_prog->usbproduct = cache_string($3->value.string);
       free_token($3);
     }
   }
@@ -708,22 +673,19 @@ retry_lines :
 part_parm :
   K_ID TKN_EQUAL TKN_STRING 
     {
-      strncpy(current_part->id, $3->value.string, AVR_IDLEN);
-      current_part->id[AVR_IDLEN-1] = 0;
+      current_part->id = cache_string($3->value.string);
       free_token($3);
     } |
 
   K_DESC TKN_EQUAL TKN_STRING 
     {
-      strncpy(current_part->desc, $3->value.string, AVR_DESCLEN - 1);
-      current_part->desc[AVR_DESCLEN-1] = 0;
+      current_part->desc = cache_string($3->value.string);
       free_token($3);
     } |
 
   K_FAMILY_ID TKN_EQUAL TKN_STRING
     {
-      strncpy(current_part->family_id, $3->value.string, AVR_FAMILYIDLEN);
-      current_part->family_id[AVR_FAMILYIDLEN] = 0;
+      current_part->family_id = cache_string($3->value.string);
       free_token($3);
     } |
 
@@ -1311,13 +1273,8 @@ part_parm :
     { /* select memory for extension or create if not there */
       AVRMEM *mem = avr_locate_mem_noalias(current_part, $2->value.string);
       if(!mem) {
-        if(!(mem = avr_new_memtype())) {
-          yyerror("could not create mem instance");
-          free_token($2);
-          YYABORT;
-        }
-        strncpy(mem->desc, $2->value.string, AVR_MEMDESCLEN - 1);
-        mem->desc[AVR_MEMDESCLEN-1] = 0;
+        mem = avr_new_memtype();
+        mem->desc = cache_string($2->value.string);
         ladd(current_part->mem, mem);
       }
       avr_add_mem_order($2->value.string);
@@ -1340,7 +1297,9 @@ part_parm :
               yywarning("%s's %s %s misses a necessary address bit a%d",
                  current_part->desc, current_mem->desc, opcodename(i), bn-1);
             }
+        current_mem->comments = cfg_move_comments();
       }
+      cfg_pop_comms();
       current_mem = NULL; 
     } |
   K_MEMORY TKN_STRING TKN_EQUAL K_NULL
@@ -1351,6 +1310,7 @@ part_parm :
         avr_free_mem(existing_mem);
       }
       free_token($2);
+      cfg_pop_comms();
       current_mem = NULL;
     } |
   opcode TKN_EQUAL string_list {
@@ -1361,11 +1321,6 @@ part_parm :
       opnum = which_opcode($1);
       if (opnum < 0) YYABORT;
       op = avr_new_opcode();
-      if (op == NULL) {
-        yyerror("could not create opcode instance");
-        free_token($1);
-        YYABORT;
-      }
       if(0 != parse_cmdbits(op, opnum))
         YYABORT;
       if (current_part->op[opnum] != NULL) {
@@ -1521,11 +1476,6 @@ mem_spec :
       opnum = which_opcode($1);
       if (opnum < 0) YYABORT;
       op = avr_new_opcode();
-      if (op == NULL) {
-        yyerror("could not create opcode instance");
-        free_token($1);
-        YYABORT;
-      }
       if(0 != parse_cmdbits(op, opnum))
         YYABORT;
       if (current_mem->op[opnum] != NULL) {
@@ -1574,10 +1524,7 @@ mem_alias :
 
       is_alias = true;
       alias = avr_new_memalias();
-
-      // alias->desc and current_mem->desc have the same length
-      // definition, thus no need to check for length here
-      strcpy(alias->desc, current_mem->desc);
+      alias->desc = current_mem->desc;
       alias->aliased_mem = existing_mem;
       ladd(current_part->mem_alias, alias);
 
