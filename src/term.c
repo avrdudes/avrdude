@@ -252,7 +252,7 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
   }
 
   enum { read_size = 256 };
-  static char prevmem[AVR_MEMDESCLEN] = {0x00};
+  static const char *prevmem = "";
   char * memtype = argv[1];
   AVRMEM * mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
@@ -282,7 +282,7 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
   // Get no. bytes to read if present
   static int len = read_size;
   if (argc >= 3) {
-    memset(prevmem, 0x00, sizeof(prevmem));
+    prevmem = cache_string("");
     if (strcmp(argv[argc - 1], "...") == 0) {
       if (argc == 3)
         addr = 0;
@@ -303,8 +303,7 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
     if (strncmp(prevmem, memtype, strlen(memtype)) != 0) {
       addr = 0;
       len  = read_size;
-      strncpy(prevmem, memtype, sizeof(prevmem) - 1);
-      prevmem[sizeof(prevmem) - 1] = 0;
+      prevmem = cache_string(mem->desc);
     }
     if (addr >= maxsize)
       addr = 0; // Wrap around

@@ -283,7 +283,6 @@ typedef struct avrpart {
   int           lineno;             /* config file line number */
 } AVRPART;
 
-#define AVR_MEMDESCLEN 64
 typedef struct avrmem {
   const char *desc;           /* memory description ("flash", "eeprom", etc) */
   LISTID comments;            // Used by developer options -p*/[ASsr...]
