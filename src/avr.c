@@ -295,10 +295,7 @@ int avr_mem_hiaddr(AVRMEM * mem)
     return mem->size;
 
   /* if the memory is not a flash-type memory do not remove trailing 0xff */
-  if(strcasecmp(mem->desc, "flash") &&
-     strcasecmp(mem->desc, "application") &&
-     strcasecmp(mem->desc, "apptable") &&
-     strcasecmp(mem->desc, "boot"))
+  if(!avr_mem_is_flash_type(mem))
     return mem->size;
 
   /* return the highest non-0xff address regardless of how much
@@ -1251,6 +1248,18 @@ void avr_add_mem_order(const char *str) {
     "%s: avr_mem_order[] under-dimensioned in avr.c; increase and recompile\n",
     progname);
   exit(1);
+}
+
+int avr_mem_is_flash_type(AVRMEM *mem) {
+  return
+     strcmp(mem->desc, "flash") == 0 ||
+     strcmp(mem->desc, "application") == 0 ||
+     strcmp(mem->desc, "apptable") == 0 ||
+     strcmp(mem->desc, "boot") == 0;
+}
+
+int avr_mem_is_eeprom_type(AVRMEM *mem) {
+  return strcmp(mem->desc, "eeprom") == 0;
 }
 
 int avr_mem_is_known(const char *str) {

@@ -1213,7 +1213,7 @@ int main(int argc, char * argv [])
         m = avr_locate_mem(p, upd->memtype);
         if (m == NULL)
           continue;
-        if ((strcasecmp(m->desc, memname) == 0) && (upd->op == DEVICE_WRITE)) {
+        if ((strcmp(m->desc, memname) == 0) && (upd->op == DEVICE_WRITE)) {
           erase = 1;
           if (quell_progress < 2) {
             avrdude_message(MSG_INFO, "%s: NOTE: \"%s\" memory has been specified, an erase cycle "

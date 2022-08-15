@@ -842,7 +842,12 @@ int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles);
 
 void avr_add_mem_order(const char *str);
 
+int avr_mem_is_flash_type(AVRMEM *mem);
+
+int avr_mem_is_eeprom_type(AVRMEM *mem);
+
 int avr_mem_is_known(const char *str);
+
 int avr_mem_might_be_known(const char *str);
 
 #define disable_trailing_ff_removal() avr_mem_hiaddr(NULL)

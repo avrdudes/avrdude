@@ -905,11 +905,11 @@ const char * flip2_mem_unit_str(enum flip2_mem_unit mem_unit)
 }
 
 enum flip2_mem_unit flip2_mem_unit(const char *name) {
-  if (strcasecmp(name, "application") == 0)
+  if (strcmp(name, "application") == 0)
     return FLIP2_MEM_UNIT_FLASH;
-  if (strcasecmp(name, "eeprom") == 0)
+  if (strcmp(name, "eeprom") == 0)
     return FLIP2_MEM_UNIT_EEPROM;
-  if (strcasecmp(name, "signature") == 0)
+  if (strcmp(name, "signature") == 0)
     return FLIP2_MEM_UNIT_SIGNATURE;
   return FLIP2_MEM_UNIT_UNKNOWN;
 }

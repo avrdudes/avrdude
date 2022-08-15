@@ -2253,15 +2253,12 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
   addr += mem->offset;
   cmd[1] = ( p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI) ) ? MTYPE_FLASH : MTYPE_FLASH_PAGE;
-  if (strcmp(mem->desc, "flash") == 0 ||
-      strcmp(mem->desc, "application") == 0 ||
-      strcmp(mem->desc, "apptable") == 0 ||
-      strcmp(mem->desc, "boot") == 0) {
+  if (avr_mem_is_flash_type(mem)) {
     pagesize = PDATA(pgm)->flash_pagesize;
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->flash_pageaddr;
     cache_ptr = PDATA(pgm)->flash_pagecache;
-  } else if (strcmp(mem->desc, "eeprom") == 0) {
+  } else if (avr_mem_is_eeprom_type(mem)) {
     if ( (pgm->flag & PGM_FL_IS_DW) || ( p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI) ) ) {
       /* debugWire cannot use page access for EEPROM */
       cmd[1] = MTYPE_EEPROM;
