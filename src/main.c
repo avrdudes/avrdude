@@ -279,7 +279,7 @@ int main(int argc, char * argv [])
   int     calibrate;   /* 1=calibrate RC oscillator, 0=don't */
   char  * port;        /* device port (/dev/xxx) */
   int     terminal;    /* 1=enter terminal mode, 0=don't */
-  char  * exitspecs;   /* exit specs string from command line */
+  const char *exitspecs; /* exit specs string from command line */
   char  * programmer;  /* programmer id */
   char  * partdesc;    /* part id */
   char    sys_config[PATH_MAX]; /* system wide config file */
@@ -869,11 +869,12 @@ int main(int argc, char * argv [])
 
       case CONNTYPE_SPI:
 #ifdef HAVE_LINUXSPI
-        port = *default_spi? default_spi: "unknown";
+        port = cfg_strdup("main()", *default_spi? default_spi: "unknown");
 #endif
         break;
     }
   }
+
 
   if (partdesc == NULL) {
     avrdude_message(MSG_INFO, "%s: No AVR part has been specified, use \"-p Part\"\n\n",
@@ -884,7 +885,6 @@ int main(int argc, char * argv [])
     exit(1);
   }
 
-
   p = locate_part(part_list, partdesc);
   if (p == NULL) {
     avrdude_message(MSG_INFO, "%s: AVR Part \"%s\" not found.\n\n",
@@ -894,7 +894,6 @@ int main(int argc, char * argv [])
     avrdude_message(MSG_INFO, "\n");
     exit(1);
   }
-
 
   if (exitspecs != NULL) {
     if (pgm->parseexitspecs == NULL) {
@@ -908,10 +907,9 @@ int main(int argc, char * argv [])
     }
   }
 
-  if (avr_initmem(p) != 0)
-  {
+  if (avr_initmem(p) != 0) {
     avrdude_message(MSG_INFO, "\n%s: failed to initialize memories\n",
-            progname);
+      progname);
     exit(1);
   }
 
@@ -1024,7 +1022,7 @@ int main(int argc, char * argv [])
   /*
    * enable the programmer
    */
-  pgm->enable(pgm);
+  pgm->enable(pgm, p);
 
   /*
    * turn off all the status leds

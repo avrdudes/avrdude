@@ -114,7 +114,7 @@ struct dfu_status {
 
 // FUNCTIONS
 
-extern struct dfu_dev * dfu_open(char *port_spec);
+extern struct dfu_dev *dfu_open(const char *port_spec);
 extern int dfu_init(struct dfu_dev *dfu,
   unsigned short vid, unsigned short pid);
 extern void dfu_close(struct dfu_dev *dfu);

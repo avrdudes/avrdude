@@ -104,8 +104,8 @@ static int usb_open_device(struct usb_dev_handle **dev, int vid, int pid);
 #define USB_ERROR_IO        5
 #endif  // WIN32
 
-static int pickit2_write_report(PROGRAMMER *pgm, const unsigned char report[65]);
-static int pickit2_read_report(PROGRAMMER *pgm, unsigned char report[65]);
+static int pickit2_write_report(const PROGRAMMER *pgm, const unsigned char report[65]);
+static int pickit2_read_report(const PROGRAMMER *pgm, unsigned char report[65]);
 
 #ifndef MIN
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
@@ -179,8 +179,7 @@ static void pickit2_teardown(PROGRAMMER * pgm)
     free(pgm->cookie);
 }
 
-static int pickit2_open(PROGRAMMER * pgm, char * port)
-{
+static int pickit2_open(PROGRAMMER *pgm, const char *port) {
 #if (defined(WIN32) && defined(HAVE_LIBHID))
     PDATA(pgm)->usb_handle = open_hid(PICKIT2_VID, PICKIT2_PID);
 
@@ -241,8 +240,7 @@ static void pickit2_close(PROGRAMMER * pgm)
 }
 
 
-static int pickit2_initialize(PROGRAMMER * pgm, AVRPART * p)
-{
+static int pickit2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned char temp[4];
     memset(temp, 0, sizeof(temp));
 
@@ -317,8 +315,7 @@ static int pickit2_initialize(PROGRAMMER * pgm, AVRPART * p)
         return -1;
 }
 
-static void pickit2_disable(PROGRAMMER * pgm)
-{
+static void pickit2_disable(const PROGRAMMER *pgm) {
     /* make sure all pins are floating & all voltages are off */
     static const unsigned char report[65] =
     {
@@ -339,15 +336,11 @@ static void pickit2_disable(PROGRAMMER * pgm)
     return;
 }
 
-static void pickit2_enable(PROGRAMMER * pgm)
-{
-    /* Do nothing. */
-
+static void pickit2_enable(PROGRAMMER *pgm, const AVRPART *p) {
     return;
 }
 
-static void pickit2_display(PROGRAMMER * pgm, const char * p)
-{
+static void pickit2_display(const PROGRAMMER *pgm, const char *p) {
     DEBUG( "%s: Found \"%s\" version %d.%d.%d\n", progname, p, 1, 1, 1);
     return;
 }
@@ -356,14 +349,12 @@ static void pickit2_display(PROGRAMMER * pgm, const char * p)
 #define readReport(x) 0
 
 #if 0
-static int  pickit2_rdy_led        (struct programmer_t * pgm, int value)
-{
+static int  pickit2_rdy_led(const PROGRAMMER *pgm, int value) {
     // no rdy led
     return 0;
 }
 
-static int  pickit2_err_led(struct programmer_t * pgm, int value)
-{
+static int  pickit2_err_led(const PROGRAMMER *pgm, int value) {
     // there is no error led, so just flash the busy led a few times
     uint8_t report[65] =
     {
@@ -386,8 +377,7 @@ static int  pickit2_err_led(struct programmer_t * pgm, int value)
 }
 #endif
 
-static int  pickit2_pgm_led (struct programmer_t * pgm, int value)
-{
+static int  pickit2_pgm_led(const PROGRAMMER *pgm, int value) {
     // script to set busy led appropriately
     uint8_t report[65] = {0, CMD_EXEC_SCRIPT_2(1),
                         value ? SCR_BUSY_LED_ON : SCR_BUSY_LED_OFF,
@@ -397,26 +387,22 @@ static int  pickit2_pgm_led (struct programmer_t * pgm, int value)
     return pickit2_write_report(pgm, report) != -1;
 }
 
-static int  pickit2_vfy_led        (struct programmer_t * pgm, int value)
-{
+static int  pickit2_vfy_led(const PROGRAMMER *pgm, int value) {
     // no such thing - maybe just call pgm_led
 
     return pgm->pgm_led(pgm, value);
 }
 
-static void pickit2_powerup(struct programmer_t * pgm)
-{
+static void pickit2_powerup(const PROGRAMMER *pgm) {
     // turn vdd on?
 }
 
-static void pickit2_powerdown(struct programmer_t * pgm)
-{
+static void pickit2_powerdown(const PROGRAMMER *pgm) {
     // do what?
     pgm->disable(pgm);
 }
 
-static int  pickit2_program_enable(struct programmer_t * pgm, AVRPART * p)
-{
+static int  pickit2_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned char cmd[4];
     unsigned char res[4];
 
@@ -449,8 +435,7 @@ static int  pickit2_program_enable(struct programmer_t * pgm, AVRPART * p)
     return 0;
 }
 
-static int  pickit2_chip_erase(struct programmer_t * pgm, AVRPART * p)
-{
+static int  pickit2_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned char cmd[4];
     unsigned char res[4];
 
@@ -475,9 +460,9 @@ static int  pickit2_chip_erase(struct programmer_t * pgm, AVRPART * p)
     return 0;
 }
 
-static int  pickit2_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
-                        unsigned int page_size, unsigned int addr, unsigned int n_bytes)
-{
+static int pickit2_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
+
     // only supporting flash & eeprom page reads
     if ((!mem->paged || page_size <= 1) || (strcmp(mem->desc, "flash") != 0 && strcmp(mem->desc, "eeprom") != 0))
     {
@@ -568,7 +553,7 @@ static int  pickit2_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 }
 
 
-static int pickit2_commit_page(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+static int pickit2_commit_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                         unsigned long addr)
 {
     OPCODE * wp, * lext;
@@ -618,7 +603,7 @@ static int pickit2_commit_page(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 }
 
 // not actually a paged write, but a bulk/batch write
-static int  pickit2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+static int  pickit2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                          unsigned int page_size, unsigned int addr, unsigned int n_bytes)
 {
     // only paged write for flash implemented
@@ -731,14 +716,14 @@ static int  pickit2_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 }
 
 
-static int pickit2_cmd(struct programmer_t * pgm, const unsigned char *cmd,
+static int pickit2_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
                 unsigned char *res)
 {
     return pgm->spi(pgm, cmd, res, 4);
 }
 
 // breaks up the cmd[] data into  packets & sends to the pickit2. Data shifted in is stored in res[].
-static int pickit2_spi(struct programmer_t * pgm, const unsigned char *cmd,
+static int pickit2_spi(const PROGRAMMER *pgm, const unsigned char *cmd,
                 unsigned char *res, int n_bytes)
 {
     int retval = 0, temp1 = 0, temp2 = 0, count = n_bytes;
@@ -1058,8 +1043,7 @@ static HANDLE open_hid(unsigned short vid, unsigned short pid)
 }
 
 // simple read with timeout
-static int usb_read_interrupt(PROGRAMMER *pgm, void *buff, int size, int timeout)
-{
+static int usb_read_interrupt(const PROGRAMMER *pgm, void *buff, int size, int timeout) {
     OVERLAPPED ovr;
     DWORD bytesRead = 0;
 
@@ -1084,8 +1068,7 @@ static int usb_read_interrupt(PROGRAMMER *pgm, void *buff, int size, int timeout
 }
 
 // simple write with timeout
-static int usb_write_interrupt(PROGRAMMER *pgm, const void *buff, int size, int timeout)
-{
+static int usb_write_interrupt(const PROGRAMMER *pgm, const void *buff, int size, int timeout) {
     OVERLAPPED ovr;
     DWORD bytesWritten = 0;
 
@@ -1109,13 +1092,11 @@ static int usb_write_interrupt(PROGRAMMER *pgm, const void *buff, int size, int 
     return bytesWritten > 0 ? bytesWritten : -1;
 }
 
-static int pickit2_write_report(PROGRAMMER * pgm, const unsigned char report[65])
-{
+static int pickit2_write_report(const PROGRAMMER *pgm, const unsigned char report[65]) {
     return usb_write_interrupt(pgm, report, 65, PDATA(pgm)->transaction_timeout); // XXX
 }
 
-static int pickit2_read_report(PROGRAMMER * pgm, unsigned char report[65])
-{
+static int pickit2_read_report(const PROGRAMMER *pgm, unsigned char report[65]) {
     return usb_read_interrupt(pgm, report, 65, PDATA(pgm)->transaction_timeout);
 }
 
@@ -1180,21 +1161,18 @@ static int usb_open_device(struct usb_dev_handle **device, int vendor, int produ
     return -1;
 }
 
-static int pickit2_write_report(PROGRAMMER * pgm, const unsigned char report[65])
-{
+static int pickit2_write_report(const PROGRAMMER *pgm, const unsigned char report[65]) {
     // endpoint 1 OUT??
     return usb_interrupt_write(PDATA(pgm)->usb_handle, USB_ENDPOINT_OUT | 1, (char*)(report+1), 64, PDATA(pgm)->transaction_timeout);
 }
 
-static int pickit2_read_report(PROGRAMMER * pgm, unsigned char report[65])
-{
+static int pickit2_read_report(const PROGRAMMER *pgm, unsigned char report[65]) {
     // endpoint 1 IN??
     return usb_interrupt_read(PDATA(pgm)->usb_handle, USB_ENDPOINT_IN | 1, (char*)(report+1), 64, PDATA(pgm)->transaction_timeout);
 }
 #endif  // WIN32
 
-static int  pickit2_parseextparams(struct programmer_t * pgm, LISTID extparms)
-{
+static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
     LNODEID ln;
     const char *extended_param;
     int rv = 0;
@@ -1251,8 +1229,7 @@ static int  pickit2_parseextparams(struct programmer_t * pgm, LISTID extparms)
 }
 
 
-void pickit2_initpgm (PROGRAMMER * pgm)
-{
+void pickit2_initpgm(PROGRAMMER *pgm) {
     /*
      * mandatory functions - these are called without checking to see
      * whether they are assigned or not
@@ -1307,7 +1284,7 @@ void pickit2_initpgm (PROGRAMMER * pgm)
     strncpy(pgm->type, "pickit2", sizeof(pgm->type));
 }
 #else
-static int pickit2_nousb_open (struct programmer_t *pgm, char * name) {
+static int pickit2_nousb_open(PROGRAMMER *pgm, const char *name) {
     avrdude_message(MSG_INFO, 
 #ifdef WIN32
             "%s: error: no usb or hid support. Please compile again with libusb or HID support from Win32 DDK installed.\n",
@@ -1319,8 +1296,7 @@ static int pickit2_nousb_open (struct programmer_t *pgm, char * name) {
     return -1;
 }
 
-void pickit2_initpgm (PROGRAMMER * pgm)
-{
+void pickit2_initpgm(PROGRAMMER *pgm) {
     /*
      * mandatory functions - these are called without checking to see
      * whether they are assigned or not

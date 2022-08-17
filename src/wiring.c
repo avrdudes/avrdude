@@ -109,8 +109,7 @@ static void wiring_teardown(PROGRAMMER * pgm)
   stk500v2_teardown(pgm);
 }
 
-static int wiring_parseextparms(PROGRAMMER * pgm, LISTID extparms)
-{
+static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   LNODEID ln;
   const char *extended_param;
   int rv = 0;
@@ -143,8 +142,7 @@ static int wiring_parseextparms(PROGRAMMER * pgm, LISTID extparms)
   return rv;
 }
 
-static int wiring_open(PROGRAMMER * pgm, char * port)
-{
+static int wiring_open(PROGRAMMER *pgm, const char *port) {
   int timetosnooze;
   void *mycookie = STK500V2PDATA(pgm)->chained_pdata;
   union pinfo pinfo;
@@ -205,8 +203,7 @@ static void wiring_close(PROGRAMMER * pgm)
 
 const char wiring_desc[] = "http://wiring.org.co/, Basically STK500v2 protocol, with some glue to trigger the bootloader.";
 
-void wiring_initpgm(PROGRAMMER * pgm)
-{
+void wiring_initpgm(PROGRAMMER *pgm) {
   /* The Wiring bootloader uses a near-complete STK500v2 protocol. */
 
   stk500v2_initpgm(pgm);

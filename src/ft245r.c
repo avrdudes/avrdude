@@ -93,14 +93,14 @@
 
 #if defined(DO_NOT_BUILD_FT245R)
 
-static int ft245r_noftdi_open (struct programmer_t *pgm, char * name) {
+static int ft245r_noftdi_open(PROGRAMMER *pgm, const char *name) {
     avrdude_message(MSG_INFO, "%s: error: no libftdi or libusb support. Install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again.\n",
                     progname);
 
     return -1;
 }
 
-void ft245r_initpgm(PROGRAMMER * pgm) {
+void ft245r_initpgm(PROGRAMMER *pgm) {
     strcpy(pgm->type, "ftdi_syncbb");
     pgm->open = ft245r_noftdi_open;
 }
@@ -153,25 +153,25 @@ static struct {
     uint8_t buf[FT245R_BUFSIZE];	// receive ring buffer
 } rx;
 
-static int ft245r_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
+static int ft245r_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
                       unsigned char *res);
-static int ft245r_tpi_tx(PROGRAMMER * pgm, uint8_t byte);
-static int ft245r_tpi_rx(PROGRAMMER * pgm, uint8_t *bytep);
+static int ft245r_tpi_tx(const PROGRAMMER *pgm, uint8_t byte);
+static int ft245r_tpi_rx(const PROGRAMMER *pgm, uint8_t *bytep);
 
 // Discard all data from the receive buffer.
-static void ft245r_rx_buf_purge(PROGRAMMER * pgm) {
+static void ft245r_rx_buf_purge(const PROGRAMMER *pgm) {
     rx.len = 0;
     rx.rd = rx.wr = 0;
 }
 
-static void ft245r_rx_buf_put(PROGRAMMER * pgm, uint8_t byte) {
+static void ft245r_rx_buf_put(const PROGRAMMER *pgm, uint8_t byte) {
     rx.len++;
     rx.buf[rx.wr++] = byte;
     if (rx.wr >= sizeof(rx.buf))
 	rx.wr = 0;
 }
 
-static uint8_t ft245r_rx_buf_get(PROGRAMMER * pgm) {
+static uint8_t ft245r_rx_buf_get(const PROGRAMMER *pgm) {
     rx.len--;
     uint8_t byte = rx.buf[rx.rd++];
     if (rx.rd >= sizeof(rx.buf))
@@ -180,7 +180,7 @@ static uint8_t ft245r_rx_buf_get(PROGRAMMER * pgm) {
 }
 
 /* Fill receive buffer with data from the FTDI receive FIFO.  */
-static int ft245r_fill(PROGRAMMER * pgm) {
+static int ft245r_fill(const PROGRAMMER *pgm) {
     uint8_t raw[FT245R_MIN_FIFO_SIZE];
     int i, nread;
 
@@ -197,8 +197,7 @@ static int ft245r_fill(PROGRAMMER * pgm) {
     return nread;
 }
 
-static int ft245r_rx_buf_fill_and_get(PROGRAMMER* pgm)
-{
+static int ft245r_rx_buf_fill_and_get(const PROGRAMMER *pgm) {
     while (rx.len == 0)
     {
         int result = ft245r_fill(pgm);
@@ -212,7 +211,7 @@ static int ft245r_rx_buf_fill_and_get(PROGRAMMER* pgm)
 }
 
 /* Flush pending TX data to the FTDI send FIFO.  */
-static int ft245r_flush(PROGRAMMER * pgm) {
+static int ft245r_flush(const PROGRAMMER *pgm) {
     int rv, len = tx.len, avail;
     uint8_t *src = tx.buf;
 
@@ -251,7 +250,7 @@ static int ft245r_flush(PROGRAMMER * pgm) {
     return 0;
 }
 
-static int ft245r_send2(PROGRAMMER * pgm, unsigned char * buf, size_t len,
+static int ft245r_send2(const PROGRAMMER *pgm, unsigned char *buf, size_t len,
 			bool discard_rx_data) {
     int i, j;
 
@@ -267,16 +266,16 @@ static int ft245r_send2(PROGRAMMER * pgm, unsigned char * buf, size_t len,
     return 0;
 }
 
-static int ft245r_send(PROGRAMMER * pgm, unsigned char * buf, size_t len) {
+static int ft245r_send(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
     return ft245r_send2(pgm, buf, len, false);
 }
 
-static int ft245r_send_and_discard(PROGRAMMER * pgm, unsigned char * buf,
+static int ft245r_send_and_discard(const PROGRAMMER *pgm, unsigned char *buf,
 				   size_t len) {
     return ft245r_send2(pgm, buf, len, true);
 }
 
-static int ft245r_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len) {
+static int ft245r_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
     int i, j;
 
     ft245r_flush(pgm);
@@ -318,7 +317,7 @@ static int ft245r_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len) {
 }
 
 
-static int ft245r_drain(PROGRAMMER * pgm, int display) {
+static int ft245r_drain(const PROGRAMMER *pgm, int display) {
     int r;
 
     // flush the buffer in the chip by changing the mode.....
@@ -334,13 +333,13 @@ static int ft245r_drain(PROGRAMMER * pgm, int display) {
 
 
 /* Ensure any pending writes are sent to the FTDI chip before sleeping.  */
-static void ft245r_usleep(PROGRAMMER * pgm, useconds_t usec) {
+static void ft245r_usleep(const PROGRAMMER *pgm, useconds_t usec) {
     ft245r_flush(pgm);
     usleep(usec);
 }
 
 
-static int ft245r_chip_erase(PROGRAMMER * pgm, AVRPART * p) {
+static int ft245r_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned char cmd[4] = {0,0,0,0};
     unsigned char res[4];
 
@@ -360,7 +359,7 @@ static int ft245r_chip_erase(PROGRAMMER * pgm, AVRPART * p) {
 }
 
 
-static int ft245r_set_bitclock(PROGRAMMER * pgm) {
+static int ft245r_set_bitclock(const PROGRAMMER *pgm) {
     // libftdi1 multiplies bitbang baudrate by 4:
     int r, rate = 0, ftdi_rate = 3000000 / 4;
 
@@ -395,7 +394,7 @@ static int ft245r_set_bitclock(PROGRAMMER * pgm) {
     return 0;
 }
 
-static int get_pin(PROGRAMMER *pgm, int pinname) {
+static int get_pin(const PROGRAMMER *pgm, int pinname) {
   uint8_t byte;
 
   ft245r_flush(pgm);
@@ -407,7 +406,7 @@ static int get_pin(PROGRAMMER *pgm, int pinname) {
   return GET_BITS_0(byte, pgm, pinname) != 0;
 }
 
-static int set_pin(PROGRAMMER * pgm, int pinname, int val) {
+static int set_pin(const PROGRAMMER *pgm, int pinname, int val) {
     unsigned char buf[1];
 
     if (pgm->pin[pinname].mask[0] == 0) {
@@ -422,46 +421,45 @@ static int set_pin(PROGRAMMER * pgm, int pinname, int val) {
     return 0;
 }
 
-static int set_sck(PROGRAMMER * pgm, int value) {
+static int set_sck(const PROGRAMMER *pgm, int value) {
     return set_pin(pgm, PIN_AVR_SCK, value);
 }
 
-static int set_reset(PROGRAMMER * pgm, int value) {
+static int set_reset(const PROGRAMMER *pgm, int value) {
     return set_pin(pgm, PIN_AVR_RESET, value);
 }
 
-static int set_buff(PROGRAMMER * pgm, int value) {
+static int set_buff(const PROGRAMMER *pgm, int value) {
     return set_pin(pgm, PPI_AVR_BUFF, value);
 }
 
-static int set_vcc(PROGRAMMER * pgm, int value) {
+static int set_vcc(const PROGRAMMER *pgm, int value) {
     return set_pin(pgm, PPI_AVR_VCC, value);
 }
 
 /* these functions are callbacks, which go into the
  * PROGRAMMER data structure ("optional functions")
  */
-static int set_led_pgm(struct programmer_t * pgm, int value) {
+static int set_led_pgm(const PROGRAMMER *pgm, int value) {
     return set_pin(pgm, PIN_LED_PGM, value);
 }
 
-static int set_led_rdy(struct programmer_t * pgm, int value) {
+static int set_led_rdy(const PROGRAMMER *pgm, int value) {
     return set_pin(pgm, PIN_LED_RDY, value);
 }
 
-static int set_led_err(struct programmer_t * pgm, int value) {
+static int set_led_err(const PROGRAMMER *pgm, int value) {
     return set_pin(pgm, PIN_LED_ERR, value);
 }
 
-static int set_led_vfy(struct programmer_t * pgm, int value) {
+static int set_led_vfy(const PROGRAMMER *pgm, int value) {
     return set_pin(pgm, PIN_LED_VFY, value);
 }
 
 /*
  * apply power to the AVR processor
  */
-static void ft245r_powerup(PROGRAMMER * pgm)
-{
+static void ft245r_powerup(const PROGRAMMER *pgm) {
     set_vcc(pgm, ON); /* power up */
     ft245r_usleep(pgm, 100);
 }
@@ -470,18 +468,17 @@ static void ft245r_powerup(PROGRAMMER * pgm)
 /*
  * remove power from the AVR processor
  */
-static void ft245r_powerdown(PROGRAMMER * pgm)
-{
+static void ft245r_powerdown(const PROGRAMMER *pgm) {
     set_vcc(pgm, OFF); /* power down */
 }
 
 
-static void ft245r_disable(PROGRAMMER * pgm) {
+static void ft245r_disable(const PROGRAMMER *pgm) {
     set_buff(pgm, OFF);
 }
 
 
-static void ft245r_enable(PROGRAMMER * pgm) {
+static void ft245r_enable(PROGRAMMER *pgm, const AVRPART *p) {
   /*
    * Prepare to start talking to the connected device - pull reset low
    * first, delay a few milliseconds, then enable the buffer.  This
@@ -500,7 +497,7 @@ static void ft245r_enable(PROGRAMMER * pgm) {
 /*
  * issue the 'program enable' command to the AVR device
  */
-static int ft245r_program_enable(PROGRAMMER * pgm, AVRPART * p) {
+static int ft245r_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned char cmd[4] = {0,0,0,0};
     unsigned char res[4];
     int i;
@@ -547,7 +544,7 @@ static int ft245r_program_enable(PROGRAMMER * pgm, AVRPART * p) {
 /*
  * initialize the AVR device and prepare it to accept commands
  */
-static int ft245r_initialize(PROGRAMMER * pgm, AVRPART * p) {
+static int ft245r_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
     /* Apply power between VCC and GND while RESET and SCK are set to “0”. In some systems,
      * the programmer can not guarantee that SCK is held low during power-up. In this
@@ -616,7 +613,7 @@ static int ft245r_initialize(PROGRAMMER * pgm, AVRPART * p) {
     return ft245r_program_enable(pgm, p);
 }
 
-static inline void add_bit(PROGRAMMER * pgm, unsigned char *buf, int *buf_pos,
+static inline void add_bit(const PROGRAMMER *pgm, unsigned char *buf, int *buf_pos,
 			   uint8_t bit) {
     ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_MOSI, bit);
     ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,0);
@@ -628,7 +625,7 @@ static inline void add_bit(PROGRAMMER * pgm, unsigned char *buf, int *buf_pos,
     (*buf_pos)++;
 }
 
-static inline int set_data(PROGRAMMER * pgm, unsigned char *buf, unsigned char data) {
+static inline int set_data(const PROGRAMMER *pgm, unsigned char *buf, unsigned char data) {
     int j;
     int buf_pos = 0;
     unsigned char bit = 0x80;
@@ -640,7 +637,7 @@ static inline int set_data(PROGRAMMER * pgm, unsigned char *buf, unsigned char d
     return buf_pos;
 }
 
-static inline unsigned char extract_data(PROGRAMMER * pgm, unsigned char *buf, int offset) {
+static inline unsigned char extract_data(const PROGRAMMER *pgm, unsigned char *buf, int offset) {
     int j;
     int buf_pos = FT245R_CYCLES; /* MISO data is valid AFTER rising SCK edge,
                                             i.e. in next clock cycle */
@@ -660,7 +657,7 @@ static inline unsigned char extract_data(PROGRAMMER * pgm, unsigned char *buf, i
 
 /* to check data */
 #if 0
-static inline unsigned char extract_data_out(PROGRAMMER * pgm, unsigned char *buf, int offset) {
+static inline unsigned char extract_data_out(const PROGRAMMER *pgm, unsigned char *buf, int offset) {
     int j;
     int buf_pos = 1;
     unsigned char bit = 0x80;
@@ -683,7 +680,7 @@ static inline unsigned char extract_data_out(PROGRAMMER * pgm, unsigned char *bu
  * transmit an AVR device command and return the results; 'cmd' and
  * 'res' must point to at least a 4 byte data buffer
  */
-static int ft245r_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
+static int ft245r_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
                       unsigned char *res) {
     int i,buf_pos;
     unsigned char buf[128];
@@ -705,7 +702,7 @@ static int ft245r_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
     return 0;
 }
 
-static inline uint8_t extract_tpi_data(PROGRAMMER * pgm, unsigned char *buf,
+static inline uint8_t extract_tpi_data(const PROGRAMMER *pgm, unsigned char *buf,
 				       int *buf_pos) {
     uint8_t bit = 0x1, byte = 0;
     int j;
@@ -719,7 +716,7 @@ static inline uint8_t extract_tpi_data(PROGRAMMER * pgm, unsigned char *buf,
     return byte;
 }
 
-static inline int set_tpi_data(PROGRAMMER * pgm, unsigned char *buf,
+static inline int set_tpi_data(const PROGRAMMER *pgm, unsigned char *buf,
 			       uint8_t byte) {
     uint8_t bit = 0x1, parity = 0;
     int j, buf_pos = 0;
@@ -742,7 +739,7 @@ static inline int set_tpi_data(PROGRAMMER * pgm, unsigned char *buf,
     return buf_pos;
 }
 
-static int ft245r_tpi_tx(PROGRAMMER * pgm, uint8_t byte) {
+static int ft245r_tpi_tx(const PROGRAMMER *pgm, uint8_t byte) {
     uint8_t buf[128];
     int len;
 
@@ -751,7 +748,7 @@ static int ft245r_tpi_tx(PROGRAMMER * pgm, uint8_t byte) {
     return 0;
 }
 
-static int ft245r_tpi_rx(PROGRAMMER * pgm, uint8_t *bytep) {
+static int ft245r_tpi_rx(const PROGRAMMER *pgm, uint8_t *bytep) {
     uint8_t buf[128], bit, parity;
     int i, buf_pos = 0, len = 0;
     uint32_t res, m, byte;
@@ -796,7 +793,7 @@ static int ft245r_tpi_rx(PROGRAMMER * pgm, uint8_t *bytep) {
     return 0;
 }
 
-static int ft245r_cmd_tpi(PROGRAMMER * pgm, const unsigned char *cmd,
+static int ft245r_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
 			  int cmd_len, unsigned char *res, int res_len) {
     int i, ret = 0;
 
@@ -832,7 +829,7 @@ static const struct pin_checklist_t pin_checklist[] = {
     { PPI_AVR_BUFF, 0, &valid_pins},
 };
 
-static int ft245r_open(PROGRAMMER * pgm, char * port) {
+static int ft245r_open(PROGRAMMER *pgm, const char *port) {
     int rv;
     int devnum = -1;
     char device[9] = "";
@@ -987,13 +984,13 @@ static void ft245r_close(PROGRAMMER * pgm) {
     }
 }
 
-static void ft245r_display(PROGRAMMER * pgm, const char * p) {
+static void ft245r_display(const PROGRAMMER *pgm, const char *p) {
     avrdude_message(MSG_INFO, "%sPin assignment  : 0..7 = DBUS0..7\n",p);/* , 8..11 = GPIO0..3\n",p);*/
     pgm_display_generic_mask(pgm, p, SHOW_ALL_PINS);
 }
 
 
-static int ft245r_paged_write_gen(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
+static int ft245r_paged_write_gen(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
              unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
     for(int i=0; i < (int) n_bytes; i++, addr++)
@@ -1035,7 +1032,7 @@ static void put_request(int addr, int bytes, int n) {
     }
 }
 
-static int do_request(PROGRAMMER * pgm, AVRMEM *m) {
+static int do_request(const PROGRAMMER *pgm, const AVRMEM *m) {
     struct ft245r_request *p;
     int addr, bytes, j, n;
     unsigned char buf[FT245R_FRAGMENT_SIZE+1+128];
@@ -1060,7 +1057,7 @@ static int do_request(PROGRAMMER * pgm, AVRMEM *m) {
 }
 
 
-static int ft245r_paged_write_flash(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
+static int ft245r_paged_write_flash(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
              unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
     int i, j, addr_save, buf_pos, req_count, do_page_write;
@@ -1127,7 +1124,7 @@ static int ft245r_paged_write_flash(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
 }
 
 
-static int ft245r_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int ft245r_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
             unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
     if(!n_bytes)
@@ -1142,7 +1139,7 @@ static int ft245r_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     return -2;
 }
 
-static int ft245r_paged_load_gen(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
+static int ft245r_paged_load_gen(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
              unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
     for(int i=0; i < (int) n_bytes; i++) {
@@ -1158,7 +1155,7 @@ static int ft245r_paged_load_gen(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
 }
 
 
-static int ft245r_paged_load_flash(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
+static int ft245r_paged_load_flash(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
             unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
     int i, j, addr_save, buf_pos, req_count;
@@ -1225,7 +1222,7 @@ static int ft245r_paged_load_flash(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
     return 0;
 }
 
-static int ft245r_paged_load(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
+static int ft245r_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
              unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
     if(!n_bytes)
@@ -1240,7 +1237,7 @@ static int ft245r_paged_load(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m,
    return -2;
 }
 
-void ft245r_initpgm(PROGRAMMER * pgm) {
+void ft245r_initpgm(PROGRAMMER *pgm) {
     strcpy(pgm->type, "ftdi_syncbb");
 
     /*

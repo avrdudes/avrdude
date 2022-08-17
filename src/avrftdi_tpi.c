@@ -15,8 +15,8 @@
 
 #ifndef DO_NOT_BUILD_AVRFTDI
 
-static void avrftdi_tpi_disable(PROGRAMMER *);
-static int avrftdi_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p);
+static void avrftdi_tpi_disable(const PROGRAMMER *);
+static int avrftdi_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p);
 
 #ifdef notyet
 static void
@@ -63,22 +63,11 @@ avrftdi_debug_frame(uint16_t frame)
 #endif /* notyet */
 
 int
-avrftdi_tpi_initialize(PROGRAMMER * pgm, AVRPART * p)
-{
+avrftdi_tpi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 	int ret;
 
 	avrftdi_t* pdata = to_pdata(pgm);
 	unsigned char buf[] = { MPSSE_DO_WRITE | MPSSE_WRITE_NEG | MPSSE_LSB, 0x01, 0x00, 0xff, 0xff };
-
-	log_info("Using TPI interface\n");
-
-	pgm->program_enable = avrftdi_tpi_program_enable;
-	pgm->cmd_tpi = avrftdi_cmd_tpi;
-	pgm->chip_erase = avr_tpi_chip_erase;
-	pgm->disable = avrftdi_tpi_disable;
-
-	pgm->paged_load = NULL;
-	pgm->paged_write = NULL;
 
 	log_info("Setting /Reset pin low\n");
 	pgm->setpin(pgm, PIN_AVR_RESET, OFF);
@@ -100,6 +89,20 @@ avrftdi_tpi_initialize(PROGRAMMER * pgm, AVRPART * p)
 
 	return ret;
 }
+
+
+void avrftdi_tpi_initpgm(PROGRAMMER *pgm) {
+	  log_info("Using TPI interface\n");
+
+	  pgm->program_enable = avrftdi_tpi_program_enable;
+	  pgm->cmd_tpi = avrftdi_cmd_tpi;
+	  pgm->chip_erase = avr_tpi_chip_erase;
+	  pgm->disable = avrftdi_tpi_disable;
+
+	  pgm->paged_load = NULL;
+	  pgm->paged_write = NULL;
+}
+
 
 #define TPI_PARITY_MASK 0x2000
 
@@ -148,8 +151,7 @@ tpi_frame2byte(uint16_t frame, uint8_t * byte)
 
 #ifdef notyet
 static int
-avrftdi_tpi_break(PROGRAMMER * pgm)
-{
+avrftdi_tpi_break(const PROGRAMMER *pgm) {
 	unsigned char buffer[] = { MPSSE_DO_WRITE | MPSSE_WRITE_NEG | MPSSE_LSB, 1, 0, 0, 0 };
 	E(ftdi_write_data(to_pdata(pgm)->ftdic, buffer, sizeof(buffer)) != sizeof(buffer), to_pdata(pgm)->ftdic);
 
@@ -158,8 +160,7 @@ avrftdi_tpi_break(PROGRAMMER * pgm)
 #endif /* notyet */
 
 static int
-avrftdi_tpi_write_byte(PROGRAMMER * pgm, unsigned char byte)
-{
+avrftdi_tpi_write_byte(const PROGRAMMER *pgm, unsigned char byte) {
 	uint16_t frame;
 
 	struct ftdi_context* ftdic = to_pdata(pgm)->ftdic;
@@ -185,8 +186,7 @@ avrftdi_tpi_write_byte(PROGRAMMER * pgm, unsigned char byte)
 #define TPI_IDLE_BITS   2
 
 static int
-avrftdi_tpi_read_byte(PROGRAMMER * pgm, unsigned char * byte)
-{
+avrftdi_tpi_read_byte(const PROGRAMMER *pgm, unsigned char *byte) {
 	uint16_t frame;
 	
 	/* use 2 guard bits, 2 default idle bits + 12 frame bits = 16 bits total */
@@ -230,13 +230,12 @@ avrftdi_tpi_read_byte(PROGRAMMER * pgm, unsigned char * byte)
 }
 
 static int
-avrftdi_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p)
-{
+avrftdi_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 	return avr_tpi_program_enable(pgm, p, TPIPCR_GT_2b);
 }
 
 int
-avrftdi_cmd_tpi(PROGRAMMER * pgm, const unsigned char *cmd, int cmd_len,
+avrftdi_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd, int cmd_len,
 		unsigned char *res, int res_len)
 {
 	int i, err = 0;
@@ -259,8 +258,7 @@ avrftdi_cmd_tpi(PROGRAMMER * pgm, const unsigned char *cmd, int cmd_len,
 }
 
 static void
-avrftdi_tpi_disable(PROGRAMMER * pgm)
-{
+avrftdi_tpi_disable(const PROGRAMMER *pgm) {
 	unsigned char cmd[] = {TPI_OP_SSTCS(TPIPCR), 0};
 	pgm->cmd_tpi(pgm, cmd, sizeof(cmd), NULL, 0);
 

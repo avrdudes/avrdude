@@ -96,8 +96,7 @@ static void usbCloseDevice(union filedescriptor *fdp)
 
 /* ------------------------------------------------------------------------- */
 
-static int usbSetReport(union filedescriptor *fdp, int reportType, char *buffer, int len)
-{
+static int usbSetReport(const union filedescriptor *fdp, int reportType, char *buffer, int len) {
   hid_device *udev = (hid_device *)fdp->usb.handle;
   int bytesSent = -1;
 
@@ -122,7 +121,7 @@ static int usbSetReport(union filedescriptor *fdp, int reportType, char *buffer,
 
 /* ------------------------------------------------------------------------- */
 
-static int usbGetReport(union filedescriptor *fdp, int reportType, int reportNumber,
+static int usbGetReport(const union filedescriptor *fdp, int reportType, int reportNumber,
 			char *buffer, int *len)
 {
   hid_device *udev = (hid_device *)fdp->usb.handle;
@@ -221,7 +220,7 @@ static char *usbErrorText(int usbErrno)
 
 /* ------------------------------------------------------------------------- */
 
-static int avrdoper_open(char *port, union pinfo pinfo, union filedescriptor *fdp)
+static int avrdoper_open(const char *port, union pinfo pinfo, union filedescriptor *fdp)
 {
     int rval;
     char *vname = "obdev.at";
@@ -255,7 +254,7 @@ static int  chooseDataSize(int len)
     return i - 1;
 }
 
-static int avrdoper_send(union filedescriptor *fdp, const unsigned char *buf, size_t buflen)
+static int avrdoper_send(const union filedescriptor *fdp, const unsigned char *buf, size_t buflen)
 {
     if(verbose > 3)
         dumpBlock("Send", buf, buflen);
@@ -282,8 +281,7 @@ static int avrdoper_send(union filedescriptor *fdp, const unsigned char *buf, si
 
 /* ------------------------------------------------------------------------- */
 
-static int avrdoperFillBuffer(union filedescriptor *fdp)
-{
+static int avrdoperFillBuffer(const union filedescriptor *fdp) {
     int bytesPending = reportDataSizes[1];  /* guess how much data is buffered in device */
 
     avrdoperRxPosition = avrdoperRxLength = 0;
@@ -316,7 +314,7 @@ static int avrdoperFillBuffer(union filedescriptor *fdp)
     return 0;
 }
 
-static int avrdoper_recv(union filedescriptor *fdp, unsigned char *buf, size_t buflen)
+static int avrdoper_recv(const union filedescriptor *fdp, unsigned char *buf, size_t buflen)
 {
     unsigned char   *p = buf;
     int             remaining = buflen;
@@ -341,7 +339,7 @@ static int avrdoper_recv(union filedescriptor *fdp, unsigned char *buf, size_t b
 
 /* ------------------------------------------------------------------------- */
 
-static int avrdoper_drain(union filedescriptor *fdp, int display)
+static int avrdoper_drain(const union filedescriptor *fdp, int display)
 {
     do{
         if (avrdoperFillBuffer(fdp) < 0)
@@ -352,7 +350,7 @@ static int avrdoper_drain(union filedescriptor *fdp, int display)
 
 /* ------------------------------------------------------------------------- */
 
-static int avrdoper_set_dtr_rts(union filedescriptor *fdp, int is_on)
+static int avrdoper_set_dtr_rts(const union filedescriptor *fdp, int is_on)
 {
 	avrdude_message(MSG_INFO, "%s: AVR-Doper doesn't support DTR/RTS setting\n", progname);
     return -1;

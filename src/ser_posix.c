@@ -122,8 +122,7 @@ static struct baud_mapping baud_lookup_table [] = {
 static struct termios original_termios;
 static int saved_original_termios;
 
-static speed_t serial_baud_lookup(long baud, bool *nonstandard)
-{
+static speed_t serial_baud_lookup(long baud, bool *nonstandard) {
   struct baud_mapping *map = baud_lookup_table;
 
   *nonstandard = false;
@@ -146,8 +145,7 @@ static speed_t serial_baud_lookup(long baud, bool *nonstandard)
   return baud;
 }
 
-static int ser_setparams(union filedescriptor *fd, long baud, unsigned long cflags)
-{
+static int ser_setparams(const union filedescriptor *fd, long baud, unsigned long cflags) {
   int rc;
   struct termios termios;
   bool nonstandard;
@@ -283,9 +281,7 @@ static int ser_setparams(union filedescriptor *fd, long baud, unsigned long cfla
  * terminal/console server with serial parameters configured
  * appropriately (e. g. 115200-8-N-1 for a STK500.)
  */
-static int
-net_open(const char *port, union filedescriptor *fdp)
-{
+static int net_open(const char *port, union filedescriptor *fdp) {
   char *hp, *hstr, *pstr;
   int s, fd, ret = -1;
   struct addrinfo hints;
@@ -361,8 +357,7 @@ error:
 }
 
 
-static int ser_set_dtr_rts(union filedescriptor *fdp, int is_on)
-{
+static int ser_set_dtr_rts(const union filedescriptor *fdp, int is_on) {
   unsigned int	ctl;
   int           r;
 
@@ -390,8 +385,7 @@ static int ser_set_dtr_rts(union filedescriptor *fdp, int is_on)
   return 0;
 }
 
-static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
-{
+static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *fdp) {
   int rc;
   int fd;
 
@@ -428,8 +422,7 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
   return 0;
 }
 
-static void ser_close(union filedescriptor *fd)
-{
+static void ser_close(union filedescriptor *fd) {
   /*
    * restore original termios settings from ser_open
    */
@@ -446,8 +439,7 @@ static void ser_close(union filedescriptor *fd)
 }
 
 
-static int ser_send(union filedescriptor *fd, const unsigned char * buf, size_t buflen)
-{
+static int ser_send(const union filedescriptor *fd, const unsigned char * buf, size_t buflen) {
   int rc;
   const unsigned char * p = buf;
   size_t len = buflen;
@@ -491,8 +483,7 @@ static int ser_send(union filedescriptor *fd, const unsigned char * buf, size_t 
 }
 
 
-static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen)
-{
+static int ser_recv(const union filedescriptor *fd, unsigned char * buf, size_t buflen) {
   struct timeval timeout, to2;
   fd_set rfds;
   int nfds;
@@ -564,8 +555,7 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 }
 
 
-static int ser_drain(union filedescriptor *fd, int display)
-{
+static int ser_drain(const union filedescriptor *fd, int display) {
   struct timeval timeout;
   fd_set rfds;
   int nfds;

@@ -30,39 +30,18 @@
 
 #include "ac_cfg.h"
 
-#include <sys/time.h> /* gettimeofday() */
+#include <sys/time.h>
 
-#include <stdio.h> /* sscanf() */
-#include <stdlib.h> /* malloc() */
-#include <string.h> /* memmove() etc. */
-#include <unistd.h> /* usleep() */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
 #include "stk500_private.h"
 #include "stk500.h"
 #include "xbee.h"
-
-/*
- * For non-direct mode (Over-The-Air) we need to issue XBee commands
- * to the remote XBee in order to reset the AVR CPU and initiate the
- * XBeeBoot bootloader.
- *
- * XBee IO port 3 is a somewhat-arbitrarily chosen pin that can be
- * connected directly to the AVR reset pin.
- *
- * Note that port 7 was not used because it is the only pin that can
- * be used as a CTS flow control output.  Port 6 is the only pin that
- * can be used as an RTS flow control input.
- *
- * Some off-the-shelf Arduino shields select a different pin.  For
- * example this one uses XBee IO port 7.
- *
- * https://wiki.dfrobot.com/Xbee_Shield_For_Arduino__no_Xbee___SKU_DFR0015_
- */
-#ifndef XBEE_DEFAULT_RESET_PIN
-#define XBEE_DEFAULT_RESET_PIN 3
-#endif
 
 /*
  * After eight seconds the AVR bootloader watchdog will kick in.  But
@@ -125,8 +104,7 @@
  * Read signature bytes - Direct copy of the Arduino behaviour to
  * satisfy Optiboot.
  */
-static int xbee_read_sig_bytes(PROGRAMMER *pgm, AVRPART *p, AVRMEM *m)
-{
+static int xbee_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m) {
   unsigned char buf[32];
 
   /* Signature byte reads are always 3 bytes. */
@@ -318,7 +296,7 @@ static void XBeeBootSessionInit(struct XBeeBootSession *xbs) {
 
 #define xbeebootsession(fdp) (struct XBeeBootSession*)((fdp)->pfd)
 
-static void xbeedev_setresetpin(union filedescriptor *fdp, int xbeeResetPin)
+static void xbeedev_setresetpin(const union filedescriptor *fdp, int xbeeResetPin)
 {
   struct XBeeBootSession *xbs = xbeebootsession(fdp);
   xbs->xbeeResetPin = xbeeResetPin;
@@ -1106,7 +1084,7 @@ static void xbeedev_close(union filedescriptor *fdp)
   xbeedev_free(xbs);
 }
 
-static int xbeedev_open(char *port, union pinfo pinfo,
+static int xbeedev_open(const char *port, union pinfo pinfo,
                         union filedescriptor *fdp)
 {
   /*
@@ -1329,7 +1307,7 @@ static int xbeedev_open(char *port, union pinfo pinfo,
   return 0;
 }
 
-static int xbeedev_send(union filedescriptor *fdp,
+static int xbeedev_send(const union filedescriptor *fdp,
                         const unsigned char *buf, size_t buflen)
 {
   struct XBeeBootSession *xbs = xbeebootsession(fdp);
@@ -1453,7 +1431,7 @@ static int xbeedev_send(union filedescriptor *fdp,
   return 0;
 }
 
-static int xbeedev_recv(union filedescriptor *fdp,
+static int xbeedev_recv(const union filedescriptor *fdp,
                         unsigned char *buf, size_t buflen)
 {
   struct XBeeBootSession *xbs = xbeebootsession(fdp);
@@ -1528,7 +1506,7 @@ static int xbeedev_recv(union filedescriptor *fdp,
   return -1;
 }
 
-static int xbeedev_drain(union filedescriptor *fdp, int display)
+static int xbeedev_drain(const union filedescriptor *fdp, int display)
 {
   struct XBeeBootSession *xbs = xbeebootsession(fdp);
 
@@ -1547,7 +1525,7 @@ static int xbeedev_drain(union filedescriptor *fdp, int display)
   return 0;
 }
 
-static int xbeedev_set_dtr_rts(union filedescriptor *fdp, int is_on)
+static int xbeedev_set_dtr_rts(const union filedescriptor *fdp, int is_on)
 {
   struct XBeeBootSession *xbs = xbeebootsession(fdp);
 
@@ -1587,8 +1565,7 @@ static struct serial_device xbee_serdev_frame = {
   .flags = SERDEV_FL_NONE,
 };
 
-static int xbee_getsync(PROGRAMMER *pgm)
-{
+static int xbee_getsync(const PROGRAMMER *pgm) {
   unsigned char buf[2], resp[2];
 
   /*
@@ -1637,8 +1614,7 @@ static int xbee_getsync(PROGRAMMER *pgm)
   return 0;
 }
 
-static int xbee_open(PROGRAMMER *pgm, char *port)
-{
+static int xbee_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
   strcpy(pgm->port, port);
   pinfo.serialinfo.baud = pgm->baudrate;
@@ -1653,13 +1629,7 @@ static int xbee_open(PROGRAMMER *pgm, char *port)
     return -1;
   }
 
-  /*
-   * NB: Because we are making use of the STK500 programmer
-   * implementation, we can't readily use pgm->cookie ourselves.  We
-   * can use the private "flag" field in the PROGRAMMER though, as
-   * it's unused by stk500.c.
-   */
-  xbeedev_setresetpin(&pgm->fd, pgm->flag);
+  xbeedev_setresetpin(&pgm->fd, PDATA(pgm)->xbeeResetPin);
 
   /* Clear DTR and RTS */
   serial_set_dtr_rts(&pgm->fd, 0);
@@ -1723,8 +1693,7 @@ static void xbee_close(PROGRAMMER *pgm)
   pgm->fd.pfd = NULL;
 }
 
-static int xbee_parseextparms(PROGRAMMER *pgm, LISTID extparms)
-{
+static int xbee_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   LNODEID ln;
   const char *extended_param;
   int rc = 0;
@@ -1744,7 +1713,7 @@ static int xbee_parseextparms(PROGRAMMER *pgm, LISTID extparms)
         continue;
       }
 
-      pgm->flag = resetpin;
+      PDATA(pgm)->xbeeResetPin = resetpin;
       continue;
     }
 
@@ -1759,12 +1728,11 @@ static int xbee_parseextparms(PROGRAMMER *pgm, LISTID extparms)
 
 const char xbee_desc[] = "XBee Series 2 Over-The-Air (XBeeBoot)";
 
-void xbee_initpgm(PROGRAMMER *pgm)
-{
+void xbee_initpgm(PROGRAMMER *pgm) {
   /*
    * This behaves like an Arduino, but with packet encapsulation of
    * the serial streams, XBee device management, and XBee GPIO for the
-   * Auto-Reset feature.
+   * Auto-Reset feature. stk500.c sets PDATA(pgm)->xbeeResetPin
    */
   stk500_initpgm(pgm);
 
@@ -1773,13 +1741,5 @@ void xbee_initpgm(PROGRAMMER *pgm)
   pgm->open = xbee_open;
   pgm->close = xbee_close;
 
-  /*
-   * NB: Because we are making use of the STK500 programmer
-   * implementation, we can't readily use pgm->cookie ourselves, nor
-   * can we override setup() and teardown().  We can use the private
-   * "flag" field in the PROGRAMMER though, as it's unused by
-   * stk500.c.
-   */
   pgm->parseextparams = xbee_parseextparms;
-  pgm->flag = XBEE_DEFAULT_RESET_PIN;
 }

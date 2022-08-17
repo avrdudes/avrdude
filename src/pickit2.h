@@ -26,7 +26,7 @@ extern "C" {
 #endif
 
 extern const char pickit2_desc[];
-void pickit2_initpgm (PROGRAMMER * pgm);
+void pickit2_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }

@@ -68,8 +68,7 @@ static int fd_spidev, fd_gpiochip, fd_linehandle;
  * @brief Sends/receives a message in full duplex mode
  * @return -1 on failure, otherwise number of bytes sent/received
  */
-static int linuxspi_spi_duplex(PROGRAMMER *pgm, const unsigned char *tx, unsigned char *rx, int len)
-{
+static int linuxspi_spi_duplex(const PROGRAMMER *pgm, const unsigned char *tx, unsigned char *rx, int len) {
     struct spi_ioc_transfer tr;
     int ret;
 
@@ -89,16 +88,13 @@ static int linuxspi_spi_duplex(PROGRAMMER *pgm, const unsigned char *tx, unsigne
     return (ret == -1) ? -1 : 0;
 }
 
-static void linuxspi_setup(PROGRAMMER *pgm)
-{
+static void linuxspi_setup(PROGRAMMER *pgm) {
 }
 
-static void linuxspi_teardown(PROGRAMMER* pgm)
-{
+static void linuxspi_teardown(PROGRAMMER* pgm) {
 }
 
-static int linuxspi_reset_mcu(PROGRAMMER *pgm, bool active)
-{
+static int linuxspi_reset_mcu(const PROGRAMMER *pgm, bool active) {
     struct gpiohandle_data data;
     int ret;
 
@@ -128,13 +124,13 @@ static int linuxspi_reset_mcu(PROGRAMMER *pgm, bool active)
     return 0;
 }
 
-static int linuxspi_open(PROGRAMMER *pgm, char *port)
-{
+static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     const char *port_error =
       "%s: error: Unknown port specification. "
       "Please use the format /dev/spidev:/dev/gpiochip[:resetno]\n";
     char port_default[] = "/dev/spidev0.0:/dev/gpiochip0";
     char *spidev, *gpiochip, *reset_pin;
+    char *port = cfg_strdup("linuxspi_open()", pt);
     struct gpiohandle_request req;
     int ret;
 
@@ -243,8 +239,7 @@ close_spidev:
     return ret;
 }
 
-static void linuxspi_close(PROGRAMMER *pgm)
-{
+static void linuxspi_close(PROGRAMMER *pgm) {
     switch (pgm->exit_reset) {
     case EXIT_RESET_ENABLED:
         linuxspi_reset_mcu(pgm, true);
@@ -263,20 +258,16 @@ static void linuxspi_close(PROGRAMMER *pgm)
     close(fd_gpiochip);
 }
 
-static void linuxspi_disable(PROGRAMMER* pgm)
-{
+static void linuxspi_disable(const PROGRAMMER* pgm) {
 }
 
-static void linuxspi_enable(PROGRAMMER* pgm)
-{
+static void linuxspi_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
-static void linuxspi_display(PROGRAMMER* pgm, const char* p)
-{
+static void linuxspi_display(const PROGRAMMER* pgm, const char* p) {
 }
 
-static int linuxspi_initialize(PROGRAMMER *pgm, AVRPART *p)
-{
+static int linuxspi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     int tries, ret;
 
     if (p->flags & AVRPART_HAS_TPI) {
@@ -300,13 +291,12 @@ static int linuxspi_initialize(PROGRAMMER *pgm, AVRPART *p)
     return ret;
 }
 
-static int linuxspi_cmd(PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res)
+static int linuxspi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res)
 {
     return linuxspi_spi_duplex(pgm, cmd, res, 4);
 }
 
-static int linuxspi_program_enable(PROGRAMMER *pgm, AVRPART *p)
-{
+static int linuxspi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned char cmd[4], res[4];
 
     if (!p->op[AVR_OP_PGM_ENABLE]) {
@@ -349,8 +339,7 @@ static int linuxspi_program_enable(PROGRAMMER *pgm, AVRPART *p)
     return 0;
 }
 
-static int linuxspi_chip_erase(PROGRAMMER *pgm, AVRPART *p)
-{
+static int linuxspi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned char cmd[4], res[4];
 
     if (!p->op[AVR_OP_CHIP_ERASE]) {
@@ -367,12 +356,12 @@ static int linuxspi_chip_erase(PROGRAMMER *pgm, AVRPART *p)
     return 0;
 }
 
-static int linuxspi_parseexitspecs(PROGRAMMER *pgm, char *s)
-{
-    char *cp;
+static int linuxspi_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
+    char *cp, *s, *str = cfg_strdup("linuxspi_parseextitspecs()", sp);
 
+    s = str;
     while ((cp = strtok(s, ","))) {
-        s = 0;
+        s = NULL;
         if (!strcmp(cp, "reset")) {
             pgm->exit_reset = EXIT_RESET_ENABLED;
             continue;
@@ -381,14 +370,15 @@ static int linuxspi_parseexitspecs(PROGRAMMER *pgm, char *s)
             pgm->exit_reset = EXIT_RESET_DISABLED;
             continue;
         }
+        free(str);
         return -1;
     }
 
+    free(str);
     return 0;
 }
 
-void linuxspi_initpgm(PROGRAMMER *pgm)
-{
+void linuxspi_initpgm(PROGRAMMER *pgm) {
     strcpy(pgm->type, LINUXSPI);
 
     pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed
@@ -416,10 +406,8 @@ const char linuxspi_desc[] = "SPI using Linux spidev driver";
 
 #else /* !HAVE_LINUXSPI */
 
-void linuxspi_initpgm(PROGRAMMER * pgm)
-{
-    avrdude_message(MSG_INFO, "%s: Linux SPI driver not available in this configuration\n",
-                    progname);
+void linuxspi_initpgm(PROGRAMMER *pgm) {
+  avrdude_message(MSG_INFO, "%s: Linux SPI driver not available in this configuration\n", progname);
 }
 
 const char linuxspi_desc[] = "SPI using Linux spidev driver (not available)";

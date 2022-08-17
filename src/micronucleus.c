@@ -567,8 +567,7 @@ static void micronucleus_teardown(PROGRAMMER* pgm)
     free(pgm->cookie);
 }
 
-static int micronucleus_initialize(PROGRAMMER* pgm, AVRPART* p)
-{
+static int micronucleus_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     avrdude_message(MSG_DEBUG, "%s: micronucleus_initialize()\n", progname);
 
     pdata_t* pdata = PDATA(pgm);
@@ -582,18 +581,15 @@ static int micronucleus_initialize(PROGRAMMER* pgm, AVRPART* p)
     return 0;
 }
 
-static void micronucleus_display(PROGRAMMER* pgm, const char* prefix)
-{
+static void micronucleus_display(const PROGRAMMER *pgm, const char *prefix) {
     avrdude_message(MSG_DEBUG, "%s: micronucleus_display()\n", progname);
 }
 
-static void micronucleus_powerup(PROGRAMMER* pgm)
-{
+static void micronucleus_powerup(const PROGRAMMER *pgm) {
     avrdude_message(MSG_DEBUG, "%s: micronucleus_powerup()\n", progname);
 }
 
-static void micronucleus_powerdown(PROGRAMMER* pgm)
-{
+static void micronucleus_powerdown(const PROGRAMMER *pgm) {
     avrdude_message(MSG_DEBUG, "%s: micronucleus_powerdown()\n", progname);
 
     pdata_t* pdata = PDATA(pgm);
@@ -618,24 +614,20 @@ static void micronucleus_powerdown(PROGRAMMER* pgm)
     }
 }
 
-static void micronucleus_enable(PROGRAMMER* pgm)
-{
+static void micronucleus_enable(PROGRAMMER *pgm, const AVRPART *p) {
     avrdude_message(MSG_DEBUG, "%s: micronucleus_enable()\n", progname);
 }
 
-static void micronucleus_disable(PROGRAMMER* pgm)
-{
+static void micronucleus_disable(const PROGRAMMER *pgm) {
     avrdude_message(MSG_DEBUG, "%s: micronucleus_disable()\n", progname);
 }
 
-static int micronucleus_program_enable(PROGRAMMER* pgm, AVRPART* p)
-{
+static int micronucleus_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     avrdude_message(MSG_DEBUG, "%s: micronucleus_program_enable()\n", progname);
     return 0;
 }
 
-static int micronucleus_read_sig_bytes(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem)
-{
+static int micronucleus_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
     avrdude_message(MSG_DEBUG, "%s: micronucleus_read_sig_bytes()\n", progname);
 
     if (mem->size < 3)
@@ -651,20 +643,18 @@ static int micronucleus_read_sig_bytes(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem)
     return 0;
 }
 
-static int micronucleus_chip_erase(PROGRAMMER* pgm, AVRPART* p)
-{
+static int micronucleus_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     avrdude_message(MSG_DEBUG, "%s: micronucleus_chip_erase()\n", progname);
 
     pdata_t* pdata = PDATA(pgm);
     return micronucleus_erase_device(pdata);
 }
 
-static int micronucleus_open(PROGRAMMER* pgm, char* port)
-{
+static int micronucleus_open(PROGRAMMER* pgm, const char *port) {
     avrdude_message(MSG_DEBUG, "%s: micronucleus_open(\"%s\")\n", progname, port);
 
     pdata_t* pdata = PDATA(pgm);
-    char* bus_name = NULL;
+    const char *bus_name = NULL;
     char* dev_name = NULL;
 
     // if no -P was given or '-P usb' was given
@@ -829,7 +819,7 @@ static void micronucleus_close(PROGRAMMER* pgm)
     }
 }
 
-static int micronucleus_read_byte(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem,
+static int micronucleus_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned long addr, unsigned char* value)
 {
     avrdude_message(MSG_DEBUG, "%s: micronucleus_read_byte(desc=%s, addr=0x%0X)\n",
@@ -850,7 +840,7 @@ static int micronucleus_read_byte(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem,
     }
 }
 
-static int micronucleus_write_byte(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem,
+static int micronucleus_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned long addr, unsigned char value)
 {
     avrdude_message(MSG_DEBUG, "%s: micronucleus_write_byte(desc=%s, addr=0x%0X)\n",
@@ -858,7 +848,7 @@ static int micronucleus_write_byte(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem,
     return -1;
 }
 
-static int micronucleus_paged_load(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem,
+static int micronucleus_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned int page_size,
     unsigned int addr, unsigned int n_bytes)
 {
@@ -867,7 +857,7 @@ static int micronucleus_paged_load(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem,
     return -1;
 }
 
-static int micronucleus_paged_write(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem,
+static int micronucleus_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned int page_size,
     unsigned int addr, unsigned int n_bytes)
 {
@@ -926,8 +916,7 @@ static int micronucleus_paged_write(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem,
     }
 }
 
-static int micronucleus_parseextparams(PROGRAMMER* pgm, LISTID xparams)
-{
+static int micronucleus_parseextparams(const PROGRAMMER *pgm, const LISTID xparams) {
     avrdude_message(MSG_DEBUG, "%s: micronucleus_parseextparams()\n", progname);
 
     pdata_t* pdata = PDATA(pgm);
@@ -955,8 +944,7 @@ static int micronucleus_parseextparams(PROGRAMMER* pgm, LISTID xparams)
     return 0;
 }
 
-void micronucleus_initpgm(PROGRAMMER* pgm)
-{
+void micronucleus_initpgm(PROGRAMMER *pgm) {
     strcpy(pgm->type, "Micronucleus V2.0");
 
     pgm->setup = micronucleus_setup;
@@ -983,14 +971,12 @@ void micronucleus_initpgm(PROGRAMMER* pgm)
 #else /* !HAVE_LIBUSB */
 
  // Give a proper error if we were not compiled with libusb
-static int micronucleus_nousb_open(struct programmer_t* pgm, char* name)
-{
+static int micronucleus_nousb_open(PROGRAMMER* pgm, const char* name) {
     avrdude_message(MSG_INFO, "%s: error: No usb support. Please compile again with libusb installed.\n", progname);
     return -1;
 }
 
-void micronucleus_initpgm(PROGRAMMER* pgm)
-{
+void micronucleus_initpgm(PROGRAMMER *pgm) {
     strcpy(pgm->type, "micronucleus");
     pgm->open = micronucleus_nousb_open;
 }

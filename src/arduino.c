@@ -38,8 +38,7 @@
 #include "arduino.h"
 
 /* read signature bytes - arduino version */
-static int arduino_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
-{
+static int arduino_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m) {
   unsigned char buf[32];
 
   /* Signature byte reads are always 3 bytes. */
@@ -80,8 +79,7 @@ static int arduino_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
   return 3;
 }
 
-static int arduino_open(PROGRAMMER * pgm, char * port)
-{
+static int arduino_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
   strcpy(pgm->port, port);
   pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
@@ -118,8 +116,7 @@ static void arduino_close(PROGRAMMER * pgm)
 
 const char arduino_desc[] = "Arduino programmer";
 
-void arduino_initpgm(PROGRAMMER * pgm)
-{
+void arduino_initpgm(PROGRAMMER *pgm) {
   /* This is mostly a STK500; just the signature is read
      differently than on real STK500v1 
      and the DTR signal is set when opening the serial port

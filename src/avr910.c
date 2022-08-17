@@ -71,14 +71,12 @@ static void avr910_teardown(PROGRAMMER * pgm)
 }
 
 
-static int avr910_send(PROGRAMMER * pgm, char * buf, size_t len)
-{
+static int avr910_send(const PROGRAMMER *pgm, char *buf, size_t len) {
   return serial_send(&pgm->fd, (unsigned char *)buf, len);
 }
 
 
-static int avr910_recv(PROGRAMMER * pgm, char * buf, size_t len)
-{
+static int avr910_recv(const PROGRAMMER *pgm, char *buf, size_t len) {
   int rv;
 
   rv = serial_recv(&pgm->fd, (unsigned char *)buf, len);
@@ -91,14 +89,12 @@ static int avr910_recv(PROGRAMMER * pgm, char * buf, size_t len)
 }
 
 
-static int avr910_drain(PROGRAMMER * pgm, int display)
-{
+static int avr910_drain(const PROGRAMMER *pgm, int display) {
   return serial_drain(&pgm->fd, display);
 }
 
 
-static int avr910_vfy_cmd_sent(PROGRAMMER * pgm, char * errmsg)
-{
+static int avr910_vfy_cmd_sent(const PROGRAMMER *pgm, char *errmsg) {
   char c;
 
   avr910_recv(pgm, &c, 1);
@@ -114,8 +110,7 @@ static int avr910_vfy_cmd_sent(PROGRAMMER * pgm, char * errmsg)
 /*
  * issue the 'chip erase' command to the AVR device
  */
-static int avr910_chip_erase(PROGRAMMER * pgm, AVRPART * p)
-{
+static int avr910_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   avr910_send(pgm, "e", 1);
   if (avr910_vfy_cmd_sent(pgm, "chip erase") < 0)
     return -1;
@@ -129,15 +124,13 @@ static int avr910_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 }
 
 
-static int avr910_enter_prog_mode(PROGRAMMER * pgm)
-{
+static int avr910_enter_prog_mode(const PROGRAMMER *pgm) {
   avr910_send(pgm, "P", 1);
   return avr910_vfy_cmd_sent(pgm, "enter prog mode");
 }
 
 
-static int avr910_leave_prog_mode(PROGRAMMER * pgm)
-{
+static int avr910_leave_prog_mode(const PROGRAMMER *pgm) {
   avr910_send(pgm, "L", 1);
   return avr910_vfy_cmd_sent(pgm, "leave prog mode");
 }
@@ -146,8 +139,7 @@ static int avr910_leave_prog_mode(PROGRAMMER * pgm)
 /*
  * issue the 'program enable' command to the AVR device
  */
-static int avr910_program_enable(PROGRAMMER * pgm, AVRPART * p)
-{
+static int avr910_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   return -1;
 }
 
@@ -155,8 +147,7 @@ static int avr910_program_enable(PROGRAMMER * pgm, AVRPART * p)
 /*
  * initialize the AVR device and prepare it to accept commands
  */
-static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
-{
+static int avr910_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   char id[8];
   char sw[2];
   char hw[2];
@@ -273,16 +264,14 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
 }
 
 
-static void avr910_disable(PROGRAMMER * pgm)
-{
+static void avr910_disable(const PROGRAMMER *pgm) {
   /* Do nothing. */
 
   return;
 }
 
 
-static void avr910_enable(PROGRAMMER * pgm)
-{
+static void avr910_enable(PROGRAMMER *pgm, const AVRPART *p) {
   /* Do nothing. */
 
   return;
@@ -293,7 +282,7 @@ static void avr910_enable(PROGRAMMER * pgm)
  * transmit an AVR device command and return the results; 'cmd' and
  * 'res' must point to at least a 4 byte data buffer
  */
-static int avr910_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
+static int avr910_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
                       unsigned char *res)
 {
   char buf[5];
@@ -318,8 +307,7 @@ static int avr910_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
 }
 
 
-static int avr910_parseextparms(PROGRAMMER * pgm, LISTID extparms)
-{
+static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   LNODEID ln;
   const char *extended_param;
   int rv = 0;
@@ -359,8 +347,7 @@ static int avr910_parseextparms(PROGRAMMER * pgm, LISTID extparms)
 }
 
 
-static int avr910_open(PROGRAMMER * pgm, char * port)
-{
+static int avr910_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
   /*
    *  If baudrate was not specified use 19.200 Baud
@@ -393,14 +380,12 @@ static void avr910_close(PROGRAMMER * pgm)
 }
 
 
-static void avr910_display(PROGRAMMER * pgm, const char * p)
-{
+static void avr910_display(const PROGRAMMER *pgm, const char *p) {
   return;
 }
 
 
-static void avr910_set_addr(PROGRAMMER * pgm, unsigned long addr)
-{
+static void avr910_set_addr(const PROGRAMMER *pgm, unsigned long addr) {
   char cmd[3];
 
   cmd[0] = 'A';
@@ -412,7 +397,7 @@ static void avr910_set_addr(PROGRAMMER * pgm, unsigned long addr)
 }
 
 
-static int avr910_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int avr910_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                              unsigned long addr, unsigned char value)
 {
   char cmd[2];
@@ -445,7 +430,7 @@ static int avr910_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int avr910_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int avr910_read_byte_flash(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                   unsigned long addr, unsigned char * value)
 {
   char buf[2];
@@ -468,7 +453,7 @@ static int avr910_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int avr910_read_byte_eeprom(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int avr910_read_byte_eeprom(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                    unsigned long addr, unsigned char * value)
 {
   avr910_set_addr(pgm, addr);
@@ -479,7 +464,7 @@ static int avr910_read_byte_eeprom(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int avr910_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int avr910_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                             unsigned long addr, unsigned char * value)
 {
   if (strcmp(m->desc, "flash") == 0) {
@@ -494,7 +479,7 @@ static int avr910_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
+static int avr910_paged_write_flash(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                     unsigned int page_size,
                                     unsigned int addr, unsigned int n_bytes)
 {
@@ -553,8 +538,8 @@ static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int avr910_paged_write_eeprom(PROGRAMMER * pgm, AVRPART * p,
-                                     AVRMEM * m,
+static int avr910_paged_write_eeprom(const PROGRAMMER *pgm, const AVRPART *p,
+                                     const AVRMEM * m,
                                      unsigned int page_size,
                                      unsigned int addr, unsigned int n_bytes)
 {
@@ -582,7 +567,7 @@ static int avr910_paged_write_eeprom(PROGRAMMER * pgm, AVRPART * p,
 }
 
 
-static int avr910_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int avr910_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                               unsigned int page_size,
                               unsigned int addr, unsigned int n_bytes)
 {
@@ -642,7 +627,7 @@ static int avr910_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int avr910_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                              unsigned int page_size,
                              unsigned int addr, unsigned int n_bytes)
 {
@@ -719,8 +704,7 @@ static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 /* Signature byte reads are always 3 bytes. */
 
-static int avr910_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
-{
+static int avr910_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m) {
   unsigned char tmp;
 
   if (m->size < 3) {
@@ -740,8 +724,7 @@ static int avr910_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 
 const char avr910_desc[] = "Serial programmers using protocol described in application note AVR910";
 
-void avr910_initpgm(PROGRAMMER * pgm)
-{
+void avr910_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "avr910");
 
   /*

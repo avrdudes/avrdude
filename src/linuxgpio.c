@@ -144,8 +144,7 @@ static int linuxgpio_dir_in(unsigned int gpio)
 static int linuxgpio_fds[N_GPIO] ;
 
 
-static int linuxgpio_setpin(PROGRAMMER * pgm, int pinfunc, int value)
-{
+static int linuxgpio_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
   int r;
   int pin = pgm->pinno[pinfunc]; // TODO
 
@@ -171,8 +170,7 @@ static int linuxgpio_setpin(PROGRAMMER * pgm, int pinfunc, int value)
   return 0;
 }
 
-static int linuxgpio_getpin(PROGRAMMER * pgm, int pinfunc)
-{
+static int linuxgpio_getpin(const PROGRAMMER *pgm, int pinfunc) {
   unsigned char invert=0;
   char c;
   int pin = pgm->pinno[pinfunc]; // TODO
@@ -198,11 +196,9 @@ static int linuxgpio_getpin(PROGRAMMER * pgm, int pinfunc)
     return 1-invert;
   else
     return -1;
-
 }
 
-static int linuxgpio_highpulsepin(PROGRAMMER * pgm, int pinfunc)
-{
+static int linuxgpio_highpulsepin(const PROGRAMMER *pgm, int pinfunc) {
   int pin = pgm->pinno[pinfunc]; // TODO
   
   if ( linuxgpio_fds[pin & PIN_MASK] < 0 )
@@ -216,34 +212,28 @@ static int linuxgpio_highpulsepin(PROGRAMMER * pgm, int pinfunc)
 
 
 
-static void linuxgpio_display(PROGRAMMER *pgm, const char *p)
-{
+static void linuxgpio_display(const PROGRAMMER *pgm, const char *p) {
     avrdude_message(MSG_INFO, "%sPin assignment  : /sys/class/gpio/gpio{n}\n",p);
     pgm_display_generic_mask(pgm, p, SHOW_AVR_PINS);
 }
 
-static void linuxgpio_enable(PROGRAMMER *pgm)
-{
+static void linuxgpio_enable(PROGRAMMER *pgm, const AVRPART *p) {
   /* nothing */
 }
 
-static void linuxgpio_disable(PROGRAMMER *pgm)
-{
+static void linuxgpio_disable(const PROGRAMMER *pgm) {
   /* nothing */
 }
 
-static void linuxgpio_powerup(PROGRAMMER *pgm)
-{
+static void linuxgpio_powerup(const PROGRAMMER *pgm) {
   /* nothing */
 }
 
-static void linuxgpio_powerdown(PROGRAMMER *pgm)
-{
+static void linuxgpio_powerdown(const PROGRAMMER *pgm) {
   /* nothing */
 }
 
-static int linuxgpio_open(PROGRAMMER *pgm, char *port)
-{
+static int linuxgpio_open(PROGRAMMER *pgm, const char *port) {
   int r, i, pin;
 
   if (bitbang_check_prerequisites(pgm) < 0)
@@ -311,8 +301,7 @@ static void linuxgpio_close(PROGRAMMER *pgm)
   }
 }
 
-void linuxgpio_initpgm(PROGRAMMER *pgm)
-{
+void linuxgpio_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "linuxgpio");
 
   pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed
@@ -344,8 +333,7 @@ const char linuxgpio_desc[] = "GPIO bitbanging using the Linux sysfs interface";
 
 #else  /* !HAVE_LINUXGPIO */
 
-void linuxgpio_initpgm(PROGRAMMER * pgm)
-{
+void linuxgpio_initpgm(PROGRAMMER *pgm) {
   avrdude_message(MSG_INFO, "%s: Linux sysfs GPIO support not available in this configuration\n",
                   progname);
 }

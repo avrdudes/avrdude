@@ -315,7 +315,7 @@ prog_decl :
     |
   K_PROGRAMMER K_PARENT TKN_STRING
     {
-      struct programmer_t * pgm = locate_programmer(programmers, $3->value.string);
+      PROGRAMMER * pgm = locate_programmer(programmers, $3->value.string);
       if (pgm == NULL) {
         yyerror("parent programmer %s not found", $3->value.string);
         free_token($3);

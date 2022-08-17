@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 extern const char linuxspi_desc[];
-void linuxspi_initpgm        (PROGRAMMER * pgm);
+void linuxspi_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }

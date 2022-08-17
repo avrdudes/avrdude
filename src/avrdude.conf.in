@@ -116,7 +116,7 @@
 #       idr              = <num> ;               # IO addr of IDR (OCD) reg
 #       rampz            = <num> ;               # IO addr of RAMPZ reg
 #       spmcr            = <num> ;               # mem addr of SPMC[S]R reg
-#       eecr             = <num> ;               # mem addr of EECR reg only when != 0x3c
+#       eecr             = <num> ;               # mem addr of EECR reg only when != 0x3f
 #       mcu_base         = <num> ;
 #       nvm_base         = <num> ;
 #       ocd_base         = <num> ;

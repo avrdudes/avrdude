@@ -31,25 +31,25 @@ int bitbang_getpin(int fd, int pin);
 int bitbang_highpulsepin(int fd, int pin);
 void bitbang_delay(unsigned int us);
 
-int bitbang_check_prerequisites(PROGRAMMER *pgm);
+int bitbang_check_prerequisites(const PROGRAMMER *pgm);
 
-int  bitbang_rdy_led        (PROGRAMMER * pgm, int value);
-int  bitbang_err_led        (PROGRAMMER * pgm, int value);
-int  bitbang_pgm_led        (PROGRAMMER * pgm, int value);
-int  bitbang_vfy_led        (PROGRAMMER * pgm, int value);
-int  bitbang_cmd            (PROGRAMMER * pgm, const unsigned char *cmd,
+int  bitbang_rdy_led        (const PROGRAMMER *pgm, int value);
+int  bitbang_err_led        (const PROGRAMMER *pgm, int value);
+int  bitbang_pgm_led        (const PROGRAMMER *pgm, int value);
+int  bitbang_vfy_led        (const PROGRAMMER *pgm, int value);
+int  bitbang_cmd            (const PROGRAMMER *pgm, const unsigned char *cmd,
                                 unsigned char *res);
-int  bitbang_cmd_tpi        (PROGRAMMER * pgm, const unsigned char *cmd,
+int  bitbang_cmd_tpi        (const PROGRAMMER *pgm, const unsigned char *cmd,
                                 int cmd_len, unsigned char *res, int res_len);
-int  bitbang_spi            (PROGRAMMER * pgm, const unsigned char *cmd,
+int  bitbang_spi            (const PROGRAMMER *pgm, const unsigned char *cmd,
                                 unsigned char *res, int count);
-int  bitbang_chip_erase     (PROGRAMMER * pgm, AVRPART * p);
-int  bitbang_program_enable (PROGRAMMER * pgm, AVRPART * p);
-void bitbang_powerup        (PROGRAMMER * pgm);
-void bitbang_powerdown      (PROGRAMMER * pgm);
-int  bitbang_initialize     (PROGRAMMER * pgm, AVRPART * p);
-void bitbang_disable        (PROGRAMMER * pgm);
-void bitbang_enable         (PROGRAMMER * pgm);
+int  bitbang_chip_erase     (const PROGRAMMER *pgm, const AVRPART *p);
+int  bitbang_program_enable (const PROGRAMMER *pgm, const AVRPART *p);
+void bitbang_powerup        (const PROGRAMMER *pgm);
+void bitbang_powerdown      (const PROGRAMMER *pgm);
+int  bitbang_initialize     (const PROGRAMMER *pgm, const AVRPART *p);
+void bitbang_disable        (const PROGRAMMER *pgm);
+void bitbang_enable         (PROGRAMMER *pgm, const AVRPART *p);
 
 #ifdef __cplusplus
 }

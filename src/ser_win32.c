@@ -95,8 +95,7 @@ static BOOL serial_w32SetTimeOut(HANDLE hComPort, DWORD timeout) // in ms
 	return SetCommTimeouts(hComPort, &ctmo);
 }
 
-static int ser_setparams(union filedescriptor *fd, long baud, unsigned long cflags)
-{
+static int ser_setparams(const union filedescriptor *fd, long baud, unsigned long cflags) {
 	if (serial_over_ethernet) {
 		return -ENOTTY;
 	} else {
@@ -150,9 +149,7 @@ static int ser_setparams(union filedescriptor *fd, long baud, unsigned long cfla
 	}
 }
 
-static int
-net_open(const char *port, union filedescriptor *fdp)
-{
+static int net_open(const char *port, union filedescriptor *fdp) {
 	WSADATA wsaData;
 	LPVOID lpMsgBuf;
 
@@ -243,8 +240,7 @@ net_open(const char *port, union filedescriptor *fdp)
 }
 
 
-static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
-{
+static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *fdp) {
 	LPVOID lpMsgBuf;
 	HANDLE hComPort=INVALID_HANDLE_VALUE;
 	char *newname = 0;
@@ -325,8 +321,7 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
 }
 
 
-static void ser_close(union filedescriptor *fd)
-{
+static void ser_close(union filedescriptor *fd) {
 	if (serial_over_ethernet) {
 		closesocket(fd->ifd);
 		WSACleanup();
@@ -339,8 +334,7 @@ static void ser_close(union filedescriptor *fd)
 	}
 }
 
-static int ser_set_dtr_rts(union filedescriptor *fd, int is_on)
-{
+static int ser_set_dtr_rts(const union filedescriptor *fd, int is_on) {
 	if (serial_over_ethernet) {
 		return 0;
 	} else {
@@ -357,8 +351,7 @@ static int ser_set_dtr_rts(union filedescriptor *fd, int is_on)
 	}
 }
 
-static int net_send(union filedescriptor *fd, const unsigned char * buf, size_t buflen)
-{
+static int net_send(const union filedescriptor *fd, const unsigned char * buf, size_t buflen) {
 	LPVOID lpMsgBuf;
 	int rc;
 	const unsigned char *p = buf;
@@ -417,8 +410,7 @@ static int net_send(union filedescriptor *fd, const unsigned char * buf, size_t 
 }
 
 
-static int ser_send(union filedescriptor *fd, const unsigned char * buf, size_t buflen)
-{
+static int ser_send(const union filedescriptor *fd, const unsigned char * buf, size_t buflen) {
 	if (serial_over_ethernet) {
 		return net_send(fd, buf, buflen);
 	}
@@ -476,8 +468,7 @@ static int ser_send(union filedescriptor *fd, const unsigned char * buf, size_t 
 }
 
 
-static int net_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen)
-{
+static int net_recv(const union filedescriptor *fd, unsigned char * buf, size_t buflen) {
 	LPVOID lpMsgBuf;
 	struct timeval timeout, to2;
 	fd_set rfds;
@@ -570,8 +561,7 @@ reselect:
 	return 0;
 }
 
-static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen)
-{
+static int ser_recv(const union filedescriptor *fd, unsigned char * buf, size_t buflen) {
 	if (serial_over_ethernet) {
 		return net_recv(fd, buf, buflen);
 	}
@@ -639,8 +629,7 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
   return 0;
 }
 
-static int net_drain(union filedescriptor *fd, int display)
-{
+static int net_drain(const union filedescriptor *fd, int display) {
 	LPVOID lpMsgBuf;
 	struct timeval timeout;
 	fd_set rfds;
@@ -718,8 +707,7 @@ static int net_drain(union filedescriptor *fd, int display)
 	return 0;
 }
 
-static int ser_drain(union filedescriptor *fd, int display)
-{
+static int ser_drain(const union filedescriptor *fd, int display) {
 	if (serial_over_ethernet) {
 		return net_drain(fd, display);
 	}

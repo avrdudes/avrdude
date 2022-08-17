@@ -38,8 +38,7 @@
 #include "stk500.h"
 #include "stk500v2.h"
 
-static int stk500generic_open(PROGRAMMER * pgm, char * port)
-{
+static int stk500generic_open(PROGRAMMER *pgm, const char *port) {
   stk500_initpgm(pgm);
   if (pgm->open(pgm, port) >= 0)
     {
@@ -80,8 +79,7 @@ static void stk500generic_teardown(PROGRAMMER * pgm)
 
 const char stk500generic_desc[] = "Atmel STK500, autodetect firmware version";
 
-void stk500generic_initpgm(PROGRAMMER * pgm)
-{
+void stk500generic_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "STK500GENERIC");
 
   pgm->open           = stk500generic_open;

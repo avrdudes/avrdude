@@ -45,28 +45,17 @@
 #define STK500_XTAL 7372800U
 #define MAX_SYNC_ATTEMPTS 10
 
-struct pdata
-{
-  unsigned char ext_addr_byte; // Record ext-addr byte set in the target device (if used)
-  int retry_attempts; // Number of connection attempts provided by the user
-};
-
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+static int stk500_getparm(const PROGRAMMER *pgm, unsigned parm, unsigned *value);
+static int stk500_setparm(const PROGRAMMER *pgm, unsigned parm, unsigned value);
+static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p);
 
 
-static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value);
-static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value);
-static void stk500_print_parms1(PROGRAMMER * pgm, const char * p);
-
-
-static int stk500_send(PROGRAMMER * pgm, unsigned char * buf, size_t len)
-{
+static int stk500_send(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
   return serial_send(&pgm->fd, buf, len);
 }
 
 
-static int stk500_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
-{
+static int stk500_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
   int rv;
 
   rv = serial_recv(&pgm->fd, buf, len);
@@ -79,14 +68,12 @@ static int stk500_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 }
 
 
-int stk500_drain(PROGRAMMER * pgm, int display)
-{
+int stk500_drain(const PROGRAMMER *pgm, int display) {
   return serial_drain(&pgm->fd, display);
 }
 
 
-int stk500_getsync(PROGRAMMER * pgm)
-{
+int stk500_getsync(const PROGRAMMER *pgm) {
   unsigned char buf[32], resp[32];
   int attempt;
   int max_sync_attempts;
@@ -148,7 +135,7 @@ int stk500_getsync(PROGRAMMER * pgm)
  * transmit an AVR device command and return the results; 'cmd' and
  * 'res' must point to at least a 4 byte data buffer
  */
-static int stk500_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
+static int stk500_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
                       unsigned char *res)
 {
   unsigned char buf[32];
@@ -190,8 +177,7 @@ static int stk500_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
 /*
  * issue the 'chip erase' command to the AVR device
  */
-static int stk500_chip_erase(PROGRAMMER * pgm, AVRPART * p)
-{
+static int stk500_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char cmd[4];
   unsigned char res[4];
 
@@ -224,8 +210,7 @@ static int stk500_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 /*
  * issue the 'program enable' command to the AVR device
  */
-static int stk500_program_enable(PROGRAMMER * pgm, AVRPART * p)
-{
+static int stk500_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char buf[16];
   int tries=0;
 
@@ -283,7 +268,7 @@ static int stk500_program_enable(PROGRAMMER * pgm, AVRPART * p)
 
 
 
-static int stk500_set_extended_parms(PROGRAMMER * pgm, int n,
+static int stk500_set_extended_parms(const PROGRAMMER *pgm, int n,
                                      unsigned char * cmd)
 {
   unsigned char buf[16];
@@ -351,8 +336,7 @@ static int stk500_set_extended_parms(PROGRAMMER * pgm, int n,
  * Crossbow MIB510 initialization and shutdown.  Use cmd = 1 to
  * initialize, cmd = 0 to close.
  */
-static int mib510_isp(PROGRAMMER * pgm, unsigned char cmd)
-{
+static int mib510_isp(const PROGRAMMER *pgm, unsigned char cmd) {
   unsigned char buf[9];
   int tries = 0;
 
@@ -420,8 +404,7 @@ static int mib510_isp(PROGRAMMER * pgm, unsigned char cmd)
 /*
  * initialize the AVR device and prepare it to accept commands
  */
-static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
-{
+static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char buf[32];
   AVRMEM * m;
   int tries;
@@ -609,7 +592,7 @@ static int stk500_initialize(PROGRAMMER * pgm, AVRPART * p)
   return pgm->program_enable(pgm, p);
 }
 
-static int stk500_parseextparms(PROGRAMMER * pgm, LISTID extparms)
+static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
  {
    LNODEID ln;
    const char *extended_param;
@@ -634,8 +617,7 @@ static int stk500_parseextparms(PROGRAMMER * pgm, LISTID extparms)
    return rv;
  }
 
-static void stk500_disable(PROGRAMMER * pgm)
-{
+static void stk500_disable(const PROGRAMMER *pgm) {
   unsigned char buf[16];
   int tries=0;
 
@@ -683,14 +665,12 @@ static void stk500_disable(PROGRAMMER * pgm)
   return;
 }
 
-static void stk500_enable(PROGRAMMER * pgm)
-{
+static void stk500_enable(PROGRAMMER *pgm, const AVRPART *p) {
   return;
 }
 
 
-static int stk500_open(PROGRAMMER * pgm, char * port)
-{
+static int stk500_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
   strcpy(pgm->port, port);
   pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
@@ -727,8 +707,7 @@ static void stk500_close(PROGRAMMER * pgm)
 }
 
 
-static int stk500_loadaddr(PROGRAMMER * pgm, AVRMEM * mem, unsigned int addr)
-{
+static int stk500_loadaddr(const PROGRAMMER *pgm, const AVRMEM *mem, const unsigned int addr) {
   unsigned char buf[16];
   int tries;
   unsigned char ext_byte;
@@ -791,7 +770,7 @@ static int stk500_loadaddr(PROGRAMMER * pgm, AVRMEM * mem, unsigned int addr)
 }
 
 
-static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int stk500_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                               unsigned int page_size,
                               unsigned int addr, unsigned int n_bytes)
 {
@@ -887,7 +866,7 @@ static int stk500_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return n_bytes;
 }
 
-static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                              unsigned int page_size,
                              unsigned int addr, unsigned int n_bytes)
 {
@@ -984,8 +963,7 @@ static int stk500_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int stk500_set_vtarget(PROGRAMMER * pgm, double v)
-{
+static int stk500_set_vtarget(const PROGRAMMER *pgm, double v) {
   unsigned uaref, utarg;
 
   utarg = (unsigned)((v + 0.049) * 10);
@@ -1007,7 +985,7 @@ static int stk500_set_vtarget(PROGRAMMER * pgm, double v)
 }
 
 
-static int stk500_set_varef(PROGRAMMER * pgm, unsigned int chan /* unused */,
+static int stk500_set_varef(const PROGRAMMER *pgm, unsigned int chan /* unused */,
                             double v)
 {
   unsigned uaref, utarg;
@@ -1030,8 +1008,7 @@ static int stk500_set_varef(PROGRAMMER * pgm, unsigned int chan /* unused */,
 }
 
 
-static int stk500_set_fosc(PROGRAMMER * pgm, double v)
-{
+static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
   unsigned prescale, cmatch, fosc;
   static unsigned ps[] = {
     1, 8, 32, 64, 128, 256, 1024
@@ -1087,8 +1064,7 @@ static int stk500_set_fosc(PROGRAMMER * pgm, double v)
    For small duration values, the actual SCK width is larger than
    expected.  As the duration value increases, the SCK width error
    diminishes. */
-static int stk500_set_sck_period(PROGRAMMER * pgm, double v)
-{
+static int stk500_set_sck_period(const PROGRAMMER *pgm, double v) {
   int dur;
   double min, max;
 
@@ -1110,8 +1086,7 @@ static int stk500_set_sck_period(PROGRAMMER * pgm, double v)
 }
 
 
-static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
-{
+static int stk500_getparm(const PROGRAMMER *pgm, unsigned parm, unsigned *value) {
   unsigned char buf[16];
   unsigned v;
   int tries = 0;
@@ -1167,8 +1142,7 @@ static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value)
 }
 
   
-static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value)
-{
+static int stk500_setparm(const PROGRAMMER *pgm, unsigned parm, unsigned value) {
   unsigned char buf[16];
   int tries = 0;
 
@@ -1222,8 +1196,7 @@ static int stk500_setparm(PROGRAMMER * pgm, unsigned parm, unsigned value)
 }
 
   
-static void stk500_display(PROGRAMMER * pgm, const char * p)
-{
+static void stk500_display(const PROGRAMMER *pgm, const char *p) {
   unsigned maj, min, hdw, topcard;
 
   stk500_getparm(pgm, Parm_STK_HW_VER, &hdw);
@@ -1254,8 +1227,7 @@ static void stk500_display(PROGRAMMER * pgm, const char * p)
 }
 
 
-static void stk500_print_parms1(PROGRAMMER * pgm, const char * p)
-{
+static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p) {
   unsigned vtarget, vadjust, osc_pscale, osc_cmatch, sck_duration;
 
   stk500_getparm(pgm, Parm_STK_VTARGET, &vtarget);
@@ -1301,8 +1273,7 @@ static void stk500_print_parms1(PROGRAMMER * pgm, const char * p)
 }
 
 
-static void stk500_print_parms(PROGRAMMER * pgm)
-{
+static void stk500_print_parms(const PROGRAMMER *pgm) {
   stk500_print_parms1(pgm, "");
 }
 
@@ -1314,8 +1285,8 @@ static void stk500_setup(PROGRAMMER * pgm)
     return;
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
-  PDATA(pgm)->ext_addr_byte = 0xff; /* Ensures it is programmed before
-				     * first memory address */
+  PDATA(pgm)->ext_addr_byte = 0xff;
+  PDATA(pgm)->xbeeResetPin = XBEE_DEFAULT_RESET_PIN;
 }
 
 static void stk500_teardown(PROGRAMMER * pgm)
@@ -1325,8 +1296,7 @@ static void stk500_teardown(PROGRAMMER * pgm)
 
 const char stk500_desc[] = "Atmel STK500 Version 1.x firmware";
 
-void stk500_initpgm(PROGRAMMER * pgm)
-{
+void stk500_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "STK500");
 
   /*

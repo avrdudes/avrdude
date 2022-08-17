@@ -62,8 +62,7 @@ static int usb_interface;
  * The "baud" parameter is meaningless for USB devices, so we reuse it
  * to pass the desired USB device ID.
  */
-static int usbdev_open(char * port, union pinfo pinfo, union filedescriptor *fd)
-{
+static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor *fd) {
   char string[256];
   char product[256];
   struct usb_bus *bus;
@@ -328,7 +327,7 @@ static void usbdev_close(union filedescriptor *fd)
 }
 
 
-static int usbdev_send(union filedescriptor *fd, const unsigned char *bp, size_t mlen)
+static int usbdev_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen)
 {
   usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
   int rv;
@@ -415,7 +414,7 @@ usb_fill_buf(usb_dev_handle *udev, int maxsize, int ep, int use_interrupt_xfer)
   return 0;
 }
 
-static int usbdev_recv(union filedescriptor *fd, unsigned char *buf, size_t nbytes)
+static int usbdev_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes)
 {
   usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
   int i, amnt;
@@ -470,7 +469,7 @@ static int usbdev_recv(union filedescriptor *fd, unsigned char *buf, size_t nbyt
  *
  * This is used for the AVRISP mkII device.
  */
-static int usbdev_recv_frame(union filedescriptor *fd, unsigned char *buf, size_t nbytes)
+static int usbdev_recv_frame(const union filedescriptor *fd, unsigned char *buf, size_t nbytes)
 {
   usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
   int rv, n;
@@ -570,7 +569,7 @@ static int usbdev_recv_frame(union filedescriptor *fd, unsigned char *buf, size_
   return n;
 }
 
-static int usbdev_drain(union filedescriptor *fd, int display)
+static int usbdev_drain(const union filedescriptor *fd, int display)
 {
   /*
    * There is not much point in trying to flush any data

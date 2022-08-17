@@ -35,22 +35,22 @@ extern "C" {
 
 int updi_link_open(PROGRAMMER * pgm);
 void updi_link_close(PROGRAMMER * pgm);
-int updi_link_init(PROGRAMMER * pgm);
-int updi_link_ldcs(PROGRAMMER * pgm, uint8_t address, uint8_t * value);
-int updi_link_stcs(PROGRAMMER * pgm, uint8_t address, uint8_t value);
-int updi_link_ld_ptr_inc(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size);
-int updi_link_ld_ptr_inc16(PROGRAMMER * pgm, unsigned char * buffer, uint16_t words);
-int updi_link_st_ptr_inc(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size);
-int updi_link_st_ptr_inc16(PROGRAMMER * pgm, unsigned char * buffer, uint16_t words);
-int updi_link_st_ptr_inc16_RSD(PROGRAMMER * pgm, unsigned char * buffer, uint16_t words, int blocksize);
-int updi_link_repeat(PROGRAMMER * pgm, uint16_t repeats);
-int updi_link_read_sib(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size);
-int updi_link_key(PROGRAMMER * pgm, unsigned char * buffer, uint8_t size_type, uint16_t size);
-int updi_link_ld(PROGRAMMER * pgm, uint32_t address, uint8_t * value);
-int updi_link_ld16(PROGRAMMER * pgm, uint32_t address, uint16_t * value);
-int updi_link_st(PROGRAMMER * pgm, uint32_t address, uint8_t value);
-int updi_link_st16(PROGRAMMER * pgm, uint32_t address, uint16_t value);
-int updi_link_st_ptr(PROGRAMMER * pgm, uint32_t address);
+int updi_link_init(const PROGRAMMER *pgm);
+int updi_link_ldcs(const PROGRAMMER *pgm, uint8_t address, uint8_t *value);
+int updi_link_stcs(const PROGRAMMER *pgm, uint8_t address, uint8_t value);
+int updi_link_ld_ptr_inc(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t size);
+int updi_link_ld_ptr_inc16(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t words);
+int updi_link_st_ptr_inc(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t size);
+int updi_link_st_ptr_inc16(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t words);
+int updi_link_st_ptr_inc16_RSD(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t words, int blocksize);
+int updi_link_repeat(const PROGRAMMER *pgm, uint16_t repeats);
+int updi_link_read_sib(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t size);
+int updi_link_key(const PROGRAMMER *pgm, unsigned char *buffer, uint8_t size_type, uint16_t size);
+int updi_link_ld(const PROGRAMMER *pgm, uint32_t address, uint8_t *value);
+int updi_link_ld16(const PROGRAMMER *pgm, uint32_t address, uint16_t *value);
+int updi_link_st(const PROGRAMMER *pgm, uint32_t address, uint8_t value);
+int updi_link_st16(const PROGRAMMER *pgm, uint32_t address, uint16_t value);
+int updi_link_st_ptr(const PROGRAMMER *pgm, uint32_t address);
 
 #ifdef __cplusplus
 }
