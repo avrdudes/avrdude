@@ -234,7 +234,7 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
 	break;
       part = locate_part_by_avr910_devcode(part_list, c);
 
-      avrdude_message(MSG_INFO, "    Device code: 0x%02x = %s\n", c, part ?  part->desc : "(unknown)");
+      avrdude_message(MSG_INFO, "    Device code: 0x%02x = %s\n", c & 0xff, part? part->desc: "(unknown)");
 
       /* FIXME: Need to lookup devcode and report the device. */
 
