@@ -1059,12 +1059,11 @@ static int avrftdi_flash_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 	/* find a poll byte. We cannot poll a value of 0xff, so look
 	 * for a value != 0xff
 	 */
-	for(poll_index = addr+len-1; poll_index > addr-1; poll_index--)
+	for(poll_index = addr+len-1; (int) poll_index >= (int) addr; poll_index--)
 		if(m->buf[poll_index] != 0xff)
 			break;
 
-	if((poll_index < addr + len) && m->buf[poll_index] != 0xff)
-	{
+	if((int) poll_index >= (int) addr) {
 		buf_size = bufptr - buf;
 
 		if(verbose > TRACE)
