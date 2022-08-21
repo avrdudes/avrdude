@@ -194,7 +194,7 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
   avr910_send(pgm, "a", 1);
   avr910_recv(pgm, &PDATA(pgm)->has_auto_incr_addr, 1);
   if (PDATA(pgm)->has_auto_incr_addr == 'Y')
-      avrdude_message(MSG_INFO, "Programmer supports auto addr increment.\n");
+      avrdude_message(MSG_NOTICE, "Programmer supports auto addr increment.\n");
 
   /* Check support for buffered memory access, ignore if not available */
 
@@ -206,7 +206,7 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
       PDATA(pgm)->buffersize = (unsigned int)(unsigned char)c<<8;
       avr910_recv(pgm, &c, 1);
       PDATA(pgm)->buffersize += (unsigned int)(unsigned char)c;
-      avrdude_message(MSG_INFO, "Programmer supports buffered memory access with "
+      avrdude_message(MSG_NOTICE, "Programmer supports buffered memory access with "
                       "buffersize = %u bytes.\n",
                       PDATA(pgm)->buffersize);
       PDATA(pgm)->use_blockmode = 1;
@@ -224,7 +224,7 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
     /* Get list of devices that the programmer supports. */
 
     avr910_send(pgm, "t", 1);
-    avrdude_message(MSG_INFO, "\nProgrammer supports the following devices:\n");
+    avrdude_message(MSG_NOTICE, "\nProgrammer supports the following devices:\n");
     devtype_1st = 0;
     while (1) {
       avr910_recv(pgm, &c, 1);
@@ -234,14 +234,14 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
 	break;
       part = locate_part_by_avr910_devcode(part_list, c);
 
-      avrdude_message(MSG_INFO, "    Device code: 0x%02x = %s\n", c & 0xff, part? part->desc: "(unknown)");
+      avrdude_message(MSG_NOTICE, "    Device code: 0x%02x = %s\n", c & 0xff, part? part->desc: "(unknown)");
 
       /* FIXME: Need to lookup devcode and report the device. */
 
       if (p->avr910_devcode == c)
 	dev_supported = 1;
     };
-    avrdude_message(MSG_INFO, "\n");
+    avrdude_message(MSG_NOTICE, "\n");
 
     if (!dev_supported) {
       avrdude_message(MSG_INFO, "%s: %s: selected device is not supported by programmer: %s\n",
