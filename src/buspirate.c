@@ -76,7 +76,7 @@ struct pdata
 	unsigned char pin_dir;		/* Last written pin direction for bitbang mode */
 	unsigned char pin_val;		/* Last written pin values for bitbang mode */
 	int     unread_bytes;		/* How many bytes we expected, but ignored */
-        int     flag;
+	int     flag;
 };
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
