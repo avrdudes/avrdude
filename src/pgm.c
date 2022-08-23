@@ -152,12 +152,18 @@ PROGRAMMER *pgm_new(void) {
 
 void pgm_free(PROGRAMMER *p) {
   if(p) {
-    ldestroy_cb(p->id, free);
-    ldestroy_cb(p->usbpid, free);
-    ldestroy_cb(p->hvupdi_support, free);
-    p->id = NULL;
-    p->usbpid = NULL;
-    p->hvupdi_support = NULL;
+    if(p->id) {
+      ldestroy_cb(p->id, free);
+      p->id = NULL;
+    }
+    if(p->usbpid) {
+      ldestroy_cb(p->usbpid, free);
+      p->usbpid = NULL;
+    }
+    if(p->hvupdi_support) {
+      ldestroy_cb(p->hvupdi_support, free);
+      p->hvupdi_support = NULL;
+    }
     // Never free const char *, eg, p->desc, which are set by cache_string()
     // p->cookie is freed by pgm_teardown
     free(p);
@@ -168,22 +174,27 @@ PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
   PROGRAMMER *pgm = pgm_new();
 
   if(src) {
+    ldestroy_cb(pgm->id, free);
+    ldestroy_cb(pgm->usbpid, free);
+    ldestroy_cb(pgm->hvupdi_support, free);
     memcpy(pgm, src, sizeof(*pgm));
     pgm->id = lcreat(NULL, 0);
     pgm->usbpid = lcreat(NULL, 0);
     pgm->hvupdi_support = lcreat(NULL, 0);
 
     // Leave id list empty but copy usbpid and hvupdi_support over
-    for(LNODEID ln = lfirst(src->hvupdi_support); ln; ln = lnext(ln)) {
-      int *ip = cfg_malloc("pgm_dup()", sizeof(int));
-      *ip = *(int *) ldata(ln);
-      ladd(pgm->hvupdi_support, ip);
-    }
-    for(LNODEID ln = lfirst(src->usbpid); ln; ln = lnext(ln)) {
-      int *ip = cfg_malloc("pgm_dup()", sizeof(int));
-      *ip = *(int *) ldata(ln);
-      ladd(pgm->usbpid, ip);
-    }
+    if(src->hvupdi_support)
+      for(LNODEID ln = lfirst(src->hvupdi_support); ln; ln = lnext(ln)) {
+        int *ip = cfg_malloc("pgm_dup()", sizeof(int));
+        *ip = *(int *) ldata(ln);
+        ladd(pgm->hvupdi_support, ip);
+      }
+    if(src->usbpid)
+      for(LNODEID ln = lfirst(src->usbpid); ln; ln = lnext(ln)) {
+        int *ip = cfg_malloc("pgm_dup()", sizeof(int));
+        *ip = *(int *) ldata(ln);
+        ladd(pgm->usbpid, ip);
+      }
   }
 
   return pgm;

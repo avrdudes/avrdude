@@ -536,25 +536,22 @@ usb_pid_list:
   TKN_NUMBER {
     {
       /* overwrite pids, so clear the existing entries */
-      ldestroy_cb(current_prog->usbpid, free);
+      if(current_prog->usbpid)
+        ldestroy_cb(current_prog->usbpid, free);
       current_prog->usbpid = lcreat(NULL, 0);
     }
     {
-      int *ip = malloc(sizeof(int));
-      if (ip) {
-        *ip = $1->value.number;
-        ladd(current_prog->usbpid, ip);
-      }
+      int *ip = cfg_malloc("usb_pid_list", sizeof(int));
+      *ip = $1->value.number;
+      ladd(current_prog->usbpid, ip);
       free_token($1);
     }
   } |
   usb_pid_list TKN_COMMA TKN_NUMBER {
     {
-      int *ip = malloc(sizeof(int));
-      if (ip) {
-        *ip = $3->value.number;
-        ladd(current_prog->usbpid, ip);
-      }
+      int *ip = cfg_malloc("usb_pid_list", sizeof(int));
+      *ip = $3->value.number;
+      ladd(current_prog->usbpid, ip);
       free_token($3);
     }
   }
@@ -568,25 +565,22 @@ hvupdi_support_list:
   TKN_NUMBER {
     {
       /* overwrite list entries, so clear the existing entries */
-      ldestroy_cb(current_prog->hvupdi_support, free);
+      if(current_prog->hvupdi_support)
+        ldestroy_cb(current_prog->hvupdi_support, free);
       current_prog->hvupdi_support = lcreat(NULL, 0);
     }
     {
-      int *ip = malloc(sizeof(int));
-      if (ip) {
-        *ip = $1->value.number;
-        ladd(current_prog->hvupdi_support, ip);
-      }
+      int *ip = cfg_malloc("hvupdi_support_list", sizeof(int));
+      *ip = $1->value.number;
+      ladd(current_prog->hvupdi_support, ip);
       free_token($1);
     }
   } |
   hvupdi_support_list TKN_COMMA TKN_NUMBER {
     {
-      int *ip = malloc(sizeof(int));
-      if (ip) {
-        *ip = $3->value.number;
-        ladd(current_prog->hvupdi_support, ip);
-      }
+      int *ip = cfg_malloc("hvupdi_support_list", sizeof(int));
+      *ip = $3->value.number;
+      ladd(current_prog->hvupdi_support, ip);
       free_token($3);
     }
   }
