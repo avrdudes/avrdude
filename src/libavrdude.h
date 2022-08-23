@@ -323,16 +323,16 @@ int intlog2(unsigned int n);
 /* Functions for OPCODE structures */
 OPCODE * avr_new_opcode(void);
 void     avr_free_opcode(OPCODE * op);
-int avr_set_bits(OPCODE * op, unsigned char * cmd);
-int avr_set_addr(OPCODE * op, unsigned char * cmd, unsigned long addr);
-int avr_set_addr_mem(AVRMEM *mem, int opnum, unsigned char *cmd, unsigned long addr);
-int avr_set_input(OPCODE * op, unsigned char * cmd, unsigned char data);
+int avr_set_bits(const OPCODE *op, unsigned char *cmd);
+int avr_set_addr(const OPCODE *op, unsigned char *cmd, unsigned long addr);
+int avr_set_addr_mem(const AVRMEM *mem, int opnum, unsigned char *cmd, unsigned long addr);
+int avr_set_input(const OPCODE *op, unsigned char *cmd, unsigned char data);
 int avr_get_output(const OPCODE *op, const unsigned char *res, unsigned char *data);
 int avr_get_output_index(const OPCODE *op);
 char cmdbitchar(CMDBIT cb);
 char *cmdbitstr(CMDBIT cb);
 const char *opcodename(int opnum);
-char *opcode2str(OPCODE *op, int opnum, int detailed);
+char *opcode2str(const OPCODE *op, int opnum, int detailed);
 
 /* Functions for AVRMEM structures */
 AVRMEM * avr_new_memtype(void);

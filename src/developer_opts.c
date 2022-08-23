@@ -54,7 +54,7 @@
 #include "developer_opts_private.h"
 
 // Return 0 if op code would encode (essentially) the same SPI command
-static int opcodecmp(OPCODE *op1, OPCODE *op2, int opnum) {
+static int opcodecmp(const OPCODE *op1, const OPCODE *op2, int opnum) {
   char *opstr1, *opstr2, *p;
   int cmp;
 
@@ -86,7 +86,7 @@ static int opcodecmp(OPCODE *op1, OPCODE *op2, int opnum) {
 }
 
 
-static void printopcode(AVRPART *p, const char *d, OPCODE *op, int opnum) {
+static void printopcode(const AVRPART *p, const char *d, const OPCODE *op, int opnum) {
   unsigned char cmd[4];
   int i;
 
@@ -103,51 +103,77 @@ static void printopcode(AVRPART *p, const char *d, OPCODE *op, int opnum) {
   }
 }
 
-static void printallopcodes(AVRPART *p, const char *d, OPCODE **opa) {
+static void printallopcodes(const AVRPART *p, const char *d, OPCODE * const *opa) {
   for(int i=0; i<AVR_OP_MAX; i++)
     printopcode(p, d, opa[i], i);
 }
 
 
 
-// Mnemonic characterisation of flags
-static char *parttype(AVRPART *p) {
+// Programming modes
+static char *prog_modes(const AVRPART *p) {
   static char type[1024];
 
+  *type = 0;
+
+  if(!(p->flags & AVRPART_HAS_TPI)  // TPI devices don't have the SPM opcode
+     && strcmp(p->id, "t4")         // Nor have these early ones
+     && strcmp(p->id, "t5")
+     && strcmp(p->id, "t9")
+     && strcmp(p->id, "t10")
+     && strcmp(p->id, "t11")
+     && strcmp(p->id, "t12")
+     && strcmp(p->id, "t15")
+     && strcmp(p->id, "t20")
+     && strcmp(p->id, "t26")
+     && strcmp(p->id, "t28")
+     && strcmp(p->id, "t40"))
+   strcpy(type, "PM_SPM");
+
   switch(p->flags & (AVRPART_HAS_PDI | AVRPART_AVR32 | AVRPART_HAS_TPI | AVRPART_HAS_UPDI)) {
-  case 0:                strcpy(type, "ISP"); break;
-  case AVRPART_HAS_PDI:  strcpy(type, "PDI"); break;
-  case AVRPART_AVR32:    strcpy(type, "AVR32"); break;
-  case AVRPART_HAS_TPI:  strcpy(type, "TPI"); break;
-  case AVRPART_HAS_UPDI: strcpy(type, "UPDI"); break;
-  default:               strcpy(type, "UNKNOWN"); break;
+  case AVRPART_HAS_TPI:         // AVR8L family
+    strcat(type, "|PM_TPI");
+    break;
+  case 0:                       //  AVR8 family, "classic" parts
+    if(p->flags & AVRPART_SERIALOK) // ATmega406 has no ISP
+      strcat(type, "|PM_ISP");
+    break;
+  case AVRPART_HAS_PDI:         // AVR8_XMEGA family
+    strcat(type, "|PM_PDI");
+    break;
+  case AVRPART_HAS_UPDI:        // AVR8X family
+     strcat(type, "|PM_UPDI");
+     break;
+  case AVRPART_AVR32:           // AVR32 family
+    strcat(type, "|PM_aWire");
+    break;
+  default:
+    strcat(type, "|PM_UNKNOWN");
   }
 
-  if((p->flags & AVRPART_SERIALOK) == 0)
-    strcat(type, "|NOTSERIAL");
-  if((p->flags & AVRPART_PARALLELOK) == 0)
-    strcat(type, "|NOTPARALLEL");
-  if(p->flags & AVRPART_PSEUDOPARALLEL)
-    strcat(type, "|PSEUDOPARALLEL");
-  if(p->flags & AVRPART_IS_AT90S1200)
-    strcat(type, "|IS_AT90S1200");
+  switch(p->ctl_stack_type) {
+    case CTL_STACK_PP:
+      strcat(type, "|PM_HVPP");
+      break;
+    case CTL_STACK_HVSP:
+      strcat(type, "|PM_HVSP");
+      break;
+    default:
+      break;
+  }
 
   if(p->flags & AVRPART_HAS_DW)
-    strcat(type, "|DW");
+    strcat(type, "|PM_debugWIRE");
 
   if(p->flags & AVRPART_HAS_JTAG)
-    strcat(type, "|JTAG");
-  if(p->flags & AVRPART_ALLOWFULLPAGEBITSTREAM)
-    strcat(type, "|PAGEBITSTREAM");
-  if((p->flags & AVRPART_ENABLEPAGEPROGRAMMING) == 0)
-    strcat(type, "|NOPAGEPROGRAMMING");
+    strcat(type, "|PM_JTAG");
 
-  return type;
+  return type + (*type == '|');
 }
 
 
 // Check whether address bits are where they should be in ISP commands
-static void checkaddr(int memsize, int pagesize, int opnum, OPCODE *op, AVRPART *p, AVRMEM *m) {
+static void checkaddr(int memsize, int pagesize, int opnum, const OPCODE *op, const AVRPART *p, const AVRMEM *m) {
   int i, lo, hi;
   const char *opstr = opcodename(opnum);
 
@@ -293,7 +319,7 @@ static int dev_part_strct_entry(bool tsv,               // Print as spreadsheet?
 }
 
 
-static const char *dev_controlstack_name(AVRPART *p) {
+static const char *dev_controlstack_name(const AVRPART *p) {
   return
     p->ctl_stack_type == CTL_STACK_PP? "pp_controlstack":
     p->ctl_stack_type == CTL_STACK_HVSP? "hvsp_controlstack":
@@ -302,7 +328,7 @@ static const char *dev_controlstack_name(AVRPART *p) {
 }
 
 
-static void dev_stack_out(bool tsv, AVRPART *p, const char *name, unsigned char *stack, int ns) {
+static void dev_stack_out(bool tsv, const AVRPART *p, const char *name, const unsigned char *stack, int ns) {
   if(!strcmp(name, "NULL")) {
     name = "pp_controlstack";
     ns = 0;
@@ -362,7 +388,7 @@ static int avrmem_deep_copy(AVRMEMdeep *d, const AVRMEM *m) {
   return 0;
 }
 
-static int memorycmp(AVRMEM *m1, AVRMEM *m2) {
+static int memorycmp(const AVRMEM *m1, const AVRMEM *m2) {
   AVRMEMdeep dm1, dm2;
 
   if(!m1 && !m2)
@@ -478,7 +504,7 @@ static char *opsnm(const char *pre, int opnum) {
   return ret;
 }
 
-static void dev_part_raw(AVRPART *part) {
+static void dev_part_raw(const AVRPART *part) {
   AVRPARTdeep dp;
   int di = avrpart_deep_copy(&dp, part);
 
@@ -499,7 +525,7 @@ static void dev_part_raw(AVRPART *part) {
 }
 
 
-static void dev_part_strct(AVRPART *p, bool tsv, AVRPART *base) {
+static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base) {
   char *descstr = cfg_escape(p->desc);
   COMMENT *cp;
 
@@ -966,7 +992,7 @@ void dev_output_part_defs(char *partdesc) {
           nfuses,
           ok,
           p->flags,
-          parttype(p),
+          prog_modes(p),
           p->config_file, p->lineno
         );
       }
@@ -1008,7 +1034,7 @@ void dev_output_part_defs(char *partdesc) {
 }
 
 
-static void dev_pgm_raw(PROGRAMMER *pgm) {
+static void dev_pgm_raw(const PROGRAMMER *pgm) {
   PROGRAMMER dp;
   int len, idx;
   char *id = ldata(lfirst(pgm->id));
@@ -1070,7 +1096,7 @@ static const char *connstr(conntype_t conntype) {
   }
 }
 
-static void dev_pgm_strct(PROGRAMMER *pgm, bool tsv, PROGRAMMER *base) {
+static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *base) {
   char *id = ldata(lfirst(pgm->id));
   LNODEID ln;
   COMMENT *cp;
