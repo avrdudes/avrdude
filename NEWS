@@ -67,6 +67,11 @@ Changes since version 7.0:
       listing programmers where id starts with dot  #1059
     - Fix logfile short option in man-page; fix install dir for man
       page #1063
+    - Use const for programmer functions where useful; add second
+      argument for programmer enable interface function
+      void (*enable)(PROGRAMMER *pgm, const AVRPART *p) #1078
+    - Make avr910 programmer initialize() less verbose #1083
+    - Fix flash paged write for avrftdi.c #1074
 
   * Internals:
 
