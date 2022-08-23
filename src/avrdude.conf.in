@@ -1801,6 +1801,7 @@ part
     stk500_devcode      = 0x11;
     signature           = 0x1e 0x90 0x04;
     chip_erase_delay    = 20000;
+    serial			= no;
 
     timeout		= 200;
     hvsp_controlstack     =
@@ -7989,6 +7990,7 @@ part
     stk500_devcode      = 0x22;
     avr910_devcode      = 0x5c;
     signature           = 0x1e 0x91 0x07;
+    serial			= no;
 
     pp_controlstack     =
         0x0E, 0x1E, 0x0F, 0x1F, 0x2E, 0x3E, 0x2F, 0x3F,
@@ -15533,7 +15535,7 @@ part parent "x16a4u"
     id		= "x16a4";
     desc	= "ATxmega16A4";
     signature	= 0x1e 0x94 0x41;
-    has_jtag	= yes;
+    has_jtag	= no;
 
     memory "fuse0"
         size		= 1;
@@ -15622,7 +15624,7 @@ part parent "x32a4u"
     id		= "x32a4";
     desc	= "ATxmega32A4";
     signature	= 0x1e 0x95 0x41;
-    has_jtag	= yes;
+    has_jtag	= no;
 
     memory "fuse0"
         size		= 1;
