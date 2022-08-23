@@ -344,7 +344,7 @@ static int avrftdi_transmit_bb(const PROGRAMMER *pgm, unsigned char mode, const 
 	size_t blocksize = pdata->rx_buffer_size/2; // we are reading 2 bytes per data byte
 
 	// determine a maximum size of data block
-	size_t max_size = MIN(pdata->ftdic->max_packet_size,pdata->tx_buffer_size);
+	size_t max_size = MIN(pdata->ftdic->max_packet_size, (unsigned int) pdata->tx_buffer_size);
 	// select block size so that resulting commands does not exceed max_size if possible
 	blocksize = MAX(1,(max_size-7)/((8*2*6)+(8*1*2)));
 	//avrdude_message(MSG_INFO, "blocksize %d \n",blocksize);
@@ -361,9 +361,8 @@ static int avrftdi_transmit_bb(const PROGRAMMER *pgm, unsigned char mode, const 
 		// (8*1) inputs per data byte,  2 transmit bytes per input  (GET_BITS_LOW/HIGH),
 		// 1x SEND_IMMEDIATE
 		int len = 0;
-		int i;
 		
-		for(i = 0 ; i< transfer_size; i++) {
+		for(size_t i = 0 ; i < transfer_size; i++) {
 		    len += set_data(pgm, send_buffer + len, buf[written+i], (mode & MPSSE_DO_READ) != 0);
 		}
 
@@ -380,14 +379,14 @@ static int avrftdi_transmit_bb(const PROGRAMMER *pgm, unsigned char mode, const 
 		E(ftdi_write_data(pdata->ftdic, send_buffer, len) != len, pdata->ftdic);
 		if (mode & MPSSE_DO_READ) {
 			int n;
-			int k = 0;
+			size_t k = 0;
 			do {
 				n = ftdi_read_data(pdata->ftdic, &recv_buffer[k], 2*16*transfer_size - k);
 				E(n < 0, pdata->ftdic);
 				k += n;
 			} while (k < transfer_size);
 
-			for(i = 0 ; i< transfer_size; i++) {
+			for(size_t i = 0 ; i< transfer_size; i++) {
 			    data[written + i] = extract_data(pgm, recv_buffer, i);
 			}
 		}
@@ -430,7 +429,7 @@ static int avrftdi_transmit_mpsse(avrftdi_t* pdata, unsigned char mode, const un
 	{
 		size_t transfer_size = (remaining > blocksize) ? blocksize : remaining;
 
-		E(ftdi_write_data(pdata->ftdic, (unsigned char*)&buf[written], transfer_size) != transfer_size, pdata->ftdic);
+		E((size_t) ftdi_write_data(pdata->ftdic, (unsigned char*)&buf[written], transfer_size) != transfer_size, pdata->ftdic);
 #if 0
 		if(remaining < blocksize)
 			E(ftdi_write_data(pdata->ftdic, &si, sizeof(si)) != sizeof(si), pdata->ftdic);
@@ -438,7 +437,7 @@ static int avrftdi_transmit_mpsse(avrftdi_t* pdata, unsigned char mode, const un
 
 		if (mode & MPSSE_DO_READ) {
 			int n;
-			int k = 0;
+			size_t k = 0;
 			do {
 				n = ftdi_read_data(pdata->ftdic, &data[written + k], transfer_size - k);
 				E(n < 0, pdata->ftdic);
@@ -998,7 +997,7 @@ static int avrftdi_flash_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 		return -1;
 	}
 
-	if(page_size != m->page_size) {
+	if(page_size != (unsigned int) m->page_size) {
 		log_warn("Parameter page_size is %d, ", page_size);
 		log_warn("but m->page_size is %d. Using the latter.\n", m->page_size);
 	}
@@ -1042,12 +1041,11 @@ static int avrftdi_flash_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 	/* find a poll byte. We cannot poll a value of 0xff, so look
 	 * for a value != 0xff
 	 */
-	for(poll_index = addr+len-1; poll_index > addr-1; poll_index--)
+	for(poll_index = addr+len-1; poll_index+1 > addr; poll_index--)
 		if(m->buf[poll_index] != 0xff)
 			break;
 
-	if((poll_index < addr + len) && m->buf[poll_index] != 0xff)
-	{
+	if(poll_index+1 > addr) {
 		buf_size = bufptr - buf;
 
 		if(verbose > TRACE)
@@ -1088,12 +1086,11 @@ static int avrftdi_flash_read(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 		unsigned int page_size, unsigned int addr, unsigned int len)
 {
 	OPCODE * readop;
-	int byte, word;
 
 	unsigned int buf_size = 4 * len + 4;
 	unsigned char* o_buf = alloca(buf_size);
 	unsigned char* i_buf = alloca(buf_size);
-	unsigned int index;
+
 
 	memset(o_buf, 0, buf_size);
 	memset(i_buf, 0, buf_size);
@@ -1112,7 +1109,7 @@ static int avrftdi_flash_read(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 		return -1;
 	
 	/* word addressing! */
-	for(word = addr/2, index = 0; word < (addr + len)/2; word++)
+	for(unsigned int word = addr/2, index = 0; word < (addr + len)/2; word++)
 	{
 		/* one byte is transferred via a 4-byte opcode.
 		 * TODO: reduce magic numbers
@@ -1143,7 +1140,7 @@ static int avrftdi_flash_read(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 	memset(&m->buf[addr], 0, page_size);
 
 	/* every (read) op is 4 bytes in size and yields one byte of memory data */
-	for(byte = 0; byte < page_size; byte++) {
+	for(unsigned int byte = 0; byte < page_size; byte++) {
 		if(byte & 1)
 			readop = m->op[AVR_OP_READ_HI];
 		else
