@@ -61,8 +61,7 @@ static int dtr, rts, txd;
 
 #define DB9PINS 9
 
-static int serbb_setpin(PROGRAMMER * pgm, int pinfunc, int value)
-{
+static int serbb_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
 	int pin = pgm->pinno[pinfunc];
 	HANDLE hComPort = (HANDLE)pgm->fd.pfd;
         LPVOID lpMsgBuf;
@@ -129,8 +128,7 @@ static int serbb_setpin(PROGRAMMER * pgm, int pinfunc, int value)
         return 0;
 }
 
-static int serbb_getpin(PROGRAMMER * pgm, int pinfunc)
-{
+static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
 	int pin = pgm->pinno[pinfunc];
 	HANDLE hComPort = (HANDLE)pgm->fd.pfd;
         LPVOID lpMsgBuf;
@@ -216,8 +214,7 @@ static int serbb_getpin(PROGRAMMER * pgm, int pinfunc)
         return rv;
 }
 
-static int serbb_highpulsepin(PROGRAMMER * pgm, int pinfunc)
-{
+static int serbb_highpulsepin(const PROGRAMMER *pgm, int pinfunc) {
 	    int pin = pgm->pinno[pinfunc];
         if ( (pin & PIN_MASK) < 1 || (pin & PIN_MASK) > DB9PINS )
           return -1;
@@ -229,33 +226,27 @@ static int serbb_highpulsepin(PROGRAMMER * pgm, int pinfunc)
 }
 
 
-static void serbb_display(PROGRAMMER *pgm, const char *p)
-{
+static void serbb_display(const PROGRAMMER *pgm, const char *p) {
   /* MAYBE */
 }
 
-static void serbb_enable(PROGRAMMER *pgm)
-{
+static void serbb_enable(PROGRAMMER *pgm, const AVRPART *p) {
   /* nothing */
 }
 
-static void serbb_disable(PROGRAMMER *pgm)
-{
+static void serbb_disable(const PROGRAMMER *pgm) {
   /* nothing */
 }
 
-static void serbb_powerup(PROGRAMMER *pgm)
-{
+static void serbb_powerup(const PROGRAMMER *pgm) {
   /* nothing */
 }
 
-static void serbb_powerdown(PROGRAMMER *pgm)
-{
+static void serbb_powerdown(const PROGRAMMER *pgm) {
   /* nothing */
 }
 
-static int serbb_open(PROGRAMMER *pgm, char *port)
-{
+static int serbb_open(PROGRAMMER *pgm, const char *port) {
         DCB dcb;
 	LPVOID lpMsgBuf;
 	HANDLE hComPort = INVALID_HANDLE_VALUE;
@@ -319,8 +310,7 @@ static int serbb_open(PROGRAMMER *pgm, char *port)
         return 0;
 }
 
-static void serbb_close(PROGRAMMER *pgm)
-{
+static void serbb_close(PROGRAMMER *pgm) {
 	HANDLE hComPort=(HANDLE)pgm->fd.pfd;
 	if (hComPort != INVALID_HANDLE_VALUE)
 	{
@@ -335,8 +325,7 @@ static void serbb_close(PROGRAMMER *pgm)
 
 const char serbb_desc[] = "Serial port bitbanging";
 
-void serbb_initpgm(PROGRAMMER *pgm)
-{
+void serbb_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "SERBB");
 
   pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed

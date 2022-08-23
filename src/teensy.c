@@ -86,8 +86,7 @@ static void delay_ms(uint32_t duration)
     usleep(duration * 1000);
 }
 
-static int teensy_get_bootloader_info(pdata_t* pdata, AVRPART* p)
-{
+static int teensy_get_bootloader_info(pdata_t* pdata, const AVRPART* p) {
     switch (pdata->hid_usage)
     {
     case 0x19:
@@ -253,8 +252,7 @@ static void teensy_teardown(PROGRAMMER* pgm)
     free(pgm->cookie);
 }
 
-static int teensy_initialize(PROGRAMMER* pgm, AVRPART* p)
-{
+static int teensy_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     avrdude_message(MSG_DEBUG, "%s: teensy_initialize()\n", progname);
 
     pdata_t* pdata = PDATA(pgm);
@@ -268,18 +266,15 @@ static int teensy_initialize(PROGRAMMER* pgm, AVRPART* p)
     return 0;
 }
 
-static void teensy_display(PROGRAMMER* pgm, const char* prefix)
-{
+static void teensy_display(const PROGRAMMER *pgm, const char *prefix) {
     avrdude_message(MSG_DEBUG, "%s: teensy_display()\n", progname);
 }
 
-static void teensy_powerup(PROGRAMMER* pgm)
-{
+static void teensy_powerup(const PROGRAMMER *pgm) {
     avrdude_message(MSG_DEBUG, "%s: teensy_powerup()\n", progname);
 }
 
-static void teensy_powerdown(PROGRAMMER* pgm)
-{
+static void teensy_powerdown(const PROGRAMMER *pgm) {
     avrdude_message(MSG_DEBUG, "%s: teensy_powerdown()\n", progname);
 
     pdata_t* pdata = PDATA(pgm);
@@ -297,24 +292,20 @@ static void teensy_powerdown(PROGRAMMER* pgm)
     }
 }
 
-static void teensy_enable(PROGRAMMER* pgm)
-{
+static void teensy_enable(PROGRAMMER* pgm, const AVRPART *p) {
     avrdude_message(MSG_DEBUG, "%s: teensy_enable()\n", progname);
 }
 
-static void teensy_disable(PROGRAMMER* pgm)
-{
+static void teensy_disable(const PROGRAMMER *pgm) {
     avrdude_message(MSG_DEBUG, "%s: teensy_disable()\n", progname);
 }
 
-static int teensy_program_enable(PROGRAMMER* pgm, AVRPART* p)
-{
+static int teensy_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     avrdude_message(MSG_DEBUG, "%s: teensy_program_enable()\n", progname);
     return 0;
 }
 
-static int teensy_read_sig_bytes(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem)
-{
+static int teensy_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
     avrdude_message(MSG_DEBUG, "%s: teensy_read_sig_bytes()\n", progname);
 
     if (mem->size < 3)
@@ -329,8 +320,7 @@ static int teensy_read_sig_bytes(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem)
     return 0;
 }
 
-static int teensy_chip_erase(PROGRAMMER* pgm, AVRPART* p)
-{
+static int teensy_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     avrdude_message(MSG_DEBUG, "%s: teensy_chip_erase()\n", progname);
 
     pdata_t* pdata = PDATA(pgm);
@@ -341,12 +331,11 @@ static int teensy_chip_erase(PROGRAMMER* pgm, AVRPART* p)
     return 0;
 }
 
-static int teensy_open(PROGRAMMER* pgm, char* port)
-{
+static int teensy_open(PROGRAMMER *pgm, const char *port) {
     avrdude_message(MSG_DEBUG, "%s: teensy_open(\"%s\")\n", progname, port);
 
     pdata_t* pdata = PDATA(pgm);
-    char* bus_name = NULL;
+    const char *bus_name = NULL;
     char* dev_name = NULL;
 
     // if no -P was given or '-P usb' was given
@@ -472,7 +461,7 @@ static void teensy_close(PROGRAMMER* pgm)
     }
 }
 
-static int teensy_read_byte(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem,
+static int teensy_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned long addr, unsigned char* value)
 {
     avrdude_message(MSG_DEBUG, "%s: teensy_read_byte(desc=%s, addr=0x%0X)\n",
@@ -493,7 +482,7 @@ static int teensy_read_byte(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem,
     }
 }
 
-static int teensy_write_byte(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem,
+static int teensy_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned long addr, unsigned char value)
 {
     avrdude_message(MSG_DEBUG, "%s: teensy_write_byte(desc=%s, addr=0x%0X)\n",
@@ -501,7 +490,7 @@ static int teensy_write_byte(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem,
     return -1;
 }
 
-static int teensy_paged_load(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem,
+static int teensy_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned int page_size,
     unsigned int addr, unsigned int n_bytes)
 {
@@ -510,7 +499,7 @@ static int teensy_paged_load(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem,
     return -1;
 }
 
-static int teensy_paged_write(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem,
+static int teensy_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned int page_size,
     unsigned int addr, unsigned int n_bytes)
 {
@@ -567,8 +556,7 @@ static int teensy_paged_write(PROGRAMMER* pgm, AVRPART* p, AVRMEM* mem,
     }
 }
 
-static int teensy_parseextparams(PROGRAMMER* pgm, LISTID xparams)
-{
+static int teensy_parseextparams(const PROGRAMMER *pgm, const LISTID xparams) {
     avrdude_message(MSG_DEBUG, "%s: teensy_parseextparams()\n", progname);
 
     pdata_t* pdata = PDATA(pgm);
@@ -596,8 +584,7 @@ static int teensy_parseextparams(PROGRAMMER* pgm, LISTID xparams)
     return 0;
 }
 
-void teensy_initpgm(PROGRAMMER* pgm)
-{
+void teensy_initpgm(PROGRAMMER *pgm) {
     strcpy(pgm->type, "teensy");
 
     pgm->setup = teensy_setup;
@@ -624,14 +611,12 @@ void teensy_initpgm(PROGRAMMER* pgm)
 #else /* !HAVE_LIBHIDAPI */
 
  // Give a proper error if we were not compiled with libhidapi
-static int teensy_nousb_open(struct programmer_t* pgm, char* name)
-{
+static int teensy_nousb_open(PROGRAMMER *pgm, const char *name) {
     avrdude_message(MSG_INFO, "%s: error: No HID support. Please compile again with libhidapi installed.\n", progname);
     return -1;
 }
 
-void teensy_initpgm(PROGRAMMER* pgm)
-{
+void teensy_initpgm(PROGRAMMER *pgm) {
     strcpy(pgm->type, "teensy");
     pgm->open = teensy_nousb_open;
 }

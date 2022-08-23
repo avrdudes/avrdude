@@ -163,8 +163,7 @@ void bitbang_delay(unsigned int us)
 /*
  * transmit and receive a byte of data to/from the AVR device
  */
-static unsigned char bitbang_txrx(PROGRAMMER * pgm, unsigned char byte)
-{
+static unsigned char bitbang_txrx(const PROGRAMMER *pgm, unsigned char byte) {
   int i;
   unsigned char r, b, rbyte;
 
@@ -208,8 +207,7 @@ static unsigned char bitbang_txrx(PROGRAMMER * pgm, unsigned char byte)
   return rbyte;
 }
 
-static int bitbang_tpi_clk(PROGRAMMER * pgm) 
-{
+static int bitbang_tpi_clk(const PROGRAMMER *pgm)  {
   unsigned char r = 0;
   pgm->setpin(pgm, PIN_AVR_SCK, 1);
 
@@ -220,8 +218,7 @@ static int bitbang_tpi_clk(PROGRAMMER * pgm)
   return r;
 }
 
-void bitbang_tpi_tx(PROGRAMMER * pgm, unsigned char byte) 
-{
+void bitbang_tpi_tx(const PROGRAMMER *pgm, unsigned char byte)  {
   int i;
   unsigned char b, parity;
 
@@ -249,8 +246,7 @@ void bitbang_tpi_tx(PROGRAMMER * pgm, unsigned char byte)
   bitbang_tpi_clk(pgm);
 }
 
-int bitbang_tpi_rx(PROGRAMMER * pgm) 
-{
+int bitbang_tpi_rx(const PROGRAMMER *pgm)  {
   int i;
   unsigned char b, rbyte, parity;
 
@@ -296,26 +292,22 @@ int bitbang_tpi_rx(PROGRAMMER * pgm)
   return rbyte;
 }
 
-int bitbang_rdy_led(PROGRAMMER * pgm, int value)
-{
+int bitbang_rdy_led(const PROGRAMMER *pgm, int value) {
   pgm->setpin(pgm, PIN_LED_RDY, !value);
   return 0;
 }
 
-int bitbang_err_led(PROGRAMMER * pgm, int value)
-{
+int bitbang_err_led(const PROGRAMMER *pgm, int value) {
   pgm->setpin(pgm, PIN_LED_ERR, !value);
   return 0;
 }
 
-int bitbang_pgm_led(PROGRAMMER * pgm, int value)
-{
+int bitbang_pgm_led(const PROGRAMMER *pgm, int value) {
   pgm->setpin(pgm, PIN_LED_PGM, !value);
   return 0;
 }
 
-int bitbang_vfy_led(PROGRAMMER * pgm, int value)
-{
+int bitbang_vfy_led(const PROGRAMMER *pgm, int value) {
   pgm->setpin(pgm, PIN_LED_VFY, !value);
   return 0;
 }
@@ -325,7 +317,7 @@ int bitbang_vfy_led(PROGRAMMER * pgm, int value)
  * transmit an AVR device command and return the results; 'cmd' and
  * 'res' must point to at least a 4 byte data buffer
  */
-int bitbang_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
+int bitbang_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
                    unsigned char *res)
 {
   int i;
@@ -350,7 +342,7 @@ int bitbang_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
   return 0;
 }
 
-int bitbang_cmd_tpi(PROGRAMMER * pgm, const unsigned char *cmd,
+int bitbang_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
                        int cmd_len, unsigned char *res, int res_len)
 {
   int i, r;
@@ -392,7 +384,7 @@ int bitbang_cmd_tpi(PROGRAMMER * pgm, const unsigned char *cmd,
  * transmit bytes via SPI and return the results; 'cmd' and
  * 'res' must point to data buffers
  */
-int bitbang_spi(PROGRAMMER * pgm, const unsigned char *cmd,
+int bitbang_spi(const PROGRAMMER *pgm, const unsigned char *cmd,
                    unsigned char *res, int count)
 {
   int i;
@@ -425,8 +417,7 @@ int bitbang_spi(PROGRAMMER * pgm, const unsigned char *cmd,
 /*
  * issue the 'chip erase' command to the AVR device
  */
-int bitbang_chip_erase(PROGRAMMER * pgm, AVRPART * p)
-{
+int bitbang_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char cmd[4];
   unsigned char res[4];
   AVRMEM *mem;
@@ -486,8 +477,7 @@ int bitbang_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 /*
  * issue the 'program enable' command to the AVR device
  */
-int bitbang_program_enable(PROGRAMMER * pgm, AVRPART * p)
-{
+int bitbang_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char cmd[4];
   unsigned char res[4];
   int i;
@@ -523,8 +513,7 @@ int bitbang_program_enable(PROGRAMMER * pgm, AVRPART * p)
 /*
  * initialize the AVR device and prepare it to accept commands
  */
-int bitbang_initialize(PROGRAMMER * pgm, AVRPART * p)
-{
+int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   int rc;
   int tries;
   int i;
@@ -626,8 +615,7 @@ int bitbang_initialize(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
-static int verify_pin_assigned(PROGRAMMER * pgm, int pin, char * desc)
-{
+static int verify_pin_assigned(const PROGRAMMER *pgm, int pin, char *desc) {
   if (pgm->pinno[pin] == 0) {
     avrdude_message(MSG_INFO, "%s: error: no pin has been assigned for %s\n",
             progname, desc);
@@ -640,8 +628,7 @@ static int verify_pin_assigned(PROGRAMMER * pgm, int pin, char * desc)
 /*
  * Verify all prerequisites for a bit-bang programmer are present.
  */
-int bitbang_check_prerequisites(PROGRAMMER *pgm)
-{
+int bitbang_check_prerequisites(const PROGRAMMER *pgm) {
 
   if (verify_pin_assigned(pgm, PIN_AVR_RESET, "AVR RESET") < 0)
     return -1;

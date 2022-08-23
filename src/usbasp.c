@@ -154,9 +154,9 @@ struct pdata
 // interface - management
 static void usbasp_setup(PROGRAMMER * pgm);
 static void usbasp_teardown(PROGRAMMER * pgm);
-static int usbasp_parseextparms(PROGRAMMER * pgm, LISTID extparms);
+static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms);
 // internal functions
-static int usbasp_transmit(PROGRAMMER * pgm, unsigned char receive,
+static int usbasp_transmit(const PROGRAMMER *pgm, unsigned char receive,
 			   unsigned char functionid, const unsigned char *send,
 			   unsigned char *buffer, int buffersize);
 #ifdef USE_LIBUSB_1_0
@@ -165,39 +165,98 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *
 static int usbOpenDevice(usb_dev_handle **device, int vendor, const char *vendorName, int product, const char *productName);
 #endif
 // interface - prog.
-static int usbasp_open(PROGRAMMER * pgm, char * port);
-static void usbasp_close(PROGRAMMER * pgm);
+static int usbasp_open(PROGRAMMER *pgm, const char *port);
+static void usbasp_close(PROGRAMMER *pgm);
 // dummy functions
-static void usbasp_disable(PROGRAMMER * pgm);
-static void usbasp_enable(PROGRAMMER * pgm);
-static void usbasp_display(PROGRAMMER * pgm, const char * p);
+static void usbasp_disable(const PROGRAMMER *pgm);
+static void usbasp_enable(PROGRAMMER *pgm, const AVRPART *p);
+static void usbasp_display(const PROGRAMMER *pgm, const char *p);
 // universal functions
-static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p);
+static int usbasp_initialize(const PROGRAMMER *pgm, const AVRPART *p);
 // SPI specific functions
-static int usbasp_spi_cmd(PROGRAMMER * pgm, const unsigned char *cmd, unsigned char *res);
-static int usbasp_spi_program_enable(PROGRAMMER * pgm, AVRPART * p);
-static int usbasp_spi_chip_erase(PROGRAMMER * pgm, AVRPART * p);
-static int usbasp_spi_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int usbasp_spi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res);
+static int usbasp_spi_program_enable(const PROGRAMMER *pgm, const AVRPART *p);
+static int usbasp_spi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p);
+static int usbasp_spi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                  unsigned int page_size,
                                  unsigned int addr, unsigned int n_bytes);
-static int usbasp_spi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int usbasp_spi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                   unsigned int page_size,
                                   unsigned int addr, unsigned int n_bytes);
-static int usbasp_spi_set_sck_period(PROGRAMMER *pgm, double sckperiod);
+static int usbasp_spi_set_sck_period(const PROGRAMMER *pgm, double sckperiod);
 // TPI specific functions
-static void usbasp_tpi_send_byte(PROGRAMMER * pgm, uint8_t b);
-static int usbasp_tpi_cmd(PROGRAMMER * pgm, const unsigned char *cmd, unsigned char *res);
-static int usbasp_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p);
-static int usbasp_tpi_chip_erase(PROGRAMMER * pgm, AVRPART * p);
-static int usbasp_tpi_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static void usbasp_tpi_send_byte(const PROGRAMMER *pgm, uint8_t b);
+static int usbasp_tpi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res);
+static int usbasp_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p);
+static int usbasp_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p);
+static int usbasp_tpi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                  unsigned int page_size,
                                  unsigned int addr, unsigned int n_bytes);
-static int usbasp_tpi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                   unsigned int page_size,
                                   unsigned int addr, unsigned int n_bytes);
-static int usbasp_tpi_set_sck_period(PROGRAMMER *pgm, double sckperiod);
-static int usbasp_tpi_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, unsigned long addr, unsigned char * value);
-static int usbasp_tpi_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, unsigned long addr, unsigned char data);
+static int usbasp_tpi_set_sck_period(const PROGRAMMER *pgm, double sckperiod);
+static int usbasp_tpi_read_byte(const PROGRAMMER * pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr, unsigned char *value);
+static int usbasp_tpi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr, unsigned char data);
+
+
+// Dispatching wrappers
+
+static int usbasp_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res) {
+  return PDATA(pgm)->use_tpi?
+    usbasp_tpi_cmd(pgm, cmd, res):
+    usbasp_spi_cmd(pgm, cmd, res);
+}
+
+static int usbasp_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
+  return PDATA(pgm)->use_tpi?
+    usbasp_tpi_program_enable(pgm, p):
+    usbasp_spi_program_enable(pgm, p);
+}
+
+static int usbasp_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
+  return PDATA(pgm)->use_tpi?
+    usbasp_tpi_chip_erase(pgm, p):
+    usbasp_spi_chip_erase(pgm, p);
+}
+
+static int usbasp_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+  unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
+
+  return PDATA(pgm)->use_tpi?
+    usbasp_tpi_paged_load(pgm, p, m, page_size, addr, n_bytes):
+    usbasp_spi_paged_load(pgm, p, m, page_size, addr, n_bytes);
+}
+
+static int usbasp_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+  unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
+
+  return PDATA(pgm)->use_tpi?
+    usbasp_tpi_paged_write(pgm, p, m, page_size, addr, n_bytes):
+    usbasp_spi_paged_write(pgm, p, m, page_size, addr, n_bytes);
+}
+
+static int usbasp_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
+  return PDATA(pgm)->use_tpi?
+    usbasp_tpi_set_sck_period(pgm, sckperiod):
+    usbasp_spi_set_sck_period(pgm, sckperiod);
+}
+
+static int usbasp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+  unsigned long addr, unsigned char * value) {
+
+  return PDATA(pgm)->use_tpi?
+    usbasp_tpi_read_byte(pgm, p, m, addr, value):
+    avr_read_byte_default(pgm, p, m, addr, value);
+}
+
+static int usbasp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+  unsigned long addr, unsigned char data) {
+
+  return PDATA(pgm)->use_tpi?
+    usbasp_tpi_write_byte(pgm, p, m, addr, data):
+    avr_write_byte_default(pgm, p, m, addr, data);
+}
 
 
 /* Interface - management */
@@ -216,8 +275,7 @@ static void usbasp_teardown(PROGRAMMER * pgm)
   free(pgm->cookie);
 }
 
-static int usbasp_parseextparms(PROGRAMMER * pgm, LISTID extparms)
-{
+static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   LNODEID ln;
   const char *extended_param;
   int rv = 0;
@@ -270,7 +328,7 @@ static const char *usbasp_get_funcname(unsigned char functionid)
 /*
  * wrapper for usb_control_msg call
  */
-static int usbasp_transmit(PROGRAMMER * pgm,
+static int usbasp_transmit(const PROGRAMMER *pgm,
 			   unsigned char receive, unsigned char functionid,
 			   const unsigned char *send,
 			   unsigned char *buffer, int buffersize)
@@ -491,8 +549,7 @@ static int           didUsbInit = 0;
 
 
 /* Interface - prog. */
-static int usbasp_open(PROGRAMMER * pgm, char * port)
-{
+static int usbasp_open(PROGRAMMER *pgm, const char *port) {
   avrdude_message(MSG_DEBUG, "%s: usbasp_open(\"%s\")\n",
 	    progname, port);
 
@@ -582,29 +639,28 @@ static void usbasp_close(PROGRAMMER * pgm)
 
 
 /* Dummy functions */
-static void usbasp_disable(PROGRAMMER * pgm)
-{
+static void usbasp_disable(const PROGRAMMER *pgm) {
   /* Do nothing. */
 
   return;
 }
 
-static void usbasp_enable(PROGRAMMER * pgm)
-{
+static void usbasp_enable(PROGRAMMER *pgm, const AVRPART *p) {
   /* Do nothing. */
 
   return;
 }
 
-static void usbasp_display(PROGRAMMER * pgm, const char * p)
-{
+static void usbasp_display(const PROGRAMMER *pgm, const char *p) {
   return;
 }
 
+
+
+// @@@
 
 /* Universal functions: for both SPI and TPI */
-static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p)
-{
+static int usbasp_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char temp[4];
   unsigned char res[4];
   IMPORT_PDATA(pgm);
@@ -618,7 +674,7 @@ static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p)
   else
     pdata->capabilities = 0;
 
-  pdata->use_tpi = ((pdata->capabilities & USBASP_CAP_TPI) != 0 && (p->flags & AVRPART_HAS_TPI) != 0) ? 1 : 0;
+  pdata->use_tpi = (pdata->capabilities & USBASP_CAP_TPI) && (p->flags & AVRPART_HAS_TPI);
   // query support for 3 MHz SCK in UsbAsp-flash firmware
   // https://github.com/nofeletru/UsbAsp-flash
   pdata->sck_3mhz = ((pdata->capabilities & USBASP_CAP_3MHZ) != 0) ? 1 :0;
@@ -636,16 +692,6 @@ static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p)
 
     /* connect */
     usbasp_transmit(pgm, 1, USBASP_FUNC_TPI_CONNECT, temp, res, sizeof(res));
-    
-    /* change interface */
-    pgm->program_enable = usbasp_tpi_program_enable;
-    pgm->chip_erase     = usbasp_tpi_chip_erase;
-    pgm->cmd            = usbasp_tpi_cmd;
-    pgm->read_byte      = usbasp_tpi_read_byte;
-    pgm->write_byte     = usbasp_tpi_write_byte;
-    pgm->paged_write    = usbasp_tpi_paged_write;
-    pgm->paged_load     = usbasp_tpi_paged_load;
-    pgm->set_sck_period	= usbasp_tpi_set_sck_period;
   }
   else
   {
@@ -654,16 +700,6 @@ static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p)
 
     /* connect to target device */
     usbasp_transmit(pgm, 1, USBASP_FUNC_CONNECT, temp, res, sizeof(res));
-
-    /* change interface */
-    pgm->program_enable = usbasp_spi_program_enable;
-    pgm->chip_erase     = usbasp_spi_chip_erase;
-    pgm->cmd            = usbasp_spi_cmd;
-    pgm->read_byte      = avr_read_byte_default;
-    pgm->write_byte     = avr_write_byte_default;
-    pgm->paged_write    = usbasp_spi_paged_write;
-    pgm->paged_load     = usbasp_spi_paged_load;
-    pgm->set_sck_period	= usbasp_spi_set_sck_period;
   }
 
   /* wait, so device is ready to receive commands */
@@ -673,7 +709,7 @@ static int usbasp_initialize(PROGRAMMER * pgm, AVRPART * p)
 }
 
 /* SPI specific functions */
-static int usbasp_spi_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
+static int usbasp_spi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
                    unsigned char *res)
 {
   avrdude_message(MSG_DEBUG, "%s: usbasp_spi_cmd(0x%02x, 0x%02x, 0x%02x, 0x%02x)%s",
@@ -698,8 +734,7 @@ static int usbasp_spi_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
   return 0;
 }
 
-static int usbasp_spi_program_enable(PROGRAMMER * pgm, AVRPART * p)
-{
+static int usbasp_spi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char res[4];
   unsigned char cmd[4];
   memset(cmd, 0, sizeof(cmd));
@@ -722,8 +757,7 @@ static int usbasp_spi_program_enable(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
-static int usbasp_spi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
-{
+static int usbasp_spi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char cmd[4];
   unsigned char res[4];
 
@@ -746,10 +780,9 @@ static int usbasp_spi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
-static int usbasp_spi_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-                                 unsigned int page_size,
-                                 unsigned int address, unsigned int n_bytes)
-{
+static int usbasp_spi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+  unsigned int page_size, unsigned int address, unsigned int n_bytes) {
+
   int n;
   unsigned char cmd[4];
   int wbytes = n_bytes;
@@ -813,10 +846,9 @@ static int usbasp_spi_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return n_bytes;
 }
 
-static int usbasp_spi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-                                  unsigned int page_size,
-                                  unsigned int address, unsigned int n_bytes)
-{
+static int usbasp_spi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+  unsigned int page_size, unsigned int address, unsigned int n_bytes) {
+
   int n;
   unsigned char cmd[4];
   int wbytes = n_bytes;
@@ -907,8 +939,7 @@ static struct sckoptions_t usbaspSCKoptions[] = {
  * Set sck period (in seconds)
  * Find next possible sck period and write it to the programmer.
  */
-static int usbasp_spi_set_sck_period(PROGRAMMER *pgm, double sckperiod)
-{
+static int usbasp_spi_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
   char clockoption = USBASP_ISP_SCK_AUTO;
   unsigned char res[4];
   unsigned char cmd[4];
@@ -980,8 +1011,7 @@ static int usbasp_spi_set_sck_period(PROGRAMMER *pgm, double sckperiod)
 }
 
 /* TPI specific functions */
-static void usbasp_tpi_send_byte(PROGRAMMER * pgm, uint8_t b)
-{
+static void usbasp_tpi_send_byte(const PROGRAMMER *pgm, uint8_t b) {
   unsigned char temp[4];
   memset(temp, 0, sizeof(temp));
 
@@ -991,8 +1021,7 @@ static void usbasp_tpi_send_byte(PROGRAMMER * pgm, uint8_t b)
 }
 
 
-static int usbasp_tpi_recv_byte(PROGRAMMER * pgm)
-{
+static int usbasp_tpi_recv_byte(const PROGRAMMER *pgm) {
   unsigned char temp[4];
   memset(temp, 0, sizeof(temp));
 
@@ -1006,8 +1035,7 @@ static int usbasp_tpi_recv_byte(PROGRAMMER * pgm)
 }
 
 
-static int usbasp_tpi_nvm_waitbusy(PROGRAMMER * pgm)
-{
+static int usbasp_tpi_nvm_waitbusy(const PROGRAMMER *pgm) {
   int retry;
 
   avrdude_message(MSG_DEBUG, "%s: usbasp_tpi_nvm_waitbusy() ...", progname);
@@ -1028,14 +1056,12 @@ static int usbasp_tpi_nvm_waitbusy(PROGRAMMER * pgm)
   return -1;
 }
 
-static int usbasp_tpi_cmd(PROGRAMMER * pgm, const unsigned char *cmd, unsigned char *res)
-{
+static int usbasp_tpi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res) {
   avrdude_message(MSG_INFO, "%s: error: spi_cmd used in TPI mode: not allowed\n", progname);
   return -1;
 }
 
-static int usbasp_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p)
-{
+static int usbasp_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   int retry;
 
   avrdude_message(MSG_DEBUG, "%s: usbasp_tpi_program_enable()\n", progname);
@@ -1075,8 +1101,7 @@ static int usbasp_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
-static int usbasp_tpi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
-{
+static int usbasp_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   int pr_0;
   int pr_1;
   int nvm_cmd;
@@ -1117,10 +1142,9 @@ static int usbasp_tpi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
-static int usbasp_tpi_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-                                 unsigned int page_size,
-                                 unsigned int addr, unsigned int n_bytes)
-{
+static int usbasp_tpi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+  unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
+
   unsigned char cmd[4];
   unsigned char* dptr;
   int readed, clen, n;
@@ -1160,10 +1184,9 @@ static int usbasp_tpi_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return n_bytes;
 }
 
-static int usbasp_tpi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
-                                  unsigned int page_size,
-                                  unsigned int addr, unsigned int n_bytes)
-{
+static int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+  unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
+
   unsigned char cmd[4];
   unsigned char* sptr;
   int writed, clen, n;
@@ -1227,12 +1250,11 @@ static int usbasp_tpi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return n_bytes;
 }
 
-static int usbasp_tpi_set_sck_period(PROGRAMMER *pgm, double sckperiod)
-{
+static int usbasp_tpi_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
   return 0;
 }
-static int usbasp_tpi_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, unsigned long addr, unsigned char * value)
-{
+
+static int usbasp_tpi_read_byte(const PROGRAMMER * pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr, unsigned char *value) {
   unsigned char cmd[4];
   int n;
   uint16_t pr;
@@ -1257,15 +1279,15 @@ static int usbasp_tpi_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, unsig
   return 0;
 }
 
-static int usbasp_tpi_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, unsigned long addr, unsigned char data)
-{
+static int usbasp_tpi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+  unsigned long addr, unsigned char data) { // FIXME: use avr_write_byte_cache() when implemented
+
   avrdude_message(MSG_INFO, "%s: error: usbasp_write_byte in TPI mode: all writes have to be done at page level\n", progname);
   return -1;
 }
 
 
-void usbasp_initpgm(PROGRAMMER * pgm)
-{
+void usbasp_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "usbasp");
 
   /*
@@ -1276,23 +1298,23 @@ void usbasp_initpgm(PROGRAMMER * pgm)
   pgm->display        = usbasp_display;
   pgm->enable         = usbasp_enable;
   pgm->disable        = usbasp_disable;
-  pgm->program_enable = usbasp_spi_program_enable;
-  pgm->chip_erase     = usbasp_spi_chip_erase;
-  pgm->cmd            = usbasp_spi_cmd;
+  pgm->program_enable = usbasp_program_enable;
+  pgm->chip_erase     = usbasp_chip_erase;
+  pgm->cmd            = usbasp_cmd;
   pgm->open           = usbasp_open;
   pgm->close          = usbasp_close;
-  pgm->read_byte      = avr_read_byte_default;
-  pgm->write_byte     = avr_write_byte_default;
+  pgm->read_byte      = usbasp_read_byte;
+  pgm->write_byte     = usbasp_write_byte;
 
   /*
    * optional functions
    */
 
-  pgm->paged_write    = usbasp_spi_paged_write;
-  pgm->paged_load     = usbasp_spi_paged_load;
+  pgm->paged_write    = usbasp_paged_write;
+  pgm->paged_load     = usbasp_paged_load;
   pgm->setup          = usbasp_setup;
   pgm->teardown       = usbasp_teardown;
-  pgm->set_sck_period = usbasp_spi_set_sck_period;
+  pgm->set_sck_period = usbasp_set_sck_period;
   pgm->parseextparams = usbasp_parseextparms;
 
 }
@@ -1300,16 +1322,14 @@ void usbasp_initpgm(PROGRAMMER * pgm)
 
 #else /* HAVE_LIBUSB */
 
-static int usbasp_nousb_open (struct programmer_t *pgm, char * name)
-{
+static int usbasp_nousb_open(PROGRAMMER *pgm, const char *name) {
   avrdude_message(MSG_INFO, "%s: error: no usb support. please compile again with libusb installed.\n",
 	  progname);
 
   return -1;
 }
 
-void usbasp_initpgm(PROGRAMMER * pgm)
-{
+void usbasp_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "usbasp");
 
   pgm->open           = usbasp_nousb_open;

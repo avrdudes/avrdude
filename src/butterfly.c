@@ -75,14 +75,12 @@ static void butterfly_teardown(PROGRAMMER * pgm)
   free(pgm->cookie);
 }
 
-static int butterfly_send(PROGRAMMER * pgm, char * buf, size_t len)
-{
+static int butterfly_send(const PROGRAMMER *pgm, char *buf, size_t len) {
   return serial_send(&pgm->fd, (unsigned char *)buf, len);
 }
 
 
-static int butterfly_recv(PROGRAMMER * pgm, char * buf, size_t len)
-{
+static int butterfly_recv(const PROGRAMMER *pgm, char *buf, size_t len) {
   int rv;
 
   rv = serial_recv(&pgm->fd, (unsigned char *)buf, len);
@@ -95,14 +93,12 @@ static int butterfly_recv(PROGRAMMER * pgm, char * buf, size_t len)
 }
 
 
-static int butterfly_drain(PROGRAMMER * pgm, int display)
-{
+static int butterfly_drain(const PROGRAMMER *pgm, int display) {
   return serial_drain(&pgm->fd, display);
 }
 
 
-static int butterfly_vfy_cmd_sent(PROGRAMMER * pgm, char * errmsg)
-{
+static int butterfly_vfy_cmd_sent(const PROGRAMMER *pgm, char *errmsg) {
   char c;
 
   butterfly_recv(pgm, &c, 1);
@@ -115,32 +111,28 @@ static int butterfly_vfy_cmd_sent(PROGRAMMER * pgm, char * errmsg)
 }
 
 
-static int butterfly_rdy_led(PROGRAMMER * pgm, int value)
-{
+static int butterfly_rdy_led(const PROGRAMMER *pgm, int value) {
   /* Do nothing. */
 
   return 0;
 }
 
 
-static int butterfly_err_led(PROGRAMMER * pgm, int value)
-{
+static int butterfly_err_led(const PROGRAMMER *pgm, int value) {
   /* Do nothing. */
 
   return 0;
 }
 
 
-static int butterfly_pgm_led(PROGRAMMER * pgm, int value)
-{
+static int butterfly_pgm_led(const PROGRAMMER *pgm, int value) {
   /* Do nothing. */
 
   return 0;
 }
 
 
-static int butterfly_vfy_led(PROGRAMMER * pgm, int value)
-{
+static int butterfly_vfy_led(const PROGRAMMER *pgm, int value) {
   /* Do nothing. */
 
   return 0;
@@ -150,8 +142,7 @@ static int butterfly_vfy_led(PROGRAMMER * pgm, int value)
 /*
  * issue the 'chip erase' command to the butterfly board
  */
-static int butterfly_chip_erase(PROGRAMMER * pgm, AVRPART * p)
-{
+static int butterfly_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   butterfly_send(pgm, "e", 1);
   if (butterfly_vfy_cmd_sent(pgm, "chip erase") < 0)
       return -1;
@@ -160,15 +151,13 @@ static int butterfly_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 }
 
 
-static void butterfly_enter_prog_mode(PROGRAMMER * pgm)
-{
+static void butterfly_enter_prog_mode(const PROGRAMMER *pgm) {
   butterfly_send(pgm, "P", 1);
   butterfly_vfy_cmd_sent(pgm, "enter prog mode");
 }
 
 
-static void butterfly_leave_prog_mode(PROGRAMMER * pgm)
-{
+static void butterfly_leave_prog_mode(const PROGRAMMER *pgm) {
   butterfly_send(pgm, "L", 1);
   butterfly_vfy_cmd_sent(pgm, "leave prog mode");
 }
@@ -177,8 +166,7 @@ static void butterfly_leave_prog_mode(PROGRAMMER * pgm)
 /*
  * issue the 'program enable' command to the AVR device
  */
-static int butterfly_program_enable(PROGRAMMER * pgm, AVRPART * p)
-{
+static int butterfly_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   return -1;
 }
 
@@ -186,8 +174,7 @@ static int butterfly_program_enable(PROGRAMMER * pgm, AVRPART * p)
 /*
  * apply power to the AVR processor
  */
-static void butterfly_powerup(PROGRAMMER * pgm)
-{
+static void butterfly_powerup(const PROGRAMMER *pgm) {
   /* Do nothing. */
 
   return;
@@ -197,8 +184,7 @@ static void butterfly_powerup(PROGRAMMER * pgm)
 /*
  * remove power from the AVR processor
  */
-static void butterfly_powerdown(PROGRAMMER * pgm)
-{
+static void butterfly_powerdown(const PROGRAMMER *pgm) {
   /* Do nothing. */
 
   return;
@@ -209,8 +195,7 @@ static void butterfly_powerdown(PROGRAMMER * pgm)
 /*
  * initialize the AVR device and prepare it to accept commands
  */
-static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
-{
+static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   char id[8];
   char sw[2];
   char hw[2];
@@ -367,22 +352,19 @@ static int butterfly_initialize(PROGRAMMER * pgm, AVRPART * p)
 
 
 
-static void butterfly_disable(PROGRAMMER * pgm)
-{
+static void butterfly_disable(const PROGRAMMER *pgm) {
   butterfly_leave_prog_mode(pgm);
 
   return;
 }
 
 
-static void butterfly_enable(PROGRAMMER * pgm)
-{
+static void butterfly_enable(PROGRAMMER *pgm, const AVRPART *p) {
   return;
 }
 
 
-static int butterfly_open(PROGRAMMER * pgm, char * port)
-{
+static int butterfly_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
   strcpy(pgm->port, port);
   /*
@@ -417,14 +399,12 @@ static void butterfly_close(PROGRAMMER * pgm)
 }
 
 
-static void butterfly_display(PROGRAMMER * pgm, const char * p)
-{
+static void butterfly_display(const PROGRAMMER *pgm, const char *p) {
   return;
 }
 
 
-static void butterfly_set_addr(PROGRAMMER * pgm, unsigned long addr)
-{
+static void butterfly_set_addr(const PROGRAMMER *pgm, unsigned long addr) {
   char cmd[3];
 
   cmd[0] = 'A';
@@ -436,8 +416,7 @@ static void butterfly_set_addr(PROGRAMMER * pgm, unsigned long addr)
 }
 
 
-static void butterfly_set_extaddr(PROGRAMMER * pgm, unsigned long addr)
-{
+static void butterfly_set_extaddr(const PROGRAMMER *pgm, unsigned long addr) {
   char cmd[4];
 
   cmd[0] = 'H';
@@ -451,7 +430,7 @@ static void butterfly_set_extaddr(PROGRAMMER * pgm, unsigned long addr)
 
 
 
-static int butterfly_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int butterfly_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                              unsigned long addr, unsigned char value)
 {
   char cmd[6];
@@ -495,7 +474,7 @@ static int butterfly_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int butterfly_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int butterfly_read_byte_flash(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                   unsigned long addr, unsigned char * value)
 {
   static int cached = 0;
@@ -536,7 +515,7 @@ static int butterfly_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int butterfly_read_byte_eeprom(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int butterfly_read_byte_eeprom(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                    unsigned long addr, unsigned char * value)
 {
   butterfly_set_addr(pgm, addr);
@@ -545,8 +524,7 @@ static int butterfly_read_byte_eeprom(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return 0;
 }
 
-static int butterfly_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, unsigned int addr)
-{
+static int butterfly_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned int addr) {
   if (strcmp(m->desc, "flash") == 0)
     return -1;            /* not supported */
   if (strcmp(m->desc, "eeprom") == 0)
@@ -556,7 +534,7 @@ static int butterfly_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, unsig
   return -1;
 }
 
-static int butterfly_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int butterfly_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                             unsigned long addr, unsigned char * value)
 {
   char cmd;
@@ -592,7 +570,7 @@ static int butterfly_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 
 
-static int butterfly_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int butterfly_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                  unsigned int page_size,
                                  unsigned int addr, unsigned int n_bytes)
 {
@@ -647,7 +625,7 @@ static int butterfly_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 
 
-static int butterfly_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int butterfly_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                 unsigned int page_size,
                                 unsigned int addr, unsigned int n_bytes)
 {
@@ -693,8 +671,7 @@ static int butterfly_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 
 /* Signature byte reads are always 3 bytes. */
-static int butterfly_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
-{
+static int butterfly_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m) {
   unsigned char tmp;
 
   if (m->size < 3) {
@@ -714,8 +691,7 @@ static int butterfly_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 
 const char butterfly_desc[] = "Atmel Butterfly evaluation board; Atmel AppNotes AVR109, AVR911";
 
-void butterfly_initpgm(PROGRAMMER * pgm)
-{
+void butterfly_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "butterfly");
 
   /*
@@ -755,8 +731,7 @@ void butterfly_initpgm(PROGRAMMER * pgm)
 
 const char butterfly_mk_desc[] = "Mikrokopter.de Butterfly";
 
-void butterfly_mk_initpgm(PROGRAMMER * pgm)
-{
+void butterfly_mk_initpgm(PROGRAMMER *pgm) {
   butterfly_initpgm(pgm);
   strcpy(pgm->type, "butterfly_mk");
   pgm->flag = IS_BUTTERFLY_MK;

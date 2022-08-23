@@ -69,8 +69,7 @@ int intlog2(unsigned int n) {
  *
  * Set instruction bits in the specified command based on the opcode.
  */
-int avr_set_bits(OPCODE * op, unsigned char * cmd)
-{
+int avr_set_bits(const OPCODE *op, unsigned char *cmd) {
   int i, j, bit;
   unsigned char mask;
 
@@ -96,8 +95,7 @@ int avr_set_bits(OPCODE * op, unsigned char * cmd)
  * Set address bits in the specified command based on the opcode, and
  * the address.
  */
-int avr_set_addr(OPCODE * op, unsigned char * cmd, unsigned long addr)
-{
+int avr_set_addr(const OPCODE *op, unsigned char *cmd, unsigned long addr) {
   int i, j, bit;
   unsigned long value;
   unsigned char mask;
@@ -128,7 +126,7 @@ int avr_set_addr(OPCODE * op, unsigned char * cmd, unsigned long addr)
  * opcode) or, if positive, bn+1 where bn is bit number of the highest
  * necessary bit that the opcode does not provide.
  */
-int avr_set_addr_mem(AVRMEM *mem, int opnum, unsigned char *cmd, unsigned long addr) {
+int avr_set_addr_mem(const AVRMEM *mem, int opnum, unsigned char *cmd, unsigned long addr) {
   int ret, isflash, lo, hi, memsize, pagesize;
   OPCODE *op;
 
@@ -220,8 +218,7 @@ int avr_set_addr_mem(AVRMEM *mem, int opnum, unsigned char *cmd, unsigned long a
  * Set input data bits in the specified command based on the opcode,
  * and the data byte.
  */
-int avr_set_input(OPCODE * op, unsigned char * cmd, unsigned char data)
-{
+int avr_set_input(const OPCODE *op, unsigned char *cmd, unsigned char data) {
   int i, j, bit;
   unsigned char value;
   unsigned char mask;
@@ -858,7 +855,7 @@ const char *opcodename(int opnum) {
 
 
 // Unique string representation of an opcode
-char *opcode2str(OPCODE *op, int opnum, int detailed) {
+char *opcode2str(const OPCODE *op, int opnum, int detailed) {
   char cb, space[1024], *sp = space;
   int compact = 1;
 

@@ -26,15 +26,25 @@ extern "C" {
 #endif
 
 extern const char stk500_desc[];
-void stk500_initpgm (PROGRAMMER * pgm);
+void stk500_initpgm(PROGRAMMER *pgm);
 
 /* used by arduino.c to avoid duplicate code */
-int stk500_getsync(PROGRAMMER * pgm);
-int stk500_drain(PROGRAMMER * pgm, int display);
+int stk500_getsync(const PROGRAMMER *pgm);
+int stk500_drain(const PROGRAMMER *pgm, int display);
 
 #ifdef __cplusplus
 }
 #endif
+
+#include "xbee.h"
+
+struct pdata {
+  unsigned char ext_addr_byte;  // Record ext-addr byte set in the target device (if used)
+  int retry_attempts;           // Number of connection attempts provided by the user
+  int xbeeResetPin;             // Piggy back variable used by xbee programmmer
+};
+
+#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
 #endif
 

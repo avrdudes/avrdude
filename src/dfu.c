@@ -38,7 +38,7 @@
 
 #ifndef HAVE_LIBUSB
 
-struct dfu_dev *dfu_open(char *port_name) {
+struct dfu_dev *dfu_open(const char *port_name) {
   avrdude_message(MSG_INFO, "%s: Error: No USB support in this compile of avrdude\n",
     progname);
   return NULL;
@@ -99,8 +99,7 @@ static char * get_usb_string(usb_dev_handle * dev_handle, int index);
 /* EXPORTED FUNCTION DEFINITIONS
  */
 
-struct dfu_dev * dfu_open(char *port_spec)
-{
+struct dfu_dev *dfu_open(const char *port_spec) {
   struct dfu_dev *dfu;
   char *bus_name = NULL;
   char *dev_name = NULL;

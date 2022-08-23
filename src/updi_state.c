@@ -29,37 +29,30 @@
 #include "libavrdude.h"
 #include "updi_state.h"
 
-updi_sib_info* updi_get_sib_info(PROGRAMMER * pgm)
-{
+updi_sib_info* updi_get_sib_info(const PROGRAMMER *pgm) {
   return &((updi_state *)(pgm->cookie))->sib_info;
 }
 
-updi_datalink_mode updi_get_datalink_mode(PROGRAMMER * pgm)
-{
+updi_datalink_mode updi_get_datalink_mode(const PROGRAMMER *pgm) {
   return ((updi_state *)(pgm->cookie))->datalink_mode;
 }
 
-void updi_set_datalink_mode(PROGRAMMER * pgm, updi_datalink_mode mode)
-{
+void updi_set_datalink_mode(const PROGRAMMER *pgm, updi_datalink_mode mode) {
   ((updi_state *)(pgm->cookie))->datalink_mode = mode;
 }
 
-updi_nvm_mode updi_get_nvm_mode(PROGRAMMER * pgm)
-{
+updi_nvm_mode updi_get_nvm_mode(const PROGRAMMER *pgm) {
   return ((updi_state *)(pgm->cookie))->nvm_mode;
 }
 
-void updi_set_nvm_mode(PROGRAMMER * pgm, updi_nvm_mode mode)
-{
+void updi_set_nvm_mode(const PROGRAMMER *pgm, updi_nvm_mode mode) {
   ((updi_state *)(pgm->cookie))->nvm_mode = mode;
 }
 
-updi_rts_mode updi_get_rts_mode(PROGRAMMER * pgm)
-{
+updi_rts_mode updi_get_rts_mode(const PROGRAMMER *pgm) {
   return ((updi_state *)(pgm->cookie))->rts_mode;
 }
 
-void updi_set_rts_mode(PROGRAMMER * pgm, updi_rts_mode mode)
-{
+void updi_set_rts_mode(const PROGRAMMER *pgm, updi_rts_mode mode) {
   ((updi_state *)(pgm->cookie))->rts_mode = mode;
 }

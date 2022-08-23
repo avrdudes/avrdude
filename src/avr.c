@@ -38,8 +38,7 @@ FP_UpdateProgress update_progress;
 #define DEBUG 0
 
 /* TPI: returns 1 if NVM controller busy, 0 if free */
-int avr_tpi_poll_nvmbsy(PROGRAMMER *pgm)
-{
+int avr_tpi_poll_nvmbsy(const PROGRAMMER *pgm) {
   unsigned char cmd;
   unsigned char res;
 
@@ -49,8 +48,7 @@ int avr_tpi_poll_nvmbsy(PROGRAMMER *pgm)
 }
 
 /* TPI chip erase sequence */
-int avr_tpi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
-{
+int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 	int err;
   AVRMEM *mem;
 
@@ -99,8 +97,7 @@ int avr_tpi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 }
 
 /* TPI program enable sequence */
-int avr_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p, unsigned char guard_time)
-{
+int avr_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p, unsigned char guard_time) {
 	int err, retry;
 	unsigned char cmd[2];
 	unsigned char response;
@@ -149,7 +146,7 @@ int avr_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p, unsigned char guard_ti
 }
 
 /* TPI: setup NVMCMD register and pointer register (PR) for read/write/erase */
-static int avr_tpi_setup_rw(PROGRAMMER * pgm, AVRMEM * mem,
+static int avr_tpi_setup_rw(const PROGRAMMER *pgm, const AVRMEM *mem,
 			    unsigned long addr, unsigned char nvmcmd)
 {
   unsigned char cmd[4];
@@ -178,7 +175,7 @@ static int avr_tpi_setup_rw(PROGRAMMER * pgm, AVRMEM * mem,
   return 0;
 }
 
-int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem, 
+int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                           unsigned long addr, unsigned char * value)
 {
   unsigned char cmd[4];
@@ -280,7 +277,7 @@ int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
  * no-op. Always return an even number since flash is word addressed.
  * Only apply this optimisation on flash-type memory.
  */
-int avr_mem_hiaddr(AVRMEM * mem)
+int avr_mem_hiaddr(const AVRMEM * mem)
 {
   int i, n;
   static int disableffopt;
@@ -295,10 +292,7 @@ int avr_mem_hiaddr(AVRMEM * mem)
     return mem->size;
 
   /* if the memory is not a flash-type memory do not remove trailing 0xff */
-  if(strcasecmp(mem->desc, "flash") &&
-     strcasecmp(mem->desc, "application") &&
-     strcasecmp(mem->desc, "apptable") &&
-     strcasecmp(mem->desc, "boot"))
+  if(!avr_mem_is_flash_type(mem))
     return mem->size;
 
   /* return the highest non-0xff address regardless of how much
@@ -325,7 +319,7 @@ int avr_mem_hiaddr(AVRMEM * mem)
  *
  * Return the number of bytes read, or < 0 if an error occurs.  
  */
-int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
+int avr_read(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype,
              AVRPART * v)
 {
   unsigned long    i, lastaddr;
@@ -472,7 +466,7 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
 /*
  * write a page data at the specified address
  */
-int avr_write_page(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem, 
+int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr)
 {
   unsigned char cmd[4];
@@ -532,7 +526,7 @@ int avr_write_page(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 }
 
 
-int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr, unsigned char data)
 {
   unsigned char cmd[4];
@@ -793,7 +787,7 @@ int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 /*
  * write a byte of data at the specified address
  */
-int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr, unsigned char data)
 {
   return pgm->write_byte(pgm, p, mem, addr, data);
@@ -809,8 +803,8 @@ int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
  *
  * Return the number of bytes written, or -1 if an error occurs.
  */
-int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size, 
-              int auto_erase)
+int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype,
+              int size, int auto_erase)
 {
   int              rc;
   int              newpage, page_tainted, flush_page, do_write;
@@ -1034,8 +1028,7 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
 /*
  * read the AVR device's signature bytes
  */
-int avr_signature(PROGRAMMER * pgm, AVRPART * p)
-{
+int avr_signature(const PROGRAMMER *pgm, const AVRPART *p) {
   int rc;
 
   report_progress (0,1,"Reading");
@@ -1087,7 +1080,7 @@ int compare_memory_masked(AVRMEM * m, uint8_t b1, uint8_t b2) {
  *
  * Return the number of bytes verified, or -1 if they don't match.
  */
-int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size)
+int avr_verify(const AVRPART * p, const AVRPART * v, const char * memtype, int size)
 {
   int i;
   unsigned char * buf1, * buf2;
@@ -1156,8 +1149,7 @@ int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size)
 }
 
 
-int avr_get_cycle_count(PROGRAMMER * pgm, AVRPART * p, int * cycles)
-{
+int avr_get_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int *cycles) {
   AVRMEM * a;
   unsigned int cycle_count = 0;
   unsigned char v1;
@@ -1195,8 +1187,7 @@ int avr_get_cycle_count(PROGRAMMER * pgm, AVRPART * p, int * cycles)
 }
 
 
-int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles)
-{
+int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles) {
   AVRMEM * a;
   unsigned char v1;
   int rc;
@@ -1253,6 +1244,18 @@ void avr_add_mem_order(const char *str) {
   exit(1);
 }
 
+int avr_mem_is_flash_type(const AVRMEM *mem) {
+  return
+     strcmp(mem->desc, "flash") == 0 ||
+     strcmp(mem->desc, "application") == 0 ||
+     strcmp(mem->desc, "apptable") == 0 ||
+     strcmp(mem->desc, "boot") == 0;
+}
+
+int avr_mem_is_eeprom_type(const AVRMEM *mem) {
+  return strcmp(mem->desc, "eeprom") == 0;
+}
+
 int avr_mem_is_known(const char *str) {
   if(str && *str)
     for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++)
@@ -1270,8 +1273,7 @@ int avr_mem_might_be_known(const char *str) {
 }
 
 
-int avr_chip_erase(PROGRAMMER * pgm, AVRPART * p)
-{
+int avr_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   int rc;
 
   rc = pgm->chip_erase(pgm, p);
@@ -1279,8 +1281,7 @@ int avr_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   return rc;
 }
 
-int avr_unlock(PROGRAMMER * pgm, AVRPART * p)
-{
+int avr_unlock(const PROGRAMMER *pgm, const AVRPART *p) {
   int rc = -1;
 
   if (pgm->unlock)

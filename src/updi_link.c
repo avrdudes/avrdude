@@ -39,8 +39,7 @@
 #include "updi_constants.h"
 #include "updi_state.h"
 
-static void updi_set_rtsdtr_mode(PROGRAMMER* pgm)
-{
+static void updi_set_rtsdtr_mode(const PROGRAMMER *pgm) {
   updi_rts_mode rts_mode = updi_get_rts_mode(pgm);
 
   if (rts_mode == RTS_MODE_DEFAULT) {
@@ -87,8 +86,7 @@ static void updi_physical_close(PROGRAMMER* pgm)
   pgm->fd.ifd = -1;
 }
 
-static int updi_physical_send(PROGRAMMER * pgm, unsigned char * buf, size_t len)
-{
+static int updi_physical_send(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
   size_t i;
   int rv;
 
@@ -106,8 +104,7 @@ static int updi_physical_send(PROGRAMMER * pgm, unsigned char * buf, size_t len)
   return rv;
 }
 
-static int updi_physical_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
-{
+static int updi_physical_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
   size_t i;
   int rv;
 
@@ -131,8 +128,7 @@ static int updi_physical_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
   return len;
 }
 
-static int updi_physical_send_double_break(PROGRAMMER * pgm)
-{
+static int updi_physical_send_double_break(const PROGRAMMER *pgm) {
   unsigned char buffer[1];
 
   avrdude_message(MSG_DEBUG, "%s: Sending double break\n", progname);
@@ -171,8 +167,7 @@ static int updi_physical_send_double_break(PROGRAMMER * pgm)
   return 0;
 }
 
-int updi_physical_sib(PROGRAMMER * pgm, unsigned char * buffer, uint8_t size)
-{
+int updi_physical_sib(const PROGRAMMER *pgm, unsigned char *buffer, uint8_t size) {
 /*
     def sib(self):
         """
@@ -196,8 +191,7 @@ int updi_physical_sib(PROGRAMMER * pgm, unsigned char * buffer, uint8_t size)
   return updi_physical_recv(pgm, buffer, size);
 }
 
-int updi_link_open(PROGRAMMER * pgm) 
-{
+int updi_link_open(PROGRAMMER *pgm)  {
   unsigned char init_buffer[1];
 
   if (updi_physical_open(pgm, pgm->baudrate? pgm->baudrate: 115200, SERIAL_8E2) < 0) {
@@ -208,13 +202,11 @@ int updi_link_open(PROGRAMMER * pgm)
   return updi_physical_send(pgm, init_buffer, 1);
 }
 
-void updi_link_close(PROGRAMMER * pgm)
-{
+void updi_link_close(PROGRAMMER *pgm) {
   updi_physical_close(pgm);
 }
 
-static int updi_link_init_session_parameters(PROGRAMMER * pgm) 
-{
+static int updi_link_init_session_parameters(const PROGRAMMER *pgm)  {
 /*
     def _init_session_parameters(self):
         """
@@ -234,8 +226,7 @@ static int updi_link_init_session_parameters(PROGRAMMER * pgm)
   return 0;
 }
 
-static int updi_link_check(PROGRAMMER * pgm)
-{
+static int updi_link_check(const PROGRAMMER *pgm) {
 /*
     def _check_datalink(self):
         """
@@ -269,8 +260,7 @@ static int updi_link_check(PROGRAMMER * pgm)
 }
 
 
-int updi_link_init(PROGRAMMER * pgm)
-{
+int updi_link_init(const PROGRAMMER *pgm) {
 /*
     def init_datalink(self):
         """
@@ -308,8 +298,7 @@ int updi_link_init(PROGRAMMER * pgm)
   return 0;
 }
 
-int updi_link_ldcs(PROGRAMMER * pgm, uint8_t address, uint8_t * value) 
-{
+int updi_link_ldcs(const PROGRAMMER *pgm, uint8_t address, uint8_t *value)  {
 /*
     def ldcs(self, address):
         """
@@ -347,8 +336,7 @@ int updi_link_ldcs(PROGRAMMER * pgm, uint8_t address, uint8_t * value)
   return 0;
 }
 
-int updi_link_stcs(PROGRAMMER * pgm, uint8_t address, uint8_t value)
-{
+int updi_link_stcs(const PROGRAMMER *pgm, uint8_t address, uint8_t value) {
 /*
     def stcs(self, address, value):
         """
@@ -368,8 +356,7 @@ int updi_link_stcs(PROGRAMMER * pgm, uint8_t address, uint8_t value)
   return updi_physical_send(pgm, buffer, 3);
 }
 
-int updi_link_ld_ptr_inc(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size)
-{
+int updi_link_ld_ptr_inc(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t size) {
 /*
     def ld_ptr_inc(self, size):
         """
@@ -394,8 +381,7 @@ int updi_link_ld_ptr_inc(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size
   return updi_physical_recv(pgm, buffer, size);
 }
 
-int updi_link_ld_ptr_inc16(PROGRAMMER * pgm, unsigned char * buffer, uint16_t words)
-{
+int updi_link_ld_ptr_inc16(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t words) {
 /*
     def ld_ptr_inc16(self, words):
         """
@@ -420,8 +406,7 @@ int updi_link_ld_ptr_inc16(PROGRAMMER * pgm, unsigned char * buffer, uint16_t wo
   return updi_physical_recv(pgm, buffer, words << 2);
 }
 
-int updi_link_st_ptr_inc(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size)
-{
+int updi_link_st_ptr_inc(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t size) {
 /*
     def st_ptr_inc(self, data):
         """
@@ -484,8 +469,7 @@ int updi_link_st_ptr_inc(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size
   return 0;
 }
 
-int updi_link_st_ptr_inc16(PROGRAMMER * pgm, unsigned char * buffer, uint16_t words)
-{
+int updi_link_st_ptr_inc16(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t words) {
 /*
     def st_ptr_inc16(self, data):
         """
@@ -550,7 +534,7 @@ int updi_link_st_ptr_inc16(PROGRAMMER * pgm, unsigned char * buffer, uint16_t wo
   return 0;
 }
 
-int updi_link_st_ptr_inc16_RSD(PROGRAMMER * pgm, unsigned char * buffer, uint16_t words, int blocksize) {
+int updi_link_st_ptr_inc16_RSD(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t words, int blocksize) {
 /*
     def st_ptr_inc16_RSD(self, data, blocksize):
         """
@@ -653,8 +637,7 @@ int updi_link_st_ptr_inc16_RSD(PROGRAMMER * pgm, unsigned char * buffer, uint16_
   return 0;
 }
 
-int updi_link_repeat(PROGRAMMER * pgm, uint16_t repeats)
-{
+int updi_link_repeat(const PROGRAMMER *pgm, uint16_t repeats) {
 /*
     def repeat(self, repeats):
         """
@@ -683,8 +666,7 @@ int updi_link_repeat(PROGRAMMER * pgm, uint16_t repeats)
   return updi_physical_send(pgm, buffer, 3);
 }
 
-int updi_link_read_sib(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size)
-{
+int updi_link_read_sib(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t size) {
 /*
     def read_sib(self):
         """
@@ -695,8 +677,7 @@ int updi_link_read_sib(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size)
   return updi_physical_sib(pgm, buffer, size);
 }
 
-int updi_link_key(PROGRAMMER * pgm, unsigned char * buffer, uint8_t size_type, uint16_t size)
-{
+int updi_link_key(const PROGRAMMER *pgm, unsigned char *buffer, uint8_t size_type, uint16_t size) {
 /*
     def key(self, size, key):
         """
@@ -732,8 +713,7 @@ int updi_link_key(PROGRAMMER * pgm, unsigned char * buffer, uint8_t size_type, u
   return updi_physical_send(pgm, reversed_key, size);
 }
 
-int updi_link_ld(PROGRAMMER * pgm, uint32_t address, uint8_t * value)
-{
+int updi_link_ld(const PROGRAMMER *pgm, uint32_t address, uint8_t *value) {
 /*
     def ld(self, address):
         """
@@ -768,8 +748,7 @@ int updi_link_ld(PROGRAMMER * pgm, uint32_t address, uint8_t * value)
   return 0;
 }
 
-int updi_link_ld16(PROGRAMMER * pgm, uint32_t address, uint16_t * value)
-{
+int updi_link_ld16(const PROGRAMMER *pgm, uint32_t address, uint16_t *value) {
 /*
     def ld16(self, address):
         """
@@ -804,8 +783,7 @@ int updi_link_ld16(PROGRAMMER * pgm, uint32_t address, uint16_t * value)
   return 0;
 }
 
-static int updi_link_st_data_phase(PROGRAMMER * pgm, unsigned char * buffer, uint8_t size)
-{
+static int updi_link_st_data_phase(const PROGRAMMER *pgm, unsigned char *buffer, uint8_t size) {
 /*
     def _st_data_phase(self, values):
         """
@@ -848,8 +826,7 @@ static int updi_link_st_data_phase(PROGRAMMER * pgm, unsigned char * buffer, uin
   return 0;
 }
 
-int updi_link_st(PROGRAMMER * pgm, uint32_t address, uint8_t value)
-{
+int updi_link_st(const PROGRAMMER *pgm, uint32_t address, uint8_t value) {
 /*
     def st(self, address, value):
         """
@@ -879,8 +856,7 @@ int updi_link_st(PROGRAMMER * pgm, uint32_t address, uint8_t value)
   return updi_link_st_data_phase(pgm, send_buffer, 1);
 }
 
-int updi_link_st16(PROGRAMMER * pgm, uint32_t address, uint16_t value)
-{
+int updi_link_st16(const PROGRAMMER *pgm, uint32_t address, uint16_t value) {
 /*
     def st16(self, address, value):
         """
@@ -911,8 +887,7 @@ int updi_link_st16(PROGRAMMER * pgm, uint32_t address, uint16_t value)
   return updi_link_st_data_phase(pgm, send_buffer, 2);
 }
 
-int updi_link_st_ptr(PROGRAMMER * pgm, uint32_t address)
-{
+int updi_link_st_ptr(const PROGRAMMER *pgm, uint32_t address) {
 /*
     def st_ptr(self, address):
         """

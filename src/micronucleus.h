@@ -26,7 +26,7 @@ extern "C" {
 #endif
 
 extern const char micronucleus_desc[];
-void micronucleus_initpgm(PROGRAMMER* pgm);
+void micronucleus_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }

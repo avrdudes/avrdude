@@ -28,36 +28,37 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 
-static int  pgm_default_2 (struct programmer_t *, AVRPART *);
-static int  pgm_default_3 (struct programmer_t * pgm, AVRPART * p, AVRMEM * mem,
-			   unsigned long addr, unsigned char * value);
-static void pgm_default_4 (struct programmer_t *);
-static int  pgm_default_5 (struct programmer_t * pgm, AVRPART * p, AVRMEM * mem,
-			   unsigned long addr, unsigned char data);
-static void pgm_default_6 (struct programmer_t *, const char *);
+static void pgm_default(void);
+static int  pgm_default_2(const PROGRAMMER *, const AVRPART *);
+static int  pgm_default_3(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned long addr, unsigned char * value);
+static void pgm_default_4(const PROGRAMMER *);
+static int  pgm_default_5(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned long addr, unsigned char data);
+static void pgm_default_6(const PROGRAMMER *, const char *);
 
 
-static int pgm_default_open (struct programmer_t *pgm, char * name)
-{
-  avrdude_message(MSG_INFO, "\n%s: Fatal error: Programmer does not support open()",
-               progname);
+static int pgm_default_open(PROGRAMMER *pgm, const char *name) {
+  avrdude_message(MSG_INFO, "\n%s: programmer does not support open()", progname);
   return -1;
 }
 
-static int  pgm_default_led (struct programmer_t * pgm, int value)
-{
-  /*
-   * If programmer has no LEDs, just do nothing.
-   */
+static void pgm_default_close(PROGRAMMER *pgm) {
+  pgm_default();
+}
+
+static void pgm_default_enable(PROGRAMMER *pgm, const AVRPART *p) {
+  pgm_default();
+}
+
+static int pgm_default_led(const PROGRAMMER *pgm, int value) {
+   // If programmer has no LEDs, just do nothing
   return 0;
 }
 
 
-static void pgm_default_powerup_powerdown (struct programmer_t * pgm)
-{
-  /*
-   * If programmer does not support powerup/down, just do nothing.
-   */
+static void pgm_default_powerup_powerdown(const PROGRAMMER *pgm) {
+   // If programmer does not support powerup/down, just do nothing
 }
 
 
@@ -94,14 +95,14 @@ PROGRAMMER *pgm_new(void) {
    */
   pgm->initialize     = pgm_default_2;
   pgm->display        = pgm_default_6;
-  pgm->enable         = pgm_default_4;
+  pgm->enable         = pgm_default_enable;
   pgm->disable        = pgm_default_4;
   pgm->powerup        = pgm_default_powerup_powerdown;
   pgm->powerdown      = pgm_default_powerup_powerdown;
   pgm->program_enable = pgm_default_2;
   pgm->chip_erase     = pgm_default_2;
   pgm->open           = pgm_default_open;
-  pgm->close          = pgm_default_4;
+  pgm->close          = pgm_default_close;
   pgm->read_byte      = pgm_default_3;
   pgm->write_byte     = pgm_default_5;
 
@@ -189,39 +190,33 @@ PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
 }
 
 
-static void pgm_default(void)
-{
+static void pgm_default(void) {
   avrdude_message(MSG_INFO, "%s: programmer operation not supported\n", progname);
 }
 
 
-static int  pgm_default_2 (struct programmer_t * pgm, AVRPART * p)
-{
+static int  pgm_default_2 (const PROGRAMMER *pgm, const AVRPART *p) {
   pgm_default();
   return -1;
 }
 
-static int  pgm_default_3 (struct programmer_t * pgm, AVRPART * p, AVRMEM * mem,
-			   unsigned long addr, unsigned char * value)
-{
+static int  pgm_default_3 (const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+			   unsigned long addr, unsigned char * value) {
   pgm_default();
   return -1;
 }
 
-static void pgm_default_4 (struct programmer_t * pgm)
-{
+static void pgm_default_4 (const PROGRAMMER *pgm) {
   pgm_default();
 }
 
-static int  pgm_default_5 (struct programmer_t * pgm, AVRPART * p, AVRMEM * mem,
-			   unsigned long addr, unsigned char data)
-{
+static int  pgm_default_5 (const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+			   unsigned long addr, unsigned char data) {
   pgm_default();
   return -1;
 }
 
-static void pgm_default_6 (struct programmer_t * pgm, const char * p)
-{
+static void pgm_default_6 (const PROGRAMMER *pgm, const char *p) {
   pgm_default();
 }
 

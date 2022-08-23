@@ -95,18 +95,18 @@ const static struct {
 /*  {  14400L, 0xf8 }, */ /* not supported by serial driver */
 };
 
-static int jtagmkI_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			      unsigned long addr, unsigned char * value);
-static int jtagmkI_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			       unsigned long addr, unsigned char data);
-static int jtagmkI_set_sck_period(PROGRAMMER * pgm, double v);
-static int jtagmkI_getparm(PROGRAMMER * pgm, unsigned char parm,
+static int jtagmkI_set_sck_period(const PROGRAMMER *pgm, double v);
+static int jtagmkI_getparm(const PROGRAMMER *pgm, unsigned char parm,
 			    unsigned char * value);
-static int jtagmkI_setparm(PROGRAMMER * pgm, unsigned char parm,
+static int jtagmkI_setparm(const PROGRAMMER *pgm, unsigned char parm,
 			    unsigned char value);
-static void jtagmkI_print_parms1(PROGRAMMER * pgm, const char * p);
+static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p);
 
-static int jtagmkI_resync(PROGRAMMER *pgm, int maxtries, int signon);
+static int jtagmkI_resync(const PROGRAMMER *pgm, int maxtries, int signon);
 
 static void jtagmkI_setup(PROGRAMMER * pgm)
 {
@@ -139,8 +139,7 @@ u16_to_b2(unsigned char *b, unsigned short l)
   b[1] = (l >> 8) & 0xff;
 }
 
-static void jtagmkI_prmsg(PROGRAMMER * pgm, unsigned char * data, size_t len)
-{
+static void jtagmkI_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
   int i;
 
   if (verbose >= 4) {
@@ -193,8 +192,7 @@ static void jtagmkI_prmsg(PROGRAMMER * pgm, unsigned char * data, size_t len)
 }
 
 
-static int jtagmkI_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
-{
+static int jtagmkI_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
   unsigned char *buf;
 
   avrdude_message(MSG_DEBUG, "\n%s: jtagmkI_send(): sending %u bytes\n",
@@ -223,8 +221,7 @@ static int jtagmkI_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
   return 0;
 }
 
-static int jtagmkI_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
-{
+static int jtagmkI_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
   if (serial_recv(&pgm->fd, buf, len) != 0) {
     avrdude_message(MSG_INFO, "\n%s: jtagmkI_recv(): failed to send command to serial port\n",
                     progname);
@@ -238,14 +235,12 @@ static int jtagmkI_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
 }
 
 
-static int jtagmkI_drain(PROGRAMMER * pgm, int display)
-{
+static int jtagmkI_drain(const PROGRAMMER *pgm, int display) {
   return serial_drain(&pgm->fd, display);
 }
 
 
-static int jtagmkI_resync(PROGRAMMER * pgm, int maxtries, int signon)
-{
+static int jtagmkI_resync(const PROGRAMMER *pgm, int maxtries, int signon) {
   int tries;
   unsigned char buf[4], resp[9];
   long otimeout = serial_recv_timeout;
@@ -316,8 +311,7 @@ static int jtagmkI_resync(PROGRAMMER * pgm, int maxtries, int signon)
   return 0;
 }
 
-static int jtagmkI_getsync(PROGRAMMER * pgm)
-{
+static int jtagmkI_getsync(const PROGRAMMER *pgm) {
   unsigned char buf[1], resp[9];
 
   if (jtagmkI_resync(pgm, 5, 1) < 0) {
@@ -345,8 +339,7 @@ static int jtagmkI_getsync(PROGRAMMER * pgm)
 /*
  * issue the 'chip erase' command to the AVR device
  */
-static int jtagmkI_chip_erase(PROGRAMMER * pgm, AVRPART * p)
-{
+static int jtagmkI_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char buf[1], resp[2];
 
   buf[0] = CMD_CHIP_ERASE;
@@ -372,8 +365,7 @@ static int jtagmkI_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
-static void jtagmkI_set_devdescr(PROGRAMMER * pgm, AVRPART * p)
-{
+static void jtagmkI_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char resp[2];
   LNODEID ln;
   AVRMEM * m;
@@ -419,8 +411,7 @@ static void jtagmkI_set_devdescr(PROGRAMMER * pgm, AVRPART * p)
 /*
  * Reset the target.
  */
-static int jtagmkI_reset(PROGRAMMER * pgm)
-{
+static int jtagmkI_reset(const PROGRAMMER *pgm) {
   unsigned char buf[1], resp[2];
 
   buf[0] = CMD_RESET;
@@ -445,14 +436,12 @@ static int jtagmkI_reset(PROGRAMMER * pgm)
   return 0;
 }
 
-static int jtagmkI_program_enable_dummy(PROGRAMMER * pgm, AVRPART * p)
-{
+static int jtagmkI_program_enable_dummy(const PROGRAMMER *pgm, const AVRPART *p) {
 
   return 0;
 }
 
-static int jtagmkI_program_enable(PROGRAMMER * pgm)
-{
+static int jtagmkI_program_enable(const PROGRAMMER *pgm) {
   unsigned char buf[1], resp[2];
 
   if (PDATA(pgm)->prog_enabled)
@@ -483,8 +472,7 @@ static int jtagmkI_program_enable(PROGRAMMER * pgm)
   return 0;
 }
 
-static int jtagmkI_program_disable(PROGRAMMER * pgm)
-{
+static int jtagmkI_program_disable(const PROGRAMMER *pgm) {
   unsigned char buf[1], resp[2];
 
   if (!PDATA(pgm)->prog_enabled)
@@ -530,8 +518,7 @@ static unsigned char jtagmkI_get_baud(long baud)
 /*
  * initialize the AVR device and prepare it to accept commands
  */
-static int jtagmkI_initialize(PROGRAMMER * pgm, AVRPART * p)
-{
+static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   AVRMEM hfuse;
   unsigned char cmd[1], resp[5];
   unsigned char b;
@@ -621,8 +608,7 @@ static int jtagmkI_initialize(PROGRAMMER * pgm, AVRPART * p)
 }
 
 
-static void jtagmkI_disable(PROGRAMMER * pgm)
-{
+static void jtagmkI_disable(const PROGRAMMER *pgm) {
 
   free(PDATA(pgm)->flash_pagecache);
   PDATA(pgm)->flash_pagecache = NULL;
@@ -632,13 +618,12 @@ static void jtagmkI_disable(PROGRAMMER * pgm)
   (void)jtagmkI_program_disable(pgm);
 }
 
-static void jtagmkI_enable(PROGRAMMER * pgm)
-{
+static void jtagmkI_enable(PROGRAMMER *pgm, const AVRPART *p) {
   return;
 }
 
 
-static int jtagmkI_open(PROGRAMMER * pgm, char * port)
+static int jtagmkI_open(PROGRAMMER *pgm, const char *port)
 {
   size_t i;
 
@@ -712,7 +697,7 @@ static void jtagmkI_close(PROGRAMMER * pgm)
 }
 
 
-static int jtagmkI_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                unsigned int page_size,
                                unsigned int addr, unsigned int n_bytes)
 {
@@ -846,7 +831,7 @@ static int jtagmkI_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return n_bytes;
 }
 
-static int jtagmkI_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int jtagmkI_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 			      unsigned int page_size,
                               unsigned int addr, unsigned int n_bytes)
 {
@@ -937,7 +922,7 @@ static int jtagmkI_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return n_bytes;
 }
 
-static int jtagmkI_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			      unsigned long addr, unsigned char * value)
 {
   unsigned char cmd[6];
@@ -1053,7 +1038,7 @@ static int jtagmkI_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
   return 0;
 }
 
-static int jtagmkI_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			       unsigned long addr, unsigned char data)
 {
   unsigned char cmd[6], datacmd[1 * 2 + 1];
@@ -1175,8 +1160,7 @@ static int jtagmkI_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
  * As the STK500 expresses it as a period length (and we actualy do
  * program a period length as well), we rather call it by that name.
  */
-static int jtagmkI_set_sck_period(PROGRAMMER * pgm, double v)
-{
+static int jtagmkI_set_sck_period(const PROGRAMMER *pgm, double v) {
   unsigned char dur;
 
   v = 1 / v;			/* convert to frequency */
@@ -1198,7 +1182,7 @@ static int jtagmkI_set_sck_period(PROGRAMMER * pgm, double v)
  * multi-byte parameters get two different parameter names for
  * their components.
  */
-static int jtagmkI_getparm(PROGRAMMER * pgm, unsigned char parm,
+static int jtagmkI_getparm(const PROGRAMMER *pgm, const unsigned char parm,
 			    unsigned char * value)
 {
   unsigned char buf[2], resp[3];
@@ -1242,7 +1226,7 @@ static int jtagmkI_getparm(PROGRAMMER * pgm, unsigned char parm,
 /*
  * Write an emulator parameter.
  */
-static int jtagmkI_setparm(PROGRAMMER * pgm, unsigned char parm,
+static int jtagmkI_setparm(const PROGRAMMER *pgm, unsigned char parm,
 			    unsigned char value)
 {
   unsigned char buf[3], resp[2];
@@ -1274,9 +1258,7 @@ static int jtagmkI_setparm(PROGRAMMER * pgm, unsigned char parm,
 }
 
 
-static void jtagmkI_display(PROGRAMMER * pgm, const char * p)
-{
-
+static void jtagmkI_display(const PROGRAMMER *pgm, const char *p) {
   unsigned char hw, fw;
 
   if (jtagmkI_getparm(pgm, PARM_HW_VERSION, &hw) < 0 ||
@@ -1292,8 +1274,7 @@ static void jtagmkI_display(PROGRAMMER * pgm, const char * p)
 }
 
 
-static void jtagmkI_print_parms1(PROGRAMMER * pgm, const char * p)
-{
+static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p) {
   unsigned char vtarget, jtag_clock;
   const char *clkstr;
   double clk;
@@ -1337,15 +1318,13 @@ static void jtagmkI_print_parms1(PROGRAMMER * pgm, const char * p)
 }
 
 
-static void jtagmkI_print_parms(PROGRAMMER * pgm)
-{
+static void jtagmkI_print_parms(const PROGRAMMER *pgm) {
   jtagmkI_print_parms1(pgm, "");
 }
 
 const char jtagmkI_desc[] = "Atmel JTAG ICE mkI";
 
-void jtagmkI_initpgm(PROGRAMMER * pgm)
-{
+void jtagmkI_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "JTAGMKI");
 
   /*

@@ -26,7 +26,7 @@ extern "C" {
 #endif
 
 extern const char avr910_desc[];
-void avr910_initpgm (PROGRAMMER * pgm);
+void avr910_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }

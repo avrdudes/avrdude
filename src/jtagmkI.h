@@ -26,7 +26,7 @@ extern "C" {
 #endif
 
 extern const char jtagmkI_desc[];
-void jtagmkI_initpgm (PROGRAMMER * pgm);
+void jtagmkI_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }

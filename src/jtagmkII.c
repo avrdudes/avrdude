@@ -83,6 +83,11 @@ struct pdata
 
   /* Major firmware version (needed for Xmega programming) */
   unsigned int fwver;
+
+#define FLAGS32_INIT_SMC      1 // Part will undergo chip erase
+#define FLAGS32_WRITE         2 // At least one write operation specified
+  // Couple of flag bits for AVR32 programming
+  int flags32;
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
@@ -127,64 +132,57 @@ static struct {
 #define PGM_FL_IS_PDI           (0x0002)
 #define PGM_FL_IS_JTAG          (0x0004)
 
-static int jtagmkII_open(PROGRAMMER * pgm, char * port);
+static int jtagmkII_open(PROGRAMMER *pgm, const char *port);
 
-static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p);
-static int jtagmkII_chip_erase(PROGRAMMER * pgm, AVRPART * p);
-static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p);
+static int jtagmkII_chip_erase(const PROGRAMMER *pgm, const AVRPART *p);
+static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                                 unsigned long addr, unsigned char * value);
-static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                                 unsigned long addr, unsigned char data);
-static int jtagmkII_reset(PROGRAMMER * pgm, unsigned char flags);
-static int jtagmkII_set_sck_period(PROGRAMMER * pgm, double v);
-static int jtagmkII_setparm(PROGRAMMER * pgm, unsigned char parm,
+static int jtagmkII_reset(const PROGRAMMER *pgm, unsigned char flags);
+static int jtagmkII_set_sck_period(const PROGRAMMER *pgm, double v);
+static int jtagmkII_setparm(const PROGRAMMER *pgm, unsigned char parm,
                             unsigned char * value);
-static void jtagmkII_print_parms1(PROGRAMMER * pgm, const char * p);
-static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static void jtagmkII_print_parms1(const PROGRAMMER *pgm, const char *p);
+static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                 unsigned int page_size,
                                 unsigned int addr, unsigned int n_bytes);
-static unsigned char jtagmkII_memtype(PROGRAMMER * pgm, AVRPART * p, unsigned long addr);
-static unsigned int jtagmkII_memaddr(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, unsigned long addr);
+static unsigned char jtagmkII_memtype(const PROGRAMMER *pgm, const AVRPART *p, unsigned long addr);
+static unsigned int jtagmkII_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr);
 
 // AVR32
 #define ERROR_SAB 0xFFFFFFFF
 
-static int jtagmkII_open32(PROGRAMMER * pgm, char * port);
+static int jtagmkII_open32(PROGRAMMER *pgm, const char *port);
 static void jtagmkII_close32(PROGRAMMER * pgm);
-static int jtagmkII_reset32(PROGRAMMER * pgm, unsigned short flags);
-static int jtagmkII_initialize32(PROGRAMMER * pgm, AVRPART * p);
-static int jtagmkII_chip_erase32(PROGRAMMER * pgm, AVRPART * p);
-static unsigned long jtagmkII_read_SABaddr(PROGRAMMER * pgm, unsigned long addr,
+static int jtagmkII_reset32(const PROGRAMMER *pgm, unsigned short flags);
+static int jtagmkII_initialize32(const PROGRAMMER *pgm, const AVRPART *p);
+static int jtagmkII_chip_erase32(const PROGRAMMER *pgm, const AVRPART *p);
+static unsigned long jtagmkII_read_SABaddr(const PROGRAMMER *pgm, unsigned long addr,
                       unsigned int prefix); // ERROR_SAB illegal
-static int jtagmkII_write_SABaddr(PROGRAMMER * pgm, unsigned long addr,
+static int jtagmkII_write_SABaddr(const PROGRAMMER *pgm, unsigned long addr,
                                   unsigned int prefix, unsigned long val);
-static int jtagmkII_avr32_reset(PROGRAMMER * pgm, unsigned char val,
+static int jtagmkII_avr32_reset(const PROGRAMMER *pgm, unsigned char val,
                                   unsigned char ret1, unsigned char ret2);
-static int jtagmkII_smc_init32(PROGRAMMER * pgm);
-static int jtagmkII_paged_write32(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int jtagmkII_smc_init32(const PROGRAMMER *pgm);
+static int jtagmkII_paged_write32(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                   unsigned int page_size,
                                   unsigned int addr, unsigned int n_bytes);
-static int jtagmkII_flash_lock32(PROGRAMMER * pgm, unsigned char lock,
+static int jtagmkII_flash_lock32(const PROGRAMMER *pgm, unsigned char lock,
                                   unsigned int page);
-static int jtagmkII_flash_erase32(PROGRAMMER * pgm, unsigned int page);
-static int jtagmkII_flash_write_page32(PROGRAMMER * pgm, unsigned int page);
-static int jtagmkII_flash_clear_pagebuffer32(PROGRAMMER * pgm);
-static int jtagmkII_paged_load32(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int jtagmkII_flash_erase32(const PROGRAMMER *pgm, unsigned int page);
+static int jtagmkII_flash_write_page32(const PROGRAMMER *pgm, unsigned int page);
+static int jtagmkII_flash_clear_pagebuffer32(const PROGRAMMER *pgm);
+static int jtagmkII_paged_load32(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                  unsigned int page_size,
                                  unsigned int addr, unsigned int n_bytes);
 
-void jtagmkII_setup(PROGRAMMER * pgm)
-{
-  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    avrdude_message(MSG_INFO, "%s: jtagmkII_setup(): Out of memory allocating private data\n",
-                    progname);
-    exit(1);
-  }
-  memset(pgm->cookie, 0, sizeof(struct pdata));
+void jtagmkII_setup(PROGRAMMER *pgm) {
+  pgm->cookie = cfg_malloc("jtagmkII_setup()", sizeof(struct pdata));
 }
 
-void jtagmkII_teardown(PROGRAMMER * pgm)
-{
+void jtagmkII_teardown(PROGRAMMER *pgm) {
   free(pgm->cookie);
 }
 
@@ -279,8 +277,7 @@ static void jtagmkII_print_memory(unsigned char *b, size_t s)
     putc('\n', stderr);
 }
 
-static void jtagmkII_prmsg(PROGRAMMER * pgm, unsigned char * data, size_t len)
-{
+static void jtagmkII_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
   int i;
 
   if (verbose >= 4) {
@@ -420,8 +417,7 @@ static void jtagmkII_prmsg(PROGRAMMER * pgm, unsigned char * data, size_t len)
 }
 
 
-int jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
-{
+int jtagmkII_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
   unsigned char *buf;
 
   avrdude_message(MSG_DEBUG, "\n%s: jtagmkII_send(): sending %lu bytes\n",
@@ -455,8 +451,7 @@ int jtagmkII_send(PROGRAMMER * pgm, unsigned char * data, size_t len)
 }
 
 
-static int jtagmkII_drain(PROGRAMMER * pgm, int display)
-{
+static int jtagmkII_drain(const PROGRAMMER *pgm, int display) {
   return serial_drain(&pgm->fd, display);
 }
 
@@ -469,7 +464,7 @@ static int jtagmkII_drain(PROGRAMMER * pgm, int display)
  *
  * Caller must eventually free the buffer.
  */
-static int jtagmkII_recv_frame(PROGRAMMER * pgm, unsigned char **msg,
+static int jtagmkII_recv_frame(const PROGRAMMER *pgm, unsigned char **msg,
 			       unsigned short * seqno) {
   enum states { sSTART,
 		/* NB: do NOT change the sequence of the following: */
@@ -615,7 +610,7 @@ static int jtagmkII_recv_frame(PROGRAMMER * pgm, unsigned char **msg,
   return msglen;
 }
 
-int jtagmkII_recv(PROGRAMMER * pgm, unsigned char **msg) {
+int jtagmkII_recv(const PROGRAMMER *pgm, unsigned char **msg) {
   unsigned short r_seqno;
   int rv;
 
@@ -671,7 +666,7 @@ int jtagmkII_recv(PROGRAMMER * pgm, unsigned char **msg) {
 }
 
 
-int jtagmkII_getsync(PROGRAMMER * pgm, int mode) {
+int jtagmkII_getsync(const PROGRAMMER *pgm, int mode) {
   int tries;
 #define MAXTRIES 10
   unsigned char buf[3], *resp, c = 0xff;
@@ -883,8 +878,7 @@ retry:
 /*
  * issue the 'chip erase' command to the AVR device
  */
-static int jtagmkII_chip_erase(PROGRAMMER * pgm, AVRPART * p)
-{
+static int jtagmkII_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   int status, len;
   unsigned char buf[6], *resp, c;
 
@@ -934,8 +928,7 @@ static int jtagmkII_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 /*
  * There is no chip erase functionality in debugWire mode.
  */
-static int jtagmkII_chip_erase_dw(PROGRAMMER * pgm, AVRPART * p)
-{
+static int jtagmkII_chip_erase_dw(const PROGRAMMER *pgm, const AVRPART *p) {
 
   avrdude_message(MSG_INFO, "%s: Chip erase not supported in debugWire mode\n",
 	  progname);
@@ -943,8 +936,7 @@ static int jtagmkII_chip_erase_dw(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
-static void jtagmkII_set_devdescr(PROGRAMMER * pgm, AVRPART * p)
-{
+static void jtagmkII_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
   int status;
   unsigned char *resp, c;
   LNODEID ln;
@@ -959,7 +951,7 @@ static void jtagmkII_set_devdescr(PROGRAMMER * pgm, AVRPART * p)
   sendbuf.dd.ucSPMCRAddress = p->spmcr;
   sendbuf.dd.ucRAMPZAddress = p->rampz;
   sendbuf.dd.ucIDRAddress = p->idr;
-  u16_to_b2(sendbuf.dd.EECRAddress, p->eecr);
+  u16_to_b2(sendbuf.dd.EECRAddress, p->eecr? p->eecr: 0x3f); // Unset eecr means 0x3f
   sendbuf.dd.ucAllowFullPageBitstream =
     (p->flags & AVRPART_ALLOWFULLPAGEBITSTREAM) != 0;
   sendbuf.dd.EnablePageProgramming =
@@ -1014,8 +1006,7 @@ static void jtagmkII_set_devdescr(PROGRAMMER * pgm, AVRPART * p)
   }
 }
 
-static void jtagmkII_set_xmega_params(PROGRAMMER * pgm, AVRPART * p)
-{
+static void jtagmkII_set_xmega_params(const PROGRAMMER *pgm, const AVRPART *p) {
   int status;
   unsigned char *resp, c;
   LNODEID ln;
@@ -1095,8 +1086,7 @@ static void jtagmkII_set_xmega_params(PROGRAMMER * pgm, AVRPART * p)
 /*
  * Reset the target.
  */
-static int jtagmkII_reset(PROGRAMMER * pgm, unsigned char flags)
-{
+static int jtagmkII_reset(const PROGRAMMER *pgm, unsigned char flags) {
   int status;
   unsigned char buf[2], *resp, c;
 
@@ -1142,13 +1132,11 @@ static int jtagmkII_reset(PROGRAMMER * pgm, unsigned char flags)
   return 0;
 }
 
-static int jtagmkII_program_enable_INFO(PROGRAMMER * pgm, AVRPART * p)
-{
+static int jtagmkII_program_enable_INFO(const PROGRAMMER *pgm, const AVRPART *p) {
   return 0;
 }
 
-static int jtagmkII_program_enable(PROGRAMMER * pgm)
-{
+static int jtagmkII_program_enable(const PROGRAMMER *pgm) {
   int status;
   unsigned char buf[1], *resp, c;
   int use_ext_reset;
@@ -1203,8 +1191,7 @@ static int jtagmkII_program_enable(PROGRAMMER * pgm)
   return 0;
 }
 
-static int jtagmkII_program_disable(PROGRAMMER * pgm)
-{
+static int jtagmkII_program_disable(const PROGRAMMER *pgm) {
   int status;
   unsigned char buf[1], *resp, c;
 
@@ -1296,8 +1283,7 @@ static unsigned char jtagmkII_get_baud(long baud)
 /*
  * initialize the AVR device and prepare it to accept commands
  */
-static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
-{
+static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   AVRMEM hfuse;
   unsigned char b;
   int ok;
@@ -1449,8 +1435,7 @@ static int jtagmkII_initialize(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
-static void jtagmkII_disable(PROGRAMMER * pgm)
-{
+static void jtagmkII_disable(const PROGRAMMER *pgm) {
 
   free(PDATA(pgm)->flash_pagecache);
   PDATA(pgm)->flash_pagecache = NULL;
@@ -1465,13 +1450,11 @@ static void jtagmkII_disable(PROGRAMMER * pgm)
   (void)jtagmkII_program_disable(pgm);
 }
 
-static void jtagmkII_enable(PROGRAMMER * pgm)
-{
+static void jtagmkII_enable(PROGRAMMER * pgm, const AVRPART *p) {
   return;
 }
 
-static int jtagmkII_parseextparms(PROGRAMMER * pgm, LISTID extparms)
-{
+static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   LNODEID ln;
   const char *extended_param;
   int rv = 0;
@@ -1509,8 +1492,7 @@ static int jtagmkII_parseextparms(PROGRAMMER * pgm, LISTID extparms)
 }
 
 
-static int jtagmkII_open(PROGRAMMER * pgm, char * port)
-{
+static int jtagmkII_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
 
   avrdude_message(MSG_NOTICE2, "%s: jtagmkII_open()\n", progname);
@@ -1562,8 +1544,7 @@ static int jtagmkII_open(PROGRAMMER * pgm, char * port)
   return 0;
 }
 
-static int jtagmkII_open_dw(PROGRAMMER * pgm, char * port)
-{
+static int jtagmkII_open_dw(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
 
   avrdude_message(MSG_NOTICE2, "%s: jtagmkII_open_dw()\n", progname);
@@ -1615,8 +1596,7 @@ static int jtagmkII_open_dw(PROGRAMMER * pgm, char * port)
   return 0;
 }
 
-static int jtagmkII_open_pdi(PROGRAMMER * pgm, char * port)
-{
+static int jtagmkII_open_pdi(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
 
   avrdude_message(MSG_NOTICE2, "%s: jtagmkII_open_pdi()\n", progname);
@@ -1669,8 +1649,7 @@ static int jtagmkII_open_pdi(PROGRAMMER * pgm, char * port)
 }
 
 
-static int jtagmkII_dragon_open(PROGRAMMER * pgm, char * port)
-{
+static int jtagmkII_dragon_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
 
   avrdude_message(MSG_NOTICE2, "%s: jtagmkII_dragon_open()\n", progname);
@@ -1723,8 +1702,7 @@ static int jtagmkII_dragon_open(PROGRAMMER * pgm, char * port)
 }
 
 
-static int jtagmkII_dragon_open_dw(PROGRAMMER * pgm, char * port)
-{
+static int jtagmkII_dragon_open_dw(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
 
   avrdude_message(MSG_NOTICE2, "%s: jtagmkII_dragon_open_dw()\n", progname);
@@ -1777,8 +1755,7 @@ static int jtagmkII_dragon_open_dw(PROGRAMMER * pgm, char * port)
 }
 
 
-static int jtagmkII_dragon_open_pdi(PROGRAMMER * pgm, char * port)
-{
+static int jtagmkII_dragon_open_pdi(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
 
   avrdude_message(MSG_NOTICE2, "%s: jtagmkII_dragon_open_pdi()\n", progname);
@@ -1899,7 +1876,7 @@ void jtagmkII_close(PROGRAMMER * pgm)
   pgm->fd.ifd = -1;
 }
 
-static int jtagmkII_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                unsigned int addr)
 {
   unsigned char cmd[6];
@@ -1995,7 +1972,7 @@ static int jtagmkII_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return 0;
 }
 
-static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                 unsigned int page_size,
                                 unsigned int addr, unsigned int n_bytes)
 {
@@ -2131,7 +2108,7 @@ static int jtagmkII_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return n_bytes;
 }
 
-static int jtagmkII_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                unsigned int page_size,
                                unsigned int addr, unsigned int n_bytes)
 {
@@ -2233,7 +2210,8 @@ static int jtagmkII_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return n_bytes;
 }
 
-static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+
+static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			      unsigned long addr, unsigned char * value)
 {
   unsigned char cmd[10];
@@ -2253,15 +2231,12 @@ static int jtagmkII_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 
   addr += mem->offset;
   cmd[1] = ( p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI) ) ? MTYPE_FLASH : MTYPE_FLASH_PAGE;
-  if (strcmp(mem->desc, "flash") == 0 ||
-      strcmp(mem->desc, "application") == 0 ||
-      strcmp(mem->desc, "apptable") == 0 ||
-      strcmp(mem->desc, "boot") == 0) {
+  if (avr_mem_is_flash_type(mem)) {
     pagesize = PDATA(pgm)->flash_pagesize;
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->flash_pageaddr;
     cache_ptr = PDATA(pgm)->flash_pagecache;
-  } else if (strcmp(mem->desc, "eeprom") == 0) {
+  } else if (avr_mem_is_eeprom_type(mem)) {
     if ( (pgm->flag & PGM_FL_IS_DW) || ( p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI) ) ) {
       /* debugWire cannot use page access for EEPROM */
       cmd[1] = MTYPE_EEPROM;
@@ -2415,7 +2390,7 @@ fail:
   return -1;
 }
 
-static int jtagmkII_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			       unsigned long addr, unsigned char data)
 {
   unsigned char cmd[12];
@@ -2548,8 +2523,7 @@ fail:
  * As the STK500 expresses it as a period length (and we actualy do
  * program a period length as well), we rather call it by that name.
  */
-static int jtagmkII_set_sck_period(PROGRAMMER * pgm, double v)
-{
+static int jtagmkII_set_sck_period(const PROGRAMMER *pgm, double v) {
   unsigned char dur;
 
   v = 1 / v;			/* convert to frequency */
@@ -2571,7 +2545,7 @@ static int jtagmkII_set_sck_period(PROGRAMMER * pgm, double v)
  * bytes by now, we always copy out 4 bytes to *value, so the caller
  * must have allocated sufficient space.
  */
-int jtagmkII_getparm(PROGRAMMER * pgm, unsigned char parm,
+int jtagmkII_getparm(const PROGRAMMER *pgm, unsigned char parm,
 		     unsigned char * value)
 {
   int status;
@@ -2618,7 +2592,7 @@ int jtagmkII_getparm(PROGRAMMER * pgm, unsigned char parm,
 /*
  * Write an emulator parameter.
  */
-static int jtagmkII_setparm(PROGRAMMER * pgm, unsigned char parm,
+static int jtagmkII_setparm(const PROGRAMMER *pgm, unsigned char parm,
 			    unsigned char * value)
 {
   int status;
@@ -2684,8 +2658,7 @@ static int jtagmkII_setparm(PROGRAMMER * pgm, unsigned char parm,
 }
 
 
-static void jtagmkII_display(PROGRAMMER * pgm, const char * p)
-{
+static void jtagmkII_display(const PROGRAMMER *pgm, const char *p) {
   unsigned char hw[4], fw[4];
 
   if (jtagmkII_getparm(pgm, PAR_HW_VERSION, hw) < 0 ||
@@ -2705,8 +2678,7 @@ static void jtagmkII_display(PROGRAMMER * pgm, const char * p)
 }
 
 
-static void jtagmkII_print_parms1(PROGRAMMER * pgm, const char * p)
-{
+static void jtagmkII_print_parms1(const PROGRAMMER *pgm, const char *p) {
   unsigned char vtarget[4], jtag_clock[4];
   char clkbuf[20];
   double clk;
@@ -2742,13 +2714,11 @@ static void jtagmkII_print_parms1(PROGRAMMER * pgm, const char * p)
   return;
 }
 
-static void jtagmkII_print_parms(PROGRAMMER * pgm)
-{
+static void jtagmkII_print_parms(const PROGRAMMER *pgm) {
   jtagmkII_print_parms1(pgm, "");
 }
 
-static unsigned char jtagmkII_memtype(PROGRAMMER * pgm, AVRPART * p, unsigned long addr)
-{
+static unsigned char jtagmkII_memtype(const PROGRAMMER *pgm, const AVRPART *p, unsigned long addr) {
   if ( p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI) ) {
     if (addr >= PDATA(pgm)->boot_start)
       return MTYPE_BOOT_FLASH;
@@ -2759,8 +2729,7 @@ static unsigned char jtagmkII_memtype(PROGRAMMER * pgm, AVRPART * p, unsigned lo
   }
 }
 
-static unsigned int jtagmkII_memaddr(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, unsigned long addr)
-{
+static unsigned int jtagmkII_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr) {
   /*
    * Xmega devices handled by V7+ firmware don't want to be told their
    * m->offset within the write memory command.
@@ -2789,7 +2758,7 @@ static unsigned int jtagmkII_memaddr(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
 #pragma mark -
 #endif
 
-static int jtagmkII_avr32_reset(PROGRAMMER * pgm, unsigned char val,
+static int jtagmkII_avr32_reset(const PROGRAMMER *pgm, unsigned char val,
                                 unsigned char ret1, unsigned char ret2)
 {
   int status;
@@ -2830,8 +2799,7 @@ static int jtagmkII_avr32_reset(PROGRAMMER * pgm, unsigned char val,
 }
 
 // At init: AVR32_RESET_READ_IR | AVR32_RESET_READ_READ_CHIPINFO
-static int jtagmkII_reset32(PROGRAMMER * pgm, unsigned short flags)
-{
+static int jtagmkII_reset32(const PROGRAMMER *pgm, unsigned short flags) {
   int status, j, lineno;
   unsigned char *resp, buf[3];
   unsigned long val=0;
@@ -3020,8 +2988,7 @@ static int jtagmkII_reset32(PROGRAMMER * pgm, unsigned short flags)
     return -1;
 }
 
-static int jtagmkII_smc_init32(PROGRAMMER * pgm)
-{
+static int jtagmkII_smc_init32(const PROGRAMMER *pgm) {
   int status, lineno;
   unsigned long val;
 
@@ -3123,8 +3090,7 @@ static int jtagmkII_smc_init32(PROGRAMMER * pgm)
 /*
  * initialize the AVR device and prepare it to accept commands
  */
-static int jtagmkII_initialize32(PROGRAMMER * pgm, AVRPART * p)
-{
+static int jtagmkII_initialize32(const PROGRAMMER *pgm, const AVRPART *p) {
   int status, j;
   unsigned char buf[6], *resp;
 
@@ -3200,8 +3166,7 @@ static int jtagmkII_initialize32(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
-static int jtagmkII_chip_erase32(PROGRAMMER * pgm, AVRPART * p)
-{
+static int jtagmkII_chip_erase32(const PROGRAMMER *pgm, const AVRPART *p) {
   int status=0, loops;
   unsigned char *resp, buf[3], x, ret[4], *retP;
   unsigned long val=0;
@@ -3261,7 +3226,7 @@ static int jtagmkII_chip_erase32(PROGRAMMER * pgm, AVRPART * p)
     return -1;
 }
 
-static unsigned long jtagmkII_read_SABaddr(PROGRAMMER * pgm, unsigned long addr,
+static unsigned long jtagmkII_read_SABaddr(const PROGRAMMER *pgm, unsigned long addr,
                                            unsigned int prefix)
 {
   unsigned char buf[6], *resp;
@@ -3323,7 +3288,7 @@ static unsigned long jtagmkII_read_SABaddr(PROGRAMMER * pgm, unsigned long addr,
   return val;
 }
 
-static int jtagmkII_write_SABaddr(PROGRAMMER * pgm, unsigned long addr,
+static int jtagmkII_write_SABaddr(const PROGRAMMER *pgm, unsigned long addr,
                                   unsigned int prefix, unsigned long val)
 {
   unsigned char buf[10], *resp;
@@ -3358,8 +3323,7 @@ static int jtagmkII_write_SABaddr(PROGRAMMER * pgm, unsigned long addr,
   return 0;
 }
 
-static int jtagmkII_open32(PROGRAMMER * pgm, char * port)
-{
+static int jtagmkII_open32(PROGRAMMER *pgm, const char *port) {
   int status;
   unsigned char buf[6], *resp;
   union pinfo pinfo;
@@ -3495,7 +3459,7 @@ static void jtagmkII_close32(PROGRAMMER * pgm)
     goto ret;
 }
 
-static int jtagmkII_paged_load32(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int jtagmkII_paged_load32(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                  unsigned int page_size,
                                  unsigned int addr, unsigned int n_bytes)
 {
@@ -3512,23 +3476,16 @@ static int jtagmkII_paged_load32(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   serial_recv_timeout = 256;
 
-  if(!(p->flags & AVRPART_WRITE)) {
+  if(!(PDATA(pgm)->flags32 & FLAGS32_WRITE)) {
     status = jtagmkII_reset32(pgm, AVR32_RESET_READ);
     if(status != 0) {lineno = __LINE__; goto eRR;}
   }
 
   // Init SMC and set clocks
-  if(!(p->flags & AVRPART_INIT_SMC)) {
+  if(!(PDATA(pgm)->flags32 & FLAGS32_INIT_SMC)) {
     status = jtagmkII_smc_init32(pgm);
     if(status != 0) {lineno = __LINE__; goto eRR;} // PLL 0
-    p->flags |= AVRPART_INIT_SMC;
-  }
-
-  // Init SMC and set clocks
-  if(!(p->flags & AVRPART_INIT_SMC)) {
-    status = jtagmkII_smc_init32(pgm);
-    if(status != 0) {lineno = __LINE__; goto eRR;} // PLL 0
-    p->flags |= AVRPART_INIT_SMC;
+    PDATA(pgm)->flags32 |= FLAGS32_INIT_SMC;
   }
 
   //avrdude_message(MSG_INFO, "\n pageSize=%d bytes=%d pages=%d m->offset=0x%x pgm->page_size %d\n",
@@ -3583,7 +3540,7 @@ static int jtagmkII_paged_load32(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
     return -1;
 }
 
-static int jtagmkII_paged_write32(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int jtagmkII_paged_write32(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                   unsigned int page_size,
                                   unsigned int addr, unsigned int n_bytes)
 {
@@ -3601,7 +3558,7 @@ static int jtagmkII_paged_write32(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
   status = jtagmkII_reset32(pgm, AVR32_RESET_WRITE);
   if(status != 0) {lineno = __LINE__; goto eRR;}
-  p->flags |= AVRPART_WRITE;
+  PDATA(pgm)->flags32 |= FLAGS32_WRITE;
 
   pages = (n_bytes - addr - 1)/page_size + 1;
   sPageNum = addr/page_size;
@@ -3615,10 +3572,10 @@ static int jtagmkII_paged_write32(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   }
 
   // Init SMC and set clocks
-  if(!(p->flags & AVRPART_INIT_SMC)) {
+  if(!(p->flags & FLAGS32_INIT_SMC)) {
     status = jtagmkII_smc_init32(pgm);
     if(status != 0) {lineno = __LINE__; goto eRR;} // PLL 0
-    p->flags |= AVRPART_INIT_SMC;
+    PDATA(pgm)->flags32 |= FLAGS32_INIT_SMC;
   }
 
   // First unlock the pages
@@ -3697,8 +3654,7 @@ static int jtagmkII_paged_write32(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int jtagmkII_flash_lock32(PROGRAMMER * pgm, unsigned char lock, unsigned int page)
-{
+static int jtagmkII_flash_lock32(const PROGRAMMER *pgm, unsigned char lock, unsigned int page) {
   int status, lineno, i;
   unsigned long val, cmd=0;
 
@@ -3724,8 +3680,7 @@ static int jtagmkII_flash_lock32(PROGRAMMER * pgm, unsigned char lock, unsigned 
     return -1;
 }
 
-static int jtagmkII_flash_erase32(PROGRAMMER * pgm, unsigned int page)
-{
+static int jtagmkII_flash_erase32(const PROGRAMMER *pgm, unsigned int page) {
   int status, lineno, i;
   unsigned long val=0, cmd=0, err=0;
 
@@ -3764,8 +3719,7 @@ static int jtagmkII_flash_erase32(PROGRAMMER * pgm, unsigned int page)
     return -1;
 }
 
-static int jtagmkII_flash_write_page32(PROGRAMMER * pgm, unsigned int page)
-{
+static int jtagmkII_flash_write_page32(const PROGRAMMER *pgm, unsigned int page) {
   int status, lineno, i;
   unsigned long val=0, cmd, err;
 
@@ -3794,8 +3748,7 @@ static int jtagmkII_flash_write_page32(PROGRAMMER * pgm, unsigned int page)
     return -1;
 }
 
-static int jtagmkII_flash_clear_pagebuffer32(PROGRAMMER * pgm)
-{
+static int jtagmkII_flash_clear_pagebuffer32(const PROGRAMMER *pgm) {
   int status, lineno, i;
   unsigned long val=0, cmd, err;
 
@@ -3829,8 +3782,7 @@ static int jtagmkII_flash_clear_pagebuffer32(PROGRAMMER * pgm)
 
 const char jtagmkII_desc[] = "Atmel JTAG ICE mkII";
 
-void jtagmkII_initpgm(PROGRAMMER * pgm)
-{
+void jtagmkII_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "JTAGMKII");
 
   /*
@@ -3864,8 +3816,7 @@ void jtagmkII_initpgm(PROGRAMMER * pgm)
 
 const char jtagmkII_dw_desc[] = "Atmel JTAG ICE mkII in debugWire mode";
 
-void jtagmkII_dw_initpgm(PROGRAMMER * pgm)
-{
+void jtagmkII_dw_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "JTAGMKII_DW");
 
   /*
@@ -3896,8 +3847,7 @@ void jtagmkII_dw_initpgm(PROGRAMMER * pgm)
 
 const char jtagmkII_pdi_desc[] = "Atmel JTAG ICE mkII in PDI mode";
 
-void jtagmkII_pdi_initpgm(PROGRAMMER * pgm)
-{
+void jtagmkII_pdi_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "JTAGMKII_PDI");
 
   /*
@@ -3929,8 +3879,7 @@ void jtagmkII_pdi_initpgm(PROGRAMMER * pgm)
 
 const char jtagmkII_updi_desc[] = "Atmel JTAG ICE mkII in UPDI mode";
 
-void jtagmkII_updi_initpgm(PROGRAMMER * pgm)
-{
+void jtagmkII_updi_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "JTAGMKII_UPDI");
 
   /*
@@ -3962,8 +3911,7 @@ void jtagmkII_updi_initpgm(PROGRAMMER * pgm)
 
 const char jtagmkII_dragon_desc[] = "Atmel AVR Dragon in JTAG mode";
 
-void jtagmkII_dragon_initpgm(PROGRAMMER * pgm)
-{
+void jtagmkII_dragon_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "DRAGON_JTAG");
 
   /*
@@ -3997,8 +3945,7 @@ void jtagmkII_dragon_initpgm(PROGRAMMER * pgm)
 
 const char jtagmkII_dragon_dw_desc[] = "Atmel AVR Dragon in debugWire mode";
 
-void jtagmkII_dragon_dw_initpgm(PROGRAMMER * pgm)
-{
+void jtagmkII_dragon_dw_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "DRAGON_DW");
 
   /*
@@ -4029,8 +3976,7 @@ void jtagmkII_dragon_dw_initpgm(PROGRAMMER * pgm)
 
 const char jtagmkII_avr32_desc[] = "Atmel JTAG ICE mkII in AVR32 mode";
 
-void jtagmkII_avr32_initpgm(PROGRAMMER * pgm)
-{
+void jtagmkII_avr32_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "JTAGMKII_AVR32");
 
   /*
@@ -4063,8 +4009,7 @@ void jtagmkII_avr32_initpgm(PROGRAMMER * pgm)
 
 const char jtagmkII_dragon_pdi_desc[] = "Atmel AVR Dragon in PDI mode";
 
-void jtagmkII_dragon_pdi_initpgm(PROGRAMMER * pgm)
-{
+void jtagmkII_dragon_pdi_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "DRAGON_PDI");
 
   /*

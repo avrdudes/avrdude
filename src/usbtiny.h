@@ -59,7 +59,7 @@ extern "C" {
 #endif
 
 extern const char usbtiny_desc[];
-void usbtiny_initpgm (PROGRAMMER * pgm);
+void usbtiny_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }

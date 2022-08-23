@@ -312,7 +312,7 @@ struct pdata
     }
         pgmtype;
 
-  AVRPART *lastpart;
+  const AVRPART *lastpart;
 
   /* Start address of Xmega boot area */
   unsigned long boot_start;

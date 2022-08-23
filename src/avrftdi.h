@@ -29,7 +29,7 @@ extern "C" {
 
 
 extern const char avrftdi_desc[];
-void avrftdi_initpgm        (PROGRAMMER * pgm);
+void avrftdi_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }

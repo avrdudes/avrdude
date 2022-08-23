@@ -27,8 +27,8 @@ extern "C" {
 
 extern const char butterfly_desc[];
 extern const char butterfly_mk_desc[];
-void butterfly_initpgm (PROGRAMMER * pgm);
-void butterfly_mk_initpgm (PROGRAMMER * pgm);
+void butterfly_initpgm(PROGRAMMER *pgm);
+void butterfly_mk_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }

@@ -46,8 +46,7 @@
  * The "baud" parameter is meaningless for USB devices, so we reuse it
  * to pass the desired USB device ID.
  */
-static int usbhid_open(char * port, union pinfo pinfo, union filedescriptor *fd)
-{
+static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor *fd) {
   hid_device *dev;
   char *serno, *cp2;
   size_t x;
@@ -233,7 +232,7 @@ static void usbhid_close(union filedescriptor *fd)
 }
 
 
-static int usbhid_send(union filedescriptor *fd, const unsigned char *bp, size_t mlen)
+static int usbhid_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen)
 {
   hid_device *udev = (hid_device *)fd->usb.handle;
   int rv;
@@ -282,7 +281,7 @@ static int usbhid_send(union filedescriptor *fd, const unsigned char *bp, size_t
   return 0;
 }
 
-static int usbhid_recv(union filedescriptor *fd, unsigned char *buf, size_t nbytes)
+static int usbhid_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes)
 {
   hid_device *udev = (hid_device *)fd->usb.handle;
   int i, rv;
@@ -320,7 +319,7 @@ static int usbhid_recv(union filedescriptor *fd, unsigned char *buf, size_t nbyt
   return rv;
 }
 
-static int usbhid_drain(union filedescriptor *fd, int display)
+static int usbhid_drain(const union filedescriptor *fd, int display)
 {
   /*
    * There is not much point in trying to flush any data

@@ -47,8 +47,7 @@ typedef enum
 
 #define USE_DEFAULT_COMMAND 0xFF
 
-static int nvm_chip_erase_V0(PROGRAMMER * pgm, AVRPART * p)
-{
+static int nvm_chip_erase_V0(const PROGRAMMER *pgm, const AVRPART *p) {
 /*
     def chip_erase(self):
         """
@@ -88,8 +87,7 @@ static int nvm_chip_erase_V0(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
-static int nvm_erase_flash_page_V0(PROGRAMMER * pgm, AVRPART * p, uint32_t address)
-{
+static int nvm_erase_flash_page_V0(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address) {
 /*
     def erase_flash_page(self, address):
         """
@@ -136,8 +134,7 @@ static int nvm_erase_flash_page_V0(PROGRAMMER * pgm, AVRPART * p, uint32_t addre
   return 0;
 }
 
-static int nvm_erase_eeprom_V0(PROGRAMMER * pgm, AVRPART * p)
-{
+static int nvm_erase_eeprom_V0(const PROGRAMMER *pgm, const AVRPART *p) {
 /*
     def erase_eeprom(self):
         """
@@ -172,8 +169,7 @@ static int nvm_erase_eeprom_V0(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
-static int nvm_erase_user_row_V0(PROGRAMMER * pgm, AVRPART *p, uint32_t address, uint16_t size)
-{
+static int nvm_erase_user_row_V0(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, uint16_t size) {
 /*
     def erase_user_row(self, address, size):
         """
@@ -226,14 +222,13 @@ static int nvm_erase_user_row_V0(PROGRAMMER * pgm, AVRPART *p, uint32_t address,
   return 0;
 }
 
-static int nvm_write_V0(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, 
+static int nvm_write_V0(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer,
                         uint16_t size, access_mode mode, uint8_t nvm_command);
 
-static int nvm_write_eeprom_V0(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, uint16_t size);
+static int nvm_write_eeprom_V0(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size);
 
 
-static int nvm_write_flash_V0(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, uint16_t size)
-{
+static int nvm_write_flash_V0(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
 /*
     def write_flash(self, address, data):
         """
@@ -247,8 +242,7 @@ static int nvm_write_flash_V0(PROGRAMMER * pgm, AVRPART *p, uint32_t address, un
   return nvm_write_V0(pgm, p, address, buffer, size, USE_WORD_ACCESS, USE_DEFAULT_COMMAND);
 }
 
-static int nvm_write_user_row_V0(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, uint16_t size)
-{
+static int nvm_write_user_row_V0(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
 /*
     def write_user_row(self, address, data):
         """
@@ -263,8 +257,7 @@ static int nvm_write_user_row_V0(PROGRAMMER * pgm, AVRPART *p, uint32_t address,
   return nvm_write_eeprom_V0(pgm, p, address, buffer, size);
 }
 
-static int nvm_write_eeprom_V0(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, uint16_t size)
-{
+static int nvm_write_eeprom_V0(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
 /*
     def write_eeprom(self, address, data):
         """
@@ -279,8 +272,7 @@ static int nvm_write_eeprom_V0(PROGRAMMER * pgm, AVRPART *p, uint32_t address, u
   return nvm_write_V0(pgm, p, address, buffer, size, DONT_USE_WORD_ACCESS, UPDI_V0_NVMCTRL_CTRLA_ERASE_WRITE_PAGE);
 }
 
-static int nvm_write_fuse_V0(PROGRAMMER * pgm, AVRPART *p, uint32_t address, uint8_t value)
-{
+static int nvm_write_fuse_V0(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, uint8_t value) {
 /*
     def write_fuse(self, address, data):
         """
@@ -340,7 +332,7 @@ static int nvm_write_fuse_V0(PROGRAMMER * pgm, AVRPART *p, uint32_t address, uin
   return 0;
 }
 
-static int nvm_write_V0(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, 
+static int nvm_write_V0(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer,
                         uint16_t size, access_mode mode, uint8_t nvm_command)
 {
 /*
@@ -423,8 +415,7 @@ static int nvm_write_V0(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned
   return 0;
 }
 
-static int nvm_chip_erase_V2(PROGRAMMER * pgm, AVRPART * p)
-{
+static int nvm_chip_erase_V2(const PROGRAMMER *pgm, const AVRPART *p) {
 /*
     def chip_erase(self):
         """
@@ -463,8 +454,7 @@ static int nvm_chip_erase_V2(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
-static int nvm_erase_flash_page_V2(PROGRAMMER * pgm, AVRPART * p, uint32_t address)
-{
+static int nvm_erase_flash_page_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address) {
 /*
     def erase_flash_page(self, address):
         """
@@ -515,8 +505,7 @@ static int nvm_erase_flash_page_V2(PROGRAMMER * pgm, AVRPART * p, uint32_t addre
   return 0;
 }
 
-static int nvm_erase_eeprom_V2(PROGRAMMER * pgm, AVRPART * p)
-{
+static int nvm_erase_eeprom_V2(const PROGRAMMER *pgm, const AVRPART *p) {
 /*
     def erase_eeprom(self):
         """
@@ -560,8 +549,7 @@ static int nvm_erase_eeprom_V2(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
-static int nvm_erase_user_row_V2(PROGRAMMER * pgm, AVRPART *p, uint32_t address, uint16_t size)
-{
+static int nvm_erase_user_row_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, uint16_t size) {
 /*
     def erase_user_row(self, address, size):
         """
@@ -578,11 +566,10 @@ static int nvm_erase_user_row_V2(PROGRAMMER * pgm, AVRPART *p, uint32_t address,
   return nvm_erase_flash_page_V2(pgm, p, address);
 }
 
-static int nvm_write_V2(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, 
+static int nvm_write_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer,
                         uint16_t size, access_mode mode);
 
-static int nvm_write_flash_V2(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, uint16_t size)
-{
+static int nvm_write_flash_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
 /*
     def write_flash(self, address, data):
         """
@@ -596,8 +583,7 @@ static int nvm_write_flash_V2(PROGRAMMER * pgm, AVRPART *p, uint32_t address, un
   return nvm_write_V2(pgm, p, address, buffer, size, USE_WORD_ACCESS);
 }
 
-static int nvm_write_user_row_V2(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, uint16_t size)
-{
+static int nvm_write_user_row_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
 /*
     def write_user_row(self, address, data):
         """
@@ -612,8 +598,7 @@ static int nvm_write_user_row_V2(PROGRAMMER * pgm, AVRPART *p, uint32_t address,
   return nvm_write_V2(pgm, p, address, buffer, size, DONT_USE_WORD_ACCESS);
 }
 
-static int nvm_write_eeprom_V2(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, uint16_t size)
-{
+static int nvm_write_eeprom_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
 /*
     def write_eeprom(self, address, data):
         """
@@ -668,8 +653,7 @@ static int nvm_write_eeprom_V2(PROGRAMMER * pgm, AVRPART *p, uint32_t address, u
   return 0;
 }
 
-static int nvm_write_fuse_V2(PROGRAMMER * pgm, AVRPART *p, uint32_t address, uint8_t value)
-{
+static int nvm_write_fuse_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, uint8_t value) {
 /*
     def write_fuse(self, address, data):
         """
@@ -686,7 +670,7 @@ static int nvm_write_fuse_V2(PROGRAMMER * pgm, AVRPART *p, uint32_t address, uin
   return nvm_write_eeprom_V2(pgm, p, address, buffer, 1);
 }
 
-static int nvm_write_V2(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, 
+static int nvm_write_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer,
                         uint16_t size, access_mode mode)
 {
 /*
@@ -755,8 +739,7 @@ static int nvm_write_V2(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned
   return 0;
 }
 
-static int nvm_chip_erase_V3(PROGRAMMER * pgm, AVRPART * p)
-{
+static int nvm_chip_erase_V3(const PROGRAMMER *pgm, const AVRPART *p) {
 /*
     def chip_erase(self):
         """
@@ -805,8 +788,7 @@ static int nvm_chip_erase_V3(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
-static int nvm_erase_flash_page_V3(PROGRAMMER * pgm, AVRPART * p, uint32_t address)
-{
+static int nvm_erase_flash_page_V3(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address) {
 /*
     def erase_flash_page(self, address):
         """
@@ -858,8 +840,7 @@ static int nvm_erase_flash_page_V3(PROGRAMMER * pgm, AVRPART * p, uint32_t addre
   return 0;
 }
 
-static int nvm_erase_eeprom_V3(PROGRAMMER * pgm, AVRPART * p)
-{
+static int nvm_erase_eeprom_V3(const PROGRAMMER *pgm, const AVRPART *p) {
 /*
     def erase_eeprom(self):
         """
@@ -903,8 +884,7 @@ static int nvm_erase_eeprom_V3(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
-static int nvm_erase_user_row_V3(PROGRAMMER * pgm, AVRPART *p, uint32_t address, uint16_t size)
-{
+static int nvm_erase_user_row_V3(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, uint16_t size) {
 /*
     def erase_user_row(self, address, size):
         """
@@ -923,11 +903,10 @@ static int nvm_erase_user_row_V3(PROGRAMMER * pgm, AVRPART *p, uint32_t address,
   return nvm_erase_flash_page_V3(pgm, p, address);
 }
 
-static int nvm_write_V3(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, 
+static int nvm_write_V3(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer,
                         uint16_t size, access_mode mode, uint8_t nvm_command);
 
-static int nvm_write_flash_V3(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, uint16_t size)
-{
+static int nvm_write_flash_V3(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
 /*
     def write_flash(self, address, data):
         """
@@ -941,8 +920,7 @@ static int nvm_write_flash_V3(PROGRAMMER * pgm, AVRPART *p, uint32_t address, un
   return nvm_write_V3(pgm, p, address, buffer, size, USE_WORD_ACCESS, USE_DEFAULT_COMMAND);
 }
 
-static int nvm_write_user_row_V3(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, uint16_t size)
-{
+static int nvm_write_user_row_V3(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
 /*
     def write_user_row(self, address, data):
         """
@@ -957,8 +935,7 @@ static int nvm_write_user_row_V3(PROGRAMMER * pgm, AVRPART *p, uint32_t address,
   return nvm_write_V3(pgm, p, address, buffer, size, USE_WORD_ACCESS, USE_DEFAULT_COMMAND);
 }
 
-static int nvm_write_eeprom_V3(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, uint16_t size)
-{
+static int nvm_write_eeprom_V3(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
 /*
     def write_eeprom(self, address, data):
         """
@@ -973,8 +950,7 @@ static int nvm_write_eeprom_V3(PROGRAMMER * pgm, AVRPART *p, uint32_t address, u
   return nvm_write_V3(pgm, p, address, buffer, size, DONT_USE_WORD_ACCESS, UPDI_V3_NVMCTRL_CTRLA_EEPROM_PAGE_ERASE_WRITE);
 }
 
-static int nvm_write_fuse_V3(PROGRAMMER * pgm, AVRPART *p, uint32_t address, uint8_t value)
-{
+static int nvm_write_fuse_V3(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, uint8_t value) {
 /*
     def write_fuse(self, address, data):
         """
@@ -990,7 +966,7 @@ static int nvm_write_fuse_V3(PROGRAMMER * pgm, AVRPART *p, uint32_t address, uin
   return nvm_write_eeprom_V3(pgm, p, address, buffer, 1);
 }
 
-static int nvm_write_V3(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, 
+static int nvm_write_V3(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer,
                         uint16_t size, access_mode mode, uint8_t nvm_command)
 {
 /*
@@ -1081,8 +1057,7 @@ static int nvm_write_V3(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned
 }
 
 
-int updi_nvm_chip_erase(PROGRAMMER * pgm, AVRPART * p)
-{
+int updi_nvm_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   switch(updi_get_nvm_mode(pgm))
   {
     case UPDI_NVM_MODE_V0:
@@ -1097,8 +1072,7 @@ int updi_nvm_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   }
 }
 
-int updi_nvm_erase_flash_page(PROGRAMMER * pgm, AVRPART *p, uint32_t address)
-{
+int updi_nvm_erase_flash_page(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address) {
   switch(updi_get_nvm_mode(pgm))
   {
     case UPDI_NVM_MODE_V0:
@@ -1113,8 +1087,7 @@ int updi_nvm_erase_flash_page(PROGRAMMER * pgm, AVRPART *p, uint32_t address)
   }
 }
 
-int updi_nvm_erase_eeprom(PROGRAMMER * pgm, AVRPART *p)
-{
+int updi_nvm_erase_eeprom(const PROGRAMMER *pgm, const AVRPART *p) {
   switch(updi_get_nvm_mode(pgm))
   {
     case UPDI_NVM_MODE_V0:
@@ -1129,8 +1102,7 @@ int updi_nvm_erase_eeprom(PROGRAMMER * pgm, AVRPART *p)
   }
 }
 
-int updi_nvm_erase_user_row(PROGRAMMER * pgm, AVRPART *p, uint32_t address, uint16_t size)
-{
+int updi_nvm_erase_user_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, uint16_t size) {
   switch(updi_get_nvm_mode(pgm))
   {
     case UPDI_NVM_MODE_V0:
@@ -1145,8 +1117,7 @@ int updi_nvm_erase_user_row(PROGRAMMER * pgm, AVRPART *p, uint32_t address, uint
   }
 }
 
-int updi_nvm_write_flash(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, uint16_t size)
-{
+int updi_nvm_write_flash(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
   switch(updi_get_nvm_mode(pgm))
   {
     case UPDI_NVM_MODE_V0:
@@ -1161,8 +1132,7 @@ int updi_nvm_write_flash(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigne
   }
 }
 
-int updi_nvm_write_user_row(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, uint16_t size)
-{
+int updi_nvm_write_user_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
   switch(updi_get_nvm_mode(pgm))
   {
     case UPDI_NVM_MODE_V0:
@@ -1177,8 +1147,7 @@ int updi_nvm_write_user_row(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsi
   }
 }
 
-int updi_nvm_write_eeprom(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsigned char * buffer, uint16_t size)
-{
+int updi_nvm_write_eeprom(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
   switch(updi_get_nvm_mode(pgm))
   {
     case UPDI_NVM_MODE_V0:
@@ -1193,8 +1162,7 @@ int updi_nvm_write_eeprom(PROGRAMMER * pgm, AVRPART *p, uint32_t address, unsign
   }
 }
 
-int updi_nvm_write_fuse(PROGRAMMER * pgm, AVRPART *p, uint32_t address, uint8_t value)
-{
+int updi_nvm_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, uint8_t value) {
   switch(updi_get_nvm_mode(pgm))
   {
     case UPDI_NVM_MODE_V0:
@@ -1209,8 +1177,7 @@ int updi_nvm_write_fuse(PROGRAMMER * pgm, AVRPART *p, uint32_t address, uint8_t 
   }
 }
 
-int updi_nvm_wait_ready(PROGRAMMER * pgm, AVRPART *p)
-{
+int updi_nvm_wait_ready(const PROGRAMMER *pgm, const AVRPART *p) {
 /*
     def wait_nvm_ready(self):
         """
@@ -1257,8 +1224,7 @@ int updi_nvm_wait_ready(PROGRAMMER * pgm, AVRPART *p)
   return -1;
 }
 
-int updi_nvm_command(PROGRAMMER * pgm, AVRPART *p, uint8_t command)
-{
+int updi_nvm_command(const PROGRAMMER *pgm, const AVRPART *p, uint8_t command) {
 /*
     def execute_nvm_command(self, command):
         """

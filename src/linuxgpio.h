@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 extern const char linuxgpio_desc[];
-void linuxgpio_initpgm        (PROGRAMMER * pgm);
+void linuxgpio_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }

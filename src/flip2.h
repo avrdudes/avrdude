@@ -26,7 +26,7 @@ extern "C" {
 #endif
 
 extern const char flip2_desc[];
-extern void flip2_initpgm(PROGRAMMER * pgm);
+extern void flip2_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }

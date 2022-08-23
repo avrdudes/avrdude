@@ -43,8 +43,8 @@
 #include "updi_nvm.h"
 #include "updi_constants.h"
 
-static int serialupdi_enter_progmode(PROGRAMMER * pgm);
-static int serialupdi_leave_progmode(PROGRAMMER * pgm);
+static int serialupdi_enter_progmode(const PROGRAMMER *pgm);
+static int serialupdi_leave_progmode(const PROGRAMMER *pgm);
 
 static void serialupdi_setup(PROGRAMMER * pgm)
 {
@@ -64,8 +64,7 @@ static void serialupdi_teardown(PROGRAMMER * pgm)
   free(pgm->cookie);
 }
 
-static int serialupdi_open(PROGRAMMER * pgm, char * port)
-{
+static int serialupdi_open(PROGRAMMER *pgm, const char *port) {
   strcpy(pgm->port, port);
   return updi_link_open(pgm);
 }
@@ -75,8 +74,7 @@ typedef enum {
   RELEASE_RESET
 } reset_mode;
 
-static int serialupdi_reset(PROGRAMMER * pgm, reset_mode mode)
-{
+static int serialupdi_reset(const PROGRAMMER *pgm, reset_mode mode) {
 /*
     def reset(self, apply_reset):
         """
@@ -102,8 +100,7 @@ static int serialupdi_reset(PROGRAMMER * pgm, reset_mode mode)
   return -1;
 }
 
-static int serialupdi_reset_connection(PROGRAMMER * pgm)
-{
+static int serialupdi_reset_connection(const PROGRAMMER *pgm) {
   if (serialupdi_reset(pgm, APPLY_RESET) < 0) {
     avrdude_message(MSG_INFO, "%s: Apply reset operation failed\n", progname);
     return -1;
@@ -117,8 +114,7 @@ static int serialupdi_reset_connection(PROGRAMMER * pgm)
   return updi_link_init(pgm);
 }
 
-static int serialupdi_decode_sib(PROGRAMMER * pgm, updi_sib_info * sib_info)
-{
+static int serialupdi_decode_sib(const PROGRAMMER *pgm, updi_sib_info *sib_info) {
   char * str_ptr;
 
   sib_info->sib_string[SIB_INFO_STRING_LENGTH]=0;
@@ -192,7 +188,7 @@ static void serialupdi_close(PROGRAMMER * pgm)
   updi_link_close(pgm);
 }
 
-static int serialupdi_wait_for_unlock(PROGRAMMER * pgm, unsigned int ms) {
+static int serialupdi_wait_for_unlock(const PROGRAMMER *pgm, unsigned int ms) {
 /*
     def wait_unlocked(self, timeout_ms):
         """
@@ -236,7 +232,7 @@ typedef enum {
   WAIT_FOR_UROW_HIGH
 } urow_wait_mode;
 
-static int serialupdi_wait_for_urow(PROGRAMMER * pgm, unsigned int ms, urow_wait_mode mode) {
+static int serialupdi_wait_for_urow(const PROGRAMMER *pgm, unsigned int ms, urow_wait_mode mode) {
 /*
     def wait_urow_prog(self, timeout_ms, wait_for_high):
         """
@@ -286,8 +282,7 @@ static int serialupdi_wait_for_urow(PROGRAMMER * pgm, unsigned int ms, urow_wait
   return -1;
 }
 
-static int serialupdi_in_prog_mode(PROGRAMMER * pgm, uint8_t * in_prog_mode)
-{
+static int serialupdi_in_prog_mode(const PROGRAMMER *pgm, uint8_t *in_prog_mode) {
 /*
     def in_prog_mode(self):
         """
@@ -315,8 +310,7 @@ static int serialupdi_in_prog_mode(PROGRAMMER * pgm, uint8_t * in_prog_mode)
   return 0;
 }
 
-static int serialupdi_enter_progmode(PROGRAMMER * pgm)
-{
+static int serialupdi_enter_progmode(const PROGRAMMER *pgm) {
 /*
 def enter_progmode(self):
         """
@@ -415,8 +409,7 @@ def enter_progmode(self):
   return 0;
 }
 
-static int serialupdi_leave_progmode(PROGRAMMER * pgm)
-{
+static int serialupdi_leave_progmode(const PROGRAMMER *pgm) {
 /*
     def leave_progmode(self):
         """
@@ -441,7 +434,7 @@ static int serialupdi_leave_progmode(PROGRAMMER * pgm)
   return updi_write_cs(pgm, UPDI_CS_CTRLB, (1 << UPDI_CTRLB_UPDIDIS_BIT) | (1 << UPDI_CTRLB_CCDETDIS_BIT));
 }
 
-static int serialupdi_write_userrow(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int serialupdi_write_userrow(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                     unsigned int page_size,
                                     unsigned int addr, unsigned int n_bytes)
 {
@@ -576,8 +569,7 @@ static int serialupdi_write_userrow(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return 0;
 }
 
-static int serialupdi_initialize(PROGRAMMER * pgm, AVRPART * p)
-{
+static int serialupdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   uint8_t value;
   uint8_t reset_link_required=0;
   
@@ -660,26 +652,23 @@ static int serialupdi_initialize(PROGRAMMER * pgm, AVRPART * p)
   return 0;
 }
 
-static void serialupdi_disable(PROGRAMMER * pgm)
-{
+static void serialupdi_disable(const PROGRAMMER *pgm) {
   /* Do nothing. */
 
   return;
 }
 
-static void serialupdi_enable(PROGRAMMER * pgm)
-{
+static void serialupdi_enable(PROGRAMMER * pgm, const AVRPART *p) {
   /* Do nothing. */
 
   return;
 }
 
-static void serialupdi_display(PROGRAMMER * pgm, const char * p)
-{
+static void serialupdi_display(const PROGRAMMER *pgm, const char *p) {
   return;
 }
 
-static int serialupdi_cmd(PROGRAMMER * pgm, const unsigned char * cmd,
+static int serialupdi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
                           unsigned char * res)
 {
   avrdude_message(MSG_INFO, "%s: error: cmd %s[%s] not implemented yet\n",
@@ -687,20 +676,19 @@ static int serialupdi_cmd(PROGRAMMER * pgm, const unsigned char * cmd,
   return -1;
 }
 
-static int serialupdi_program_enable(PROGRAMMER * pgm, AVRPART * p)
-{
+static int serialupdi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   avrdude_message(MSG_INFO, "%s: error: program enable not implemented yet\n",
     	    progname);
   return -1;
 }
 
-static int serialupdi_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem, 
+static int serialupdi_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                                 unsigned long addr, unsigned char * value)
 {
   return updi_read_byte(pgm, mem->offset + addr, value);
 }
 
-static int serialupdi_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+static int serialupdi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                                  unsigned long addr, unsigned char value)
 {
   if (strstr(mem->desc, "fuse") != 0) {
@@ -723,7 +711,7 @@ static int serialupdi_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
 }
 
 
-static int serialupdi_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int serialupdi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                  unsigned int page_size,
                                  unsigned int addr, unsigned int n_bytes)
 {
@@ -750,7 +738,7 @@ static int serialupdi_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   }
 }
 
-static int serialupdi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int serialupdi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                   unsigned int page_size,
                                   unsigned int addr, unsigned int n_bytes)
 {
@@ -806,8 +794,7 @@ static int serialupdi_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   }
 }
 
-static int serialupdi_unlock(PROGRAMMER * pgm, AVRPART * p)
-{
+static int serialupdi_unlock(const PROGRAMMER *pgm, const AVRPART *p) {
 /*
     def unlock(self):
         """
@@ -875,8 +862,7 @@ static int serialupdi_unlock(PROGRAMMER * pgm, AVRPART * p)
   return serialupdi_enter_progmode(pgm);
 }
 
-static int serialupdi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
-{
+static int serialupdi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   uint8_t value;
 
   if (updi_read_cs(pgm, UPDI_ASI_SYS_STATUS, &value)<0) {
@@ -896,7 +882,7 @@ static int serialupdi_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   return -1;
 }
 
-static int serialupdi_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int serialupdi_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                  unsigned int baseaddr)
 {
   avrdude_message(MSG_INFO, "%s: error: page erase not implemented yet\n",
@@ -904,7 +890,7 @@ static int serialupdi_page_erase(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return -1;
 }
 
-static int serialupdi_read_signature(PROGRAMMER * pgm, AVRPART *p, AVRMEM *m) {
+static int serialupdi_read_signature(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m) {
 
   uint8_t value;
 
@@ -926,7 +912,7 @@ static int serialupdi_read_signature(PROGRAMMER * pgm, AVRPART *p, AVRMEM *m) {
   return 3;
 }
 
-static int serialupdi_read_sib(PROGRAMMER * pgm, AVRPART *p, char *sib) {
+static int serialupdi_read_sib(const PROGRAMMER *pgm, const AVRPART *p, char *sib) {
 
   updi_sib_info * sib_info = updi_get_sib_info(pgm);
 
@@ -935,8 +921,7 @@ static int serialupdi_read_sib(PROGRAMMER * pgm, AVRPART *p, char *sib) {
   return 0;
 }
 
-static int serialupdi_parseextparms(PROGRAMMER * pgm, LISTID extparms)
-{
+static int serialupdi_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   LNODEID ln;
   const char *extended_param;
   char rts_mode[5];
@@ -965,8 +950,7 @@ static int serialupdi_parseextparms(PROGRAMMER * pgm, LISTID extparms)
   return rv;
 }
 
-void serialupdi_initpgm(PROGRAMMER * pgm)
-{
+void serialupdi_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "serialupdi");
 
   /*

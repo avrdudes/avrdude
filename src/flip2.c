@@ -123,23 +123,23 @@ enum flip2_mem_unit {
 
 /* EXPORTED PROGRAMMER FUNCTION PROTOTYPES */
 
-static int flip2_open(PROGRAMMER *pgm, char *port_spec);
-static int flip2_initialize(PROGRAMMER* pgm, AVRPART *part);
+static int flip2_open(PROGRAMMER *pgm, const char *port_spec);
+static int flip2_initialize(const PROGRAMMER *pgm, const AVRPART *part);
 static void flip2_close(PROGRAMMER* pgm);
-static void flip2_enable(PROGRAMMER* pgm);
-static void flip2_disable(PROGRAMMER* pgm);
-static void flip2_display(PROGRAMMER* pgm, const char *prefix);
-static int flip2_program_enable(PROGRAMMER* pgm, AVRPART *part);
-static int flip2_chip_erase(PROGRAMMER* pgm, AVRPART *part);
-static int flip2_read_byte(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
+static void flip2_enable(PROGRAMMER *pgm, const AVRPART *p);
+static void flip2_disable(const PROGRAMMER *pgm);
+static void flip2_display(const PROGRAMMER *pgm, const char *prefix);
+static int flip2_program_enable(const PROGRAMMER *pgm, const AVRPART *part);
+static int flip2_chip_erase(const PROGRAMMER *pgm, const AVRPART *part);
+static int flip2_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
   unsigned long addr, unsigned char *value);
-static int flip2_write_byte(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
+static int flip2_write_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
   unsigned long addr, unsigned char value);
-static int flip2_paged_load(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
+static int flip2_paged_load(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes);
-static int flip2_paged_write(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
+static int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes);
-static int flip2_read_sig_bytes(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem);
+static int flip2_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem);
 static void flip2_setup(PROGRAMMER * pgm);
 static void flip2_teardown(PROGRAMMER * pgm);
 
@@ -170,8 +170,7 @@ static enum flip2_mem_unit flip2_mem_unit(const char *name);
 
 /* THE INITPGM FUNCTION DEFINITIONS */
 
-void flip2_initpgm(PROGRAMMER *pgm)
-{
+void flip2_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "flip2");
 
   /* Mandatory Functions */
@@ -195,14 +194,12 @@ void flip2_initpgm(PROGRAMMER *pgm)
 #ifdef HAVE_LIBUSB
 /* EXPORTED PROGRAMMER FUNCTION DEFINITIONS */
 
-int flip2_open(PROGRAMMER *pgm, char *port_spec)
-{
+int flip2_open(PROGRAMMER *pgm, const char *port_spec) {
   FLIP2(pgm)->dfu = dfu_open(port_spec);
   return (FLIP2(pgm)->dfu != NULL) ? 0 : -1;
 }
 
-int flip2_initialize(PROGRAMMER* pgm, AVRPART *part)
-{
+int flip2_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
   unsigned short vid, pid;
   int result;
   struct dfu_dev *dfu = FLIP2(pgm)->dfu;
@@ -323,23 +320,19 @@ void flip2_close(PROGRAMMER* pgm)
   }
 }
 
-void flip2_enable(PROGRAMMER* pgm)
-{
+void flip2_enable(PROGRAMMER *pgm, const AVRPART *p) {
   /* Nothing to do. */
 }
 
-void flip2_disable(PROGRAMMER* pgm)
-{
+void flip2_disable(const PROGRAMMER *pgm) {
   /* Nothing to do. */
 }
 
-void flip2_display(PROGRAMMER* pgm, const char *prefix)
-{
+void flip2_display(const PROGRAMMER *pgm, const char *prefix) {
   /* Nothing to do. */
 }
 
-int flip2_program_enable(PROGRAMMER* pgm, AVRPART *part)
-{
+int flip2_program_enable(const PROGRAMMER *pgm, const AVRPART *part) {
   /* I couldn't find anything that uses this function, although it is marked
    * as "mandatory" in pgm.c. In case anyone does use it, we'll report an
    * error if we failed to initialize.
@@ -348,8 +341,7 @@ int flip2_program_enable(PROGRAMMER* pgm, AVRPART *part)
   return (FLIP2(pgm)->dfu != NULL) ? 0 : -1;
 }
 
-int flip2_chip_erase(PROGRAMMER* pgm, AVRPART *part)
-{
+int flip2_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
   struct dfu_status status;
   int cmd_result = 0;
   int aux_result;
@@ -383,7 +375,7 @@ int flip2_chip_erase(PROGRAMMER* pgm, AVRPART *part)
   return cmd_result;
 }
 
-int flip2_read_byte(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
+int flip2_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
   unsigned long addr, unsigned char *value)
 {
   enum flip2_mem_unit mem_unit;
@@ -406,7 +398,7 @@ int flip2_read_byte(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
   return flip2_read_memory(FLIP2(pgm)->dfu, mem_unit, addr, value, 1);
 }
 
-int flip2_write_byte(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
+int flip2_write_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
   unsigned long addr, unsigned char value)
 {
   enum flip2_mem_unit mem_unit;
@@ -429,7 +421,7 @@ int flip2_write_byte(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
   return flip2_write_memory(FLIP2(pgm)->dfu, mem_unit, addr, &value, 1);
 }
 
-int flip2_paged_load(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
+int flip2_paged_load(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes)
 {
   enum flip2_mem_unit mem_unit;
@@ -463,7 +455,7 @@ int flip2_paged_load(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
   return (result == 0) ? n_bytes : -1;
 }
 
-int flip2_paged_write(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
+int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes)
 {
   enum flip2_mem_unit mem_unit;
@@ -497,8 +489,7 @@ int flip2_paged_write(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
   return (result == 0) ? n_bytes : -1;
 }
 
-int flip2_read_sig_bytes(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem)
-{
+int flip2_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem) {
   if (FLIP2(pgm)->dfu == NULL)
     return -1;
 
@@ -905,11 +896,11 @@ const char * flip2_mem_unit_str(enum flip2_mem_unit mem_unit)
 }
 
 enum flip2_mem_unit flip2_mem_unit(const char *name) {
-  if (strcasecmp(name, "application") == 0)
+  if (strcmp(name, "application") == 0)
     return FLIP2_MEM_UNIT_FLASH;
-  if (strcasecmp(name, "eeprom") == 0)
+  if (strcmp(name, "eeprom") == 0)
     return FLIP2_MEM_UNIT_EEPROM;
-  if (strcasecmp(name, "signature") == 0)
+  if (strcmp(name, "signature") == 0)
     return FLIP2_MEM_UNIT_SIGNATURE;
   return FLIP2_MEM_UNIT_UNKNOWN;
 }
@@ -918,15 +909,13 @@ enum flip2_mem_unit flip2_mem_unit(const char *name) {
 
 /* EXPORTED PROGRAMMER FUNCTION DEFINITIONS */
 
-int flip2_open(PROGRAMMER *pgm, char *port_spec)
-{
+int flip2_open(PROGRAMMER *pgm, const char *port_spec) {
   fprintf(stderr, "%s: Error: No USB support in this compile of avrdude\n",
     progname);
   return -1;
 }
 
-int flip2_initialize(PROGRAMMER* pgm, AVRPART *part)
-{
+int flip2_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
   return -1;
 }
 
@@ -934,54 +923,48 @@ void flip2_close(PROGRAMMER* pgm)
 {
 }
 
-void flip2_enable(PROGRAMMER* pgm)
-{
+void flip2_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
-void flip2_disable(PROGRAMMER* pgm)
-{
+void flip2_disable(const PROGRAMMER *pgm) {
 }
 
-void flip2_display(PROGRAMMER* pgm, const char *prefix)
-{
+void flip2_display(const PROGRAMMER *pgm, const char *prefix) {
 }
 
-int flip2_program_enable(PROGRAMMER* pgm, AVRPART *part)
-{
+int flip2_program_enable(const PROGRAMMER *pgm, const AVRPART *part) {
   return -1;
 }
 
-int flip2_chip_erase(PROGRAMMER* pgm, AVRPART *part)
-{
+int flip2_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
   return -1;
 }
 
-int flip2_read_byte(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
+int flip2_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
   unsigned long addr, unsigned char *value)
 {
   return -1;
 }
 
-int flip2_write_byte(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
+int flip2_write_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
   unsigned long addr, unsigned char value)
 {
   return -1;
 }
 
-int flip2_paged_load(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
+int flip2_paged_load(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes)
 {
   return -1;
 }
 
-int flip2_paged_write(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem,
+int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes)
 {
   return -1;
 }
 
-int flip2_read_sig_bytes(PROGRAMMER* pgm, AVRPART *part, AVRMEM *mem)
-{
+int flip2_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem) {
   return -1;
 }
 
