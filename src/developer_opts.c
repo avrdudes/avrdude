@@ -63,12 +63,14 @@ static struct {
   const char *mcu, *var, *value;
 } ptinj[] = {
   // Add triples here, eg, {"ATmega328P", "mcuid", "999"},
+ {NULL, NULL, NULL},
 };
 
 static struct {
   const char *mcu, *mem, *var, *value;
 } meminj[] = {
   // Add quadruples here, eg, {"ATmega328P", "flash", "page_size", "128"},
+  {NULL, NULL, NULL, NULL},
 };
 
 
@@ -713,9 +715,10 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
 
     if(injct)
       for(size_t i=0; i<sizeof meminj/sizeof*meminj; i++)
-        if(strcmp(meminj[i].mcu, p->desc) == 0 && strcmp(meminj[i].mem, m->desc) == 0)
-          dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc,
-            meminj[i].var, cfg_strdup("meminj", meminj[i].value), NULL);
+        if(meminj[i].mcu)
+          if(strcmp(meminj[i].mcu, p->desc) == 0 && strcmp(meminj[i].mem, m->desc) == 0)
+            dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc,
+              meminj[i].var, cfg_strdup("meminj", meminj[i].value), NULL);
 
     if(!tsv) {
       dev_cout(m->comments, ";", 0, 0);
@@ -735,9 +738,10 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
 
   if(injct)
     for(size_t i=0; i<sizeof ptinj/sizeof*ptinj; i++)
-      if(strcmp(ptinj[i].mcu, p->desc) == 0)
-        dev_part_strct_entry(tsv, ".pt", p->desc, NULL,
-          ptinj[i].var, cfg_strdup("ptinj", ptinj[i].value), NULL);
+      if(ptinj[i].mcu)
+        if(strcmp(ptinj[i].mcu, p->desc) == 0)
+          dev_part_strct_entry(tsv, ".pt", p->desc, NULL,
+            ptinj[i].var, cfg_strdup("ptinj", ptinj[i].value), NULL);
 
   if(!tsv) {
     dev_cout(p->comments, ";", 0, 0);
