@@ -375,31 +375,41 @@ default_spi        = "@DEFAULT_SPI_PORT@";
 # default_bitclock = 2.5;
 
 @HAVE_PARPORT_BEGIN@
-# Parallel port programmers.
+# Parallel port programmers
+
+#------------------------------------------------------------
+# bsd
+#------------------------------------------------------------
 
 programmer
-  id    = "bsd";
-  desc  = "Brian Dean's Programmer, http://www.bsdhome.com/avrdude/";
-  type  = "par";
-  connection_type = parallel;
-  vcc   = 2, 3, 4, 5;
-  reset = 7;
-  sck   = 8;
-  mosi  = 9;
-  miso  = 10;
+    id                  = "bsd";
+    desc                = "Brian Dean's Programmer, http://www.bsdhome.com/avrdude/";
+    type                = "par";
+    vcc                 = 2, 3, 4, 5;
+    reset               = 7;
+    sck                 = 8;
+    mosi                = 9;
+    miso                = 10;
 ;
 
+#------------------------------------------------------------
+# stk200
+#------------------------------------------------------------
+
 programmer
-  id    = "stk200";
-  desc  = "STK200";
-  type  = "par";
-  connection_type = parallel;
-  buff  = 4, 5;
-  sck   = 6;
-  mosi  = 7;
-  reset = 9;
-  miso  = 10;
+    id                  = "stk200";
+    desc                = "STK200";
+    type                = "par";
+    buff                = 4, 5;
+    reset               = 9;
+    sck                 = 6;
+    mosi                = 7;
+    miso                = 10;
 ;
+
+#------------------------------------------------------------
+# pony-stk200
+#------------------------------------------------------------
 
 # The programming dongle used by the popular Ponyprog
 # utility.  It is almost similar to the STK200 one,
@@ -407,89 +417,116 @@ programmer
 # programming is currently in progress.
 
 programmer parent "stk200"
-  id    = "pony-stk200";
-  desc  = "Pony Prog STK200";
-  pgmled = 8;
+    id                  = "pony-stk200";
+    desc                = "Pony Prog STK200";
+    type                = "par";
+    pgmled              = 8;
 ;
 
+#------------------------------------------------------------
+# dt006
+#------------------------------------------------------------
+
 programmer
-  id    = "dt006";
-  desc  = "Dontronics DT006";
-  type  = "par";
-  connection_type = parallel;
-  reset = 4;
-  sck   = 5;
-  mosi  = 2;
-  miso  = 11;
+    id                  = "dt006";
+    desc                = "Dontronics DT006";
+    type                = "par";
+    reset               = 4;
+    sck                 = 5;
+    mosi                = 2;
+    miso                = 11;
 ;
+
+#------------------------------------------------------------
+# bascom
+#------------------------------------------------------------
 
 programmer parent "dt006"
-  id    = "bascom";
-  desc  = "Bascom SAMPLE programming cable";
+    id                  = "bascom";
+    desc                = "Bascom SAMPLE programming cable";
+    type                = "par";
 ;
+
+#------------------------------------------------------------
+# alf
+#------------------------------------------------------------
 
 programmer
-  id     = "alf";
-  desc   = "Nightshade ALF-PgmAVR, http://nightshade.homeip.net/";
-  type   = "par";
-  connection_type = parallel;
-  vcc    = 2, 3, 4, 5;
-  buff   = 6;
-  reset  = 7;
-  sck    = 8;
-  mosi   = 9;
-  miso   = 10;
-  errled = 1;
-  rdyled = 14;
-  pgmled = 16;
-  vfyled = 17;
+    id                  = "alf";
+    desc                = "Nightshade ALF-PgmAVR, http://nightshade.homeip.net/";
+    type                = "par";
+    vcc                 = 2, 3, 4, 5;
+    buff                = 6;
+    reset               = 7;
+    sck                 = 8;
+    mosi                = 9;
+    miso                = 10;
+    errled              = 1;
+    rdyled              = 14;
+    pgmled              = 16;
+    vfyled              = 17;
 ;
+
+#------------------------------------------------------------
+# sp12
+#------------------------------------------------------------
 
 programmer
-  id    = "sp12";
-  desc  = "Steve Bolt's Programmer";
-  type  = "par";
-  connection_type = parallel;
-  vcc   = 4,5,6,7,8;
-  reset = 3;
-  sck   = 2;
-  mosi  = 9;
-  miso  = 11;
+    id                  = "sp12";
+    desc                = "Steve Bolt's Programmer";
+    type                = "par";
+    vcc                 = 4, 5, 6, 7, 8;
+    reset               = 3;
+    sck                 = 2;
+    mosi                = 9;
+    miso                = 11;
 ;
+
+#------------------------------------------------------------
+# picoweb
+#------------------------------------------------------------
 
 programmer
-  id     = "picoweb";
-  desc   = "Picoweb Programming Cable, http://www.picoweb.net/";
-  type   = "par";
-  connection_type = parallel;
-  reset  = 2;
-  sck    = 3;
-  mosi   = 4;
-  miso   = 13;
+    id                  = "picoweb";
+    desc                = "Picoweb Programming Cable, http://www.picoweb.net/";
+    type                = "par";
+    reset               = 2;
+    sck                 = 3;
+    mosi                = 4;
+    miso                = 13;
 ;
+
+#------------------------------------------------------------
+# abcmini
+#------------------------------------------------------------
 
 programmer
-  id    = "abcmini";
-  desc  = "ABCmini Board, aka Dick Smith HOTCHIP";
-  type  = "par";
-  connection_type = parallel;
-  reset = 4;
-  sck   = 3;
-  mosi  = 2;
-  miso  = 10;
+    id                  = "abcmini";
+    desc                = "ABCmini Board, aka Dick Smith HOTCHIP";
+    type                = "par";
+    reset               = 4;
+    sck                 = 3;
+    mosi                = 2;
+    miso                = 10;
 ;
+
+#------------------------------------------------------------
+# futurlec
+#------------------------------------------------------------
 
 programmer
-  id    = "futurlec";
-  desc  = "Futurlec.com programming cable.";
-  type  = "par";
-  connection_type = parallel;
-  reset = 3;
-  sck   = 2;
-  mosi  = 1;
-  miso  = 10;
+    id                  = "futurlec";
+    desc                = "Futurlec.com programming cable.";
+    type                = "par";
+    reset               = 3;
+    sck                 = 2;
+    mosi                = 1;
+    miso                = 10;
 ;
 
+#------------------------------------------------------------
+# xil
+#------------------------------------------------------------
 
 # From the contributor of the "xil" jtag cable:
 # The "vcc" definition isn't really vcc (the cable gets its power from
@@ -498,91 +535,115 @@ programmer
 # avrdude versions before 5.5j).
 # With this, TMS connects to RESET, TDI to MOSI, TDO to MISO and TCK
 # to SCK (plus vcc/gnd of course)
-programmer
-  id    = "xil";
-  desc  = "Xilinx JTAG cable";
-  type  = "par";
-  connection_type = parallel;
-  mosi  = 2;
-  sck   = 3;
-  reset = 4;
-  buff  = 5;
-  miso  = 13;
-  vcc   = 6;
-;
-
 
 programmer
-  id = "dapa";
-  desc = "Direct AVR Parallel Access cable";
-  type = "par";
-  connection_type = parallel;
-  vcc   = 3;
-  reset = 16;
-  sck = 1;
-  mosi = 2;
-  miso = 11;
+    id                  = "xil";
+    desc                = "Xilinx JTAG cable";
+    type                = "par";
+    vcc                 = 6;
+    buff                = 5;
+    reset               = 4;
+    sck                 = 3;
+    mosi                = 2;
+    miso                = 13;
 ;
 
-programmer
-  id    = "atisp";
-  desc  = "AT-ISP V1.1 programming cable for AVR-SDK1 from <http://micro-research.co.th/> micro-research.co.th";
-  type  = "par";
-  connection_type = parallel;
-  reset = ~6;
-  sck   = ~8;
-  mosi  = ~7;
-  miso  = ~10;
-;
+#------------------------------------------------------------
+# dapa
+#------------------------------------------------------------
 
 programmer
-  id    = "ere-isp-avr";
-  desc  = "ERE ISP-AVR <http://www.ere.co.th/download/sch050713.pdf>";
-  type  = "par";
-  connection_type = parallel;
-  reset = ~4;
-  sck   = 3;
-  mosi  = 2;
-  miso  = 10;
+    id                  = "dapa";
+    desc                = "Direct AVR Parallel Access cable";
+    type                = "par";
+    vcc                 = 3;
+    reset               = 16;
+    sck                 = 1;
+    mosi                = 2;
+    miso                = 11;
 ;
 
+#------------------------------------------------------------
+# atisp
+#------------------------------------------------------------
+
 programmer
-  id    = "blaster";
-  desc  = "Altera ByteBlaster";
-  type  = "par";
-  connection_type = parallel;
-  sck   = 2;
-  miso  = 11;
-  reset = 3;
-  mosi  = 8;
-  buff  = 14;
+    id                  = "atisp";
+    desc                = "AT-ISP V1.1 programming cable for AVR-SDK1 from <http://micro-research.co.th/> micro-research.co.th";
+    type                = "par";
+    reset               = ~6;
+    sck                 = ~8;
+    mosi                = ~7;
+    miso                = ~10;
 ;
+
+#------------------------------------------------------------
+# ere-isp-avr
+#------------------------------------------------------------
+
+programmer
+    id                  = "ere-isp-avr";
+    desc                = "ERE ISP-AVR <http://www.ere.co.th/download/sch050713.pdf>";
+    type                = "par";
+    reset               = ~4;
+    sck                 = 3;
+    mosi                = 2;
+    miso                = 10;
+;
+
+#------------------------------------------------------------
+# blaster
+#------------------------------------------------------------
+
+programmer
+    id                  = "blaster";
+    desc                = "Altera ByteBlaster";
+    type                = "par";
+    buff                = 14;
+    reset               = 3;
+    sck                 = 2;
+    mosi                = 8;
+    miso                = 11;
+;
+
+#------------------------------------------------------------
+# frank-stk200
+#------------------------------------------------------------
 
 # It is almost same as pony-stk200, except vcc on pin 5 to auto
 # disconnect port (download on http://electropol.free.fr/spip/spip.php?article27)
+
 programmer parent "pony-stk200"
-  id    = "frank-stk200";
-  desc  = "Frank STK200";
-  buff  = ; # delete buff pin assignment
-  vcc   = 5;
+    id                  = "frank-stk200";
+    desc                = "Frank STK200";
+    type                = "par";
+    vcc                 = 5;
+    buff                = ; # delete buff pin assignment
 ;
+
+#------------------------------------------------------------
+# 89isp
+#------------------------------------------------------------
 
 # The AT98ISP Cable is a simple parallel dongle for AT89 family.
 # http://www.atmel.com/dyn/products/tools_card.asp?tool_id=2877
-programmer
-  id = "89isp";
-  desc = "Atmel at89isp cable";
-  type = "par";
-  connection_type = parallel;
-  reset = 17;
-  sck = 1;
-  mosi = 2;
-  miso = 10;
-;
 
+programmer
+    id                  = "89isp";
+    desc                = "Atmel at89isp cable";
+    type                = "par";
+    reset               = 17;
+    sck                 = 1;
+    mosi                = 2;
+    miso                = 10;
+;
 @HAVE_PARPORT_END@
 
 @HAVE_LINUXGPIO_BEGIN@
+#------------------------------------------------------------
+# linuxgpio
+#------------------------------------------------------------
+
 #This programmer bitbangs GPIO lines using the Linux sysfs GPIO interface
 #
 #To enable it set the configuration below to match the GPIO lines connected to the
@@ -606,19 +667,23 @@ programmer
 #;
 @HAVE_LINUXGPIO_END@
 
-
 @HAVE_LINUXSPI_BEGIN@
+#------------------------------------------------------------
+# linuxspi
+#------------------------------------------------------------
+
 # This programmer uses the built in linux SPI bus devices to program an
 # attached AVR. The reset pin must be attached to a GPIO pin that
 # is otherwise unused (see gpioinfo(1)); the SPI bus CE pins are not
 # suitable since they would release /RESET too early.
 #
+
 programmer
-   id = "linuxspi";
-   desc = "Use Linux SPI device in /dev/spidev*";
-   type = "linuxspi";
-   connection_type = spi;
-   reset = 25;    # Pi GPIO number - this is J8:22
+    id                  = "linuxspi";
+    desc                = "Use Linux SPI device in /dev/spidev*";
+    type                = "linuxspi";
+    connection_type     = spi;
+    reset               = 25;    # Pi GPIO number - this is J8:22
 ;
 @HAVE_LINUXSPI_END@
 
@@ -631,8 +696,8 @@ programmer
 #------------------------------------------------------------
 
 # http://wiring.org.co/
-# Basically STK500v2 protocol, with some glue to trigger the
-# bootloader.
+# Basically STK500v2 protocol, with some glue to trigger the bootloader
+
 programmer
     id                  = "wiring";
     desc                = "Wiring";
@@ -714,6 +779,7 @@ programmer
 
 # This is an implementation of the above with a buffer IC (74AC244) and
 # 4 LEDs directly attached, all active low.
+
 programmer
     id                  = "2232HIO";
     desc                = "FT2232H based generic programmer";
@@ -744,15 +810,12 @@ programmer
 
 #The FT4232H can be treated as FT2232H, but it has a different USB
 #device ID of 0x6011.
+
 programmer parent "avrftdi"
     id                  = "4232h";
     desc                = "FT4232H based generic programmer";
     type                = "avrftdi";
     usbpid              = 0x6011;
-    reset               = 3;
-    sck                 = 0;
-    mosi                = 1;
-    miso                = 2;
 ;
 
 #------------------------------------------------------------
@@ -792,8 +855,8 @@ programmer
     usbvid              = 0x0403;
     usbpid              = 0x6014;
     usbdev              = "A";
-    reset               = 3; # AD3 (TMS)
 #ISP-signals
+    reset               = 3; # AD3 (TMS)
     sck                 = 0; # AD0 (TCK)
     mosi                = 1; # AD1 (TDI)
     miso                = 2; # AD2 (TDO)
@@ -810,15 +873,12 @@ programmer
 # Pin J2-6 is GND
 # Use the -b flag to set the SPI clock rate eg -b 3750000 is the fastest I could get
 # a 16MHz Atmega1280 to program reliably.  The 232H is conveniently 5V tolerant.
+
 programmer parent "ft232h"
     id                  = "um232h";
     desc                = "UM232H module from FTDI";
     type                = "avrftdi";
     usbpid              = 0x6014;
-    reset               = 3;
-    sck                 = 0;
-    mosi                = 1;
-    miso                = 2;
 ;
 
 #------------------------------------------------------------
@@ -832,15 +892,12 @@ programmer parent "ft232h"
 # Black (Pin 10) is GND
 # Use the -b flag to set the SPI clock rate eg -b 3750000 is the fastest I could get
 # a 16MHz Atmega1280 to program reliably.  The 232H is conveniently 5V tolerant.
+
 programmer parent "ft232h"
     id                  = "c232hm";
     desc                = "C232HM cable from FTDI";
     type                = "avrftdi";
     usbpid              = 0x6014;
-    reset               = 3;
-    sck                 = 0;
-    mosi                = 1;
-    miso                = 2;
 ;
 
 #------------------------------------------------------------
@@ -860,6 +917,7 @@ programmer parent "ft232h"
 #   http://armwerks.com/catalog/o-link-debugger-copy/
 # or just have a look at ebay ...
 # It is basically the same entry as jtagkey with different usb ids.
+
 programmer parent "jtagkey"
     id                  = "o-link";
     desc                = "O-Link, OpenJTAG from www.100ask.net";
@@ -868,11 +926,6 @@ programmer parent "jtagkey"
     usbpid              = 0x5118;
     usbvendor           = "www.100ask.net";
     usbproduct          = "USB<=>JTAG&RS232";
-    buff                = ~4;
-    reset               = 3;
-    sck                 = 0;
-    mosi                = 1;
-    miso                = 2;
 ;
 
 #------------------------------------------------------------
@@ -880,6 +933,7 @@ programmer parent "jtagkey"
 #------------------------------------------------------------
 
 # http://wiki.openmoko.org/wiki/Debug_Board_v3
+
 programmer
     id                  = "openmoko";
     desc                = "Openmoko debug board (v3)";
@@ -899,6 +953,7 @@ programmer
 
 # Only Rev. A boards.
 # Schematic and user manual: http://www.cs.put.poznan.pl/wswitala/download/pdf/811EVBK.pdf
+
 programmer
     id                  = "lm3s811";
     desc                = "Luminary Micro LM3S811 Eval Board (Rev. A)";
@@ -923,6 +978,7 @@ programmer
 #------------------------------------------------------------
 
 # submitted as bug #46020
+
 programmer
     id                  = "tumpa";
     desc                = "TIAO USB Multi-Protocol Adapter";
@@ -958,6 +1014,7 @@ programmer
 #  * Connect JTAG connector pin 1 to 5V (i.e. EXT pin 13 or JTAG pin 19).
 #  * For TPI connection use resistors: TDO --[470R]-- TPIDATA --[470R]-- TDI.
 #  * Powering target from JTAG pin 19 allows KT-LINK current measurement.
+
 programmer
     id                  = "ktlink";
     desc                = "KT-LINK FT2232H interface with IO switching and voltage buffers.";
@@ -1065,6 +1122,7 @@ programmer
 # Attempts to select the correct firmware version
 # by probing for it.  Better use one of the entries
 # below instead.
+
 programmer
     id                  = "stk500";
     desc                = "Atmel STK500";
@@ -1206,6 +1264,7 @@ programmer
 #------------------------------------------------------------
 
 # see http://www.bitwizard.nl/wiki/index.php/FTDI_ATmega
+
 programmer
     id                  = "bwmega";
     desc                = "BitWizard ftdi_atmega builtin programmer";
@@ -1223,6 +1282,7 @@ programmer
 
 # see http://www.geocities.jp/arduino_diecimila/bootloader/index_en.html
 # Note: pins are numbered from 1!
+
 programmer
     id                  = "arduino-ft232r";
     desc                = "Arduino: FT232R connected to ISP";
@@ -1243,9 +1303,9 @@ programmer
     desc                = "Tag-Connect TC2030";
     type                = "ftdi_syncbb";
     connection_type     = usb;
+  #                      FOR TPI devices:
     reset               = 3;  # CTS = D3 (wire to ~RESET)
     sck                 = 2;  # RTS = D2 (wire to SCK)
-  #                      FOR TPI devices:
     mosi                = 0;  # TxD = D0 (wire to TPIDATA via 1k resistor)
     miso                = 1;  # RxD = D1 (wire to TPIDATA directly)
 ;
@@ -1255,14 +1315,11 @@ programmer
 #------------------------------------------------------------
 
 # website mentioned above uses this id
+
 programmer parent "arduino-ft232r"
     id                  = "diecimila";
     desc                = "alias for arduino-ft232r";
     type                = "ftdi_syncbb";
-    reset               = 7;
-    sck                 = 5;
-    mosi                = 6;
-    miso                = 3;
 ;
 
 #------------------------------------------------------------
@@ -1275,6 +1332,7 @@ programmer parent "arduino-ft232r"
 # Its 4 pairs of pins are shorted to enable ftdi_syncbb.
 # http://akizukidenshi.com/catalog/g/gP-07487/
 # http://akizukidenshi.com/download/ds/akizuki/k6096_manual_20130816.pdf
+
 programmer
     id                  = "uncompatino";
     desc                = "uncompatino with all pairs of pins shorted";
@@ -1303,6 +1361,7 @@ programmer
 # TTL-232R RTS 6 Green  -> ICPS MISO  (pin 1)
 # Except for VCC and GND, you can connect arbitual pairs as long as
 # the following table is adjusted.
+
 programmer
     id                  = "ttl232r";
     desc                = "FTDI TTL232R-5V with ICSP adapter";
@@ -1380,6 +1439,7 @@ programmer
 # In that case, a resistor of 1 kOhm is needed between MISO and MOSI
 # pins of the connector, and MISO (pin 1 of the 6-pin connector)
 # connects to TPIDATA.
+
 programmer
     id                  = "usbtiny";
     desc                = "USBtiny simple USB programmer, https://learn.adafruit.com/usbtinyisp";
@@ -1420,6 +1480,7 @@ programmer
 #------------------------------------------------------------
 
 # commercial version of USBtiny, using a separate VID/PID
+
 programmer
     id                  = "ehajo-isp";
     desc                = "avr-isp-programmer from eHaJo, http://www.eHaJo.de";
@@ -1435,6 +1496,7 @@ programmer
 
 # commercial version of USBtiny, using a separate VID/PID
 # https://github.com/IowaScaledEngineering/ckt-avrprogrammer
+
 programmer
     id                  = "iseavrprog";
     desc                = "USBtiny-based programmer, https://iascaled.com";
@@ -1508,6 +1570,7 @@ programmer
 #------------------------------------------------------------
 
 # suggested in http://forum.mikrokopter.de/topic-post48317.html
+
 programmer
     id                  = "mkbutterfly";
     desc                = "Mikrokopter.de Butterfly";
@@ -1541,6 +1604,7 @@ programmer
 #------------------------------------------------------------
 
 # easier to type
+
 programmer parent "jtagmkI"
     id                  = "jtag1";
     type                = "jtagmki";
@@ -1551,6 +1615,7 @@ programmer parent "jtagmkI"
 #------------------------------------------------------------
 
 # easier to type
+
 programmer parent "jtag1"
     id                  = "jtag1slow";
     type                = "jtagmki";
@@ -1579,6 +1644,7 @@ programmer
 #------------------------------------------------------------
 
 # easier to type
+
 programmer parent "jtagmkII"
     id                  = "jtag2slow";
     type                = "jtagmkii";
@@ -1589,6 +1655,7 @@ programmer parent "jtagmkII"
 #------------------------------------------------------------
 
 # JTAG ICE mkII @ 115200 Bd
+
 programmer parent "jtag2slow"
     id                  = "jtag2fast";
     type                = "jtagmkii";
@@ -1600,6 +1667,7 @@ programmer parent "jtag2slow"
 #------------------------------------------------------------
 
 # make the fast one the default, people will love that
+
 programmer parent "jtag2fast"
     id                  = "jtag2";
     type                = "jtagmkii";
@@ -1610,6 +1678,7 @@ programmer parent "jtag2fast"
 #------------------------------------------------------------
 
 # JTAG ICE mkII in ISP mode
+
 programmer
     id                  = "jtag2isp";
     desc                = "Atmel JTAG ICE mkII in ISP mode";
@@ -1623,6 +1692,7 @@ programmer
 #------------------------------------------------------------
 
 # JTAG ICE mkII in debugWire mode
+
 programmer
     id                  = "jtag2dw";
     desc                = "Atmel JTAG ICE mkII in debugWire mode";
@@ -1636,6 +1706,7 @@ programmer
 #------------------------------------------------------------
 
 # JTAG ICE mkII in AVR32 mode
+
 programmer
     id                  = "jtagmkII_avr32";
     desc                = "Atmel JTAG ICE mkII im AVR32 mode";
@@ -1649,6 +1720,7 @@ programmer
 #------------------------------------------------------------
 
 # JTAG ICE mkII in AVR32 mode
+
 programmer
     id                  = "jtag2avr32";
     desc                = "Atmel JTAG ICE mkII im AVR32 mode";
@@ -1662,6 +1734,7 @@ programmer
 #------------------------------------------------------------
 
 # JTAG ICE mkII in PDI mode
+
 programmer
     id                  = "jtag2pdi";
     desc                = "Atmel JTAG ICE mkII PDI mode";
@@ -1675,6 +1748,7 @@ programmer
 #------------------------------------------------------------
 
 # AVR Dragon in JTAG mode
+
 programmer
     id                  = "dragon_jtag";
     desc                = "Atmel AVR Dragon in JTAG mode";
@@ -1688,6 +1762,7 @@ programmer
 #------------------------------------------------------------
 
 # AVR Dragon in ISP mode
+
 programmer
     id                  = "dragon_isp";
     desc                = "Atmel AVR Dragon in ISP mode";
@@ -1701,6 +1776,7 @@ programmer
 #------------------------------------------------------------
 
 # AVR Dragon in PP mode
+
 programmer
     id                  = "dragon_pp";
     desc                = "Atmel AVR Dragon in PP mode";
@@ -1714,6 +1790,7 @@ programmer
 #------------------------------------------------------------
 
 # AVR Dragon in HVSP mode
+
 programmer
     id                  = "dragon_hvsp";
     desc                = "Atmel AVR Dragon in HVSP mode";
@@ -1727,6 +1804,7 @@ programmer
 #------------------------------------------------------------
 
 # AVR Dragon in debugWire mode
+
 programmer
     id                  = "dragon_dw";
     desc                = "Atmel AVR Dragon in debugWire mode";
@@ -1740,6 +1818,7 @@ programmer
 #------------------------------------------------------------
 
 # AVR Dragon in PDI mode
+
 programmer
     id                  = "dragon_pdi";
     desc                = "Atmel AVR Dragon in PDI mode";
@@ -2170,10 +2249,6 @@ programmer parent "ponyser"
     id                  = "siprog";
     desc                = "Lancos SI-Prog <http://www.lancos.com/siprogsch.html>";
     type                = "serbb";
-    reset               = ~3;
-    sck                 = 7;
-    mosi                = 4;
-    miso                = 8;
 ;
 
 #------------------------------------------------------------

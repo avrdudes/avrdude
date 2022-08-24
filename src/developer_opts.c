@@ -1147,7 +1147,8 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
   }
 
   _if_pgmout_str(strcmp, cfg_escape(pgm->desc), desc);
-  _pgmout_fmt("type", "\"%s\"", locate_programmer_type_id(pgm->initpgm));
+  if(!base || base->initpgm != pgm->initpgm)
+    _pgmout_fmt("type", "\"%s\"", locate_programmer_type_id(pgm->initpgm));
   if(!base || base->conntype != pgm->conntype)
     _pgmout_fmt("connection_type", "%s", connstr(pgm->conntype));
   _if_pgmout(intcmp, "%d", baudrate);
@@ -1182,10 +1183,13 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
 
   for(int i=0; i<N_PINS; i++) {
     char *str = pins_to_strdup(pgm->pin+i);
-    if(str && *str)
+    char *bstr = base? pins_to_strdup(base->pin+i): NULL;
+    if(!base || strcmp(bstr, str))
       _pgmout_fmt(avr_pin_lcname(i), "%s", str);
-    if(str)
-      free(str);
+
+    free(str);
+    if(bstr)
+      free(bstr);
   }
 
   if(pgm->hvupdi_support && lfirst(pgm->hvupdi_support)) {
