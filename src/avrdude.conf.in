@@ -356,15 +356,15 @@
 # in the Internet.  These add the following codes (only devices that
 # actually exist are listed):
 
-# ATmega8515	0x3A
-# ATmega128	0x43
-# ATmega64	0x45
-# ATtiny26	0x5E
-# ATmega8535	0x69
-# ATmega32	0x72
-# ATmega16	0x74
-# ATmega8	0x76
-# ATmega169	0x78
+# ATmega8515    0x3A
+# ATmega128     0x43
+# ATmega64      0x45
+# ATtiny26      0x5E
+# ATmega8535    0x69
+# ATmega32      0x72
+# ATmega16      0x74
+# ATmega8       0x76
+# ATmega169     0x78
 
 #
 # Overall avrdude defaults; suitable for ~/.avrduderc
@@ -7624,7 +7624,7 @@ part
     chip_erase_delay    = 9000;
     pagel               = 0xd7;
     bs2                 = 0xc2;
-    # avr910_devcode	= 0x;
+    # avr910_devcode    = 0x;
     signature           = 0x1e 0x95 0x14;
     has_debugwire       = yes;
     timeout             = 200;
@@ -7771,8 +7771,8 @@ part parent "m328"
     desc                = "ATmega32M1";
     id                  = "m32m1";
     bs2                 = 0xe2;
-    # stk500_devcode	= 0x;
-    # avr910_devcode	= 0x;
+    # stk500_devcode    = 0x;
+    # avr910_devcode    = 0x;
     signature           = 0x1e 0x95 0x84;
 
     memory "efuse"
@@ -7788,8 +7788,8 @@ part parent "m328"
     desc                = "ATmega64M1";
     id                  = "m64m1";
     bs2                 = 0xe2;
-    # stk500_devcode	= 0x;
-    # avr910_devcode	= 0x;
+    # stk500_devcode    = 0x;
+    # avr910_devcode    = 0x;
     signature           = 0x1e 0x96 0x84;
 
     memory "eeprom"
@@ -12074,7 +12074,7 @@ part parent ".xmega"
     desc                = "ATxmega192C3";
     id                  = "x192c3";
     signature           = 0x1e 0x97 0x51;
-    # usbpid	= 0x2f??;
+    # usbpid            = 0x2f??;
 
     memory "eeprom"
         size            = 2048;
