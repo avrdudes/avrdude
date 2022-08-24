@@ -345,7 +345,7 @@ static void dev_stack_out(bool tsv, const AVRPART *p, const char *name, const un
     dev_info(tsv? "NULL\n": "NULL;");
   else
     for(int i=0; i<ns; i++)
-      dev_info("%s0x%02x%s", !tsv && ns > 8 && i%8 == 0? "\n        ": "", stack[i], i+1<ns? ", ": tsv? "\n": ";");
+      dev_info("%s0x%02x%s", !tsv && ns > 8 && i%8 == 0? "\n        ": " ", stack[i], i+1<ns? ",": tsv? "\n": ";");
 
   dev_cout(p->comments, name, 1, 1);
 }
