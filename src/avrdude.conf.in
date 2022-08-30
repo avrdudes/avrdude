@@ -2323,7 +2323,6 @@ programmer
     hvupdi_support         = 1;
 ;
 
-
 #
 # PART DEFINITIONS
 #
@@ -2502,7 +2501,6 @@ part
     stk500_devcode         = 0x14;
     chip_erase_delay       = 4000;
     signature              = 0x1e 0x90 0x07;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -3551,7 +3549,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x96 0x02;
     reset                  = io;
-    has_jtag               = yes;
     allowfullpagebitstream = yes;
     timeout                = 200;
     stabdelay              = 100;
@@ -3681,7 +3678,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x97 0x02;
     reset                  = io;
-    has_jtag               = yes;
     allowfullpagebitstream = yes;
     timeout                = 200;
     stabdelay              = 100;
@@ -3812,7 +3808,6 @@ part
 #   avr910_devcode         = 0x43;
     signature              = 0x1e 0x97 0x81;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -3936,7 +3931,6 @@ part
 #   avr910_devcode         = 0x43;
     signature              = 0x1e 0x96 0x81;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -4060,7 +4054,6 @@ part
 #   avr910_devcode         = 0x43;
     signature              = 0x1e 0x95 0x81;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -4184,7 +4177,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x94 0x03;
     reset                  = io;
-    has_jtag               = yes;
     allowfullpagebitstream = yes;
     timeout                = 200;
     stabdelay              = 100;
@@ -4310,7 +4302,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x95 0x08;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -4508,7 +4499,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x96 0x09;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -4664,7 +4654,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x97 0x06;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -4800,7 +4789,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x94 0x04;
     reset                  = io;
-    has_jtag               = yes;
     allowfullpagebitstream = yes;
     timeout                = 200;
     stabdelay              = 100;
@@ -5023,7 +5011,6 @@ part
     avr910_devcode         = 0x78;
     chip_erase_delay       = 9000;
     signature              = 0x1e 0x94 0x05;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -5181,7 +5168,6 @@ part
     chip_erase_delay       = 9000;
     signature              = 0x1e 0x95 0x03;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -5385,7 +5371,6 @@ part
     chip_erase_delay       = 9000;
     signature              = 0x1e 0x96 0x03;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -5567,7 +5552,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x95 0x02;
     reset                  = io;
-    has_jtag               = yes;
     allowfullpagebitstream = yes;
     timeout                = 200;
     stabdelay              = 100;
@@ -6218,7 +6202,6 @@ part
 #   stk500_devcode         = 0x21;
 #   avr910_devcode         = 0x5e;
     signature              = 0x1e 0x91 0x0c;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -6355,7 +6338,6 @@ part
 #   stk500_devcode         = 0x21;
 #   avr910_devcode         = 0x5e;
     signature              = 0x1e 0x92 0x08;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -6492,7 +6474,6 @@ part
 #   stk500_devcode         = 0x21;
 #   avr910_devcode         = 0x5e;
     signature              = 0x1e 0x93 0x0d;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -6682,7 +6663,6 @@ part
 #   avr910_devcode         = 0x??;
     signature              = 0x1e 0x92 0x05;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -6855,7 +6835,6 @@ part
 #   avr910_devcode         = 0x??;
     signature              = 0x1e 0x93 0x0a;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -7029,7 +7008,6 @@ part
 #   avr910_devcode         = 0x??;
     signature              = 0x1e 0x94 0x06;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -7203,7 +7181,6 @@ part
 #   avr910_devcode         = 0x??;
     signature              = 0x1e 0x93 0x14;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -7341,7 +7318,6 @@ part
     chip_erase_delay       = 15000;
     signature              = 0x1e 0x93 0x87;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -7469,7 +7445,6 @@ part
     chip_erase_delay       = 15000;
     signature              = 0x1e 0x94 0x87;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -7596,7 +7571,6 @@ part
 #   avr910_devcode         = 0x??;
     signature              = 0x1e 0x92 0x09;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -7725,7 +7699,6 @@ part
 #   avr910_devcode         = 0x??;
     signature              = 0x1e 0x93 0x11;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -7854,7 +7827,6 @@ part
 #   avr910_devcode         = 0x??;
     signature              = 0x1e 0x95 0x14;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -8069,7 +8041,6 @@ part
     bs2                    = 0xd6;
     signature              = 0x1e 0x91 0x0a;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -8214,7 +8185,6 @@ part
     bs2                    = 0xd6;
     signature              = 0x1e 0x92 0x0d;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -8342,7 +8312,6 @@ part
 #   avr910_devcode         = ?;
     signature              = 0x1e 0x93 0x81;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -8543,7 +8512,6 @@ part
     chip_erase_delay       = 4500;
     signature              = 0x1e 0x91 0x08;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -8673,7 +8641,6 @@ part
     chip_erase_delay       = 4500;
     signature              = 0x1e 0x92 0x06;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -8804,7 +8771,6 @@ part
     chip_erase_delay       = 4500;
     signature              = 0x1e 0x93 0x0b;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -8935,7 +8901,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x96 0x08;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -9059,7 +9024,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x97 0x03;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -9196,7 +9160,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x98 0x01;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -9456,7 +9419,6 @@ part
     chip_erase_delay       = 4500;
     signature              = 0x1e 0x91 0x0b;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -9597,7 +9559,6 @@ part
     chip_erase_delay       = 4500;
     signature              = 0x1e 0x92 0x07;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -9738,7 +9699,6 @@ part
     chip_erase_delay       = 4500;
     signature              = 0x1e 0x93 0x0c;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -9930,7 +9890,6 @@ part
     chip_erase_delay       = 1000;
     signature              = 0x1e 0x92 0x0c;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -10061,7 +10020,6 @@ part
     signature              = 0x1e 0x94 0x88;
     usbpid                 = 0x2ff4;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -10186,7 +10144,6 @@ part
     signature              = 0x1e 0x95 0x87;
     usbpid                 = 0x2ff4;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -10311,7 +10268,6 @@ part
     signature              = 0x1e 0x96 0x82;
     usbpid                 = 0x2ff9;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -10447,7 +10403,6 @@ part
     signature              = 0x1e 0x97 0x82;
     usbpid                 = 0x2ffb;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -10581,7 +10536,6 @@ part
     signature              = 0x1e 0x94 0x82;
     usbpid                 = 0x2ffa;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -10702,7 +10656,6 @@ part
     signature              = 0x1e 0x93 0x82;
     usbpid                 = 0x2ff7;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -10823,7 +10776,6 @@ part
     signature              = 0x1e 0x95 0x8a;
     usbpid                 = 0x2ff0;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -10944,7 +10896,6 @@ part
     signature              = 0x1e 0x94 0x89;
     usbpid                 = 0x2fef;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -11065,7 +11016,6 @@ part
     signature              = 0x1e 0x93 0x89;
     usbpid                 = 0x2fee;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -11187,7 +11137,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x94 0x10;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -11343,7 +11292,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x95 0x05;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -11502,7 +11450,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x96 0x05;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -11723,7 +11670,6 @@ part
     desc                   = "AVR XMEGA family common values";
     id                     = ".xmega";
     prog_modes             = PM_SPM | PM_PDI;
-    has_pdi                = yes;
     mcu_base               = 0x0090;
     nvm_base               = 0x01c0;
 
@@ -12060,7 +12006,6 @@ part parent "x64a4u"
     mcuid                  = 243;
     n_interrupts           = 125;
     signature              = 0x1e 0x96 0x4e;
-    has_jtag               = yes;
 
     memory "fuse0"
         size               = 1;
@@ -12235,7 +12180,6 @@ part parent "x128c3"
     mcuid                  = 254;
     n_interrupts           = 125;
     signature              = 0x1e 0x97 0x4c;
-    has_jtag               = yes;
 
     memory "fuse0"
         size               = 1;
@@ -12301,7 +12245,6 @@ part parent ".xmega"
     prog_modes             = PM_SPM | PM_PDI | PM_JTAG;
     mcuid                  = 263;
     signature              = 0x1e 0x97 0x46;
-    has_jtag               = yes;
 
     memory "eeprom"
         size               = 2048;
@@ -12418,7 +12361,6 @@ part parent ".xmega"
     n_interrupts           = 81;
     signature              = 0x1e 0x97 0x4d;
     usbpid                 = 0x2fea;
-    has_jtag               = yes;
 
     memory "eeprom"
         size               = 2048;
@@ -12558,7 +12500,6 @@ part parent "x192c3"
     prog_modes             = PM_SPM | PM_PDI | PM_JTAG;
     mcuid                  = 266;
     signature              = 0x1e 0x97 0x4e;
-    has_jtag               = yes;
 
     memory "fuse0"
         size               = 1;
@@ -12666,7 +12607,6 @@ part parent "x256c3"
     id                     = "x256a1";
     prog_modes             = PM_SPM | PM_PDI | PM_JTAG;
     mcuid                  = 271;
-    has_jtag               = yes;
 
     memory "fuse0"
         size               = 1;
@@ -12960,8 +12900,6 @@ part
     id                     = "uc3a0512";
     prog_modes             = PM_JTAG | PM_aWire;
     signature              = 0xed 0xc0 0x3f;
-    has_jtag               = yes;
-    is_avr32               = yes;
 
     memory "flash"
         paged              = yes;
@@ -13000,7 +12938,6 @@ part
 #   avr910_devcode         = 0x??;
     signature              = 0x1e 0x94 0x12;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -13128,7 +13065,6 @@ part
     desc                   = "Common values for reduced core tinys";
     id                     = ".reduced_core_tiny";
     prog_modes             = PM_TPI;
-    has_tpi                = yes;
 
     memory "fuse"
         size               = 1;
@@ -13313,7 +13249,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x95 0x07;
     reset                  = io;
-    has_jtag               = yes;
     serial                 = no;
     # STK500v2 HV programming parameters, from XML
     pp_controlstack        =
@@ -13371,7 +13306,6 @@ part
     desc                   = "AVR8X family common values";
     id                     = ".avr8x";
     prog_modes             = PM_SPM | PM_UPDI;
-    has_updi               = yes;
     nvm_base               = 0x1000;
     ocd_base               = 0x0f80;
 
@@ -14745,7 +14679,6 @@ part
     prog_modes             = PM_SPM | PM_UPDI;
     # Dedicated UPDI pin, no HV
     hvupdi_variant         = 1;
-    has_updi               = yes;
     nvm_base               = 0x1000;
     ocd_base               = 0x0f80;
 
