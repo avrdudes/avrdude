@@ -31,6 +31,7 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 #include "config.h"
+#include "avrintel.h"
 
 #include "config_gram.h"
 
@@ -833,4 +834,43 @@ void cfg_assign(char *sp, int strct, Component_t *cp, VALUE *v) {
     yywarning("%s in %s expects a %s but that is not implemented",
       cp->name, cfg_strct_name(strct), cfg_comp_type(cp->type));
   }
+}
+
+// Automatically assign an mcuid if known from avrintel.c table
+void cfg_update_mcuid(AVRPART *part) {
+  // Don't assign an mcuid for template parts that has a space in desc
+  if(!part->desc || *part->desc == 0 || strchr(part->desc, ' '))
+    return;
+
+  // Don't assign an mcuid for template parts where id starts with "."
+  if(!part->id || !*part->id || *part->id == '.')
+    return;
+
+  // Don't assign an mcuid for 32-bit AVR parts
+  if(part->prog_modes & PM_aWire)
+    return;
+
+  // Find an entry that shares the same name
+  for(int i=0; i < sizeof uP_table/sizeof *uP_table; i++) {
+    if(strcasecmp(part->desc, uP_table[i].name) == 0) {
+      if(part->mcuid != (int) uP_table[i].mcuid) {
+        part->mcuid = uP_table[i].mcuid;
+        yywarning("assigned mcuid = %d to part %s", part->mcuid, part->desc);
+      }
+      return;
+    }
+  }
+
+  // None have the same name: an entry with part->mcuid is an error
+  for(int i=0; i < sizeof uP_table/sizeof *uP_table; i++)
+    if(part->mcuid == (int) uP_table[i].mcuid) {
+      yywarning("mcuid %d is reserved for %s, use a free number >= %d",
+        part->mcuid, uP_table[i].name, sizeof uP_table/sizeof *uP_table);
+      return;
+    }
+
+  // Range check
+  if(part->mcuid < 0 || part->mcuid >= UB_N_MCU)
+    yywarning("mcuid %d for %s is out of range [0..%d], use a free number >= %d",
+      part->mcuid, part->desc, UB_N_MCU-1, sizeof uP_table/sizeof *uP_table);
 }

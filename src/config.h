@@ -161,6 +161,7 @@ const char *cfg_strct_name(int strct);
 
 void cfg_assign(char *sp, int strct, Component_t *cp, VALUE *v);
 
+void cfg_update_mcuid(AVRPART *part);
 
 #ifdef __cplusplus
 }

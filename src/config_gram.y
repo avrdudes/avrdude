@@ -374,6 +374,8 @@ part_def :
         YYABORT;
       }
 
+      cfg_update_mcuid(current_part);
+
       // Sanity checks for memory sizes and compute/override num_pages entry
       for (ln=lfirst(current_part->mem); ln; ln=lnext(ln)) {
         m = ldata(ln);

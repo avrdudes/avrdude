@@ -583,6 +583,7 @@ AVRPART *avr_new_part(void) {
   p->mem_alias = lcreat(NULL, 0);
 
   // Default values
+  p->mcuid = -1;
   p->hvupdi_variant = -1;
   memset(p->signature, 0xFF, 3);
   p->reset_disposition = RESET_DEDICATED;

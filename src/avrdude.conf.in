@@ -68,7 +68,7 @@
 #       id               = <id> ;                 # quoted string
 #       family_id        = <id> ;                 # quoted string, eg, "megaAVR" or "tinyAVR"
 #       prog_modes       = PM_<i/f> {| PM_<i/f>}  # interfaces, eg, PM_SPM|PM_ISP|PM_HVPP|PM_debugWIRE
-#       mcuid            = <num>;                 # unique id in 0..2039 for urclock programmer
+#       mcuid            = <num>;                 # unique id in 0..2039 for 8-bit AVRs
 #       n_interrupts     = <num>;                 # number of interrupts, used for vector bootloaders
 #       n_page_erase     = <num>;                 # if set, number of pages erased during NVM erase
 #       hvupdi_variant   = <num> ;                # numeric -1 (n/a) or 0..2
@@ -13169,6 +13169,7 @@ part
 part parent ".reduced_core_tiny"
     desc                   = "ATtiny4";
     id                     = "t4";
+    mcuid                  = 0;
     n_interrupts           = 10;
     signature              = 0x1e 0x8f 0x0a;
 
