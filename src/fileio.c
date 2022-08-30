@@ -778,7 +778,7 @@ static int elf_mem_limits(AVRMEM *mem, struct avrpart * p,
 {
   int rv = 0;
 
-  if (p->flags & AVRPART_AVR32) {
+  if (p->prog_modes & PM_aWire) { // AVR32
     if (strcmp(mem->desc, "flash") == 0) {
       *lowbound = 0x80000000;
       *highbound = 0xffffffff;
@@ -850,7 +850,7 @@ static int elf2b(char * infile, FILE * inf,
    * sections out of an ELF file that contains section data for more
    * than one sub-segment.
    */
-  if ((p->flags & AVRPART_HAS_PDI) != 0 &&
+  if ((p->prog_modes & PM_PDI) != 0 &&
       (strcmp(mem->desc, "boot") == 0 ||
        strcmp(mem->desc, "application") == 0 ||
        strcmp(mem->desc, "apptable") == 0)) {
@@ -893,7 +893,7 @@ static int elf2b(char * infile, FILE * inf,
 
   const char *endianname;
   unsigned char endianess;
-  if (p->flags & AVRPART_AVR32) {
+  if (p->prog_modes & PM_aWire) { // AVR32
     endianess = ELFDATA2MSB;
     endianname = "little";
   } else {
@@ -923,7 +923,7 @@ static int elf2b(char * infile, FILE * inf,
 
   const char *mname;
   uint16_t machine;
-  if (p->flags & AVRPART_AVR32) {
+  if (p->prog_modes & PM_aWire) {
     machine = EM_AVR32;
     mname = "AVR32";
   } else {
@@ -1383,14 +1383,7 @@ int fileio_setparms(int op, struct fioparms * fp,
    * AVR32 devices maintain their load offset within the file itself,
    * but AVRDUDE maintains all memory images 0-based.
    */
-  if ((p->flags & AVRPART_AVR32) != 0)
-  {
-    fp->fileoffset = m->offset;
-  }
-  else
-  {
-    fp->fileoffset = 0;
-  }
+  fp->fileoffset = p->prog_modes & PM_aWire? m->offset: 0;
 
   return 0;
 }

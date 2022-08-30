@@ -184,19 +184,13 @@ typedef struct opcode {
 } OPCODE;
 
 
-/* Any changes here, please also reflect in dev_part_strct() of developer_opts.c */
-#define AVRPART_SERIALOK       0x0001  /* part supports serial programming */
-#define AVRPART_PARALLELOK     0x0002  /* part supports parallel programming */
-#define AVRPART_PSEUDOPARALLEL 0x0004  /* part has pseudo parallel support */
-#define AVRPART_HAS_JTAG       0x0008  /* part has a JTAG i/f */
-#define AVRPART_ALLOWFULLPAGEBITSTREAM 0x0010 /* JTAG ICE mkII param. */
-#define AVRPART_ENABLEPAGEPROGRAMMING 0x0020 /* JTAG ICE mkII param. */
-#define AVRPART_HAS_DW         0x0040  /* part has a debugWire i/f */
-#define AVRPART_HAS_PDI        0x0080  /* part has PDI i/f rather than ISP (ATxmega) */
-#define AVRPART_AVR32          0x0100  /* part is in AVR32 family */
-#define AVRPART_HAS_TPI        0x0800  /* part has TPI i/f rather than ISP (ATtiny4/5/9/10) */
-#define AVRPART_IS_AT90S1200   0x1000  /* part is an AT90S1200 (needs special treatment) */
-#define AVRPART_HAS_UPDI       0x2000  /* part has UPDI i/f (AVR8X) */
+// Any changes here, please also reflect in dev_part_strct() of developer_opts.c
+#define AVRPART_SERIALOK       1 // Part supports serial programming
+#define AVRPART_PARALLELOK     2 // Part supports parallel programming
+#define AVRPART_PSEUDOPARALLEL 4 // Part has pseudo parallel support
+#define AVRPART_ALLOWFULLPAGEBITSTREAM 8 // JTAG ICE mkII param
+#define AVRPART_ENABLEPAGEPROGRAMMING 16 // JTAG ICE mkII param
+#define AVRPART_IS_AT90S1200  32 // Part is an AT90S1200, needs special treatment
 
 // Programming modes for parts and programmers: reflect changes in lexer.l, developer_opts.c and config.c
 #define PM_SPM                1 // Bootloaders, self-programming with SPM opcodes or NVM Controllers

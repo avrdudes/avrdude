@@ -74,8 +74,6 @@ static struct {
 };
 
 
-
-
 // Return 0 if op code would encode (essentially) the same SPI command
 static int opcodecmp(const OPCODE *op1, const OPCODE *op2, int opnum) {
   char *opstr1, *opstr2, *p;
@@ -134,6 +132,13 @@ static void printallopcodes(const AVRPART *p, const char *d, OPCODE * const *opa
 
 
 // Programming modes
+
+/*
+ * p->flags no longer used for programming modes, use p->prog_modes
+ *
+
+ remove this comment in 2023
+
 static char *prog_modes_str_flags(const AVRPART *p) {
   static char type[1024];
 
@@ -193,6 +198,10 @@ static char *prog_modes_str_flags(const AVRPART *p) {
 
   return type + (*type == '|');
 }
+
+ *
+ */
+
 
 static char *prog_modes_str(int pm) {
   static char type[1024];
@@ -627,13 +636,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
     if(tsv) {
       _partout("0x%04x", flags);
     } else {
-      _if_flagout(AVRPART_HAS_JTAG, has_jtag);
-      _if_flagout(AVRPART_HAS_DW, has_debugwire);
-      _if_flagout(AVRPART_HAS_PDI, has_pdi);
-      _if_flagout(AVRPART_HAS_UPDI, has_updi);
-      _if_flagout(AVRPART_HAS_TPI, has_tpi);
       _if_flagout(AVRPART_IS_AT90S1200, is_at90s1200);
-      _if_flagout(AVRPART_AVR32, is_avr32);
       _if_flagout(AVRPART_ALLOWFULLPAGEBITSTREAM, allowfullpagebitstream);
       _if_flagout(AVRPART_ENABLEPAGEPROGRAMMING, enablepageprogramming);
       _if_flagout(AVRPART_SERIALOK, serial);
@@ -1064,7 +1067,7 @@ void dev_output_part_defs(char *partdesc) {
           nfuses,
           ok,
           p->flags,
-          prog_modes_str_flags(p),
+          prog_modes_str(p->prog_modes),
           p->config_file, p->lineno
         );
       }
@@ -1083,14 +1086,14 @@ void dev_output_part_defs(char *partdesc) {
 
     // Print wait delays for AVR family parts
     if(waits) {
-      if(!(p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI | AVRPART_HAS_TPI | AVRPART_AVR32)))
+      if(p->prog_modes & PM_ISP)
         dev_info(".wd_chip_erase %.3f ms %s\n", p->chip_erase_delay/1000.0, p->desc);
       if(p->mem) {
         for(LNODEID lnm=lfirst(p->mem); lnm; lnm=lnext(lnm)) {
           AVRMEM *m = ldata(lnm);
           // Write delays not needed for read-only calibration and signature memories
           if(strcmp(m->desc, "calibration") && strcmp(m->desc, "signature")) {
-            if(!(p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_UPDI | AVRPART_HAS_TPI | AVRPART_AVR32))) {
+            if(p->prog_modes & PM_ISP) {
               if(m->min_write_delay == m->max_write_delay)
                  dev_info(".wd_%s %.3f ms %s\n", m->desc, m->min_write_delay/1000.0, p->desc);
               else {

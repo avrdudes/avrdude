@@ -1130,8 +1130,7 @@ retry:
         break;
 
     case PGMTYPE_JTAGICE3:
-        if (buf[1] == STATUS_CMD_FAILED &&
-            (p->flags & AVRPART_HAS_DW) != 0) {
+        if (buf[1] == STATUS_CMD_FAILED && (p->prog_modes & PM_debugWIRE)) {
             unsigned char cmd[4], *resp;
 
             /* Try debugWIRE, and MONCON_DISABLE */
@@ -1239,16 +1238,13 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if ((PDATA(pgm)->pgmtype == PGMTYPE_STK600 ||
        PDATA(pgm)->pgmtype == PGMTYPE_AVRISP_MKII ||
        PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII) != 0
-      && (p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_TPI)) != 0) {
+      && (p->prog_modes & (PM_PDI | PM_TPI)) != 0) {
     /*
      * This is an ATxmega device, must use XPROG protocol for the
      * remaining actions.
      */
-    if ((p->flags & AVRPART_HAS_PDI) != 0) {
-      /*
-       * Find out where the border between application and boot area
-       * is.
-       */
+    if (p->prog_modes & PM_PDI) {
+      // Find the border between application and boot area
       AVRMEM *bootmem = avr_locate_mem(p, "boot");
       AVRMEM *flashmem = avr_locate_mem(p, "flash");
       if (bootmem == NULL || flashmem == NULL) {
@@ -1320,8 +1316,8 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   LNODEID ln;
   AVRMEM * m;
 
-  if ((p->flags & AVRPART_HAS_PDI) ||
-      (p->flags & AVRPART_HAS_TPI)) {
+  // FIXME: condition below looks fishy, suspect the code wants !(p->prog_modes & (PM_debugWIRE | PM_JTAG))
+  if (p->prog_modes & (PM_PDI | PM_TPI)) {
     avrdude_message(MSG_INFO, "%s: jtag3_initialize(): part %s has no ISP interface\n",
 	    progname, p->desc);
     return -1;
@@ -1330,7 +1326,7 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   PROGRAMMER *pgmcp = pgm_dup(pgm);
   pgmcp->cookie = PDATA(pgm)->chained_pdata;
 
-  if (p->flags & AVRPART_HAS_DW)
+  if (p->prog_modes & PM_debugWIRE)
     parm[0] = PARM3_ARCH_TINY;
   else
     parm[0] = PARM3_ARCH_MEGA;
@@ -1574,7 +1570,7 @@ static void stk500v2_enable(PROGRAMMER *pgm, const AVRPART *p) {
     if((PDATA(pgm)->pgmtype == PGMTYPE_STK600 ||
       PDATA(pgm)->pgmtype == PGMTYPE_AVRISP_MKII ||
       PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII) != 0
-      && (p->flags & (AVRPART_HAS_PDI | AVRPART_HAS_TPI)) != 0) {
+      && (p->prog_modes & (PM_PDI | PM_TPI)) != 0) {
       stk600_setup_xprog(pgm);
     } else {
       stk600_setup_isp(pgm);
@@ -3689,7 +3685,7 @@ static int stk600_xprog_program_enable(const PROGRAMMER *pgm, const AVRPART *p) 
     AVRMEM *mem = NULL;
     int use_tpi;
 
-    use_tpi = (p->flags & AVRPART_HAS_TPI) != 0;
+    use_tpi = (p->prog_modes & PM_TPI) != 0;
 
     if (!use_tpi) {
         if (p->nvm_base == 0) {
@@ -3825,7 +3821,7 @@ static int stk600_xprog_write_byte(const PROGRAMMER *pgm, const AVRPART *p, cons
         memcode = XPRG_MEM_TYPE_LOCKBITS;
     } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
         memcode = XPRG_MEM_TYPE_FUSE;
-        if (p->flags & AVRPART_HAS_TPI)
+        if (p->prog_modes & PM_TPI)
             /*
              * TPI devices need a mystic erase prior to writing their
              * fuses.
@@ -3855,7 +3851,7 @@ static int stk600_xprog_write_byte(const PROGRAMMER *pgm, const AVRPART *p, cons
 	}
     }
 
-    if (p->flags & AVRPART_HAS_TPI) {
+    if (p->prog_modes & PM_TPI) {
         /*
          * Some TPI memories (configuration aka. fuse) require a
          * larger write block size.  We record that as a blocksize in
@@ -4217,7 +4213,7 @@ static int stk600_xprog_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     AVRMEM *mem;
     unsigned int addr = 0;
 
-    if (p->flags & AVRPART_HAS_TPI) {
+    if (p->prog_modes & PM_TPI) {
         if ((mem = avr_locate_mem(p, "flash")) == NULL) {
             avrdude_message(MSG_INFO, "%s: stk600_xprog_chip_erase(): no FLASH definition found for TPI device\n",
                             progname);

@@ -523,7 +523,7 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char cmd[1], resp[5];
   unsigned char b;
 
-  if (!(p->flags & AVRPART_HAS_JTAG)) {
+  if (!(p->prog_modes & PM_JTAG)) {
     avrdude_message(MSG_INFO, "%s: jtagmkI_initialize(): part %s has no JTAG interface\n",
 	    progname, p->desc);
     return -1;

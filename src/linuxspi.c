@@ -270,8 +270,8 @@ static void linuxspi_display(const PROGRAMMER* pgm, const char* p) {
 static int linuxspi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     int tries, ret;
 
-    if (p->flags & AVRPART_HAS_TPI) {
-        /* We do not support tpi. This is a dedicated SPI thing */
+    if (p->prog_modes & PM_TPI) {
+        /* We do not support TPI. This is a dedicated SPI thing */
         avrdude_message(MSG_INFO, "%s: error: Programmer " LINUXSPI " does not support TPI\n", progname);
         return -1;
     }

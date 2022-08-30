@@ -1117,61 +1117,46 @@ part_parm :
 
   K_HAS_JTAG TKN_EQUAL yesno
     {
-      if ($3->primary == K_YES) {
-        current_part->flags |= AVRPART_HAS_JTAG;
+      if ($3->primary == K_YES)
         current_part->prog_modes |= PM_JTAG;
-      } else if ($3->primary == K_NO) {
-        current_part->flags &= ~AVRPART_HAS_JTAG;
+      else if ($3->primary == K_NO)
         current_part->prog_modes &= ~PM_JTAG;
-      }
       free_token($3);
     } |
 
   K_HAS_DW TKN_EQUAL yesno
     {
-      if ($3->primary == K_YES) {
-        current_part->flags |= AVRPART_HAS_DW;
+      if ($3->primary == K_YES)
         current_part->prog_modes |= PM_debugWIRE;
-      } else if ($3->primary == K_NO) {
-        current_part->flags &= ~AVRPART_HAS_DW;
+      else if ($3->primary == K_NO)
         current_part->prog_modes &= ~PM_debugWIRE;
-      }
       free_token($3);
     } |
 
   K_HAS_PDI TKN_EQUAL yesno
     {
-      if ($3->primary == K_YES) {
-        current_part->flags |= AVRPART_HAS_PDI;
+      if ($3->primary == K_YES)
         current_part->prog_modes |= PM_PDI;
-      } else if ($3->primary == K_NO) {
-        current_part->flags &= ~AVRPART_HAS_PDI;
+      else if ($3->primary == K_NO)
         current_part->prog_modes &= ~PM_PDI;
-      }
       free_token($3);
     } |
 
   K_HAS_UPDI TKN_EQUAL yesno
     {
-      if ($3->primary == K_YES) {
-        current_part->flags |= AVRPART_HAS_UPDI;
+      if ($3->primary == K_YES)
         current_part->prog_modes |= PM_UPDI;
-      } else if ($3->primary == K_NO) {
-        current_part->flags &= ~AVRPART_HAS_UPDI;
+      else if ($3->primary == K_NO)
         current_part->prog_modes &= ~PM_UPDI;
-      }
       free_token($3);
     } |
 
   K_HAS_TPI TKN_EQUAL yesno
     {
-      if ($3->primary == K_YES) {
-        current_part->flags |= AVRPART_HAS_TPI;
+      if ($3->primary == K_YES)
         current_part->prog_modes |= PM_TPI;
-      } else if ($3->primary == K_NO) {
-        current_part->flags &= ~AVRPART_HAS_TPI;
+      else if ($3->primary == K_NO)
         current_part->prog_modes &= ~PM_TPI;
-     }
       free_token($3);
     } |
 
@@ -1187,13 +1172,10 @@ part_parm :
 
   K_IS_AVR32 TKN_EQUAL yesno
     {
-      if ($3->primary == K_YES) {
-        current_part->flags |= AVRPART_AVR32;
+      if ($3->primary == K_YES)
         current_part->prog_modes |= PM_aWire;
-      } else if ($3->primary == K_NO) {
-        current_part->flags &= ~AVRPART_AVR32;
+      else if ($3->primary == K_NO)
         current_part->prog_modes &= ~PM_aWire;
-      }
       free_token($3);
     } |
 
