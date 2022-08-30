@@ -1472,6 +1472,6 @@ extern const char * const vtab_avr128db48[61];    // AVR128DB48, AVR64DB48, AVR3
 extern const char * const vtab_avr128da64[64];    // AVR128DA64, AVR64DA64
 extern const char * const vtab_avr128db64[65];    // AVR128DB64, AVR64DB64
 
-const uPcore_t uP_table[372];
+extern const uPcore_t uP_table[372];
 
 #endif
