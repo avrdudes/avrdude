@@ -63,7 +63,7 @@ static struct {
   const char *mcu, *var, *value;
 } ptinj[] = {
   // Add triples here, eg, {"ATmega328P", "mcuid", "999"},
- {NULL, NULL, NULL},
+  {NULL, NULL, NULL},
 };
 
 static struct {
@@ -134,7 +134,7 @@ static void printallopcodes(const AVRPART *p, const char *d, OPCODE * const *opa
 
 
 // Programming modes
-static char *prog_modes(const AVRPART *p) {
+static char *prog_modes_str_flags(const AVRPART *p) {
   static char type[1024];
 
   *type = 0;
@@ -192,6 +192,34 @@ static char *prog_modes(const AVRPART *p) {
     strcat(type, "|PM_JTAG");
 
   return type + (*type == '|');
+}
+
+static char *prog_modes_str(int pm) {
+  static char type[1024];
+
+  strcpy(type, "0");
+  if(pm & PM_SPM)
+    strcat(type, " | PM_SPM");
+  if(pm & PM_TPI)
+    strcat(type, " | PM_TPI");
+  if(pm & PM_ISP)
+    strcat(type, " | PM_ISP");
+  if(pm & PM_PDI)
+    strcat(type, " | PM_PDI");
+  if(pm & PM_UPDI)
+    strcat(type, " | PM_UPDI");
+  if(pm & PM_HVSP)
+    strcat(type, " | PM_HVSP");
+  if(pm & PM_HVPP)
+    strcat(type, " | PM_HVPP");
+  if(pm & PM_debugWIRE)
+    strcat(type, " | PM_debugWIRE");
+  if(pm & PM_JTAG)
+    strcat(type, " | PM_JTAG");
+  if(pm & PM_aWire)
+    strcat(type, " | PM_aWire");
+
+  return type + (type[1] == 0? 0: 4);
 }
 
 
@@ -573,6 +601,10 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
   _if_partout_str(strcmp, descstr, desc);
   _if_partout_str(strcmp, cfg_escape(p->id), id);
   _if_partout_str(strcmp, cfg_escape(p->family_id), family_id);
+  _if_partout_str(intcmp, cfg_strdup("dev_part_strct()", prog_modes_str(p->prog_modes)), prog_modes);
+  _if_partout(intcmp, "%d", mcuid);
+  _if_partout(intcmp, "%d", n_interrupts);
+  _if_partout(intcmp, "%d", n_page_erase);
   _if_partout(intcmp, "%d", hvupdi_variant);
   _if_partout(intcmp, "0x%02x", stk500_devcode);
   _if_partout(intcmp, "0x%02x", avr910_devcode);
@@ -1032,7 +1064,7 @@ void dev_output_part_defs(char *partdesc) {
           nfuses,
           ok,
           p->flags,
-          prog_modes(p),
+          prog_modes_str_flags(p),
           p->config_file, p->lineno
         );
       }
@@ -1189,6 +1221,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
   _if_pgmout_str(strcmp, cfg_escape(pgm->desc), desc);
   if(!base || base->initpgm != pgm->initpgm)
     _pgmout_fmt("type", "\"%s\"", locate_programmer_type_id(pgm->initpgm));
+  _if_pgmout_str(intcmp, cfg_strdup("dev_pgm_strct()", prog_modes_str(pgm->prog_modes)), prog_modes);
   if(!base || base->conntype != pgm->conntype)
     _pgmout_fmt("connection_type", "%s", connstr(pgm->conntype));
   _if_pgmout(intcmp, "%d", baudrate);

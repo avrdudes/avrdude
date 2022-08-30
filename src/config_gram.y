@@ -208,12 +208,19 @@ static int pin_name;
 %token TKN_COMMA
 %token TKN_EQUAL
 %token TKN_SEMI
-%token TKN_TILDE
 %token TKN_LEFT_PAREN
 %token TKN_RIGHT_PAREN
 %token TKN_NUMBER
 %token TKN_NUMBER_REAL
 %token TKN_STRING
+%token TKN_COMPONENT
+
+%left  OP_OR                    /* calculator operations */
+%left  OP_XOR
+%left  OP_AND
+%left  OP_PLUS OP_MINUS
+%left  OP_TIMES OP_DIVIDE OP_MODULO
+%right OP_TILDE UNARY
 
 %start configuration
 
@@ -229,6 +236,27 @@ number_real :
   TKN_NUMBER_REAL {
     $$ = $1;
   }
+;
+
+
+expr: numexpr | TKN_STRING;
+
+numexpr:
+  TKN_NUMBER |
+  numexpr OP_OR numexpr     { $$ = $1; $$->value.number |= $3->value.number; } |
+  numexpr OP_XOR numexpr    { $$ = $1; $$->value.number ^= $3->value.number; } |
+  numexpr OP_AND numexpr    { $$ = $1; $$->value.number &= $3->value.number; } |
+  numexpr OP_PLUS numexpr   { $$ = $1; $$->value.number += $3->value.number; } |
+  numexpr OP_MINUS numexpr  { $$ = $1; $$->value.number -= $3->value.number; } |
+  numexpr OP_TIMES numexpr  { $$ = $1; $$->value.number *= $3->value.number; } |
+  numexpr OP_DIVIDE numexpr { $$ = $1; $$->value.number /= $3->value.number; } |
+  numexpr OP_MODULO numexpr { $$ = $1; $$->value.number %= $3->value.number; } |
+  OP_PLUS numexpr %prec UNARY  { $$ = $2; } |
+  OP_MINUS numexpr %prec UNARY { $$ = $2; $$->value.number = -$$->value.number; } |
+  OP_TILDE numexpr %prec UNARY { $$ = $2; $$->value.number = ~$$->value.number; } |
+  TKN_LEFT_PAREN numexpr TKN_RIGHT_PAREN { $$ = $2; }
+;
+
 
 configuration :
   /* empty */ | config
@@ -302,6 +330,7 @@ prog_def :
 //      pgm_fill_old_pins(current_prog); // TODO to be removed if old pin data no longer needed
 //      pgm_display_generic(current_prog, id);
       current_prog = NULL;
+      current_strct = COMP_CONFIG_MAIN;
     }
 ;
 
@@ -309,6 +338,7 @@ prog_def :
 prog_decl :
   K_PROGRAMMER
     { current_prog = pgm_new();
+      current_strct = COMP_PROGRAMMER;
       current_prog->config_file = cache_string(cfg_infile);
       current_prog->lineno = cfg_lineno;
     }
@@ -322,6 +352,7 @@ prog_decl :
         YYABORT;
       }
       current_prog = pgm_dup(pgm);
+      current_strct = COMP_PROGRAMMER;
       current_prog->parent_id = cache_string($3->value.string);
       current_prog->comments = NULL;
       current_prog->config_file = cache_string(cfg_infile);
@@ -389,6 +420,7 @@ part_def :
       current_part->comments = cfg_move_comments();
       LISTADD(part_list, current_part); 
       current_part = NULL; 
+      current_strct = COMP_CONFIG_MAIN;
     }
 ;
 
@@ -396,6 +428,7 @@ part_decl :
   K_PART
     {
       current_part = avr_new_part();
+      current_strct = COMP_AVRPART;
       current_part->config_file = cache_string(cfg_infile);
       current_part->lineno = cfg_lineno;
     } |
@@ -409,6 +442,7 @@ part_decl :
       }
 
       current_part = avr_dup_part(parent_part);
+      current_strct = COMP_AVRPART;
       current_part->parent_id = cache_string($3->value.string);
       current_part->comments = NULL;
       current_part->config_file = cache_string(cfg_infile);
@@ -435,6 +469,10 @@ prog_parms :
 ;
 
 prog_parm :
+  TKN_COMPONENT TKN_EQUAL expr {
+    cfg_assign((char *) current_prog, COMP_PROGRAMMER, $1->value.comp, &$3->value);
+    free_token($1);
+  } |
   K_ID TKN_EQUAL string_list {
     {
       while (lsize(string_list)) {
@@ -589,7 +627,7 @@ hvupdi_support_list:
 pin_number_non_empty:
   TKN_NUMBER { if(0 != assign_pin(pin_name, $1, 0)) YYABORT;  }
   |
-  TKN_TILDE TKN_NUMBER { if(0 != assign_pin(pin_name, $2, 1)) YYABORT; }
+  OP_TILDE TKN_NUMBER { if(0 != assign_pin(pin_name, $2, 1)) YYABORT; }
 ;
 
 pin_number:
@@ -601,7 +639,7 @@ pin_number:
 pin_list_element:
   pin_number_non_empty
   |
-  TKN_TILDE TKN_LEFT_PAREN num_list TKN_RIGHT_PAREN { if(0 != assign_pin_list(1)) YYABORT; }
+  OP_TILDE TKN_LEFT_PAREN num_list TKN_RIGHT_PAREN { if(0 != assign_pin_list(1)) YYABORT; }
 ;
 
 pin_list_non_empty:
@@ -665,6 +703,10 @@ retry_lines :
 ;
 
 part_parm :
+  TKN_COMPONENT TKN_EQUAL expr {
+    cfg_assign((char *) current_part, COMP_AVRPART, $1->value.comp, &$3->value);
+    free_token($1);
+  } |
   K_ID TKN_EQUAL TKN_STRING 
     {
       current_part->id = cache_string($3->value.string);
@@ -1075,51 +1117,61 @@ part_parm :
 
   K_HAS_JTAG TKN_EQUAL yesno
     {
-      if ($3->primary == K_YES)
+      if ($3->primary == K_YES) {
         current_part->flags |= AVRPART_HAS_JTAG;
-      else if ($3->primary == K_NO)
+        current_part->prog_modes |= PM_JTAG;
+      } else if ($3->primary == K_NO) {
         current_part->flags &= ~AVRPART_HAS_JTAG;
-
+        current_part->prog_modes &= ~PM_JTAG;
+      }
       free_token($3);
     } |
 
   K_HAS_DW TKN_EQUAL yesno
     {
-      if ($3->primary == K_YES)
+      if ($3->primary == K_YES) {
         current_part->flags |= AVRPART_HAS_DW;
-      else if ($3->primary == K_NO)
+        current_part->prog_modes |= PM_debugWIRE;
+      } else if ($3->primary == K_NO) {
         current_part->flags &= ~AVRPART_HAS_DW;
-
+        current_part->prog_modes &= ~PM_debugWIRE;
+      }
       free_token($3);
     } |
 
   K_HAS_PDI TKN_EQUAL yesno
     {
-      if ($3->primary == K_YES)
+      if ($3->primary == K_YES) {
         current_part->flags |= AVRPART_HAS_PDI;
-      else if ($3->primary == K_NO)
+        current_part->prog_modes |= PM_PDI;
+      } else if ($3->primary == K_NO) {
         current_part->flags &= ~AVRPART_HAS_PDI;
-
+        current_part->prog_modes &= ~PM_PDI;
+      }
       free_token($3);
     } |
 
   K_HAS_UPDI TKN_EQUAL yesno
     {
-      if ($3->primary == K_YES)
+      if ($3->primary == K_YES) {
         current_part->flags |= AVRPART_HAS_UPDI;
-      else if ($3->primary == K_NO)
+        current_part->prog_modes |= PM_UPDI;
+      } else if ($3->primary == K_NO) {
         current_part->flags &= ~AVRPART_HAS_UPDI;
-
+        current_part->prog_modes &= ~PM_UPDI;
+      }
       free_token($3);
     } |
 
   K_HAS_TPI TKN_EQUAL yesno
     {
-      if ($3->primary == K_YES)
+      if ($3->primary == K_YES) {
         current_part->flags |= AVRPART_HAS_TPI;
-      else if ($3->primary == K_NO)
+        current_part->prog_modes |= PM_TPI;
+      } else if ($3->primary == K_NO) {
         current_part->flags &= ~AVRPART_HAS_TPI;
-
+        current_part->prog_modes &= ~PM_TPI;
+     }
       free_token($3);
     } |
 
@@ -1135,11 +1187,13 @@ part_parm :
 
   K_IS_AVR32 TKN_EQUAL yesno
     {
-      if ($3->primary == K_YES)
+      if ($3->primary == K_YES) {
         current_part->flags |= AVRPART_AVR32;
-      else if ($3->primary == K_NO)
+        current_part->prog_modes |= PM_aWire;
+      } else if ($3->primary == K_NO) {
         current_part->flags &= ~AVRPART_AVR32;
-
+        current_part->prog_modes &= ~PM_aWire;
+      }
       free_token($3);
     } |
 
@@ -1255,14 +1309,6 @@ part_parm :
     } |
 
 
-/*
-  K_EEPROM { current_mem = AVR_M_EEPROM; }
-    mem_specs |
-
-  K_FLASH { current_mem = AVR_M_FLASH; }
-    mem_specs |
-*/
-
   K_MEMORY TKN_STRING 
     { /* select memory for extension or create if not there */
       AVRMEM *mem = avr_locate_mem_noalias(current_part, $2->value.string);
@@ -1273,6 +1319,7 @@ part_parm :
       }
       avr_add_mem_order($2->value.string);
       current_mem = mem;
+      current_strct = COMP_AVRMEM;
       free_token($2);
     }
     mem_specs 
@@ -1295,6 +1342,7 @@ part_parm :
       }
       cfg_pop_comms();
       current_mem = NULL; 
+      current_strct = COMP_AVRPART;
     } |
   K_MEMORY TKN_STRING TKN_EQUAL K_NULL
    {
@@ -1306,6 +1354,7 @@ part_parm :
       free_token($2);
       cfg_pop_comms();
       current_mem = NULL;
+      current_strct = COMP_AVRPART;
     } |
   opcode TKN_EQUAL string_list {
     { 
@@ -1355,6 +1404,11 @@ mem_specs :
 
 
 mem_spec :
+  TKN_COMPONENT TKN_EQUAL expr {
+    cfg_assign((char *) current_mem, COMP_AVRMEM, $1->value.comp, &$3->value);
+    free_token($1);
+  } |
+
   K_PAGED          TKN_EQUAL yesno
     {
       current_mem->paged = $3->primary == K_YES ? 1 : 0;

@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -44,6 +45,7 @@ LISTID       number_list;
 PROGRAMMER * current_prog;
 AVRPART    * current_part;
 AVRMEM     * current_mem;
+int          current_strct;
 LISTID       part_list;
 LISTID       programmers;
 bool         is_alias;
@@ -52,6 +54,22 @@ int    cfg_lineno;
 char * cfg_infile;
 
 extern char * yytext;
+
+#define pgm_comp_desc(x, type)  { #x, COMP_PROGRAMMER, offsetof(PROGRAMMER, x), sizeof(((PROGRAMMER *) NULL)->x), type }
+#define part_comp_desc(x, type) { #x, COMP_AVRPART, offsetof(AVRPART, x), sizeof(((AVRPART *) NULL)->x), type }
+#define mem_comp_desc(x, type)  { #x, COMP_AVRMEM, offsetof(AVRMEM, x), sizeof(((AVRMEM *) NULL)->x), type }
+
+// Component description for config_gram.y, will be sorted appropriately on first use
+Component_t avr_comp[] = {
+  // PROGRAMMER
+  pgm_comp_desc(prog_modes, COMP_INT),
+
+  // AVRPART
+  part_comp_desc(prog_modes, COMP_INT),
+  part_comp_desc(mcuid, COMP_INT),
+  part_comp_desc(n_interrupts, COMP_INT),
+  part_comp_desc(n_page_erase, COMP_INT),
+};
 
 #define DEBUG 0
 
@@ -190,7 +208,7 @@ void free_tokens(int n, ...)
 
 
 
-TOKEN *number(const char *text) {
+TOKEN *new_number(const char *text) {
   struct token_t *tkn = new_token(TKN_NUMBER);
   tkn->value.type   = V_NUM;
   tkn->value.number = atoi(text);
@@ -202,7 +220,7 @@ TOKEN *number(const char *text) {
   return tkn;
 }
 
-TOKEN *number_real(const char *text) {
+TOKEN *new_number_real(const char *text) {
   struct token_t * tkn = new_token(TKN_NUMBER);
   tkn->value.type   = V_NUM_REAL;
   tkn->value.number_real = atof(text);
@@ -214,7 +232,7 @@ TOKEN *number_real(const char *text) {
   return tkn;
 }
 
-TOKEN *hexnumber(const char *text) {
+TOKEN *new_hexnumber(const char *text) {
   struct token_t *tkn = new_token(TKN_NUMBER);
   char * e;
 
@@ -233,11 +251,41 @@ TOKEN *hexnumber(const char *text) {
   return tkn;
 }
 
+TOKEN *new_constant(const char *con) {
+  struct token_t *tkn = new_token(TKN_NUMBER);
+  int assigned = 1;
 
-TOKEN *string(const char *text) {
+  tkn->value.type = V_NUM;
+  tkn->value.number =
+    !strcmp("PM_SPM", con)? PM_SPM:
+    !strcmp("PM_TPI", con)? PM_TPI:
+    !strcmp("PM_ISP", con)? PM_ISP:
+    !strcmp("PM_PDI", con)? PM_PDI:
+    !strcmp("PM_UPDI", con)? PM_UPDI:
+    !strcmp("PM_HVSP", con)? PM_HVSP:
+    !strcmp("PM_HVPP", con)? PM_HVPP:
+    !strcmp("PM_debugWIRE", con)? PM_debugWIRE:
+    !strcmp("PM_JTAG", con)? PM_JTAG:
+    !strcmp("PM_aWire", con)? PM_aWire:
+    (assigned = 0);
+
+  if(!assigned) {
+    yyerror("can't identify constant %s", con);
+    free_token(tkn);
+    return NULL;
+  }
+
+#if DEBUG
+  avrdude_message(MSG_INFO, "CONSTANT(%s=%d)\n", con, tkn->value.number);
+#endif
+
+  return tkn;
+}
+
+TOKEN *new_string(const char *text) {
   struct token_t *tkn = new_token(TKN_STRING);
   tkn->value.type   = V_STR;
-  tkn->value.string = cfg_strdup("string()", text);
+  tkn->value.string = cfg_strdup("new_string()", text);
 
 #if DEBUG
   avrdude_message(MSG_INFO, "STRING(%s)\n", tkn->value.string);
@@ -247,7 +295,7 @@ TOKEN *string(const char *text) {
 }
 
 
-TOKEN * keyword(int primary) {
+TOKEN *new_keyword(int primary) {
   return new_token(primary);
 }
 
@@ -691,4 +739,98 @@ char *cfg_escape(const char *s) {
   *d = 0;
 
   return cfg_strdup("cfg_escape()", buf);
+}
+
+
+static int cmp_comp(const void *v1, const void *v2) {
+  const Component_t *c1 = v1, *c2 = v2;
+  int ret = strcmp(c1->name, c2->name);
+
+  return ret? ret: c1->strct - c2->strct;
+}
+
+Component_t *cfg_comp_search(const char *name, int strct) {
+  static int init;
+  Component_t key;
+
+  if(!init++)
+    qsort(avr_comp, sizeof avr_comp/sizeof*avr_comp, sizeof(Component_t), cmp_comp);
+
+
+  key.name = name;
+  key.strct = strct;
+  return bsearch(&key, avr_comp, sizeof avr_comp/sizeof*avr_comp, sizeof(Component_t), cmp_comp);
+}
+
+
+const char *cfg_strct_name(int strct) {
+  switch(strct) {
+  case COMP_CONFIG_MAIN: return "avrdude.conf main";
+  case COMP_AVRPART: return "AVRPART";
+  case COMP_AVRMEM: return "AVRMEM";
+  case COMP_PROGRAMMER: return "PROGRAMMER";
+  }
+  return "unknown struct";
+}
+
+const char *cfg_v_type(int type) {
+  switch(type) {
+  case V_NONE: return "void";
+  case V_NUM: return "number";
+  case V_NUM_REAL: return "real";
+  case V_STR: return "string";
+  case V_COMPONENT: return "component";
+  }
+  return "unknown v type";
+}
+
+const char *cfg_comp_type(int type) {
+  switch(type) {
+  case COMP_INT: return "number";
+  case COMP_SHORT: return "short";
+  case COMP_CHAR: return "char";
+  case COMP_STRING: return "string";
+  case COMP_CHAR_ARRAY: return "byte array";
+  case COMP_INT_LISTID: return "number list";
+  case COMP_STRING_LISTID: return "string list";
+  case COMP_OPCODE: return "opcode";
+  case COMP_PIN: return "pin";
+  case COMP_PIN_LIST: return "pin list";
+  }
+  return "unknown comp type";
+}
+
+
+// Used by config_gram.y to assign a component in one of the relevant structures with a value
+void cfg_assign(char *sp, int strct, Component_t *cp, VALUE *v) {
+  const char *str;
+  int num;
+
+  switch(cp->type) {
+  case COMP_CHAR:
+  case COMP_SHORT:
+  case COMP_INT:
+    if(v->type != V_NUM) {
+      yywarning("%s in %s expects a %s but is assigned a %s",
+        cp->name, cfg_strct_name(strct), cfg_comp_type(cp->type), cfg_v_type(v->type));
+      return;
+    }
+    // TODO: consider endianess (code currently assumes little endian)
+    num = v->number;
+    memcpy(sp+cp->offset, &num, cp->size);
+    break;
+  case COMP_STRING:
+    if(v->type != V_STR) {
+      yywarning("%s in %s expects a string but is assigned a %s",
+        cp->name, cfg_strct_name(strct), cfg_v_type(v->type));
+      return;
+    }
+    str = cache_string(v->string);
+    memcpy(sp+cp->offset, &str, cp->size);
+    break;
+  // TODO: implement COMP_CHAR_ARRAY, COMP_INT_LISTID, COMP_STRING_LISTID, ...
+  default:
+    yywarning("%s in %s expects a %s but that is not implemented",
+      cp->name, cfg_strct_name(strct), cfg_comp_type(cp->type));
+  }
 }

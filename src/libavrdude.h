@@ -169,6 +169,7 @@ enum ctl_stack_t {
   CTL_STACK_HVSP      /* high voltage serial programming control stack */
 };
 
+
 /*
  * serial programming instruction bit specifications
  */
@@ -197,6 +198,18 @@ typedef struct opcode {
 #define AVRPART_IS_AT90S1200   0x1000  /* part is an AT90S1200 (needs special treatment) */
 #define AVRPART_HAS_UPDI       0x2000  /* part has UPDI i/f (AVR8X) */
 
+// Programming modes for parts and programmers: reflect changes in lexer.l, developer_opts.c and config.c
+#define PM_SPM                1 // Bootloaders, self-programming with SPM opcodes or NVM Controllers
+#define PM_TPI                2 // Tiny Programming Interface (t4, t5, t9, t10, t20, t40, t102, t104)
+#define PM_ISP                4 // SPI programming for In-System Programming (almost all classic parts)
+#define PM_PDI                8 // Program and Debug Interface (xmega parts)
+#define PM_UPDI              16 // Unified Program and Debug Interface
+#define PM_HVSP              32 // High Voltage Serial Programming (some classic parts)
+#define PM_HVPP              64 // High Voltage Parallel Programming (most non-HVSP classic parts)
+#define PM_debugWIRE        128 // Simpler alternative to JTAG (a subset of HVPP/HVSP parts)
+#define PM_JTAG             256 // Joint Test Action Group standard (some classic parts, some xmega)
+#define PM_aWire            512 // AVR32 parts
+
 #define HV_UPDI_VARIANT_0      0 /* Shared UPDI/GPIO/RESET pin, HV on UPDI pin (tinyAVR0/1/2)*/
 #define HV_UPDI_VARIANT_1      1 /* Dedicated UPDI pin, no HV (megaAVR0/AVR-Dx) */
 #define HV_UPDI_VARIANT_2      2 /* Shared UPDI pin, HV on _RESET (AVR-Ex) */
@@ -209,13 +222,24 @@ typedef struct opcode {
 
 #define TAG_ALLOCATED          1    /* memory byte is allocated */
 
-/* Any changes here, please also reflect in dev_part_strct() of developer_opts.c */
+/*
+ * Any changes in AVRPART or AVRMEM, please also ensure changes are made in
+ *  - lexer.l
+ *  - Either Component_t avr_comp[] of config.c or in config_gram.y
+ *  - dev_part_strct() in developer_opts.c
+ *  - avr_new_part() and/or avr_new_memtype() in avrpart.c for
+ *    initialisation; note that all const char * must be initialised with ""
+ */
 typedef struct avrpart {
   const char  * desc;               /* long part name */
   const char  * id;                 /* short part name */
   LISTID        comments;           // Used by developer options -p*/[ASsr...]
   const char  * parent_id;          /* Used by developer options */
   const char  * family_id;          /* family id in the SIB (avr8x) */
+  int           prog_modes;         /* Programming interfaces, see #define PM_... */
+  int           mcuid;              /* Unique id in 0..2039 for urclock programmer */
+  int           n_interrupts;       /* Number of interrupts, used for vector bootloaders */
+  int           n_page_erase;       /* If set, number of pages erased during NVM erase */
   int           hvupdi_variant;     /* HV pulse on UPDI pin, no pin or RESET pin */
   int           stk500_devcode;     /* stk500 device code */
   int           avr910_devcode;     /* avr910 device code */
@@ -262,7 +286,7 @@ typedef struct avrpart {
   int           programlockpulsewidth; /* stk500 v2 hv mode parameter */
   int           programlockpolltimeout; /* stk500 v2 hv mode parameter */
   int           synchcycles;        /* stk500 v2 hv mode parameter */
-  int           hvspcmdexedelay;    /* stk500 v2 xml file parameter */
+  int           hvspcmdexedelay;    /* stk500 v2 hv mode file parameter */
 
   unsigned char idr;                /* JTAG ICE mkII XML file parameter */
   unsigned char rampz;              /* JTAG ICE mkII XML file parameter */
@@ -677,13 +701,21 @@ typedef enum {
   CONNTYPE_SPI
 } conntype_t;
 
-/* Any changes here, please also reflect in dev_pgm_strct() of developer_opts.c */
+/*
+ * Any changes in PROGRAMMER, please also ensure changes are made in
+ *  - lexer.l
+ *  - Either Component_t avr_comp[] of config.c or config_gram.y
+ *  - dev_pgm_strct() in developer_opts.c
+ *  - pgm_new() in pgm.c for initialisation; note that all const char * must
+ *    be initialised with ""
+ */
 typedef struct programmer_t {
   LISTID id;
   const char *desc;
   void (*initpgm)(struct programmer_t *pgm); // Sets up the AVRDUDE programmer
   LISTID comments;              // Used by developer options -c*/[ASsr...]
   const char *parent_id;        // Used by developer options
+  int prog_modes;               // Programming interfaces, see #define PM_...
   struct pindef_t pin[N_PINS];
   conntype_t conntype;
   int baudrate;
@@ -695,7 +727,7 @@ typedef struct programmer_t {
   const char *usbproduct;
   LISTID hvupdi_support;        // List of UPDI HV variants the tool supports, see HV_UPDI_VARIANT_x
 
-  // Values below are not set by config_gram.y; make sure fd is first for dev_pgm_raw()
+  // Values below are not set by config_gram.y; ensure fd is first for dev_pgm_raw()
   union filedescriptor fd;
   char type[PGM_TYPELEN];
   char port[PGM_PORTLEN];

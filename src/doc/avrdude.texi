@@ -1694,33 +1694,52 @@ The format of the programmer definition is as follows:
 
 @smallexample
 programmer
-    parent <id>                                 # <id> is a quoted string
+    parent <id>                                 # optional parent
     id       = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
     desc     = <description> ;                  # quoted string
-    type     = "par" | "stk500" | ... ;         # programmer type (see below for a list)
-    baudrate = <num> ;                          # baudrate for serial ports
-    vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
-    buff     = <num1> [, <num2> ... ] ;         # pin number(s)
-    reset    = <num> ;                          # pin number
-    sck      = <num> ;                          # pin number
-    mosi     = <num> ;                          # pin number
-    miso     = <num> ;                          # pin number
-    errled   = <num> ;                          # pin number
-    rdyled   = <num> ;                          # pin number
-    pgmled   = <num> ;                          # pin number
-    vfyled   = <num> ;                          # pin number
-    usbvid   = <hexnum>;                        # USB VID (Vendor ID)
-    usbpid   = <hexnum> [, <hexnum> ...];       # USB PID (Product ID)
-    usbdev   = <interface>;                     # USB interface or other device info 
-    usbvendor = <vendorname>;                   # USB Vendor Name
-    usbproduct = <productname>;                 # USB Product Name
-    usbsn    = <serialno>;                      # USB Serial Number
-  ;
+    type     = <type>;                          # programmer type, quoted string
+                                                # supported types can be listed by "-c ?type"
+    prog_modes = PM_<i/f> @{ | PM_<i/f> @}        # interfaces, eg, PM_SPM|PM_PDI
+    connection_type = parallel | serial | usb | spi
+    baudrate = <num> ;                          # baudrate for avr910-programmer
+    vcc      = <pin1> [, <pin2> ... ] ;         # pin number(s)
+    buff     = <pin1> [, <pin2> ... ] ;         # pin number(s)
+    reset    = <pin> ;                          # pin number
+    sck      = <pin> ;                          # pin number
+    mosi     = <pin> ;                          # pin number
+    miso     = <pin> ;                          # pin number
+    errled   = <pin> ;                          # pin number
+    rdyled   = <pin> ;                          # pin number
+    pgmled   = <pin> ;                          # pin number
+    vfyled   = <pin> ;                          # pin number
+    usbvid   = <hexnum> ;                       # USB VID (Vendor ID)
+    usbpid   = <hexnum> [, <hexnum> ...] ;      # USB PID (Product ID)
+    usbdev   = <interface> ;                    # USB interface or other device info
+    usbvendor = <vendorname> ;                  # USB Vendor Name
+    usbproduct = <productname> ;                # USB Product Name
+    usbsn    = <serialno> ;                     # USB Serial Number
+    hvupdi_support = <num> [, <num>, ... ] ;    # UPDI HV Variants Support
+;
 @end smallexample
 
 @noindent
 If a parent is specified, all settings of it (except its ids) are used for the new 
 programmer. These values can be changed by new setting them for the new programmer.
+
+@noindent
+Known programming modes are
+@itemize @bullet
+@item @code{PM_SPM}: Bootloaders, self-programming with SPM opcodes or NVM Controllers
+@item @code{PM_TPI}: Tiny Programming Interface (t4, t5, t9, t10, t20, t40, t102, t104)
+@item @code{PM_ISP}: SPI programming for In-System Programming (almost all classic parts)
+@item @code{PM_PDI}: Program and Debug Interface (xmega parts)
+@item @code{PM_UPDI}: Unified Program and Debug Interface
+@item @code{PM_HVSP}: High Voltage Serial Programming (some classic parts)
+@item @code{PM_HVPP}: High Voltage Parallel Programming (most non-HVSP classic parts)
+@item @code{PM_debugWIRE}: Simpler alternative to JTAG (a subset of HVPP/HVSP parts)
+@item @code{PM_JTAG}: Joint Test Action Group standard (some classic parts, some xmega)
+@item @code{PM_aWire}: AVR32 parts
+@end itemize
 
 @noindent
 To invert a bit in the pin definitions, use @code{= ~ <num>}.
@@ -1729,7 +1748,7 @@ To invert a bit in the pin definitions, use @code{= ~ <num>}.
 Not all programmer types can handle a list of USB PIDs.
 
 @noindent
-Following programmer types are currently implemented:
+The following programmer types are currently implemented:
 
 @multitable @columnfractions .25 .6
 @include programmer_types.texi
@@ -1743,29 +1762,35 @@ Following programmer types are currently implemented:
 
 @smallexample
 part
-    id               = <id> ;                 # quoted string
     desc             = <description> ;        # quoted string
-    family_id        = <description> ;        # quoted string
+    id               = <id> ;                 # quoted string
+    family_id        = <id> ;                 # quoted string, eg, "megaAVR" or "tinyAVR"
+    prog_modes       = PM_<i/f> @{ | PM_<i/f> @} # interfaces, eg, PM_SPM|PM_ISP|PM_HVPP|PM_debugWIRE
+    mcuid            = <num>;                 # unique id in 0..2039 for urclock programmer
+    n_interrupts     = <num>;                 # number of interrupts, used for vector bootloaders
+    n_page_erase     = <num>;                 # if set, number of pages erased during NVM erase
+    hvupdi_variant   = <num> ;                # numeric -1 (n/a) or 0..2
+    devicecode       = <num> ;                # deprecated, use stk500_devcode
+    stk500_devcode   = <num> ;                # numeric
+    avr910_devcode   = <num> ;                # numeric
     has_jtag         = <yes/no> ;             # part has JTAG i/f
     has_debugwire    = <yes/no> ;             # part has debugWire i/f
     has_pdi          = <yes/no> ;             # part has PDI i/f
     has_updi         = <yes/no> ;             # part has UPDI i/f
     has_tpi          = <yes/no> ;             # part has TPI i/f
-    devicecode       = <num> ;                # numeric
-    stk500_devcode   = <num> ;                # numeric
-    avr910_devcode   = <num> ;                # numeric
+    is_avr32         = <yes/no> ;             # AVR32 part
+    is_at90s1200     = <yes/no> ;             # AT90S1200 part
     signature        = <num> <num> <num> ;    # signature bytes
     usbpid           = <num> ;                # DFU USB PID
-    reset            = dedicated | io;
-    retry_pulse      = reset | sck;
-    pgm_enable       = <instruction format> ;
-    chip_erase       = <instruction format> ;
     chip_erase_delay = <num> ;                # micro-seconds
+    reset            = dedicated | io ;
+    retry_pulse      = reset | sck ;
+    chip_erase_delay = <num> ;                # chip erase delay (us)
     # STK500 parameters (parallel programming IO lines)
     pagel            = <num> ;                # pin name in hex, i.e., 0xD7
     bs2              = <num> ;                # pin name in hex, i.e., 0xA0
     serial           = <yes/no> ;             # can use serial downloading
-    parallel         = <yes/no/pseudo>;       # can use par. programming
+    parallel         = <yes/no/pseudo> ;      # can use par. programming
     # STK500v2 parameters, to be taken from Atmel's XML files
     timeout          = <num> ;
     stabdelay        = <num> ;
@@ -1777,52 +1802,59 @@ part
     predelay         = <num> ;
     postdelay        = <num> ;
     pollmethod       = <num> ;
-    mode             = <num> ;
-    delay            = <num> ;
-    blocksize        = <num> ;
-    readsize         = <num> ;
     hvspcmdexedelay  = <num> ;
     # STK500v2 HV programming parameters, from XML
-    pp_controlstack  = <num>, <num>, ...;     # PP only
-    hvsp_controlstack = <num>, <num>, ...;    # HVSP only
-    hventerstabdelay = <num>;
-    progmodedelay    = <num>;                 # PP only
-    latchcycles      = <num>;
-    togglevtg        = <num>;
-    poweroffdelay    = <num>;
-    resetdelayms     = <num>;
-    resetdelayus     = <num>;
-    hvleavestabdelay = <num>;
-    resetdelay       = <num>;
-    synchcycles      = <num>;                 # HVSP only
-    chiperasepulsewidth = <num>;              # PP only
-    chiperasepolltimeout = <num>;
-    chiperasetime    = <num>;                 # HVSP only
-    programfusepulsewidth = <num>;            # PP only
-    programfusepolltimeout = <num>;
-    programlockpulsewidth = <num>;            # PP only
-    programlockpolltimeout = <num>;
+    pp_controlstack  = <num>, <num>, ... ;  # PP only
+    hvsp_controlstack = <num>, <num>, ... ; # HVSP only
+    flash_instr      = <num>, <num>, <num> ;
+    eeprom_instr     = <num>, <num>, ... ;
+    hventerstabdelay = <num> ;
+    progmodedelay    = <num> ;              # PP only
+    latchcycles      = <num> ;
+    togglevtg        = <num> ;
+    poweroffdelay    = <num> ;
+    resetdelayms     = <num> ;
+    resetdelayus     = <num> ;
+    hvleavestabdelay = <num> ;
+    resetdelay       = <num> ;
+    synchcycles      = <num> ;               # HVSP only
+    chiperasepulsewidth = <num> ;            # PP only
+    chiperasepolltimeout = <num> ;
+    chiperasetime    = <num> ;               # HVSP only
+    programfusepulsewidth = <num> ;          # PP only
+    programfusepolltimeout = <num> ;
+    programlockpulsewidth = <num> ;          # PP only
+    programlockpolltimeout = <num> ;
     # JTAG ICE mkII parameters, also from XML files
     allowfullpagebitstream = <yes/no> ;
     enablepageprogramming = <yes/no> ;
-    idr              = <num> ;                # IO addr of IDR (OCD) reg.
-    rampz            = <num> ;                # IO addr of RAMPZ reg.
-    spmcr            = <num> ;                # mem addr of SPMC[S]R reg.
-    eecr             = <num> ;                # mem addr of EECR reg.
-                                              # (only when != 0x3F)
-    is_at90s1200     = <yes/no> ;             # AT90S1200 part
-    is_avr32         = <yes/no> ;             # AVR32 part
+    idr              = <num> ;               # IO addr of IDR (OCD) reg
+    rampz            = <num> ;               # IO addr of RAMPZ reg
+    spmcr            = <num> ;               # mem addr of SPMC[S]R reg
+    eecr             = <num> ;               # mem addr of EECR reg only when != 0x3f
+    mcu_base         = <num> ;
+    nvm_base         = <num> ;
+    ocd_base         = <num> ;
+    ocdrev           = <num> ;
+    pgm_enable       = <instruction format> ;
+    chip_erase       = <instruction format> ;
 
     memory <memtype>
-        paged           = <yes/no> ;          # yes / no
+        paged           = <yes/no> ;          # yes/no (flash only, do not use for EEPROM)
+        offset          = <num> ;             # memory offset
         size            = <num> ;             # bytes
         page_size       = <num> ;             # bytes
         num_pages       = <num> ;             # numeric
         min_write_delay = <num> ;             # micro-seconds
         max_write_delay = <num> ;             # micro-seconds
-        readback_p1     = <num> ;             # byte value
-        readback_p2     = <num> ;             # byte value
-        pwroff_after_write = <yes/no> ;       # yes / no
+        readback        = <num> <num> ;       # pair of byte values
+        readback_p1     = <num> ;             # byte value (first component)
+        readback_p2     = <num> ;             # byte value (second component)
+        pwroff_after_write = <yes/no> ;       # yes/no
+        mode            = <num> ;             # STK500 v2 file parameter from Atmel's XML files
+        delay           = <num> ;             #   "
+        blocksize       = <num> ;             #   "
+        readsize        = <num> ;             #   "
         read            = <instruction format> ;
         write           = <instruction format> ;
         read_lo         = <instruction format> ;
@@ -1832,8 +1864,8 @@ part
         loadpage_lo     = <instruction format> ;
         loadpage_hi     = <instruction format> ;
         writepage       = <instruction format> ;
-      ;
-  ;
+    ;
+;
 @end smallexample
 
 @menu
@@ -1914,7 +1946,22 @@ write = "1  1  0  0   0  0  0  0   x x x x  x x x x",
 
 @end smallexample
 
+As the address bit numbers in the SPI opcodes are highly systematic, they
+don't really need to be specified. A compact version of the format
+specification neither uses bit-numbers for address lines nor spaces. If such
+a string is longer than 7 characters, then the characters @code{0}, @code{1},
+@code{x}, @code{a}, @code{i} and @code{o} will be recognised as the
+corresponding bit, whilst any of the characters @code{.}, @code{-}, @code{_}
+or @code{/} can act as arbitrary visual separators, which are ignored.
+Examples:
 
+@smallexample
+
+  loadpage_lo = "0100.0000--000x.xxxx--xxaa.aaaa--iiii.iiii";
+
+  loadpage_lo = "0100.0000", "000x.xxxx", "xxaa.aaaa", "iiii.iiii";
+
+@end smallexample
 
 @c
 @c Node

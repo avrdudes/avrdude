@@ -21,39 +21,56 @@
 #       id       = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
 #       desc     = <description> ;                  # quoted string
 #       type     = <type>;                          # programmer type, quoted string
-#                          # supported programmer types can be listed by "-c ?type"
+#                                                   # supported types can be listed by "-c ?type"
+#       prog_modes = PM_<i/f> {| PM_<i/f>}          # interfaces, eg, PM_SPM|PM_PDI (1)
 #       connection_type = parallel | serial | usb | spi
 #       baudrate = <num> ;                          # baudrate for avr910-programmer
-#       vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
-#       buff     = <num1> [, <num2> ... ] ;         # pin number(s)
-#       reset    = <num> ;                          # pin number
-#       sck      = <num> ;                          # pin number
-#       mosi     = <num> ;                          # pin number
-#       miso     = <num> ;                          # pin number
-#       errled   = <num> ;                          # pin number
-#       rdyled   = <num> ;                          # pin number
-#       pgmled   = <num> ;                          # pin number
-#       vfyled   = <num> ;                          # pin number
+#       vcc      = <pin1> [, <pin2> ... ] ;         # pin number(s)
+#       buff     = <pin1> [, <pin2> ... ] ;         # pin number(s)
+#       reset    = <pin> ;                          # pin number
+#       sck      = <pin> ;                          # pin number
+#       mosi     = <pin> ;                          # pin number
+#       miso     = <pin> ;                          # pin number
+#       errled   = <pin> ;                          # pin number
+#       rdyled   = <pin> ;                          # pin number
+#       pgmled   = <pin> ;                          # pin number
+#       vfyled   = <pin> ;                          # pin number
 #       usbvid   = <hexnum> ;                       # USB VID (Vendor ID)
-#       usbpid   = <hexnum> [, <hexnum> ...] ;      # USB PID (Product ID) (1)
+#       usbpid   = <hexnum> [, <hexnum> ...] ;      # USB PID (Product ID) (2)
 #       usbdev   = <interface> ;                    # USB interface or other device info
 #       usbvendor = <vendorname> ;                  # USB Vendor Name
 #       usbproduct = <productname> ;                # USB Product Name
 #       usbsn    = <serialno> ;                     # USB Serial Number
 #       hvupdi_support = <num> [, <num>, ... ] ;    # UPDI HV Variants Support
-#
-#        To invert a bit, use = ~ <num>, the spaces are important.
-#        For a pin list all pins must be inverted.
-#        A single pin can be specified as usual = ~ <num>, for lists
-#        specify it as follows = ~ ( <num> [, <num2> ... ] ) .
-#
-#        (1) Not all programmer types can process a list of PIDs.
 #   ;
+#
+#       # To invert a bit, use = ~ <num>, the spaces are important.
+#       # For a pin list all pins must be inverted.
+#       # A single pin can be specified as usual = ~ <num>, for lists
+#       # specify it as follows = ~ ( <num> [, <num2> ... ] ).
+#       #
+#       # (1) The following program modes are known:
+#       #  - PM_SPM: Bootloaders, self-programming with SPM opcodes or NVM Controllers
+#       #  - PM_TPI: Tiny Programming Interface (t4, t5, t9, t10, t20, t40, t102, t104)
+#       #  - PM_ISP: SPI programming for In-System Programming (almost all classic parts)
+#       #  - PM_PDI: Program and Debug Interface (xmega parts)
+#       #  - PM_UPDI: Unified Program and Debug Interface
+#       #  - PM_HVSP: High Voltage Serial Programming (some classic parts)
+#       #  - PM_HVPP: High Voltage Parallel Programming (most non-HVSP classic parts)
+#       #  - PM_debugWIRE: Simpler alternative to JTAG (a subset of HVPP/HVSP parts)
+#       #  - PM_JTAG: Joint Test Action Group standard (some classic parts, some xmega)
+#       #  - PM_aWire: AVR32 parts
+#       #
+#       # (2) Not all programmer types can process a list of PIDs
 #
 #   part
 #       desc             = <description> ;        # quoted string
 #       id               = <id> ;                 # quoted string
 #       family_id        = <id> ;                 # quoted string, eg, "megaAVR" or "tinyAVR"
+#       prog_modes       = PM_<i/f> {| PM_<i/f>}  # interfaces, eg, PM_SPM|PM_ISP|PM_HVPP|PM_debugWIRE
+#       mcuid            = <num>;                 # unique id in 0..2039 for urclock programmer
+#       n_interrupts     = <num>;                 # number of interrupts, used for vector bootloaders
+#       n_page_erase     = <num>;                 # if set, number of pages erased during NVM erase
 #       hvupdi_variant   = <num> ;                # numeric -1 (n/a) or 0..2
 #       devicecode       = <num> ;                # deprecated, use stk500_devcode
 #       stk500_devcode   = <num> ;                # numeric
@@ -63,8 +80,9 @@
 #       has_pdi          = <yes/no> ;             # part has PDI i/f
 #       has_updi         = <yes/no> ;             # part has UPDI i/f
 #       has_tpi          = <yes/no> ;             # part has TPI i/f
-#       is_at90s1200     = <yes/no> ;             # AT90S1200 part
 #       is_avr32         = <yes/no> ;             # AVR32 part
+#
+#       is_at90s1200     = <yes/no> ;             # AT90S1200 part
 #       signature        = <num> <num> <num> ;    # signature bytes
 #       usbpid           = <num> ;                # DFU USB PID
 #       chip_erase_delay = <num> ;                # micro-seconds
@@ -247,7 +265,7 @@
 # section avr061.zip which accompanies the application note
 # AVR061 available from:
 #
-#      http://www.atmel.com/dyn/resources/prod_documents/doc2525.pdf
+#      https://ww1.microchip.com/downloads/en/Appnotes/doc2525.pdf
 #
 
 #define ATTINY10    0x10  /* the _old_ one that never existed! */
