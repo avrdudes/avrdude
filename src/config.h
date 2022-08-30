@@ -94,7 +94,7 @@ extern FILE       * yyin;
 extern PROGRAMMER * current_prog;
 extern AVRPART    * current_part;
 extern AVRMEM     * current_mem;
-int                 current_strct;
+extern int          current_strct;
 extern int          cfg_lineno;
 extern char       * cfg_infile;
 extern LISTID       string_list;
