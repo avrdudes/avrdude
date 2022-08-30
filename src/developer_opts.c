@@ -53,6 +53,29 @@
 #include "developer_opts.h"
 #include "developer_opts_private.h"
 
+  // Inject part parameters into a semi-automated rewrite of avrdude.conf
+  //  - Add entries to the tables below; they get written on -p*/i
+  //  - Use the output in a new avrdude.conf
+  //  - Output again with -p* (no /i) and use that for final avrdude.conf
+  //  - Remove entries from below tables
+
+static struct {
+  const char *mcu, *var, *value;
+} ptinj[] = {
+  // Add triples here, eg, {"ATmega328P", "mcuid", "999"},
+ {NULL, NULL, NULL},
+};
+
+static struct {
+  const char *mcu, *mem, *var, *value;
+} meminj[] = {
+  // Add quadruples here, eg, {"ATmega328P", "flash", "page_size", "128"},
+  {NULL, NULL, NULL, NULL},
+};
+
+
+
+
 // Return 0 if op code would encode (essentially) the same SPI command
 static int opcodecmp(const OPCODE *op1, const OPCODE *op2, int opnum) {
   char *opstr1, *opstr2, *p;
@@ -308,7 +331,7 @@ static int dev_part_strct_entry(bool tsv,               // Print as spreadsheet?
   } else {                      // Grammar conform
     int indent = col2 && strcmp(col2, "part");
     dev_cout(comms, n, 0, 0); // Print comments before the line
-    dev_info("%*s%-*s = %s;", indent? 8: 4, "", indent? 15: 19, n, c);
+    dev_info("%*s%-*s = %s;", indent? 8: 4, "", indent? 18: 22, n, c);
     dev_cout(comms, n, 1, 1);  // Print comments on rhs
   }
 
@@ -338,14 +361,14 @@ static void dev_stack_out(bool tsv, const AVRPART *p, const char *name, const un
     dev_info(".pt\t%s\t%s\t", p->desc, name);
   else {
     dev_cout(p->comments, name, 0, 0);
-    dev_info("    %-19s =%s", name, ns <=8? " ": "");
+    dev_info("    %-22s =%s", name, ns <=8? " ": "");
   }
 
   if(ns <= 0)
     dev_info(tsv? "NULL\n": "NULL;");
   else
     for(int i=0; i<ns; i++)
-      dev_info("%s0x%02x%s", !tsv && ns > 8 && i%8 == 0? "\n        ": "", stack[i], i+1<ns? ", ": tsv? "\n": ";");
+      dev_info("%s0x%02x%s", !tsv && ns > 8 && i%8 == 0? "\n        ": " ", stack[i], i+1<ns? ",": tsv? "\n": ";");
 
   dev_cout(p->comments, name, 1, 1);
 }
@@ -525,7 +548,7 @@ static void dev_part_raw(const AVRPART *part) {
 }
 
 
-static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base) {
+static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool injct) {
   char *descstr = cfg_escape(p->desc);
   COMMENT *cp;
 
@@ -690,6 +713,13 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base) {
       if(!bm || opcodecmp(bm->op[i], m->op[i], i))
         dev_part_strct_entry(tsv, ".ptmmop", p->desc, m->desc, opcodename(i), opcode2str(m->op[i], i, !tsv), m->comments);
 
+    if(injct)
+      for(size_t i=0; i<sizeof meminj/sizeof*meminj; i++)
+        if(meminj[i].mcu)
+          if(strcmp(meminj[i].mcu, p->desc) == 0 && strcmp(meminj[i].mem, m->desc) == 0)
+            dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc,
+              meminj[i].var, cfg_strdup("meminj", meminj[i].value), NULL);
+
     if(!tsv) {
       dev_cout(m->comments, ";", 0, 0);
       dev_info("    ;\n");
@@ -705,6 +735,13 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base) {
       }
     }
   }
+
+  if(injct)
+    for(size_t i=0; i<sizeof ptinj/sizeof*ptinj; i++)
+      if(ptinj[i].mcu)
+        if(strcmp(ptinj[i].mcu, p->desc) == 0)
+          dev_part_strct_entry(tsv, ".pt", p->desc, NULL,
+            ptinj[i].var, cfg_strdup("ptinj", ptinj[i].value), NULL);
 
   if(!tsv) {
     dev_cout(p->comments, ";", 0, 0);
@@ -742,7 +779,7 @@ void dev_output_pgm_part(int dev_opt_c, char *programmer, int dev_opt_p, char *p
 
 // -p */[dASsrcow*t]
 void dev_output_part_defs(char *partdesc) {
-  bool cmdok, waits, opspi, descs, astrc, strct, cmpst, raw, all, tsv;
+  bool cmdok, waits, opspi, descs, astrc, strct, cmpst, injct, raw, all, tsv;
   char *flags;
   int nprinted;
   AVRPART *nullpart = avr_new_part();
@@ -753,7 +790,7 @@ void dev_output_part_defs(char *partdesc) {
   if(!flags && !strcmp(partdesc, "*")) // Treat -p * as if it was -p */s
     flags = "s";
 
-  if(!*flags || !strchr("cdoASsrw*t", *flags)) {
+  if(!*flags || !strchr("cdoASsrw*ti", *flags)) {
     dev_info("%s: flags for developer option -p <wildcard>/<flags> not recognised\n", progname);
     dev_info(
       "Wildcard examples (these need protecting in the shell through quoting):\n"
@@ -772,6 +809,7 @@ void dev_output_part_defs(char *partdesc) {
       "       w  wd_... constants for ISP parts\n"
       "       *  all of the above except s and S\n"
       "       t  use tab separated values as much as possible\n"
+      "       i  inject assignments from source code table\n"
       "Examples:\n"
       "  $ avrdude -p ATmega328P/s\n"
       "  $ avrdude -p m328*/st | grep chip_erase_delay\n"
@@ -798,6 +836,7 @@ void dev_output_part_defs(char *partdesc) {
   strct = !!strchr(flags, 'S');
   cmpst = !!strchr(flags, 's');
   tsv   = !!strchr(flags, 't');
+  injct = !!strchr(flags, 'i');
 
 
   // Go through all memories and add them to the memory order list
@@ -834,7 +873,8 @@ void dev_output_part_defs(char *partdesc) {
       dev_part_strct(p, tsv,
         astrc? NULL:
         strct? nullpart:
-        p->parent_id && *p->parent_id? locate_part(part_list, p->parent_id): nullpart);
+        p->parent_id && *p->parent_id? locate_part(part_list, p->parent_id): nullpart,
+        injct);
 
     if(raw)
       dev_part_raw(p);
@@ -1129,7 +1169,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
     dev_info(".prog\t%s\tid\t", id);
   else {
     dev_cout(pgm->comments, "id", 0, 0);
-    dev_info("    %-19s = ", "id");
+    dev_info("    %-22s = ", "id");
   }
   for(firstid=1, ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
     if(!firstid)
@@ -1147,7 +1187,8 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
   }
 
   _if_pgmout_str(strcmp, cfg_escape(pgm->desc), desc);
-  _pgmout_fmt("type", "\"%s\"", locate_programmer_type_id(pgm->initpgm));
+  if(!base || base->initpgm != pgm->initpgm)
+    _pgmout_fmt("type", "\"%s\"", locate_programmer_type_id(pgm->initpgm));
   if(!base || base->conntype != pgm->conntype)
     _pgmout_fmt("connection_type", "%s", connstr(pgm->conntype));
   _if_pgmout(intcmp, "%d", baudrate);
@@ -1159,7 +1200,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
       dev_info(".prog\t%s\tusbpid\t", id);
     else {
       dev_cout(pgm->comments, "usbpid", 0, 0);
-      dev_info("    %-19s = ", "usbpid");
+      dev_info("    %-22s = ", "usbpid");
     }
     for(firstid=1, ln=lfirst(pgm->usbpid); ln; ln=lnext(ln)) {
       if(!firstid)
@@ -1182,10 +1223,13 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
 
   for(int i=0; i<N_PINS; i++) {
     char *str = pins_to_strdup(pgm->pin+i);
-    if(str && *str)
+    char *bstr = base? pins_to_strdup(base->pin+i): NULL;
+    if(!base || strcmp(bstr, str))
       _pgmout_fmt(avr_pin_lcname(i), "%s", str);
-    if(str)
-      free(str);
+
+    free(str);
+    if(bstr)
+      free(bstr);
   }
 
   if(pgm->hvupdi_support && lfirst(pgm->hvupdi_support)) {
@@ -1193,7 +1237,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
       dev_info(".prog\t%s\thvupdu_support\t", id);
     else {
       dev_cout(pgm->comments, "hvupdi_support", 0, 0);
-      dev_info("    %-19s = ", "hvupdi_support");
+      dev_info("    %-22s = ", "hvupdi_support");
     }
     for(firstid=1, ln=lfirst(pgm->hvupdi_support); ln; ln=lnext(ln)) {
       if(!firstid)
