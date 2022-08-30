@@ -16,7 +16,7 @@
 #ifndef AVRINTEL_H
 #define AVRINTEL_H
 
-#include "config.h"
+#include "libavrdude.h"
 
 typedef struct {                // Value of -1 typically means unknown
   const char *name;             // Name of part

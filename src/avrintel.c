@@ -13,6 +13,17 @@
  *
  */
 
+#include "ac_cfg.h"
+
+#include <ctype.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <limits.h>
+#include <unistd.h>
+
 #include "avrintel.h"
 
 const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
