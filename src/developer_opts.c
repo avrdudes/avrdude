@@ -331,7 +331,7 @@ static int dev_part_strct_entry(bool tsv,               // Print as spreadsheet?
   } else {                      // Grammar conform
     int indent = col2 && strcmp(col2, "part");
     dev_cout(comms, n, 0, 0); // Print comments before the line
-    dev_info("%*s%-*s = %s;", indent? 8: 4, "", indent? 15: 19, n, c);
+    dev_info("%*s%-*s = %s;", indent? 8: 4, "", indent? 18: 22, n, c);
     dev_cout(comms, n, 1, 1);  // Print comments on rhs
   }
 
@@ -361,7 +361,7 @@ static void dev_stack_out(bool tsv, const AVRPART *p, const char *name, const un
     dev_info(".pt\t%s\t%s\t", p->desc, name);
   else {
     dev_cout(p->comments, name, 0, 0);
-    dev_info("    %-19s =%s", name, ns <=8? " ": "");
+    dev_info("    %-22s =%s", name, ns <=8? " ": "");
   }
 
   if(ns <= 0)
@@ -1169,7 +1169,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
     dev_info(".prog\t%s\tid\t", id);
   else {
     dev_cout(pgm->comments, "id", 0, 0);
-    dev_info("    %-19s = ", "id");
+    dev_info("    %-22s = ", "id");
   }
   for(firstid=1, ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
     if(!firstid)
@@ -1200,7 +1200,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
       dev_info(".prog\t%s\tusbpid\t", id);
     else {
       dev_cout(pgm->comments, "usbpid", 0, 0);
-      dev_info("    %-19s = ", "usbpid");
+      dev_info("    %-22s = ", "usbpid");
     }
     for(firstid=1, ln=lfirst(pgm->usbpid); ln; ln=lnext(ln)) {
       if(!firstid)
@@ -1237,7 +1237,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
       dev_info(".prog\t%s\thvupdu_support\t", id);
     else {
       dev_cout(pgm->comments, "hvupdi_support", 0, 0);
-      dev_info("    %-19s = ", "hvupdi_support");
+      dev_info("    %-22s = ", "hvupdi_support");
     }
     for(firstid=1, ln=lfirst(pgm->hvupdi_support); ln; ln=lnext(ln)) {
       if(!firstid)
