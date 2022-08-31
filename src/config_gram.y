@@ -208,19 +208,26 @@ static int pin_name;
 %token TKN_COMMA
 %token TKN_EQUAL
 %token TKN_SEMI
-%token TKN_TILDE
 %token TKN_LEFT_PAREN
 %token TKN_RIGHT_PAREN
 %token TKN_NUMBER
 %token TKN_NUMBER_REAL
 %token TKN_STRING
+%token TKN_COMPONENT
+
+%left  OP_OR                    /* calculator operations */
+%left  OP_XOR
+%left  OP_AND
+%left  OP_PLUS OP_MINUS
+%left  OP_TIMES OP_DIVIDE OP_MODULO
+%right OP_TILDE UNARY
 
 %start configuration
 
 %%
 
 number_real : 
- TKN_NUMBER {
+ numexpr {
     $$ = $1;
     /* convert value to real */
     $$->value.number_real = $$->value.number;
@@ -229,6 +236,27 @@ number_real :
   TKN_NUMBER_REAL {
     $$ = $1;
   }
+;
+
+
+expr: numexpr | TKN_STRING;
+
+numexpr:
+  TKN_NUMBER |
+  numexpr OP_OR numexpr     { $$ = $1; $$->value.number |= $3->value.number; } |
+  numexpr OP_XOR numexpr    { $$ = $1; $$->value.number ^= $3->value.number; } |
+  numexpr OP_AND numexpr    { $$ = $1; $$->value.number &= $3->value.number; } |
+  numexpr OP_PLUS numexpr   { $$ = $1; $$->value.number += $3->value.number; } |
+  numexpr OP_MINUS numexpr  { $$ = $1; $$->value.number -= $3->value.number; } |
+  numexpr OP_TIMES numexpr  { $$ = $1; $$->value.number *= $3->value.number; } |
+  numexpr OP_DIVIDE numexpr { $$ = $1; $$->value.number /= $3->value.number; } |
+  numexpr OP_MODULO numexpr { $$ = $1; $$->value.number %= $3->value.number; } |
+  OP_PLUS numexpr %prec UNARY  { $$ = $2; } |
+  OP_MINUS numexpr %prec UNARY { $$ = $2; $$->value.number = -$$->value.number; } |
+  OP_TILDE numexpr %prec UNARY { $$ = $2; $$->value.number = ~$$->value.number; } |
+  TKN_LEFT_PAREN numexpr TKN_RIGHT_PAREN { $$ = $2; }
+;
+
 
 configuration :
   /* empty */ | config
@@ -302,6 +330,7 @@ prog_def :
 //      pgm_fill_old_pins(current_prog); // TODO to be removed if old pin data no longer needed
 //      pgm_display_generic(current_prog, id);
       current_prog = NULL;
+      current_strct = COMP_CONFIG_MAIN;
     }
 ;
 
@@ -309,6 +338,7 @@ prog_def :
 prog_decl :
   K_PROGRAMMER
     { current_prog = pgm_new();
+      current_strct = COMP_PROGRAMMER;
       current_prog->config_file = cache_string(cfg_infile);
       current_prog->lineno = cfg_lineno;
     }
@@ -322,6 +352,7 @@ prog_decl :
         YYABORT;
       }
       current_prog = pgm_dup(pgm);
+      current_strct = COMP_PROGRAMMER;
       current_prog->parent_id = cache_string($3->value.string);
       current_prog->comments = NULL;
       current_prog->config_file = cache_string(cfg_infile);
@@ -342,6 +373,8 @@ part_def :
         yyerror("required parameter id not specified");
         YYABORT;
       }
+
+      cfg_update_mcuid(current_part);
 
       // Sanity checks for memory sizes and compute/override num_pages entry
       for (ln=lfirst(current_part->mem); ln; ln=lnext(ln)) {
@@ -389,6 +422,7 @@ part_def :
       current_part->comments = cfg_move_comments();
       LISTADD(part_list, current_part); 
       current_part = NULL; 
+      current_strct = COMP_CONFIG_MAIN;
     }
 ;
 
@@ -396,6 +430,7 @@ part_decl :
   K_PART
     {
       current_part = avr_new_part();
+      current_strct = COMP_AVRPART;
       current_part->config_file = cache_string(cfg_infile);
       current_part->lineno = cfg_lineno;
     } |
@@ -409,6 +444,7 @@ part_decl :
       }
 
       current_part = avr_dup_part(parent_part);
+      current_strct = COMP_AVRPART;
       current_part->parent_id = cache_string($3->value.string);
       current_part->comments = NULL;
       current_part->config_file = cache_string(cfg_infile);
@@ -425,8 +461,8 @@ string_list :
 
 
 num_list :
-  TKN_NUMBER { ladd(number_list, $1); } |
-  num_list TKN_COMMA TKN_NUMBER { ladd(number_list, $3); }
+  numexpr { ladd(number_list, $1); } |
+  num_list TKN_COMMA numexpr { ladd(number_list, $3); }
 ;
 
 prog_parms :
@@ -435,6 +471,10 @@ prog_parms :
 ;
 
 prog_parm :
+  TKN_COMPONENT TKN_EQUAL expr {
+    cfg_assign((char *) current_prog, COMP_PROGRAMMER, $1->value.comp, &$3->value);
+    free_token($1);
+  } |
   K_ID TKN_EQUAL string_list {
     {
       while (lsize(string_list)) {
@@ -456,7 +496,7 @@ prog_parm :
     current_prog->desc = cache_string($3->value.string);
     free_token($3);
   } |
-  K_BAUDRATE TKN_EQUAL TKN_NUMBER {
+  K_BAUDRATE TKN_EQUAL numexpr {
     {
       current_prog->baudrate = $3->value.number;
       free_token($3);
@@ -505,7 +545,7 @@ prog_parm_usb:
       free_token($3);
     }
   } |
-  K_USBVID TKN_EQUAL TKN_NUMBER {
+  K_USBVID TKN_EQUAL numexpr {
     {
       current_prog->usbvid = $3->value.number;
       free_token($3);
@@ -533,7 +573,7 @@ prog_parm_usb:
 ;
 
 usb_pid_list:
-  TKN_NUMBER {
+  numexpr {
     {
       /* overwrite pids, so clear the existing entries */
       if(current_prog->usbpid)
@@ -547,7 +587,7 @@ usb_pid_list:
       free_token($1);
     }
   } |
-  usb_pid_list TKN_COMMA TKN_NUMBER {
+  usb_pid_list TKN_COMMA numexpr {
     {
       int *ip = cfg_malloc("usb_pid_list", sizeof(int));
       *ip = $3->value.number;
@@ -562,7 +602,7 @@ prog_parm_updi:
 ;
 
 hvupdi_support_list:
-  TKN_NUMBER {
+  numexpr {
     {
       /* overwrite list entries, so clear the existing entries */
       if(current_prog->hvupdi_support)
@@ -576,7 +616,7 @@ hvupdi_support_list:
       free_token($1);
     }
   } |
-  hvupdi_support_list TKN_COMMA TKN_NUMBER {
+  hvupdi_support_list TKN_COMMA numexpr {
     {
       int *ip = cfg_malloc("hvupdi_support_list", sizeof(int));
       *ip = $3->value.number;
@@ -589,7 +629,7 @@ hvupdi_support_list:
 pin_number_non_empty:
   TKN_NUMBER { if(0 != assign_pin(pin_name, $1, 0)) YYABORT;  }
   |
-  TKN_TILDE TKN_NUMBER { if(0 != assign_pin(pin_name, $2, 1)) YYABORT; }
+  OP_TILDE TKN_NUMBER { if(0 != assign_pin(pin_name, $2, 1)) YYABORT; }
 ;
 
 pin_number:
@@ -601,7 +641,7 @@ pin_number:
 pin_list_element:
   pin_number_non_empty
   |
-  TKN_TILDE TKN_LEFT_PAREN num_list TKN_RIGHT_PAREN { if(0 != assign_pin_list(1)) YYABORT; }
+  OP_TILDE TKN_LEFT_PAREN num_list TKN_RIGHT_PAREN { if(0 != assign_pin_list(1)) YYABORT; }
 ;
 
 pin_list_non_empty:
@@ -665,6 +705,10 @@ retry_lines :
 ;
 
 part_parm :
+  TKN_COMPONENT TKN_EQUAL expr {
+    cfg_assign((char *) current_part, COMP_AVRPART, $1->value.comp, &$3->value);
+    free_token($1);
+  } |
   K_ID TKN_EQUAL TKN_STRING 
     {
       current_part->id = cache_string($3->value.string);
@@ -683,13 +727,13 @@ part_parm :
       free_token($3);
     } |
 
-  K_HVUPDI_VARIANT TKN_EQUAL TKN_NUMBER
+  K_HVUPDI_VARIANT TKN_EQUAL numexpr
     {
       current_part->hvupdi_variant = $3->value.number;
       free_token($3);
     } |
 
-  K_DEVICECODE TKN_EQUAL TKN_NUMBER {
+  K_DEVICECODE TKN_EQUAL numexpr {
     {
       yyerror("devicecode is deprecated, use "
               "stk500_devcode instead");
@@ -697,14 +741,14 @@ part_parm :
     }
   } |
 
-  K_STK500_DEVCODE TKN_EQUAL TKN_NUMBER {
+  K_STK500_DEVCODE TKN_EQUAL numexpr {
     {
       current_part->stk500_devcode = $3->value.number;
       free_token($3);
     }
   } |
 
-  K_AVR910_DEVCODE TKN_EQUAL TKN_NUMBER {
+  K_AVR910_DEVCODE TKN_EQUAL numexpr {
     {
       current_part->avr910_devcode = $3->value.number;
       free_token($3);
@@ -722,7 +766,7 @@ part_parm :
     }
   } |
 
- K_USBPID TKN_EQUAL TKN_NUMBER {
+ K_USBPID TKN_EQUAL numexpr {
     {
       current_part->usbpid = $3->value.number;
       free_token($3);
@@ -877,19 +921,19 @@ part_parm :
     }
   } |
 
-  K_CHIP_ERASE_DELAY TKN_EQUAL TKN_NUMBER
+  K_CHIP_ERASE_DELAY TKN_EQUAL numexpr
     {
       current_part->chip_erase_delay = $3->value.number;
       free_token($3);
     } |
 
-  K_PAGEL TKN_EQUAL TKN_NUMBER
+  K_PAGEL TKN_EQUAL numexpr
     {
       current_part->pagel = $3->value.number;
       free_token($3);
     } |
 
-  K_BS2 TKN_EQUAL TKN_NUMBER
+  K_BS2 TKN_EQUAL numexpr
     {
       current_part->bs2 = $3->value.number;
       free_token($3);
@@ -905,169 +949,169 @@ part_parm :
       free_tokens(2, $1, $3);
     } |
 
-  K_TIMEOUT TKN_EQUAL TKN_NUMBER
+  K_TIMEOUT TKN_EQUAL numexpr
     {
       current_part->timeout = $3->value.number;
       free_token($3);
     } |
 
-  K_STABDELAY TKN_EQUAL TKN_NUMBER
+  K_STABDELAY TKN_EQUAL numexpr
     {
       current_part->stabdelay = $3->value.number;
       free_token($3);
     } |
 
-  K_CMDEXEDELAY TKN_EQUAL TKN_NUMBER
+  K_CMDEXEDELAY TKN_EQUAL numexpr
     {
       current_part->cmdexedelay = $3->value.number;
       free_token($3);
     } |
 
-  K_HVSPCMDEXEDELAY TKN_EQUAL TKN_NUMBER
+  K_HVSPCMDEXEDELAY TKN_EQUAL numexpr
     {
       current_part->hvspcmdexedelay = $3->value.number;
       free_token($3);
     } |
 
-  K_SYNCHLOOPS TKN_EQUAL TKN_NUMBER
+  K_SYNCHLOOPS TKN_EQUAL numexpr
     {
       current_part->synchloops = $3->value.number;
       free_token($3);
     } |
 
-  K_BYTEDELAY TKN_EQUAL TKN_NUMBER
+  K_BYTEDELAY TKN_EQUAL numexpr
     {
       current_part->bytedelay = $3->value.number;
       free_token($3);
     } |
 
-  K_POLLVALUE TKN_EQUAL TKN_NUMBER
+  K_POLLVALUE TKN_EQUAL numexpr
     {
       current_part->pollvalue = $3->value.number;
       free_token($3);
     } |
 
-  K_POLLINDEX TKN_EQUAL TKN_NUMBER
+  K_POLLINDEX TKN_EQUAL numexpr
     {
       current_part->pollindex = $3->value.number;
       free_token($3);
     } |
 
-  K_PREDELAY TKN_EQUAL TKN_NUMBER
+  K_PREDELAY TKN_EQUAL numexpr
     {
       current_part->predelay = $3->value.number;
       free_token($3);
     } |
 
-  K_POSTDELAY TKN_EQUAL TKN_NUMBER
+  K_POSTDELAY TKN_EQUAL numexpr
     {
       current_part->postdelay = $3->value.number;
       free_token($3);
     } |
 
-  K_POLLMETHOD TKN_EQUAL TKN_NUMBER
+  K_POLLMETHOD TKN_EQUAL numexpr
     {
       current_part->pollmethod = $3->value.number;
       free_token($3);
     } |
 
-  K_HVENTERSTABDELAY TKN_EQUAL TKN_NUMBER
+  K_HVENTERSTABDELAY TKN_EQUAL numexpr
     {
       current_part->hventerstabdelay = $3->value.number;
       free_token($3);
     } |
 
-  K_PROGMODEDELAY TKN_EQUAL TKN_NUMBER
+  K_PROGMODEDELAY TKN_EQUAL numexpr
     {
       current_part->progmodedelay = $3->value.number;
       free_token($3);
     } |
 
-  K_LATCHCYCLES TKN_EQUAL TKN_NUMBER
+  K_LATCHCYCLES TKN_EQUAL numexpr
     {
       current_part->latchcycles = $3->value.number;
       free_token($3);
     } |
 
-  K_TOGGLEVTG TKN_EQUAL TKN_NUMBER
+  K_TOGGLEVTG TKN_EQUAL numexpr
     {
       current_part->togglevtg = $3->value.number;
       free_token($3);
     } |
 
-  K_POWEROFFDELAY TKN_EQUAL TKN_NUMBER
+  K_POWEROFFDELAY TKN_EQUAL numexpr
     {
       current_part->poweroffdelay = $3->value.number;
       free_token($3);
     } |
 
-  K_RESETDELAYMS TKN_EQUAL TKN_NUMBER
+  K_RESETDELAYMS TKN_EQUAL numexpr
     {
       current_part->resetdelayms = $3->value.number;
       free_token($3);
     } |
 
-  K_RESETDELAYUS TKN_EQUAL TKN_NUMBER
+  K_RESETDELAYUS TKN_EQUAL numexpr
     {
       current_part->resetdelayus = $3->value.number;
       free_token($3);
     } |
 
-  K_HVLEAVESTABDELAY TKN_EQUAL TKN_NUMBER
+  K_HVLEAVESTABDELAY TKN_EQUAL numexpr
     {
       current_part->hvleavestabdelay = $3->value.number;
       free_token($3);
     } |
 
-  K_RESETDELAY TKN_EQUAL TKN_NUMBER
+  K_RESETDELAY TKN_EQUAL numexpr
     {
       current_part->resetdelay = $3->value.number;
       free_token($3);
     } |
 
-  K_CHIPERASEPULSEWIDTH TKN_EQUAL TKN_NUMBER
+  K_CHIPERASEPULSEWIDTH TKN_EQUAL numexpr
     {
       current_part->chiperasepulsewidth = $3->value.number;
       free_token($3);
     } |
 
-  K_CHIPERASEPOLLTIMEOUT TKN_EQUAL TKN_NUMBER
+  K_CHIPERASEPOLLTIMEOUT TKN_EQUAL numexpr
     {
       current_part->chiperasepolltimeout = $3->value.number;
       free_token($3);
     } |
 
-  K_CHIPERASETIME TKN_EQUAL TKN_NUMBER
+  K_CHIPERASETIME TKN_EQUAL numexpr
     {
       current_part->chiperasetime = $3->value.number;
       free_token($3);
     } |
 
-  K_PROGRAMFUSEPULSEWIDTH TKN_EQUAL TKN_NUMBER
+  K_PROGRAMFUSEPULSEWIDTH TKN_EQUAL numexpr
     {
       current_part->programfusepulsewidth = $3->value.number;
       free_token($3);
     } |
 
-  K_PROGRAMFUSEPOLLTIMEOUT TKN_EQUAL TKN_NUMBER
+  K_PROGRAMFUSEPOLLTIMEOUT TKN_EQUAL numexpr
     {
       current_part->programfusepolltimeout = $3->value.number;
       free_token($3);
     } |
 
-  K_PROGRAMLOCKPULSEWIDTH TKN_EQUAL TKN_NUMBER
+  K_PROGRAMLOCKPULSEWIDTH TKN_EQUAL numexpr
     {
       current_part->programlockpulsewidth = $3->value.number;
       free_token($3);
     } |
 
-  K_PROGRAMLOCKPOLLTIMEOUT TKN_EQUAL TKN_NUMBER
+  K_PROGRAMLOCKPOLLTIMEOUT TKN_EQUAL numexpr
     {
       current_part->programlockpolltimeout = $3->value.number;
       free_token($3);
     } |
 
-  K_SYNCHCYCLES TKN_EQUAL TKN_NUMBER
+  K_SYNCHCYCLES TKN_EQUAL numexpr
     {
       current_part->synchcycles = $3->value.number;
       free_token($3);
@@ -1076,50 +1120,45 @@ part_parm :
   K_HAS_JTAG TKN_EQUAL yesno
     {
       if ($3->primary == K_YES)
-        current_part->flags |= AVRPART_HAS_JTAG;
+        current_part->prog_modes |= PM_JTAG;
       else if ($3->primary == K_NO)
-        current_part->flags &= ~AVRPART_HAS_JTAG;
-
+        current_part->prog_modes &= ~PM_JTAG;
       free_token($3);
     } |
 
   K_HAS_DW TKN_EQUAL yesno
     {
       if ($3->primary == K_YES)
-        current_part->flags |= AVRPART_HAS_DW;
+        current_part->prog_modes |= PM_debugWIRE;
       else if ($3->primary == K_NO)
-        current_part->flags &= ~AVRPART_HAS_DW;
-
+        current_part->prog_modes &= ~PM_debugWIRE;
       free_token($3);
     } |
 
   K_HAS_PDI TKN_EQUAL yesno
     {
       if ($3->primary == K_YES)
-        current_part->flags |= AVRPART_HAS_PDI;
+        current_part->prog_modes |= PM_PDI;
       else if ($3->primary == K_NO)
-        current_part->flags &= ~AVRPART_HAS_PDI;
-
+        current_part->prog_modes &= ~PM_PDI;
       free_token($3);
     } |
 
   K_HAS_UPDI TKN_EQUAL yesno
     {
       if ($3->primary == K_YES)
-        current_part->flags |= AVRPART_HAS_UPDI;
+        current_part->prog_modes |= PM_UPDI;
       else if ($3->primary == K_NO)
-        current_part->flags &= ~AVRPART_HAS_UPDI;
-
+        current_part->prog_modes &= ~PM_UPDI;
       free_token($3);
     } |
 
   K_HAS_TPI TKN_EQUAL yesno
     {
       if ($3->primary == K_YES)
-        current_part->flags |= AVRPART_HAS_TPI;
+        current_part->prog_modes |= PM_TPI;
       else if ($3->primary == K_NO)
-        current_part->flags &= ~AVRPART_HAS_TPI;
-
+        current_part->prog_modes &= ~PM_TPI;
       free_token($3);
     } |
 
@@ -1136,10 +1175,9 @@ part_parm :
   K_IS_AVR32 TKN_EQUAL yesno
     {
       if ($3->primary == K_YES)
-        current_part->flags |= AVRPART_AVR32;
+        current_part->prog_modes |= PM_aWire;
       else if ($3->primary == K_NO)
-        current_part->flags &= ~AVRPART_AVR32;
-
+        current_part->prog_modes &= ~PM_aWire;
       free_token($3);
     } |
 
@@ -1163,49 +1201,49 @@ part_parm :
       free_token($3);
     } |
 
-  K_IDR TKN_EQUAL TKN_NUMBER
+  K_IDR TKN_EQUAL numexpr
     {
       current_part->idr = $3->value.number;
       free_token($3);
     } |
 
-  K_RAMPZ TKN_EQUAL TKN_NUMBER
+  K_RAMPZ TKN_EQUAL numexpr
     {
       current_part->rampz = $3->value.number;
       free_token($3);
     } |
 
-  K_SPMCR TKN_EQUAL TKN_NUMBER
+  K_SPMCR TKN_EQUAL numexpr
     {
       current_part->spmcr = $3->value.number;
       free_token($3);
     } |
 
-  K_EECR TKN_EQUAL TKN_NUMBER
+  K_EECR TKN_EQUAL numexpr
     {
       current_part->eecr = $3->value.number;
       free_token($3);
     } |
 
-  K_MCU_BASE TKN_EQUAL TKN_NUMBER
+  K_MCU_BASE TKN_EQUAL numexpr
     {
       current_part->mcu_base = $3->value.number;
       free_token($3);
     } |
 
-  K_NVM_BASE TKN_EQUAL TKN_NUMBER
+  K_NVM_BASE TKN_EQUAL numexpr
     {
       current_part->nvm_base = $3->value.number;
       free_token($3);
     } |
 
- K_OCD_BASE TKN_EQUAL TKN_NUMBER
+ K_OCD_BASE TKN_EQUAL numexpr
     {
       current_part->ocd_base = $3->value.number;
       free_token($3);
     } |
 
-  K_OCDREV          TKN_EQUAL TKN_NUMBER
+  K_OCDREV          TKN_EQUAL numexpr
     {
       current_part->ocdrev = $3->value.number;
       free_token($3);
@@ -1255,14 +1293,6 @@ part_parm :
     } |
 
 
-/*
-  K_EEPROM { current_mem = AVR_M_EEPROM; }
-    mem_specs |
-
-  K_FLASH { current_mem = AVR_M_FLASH; }
-    mem_specs |
-*/
-
   K_MEMORY TKN_STRING 
     { /* select memory for extension or create if not there */
       AVRMEM *mem = avr_locate_mem_noalias(current_part, $2->value.string);
@@ -1273,6 +1303,7 @@ part_parm :
       }
       avr_add_mem_order($2->value.string);
       current_mem = mem;
+      current_strct = COMP_AVRMEM;
       free_token($2);
     }
     mem_specs 
@@ -1295,6 +1326,7 @@ part_parm :
       }
       cfg_pop_comms();
       current_mem = NULL; 
+      current_strct = COMP_AVRPART;
     } |
   K_MEMORY TKN_STRING TKN_EQUAL K_NULL
    {
@@ -1306,6 +1338,7 @@ part_parm :
       free_token($2);
       cfg_pop_comms();
       current_mem = NULL;
+      current_strct = COMP_AVRPART;
     } |
   opcode TKN_EQUAL string_list {
     { 
@@ -1355,20 +1388,25 @@ mem_specs :
 
 
 mem_spec :
+  TKN_COMPONENT TKN_EQUAL expr {
+    cfg_assign((char *) current_mem, COMP_AVRMEM, $1->value.comp, &$3->value);
+    free_token($1);
+  } |
+
   K_PAGED          TKN_EQUAL yesno
     {
       current_mem->paged = $3->primary == K_YES ? 1 : 0;
       free_token($3);
     } |
 
-  K_SIZE            TKN_EQUAL TKN_NUMBER
+  K_SIZE            TKN_EQUAL numexpr
     {
       current_mem->size = $3->value.number;
       free_token($3);
     } |
 
 
-  K_PAGE_SIZE       TKN_EQUAL TKN_NUMBER
+  K_PAGE_SIZE       TKN_EQUAL numexpr
     {
       int ps = $3->value.number;
       if (ps <= 0)
@@ -1380,25 +1418,25 @@ mem_spec :
       free_token($3);
     } |
 
-  K_NUM_PAGES       TKN_EQUAL TKN_NUMBER
+  K_NUM_PAGES       TKN_EQUAL numexpr
     {
       current_mem->num_pages = $3->value.number;
       free_token($3);
     } |
 
-  K_OFFSET          TKN_EQUAL TKN_NUMBER
+  K_OFFSET          TKN_EQUAL numexpr
     {
       current_mem->offset = $3->value.number;
       free_token($3);
     } |
 
-  K_MIN_WRITE_DELAY TKN_EQUAL TKN_NUMBER
+  K_MIN_WRITE_DELAY TKN_EQUAL numexpr
     {
       current_mem->min_write_delay = $3->value.number;
       free_token($3);
     } |
 
-  K_MAX_WRITE_DELAY TKN_EQUAL TKN_NUMBER
+  K_MAX_WRITE_DELAY TKN_EQUAL numexpr
     {
       current_mem->max_write_delay = $3->value.number;
       free_token($3);
@@ -1418,44 +1456,44 @@ mem_spec :
       free_token($4);
     } |
 
-  K_READBACK_P1     TKN_EQUAL TKN_NUMBER
+  K_READBACK_P1     TKN_EQUAL numexpr
     {
       current_mem->readback[0] = $3->value.number;
       free_token($3);
     } |
 
-  K_READBACK_P2     TKN_EQUAL TKN_NUMBER
+  K_READBACK_P2     TKN_EQUAL numexpr
     {
       current_mem->readback[1] = $3->value.number;
       free_token($3);
     } |
 
 
-  K_MODE TKN_EQUAL TKN_NUMBER
+  K_MODE TKN_EQUAL numexpr
     {
       current_mem->mode = $3->value.number;
       free_token($3);
     } |
 
-  K_DELAY TKN_EQUAL TKN_NUMBER
+  K_DELAY TKN_EQUAL numexpr
     {
       current_mem->delay = $3->value.number;
       free_token($3);
     } |
 
-  K_BLOCKSIZE TKN_EQUAL TKN_NUMBER
+  K_BLOCKSIZE TKN_EQUAL numexpr
     {
       current_mem->blocksize = $3->value.number;
       free_token($3);
     } |
 
-  K_READSIZE TKN_EQUAL TKN_NUMBER
+  K_READSIZE TKN_EQUAL numexpr
     {
       current_mem->readsize = $3->value.number;
       free_token($3);
     } |
 
-  K_POLLINDEX TKN_EQUAL TKN_NUMBER
+  K_POLLINDEX TKN_EQUAL numexpr
     {
       current_mem->pollindex = $3->value.number;
       free_token($3);

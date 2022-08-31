@@ -63,9 +63,9 @@ SIGN     [+-]
 
 %%
 
-{SIGN}?{DIGIT}+            { yylval = number(yytext); return TKN_NUMBER; }
-{SIGN}?{DIGIT}+"."{DIGIT}* { yylval = number_real(yytext); return TKN_NUMBER_REAL; }
-{SIGN}?"."{DIGIT}+         { yylval = number_real(yytext); return TKN_NUMBER_REAL; }
+{DIGIT}+                   { yylval = new_number(yytext); return TKN_NUMBER; /* sign is treated in grammar */ }
+{SIGN}?{DIGIT}+"."{DIGIT}* { yylval = new_number_real(yytext); return TKN_NUMBER_REAL; }
+{SIGN}?"."{DIGIT}+         { yylval = new_number_real(yytext); return TKN_NUMBER_REAL; }
 
 ["]([^"\\\n]|\\.|\\\n)*["] {
   char *str= cfg_strdup("lexer.l", yytext);
@@ -73,12 +73,12 @@ SIGN     [+-]
   size_t len = strlen(str);
   if(len)
     str[len-1] = 0;
-  yylval = string(str);
+  yylval = new_string(str);
   free(str);
   return TKN_STRING;
 }
 
-0x{HEXDIGIT}+ { yylval = hexnumber(yytext); return TKN_NUMBER; }
+0x{HEXDIGIT}+ { yylval = new_hexnumber(yytext); return TKN_NUMBER; }
 
 #\n#\ PROGRAMMER\ DEFINITIONS\n#\n+ { /* Record comments so far as prologue and skip */
   cfg_capture_prologue();
@@ -120,6 +120,23 @@ SIGN     [+-]
         }
      }
 
+
+prog_modes|mcuid|n_interrupts|n_page_erase { /* Components for assignment  */
+  Component_t *cp = cfg_comp_search(yytext, current_strct);
+  if(!cp) {
+    yyerror("Unknown component %s in %s", yytext, cfg_strct_name(current_strct));
+    return YYERRCODE;
+  }
+  yylval = new_token(TKN_COMPONENT);
+  yylval->value.comp = cp;
+  ccap();
+  return TKN_COMPONENT;
+}
+
+PM_SPM|PM_TPI|PM_ISP|PM_PDI|PM_UPDI|PM_HVSP|PM_HVPP|PM_debugWIRE|PM_JTAG|PM_aWire { /* Constants */
+  yylval = new_constant(yytext);
+  return TKN_NUMBER;
+}
 
 alias            { yylval=NULL; return K_ALIAS; }
 allowfullpagebitstream { yylval=NULL; ccap(); return K_ALLOWFULLPAGEBITSTREAM; }
@@ -258,7 +275,17 @@ yes              { yylval=new_token(K_YES); return K_YES; }
 ","       { yylval = NULL; pyytext(); return TKN_COMMA; }
 "="       { yylval = NULL; pyytext(); return TKN_EQUAL; }
 ";"       { yylval = NULL; pyytext(); return TKN_SEMI; }
-"~"       { yylval = NULL; pyytext(); return TKN_TILDE; }
+
+"|"       { yylval = NULL; pyytext(); return OP_OR; }
+"^"       { yylval = NULL; pyytext(); return OP_XOR; }
+"&"       { yylval = NULL; pyytext(); return OP_AND; }
+"+"       { yylval = NULL; pyytext(); return OP_PLUS; }
+"-"       { yylval = NULL; pyytext(); return OP_MINUS; }
+"*"       { yylval = NULL; pyytext(); return OP_TIMES; }
+"/"       { yylval = NULL; pyytext(); return OP_DIVIDE; }
+"%"       { yylval = NULL; pyytext(); return OP_MODULO; }
+"~"       { yylval = NULL; pyytext(); return OP_TILDE; }
+
 "("       { yylval = NULL; pyytext(); return TKN_LEFT_PAREN; }
 ")"       { yylval = NULL; pyytext(); return TKN_RIGHT_PAREN; }
 

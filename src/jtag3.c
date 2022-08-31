@@ -1064,19 +1064,19 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   if (pgm->flag & PGM_FL_IS_DW) {
     ifname = "debugWire";
-    if (p->flags & AVRPART_HAS_DW)
+    if (p->prog_modes & PM_debugWIRE)
       conn = PARM3_CONN_DW;
   } else if (pgm->flag & PGM_FL_IS_PDI) {
     ifname = "PDI";
-    if (p->flags & AVRPART_HAS_PDI)
+    if (p->prog_modes & PM_PDI)
       conn = PARM3_CONN_PDI;
   } else if (pgm->flag & PGM_FL_IS_UPDI) {
     ifname = "UPDI";
-    if (p->flags & AVRPART_HAS_UPDI)
+    if (p->prog_modes & PM_UPDI)
       conn = PARM3_CONN_UPDI;
   } else {
     ifname = "JTAG";
-    if (p->flags & AVRPART_HAS_JTAG)
+    if (p->prog_modes & PM_JTAG)
       conn = PARM3_CONN_JTAG;
   }
 
@@ -1086,11 +1086,11 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   }
 
-  if (p->flags & AVRPART_HAS_PDI)
+  if (p->prog_modes & PM_PDI)
     parm[0] = PARM3_ARCH_XMEGA;
-  else if (p->flags & AVRPART_HAS_UPDI)
+  else if (p->prog_modes & PM_UPDI)
     parm[0] = PARM3_ARCH_UPDI;
-  else if (p->flags & AVRPART_HAS_DW)
+  else if (p->prog_modes & PM_debugWIRE)
     parm[0] = PARM3_ARCH_TINY;
   else
     parm[0] = PARM3_ARCH_MEGA;
@@ -1108,7 +1108,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if (conn == PARM3_CONN_PDI || conn == PARM3_CONN_UPDI)
     PDATA(pgm)->set_sck = jtag3_set_sck_xmega_pdi;
   else if (conn == PARM3_CONN_JTAG) {
-    if (p->flags & AVRPART_HAS_PDI)
+    if (p->prog_modes & PM_PDI)
       PDATA(pgm)->set_sck = jtag3_set_sck_xmega_jtag;
     else
       PDATA(pgm)->set_sck = jtag3_set_sck_mega_jtag;
@@ -1137,7 +1137,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   /* set device descriptor data */
-  if ((p->flags & AVRPART_HAS_PDI))
+  if ((p->prog_modes & PM_PDI))
   {
     struct xmega_device_desc xd;
     LNODEID ln;
@@ -1182,7 +1182,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if (jtag3_setparm(pgm, SCOPE_AVR, 2, PARM3_DEVICEDESC, (unsigned char *)&xd, sizeof xd) < 0)
       return -1;
   }
-  else if ((p->flags & AVRPART_HAS_UPDI))
+  else if ((p->prog_modes & PM_UPDI))
   {
     struct updi_device_desc xd;
     LNODEID ln;
@@ -1247,7 +1247,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
     // Generate UPDI high-voltage pulse if user asks for it and hardware supports it
     LNODEID support;
-    if (p->flags & AVRPART_HAS_UPDI &&
+    if (p->prog_modes & PM_UPDI &&
         PDATA(pgm)->use_hvupdi == true &&
         p->hvupdi_variant != HV_UPDI_VARIANT_1) {
       parm[0] = PARM3_UPDI_HV_NONE;
@@ -1332,7 +1332,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       int ocdrev;
 
       /* lacking a proper definition, guess the OCD revision */
-      if (p->flags & AVRPART_HAS_DW)
+      if (p->prog_modes & PM_debugWIRE)
 	ocdrev = 1;		/* exception: ATtiny13, 2313, 4313 */
       else if (flashsize > 128 * 1024)
 	ocdrev = 4;
@@ -1376,7 +1376,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   if (use_ext_reset > 1) {
-      if(strcmp(pgm->type, "JTAGICE3") == 0 && p->flags & AVRPART_HAS_JTAG)
+      if(strcmp(pgm->type, "JTAGICE3") == 0 && (p->prog_modes & PM_JTAG))
         avrdude_message(MSG_INFO, "%s: JTAGEN fuse disabled?\n", progname);
       return -1;
   }
@@ -1394,7 +1394,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
    * doesn't apply here anyway), the response is just RSP_OK.
    */
   if (resp[1] == RSP3_DATA && status >= 7) {
-    if (p->flags & AVRPART_HAS_UPDI) {
+    if (p->prog_modes & PM_UPDI) {
       /* Partial Family_ID has been returned */
       avrdude_message(MSG_NOTICE, "%s: Partial Family_ID returned: \"%c%c%c%c\"\n",
 	      progname, resp[3], resp[4], resp[5], resp[6]);
@@ -1408,11 +1408,8 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   free(resp);
 
   PDATA(pgm)->boot_start = ULONG_MAX;
-  if ((p->flags & AVRPART_HAS_PDI)) {
-    /*
-     * Find out where the border between application and boot area
-     * is.
-     */
+  if (p->prog_modes & PM_PDI) {
+    // Find the border between application and boot area
     AVRMEM *bootmem = avr_locate_mem(p, "boot");
     AVRMEM *flashmem = avr_locate_mem(p, "flash");
     if (bootmem == NULL || flashmem == NULL) {
@@ -1690,7 +1687,7 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   avrdude_message(MSG_NOTICE2, "%s: jtag3_page_erase(.., %s, 0x%x)\n",
 	    progname, m->desc, addr);
 
-  if (!(p->flags & AVRPART_HAS_PDI)) {
+  if (!(p->prog_modes & PM_PDI)) {
     avrdude_message(MSG_INFO, "%s: jtag3_page_erase: not an Xmega device\n",
 	    progname);
     return -1;
@@ -1764,7 +1761,7 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   if (strcmp(m->desc, "flash") == 0) {
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
     cmd[3] = jtag3_memtype(pgm, p, addr);
-    if (p->flags & AVRPART_HAS_PDI)
+    if (p->prog_modes & PM_PDI)
       /* dynamically decide between flash/boot memtype */
       dynamic_memtype = 1;
   } else if (strcmp(m->desc, "eeprom") == 0) {
@@ -1783,14 +1780,14 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
       free(cmd);
       return n_bytes;
     }
-    cmd[3] = ( p->flags & AVRPART_HAS_PDI || p->flags & AVRPART_HAS_UPDI ) ? MTYPE_EEPROM_XMEGA : MTYPE_EEPROM_PAGE;
+    cmd[3] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM_XMEGA: MTYPE_EEPROM_PAGE;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if (strcmp(m->desc, "usersig") == 0 ||
              strcmp(m->desc, "userrow") == 0) {
     cmd[3] = MTYPE_USERSIG;
   } else if (strcmp(m->desc, "boot") == 0) {
     cmd[3] = MTYPE_BOOT_FLASH;
-  } else if ( p->flags & AVRPART_HAS_PDI || p->flags & AVRPART_HAS_UPDI ) {
+  } else if (p->prog_modes & (PM_PDI | PM_UPDI)) {
     cmd[3] = MTYPE_FLASH;
   } else {
     cmd[3] = MTYPE_SPM;
@@ -1868,11 +1865,11 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   if (strcmp(m->desc, "flash") == 0) {
     cmd[3] = jtag3_memtype(pgm, p, addr);
-    if (p->flags & AVRPART_HAS_PDI)
+    if (p->prog_modes & PM_PDI)
       /* dynamically decide between flash/boot memtype */
       dynamic_memtype = 1;
   } else if (strcmp(m->desc, "eeprom") == 0) {
-    cmd[3] = ( p->flags & AVRPART_HAS_PDI || p->flags & AVRPART_HAS_UPDI ) ? MTYPE_EEPROM : MTYPE_EEPROM_PAGE;
+    cmd[3] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM: MTYPE_EEPROM_PAGE;
     if (pgm->flag & PGM_FL_IS_DW)
       return -1;
   } else if (strcmp(m->desc, "prodsig") == 0) {
@@ -1882,9 +1879,9 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     cmd[3] = MTYPE_USERSIG;
   } else if (strcmp(m->desc, "boot") == 0) {
     cmd[3] = MTYPE_BOOT_FLASH;
-  } else if ( p->flags & AVRPART_HAS_PDI ) {
+  } else if (p->prog_modes & PM_PDI) {
     cmd[3] = MTYPE_FLASH;
-  } else if ( p->flags & AVRPART_HAS_UPDI ) {
+  } else if (p->prog_modes & PM_UPDI) {
     cmd[3] = MTYPE_SRAM;
   } else {
     cmd[3] = MTYPE_SPM;
@@ -1949,7 +1946,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   cmd[1] = CMD3_READ_MEMORY;
   cmd[2] = 0;
 
-  cmd[3] = ( p->flags & AVRPART_HAS_PDI || p->flags & AVRPART_HAS_UPDI ) ? MTYPE_FLASH : MTYPE_FLASH_PAGE;
+  cmd[3] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_FLASH: MTYPE_FLASH_PAGE;
   if (avr_mem_is_flash_type(mem)) {
     addr += mem->offset & (512 * 1024 - 1); /* max 512 KiB flash */
     pagesize = PDATA(pgm)->flash_pagesize;
@@ -1957,7 +1954,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     paddr_ptr = &PDATA(pgm)->flash_pageaddr;
     cache_ptr = PDATA(pgm)->flash_pagecache;
   } else if (avr_mem_is_eeprom_type(mem)) {
-    if ( (pgm->flag & PGM_FL_IS_DW) || ( p->flags & AVRPART_HAS_PDI ) || ( p->flags & AVRPART_HAS_UPDI ) ) {
+    if ( (pgm->flag & PGM_FL_IS_DW) || (p->prog_modes & PM_PDI) || (p->prog_modes & PM_UPDI) ) {
       cmd[3] = MTYPE_EEPROM;
     } else {
       cmd[3] = MTYPE_EEPROM_PAGE;
@@ -1987,7 +1984,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       unsupp = 1;
   } else if (matches(mem->desc, "fuse")) {
     cmd[3] = MTYPE_FUSE_BITS;
-    if (!(p->flags & AVRPART_HAS_UPDI))
+    if (!(p->prog_modes & PM_UPDI))
       addr = mem->offset & 7;
   } else if (strcmp(mem->desc, "usersig") == 0 ||
              strcmp(mem->desc, "userrow") == 0) {
@@ -2117,7 +2114,7 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   cmd[0] = SCOPE_AVR;
   cmd[1] = CMD3_WRITE_MEMORY;
   cmd[2] = 0;
-  cmd[3] = ( p->flags & AVRPART_HAS_PDI || p->flags & AVRPART_HAS_UPDI ) ? MTYPE_FLASH : MTYPE_SPM;
+  cmd[3] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_FLASH: MTYPE_SPM;
   if (strcmp(mem->desc, "flash") == 0) {
      cache_ptr = PDATA(pgm)->flash_pagecache;
      pagesize = PDATA(pgm)->flash_pagesize;
@@ -2149,7 +2146,7 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
       unsupp = 1;
   } else if (matches(mem->desc, "fuse")) {
     cmd[3] = MTYPE_FUSE_BITS;
-    if (!(p->flags & AVRPART_HAS_UPDI))
+    if (!(p->prog_modes & PM_UPDI))
       addr = mem->offset & 7;
   } else if (strcmp(mem->desc, "usersig") == 0 ||
              strcmp(mem->desc, "userrow") == 0) {
@@ -2457,7 +2454,7 @@ static void jtag3_print_parms(const PROGRAMMER *pgm) {
 }
 
 static unsigned char jtag3_memtype(const PROGRAMMER *pgm, const AVRPART *p, unsigned long addr) {
-  if ( p->flags & AVRPART_HAS_PDI ) {
+  if (p->prog_modes & PM_PDI) {
     if (addr >= PDATA(pgm)->boot_start)
       return MTYPE_BOOT_FLASH;
     else
@@ -2468,7 +2465,7 @@ static unsigned char jtag3_memtype(const PROGRAMMER *pgm, const AVRPART *p, unsi
 }
 
 static unsigned int jtag3_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr) {
-  if ((p->flags & AVRPART_HAS_PDI) != 0) {
+  if (p->prog_modes & PM_PDI) {
     if (addr >= PDATA(pgm)->boot_start)
       /*
        * all memories but "flash" are smaller than boot_start anyway, so
@@ -2479,10 +2476,9 @@ static unsigned int jtag3_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const
       /* normal flash, or anything else */
       return addr;
   }
-  /*
-   * Non-Xmega device.
-   */
-  if (p->flags & AVRPART_HAS_UPDI) {
+
+  // Non-Xmega device
+  if (p->prog_modes & PM_UPDI) {
     if (strcmp(m->desc, "flash") == 0) {
       return addr;
     }

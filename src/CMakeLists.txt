@@ -252,6 +252,8 @@ add_executable(avrdude
     main.c
     term.c
     term.h
+    avrintel.c
+    avrintel.h
     developer_opts.c
     developer_opts.h
     developer_opts_private.h

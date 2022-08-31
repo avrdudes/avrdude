@@ -422,7 +422,7 @@ int bitbang_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char res[4];
   AVRMEM *mem;
 
-  if (p->flags & AVRPART_HAS_TPI) {
+  if (p->prog_modes & PM_TPI) {
     pgm->pgm_led(pgm, ON);
 
     while (avr_tpi_poll_nvmbsy(pgm));
@@ -482,7 +482,7 @@ int bitbang_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char res[4];
   int i;
 
-  if (p->flags & AVRPART_HAS_TPI) {
+  if (p->prog_modes & PM_TPI) {
     /* enable NVM programming */
     bitbang_tpi_tx(pgm, TPI_CMD_SKEY);
     for (i = sizeof(tpi_skey) - 1; i >= 0; i--)
@@ -524,7 +524,7 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   usleep(20000);
 
   /* TPIDATA is a single line, so MISO & MOSI should be connected */
-  if (p->flags & AVRPART_HAS_TPI) {
+  if (p->prog_modes & PM_TPI) {
     /* make sure cmd_tpi() is defined */
     if (pgm->cmd_tpi == NULL) {
       avrdude_message(MSG_INFO, "%s: Error: %s programmer does not support TPI\n",
@@ -559,7 +559,7 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pgm->setpin(pgm, PIN_AVR_RESET, 0);
   usleep(20000);
 
-  if (p->flags & AVRPART_HAS_TPI) {
+  if (p->prog_modes & PM_TPI) {
     /* keep TPIDATA high for 16 clock cycles */
     pgm->setpin(pgm, PIN_AVR_MOSI, 1);
     for (i = 0; i < 16; i++)

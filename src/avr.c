@@ -52,7 +52,7 @@ int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 	int err;
   AVRMEM *mem;
 
-  if (p->flags & AVRPART_HAS_TPI) {
+  if (p->prog_modes & PM_TPI) {
     pgm->pgm_led(pgm, ON);
 
     /* Set Pointer Register */
@@ -102,7 +102,7 @@ int avr_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p, unsigned cha
 	unsigned char cmd[2];
 	unsigned char response;
 
-	if(p->flags & AVRPART_HAS_TPI) {
+	if(p->prog_modes & PM_TPI) {
 		/* set guard time */
 		cmd[0] = (TPI_CMD_SSTCS | TPI_REG_TPIPCR);
 		cmd[1] = guard_time;
@@ -194,7 +194,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   pgm->pgm_led(pgm, ON);
   pgm->err_led(pgm, OFF);
 
-  if (p->flags & AVRPART_HAS_TPI) {
+  if (p->prog_modes & PM_TPI) {
     if (pgm->cmd_tpi == NULL) {
       avrdude_message(MSG_INFO, "%s: Error: %s programmer does not support TPI\n",
           progname, pgm->type);
@@ -342,7 +342,7 @@ int avr_read(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype,
   memset(mem->buf, 0xff, mem->size);
 
   /* supports "paged load" thru post-increment */
-  if ((p->flags & AVRPART_HAS_TPI) && mem->page_size > 1 &&
+  if ((p->prog_modes & PM_TPI) && mem->page_size > 1 &&
       mem->size % mem->page_size == 0 && pgm->cmd_tpi != NULL) {
 
     while (avr_tpi_poll_nvmbsy(pgm));
@@ -550,7 +550,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     return -1;
   }
 
-  if (p->flags & AVRPART_HAS_TPI) {
+  if (p->prog_modes & PM_TPI) {
     if (pgm->cmd_tpi == NULL) {
       avrdude_message(MSG_INFO, "%s: Error: %s programmer does not support TPI\n",
           progname, pgm->type);
@@ -596,8 +596,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     return 0;
   }
 
-  if (!mem->paged &&
-      (p->flags & AVRPART_IS_AT90S1200) == 0) {
+  if (!mem->paged && (p->flags & AVRPART_IS_AT90S1200) == 0) {
     /* 
      * check to see if the write is necessary by reading the existing
      * value and only write if we are changing the value; we can't
@@ -839,9 +838,7 @@ int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype,
   }
 
 
-  if ((p->flags & AVRPART_HAS_TPI) && m->page_size > 1 &&
-      pgm->cmd_tpi != NULL) {
-
+  if ((p->prog_modes & PM_TPI) && m->page_size > 1 && pgm->cmd_tpi) {
     if (wsize == 1) {
       /* fuse (configuration) memory: only single byte to write */
       return avr_write_byte(pgm, p, m, 0, m->buf[0]) == 0? 1: -1;

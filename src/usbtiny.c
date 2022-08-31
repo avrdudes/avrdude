@@ -454,7 +454,7 @@ static int usbtiny_initialize (const PROGRAMMER *pgm, const AVRPART *p ) {
   // Let the device wake up.
   usleep(50000);
 
-  if (p->flags & AVRPART_HAS_TPI) {
+  if (p->prog_modes & PM_TPI) {
     /* Since there is a single TPIDATA line, MOSI and MISO must be
        linked together through a 1kOhm resistor.  Verify that
        everything we send on MOSI gets mirrored back on MISO.  */
@@ -605,7 +605,7 @@ static int usbtiny_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 static int usbtiny_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char res[4];
 
-  if (p->flags & AVRPART_HAS_TPI)
+  if (p->prog_modes & PM_TPI)
     return avr_tpi_chip_erase(pgm, p);
 
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
@@ -773,7 +773,7 @@ static int usbtiny_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 static int usbtiny_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char buf[4];
 
-  if (p->flags & AVRPART_HAS_TPI)
+  if (p->prog_modes & PM_TPI)
     return avr_tpi_program_enable(pgm, p, TPIPCR_GT_0b);
   else
     return usbtiny_avr_op(pgm, p, AVR_OP_PGM_ENABLE, buf);

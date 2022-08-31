@@ -17,54 +17,69 @@
 # Possible entry formats are:
 #
 #   programmer
-#       parent <id>                                 # optional parent
-#       id       = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
-#       desc     = <description> ;                  # quoted string
-#       type     = <type>;                          # programmer type, quoted string
-#                          # supported programmer types can be listed by "-c ?type"
+#       parent <id>                               # optional parent
+#       id       = <id1> [, <id2> ... ] ;         # <idN> are quoted strings
+#       desc     = <description> ;                # quoted string
+#       type     = <type>;                        # programmer type, quoted string
+#                                                 # supported types can be listed by "-c ?type"
+#       prog_modes = PM_<i/f> {| PM_<i/f>}        # interfaces, eg, PM_SPM|PM_PDI (1)
 #       connection_type = parallel | serial | usb | spi
-#       baudrate = <num> ;                          # baudrate for avr910-programmer
-#       vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
-#       buff     = <num1> [, <num2> ... ] ;         # pin number(s)
-#       reset    = <num> ;                          # pin number
-#       sck      = <num> ;                          # pin number
-#       mosi     = <num> ;                          # pin number
-#       miso     = <num> ;                          # pin number
-#       errled   = <num> ;                          # pin number
-#       rdyled   = <num> ;                          # pin number
-#       pgmled   = <num> ;                          # pin number
-#       vfyled   = <num> ;                          # pin number
-#       usbvid   = <hexnum> ;                       # USB VID (Vendor ID)
-#       usbpid   = <hexnum> [, <hexnum> ...] ;      # USB PID (Product ID) (1)
-#       usbdev   = <interface> ;                    # USB interface or other device info
-#       usbvendor = <vendorname> ;                  # USB Vendor Name
-#       usbproduct = <productname> ;                # USB Product Name
-#       usbsn    = <serialno> ;                     # USB Serial Number
-#       hvupdi_support = <num> [, <num>, ... ] ;    # UPDI HV Variants Support
-#
-#        To invert a bit, use = ~ <num>, the spaces are important.
-#        For a pin list all pins must be inverted.
-#        A single pin can be specified as usual = ~ <num>, for lists
-#        specify it as follows = ~ ( <num> [, <num2> ... ] ) .
-#
-#        (1) Not all programmer types can process a list of PIDs.
+#       baudrate = <num> ;                        # baudrate for avr910-programmer
+#       vcc      = <pin1> [, <pin2> ... ] ;       # pin number(s)
+#       buff     = <pin1> [, <pin2> ... ] ;       # pin number(s)
+#       reset    = <pin> ;                        # pin number
+#       sck      = <pin> ;                        # pin number
+#       mosi     = <pin> ;                        # pin number
+#       miso     = <pin> ;                        # pin number
+#       errled   = <pin> ;                        # pin number
+#       rdyled   = <pin> ;                        # pin number
+#       pgmled   = <pin> ;                        # pin number
+#       vfyled   = <pin> ;                        # pin number
+#       usbvid   = <hexnum> ;                     # USB VID (Vendor ID)
+#       usbpid   = <hexnum> [, <hexnum> ...] ;    # USB PID (Product ID) (2)
+#       usbdev   = <interface> ;                  # USB interface or other device info
+#       usbvendor = <vendorname> ;                # USB Vendor Name
+#       usbproduct = <productname> ;              # USB Product Name
+#       usbsn    = <serialno> ;                   # USB Serial Number
+#       hvupdi_support = <num> [, <num>, ... ] ;  # UPDI HV Variants Support
 #   ;
+#
+#   # To invert a pin use = ~ <num>
+#   # To invert a pin list (all pins get inverted) use ~ ( <num1> [, <num2> ... ] )
+#   #
+#   # (1) The following program modes are known:
+#   #  - PM_SPM: Bootloaders, self-programming with SPM opcodes or NVM Controllers
+#   #  - PM_TPI: Tiny Programming Interface (t4, t5, t9, t10, t20, t40, t102, t104)
+#   #  - PM_ISP: SPI programming for In-System Programming (almost all classic parts)
+#   #  - PM_PDI: Program and Debug Interface (xmega parts)
+#   #  - PM_UPDI: Unified Program and Debug Interface
+#   #  - PM_HVSP: High Voltage Serial Programming (some classic parts)
+#   #  - PM_HVPP: High Voltage Parallel Programming (most non-HVSP classic parts)
+#   #  - PM_debugWIRE: Simpler alternative to JTAG (a subset of HVPP/HVSP parts)
+#   #  - PM_JTAG: Joint Test Action Group standard (some classic parts, some xmega)
+#   #  - PM_aWire: AVR32 parts
+#   #
+#   # (2) Not all programmer types can process a list of PIDs
 #
 #   part
 #       desc             = <description> ;        # quoted string
 #       id               = <id> ;                 # quoted string
 #       family_id        = <id> ;                 # quoted string, eg, "megaAVR" or "tinyAVR"
+#       prog_modes       = PM_<i/f> {| PM_<i/f>}  # interfaces, eg, PM_SPM|PM_ISP|PM_HVPP|PM_debugWIRE
+#       mcuid            = <num>;                 # unique id in 0..2039 for 8-bit AVRs
+#       n_interrupts     = <num>;                 # number of interrupts, used for vector bootloaders
+#       n_page_erase     = <num>;                 # if set, number of pages erased during NVM erase
 #       hvupdi_variant   = <num> ;                # numeric -1 (n/a) or 0..2
 #       devicecode       = <num> ;                # deprecated, use stk500_devcode
 #       stk500_devcode   = <num> ;                # numeric
 #       avr910_devcode   = <num> ;                # numeric
-#       has_jtag         = <yes/no> ;             # part has JTAG i/f
-#       has_debugwire    = <yes/no> ;             # part has debugWire i/f
-#       has_pdi          = <yes/no> ;             # part has PDI i/f
-#       has_updi         = <yes/no> ;             # part has UPDI i/f
-#       has_tpi          = <yes/no> ;             # part has TPI i/f
+#       has_jtag         = <yes/no> ;             # part has JTAG i/f (deprecated, use prog_modes)
+#       has_debugwire    = <yes/no> ;             # part has debugWire i/f (deprecated, use prog_modes)
+#       has_pdi          = <yes/no> ;             # part has PDI i/f (deprecated, use prog_modes)
+#       has_updi         = <yes/no> ;             # part has UPDI i/f (deprecated, use prog_modes)
+#       has_tpi          = <yes/no> ;             # part has TPI i/f (deprecated, use prog_modes)
+#       is_avr32         = <yes/no> ;             # AVR32 part (deprecated, use prog_modes)
 #       is_at90s1200     = <yes/no> ;             # AT90S1200 part
-#       is_avr32         = <yes/no> ;             # AVR32 part
 #       signature        = <num> <num> <num> ;    # signature bytes
 #       usbpid           = <num> ;                # DFU USB PID
 #       chip_erase_delay = <num> ;                # micro-seconds
@@ -76,7 +91,7 @@
 #       bs2              = <num> ;                # pin name in hex, i.e., 0xA0
 #       serial           = <yes/no> ;             # can use serial downloading
 #       parallel         = <yes/no/pseudo> ;      # can use par. programming
-#       # STK500v2 parameters, to be taken from Atmel's XML files
+#       # STK500v2 parameters, to be taken from Atmel's ATDF files
 #       timeout          = <num> ;
 #       stabdelay        = <num> ;
 #       cmdexedelay      = <num> ;
@@ -88,13 +103,13 @@
 #       postdelay        = <num> ;
 #       pollmethod       = <num> ;
 #       hvspcmdexedelay  = <num> ;
-#       # STK500v2 HV programming parameters, from XML
-#       pp_controlstack  = <num>, <num>, ... ;  # PP only
-#       hvsp_controlstack = <num>, <num>, ... ; # HVSP only
+#       # STK500v2 HV programming parameters, from ATDFs
+#       pp_controlstack  = <num>, <num>, ... ;    # PP only
+#       hvsp_controlstack = <num>, <num>, ... ;   # HVSP only
 #       flash_instr      = <num>, <num>, <num> ;
 #       eeprom_instr     = <num>, <num>, ... ;
 #       hventerstabdelay = <num> ;
-#       progmodedelay    = <num> ;              # PP only
+#       progmodedelay    = <num> ;                # PP only
 #       latchcycles      = <num> ;
 #       togglevtg        = <num> ;
 #       poweroffdelay    = <num> ;
@@ -102,21 +117,21 @@
 #       resetdelayus     = <num> ;
 #       hvleavestabdelay = <num> ;
 #       resetdelay       = <num> ;
-#       synchcycles      = <num> ;               # HVSP only
-#       chiperasepulsewidth = <num> ;            # PP only
+#       synchcycles      = <num> ;                # HVSP only
+#       chiperasepulsewidth = <num> ;             # PP only
 #       chiperasepolltimeout = <num> ;
-#       chiperasetime    = <num> ;               # HVSP only
-#       programfusepulsewidth = <num> ;          # PP only
+#       chiperasetime    = <num> ;                # HVSP only
+#       programfusepulsewidth = <num> ;           # PP only
 #       programfusepolltimeout = <num> ;
-#       programlockpulsewidth = <num> ;          # PP only
+#       programlockpulsewidth = <num> ;           # PP only
 #       programlockpolltimeout = <num> ;
-#       # JTAG ICE mkII parameters, also from XML files
+#       # JTAG ICE mkII parameters, also from ATDF files
 #       allowfullpagebitstream = <yes/no> ;
 #       enablepageprogramming = <yes/no> ;
-#       idr              = <num> ;               # IO addr of IDR (OCD) reg
-#       rampz            = <num> ;               # IO addr of RAMPZ reg
-#       spmcr            = <num> ;               # mem addr of SPMC[S]R reg
-#       eecr             = <num> ;               # mem addr of EECR reg only when != 0x3f
+#       idr              = <num> ;                # IO addr of IDR (OCD) reg
+#       rampz            = <num> ;                # IO addr of RAMPZ reg
+#       spmcr            = <num> ;                # mem addr of SPMC[S]R reg
+#       eecr             = <num> ;                # mem addr of EECR reg only when != 0x3f
 #       mcu_base         = <num> ;
 #       nvm_base         = <num> ;
 #       ocd_base         = <num> ;
@@ -136,7 +151,7 @@
 #           readback_p1     = <num> ;             # byte value (first component)
 #           readback_p2     = <num> ;             # byte value (second component)
 #           pwroff_after_write = <yes/no> ;       # yes/no
-#           mode            = <num> ;             # STK500 v2 file parameter, to be taken from Atmel's XML files
+#           mode            = <num> ;             # STK500 v2 file parameter from ATDF files
 #           delay           = <num> ;             #   "
 #           blocksize       = <num> ;             #   "
 #           readsize        = <num> ;             #   "
@@ -153,10 +168,13 @@
 #   ;
 #
 # If any of the above parameters are not specified, the default value
-# of 0 is used for numerics (except for hvupdi_variant and ocdrev,
-# where the default value is -1) or the empty string ("") for string
-# values.  If a required parameter is left empty, AVRDUDE will
-# complain.
+# of 0 is used for numerics (except for mcuid, hvupdi_variant and
+# ocdrev, where the default value is -1) or the empty string "" for
+# string values. If a required parameter is left empty, AVRDUDE will
+# complain. Almost all occurrences of numbers (with the exception of
+# pin numbers and where they are separated by space, eg, in signature
+# and readback) can also be given as simple expressions involving
+# arithemtic and bitwise operators.
 #
 # Parts can also inherit parameters from previously defined parts
 # using the following syntax. In this case specified integer and
@@ -167,7 +185,7 @@
 # memory definition is extended, and components overwritten with new
 # values. Assigning NULL removes an inherited SPI instruction format,
 # memory definition, control stack, eeprom or flash instruction, eg,
-# as in  memory "efuse" = NULL;
+# as in memory "efuse" = NULL;
 #
 #   part parent <id>                              # quoted string
 #       id               = <id> ;                 # quoted string
@@ -177,16 +195,16 @@
 # NOTES:
 #   * 'devicecode' is the device code used by the STK500 (see codes
 #       listed below)
-#   * Not all memory types will implement all instructions.
-#   * AVR Fuse bits and Lock bits are implemented as a type of memory.
+#   * Not all memory types will implement all instructions
+#   * AVR Fuse bits and Lock bits are implemented as a type of memory
 #   * Example memory types are:
 #       "flash", "eeprom", "fuse", "lfuse" (low fuse), "hfuse" (high
 #       fuse), "signature", "calibration", "lock"
 #   * The memory type specified on the avrdude command line must match
-#     one of the memory types defined for the specified chip.
+#     one of the memory types defined for the specified chip
 #   * The pwroff_after_write flag causes avrdude to attempt to
 #     power the device off and back on after an unsuccessful write to
-#     the affected memory area if VCC programmer pins are defined.  If
+#     the affected memory area if VCC programmer pins are defined. If
 #     VCC pins are not defined for the programmer, a message
 #     indicating that the device needs a power-cycle is printed out.
 #     This flag was added to work around a problem with the
@@ -247,7 +265,7 @@
 # section avr061.zip which accompanies the application note
 # AVR061 available from:
 #
-#      http://www.atmel.com/dyn/resources/prod_documents/doc2525.pdf
+#      https://ww1.microchip.com/downloads/en/Appnotes/doc2525.pdf
 #
 
 #define ATTINY10    0x10  /* the _old_ one that never existed! */
@@ -2305,7 +2323,6 @@ programmer
     hvupdi_support         = 1;
 ;
 
-
 #
 # PART DEFINITIONS
 #
@@ -2319,6 +2336,9 @@ programmer
 part
     desc                   = "ATtiny11";
     id                     = "t11";
+    prog_modes             = PM_HVSP;
+    mcuid                  = 8;
+    n_interrupts           = 5;
     stk500_devcode         = 0x11;
     chip_erase_delay       = 20000;
     signature              = 0x1e 0x90 0x04;
@@ -2379,6 +2399,9 @@ part
 part
     desc                   = "ATtiny12";
     id                     = "t12";
+    prog_modes             = PM_ISP | PM_HVSP;
+    mcuid                  = 9;
+    n_interrupts           = 6;
     stk500_devcode         = 0x12;
     avr910_devcode         = 0x55;
     chip_erase_delay       = 20000;
@@ -2472,10 +2495,12 @@ part
 part
     desc                   = "ATtiny13";
     id                     = "t13";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVSP | PM_debugWIRE;
+    mcuid                  = 10;
+    n_interrupts           = 10;
     stk500_devcode         = 0x14;
     chip_erase_delay       = 4000;
     signature              = 0x1e 0x90 0x07;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -2587,6 +2612,7 @@ part
 part parent "t13"
     desc                   = "ATtiny13A";
     id                     = "t13a";
+    mcuid                  = 11;
 ;
 
 #------------------------------------------------------------
@@ -2596,6 +2622,9 @@ part parent "t13"
 part
     desc                   = "ATtiny15";
     id                     = "t15";
+    prog_modes             = PM_ISP | PM_HVSP;
+    mcuid                  = 12;
+    n_interrupts           = 9;
     stk500_devcode         = 0x13;
     avr910_devcode         = 0x56;
     chip_erase_delay       = 8200;
@@ -2690,6 +2719,9 @@ part
 part
     desc                   = "AT90S1200";
     id                     = "1200";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    mcuid                  = 183;
+    n_interrupts           = 4;
     stk500_devcode         = 0x33;
     avr910_devcode         = 0x13;
     chip_erase_delay       = 20000;
@@ -2769,6 +2801,9 @@ part
 part
     desc                   = "AT90S4414";
     id                     = "4414";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    mcuid                  = 190;
+    n_interrupts           = 13;
     stk500_devcode         = 0x50;
     avr910_devcode         = 0x28;
     chip_erase_delay       = 20000;
@@ -2846,6 +2881,9 @@ part
 part
     desc                   = "AT90S2313";
     id                     = "2313";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    mcuid                  = 186;
+    n_interrupts           = 11;
     stk500_devcode         = 0x40;
     avr910_devcode         = 0x20;
     chip_erase_delay       = 20000;
@@ -2924,6 +2962,9 @@ part
 ##### WARNING: No XML file for device 'AT90S2333'! #####
     desc                   = "AT90S2333";
     id                     = "2333";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    mcuid                  = 188;
+    n_interrupts           = 14;
     stk500_devcode         = 0x42;
     avr910_devcode         = 0x34;
     chip_erase_delay       = 20000;
@@ -3007,6 +3048,9 @@ part
 part
     desc                   = "AT90S2343";
     id                     = "2343";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVSP;
+    mcuid                  = 189;
+    n_interrupts           = 3;
     stk500_devcode         = 0x43;
     avr910_devcode         = 0x4c;
     chip_erase_delay       = 18000;
@@ -3094,6 +3138,9 @@ part
 part
     desc                   = "AT90S4433";
     id                     = "4433";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    mcuid                  = 191;
+    n_interrupts           = 14;
     stk500_devcode         = 0x51;
     avr910_devcode         = 0x30;
     chip_erase_delay       = 20000;
@@ -3178,6 +3225,9 @@ part
 ##### WARNING: No XML file for device 'AT90S4434'! #####
     desc                   = "AT90S4434";
     id                     = "4434";
+    prog_modes             = PM_SPM | PM_ISP;
+    mcuid                  = 192;
+    n_interrupts           = 17;
     stk500_devcode         = 0x52;
     avr910_devcode         = 0x6c;
     chip_erase_delay       = 20000;
@@ -3234,6 +3284,9 @@ part
 part
     desc                   = "AT90S8515";
     id                     = "8515";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    mcuid                  = 193;
+    n_interrupts           = 13;
     stk500_devcode         = 0x60;
     avr910_devcode         = 0x38;
     chip_erase_delay       = 20000;
@@ -3312,6 +3365,9 @@ part
 part
     desc                   = "AT90S8535";
     id                     = "8535";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    mcuid                  = 195;
+    n_interrupts           = 17;
     stk500_devcode         = 0x61;
     avr910_devcode         = 0x68;
     chip_erase_delay       = 20000;
@@ -3394,6 +3450,9 @@ part
 part
     desc                   = "ATmega103";
     id                     = "m103";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    mcuid                  = 84;
+    n_interrupts           = 24;
     stk500_devcode         = 0xb1;
     avr910_devcode         = 0x41;
     chip_erase_delay       = 112000;
@@ -3480,6 +3539,9 @@ part
 part
     desc                   = "ATmega64";
     id                     = "m64";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 72;
+    n_interrupts           = 35;
     stk500_devcode         = 0xa0;
     avr910_devcode         = 0x45;
     chip_erase_delay       = 9000;
@@ -3487,7 +3549,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x96 0x02;
     reset                  = io;
-    has_jtag               = yes;
     allowfullpagebitstream = yes;
     timeout                = 200;
     stabdelay              = 100;
@@ -3597,6 +3658,7 @@ part
 part parent "m64"
     desc                   = "ATmega64A";
     id                     = "m64a";
+    mcuid                  = 73;
 ;
 
 #------------------------------------------------------------
@@ -3606,6 +3668,9 @@ part parent "m64"
 part
     desc                   = "ATmega128";
     id                     = "m128";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 85;
+    n_interrupts           = 35;
     stk500_devcode         = 0xb2;
     avr910_devcode         = 0x43;
     chip_erase_delay       = 9000;
@@ -3613,7 +3678,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x97 0x02;
     reset                  = io;
-    has_jtag               = yes;
     allowfullpagebitstream = yes;
     timeout                = 200;
     stabdelay              = 100;
@@ -3724,6 +3788,7 @@ part
 part parent "m128"
     desc                   = "ATmega128A";
     id                     = "m128a";
+    mcuid                  = 86;
 ;
 
 #------------------------------------------------------------
@@ -3733,6 +3798,9 @@ part parent "m128"
 part
     desc                   = "AT90CAN128";
     id                     = "c128";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 176;
+    n_interrupts           = 37;
     stk500_devcode         = 0xb3;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
@@ -3740,7 +3808,6 @@ part
 #   avr910_devcode         = 0x43;
     signature              = 0x1e 0x97 0x81;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -3854,6 +3921,9 @@ part
 part
     desc                   = "AT90CAN64";
     id                     = "c64";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 172;
+    n_interrupts           = 37;
     stk500_devcode         = 0xb3;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
@@ -3861,7 +3931,6 @@ part
 #   avr910_devcode         = 0x43;
     signature              = 0x1e 0x96 0x81;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -3975,6 +4044,9 @@ part
 part
     desc                   = "AT90CAN32";
     id                     = "c32";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 171;
+    n_interrupts           = 37;
     stk500_devcode         = 0xb3;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
@@ -3982,7 +4054,6 @@ part
 #   avr910_devcode         = 0x43;
     signature              = 0x1e 0x95 0x81;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -4096,6 +4167,9 @@ part
 part
     desc                   = "ATmega16";
     id                     = "m16";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 49;
+    n_interrupts           = 21;
     stk500_devcode         = 0x82;
     avr910_devcode         = 0x74;
     chip_erase_delay       = 9000;
@@ -4103,7 +4177,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x94 0x03;
     reset                  = io;
-    has_jtag               = yes;
     allowfullpagebitstream = yes;
     timeout                = 200;
     stabdelay              = 100;
@@ -4209,6 +4282,7 @@ part
 part parent "m16"
     desc                   = "ATmega16A";
     id                     = "m16a";
+    mcuid                  = 50;
 ;
 
 #------------------------------------------------------------
@@ -4218,6 +4292,9 @@ part parent "m16"
 part
     desc                   = "ATmega324P";
     id                     = "m324p";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 111;
+    n_interrupts           = 31;
     stk500_devcode         = 0x82; # no STK500v1 support, use the ATmega16 one
     avr910_devcode         = 0x74;
     chip_erase_delay       = 55000;
@@ -4225,7 +4302,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x95 0x08;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -4339,6 +4415,7 @@ part
 part parent "m324p"
     desc                   = "ATmega164P";
     id                     = "m164p";
+    mcuid                  = 93;
     signature              = 0x1e 0x94 0x0a;
 
     memory "eeprom"
@@ -4358,6 +4435,7 @@ part parent "m324p"
 part parent "m164p"
     desc                   = "ATmega164PA";
     id                     = "m164pa";
+    mcuid                  = 94;
 ;
 
 #------------------------------------------------------------
@@ -4367,6 +4445,7 @@ part parent "m164p"
 part parent "m164p"
     desc                   = "ATmega164A";
     id                     = "m164a";
+    mcuid                  = 92;
     signature              = 0x1e 0x94 0x0f;
 ;
 
@@ -4377,6 +4456,7 @@ part parent "m164p"
 part parent "m324p"
     desc                   = "ATmega324PB";
     id                     = "m324pb";
+    mcuid                  = 113;
     signature              = 0x1e 0x95 0x17;
 ;
 
@@ -4387,6 +4467,7 @@ part parent "m324p"
 part parent "m324p"
     desc                   = "ATmega324PA";
     id                     = "m324pa";
+    mcuid                  = 112;
     signature              = 0x1e 0x95 0x11;
 ;
 
@@ -4397,6 +4478,7 @@ part parent "m324p"
 part parent "m324p"
     desc                   = "ATmega324A";
     id                     = "m324a";
+    mcuid                  = 110;
     signature              = 0x1e 0x95 0x15;
 ;
 
@@ -4407,6 +4489,9 @@ part parent "m324p"
 part
     desc                   = "ATmega644";
     id                     = "m644";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 127;
+    n_interrupts           = 28;
     stk500_devcode         = 0x82; # no STK500v1 support, use the ATmega16 one
     avr910_devcode         = 0x74;
     chip_erase_delay       = 55000;
@@ -4414,7 +4499,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x96 0x09;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -4525,6 +4609,8 @@ part
 part parent "m644"
     desc                   = "ATmega644A";
     id                     = "m644a";
+    mcuid                  = 128;
+    n_interrupts           = 31;
 ;
 
 #------------------------------------------------------------
@@ -4534,6 +4620,8 @@ part parent "m644"
 part parent "m644"
     desc                   = "ATmega644P";
     id                     = "m644p";
+    mcuid                  = 129;
+    n_interrupts           = 31;
     signature              = 0x1e 0x96 0x0a;
 ;
 
@@ -4544,6 +4632,8 @@ part parent "m644"
 part parent "m644"
     desc                   = "ATmega644PA";
     id                     = "m644pa";
+    mcuid                  = 130;
+    n_interrupts           = 31;
     signature              = 0x1e 0x96 0x0a;
 ;
 
@@ -4554,6 +4644,9 @@ part parent "m644"
 part
     desc                   = "ATmega1284";
     id                     = "m1284";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 140;
+    n_interrupts           = 35;
     stk500_devcode         = 0x82; # no STK500v1 support, use the ATmega16 one
     avr910_devcode         = 0x74;
     chip_erase_delay       = 55000;
@@ -4561,7 +4654,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x97 0x06;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -4676,6 +4768,7 @@ part
 part parent "m1284"
     desc                   = "ATmega1284P";
     id                     = "m1284p";
+    mcuid                  = 141;
     signature              = 0x1e 0x97 0x05;
 ;
 
@@ -4686,6 +4779,9 @@ part parent "m1284"
 part
     desc                   = "ATmega162";
     id                     = "m162";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 90;
+    n_interrupts           = 28;
     stk500_devcode         = 0x83;
     avr910_devcode         = 0x63;
     chip_erase_delay       = 9000;
@@ -4693,7 +4789,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x94 0x04;
     reset                  = io;
-    has_jtag               = yes;
     allowfullpagebitstream = yes;
     timeout                = 200;
     stabdelay              = 100;
@@ -4805,6 +4900,9 @@ part
 part
     desc                   = "ATmega163";
     id                     = "m163";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    mcuid                  = 91;
+    n_interrupts           = 18;
     stk500_devcode         = 0x81;
     avr910_devcode         = 0x64;
     chip_erase_delay       = 32000;
@@ -4906,11 +5004,13 @@ part
 part
     desc                   = "ATmega169";
     id                     = "m169";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 104;
+    n_interrupts           = 23;
     stk500_devcode         = 0x85;
     avr910_devcode         = 0x78;
     chip_erase_delay       = 9000;
     signature              = 0x1e 0x94 0x05;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -5025,6 +5125,7 @@ part
 part parent "m169"
     desc                   = "ATmega169A";
     id                     = "m169a";
+    mcuid                  = 105;
     signature              = 0x1e 0x94 0x11;
     reset                  = io;
 ;
@@ -5036,6 +5137,7 @@ part parent "m169"
 part parent "m169"
     desc                   = "ATmega169P";
     id                     = "m169p";
+    mcuid                  = 106;
     reset                  = io;
 ;
 
@@ -5046,6 +5148,7 @@ part parent "m169"
 part parent "m169"
     desc                   = "ATmega169PA";
     id                     = "m169pa";
+    mcuid                  = 107;
     reset                  = io;
 ;
 
@@ -5056,13 +5159,15 @@ part parent "m169"
 part
     desc                   = "ATmega329";
     id                     = "m329";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 121;
+    n_interrupts           = 23;
 #   stk500_devcode         = 0x85; # no STK500 support, only STK500v2
 #   avr910_devcode         = 0x?;  # try the ATmega169 one:
     avr910_devcode         = 0x75;
     chip_erase_delay       = 9000;
     signature              = 0x1e 0x95 0x03;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -5177,6 +5282,7 @@ part
 part parent "m329"
     desc                   = "ATmega329A";
     id                     = "m329a";
+    mcuid                  = 122;
 ;
 
 #------------------------------------------------------------
@@ -5186,6 +5292,7 @@ part parent "m329"
 part parent "m329"
     desc                   = "ATmega329P";
     id                     = "m329p";
+    mcuid                  = 123;
     signature              = 0x1e 0x95 0x0b;
 ;
 
@@ -5196,6 +5303,7 @@ part parent "m329"
 part parent "m329"
     desc                   = "ATmega329PA";
     id                     = "m329pa";
+    mcuid                  = 124;
     signature              = 0x1e 0x95 0x0b;
 ;
 
@@ -5206,6 +5314,8 @@ part parent "m329"
 part parent "m329"
     desc                   = "ATmega3290";
     id                     = "m3290";
+    mcuid                  = 150;
+    n_interrupts           = 25;
     signature              = 0x1e 0x95 0x04;
 ;
 
@@ -5216,6 +5326,8 @@ part parent "m329"
 part parent "m329"
     desc                   = "ATmega3290A";
     id                     = "m3290a";
+    mcuid                  = 151;
+    n_interrupts           = 25;
     signature              = 0x1e 0x95 0x04;
 ;
 
@@ -5226,6 +5338,8 @@ part parent "m329"
 part parent "m329"
     desc                   = "ATmega3290P";
     id                     = "m3290p";
+    mcuid                  = 152;
+    n_interrupts           = 25;
     signature              = 0x1e 0x95 0x0c;
 ;
 
@@ -5236,6 +5350,8 @@ part parent "m329"
 part parent "m329"
     desc                   = "ATmega3290PA";
     id                     = "m3290pa";
+    mcuid                  = 153;
+    n_interrupts           = 25;
     signature              = 0x1e 0x95 0x0c;
 ;
 
@@ -5246,13 +5362,15 @@ part parent "m329"
 part
     desc                   = "ATmega649";
     id                     = "m649";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 135;
+    n_interrupts           = 23;
 #   stk500_devcode         = 0x85; # no STK500 support, only STK500v2
 #   avr910_devcode         = 0x?;  # try the ATmega169 one:
     avr910_devcode         = 0x75;
     chip_erase_delay       = 9000;
     signature              = 0x1e 0x96 0x03;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -5367,6 +5485,7 @@ part
 part parent "m649"
     desc                   = "ATmega649A";
     id                     = "m649a";
+    mcuid                  = 136;
 ;
 
 #------------------------------------------------------------
@@ -5376,6 +5495,7 @@ part parent "m649"
 part parent "m649"
     desc                   = "ATmega649P";
     id                     = "m649p";
+    mcuid                  = 137;
     signature              = 0x1e 0x96 0x0b;
 ;
 
@@ -5386,6 +5506,8 @@ part parent "m649"
 part parent "m649"
     desc                   = "ATmega6490";
     id                     = "m6490";
+    mcuid                  = 157;
+    n_interrupts           = 25;
     signature              = 0x1e 0x96 0x04;
 ;
 
@@ -5396,6 +5518,8 @@ part parent "m649"
 part parent "m649"
     desc                   = "ATmega6490A";
     id                     = "m6490a";
+    mcuid                  = 158;
+    n_interrupts           = 25;
     signature              = 0x1e 0x96 0x04;
 ;
 
@@ -5406,6 +5530,8 @@ part parent "m649"
 part parent "m649"
     desc                   = "ATmega6490P";
     id                     = "m6490p";
+    mcuid                  = 159;
+    n_interrupts           = 25;
     signature              = 0x1e 0x96 0x0c;
 ;
 
@@ -5416,6 +5542,9 @@ part parent "m649"
 part
     desc                   = "ATmega32";
     id                     = "m32";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 58;
+    n_interrupts           = 21;
     stk500_devcode         = 0x91;
     avr910_devcode         = 0x72;
     chip_erase_delay       = 9000;
@@ -5423,7 +5552,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x95 0x02;
     reset                  = io;
-    has_jtag               = yes;
     allowfullpagebitstream = yes;
     timeout                = 200;
     stabdelay              = 100;
@@ -5527,6 +5655,9 @@ part
 part
     desc                   = "ATmega161";
     id                     = "m161";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    mcuid                  = 89;
+    n_interrupts           = 21;
     stk500_devcode         = 0x80;
     avr910_devcode         = 0x60;
     chip_erase_delay       = 28000;
@@ -5615,6 +5746,7 @@ part
 part parent "m32"
     desc                   = "ATmega32A";
     id                     = "m32a";
+    mcuid                  = 59;
 ;
 
 #------------------------------------------------------------
@@ -5624,6 +5756,9 @@ part parent "m32"
 part
     desc                   = "ATmega8";
     id                     = "m8";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    mcuid                  = 45;
+    n_interrupts           = 19;
     stk500_devcode         = 0x70;
     avr910_devcode         = 0x76;
     chip_erase_delay       = 10000;
@@ -5732,6 +5867,7 @@ part
 part parent "m8"
     desc                   = "ATmega8A";
     id                     = "m8a";
+    mcuid                  = 46;
 ;
 
 #------------------------------------------------------------
@@ -5741,6 +5877,9 @@ part parent "m8"
 part
     desc                   = "ATmega8515";
     id                     = "m8515";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    mcuid                  = 160;
+    n_interrupts           = 17;
     stk500_devcode         = 0x63;
     avr910_devcode         = 0x3a;
     chip_erase_delay       = 9000;
@@ -5841,6 +5980,9 @@ part
 part
     desc                   = "ATmega8535";
     id                     = "m8535";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
+    mcuid                  = 161;
+    n_interrupts           = 21;
     stk500_devcode         = 0x64;
     avr910_devcode         = 0x69;
     chip_erase_delay       = 9000;
@@ -5943,6 +6085,9 @@ part
 part
     desc                   = "ATtiny26";
     id                     = "t26";
+    prog_modes             = PM_ISP | PM_HVPP;
+    mcuid                  = 17;
+    n_interrupts           = 12;
     stk500_devcode         = 0x21;
     avr910_devcode         = 0x5e;
     chip_erase_delay       = 9000;
@@ -6048,13 +6193,15 @@ part
 part
     desc                   = "ATtiny261";
     id                     = "t261";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 30;
+    n_interrupts           = 19;
     chip_erase_delay       = 4000;
     pagel                  = 0xb3;
     bs2                    = 0xb2;
 #   stk500_devcode         = 0x21;
 #   avr910_devcode         = 0x5e;
     signature              = 0x1e 0x91 0x0c;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -6172,6 +6319,7 @@ part
 part parent "t261"
     desc                   = "ATtiny261A";
     id                     = "t261a";
+    mcuid                  = 31;
 ;
 
 #------------------------------------------------------------
@@ -6181,13 +6329,15 @@ part parent "t261"
 part
     desc                   = "ATtiny461";
     id                     = "t461";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 33;
+    n_interrupts           = 19;
     chip_erase_delay       = 4000;
     pagel                  = 0xb3;
     bs2                    = 0xb2;
 #   stk500_devcode         = 0x21;
 #   avr910_devcode         = 0x5e;
     signature              = 0x1e 0x92 0x08;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -6305,6 +6455,7 @@ part
 part parent "t461"
     desc                   = "ATtiny461A";
     id                     = "t461a";
+    mcuid                  = 34;
 ;
 
 #------------------------------------------------------------
@@ -6314,13 +6465,15 @@ part parent "t461"
 part
     desc                   = "ATtiny861";
     id                     = "t861";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 38;
+    n_interrupts           = 19;
     chip_erase_delay       = 4000;
     pagel                  = 0xb3;
     bs2                    = 0xb2;
 #   stk500_devcode         = 0x21;
 #   avr910_devcode         = 0x5e;
     signature              = 0x1e 0x93 0x0d;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -6438,6 +6591,7 @@ part
 part parent "t861"
     desc                   = "ATtiny861A";
     id                     = "t861a";
+    mcuid                  = 39;
 ;
 
 #------------------------------------------------------------
@@ -6449,6 +6603,9 @@ part parent "t861"
 part
     desc                   = "ATtiny28";
     id                     = "t28";
+    prog_modes             = PM_HVPP;
+    mcuid                  = 18;
+    n_interrupts           = 6;
     stk500_devcode         = 0x22;
     avr910_devcode         = 0x5c;
     signature              = 0x1e 0x91 0x07;
@@ -6496,6 +6653,9 @@ part
 part
     desc                   = "ATmega48";
     id                     = "m48";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 67;
+    n_interrupts           = 26;
     stk500_devcode         = 0x59;
     chip_erase_delay       = 45000;
     pagel                  = 0xd7;
@@ -6503,7 +6663,6 @@ part
 #   avr910_devcode         = 0x??;
     signature              = 0x1e 0x92 0x05;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -6621,6 +6780,7 @@ part
 part parent "m48"
     desc                   = "ATmega48A";
     id                     = "m48a";
+    mcuid                  = 68;
 ;
 
 #------------------------------------------------------------
@@ -6630,6 +6790,7 @@ part parent "m48"
 part parent "m48"
     desc                   = "ATmega48P";
     id                     = "m48p";
+    mcuid                  = 69;
     signature              = 0x1e 0x92 0x0a;
 ;
 
@@ -6640,6 +6801,7 @@ part parent "m48"
 part parent "m48"
     desc                   = "ATmega48PA";
     id                     = "m48pa";
+    mcuid                  = 70;
     signature              = 0x1e 0x92 0x0a;
 ;
 
@@ -6650,6 +6812,8 @@ part parent "m48"
 part parent "m48"
     desc                   = "ATmega48PB";
     id                     = "m48pb";
+    mcuid                  = 71;
+    n_interrupts           = 27;
     chip_erase_delay       = 10500;
     signature              = 0x1e 0x92 0x10;
 ;
@@ -6661,6 +6825,9 @@ part parent "m48"
 part
     desc                   = "ATmega88";
     id                     = "m88";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 79;
+    n_interrupts           = 26;
     stk500_devcode         = 0x73;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
@@ -6668,7 +6835,6 @@ part
 #   avr910_devcode         = 0x??;
     signature              = 0x1e 0x93 0x0a;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -6787,6 +6953,7 @@ part
 part parent "m88"
     desc                   = "ATmega88A";
     id                     = "m88a";
+    mcuid                  = 80;
 ;
 
 #------------------------------------------------------------
@@ -6796,6 +6963,7 @@ part parent "m88"
 part parent "m88"
     desc                   = "ATmega88P";
     id                     = "m88p";
+    mcuid                  = 81;
     signature              = 0x1e 0x93 0x0f;
 ;
 
@@ -6806,6 +6974,7 @@ part parent "m88"
 part parent "m88"
     desc                   = "ATmega88PA";
     id                     = "m88pa";
+    mcuid                  = 82;
     signature              = 0x1e 0x93 0x0f;
 ;
 
@@ -6816,6 +6985,8 @@ part parent "m88"
 part parent "m88"
     desc                   = "ATmega88PB";
     id                     = "m88pb";
+    mcuid                  = 83;
+    n_interrupts           = 27;
     chip_erase_delay       = 10500;
     signature              = 0x1e 0x93 0x16;
 ;
@@ -6827,6 +6998,9 @@ part parent "m88"
 part
     desc                   = "ATmega168";
     id                     = "m168";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 99;
+    n_interrupts           = 26;
     stk500_devcode         = 0x86;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
@@ -6834,7 +7008,6 @@ part
 #   avr910_devcode         = 0x??;
     signature              = 0x1e 0x94 0x06;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -6953,6 +7126,7 @@ part
 part parent "m168"
     desc                   = "ATmega168A";
     id                     = "m168a";
+    mcuid                  = 100;
 ;
 
 #------------------------------------------------------------
@@ -6962,6 +7136,7 @@ part parent "m168"
 part parent "m168"
     desc                   = "ATmega168P";
     id                     = "m168p";
+    mcuid                  = 101;
     signature              = 0x1e 0x94 0x0b;
 ;
 
@@ -6972,6 +7147,7 @@ part parent "m168"
 part parent "m168"
     desc                   = "ATmega168PA";
     id                     = "m168pa";
+    mcuid                  = 102;
     signature              = 0x1e 0x94 0x0b;
 ;
 
@@ -6982,6 +7158,8 @@ part parent "m168"
 part parent "m168"
     desc                   = "ATmega168PB";
     id                     = "m168pb";
+    mcuid                  = 103;
+    n_interrupts           = 27;
     chip_erase_delay       = 10500;
     signature              = 0x1e 0x94 0x15;
 ;
@@ -6993,6 +7171,9 @@ part parent "m168"
 part
     desc                   = "ATtiny828";
     id                     = "t828";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 35;
+    n_interrupts           = 26;
     stk500_devcode         = 0x86;
     chip_erase_delay       = 15000;
     pagel                  = 0xd7;
@@ -7000,7 +7181,6 @@ part
 #   avr910_devcode         = 0x??;
     signature              = 0x1e 0x93 0x14;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -7118,6 +7298,7 @@ part
 part parent "t828"
     desc                   = "ATtiny828R";
     id                     = "t828r";
+    mcuid                  = 36;
 ;
 
 #------------------------------------------------------------
@@ -7127,6 +7308,9 @@ part parent "t828"
 part
     desc                   = "ATtiny87";
     id                     = "t87";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 27;
+    n_interrupts           = 20;
 #   no STK500 devcode in XML file, use the ATtiny45 one
     stk500_devcode         = 0x14;
 #   Try the AT90S2313 devcode:
@@ -7134,7 +7318,6 @@ part
     chip_erase_delay       = 15000;
     signature              = 0x1e 0x93 0x87;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -7251,6 +7434,9 @@ part
 part
     desc                   = "ATtiny167";
     id                     = "t167";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 29;
+    n_interrupts           = 20;
 #   no STK500 devcode in XML file, use the ATtiny45 one
     stk500_devcode         = 0x14;
 #   avr910_devcode         = 0x??;
@@ -7259,7 +7445,6 @@ part
     chip_erase_delay       = 15000;
     signature              = 0x1e 0x94 0x87;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -7376,6 +7561,9 @@ part
 part
     desc                   = "ATtiny48";
     id                     = "t48";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 23;
+    n_interrupts           = 20;
     stk500_devcode         = 0x73;
     chip_erase_delay       = 15000;
     pagel                  = 0xd7;
@@ -7383,7 +7571,6 @@ part
 #   avr910_devcode         = 0x??;
     signature              = 0x1e 0x92 0x09;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -7502,6 +7689,9 @@ part
 part
     desc                   = "ATtiny88";
     id                     = "t88";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 28;
+    n_interrupts           = 20;
     stk500_devcode         = 0x73;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
@@ -7509,7 +7699,6 @@ part
 #   avr910_devcode         = 0x??;
     signature              = 0x1e 0x93 0x11;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -7628,6 +7817,9 @@ part
 part
     desc                   = "ATmega328";
     id                     = "m328";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 118;
+    n_interrupts           = 26;
     stk500_devcode         = 0x86;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
@@ -7635,7 +7827,6 @@ part
 #   avr910_devcode         = 0x??;
     signature              = 0x1e 0x95 0x14;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -7754,6 +7945,7 @@ part
 part parent "m328"
     desc                   = "ATmega328P";
     id                     = "m328p";
+    mcuid                  = 119;
     signature              = 0x1e 0x95 0x0f;
 ;
 
@@ -7764,6 +7956,8 @@ part parent "m328"
 part parent "m328"
     desc                   = "ATmega328PB";
     id                     = "m328pb";
+    mcuid                  = 120;
+    n_interrupts           = 45;
     chip_erase_delay       = 10500;
     signature              = 0x1e 0x95 0x16;
 
@@ -7779,6 +7973,8 @@ part parent "m328"
 part parent "m328"
     desc                   = "ATmega32M1";
     id                     = "m32m1";
+    mcuid                  = 63;
+    n_interrupts           = 31;
     bs2                    = 0xe2;
 #   stk500_devcode         = 0x??;
 #   avr910_devcode         = 0x??;
@@ -7796,6 +7992,8 @@ part parent "m328"
 part parent "m328"
     desc                   = "ATmega64M1";
     id                     = "m64m1";
+    mcuid                  = 76;
+    n_interrupts           = 31;
     bs2                    = 0xe2;
 #   stk500_devcode         = 0x??;
 #   avr910_devcode         = 0x??;
@@ -7832,6 +8030,9 @@ part parent "m328"
 part
     desc                   = "ATtiny2313";
     id                     = "t2313";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 42;
+    n_interrupts           = 19;
     stk500_devcode         = 0x23;
 #   Use the ATtiny26 devcode:
     avr910_devcode         = 0x5e;
@@ -7840,7 +8041,6 @@ part
     bs2                    = 0xd6;
     signature              = 0x1e 0x91 0x0a;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -7963,6 +8163,8 @@ part
 part parent "t2313"
     desc                   = "ATtiny2313A";
     id                     = "t2313a";
+    mcuid                  = 43;
+    n_interrupts           = 21;
 ;
 
 #------------------------------------------------------------
@@ -7972,6 +8174,9 @@ part parent "t2313"
 part
     desc                   = "ATtiny4313";
     id                     = "t4313";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 44;
+    n_interrupts           = 21;
     stk500_devcode         = 0x23;
 #   Use the ATtiny26 devcode:
     avr910_devcode         = 0x5e;
@@ -7980,7 +8185,6 @@ part
     bs2                    = 0xd6;
     signature              = 0x1e 0x92 0x0d;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -8098,6 +8302,9 @@ part
 part
     desc                   = "AT90PWM2";
     id                     = "pwm2";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 167;
+    n_interrupts           = 32;
     stk500_devcode         = 0x65;
     chip_erase_delay       = 9000;
     pagel                  = 0xd8;
@@ -8105,7 +8312,6 @@ part
 #   avr910_devcode         = ?;
     signature              = 0x1e 0x93 0x81;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -8224,6 +8430,7 @@ part
 part parent "pwm2"
     desc                   = "AT90PWM3";
     id                     = "pwm3";
+    mcuid                  = 169;
 ;
 
 #------------------------------------------------------------
@@ -8234,6 +8441,7 @@ part parent "pwm2"
 part parent "pwm2"
     desc                   = "AT90PWM2B";
     id                     = "pwm2b";
+    mcuid                  = 168;
     signature              = 0x1e 0x93 0x83;
     ocdrev                 = 1;
 ;
@@ -8247,6 +8455,7 @@ part parent "pwm2"
 part parent "pwm2b"
     desc                   = "AT90PWM3B";
     id                     = "pwm3b";
+    mcuid                  = 170;
 ;
 
 #------------------------------------------------------------
@@ -8258,6 +8467,7 @@ part parent "pwm2b"
 part parent "pwm3b"
     desc                   = "AT90PWM316";
     id                     = "pwm316";
+    mcuid                  = 180;
     signature              = 0x1e 0x94 0x83;
 
     memory "flash"
@@ -8281,6 +8491,7 @@ part parent "pwm3b"
 part parent "pwm316"
     desc                   = "AT90PWM216";
     id                     = "pwm216";
+    mcuid                  = 179;
 ;
 
 #------------------------------------------------------------
@@ -8290,6 +8501,9 @@ part parent "pwm316"
 part
     desc                   = "ATtiny25";
     id                     = "t25";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVSP | PM_debugWIRE;
+    mcuid                  = 16;
+    n_interrupts           = 15;
 #  no STK500 devcode in XML file, use the ATtiny45 one
     stk500_devcode         = 0x14;
 #   avr910_devcode         = ?;
@@ -8298,7 +8512,6 @@ part
     chip_erase_delay       = 4500;
     signature              = 0x1e 0x91 0x08;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -8418,6 +8631,9 @@ part
 part
     desc                   = "ATtiny45";
     id                     = "t45";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVSP | PM_debugWIRE;
+    mcuid                  = 22;
+    n_interrupts           = 15;
     stk500_devcode         = 0x14;
 #   avr910_devcode         = ?;
 #   Try the AT90S2313 devcode:
@@ -8425,7 +8641,6 @@ part
     chip_erase_delay       = 4500;
     signature              = 0x1e 0x92 0x06;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -8545,6 +8760,9 @@ part
 part
     desc                   = "ATtiny85";
     id                     = "t85";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVSP | PM_debugWIRE;
+    mcuid                  = 26;
+    n_interrupts           = 15;
 #   no STK500 devcode in XML file, use the ATtiny45 one
     stk500_devcode         = 0x14;
 #   avr910_devcode         = ?;
@@ -8553,7 +8771,6 @@ part
     chip_erase_delay       = 4500;
     signature              = 0x1e 0x93 0x0b;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -8674,6 +8891,9 @@ part
 part
     desc                   = "ATmega640";
     id                     = "m640";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 126;
+    n_interrupts           = 57;
 #   stk500_devcode         = 0xB2;
 #   avr910_devcode         = 0x43;
     chip_erase_delay       = 9000;
@@ -8681,7 +8901,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x96 0x08;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -8795,6 +9014,9 @@ part
 part
     desc                   = "ATmega1280";
     id                     = "m1280";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 138;
+    n_interrupts           = 57;
 #   stk500_devcode         = 0xB2;
 #   avr910_devcode         = 0x43;
     chip_erase_delay       = 9000;
@@ -8802,7 +9024,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x97 0x03;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -8917,6 +9138,8 @@ part
 part parent "m1280"
     desc                   = "ATmega1281";
     id                     = "m1281";
+    mcuid                  = 139;
+    n_interrupts           = 51;
     signature              = 0x1e 0x97 0x04;
 ;
 
@@ -8927,6 +9150,9 @@ part parent "m1280"
 part
     desc                   = "ATmega2560";
     id                     = "m2560";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 143;
+    n_interrupts           = 57;
     stk500_devcode         = 0xb2;
 #   avr910_devcode         = 0x43;
     chip_erase_delay       = 9000;
@@ -8934,7 +9160,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x98 0x01;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -9049,6 +9274,8 @@ part
 part parent "m2560"
     desc                   = "ATmega2561";
     id                     = "m2561";
+    mcuid                  = 144;
+    n_interrupts           = 51;
     signature              = 0x1e 0x98 0x02;
 ;
 
@@ -9060,6 +9287,8 @@ part parent "m2560"
 part parent "m2561"
     desc                   = "ATmega128RFA1";
     id                     = "m128rfa1";
+    mcuid                  = 87;
+    n_interrupts           = 72;
     chip_erase_delay       = 55000;
     bs2                    = 0xe2;
     signature              = 0x1e 0xa7 0x01;
@@ -9082,6 +9311,8 @@ part parent "m2561"
 part parent "m2561"
     desc                   = "ATmega256RFR2";
     id                     = "m256rfr2";
+    mcuid                  = 108;
+    n_interrupts           = 77;
     chip_erase_delay       = 18500;
     bs2                    = 0xe2;
     signature              = 0x1e 0xa8 0x02;
@@ -9103,6 +9334,8 @@ part parent "m2561"
 part parent "m128rfa1"
     desc                   = "ATmega128RFR2";
     id                     = "m128rfr2";
+    mcuid                  = 88;
+    n_interrupts           = 77;
     signature              = 0x1e 0xa7 0x02;
 ;
 
@@ -9113,6 +9346,8 @@ part parent "m128rfa1"
 part parent "m128rfa1"
     desc                   = "ATmega64RFR2";
     id                     = "m64rfr2";
+    mcuid                  = 78;
+    n_interrupts           = 77;
     signature              = 0x1e 0xa6 0x02;
 
     memory "eeprom"
@@ -9140,6 +9375,7 @@ part parent "m128rfa1"
 part parent "m256rfr2"
     desc                   = "ATmega2564RFR2";
     id                     = "m2564rfr2";
+    mcuid                  = 145;
     signature              = 0x1e 0xa8 0x03;
 ;
 
@@ -9150,6 +9386,7 @@ part parent "m256rfr2"
 part parent "m128rfr2"
     desc                   = "ATmega1284RFR2";
     id                     = "m1284rfr2";
+    mcuid                  = 142;
     signature              = 0x1e 0xa7 0x03;
 ;
 
@@ -9160,6 +9397,7 @@ part parent "m128rfr2"
 part parent "m64rfr2"
     desc                   = "ATmega644RFR2";
     id                     = "m644rfr2";
+    mcuid                  = 131;
     signature              = 0x1e 0xa6 0x03;
 ;
 
@@ -9170,6 +9408,9 @@ part parent "m64rfr2"
 part
     desc                   = "ATtiny24";
     id                     = "t24";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVSP | PM_debugWIRE;
+    mcuid                  = 14;
+    n_interrupts           = 17;
 #   no STK500 devcode in XML file, use the ATtiny45 one
     stk500_devcode         = 0x14;
 #   avr910_devcode         = ?;
@@ -9178,7 +9419,6 @@ part
     chip_erase_delay       = 4500;
     signature              = 0x1e 0x91 0x0b;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -9298,6 +9538,7 @@ part
 part parent "t24"
     desc                   = "ATtiny24A";
     id                     = "t24a";
+    mcuid                  = 15;
 ;
 
 #------------------------------------------------------------
@@ -9307,6 +9548,9 @@ part parent "t24"
 part
     desc                   = "ATtiny44";
     id                     = "t44";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVSP | PM_debugWIRE;
+    mcuid                  = 20;
+    n_interrupts           = 17;
 #   no STK500 devcode in XML file, use the ATtiny45 one
     stk500_devcode         = 0x14;
 #   avr910_devcode         = ?;
@@ -9315,7 +9559,6 @@ part
     chip_erase_delay       = 4500;
     signature              = 0x1e 0x92 0x07;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -9435,6 +9678,7 @@ part
 part parent "t44"
     desc                   = "ATtiny44A";
     id                     = "t44a";
+    mcuid                  = 21;
 ;
 
 #------------------------------------------------------------
@@ -9444,6 +9688,9 @@ part parent "t44"
 part
     desc                   = "ATtiny84";
     id                     = "t84";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVSP | PM_debugWIRE;
+    mcuid                  = 24;
+    n_interrupts           = 17;
 #   no STK500 devcode in XML file, use the ATtiny45 one
     stk500_devcode         = 0x14;
 #   avr910_devcode         = ?;
@@ -9452,7 +9699,6 @@ part
     chip_erase_delay       = 4500;
     signature              = 0x1e 0x93 0x0c;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -9572,6 +9818,7 @@ part
 part parent "t84"
     desc                   = "ATtiny84A";
     id                     = "t84a";
+    mcuid                  = 25;
 ;
 
 #------------------------------------------------------------
@@ -9581,6 +9828,9 @@ part parent "t84"
 part parent "t44"
     desc                   = "ATtiny441";
     id                     = "t441";
+    mcuid                  = 32;
+    n_interrupts           = 30;
+    n_page_erase           = 4;
     signature              = 0x1e 0x92 0x15;
 
     memory "flash"
@@ -9604,6 +9854,9 @@ part parent "t44"
 part parent "t84"
     desc                   = "ATtiny841";
     id                     = "t841";
+    mcuid                  = 37;
+    n_interrupts           = 30;
+    n_page_erase           = 4;
     signature              = 0x1e 0x93 0x15;
 
     memory "flash"
@@ -9627,6 +9880,9 @@ part parent "t84"
 part
     desc                   = "ATtiny43U";
     id                     = "t43u";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 19;
+    n_interrupts           = 16;
     stk500_devcode         = 0x14;
 #   avr910_devcode         = ?;
 #   Try the AT90S2313 devcode:
@@ -9634,7 +9890,6 @@ part
     chip_erase_delay       = 1000;
     signature              = 0x1e 0x92 0x0c;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -9754,6 +10009,9 @@ part
 part
     desc                   = "ATmega16U4";
     id                     = "m16u4";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 57;
+    n_interrupts           = 43;
 #   stk500_devcode         = 0xB2;
 #   avr910_devcode         = 0x43;
     chip_erase_delay       = 9000;
@@ -9762,7 +10020,6 @@ part
     signature              = 0x1e 0x94 0x88;
     usbpid                 = 0x2ff4;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -9876,6 +10133,9 @@ part
 part
     desc                   = "ATmega32U4";
     id                     = "m32u4";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 65;
+    n_interrupts           = 43;
 #   stk500_devcode         = 0xB2;
 #   avr910_devcode         = 0x43;
     chip_erase_delay       = 9000;
@@ -9884,7 +10144,6 @@ part
     signature              = 0x1e 0x95 0x87;
     usbpid                 = 0x2ff4;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -9998,6 +10257,9 @@ part
 part
     desc                   = "AT90USB646";
     id                     = "usb646";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 181;
+    n_interrupts           = 38;
 #   stk500_devcode         = 0xB2;
 #   avr910_devcode         = 0x43;
     chip_erase_delay       = 9000;
@@ -10006,7 +10268,6 @@ part
     signature              = 0x1e 0x96 0x82;
     usbpid                 = 0x2ff9;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -10121,6 +10382,7 @@ part
 part parent "usb646"
     desc                   = "AT90USB647";
     id                     = "usb647";
+    mcuid                  = 182;
 ;
 
 #------------------------------------------------------------
@@ -10130,6 +10392,9 @@ part parent "usb646"
 part
     desc                   = "AT90USB1286";
     id                     = "usb1286";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 184;
+    n_interrupts           = 38;
 #   stk500_devcode         = 0xB2;
 #   avr910_devcode         = 0x43;
     chip_erase_delay       = 9000;
@@ -10138,7 +10403,6 @@ part
     signature              = 0x1e 0x97 0x82;
     usbpid                 = 0x2ffb;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -10253,6 +10517,7 @@ part
 part parent "usb1286"
     desc                   = "AT90USB1287";
     id                     = "usb1287";
+    mcuid                  = 185;
 ;
 
 #------------------------------------------------------------
@@ -10262,13 +10527,15 @@ part parent "usb1286"
 part
     desc                   = "AT90USB162";
     id                     = "usb162";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 178;
+    n_interrupts           = 29;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
     bs2                    = 0xc6;
     signature              = 0x1e 0x94 0x82;
     usbpid                 = 0x2ffa;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -10380,13 +10647,15 @@ part
 part
     desc                   = "AT90USB82";
     id                     = "usb82";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 174;
+    n_interrupts           = 58;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
     bs2                    = 0xc6;
     signature              = 0x1e 0x93 0x82;
     usbpid                 = 0x2ff7;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -10498,13 +10767,15 @@ part
 part
     desc                   = "ATmega32U2";
     id                     = "m32u2";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 64;
+    n_interrupts           = 29;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
     bs2                    = 0xc6;
     signature              = 0x1e 0x95 0x8a;
     usbpid                 = 0x2ff0;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -10616,13 +10887,15 @@ part
 part
     desc                   = "ATmega16U2";
     id                     = "m16u2";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 56;
+    n_interrupts           = 29;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
     bs2                    = 0xc6;
     signature              = 0x1e 0x94 0x89;
     usbpid                 = 0x2fef;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -10734,13 +11007,15 @@ part
 part
     desc                   = "ATmega8U2";
     id                     = "m8u2";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 48;
+    n_interrupts           = 58;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
     bs2                    = 0xc6;
     signature              = 0x1e 0x93 0x89;
     usbpid                 = 0x2fee;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -10852,6 +11127,9 @@ part
 part
     desc                   = "ATmega165";
     id                     = "m165";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 95;
+    n_interrupts           = 22;
 #   stk500_devcode         = 0x??;
 #   avr910_devcode         = 0x??;
     chip_erase_delay       = 9000;
@@ -10859,7 +11137,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x94 0x10;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -10972,6 +11249,7 @@ part
 part parent "m165"
     desc                   = "ATmega165A";
     id                     = "m165a";
+    mcuid                  = 96;
 ;
 
 #------------------------------------------------------------
@@ -10981,6 +11259,7 @@ part parent "m165"
 part parent "m165"
     desc                   = "ATmega165P";
     id                     = "m165p";
+    mcuid                  = 97;
     signature              = 0x1e 0x94 0x07;
 ;
 
@@ -10991,6 +11270,7 @@ part parent "m165"
 part parent "m165"
     desc                   = "ATmega165PA";
     id                     = "m165pa";
+    mcuid                  = 98;
     signature              = 0x1e 0x94 0x07;
 ;
 
@@ -11001,6 +11281,9 @@ part parent "m165"
 part
     desc                   = "ATmega325";
     id                     = "m325";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 114;
+    n_interrupts           = 23;
 #   stk500_devcode         = 0x??; # No STK500v1 support?
 #   avr910_devcode         = 0x??; # Try the ATmega16 one
     avr910_devcode         = 0x74;
@@ -11009,7 +11292,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x95 0x05;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -11124,6 +11406,7 @@ part
 part parent "m325"
     desc                   = "ATmega325A";
     id                     = "m325a";
+    mcuid                  = 115;
 ;
 
 #------------------------------------------------------------
@@ -11133,6 +11416,7 @@ part parent "m325"
 part parent "m325"
     desc                   = "ATmega325P";
     id                     = "m325p";
+    mcuid                  = 116;
     signature              = 0x1e 0x95 0x0d;
 ;
 
@@ -11143,6 +11427,8 @@ part parent "m325"
 part parent "m325"
     desc                   = "ATmega325PA";
     id                     = "m325pa";
+    mcuid                  = 117;
+    n_interrupts           = 22;
     signature              = 0x1e 0x95 0x0d;
 ;
 
@@ -11153,6 +11439,9 @@ part parent "m325"
 part
     desc                   = "ATmega645";
     id                     = "m645";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    mcuid                  = 132;
+    n_interrupts           = 23;
 #   stk500_devcode         = 0x??; # No STK500v1 support?
 #   avr910_devcode         = 0x??; # Try the ATmega16 one
     avr910_devcode         = 0x74;
@@ -11161,7 +11450,6 @@ part
     bs2                    = 0xa0;
     signature              = 0x1e 0x96 0x05;
     reset                  = io;
-    has_jtag               = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -11276,6 +11564,7 @@ part
 part parent "m645"
     desc                   = "ATmega645A";
     id                     = "m645a";
+    mcuid                  = 133;
 ;
 
 #------------------------------------------------------------
@@ -11285,6 +11574,7 @@ part parent "m645"
 part parent "m645"
     desc                   = "ATmega645P";
     id                     = "m645p";
+    mcuid                  = 134;
     signature              = 0x1e 0x96 0x0d;
 ;
 
@@ -11295,6 +11585,8 @@ part parent "m645"
 part parent "m325"
     desc                   = "ATmega3250";
     id                     = "m3250";
+    mcuid                  = 146;
+    n_interrupts           = 25;
     signature              = 0x1e 0x95 0x06;
 ;
 
@@ -11305,6 +11597,8 @@ part parent "m325"
 part parent "m325"
     desc                   = "ATmega3250A";
     id                     = "m3250a";
+    mcuid                  = 147;
+    n_interrupts           = 25;
     signature              = 0x1e 0x95 0x06;
 ;
 
@@ -11315,6 +11609,8 @@ part parent "m325"
 part parent "m325"
     desc                   = "ATmega3250P";
     id                     = "m3250p";
+    mcuid                  = 148;
+    n_interrupts           = 25;
     signature              = 0x1e 0x95 0x0e;
 ;
 
@@ -11325,6 +11621,8 @@ part parent "m325"
 part parent "m325"
     desc                   = "ATmega3250PA";
     id                     = "m3250pa";
+    mcuid                  = 149;
+    n_interrupts           = 25;
     signature              = 0x1e 0x95 0x0e;
 ;
 
@@ -11335,6 +11633,8 @@ part parent "m325"
 part parent "m645"
     desc                   = "ATmega6450";
     id                     = "m6450";
+    mcuid                  = 154;
+    n_interrupts           = 25;
     signature              = 0x1e 0x96 0x06;
 ;
 
@@ -11345,6 +11645,8 @@ part parent "m645"
 part parent "m645"
     desc                   = "ATmega6450A";
     id                     = "m6450a";
+    mcuid                  = 155;
+    n_interrupts           = 25;
     signature              = 0x1e 0x96 0x06;
 ;
 
@@ -11355,6 +11657,8 @@ part parent "m645"
 part parent "m645"
     desc                   = "ATmega6450P";
     id                     = "m6450p";
+    mcuid                  = 156;
+    n_interrupts           = 25;
     signature              = 0x1e 0x96 0x0e;
 ;
 
@@ -11365,7 +11669,7 @@ part parent "m645"
 part
     desc                   = "AVR XMEGA family common values";
     id                     = ".xmega";
-    has_pdi                = yes;
+    prog_modes             = PM_SPM | PM_PDI;
     mcu_base               = 0x0090;
     nvm_base               = 0x01c0;
 
@@ -11419,6 +11723,8 @@ part
 part parent ".xmega"
     desc                   = "ATxmega16A4U";
     id                     = "x16a4u";
+    mcuid                  = 232;
+    n_interrupts           = 127;
     signature              = 0x1e 0x94 0x41;
     usbpid                 = 0x2fe3;
 
@@ -11472,6 +11778,7 @@ part parent ".xmega"
 part parent "x16a4u"
     desc                   = "ATxmega16C4";
     id                     = "x16c4";
+    mcuid                  = 233;
     signature              = 0x1e 0x94 0x43;
 ;
 
@@ -11482,6 +11789,8 @@ part parent "x16a4u"
 part parent "x16a4u"
     desc                   = "ATxmega16D4";
     id                     = "x16d4";
+    mcuid                  = 234;
+    n_interrupts           = 91;
     signature              = 0x1e 0x94 0x42;
 ;
 
@@ -11492,6 +11801,8 @@ part parent "x16a4u"
 part parent "x16a4u"
     desc                   = "ATxmega16A4";
     id                     = "x16a4";
+    mcuid                  = 231;
+    n_interrupts           = 94;
 
     memory "fuse0"
         size               = 1;
@@ -11506,6 +11817,8 @@ part parent "x16a4u"
 part parent ".xmega"
     desc                   = "ATxmega32A4U";
     id                     = "x32a4u";
+    mcuid                  = 239;
+    n_interrupts           = 127;
     signature              = 0x1e 0x95 0x41;
     usbpid                 = 0x2fe4;
 
@@ -11559,6 +11872,7 @@ part parent ".xmega"
 part parent "x32a4u"
     desc                   = "ATxmega32C4";
     id                     = "x32c4";
+    mcuid                  = 240;
     signature              = 0x1e 0x95 0x44;
 ;
 
@@ -11569,6 +11883,8 @@ part parent "x32a4u"
 part parent "x32a4u"
     desc                   = "ATxmega32D4";
     id                     = "x32d4";
+    mcuid                  = 241;
+    n_interrupts           = 91;
     signature              = 0x1e 0x95 0x42;
 ;
 
@@ -11579,6 +11895,8 @@ part parent "x32a4u"
 part parent "x32a4u"
     desc                   = "ATxmega32A4";
     id                     = "x32a4";
+    mcuid                  = 238;
+    n_interrupts           = 94;
 
     memory "fuse0"
         size               = 1;
@@ -11593,6 +11911,8 @@ part parent "x32a4u"
 part parent ".xmega"
     desc                   = "ATxmega64A4U";
     id                     = "x64a4u";
+    mcuid                  = 252;
+    n_interrupts           = 127;
     signature              = 0x1e 0x96 0x46;
     usbpid                 = 0x2fe5;
 
@@ -11646,6 +11966,7 @@ part parent ".xmega"
 part parent "x64a4u"
     desc                   = "ATxmega64C3";
     id                     = "x64c3";
+    mcuid                  = 249;
     signature              = 0x1e 0x96 0x49;
     usbpid                 = 0x2fd6;
 ;
@@ -11657,6 +11978,8 @@ part parent "x64a4u"
 part parent "x64a4u"
     desc                   = "ATxmega64D3";
     id                     = "x64d3";
+    mcuid                  = 250;
+    n_interrupts           = 114;
     signature              = 0x1e 0x96 0x4a;
 ;
 
@@ -11667,6 +11990,8 @@ part parent "x64a4u"
 part parent "x64a4u"
     desc                   = "ATxmega64D4";
     id                     = "x64d4";
+    mcuid                  = 253;
+    n_interrupts           = 91;
     signature              = 0x1e 0x96 0x47;
 ;
 
@@ -11677,8 +12002,10 @@ part parent "x64a4u"
 part parent "x64a4u"
     desc                   = "ATxmega64A1";
     id                     = "x64a1";
+    prog_modes             = PM_SPM | PM_PDI | PM_JTAG;
+    mcuid                  = 243;
+    n_interrupts           = 125;
     signature              = 0x1e 0x96 0x4e;
-    has_jtag               = yes;
 
     memory "fuse0"
         size               = 1;
@@ -11693,6 +12020,8 @@ part parent "x64a4u"
 part parent "x64a1"
     desc                   = "ATxmega64A1U";
     id                     = "x64a1u";
+    mcuid                  = 244;
+    n_interrupts           = 127;
     usbpid                 = 0x2fe8;
 ;
 
@@ -11703,6 +12032,8 @@ part parent "x64a1"
 part parent "x64a1"
     desc                   = "ATxmega64A3";
     id                     = "x64a3";
+    mcuid                  = 246;
+    n_interrupts           = 122;
     signature              = 0x1e 0x96 0x42;
 ;
 
@@ -11713,6 +12044,8 @@ part parent "x64a1"
 part parent "x64a1"
     desc                   = "ATxmega64A3U";
     id                     = "x64a3u";
+    mcuid                  = 247;
+    n_interrupts           = 127;
     signature              = 0x1e 0x96 0x42;
 ;
 
@@ -11723,6 +12056,7 @@ part parent "x64a1"
 part parent "x64a1"
     desc                   = "ATxmega64A4";
     id                     = "x64a4";
+    mcuid                  = 251;
     signature              = 0x1e 0x96 0x46;
 ;
 
@@ -11733,6 +12067,8 @@ part parent "x64a1"
 part parent "x64a1"
     desc                   = "ATxmega64B1";
     id                     = "x64b1";
+    mcuid                  = 245;
+    n_interrupts           = 81;
     signature              = 0x1e 0x96 0x52;
     usbpid                 = 0x2fe1;
 ;
@@ -11744,6 +12080,8 @@ part parent "x64a1"
 part parent "x64a1"
     desc                   = "ATxmega64B3";
     id                     = "x64b3";
+    mcuid                  = 248;
+    n_interrupts           = 54;
     signature              = 0x1e 0x96 0x51;
     usbpid                 = 0x2fdf;
 ;
@@ -11755,6 +12093,8 @@ part parent "x64a1"
 part parent ".xmega"
     desc                   = "ATxmega128C3";
     id                     = "x128c3";
+    mcuid                  = 261;
+    n_interrupts           = 127;
     signature              = 0x1e 0x97 0x52;
     usbpid                 = 0x2fd7;
 
@@ -11808,6 +12148,8 @@ part parent ".xmega"
 part parent "x128c3"
     desc                   = "ATxmega128D3";
     id                     = "x128d3";
+    mcuid                  = 262;
+    n_interrupts           = 114;
     signature              = 0x1e 0x97 0x48;
 ;
 
@@ -11818,6 +12160,8 @@ part parent "x128c3"
 part parent "x128c3"
     desc                   = "ATxmega128D4";
     id                     = "x128d4";
+    mcuid                  = 265;
+    n_interrupts           = 91;
     signature              = 0x1e 0x97 0x47;
 
     memory "flash"
@@ -11832,8 +12176,10 @@ part parent "x128c3"
 part parent "x128c3"
     desc                   = "ATxmega128A1";
     id                     = "x128a1";
+    prog_modes             = PM_SPM | PM_PDI | PM_JTAG;
+    mcuid                  = 254;
+    n_interrupts           = 125;
     signature              = 0x1e 0x97 0x4c;
-    has_jtag               = yes;
 
     memory "fuse0"
         size               = 1;
@@ -11848,6 +12194,7 @@ part parent "x128c3"
 part parent "x128a1"
     desc                   = "ATxmega128A1revD";
     id                     = "x128a1d";
+    mcuid                  = 255;
     signature              = 0x1e 0x97 0x41;
 ;
 
@@ -11858,6 +12205,8 @@ part parent "x128a1"
 part parent "x128a1"
     desc                   = "ATxmega128A1U";
     id                     = "x128a1u";
+    mcuid                  = 256;
+    n_interrupts           = 127;
     usbpid                 = 0x2fed;
 ;
 
@@ -11868,6 +12217,8 @@ part parent "x128a1"
 part parent "x128a1"
     desc                   = "ATxmega128A3";
     id                     = "x128a3";
+    mcuid                  = 258;
+    n_interrupts           = 122;
     signature              = 0x1e 0x97 0x42;
 ;
 
@@ -11878,6 +12229,8 @@ part parent "x128a1"
 part parent "x128a1"
     desc                   = "ATxmega128A3U";
     id                     = "x128a3u";
+    mcuid                  = 259;
+    n_interrupts           = 127;
     signature              = 0x1e 0x97 0x42;
     usbpid                 = 0x2fe6;
 ;
@@ -11889,8 +12242,9 @@ part parent "x128a1"
 part parent ".xmega"
     desc                   = "ATxmega128A4";
     id                     = "x128a4";
+    prog_modes             = PM_SPM | PM_PDI | PM_JTAG;
+    mcuid                  = 263;
     signature              = 0x1e 0x97 0x46;
-    has_jtag               = yes;
 
     memory "eeprom"
         size               = 2048;
@@ -11947,6 +12301,8 @@ part parent ".xmega"
 part parent ".xmega"
     desc                   = "ATxmega128A4U";
     id                     = "x128a4u";
+    mcuid                  = 264;
+    n_interrupts           = 127;
     signature              = 0x1e 0x97 0x46;
     usbpid                 = 0x2fde;
 
@@ -12000,9 +12356,11 @@ part parent ".xmega"
 part parent ".xmega"
     desc                   = "ATxmega128B1";
     id                     = "x128b1";
+    prog_modes             = PM_SPM | PM_PDI | PM_JTAG;
+    mcuid                  = 257;
+    n_interrupts           = 81;
     signature              = 0x1e 0x97 0x4d;
     usbpid                 = 0x2fea;
-    has_jtag               = yes;
 
     memory "eeprom"
         size               = 2048;
@@ -12059,6 +12417,8 @@ part parent ".xmega"
 part parent "x128b1"
     desc                   = "ATxmega128B3";
     id                     = "x128b3";
+    mcuid                  = 260;
+    n_interrupts           = 54;
     signature              = 0x1e 0x97 0x4b;
     usbpid                 = 0x2fe0;
 ;
@@ -12070,6 +12430,8 @@ part parent "x128b1"
 part parent ".xmega"
     desc                   = "ATxmega192C3";
     id                     = "x192c3";
+    mcuid                  = 269;
+    n_interrupts           = 127;
     signature              = 0x1e 0x97 0x51;
 #   usbpid                 = 0x2f??;
 
@@ -12123,6 +12485,8 @@ part parent ".xmega"
 part parent "x192c3"
     desc                   = "ATxmega192D3";
     id                     = "x192d3";
+    mcuid                  = 270;
+    n_interrupts           = 114;
     signature              = 0x1e 0x97 0x49;
 ;
 
@@ -12133,8 +12497,9 @@ part parent "x192c3"
 part parent "x192c3"
     desc                   = "ATxmega192A1";
     id                     = "x192a1";
+    prog_modes             = PM_SPM | PM_PDI | PM_JTAG;
+    mcuid                  = 266;
     signature              = 0x1e 0x97 0x4e;
-    has_jtag               = yes;
 
     memory "fuse0"
         size               = 1;
@@ -12149,6 +12514,8 @@ part parent "x192c3"
 part parent "x192a1"
     desc                   = "ATxmega192A3";
     id                     = "x192a3";
+    mcuid                  = 267;
+    n_interrupts           = 122;
     signature              = 0x1e 0x97 0x44;
 ;
 
@@ -12159,6 +12526,7 @@ part parent "x192a1"
 part parent "x192a1"
     desc                   = "ATxmega192A3U";
     id                     = "x192a3u";
+    mcuid                  = 268;
     signature              = 0x1e 0x97 0x44;
     usbpid                 = 0x2fe7;
 ;
@@ -12170,6 +12538,8 @@ part parent "x192a1"
 part parent ".xmega"
     desc                   = "ATxmega256C3";
     id                     = "x256c3";
+    mcuid                  = 276;
+    n_interrupts           = 127;
     signature              = 0x1e 0x98 0x46;
     usbpid                 = 0x2fda;
 
@@ -12223,6 +12593,8 @@ part parent ".xmega"
 part parent "x256c3"
     desc                   = "ATxmega256D3";
     id                     = "x256d3";
+    mcuid                  = 277;
+    n_interrupts           = 114;
     signature              = 0x1e 0x98 0x44;
 ;
 
@@ -12233,7 +12605,8 @@ part parent "x256c3"
 part parent "x256c3"
     desc                   = "ATxmega256A1";
     id                     = "x256a1";
-    has_jtag               = yes;
+    prog_modes             = PM_SPM | PM_PDI | PM_JTAG;
+    mcuid                  = 271;
 
     memory "fuse0"
         size               = 1;
@@ -12248,6 +12621,8 @@ part parent "x256c3"
 part parent "x256a1"
     desc                   = "ATxmega256A3";
     id                     = "x256a3";
+    mcuid                  = 272;
+    n_interrupts           = 122;
     signature              = 0x1e 0x98 0x42;
 ;
 
@@ -12258,6 +12633,7 @@ part parent "x256a1"
 part parent "x256a1"
     desc                   = "ATxmega256A3U";
     id                     = "x256a3u";
+    mcuid                  = 275;
     signature              = 0x1e 0x98 0x42;
     usbpid                 = 0x2fec;
 ;
@@ -12269,6 +12645,8 @@ part parent "x256a1"
 part parent "x256a1"
     desc                   = "ATxmega256A3B";
     id                     = "x256a3b";
+    mcuid                  = 273;
+    n_interrupts           = 122;
     signature              = 0x1e 0x98 0x43;
 ;
 
@@ -12279,6 +12657,7 @@ part parent "x256a1"
 part parent "x256a1"
     desc                   = "ATxmega256A3BU";
     id                     = "x256a3bu";
+    mcuid                  = 274;
     signature              = 0x1e 0x98 0x43;
     usbpid                 = 0x2fe2;
 ;
@@ -12290,6 +12669,8 @@ part parent "x256a1"
 part parent ".xmega"
     desc                   = "ATxmega384C3";
     id                     = "x384c3";
+    mcuid                  = 278;
+    n_interrupts           = 127;
     signature              = 0x1e 0x98 0x45;
     usbpid                 = 0x2fdb;
 
@@ -12343,6 +12724,8 @@ part parent ".xmega"
 part parent "x384c3"
     desc                   = "ATxmega384D3";
     id                     = "x384d3";
+    mcuid                  = 279;
+    n_interrupts           = 114;
     signature              = 0x1e 0x98 0x47;
 ;
 
@@ -12353,6 +12736,8 @@ part parent "x384c3"
 part parent ".xmega"
     desc                   = "ATxmega8E5";
     id                     = "x8e5";
+    mcuid                  = 230;
+    n_interrupts           = 43;
     signature              = 0x1e 0x93 0x41;
 
     memory "eeprom"
@@ -12405,6 +12790,8 @@ part parent ".xmega"
 part parent ".xmega"
     desc                   = "ATxmega16E5";
     id                     = "x16e5";
+    mcuid                  = 235;
+    n_interrupts           = 43;
     signature              = 0x1e 0x94 0x45;
 
     memory "eeprom"
@@ -12457,6 +12844,8 @@ part parent ".xmega"
 part parent ".xmega"
     desc                   = "ATxmega32E5";
     id                     = "x32e5";
+    mcuid                  = 242;
+    n_interrupts           = 43;
     signature              = 0x1e 0x95 0x4c;
 
     memory "eeprom"
@@ -12509,9 +12898,8 @@ part parent ".xmega"
 part
     desc                   = "AT32UC3A0512";
     id                     = "uc3a0512";
+    prog_modes             = PM_JTAG | PM_aWire;
     signature              = 0xed 0xc0 0x3f;
-    has_jtag               = yes;
-    is_avr32               = yes;
 
     memory "flash"
         paged              = yes;
@@ -12539,6 +12927,10 @@ part parent "uc3a0512"
 part
     desc                   = "ATtiny1634";
     id                     = "t1634";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 40;
+    n_interrupts           = 28;
+    n_page_erase           = 4;
     stk500_devcode         = 0x86;
     chip_erase_delay       = 9000;
     pagel                  = 0xb3;
@@ -12546,7 +12938,6 @@ part
 #   avr910_devcode         = 0x??;
     signature              = 0x1e 0x94 0x12;
     reset                  = io;
-    has_debugwire          = yes;
     timeout                = 200;
     stabdelay              = 100;
     cmdexedelay            = 25;
@@ -12663,6 +13054,7 @@ part
 part parent "t1634"
     desc                   = "ATtiny1634R";
     id                     = "t1634r";
+    mcuid                  = 41;
 ;
 
 #------------------------------------------------------------
@@ -12672,7 +13064,7 @@ part parent "t1634"
 part
     desc                   = "Common values for reduced core tinys";
     id                     = ".reduced_core_tiny";
-    has_tpi                = yes;
+    prog_modes             = PM_TPI;
 
     memory "fuse"
         size               = 1;
@@ -12713,6 +13105,8 @@ part
 part parent ".reduced_core_tiny"
     desc                   = "ATtiny4";
     id                     = "t4";
+    mcuid                  = 0;
+    n_interrupts           = 10;
     signature              = 0x1e 0x8f 0x0a;
 
     memory "flash"
@@ -12730,6 +13124,8 @@ part parent ".reduced_core_tiny"
 part parent "t4"
     desc                   = "ATtiny5";
     id                     = "t5";
+    mcuid                  = 1;
+    n_interrupts           = 11;
     signature              = 0x1e 0x8f 0x09;
 ;
 
@@ -12740,6 +13136,8 @@ part parent "t4"
 part parent ".reduced_core_tiny"
     desc                   = "ATtiny9";
     id                     = "t9";
+    mcuid                  = 2;
+    n_interrupts           = 10;
     signature              = 0x1e 0x90 0x08;
 
     memory "flash"
@@ -12757,6 +13155,8 @@ part parent ".reduced_core_tiny"
 part parent "t9"
     desc                   = "ATtiny10";
     id                     = "t10";
+    mcuid                  = 3;
+    n_interrupts           = 11;
     signature              = 0x1e 0x90 0x03;
 ;
 
@@ -12767,6 +13167,8 @@ part parent "t9"
 part parent ".reduced_core_tiny"
     desc                   = "ATtiny20";
     id                     = "t20";
+    mcuid                  = 4;
+    n_interrupts           = 17;
     signature              = 0x1e 0x91 0x0f;
 
     memory "flash"
@@ -12784,6 +13186,8 @@ part parent ".reduced_core_tiny"
 part parent ".reduced_core_tiny"
     desc                   = "ATtiny40";
     id                     = "t40";
+    mcuid                  = 5;
+    n_interrupts           = 18;
     signature              = 0x1e 0x92 0x0e;
 
     memory "flash"
@@ -12801,6 +13205,7 @@ part parent ".reduced_core_tiny"
 part parent ".reduced_core_tiny"
     desc                   = "ATtiny102";
     id                     = "t102";
+    mcuid                  = 6;
     signature              = 0x1e 0x90 0x0c;
 
     memory "flash"
@@ -12818,6 +13223,7 @@ part parent ".reduced_core_tiny"
 part parent ".reduced_core_tiny"
     desc                   = "ATtiny104";
     id                     = "t104";
+    mcuid                  = 7;
     signature              = 0x1e 0x90 0x0b;
 
     memory "flash"
@@ -12835,12 +13241,14 @@ part parent ".reduced_core_tiny"
 part
     desc                   = "ATmega406";
     id                     = "m406";
+    prog_modes             = PM_SPM | PM_HVPP | PM_JTAG;
+    mcuid                  = 125;
+    n_interrupts           = 23;
     # STK500 parameters (parallel programming IO lines)
     pagel                  = 0xa7;
     bs2                    = 0xa0;
     signature              = 0x1e 0x95 0x07;
     reset                  = io;
-    has_jtag               = yes;
     serial                 = no;
     # STK500v2 HV programming parameters, from XML
     pp_controlstack        =
@@ -12897,7 +13305,7 @@ part
 part
     desc                   = "AVR8X family common values";
     id                     = ".avr8x";
-    has_updi               = yes;
+    prog_modes             = PM_SPM | PM_UPDI;
     nvm_base               = 0x1000;
     ocd_base               = 0x0f80;
 
@@ -13110,6 +13518,8 @@ part parent ".avr8x"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny202";
     id                     = "t202";
+    mcuid                  = 280;
+    n_interrupts           = 26;
     signature              = 0x1e 0x91 0x23;
 
     memory "eeprom"
@@ -13134,6 +13544,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny204";
     id                     = "t204";
+    mcuid                  = 281;
+    n_interrupts           = 26;
     signature              = 0x1e 0x91 0x22;
 
     memory "eeprom"
@@ -13158,6 +13570,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny402";
     id                     = "t402";
+    mcuid                  = 284;
+    n_interrupts           = 26;
     signature              = 0x1e 0x92 0x27;
 
     memory "eeprom"
@@ -13182,6 +13596,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny404";
     id                     = "t404";
+    mcuid                  = 285;
+    n_interrupts           = 26;
     signature              = 0x1e 0x92 0x26;
 
     memory "eeprom"
@@ -13206,6 +13622,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny406";
     id                     = "t406";
+    mcuid                  = 286;
+    n_interrupts           = 26;
     signature              = 0x1e 0x92 0x25;
 
     memory "eeprom"
@@ -13230,6 +13648,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny804";
     id                     = "t804";
+    mcuid                  = 295;
+    n_interrupts           = 31;
     signature              = 0x1e 0x93 0x25;
 
     memory "eeprom"
@@ -13254,6 +13674,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny806";
     id                     = "t806";
+    mcuid                  = 296;
+    n_interrupts           = 31;
     signature              = 0x1e 0x93 0x24;
 
     memory "eeprom"
@@ -13278,6 +13700,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny807";
     id                     = "t807";
+    mcuid                  = 297;
+    n_interrupts           = 31;
     signature              = 0x1e 0x93 0x23;
 
     memory "eeprom"
@@ -13302,6 +13726,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny1604";
     id                     = "t1604";
+    mcuid                  = 304;
+    n_interrupts           = 31;
     signature              = 0x1e 0x94 0x25;
 
     memory "eeprom"
@@ -13326,6 +13752,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny1606";
     id                     = "t1606";
+    mcuid                  = 305;
+    n_interrupts           = 31;
     signature              = 0x1e 0x94 0x24;
 
     memory "eeprom"
@@ -13350,6 +13778,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny1607";
     id                     = "t1607";
+    mcuid                  = 306;
+    n_interrupts           = 31;
     signature              = 0x1e 0x94 0x23;
 
     memory "eeprom"
@@ -13374,6 +13804,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny212";
     id                     = "t212";
+    mcuid                  = 282;
+    n_interrupts           = 26;
     signature              = 0x1e 0x91 0x21;
 
     memory "eeprom"
@@ -13398,6 +13830,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny214";
     id                     = "t214";
+    mcuid                  = 283;
+    n_interrupts           = 26;
     signature              = 0x1e 0x91 0x20;
 
     memory "eeprom"
@@ -13422,6 +13856,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny412";
     id                     = "t412";
+    mcuid                  = 287;
+    n_interrupts           = 26;
     signature              = 0x1e 0x92 0x23;
 
     memory "eeprom"
@@ -13446,6 +13882,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny414";
     id                     = "t414";
+    mcuid                  = 288;
+    n_interrupts           = 26;
     signature              = 0x1e 0x92 0x22;
 
     memory "eeprom"
@@ -13470,6 +13908,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny416";
     id                     = "t416";
+    mcuid                  = 289;
+    n_interrupts           = 26;
     signature              = 0x1e 0x92 0x21;
 
     memory "eeprom"
@@ -13494,6 +13934,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny417";
     id                     = "t417";
+    mcuid                  = 291;
+    n_interrupts           = 26;
     signature              = 0x1e 0x92 0x20;
 
     memory "eeprom"
@@ -13518,6 +13960,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny814";
     id                     = "t814";
+    mcuid                  = 298;
+    n_interrupts           = 26;
     signature              = 0x1e 0x93 0x22;
 
     memory "eeprom"
@@ -13542,6 +13986,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny816";
     id                     = "t816";
+    mcuid                  = 299;
+    n_interrupts           = 26;
     signature              = 0x1e 0x93 0x21;
 
     memory "eeprom"
@@ -13566,6 +14012,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny817";
     id                     = "t817";
+    mcuid                  = 300;
+    n_interrupts           = 26;
     signature              = 0x1e 0x93 0x20;
 
     memory "eeprom"
@@ -13590,6 +14038,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny1614";
     id                     = "t1614";
+    mcuid                  = 307;
+    n_interrupts           = 31;
     signature              = 0x1e 0x94 0x22;
 
     memory "eeprom"
@@ -13614,6 +14064,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny1616";
     id                     = "t1616";
+    mcuid                  = 308;
+    n_interrupts           = 31;
     signature              = 0x1e 0x94 0x21;
 
     memory "eeprom"
@@ -13638,6 +14090,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny1617";
     id                     = "t1617";
+    mcuid                  = 309;
+    n_interrupts           = 31;
     signature              = 0x1e 0x94 0x20;
 
     memory "eeprom"
@@ -13662,6 +14116,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny3216";
     id                     = "t3216";
+    mcuid                  = 314;
+    n_interrupts           = 31;
     signature              = 0x1e 0x95 0x21;
 
     memory "eeprom"
@@ -13686,6 +14142,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny3217";
     id                     = "t3217";
+    mcuid                  = 315;
+    n_interrupts           = 31;
     signature              = 0x1e 0x95 0x22;
 
     memory "eeprom"
@@ -13710,6 +14168,7 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny424";
     id                     = "t424";
+    mcuid                  = 292;
     signature              = 0x1e 0x92 0x2c;
 
     memory "eeprom"
@@ -13734,6 +14193,7 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny426";
     id                     = "t426";
+    mcuid                  = 293;
     signature              = 0x1e 0x92 0x2b;
 
     memory "eeprom"
@@ -13758,6 +14218,7 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny427";
     id                     = "t427";
+    mcuid                  = 294;
     signature              = 0x1e 0x92 0x2a;
 
     memory "eeprom"
@@ -13782,6 +14243,7 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny824";
     id                     = "t824";
+    mcuid                  = 301;
     signature              = 0x1e 0x93 0x29;
 
     memory "eeprom"
@@ -13806,6 +14268,7 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny826";
     id                     = "t826";
+    mcuid                  = 302;
     signature              = 0x1e 0x93 0x28;
 
     memory "eeprom"
@@ -13830,6 +14293,7 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny827";
     id                     = "t827";
+    mcuid                  = 303;
     signature              = 0x1e 0x93 0x27;
 
     memory "eeprom"
@@ -13854,6 +14318,7 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny1624";
     id                     = "t1624";
+    mcuid                  = 310;
     signature              = 0x1e 0x94 0x2a;
 
     memory "eeprom"
@@ -13878,6 +14343,7 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny1626";
     id                     = "t1626";
+    mcuid                  = 311;
     signature              = 0x1e 0x94 0x29;
 
     memory "eeprom"
@@ -13902,6 +14368,7 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny1627";
     id                     = "t1627";
+    mcuid                  = 312;
     signature              = 0x1e 0x94 0x28;
 
     memory "eeprom"
@@ -13926,6 +14393,7 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny3224";
     id                     = "t3224";
+    mcuid                  = 316;
     signature              = 0x1e 0x95 0x28;
 
     memory "eeprom"
@@ -13950,6 +14418,7 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny3226";
     id                     = "t3226";
+    mcuid                  = 317;
     signature              = 0x1e 0x95 0x27;
 
     memory "eeprom"
@@ -13974,6 +14443,7 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATtiny3227";
     id                     = "t3227";
+    mcuid                  = 318;
     signature              = 0x1e 0x95 0x26;
 
     memory "eeprom"
@@ -13998,6 +14468,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATmega808";
     id                     = "m808";
+    mcuid                  = 319;
+    n_interrupts           = 36;
     signature              = 0x1e 0x93 0x26;
 
     memory "eeprom"
@@ -14022,6 +14494,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATmega809";
     id                     = "m809";
+    mcuid                  = 320;
+    n_interrupts           = 40;
     signature              = 0x1e 0x93 0x2a;
 
     memory "eeprom"
@@ -14046,6 +14520,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATmega1608";
     id                     = "m1608";
+    mcuid                  = 321;
+    n_interrupts           = 36;
     signature              = 0x1e 0x94 0x27;
 
     memory "eeprom"
@@ -14070,6 +14546,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_tiny"
     desc                   = "ATmega1609";
     id                     = "m1609";
+    mcuid                  = 322;
+    n_interrupts           = 40;
     signature              = 0x1e 0x94 0x26;
 
     memory "eeprom"
@@ -14094,6 +14572,8 @@ part parent ".avr8x_tiny"
 part parent ".avr8x_mega"
     desc                   = "ATmega3208";
     id                     = "m3208";
+    mcuid                  = 323;
+    n_interrupts           = 36;
     signature              = 0x1e 0x95 0x30;
 
     memory "eeprom"
@@ -14118,6 +14598,8 @@ part parent ".avr8x_mega"
 part parent ".avr8x_mega"
     desc                   = "ATmega3209";
     id                     = "m3209";
+    mcuid                  = 324;
+    n_interrupts           = 40;
     signature              = 0x1e 0x95 0x31;
 
     memory "eeprom"
@@ -14142,6 +14624,8 @@ part parent ".avr8x_mega"
 part parent ".avr8x_mega"
     desc                   = "ATmega4808";
     id                     = "m4808";
+    mcuid                  = 325;
+    n_interrupts           = 36;
     signature              = 0x1e 0x96 0x50;
 
     memory "eeprom"
@@ -14166,6 +14650,8 @@ part parent ".avr8x_mega"
 part parent ".avr8x_mega"
     desc                   = "ATmega4809";
     id                     = "m4809";
+    mcuid                  = 326;
+    n_interrupts           = 40;
     signature              = 0x1e 0x96 0x51;
 
     memory "eeprom"
@@ -14190,9 +14676,9 @@ part parent ".avr8x_mega"
 part
     desc                   = "AVR-Dx family common values";
     id                     = ".avrdx";
+    prog_modes             = PM_SPM | PM_UPDI;
     # Dedicated UPDI pin, no HV
     hvupdi_variant         = 1;
-    has_updi               = yes;
     nvm_base               = 0x1000;
     ocd_base               = 0x0f80;
 
@@ -14346,6 +14832,7 @@ part
 part parent ".avrdx"
     desc                   = "AVR32DA28";
     id                     = "avr32da28";
+    mcuid                  = 338;
     signature              = 0x1e 0x95 0x34;
 
     memory "eeprom"
@@ -14369,6 +14856,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR32DA32";
     id                     = "avr32da32";
+    mcuid                  = 342;
     signature              = 0x1e 0x95 0x33;
 
     memory "eeprom"
@@ -14392,6 +14880,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR32DA48";
     id                     = "avr32da48";
+    mcuid                  = 346;
     signature              = 0x1e 0x95 0x32;
 
     memory "eeprom"
@@ -14415,6 +14904,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR64DA28";
     id                     = "avr64da28";
+    mcuid                  = 351;
     signature              = 0x1e 0x96 0x15;
 
     memory "eeprom"
@@ -14438,6 +14928,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR64DA32";
     id                     = "avr64da32";
+    mcuid                  = 355;
     signature              = 0x1e 0x96 0x14;
 
     memory "eeprom"
@@ -14461,6 +14952,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR64DA48";
     id                     = "avr64da48";
+    mcuid                  = 359;
     signature              = 0x1e 0x96 0x13;
 
     memory "eeprom"
@@ -14484,6 +14976,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR64DA64";
     id                     = "avr64da64";
+    mcuid                  = 362;
     signature              = 0x1e 0x96 0x12;
 
     memory "eeprom"
@@ -14507,6 +15000,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR128DA28";
     id                     = "avr128da28";
+    mcuid                  = 364;
     signature              = 0x1e 0x97 0x0a;
 
     memory "eeprom"
@@ -14530,6 +15024,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR128DA32";
     id                     = "avr128da32";
+    mcuid                  = 366;
     signature              = 0x1e 0x97 0x09;
 
     memory "eeprom"
@@ -14553,6 +15048,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR128DA48";
     id                     = "avr128da48";
+    mcuid                  = 368;
     signature              = 0x1e 0x97 0x08;
 
     memory "eeprom"
@@ -14576,6 +15072,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR128DA64";
     id                     = "avr128da64";
+    mcuid                  = 370;
     signature              = 0x1e 0x97 0x07;
 
     memory "eeprom"
@@ -14599,6 +15096,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR32DB28";
     id                     = "avr32db28";
+    mcuid                  = 339;
     signature              = 0x1e 0x95 0x37;
 
     memory "eeprom"
@@ -14622,6 +15120,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR32DB32";
     id                     = "avr32db32";
+    mcuid                  = 343;
     signature              = 0x1e 0x95 0x36;
 
     memory "eeprom"
@@ -14645,6 +15144,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR32DB48";
     id                     = "avr32db48";
+    mcuid                  = 347;
     signature              = 0x1e 0x95 0x35;
 
     memory "eeprom"
@@ -14668,6 +15168,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR64DB28";
     id                     = "avr64db28";
+    mcuid                  = 352;
     signature              = 0x1e 0x96 0x19;
 
     memory "eeprom"
@@ -14691,6 +15192,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR64DB32";
     id                     = "avr64db32";
+    mcuid                  = 356;
     signature              = 0x1e 0x96 0x18;
 
     memory "eeprom"
@@ -14714,6 +15216,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR64DB48";
     id                     = "avr64db48";
+    mcuid                  = 360;
     signature              = 0x1e 0x96 0x17;
 
     memory "eeprom"
@@ -14737,6 +15240,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR64DB64";
     id                     = "avr64db64";
+    mcuid                  = 363;
     signature              = 0x1e 0x96 0x16;
 
     memory "eeprom"
@@ -14760,6 +15264,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR128DB28";
     id                     = "avr128db28";
+    mcuid                  = 365;
     signature              = 0x1e 0x97 0x0e;
 
     memory "eeprom"
@@ -14783,6 +15288,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR128DB32";
     id                     = "avr128db32";
+    mcuid                  = 367;
     signature              = 0x1e 0x97 0x0d;
 
     memory "eeprom"
@@ -14806,6 +15312,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR128DB48";
     id                     = "avr128db48";
+    mcuid                  = 369;
     signature              = 0x1e 0x97 0x0c;
 
     memory "eeprom"
@@ -14829,6 +15336,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR128DB64";
     id                     = "avr128db64";
+    mcuid                  = 371;
     signature              = 0x1e 0x97 0x0b;
 
     memory "eeprom"
@@ -14852,6 +15360,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR16DD14";
     id                     = "avr16dd14";
+    mcuid                  = 329;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x94 0x34;
 
@@ -14876,6 +15385,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR16DD20";
     id                     = "avr16dd20";
+    mcuid                  = 330;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x94 0x33;
 
@@ -14900,6 +15410,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR16DD28";
     id                     = "avr16dd28";
+    mcuid                  = 331;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x94 0x32;
 
@@ -14924,6 +15435,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR16DD32";
     id                     = "avr16dd32";
+    mcuid                  = 333;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x94 0x31;
 
@@ -14948,6 +15460,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR32DD14";
     id                     = "avr32dd14";
+    mcuid                  = 336;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x95 0x3b;
 
@@ -14972,6 +15485,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR32DD20";
     id                     = "avr32dd20";
+    mcuid                  = 337;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x95 0x3a;
 
@@ -14996,6 +15510,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR32DD28";
     id                     = "avr32dd28";
+    mcuid                  = 340;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x95 0x39;
 
@@ -15020,6 +15535,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR32DD32";
     id                     = "avr32dd32";
+    mcuid                  = 344;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x95 0x38;
 
@@ -15044,6 +15560,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR64DD14";
     id                     = "avr64dd14";
+    mcuid                  = 349;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x96 0x1d;
 
@@ -15068,6 +15585,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR64DD20";
     id                     = "avr64dd20";
+    mcuid                  = 350;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x96 0x1c;
 
@@ -15092,6 +15610,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR64DD28";
     id                     = "avr64dd28";
+    mcuid                  = 353;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x96 0x1b;
 
@@ -15116,6 +15635,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR64DD32";
     id                     = "avr64dd32";
+    mcuid                  = 357;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x96 0x1a;
 
@@ -15161,6 +15681,7 @@ part parent ".avrdx"
 part parent ".avrex"
     desc                   = "AVR8EA28";
     id                     = "avr8ea28";
+    mcuid                  = 327;
     signature              = 0x1e 0x93 0x2c;
 
     memory "eeprom"
@@ -15185,6 +15706,7 @@ part parent ".avrex"
 part parent ".avrex"
     desc                   = "AVR8EA32";
     id                     = "avr8ea32";
+    mcuid                  = 328;
     signature              = 0x1e 0x93 0x2b;
 
     memory "eeprom"
@@ -15209,6 +15731,7 @@ part parent ".avrex"
 part parent ".avrex"
     desc                   = "AVR16EA28";
     id                     = "avr16ea28";
+    mcuid                  = 332;
     signature              = 0x1e 0x94 0x37;
 
     memory "eeprom"
@@ -15233,6 +15756,7 @@ part parent ".avrex"
 part parent ".avrex"
     desc                   = "AVR16EA32";
     id                     = "avr16ea32";
+    mcuid                  = 334;
     signature              = 0x1e 0x94 0x36;
 
     memory "eeprom"
@@ -15257,6 +15781,7 @@ part parent ".avrex"
 part parent ".avrex"
     desc                   = "AVR16EA48";
     id                     = "avr16ea48";
+    mcuid                  = 335;
     signature              = 0x1e 0x94 0x35;
 
     memory "eeprom"
@@ -15281,6 +15806,7 @@ part parent ".avrex"
 part parent ".avrex"
     desc                   = "AVR32EA28";
     id                     = "avr32ea28";
+    mcuid                  = 341;
     signature              = 0x1e 0x95 0x3e;
 
     memory "eeprom"
@@ -15305,6 +15831,7 @@ part parent ".avrex"
 part parent ".avrex"
     desc                   = "AVR32EA32";
     id                     = "avr32ea32";
+    mcuid                  = 345;
     signature              = 0x1e 0x95 0x3d;
 
     memory "eeprom"
@@ -15329,6 +15856,7 @@ part parent ".avrex"
 part parent ".avrex"
     desc                   = "AVR32EA48";
     id                     = "avr32ea48";
+    mcuid                  = 348;
     signature              = 0x1e 0x95 0x3c;
 
     memory "eeprom"
@@ -15353,6 +15881,7 @@ part parent ".avrex"
 part parent ".avrex"
     desc                   = "AVR64EA28";
     id                     = "avr64ea28";
+    mcuid                  = 354;
     signature              = 0x1e 0x96 0x20;
 
     memory "eeprom"
@@ -15377,6 +15906,7 @@ part parent ".avrex"
 part parent ".avrex"
     desc                   = "AVR64EA32";
     id                     = "avr64ea32";
+    mcuid                  = 358;
     signature              = 0x1e 0x96 0x1f;
 
     memory "eeprom"
@@ -15401,6 +15931,7 @@ part parent ".avrex"
 part parent ".avrex"
     desc                   = "AVR64EA48";
     id                     = "avr64ea48";
+    mcuid                  = 361;
     signature              = 0x1e 0x96 0x1e;
 
     memory "eeprom"
@@ -15425,6 +15956,7 @@ part parent ".avrex"
 part parent "m88"
     desc                   = "LGT8F88P";
     id                     = "lgt8f88p";
+    mcuid                  = 227;
     signature              = 0x1e 0x93 0x0f;
 ;
 
@@ -15435,6 +15967,7 @@ part parent "m88"
 part parent "m168"
     desc                   = "LGT8F168P";
     id                     = "lgt8f168p";
+    mcuid                  = 228;
     signature              = 0x1e 0x94 0x0b;
 ;
 
@@ -15445,5 +15978,6 @@ part parent "m168"
 part parent "m328"
     desc                   = "LGT8F328P";
     id                     = "lgt8f328p";
+    mcuid                  = 229;
     signature              = 0x1e 0x95 0x0f;
 ;

@@ -234,7 +234,7 @@ int flip2_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
     pid = part->usbpid;
   }
 
-  if (!ovsigck && !(part->flags & AVRPART_HAS_PDI)) {
+  if (!ovsigck && !(part->prog_modes & PM_PDI)) {
     avrdude_message(MSG_INFO, "%s: \"flip2\" (FLIP protocol version 2) is for Xmega devices.\n"
                     "%s For AT90USB* or ATmega*U* devices, use \"flip1\".\n"
                     "%s (Use -F to bypass this check.)\n",

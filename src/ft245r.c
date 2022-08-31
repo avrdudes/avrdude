@@ -343,7 +343,7 @@ static int ft245r_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned char cmd[4] = {0,0,0,0};
     unsigned char res[4];
 
-    if (p->flags & AVRPART_HAS_TPI)
+    if (p->prog_modes & PM_TPI)
       return avr_tpi_chip_erase(pgm, p);
 
     if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
@@ -502,7 +502,7 @@ static int ft245r_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned char res[4];
     int i;
 
-    if (p->flags & AVRPART_HAS_TPI)
+    if (p->prog_modes & PM_TPI)
       return avr_tpi_program_enable(pgm, p, TPIPCR_GT_0b);
 
     if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
@@ -565,7 +565,7 @@ static int ft245r_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
      */
     ft245r_usleep(pgm, 20000); // 20ms
 
-    if (p->flags & AVRPART_HAS_TPI) {
+    if (p->prog_modes & PM_TPI) {
 	bool io_link_ok = true;
 	uint8_t byte;
 	int i;

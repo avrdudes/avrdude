@@ -924,7 +924,7 @@ int main(int argc, char * argv [])
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
     upd = ldata(ln);
     if (upd->memtype == NULL) {
-      const char *mtype = (p->flags & AVRPART_HAS_PDI)? "application": "flash";
+      const char *mtype = p->prog_modes & PM_PDI? "application": "flash";
       avrdude_message(MSG_NOTICE2, "%s: defaulting memtype in -U %c:%s option to \"%s\"\n",
                       progname,
                       (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v',
@@ -1062,7 +1062,7 @@ int main(int argc, char * argv [])
    * against 0xffffff / 0x000000 should ensure that the signature bytes
    * are valid.
    */
-  if(!(p->flags & AVRPART_AVR32)) {
+  if(!(p->prog_modes & PM_aWire)) { // not AVR32
     int attempt = 0;
     int waittime = 10000;       /* 10 ms */
 
@@ -1071,7 +1071,7 @@ int main(int argc, char * argv [])
     if (init_ok) {
       rc = avr_signature(pgm, p);
       if (rc != LIBAVRDUDE_SUCCESS) {
-        if ((rc == LIBAVRDUDE_SOFTFAIL) && (p->flags & AVRPART_HAS_UPDI) && (attempt < 1)) {
+        if (rc == LIBAVRDUDE_SOFTFAIL && (p->prog_modes & PM_UPDI) && attempt < 1) {
           attempt++;
           if (pgm->read_sib) {
              // Read SIB and compare FamilyID
@@ -1193,8 +1193,7 @@ int main(int argc, char * argv [])
   }
 
   if (uflags & UF_AUTO_ERASE) {
-    if ((p->flags & AVRPART_HAS_PDI) && pgm->page_erase != NULL &&
-        lsize(updates) > 0) {
+    if ((p->prog_modes & PM_PDI) && pgm->page_erase && lsize(updates) > 0) {
       if (quell_progress < 2) {
         avrdude_message(MSG_INFO, "%s: NOTE: Programmer supports page erase for Xmega devices.\n"
                         "%sEach page will be erased before programming it, but no chip erase is performed.\n"
@@ -1203,7 +1202,7 @@ int main(int argc, char * argv [])
       }
     } else {
       AVRMEM * m;
-      const char *memname = (p->flags & AVRPART_HAS_PDI)? "application": "flash";
+      const char *memname = p->prog_modes & PM_PDI? "application": "flash";
 
       uflags &= ~UF_AUTO_ERASE;
       for (ln=lfirst(updates); ln; ln=lnext(ln)) {

@@ -37,13 +37,48 @@ typedef struct {
 } COMMENT;
 
 
-enum { V_NONE, V_NUM, V_NUM_REAL, V_STR };
+enum {                          // Which structures a component can occur in
+  COMP_CONFIG_MAIN,
+  COMP_PROGRAMMER,
+  COMP_AVRPART,
+  COMP_AVRMEM,
+};
+
+enum {                          // Component types in structure
+  COMP_INT,
+  COMP_SHORT,
+  COMP_CHAR,
+  COMP_STRING,
+  COMP_CHAR_ARRAY,              // This and below are not yet implemented
+  COMP_INT_LISTID,
+  COMP_STRING_LISTID,
+  COMP_OPCODE,
+  COMP_PIN,                     // Pins may never be implemented
+  COMP_PIN_LIST
+};
+
+typedef struct {                // Description of a component in a structure
+  const char *name;             // Component name
+  int strct;                    // Structure, eg, COMP_AVRPART
+  int offset, size, type;       // Location, size and type within structure
+} Component_t;
+
+
+enum {                          // Value types for VALUE struct
+  V_NONE,
+  V_NUM,
+  V_NUM_REAL,
+  V_STR,
+  V_COMPONENT,
+};
+
 typedef struct value_t {
   int      type;
   union {
     int      number;
     double   number_real;
     char   * string;
+    Component_t *comp;
   };
 } VALUE;
 
@@ -59,6 +94,7 @@ extern FILE       * yyin;
 extern PROGRAMMER * current_prog;
 extern AVRPART    * current_part;
 extern AVRMEM     * current_mem;
+extern int          current_strct;
 extern int          cfg_lineno;
 extern char       * cfg_infile;
 extern LISTID       string_list;
@@ -87,15 +123,17 @@ void free_token(TOKEN *tkn);
 
 void free_tokens(int n, ...);
 
-TOKEN *number(const char *text);
+TOKEN *new_number(const char *text);
 
-TOKEN *number_real(const char *text);
+TOKEN *new_number_real(const char *text);
 
-TOKEN *hexnumber(const char *text);
+TOKEN *new_hexnumber(const char *text);
 
-TOKEN *string(const char *text);
+TOKEN *new_constant(const char *text);
 
-TOKEN *keyword(int primary);
+TOKEN *new_string(const char *text);
+
+TOKEN *new_keyword(int primary);
 
 void print_token(TOKEN *tkn);
 
@@ -114,6 +152,16 @@ void capture_lvalue_kw(const char *kw, int lineno);
 LISTID cfg_move_comments(void);
 
 void cfg_pop_comms(void);
+
+Component_t *cfg_comp_search(const char *name, int strct);
+
+const char *cfg_v_type(int type);
+
+const char *cfg_strct_name(int strct);
+
+void cfg_assign(char *sp, int strct, Component_t *cp, VALUE *v);
+
+void cfg_update_mcuid(AVRPART *part);
 
 #ifdef __cplusplus
 }
