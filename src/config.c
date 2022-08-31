@@ -861,11 +861,20 @@ void cfg_update_mcuid(AVRPART *part) {
     }
   }
 
-  // None have the same name: an entry with part->mcuid is an error
+  // None have the same name: an entry with part->mcuid might be an error
   for(int i=0; i < sizeof uP_table/sizeof *uP_table; i++)
     if(part->mcuid == (int) uP_table[i].mcuid) {
-      yywarning("mcuid %d is reserved for %s, use a free number >= %d",
-        part->mcuid, uP_table[i].name, sizeof uP_table/sizeof *uP_table);
+      // Complain unless it can be considered a variant, eg, ATmega32L and ATmega32
+      AVRMEM *flash = avr_locate_mem(part, "flash");
+      if(flash) {
+        size_t l1 = strlen(part->desc), l2 = strlen(uP_table[i].name);
+        if(strncasecmp(part->desc, uP_table[i].name, l1 < l2? l1: l2) ||
+            flash->size != uP_table[i].flashsize ||
+            flash->page_size != uP_table[i].pagesize ||
+            part->n_interrupts != uP_table[i].ninterrupts)
+          yywarning("mcuid %d is reserved for %s, use a free number >= %d",
+            part->mcuid, uP_table[i].name, sizeof uP_table/sizeof *uP_table);
+      }
       return;
     }
 
