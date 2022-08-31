@@ -38,21 +38,21 @@ Changes since version 7.0:
     - Fix ft245r paged read for ATmega2560 et al #1018
     - Add option -A that supresses trailing 0xff optimisation
       and automatically do so for -c arduino #936
-    - Fix linuxspi default port #933 
+    - Fix linuxspi default port #933
     - Add support for high-voltage UPDI im jtag3.c #1015
     - Fix terminal write edge cases;
       add one read mode;
       add quell command #1025
-    - Fix usbtiny read for parts with more than 64 kB flash #1029 
-    - CMakeLists.txt: fix build without C++ #1016 
+    - Fix usbtiny read for parts with more than 64 kB flash #1029
+    - CMakeLists.txt: fix build without C++ #1016
     - Provide file format I: Intel HEX with comments that ignores
       checksum errors #1030
     - Enable writing fuse and lock bits for AVR-JTAGICE #1031
     - Ignore -s flag as safemode is no longer supported #1033
-    - Developer options to describe parts and 
+    - Developer options to describe parts and
       extend avrdude.conf syntax #1040
     - Deprecate original STK500 v1 protocol in favour of optiboot
-      and Arduino as ISP #1046 
+      and Arduino as ISP #1046
     - Add jtagmkii_updi programmer option #1048
     - Enable stdin verification, display correct number of bytes
       written/verified, check -U memory names against spelling
@@ -72,6 +72,20 @@ Changes since version 7.0:
       void (*enable)(PROGRAMMER *pgm, const AVRPART *p) #1078
     - Make avr910 programmer initialize() less verbose #1083
     - Fix flash paged write for avrftdi.c #1074
+    - Fix 4 parts wrt to their interfaces in avrdude.conf; rewrite
+      avrdude.conf.in file from avrdude -c* -p* output; reformat
+      conditional programmers in avrdude.conf.in using -c*; fix
+      reset=dedicated|io; entries #1086
+    - Add prog_modes, a bitwise or of prgramming modes, to part and
+      programmer definitions; add to part definition
+       + mcuid, a unique id in 0..2039 for 8-bit AVR
+       + n_interrupts, the number of interrupts
+       + n_page_erase, if set, the # of pages erased for NVM erase
+      implement a simple calculator in config_gram.y for numeric
+      values; set part prog_modes, mcuid, n_interrupts and
+      n_page_erase in avrdude.conf.in; add external intelligence
+      about AVRs avrintel.[ch] to the project and warn during
+      parsing if mcuid is incompatible with it #1091
 
   * Internals:
 
