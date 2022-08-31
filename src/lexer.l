@@ -63,7 +63,7 @@ SIGN     [+-]
 
 %%
 
-{SIGN}?{DIGIT}+            { yylval = new_number(yytext); return TKN_NUMBER; }
+{DIGIT}+                   { yylval = new_number(yytext); return TKN_NUMBER; /* sign is treated in grammar */ }
 {SIGN}?{DIGIT}+"."{DIGIT}* { yylval = new_number_real(yytext); return TKN_NUMBER_REAL; }
 {SIGN}?"."{DIGIT}+         { yylval = new_number_real(yytext); return TKN_NUMBER_REAL; }
 
