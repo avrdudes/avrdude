@@ -618,7 +618,13 @@ static int usbtiny_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   if (! usbtiny_avr_op( pgm, p, AVR_OP_CHIP_ERASE, res )) {
     return -1;
   }
-  usleep( p->chip_erase_delay );
+
+  if(pgm->prog_modes & PM_SPM) { // Talking to bootloader directly
+    AVRMEM *fl = avr_locate_mem(p, "flash");
+    // Estimated time it takes to erase all pages in bootloader
+    usleep(p->chip_erase_delay * (fl? fl->num_pages: 999));
+  } else
+    usleep(p->chip_erase_delay);
 
   // prepare for further instruction
   pgm->initialize(pgm, p);

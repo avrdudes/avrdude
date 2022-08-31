@@ -1459,6 +1459,23 @@ programmer
 ;
 
 #------------------------------------------------------------
+# gemmaBoot
+#------------------------------------------------------------
+
+# Serving the Gemma bootloader
+# https://github.com/adafruit/Adafruit-Trinket-Gemma-Bootloader
+
+programmer
+    id                     = "gemmaBoot";
+    desc                   = "Gemma bootloader disguised as USBtiny";
+    type                   = "usbtiny";
+    prog_modes             = PM_SPM;
+    connection_type        = usb;
+    usbvid                 = 0x2341;
+    usbpid                 = 0x0105;
+;
+
+#------------------------------------------------------------
 # arduinoisp
 #------------------------------------------------------------
 
