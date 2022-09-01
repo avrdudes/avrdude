@@ -1044,26 +1044,30 @@ programmer
     rdyled                 = ~15;
 ;
 
+#------------------------------------------------------------
+# digilent-hs2
+#------------------------------------------------------------
+
 #
 # Digilent JTAG HS2 programmer. FT232H-based dongle with
 # buffers.
 #
+# The reference manual can be found at https://digilent.com/reference/_media/reference/programmers/jtag-hs2/jtag-hs2_rm.pdf
+#
+
 programmer
-  id                       = "digilent-hs2";
-  desc                     = "Digilient JTAG HS2 (MPSSE)";
-  type                     = "avrftdi";
-  connection_type          = usb;
-  usbvid                   = 0x0403;
-  usbpid                   = 0x6014;
-  usbdev                   = "A";
-  usbvendor                = "";
-  usbproduct               = "";
-  usbsn                    = "";
-  reset                    = 3;
-  sck                      = 0;
-  mosi                     = 1;
-  miso                     = 2;
-  buff                     = 5,6,7;
+    id                     = "digilent-hs2";
+    desc                   = "Digilient JTAG HS2 (MPSSE)";
+    type                   = "avrftdi";
+    connection_type        = usb;
+    usbvid                 = 0x0403;
+    usbpid                 = 0x6014;
+    usbdev                 = "A";
+    buff                   = 5, 6, 7;
+    reset                  = 3;
+    sck                    = 0;
+    mosi                   = 1;
+    miso                   = 2;
 ;
 
 #------------------------------------------------------------
