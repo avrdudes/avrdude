@@ -1048,12 +1048,8 @@ programmer
 # digilent-hs2
 #------------------------------------------------------------
 
-#
-# Digilent JTAG HS2 programmer. FT232H-based dongle with
-# buffers.
-#
-# The reference manual can be found at https://digilent.com/reference/_media/reference/programmers/jtag-hs2/jtag-hs2_rm.pdf
-#
+# Digilent JTAG HS2 programmer. FT232H-based dongle with buffers.
+# https://digilent.com/reference/_media/reference/programmers/jtag-hs2/jtag-hs2_rm.pdf
 
 programmer
     id                     = "digilent-hs2";
