@@ -167,3 +167,13 @@ add_custom_target(dvi ALL DEPENDS avrdude.dvi)
 add_custom_target(pdf ALL DEPENDS avrdude.pdf)
 add_custom_target(ps ALL DEPENDS avrdude.ps)
 add_custom_target(html ALL DEPENDS avrdude-html/avrdude.html)
+
+# =====================================
+# Install
+# =====================================
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/avrdude.info" DESTINATION ${CMAKE_INSTALL_INFODIR})
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/avrdude.dvi" DESTINATION ${CMAKE_INSTALL_DOCDIR})
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/avrdude.pdf" DESTINATION ${CMAKE_INSTALL_DOCDIR})
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/avrdude.ps" DESTINATION ${CMAKE_INSTALL_DOCDIR})
+install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/avrdude-html" DESTINATION ${CMAKE_INSTALL_DOCDIR})
