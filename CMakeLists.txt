@@ -282,27 +282,6 @@ endif()
 add_subdirectory(src)
 
 # =====================================
-# Setup default port names
-# =====================================
-
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(DEFAULT_PAR_PORT "/dev/parport0")
-    set(DEFAULT_SER_PORT "/dev/ttyS0")
-elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
-    set(DEFAULT_PAR_PORT "/dev/ppi0")
-    set(DEFAULT_SER_PORT "/dev/cuad0")
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Solaris")
-    set(DEFAULT_PAR_PORT "/dev/printers/0")
-    set(DEFAULT_SER_PORT "/dev/term/a")
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    set(DEFAULT_PAR_PORT "lpt1")
-    set(DEFAULT_SER_PORT "com1")
-else()
-    set(DEFAULT_PAR_PORT "unknown")
-    set(DEFAULT_SER_PORT "unknown")
-endif()
-
-# =====================================
 # Configuration
 # =====================================
 
