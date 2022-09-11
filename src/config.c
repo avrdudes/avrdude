@@ -850,12 +850,13 @@ void cfg_update_mcuid(AVRPART *part) {
   if(part->prog_modes & PM_aWire)
     return;
 
-  // Find an entry that shares the same name
+  // Find an entry that shares the same name, overwrite mcuid with known, existing mcuid
   for(int i=0; i < sizeof uP_table/sizeof *uP_table; i++) {
     if(strcasecmp(part->desc, uP_table[i].name) == 0) {
       if(part->mcuid != (int) uP_table[i].mcuid) {
+        if(part->mcuid >= 0)
+          yywarning("overwriting mcuid of part %s to be %d", part->desc, uP_table[i].mcuid);
         part->mcuid = uP_table[i].mcuid;
-        yywarning("assigned mcuid = %d to part %s", part->mcuid, part->desc);
       }
       return;
     }
