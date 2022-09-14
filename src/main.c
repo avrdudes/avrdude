@@ -130,39 +130,64 @@ static void usage(void)
  "  -q                         Quell progress output. -q -q for less.\n"
  "  -l logfile                 Use logfile rather than stderr for diagnostics.\n"
  "  -?                         Display this usage.\n"
- "\navrdude version %s, URL: <https://github.com/avrdudes/avrdude>\n"
-          ,progname, version);
+ "\navrdude version %s, URL: <https://github.com/avrdudes/avrdude>\n",
+    progname, version);
 }
 
 
-static void list_programmers_callback(const char *name, const char *desc,
-                                      const char *cfgname, int cfglineno,
-                                      void *cookie)
-{
-    struct list_walk_cookie *c = (struct list_walk_cookie *)cookie;
+static char *via_prog_modes(int pm) {
+  static char type[1024];
 
-    if (*name == 0 || *name == '.')
-       return;
+  strcpy(type, "?");
+  if(pm & PM_SPM)
+    strcat(type, ", bootloader");
+  if(pm & PM_TPI)
+    strcat(type, ", TPI");
+  if(pm & PM_ISP)
+    strcat(type, ", ISP");
+  if(pm & PM_PDI)
+    strcat(type, ", PDI");
+  if(pm & PM_UPDI)
+    strcat(type, ", UPDI");
+  if(pm & PM_HVSP)
+    strcat(type, ", HVSP");
+  if(pm & PM_HVPP)
+    strcat(type, ", HVPP");
+  if(pm & PM_debugWIRE)
+    strcat(type, ", debugWIRE");
+  if(pm & PM_JTAG)
+    strcat(type, ", JTAG");
+  if(pm & PM_aWire)
+    strcat(type, ", aWire");
 
-    if (verbose){
-        fprintf(c->f, "%s%-16s = %-30s [%s:%d]\n",
-                c->prefix, name, desc, cfgname, cfglineno);
-    } else {
-        fprintf(c->f, "%s%-16s = %-s\n",
-                c->prefix, name, desc);
+  return type + (type[1] == 0? 0: 3);
+}
+
+static void list_programmers(FILE *f, const char *prefix, LISTID programmers, int pm) {
+  LNODEID ln1;
+  LNODEID ln2;
+  PROGRAMMER *pgm;
+
+  sort_programmers(programmers);
+
+  for (ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
+    pgm = ldata(ln1);
+    for (ln2=lfirst(pgm->id); ln2; ln2=lnext(ln2)) {
+      // List programmer if pm or prog_modes uninitialised or if they are compatible otherwise
+      if(!pm || !pgm->prog_modes || (pm & pgm->prog_modes)) {
+        const char *id = ldata(ln2);
+        if(*id == 0 || *id == '.')
+          continue;
+        if(verbose)
+          fprintf(f, "%s%-16s = %-30s [%s:%d]", prefix, id, pgm->desc, pgm->config_file, pgm->lineno);
+        else
+          fprintf(f, "%s%-16s = %-s", prefix, id, pgm->desc);
+        if(pm != ~0)
+          fprintf(f, " via %s",  via_prog_modes(pm & pgm->prog_modes));
+        fprintf(f, "\n");
+      }
     }
-}
-
-static void list_programmers(FILE * f, const char *prefix, LISTID programmers)
-{
-    struct list_walk_cookie c;
-
-    c.f = f;
-    c.prefix = prefix;
-
-    sort_programmers(programmers);
-
-    walk_programmers(programmers, list_programmers_callback, &c);
+  }
 }
 
 static void list_programmer_types_callback(const char *name, const char *desc,
@@ -183,35 +208,28 @@ static void list_programmer_types(FILE * f, const char *prefix)
     walk_programmer_types(list_programmer_types_callback, &c);
 }
 
-static void list_avrparts_callback(const char *name, const char *desc,
-                                   const char *cfgname, int cfglineno,
-                                   void *cookie)
-{
-    struct list_walk_cookie *c = (struct list_walk_cookie *)cookie;
 
-    /* hide ids starting with '.' */
-    if ((verbose < 2) && (name[0] == '.'))
-        return;
+static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
+  LNODEID ln1;
+  AVRPART *p;
 
-    if (verbose) {
-        fprintf(c->f, "%s%-8s = %-18s [%s:%d]\n",
-                c->prefix, name, desc, cfgname, cfglineno);
-    } else {
-        fprintf(c->f, "%s%-8s = %s\n",
-                c->prefix, name, desc);
+  sort_avrparts(avrparts);
+
+  for (ln1 = lfirst(avrparts); ln1; ln1 = lnext(ln1)) {
+    p = ldata(ln1);
+    // List part if pm or prog_modes uninitialised or if they are compatible otherwise
+    if(!pm || !p->prog_modes || (pm & p->prog_modes)) {
+      if((verbose < 2) && (p->id[0] == '.')) // hide ids starting with '.'
+        continue;
+      if (verbose)
+        fprintf(f, "%s%-8s = %-18s [%s:%d]", prefix, p->id, p->desc, p->config_file, p->lineno);
+      else
+        fprintf(f, "%s%-8s = %s", prefix, p->id, p->desc);
+      if(pm != ~0)
+        fprintf(f, " via %s",  via_prog_modes(pm & p->prog_modes));
+      fprintf(f, "\n");
     }
-}
-
-static void list_parts(FILE * f, const char *prefix, LISTID avrparts)
-{
-    struct list_walk_cookie c;
-
-    c.f = f;
-    c.prefix = prefix;
-
-    sort_avrparts(avrparts);
-
-    walk_avrparts(avrparts, list_avrparts_callback, &c);
+  }
 }
 
 static void exithook(void)
@@ -777,9 +795,14 @@ int main(int argc, char * argv [])
 
   if (partdesc) {
     if (strcmp(partdesc, "?") == 0) {
+      PROGRAMMER *pgm = programmer? locate_programmer(programmers, programmer): NULL;
+      int pm = pgm? pgm->prog_modes: ~0;
       avrdude_message(MSG_INFO, "\n");
-      avrdude_message(MSG_INFO, "Valid parts are:\n");
-      list_parts(stderr, "  ", part_list);
+      if(pgm)
+        avrdude_message(MSG_INFO, "Valid parts for programmer %s are:\n", programmer);
+      else
+        avrdude_message(MSG_INFO, "Valid parts are:\n");
+      list_parts(stderr, "  ", part_list, pm);
       avrdude_message(MSG_INFO, "\n");
       exit(1);
     }
@@ -787,9 +810,15 @@ int main(int argc, char * argv [])
 
   if (programmer) {
     if (strcmp(programmer, "?") == 0) {
+      AVRPART *p = partdesc? locate_part(part_list, partdesc): NULL;
+      int pm = p? p->prog_modes: ~0;
+
       avrdude_message(MSG_INFO, "\n");
-      avrdude_message(MSG_INFO, "Valid programmers are:\n");
-      list_programmers(stderr, "  ", programmers);
+      if(p)
+        avrdude_message(MSG_INFO, "Valid programmers for part %s are:\n", p->desc);
+      else
+        avrdude_message(MSG_INFO, "Valid programmers are:\n");
+      list_programmers(stderr, "  ", programmers, pm);
       avrdude_message(MSG_INFO, "\n");
       exit(1);
     }
@@ -818,7 +847,7 @@ int main(int argc, char * argv [])
     avrdude_message(MSG_INFO, "%s: Can't find programmer id \"%s\"\n",
                     progname, programmer);
     avrdude_message(MSG_INFO, "\nValid programmers are:\n");
-    list_programmers(stderr, "  ", programmers);
+    list_programmers(stderr, "  ", programmers, ~0);
     avrdude_message(MSG_INFO, "\n");
     exit(1);
   }
@@ -880,7 +909,7 @@ int main(int argc, char * argv [])
     avrdude_message(MSG_INFO, "%s: No AVR part has been specified, use \"-p Part\"\n\n",
                     progname);
     avrdude_message(MSG_INFO, "Valid parts are:\n");
-    list_parts(stderr, "  ", part_list);
+    list_parts(stderr, "  ", part_list, ~0);
     avrdude_message(MSG_INFO, "\n");
     exit(1);
   }
@@ -890,7 +919,7 @@ int main(int argc, char * argv [])
     avrdude_message(MSG_INFO, "%s: AVR Part \"%s\" not found.\n\n",
                     progname, partdesc);
     avrdude_message(MSG_INFO, "Valid parts are:\n");
-    list_parts(stderr, "  ", part_list);
+    list_parts(stderr, "  ", part_list, ~0);
     avrdude_message(MSG_INFO, "\n");
     exit(1);
   }
