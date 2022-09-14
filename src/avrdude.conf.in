@@ -678,6 +678,7 @@ programmer
 #     id                   = "linuxgpio";
 #     desc                 = "Use the Linux sysfs interface to bitbang GPIO lines";
 #     type                 = "linuxgpio";
+#     prog_modes           = PM_ISP;
 #     reset                = ?;
 #     sck                  = ?;
 #     mosi                 = ?;
@@ -700,6 +701,7 @@ programmer
     id                     = "linuxspi";
     desc                   = "Use Linux SPI device in /dev/spidev*";
     type                   = "linuxspi";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = spi;
     reset                  = 25;    # Pi GPIO number - this is J8:22
 ;
@@ -720,6 +722,7 @@ programmer
     id                     = "wiring";
     desc                   = "Wiring";
     type                   = "wiring";
+    prog_modes             = PM_SPM;
     connection_type        = serial;
 ;
 
@@ -731,6 +734,7 @@ programmer
     id                     = "arduino";
     desc                   = "Arduino";
     type                   = "arduino";
+    prog_modes             = PM_SPM;
     connection_type        = serial;
 ;
 
@@ -742,6 +746,7 @@ programmer
     id                     = "xbee";
     desc                   = "XBee Series 2 Over-The-Air (XBeeBoot)";
     type                   = "xbee";
+    prog_modes             = PM_SPM;
     connection_type        = serial;
 ;
 
@@ -773,6 +778,7 @@ programmer
     id                     = "avrftdi";
     desc                   = "FT2232D based generic programmer";
     type                   = "avrftdi";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6010;
@@ -802,6 +808,7 @@ programmer
     id                     = "2232HIO";
     desc                   = "FT2232H based generic programmer";
     type                   = "avrftdi";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x0403;
 # Note: This PID is reserved for generic H devices and
@@ -843,6 +850,7 @@ programmer
     id                     = "jtagkey";
     desc                   = "Amontec JTAGKey, JTAGKey-Tiny and JTAGKey2";
     type                   = "avrftdi";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x0403;
 #   Note: This PID is used in all JTAGKey variants
@@ -867,6 +875,7 @@ programmer
     id                     = "ft232h";
     desc                   = "FT232H in MPSSE mode";
     type                   = "avrftdi";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6014;
@@ -951,6 +960,7 @@ programmer
     id                     = "openmoko";
     desc                   = "Openmoko debug board (v3)";
     type                   = "avrftdi";
+    prog_modes             = PM_TPI | PM_ISP;
     usbvid                 = 0x1457;
     usbpid                 = 0x5118;
     usbdev                 = "A";
@@ -971,6 +981,7 @@ programmer
     id                     = "lm3s811";
     desc                   = "Luminary Micro LM3S811 Eval Board (Rev. A)";
     type                   = "avrftdi";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0xbcd9;
@@ -996,6 +1007,7 @@ programmer
     id                     = "tumpa";
     desc                   = "TIAO USB Multi-Protocol Adapter";
     type                   = "avrftdi";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x8a98;
@@ -1032,6 +1044,7 @@ programmer
     id                     = "ktlink";
     desc                   = "KT-LINK FT2232H interface with IO switching and voltage buffers.";
     type                   = "avrftdi";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0xbbe2;
@@ -1052,6 +1065,7 @@ programmer
     id                     = "serialupdi";
     desc                   = "SerialUPDI";
     type                   = "serialupdi";
+    prog_modes             = PM_UPDI;
     connection_type        = serial;
     hvupdi_support         = 1;
 ;
@@ -1064,6 +1078,7 @@ programmer
     id                     = "avrisp";
     desc                   = "Atmel AVR ISP";
     type                   = "stk500";
+    prog_modes             = PM_ISP;
     connection_type        = serial;
 ;
 
@@ -1075,6 +1090,7 @@ programmer
     id                     = "avrispv2";
     desc                   = "Atmel AVR ISP V2";
     type                   = "stk500v2";
+    prog_modes             = PM_TPI | PM_ISP | PM_PDI;
     connection_type        = serial;
 ;
 
@@ -1086,6 +1102,7 @@ programmer
     id                     = "avrispmkII";
     desc                   = "Atmel AVR ISP mkII";
     type                   = "stk500v2";
+    prog_modes             = PM_TPI | PM_ISP | PM_PDI;
     connection_type        = usb;
 ;
 
@@ -1105,6 +1122,7 @@ programmer
     id                     = "buspirate";
     desc                   = "The Bus Pirate";
     type                   = "buspirate";
+    prog_modes             = PM_ISP;
     connection_type        = serial;
 ;
 
@@ -1116,6 +1134,7 @@ programmer
     id                     = "buspirate_bb";
     desc                   = "The Bus Pirate (bitbang interface, supports TPI)";
     type                   = "buspirate_bb";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
   # pins are bits in bitbang byte (numbers are 87654321)
   # 1|POWER|PULLUP|AUX|MOSI|CLK|MISO|CS
@@ -1139,6 +1158,7 @@ programmer
     id                     = "stk500";
     desc                   = "Atmel STK500";
     type                   = "stk500generic";
+    prog_modes             = PM_ISP;
     connection_type        = serial;
 ;
 
@@ -1150,6 +1170,7 @@ programmer
     id                     = "stk500v1";
     desc                   = "Atmel STK500 Version 1.x firmware";
     type                   = "stk500";
+    prog_modes             = PM_ISP;
     connection_type        = serial;
 ;
 
@@ -1161,6 +1182,7 @@ programmer
     id                     = "mib510";
     desc                   = "Crossbow MIB510 programming board";
     type                   = "stk500";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
 ;
 
@@ -1172,6 +1194,7 @@ programmer
     id                     = "stk500v2";
     desc                   = "Atmel STK500 Version 2.x firmware";
     type                   = "stk500v2";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
 ;
 
@@ -1183,6 +1206,7 @@ programmer
     id                     = "stk500pp";
     desc                   = "Atmel STK500 V2 in parallel programming mode";
     type                   = "stk500pp";
+    prog_modes             = PM_HVPP;
     connection_type        = serial;
 ;
 
@@ -1194,6 +1218,7 @@ programmer
     id                     = "stk500hvsp";
     desc                   = "Atmel STK500 V2 in high-voltage serial programming mode";
     type                   = "stk500hvsp";
+    prog_modes             = PM_HVSP;
     connection_type        = serial;
 ;
 
@@ -1205,6 +1230,7 @@ programmer
     id                     = "stk600";
     desc                   = "Atmel STK600";
     type                   = "stk600";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
 ;
 
@@ -1216,6 +1242,7 @@ programmer
     id                     = "stk600pp";
     desc                   = "Atmel STK600 in parallel programming mode";
     type                   = "stk600pp";
+    prog_modes             = PM_HVPP;
     connection_type        = usb;
 ;
 
@@ -1227,6 +1254,7 @@ programmer
     id                     = "stk600hvsp";
     desc                   = "Atmel STK600 in high-voltage serial programming mode";
     type                   = "stk600hvsp";
+    prog_modes             = PM_HVSP;
     connection_type        = usb;
 ;
 
@@ -1238,6 +1266,7 @@ programmer
     id                     = "avr910";
     desc                   = "Atmel Low Cost Serial Programmer";
     type                   = "avr910";
+    prog_modes             = PM_ISP;
     connection_type        = serial;
 ;
 
@@ -1249,6 +1278,7 @@ programmer
     id                     = "ft245r";
     desc                   = "FT245R Synchronous BitBang";
     type                   = "ftdi_syncbb";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     reset                  = 4; # D4
     sck                    = 0; # D0
@@ -1264,6 +1294,7 @@ programmer
     id                     = "ft232r";
     desc                   = "FT232R Synchronous BitBang";
     type                   = "ftdi_syncbb";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     reset                  = 4;  # DTR
     sck                    = 0;  # TxD
@@ -1281,6 +1312,7 @@ programmer
     id                     = "bwmega";
     desc                   = "BitWizard ftdi_atmega builtin programmer";
     type                   = "ftdi_syncbb";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     reset                  = 7;  # RI
     sck                    = 6;  # DCD
@@ -1299,6 +1331,7 @@ programmer
     id                     = "arduino-ft232r";
     desc                   = "Arduino: FT232R connected to ISP";
     type                   = "ftdi_syncbb";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     reset                  = 7;  # RI  X3(4)
     sck                    = 5;  # DSR X3(2)
@@ -1314,6 +1347,7 @@ programmer
     id                     = "tc2030";
     desc                   = "Tag-Connect TC2030";
     type                   = "ftdi_syncbb";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
   #                      FOR TPI devices:
     reset                  = 3;  # CTS = D3 (wire to ~RESET)
@@ -1348,6 +1382,7 @@ programmer
     id                     = "uncompatino";
     desc                   = "uncompatino with all pairs of pins shorted";
     type                   = "ftdi_syncbb";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     reset                  = 7; # ri
     sck                    = 5; # dsr
@@ -1377,6 +1412,7 @@ programmer
     id                     = "ttl232r";
     desc                   = "FTDI TTL232R-5V with ICSP adapter";
     type                   = "ftdi_syncbb";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     reset                  = 0; # txd
     sck                    = 1; # rxd
@@ -1392,6 +1428,7 @@ programmer
     id                     = "usbasp";
     desc                   = "USBasp, http://www.fischl.de/usbasp/";
     type                   = "usbasp";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x16c0; # VOTI
     usbpid                 = 0x05dc; # Obdev's free shared PID
@@ -1420,6 +1457,7 @@ programmer
     id                     = "nibobee";
     desc                   = "NIBObee";
     type                   = "usbasp";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x16c0; # VOTI
     usbpid                 = 0x092f; # NIBObee PID
@@ -1435,6 +1473,7 @@ programmer
     id                     = "usbasp-clone";
     desc                   = "Any usbasp clone with correct VID/PID";
     type                   = "usbasp";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x16c0; # VOTI
     usbpid                 = 0x05dc; # Obdev's free shared PID
@@ -1453,6 +1492,7 @@ programmer
     id                     = "usbtiny";
     desc                   = "USBtiny simple USB programmer, https://learn.adafruit.com/usbtinyisp";
     type                   = "usbtiny";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x1781;
     usbpid                 = 0x0c9f;
@@ -1466,6 +1506,7 @@ programmer
     id                     = "arduinoisp";
     desc                   = "Arduino ISP Programmer";
     type                   = "usbtiny";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x2341;
     usbpid                 = 0x0049;
@@ -1479,6 +1520,7 @@ programmer
     id                     = "arduinoisporg";
     desc                   = "Arduino ISP Programmer";
     type                   = "usbtiny";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x2a03;
     usbpid                 = 0x0049;
@@ -1494,6 +1536,7 @@ programmer
     id                     = "ehajo-isp";
     desc                   = "avr-isp-programmer from eHaJo, http://www.eHaJo.de";
     type                   = "usbtiny";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x16d0;
     usbpid                 = 0x0ba5;
@@ -1510,6 +1553,7 @@ programmer
     id                     = "iseavrprog";
     desc                   = "USBtiny-based programmer, https://iascaled.com";
     type                   = "usbtiny";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x1209;
     usbpid                 = 0x6570;
@@ -1523,6 +1567,7 @@ programmer
     id                     = "micronucleus";
     desc                   = "Micronucleus Bootloader";
     type                   = "micronucleus";
+    prog_modes             = PM_SPM;
     connection_type        = usb;
     usbvid                 = 0x16d0;
     usbpid                 = 0x0753;
@@ -1536,6 +1581,7 @@ programmer
     id                     = "teensy";
     desc                   = "Teensy Bootloader";
     type                   = "teensy";
+    prog_modes             = PM_SPM;
     connection_type        = usb;
     usbvid                 = 0x16c0;
     usbpid                 = 0x0478;
@@ -1549,6 +1595,7 @@ programmer
     id                     = "butterfly";
     desc                   = "Atmel Butterfly Development Board";
     type                   = "butterfly";
+    prog_modes             = PM_SPM;
     connection_type        = serial;
 ;
 
@@ -1560,6 +1607,7 @@ programmer
     id                     = "avr109";
     desc                   = "Atmel AppNote AVR109 Boot Loader";
     type                   = "butterfly";
+    prog_modes             = PM_SPM;
     connection_type        = serial;
 ;
 
@@ -1571,6 +1619,7 @@ programmer
     id                     = "avr911";
     desc                   = "Atmel AppNote AVR911 AVROSP";
     type                   = "butterfly";
+    prog_modes             = PM_SPM;
     connection_type        = serial;
 ;
 
@@ -1584,6 +1633,7 @@ programmer
     id                     = "mkbutterfly";
     desc                   = "Mikrokopter.de Butterfly";
     type                   = "butterfly_mk";
+    prog_modes             = PM_SPM;
     connection_type        = serial;
 ;
 
@@ -1603,6 +1653,7 @@ programmer
     id                     = "jtagmkI";
     desc                   = "Atmel JTAG ICE (mkI)";
     type                   = "jtagmki";
+    prog_modes             = PM_JTAG;
     connection_type        = serial;
     baudrate               = 115200;    # default is 115200
 ;
@@ -1641,6 +1692,7 @@ programmer
     id                     = "jtagmkII";
     desc                   = "Atmel JTAG ICE mkII";
     type                   = "jtagmkii";
+    prog_modes             = PM_JTAG;
     connection_type        = usb;
     baudrate               = 19200;    # default is 19200
 ;
@@ -1686,6 +1738,7 @@ programmer
     id                     = "jtag2isp";
     desc                   = "Atmel JTAG ICE mkII in ISP mode";
     type                   = "jtagmkii_isp";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1700,6 +1753,7 @@ programmer
     id                     = "jtag2dw";
     desc                   = "Atmel JTAG ICE mkII in debugWire mode";
     type                   = "jtagmkii_dw";
+    prog_modes             = PM_debugWIRE;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1714,6 +1768,7 @@ programmer
     id                     = "jtagmkII_avr32";
     desc                   = "Atmel JTAG ICE mkII im AVR32 mode";
     type                   = "jtagmkii_avr32";
+    prog_modes             = PM_aWire;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1728,6 +1783,7 @@ programmer
     id                     = "jtag2avr32";
     desc                   = "Atmel JTAG ICE mkII im AVR32 mode";
     type                   = "jtagmkii_avr32";
+    prog_modes             = PM_aWire;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1742,6 +1798,7 @@ programmer
     id                     = "jtag2pdi";
     desc                   = "Atmel JTAG ICE mkII PDI mode";
     type                   = "jtagmkii_pdi";
+    prog_modes             = PM_PDI;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1756,6 +1813,7 @@ programmer
     id                     = "dragon_jtag";
     desc                   = "Atmel AVR Dragon in JTAG mode";
     type                   = "dragon_jtag";
+    prog_modes             = PM_JTAG;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1770,6 +1828,7 @@ programmer
     id                     = "dragon_isp";
     desc                   = "Atmel AVR Dragon in ISP mode";
     type                   = "dragon_isp";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1784,6 +1843,7 @@ programmer
     id                     = "dragon_pp";
     desc                   = "Atmel AVR Dragon in PP mode";
     type                   = "dragon_pp";
+    prog_modes             = PM_HVPP;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1798,6 +1858,7 @@ programmer
     id                     = "dragon_hvsp";
     desc                   = "Atmel AVR Dragon in HVSP mode";
     type                   = "dragon_hvsp";
+    prog_modes             = PM_HVSP;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1812,6 +1873,7 @@ programmer
     id                     = "dragon_dw";
     desc                   = "Atmel AVR Dragon in debugWire mode";
     type                   = "dragon_dw";
+    prog_modes             = PM_debugWIRE;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1826,6 +1888,7 @@ programmer
     id                     = "dragon_pdi";
     desc                   = "Atmel AVR Dragon in PDI mode";
     type                   = "dragon_pdi";
+    prog_modes             = PM_PDI;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1838,6 +1901,7 @@ programmer
     id                     = "jtag3";
     desc                   = "Atmel AVR JTAGICE3 in JTAG mode";
     type                   = "jtagice3";
+    prog_modes             = PM_JTAG;
     connection_type        = usb;
     usbpid                 = 0x2110, 0x2140;
 ;
@@ -1850,6 +1914,7 @@ programmer
     id                     = "jtag3pdi";
     desc                   = "Atmel AVR JTAGICE3 in PDI mode";
     type                   = "jtagice3_pdi";
+    prog_modes             = PM_PDI;
     connection_type        = usb;
     usbpid                 = 0x2110, 0x2140;
 ;
@@ -1862,6 +1927,7 @@ programmer
     id                     = "jtag3updi";
     desc                   = "Atmel AVR JTAGICE3 in UPDI mode";
     type                   = "jtagice3_updi";
+    prog_modes             = PM_UPDI;
     connection_type        = usb;
     usbpid                 = 0x2110, 0x2140;
     hvupdi_support         = 1;
@@ -1875,6 +1941,7 @@ programmer
     id                     = "jtag3dw";
     desc                   = "Atmel AVR JTAGICE3 in debugWIRE mode";
     type                   = "jtagice3_dw";
+    prog_modes             = PM_debugWIRE;
     connection_type        = usb;
     usbpid                 = 0x2110, 0x2140;
 ;
@@ -1887,6 +1954,7 @@ programmer
     id                     = "jtag3isp";
     desc                   = "Atmel AVR JTAGICE3 in ISP mode";
     type                   = "jtagice3_isp";
+    prog_modes             = PM_ISP;
     connection_type        = usb;
     usbpid                 = 0x2110, 0x2140;
 ;
@@ -1899,6 +1967,7 @@ programmer
     id                     = "xplainedpro";
     desc                   = "Atmel AVR XplainedPro in JTAG mode";
     type                   = "jtagice3";
+    prog_modes             = PM_JTAG;
     connection_type        = usb;
     usbpid                 = 0x2111;
 ;
@@ -1911,6 +1980,7 @@ programmer
     id                     = "xplainedpro_updi";
     desc                   = "Atmel AVR XplainedPro in UPDI mode";
     type                   = "jtagice3_updi";
+    prog_modes             = PM_UPDI;
     connection_type        = usb;
     usbpid                 = 0x2111;
     hvupdi_support         = 1;
@@ -1924,6 +1994,7 @@ programmer
     id                     = "xplainedmini";
     desc                   = "Atmel AVR XplainedMini in ISP mode";
     type                   = "jtagice3_isp";
+    prog_modes             = PM_ISP;
     connection_type        = usb;
     usbpid                 = 0x2145;
 ;
@@ -1936,6 +2007,7 @@ programmer
     id                     = "xplainedmini_dw";
     desc                   = "Atmel AVR XplainedMini in debugWIRE mode";
     type                   = "jtagice3_dw";
+    prog_modes             = PM_debugWIRE;
     connection_type        = usb;
     usbpid                 = 0x2145;
 ;
@@ -1948,6 +2020,7 @@ programmer
     id                     = "xplainedmini_updi";
     desc                   = "Atmel AVR XplainedMini in UPDI mode";
     type                   = "jtagice3_updi";
+    prog_modes             = PM_UPDI;
     connection_type        = usb;
     usbpid                 = 0x2145;
     hvupdi_support         = 1;
@@ -1961,6 +2034,7 @@ programmer
     id                     = "atmelice";
     desc                   = "Atmel-ICE (ARM/AVR) in JTAG mode";
     type                   = "jtagice3";
+    prog_modes             = PM_JTAG;
     connection_type        = usb;
     usbpid                 = 0x2141;
 ;
@@ -1973,6 +2047,7 @@ programmer
     id                     = "atmelice_pdi";
     desc                   = "Atmel-ICE (ARM/AVR) in PDI mode";
     type                   = "jtagice3_pdi";
+    prog_modes             = PM_PDI;
     connection_type        = usb;
     usbpid                 = 0x2141;
 ;
@@ -1985,6 +2060,7 @@ programmer
     id                     = "atmelice_updi";
     desc                   = "Atmel-ICE (ARM/AVR) in UPDI mode";
     type                   = "jtagice3_updi";
+    prog_modes             = PM_UPDI;
     connection_type        = usb;
     usbpid                 = 0x2141;
     hvupdi_support         = 1;
@@ -1998,6 +2074,7 @@ programmer
     id                     = "atmelice_dw";
     desc                   = "Atmel-ICE (ARM/AVR) in debugWIRE mode";
     type                   = "jtagice3_dw";
+    prog_modes             = PM_PDI | PM_debugWIRE;
     connection_type        = usb;
     usbpid                 = 0x2141;
 ;
@@ -2010,6 +2087,7 @@ programmer
     id                     = "atmelice_isp";
     desc                   = "Atmel-ICE (ARM/AVR) in ISP mode";
     type                   = "jtagice3_isp";
+    prog_modes             = PM_ISP;
     connection_type        = usb;
     usbpid                 = 0x2141;
 ;
@@ -2022,6 +2100,7 @@ programmer
     id                     = "powerdebugger";
     desc                   = "Atmel PowerDebugger (ARM/AVR) in JTAG mode";
     type                   = "jtagice3";
+    prog_modes             = PM_JTAG;
     connection_type        = usb;
     usbpid                 = 0x2144;
 ;
@@ -2034,6 +2113,7 @@ programmer
     id                     = "powerdebugger_pdi";
     desc                   = "Atmel PowerDebugger (ARM/AVR) in PDI mode";
     type                   = "jtagice3_pdi";
+    prog_modes             = PM_PDI;
     connection_type        = usb;
     usbpid                 = 0x2144;
 ;
@@ -2046,6 +2126,7 @@ programmer
     id                     = "powerdebugger_updi";
     desc                   = "Atmel PowerDebugger (ARM/AVR) in UPDI mode";
     type                   = "jtagice3_updi";
+    prog_modes             = PM_UPDI;
     connection_type        = usb;
     usbpid                 = 0x2144;
     hvupdi_support         = 0, 1;
@@ -2059,6 +2140,7 @@ programmer
     id                     = "powerdebugger_dw";
     desc                   = "Atmel PowerDebugger (ARM/AVR) in debugWire mode";
     type                   = "jtagice3_dw";
+    prog_modes             = PM_debugWIRE;
     connection_type        = usb;
     usbpid                 = 0x2144;
 ;
@@ -2071,6 +2153,7 @@ programmer
     id                     = "powerdebugger_isp";
     desc                   = "Atmel PowerDebugger (ARM/AVR) in ISP mode";
     type                   = "jtagice3_isp";
+    prog_modes             = PM_ISP;
     connection_type        = usb;
     usbpid                 = 0x2144;
 ;
@@ -2083,6 +2166,7 @@ programmer
     id                     = "pickit4_updi";
     desc                   = "MPLAB(R) PICkit 4 in UPDI mode";
     type                   = "jtagice3_updi";
+    prog_modes             = PM_UPDI;
     connection_type        = usb;
     usbpid                 = 0x2177, 0x2178, 0x2179;
     hvupdi_support         = 0, 1, 2;
@@ -2096,6 +2180,7 @@ programmer
     id                     = "pickit4_pdi";
     desc                   = "MPLAB(R) PICkit 4 in PDI mode";
     type                   = "jtagice3_pdi";
+    prog_modes             = PM_PDI;
     connection_type        = usb;
     usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
@@ -2108,6 +2193,7 @@ programmer
     id                     = "pickit4_isp";
     desc                   = "MPLAB(R) PICkit 4 in ISP mode";
     type                   = "jtagice3_isp";
+    prog_modes             = PM_ISP;
     connection_type        = usb;
     usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
@@ -2120,6 +2206,7 @@ programmer
     id                     = "snap_updi";
     desc                   = "MPLAB(R) SNAP in UPDI mode";
     type                   = "jtagice3_updi";
+    prog_modes             = PM_UPDI;
     connection_type        = usb;
     usbpid                 = 0x217f, 0x2180, 0x2181;
     hvupdi_support         = 1;
@@ -2133,6 +2220,7 @@ programmer
     id                     = "snap_pdi";
     desc                   = "MPLAB(R) SNAP in PDI mode";
     type                   = "jtagice3_pdi";
+    prog_modes             = PM_PDI;
     connection_type        = usb;
     usbpid                 = 0x217f, 0x2180, 0x2181;
 ;
@@ -2145,6 +2233,7 @@ programmer
     id                     = "snap_isp";
     desc                   = "MPLAB(R) SNAP in ISP mode";
     type                   = "jtagice3_isp";
+    prog_modes             = PM_ISP;
     connection_type        = usb;
     usbpid                 = 0x217f, 0x2180, 0x2181;
 ;
@@ -2157,6 +2246,7 @@ programmer
     id                     = "pkobn_updi";
     desc                   = "Curiosity nano (nEDBG) in UPDI mode";
     type                   = "jtagice3_updi";
+    prog_modes             = PM_UPDI;
     connection_type        = usb;
     usbpid                 = 0x2175;
     hvupdi_support         = 1;
@@ -2170,6 +2260,7 @@ programmer
     id                     = "pavr";
     desc                   = "Jason Kyle's pAVR Serial Programmer";
     type                   = "avr910";
+    prog_modes             = PM_ISP;
     connection_type        = serial;
 ;
 
@@ -2181,6 +2272,7 @@ programmer
     id                     = "pickit2";
     desc                   = "MicroChip's PICkit2 Programmer";
     type                   = "pickit2";
+    prog_modes             = PM_ISP;
     connection_type        = usb;
 ;
 
@@ -2192,6 +2284,7 @@ programmer
     id                     = "flip1";
     desc                   = "FLIP USB DFU protocol version 1 (doc7618)";
     type                   = "flip1";
+    prog_modes             = PM_SPM;
     connection_type        = usb;
 ;
 
@@ -2203,6 +2296,7 @@ programmer
     id                     = "flip2";
     desc                   = "FLIP USB DFU protocol version 2 (AVR4023)";
     type                   = "flip2";
+    prog_modes             = PM_SPM;
     connection_type        = usb;
 ;
 
@@ -2234,6 +2328,7 @@ programmer
     id                     = "ponyser";
     desc                   = "design ponyprog serial, reset=!txd sck=rts mosi=dtr miso=cts";
     type                   = "serbb";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
     reset                  = ~3;
     sck                    = 7;
@@ -2264,6 +2359,7 @@ programmer
     id                     = "dasa";
     desc                   = "serial port banging, reset=rts sck=dtr mosi=txd miso=cts";
     type                   = "serbb";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
     reset                  = 7;
     sck                    = 4;
@@ -2282,6 +2378,7 @@ programmer
     id                     = "dasa3";
     desc                   = "serial port banging, reset=!dtr sck=rts mosi=txd miso=cts";
     type                   = "serbb";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
     reset                  = ~4;
     sck                    = 7;
@@ -2300,6 +2397,7 @@ programmer
     id                     = "c2n232i";
     desc                   = "serial port banging, reset=dtr sck=!rts mosi=!txd miso=!cts";
     type                   = "serbb";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
     reset                  = 4;
     sck                    = ~7;
@@ -2318,6 +2416,7 @@ programmer
     id                     = "jtag2updi";
     desc                   = "JTAGv2 to UPDI bridge";
     type                   = "jtagmkii_updi";
+    prog_modes             = PM_UPDI;
     connection_type        = serial;
     baudrate               = 115200;
     hvupdi_support         = 1;
