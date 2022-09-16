@@ -403,6 +403,7 @@ programmer
     id                     = "bsd";
     desc                   = "Brian Dean's Programmer, http://www.bsdhome.com/avrdude/";
     type                   = "par";
+    prog_modes             = PM_TPI | PM_ISP;
     vcc                    = 2, 3, 4, 5;
     reset                  = 7;
     sck                    = 8;
@@ -418,6 +419,7 @@ programmer
     id                     = "stk200";
     desc                   = "STK200";
     type                   = "par";
+    prog_modes             = PM_TPI | PM_ISP;
     buff                   = 4, 5;
     reset                  = 9;
     sck                    = 6;
@@ -448,6 +450,7 @@ programmer
     id                     = "dt006";
     desc                   = "Dontronics DT006";
     type                   = "par";
+    prog_modes             = PM_TPI | PM_ISP;
     reset                  = 4;
     sck                    = 5;
     mosi                   = 2;
@@ -471,6 +474,7 @@ programmer
     id                     = "alf";
     desc                   = "Nightshade ALF-PgmAVR, http://nightshade.homeip.net/";
     type                   = "par";
+    prog_modes             = PM_TPI | PM_ISP;
     vcc                    = 2, 3, 4, 5;
     buff                   = 6;
     reset                  = 7;
@@ -491,6 +495,7 @@ programmer
     id                     = "sp12";
     desc                   = "Steve Bolt's Programmer";
     type                   = "par";
+    prog_modes             = PM_TPI | PM_ISP;
     vcc                    = 4, 5, 6, 7, 8;
     reset                  = 3;
     sck                    = 2;
@@ -506,6 +511,7 @@ programmer
     id                     = "picoweb";
     desc                   = "Picoweb Programming Cable, http://www.picoweb.net/";
     type                   = "par";
+    prog_modes             = PM_TPI | PM_ISP;
     reset                  = 2;
     sck                    = 3;
     mosi                   = 4;
@@ -520,6 +526,7 @@ programmer
     id                     = "abcmini";
     desc                   = "ABCmini Board, aka Dick Smith HOTCHIP";
     type                   = "par";
+    prog_modes             = PM_TPI | PM_ISP;
     reset                  = 4;
     sck                    = 3;
     mosi                   = 2;
@@ -534,6 +541,7 @@ programmer
     id                     = "futurlec";
     desc                   = "Futurlec.com programming cable.";
     type                   = "par";
+    prog_modes             = PM_TPI | PM_ISP;
     reset                  = 3;
     sck                    = 2;
     mosi                   = 1;
@@ -556,6 +564,7 @@ programmer
     id                     = "xil";
     desc                   = "Xilinx JTAG cable";
     type                   = "par";
+    prog_modes             = PM_TPI | PM_ISP;
     vcc                    = 6;
     buff                   = 5;
     reset                  = 4;
@@ -572,6 +581,7 @@ programmer
     id                     = "dapa";
     desc                   = "Direct AVR Parallel Access cable";
     type                   = "par";
+    prog_modes             = PM_TPI | PM_ISP;
     vcc                    = 3;
     reset                  = 16;
     sck                    = 1;
@@ -587,6 +597,7 @@ programmer
     id                     = "atisp";
     desc                   = "AT-ISP V1.1 programming cable for AVR-SDK1 from <http://micro-research.co.th/> micro-research.co.th";
     type                   = "par";
+    prog_modes             = PM_TPI | PM_ISP;
     reset                  = ~6;
     sck                    = ~8;
     mosi                   = ~7;
@@ -601,6 +612,7 @@ programmer
     id                     = "ere-isp-avr";
     desc                   = "ERE ISP-AVR <http://www.ere.co.th/download/sch050713.pdf>";
     type                   = "par";
+    prog_modes             = PM_TPI | PM_ISP;
     reset                  = ~4;
     sck                    = 3;
     mosi                   = 2;
@@ -615,6 +627,7 @@ programmer
     id                     = "blaster";
     desc                   = "Altera ByteBlaster";
     type                   = "par";
+    prog_modes             = PM_TPI | PM_ISP;
     buff                   = 14;
     reset                  = 3;
     sck                    = 2;
@@ -647,6 +660,7 @@ programmer
     id                     = "89isp";
     desc                   = "Atmel at89isp cable";
     type                   = "par";
+    prog_modes             = PM_TPI | PM_ISP;
     reset                  = 17;
     sck                    = 1;
     mosi                   = 2;
