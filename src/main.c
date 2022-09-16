@@ -167,21 +167,35 @@ static void list_programmers(FILE *f, const char *prefix, LISTID programmers, in
   LNODEID ln1;
   LNODEID ln2;
   PROGRAMMER *pgm;
+  int maxlen=0, len;
 
   sort_programmers(programmers);
 
-  for (ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
+  // Compute max length of programmer names
+  for(ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
     pgm = ldata(ln1);
-    for (ln2=lfirst(pgm->id); ln2; ln2=lnext(ln2)) {
+    for(ln2=lfirst(pgm->id); ln2; ln2=lnext(ln2))
+      if(!pm || !pgm->prog_modes || (pm & pgm->prog_modes)) {
+        const char *id = ldata(ln2);
+        if(*id == 0 || *id == '.')
+          continue;
+        if((len = strlen(id)) > maxlen)
+          maxlen = len;
+      }
+  }
+
+  for(ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
+    pgm = ldata(ln1);
+    for(ln2=lfirst(pgm->id); ln2; ln2=lnext(ln2)) {
       // List programmer if pm or prog_modes uninitialised or if they are compatible otherwise
       if(!pm || !pgm->prog_modes || (pm & pgm->prog_modes)) {
         const char *id = ldata(ln2);
         if(*id == 0 || *id == '.')
           continue;
         if(verbose)
-          fprintf(f, "%s%-16s = %-30s [%s:%d]", prefix, id, pgm->desc, pgm->config_file, pgm->lineno);
+          fprintf(f, "%s%-*s = %-30s [%s:%d]", prefix, maxlen, id, pgm->desc, pgm->config_file, pgm->lineno);
         else
-          fprintf(f, "%s%-16s = %-s", prefix, id, pgm->desc);
+          fprintf(f, "%s%-*s = %-s", prefix, maxlen, id, pgm->desc);
         if(pm != ~0)
           fprintf(f, " via %s",  via_prog_modes(pm & pgm->prog_modes));
         fprintf(f, "\n");
@@ -212,19 +226,33 @@ static void list_programmer_types(FILE * f, const char *prefix)
 static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
   LNODEID ln1;
   AVRPART *p;
+  int maxlen=0, len;
 
   sort_avrparts(avrparts);
 
-  for (ln1 = lfirst(avrparts); ln1; ln1 = lnext(ln1)) {
+  // Compute max length of part names
+  for(ln1 = lfirst(avrparts); ln1; ln1 = lnext(ln1)) {
     p = ldata(ln1);
     // List part if pm or prog_modes uninitialised or if they are compatible otherwise
     if(!pm || !p->prog_modes || (pm & p->prog_modes)) {
       if((verbose < 2) && (p->id[0] == '.')) // hide ids starting with '.'
         continue;
-      if (verbose)
-        fprintf(f, "%s%-8s = %-18s [%s:%d]", prefix, p->id, p->desc, p->config_file, p->lineno);
+      if((len = strlen(p->id)) > maxlen)
+        maxlen = len;
+    }
+  }
+
+
+  for(ln1 = lfirst(avrparts); ln1; ln1 = lnext(ln1)) {
+    p = ldata(ln1);
+    // List part if pm or prog_modes uninitialised or if they are compatible otherwise
+    if(!pm || !p->prog_modes || (pm & p->prog_modes)) {
+      if((verbose < 2) && (p->id[0] == '.')) // hide ids starting with '.'
+        continue;
+      if(verbose)
+        fprintf(f, "%s%-*s = %-18s [%s:%d]", prefix, maxlen, p->id, p->desc, p->config_file, p->lineno);
       else
-        fprintf(f, "%s%-8s = %s", prefix, p->id, p->desc);
+        fprintf(f, "%s%-*s = %s", prefix, maxlen, p->id, p->desc);
       if(pm != ~0)
         fprintf(f, " via %s",  via_prog_modes(pm & p->prog_modes));
       fprintf(f, "\n");
