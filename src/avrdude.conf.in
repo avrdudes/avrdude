@@ -595,7 +595,7 @@ programmer
 
 programmer
     id                     = "atisp";
-    desc                   = "AT-ISP V1.1 programming cable for AVR-SDK1 from <http://micro-research.co.th/> micro-research.co.th";
+    desc                   = "AT-ISP v1.1 programming cable for AVR-SDK1 from <https://micro-research.co.th>";
     type                   = "par";
     prog_modes             = PM_TPI | PM_ISP;
     reset                  = ~6;
@@ -1102,7 +1102,7 @@ programmer
 
 programmer
     id                     = "avrispv2";
-    desc                   = "Atmel AVR ISP V2";
+    desc                   = "Atmel AVR ISP v2";
     type                   = "stk500v2";
     prog_modes             = PM_TPI | PM_ISP | PM_PDI;
     connection_type        = serial;
@@ -1182,7 +1182,7 @@ programmer
 
 programmer
     id                     = "stk500v1";
-    desc                   = "Atmel STK500 Version 1.x firmware";
+    desc                   = "Atmel STK500 version 1.x firmware";
     type                   = "stk500";
     prog_modes             = PM_ISP;
     connection_type        = serial;
@@ -1206,7 +1206,7 @@ programmer
 
 programmer
     id                     = "stk500v2";
-    desc                   = "Atmel STK500 Version 2.x firmware";
+    desc                   = "Atmel STK500 version 2.x firmware";
     type                   = "stk500v2";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
@@ -1218,7 +1218,7 @@ programmer
 
 programmer
     id                     = "stk500pp";
-    desc                   = "Atmel STK500 V2 in parallel programming mode";
+    desc                   = "Atmel STK500 v2 in parallel programming mode";
     type                   = "stk500pp";
     prog_modes             = PM_HVPP;
     connection_type        = serial;
@@ -1230,7 +1230,7 @@ programmer
 
 programmer
     id                     = "stk500hvsp";
-    desc                   = "Atmel STK500 V2 in high-voltage serial programming mode";
+    desc                   = "Atmel STK500 v2 in high-voltage serial programming mode";
     type                   = "stk500hvsp";
     prog_modes             = PM_HVSP;
     connection_type        = serial;
