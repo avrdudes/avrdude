@@ -734,7 +734,7 @@ programmer
 
 programmer
     id                     = "wiring";
-    desc                   = "Wiring";
+    desc                   = "Wiring for bootloader using STK500 v2 protocol";
     type                   = "wiring";
     prog_modes             = PM_SPM;
     connection_type        = serial;
@@ -746,7 +746,7 @@ programmer
 
 programmer
     id                     = "arduino";
-    desc                   = "Arduino";
+    desc                   = "Arduino for bootloader using STK500 v1 protocol";
     type                   = "arduino";
     prog_modes             = PM_SPM;
     connection_type        = serial;
@@ -758,7 +758,7 @@ programmer
 
 programmer
     id                     = "xbee";
-    desc                   = "XBee Series 2 Over-The-Air (XBeeBoot)";
+    desc                   = "XBee for Series 2 Over-The-Air (XBeeBoot) bootloader using STK500 v1 protocol";
     type                   = "xbee";
     prog_modes             = PM_SPM;
     connection_type        = serial;
@@ -1579,7 +1579,7 @@ programmer
 
 programmer
     id                     = "micronucleus";
-    desc                   = "Micronucleus Bootloader";
+    desc                   = "Micronucleus for bootloader";
     type                   = "micronucleus";
     prog_modes             = PM_SPM;
     connection_type        = usb;
@@ -1593,7 +1593,7 @@ programmer
 
 programmer
     id                     = "teensy";
-    desc                   = "Teensy Bootloader";
+    desc                   = "Teensy for bootloader";
     type                   = "teensy";
     prog_modes             = PM_SPM;
     connection_type        = usb;
@@ -1607,7 +1607,7 @@ programmer
 
 programmer
     id                     = "butterfly";
-    desc                   = "Atmel Butterfly Development Board";
+    desc                   = "Atmel for bootloader (Butterfly Development Board)";
     type                   = "butterfly";
     prog_modes             = PM_SPM;
     connection_type        = serial;
@@ -1619,7 +1619,7 @@ programmer
 
 programmer
     id                     = "avr109";
-    desc                   = "Atmel AppNote AVR109 Boot Loader";
+    desc                   = "Atmel for bootloader using AppNote AVR109";
     type                   = "butterfly";
     prog_modes             = PM_SPM;
     connection_type        = serial;
@@ -1631,7 +1631,7 @@ programmer
 
 programmer
     id                     = "avr911";
-    desc                   = "Atmel AppNote AVR911 AVROSP";
+    desc                   = "Atmel for bootloader using AppNote AVR911 AVROSP";
     type                   = "butterfly";
     prog_modes             = PM_SPM;
     connection_type        = serial;
@@ -1645,7 +1645,7 @@ programmer
 
 programmer
     id                     = "mkbutterfly";
-    desc                   = "Mikrokopter.de Butterfly";
+    desc                   = "Mikrokopter.de Butterfly for bootloader";
     type                   = "butterfly_mk";
     prog_modes             = PM_SPM;
     connection_type        = serial;
@@ -2296,7 +2296,7 @@ programmer
 
 programmer
     id                     = "flip1";
-    desc                   = "FLIP USB DFU protocol version 1 (doc7618)";
+    desc                   = "FLIP for bootloader using USB DFU protocol version 1 (doc7618)";
     type                   = "flip1";
     prog_modes             = PM_SPM;
     connection_type        = usb;
@@ -2308,7 +2308,7 @@ programmer
 
 programmer
     id                     = "flip2";
-    desc                   = "FLIP USB DFU protocol version 2 (AVR4023)";
+    desc                   = "FLIP for bootloader using USB DFU protocol version 2 (AVR4023)";
     type                   = "flip2";
     prog_modes             = PM_SPM;
     connection_type        = usb;
