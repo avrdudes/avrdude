@@ -62,6 +62,16 @@
 
 #define LINUXSPI "linuxspi"
 
+/*
+ * Private data for this programmer.
+ */
+struct pdata
+{
+  int disable_no_cs;
+};
+
+#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+
 static int fd_spidev, fd_gpiochip, fd_linehandle;
 
 /**
@@ -89,9 +99,16 @@ static int linuxspi_spi_duplex(const PROGRAMMER *pgm, const unsigned char *tx, u
 }
 
 static void linuxspi_setup(PROGRAMMER *pgm) {
+  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
+    avrdude_message(MSG_INFO, "%s: linuxspi_setup(): Out of memory allocating private data\n",
+                    progname);
+    exit(1);
+  }
+  memset(pgm->cookie, 0, sizeof(struct pdata));
 }
 
 static void linuxspi_teardown(PROGRAMMER* pgm) {
+  free(pgm->cookie);
 }
 
 static int linuxspi_reset_mcu(const PROGRAMMER *pgm, bool active) {
@@ -162,11 +179,19 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
         return -1;
     }
 
-    uint32_t mode = SPI_MODE_0 | SPI_NO_CS;
+    uint32_t mode = SPI_MODE_0;
+    if (!PDATA(pgm)->disable_no_cs) {
+        mode |= SPI_NO_CS;
+    }
     ret = ioctl(fd_spidev, SPI_IOC_WR_MODE32, &mode);
     if (ret == -1) {
+        int ioctl_errno = errno;
         avrdude_message(MSG_INFO, "%s: error: Unable to set SPI mode %0X on %s\n",
                         progname, mode, spidev);
+        if(ioctl_errno == EINVAL || !PDATA(pgm)->disable_no_cs) {
+            avrdude_message(MSG_NOTICE, "%s: Try \"-x disable_no_cs\" option\n",
+                            progname);
+        }
         goto close_spidev;
     }
     fd_gpiochip = open(gpiochip, 0);
@@ -378,6 +403,28 @@ static int linuxspi_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
     return 0;
 }
 
+static int linuxspi_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
+  LNODEID ln;
+  const char *extended_param;
+  int rc = 0;
+
+  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    extended_param = ldata(ln);
+
+    if (strcmp(extended_param, "disable_no_cs") == 0) {
+      PDATA(pgm)->disable_no_cs = 1;
+      continue;
+    }
+
+    avrdude_message(MSG_INFO, "%s: linuxspi_parseextparams(): "
+                    "invalid extended parameter '%s'\n",
+                    progname, extended_param);
+    rc = -1;
+  }
+
+  return rc;
+}
+
 void linuxspi_initpgm(PROGRAMMER *pgm) {
     strcpy(pgm->type, LINUXSPI);
 
@@ -400,6 +447,7 @@ void linuxspi_initpgm(PROGRAMMER *pgm) {
     pgm->setup          = linuxspi_setup;
     pgm->teardown       = linuxspi_teardown;
     pgm->parseexitspecs = linuxspi_parseexitspecs;
+    pgm->parseextparams = linuxspi_parseextparams;
 }
 
 const char linuxspi_desc[] = "SPI using Linux spidev driver";
