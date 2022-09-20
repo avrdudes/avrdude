@@ -196,7 +196,7 @@ static void pmshorten(char *desc, const char *modes) {
 
   for(size_t i=0; i<sizeof pairs/sizeof*pairs; i++) {
     size_t elen = strlen(pairs[i].end);
-    if(len > elen && strcmp(desc+len-elen, pairs[i].end) == 0 && strcmp(modes, pairs[i].mode) == 0) {
+    if(len > elen && strcasecmp(desc+len-elen, pairs[i].end) == 0 && strcmp(modes, pairs[i].mode) == 0) {
       desc[len-elen] = 0;
       break;
     }
