@@ -1783,7 +1783,7 @@ programmer
 
 programmer
     id                     = "jtagmkII_avr32";
-    desc                   = "Atmel JTAG ICE mkII im AVR32 mode";
+    desc                   = "Atmel JTAG ICE mkII in AVR32 mode";
     type                   = "jtagmkii_avr32";
     prog_modes             = PM_aWire;
     connection_type        = usb;
@@ -1813,7 +1813,7 @@ programmer
 
 programmer
     id                     = "jtag2pdi";
-    desc                   = "Atmel JTAG ICE mkII PDI mode";
+    desc                   = "Atmel JTAG ICE mkII in PDI mode";
     type                   = "jtagmkii_pdi";
     prog_modes             = PM_PDI;
     connection_type        = usb;

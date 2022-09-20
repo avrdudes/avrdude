@@ -173,6 +173,35 @@ static char *via_prog_modes(int pm) {
   return type + (type[1] == 0? 0: 3);
 }
 
+
+// Potentially shorten copy of prog description if it's the suggested mode
+static void pmshorten(char *desc, const char *modes) {
+  struct { const char *end, *mode; } pairs[] = {
+    {" in parallel programming mode", "HVPP"},
+    {" in PP mode", "HVPP"},
+    {" in high-voltage serial programming mode", "HVSP"},
+    {" in HVSP mode", "HVSP"},
+    {" in ISP mode", "ISP"},
+    {" in debugWire mode", "debugWIRE"},
+    {" in AVR32 mode", "aWire"},
+    {" in PDI mode", "PDI"},
+    {" in UPDI mode", "UPDI"},
+    {" in JTAG mode", "JTAG"},
+    {" in JTAG mode", "JTAGmkI"},
+    {" in JTAG mode", "XMEGAJTAG"},
+    {" in JTAG mode", "AVR32JTAG"},
+  };
+  size_t len = strlen(desc);
+
+  for(size_t i=0; i<sizeof pairs/sizeof*pairs; i++) {
+    size_t elen = strlen(pairs[i].end);
+    if(len > elen && strcmp(desc+len-elen, pairs[i].end) == 0 && strcmp(modes, pairs[i].mode) == 0) {
+      desc[len-elen] = 0;
+      break;
+    }
+  }
+}
+
 static void list_programmers(FILE *f, const char *prefix, LISTID programmers, int pm) {
   LNODEID ln1;
   LNODEID ln2;
@@ -200,15 +229,23 @@ static void list_programmers(FILE *f, const char *prefix, LISTID programmers, in
       // List programmer if pm or prog_modes uninitialised or if they are compatible otherwise
       if(!pm || !pgm->prog_modes || (pm & pgm->prog_modes)) {
         const char *id = ldata(ln2);
+        char *desc = cfg_strdup("list_programmers()", pgm->desc);
+        const char *modes = via_prog_modes(pm & pgm->prog_modes);
+
+        if(pm != ~0)
+          pmshorten(desc, modes);
+
         if(*id == 0 || *id == '.')
           continue;
         if(verbose)
-          fprintf(f, "%s%-*s = %-30s [%s:%d]", prefix, maxlen, id, pgm->desc, pgm->config_file, pgm->lineno);
+          fprintf(f, "%s%-*s = %-30s [%s:%d]", prefix, maxlen, id, desc, pgm->config_file, pgm->lineno);
         else
-          fprintf(f, "%s%-*s = %-s", prefix, maxlen, id, pgm->desc);
+          fprintf(f, "%s%-*s = %-s", prefix, maxlen, id, desc);
         if(pm != ~0)
-          fprintf(f, " via %s",  via_prog_modes(pm & pgm->prog_modes));
+          fprintf(f, " via %s",  modes);
         fprintf(f, "\n");
+
+        free(desc);
       }
     }
   }
