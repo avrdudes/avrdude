@@ -190,6 +190,7 @@ static void pmshorten(char *desc, const char *modes) {
     {" in JTAG mode", "JTAGmkI"},
     {" in JTAG mode", "XMEGAJTAG"},
     {" in JTAG mode", "AVR32JTAG"},
+    {" for bootloader", "bootloader"},
   };
   size_t len = strlen(desc);
 
