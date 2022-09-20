@@ -133,7 +133,7 @@ prog_modes|mcuid|n_interrupts|n_page_erase { /* Components for assignment  */
   return TKN_COMPONENT;
 }
 
-PM_SPM|PM_TPI|PM_ISP|PM_PDI|PM_UPDI|PM_HVSP|PM_HVPP|PM_debugWIRE|PM_JTAG|PM_aWire { /* Constants */
+PM_(SPM|TPI|ISP|PDI|UPDI|HVSP|HVPP|debugWIRE|JTAG|JTAGmkI|XMEGAJTAG|AVR32JTAG|aWire) { /* Constants */
   yylval = new_constant(yytext);
   return TKN_NUMBER;
 }

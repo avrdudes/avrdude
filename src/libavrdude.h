@@ -201,8 +201,11 @@ typedef struct opcode {
 #define PM_HVSP              32 // High Voltage Serial Programming (some classic parts)
 #define PM_HVPP              64 // High Voltage Parallel Programming (most non-HVSP classic parts)
 #define PM_debugWIRE        128 // Simpler alternative to JTAG (a subset of HVPP/HVSP parts)
-#define PM_JTAG             256 // Joint Test Action Group standard (some classic parts, some xmega)
-#define PM_aWire            512 // AVR32 parts
+#define PM_JTAG             256 // Joint Test Action Group standard (some classic parts)
+#define PM_JTAGmkI          512 // Subset of PM_JTAG, older parts, Atmel ICE mkI
+#define PM_XMEGAJTAG       1024 // JTAG, some XMEGA parts
+#define PM_AVR32JTAG       2048 // JTAG for 32-bit AVRs
+#define PM_aWire           4096 // For 32-bit AVRs
 
 #define HV_UPDI_VARIANT_0      0 /* Shared UPDI/GPIO/RESET pin, HV on UPDI pin (tinyAVR0/1/2)*/
 #define HV_UPDI_VARIANT_1      1 /* Dedicated UPDI pin, no HV (megaAVR0/AVR-Dx) */

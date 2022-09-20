@@ -1122,7 +1122,7 @@ part_parm :
       if ($3->primary == K_YES)
         current_part->prog_modes |= PM_JTAG;
       else if ($3->primary == K_NO)
-        current_part->prog_modes &= ~PM_JTAG;
+        current_part->prog_modes &= ~(PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG);
       free_token($3);
     } |
 

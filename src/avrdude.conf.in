@@ -56,7 +56,10 @@
 #   #  - PM_HVSP: High Voltage Serial Programming (some classic parts)
 #   #  - PM_HVPP: High Voltage Parallel Programming (most non-HVSP classic parts)
 #   #  - PM_debugWIRE: Simpler alternative to JTAG (a subset of HVPP/HVSP parts)
-#   #  - PM_JTAG: Joint Test Action Group standard (some classic parts, some xmega)
+#   #  - PM_JTAG: Joint Test Action Group standard (some classic parts)
+#   #  - PM_JTAGmkI: Subset of PM_JTAG, older parts, Atmel ICE mkI
+#   #  - PM_XMEGAJTAG: JTAG, some XMEGA parts
+#   #  - PM_AVR32JTAG: JTAG for 32-bit AVRs
 #   #  - PM_aWire: AVR32 parts
 #   #
 #   # (2) Not all programmer types can process a list of PIDs
@@ -1667,7 +1670,7 @@ programmer
     id                     = "jtagmkI";
     desc                   = "Atmel JTAG ICE (mkI)";
     type                   = "jtagmki";
-    prog_modes             = PM_JTAG;
+    prog_modes             = PM_JTAGmkI;
     connection_type        = serial;
     baudrate               = 115200;    # default is 115200
 ;
@@ -1706,7 +1709,7 @@ programmer
     id                     = "jtagmkII";
     desc                   = "Atmel JTAG ICE mkII";
     type                   = "jtagmkii";
-    prog_modes             = PM_JTAG;
+    prog_modes             = PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG;
     connection_type        = usb;
     baudrate               = 19200;    # default is 19200
 ;
@@ -1795,7 +1798,7 @@ programmer
 
 programmer
     id                     = "jtag2avr32";
-    desc                   = "Atmel JTAG ICE mkII im AVR32 mode";
+    desc                   = "Atmel JTAG ICE mkII in AVR32 mode";
     type                   = "jtagmkii_avr32";
     prog_modes             = PM_aWire;
     connection_type        = usb;
@@ -1827,7 +1830,7 @@ programmer
     id                     = "dragon_jtag";
     desc                   = "Atmel AVR Dragon in JTAG mode";
     type                   = "dragon_jtag";
-    prog_modes             = PM_JTAG;
+    prog_modes             = PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1915,7 +1918,7 @@ programmer
     id                     = "jtag3";
     desc                   = "Atmel AVR JTAGICE3 in JTAG mode";
     type                   = "jtagice3";
-    prog_modes             = PM_JTAG;
+    prog_modes             = PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG;
     connection_type        = usb;
     usbpid                 = 0x2110, 0x2140;
 ;
@@ -1981,7 +1984,7 @@ programmer
     id                     = "xplainedpro";
     desc                   = "Atmel AVR XplainedPro in JTAG mode";
     type                   = "jtagice3";
-    prog_modes             = PM_JTAG;
+    prog_modes             = PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG;
     connection_type        = usb;
     usbpid                 = 0x2111;
 ;
@@ -2048,7 +2051,7 @@ programmer
     id                     = "atmelice";
     desc                   = "Atmel-ICE (ARM/AVR) in JTAG mode";
     type                   = "jtagice3";
-    prog_modes             = PM_JTAG;
+    prog_modes             = PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG;
     connection_type        = usb;
     usbpid                 = 0x2141;
 ;
@@ -2114,7 +2117,7 @@ programmer
     id                     = "powerdebugger";
     desc                   = "Atmel PowerDebugger (ARM/AVR) in JTAG mode";
     type                   = "jtagice3";
-    prog_modes             = PM_JTAG;
+    prog_modes             = PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG;
     connection_type        = usb;
     usbpid                 = 0x2144;
 ;
@@ -3652,7 +3655,7 @@ part
 part
     desc                   = "ATmega64";
     id                     = "m64";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG | PM_JTAGmkI;
     mcuid                  = 72;
     n_interrupts           = 35;
     stk500_devcode         = 0xa0;
@@ -3771,6 +3774,7 @@ part
 part parent "m64"
     desc                   = "ATmega64A";
     id                     = "m64a";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 73;
 ;
 
@@ -3781,7 +3785,7 @@ part parent "m64"
 part
     desc                   = "ATmega128";
     id                     = "m128";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG | PM_JTAGmkI;
     mcuid                  = 85;
     n_interrupts           = 35;
     stk500_devcode         = 0xb2;
@@ -3901,6 +3905,7 @@ part
 part parent "m128"
     desc                   = "ATmega128A";
     id                     = "m128a";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 86;
 ;
 
@@ -3911,7 +3916,7 @@ part parent "m128"
 part
     desc                   = "AT90CAN128";
     id                     = "c128";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG | PM_JTAGmkI;
     mcuid                  = 176;
     n_interrupts           = 37;
     stk500_devcode         = 0xb3;
@@ -4280,7 +4285,7 @@ part
 part
     desc                   = "ATmega16";
     id                     = "m16";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG | PM_JTAGmkI;
     mcuid                  = 49;
     n_interrupts           = 21;
     stk500_devcode         = 0x82;
@@ -4395,6 +4400,7 @@ part
 part parent "m16"
     desc                   = "ATmega16A";
     id                     = "m16a";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 50;
 ;
 
@@ -4892,7 +4898,7 @@ part parent "m1284"
 part
     desc                   = "ATmega162";
     id                     = "m162";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG | PM_JTAGmkI;
     mcuid                  = 90;
     n_interrupts           = 28;
     stk500_devcode         = 0x83;
@@ -5117,7 +5123,7 @@ part
 part
     desc                   = "ATmega169";
     id                     = "m169";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG | PM_JTAGmkI;
     mcuid                  = 104;
     n_interrupts           = 23;
     stk500_devcode         = 0x85;
@@ -5238,6 +5244,7 @@ part
 part parent "m169"
     desc                   = "ATmega169A";
     id                     = "m169a";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 105;
     signature              = 0x1e 0x94 0x11;
     reset                  = io;
@@ -5250,6 +5257,7 @@ part parent "m169"
 part parent "m169"
     desc                   = "ATmega169P";
     id                     = "m169p";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 106;
     reset                  = io;
 ;
@@ -5261,6 +5269,7 @@ part parent "m169"
 part parent "m169"
     desc                   = "ATmega169PA";
     id                     = "m169pa";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 107;
     reset                  = io;
 ;
@@ -5655,7 +5664,7 @@ part parent "m649"
 part
     desc                   = "ATmega32";
     id                     = "m32";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG | PM_JTAGmkI;
     mcuid                  = 58;
     n_interrupts           = 21;
     stk500_devcode         = 0x91;
@@ -5859,6 +5868,7 @@ part
 part parent "m32"
     desc                   = "ATmega32A";
     id                     = "m32a";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 59;
 ;
 
@@ -11240,7 +11250,7 @@ part
 part
     desc                   = "ATmega165";
     id                     = "m165";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG | PM_JTAGmkI;
     mcuid                  = 95;
     n_interrupts           = 22;
 #   stk500_devcode         = 0x??;
@@ -11362,6 +11372,7 @@ part
 part parent "m165"
     desc                   = "ATmega165A";
     id                     = "m165a";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 96;
 ;
 
@@ -11372,6 +11383,7 @@ part parent "m165"
 part parent "m165"
     desc                   = "ATmega165P";
     id                     = "m165p";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 97;
     signature              = 0x1e 0x94 0x07;
 ;
@@ -11383,6 +11395,7 @@ part parent "m165"
 part parent "m165"
     desc                   = "ATmega165PA";
     id                     = "m165pa";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 98;
     signature              = 0x1e 0x94 0x07;
 ;
@@ -12115,7 +12128,7 @@ part parent "x64a4u"
 part parent "x64a4u"
     desc                   = "ATxmega64A1";
     id                     = "x64a1";
-    prog_modes             = PM_SPM | PM_PDI | PM_JTAG;
+    prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 243;
     n_interrupts           = 125;
     signature              = 0x1e 0x96 0x4e;
@@ -12289,7 +12302,7 @@ part parent "x128c3"
 part parent "x128c3"
     desc                   = "ATxmega128A1";
     id                     = "x128a1";
-    prog_modes             = PM_SPM | PM_PDI | PM_JTAG;
+    prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 254;
     n_interrupts           = 125;
     signature              = 0x1e 0x97 0x4c;
@@ -12355,7 +12368,7 @@ part parent "x128a1"
 part parent ".xmega"
     desc                   = "ATxmega128A4";
     id                     = "x128a4";
-    prog_modes             = PM_SPM | PM_PDI | PM_JTAG;
+    prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 263;
     signature              = 0x1e 0x97 0x46;
 
@@ -12469,7 +12482,7 @@ part parent ".xmega"
 part parent ".xmega"
     desc                   = "ATxmega128B1";
     id                     = "x128b1";
-    prog_modes             = PM_SPM | PM_PDI | PM_JTAG;
+    prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 257;
     n_interrupts           = 81;
     signature              = 0x1e 0x97 0x4d;
@@ -12610,7 +12623,7 @@ part parent "x192c3"
 part parent "x192c3"
     desc                   = "ATxmega192A1";
     id                     = "x192a1";
-    prog_modes             = PM_SPM | PM_PDI | PM_JTAG;
+    prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 266;
     signature              = 0x1e 0x97 0x4e;
 
@@ -12718,7 +12731,7 @@ part parent "x256c3"
 part parent "x256c3"
     desc                   = "ATxmega256A1";
     id                     = "x256a1";
-    prog_modes             = PM_SPM | PM_PDI | PM_JTAG;
+    prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 271;
 
     memory "fuse0"
@@ -13011,7 +13024,7 @@ part parent ".xmega"
 part
     desc                   = "AT32UC3A0512";
     id                     = "uc3a0512";
-    prog_modes             = PM_JTAG | PM_aWire;
+    prog_modes             = PM_AVR32JTAG | PM_aWire;
     signature              = 0xed 0xc0 0x3f;
 
     memory "flash"

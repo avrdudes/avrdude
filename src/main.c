@@ -138,6 +138,10 @@ static void usage(void)
 static char *via_prog_modes(int pm) {
   static char type[1024];
 
+  // Suppress PM_JTAGmkI if also PM_JTAG is given
+  if((pm & PM_JTAG) && (pm & PM_JTAGmkI))
+    pm &= ~PM_JTAGmkI;
+
   strcpy(type, "?");
   if(pm & PM_SPM)
     strcat(type, ", bootloader");
@@ -157,6 +161,12 @@ static char *via_prog_modes(int pm) {
     strcat(type, ", debugWIRE");
   if(pm & PM_JTAG)
     strcat(type, ", JTAG");
+  if(pm & PM_JTAGmkI)
+    strcat(type, ", JTAGmkI");
+  if(pm & PM_XMEGAJTAG)
+    strcat(type, ", XMEGAJTAG");
+  if(pm & PM_AVR32JTAG)
+    strcat(type, ", AVR32JTAG");
   if(pm & PM_aWire)
     strcat(type, ", aWire");
 

@@ -232,6 +232,12 @@ static char *prog_modes_str(int pm) {
     strcat(type, " | PM_debugWIRE");
   if(pm & PM_JTAG)
     strcat(type, " | PM_JTAG");
+  if(pm & PM_JTAGmkI)
+    strcat(type, " | PM_JTAGmkI");
+  if(pm & PM_XMEGAJTAG)
+    strcat(type, " | PM_XMEGAJTAG");
+  if(pm & PM_AVR32JTAG)
+    strcat(type, " | PM_AVR32JTAG");
   if(pm & PM_aWire)
     strcat(type, " | PM_aWire");
 
