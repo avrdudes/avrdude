@@ -138,10 +138,6 @@ static void usage(void)
 static char *via_prog_modes(int pm) {
   static char type[1024];
 
-  // Suppress PM_JTAGmkI if also PM_JTAG is given
-  if((pm & PM_JTAG) && (pm & PM_JTAGmkI))
-    pm &= ~PM_JTAGmkI;
-
   strcpy(type, "?");
   if(pm & PM_SPM)
     strcat(type, ", bootloader");
@@ -865,6 +861,17 @@ int main(int argc, char * argv [])
   if(dev_opt_c || dev_opt_p) {  // See -c/h and or -p/h
     dev_output_pgm_part(dev_opt_c, programmer, dev_opt_p, partdesc);
     exit(0);
+  }
+
+  for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1)) {
+    AVRPART *p = ldata(ln1);
+    for(LNODEID ln2 = lfirst(programmers); ln2; ln2 = lnext(ln2)) {
+      PROGRAMMER *pgm = ldata(ln2);
+      int pm = pgm->prog_modes & p->prog_modes;
+      if(pm & (pm-1))
+        avrdude_message(MSG_INFO, "%s warning: %s and %s share multiple modes (%s)\n",
+          progname, pgm->id? ldata(lfirst(pgm->id)): "???", p->desc, via_prog_modes(pm));
+    }
   }
 
   avrdude_message(MSG_NOTICE, "\n");
