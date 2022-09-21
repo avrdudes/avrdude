@@ -1709,7 +1709,7 @@ programmer
     id                     = "jtagmkII";
     desc                   = "Atmel JTAG ICE mkII";
     type                   = "jtagmkii";
-    prog_modes             = PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG;
+    prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
     connection_type        = usb;
     baudrate               = 19200;    # default is 19200
 ;
@@ -1830,7 +1830,7 @@ programmer
     id                     = "dragon_jtag";
     desc                   = "Atmel AVR Dragon in JTAG mode";
     type                   = "dragon_jtag";
-    prog_modes             = PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG;
+    prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1918,7 +1918,7 @@ programmer
     id                     = "jtag3";
     desc                   = "Atmel AVR JTAGICE3 in JTAG mode";
     type                   = "jtagice3";
-    prog_modes             = PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG;
+    prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
     connection_type        = usb;
     usbpid                 = 0x2110, 0x2140;
 ;
@@ -1984,7 +1984,7 @@ programmer
     id                     = "xplainedpro";
     desc                   = "Atmel AVR XplainedPro in JTAG mode";
     type                   = "jtagice3";
-    prog_modes             = PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG;
+    prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
     connection_type        = usb;
     usbpid                 = 0x2111;
 ;
@@ -2051,7 +2051,7 @@ programmer
     id                     = "atmelice";
     desc                   = "Atmel-ICE (ARM/AVR) in JTAG mode";
     type                   = "jtagice3";
-    prog_modes             = PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG;
+    prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
     connection_type        = usb;
     usbpid                 = 0x2141;
 ;
@@ -2091,7 +2091,7 @@ programmer
     id                     = "atmelice_dw";
     desc                   = "Atmel-ICE (ARM/AVR) in debugWIRE mode";
     type                   = "jtagice3_dw";
-    prog_modes             = PM_PDI | PM_debugWIRE;
+    prog_modes             = PM_debugWIRE;
     connection_type        = usb;
     usbpid                 = 0x2141;
 ;
@@ -2117,7 +2117,7 @@ programmer
     id                     = "powerdebugger";
     desc                   = "Atmel PowerDebugger (ARM/AVR) in JTAG mode";
     type                   = "jtagice3";
-    prog_modes             = PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG;
+    prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
     connection_type        = usb;
     usbpid                 = 0x2144;
 ;
