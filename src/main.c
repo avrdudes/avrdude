@@ -347,6 +347,35 @@ static int dev_opt(char *str) {
 }
 
 
+static void exit_programmer_not_found(const char *programmer) {
+  if(programmer && *programmer)
+    avrdude_message(MSG_INFO, "\n%s: cannot find programmer id %s\n", progname, programmer);
+  else
+    avrdude_message(MSG_INFO, "\n%s: no programmer has been specified on the command line "
+      "or in the\n%sconfig file; specify one using the -c option and try again\n",
+        progname, progbuf);
+
+  avrdude_message(MSG_INFO, "\nValid programmers are:\n");
+  list_programmers(stderr, "  ", programmers, ~0);
+  avrdude_message(MSG_INFO, "\n");
+
+  exit(1);
+}
+
+static void exit_part_not_found(const char *partdesc) {
+  if(partdesc && *partdesc)
+    avrdude_message(MSG_INFO, "\n%s: AVR part %s not found\n", progname, partdesc);
+  else
+    avrdude_message(MSG_INFO, "\n%s: no AVR part has been specified; use -p part\n", progname);
+
+  avrdude_message(MSG_INFO, "\nValid parts are:\n");
+  list_parts(stderr, "  ", part_list, ~0);
+  avrdude_message(MSG_INFO, "\n");
+
+  exit(1);
+}
+
+
 /*
  * main routine
  */
@@ -874,18 +903,18 @@ int main(int argc, char * argv [])
     }
   }
 
-  avrdude_message(MSG_NOTICE, "\n");
-
   if (partdesc) {
     if (strcmp(partdesc, "?") == 0) {
-      PROGRAMMER *pgm = programmer? locate_programmer(programmers, programmer): NULL;
-      int pm = pgm? pgm->prog_modes: ~0;
-      avrdude_message(MSG_INFO, "\n");
-      if(pgm)
-        avrdude_message(MSG_INFO, "Valid parts for programmer %s are:\n", programmer);
-      else
-        avrdude_message(MSG_INFO, "Valid parts are:\n");
-      list_parts(stderr, "  ", part_list, pm);
+      if(programmer && *programmer) {
+        PROGRAMMER *pgm = locate_programmer(programmers, programmer);
+        if(!pgm)
+          exit_programmer_not_found(programmer);
+        avrdude_message(MSG_INFO, "\nValid parts for programmer %s are:\n", programmer);
+        list_parts(stderr, "  ", part_list, pgm->prog_modes);
+      } else {
+        avrdude_message(MSG_INFO, "\nValid parts are:\n");
+        list_parts(stderr, "  ", part_list, ~0);
+      }
       avrdude_message(MSG_INFO, "\n");
       exit(1);
     }
@@ -893,53 +922,41 @@ int main(int argc, char * argv [])
 
   if (programmer) {
     if (strcmp(programmer, "?") == 0) {
-      AVRPART *p = partdesc? locate_part(part_list, partdesc): NULL;
-      int pm = p? p->prog_modes: ~0;
-
-      avrdude_message(MSG_INFO, "\n");
-      if(p)
-        avrdude_message(MSG_INFO, "Valid programmers for part %s are:\n", p->desc);
-      else
-        avrdude_message(MSG_INFO, "Valid programmers are:\n");
-      list_programmers(stderr, "  ", programmers, pm);
+      if(partdesc && *partdesc) {
+        AVRPART *p = locate_part(part_list, partdesc);
+        if(!p)
+          exit_part_not_found(partdesc);
+        avrdude_message(MSG_INFO, "\nValid programmers for part %s are:\n", p->desc);
+        list_programmers(stderr, "  ", programmers, p->prog_modes);
+      }  else {
+        avrdude_message(MSG_INFO, "\nValid programmers are:\n");
+        list_programmers(stderr, "  ", programmers, ~0);
+      }
       avrdude_message(MSG_INFO, "\n");
       exit(1);
     }
+
     if (strcmp(programmer, "?type") == 0) {
-      avrdude_message(MSG_INFO, "\n");
-      avrdude_message(MSG_INFO, "Valid programmer types are:\n");
+      avrdude_message(MSG_INFO, "\nValid programmer types are:\n");
       list_programmer_types(stderr, "  ");
       avrdude_message(MSG_INFO, "\n");
       exit(1);
     }
   }
 
+  avrdude_message(MSG_NOTICE, "\n");
 
-  if (programmer[0] == 0) {
-    avrdude_message(MSG_INFO, "\n%s: no programmer has been specified on the command line "
-                    "or the config file\n",
-                    progname);
-    avrdude_message(MSG_INFO, "%sSpecify a programmer using the -c option and try again\n\n",
-                    progbuf);
-    exit(1);
-  }
+  if (!programmer || !*programmer)
+    exit_programmer_not_found(NULL);
 
   pgm = locate_programmer(programmers, programmer);
-  if (pgm == NULL) {
-    avrdude_message(MSG_INFO, "\n");
-    avrdude_message(MSG_INFO, "%s: Can't find programmer id \"%s\"\n",
-                    progname, programmer);
-    avrdude_message(MSG_INFO, "\nValid programmers are:\n");
-    list_programmers(stderr, "  ", programmers, ~0);
-    avrdude_message(MSG_INFO, "\n");
-    exit(1);
-  }
+  if (pgm == NULL)
+    exit_programmer_not_found(programmer);
 
   if (pgm->initpgm) {
     pgm->initpgm(pgm);
   } else {
-    avrdude_message(MSG_INFO, "\n%s: Can't initialize the programmer.\n\n",
-                    progname);
+    avrdude_message(MSG_INFO, "\n%s: cannot initialize the programmer\n\n", progname);
     exit(1);
   }
 
@@ -988,24 +1005,12 @@ int main(int argc, char * argv [])
   }
 
 
-  if (partdesc == NULL) {
-    avrdude_message(MSG_INFO, "%s: No AVR part has been specified, use \"-p Part\"\n\n",
-                    progname);
-    avrdude_message(MSG_INFO, "Valid parts are:\n");
-    list_parts(stderr, "  ", part_list, ~0);
-    avrdude_message(MSG_INFO, "\n");
-    exit(1);
-  }
+  if (partdesc == NULL)
+    exit_part_not_found(NULL);
 
   p = locate_part(part_list, partdesc);
-  if (p == NULL) {
-    avrdude_message(MSG_INFO, "%s: AVR Part \"%s\" not found.\n\n",
-                    progname, partdesc);
-    avrdude_message(MSG_INFO, "Valid parts are:\n");
-    list_parts(stderr, "  ", part_list, ~0);
-    avrdude_message(MSG_INFO, "\n");
-    exit(1);
-  }
+  if (p == NULL)
+    exit_part_not_found(partdesc);
 
   if (exitspecs != NULL) {
     if (pgm->parseexitspecs == NULL) {
