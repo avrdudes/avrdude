@@ -86,13 +86,13 @@ static int linuxspi_spi_duplex(const PROGRAMMER *pgm, const unsigned char *tx, u
         .rx_buf = (unsigned long)rx,
         .len = len,
         .delay_usecs = 1,
-	.speed_hz = 1.0 / pgm->bitclock, // seconds to Hz
+        .speed_hz = 1.0 / pgm->bitclock,
         .bits_per_word = 8,
     };
 
     ret = ioctl(fd_spidev, SPI_IOC_MESSAGE(1), &tr);
     if (ret != len)
-        avrdude_message(MSG_INFO, "\n%s: error: Unable to send SPI message\n", progname);
+        avrdude_message(MSG_INFO, "\n%s: error, unable to send SPI message\n", progname);
 
     return (ret == -1) ? -1 : 0;
 }
@@ -127,7 +127,7 @@ static int linuxspi_reset_mcu(const PROGRAMMER *pgm, bool active) {
 #endif
     if (ret == -1) {
         ret = -errno;
-        avrdude_message(MSG_INFO, "%s error: Unable to set GPIO line %d value\n",
+        avrdude_message(MSG_INFO, "%s: error, unable to set GPIO line %d value\n",
                         progname, pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE);
         return ret;
     }
@@ -137,8 +137,8 @@ static int linuxspi_reset_mcu(const PROGRAMMER *pgm, bool active) {
 
 static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     const char *port_error =
-      "%s: error: Unknown port specification. "
-      "Please use the format /dev/spidev:/dev/gpiochip[:resetno]\n";
+      "%s: error, unknown port specification; "
+      "please use the format /dev/spidev:/dev/gpiochip[:resetno]\n";
     char port_default[] = "/dev/spidev0.0:/dev/gpiochip0";
     char *spidev, *gpiochip, *reset_pin;
     char *port = cfg_strdup("linuxspi_open()", pt);
@@ -169,7 +169,7 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     strcpy(pgm->port, port);
     fd_spidev = open(pgm->port, O_RDWR);
     if (fd_spidev < 0) {
-        avrdude_message(MSG_INFO, "\n%s: error: Unable to open the spidev device %s", progname, pgm->port);
+        avrdude_message(MSG_INFO, "\n%s: error, unable to open the spidev device %s", progname, pgm->port);
         return -1;
     }
 
@@ -180,7 +180,7 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     ret = ioctl(fd_spidev, SPI_IOC_WR_MODE32, &mode);
     if (ret == -1) {
         int ioctl_errno = errno;
-        avrdude_message(MSG_INFO, "%s: error: Unable to set SPI mode %0X on %s\n",
+        avrdude_message(MSG_INFO, "%s: error, unable to set SPI mode %02X on %s\n",
                         progname, mode, spidev);
         if(ioctl_errno == EINVAL || !PDATA(pgm)->disable_no_cs)
             avrdude_message(MSG_INFO, "%s: try -x disable_no_cs\n", progname);
@@ -188,7 +188,7 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     }
     fd_gpiochip = open(gpiochip, 0);
     if (fd_gpiochip < 0) {
-        avrdude_message(MSG_INFO, "\n%s error: Unable to open the gpiochip %s", progname, gpiochip);
+        avrdude_message(MSG_INFO, "\n%s: error, unable to open the gpiochip %s", progname, gpiochip);
         ret = -1;
         goto close_spidev;
     }
@@ -223,7 +223,7 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
 #endif
     if (ret == -1) {
         ret = -errno;
-        avrdude_message(MSG_INFO, "%s error: Unable to get GPIO line %d\n",
+        avrdude_message(MSG_INFO, "%s: error, unable to get GPIO line %d\n",
                         progname, pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE);
         goto close_gpiochip;
     }
@@ -234,14 +234,13 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
 
     if (pgm->baudrate != 0) {
       avrdude_message(MSG_INFO,
-		      "%s: obsolete use of -b <clock> option for bit clock; use -B <clock>\n",
-		      progname);
+        "%s: obsolete use of -b <clock> option for bit clock; use -B <clock>\n",
+        progname);
       pgm->bitclock = 1.0 / pgm->baudrate;
     }
     if (pgm->bitclock == 0) {
       avrdude_message(MSG_NOTICE,
-		      "%s: defaulting bit clock to 200 kHz\n",
-		      progname);
+         "%s: defaulting bit clock to 200 kHz\n", progname);
       pgm->bitclock = 5E-6; // 200 kHz - 5 µs
     }
 
@@ -289,7 +288,7 @@ static int linuxspi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
     if (p->prog_modes & PM_TPI) {
         /* We do not support TPI. This is a dedicated SPI thing */
-        avrdude_message(MSG_INFO, "%s: error: Programmer " LINUXSPI " does not support TPI\n", progname);
+        avrdude_message(MSG_INFO, "%s: error, programmer " LINUXSPI " does not support TPI\n", progname);
         return -1;
     }
 
@@ -303,7 +302,7 @@ static int linuxspi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     } while(tries++ < 65);
 
     if (ret)
-        avrdude_message(MSG_INFO, "%s: error: AVR device not responding\n", progname);
+        avrdude_message(MSG_INFO, "%s: error, AVR device not responding\n", progname);
 
     return ret;
 }
@@ -317,7 +316,7 @@ static int linuxspi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned char cmd[4], res[4];
 
     if (!p->op[AVR_OP_PGM_ENABLE]) {
-        avrdude_message(MSG_INFO, "%s: error: program enable instruction not defined for part \"%s\"\n", progname, p->desc);
+        avrdude_message(MSG_INFO, "%s: error, program enable instruction not defined for part %s\n", progname, p->desc);
         return -1;
     }
 
@@ -360,7 +359,7 @@ static int linuxspi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned char cmd[4], res[4];
 
     if (!p->op[AVR_OP_CHIP_ERASE]) {
-        avrdude_message(MSG_INFO, "%s: error: chip erase instruction not defined for part \"%s\"\n", progname, p->desc);
+        avrdude_message(MSG_INFO, "%s: error, chip erase instruction not defined for part %s\n", progname, p->desc);
         return -1;
     }
 
