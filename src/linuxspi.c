@@ -65,8 +65,7 @@
 /*
  * Private data for this programmer.
  */
-struct pdata
-{
+struct pdata {
   int disable_no_cs;
 };
 
@@ -99,12 +98,7 @@ static int linuxspi_spi_duplex(const PROGRAMMER *pgm, const unsigned char *tx, u
 }
 
 static void linuxspi_setup(PROGRAMMER *pgm) {
-  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    avrdude_message(MSG_INFO, "%s: linuxspi_setup(): Out of memory allocating private data\n",
-                    progname);
-    exit(1);
-  }
-  memset(pgm->cookie, 0, sizeof(struct pdata));
+  pgm->cookie = cfg_malloc("linuxspi_setup()", sizeof(struct pdata));
 }
 
 static void linuxspi_teardown(PROGRAMMER* pgm) {
@@ -180,18 +174,16 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     }
 
     uint32_t mode = SPI_MODE_0;
-    if (!PDATA(pgm)->disable_no_cs) {
+    if (!PDATA(pgm)->disable_no_cs)
         mode |= SPI_NO_CS;
-    }
+
     ret = ioctl(fd_spidev, SPI_IOC_WR_MODE32, &mode);
     if (ret == -1) {
         int ioctl_errno = errno;
         avrdude_message(MSG_INFO, "%s: error: Unable to set SPI mode %0X on %s\n",
                         progname, mode, spidev);
-        if(ioctl_errno == EINVAL || !PDATA(pgm)->disable_no_cs) {
-            avrdude_message(MSG_NOTICE, "%s: Try \"-x disable_no_cs\" option\n",
-                            progname);
-        }
+        if(ioctl_errno == EINVAL || !PDATA(pgm)->disable_no_cs)
+            avrdude_message(MSG_INFO, "%s: try -x disable_no_cs\n", progname);
         goto close_spidev;
     }
     fd_gpiochip = open(gpiochip, 0);
