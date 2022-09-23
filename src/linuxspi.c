@@ -90,11 +90,16 @@ static int linuxspi_spi_duplex(const PROGRAMMER *pgm, const unsigned char *tx, u
         .bits_per_word = 8,
     };
 
+    errno = 0;
     ret = ioctl(fd_spidev, SPI_IOC_MESSAGE(1), &tr);
-    if (ret != len)
-        avrdude_message(MSG_INFO, "\n%s: error, unable to send SPI message\n", progname);
+    if (ret != len) {
+        avrdude_message(MSG_INFO, "\n%s: unable to send SPI message", progname);
+        if (errno)
+            avrdude_message(MSG_INFO, ". %s", strerror(errno));
+        avrdude_message(MSG_INFO, "\n");
+    }
 
-    return (ret == -1) ? -1 : 0;
+    return ret == -1? -1: 0;
 }
 
 static void linuxspi_setup(PROGRAMMER *pgm) {
@@ -127,8 +132,8 @@ static int linuxspi_reset_mcu(const PROGRAMMER *pgm, bool active) {
 #endif
     if (ret == -1) {
         ret = -errno;
-        avrdude_message(MSG_INFO, "%s: error, unable to set GPIO line %d value\n",
-                        progname, pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE);
+        avrdude_message(MSG_INFO, "%s: unable to set GPIO line %d value. %s\n",
+            progname, pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE, strerror(errno));
         return ret;
     }
 
@@ -169,7 +174,8 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     strcpy(pgm->port, port);
     fd_spidev = open(pgm->port, O_RDWR);
     if (fd_spidev < 0) {
-        avrdude_message(MSG_INFO, "\n%s: error, unable to open the spidev device %s", progname, pgm->port);
+        avrdude_message(MSG_INFO, "\n%s: unable to open the spidev device %s. %s",
+            progname, pgm->port, strerror(errno));
         return -1;
     }
 
@@ -180,15 +186,16 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     ret = ioctl(fd_spidev, SPI_IOC_WR_MODE32, &mode);
     if (ret == -1) {
         int ioctl_errno = errno;
-        avrdude_message(MSG_INFO, "%s: error, unable to set SPI mode %02X on %s\n",
-                        progname, mode, spidev);
-        if(ioctl_errno == EINVAL || !PDATA(pgm)->disable_no_cs)
+        avrdude_message(MSG_INFO, "%s: unable to set SPI mode %02X on %s. %s\n",
+            progname, mode, spidev, strerror(errno));
+        if(ioctl_errno == EINVAL && !PDATA(pgm)->disable_no_cs)
             avrdude_message(MSG_INFO, "%s: try -x disable_no_cs\n", progname);
         goto close_spidev;
     }
     fd_gpiochip = open(gpiochip, 0);
     if (fd_gpiochip < 0) {
-        avrdude_message(MSG_INFO, "\n%s: error, unable to open the gpiochip %s", progname, gpiochip);
+        avrdude_message(MSG_INFO, "\n%s: unable to open the gpiochip %s. %s\n",
+            progname, gpiochip, strerror(errno));
         ret = -1;
         goto close_spidev;
     }
@@ -223,8 +230,8 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
 #endif
     if (ret == -1) {
         ret = -errno;
-        avrdude_message(MSG_INFO, "%s: error, unable to get GPIO line %d\n",
-                        progname, pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE);
+        avrdude_message(MSG_INFO, "%s: unable to get GPIO line %d. %s\n",
+            progname, pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE, strerror(errno));
         goto close_gpiochip;
     }
 
@@ -233,15 +240,15 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
         goto close_out;
 
     if (pgm->baudrate != 0) {
-      avrdude_message(MSG_INFO,
-        "%s: obsolete use of -b <clock> option for bit clock; use -B <clock>\n",
-        progname);
+        avrdude_message(MSG_INFO,
+            "%s: obsolete use of -b <clock> option for bit clock; use -B <clock>\n",
+            progname);
       pgm->bitclock = 1.0 / pgm->baudrate;
     }
     if (pgm->bitclock == 0) {
-      avrdude_message(MSG_NOTICE,
-         "%s: defaulting bit clock to 200 kHz\n", progname);
-      pgm->bitclock = 5E-6; // 200 kHz - 5 µs
+        avrdude_message(MSG_NOTICE,
+            "%s: defaulting bit clock to 200 kHz\n", progname);
+        pgm->bitclock = 5E-6; // 200 kHz - 5 µs
     }
 
     return 0;
@@ -408,8 +415,7 @@ static int linuxspi_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
     }
 
     avrdude_message(MSG_INFO, "%s: linuxspi_parseextparams(): "
-                    "invalid extended parameter '%s'\n",
-                    progname, extended_param);
+        "invalid extended parameter '%s'\n", progname, extended_param);
     rc = -1;
   }
 
