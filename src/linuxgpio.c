@@ -299,23 +299,26 @@ static int linuxgpio_open(PROGRAMMER *pgm, char *port)
 
         /* Write direction, looping in case of EACCES errors due to delayed
          * udev permission rule application after export */
-        for (retry_count = GPIO_SYSFS_OPEN_RETRIES; retry_count > 0; retry_count--) {
+        for (retry_count = 0; retry_count < GPIO_SYSFS_OPEN_RETRIES; retry_count++) {
             usleep(GPIO_SYSFS_OPEN_DELAY);
             if (i == PIN_AVR_MISO)
                 r=linuxgpio_dir_in(pin);
             else
                 r=linuxgpio_dir_out(pin);
 
-            if (r >= 0) {
+            if (r >= 0)
                 break;
-            } else if (errno != EACCES) {
+
+            if (errno != EACCES) {
                 linuxgpio_unexport(pin);
                 return r;
             }
-            if (retry_count > 1) {
-                printf("Retrying...\n");
-            }
         }
+
+        if (retry_count)
+            avrdude_message(MSG_NOTICE2, "%s: needed %d retr%s for linuxgpio_dir_%s(%s)\n",
+                progname, retry_count, retry_count > 1? "ies": "y",
+                i == PIN_AVR_MISO? "in": "out", avr_pin_name(pin));
 
         if (r < 0) {
             linuxgpio_unexport(pin);
