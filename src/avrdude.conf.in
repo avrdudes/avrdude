@@ -1459,6 +1459,38 @@ programmer
 ;
 
 #------------------------------------------------------------
+# arduino_gemma
+#------------------------------------------------------------
+
+# https://github.com/arduino/ArduinoCore-avr/tree/master/bootloaders/gemma
+
+programmer
+    id                     = "arduino_gemma";
+    desc                   = "Arduino Gemma bootloader disguised as USBtiny";
+    type                   = "usbtiny";
+    prog_modes             = PM_SPM;
+    connection_type        = usb;
+    usbvid                 = 0x2341;
+    usbpid                 = 0x0c9f;
+;
+
+#------------------------------------------------------------
+# adafruit_gemma
+#------------------------------------------------------------
+
+# https://github.com/adafruit/Adafruit-Trinket-Gemma-Bootloader
+
+programmer
+    id                     = "adafruit_gemma";
+    desc                   = "Adafruit Trinket Gemma bootloader disguised as USBtiny";
+    type                   = "usbtiny";
+    prog_modes             = PM_SPM;
+    connection_type        = usb;
+    usbvid                 = 0x1781;
+    usbpid                 = 0x0c9f;
+;
+
+#------------------------------------------------------------
 # arduinoisp
 #------------------------------------------------------------
 
