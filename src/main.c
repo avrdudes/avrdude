@@ -130,39 +130,122 @@ static void usage(void)
  "  -q                         Quell progress output. -q -q for less.\n"
  "  -l logfile                 Use logfile rather than stderr for diagnostics.\n"
  "  -?                         Display this usage.\n"
- "\navrdude version %s, URL: <https://github.com/avrdudes/avrdude>\n"
-          ,progname, version);
+ "\navrdude version %s, URL: <https://github.com/avrdudes/avrdude>\n",
+    progname, version);
 }
 
 
-static void list_programmers_callback(const char *name, const char *desc,
-                                      const char *cfgname, int cfglineno,
-                                      void *cookie)
-{
-    struct list_walk_cookie *c = (struct list_walk_cookie *)cookie;
+static char *via_prog_modes(int pm) {
+  static char type[1024];
 
-    if (*name == 0 || *name == '.')
-       return;
+  strcpy(type, "?");
+  if(pm & PM_SPM)
+    strcat(type, ", bootloader");
+  if(pm & PM_TPI)
+    strcat(type, ", TPI");
+  if(pm & PM_ISP)
+    strcat(type, ", ISP");
+  if(pm & PM_PDI)
+    strcat(type, ", PDI");
+  if(pm & PM_UPDI)
+    strcat(type, ", UPDI");
+  if(pm & PM_HVSP)
+    strcat(type, ", HVSP");
+  if(pm & PM_HVPP)
+    strcat(type, ", HVPP");
+  if(pm & PM_debugWIRE)
+    strcat(type, ", debugWIRE");
+  if(pm & PM_JTAG)
+    strcat(type, ", JTAG");
+  if(pm & PM_JTAGmkI)
+    strcat(type, ", JTAGmkI");
+  if(pm & PM_XMEGAJTAG)
+    strcat(type, ", XMEGAJTAG");
+  if(pm & PM_AVR32JTAG)
+    strcat(type, ", AVR32JTAG");
+  if(pm & PM_aWire)
+    strcat(type, ", aWire");
 
-    if (verbose){
-        fprintf(c->f, "%s%-16s = %-30s [%s:%d]\n",
-                c->prefix, name, desc, cfgname, cfglineno);
-    } else {
-        fprintf(c->f, "%s%-16s = %-s\n",
-                c->prefix, name, desc);
+  return type + (type[1] == 0? 0: 3);
+}
+
+
+// Potentially shorten copy of prog description if it's the suggested mode
+static void pmshorten(char *desc, const char *modes) {
+  struct { const char *end, *mode; } pairs[] = {
+    {" in parallel programming mode", "HVPP"},
+    {" in PP mode", "HVPP"},
+    {" in high-voltage serial programming mode", "HVSP"},
+    {" in HVSP mode", "HVSP"},
+    {" in ISP mode", "ISP"},
+    {" in debugWire mode", "debugWIRE"},
+    {" in AVR32 mode", "aWire"},
+    {" in PDI mode", "PDI"},
+    {" in UPDI mode", "UPDI"},
+    {" in JTAG mode", "JTAG"},
+    {" in JTAG mode", "JTAGmkI"},
+    {" in JTAG mode", "XMEGAJTAG"},
+    {" in JTAG mode", "AVR32JTAG"},
+    {" for bootloader", "bootloader"},
+  };
+  size_t len = strlen(desc);
+
+  for(size_t i=0; i<sizeof pairs/sizeof*pairs; i++) {
+    size_t elen = strlen(pairs[i].end);
+    if(len > elen && strcasecmp(desc+len-elen, pairs[i].end) == 0 && strcmp(modes, pairs[i].mode) == 0) {
+      desc[len-elen] = 0;
+      break;
     }
+  }
 }
 
-static void list_programmers(FILE * f, const char *prefix, LISTID programmers)
-{
-    struct list_walk_cookie c;
+static void list_programmers(FILE *f, const char *prefix, LISTID programmers, int pm) {
+  LNODEID ln1;
+  LNODEID ln2;
+  PROGRAMMER *pgm;
+  int maxlen=0, len;
 
-    c.f = f;
-    c.prefix = prefix;
+  sort_programmers(programmers);
 
-    sort_programmers(programmers);
+  // Compute max length of programmer names
+  for(ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
+    pgm = ldata(ln1);
+    for(ln2=lfirst(pgm->id); ln2; ln2=lnext(ln2))
+      if(!pm || !pgm->prog_modes || (pm & pgm->prog_modes)) {
+        const char *id = ldata(ln2);
+        if(*id == 0 || *id == '.')
+          continue;
+        if((len = strlen(id)) > maxlen)
+          maxlen = len;
+      }
+  }
 
-    walk_programmers(programmers, list_programmers_callback, &c);
+  for(ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
+    pgm = ldata(ln1);
+    for(ln2=lfirst(pgm->id); ln2; ln2=lnext(ln2)) {
+      // List programmer if pm or prog_modes uninitialised or if they are compatible otherwise
+      if(!pm || !pgm->prog_modes || (pm & pgm->prog_modes)) {
+        const char *id = ldata(ln2);
+        char *desc = cfg_strdup("list_programmers()", pgm->desc);
+        const char *modes = via_prog_modes(pm & pgm->prog_modes);
+
+        if(pm != ~0)
+          pmshorten(desc, modes);
+
+        if(*id == 0 || *id == '.')
+          continue;
+        if(verbose)
+          fprintf(f, "%s%-*s = %-30s [%s:%d]", prefix, maxlen, id, desc, pgm->config_file, pgm->lineno);
+        else
+          fprintf(f, "%s%-*s = %-s", prefix, maxlen, id, desc);
+        if(pm != ~0)
+          fprintf(f, " via %s",  modes);
+        fprintf(f, "\n");
+
+        free(desc);
+      }
+    }
+  }
 }
 
 static void list_programmer_types_callback(const char *name, const char *desc,
@@ -183,35 +266,42 @@ static void list_programmer_types(FILE * f, const char *prefix)
     walk_programmer_types(list_programmer_types_callback, &c);
 }
 
-static void list_avrparts_callback(const char *name, const char *desc,
-                                   const char *cfgname, int cfglineno,
-                                   void *cookie)
-{
-    struct list_walk_cookie *c = (struct list_walk_cookie *)cookie;
 
-    /* hide ids starting with '.' */
-    if ((verbose < 2) && (name[0] == '.'))
-        return;
+static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
+  LNODEID ln1;
+  AVRPART *p;
+  int maxlen=0, len;
 
-    if (verbose) {
-        fprintf(c->f, "%s%-8s = %-18s [%s:%d]\n",
-                c->prefix, name, desc, cfgname, cfglineno);
-    } else {
-        fprintf(c->f, "%s%-8s = %s\n",
-                c->prefix, name, desc);
+  sort_avrparts(avrparts);
+
+  // Compute max length of part names
+  for(ln1 = lfirst(avrparts); ln1; ln1 = lnext(ln1)) {
+    p = ldata(ln1);
+    // List part if pm or prog_modes uninitialised or if they are compatible otherwise
+    if(!pm || !p->prog_modes || (pm & p->prog_modes)) {
+      if((verbose < 2) && (p->id[0] == '.')) // hide ids starting with '.'
+        continue;
+      if((len = strlen(p->id)) > maxlen)
+        maxlen = len;
     }
-}
+  }
 
-static void list_parts(FILE * f, const char *prefix, LISTID avrparts)
-{
-    struct list_walk_cookie c;
 
-    c.f = f;
-    c.prefix = prefix;
-
-    sort_avrparts(avrparts);
-
-    walk_avrparts(avrparts, list_avrparts_callback, &c);
+  for(ln1 = lfirst(avrparts); ln1; ln1 = lnext(ln1)) {
+    p = ldata(ln1);
+    // List part if pm or prog_modes uninitialised or if they are compatible otherwise
+    if(!pm || !p->prog_modes || (pm & p->prog_modes)) {
+      if((verbose < 2) && (p->id[0] == '.')) // hide ids starting with '.'
+        continue;
+      if(verbose)
+        fprintf(f, "%s%-*s = %-18s [%s:%d]", prefix, maxlen, p->id, p->desc, p->config_file, p->lineno);
+      else
+        fprintf(f, "%s%-*s = %s", prefix, maxlen, p->id, p->desc);
+      if(pm != ~0)
+        fprintf(f, " via %s",  via_prog_modes(pm & p->prog_modes));
+      fprintf(f, "\n");
+    }
+  }
 }
 
 static void exithook(void)
@@ -254,6 +344,35 @@ static int dev_opt(char *str) {
     !str? 0:
     !strcmp(str, "*") || !strncmp(str, "*/", 2)? 2:
     !!strchr(str, '/');
+}
+
+
+static void exit_programmer_not_found(const char *programmer) {
+  if(programmer && *programmer)
+    avrdude_message(MSG_INFO, "\n%s: cannot find programmer id %s\n", progname, programmer);
+  else
+    avrdude_message(MSG_INFO, "\n%s: no programmer has been specified on the command line "
+      "or in the\n%sconfig file; specify one using the -c option and try again\n",
+        progname, progbuf);
+
+  avrdude_message(MSG_INFO, "\nValid programmers are:\n");
+  list_programmers(stderr, "  ", programmers, ~0);
+  avrdude_message(MSG_INFO, "\n");
+
+  exit(1);
+}
+
+static void exit_part_not_found(const char *partdesc) {
+  if(partdesc && *partdesc)
+    avrdude_message(MSG_INFO, "\n%s: AVR part %s not found\n", progname, partdesc);
+  else
+    avrdude_message(MSG_INFO, "\n%s: no AVR part has been specified; use -p part\n", progname);
+
+  avrdude_message(MSG_INFO, "\nValid parts are:\n");
+  list_parts(stderr, "  ", part_list, ~0);
+  avrdude_message(MSG_INFO, "\n");
+
+  exit(1);
 }
 
 
@@ -773,13 +892,29 @@ int main(int argc, char * argv [])
     exit(0);
   }
 
-  avrdude_message(MSG_NOTICE, "\n");
+  for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1)) {
+    AVRPART *p = ldata(ln1);
+    for(LNODEID ln2 = lfirst(programmers); ln2; ln2 = lnext(ln2)) {
+      PROGRAMMER *pgm = ldata(ln2);
+      int pm = pgm->prog_modes & p->prog_modes;
+      if(pm & (pm-1))
+        avrdude_message(MSG_INFO, "%s warning: %s and %s share multiple modes (%s)\n",
+          progname, pgm->id? ldata(lfirst(pgm->id)): "???", p->desc, via_prog_modes(pm));
+    }
+  }
 
   if (partdesc) {
     if (strcmp(partdesc, "?") == 0) {
-      avrdude_message(MSG_INFO, "\n");
-      avrdude_message(MSG_INFO, "Valid parts are:\n");
-      list_parts(stderr, "  ", part_list);
+      if(programmer && *programmer) {
+        PROGRAMMER *pgm = locate_programmer(programmers, programmer);
+        if(!pgm)
+          exit_programmer_not_found(programmer);
+        avrdude_message(MSG_INFO, "\nValid parts for programmer %s are:\n", programmer);
+        list_parts(stderr, "  ", part_list, pgm->prog_modes);
+      } else {
+        avrdude_message(MSG_INFO, "\nValid parts are:\n");
+        list_parts(stderr, "  ", part_list, ~0);
+      }
       avrdude_message(MSG_INFO, "\n");
       exit(1);
     }
@@ -787,47 +922,41 @@ int main(int argc, char * argv [])
 
   if (programmer) {
     if (strcmp(programmer, "?") == 0) {
-      avrdude_message(MSG_INFO, "\n");
-      avrdude_message(MSG_INFO, "Valid programmers are:\n");
-      list_programmers(stderr, "  ", programmers);
+      if(partdesc && *partdesc) {
+        AVRPART *p = locate_part(part_list, partdesc);
+        if(!p)
+          exit_part_not_found(partdesc);
+        avrdude_message(MSG_INFO, "\nValid programmers for part %s are:\n", p->desc);
+        list_programmers(stderr, "  ", programmers, p->prog_modes);
+      }  else {
+        avrdude_message(MSG_INFO, "\nValid programmers are:\n");
+        list_programmers(stderr, "  ", programmers, ~0);
+      }
       avrdude_message(MSG_INFO, "\n");
       exit(1);
     }
+
     if (strcmp(programmer, "?type") == 0) {
-      avrdude_message(MSG_INFO, "\n");
-      avrdude_message(MSG_INFO, "Valid programmer types are:\n");
+      avrdude_message(MSG_INFO, "\nValid programmer types are:\n");
       list_programmer_types(stderr, "  ");
       avrdude_message(MSG_INFO, "\n");
       exit(1);
     }
   }
 
+  avrdude_message(MSG_NOTICE, "\n");
 
-  if (programmer[0] == 0) {
-    avrdude_message(MSG_INFO, "\n%s: no programmer has been specified on the command line "
-                    "or the config file\n",
-                    progname);
-    avrdude_message(MSG_INFO, "%sSpecify a programmer using the -c option and try again\n\n",
-                    progbuf);
-    exit(1);
-  }
+  if (!programmer || !*programmer)
+    exit_programmer_not_found(NULL);
 
   pgm = locate_programmer(programmers, programmer);
-  if (pgm == NULL) {
-    avrdude_message(MSG_INFO, "\n");
-    avrdude_message(MSG_INFO, "%s: Can't find programmer id \"%s\"\n",
-                    progname, programmer);
-    avrdude_message(MSG_INFO, "\nValid programmers are:\n");
-    list_programmers(stderr, "  ", programmers);
-    avrdude_message(MSG_INFO, "\n");
-    exit(1);
-  }
+  if (pgm == NULL)
+    exit_programmer_not_found(programmer);
 
   if (pgm->initpgm) {
     pgm->initpgm(pgm);
   } else {
-    avrdude_message(MSG_INFO, "\n%s: Can't initialize the programmer.\n\n",
-                    progname);
+    avrdude_message(MSG_INFO, "\n%s: cannot initialize the programmer\n\n", progname);
     exit(1);
   }
 
@@ -876,24 +1005,12 @@ int main(int argc, char * argv [])
   }
 
 
-  if (partdesc == NULL) {
-    avrdude_message(MSG_INFO, "%s: No AVR part has been specified, use \"-p Part\"\n\n",
-                    progname);
-    avrdude_message(MSG_INFO, "Valid parts are:\n");
-    list_parts(stderr, "  ", part_list);
-    avrdude_message(MSG_INFO, "\n");
-    exit(1);
-  }
+  if (partdesc == NULL)
+    exit_part_not_found(NULL);
 
   p = locate_part(part_list, partdesc);
-  if (p == NULL) {
-    avrdude_message(MSG_INFO, "%s: AVR Part \"%s\" not found.\n\n",
-                    progname, partdesc);
-    avrdude_message(MSG_INFO, "Valid parts are:\n");
-    list_parts(stderr, "  ", part_list);
-    avrdude_message(MSG_INFO, "\n");
-    exit(1);
-  }
+  if (p == NULL)
+    exit_part_not_found(partdesc);
 
   if (exitspecs != NULL) {
     if (pgm->parseexitspecs == NULL) {

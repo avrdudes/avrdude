@@ -301,10 +301,16 @@ need to be specified to
 .Nm avrdude .
 .Bl -tag -offset indent -width indent
 .It Fl p Ar partno
-This is the only option that is mandatory for every invocation of
-.Nm avrdude .
-It specifies the type of the MCU connected to the programmer.  These are read from the config file.
-For currently supported MCU types use ? as partno, this will print a list of partno ids and official part names on the terminal. (Both can be used with the -p option.)
+This option specifies the MCU connected to the programmer. The MCU
+descriptions are read from the config file. For currently supported MCUs use
+? as partno, which will print a list of partno ids and official part names.
+Both can be used with the -p option. If -p ? is specified with a specific
+programmer, see -c below, then only those parts are output that the
+programmer expects to be able to handle, together with the programming
+interface(s) that can be used in that combination. In reality there can be
+deviations from this list, particularly if programming is directly via a
+bootloader.
+
 .Pp
 Following parts need special attention:
 .Bl -tag -width "ATmega1234"
@@ -357,6 +363,11 @@ file to assign a default programmer to keep from having to specify
 this option on every invocation.
 A full list of all supported programmers is output to the terminal 
 by using ? as programmer-id.
+If -c ? is specified with a specific part, see
+-p above, then only those programmers are output that expect
+to be able to handle this part, together with the programming interface(s) that can be
+used in that combination. In reality there can be deviations from this list,
+particularly if programming is directly via a bootloader.
 .It Fl C Ar config-file
 Use the specified config file to load configuration data.  This file
 contains all programmer and part definitions that

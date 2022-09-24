@@ -1316,7 +1316,7 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   LNODEID ln;
   AVRMEM * m;
 
-  // FIXME: condition below looks fishy, suspect the code wants !(p->prog_modes & (PM_debugWIRE | PM_JTAG))
+  // FIXME: condition below looks fishy, suspect the code wants !(p->prog_modes & (PM_debugWIRE | PM_JTAG | PM_JTAGmkI /* | PM_XMEGAJTAG | PM_AVR32JTAG */))
   if (p->prog_modes & (PM_PDI | PM_TPI)) {
     avrdude_message(MSG_INFO, "%s: jtag3_initialize(): part %s has no ISP interface\n",
 	    progname, p->desc);

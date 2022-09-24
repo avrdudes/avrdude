@@ -267,6 +267,9 @@ TOKEN *new_constant(const char *con) {
     !strcmp("PM_HVPP", con)? PM_HVPP:
     !strcmp("PM_debugWIRE", con)? PM_debugWIRE:
     !strcmp("PM_JTAG", con)? PM_JTAG:
+    !strcmp("PM_JTAGmkI", con)? PM_JTAGmkI:
+    !strcmp("PM_XMEGAJTAG", con)? PM_XMEGAJTAG:
+    !strcmp("PM_AVR32JTAG", con)? PM_AVR32JTAG:
     !strcmp("PM_aWire", con)? PM_aWire:
     (assigned = 0);
 

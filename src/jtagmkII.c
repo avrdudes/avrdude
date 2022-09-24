@@ -1308,7 +1308,7 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       ok = 1;
   } else {
     ifname = "JTAG";
-    if (p->prog_modes & PM_JTAG)
+    if (p->prog_modes & (PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG))
       ok = 1;
   }
 

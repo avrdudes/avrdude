@@ -53,11 +53,18 @@
 #include "developer_opts.h"
 #include "developer_opts_private.h"
 
-  // Inject part parameters into a semi-automated rewrite of avrdude.conf
-  //  - Add entries to the tables below; they get written on -p*/i
-  //  - Use the output in a new avrdude.conf
-  //  - Output again with -p* (no /i) and use that for final avrdude.conf
-  //  - Remove entries from below tables
+// Inject part parameters into a semi-automated rewrite of avrdude.conf
+//  - Add entries to the tables below; they get written on -p*/si or -c*/si
+//  - Use the output in a new avrdude.conf
+//  - Output again with -p* or -c* (no /i) and use that for final avrdude.conf
+//  - Remove entries from below tables
+
+static struct {
+  const char *pgmid, *var, *value;
+} pgminj[] = {
+  // Add triples here, eg, {"stk500v2", "prog_modes", "PM_TPI|PM_ISP"},
+  {NULL, NULL, NULL},
+};
 
 static struct {
   const char *mcu, *var, *value;
@@ -225,6 +232,12 @@ static char *prog_modes_str(int pm) {
     strcat(type, " | PM_debugWIRE");
   if(pm & PM_JTAG)
     strcat(type, " | PM_JTAG");
+  if(pm & PM_JTAGmkI)
+    strcat(type, " | PM_JTAGmkI");
+  if(pm & PM_XMEGAJTAG)
+    strcat(type, " | PM_XMEGAJTAG");
+  if(pm & PM_AVR32JTAG)
+    strcat(type, " | PM_AVR32JTAG");
   if(pm & PM_aWire)
     strcat(type, " | PM_aWire");
 
@@ -812,7 +825,7 @@ void dev_output_pgm_part(int dev_opt_c, char *programmer, int dev_opt_p, char *p
 }
 
 
-// -p */[dASsrcow*t]
+// -p */[dASsrcow*ti]
 void dev_output_part_defs(char *partdesc) {
   bool cmdok, waits, opspi, descs, astrc, strct, cmpst, injct, raw, all, tsv;
   char *flags;
@@ -1171,7 +1184,7 @@ static const char *connstr(conntype_t conntype) {
   }
 }
 
-static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *base) {
+static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *base, bool injct) {
   char *id = ldata(lfirst(pgm->id));
   LNODEID ln;
   COMMENT *cp;
@@ -1289,6 +1302,14 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
     }
   }
 
+  if(injct)
+    for(size_t i=0; i<sizeof pgminj/sizeof*pgminj; i++)
+      if(pgminj[i].pgmid)
+        for(LNODEID *ln=lfirst(pgm->id); ln; ln=lnext(ln))
+          if(strcmp(pgminj[i].pgmid, ldata(ln)) == 0)
+            dev_part_strct_entry(tsv, ".prog", ldata(ln), NULL,
+              pgminj[i].var, cfg_strdup("pgminj", pgminj[i].value), NULL);
+
   if(!tsv) {
     dev_cout(pgm->comments, ";", 0, 0);
     dev_info(";\n");
@@ -1296,9 +1317,9 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
 }
 
 
-// -c */[ASsrt]
+// -c */[ASsrti]
 void dev_output_pgm_defs(char *pgmid) {
-  bool astrc, strct, cmpst, raw, tsv;
+  bool astrc, strct, cmpst, raw, tsv, injct;
   char *flags;
   int nprinted;
   PROGRAMMER *nullpgm = pgm_new();
@@ -1309,7 +1330,7 @@ void dev_output_pgm_defs(char *pgmid) {
   if(!flags && !strcmp(pgmid, "*")) // Treat -c * as if it was -c */s
     flags = "s";
 
-  if(!*flags || !strchr("ASsrt", *flags)) {
+  if(!*flags || !strchr("ASsrti", *flags)) {
     dev_info("%s: flags for developer option -c <wildcard>/<flags> not recognised\n", progname);
     dev_info(
       "Wildcard examples (these need protecting in the shell through quoting):\n"
@@ -1323,6 +1344,7 @@ void dev_output_pgm_defs(char *pgmid) {
       "       s  show short entries of avrdude.conf programmers using parent\n"
       "       r  show entries of avrdude.conf programmers as raw dump\n"
       "       t  use tab separated values as much as possible\n"
+      "       i  inject assignments from source code table\n"
       "Examples:\n"
       "  $ avrdude -c usbasp/s\n"
       "  $ avrdude -c */st | grep baudrate\n"
@@ -1343,6 +1365,7 @@ void dev_output_pgm_defs(char *pgmid) {
   cmpst = !!strchr(flags, 's');
   raw   = !!strchr(flags, 'r');
   tsv   = !!strchr(flags, 't');
+  injct = !!strchr(flags, 'i');
 
   nprinted = dev_nprinted;
 
@@ -1368,7 +1391,8 @@ void dev_output_pgm_defs(char *pgmid) {
       dev_pgm_strct(pgm, tsv,
         astrc? NULL:
         strct? nullpgm:
-        pgm->parent_id && *pgm->parent_id? locate_programmer(programmers, pgm->parent_id): nullpgm);
+        pgm->parent_id && *pgm->parent_id? locate_programmer(programmers, pgm->parent_id): nullpgm,
+        injct);
 
     if(raw)
       dev_pgm_raw(pgm);

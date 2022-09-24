@@ -1076,7 +1076,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       conn = PARM3_CONN_UPDI;
   } else {
     ifname = "JTAG";
-    if (p->prog_modes & PM_JTAG)
+    if (p->prog_modes & (PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG))
       conn = PARM3_CONN_JTAG;
   }
 
@@ -1376,7 +1376,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   if (use_ext_reset > 1) {
-      if(strcmp(pgm->type, "JTAGICE3") == 0 && (p->prog_modes & PM_JTAG))
+      if(strcmp(pgm->type, "JTAGICE3") == 0 && (p->prog_modes & (PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG)))
         avrdude_message(MSG_INFO, "%s: JTAGEN fuse disabled?\n", progname);
       return -1;
   }
