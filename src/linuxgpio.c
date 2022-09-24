@@ -27,6 +27,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/stat.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -108,7 +109,8 @@ static int linuxgpio_dir(unsigned int gpio, unsigned int dir)
 
   fd = open(buf, O_WRONLY);
   if (fd < 0) {
-    perror("Can't open gpioX/direction");
+    snprintf(buf, sizeof(buf), "Can't open gpio%u/direction", gpio);
+    perror(buf);
     return fd;
   }
 
@@ -137,6 +139,11 @@ static int linuxgpio_dir_in(unsigned int gpio)
  */
 
 #define N_GPIO (PIN_MAX + 1)
+
+/* Delay between checks for successful GPIO export (100ms) */
+#define GPIO_SYSFS_OPEN_DELAY      100000
+/* Number of retries to check for successful GPIO exports */
+#define GPIO_SYSFS_OPEN_RETRIES    10
 
 /*
 * an array which holds open FDs to /sys/class/gpio/gpioXX/value for all needed pins
@@ -235,6 +242,8 @@ static void linuxgpio_powerdown(const PROGRAMMER *pgm) {
 
 static int linuxgpio_open(PROGRAMMER *pgm, const char *port) {
   int r, i, pin;
+  char gpio_path[60];
+  struct stat stat_buf;
 
   if (bitbang_check_prerequisites(pgm) < 0)
     return -1;
@@ -262,13 +271,49 @@ static int linuxgpio_open(PROGRAMMER *pgm, const char *port) {
                     pin, strerror(errno));
             return r;
         }
-        if (i == PIN_AVR_MISO)
-            r=linuxgpio_dir_in(pin);
-        else
-            r=linuxgpio_dir_out(pin);
 
-        if (r < 0)
+        /* Wait until GPIO directory appears */
+        snprintf(gpio_path, sizeof(gpio_path), "/sys/class/gpio/gpio%u", pin);
+        unsigned int retry_count;
+        for (retry_count = 0; retry_count < GPIO_SYSFS_OPEN_RETRIES; retry_count++) {
+            int ret = stat(gpio_path, &stat_buf);
+            if (ret == 0) {
+                break;
+            } else if (ret < 0 && errno != ENOENT) {
+                linuxgpio_unexport(pin);
+                return ret;
+            }
+
+            usleep(GPIO_SYSFS_OPEN_DELAY);
+        }
+
+        /* Write direction, looping in case of EACCES errors due to delayed
+         * udev permission rule application after export */
+        for (retry_count = 0; retry_count < GPIO_SYSFS_OPEN_RETRIES; retry_count++) {
+            usleep(GPIO_SYSFS_OPEN_DELAY);
+            if (i == PIN_AVR_MISO)
+                r=linuxgpio_dir_in(pin);
+            else
+                r=linuxgpio_dir_out(pin);
+
+            if (r >= 0)
+                break;
+
+            if (errno != EACCES) {
+                linuxgpio_unexport(pin);
+                return r;
+            }
+        }
+
+        if (retry_count)
+            avrdude_message(MSG_NOTICE2, "%s: needed %d retr%s for linuxgpio_dir_%s(%s)\n",
+                progname, retry_count, retry_count > 1? "ies": "y",
+                i == PIN_AVR_MISO? "in": "out", avr_pin_name(pin));
+
+        if (r < 0) {
+            linuxgpio_unexport(pin);
             return r;
+        }
 
         if ((linuxgpio_fds[pin]=linuxgpio_openfd(pin)) < 0)
             return linuxgpio_fds[pin];
