@@ -86,6 +86,18 @@ Changes since version 7.0:
       n_page_erase in avrdude.conf.in; add external intelligence
       about AVRs avrintel.[ch] to the project and warn during
       parsing if mcuid is incompatible with it #1091
+    - Fix permission denied error in linuxgpio programmer #917
+    - Add a programmer arduino_gemma for the Arduino Gemma
+      bootloader and another one, adafruit_gemma, for the Adafruit
+      Trinket Gemma bootloader in avrdude.conf; #1093
+    - Add digilent-hs2 programmer in avrdude.conf #1094
+    - Fix dependency chain between avrdude.conf.in and
+      avrdude.conf #1095
+    - Build docs with CMake #1096
+    - New feature so user can print all compatible parts for a
+      programmer using -p\? -c programmer and vice versa #1099
+    - Add extended parameter disable_no_cs for linuxspi programmer
+      #1100
 
   * Internals:
 
