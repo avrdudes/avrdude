@@ -1121,6 +1121,16 @@ specific.
 When not provided, driver/OS default value will be used.
 @end table
 
+@cindex @code{-x} linuxspi
+@item linuxspi
+Extended parameter:
+@table @code
+@item @samp{disable_no_cs}
+Ensures the programmer does not use the SPI_NO_CS bit for the SPI
+driver. This parameter is useful for kernels that do not support
+the CS line being managed outside the application.
+@end table
+
 @end table
 
 @page
