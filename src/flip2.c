@@ -131,6 +131,7 @@ static void flip2_disable(const PROGRAMMER *pgm);
 static void flip2_display(const PROGRAMMER *pgm, const char *prefix);
 static int flip2_program_enable(const PROGRAMMER *pgm, const AVRPART *part);
 static int flip2_chip_erase(const PROGRAMMER *pgm, const AVRPART *part);
+static int flip2_start_app(const PROGRAMMER *pgm);
 static int flip2_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
   unsigned long addr, unsigned char *value);
 static int flip2_write_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
@@ -140,6 +141,7 @@ static int flip2_paged_load(const PROGRAMMER *pgm, const AVRPART *part, const AV
 static int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes);
 static int flip2_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem);
+static int flip2_parseexitspecs(PROGRAMMER* pgm, const char *s);
 static void flip2_setup(PROGRAMMER * pgm);
 static void flip2_teardown(PROGRAMMER * pgm);
 
@@ -187,6 +189,7 @@ void flip2_initpgm(PROGRAMMER *pgm) {
   pgm->read_byte        = flip2_read_byte;
   pgm->write_byte       = flip2_write_byte;
   pgm->read_sig_bytes   = flip2_read_sig_bytes;
+  pgm->parseexitspecs   = flip2_parseexitspecs;
   pgm->setup            = flip2_setup;
   pgm->teardown         = flip2_teardown;
 }
@@ -315,6 +318,9 @@ flip2_initialize_fail:
 void flip2_close(PROGRAMMER* pgm)
 {
   if (FLIP2(pgm)->dfu != NULL) {
+    if (pgm->exit_reset == EXIT_RESET_ENABLED)
+      flip2_start_app(pgm);
+
     dfu_close(FLIP2(pgm)->dfu);
     FLIP2(pgm)->dfu = NULL;
   }
@@ -371,6 +377,22 @@ int flip2_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
     } else
       break;
   }
+
+  return cmd_result;
+}
+
+int flip2_start_app(const PROGRAMMER *pgm) {
+  avrdude_message(MSG_INFO, "%s: Starting application\n", progname);
+
+  struct flip2_cmd cmd = {
+    FLIP2_CMD_GROUP_EXEC, FLIP2_CMD_START_APP, { 0x00, 0, 0, 0 }
+  };
+
+  // queue command
+  int cmd_result = dfu_dnload(FLIP2(pgm)->dfu, &cmd, sizeof(cmd));
+
+  // repeat dnload to actually execute
+  dfu_dnload(FLIP2(pgm)->dfu, &cmd, sizeof(cmd));
 
   return cmd_result;
 }
@@ -487,6 +509,20 @@ int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *
     mem->buf + addr, n_bytes);
 
   return (result == 0) ? n_bytes : -1;
+}
+
+
+// Parse the -E option flag
+int flip2_parseexitspecs(PROGRAMMER* pgm, const char *s) {
+  if (strcmp(s, "reset") == 0) {
+    pgm->exit_reset = EXIT_RESET_ENABLED;
+  } else if (strcmp(s, "noreset") == 0) {
+    pgm->exit_reset = EXIT_RESET_DISABLED;
+  } else {
+    return -1;
+  }
+
+  return 0;
 }
 
 int flip2_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem) {
