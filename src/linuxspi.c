@@ -93,9 +93,10 @@ static int linuxspi_spi_duplex(const PROGRAMMER *pgm, const unsigned char *tx, u
     errno = 0;
     ret = ioctl(fd_spidev, SPI_IOC_MESSAGE(1), &tr);
     if (ret != len) {
+        int ioctl_errno = errno;
         avrdude_message(MSG_INFO, "\n%s: unable to send SPI message", progname);
-        if (errno)
-            avrdude_message(MSG_INFO, ". %s", strerror(errno));
+        if (ioctl_errno)
+            avrdude_message(MSG_INFO, ". %s", strerror(ioctl_errno));
         avrdude_message(MSG_INFO, "\n");
     }
 
