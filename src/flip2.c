@@ -168,10 +168,6 @@ static const char * flip2_status_str(const struct dfu_status *status);
 static const char * flip2_mem_unit_str(enum flip2_mem_unit mem_unit);
 static enum flip2_mem_unit flip2_mem_unit(const char *name);
 
-#endif /* HAVE_LIBUSB */
-
-/* THE INITPGM FUNCTION DEFINITIONS */
-
 void flip2_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "flip2");
 
@@ -194,7 +190,6 @@ void flip2_initpgm(PROGRAMMER *pgm) {
   pgm->teardown         = flip2_teardown;
 }
 
-#ifdef HAVE_LIBUSB
 /* EXPORTED PROGRAMMER FUNCTION DEFINITIONS */
 
 int flip2_open(PROGRAMMER *pgm, const char *port_spec) {
@@ -941,76 +936,17 @@ enum flip2_mem_unit flip2_mem_unit(const char *name) {
   return FLIP2_MEM_UNIT_UNKNOWN;
 }
 
-#else /* HAVE_LIBUSB */
+#else /* !HAVE_LIBUSB */
 
-/* EXPORTED PROGRAMMER FUNCTION DEFINITIONS */
-
-int flip2_open(PROGRAMMER *pgm, const char *port_spec) {
-  fprintf(stderr, "%s: Error: No USB support in this compile of avrdude\n",
-    progname);
-  return -1;
+ // Give a proper error if we were not compiled with libusb
+static int flip2_nousb_open(PROGRAMMER* pgm, const char* name) {
+    avrdude_message(MSG_INFO, "%s: error: No usb support. Please compile again with libusb installed.\n", progname);
+    return -1;
 }
 
-int flip2_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
-  return -1;
+void flip2_initpgm(PROGRAMMER *pgm) {
+    strcpy(pgm->type, "flip2");
+    pgm->open = flip2_nousb_open;
 }
-
-void flip2_close(PROGRAMMER* pgm)
-{
-}
-
-void flip2_enable(PROGRAMMER *pgm, const AVRPART *p) {
-}
-
-void flip2_disable(const PROGRAMMER *pgm) {
-}
-
-void flip2_display(const PROGRAMMER *pgm, const char *prefix) {
-}
-
-int flip2_program_enable(const PROGRAMMER *pgm, const AVRPART *part) {
-  return -1;
-}
-
-int flip2_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
-  return -1;
-}
-
-int flip2_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
-  unsigned long addr, unsigned char *value)
-{
-  return -1;
-}
-
-int flip2_write_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
-  unsigned long addr, unsigned char value)
-{
-  return -1;
-}
-
-int flip2_paged_load(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
-  unsigned int page_size, unsigned int addr, unsigned int n_bytes)
-{
-  return -1;
-}
-
-int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
-  unsigned int page_size, unsigned int addr, unsigned int n_bytes)
-{
-  return -1;
-}
-
-int flip2_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem) {
-  return -1;
-}
-
-void flip2_setup(PROGRAMMER * pgm)
-{
-}
-
-void flip2_teardown(PROGRAMMER * pgm)
-{
-}
-
 
 #endif /* HAVE_LIBUSB */
