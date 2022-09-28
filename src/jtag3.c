@@ -103,7 +103,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                                 unsigned long addr, unsigned char data);
 static int jtag3_set_sck_period(const PROGRAMMER *pgm, double v);
-static void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p);
+void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p);
 static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                 unsigned int page_size,
                                 unsigned int addr, unsigned int n_bytes);
@@ -2339,7 +2339,7 @@ int jtag3_read_sib(const PROGRAMMER *pgm, const AVRPART *p, char *sib) {
   return 0;
 }
 
-static int jtag3_set_vtarget(const PROGRAMMER *pgm, double v) {
+int jtag3_set_vtarget(const PROGRAMMER *pgm, double v) {
   unsigned uaref, utarg;
   unsigned char buf[2];
 
@@ -2407,14 +2407,88 @@ static void jtag3_display(const PROGRAMMER *pgm, const char *p) {
 }
 
 
-static void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p) {
-  unsigned char buf[2];
+void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p) {
+  unsigned char buf[3];
 
   if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0)
     return;
-
   avrdude_message(MSG_INFO, "%sVtarget         %s: %.2f V\n", p,
     verbose ? "" : "             ", b2_to_u16(buf) / 1000.0);
+
+  // Print features unique to the Power Debugger
+  //if (strncmp("powerdebugger", ldata(lfirst(pgm->id)), strlen("powerdebugger")) == 0)
+  if (*(int *)(ldata(lfirst(pgm->usbpid))) == 0x2144){
+    short analog_raw_data;
+
+    // Read generator set voltage value (VOUT)
+    if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, 2) < 0)
+      return;
+    analog_raw_data = b2_to_u16(buf);
+    avrdude_message(MSG_INFO, "%sVout set        %s: %.2f V\n", p,
+      verbose ? "" : "             ", analog_raw_data / 1000.0);
+
+    // Read measured generator voltage value (VOUT)
+    if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_TSUP_VOLTAGE_MEAS, buf, 2) < 0)
+      return;
+    analog_raw_data = ((buf[0] & 0x0F) << 8) + buf[1];
+    if ((buf[0] & 0xF0) != 0x30)
+      avrdude_message(MSG_INFO, "%s: jtag3_print_parms1(): invalid PARM3_TSUP_VOLTAGE_MEAS data packet format\n", progname);
+    else {
+      if (analog_raw_data & 0x0800)
+        analog_raw_data |= 0xF000;
+      avrdude_message(MSG_INFO, "%sVout measured   %s: %.02f V\n", p,
+        verbose ? "" : "             ", ((float)analog_raw_data / -200.0));
+    }
+
+    // Read channel A voltage
+    if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_ANALOG_A_VOLTAGE, buf, 2) < 0)
+      return;
+    analog_raw_data = ((buf[0] & 0x0F) << 8) + buf[1];
+    if ((buf[0] & 0xF0) != 0x20)
+      avrdude_message(MSG_INFO, "%s: jtag3_print_parms1(): invalid PARM3_ANALOG_A_VOLTAGE data packet format\n", progname);
+    else {
+      if (analog_raw_data & 0x0800)
+        analog_raw_data |= 0xF000;
+      avrdude_message(MSG_INFO, "%sCh A voltage    %s: %.03f V\n", p,
+        verbose ? "" : "             ", ((float)analog_raw_data / -200.0));
+    }
+
+    // Read channel A current
+    if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_ANALOG_A_CURRENT, buf, 3) < 0)
+      return;
+    analog_raw_data = (buf[1] << 8) + buf[2];
+    if (buf[0] != 0x90)
+      avrdude_message(MSG_INFO, "%s: jtag3_print_parms1(): invalid PARM3_ANALOG_A_CURRENT data packet format\n", progname);
+    else
+      avrdude_message(MSG_INFO, "%sCh A current    %s: %.3f mA\n", p,
+        verbose ? "" : "             ", ((float)analog_raw_data * 0.003472));
+
+    // Read channel B voltage
+    if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_ANALOG_B_VOLTAGE, buf, 2) < 0)
+      return;
+    analog_raw_data = ((buf[0] & 0x0F) << 8) + buf[1];
+    if ((buf[0] & 0xF0) != 0x10)
+      avrdude_message(MSG_INFO, "%s: jtag3_print_parms1(): invalid PARM3_ANALOG_B_VOLTAGE data packet format\n", progname);
+    else {
+      if (analog_raw_data & 0x0800)
+        analog_raw_data |= 0xF000;
+      avrdude_message(MSG_INFO, "%sCh B voltage    %s: %.03f V\n", p,
+        verbose ? "" : "             ", ((float)analog_raw_data / -200.0));
+    }
+
+    // Read channel B current
+    if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_ANALOG_B_CURRENT, buf, 3) < 0)
+      return;
+    analog_raw_data = ((buf[0] & 0x0F) << 8) + buf[1];
+    if ((buf[0] & 0xF0) != 0x00)
+      avrdude_message(MSG_INFO, "%s: jtag3_print_parms1(): invalid PARM3_ANALOG_B_CURRENT data packet format\n", progname);
+    else {
+      if (analog_raw_data & 0x0800)
+        analog_raw_data |= 0xF000;
+      avrdude_message(MSG_INFO, "%sCh B current    %s: %.3f mA\n", p,
+        verbose ? "" : "             ", ((float)analog_raw_data * 0.555556));
+    }
+  }
 
   if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_PROG, buf, 2) < 0)
     return;
@@ -2444,7 +2518,7 @@ static void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p) {
     return;
 
   if (b2_to_u16(buf) > 0) {
-    avrdude_message(MSG_INFO, "%sPDI/UPDI clock Xmega/megaAVR : %u kHz\n\n", p,
+    avrdude_message(MSG_INFO, "%sPDI/UPDI clock Xmega/megaAVR : %u kHz\n", p,
       b2_to_u16(buf));
   }
 }
@@ -2525,6 +2599,9 @@ void jtag3_initpgm(PROGRAMMER *pgm) {
   pgm->teardown       = jtag3_teardown;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_JTAG;
+
+  if (matches(ldata(lfirst(pgm->id)), "powerdebugger"))
+    pgm->set_vtarget  = jtag3_set_vtarget;
 }
 
 const char jtag3_dw_desc[] = "Atmel JTAGICE3 in debugWire mode";
@@ -2556,6 +2633,9 @@ void jtag3_dw_initpgm(PROGRAMMER *pgm) {
   pgm->teardown       = jtag3_teardown;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_DW;
+
+  if (matches(ldata(lfirst(pgm->id)), "powerdebugger_dw"))
+    pgm->set_vtarget  = jtag3_set_vtarget;
 }
 
 const char jtag3_pdi_desc[] = "Atmel JTAGICE3 in PDI mode";
@@ -2589,6 +2669,9 @@ void jtag3_pdi_initpgm(PROGRAMMER *pgm) {
   pgm->teardown       = jtag3_teardown;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_PDI;
+
+  if (matches(ldata(lfirst(pgm->id)), "powerdebugger_pdi"))
+    pgm->set_vtarget  = jtag3_set_vtarget;
 }
 
 const char jtag3_updi_desc[] = "Atmel JTAGICE3 in UPDI mode";
@@ -2626,11 +2709,8 @@ void jtag3_updi_initpgm(PROGRAMMER *pgm) {
   pgm->unlock         = jtag3_unlock_erase_key;
   pgm->read_sib       = jtag3_read_sib;
 
-  /*
-   * enable target voltage adjustment for PKOB/nEDBG boards
-   */
-  if (matches(ldata(lfirst(pgm->id)), "pkobn_updi")) {
+  if (matches(ldata(lfirst(pgm->id)), "pkobn_updi") ||
+      matches(ldata(lfirst(pgm->id)), "powerdebugger_updi"))
     pgm->set_vtarget  = jtag3_set_vtarget;
-  }
 }
 

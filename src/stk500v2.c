@@ -3226,11 +3226,8 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p) {
   } else if (PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE3) {
     PROGRAMMER *pgmcp = pgm_dup(pgm);
     pgmcp->cookie = PDATA(pgm)->chained_pdata;
-    jtag3_getparm(pgmcp, SCOPE_GENERAL, 1, PARM3_VTARGET, vtarget_jtag, 2);
+    jtag3_print_parms1(pgmcp, p);
     pgm_free(pgmcp);
-    avrdude_message(MSG_INFO, "%sVtarget         : %.1f V\n", p,
-	    b2_to_u16(vtarget_jtag) / 1000.0);
-
   } else {
     stk500v2_getparm(pgm, PARAM_VTARGET, &vtarget);
     avrdude_message(MSG_INFO, "%sVtarget         : %.1f V\n", p, vtarget / 10.0);
@@ -3282,7 +3279,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p) {
       if (stk500v2_jtag3_send(pgm, cmd, 1) >= 0 &&
 	  stk500v2_jtag3_recv(pgm, cmd, 4) >= 2) {
 	unsigned int sck = cmd[1] | (cmd[2] << 8);
-	avrdude_message(MSG_INFO, "%sSCK period      : %.2f us\n", p,
+	avrdude_message(MSG_INFO, "%sSCK period                   : %.2f us\n", p,
 		(float)(1E6 / (1000.0 * sck)));
       }
     }
@@ -4681,4 +4678,7 @@ void stk500v2_jtag3_initpgm(PROGRAMMER *pgm) {
   pgm->setup          = stk500v2_jtag3_setup;
   pgm->teardown       = stk500v2_jtag3_teardown;
   pgm->page_size      = 256;
+
+  if (strcmp(ldata(lfirst(pgm->id)), "powerdebugger_isp") == 0)
+    pgm->set_vtarget  = jtag3_set_vtarget;
 }
