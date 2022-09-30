@@ -940,7 +940,7 @@ enum flip2_mem_unit flip2_mem_unit(const char *name) {
 
  // Give a proper error if we were not compiled with libusb
 static int flip2_nousb_open(PROGRAMMER* pgm, const char* name) {
-    avrdude_message(MSG_INFO, "%s: error: No usb support. Please compile again with libusb installed.\n", progname);
+    avrdude_message(MSG_INFO, "%s: error, no USB support; please compile with libusb installed\n", progname);
     return -1;
 }
 
