@@ -506,17 +506,26 @@ int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *
   return (result == 0) ? n_bytes : -1;
 }
 
-
 // Parse the -E option flag
-int flip2_parseexitspecs(PROGRAMMER* pgm, const char *s) {
-  if (strcmp(s, "reset") == 0) {
-    pgm->exit_reset = EXIT_RESET_ENABLED;
-  } else if (strcmp(s, "noreset") == 0) {
-    pgm->exit_reset = EXIT_RESET_DISABLED;
-  } else {
+int flip2_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
+  char *cp, *s, *str = cfg_strdup("flip2_parseextitspecs()", sp);
+
+  s = str;
+  while ((cp = strtok(s, ","))) {
+    s = NULL;
+    if (!strcmp(cp, "reset")) {
+      pgm->exit_reset = EXIT_RESET_ENABLED;
+      continue;
+    }
+    if (!strcmp(cp, "noreset")) {
+      pgm->exit_reset = EXIT_RESET_DISABLED;
+      continue;
+    }
+    free(str);
     return -1;
   }
 
+  free(str);
   return 0;
 }
 
