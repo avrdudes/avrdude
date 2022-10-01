@@ -3226,6 +3226,10 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p) {
   } else if (PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE3) {
     PROGRAMMER *pgmcp = pgm_dup(pgm);
     pgmcp->cookie = PDATA(pgm)->chained_pdata;
+    pgmcp->id = lcreat(NULL, 0);
+    // Copy pgm->id contents over to pgmcp->id
+    for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln))
+      ladd(pgmcp->id, cfg_strdup("stk500v2_print_parms1()", ldata(ln)));
     jtag3_print_parms1(pgmcp, p);
     pgm_free(pgmcp);
   } else {

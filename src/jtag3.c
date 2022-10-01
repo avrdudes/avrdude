@@ -2416,8 +2416,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p) {
     verbose ? "" : "             ", b2_to_u16(buf) / 1000.0);
 
   // Print features unique to the Power Debugger
-  //if (strncmp("powerdebugger", ldata(lfirst(pgm->id)), strlen("powerdebugger")) == 0)
-  if (*(int *)(ldata(lfirst(pgm->usbpid))) == 0x2144){
+  if (strncmp("powerdebugger", ldata(lfirst(pgm->id)), strlen("powerdebugger")) == 0) {
     short analog_raw_data;
 
     // Read generator set voltage value (VOUT)
