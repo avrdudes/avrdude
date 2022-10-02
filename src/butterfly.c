@@ -494,9 +494,13 @@ static int butterfly_read_byte_flash(const PROGRAMMER *pgm, const AVRPART *p, co
     } else {
       butterfly_set_addr(pgm, addr >> 1);
     }
-
-    butterfly_send(pgm, "g\000\002F", 4);
-
+    // Defaults to flash read ('F')
+    char msg[4] = {'g', 0x00, 0x02, 'F'};
+    if (strcmp(m->desc, "prodsig") == 0)
+      msg[3] = 'P';
+    else if (strcmp(m->desc, "usersig") == 0)
+      msg[3] = 'U';
+    butterfly_send(pgm, msg, 4);
     /* Read back the program mem word (MSB first) */
     butterfly_recv(pgm, buf, sizeof(buf));
 
@@ -539,7 +543,9 @@ static int butterfly_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
 {
   char cmd;
 
-  if (strcmp(m->desc, "flash") == 0) {
+  if (strcmp(m->desc, "flash")   == 0 ||
+      strcmp(m->desc, "prodsig") == 0 ||
+      strcmp(m->desc, "usersig") == 0) {
     return butterfly_read_byte_flash(pgm, p, m, addr, value);
   }
 
@@ -580,7 +586,9 @@ static int butterfly_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const 
   int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
   unsigned int wr_size = 2;
 
-  if (strcmp(m->desc, "flash") && strcmp(m->desc, "eeprom"))
+  if (strcmp(m->desc, "flash")  &&
+      strcmp(m->desc, "eeprom") &&
+      strcmp(m->desc, "usersig"))
     return -2;
 
   if (m->desc[0] == 'e')
@@ -634,8 +642,10 @@ static int butterfly_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const A
   int blocksize = PDATA(pgm)->buffersize;
   int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
 
-  /* check parameter syntax: only "flash" or "eeprom" is allowed */
-  if (strcmp(m->desc, "flash") && strcmp(m->desc, "eeprom"))
+  /* check parameter syntax: only "flash", "eeprom" or "usersig" is allowed */
+  if (strcmp(m->desc, "flash")  &&
+      strcmp(m->desc, "eeprom") &&
+      strcmp(m->desc, "usersig"))
     return -2;
 
   if (m->desc[0] == 'e')
