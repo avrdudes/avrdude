@@ -139,6 +139,7 @@ add_library(libavrdude
     avr.c
     avr910.c
     avr910.h
+    avrcache.c
     avrdude.h
     avrftdi.c
     avrftdi.h

@@ -35,7 +35,7 @@ typedef uint32_t pinmask_t;
 #define LIBAVRDUDE_SUCCESS 0
 #define LIBAVRDUDE_GENERAL_FAILURE (-1)
 #define LIBAVRDUDE_NOTSUPPORTED (-2) // operation not supported
-#define LIBAVRDUDE_SOFTFAIL (-3) // returned by avr_signature() if caller
+#define LIBAVRDUDE_SOFTFAIL (-3) // returned, eg, by avr_signature() if caller
                                  // might proceed with chip erase
 
 /* formerly lists.h */
@@ -665,6 +665,15 @@ extern struct serial_device usbhid_serdev;
 #define serial_drain (serdev->drain)
 #define serial_set_dtr_rts (serdev->set_dtr_rts)
 
+// See avrcache.c
+#define CACHE_USE_PAGE_ERASE  1 // Use page erase for this cache
+#define CACHE_FULL_DEVICE     2 // Expanded both caches to capture full EEPROM and flash
+
+typedef struct {
+  int base, size, flags;
+  unsigned char *page, *copy;
+} AVR_Cache;
+
 /* formerly pgm.h */
 
 #define ON  1
@@ -788,6 +797,14 @@ typedef struct programmer_t {
   void (*setup)          (struct programmer_t *pgm);
   void (*teardown)       (struct programmer_t *pgm);
 
+  // Cached r/w API for terminal reads/writes
+  int (*write_byte_cached)(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
+                          unsigned long addr, unsigned char value);
+  int (*read_byte_cached)(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
+                          unsigned long addr, unsigned char *value);
+  int (*flush_cache)     (const struct programmer_t *pgm, const AVRPART *p);
+  AVR_Cache *cp_flash, *cp_eeprom;
+
   const char *config_file;      // Config file where defined
   int  lineno;                  // Config file line number
   void *cookie;                 // For private use by the programmer
@@ -844,7 +861,9 @@ int avr_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p, unsigned cha
 int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			  unsigned long addr, unsigned char * value);
 
-int avr_read(const PROGRAMMER * pgm, const AVRPART *p, const char *memtype, AVRPART *v);
+int avr_read_mem(const PROGRAMMER * pgm, const AVRPART *p, const AVRMEM *mem, const AVRPART *v);
+
+int avr_read(const PROGRAMMER * pgm, const AVRPART *p, const char *memtype, const AVRPART *v);
 
 int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr);
@@ -855,8 +874,9 @@ int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			   unsigned long addr, unsigned char data);
 
-int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, int size,
-              int auto_erase);
+int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int size, int auto_erase);
+
+int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, int size, int auto_erase);
 
 int avr_signature(const PROGRAMMER *pgm, const AVRPART *p);
 
@@ -884,6 +904,25 @@ int avr_chip_erase(const PROGRAMMER *pgm, const AVRPART *p);
 int avr_unlock(const PROGRAMMER *pgm, const AVRPART *p);
 
 void report_progress (int completed, int total, char *hdr);
+
+int avr_has_paged_access(const PROGRAMMER *pgm, const AVRMEM *m);
+
+int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int addr, unsigned char *buf);
+
+int avr_write_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int addr, unsigned char *data);
+
+int avr_is_and(const unsigned char *s1, const unsigned char *s2, const unsigned char *s3, size_t n);
+
+int avr_expand_cache(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype);
+
+int avr_sync_cache(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype);
+
+int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p);
+
+int avr_read_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr, unsigned char *value);
+
+int avr_write_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr, unsigned char data);
+
 
 #ifdef __cplusplus
 }

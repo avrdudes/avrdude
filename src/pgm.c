@@ -78,6 +78,10 @@ PROGRAMMER *pgm_new(void) {
   pgm->usbproduct = nulp;
   pgm->config_file = nulp;
 
+  // Allocate cache structures for flash and EEPROM, *do not* free in pgm_free()
+  pgm->cp_flash = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
+  pgm->cp_eeprom = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
+
   // Default values
   pgm->initpgm = NULL;
   pgm->lineno = 0;
@@ -115,6 +119,9 @@ PROGRAMMER *pgm_new(void) {
   pgm->err_led        = pgm_default_led;
   pgm->pgm_led        = pgm_default_led;
   pgm->vfy_led        = pgm_default_led;
+  pgm->read_byte_cached = avr_read_byte_cached;
+  pgm->write_byte_cached = avr_write_byte_cached;
+  pgm->flush_cache    = avr_flush_cache;
 
   /*
    * optional functions - these are checked to make sure they are
@@ -166,6 +173,7 @@ void pgm_free(PROGRAMMER *p) {
     }
     // Never free const char *, eg, p->desc, which are set by cache_string()
     // p->cookie is freed by pgm_teardown
+    // Never free cp_eeprom or cp_flash cache structures
     free(p);
   }
 }
@@ -177,7 +185,14 @@ PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
     ldestroy_cb(pgm->id, free);
     ldestroy_cb(pgm->usbpid, free);
     ldestroy_cb(pgm->hvupdi_support, free);
+    // There must be only one cache, even though the part is duplicated
+    if(pgm->cp_flash)
+      free(pgm->cp_flash);
+    if(pgm->cp_eeprom)
+      free(pgm->cp_eeprom);
+
     memcpy(pgm, src, sizeof(*pgm));
+
     pgm->id = lcreat(NULL, 0);
     pgm->usbpid = lcreat(NULL, 0);
     pgm->hvupdi_support = lcreat(NULL, 0);

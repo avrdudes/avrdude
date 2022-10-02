@@ -321,7 +321,7 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
 
   report_progress(0, 1, "Reading");
   for (int i = 0; i < len; i++) {
-    int rc = pgm->read_byte(pgm, p, mem, addr + i, &buf[i]);
+    int rc = pgm->read_byte_cached(pgm, p, mem, addr + i, &buf[i]);
     if (rc != 0) {
       terminal_message(MSG_INFO, "%s (dump): error reading %s address 0x%05lx of part %s\n",
         progname, mem->desc, (long) addr + i, p->desc);
@@ -691,7 +691,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
   bool werror = false;
   report_progress(0, 1, "Writing");
   for (i = 0; i < (len + data.bytes_grown); i++) {
-    int rc = avr_write_byte(pgm, p, mem, addr+i, buf[i]);
+    int rc = pgm->write_byte_cached(pgm, p, mem, addr+i, buf[i]);
     if (rc) {
       terminal_message(MSG_INFO, "%s (write): error writing 0x%02x at 0x%05lx, rc=%d\n",
         progname, buf[i], (long) addr+i, (int) rc);
@@ -702,7 +702,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     }
 
     uint8_t b;
-    rc = pgm->read_byte(pgm, p, mem, addr+i, &b);
+    rc = pgm->read_byte_cached(pgm, p, mem, addr+i, &b);
     if (b != buf[i]) {
       terminal_message(MSG_INFO, "%s (write): error writing 0x%02x at 0x%05lx cell=0x%02x\n",
         progname, buf[i], (long) addr+i, b);
@@ -1319,6 +1319,8 @@ int terminal_mode(PROGRAMMER * pgm, struct avrpart * p)
     }
     free(cmdbuf);
   }
+
+  pgm->flush_cache(pgm, p);
 
   return rc;
 }
