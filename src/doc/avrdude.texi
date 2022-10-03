@@ -1342,9 +1342,7 @@ previous dump command left off.
 
 @item write @var{memtype} @var{start_addr} @var{data1} @var{data2} @dots{} @var{dataN}
 Manually program the respective memory cells, starting at address @var{start_addr},
-using the values @var{data1} through @var{dataN}.  This feature is not
-implemented for bank-addressed memories such as the flash memory of
-ATMega devices.
+using the values @var{data1} through @var{dataN}.
 
 Items @var{dataN} can have the following formats:
 
@@ -1353,58 +1351,86 @@ Items @var{dataN} can have the following formats:
 @tab @strong{Example}
 @tab @strong{Size (bytes)}
 
+@item String
+@tab @code{"Hello, world\n"}
+@tab varying
+
 @item Character
 @tab @code{'A'}
 @tab 1
 
 @item Decimal integer
 @tab 12345
-@tab 1, 2, 4, or 8 (see below)
+@tab 1, 2, 4, or 8
 
 @item Octal integer
 @tab 012345
-@tab 1, 2, 4, or 8 (see below)
+@tab 1, 2, 4, or 8
 
 @item Hexadecimal integer
 @tab 0x12345
-@tab 1, 2, 4, or 8 (see below)
+@tab 1, 2, 4, or 8
 
 @item Float
 @tab 3.1415926
 @tab 4
 
+@item Double
+@tab 3.141592653589793D
+@tab 8
+
 @end multitable
 
-Integer constants can be 1, 2, 4, or 8 bytes long.
-By default, the smallest possible size will be used where
-the specified number just fits into.
-A specific size can be denoted by appending one of these suffixes:
-
+@var{data}
+can be hexadecimal, octal or decimal integers, floating point numbers
+or C-style strings and characters. For integers, an optional case-insensitive
+suffix specifies the data size as in the table below:
 @table @code
 @item LL
-@itemx ll
 8 bytes / 64 bits
 @item L
-@itemx l
 4 bytes / 32 bits
-@item H
-@itemx h
-@itemx S
-@itemx s
+@item H or S
 2 bytes / 16 bits
 @item HH
-@itemx hh
 1 byte / 8 bits
 @end table
 
-Similarly, floating-point constants can have an @code{F} or @code{f}
-appended, but only 32-bit floating-point values are supported.
+Suffix @code{D} indicates a 64-bit double, @code{F} a 32-bit float, whilst a
+floating point number without suffix defaults to 32-bit float. Hexadecimal
+floating point notation is supported. An ambiguous trailing suffix, eg,
+@code{0x1.8D}, is read as no-suffix float where @code{D} is part of the
+mantissa; use a zero exponent @code{0x1.8p0D} to clarify.
+
+An optional @code{U} suffix makes integers unsigned. Ordinary @code{0x} hex
+integers are always treated as unsigned. @code{+0x} or @code{-0x} hex
+numbers are treated as signed unless they have a @code{U} suffix. Unsigned
+integers cannot be larger than 2^64-1. If @var{n} is an unsigned integer then @var{-n}
+is also a valid unsigned integer as in C. Signed integers must fall into
+the [-2^63, 2^63-1] range or a correspondingly smaller range when a suffix
+specifies a smaller type. Out of range signed numbers trigger a warning.
+
+Ordinary @code{0x} hex integers with @var{n} hex digits (counting leading
+zeros) use the smallest size of 1, 2, 4 and 8 bytes that can accommodate
+any n-digit hex integer. If an integer suffix specifies a size explicitly
+the corresponding number of least significant bytes are written.
+Otherwise, signed and unsigned integers alike occupy the smallest of 1, 2,
+4, or 8 bytes needed to accommodate them in their respective
+representation.
 
 @item write @var{memtype} @var{start_addr} @var{length} @var{data1} @var{data2} @var{dataN} @dots{}
 
 Similar to the above, but @var{length} byte of the memory are written.
 For that purpose, after writing the initial items, @var{dataN} is
 replicated as many times as needed.
+
+@item abort
+Reading and writing flash and EEPROM type memories is normally implemented
+through a cache and paged access functions. These caches are only ever
+actually written to the device at the end of the terminal session after
+typing @code{quit}, or after EOF on input is encountered. The @code{abort}
+command resets the cache, making all previous writes to flash and EEPROM
+void.
 
 @item erase
 Perform a chip erase.

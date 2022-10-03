@@ -310,7 +310,6 @@ programmer expects to be able to handle, together with the programming
 interface(s) that can be used in that combination. In reality there can be
 deviations from this list, particularly if programming is directly via a
 bootloader.
-
 .Pp
 Following parts need special attention:
 .Bl -tag -width "ATmega1234"
@@ -809,26 +808,63 @@ a command history using
 so previously entered command lines can be recalled and edited.  The
 following commands are currently implemented:
 .Bl -tag -offset indent -width indent
-.It Ar dump memtype addr nbytes
+.It Ar dump  memory addr len
 Read
-.Ar nbytes
+.Ar len
 bytes from the specified memory area, and display them in the usual
 hexadecimal and ASCII form.
+.It Ar dump memory addr ...
+Read all bytes from the specified memory starting at address
+.Ar addr,
+and display them.
+.It Ar dump memory addr
+Read 256 bytes from the specified memory area, and display them.
+.It Ar dump memory ...
+Read all bytes from the specified memory, and display them.
 .It Ar dump
 Continue dumping the memory contents for another
-.Ar nbytes
-where the previous
+.Ar 256
+bytes where the previous
 .Ar dump
 command left off.
-.It Ar write memtype addr byte1 ... byteN
+.It Ar write memory addr data[,] {data[,]}
 Manually program the respective memory cells, starting at address
 .Ar addr ,
-using the values
-.Ar byte1
-through
-.Ar byteN .
-This feature is not implemented for bank-addressed memories such as
-the flash memory of ATMega devices.
+using the data items provided.
+.Ar data
+can be hexadecimal, octal or decimal integers, floating point numbers
+or C-style strings and characters. For integers, an optional case-insensitive
+suffix specifies the data size: HH 8 bit, H/S 16 bit, L 32 bit, LL 64 bit.
+Suffix D indicates a 64-bit double, F a 32-bit float, whilst a floating point
+number without suffix defaults to 32-bit float. Hexadecimal floating point
+notation is supported. An ambiguous trailing suffix, eg, 0x1.8D, is read as
+no-suffix float where D is part of the mantissa; use a zero exponent 0x1.8p0D
+to clarify.
+.Pp
+An optional U suffix makes integers unsigned. Ordinary 0x hex integers are
+always treated as unsigned. +0x or -0x hex numbers are treated as signed
+unless they have a U suffix. Unsigned integers cannot be larger than 2^64-1.
+If n is an unsigned integer then -n is also a valid unsigned integer as in C.
+Signed integers must fall into the [-2^63, 2^63-1] range or a correspondingly
+smaller range when a suffix specifies a smaller type. Out of range signed
+numbers trigger a warning.
+.Pp
+Ordinary 0x hex integers with n hex digits (counting leading zeros) use the
+smallest size of 1, 2, 4 and 8 bytes that can accommodate any n-digit hex
+integer. If an integer suffix specifies a size explicitly the corresponding
+number of least significant bytes are written. Otherwise, signed and unsigned
+integers alike occupy the smallest of 1, 2, 4, or 8 bytes needed to
+accommodate them in their respective representation.
+.It Ar write memory addr len data[,] {data[,]} ...
+The ellipsis ... form writes <len> bytes padded by repeating the last
+.Ar data
+item.
+.It Ar abort
+Reading and writing flash and EEPROM type memories is normally implemented
+through a cache and paged access functions. These caches are only ever
+actually written to the device at the end of the terminal session after
+typing quit, or after EOF on input is encountered. The abort command resets
+the cache, making all previous writes to flash and EEPROM void.
 .It Ar erase
 Perform a chip erase.
 .It Ar send b1 b2 b3 b4

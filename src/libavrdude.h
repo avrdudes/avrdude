@@ -669,9 +669,9 @@ extern struct serial_device usbhid_serdev;
 #define CACHE_USE_PAGE_ERASE  1 // Use page erase for this cache
 #define CACHE_FULL_DEVICE     2 // Expanded both caches to capture full EEPROM and flash
 
-typedef struct {
-  int base, size, flags;
-  unsigned char *page, *copy;
+typedef struct {                // Memory cache for a subset of cached pages
+  unsigned char *cont, *copy;   // current memory contens and device copy of it
+  unsigned char *iscached;      // iscached[i] set when page i has been loaded
 } AVR_Cache;
 
 /* formerly pgm.h */
@@ -802,7 +802,9 @@ typedef struct programmer_t {
                           unsigned long addr, unsigned char value);
   int (*read_byte_cached)(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
                           unsigned long addr, unsigned char *value);
+  int (*chip_erase_cached)(const struct programmer_t *pgm, const AVRPART *p);
   int (*flush_cache)     (const struct programmer_t *pgm, const AVRPART *p);
+  int (*reset_cache)     (const struct programmer_t *pgm, const AVRPART *p);
   AVR_Cache *cp_flash, *cp_eeprom;
 
   const char *config_file;      // Config file where defined
@@ -913,16 +915,12 @@ int avr_write_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
 int avr_is_and(const unsigned char *s1, const unsigned char *s2, const unsigned char *s3, size_t n);
 
-int avr_expand_cache(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype);
-
-int avr_sync_cache(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype);
-
-int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p);
-
+// byte-wise cached read/write API
 int avr_read_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr, unsigned char *value);
-
 int avr_write_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr, unsigned char data);
-
+int avr_chip_erase_cached(const PROGRAMMER *pgm, const AVRPART *p);
+int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p);
+int avr_reset_cache(const PROGRAMMER *pgm, const AVRPART *p);
 
 #ifdef __cplusplus
 }

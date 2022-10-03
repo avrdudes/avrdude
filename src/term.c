@@ -66,6 +66,9 @@ static int cmd_help  (PROGRAMMER * pgm, struct avrpart * p,
 static int cmd_quit  (PROGRAMMER * pgm, struct avrpart * p,
 		      int argc, char *argv[]);
 
+static int cmd_abort (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
+
 static int cmd_send  (PROGRAMMER * pgm, struct avrpart * p,
 		      int argc, char *argv[]);
 
@@ -100,6 +103,7 @@ struct command cmd[] = {
   { "dump",  cmd_dump,  "%s <memory> [<addr> <len> | <addr> ... | <addr> | ...]" },
   { "read",  cmd_dump,  "alias for dump" },
   { "write", cmd_write, "%s <memory> <addr> [<data>[,] {<data>[,]} | <len> <data>[,] {<data>[,]} ...]" },
+  { "abort", cmd_abort, "abort flash & EEPROM writes (reset the r/w cache)" },
   { "erase", cmd_erase, "perform a chip erase" },
   { "sig",   cmd_sig,   "display device signature bytes" },
   { "part",  cmd_part,  "display the current part information" },
@@ -115,7 +119,7 @@ struct command cmd[] = {
   { "quell", cmd_quell, "set quell level for progress bars" },
   { "help",  cmd_help,  "help" },
   { "?",     cmd_help,  "help" },
-  { "quit",  cmd_quit,  "quit" }
+  { "quit",  cmd_quit,  "quit after writing out cache for flash & EEPROM" }
 };
 
 #define NCMDS ((int)(sizeof(cmd)/sizeof(struct command)))
@@ -403,7 +407,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       "or C-style strings and characters. For integers, an optional case-insensitive\n"
       "suffix specifies the data size: HH 8 bit, H/S 16 bit, L 32 bit, LL 64 bit.\n"
       "Suffix D indicates a 64-bit double, F a 32-bit float, whilst a floating point\n"
-      "number without suffix  defaults to 32-bit float. Hexadecimal floating point\n"
+      "number without suffix defaults to 32-bit float. Hexadecimal floating point\n"
       "notation is supported. An ambiguous trailing suffix, eg, 0x1.8D, is read as\n"
       "no-suffix float where D is part of the mantissa; use a zero exponent 0x1.8p0D\n"
       "to clarify.\n"
@@ -723,6 +727,12 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
 }
 
 
+static int cmd_abort(PROGRAMMER *pgm, struct avrpart *p, int ac, char *av[]) {
+  pgm->reset_cache(pgm, p);
+  return 0;
+}
+
+
 static int cmd_send(PROGRAMMER * pgm, struct avrpart * p,
 		    int argc, char * argv[])
 {
@@ -789,7 +799,9 @@ static int cmd_erase(PROGRAMMER * pgm, struct avrpart * p,
 		     int argc, char * argv[])
 {
   terminal_message(MSG_INFO, "%s: erasing chip\n", progname);
-  pgm->chip_erase(pgm, p);
+  // Erase chip and clear cache
+  pgm->chip_erase_cached(pgm, p);
+
   return 0;
 }
 
@@ -1020,8 +1032,10 @@ static int cmd_help(PROGRAMMER * pgm, struct avrpart * p,
     fprintf(stdout, cmd[i].desc, cmd[i].name);
     fprintf(stdout, "\n");
   }
-  fprintf(stdout,
-          "\nUse the 'part' command to display valid memory types for use with the\n"
+  fprintf(stdout, "\n"
+          "Note that flash and EEPROM type memories are normally read and written\n"
+          "using a cache and paged r/w access; the cache is synchronised on quit.\n"
+          "Use the 'part' command to display valid memory types for use with the\n"
           "'dump' and 'write' commands.\n\n");
 
   return 0;
