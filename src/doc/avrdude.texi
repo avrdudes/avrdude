@@ -1329,22 +1329,32 @@ The following commands are implemented:
 
 @table @code
 
-@item dump @var{memtype} [@var{start_addr} [@var{nbytes}]]
+@item dump @var{memtype} @var{addr} @var{nbytes}
 Read @var{nbytes} from the specified memory area, and display them in
 the usual hexadecimal and ASCII form.
 
-@item dump @var{memtype} [@var{start_addr}] @dots{}
-Start reading from @var{start_addr}, all the way to the last memory address.
+@item dump @var{memtype} @var{addr} @dots{}
+Start reading from @var{addr}, all the way to the last memory address.
+
+@item dump @var{memtype} @var{addr}
+Read 256 bytes from the specified memory area, and display them.
+
+@item dump @var{memtype} @dots{}
+Read all bytes from the specified memory, and display them.
 
 @item dump @var{memtype}
 Continue dumping the memory contents for another @var{nbytes} where the
 previous dump command left off.
 
-@item write @var{memtype} @var{start_addr} @var{data1} @var{data2} @dots{} @var{dataN}
-Manually program the respective memory cells, starting at address @var{start_addr},
-using the values @var{data1} through @var{dataN}.
+@item write @var{memtype} @var{addr} @var{data[,]} @{@var{data[,]}@}
+Manually program the respective memory cells, starting at address
+@var{addr}, using the data items provided. The terminal implements
+reading from and writing to flash and EEPROM type memories normally
+through a cache and paged access functions. All other memories are
+directly written to without use of a cache. Some older parts without paged
+access will also have flash and EEPROM directly accessed without cache.
 
-Items @var{dataN} can have the following formats:
+Items @var{data} can have the following formats:
 
 @multitable @columnfractions .3 .4 .3
 @item @strong{Type}
@@ -1418,28 +1428,40 @@ Otherwise, signed and unsigned integers alike occupy the smallest of 1, 2,
 4, or 8 bytes needed to accommodate them in their respective
 representation.
 
-@item write @var{memtype} @var{start_addr} @var{length} @var{data1} @var{data2} @var{dataN} @dots{}
+One trailing comma at the end of data items is ignored to facilitate copy
+and paste of lists.
 
-Similar to the above, but @var{length} byte of the memory are written.
-For that purpose, after writing the initial items, @var{dataN} is
-replicated as many times as needed.
+@item write @var{memtype} @var{addr} @var{length} @var{data[,]} @{@var{data[,]}@} @dots{}
+The ellipses form @dots{} of write is similar to above, but @var{length}
+byte of the memory are written. For that purpose, after writing the
+initial items, the last @var{data} item is replicated as many times as
+needed.
+
+@item flush
+Synchronise with the device all pending cached writes to EEPROM or flash.
+With some programmer and part combinations, flash (and sometimes EEPROM,
+too) looks like a NOR memory, ie, one can only write 0 bits, not 1 bits.
+When this is detected, either page erase is deployed (eg, with parts that
+have PDI/UPDI interfaces), or if that is not available, both EEPROM and
+flash caches are fully read in, a chip erase command is issued and both
+EEPROM and flash are written back to the device. Hence, it can take
+minutes to ensure that a single previously cleared bit is set and,
+therefore, this command should be used sparingly.
 
 @item abort
-Reading and writing flash and EEPROM type memories is normally implemented
-through a cache and paged access functions. These caches are only ever
-actually written to the device at the end of the terminal session after
-typing @code{quit}, or after EOF on input is encountered. The @code{abort}
-command resets the cache, making all previous writes to flash and EEPROM
-void.
+Normally, caches are only ever actually written to the device when using
+@code{flush}, at the end of the terminal session after typing @code{quit},
+or after EOF on input is encountered. The @code{abort} command resets the
+cache discarding all previous writes to the flash and EEPROM cache.
 
 @item erase
-Perform a chip erase.
+Perform a chip erase and discard all pending writes to EEPROM and flash.
 
 @item send @var{b1} @var{b2} @var{b3} @var{b4}
-Send raw instruction codes to the AVR device.  If you need access to a
+Send raw instruction codes to the AVR device. If you need access to a
 feature of an AVR part that is not directly supported by AVRDUDE, this
 command allows you to use it, even though AVRDUDE does not implement the
-command.   When using direct SPI mode, up to 3 bytes
+command. When using direct SPI mode, up to 3 bytes
 can be omitted.
 
 @item sig

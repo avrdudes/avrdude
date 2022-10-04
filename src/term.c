@@ -51,6 +51,12 @@ static int cmd_dump  (PROGRAMMER * pgm, struct avrpart * p,
 static int cmd_write (PROGRAMMER * pgm, struct avrpart * p,
 		      int argc, char *argv[]);
 
+static int cmd_flush (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
+
+static int cmd_abort (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
+
 static int cmd_erase (PROGRAMMER * pgm, struct avrpart * p,
 		      int argc, char *argv[]);
 
@@ -64,9 +70,6 @@ static int cmd_help  (PROGRAMMER * pgm, struct avrpart * p,
 		      int argc, char *argv[]);
 
 static int cmd_quit  (PROGRAMMER * pgm, struct avrpart * p,
-		      int argc, char *argv[]);
-
-static int cmd_abort (PROGRAMMER * pgm, struct avrpart * p,
 		      int argc, char *argv[]);
 
 static int cmd_send  (PROGRAMMER * pgm, struct avrpart * p,
@@ -103,6 +106,7 @@ struct command cmd[] = {
   { "dump",  cmd_dump,  "%s <memory> [<addr> <len> | <addr> ... | <addr> | ...]" },
   { "read",  cmd_dump,  "alias for dump" },
   { "write", cmd_write, "%s <memory> <addr> [<data>[,] {<data>[,]} | <len> <data>[,] {<data>[,]} ...]" },
+  { "flush", cmd_flush, "synchronise flash & EEPROM writes with the device" },
   { "abort", cmd_abort, "abort flash & EEPROM writes (reset the r/w cache)" },
   { "erase", cmd_erase, "perform a chip erase" },
   { "sig",   cmd_sig,   "display device signature bytes" },
@@ -723,6 +727,12 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
 
   free(buf);
 
+  return 0;
+}
+
+
+static int cmd_flush(PROGRAMMER *pgm, struct avrpart *p, int ac, char *av[]) {
+  pgm->flush_cache(pgm, p);
   return 0;
 }
 

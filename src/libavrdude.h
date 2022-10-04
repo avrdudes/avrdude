@@ -666,10 +666,9 @@ extern struct serial_device usbhid_serdev;
 #define serial_set_dtr_rts (serdev->set_dtr_rts)
 
 // See avrcache.c
-#define CACHE_USE_PAGE_ERASE  1 // Use page erase for this cache
-#define CACHE_FULL_DEVICE     2 // Expanded both caches to capture full EEPROM and flash
-
 typedef struct {                // Memory cache for a subset of cached pages
+  int size, page_size;          // Size of cache (flash or eeprom size) and page size
+  unsigned int offset;          // Offset of flash/eeprom memory
   unsigned char *cont, *copy;   // current memory contens and device copy of it
   unsigned char *iscached;      // iscached[i] set when page i has been loaded
 } AVR_Cache;

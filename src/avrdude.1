@@ -831,6 +831,12 @@ command left off.
 Manually program the respective memory cells, starting at address
 .Ar addr ,
 using the data items provided.
+The terminal implements reading from and writing to flash and EEPROM type
+memories normally through a cache and paged access functions. All other
+memories are directly written to without use of a cache. Some
+older parts without paged access will also have flash and EEPROM directly
+accessed without cache.
+.Pp
 .Ar data
 can be hexadecimal, octal or decimal integers, floating point numbers
 or C-style strings and characters. For integers, an optional case-insensitive
@@ -855,18 +861,34 @@ integer. If an integer suffix specifies a size explicitly the corresponding
 number of least significant bytes are written. Otherwise, signed and unsigned
 integers alike occupy the smallest of 1, 2, 4, or 8 bytes needed to
 accommodate them in their respective representation.
+.Pp
+One trailing comma at the end of
+.Ar data
+items is ignored to facilitate copy & paste of lists.
 .It Ar write memory addr len data[,] {data[,]} ...
 The ellipsis ... form writes <len> bytes padded by repeating the last
 .Ar data
 item.
+.It Ar flush
+Synchronise with the device all pending cached writes to EEPROM or flash.
+With some programmer and part combinations, flash (and sometimes EEPROM,
+too) looks like a NOR memory, ie, one can only write 0 bits, not 1 bits.
+When this is detected, either page erase is deployed (eg, with parts that
+have PDI/UPDI interfaces), or if that is not available, both EEPROM and
+flash caches are fully read in, a chip erase command is issued and both
+EEPROM and flash are written back to the device. Hence, it can take
+minutes to ensure that a single previously cleared bit is set and,
+therefore, this command should be used sparingly.
 .It Ar abort
-Reading and writing flash and EEPROM type memories is normally implemented
-through a cache and paged access functions. These caches are only ever
-actually written to the device at the end of the terminal session after
-typing quit, or after EOF on input is encountered. The abort command resets
-the cache, making all previous writes to flash and EEPROM void.
+Normally, caches are only ever
+actually written to the device when using the
+.Ar flush
+command, at the end of the terminal session after typing
+.Ar quit ,
+or after EOF on input is encountered. The abort command resets
+the cache discarding all previous writes to the flash and EEPROM cache.
 .It Ar erase
-Perform a chip erase.
+Perform a chip erase and discard all pending writes to EEPROM and flash.
 .It Ar send b1 b2 b3 b4
 Send raw instruction codes to the AVR device.  If you need access to a
 feature of an AVR part that is not directly supported by
