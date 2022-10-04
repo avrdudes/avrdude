@@ -1366,8 +1366,7 @@ int terminal_message(const int msglvl, const char *format, ...) {
 }
 
 
-static void update_progress_tty (int percent, double etime, char *hdr)
-{
+static void update_progress_tty (int percent, double etime, char *hdr, int trailing) {
   static char hashes[51];
   static char *header;
   static int last = 0;
@@ -1394,14 +1393,15 @@ static void update_progress_tty (int percent, double etime, char *hdr)
   }
 
   if (percent == 100) {
-    if (!last) avrdude_message(MSG_INFO, "\n\n");
+    if (!last && trailing)
+      avrdude_message(MSG_INFO, "\n\n");
     last = 1;
   }
 
   setvbuf(stderr, (char*)NULL, _IOLBF, 0);
 }
 
-static void update_progress_no_tty (int percent, double etime, char *hdr)
+static void update_progress_no_tty (int percent, double etime, char *hdr, int trailing)
 {
   static int done = 0;
   static int last = 0;
@@ -1422,7 +1422,9 @@ static void update_progress_no_tty (int percent, double etime, char *hdr)
   }
 
   if ((percent == 100) && (done == 0)) {
-    avrdude_message(MSG_INFO, " | 100%% %0.2fs\n\n", etime);
+    avrdude_message(MSG_INFO, " | 100%% %0.2fs", etime);
+    if(trailing)
+      avrdude_message(MSG_INFO, "\n\n");
     last = 0;
     done = 1;
   }

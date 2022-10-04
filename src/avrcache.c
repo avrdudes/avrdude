@@ -285,8 +285,8 @@ typedef struct {
 
 // Write both EEPROM and flash caches to device and free them
 int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
-  int chpages = 0, wrpages = 0;
-  bool chiperase = 0;
+  int chpages = 0, wrpages = 0, zopages = 0;
+  bool chiperase = 0, showprogress = 0;
   CacheDesc_t mems[2] = {
     { avr_locate_mem(p, "flash"), pgm->cp_flash, 1 },
     { avr_locate_mem(p, "eeprom"), pgm->cp_eeprom, 0 },
@@ -301,8 +301,11 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
 
     for(int pgno = 0, n = 0; n < cp->size; pgno++, n += cp->page_size) {
       if(cp->iscached[pgno])
-        if(memcmp(cp->copy + n, cp->cont + n, cp->page_size))
+        if(memcmp(cp->copy + n, cp->cont + n, cp->page_size)) {
           chpages++;
+          if(!avr_is_and(cp->cont + n, cp->copy + n, cp->cont + n, cp->page_size))
+            zopages++;
+        }
     }
   }
 
@@ -340,26 +343,47 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
               break;
             }
             wrpages++;
-            if(chpages > 42 && wrpages == 1) {
-              avrdude_message(MSG_INFO, "this may take some time ... ");
-              fflush(stderr);
+            if(zopages > 42 && wrpages == 1 && quell_progress == 0) {
+              showprogress = 1;
+              report_progress(0, 1, "Caching");
             }
+            if(showprogress)
+              report_progress(wrpages, zopages+1, NULL);
           }
         }
       }
     }
   }
-
-  if(!chiperase && chpages > 42 && wrpages == 0) {
-    avrdude_message(MSG_INFO, "this may take some time ... ");
-    fflush(stderr);
-  }
+  if(showprogress)
+    report_progress(1, 0, NULL);
 
   if(chiperase) {
-    avrdude_message(MSG_INFO, "read/chip erase/write will take time ... ");
+    if(quell_progress)
+      avrdude_message(MSG_INFO, "read/chip erase/write will take time ... ");
+    else
+      showprogress = 1;
     fflush(stderr);
 
     int bootstart = guessBootStart(pgm, p);
+    int nrd = 0, ird = 0, nbo = 0, ibo = 0;
+
+    if((pgm->prog_modes & PM_SPM) && bootstart > 0 && bootstart < mems[0].cp->size)
+      nbo = (mems[0].cp->size - bootstart)/mems[0].cp->page_size;
+
+    // Count read operations needed
+    for(size_t i = 0; i < sizeof mems/sizeof*mems; i++) {
+      AVRMEM *mem = mems[i].mem;
+      AVR_Cache *cp = mems[i].cp;
+      if(!mem)
+        continue;
+
+      for(int pgno = 0, n = 0; n < cp->size; pgno++, n += cp->page_size)
+        if(!cp->iscached[pgno])
+          nrd++;
+    }
+
+    if(showprogress)
+      report_progress(0, 1, "Reading");
 
     // Read full flash and EEPROM
     for(size_t i = 0; i < sizeof mems/sizeof*mems; i++) {
@@ -368,9 +392,19 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
       if(!mem)
         continue;
 
-      for(int addr = 0; addr < cp->size; addr += cp->page_size)
-        if(loadCachePage(cp, pgm, p, mem, addr, addr, MSG_INFO) < 0)
-          return LIBAVRDUDE_GENERAL_FAILURE;
+      for(int pgno = 0, n = 0; n < cp->size; pgno++, n += cp->page_size) {
+        if(!cp->iscached[pgno]) {
+          if(showprogress)
+            report_progress(ird++, nrd+2, NULL);
+          if(loadCachePage(cp, pgm, p, mem, n, n, MSG_INFO) < 0)
+            return LIBAVRDUDE_GENERAL_FAILURE;
+        }
+      }
+    }
+
+    if(showprogress) {
+      report_progress(1, 0, NULL);
+      report_progress(0, 1, "Erasing");
     }
 
     // Erase chip
@@ -379,6 +413,8 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
 
+    if(showprogress)
+      report_progress(1, nbo+2, NULL);
     // Update cache copies after chip erase so that writing back is efficient
     for(size_t i = 0; i < sizeof mems/sizeof*mems; i++) {
       AVRMEM *mem = mems[i].mem;
@@ -391,11 +427,14 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
         if(pgm->prog_modes & PM_SPM) { // Bootloaders will not overwrite themselves
           // read back bootloader section to avoid verification errors
           if(bootstart > 0 && bootstart < cp->size) {
-            for(int addr = bootstart & ~(cp->page_size-1); addr < cp->size; addr += cp->page_size)
+            for(int addr = bootstart & ~(cp->page_size-1); addr < cp->size; addr += cp->page_size) {
+              if(showprogress)
+                report_progress(1+ibo++, nbo+2, NULL);
               if(avr_read_page_default(pgm, p, mem, addr, cp->copy + addr) < 0) {
                 avrdude_message(MSG_INFO, "flash read failed at addr %x\n", addr);
                 return LIBAVRDUDE_GENERAL_FAILURE;
               }
+            }
           }
         }
       } else {                  // EEPROM
@@ -414,9 +453,29 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
         }
       }
     }
+    if(showprogress)
+      report_progress(1, 0, NULL);
   }
 
-  // OK, now should be able to write all modified pages to the device w/o page erase
+  // Count number of writes
+  int nwr = 0, iwr = 0;
+  for(size_t i = 0; i < sizeof mems/sizeof*mems; i++) {
+    AVRMEM *mem = mems[i].mem;
+    AVR_Cache *cp = mems[i].cp;
+    if(!mem)
+      continue;
+
+    for(int pgno = 0, n = 0; n < cp->size; pgno++, n += cp->page_size)
+      if(cp->iscached[pgno] && memcmp(cp->copy + n, cp->cont + n, cp->page_size))
+        nwr++;
+  }
+
+  if(quell_progress == 0 && (chiperase || nwr > 42))
+    showprogress = 1;
+  if(showprogress)
+    report_progress(0, 1, "Writing");
+
+  // Write all modified pages to the device w/o page erase
   for(size_t i = 0; i < sizeof mems/sizeof*mems; i++) {
     AVRMEM *mem = mems[i].mem;
     AVR_Cache *cp = mems[i].cp;
@@ -431,11 +490,16 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
           avrdude_message(MSG_INFO, "%s verification error at addr %x\n", mem->desc, n);
           return LIBAVRDUDE_GENERAL_FAILURE;
         }
+        if(showprogress)
+          report_progress(iwr++, nwr+1, NULL);
       }
     }
   }
 
-  avrdude_message(MSG_INFO, "done\n");
+  if(showprogress)
+    report_progress(1, 0, NULL);
+  avrdude_message(MSG_INFO, showprogress? "\n": "done\n");
+
   return LIBAVRDUDE_SUCCESS;
 }
 

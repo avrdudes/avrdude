@@ -845,7 +845,7 @@ void sort_programmers(LISTID programmers);
 
 /* formerly avr.h */
 
-typedef void (*FP_UpdateProgress)(int percent, double etime, char *hdr);
+typedef void (*FP_UpdateProgress)(int percent, double etime, char *hdr, int trailing);
 
 extern struct avrpart parts[];
 extern const char *avr_mem_order[100];

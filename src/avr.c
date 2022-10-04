@@ -1336,7 +1336,7 @@ void report_progress (int completed, int total, char *hdr)
   if (hdr) {
     last = 0;
     start_time = t;
-    update_progress (percent, t - start_time, hdr);
+    update_progress (percent, t - start_time, hdr, total > 0);
   }
 
   if (percent > 100)
@@ -1344,7 +1344,7 @@ void report_progress (int completed, int total, char *hdr)
 
   if (percent > last) {
     last = percent;
-    update_progress (percent, t - start_time, hdr);
+    update_progress (percent, t - start_time, hdr, total > 0);
   }
 
   if (percent == 100)
