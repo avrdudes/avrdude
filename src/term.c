@@ -331,6 +331,7 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
   for (int i = 0; i < len; i++) {
     int rc = pgm->read_byte_cached(pgm, p, mem, addr + i, &buf[i]);
     if (rc != 0) {
+      report_progress(1, -1, NULL);
       terminal_message(MSG_INFO, "%s (dump): error reading %s address 0x%05lx of part %s\n",
         progname, mem->desc, (long) addr + i, p->desc);
       if (rc == -1)
@@ -697,8 +698,8 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
 
   pgm->err_led(pgm, OFF);
   bool werror = false;
-  report_progress(0, 1, "Writing");
-  for (i = 0; i < (len + data.bytes_grown); i++) {
+  report_progress(0, 1, avr_has_paged_access(pgm, mem)? "Caching": "Writing");
+  for (i = 0; i < len + data.bytes_grown; i++) {
     int rc = pgm->write_byte_cached(pgm, p, mem, addr+i, buf[i]);
     if (rc) {
       terminal_message(MSG_INFO, "%s (write): error writing 0x%02x at 0x%05lx, rc=%d\n",
@@ -717,11 +718,10 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       werror = true;
     }
 
-    if (werror) {
+    if (werror)
       pgm->err_led(pgm, ON);
-    }
 
-    report_progress(i, (len + data.bytes_grown), NULL);
+    report_progress(i, len + data.bytes_grown, NULL);
   }
   report_progress(1, 1, NULL);
 
@@ -1366,72 +1366,74 @@ int terminal_message(const int msglvl, const char *format, ...) {
 }
 
 
-static void update_progress_tty (int percent, double etime, char *hdr, int trailing) {
-  static char hashes[51];
+static void update_progress_tty(int percent, double etime, const char *hdr, int finish) {
   static char *header;
-  static int last = 0;
+  static int last, done;
   int i;
 
-  setvbuf(stderr, (char*)NULL, _IONBF, 0);
+  setvbuf(stderr, (char *) NULL, _IONBF, 0);
 
-  hashes[50] = 0;
-
-  memset (hashes, ' ', 50);
-  for (i=0; i<percent; i+=2) {
-    hashes[i/2] = '#';
-  }
-
-  if (hdr) {
+  if(hdr) {
     avrdude_message(MSG_INFO, "\n");
-    last = 0;
-    header = hdr;
+    last = done = 0;
+    if(header)
+      free(header);
+    header = cfg_strdup("update_progress_tty()",  hdr);
   }
 
-  if (last == 0) {
+  percent = percent > 100? 100: percent < 0? 0: percent;
+
+  if(!done) {
+    if(!header)
+      header = cfg_strdup("update_progress_tty()", "report");
+
+    int showperc = finish >= 0? percent: last;
+
+    char hashes[51];
+    memset(hashes, finish >= 0? ' ': '-', 50);
+    for(i=0; i<showperc; i+=2)
+      hashes[i/2] = '#';
+    hashes[50] = 0;
+
     avrdude_message(MSG_INFO, "\r%s | %s | %d%% %0.2fs",
-            header, hashes, percent, etime);
-  }
-
-  if (percent == 100) {
-    if (!last && trailing)
-      avrdude_message(MSG_INFO, "\n\n");
-    last = 1;
-  }
-
-  setvbuf(stderr, (char*)NULL, _IOLBF, 0);
-}
-
-static void update_progress_no_tty (int percent, double etime, char *hdr, int trailing)
-{
-  static int done = 0;
-  static int last = 0;
-  int cnt = (percent>>1)*2;
-
-  setvbuf(stderr, (char*)NULL, _IONBF, 0);
-
-  if (hdr) {
-    avrdude_message(MSG_INFO, "\n%s | ", hdr);
-    last = 0;
-    done = 0;
-  }
-  else {
-    while ((cnt > last) && (done == 0)) {
-      avrdude_message(MSG_INFO, "#");
-      cnt -=  2;
+            header, hashes, showperc, etime);
+    if(percent == 100) {
+      if(finish)
+        avrdude_message(MSG_INFO, "\n\n");
+      done = 1;
     }
   }
+  last = percent;
 
-  if ((percent == 100) && (done == 0)) {
-    avrdude_message(MSG_INFO, " | 100%% %0.2fs", etime);
-    if(trailing)
-      avrdude_message(MSG_INFO, "\n\n");
-    last = 0;
-    done = 1;
+  setvbuf(stderr, (char *) NULL, _IOLBF, 0);
+}
+
+static void update_progress_no_tty(int percent, double etime, const char *hdr, int finish) {
+  static int last, done;
+
+  setvbuf(stderr, (char *) NULL, _IONBF, 0);
+
+  percent = percent > 100? 100: percent < 0? 0: percent;
+
+  if(hdr) {
+    avrdude_message(MSG_INFO, "\n%s | ", hdr);
+    last = done = 0;
   }
-  else
-    last = (percent>>1)*2;    /* Make last a multiple of 2. */
 
-  setvbuf(stderr, (char*)NULL, _IOLBF, 0);
+  if(!done) {
+    for(int cnt = percent/2; cnt > last/2; cnt--)
+      avrdude_message(MSG_INFO, finish >= 0? "#": "-");
+
+    if(percent == 100) {
+      avrdude_message(MSG_INFO, " | %d%% %0.2fs", etime, finish >= 0? 100: last);
+      if(finish)
+        avrdude_message(MSG_INFO, "\n\n");
+      done = 1;
+    }
+  }
+  last = percent;
+
+  setvbuf(stderr, (char *) NULL, _IOLBF, 0);
 }
 
 void terminal_setup_update_progress() {

@@ -1301,52 +1301,51 @@ int avr_unlock(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 /*
- * Report the progress of a read or write operation from/to the
- * device.
+ * Report the progress of a read or write operation from/to the device
  *
- * The first call of report_progress() should look like this (for a write op):
+ * The first call of report_progress() should look like this (for a write):
  *
- * report_progress (0, 1, "Writing");
+ * report_progress(0, 1, "Writing");
  *
- * Then hdr should be passed NULL on subsequent calls while the
- * operation is progressing. Once the operation is complete, a final
- * call should be made as such to ensure proper termination of the
- * progress report:
+ * Then hdr should be passed NULL on subsequent calls *
+ * report_progress(k, n, NULL); // k/n signifies proportion of work done
  *
- * report_progress (1, 1, NULL);
+ * with 0 <= k < n, while the operation is progressing. Once the operation is
+ * complete, a final call should be made as such to ensure proper termination
+ * of the progress report; choose one of the following three forms:
  *
- * It would be nice if we could reduce the usage to one and only one
- * call for each of start, during and end cases. As things stand now,
- * that is not possible and makes maintenance a bit more work.
+ * report_progress(n, n, NULL); // finished OK, terminate with double \n
+ * report_progress(1, 0, NULL); // finished OK, do not print terminating \n
+ * report_progress(1, -1, NULL); // finished not OK, print double \n
+ *
+ * It is OK to call report_progress(1, -1, NULL) in a subroutine when
+ * encountering a fatal error to terminate the reporting here and there even
+ * though no report may have been started.
  */
-void report_progress (int completed, int total, char *hdr)
-{
-  static int last = 0;
+
+void report_progress(int completed, int total, const char *hdr) {
+  static int last;
   static double start_time;
-  int percent = (total > 0) ? ((completed * 100) / total) : 100;
+  int percent;
   struct timeval tv;
   double t;
 
   if (update_progress == NULL)
     return;
 
+  percent =
+    completed >= total || total <= 0? 100:
+    completed < 0? 0:
+    completed < INT_MAX/100? 100*completed/total: completed/(total/100);
+
   gettimeofday(&tv, NULL);
   t = tv.tv_sec + ((double)tv.tv_usec)/1000000;
 
-  if (hdr) {
-    last = 0;
+  if(hdr || !start_time)
     start_time = t;
-    update_progress (percent, t - start_time, hdr, total > 0);
-  }
 
-  if (percent > 100)
-    percent = 100;
-
-  if (percent > last) {
+  if(hdr || percent > last) {
     last = percent;
-    update_progress (percent, t - start_time, hdr, total > 0);
+    update_progress(percent, t - start_time, hdr, total < 0? -1: !!total);
   }
-
-  if (percent == 100)
-    last = 0;                   /* Get ready for next time. */
 }

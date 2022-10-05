@@ -845,7 +845,7 @@ void sort_programmers(LISTID programmers);
 
 /* formerly avr.h */
 
-typedef void (*FP_UpdateProgress)(int percent, double etime, char *hdr, int trailing);
+typedef void (*FP_UpdateProgress)(int percent, double etime, const char *hdr, int finish);
 
 extern struct avrpart parts[];
 extern const char *avr_mem_order[100];
@@ -904,7 +904,7 @@ int avr_chip_erase(const PROGRAMMER *pgm, const AVRPART *p);
 
 int avr_unlock(const PROGRAMMER *pgm, const AVRPART *p);
 
-void report_progress (int completed, int total, char *hdr);
+void report_progress(int completed, int total, const char *hdr);
 
 int avr_has_paged_access(const PROGRAMMER *pgm, const AVRMEM *m);
 
