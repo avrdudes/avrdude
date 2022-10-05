@@ -1333,29 +1333,41 @@ The following commands are implemented:
 
 @table @code
 
-@item dump @var{memtype} [@var{start_addr} [@var{nbytes}]]
+@item dump @var{memtype} @var{addr} @var{nbytes}
 Read @var{nbytes} from the specified memory area, and display them in
 the usual hexadecimal and ASCII form.
 
-@item dump @var{memtype} [@var{start_addr}] @dots{}
-Start reading from @var{start_addr}, all the way to the last memory address.
+@item dump @var{memtype} @var{addr} @dots{}
+Start reading from @var{addr}, all the way to the last memory address.
+
+@item dump @var{memtype} @var{addr}
+Read 256 bytes from the specified memory area, and display them.
+
+@item dump @var{memtype} @dots{}
+Read all bytes from the specified memory, and display them.
 
 @item dump @var{memtype}
 Continue dumping the memory contents for another @var{nbytes} where the
 previous dump command left off.
 
-@item write @var{memtype} @var{start_addr} @var{data1} @var{data2} @dots{} @var{dataN}
-Manually program the respective memory cells, starting at address @var{start_addr},
-using the values @var{data1} through @var{dataN}.  This feature is not
-implemented for bank-addressed memories such as the flash memory of
-ATMega devices.
+@item write @var{memtype} @var{addr} @var{data[,]} @{@var{data[,]}@}
+Manually program the respective memory cells, starting at address
+@var{addr}, using the data items provided. The terminal implements
+reading from and writing to flash and EEPROM type memories normally
+through a cache and paged access functions. All other memories are
+directly written to without use of a cache. Some older parts without paged
+access will also have flash and EEPROM directly accessed without cache.
 
-Items @var{dataN} can have the following formats:
+Items @var{data} can have the following formats:
 
 @multitable @columnfractions .3 .4 .3
 @item @strong{Type}
 @tab @strong{Example}
 @tab @strong{Size (bytes)}
+
+@item String
+@tab @code{"Hello, world\n"}
+@tab varying
 
 @item Character
 @tab @code{'A'}
@@ -1363,61 +1375,97 @@ Items @var{dataN} can have the following formats:
 
 @item Decimal integer
 @tab 12345
-@tab 1, 2, 4, or 8 (see below)
+@tab 1, 2, 4, or 8
 
 @item Octal integer
 @tab 012345
-@tab 1, 2, 4, or 8 (see below)
+@tab 1, 2, 4, or 8
 
 @item Hexadecimal integer
 @tab 0x12345
-@tab 1, 2, 4, or 8 (see below)
+@tab 1, 2, 4, or 8
 
 @item Float
 @tab 3.1415926
 @tab 4
 
+@item Double
+@tab 3.141592653589793D
+@tab 8
+
 @end multitable
 
-Integer constants can be 1, 2, 4, or 8 bytes long.
-By default, the smallest possible size will be used where
-the specified number just fits into.
-A specific size can be denoted by appending one of these suffixes:
-
+@var{data}
+can be hexadecimal, octal or decimal integers, floating point numbers
+or C-style strings and characters. For integers, an optional case-insensitive
+suffix specifies the data size as in the table below:
 @table @code
 @item LL
-@itemx ll
 8 bytes / 64 bits
 @item L
-@itemx l
 4 bytes / 32 bits
-@item H
-@itemx h
-@itemx S
-@itemx s
+@item H or S
 2 bytes / 16 bits
 @item HH
-@itemx hh
 1 byte / 8 bits
 @end table
 
-Similarly, floating-point constants can have an @code{F} or @code{f}
-appended, but only 32-bit floating-point values are supported.
+Suffix @code{D} indicates a 64-bit double, @code{F} a 32-bit float, whilst a
+floating point number without suffix defaults to 32-bit float. Hexadecimal
+floating point notation is supported. An ambiguous trailing suffix, eg,
+@code{0x1.8D}, is read as no-suffix float where @code{D} is part of the
+mantissa; use a zero exponent @code{0x1.8p0D} to clarify.
 
-@item write @var{memtype} @var{start_addr} @var{length} @var{data1} @var{data2} @var{dataN} @dots{}
+An optional @code{U} suffix makes integers unsigned. Ordinary @code{0x} hex
+integers are always treated as unsigned. @code{+0x} or @code{-0x} hex
+numbers are treated as signed unless they have a @code{U} suffix. Unsigned
+integers cannot be larger than 2^64-1. If @var{n} is an unsigned integer then @var{-n}
+is also a valid unsigned integer as in C. Signed integers must fall into
+the [-2^63, 2^63-1] range or a correspondingly smaller range when a suffix
+specifies a smaller type. Out of range signed numbers trigger a warning.
 
-Similar to the above, but @var{length} byte of the memory are written.
-For that purpose, after writing the initial items, @var{dataN} is
-replicated as many times as needed.
+Ordinary @code{0x} hex integers with @var{n} hex digits (counting leading
+zeros) use the smallest size of 1, 2, 4 and 8 bytes that can accommodate
+any n-digit hex integer. If an integer suffix specifies a size explicitly
+the corresponding number of least significant bytes are written.
+Otherwise, signed and unsigned integers alike occupy the smallest of 1, 2,
+4, or 8 bytes needed to accommodate them in their respective
+representation.
+
+One trailing comma at the end of data items is ignored to facilitate copy
+and paste of lists.
+
+@item write @var{memtype} @var{addr} @var{length} @var{data[,]} @{@var{data[,]}@} @dots{}
+The ellipses form @dots{} of write is similar to above, but @var{length}
+byte of the memory are written. For that purpose, after writing the
+initial items, the last @var{data} item is replicated as many times as
+needed.
+
+@item flush
+Synchronise with the device all pending cached writes to EEPROM or flash.
+With some programmer and part combinations, flash (and sometimes EEPROM,
+too) looks like a NOR memory, ie, one can only write 0 bits, not 1 bits.
+When this is detected, either page erase is deployed (eg, with parts that
+have PDI/UPDI interfaces), or if that is not available, both EEPROM and
+flash caches are fully read in, a chip erase command is issued and both
+EEPROM and flash are written back to the device. Hence, it can take
+minutes to ensure that a single previously cleared bit is set and,
+therefore, this command should be used sparingly.
+
+@item abort
+Normally, caches are only ever actually written to the device when using
+@code{flush}, at the end of the terminal session after typing @code{quit},
+or after EOF on input is encountered. The @code{abort} command resets the
+cache discarding all previous writes to the flash and EEPROM cache.
 
 @item erase
-Perform a chip erase.
+Perform a chip erase and discard all pending writes to EEPROM and flash.
 
 @item send @var{b1} @var{b2} @var{b3} @var{b4}
-Send raw instruction codes to the AVR device.  If you need access to a
+Send raw instruction codes to the AVR device. If you need access to a
 feature of an AVR part that is not directly supported by AVRDUDE, this
 command allows you to use it, even though AVRDUDE does not implement the
-command.   When using direct SPI mode, up to 3 bytes
+command. When using direct SPI mode, up to 3 bytes
 can be omitted.
 
 @item sig

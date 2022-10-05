@@ -312,30 +312,39 @@ int avr_mem_hiaddr(const AVRMEM * mem)
 
 
 /*
- * Read the entirety of the specified memory type into the
- * corresponding buffer of the avrpart pointed to by 'p'.
- * If v is non-NULL, verify against v's memory area, only
- * those cells that are tagged TAG_ALLOCATED are verified.
+ * Read the entirety of the specified memory type into the corresponding
+ * buffer of the avrpart pointed to by p. If v is non-NULL, verify against
+ * v's memory area, only those cells that are tagged TAG_ALLOCATED are
+ * verified.
  *
- * Return the number of bytes read, or < 0 if an error occurs.  
+ * Return the number of bytes read, or < 0 if an error occurs.
  */
-int avr_read(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype,
-             AVRPART * v)
-{
-  unsigned long    i, lastaddr;
-  unsigned char    cmd[4];
-  AVRMEM * mem, * vmem = NULL;
-  int rc;
-
-  mem = avr_locate_mem(p, memtype);
-  if (v != NULL)
-      vmem = avr_locate_mem(v, memtype);
+int avr_read(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, const AVRPART *v) {
+  AVRMEM *mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
-    avrdude_message(MSG_INFO, "No \"%s\" memory for part %s\n",
-            memtype, p->desc);
-    return -1;
+    avrdude_message(MSG_INFO, "No %s memory for part %s\n", memtype, p->desc);
+    return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
+  return avr_read_mem(pgm, p, mem, v);
+}
+
+
+/*
+ * Read the entirety of the specified memory into the corresponding buffer of
+ * the avrpart pointed to by p. If v is non-NULL, verify against v's memory
+ * area, only those cells that are tagged TAG_ALLOCATED are verified.
+ *
+ * Return the number of bytes read, or < 0 if an error occurs.
+ */
+int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, const AVRPART *v) {
+  unsigned long i, lastaddr;
+  unsigned char cmd[4];
+  AVRMEM *vmem = NULL;
+  int rc;
+
+  if (v != NULL)
+      vmem = avr_locate_mem(v, mem->desc);
   /*
    * start with all 0xff
    */
@@ -364,7 +373,7 @@ int avr_read(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype,
         rc = pgm->cmd_tpi(pgm, cmd, 1, mem->buf + i, 1);
         lastaddr++;
         if (rc == -1) {
-          avrdude_message(MSG_INFO, "avr_read(): error reading address 0x%04lx\n", i);
+          avrdude_message(MSG_INFO, "avr_read_mem(): error reading address 0x%04lx\n", i);
           return -1;
         }
       }
@@ -422,7 +431,7 @@ int avr_read(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype,
           /* paged load failed, fall back to byte-at-a-time read below */
           failure = 1;
       } else {
-        avrdude_message(MSG_DEBUG, "%s: avr_read(): skipping page %u: no interesting data\n",
+        avrdude_message(MSG_DEBUG, "%s: avr_read_mem(): skipping page %u: no interesting data\n",
                         progname, pageaddr / mem->page_size);
       }
       nread++;
@@ -445,14 +454,13 @@ int avr_read(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype,
     {
       rc = pgm->read_byte(pgm, p, mem, i, mem->buf + i);
       if (rc != LIBAVRDUDE_SUCCESS) {
-        avrdude_message(MSG_INFO, "avr_read(): error reading address 0x%04lx\n", i);
+        avrdude_message(MSG_INFO, "avr_read_mem(): error reading address 0x%04lx\n", i);
         if (rc == LIBAVRDUDE_GENERAL_FAILURE) {
-          avrdude_message(MSG_INFO, "    read operation not supported for memory \"%s\"\n",
-                          memtype);
+          avrdude_message(MSG_INFO, "    read operation not supported for memory %s\n",
+                          mem->desc);
           return LIBAVRDUDE_NOTSUPPORTED;
         }
-        avrdude_message(MSG_INFO, "    read operation failed for memory \"%s\"\n",
-                        memtype);
+        avrdude_message(MSG_INFO, "    read operation failed for memory %s\n", mem->desc);
         return LIBAVRDUDE_SOFTFAIL;
       }
     }
@@ -461,6 +469,7 @@ int avr_read(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype,
 
   return avr_mem_hiaddr(mem);
 }
+
 
 
 /*
@@ -794,17 +803,33 @@ int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 
 
 /*
- * Write the whole memory region of the specified memory from the
- * corresponding buffer of the avrpart pointed to by 'p'.  Write up to
- * 'size' bytes from the buffer.  Data is only written if the new data
- * value is different from the existing data value.  Data beyond
- * 'size' bytes is not affected.
+ * Write the whole memory region of the specified memory from its buffer of
+ * the avrpart pointed to by p to the device.  Write up to size bytes from
+ * the buffer.  Data is only written if the corresponding tags byte is set.
+ * Data beyond size bytes are not affected.
  *
- * Return the number of bytes written, or -1 if an error occurs.
+ * Return the number of bytes written, or LIBAVRDUDE_GENERAL_FAILURE on error.
  */
-int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype,
-              int size, int auto_erase)
-{
+int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, int size, int auto_erase) {
+  AVRMEM *m = avr_locate_mem(p, memtype);
+  if (m == NULL) {
+    avrdude_message(MSG_INFO, "No \"%s\" memory for part %s\n",
+            memtype, p->desc);
+    return LIBAVRDUDE_GENERAL_FAILURE;
+  }
+
+  return avr_write_mem(pgm, p, m, size, auto_erase);
+}
+
+/*
+ * Write the whole memory region of the specified memory from its buffer of
+ * the avrpart pointed to by p to the device.  Write up to size bytes from
+ * the buffer.  Data is only written if the corresponding tags byte is set.
+ * Data beyond size bytes are not affected.
+ *
+ * Return the number of bytes written, or LIBAVRDUDE_GENERAL_FAILURE on error.
+ */
+int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int size, int auto_erase) {
   int              rc;
   int              newpage, page_tainted, flush_page, do_write;
   int              wsize;
@@ -812,14 +837,6 @@ int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype,
   unsigned char    data;
   int              werror;
   unsigned char    cmd[4];
-  AVRMEM         * m;
-
-  m = avr_locate_mem(p, memtype);
-  if (m == NULL) {
-    avrdude_message(MSG_INFO, "No \"%s\" memory for part %s\n",
-            memtype, p->desc);
-    return -1;
-  }
 
   pgm->err_led(pgm, OFF);
 
@@ -841,7 +858,7 @@ int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype,
   if ((p->prog_modes & PM_TPI) && m->page_size > 1 && pgm->cmd_tpi) {
     if (wsize == 1) {
       /* fuse (configuration) memory: only single byte to write */
-      return avr_write_byte(pgm, p, m, 0, m->buf[0]) == 0? 1: -1;
+      return avr_write_byte(pgm, p, m, 0, m->buf[0]) == 0? 1: LIBAVRDUDE_GENERAL_FAILURE;
     }
 
     while (avr_tpi_poll_nvmbsy(pgm));
@@ -924,7 +941,7 @@ int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype,
           /* paged write failed, fall back to byte-at-a-time write below */
           failure = 1;
       } else {
-        avrdude_message(MSG_DEBUG, "%s: avr_write(): skipping page %u: no interesting data\n",
+        avrdude_message(MSG_DEBUG, "%s: avr_write_mem(): skipping page %u: no interesting data\n",
                         progname, pageaddr / m->page_size);
       }
       nwritten++;
@@ -1271,11 +1288,7 @@ int avr_mem_might_be_known(const char *str) {
 
 
 int avr_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
-  int rc;
-
-  rc = pgm->chip_erase(pgm, p);
-
-  return rc;
+  return pgm->chip_erase(pgm, p);
 }
 
 int avr_unlock(const PROGRAMMER *pgm, const AVRPART *p) {
@@ -1288,52 +1301,51 @@ int avr_unlock(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 /*
- * Report the progress of a read or write operation from/to the
- * device.
+ * Report the progress of a read or write operation from/to the device
  *
- * The first call of report_progress() should look like this (for a write op):
+ * The first call of report_progress() should look like this (for a write):
  *
- * report_progress (0, 1, "Writing");
+ * report_progress(0, 1, "Writing");
  *
- * Then hdr should be passed NULL on subsequent calls while the
- * operation is progressing. Once the operation is complete, a final
- * call should be made as such to ensure proper termination of the
- * progress report:
+ * Then hdr should be passed NULL on subsequent calls *
+ * report_progress(k, n, NULL); // k/n signifies proportion of work done
  *
- * report_progress (1, 1, NULL);
+ * with 0 <= k < n, while the operation is progressing. Once the operation is
+ * complete, a final call should be made as such to ensure proper termination
+ * of the progress report; choose one of the following three forms:
  *
- * It would be nice if we could reduce the usage to one and only one
- * call for each of start, during and end cases. As things stand now,
- * that is not possible and makes maintenance a bit more work.
+ * report_progress(n, n, NULL); // finished OK, terminate with double \n
+ * report_progress(1, 0, NULL); // finished OK, do not print terminating \n
+ * report_progress(1, -1, NULL); // finished not OK, print double \n
+ *
+ * It is OK to call report_progress(1, -1, NULL) in a subroutine when
+ * encountering a fatal error to terminate the reporting here and there even
+ * though no report may have been started.
  */
-void report_progress (int completed, int total, char *hdr)
-{
-  static int last = 0;
+
+void report_progress(int completed, int total, const char *hdr) {
+  static int last;
   static double start_time;
-  int percent = (total > 0) ? ((completed * 100) / total) : 100;
+  int percent;
   struct timeval tv;
   double t;
 
   if (update_progress == NULL)
     return;
 
+  percent =
+    completed >= total || total <= 0? 100:
+    completed < 0? 0:
+    completed < INT_MAX/100? 100*completed/total: completed/(total/100);
+
   gettimeofday(&tv, NULL);
   t = tv.tv_sec + ((double)tv.tv_usec)/1000000;
 
-  if (hdr) {
-    last = 0;
+  if(hdr || !start_time)
     start_time = t;
-    update_progress (percent, t - start_time, hdr);
-  }
 
-  if (percent > 100)
-    percent = 100;
-
-  if (percent > last) {
+  if(hdr || percent > last) {
     last = percent;
-    update_progress (percent, t - start_time, hdr);
+    update_progress(percent, t - start_time, hdr, total < 0? -1: !!total);
   }
-
-  if (percent == 100)
-    last = 0;                   /* Get ready for next time. */
 }

@@ -51,6 +51,12 @@ static int cmd_dump  (PROGRAMMER * pgm, struct avrpart * p,
 static int cmd_write (PROGRAMMER * pgm, struct avrpart * p,
 		      int argc, char *argv[]);
 
+static int cmd_flush (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
+
+static int cmd_abort (PROGRAMMER * pgm, struct avrpart * p,
+		      int argc, char *argv[]);
+
 static int cmd_erase (PROGRAMMER * pgm, struct avrpart * p,
 		      int argc, char *argv[]);
 
@@ -100,6 +106,8 @@ struct command cmd[] = {
   { "dump",  cmd_dump,  "%s <memory> [<addr> <len> | <addr> ... | <addr> | ...]" },
   { "read",  cmd_dump,  "alias for dump" },
   { "write", cmd_write, "%s <memory> <addr> [<data>[,] {<data>[,]} | <len> <data>[,] {<data>[,]} ...]" },
+  { "flush", cmd_flush, "synchronise flash & EEPROM writes with the device" },
+  { "abort", cmd_abort, "abort flash & EEPROM writes (reset the r/w cache)" },
   { "erase", cmd_erase, "perform a chip erase" },
   { "sig",   cmd_sig,   "display device signature bytes" },
   { "part",  cmd_part,  "display the current part information" },
@@ -115,7 +123,7 @@ struct command cmd[] = {
   { "quell", cmd_quell, "set quell level for progress bars" },
   { "help",  cmd_help,  "help" },
   { "?",     cmd_help,  "help" },
-  { "quit",  cmd_quit,  "quit" }
+  { "quit",  cmd_quit,  "quit after writing out cache for flash & EEPROM" }
 };
 
 #define NCMDS ((int)(sizeof(cmd)/sizeof(struct command)))
@@ -321,8 +329,9 @@ static int cmd_dump(PROGRAMMER * pgm, struct avrpart * p,
 
   report_progress(0, 1, "Reading");
   for (int i = 0; i < len; i++) {
-    int rc = pgm->read_byte(pgm, p, mem, addr + i, &buf[i]);
+    int rc = pgm->read_byte_cached(pgm, p, mem, addr + i, &buf[i]);
     if (rc != 0) {
+      report_progress(1, -1, NULL);
       terminal_message(MSG_INFO, "%s (dump): error reading %s address 0x%05lx of part %s\n",
         progname, mem->desc, (long) addr + i, p->desc);
       if (rc == -1)
@@ -403,7 +412,7 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
       "or C-style strings and characters. For integers, an optional case-insensitive\n"
       "suffix specifies the data size: HH 8 bit, H/S 16 bit, L 32 bit, LL 64 bit.\n"
       "Suffix D indicates a 64-bit double, F a 32-bit float, whilst a floating point\n"
-      "number without suffix  defaults to 32-bit float. Hexadecimal floating point\n"
+      "number without suffix defaults to 32-bit float. Hexadecimal floating point\n"
       "notation is supported. An ambiguous trailing suffix, eg, 0x1.8D, is read as\n"
       "no-suffix float where D is part of the mantissa; use a zero exponent 0x1.8p0D\n"
       "to clarify.\n"
@@ -689,9 +698,9 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
 
   pgm->err_led(pgm, OFF);
   bool werror = false;
-  report_progress(0, 1, "Writing");
-  for (i = 0; i < (len + data.bytes_grown); i++) {
-    int rc = avr_write_byte(pgm, p, mem, addr+i, buf[i]);
+  report_progress(0, 1, avr_has_paged_access(pgm, mem)? "Caching": "Writing");
+  for (i = 0; i < len + data.bytes_grown; i++) {
+    int rc = pgm->write_byte_cached(pgm, p, mem, addr+i, buf[i]);
     if (rc) {
       terminal_message(MSG_INFO, "%s (write): error writing 0x%02x at 0x%05lx, rc=%d\n",
         progname, buf[i], (long) addr+i, (int) rc);
@@ -702,23 +711,34 @@ static int cmd_write(PROGRAMMER * pgm, struct avrpart * p,
     }
 
     uint8_t b;
-    rc = pgm->read_byte(pgm, p, mem, addr+i, &b);
+    rc = pgm->read_byte_cached(pgm, p, mem, addr+i, &b);
     if (b != buf[i]) {
       terminal_message(MSG_INFO, "%s (write): error writing 0x%02x at 0x%05lx cell=0x%02x\n",
         progname, buf[i], (long) addr+i, b);
       werror = true;
     }
 
-    if (werror) {
+    if (werror)
       pgm->err_led(pgm, ON);
-    }
 
-    report_progress(i, (len + data.bytes_grown), NULL);
+    report_progress(i, len + data.bytes_grown, NULL);
   }
   report_progress(1, 1, NULL);
 
   free(buf);
 
+  return 0;
+}
+
+
+static int cmd_flush(PROGRAMMER *pgm, struct avrpart *p, int ac, char *av[]) {
+  pgm->flush_cache(pgm, p);
+  return 0;
+}
+
+
+static int cmd_abort(PROGRAMMER *pgm, struct avrpart *p, int ac, char *av[]) {
+  pgm->reset_cache(pgm, p);
   return 0;
 }
 
@@ -789,7 +809,9 @@ static int cmd_erase(PROGRAMMER * pgm, struct avrpart * p,
 		     int argc, char * argv[])
 {
   terminal_message(MSG_INFO, "%s: erasing chip\n", progname);
-  pgm->chip_erase(pgm, p);
+  // Erase chip and clear cache
+  pgm->chip_erase_cached(pgm, p);
+
   return 0;
 }
 
@@ -1020,8 +1042,10 @@ static int cmd_help(PROGRAMMER * pgm, struct avrpart * p,
     fprintf(stdout, cmd[i].desc, cmd[i].name);
     fprintf(stdout, "\n");
   }
-  fprintf(stdout,
-          "\nUse the 'part' command to display valid memory types for use with the\n"
+  fprintf(stdout, "\n"
+          "Note that flash and EEPROM type memories are normally read and written\n"
+          "using a cache and paged r/w access; the cache is synchronised on quit.\n"
+          "Use the 'part' command to display valid memory types for use with the\n"
           "'dump' and 'write' commands.\n\n");
 
   return 0;
@@ -1320,6 +1344,8 @@ int terminal_mode(PROGRAMMER * pgm, struct avrpart * p)
     free(cmdbuf);
   }
 
+  pgm->flush_cache(pgm, p);
+
   return rc;
 }
 
@@ -1340,70 +1366,74 @@ int terminal_message(const int msglvl, const char *format, ...) {
 }
 
 
-static void update_progress_tty (int percent, double etime, char *hdr)
-{
-  static char hashes[51];
+static void update_progress_tty(int percent, double etime, const char *hdr, int finish) {
   static char *header;
-  static int last = 0;
+  static int last, done;
   int i;
 
-  setvbuf(stderr, (char*)NULL, _IONBF, 0);
+  setvbuf(stderr, (char *) NULL, _IONBF, 0);
 
-  hashes[50] = 0;
-
-  memset (hashes, ' ', 50);
-  for (i=0; i<percent; i+=2) {
-    hashes[i/2] = '#';
-  }
-
-  if (hdr) {
+  if(hdr) {
     avrdude_message(MSG_INFO, "\n");
-    last = 0;
-    header = hdr;
+    last = done = 0;
+    if(header)
+      free(header);
+    header = cfg_strdup("update_progress_tty()",  hdr);
   }
 
-  if (last == 0) {
+  percent = percent > 100? 100: percent < 0? 0: percent;
+
+  if(!done) {
+    if(!header)
+      header = cfg_strdup("update_progress_tty()", "report");
+
+    int showperc = finish >= 0? percent: last;
+
+    char hashes[51];
+    memset(hashes, finish >= 0? ' ': '-', 50);
+    for(i=0; i<showperc; i+=2)
+      hashes[i/2] = '#';
+    hashes[50] = 0;
+
     avrdude_message(MSG_INFO, "\r%s | %s | %d%% %0.2fs",
-            header, hashes, percent, etime);
-  }
-
-  if (percent == 100) {
-    if (!last) avrdude_message(MSG_INFO, "\n\n");
-    last = 1;
-  }
-
-  setvbuf(stderr, (char*)NULL, _IOLBF, 0);
-}
-
-static void update_progress_no_tty (int percent, double etime, char *hdr)
-{
-  static int done = 0;
-  static int last = 0;
-  int cnt = (percent>>1)*2;
-
-  setvbuf(stderr, (char*)NULL, _IONBF, 0);
-
-  if (hdr) {
-    avrdude_message(MSG_INFO, "\n%s | ", hdr);
-    last = 0;
-    done = 0;
-  }
-  else {
-    while ((cnt > last) && (done == 0)) {
-      avrdude_message(MSG_INFO, "#");
-      cnt -=  2;
+            header, hashes, showperc, etime);
+    if(percent == 100) {
+      if(finish)
+        avrdude_message(MSG_INFO, "\n\n");
+      done = 1;
     }
   }
+  last = percent;
 
-  if ((percent == 100) && (done == 0)) {
-    avrdude_message(MSG_INFO, " | 100%% %0.2fs\n\n", etime);
-    last = 0;
-    done = 1;
+  setvbuf(stderr, (char *) NULL, _IOLBF, 0);
+}
+
+static void update_progress_no_tty(int percent, double etime, const char *hdr, int finish) {
+  static int last, done;
+
+  setvbuf(stderr, (char *) NULL, _IONBF, 0);
+
+  percent = percent > 100? 100: percent < 0? 0: percent;
+
+  if(hdr) {
+    avrdude_message(MSG_INFO, "\n%s | ", hdr);
+    last = done = 0;
   }
-  else
-    last = (percent>>1)*2;    /* Make last a multiple of 2. */
 
-  setvbuf(stderr, (char*)NULL, _IOLBF, 0);
+  if(!done) {
+    for(int cnt = percent/2; cnt > last/2; cnt--)
+      avrdude_message(MSG_INFO, finish >= 0? "#": "-");
+
+    if(percent == 100) {
+      avrdude_message(MSG_INFO, " | %d%% %0.2fs", etime, finish >= 0? 100: last);
+      if(finish)
+        avrdude_message(MSG_INFO, "\n\n");
+      done = 1;
+    }
+  }
+  last = percent;
+
+  setvbuf(stderr, (char *) NULL, _IOLBF, 0);
 }
 
 void terminal_setup_update_progress() {
