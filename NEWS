@@ -18,7 +18,43 @@ Changes since version 7.0:
     - Fix micronucleus bootloader to check for unresponsive USB
       devices #945
     - Fix src/CMakeLists.txt to honor CMAKE_INSTALL_LIBDIR #972
-    - [bug #43898] atmega644p remains stopped after JTAG transaction #366
+    - [bug #43898] atmega644p remains stopped after JTAG
+      transaction #366
+    - Wrong timings for ATmega328PB and other parts in avrdude.conf
+      #976
+    - FT232R based programmer ATmega2560 Flash Reading Problem #995
+      also #474
+    - Enable avrdude to send full input file incl trailing 0xff
+      #936
+    - Portname default for linuxspi programmer not recognized #926
+    - JTAG1 unable to write fuse and lock bits #443
+    - Unknown option '-s' on command line (legacy) #1032
+    - STK500/arduino/xbee programmers fail EEPROM r/w for some
+      parts #967 also #421
+    - Design issue: jtag2updi is hardcoded to fail for parts with
+      has_pdi = yes #1037
+    - Option parse error: after -U flash:w:program_to_upload.hex,
+      subsequent -V ignored #441
+    - Automatic verification is designed to fail for stdin #1044
+    - Display correct number of bytes when input file has holes
+      #1005
+    - Cmake installs avrdude.1 in the wrong place on Linux #1064
+    - avr910 -qq prompt too verbose #1081
+    - avrftdi.c: paged write can fail at addr 0 #1073
+    - Permission denied accessing /sys/class/gpio/gpioX/direction
+      would leave pin exported #472 also #372
+    - Raspberry Pi sysfs bug workaround for linuxgpio driver #386
+    - Fix CMake avrdude.conf dependency to avrdude.conf.in #1035
+    - CMake infrastructure does not handle documentation #947
+    - New feature: ability to reset FLIPv2 targets #733
+    - Fix Extended address not sent with avr109/butterfly #360
+      and #454
+    - Enable AVR JTAG ICE mkI program EEPROM in terminal mode
+      #1054
+    - Make flash writes work in terminal mode #1020
+    - Add support for XMEGA specific AVR109 protocol extensions
+      used by XBoot #200
+
 
   * Pull requests:
 
@@ -40,9 +76,8 @@ Changes since version 7.0:
       and automatically do so for -c arduino #936
     - Fix linuxspi default port #933
     - Add support for high-voltage UPDI im jtag3.c #1015
-    - Fix terminal write edge cases;
-      add one read mode;
-      add quell command #1025
+    - Fix terminal write edge cases; add one read mode; add quell
+      command #1025
     - Fix usbtiny read for parts with more than 64 kB flash #1029
     - CMakeLists.txt: fix build without C++ #1016
     - Provide file format I: Intel HEX with comments that ignores
@@ -98,8 +133,22 @@ Changes since version 7.0:
       programmer using -p\? -c programmer and vice versa #1099
     - Add extended parameter disable_no_cs for linuxspi programmer
       #1100
+    - Fix avr109 extended address #1101
+    - Add support for Flip 2 reset on exit #1102
+    - Support for Power Debugger analog readings in terminal mode
+      #1105
+    - Provide cached byte-wise read/write API #1106
+    - AVR109: support for prodsig read and usersig read/write #1108
+    - Add missing AVR variants the original JTAG ICE supports #1109
 
   * Internals:
+
+    - Implement -c <wildcard>/dev_opts and -p <wildcard>/dev_opts
+      for printing avrdude.conf programmer and part entries
+    - Reviewed API for prgrammer functions: use const for
+      programmer functions where useful; add second argument for
+      void (*enable)(PROGRAMMER *pgm, const AVRPART *p) #1078
+
 
 Changes in version 7.0:
 
