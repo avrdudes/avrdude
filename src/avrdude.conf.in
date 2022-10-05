@@ -3828,7 +3828,6 @@ part
 part parent "m64"
     desc                   = "ATmega64A";
     id                     = "m64a";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 73;
 ;
 
@@ -3959,7 +3958,6 @@ part
 part parent "m128"
     desc                   = "ATmega128A";
     id                     = "m128a";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 86;
 ;
 
@@ -4454,7 +4452,6 @@ part
 part parent "m16"
     desc                   = "ATmega16A";
     id                     = "m16a";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 50;
 ;
 
@@ -5298,7 +5295,6 @@ part
 part parent "m169"
     desc                   = "ATmega169A";
     id                     = "m169a";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 105;
     signature              = 0x1e 0x94 0x11;
     reset                  = io;
@@ -5922,7 +5918,6 @@ part
 part parent "m32"
     desc                   = "ATmega32A";
     id                     = "m32a";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 59;
 ;
 
@@ -11304,7 +11299,7 @@ part
 part
     desc                   = "ATmega165";
     id                     = "m165";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG | PM_JTAGmkI;
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 95;
     n_interrupts           = 22;
 #   stk500_devcode         = 0x??;
@@ -11426,7 +11421,6 @@ part
 part parent "m165"
     desc                   = "ATmega165A";
     id                     = "m165a";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 96;
 ;
 
@@ -11437,7 +11431,6 @@ part parent "m165"
 part parent "m165"
     desc                   = "ATmega165P";
     id                     = "m165p";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 97;
     signature              = 0x1e 0x94 0x07;
 ;
@@ -11449,7 +11442,6 @@ part parent "m165"
 part parent "m165"
     desc                   = "ATmega165PA";
     id                     = "m165pa";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 98;
     signature              = 0x1e 0x94 0x07;
 ;
