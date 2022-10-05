@@ -483,7 +483,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
             pgm->page_erase(pgm, p, mem, n);
           if(writeCachePage(cp, pgm, p, mem, n, MSG_INFO) < 0)
             return LIBAVRDUDE_GENERAL_FAILURE;
-          if(iwr > nwr/2 || memcmp(cp->copy + n, cp->cont + n, cp->page_size)) {
+          if(memcmp(cp->copy + n, cp->cont + n, cp->page_size)) {
             report_progress(1, -1, NULL);
             if(!quell_progress)
               avrdude_message(MSG_INFO, "%s: ", progname);
