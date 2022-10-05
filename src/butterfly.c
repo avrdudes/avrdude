@@ -405,14 +405,26 @@ static void butterfly_display(const PROGRAMMER *pgm, const char *p) {
 
 
 static void butterfly_set_addr(const PROGRAMMER *pgm, unsigned long addr) {
-  char cmd[3];
+  if( addr < 0x10000 ) {
+    char cmd[3];
 
-  cmd[0] = 'A';
-  cmd[1] = (addr >> 8) & 0xff;
-  cmd[2] = addr & 0xff;
+    cmd[0] = 'A';
+    cmd[1] = (addr >> 8) & 0xff;
+    cmd[2] = addr & 0xff;
   
-  butterfly_send(pgm, cmd, sizeof(cmd));
-  butterfly_vfy_cmd_sent(pgm, "set addr");
+    butterfly_send(pgm, cmd, sizeof(cmd));
+    butterfly_vfy_cmd_sent(pgm, "set addr");
+  } else {
+    char cmd[4];
+
+    cmd[0] = 'H';
+    cmd[1] = (addr >> 16) & 0xff;
+    cmd[2] = (addr >> 8) & 0xff;
+    cmd[3] = addr & 0xff;
+
+    butterfly_send(pgm, cmd, sizeof(cmd));
+    butterfly_vfy_cmd_sent(pgm, "set extaddr");
+  }
 }
 
 
