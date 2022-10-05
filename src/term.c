@@ -854,7 +854,7 @@ static int cmd_parms(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
   pgm->print_parms(pgm);
-
+  terminal_message(MSG_INFO, "\n");
   return 0;
 }
 
