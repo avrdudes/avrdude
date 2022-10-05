@@ -462,11 +462,17 @@ MCU type, a previous invocation of
 .Nm
 with this option specified is one of the possible ways to guarantee this
 condition.
+.Em reset
+is supported by the linuxspi and flip2 programmer options, as well as all
+parallel port based programmers.
 .It Ar noreset
 The
 .Ql /RESET
 line will be deactivated at program exit, thus allowing the MCU target
 program to run while the programming hardware remains connected.
+.Em noreset
+is supported by the linuxspi and flip2 programmer options, as well as all
+parallel port based programmers.
 .It Ar vcc
 This option will leave those parallel port pins active
 .Pq \&i. \&e. Em high

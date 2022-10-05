@@ -131,6 +131,7 @@ static void flip2_disable(const PROGRAMMER *pgm);
 static void flip2_display(const PROGRAMMER *pgm, const char *prefix);
 static int flip2_program_enable(const PROGRAMMER *pgm, const AVRPART *part);
 static int flip2_chip_erase(const PROGRAMMER *pgm, const AVRPART *part);
+static int flip2_start_app(const PROGRAMMER *pgm);
 static int flip2_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
   unsigned long addr, unsigned char *value);
 static int flip2_write_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
@@ -140,6 +141,7 @@ static int flip2_paged_load(const PROGRAMMER *pgm, const AVRPART *part, const AV
 static int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes);
 static int flip2_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem);
+static int flip2_parseexitspecs(PROGRAMMER* pgm, const char *s);
 static void flip2_setup(PROGRAMMER * pgm);
 static void flip2_teardown(PROGRAMMER * pgm);
 
@@ -166,10 +168,6 @@ static const char * flip2_status_str(const struct dfu_status *status);
 static const char * flip2_mem_unit_str(enum flip2_mem_unit mem_unit);
 static enum flip2_mem_unit flip2_mem_unit(const char *name);
 
-#endif /* HAVE_LIBUSB */
-
-/* THE INITPGM FUNCTION DEFINITIONS */
-
 void flip2_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "flip2");
 
@@ -187,11 +185,11 @@ void flip2_initpgm(PROGRAMMER *pgm) {
   pgm->read_byte        = flip2_read_byte;
   pgm->write_byte       = flip2_write_byte;
   pgm->read_sig_bytes   = flip2_read_sig_bytes;
+  pgm->parseexitspecs   = flip2_parseexitspecs;
   pgm->setup            = flip2_setup;
   pgm->teardown         = flip2_teardown;
 }
 
-#ifdef HAVE_LIBUSB
 /* EXPORTED PROGRAMMER FUNCTION DEFINITIONS */
 
 int flip2_open(PROGRAMMER *pgm, const char *port_spec) {
@@ -315,6 +313,9 @@ flip2_initialize_fail:
 void flip2_close(PROGRAMMER* pgm)
 {
   if (FLIP2(pgm)->dfu != NULL) {
+    if (pgm->exit_reset == EXIT_RESET_ENABLED)
+      flip2_start_app(pgm);
+
     dfu_close(FLIP2(pgm)->dfu);
     FLIP2(pgm)->dfu = NULL;
   }
@@ -371,6 +372,22 @@ int flip2_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
     } else
       break;
   }
+
+  return cmd_result;
+}
+
+int flip2_start_app(const PROGRAMMER *pgm) {
+  avrdude_message(MSG_INFO, "%s: Starting application\n", progname);
+
+  struct flip2_cmd cmd = {
+    FLIP2_CMD_GROUP_EXEC, FLIP2_CMD_START_APP, { 0x00, 0, 0, 0 }
+  };
+
+  // queue command
+  int cmd_result = dfu_dnload(FLIP2(pgm)->dfu, &cmd, sizeof(cmd));
+
+  // repeat dnload to actually execute
+  dfu_dnload(FLIP2(pgm)->dfu, &cmd, sizeof(cmd));
 
   return cmd_result;
 }
@@ -487,6 +504,29 @@ int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *
     mem->buf + addr, n_bytes);
 
   return (result == 0) ? n_bytes : -1;
+}
+
+// Parse the -E option flag
+int flip2_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
+  char *cp, *s, *str = cfg_strdup("flip2_parseextitspecs()", sp);
+
+  s = str;
+  while ((cp = strtok(s, ","))) {
+    s = NULL;
+    if (!strcmp(cp, "reset")) {
+      pgm->exit_reset = EXIT_RESET_ENABLED;
+      continue;
+    }
+    if (!strcmp(cp, "noreset")) {
+      pgm->exit_reset = EXIT_RESET_DISABLED;
+      continue;
+    }
+    free(str);
+    return -1;
+  }
+
+  free(str);
+  return 0;
 }
 
 int flip2_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem) {
@@ -905,76 +945,17 @@ enum flip2_mem_unit flip2_mem_unit(const char *name) {
   return FLIP2_MEM_UNIT_UNKNOWN;
 }
 
-#else /* HAVE_LIBUSB */
+#else /* !HAVE_LIBUSB */
 
-/* EXPORTED PROGRAMMER FUNCTION DEFINITIONS */
-
-int flip2_open(PROGRAMMER *pgm, const char *port_spec) {
-  fprintf(stderr, "%s: Error: No USB support in this compile of avrdude\n",
-    progname);
-  return -1;
+ // Give a proper error if we were not compiled with libusb
+static int flip2_nousb_open(PROGRAMMER* pgm, const char* name) {
+    avrdude_message(MSG_INFO, "%s: error, no USB support; please compile with libusb installed\n", progname);
+    return -1;
 }
 
-int flip2_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
-  return -1;
+void flip2_initpgm(PROGRAMMER *pgm) {
+    strcpy(pgm->type, "flip2");
+    pgm->open = flip2_nousb_open;
 }
-
-void flip2_close(PROGRAMMER* pgm)
-{
-}
-
-void flip2_enable(PROGRAMMER *pgm, const AVRPART *p) {
-}
-
-void flip2_disable(const PROGRAMMER *pgm) {
-}
-
-void flip2_display(const PROGRAMMER *pgm, const char *prefix) {
-}
-
-int flip2_program_enable(const PROGRAMMER *pgm, const AVRPART *part) {
-  return -1;
-}
-
-int flip2_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
-  return -1;
-}
-
-int flip2_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
-  unsigned long addr, unsigned char *value)
-{
-  return -1;
-}
-
-int flip2_write_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
-  unsigned long addr, unsigned char value)
-{
-  return -1;
-}
-
-int flip2_paged_load(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
-  unsigned int page_size, unsigned int addr, unsigned int n_bytes)
-{
-  return -1;
-}
-
-int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
-  unsigned int page_size, unsigned int addr, unsigned int n_bytes)
-{
-  return -1;
-}
-
-int flip2_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem) {
-  return -1;
-}
-
-void flip2_setup(PROGRAMMER * pgm)
-{
-}
-
-void flip2_teardown(PROGRAMMER * pgm)
-{
-}
-
 
 #endif /* HAVE_LIBUSB */

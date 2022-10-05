@@ -556,12 +556,16 @@ Note in particular that the programming algorithm for the AT90S1200
 device mandates that the `/RESET' signal is active before powering up
 the MCU, so in case an external power supply is used for this MCU type,
 a previous invocation of AVRDUDE with this option specified is one of
-the possible ways to guarantee this condition.
+the possible ways to guarantee this condition. @code{reset} is supported
+by the @code{linuxspi} and @code{flip2} programmer options, as well as
+all parallel port based programmers.
 
 @item noreset
 The `/RESET' line will be deactivated at program exit, thus allowing the
 MCU target program to run while the programming hardware remains
-connected.
+connected. @code{noreset} is supported by the @code{linuxspi} and
+@code{flip2} programmer options, as well as all parallel port based
+programmers.
 
 @item vcc
 This option will leave those parallel port pins active (i. e. high) that
