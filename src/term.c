@@ -113,7 +113,7 @@ struct command cmd[] = {
   { "flush", cmd_flush, _fo(flush_cache),       "synchronise flash & EEPROM writes with the device" },
   { "abort", cmd_abort, _fo(reset_cache),       "abort flash & EEPROM writes (reset the r/w cache)" },
   { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip erase" },
-  { "sig",   cmd_sig,   _fo(read_sig_bytes),    "display device signature bytes" },
+  { "sig",   cmd_sig,   _fo(open),              "display device signature bytes" },
   { "part",  cmd_part,  _fo(open),              "display the current part information" },
   { "send",  cmd_send,  _fo(cmd),               "send a raw command: %s <b1> <b2> <b3> <b4>" },
   { "parms", cmd_parms, _fo(print_parms),       "display adjustable parameters" },
@@ -755,12 +755,6 @@ static int cmd_send(PROGRAMMER * pgm, struct avrpart * p,
   int i;
   int len;
 
-  if (pgm->cmd == NULL) {
-    terminal_message(MSG_INFO, "%s (send): the %s programmer does not support direct ISP commands\n",
-      progname, pgm->type);
-    return -1;
-  }
-
   if (spi_mode && (pgm->spi == NULL)) {
     terminal_message(MSG_INFO, "%s (send): the %s programmer does not support direct SPI transfers\n",
       progname, pgm->type);
@@ -874,11 +868,6 @@ static int cmd_quit(PROGRAMMER * pgm, struct avrpart * p,
 static int cmd_parms(PROGRAMMER * pgm, struct avrpart * p,
 		     int argc, char * argv[])
 {
-  if (pgm->print_parms == NULL) {
-    terminal_message(MSG_INFO, "%s (parms): the %s programmer does not support "
-      "adjustable parameters\n", progname, pgm->type);
-    return -1;
-  }
   pgm->print_parms(pgm);
   terminal_message(MSG_INFO, "\n");
   return 0;
@@ -901,11 +890,6 @@ static int cmd_vtarg(PROGRAMMER * pgm, struct avrpart * p,
     terminal_message(MSG_INFO, "%s (vtarg): can't parse voltage %s\n",
       progname, argv[1]);
     return -1;
-  }
-  if (pgm->set_vtarget == NULL) {
-    terminal_message(MSG_INFO, "%s (vtarg): the %s programmer cannot set V[target]\n",
-      progname, pgm->type);
-    return -2;
   }
   if ((rc = pgm->set_vtarget(pgm, v)) != 0) {
     terminal_message(MSG_INFO, "%s (vtarg): failed to set V[target] (rc = %d)\n",
@@ -941,11 +925,6 @@ static int cmd_fosc(PROGRAMMER * pgm, struct avrpart * p,
     v *= 1e6;
   else if (*endp == 'k' || *endp == 'K')
     v *= 1e3;
-  if (pgm->set_fosc == NULL) {
-    terminal_message(MSG_INFO, "%s (fosc): the %s programmer cannot set oscillator frequency\n",
-      progname, pgm->type);
-    return -2;
-  }
   if ((rc = pgm->set_fosc(pgm, v)) != 0) {
     terminal_message(MSG_INFO, "%s (fosc): failed to set oscillator frequency (rc = %d)\n",
       progname, rc);
@@ -973,11 +952,6 @@ static int cmd_sck(PROGRAMMER * pgm, struct avrpart * p,
     return -1;
   }
   v *= 1e-6;			/* Convert from microseconds to seconds. */
-  if (pgm->set_sck_period == NULL) {
-    terminal_message(MSG_INFO, "%s (sck): the %s programmer cannot set SCK period\n",
-      progname, pgm->type);
-    return -2;
-  }
   if ((rc = pgm->set_sck_period(pgm, v)) != 0) {
     terminal_message(MSG_INFO, "%s (sck): failed to set SCK period (rc = %d)\n",
       progname, rc);
@@ -1021,11 +995,6 @@ static int cmd_varef(PROGRAMMER * pgm, struct avrpart * p,
       return -1;
     }
   }
-  if (pgm->set_varef == NULL) {
-    terminal_message(MSG_INFO, "%s (varef): the %s programmer cannot set V[aref]\n",
-      progname, pgm->type);
-    return -2;
-  }
   if ((rc = pgm->set_varef(pgm, chan, v)) != 0) {
     terminal_message(MSG_INFO, "%s (varef): failed to set V[aref] (rc = %d)\n",
       progname, rc);
@@ -1060,28 +1029,18 @@ static int cmd_help(PROGRAMMER * pgm, struct avrpart * p,
 static int cmd_spi(PROGRAMMER * pgm, struct avrpart * p,
         int argc, char * argv[])
 {
-  if (pgm->setpin != NULL) {
-    pgm->setpin(pgm, PIN_AVR_RESET, 1);
-    spi_mode = 1;
-    return 0;
-  }
-  terminal_message(MSG_INFO, "%s: spi command unavailable for this programmer type\n",
-    progname);
-  return -1;
+  pgm->setpin(pgm, PIN_AVR_RESET, 1);
+  spi_mode = 1;
+  return 0;
 }
 
 static int cmd_pgm(PROGRAMMER * pgm, struct avrpart * p,
         int argc, char * argv[])
 {
-  if (pgm->setpin != NULL) {
-    pgm->setpin(pgm, PIN_AVR_RESET, 0);
-    spi_mode = 0;
-    pgm->initialize(pgm, p);
-    return 0;
-  }
-  terminal_message(MSG_INFO, "%s: pgm command unavailable for this programmer type\n",
-    progname);
-  return -1;
+  pgm->setpin(pgm, PIN_AVR_RESET, 0);
+  spi_mode = 0;
+  pgm->initialize(pgm, p);
+  return 0;
 }
 
 static int cmd_verbose(PROGRAMMER * pgm, struct avrpart * p,
