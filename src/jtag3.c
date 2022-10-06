@@ -1700,7 +1700,7 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   cmd[1] = CMD3_ERASE_MEMORY;
   cmd[2] = 0;
 
-  if (strcmp(m->desc, "flash") == 0) {
+  if (avr_mem_is_flash_type(m)) {
     if (p->prog_modes & PM_UPDI || jtag3_memtype(pgm, p, addr) == MTYPE_FLASH)
       cmd[3] = XMEGA_ERASE_APP_PAGE;
     else
@@ -1710,8 +1710,6 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   } else if (strcmp(m->desc, "usersig") == 0 ||
              strcmp(m->desc, "userrow") == 0) {
     cmd[3] = XMEGA_ERASE_USERSIG;
-  } else if (strcmp(m->desc, "boot") == 0) {
-    cmd[3] = XMEGA_ERASE_BOOT_PAGE;
   } else {
     cmd[3] = XMEGA_ERASE_APP_PAGE;
   }
