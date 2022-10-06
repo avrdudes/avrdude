@@ -107,13 +107,13 @@
  *  - Programmer must have paged routines
  *  - Memory has positive page size, which is a power of two
  *  - Memory has positive size, which is a multiple of the page size
- *  - Memory is flash type or eeprom type
+ *  - Memory is either flash type with page size > 1 or eeprom
  */
 int avr_has_paged_access(const PROGRAMMER *pgm, const AVRMEM *mem) {
   return pgm->paged_load && pgm->paged_write &&
          mem->page_size > 0 && (mem->page_size & (mem->page_size-1)) == 0 &&
          mem->size > 0 && mem->size % mem->page_size == 0 &&
-         (avr_mem_is_flash_type(mem) || avr_mem_is_eeprom_type(mem));
+         ((avr_mem_is_flash_type(mem) && mem->page_size > 1) || avr_mem_is_eeprom_type(mem));
 }
 
 
