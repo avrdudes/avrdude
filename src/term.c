@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include <stdarg.h>
 #include <limits.h>
 #include <unistd.h>
@@ -41,6 +42,7 @@
 struct command {
   char * name;
   int (*func)(PROGRAMMER * pgm, struct avrpart * p, int argc, char *argv[]);
+  size_t fnoff;
   char * desc;
 };
 
@@ -102,28 +104,30 @@ static int cmd_verbose (PROGRAMMER * pgm, struct avrpart * p,
 static int cmd_quell (PROGRAMMER * pgm, struct avrpart * p,
 		      int argc, char *argv[]);
 
+#define _fo(x) offsetof(PROGRAMMER, x)
+
 struct command cmd[] = {
-  { "dump",  cmd_dump,  "%s <memory> [<addr> <len> | <addr> ... | <addr> | ...]" },
-  { "read",  cmd_dump,  "alias for dump" },
-  { "write", cmd_write, "%s <memory> <addr> [<data>[,] {<data>[,]} | <len> <data>[,] {<data>[,]} ...]" },
-  { "flush", cmd_flush, "synchronise flash & EEPROM writes with the device" },
-  { "abort", cmd_abort, "abort flash & EEPROM writes (reset the r/w cache)" },
-  { "erase", cmd_erase, "perform a chip erase" },
-  { "sig",   cmd_sig,   "display device signature bytes" },
-  { "part",  cmd_part,  "display the current part information" },
-  { "send",  cmd_send,  "send a raw command: %s <b1> <b2> <b3> <b4>" },
-  { "parms", cmd_parms, "display adjustable parameters (STK500 and Curiosity Nano only)" },
-  { "vtarg", cmd_vtarg, "set <V[target]> (STK500 and Curiosity Nano only)" },
-  { "varef", cmd_varef, "set <V[aref]> (STK500 only)" },
-  { "fosc",  cmd_fosc,  "set <oscillator frequency> (STK500 only)" },
-  { "sck",   cmd_sck,   "set <SCK period> (STK500 only)" },
-  { "spi",   cmd_spi,   "enter direct SPI mode" },
-  { "pgm",   cmd_pgm,   "return to programming mode" },
-  { "verbose", cmd_verbose, "change verbosity" },
-  { "quell", cmd_quell, "set quell level for progress bars" },
-  { "help",  cmd_help,  "help" },
-  { "?",     cmd_help,  "help" },
-  { "quit",  cmd_quit,  "quit after writing out cache for flash & EEPROM" }
+  { "dump",  cmd_dump,  _fo(read_byte_cached),  "%s <memory> [<addr> <len> | <addr> ... | <addr> | ...]" },
+  { "read",  cmd_dump,  _fo(read_byte_cached),  "alias for dump" },
+  { "write", cmd_write, _fo(write_byte_cached), "%s <memory> <addr> [<data>[,] {<data>[,]} | <len> <data>[,] {<data>[,]} ...]" },
+  { "flush", cmd_flush, _fo(flush_cache),       "synchronise flash & EEPROM writes with the device" },
+  { "abort", cmd_abort, _fo(reset_cache),       "abort flash & EEPROM writes (reset the r/w cache)" },
+  { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip erase" },
+  { "sig",   cmd_sig,   _fo(read_sig_bytes),    "display device signature bytes" },
+  { "part",  cmd_part,  _fo(open),              "display the current part information" },
+  { "send",  cmd_send,  _fo(cmd),               "send a raw command: %s <b1> <b2> <b3> <b4>" },
+  { "parms", cmd_parms, _fo(print_parms),       "display adjustable parameters" },
+  { "vtarg", cmd_vtarg, _fo(set_vtarget),       "set <V[target]>" },
+  { "varef", cmd_varef, _fo(set_varef),         "set <V[aref]>" },
+  { "fosc",  cmd_fosc,  _fo(set_fosc),          "set <oscillator frequency>" },
+  { "sck",   cmd_sck,   _fo(set_sck_period),    "set <SCK period>" },
+  { "spi",   cmd_spi,   _fo(setpin),            "enter direct SPI mode" },
+  { "pgm",   cmd_pgm,   _fo(setpin),            "return to programming mode" },
+  { "verbose", cmd_verbose, _fo(open),          "change verbosity" },
+  { "quell", cmd_quell, _fo(open),              "set quell level for progress bars" },
+  { "help",  cmd_help,  _fo(open),              "help" },
+  { "?",     cmd_help,  _fo(open),              "help" },
+  { "quit",  cmd_quit,  _fo(open),              "quit after writing out cache for flash & EEPROM" }
 };
 
 #define NCMDS ((int)(sizeof(cmd)/sizeof(struct command)))
@@ -1038,6 +1042,8 @@ static int cmd_help(PROGRAMMER * pgm, struct avrpart * p,
 
   fprintf(stdout, "Valid commands:\n");
   for (i=0; i<NCMDS; i++) {
+    if(!*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
+      continue;
     fprintf(stdout, "  %-7s : ", cmd[i].name);
     fprintf(stdout, cmd[i].desc, cmd[i].name);
     fprintf(stdout, "\n");
@@ -1253,6 +1259,8 @@ static int do_cmd(PROGRAMMER * pgm, struct avrpart * p,
   len = strlen(argv[0]);
   hold = -1;
   for (i=0; i<NCMDS; i++) {
+    if(!*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
+      continue;
     if (strcasecmp(argv[0], cmd[i].name) == 0) {
       return cmd[i].func(pgm, p, argc, argv);
     }
