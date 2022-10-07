@@ -41,7 +41,7 @@
 
 struct command {
   char *name;
-  int (*func)(PROGRAMMER *pgm, struct avrpart *p, int argc, char *argv[]);
+  int (*func)(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
   size_t fnoff;
   char *desc;
 };
@@ -692,13 +692,13 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 }
 
 
-static int cmd_flush(PROGRAMMER *pgm, struct avrpart *p, int ac, char *av[]) {
+static int cmd_flush(PROGRAMMER *pgm, AVRPART *p, int ac, char *av[]) {
   pgm->flush_cache(pgm, p);
   return 0;
 }
 
 
-static int cmd_abort(PROGRAMMER *pgm, struct avrpart *p, int ac, char *av[]) {
+static int cmd_abort(PROGRAMMER *pgm, AVRPART *p, int ac, char *av[]) {
   pgm->reset_cache(pgm, p);
   return 0;
 }
