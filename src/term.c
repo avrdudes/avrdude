@@ -52,6 +52,7 @@ static int cmd_write  (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 static int cmd_flush  (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 static int cmd_abort  (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 static int cmd_erase  (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
+static int cmd_pgerase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 static int cmd_sig    (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 static int cmd_part   (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 static int cmd_help   (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
@@ -72,10 +73,11 @@ static int cmd_quell  (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 struct command cmd[] = {
   { "dump",  cmd_dump,  _fo(read_byte_cached),  "%s <memory> [<addr> <len> | <addr> ... | <addr> | ...]" },
   { "read",  cmd_dump,  _fo(read_byte_cached),  "alias for dump" },
-  { "write", cmd_write, _fo(write_byte_cached), "%s <memory> <addr> [<data>[,] {<data>[,]} | <len> <data>[,] {<data>[,]} ...]" },
+  { "write", cmd_write, _fo(write_byte_cached), "write <memory> <addr> [<data>[,] {<data>[,]} | <len> <data>[,] {<data>[,]} ...]" },
   { "flush", cmd_flush, _fo(flush_cache),       "synchronise flash & EEPROM writes with the device" },
   { "abort", cmd_abort, _fo(reset_cache),       "abort flash & EEPROM writes (reset the r/w cache)" },
   { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip erase" },
+  { "pgerase", cmd_pgerase, _fo(page_erase),    "pgerase <memory> <addr>" },
   { "sig",   cmd_sig,   _fo(open),              "display device signature bytes" },
   { "part",  cmd_part,  _fo(open),              "display the current part information" },
   { "send",  cmd_send,  _fo(cmd),               "send a raw command: %s <b1> <b2> <b3> <b4>" },
@@ -241,9 +243,9 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       terminal_message(MSG_INFO, "%s (dump): can't parse address %s\n",
         progname, argv[2]);
       return -1;
-    } else if (addr >= maxsize) {
-      terminal_message(MSG_INFO, "%s (dump): address 0x%05lx is out of range for %s memory\n",
-        progname, (long) addr, mem->desc);
+    } else if (addr < 0 || addr >= maxsize) {
+      terminal_message(MSG_INFO, "%s (dump): %s address 0x%05x is out of range [0, 0x%05x]\n",
+        progname, mem->desc, addr, maxsize-1);
       return -1;
     }
   }
@@ -362,7 +364,7 @@ static int is_mantissa_only(char *p) {
 static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   if (argc < 4) {
     terminal_message(MSG_INFO,
-      "Usage: write <memory> <addr> <data>[,] {<data>[,]} \n"
+      "Usage: write <memory> <addr> <data>[,] {<data>[,]}\n"
       "       write <memory> <addr> <len> <data>[,] {<data>[,]} ...\n"
       "\n"
       "Ellipsis ... writes <len> bytes padded by repeating the last <data> item.\n"
@@ -415,9 +417,9 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     return -1;
   }
 
-  if (addr > maxsize) {
-    terminal_message(MSG_INFO, "%s (write): address 0x%05lx is out of range for %s memory\n",
-      progname, (long) addr, memtype);
+  if (addr < 0 || addr >= maxsize) {
+    terminal_message(MSG_INFO, "%s (write): %s address 0x%05x is out of range [0, 0x%05x]\n",
+      progname, mem->desc, addr, maxsize);
     return -1;
   }
 
@@ -760,6 +762,52 @@ static int cmd_erase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   terminal_message(MSG_INFO, "%s: erasing chip\n", progname);
   // Erase chip and clear cache
   pgm->chip_erase_cached(pgm, p);
+
+  return 0;
+}
+
+
+static int cmd_pgerase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
+  if(argc < 3) {
+    terminal_message(MSG_INFO, "Usage: pgerase <memory> <addr>\n");
+    return -1;
+  }
+
+  char *memtype = argv[1];
+  AVRMEM *mem = avr_locate_mem(p, memtype);
+  if(!mem) {
+    terminal_message(MSG_INFO, "%s (pgerase): %s memory type not defined for part %s\n",
+      progname, memtype, p->desc);
+    return -1;
+  }
+  if(!avr_has_paged_access(pgm, mem)) {
+    terminal_message(MSG_INFO, "%s (pgerase): %s memory cannot be paged addressed by %s\n",
+      progname, memtype, ldata(lfirst(pgm->id)));
+    return -1;
+  }
+
+  int maxsize = mem->size;
+
+  char *end_ptr;
+  int addr = strtoul(argv[2], &end_ptr, 0);
+  if(*end_ptr || (end_ptr == argv[2])) {
+    terminal_message(MSG_INFO, "%s (pgerase): can't parse address %s\n",
+      progname, argv[2]);
+    return -1;
+  }
+
+  if (addr < 0 || addr >= maxsize) {
+    terminal_message(MSG_INFO, "%s (pgerase): %s address 0x%05x is out of range [0, 0x%05x]\n",
+      progname, mem->desc, addr, maxsize-1);
+    return -1;
+  }
+
+  // terminal_message(MSG_INFO, "%s: %s page erase 0x%05x\n", progname, mem->desc, addr & ~(mem->page_size-1));
+  if(pgm->page_erase_cached(pgm, p, mem, (unsigned int) addr) < 0) {
+    terminal_message(MSG_INFO, "%s (pgerase): %s page at 0x%05x could not be erased\n",
+      progname, mem->desc, addr);
+    return -1;
+  }
 
   return 0;
 }

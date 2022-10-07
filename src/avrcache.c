@@ -44,6 +44,9 @@
  *
  * int avr_chip_erase_cached(const PROGRAMMER *pgm, const AVRPART *p);
  *
+ * int avr_page_erase_cached(const PROGRAMMER *pgm, const AVRPART *p, const
+ *  AVRMEM *mem, unsigned int baseaddr);
+ *
  * int avr_reset_cache(const PROGRAMMER *pgm, const AVRPART *p);
  *
  * avr_read_byte_cached() and avr_write_byte_cached() use a cache if paged
@@ -81,6 +84,9 @@
  * has these clear bits on the device. Only with this evidence is the EEPROM
  * cache preset to all 0xff otherwise the cache discards all pending writes
  * to EEPROM and is left unchanged otherwise.
+ *
+ * The avr_page_erase_cached() function erases a page and synchronises it
+ * with the cache.
  *
  * Finally, avr_reset_cache() resets the cache without synchronising pending
  * writes() to the device.
@@ -635,6 +641,42 @@ int avr_chip_erase_cached(const PROGRAMMER *pgm, const AVRPART *p) {
       }
     }
   }
+
+  return LIBAVRDUDE_SUCCESS;
+}
+
+
+// Erase a page and synchronise it with the cache
+int avr_page_erase_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned int uaddr) {
+
+  int addr = uaddr;
+
+  if(!pgm->page_erase || !avr_has_paged_access(pgm, mem) || addr < 0 || addr >= mem->size)
+    return LIBAVRDUDE_GENERAL_FAILURE;
+
+  if(pgm->page_erase(pgm, p, mem, uaddr) < 0)
+    return LIBAVRDUDE_GENERAL_FAILURE;
+
+  AVR_Cache *cp = avr_mem_is_eeprom_type(mem)? pgm->cp_eeprom: pgm->cp_flash;
+
+  if(!cp->cont)                 // Init cache if needed
+    if(initCache(cp, pgm, p) < 0)
+      return LIBAVRDUDE_GENERAL_FAILURE;
+
+  int cacheaddr = cacheAddress(addr, cp, mem, MSG_NOTICE);
+  if(cacheaddr < 0)
+    return LIBAVRDUDE_GENERAL_FAILURE;
+
+  // Invalidate this cache page and read back, ie, we don't trust the page_erase() routine
+  cp->iscached[cacheaddr/cp->page_size] = 0;
+
+  // Reload cache page
+  if(loadCachePage(cp, pgm, p, mem, (int) addr, cacheaddr, MSG_NOTICE) < 0)
+    return LIBAVRDUDE_GENERAL_FAILURE;
+
+  if(!_is_all_0xff(cp->cont + (cacheaddr & ~(cp->page_size-1)), cp->page_size))
+    return LIBAVRDUDE_GENERAL_FAILURE;
 
   return LIBAVRDUDE_SUCCESS;
 }

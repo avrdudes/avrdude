@@ -639,7 +639,7 @@ Note: The ability to handle IPv6 hostnames and addresses is limited to
 Posix systems (by now).
 .It Fl q
 Disable (or quell) output of the progress bar while reading or writing
-to the device.  Specify it a second time for even quieter operation.
+to the device.  Specify it more often for even quieter operations.
 .It Fl s, u
 These options used to control the obsolete "safemode" feature which
 is no longer present. They are silently ignored for backwards compatibility.
@@ -812,7 +812,7 @@ abbreviated to the shortest unambiguous form.  Terminal mode provides
 a command history using
 .Xr readline 3 ,
 so previously entered command lines can be recalled and edited.  The
-following commands are currently implemented:
+following commands are currently implemented for all programmers:
 .Bl -tag -offset indent -width indent
 .It Ar dump  memory addr len
 Read
@@ -827,12 +827,14 @@ and display them.
 Read 256 bytes from the specified memory area, and display them.
 .It Ar dump memory ...
 Read all bytes from the specified memory, and display them.
-.It Ar dump
+.It Ar dump memory
 Continue dumping the memory contents for another
 .Ar 256
 bytes where the previous
 .Ar dump
 command left off.
+.It Ar read
+can be used as an alias for dump
 .It Ar write memory addr data[,] {data[,]}
 Manually program the respective memory cells, starting at address
 .Ar addr ,
@@ -895,6 +897,39 @@ or after EOF on input is encountered. The abort command resets
 the cache discarding all previous writes to the flash and EEPROM cache.
 .It Ar erase
 Perform a chip erase and discard all pending writes to EEPROM and flash.
+.It Ar sig
+Display the device signature bytes.
+.It Ar part
+Display the current part settings and parameters.  Includes chip
+specific information including all memory types supported by the
+device, read/write timing, etc.
+.It Ar verbose Op Ar level
+Change (when
+.Ar level
+is provided), or display the verbosity level.
+The initial verbosity level is controlled by the number of
+.Fl v
+options given on the commandline.
+.It Ar quell Op Ar level
+Change (when
+.Ar level
+is provided), or display the quell level. 1 is used to suppress progress reports.
+2 or higher yields in progressively quieter operations.
+The initial quell level is controlled by the number of
+.Fl q
+options given on the commandline.
+.It Ar \&?
+.It Ar help
+Give a short on-line summary of the available commands.
+.It Ar quit
+Leave terminal mode and thus
+.Nm avrdude .
+.El
+.Pp
+The terminal commands below may only be implemented on some specific programmers, and may therefore not be available in the help menu.
+.Bl -tag -offset indent -width indent
+.It pgerase memory addr
+Erase one page of the memory specified.
 .It Ar send b1 b2 b3 b4
 Send raw instruction codes to the AVR device.  If you need access to a
 feature of an AVR part that is not directly supported by
@@ -903,24 +938,18 @@ this command allows you to use it, even though
 .Nm
 does not implement the command. When using direct SPI mode, up to 3 bytes
 can be omitted.
-.It Ar sig
-Display the device signature bytes.
 .It Ar spi
 Enter direct SPI mode.  The
 .Em pgmled
 pin acts as slave select.
-.Em Only supported on parallel bitbang programmers, and partially by USBtiny.
-.It Ar part
-Display the current part settings and parameters.  Includes chip
-specific information including all memory types supported by the
-device, read/write timing, etc.
+.Em Supported on parallel bitbang programmers, and partially by USBtiny.
 .It Ar pgm
 Return to programming mode (from direct SPI mode).
 .It Ar vtarg voltage
 Set the target's supply voltage to
 .Ar voltage
 Volts.
-.Em Only supported on the STK500 and STK600 programmer.
+.Em Supported on the STK500 and STK600 programmer.
 .It Ar varef Oo Ar channel Oc Ar voltage
 Set the adjustable voltage source to
 .Ar voltage
@@ -932,7 +961,7 @@ On the Atmel STK600, two reference voltages are available, which
 can be selected by the optional
 .Ar channel
 argument (either 0 or 1).
-.Em Only supported on the STK500 and STK600 programmer.
+.Em Supported on the STK500 and STK600 programmer.
 .It Ar fosc freq Ns Op M Ns \&| Ns k
 Set the master oscillator to
 .Ar freq
@@ -942,17 +971,16 @@ An optional trailing letter
 multiplies by 1E6, a trailing letter
 .Ar \&k
 by 1E3.
-.Em Only supported on the STK500 and STK600 programmer.
+.Em Supported on the STK500 and STK600 programmer.
 .It Ar fosc off
 Turn the master oscillator off.
-.Em Only supported on the STK500 and STK600 programmer.
+.Em Supported on the STK500 and STK600 programmer.
 .It Ar sck period
-.Em STK500 and STK600 programmer only:
+.Em STK500 and STK600 programmer:
 Set the SCK clock period to
 .Ar period
 microseconds.
-.Pp
-.Em JTAG ICE only:
+.Em JTAG ICE:
 Set the JTAG ICE bit clock period to
 .Ar period
 microseconds.
@@ -962,24 +990,12 @@ software signs off from the JTAG ICE.
 This parameter can also be used on the JTAG ICE mkII, JTAGICE3, and Atmel-ICE to specify the
 ISP clock period when operating the ICE in ISP mode.
 .It Ar parms
-.Em STK500 and STK600 programmer only:
+.Em STK500 and STK600 programmer:
 Display the current voltage and master oscillator parameters.
-.Pp
-.Em JTAG ICE only:
+.Em JTAG ICE:
 Display the current target supply voltage and JTAG bit clock rate/period.
-.It Ar verbose Op Ar level
-Change (when
-.Ar level
-is provided), or display the verbosity level.
-The initial verbosity level is controlled by the number of
-.Fl v
-options given on the commandline.
-.It Ar \&?
-.It Ar help
-Give a short on-line summary of the available commands.
-.It Ar quit
-Leave terminal mode and thus
-.Nm avrdude .
+.Em Other programmers:
+Display the programmer specific parameters.
 .El
 .Ss Default Parallel port pin connections
 (these can be changed, see the

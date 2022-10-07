@@ -1329,7 +1329,7 @@ commands can be recalled and edited.
 @section Terminal Mode Commands
 
 @noindent
-The following commands are implemented:
+The following commands are implemented for all programmers:
 
 @table @code
 
@@ -1349,6 +1349,9 @@ Read all bytes from the specified memory, and display them.
 @item dump @var{memtype}
 Continue dumping the memory contents for another @var{nbytes} where the
 previous dump command left off.
+
+@item read
+Can be used as an alias for dump.
 
 @item write @var{memtype} @var{addr} @var{data[,]} @{@var{data[,]}@}
 Manually program the respective memory cells, starting at address
@@ -1461,35 +1464,25 @@ cache discarding all previous writes to the flash and EEPROM cache.
 @item erase
 Perform a chip erase and discard all pending writes to EEPROM and flash.
 
-@item send @var{b1} @var{b2} @var{b3} @var{b4}
-Send raw instruction codes to the AVR device. If you need access to a
-feature of an AVR part that is not directly supported by AVRDUDE, this
-command allows you to use it, even though AVRDUDE does not implement the
-command. When using direct SPI mode, up to 3 bytes
-can be omitted.
-
 @item sig
 Display the device signature bytes.
-
-@item spi
-Enter direct SPI mode.  The @emph{pgmled} pin acts as slave select.
-@emph{Only supported on parallel bitbang programmers, and partially by USBtiny.}
-Slave Select must be externally held low for direct SPI when
-using USBtinyISP, and send must be a multiple of four bytes.
 
 @item part
 Display the current part settings and parameters.  Includes chip
 specific information including all memory types supported by the
 device, read/write timing, etc.
 
-@item pgm
-Return to programming mode (from direct SPI mode).
-
 @item verbose [@var{level}]
 Change (when @var{level} is provided), or display the verbosity
 level.
 The initial verbosity level is controlled by the number of @code{-v} options
 given on the command line.
+
+@item quell [@var{level}]
+Change (when @var{level} is provided), or display the quell
+level. 1 is used to suppress progress reports. 2 or higher yields
+progressively quieter operations. The initial quell level is controlled
+by the number of @code{-q} options given on the command line.
 
 @item ?
 @itemx help
@@ -1501,10 +1494,28 @@ Leave terminal mode and thus AVRDUDE.
 @end table
 
 @noindent
-In addition, the following commands are supported on the STK500
-and STK600 programmer:
+In addition, the following commands are supported on some programmers:
 
 @table @code
+
+@item pgerase @var{memory} @var{addr}
+Erase one page of the memory specified.
+
+@item send @var{b1} @var{b2} @var{b3} @var{b4}
+Send raw instruction codes to the AVR device. If you need access to a
+feature of an AVR part that is not directly supported by AVRDUDE, this
+command allows you to use it, even though AVRDUDE does not implement the
+command. When using direct SPI mode, up to 3 bytes
+can be omitted.
+
+@item spi
+Enter direct SPI mode.  The @emph{pgmled} pin acts as slave select.
+@emph{Only supported on parallel bitbang programmers, and partially by USBtiny.}
+Slave Select must be externally held low for direct SPI when
+using USBtinyISP, and send must be a multiple of four bytes.
+
+@item pgm
+Return to programming mode (from direct SPI mode).
 
 @item vtarg @var{voltage}
 Set the target's supply voltage to @var{voltage} Volts.
@@ -1528,7 +1539,6 @@ Turn the master oscillator off.
 @item sck @var{period}
 @emph{STK500 and STK600 only:}
 Set the SCK clock period to @var{period} microseconds.
-
 @emph{JTAG ICE only:}
 Set the JTAG ICE bit clock period to @var{period} microseconds.
 Note that unlike STK500 settings, this setting will be reverted to
@@ -1540,7 +1550,6 @@ ISP clock period when operating the ICE in ISP mode.
 @item parms
 @emph{STK500 and STK600 only:}
 Display the current voltage and master oscillator parameters.
-
 @emph{JTAG ICE only:}
 Display the current target supply voltage and JTAG bit clock rate/period.
 
