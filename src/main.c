@@ -60,10 +60,13 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
                              multiline messages */
 
-int avrdude_message(const int msglvl, const char *format, ...)
-{
+int avrdude_message(int msglvl, const char *format, ...) {
     int rc = 0;
     va_list ap;
+
+    if(quell_progress > 1)
+        msglvl += quell_progress-1;
+
     if (verbose >= msglvl) {
         va_start(ap, format);
         rc = vfprintf(stderr, format, ap);
@@ -91,7 +94,7 @@ static PROGRAMMER * pgm;
  * global options
  */
 int    verbose;     /* verbose output */
-int    quell_progress; /* un-verebose output */
+int    quell_progress; /* once: quell progress reports, each additional: un-verbose output */
 int    ovsigck;     /* 1=override sig check, 0=don't */
 
 
@@ -105,31 +108,31 @@ static void usage(void)
   msg_info(
  "Usage: %s [options]\n"
  "Options:\n"
- "  -p <partno>                Required. Specify AVR device.\n"
- "  -b <baudrate>              Override RS-232 baud rate.\n"
- "  -B <bitclock>              Specify JTAG/STK500v2 bit clock period (us).\n"
- "  -C <config-file>           Specify location of configuration file.\n"
- "  -c <programmer>            Specify programmer type.\n"
- "  -A                         Disable trailing-0xff removal from file and AVR read.\n"
- "  -D                         Disable auto erase for flash memory; implies -A.\n"
+ "  -p <partno>                Required. Specify AVR device\n"
+ "  -b <baudrate>              Override RS-232 baud rate\n"
+ "  -B <bitclock>              Specify JTAG/STK500v2 bit clock period (us)\n"
+ "  -C <config-file>           Specify location of configuration file\n"
+ "  -c <programmer>            Specify programmer type\n"
+ "  -A                         Disable trailing-0xff removal from file and AVR read\n"
+ "  -D                         Disable auto erase for flash memory; implies -A\n"
  "  -i <delay>                 ISP Clock Delay [in microseconds]\n"
- "  -P <port>                  Specify connection port.\n"
- "  -F                         Override invalid signature check.\n"
- "  -e                         Perform a chip erase.\n"
- "  -O                         Perform RC oscillator calibration (see AVR053). \n"
+ "  -P <port>                  Specify connection port\n"
+ "  -F                         Override invalid signature check\n"
+ "  -e                         Perform a chip erase\n"
+ "  -O                         Perform RC oscillator calibration (see AVR053)\n"
  "  -U <memtype>:r|w|v:<filename>[:format]\n"
- "                             Memory operation specification.\n"
+ "                             Memory operation specification\n"
  "                             Multiple -U options are allowed, each request\n"
- "                             is performed in the order specified.\n"
- "  -n                         Do not write anything to the device.\n"
- "  -V                         Do not verify.\n"
- "  -t                         Enter terminal mode.\n"
- "  -E <exitspec>[,<exitspec>] List programmer exit specifications.\n"
- "  -x <extended_param>        Pass <extended_param> to programmer.\n"
- "  -v                         Verbose output. -v -v for more.\n"
- "  -q                         Quell progress output. -q -q for less.\n"
- "  -l logfile                 Use logfile rather than stderr for diagnostics.\n"
- "  -?                         Display this usage.\n"
+ "                             is performed in the order specified\n"
+ "  -n                         Do not write anything to the device\n"
+ "  -V                         Do not verify\n"
+ "  -t                         Enter terminal mode\n"
+ "  -E <exitspec>[,<exitspec>] List programmer exit specifications\n"
+ "  -x <extended_param>        Pass <extended_param> to programmer\n"
+ "  -v                         Verbose output; -v -v for more\n"
+ "  -q                         Quell progress output; further -q reduces verbosity\n"
+ "  -l logfile                 Use logfile rather than stderr for diagnostics\n"
+ "  -?                         Display this usage\n"
  "\navrdude version %s, URL: <https://github.com/avrdudes/avrdude>\n",
     progname, version);
 }
@@ -1117,10 +1120,8 @@ int main(int argc, char * argv [])
       msg_info("%s: performing RC oscillator calibration\n", progname);
       exitrc = pgm->perform_osccal(pgm);
     }
-    if (exitrc == 0 && quell_progress < 2) {
-      msg_info("%s: calibration value is now stored in EEPROM at address 0\n",
-                      progname);
-    }
+    if (exitrc == 0)
+      msg_info("%s: calibration value is now stored in EEPROM at address 0\n", progname);
     goto main_exit;
   }
 
@@ -1130,9 +1131,7 @@ int main(int argc, char * argv [])
     programmer_display(pgm, progbuf);
   }
 
-  if (quell_progress < 2) {
-    msg_info("\n");
-  }
+  msg_info("\n");
 
   exitrc = 0;
 
@@ -1168,10 +1167,7 @@ int main(int argc, char * argv [])
   /* indicate ready */
   pgm->rdy_led(pgm, ON);
 
-  if (quell_progress < 2) {
-    msg_info("%s: AVR device initialized and ready to accept instructions\n",
-                    progname);
-  }
+  msg_info("%s: AVR device initialized and ready to accept instructions\n", progname);
 
   /*
    * Let's read the signature bytes to make sure there is at least a
@@ -1194,10 +1190,8 @@ int main(int argc, char * argv [])
              // Read SIB and compare FamilyID
              char sib[AVR_SIBLEN + 1];
              pgm->read_sib(pgm, p, sib);
-             msg_notice("%s: System Information Block: \"%s\"\n",
-                             progname, sib);
-            if (quell_progress < 2)
-              msg_info("%s: Received FamilyID: \"%.*s\"\n", progname, AVR_FAMILYIDLEN, sib);
+             msg_notice("%s: System Information Block: \"%s\"\n", progname, sib);
+             msg_info("%s: Received FamilyID: \"%.*s\"\n", progname, AVR_FAMILYIDLEN, sib);
 
             if (strncmp(p->family_id, sib, AVR_FAMILYIDLEN)) {
               msg_info("%s: Expected FamilyID: \"%s\"\n", progname, p->family_id);
@@ -1216,10 +1210,10 @@ int main(int argc, char * argv [])
               msg_info("%s: conflicting -e and -n options specified, NOT erasing chip\n",
                               progname);
             } else {
-              if (quell_progress < 2)
-                msg_info("%s: erasing chip\n", progname);
+              msg_info("%s: erasing chip\n", progname);
               exitrc = avr_unlock(pgm, p);
-              if(exitrc) goto main_exit;
+              if(exitrc)
+                goto main_exit;
               goto sig_again;
             }
           }
@@ -1240,14 +1234,10 @@ int main(int argc, char * argv [])
     if (sig != NULL) {
       int ff, zz;
 
-      if (quell_progress < 2) {
-        msg_info("%s: Device signature = 0x", progname);
-      }
+      msg_info("%s: Device signature = 0x", progname);
       ff = zz = 1;
       for (i=0; i<sig->size; i++) {
-        if (quell_progress < 2) {
-          msg_info("%02x", sig->buf[i]);
-        }
+        msg_info("%02x", sig->buf[i]);
         if (sig->buf[i] != 0xff)
           ff = 0;
         if (sig->buf[i] != 0x00)
@@ -1271,15 +1261,11 @@ int main(int argc, char * argv [])
       if (ff || zz) {
         if (++attempt < 3) {
           waittime *= 5;
-          if (quell_progress < 2) {
-              msg_info(" (retrying)\n");
-          }
+          msg_info(" (retrying)\n");
           goto sig_again;
         }
-        if (quell_progress < 2) {
-            msg_info("\n");
-        }
-        msg_info("%s: Yikes!  Invalid device signature.\n", progname);
+        msg_info("\n");
+        msg_warning("%s: Yikes!  Invalid device signature.\n", progname);
         if (!ovsigck) {
           msg_info("%sDouble check connections and try again, "
                   "or use -F to override\n"
@@ -1289,9 +1275,7 @@ int main(int argc, char * argv [])
           goto main_exit;
         }
       } else {
-        if (quell_progress < 2) {
-          msg_info("\n");
-        }
+        msg_info("\n");
       }
 
       if (!signature_matches) {
@@ -1311,12 +1295,10 @@ int main(int argc, char * argv [])
 
   if (uflags & UF_AUTO_ERASE) {
     if ((p->prog_modes & PM_PDI) && pgm->page_erase && lsize(updates) > 0) {
-      if (quell_progress < 2) {
-        msg_info("%s: NOTE: Programmer supports page erase for Xmega devices.\n"
-                        "%sEach page will be erased before programming it, but no chip erase is performed.\n"
-                        "%sTo disable page erases, specify the -D option; for a chip-erase, use the -e option.\n",
-                        progname, progbuf, progbuf);
-      }
+      msg_info("%s: NOTE: Programmer supports page erase for Xmega devices.\n"
+        "%sEach page will be erased before programming it, but no chip erase is performed.\n"
+        "%sTo disable page erases, specify the -D option; for a chip-erase, use the -e option.\n",
+          progname, progbuf, progbuf);
     } else {
       AVRMEM * m;
       const char *memname = p->prog_modes & PM_PDI? "application": "flash";
@@ -1329,12 +1311,9 @@ int main(int argc, char * argv [])
           continue;
         if ((strcmp(m->desc, memname) == 0) && (upd->op == DEVICE_WRITE)) {
           erase = 1;
-          if (quell_progress < 2) {
-            msg_info("%s: NOTE: \"%s\" memory has been specified, an erase cycle "
-                            "will be performed\n"
-                            "%sTo disable this feature, specify the -D option.\n",
-                            progname, memname, progbuf);
-          }
+          msg_info("%s: NOTE: %s memory has been specified, an erase cycle "
+            "will be performed\n%sTo disable this feature, specify the -D option.\n",
+            progname, memname, progbuf);
           break;
         }
       }
@@ -1350,8 +1329,7 @@ int main(int argc, char * argv [])
       msg_info("%s: conflicting -e and -n options specified, NOT erasing chip\n",
                       progname);
     } else {
-      if (quell_progress < 2)
-      	msg_info("%s: erasing chip\n", progname);
+      msg_info("%s: erasing chip\n", progname);
       exitrc = avr_chip_erase(pgm, p);
       if(exitrc) goto main_exit;
     }
@@ -1398,9 +1376,7 @@ main_exit:
     pgm->close(pgm);
   }
 
-  if (quell_progress < 2) {
-    msg_info("\n%s done.  Thank you.\n\n", progname);
-  }
+  msg_info("\n%s done.  Thank you.\n\n", progname);
 
   return exitrc;
 }

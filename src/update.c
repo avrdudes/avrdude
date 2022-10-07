@@ -463,9 +463,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
         "%s: invalid file format 'immediate' for output\n", progname);
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
-    if (quell_progress < 2)
-      msg_info("%s: reading %s%s memory ...\n",
-        progname, mem->desc, alias_mem_desc);
+    msg_info("%s: reading %s%s memory ...\n", progname, mem->desc, alias_mem_desc);
 
     report_progress(0, 1, "Reading");
     
@@ -503,9 +501,8 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
     size = rc;
-    if (quell_progress < 2)
-      msg_info("%s: reading input file %s for %s%s\n",
-        progname, update_inname(upd->filename), mem->desc, alias_mem_desc);
+    msg_info("%s: reading input file %s for %s%s\n", progname,
+      update_inname(upd->filename), mem->desc, alias_mem_desc);
 
     if(memstats(p, upd->memtype, size, &fs) < 0)
       return LIBAVRDUDE_GENERAL_FAILURE;
@@ -531,9 +528,8 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     }
 
     // Write the buffer contents to the selected memory type
-    if (quell_progress < 2)
-      msg_info("%s: writing %d byte%s %s%s ...\n",
-        progname, fs.nbytes, update_plural(fs.nbytes), mem->desc, alias_mem_desc);
+    msg_info("%s: writing %d byte%s %s%s ...\n",
+      progname, fs.nbytes, update_plural(fs.nbytes), mem->desc, alias_mem_desc);
 
     if (!(flags & UF_NOWRITE)) {
       report_progress(0, 1, "Writing");
@@ -550,9 +546,8 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
 
-    if (quell_progress < 2)
-      msg_info("%s: %d byte%s of %s%s written\n",
-        progname, fs.nbytes, update_plural(fs.nbytes), mem->desc, alias_mem_desc);
+    msg_info("%s: %d byte%s of %s%s written\n",
+      progname, fs.nbytes, update_plural(fs.nbytes), mem->desc, alias_mem_desc);
 
     // Fall through for (default) auto verify, ie, unless -V was specified
     if (!(flags & UF_VERIFY))

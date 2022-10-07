@@ -881,10 +881,7 @@ retry:
                 msg = msgbuf;
                 break;
             }
-            if (quell_progress < 2) {
-                msg_info("%s: stk500v2_command(): warning: %s\n",
-                        progname, msg);
-            }
+            msg_warning("%s: stk500v2_command(): warning: %s\n", progname, msg);
         } else if (buf[1] == STATUS_CMD_OK) {
             return status;
         } else if (buf[1] == STATUS_CMD_FAILED) {

@@ -1543,10 +1543,9 @@ int fileio(int oprwv, char * filename, FILEFMT format,
     }
     format = format_detect;
 
-    if (quell_progress < 2) {
+    if (quell_progress < 2)
       msg_notice("%s: %s file %s auto detected as %s\n",
               progname, fio.iodesc, fname, fileio_fmtstr(format));
-    }
   }
 
 #if defined(WIN32)

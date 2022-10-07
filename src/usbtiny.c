@@ -142,10 +142,8 @@ static int usb_in (const PROGRAMMER *pgm,
 
 // Report the number of retries, and reset the counter.
 static void check_retries (const PROGRAMMER *pgm, const char *operation) {
-  if (PDATA(pgm)->retries > 0 && quell_progress < 2) {
-    msg_info("%s: %d retries during %s\n", progname,
-           PDATA(pgm)->retries, operation);
-  }
+  if (PDATA(pgm)->retries > 0)
+    msg_info("%s: %d retries during %s\n", progname, PDATA(pgm)->retries, operation);
   PDATA(pgm)->retries = 0;
 }
 
