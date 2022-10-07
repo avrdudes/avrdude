@@ -895,6 +895,20 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
       }
       report_progress(i, wsize, NULL);
     }
+
+    /*
+     * Some TPI parts like the ATtiny20 use DWORD_WRITE instead of WORD_WRITE.
+     * Words must be written in pairs, as the second word triggers the flash
+     * write.
+     */
+    if ((wsize / 2) & 0x1) {
+      cmd[0] = TPI_CMD_SST_PI;
+      cmd[1] = 0xFF;
+      rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+      rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+      while (avr_tpi_poll_nvmbsy(pgm));
+    }
+
     return i;
   }
 
