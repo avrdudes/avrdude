@@ -71,17 +71,17 @@ static int nvm_chip_erase_V0(const PROGRAMMER *pgm, const AVRPART *p) {
 
         return True
 */
-  avrdude_message(MSG_DEBUG, "%s: Chip erase using NVM CTRL\n", progname);
+  msg_debug("%s: Chip erase using NVM CTRL\n", progname);
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   if (updi_nvm_command(pgm, p, UPDI_V0_NVMCTRL_CTRLA_CHIP_ERASE) < 0) {
-    avrdude_message(MSG_INFO, "%s: Chip erase command failed\n", progname);
+    msg_info("%s: Chip erase command failed\n", progname);
     return -1;
   }
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   return 0;
@@ -113,22 +113,22 @@ static int nvm_erase_flash_page_V0(const PROGRAMMER *pgm, const AVRPART *p, uint
             raise IOError("Timeout waiting for NVM controller to be ready after flash page erase")
 */
   unsigned char data[1];
-  avrdude_message(MSG_DEBUG, "%s: Erase flash page at address 0x%06X\n", progname, address);
+  msg_debug("%s: Erase flash page at address 0x%06X\n", progname, address);
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   data[0] = 0xFF;
   if (updi_write_data(pgm, address, data, 1) < 0) {
-    avrdude_message(MSG_INFO, "%s: Dummy write operation failed\n", progname);
+    msg_info("%s: Dummy write operation failed\n", progname);
     return -1;
   }
   if (updi_nvm_command(pgm, p, UPDI_V0_NVMCTRL_CTRLA_ERASE_PAGE) < 0) {
-    avrdude_message(MSG_INFO, "%s: Flash page erase command failed\n", progname);
+    msg_info("%s: Flash page erase command failed\n", progname);
     return -1;
   }
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   return 0;
@@ -153,17 +153,17 @@ static int nvm_erase_eeprom_V0(const PROGRAMMER *pgm, const AVRPART *p) {
         if not self.wait_nvm_ready():
             raise IOError("Timeout waiting for NVM controller to be ready after EEPROM erase")
 */  
-  avrdude_message(MSG_DEBUG, "%s: Erase EEPROM\n", progname);
+  msg_debug("%s: Erase EEPROM\n", progname);
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   if (updi_nvm_command(pgm, p, UPDI_V0_NVMCTRL_CTRLA_ERASE_EEPROM) < 0) {
-    avrdude_message(MSG_INFO, "%s: EEPROM erase command failed\n", progname);
+    msg_info("%s: EEPROM erase command failed\n", progname);
     return -1;
   }
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   return 0;
@@ -198,25 +198,25 @@ static int nvm_erase_user_row_V0(const PROGRAMMER *pgm, const AVRPART *p, uint32
 */
   uint16_t offset;
   unsigned char data[1];
-  avrdude_message(MSG_DEBUG, "%s: Erase user row\n", progname);
+  msg_debug("%s: Erase user row\n", progname);
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   data[0]=0xFF;
   for (offset = 0; offset<size; offset++)
   {
     if (updi_write_data(pgm, address+offset, data, 1) < 0) {
-      avrdude_message(MSG_INFO, "%s: Write data operation failed at offset 0x%04x\n", progname, offset);
+      msg_info("%s: Write data operation failed at offset 0x%04x\n", progname, offset);
       return -1;
     }
   }
   if (updi_nvm_command(pgm, p, UPDI_V0_NVMCTRL_CTRLA_ERASE_PAGE) < 0) {
-    avrdude_message(MSG_INFO, "%s: Erase page operation failed\n", progname);
+    msg_info("%s: Erase page operation failed\n", progname);
     return -1;
   }
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   return 0;
@@ -303,30 +303,30 @@ static int nvm_write_fuse_V0(const PROGRAMMER *pgm, const AVRPART *p, uint32_t a
             raise PymcuprogError("Timeout waiting for NVM controller to be ready after fuse write")
 */
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
-  avrdude_message(MSG_DEBUG, "%s: Load NVM address\n", progname);
+  msg_debug("%s: Load NVM address\n", progname);
   if (updi_write_byte(pgm, p->nvm_base + UPDI_NVMCTRL_ADDRL, address & 0xFF) < 0) {
-    avrdude_message(MSG_INFO, "%s: Write ADDRL operation failed\n", progname);
+    msg_info("%s: Write ADDRL operation failed\n", progname);
     return -1;
   }
   if (updi_write_byte(pgm, p->nvm_base + UPDI_NVMCTRL_ADDRH, (address >> 8) & 0xFF) < 0) {
-    avrdude_message(MSG_INFO, "%s: Write ADDRH operation failed\n", progname);
+    msg_info("%s: Write ADDRH operation failed\n", progname);
     return -1;
   }
-  avrdude_message(MSG_DEBUG, "%s: Load fuse data\n", progname);
+  msg_debug("%s: Load fuse data\n", progname);
   if (updi_write_byte(pgm, p->nvm_base + UPDI_NVMCTRL_DATAL, value & 0xFF) < 0) {
-    avrdude_message(MSG_INFO, "%s: Write DATAL operation failed\n", progname);
+    msg_info("%s: Write DATAL operation failed\n", progname);
     return -1;
   }
-  avrdude_message(MSG_DEBUG, "%s: Execute fuse write\n", progname);
+  msg_debug("%s: Execute fuse write\n", progname);
   if (updi_nvm_command(pgm, p, UPDI_V0_NVMCTRL_CTRLA_WRITE_FUSE) < 0) {
-    avrdude_message(MSG_INFO, "%s: Write fuse operation failed\n", progname);
+    msg_info("%s: Write fuse operation failed\n", progname);
     return -1;
   }
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   return 0;
@@ -377,39 +377,39 @@ static int nvm_write_V0(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addres
             raise PymcuprogError("Timeout waiting for NVM controller to be ready after page write")
 */
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
-  avrdude_message(MSG_DEBUG, "%s: Clear page buffer\n", progname);
+  msg_debug("%s: Clear page buffer\n", progname);
   if (updi_nvm_command(pgm, p, UPDI_V0_NVMCTRL_CTRLA_PAGE_BUFFER_CLR) < 0) {
-    avrdude_message(MSG_INFO, "%s: Clear page operation failed\n", progname);
+    msg_info("%s: Clear page operation failed\n", progname);
     return -1;
   }
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   if (mode == USE_WORD_ACCESS) {
     if (updi_write_data_words(pgm, address, buffer, size) < 0) {
-      avrdude_message(MSG_INFO, "%s: Write data words operation failed\n", progname);
+      msg_info("%s: Write data words operation failed\n", progname);
       return -1;
     }
   } else {
     if (updi_write_data(pgm, address, buffer, size) < 0) {
-      avrdude_message(MSG_INFO, "%s: Write data operation failed\n", progname);
+      msg_info("%s: Write data operation failed\n", progname);
       return -1;
     }
   }
-  avrdude_message(MSG_DEBUG, "%s: Committing data\n", progname);
+  msg_debug("%s: Committing data\n", progname);
   if (nvm_command == USE_DEFAULT_COMMAND) {
     nvm_command = UPDI_V0_NVMCTRL_CTRLA_WRITE_PAGE;
   }
   if (updi_nvm_command(pgm, p, nvm_command) < 0) {
-      avrdude_message(MSG_INFO, "%s: Commit data command failed\n", progname);
+      msg_info("%s: Commit data command failed\n", progname);
       return -1;
   }
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   return 0;
@@ -438,17 +438,17 @@ static int nvm_chip_erase_V2(const PROGRAMMER *pgm, const AVRPART *p) {
 
         return True
 */
-  avrdude_message(MSG_DEBUG, "%s: Chip erase using NVM CTRL\n", progname);
+  msg_debug("%s: Chip erase using NVM CTRL\n", progname);
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   if (updi_nvm_command(pgm, p, UPDI_V2_NVMCTRL_CTRLA_CHIP_ERASE) < 0) {
-    avrdude_message(MSG_INFO, "%s: Chip erase command failed\n", progname);
+    msg_info("%s: Chip erase command failed\n", progname);
     return -1;
   }
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   return 0;
@@ -484,22 +484,22 @@ static int nvm_erase_flash_page_V2(const PROGRAMMER *pgm, const AVRPART *p, uint
         self.execute_nvm_command(constants.UPDI_V2_NVMCTRL_CTRLA_NOCMD)
 */
   unsigned char data[1];
-  avrdude_message(MSG_DEBUG, "%s: Erase flash page at address 0x%06X\n", progname, address);
+  msg_debug("%s: Erase flash page at address 0x%06X\n", progname, address);
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   data[0] = 0xFF;
   if (updi_write_data(pgm, address, data, 1) < 0) {
-    avrdude_message(MSG_INFO, "%s: Dummy write operation failed\n", progname);
+    msg_info("%s: Dummy write operation failed\n", progname);
     return -1;
   }
   if (updi_nvm_command(pgm, p, UPDI_V2_NVMCTRL_CTRLA_FLASH_PAGE_ERASE) < 0) {
-    avrdude_message(MSG_INFO, "%s: Flash page erase command failed\n", progname);
+    msg_info("%s: Flash page erase command failed\n", progname);
     return -1;
   }
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   return 0;
@@ -528,22 +528,22 @@ static int nvm_erase_eeprom_V2(const PROGRAMMER *pgm, const AVRPART *p) {
         self.logger.debug("Clear NVM command")
         self.execute_nvm_command(constants.UPDI_V2_NVMCTRL_CTRLA_NOCMD)
 */
-  avrdude_message(MSG_DEBUG, "%s: Erase EEPROM\n", progname);
+  msg_debug("%s: Erase EEPROM\n", progname);
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   if (updi_nvm_command(pgm, p, UPDI_V2_NVMCTRL_CTRLA_EEPROM_ERASE) < 0) {
-    avrdude_message(MSG_INFO, "%s: EEPROM erase command failed\n", progname);
+    msg_info("%s: EEPROM erase command failed\n", progname);
     return -1;
   }
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
-  avrdude_message(MSG_DEBUG, "%s: Clear NVM command\n", progname);
+  msg_debug("%s: Clear NVM command\n", progname);
   if (updi_nvm_command(pgm, p, UPDI_V2_NVMCTRL_CTRLA_NOCMD) < 0) {
-    avrdude_message(MSG_INFO, "%s: Sending empty command failed\n", progname);
+    msg_info("%s: Sending empty command failed\n", progname);
     return -1;
   }
   return 0;
@@ -629,25 +629,25 @@ static int nvm_write_eeprom_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t
         self.execute_nvm_command(constants.UPDI_V2_NVMCTRL_CTRLA_NOCMD)
 */
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
-  avrdude_message(MSG_DEBUG, "%s: NVM EEPROM erase/write command\n", progname);
+  msg_debug("%s: NVM EEPROM erase/write command\n", progname);
   if (updi_nvm_command(pgm, p, UPDI_V2_NVMCTRL_CTRLA_EEPROM_ERASE_WRITE) < 0) {
-    avrdude_message(MSG_INFO, "%s: EEPROM erase command failed\n", progname);
+    msg_info("%s: EEPROM erase command failed\n", progname);
     return -1;
   }
   if (updi_write_data(pgm, address, buffer, size) < 0) {
-    avrdude_message(MSG_INFO, "%s: Write data operation failed\n", progname);
+    msg_info("%s: Write data operation failed\n", progname);
     return -1;
   }
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
-  avrdude_message(MSG_DEBUG, "%s: Clear NVM command\n", progname);
+  msg_debug("%s: Clear NVM command\n", progname);
   if (updi_nvm_command(pgm, p, UPDI_V2_NVMCTRL_CTRLA_NOCMD) < 0) {
-    avrdude_message(MSG_INFO, "%s: Clear NVM command failed\n", progname);
+    msg_info("%s: Clear NVM command failed\n", progname);
     return -1;
   }
   return 0;
@@ -708,32 +708,32 @@ static int nvm_write_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addres
         self.execute_nvm_command(constants.UPDI_V2_NVMCTRL_CTRLA_NOCMD)
 */
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
-  avrdude_message(MSG_DEBUG, "%s: NVM write command\n", progname);
+  msg_debug("%s: NVM write command\n", progname);
   if (updi_nvm_command(pgm, p, UPDI_V2_NVMCTRL_CTRLA_FLASH_WRITE) < 0) {
-    avrdude_message(MSG_INFO, "%s: Clear page operation failed\n", progname);
+    msg_info("%s: Clear page operation failed\n", progname);
     return -1;
   }
   if (mode == USE_WORD_ACCESS) {
     if (updi_write_data_words(pgm, address, buffer, size) < 0) {
-      avrdude_message(MSG_INFO, "%s: Write data words operation failed\n", progname);
+      msg_info("%s: Write data words operation failed\n", progname);
       return -1;
     }
   } else {
     if (updi_write_data(pgm, address, buffer, size) < 0) {
-      avrdude_message(MSG_INFO, "%s: Write data operation failed\n", progname);
+      msg_info("%s: Write data operation failed\n", progname);
       return -1;
     }
   }
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
-  avrdude_message(MSG_DEBUG, "%s: Clear NVM command\n", progname);
+  msg_debug("%s: Clear NVM command\n", progname);
   if (updi_nvm_command(pgm, p, UPDI_V2_NVMCTRL_CTRLA_NOCMD) < 0) {
-    avrdude_message(MSG_INFO, "%s: Clear NVM command failed\n", progname);
+    msg_info("%s: Clear NVM command failed\n", progname);
     return -1;
   }
   return 0;
@@ -768,21 +768,21 @@ static int nvm_chip_erase_V3(const PROGRAMMER *pgm, const AVRPART *p) {
 
         return True
 */
-  avrdude_message(MSG_DEBUG, "%s: Chip erase using NVM CTRL\n", progname);
+  msg_debug("%s: Chip erase using NVM CTRL\n", progname);
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   if (updi_nvm_command(pgm, p, UPDI_V3_NVMCTRL_CTRLA_CHIP_ERASE) < 0) {
-    avrdude_message(MSG_INFO, "%s: Chip erase command failed\n", progname);
+    msg_info("%s: Chip erase command failed\n", progname);
     return -1;
   }
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   if (updi_nvm_command(pgm, p, UPDI_V3_NVMCTRL_CTRLA_NOCMD) < 0) {
-    avrdude_message(MSG_INFO, "%s: Sending empty command failed\n", progname);
+    msg_info("%s: Sending empty command failed\n", progname);
     return -1;
   }
   return 0;
@@ -819,22 +819,22 @@ static int nvm_erase_flash_page_V3(const PROGRAMMER *pgm, const AVRPART *p, uint
             raise IOError("Timeout waiting for NVM controller to be ready after flash page erase")
 */  
   unsigned char data[1];
-  avrdude_message(MSG_DEBUG, "%s: Erase flash page at address 0x%06X\n", progname, address);
+  msg_debug("%s: Erase flash page at address 0x%06X\n", progname, address);
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   data[0] = 0xFF;
   if (updi_write_data(pgm, address, data, 1) < 0) {
-    avrdude_message(MSG_INFO, "%s: Dummy write operation failed\n", progname);
+    msg_info("%s: Dummy write operation failed\n", progname);
     return -1;
   }
   if (updi_nvm_command(pgm, p, UPDI_V3_NVMCTRL_CTRLA_FLASH_PAGE_ERASE) < 0) {
-    avrdude_message(MSG_INFO, "%s: Flash page erase command failed\n", progname);
+    msg_info("%s: Flash page erase command failed\n", progname);
     return -1;
   }
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   return 0;
@@ -864,21 +864,21 @@ static int nvm_erase_eeprom_V3(const PROGRAMMER *pgm, const AVRPART *p) {
         if not status:
             raise IOError("Timeout waiting for NVM controller to be ready after EEPROM erase")
 */
-  avrdude_message(MSG_DEBUG, "%s: Erase EEPROM\n", progname);
+  msg_debug("%s: Erase EEPROM\n", progname);
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   if (updi_nvm_command(pgm, p, UPDI_V3_NVMCTRL_CTRLA_EEPROM_ERASE) < 0) {
-    avrdude_message(MSG_INFO, "%s: EEPROM erase command failed\n", progname);
+    msg_info("%s: EEPROM erase command failed\n", progname);
     return -1;
   }
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   if (updi_nvm_command(pgm, p, UPDI_V3_NVMCTRL_CTRLA_NOCMD) < 0) {
-    avrdude_message(MSG_INFO, "%s: Sending empty command failed\n", progname);
+    msg_info("%s: Sending empty command failed\n", progname);
     return -1;
   }
   return 0;
@@ -898,7 +898,7 @@ static int nvm_erase_user_row_V3(const PROGRAMMER *pgm, const AVRPART *p, uint32
         # On this NVM version user row is implemented as FLASH
         return self.erase_flash_page(self, address)
 */
-  avrdude_message(MSG_DEBUG, "%s: Erase user row at address 0x%06X\n", progname, address);
+  msg_debug("%s: Erase user row at address 0x%06X\n", progname, address);
   
   return nvm_erase_flash_page_V3(pgm, p, address);
 }
@@ -1014,43 +1014,43 @@ static int nvm_write_V3(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addres
         self.execute_nvm_command(constants.UPDI_V3_NVMCTRL_CTRLA_NOCMD)
 */
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
-  avrdude_message(MSG_DEBUG, "%s: Clear page buffer\n", progname);
+  msg_debug("%s: Clear page buffer\n", progname);
   if (updi_nvm_command(pgm, p, UPDI_V3_NVMCTRL_CTRLA_FLASH_PAGE_BUFFER_CLEAR) < 0) {
-    avrdude_message(MSG_INFO, "%s: Clear page operation failed\n", progname);
+    msg_info("%s: Clear page operation failed\n", progname);
     return -1;
   }
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   if (mode == USE_WORD_ACCESS) {
     if (updi_write_data_words(pgm, address, buffer, size) < 0) {
-      avrdude_message(MSG_INFO, "%s: Write data words operation failed\n", progname);
+      msg_info("%s: Write data words operation failed\n", progname);
       return -1;
     }
   } else {
     if (updi_write_data(pgm, address, buffer, size) < 0) {
-      avrdude_message(MSG_INFO, "%s: Write data operation failed\n", progname);
+      msg_info("%s: Write data operation failed\n", progname);
       return -1;
     }
   }
-  avrdude_message(MSG_DEBUG, "%s: Committing data\n", progname);
+  msg_debug("%s: Committing data\n", progname);
   if (nvm_command == USE_DEFAULT_COMMAND) {
     nvm_command = UPDI_V3_NVMCTRL_CTRLA_FLASH_PAGE_WRITE;
   }
   if (updi_nvm_command(pgm, p, nvm_command) < 0) {
-      avrdude_message(MSG_INFO, "%s: Commit data command failed\n", progname);
+      msg_info("%s: Commit data command failed\n", progname);
       return -1;
   }
   if (updi_nvm_wait_ready(pgm, p) < 0) {
-    avrdude_message(MSG_INFO, "%s: Wait for ready chip failed\n", progname);
+    msg_info("%s: Wait for ready chip failed\n", progname);
     return -1;
   }
   if (updi_nvm_command(pgm, p, UPDI_V3_NVMCTRL_CTRLA_NOCMD) < 0) {
-    avrdude_message(MSG_INFO, "%s: Sending empty command failed\n", progname);
+    msg_info("%s: Sending empty command failed\n", progname);
     return -1;
   }
   return 0;
@@ -1067,7 +1067,7 @@ int updi_nvm_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     case UPDI_NVM_MODE_V3:
       return nvm_chip_erase_V3(pgm, p);
     default:
-      avrdude_message(MSG_INFO, "%s: Invalid NVM Mode %d\n", progname, updi_get_nvm_mode(pgm));
+      msg_info("%s: Invalid NVM Mode %d\n", progname, updi_get_nvm_mode(pgm));
       return -1;
   }
 }
@@ -1082,7 +1082,7 @@ int updi_nvm_erase_flash_page(const PROGRAMMER *pgm, const AVRPART *p, uint32_t 
     case UPDI_NVM_MODE_V3:
       return nvm_erase_flash_page_V3(pgm, p, address);
     default:
-      avrdude_message(MSG_INFO, "%s: Invalid NVM Mode %d\n", progname, updi_get_nvm_mode(pgm));
+      msg_info("%s: Invalid NVM Mode %d\n", progname, updi_get_nvm_mode(pgm));
       return -1;
   }
 }
@@ -1097,7 +1097,7 @@ int updi_nvm_erase_eeprom(const PROGRAMMER *pgm, const AVRPART *p) {
     case UPDI_NVM_MODE_V3:
       return nvm_erase_eeprom_V3(pgm, p);
     default:
-      avrdude_message(MSG_INFO, "%s: Invalid NVM Mode %d\n", progname, updi_get_nvm_mode(pgm));
+      msg_info("%s: Invalid NVM Mode %d\n", progname, updi_get_nvm_mode(pgm));
       return -1;
   }
 }
@@ -1112,7 +1112,7 @@ int updi_nvm_erase_user_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t ad
     case UPDI_NVM_MODE_V3:
       return nvm_erase_user_row_V3(pgm, p, address, size);
     default:
-      avrdude_message(MSG_INFO, "%s: Invalid NVM Mode %d\n", progname, updi_get_nvm_mode(pgm));
+      msg_info("%s: Invalid NVM Mode %d\n", progname, updi_get_nvm_mode(pgm));
       return -1;
   }
 }
@@ -1127,7 +1127,7 @@ int updi_nvm_write_flash(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addre
     case UPDI_NVM_MODE_V3:
       return nvm_write_flash_V3(pgm, p, address, buffer, size);
     default:
-      avrdude_message(MSG_INFO, "%s: Invalid NVM Mode %d\n", progname, updi_get_nvm_mode(pgm));
+      msg_info("%s: Invalid NVM Mode %d\n", progname, updi_get_nvm_mode(pgm));
       return -1;
   }
 }
@@ -1142,7 +1142,7 @@ int updi_nvm_write_user_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t ad
     case UPDI_NVM_MODE_V3:
       return nvm_write_user_row_V3(pgm, p, address, buffer, size);
     default:
-      avrdude_message(MSG_INFO, "%s: Invalid NVM Mode %d\n", progname, updi_get_nvm_mode(pgm));
+      msg_info("%s: Invalid NVM Mode %d\n", progname, updi_get_nvm_mode(pgm));
       return -1;
   }
 }
@@ -1157,7 +1157,7 @@ int updi_nvm_write_eeprom(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addr
     case UPDI_NVM_MODE_V3:
       return nvm_write_eeprom_V3(pgm, p, address, buffer, size);
     default:
-      avrdude_message(MSG_INFO, "%s: Invalid NVM Mode %d\n", progname, updi_get_nvm_mode(pgm));
+      msg_info("%s: Invalid NVM Mode %d\n", progname, updi_get_nvm_mode(pgm));
       return -1;
   }
 }
@@ -1172,7 +1172,7 @@ int updi_nvm_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addres
     case UPDI_NVM_MODE_V3:
       return nvm_write_fuse_V3(pgm, p, address, value);
     default:
-      avrdude_message(MSG_INFO, "%s: Invalid NVM Mode %d\n", progname, updi_get_nvm_mode(pgm));
+      msg_info("%s: Invalid NVM Mode %d\n", progname, updi_get_nvm_mode(pgm));
       return -1;
   }
 }
@@ -1208,7 +1208,7 @@ int updi_nvm_wait_ready(const PROGRAMMER *pgm, const AVRPART *p) {
   do {
     if (updi_read_byte(pgm, p->nvm_base + UPDI_NVMCTRL_STATUS, &status) >= 0) {
       if (status & (1 << UPDI_NVM_STATUS_WRITE_ERROR)) {
-        avrdude_message(MSG_INFO, "%s: NVM error\n", progname);
+        msg_info("%s: NVM error\n", progname);
         return -1;
       }
       if (!(status & ((1 << UPDI_NVM_STATUS_EEPROM_BUSY) | 
@@ -1220,7 +1220,7 @@ int updi_nvm_wait_ready(const PROGRAMMER *pgm, const AVRPART *p) {
     current_time = (tv.tv_sec * 1000000) + tv.tv_usec;
   } while ((current_time - start_time) < 10000000);
 
-  avrdude_message(MSG_INFO, "%s: Wait NVM ready timed out\n", progname);
+  msg_info("%s: Wait NVM ready timed out\n", progname);
   return -1;
 }
 
@@ -1235,7 +1235,7 @@ int updi_nvm_command(const PROGRAMMER *pgm, const AVRPART *p, uint8_t command) {
         self.logger.debug("NVMCMD %d executing", command)
         return self.readwrite.write_byte(self.device.nvmctrl_address + constants.UPDI_NVMCTRL_CTRLA, command)
 */
-  avrdude_message(MSG_DEBUG, "%s: NVMCMD %d executing\n", progname, command);
+  msg_debug("%s: NVMCMD %d executing\n", progname, command);
 
   return updi_write_byte(pgm, p->nvm_base + UPDI_NVMCTRL_CTRLA, command);
 }

@@ -108,7 +108,7 @@ static void dump_mem(const int msglvl, const unsigned char *buf, size_t len)
 static int buspirate_send_bin(const PROGRAMMER *pgm, const unsigned char *data, size_t len) {
 	int rc;
 
-	avrdude_message(MSG_DEBUG, "%s: buspirate_send_bin():\n", progname);
+	msg_debug("%s: buspirate_send_bin():\n", progname);
 	dump_mem(MSG_DEBUG, data, len);
 
 	rc = serial_send(&pgm->fd, data, len);
@@ -123,7 +123,7 @@ static int buspirate_recv_bin(const PROGRAMMER *pgm, unsigned char *buf, size_t 
 	if (rc < 0)
 		return EOF;
 
-	avrdude_message(MSG_DEBUG, "%s: buspirate_recv_bin():\n", progname);
+	msg_debug("%s: buspirate_recv_bin():\n", progname);
 	dump_mem(MSG_DEBUG, buf, len);
 
 	return len;
@@ -135,7 +135,7 @@ static int buspirate_expect_bin(const PROGRAMMER *pgm,
 {
 	unsigned char *recv_buf = alloca(expect_len);
 	if ((PDATA(pgm)->flag & BP_FLAG_IN_BINMODE) == 0) {
-		avrdude_message(MSG_INFO, "BusPirate: Internal error: buspirate_send_bin() called from ascii mode\n");
+		msg_info("BusPirate: Internal error: buspirate_send_bin() called from ascii mode\n");
 		return -1;
 	}
 
@@ -159,7 +159,7 @@ static int buspirate_getc(const PROGRAMMER *pgm) {
 	unsigned char ch = 0;
 
 	if (PDATA(pgm)->flag & BP_FLAG_IN_BINMODE) {
-		avrdude_message(MSG_INFO, "BusPirate: Internal error: buspirate_getc() called from binmode\n");
+		msg_info("BusPirate: Internal error: buspirate_getc() called from binmode\n");
 		return EOF;
 	}
 
@@ -197,7 +197,7 @@ static char *buspirate_readline_noexit(const PROGRAMMER *pgm, char *buf, size_t 
 		serial_recv_timeout = PDATA(pgm)->serial_recv_timeout;
 	}
 	serial_recv_timeout = orig_serial_recv_timeout;
-	avrdude_message(MSG_DEBUG, "%s: buspirate_readline(): %s%s",
+	msg_debug("%s: buspirate_readline(): %s%s",
 	                progname, buf,
 	                buf[strlen(buf) - 1] == '\n' ? "" : "\n");
 	if (! buf[0])
@@ -211,7 +211,7 @@ static char *buspirate_readline(const PROGRAMMER *pgm, char *buf, size_t len) {
 
 	ret = buspirate_readline_noexit(pgm, buf, len);
 	if (! ret) {
-		avrdude_message(MSG_INFO, "%s: buspirate_readline(): programmer is not responding\n",
+		msg_info("%s: buspirate_readline(): programmer is not responding\n",
                                 progname);
 		return NULL;
 	}
@@ -221,10 +221,10 @@ static int buspirate_send(const PROGRAMMER *pgm, const char *str) {
 	int rc;
 	const char * readline;
 
-	avrdude_message(MSG_DEBUG, "%s: buspirate_send(): %s", progname, str);
+	msg_debug("%s: buspirate_send(): %s", progname, str);
 
 	if (PDATA(pgm)->flag & BP_FLAG_IN_BINMODE) {
-		avrdude_message(MSG_INFO, "BusPirate: Internal error: buspirate_send() called from binmode\n");
+		msg_info("BusPirate: Internal error: buspirate_send() called from binmode\n");
 		return -1;
 	}
 
@@ -303,12 +303,12 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 
 		if (sscanf(extended_param, "spifreq=%u", &spifreq) == 1) {
 			if (spifreq & (~0x07)) {
-				avrdude_message(MSG_INFO, "BusPirate: spifreq must be between 0 and 7.\n");
-				avrdude_message(MSG_INFO, "BusPirate: see BusPirate manual for details.\n");
+				msg_info("BusPirate: spifreq must be between 0 and 7.\n");
+				msg_info("BusPirate: see BusPirate manual for details.\n");
 				return -1;
 			}
 			if (PDATA(pgm)->flag & BP_FLAG_XPARM_RAWFREQ) {
-				avrdude_message(MSG_INFO, "BusPirate: set either spifreq or rawfreq\n");
+				msg_info("BusPirate: set either spifreq or rawfreq\n");
 				return -1;
 			}
 			PDATA(pgm)->flag |=  BP_FLAG_XPARM_SPIFREQ;
@@ -318,12 +318,12 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 
 		if (sscanf(extended_param, "rawfreq=%u", &rawfreq) == 1) {
 			if (rawfreq >= 4) {
-				avrdude_message(MSG_INFO, "BusPirate: rawfreq must be "
+				msg_info("BusPirate: rawfreq must be "
 				                "between 0 and 3.\n");
 				return -1;
 			}
 			if (PDATA(pgm)->flag & BP_FLAG_XPARM_SPIFREQ) {
-				avrdude_message(MSG_INFO, "BusPirate: set either spifreq or rawfreq\n");
+				msg_info("BusPirate: set either spifreq or rawfreq\n");
 				return -1;
 			}
 			PDATA(pgm)->flag |=  BP_FLAG_XPARM_RAWFREQ;
@@ -334,8 +334,8 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 		if (sscanf(extended_param, "cpufreq=%u", &cpufreq) == 1) {
 			/* lower limit comes from 'cpufreq > 4 * spifreq', spifreq in ascii mode is 30kHz. */
 			if (cpufreq < 125 || cpufreq > 4000) {
-				avrdude_message(MSG_INFO, "BusPirate: cpufreq must be between 125 and 4000 kHz.\n");
-				avrdude_message(MSG_INFO, "BusPirate: see BusPirate manual for details.\n");
+				msg_info("BusPirate: cpufreq must be between 125 and 4000 kHz.\n");
+				msg_info("BusPirate: see BusPirate manual for details.\n");
 				return -1;
 			}
 			PDATA(pgm)->cpufreq = cpufreq;
@@ -354,7 +354,7 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 				else if (strcasecmp(resetpin, "aux2") == 0)
 					PDATA(pgm)->reset |= BP_RESET_AUX2;
 				else {
-					avrdude_message(MSG_INFO, "BusPirate: reset must be either CS or AUX.\n");
+					msg_info("BusPirate: reset must be either CS or AUX.\n");
 					return -1;
 				}
 			}
@@ -374,14 +374,14 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 
 		if (sscanf(extended_param, "serial_recv_timeout=%d", &serial_recv_timeout) == 1) {
 			if (serial_recv_timeout < 1) {
-				avrdude_message(MSG_INFO, "BusPirate: serial_recv_timeout must be greater 0.\n");
+				msg_info("BusPirate: serial_recv_timeout must be greater 0.\n");
 				return -1;
 			}
 			PDATA(pgm)->serial_recv_timeout = serial_recv_timeout;
 			continue;
 		}
 
-		avrdude_message(MSG_INFO, "BusPirate: do not understand extended param '%s'.\n", extended_param);
+		msg_info("BusPirate: do not understand extended param '%s'.\n", extended_param);
 		return -1;
 	}
 
@@ -395,13 +395,13 @@ buspirate_verifyconfig(const PROGRAMMER *pgm) {
 		PDATA(pgm)->reset |= BP_RESET_CS;
 
 	if ((PDATA(pgm)->reset != BP_RESET_CS) && buspirate_uses_ascii(pgm)) {
-		avrdude_message(MSG_INFO, "BusPirate: RESET pin other than CS is not supported in ASCII mode\n");
+		msg_info("BusPirate: RESET pin other than CS is not supported in ASCII mode\n");
 		return -1;
 	}
 
 	if (  ((PDATA(pgm)->flag & BP_FLAG_XPARM_SPIFREQ) || (PDATA(pgm)->flag & BP_FLAG_XPARM_RAWFREQ))
 	   && buspirate_uses_ascii(pgm)) {
-		avrdude_message(MSG_INFO, "BusPirate: SPI speed selection is not supported in ASCII mode\n");
+		msg_info("BusPirate: SPI speed selection is not supported in ASCII mode\n");
 		return -1;
 	}
 
@@ -444,13 +444,13 @@ static void buspirate_reset_from_binmode(const PROGRAMMER *pgm) {
 	if (PDATA(pgm)->flag & BP_FLAG_XPARM_CPUFREQ) {
 		/* disable pwm */
 		if (buspirate_expect_bin_byte(pgm, 0x13, 0x01) != 1) {
-			avrdude_message(MSG_INFO, "%s: warning: did not get a response to stop PWM command.\n", progname);
+			msg_info("%s: warning: did not get a response to stop PWM command.\n", progname);
 		}
 	}
 	/* 0b0100wxyz - Configure peripherals w=power, x=pull-ups, y=AUX, z=CS
 	 * we want everything off -- 0b01000000 = 0x40 */
 	if (buspirate_expect_bin_byte(pgm, 0x40, 0x00) == 1) {
-		avrdude_message(MSG_INFO, "%s: warning: did not get a response to power off command.\n", progname);
+		msg_info("%s: warning: did not get a response to power off command.\n", progname);
 	}
 
 	buf[0] = 0x0F;	/* BinMode: reset */
@@ -472,11 +472,11 @@ static void buspirate_reset_from_binmode(const PROGRAMMER *pgm) {
 	}
 
 	if (PDATA(pgm)->flag & BP_FLAG_IN_BINMODE) {
-		avrdude_message(MSG_INFO, "BusPirate reset failed. You may need to powercycle it.\n");
+		msg_info("BusPirate reset failed. You may need to powercycle it.\n");
 		return;
 	}
 
-	avrdude_message(MSG_NOTICE, "BusPirate is back in the text mode\n");
+	msg_notice("BusPirate is back in the text mode\n");
 }
 
 static int buspirate_start_mode_bin(PROGRAMMER *pgm)
@@ -517,11 +517,11 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 	memset(buf, 0, sizeof(buf));
 	buspirate_recv_bin(pgm, buf, 5);
 	if (sscanf((const char*)buf, "BBIO%1d", &PDATA(pgm)->binmode_version) != 1) {
-		avrdude_message(MSG_INFO, "Binary mode not confirmed: '%s'\n", buf);
+		msg_info("Binary mode not confirmed: '%s'\n", buf);
 		buspirate_reset_from_binmode(pgm);
 		return -1;
 	}
-	avrdude_message(MSG_NOTICE, "BusPirate binmode version: %d\n",
+	msg_notice("BusPirate binmode version: %d\n",
                 PDATA(pgm)->binmode_version);
 
 	PDATA(pgm)->flag |= BP_FLAG_IN_BINMODE;
@@ -533,8 +533,8 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 		pwm_period = 16000/(PDATA(pgm)->cpufreq) - 1; // oscillator runs at 32MHz, we don't use a prescaler
 		pwm_duty = pwm_period/2; // 50% duty cycle
 
-		avrdude_message(MSG_NOTICE, "Setting up PWM for cpufreq\n");
-		avrdude_message(MSG_DEBUG, "PWM settings: Prescaler=1, Duty Cycle=%hd, Period=%hd\n", pwm_duty, pwm_period);
+		msg_notice("Setting up PWM for cpufreq\n");
+		msg_debug("PWM settings: Prescaler=1, Duty Cycle=%hd, Period=%hd\n", pwm_duty, pwm_period);
 
 		buf[0] = 0x12; // pwm setup
 		buf[1] = 0; // prescaler 1
@@ -546,7 +546,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 
 		buspirate_recv_bin(pgm, buf, 1);
 		if (buf[0] != 0x01)
-			avrdude_message(MSG_INFO, "cpufreq (PWM) setup failed\n");
+			msg_info("cpufreq (PWM) setup failed\n");
 	}
 
 	/* == Set protocol sub-mode of binary mode == */
@@ -555,16 +555,16 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 	memset(buf, 0, sizeof(buf));
 	buspirate_recv_bin(pgm, buf, 4);
 	if (sscanf((const char*)buf, submode.entered_format, &PDATA(pgm)->submode_version) != 1) {
-		avrdude_message(MSG_INFO, "%s mode not confirmed: '%s'\n",
+		msg_info("%s mode not confirmed: '%s'\n",
 		                submode.name, buf);
 		buspirate_reset_from_binmode(pgm);
 		return -1;
 	}
-	avrdude_message(MSG_NOTICE, "BusPirate %s version: %d\n", 
+	msg_notice("BusPirate %s version: %d\n",
 	                submode.name, PDATA(pgm)->submode_version);
 
 	if (PDATA(pgm)->flag & BP_FLAG_NOPAGEDWRITE) {
-                avrdude_message(MSG_NOTICE, "%s: Paged flash write disabled.\n", progname);
+                msg_notice("%s: Paged flash write disabled.\n", progname);
 		pgm->paged_write = NULL;
 	} else {
 		/* Check for write-then-read without !CS/CS and disable paged_write if absent: */
@@ -581,12 +581,12 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 			buf[0] = 0x1;
 			buspirate_send_bin(pgm, buf, 1);
 
-			avrdude_message(MSG_NOTICE, "%s: Disabling paged flash write. (Need BusPirate firmware >=v5.10.)\n", progname);
+			msg_notice("%s: Disabling paged flash write. (Need BusPirate firmware >=v5.10.)\n", progname);
 
 			/* Flush serial buffer: */
 			serial_drain(&pgm->fd, 0);
 		} else {
-			avrdude_message(MSG_INFO, "%s: Paged flash write enabled.\n", progname);
+			msg_info("%s: Paged flash write enabled.\n", progname);
 		}
 	}
 
@@ -607,7 +607,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 
 	/* AVR Extended Commands - test for existence */
 	if (PDATA(pgm)->flag & BP_FLAG_NOPAGEDREAD) {
-                avrdude_message(MSG_NOTICE, "%s: Paged flash read disabled.\n", progname);
+                msg_notice("%s: Paged flash read disabled.\n", progname);
 		pgm->paged_load = NULL;
 	} else {
 		int rv = buspirate_expect_bin_byte(pgm, 0x06, 0x01);
@@ -619,9 +619,9 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 			buspirate_send_bin(pgm, buf2, sizeof(buf2));
 			buspirate_recv_bin(pgm, buf, 3);
 			ver = buf[1] << 8 | buf[2];
-			avrdude_message(MSG_NOTICE, "AVR Extended Commands version %d\n", ver);
+			msg_notice("AVR Extended Commands version %d\n", ver);
 		} else {
-			avrdude_message(MSG_NOTICE, "AVR Extended Commands not found.\n");
+			msg_notice("AVR Extended Commands not found.\n");
 			PDATA(pgm)->flag |= BP_FLAG_NOPAGEDREAD;
 			pgm->paged_load = NULL;
 		}
@@ -651,9 +651,9 @@ static int buspirate_start_spi_mode_ascii(const PROGRAMMER *pgm) {
 			break;
 	}
 	if (spi_cmd == -1) {
-		avrdude_message(MSG_INFO, "%s: SPI mode number not found. Does your BusPirate support SPI?\n",
+		msg_info("%s: SPI mode number not found. Does your BusPirate support SPI?\n",
 				progname);
-		avrdude_message(MSG_INFO, "%s: Try powercycling your BusPirate and try again.\n",
+		msg_info("%s: Try powercycling your BusPirate and try again.\n",
 				progname);
 		return -1;
 	}
@@ -674,7 +674,7 @@ static int buspirate_start_spi_mode_ascii(const PROGRAMMER *pgm) {
 		}
 		if (buspirate_is_prompt(rcvd)) {
 			if (strncmp(rcvd, "SPI>", 4) == 0) {
-				avrdude_message(MSG_INFO, "BusPirate is now configured for SPI\n");
+				msg_info("BusPirate is now configured for SPI\n");
 				break;
 			}
 			/* Not yet 'SPI>' prompt */
@@ -700,7 +700,7 @@ static void buspirate_enable(PROGRAMMER *pgm, const AVRPART *p) {
 
 	/* Attempt to start binary SPI mode unless explicitly told otherwise: */
 	if (!buspirate_uses_ascii(pgm)) {
-		avrdude_message(MSG_INFO, "Attempting to initiate BusPirate binary mode...\n");
+		msg_info("Attempting to initiate BusPirate binary mode...\n");
 
 		/* Send two CRs to ensure we're not in a sub-menu of the UI if we're in ASCII mode: */
 		buspirate_send_bin(pgm, (const unsigned char*)"\n\n", 2);
@@ -712,23 +712,23 @@ static void buspirate_enable(PROGRAMMER *pgm, const AVRPART *p) {
 		if (buspirate_start_mode_bin(pgm) >= 0)
 			return;
 		else
-			avrdude_message(MSG_INFO, "%s: Failed to start binary mode, falling back to ASCII...\n", progname);
+			msg_info("%s: Failed to start binary mode, falling back to ASCII...\n", progname);
 	}
 
-	avrdude_message(MSG_INFO, "Attempting to initiate BusPirate ASCII mode...\n");
+	msg_info("Attempting to initiate BusPirate ASCII mode...\n");
 
 	/* Call buspirate_send_bin() instead of buspirate_send() 
 	 * because we don't know if BP is in text or bin mode */
 	rc = buspirate_send_bin(pgm, (const unsigned char*)reset_str, strlen(reset_str));
 	if (rc) {
-		avrdude_message(MSG_INFO, "BusPirate is not responding. Serial port error: %d\n", rc);
+		msg_info("BusPirate is not responding. Serial port error: %d\n", rc);
 		return;
 	}
 
 	while(1) {
 		rcvd = buspirate_readline_noexit(pgm, NULL, 0);
 		if (! rcvd) {
-			avrdude_message(MSG_INFO, "%s: Fatal: Programmer is not responding.\n", progname);
+			msg_info("%s: Fatal: Programmer is not responding.\n", progname);
 			return;
 		}
 		if (strncmp(rcvd, "Are you sure?", 13) == 0) {
@@ -739,17 +739,17 @@ static void buspirate_enable(PROGRAMMER *pgm, const AVRPART *p) {
 			continue;
 		}
 		if (buspirate_is_prompt(rcvd)) {
-			avrdude_message(MSG_DEBUG, "**\n");
+			msg_debug("**\n");
 			break;
 		}
 		if (print_banner)
-			avrdude_message(MSG_DEBUG, "**  %s", rcvd);
+			msg_debug("**  %s", rcvd);
 	}
 
 	if (!(PDATA(pgm)->flag & BP_FLAG_IN_BINMODE)) {
-		avrdude_message(MSG_INFO, "BusPirate: using ASCII mode\n");
+		msg_info("BusPirate: using ASCII mode\n");
 		if (buspirate_start_spi_mode_ascii(pgm) < 0) {
-			avrdude_message(MSG_INFO, "%s: Failed to start ascii SPI mode\n", progname);
+			msg_info("%s: Failed to start ascii SPI mode\n", progname);
 			return;
 		}
 	}
@@ -788,15 +788,15 @@ static void buspirate_powerup(const PROGRAMMER *pgm) {
 					}
 				}
 				if(!ok) {
-					avrdude_message(MSG_INFO, "%s: warning: did not get a response to start PWM command.\n", progname);
+					msg_info("%s: warning: did not get a response to start PWM command.\n", progname);
 				}
 			}
 			return;
 		}
 	}
 
-	avrdude_message(MSG_INFO, "%s: warning: did not get a response to PowerUp command.\n", progname);
-	avrdude_message(MSG_INFO, "%s: warning: Trying to continue anyway...\n", progname);
+	msg_info("%s: warning: did not get a response to PowerUp command.\n", progname);
+	msg_info("%s: warning: Trying to continue anyway...\n", progname);
 }
 
 static void buspirate_powerdown(const PROGRAMMER *pgm) {
@@ -806,14 +806,14 @@ static void buspirate_powerdown(const PROGRAMMER *pgm) {
 	} else {
 		if (PDATA(pgm)->flag & BP_FLAG_XPARM_CPUFREQ) {
 			if (!buspirate_expect(pgm, "g\n", "PWM disabled", 1)) {
-				avrdude_message(MSG_INFO, "%s: warning: did not get a response to stop PWM command.\n", progname);
+				msg_info("%s: warning: did not get a response to stop PWM command.\n", progname);
 			}
 		}
 		if (buspirate_expect(pgm, "w\n", "POWER SUPPLIES OFF", 1))
 			return;
 	}
 
-	avrdude_message(MSG_INFO, "%s: warning: did not get a response to PowerDown command.\n", progname);
+	msg_info("%s: warning: did not get a response to PowerDown command.\n", progname);
 }
 
 static int buspirate_cmd_bin(const PROGRAMMER *pgm,
@@ -860,7 +860,7 @@ static int buspirate_cmd_ascii(const PROGRAMMER *pgm,
 	}
 
 	if (i != 4) {
-		avrdude_message(MSG_INFO, "%s: error: SPI has not read 4 bytes back\n", progname);
+		msg_info("%s: error: SPI has not read 4 bytes back\n", progname);
 		return -1;
 	}
 
@@ -889,11 +889,11 @@ static int buspirate_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const A
 	unsigned char buf[275];
 	unsigned int addr = 0;
 
-	avrdude_message(MSG_NOTICE, "BusPirate: buspirate_paged_load(..,%s,%d,%d,%d)\n",m->desc,m->page_size,address,n_bytes);
+	msg_notice("BusPirate: buspirate_paged_load(..,%s,%d,%d,%d)\n",m->desc,m->page_size,address,n_bytes);
 
 	// This should never happen, but still...
 	if (PDATA(pgm)->flag & BP_FLAG_NOPAGEDREAD) {
-		avrdude_message(MSG_INFO, "BusPirate: buspirate_paged_load() called while in nopagedread mode!\n");
+		msg_info("BusPirate: buspirate_paged_load() called while in nopagedread mode!\n");
 		return -1;
 	}
 
@@ -923,7 +923,7 @@ static int buspirate_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const A
 	buspirate_recv_bin(pgm, buf, 1);
 
 	if (buf[0] != 0x01) {
-		avrdude_message(MSG_INFO, "BusPirate: Paged Read command returned zero.\n");
+		msg_info("BusPirate: Paged Read command returned zero.\n");
 		return -1;
 	}
 
@@ -966,12 +966,12 @@ static int buspirate_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const 
 
 	/* pre-check opcodes */
 	if (m->op[AVR_OP_LOADPAGE_LO] == NULL) {
-		avrdude_message(MSG_INFO, "%s failure: %s command not defined for %s\n",
+		msg_info("%s failure: %s command not defined for %s\n",
 		                progname, "AVR_OP_LOADPAGE_LO", p->desc);
 		return -1;
 	}
 	if (m->op[AVR_OP_LOADPAGE_HI] == NULL) {
-		avrdude_message(MSG_INFO, "%s failure: %s command not defined for %s\n",
+		msg_info("%s failure: %s command not defined for %s\n",
 		                progname, "AVR_OP_LOADPAGE_HI", p->desc);
 		return -1;
 	}
@@ -1032,7 +1032,7 @@ static int buspirate_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const 
 
 		/* Check for write failure: */
 		if ((buspirate_recv_bin(pgm, &recv_byte, 1) == EOF) || (recv_byte != 0x01)) {
-			avrdude_message(MSG_INFO, "BusPirate: Fatal error: Write Then Read did not succeed.\n");
+			msg_info("BusPirate: Fatal error: Write Then Read did not succeed.\n");
 			pgm->pgm_led(pgm, OFF);
 			pgm->err_led(pgm, ON);
 			return -1;
@@ -1062,7 +1062,7 @@ static int buspirate_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 		buspirate_expect(pgm, "{\n", "CS ENABLED", 1);
 
 	if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
-		avrdude_message(MSG_INFO, "program enable instruction not defined for part \"%s\"\n",
+		msg_info("program enable instruction not defined for part \"%s\"\n",
 		                p->desc);
 		return -1;
 	}
@@ -1082,7 +1082,7 @@ static int buspirate_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 	unsigned char res[4];
 
 	if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
-		avrdude_message(MSG_INFO, "chip erase instruction not defined for part \"%s\"\n",
+		msg_info("chip erase instruction not defined for part \"%s\"\n",
 		                p->desc);
 		return -1;
 	}
@@ -1106,7 +1106,7 @@ static void buspirate_setup(PROGRAMMER *pgm)
 {
 	/* Allocate private data */
 	if ((pgm->cookie = calloc(1, sizeof(struct pdata))) == 0) {
-		avrdude_message(MSG_INFO, "%s: buspirate_initpgm(): Out of memory allocating private data\n",
+		msg_info("%s: buspirate_initpgm(): Out of memory allocating private data\n",
 		                progname);
 		exit(1);
 	}
@@ -1158,7 +1158,7 @@ static void buspirate_bb_enable(PROGRAMMER *pgm, const AVRPART *p) {
 	if (bitbang_check_prerequisites(pgm) < 0)
 		return;             /* XXX should treat as error */
 
-	avrdude_message(MSG_INFO, "Attempting to initiate BusPirate bitbang binary mode...\n");
+	msg_info("Attempting to initiate BusPirate bitbang binary mode...\n");
 
 	/* Send two CRs to ensure we're not in a sub-menu of the UI if we're in ASCII mode: */
 	buspirate_send_bin(pgm, (const unsigned char*)"\n\n", 2);
@@ -1173,11 +1173,11 @@ static void buspirate_bb_enable(PROGRAMMER *pgm, const AVRPART *p) {
 	memset(buf, 0, sizeof(buf));
 	buspirate_recv_bin(pgm, buf, 5);
 	if (sscanf((char*)buf, "BBIO%1d", &PDATA(pgm)->binmode_version) != 1) {
-		avrdude_message(MSG_INFO, "Binary mode not confirmed: '%s'\n", buf);
+		msg_info("Binary mode not confirmed: '%s'\n", buf);
 		buspirate_reset_from_binmode(pgm);
 		return;
 	}
-	avrdude_message(MSG_INFO, "BusPirate binmode version: %d\n",
+	msg_info("BusPirate binmode version: %d\n",
 	                PDATA(pgm)->binmode_version);
 
 	PDATA(pgm)->flag |= BP_FLAG_IN_BINMODE;
@@ -1241,7 +1241,7 @@ static int buspirate_bb_getpin(const PROGRAMMER *pgm, int pinfunc) {
 	if (buf[0] & (1 << (pin - 1)))
 		value ^= 1;
 
-	avrdude_message(MSG_DEBUG, "get pin %d = %d\n", pin, value);
+	msg_debug("get pin %d = %d\n", pin, value);
 
 	return value;
 }
@@ -1257,7 +1257,7 @@ static int buspirate_bb_setpin_internal(const PROGRAMMER *pgm, int pin, int valu
 	if ((pin < 1 || pin > 5) && (pin != 7)) // 7 is POWER
 		return -1;
 
-	avrdude_message(MSG_DEBUG, "set pin %d = %d\n", pin, value);
+	msg_debug("set pin %d = %d\n", pin, value);
 
 	if (value)
 		PDATA(pgm)->pin_val |= (1 << (pin - 1));

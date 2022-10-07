@@ -1374,7 +1374,7 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
   setvbuf(stderr, (char *) NULL, _IONBF, 0);
 
   if(hdr) {
-    avrdude_message(MSG_INFO, "\n");
+    msg_info("\n");
     last = done = 0;
     if(header)
       free(header);
@@ -1395,11 +1395,11 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
       hashes[i/2] = '#';
     hashes[50] = 0;
 
-    avrdude_message(MSG_INFO, "\r%s | %s | %d%% %0.2fs",
+    msg_info("\r%s | %s | %d%% %0.2fs",
             header, hashes, showperc, etime);
     if(percent == 100) {
       if(finish)
-        avrdude_message(MSG_INFO, "\n\n");
+        msg_info("\n\n");
       done = 1;
     }
   }
@@ -1416,18 +1416,18 @@ static void update_progress_no_tty(int percent, double etime, const char *hdr, i
   percent = percent > 100? 100: percent < 0? 0: percent;
 
   if(hdr) {
-    avrdude_message(MSG_INFO, "\n%s | ", hdr);
+    msg_info("\n%s | ", hdr);
     last = done = 0;
   }
 
   if(!done) {
     for(int cnt = percent/2; cnt > last/2; cnt--)
-      avrdude_message(MSG_INFO, finish >= 0? "#": "-");
+      msg_info(finish >= 0? "#": "-");
 
     if(percent == 100) {
-      avrdude_message(MSG_INFO, " | %d%% %0.2fs", etime, finish >= 0? 100: last);
+      msg_info(" | %d%% %0.2fs", etime, finish >= 0? 100: last);
       if(finish)
-        avrdude_message(MSG_INFO, "\n\n");
+        msg_info("\n\n");
       done = 1;
     }
   }

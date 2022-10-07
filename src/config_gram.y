@@ -1410,7 +1410,7 @@ mem_spec :
     {
       int ps = $3->value.number;
       if (ps <= 0)
-        avrdude_message(MSG_INFO,
+        msg_info(
                         "%s, line %d: invalid page size %d, ignored\n",
                         cfg_infile, cfg_lineno, ps);
       else

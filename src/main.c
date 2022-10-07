@@ -102,7 +102,7 @@ int    ovsigck;     /* 1=override sig check, 0=don't */
  */
 static void usage(void)
 {
-  avrdude_message(MSG_INFO,
+  msg_info(
  "Usage: %s [options]\n"
  "Options:\n"
  "  -p <partno>                Required. Specify AVR device.\n"
@@ -349,28 +349,28 @@ static int dev_opt(char *str) {
 
 static void exit_programmer_not_found(const char *programmer) {
   if(programmer && *programmer)
-    avrdude_message(MSG_INFO, "\n%s: cannot find programmer id %s\n", progname, programmer);
+    msg_info("\n%s: cannot find programmer id %s\n", progname, programmer);
   else
-    avrdude_message(MSG_INFO, "\n%s: no programmer has been specified on the command line "
+    msg_info("\n%s: no programmer has been specified on the command line "
       "or in the\n%sconfig file; specify one using the -c option and try again\n",
         progname, progbuf);
 
-  avrdude_message(MSG_INFO, "\nValid programmers are:\n");
+  msg_info("\nValid programmers are:\n");
   list_programmers(stderr, "  ", programmers, ~0);
-  avrdude_message(MSG_INFO, "\n");
+  msg_info("\n");
 
   exit(1);
 }
 
 static void exit_part_not_found(const char *partdesc) {
   if(partdesc && *partdesc)
-    avrdude_message(MSG_INFO, "\n%s: AVR part %s not found\n", progname, partdesc);
+    msg_info("\n%s: AVR part %s not found\n", progname, partdesc);
   else
-    avrdude_message(MSG_INFO, "\n%s: no AVR part has been specified; use -p part\n", progname);
+    msg_info("\n%s: no AVR part has been specified; use -p part\n", progname);
 
-  avrdude_message(MSG_INFO, "\nValid parts are:\n");
+  msg_info("\nValid parts are:\n");
   list_parts(stderr, "  ", part_list, ~0);
-  avrdude_message(MSG_INFO, "\n");
+  msg_info("\n");
 
   exit(1);
 }
@@ -457,19 +457,19 @@ int main(int argc, char * argv [])
 
   updates = lcreat(NULL, 0);
   if (updates == NULL) {
-    avrdude_message(MSG_INFO, "%s: cannot initialize updater list\n", progname);
+    msg_info("%s: cannot initialize updater list\n", progname);
     exit(1);
   }
 
   extended_params = lcreat(NULL, 0);
   if (extended_params == NULL) {
-    avrdude_message(MSG_INFO, "%s: cannot initialize extended parameter list\n", progname);
+    msg_info("%s: cannot initialize extended parameter list\n", progname);
     exit(1);
   }
 
   additional_config_files = lcreat(NULL, 0);
   if (additional_config_files == NULL) {
-    avrdude_message(MSG_INFO, "%s: cannot initialize additional config files list\n", progname);
+    msg_info("%s: cannot initialize additional config files list\n", progname);
     exit(1);
   }
 
@@ -514,7 +514,7 @@ int main(int argc, char * argv [])
       case 'b': /* override default programmer baud rate */
         baudrate = strtol(optarg, &e, 0);
         if ((e == optarg) || (*e != 0)) {
-          avrdude_message(MSG_INFO, "%s: invalid baud rate specified '%s'\n",
+          msg_info("%s: invalid baud rate specified '%s'\n",
                   progname, optarg);
           exit(1);
         }
@@ -560,11 +560,11 @@ int main(int argc, char * argv [])
 	    break;
 	  }
 	  if (bitclock == 0.0)
-	    avrdude_message(MSG_INFO, "%s: invalid bit clock unit of measure '%s'\n",
+	    msg_info("%s: invalid bit clock unit of measure '%s'\n",
 			    progname, e);
 	}
 	if ((e == optarg) || bitclock == 0.0) {
-	  avrdude_message(MSG_INFO, "%s: invalid bit clock period specified '%s'\n",
+	  msg_info("%s: invalid bit clock period specified '%s'\n",
                   progname, optarg);
           exit(1);
         }
@@ -573,7 +573,7 @@ int main(int argc, char * argv [])
       case 'i':	/* specify isp clock delay */
 	ispdelay = strtol(optarg, &e,10);
 	if ((e == optarg) || (*e != 0) || ispdelay == 0) {
-	  avrdude_message(MSG_INFO, "%s: invalid isp clock delay specified '%s'\n",
+	  msg_info("%s: invalid isp clock delay specified '%s'\n",
                   progname, optarg);
           exit(1);
         }
@@ -643,14 +643,14 @@ int main(int argc, char * argv [])
 
       case 's':
       case 'u':
-        avrdude_message(MSG_INFO, "%s: \"safemode\" feature no longer supported\n",
+        msg_info("%s: \"safemode\" feature no longer supported\n",
                 progname);
         break;
 
       case 'U':
         upd = parse_op(optarg);
         if (upd == NULL) {
-          avrdude_message(MSG_INFO, "%s: error parsing update operation '%s'\n",
+          msg_info("%s: error parsing update operation '%s'\n",
                   progname, optarg);
           exit(1);
         }
@@ -670,12 +670,12 @@ int main(int argc, char * argv [])
         break;
 
       case 'y':
-        avrdude_message(MSG_INFO, "%s: erase cycle counter no longer supported\n",
+        msg_info("%s: erase cycle counter no longer supported\n",
                 progname);
         break;
 
       case 'Y':
-        avrdude_message(MSG_INFO, "%s: erase cycle counter no longer supported\n",
+        msg_info("%s: erase cycle counter no longer supported\n",
                 progname);
         break;
 
@@ -685,7 +685,7 @@ int main(int argc, char * argv [])
         break;
 
       default:
-        avrdude_message(MSG_INFO, "%s: invalid option -%c\n\n", progname, ch);
+        msg_info("%s: invalid option -%c\n\n", progname, ch);
         usage();
         exit(1);
         break;
@@ -737,10 +737,10 @@ int main(int argc, char * argv [])
       executable_dirpath[executable_dirpath_len] = '\0';
 
       // Debug output
-      avrdude_message(MSG_DEBUG, "executable_abspath = %s\n", executable_abspath);
-      avrdude_message(MSG_DEBUG, "executable_abspath_len = %i\n", executable_abspath_len);
-      avrdude_message(MSG_DEBUG, "executable_dirpath = %s\n", executable_dirpath);
-      avrdude_message(MSG_DEBUG, "executable_dirpath_len = %i\n", executable_dirpath_len);
+      msg_debug("executable_abspath = %s\n", executable_abspath);
+      msg_debug("executable_abspath_len = %i\n", executable_abspath_len);
+      msg_debug("executable_dirpath = %s\n", executable_dirpath);
+      msg_debug("executable_dirpath_len = %i\n", executable_dirpath_len);
     }
 
     /*
@@ -796,9 +796,9 @@ int main(int argc, char * argv [])
     }
   }
   // Debug output
-  avrdude_message(MSG_DEBUG, "sys_config = %s\n", sys_config);
-  avrdude_message(MSG_DEBUG, "sys_config_found = %s\n", sys_config_found ? "true" : "false");
-  avrdude_message(MSG_DEBUG, "\n");
+  msg_debug("sys_config = %s\n", sys_config);
+  msg_debug("sys_config_found = %s\n", sys_config_found ? "true" : "false");
+  msg_debug("\n");
 
   /*
    * USER CONFIG
@@ -826,34 +826,34 @@ int main(int argc, char * argv [])
    * Print out an identifying string so folks can tell what version
    * they are running
    */
-  avrdude_message(MSG_NOTICE, "\n%s: Version %s\n"
+  msg_notice("\n%s: Version %s\n"
                     "%sCopyright (c) Brian Dean, http://www.bdmicro.com/\n"
                     "%sCopyright (c) Joerg Wunsch\n\n",
                     progname, version, progbuf, progbuf);
-  avrdude_message(MSG_NOTICE, "%sSystem wide configuration file is \"%s\"\n",
+  msg_notice("%sSystem wide configuration file is \"%s\"\n",
             progbuf, sys_config);
 
   rc = read_config(sys_config);
   if (rc) {
-    avrdude_message(MSG_INFO, "%s: error reading system wide configuration file \"%s\"\n",
+    msg_info("%s: error reading system wide configuration file \"%s\"\n",
                     progname, sys_config);
     exit(1);
   }
 
   if (usr_config[0] != 0) {
-    avrdude_message(MSG_NOTICE, "%sUser configuration file is \"%s\"\n",
+    msg_notice("%sUser configuration file is \"%s\"\n",
               progbuf, usr_config);
 
     rc = stat(usr_config, &sb);
     if ((rc < 0) || ((sb.st_mode & S_IFREG) == 0)) {
-      avrdude_message(MSG_NOTICE, "%sUser configuration file does not exist or is not a "
+      msg_notice("%sUser configuration file does not exist or is not a "
                       "regular file, skipping\n",
                       progbuf);
     }
     else {
       rc = read_config(usr_config);
       if (rc) {
-        avrdude_message(MSG_INFO, "%s: error reading user configuration file \"%s\"\n",
+        msg_info("%s: error reading user configuration file \"%s\"\n",
                 progname, usr_config);
         exit(1);
       }
@@ -866,12 +866,12 @@ int main(int argc, char * argv [])
 
     for (ln1=lfirst(additional_config_files); ln1; ln1=lnext(ln1)) {
       p = ldata(ln1);
-      avrdude_message(MSG_NOTICE, "%sAdditional configuration file is \"%s\"\n",
+      msg_notice("%sAdditional configuration file is \"%s\"\n",
                       progbuf, p);
 
       rc = read_config(p);
       if (rc) {
-        avrdude_message(MSG_INFO, "%s: error reading additional configuration file \"%s\"\n",
+        msg_info("%s: error reading additional configuration file \"%s\"\n",
                         progname, p);
         exit(1);
       }
@@ -898,7 +898,7 @@ int main(int argc, char * argv [])
       PROGRAMMER *pgm = ldata(ln2);
       int pm = pgm->prog_modes & p->prog_modes;
       if(pm & (pm-1))
-        avrdude_message(MSG_INFO, "%s warning: %s and %s share multiple modes (%s)\n",
+        msg_info("%s warning: %s and %s share multiple modes (%s)\n",
           progname, pgm->id? ldata(lfirst(pgm->id)): "???", p->desc, via_prog_modes(pm));
     }
   }
@@ -909,13 +909,13 @@ int main(int argc, char * argv [])
         PROGRAMMER *pgm = locate_programmer(programmers, programmer);
         if(!pgm)
           exit_programmer_not_found(programmer);
-        avrdude_message(MSG_INFO, "\nValid parts for programmer %s are:\n", programmer);
+        msg_info("\nValid parts for programmer %s are:\n", programmer);
         list_parts(stderr, "  ", part_list, pgm->prog_modes);
       } else {
-        avrdude_message(MSG_INFO, "\nValid parts are:\n");
+        msg_info("\nValid parts are:\n");
         list_parts(stderr, "  ", part_list, ~0);
       }
-      avrdude_message(MSG_INFO, "\n");
+      msg_info("\n");
       exit(1);
     }
   }
@@ -926,25 +926,25 @@ int main(int argc, char * argv [])
         AVRPART *p = locate_part(part_list, partdesc);
         if(!p)
           exit_part_not_found(partdesc);
-        avrdude_message(MSG_INFO, "\nValid programmers for part %s are:\n", p->desc);
+        msg_info("\nValid programmers for part %s are:\n", p->desc);
         list_programmers(stderr, "  ", programmers, p->prog_modes);
       }  else {
-        avrdude_message(MSG_INFO, "\nValid programmers are:\n");
+        msg_info("\nValid programmers are:\n");
         list_programmers(stderr, "  ", programmers, ~0);
       }
-      avrdude_message(MSG_INFO, "\n");
+      msg_info("\n");
       exit(1);
     }
 
     if (strcmp(programmer, "?type") == 0) {
-      avrdude_message(MSG_INFO, "\nValid programmer types are:\n");
+      msg_info("\nValid programmer types are:\n");
       list_programmer_types(stderr, "  ");
-      avrdude_message(MSG_INFO, "\n");
+      msg_info("\n");
       exit(1);
     }
   }
 
-  avrdude_message(MSG_NOTICE, "\n");
+  msg_notice("\n");
 
   if (!programmer || !*programmer)
     exit_programmer_not_found(NULL);
@@ -956,7 +956,7 @@ int main(int argc, char * argv [])
   if (pgm->initpgm) {
     pgm->initpgm(pgm);
   } else {
-    avrdude_message(MSG_INFO, "\n%s: cannot initialize the programmer\n\n", progname);
+    msg_info("\n%s: cannot initialize the programmer\n\n", progname);
     exit(1);
   }
 
@@ -969,12 +969,12 @@ int main(int argc, char * argv [])
 
   if (lsize(extended_params) > 0) {
     if (pgm->parseextparams == NULL) {
-      avrdude_message(MSG_INFO, "%s: WARNING: Programmer doesn't support extended parameters,"
+      msg_info("%s: WARNING: Programmer doesn't support extended parameters,"
                       " -x option(s) ignored\n",
                       progname);
     } else {
       if (pgm->parseextparams(pgm, extended_params) < 0) {
-        avrdude_message(MSG_INFO, "%s: Error parsing extended parameter list\n",
+        msg_info("%s: Error parsing extended parameter list\n",
                         progname);
         exit(1);
       }
@@ -1014,7 +1014,7 @@ int main(int argc, char * argv [])
 
   if (exitspecs != NULL) {
     if (pgm->parseexitspecs == NULL) {
-      avrdude_message(MSG_INFO, "%s: WARNING: -E option not supported by this programmer type\n",
+      msg_info("%s: WARNING: -E option not supported by this programmer type\n",
                       progname);
       exitspecs = NULL;
     }
@@ -1025,7 +1025,7 @@ int main(int argc, char * argv [])
   }
 
   if (avr_initmem(p) != 0) {
-    avrdude_message(MSG_INFO, "\n%s: failed to initialize memories\n",
+    msg_info("\n%s: failed to initialize memories\n",
       progname);
     exit(1);
   }
@@ -1042,7 +1042,7 @@ int main(int argc, char * argv [])
     upd = ldata(ln);
     if (upd->memtype == NULL) {
       const char *mtype = p->prog_modes & PM_PDI? "application": "flash";
-      avrdude_message(MSG_NOTICE2, "%s: defaulting memtype in -U %c:%s option to \"%s\"\n",
+      msg_notice2("%s: defaulting memtype in -U %c:%s option to \"%s\"\n",
                       progname,
                       (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v',
                       upd->filename, mtype);
@@ -1060,42 +1060,42 @@ int main(int argc, char * argv [])
    * open the programmer
    */
   if (port[0] == 0) {
-    avrdude_message(MSG_INFO, "\n%s: no port has been specified on the command line "
+    msg_info("\n%s: no port has been specified on the command line "
             "or in the config file\n",
             progname);
-    avrdude_message(MSG_INFO, "%sSpecify a port using the -P option and try again\n\n",
+    msg_info("%sSpecify a port using the -P option and try again\n\n",
             progbuf);
     exit(1);
   }
 
   if (verbose) {
-    avrdude_message(MSG_NOTICE, "%sUsing Port                    : %s\n", progbuf, port);
-    avrdude_message(MSG_NOTICE, "%sUsing Programmer              : %s\n", progbuf, programmer);
+    msg_notice("%sUsing Port                    : %s\n", progbuf, port);
+    msg_notice("%sUsing Programmer              : %s\n", progbuf, programmer);
     if ((strcmp(pgm->type, "avr910") == 0)) {
-	  avrdude_message(MSG_NOTICE, "%savr910_devcode (avrdude.conf) : ", progbuf);
-      if(p->avr910_devcode)avrdude_message(MSG_INFO, "0x%x\n", p->avr910_devcode);
-	  else avrdude_message(MSG_NOTICE, "none\n");
+	  msg_notice("%savr910_devcode (avrdude.conf) : ", progbuf);
+      if(p->avr910_devcode)msg_info("0x%x\n", p->avr910_devcode);
+	  else msg_notice("none\n");
     }
   }
 
   if (baudrate != 0) {
-    avrdude_message(MSG_NOTICE, "%sOverriding Baud Rate          : %d\n", progbuf, baudrate);
+    msg_notice("%sOverriding Baud Rate          : %d\n", progbuf, baudrate);
     pgm->baudrate = baudrate;
   }
 
   if (bitclock != 0.0) {
-    avrdude_message(MSG_NOTICE, "%sSetting bit clk period        : %.1f\n", progbuf, bitclock);
+    msg_notice("%sSetting bit clk period        : %.1f\n", progbuf, bitclock);
     pgm->bitclock = bitclock * 1e-6;
   }
 
   if (ispdelay != 0) {
-    avrdude_message(MSG_NOTICE, "%sSetting isp clock delay        : %3i\n", progbuf, ispdelay);
+    msg_notice("%sSetting isp clock delay        : %3i\n", progbuf, ispdelay);
     pgm->ispdelay = ispdelay;
   }
 
   rc = pgm->open(pgm, port);
   if (rc < 0) {
-    avrdude_message(MSG_INFO,
+    msg_info(
                     "%s: opening programmer \"%s\" on port \"%s\" failed\n",
                     progname, programmer, port);
     exitrc = 1;
@@ -1110,15 +1110,15 @@ int main(int argc, char * argv [])
      * as outlined in appnote AVR053
      */
     if (pgm->perform_osccal == 0) {
-      avrdude_message(MSG_INFO, "%s: programmer does not support RC oscillator calibration\n",
+      msg_info("%s: programmer does not support RC oscillator calibration\n",
                       progname);
       exitrc = 1;
     } else {
-      avrdude_message(MSG_INFO, "%s: performing RC oscillator calibration\n", progname);
+      msg_info("%s: performing RC oscillator calibration\n", progname);
       exitrc = pgm->perform_osccal(pgm);
     }
     if (exitrc == 0 && quell_progress < 2) {
-      avrdude_message(MSG_INFO, "%s: calibration value is now stored in EEPROM at address 0\n",
+      msg_info("%s: calibration value is now stored in EEPROM at address 0\n",
                       progname);
     }
     goto main_exit;
@@ -1126,12 +1126,12 @@ int main(int argc, char * argv [])
 
   if (verbose) {
     avr_display(stderr, p, progbuf, verbose);
-    avrdude_message(MSG_NOTICE, "\n");
+    msg_notice("\n");
     programmer_display(pgm, progbuf);
   }
 
   if (quell_progress < 2) {
-    avrdude_message(MSG_INFO, "\n");
+    msg_info("\n");
   }
 
   exitrc = 0;
@@ -1154,9 +1154,9 @@ int main(int argc, char * argv [])
    */
   init_ok = (rc = pgm->initialize(pgm, p)) >= 0;
   if (!init_ok) {
-    avrdude_message(MSG_INFO, "%s: initialization failed, rc=%d\n", progname, rc);
+    msg_info("%s: initialization failed, rc=%d\n", progname, rc);
     if (!ovsigck) {
-      avrdude_message(MSG_INFO, "%sDouble check connections and try again, "
+      msg_info("%sDouble check connections and try again, "
               "or use -F to override\n"
               "%sthis check.\n\n",
               progbuf, progbuf);
@@ -1169,7 +1169,7 @@ int main(int argc, char * argv [])
   pgm->rdy_led(pgm, ON);
 
   if (quell_progress < 2) {
-    avrdude_message(MSG_INFO, "%s: AVR device initialized and ready to accept instructions\n",
+    msg_info("%s: AVR device initialized and ready to accept instructions\n",
                     progname);
   }
 
@@ -1194,15 +1194,15 @@ int main(int argc, char * argv [])
              // Read SIB and compare FamilyID
              char sib[AVR_SIBLEN + 1];
              pgm->read_sib(pgm, p, sib);
-             avrdude_message(MSG_NOTICE, "%s: System Information Block: \"%s\"\n",
+             msg_notice("%s: System Information Block: \"%s\"\n",
                              progname, sib);
             if (quell_progress < 2)
-              avrdude_message(MSG_INFO, "%s: Received FamilyID: \"%.*s\"\n", progname, AVR_FAMILYIDLEN, sib);
+              msg_info("%s: Received FamilyID: \"%.*s\"\n", progname, AVR_FAMILYIDLEN, sib);
 
             if (strncmp(p->family_id, sib, AVR_FAMILYIDLEN)) {
-              avrdude_message(MSG_INFO, "%s: Expected FamilyID: \"%s\"\n", progname, p->family_id);
+              msg_info("%s: Expected FamilyID: \"%s\"\n", progname, p->family_id);
               if (!ovsigck) {
-                avrdude_message(MSG_INFO, "%sDouble check chip, "
+                msg_info("%sDouble check chip, "
                         "or use -F to override this check.\n",
                         progbuf);
                 exitrc = 1;
@@ -1213,18 +1213,18 @@ int main(int argc, char * argv [])
           if(erase) {
             erase = 0;
             if (uflags & UF_NOWRITE) {
-              avrdude_message(MSG_INFO, "%s: conflicting -e and -n options specified, NOT erasing chip\n",
+              msg_info("%s: conflicting -e and -n options specified, NOT erasing chip\n",
                               progname);
             } else {
               if (quell_progress < 2)
-                avrdude_message(MSG_INFO, "%s: erasing chip\n", progname);
+                msg_info("%s: erasing chip\n", progname);
               exitrc = avr_unlock(pgm, p);
               if(exitrc) goto main_exit;
               goto sig_again;
             }
           }
         }
-        avrdude_message(MSG_INFO, "%s: error reading signature data, rc=%d\n",
+        msg_info("%s: error reading signature data, rc=%d\n",
           progname, rc);
         exitrc = 1;
         goto main_exit;
@@ -1233,7 +1233,7 @@ int main(int argc, char * argv [])
 
     sig = avr_locate_mem(p, "signature");
     if (sig == NULL) {
-      avrdude_message(MSG_INFO, "%s: WARNING: signature data not defined for device \"%s\"\n",
+      msg_info("%s: WARNING: signature data not defined for device \"%s\"\n",
                       progname, p->desc);
     }
 
@@ -1241,12 +1241,12 @@ int main(int argc, char * argv [])
       int ff, zz;
 
       if (quell_progress < 2) {
-        avrdude_message(MSG_INFO, "%s: Device signature = 0x", progname);
+        msg_info("%s: Device signature = 0x", progname);
       }
       ff = zz = 1;
       for (i=0; i<sig->size; i++) {
         if (quell_progress < 2) {
-          avrdude_message(MSG_INFO, "%02x", sig->buf[i]);
+          msg_info("%02x", sig->buf[i]);
         }
         if (sig->buf[i] != 0xff)
           ff = 0;
@@ -1265,23 +1265,23 @@ int main(int argc, char * argv [])
 
         part = locate_part_by_signature(part_list, sig->buf, sig->size);
         if (part) {
-          avrdude_message(MSG_INFO, " (probably %s)", signature_matches ? p->id : part->id);
+          msg_info(" (probably %s)", signature_matches ? p->id : part->id);
         }
       }
       if (ff || zz) {
         if (++attempt < 3) {
           waittime *= 5;
           if (quell_progress < 2) {
-              avrdude_message(MSG_INFO, " (retrying)\n");
+              msg_info(" (retrying)\n");
           }
           goto sig_again;
         }
         if (quell_progress < 2) {
-            avrdude_message(MSG_INFO, "\n");
+            msg_info("\n");
         }
-        avrdude_message(MSG_INFO, "%s: Yikes!  Invalid device signature.\n", progname);
+        msg_info("%s: Yikes!  Invalid device signature.\n", progname);
         if (!ovsigck) {
-          avrdude_message(MSG_INFO, "%sDouble check connections and try again, "
+          msg_info("%sDouble check connections and try again, "
                   "or use -F to override\n"
                   "%sthis check.\n\n",
                   progbuf, progbuf);
@@ -1290,16 +1290,16 @@ int main(int argc, char * argv [])
         }
       } else {
         if (quell_progress < 2) {
-          avrdude_message(MSG_INFO, "\n");
+          msg_info("\n");
         }
       }
 
       if (!signature_matches) {
-        avrdude_message(MSG_INFO, "%s: Expected signature for %s is %02X %02X %02X\n",
+        msg_info("%s: Expected signature for %s is %02X %02X %02X\n",
                         progname, p->desc,
                         p->signature[0], p->signature[1], p->signature[2]);
         if (!ovsigck) {
-          avrdude_message(MSG_INFO, "%sDouble check chip, "
+          msg_info("%sDouble check chip, "
                   "or use -F to override this check.\n",
                   progbuf);
           exitrc = 1;
@@ -1312,7 +1312,7 @@ int main(int argc, char * argv [])
   if (uflags & UF_AUTO_ERASE) {
     if ((p->prog_modes & PM_PDI) && pgm->page_erase && lsize(updates) > 0) {
       if (quell_progress < 2) {
-        avrdude_message(MSG_INFO, "%s: NOTE: Programmer supports page erase for Xmega devices.\n"
+        msg_info("%s: NOTE: Programmer supports page erase for Xmega devices.\n"
                         "%sEach page will be erased before programming it, but no chip erase is performed.\n"
                         "%sTo disable page erases, specify the -D option; for a chip-erase, use the -e option.\n",
                         progname, progbuf, progbuf);
@@ -1330,7 +1330,7 @@ int main(int argc, char * argv [])
         if ((strcmp(m->desc, memname) == 0) && (upd->op == DEVICE_WRITE)) {
           erase = 1;
           if (quell_progress < 2) {
-            avrdude_message(MSG_INFO, "%s: NOTE: \"%s\" memory has been specified, an erase cycle "
+            msg_info("%s: NOTE: \"%s\" memory has been specified, an erase cycle "
                             "will be performed\n"
                             "%sTo disable this feature, specify the -D option.\n",
                             progname, memname, progbuf);
@@ -1347,11 +1347,11 @@ int main(int argc, char * argv [])
      * before the chip can accept new programming
      */
     if (uflags & UF_NOWRITE) {
-      avrdude_message(MSG_INFO, "%s: conflicting -e and -n options specified, NOT erasing chip\n",
+      msg_info("%s: conflicting -e and -n options specified, NOT erasing chip\n",
                       progname);
     } else {
       if (quell_progress < 2)
-      	avrdude_message(MSG_INFO, "%s: erasing chip\n", progname);
+      	msg_info("%s: erasing chip\n", progname);
       exitrc = avr_chip_erase(pgm, p);
       if(exitrc) goto main_exit;
     }
@@ -1399,7 +1399,7 @@ main_exit:
   }
 
   if (quell_progress < 2) {
-    avrdude_message(MSG_INFO, "\n%s done.  Thank you.\n\n", progname);
+    msg_info("\n%s done.  Thank you.\n\n", progname);
   }
 
   return exitrc;

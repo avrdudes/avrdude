@@ -111,7 +111,7 @@ static int jtagmkI_resync(const PROGRAMMER *pgm, int maxtries, int signon);
 static void jtagmkI_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    avrdude_message(MSG_INFO, "%s: jtagmkI_setup(): Out of memory allocating private data\n",
+    msg_info("%s: jtagmkI_setup(): Out of memory allocating private data\n",
                     progname);
     exit(1);
   }
@@ -143,10 +143,10 @@ static void jtagmkI_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len
   int i;
 
   if (verbose >= 4) {
-    avrdude_message(MSG_TRACE, "Raw message:\n");
+    msg_trace("Raw message:\n");
 
     for (i = 0; i < len; i++) {
-      avrdude_message(MSG_TRACE, "0x%02x ", data[i]);
+      msg_trace("0x%02x ", data[i]);
       if (i % 16 == 15)
 	putc('\n', stderr);
       else
@@ -158,34 +158,34 @@ static void jtagmkI_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len
 
   switch (data[0]) {
   case RESP_OK:
-    avrdude_message(MSG_INFO, "OK\n");
+    msg_info("OK\n");
     break;
 
   case RESP_FAILED:
-    avrdude_message(MSG_INFO, "FAILED\n");
+    msg_info("FAILED\n");
     break;
 
   case RESP_BREAK:
-    avrdude_message(MSG_INFO, "breakpoint hit\n");
+    msg_info("breakpoint hit\n");
     break;
 
   case RESP_INFO:
-    avrdude_message(MSG_INFO, "IDR dirty\n");
+    msg_info("IDR dirty\n");
     break;
 
   case RESP_SYNC_ERROR:
-    avrdude_message(MSG_INFO, "Synchronization lost\n");
+    msg_info("Synchronization lost\n");
     break;
 
   case RESP_SLEEP:
-    avrdude_message(MSG_INFO, "sleep instruction hit\n");
+    msg_info("sleep instruction hit\n");
     break;
 
   case RESP_POWER:
-    avrdude_message(MSG_INFO, "target power lost\n");
+    msg_info("target power lost\n");
 
   default:
-    avrdude_message(MSG_INFO, "unknown message 0x%02x\n", data[0]);
+    msg_info("unknown message 0x%02x\n", data[0]);
   }
 
   putc('\n', stderr);
@@ -195,12 +195,12 @@ static void jtagmkI_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len
 static int jtagmkI_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
   unsigned char *buf;
 
-  avrdude_message(MSG_DEBUG, "\n%s: jtagmkI_send(): sending %u bytes\n",
+  msg_debug("\n%s: jtagmkI_send(): sending %u bytes\n",
 	    progname, (unsigned int)len);
 
   if ((buf = malloc(len + 2)) == NULL)
     {
-      avrdude_message(MSG_INFO, "%s: jtagmkI_send(): out of memory",
+      msg_info("%s: jtagmkI_send(): out of memory",
 	      progname);
       exit(1);
     }
@@ -210,7 +210,7 @@ static int jtagmkI_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) 
   buf[len + 1] = ' ';		/* EOP */
 
   if (serial_send(&pgm->fd, buf, len + 2) != 0) {
-    avrdude_message(MSG_INFO, "%s: jtagmkI_send(): failed to send command to serial port\n",
+    msg_info("%s: jtagmkI_send(): failed to send command to serial port\n",
                     progname);
     free(buf);
     return -1;
@@ -223,7 +223,7 @@ static int jtagmkI_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) 
 
 static int jtagmkI_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
   if (serial_recv(&pgm->fd, buf, len) != 0) {
-    avrdude_message(MSG_INFO, "\n%s: jtagmkI_recv(): failed to send command to serial port\n",
+    msg_info("\n%s: jtagmkI_recv(): failed to send command to serial port\n",
                     progname);
     return -1;
   }
@@ -247,7 +247,7 @@ static int jtagmkI_resync(const PROGRAMMER *pgm, int maxtries, int signon) {
 
   serial_recv_timeout = 200;
 
-  avrdude_message(MSG_TRACE, "%s: jtagmkI_resync()\n", progname);
+  msg_trace("%s: jtagmkI_resync()\n", progname);
 
   jtagmkI_drain(pgm, 0);
 
@@ -255,17 +255,17 @@ static int jtagmkI_resync(const PROGRAMMER *pgm, int maxtries, int signon) {
 
     /* Get the sign-on information. */
     buf[0] = CMD_GET_SYNC;
-    avrdude_message(MSG_NOTICE2, "%s: jtagmkI_resync(): Sending sync command: ",
+    msg_notice2("%s: jtagmkI_resync(): Sending sync command: ",
 	      progname);
 
     if (serial_send(&pgm->fd, buf, 1) != 0) {
-      avrdude_message(MSG_INFO, "\n%s: jtagmkI_resync(): failed to send command to serial port\n",
+      msg_info("\n%s: jtagmkI_resync(): failed to send command to serial port\n",
                       progname);
       serial_recv_timeout = otimeout;
       return -1;
     }
     if (serial_recv(&pgm->fd, resp, 1) == 0 && resp[0] == RESP_OK) {
-      avrdude_message(MSG_NOTICE2, "got RESP_OK\n");
+      msg_notice2("got RESP_OK\n");
       break;
     }
 
@@ -284,23 +284,23 @@ static int jtagmkI_resync(const PROGRAMMER *pgm, int maxtries, int signon) {
       buf[1] = 'E';
       buf[2] = ' ';
       buf[3] = ' ';
-      avrdude_message(MSG_NOTICE2, "%s: jtagmkI_resync(): Sending sign-on command: ",
+      msg_notice2("%s: jtagmkI_resync(): Sending sign-on command: ",
 		progname);
 
       if (serial_send(&pgm->fd, buf, 4) != 0) {
-	avrdude_message(MSG_INFO, "\n%s: jtagmkI_resync(): failed to send command to serial port\n",
+	msg_info("\n%s: jtagmkI_resync(): failed to send command to serial port\n",
                         progname);
 	serial_recv_timeout = otimeout;
 	return -1;
       }
       if (serial_recv(&pgm->fd, resp, 9) == 0 && resp[0] == RESP_OK) {
-        avrdude_message(MSG_NOTICE2, "got RESP_OK\n");
+        msg_notice2("got RESP_OK\n");
 	break;
       }
     }
   }
   if (tries >= maxtries) {
-    avrdude_message(MSG_NOTICE2, "%s: jtagmkI_resync(): "
+    msg_notice2("%s: jtagmkI_resync(): "
                       "timeout/error communicating with programmer\n",
                       progname);
     serial_recv_timeout = otimeout;
@@ -321,7 +321,7 @@ static int jtagmkI_getsync(const PROGRAMMER *pgm) {
 
   jtagmkI_drain(pgm, 0);
 
-  avrdude_message(MSG_NOTICE2, "%s: jtagmkI_getsync(): Sending sign-on command: ",
+  msg_notice2("%s: jtagmkI_getsync(): Sending sign-on command: ",
 	    progname);
 
   buf[0] = CMD_GET_SIGNON;
@@ -330,7 +330,7 @@ static int jtagmkI_getsync(const PROGRAMMER *pgm) {
     return -1;
   if (verbose >= 2) {
     resp[8] = '\0';
-    avrdude_message(MSG_NOTICE2, "got %s\n", resp + 1);
+    msg_notice2("got %s\n", resp + 1);
   }
 
   return 0;
@@ -343,7 +343,7 @@ static int jtagmkI_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char buf[1], resp[2];
 
   buf[0] = CMD_CHIP_ERASE;
-  avrdude_message(MSG_NOTICE2, "%s: jtagmkI_chip_erase(): Sending chip erase command: ",
+  msg_notice2("%s: jtagmkI_chip_erase(): Sending chip erase command: ",
 	    progname);
   jtagmkI_send(pgm, buf, 1);
   if (jtagmkI_recv(pgm, resp, 2) < 0)
@@ -351,13 +351,13 @@ static int jtagmkI_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   if (resp[0] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
-    avrdude_message(MSG_INFO, "%s: jtagmkI_chip_erase(): "
+    msg_info("%s: jtagmkI_chip_erase(): "
                     "timeout/error communicating with programmer (resp %c)\n",
                     progname, resp[0]);
     return -1;
   } else {
     if (verbose == 2)
-      avrdude_message(MSG_NOTICE2, "OK\n");
+      msg_notice2("OK\n");
   }
 
   pgm->initialize(pgm, p);
@@ -389,7 +389,7 @@ static void jtagmkI_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
-  avrdude_message(MSG_NOTICE2, "%s: jtagmkI_set_devdescr(): "
+  msg_notice2("%s: jtagmkI_set_devdescr(): "
 	    "Sending set device descriptor command: ",
 	    progname);
   jtagmkI_send(pgm, (unsigned char *)&sendbuf, sizeof(sendbuf));
@@ -399,12 +399,12 @@ static void jtagmkI_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
   if (resp[0] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
-    avrdude_message(MSG_INFO, "%s: jtagmkI_set_devdescr(): "
+    msg_info("%s: jtagmkI_set_devdescr(): "
                     "timeout/error communicating with programmer (resp %c)\n",
                     progname, resp[0]);
   } else {
     if (verbose == 2)
-      avrdude_message(MSG_NOTICE2, "OK\n");
+      msg_notice2("OK\n");
   }
 }
 
@@ -415,7 +415,7 @@ static int jtagmkI_reset(const PROGRAMMER *pgm) {
   unsigned char buf[1], resp[2];
 
   buf[0] = CMD_RESET;
-  avrdude_message(MSG_NOTICE2, "%s: jtagmkI_reset(): Sending reset command: ",
+  msg_notice2("%s: jtagmkI_reset(): Sending reset command: ",
 	    progname);
   jtagmkI_send(pgm, buf, 1);
 
@@ -424,13 +424,13 @@ static int jtagmkI_reset(const PROGRAMMER *pgm) {
   if (resp[0] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
-    avrdude_message(MSG_INFO, "%s: jtagmkI_reset(): "
+    msg_info("%s: jtagmkI_reset(): "
                     "timeout/error communicating with programmer (resp %c)\n",
                     progname, resp[0]);
     return -1;
   } else {
     if (verbose == 2)
-      avrdude_message(MSG_NOTICE2, "OK\n");
+      msg_notice2("OK\n");
   }
 
   return 0;
@@ -448,7 +448,7 @@ static int jtagmkI_program_enable(const PROGRAMMER *pgm) {
     return 0;
 
   buf[0] = CMD_ENTER_PROGMODE;
-  avrdude_message(MSG_NOTICE2, "%s: jtagmkI_program_enable(): "
+  msg_notice2("%s: jtagmkI_program_enable(): "
 	    "Sending enter progmode command: ",
 	    progname);
   jtagmkI_send(pgm, buf, 1);
@@ -458,13 +458,13 @@ static int jtagmkI_program_enable(const PROGRAMMER *pgm) {
   if (resp[0] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
-    avrdude_message(MSG_INFO, "%s: jtagmkI_program_enable(): "
+    msg_info("%s: jtagmkI_program_enable(): "
                     "timeout/error communicating with programmer (resp %c)\n",
                     progname, resp[0]);
     return -1;
   } else {
     if (verbose == 2)
-      avrdude_message(MSG_NOTICE2, "OK\n");
+      msg_notice2("OK\n");
   }
 
   PDATA(pgm)->prog_enabled = 1;
@@ -480,7 +480,7 @@ static int jtagmkI_program_disable(const PROGRAMMER *pgm) {
 
   if (pgm->fd.ifd != -1) {
     buf[0] = CMD_LEAVE_PROGMODE;
-    avrdude_message(MSG_NOTICE2, "%s: jtagmkI_program_disable(): "
+    msg_notice2("%s: jtagmkI_program_disable(): "
               "Sending leave progmode command: ",
               progname);
     jtagmkI_send(pgm, buf, 1);
@@ -490,13 +490,13 @@ static int jtagmkI_program_disable(const PROGRAMMER *pgm) {
     if (resp[0] != RESP_OK) {
       if (verbose >= 2)
         putc('\n', stderr);
-      avrdude_message(MSG_INFO, "%s: jtagmkI_program_disable(): "
+      msg_info("%s: jtagmkI_program_disable(): "
                       "timeout/error communicating with programmer (resp %c)\n",
                       progname, resp[0]);
       return -1;
     } else {
       if (verbose == 2)
-        avrdude_message(MSG_NOTICE2, "OK\n");
+        msg_notice2("OK\n");
     }
   }
   PDATA(pgm)->prog_enabled = 0;
@@ -524,22 +524,22 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char b;
 
   if (!(p->prog_modes & (PM_JTAGmkI | PM_JTAG))) {
-    avrdude_message(MSG_INFO, "%s: jtagmkI_initialize(): part %s has no JTAG interface\n",
+    msg_info("%s: jtagmkI_initialize(): part %s has no JTAG interface\n",
 	    progname, p->desc);
     return -1;
   }
   if (!(p->prog_modes & PM_JTAGmkI))
-    avrdude_message(MSG_INFO, "%s: jtagmkI_initialize(): warning part %s has JTAG interface, but may be too new\n",
+    msg_info("%s: jtagmkI_initialize(): warning part %s has JTAG interface, but may be too new\n",
 	    progname, p->desc);
 
   jtagmkI_drain(pgm, 0);
 
   if ((serdev->flags & SERDEV_FL_CANSETSPEED) && PDATA(pgm)->initial_baudrate != pgm->baudrate) {
     if ((b = jtagmkI_get_baud(pgm->baudrate)) == 0) {
-      avrdude_message(MSG_INFO, "%s: jtagmkI_initialize(): unsupported baudrate %d\n",
+      msg_info("%s: jtagmkI_initialize(): unsupported baudrate %d\n",
               progname, pgm->baudrate);
     } else {
-      avrdude_message(MSG_NOTICE2, "%s: jtagmkI_initialize(): "
+      msg_notice2("%s: jtagmkI_initialize(): "
 	      "trying to set baudrate to %d\n",
                 progname, pgm->baudrate);
       if (jtagmkI_setparm(pgm, PARM_BITRATE, b) == 0) {
@@ -550,7 +550,7 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   if (pgm->bitclock != 0.0) {
-    avrdude_message(MSG_NOTICE2, "%s: jtagmkI_initialize(): "
+    msg_notice2("%s: jtagmkI_initialize(): "
 	      "trying to set JTAG clock period to %.1f us\n",
 	      progname, pgm->bitclock);
     if (jtagmkI_set_sck_period(pgm, pgm->bitclock) != 0)
@@ -564,12 +564,12 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if (resp[0] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
-    avrdude_message(MSG_INFO, "%s: jtagmkI_initialize(): "
+    msg_info("%s: jtagmkI_initialize(): "
                     "timeout/error communicating with programmer (resp %c)\n",
                     progname, resp[0]);
   } else {
     if (verbose == 2)
-      avrdude_message(MSG_NOTICE2, "OK\n");
+      msg_notice2("OK\n");
   }
 
   /*
@@ -584,12 +584,12 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   free(PDATA(pgm)->flash_pagecache);
   free(PDATA(pgm)->eeprom_pagecache);
   if ((PDATA(pgm)->flash_pagecache = malloc(PDATA(pgm)->flash_pagesize)) == NULL) {
-    avrdude_message(MSG_INFO, "%s: jtagmkI_initialize(): Out of memory\n",
+    msg_info("%s: jtagmkI_initialize(): Out of memory\n",
 	    progname);
     return -1;
   }
   if ((PDATA(pgm)->eeprom_pagecache = malloc(PDATA(pgm)->eeprom_pagesize)) == NULL) {
-    avrdude_message(MSG_INFO, "%s: jtagmkI_initialize(): Out of memory\n",
+    msg_info("%s: jtagmkI_initialize(): Out of memory\n",
 	    progname);
     free(PDATA(pgm)->flash_pagecache);
     return -1;
@@ -603,7 +603,7 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if (jtagmkI_read_byte(pgm, p, &hfuse, 1, &b) < 0)
     return -1;
   if ((b & OCDEN) != 0)
-    avrdude_message(MSG_INFO, "%s: jtagmkI_initialize(): warning: OCDEN fuse not programmed, "
+    msg_info("%s: jtagmkI_initialize(): warning: OCDEN fuse not programmed, "
                     "single-byte EEPROM updates not possible\n",
                     progname);
 
@@ -630,7 +630,7 @@ static int jtagmkI_open(PROGRAMMER *pgm, const char *port)
 {
   size_t i;
 
-  avrdude_message(MSG_NOTICE2, "%s: jtagmkI_open()\n", progname);
+  msg_notice2("%s: jtagmkI_open()\n", progname);
 
   strcpy(pgm->port, port);
   PDATA(pgm)->initial_baudrate = -1L;
@@ -639,7 +639,7 @@ static int jtagmkI_open(PROGRAMMER *pgm, const char *port)
     union pinfo pinfo;
     pinfo.serialinfo.baud = baudtab[i].baud;
     pinfo.serialinfo.cflags = SERIAL_8N1;
-    avrdude_message(MSG_NOTICE2, "%s: jtagmkI_open(): trying to sync at baud rate %ld:\n",
+    msg_notice2("%s: jtagmkI_open(): trying to sync at baud rate %ld:\n",
                       progname, pinfo.serialinfo.baud);
     if (serial_open(port, pinfo, &pgm->fd)==-1) {
       return -1;
@@ -652,14 +652,14 @@ static int jtagmkI_open(PROGRAMMER *pgm, const char *port)
 
     if (jtagmkI_getsync(pgm) == 0) {
       PDATA(pgm)->initial_baudrate = baudtab[i].baud;
-      avrdude_message(MSG_NOTICE2, "%s: jtagmkI_open(): succeeded\n", progname);
+      msg_notice2("%s: jtagmkI_open(): succeeded\n", progname);
       return 0;
     }
 
     serial_close(&pgm->fd);
   }
 
-  avrdude_message(MSG_INFO, "%s: jtagmkI_open(): failed to synchronize to ICE\n",
+  msg_info("%s: jtagmkI_open(): failed to synchronize to ICE\n",
                   progname);
   pgm->fd.ifd = -1;
 
@@ -671,7 +671,7 @@ static void jtagmkI_close(PROGRAMMER * pgm)
 {
   unsigned char b;
 
-  avrdude_message(MSG_NOTICE2, "%s: jtagmkI_close()\n", progname);
+  msg_notice2("%s: jtagmkI_close()\n", progname);
 
   /*
    * Revert baud rate to what it used to be when we started.  This
@@ -680,10 +680,10 @@ static void jtagmkI_close(PROGRAMMER * pgm)
    */
   if ((serdev->flags & SERDEV_FL_CANSETSPEED) && PDATA(pgm)->initial_baudrate != pgm->baudrate) {
     if ((b = jtagmkI_get_baud(PDATA(pgm)->initial_baudrate)) == 0) {
-      avrdude_message(MSG_INFO, "%s: jtagmkI_close(): unsupported baudrate %d\n",
+      msg_info("%s: jtagmkI_close(): unsupported baudrate %d\n",
               progname, PDATA(pgm)->initial_baudrate);
     } else {
-      avrdude_message(MSG_NOTICE2, "%s: jtagmkI_close(): "
+      msg_notice2("%s: jtagmkI_close(): "
                 "trying to set baudrate to %d\n",
                 progname, PDATA(pgm)->initial_baudrate);
       if (jtagmkI_setparm(pgm, PARM_BITRATE, b) == 0) {
@@ -712,7 +712,7 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
   long otimeout = serial_recv_timeout;
 #define MAXTRIES 3
 
-  avrdude_message(MSG_NOTICE2, "%s: jtagmkI_paged_write(.., %s, %d, %d)\n",
+  msg_notice2("%s: jtagmkI_paged_write(.., %s, %d, %d)\n",
 	    progname, m->desc, page_size, n_bytes);
 
   if (jtagmkI_program_enable(pgm) < 0)
@@ -721,13 +721,13 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
   if (page_size == 0) page_size = 256;
 
   if (page_size > 256) {
-    avrdude_message(MSG_INFO, "%s: jtagmkI_paged_write(): page size %d too large\n",
+    msg_info("%s: jtagmkI_paged_write(): page size %d too large\n",
 	    progname, page_size);
     return -1;
   }
 
   if ((datacmd = malloc(page_size + 1)) == NULL) {
-    avrdude_message(MSG_INFO, "%s: jtagmkI_paged_write(): Out of memory\n",
+    msg_info("%s: jtagmkI_paged_write(): Out of memory\n",
 	    progname);
     return -1;
   }
@@ -751,7 +751,7 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     again:
 
     if (tries != 0 && jtagmkI_resync(pgm, 2000, 0) < 0) {
-      avrdude_message(MSG_INFO, "%s: jtagmkI_paged_write(): sync loss, retries exhausted\n",
+      msg_info("%s: jtagmkI_paged_write(): sync loss, retries exhausted\n",
                       progname);
       return -1;
     }
@@ -760,7 +760,7 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
       block_size = n_bytes;
     else
       block_size = page_size;
-    avrdude_message(MSG_DEBUG, "%s: jtagmkI_paged_write(): "
+    msg_debug("%s: jtagmkI_paged_write(): "
 	      "block_size at addr %d is %d\n",
 	      progname, addr, block_size);
 
@@ -774,7 +774,7 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
       u32_to_b3(cmd + 3, addr);
     }
 
-    avrdude_message(MSG_NOTICE2, "%s: jtagmkI_paged_write(): "
+    msg_notice2("%s: jtagmkI_paged_write(): "
 	      "Sending write memory command: ",
 	      progname);
 
@@ -785,7 +785,7 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     if (resp[0] != RESP_OK) {
       if (verbose >= 2)
         putc('\n', stderr);
-      avrdude_message(MSG_INFO, "%s: jtagmkI_paged_write(): "
+      msg_info("%s: jtagmkI_paged_write(): "
                       "timeout/error communicating with programmer (resp %c)\n",
                       progname, resp[0]);
       if (tries++ < MAXTRIES)
@@ -794,7 +794,7 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
       return -1;
     } else {
       if (verbose == 2)
-        avrdude_message(MSG_NOTICE2, "OK\n");
+        msg_notice2("OK\n");
     }
 
     /*
@@ -814,7 +814,7 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     if (resp[1] != RESP_OK) {
       if (verbose >= 2)
         putc('\n', stderr);
-      avrdude_message(MSG_INFO, "%s: jtagmkI_paged_write(): "
+      msg_info("%s: jtagmkI_paged_write(): "
                       "timeout/error communicating with programmer (resp %c)\n",
                       progname, resp[0]);
       if (tries++ < MAXTRIES)
@@ -823,7 +823,7 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
       return -1;
     } else {
       if (verbose == 2)
-        avrdude_message(MSG_NOTICE2, "OK\n");
+        msg_notice2("OK\n");
     }
   }
 
@@ -844,7 +844,7 @@ static int jtagmkI_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   long otimeout = serial_recv_timeout;
 #define MAXTRIES 3
 
-  avrdude_message(MSG_NOTICE2, "%s: jtagmkI_paged_load(.., %s, %d, %d)\n",
+  msg_notice2("%s: jtagmkI_paged_load(.., %s, %d, %d)\n",
 	    progname, m->desc, page_size, n_bytes);
 
   if (jtagmkI_program_enable(pgm) < 0)
@@ -861,7 +861,7 @@ static int jtagmkI_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   }
 
   if (page_size > (is_flash? 512: 256)) {
-    avrdude_message(MSG_INFO, "%s: jtagmkI_paged_load(): page size %d too large\n",
+    msg_info("%s: jtagmkI_paged_load(): page size %d too large\n",
 	    progname, page_size);
     return -1;
   }
@@ -871,7 +871,7 @@ static int jtagmkI_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     tries = 0;
     again:
     if (tries != 0 && jtagmkI_resync(pgm, 2000, 0) < 0) {
-      avrdude_message(MSG_INFO, "%s: jtagmkI_paged_load(): sync loss, retries exhausted\n",
+      msg_info("%s: jtagmkI_paged_load(): sync loss, retries exhausted\n",
                       progname);
       return -1;
     }
@@ -880,7 +880,7 @@ static int jtagmkI_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       block_size = n_bytes;
     else
       block_size = page_size;
-    avrdude_message(MSG_DEBUG, "%s: jtagmkI_paged_load(): "
+    msg_debug("%s: jtagmkI_paged_load(): "
 	      "block_size at addr %d is %d\n",
 	      progname, addr, block_size);
 
@@ -894,7 +894,7 @@ static int jtagmkI_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       u32_to_b3(cmd + 3, addr);
     }
 
-    avrdude_message(MSG_NOTICE2, "%s: jtagmkI_paged_load(): Sending read memory command: ",
+    msg_notice2("%s: jtagmkI_paged_load(): Sending read memory command: ",
 	      progname);
 
     jtagmkI_send(pgm, cmd, 6);
@@ -904,7 +904,7 @@ static int jtagmkI_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     if (resp[read_size + 3 - 1] != RESP_OK) {
       if (verbose >= 2)
         putc('\n', stderr);
-      avrdude_message(MSG_INFO, "%s: jtagmkI_paged_load(): "
+      msg_info("%s: jtagmkI_paged_load(): "
                       "timeout/error communicating with programmer (resp %c)\n",
                       progname, resp[read_size + 3 - 1]);
       if (tries++ < MAXTRIES)
@@ -914,7 +914,7 @@ static int jtagmkI_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       return -1;
     } else {
       if (verbose == 2)
-        avrdude_message(MSG_NOTICE2, "OK\n");
+        msg_notice2("OK\n");
     }
 
     memcpy(m->buf + addr, resp + 1, block_size);
@@ -935,7 +935,7 @@ static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   int respsize = 3 + 1;
   int is_flash = 0;
 
-  avrdude_message(MSG_NOTICE2, "%s: jtagmkI_read_byte(.., %s, 0x%lx, ...)\n",
+  msg_notice2("%s: jtagmkI_read_byte(.., %s, 0x%lx, ...)\n",
 	    progname, mem->desc, addr);
 
   if (jtagmkI_program_enable(pgm) < 0)
@@ -1019,13 +1019,13 @@ static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   if (resp[respsize - 1] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
-    avrdude_message(MSG_INFO, "%s: jtagmkI_read_byte(): "
+    msg_info("%s: jtagmkI_read_byte(): "
                     "timeout/error communicating with programmer (resp %c)\n",
                     progname, resp[respsize - 1]);
     return -1;
   } else {
     if (verbose == 2)
-      avrdude_message(MSG_NOTICE2, "OK\n");
+      msg_notice2("OK\n");
   }
 
   if (pagesize) {
@@ -1048,7 +1048,7 @@ static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   unsigned char resp[1], writedata;
   int len, need_progmode = 1, need_dummy_read = 0;
 
-  avrdude_message(MSG_NOTICE2, "%s: jtagmkI_write_byte(.., %s, 0x%lx, ...)\n",
+  msg_notice2("%s: jtagmkI_write_byte(.., %s, 0x%lx, ...)\n",
 	    progname, mem->desc, addr);
 
   writedata = data;
@@ -1109,13 +1109,13 @@ static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   if (resp[0] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
-    avrdude_message(MSG_INFO, "%s: jtagmkI_write_byte(): "
+    msg_info("%s: jtagmkI_write_byte(): "
                     "timeout/error communicating with programmer (resp %c)\n",
                     progname, resp[0]);
     return -1;
   } else {
     if (verbose == 2)
-      avrdude_message(MSG_NOTICE2, "OK\n");
+      msg_notice2("OK\n");
   }
 
   /* Now, send the data buffer. */
@@ -1139,13 +1139,13 @@ static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   if (resp[0] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
-    avrdude_message(MSG_INFO, "%s: jtagmkI_write_byte(): "
+    msg_info("%s: jtagmkI_write_byte(): "
                     "timeout/error communicating with programmer (resp %c)\n",
                     progname, resp[0]);
     return -1;
   } else {
     if (verbose == 2)
-      avrdude_message(MSG_NOTICE2, "OK\n");
+      msg_notice2("OK\n");
   }
 
   if(need_dummy_read)
@@ -1190,12 +1190,12 @@ static int jtagmkI_getparm(const PROGRAMMER *pgm, const unsigned char parm,
 {
   unsigned char buf[2], resp[3];
 
-  avrdude_message(MSG_NOTICE2, "%s: jtagmkI_getparm()\n", progname);
+  msg_notice2("%s: jtagmkI_getparm()\n", progname);
 
   buf[0] = CMD_GET_PARAM;
   buf[1] = parm;
   if (verbose >= 2)
-    avrdude_message(MSG_NOTICE2, "%s: jtagmkI_getparm(): "
+    msg_notice2("%s: jtagmkI_getparm(): "
 	    "Sending get parameter command (parm 0x%02x): ",
 	    progname, parm);
   jtagmkI_send(pgm, buf, 2);
@@ -1205,20 +1205,20 @@ static int jtagmkI_getparm(const PROGRAMMER *pgm, const unsigned char parm,
   if (resp[0] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
-    avrdude_message(MSG_INFO, "%s: jtagmkI_getparm(): "
+    msg_info("%s: jtagmkI_getparm(): "
                     "timeout/error communicating with programmer (resp %c)\n",
                     progname, resp[0]);
     return -1;
   } else if (resp[2] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
-    avrdude_message(MSG_INFO, "%s: jtagmkI_getparm(): "
+    msg_info("%s: jtagmkI_getparm(): "
                     "unknown parameter 0x%02x\n",
                     progname, parm);
     return -1;
   } else {
     if (verbose == 2)
-      avrdude_message(MSG_NOTICE2, "OK, value 0x%02x\n", resp[1]);
+      msg_notice2("OK, value 0x%02x\n", resp[1]);
   }
 
   *value = resp[1];
@@ -1234,12 +1234,12 @@ static int jtagmkI_setparm(const PROGRAMMER *pgm, unsigned char parm,
 {
   unsigned char buf[3], resp[2];
 
-  avrdude_message(MSG_NOTICE2, "%s: jtagmkI_setparm()\n", progname);
+  msg_notice2("%s: jtagmkI_setparm()\n", progname);
 
   buf[0] = CMD_SET_PARAM;
   buf[1] = parm;
   buf[2] = value;
-  avrdude_message(MSG_NOTICE2, "%s: jtagmkI_setparm(): "
+  msg_notice2("%s: jtagmkI_setparm(): "
 	    "Sending set parameter command (parm 0x%02x): ",
 	    progname, parm);
   jtagmkI_send(pgm, buf, 3);
@@ -1248,13 +1248,13 @@ static int jtagmkI_setparm(const PROGRAMMER *pgm, unsigned char parm,
   if (resp[0] != RESP_OK) {
     if (verbose >= 2)
       putc('\n', stderr);
-    avrdude_message(MSG_INFO, "%s: jtagmkI_setparm(): "
+    msg_info("%s: jtagmkI_setparm(): "
                     "timeout/error communicating with programmer (resp %c)\n",
                     progname, resp[0]);
     return -1;
   } else {
     if (verbose == 2)
-      avrdude_message(MSG_NOTICE2, "OK\n");
+      msg_notice2("OK\n");
   }
 
   return 0;
@@ -1268,8 +1268,8 @@ static void jtagmkI_display(const PROGRAMMER *pgm, const char *p) {
       jtagmkI_getparm(pgm, PARM_SW_VERSION, &fw) < 0)
     return;
 
-  avrdude_message(MSG_INFO, "%sICE HW version: 0x%02x\n", p, hw);
-  avrdude_message(MSG_INFO, "%sICE FW version: 0x%02x\n", p, fw);
+  msg_info("%sICE HW version: 0x%02x\n", p, hw);
+  msg_info("%sICE FW version: 0x%02x\n", p, fw);
 
   jtagmkI_print_parms1(pgm, p);
 
@@ -1312,9 +1312,9 @@ static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p) {
     clk = 1e6;
   }
 
-  avrdude_message(MSG_INFO, "%sVtarget       : %.1f V\n", p,
+  msg_info("%sVtarget       : %.1f V\n", p,
 	  6.25 * (unsigned)vtarget / 255.0);
-  avrdude_message(MSG_INFO, "%sJTAG clock    : %s (%.1f us)\n", p, clkstr,
+  msg_info("%sJTAG clock    : %s (%.1f us)\n", p, clkstr,
 	  1.0e6 / clk);
 
   return;

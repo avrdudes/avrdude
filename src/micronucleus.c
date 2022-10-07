@@ -164,7 +164,7 @@ static int micronucleus_reconnect(pdata_t* pdata)
 
     for (int i = 0; i < 25; i++)
     {
-        avrdude_message(MSG_NOTICE, "%s: Trying to reconnect...\n", progname);
+        msg_notice("%s: Trying to reconnect...\n", progname);
 
         pdata->usb_handle = usb_open(device);
         if (pdata->usb_handle != NULL)
@@ -188,13 +188,13 @@ static int micronucleus_get_bootloader_info_v1(pdata_t* pdata)
         MICRONUCLEUS_DEFAULT_TIMEOUT);
     if (result < 0)
     {
-        avrdude_message(MSG_INFO, "%s: WARNING: Failed to get bootloader info block: %s\n",
+        msg_info("%s: WARNING: Failed to get bootloader info block: %s\n",
             progname, usb_strerror());
         return result;
     }
     else if (result < sizeof(buffer))
     {
-        avrdude_message(MSG_INFO, "%s: WARNING: Received invalid bootloader info block size: %d\n",
+        msg_info("%s: WARNING: Received invalid bootloader info block size: %d\n",
             progname, result);
         return -1;
     }
@@ -257,13 +257,13 @@ static int micronucleus_get_bootloader_info_v2(pdata_t* pdata)
         MICRONUCLEUS_DEFAULT_TIMEOUT);
     if (result < 0)
     {
-        avrdude_message(MSG_INFO, "%s: WARNING: Failed to get bootloader info block: %s\n",
+        msg_info("%s: WARNING: Failed to get bootloader info block: %s\n",
             progname, usb_strerror());
         return result;
     }
     else if (result < sizeof(buffer))
     {
-        avrdude_message(MSG_INFO, "%s: WARNING: Received invalid bootloader info block size: %d\n",
+        msg_info("%s: WARNING: Received invalid bootloader info block size: %d\n",
             progname, result);
         return -1;
     }
@@ -302,19 +302,19 @@ static int micronucleus_get_bootloader_info(pdata_t* pdata)
 
 static void micronucleus_dump_device_info(pdata_t* pdata)
 {
-    avrdude_message(MSG_NOTICE, "%s: Bootloader version: %d.%d\n", progname, pdata->major_version, pdata->minor_version);
-    avrdude_message(MSG_NOTICE, "%s: Available flash size: %u\n", progname, pdata->flash_size);
-    avrdude_message(MSG_NOTICE, "%s: Page size: %u\n", progname, pdata->page_size);
-    avrdude_message(MSG_NOTICE, "%s: Bootloader start: 0x%04X\n", progname, pdata->bootloader_start);
-    avrdude_message(MSG_NOTICE, "%s: Write sleep: %ums\n", progname, pdata->write_sleep);
-    avrdude_message(MSG_NOTICE, "%s: Erase sleep: %ums\n", progname, pdata->erase_sleep);
-    avrdude_message(MSG_NOTICE, "%s: Signature1: 0x%02X\n", progname, pdata->signature1);
-    avrdude_message(MSG_NOTICE, "%s: Signature2: 0x%02X\n", progname, pdata->signature2);
+    msg_notice("%s: Bootloader version: %d.%d\n", progname, pdata->major_version, pdata->minor_version);
+    msg_notice("%s: Available flash size: %u\n", progname, pdata->flash_size);
+    msg_notice("%s: Page size: %u\n", progname, pdata->page_size);
+    msg_notice("%s: Bootloader start: 0x%04X\n", progname, pdata->bootloader_start);
+    msg_notice("%s: Write sleep: %ums\n", progname, pdata->write_sleep);
+    msg_notice("%s: Erase sleep: %ums\n", progname, pdata->erase_sleep);
+    msg_notice("%s: Signature1: 0x%02X\n", progname, pdata->signature1);
+    msg_notice("%s: Signature2: 0x%02X\n", progname, pdata->signature2);
 }
 
 static int micronucleus_erase_device(pdata_t* pdata)
 {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_erase_device()\n", progname);
+    msg_debug("%s: micronucleus_erase_device()\n", progname);
 
     int result = usb_control_msg(
         pdata->usb_handle,
@@ -329,10 +329,10 @@ static int micronucleus_erase_device(pdata_t* pdata)
         {
         case -EIO:
         case -EPIPE:
-            avrdude_message(MSG_NOTICE, "%s: Ignoring last error of erase command: %s\n", progname, usb_strerror());
+            msg_notice("%s: Ignoring last error of erase command: %s\n", progname, usb_strerror());
             break;
         default:
-            avrdude_message(MSG_INFO, "%s: WARNING: Failed is issue erase command, code %d: %s\n", progname, result, usb_strerror());
+            msg_info("%s: WARNING: Failed is issue erase command, code %d: %s\n", progname, result, usb_strerror());
             return result;
         }
     }
@@ -342,12 +342,12 @@ static int micronucleus_erase_device(pdata_t* pdata)
     result = micronucleus_check_connection(pdata);
     if (result < 0)
     {
-        avrdude_message(MSG_NOTICE, "%s: Connection dropped, trying to reconnect...\n", progname);
+        msg_notice("%s: Connection dropped, trying to reconnect...\n", progname);
 
         result = micronucleus_reconnect(pdata);
         if (result < 0)
         {
-            avrdude_message(MSG_INFO, "%s: WARNING: Failed to reconnect USB device: %s\n", progname, usb_strerror());
+            msg_info("%s: WARNING: Failed to reconnect USB device: %s\n", progname, usb_strerror());
             return result;
         }
     }
@@ -373,7 +373,7 @@ static int micronucleus_patch_reset_vector(pdata_t* pdata, uint8_t* buffer)
     }
     else
     {
-        avrdude_message(MSG_INFO, "%s: The reset vector of the user program does not contain a branch instruction.\n", progname);
+        msg_info("%s: The reset vector of the user program does not contain a branch instruction.\n", progname);
         return -1;
     }
 
@@ -431,7 +431,7 @@ static int micronucleus_write_page_v1(pdata_t* pdata, uint32_t address, uint8_t*
         MICRONUCLEUS_DEFAULT_TIMEOUT);
     if (result < 0)
     {
-        avrdude_message(MSG_INFO, "%s: Failed to transfer page: %s\n", progname, usb_strerror());
+        msg_info("%s: Failed to transfer page: %s\n", progname, usb_strerror());
         return result;
     }
 
@@ -449,7 +449,7 @@ static int micronucleus_write_page_v2(pdata_t* pdata, uint32_t address, uint8_t*
         MICRONUCLEUS_DEFAULT_TIMEOUT);
     if (result < 0)
     {
-        avrdude_message(MSG_INFO, "%s: Failed to transfer page: %s\n", progname, usb_strerror());
+        msg_info("%s: Failed to transfer page: %s\n", progname, usb_strerror());
         return result;
     }
 
@@ -466,7 +466,7 @@ static int micronucleus_write_page_v2(pdata_t* pdata, uint32_t address, uint8_t*
             MICRONUCLEUS_DEFAULT_TIMEOUT);
         if (result < 0)
         {
-            avrdude_message(MSG_INFO, "%s: Failed to transfer page: %s\n", progname, usb_strerror());
+            msg_info("%s: Failed to transfer page: %s\n", progname, usb_strerror());
             return result;
         }
     }
@@ -476,7 +476,7 @@ static int micronucleus_write_page_v2(pdata_t* pdata, uint32_t address, uint8_t*
 
 static int micronucleus_write_page(pdata_t* pdata, uint32_t address, uint8_t* buffer, uint32_t size)
 {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_write_page(address=0x%04X, size=%d)\n", progname, address, size);
+    msg_debug("%s: micronucleus_write_page(address=0x%04X, size=%d)\n", progname, address, size);
 
     if (address == 0)
     {
@@ -528,7 +528,7 @@ static int micronucleus_write_page(pdata_t* pdata, uint32_t address, uint8_t* bu
 
 static int micronucleus_start(pdata_t* pdata)
 {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_start()\n", progname);
+    msg_debug("%s: micronucleus_start()\n", progname);
 
     int result = usb_control_msg(
         pdata->usb_handle,
@@ -539,7 +539,7 @@ static int micronucleus_start(pdata_t* pdata)
         MICRONUCLEUS_DEFAULT_TIMEOUT);
     if (result < 0)
     {
-        avrdude_message(MSG_INFO, "%s: WARNING: Failed is issue start command: %s\n", progname, usb_strerror());
+        msg_info("%s: WARNING: Failed is issue start command: %s\n", progname, usb_strerror());
         return result;
     }
 
@@ -550,11 +550,11 @@ static int micronucleus_start(pdata_t* pdata)
 
 static void micronucleus_setup(PROGRAMMER* pgm)
 {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_setup()\n", progname);
+    msg_debug("%s: micronucleus_setup()\n", progname);
 
     if ((pgm->cookie = malloc(sizeof(pdata_t))) == 0)
     {
-        avrdude_message(MSG_INFO, "%s: micronucleus_setup(): Out of memory allocating private data\n", progname);
+        msg_info("%s: micronucleus_setup(): Out of memory allocating private data\n", progname);
         exit(1);
     }
 
@@ -563,12 +563,12 @@ static void micronucleus_setup(PROGRAMMER* pgm)
 
 static void micronucleus_teardown(PROGRAMMER* pgm)
 {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_teardown()\n", progname);
+    msg_debug("%s: micronucleus_teardown()\n", progname);
     free(pgm->cookie);
 }
 
 static int micronucleus_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_initialize()\n", progname);
+    msg_debug("%s: micronucleus_initialize()\n", progname);
 
     pdata_t* pdata = PDATA(pgm);
 
@@ -582,15 +582,15 @@ static int micronucleus_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void micronucleus_display(const PROGRAMMER *pgm, const char *prefix) {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_display()\n", progname);
+    msg_debug("%s: micronucleus_display()\n", progname);
 }
 
 static void micronucleus_powerup(const PROGRAMMER *pgm) {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_powerup()\n", progname);
+    msg_debug("%s: micronucleus_powerup()\n", progname);
 }
 
 static void micronucleus_powerdown(const PROGRAMMER *pgm) {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_powerdown()\n", progname);
+    msg_debug("%s: micronucleus_powerdown()\n", progname);
 
     pdata_t* pdata = PDATA(pgm);
     if (pdata->write_last_page)
@@ -615,24 +615,24 @@ static void micronucleus_powerdown(const PROGRAMMER *pgm) {
 }
 
 static void micronucleus_enable(PROGRAMMER *pgm, const AVRPART *p) {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_enable()\n", progname);
+    msg_debug("%s: micronucleus_enable()\n", progname);
 }
 
 static void micronucleus_disable(const PROGRAMMER *pgm) {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_disable()\n", progname);
+    msg_debug("%s: micronucleus_disable()\n", progname);
 }
 
 static int micronucleus_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_program_enable()\n", progname);
+    msg_debug("%s: micronucleus_program_enable()\n", progname);
     return 0;
 }
 
 static int micronucleus_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_read_sig_bytes()\n", progname);
+    msg_debug("%s: micronucleus_read_sig_bytes()\n", progname);
 
     if (mem->size < 3)
     {
-        avrdude_message(MSG_INFO, "%s: memory size too small for read_sig_bytes", progname);
+        msg_info("%s: memory size too small for read_sig_bytes", progname);
         return -1;
     }
 
@@ -644,14 +644,14 @@ static int micronucleus_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, 
 }
 
 static int micronucleus_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_chip_erase()\n", progname);
+    msg_debug("%s: micronucleus_chip_erase()\n", progname);
 
     pdata_t* pdata = PDATA(pgm);
     return micronucleus_erase_device(pdata);
 }
 
 static int micronucleus_open(PROGRAMMER* pgm, const char *port) {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_open(\"%s\")\n", progname, port);
+    msg_debug("%s: micronucleus_open(\"%s\")\n", progname, port);
 
     pdata_t* pdata = PDATA(pgm);
     const char *bus_name = NULL;
@@ -679,8 +679,8 @@ static int micronucleus_open(PROGRAMMER* pgm, const char *port) {
 
     if (port != NULL && dev_name == NULL)
     {
-        avrdude_message(MSG_INFO, "%s: ERROR: Invalid -P value: '%s'\n", progname, port);
-        avrdude_message(MSG_INFO, "%sUse -P usb:bus:device\n", progbuf);
+        msg_info("%s: ERROR: Invalid -P value: '%s'\n", progname, port);
+        msg_info("%sUse -P usb:bus:device\n", progbuf);
         return -1;
     }
 
@@ -694,7 +694,7 @@ static int micronucleus_open(PROGRAMMER* pgm, const char *port) {
         pid = *(int*)(ldata(usbpid));
         if (lnext(usbpid))
         {
-            avrdude_message(MSG_INFO, "%s: WARNING: using PID 0x%04x, ignoring remaining PIDs in list\n",
+            msg_info("%s: WARNING: using PID 0x%04x, ignoring remaining PIDs in list\n",
                 progname, pid);
         }
     }
@@ -728,7 +728,7 @@ static int micronucleus_open(PROGRAMMER* pgm, const char *port) {
                     {
                         if (show_unresponsive_device_message)
                         {
-                            avrdude_message(MSG_INFO, "%s: WARNING: Unresponsive Micronucleus device detected, please reconnect...\n",
+                            msg_info("%s: WARNING: Unresponsive Micronucleus device detected, please reconnect...\n",
                                 progname);
 
                             show_unresponsive_device_message = false;
@@ -737,7 +737,7 @@ static int micronucleus_open(PROGRAMMER* pgm, const char *port) {
                         continue;
                     }
 
-                    avrdude_message(MSG_NOTICE, "%s: Found device with Micronucleus V%d.%d, bus:device: %s:%s\n",
+                    msg_notice("%s: Found device with Micronucleus V%d.%d, bus:device: %s:%s\n",
                         progname,
                         pdata->major_version, pdata->minor_version,
                         bus->dirname, device->filename);
@@ -753,7 +753,7 @@ static int micronucleus_open(PROGRAMMER* pgm, const char *port) {
 
                     if (pdata->major_version > MICRONUCLEUS_MAX_MAJOR_VERSION)
                     {
-                        avrdude_message(MSG_INFO, "%s: WARNING: device with unsupported version (V%d.%d) of Micronucleus detected.\n",
+                        msg_info("%s: WARNING: device with unsupported version (V%d.%d) of Micronucleus detected.\n",
                             progname,
                             pdata->major_version, pdata->minor_version);
                         continue;
@@ -762,7 +762,7 @@ static int micronucleus_open(PROGRAMMER* pgm, const char *port) {
                     pdata->usb_handle = usb_open(device);
                     if (pdata->usb_handle == NULL)
                     {
-                        avrdude_message(MSG_INFO, "%s: ERROR: Failed to open USB device: %s\n", progname, usb_strerror());
+                        msg_info("%s: ERROR: Failed to open USB device: %s\n", progname, usb_strerror());
                     }
                 }
             }
@@ -774,16 +774,16 @@ static int micronucleus_open(PROGRAMMER* pgm, const char *port) {
             {
                 if (pdata->wait_timout < 0)
                 {
-                    avrdude_message(MSG_INFO, "%s: No device found, waiting for device to be plugged in...\n", progname);
+                    msg_info("%s: No device found, waiting for device to be plugged in...\n", progname);
                 }
                 else
                 {
-                    avrdude_message(MSG_INFO, "%s: No device found, waiting %d seconds for device to be plugged in...\n",
+                    msg_info("%s: No device found, waiting %d seconds for device to be plugged in...\n",
                         progname,
                         pdata->wait_timout);
                 }
 
-                avrdude_message(MSG_INFO, "%s: Press CTRL-C to terminate.\n", progname);
+                msg_info("%s: Press CTRL-C to terminate.\n", progname);
                 show_retry_message = false;
             }
 
@@ -799,7 +799,7 @@ static int micronucleus_open(PROGRAMMER* pgm, const char *port) {
 
     if (!pdata->usb_handle)
     {
-        avrdude_message(MSG_INFO, "%s: ERROR: Could not find device with Micronucleus bootloader (%04X:%04X)\n",
+        msg_info("%s: ERROR: Could not find device with Micronucleus bootloader (%04X:%04X)\n",
             progname, vid, pid);
         return -1;
     }
@@ -809,7 +809,7 @@ static int micronucleus_open(PROGRAMMER* pgm, const char *port) {
 
 static void micronucleus_close(PROGRAMMER* pgm)
 {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_close()\n", progname);
+    msg_debug("%s: micronucleus_close()\n", progname);
 
     pdata_t* pdata = PDATA(pgm);
     if (pdata->usb_handle != NULL)
@@ -822,7 +822,7 @@ static void micronucleus_close(PROGRAMMER* pgm)
 static int micronucleus_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned long addr, unsigned char* value)
 {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_read_byte(desc=%s, addr=0x%0X)\n",
+    msg_debug("%s: micronucleus_read_byte(desc=%s, addr=0x%0X)\n",
         progname, mem->desc, addr);
 
     if (strcmp(mem->desc, "lfuse") == 0 ||
@@ -835,7 +835,7 @@ static int micronucleus_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const
     }
     else
     {
-        avrdude_message(MSG_INFO, "%s: Unsupported memory type: %s\n", progname, mem->desc);
+        msg_info("%s: Unsupported memory type: %s\n", progname, mem->desc);
         return -1;
     }
 }
@@ -843,7 +843,7 @@ static int micronucleus_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const
 static int micronucleus_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned long addr, unsigned char value)
 {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_write_byte(desc=%s, addr=0x%0X)\n",
+    msg_debug("%s: micronucleus_write_byte(desc=%s, addr=0x%0X)\n",
         progname, mem->desc, addr);
     return -1;
 }
@@ -852,7 +852,7 @@ static int micronucleus_paged_load(const PROGRAMMER *pgm, const AVRPART *p, cons
     unsigned int page_size,
     unsigned int addr, unsigned int n_bytes)
 {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_paged_load(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n",
+    msg_debug("%s: micronucleus_paged_load(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n",
         progname, page_size, addr, n_bytes);
     return -1;
 }
@@ -861,7 +861,7 @@ static int micronucleus_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
     unsigned int page_size,
     unsigned int addr, unsigned int n_bytes)
 {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_paged_write(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n",
+    msg_debug("%s: micronucleus_paged_write(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n",
         progname, page_size, addr, n_bytes);
 
     if (strcmp(mem->desc, "flash") == 0)
@@ -870,20 +870,20 @@ static int micronucleus_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
 
         if (n_bytes > page_size)
         {
-            avrdude_message(MSG_INFO, "%s: Buffer size (%u) exceeds page size (%u)\n", progname, n_bytes, page_size);
+            msg_info("%s: Buffer size (%u) exceeds page size (%u)\n", progname, n_bytes, page_size);
             return -1;
         }
 
         if (addr + n_bytes > pdata->flash_size)
         {
-            avrdude_message(MSG_INFO, "%s: Program size (%u) exceeds flash size (%u)\n", progname, addr + n_bytes, pdata->flash_size);
+            msg_info("%s: Program size (%u) exceeds flash size (%u)\n", progname, addr + n_bytes, pdata->flash_size);
             return -1;
         }
 
         uint8_t* page_buffer = (uint8_t*)malloc(pdata->page_size);
         if (page_buffer == NULL)
         {
-            avrdude_message(MSG_INFO, "%s: Failed to allocate memory\n", progname);
+            msg_info("%s: Failed to allocate memory\n", progname);
             return -1;
         }
 
@@ -911,13 +911,13 @@ static int micronucleus_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
     }
     else
     {
-        avrdude_message(MSG_INFO, "%s: Unsupported memory type: %s\n", progname, mem->desc);
+        msg_info("%s: Unsupported memory type: %s\n", progname, mem->desc);
         return -1;
     }
 }
 
 static int micronucleus_parseextparams(const PROGRAMMER *pgm, const LISTID xparams) {
-    avrdude_message(MSG_DEBUG, "%s: micronucleus_parseextparams()\n", progname);
+    msg_debug("%s: micronucleus_parseextparams()\n", progname);
 
     pdata_t* pdata = PDATA(pgm);
     for (LNODEID node = lfirst(xparams); node != NULL; node = lnext(node))
@@ -936,7 +936,7 @@ static int micronucleus_parseextparams(const PROGRAMMER *pgm, const LISTID xpara
         }
         else
         {
-            avrdude_message(MSG_INFO, "%s: Invalid extended parameter '%s'\n", progname, param);
+            msg_info("%s: Invalid extended parameter '%s'\n", progname, param);
             return -1;
         }
     }
@@ -972,7 +972,7 @@ void micronucleus_initpgm(PROGRAMMER *pgm) {
 
  // Give a proper error if we were not compiled with libusb
 static int micronucleus_nousb_open(PROGRAMMER* pgm, const char* name) {
-    avrdude_message(MSG_INFO, "%s: error: No usb support. Please compile again with libusb installed.\n", progname);
+    msg_info("%s: error: No usb support. Please compile again with libusb installed.\n", progname);
     return -1;
 }
 

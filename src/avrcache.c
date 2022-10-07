@@ -317,7 +317,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
   if(!chpages)
     return LIBAVRDUDE_SUCCESS;
 
-  avrdude_message(MSG_INFO, "%s: synching cache to device... ", progname);
+  msg_info("%s: synching cache to device... ", progname);
   fflush(stderr);
 
   // Check whether page erase needed and working and whether chip erase needed
@@ -362,7 +362,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
 
   if(chiperase) {
     if(quell_progress) {
-      avrdude_message(MSG_INFO, "reading/chip erase/writing cycle needed ... ");
+      msg_info("reading/chip erase/writing cycle needed ... ");
       fflush(stderr);
     }
 
@@ -403,8 +403,8 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
     if(avr_chip_erase(pgm, p) < 0) {
       report_progress(1, -1, NULL);
       if(!quell_progress)
-        avrdude_message(MSG_INFO, "%s: ", progname);
-      avrdude_message(MSG_INFO, "avr_flush_cache() chip erase failed\n");
+        msg_info("%s: ", progname);
+      msg_info("avr_flush_cache() chip erase failed\n");
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
 
@@ -427,8 +427,8 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
             if(avr_read_page_default(pgm, p, mem, n, cp->copy + n) < 0) {
               report_progress(1, -1, NULL);
               if(!quell_progress)
-                avrdude_message(MSG_INFO, "%s: ", progname);
-              avrdude_message(MSG_INFO, "flash read failed at addr 0x%04x\n", n);
+                msg_info("%s: ", progname);
+              msg_info("flash read failed at addr 0x%04x\n", n);
               return LIBAVRDUDE_GENERAL_FAILURE;
             }
           }
@@ -440,8 +440,8 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
             if(avr_read_page_default(pgm, p, mem, n, cp->copy + n) < 0) {
               report_progress(1, -1, NULL);
               if(!quell_progress)
-                avrdude_message(MSG_INFO, "%s: ", progname);
-              avrdude_message(MSG_INFO, "EEPROM read failed at addr 0x%04x\n", n);
+                msg_info("%s: ", progname);
+              msg_info("EEPROM read failed at addr 0x%04x\n", n);
               return LIBAVRDUDE_GENERAL_FAILURE;
             }
             // EEPROM zapped by chip erase? Set all copy to 0xff
@@ -486,8 +486,8 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
           if(memcmp(cp->copy + n, cp->cont + n, cp->page_size)) {
             report_progress(1, -1, NULL);
             if(!quell_progress)
-              avrdude_message(MSG_INFO, "%s: ", progname);
-            avrdude_message(MSG_INFO, "%s verification error at addr 0x%04x\n", mem->desc, n);
+              msg_info("%s: ", progname);
+            msg_info("%s verification error at addr 0x%04x\n", mem->desc, n);
             return LIBAVRDUDE_GENERAL_FAILURE;
           }
           report_progress(iwr++, nwr, NULL);
@@ -497,7 +497,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
     report_progress(1, 0, NULL);
   }
 
-  avrdude_message(MSG_INFO, quell_progress? "done\n": "\n");
+  msg_info(quell_progress? "done\n": "\n");
 
   return LIBAVRDUDE_SUCCESS;
 }
