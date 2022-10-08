@@ -23,6 +23,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -1147,7 +1148,7 @@ static int cmd_quell(PROGRAMMER * pgm, struct avrpart * p,
 
 static int tokenize(char * s, char *** argv)
 {
-  int     i, n, l, k, nargs, offset;
+  int     i, n, l, nargs;
   int     len, slen;
   char  * buf;
   int     bufsize;
@@ -1208,7 +1209,7 @@ static int tokenize(char * s, char *** argv)
       bufv = bufv_tmp;
       nbuf     = &buf[l];
       /* correct bufv pointers */
-      k = buf - bufp;
+      ptrdiff_t k = buf - bufp;
       for (i=0; i<n; i++) {
           bufv[i] = bufv[i] + k;
       }
@@ -1229,7 +1230,7 @@ static int tokenize(char * s, char *** argv)
   q  = (char *)&av[n+1];
   memcpy(q, buf, l);
   for (i=0; i<n; i++) {
-    offset = bufv[i] - buf;
+    ptrdiff_t offset = bufv[i] - buf;
     av[i] = q + offset;
   }
   av[i] = NULL;
