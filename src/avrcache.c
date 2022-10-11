@@ -114,7 +114,10 @@
  *  - Memory has positive page size, which is a power of two
  *  - Memory has positive size, which is a multiple of the page size
  *  - Memory is flash type or eeprom type
+ *
+ * Note that in this definition the page size can be 1
  */
+
 int avr_has_paged_access(const PROGRAMMER *pgm, const AVRMEM *mem) {
   return pgm->paged_load && pgm->paged_write &&
          mem->page_size > 0 && (mem->page_size & (mem->page_size-1)) == 0 &&
@@ -127,6 +130,7 @@ int avr_has_paged_access(const PROGRAMMER *pgm, const AVRMEM *mem) {
  * Read the page containing addr from the device into buf
  *   - Caller to ensure buf has mem->page_size bytes
  *   - Part memory buffer mem is unaffected by this (though temporarily changed)
+ *   - Uses read_byte() if memory page size is one, otherwise paged_load()
  */
 int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int addr, unsigned char *buf) {
   if(!avr_has_paged_access(pgm, mem) || addr < 0 || addr >= mem->size)
@@ -134,6 +138,9 @@ int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 
   int rc, pgsize = mem->page_size, off = addr & ~(pgsize-1);
   unsigned char *pagecopy = cfg_malloc("avr_read_page_default()", pgsize);
+
+  if(pgsize == 1)
+    return pgm->read_byte(pgm, p, mem, addr, buf);
 
   memcpy(pagecopy, mem->buf + off, pgsize);
   if((rc = pgm->paged_load(pgm, p, mem, pgsize, off, pgsize)) >= 0)
@@ -149,6 +156,7 @@ int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
  * Write the data page to the device into the page containing addr
  *   - Caller to provide all mem->page_size bytes incl padding if any
  *   - Part memory buffer mem is unaffected by this (though temporarily changed)
+ *   - Uses write_byte() if memory page size is one, otherwise paged_write()
  */
 int avr_write_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int addr, unsigned char *data) {
   if(!avr_has_paged_access(pgm, mem) || addr < 0 || addr >= mem->size)
@@ -156,6 +164,9 @@ int avr_write_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   int rc, pgsize = mem->page_size, off = addr & ~(pgsize-1);
   unsigned char *pagecopy = cfg_malloc("avr_write_page_default()", pgsize);
+
+  if(pgsize == 1)
+    return pgm->write_byte(pgm, p, mem, addr, *data);
 
   memcpy(pagecopy, mem->buf + off, pgsize);
   memcpy(mem->buf + off, data, pgsize);
@@ -652,11 +663,16 @@ int avr_page_erase_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 
   int addr = uaddr;
 
-  if(!pgm->page_erase || !avr_has_paged_access(pgm, mem) || addr < 0 || addr >= mem->size)
+  if(!avr_has_paged_access(pgm, mem) || addr < 0 || addr >= mem->size)
     return LIBAVRDUDE_GENERAL_FAILURE;
 
-  if(pgm->page_erase(pgm, p, mem, uaddr) < 0)
-    return LIBAVRDUDE_GENERAL_FAILURE;
+  if(mem->page_size == 1) {
+    if(pgm->write_byte(pgm, p, mem, uaddr, 0xff) < 0)
+      return LIBAVRDUDE_GENERAL_FAILURE;
+  } else {
+    if(!pgm->page_erase || pgm->page_erase(pgm, p, mem, uaddr) < 0)
+      return LIBAVRDUDE_GENERAL_FAILURE;
+  }
 
   AVR_Cache *cp = avr_mem_is_eeprom_type(mem)? pgm->cp_eeprom: pgm->cp_flash;
 
