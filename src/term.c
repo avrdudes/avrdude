@@ -73,7 +73,8 @@ static int cmd_quell  (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 struct command cmd[] = {
   { "dump",  cmd_dump,  _fo(read_byte_cached),  "%s <memory> [<addr> <len> | <addr> ... | <addr> | ...]" },
   { "read",  cmd_dump,  _fo(read_byte_cached),  "alias for dump" },
-  { "write", cmd_write, _fo(write_byte_cached), "write <memory> <addr> [<data>[,] {<data>[,]} | <len> <data>[,] {<data>[,]} ...]" },
+  { "write", cmd_write, _fo(write_byte_cached), "write <memory> <addr> <data>[,] {<data>[,]}" },
+  { "",      cmd_write, _fo(write_byte_cached), "write <memory> <addr> <len> <data>[,] {<data>[,]} ..." },
   { "flush", cmd_flush, _fo(flush_cache),       "synchronise flash & EEPROM writes with the device" },
   { "abort", cmd_abort, _fo(reset_cache),       "abort flash & EEPROM writes (reset the r/w cache)" },
   { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip erase" },
@@ -90,8 +91,8 @@ struct command cmd[] = {
   { "pgm",   cmd_pgm,   _fo(setpin),            "return to programming mode" },
   { "verbose", cmd_verbose, _fo(open),          "change verbosity" },
   { "quell", cmd_quell, _fo(open),              "set quell level for progress bars" },
-  { "help",  cmd_help,  _fo(open),              "help" },
-  { "?",     cmd_help,  _fo(open),              "help" },
+  { "help",  cmd_help,  _fo(open),              "show help message" },
+  { "?",     cmd_help,  _fo(open),              "same as help" },
   { "quit",  cmd_quit,  _fo(open),              "quit after writing out cache for flash & EEPROM" }
 };
 
@@ -999,11 +1000,10 @@ static int cmd_help(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     fprintf(stdout, "\n");
   }
   fprintf(stdout, "\n"
-          "Note that flash and EEPROM type memories are normally read and written\n"
-          "using a cache and paged r/w access; the cache is synchronised on quit.\n"
-          "Use the 'part' command to display valid memory types for use with the\n"
-          "'dump' and 'write' commands.\n\n");
-
+    "Note that not all programmer derivatives support all commands. Flash and\n"
+    "EEPROM type memories are normally read and written using a cache via paged\n"
+    "read and write access; the cache is synchronised on quit. Use the part\n"
+    "command to display valid memory types for use with dump and write.\n\n");
   return 0;
 }
 
@@ -1190,10 +1190,9 @@ static int do_cmd(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   for (i=0; i<NCMDS; i++) {
     if(!*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
       continue;
-    if (strcasecmp(argv[0], cmd[i].name) == 0) {
+    if (len && strcasecmp(argv[0], cmd[i].name) == 0)
       return cmd[i].func(pgm, p, argc, argv);
-    }
-    else if (strncasecmp(argv[0], cmd[i].name, len)==0) {
+    if (len && strncasecmp(argv[0], cmd[i].name, len)==0) {
       if (hold != -1) {
         terminal_message(MSG_INFO, "%s (cmd): command %s is ambiguous\n",
           progname, argv[0]);
