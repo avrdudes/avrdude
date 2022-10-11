@@ -51,8 +51,7 @@
 #ifdef DO_NOT_BUILD_AVRFTDI
 
 static int avrftdi_noftdi_open(PROGRAMMER *pgm, const char *name) {
-	msg_info("%s: Error: no libftdi or libusb support. Install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again.\n",
-                        progname);
+	pmsg_info("no libftdi or libusb support; install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again\n");
 
 	return -1;
 }
@@ -347,7 +346,7 @@ static int avrftdi_transmit_bb(const PROGRAMMER *pgm, unsigned char mode, const 
 	size_t max_size = MIN(pdata->ftdic->max_packet_size, (unsigned int) pdata->tx_buffer_size);
 	// select block size so that resulting commands does not exceed max_size if possible
 	blocksize = MAX(1,(max_size-7)/((8*2*6)+(8*1*2)));
-	//msg_info("blocksize %d \n",blocksize);
+	// msg_info("blocksize %d \n", blocksize);
 
 	unsigned char* send_buffer = alloca((8 * 2 * 6) * blocksize + (8 * 1 * 2) * blocksize + 7);
 	unsigned char* recv_buffer = alloca(2 * 16 * blocksize);
@@ -611,7 +610,8 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 	}
 
 	pdata->use_bitbanging = !pin_check_mpsse;
-	if (pdata->use_bitbanging) log_info("Because of pin configuration fallback to bitbanging mode.\n");
+	if (pdata->use_bitbanging)
+		log_info("Because of pin configuration fallback to bitbanging mode.\n");
 
 	/*
 	 * TODO: No need to fail for a wrongly configured led or something.
@@ -659,8 +659,7 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 	if (usbpid) {
 		pid = *(int *)(ldata(usbpid));
 		if (lnext(usbpid))
-			msg_info("%s: Warning: using PID 0x%04x, ignoring remaining PIDs in list\n",
-                                        progname, pid);
+			pmsg_info("Warning: using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
 	} else
 		pid = USB_DEVICE_FT2232;
 

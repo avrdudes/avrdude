@@ -79,8 +79,7 @@ struct pdata
 static void usbtiny_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    msg_info("%s: usbtiny_setup(): Out of memory allocating private data\n",
-                    progname);
+    pmsg_info("usbtiny_setup(): Out of memory allocating private data\n");
     exit(1);
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
@@ -136,15 +135,14 @@ static int usb_in (const PROGRAMMER *pgm,
     PDATA(pgm)->retries++;
   }
   msg_info("\n%s: error: usbtiny_receive: %s (expected %d, got %d)\n",
-          progname, usb_strerror(), buflen, nbytes);
+    progname, usb_strerror(), buflen, nbytes);
   return -1;
 }
 
 // Report the number of retries, and reset the counter.
 static void check_retries (const PROGRAMMER *pgm, const char *operation) {
   if (PDATA(pgm)->retries > 0 && quell_progress < 2) {
-    msg_info("%s: %d retries during %s\n", progname,
-           PDATA(pgm)->retries, operation);
+    pmsg_info("%d retries during %s\n", PDATA(pgm)->retries, operation);
   }
   PDATA(pgm)->retries = 0;
 }
@@ -169,7 +167,7 @@ static int usb_out (const PROGRAMMER *pgm,
 			    timeout);
   if (nbytes != buflen) {
     msg_info("\n%s: error: usbtiny_send: %s (expected %d, got %d)\n",
-	    progname, usb_strerror(), buflen, nbytes);
+      progname, usb_strerror(), buflen, nbytes);
     return -1;
   }
 
@@ -288,7 +286,7 @@ static int usbtiny_avr_op (const PROGRAMMER *pgm, const AVRPART *p,
   unsigned char	cmd[4];
 
   if (p->op[op] == NULL) {
-    msg_info("Operation %d not defined for this chip!\n", op );
+    msg_info("Operation %d not defined for this chip!\n", op);
     return -1;
   }
   memset(cmd, 0, sizeof(cmd));
@@ -337,8 +335,7 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
   if (usbpid) {
     pid = *(int *)(ldata(usbpid));
     if (lnext(usbpid))
-      msg_info("%s: Warning: using PID 0x%04x, ignoring remaining PIDs in list\n",
-                      progname, pid);
+      pmsg_info("warning; using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
   } else {
     pid = USBTINY_PRODUCT_DEFAULT;
   }
@@ -349,8 +346,7 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
     for	( dev = bus->devices; dev; dev = dev->next ) {
       if (dev->descriptor.idVendor == vid
 	  && dev->descriptor.idProduct == pid ) {   // found match?
-    msg_notice("%s: usbdev_open(): Found USBtinyISP, bus:device: %s:%s\n",
-                      progname, bus->dirname, dev->filename);
+    pmsg_notice("usbdev_open(): Found USBtinyISP, bus:device: %s:%s\n", bus->dirname, dev->filename);
     // if -P was given, match device by device name and bus name
     if(name != NULL &&
       (NULL == dev_name ||
@@ -361,8 +357,7 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
 
 	// wrong permissions or something?
 	if (!PDATA(pgm)->usb_handle) {
-	  msg_info("%s: Warning: cannot open USB device: %s\n",
-		  progname, usb_strerror());
+	  pmsg_info("warning; cannot open USB device: %s\n", usb_strerror());
 	  continue;
 	}
       }
@@ -370,13 +365,12 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
   }
 
   if(NULL != name && NULL == dev_name) {
-    msg_info("%s: Error: Invalid -P value: '%s'\n", progname, name);
+    pmsg_info("invalid -P value: '%s'\n", name);
     msg_info("%sUse -P usb:bus:device\n", progbuf);
     return -1;
   }
   if (!PDATA(pgm)->usb_handle) {
-    msg_info("%s: Error: Could not find USBtiny device (0x%x/0x%x)\n",
-	     progname, vid, pid );
+    pmsg_info("could not find USBtiny device (0x%x/0x%x)\n", vid, pid );
     return -1;
   }
 
@@ -418,7 +412,7 @@ static int usbtiny_set_sck_period (const PROGRAMMER *pgm, double v) {
   if  (PDATA(pgm)->sck_period > SCK_MAX)
     PDATA(pgm)->sck_period = SCK_MAX;
 
-  msg_notice("%s: Setting SCK period to %d usec\n", progname,
+  pmsg_notice("setting SCK period to %d usec\n",
 	    PDATA(pgm)->sck_period );
 
   // send the command to the usbtiny device.
@@ -443,8 +437,7 @@ static int usbtiny_initialize (const PROGRAMMER *pgm, const AVRPART *p ) {
   } else {
     // -B option not specified: use default
     PDATA(pgm)->sck_period = SCK_DEFAULT;
-    msg_notice("%s: Using SCK period of %d usec\n",
-	      progname, PDATA(pgm)->sck_period );
+    pmsg_notice("using SCK period of %d usec\n", PDATA(pgm)->sck_period );
     if (usb_control(pgm,  USBTINY_POWERUP,
 		    PDATA(pgm)->sck_period, RESET_LOW ) < 0)
       return -1;
@@ -470,8 +463,8 @@ static int usbtiny_initialize (const PROGRAMMER *pgm, const AVRPART *p ) {
     if (res[0] != 0x12 || res[1] != 0x34 || res[2] != 0x56 || res[3] != 0x78) {
       fprintf(stderr,
 	      "MOSI->MISO check failed (got 0x%02x 0x%02x 0x%02x 0x%02x)\n"
-	      "\tPlease verify that MISO is connected directly to TPIDATA and\n"
-	      "\tMOSI is connected to TPIDATA through a 1kOhm resistor.\n",
+	      "\tplease verify that MISO is connected directly to TPIDATA and\n"
+	      "\tMOSI is connected to TPIDATA through a 1kOhm resistor\n",
 	      res[0], res[1], res[2], res[3]);
       return -1;
     }
@@ -609,8 +602,7 @@ static int usbtiny_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     return avr_tpi_chip_erase(pgm, p);
 
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
-    msg_info("Chip erase instruction not defined for part \"%s\"\n",
-            p->desc);
+    msg_info("chip erase instruction not defined for part %s\n", p->desc);
     return -1;
   }
 
@@ -818,8 +810,7 @@ void usbtiny_initpgm(PROGRAMMER *pgm) {
 // Give a proper error if we were not compiled with libusb
 
 static int usbtiny_nousb_open(PROGRAMMER *pgm, const char *name) {
-  msg_info("%s: error: no usb support. Please compile again with libusb installed.\n",
-	  progname);
+  pmsg_info("no usb support; please compile again with libusb installed\n");
 
   return -1;
 }

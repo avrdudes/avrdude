@@ -69,8 +69,7 @@ UPDATE * parse_op(char * s)
     upd->op = DEVICE_VERIFY;
   }
   else {
-    msg_info("%s: invalid I/O mode '%c' in update specification\n",
-            progname, *p);
+    pmsg_info("invalid I/O mode '%c' in update specification\n", *p);
     msg_info("  allowed values are:\n"
                     "    r = read device\n"
                     "    w = write device\n"
@@ -83,7 +82,7 @@ UPDATE * parse_op(char * s)
   p++;
 
   if (*p != ':') {
-    msg_info("%s: invalid update specification\n", progname);
+    pmsg_info("invalid update specification\n");
     free(upd->memtype);
     free(upd);
     return NULL;
@@ -128,8 +127,7 @@ UPDATE * parse_op(char * s)
       case 'h': upd->format = FMT_HEX; break;
       case 'o': upd->format = FMT_OCT; break;
       default:
-        msg_info("%s: invalid file format '%s' in update specifier\n",
-                progname, p);
+        pmsg_info("invalid file format '%s' in update specifier\n", p);
         free(upd->memtype);
         free(upd);
         return NULL;
@@ -195,14 +193,12 @@ int memstats(struct avrpart *p, char *memtype, int size, Filestats *fsp) {
   AVRMEM *mem = avr_locate_mem(p, memtype);
 
   if(!mem) {
-    msg_info("%s: %s %s undefined\n",
-      progname, p->desc, memtype);
+    pmsg_info("%s %s undefined\n", p->desc, memtype);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
   if(!mem->buf || !mem->tags) {
-    msg_info("%s: %s %s is not set\n",
-      progname, p->desc, memtype);
+    pmsg_info("%s %s is not set\n", p->desc, memtype);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
@@ -211,8 +207,7 @@ int memstats(struct avrpart *p, char *memtype, int size, Filestats *fsp) {
     pgsize = 1;
 
   if(size < 0 || size > mem->size) {
-    msg_info("%s: memstats() size %d at odds with %s %s size %d\n",
-      progname, size, p->desc, memtype, mem->size);
+    pmsg_info("memstats() size %d at odds with %s %s size %d\n", size, p->desc, memtype, mem->size);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
@@ -338,8 +333,7 @@ int update_is_readable(const char *fn) {
 
 
 static void ioerror(const char *iotype, UPDATE *upd) {
-  msg_info("%s: file %s is not %s",
-    progname, update_outname(upd->filename), iotype);
+  pmsg_info("file %s is not %s", update_outname(upd->filename), iotype);
   if(errno)
     msg_info(". %s", strerror(errno));
   else if(upd->filename && *upd->filename)
@@ -359,7 +353,7 @@ int update_dryrun(struct avrpart *p, UPDATE *upd) {
    * but accept when the specific part does not have it (allow unifying i/faces)
    */
   if(!avr_mem_might_be_known(upd->memtype)) {
-    msg_info("%s: unknown memory type %s\n", progname, upd->memtype);
+    pmsg_info("unknown memory type %s\n", upd->memtype);
     ret = LIBAVRDUDE_GENERAL_FAILURE;
   } else if(p && !avr_locate_mem(p, upd->memtype))
     ret = LIBAVRDUDE_SOFTFAIL;
@@ -384,28 +378,26 @@ int update_dryrun(struct avrpart *p, UPDATE *upd) {
 
   if(!known && upd->format == FMT_AUTO) {
     if(!strcmp(upd->filename, "-")) {
-      msg_info("%s: can't auto detect file format for stdin/out, "
-        "specify explicitly\n", progname);
+      pmsg_info("can't auto detect file format for stdin/out, "
+        "specify explicitly\n");
       ret = LIBAVRDUDE_GENERAL_FAILURE;
     } else if((format_detect = fileio_fmt_autodetect(upd->filename)) < 0) {
-      msg_info("%s: can't determine file format for %s, specify explicitly\n",
-        progname, upd->filename);
+      pmsg_info("cannot determine file format for %s, specify explicitly\n", upd->filename);
       ret = LIBAVRDUDE_GENERAL_FAILURE;
     } else {
       // Set format now, no need to repeat auto detection later
       upd->format = format_detect;
       if(quell_progress < 2)
-        msg_notice("%s: %s file %s auto detected as %s\n",
-          progname, upd->op == DEVICE_READ? "output": "input", upd->filename,
-            fileio_fmtstr(upd->format));
+        pmsg_notice("%s file %s auto detected as %s\n",
+          upd->op == DEVICE_READ? "output": "input", upd->filename,
+          fileio_fmtstr(upd->format));
     }
   }
 
   switch(upd->op) {
   case DEVICE_READ:
     if(upd->format == FMT_IMM) {
-      msg_info(
-        "%s: invalid file format 'immediate' for output\n", progname);
+      pmsg_info("invalid file format 'immediate' for output\n");
       ret = LIBAVRDUDE_GENERAL_FAILURE;
     } else {
       errno = 0;
@@ -424,8 +416,7 @@ int update_dryrun(struct avrpart *p, UPDATE *upd) {
     break;
 
   default:
-    msg_info("%s: invalid update operation (%d) requested\n",
-      progname, upd->op);
+    pmsg_info("invalid update operation (%d) requested\n", upd->op);
     ret = LIBAVRDUDE_GENERAL_FAILURE;
   }
 
@@ -443,8 +434,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
 
   mem = avr_locate_mem(p, upd->memtype);
   if (mem == NULL) {
-    msg_info("%s: skipping -U %s:... as memory not defined for part %s\n",
-      progname, upd->memtype, p->desc);
+    pmsg_info("skipping -U %s:... as memory not defined for part %s\n", upd->memtype, p->desc);
     return LIBAVRDUDE_SOFTFAIL;
   }
 
@@ -459,36 +449,30 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
   case DEVICE_READ:
     // Read out the specified device memory and write it to a file
     if (upd->format == FMT_IMM) {
-      msg_info(
-        "%s: invalid file format 'immediate' for output\n", progname);
+      pmsg_info("invalid file format 'immediate' for output\n");
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
     if (quell_progress < 2)
-      msg_info("%s: reading %s%s memory ...\n",
-        progname, mem->desc, alias_mem_desc);
+      pmsg_info("reading %s%s memory ...\n", mem->desc, alias_mem_desc);
 
     report_progress(0, 1, "Reading");
     
     rc = avr_read(pgm, p, upd->memtype, 0);
     report_progress(1, 1, NULL);
     if (rc < 0) {
-      msg_info("%s: failed to read all of %s%s memory, rc=%d\n",
-        progname, mem->desc, alias_mem_desc, rc);
+      pmsg_info("failed to read all of %s%s memory, rc=%d\n", mem->desc, alias_mem_desc, rc);
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
     size = rc;
 
     if (quell_progress < 2) {
       if (rc == 0)
-        msg_info("%s: flash is empty, resulting file has no contents\n",
-          progname);
-      msg_info("%s: writing output file %s\n",
-        progname, update_outname(upd->filename));
+        pmsg_info("flash is empty, resulting file has no contents\n");
+      pmsg_info("writing output file %s\n", update_outname(upd->filename));
     }
     rc = fileio(FIO_WRITE, upd->filename, upd->format, p, upd->memtype, size);
     if (rc < 0) {
-      msg_info("%s: write to file %s failed\n",
-        progname, update_outname(upd->filename));
+      pmsg_info("write to file %s failed\n", update_outname(upd->filename));
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
     break;
@@ -498,14 +482,13 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
 
     rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1);
     if (rc < 0) {
-      msg_info("%s: read from file %s failed\n",
-        progname, update_inname(upd->filename));
+      pmsg_info("read from file %s failed\n", update_inname(upd->filename));
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
     size = rc;
     if (quell_progress < 2)
-      msg_info("%s: reading input file %s for %s%s\n",
-        progname, update_inname(upd->filename), mem->desc, alias_mem_desc);
+      pmsg_info("reading input file %s for %s%s\n",
+        update_inname(upd->filename), mem->desc, alias_mem_desc);
 
     if(memstats(p, upd->memtype, size, &fs) < 0)
       return LIBAVRDUDE_GENERAL_FAILURE;
@@ -532,8 +515,8 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
 
     // Write the buffer contents to the selected memory type
     if (quell_progress < 2)
-      msg_info("%s: writing %d byte%s %s%s ...\n",
-        progname, fs.nbytes, update_plural(fs.nbytes), mem->desc, alias_mem_desc);
+      pmsg_info("writing %d byte%s %s%s ...\n", fs.nbytes,
+        update_plural(fs.nbytes), mem->desc, alias_mem_desc);
 
     if (!(flags & UF_NOWRITE)) {
       report_progress(0, 1, "Writing");
@@ -545,14 +528,13 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     }
 
     if (rc < 0) {
-      msg_info("%s: failed to write %s%s memory, rc=%d\n",
-        progname, mem->desc, alias_mem_desc, rc);
+      pmsg_info("failed to write %s%s memory, rc=%d\n", mem->desc, alias_mem_desc, rc);
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
 
     if (quell_progress < 2)
-      msg_info("%s: %d byte%s of %s%s written\n",
-        progname, fs.nbytes, update_plural(fs.nbytes), mem->desc, alias_mem_desc);
+      pmsg_info("%d byte%s of %s%s written\n", fs.nbytes,
+        update_plural(fs.nbytes), mem->desc, alias_mem_desc);
 
     // Fall through for (default) auto verify, ie, unless -V was specified
     if (!(flags & UF_VERIFY))
@@ -565,12 +547,12 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     int userverify = upd->op == DEVICE_VERIFY; // Explicit -U :v by user
 
     if (quell_progress < 2) {
-      msg_info("%s: verifying %s%s memory against %s\n",
-        progname, mem->desc, alias_mem_desc, update_inname(upd->filename));
+      pmsg_info("verifying %s%s memory against %s\n", mem->desc,
+        alias_mem_desc, update_inname(upd->filename));
 
       if (userverify)
-        msg_notice("%s: load %s%s data from input file %s\n",
-          progname, mem->desc, alias_mem_desc, update_inname(upd->filename));
+        pmsg_notice("load %s%s data from input file %s\n", mem->desc,
+          alias_mem_desc, update_inname(upd->filename));
     }
 
     // No need to read file when fallen through from DEVICE_WRITE
@@ -578,8 +560,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
       rc = fileio(FIO_READ_FOR_VERIFY, upd->filename, upd->format, p, upd->memtype, -1);
 
       if (rc < 0) {
-        msg_info("%s: read from file %s failed\n",
-          progname, update_inname(upd->filename));
+        pmsg_info("read from file %s failed\n", update_inname(upd->filename));
         return LIBAVRDUDE_GENERAL_FAILURE;
       }
       size = rc;
@@ -595,30 +576,27 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
 
     if (quell_progress < 2) {
       if (userverify)
-        msg_notice("%s: input file %s contains %d byte%s\n",
-          progname, update_inname(upd->filename), fs.nbytes, update_plural(fs.nbytes));
-      msg_notice2("%s: reading on-chip %s%s data ...\n",
-        progname, mem->desc, alias_mem_desc);
+        pmsg_notice("input file %s contains %d byte%s\n",
+          update_inname(upd->filename), fs.nbytes, update_plural(fs.nbytes));
+      pmsg_notice2("reading on-chip %s%s data ...\n", mem->desc, alias_mem_desc);
     }
 
     report_progress (0,1,"Reading");
     rc = avr_read(pgm, p, upd->memtype, v);
     report_progress (1,1,NULL);
     if (rc < 0) {
-      msg_info("%s: failed to read all of %s%s memory, rc=%d\n",
-        progname, mem->desc, alias_mem_desc, rc);
+      pmsg_info("failed to read all of %s%s memory, rc=%d\n", mem->desc, alias_mem_desc, rc);
       pgm->err_led(pgm, ON);
       avr_free_part(v);
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
 
     if (quell_progress < 2)
-      msg_notice2("%s: verifying ...\n", progname);
+      pmsg_notice2("verifying ...\n");
 
     rc = avr_verify(p, v, upd->memtype, size);
     if (rc < 0) {
-      msg_info("%s: verification error; content mismatch\n",
-        progname);
+      pmsg_info("verification error; content mismatch\n");
       pgm->err_led(pgm, ON);
       avr_free_part(v);
       return LIBAVRDUDE_GENERAL_FAILURE;
@@ -626,8 +604,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
 
     if (quell_progress < 2) {
       int verified = fs.nbytes+fs.ntrailing;
-      msg_info("%s: %d byte%s of %s%s verified\n",
-        progname, verified, update_plural(verified), mem->desc, alias_mem_desc);
+      pmsg_info("%d byte%s of %s%s verified\n", verified, update_plural(verified), mem->desc, alias_mem_desc);
     }
 
     pgm->vfy_led(pgm, OFF);
@@ -635,8 +612,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     break;
 
   default:
-    msg_info("%s: invalid update operation (%d) requested\n",
-      progname, upd->op);
+    pmsg_info("invalid update operation (%d) requested\n", upd->op);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 

@@ -185,9 +185,8 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   OPCODE * readop, * lext;
 
   if (pgm->cmd == NULL) {
-    msg_info("%s: Error: %s programmer uses avr_read_byte_default() but does not\n"
-                    "provide a cmd() method.\n",
-                    progname, pgm->type);
+    pmsg_info("%s programmer uses avr_read_byte_default() but does not\n"
+                    "provide a cmd() method\n", pgm->type);
     return -1;
   }
 
@@ -196,8 +195,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 
   if (p->prog_modes & PM_TPI) {
     if (pgm->cmd_tpi == NULL) {
-      msg_info("%s: Error: %s programmer does not support TPI\n",
-          progname, pgm->type);
+      pmsg_info("%s programmer does not support TPI\n", pgm->type);
       return -1;
     }
 
@@ -231,7 +229,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 
   if (readop == NULL) {
 #if DEBUG
-    msg_info("avr_read_byte_default(): operation not supported on memory type \"%s\"\n",
+    msg_info("avr_read_byte_default(): operation not supported on memory type %s\n",
                     mem->desc);
 #endif
     return -1;
@@ -431,8 +429,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
           /* paged load failed, fall back to byte-at-a-time read below */
           failure = 1;
       } else {
-        msg_debug("%s: avr_read_mem(): skipping page %u: no interesting data\n",
-                        progname, pageaddr / mem->page_size);
+        pmsg_debug("avr_read_mem(): skipping page %u: no interesting data\n", pageaddr / mem->page_size);
       }
       nread++;
       report_progress(nread, npages, NULL);
@@ -483,15 +480,14 @@ int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   OPCODE * wp, * lext;
 
   if (pgm->cmd == NULL) {
-    msg_info("%s: Error: %s programmer uses avr_write_page() but does not\n"
-                    "provide a cmd() method.\n",
-                    progname, pgm->type);
+    pmsg_info("%s programmer uses avr_write_page() but does not\n"
+      "provide a cmd() method\n", pgm->type);
     return -1;
   }
 
   wp = mem->op[AVR_OP_WRITEPAGE];
   if (wp == NULL) {
-    msg_info("avr_write_page(): memory \"%s\" not configured for page writes\n",
+    msg_info("avr_write_page(): memory %s not configured for page writes\n",
                     mem->desc);
     return -1;
   }
@@ -553,16 +549,14 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   struct timeval tv;
 
   if (pgm->cmd == NULL) {
-    msg_info("%s: Error: %s programmer uses avr_write_byte_default() but does not\n"
-                    "provide a cmd() method.\n",
-                    progname, pgm->type);
+    pmsg_info("%s programmer uses avr_write_byte_default() but does not\n"
+      "provide a cmd() method\n", pgm->type);
     return -1;
   }
 
   if (p->prog_modes & PM_TPI) {
     if (pgm->cmd_tpi == NULL) {
-      msg_info("%s: Error: %s programmer does not support TPI\n",
-          progname, pgm->type);
+      pmsg_info("%s programmer does not support TPI\n", pgm->type);
       return -1;
     }
 
@@ -657,8 +651,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   if (writeop == NULL) {
 #if DEBUG
-    msg_info("avr_write_byte_default(): write not supported for memory type \"%s\"\n",
-                    mem->desc);
+    msg_info("avr_write_byte_default(): write not supported for memory type %s\n", mem->desc);
 #endif
     return -1;
   }
@@ -750,25 +743,21 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
        * device if the data read back does not match what we wrote.
        */
       pgm->pgm_led(pgm, OFF);
-      msg_info("%s: this device must be powered off and back on to continue\n",
-                      progname);
+      pmsg_info("this device must be powered off and back on to continue\n");
       if (pgm->pinno[PPI_AVR_VCC]) {
-        msg_info("%s: attempting to do this now ...\n", progname);
+        pmsg_info("attempting to do this now ...\n");
         pgm->powerdown(pgm);
         usleep(250000);
         rc = pgm->initialize(pgm, p);
         if (rc < 0) {
-          msg_info("%s: initialization failed, rc=%d\n", progname, rc);
-          msg_info("%s: can't re-initialize device after programming the "
-                          "%s bits\n", progname, mem->desc);
-          msg_info("%s: you must manually power-down the device and restart\n"
-                          "%s:   %s to continue.\n",
-                          progname, progname, progname);
+          pmsg_info("initialization failed, rc=%d\n", rc);
+          pmsg_info("cannot re-initialize device after programming the %s bits\n", mem->desc);
+          pmsg_info("you must manually power-down the device and restart\n"
+            "%*s %s to continue\n", (int) strlen(progname)+1, "", progname);
           return -3;
         }
         
-        msg_info("%s: device was successfully re-initialized\n",
-                progname);
+        pmsg_info("device was successfully re-initialized\n");
         return 0;
       }
     }
@@ -813,8 +802,7 @@ int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, int size, int auto_erase) {
   AVRMEM *m = avr_locate_mem(p, memtype);
   if (m == NULL) {
-    msg_info("No \"%s\" memory for part %s\n",
-            memtype, p->desc);
+    msg_info("no %s memory for part %s\n", memtype, p->desc);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
@@ -847,11 +835,8 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     wsize = size;
   }
   else if (size > wsize) {
-    msg_info("%s: WARNING: %d bytes requested, but memory region is only %d"
-                    "bytes\n"
-                    "%sOnly %d bytes will actually be written\n",
-                    progname, size, wsize,
-                    progbuf, wsize);
+    pmsg_info("warning, %d bytes requested, but memory region is only %d bytes\n"
+      "%sOnly %d bytes will actually be written\n", size, wsize, progbuf, wsize);
   }
 
 
@@ -941,8 +926,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
           /* paged write failed, fall back to byte-at-a-time write below */
           failure = 1;
       } else {
-        msg_debug("%s: avr_write_mem(): skipping page %u: no interesting data\n",
-                        progname, pageaddr / m->page_size);
+        pmsg_debug("avr_write_mem(): skipping page %u: no interesting data\n", pageaddr / m->page_size);
       }
       nwritten++;
       report_progress(nwritten, npages, NULL);
@@ -1048,8 +1032,7 @@ int avr_signature(const PROGRAMMER *pgm, const AVRPART *p) {
   report_progress (0,1,"Reading");
   rc = avr_read(pgm, p, "signature", 0);
   if (rc < LIBAVRDUDE_SUCCESS) {
-    msg_info("%s: error reading signature data for part \"%s\", rc=%d\n",
-                    progname, p->desc, rc);
+    pmsg_info("error reading signature data for part %s, rc=%d\n", p->desc, rc);
     return rc;
   }
   report_progress (1,1,NULL);
@@ -1103,14 +1086,13 @@ int avr_verify(const AVRPART * p, const AVRPART * v, const char * memtype, int s
 
   a = avr_locate_mem(p, memtype);
   if (a == NULL) {
-    msg_info("avr_verify(): memory type \"%s\" not defined for part %s\n",
-                    memtype, p->desc);
+    msg_info("avr_verify(): memory type %s not defined for part %s\n", memtype, p->desc);
     return -1;
   }
 
   b = avr_locate_mem(v, memtype);
   if (b == NULL) {
-    msg_info("avr_verify(): memory type \"%s\" not defined for part %s\n",
+    msg_info("avr_verify(): memory type %s not defined for part %s\n",
                     memtype, v->desc);
     return -1;
   }
@@ -1120,12 +1102,11 @@ int avr_verify(const AVRPART * p, const AVRPART * v, const char * memtype, int s
   vsize = a->size;
 
   if (vsize < size) {
-    msg_info("%s: WARNING: requested verification for %d bytes\n"
-                    "%s%s memory region only contains %d bytes\n"
-                    "%sOnly %d bytes will be verified.\n",
-                    progname, size,
-                    progbuf, memtype, vsize,
-                    progbuf, vsize);
+    pmsg_info("warning, requested verification for %d bytes\n"
+      "%s%s memory region only contains %d bytes\n"
+      "%sOnly %d bytes will be verified\n", size,
+      progbuf, memtype, vsize,
+      progbuf, vsize);
     size = vsize;
   }
 
@@ -1135,25 +1116,23 @@ int avr_verify(const AVRPART * p, const AVRPART * v, const char * memtype, int s
       uint8_t bitmask = get_fuse_bitmask(a);
       if((buf1[i] & bitmask) != (buf2[i] & bitmask)) {
         // Mismatch is not just in unused bits
-        msg_info("%s: verification error, first mismatch at byte 0x%04x\n"
-                        "%s0x%02x != 0x%02x\n",
-                        progname, i,
-                        progbuf, buf1[i], buf2[i]);
+        pmsg_info("verification error, first mismatch at byte 0x%04x\n"
+          "%s0x%02x != 0x%02x\n", i, progbuf, buf1[i], buf2[i]);
         return -1;
       } else {
         // Mismatch is only in unused bits
         if ((buf1[i] | bitmask) != 0xff) {
           // Programmer returned unused bits as 0, must be the part/programmer
-          msg_info("%s: WARNING: ignoring mismatch in unused bits of \"%s\"\n"
-                          "%s(0x%02x != 0x%02x). To prevent this warning fix the part\n"
-                          "%sor programmer definition in the config file.\n",
-                          progname, memtype, progbuf, buf1[i], buf2[i], progbuf);
+          pmsg_info("warning: ignoring mismatch in unused bits of %s\n"
+            "%s(0x%02x != 0x%02x). To prevent this warning fix the part\n"
+            "%sor programmer definition in the config file\n", memtype,
+            progbuf, buf1[i], buf2[i], progbuf);
         } else {
           // Programmer returned unused bits as 1, must be the user
-          msg_info("%s: WARNING: ignoring mismatch in unused bits of \"%s\"\n"
-                          "%s(0x%02x != 0x%02x). To prevent this warning set unused bits\n"
-                          "%sto 1 when writing (double check with your datasheet first).\n",
-                          progname, memtype, progbuf, buf1[i], buf2[i], progbuf);
+          pmsg_info("warning, ignoring mismatch in unused bits of %s\n"
+            "%s(0x%02x != 0x%02x). To prevent this warning set unused bits\n"
+            "%sto 1 when writing (double check with your datasheet first)\n",
+            memtype, progbuf, buf1[i], buf2[i], progbuf);
         }
       }
     }
@@ -1178,8 +1157,7 @@ int avr_get_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int *cycles) {
   for (i=4; i>0; i--) {
     rc = pgm->read_byte(pgm, p, a, a->size-i, &v1);
   if (rc < 0) {
-    msg_info("%s: WARNING: can't read memory for cycle count, rc=%d\n",
-            progname, rc);
+    pmsg_info("warning, cannot read memory for cycle count, rc=%d\n", rc);
     return -1;
   }
     cycle_count = (cycle_count << 8) | v1;
@@ -1218,8 +1196,7 @@ int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles) {
 
     rc = avr_write_byte(pgm, p, a, a->size-i, v1);
     if (rc < 0) {
-      msg_info("%s: WARNING: can't write memory for cycle count, rc=%d\n",
-              progname, rc);
+      pmsg_info("warning, cannot write memory for cycle count, rc=%d\n", rc);
       return -1;
     }
   }
@@ -1252,9 +1229,7 @@ void avr_add_mem_order(const char *str) {
       return;
     }
   }
-  msg_info(
-    "%s: avr_mem_order[] under-dimensioned in avr.c; increase and recompile\n",
-    progname);
+  pmsg_info("avr_mem_order[] under-dimensioned in avr.c; increase and recompile\n");
   exit(1);
 }
 

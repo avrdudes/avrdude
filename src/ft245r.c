@@ -94,8 +94,7 @@
 #if defined(DO_NOT_BUILD_FT245R)
 
 static int ft245r_noftdi_open(PROGRAMMER *pgm, const char *name) {
-    msg_info("%s: error: no libftdi or libusb support. Install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again.\n",
-                    progname);
+    pmsg_info("no libftdi or libusb support; install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again\n");
 
     return -1;
 }
@@ -189,8 +188,7 @@ static int ft245r_fill(const PROGRAMMER *pgm) {
 	return -1;
     rx.pending -= nread;
 #if FT245R_DEBUG
-    msg_info("%s: read %d bytes (pending=%d)\n",
-		    __func__, nread, rx.pending);
+    msg_info("%s: read %d bytes (pending=%d)\n",  __func__, nread, rx.pending);
 #endif
     for (i = 0; i < nread; ++i)
 	ft245r_rx_buf_put(pgm, raw[i]);
@@ -223,9 +221,7 @@ static int ft245r_flush(const PROGRAMMER *pgm) {
 	if (avail <= 0) {
 	    avail = ft245r_fill(pgm);
 	    if (avail < 0) {
-		msg_info(
-				"%s: fill returned %d: %s\n",
-				__func__, avail, ftdi_get_error_string(handle));
+		msg_info("%s: fill returned %d: %s\n", __func__, avail, ftdi_get_error_string(handle));
 		return -1;
 	    }
 	}
@@ -237,9 +233,7 @@ static int ft245r_flush(const PROGRAMMER *pgm) {
 #endif
 	rv = ftdi_write_data(handle, src, avail);
 	if (rv != avail) {
-	    msg_info(
-			    "%s: write returned %d (expected %d): %s\n",
-			    __func__, rv, avail, ftdi_get_error_string(handle));
+	    msg_info("%s: write returned %d (expected %d): %s\n", __func__, rv, avail, ftdi_get_error_string(handle));
 	    return -1;
 	}
 	src += avail;
@@ -282,8 +276,7 @@ static int ft245r_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
     ft245r_fill(pgm);
 
 #if FT245R_DEBUG
-    msg_info("%s: discarding %d, consuming %zu bytes\n",
-        __func__, rx.discard, len);
+    msg_info("%s: discarding %d, consuming %zu bytes\n", __func__, rx.discard, len);
 #endif
     while (rx.discard > 0) {
         int result = ft245r_rx_buf_fill_and_get(pgm);
@@ -320,7 +313,7 @@ static int ft245r_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
 static int ft245r_drain(const PROGRAMMER *pgm, int display) {
     int r;
 
-    // flush the buffer in the chip by changing the mode.....
+    // flush the buffer in the chip by changing the mode ...
     r = ftdi_set_bitmode(handle, 0, BITMODE_RESET); 	// reset
     if (r) return -1;
     r = ftdi_set_bitmode(handle, ft245r_ddr, BITMODE_SYNCBB); // set Synchronuse BitBang
@@ -347,8 +340,7 @@ static int ft245r_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
       return avr_tpi_chip_erase(pgm, p);
 
     if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
-        msg_info("chip erase instruction not defined for part \"%s\"\n",
-                p->desc);
+        msg_info("chip erase instruction not defined for part %s\n", p->desc);
         return -1;
     }
 
@@ -381,14 +373,12 @@ static int ft245r_set_bitclock(const PROGRAMMER *pgm) {
     ftdi_rate = rate;
 #endif
 
-    msg_notice2(
-		    "%s: bitclk %d -> FTDI rate %d, baud multiplier %d\n",
-		    __func__, rate, ftdi_rate, baud_multiplier);
+    msg_notice2("%s: bitclk %d -> FTDI rate %d, baud multiplier %d\n",
+      __func__, rate, ftdi_rate, baud_multiplier);
 
     r = ftdi_set_baudrate(handle, ftdi_rate);
     if (r) {
-        msg_info("Set baudrate (%d) failed with error '%s'.\n",
-                rate, ftdi_get_error_string (handle));
+        msg_info("set baudrate %d failed with error '%s'\n", rate, ftdi_get_error_string (handle));
         return -1;
     }
     return 0;
@@ -506,8 +496,7 @@ static int ft245r_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
       return avr_tpi_program_enable(pgm, p, TPIPCR_GT_0b);
 
     if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
-        msg_info("%s: AVR_OP_PGM_ENABLE command not defined for %s\n",
-                        progname, p->desc);
+        pmsg_info("AVR_OP_PGM_ENABLE command not defined for %s\n", p->desc);
         fflush(stderr);
         return -1;
     }
@@ -520,8 +509,7 @@ static int ft245r_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
         if (res[p->pollindex-1] == p->pollvalue) return 0;
 
         if (FT245R_DEBUG) {
-            msg_notice("%s: Program enable command not successful. Retrying.\n",
-                            progname);
+            pmsg_notice("program enable command not successful, retrying\n");
             fflush(stderr);
         }
         set_pin(pgm, PIN_AVR_RESET, ON);
@@ -534,8 +522,7 @@ static int ft245r_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
         }
     }
 
-    msg_info("%s: Device is not responding to program enable. Check connection.\n",
-                    progname);
+    pmsg_info("device is not responding to program enable; check connection\n");
     fflush(stderr);
 
     return -1;
@@ -769,8 +756,7 @@ static int ft245r_tpi_rx(const PROGRAMMER *pgm, uint8_t *bytep) {
     while (m & res)
 	m <<= 1;
     if (m >= 0x10) {
-	msg_info("%s: start bit missing (res=0x%04x)\n",
-			__func__, res);
+	msg_info("%s: start bit missing (res=0x%04x)\n", __func__, res);
 	return -1;
     }
     byte = parity = 0;
@@ -845,19 +831,13 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
 
     // read device string cut after 8 chars (max. length of serial number)
     if ((sscanf(port, "usb:%8s", device) != 1)) {
-      msg_notice(
-          "%s: ft245r_open(): no device identifier in portname, using default\n",
-          progname);
+      pmsg_notice("ft245r_open(): no device identifier in portname, using default\n");
       pgm->usbsn = cache_string("");
       devnum = 0;
     } else {
       if (strlen(device) == 8 ){ // serial number
         if (verbose >= 2) {
-          msg_info(
-              "%s: ft245r_open(): serial number parsed as: "
-              "%s\n",
-              progname,
-              device);
+          pmsg_info("ft245r_open(): serial number parsed as: %s\n", device);
         }
         // copy serial number to pgm struct
         pgm->usbsn = cache_string(device);
@@ -871,18 +851,15 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
         if ((startptr==endptr) || (*endptr != '\0')) {
           devnum = -1;
         }
-        msg_info(
-            "%s: ft245r_open(): device number parsed as: "
+        pmsg_info("ft245r_open(): device number parsed as: "
             "%d\n",
-            progname,
             devnum);
       }
     }
 
     // if something went wrong before abort with helpful message
     if (devnum < 0) {
-      msg_info("%s: ft245r_open(): invalid portname '%s': use^ 'ft[0-9]+' or serial number\n",
-          progname,port);
+      pmsg_info("ft245r_open(): invalid portname '%s': use^ 'ft[0-9]+' or serial number\n", port);
       return -1;
     }
 
@@ -893,8 +870,7 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
     if (usbpid) {
       pid = *(int *)(ldata(usbpid));
       if (lnext(usbpid))
-	msg_info("%s: Warning: using PID 0x%04x, ignoring remaining PIDs in list\n",
-		progname, pid);
+	pmsg_info("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
     } else {
       pid = USB_DEVICE_FT245;
     }
@@ -905,8 +881,7 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
                                   pgm->usbsn[0]?pgm->usbsn:NULL,
                                   devnum);
     if (rv) {
-        msg_info("%s: can't open ftdi device: %s\n",
-                        progname, ftdi_get_error_string(handle));
+        pmsg_info("can't open ftdi device: %s\n", ftdi_get_error_string(handle));
         goto cleanup_no_usb;
     }
 
@@ -936,15 +911,13 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
 
     rv = ftdi_set_latency_timer(handle, 1);
     if (rv) {
-        msg_info("%s: unable to set latency timer to 1 (%s)\n",
-                        progname, ftdi_get_error_string(handle));
+        pmsg_info("unable to set latency timer to 1 (%s)\n", ftdi_get_error_string(handle));
         goto cleanup;
     }
 
     rv = ftdi_set_bitmode(handle, ft245r_ddr, BITMODE_SYNCBB); // set Synchronous BitBang
     if (rv) {
-        msg_info("%s: Synchronous BitBangMode is not supported (%s)\n",
-                        progname, ftdi_get_error_string(handle));
+        pmsg_info("synchronous BitBangMode is not supported (%s)\n", ftdi_get_error_string(handle));
         goto cleanup;
     }
 

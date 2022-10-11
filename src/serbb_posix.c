@@ -252,15 +252,13 @@ static int serbb_open(PROGRAMMER *pgm, const char *port) {
   flags = fcntl(pgm->fd.ifd, F_GETFL, 0);
   if (flags == -1)
     {
-      msg_info("%s: Can not get flags: %s\n",
-	      progname, strerror(errno));
+      pmsg_info("cannot get flags: %s\n", strerror(errno));
       return(-1);
     }
   flags &= ~O_NONBLOCK;
   if (fcntl(pgm->fd.ifd, F_SETFL, flags) == -1)
     {
-      msg_info("%s: Can not clear nonblock flag: %s\n",
-	      progname, strerror(errno));
+      pmsg_info("cannot clear nonblock flag: %s\n", strerror(errno));
       return(-1);
     }
 

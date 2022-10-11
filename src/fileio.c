@@ -126,8 +126,7 @@ static int b2ihex(unsigned char * inbuf, int bufsize,
   unsigned char cksum;
 
   if (recsize > 255) {
-    msg_info("%s: recsize=%d, must be < 256\n",
-              progname, recsize);
+    pmsg_info("recsize=%d, must be < 256\n", recsize);
     return -1;
   }
 
@@ -319,36 +318,31 @@ static int ihex2b(char * infile, FILE * inf,
       continue;
     rc = ihex_readrec(&ihex, buffer);
     if (rc < 0) {
-      msg_info("%s: invalid record at line %d of \"%s\"\n",
-              progname, lineno, infile);
+      pmsg_info("invalid record at line %d of %s\n", lineno, infile);
       return -1;
     }
     else if (rc != ihex.cksum) {
       if(ffmt == FMT_IHEX) {
-        msg_info("%s: ERROR: checksum mismatch at line %d of \"%s\"\n",
-                progname, lineno, infile);
-        msg_info("%s: checksum=0x%02x, computed checksum=0x%02x\n",
-                progname, ihex.cksum, rc);
+        pmsg_info("checksum mismatch at line %d of %s\n", lineno, infile);
+        pmsg_info("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
         return -1;
       } else {                  /* Just warn with more permissive format FMT_IHXC */
-        msg_notice("%s: warning: checksum mismatch at line %d of \"%s\"\n",
-                progname, lineno, infile);
-        msg_notice("%s: checksum=0x%02x, computed checksum=0x%02x\n",
-                progname, ihex.cksum, rc);
+        pmsg_notice("checksum mismatch at line %d of %s\n", lineno, infile);
+        pmsg_notice("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
       }
     }
 
     switch (ihex.rectyp) {
       case 0: /* data record */
         if (fileoffset != 0 && baseaddr < fileoffset) {
-          msg_info("%s: ERROR: address 0x%04x out of range (below fileoffset 0x%x) at line %d of %s\n",
-                          progname, baseaddr, fileoffset, lineno, infile);
+          pmsg_info("address 0x%04x out of range (below fileoffset 0x%x) at line %d of %s\n",
+            baseaddr, fileoffset, lineno, infile);
           return -1;
         }
         nextaddr = ihex.loadofs + baseaddr - fileoffset;
         if (nextaddr + ihex.reclen > (unsigned) bufsize) {
-          msg_info("%s: ERROR: address 0x%04x out of range at line %d of %s\n",
-                          progname, nextaddr+ihex.reclen, lineno, infile);
+          pmsg_info("address 0x%04x out of range at line %d of %s\n",
+            nextaddr+ihex.reclen, lineno, infile);
           return -1;
         }
         for (i=0; i<ihex.reclen; i++) {
@@ -380,9 +374,8 @@ static int ihex2b(char * infile, FILE * inf,
         break;
 
       default:
-        msg_info("%s: don't know how to deal with rectype=%d "
-                        "at line %d of %s\n",
-                        progname, ihex.rectyp, lineno, infile);
+        pmsg_info("don't know how to deal with rectype=%d "
+          "at line %d of %s\n", ihex.rectyp, lineno, infile);
         return -1;
         break;
     }
@@ -390,16 +383,12 @@ static int ihex2b(char * infile, FILE * inf,
   } /* while */
 
   if (maxaddr == 0) {
-    msg_info("%s: ERROR: No valid record found in Intel Hex "
-                    "file \"%s\"\n",
-                    progname, infile);
+    pmsg_info("ERROR: No valid record found in Intel Hex file %s\n", infile);
 
     return -1;
   }
   else {
-    msg_info("%s: WARNING: no end of file record found for Intel Hex "
-                    "file \"%s\"\n",
-                    progname, infile);
+    pmsg_info("WARNING: no end of file record found for Intel Hex file %s\n", infile);
 
     return maxaddr;
   }
@@ -417,8 +406,7 @@ static int b2srec(unsigned char * inbuf, int bufsize,
   char * tmpl=0;
 
   if (recsize > 255) {
-    msg_info("%s: ERROR: recsize=%d, must be < 256\n",
-            progname, recsize);
+    pmsg_info("recsize=%d, must be < 256\n", recsize);
     return -1;
   }
   
@@ -450,8 +438,7 @@ static int b2srec(unsigned char * inbuf, int bufsize,
         tmpl="S3%02X%08X";
       }
       else {
-        msg_info("%s: ERROR: address=%d, out of range\n",
-                progname, nextaddr);
+        pmsg_info("address=%d, out of range\n", nextaddr);
         return -1;
       }
 
@@ -599,7 +586,7 @@ static int srec2b(char * infile, FILE * inf,
   unsigned int reccount;
   unsigned char datarec;
 
-  char * msg = 0;
+  char * msg = "";
 
   lineno   = 0;
   maxaddr  = 0;
@@ -615,15 +602,12 @@ static int srec2b(char * infile, FILE * inf,
     rc = srec_readrec(&srec, buffer);
 
     if (rc < 0) {
-      msg_info("%s: ERROR: invalid record at line %d of \"%s\"\n",
-              progname, lineno, infile);
+      pmsg_info("invalid record at line %d of %s\n", lineno, infile);
       return -1;
     }
     else if (rc != srec.cksum) {
-      msg_info("%s: ERROR: checksum mismatch at line %d of \"%s\"\n",
-              progname, lineno, infile);
-      msg_info("%s: checksum=0x%02x, computed checksum=0x%02x\n",
-              progname, srec.cksum, rc);
+      pmsg_info("checksum mismatch at line %d of %s\n", lineno, infile);
+      pmsg_info("checksum=0x%02x, computed checksum=0x%02x\n", srec.cksum, rc);
       return -1;
     }
 
@@ -635,32 +619,27 @@ static int srec2b(char * infile, FILE * inf,
 
       case 0x31: /* S1 - 16 bit address data record */
         datarec=1;
-        msg="%s: ERROR: address 0x%04x out of range %sat line %d of %s\n";
+        msg="address 0x%04x out of range %sat line %d of %s\n";
         break;
 
       case 0x32: /* S2 - 24 bit address data record */
         datarec=1;
-        msg="%s: ERROR: address 0x%06x out of range %sat line %d of %s\n";
+        msg="address 0x%06x out of range %sat line %d of %s\n";
         break;
 
       case 0x33: /* S3 - 32 bit address data record */
         datarec=1;
-        msg="%s: ERROR: address 0x%08x out of range %sat line %d of %s\n";
+        msg="address 0x%08x out of range %sat line %d of %s\n";
         break;
 
       case 0x34: /* S4 - symbol record (LSI extension) */
-        msg_info("%s: ERROR: not supported record at line %d of %s\n",
-                        progname, lineno, infile);
+        pmsg_info("not supported record at line %d of %s\n", lineno, infile);
         return -1;
 
       case 0x35: /* S5 - count of S1,S2 and S3 records previously tx'd */
         if (srec.loadofs != reccount){
-          msg_info("%s: ERROR: count of transmitted data records mismatch "
-                          "at line %d of \"%s\"\n",
-                          progname, lineno, infile);
-          msg_info("%s: transmitted data records= %d, expected "
-                  "value= %d\n",
-                  progname, reccount, srec.loadofs);
+          pmsg_info("count of transmitted data records mismatch at line %d of %s\n", lineno, infile);
+          pmsg_info("transmitted data records= %d, expected value= %d\n", reccount, srec.loadofs);
           return -1;
         }
         break;
@@ -671,24 +650,20 @@ static int srec2b(char * infile, FILE * inf,
         return maxaddr;
 
       default:
-        msg_info("%s: ERROR: don't know how to deal with rectype S%d "
-                        "at line %d of %s\n",
-                        progname, srec.rectyp, lineno, infile);
+        pmsg_error("don't know how to deal with rectype S%d "
+          "at line %d of %s\n", srec.rectyp, lineno, infile);
         return -1;
     }
 
     if (datarec == 1) {
       nextaddr = srec.loadofs;
       if (nextaddr < fileoffset) {
-        msg_info(msg, progname, nextaddr,
-                "(below fileoffset) ",
-                lineno, infile);
+        msg_error(msg, nextaddr, "(below fileoffset) ", lineno, infile);
         return -1;
       }
       nextaddr -= fileoffset;
       if (nextaddr + srec.reclen > (unsigned) bufsize) {
-        msg_info(msg, progname, nextaddr+srec.reclen, "",
-                lineno, infile);
+        msg_error(msg, nextaddr+srec.reclen, "", lineno, infile);
         return -1;
       }
       for (i=0; i<srec.reclen; i++) {
@@ -702,9 +677,7 @@ static int srec2b(char * infile, FILE * inf,
 
   }
 
-  msg_info("%s: WARNING: no end of file record found for Motorola S-Records "
-                  "file \"%s\"\n",
-                  progname, infile);
+  pmsg_info("warning, no end of file record found for Motorola S-Records file %s\n", infile);
 
   return maxaddr;
 }
@@ -747,8 +720,7 @@ static Elf_Scn *elf_get_scn(Elf *e, Elf32_Phdr *ph, Elf32_Shdr **shptr)
     Elf32_Shdr *sh;
     size_t ndx = elf_ndxscn(s);
     if ((sh = elf32_getshdr(s)) == NULL) {
-      msg_info("%s: ERROR: Error reading section #%u header: %s\n",
-                      progname, (unsigned int)ndx, elf_errmsg(-1));
+      pmsg_info("error reading section #%u header: %s\n", (unsigned int)ndx, elf_errmsg(-1));
       continue;
     }
     if ((sh->sh_flags & SHF_ALLOC) == 0 ||
@@ -765,9 +737,7 @@ static Elf_Scn *elf_get_scn(Elf *e, Elf32_Phdr *ph, Elf32_Shdr **shptr)
     }
   }
 
-  msg_info("%s: ERROR: Cannot find a matching section for "
-                  "program header entry @p_vaddr 0x%x\n",
-                  progname, ph->p_vaddr);
+  pmsg_info("cannot find a matching section for program header entry @p_vaddr 0x%x\n", ph->p_vaddr);
   return NULL;
 }
 
@@ -838,8 +808,7 @@ static int elf2b(char * infile, FILE * inf,
   unsigned int low, high, foff;
 
   if (elf_mem_limits(mem, p, &low, &high, &foff) != 0) {
-    msg_info("%s: ERROR: Cannot handle \"%s\" memory region from ELF file\n",
-                    progname, mem->desc);
+    pmsg_info("cannot handle %s memory region from ELF file\n", mem->desc);
     return -1;
   }
 
@@ -856,9 +825,7 @@ static int elf2b(char * infile, FILE * inf,
        strcmp(mem->desc, "apptable") == 0)) {
     AVRMEM *flashmem = avr_locate_mem(p, "flash");
     if (flashmem == NULL) {
-      msg_info("%s: ERROR: No \"flash\" memory region found, "
-                      "cannot compute bounds of \"%s\" sub-region.\n",
-                      progname, mem->desc);
+      pmsg_info("no flash memory region found, cannot compute bounds of %s sub-region\n", mem->desc);
       return -1;
     }
     /* The config file offsets are PDI offsets, rebase to 0. */
@@ -867,18 +834,15 @@ static int elf2b(char * infile, FILE * inf,
   }
 
   if (elf_version(EV_CURRENT) == EV_NONE) {
-    msg_info("%s: ERROR: ELF library initialization failed: %s\n",
-                    progname, elf_errmsg(-1));
+    pmsg_info("ELF library initialization failed: %s\n", elf_errmsg(-1));
     return -1;
   }
   if ((e = elf_begin(fileno(inf), ELF_C_READ, NULL)) == NULL) {
-    msg_info("%s: ERROR: Cannot open \"%s\" as an ELF file: %s\n",
-                    progname, infile, elf_errmsg(-1));
+    pmsg_info("cannot open %s as an ELF file: %s\n", infile, elf_errmsg(-1));
     return -1;
   }
   if (elf_kind(e) != ELF_K_ELF) {
-    msg_info("%s: ERROR: Cannot use \"%s\" as an ELF input file\n",
-                    progname, infile);
+    pmsg_info("cannot use %s as an ELF input file\n", infile);
     goto done;
   }
 
@@ -886,8 +850,7 @@ static int elf2b(char * infile, FILE * inf,
   const char *id = elf_getident(e, &isize);
 
   if (id == NULL) {
-    msg_info("%s: ERROR: Error reading ident area of \"%s\": %s\n",
-                    progname, infile, elf_errmsg(-1));
+    pmsg_info("error reading ident area of %s: %s\n", infile, elf_errmsg(-1));
     goto done;
   }
 
@@ -902,22 +865,19 @@ static int elf2b(char * infile, FILE * inf,
   }
   if (id[EI_CLASS] != ELFCLASS32 ||
       id[EI_DATA] != endianess) {
-    msg_info("%s: ERROR: ELF file \"%s\" is not a "
-                    "32-bit, %s-endian file that was expected\n",
-                    progname, infile, endianname);
+    pmsg_info("ELF file %s is not a 32-bit, %s-endian file that was expected\n",
+      infile, endianname);
     goto done;
   }
 
   Elf32_Ehdr *eh;
   if ((eh = elf32_getehdr(e)) == NULL) {
-    msg_info("%s: ERROR: Error reading ehdr of \"%s\": %s\n",
-                    progname, infile, elf_errmsg(-1));
+    pmsg_info("error reading ehdr of %s: %s\n", infile, elf_errmsg(-1));
     goto done;
   }
 
   if (eh->e_type != ET_EXEC) {
-    msg_info("%s: ERROR: ELF file \"%s\" is not an executable file\n",
-                    progname, infile);
+    pmsg_info("ELF file %s is not an executable file\n", infile);
     goto done;
   }
 
@@ -931,28 +891,24 @@ static int elf2b(char * infile, FILE * inf,
     mname = "AVR";
   }
   if (eh->e_machine != machine) {
-    msg_info("%s: ERROR: ELF file \"%s\" is not for machine %s\n",
-                    progname, infile, mname);
+    pmsg_info("ELF file %s is not for machine %s\n", infile, mname);
     goto done;
   }
   if (eh->e_phnum == 0xffff /* PN_XNUM */) {
-    msg_info("%s: ERROR: ELF file \"%s\" uses extended "
-                    "program header numbers which are not expected\n",
-                    progname, infile);
+    pmsg_info("ELF file %s uses extended program header numbers which are not expected\n",
+      infile);
     goto done;
   }
 
   Elf32_Phdr *ph;
   if ((ph = elf32_getphdr(e)) == NULL) {
-    msg_info("%s: ERROR: Error reading program header table of \"%s\": %s\n",
-                    progname, infile, elf_errmsg(-1));
+    pmsg_info("error reading program header table of %s: %s\n", infile, elf_errmsg(-1));
     goto done;
   }
 
   size_t sndx;
   if (elf_getshdrstrndx(e, &sndx) != 0) {
-    msg_info("%s: ERROR: Error obtaining section name string table: %s\n",
-                    progname, elf_errmsg(-1));
+    pmsg_info("error obtaining section name string table: %s\n", elf_errmsg(-1));
     sndx = 0;
   }
 
@@ -965,9 +921,8 @@ static int elf2b(char * infile, FILE * inf,
         ph[i].p_filesz == 0)
       continue;
 
-    msg_notice2("%s: Considering PT_LOAD program header entry #%d:\n"
-                    "    p_vaddr 0x%x, p_paddr 0x%x, p_filesz %d\n",
-                    progname, i, ph[i].p_vaddr, ph[i].p_paddr, ph[i].p_filesz);
+    pmsg_notice2("considering PT_LOAD program header entry #%d:\n"
+      "    p_vaddr 0x%x, p_paddr 0x%x, p_filesz %d\n", (int) i, ph[i].p_vaddr, ph[i].p_paddr, ph[i].p_filesz);
 
     Elf32_Shdr *sh;
     Elf_Scn *s = elf_get_scn(e, ph + i, &sh);
@@ -986,15 +941,13 @@ static int elf2b(char * infile, FILE * inf,
       unsigned int lma;
       lma = ph[i].p_paddr + sh->sh_offset - ph[i].p_offset;
 
-      msg_notice2("%s: Found section \"%s\", LMA 0x%x, sh_size %u\n",
-                      progname, sname, lma, sh->sh_size);
+      pmsg_notice2("Found section %s, LMA 0x%x, sh_size %u\n", sname, lma, sh->sh_size);
 
       if (lma >= low &&
           lma + sh->sh_size < high) {
         /* OK */
       } else {
-        msg_notice2("    => skipping, inappropriate for \"%s\" memory region\n",
-                        mem->desc);
+        msg_notice2("    => skipping, inappropriate for %s memory region\n", mem->desc);
         continue;
       }
       /*
@@ -1006,24 +959,20 @@ static int elf2b(char * infile, FILE * inf,
        * from it, using the "foff" offset obtained above.
        */
       if (mem->size != 1 && sh->sh_size > (unsigned) mem->size) {
-        msg_info("%s: ERROR: section \"%s\" does not fit into \"%s\" memory:\n"
-                        "    0x%x + %u > %u\n",
-                        progname, sname, mem->desc,
-                        lma, sh->sh_size, mem->size);
+        pmsg_info("ERROR: section %s does not fit into %s memory:\n"
+          "    0x%x + %u > %u\n", sname, mem->desc, lma, sh->sh_size, mem->size);
         continue;
       }
 
       Elf_Data *d = NULL;
       while ((d = elf_getdata(s, d)) != NULL) {
-        msg_notice2("    Data block: d_buf %p, d_off 0x%x, d_size %d\n",
-                        d->d_buf, (unsigned int)d->d_off, d->d_size);
+        msg_notice2("    Data block: d_buf %p, d_off 0x%x, d_size %ld\n",
+                        d->d_buf, (unsigned int)d->d_off, (long) d->d_size);
         if (mem->size == 1) {
           if (d->d_off != 0) {
-            msg_info("%s: ERROR: unexpected data block at offset != 0\n",
-                            progname);
+            pmsg_info("unexpected data block at offset != 0\n");
           } else if (foff >= d->d_size) {
-            msg_info("%s: ERROR: ELF file section does not contain byte at offset %d\n",
-                            progname, foff);
+            pmsg_info("ELF file section does not contain byte at offset %d\n", foff);
           } else {
             msg_notice2("    Extracting one byte from file offset %d\n",
                             foff);
@@ -1037,8 +986,8 @@ static int elf2b(char * infile, FILE * inf,
           idx = lma - low + d->d_off;
           if ((int)(idx + d->d_size) > rv)
             rv = idx + d->d_size;
-          msg_debug("    Writing %d bytes to mem offset 0x%x\n",
-                          d->d_size, idx);
+          msg_debug("    Writing %ld bytes to mem offset 0x%x\n",
+            (long) d->d_size, idx);
           memcpy(mem->buf + idx, d->d_buf, d->d_size);
           memset(mem->tags + idx, TAG_ALLOCATED, d->d_size);
         }
@@ -1107,15 +1056,13 @@ static int fileio_rbin(struct fioparms * fio,
       rc = fwrite(buf, 1, size, f);
       break;
     default:
-      msg_info("%s: fileio: invalid operation=%d\n",
-              progname, fio->op);
+      pmsg_info("fileio: invalid operation=%d\n", fio->op);
       return -1;
   }
 
   if (rc < 0 || (fio->op == FIO_WRITE && rc < size)) {
-    msg_info("%s: %s error %s %s: %s; %s %d of the expected %d bytes\n",
-                    progname, fio->iodesc, fio->dir, filename, strerror(errno),
-                    fio->rw, rc, size);
+    pmsg_info("%s error %s %s: %s; %s %d of the expected %d bytes\n",
+      fio->iodesc, fio->dir, filename, strerror(errno), fio->rw, rc, size);
     return -1;
   }
 
@@ -1142,8 +1089,7 @@ static int fileio_imm(struct fioparms * fio,
 	    strtoul (p, &e, 0):
 	    strtoul (p + 2, &e, 2);
         if (*e != 0) {
-          msg_info("%s: invalid byte value (%s) specified for immediate mode\n",
-                          progname, p);
+          pmsg_info("invalid byte value (%s) specified for immediate mode\n", p);
           return -1;
         }
         mem->buf[loc] = b;
@@ -1154,21 +1100,17 @@ static int fileio_imm(struct fioparms * fio,
       break;
 
     case FIO_WRITE:
-      msg_info(
-                      "%s: Invalid file format 'immediate' for output\n",
-                      progname);
+      pmsg_info("invalid file format 'immediate' for output\n");
       return -1;
 
     default:
-      msg_info("%s: fileio: invalid operation=%d\n",
-              progname, fio->op);
+      pmsg_info("fileio: invalid operation=%d\n", fio->op);
       return -1;
   }
 
   if (rc < 0 || (fio->op == FIO_WRITE && rc < size)) {
-    msg_info("%s: %s error %s %s: %s; %s %d of the expected %d bytes\n",
-                    progname, fio->iodesc, fio->dir, filename, strerror(errno),
-                    fio->rw, rc, size);
+    pmsg_info("%s error %s %s: %s; %s %d of the expected %d bytes\n",
+      fio->iodesc, fio->dir, filename, strerror(errno), fio->rw, rc, size);
     return -1;
   }
 
@@ -1197,8 +1139,7 @@ static int fileio_ihex(struct fioparms * fio,
       break;
 
     default:
-      msg_info("%s: invalid Intel Hex file I/O operation=%d\n",
-              progname, fio->op);
+      pmsg_info("invalid Intel Hex file I/O operation=%d\n", fio->op);
       return -1;
       break;
   }
@@ -1227,9 +1168,7 @@ static int fileio_srec(struct fioparms * fio,
       break;
 
     default:
-      msg_info("%s: ERROR: invalid Motorola S-Records file I/O "
-              "operation=%d\n",
-              progname, fio->op);
+      pmsg_error("invalid Motorola S-Records file I/O operation=%d\n", fio->op);
       return -1;
       break;
   }
@@ -1247,9 +1186,7 @@ static int fileio_elf(struct fioparms * fio,
 
   switch (fio->op) {
     case FIO_WRITE:
-      msg_info("%s: ERROR: write operation not (yet) "
-              "supported for ELF\n",
-              progname);
+      pmsg_info("write operation not supported for ELF\n");
       return -1;
       break;
 
@@ -1258,9 +1195,7 @@ static int fileio_elf(struct fioparms * fio,
       return rc;
 
     default:
-      msg_info("%s: ERROR: invalid ELF file I/O "
-              "operation=%d\n",
-              progname, fio->op);
+      pmsg_info("invalid ELF file I/O operation=%d\n", fio->op);
       return -1;
       break;
   }
@@ -1310,14 +1245,11 @@ static int fileio_num(struct fioparms * fio,
       break;
 
     case FIO_READ:
-      msg_info(
-                      "%s: Invalid file format '%s' for input\n",
-                      progname, name);
+      pmsg_info("invalid file format '%s' for input\n", name);
       return -1;
 
     default:
-      msg_info("%s: fileio: invalid operation=%d\n",
-              progname, fio->op);
+      pmsg_info("fileio: invalid operation=%d\n", fio->op);
       return -1;
   }
 
@@ -1346,8 +1278,7 @@ static int fileio_num(struct fioparms * fio,
   return 0;
 
  writeerr:
-  msg_info("%s: error writing to %s: %s\n",
-	  progname, filename, strerror(errno));
+  pmsg_info("error writing to %s: %s\n", filename, strerror(errno));
   return -1;
 }
 
@@ -1373,8 +1304,7 @@ int fileio_setparms(int op, struct fioparms * fp,
       break;
 
     default:
-      msg_info("%s: invalid I/O operation %d\n",
-              progname, op);
+      pmsg_info("invalid I/O operation %d\n", op);
       return -1;
       break;
   }
@@ -1405,8 +1335,7 @@ int fileio_fmt_autodetect(const char * fname)
   f = fopen(fname, "rb");
 #endif
   if (f == NULL) {
-    msg_info("%s: error opening %s: %s\n",
-            progname, fname, strerror(errno));
+    pmsg_info("error opening %s: %s\n", fname, strerror(errno));
     return -1;
   }
 
@@ -1489,8 +1418,7 @@ int fileio(int oprwv, char * filename, FILEFMT format,
   op = oprwv == FIO_READ_FOR_VERIFY? FIO_READ: oprwv;
   mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
-    msg_info("fileio(): memory type \"%s\" not configured for device \"%s\"\n",
-                    memtype, p->desc);
+    msg_info("fileio(): memory type %s not configured for device %s\n", memtype, p->desc);
     return -1;
   }
 
@@ -1529,23 +1457,21 @@ int fileio(int oprwv, char * filename, FILEFMT format,
     int format_detect;
 
     if (using_stdio) {
-      msg_info("%s: can't auto detect file format when using stdin/out.\n"
-                      "%s  Please specify a file format and try again.\n",
-                      progname, progbuf);
+      pmsg_info("can't auto detect file format when using stdin/out\n"
+        "%s  please specify a file format and try again\n", progbuf);
       return -1;
     }
 
     format_detect = fileio_fmt_autodetect(fname);
     if (format_detect < 0) {
-      msg_info("%s: can't determine file format for %s, specify explicitly\n",
-                      progname, fname);
+      pmsg_info("cannot determine file format for %s, specify explicitly\n", fname);
       return -1;
     }
     format = format_detect;
 
     if (quell_progress < 2) {
-      msg_notice("%s: %s file %s auto detected as %s\n",
-              progname, fio.iodesc, fname, fileio_fmtstr(format));
+      pmsg_notice("%s file %s auto detected as %s\n",
+        fio.iodesc, fname, fileio_fmtstr(format));
     }
   }
 
@@ -1568,8 +1494,7 @@ int fileio(int oprwv, char * filename, FILEFMT format,
     if (!using_stdio) {
       f = fopen(fname, fio.mode);
       if (f == NULL) {
-        msg_info("%s: can't open %s file %s: %s\n",
-                progname, fio.iodesc, fname, strerror(errno));
+        pmsg_info("can't open %s file %s: %s\n", fio.iodesc, fname, strerror(errno));
         return -1;
       }
     }
@@ -1593,9 +1518,7 @@ int fileio(int oprwv, char * filename, FILEFMT format,
 #ifdef HAVE_LIBELF
       rc = fileio_elf(&fio, fname, f, mem, p, size);
 #else
-      msg_info("%s: can't handle ELF file %s, "
-                      "ELF file support was not compiled in\n",
-                      progname, fname);
+      pmsg_info("can't handle ELF file %s, ELF file support was not compiled in\n", fname);
       rc = -1;
 #endif
       break;
@@ -1612,8 +1535,7 @@ int fileio(int oprwv, char * filename, FILEFMT format,
       break;
 
     default:
-      msg_info("%s: invalid %s file format: %d\n",
-              progname, fio.iodesc, format);
+      pmsg_info("invalid %s file format: %d\n", fio.iodesc, format);
       return -1;
   }
 

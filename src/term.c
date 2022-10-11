@@ -1360,7 +1360,7 @@ static void update_progress_no_tty(int percent, double etime, const char *hdr, i
       msg_info(finish >= 0? "#": "-");
 
     if(percent == 100) {
-      msg_info(" | %d%% %0.2fs", etime, finish >= 0? 100: last);
+      msg_info(" | %d%% %0.2fs", finish >= 0? 100: last, etime);
       if(finish)
         msg_info("\n\n");
       done = 1;

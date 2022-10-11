@@ -220,7 +220,7 @@ PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
 
 
 static void pgm_default(void) {
-  msg_info("%s: programmer operation not supported\n", progname);
+  pmsg_info("programmer operation not supported\n");
 }
 
 

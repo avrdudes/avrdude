@@ -60,7 +60,7 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
                              multiline messages */
 
-int avrdude_message(const int msglvl, const char *format, ...)
+int avrdude_message(int msglvl, const char *format, ...)
 {
     int rc = 0;
     va_list ap;
@@ -68,6 +68,30 @@ int avrdude_message(const int msglvl, const char *format, ...)
         va_start(ap, format);
         rc = vfprintf(stderr, format, ap);
         va_end(ap);
+    }
+    return rc;
+}
+
+int avrdude_message2(int msgmode, int msglvl, const char *format, ...) {
+    int rc = 0;
+    va_list ap;
+
+    if(msgmode & MSG2_FLUSH) {
+        fflush(stdout);
+        fflush(stderr);
+    }
+ 
+    if (verbose >= msglvl) {
+        if(msgmode & MSG2_PROGNAME)
+          fprintf(stderr, "%s: ", progname);
+        va_start(ap, format);
+        rc = vfprintf(stderr, format, ap);
+        va_end(ap);
+    }
+
+    if(msgmode & MSG2_FLUSH) {
+        fflush(stdout);
+        fflush(stderr);
     }
     return rc;
 }
@@ -105,31 +129,31 @@ static void usage(void)
   msg_info(
  "Usage: %s [options]\n"
  "Options:\n"
- "  -p <partno>                Required. Specify AVR device.\n"
- "  -b <baudrate>              Override RS-232 baud rate.\n"
- "  -B <bitclock>              Specify JTAG/STK500v2 bit clock period (us).\n"
- "  -C <config-file>           Specify location of configuration file.\n"
- "  -c <programmer>            Specify programmer type.\n"
- "  -A                         Disable trailing-0xff removal from file and AVR read.\n"
- "  -D                         Disable auto erase for flash memory; implies -A.\n"
+ "  -p <partno>                Specify AVR device\n"
+ "  -b <baudrate>              Override RS-232 baud rate\n"
+ "  -B <bitclock>              Specify JTAG/STK500v2 bit clock period (us)\n"
+ "  -C <config-file>           Specify location of configuration file\n"
+ "  -c <programmer>            Specify programmer type\n"
+ "  -A                         Disable trailing-0xff removal from file and AVR read\n"
+ "  -D                         Disable auto erase for flash memory; implies -A\n"
  "  -i <delay>                 ISP Clock Delay [in microseconds]\n"
- "  -P <port>                  Specify connection port.\n"
- "  -F                         Override invalid signature check.\n"
- "  -e                         Perform a chip erase.\n"
- "  -O                         Perform RC oscillator calibration (see AVR053). \n"
+ "  -P <port>                  Specify connection port\n"
+ "  -F                         Override invalid signature check\n"
+ "  -e                         Perform a chip erase\n"
+ "  -O                         Perform RC oscillator calibration (see AVR053)\n"
  "  -U <memtype>:r|w|v:<filename>[:format]\n"
- "                             Memory operation specification.\n"
+ "                             Memory operation specification\n"
  "                             Multiple -U options are allowed, each request\n"
- "                             is performed in the order specified.\n"
- "  -n                         Do not write anything to the device.\n"
- "  -V                         Do not verify.\n"
- "  -t                         Enter terminal mode.\n"
- "  -E <exitspec>[,<exitspec>] List programmer exit specifications.\n"
- "  -x <extended_param>        Pass <extended_param> to programmer.\n"
- "  -v                         Verbose output. -v -v for more.\n"
- "  -q                         Quell progress output. -q -q for less.\n"
- "  -l logfile                 Use logfile rather than stderr for diagnostics.\n"
- "  -?                         Display this usage.\n"
+ "                             is performed in the order specified\n"
+ "  -n                         Do not write anything to the device\n"
+ "  -V                         Do not verify\n"
+ "  -t                         Enter terminal mode\n"
+ "  -E <exitspec>[,<exitspec>] List programmer exit specifications\n"
+ "  -x <extended_param>        Pass <extended_param> to programmer\n"
+ "  -v                         Verbose output; -v -v for more\n"
+ "  -q                         Quell progress output; -q -q for less\n"
+ "  -l logfile                 Use logfile rather than stderr for diagnostics\n"
+ "  -?                         Display this usage\n"
  "\navrdude version %s, URL: <https://github.com/avrdudes/avrdude>\n",
     progname, version);
 }
@@ -348,12 +372,13 @@ static int dev_opt(char *str) {
 
 
 static void exit_programmer_not_found(const char *programmer) {
+  msg_info("\n");
   if(programmer && *programmer)
-    msg_info("\n%s: cannot find programmer id %s\n", progname, programmer);
+    pmsg_info("cannot find programmer id %s\n", programmer);
   else
-    msg_info("\n%s: no programmer has been specified on the command line "
+    pmsg_info("no programmer has been specified on the command line "
       "or in the\n%sconfig file; specify one using the -c option and try again\n",
-        progname, progbuf);
+        progbuf);
 
   msg_info("\nValid programmers are:\n");
   list_programmers(stderr, "  ", programmers, ~0);
@@ -363,10 +388,11 @@ static void exit_programmer_not_found(const char *programmer) {
 }
 
 static void exit_part_not_found(const char *partdesc) {
+  msg_info("\n");
   if(partdesc && *partdesc)
-    msg_info("\n%s: AVR part %s not found\n", progname, partdesc);
+    pmsg_info("AVR part %s not found\n", partdesc);
   else
-    msg_info("\n%s: no AVR part has been specified; use -p part\n", progname);
+    pmsg_info("no AVR part has been specified; use -p part\n");
 
   msg_info("\nValid parts are:\n");
   list_parts(stderr, "  ", part_list, ~0);
@@ -437,7 +463,8 @@ int main(int argc, char * argv [])
 
 #if defined (WIN32)
   /* take care of backslash as dir sep in W32 */
-  if (!progname) progname = strrchr(argv[0],'\\');
+  if (!progname)
+    progname = strrchr(argv[0],'\\');
 #endif /* WIN32 */
 
   if (progname)
@@ -457,19 +484,19 @@ int main(int argc, char * argv [])
 
   updates = lcreat(NULL, 0);
   if (updates == NULL) {
-    msg_info("%s: cannot initialize updater list\n", progname);
+    pmsg_info("cannot initialize updater list\n");
     exit(1);
   }
 
   extended_params = lcreat(NULL, 0);
   if (extended_params == NULL) {
-    msg_info("%s: cannot initialize extended parameter list\n", progname);
+    pmsg_info("cannot initialize extended parameter list\n");
     exit(1);
   }
 
   additional_config_files = lcreat(NULL, 0);
   if (additional_config_files == NULL) {
-    msg_info("%s: cannot initialize additional config files list\n", progname);
+    pmsg_info("cannot initialize additional config files list\n");
     exit(1);
   }
 
@@ -514,8 +541,7 @@ int main(int argc, char * argv [])
       case 'b': /* override default programmer baud rate */
         baudrate = strtol(optarg, &e, 0);
         if ((e == optarg) || (*e != 0)) {
-          msg_info("%s: invalid baud rate specified '%s'\n",
-                  progname, optarg);
+          pmsg_info("invalid baud rate specified '%s'\n", optarg);
           exit(1);
         }
         break;
@@ -560,12 +586,10 @@ int main(int argc, char * argv [])
 	    break;
 	  }
 	  if (bitclock == 0.0)
-	    msg_info("%s: invalid bit clock unit of measure '%s'\n",
-			    progname, e);
+	    pmsg_info("invalid bit clock unit of measure '%s'\n", e);
 	}
 	if ((e == optarg) || bitclock == 0.0) {
-	  msg_info("%s: invalid bit clock period specified '%s'\n",
-                  progname, optarg);
+	  pmsg_info("invalid bit clock period specified '%s'\n", optarg);
           exit(1);
         }
         break;
@@ -573,8 +597,7 @@ int main(int argc, char * argv [])
       case 'i':	/* specify isp clock delay */
 	ispdelay = strtol(optarg, &e,10);
 	if ((e == optarg) || (*e != 0) || ispdelay == 0) {
-	  msg_info("%s: invalid isp clock delay specified '%s'\n",
-                  progname, optarg);
+	  pmsg_info("invalid isp clock delay specified '%s'\n", optarg);
           exit(1);
         }
         break;
@@ -643,15 +666,13 @@ int main(int argc, char * argv [])
 
       case 's':
       case 'u':
-        msg_info("%s: \"safemode\" feature no longer supported\n",
-                progname);
+        pmsg_info("\"safemode\" feature no longer supported\n");
         break;
 
       case 'U':
         upd = parse_op(optarg);
         if (upd == NULL) {
-          msg_info("%s: error parsing update operation '%s'\n",
-                  progname, optarg);
+          pmsg_info("error parsing update operation '%s'\n", optarg);
           exit(1);
         }
         ladd(updates, upd);
@@ -670,13 +691,11 @@ int main(int argc, char * argv [])
         break;
 
       case 'y':
-        msg_info("%s: erase cycle counter no longer supported\n",
-                progname);
+        pmsg_info("erase cycle counter no longer supported\n");
         break;
 
       case 'Y':
-        msg_info("%s: erase cycle counter no longer supported\n",
-                progname);
+        pmsg_info("erase cycle counter no longer supported\n");
         break;
 
       case '?': /* help */
@@ -685,7 +704,7 @@ int main(int argc, char * argv [])
         break;
 
       default:
-        msg_info("%s: invalid option -%c\n\n", progname, ch);
+        pmsg_info("invalid option -%c\n\n", ch);
         usage();
         exit(1);
         break;
@@ -697,7 +716,7 @@ int main(int argc, char * argv [])
     FILE *newstderr = freopen(logfile, "w", stderr);
     if (newstderr == NULL) {
       /* Help!  There's no stderr to complain to anymore now. */
-      printf("Cannot create logfile \"%s\": %s\n",
+      printf("Cannot create logfile %s: %s\n",
 	     logfile, strerror(errno));
       return 1;
     }
@@ -830,19 +849,17 @@ int main(int argc, char * argv [])
                     "%sCopyright (c) Brian Dean, http://www.bdmicro.com/\n"
                     "%sCopyright (c) Joerg Wunsch\n\n",
                     progname, version, progbuf, progbuf);
-  msg_notice("%sSystem wide configuration file is \"%s\"\n",
+  msg_notice("%sSystem wide configuration file is %s\n",
             progbuf, sys_config);
 
   rc = read_config(sys_config);
   if (rc) {
-    msg_info("%s: error reading system wide configuration file \"%s\"\n",
-                    progname, sys_config);
+    pmsg_info("error reading system wide configuration file %s\n", sys_config);
     exit(1);
   }
 
   if (usr_config[0] != 0) {
-    msg_notice("%sUser configuration file is \"%s\"\n",
-              progbuf, usr_config);
+    msg_notice("%suser configuration file is %s\n", progbuf, usr_config);
 
     rc = stat(usr_config, &sb);
     if ((rc < 0) || ((sb.st_mode & S_IFREG) == 0)) {
@@ -853,8 +870,7 @@ int main(int argc, char * argv [])
     else {
       rc = read_config(usr_config);
       if (rc) {
-        msg_info("%s: error reading user configuration file \"%s\"\n",
-                progname, usr_config);
+        pmsg_info("error reading user configuration file %s\n", usr_config);
         exit(1);
       }
     }
@@ -866,13 +882,11 @@ int main(int argc, char * argv [])
 
     for (ln1=lfirst(additional_config_files); ln1; ln1=lnext(ln1)) {
       p = ldata(ln1);
-      msg_notice("%sAdditional configuration file is \"%s\"\n",
-                      progbuf, p);
+      msg_notice("%sadditional configuration file is %s\n", progbuf, p);
 
       rc = read_config(p);
       if (rc) {
-        msg_info("%s: error reading additional configuration file \"%s\"\n",
-                        progname, p);
+        pmsg_info("error reading additional configuration file %s\n", p);
         exit(1);
       }
     }
@@ -898,8 +912,8 @@ int main(int argc, char * argv [])
       PROGRAMMER *pgm = ldata(ln2);
       int pm = pgm->prog_modes & p->prog_modes;
       if(pm & (pm-1))
-        msg_info("%s warning: %s and %s share multiple modes (%s)\n",
-          progname, pgm->id? ldata(lfirst(pgm->id)): "???", p->desc, via_prog_modes(pm));
+        pmsg_warning("%s and %s share multiple modes (%s)\n",
+          pgm->id? (char *) ldata(lfirst(pgm->id)): "???", p->desc, via_prog_modes(pm));
     }
   }
 
@@ -969,13 +983,10 @@ int main(int argc, char * argv [])
 
   if (lsize(extended_params) > 0) {
     if (pgm->parseextparams == NULL) {
-      msg_info("%s: WARNING: Programmer doesn't support extended parameters,"
-                      " -x option(s) ignored\n",
-                      progname);
+      pmsg_info("programmer doesn't support extended parameters, -x option(s) ignored\n");
     } else {
       if (pgm->parseextparams(pgm, extended_params) < 0) {
-        msg_info("%s: Error parsing extended parameter list\n",
-                        progname);
+        pmsg_info("error parsing extended parameter list\n");
         exit(1);
       }
     }
@@ -1014,8 +1025,7 @@ int main(int argc, char * argv [])
 
   if (exitspecs != NULL) {
     if (pgm->parseexitspecs == NULL) {
-      msg_info("%s: WARNING: -E option not supported by this programmer type\n",
-                      progname);
+      pmsg_warning("-E option not supported by this programmer type\n");
       exitspecs = NULL;
     }
     else if (pgm->parseexitspecs(pgm, exitspecs) < 0) {
@@ -1042,10 +1052,9 @@ int main(int argc, char * argv [])
     upd = ldata(ln);
     if (upd->memtype == NULL) {
       const char *mtype = p->prog_modes & PM_PDI? "application": "flash";
-      msg_notice2("%s: defaulting memtype in -U %c:%s option to \"%s\"\n",
-                      progname,
-                      (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v',
-                      upd->filename, mtype);
+      pmsg_notice2("defaulting memtype in -U %c:%s option to \"%s\"\n",
+        (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v',
+        upd->filename, mtype);
       upd->memtype = cfg_strdup("main()", mtype);
     }
 
@@ -1095,9 +1104,7 @@ int main(int argc, char * argv [])
 
   rc = pgm->open(pgm, port);
   if (rc < 0) {
-    msg_info(
-                    "%s: opening programmer \"%s\" on port \"%s\" failed\n",
-                    progname, programmer, port);
+    pmsg_info("opening programmer %s on port %s failed\n", programmer, port);
     exitrc = 1;
     pgm->ppidata = 0; /* clear all bits at exit */
     goto main_exit;
@@ -1110,16 +1117,14 @@ int main(int argc, char * argv [])
      * as outlined in appnote AVR053
      */
     if (pgm->perform_osccal == 0) {
-      msg_info("%s: programmer does not support RC oscillator calibration\n",
-                      progname);
+      pmsg_info("programmer does not support RC oscillator calibration\n");
       exitrc = 1;
     } else {
-      msg_info("%s: performing RC oscillator calibration\n", progname);
+      pmsg_info("performing RC oscillator calibration\n");
       exitrc = pgm->perform_osccal(pgm);
     }
     if (exitrc == 0 && quell_progress < 2) {
-      msg_info("%s: calibration value is now stored in EEPROM at address 0\n",
-                      progname);
+      pmsg_info("calibration value is now stored in EEPROM at address 0\n");
     }
     goto main_exit;
   }
@@ -1154,12 +1159,10 @@ int main(int argc, char * argv [])
    */
   init_ok = (rc = pgm->initialize(pgm, p)) >= 0;
   if (!init_ok) {
-    msg_info("%s: initialization failed, rc=%d\n", progname, rc);
+    pmsg_info("initialization failed, rc=%d\n", rc);
     if (!ovsigck) {
-      msg_info("%sDouble check connections and try again, "
-              "or use -F to override\n"
-              "%sthis check.\n\n",
-              progbuf, progbuf);
+      msg_info("%sdouble check connections and try again or use -F to override\n"
+        "%sthis check\n\n", progbuf, progbuf);
       exitrc = 1;
       goto main_exit;
     }
@@ -1169,8 +1172,7 @@ int main(int argc, char * argv [])
   pgm->rdy_led(pgm, ON);
 
   if (quell_progress < 2) {
-    msg_info("%s: AVR device initialized and ready to accept instructions\n",
-                    progname);
+    pmsg_info("AVR device initialized and ready to accept instructions\n");
   }
 
   /*
@@ -1194,17 +1196,14 @@ int main(int argc, char * argv [])
              // Read SIB and compare FamilyID
              char sib[AVR_SIBLEN + 1];
              pgm->read_sib(pgm, p, sib);
-             msg_notice("%s: System Information Block: \"%s\"\n",
-                             progname, sib);
+             pmsg_notice("System Information Block: %s\n", sib);
             if (quell_progress < 2)
-              msg_info("%s: Received FamilyID: \"%.*s\"\n", progname, AVR_FAMILYIDLEN, sib);
+              pmsg_info("Received FamilyID: \"%.*s\"\n", AVR_FAMILYIDLEN, sib);
 
             if (strncmp(p->family_id, sib, AVR_FAMILYIDLEN)) {
-              msg_info("%s: Expected FamilyID: \"%s\"\n", progname, p->family_id);
+              pmsg_info("Expected FamilyID: \"%s\"\n", p->family_id);
               if (!ovsigck) {
-                msg_info("%sDouble check chip, "
-                        "or use -F to override this check.\n",
-                        progbuf);
+                msg_info("%sdouble check chip or use -F to override this check\n", progbuf);
                 exitrc = 1;
                 goto main_exit;
               }
@@ -1213,35 +1212,31 @@ int main(int argc, char * argv [])
           if(erase) {
             erase = 0;
             if (uflags & UF_NOWRITE) {
-              msg_info("%s: conflicting -e and -n options specified, NOT erasing chip\n",
-                              progname);
+              pmsg_info("conflicting -e and -n options specified, NOT erasing chip\n");
             } else {
               if (quell_progress < 2)
-                msg_info("%s: erasing chip\n", progname);
+                pmsg_info("erasing chip\n");
               exitrc = avr_unlock(pgm, p);
               if(exitrc) goto main_exit;
               goto sig_again;
             }
           }
         }
-        msg_info("%s: error reading signature data, rc=%d\n",
-          progname, rc);
+        pmsg_info("error reading signature data, rc=%d\n", rc);
         exitrc = 1;
         goto main_exit;
       }
     }
 
     sig = avr_locate_mem(p, "signature");
-    if (sig == NULL) {
-      msg_info("%s: WARNING: signature data not defined for device \"%s\"\n",
-                      progname, p->desc);
-    }
+    if (sig == NULL)
+      pmsg_info("warning, signature data not defined for device %s\n", p->desc);
 
     if (sig != NULL) {
       int ff, zz;
 
       if (quell_progress < 2) {
-        msg_info("%s: Device signature = 0x", progname);
+        pmsg_info("device signature = 0x");
       }
       ff = zz = 1;
       for (i=0; i<sig->size; i++) {
@@ -1279,12 +1274,10 @@ int main(int argc, char * argv [])
         if (quell_progress < 2) {
             msg_info("\n");
         }
-        msg_info("%s: Yikes!  Invalid device signature.\n", progname);
+        pmsg_info("Yikes!  Invalid device signature.\n");
         if (!ovsigck) {
-          msg_info("%sDouble check connections and try again, "
-                  "or use -F to override\n"
-                  "%sthis check.\n\n",
-                  progbuf, progbuf);
+          msg_info("%sDouble check connections and try again, or use -F to override\n"
+            "%sthis check.\n\n", progbuf, progbuf);
           exitrc = 1;
           goto main_exit;
         }
@@ -1295,13 +1288,10 @@ int main(int argc, char * argv [])
       }
 
       if (!signature_matches) {
-        msg_info("%s: Expected signature for %s is %02X %02X %02X\n",
-                        progname, p->desc,
-                        p->signature[0], p->signature[1], p->signature[2]);
+        pmsg_info("Expected signature for %s is %02X %02X %02X\n", p->desc,
+          p->signature[0], p->signature[1], p->signature[2]);
         if (!ovsigck) {
-          msg_info("%sDouble check chip, "
-                  "or use -F to override this check.\n",
-                  progbuf);
+          msg_info("%sDouble check chip or use -F to override this check\n", progbuf);
           exitrc = 1;
           goto main_exit;
         }
@@ -1312,10 +1302,10 @@ int main(int argc, char * argv [])
   if (uflags & UF_AUTO_ERASE) {
     if ((p->prog_modes & PM_PDI) && pgm->page_erase && lsize(updates) > 0) {
       if (quell_progress < 2) {
-        msg_info("%s: NOTE: Programmer supports page erase for Xmega devices.\n"
-                        "%sEach page will be erased before programming it, but no chip erase is performed.\n"
-                        "%sTo disable page erases, specify the -D option; for a chip-erase, use the -e option.\n",
-                        progname, progbuf, progbuf);
+        pmsg_info("Note: programmer supports page erase for Xmega devices.\n"
+          "%sEach page will be erased before programming it, but no chip erase is performed.\n"
+          "%sTo disable page erases, specify the -D option; for a chip-erase, use the -e option.\n",
+          progbuf, progbuf);
       }
     } else {
       AVRMEM * m;
@@ -1330,10 +1320,8 @@ int main(int argc, char * argv [])
         if ((strcmp(m->desc, memname) == 0) && (upd->op == DEVICE_WRITE)) {
           erase = 1;
           if (quell_progress < 2) {
-            msg_info("%s: NOTE: \"%s\" memory has been specified, an erase cycle "
-                            "will be performed\n"
-                            "%sTo disable this feature, specify the -D option.\n",
-                            progname, memname, progbuf);
+            pmsg_info("Note: %s memory has been specified, an erase cycle will be performed\n"
+              "%sto disable this feature, specify the -D option\n", memname, progbuf);
           }
           break;
         }
@@ -1347,11 +1335,10 @@ int main(int argc, char * argv [])
      * before the chip can accept new programming
      */
     if (uflags & UF_NOWRITE) {
-      msg_info("%s: conflicting -e and -n options specified, NOT erasing chip\n",
-                      progname);
+      pmsg_info("conflicting -e and -n options specified, NOT erasing chip\n");
     } else {
       if (quell_progress < 2)
-      	msg_info("%s: erasing chip\n", progname);
+      	pmsg_info("erasing chip\n");
       exitrc = avr_chip_erase(pgm, p);
       if(exitrc) goto main_exit;
     }

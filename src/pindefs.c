@@ -271,41 +271,39 @@ int pins_check(const PROGRAMMER *const pgm, const struct pin_checklist_t *const 
     }
     if(invalid) {
       if(output) {
-        msg_info("%s: %s: Following pins are not valid pins for this function: %s\n",
-                        progname, avr_pin_name(pinname), pinmask_to_str(invalid_used));
-        msg_notice2("%s: %s: Valid pins for this function are: %s\n",
-                  progname, avr_pin_name(pinname), pinmask_to_str(valid_pins->mask));
+        pmsg_info("%s: Following pins are not valid pins for this function: %s\n",
+          avr_pin_name(pinname), pinmask_to_str(invalid_used));
+        pmsg_notice2("%s: Valid pins for this function are: %s\n",
+          avr_pin_name(pinname), pinmask_to_str(valid_pins->mask));
       }
       is_ok = false;
     }
     if(inverse) {
       if(output) {
-        msg_info("%s: %s: Following pins are not usable as inverse pins for this function: %s\n",
-                        progname, avr_pin_name(pinname), pinmask_to_str(inverse_used));
-        msg_notice2("%s: %s: Valid inverse pins for this function are: %s\n",
-                          progname, avr_pin_name(pinname), pinmask_to_str(valid_pins->inverse));
+        pmsg_info("%s: Following pins are not usable as inverse pins for this function: %s\n",
+          avr_pin_name(pinname), pinmask_to_str(inverse_used));
+        pmsg_notice2("%s: Valid inverse pins for this function are: %s\n",
+          avr_pin_name(pinname), pinmask_to_str(valid_pins->inverse));
       }
       is_ok = false;
     }
     if(used) {
       if(output) {
-        msg_info("%s: %s: Following pins are set for other functions too: %s\n",
-                        progname, avr_pin_name(pinname), pinmask_to_str(already_used));
+        pmsg_info("%s: Following pins are set for other functions too: %s\n",
+          avr_pin_name(pinname), pinmask_to_str(already_used));
         is_ok = false;
       }
     }
     if(!mandatory_used && is_mandatory && !invalid) {
       if(output) {
-        msg_info("%s: %s: Mandatory pin is not defined.\n",
-                        progname, avr_pin_name(pinname));
+        pmsg_info("%s: mandatory pin is not defined\n", avr_pin_name(pinname));
       }
       is_ok = false;
     }
     if(!is_ok) {
       rv = -1;
     } else if(output) {
-      msg_debug("%s: %s: Pin is ok.\n",
-                      progname, avr_pin_name(pinname));
+      pmsg_debug("%s: pin is OK\n", avr_pin_name(pinname));
     }
   }
   return rv;

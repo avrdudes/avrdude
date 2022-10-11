@@ -39,8 +39,7 @@
 #ifndef HAVE_LIBUSB
 
 struct dfu_dev *dfu_open(const char *port_name) {
-  msg_info("%s: Error: No USB support in this compile of avrdude\n",
-    progname);
+  pmsg_info("Error: No USB support in this compile of avrdude\n");
   return NULL;
 }
 
@@ -111,16 +110,14 @@ struct dfu_dev *dfu_open(const char *port_spec) {
    */
 
   if (strncmp(port_spec, "usb", 3) != 0) {
-    msg_info("%s: Error: "
-      "Invalid port specification \"%s\" for USB device\n",
-      progname, port_spec);
+    pmsg_info("invalid port specification %s for USB device\n", port_spec);
     return NULL;
   }
 
   if(':' == port_spec[3]) {
       bus_name = strdup(port_spec + 3 + 1);
       if (bus_name == NULL) {
-        msg_info("%s: Out of memory in strdup\n", progname);
+        pmsg_info("out of memory in strdup\n");
         return NULL;
       }
 
@@ -137,7 +134,7 @@ struct dfu_dev *dfu_open(const char *port_spec) {
 
   if (dfu == NULL)
   {
-    msg_info("%s: out of memory\n", progname);
+    pmsg_info("out of memory\n");
     free(bus_name);
     return NULL;
   }
@@ -171,9 +168,8 @@ int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid)
    */
 
   if (pid == 0 && dfu->dev_name == NULL) {
-    msg_info("%s: Error: No DFU support for part; "
-      "specify PID in config or USB address (via -P) to override.\n",
-      progname);
+    pmsg_info("no DFU support for part; "
+      "specify PID in config or USB address (via -P) to override\n");
     return -1;
   }
 
@@ -208,20 +204,19 @@ int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid)
      * why the match failed, and if we came across another DFU-capable part.
      */
 
-    msg_info("%s: Error: No matching USB device found\n", progname);
+    pmsg_info("no matching USB device found\n");
     return -1;
   }
 
   if(verbose)
-    msg_info("%s: Found VID=0x%04x PID=0x%04x at %s:%s\n",
-                    progname, found->descriptor.idVendor, found->descriptor.idProduct,
-                    found->bus->dirname, found->filename);
+    pmsg_info("found VID=0x%04x PID=0x%04x at %s:%s\n",
+      found->descriptor.idVendor, found->descriptor.idProduct,
+      found->bus->dirname, found->filename);
 
   dfu->dev_handle = usb_open(found);
 
   if (dfu->dev_handle == NULL) {
-    msg_info("%s: Error: USB device at %s:%s: %s\n",
-      progname, found->bus->dirname, found->filename, usb_strerror());
+    pmsg_info("error, USB device at %s:%s: %s\n", found->bus->dirname, found->filename, usb_strerror());
     return -1;
   }
 
@@ -271,37 +266,32 @@ int dfu_getstatus(struct dfu_dev *dfu, struct dfu_status *status)
 {
   int result;
 
-  msg_trace("%s: dfu_getstatus(): issuing control IN message\n",
-            progname);
+  pmsg_trace("dfu_getstatus(): issuing control IN message\n");
 
   result = usb_control_msg(dfu->dev_handle,
     0x80 | USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_GETSTATUS, 0, 0,
     (char*) status, sizeof(struct dfu_status), dfu->timeout);
 
   if (result < 0) {
-    msg_info("%s: Error: Failed to get DFU status: %s\n",
-      progname, usb_strerror());
+    pmsg_info("failed to get DFU status: %s\n", usb_strerror());
     return -1;
   }
 
   if (result < sizeof(struct dfu_status)) {
-    msg_info("%s: Error: Failed to get DFU status: %s\n",
-      progname, "short read");
+    pmsg_info("failed to get DFU status: %s\n", "short read");
     return -1;
   }
 
   if (result > sizeof(struct dfu_status)) {
-    msg_info("%s: Error: Oversize read (should not happen); "
-      "exiting\n", progname);
+    pmsg_info("oversize read (should not happen); exiting\n");
     exit(1);
   }
 
-  msg_trace("%s: dfu_getstatus(): bStatus 0x%02x, bwPollTimeout %d, bState 0x%02x, iString %d\n",
-                  progname,
-                  status->bStatus,
-                  status->bwPollTimeout[0] | (status->bwPollTimeout[1] << 8) | (status->bwPollTimeout[2] << 16),
-                  status->bState,
-                  status->iString);
+  pmsg_trace("dfu_getstatus(): bStatus 0x%02x, bwPollTimeout %d, bState 0x%02x, iString %d\n",
+    status->bStatus,
+    status->bwPollTimeout[0] | (status->bwPollTimeout[1] << 8) | (status->bwPollTimeout[2] << 16),
+    status->bState,
+    status->iString);
 
   return 0;
 }
@@ -310,16 +300,14 @@ int dfu_clrstatus(struct dfu_dev *dfu)
 {
   int result;
 
-  msg_trace("%s: dfu_clrstatus(): issuing control OUT message\n",
-                  progname);
+  pmsg_trace("dfu_clrstatus(): issuing control OUT message\n");
 
   result = usb_control_msg(dfu->dev_handle,
     USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_CLRSTATUS, 0, 0,
     NULL, 0, dfu->timeout);
 
   if (result < 0) {
-    msg_info("%s: Error: Failed to clear DFU status: %s\n",
-      progname, usb_strerror());
+    pmsg_info("failed to clear DFU status: %s\n", usb_strerror());
     return -1;
   }
 
@@ -330,16 +318,14 @@ int dfu_abort(struct dfu_dev *dfu)
 {
   int result;
 
-  msg_trace("%s: dfu_abort(): issuing control OUT message\n",
-                  progname);
+  pmsg_trace("dfu_abort(): issuing control OUT message\n");
 
   result = usb_control_msg(dfu->dev_handle,
     USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_ABORT, 0, 0,
     NULL, 0, dfu->timeout);
 
   if (result < 0) {
-    msg_info("%s: Error: Failed to reset DFU state: %s\n",
-      progname, usb_strerror());
+    pmsg_info("failed to reset DFU state: %s\n", usb_strerror());
     return -1;
   }
 
@@ -351,28 +337,25 @@ int dfu_dnload(struct dfu_dev *dfu, void *ptr, int size)
 {
   int result;
 
-  msg_trace("%s: dfu_dnload(): issuing control OUT message, wIndex = %d, ptr = %p, size = %d\n",
-                  progname, wIndex, ptr, size);
+  pmsg_trace("dfu_dnload(): issuing control OUT message, wIndex = %d, ptr = %p, size = %d\n",
+    wIndex, ptr, size);
 
   result = usb_control_msg(dfu->dev_handle,
     USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_DNLOAD, wIndex++, 0,
     ptr, size, dfu->timeout);
 
   if (result < 0) {
-    msg_info("%s: Error: DFU_DNLOAD failed: %s\n",
-      progname, usb_strerror());
+    pmsg_info("DFU_DNLOAD failed: %s\n", usb_strerror());
     return -1;
   }
 
   if (result < size) {
-    msg_info("%s: Error: DFU_DNLOAD failed: %s\n",
-      progname, "short write");
+    pmsg_info("DFU_DNLOAD failed: %s\n", "short write");
     return -1;
   }
 
   if (result > size) {
-    msg_info("%s: Error: Oversize write (should not happen); " \
-      "exiting\n", progname);
+    pmsg_info("oversize write (should not happen); exiting\n");
     exit(1);
   }
 
@@ -383,28 +366,25 @@ int dfu_upload(struct dfu_dev *dfu, void *ptr, int size)
 {
   int result;
 
-  msg_trace("%s: dfu_upload(): issuing control IN message, wIndex = %d, ptr = %p, size = %d\n",
-                  progname, wIndex, ptr, size);
+  pmsg_trace("dfu_upload(): issuing control IN message, wIndex = %d, ptr = %p, size = %d\n",
+    wIndex, ptr, size);
 
   result = usb_control_msg(dfu->dev_handle,
     0x80 | USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_UPLOAD, wIndex++, 0,
     ptr, size, dfu->timeout);
 
   if (result < 0) {
-    msg_info("%s: Error: DFU_UPLOAD failed: %s\n",
-      progname, usb_strerror());
+    pmsg_info("DFU_UPLOAD failed: %s\n", usb_strerror());
     return -1;
   }
 
   if (result < size) {
-    msg_info("%s: Error: DFU_UPLOAD failed: %s\n",
-      progname, "short read");
+    pmsg_info("DFU_UPLOAD failed: %s\n", "short read");
     return -1;
   }
 
   if (result > size) {
-    msg_info("%s: Error: Oversize read (should not happen); "
-      "exiting\n", progname);
+    pmsg_info("oversize read (should not happen); exiting\n");
     exit(1);
   }
 
@@ -450,15 +430,14 @@ char * get_usb_string(usb_dev_handle * dev_handle, int index) {
   result = usb_get_string_simple(dev_handle, index, buffer, sizeof(buffer)-1);
 
   if (result < 0) {
-    msg_info("%s: Warning: Failed to read USB device string %d: %s\n",
-      progname, index, usb_strerror());
+    pmsg_info("failed to read USB device string %d: %s\n", index, usb_strerror());
     return NULL;
   }
 
   str = malloc(result+1);
 
   if (str == NULL) {
-    msg_info("%s: Out of memory allocating a string\n", progname);
+    pmsg_info("out of memory allocating a string\n");
     return 0;
   }
 

@@ -68,8 +68,7 @@ static int ppi_shadow_access(const union filedescriptor *fdp, int reg,
       shadow_num = 2;
       break;
     default:
-      msg_info("%s: avr_set(): invalid register=%d\n",
-              progname, reg);
+      pmsg_info("avr_set(): invalid register=%d\n", reg);
       return -1;
       break;
   }
@@ -198,8 +197,7 @@ void ppi_open(const char *port, union filedescriptor *fdp) {
 
   fd = open(port, O_RDWR);
   if (fd < 0) {
-    msg_info("%s: can't open device \"%s\": %s\n",
-              progname, port, strerror(errno));
+    pmsg_info("cannot open port %s: %s\n", port, strerror(errno));
     fdp->ifd = -1;
     return;
   }

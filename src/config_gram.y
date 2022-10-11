@@ -1755,7 +1755,7 @@ static int parse_cmdbits(OPCODE * op, int opnum)
           op->bit[bitno].value = 0;
         }
         else {
-          yyerror("invalid bit specifier \"%s\"", s);
+          yyerror("invalid bit specifier %s", s);
           rv = -1;
           break;
         }

@@ -146,21 +146,21 @@ int updi_read_data(const PROGRAMMER *pgm, uint32_t address, uint8_t *buffer, uin
         # Do the read(s)
         return self.datalink.ld_ptr_inc(size)
 */
-  msg_debug("%s: Reading %d bytes from 0x%06X\n", progname, size, address);
+  pmsg_debug("reading %d bytes from 0x%06X\n", size, address);
 
   if (size > UPDI_MAX_REPEAT_SIZE) {
-    msg_debug("%s: Can't read that many bytes in one go\n", progname);
+    pmsg_debug("cannot read that many bytes in one go\n");
     return -1;
   }
 
   if (updi_link_st_ptr(pgm, address) < 0) {
-    msg_debug("%s: ST_PTR operation failed\n", progname);
+    pmsg_debug("ST_PTR operation failed\n");
     return -1;
   }
 
   if (size > 1) {
     if (updi_link_repeat(pgm, size) < 0) {
-      msg_debug("%s: Repeat operation failed\n", progname);
+      pmsg_debug("repeat operation failed\n");
       return -1;
     }
   }
@@ -200,21 +200,21 @@ int updi_write_data(const PROGRAMMER *pgm, uint32_t address, uint8_t *buffer, ui
   }
   if (size == 2) {
     if (updi_link_st(pgm, address, buffer[0]) < 0) {
-      msg_debug("%s: ST operation failed\n", progname);
+      pmsg_debug("ST operation failed\n");
       return -1;
     }
     return updi_link_st(pgm, address+1, buffer[1]);
   }
   if (size > UPDI_MAX_REPEAT_SIZE) {
-    msg_debug("%s: Invalid length\n", progname);
+    pmsg_debug("invalid length\n");
     return -1;
   }
   if (updi_link_st_ptr(pgm, address) < 0) {
-    msg_debug("%s: ST_PTR operation failed\n", progname);
+    pmsg_debug("ST_PTR operation failed\n");
     return -1;
   }
   if (updi_link_repeat(pgm, size) < 0) {
-    msg_debug("%s: Repeat operation failed\n", progname);
+    pmsg_debug("repeat operation failed\n");
     return -1;
   }
   return updi_link_st_ptr_inc(pgm, buffer, size);
@@ -245,21 +245,21 @@ int updi_read_data_words(const PROGRAMMER *pgm, uint32_t address, uint8_t *buffe
         # Do the read
         return self.datalink.ld_ptr_inc16(words)
 */
-  msg_debug("%s: Reading %d words from 0x%06X", progname, size, address);
+  pmsg_debug("reading %d words from 0x%06X", size, address);
 
   if (size > (UPDI_MAX_REPEAT_SIZE >> 1)) {
-    msg_debug("%s: Can't read that many words in one go\n", progname);
+    pmsg_debug("cannot read that many words in one go\n");
     return -1;
   }
 
   if (updi_link_st_ptr(pgm, address) < 0) {
-    msg_debug("%s: ST_PTR operation failed\n", progname);
+    pmsg_debug("ST_PTR operation failed\n");
     return -1;
   }
 
   if (size > 1) {
     if (updi_link_repeat(pgm, size) < 0) {
-      msg_debug("%s: Repeat operation failed\n", progname);
+      pmsg_debug("repeat operation failed\n");
       return -1;
     }
   }
@@ -295,11 +295,11 @@ int updi_write_data_words(const PROGRAMMER *pgm, uint32_t address, uint8_t *buff
     return updi_link_st16(pgm, address, buffer[0] + (buffer[1] << 8));
   }
   if (size > UPDI_MAX_REPEAT_SIZE << 1) {
-    msg_debug("%s: Invalid length\n", progname);
+    pmsg_debug("invalid length\n");
     return -1;
   }
   if (updi_link_st_ptr(pgm, address) < 0) {
-    msg_debug("%s: ST_PTR operation failed\n", progname);
+    pmsg_debug("ST_PTR operation failed\n");
     return -1;
   }
   return updi_link_st_ptr_inc16_RSD(pgm, buffer, size >> 1, -1);

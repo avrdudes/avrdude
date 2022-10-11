@@ -63,8 +63,7 @@ struct pdata
 static void butterfly_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    msg_info("%s: butterfly_setup(): Out of memory allocating private data\n",
-                    progname);
+    pmsg_info("butterfly_setup(): Out of memory allocating private data\n");
     exit(1);
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
@@ -85,8 +84,7 @@ static int butterfly_recv(const PROGRAMMER *pgm, char *buf, size_t len) {
 
   rv = serial_recv(&pgm->fd, (unsigned char *)buf, len);
   if (rv < 0) {
-    msg_info("%s: butterfly_recv(): programmer is not responding\n",
-                    progname);
+    pmsg_info("butterfly_recv(): programmer is not responding\n");
     return -1;
   }
   return 0;
@@ -103,8 +101,7 @@ static int butterfly_vfy_cmd_sent(const PROGRAMMER *pgm, char *errmsg) {
 
   butterfly_recv(pgm, &c, 1);
   if (c != '\r') {
-    msg_info("%s: error: programmer did not respond to command: %s\n",
-            progname, errmsg);
+    pmsg_info("error: programmer did not respond to command: %s\n", errmsg);
     return -1;
   }
   return 0;
@@ -278,10 +275,10 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   butterfly_send(pgm, "p", 1);
   butterfly_recv(pgm, &type, 1);
 
-  msg_info("Found programmer: Id = \"%s\"; type = %c\n", id, type);
+  msg_info("Found programmer: Id = %s; type = %c\n", id, type);
   msg_info("    Software Version = %c.%c; ", sw[0], sw[1]);
   if (hw[0]=='?') {
-    msg_info("No Hardware Version given.\n");
+    msg_info("no hardware version given\n");
   } else {
     msg_info("Hardware Version = %c.%c\n", hw[0], hw[1]);
   };
@@ -291,22 +288,22 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   butterfly_send(pgm, "a", 1);
   butterfly_recv(pgm, &PDATA(pgm)->has_auto_incr_addr, 1);
   if (PDATA(pgm)->has_auto_incr_addr == 'Y')
-      msg_info("Programmer supports auto addr increment.\n");
+      msg_info("programmer supports auto addr increment\n");
 
   /* Check support for buffered memory access, abort if not available */
 
   butterfly_send(pgm, "b", 1);
   butterfly_recv(pgm, &c, 1);
   if (c != 'Y') {
-    msg_info("%s: error: buffered memory access not supported. Maybe it isn't\n"\
-                    "a butterfly/AVR109 but a AVR910 device?\n", progname);
+    pmsg_info("error: buffered memory access not supported. Maybe it isn't\n"\
+      "a butterfly/AVR109 but a AVR910 device?\n");
     return -1;
   };
   butterfly_recv(pgm, &c, 1);
   PDATA(pgm)->buffersize = (unsigned int)(unsigned char)c<<8;
   butterfly_recv(pgm, &c, 1);
   PDATA(pgm)->buffersize += (unsigned int)(unsigned char)c;
-  msg_info("Programmer supports buffered memory access with buffersize=%i bytes.\n",
+  msg_info("programmer supports buffered memory access with buffersize=%i bytes\n",
                   PDATA(pgm)->buffersize);
 
   /* Get list of devices that the programmer supports. */
@@ -341,8 +338,7 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       return -1;
 
   if (verbose)
-    msg_info("%s: devcode selected: 0x%02x\n",
-                    progname, (unsigned)buf[1]);
+    pmsg_info("devcode selected: 0x%02x\n", (unsigned) buf[1]);
 
   butterfly_enter_prog_mode(pgm);
   butterfly_drain(pgm, 0);
@@ -545,8 +541,7 @@ static int butterfly_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const A
     return -1;            /* not supported */
   if (strcmp(m->desc, "eeprom") == 0)
     return 0;             /* nothing to do */
-  msg_info("%s: butterfly_page_erase() called on memory type \"%s\"\n",
-                  progname, m->desc);
+  pmsg_info("butterfly_page_erase() called on memory type %s\n", m->desc);
   return -1;
 }
 
@@ -697,7 +692,7 @@ static int butterfly_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, con
   unsigned char tmp;
 
   if (m->size < 3) {
-    msg_info("%s: memsize too small for sig byte read", progname);
+    pmsg_info("memsize too small for sig byte read");
     return -1;
   }
 

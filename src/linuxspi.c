@@ -133,8 +133,7 @@ static int linuxspi_reset_mcu(const PROGRAMMER *pgm, bool active) {
 #endif
     if (ret == -1) {
         ret = -errno;
-        msg_info("%s: unable to set GPIO line %d value. %s\n",
-            progname, pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE, strerror(errno));
+        pmsg_info("unable to set GPIO line %d value. %s\n", pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE, strerror(errno));
         return ret;
     }
 
@@ -143,7 +142,7 @@ static int linuxspi_reset_mcu(const PROGRAMMER *pgm, bool active) {
 
 static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     const char *port_error =
-      "%s: error, unknown port specification; "
+      "error, unknown port specification; "
       "please use the format /dev/spidev:/dev/gpiochip[:resetno]\n";
     char port_default[] = "/dev/spidev0.0:/dev/gpiochip0";
     char *spidev, *gpiochip, *reset_pin;
@@ -157,13 +156,13 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
 
     spidev = strtok(port, ":");
     if (!spidev) {
-        msg_info(port_error, progname);
+        pmsg_info(port_error);
         return -1;
     }
 
     gpiochip = strtok(NULL, ":");
     if (!gpiochip) {
-        msg_info(port_error, progname);
+        pmsg_info(port_error);
         return -1;
     }
 
@@ -187,10 +186,9 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     ret = ioctl(fd_spidev, SPI_IOC_WR_MODE32, &mode);
     if (ret == -1) {
         int ioctl_errno = errno;
-        msg_info("%s: unable to set SPI mode %02X on %s. %s\n",
-            progname, mode, spidev, strerror(errno));
+        pmsg_info("unable to set SPI mode %02X on %s. %s\n", mode, spidev, strerror(errno));
         if(ioctl_errno == EINVAL && !PDATA(pgm)->disable_no_cs)
-            msg_info("%s: try -x disable_no_cs\n", progname);
+            pmsg_info("try -x disable_no_cs\n");
         goto close_spidev;
     }
     fd_gpiochip = open(gpiochip, 0);
@@ -231,8 +229,7 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
 #endif
     if (ret == -1) {
         ret = -errno;
-        msg_info("%s: unable to get GPIO line %d. %s\n",
-            progname, pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE, strerror(errno));
+        pmsg_info("unable to get GPIO line %d. %s\n", pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE, strerror(errno));
         goto close_gpiochip;
     }
 
@@ -241,14 +238,11 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
         goto close_out;
 
     if (pgm->baudrate != 0) {
-        msg_info(
-            "%s: obsolete use of -b <clock> option for bit clock; use -B <clock>\n",
-            progname);
+        pmsg_info("obsolete use of -b <clock> option for bit clock; use -B <clock>\n");
       pgm->bitclock = 1.0 / pgm->baudrate;
     }
     if (pgm->bitclock == 0) {
-        msg_notice(
-            "%s: defaulting bit clock to 200 kHz\n", progname);
+        pmsg_notice("defaulting bit clock to 200 kHz\n");
         pgm->bitclock = 5E-6; // 200 kHz - 5 µs
     }
 
@@ -296,7 +290,7 @@ static int linuxspi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
     if (p->prog_modes & PM_TPI) {
         /* We do not support TPI. This is a dedicated SPI thing */
-        msg_info("%s: error, programmer " LINUXSPI " does not support TPI\n", progname);
+        pmsg_info("error, programmer " LINUXSPI " does not support TPI\n");
         return -1;
     }
 
@@ -310,7 +304,7 @@ static int linuxspi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     } while(tries++ < 65);
 
     if (ret)
-        msg_info("%s: error, AVR device not responding\n", progname);
+        pmsg_info("error, AVR device not responding\n");
 
     return ret;
 }
@@ -324,7 +318,7 @@ static int linuxspi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned char cmd[4], res[4];
 
     if (!p->op[AVR_OP_PGM_ENABLE]) {
-        msg_info("%s: error, program enable instruction not defined for part %s\n", progname, p->desc);
+        pmsg_info("error, program enable instruction not defined for part %s\n", p->desc);
         return -1;
     }
 
@@ -367,7 +361,7 @@ static int linuxspi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned char cmd[4], res[4];
 
     if (!p->op[AVR_OP_CHIP_ERASE]) {
-        msg_info("%s: error, chip erase instruction not defined for part %s\n", progname, p->desc);
+        pmsg_info("error, chip erase instruction not defined for part %s\n", p->desc);
         return -1;
     }
 
@@ -415,8 +409,7 @@ static int linuxspi_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
       continue;
     }
 
-    msg_info("%s: linuxspi_parseextparams(): "
-        "invalid extended parameter '%s'\n", progname, extended_param);
+    pmsg_info("linuxspi_parseextparams(): invalid extended parameter '%s'\n", extended_param);
     rc = -1;
   }
 
@@ -453,7 +446,7 @@ const char linuxspi_desc[] = "SPI using Linux spidev driver";
 #else /* !HAVE_LINUXSPI */
 
 void linuxspi_initpgm(PROGRAMMER *pgm) {
-  msg_info("%s: Linux SPI driver not available in this configuration\n", progname);
+  pmsg_info("Linux SPI driver not available in this configuration\n");
 }
 
 const char linuxspi_desc[] = "SPI using Linux spidev driver (not available)";

@@ -73,8 +73,7 @@ static int usbOpenDevice(union filedescriptor *fdp, int vendor, const char *vend
     dev = hid_open(vendor, product, NULL);
     if (dev == NULL)
     {
-      msg_info("%s: usbOpenDevice(): No device found\n",
-		    progname);
+      pmsg_info("usbOpenDevice(): No device found\n");
       return USB_ERROR_NOTFOUND;
     }
     fdp->usb.handle = dev;
@@ -113,7 +112,7 @@ static int usbSetReport(const union filedescriptor *fdp, int reportType, char *b
 
   if(bytesSent != len){
       if(bytesSent < 0)
-          msg_info("Error sending message: %s\n", hid_error(udev));
+          msg_info("Error sending message: %ls\n", hid_error(udev));
       return USB_ERROR_IO;
   }
   return USB_ERROR_NONE;
@@ -138,7 +137,7 @@ static int usbGetReport(const union filedescriptor *fdp, int reportType, int rep
       break;
   }
   if(bytesReceived < 0){
-      msg_info("Error sending message: %s\n", hid_error(udev));
+      msg_info("Error sending message: %ls\n", hid_error(udev));
       return USB_ERROR_IO;
   }
   *len = bytesReceived;
@@ -228,7 +227,7 @@ static int avrdoper_open(const char *port, union pinfo pinfo, union filedescript
 
     rval = usbOpenDevice(fdp, USB_VENDOR_ID, vname, USB_PRODUCT_ID, devname, 1);
     if(rval != 0){
-        msg_info("%s: avrdoper_open(): %s\n", progname, usbErrorText(rval));
+        pmsg_info("avrdoper_open(): %s\n", usbErrorText(rval));
         return -1;
     }
     return 0;
@@ -270,7 +269,7 @@ static int avrdoper_send(const union filedescriptor *fdp, const unsigned char *b
         rval = usbSetReport(fdp, USB_HID_REPORT_TYPE_FEATURE, (char *)buffer,
 			    reportDataSizes[lenIndex] + 2);
         if(rval != 0){
-            msg_info("%s: avrdoper_send(): %s\n", progname, usbErrorText(rval));
+            pmsg_info("avrdoper_send(): %s\n", usbErrorText(rval));
             return -1;
         }
         buflen -= thisLen;
@@ -295,7 +294,7 @@ static int avrdoperFillBuffer(const union filedescriptor *fdp) {
         usbErr = usbGetReport(fdp, USB_HID_REPORT_TYPE_FEATURE, lenIndex + 1,
 			      (char *)buffer, &len);
         if(usbErr != 0){
-            msg_info("%s: avrdoperFillBuffer(): %s\n", progname, usbErrorText(usbErr));
+            pmsg_info("avrdoperFillBuffer(): %s\n", usbErrorText(usbErr));
             return -1;
         }
         msg_trace("Received %d bytes data chunk of total %d\n", len - 2, buffer[1]);
@@ -304,8 +303,7 @@ static int avrdoperFillBuffer(const union filedescriptor *fdp) {
         if(len > buffer[1])             /* cut away padding */
             len = buffer[1];
         if(avrdoperRxLength + len > sizeof(avrdoperRxBuffer)){
-            msg_info("%s: avrdoperFillBuffer(): internal error: buffer overflow\n",
-                            progname);
+            pmsg_info("avrdoperFillBuffer(): internal error: buffer overflow\n");
             return -1;
         }
         memcpy(avrdoperRxBuffer + avrdoperRxLength, buffer + 2, len);
@@ -352,7 +350,7 @@ static int avrdoper_drain(const union filedescriptor *fdp, int display)
 
 static int avrdoper_set_dtr_rts(const union filedescriptor *fdp, int is_on)
 {
-	msg_info("%s: AVR-Doper doesn't support DTR/RTS setting\n", progname);
+	pmsg_info("AVR-Doper doesn't support DTR/RTS setting\n");
     return -1;
 }
 

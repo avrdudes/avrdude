@@ -102,7 +102,7 @@ int init_config(void)
 void *cfg_malloc(const char *funcname, size_t n) {
   void *ret = malloc(n);
   if(!ret) {
-    msg_info("%s: out of memory in %s (needed %lu bytes)\n", progname, funcname, (unsigned long) n);
+    pmsg_info("out of memory in %s (needed %lu bytes)\n", funcname, (unsigned long) n);
     exit(1);
   }
   memset(ret, 0, n);
@@ -113,7 +113,7 @@ void *cfg_realloc(const char *funcname, void *p, size_t n) {
   void *ret;
 
   if(!(ret = p? realloc(p, n): calloc(1, n))) {
-    msg_info("%s: out of memory in %s (needed %lu bytes)\n", progname, funcname, (unsigned long) n);
+    pmsg_info("out of memory in %s (needed %lu bytes)\n", funcname, (unsigned long) n);
     exit(1);
   }
 
@@ -124,7 +124,7 @@ void *cfg_realloc(const char *funcname, void *p, size_t n) {
 char *cfg_strdup(const char *funcname, const char *s) {
   char *ret = strdup(s);
   if(!ret) {
-    msg_info("%s: out of memory in %s\n", progname, funcname);
+    pmsg_info("out of memory in %s\n", funcname);
     exit(1);
   }
   return ret;
@@ -146,7 +146,7 @@ int yyerror(char * errmsg, ...)
   va_start(args, errmsg);
 
   vsnprintf(message, sizeof(message), errmsg, args);
-  msg_info("%s: error at %s:%d: %s\n", progname, cfg_infile, cfg_lineno, message);
+  pmsg_info("error at %s:%d: %s\n", cfg_infile, cfg_lineno, message);
 
   va_end(args);
 
@@ -163,7 +163,7 @@ int yywarning(char * errmsg, ...)
   va_start(args, errmsg);
 
   vsnprintf(message, sizeof(message), errmsg, args);
-  msg_info("%s: warning at %s:%d: %s\n", progname, cfg_infile, cfg_lineno, message);
+  pmsg_info("warning at %s:%d: %s\n", cfg_infile, cfg_lineno, message);
 
   va_end(args);
 
@@ -240,7 +240,7 @@ TOKEN *new_hexnumber(const char *text) {
   tkn->value.type   = V_NUM;
   tkn->value.number = strtoul(text, &e, 16);
   if ((e == text) || (*e != 0)) {
-    yyerror("can't scan hex number \"%s\"", text);
+    yyerror("cannot scan hex number %s", text);
     free_token(tkn);
     return NULL;
   }
@@ -335,7 +335,7 @@ void print_token(TOKEN * tkn)
 void pyytext(void)
 {
 #if DEBUG
-  msg_info("TOKEN: \"%s\"\n", yytext);
+  msg_info("TOKEN: %s\n", yytext);
 #endif
 }
 
@@ -351,15 +351,13 @@ int read_config(const char * file)
   int r;
 
   if(!(cfg_infile = realpath(file, NULL))) {
-    msg_info("%s: can't determine realpath() of config file \"%s\": %s\n",
-            progname, file, strerror(errno));
+    pmsg_info("cannot determine realpath() of config file %s: %s\n", file, strerror(errno));
     return -1;
   }
 
   f = fopen(cfg_infile, "r");
   if (f == NULL) {
-    msg_info("%s: can't open config file \"%s\": %s\n",
-            progname, cfg_infile, strerror(errno));
+    pmsg_info("cannot open config file %s: %s\n", cfg_infile, strerror(errno));
     free(cfg_infile);
     cfg_infile = NULL;
     return -1;

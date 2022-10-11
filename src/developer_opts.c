@@ -528,7 +528,7 @@ static int avrpart_deep_copy(AVRPARTdeep *d, const AVRPART *p) {
     m = p->mem? avr_locate_mem_noalias(p, avr_mem_order[mi]): NULL;
     if(m) {
       if(di >= sizeof d->mems/sizeof *d->mems) {
-        msg_info("%s: ran out of mems[] space, increase size in AVRMEMdeep of developer_opts.c and recompile\n", progname);
+        pmsg_info("ran out of mems[] space, increase size in AVRMEMdeep of developer_opts.c and recompile\n");
         exit(1);
       }
       avrmem_deep_copy(d->mems+di, m);
@@ -615,7 +615,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
       dev_print_comment(cp->comms);
 
     if(p->parent_id && *p->parent_id)
-      dev_info("part parent \"%s\"\n", p->parent_id);
+      dev_info("part parent %s\n", p->parent_id);
     else
       dev_info("part\n");
   }

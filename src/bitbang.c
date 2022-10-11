@@ -76,8 +76,7 @@ static void bitbang_calibrate_delay(void)
   if (QueryPerformanceFrequency(&freq))
   {
     has_perfcount = 1;
-    msg_notice2("%s: Using performance counter for bitbang delays\n",
-                    progname);
+    pmsg_notice2("using performance counter for bitbang delays\n");
   }
   else
   {
@@ -90,16 +89,14 @@ static void bitbang_calibrate_delay(void)
      * auto-calibration figures seen on various Unix systems on
      * comparable hardware.
      */
-    msg_notice2("%s: Using guessed per-microsecond delay count for bitbang delays\n",
-                    progname);
+    pmsg_notice2("using guessed per-microsecond delay count for bitbang delays\n");
     delay_decrement = 100;
   }
 #else  /* !WIN32 */
   struct itimerval itv;
   volatile int i;
 
-  msg_notice2("%s: Calibrating delay loop...",
-                  progname);
+  pmsg_notice2("calibrating delay loop ...");
   i = 0;
   done = 0;
   saved_alarmhandler = signal(SIGALRM, alarmhandler);
@@ -455,8 +452,7 @@ int bitbang_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
-    msg_info("chip erase instruction not defined for part \"%s\"\n",
-            p->desc);
+    msg_info("chip erase instruction not defined for part %s\n", p->desc);
     return -1;
   }
 
@@ -495,7 +491,7 @@ int bitbang_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
-    msg_info("program enable instruction not defined for part \"%s\"\n",
+    msg_info("program enable instruction not defined for part %s\n",
             p->desc);
     return -1;
   }
@@ -527,8 +523,7 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if (p->prog_modes & PM_TPI) {
     /* make sure cmd_tpi() is defined */
     if (pgm->cmd_tpi == NULL) {
-      msg_info("%s: Error: %s programmer does not support TPI\n",
-          progname, pgm->type);
+      pmsg_info("%s programmer does not support TPI\n", pgm->type);
       return -1;
     }
 
@@ -607,7 +602,7 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
      * can't sync with the device, maybe it's not attached?
      */
     if (rc) {
-      msg_info("%s: AVR device not responding\n", progname);
+      pmsg_info("AVR device not responding\n");
       return -1;
     }
   }
@@ -617,8 +612,7 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
 static int verify_pin_assigned(const PROGRAMMER *pgm, int pin, char *desc) {
   if (pgm->pinno[pin] == 0) {
-    msg_info("%s: error: no pin has been assigned for %s\n",
-            progname, desc);
+    pmsg_info("no pin has been assigned for %s\n", desc);
     return -1;
   }
   return 0;
@@ -640,8 +634,7 @@ int bitbang_check_prerequisites(const PROGRAMMER *pgm) {
     return -1;
 
   if (pgm->cmd == NULL) {
-    msg_info("%s: error: no cmd() method defined for bitbang programmer\n",
-            progname);
+    pmsg_info("no cmd() method defined for bitbang programmer\n");
     return -1;
   }
   return 0;

@@ -306,9 +306,9 @@ static int linuxgpio_open(PROGRAMMER *pgm, const char *port) {
         }
 
         if (retry_count)
-            msg_notice2("%s: needed %d retr%s for linuxgpio_dir_%s(%s)\n",
-                progname, retry_count, retry_count > 1? "ies": "y",
-                i == PIN_AVR_MISO? "in": "out", avr_pin_name(pin));
+            pmsg_notice2("needed %d retr%s for linuxgpio_dir_%s(%s)\n",
+              retry_count, retry_count > 1? "ies": "y",
+              i == PIN_AVR_MISO? "in": "out", avr_pin_name(pin));
 
         if (r < 0) {
             linuxgpio_unexport(pin);
@@ -379,8 +379,7 @@ const char linuxgpio_desc[] = "GPIO bitbanging using the Linux sysfs interface";
 #else  /* !HAVE_LINUXGPIO */
 
 void linuxgpio_initpgm(PROGRAMMER *pgm) {
-  msg_info("%s: Linux sysfs GPIO support not available in this configuration\n",
-                  progname);
+  pmsg_info("Linux sysfs GPIO support not available in this configuration\n");
 }
 
 const char linuxgpio_desc[] = "GPIO bitbanging using the Linux sysfs interface (not available)";

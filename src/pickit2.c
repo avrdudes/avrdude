@@ -164,8 +164,7 @@ static void pickit2_setup(PROGRAMMER * pgm)
 {
     if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0)
     {
-        msg_info("%s: pickit2_setup(): Out of memory allocating private data\n",
-                        progname);
+        pmsg_info("pickit2_setup(): Out of memory allocating private data\n");
         exit(1);
     }
     memset(pgm->cookie, 0, sizeof(struct pdata));
@@ -186,8 +185,7 @@ static int pickit2_open(PROGRAMMER *pgm, const char *port) {
     if (PDATA(pgm)->usb_handle == INVALID_HANDLE_VALUE)
     {
         /* no PICkit2 found */
-        msg_info("%s: error: could not find PICkit2 with vid=0x%x pid=0x%x\n",
-                        progname, PICKIT2_VID, PICKIT2_PID);
+        pmsg_info("error: could not find PICkit2 with vid=0x%x pid=0x%x\n", PICKIT2_VID, PICKIT2_PID);
         return -1;
     }
     else
@@ -209,8 +207,7 @@ static int pickit2_open(PROGRAMMER *pgm, const char *port) {
     if (usb_open_device(&(PDATA(pgm)->usb_handle), PICKIT2_VID, PICKIT2_PID) < 0)
     {
         /* no PICkit2 found */
-        msg_info("%s: error: could not find PICkit2 with vid=0x%x pid=0x%x\n",
-                        progname, PICKIT2_VID, PICKIT2_PID);
+        pmsg_info("error: could not find PICkit2 with vid=0x%x pid=0x%x\n", PICKIT2_VID, PICKIT2_PID);
         return -1;
     }
 #endif
@@ -258,7 +255,7 @@ static int pickit2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         //memset(report, 0, sizeof(report));
         if ((errorCode = pickit2_read_report(pgm, report)) >= 4)
         {
-            msg_notice("%s: %s firmware version %d.%d.%d\n", progname, pgm->desc, (int)report[1], (int)report[2], (int)report[3]);
+            pmsg_notice("%s firmware version %d.%d.%d\n", pgm->desc, (int)report[1], (int)report[2], (int)report[3]);
 
             // set the pins, apply reset,
             // TO DO: apply vtarget (if requested though -x option)
@@ -341,7 +338,7 @@ static void pickit2_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void pickit2_display(const PROGRAMMER *pgm, const char *p) {
-    DEBUG( "%s: Found \"%s\" version %d.%d.%d\n", progname, p, 1, 1, 1);
+    DEBUG("%s: found %s version %d.%d.%d\n", progname, p, 1, 1, 1);
     return;
 }
 
@@ -408,8 +405,7 @@ static int  pickit2_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 
     if (p->op[AVR_OP_PGM_ENABLE] == NULL)
     {
-        msg_info("program enable instruction not defined for part \"%s\"\n",
-                p->desc);
+        msg_info("program enable instruction not defined for part %s\n", p->desc);
         return -1;
     }
 
@@ -441,8 +437,7 @@ static int  pickit2_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 
     if (p->op[AVR_OP_CHIP_ERASE] == NULL)
     {
-        msg_info("chip erase instruction not defined for part \"%s\"\n",
-                p->desc);
+        msg_info("chip erase instruction not defined for part %s\n", p->desc);
         return -1;
     }
 
@@ -561,8 +556,7 @@ static int pickit2_commit_page(const PROGRAMMER *pgm, const AVRPART *p, const AV
     wp = mem->op[AVR_OP_WRITEPAGE];
     if (wp == NULL)
     {
-        msg_info("pickit2_commit_page(): memory \"%s\" not configured for page writes\n",
-                        mem->desc);
+        msg_info("pickit2_commit_page(): memory %s not configured for page writes\n", mem->desc);
         return -1;
     }
 
@@ -1129,19 +1123,20 @@ static int usb_open_device(struct usb_dev_handle **device, int vendor, int produ
                 if (handle == NULL)
                 {
                     errorCode = USB_ERROR_ACCESS;
-                    msg_info("%s: Warning: cannot open USB device: %s\n", progname, usb_strerror());
+                    pmsg_info("Warning: cannot open USB device: %s\n", usb_strerror());
                     continue;
                 }
 
                 // return with opened device handle
                 else
                 {
-                    msg_notice("Device %p seemed to open OK.\n", handle);
+                    msg_notice("device %p seemed to open OK\n", handle);
 
                     if ((errorCode = usb_set_configuration(handle, 1)) < 0)
                     {
-                        msg_info("Could not set configuration. Error code %d, %s.\n"
-                                "You may need to run avrdude as root or set up correct usb port permissions.", errorCode, usb_strerror());
+                        msg_info("could not set configuration; error code %d, %s\n"
+                          "you may need to run avrdude as root or set up correct usb port permissions",
+                          errorCode, usb_strerror());
                     }
 
                     if ((errorCode = usb_claim_interface(handle, 0)) < 0)
@@ -1186,8 +1181,7 @@ static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
             int clock_rate;
             if (sscanf(extended_param, "clockrate=%i", &clock_rate) != 1 || clock_rate <= 0)
             {
-                msg_info("%s: pickit2_parseextparms(): invalid clockrate '%s'\n",
-                                progname, extended_param);
+                pmsg_info("pickit2_parseextparms(): invalid clockrate '%s'\n", extended_param);
                 rv = -1;
                 continue;
             }
@@ -1195,8 +1189,7 @@ static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
             int clock_period = MIN(1000000 / clock_rate, 255);    // max period is 255
             clock_rate = (int)(1000000 / (clock_period + 5e-7));    // assume highest speed is 2MHz - should probably check this
 
-            msg_notice2("%s: pickit2_parseextparms(): clockrate set to 0x%02x\n",
-                                progname, clock_rate);
+            pmsg_notice2("pickit2_parseextparms(): clockrate set to 0x%02x\n", clock_rate);
             PDATA(pgm)->clock_period = clock_period;
 
             continue;
@@ -1207,21 +1200,18 @@ static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
             int timeout;
             if (sscanf(extended_param, "timeout=%i", &timeout) != 1 || timeout <= 0)
             {
-                msg_info("%s: pickit2_parseextparms(): invalid timeout '%s'\n",
-                                progname, extended_param);
+                pmsg_info("pickit2_parseextparms(): invalid timeout '%s'\n", extended_param);
                 rv = -1;
                 continue;
             }
 
-            msg_notice2("%s: pickit2_parseextparms(): usb timeout set to 0x%02x\n",
-                                progname, timeout);
+            pmsg_notice2("pickit2_parseextparms(): usb timeout set to 0x%02x\n", timeout);
             PDATA(pgm)->transaction_timeout = timeout;
 
             continue;
         }
 
-        msg_info("%s: pickit2_parseextparms(): invalid extended parameter '%s'\n",
-                        progname, extended_param);
+        pmsg_info("pickit2_parseextparms(): invalid extended parameter '%s'\n", extended_param);
         rv = -1;
     }
 
@@ -1279,19 +1269,19 @@ void pickit2_initpgm(PROGRAMMER *pgm) {
 
     pgm->setup          = pickit2_setup;
     pgm->teardown       = pickit2_teardown;
-    // pgm->page_size      = 256;        // not sure what this does... maybe the max page size that the page read/write function can handle
+    // pgm->page_size      = 256;        // not sure what this does ... maybe the max page size that the page read/write function can handle
 
     strncpy(pgm->type, "pickit2", sizeof(pgm->type));
 }
 #else
 static int pickit2_nousb_open(PROGRAMMER *pgm, const char *name) {
-    msg_info(
+    pmsg_info(
 #ifdef WIN32
-            "%s: error: no usb or hid support. Please compile again with libusb or HID support from Win32 DDK installed.\n",
+            "no usb or hid support; please compile again with libusb or HID support from Win32 DDK installed\n",
 #else
-            "%s: error: no usb support. Please compile again with libusb installed.\n",
+            "no usb support; please compile again with libusb installed\n",
 #endif
-            progname);
+     );
 
     return -1;
 }
