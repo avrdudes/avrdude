@@ -13346,6 +13346,7 @@ part parent ".reduced_core_tiny"
     memory "flash"
         size               = 2048;
         page_size          = 16;
+        n_word_writes      = 2;
         offset             = 0x4000;
         blocksize          = 128;
     ;
@@ -13365,6 +13366,7 @@ part parent ".reduced_core_tiny"
     memory "flash"
         size               = 4096;
         page_size          = 64;
+        n_word_writes      = 4;
         offset             = 0x4000;
         blocksize          = 128;
     ;

@@ -103,6 +103,7 @@ static int pin_name;
 %token K_MISO
 %token K_MOSI
 %token K_NUM_PAGES
+%token K_N_WORD_WRITES
 %token K_NVM_BASE
 %token K_OCD_BASE
 %token K_OCDREV
@@ -1421,6 +1422,12 @@ mem_spec :
   K_NUM_PAGES       TKN_EQUAL numexpr
     {
       current_mem->num_pages = $3->value.number;
+      free_token($3);
+    } |
+
+  K_N_WORD_WRITES   TKN_EQUAL numexpr
+    {
+      current_mem->n_word_writes = $3->value.number;
       free_token($3);
     } |
 

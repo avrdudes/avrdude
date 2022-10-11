@@ -203,6 +203,7 @@ no               { yylval=new_token(K_NO); return K_NO; }
 NULL             { yylval=NULL; return K_NULL; }
 num_banks        { yylval=NULL; return K_NUM_PAGES; }
 num_pages        { yylval=NULL; ccap(); return K_NUM_PAGES; }
+n_word_writes    { yylval=NULL; ccap(); return K_N_WORD_WRITES; }
 nvm_base         { yylval=NULL; ccap(); return K_NVM_BASE; }
 ocd_base         { yylval=NULL; ccap(); return K_OCD_BASE; }
 ocdrev           { yylval=NULL; ccap(); return K_OCDREV; }
