@@ -127,12 +127,12 @@ static int teensy_get_bootloader_info(pdata_t* pdata, const AVRPART* p) {
             // On Linux, libhidapi does not seem to return the HID usage from the report descriptor.
             // We try to infer the board from the part information, until somebody fixes libhidapi.
             // To use this workaround, the -F option is required.
-            avrdude_message(MSG_INFO, "%s: WARNING: Cannot detect board type (HID usage is 0)\n", progname);
+            msg_info("%s: WARNING: Cannot detect board type (HID usage is 0)\n", progname);
 
             AVRMEM* mem = avr_locate_mem(p, "flash");
             if (mem == NULL)
             {
-                avrdude_message(MSG_INFO, "No flash memory for part %s\n", p->desc);
+                msg_info("No flash memory for part %s\n", p->desc);
                 return -1;
             }
 
@@ -147,7 +147,7 @@ static int teensy_get_bootloader_info(pdata_t* pdata, const AVRPART* p) {
         }
         else
         {
-            avrdude_message(MSG_INFO, "%s: ERROR: Teensy board not supported (HID usage 0x%02X)\n",
+            msg_info("%s: ERROR: Teensy board not supported (HID usage 0x%02X)\n",
                 progname, pdata->hid_usage);
             return -1;
         }
@@ -158,21 +158,21 @@ static int teensy_get_bootloader_info(pdata_t* pdata, const AVRPART* p) {
 
 static void teensy_dump_device_info(pdata_t* pdata)
 {
-    avrdude_message(MSG_NOTICE, "%s: HID usage: 0x%02X\n", progname, pdata->hid_usage);
-    avrdude_message(MSG_NOTICE, "%s: Board: %s\n", progname, pdata->board);
-    avrdude_message(MSG_NOTICE, "%s: Available flash size: %u\n", progname, pdata->flash_size);
-    avrdude_message(MSG_NOTICE, "%s: Page size: %u\n", progname, pdata->page_size);
-    avrdude_message(MSG_NOTICE, "%s: Signature: 0x%02X%02X%02X\n", progname,
+    msg_notice("%s: HID usage: 0x%02X\n", progname, pdata->hid_usage);
+    msg_notice("%s: Board: %s\n", progname, pdata->board);
+    msg_notice("%s: Available flash size: %u\n", progname, pdata->flash_size);
+    msg_notice("%s: Page size: %u\n", progname, pdata->page_size);
+    msg_notice("%s: Signature: 0x%02X%02X%02X\n", progname,
         pdata->sig_bytes[0], pdata->sig_bytes[1], pdata->sig_bytes[2]);
 }
 
 static int teensy_write_page(pdata_t* pdata, uint32_t address, const uint8_t* buffer, uint32_t size)
 {
-    avrdude_message(MSG_DEBUG, "%s: teensy_write_page(address=0x%06X, size=%d)\n", progname, address, size);
+    msg_debug("%s: teensy_write_page(address=0x%06X, size=%d)\n", progname, address, size);
 
     if (size > pdata->page_size)
     {
-        avrdude_message(MSG_INFO, "%s: ERROR: Invalid page size: %u\n", progname, pdata->page_size);
+        msg_info("%s: ERROR: Invalid page size: %u\n", progname, pdata->page_size);
         return -1;
     }
 
@@ -180,7 +180,7 @@ static int teensy_write_page(pdata_t* pdata, uint32_t address, const uint8_t* bu
     uint8_t* report = (uint8_t*)malloc(report_size);
     if (report == NULL)
     {
-        avrdude_message(MSG_INFO, "%s: ERROR: Failed to allocate memory\n", progname);
+        msg_info("%s: ERROR: Failed to allocate memory\n", progname);
         return -1;
     }
 
@@ -207,7 +207,7 @@ static int teensy_write_page(pdata_t* pdata, uint32_t address, const uint8_t* bu
     free(report);
     if (result < 0)
     {
-        avrdude_message(MSG_INFO, "%s: WARNING: Failed to write page: %ls\n",
+        msg_info("%s: WARNING: Failed to write page: %ls\n",
             progname, hid_error(pdata->hid_handle));
         return result;
     }
@@ -217,7 +217,7 @@ static int teensy_write_page(pdata_t* pdata, uint32_t address, const uint8_t* bu
 
 static int teensy_erase_flash(pdata_t* pdata)
 {
-    avrdude_message(MSG_DEBUG, "%s: teensy_erase_flash()\n", progname);
+    msg_debug("%s: teensy_erase_flash()\n", progname);
 
     // Write a dummy page at address 0 to explicitly erase the flash.
     return teensy_write_page(pdata, 0, NULL, 0);
@@ -225,7 +225,7 @@ static int teensy_erase_flash(pdata_t* pdata)
 
 static int teensy_reboot(pdata_t* pdata)
 {
-    avrdude_message(MSG_DEBUG, "%s: teensy_reboot()\n", progname);
+    msg_debug("%s: teensy_reboot()\n", progname);
 
     // Write a dummy page at address -1 to reboot the Teensy.
     return teensy_write_page(pdata, 0xFFFFFFFF, NULL, 0);
@@ -235,11 +235,11 @@ static int teensy_reboot(pdata_t* pdata)
 
 static void teensy_setup(PROGRAMMER* pgm)
 {
-    avrdude_message(MSG_DEBUG, "%s: teensy_setup()\n", progname);
+    msg_debug("%s: teensy_setup()\n", progname);
 
     if ((pgm->cookie = malloc(sizeof(pdata_t))) == NULL)
     {
-        avrdude_message(MSG_INFO, "%s: ERROR: Failed to allocate memory\n", progname);
+        msg_info("%s: ERROR: Failed to allocate memory\n", progname);
         exit(1);
     }
 
@@ -248,12 +248,12 @@ static void teensy_setup(PROGRAMMER* pgm)
 
 static void teensy_teardown(PROGRAMMER* pgm)
 {
-    avrdude_message(MSG_DEBUG, "%s: teensy_teardown()\n", progname);
+    msg_debug("%s: teensy_teardown()\n", progname);
     free(pgm->cookie);
 }
 
 static int teensy_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
-    avrdude_message(MSG_DEBUG, "%s: teensy_initialize()\n", progname);
+    msg_debug("%s: teensy_initialize()\n", progname);
 
     pdata_t* pdata = PDATA(pgm);
 
@@ -267,15 +267,15 @@ static int teensy_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void teensy_display(const PROGRAMMER *pgm, const char *prefix) {
-    avrdude_message(MSG_DEBUG, "%s: teensy_display()\n", progname);
+    msg_debug("%s: teensy_display()\n", progname);
 }
 
 static void teensy_powerup(const PROGRAMMER *pgm) {
-    avrdude_message(MSG_DEBUG, "%s: teensy_powerup()\n", progname);
+    msg_debug("%s: teensy_powerup()\n", progname);
 }
 
 static void teensy_powerdown(const PROGRAMMER *pgm) {
-    avrdude_message(MSG_DEBUG, "%s: teensy_powerdown()\n", progname);
+    msg_debug("%s: teensy_powerdown()\n", progname);
 
     pdata_t* pdata = PDATA(pgm);
 
@@ -293,24 +293,24 @@ static void teensy_powerdown(const PROGRAMMER *pgm) {
 }
 
 static void teensy_enable(PROGRAMMER* pgm, const AVRPART *p) {
-    avrdude_message(MSG_DEBUG, "%s: teensy_enable()\n", progname);
+    msg_debug("%s: teensy_enable()\n", progname);
 }
 
 static void teensy_disable(const PROGRAMMER *pgm) {
-    avrdude_message(MSG_DEBUG, "%s: teensy_disable()\n", progname);
+    msg_debug("%s: teensy_disable()\n", progname);
 }
 
 static int teensy_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
-    avrdude_message(MSG_DEBUG, "%s: teensy_program_enable()\n", progname);
+    msg_debug("%s: teensy_program_enable()\n", progname);
     return 0;
 }
 
 static int teensy_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
-    avrdude_message(MSG_DEBUG, "%s: teensy_read_sig_bytes()\n", progname);
+    msg_debug("%s: teensy_read_sig_bytes()\n", progname);
 
     if (mem->size < 3)
     {
-        avrdude_message(MSG_INFO, "%s: memory size too small for read_sig_bytes\n", progname);
+        msg_info("%s: memory size too small for read_sig_bytes\n", progname);
         return -1;
     }
 
@@ -321,7 +321,7 @@ static int teensy_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const 
 }
 
 static int teensy_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
-    avrdude_message(MSG_DEBUG, "%s: teensy_chip_erase()\n", progname);
+    msg_debug("%s: teensy_chip_erase()\n", progname);
 
     pdata_t* pdata = PDATA(pgm);
 
@@ -332,7 +332,7 @@ static int teensy_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int teensy_open(PROGRAMMER *pgm, const char *port) {
-    avrdude_message(MSG_DEBUG, "%s: teensy_open(\"%s\")\n", progname, port);
+    msg_debug("%s: teensy_open(\"%s\")\n", progname, port);
 
     pdata_t* pdata = PDATA(pgm);
     const char *bus_name = NULL;
@@ -360,8 +360,8 @@ static int teensy_open(PROGRAMMER *pgm, const char *port) {
 
     if (port != NULL && dev_name == NULL)
     {
-        avrdude_message(MSG_INFO, "%s: ERROR: Invalid -P value: '%s'\n", progname, port);
-        avrdude_message(MSG_INFO, "%sUse -P usb:bus:device\n", progbuf);
+        msg_info("%s: ERROR: Invalid -P value: '%s'\n", progname, port);
+        msg_info("%sUse -P usb:bus:device\n", progbuf);
         return -1;
     }
 
@@ -375,7 +375,7 @@ static int teensy_open(PROGRAMMER *pgm, const char *port) {
         pid = *(int*)(ldata(usbpid));
         if (lnext(usbpid))
         {
-            avrdude_message(MSG_INFO, "%s: WARNING: using PID 0x%04x, ignoring remaining PIDs in list\n",
+            msg_info("%s: WARNING: using PID 0x%04x, ignoring remaining PIDs in list\n",
                 progname, pid);
         }
     }
@@ -396,7 +396,7 @@ static int teensy_open(PROGRAMMER *pgm, const char *port) {
                 pdata->hid_handle = hid_open_path(device->path);
                 if (pdata->hid_handle == NULL)
                 {
-                    avrdude_message(MSG_INFO, "%s: ERROR: Found HID device, but hid_open_path() failed.\n", progname);
+                    msg_info("%s: ERROR: Found HID device, but hid_open_path() failed.\n", progname);
                 }
                 else
                 {
@@ -416,16 +416,16 @@ static int teensy_open(PROGRAMMER *pgm, const char *port) {
             {
                 if (pdata->wait_timout < 0)
                 {
-                    avrdude_message(MSG_INFO, "%s: No device found, waiting for device to be plugged in...\n", progname);
+                    msg_info("%s: No device found, waiting for device to be plugged in...\n", progname);
                 }
                 else
                 {
-                    avrdude_message(MSG_INFO, "%s: No device found, waiting %d seconds for device to be plugged in...\n",
+                    msg_info("%s: No device found, waiting %d seconds for device to be plugged in...\n",
                         progname,
                         pdata->wait_timout);
                 }
 
-                avrdude_message(MSG_INFO, "%s: Press CTRL-C to terminate.\n", progname);
+                msg_info("%s: Press CTRL-C to terminate.\n", progname);
                 show_retry_message = false;
             }
 
@@ -441,7 +441,7 @@ static int teensy_open(PROGRAMMER *pgm, const char *port) {
 
     if (!pdata->hid_handle)
     {
-        avrdude_message(MSG_INFO, "%s: ERROR: Could not find device with Teensy bootloader (%04X:%04X)\n",
+        msg_info("%s: ERROR: Could not find device with Teensy bootloader (%04X:%04X)\n",
             progname, vid, pid);
         return -1;
     }
@@ -451,7 +451,7 @@ static int teensy_open(PROGRAMMER *pgm, const char *port) {
 
 static void teensy_close(PROGRAMMER* pgm)
 {
-    avrdude_message(MSG_DEBUG, "%s: teensy_close()\n", progname);
+    msg_debug("%s: teensy_close()\n", progname);
 
     pdata_t* pdata = PDATA(pgm);
     if (pdata->hid_handle != NULL)
@@ -464,7 +464,7 @@ static void teensy_close(PROGRAMMER* pgm)
 static int teensy_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned long addr, unsigned char* value)
 {
-    avrdude_message(MSG_DEBUG, "%s: teensy_read_byte(desc=%s, addr=0x%0X)\n",
+    msg_debug("%s: teensy_read_byte(desc=%s, addr=0x%0X)\n",
         progname, mem->desc, addr);
 
     if (strcmp(mem->desc, "lfuse") == 0 ||
@@ -477,7 +477,7 @@ static int teensy_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     }
     else
     {
-        avrdude_message(MSG_INFO, "%s: Unsupported memory type: %s\n", progname, mem->desc);
+        msg_info("%s: Unsupported memory type: %s\n", progname, mem->desc);
         return -1;
     }
 }
@@ -485,7 +485,7 @@ static int teensy_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 static int teensy_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
     unsigned long addr, unsigned char value)
 {
-    avrdude_message(MSG_DEBUG, "%s: teensy_write_byte(desc=%s, addr=0x%0X)\n",
+    msg_debug("%s: teensy_write_byte(desc=%s, addr=0x%0X)\n",
         progname, mem->desc, addr);
     return -1;
 }
@@ -494,7 +494,7 @@ static int teensy_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     unsigned int page_size,
     unsigned int addr, unsigned int n_bytes)
 {
-    avrdude_message(MSG_DEBUG, "%s: teensy_paged_load(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n",
+    msg_debug("%s: teensy_paged_load(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n",
         progname, page_size, addr, n_bytes);
     return -1;
 }
@@ -503,7 +503,7 @@ static int teensy_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     unsigned int page_size,
     unsigned int addr, unsigned int n_bytes)
 {
-    avrdude_message(MSG_DEBUG, "%s: teensy_paged_write(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n",
+    msg_debug("%s: teensy_paged_write(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n",
         progname, page_size, addr, n_bytes);
 
     if (strcmp(mem->desc, "flash") == 0)
@@ -512,13 +512,13 @@ static int teensy_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
         if (n_bytes > page_size)
         {
-            avrdude_message(MSG_INFO, "%s: Buffer size (%u) exceeds page size (%u)\n", progname, n_bytes, page_size);
+            msg_info("%s: Buffer size (%u) exceeds page size (%u)\n", progname, n_bytes, page_size);
             return -1;
         }
 
         if (addr + n_bytes > pdata->flash_size)
         {
-            avrdude_message(MSG_INFO, "%s: Program size (%u) exceeds flash size (%u)\n", progname, addr + n_bytes, pdata->flash_size);
+            msg_info("%s: Program size (%u) exceeds flash size (%u)\n", progname, addr + n_bytes, pdata->flash_size);
             return -1;
         }
 
@@ -551,13 +551,13 @@ static int teensy_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     }
     else
     {
-        avrdude_message(MSG_INFO, "%s: Unsupported memory type: %s\n", progname, mem->desc);
+        msg_info("%s: Unsupported memory type: %s\n", progname, mem->desc);
         return -1;
     }
 }
 
 static int teensy_parseextparams(const PROGRAMMER *pgm, const LISTID xparams) {
-    avrdude_message(MSG_DEBUG, "%s: teensy_parseextparams()\n", progname);
+    msg_debug("%s: teensy_parseextparams()\n", progname);
 
     pdata_t* pdata = PDATA(pgm);
     for (LNODEID node = lfirst(xparams); node != NULL; node = lnext(node))
@@ -576,7 +576,7 @@ static int teensy_parseextparams(const PROGRAMMER *pgm, const LISTID xparams) {
         }
         else
         {
-            avrdude_message(MSG_INFO, "%s: Invalid extended parameter '%s'\n", progname, param);
+            msg_info("%s: Invalid extended parameter '%s'\n", progname, param);
             return -1;
         }
     }
@@ -612,7 +612,7 @@ void teensy_initpgm(PROGRAMMER *pgm) {
 
  // Give a proper error if we were not compiled with libhidapi
 static int teensy_nousb_open(PROGRAMMER *pgm, const char *name) {
-    avrdude_message(MSG_INFO, "%s: error: No HID support. Please compile again with libhidapi installed.\n", progname);
+    msg_info("%s: error: No HID support. Please compile again with libhidapi installed.\n", progname);
     return -1;
 }
 

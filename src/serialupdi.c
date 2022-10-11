@@ -49,7 +49,7 @@ static int serialupdi_leave_progmode(const PROGRAMMER *pgm);
 static void serialupdi_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(updi_state))) == 0) {
-    avrdude_message(MSG_INFO,
+    msg_info(
 	    "%s: serialupdi_setup(): Out of memory allocating private data\n",
 	    progname);
     exit(1);
@@ -91,10 +91,10 @@ static int serialupdi_reset(const PROGRAMMER *pgm, reset_mode mode) {
 */
   switch (mode) {
     case APPLY_RESET:
-      avrdude_message(MSG_DEBUG, "%s: Sending reset request\n", progname);
+      msg_debug("%s: Sending reset request\n", progname);
       return updi_write_cs(pgm, UPDI_ASI_RESET_REQ, UPDI_RESET_REQ_VALUE);
     case RELEASE_RESET:
-      avrdude_message(MSG_DEBUG, "%s: Sending release reset request\n", progname);
+      msg_debug("%s: Sending release reset request\n", progname);
       return updi_write_cs(pgm, UPDI_ASI_RESET_REQ, 0x00);
   }
   return -1;
@@ -102,12 +102,12 @@ static int serialupdi_reset(const PROGRAMMER *pgm, reset_mode mode) {
 
 static int serialupdi_reset_connection(const PROGRAMMER *pgm) {
   if (serialupdi_reset(pgm, APPLY_RESET) < 0) {
-    avrdude_message(MSG_INFO, "%s: Apply reset operation failed\n", progname);
+    msg_info("%s: Apply reset operation failed\n", progname);
     return -1;
   }
 
   if (serialupdi_reset(pgm, RELEASE_RESET) < 0) {
-    avrdude_message(MSG_INFO, "%s: Release reset operation failed\n", progname);
+    msg_info("%s: Release reset operation failed\n", progname);
     return -1;
   }
 
@@ -118,7 +118,7 @@ static int serialupdi_decode_sib(const PROGRAMMER *pgm, updi_sib_info *sib_info)
   char * str_ptr;
 
   sib_info->sib_string[SIB_INFO_STRING_LENGTH]=0;
-  avrdude_message(MSG_DEBUG, "%s: Received SIB: [%s]\n", progname, sib_info->sib_string);
+  msg_debug("%s: Received SIB: [%s]\n", progname, sib_info->sib_string);
   memset(sib_info->family_string, 0, SIB_INFO_FAMILY_LENGTH+1);
   memset(sib_info->nvm_string, 0, SIB_INFO_NVM_LENGTH+1);
   memset(sib_info->debug_string, 0, SIB_INFO_DEBUG_LENGTH+1);
@@ -134,41 +134,41 @@ static int serialupdi_decode_sib(const PROGRAMMER *pgm, updi_sib_info *sib_info)
 
   str_ptr = strstr(sib_info->nvm_string, ":");
   if (!str_ptr) {
-    avrdude_message(MSG_INFO, "%s: Incorrect format of NVM string\n", progname);
+    msg_info("%s: Incorrect format of NVM string\n", progname);
     return -1;
   }
   sib_info->nvm_version = *(str_ptr+1);
 
   str_ptr = strstr(sib_info->debug_string, ":");
   if (!str_ptr) {
-    avrdude_message(MSG_INFO, "%s: Incorrect format of DEBUG string\n", progname);
+    msg_info("%s: Incorrect format of DEBUG string\n", progname);
     return -1;
   }
   sib_info->debug_version = *(str_ptr+1);
 
-  avrdude_message(MSG_DEBUG, "%s: Device family ID: %s\n", progname, sib_info->family_string);
-  avrdude_message(MSG_DEBUG, "%s: NVM interface: %s\n", progname, sib_info->nvm_string);
-  avrdude_message(MSG_DEBUG, "%s: Debug interface: %s\n", progname, sib_info->debug_string);
-  avrdude_message(MSG_DEBUG, "%s: PDI oscillator: %s\n", progname, sib_info->pdi_string);
-  avrdude_message(MSG_DEBUG, "%s: Extra information: %s\n", progname, sib_info->extra_string);
+  msg_debug("%s: Device family ID: %s\n", progname, sib_info->family_string);
+  msg_debug("%s: NVM interface: %s\n", progname, sib_info->nvm_string);
+  msg_debug("%s: Debug interface: %s\n", progname, sib_info->debug_string);
+  msg_debug("%s: PDI oscillator: %s\n", progname, sib_info->pdi_string);
+  msg_debug("%s: Extra information: %s\n", progname, sib_info->extra_string);
   switch (sib_info->nvm_version) {
     case '0':
-      avrdude_message(MSG_INFO, "%s: NVM type 0: 16-bit, page oriented write\n", progname);
+      msg_info("%s: NVM type 0: 16-bit, page oriented write\n", progname);
       updi_set_nvm_mode(pgm, UPDI_NVM_MODE_V0);
       updi_set_datalink_mode(pgm, UPDI_LINK_MODE_16BIT);
       break;
     case '2':
-      avrdude_message(MSG_INFO, "%s: NVM type 2: 24-bit, word oriented write\n", progname);
+      msg_info("%s: NVM type 2: 24-bit, word oriented write\n", progname);
       updi_set_nvm_mode(pgm, UPDI_NVM_MODE_V2);
       updi_set_datalink_mode(pgm, UPDI_LINK_MODE_24BIT);
       break;
     case '3':
-      avrdude_message(MSG_INFO, "%s: NVM type 3: 16-bit, page oriented\n", progname);
+      msg_info("%s: NVM type 3: 16-bit, page oriented\n", progname);
       updi_set_nvm_mode(pgm, UPDI_NVM_MODE_V3);
       updi_set_datalink_mode(pgm, UPDI_LINK_MODE_16BIT);
       break;
     default:
-      avrdude_message(MSG_INFO, "%s: Unsupported NVM type: %c, please update software\n", progname, sib_info->nvm_version);
+      msg_info("%s: Unsupported NVM type: %c, please update software\n", progname, sib_info->nvm_version);
       return -1;
   }
   return 0;
@@ -176,13 +176,13 @@ static int serialupdi_decode_sib(const PROGRAMMER *pgm, updi_sib_info *sib_info)
 
 static void serialupdi_close(PROGRAMMER * pgm)
 {
-  avrdude_message(MSG_INFO, "%s: Leaving NVM programming mode\n", progname);
+  msg_info("%s: Leaving NVM programming mode\n", progname);
 
   if (serialupdi_leave_progmode(pgm) < 0) {
-    avrdude_message(MSG_INFO, "%s: Unable to leave NVM programming mode\n", progname);
+    msg_info("%s: Unable to leave NVM programming mode\n", progname);
   }
   if (updi_get_rts_mode(pgm) != RTS_MODE_DEFAULT) {
-    avrdude_message(MSG_INFO, "%s: Releasing DTR/RTS handshake lines\n", progname);
+    msg_info("%s: Releasing DTR/RTS handshake lines\n", progname);
   }
 
   updi_link_close(pgm);
@@ -223,7 +223,7 @@ static int serialupdi_wait_for_unlock(const PROGRAMMER *pgm, unsigned int ms) {
     current_time = (tv.tv_sec * 1000000) + tv.tv_usec;
   } while ((current_time - start_time) < (ms * 1000));
 
-  avrdude_message(MSG_INFO, "%s: Timeout waiting for device to unlock\n", progname);
+  msg_info("%s: Timeout waiting for device to unlock\n", progname);
   return -1;
 }
 
@@ -278,7 +278,7 @@ static int serialupdi_wait_for_urow(const PROGRAMMER *pgm, unsigned int ms, urow
     current_time = (tv.tv_sec * 1000000) + tv.tv_usec;
   } while ((current_time - start_time) < (ms * 1000));
 
-  avrdude_message(MSG_INFO, "%s: Timeout waiting for device to complete UROW WRITE\n", progname);
+  msg_info("%s: Timeout waiting for device to complete UROW WRITE\n", progname);
   return -1;
 }
 
@@ -298,7 +298,7 @@ static int serialupdi_in_prog_mode(const PROGRAMMER *pgm, uint8_t *in_prog_mode)
   rc = updi_read_cs(pgm, UPDI_ASI_SYS_STATUS, &value);
   
   if (rc < 0) {
-    avrdude_message(MSG_INFO, "%s: Read CS operation failed\n", progname);
+    msg_info("%s: Read CS operation failed\n", progname);
     return rc;
   }
 
@@ -354,57 +354,57 @@ def enter_progmode(self):
   uint8_t key_status;
 
   if (serialupdi_in_prog_mode(pgm, &in_prog_mode) < 0) {
-    avrdude_message(MSG_INFO, "%s: Checking UPDI NVM prog mode failed\n", progname);
+    msg_info("%s: Checking UPDI NVM prog mode failed\n", progname);
     return -1;
   }
   if (in_prog_mode) {
-    avrdude_message(MSG_DEBUG, "%s: Already in prog mode\n", progname);
+    msg_debug("%s: Already in prog mode\n", progname);
     return 0;
   }
 
   memcpy(buffer, UPDI_KEY_NVM, sizeof(buffer));
   if (updi_write_key(pgm, buffer, UPDI_KEY_64, sizeof(buffer)) < 0) {
-    avrdude_message(MSG_INFO, "%s: Writing NVM KEY failed\n", progname);
+    msg_info("%s: Writing NVM KEY failed\n", progname);
     return -1;
   }
 
   if (updi_read_cs(pgm, UPDI_ASI_KEY_STATUS, &key_status) < 0) {
-    avrdude_message(MSG_INFO, "%s: Checking KEY status failed\n", progname);
+    msg_info("%s: Checking KEY status failed\n", progname);
     return -1;
   }
-  avrdude_message(MSG_DEBUG, "%s: Key status: 0x%02X\n", progname, key_status);
+  msg_debug("%s: Key status: 0x%02X\n", progname, key_status);
 
   if (!(key_status & (1 << UPDI_ASI_KEY_STATUS_NVMPROG))) {
-    avrdude_message(MSG_INFO, "%s: Key was not accepted\n", progname);
+    msg_info("%s: Key was not accepted\n", progname);
     return -1;
   }
 
   if (serialupdi_reset(pgm, APPLY_RESET) < 0) {
-    avrdude_message(MSG_INFO, "%s: Apply reset operation failed\n", progname);
+    msg_info("%s: Apply reset operation failed\n", progname);
     return -1;
   }
 
   if (serialupdi_reset(pgm, RELEASE_RESET) < 0) {
-    avrdude_message(MSG_INFO, "%s: Release reset operation failed\n", progname);
+    msg_info("%s: Release reset operation failed\n", progname);
     return -1;
   }
 
   if (serialupdi_wait_for_unlock(pgm, 100) < 0) {
-    avrdude_message(MSG_INFO, "%s: Failed to enter NVM programming mode: device is locked\n", progname);
+    msg_info("%s: Failed to enter NVM programming mode: device is locked\n", progname);
     return -1;
   }
 
   if (serialupdi_in_prog_mode(pgm, &in_prog_mode) < 0) {
-    avrdude_message(MSG_INFO, "%s: Checking UPDI NVM prog mode failed\n", progname);
+    msg_info("%s: Checking UPDI NVM prog mode failed\n", progname);
     return -1;
   }
 
   if (!in_prog_mode) {
-    avrdude_message(MSG_INFO, "%s: Failed to enter NVM programming mode\n", progname);
+    msg_info("%s: Failed to enter NVM programming mode\n", progname);
     return -1;
   }
 
-  avrdude_message(MSG_DEBUG, "%s: Entered NVM programming mode\n", progname);
+  msg_debug("%s: Entered NVM programming mode\n", progname);
 
   return 0;
 }
@@ -422,12 +422,12 @@ static int serialupdi_leave_progmode(const PROGRAMMER *pgm) {
                                 (1 << constants.UPDI_CTRLB_UPDIDIS_BIT) | (1 << constants.UPDI_CTRLB_CCDETDIS_BIT))
 */
   if (serialupdi_reset(pgm, APPLY_RESET) < 0) {
-    avrdude_message(MSG_INFO, "%s: Apply reset operation failed\n", progname);
+    msg_info("%s: Apply reset operation failed\n", progname);
     return -1;
   }
 
   if (serialupdi_reset(pgm, RELEASE_RESET) < 0) {
-    avrdude_message(MSG_INFO, "%s: Release reset operation failed\n", progname);
+    msg_info("%s: Release reset operation failed\n", progname);
     return -1;
   }
 
@@ -491,74 +491,74 @@ static int serialupdi_write_userrow(const PROGRAMMER *pgm, const AVRPART *p, con
 
   memcpy(buffer, UPDI_KEY_UROW, sizeof(buffer));
   if (updi_write_key(pgm, buffer, UPDI_KEY_64, sizeof(buffer)) < 0) {
-    avrdude_message(MSG_INFO, "%s: Writing USERROW KEY failed\n", progname);
+    msg_info("%s: Writing USERROW KEY failed\n", progname);
     return -1;
   }
 
   if (updi_read_cs(pgm, UPDI_ASI_KEY_STATUS, &key_status) < 0) {
-    avrdude_message(MSG_INFO, "%s: Checking KEY status failed\n", progname);
+    msg_info("%s: Checking KEY status failed\n", progname);
     return -1;
   }
-  avrdude_message(MSG_DEBUG, "%s: Key status: 0x%02X\n", progname, key_status);
+  msg_debug("%s: Key status: 0x%02X\n", progname, key_status);
 
   if (!(key_status & (1 << UPDI_ASI_KEY_STATUS_UROWWRITE))) {
-    avrdude_message(MSG_INFO, "%s: Key was not accepted\n", progname);
+    msg_info("%s: Key was not accepted\n", progname);
     return -1;
   }
 
   if (serialupdi_reset(pgm, APPLY_RESET) < 0) {
-    avrdude_message(MSG_INFO, "%s: Apply reset operation failed\n", progname);
+    msg_info("%s: Apply reset operation failed\n", progname);
     return -1;
   }
 
   if (serialupdi_reset(pgm, RELEASE_RESET) < 0) {
-    avrdude_message(MSG_INFO, "%s: Release reset operation failed\n", progname);
+    msg_info("%s: Release reset operation failed\n", progname);
     return -1;
   }
 
   if (serialupdi_wait_for_urow(pgm, 500, WAIT_FOR_UROW_HIGH) < 0) {
-    avrdude_message(MSG_INFO, "%s: Failed to enter USERROW programming mode\n", progname);
+    msg_info("%s: Failed to enter USERROW programming mode\n", progname);
     return -1;
   }
 
   if (updi_write_data(pgm, m->offset+addr, m->buf + addr, n_bytes) < 0) {
-    avrdude_message(MSG_INFO, "%s: Writing USER ROW failed\n", progname);
+    msg_info("%s: Writing USER ROW failed\n", progname);
     return -1;
   }
 
   if (updi_write_cs(pgm, UPDI_ASI_SYS_CTRLA, (1 << UPDI_ASI_SYS_CTRLA_UROW_FINAL) |
                                              (1 << UPDI_CTRLB_CCDETDIS_BIT)) < 0) {
-    avrdude_message(MSG_INFO, "%s: Failed trying to commit user row write\n", progname);
+    msg_info("%s: Failed trying to commit user row write\n", progname);
     return -1;
   }
 
   if (serialupdi_wait_for_urow(pgm, 500, WAIT_FOR_UROW_LOW) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: Failed to exit USERROW programming mode\n", progname);
+    msg_debug("%s: Failed to exit USERROW programming mode\n", progname);
 
     if (serialupdi_reset(pgm, APPLY_RESET) < 0) {
-      avrdude_message(MSG_INFO, "%s: Apply reset operation failed\n", progname);
+      msg_info("%s: Apply reset operation failed\n", progname);
       return -1;
     }
 
     if (serialupdi_reset(pgm, RELEASE_RESET) < 0) {
-      avrdude_message(MSG_INFO, "%s: Release reset operation failed\n", progname);
+      msg_info("%s: Release reset operation failed\n", progname);
       return -1;
     }
   }
 
   if (updi_write_cs(pgm, UPDI_ASI_KEY_STATUS, (1 << UPDI_ASI_KEY_STATUS_UROWWRITE) |
                                               (1 << UPDI_CTRLB_CCDETDIS_BIT)) < 0) {
-    avrdude_message(MSG_INFO, "%s: Failed trying to complete user row write\n", progname);
+    msg_info("%s: Failed trying to complete user row write\n", progname);
     return -1;
   }
 
   if (serialupdi_reset(pgm, APPLY_RESET) < 0) {
-    avrdude_message(MSG_INFO, "%s: Apply reset operation failed\n", progname);
+    msg_info("%s: Apply reset operation failed\n", progname);
     return -1;
   }
 
   if (serialupdi_reset(pgm, RELEASE_RESET) < 0) {
-    avrdude_message(MSG_INFO, "%s: Release reset operation failed\n", progname);
+    msg_info("%s: Release reset operation failed\n", progname);
     return -1;
   }
 
@@ -574,13 +574,13 @@ static int serialupdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   uint8_t reset_link_required=0;
   
   if (updi_link_init(pgm) < 0) {
-    avrdude_message(MSG_INFO, "%s: UPDI link initialization failed\n", progname);
+    msg_info("%s: UPDI link initialization failed\n", progname);
     return -1;
   }
-  avrdude_message(MSG_INFO, "%s: UPDI link initialization OK\n", progname);
+  msg_info("%s: UPDI link initialization OK\n", progname);
 
   if (updi_get_rts_mode(pgm) != RTS_MODE_DEFAULT) {
-    avrdude_message(MSG_INFO, "%s: Forcing serial DTR/RTS handshake lines %s\n", progname, updi_get_rts_mode(pgm) == RTS_MODE_LOW ? "LOW" : "HIGH");
+    msg_info("%s: Forcing serial DTR/RTS handshake lines %s\n", progname, updi_get_rts_mode(pgm) == RTS_MODE_LOW ? "LOW" : "HIGH");
   }
 
   if (updi_read_cs(pgm, UPDI_ASI_SYS_STATUS, &value)<0) {
@@ -591,33 +591,33 @@ static int serialupdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
 
     if (updi_read_cs(pgm, UPDI_ASI_SYS_STATUS, &value)<0) {
-      avrdude_message(MSG_INFO, "%s: Read CS operation during initialization failed\n", progname);
+      msg_info("%s: Read CS operation during initialization failed\n", progname);
       return -1;
     }
   }
   if (value & (1 << UPDI_ASI_SYS_STATUS_LOCKSTATUS)) {
-    avrdude_message(MSG_INFO, "%s: Device is locked\n", progname);
+    msg_info("%s: Device is locked\n", progname);
   }
   if (value & (1 << UPDI_ASI_SYS_STATUS_UROWPROG)) {
-    avrdude_message(MSG_INFO, "%s: Device in USER ROW programming state, leaving programming mode\n", progname);
+    msg_info("%s: Device in USER ROW programming state, leaving programming mode\n", progname);
     reset_link_required = 1;
   }
   if (value & (1 << UPDI_ASI_SYS_STATUS_NVMPROG)) {
-    avrdude_message(MSG_INFO, "%s: Device in NVM programming state, leaving programming mode\n", progname);
+    msg_info("%s: Device in NVM programming state, leaving programming mode\n", progname);
     reset_link_required = 1;
   }
   if (value & (1 << UPDI_ASI_SYS_STATUS_INSLEEP)) {
-    avrdude_message(MSG_INFO, "%s: Device is in SLEEP mode\n", progname);
+    msg_info("%s: Device is in SLEEP mode\n", progname);
   }
   if (value & (1 << UPDI_ASI_SYS_STATUS_RSTSYS)) {
-    avrdude_message(MSG_INFO, "%s: Device in reset status, trying to release it\n", progname);
+    msg_info("%s: Device in reset status, trying to release it\n", progname);
     if (serialupdi_reset(pgm, RELEASE_RESET)<0) {
       return -1;
     }
   }
   if (reset_link_required) {
     if (serialupdi_reset_connection(pgm) < 0) {
-      avrdude_message(MSG_INFO, "%s: UPDI link reset failed\n", progname);
+      msg_info("%s: UPDI link reset failed\n", progname);
       return -1;
     }
   }
@@ -627,25 +627,25 @@ static int serialupdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if (updi_read_sib(pgm, sib_info->sib_string, 32) < 0) {
     /* this should never happen, let's try to reset connection and try again */
     if (serialupdi_reset_connection(pgm) < 0) {
-      avrdude_message(MSG_INFO, "%s: SerialUPDI reset connection failed\n", progname);  
+      msg_info("%s: SerialUPDI reset connection failed\n", progname);
       return -1;
     }
     if (updi_read_sib(pgm, sib_info->sib_string, 32) < 0) {
-      avrdude_message(MSG_INFO, "%s: Read SIB operation failed\n", progname);  
+      msg_info("%s: Read SIB operation failed\n", progname);
       return -1;
     }
   }
   if (serialupdi_decode_sib(pgm, sib_info) < 0) {
-    avrdude_message(MSG_INFO, "%s: Decode SIB_INFO failed\n", progname);
+    msg_info("%s: Decode SIB_INFO failed\n", progname);
     return -1;
   }
 
   if (updi_link_init(pgm) < 0) {
-    avrdude_message(MSG_INFO, "%s: UPDI link initialization failed\n", progname);
+    msg_info("%s: UPDI link initialization failed\n", progname);
     return -1;
   }
 
-  avrdude_message(MSG_INFO, "%s: Entering NVM programming mode\n", progname);
+  msg_info("%s: Entering NVM programming mode\n", progname);
     /* try, but ignore failure */
   serialupdi_enter_progmode(pgm);
 
@@ -671,13 +671,13 @@ static void serialupdi_display(const PROGRAMMER *pgm, const char *p) {
 static int serialupdi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
                           unsigned char * res)
 {
-  avrdude_message(MSG_INFO, "%s: error: cmd %s[%s] not implemented yet\n",
+  msg_info("%s: error: cmd %s[%s] not implemented yet\n",
     	    progname, cmd, res);
   return -1;
 }
 
 static int serialupdi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
-  avrdude_message(MSG_INFO, "%s: error: program enable not implemented yet\n",
+  msg_info("%s: error: program enable not implemented yet\n",
     	    progname);
   return -1;
 }
@@ -724,7 +724,7 @@ static int serialupdi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
       rc = updi_read_data(pgm, m->offset + read_offset, m->buf + read_offset, 
                           remaining_bytes > m->readsize ? m->readsize : remaining_bytes);
       if (rc < 0) {
-        avrdude_message(MSG_INFO, "%s: Paged load operation failed\n", progname);
+        msg_info("%s: Paged load operation failed\n", progname);
         return rc;
       } else {
         read_bytes+=rc;
@@ -759,15 +759,15 @@ static int serialupdi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
         rc = serialupdi_write_userrow(pgm, p, m, page_size, write_offset, 
                                       remaining_bytes > m->page_size ? m->page_size : remaining_bytes);
       } else if (strcmp(m->desc, "fuses")==0) {
-        avrdude_message(MSG_DEBUG, "%s: Page write operation requested for fuses, falling back to byte-level write\n", progname);
+        msg_debug("%s: Page write operation requested for fuses, falling back to byte-level write\n", progname);
         return -1;
       } else {
-        avrdude_message(MSG_INFO, "%s: Invalid memory type: <%s:%d>, 0x%06X, %d (0x%04X)\n", progname, m->desc, page_size, addr, n_bytes, n_bytes);
+        msg_info("%s: Invalid memory type: <%s:%d>, 0x%06X, %d (0x%04X)\n", progname, m->desc, page_size, addr, n_bytes, n_bytes);
         rc = -1;
       }
 
       if (rc < 0) {
-        avrdude_message(MSG_INFO, "%s: Paged write operation failed\n", progname);
+        msg_info("%s: Paged write operation failed\n", progname);
         return rc;
       } else {
         write_bytes+=rc;
@@ -784,10 +784,10 @@ static int serialupdi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
     } else if (strcmp(m->desc, "userrow")==0) {
       rc = serialupdi_write_userrow(pgm, p, m, page_size, addr, n_bytes);
     } else if (strcmp(m->desc, "fuses")==0) {
-        avrdude_message(MSG_DEBUG, "%s: Page write operation requested for fuses, falling back to byte-level write\n", progname);
+        msg_debug("%s: Page write operation requested for fuses, falling back to byte-level write\n", progname);
         rc = -1;
     } else {
-      avrdude_message(MSG_INFO, "%s: Invalid memory type: <%s:%d>, 0x%06X, %d (0x%04X)\n", progname, m->desc, page_size, addr, n_bytes, n_bytes);
+      msg_info("%s: Invalid memory type: <%s:%d>, 0x%06X, %d (0x%04X)\n", progname, m->desc, page_size, addr, n_bytes, n_bytes);
       rc = -1;
     }
     return rc;
@@ -824,38 +824,38 @@ static int serialupdi_unlock(const PROGRAMMER *pgm, const AVRPART *p) {
   memcpy(buffer, UPDI_KEY_CHIPERASE, sizeof(buffer));
 
   if (updi_write_key(pgm, buffer, UPDI_KEY_64, sizeof(buffer)) < 0) {
-    avrdude_message(MSG_INFO, "%s: Writing NVM KEY failed\n", progname);
+    msg_info("%s: Writing NVM KEY failed\n", progname);
     return -1;
   }
 
   if (updi_read_cs(pgm, UPDI_ASI_KEY_STATUS, &key_status) < 0) {
-    avrdude_message(MSG_INFO, "%s: Checking KEY status failed\n", progname);
+    msg_info("%s: Checking KEY status failed\n", progname);
     return -1;
   }
-  avrdude_message(MSG_DEBUG, "%s: Key status: 0x%02X\n", progname, key_status);
+  msg_debug("%s: Key status: 0x%02X\n", progname, key_status);
 
   if (!(key_status & (1 << UPDI_ASI_KEY_STATUS_CHIPERASE))) {
-    avrdude_message(MSG_INFO, "%s: Key not accepted\n", progname);
+    msg_info("%s: Key not accepted\n", progname);
     return -1;
   }
 
   if (serialupdi_reset(pgm, APPLY_RESET) < 0) {
-    avrdude_message(MSG_INFO, "%s: Apply reset operation failed\n", progname);
+    msg_info("%s: Apply reset operation failed\n", progname);
     return -1;
   }
 
   if (serialupdi_reset(pgm, RELEASE_RESET) < 0) {
-    avrdude_message(MSG_INFO, "%s: Release reset operation failed\n", progname);
+    msg_info("%s: Release reset operation failed\n", progname);
     return -1;
   }
 
   if (serialupdi_wait_for_unlock(pgm, 500) < 0) {
-    avrdude_message(MSG_INFO, "%s: Waiting for unlock failed\n", progname);
+    msg_info("%s: Waiting for unlock failed\n", progname);
     return -1;
   }
 
   if (updi_link_init(pgm) < 0) {
-    avrdude_message(MSG_INFO, "%s: UPDI link reinitialization failed\n", progname);
+    msg_info("%s: UPDI link reinitialization failed\n", progname);
     return -1;
   }
 
@@ -866,14 +866,14 @@ static int serialupdi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   uint8_t value;
 
   if (updi_read_cs(pgm, UPDI_ASI_SYS_STATUS, &value)<0) {
-    avrdude_message(MSG_INFO, "%s: Read CS operation during chip erase failed\n", progname);
+    msg_info("%s: Read CS operation during chip erase failed\n", progname);
     return -1;
   }
   
   if (value & (1 << UPDI_ASI_SYS_STATUS_LOCKSTATUS)) {
-    avrdude_message(MSG_INFO, "%s: Device is locked\n", progname);
+    msg_info("%s: Device is locked\n", progname);
     if (ovsigck) {
-      avrdude_message(MSG_INFO, "%s: Attempting device erase\n", progname);
+      msg_info("%s: Attempting device erase\n", progname);
       return serialupdi_unlock(pgm, p);
     }
   } else {
@@ -885,7 +885,7 @@ static int serialupdi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 static int serialupdi_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                  unsigned int baseaddr)
 {
-  avrdude_message(MSG_INFO, "%s: error: page erase not implemented yet\n",
+  msg_info("%s: error: page erase not implemented yet\n",
     	    progname);
   return -1;
 }
@@ -895,7 +895,7 @@ static int serialupdi_read_signature(const PROGRAMMER *pgm, const AVRPART *p, co
   uint8_t value;
 
   if (updi_read_cs(pgm, UPDI_ASI_SYS_STATUS, &value)<0) {
-    avrdude_message(MSG_INFO, "%s: Read CS operation during signature read failed\n", progname);
+    msg_info("%s: Read CS operation during signature read failed\n", progname);
     return -1;
   }
 
@@ -936,13 +936,13 @@ static int serialupdi_parseextparms(const PROGRAMMER *pgm, const LISTID extparms
       } else if (strcasecmp(rts_mode, "high") == 0) {
         updi_set_rts_mode(pgm, RTS_MODE_HIGH);
       } else {
-        avrdude_message(MSG_INFO, "%s: RTS/DTR mode must be LOW or HIGH\n", progname);
+        msg_info("%s: RTS/DTR mode must be LOW or HIGH\n", progname);
         return -1;
       }
       continue;
     }
 
-    avrdude_message(MSG_INFO, "%s: serialupdi_parseextparms(): invalid extended parameter '%s'\n",
+    msg_info("%s: serialupdi_parseextparms(): invalid extended parameter '%s'\n",
                     progname, extended_param);
     rv = -1;
   }

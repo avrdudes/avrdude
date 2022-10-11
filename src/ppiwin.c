@@ -92,7 +92,7 @@ void ppi_open(const char *port, union filedescriptor *fdp) {
 
     if(fd < 0)
     {
-        avrdude_message(MSG_INFO, "%s: can't open device \"giveio\"\n\n", progname);
+        msg_info("%s: can't open device \"giveio\"\n\n", progname);
         fdp->ifd = -1;
         return;
     }
@@ -120,14 +120,14 @@ void ppi_open(const char *port, union filedescriptor *fdp) {
 	fd = strtol(port, &cp, 0);
 	if(*port == '\0' || *cp != '\0')
 	{
-	    avrdude_message(MSG_INFO, "%s: port name \"%s\" is neither lpt1/2/3 nor valid number\n",
+	    msg_info("%s: port name \"%s\" is neither lpt1/2/3 nor valid number\n",
                             progname, port);
 	    fd = -1;
 	}
     }
     if(fd < 0)
     {
-        avrdude_message(MSG_INFO, "%s: can't open device \"%s\"\n\n", progname, port);
+        msg_info("%s: can't open device \"%s\"\n\n", progname, port);
         fdp->ifd = -1;
         return;
     }
