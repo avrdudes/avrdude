@@ -122,6 +122,7 @@ PROGRAMMER *pgm_new(void) {
   pgm->read_byte_cached = avr_read_byte_cached;
   pgm->write_byte_cached = avr_write_byte_cached;
   pgm->chip_erase_cached = avr_chip_erase_cached;
+  pgm->page_erase_cached = avr_page_erase_cached;
   pgm->flush_cache    = avr_flush_cache;
   pgm->reset_cache = avr_reset_cache;
 
