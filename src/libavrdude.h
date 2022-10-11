@@ -802,6 +802,8 @@ typedef struct programmer_t {
   int (*read_byte_cached)(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
                           unsigned long addr, unsigned char *value);
   int (*chip_erase_cached)(const struct programmer_t *pgm, const AVRPART *p);
+  int (*page_erase_cached)(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
+                          unsigned int baseaddr);
   int (*flush_cache)     (const struct programmer_t *pgm, const AVRPART *p);
   int (*reset_cache)     (const struct programmer_t *pgm, const AVRPART *p);
   AVR_Cache *cp_flash, *cp_eeprom;
@@ -918,6 +920,7 @@ int avr_is_and(const unsigned char *s1, const unsigned char *s2, const unsigned 
 int avr_read_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr, unsigned char *value);
 int avr_write_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr, unsigned char data);
 int avr_chip_erase_cached(const PROGRAMMER *pgm, const AVRPART *p);
+int avr_page_erase_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned int baseaddr);
 int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p);
 int avr_reset_cache(const PROGRAMMER *pgm, const AVRPART *p);
 
