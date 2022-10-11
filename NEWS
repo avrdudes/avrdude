@@ -140,6 +140,8 @@ Changes since version 7.0:
     - Provide cached byte-wise read/write API #1106
     - AVR109: support for prodsig read and usersig read/write #1108
     - Add missing AVR variants the original JTAG ICE supports #1109
+    - Improve help message in terminal and provide new command pgerase #1113
+    - Fix pointer truncation for Windows x64 #1119
 
   * Internals:
 

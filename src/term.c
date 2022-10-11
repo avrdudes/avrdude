@@ -1084,7 +1084,7 @@ static int cmd_quell(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   return 0;
 }
 
-static int tokenize(char * s, char ***argv) {
+static int tokenize(char *s, char ***argv) {
   int     i, n, l, nargs;
   int     len, slen;
   char  *buf;
