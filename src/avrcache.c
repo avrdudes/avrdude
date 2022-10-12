@@ -134,18 +134,28 @@ int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   if(!avr_has_paged_access(pgm, mem) || addr < 0 || addr >= mem->size)
     return LIBAVRDUDE_GENERAL_FAILURE;
 
-  int rc, pgsize = mem->page_size, off = addr & ~(pgsize-1);
+  int rc, pgsize = mem->page_size, base = addr & ~(pgsize-1);
   unsigned char *pagecopy = cfg_malloc("avr_read_page_default()", pgsize);
 
+<<<<<<< HEAD
   memcpy(pagecopy, mem->buf + off, pgsize);
   if((rc = pgm->paged_load(pgm, p, mem, pgsize, off, pgsize)) >= 0)
     memcpy(buf, mem->buf + off, pgsize);
   memcpy(mem->buf + off, pagecopy, pgsize);
+=======
+  if(pgsize == 1)
+    return pgm->read_byte(pgm, p, mem, addr, buf);
+
+  memcpy(pagecopy, mem->buf + base, pgsize);
+  if((rc = pgm->paged_load(pgm, p, mem, pgsize, base, pgsize)) >= 0)
+    memcpy(buf, mem->buf + base, pgsize);
+  memcpy(mem->buf + base, pagecopy, pgsize);
+>>>>>>> 8cd0993 (Rename variable for clarity in avrcache.c)
 
   if(rc < 0) {
     rc = LIBAVRDUDE_SUCCESS;
     for(int i=0; i<pgsize; i++) {
-      if(pgm->read_byte(pgm, p, mem, off+i, pagecopy+i) < 0) {
+      if(pgm->read_byte(pgm, p, mem, base+i, pagecopy+i) < 0) {
         rc = LIBAVRDUDE_GENERAL_FAILURE;
         break;
       }
@@ -168,13 +178,23 @@ int avr_write_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   if(!avr_has_paged_access(pgm, mem) || addr < 0 || addr >= mem->size)
     return LIBAVRDUDE_GENERAL_FAILURE;
 
-  int rc, pgsize = mem->page_size, off = addr & ~(pgsize-1);
+  int rc, pgsize = mem->page_size, base = addr & ~(pgsize-1);
   unsigned char *pagecopy = cfg_malloc("avr_write_page_default()", pgsize);
 
+<<<<<<< HEAD
   memcpy(pagecopy, mem->buf + off, pgsize);
   memcpy(mem->buf + off, data, pgsize);
   rc = pgm->paged_write(pgm, p, mem, pgsize, off, pgsize);
   memcpy(mem->buf + off, pagecopy, pgsize);
+=======
+  if(pgsize == 1)
+    return pgm->write_byte(pgm, p, mem, addr, *data);
+
+  memcpy(pagecopy, mem->buf + base, pgsize);
+  memcpy(mem->buf + base, data, pgsize);
+  rc = pgm->paged_write(pgm, p, mem, pgsize, base, pgsize);
+  memcpy(mem->buf + base, pagecopy, pgsize);
+>>>>>>> 8cd0993 (Rename variable for clarity in avrcache.c)
   free(pagecopy);
 
   return rc;
