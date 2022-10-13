@@ -55,7 +55,7 @@ static int stk500generic_open(PROGRAMMER *pgm, const char *port) {
       return 0;
     }
 
-  pmsg_info("cannot open either stk500v1 or stk500v2 programmer\n");
+  pmsg_error("cannot open either stk500v1 or stk500v2 programmer\n");
   return -1;
 }
 

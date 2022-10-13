@@ -137,7 +137,7 @@ static speed_t serial_baud_lookup(long baud, bool *nonstandard) {
    * If a non-standard BAUD rate is used, issue
    * a warning (if we are verbose) and return the raw rate
    */
-  pmsg_notice("serial_baud_lookup(): Using non-standard baud rate: %ld\n", baud);
+  pmsg_notice("serial_baud_lookup(): using non-standard baud rate: %ld\n", baud);
 
   *nonstandard = true;
 
@@ -158,8 +158,9 @@ static int ser_setparams(const union filedescriptor *fd, long baud, unsigned lon
    */
   rc = tcgetattr(fd->ifd, &termios);
   if (rc < 0) {
-    pmsg_info("ser_setparams(): tcgetattr() failed");
-    return -errno;
+    int ret = -errno;
+    pmsg_ext_error("ser_setparams(): tcgetattr() failed\n");
+    return ret;
   }
 
   /*
@@ -252,16 +253,18 @@ static int ser_setparams(const union filedescriptor *fd, long baud, unsigned lon
 
   rc = tcsetattr(fd->ifd, TCSANOW, &termios);
   if (rc < 0) {
-    pmsg_info("ser_setparams(): tcsetattr() failed\n");
-    return -errno;
+    int ret = -errno;
+    pmsg_ext_error("ser_setparams(): tcsetattr() failed\n");
+    return ret;
   }
 
 #ifdef __APPLE__
   // handle nonstandard speed values the MacOS way
   if (nonstandard) {
     if (ioctl(fd->ifd, IOSSIOSPEED, &speed) < 0) {
-      pmsg_info("ser_setparams(): ioctrl(IOSSIOSPEED) failed\n");
-      return -errno;
+      ret = -errno;
+      pmsg_ext_error("ser_setparams(): ioctrl(IOSSIOSPEED) failed\n");
+      return ret;
     }
   }
 #endif // __APPLE__
@@ -284,7 +287,7 @@ static int net_open(const char *port, union filedescriptor *fdp) {
   struct addrinfo *result, *rp;
 
   if ((hstr = hp = strdup(port)) == NULL) {
-    pmsg_info("net_open(): Out of memory!\n");
+    pmsg_error("net_open(): out of memory\n");
     return -1;
   }
 
@@ -294,7 +297,7 @@ static int net_open(const char *port, union filedescriptor *fdp) {
    * service name from the host or IP address.
    */
   if (((pstr = strrchr(hstr, ':')) == NULL) || (pstr == hstr)) {
-    pmsg_info("net_open(): mangled host:port string %s\n", hstr);
+    pmsg_error("net_open(): mangled host:port string %s\n", hstr);
     goto error;
   }
 
@@ -317,7 +320,7 @@ static int net_open(const char *port, union filedescriptor *fdp) {
   s = getaddrinfo(hstr, pstr, &hints, &result);
 
   if (s != 0) {
-    pmsg_info("net_open(): cannot resolve host=\"%s\", port=\"%s\": %s\n",
+    pmsg_ext_error("net_open(): cannot resolve host=\"%s\", port=\"%s\": %s\n",
       hstr, pstr, gai_strerror(s));
     goto error;
   }
@@ -334,7 +337,7 @@ static int net_open(const char *port, union filedescriptor *fdp) {
     close(fd);
   }
   if (rp == NULL) {
-    pmsg_info("net_open(): Cannot connect: %s\n", strerror(errno));
+    pmsg_ext_error("net_open(): cannot connect: %s\n", strerror(errno));
   }
   else {
     fdp->ifd = fd;
@@ -354,7 +357,7 @@ static int ser_set_dtr_rts(const union filedescriptor *fdp, int is_on) {
 
   r = ioctl(fdp->ifd, TIOCMGET, &ctl);
   if (r < 0) {
-    perror("ioctl(\"TIOCMGET\")");
+    pmsg_ext_error("ioctl(\"TIOCMGET\"): %s\n", strerror(errno));
     return -1;
   }
 
@@ -369,7 +372,7 @@ static int ser_set_dtr_rts(const union filedescriptor *fdp, int is_on) {
 
   r = ioctl(fdp->ifd, TIOCMSET, &ctl);
   if (r < 0) {
-    perror("ioctl(\"TIOCMSET\")");
+    pmsg_ext_error("ioctl(\"TIOCMSET\"): %s\n", strerror(errno));
     return -1;
   }
 
@@ -393,7 +396,7 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
    */
   fd = open(port, O_RDWR | O_NOCTTY | O_NONBLOCK);
   if (fd < 0) {
-    pmsg_info("ser_open(): can't open port %s: %s\n", port, strerror(errno));
+    pmsg_ext_error("ser_open(): cannot open port %s: %s\n", port, strerror(errno));
     return -1;
   }
 
@@ -404,7 +407,7 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
    */
   rc = ser_setparams(fdp, pinfo.serialinfo.baud, pinfo.serialinfo.cflags);
   if (rc) {
-    pmsg_info("ser_open(): can't set attributes for port %s: %s\n", port, strerror(-rc));
+    pmsg_ext_error("ser_open(): cannot set attributes for port %s: %s\n", port, strerror(-rc));
     close(fd);
     return -1;
   }
@@ -418,7 +421,7 @@ static void ser_close(union filedescriptor *fd) {
   if (saved_original_termios) {
     int rc = tcsetattr(fd->ifd, TCSANOW | TCSADRAIN, &original_termios);
     if (rc) {
-      pmsg_info("ser_close(): can't reset attributes for device: %s\n", strerror(errno));
+      pmsg_ext_error("ser_close(): cannot reset attributes for device: %s\n", strerror(errno));
     }
     saved_original_termios = 0;
   }
@@ -459,7 +462,7 @@ static int ser_send(const union filedescriptor *fd, const unsigned char * buf, s
   while (len) {
     rc = write(fd->ifd, p, (len > 1024) ? 1024 : len);
     if (rc < 0) {
-      pmsg_info("ser_send(): write error: %s\n", strerror(errno));
+      pmsg_ext_error("ser_send(): unable to write: %s\n", strerror(errno));
       return -1;
     }
     p += rc;
@@ -494,18 +497,18 @@ static int ser_recv(const union filedescriptor *fd, unsigned char * buf, size_t 
     }
     else if (nfds == -1) {
       if (errno == EINTR || errno == EAGAIN) {
-	pmsg_info("ser_recv(): programmer is not responding,reselecting\n");
+	pmsg_warning("ser_recv(): programmer is not responding, reselecting\n");
         goto reselect;
       }
       else {
-        pmsg_info("ser_recv(): select(): %s\n", strerror(errno));
+        pmsg_ext_error("ser_recv(): select(): %s\n", strerror(errno));
         return -1;
       }
     }
 
     rc = read(fd->ifd, p, (buflen - len > 1024) ? 1024 : buflen - len);
     if (rc < 0) {
-      pmsg_info("ser_recv(): read error: %s\n", strerror(errno));
+      pmsg_ext_error("ser_recv(): unable to read: %s\n", strerror(errno));
       return -1;
     }
     p += rc;
@@ -570,14 +573,14 @@ static int ser_drain(const union filedescriptor *fd, int display) {
         goto reselect;
       }
       else {
-        pmsg_info("ser_drain(): select(): %s\n", strerror(errno));
+        pmsg_ext_error("ser_drain(): select(): %s\n", strerror(errno));
         return -1;
       }
     }
 
     rc = read(fd->ifd, &buf, 1);
     if (rc < 0) {
-      pmsg_info("ser_drain(): read error: %s\n", strerror(errno));
+      pmsg_ext_error("ser_drain(): unable to read: %s\n", strerror(errno));
       return -1;
     }
     if (display) {

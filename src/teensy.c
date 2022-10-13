@@ -127,12 +127,12 @@ static int teensy_get_bootloader_info(pdata_t* pdata, const AVRPART* p) {
             // On Linux, libhidapi does not seem to return the HID usage from the report descriptor.
             // We try to infer the board from the part information, until somebody fixes libhidapi.
             // To use this workaround, the -F option is required.
-            pmsg_info("cannot detect board type (HID usage is 0)\n");
+            pmsg_error("cannot detect board type (HID usage is 0)\n");
 
             AVRMEM* mem = avr_locate_mem(p, "flash");
             if (mem == NULL)
             {
-                msg_info("No flash memory for part %s\n", p->desc);
+                pmsg_error("no flash memory defined for part %s\n", p->desc);
                 return -1;
             }
 
@@ -147,7 +147,7 @@ static int teensy_get_bootloader_info(pdata_t* pdata, const AVRPART* p) {
         }
         else
         {
-            pmsg_info("Teensy board not supported (HID usage 0x%02X)\n", pdata->hid_usage);
+            pmsg_error("Teensy board not supported (HID usage 0x%02X)\n", pdata->hid_usage);
             return -1;
         }
     }
@@ -171,7 +171,7 @@ static int teensy_write_page(pdata_t* pdata, uint32_t address, const uint8_t* bu
 
     if (size > pdata->page_size)
     {
-        pmsg_info("invalid page size: %u\n", pdata->page_size);
+        pmsg_error("invalid page size: %u\n", pdata->page_size);
         return -1;
     }
 
@@ -179,7 +179,7 @@ static int teensy_write_page(pdata_t* pdata, uint32_t address, const uint8_t* bu
     uint8_t* report = (uint8_t*)malloc(report_size);
     if (report == NULL)
     {
-        pmsg_info("failed to allocate memory\n");
+        pmsg_error("unable to allocate memory\n");
         return -1;
     }
 
@@ -206,7 +206,7 @@ static int teensy_write_page(pdata_t* pdata, uint32_t address, const uint8_t* bu
     free(report);
     if (result < 0)
     {
-        pmsg_info("failed to write page: %ls\n", hid_error(pdata->hid_handle));
+        pmsg_error("unable to write page: %ls\n", hid_error(pdata->hid_handle));
         return result;
     }
 
@@ -237,7 +237,7 @@ static void teensy_setup(PROGRAMMER* pgm)
 
     if ((pgm->cookie = malloc(sizeof(pdata_t))) == NULL)
     {
-        pmsg_info("failed to allocate memory\n");
+        pmsg_error("unable to allocate memory\n");
         exit(1);
     }
 
@@ -308,7 +308,7 @@ static int teensy_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const 
 
     if (mem->size < 3)
     {
-        pmsg_info("memory size too small for read_sig_bytes\n");
+        pmsg_error("memory size too small for read_sig_bytes\n");
         return -1;
     }
 
@@ -358,8 +358,8 @@ static int teensy_open(PROGRAMMER *pgm, const char *port) {
 
     if (port != NULL && dev_name == NULL)
     {
-        pmsg_info("invalid -P value: '%s'\n", port);
-        msg_info("%sUse -P usb:bus:device\n", progbuf);
+        pmsg_error("invalid -P value: '%s'\n", port);
+        pmsg_error("%sUse -P usb:bus:device\n", progbuf);
         return -1;
     }
 
@@ -373,7 +373,7 @@ static int teensy_open(PROGRAMMER *pgm, const char *port) {
         pid = *(int*)(ldata(usbpid));
         if (lnext(usbpid))
         {
-            pmsg_info("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
+            pmsg_error("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
         }
     }
 
@@ -393,7 +393,7 @@ static int teensy_open(PROGRAMMER *pgm, const char *port) {
                 pdata->hid_handle = hid_open_path(device->path);
                 if (pdata->hid_handle == NULL)
                 {
-                    pmsg_info("found HID device, but hid_open_path() failed\n");
+                    pmsg_error("found HID device, but hid_open_path() failed\n");
                 }
                 else
                 {
@@ -413,15 +413,15 @@ static int teensy_open(PROGRAMMER *pgm, const char *port) {
             {
                 if (pdata->wait_timout < 0)
                 {
-                    pmsg_info("no device found, waiting for device to be plugged in ...\n");
+                    pmsg_error("no device found, waiting for device to be plugged in ...\n");
                 }
                 else
                 {
-                    pmsg_info("no device found, waiting %d seconds for device to be plugged in ...\n",
+                    pmsg_error("no device found, waiting %d seconds for device to be plugged in ...\n",
                         pdata->wait_timout);
                 }
 
-                pmsg_info("press CTRL-C to terminate\n");
+                pmsg_error("press CTRL-C to terminate\n");
                 show_retry_message = false;
             }
 
@@ -437,7 +437,7 @@ static int teensy_open(PROGRAMMER *pgm, const char *port) {
 
     if (!pdata->hid_handle)
     {
-        pmsg_info("could not find device with Teensy bootloader (%04X:%04X)\n", vid, pid);
+        pmsg_error("cannot find device with Teensy bootloader (%04X:%04X)\n", vid, pid);
         return -1;
     }
 
@@ -471,7 +471,7 @@ static int teensy_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     }
     else
     {
-        pmsg_info("unsupported memory type: %s\n", mem->desc);
+        pmsg_error("unsupported memory type: %s\n", mem->desc);
         return -1;
     }
 }
@@ -503,13 +503,13 @@ static int teensy_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
         if (n_bytes > page_size)
         {
-            pmsg_info("buffer size %u exceeds page size %u\n", n_bytes, page_size);
+            pmsg_error("buffer size %u exceeds page size %u\n", n_bytes, page_size);
             return -1;
         }
 
         if (addr + n_bytes > pdata->flash_size)
         {
-            pmsg_info("program size %u exceeds flash size %u\n", addr + n_bytes, pdata->flash_size);
+            pmsg_error("program size %u exceeds flash size %u\n", addr + n_bytes, pdata->flash_size);
             return -1;
         }
 
@@ -542,7 +542,7 @@ static int teensy_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     }
     else
     {
-        pmsg_info("unsupported memory type: %s\n", mem->desc);
+        pmsg_error("unsupported memory type: %s\n", mem->desc);
         return -1;
     }
 }
@@ -567,7 +567,7 @@ static int teensy_parseextparams(const PROGRAMMER *pgm, const LISTID xparams) {
         }
         else
         {
-            pmsg_info("invalid extended parameter '%s'\n", param);
+            pmsg_error("invalid extended parameter '%s'\n", param);
             return -1;
         }
     }
@@ -603,7 +603,7 @@ void teensy_initpgm(PROGRAMMER *pgm) {
 
  // Give a proper error if we were not compiled with libhidapi
 static int teensy_nousb_open(PROGRAMMER *pgm, const char *name) {
-    pmsg_info("no HID support; please compile again with libhidapi installed\n");
+    pmsg_error("no HID support; please compile again with libhidapi installed\n");
     return -1;
 }
 

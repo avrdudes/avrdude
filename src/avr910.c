@@ -57,7 +57,7 @@ struct pdata
 static void avr910_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_info("avr910_setup(): Out of memory allocating private data\n");
+    pmsg_error("avr910_setup(): out of memory allocating private data\n");
     exit(1);
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
@@ -80,7 +80,7 @@ static int avr910_recv(const PROGRAMMER *pgm, char *buf, size_t len) {
 
   rv = serial_recv(&pgm->fd, (unsigned char *)buf, len);
   if (rv < 0) {
-    pmsg_info("avr910_recv(): programmer is not responding\n");
+    pmsg_error("avr910_recv(): programmer is not responding\n");
     return 1;
   }
   return 0;
@@ -97,7 +97,7 @@ static int avr910_vfy_cmd_sent(const PROGRAMMER *pgm, char *errmsg) {
 
   avr910_recv(pgm, &c, 1);
   if (c != '\r') {
-    pmsg_info("programmer did not respond to command: %s\n", errmsg);
+    pmsg_error("programmer did not respond to command: %s\n", errmsg);
     return 1;
   }
   return 0;
@@ -173,9 +173,9 @@ static int avr910_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   avr910_send(pgm, "p", 1);
   avr910_recv(pgm, &type, 1);
 
-  msg_info("Found programmer: Id = %s; type = %c\n", id, type);
-  msg_info("    Software Version = %c.%c; ", sw[0], sw[1]);
-  msg_info("Hardware Version = %c.%c\n", hw[0], hw[1]);
+  msg_notice("Programmer id    = %s; type = %c\n", id, type);
+  msg_notice("Software version = %c.%c; ", sw[0], sw[1]);
+  msg_notice("Hardware version = %c.%c\n", hw[0], hw[1]);
 
   /* See if programmer supports autoincrement of address. */
 
@@ -194,7 +194,7 @@ static int avr910_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       PDATA(pgm)->buffersize = (unsigned int)(unsigned char)c<<8;
       avr910_recv(pgm, &c, 1);
       PDATA(pgm)->buffersize += (unsigned int)(unsigned char)c;
-      msg_notice("Programmer supports buffered memory access with "
+      msg_notice("programmer supports buffered memory access with "
                       "buffersize = %u bytes\n",
                       PDATA(pgm)->buffersize);
       PDATA(pgm)->use_blockmode = 1;
@@ -212,7 +212,7 @@ static int avr910_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     /* Get list of devices that the programmer supports. */
 
     avr910_send(pgm, "t", 1);
-    msg_notice("\nProgrammer supports the following devices:\n");
+    msg_notice2("\nProgrammer supports the following devices:\n");
     devtype_1st = 0;
     while (1) {
       avr910_recv(pgm, &c, 1);
@@ -222,17 +222,21 @@ static int avr910_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 	break;
       part = locate_part_by_avr910_devcode(part_list, c);
 
-      msg_notice("    Device code: 0x%02x = %s\n", c & 0xff, part? part->desc: "(unknown)");
+      msg_notice2("    Device code: 0x%02x = %s\n", c & 0xff, part? part->desc: "(unknown)");
 
       /* FIXME: Need to lookup devcode and report the device. */
 
       if (p->avr910_devcode == c)
 	dev_supported = 1;
     };
-    msg_notice("\n");
+    msg_notice2("\n");
 
     if (!dev_supported) {
-      pmsg_info("%s, selected device is not supported by programmer: %s\n", ovsigck? "warning": "error", p->id);
+      if(ovsigck)
+        pmsg_warning("selected device is not supported by programmer %s\n", p->id);
+      else
+        pmsg_error("selected device is not supported by programmer %s\n", p->id);
+
       if (!ovsigck)
 	return -1;
     }
@@ -314,7 +318,7 @@ static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       int devcode;
       if (sscanf(extended_param, "devcode=%i", &devcode) != 1 ||
 	  devcode <= 0 || devcode > 255) {
-        pmsg_info("avr910_parseextparms(): invalid devcode '%s'\n", extended_param);
+        pmsg_error("avr910_parseextparms(): invalid devcode '%s'\n", extended_param);
         rv = -1;
         continue;
       }
@@ -330,7 +334,7 @@ static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
 
-    pmsg_info("avr910_parseextparms(): invalid extended parameter '%s'\n", extended_param);
+    pmsg_error("avr910_parseextparms(): invalid extended parameter '%s'\n", extended_param);
     rv = -1;
   }
 
@@ -699,7 +703,7 @@ static int avr910_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const 
   unsigned char tmp;
 
   if (m->size < 3) {
-    pmsg_info("memsize too small for sig byte read");
+    pmsg_error("memsize too small for sig byte read");
     return -1;
   }
 

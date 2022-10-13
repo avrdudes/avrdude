@@ -195,14 +195,14 @@ static int hexdump_buf(FILE *f, int startaddr, unsigned char *buf, int len) {
   char dst2[80];
 
   int addr = startaddr;
-  unsigned char *p = (unsigned char *)buf;
+  unsigned char *p = (unsigned char *) buf;
   while (len) {
     int n = 16;
     if (n > len)
       n = len;
     hexdump_line(dst1, p, n, 48);
     chardump_line(dst2, p, n, 16);
-    fprintf(stdout, "%04x  %s  |%s|\n", addr, dst1, dst2);
+    fprintf(f, "%04x  %s  |%s|\n", addr, dst1, dst2);
     len -= n;
     addr += n;
     p += n;
@@ -806,7 +806,7 @@ static int cmd_pgerase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
   // terminal_message(MSG_INFO, "%s: %s page erase 0x%05x\n", progname, mem->desc, addr & ~(mem->page_size-1));
   if(pgm->page_erase_cached(pgm, p, mem, (unsigned int) addr) < 0) {
-    terminal_message(MSG_INFO, "%s (pgerase): %s page at 0x%05x could not be erased\n",
+    terminal_message(MSG_INFO, "%s (pgerase): unable to erase %s page at 0x%05x\n",
       progname, mem->desc, addr);
     return -1;
   }
@@ -883,7 +883,7 @@ static int cmd_vtarg(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     return -1;
   }
   if ((rc = pgm->set_vtarget(pgm, v)) != 0) {
-    terminal_message(MSG_INFO, "%s (vtarg): failed to set V[target] (rc = %d)\n",
+    terminal_message(MSG_INFO, "%s (vtarg): unable to set V[target] (rc = %d)\n",
       progname, rc);
     return -3;
   }
@@ -915,7 +915,7 @@ static int cmd_fosc(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   else if (*endp == 'k' || *endp == 'K')
     v *= 1e3;
   if ((rc = pgm->set_fosc(pgm, v)) != 0) {
-    terminal_message(MSG_INFO, "%s (fosc): failed to set oscillator frequency (rc = %d)\n",
+    terminal_message(MSG_INFO, "%s (fosc): unable to set oscillator frequency (rc = %d)\n",
       progname, rc);
     return -3;
   }
@@ -940,7 +940,7 @@ static int cmd_sck(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   }
   v *= 1e-6;			/* Convert from microseconds to seconds. */
   if ((rc = pgm->set_sck_period(pgm, v)) != 0) {
-    terminal_message(MSG_INFO, "%s (sck): failed to set SCK period (rc = %d)\n",
+    terminal_message(MSG_INFO, "%s (sck): unable to set SCK period (rc = %d)\n",
       progname, rc);
     return -3;
   }
@@ -981,7 +981,7 @@ static int cmd_varef(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     }
   }
   if ((rc = pgm->set_varef(pgm, chan, v)) != 0) {
-    terminal_message(MSG_INFO, "%s (varef): failed to set V[aref] (rc = %d)\n",
+    terminal_message(MSG_INFO, "%s (varef): unable to set V[aref] (rc = %d)\n",
       progname, rc);
     return -3;
   }
@@ -1223,7 +1223,7 @@ char *terminal_get_input(const char *prompt) {
   return input;
 #else
   char input[256];
-  printf("%s", prompt);
+  fprintf(stdout, "%s", prompt);
   if (fgets(input, sizeof(input), stdin))
   {
     /* FIXME: readline strips the '\n', should this too? */
@@ -1330,8 +1330,7 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
       hashes[i/2] = '#';
     hashes[50] = 0;
 
-    msg_info("\r%s | %s | %d%% %0.2fs",
-            header, hashes, showperc, etime);
+    msg_info("\r%s | %s | %d%% %0.2fs", header, hashes, showperc, etime);
     if(percent == 100) {
       if(finish)
         msg_info("\n\n");

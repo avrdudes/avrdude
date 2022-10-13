@@ -39,7 +39,7 @@
 #ifndef HAVE_LIBUSB
 
 struct dfu_dev *dfu_open(const char *port_name) {
-  pmsg_info("Error: No USB support in this compile of avrdude\n");
+  pmsg_error("no USB support compiled for avrdude\n");
   return NULL;
 }
 
@@ -110,14 +110,14 @@ struct dfu_dev *dfu_open(const char *port_spec) {
    */
 
   if (strncmp(port_spec, "usb", 3) != 0) {
-    pmsg_info("invalid port specification %s for USB device\n", port_spec);
+    pmsg_error("invalid port specification %s for USB device\n", port_spec);
     return NULL;
   }
 
   if(':' == port_spec[3]) {
       bus_name = strdup(port_spec + 3 + 1);
       if (bus_name == NULL) {
-        pmsg_info("out of memory in strdup\n");
+        pmsg_error("out of memory in strdup\n");
         return NULL;
       }
 
@@ -134,7 +134,7 @@ struct dfu_dev *dfu_open(const char *port_spec) {
 
   if (dfu == NULL)
   {
-    pmsg_info("out of memory\n");
+    pmsg_error("out of memory\n");
     free(bus_name);
     return NULL;
   }
@@ -168,8 +168,7 @@ int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid)
    */
 
   if (pid == 0 && dfu->dev_name == NULL) {
-    pmsg_info("no DFU support for part; "
-      "specify PID in config or USB address (via -P) to override\n");
+    pmsg_error("no DFU support for part; specify PID in config or USB address (via -P) to override\n");
     return -1;
   }
 
@@ -204,19 +203,18 @@ int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid)
      * why the match failed, and if we came across another DFU-capable part.
      */
 
-    pmsg_info("no matching USB device found\n");
+    pmsg_error("no matching USB device found\n");
     return -1;
   }
 
-  if(verbose)
-    pmsg_info("found VID=0x%04x PID=0x%04x at %s:%s\n",
-      found->descriptor.idVendor, found->descriptor.idProduct,
-      found->bus->dirname, found->filename);
+  pmsg_notice("found VID=0x%04x PID=0x%04x at %s:%s\n",
+    found->descriptor.idVendor, found->descriptor.idProduct,
+    found->bus->dirname, found->filename);
 
   dfu->dev_handle = usb_open(found);
 
   if (dfu->dev_handle == NULL) {
-    pmsg_info("error, USB device at %s:%s: %s\n", found->bus->dirname, found->filename, usb_strerror());
+    pmsg_error("USB device at %s:%s: %s\n", found->bus->dirname, found->filename, usb_strerror());
     return -1;
   }
 
@@ -273,17 +271,17 @@ int dfu_getstatus(struct dfu_dev *dfu, struct dfu_status *status)
     (char*) status, sizeof(struct dfu_status), dfu->timeout);
 
   if (result < 0) {
-    pmsg_info("failed to get DFU status: %s\n", usb_strerror());
+    pmsg_error("unable to get DFU status: %s\n", usb_strerror());
     return -1;
   }
 
   if (result < sizeof(struct dfu_status)) {
-    pmsg_info("failed to get DFU status: %s\n", "short read");
+    pmsg_error("unable to get DFU status: %s\n", "short read");
     return -1;
   }
 
   if (result > sizeof(struct dfu_status)) {
-    pmsg_info("oversize read (should not happen); exiting\n");
+    pmsg_error("oversize read (should not happen); exiting\n");
     exit(1);
   }
 
@@ -307,7 +305,7 @@ int dfu_clrstatus(struct dfu_dev *dfu)
     NULL, 0, dfu->timeout);
 
   if (result < 0) {
-    pmsg_info("failed to clear DFU status: %s\n", usb_strerror());
+    pmsg_error("unable to clear DFU status: %s\n", usb_strerror());
     return -1;
   }
 
@@ -325,7 +323,7 @@ int dfu_abort(struct dfu_dev *dfu)
     NULL, 0, dfu->timeout);
 
   if (result < 0) {
-    pmsg_info("failed to reset DFU state: %s\n", usb_strerror());
+    pmsg_error("unable to reset DFU state: %s\n", usb_strerror());
     return -1;
   }
 
@@ -345,18 +343,18 @@ int dfu_dnload(struct dfu_dev *dfu, void *ptr, int size)
     ptr, size, dfu->timeout);
 
   if (result < 0) {
-    pmsg_info("DFU_DNLOAD failed: %s\n", usb_strerror());
+    pmsg_error("DFU_DNLOAD failed: %s\n", usb_strerror());
     return -1;
   }
 
   if (result < size) {
-    pmsg_info("DFU_DNLOAD failed: %s\n", "short write");
+    pmsg_error("DFU_DNLOAD failed: short write\n");
     return -1;
   }
 
   if (result > size) {
-    pmsg_info("oversize write (should not happen); exiting\n");
-    exit(1);
+    pmsg_error("DFU_DNLOAD failed: oversize write (should not happen)\n");
+    return -1;
   }
 
   return 0;
@@ -374,17 +372,17 @@ int dfu_upload(struct dfu_dev *dfu, void *ptr, int size)
     ptr, size, dfu->timeout);
 
   if (result < 0) {
-    pmsg_info("DFU_UPLOAD failed: %s\n", usb_strerror());
+    pmsg_error("DFU_UPLOAD failed: %s\n", usb_strerror());
     return -1;
   }
 
   if (result < size) {
-    pmsg_info("DFU_UPLOAD failed: %s\n", "short read");
+    pmsg_error("DFU_UPLOAD failed: %s\n", "short read");
     return -1;
   }
 
   if (result > size) {
-    pmsg_info("oversize read (should not happen); exiting\n");
+    pmsg_error("oversize read (should not happen); exiting\n");
     exit(1);
   }
 
@@ -430,14 +428,14 @@ char * get_usb_string(usb_dev_handle * dev_handle, int index) {
   result = usb_get_string_simple(dev_handle, index, buffer, sizeof(buffer)-1);
 
   if (result < 0) {
-    pmsg_info("failed to read USB device string %d: %s\n", index, usb_strerror());
+    pmsg_error("unable to read USB device string %d: %s\n", index, usb_strerror());
     return NULL;
   }
 
   str = malloc(result+1);
 
   if (str == NULL) {
-    pmsg_info("out of memory allocating a string\n");
+    pmsg_error("out of memory allocating a string\n");
     return 0;
   }
 

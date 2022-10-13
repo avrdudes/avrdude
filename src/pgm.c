@@ -39,7 +39,7 @@ static void pgm_default_6(const PROGRAMMER *, const char *);
 
 
 static int pgm_default_open(PROGRAMMER *pgm, const char *name) {
-  msg_info("\n%s: programmer does not support open()", progname);
+  pmsg_error("programmer does not support open()");
   return -1;
 }
 
@@ -220,7 +220,7 @@ PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
 
 
 static void pgm_default(void) {
-  pmsg_info("programmer operation not supported\n");
+  pmsg_error("programmer operation not supported\n");
 }
 
 

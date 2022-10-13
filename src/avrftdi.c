@@ -51,8 +51,7 @@
 #ifdef DO_NOT_BUILD_AVRFTDI
 
 static int avrftdi_noftdi_open(PROGRAMMER *pgm, const char *name) {
-	pmsg_info("no libftdi or libusb support; install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again\n");
-
+	pmsg_error("no libftdi or libusb support; install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again\n");
 	return -1;
 }
 
@@ -139,14 +138,14 @@ void avrftdi_log(int level, const char * func, int line,
 		if(!skip_prefix)
 		{
 			switch(level) {
-				case ERR: msg_info("E "); break;
-				case WARN:  msg_info("W "); break;
-				case INFO:  msg_info("I "); break;
-				case DEBUG: msg_info("D "); break;
-				case TRACE: msg_info("T "); break;
-				default: msg_info("  "); break;
+				case ERR:   msg_error("E "); break;
+				case WARN:  msg_error("W "); break;
+				case INFO:  msg_error("I "); break;
+				case DEBUG: msg_error("D "); break;
+				case TRACE: msg_error("T "); break;
+				default:    msg_error("  "); break;
 			}
-			msg_info("%s(%d): ", func, line);
+			msg_error("%s(%d): ", func, line);
 		}
 		va_start(ap, fmt);
 		vfprintf(stderr, fmt, ap);
@@ -659,7 +658,7 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 	if (usbpid) {
 		pid = *(int *)(ldata(usbpid));
 		if (lnext(usbpid))
-			pmsg_info("Warning: using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
+			pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
 	} else
 		pid = USB_DEVICE_FT2232;
 

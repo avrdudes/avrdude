@@ -63,7 +63,7 @@ static int linuxgpio_export(unsigned int gpio)
 
   fd = open("/sys/class/gpio/export", O_WRONLY);
   if (fd < 0) {
-    perror("Can't open /sys/class/gpio/export");
+    pmsg_ext_error("cannot open /sys/class/gpio/export: %s\n", strerror(errno));
     return fd;
   }
 
@@ -81,7 +81,7 @@ static int linuxgpio_unexport(unsigned int gpio)
 
   fd = open("/sys/class/gpio/unexport", O_WRONLY);
   if (fd < 0) {
-    perror("Can't open /sys/class/gpio/unexport");
+    pmsg_ext_error("cannot open /sys/class/gpio/unexport: %s\n", strerror(errno));
     return fd;
   }
 
@@ -109,8 +109,7 @@ static int linuxgpio_dir(unsigned int gpio, unsigned int dir)
 
   fd = open(buf, O_WRONLY);
   if (fd < 0) {
-    snprintf(buf, sizeof(buf), "Can't open gpio%u/direction", gpio);
-    perror(buf);
+    pmsg_ext_error("cannot open %s: %s\n", buf, strerror(errno));
     return fd;
   }
 
@@ -267,7 +266,7 @@ static int linuxgpio_open(PROGRAMMER *pgm, const char *port) {
          i == PIN_AVR_MISO ) {
         pin = pgm->pinno[i] & PIN_MASK;
         if ((r=linuxgpio_export(pin)) < 0) {
-            msg_info("Can't export GPIO %d, already exported/busy?: %s",
+            pmsg_ext_error("cannot export GPIO %d, already exported/busy?: %s",
                     pin, strerror(errno));
             return r;
         }
@@ -379,7 +378,7 @@ const char linuxgpio_desc[] = "GPIO bitbanging using the Linux sysfs interface";
 #else  /* !HAVE_LINUXGPIO */
 
 void linuxgpio_initpgm(PROGRAMMER *pgm) {
-  pmsg_info("Linux sysfs GPIO support not available in this configuration\n");
+  pmsg_error("Linux sysfs GPIO support not available in this configuration\n");
 }
 
 const char linuxgpio_desc[] = "GPIO bitbanging using the Linux sysfs interface (not available)";

@@ -94,10 +94,11 @@ static int linuxspi_spi_duplex(const PROGRAMMER *pgm, const unsigned char *tx, u
     ret = ioctl(fd_spidev, SPI_IOC_MESSAGE(1), &tr);
     if (ret != len) {
         int ioctl_errno = errno;
-        msg_info("\n%s: unable to send SPI message", progname);
+        msg_error("\n");
+        pmsg_error("unable to send SPI message");
         if (ioctl_errno)
-            msg_info(". %s", strerror(ioctl_errno));
-        msg_info("\n");
+            msg_error(": %s", strerror(ioctl_errno));
+        msg_error("\n");
     }
 
     return ret == -1? -1: 0;
@@ -133,7 +134,7 @@ static int linuxspi_reset_mcu(const PROGRAMMER *pgm, bool active) {
 #endif
     if (ret == -1) {
         ret = -errno;
-        pmsg_info("unable to set GPIO line %d value. %s\n", pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE, strerror(errno));
+        pmsg_ext_error("unable to set GPIO line %d value: %s\n", pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE, strerror(errno));
         return ret;
     }
 
@@ -142,7 +143,7 @@ static int linuxspi_reset_mcu(const PROGRAMMER *pgm, bool active) {
 
 static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     const char *port_error =
-      "error, unknown port specification; "
+      "unknown port specification; "
       "please use the format /dev/spidev:/dev/gpiochip[:resetno]\n";
     char port_default[] = "/dev/spidev0.0:/dev/gpiochip0";
     char *spidev, *gpiochip, *reset_pin;
@@ -156,13 +157,13 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
 
     spidev = strtok(port, ":");
     if (!spidev) {
-        pmsg_info(port_error);
+        pmsg_error(port_error);
         return -1;
     }
 
     gpiochip = strtok(NULL, ":");
     if (!gpiochip) {
-        pmsg_info(port_error);
+        pmsg_error(port_error);
         return -1;
     }
 
@@ -174,8 +175,7 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     strcpy(pgm->port, port);
     fd_spidev = open(pgm->port, O_RDWR);
     if (fd_spidev < 0) {
-        msg_info("\n%s: unable to open the spidev device %s. %s",
-            progname, pgm->port, strerror(errno));
+        pmsg_ext_error("unable to open the spidev device %s: %s\n", pgm->port, strerror(errno));
         return -1;
     }
 
@@ -186,15 +186,14 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     ret = ioctl(fd_spidev, SPI_IOC_WR_MODE32, &mode);
     if (ret == -1) {
         int ioctl_errno = errno;
-        pmsg_info("unable to set SPI mode %02X on %s. %s\n", mode, spidev, strerror(errno));
+        pmsg_ext_error("unable to set SPI mode %02X on %s: %s\n", mode, spidev, strerror(errno));
         if(ioctl_errno == EINVAL && !PDATA(pgm)->disable_no_cs)
-            pmsg_info("try -x disable_no_cs\n");
+            pmsg_error("try -x disable_no_cs\n");
         goto close_spidev;
     }
     fd_gpiochip = open(gpiochip, 0);
     if (fd_gpiochip < 0) {
-        msg_info("\n%s: unable to open the gpiochip %s. %s\n",
-            progname, gpiochip, strerror(errno));
+        pmsg_ext_error("unable to open the gpiochip %s: %s\n", gpiochip, strerror(errno));
         ret = -1;
         goto close_spidev;
     }
@@ -229,7 +228,7 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
 #endif
     if (ret == -1) {
         ret = -errno;
-        pmsg_info("unable to get GPIO line %d. %s\n", pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE, strerror(errno));
+        pmsg_ext_error("unable to get GPIO line %d. %s\n", pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE, strerror(errno));
         goto close_gpiochip;
     }
 
@@ -238,8 +237,8 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
         goto close_out;
 
     if (pgm->baudrate != 0) {
-        pmsg_info("obsolete use of -b <clock> option for bit clock; use -B <clock>\n");
-      pgm->bitclock = 1.0 / pgm->baudrate;
+        pmsg_warning("obsolete use of -b <clock> option for bit clock; use -B <clock>\n");
+        pgm->bitclock = 1.0 / pgm->baudrate;
     }
     if (pgm->bitclock == 0) {
         pmsg_notice("defaulting bit clock to 200 kHz\n");
@@ -290,7 +289,7 @@ static int linuxspi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
     if (p->prog_modes & PM_TPI) {
         /* We do not support TPI. This is a dedicated SPI thing */
-        pmsg_info("error, programmer " LINUXSPI " does not support TPI\n");
+        pmsg_error("programmer " LINUXSPI " does not support TPI\n");
         return -1;
     }
 
@@ -304,7 +303,7 @@ static int linuxspi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     } while(tries++ < 65);
 
     if (ret)
-        pmsg_info("error, AVR device not responding\n");
+        pmsg_error("AVR device not responding\n");
 
     return ret;
 }
@@ -318,7 +317,7 @@ static int linuxspi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned char cmd[4], res[4];
 
     if (!p->op[AVR_OP_PGM_ENABLE]) {
-        pmsg_info("error, program enable instruction not defined for part %s\n", p->desc);
+        pmsg_error("program enable instruction not defined for part %s\n", p->desc);
         return -1;
     }
 
@@ -361,7 +360,7 @@ static int linuxspi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned char cmd[4], res[4];
 
     if (!p->op[AVR_OP_CHIP_ERASE]) {
-        pmsg_info("error, chip erase instruction not defined for part %s\n", p->desc);
+        pmsg_error("chip erase instruction not defined for part %s\n", p->desc);
         return -1;
     }
 
@@ -409,7 +408,7 @@ static int linuxspi_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
       continue;
     }
 
-    pmsg_info("linuxspi_parseextparams(): invalid extended parameter '%s'\n", extended_param);
+    pmsg_error("linuxspi_parseextparams(): invalid extended parameter '%s'\n", extended_param);
     rc = -1;
   }
 
@@ -446,7 +445,7 @@ const char linuxspi_desc[] = "SPI using Linux spidev driver";
 #else /* !HAVE_LINUXSPI */
 
 void linuxspi_initpgm(PROGRAMMER *pgm) {
-  pmsg_info("Linux SPI driver not available in this configuration\n");
+  pmsg_error("Linux SPI driver not available in this configuration\n");
 }
 
 const char linuxspi_desc[] = "SPI using Linux spidev driver (not available)";

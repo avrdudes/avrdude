@@ -58,8 +58,7 @@ int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     /* Set Pointer Register */
     mem = avr_locate_mem(p, "flash");
     if (mem == NULL) {
-      msg_info("No flash memory to erase for part %s\n",
-          p->desc);
+      pmsg_error("no flash memory to erase for part %s\n", p->desc);
       return -1;
     }
 
@@ -91,9 +90,9 @@ int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 
     return 0;
   } else {
-		msg_info("%s called for a part that has no TPI\n", __func__);
-		return -1;
-	}
+    pmsg_error("%s called for a part that has no TPI\n", __func__);
+    return -1;
+  }
 }
 
 /* TPI program enable sequence */
@@ -115,7 +114,7 @@ int avr_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p, unsigned cha
     cmd[0] = (TPI_CMD_SLDCS | TPI_REG_TPIIR);
 		err = pgm->cmd_tpi(pgm, cmd, 1, &response, sizeof(response));
     if (err || response != TPI_IDENT_CODE) {
-      msg_info("TPIIR not correct\n");
+      pmsg_error("TPIIR not correct\n");
       return -1;
     }
 
@@ -135,12 +134,11 @@ int avr_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p, unsigned cha
 			return 0;
 		}
 
-		msg_info("Error enabling TPI external programming mode:");
-		msg_info("Target does not reply\n");
+		pmsg_error("target does not reply when enabling TPI external programming mode\n");
 		return -1;
 
 	} else {
-		msg_info("%s called for a part that has no TPI\n", __func__);
+		pmsg_error("%s called for a part that has no TPI\n", __func__);
 		return -1;
 	}
 }
@@ -185,8 +183,8 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   OPCODE * readop, * lext;
 
   if (pgm->cmd == NULL) {
-    pmsg_info("%s programmer uses avr_read_byte_default() but does not\n"
-                    "provide a cmd() method\n", pgm->type);
+    pmsg_error("%s programmer uses avr_read_byte_default() but does not\n"
+       "%*s provide a cmd() method\n", pgm->type, (int) strlen(progname)+1, "");
     return -1;
   }
 
@@ -195,7 +193,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 
   if (p->prog_modes & PM_TPI) {
     if (pgm->cmd_tpi == NULL) {
-      pmsg_info("%s programmer does not support TPI\n", pgm->type);
+      pmsg_error("%s programmer does not support TPI\n", pgm->type);
       return -1;
     }
 
@@ -229,8 +227,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 
   if (readop == NULL) {
 #if DEBUG
-    msg_info("avr_read_byte_default(): operation not supported on memory type %s\n",
-                    mem->desc);
+    pmsg_error("avr_read_byte_default(): operation not supported on memory type %s\n", mem->desc);
 #endif
     return -1;
   }
@@ -320,7 +317,7 @@ int avr_mem_hiaddr(const AVRMEM * mem)
 int avr_read(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, const AVRPART *v) {
   AVRMEM *mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
-    msg_info("No %s memory for part %s\n", memtype, p->desc);
+    pmsg_error("no %s memory for part %s\n", memtype, p->desc);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
@@ -371,7 +368,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
         rc = pgm->cmd_tpi(pgm, cmd, 1, mem->buf + i, 1);
         lastaddr++;
         if (rc == -1) {
-          msg_info("avr_read_mem(): error reading address 0x%04lx\n", i);
+          pmsg_error("avr_read_mem(): unable to read address 0x%04lx\n", i);
           return -1;
         }
       }
@@ -451,13 +448,13 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     {
       rc = pgm->read_byte(pgm, p, mem, i, mem->buf + i);
       if (rc != LIBAVRDUDE_SUCCESS) {
-        msg_info("avr_read_mem(): error reading address 0x%04lx\n", i);
+        pmsg_error("avr_read_mem(): unable to read byte at address 0x%04lx\n", i);
         if (rc == LIBAVRDUDE_GENERAL_FAILURE) {
-          msg_info("    read operation not supported for memory %s\n",
+          pmsg_error("    read operation not supported for memory %s\n",
                           mem->desc);
           return LIBAVRDUDE_NOTSUPPORTED;
         }
-        msg_info("    read operation failed for memory %s\n", mem->desc);
+        pmsg_error("    read operation failed for memory %s\n", mem->desc);
         return LIBAVRDUDE_SOFTFAIL;
       }
     }
@@ -480,15 +477,14 @@ int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   OPCODE * wp, * lext;
 
   if (pgm->cmd == NULL) {
-    pmsg_info("%s programmer uses avr_write_page() but does not\n"
-      "provide a cmd() method\n", pgm->type);
+    pmsg_error("%s programmer uses avr_write_page() but does not\n"
+      "%*s provide a cmd() method\n", pgm->type, (int) strlen(progname)+1, "");
     return -1;
   }
 
   wp = mem->op[AVR_OP_WRITEPAGE];
   if (wp == NULL) {
-    msg_info("avr_write_page(): memory %s not configured for page writes\n",
-                    mem->desc);
+    pmsg_error("avr_write_page(): memory %s not configured for page writes\n", mem->desc);
     return -1;
   }
 
@@ -549,22 +545,22 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   struct timeval tv;
 
   if (pgm->cmd == NULL) {
-    pmsg_info("%s programmer uses avr_write_byte_default() but does not\n"
-      "provide a cmd() method\n", pgm->type);
+    pmsg_error("%s programmer uses avr_write_byte_default() but does not\n"
+      "%*s provide a cmd() method\n", pgm->type, (int) strlen(progname)+1, "");
     return -1;
   }
 
   if (p->prog_modes & PM_TPI) {
     if (pgm->cmd_tpi == NULL) {
-      pmsg_info("%s programmer does not support TPI\n", pgm->type);
+      pmsg_error("%s programmer does not support TPI\n", pgm->type);
       return -1;
     }
 
     if (strcmp(mem->desc, "flash") == 0) {
-      msg_info("Writing a byte to flash is not supported for %s\n", p->desc);
+      pmsg_error("writing a byte to flash is not supported for %s\n", p->desc);
       return -1;
     } else if ((mem->offset + addr) & 1) {
-      msg_info("Writing a byte to an odd location is not supported for %s\n", p->desc);
+      pmsg_error("writing a byte to an odd location is not supported for %s\n", p->desc);
       return -1;
     }
 
@@ -651,7 +647,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   if (writeop == NULL) {
 #if DEBUG
-    msg_info("avr_write_byte_default(): write not supported for memory type %s\n", mem->desc);
+    pmsg_error("avr_write_byte_default(): write not supported for memory type %s\n", mem->desc);
 #endif
     return -1;
   }
@@ -750,10 +746,9 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
         usleep(250000);
         rc = pgm->initialize(pgm, p);
         if (rc < 0) {
-          pmsg_info("initialization failed, rc=%d\n", rc);
-          pmsg_info("cannot re-initialize device after programming the %s bits\n", mem->desc);
-          pmsg_info("you must manually power-down the device and restart\n"
-            "%*s %s to continue\n", (int) strlen(progname)+1, "", progname);
+          pmsg_error("initialization failed, rc=%d\n", rc);
+          pmsg_error("cannot re-initialize device after programming the %s bits\n", mem->desc);
+          pmsg_error("you must manually power-down the device and restart %s to continue\n", progname);
           return -3;
         }
         
@@ -802,7 +797,7 @@ int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, int size, int auto_erase) {
   AVRMEM *m = avr_locate_mem(p, memtype);
   if (m == NULL) {
-    msg_info("no %s memory for part %s\n", memtype, p->desc);
+    pmsg_error("no %s memory for part %s\n", memtype, p->desc);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
@@ -835,7 +830,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     wsize = size;
   }
   else if (size > wsize) {
-    pmsg_info("warning, %d bytes requested, but memory region is only %d bytes\n"
+    pmsg_warning("%d bytes requested, but memory region is only %d bytes\n"
       "%sOnly %d bytes will actually be written\n", size, wsize, progbuf, wsize);
   }
 
@@ -985,8 +980,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     if (do_write) {
       rc = avr_write_byte(pgm, p, m, i, data);
       if (rc) {
-        msg_info(" ***failed;  ");
-        msg_info("\n");
+        msg_error(" ***failed;\n");
         pgm->err_led(pgm, ON);
         werror = 1;
       }
@@ -999,11 +993,9 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     if (flush_page) {
       rc = avr_write_page(pgm, p, m, i);
       if (rc) {
-        msg_info(" *** page %d (addresses 0x%04x - 0x%04x) failed "
-                        "to write\n",
-                        i % m->page_size,
-                        i - m->page_size + 1, i);
-        msg_info("\n");
+        msg_error(" *** page %d (addresses 0x%04x - 0x%04x) failed to write\n",
+          i / m->page_size, i - m->page_size + 1, i);
+        msg_error("\n");
         pgm->err_led(pgm, ON);
           werror = 1;
       }
@@ -1032,7 +1024,7 @@ int avr_signature(const PROGRAMMER *pgm, const AVRPART *p) {
   report_progress (0,1,"Reading");
   rc = avr_read(pgm, p, "signature", 0);
   if (rc < LIBAVRDUDE_SUCCESS) {
-    pmsg_info("error reading signature data for part %s, rc=%d\n", p->desc, rc);
+    pmsg_error("unable to read signature data for part %s, rc=%d\n", p->desc, rc);
     return rc;
   }
   report_progress (1,1,NULL);
@@ -1086,14 +1078,13 @@ int avr_verify(const AVRPART * p, const AVRPART * v, const char * memtype, int s
 
   a = avr_locate_mem(p, memtype);
   if (a == NULL) {
-    msg_info("avr_verify(): memory type %s not defined for part %s\n", memtype, p->desc);
+    pmsg_error("avr_verify(): memory type %s not defined for part %s\n", memtype, p->desc);
     return -1;
   }
 
   b = avr_locate_mem(v, memtype);
   if (b == NULL) {
-    msg_info("avr_verify(): memory type %s not defined for part %s\n",
-                    memtype, v->desc);
+    pmsg_error("avr_verify(): memory type %s not defined for part %s\n", memtype, v->desc);
     return -1;
   }
 
@@ -1102,35 +1093,34 @@ int avr_verify(const AVRPART * p, const AVRPART * v, const char * memtype, int s
   vsize = a->size;
 
   if (vsize < size) {
-    pmsg_info("warning, requested verification for %d bytes\n"
+    pmsg_warning("requested verification for %d bytes\n"
       "%s%s memory region only contains %d bytes\n"
-      "%sOnly %d bytes will be verified\n", size,
+      "%sonly %d bytes will be verified\n", size,
       progbuf, memtype, vsize,
       progbuf, vsize);
     size = vsize;
   }
 
   for (i=0; i<size; i++) {
-    if ((b->tags[i] & TAG_ALLOCATED) != 0 &&
-        buf1[i] != buf2[i]) {
+    if ((b->tags[i] & TAG_ALLOCATED) != 0 && buf1[i] != buf2[i]) {
       uint8_t bitmask = get_fuse_bitmask(a);
       if((buf1[i] & bitmask) != (buf2[i] & bitmask)) {
         // Mismatch is not just in unused bits
-        pmsg_info("verification error, first mismatch at byte 0x%04x\n"
+        pmsg_error("verification mismatch, first at byte 0x%04x\n"
           "%s0x%02x != 0x%02x\n", i, progbuf, buf1[i], buf2[i]);
         return -1;
       } else {
         // Mismatch is only in unused bits
         if ((buf1[i] | bitmask) != 0xff) {
           // Programmer returned unused bits as 0, must be the part/programmer
-          pmsg_info("warning: ignoring mismatch in unused bits of %s\n"
-            "%s(0x%02x != 0x%02x). To prevent this warning fix the part\n"
+          pmsg_warning("ignoring mismatch in unused bits of %s\n"
+            "%s(0x%02x != 0x%02x); to prevent this warning fix the part\n"
             "%sor programmer definition in the config file\n", memtype,
             progbuf, buf1[i], buf2[i], progbuf);
         } else {
           // Programmer returned unused bits as 1, must be the user
-          pmsg_info("warning, ignoring mismatch in unused bits of %s\n"
-            "%s(0x%02x != 0x%02x). To prevent this warning set unused bits\n"
+          pmsg_warning("ignoring mismatch in unused bits of %s\n"
+            "%s(0x%02x != 0x%02x); to prevent this warning set unused bits\n"
             "%sto 1 when writing (double check with your datasheet first)\n",
             memtype, progbuf, buf1[i], buf2[i], progbuf);
         }
@@ -1157,7 +1147,7 @@ int avr_get_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int *cycles) {
   for (i=4; i>0; i--) {
     rc = pgm->read_byte(pgm, p, a, a->size-i, &v1);
   if (rc < 0) {
-    pmsg_info("warning, cannot read memory for cycle count, rc=%d\n", rc);
+    pmsg_warning("cannot read memory for cycle count, rc=%d\n", rc);
     return -1;
   }
     cycle_count = (cycle_count << 8) | v1;
@@ -1196,7 +1186,7 @@ int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles) {
 
     rc = avr_write_byte(pgm, p, a, a->size-i, v1);
     if (rc < 0) {
-      pmsg_info("warning, cannot write memory for cycle count, rc=%d\n", rc);
+      pmsg_warning("cannot write memory for cycle count, rc=%d\n", rc);
       return -1;
     }
   }
@@ -1229,7 +1219,7 @@ void avr_add_mem_order(const char *str) {
       return;
     }
   }
-  pmsg_info("avr_mem_order[] under-dimensioned in avr.c; increase and recompile\n");
+  pmsg_error("avr_mem_order[] under-dimensioned in avr.c; increase and recompile\n");
   exit(1);
 }
 

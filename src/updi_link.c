@@ -607,7 +607,7 @@ int updi_link_st_ptr_inc16_RSD(const PROGRAMMER *pgm, unsigned char *buffer, uin
 
   if (blocksize < 10) {
     if (updi_physical_send(pgm, temp_buffer, 6) < 0) {
-      pmsg_debug("failed to send first package\n");
+      pmsg_debug("unable to send first package\n");
       free(temp_buffer);
       return -1;
     }
@@ -624,7 +624,7 @@ int updi_link_st_ptr_inc16_RSD(const PROGRAMMER *pgm, unsigned char *buffer, uin
     }
 
     if (updi_physical_send(pgm, temp_buffer + num, next_package_size) < 0) {
-      pmsg_debug("failed to send package\n");
+      pmsg_debug("unable to send package\n");
       free(temp_buffer);
       return -1;
     }

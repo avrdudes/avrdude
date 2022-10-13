@@ -110,7 +110,7 @@ static int xbee_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AV
   /* Signature byte reads are always 3 bytes. */
 
   if (m->size < 3) {
-    pmsg_info("memsize too small for sig byte read\n");
+    pmsg_error("memsize too small for sig byte read\n");
     return -1;
   }
 
@@ -122,18 +122,16 @@ static int xbee_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AV
   if (serial_recv(&pgm->fd, buf, 5) < 0)
     return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
-    pmsg_info("stk500_cmd(): programmer is out of sync\n");
+    pmsg_error("stk500_cmd(): programmer is out of sync\n");
     return -1;
   } else if (buf[0] != Resp_STK_INSYNC) {
-    msg_info("\n%s: xbee_read_sig_bytes(): (a) protocol error, "
-      "expect=0x%02x, resp=0x%02x\n",
-      progname, Resp_STK_INSYNC, buf[0]);
+    msg_error("\n");
+    pmsg_error("xbee_read_sig_bytes(): protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
     return -2;
   }
   if (buf[4] != Resp_STK_OK) {
-    msg_info("\n%s: xbee_read_sig_bytes(): (a) protocol error, "
-      "expect=0x%02x, resp=0x%02x\n",
-      progname, Resp_STK_OK, buf[4]);
+    msg_error("\n");
+    pmsg_error("xbee_read_sig_bytes(): protocol expects OK byte 0x%02x but got 0x%02x\n", Resp_STK_OK, buf[4]);
     return -3;
   }
 
@@ -312,7 +310,7 @@ static void xbeedev_stats_send(struct XBeeBootSession *xbs,
     stats->sendTime = *sendTime;
 
   if (detailSequence >= 0) {
-    pmsg_notice2("stats: Send Group %s Sequence %u : "
+    pmsg_notice2("stats: send Group %s Sequence %u : "
       "Send %lu.%06lu %s Sequence %d\n",
       groupNames[group],
       (unsigned int) sequence,
@@ -320,7 +318,7 @@ static void xbeedev_stats_send(struct XBeeBootSession *xbs,
       (unsigned long) sendTime->tv_usec,
       detail, detailSequence);
   } else {
-    pmsg_notice2("stats: Send Group %s Sequence %u : "
+    pmsg_notice2("stats: send Group %s Sequence %u : "
       "Send %lu.%06lu %s\n",
       groupNames[group],
       (unsigned int) sequence,
@@ -352,7 +350,7 @@ static void xbeedev_stats_receive(struct XBeeBootSession *xbs,
   delay.tv_sec = secs;
   delay.tv_usec = usecs;
 
-  pmsg_notice2("stats: Receive Group %s Sequence %u : "
+  pmsg_notice2("stats: receive Group %s Sequence %u : "
     "Send %lu.%06lu Receive %lu.%06lu Delay %lu.%06lu %s\n",
     groupNames[group],
     (unsigned int) sequence,
@@ -442,7 +440,7 @@ static int sendAPIRequest(struct XBeeBootSession *xbs,
      * instructions.
      */
     if (apiType != 0x21 && xbs->sourceRouteChanged) {
-      pmsg_notice2("sendAPIRequest(): Issuing Create Source Route request with %d hops\n", xbs->sourceRouteHops);
+      pmsg_notice2("sendAPIRequest(): issuing Create Source Route request with %d hops\n", xbs->sourceRouteHops);
 
       int rc = sendAPIRequest(xbs, 0x21, /* Create Source Route */
                               0, -1, 0, xbs->sourceRouteHops,
@@ -570,7 +568,7 @@ static void xbeedev_record16Bit(struct XBeeBootSession *xbs,
   unsigned char * const tx16Bit =
     &xbs->xbee_address[XBEE_ADDRESS_64BIT_LEN];
   if (memcmp(rx16Bit, tx16Bit, XBEE_ADDRESS_16BIT_LEN) != 0) {
-    pmsg_notice2("xbeedev_record16Bit(): New 16-bit address: %02x%02x\n",
+    pmsg_notice2("xbeedev_record16Bit(): new 16-bit address: %02x%02x\n",
                     (unsigned int)rx16Bit[0],
                     (unsigned int)rx16Bit[1]);
     memcpy(tx16Bit, rx16Bit, XBEE_ADDRESS_16BIT_LEN);
@@ -651,7 +649,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
 
       if (checksum) {
         /* Checksum didn't match */
-        pmsg_notice2("xbeedev_poll(): Bad checksum %d\n", (int)checksum);
+        pmsg_notice2("xbeedev_poll(): bad checksum %d\n", (int) checksum);
         continue;
       }
     }
@@ -674,7 +672,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
       xbeedev_stats_receive(xbs, "Remote AT command response",
                             XBEE_STATS_FRAME_REMOTE, txSequence, &receiveTime);
 
-      pmsg_notice("xbeedev_poll(): Remote command %d result code %d\n",
+      pmsg_notice("xbeedev_poll(): remote command %d result code %d\n",
         (int) txSequence, (int) resultCode);
 
       if (waitForSequence >= 0 && waitForSequence == frame[3])
@@ -687,7 +685,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
       xbeedev_stats_receive(xbs, "Local AT command response",
                             XBEE_STATS_FRAME_LOCAL, txSequence, &receiveTime);
 
-      pmsg_notice("xbeedev_poll(): Local command %c%c result code %d\n",
+      pmsg_notice("xbeedev_poll(): local command %c%c result code %d\n",
         frame[4], frame[5], (int)frame[6]);
 
       if (waitForSequence >= 0 && waitForSequence == txSequence)
@@ -700,7 +698,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
       xbeedev_stats_receive(xbs, "Transmit status", XBEE_STATS_FRAME_REMOTE,
                             txSequence, &receiveTime);
 
-      pmsg_notice2("xbeedev_poll(): Transmit status %d result code %d\n",
+      pmsg_notice2("xbeedev_poll(): transmit status %d result code %d\n",
         (int) frame[3], (int) frame[7]);
     } else if (frameType == 0xa1 &&
                frameSize >= XBEE_LENGTH_LEN + XBEE_APITYPE_LEN +
@@ -710,7 +708,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
       if (memcmp(&frame[XBEE_LENGTH_LEN + XBEE_APITYPE_LEN],
                  xbs->xbee_address, XBEE_ADDRESS_64BIT_LEN) != 0) {
         /* Not from our target device */
-        pmsg_notice2("xbeedev_poll(): Route Record Indicator from other XBee\n");
+        pmsg_notice2("xbeedev_poll(): route Record Indicator from other XBee\n");
         continue;
       }
 
@@ -758,7 +756,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
           xbs->sourceRouteHops = hops;
           xbs->sourceRouteChanged = 1;
 
-          pmsg_notice2("xbeedev_poll(): Route has changed\n");
+          pmsg_notice2("xbeedev_poll(): route has changed\n");
         }
       }
     } else if (frameType == 0x10 || frameType == 0x90) {
@@ -860,14 +858,14 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
                   xbs->inInIndex = 0;
                 if (xbs->inInIndex == xbs->inOutIndex) {
                   /* Should be impossible */
-                  pmsg_info("buffer overrun\n");
+                  pmsg_error("buffer overrun\n");
                   xbs->transportUnusable = 1;
                   return -1;
                 }
               }
             }
 
-            /*msg_info("ACK %x\n", (unsigned int)sequence);*/
+            /*msg_error("ACK %x\n", (unsigned int)sequence);*/
             sendPacket(xbs, "Transmit Request ACK for RECEIVE",
                        XBEEBOOT_PACKET_TYPE_ACK, sequence,
                        XBEE_STATS_NOT_RETRY,
@@ -1013,8 +1011,7 @@ static int sendAT(struct XBeeBootSession *xbs, char const *detail,
 }
 
 /*
- * Return 0 on no error recognised, 1 if error was detected and
- * reported.
+ * Return 0 on no error recognised, 1 if error was detected and reported
  */
 static int xbeeATError(int rc) {
   const int xbeeRc = XBEE_AT_RETURN_CODE(rc);
@@ -1022,15 +1019,15 @@ static int xbeeATError(int rc) {
     return 0;
 
   if (xbeeRc == 1) {
-    pmsg_info("error communicating with Remote XBee\n");
+    pmsg_error("unable to communicate with remote XBee\n");
   } else if (xbeeRc == 2) {
-    pmsg_info("remote XBee command error, invalid command\n");
+    pmsg_error("remote XBee: invalid command\n");
   } else if (xbeeRc == 3) {
-    pmsg_info("remote XBee command error, invalid parameter\n");
+    pmsg_error("remote XBee: invalid command parameter\n");
   } else if (xbeeRc == 4) {
-    pmsg_info("remote XBee error, transmission failure\n");
+    pmsg_error("remote XBee: transmission failure\n");
   } else {
-    pmsg_info("unrecognised remote XBee error code %d\n", xbeeRc);
+    pmsg_error("unrecognised remote XBee error code %d\n", xbeeRc);
   }
   return 1;
 }
@@ -1063,13 +1060,13 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
    */
   char *ttySeparator = strchr(port, '@');
   if (ttySeparator == NULL) {
-    pmsg_info("XBee: bad port syntax, require <xbee-address>@<serial-device>\n");
+    pmsg_error("XBee: bad port syntax, require <xbee-address>@<serial-device>\n");
     return -1;
   }
 
   struct XBeeBootSession *xbs = malloc(sizeof(struct XBeeBootSession));
   if (xbs == NULL) {
-    pmsg_info("xbeedev_open(): out of memory\n");
+    pmsg_error("xbeedev_open(): out of memory\n");
     return -1;
   }
 
@@ -1108,7 +1105,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
     }
 
     if (addrIndex != 8 || address != ttySeparator || nybble != -1) {
-      pmsg_info("XBee: bad XBee address, require 16-character hexadecimal address\n");
+      pmsg_error("XBee: bad XBee address, require 16-character hexadecimal address\n");
       free(xbs);
       return -1;
     }
@@ -1186,7 +1183,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
     {
       const int rc = localAT(xbs, "AT AP=2", 'A', 'P', 2);
       if (rc < 0) {
-        pmsg_info("local XBee is not responding\n");
+        pmsg_error("local XBee is not responding\n");
         xbeedev_free(xbs);
         return rc;
       }
@@ -1226,7 +1223,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
     {
       const int rc = localAT(xbs, "AT AR=0", 'A', 'R', 0);
       if (rc < 0) {
-        pmsg_info("local XBee is not responding\n");
+        pmsg_error("local XBee is not responding\n");
         xbeedev_free(xbs);
         return rc;
       }
@@ -1248,7 +1245,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
       if (xbeeATError(rc))
         return -1;
 
-      pmsg_info("remote XBee is not responding\n");
+      pmsg_error("remote XBee is not responding\n");
       return rc;
     }
   }
@@ -1466,8 +1463,7 @@ static int xbeedev_drain(const union filedescriptor *fdp, int display)
     return -1;
 
   /*
-   * Flushing the local serial buffer is unhelpful under this
-   * protocol.
+   * Flushing the local serial buffer is unhelpful under this protocol
    */
   do {
     xbs->inOutIndex = xbs->inInIndex = 0;
@@ -1495,7 +1491,7 @@ static int xbeedev_set_dtr_rts(const union filedescriptor *fdp, int is_on)
     if (xbeeATError(rc))
       return -1;
 
-    pmsg_info("remote XBee is not responding\n");
+    pmsg_error("remote XBee is not responding\n");
     return rc;
   }
 
@@ -1528,7 +1524,7 @@ static int xbee_getsync(const PROGRAMMER *pgm) {
 
   int sendRc = serial_send(&pgm->fd, buf, 2);
   if (sendRc < 0) {
-    pmsg_info("xbee_getsync(): failed to deliver STK_GET_SYNC to the remote XBeeBoot bootloader\n");
+    pmsg_error("xbee_getsync(): unable to deliver STK_GET_SYNC to the remote XBeeBoot bootloader\n");
     return sendRc;
   }
 
@@ -1538,17 +1534,17 @@ static int xbee_getsync(const PROGRAMMER *pgm) {
    */
   int recvRc = serial_recv(&pgm->fd, resp, 2);
   if (recvRc < 0) {
-    pmsg_info("xbee_getsync(): no response to STK_GET_SYNC from the remote XBeeBoot bootloader\n");
+    pmsg_error("xbee_getsync(): no response to STK_GET_SYNC from the remote XBeeBoot bootloader\n");
     return recvRc;
   }
 
   if (resp[0] != Resp_STK_INSYNC) {
-    pmsg_info("xbee_getsync(): not in sync, resp=0x%02x\n", (unsigned int) resp[0]);
+    pmsg_error("xbee_getsync(): not in sync, resp=0x%02x\n", (unsigned int) resp[0]);
     return -1;
   }
 
   if (resp[1] != Resp_STK_OK) {
-    pmsg_info("xbee_getsync(): in sync, not OK, resp=0x%02x\n", (unsigned int) resp[1]);
+    pmsg_error("xbee_getsync(): in sync, not OK, resp=0x%02x\n", (unsigned int) resp[1]);
     return -1;
   }
 
@@ -1647,7 +1643,7 @@ static int xbee_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       int resetpin;
       if (sscanf(extended_param, "xbeeresetpin=%i", &resetpin) != 1 ||
           resetpin <= 0 || resetpin > 7) {
-        pmsg_info("xbee_parseextparms(): invalid xbeeresetpin '%s'\n", extended_param);
+        pmsg_error("xbee_parseextparms(): invalid xbeeresetpin '%s'\n", extended_param);
         rc = -1;
         continue;
       }
@@ -1656,7 +1652,7 @@ static int xbee_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
 
-    pmsg_info("xbee_parseextparms(): invalid extended parameter '%s'\n", extended_param);
+    pmsg_error("xbee_parseextparms(): invalid extended parameter '%s'\n", extended_param);
     rc = -1;
   }
 

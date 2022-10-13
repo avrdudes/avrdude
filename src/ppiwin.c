@@ -92,7 +92,7 @@ void ppi_open(const char *port, union filedescriptor *fdp) {
 
     if(fd < 0)
     {
-        pmsg_info("can't open device \"giveio\"\n\n"); // giveio???
+        pmsg_ext_error("cannot open device \"giveio\"\n\n"); // giveio?!? FIXME!
         fdp->ifd = -1;
         return;
     }
@@ -120,13 +120,13 @@ void ppi_open(const char *port, union filedescriptor *fdp) {
 	fd = strtol(port, &cp, 0);
 	if(*port == '\0' || *cp != '\0')
 	{
-	    pmsg_info("port %s is neither lpt1/2/3 nor valid number\n", port);
+	    pmsg_error("port %s is neither lpt1/2/3 nor valid number\n", port);
 	    fd = -1;
 	}
     }
     if(fd < 0)
     {
-        pmsg_info("can't open port %s\n\n", port);
+        pmsg_ext_error("cannot open port %s\n\n", port);
         fdp->ifd = -1;
         return;
     }

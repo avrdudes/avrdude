@@ -258,7 +258,7 @@ int bitbang_tpi_rx(const PROGRAMMER *pgm)  {
       break;
   }
   if (b != 0) {
-    msg_info("bitbang_tpi_rx: start bit not received correctly\n");
+    pmsg_error("bitbang_tpi_rx: start bit not received correctly\n");
     return -1;
   }
 
@@ -273,7 +273,7 @@ int bitbang_tpi_rx(const PROGRAMMER *pgm)  {
 
   /* parity bit */
   if (bitbang_tpi_clk(pgm) != parity) {
-    msg_info("bitbang_tpi_rx: parity bit is wrong\n");
+    pmsg_error("bitbang_tpi_rx: parity bit is wrong\n");
     return -1;
   }
 
@@ -282,7 +282,7 @@ int bitbang_tpi_rx(const PROGRAMMER *pgm)  {
   b &= bitbang_tpi_clk(pgm);
   b &= bitbang_tpi_clk(pgm);
   if (b != 1) {
-    msg_info("bitbang_tpi_rx: stop bits not received correctly\n");
+    pmsg_error("bitbang_tpi_rx: stop bits not received correctly\n");
     return -1;
   }
   
@@ -431,8 +431,7 @@ int bitbang_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     /* Set Pointer Register */
     mem = avr_locate_mem(p, "flash");
     if (mem == NULL) {
-      msg_info("No flash memory to erase for part %s\n",
-          p->desc);
+      pmsg_error("no flash memory to erase for part %s\n", p->desc);
       return -1;
     }
     bitbang_tpi_tx(pgm, TPI_CMD_SSTPR | 0);
@@ -452,7 +451,7 @@ int bitbang_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
-    msg_info("chip erase instruction not defined for part %s\n", p->desc);
+    pmsg_error("chip erase instruction not defined for part %s\n", p->desc);
     return -1;
   }
 
@@ -491,8 +490,7 @@ int bitbang_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
-    msg_info("program enable instruction not defined for part %s\n",
-            p->desc);
+    pmsg_error("program enable instruction not defined for part %s\n", p->desc);
     return -1;
   }
 
@@ -523,7 +521,7 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if (p->prog_modes & PM_TPI) {
     /* make sure cmd_tpi() is defined */
     if (pgm->cmd_tpi == NULL) {
-      pmsg_info("%s programmer does not support TPI\n", pgm->type);
+      pmsg_error("%s programmer does not support TPI\n", pgm->type);
       return -1;
     }
 
@@ -538,12 +536,12 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
     pgm->setpin(pgm, PIN_AVR_MOSI, 0);
     if (pgm->getpin(pgm, PIN_AVR_MISO) != 0) {
-      msg_info("MOSI->MISO 0 failed\n");
+      pmsg_error("MOSI->MISO 0 failed\n");
       return -1;
     }
     pgm->setpin(pgm, PIN_AVR_MOSI, 1);
     if (pgm->getpin(pgm, PIN_AVR_MISO) != 1) {
-      msg_info("MOSI->MISO 1 failed\n");
+      pmsg_error("MOSI->MISO 1 failed\n");
       return -1;
     }
 
@@ -568,7 +566,7 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     bitbang_tpi_tx(pgm, TPI_CMD_SLDCS | TPI_REG_TPIIR);
     rc = bitbang_tpi_rx(pgm);
     if (rc != 0x80) {
-      msg_info("TPIIR not correct\n");
+      pmsg_error("TPIIR not correct\n");
       return -1;
     }
   } else {
@@ -602,7 +600,7 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
      * can't sync with the device, maybe it's not attached?
      */
     if (rc) {
-      pmsg_info("AVR device not responding\n");
+      pmsg_error("AVR device not responding\n");
       return -1;
     }
   }
@@ -612,7 +610,7 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
 static int verify_pin_assigned(const PROGRAMMER *pgm, int pin, char *desc) {
   if (pgm->pinno[pin] == 0) {
-    pmsg_info("no pin has been assigned for %s\n", desc);
+    pmsg_error("no pin has been assigned for %s\n", desc);
     return -1;
   }
   return 0;
@@ -634,7 +632,7 @@ int bitbang_check_prerequisites(const PROGRAMMER *pgm) {
     return -1;
 
   if (pgm->cmd == NULL) {
-    pmsg_info("no cmd() method defined for bitbang programmer\n");
+    pmsg_error("no cmd() method defined for bitbang programmer\n");
     return -1;
   }
   return 0;

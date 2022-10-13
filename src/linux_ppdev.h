@@ -31,18 +31,18 @@
 
 #include <stdlib.h>
 
-#define ppi_claim(fd)                             \
-  if (ioctl(fd, PPCLAIM)) {                       \
-    pmsg_info("cannot claim port %s: %s\n\n",     \
-      port, strerror(errno));                     \
-    close(fd);                                    \
-    return;                                       \
+#define ppi_claim(fd)                               \
+  if (ioctl(fd, PPCLAIM)) {                         \
+    pmsg_ext_error("cannot claim port %s: %s\n\n",  \
+      port, strerror(errno));                       \
+    close(fd);                                      \
+    return;                                         \
   }
 
-#define ppi_release(fd)                           \
-  if (ioctl(fd, PPRELEASE)) {                     \
-    pmsg_info("cannot release device: %s\n\n",    \
-      strerror(errno));                           \
+#define ppi_release(fd)                             \
+  if (ioctl(fd, PPRELEASE)) {                       \
+    pmsg_ext_error("cannot release device: %s\n\n", \
+      strerror(errno));                             \
   }
 
 #define DO_PPI_READ(fd, reg, valp) \

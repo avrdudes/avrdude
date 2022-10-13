@@ -102,7 +102,7 @@ int init_config(void)
 void *cfg_malloc(const char *funcname, size_t n) {
   void *ret = malloc(n);
   if(!ret) {
-    pmsg_info("out of memory in %s (needed %lu bytes)\n", funcname, (unsigned long) n);
+    pmsg_error("out of memory in %s (needed %lu bytes)\n", funcname, (unsigned long) n);
     exit(1);
   }
   memset(ret, 0, n);
@@ -113,7 +113,7 @@ void *cfg_realloc(const char *funcname, void *p, size_t n) {
   void *ret;
 
   if(!(ret = p? realloc(p, n): calloc(1, n))) {
-    pmsg_info("out of memory in %s (needed %lu bytes)\n", funcname, (unsigned long) n);
+    pmsg_error("out of memory in %s (needed %lu bytes)\n", funcname, (unsigned long) n);
     exit(1);
   }
 
@@ -124,7 +124,7 @@ void *cfg_realloc(const char *funcname, void *p, size_t n) {
 char *cfg_strdup(const char *funcname, const char *s) {
   char *ret = strdup(s);
   if(!ret) {
-    pmsg_info("out of memory in %s\n", funcname);
+    pmsg_error("out of memory in %s\n", funcname);
     exit(1);
   }
   return ret;
@@ -146,7 +146,7 @@ int yyerror(char * errmsg, ...)
   va_start(args, errmsg);
 
   vsnprintf(message, sizeof(message), errmsg, args);
-  pmsg_info("error at %s:%d: %s\n", cfg_infile, cfg_lineno, message);
+  pmsg_error("%s [%s:%d]\n", message, cfg_infile, cfg_lineno);
 
   va_end(args);
 
@@ -163,7 +163,7 @@ int yywarning(char * errmsg, ...)
   va_start(args, errmsg);
 
   vsnprintf(message, sizeof(message), errmsg, args);
-  pmsg_info("warning at %s:%d: %s\n", cfg_infile, cfg_lineno, message);
+  pmsg_warning("%s [%s:%d]\n", message, cfg_infile, cfg_lineno);
 
   va_end(args);
 
@@ -246,7 +246,7 @@ TOKEN *new_hexnumber(const char *text) {
   }
   
 #if DEBUG
-  msg_info("HEXNUMBER(%g)\n", tkn->value.number);
+  msg_info("HEXNUMBER(%d)\n", tkn->value.number);
 #endif
 
   return tkn;
@@ -351,13 +351,13 @@ int read_config(const char * file)
   int r;
 
   if(!(cfg_infile = realpath(file, NULL))) {
-    pmsg_info("cannot determine realpath() of config file %s: %s\n", file, strerror(errno));
+    pmsg_ext_error("cannot determine realpath() of config file %s: %s\n", file, strerror(errno));
     return -1;
   }
 
   f = fopen(cfg_infile, "r");
   if (f == NULL) {
-    pmsg_info("cannot open config file %s: %s\n", cfg_infile, strerror(errno));
+    pmsg_ext_error("cannot open config file %s: %s\n", cfg_infile, strerror(errno));
     free(cfg_infile);
     cfg_infile = NULL;
     return -1;

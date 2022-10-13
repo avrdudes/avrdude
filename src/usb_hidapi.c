@@ -79,7 +79,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
 
       if (strlen(serno) > 12)
 	{
-	  pmsg_info("usbhid_open(): invalid serial number %s\n", serno);
+	  pmsg_error("usbhid_open(): invalid serial number %s\n", serno);
 	  return -1;
 	}
 
@@ -99,7 +99,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
       walk = list;
       while (walk)
       {
-	pmsg_notice("usbhid_open(): Found %ls, serno: %ls\n", walk->product_string, walk->serial_number);
+	pmsg_notice("usbhid_open(): found %ls, serno: %ls\n", walk->product_string, walk->serial_number);
 	size_t slen = wcslen(walk->serial_number);
 	if (slen >= serlen &&
 	    wcscmp(walk->serial_number + slen - serlen, wserno) == 0)
@@ -107,21 +107,21 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
 	    /* found matching serial number */
 	    break;
           }
-	pmsg_debug("usbhid_open(): serial number doesn't match\n");
+	pmsg_debug("usbhid_open(): serial number does not match\n");
 	walk = walk->next;
       }
       if (walk == NULL)
       {
-	pmsg_info("usbhid_open(): No matching device found\n");
+	pmsg_error("usbhid_open(): no matching device found\n");
 	hid_free_enumeration(list);
 	return -1;
       }
-      pmsg_debug("usbhid_open(): Opening path %s\n", walk->path);
+      pmsg_debug("usbhid_open(): opening path %s\n", walk->path);
       dev = hid_open_path(walk->path);
       hid_free_enumeration(list);
       if (dev == NULL)
       {
-	pmsg_info("usbhid_open(): Found device, but hid_open_path() failed\n");
+	pmsg_error("usbhid_open(): found device, but hid_open_path() failed\n");
 	return -1;
       }
     }
@@ -133,7 +133,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
       dev = hid_open(pinfo.usbinfo.vid, pinfo.usbinfo.pid, NULL);
       if (dev == NULL)
       {
-	pmsg_info("usbhid_open(): No device found\n");
+	pmsg_error("usbhid_open(): no device found\n");
 	return -1;
       }
     }
@@ -168,7 +168,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
    */
   if (pinfo.usbinfo.vid == USB_VENDOR_ATMEL)
     {
-      pmsg_debug("usbhid_open(): Probing for max. packet size\n");
+      pmsg_debug("usbhid_open(): probing for max packet size\n");
       memset(usbbuf, 0, sizeof usbbuf);
       usbbuf[0] = 0;		/* no HID reports used */
       usbbuf[1] = 0;		/* DAP_Info */
@@ -186,21 +186,21 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
 	res = hid_read_timeout(dev, usbbuf, 10, 50);
       }
       if (res <= 0) {
-	pmsg_info("usbhid_open(): No response from device\n");
+	pmsg_error("usbhid_open(): no response from device\n");
 	hid_close(dev);
 	return -1;
       }
       if (usbbuf[0] != 0 || usbbuf[1] != 2) {
-	pmsg_info("usbhid_open(): Unexpected reply to DAP_Info: 0x%02x 0x%02x\n",
+	pmsg_error("usbhid_open(): unexpected reply to DAP_Info: 0x%02x 0x%02x\n",
 	  usbbuf[0], usbbuf[1]);
       } else {
 	fd->usb.max_xfer = usbbuf[2] + (usbbuf[3] << 8);
-	pmsg_debug("usbhid_open(): Setting max_xfer from DAP_Info response to %d\n",
+	pmsg_debug("usbhid_open(): setting max_xfer from DAP_Info response to %d\n",
 	  fd->usb.max_xfer);
       }
     }
   if (fd->usb.max_xfer > USBDEV_MAX_XFER_3) {
-    pmsg_info("usbhid_open(): Unexpected max size %d, reducing to %d\n",
+    pmsg_error("usbhid_open(): unexpected max size %d, reducing to %d\n",
       fd->usb.max_xfer, USBDEV_MAX_XFER_3);
     fd->usb.max_xfer = USBDEV_MAX_XFER_3;
   }
@@ -238,11 +238,11 @@ static int usbhid_send(const union filedescriptor *fd, const unsigned char *bp, 
   memcpy(usbbuf + 1, bp, tx_size);
   rv = hid_write(udev, usbbuf, tx_size + 1);
   if (rv < 0) {
-    pmsg_info("Failed to write %d bytes to USB\n", tx_size);
+    pmsg_error("unable to write %d bytes to USB\n", tx_size);
     return -1;
   }
   if (rv != tx_size + 1)
-    pmsg_info("Short write to USB: %d bytes out of %d written\n", rv, tx_size + 1);
+    pmsg_error("short write to USB: %d bytes out of %d written\n", rv, tx_size + 1);
 
   if (verbose > 4)
   {
@@ -277,7 +277,7 @@ static int usbhid_recv(const union filedescriptor *fd, unsigned char *buf, size_
 
   rv = i = hid_read_timeout(udev, buf, nbytes, 10000);
   if (i != nbytes)
-    pmsg_info("short read, read only %d out of %lu bytes\n", i, (unsigned long) nbytes);
+    pmsg_error("short read, read only %d out of %lu bytes\n", i, (unsigned long) nbytes);
 
   if (verbose > 4)
   {

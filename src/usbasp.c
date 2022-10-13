@@ -119,7 +119,7 @@ static const char *errstr(int result)
 		n = ENOSYS;
 		break;
 	default:
-		snprintf(msg, sizeof msg, "Unknown libusb error: %d", result);
+		snprintf(msg, sizeof msg, "Unknown libusb error code %d", result);
 		return msg;
 	}
 	return strerror(n);
@@ -263,7 +263,7 @@ static int usbasp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 static void usbasp_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_info("usbasp_setup(): Out of memory allocating private data\n");
+    pmsg_error("usbasp_setup(): out of memory allocating private data\n");
     exit(1);
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
@@ -288,7 +288,7 @@ static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
 
-    pmsg_info("usbasp_parseextparms(): invalid extended parameter '%s'\n", extended_param);
+    pmsg_error("usbasp_parseextparms(): invalid extended parameter '%s'\n", extended_param);
     rv = -1;
   }
 
@@ -354,7 +354,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
 				   buffersize & 0xffff,
 				   5000);
   if(nbytes < 0){
-    pmsg_info("error: usbasp_transmit: %s\n", errstr(nbytes));
+    pmsg_ext_error("usbasp_transmit: %s\n", errstr(nbytes));
     return -1;
   }
 #else
@@ -366,7 +366,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
 			   (char *)buffer, buffersize,
 			   5000);
   if(nbytes < 0){
-    pmsg_info("error: usbasp_transmit: %s\n", usb_strerror());
+    pmsg_error("usbasp_transmit(): %s\n", usb_strerror());
     return -1;
   }
 #endif
@@ -417,7 +417,7 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor,
             r = libusb_open(dev, &handle);
             if (!handle) {
                  errorCode = USB_ERROR_ACCESS;
-                 pmsg_info("warning, cannot open USB device: %s\n", errstr(r));
+                 pmsg_warning("cannot open USB device: %s\n", errstr(r));
                  continue;
             }
             errorCode = 0;
@@ -427,7 +427,7 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor,
             if (r < 0) {
                 if ((vendorName != NULL) && (vendorName[0] != 0)) {
                     errorCode = USB_ERROR_IO;
-                    pmsg_info("warning, cannot query manufacturer for device: %s\n", errstr(r));
+                    pmsg_warning("cannot query manufacturer for device: %s\n", errstr(r));
 		}
             } else {
                 pmsg_notice2("seen device from vendor >%s<\n", string);
@@ -439,7 +439,7 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor,
             if (r < 0) {
                 if ((productName != NULL) && (productName[0] != 0)) {
                     errorCode = USB_ERROR_IO;
-                    pmsg_info("warning, cannot query product for device: %s\n", errstr(r));
+                    pmsg_warning("cannot query product for device: %s\n", errstr(r));
 		}
             } else {
                 pmsg_notice2("seen product >%s<\n", string);
@@ -485,7 +485,7 @@ static int           didUsbInit = 0;
                 handle = usb_open(dev);
                 if(!handle){
                     errorCode = USB_ERROR_ACCESS;
-                    pmsg_info("warning, cannot open USB device: %s\n", usb_strerror());
+                    pmsg_warning("cannot open USB device: %s\n", usb_strerror());
                     continue;
                 }
                 errorCode = 0;
@@ -496,7 +496,7 @@ static int           didUsbInit = 0;
                 if(len < 0){
                     if ((vendorName != NULL) && (vendorName[0] != 0)) {
                     errorCode = USB_ERROR_IO;
-                    pmsg_info("warning, cannot query manufacturer for device: %s\n", usb_strerror());
+                    pmsg_warning("cannot query manufacturer for device: %s\n", usb_strerror());
 		    }
                 } else {
                     pmsg_notice2("seen device from vendor >%s<\n", string);
@@ -509,7 +509,7 @@ static int           didUsbInit = 0;
                 if(len < 0){
                     if ((productName != NULL) && (productName[0] != 0)) {
                         errorCode = USB_ERROR_IO;
-                        pmsg_info("warning, cannot query product for device: %s\n", usb_strerror());
+                        pmsg_warning("cannot query product for device: %s\n", usb_strerror());
 		    }
                 } else {
                     pmsg_notice2("seen product >%s<\n", string);
@@ -544,7 +544,7 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
   if (usbpid) {
     pid = *(int *)(ldata(usbpid));
     if (lnext(usbpid))
-      pmsg_info("Warning: using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
+      pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
   } else {
     pid = USBASP_SHARED_PID;
   }
@@ -554,10 +554,10 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
     if(strcasecmp(ldata(lfirst(pgm->id)), "usbasp") == 0) {
     /* for id usbasp autodetect some variants */
       if(strcasecmp(port, "nibobee") == 0) {
-        pmsg_info("using -C usbasp -P nibobee is deprecated, use -C nibobee instead\n");
+        pmsg_error("using -C usbasp -P nibobee is deprecated, use -C nibobee instead\n");
         if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_NIBOBEE_VID, "www.nicai-systems.com",
 		        USBASP_NIBOBEE_PID, "NIBObee") != 0) {
-          pmsg_info("could not find USB device NIBObee with vid=0x%x pid=0x%x\n",
+          pmsg_error("cannot find USB device NIBObee with vid=0x%x pid=0x%x\n",
             USBASP_NIBOBEE_VID, USBASP_NIBOBEE_PID);
           return -1;
         }
@@ -567,21 +567,21 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
       if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_OLD_VID, "www.fischl.de",
 		             USBASP_OLD_PID, "USBasp") == 0) {
         /* found USBasp with old IDs */
-        pmsg_info("found USB device USBasp with old VID/PID; please update firmware of USBasp\n");
+        pmsg_error("found USB device USBasp with old VID/PID; please update firmware of USBasp\n");
 	return 0;
       }
     /* original USBasp is specified in config file, so no need to check it again here */
     /* no alternative found => fall through to generic error message */
     }
 
-    pmsg_info("could not find USB device with vid=0x%x pid=0x%x", vid, pid);
+    pmsg_error("cannot find USB device with vid=0x%x pid=0x%x", vid, pid);
     if (pgm->usbvendor[0] != 0) {
-       msg_info(" vendor='%s'", pgm->usbvendor);
+       msg_error(" vendor='%s'", pgm->usbvendor);
     }
     if (pgm->usbproduct[0] != 0) {
-       msg_info(" product='%s'", pgm->usbproduct);
+       msg_error(" product='%s'", pgm->usbproduct);
     }
-    msg_info("\n");
+    msg_error("\n");
     return -1;
   }
 
@@ -697,10 +697,9 @@ static int usbasp_spi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
     usbasp_transmit(pgm, 1, USBASP_FUNC_TRANSMIT, cmd, res, 4);
 
   if(nbytes != 4){
-    if (verbose == 3)
-      putc('\n', stderr);
+    msg_debug("\n");
 
-    pmsg_info("error: wrong response size\n");
+    pmsg_error("wrong response size\n");
     return -1;
   }
   pmsg_trace("usbasp_spi_cmd()");
@@ -724,7 +723,7 @@ static int usbasp_spi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     usbasp_transmit(pgm, 1, USBASP_FUNC_ENABLEPROG, cmd, res, sizeof(res));
 
   if ((nbytes != 1) | (res[0] != 0)) {
-    pmsg_info("error: program enable: target doesn't answer. %x \n", res[0]);
+    pmsg_error("program enable: target does not answer (0x%02x)\n", res[0]);
     return -1;
   }
 
@@ -738,7 +737,7 @@ static int usbasp_spi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("usbasp_chip_erase()\n");
 
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
-    msg_info("chip erase instruction not defined for part %s\n", p->desc);
+    pmsg_error("chip erase instruction not defined for part %s\n", p->desc);
     return -1;
   }
 
@@ -805,7 +804,7 @@ static int usbasp_spi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
     n = usbasp_transmit(pgm, 1, function, cmd, buffer, blocksize);
 
     if (n != blocksize) {
-      pmsg_info("wrong reading bytes %x\n", n);
+      pmsg_error("wrong reading bytes %x\n", n);
       return -3;
     }
 
@@ -874,7 +873,7 @@ static int usbasp_spi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
     n = usbasp_transmit(pgm, 0, function, cmd, buffer, blocksize);
 
     if (n != blocksize) {
-      pmsg_info("wrong count at writing %x\n", n);
+      pmsg_error("wrong count at writing %x\n", n);
       return -3;        
     }
 
@@ -969,7 +968,7 @@ static int usbasp_spi_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
     usbasp_transmit(pgm, 1, USBASP_FUNC_SETISPSCK, cmd, res, sizeof(res));
 
   if ((nbytes != 1) | (res[0] != 0)) {
-    pmsg_info("cannot set sck period; please check for usbasp firmware update\n");
+    pmsg_error("cannot set sck period; please check for usbasp firmware update\n");
     return -1;
   }
 
@@ -993,7 +992,7 @@ static int usbasp_tpi_recv_byte(const PROGRAMMER *pgm) {
 
   if(usbasp_transmit(pgm, 1, USBASP_FUNC_TPI_RAWREAD, temp, temp, sizeof(temp)) != 1)
   {
-    pmsg_info("wrong response size\n");
+    pmsg_error("wrong response size\n");
     return -1;
   }
 
@@ -1023,7 +1022,7 @@ static int usbasp_tpi_nvm_waitbusy(const PROGRAMMER *pgm) {
 }
 
 static int usbasp_tpi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res) {
-  pmsg_info("spi_cmd used in TPI mode: not allowed\n");
+  pmsg_error("spi_cmd used in TPI mode: not allowed\n");
   return -1;
 }
 
@@ -1060,7 +1059,7 @@ static int usbasp_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   }
   if(retry >= 10)
   {
-    pmsg_info("program enable, target does not answer\n");
+    pmsg_error("program enable, target does not answer\n");
     return -1;
   }
 
@@ -1137,7 +1136,7 @@ static int usbasp_tpi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
     n = usbasp_transmit(pgm, 1, USBASP_FUNC_TPI_READBLOCK, cmd, dptr, clen);
     if(n != clen)
     {
-      pmsg_info("wrong reading bytes %x\n", n);
+      pmsg_error("wrong reading bytes %x\n", n);
       return -3;
     }
     
@@ -1202,7 +1201,7 @@ static int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
     n = usbasp_transmit(pgm, 0, USBASP_FUNC_TPI_WRITEBLOCK, cmd, sptr, clen);
     if(n != clen)
     {
-      pmsg_info("wrong count at writing %x\n", n);
+      pmsg_error("wrong count at writing %x\n", n);
       return -3;
     }
     
@@ -1236,7 +1235,7 @@ static int usbasp_tpi_read_byte(const PROGRAMMER * pgm, const AVRPART *p, const 
   n = usbasp_transmit(pgm, 1, USBASP_FUNC_TPI_READBLOCK, cmd, value, 1);
   if(n != 1)
   {
-    pmsg_info("wrong reading bytes %x\n", n);
+    pmsg_error("wrong reading bytes %x\n", n);
     return -3;
   }
   return 0;
@@ -1245,7 +1244,7 @@ static int usbasp_tpi_read_byte(const PROGRAMMER * pgm, const AVRPART *p, const 
 static int usbasp_tpi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned long addr, unsigned char data) { // FIXME: use avr_write_byte_cache() when implemented
 
-  pmsg_info("usbasp_write_byte in TPI mode; all writes have to be done at page level\n");
+  pmsg_error("usbasp_write_byte in TPI mode; all writes have to be done at page level\n");
   return -1;
 }
 
@@ -1286,7 +1285,7 @@ void usbasp_initpgm(PROGRAMMER *pgm) {
 #else /* HAVE_LIBUSB */
 
 static int usbasp_nousb_open(PROGRAMMER *pgm, const char *name) {
-  pmsg_info("no usb support; please compile again with libusb installed\n");
+  pmsg_error("no usb support; please compile again with libusb installed\n");
 
   return -1;
 }

@@ -1410,9 +1410,7 @@ mem_spec :
     {
       int ps = $3->value.number;
       if (ps <= 0)
-        msg_info(
-                        "%s, line %d: invalid page size %d, ignored\n",
-                        cfg_infile, cfg_lineno, ps);
+        pmsg_warning("invalid page size %d, ignored [%s:%d]\n", ps, cfg_infile, cfg_lineno);
       else
         current_mem->page_size = ps;
       free_token($3);

@@ -126,7 +126,7 @@ static int b2ihex(unsigned char * inbuf, int bufsize,
   unsigned char cksum;
 
   if (recsize > 255) {
-    pmsg_info("recsize=%d, must be < 256\n", recsize);
+    pmsg_error("recsize=%d, must be < 256\n", recsize);
     return -1;
   }
 
@@ -318,13 +318,13 @@ static int ihex2b(char * infile, FILE * inf,
       continue;
     rc = ihex_readrec(&ihex, buffer);
     if (rc < 0) {
-      pmsg_info("invalid record at line %d of %s\n", lineno, infile);
+      pmsg_error("invalid record at line %d of %s\n", lineno, infile);
       return -1;
     }
     else if (rc != ihex.cksum) {
       if(ffmt == FMT_IHEX) {
-        pmsg_info("checksum mismatch at line %d of %s\n", lineno, infile);
-        pmsg_info("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
+        pmsg_error("checksum mismatch at line %d of %s\n", lineno, infile);
+        pmsg_error("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
         return -1;
       } else {                  /* Just warn with more permissive format FMT_IHXC */
         pmsg_notice("checksum mismatch at line %d of %s\n", lineno, infile);
@@ -335,13 +335,13 @@ static int ihex2b(char * infile, FILE * inf,
     switch (ihex.rectyp) {
       case 0: /* data record */
         if (fileoffset != 0 && baseaddr < fileoffset) {
-          pmsg_info("address 0x%04x out of range (below fileoffset 0x%x) at line %d of %s\n",
+          pmsg_error("address 0x%04x out of range (below fileoffset 0x%x) at line %d of %s\n",
             baseaddr, fileoffset, lineno, infile);
           return -1;
         }
         nextaddr = ihex.loadofs + baseaddr - fileoffset;
         if (nextaddr + ihex.reclen > (unsigned) bufsize) {
-          pmsg_info("address 0x%04x out of range at line %d of %s\n",
+          pmsg_error("address 0x%04x out of range at line %d of %s\n",
             nextaddr+ihex.reclen, lineno, infile);
           return -1;
         }
@@ -374,7 +374,7 @@ static int ihex2b(char * infile, FILE * inf,
         break;
 
       default:
-        pmsg_info("don't know how to deal with rectype=%d "
+        pmsg_error("do not know how to deal with rectype=%d "
           "at line %d of %s\n", ihex.rectyp, lineno, infile);
         return -1;
         break;
@@ -383,12 +383,12 @@ static int ihex2b(char * infile, FILE * inf,
   } /* while */
 
   if (maxaddr == 0) {
-    pmsg_info("ERROR: No valid record found in Intel Hex file %s\n", infile);
+    pmsg_error("no valid record found in Intel Hex file %s\n", infile);
 
     return -1;
   }
   else {
-    pmsg_info("WARNING: no end of file record found for Intel Hex file %s\n", infile);
+    pmsg_warning("no end of file record found for Intel Hex file %s\n", infile);
 
     return maxaddr;
   }
@@ -406,7 +406,7 @@ static int b2srec(unsigned char * inbuf, int bufsize,
   char * tmpl=0;
 
   if (recsize > 255) {
-    pmsg_info("recsize=%d, must be < 256\n", recsize);
+    pmsg_error("recsize=%d, must be < 256\n", recsize);
     return -1;
   }
   
@@ -438,7 +438,7 @@ static int b2srec(unsigned char * inbuf, int bufsize,
         tmpl="S3%02X%08X";
       }
       else {
-        pmsg_info("address=%d, out of range\n", nextaddr);
+        pmsg_error("address=%d, out of range\n", nextaddr);
         return -1;
       }
 
@@ -602,12 +602,12 @@ static int srec2b(char * infile, FILE * inf,
     rc = srec_readrec(&srec, buffer);
 
     if (rc < 0) {
-      pmsg_info("invalid record at line %d of %s\n", lineno, infile);
+      pmsg_error("invalid record at line %d of %s\n", lineno, infile);
       return -1;
     }
     else if (rc != srec.cksum) {
-      pmsg_info("checksum mismatch at line %d of %s\n", lineno, infile);
-      pmsg_info("checksum=0x%02x, computed checksum=0x%02x\n", srec.cksum, rc);
+      pmsg_error("checksum mismatch at line %d of %s\n", lineno, infile);
+      pmsg_error("checksum=0x%02x, computed checksum=0x%02x\n", srec.cksum, rc);
       return -1;
     }
 
@@ -633,13 +633,13 @@ static int srec2b(char * infile, FILE * inf,
         break;
 
       case 0x34: /* S4 - symbol record (LSI extension) */
-        pmsg_info("not supported record at line %d of %s\n", lineno, infile);
+        pmsg_error("not supported record at line %d of %s\n", lineno, infile);
         return -1;
 
       case 0x35: /* S5 - count of S1,S2 and S3 records previously tx'd */
         if (srec.loadofs != reccount){
-          pmsg_info("count of transmitted data records mismatch at line %d of %s\n", lineno, infile);
-          pmsg_info("transmitted data records= %d, expected value= %d\n", reccount, srec.loadofs);
+          pmsg_error("count of transmitted data records mismatch at line %d of %s\n", lineno, infile);
+          pmsg_error("transmitted data records= %d, expected value= %d\n", reccount, srec.loadofs);
           return -1;
         }
         break;
@@ -650,20 +650,20 @@ static int srec2b(char * infile, FILE * inf,
         return maxaddr;
 
       default:
-        pmsg_error("don't know how to deal with rectype S%d "
-          "at line %d of %s\n", srec.rectyp, lineno, infile);
+        pmsg_error("do not know how to deal with rectype S%d at line %d of %s\n",
+          srec.rectyp, lineno, infile);
         return -1;
     }
 
     if (datarec == 1) {
       nextaddr = srec.loadofs;
       if (nextaddr < fileoffset) {
-        msg_error(msg, nextaddr, "(below fileoffset) ", lineno, infile);
+        pmsg_error(msg, nextaddr, "(below fileoffset) ", lineno, infile);
         return -1;
       }
       nextaddr -= fileoffset;
       if (nextaddr + srec.reclen > (unsigned) bufsize) {
-        msg_error(msg, nextaddr+srec.reclen, "", lineno, infile);
+        pmsg_error(msg, nextaddr+srec.reclen, "", lineno, infile);
         return -1;
       }
       for (i=0; i<srec.reclen; i++) {
@@ -677,7 +677,7 @@ static int srec2b(char * infile, FILE * inf,
 
   }
 
-  pmsg_info("warning, no end of file record found for Motorola S-Records file %s\n", infile);
+  pmsg_warning("no end of file record found for Motorola S-Records file %s\n", infile);
 
   return maxaddr;
 }
@@ -720,7 +720,7 @@ static Elf_Scn *elf_get_scn(Elf *e, Elf32_Phdr *ph, Elf32_Shdr **shptr)
     Elf32_Shdr *sh;
     size_t ndx = elf_ndxscn(s);
     if ((sh = elf32_getshdr(s)) == NULL) {
-      pmsg_info("error reading section #%u header: %s\n", (unsigned int)ndx, elf_errmsg(-1));
+      pmsg_error("unable to read section #%u header: %s\n", (unsigned int)ndx, elf_errmsg(-1));
       continue;
     }
     if ((sh->sh_flags & SHF_ALLOC) == 0 ||
@@ -737,7 +737,7 @@ static Elf_Scn *elf_get_scn(Elf *e, Elf32_Phdr *ph, Elf32_Shdr **shptr)
     }
   }
 
-  pmsg_info("cannot find a matching section for program header entry @p_vaddr 0x%x\n", ph->p_vaddr);
+  pmsg_error("cannot find a matching section for program header entry @p_vaddr 0x%x\n", ph->p_vaddr);
   return NULL;
 }
 
@@ -808,7 +808,7 @@ static int elf2b(char * infile, FILE * inf,
   unsigned int low, high, foff;
 
   if (elf_mem_limits(mem, p, &low, &high, &foff) != 0) {
-    pmsg_info("cannot handle %s memory region from ELF file\n", mem->desc);
+    pmsg_error("cannot handle %s memory region from ELF file\n", mem->desc);
     return -1;
   }
 
@@ -825,7 +825,7 @@ static int elf2b(char * infile, FILE * inf,
        strcmp(mem->desc, "apptable") == 0)) {
     AVRMEM *flashmem = avr_locate_mem(p, "flash");
     if (flashmem == NULL) {
-      pmsg_info("no flash memory region found, cannot compute bounds of %s sub-region\n", mem->desc);
+      pmsg_error("no flash memory region found, cannot compute bounds of %s sub-region\n", mem->desc);
       return -1;
     }
     /* The config file offsets are PDI offsets, rebase to 0. */
@@ -834,15 +834,15 @@ static int elf2b(char * infile, FILE * inf,
   }
 
   if (elf_version(EV_CURRENT) == EV_NONE) {
-    pmsg_info("ELF library initialization failed: %s\n", elf_errmsg(-1));
+    pmsg_error("ELF library initialization failed: %s\n", elf_errmsg(-1));
     return -1;
   }
   if ((e = elf_begin(fileno(inf), ELF_C_READ, NULL)) == NULL) {
-    pmsg_info("cannot open %s as an ELF file: %s\n", infile, elf_errmsg(-1));
+    pmsg_error("cannot open %s as an ELF file: %s\n", infile, elf_errmsg(-1));
     return -1;
   }
   if (elf_kind(e) != ELF_K_ELF) {
-    pmsg_info("cannot use %s as an ELF input file\n", infile);
+    pmsg_error("cannot use %s as an ELF input file\n", infile);
     goto done;
   }
 
@@ -850,7 +850,7 @@ static int elf2b(char * infile, FILE * inf,
   const char *id = elf_getident(e, &isize);
 
   if (id == NULL) {
-    pmsg_info("error reading ident area of %s: %s\n", infile, elf_errmsg(-1));
+    pmsg_error("unable to read ident area of %s: %s\n", infile, elf_errmsg(-1));
     goto done;
   }
 
@@ -865,19 +865,19 @@ static int elf2b(char * infile, FILE * inf,
   }
   if (id[EI_CLASS] != ELFCLASS32 ||
       id[EI_DATA] != endianess) {
-    pmsg_info("ELF file %s is not a 32-bit, %s-endian file that was expected\n",
+    pmsg_error("ELF file %s is not a 32-bit, %s-endian file that was expected\n",
       infile, endianname);
     goto done;
   }
 
   Elf32_Ehdr *eh;
   if ((eh = elf32_getehdr(e)) == NULL) {
-    pmsg_info("error reading ehdr of %s: %s\n", infile, elf_errmsg(-1));
+    pmsg_error("unable to read ehdr of %s: %s\n", infile, elf_errmsg(-1));
     goto done;
   }
 
   if (eh->e_type != ET_EXEC) {
-    pmsg_info("ELF file %s is not an executable file\n", infile);
+    pmsg_error("ELF file %s is not an executable file\n", infile);
     goto done;
   }
 
@@ -891,24 +891,23 @@ static int elf2b(char * infile, FILE * inf,
     mname = "AVR";
   }
   if (eh->e_machine != machine) {
-    pmsg_info("ELF file %s is not for machine %s\n", infile, mname);
+    pmsg_error("ELF file %s is not for machine %s\n", infile, mname);
     goto done;
   }
   if (eh->e_phnum == 0xffff /* PN_XNUM */) {
-    pmsg_info("ELF file %s uses extended program header numbers which are not expected\n",
-      infile);
+    pmsg_error("ELF file %s uses extended program header numbers which are not expected\n", infile);
     goto done;
   }
 
   Elf32_Phdr *ph;
   if ((ph = elf32_getphdr(e)) == NULL) {
-    pmsg_info("error reading program header table of %s: %s\n", infile, elf_errmsg(-1));
+    pmsg_error("unable to read program header table of %s: %s\n", infile, elf_errmsg(-1));
     goto done;
   }
 
   size_t sndx;
   if (elf_getshdrstrndx(e, &sndx) != 0) {
-    pmsg_info("error obtaining section name string table: %s\n", elf_errmsg(-1));
+    pmsg_error("unable to obtain section name string table: %s\n", elf_errmsg(-1));
     sndx = 0;
   }
 
@@ -941,7 +940,7 @@ static int elf2b(char * infile, FILE * inf,
       unsigned int lma;
       lma = ph[i].p_paddr + sh->sh_offset - ph[i].p_offset;
 
-      pmsg_notice2("Found section %s, LMA 0x%x, sh_size %u\n", sname, lma, sh->sh_size);
+      pmsg_notice2("found section %s, LMA 0x%x, sh_size %u\n", sname, lma, sh->sh_size);
 
       if (lma >= low &&
           lma + sh->sh_size < high) {
@@ -959,7 +958,7 @@ static int elf2b(char * infile, FILE * inf,
        * from it, using the "foff" offset obtained above.
        */
       if (mem->size != 1 && sh->sh_size > (unsigned) mem->size) {
-        pmsg_info("ERROR: section %s does not fit into %s memory:\n"
+        pmsg_error("section %s does not fit into %s memory:\n"
           "    0x%x + %u > %u\n", sname, mem->desc, lma, sh->sh_size, mem->size);
         continue;
       }
@@ -970,9 +969,9 @@ static int elf2b(char * infile, FILE * inf,
                         d->d_buf, (unsigned int)d->d_off, (long) d->d_size);
         if (mem->size == 1) {
           if (d->d_off != 0) {
-            pmsg_info("unexpected data block at offset != 0\n");
+            pmsg_error("unexpected data block at offset != 0\n");
           } else if (foff >= d->d_size) {
-            pmsg_info("ELF file section does not contain byte at offset %d\n", foff);
+            pmsg_error("ELF file section does not contain byte at offset %d\n", foff);
           } else {
             msg_notice2("    Extracting one byte from file offset %d\n",
                             foff);
@@ -1056,12 +1055,12 @@ static int fileio_rbin(struct fioparms * fio,
       rc = fwrite(buf, 1, size, f);
       break;
     default:
-      pmsg_info("fileio: invalid operation=%d\n", fio->op);
+      pmsg_error("invalid fileio operation=%d\n", fio->op);
       return -1;
   }
 
   if (rc < 0 || (fio->op == FIO_WRITE && rc < size)) {
-    pmsg_info("%s error %s %s: %s; %s %d of the expected %d bytes\n",
+    pmsg_ext_error("%s error %s %s: %s; %s %d of the expected %d bytes\n",
       fio->iodesc, fio->dir, filename, strerror(errno), fio->rw, rc, size);
     return -1;
   }
@@ -1089,7 +1088,7 @@ static int fileio_imm(struct fioparms * fio,
 	    strtoul (p, &e, 0):
 	    strtoul (p + 2, &e, 2);
         if (*e != 0) {
-          pmsg_info("invalid byte value (%s) specified for immediate mode\n", p);
+          pmsg_error("invalid byte value (%s) specified for immediate mode\n", p);
           return -1;
         }
         mem->buf[loc] = b;
@@ -1100,16 +1099,16 @@ static int fileio_imm(struct fioparms * fio,
       break;
 
     case FIO_WRITE:
-      pmsg_info("invalid file format 'immediate' for output\n");
+      pmsg_error("invalid file format 'immediate' for output\n");
       return -1;
 
     default:
-      pmsg_info("fileio: invalid operation=%d\n", fio->op);
+      pmsg_error("fileio: invalid operation=%d\n", fio->op);
       return -1;
   }
 
   if (rc < 0 || (fio->op == FIO_WRITE && rc < size)) {
-    pmsg_info("%s error %s %s: %s; %s %d of the expected %d bytes\n",
+    pmsg_ext_error("%s error %s %s: %s; %s %d of the expected %d bytes\n",
       fio->iodesc, fio->dir, filename, strerror(errno), fio->rw, rc, size);
     return -1;
   }
@@ -1139,7 +1138,7 @@ static int fileio_ihex(struct fioparms * fio,
       break;
 
     default:
-      pmsg_info("invalid Intel Hex file I/O operation=%d\n", fio->op);
+      pmsg_error("invalid Intel Hex file I/O operation=%d\n", fio->op);
       return -1;
       break;
   }
@@ -1186,7 +1185,7 @@ static int fileio_elf(struct fioparms * fio,
 
   switch (fio->op) {
     case FIO_WRITE:
-      pmsg_info("write operation not supported for ELF\n");
+      pmsg_error("write operation not supported for ELF\n");
       return -1;
       break;
 
@@ -1195,7 +1194,7 @@ static int fileio_elf(struct fioparms * fio,
       return rc;
 
     default:
-      pmsg_info("invalid ELF file I/O operation=%d\n", fio->op);
+      pmsg_error("invalid ELF file I/O operation=%d\n", fio->op);
       return -1;
       break;
   }
@@ -1245,11 +1244,11 @@ static int fileio_num(struct fioparms * fio,
       break;
 
     case FIO_READ:
-      pmsg_info("invalid file format '%s' for input\n", name);
+      pmsg_error("invalid file format '%s' for input\n", name);
       return -1;
 
     default:
-      pmsg_info("fileio: invalid operation=%d\n", fio->op);
+      pmsg_error("fileio: invalid operation=%d\n", fio->op);
       return -1;
   }
 
@@ -1278,7 +1277,7 @@ static int fileio_num(struct fioparms * fio,
   return 0;
 
  writeerr:
-  pmsg_info("error writing to %s: %s\n", filename, strerror(errno));
+  pmsg_ext_error("unable to write to %s: %s\n", filename, strerror(errno));
   return -1;
 }
 
@@ -1304,7 +1303,7 @@ int fileio_setparms(int op, struct fioparms * fp,
       break;
 
     default:
-      pmsg_info("invalid I/O operation %d\n", op);
+      pmsg_error("invalid I/O operation %d\n", op);
       return -1;
       break;
   }
@@ -1335,7 +1334,7 @@ int fileio_fmt_autodetect(const char * fname)
   f = fopen(fname, "rb");
 #endif
   if (f == NULL) {
-    pmsg_info("error opening %s: %s\n", fname, strerror(errno));
+    pmsg_ext_error("unable to open %s: %s\n", fname, strerror(errno));
     return -1;
   }
 
@@ -1418,7 +1417,7 @@ int fileio(int oprwv, char * filename, FILEFMT format,
   op = oprwv == FIO_READ_FOR_VERIFY? FIO_READ: oprwv;
   mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
-    msg_info("fileio(): memory type %s not configured for device %s\n", memtype, p->desc);
+    pmsg_error("fileio(): memory type %s not configured for device %s\n", memtype, p->desc);
     return -1;
   }
 
@@ -1457,22 +1456,21 @@ int fileio(int oprwv, char * filename, FILEFMT format,
     int format_detect;
 
     if (using_stdio) {
-      pmsg_info("can't auto detect file format when using stdin/out\n"
+      pmsg_error("cannot auto detect file format when using stdin/out\n"
         "%s  please specify a file format and try again\n", progbuf);
       return -1;
     }
 
     format_detect = fileio_fmt_autodetect(fname);
     if (format_detect < 0) {
-      pmsg_info("cannot determine file format for %s, specify explicitly\n", fname);
+      pmsg_error("cannot determine file format for %s, specify explicitly\n", fname);
       return -1;
     }
     format = format_detect;
 
-    if (quell_progress < 2) {
+    if (quell_progress < 2)
       pmsg_notice("%s file %s auto detected as %s\n",
         fio.iodesc, fname, fileio_fmtstr(format));
-    }
   }
 
 #if defined(WIN32)
@@ -1494,7 +1492,7 @@ int fileio(int oprwv, char * filename, FILEFMT format,
     if (!using_stdio) {
       f = fopen(fname, fio.mode);
       if (f == NULL) {
-        pmsg_info("can't open %s file %s: %s\n", fio.iodesc, fname, strerror(errno));
+        pmsg_ext_error("cannot open %s file %s: %s\n", fio.iodesc, fname, strerror(errno));
         return -1;
       }
     }
@@ -1518,7 +1516,7 @@ int fileio(int oprwv, char * filename, FILEFMT format,
 #ifdef HAVE_LIBELF
       rc = fileio_elf(&fio, fname, f, mem, p, size);
 #else
-      pmsg_info("can't handle ELF file %s, ELF file support was not compiled in\n", fname);
+      pmsg_error("cannot handle ELF file %s, ELF file support was not compiled in\n", fname);
       rc = -1;
 #endif
       break;
@@ -1535,7 +1533,7 @@ int fileio(int oprwv, char * filename, FILEFMT format,
       break;
 
     default:
-      pmsg_info("invalid %s file format: %d\n", fio.iodesc, format);
+      pmsg_error("invalid %s file format: %d\n", fio.iodesc, format);
       return -1;
   }
 
