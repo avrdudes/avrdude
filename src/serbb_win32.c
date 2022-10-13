@@ -113,7 +113,7 @@ static int serbb_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
                         (LPTSTR) &lpMsgBuf,
                         0,
                         NULL);
-                pmsg_error("serbb_setpin(): SetCommState() failed: %s\n", (char *) lpMsgBuf);
+                pmsg_error("SetCommState() failed: %s\n", (char *) lpMsgBuf);
                 CloseHandle(hComPort);
                 LocalFree(lpMsgBuf);
                 return -1;
@@ -157,7 +157,7 @@ static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
                                 (LPTSTR) &lpMsgBuf,
                                 0,
                                 NULL);
-                        pmsg_error("serbb_setpin(): GetCommModemStatus() failed: %s\n", (char *) lpMsgBuf);
+                        pmsg_error("GetCommModemStatus() failed: %s\n", (char *) lpMsgBuf);
                         CloseHandle(hComPort);
                         LocalFree(lpMsgBuf);
                         return -1;
@@ -261,7 +261,7 @@ static int serbb_open(PROGRAMMER *pgm, const char *port) {
 			(LPTSTR) &lpMsgBuf,
 			0,
 			NULL);
-		pmsg_error("ser_open(): cannot open port %s: %s\n", port, (char*) lpMsgBuf);
+		pmsg_error("cannot open port %s: %s\n", port, (char*) lpMsgBuf);
 		LocalFree(lpMsgBuf);
                 return -1;
 	}
@@ -269,7 +269,7 @@ static int serbb_open(PROGRAMMER *pgm, const char *port) {
 	if (!SetupComm(hComPort, W32SERBUFSIZE, W32SERBUFSIZE))
 	{
 		CloseHandle(hComPort);
-		pmsg_error("ser_open(): cannot set buffers for %s\n", port);
+		pmsg_error("cannot set buffers for %s\n", port);
                 return -1;
 	}
 
@@ -287,7 +287,7 @@ static int serbb_open(PROGRAMMER *pgm, const char *port) {
 	if (!SetCommState(hComPort, &dcb))
 	{
 		CloseHandle(hComPort);
-		pmsg_error("ser_open(): cannot set com-state for %s\n", port);
+		pmsg_error("cannot set com-state for %s\n", port);
                 return -1;
 	}
         pmsg_debug("ser_open(): opened comm port %s, handle 0x%zx\n", port, (INT_PTR) hComPort);

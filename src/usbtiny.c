@@ -79,7 +79,7 @@ struct pdata
 static void usbtiny_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_error("usbtiny_setup(): out of memory allocating private data\n");
+    pmsg_error("out of memory allocating private data\n");
     exit(1);
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
@@ -103,7 +103,7 @@ static int usb_control (const PROGRAMMER *pgm,
 			    USB_TIMEOUT );        // default timeout
   if(nbytes < 0){
     msg_error("\n");
-    pmsg_error("usbtiny_transmit: %s\n", usb_strerror());
+    pmsg_error("%s\n", usb_strerror());
     return -1;
   }
 
@@ -136,7 +136,7 @@ static int usb_in (const PROGRAMMER *pgm,
     PDATA(pgm)->retries++;
   }
   msg_error("\n");
-  pmsg_error("usbtiny_receive: %s (expected %d, got %d)\n", usb_strerror(), buflen, nbytes);
+  pmsg_error("%s (expected %d, got %d)\n", usb_strerror(), buflen, nbytes);
   return -1;
 }
 
@@ -167,7 +167,7 @@ static int usb_out (const PROGRAMMER *pgm,
 			    timeout);
   if (nbytes != buflen) {
     msg_error("\n");
-    pmsg_error("usbtiny_send: %s (expected %d, got %d)\n", usb_strerror(), buflen, nbytes);
+    pmsg_error("%s (expected %d, got %d)\n", usb_strerror(), buflen, nbytes);
     return -1;
   }
 
@@ -260,11 +260,11 @@ static int usbtiny_tpi_txrx(const PROGRAMMER *pgm, unsigned char b0) {
      bit and the 8 data bits, but the latter in reverse order. */
   r = reverse(w >> 7);
   if (tpi_parity(r) != ((w >> 6) & 1)) {
-    pmsg_error("%s: parity bit is wrong\n", __func__);
+    pmsg_error("parity bit is wrong\n");
     return -1;
   }
   if (((w >> 4) & 0x3) != TPI_STOP_BITS) {
-    pmsg_error("%s: stop bits not received correctly\n", __func__);
+    pmsg_error("stop bits not received correctly\n");
     return -1;
   }
 
@@ -562,7 +562,7 @@ int usbtiny_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
   }
 
   if (rx < res_len) {
-    pmsg_error("%s: unexpected cmd_len=%d/res_len=%d\n", __func__, cmd_len, res_len);
+    pmsg_error("unexpected cmd_len=%d/res_len=%d\n", cmd_len, res_len);
     return -1;
   }
   return 0;

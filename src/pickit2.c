@@ -164,7 +164,7 @@ static void pickit2_setup(PROGRAMMER * pgm)
 {
     if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0)
     {
-        pmsg_error("pickit2_setup(): out of memory allocating private data\n");
+        pmsg_error("out of memory allocating private data\n");
         exit(1);
     }
     memset(pgm->cookie, 0, sizeof(struct pdata));
@@ -556,7 +556,7 @@ static int pickit2_commit_page(const PROGRAMMER *pgm, const AVRPART *p, const AV
     wp = mem->op[AVR_OP_WRITEPAGE];
     if (wp == NULL)
     {
-        pmsg_error("pickit2_commit_page(): memory %s not configured for page writes\n", mem->desc);
+        pmsg_error("memory %s not configured for page writes\n", mem->desc);
         return -1;
     }
 
@@ -1182,7 +1182,7 @@ static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
             int clock_rate;
             if (sscanf(extended_param, "clockrate=%i", &clock_rate) != 1 || clock_rate <= 0)
             {
-                pmsg_error("pickit2_parseextparms(): invalid clockrate '%s'\n", extended_param);
+                pmsg_error("invalid clockrate '%s'\n", extended_param);
                 rv = -1;
                 continue;
             }
@@ -1201,7 +1201,7 @@ static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
             int timeout;
             if (sscanf(extended_param, "timeout=%i", &timeout) != 1 || timeout <= 0)
             {
-                pmsg_error("pickit2_parseextparms(): invalid timeout '%s'\n", extended_param);
+                pmsg_error("invalid timeout '%s'\n", extended_param);
                 rv = -1;
                 continue;
             }
@@ -1212,7 +1212,7 @@ static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
             continue;
         }
 
-        pmsg_error("pickit2_parseextparms(): invalid extended parameter '%s'\n", extended_param);
+        pmsg_error("invalid extended parameter '%s'\n", extended_param);
         rv = -1;
     }
 

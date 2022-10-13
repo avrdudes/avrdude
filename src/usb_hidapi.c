@@ -79,7 +79,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
 
       if (strlen(serno) > 12)
 	{
-	  pmsg_error("usbhid_open(): invalid serial number %s\n", serno);
+	  pmsg_error("invalid serial number %s\n", serno);
 	  return -1;
 	}
 
@@ -112,7 +112,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
       }
       if (walk == NULL)
       {
-	pmsg_error("usbhid_open(): no matching device found\n");
+	pmsg_error("no matching device found\n");
 	hid_free_enumeration(list);
 	return -1;
       }
@@ -121,7 +121,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
       hid_free_enumeration(list);
       if (dev == NULL)
       {
-	pmsg_error("usbhid_open(): found device, but hid_open_path() failed\n");
+	pmsg_error("found device, but hid_open_path() failed\n");
 	return -1;
       }
     }
@@ -133,7 +133,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
       dev = hid_open(pinfo.usbinfo.vid, pinfo.usbinfo.pid, NULL);
       if (dev == NULL)
       {
-	pmsg_error("usbhid_open(): no device found\n");
+	pmsg_error("no device found\n");
 	return -1;
       }
     }
@@ -186,12 +186,12 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
 	res = hid_read_timeout(dev, usbbuf, 10, 50);
       }
       if (res <= 0) {
-	pmsg_error("usbhid_open(): no response from device\n");
+	pmsg_error("no response from device\n");
 	hid_close(dev);
 	return -1;
       }
       if (usbbuf[0] != 0 || usbbuf[1] != 2) {
-	pmsg_error("usbhid_open(): unexpected reply to DAP_Info: 0x%02x 0x%02x\n",
+	pmsg_error("unexpected reply to DAP_Info: 0x%02x 0x%02x\n",
 	  usbbuf[0], usbbuf[1]);
       } else {
 	fd->usb.max_xfer = usbbuf[2] + (usbbuf[3] << 8);
@@ -200,7 +200,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
       }
     }
   if (fd->usb.max_xfer > USBDEV_MAX_XFER_3) {
-    pmsg_error("usbhid_open(): unexpected max size %d, reducing to %d\n",
+    pmsg_error("unexpected max size %d, reducing to %d\n",
       fd->usb.max_xfer, USBDEV_MAX_XFER_3);
     fd->usb.max_xfer = USBDEV_MAX_XFER_3;
   }

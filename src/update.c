@@ -207,7 +207,7 @@ int memstats(struct avrpart *p, char *memtype, int size, Filestats *fsp) {
     pgsize = 1;
 
   if(size < 0 || size > mem->size) {
-    pmsg_error("memstats(): size %d at odds with %s %s size %d\n", size, p->desc, memtype, mem->size);
+    pmsg_error("size %d at odds with %s %s size %d\n", size, p->desc, memtype, mem->size);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
@@ -337,7 +337,7 @@ static void ioerror(const char *iotype, UPDATE *upd) {
 
   pmsg_ext_error("file %s is not %s", update_outname(upd->filename), iotype);
   if(errnocp)
-    msg_ext_error(": %s", strerror(errnocp));
+    msg_ext_error("memstats(): %s", strerror(errnocp));
   else if(upd->filename && *upd->filename)
     msg_ext_error(" (not a regular or character file?)");
   msg_ext_error("\n");

@@ -49,7 +49,7 @@ static int serialupdi_leave_progmode(const PROGRAMMER *pgm);
 static void serialupdi_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(updi_state))) == 0) {
-    pmsg_error("serialupdi_setup(): out of memory allocating private data\n");
+    pmsg_error("out of memory allocating private data\n");
     exit(1);
   }
   memset(pgm->cookie, 0, sizeof(updi_state));
@@ -937,7 +937,7 @@ static int serialupdi_parseextparms(const PROGRAMMER *pgm, const LISTID extparms
       continue;
     }
 
-    pmsg_error("serialupdi_parseextparms(): invalid extended parameter '%s'\n", extended_param);
+    pmsg_error("invalid extended parameter '%s'\n", extended_param);
     rv = -1;
   }
 

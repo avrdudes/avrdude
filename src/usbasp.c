@@ -263,7 +263,7 @@ static int usbasp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 static void usbasp_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_error("usbasp_setup(): out of memory allocating private data\n");
+    pmsg_error(" out of memory allocating private data\n");
     exit(1);
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
@@ -288,7 +288,7 @@ static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
 
-    pmsg_error("usbasp_parseextparms(): invalid extended parameter '%s'\n", extended_param);
+    pmsg_error("invalid extended parameter '%s'\n", extended_param);
     rv = -1;
   }
 
@@ -354,7 +354,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
 				   buffersize & 0xffff,
 				   5000);
   if(nbytes < 0){
-    pmsg_ext_error("usbasp_transmit: %s\n", errstr(nbytes));
+    pmsg_ext_error("%s\n", errstr(nbytes));
     return -1;
   }
 #else
@@ -366,7 +366,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
 			   (char *)buffer, buffersize,
 			   5000);
   if(nbytes < 0){
-    pmsg_error("usbasp_transmit(): %s\n", usb_strerror());
+    pmsg_error("%s\n", usb_strerror());
     return -1;
   }
 #endif

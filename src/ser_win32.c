@@ -159,17 +159,17 @@ static int net_open(const char *port, union filedescriptor *fdp) {
 	struct hostent *hp;
 
 	if (WSAStartup(MAKEWORD(2, 0), &wsaData) != 0) {
-		pmsg_error("net_open(): WSAStartup() failed\n");
+		pmsg_error("WSAStartup() failed\n");
 		return -1;
 	}
 
 	if ((hstr = strdup(port)) == NULL) {
-		pmsg_error("net_open(): out of memory\n");
+		pmsg_error("out of memory\n");
 		return -1;
 	}
 
 	if (((pstr = strchr(hstr, ':')) == NULL) || (pstr == hstr)) {
-		pmsg_error("net_open(): mangled host:port string %s\n", hstr);
+		pmsg_error("mangled host:port string %s\n", hstr);
 		free(hstr);
 		return -1;
 	}
@@ -182,13 +182,13 @@ static int net_open(const char *port, union filedescriptor *fdp) {
 	pnum = strtoul(pstr, &end, 10);
 
 	if ((*pstr == '\0') || (*end != '\0') || (pnum == 0) || (pnum > 65535)) {
-		pmsg_error("net_open(): bad port number %s\n", pstr);
+		pmsg_error("bad port number %s\n", pstr);
 		free(hstr);
 		return -1;
 	}
 
 	if ((hp = gethostbyname(hstr)) == NULL) {
-		pmsg_error("net_open(): unknown host %s\n", hstr);
+		pmsg_error("unknown host %s\n", hstr);
 		free(hstr);
 		return -1;
 	}
@@ -206,7 +206,7 @@ static int net_open(const char *port, union filedescriptor *fdp) {
 			(LPTSTR)&lpMsgBuf,
 			0,
 			NULL);
-		pmsg_error("net_open(): cannot open socket: %s\n", (char *) lpMsgBuf);
+		pmsg_error("cannot open socket: %s\n", (char *) lpMsgBuf);
 		LocalFree(lpMsgBuf);
 		return -1;
 	}
@@ -227,7 +227,7 @@ static int net_open(const char *port, union filedescriptor *fdp) {
 			(LPTSTR)&lpMsgBuf,
 			0,
 			NULL);
-		pmsg_error("net_open(): connect failed: %s\n", (char *) lpMsgBuf);
+		pmsg_error("connect failed: %s\n", (char *) lpMsgBuf);
 		LocalFree(lpMsgBuf);
 		return -1;
 	}
@@ -258,7 +258,7 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
 	    newname = malloc(strlen("\\\\.\\") + strlen(port) + 1);
 
 	    if (newname == 0) {
-		pmsg_error("ser_open(): out of memory\n");
+		pmsg_error("out of memory\n");
 		exit(1);
 	    }
 	    strcpy(newname, "\\\\.\\");
@@ -281,7 +281,7 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
 			(LPTSTR) &lpMsgBuf,
 			0,
 			NULL);
-		pmsg_error("ser_open(): cannot open port %s: %s\n", port, (char*) lpMsgBuf);
+		pmsg_error("cannot open port %s: %s\n", port, (char*) lpMsgBuf);
 		LocalFree( lpMsgBuf );
 		return -1;
 	}
@@ -289,7 +289,7 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
 	if (!SetupComm(hComPort, W32SERBUFSIZE, W32SERBUFSIZE))
 	{
 		CloseHandle(hComPort);
-		pmsg_error("ser_open(): cannot set buffers for %s\n", port);
+		pmsg_error("cannot set buffers for %s\n", port);
 		return -1;
 	}
 
@@ -297,14 +297,14 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
 	if (ser_setparams(fdp, pinfo.serialinfo.baud, pinfo.serialinfo.cflags) != 0)
 	{
 		CloseHandle(hComPort);
-		pmsg_error("ser_open(): cannot set com-state for %s\n", port);
+		pmsg_error("cannot set com-state for %s\n", port);
 		return -1;
 	}
 
 	if (!serial_w32SetTimeOut(hComPort,0))
 	{
 		CloseHandle(hComPort);
-		pmsg_error("ser_open(): cannot set initial timeout for %s\n", port);
+		pmsg_error("cannot set initial timeout for %s\n", port);
 		return -1;
 	}
 
@@ -392,7 +392,7 @@ static int net_send(const union filedescriptor *fd, const unsigned char * buf, s
 				(LPTSTR)&lpMsgBuf,
 				0,
 				NULL);
-			pmsg_error("net_send(): unable to send: %s\n", (char *) lpMsgBuf);
+			pmsg_error("unable to send: %s\n", (char *) lpMsgBuf);
 			LocalFree(lpMsgBuf);
 			exit(1);
 		}
@@ -417,7 +417,7 @@ static int ser_send(const union filedescriptor *fd, const unsigned char * buf, s
 	HANDLE hComPort=(HANDLE)fd->pfd;
 
 	if (hComPort == INVALID_HANDLE_VALUE) {
-		pmsg_error("ser_send(): port not open\n");
+		pmsg_error("port not open\n");
 		return -1;
 	}
 
@@ -446,12 +446,12 @@ static int ser_send(const union filedescriptor *fd, const unsigned char * buf, s
 	serial_w32SetTimeOut(hComPort,500);
 
 	if (!WriteFile (hComPort, buf, buflen, &written, NULL)) {
-		pmsg_error("ser_send(): unable to write: %s\n", "sorry no info avail"); // TODO
+		pmsg_error("unable to write: %s\n", "sorry no info avail"); // TODO
 		return -1;
 	}
 
 	if (written != buflen) {
-		pmsg_error("ser_send(): size/send mismatch\n");
+		pmsg_error("size/send mismatch\n");
 		return -1;
 	}
 
@@ -469,7 +469,7 @@ static int net_recv(const union filedescriptor *fd, unsigned char * buf, size_t 
 	size_t len = 0;
 
 	if (fd->ifd < 0) {
-		pmsg_error("net_recv(): connection not open\n");
+		pmsg_error("connection not open\n");
 		exit(1);
 	}
 
@@ -503,7 +503,7 @@ reselect:
 					(LPTSTR)&lpMsgBuf,
 					0,
 					NULL);
-				pmsg_error("ser_recv(): select(): %s\n", (char *) lpMsgBuf);
+				pmsg_error("select(): %s\n", (char *) lpMsgBuf);
 				LocalFree(lpMsgBuf);
 				exit(1);
 			}
@@ -521,7 +521,7 @@ reselect:
 				(LPTSTR)&lpMsgBuf,
 				0,
 				NULL);
-			pmsg_error("ser_recv(): unable to read: %s\n", (char *) lpMsgBuf);
+			pmsg_error("unable to read: %s\n", (char *) lpMsgBuf);
 			LocalFree(lpMsgBuf);
 			exit(1);
 		}
@@ -564,7 +564,7 @@ static int ser_recv(const union filedescriptor *fd, unsigned char * buf, size_t 
 	HANDLE hComPort=(HANDLE)fd->pfd;
 	
 	if (hComPort == INVALID_HANDLE_VALUE) {
-		pmsg_error("ser_read(): port not open\n");
+		pmsg_error("port not open\n");
 		return -1;
 	}
 	
@@ -582,7 +582,7 @@ static int ser_recv(const union filedescriptor *fd, unsigned char * buf, size_t 
 			(LPTSTR) &lpMsgBuf,
 			0,
 			NULL 	);
-		pmsg_error("ser_recv(): unable to read: %s\n", (char*) lpMsgBuf);
+		pmsg_error("unable to read: %s\n", (char*) lpMsgBuf);
 		LocalFree( lpMsgBuf );
 		return -1;
 	}
@@ -626,7 +626,7 @@ static int net_drain(const union filedescriptor *fd, int display) {
 	int rc;
 
 	if (fd->ifd < 0) {
-		pmsg_error("ser_drain(): connection not open\n");
+		pmsg_error("connection not open\n");
 		exit(1);
 	}
 
@@ -664,7 +664,7 @@ static int net_drain(const union filedescriptor *fd, int display) {
 					(LPTSTR)&lpMsgBuf,
 					0,
 					NULL);
-				pmsg_error("ser_drain(): select(): %s\n", (char *) lpMsgBuf);
+				pmsg_error("select(): %s\n", (char *) lpMsgBuf);
 				LocalFree(lpMsgBuf);
 				exit(1);
 			}
@@ -682,7 +682,7 @@ static int net_drain(const union filedescriptor *fd, int display) {
 				(LPTSTR)&lpMsgBuf,
 				0,
 				NULL);
-			pmsg_error("ser_drain(): unable to read: %s\n", (char *) lpMsgBuf);
+			pmsg_error("unable to read: %s\n", (char *) lpMsgBuf);
 			LocalFree(lpMsgBuf);
 			exit(1);
 		}
@@ -708,7 +708,7 @@ static int ser_drain(const union filedescriptor *fd, int display) {
 	HANDLE hComPort=(HANDLE)fd->pfd;
 
   	if (hComPort == INVALID_HANDLE_VALUE) {
-		pmsg_error("ser_drain(): port not open\n");
+		pmsg_error("port not open\n");
 		return -1;
 	}
 
@@ -732,7 +732,7 @@ static int ser_drain(const union filedescriptor *fd, int display) {
 				(LPTSTR) &lpMsgBuf,
 				0,
 				NULL 	);
-			pmsg_error("ser_drain(): unable to read: %s\n", (char*) lpMsgBuf);
+			pmsg_error("unable to read: %s\n", (char*) lpMsgBuf);
 			LocalFree( lpMsgBuf );
 			return -1;
 		}

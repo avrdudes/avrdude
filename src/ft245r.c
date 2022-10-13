@@ -221,7 +221,7 @@ static int ft245r_flush(const PROGRAMMER *pgm) {
 	if (avail <= 0) {
 	    avail = ft245r_fill(pgm);
 	    if (avail < 0) {
-		pmsg_error("%s: fill returned %d: %s\n", __func__, avail, ftdi_get_error_string(handle));
+		pmsg_error("fill returned %d: %s\n", avail, ftdi_get_error_string(handle));
 		return -1;
 	    }
 	}
@@ -233,7 +233,7 @@ static int ft245r_flush(const PROGRAMMER *pgm) {
 #endif
 	rv = ftdi_write_data(handle, src, avail);
 	if (rv != avail) {
-	    msg_error("%s: write returned %d (expected %d): %s\n", __func__, rv, avail, ftdi_get_error_string(handle));
+	    msg_error("write returned %d (expected %d): %s\n", rv, avail, ftdi_get_error_string(handle));
 	    return -1;
 	}
 	src += avail;
@@ -762,7 +762,7 @@ static int ft245r_tpi_rx(const PROGRAMMER *pgm, uint8_t *bytep) {
     while (m & res)
 	m <<= 1;
     if (m >= 0x10) {
-	pmsg_error("%s: start bit missing (res=0x%04x)\n", __func__, res);
+	pmsg_error("start bit missing (res=0x%04x)\n", res);
 	return -1;
     }
     byte = parity = 0;
@@ -774,11 +774,11 @@ static int ft245r_tpi_rx(const PROGRAMMER *pgm, uint8_t *bytep) {
     }
     m <<= 1;
     if (((res & m) != 0) != parity) {
-	pmsg_error("%s: parity bit wrong\n", __func__);
+	pmsg_error("parity bit wrong\n");
 	return -1;
     }
     if (((res & (m << 1)) == 0) || ((res & (m << 2))) == 0) {
-	pmsg_error("%s: stop bits wrong\n", __func__);
+	pmsg_error("stop bits wrong\n");
 	return -1;
     }
     *bytep = (uint8_t) byte;
@@ -861,7 +861,7 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
 
     // if something went wrong before abort with helpful message
     if (devnum < 0) {
-      pmsg_error("ft245r_open(): invalid portname '%s': use^ 'ft[0-9]+' or serial number\n", port);
+      pmsg_error("invalid portname '%s': use^ 'ft[0-9]+' or serial number\n", port);
       return -1;
     }
 

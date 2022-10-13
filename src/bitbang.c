@@ -258,7 +258,7 @@ int bitbang_tpi_rx(const PROGRAMMER *pgm)  {
       break;
   }
   if (b != 0) {
-    pmsg_error("bitbang_tpi_rx: start bit not received correctly\n");
+    pmsg_error("start bit not received correctly\n");
     return -1;
   }
 
@@ -273,7 +273,7 @@ int bitbang_tpi_rx(const PROGRAMMER *pgm)  {
 
   /* parity bit */
   if (bitbang_tpi_clk(pgm) != parity) {
-    pmsg_error("bitbang_tpi_rx: parity bit is wrong\n");
+    pmsg_error("parity bit is wrong\n");
     return -1;
   }
 
@@ -282,7 +282,7 @@ int bitbang_tpi_rx(const PROGRAMMER *pgm)  {
   b &= bitbang_tpi_clk(pgm);
   b &= bitbang_tpi_clk(pgm);
   if (b != 1) {
-    pmsg_error("bitbang_tpi_rx: stop bits not received correctly\n");
+    pmsg_error("stop bits not received correctly\n");
     return -1;
   }
   

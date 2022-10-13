@@ -68,7 +68,7 @@ static int ppi_shadow_access(const union filedescriptor *fdp, int reg,
       shadow_num = 2;
       break;
     default:
-      pmsg_error("avr_set(): invalid register=%d\n", reg);
+      pmsg_error("invalid register=%d\n", reg);
       return -1;
       break;
   }

@@ -1103,7 +1103,7 @@ static int fileio_imm(struct fioparms * fio,
       return -1;
 
     default:
-      pmsg_error("fileio: invalid operation=%d\n", fio->op);
+      pmsg_error("invalid operation=%d\n", fio->op);
       return -1;
   }
 
@@ -1248,7 +1248,7 @@ static int fileio_num(struct fioparms * fio,
       return -1;
 
     default:
-      pmsg_error("fileio: invalid operation=%d\n", fio->op);
+      pmsg_error("invalid operation=%d\n", fio->op);
       return -1;
   }
 
@@ -1417,7 +1417,7 @@ int fileio(int oprwv, char * filename, FILEFMT format,
   op = oprwv == FIO_READ_FOR_VERIFY? FIO_READ: oprwv;
   mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
-    pmsg_error("fileio(): memory type %s not configured for device %s\n", memtype, p->desc);
+    pmsg_error("memory type %s not configured for device %s\n", memtype, p->desc);
     return -1;
   }
 

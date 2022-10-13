@@ -66,9 +66,9 @@ int avrdude_message2(const char *fname, int msgmode, int msglvl, const char *for
 #define msg_trace(...)     avrdude_message2(__func__, 0, MSG_TRACE, __VA_ARGS__)
 #define msg_trace2(...)    avrdude_message2(__func__, 0, MSG_TRACE2, __VA_ARGS__)
 
-#define pmsg_ext_error(...) avrdude_message2(__func__, MSG2_PROGNAME|MSG2_TYPE|MSG2_FLUSH, MSG_EXT_ERROR, __VA_ARGS__)
-#define pmsg_error(...)     avrdude_message2(__func__, MSG2_PROGNAME|MSG2_TYPE|MSG2_FLUSH, MSG_ERROR, __VA_ARGS__)
-#define pmsg_warning(...)   avrdude_message2(__func__, MSG2_PROGNAME|MSG2_TYPE|MSG2_FLUSH, MSG_WARNING, __VA_ARGS__)
+#define pmsg_ext_error(...) avrdude_message2(__func__, MSG2_PROGNAME|MSG2_FUNCTION|MSG2_TYPE|MSG2_FLUSH, MSG_EXT_ERROR, __VA_ARGS__)
+#define pmsg_error(...)     avrdude_message2(__func__, MSG2_PROGNAME|MSG2_FUNCTION|MSG2_TYPE|MSG2_FLUSH, MSG_ERROR, __VA_ARGS__)
+#define pmsg_warning(...)   avrdude_message2(__func__, MSG2_PROGNAME|MSG2_FUNCTION|MSG2_TYPE|MSG2_FLUSH, MSG_WARNING, __VA_ARGS__)
 #define pmsg_info(...)      avrdude_message2(__func__, MSG2_PROGNAME|MSG2_FLUSH, MSG_INFO, __VA_ARGS__)
 #define pmsg_notice(...)    avrdude_message2(__func__, MSG2_PROGNAME|MSG2_FLUSH, MSG_NOTICE, __VA_ARGS__)
 #define pmsg_notice2(...)   avrdude_message2(__func__, MSG2_PROGNAME|MSG2_FLUSH, MSG_NOTICE2, __VA_ARGS__)

@@ -135,7 +135,7 @@ static int buspirate_expect_bin(const PROGRAMMER *pgm,
 {
 	unsigned char *recv_buf = alloca(expect_len);
 	if ((PDATA(pgm)->flag & BP_FLAG_IN_BINMODE) == 0) {
-		pmsg_error("buspirate_send_bin() called from ascii mode\n");
+		pmsg_error("called from ascii mode\n");
 		return -1;
 	}
 
@@ -159,7 +159,7 @@ static int buspirate_getc(const PROGRAMMER *pgm) {
 	unsigned char ch = 0;
 
 	if (PDATA(pgm)->flag & BP_FLAG_IN_BINMODE) {
-		pmsg_error("buspirate_getc() called from binmode\n");
+		pmsg_error("called from binmode\n");
 		return EOF;
 	}
 
@@ -209,7 +209,7 @@ static char *buspirate_readline(const PROGRAMMER *pgm, char *buf, size_t len) {
 
 	ret = buspirate_readline_noexit(pgm, buf, len);
 	if (! ret) {
-		pmsg_error("buspirate_readline(): programmer is not responding\n");
+		pmsg_error("programmer is not responding\n");
 		return NULL;
 	}
 	return ret;
@@ -221,7 +221,7 @@ static int buspirate_send(const PROGRAMMER *pgm, const char *str) {
 	pmsg_debug("buspirate_send(): %s", str);
 
 	if (PDATA(pgm)->flag & BP_FLAG_IN_BINMODE) {
-		pmsg_error("buspirate_send() called from binmode\n");
+		pmsg_error("called from binmode\n");
 		return -1;
 	}
 
@@ -884,7 +884,7 @@ static int buspirate_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const A
 
 	// This should never happen, but still ...
 	if (PDATA(pgm)->flag & BP_FLAG_NOPAGEDREAD) {
-		pmsg_error("buspirate_paged_load() called while in nopagedread mode\n");
+		pmsg_error("called while in nopagedread mode\n");
 		return -1;
 	}
 
@@ -1093,7 +1093,7 @@ static void buspirate_setup(PROGRAMMER *pgm)
 {
 	/* Allocate private data */
 	if ((pgm->cookie = calloc(1, sizeof(struct pdata))) == 0) {
-		pmsg_error("buspirate_initpgm(): out of memory allocating private data\n");
+		pmsg_error("out of memory allocating private data\n");
 		exit(1);
 	}
 	PDATA(pgm)->serial_recv_timeout = 100;

@@ -90,7 +90,7 @@ int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 
     return 0;
   } else {
-    pmsg_error("%s called for a part that has no TPI\n", __func__);
+    pmsg_error("part has no TPI\n");
     return -1;
   }
 }
@@ -138,7 +138,7 @@ int avr_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p, unsigned cha
 		return -1;
 
 	} else {
-		pmsg_error("%s called for a part that has no TPI\n", __func__);
+		pmsg_error("part has no TPI\n");
 		return -1;
 	}
 }
@@ -227,7 +227,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 
   if (readop == NULL) {
 #if DEBUG
-    pmsg_error("avr_read_byte_default(): operation not supported on memory type %s\n", mem->desc);
+    pmsg_error("operation not supported on memory type %s\n", mem->desc);
 #endif
     return -1;
   }
@@ -368,7 +368,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
         rc = pgm->cmd_tpi(pgm, cmd, 1, mem->buf + i, 1);
         lastaddr++;
         if (rc == -1) {
-          pmsg_error("avr_read_mem(): unable to read address 0x%04lx\n", i);
+          pmsg_error("unable to read address 0x%04lx\n", i);
           return -1;
         }
       }
@@ -448,13 +448,12 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     {
       rc = pgm->read_byte(pgm, p, mem, i, mem->buf + i);
       if (rc != LIBAVRDUDE_SUCCESS) {
-        pmsg_error("avr_read_mem(): unable to read byte at address 0x%04lx\n", i);
+        pmsg_error("unable to read byte at address 0x%04lx\n", i);
         if (rc == LIBAVRDUDE_GENERAL_FAILURE) {
-          pmsg_error("    read operation not supported for memory %s\n",
-                          mem->desc);
+          pmsg_error("read operation not supported for memory %s\n", mem->desc);
           return LIBAVRDUDE_NOTSUPPORTED;
         }
-        pmsg_error("    read operation failed for memory %s\n", mem->desc);
+        pmsg_error("read operation failed for memory %s\n", mem->desc);
         return LIBAVRDUDE_SOFTFAIL;
       }
     }
@@ -484,7 +483,7 @@ int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 
   wp = mem->op[AVR_OP_WRITEPAGE];
   if (wp == NULL) {
-    pmsg_error("avr_write_page(): memory %s not configured for page writes\n", mem->desc);
+    pmsg_error("memory %s not configured for page writes\n", mem->desc);
     return -1;
   }
 
@@ -647,7 +646,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   if (writeop == NULL) {
 #if DEBUG
-    pmsg_error("avr_write_byte_default(): write not supported for memory type %s\n", mem->desc);
+    pmsg_error("write not supported for memory type %s\n", mem->desc);
 #endif
     return -1;
   }
@@ -1078,13 +1077,13 @@ int avr_verify(const AVRPART * p, const AVRPART * v, const char * memtype, int s
 
   a = avr_locate_mem(p, memtype);
   if (a == NULL) {
-    pmsg_error("avr_verify(): memory type %s not defined for part %s\n", memtype, p->desc);
+    pmsg_error("memory type %s not defined for part %s\n", memtype, p->desc);
     return -1;
   }
 
   b = avr_locate_mem(v, memtype);
   if (b == NULL) {
-    pmsg_error("avr_verify(): memory type %s not defined for part %s\n", memtype, v->desc);
+    pmsg_error("memory type %s not defined for part %s\n", memtype, v->desc);
     return -1;
   }
 

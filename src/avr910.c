@@ -57,7 +57,7 @@ struct pdata
 static void avr910_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_error("avr910_setup(): out of memory allocating private data\n");
+    pmsg_error("out of memory allocating private data\n");
     exit(1);
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
@@ -80,7 +80,7 @@ static int avr910_recv(const PROGRAMMER *pgm, char *buf, size_t len) {
 
   rv = serial_recv(&pgm->fd, (unsigned char *)buf, len);
   if (rv < 0) {
-    pmsg_error("avr910_recv(): programmer is not responding\n");
+    pmsg_error("programmer is not responding\n");
     return 1;
   }
   return 0;
@@ -318,7 +318,7 @@ static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       int devcode;
       if (sscanf(extended_param, "devcode=%i", &devcode) != 1 ||
 	  devcode <= 0 || devcode > 255) {
-        pmsg_error("avr910_parseextparms(): invalid devcode '%s'\n", extended_param);
+        pmsg_error("invalid devcode '%s'\n", extended_param);
         rv = -1;
         continue;
       }
@@ -334,7 +334,7 @@ static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
 
-    pmsg_error("avr910_parseextparms(): invalid extended parameter '%s'\n", extended_param);
+    pmsg_error("invalid extended parameter '%s'\n", extended_param);
     rv = -1;
   }
 

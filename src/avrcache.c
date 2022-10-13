@@ -221,7 +221,7 @@ static int loadCachePage(AVR_Cache *cp, const PROGRAMMER *pgm, const AVRPART *p,
       report_progress(1, -1, NULL);
       if(nlOnErr && quell_progress)
         msg_info("\n");
-      pmsg_error("loadCachePage(): unable to read %s page at addr 0x%04x\n", mem->desc, addr);
+      pmsg_error("unable to read %s page at addr 0x%04x\n", mem->desc, addr);
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
 
@@ -240,7 +240,7 @@ static int writeCachePage(AVR_Cache *cp, const PROGRAMMER *pgm, const AVRPART *p
     report_progress(1, -1, NULL);
     if(nlOnErr && quell_progress)
       msg_info("\n");
-    pmsg_error("writeCachePage(): unable to write %s page at addr 0x%04x\n", mem->desc, base);
+    pmsg_error("unable to write %s page at addr 0x%04x\n", mem->desc, base);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
   // Read page back from device and update copy to what is on device
@@ -248,7 +248,7 @@ static int writeCachePage(AVR_Cache *cp, const PROGRAMMER *pgm, const AVRPART *p
     report_progress(1, -1, NULL);
     if(nlOnErr && quell_progress)
       msg_info("\n");
-    pmsg_error("writeCachePage(): unable to read %s page at addr 0x%04x\n", mem->desc, base);
+    pmsg_error("unable to read %s page at addr 0x%04x\n", mem->desc, base);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
@@ -411,7 +411,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
       report_progress(1, -1, NULL);
       if(quell_progress)
         msg_info("\n");
-      pmsg_error("avr_flush_cache() chip erase failed\n");
+      pmsg_error("chip erase failed\n");
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
 

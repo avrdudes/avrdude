@@ -122,16 +122,16 @@ static int xbee_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AV
   if (serial_recv(&pgm->fd, buf, 5) < 0)
     return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
-    pmsg_error("stk500_cmd(): programmer is out of sync\n");
+    pmsg_error("programmer is out of sync\n");
     return -1;
   } else if (buf[0] != Resp_STK_INSYNC) {
     msg_error("\n");
-    pmsg_error("xbee_read_sig_bytes(): protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
+    pmsg_error("protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
     return -2;
   }
   if (buf[4] != Resp_STK_OK) {
     msg_error("\n");
-    pmsg_error("xbee_read_sig_bytes(): protocol expects OK byte 0x%02x but got 0x%02x\n", Resp_STK_OK, buf[4]);
+    pmsg_error("protocol expects OK byte 0x%02x but got 0x%02x\n", Resp_STK_OK, buf[4]);
     return -3;
   }
 
@@ -1066,7 +1066,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
 
   struct XBeeBootSession *xbs = malloc(sizeof(struct XBeeBootSession));
   if (xbs == NULL) {
-    pmsg_error("xbeedev_open(): out of memory\n");
+    pmsg_error("out of memory\n");
     return -1;
   }
 
@@ -1524,7 +1524,7 @@ static int xbee_getsync(const PROGRAMMER *pgm) {
 
   int sendRc = serial_send(&pgm->fd, buf, 2);
   if (sendRc < 0) {
-    pmsg_error("xbee_getsync(): unable to deliver STK_GET_SYNC to the remote XBeeBoot bootloader\n");
+    pmsg_error("unable to deliver STK_GET_SYNC to the remote XBeeBoot bootloader\n");
     return sendRc;
   }
 
@@ -1534,17 +1534,17 @@ static int xbee_getsync(const PROGRAMMER *pgm) {
    */
   int recvRc = serial_recv(&pgm->fd, resp, 2);
   if (recvRc < 0) {
-    pmsg_error("xbee_getsync(): no response to STK_GET_SYNC from the remote XBeeBoot bootloader\n");
+    pmsg_error("no response to STK_GET_SYNC from the remote XBeeBoot bootloader\n");
     return recvRc;
   }
 
   if (resp[0] != Resp_STK_INSYNC) {
-    pmsg_error("xbee_getsync(): not in sync, resp=0x%02x\n", (unsigned int) resp[0]);
+    pmsg_error("not in sync, resp=0x%02x\n", (unsigned int) resp[0]);
     return -1;
   }
 
   if (resp[1] != Resp_STK_OK) {
-    pmsg_error("xbee_getsync(): in sync, not OK, resp=0x%02x\n", (unsigned int) resp[1]);
+    pmsg_error("in sync, not OK, resp=0x%02x\n", (unsigned int) resp[1]);
     return -1;
   }
 
@@ -1643,7 +1643,7 @@ static int xbee_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       int resetpin;
       if (sscanf(extended_param, "xbeeresetpin=%i", &resetpin) != 1 ||
           resetpin <= 0 || resetpin > 7) {
-        pmsg_error("xbee_parseextparms(): invalid xbeeresetpin '%s'\n", extended_param);
+        pmsg_error("invalid xbeeresetpin '%s'\n", extended_param);
         rc = -1;
         continue;
       }
@@ -1652,7 +1652,7 @@ static int xbee_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
 
-    pmsg_error("xbee_parseextparms(): invalid extended parameter '%s'\n", extended_param);
+    pmsg_error("invalid extended parameter '%s'\n", extended_param);
     rc = -1;
   }
 

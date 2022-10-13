@@ -60,7 +60,7 @@ static int stk500_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
 
   rv = serial_recv(&pgm->fd, buf, len);
   if (rv < 0) {
-    pmsg_error("stk500_recv(): programmer is not responding\n");
+    pmsg_error("programmer is not responding\n");
     return -1;
   }
   return 0;
@@ -109,7 +109,7 @@ int stk500_getsync(const PROGRAMMER *pgm) {
     if(stk500_recv(pgm, resp, 1) >= 0 && resp[0] == Resp_STK_INSYNC)
       break;
 
-    pmsg_warning("stk500_getsync() attempt %d of %d: not in sync: resp=0x%02x\n", attempt + 1, max_sync_attempts, resp[0]);
+    pmsg_warning("attempt %d of %d: not in sync: resp=0x%02x\n", attempt + 1, max_sync_attempts, resp[0]);
   }
   if (attempt == max_sync_attempts) {
     stk500_drain(pgm, 0);
@@ -119,7 +119,7 @@ int stk500_getsync(const PROGRAMMER *pgm) {
   if (stk500_recv(pgm, resp, 1) < 0)
     return -1;
   if (resp[0] != Resp_STK_OK) {
-    pmsg_error("stk500_getsync(): cannot communicate with device: resp=0x%02x\n", resp[0]);
+    pmsg_error("cannot communicate with device: resp=0x%02x\n", resp[0]);
     return -1;
   }
 
@@ -148,7 +148,7 @@ static int stk500_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
   if (stk500_recv(pgm, buf, 1) < 0)
     return -1;
   if (buf[0] != Resp_STK_INSYNC) {
-    pmsg_error("stk500_cmd(): programmer is out of sync\n");
+    pmsg_error("programmer is out of sync\n");
     return -1;
   }
 
@@ -161,7 +161,7 @@ static int stk500_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
   if (stk500_recv(pgm, buf, 1) < 0)
     return -1;
   if (buf[0] != Resp_STK_OK) {
-    pmsg_error("stk500_cmd(): protocol expects OK byte 0x%02x but got 0x%02x\n", Resp_STK_OK, buf[0]);
+    pmsg_error("protocol expects OK byte 0x%02x but got 0x%02x\n", Resp_STK_OK, buf[0]);
     return -1;
   }
 
@@ -220,7 +220,7 @@ static int stk500_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
-      pmsg_error("stk500_program_enable(): cannot get into sync\n");
+      pmsg_error("cannot get into sync\n");
       return -1;
     }
     if (stk500_getsync(pgm) < 0)
@@ -228,7 +228,7 @@ static int stk500_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     goto retry;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
-    pmsg_error("stk500_program_enable(): protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
+    pmsg_error("protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
     return -1;
   }
 
@@ -238,18 +238,18 @@ static int stk500_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     return 0;
   }
   else if (buf[0] == Resp_STK_NODEVICE) {
-    pmsg_error("stk500_program_enable(): no device\n");
+    pmsg_error("no device\n");
     return -1;
   }
 
   if(buf[0] == Resp_STK_FAILED)
   {
-      pmsg_error("stk500_program_enable(): unable to enter programming mode\n");
+      pmsg_error("unable to enter programming mode\n");
       return -1;
   }
 
 
-  pmsg_error("stk500_program_enable(): unknown response=0x%02x\n", buf[0]);
+  pmsg_error("unknown response=0x%02x\n", buf[0]);
 
   return -1;
 }
@@ -279,7 +279,7 @@ static int stk500_set_extended_parms(const PROGRAMMER *pgm, int n,
     return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
-      pmsg_error("stk500_set_extended_parms(): cannot get into sync\n");
+      pmsg_error("cannot get into sync\n");
       return -1;
     }
     if (stk500_getsync(pgm) < 0)
@@ -287,7 +287,7 @@ static int stk500_set_extended_parms(const PROGRAMMER *pgm, int n,
     goto retry;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
-    pmsg_error("stk500_set_extended_parms(): protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
+    pmsg_error("protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
     return -1;
   }
 
@@ -297,19 +297,19 @@ static int stk500_set_extended_parms(const PROGRAMMER *pgm, int n,
     return 0;
   }
   else if (buf[0] == Resp_STK_NODEVICE) {
-    pmsg_error("stk500_set_extended_parms(): no device\n");
+    pmsg_error("no device\n");
     return -1;
   }
 
   if(buf[0] == Resp_STK_FAILED)
   {
-      pmsg_error("stk500_set_extended_parms(): unable to set extended "
+      pmsg_error("unable to set extended "
         "device programming parameters\n");
       return -1;
   }
 
 
-  pmsg_error("stk500_set_extended_parms(): unknown response=0x%02x\n", buf[0]);
+  pmsg_error("unknown response=0x%02x\n", buf[0]);
 
   return -1;
 }
@@ -342,7 +342,7 @@ static int mib510_isp(const PROGRAMMER *pgm, unsigned char cmd) {
     return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
-      pmsg_error("mib510_isp(): cannot get into sync\n");
+      pmsg_error("cannot get into sync\n");
       return -1;
     }
     if (stk500_getsync(pgm) < 0)
@@ -350,7 +350,7 @@ static int mib510_isp(const PROGRAMMER *pgm, unsigned char cmd) {
     goto retry;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
-    pmsg_error("mib510_isp(): protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
+    pmsg_error("protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
     return -1;
   }
 
@@ -360,18 +360,18 @@ static int mib510_isp(const PROGRAMMER *pgm, unsigned char cmd) {
     return 0;
   }
   else if (buf[0] == Resp_STK_NODEVICE) {
-    pmsg_error("mib510_isp(): no device\n");
+    pmsg_error("no device\n");
     return -1;
   }
 
   if (buf[0] == Resp_STK_FAILED)
   {
-      pmsg_error("mib510_isp(): command %d failed\n", cmd);
+      pmsg_error("command %d failed\n", cmd);
       return -1;
   }
 
 
-  pmsg_error("mib510_isp(): unknown response=0x%02x\n", buf[0]);
+  pmsg_error("unknown response=0x%02x\n", buf[0]);
 
   return -1;
 }
@@ -503,7 +503,7 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if (stk500_recv(pgm, buf, 1) < 0)
     return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
-    pmsg_warning("stk500_initialize(): programmer not in sync, resp=0x%02x\n", buf[0]);
+    pmsg_warning("programmer not in sync, resp=0x%02x\n", buf[0]);
     if (tries > 33)
       return -1;
     if (stk500_getsync(pgm) < 0)
@@ -511,14 +511,14 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     goto retry;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
-    pmsg_error("stk500_initialize(): protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
+    pmsg_error("protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
     return -1;
   }
 
   if (stk500_recv(pgm, buf, 1) < 0)
     return -1;
   if (buf[0] != Resp_STK_OK) {
-    pmsg_error("stk500_initialize(): protocol expects OK byte 0x%02x but got 0x%02x\n", Resp_STK_OK, buf[0]);
+    pmsg_error("protocol expects OK byte 0x%02x but got 0x%02x\n", Resp_STK_OK, buf[0]);
     return -1;
   }
 
@@ -553,7 +553,7 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
     rc = stk500_set_extended_parms(pgm, n_extparms+1, buf);
     if (rc) {
-      pmsg_error("stk500_initialize(): failed\n");
+      pmsg_error("failed to initialise programmer\n");
       return -1;
     }
   }
@@ -577,7 +577,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
        continue;
      }
 
-     pmsg_error("stk500_parseextparms(): invalid extended parameter '%s'\n", extended_param);
+     pmsg_error("invalid extended parameter '%s'\n", extended_param);
      rv = -1;
    }
 
@@ -600,7 +600,7 @@ static void stk500_disable(const PROGRAMMER *pgm) {
     return;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
-      pmsg_error("stk500_disable(): cannot get into sync\n");
+      pmsg_error("cannot get into sync\n");
       return;
     }
     if (stk500_getsync(pgm) < 0)
@@ -608,7 +608,7 @@ static void stk500_disable(const PROGRAMMER *pgm) {
     goto retry;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
-    pmsg_error("stk500_disable(): protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
+    pmsg_error("protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
     return;
   }
 
@@ -618,11 +618,11 @@ static void stk500_disable(const PROGRAMMER *pgm) {
     return;
   }
   else if (buf[0] == Resp_STK_NODEVICE) {
-    pmsg_error("stk500_disable(): no device\n");
+    pmsg_error("no device\n");
     return;
   }
 
-  pmsg_error("stk500_disable(): unknown response=0x%02x\n", buf[0]);
+  pmsg_error("unknown response=0x%02x\n", buf[0]);
 
   return;
 }
@@ -704,7 +704,7 @@ static int stk500_loadaddr(const PROGRAMMER *pgm, const AVRMEM *mem, const unsig
     return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
-      pmsg_error("stk500_loadaddr(): cannot get into sync\n");
+      pmsg_error("cannot get into sync\n");
       return -1;
     }
     if (stk500_getsync(pgm) < 0)
@@ -712,7 +712,7 @@ static int stk500_loadaddr(const PROGRAMMER *pgm, const AVRMEM *mem, const unsig
     goto retry;
   }
   else if (buf[0] != Resp_STK_INSYNC) {
-    pmsg_error("stk500_loadaddr(): protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
+    pmsg_error("protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
     return -1;
   }
 
@@ -721,7 +721,7 @@ static int stk500_loadaddr(const PROGRAMMER *pgm, const AVRMEM *mem, const unsig
   if (buf[0] == Resp_STK_OK)
     return 0;
 
-  pmsg_error("stk500_loadaddr(): protocol expects OK byte 0x%02x but got 0x%02x\n", Resp_STK_OK, buf[0]);
+  pmsg_error("protocol expects OK byte 0x%02x but got 0x%02x\n", Resp_STK_OK, buf[0]);
 
   return -1;
 }
@@ -797,7 +797,7 @@ static int stk500_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     if (buf[0] == Resp_STK_NOSYNC) {
       if (tries > 33) {
         msg_error("\n");
-        pmsg_error("stk500_paged_write(): cannot get into sync\n");
+        pmsg_error("cannot get into sync\n");
         return -3;
       }
       if (stk500_getsync(pgm) < 0)
@@ -806,7 +806,7 @@ static int stk500_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     }
     else if (buf[0] != Resp_STK_INSYNC) {
       msg_error("\n");
-      pmsg_error("stk500_paged_write(): protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
+      pmsg_error("protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
       return -4;
     }
 
@@ -814,7 +814,7 @@ static int stk500_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       return -1;
     if (buf[0] != Resp_STK_OK) {
       msg_error("\n");
-      pmsg_error("stk500_paged_write(): protocol expects OK byte 0x%02x but got 0x%02x\n", Resp_STK_OK, buf[0]);
+      pmsg_error("protocol expects OK byte 0x%02x but got 0x%02x\n", Resp_STK_OK, buf[0]);
       return -5;
     }
   }
@@ -877,7 +877,7 @@ static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     if (buf[0] == Resp_STK_NOSYNC) {
       if (tries > 33) {
         msg_error("\n");
-        pmsg_error("stk500_paged_load(): cannot get into sync\n");
+        pmsg_error("cannot get into sync\n");
         return -3;
       }
       if (stk500_getsync(pgm) < 0)
@@ -886,7 +886,7 @@ static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     }
     else if (buf[0] != Resp_STK_INSYNC) {
       msg_error("\n");
-      pmsg_error("stk500_paged_load(): protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
+      pmsg_error("protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
       return -4;
     }
 
@@ -899,14 +899,14 @@ static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     if(strcmp(ldata(lfirst(pgm->id)), "mib510") == 0) {
       if (buf[0] != Resp_STK_INSYNC) {
         msg_error("\n");
-        pmsg_error("stk500_paged_load(): protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
+        pmsg_error("protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
         return -5;
       }
     }
     else {
       if (buf[0] != Resp_STK_OK) {
         msg_error("\n");
-        pmsg_error("stk500_paged_load(): protocol expects OK byte 0x%02x but got 0x%02x\n", Resp_STK_OK, buf[0]);
+        pmsg_error("protocol expects OK byte 0x%02x but got 0x%02x\n", Resp_STK_OK, buf[0]);
         return -5;
       }
     }
@@ -922,12 +922,12 @@ static int stk500_set_vtarget(const PROGRAMMER *pgm, double v) {
   utarg = (unsigned)((v + 0.049) * 10);
 
   if (stk500_getparm(pgm, Parm_STK_VADJUST, &uaref) != 0) {
-    pmsg_error("stk500_set_vtarget(): cannot obtain V[aref]\n");
+    pmsg_error("cannot obtain V[aref]\n");
     return -1;
   }
 
   if (uaref > utarg) {
-    pmsg_error("stk500_set_vtarget(): reducing V[aref] from %.1f to %.1f\n", uaref / 10.0, v);
+    pmsg_error("reducing V[aref] from %.1f to %.1f\n", uaref / 10.0, v);
     if (stk500_setparm(pgm, Parm_STK_VADJUST, utarg)
 	!= 0)
       return -1;
@@ -944,12 +944,12 @@ static int stk500_set_varef(const PROGRAMMER *pgm, unsigned int chan /* unused *
   uaref = (unsigned)((v + 0.049) * 10);
 
   if (stk500_getparm(pgm, Parm_STK_VTARGET, &utarg) != 0) {
-    pmsg_error("stk500_set_varef(): cannot obtain V[target]\n");
+    pmsg_error("cannot obtain V[target]\n");
     return -1;
   }
 
   if (uaref > utarg) {
-    pmsg_error("stk500_set_varef(): V[aref] must not be greater than "
+    pmsg_error("V[aref] must not be greater than "
       "V[target] = %.1f\n", utarg/10.0);
     return -1;
   }
@@ -977,7 +977,7 @@ static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
         unit = "kHz";
       } else
         unit = "Hz";
-      pmsg_warning("stk500_set_fosc(): f = %.3f %s too high, using %.3f MHz\n", v, unit, STK500_XTAL/2e6);
+      pmsg_warning("f = %.3f %s too high, using %.3f MHz\n", v, unit, STK500_XTAL/2e6);
       fosc = STK500_XTAL / 2;
     } else
       fosc = (unsigned) v;
@@ -991,7 +991,7 @@ static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
       }
     }
     if (idx == sizeof(ps) / sizeof(ps[0])) {
-      pmsg_warning("stk500_set_fosc(): f = %u Hz too low, %u Hz min\n", fosc, STK500_XTAL / (256 * 1024 * 2));
+      pmsg_warning("f = %u Hz too low, %u Hz min\n", fosc, STK500_XTAL / (256 * 1024 * 2));
       return -1;
     }
   }
@@ -1021,11 +1021,11 @@ static int stk500_set_sck_period(const PROGRAMMER *pgm, double v) {
   
   if (v < min) {
       dur = 1;
-      pmsg_warning("stk500_set_sck_period(): p = %.1f us too small, using %.1f us\n",
+      pmsg_warning("p = %.1f us too small, using %.1f us\n",
         v/1e-6, dur*min/1e-6);
   } else if (v > max) {
       dur = 255;
-      pmsg_warning("stk500_set_sck_period(): p = %.1f us too large, using %.1f us\n",
+      pmsg_warning("p = %.1f us too large, using %.1f us\n",
         v/1e-6, dur*min/1e-6);
   }
   
@@ -1051,7 +1051,7 @@ static int stk500_getparm(const PROGRAMMER *pgm, unsigned parm, unsigned *value)
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
       msg_error("\n");
-      pmsg_error("stk500_getparm(): cannot get into sync\n");
+      pmsg_error("cannot get into sync\n");
       return -1;
     }
     if (stk500_getsync(pgm) < 0)
@@ -1060,7 +1060,7 @@ static int stk500_getparm(const PROGRAMMER *pgm, unsigned parm, unsigned *value)
   }
   else if (buf[0] != Resp_STK_INSYNC) {
     msg_error("\n");
-    pmsg_error("stk500_getparm(): protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
+    pmsg_error("protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
     return -2;
   }
 
@@ -1072,12 +1072,12 @@ static int stk500_getparm(const PROGRAMMER *pgm, unsigned parm, unsigned *value)
     return -1;
   if (buf[0] == Resp_STK_FAILED) {
     msg_error("\n");
-    pmsg_error("stk500_getparm(): parameter 0x%02x failed\n", v);
+    pmsg_error("parameter 0x%02x failed\n", v);
     return -3;
   }
   else if (buf[0] != Resp_STK_OK) {
     msg_error("\n");
-    pmsg_error("stk500_getparm(): protocol expects OK byte 0x%02x but got 0x%02x\n", Resp_STK_OK, buf[0]);
+    pmsg_error("protocol expects OK byte 0x%02x but got 0x%02x\n", Resp_STK_OK, buf[0]);
     return -3;
   }
 
@@ -1105,7 +1105,7 @@ static int stk500_setparm(const PROGRAMMER *pgm, unsigned parm, unsigned value) 
   if (buf[0] == Resp_STK_NOSYNC) {
     if (tries > 33) {
       msg_error("\n");
-      pmsg_error("stk500_setparm(): cannot get into sync\n");
+      pmsg_error("cannot get into sync\n");
       return -1;
     }
     if (stk500_getsync(pgm) < 0)
@@ -1114,7 +1114,7 @@ static int stk500_setparm(const PROGRAMMER *pgm, unsigned parm, unsigned value) 
   }
   else if (buf[0] != Resp_STK_INSYNC) {
     msg_error("\n");
-    pmsg_error("stk500_setparm(): protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
+    pmsg_error("protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
     return -2;
   }
 
@@ -1128,12 +1128,12 @@ static int stk500_setparm(const PROGRAMMER *pgm, unsigned parm, unsigned value) 
     return -1;
   if (buf[0] == Resp_STK_FAILED) {
     msg_error("\n");
-    pmsg_error("stk500_setparm(): parameter 0x%02x failed\n", parm);
+    pmsg_error("parameter 0x%02x failed\n", parm);
     return -3;
   }
   else {
     msg_error("\n");
-    pmsg_error("stk500_setparm(): protocol expects OK byte 0x%02x but got 0x%02x\n", Resp_STK_OK, buf[0]);
+    pmsg_error("protocol expects OK byte 0x%02x but got 0x%02x\n", Resp_STK_OK, buf[0]);
     return -3;
   }
 }
@@ -1223,7 +1223,7 @@ static void stk500_print_parms(const PROGRAMMER *pgm) {
 static void stk500_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_error("stk500_setup(): out of memory allocating private data\n");
+    pmsg_error("out of memory allocating private data\n");
     return;
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));

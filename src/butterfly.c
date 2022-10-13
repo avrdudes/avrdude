@@ -63,7 +63,7 @@ struct pdata
 static void butterfly_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_error("butterfly_setup(): out of memory allocating private data\n");
+    pmsg_error("out of memory allocating private data\n");
     exit(1);
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
@@ -84,7 +84,7 @@ static int butterfly_recv(const PROGRAMMER *pgm, char *buf, size_t len) {
 
   rv = serial_recv(&pgm->fd, (unsigned char *)buf, len);
   if (rv < 0) {
-    pmsg_error("butterfly_recv(): programmer is not responding\n");
+    pmsg_error("programmer is not responding\n");
     return -1;
   }
   return 0;
@@ -542,7 +542,7 @@ static int butterfly_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const A
     return -1;            /* not supported */
   if (strcmp(m->desc, "eeprom") == 0)
     return 0;             /* nothing to do */
-  pmsg_warning("butterfly_page_erase() called on memory type %s\n", m->desc);
+  pmsg_warning("called on memory type %s\n", m->desc);
   return -1;
 }
 

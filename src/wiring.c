@@ -85,7 +85,7 @@ static void wiring_setup(PROGRAMMER * pgm)
    * Now prepare our data
    */
   if ((mycookie = malloc(sizeof(struct wiringpdata))) == 0) {
-    pmsg_error("wiring_setup(): out of memory allocating private data\n");
+    pmsg_error("out of memory allocating private data\n");
     exit(1);
   }
   memset(mycookie, 0, sizeof(struct wiringpdata));
@@ -121,7 +121,7 @@ static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       int newsnooze;
       if (sscanf(extended_param, "snooze=%i", &newsnooze) != 1 ||
           newsnooze < 0) {
-        pmsg_error("wiring_parseextparms(): invalid snooze time '%s'\n", extended_param);
+        pmsg_error("invalid snooze time '%s'\n", extended_param);
         rv = -1;
         continue;
       }
@@ -131,7 +131,7 @@ static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
 
-    pmsg_error("wiring_parseextparms(): invalid extended parameter '%s'\n", extended_param);
+    pmsg_error("invalid extended parameter '%s'\n", extended_param);
     rv = -1;
   }
 

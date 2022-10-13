@@ -97,7 +97,7 @@ static int linuxspi_spi_duplex(const PROGRAMMER *pgm, const unsigned char *tx, u
         msg_error("\n");
         pmsg_error("unable to send SPI message");
         if (ioctl_errno)
-            msg_error(": %s", strerror(ioctl_errno));
+            msg_error("%s", strerror(ioctl_errno));
         msg_error("\n");
     }
 
@@ -408,7 +408,7 @@ static int linuxspi_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
       continue;
     }
 
-    pmsg_error("linuxspi_parseextparams(): invalid extended parameter '%s'\n", extended_param);
+    pmsg_error("invalid extended parameter '%s'\n", extended_param);
     rc = -1;
   }
 

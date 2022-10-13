@@ -374,8 +374,8 @@ int flip1_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *me
   if (strcmp(mem->desc, "signature") == 0) {
     if (flip1_read_sig_bytes(pgm, part, mem) < 0)
       return -1;
-    if (addr > mem->size) {
-      pmsg_error("flip1_read_byte(signature): address %lu out of range\n", addr);
+    if (addr >= mem->size) {
+      pmsg_error("signature address %lu out of range [0, %d]\n", addr, mem->size-1);
       return -1;
     }
     *value = mem->buf[addr];
@@ -671,7 +671,7 @@ int flip1_write_memory(struct dfu_dev *dfu,
   if (size < 32) {
     /* presumably single-byte updates; must be padded to USB endpoint size */
     if ((addr + size - 1) / 32 != addr / 32) {
-      pmsg_error("flip_write_memory(): begin 0x%x and end 0x%x not within same 32-byte block\n",
+      pmsg_error("begin 0x%x and end 0x%x not within same 32-byte block\n",
         addr, addr + size - 1);
       return -1;
     }

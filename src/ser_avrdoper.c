@@ -73,7 +73,7 @@ static int usbOpenDevice(union filedescriptor *fdp, int vendor, const char *vend
     dev = hid_open(vendor, product, NULL);
     if (dev == NULL)
     {
-      pmsg_ext_error("usbOpenDevice(): no device found\n");
+      pmsg_ext_error("no device found\n");
       return USB_ERROR_NOTFOUND;
     }
     fdp->usb.handle = dev;
@@ -215,7 +215,7 @@ static int avrdoper_open(const char *port, union pinfo pinfo, union filedescript
 
     rval = usbOpenDevice(fdp, USB_VENDOR_ID, vname, USB_PRODUCT_ID, devname, 1);
     if(rval != 0){
-        pmsg_ext_error("avrdoper_open(): %s\n", usbErrorText(rval));
+        pmsg_ext_error("%s\n", usbErrorText(rval));
         return -1;
     }
     return 0;
@@ -257,7 +257,7 @@ static int avrdoper_send(const union filedescriptor *fdp, const unsigned char *b
         rval = usbSetReport(fdp, USB_HID_REPORT_TYPE_FEATURE, (char *)buffer,
 			    reportDataSizes[lenIndex] + 2);
         if(rval != 0){
-            pmsg_error("avrdoper_send(): %s\n", usbErrorText(rval));
+            pmsg_error("%s\n", usbErrorText(rval));
             return -1;
         }
         buflen -= thisLen;
@@ -282,7 +282,7 @@ static int avrdoperFillBuffer(const union filedescriptor *fdp) {
         usbErr = usbGetReport(fdp, USB_HID_REPORT_TYPE_FEATURE, lenIndex + 1,
 			      (char *)buffer, &len);
         if(usbErr != 0){
-            pmsg_error("avrdoperFillBuffer(): %s\n", usbErrorText(usbErr));
+            pmsg_error("%s\n", usbErrorText(usbErr));
             return -1;
         }
         msg_trace("Received %d bytes data chunk of total %d\n", len - 2, buffer[1]);
@@ -291,7 +291,7 @@ static int avrdoperFillBuffer(const union filedescriptor *fdp) {
         if(len > buffer[1])             /* cut away padding */
             len = buffer[1];
         if(avrdoperRxLength + len > sizeof(avrdoperRxBuffer)){
-            pmsg_error("avrdoperFillBuffer(): buffer overflow\n");
+            pmsg_error("buffer overflow\n");
             return -1;
         }
         memcpy(avrdoperRxBuffer + avrdoperRxLength, buffer + 2, len);

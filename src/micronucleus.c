@@ -550,7 +550,7 @@ static void micronucleus_setup(PROGRAMMER* pgm)
 
     if ((pgm->cookie = malloc(sizeof(pdata_t))) == 0)
     {
-        pmsg_error("micronucleus_setup(): out of memory allocating private data\n");
+        pmsg_error("out of memory allocating private data\n");
         exit(1);
     }
 
