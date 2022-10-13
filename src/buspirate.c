@@ -88,28 +88,28 @@ buspirate_uses_ascii(const PROGRAMMER *pgm) {
 
 /* ====== Serial talker functions - binmode ====== */
 
-static void dump_mem(const int msglvl, const unsigned char *buf, size_t len)
+static void dump_mem(const unsigned char *buf, size_t len)
 {
 	size_t i;
 
 	for (i = 0; i<len; i++) {
 		if (i % 8 == 0)
-			avrdude_message(msglvl, "\t");
-		avrdude_message(msglvl, "0x%02x ", buf[i]);
+			msg_debug("\t");
+		msg_debug("0x%02x ", buf[i]);
 		if (i % 8 == 3)
-			avrdude_message(msglvl, "  ");
+			msg_debug("  ");
 		else if (i % 8 == 7)
-			avrdude_message(msglvl, "\n");
+			msg_debug("\n");
 	}
 	if (i % 8 != 7)
-		avrdude_message(msglvl, "\n");
+		msg_debug("\n");
 }
 
 static int buspirate_send_bin(const PROGRAMMER *pgm, const unsigned char *data, size_t len) {
 	int rc;
 
 	pmsg_debug("buspirate_send_bin():\n");
-	dump_mem(MSG_DEBUG, data, len);
+	dump_mem(data, len);
 
 	rc = serial_send(&pgm->fd, data, len);
 
@@ -124,7 +124,7 @@ static int buspirate_recv_bin(const PROGRAMMER *pgm, unsigned char *buf, size_t 
 		return EOF;
 
 	pmsg_debug("buspirate_recv_bin():\n");
-	dump_mem(MSG_DEBUG, buf, len);
+	dump_mem(buf, len);
 
 	return len;
 }

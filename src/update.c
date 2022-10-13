@@ -492,24 +492,18 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     if(memstats(p, upd->memtype, size, &fs) < 0)
       return LIBAVRDUDE_GENERAL_FAILURE;
 
-    if(quell_progress < 2) {
-      int level = fs.nsections > 1 || fs.firstaddr > 0 || fs.ntrailing? MSG_INFO: MSG_NOTICE;
-
-      avrdude_message(level, "%*s with %d byte%s in %d section%s within %s\n",
-        (int) strlen(progname)+1, "",
-        fs.nbytes, update_plural(fs.nbytes),
-        fs.nsections, update_plural(fs.nsections),
-        update_interval(fs.firstaddr, fs.lastaddr));
-      if(mem->page_size > 1) {
-        avrdude_message(level, "%*s using %d page%s and %d pad byte%s",
-          (int) strlen(progname)+1, "",
-          fs.npages, update_plural(fs.npages),
-          fs.nfill, update_plural(fs.nfill));
-        if(fs.ntrailing)
-          avrdude_message(level, ", cutting off %d trailing 0xff byte%s",
-            fs.ntrailing, update_plural(fs.ntrailing));
-        avrdude_message(level, "\n");
-      }
+    imsg_info("with %d byte%s in %d section%s within %s\n",
+      fs.nbytes, update_plural(fs.nbytes),
+      fs.nsections, update_plural(fs.nsections),
+      update_interval(fs.firstaddr, fs.lastaddr));
+    if(mem->page_size > 1) {
+      imsg_info("using %d page%s and %d pad byte%s",
+        fs.npages, update_plural(fs.npages),
+        fs.nfill, update_plural(fs.nfill));
+      if(fs.ntrailing)
+        msg_info(", cutting off %d trailing 0xff byte%s",
+          fs.ntrailing, update_plural(fs.ntrailing));
+      msg_info("\n");
     }
 
     // Write the buffer contents to the selected memory type
