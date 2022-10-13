@@ -96,7 +96,8 @@ int avrdude_message2(const char *fname, int msgmode, int msglvl, const char *for
         fflush(stderr);
     }
  
-    if (verbose >= msglvl) {
+    // Reduce effective verbosity level by number of -q above one
+    if ((quell_progress < 2? verbose: verbose+1-quell_progress) >= msglvl) {
         if(msgmode & MSG2_PROGNAME) {
           fprintf(stderr, "%s", progname);
           if(verbose >= MSG_NOTICE && (msgmode & MSG2_FUNCTION))
@@ -1159,7 +1160,7 @@ int main(int argc, char * argv [])
     goto main_exit;
   }
 
-  if (verbose) {
+  if (verbose && quell_progress < 2) {
     avr_display(stderr, p, progbuf, verbose);
     msg_notice("\n");
     programmer_display(pgm, progbuf);
