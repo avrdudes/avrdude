@@ -774,7 +774,7 @@ void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose) {
   fprintf(  f, "%sMemory Detail                 :\n\n", prefix);
 
   px = prefix;
-  buf = (char *)cfg_malloc("avr_display()", strlen(prefix) + 5);
+  buf = (char *) cfg_malloc("avr_display()", strlen(prefix) + 5);
   strcpy(buf, prefix);
   strcat(buf, "  ");
   px = buf;

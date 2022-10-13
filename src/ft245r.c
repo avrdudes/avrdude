@@ -960,7 +960,7 @@ static void ft245r_close(PROGRAMMER * pgm) {
 }
 
 static void ft245r_display(const PROGRAMMER *pgm, const char *p) {
-    msg_error("%sPin assignment  : 0..7 = DBUS0..7\n", p); // , 8..11 = GPIO0..3\n",p);
+    msg_info("%sPin assignment  : 0..7 = DBUS0..7\n", p); // , 8..11 = GPIO0..3\n",p);
     pgm_display_generic_mask(pgm, p, SHOW_ALL_PINS);
 }
 
