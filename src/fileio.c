@@ -1456,8 +1456,8 @@ int fileio(int oprwv, char * filename, FILEFMT format,
     int format_detect;
 
     if (using_stdio) {
-      pmsg_error("cannot auto detect file format when using stdin/out\n"
-        "%s  please specify a file format and try again\n", progbuf);
+      pmsg_error("cannot auto detect file format when using stdin/out\n");
+      imsg_error("please specify a file format and try again\n");
       return -1;
     }
 

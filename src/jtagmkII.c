@@ -1400,9 +1400,9 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
         rv = -1;
         continue;
       }
-      pmsg_notice2("jtagmkII_parseextparms(): JTAG chain parsed as:\n"
-        "%s %u units before, %u units after, %u bits before, %u bits after\n",
-        progbuf, ub, ua, bb, ba);
+      pmsg_notice2("jtagmkII_parseextparms(): JTAG chain parsed as:\n");
+      imsg_notice2("%u units before, %u units after, %u bits before, %u bits after\n",
+        ub, ua, bb, ba);
       PDATA(pgm)->jtagchain[0] = ub;
       PDATA(pgm)->jtagchain[1] = ua;
       PDATA(pgm)->jtagchain[2] = bb;
@@ -3013,7 +3013,7 @@ static int jtagmkII_initialize32(const PROGRAMMER *pgm, const AVRPART *p) {
       pmsg_warning("expected signature for %s is %02X %02X %02X\n", p->desc,
         p->signature[0], p->signature[1], p->signature[2]);
       if (!ovsigck) {
-        msg_error("%sdouble check chip or use -F to override this check\n", progbuf);
+        imsg_error("double check chip or use -F to override this check\n");
         return -1;
       }
     }

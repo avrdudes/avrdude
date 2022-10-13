@@ -676,7 +676,7 @@ static int micronucleus_open(PROGRAMMER* pgm, const char *port) {
     if (port != NULL && dev_name == NULL)
     {
         pmsg_error("invalid -P value %s\n", port);
-        msg_error("%sUse -P usb:bus:device\n", progbuf);
+        imsg_error("use -P usb:bus:device\n");
         return -1;
     }
 

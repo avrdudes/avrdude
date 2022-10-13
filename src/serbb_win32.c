@@ -306,7 +306,7 @@ static void serbb_close(PROGRAMMER *pgm) {
 		pgm->setpin(pgm, PIN_AVR_RESET, 1);
 		CloseHandle (hComPort);
 	}
-        pmsg_debug("ser_close(): closed comm port handle 0x%zx\n", (INT_PTR)hComPort);
+        pmsg_debug("ser_close(): closed comm port handle 0x%zx\n", (INT_PTR) hComPort);
 
 	hComPort = INVALID_HANDLE_VALUE;
 }

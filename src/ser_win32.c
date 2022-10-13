@@ -206,7 +206,7 @@ static int net_open(const char *port, union filedescriptor *fdp) {
 			(LPTSTR)&lpMsgBuf,
 			0,
 			NULL);
-		pmsg_error("net_open(): cannot open socket: %s\n", (char *)lpMsgBuf);
+		pmsg_error("net_open(): cannot open socket: %s\n", (char *) lpMsgBuf);
 		LocalFree(lpMsgBuf);
 		return -1;
 	}
@@ -227,7 +227,7 @@ static int net_open(const char *port, union filedescriptor *fdp) {
 			(LPTSTR)&lpMsgBuf,
 			0,
 			NULL);
-		pmsg_error("net_open(): connect failed: %s\n", (char *)lpMsgBuf);
+		pmsg_error("net_open(): connect failed: %s\n", (char *) lpMsgBuf);
 		LocalFree(lpMsgBuf);
 		return -1;
 	}
@@ -281,7 +281,7 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
 			(LPTSTR) &lpMsgBuf,
 			0,
 			NULL);
-		pmsg_error("ser_open(): cannot open port %s: %s\n", port, (char*)lpMsgBuf);
+		pmsg_error("ser_open(): cannot open port %s: %s\n", port, (char*) lpMsgBuf);
 		LocalFree( lpMsgBuf );
 		return -1;
 	}
@@ -503,7 +503,7 @@ reselect:
 					(LPTSTR)&lpMsgBuf,
 					0,
 					NULL);
-				pmsg_error("ser_recv(): select(): %s\n", (char *)lpMsgBuf);
+				pmsg_error("ser_recv(): select(): %s\n", (char *) lpMsgBuf);
 				LocalFree(lpMsgBuf);
 				exit(1);
 			}
@@ -582,7 +582,7 @@ static int ser_recv(const union filedescriptor *fd, unsigned char * buf, size_t 
 			(LPTSTR) &lpMsgBuf,
 			0,
 			NULL 	);
-		pmsg_error("ser_recv(): unable to read: %s\n", (char*)lpMsgBuf);
+		pmsg_error("ser_recv(): unable to read: %s\n", (char*) lpMsgBuf);
 		LocalFree( lpMsgBuf );
 		return -1;
 	}
@@ -664,7 +664,7 @@ static int net_drain(const union filedescriptor *fd, int display) {
 					(LPTSTR)&lpMsgBuf,
 					0,
 					NULL);
-				pmsg_error("ser_drain(): select(): %s\n", (char *)lpMsgBuf);
+				pmsg_error("ser_drain(): select(): %s\n", (char *) lpMsgBuf);
 				LocalFree(lpMsgBuf);
 				exit(1);
 			}
@@ -682,7 +682,7 @@ static int net_drain(const union filedescriptor *fd, int display) {
 				(LPTSTR)&lpMsgBuf,
 				0,
 				NULL);
-			pmsg_error("ser_drain(): unable to read: %s\n", (char *)lpMsgBuf);
+			pmsg_error("ser_drain(): unable to read: %s\n", (char *) lpMsgBuf);
 			LocalFree(lpMsgBuf);
 			exit(1);
 		}
@@ -732,7 +732,7 @@ static int ser_drain(const union filedescriptor *fd, int display) {
 				(LPTSTR) &lpMsgBuf,
 				0,
 				NULL 	);
-			pmsg_error("ser_drain(): unable to read: %s\n", (char*)lpMsgBuf);
+			pmsg_error("ser_drain(): unable to read: %s\n", (char*) lpMsgBuf);
 			LocalFree( lpMsgBuf );
 			return -1;
 		}

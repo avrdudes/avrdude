@@ -183,8 +183,8 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   OPCODE * readop, * lext;
 
   if (pgm->cmd == NULL) {
-    pmsg_error("%s programmer uses avr_read_byte_default() but does not\n"
-       "%*s provide a cmd() method\n", pgm->type, (int) strlen(progname)+1, "");
+    pmsg_error("%s programmer uses avr_read_byte_default() but does not\n", pgm->type);
+    imsg_error("provide a cmd() method\n");
     return -1;
   }
 
@@ -477,8 +477,8 @@ int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   OPCODE * wp, * lext;
 
   if (pgm->cmd == NULL) {
-    pmsg_error("%s programmer uses avr_write_page() but does not\n"
-      "%*s provide a cmd() method\n", pgm->type, (int) strlen(progname)+1, "");
+    pmsg_error("%s programmer uses avr_write_page() but does not\n", pgm->type);
+    imsg_error("provide a cmd() method\n");
     return -1;
   }
 
@@ -545,8 +545,8 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   struct timeval tv;
 
   if (pgm->cmd == NULL) {
-    pmsg_error("%s programmer uses avr_write_byte_default() but does not\n"
-      "%*s provide a cmd() method\n", pgm->type, (int) strlen(progname)+1, "");
+    pmsg_error("%s programmer uses avr_write_byte_default() but does not\n", pgm->type);
+    imsg_error("provide a cmd() method\n");
     return -1;
   }
 
@@ -830,8 +830,8 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     wsize = size;
   }
   else if (size > wsize) {
-    pmsg_warning("%d bytes requested, but memory region is only %d bytes\n"
-      "%sOnly %d bytes will actually be written\n", size, wsize, progbuf, wsize);
+    pmsg_warning("%d bytes requested, but memory region is only %d bytes\n", size, wsize);
+    imsg_warning("Only %d bytes will actually be written\n", wsize);
   }
 
 
@@ -1093,11 +1093,9 @@ int avr_verify(const AVRPART * p, const AVRPART * v, const char * memtype, int s
   vsize = a->size;
 
   if (vsize < size) {
-    pmsg_warning("requested verification for %d bytes\n"
-      "%s%s memory region only contains %d bytes\n"
-      "%sonly %d bytes will be verified\n", size,
-      progbuf, memtype, vsize,
-      progbuf, vsize);
+    pmsg_warning("requested verification for %d bytes\n", size);
+    imsg_warning("%s memory region only contains %d bytes\n", memtype, vsize);
+    imsg_warning("only %d bytes will be verified\n", vsize);
     size = vsize;
   }
 
@@ -1106,23 +1104,21 @@ int avr_verify(const AVRPART * p, const AVRPART * v, const char * memtype, int s
       uint8_t bitmask = get_fuse_bitmask(a);
       if((buf1[i] & bitmask) != (buf2[i] & bitmask)) {
         // Mismatch is not just in unused bits
-        pmsg_error("verification mismatch, first at byte 0x%04x\n"
-          "%s0x%02x != 0x%02x\n", i, progbuf, buf1[i], buf2[i]);
+        pmsg_error("verification mismatch, first encountered at addr 0x%04x\n", i);
+        imsg_error("device 0x%02x != input 0x%02x\n", buf1[i], buf2[i]);
         return -1;
       } else {
         // Mismatch is only in unused bits
         if ((buf1[i] | bitmask) != 0xff) {
           // Programmer returned unused bits as 0, must be the part/programmer
-          pmsg_warning("ignoring mismatch in unused bits of %s\n"
-            "%s(0x%02x != 0x%02x); to prevent this warning fix the part\n"
-            "%sor programmer definition in the config file\n", memtype,
-            progbuf, buf1[i], buf2[i], progbuf);
+          pmsg_warning("ignoring mismatch in unused bits of %s\n", memtype);
+          imsg_warning("(device 0x%02x != input 0x%02x); to prevent this warning fix\n", buf1[i], buf2[i]);
+          imsg_warning("the part or programmer definition in the config file\n");
         } else {
           // Programmer returned unused bits as 1, must be the user
-          pmsg_warning("ignoring mismatch in unused bits of %s\n"
-            "%s(0x%02x != 0x%02x); to prevent this warning set unused bits\n"
-            "%sto 1 when writing (double check with your datasheet first)\n",
-            memtype, progbuf, buf1[i], buf2[i], progbuf);
+          pmsg_warning("ignoring mismatch in unused bits of %s\n", memtype);
+          imsg_warning("(device 0x%02x != input 0x%02x); to prevent this warning set\n", buf1[i], buf2[i]);
+          imsg_warning("unused bits to 1 when writing (double check with datasheet)\n");
         }
       }
     }

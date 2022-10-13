@@ -359,7 +359,7 @@ static int teensy_open(PROGRAMMER *pgm, const char *port) {
     if (port != NULL && dev_name == NULL)
     {
         pmsg_error("invalid -P value: '%s'\n", port);
-        pmsg_error("%sUse -P usb:bus:device\n", progbuf);
+        imsg_error("Use -P usb:bus:device\n");
         return -1;
     }
 

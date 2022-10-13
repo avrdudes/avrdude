@@ -1419,9 +1419,9 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         rv = -1;
         continue;
       }
-      pmsg_notice2("jtag3_parseextparms(): JTAG chain parsed as:\n"
-        "%s %u units before, %u units after, %u bits before, %u bits after\n",
-        progbuf, ub, ua, bb, ba);
+      pmsg_notice2("jtag3_parseextparms(): JTAG chain parsed as:\n");
+      imsg_notice2("%u units before, %u units after, %u bits before, %u bits after\n",
+        ub, ua, bb, ba);
       PDATA(pgm)->jtagchain[0] = ub;
       PDATA(pgm)->jtagchain[1] = ua;
       PDATA(pgm)->jtagchain[2] = bb;

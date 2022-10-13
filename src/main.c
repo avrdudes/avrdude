@@ -398,9 +398,8 @@ static void exit_programmer_not_found(const char *programmer) {
   if(programmer && *programmer)
     pmsg_error("cannot find programmer id %s\n", programmer);
   else
-    pmsg_error("no programmer has been specified on the command line "
-      "or in the\n%sconfig file; specify one using the -c option and try again\n",
-      progbuf);
+    pmsg_error("no programmer has been specified on the command line or in the\n");
+    imsg_error("config file(s); specify one using the -c option and try again\n");
 
   msg_error("\nValid programmers are:\n");
   list_programmers(stderr, "  ", programmers, ~0);
@@ -873,27 +872,31 @@ int main(int argc, char * argv [])
    * they are running
    */
   msg_notice("\n");
-  pmsg_notice("Version %s\n"
-    "%sCopyright (c) Brian Dean, http://www.bdmicro.com/\n"
-    "%sCopyright (c) Joerg Wunsch\n\n",
-     version, progbuf, progbuf);
-  msg_notice("%sSystem wide configuration file is %s\n", progbuf, sys_config);
+  pmsg_notice("Version %s\n", version);
+  imsg_notice("Copyright (c) Brian Dean, http://www.bdmicro.com/\n");
+  imsg_notice("Copyright (c) Joerg Wunsch\n\n");
 
-  rc = read_config(sys_config);
-  if (rc) {
-    pmsg_error("unable to process system wide configuration file %s\n", sys_config);
-    exit(1);
+  if(*sys_config) {
+    char *real_sys_config = realpath(sys_config, NULL);
+    if(real_sys_config) {
+     imsg_notice("System wide configuration file is %s\n", real_sys_config);
+    } else
+      pmsg_warning("cannot determine realpath() of config file %s: %s\n", sys_config, strerror(errno));
+
+    rc = read_config(real_sys_config);
+    if (rc) {
+      pmsg_error("unable to process system wide configuration file %s\n", real_sys_config);
+      exit(1);
+    }
+    free(real_sys_config);
   }
 
   if (usr_config[0] != 0) {
-    msg_notice("%suser configuration file is %s\n", progbuf, usr_config);
+    imsg_notice("User configuration file is %s\n", usr_config);
 
     rc = stat(usr_config, &sb);
-    if ((rc < 0) || ((sb.st_mode & S_IFREG) == 0)) {
-      msg_notice("%sUser configuration file does not exist or is not a "
-                      "regular file, skipping\n",
-                      progbuf);
-    }
+    if ((rc < 0) || ((sb.st_mode & S_IFREG) == 0))
+      imsg_notice("User configuration file does not exist or is not a regular file, skipping\n");
     else {
       rc = read_config(usr_config);
       if (rc) {
@@ -909,7 +912,7 @@ int main(int argc, char * argv [])
 
     for (ln1=lfirst(additional_config_files); ln1; ln1=lnext(ln1)) {
       p = ldata(ln1);
-      msg_notice("%sadditional configuration file is %s\n", progbuf, p);
+      imsg_notice("additional configuration file is %s\n", p);
 
       rc = read_config(p);
       if (rc) {
@@ -1099,15 +1102,15 @@ int main(int argc, char * argv [])
   if (port[0] == 0) {
     msg_error("\n");
     pmsg_error("no port has been specified on the command line or in the config file\n");
-    msg_error("%sSpecify a port using the -P option and try again\n\n", progbuf);
+    imsg_error("specify a port using the -P option and try again\n\n");
     exit(1);
   }
 
   if (verbose) {
-    msg_notice("%sUsing Port                    : %s\n", progbuf, port);
-    msg_notice("%sUsing Programmer              : %s\n", progbuf, programmer);
+    imsg_notice("Using Port                    : %s\n", port);
+    imsg_notice("Using Programmer              : %s\n", programmer);
     if ((strcmp(pgm->type, "avr910") == 0)) {
-      msg_notice("%savr910_devcode (avrdude.conf) : ", progbuf);
+      imsg_notice("avr910_devcode (avrdude.conf) : ");
       if(p->avr910_devcode)
         msg_notice("0x%x\n", p->avr910_devcode);
       else
@@ -1116,17 +1119,17 @@ int main(int argc, char * argv [])
   }
 
   if (baudrate != 0) {
-    msg_notice("%sOverriding Baud Rate          : %d\n", progbuf, baudrate);
+    imsg_notice("Overriding Baud Rate          : %d\n", baudrate);
     pgm->baudrate = baudrate;
   }
 
   if (bitclock != 0.0) {
-    msg_notice("%sSetting bit clk period        : %.1f\n", progbuf, bitclock);
+    imsg_notice("Setting bit clk period        : %.1f\n", bitclock);
     pgm->bitclock = bitclock * 1e-6;
   }
 
   if (ispdelay != 0) {
-    msg_notice("%sSetting isp clock delay        : %3i\n", progbuf, ispdelay);
+    imsg_notice("Setting isp clock delay        : %3i\n", ispdelay);
     pgm->ispdelay = ispdelay;
   }
 
@@ -1186,8 +1189,8 @@ int main(int argc, char * argv [])
   if (!init_ok) {
     pmsg_error("initialization failed, rc=%d\n", rc);
     if (!ovsigck) {
-      msg_error("%sdouble check connections and try again or use -F to override\n"
-        "%sthis check\n\n", progbuf, progbuf);
+      imsg_error("double check connections and try again or use -F to override\n");
+      imsg_error("this check\n\n");
       exitrc = 1;
       goto main_exit;
     }
@@ -1225,7 +1228,7 @@ int main(int argc, char * argv [])
             if (strncmp(p->family_id, sib, AVR_FAMILYIDLEN)) {
               pmsg_error("expected FamilyID: \"%s\"\n", p->family_id);
               if (!ovsigck) {
-                msg_error("%sdouble check chip or use -F to override this check\n", progbuf);
+                imsg_error("double check chip or use -F to override this check\n");
                 exitrc = 1;
                 goto main_exit;
               }
@@ -1287,8 +1290,8 @@ int main(int argc, char * argv [])
         msg_info("\n");
         pmsg_error("Yikes!  Invalid device signature.\n");
         if (!ovsigck) {
-          msg_error("%sDouble check connections and try again, or use -F to override\n"
-            "%sthis check.\n\n", progbuf, progbuf);
+          imsg_error("Double check connections and try again, or use -F to override\n");
+          imsg_error("this check.\n\n");
           exitrc = 1;
           goto main_exit;
         }
@@ -1300,7 +1303,7 @@ int main(int argc, char * argv [])
         pmsg_error("expected signature for %s is %02X %02X %02X\n", p->desc,
           p->signature[0], p->signature[1], p->signature[2]);
         if (!ovsigck) {
-          msg_error("%sdouble check chip or use -F to override this check\n", progbuf);
+          imsg_error("double check chip or use -F to override this check\n");
           exitrc = 1;
           goto main_exit;
         }
@@ -1310,10 +1313,9 @@ int main(int argc, char * argv [])
 
   if (uflags & UF_AUTO_ERASE) {
     if ((p->prog_modes & PM_PDI) && pgm->page_erase && lsize(updates) > 0) {
-      pmsg_info("Note: programmer supports page erase for Xmega devices.\n"
-        "%sEach page will be erased before programming it, but no chip erase is performed.\n"
-        "%sTo disable page erases, specify the -D option; for a chip-erase, use the -e option.\n",
-        progbuf, progbuf);
+      pmsg_info("Note: programmer supports page erase for Xmega devices.\n");
+      imsg_info("Each page will be erased before programming it, but no chip erase is performed.\n");
+      imsg_info("To disable page erases, specify the -D option; for a chip-erase, use the -e option.\n");
     } else {
       AVRMEM * m;
       const char *memname = p->prog_modes & PM_PDI? "application": "flash";
@@ -1326,8 +1328,8 @@ int main(int argc, char * argv [])
           continue;
         if ((strcmp(m->desc, memname) == 0) && (upd->op == DEVICE_WRITE)) {
           erase = 1;
-          pmsg_info("Note: %s memory has been specified, an erase cycle will be performed.\n"
-            "%sTo disable this feature, specify the -D option.\n", memname, progbuf);
+          pmsg_info("Note: %s memory has been specified, an erase cycle will be performed.\n", memname);
+          imsg_info("To disable this feature, specify the -D option.\n");
           break;
         }
       }

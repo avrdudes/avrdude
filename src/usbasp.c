@@ -337,7 +337,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
       usbasp_get_funcname(functionid), send[0], send[1], send[2], send[3]);
     if (!receive && buffersize > 0) {
       int i;
-      msg_trace("%s => ", progbuf);
+      imsg_trace(" => ");
       for (i = 0; i < buffersize; i++)
 	msg_trace("[%02x] ", buffer[i]);
       msg_trace("\n");
@@ -373,7 +373,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
 
   if (verbose > 3 && receive && nbytes > 0) {
     int i;
-    msg_trace("%s<= ", progbuf);
+    imsg_trace("<= ");
     for (i = 0; i < nbytes; i++)
       msg_trace("[%02x] ", buffer[i]);
     msg_trace("\n");
