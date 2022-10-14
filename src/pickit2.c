@@ -1278,9 +1278,9 @@ void pickit2_initpgm(PROGRAMMER *pgm) {
 static int pickit2_nousb_open(PROGRAMMER *pgm, const char *name) {
     pmsg_error(
 #ifdef WIN32
-            "no usb or hid support; please compile again with libusb or HID support from Win32 DDK installed\n",
+            "no usb or hid support; please compile again with libusb or HID support from Win32 DDK installed\n"
 #else
-            "no usb support; please compile again with libusb installed\n",
+            "no usb support; please compile again with libusb installed\n"
 #endif
      );
 
