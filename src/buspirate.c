@@ -301,7 +301,7 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 		if (sscanf(extended_param, "spifreq=%u", &spifreq) == 1) {
 			if (spifreq & (~0x07)) {
 				pmsg_error("spifreq must be between 0 and 7\n");
-				pmsg_error("see BusPirate manual for details\n");
+				imsg_error("see BusPirate manual for details\n");
 				return -1;
 			}
 			if (PDATA(pgm)->flag & BP_FLAG_XPARM_RAWFREQ) {
@@ -331,7 +331,7 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 			/* lower limit comes from 'cpufreq > 4 * spifreq', spifreq in ascii mode is 30kHz. */
 			if (cpufreq < 125 || cpufreq > 4000) {
 				pmsg_error("cpufreq must be between 125 and 4000 kHz\n");
-				pmsg_error("see BusPirate manual for details\n");
+				imsg_error("see BusPirate manual for details\n");
 				return -1;
 			}
 			PDATA(pgm)->cpufreq = cpufreq;
@@ -645,7 +645,7 @@ static int buspirate_start_spi_mode_ascii(const PROGRAMMER *pgm) {
 	}
 	if (spi_cmd == -1) {
 		pmsg_error("SPI mode number not found; does your BusPirate support SPI?\n");
-		pmsg_error("try powercycling your BusPirate and try again\n");
+		imsg_error("try powercycling your BusPirate and try again\n");
 		return -1;
 	}
 	snprintf(buf, sizeof(buf), "%d\n", spi_cmd);
@@ -787,7 +787,7 @@ static void buspirate_powerup(const PROGRAMMER *pgm) {
 	}
 
 	pmsg_warning("did not get a response to PowerUp command\n");
-	pmsg_warning("trying to continue anyway ...\n");
+	imsg_warning("trying to continue anyway ...\n");
 }
 
 static void buspirate_powerdown(const PROGRAMMER *pgm) {

@@ -299,13 +299,13 @@ static int micronucleus_get_bootloader_info(pdata_t* pdata)
 static void micronucleus_dump_device_info(pdata_t* pdata)
 {
     pmsg_notice("Bootloader version: %d.%d\n", pdata->major_version, pdata->minor_version);
-    pmsg_notice("Available flash size: %u\n", pdata->flash_size);
-    pmsg_notice("Page size: %u\n", pdata->page_size);
-    pmsg_notice("Bootloader start: 0x%04X\n", pdata->bootloader_start);
-    pmsg_notice("Write sleep: %ums\n", pdata->write_sleep);
-    pmsg_notice("Erase sleep: %ums\n", pdata->erase_sleep);
-    pmsg_notice("Signature1: 0x%02X\n", pdata->signature1);
-    pmsg_notice("Signature2: 0x%02X\n", pdata->signature2);
+    imsg_notice("Available flash size: %u\n", pdata->flash_size);
+    imsg_notice("Page size: %u\n", pdata->page_size);
+    imsg_notice("Bootloader start: 0x%04X\n", pdata->bootloader_start);
+    imsg_notice("Write sleep: %ums\n", pdata->write_sleep);
+    imsg_notice("Erase sleep: %ums\n", pdata->erase_sleep);
+    imsg_notice("Signature1: 0x%02X\n", pdata->signature1);
+    imsg_notice("Signature2: 0x%02X\n", pdata->signature2);
 }
 
 static int micronucleus_erase_device(pdata_t* pdata)

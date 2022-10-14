@@ -804,7 +804,7 @@ retry:
 	    return -1;
 	}
 	pmsg_warning("target prepared for ISP, signed off\n");
-        pmsg_warning("now retrying without power-cycling the target\n");
+        imsg_warning("now retrying without power-cycling the target\n");
         goto retry;
       }
     } else {

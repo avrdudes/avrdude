@@ -1010,7 +1010,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if (pgm->fd.usb.max_xfer < USBDEV_MAX_XFER_3 && (pgm->flag & PGM_FL_IS_EDBG) == 0) {
     if (ovsigck) {
       pmsg_warning("JTAGICE3's firmware %d.%d is broken on USB 1.1 connections\n", parm[0], parm[1]);
-      pmsg_warning("forced to continue by option -F; THIS PUTS THE DEVICE'S DATA INTEGRITY AT RISK!\n");
+      imsg_warning("forced to continue by option -F; THIS PUTS THE DEVICE'S DATA INTEGRITY AT RISK!\n");
     } else {
       pmsg_error("JTAGICE3's firmware %d.%d is broken on USB 1.1 connections\n", parm[0], parm[1]);
       return -1;

@@ -324,11 +324,11 @@ static int ihex2b(char * infile, FILE * inf,
     else if (rc != ihex.cksum) {
       if(ffmt == FMT_IHEX) {
         pmsg_error("checksum mismatch at line %d of %s\n", lineno, infile);
-        pmsg_error("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
+        imsg_error("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
         return -1;
       } else {                  /* Just warn with more permissive format FMT_IHXC */
         pmsg_notice("checksum mismatch at line %d of %s\n", lineno, infile);
-        pmsg_notice("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
+        imsg_notice("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
       }
     }
 
@@ -607,7 +607,7 @@ static int srec2b(char * infile, FILE * inf,
     }
     else if (rc != srec.cksum) {
       pmsg_error("checksum mismatch at line %d of %s\n", lineno, infile);
-      pmsg_error("checksum=0x%02x, computed checksum=0x%02x\n", srec.cksum, rc);
+      imsg_error("checksum=0x%02x, computed checksum=0x%02x\n", srec.cksum, rc);
       return -1;
     }
 
@@ -639,7 +639,7 @@ static int srec2b(char * infile, FILE * inf,
       case 0x35: /* S5 - count of S1,S2 and S3 records previously tx'd */
         if (srec.loadofs != reccount){
           pmsg_error("count of transmitted data records mismatch at line %d of %s\n", lineno, infile);
-          pmsg_error("transmitted data records= %d, expected value= %d\n", reccount, srec.loadofs);
+          imsg_error("transmitted data records= %d, expected value= %d\n", reccount, srec.loadofs);
           return -1;
         }
         break;
