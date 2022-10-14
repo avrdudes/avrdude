@@ -262,7 +262,7 @@ static int ser_setparams(const union filedescriptor *fd, long baud, unsigned lon
   // handle nonstandard speed values the MacOS way
   if (nonstandard) {
     if (ioctl(fd->ifd, IOSSIOSPEED, &speed) < 0) {
-      ret = -errno;
+      int ret = -errno;
       pmsg_ext_error("ioctrl(IOSSIOSPEED) failed\n");
       return ret;
     }
