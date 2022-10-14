@@ -617,13 +617,14 @@ int flip1_read_memory(const PROGRAMMER *pgm,
 
   if (cmd_result < 0 && aux_result == 0 &&
       status.bStatus == DFU_STATUS_ERR_WRITE) {
-    if (FLIP1(pgm)->security_mode_flag == 0)
+    if (FLIP1(pgm)->security_mode_flag == 0) {
       msg_error("\n");
       pmsg_error("\n");
       imsg_error("***********************************************************************\n");
       imsg_error("Maybe the device is in ``security mode´´, and needs a chip erase first?\n");
       imsg_error("***********************************************************************\n");
       msg_error("\n");
+    }
     FLIP1(pgm)->security_mode_flag = 1;
   }
 

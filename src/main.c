@@ -48,7 +48,7 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
-
+#include "config.h"
 #include "term.h"
 #include "developer_opts.h"
 
