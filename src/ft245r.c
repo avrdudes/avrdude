@@ -563,9 +563,9 @@ static int ft245r_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 	set_pin(pgm, PIN_AVR_MOSI, 0);
 	if (get_pin(pgm, PIN_AVR_MISO) != 0) {
 	    io_link_ok = false;
-	    if(ovsigck) 
+	    if(ovsigck) {
 		pmsg_warning("MOSI->MISO 0 failed\n");
-	    else {
+	    } else {
 		pmsg_error("MOSI->MISO 0 failed\n");
 		return -1;
 	    }
@@ -573,9 +573,9 @@ static int ft245r_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 	set_pin(pgm, PIN_AVR_MOSI, 1);
 	if (get_pin(pgm, PIN_AVR_MISO) != 1) {
 	    io_link_ok = false;
-	    if(ovsigck) 
+	    if(ovsigck) {
 		pmsg_warning("MOSI->MISO 1 failed\n");
-	    else {
+	    } else {
 		pmsg_error("MOSI->MISO 1 failed\n");
 		return -1;
 	    }

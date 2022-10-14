@@ -363,9 +363,9 @@ int flip2_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
           status.bState == ((FLIP2_STATUS_ERASE_ONGOING >> 0) & 0xFF))
       {
         continue;
-      } else
-        pmsg_error("DFU status %s\n", flip2_status_str(&status));
-        dfu_clrstatus(FLIP2(pgm)->dfu);
+      }
+      pmsg_error("DFU status %s\n", flip2_status_str(&status));
+      dfu_clrstatus(FLIP2(pgm)->dfu);
     } else
       break;
   }

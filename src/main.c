@@ -398,9 +398,10 @@ static void exit_programmer_not_found(const char *programmer) {
   msg_error("\n");
   if(programmer && *programmer)
     pmsg_error("cannot find programmer id %s\n", programmer);
-  else
+  else {
     pmsg_error("no programmer has been specified on the command line or in the\n");
     imsg_error("config file(s); specify one using the -c option and try again\n");
+  }
 
   msg_error("\nValid programmers are:\n");
   list_programmers(stderr, "  ", programmers, ~0);
@@ -1301,9 +1302,12 @@ int main(int argc, char * argv [])
       }
 
       if (!signature_matches) {
-        pmsg_error("expected signature for %s is %02X %02X %02X\n", p->desc,
-          p->signature[0], p->signature[1], p->signature[2]);
-        if (!ovsigck) {
+        if (ovsigck) {
+          pmsg_warning("expected signature for %s is %02X %02X %02X\n", p->desc,
+            p->signature[0], p->signature[1], p->signature[2]);
+        } else {
+          pmsg_error("expected signature for %s is %02X %02X %02X\n", p->desc,
+            p->signature[0], p->signature[1], p->signature[2]);
           imsg_error("double check chip or use -F to override this check\n");
           exitrc = 1;
           goto main_exit;
