@@ -1191,24 +1191,14 @@ int main(int argc, char * argv [])
         if (rc == LIBAVRDUDE_SOFTFAIL && (p->prog_modes & PM_UPDI) && attempt < 1) {
           attempt++;
           if (pgm->read_sib) {
-             // Read SIB and compare FamilyID
-             char sib[AVR_SIBLEN + 1];
-             pgm->read_sib(pgm, p, sib);
-             avrdude_message(MSG_NOTICE, "%s: System Information Block: \"%s\"\n",
-                             progname, sib);
+            // Read SIB and compare FamilyID
+            char sib[AVR_SIBLEN + 1];
+            pgm->read_sib(pgm, p, sib);
+            avrdude_message(MSG_NOTICE, "%s: System Information Block: \"%s\"\n", progname, sib);
             if (quell_progress < 2)
               avrdude_message(MSG_INFO, "%s: Received FamilyID: \"%.*s\"\n", progname, AVR_FAMILYIDLEN, sib);
-
-            if (strncmp(p->family_id, sib, AVR_FAMILYIDLEN)) {
+            if (strncmp(p->family_id, sib, AVR_FAMILYIDLEN))
               avrdude_message(MSG_INFO, "%s: Expected FamilyID: \"%s\"\n", progname, p->family_id);
-              if (!ovsigck) {
-                avrdude_message(MSG_INFO, "%sDouble check chip, "
-                        "or use -F to override this check.\n",
-                        progbuf);
-                exitrc = 1;
-                goto main_exit;
-              }
-            }
           }
           if(erase) {
             erase = 0;
@@ -1223,6 +1213,12 @@ int main(int argc, char * argv [])
               goto sig_again;
             }
           }
+          if (!ovsigck) {
+            avrdude_message(MSG_INFO, "%sDouble check chip, or use -F to override this check.\n",
+              progbuf);
+            exitrc = 1;
+            goto main_exit;
+          }
         }
         avrdude_message(MSG_INFO, "%s: error reading signature data, rc=%d\n",
           progname, rc);
@@ -1235,9 +1231,7 @@ int main(int argc, char * argv [])
     if (sig == NULL) {
       avrdude_message(MSG_INFO, "%s: WARNING: signature data not defined for device \"%s\"\n",
                       progname, p->desc);
-    }
-
-    if (sig != NULL) {
+    } else {
       int ff, zz;
 
       if (quell_progress < 2) {

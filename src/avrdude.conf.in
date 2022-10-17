@@ -14851,6 +14851,7 @@ part parent ".avr8x_mega"
 part
     desc                   = "AVR-Dx family common values";
     id                     = ".avrdx";
+    family_id              = "AVR    ";
     prog_modes             = PM_SPM | PM_UPDI;
     # Dedicated UPDI pin, no HV
     hvupdi_variant         = 1;
@@ -15007,6 +15008,7 @@ part
 part parent ".avrdx"
     desc                   = "AVR32DA28";
     id                     = "avr32da28";
+    family_id              = "    AVR";
     mcuid                  = 338;
     signature              = 0x1e 0x95 0x34;
 
@@ -15031,6 +15033,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR32DA32";
     id                     = "avr32da32";
+    family_id              = "    AVR";
     mcuid                  = 342;
     signature              = 0x1e 0x95 0x33;
 
@@ -15055,6 +15058,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR32DA48";
     id                     = "avr32da48";
+    family_id              = "    AVR";
     mcuid                  = 346;
     signature              = 0x1e 0x95 0x32;
 
@@ -15079,6 +15083,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR64DA28";
     id                     = "avr64da28";
+    family_id              = "    AVR";
     mcuid                  = 351;
     signature              = 0x1e 0x96 0x15;
 
@@ -15103,6 +15108,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR64DA32";
     id                     = "avr64da32";
+    family_id              = "    AVR";
     mcuid                  = 355;
     signature              = 0x1e 0x96 0x14;
 
@@ -15127,6 +15133,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR64DA48";
     id                     = "avr64da48";
+    family_id              = "    AVR";
     mcuid                  = 359;
     signature              = 0x1e 0x96 0x13;
 
@@ -15151,6 +15158,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR64DA64";
     id                     = "avr64da64";
+    family_id              = "    AVR";
     mcuid                  = 362;
     signature              = 0x1e 0x96 0x12;
 
@@ -15175,6 +15183,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR128DA28";
     id                     = "avr128da28";
+    family_id              = "    AVR";
     mcuid                  = 364;
     signature              = 0x1e 0x97 0x0a;
 
@@ -15199,6 +15208,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR128DA32";
     id                     = "avr128da32";
+    family_id              = "    AVR";
     mcuid                  = 366;
     signature              = 0x1e 0x97 0x09;
 
@@ -15223,6 +15233,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR128DA48";
     id                     = "avr128da48";
+    family_id              = "    AVR";
     mcuid                  = 368;
     signature              = 0x1e 0x97 0x08;
 
@@ -15247,6 +15258,7 @@ part parent ".avrdx"
 part parent ".avrdx"
     desc                   = "AVR128DA64";
     id                     = "avr128da64";
+    family_id              = "    AVR";
     mcuid                  = 370;
     signature              = 0x1e 0x97 0x07;
 
