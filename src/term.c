@@ -421,7 +421,7 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
   if (addr < 0 || addr >= maxsize) {
     terminal_message(MSG_INFO, "%s (write): %s address 0x%05x is out of range [0, 0x%05x]\n",
-      progname, mem->desc, addr, maxsize);
+      progname, mem->desc, addr, maxsize-1);
     return -1;
   }
 

@@ -54,7 +54,10 @@ Changes since version 7.0:
     - Make flash writes work in terminal mode #1020
     - Add support for XMEGA specific AVR109 protocol extensions
       used by XBoot #200
-
+    - jtag2updi can not write EEPROM in terminal mode #1116
+    - Make UPDI programmers less verbose during initialization
+      #1084
+    - Quell mode isn't handled systematically #1114
 
   * Pull requests:
 
@@ -140,8 +143,16 @@ Changes since version 7.0:
     - Provide cached byte-wise read/write API #1106
     - AVR109: support for prodsig read and usersig read/write #1108
     - Add missing AVR variants the original JTAG ICE supports #1109
-    - Improve help message in terminal and provide new command pgerase #1113
+    - Improve help message in terminal and provide new command
+      pgerase #1113
     - Fix pointer truncation for Windows x64 #1119
+    - Fix jtag3_page_erase for targets with UPDI #1112
+    - Fix writing of last word on DWORD TPI parts #1115
+    - Use byte-wise read/write when page size is 1 in terminal
+      cache #1121
+    - Suppress Teensy USB communication error message on reboot #1122
+    - Fix UPDI erase when target is locked #1125
+    - Review and overhaul AVRDUDE's messaging system #1126
 
   * Internals:
 
@@ -150,6 +161,8 @@ Changes since version 7.0:
     - Reviewed API for prgrammer functions: use const for
       programmer functions where useful; add second argument for
       void (*enable)(PROGRAMMER *pgm, const AVRPART *p) #1078
+    - Reviewed messaging system making warnings and errors explicit
+      and treat them systematically
 
 
 Changes in version 7.0:

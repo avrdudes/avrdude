@@ -1628,7 +1628,7 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   pmsg_notice2("jtag3_page_erase(.., %s, 0x%x)\n", m->desc, addr);
 
   if (!(p->prog_modes & (PM_PDI | PM_UPDI))) {
-    avrdude_message(MSG_INFO, "%s: jtag3_page_erase: not supported\n", progname);
+    pmsg_error("page erase not supported\n");
     return -1;
   }
 
