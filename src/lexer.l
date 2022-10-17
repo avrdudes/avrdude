@@ -121,7 +121,7 @@ SIGN     [+-]
      }
 
 
-prog_modes|mcuid|n_interrupts|n_page_erase { /* Components for assignment  */
+prog_modes|mcuid|n_interrupts|n_page_erase|n_word_writes { /* Components for assignment  */
   Component_t *cp = cfg_comp_search(yytext, current_strct);
   if(!cp) {
     yyerror("Unknown component %s in %s", yytext, cfg_strct_name(current_strct));

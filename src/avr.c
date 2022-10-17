@@ -856,6 +856,9 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
 
 
   if ((p->prog_modes & PM_TPI) && m->page_size > 1 && pgm->cmd_tpi) {
+    unsigned int    chunk; /* number of words for each write command */
+    unsigned int    j, writeable_chunk;
+
     if (wsize == 1) {
       /* fuse (configuration) memory: only single byte to write */
       return avr_write_byte(pgm, p, m, 0, m->buf[0]) == 0? 1: LIBAVRDUDE_GENERAL_FAILURE;
@@ -866,35 +869,50 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     /* setup for WORD_WRITE */
     avr_tpi_setup_rw(pgm, m, 0, TPI_NVMCMD_WORD_WRITE);
 
-    /* make sure it's aligned to a word boundary */
-    if (wsize & 0x1) {
-      wsize++;
+    /*
+     * Some TPI devices can only program 2 or 4 words (4 or 8 bytes) at a time.
+     * This is set by the n_word_writes option of the AVRMEM config section.
+     * Ensure that we align our write size to this boundary.
+     */
+    if (m->n_word_writes < 0 || m->n_word_writes > 4 || m->n_word_writes == 3) {
+      avrdude_message(MSG_INFO, "\n%s: ERROR: Unsupported n_word_writes value of %d "
+                      "configured for %s memory\n"
+                      "%sAborting write\n",
+                      progname, m->n_word_writes, m->desc, progbuf);
+      return LIBAVRDUDE_GENERAL_FAILURE;
     }
+    chunk = m->n_word_writes > 0 ? 2*m->n_word_writes : 2;
+    wsize = (wsize+chunk-1) / chunk * chunk;
 
-    /* write words, low byte first */
-    for (lastaddr = i = 0; i < wsize; i += 2) {
-      if ((m->tags[i] & TAG_ALLOCATED) != 0 ||
-          (m->tags[i + 1] & TAG_ALLOCATED) != 0) {
+    /* write words in chunks, low byte first */
+    for (lastaddr = i = 0; i < wsize; i += chunk) {
+      /* check that at least one byte in this chunk is allocated */
+      for (writeable_chunk = j = 0; !writeable_chunk && j < chunk; j++) {
+        writeable_chunk = m->tags[i+j] & TAG_ALLOCATED;
+      }
 
+      if (writeable_chunk) {
         if (lastaddr != i) {
           /* need to setup new address */
           avr_tpi_setup_rw(pgm, m, i, TPI_NVMCMD_WORD_WRITE);
           lastaddr = i;
         }
 
+        // Write each byte of the chunk. Unallocated bytes should read
+        // as 0xFF, which should no-op.
         cmd[0] = TPI_CMD_SST_PI;
-        cmd[1] = m->buf[i];
-        rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+        for (j = 0; j < chunk; j++) {
+          cmd[1] = m->buf[i+j];
+          rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+        }
 
-        cmd[1] = m->buf[i + 1];
-        rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
-
-        lastaddr += 2;
+        lastaddr += chunk;
 
         while (avr_tpi_poll_nvmbsy(pgm));
       }
       report_progress(i, wsize, NULL);
     }
+
     return i;
   }
 

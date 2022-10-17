@@ -148,6 +148,7 @@
 #           size            = <num> ;             # bytes
 #           page_size       = <num> ;             # bytes
 #           num_pages       = <num> ;             # numeric
+#           n_word_writes   = <num> ;             # TPI only: if set, number of words to write
 #           min_write_delay = <num> ;             # micro-seconds
 #           max_write_delay = <num> ;             # micro-seconds
 #           readback        = <num> <num> ;       # pair of byte values
@@ -13346,6 +13347,7 @@ part parent ".reduced_core_tiny"
     memory "flash"
         size               = 2048;
         page_size          = 16;
+        n_word_writes      = 2;
         offset             = 0x4000;
         blocksize          = 128;
     ;
@@ -13365,6 +13367,7 @@ part parent ".reduced_core_tiny"
     memory "flash"
         size               = 4096;
         page_size          = 64;
+        n_word_writes      = 4;
         offset             = 0x4000;
         blocksize          = 128;
     ;
