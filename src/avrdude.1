@@ -1333,7 +1333,12 @@ relative to the path of the executable, then in the same directory as
 the executable itself, and finally in the system default location
 .Pa ${PREFIX}/etc/avrdude.conf .
 .It Pa ${HOME}/.avrduderc
-programmer and parts configuration file (per-user overrides)
+.It Pa ${XDG_CONFIG_HOME}/avrdude/config
+programmer and parts configuration file (per-user overrides). If
+.Pa ${XDG_CONFIG_HOME}
+environment variable is either not set or empty, a default value
+.Pa ${HOME}/.config/
+is used.
 .It Pa ~/.inputrc
 Initialization file for the
 .Xr readline 3

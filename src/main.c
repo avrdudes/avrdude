@@ -467,6 +467,7 @@ int main(int argc, char * argv [])
 
 #if !defined(WIN32)
   char  * homedir;
+  char  * xdg_config_home;
 #endif
 
 #ifdef _MSC_VER
@@ -863,6 +864,23 @@ int main(int argc, char * argv [])
     if (i && (usr_config[i - 1] != '/'))
       strcat(usr_config, "/");
     strcat(usr_config, USER_CONF_FILE);
+    rc = stat(usr_config, &sb);
+    if ((rc < 0) || ((sb.st_mode & S_IFREG) == 0)) {
+      xdg_config_home = getenv("XDG_CONFIG_HOME");
+      if (xdg_config_home != NULL && *xdg_config_home != '\0') {
+        strcpy(usr_config, xdg_config_home);
+        i = strlen(usr_config);
+        if (i && (usr_config[i - 1] != '/'))
+          strcat(usr_config, "/");
+      } else {
+        strcpy(usr_config, homedir);
+        i = strlen(usr_config);
+        if (i && (usr_config[i - 1] != '/'))
+          strcat(usr_config, "/");
+        strcat(usr_config, ".config/");
+      }
+      strcat(usr_config, "avrdude/config");
+    }
   }
 #endif
 

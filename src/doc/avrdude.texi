@@ -1726,9 +1726,12 @@ same location as the executable file.  The name of this file can be
 changed using the @option{-C} command line option.  After the system wide
 configuration file is parsed, AVRDUDE looks for a per-user configuration
 file to augment or override the system wide defaults.  On Unix, the
-per-user file is @code{.avrduderc} within the user's home directory.  On
-Windows, this file is the @code{avrdude.rc} file located in the same
-directory as the executable.
+per-user file is @code{.avrduderc} within the user's home directory or,
+if that does not exists, @code{$@{XDG_CONFIG_HOME@}/avrdude/config},
+whereas if @code{$@{XDG_CONFIG_HOME@}} is either not set or empty,
+@code{$@{HOME@}/.config/} is used by default.  On Windows, this file is
+the @code{avrdude.rc} file located in the same directory as the
+executable.
 
 @menu
 * AVRDUDE Defaults::            

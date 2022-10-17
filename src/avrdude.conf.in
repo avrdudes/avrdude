@@ -389,7 +389,7 @@
 # ATmega169     0x78
 
 #
-# Overall avrdude defaults; suitable for ~/.avrduderc
+# Overall avrdude defaults; suitable for ~/.config/avrdude/config
 #
 default_parallel   = "@DEFAULT_PAR_PORT@";
 default_serial     = "@DEFAULT_SER_PORT@";
