@@ -64,7 +64,7 @@ static int pin_fill_old_pinno(const struct pindef_t * const pindef, unsigned int
   for(i = 0; i < PIN_MAX; i++) {
     if(pindef->mask[i / PIN_FIELD_ELEMENT_SIZE] & (1 << (i % PIN_FIELD_ELEMENT_SIZE))) {
       if(found) {
-        avrdude_message(MSG_INFO, "Multiple pins found\n"); //TODO
+        pmsg_error("multiple pins found\n"); // TODO
         return -1;
       }
       found = true;
@@ -89,7 +89,7 @@ static int pin_fill_old_pinlist(const struct pindef_t * const pindef, unsigned i
   for(i = 0; i < PIN_FIELD_SIZE; i++) {
     if(i == 0) {
       if((pindef->mask[i] & ~PIN_MASK) != 0) {
-        avrdude_message(MSG_INFO, "Pins of higher index than max field size for old pinno found\n");
+        pmsg_error("pins of higher index than max field size for old pinno found\n");
         return -1;
       }
       if (pindef->mask[i] == 0) {
@@ -101,11 +101,11 @@ static int pin_fill_old_pinlist(const struct pindef_t * const pindef, unsigned i
       } else if(pindef->mask[i] == ((~pindef->inverse[i]) & pindef->mask[i])) {  /* all set bits in mask are cleared in inverse */
         *pinno = pindef->mask[i];
       } else {
-        avrdude_message(MSG_INFO, "pins have different polarity set\n");
+        pmsg_error("pins have different polarity set\n");
         return -1;
       }
     } else if(pindef->mask[i] != 0) {
-      avrdude_message(MSG_INFO, "Pins have higher number than fit in old format\n");
+      pmsg_error("pins have higher number than fit in old format\n");
       return -1;
     }
   }
@@ -271,41 +271,39 @@ int pins_check(const PROGRAMMER *const pgm, const struct pin_checklist_t *const 
     }
     if(invalid) {
       if(output) {
-        avrdude_message(MSG_INFO, "%s: %s: Following pins are not valid pins for this function: %s\n",
-                        progname, avr_pin_name(pinname), pinmask_to_str(invalid_used));
-        avrdude_message(MSG_NOTICE2, "%s: %s: Valid pins for this function are: %s\n",
-                  progname, avr_pin_name(pinname), pinmask_to_str(valid_pins->mask));
+        pmsg_error("%s: these pins are not valid pins for this function: %s\n",
+          avr_pin_name(pinname), pinmask_to_str(invalid_used));
+        pmsg_notice("%s: valid pins for this function are: %s\n",
+          avr_pin_name(pinname), pinmask_to_str(valid_pins->mask));
       }
       is_ok = false;
     }
     if(inverse) {
       if(output) {
-        avrdude_message(MSG_INFO, "%s: %s: Following pins are not usable as inverse pins for this function: %s\n",
-                        progname, avr_pin_name(pinname), pinmask_to_str(inverse_used));
-        avrdude_message(MSG_NOTICE2, "%s: %s: Valid inverse pins for this function are: %s\n",
-                          progname, avr_pin_name(pinname), pinmask_to_str(valid_pins->inverse));
+        pmsg_error("%s: these pins are not usable as inverse pins for this function: %s\n",
+          avr_pin_name(pinname), pinmask_to_str(inverse_used));
+        pmsg_notice("%s: valid inverse pins for this function are: %s\n",
+          avr_pin_name(pinname), pinmask_to_str(valid_pins->inverse));
       }
       is_ok = false;
     }
     if(used) {
       if(output) {
-        avrdude_message(MSG_INFO, "%s: %s: Following pins are set for other functions too: %s\n",
-                        progname, avr_pin_name(pinname), pinmask_to_str(already_used));
+        pmsg_error("%s: these pins are set for other functions too: %s\n",
+          avr_pin_name(pinname), pinmask_to_str(already_used));
         is_ok = false;
       }
     }
     if(!mandatory_used && is_mandatory && !invalid) {
       if(output) {
-        avrdude_message(MSG_INFO, "%s: %s: Mandatory pin is not defined.\n",
-                        progname, avr_pin_name(pinname));
+        pmsg_error("%s: mandatory pin is not defined\n", avr_pin_name(pinname));
       }
       is_ok = false;
     }
     if(!is_ok) {
       rv = -1;
     } else if(output) {
-      avrdude_message(MSG_DEBUG, "%s: %s: Pin is ok.\n",
-                      progname, avr_pin_name(pinname));
+      pmsg_debug("%s: pin is OK\n", avr_pin_name(pinname));
     }
   }
   return rv;

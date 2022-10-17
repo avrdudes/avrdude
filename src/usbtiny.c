@@ -79,8 +79,7 @@ struct pdata
 static void usbtiny_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    avrdude_message(MSG_INFO, "%s: usbtiny_setup(): Out of memory allocating private data\n",
-                    progname);
+    pmsg_error("out of memory allocating private data\n");
     exit(1);
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
@@ -103,7 +102,8 @@ static int usb_control (const PROGRAMMER *pgm,
 			    NULL, 0,              // no data buffer in control message
 			    USB_TIMEOUT );        // default timeout
   if(nbytes < 0){
-    avrdude_message(MSG_INFO, "\n%s: error: usbtiny_transmit: %s\n", progname, usb_strerror());
+    msg_error("\n");
+    pmsg_error("%s\n", usb_strerror());
     return -1;
   }
 
@@ -135,17 +135,15 @@ static int usb_in (const PROGRAMMER *pgm,
     }
     PDATA(pgm)->retries++;
   }
-  avrdude_message(MSG_INFO, "\n%s: error: usbtiny_receive: %s (expected %d, got %d)\n",
-          progname, usb_strerror(), buflen, nbytes);
+  msg_error("\n");
+  pmsg_error("%s (expected %d, got %d)\n", usb_strerror(), buflen, nbytes);
   return -1;
 }
 
 // Report the number of retries, and reset the counter.
 static void check_retries (const PROGRAMMER *pgm, const char *operation) {
-  if (PDATA(pgm)->retries > 0 && quell_progress < 2) {
-    avrdude_message(MSG_INFO, "%s: %d retries during %s\n", progname,
-           PDATA(pgm)->retries, operation);
-  }
+  if (PDATA(pgm)->retries > 0)
+    pmsg_info("%d retries during %s\n", PDATA(pgm)->retries, operation);
   PDATA(pgm)->retries = 0;
 }
 
@@ -168,8 +166,8 @@ static int usb_out (const PROGRAMMER *pgm,
 			    (char *)buffer, buflen,
 			    timeout);
   if (nbytes != buflen) {
-    avrdude_message(MSG_INFO, "\n%s: error: usbtiny_send: %s (expected %d, got %d)\n",
-	    progname, usb_strerror(), buflen, nbytes);
+    msg_error("\n");
+    pmsg_error("%s (expected %d, got %d)\n", usb_strerror(), buflen, nbytes);
     return -1;
   }
 
@@ -223,8 +221,7 @@ static int usbtiny_tpi_tx(const PROGRAMMER *pgm, unsigned char b0) {
   if (usb_in(pgm, USBTINY_SPI, tpi_frame(b0), 0xffff,
 	     res, sizeof(res), 8 * sizeof(res) * PDATA(pgm)->sck_period) < 0)
     return -1;
-  if (verbose > 1)
-    fprintf(stderr, "CMD_TPI_TX: [0x%02x]\n", b0);
+  msg_notice2("CMD_TPI_TX: [0x%02x]\n", b0);
   return 1;
 }
 
@@ -238,8 +235,7 @@ static int usbtiny_tpi_txtx(const PROGRAMMER *pgm,
   if (usb_in(pgm, USBTINY_SPI, tpi_frame(b0), tpi_frame(b1),
 	     res, sizeof(res), 8 * sizeof(res) * PDATA(pgm)->sck_period) < 0)
     return -1;
-  if (verbose > 1)
-    fprintf(stderr, "CMD_TPI_TX_TX: [0x%02x 0x%02x]\n", b0, b1);
+  msg_notice2("CMD_TPI_TX_TX: [0x%02x 0x%02x]\n", b0, b1);
   return 1;
 }
 
@@ -264,16 +260,15 @@ static int usbtiny_tpi_txrx(const PROGRAMMER *pgm, unsigned char b0) {
      bit and the 8 data bits, but the latter in reverse order. */
   r = reverse(w >> 7);
   if (tpi_parity(r) != ((w >> 6) & 1)) {
-    fprintf(stderr, "%s: parity bit is wrong\n", __func__);
+    pmsg_error("parity bit is wrong\n");
     return -1;
   }
   if (((w >> 4) & 0x3) != TPI_STOP_BITS) {
-    fprintf(stderr, "%s: stop bits not received correctly\n", __func__);
+    pmsg_error("stop bits not received correctly\n");
     return -1;
   }
 
-  if (verbose > 1)
-    fprintf(stderr, "CMD_TPI_TX_RX: [0x%02x -> 0x%02x]\n", b0, r);
+  msg_notice2("CMD_TPI_TX_RX: [0x%02x -> 0x%02x]\n", b0, r);
   return r;
 }
 
@@ -288,7 +283,7 @@ static int usbtiny_avr_op (const PROGRAMMER *pgm, const AVRPART *p,
   unsigned char	cmd[4];
 
   if (p->op[op] == NULL) {
-    avrdude_message(MSG_INFO, "Operation %d not defined for this chip!\n", op );
+    pmsg_error("operation %d not defined for this chip\n", op);
     return -1;
   }
   memset(cmd, 0, sizeof(cmd));
@@ -337,8 +332,7 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
   if (usbpid) {
     pid = *(int *)(ldata(usbpid));
     if (lnext(usbpid))
-      avrdude_message(MSG_INFO, "%s: Warning: using PID 0x%04x, ignoring remaining PIDs in list\n",
-                      progname, pid);
+      pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
   } else {
     pid = USBTINY_PRODUCT_DEFAULT;
   }
@@ -349,8 +343,7 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
     for	( dev = bus->devices; dev; dev = dev->next ) {
       if (dev->descriptor.idVendor == vid
 	  && dev->descriptor.idProduct == pid ) {   // found match?
-    avrdude_message(MSG_NOTICE, "%s: usbdev_open(): Found USBtinyISP, bus:device: %s:%s\n",
-                      progname, bus->dirname, dev->filename);
+    pmsg_notice("usbdev_open(): found USBtinyISP, bus:device: %s:%s\n", bus->dirname, dev->filename);
     // if -P was given, match device by device name and bus name
     if(name != NULL &&
       (NULL == dev_name ||
@@ -361,8 +354,7 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
 
 	// wrong permissions or something?
 	if (!PDATA(pgm)->usb_handle) {
-	  avrdude_message(MSG_INFO, "%s: Warning: cannot open USB device: %s\n",
-		  progname, usb_strerror());
+	  pmsg_warning("cannot open USB device: %s\n", usb_strerror());
 	  continue;
 	}
       }
@@ -370,13 +362,12 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
   }
 
   if(NULL != name && NULL == dev_name) {
-    avrdude_message(MSG_INFO, "%s: Error: Invalid -P value: '%s'\n", progname, name);
-    avrdude_message(MSG_INFO, "%sUse -P usb:bus:device\n", progbuf);
+    pmsg_error("invalid -P value: '%s'\n", name);
+    imsg_error("use -P usb:bus:device\n");
     return -1;
   }
   if (!PDATA(pgm)->usb_handle) {
-    avrdude_message(MSG_INFO, "%s: Error: Could not find USBtiny device (0x%x/0x%x)\n",
-	     progname, vid, pid );
+    pmsg_error("cannot find USBtiny device (0x%x/0x%x)\n", vid, pid );
     return -1;
   }
 
@@ -418,7 +409,7 @@ static int usbtiny_set_sck_period (const PROGRAMMER *pgm, double v) {
   if  (PDATA(pgm)->sck_period > SCK_MAX)
     PDATA(pgm)->sck_period = SCK_MAX;
 
-  avrdude_message(MSG_NOTICE, "%s: Setting SCK period to %d usec\n", progname,
+  pmsg_notice("setting SCK period to %d usec\n",
 	    PDATA(pgm)->sck_period );
 
   // send the command to the usbtiny device.
@@ -443,8 +434,7 @@ static int usbtiny_initialize (const PROGRAMMER *pgm, const AVRPART *p ) {
   } else {
     // -B option not specified: use default
     PDATA(pgm)->sck_period = SCK_DEFAULT;
-    avrdude_message(MSG_NOTICE, "%s: Using SCK period of %d usec\n",
-	      progname, PDATA(pgm)->sck_period );
+    pmsg_notice("using SCK period of %d usec\n", PDATA(pgm)->sck_period );
     if (usb_control(pgm,  USBTINY_POWERUP,
 		    PDATA(pgm)->sck_period, RESET_LOW ) < 0)
       return -1;
@@ -458,21 +448,19 @@ static int usbtiny_initialize (const PROGRAMMER *pgm, const AVRPART *p ) {
     /* Since there is a single TPIDATA line, MOSI and MISO must be
        linked together through a 1kOhm resistor.  Verify that
        everything we send on MOSI gets mirrored back on MISO.  */
-    if (verbose >= 2)
-      fprintf(stderr, "doing MOSI-MISO link check\n");
+    msg_notice2("doing MOSI-MISO link check\n");
 
     memset(res, 0xaa, sizeof(res));
     if (usb_in(pgm, USBTINY_SPI, LITTLE_TO_BIG_16(0x1234), LITTLE_TO_BIG_16(0x5678),
 	       res, 4, 32 * PDATA(pgm)->sck_period) < 0) {
-      fprintf(stderr, "usb_in() failed\n");
+      pmsg_error("usb_in() failed\n");
       return -1;
     }
     if (res[0] != 0x12 || res[1] != 0x34 || res[2] != 0x56 || res[3] != 0x78) {
-      fprintf(stderr,
-	      "MOSI->MISO check failed (got 0x%02x 0x%02x 0x%02x 0x%02x)\n"
-	      "\tPlease verify that MISO is connected directly to TPIDATA and\n"
-	      "\tMOSI is connected to TPIDATA through a 1kOhm resistor.\n",
-	      res[0], res[1], res[2], res[3]);
+      pmsg_error("MOSI->MISO check failed (got 0x%02x 0x%02x 0x%02x 0x%02x)\n"
+        "\tplease verify that MISO is connected directly to TPIDATA and\n"
+        "\tMOSI is connected to TPIDATA through a 1kOhm resistor\n",
+        res[0], res[1], res[2], res[3]);
       return -1;
     }
 
@@ -480,7 +468,7 @@ static int usbtiny_initialize (const PROGRAMMER *pgm, const AVRPART *p ) {
     if (usb_in(pgm, USBTINY_SPI, 0xffff, 0xffff, res, 4,
 	       32 * PDATA(pgm)->sck_period) < 0)
     {
-      fprintf(stderr, "Unable to switch chip into TPI mode\n");
+      pmsg_error("unable to switch chip into TPI mode\n");
       return -1;
     }
   }
@@ -538,7 +526,7 @@ static int usbtiny_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
     return -1;
   check_retries(pgm, "SPI command");
   // print out the data we sent and received
-  avrdude_message(MSG_NOTICE2, "CMD: [%02x %02x %02x %02x] [%02x %02x %02x %02x]\n",
+  msg_notice2("CMD: [%02x %02x %02x %02x] [%02x %02x %02x %02x]\n",
 	    cmd[0], cmd[1], cmd[2], cmd[3],
 	    res[0], res[1], res[2], res[3] );
   return ((nbytes == 4) &&      // should have read 4 bytes
@@ -574,8 +562,7 @@ int usbtiny_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
   }
 
   if (rx < res_len) {
-    fprintf(stderr, "%s: unexpected cmd_len=%d/res_len=%d\n",
-	    __func__, cmd_len, res_len);
+    pmsg_error("unexpected cmd_len=%d/res_len=%d\n", cmd_len, res_len);
     return -1;
   }
   return 0;
@@ -588,8 +575,7 @@ static int usbtiny_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   memset(res, 0, count);
 
   if (count % 4) {
-    avrdude_message(MSG_INFO, "Direct SPI write must be a multiple of 4 bytes for %s\n",
-            pgm->type);
+    pmsg_error("direct SPI write must be a multiple of 4 bytes for %s\n", pgm->type);
     return -1;
   }
 
@@ -609,8 +595,7 @@ static int usbtiny_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     return avr_tpi_chip_erase(pgm, p);
 
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
-    avrdude_message(MSG_INFO, "Chip erase instruction not defined for part \"%s\"\n",
-            p->desc);
+    pmsg_error("chip erase instruction not defined for part %s\n", p->desc);
     return -1;
   }
 
@@ -818,8 +803,7 @@ void usbtiny_initpgm(PROGRAMMER *pgm) {
 // Give a proper error if we were not compiled with libusb
 
 static int usbtiny_nousb_open(PROGRAMMER *pgm, const char *name) {
-  avrdude_message(MSG_INFO, "%s: error: no usb support. Please compile again with libusb installed.\n",
-	  progname);
+  pmsg_error("no usb support; please compile again with libusb installed\n");
 
   return -1;
 }

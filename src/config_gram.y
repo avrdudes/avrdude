@@ -1410,9 +1410,7 @@ mem_spec :
     {
       int ps = $3->value.number;
       if (ps <= 0)
-        avrdude_message(MSG_INFO,
-                        "%s, line %d: invalid page size %d, ignored\n",
-                        cfg_infile, cfg_lineno, ps);
+        pmsg_warning("invalid page size %d, ignored [%s:%d]\n", ps, cfg_infile, cfg_lineno);
       else
         current_mem->page_size = ps;
       free_token($3);
@@ -1755,7 +1753,7 @@ static int parse_cmdbits(OPCODE * op, int opnum)
           op->bit[bitno].value = 0;
         }
         else {
-          yyerror("invalid bit specifier \"%s\"", s);
+          yyerror("invalid bit specifier %s", s);
           rv = -1;
           break;
         }

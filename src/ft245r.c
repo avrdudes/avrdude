@@ -94,8 +94,7 @@
 #if defined(DO_NOT_BUILD_FT245R)
 
 static int ft245r_noftdi_open(PROGRAMMER *pgm, const char *name) {
-    avrdude_message(MSG_INFO, "%s: error: no libftdi or libusb support. Install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again.\n",
-                    progname);
+    pmsg_error("no libftdi or libusb support; install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make\n");
 
     return -1;
 }
@@ -189,8 +188,7 @@ static int ft245r_fill(const PROGRAMMER *pgm) {
 	return -1;
     rx.pending -= nread;
 #if FT245R_DEBUG
-    avrdude_message(MSG_INFO, "%s: read %d bytes (pending=%d)\n",
-		    __func__, nread, rx.pending);
+    msg_info("%s: read %d bytes (pending=%d)\n",  __func__, nread, rx.pending);
 #endif
     for (i = 0; i < nread; ++i)
 	ft245r_rx_buf_put(pgm, raw[i]);
@@ -223,9 +221,7 @@ static int ft245r_flush(const PROGRAMMER *pgm) {
 	if (avail <= 0) {
 	    avail = ft245r_fill(pgm);
 	    if (avail < 0) {
-		avrdude_message(MSG_INFO,
-				"%s: fill returned %d: %s\n",
-				__func__, avail, ftdi_get_error_string(handle));
+		pmsg_error("fill returned %d: %s\n", avail, ftdi_get_error_string(handle));
 		return -1;
 	    }
 	}
@@ -233,13 +229,11 @@ static int ft245r_flush(const PROGRAMMER *pgm) {
 	    avail = len;
 
 #if FT245R_DEBUG
-	avrdude_message(MSG_INFO, "%s: writing %d bytes\n", __func__, avail);
+	msg_info("%s: writing %d bytes\n", __func__, avail);
 #endif
 	rv = ftdi_write_data(handle, src, avail);
 	if (rv != avail) {
-	    avrdude_message(MSG_INFO,
-			    "%s: write returned %d (expected %d): %s\n",
-			    __func__, rv, avail, ftdi_get_error_string(handle));
+	    msg_error("write returned %d (expected %d): %s\n", rv, avail, ftdi_get_error_string(handle));
 	    return -1;
 	}
 	src += avail;
@@ -282,8 +276,7 @@ static int ft245r_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
     ft245r_fill(pgm);
 
 #if FT245R_DEBUG
-    avrdude_message(MSG_INFO, "%s: discarding %d, consuming %zu bytes\n",
-        __func__, rx.discard, len);
+    msg_info("%s: discarding %d, consuming %zu bytes\n", __func__, rx.discard, len);
 #endif
     while (rx.discard > 0) {
         int result = ft245r_rx_buf_fill_and_get(pgm);
@@ -320,7 +313,7 @@ static int ft245r_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
 static int ft245r_drain(const PROGRAMMER *pgm, int display) {
     int r;
 
-    // flush the buffer in the chip by changing the mode.....
+    // flush the buffer in the chip by changing the mode ...
     r = ftdi_set_bitmode(handle, 0, BITMODE_RESET); 	// reset
     if (r) return -1;
     r = ftdi_set_bitmode(handle, ft245r_ddr, BITMODE_SYNCBB); // set Synchronuse BitBang
@@ -347,8 +340,7 @@ static int ft245r_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
       return avr_tpi_chip_erase(pgm, p);
 
     if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
-        avrdude_message(MSG_INFO, "chip erase instruction not defined for part \"%s\"\n",
-                p->desc);
+        msg_error("chip erase instruction not defined for part %s\n", p->desc);
         return -1;
     }
 
@@ -381,14 +373,12 @@ static int ft245r_set_bitclock(const PROGRAMMER *pgm) {
     ftdi_rate = rate;
 #endif
 
-    avrdude_message(MSG_NOTICE2,
-		    "%s: bitclk %d -> FTDI rate %d, baud multiplier %d\n",
-		    __func__, rate, ftdi_rate, baud_multiplier);
+    msg_notice2("%s: bitclk %d -> FTDI rate %d, baud multiplier %d\n",
+      __func__, rate, ftdi_rate, baud_multiplier);
 
     r = ftdi_set_baudrate(handle, ftdi_rate);
     if (r) {
-        avrdude_message(MSG_INFO, "Set baudrate (%d) failed with error '%s'.\n",
-                rate, ftdi_get_error_string (handle));
+        msg_error("set baudrate %d failed with error '%s'\n", rate, ftdi_get_error_string (handle));
         return -1;
     }
     return 0;
@@ -402,7 +392,7 @@ static int get_pin(const PROGRAMMER *pgm, int pinname) {
   if (ftdi_read_pins(handle, &byte) != 0)
     return -1;
   if (FT245R_DEBUG)
-    avrdude_message(MSG_INFO, "%s: in 0x%02x\n", __func__, byte);
+    msg_info("%s: in 0x%02x\n", __func__, byte);
   return GET_BITS_0(byte, pgm, pinname) != 0;
 }
 
@@ -506,8 +496,7 @@ static int ft245r_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
       return avr_tpi_program_enable(pgm, p, TPIPCR_GT_0b);
 
     if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
-        avrdude_message(MSG_INFO, "%s: AVR_OP_PGM_ENABLE command not defined for %s\n",
-                        progname, p->desc);
+        pmsg_error("AVR_OP_PGM_ENABLE command not defined for %s\n", p->desc);
         fflush(stderr);
         return -1;
     }
@@ -520,8 +509,7 @@ static int ft245r_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
         if (res[p->pollindex-1] == p->pollvalue) return 0;
 
         if (FT245R_DEBUG) {
-            avrdude_message(MSG_NOTICE, "%s: Program enable command not successful. Retrying.\n",
-                            progname);
+            pmsg_notice("program enable command not successful, retrying\n");
             fflush(stderr);
         }
         set_pin(pgm, PIN_AVR_RESET, ON);
@@ -534,8 +522,7 @@ static int ft245r_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
         }
     }
 
-    avrdude_message(MSG_INFO, "%s: Device is not responding to program enable. Check connection.\n",
-                    progname);
+    pmsg_error("device is not responding to program enable; check connection\n");
     fflush(stderr);
 
     return -1;
@@ -576,20 +563,26 @@ static int ft245r_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 	set_pin(pgm, PIN_AVR_MOSI, 0);
 	if (get_pin(pgm, PIN_AVR_MISO) != 0) {
 	    io_link_ok = false;
-	    avrdude_message(MSG_INFO, "MOSI->MISO 0 failed\n");
-	    if (!ovsigck)
+	    if(ovsigck) {
+		pmsg_warning("MOSI->MISO 0 failed\n");
+	    } else {
+		pmsg_error("MOSI->MISO 0 failed\n");
 		return -1;
+	    }
 	}
 	set_pin(pgm, PIN_AVR_MOSI, 1);
 	if (get_pin(pgm, PIN_AVR_MISO) != 1) {
 	    io_link_ok = false;
-	    avrdude_message(MSG_INFO, "MOSI->MISO 1 failed\n");
-	    if (!ovsigck)
+	    if(ovsigck) {
+		pmsg_warning("MOSI->MISO 1 failed\n");
+	    } else {
+		pmsg_error("MOSI->MISO 1 failed\n");
 		return -1;
+	    }
 	}
 
 	if (io_link_ok)
-	    avrdude_message(MSG_NOTICE2, "MOSI-MISO link present\n");
+	    msg_notice2("MOSI-MISO link present\n");
 
 	/* keep TPIDATA high for 16 clock cycles */
 	set_pin(pgm, PIN_AVR_MOSI, 1);
@@ -606,7 +599,7 @@ static int ft245r_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 	ft245r_tpi_tx(pgm, TPI_CMD_SLDCS | TPI_REG_TPIIR);
 	ft245r_tpi_rx(pgm, &byte);
 	if (byte != 0x80) {
-	    avrdude_message(MSG_INFO, "TPIIR 0x%02x not correct\n", byte);
+	    msg_error("TPIIR 0x%02x not correct\n", byte);
 	    return -1;
 	}
     }
@@ -769,8 +762,7 @@ static int ft245r_tpi_rx(const PROGRAMMER *pgm, uint8_t *bytep) {
     while (m & res)
 	m <<= 1;
     if (m >= 0x10) {
-	avrdude_message(MSG_INFO, "%s: start bit missing (res=0x%04x)\n",
-			__func__, res);
+	pmsg_error("start bit missing (res=0x%04x)\n", res);
 	return -1;
     }
     byte = parity = 0;
@@ -782,11 +774,11 @@ static int ft245r_tpi_rx(const PROGRAMMER *pgm, uint8_t *bytep) {
     }
     m <<= 1;
     if (((res & m) != 0) != parity) {
-	avrdude_message(MSG_INFO, "%s: parity bit wrong\n", __func__);
+	pmsg_error("parity bit wrong\n");
 	return -1;
     }
     if (((res & (m << 1)) == 0) || ((res & (m << 2))) == 0) {
-	avrdude_message(MSG_INFO, "%s: stop bits wrong\n", __func__);
+	pmsg_error("stop bits wrong\n");
 	return -1;
     }
     *bytep = (uint8_t) byte;
@@ -805,13 +797,13 @@ static int ft245r_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
 	if ((ret = ft245r_tpi_rx(pgm, &res[i])) < 0)
 	    break;
     if (verbose >= 2) {
-	avrdude_message(MSG_NOTICE2, "%s: [ ", __func__);
+	msg_notice2("%s: [ ", __func__);
 	for (i = 0; i < cmd_len; i++)
-	    avrdude_message(MSG_NOTICE2, "%02X ", cmd[i]);
-	avrdude_message(MSG_NOTICE2, "] [ ");
+	    msg_notice2("%02X ", cmd[i]);
+	msg_notice2("] [ ");
 	for(i = 0; i < res_len; i++)
-	    avrdude_message(MSG_NOTICE2, "%02X ", res[i]);
-	avrdude_message(MSG_NOTICE2, "]\n");
+	    msg_notice2("%02X ", res[i]);
+	msg_notice2("]\n");
     }
 
     pgm->pgm_led(pgm, OFF);
@@ -845,20 +837,12 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
 
     // read device string cut after 8 chars (max. length of serial number)
     if ((sscanf(port, "usb:%8s", device) != 1)) {
-      avrdude_message(MSG_NOTICE,
-          "%s: ft245r_open(): no device identifier in portname, using default\n",
-          progname);
+      pmsg_notice("ft245r_open(): no device identifier in portname, using default\n");
       pgm->usbsn = cache_string("");
       devnum = 0;
     } else {
       if (strlen(device) == 8 ){ // serial number
-        if (verbose >= 2) {
-          avrdude_message(MSG_INFO,
-              "%s: ft245r_open(): serial number parsed as: "
-              "%s\n",
-              progname,
-              device);
-        }
+        pmsg_notice2("ft245r_open(): serial number parsed as: %s\n", device);
         // copy serial number to pgm struct
         pgm->usbsn = cache_string(device);
         // and use first device with matching serial (should be unique)
@@ -871,18 +855,13 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
         if ((startptr==endptr) || (*endptr != '\0')) {
           devnum = -1;
         }
-        avrdude_message(MSG_INFO,
-            "%s: ft245r_open(): device number parsed as: "
-            "%d\n",
-            progname,
-            devnum);
+        pmsg_notice2("ft245r_open(): device number parsed as: %d\n", devnum);
       }
     }
 
     // if something went wrong before abort with helpful message
     if (devnum < 0) {
-      avrdude_message(MSG_INFO, "%s: ft245r_open(): invalid portname '%s': use^ 'ft[0-9]+' or serial number\n",
-          progname,port);
+      pmsg_error("invalid portname '%s': use^ 'ft[0-9]+' or serial number\n", port);
       return -1;
     }
 
@@ -893,8 +872,7 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
     if (usbpid) {
       pid = *(int *)(ldata(usbpid));
       if (lnext(usbpid))
-	avrdude_message(MSG_INFO, "%s: Warning: using PID 0x%04x, ignoring remaining PIDs in list\n",
-		progname, pid);
+	pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
     } else {
       pid = USB_DEVICE_FT245;
     }
@@ -905,8 +883,7 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
                                   pgm->usbsn[0]?pgm->usbsn:NULL,
                                   devnum);
     if (rv) {
-        avrdude_message(MSG_INFO, "%s: can't open ftdi device: %s\n",
-                        progname, ftdi_get_error_string(handle));
+        pmsg_error("cannot open ftdi device: %s\n", ftdi_get_error_string(handle));
         goto cleanup_no_usb;
     }
 
@@ -936,15 +913,13 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
 
     rv = ftdi_set_latency_timer(handle, 1);
     if (rv) {
-        avrdude_message(MSG_INFO, "%s: unable to set latency timer to 1 (%s)\n",
-                        progname, ftdi_get_error_string(handle));
+        pmsg_error("unable to set latency timer to 1 (%s)\n", ftdi_get_error_string(handle));
         goto cleanup;
     }
 
     rv = ftdi_set_bitmode(handle, ft245r_ddr, BITMODE_SYNCBB); // set Synchronous BitBang
     if (rv) {
-        avrdude_message(MSG_INFO, "%s: Synchronous BitBangMode is not supported (%s)\n",
-                        progname, ftdi_get_error_string(handle));
+        pmsg_error("synchronous BitBangMode is not supported (%s)\n", ftdi_get_error_string(handle));
         goto cleanup;
     }
 
@@ -985,7 +960,7 @@ static void ft245r_close(PROGRAMMER * pgm) {
 }
 
 static void ft245r_display(const PROGRAMMER *pgm, const char *p) {
-    avrdude_message(MSG_INFO, "%sPin assignment  : 0..7 = DBUS0..7\n",p);/* , 8..11 = GPIO0..3\n",p);*/
+    msg_info("%sPin assignment  : 0..7 = DBUS0..7\n", p); // , 8..11 = GPIO0..3\n",p);
     pgm_display_generic_mask(pgm, p, SHOW_ALL_PINS);
 }
 
@@ -1016,7 +991,7 @@ static void put_request(int addr, int bytes, int n) {
     } else {
         p = malloc(sizeof(struct ft245r_request));
         if (!p) {
-            avrdude_message(MSG_INFO, "can't alloc memory\n");
+            msg_error("cannot alloc memory\n");
             exit(1);
         }
     }
@@ -1065,7 +1040,7 @@ static int ft245r_paged_write_flash(const PROGRAMMER *pgm, const AVRPART *p, con
     unsigned char cmd[4];
 
     if(m->op[AVR_OP_LOADPAGE_LO] == NULL || m->op[AVR_OP_LOADPAGE_HI] == NULL) {
-        avrdude_message(MSG_INFO, "AVR_OP_LOADPAGE_HI/LO command not defined for %s\n", p->desc);
+        msg_error("AVR_OP_LOADPAGE_HI/LO command not defined for %s\n", p->desc);
         return -1;
     }
 
@@ -1163,7 +1138,7 @@ static int ft245r_paged_load_flash(const PROGRAMMER *pgm, const AVRPART *p, cons
     unsigned char cmd[4];
 
     if(m->op[AVR_OP_READ_LO] == NULL || m->op[AVR_OP_READ_HI] == NULL) {
-        avrdude_message(MSG_INFO, "AVR_OP_READ_HI/LO command not defined for %s\n", p->desc);
+        msg_error("AVR_OP_READ_HI/LO command not defined for %s\n", p->desc);
         return -1;
     }
 
