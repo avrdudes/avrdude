@@ -231,8 +231,7 @@ static int par_open(PROGRAMMER *pgm, const char *port) {
 
   ppi_open(port, &pgm->fd);
   if (pgm->fd.ifd < 0) {
-    avrdude_message(MSG_INFO, "%s: failed to open parallel port \"%s\"\n\n",
-            progname, port);
+    pmsg_error("unable to open parallel port %s\n\n", port);
     return -1;
   }
 
@@ -241,14 +240,14 @@ static int par_open(PROGRAMMER *pgm, const char *port) {
    */
   rc = ppi_getall(&pgm->fd, PPIDATA);
   if (rc < 0) {
-    avrdude_message(MSG_INFO, "%s: error reading status of ppi data port\n", progname);
+    pmsg_error("unable to read status of ppi data port\n");
     return -1;
   }
   pgm->ppidata = rc;
 
   rc = ppi_getall(&pgm->fd, PPICTRL);
   if (rc < 0) {
-    avrdude_message(MSG_INFO, "%s: error reading status of ppi ctrl port\n", progname);
+    pmsg_error("unable to read status of ppi ctrl port\n");
     return -1;
   }
   pgm->ppictrl = rc;
@@ -391,7 +390,7 @@ void par_initpgm(PROGRAMMER *pgm) {
 #else  /* !HAVE_PARPORT */
 
 void par_initpgm(PROGRAMMER *pgm) {
-  avrdude_message(MSG_INFO, "%s: parallel port access not available in this configuration\n", progname);
+  pmsg_error("parallel port access not available in this configuration\n");
 }
 
 #endif /* HAVE_PARPORT */

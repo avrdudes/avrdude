@@ -105,7 +105,7 @@ int init_config(void)
 void *cfg_malloc(const char *funcname, size_t n) {
   void *ret = malloc(n);
   if(!ret) {
-    avrdude_message(MSG_INFO, "%s: out of memory in %s (needed %lu bytes)\n", progname, funcname, (unsigned long) n);
+    pmsg_error("out of memory in %s (needed %lu bytes)\n", funcname, (unsigned long) n);
     exit(1);
   }
   memset(ret, 0, n);
@@ -116,7 +116,7 @@ void *cfg_realloc(const char *funcname, void *p, size_t n) {
   void *ret;
 
   if(!(ret = p? realloc(p, n): calloc(1, n))) {
-    avrdude_message(MSG_INFO, "%s: out of memory in %s (needed %lu bytes)\n", progname, funcname, (unsigned long) n);
+    pmsg_error("out of memory in %s (needed %lu bytes)\n", funcname, (unsigned long) n);
     exit(1);
   }
 
@@ -127,7 +127,7 @@ void *cfg_realloc(const char *funcname, void *p, size_t n) {
 char *cfg_strdup(const char *funcname, const char *s) {
   char *ret = strdup(s);
   if(!ret) {
-    avrdude_message(MSG_INFO, "%s: out of memory in %s\n", progname, funcname);
+    pmsg_error("out of memory in %s\n", funcname);
     exit(1);
   }
   return ret;
@@ -149,7 +149,7 @@ int yyerror(char * errmsg, ...)
   va_start(args, errmsg);
 
   vsnprintf(message, sizeof(message), errmsg, args);
-  avrdude_message(MSG_INFO, "%s: error at %s:%d: %s\n", progname, cfg_infile, cfg_lineno, message);
+  pmsg_error("%s [%s:%d]\n", message, cfg_infile, cfg_lineno);
 
   va_end(args);
 
@@ -166,7 +166,7 @@ int yywarning(char * errmsg, ...)
   va_start(args, errmsg);
 
   vsnprintf(message, sizeof(message), errmsg, args);
-  avrdude_message(MSG_INFO, "%s: warning at %s:%d: %s\n", progname, cfg_infile, cfg_lineno, message);
+  pmsg_warning("%s [%s:%d]\n", message, cfg_infile, cfg_lineno);
 
   va_end(args);
 
@@ -218,7 +218,7 @@ TOKEN *new_number(const char *text) {
   tkn->value.number = atoi(text);
 
 #if DEBUG
-  avrdude_message(MSG_INFO, "NUMBER(%d)\n", tkn->value.number);
+  msg_info("NUMBER(%d)\n", tkn->value.number);
 #endif
 
   return tkn;
@@ -230,7 +230,7 @@ TOKEN *new_number_real(const char *text) {
   tkn->value.number_real = atof(text);
 
 #if DEBUG
-  avrdude_message(MSG_INFO, "NUMBER(%g)\n", tkn->value.number_real);
+  msg_info("NUMBER(%g)\n", tkn->value.number_real);
 #endif
 
   return tkn;
@@ -243,13 +243,13 @@ TOKEN *new_hexnumber(const char *text) {
   tkn->value.type   = V_NUM;
   tkn->value.number = strtoul(text, &e, 16);
   if ((e == text) || (*e != 0)) {
-    yyerror("can't scan hex number \"%s\"", text);
+    yyerror("cannot scan hex number %s", text);
     free_token(tkn);
     return NULL;
   }
   
 #if DEBUG
-  avrdude_message(MSG_INFO, "HEXNUMBER(%g)\n", tkn->value.number);
+  msg_info("HEXNUMBER(%d)\n", tkn->value.number);
 #endif
 
   return tkn;
@@ -283,7 +283,7 @@ TOKEN *new_constant(const char *con) {
   }
 
 #if DEBUG
-  avrdude_message(MSG_INFO, "CONSTANT(%s=%d)\n", con, tkn->value.number);
+  msg_info("CONSTANT(%s=%d)\n", con, tkn->value.number);
 #endif
 
   return tkn;
@@ -295,7 +295,7 @@ TOKEN *new_string(const char *text) {
   tkn->value.string = cfg_strdup("new_string()", text);
 
 #if DEBUG
-  avrdude_message(MSG_INFO, "STRING(%s)\n", tkn->value.string);
+  msg_info("STRING(%s)\n", tkn->value.string);
 #endif
 
   return tkn;
@@ -312,33 +312,33 @@ void print_token(TOKEN * tkn)
   if (!tkn)
     return;
 
-  avrdude_message(MSG_INFO, "token = %d = ", tkn->primary);
+  msg_info("token = %d = ", tkn->primary);
   switch (tkn->value.type) {
     case V_NUM:
-      avrdude_message(MSG_INFO, "NUMBER, value=%d", tkn->value.number);
+      msg_info("NUMBER, value=%d", tkn->value.number);
       break;
 
     case V_NUM_REAL:
-      avrdude_message(MSG_INFO, "NUMBER, value=%g", tkn->value.number_real);
+      msg_info("NUMBER, value=%g", tkn->value.number_real);
       break;
 
     case V_STR:
-      avrdude_message(MSG_INFO, "STRING, value=%s", tkn->value.string);
+      msg_info("STRING, value=%s", tkn->value.string);
       break;
 
     default:
-      avrdude_message(MSG_INFO, "<other>");
+      msg_info("<other>");
       break;
   }
 
-  avrdude_message(MSG_INFO, "\n");
+  msg_info("\n");
 }
 
 
 void pyytext(void)
 {
 #if DEBUG
-  avrdude_message(MSG_INFO, "TOKEN: \"%s\"\n", yytext);
+  msg_info("TOKEN: %s\n", yytext);
 #endif
 }
 
@@ -354,15 +354,13 @@ int read_config(const char * file)
   int r;
 
   if(!(cfg_infile = realpath(file, NULL))) {
-    avrdude_message(MSG_INFO, "%s: can't determine realpath() of config file \"%s\": %s\n",
-            progname, file, strerror(errno));
+    pmsg_ext_error("cannot determine realpath() of config file %s: %s\n", file, strerror(errno));
     return -1;
   }
 
   f = fopen(cfg_infile, "r");
   if (f == NULL) {
-    avrdude_message(MSG_INFO, "%s: can't open config file \"%s\": %s\n",
-            progname, cfg_infile, strerror(errno));
+    pmsg_ext_error("cannot open config file %s: %s\n", cfg_infile, strerror(errno));
     free(cfg_infile);
     cfg_infile = NULL;
     return -1;

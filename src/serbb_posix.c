@@ -85,39 +85,39 @@ static int serbb_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
     return -1;
 
 #ifdef DEBUG
-  printf("%s to %d\n",serpins[pin],value);
+  msg_info("%s to %d\n", serpins[pin], value);
 #endif
 
   switch ( pin )
   {
     case 3:  /* txd */
-	     r = ioctl(pgm->fd.ifd, value ? TIOCSBRK : TIOCCBRK, 0);
-	     if (r < 0) {
-	       perror("ioctl(\"TIOCxBRK\")");
-	       return -1;
-	     }
-             break;
+      r = ioctl(pgm->fd.ifd, value ? TIOCSBRK : TIOCCBRK, 0);
+      if (r < 0) {
+        pmsg_ext_error("ioctl(\"TIOCxBRK\"): %s\n", strerror(errno));
+        return -1;
+      }
+      break;
 
     case 4:  /* dtr */
     case 7:  /* rts */
-             r = ioctl(pgm->fd.ifd, TIOCMGET, &ctl);
- 	     if (r < 0) {
-	       perror("ioctl(\"TIOCMGET\")");
-	       return -1;
- 	     }
-             if ( value )
-               ctl |= serregbits[pin];
-             else
-               ctl &= ~(serregbits[pin]);
-	     r = ioctl(pgm->fd.ifd, TIOCMSET, &ctl);
- 	     if (r < 0) {
-	       perror("ioctl(\"TIOCMSET\")");
-	       return -1;
- 	     }
-             break;
+      r = ioctl(pgm->fd.ifd, TIOCMGET, &ctl);
+      if (r < 0) {
+        pmsg_ext_error("ioctl(\"TIOCMGET\"): %s\n", strerror(errno));
+        return -1;
+      }
+      if (value)
+        ctl |= serregbits[pin];
+      else
+        ctl &= ~(serregbits[pin]);
+      r = ioctl(pgm->fd.ifd, TIOCMSET, &ctl);
+      if (r < 0) {
+        pmsg_ext_error("ioctl(\"TIOCMSET\"): %s\n", strerror(errno));
+        return -1;
+      }
+      break;
 
     default: /* impossible */
-             return -1;
+      return -1;
   }
 
   if (pgm->ispdelay > 1)
@@ -145,34 +145,34 @@ static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
   switch ( pin )
   {
     case 2:  /* rxd, currently not implemented, FIXME */
-             return(-1);
+      return(-1);
 
     case 1:  /* cd  */
     case 6:  /* dsr */
     case 8:  /* cts */
     case 9:  /* ri  */
-             r = ioctl(pgm->fd.ifd, TIOCMGET, &ctl);
- 	     if (r < 0) {
-	       perror("ioctl(\"TIOCMGET\")");
-	       return -1;
- 	     }
-             if ( !invert )
-             {
+      r = ioctl(pgm->fd.ifd, TIOCMGET, &ctl);
+      if (r < 0) {
+        pmsg_ext_error("ioctl(\"TIOCMGET\"): %s\n", strerror(errno));
+        return -1;
+      }
+      if ( !invert )
+      {
 #ifdef DEBUG
-               printf("%s is %d\n",serpins[pin],(ctl & serregbits[pin]) ? 1 : 0 );
+        msg_info("%s is %d\n", serpins[pin], ctl & serregbits[pin]? 1: 0);
 #endif
-               return ( (ctl & serregbits[pin]) ? 1 : 0 );
-             }
-             else
-             {
+        return ctl & serregbits[pin]? 1: 0;
+      }
+      else
+      {
 #ifdef DEBUG
-               printf("%s is %d (~)\n",serpins[pin],(ctl & serregbits[pin]) ? 0 : 1 );
+        msg_info("%s is %d (~)\n", serpins[pin], ctl & serregbits[pin]? 0: 1);
 #endif
-               return (( ctl & serregbits[pin]) ? 0 : 1 );
-             }
+        return ctl & serregbits[pin]? 0: 1;
+      }
 
     default: /* impossible */
-             return(-1);
+      return(-1);
   }
 }
 
@@ -223,14 +223,13 @@ static int serbb_open(PROGRAMMER *pgm, const char *port) {
   pgm->fd.ifd = open(port, O_RDWR | O_NOCTTY | O_NONBLOCK);
 
   if (pgm->fd.ifd < 0) {
-    perror(port);
+    pmsg_ext_error("%s: %s\n", port, strerror(errno));
     return(-1);
   }
 
   r = tcgetattr(pgm->fd.ifd, &mode);
   if (r < 0) {
-    avrdude_message(MSG_INFO, "%s: ", port);
-    perror("tcgetattr");
+    pmsg_ext_error("%s, tcgetattr(): %s\n", port, strerror(errno));
     return(-1);
   }
   oldmode = mode;
@@ -243,8 +242,7 @@ static int serbb_open(PROGRAMMER *pgm, const char *port) {
 
   r = tcsetattr(pgm->fd.ifd, TCSANOW, &mode);
   if (r < 0) {
-      avrdude_message(MSG_INFO, "%s: ", port);
-      perror("tcsetattr");
+      pmsg_ext_error("%s, tcsetattr(): %s", port, strerror(errno));
       return(-1);
   }
 
@@ -252,15 +250,13 @@ static int serbb_open(PROGRAMMER *pgm, const char *port) {
   flags = fcntl(pgm->fd.ifd, F_GETFL, 0);
   if (flags == -1)
     {
-      avrdude_message(MSG_INFO, "%s: Can not get flags: %s\n",
-	      progname, strerror(errno));
+      pmsg_ext_error("cannot get flags: %s\n", strerror(errno));
       return(-1);
     }
   flags &= ~O_NONBLOCK;
   if (fcntl(pgm->fd.ifd, F_SETFL, flags) == -1)
     {
-      avrdude_message(MSG_INFO, "%s: Can not clear nonblock flag: %s\n",
-	      progname, strerror(errno));
+      pmsg_ext_error("cannot clear nonblock flag: %s\n", strerror(errno));
       return(-1);
     }
 

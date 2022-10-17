@@ -538,7 +538,7 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
               m->readback[1]);
     }
     if (verbose > 4) {
-      avrdude_message(MSG_TRACE2, "%s  Memory Ops:\n"
+      msg_trace2("%s  Memory Ops:\n"
                       "%s    Oeration     Inst Bit  Bit Type  Bitno  Value\n"
                       "%s    -----------  --------  --------  -----  -----\n",
                       prefix, prefix, prefix);
@@ -774,7 +774,7 @@ void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose) {
   fprintf(  f, "%sMemory Detail                 :\n\n", prefix);
 
   px = prefix;
-  buf = (char *)cfg_malloc("avr_display()", strlen(prefix) + 5);
+  buf = (char *) cfg_malloc("avr_display()", strlen(prefix) + 5);
   strcpy(buf, prefix);
   strcat(buf, "  ");
   px = buf;

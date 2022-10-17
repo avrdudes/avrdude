@@ -110,8 +110,7 @@ static int xbee_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AV
   /* Signature byte reads are always 3 bytes. */
 
   if (m->size < 3) {
-    avrdude_message(MSG_INFO, "%s: memsize too small for sig byte read\n",
-                    progname);
+    pmsg_error("memsize too small for sig byte read\n");
     return -1;
   }
 
@@ -123,21 +122,16 @@ static int xbee_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AV
   if (serial_recv(&pgm->fd, buf, 5) < 0)
     return -1;
   if (buf[0] == Resp_STK_NOSYNC) {
-    avrdude_message(MSG_INFO, "%s: stk500_cmd(): programmer is out of sync\n",
-                    progname);
+    pmsg_error("programmer is out of sync\n");
     return -1;
   } else if (buf[0] != Resp_STK_INSYNC) {
-    avrdude_message(MSG_INFO,
-                    "\n%s: xbee_read_sig_bytes(): (a) protocol error, "
-                    "expect=0x%02x, resp=0x%02x\n",
-                    progname, Resp_STK_INSYNC, buf[0]);
+    msg_error("\n");
+    pmsg_error("protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
     return -2;
   }
   if (buf[4] != Resp_STK_OK) {
-    avrdude_message(MSG_INFO,
-                    "\n%s: xbee_read_sig_bytes(): (a) protocol error, "
-                    "expect=0x%02x, resp=0x%02x\n",
-                    progname, Resp_STK_OK, buf[4]);
+    msg_error("\n");
+    pmsg_error("protocol expects OK byte 0x%02x but got 0x%02x\n", Resp_STK_OK, buf[4]);
     return -3;
   }
 
@@ -252,10 +246,8 @@ static void xbeeStatsAdd(struct XBeeStaticticsSummary *summary,
 
 static void xbeeStatsSummarise(struct XBeeStaticticsSummary const *summary)
 {
-  avrdude_message(MSG_NOTICE, "%s:   Minimum response time: %lu.%06lu\n",
-                  progname, summary->minimum.tv_sec, summary->minimum.tv_usec);
-  avrdude_message(MSG_NOTICE, "%s:   Maximum response time: %lu.%06lu\n",
-                  progname, summary->maximum.tv_sec, summary->maximum.tv_usec);
+  pmsg_notice("  Minimum response time: %lu.%06lu\n", summary->minimum.tv_sec, summary->minimum.tv_usec);
+  pmsg_notice("  Maximum response time: %lu.%06lu\n", summary->maximum.tv_sec, summary->maximum.tv_usec);
 
   struct timeval average;
 
@@ -268,8 +260,7 @@ static void xbeeStatsSummarise(struct XBeeStaticticsSummary const *summary)
   average.tv_sec += usecs / 1000000;
   average.tv_usec = usecs % 1000000;
 
-  avrdude_message(MSG_NOTICE, "%s:   Average response time: %lu.%06lu\n",
-                  progname, average.tv_sec, average.tv_usec);
+  pmsg_notice("  Average response time: %lu.%06lu\n", average.tv_sec, average.tv_usec);
 }
 
 static void XBeeBootSessionInit(struct XBeeBootSession *xbs) {
@@ -319,23 +310,21 @@ static void xbeedev_stats_send(struct XBeeBootSession *xbs,
     stats->sendTime = *sendTime;
 
   if (detailSequence >= 0) {
-    avrdude_message(MSG_NOTICE2,
-                    "%s: Stats: Send Group %s Sequence %u : "
-                    "Send %lu.%06lu %s Sequence %d\n",
-                    progname, groupNames[group],
-                    (unsigned int)sequence,
-                    (unsigned long)sendTime->tv_sec,
-                    (unsigned long)sendTime->tv_usec,
-                    detail, detailSequence);
+    pmsg_notice2("stats: send Group %s Sequence %u : "
+      "Send %lu.%06lu %s Sequence %d\n",
+      groupNames[group],
+      (unsigned int) sequence,
+      (unsigned long) sendTime->tv_sec,
+      (unsigned long) sendTime->tv_usec,
+      detail, detailSequence);
   } else {
-    avrdude_message(MSG_NOTICE2,
-                    "%s: Stats: Send Group %s Sequence %u : "
-                    "Send %lu.%06lu %s\n",
-                    progname, groupNames[group],
-                    (unsigned int)sequence,
-                    (unsigned long)sendTime->tv_sec,
-                    (unsigned long)sendTime->tv_usec,
-                    detail);
+    pmsg_notice2("stats: send Group %s Sequence %u : "
+      "Send %lu.%06lu %s\n",
+      groupNames[group],
+      (unsigned int) sequence,
+      (unsigned long) sendTime->tv_sec,
+      (unsigned long) sendTime->tv_usec,
+      detail);
   }
 }
 
@@ -361,18 +350,17 @@ static void xbeedev_stats_receive(struct XBeeBootSession *xbs,
   delay.tv_sec = secs;
   delay.tv_usec = usecs;
 
-  avrdude_message(MSG_NOTICE2,
-                  "%s: Stats: Receive Group %s Sequence %u : "
-                  "Send %lu.%06lu Receive %lu.%06lu Delay %lu.%06lu %s\n",
-                  progname, groupNames[group],
-                  (unsigned int)sequence,
-                  (unsigned long)stats->sendTime.tv_sec,
-                  (unsigned long)stats->sendTime.tv_usec,
-                  (unsigned long)receiveTime->tv_sec,
-                  (unsigned long)receiveTime->tv_usec,
-                  (unsigned long)secs,
-                  (unsigned long)usecs,
-                  detail);
+  pmsg_notice2("stats: receive Group %s Sequence %u : "
+    "Send %lu.%06lu Receive %lu.%06lu Delay %lu.%06lu %s\n",
+    groupNames[group],
+    (unsigned int) sequence,
+    (unsigned long) stats->sendTime.tv_sec,
+    (unsigned long) stats->sendTime.tv_usec,
+    (unsigned long) receiveTime->tv_sec,
+    (unsigned long) receiveTime->tv_usec,
+    (unsigned long) secs,
+    (unsigned long) usecs,
+    detail);
 
   xbeeStatsAdd(&xbs->groupSummary[group], &delay);
 }
@@ -403,12 +391,11 @@ static int sendAPIRequest(struct XBeeBootSession *xbs,
 
   gettimeofday(&time, NULL);
 
-  avrdude_message(MSG_NOTICE2,
-                  "%s: sendAPIRequest(): %lu.%06lu %d, %d, %d, %d %s\n",
-                  progname, (unsigned long)time.tv_sec,
-                  (unsigned long)time.tv_usec,
-                  (int)packetType, (int)sequence, appType,
-                  data == NULL ? -1 : (int)*data, detail);
+  pmsg_notice2("sendAPIRequest(): %lu.%06lu %d, %d, %d, %d %s\n",
+    (unsigned long) time.tv_sec,
+    (unsigned long) time.tv_usec,
+    (int) packetType, (int)sequence, appType,
+    data == NULL ? -1 : (int)*data, detail);
 
 #define fpput(x)                                                \
   do {                                                          \
@@ -453,9 +440,7 @@ static int sendAPIRequest(struct XBeeBootSession *xbs,
      * instructions.
      */
     if (apiType != 0x21 && xbs->sourceRouteChanged) {
-      avrdude_message(MSG_NOTICE2, "%s: sendAPIRequest(): "
-                      "Issuing Create Source Route request with %d hops\n",
-                      progname, xbs->sourceRouteHops);
+      pmsg_notice2("sendAPIRequest(): issuing Create Source Route request with %d hops\n", xbs->sourceRouteHops);
 
       int rc = sendAPIRequest(xbs, 0x21, /* Create Source Route */
                               0, -1, 0, xbs->sourceRouteHops,
@@ -583,9 +568,7 @@ static void xbeedev_record16Bit(struct XBeeBootSession *xbs,
   unsigned char * const tx16Bit =
     &xbs->xbee_address[XBEE_ADDRESS_64BIT_LEN];
   if (memcmp(rx16Bit, tx16Bit, XBEE_ADDRESS_16BIT_LEN) != 0) {
-    avrdude_message(MSG_NOTICE2, "%s: xbeedev_record16Bit(): "
-                    "New 16-bit address: %02x%02x\n",
-                    progname,
+    pmsg_notice2("xbeedev_record16Bit(): new 16-bit address: %02x%02x\n",
                     (unsigned int)rx16Bit[0],
                     (unsigned int)rx16Bit[1]);
     memcpy(tx16Bit, rx16Bit, XBEE_ADDRESS_16BIT_LEN);
@@ -666,9 +649,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
 
       if (checksum) {
         /* Checksum didn't match */
-        avrdude_message(MSG_NOTICE2,
-                        "%s: xbeedev_poll(): Bad checksum %d\n",
-                        progname, (int)checksum);
+        pmsg_notice2("xbeedev_poll(): bad checksum %d\n", (int) checksum);
         continue;
       }
     }
@@ -678,11 +659,10 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
     struct timeval receiveTime;
     gettimeofday(&receiveTime, NULL);
 
-    avrdude_message(MSG_NOTICE2,
-                    "%s: xbeedev_poll(): %lu.%06lu Received frame type %x\n",
-                    progname, (unsigned long)receiveTime.tv_sec,
-                    (unsigned long)receiveTime.tv_usec,
-                    (unsigned int)frameType);
+    pmsg_notice2("xbeedev_poll(): %lu.%06lu Received frame type %x\n",
+      (unsigned long) receiveTime.tv_sec,
+      (unsigned long) receiveTime.tv_usec,
+      (unsigned int) frameType);
 
     if (frameType == 0x97 && frameSize > 16) {
       /* Remote command response */
@@ -692,9 +672,8 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
       xbeedev_stats_receive(xbs, "Remote AT command response",
                             XBEE_STATS_FRAME_REMOTE, txSequence, &receiveTime);
 
-      avrdude_message(MSG_NOTICE,
-                      "%s: xbeedev_poll(): Remote command %d result code %d\n",
-                      progname, (int)txSequence, (int)resultCode);
+      pmsg_notice("xbeedev_poll(): remote command %d result code %d\n",
+        (int) txSequence, (int) resultCode);
 
       if (waitForSequence >= 0 && waitForSequence == frame[3])
         /* Received result for our sequence numbered request */
@@ -706,9 +685,8 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
       xbeedev_stats_receive(xbs, "Local AT command response",
                             XBEE_STATS_FRAME_LOCAL, txSequence, &receiveTime);
 
-      avrdude_message(MSG_NOTICE,
-                      "%s: xbeedev_poll(): Local command %c%c result code %d\n",
-                      progname, frame[4], frame[5], (int)frame[6]);
+      pmsg_notice("xbeedev_poll(): local command %c%c result code %d\n",
+        frame[4], frame[5], (int)frame[6]);
 
       if (waitForSequence >= 0 && waitForSequence == txSequence)
         /* Received result for our sequence numbered request */
@@ -720,9 +698,8 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
       xbeedev_stats_receive(xbs, "Transmit status", XBEE_STATS_FRAME_REMOTE,
                             txSequence, &receiveTime);
 
-      avrdude_message(MSG_NOTICE2,
-                      "%s: xbeedev_poll(): Transmit status %d result code %d\n",
-                      progname, (int)frame[3], (int)frame[7]);
+      pmsg_notice2("xbeedev_poll(): transmit status %d result code %d\n",
+        (int) frame[3], (int) frame[7]);
     } else if (frameType == 0xa1 &&
                frameSize >= XBEE_LENGTH_LEN + XBEE_APITYPE_LEN +
                XBEE_ADDRESS_64BIT_LEN +
@@ -731,8 +708,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
       if (memcmp(&frame[XBEE_LENGTH_LEN + XBEE_APITYPE_LEN],
                  xbs->xbee_address, XBEE_ADDRESS_64BIT_LEN) != 0) {
         /* Not from our target device */
-        avrdude_message(MSG_NOTICE2, "%s: xbeedev_poll(): "
-                        "Route Record Indicator from other XBee\n");
+        pmsg_notice2("xbeedev_poll(): route Record Indicator from other XBee\n");
         continue;
       }
 
@@ -755,10 +731,9 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
       const unsigned char receiveOptions = frame[header];
       const unsigned char hops = frame[header + 1];
 
-      avrdude_message(MSG_NOTICE2, "%s: xbeedev_poll(): "
-                      "Route Record Indicator from target XBee: "
-                      "hops=%d options=%d\n",
-                      progname, (int)hops, (int)receiveOptions);
+      pmsg_notice2("xbeedev_poll(): "
+        "Route Record Indicator from target XBee: "
+        "hops=%d options=%d\n", (int)hops, (int)receiveOptions);
 
       if (frameSize < header + 2 + hops * 2 + XBEE_CHECKSUM_LEN)
         /* Bounds check: Frame is too small */
@@ -768,11 +743,10 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
 
       unsigned char index;
       for (index = 0; index < hops; index++) {
-        avrdude_message(MSG_NOTICE2, "%s: xbeedev_poll(): "
-                        "Route Intermediate Hop %d : %02x%02x\n",
-                        progname, (int)index,
-                        (int)frame[tableOffset + index * 2],
-                        (int)frame[tableOffset + index * 2 + 1]);
+        pmsg_notice2("xbeedev_poll(): "
+          "Route Intermediate Hop %d : %02x%02x\n", (int)index,
+          (int)frame[tableOffset + index * 2],
+          (int)frame[tableOffset + index * 2 + 1]);
       }
 
       if (hops <= XBEE_MAX_INTERMEDIATE_HOPS) {
@@ -782,9 +756,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
           xbs->sourceRouteHops = hops;
           xbs->sourceRouteChanged = 1;
 
-          avrdude_message(MSG_NOTICE2, "%s: xbeedev_poll(): "
-                          "Route has changed\n",
-                          progname);
+          pmsg_notice2("xbeedev_poll(): route has changed\n");
         }
       }
     } else if (frameType == 0x10 || frameType == 0x90) {
@@ -844,11 +816,10 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
         const unsigned char protocolType = dataStart[0];
         const unsigned char sequence = dataStart[1];
 
-        avrdude_message(MSG_NOTICE2, "%s: xbeedev_poll(): "
-                        "%lu.%06lu Packet %d #%d\n",
-                        progname, (unsigned long)receiveTime.tv_sec,
-                        (unsigned long)receiveTime.tv_usec,
-                        (int)protocolType, (int)sequence);
+        pmsg_notice2("xbeedev_poll(): "
+          "%lu.%06lu Packet %d #%d\n", (unsigned long)receiveTime.tv_sec,
+          (unsigned long)receiveTime.tv_usec,
+          (int)protocolType, (int)sequence);
 
         if (protocolType == XBEEBOOT_PACKET_TYPE_ACK) {
           /* ACK */
@@ -878,7 +849,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
             for (index = 0; index < textLength; index++) {
               const unsigned char data = dataStart[3 + index];
               if (buflen != NULL && *buflen > 0) {
-                /* If we are receiving right now, and have a buffer... */
+                /* If we are receiving right now, and have a buffer ... */
                 *(*buf)++ = data;
                 (*buflen)--;
               } else {
@@ -887,14 +858,14 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
                   xbs->inInIndex = 0;
                 if (xbs->inInIndex == xbs->inOutIndex) {
                   /* Should be impossible */
-                  avrdude_message(MSG_INFO, "%s: Buffer overrun\n", progname);
+                  pmsg_error("buffer overrun\n");
                   xbs->transportUnusable = 1;
                   return -1;
                 }
               }
             }
 
-            /*avrdude_message(MSG_INFO, "ACK %x\n", (unsigned int)sequence);*/
+            /*msg_error("ACK %x\n", (unsigned int)sequence);*/
             sendPacket(xbs, "Transmit Request ACK for RECEIVE",
                        XBEEBOOT_PACKET_TYPE_ACK, sequence,
                        XBEE_STATS_NOT_RETRY,
@@ -952,8 +923,7 @@ static int localAsyncAT(struct XBeeBootSession *xbs, char const *detail,
   if (value >= 0)
     buf[length++] = (unsigned char)value;
 
-  avrdude_message(MSG_NOTICE, "%s: Local AT command: %c%c\n",
-                  progname, at1, at2);
+  pmsg_notice("local AT command: %c%c\n", at1, at2);
 
   /* Local AT command 0x08 */
   int rc = sendAPIRequest(xbs, 0x08, sequence, -1, -1, -1, -1, -1, -1,
@@ -1016,8 +986,7 @@ static int sendAT(struct XBeeBootSession *xbs, char const *detail,
   if (value >= 0)
     buf[length++] = (unsigned char)value;
 
-  avrdude_message(MSG_NOTICE,
-                  "%s: Remote AT command: %c%c\n", progname, at1, at2);
+  pmsg_notice("remote AT command: %c%c\n", at1, at2);
 
   /* Remote AT command 0x17 with Apply Changes 0x02 */
   sendAPIRequest(xbs, 0x17, sequence, -1,
@@ -1042,8 +1011,7 @@ static int sendAT(struct XBeeBootSession *xbs, char const *detail,
 }
 
 /*
- * Return 0 on no error recognised, 1 if error was detected and
- * reported.
+ * Return 0 on no error recognised, 1 if error was detected and reported
  */
 static int xbeeATError(int rc) {
   const int xbeeRc = XBEE_AT_RETURN_CODE(rc);
@@ -1051,23 +1019,15 @@ static int xbeeATError(int rc) {
     return 0;
 
   if (xbeeRc == 1) {
-    avrdude_message(MSG_INFO, "%s: Error communicating with Remote XBee\n",
-                    progname);
+    pmsg_error("unable to communicate with remote XBee\n");
   } else if (xbeeRc == 2) {
-    avrdude_message(MSG_INFO, "%s: Remote XBee command error: "
-                    "Invalid command\n",
-                    progname);
+    pmsg_error("remote XBee: invalid command\n");
   } else if (xbeeRc == 3) {
-    avrdude_message(MSG_INFO, "%s: Remote XBee command error: "
-                    "Invalid parameter\n",
-                    progname);
+    pmsg_error("remote XBee: invalid command parameter\n");
   } else if (xbeeRc == 4) {
-    avrdude_message(MSG_INFO, "%s: Remote XBee error: "
-                    "Transmission failure\n",
-                    progname);
+    pmsg_error("remote XBee: transmission failure\n");
   } else {
-    avrdude_message(MSG_INFO, "%s: Unrecognised remote XBee error code %d\n",
-                    progname, xbeeRc);
+    pmsg_error("unrecognised remote XBee error code %d\n", xbeeRc);
   }
   return 1;
 }
@@ -1100,17 +1060,13 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
    */
   char *ttySeparator = strchr(port, '@');
   if (ttySeparator == NULL) {
-    avrdude_message(MSG_INFO,
-                    "%s: XBee: Bad port syntax: "
-                    "require \"<xbee-address>@<serial-device>\"\n",
-                    progname);
+    pmsg_error("XBee: bad port syntax, require <xbee-address>@<serial-device>\n");
     return -1;
   }
 
   struct XBeeBootSession *xbs = malloc(sizeof(struct XBeeBootSession));
   if (xbs == NULL) {
-    avrdude_message(MSG_INFO, "%s: xbeedev_open(): out of memory\n",
-                    progname);
+    pmsg_error("out of memory\n");
     return -1;
   }
 
@@ -1149,10 +1105,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
     }
 
     if (addrIndex != 8 || address != ttySeparator || nybble != -1) {
-      avrdude_message(MSG_INFO,
-                      "%s: XBee: Bad XBee address: "
-                      "require 16-character hexadecimal address\"\n",
-                      progname);
+      pmsg_error("XBee: bad XBee address, require 16-character hexadecimal address\n");
       free(xbs);
       return -1;
     }
@@ -1164,17 +1117,15 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
   xbs->xbee_address[8] = 0xff;
   xbs->xbee_address[9] = 0xfe;
 
-  avrdude_message(MSG_TRACE,
-                  "%s: XBee address: %02x%02x%02x%02x%02x%02x%02x%02x\n",
-                  progname,
-                  (unsigned int)xbs->xbee_address[0],
-                  (unsigned int)xbs->xbee_address[1],
-                  (unsigned int)xbs->xbee_address[2],
-                  (unsigned int)xbs->xbee_address[3],
-                  (unsigned int)xbs->xbee_address[4],
-                  (unsigned int)xbs->xbee_address[5],
-                  (unsigned int)xbs->xbee_address[6],
-                  (unsigned int)xbs->xbee_address[7]);
+  pmsg_trace("XBee address: %02x%02x%02x%02x%02x%02x%02x%02x\n",
+    (unsigned int) xbs->xbee_address[0],
+    (unsigned int) xbs->xbee_address[1],
+    (unsigned int) xbs->xbee_address[2],
+    (unsigned int) xbs->xbee_address[3],
+    (unsigned int) xbs->xbee_address[4],
+    (unsigned int) xbs->xbee_address[5],
+    (unsigned int) xbs->xbee_address[6],
+    (unsigned int) xbs->xbee_address[7]);
 
   if (pinfo.serialinfo.baud) {
     /*
@@ -1216,7 +1167,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
   }
   pinfo.serialinfo.cflags = SERIAL_8N1;
 
-  avrdude_message(MSG_NOTICE, "%s: Baud %ld\n", progname, (long)pinfo.serialinfo.baud);
+  pmsg_notice("baud %ld\n", (long)pinfo.serialinfo.baud);
 
   {
     const int rc = xbs->serialDevice->open(tty, pinfo,
@@ -1232,8 +1183,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
     {
       const int rc = localAT(xbs, "AT AP=2", 'A', 'P', 2);
       if (rc < 0) {
-        avrdude_message(MSG_INFO, "%s: Local XBee is not responding.\n",
-                        progname);
+        pmsg_error("local XBee is not responding\n");
         xbeedev_free(xbs);
         return rc;
       }
@@ -1273,8 +1223,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
     {
       const int rc = localAT(xbs, "AT AR=0", 'A', 'R', 0);
       if (rc < 0) {
-        avrdude_message(MSG_INFO, "%s: Local XBee is not responding.\n",
-                        progname);
+        pmsg_error("local XBee is not responding\n");
         xbeedev_free(xbs);
         return rc;
       }
@@ -1296,8 +1245,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
       if (xbeeATError(rc))
         return -1;
 
-      avrdude_message(MSG_INFO, "%s: Remote XBee is not responding.\n",
-                      progname);
+      pmsg_error("remote XBee is not responding\n");
       return rc;
     }
   }
@@ -1515,8 +1463,7 @@ static int xbeedev_drain(const union filedescriptor *fdp, int display)
     return -1;
 
   /*
-   * Flushing the local serial buffer is unhelpful under this
-   * protocol.
+   * Flushing the local serial buffer is unhelpful under this protocol
    */
   do {
     xbs->inOutIndex = xbs->inInIndex = 0;
@@ -1544,8 +1491,7 @@ static int xbeedev_set_dtr_rts(const union filedescriptor *fdp, int is_on)
     if (xbeeATError(rc))
       return -1;
 
-    avrdude_message(MSG_INFO,
-                    "%s: Remote XBee is not responding.\n", progname);
+    pmsg_error("remote XBee is not responding\n");
     return rc;
   }
 
@@ -1578,10 +1524,7 @@ static int xbee_getsync(const PROGRAMMER *pgm) {
 
   int sendRc = serial_send(&pgm->fd, buf, 2);
   if (sendRc < 0) {
-    avrdude_message(MSG_INFO,
-                    "%s: xbee_getsync(): failed to deliver STK_GET_SYNC "
-                    "to the remote XBeeBoot bootloader\n",
-                    progname);
+    pmsg_error("unable to deliver STK_GET_SYNC to the remote XBeeBoot bootloader\n");
     return sendRc;
   }
 
@@ -1591,23 +1534,17 @@ static int xbee_getsync(const PROGRAMMER *pgm) {
    */
   int recvRc = serial_recv(&pgm->fd, resp, 2);
   if (recvRc < 0) {
-    avrdude_message(MSG_INFO,
-                    "%s: xbee_getsync(): no response to STK_GET_SYNC "
-                    "from the remote XBeeBoot bootloader\n",
-                    progname);
+    pmsg_error("no response to STK_GET_SYNC from the remote XBeeBoot bootloader\n");
     return recvRc;
   }
 
   if (resp[0] != Resp_STK_INSYNC) {
-    avrdude_message(MSG_INFO, "%s: xbee_getsync(): not in sync: resp=0x%02x\n",
-                    progname, (unsigned int)resp[0]);
+    pmsg_error("not in sync, resp=0x%02x\n", (unsigned int) resp[0]);
     return -1;
   }
 
   if (resp[1] != Resp_STK_OK) {
-    avrdude_message(MSG_INFO, "%s: xbee_getsync(): in sync, not OK: "
-                    "resp=0x%02x\n",
-                    progname, (unsigned int)resp[1]);
+    pmsg_error("in sync, not OK, resp=0x%02x\n", (unsigned int) resp[1]);
     return -1;
   }
 
@@ -1676,16 +1613,16 @@ static void xbee_close(PROGRAMMER *pgm)
     xbeeATError(rc);
   }
 
-  avrdude_message(MSG_NOTICE, "%s: Statistics for FRAME_LOCAL requests - %s->XBee(local)\n", progname, progname);
+  pmsg_notice("statistics for FRAME_LOCAL requests - %s->XBee(local)\n", progname);
   xbeeStatsSummarise(&xbs->groupSummary[XBEE_STATS_FRAME_LOCAL]);
 
-  avrdude_message(MSG_NOTICE, "%s: Statistics for FRAME_REMOTE requests - %s->XBee(local)->XBee(target)\n", progname, progname);
+  pmsg_notice("statistics for FRAME_REMOTE requests - %s->XBee(local)->XBee(target)\n", progname);
   xbeeStatsSummarise(&xbs->groupSummary[XBEE_STATS_FRAME_REMOTE]);
 
-  avrdude_message(MSG_NOTICE, "%s: Statistics for TRANSMIT requests - %s->XBee(local)->XBee(target)->XBeeBoot\n", progname, progname);
+  pmsg_notice("statistics for TRANSMIT requests - %s->XBee(local)->XBee(target)->XBeeBoot\n", progname);
   xbeeStatsSummarise(&xbs->groupSummary[XBEE_STATS_TRANSMIT]);
 
-  avrdude_message(MSG_NOTICE, "%s: Statistics for RECEIVE requests - XBeeBoot->XBee(target)->XBee(local)->%s\n", progname, progname);
+  pmsg_notice("statistics for RECEIVE requests - XBeeBoot->XBee(target)->XBee(local)->%s\n", progname);
   xbeeStatsSummarise(&xbs->groupSummary[XBEE_STATS_RECEIVE]);
 
   xbeedev_free(xbs);
@@ -1706,9 +1643,7 @@ static int xbee_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       int resetpin;
       if (sscanf(extended_param, "xbeeresetpin=%i", &resetpin) != 1 ||
           resetpin <= 0 || resetpin > 7) {
-        avrdude_message(MSG_INFO, "%s: xbee_parseextparms(): "
-                        "invalid xbeeresetpin '%s'\n",
-                        progname, extended_param);
+        pmsg_error("invalid xbeeresetpin '%s'\n", extended_param);
         rc = -1;
         continue;
       }
@@ -1717,9 +1652,7 @@ static int xbee_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
 
-    avrdude_message(MSG_INFO, "%s: xbee_parseextparms(): "
-                    "invalid extended parameter '%s'\n",
-                    progname, extended_param);
+    pmsg_error("invalid extended parameter '%s'\n", extended_param);
     rc = -1;
   }
 

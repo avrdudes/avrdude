@@ -42,8 +42,7 @@ static int stk500generic_open(PROGRAMMER *pgm, const char *port) {
   stk500_initpgm(pgm);
   if (pgm->open(pgm, port) >= 0)
     {
-      avrdude_message(MSG_INFO, "%s: successfully opened stk500v1 device -- please use -c stk500v1\n",
-                      progname);
+      pmsg_info("successfully opened stk500v1 device -- please use -c stk500v1\n");
       return 0;
     }
 
@@ -52,13 +51,11 @@ static int stk500generic_open(PROGRAMMER *pgm, const char *port) {
   stk500v2_initpgm(pgm);
   if (pgm->open(pgm, port) >= 0)
     {
-      avrdude_message(MSG_INFO, "%s: successfully opened stk500v2 device -- please use -c stk500v2\n",
-                      progname);
+      pmsg_info("successfully opened stk500v2 device -- please use -c stk500v2\n");
       return 0;
     }
 
-  avrdude_message(MSG_INFO, "%s: cannot open either stk500v1 or stk500v2 programmer\n",
-                  progname);
+  pmsg_error("cannot open either stk500v1 or stk500v2 programmer\n");
   return -1;
 }
 
