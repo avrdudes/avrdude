@@ -265,11 +265,11 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 			   dev->config[0].interface[iface].altsetting[0].endpoint[i].bEndpointAddress == fd->usb.wep) &&
 			  dev->config[0].interface[iface].altsetting[0].endpoint[i].wMaxPacketSize < fd->usb.max_xfer)
 			{
-                          pmsg_notice("max packet size expected %d, but found %d due to EP 0x%02x's wMaxPacketSize\n",
-                            fd->usb.max_xfer,
-                            dev->config[0].interface[iface].altsetting[0].endpoint[i].wMaxPacketSize,
-                            dev->config[0].interface[iface].altsetting[0].endpoint[i].bEndpointAddress);
-			  fd->usb.max_xfer = dev->config[0].interface[iface].altsetting[0].endpoint[i].wMaxPacketSize;
+			    pmsg_notice("max packet size expected %d, but found %d due to EP 0x%02x's wMaxPacketSize\n",
+			      fd->usb.max_xfer,
+			      dev->config[0].interface[iface].altsetting[0].endpoint[i].wMaxPacketSize,
+			      dev->config[0].interface[iface].altsetting[0].endpoint[i].bEndpointAddress);
+			    fd->usb.max_xfer = dev->config[0].interface[iface].altsetting[0].endpoint[i].wMaxPacketSize;
 			}
 		    }
 		  if (pinfo.usbinfo.flags & PINFO_FL_USEHID)
@@ -341,8 +341,7 @@ static int usbdev_send(const union filedescriptor *fd, const unsigned char *bp, 
       rv = usb_bulk_write(udev, fd->usb.wep, (char *)bp, tx_size, 10000);
     if (rv != tx_size)
     {
-        pmsg_error("wrote %d out of %d bytes, err = %s\n",
-          rv, tx_size, usb_strerror());
+        pmsg_error("wrote %d out of %d bytes, err = %s\n", rv, tx_size, usb_strerror());
         return -1;
     }
     bp += tx_size;

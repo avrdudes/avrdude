@@ -301,13 +301,10 @@ static int stk500_set_extended_parms(const PROGRAMMER *pgm, int n,
     return -1;
   }
 
-  if(buf[0] == Resp_STK_FAILED)
-  {
-      pmsg_error("unable to set extended "
-        "device programming parameters\n");
-      return -1;
+  if(buf[0] == Resp_STK_FAILED) {
+    pmsg_error("unable to set extended device programming parameters\n");
+    return -1;
   }
-
 
   pmsg_error("unknown response=0x%02x\n", buf[0]);
 
@@ -801,7 +798,7 @@ static int stk500_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
         return -3;
       }
       if (stk500_getsync(pgm) < 0)
-	return -1;
+        return -1;
       goto retry;
     }
     else if (buf[0] != Resp_STK_INSYNC) {
@@ -881,7 +878,7 @@ static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
         return -3;
       }
       if (stk500_getsync(pgm) < 0)
-	return -1;
+        return -1;
       goto retry;
     }
     else if (buf[0] != Resp_STK_INSYNC) {
@@ -928,8 +925,7 @@ static int stk500_set_vtarget(const PROGRAMMER *pgm, double v) {
 
   if (uaref > utarg) {
     pmsg_error("reducing V[aref] from %.1f to %.1f\n", uaref / 10.0, v);
-    if (stk500_setparm(pgm, Parm_STK_VADJUST, utarg)
-	!= 0)
+    if (stk500_setparm(pgm, Parm_STK_VADJUST, utarg) != 0)
       return -1;
   }
   return stk500_setparm(pgm, Parm_STK_VTARGET, utarg);
@@ -1123,7 +1119,7 @@ static int stk500_setparm(const PROGRAMMER *pgm, unsigned parm, unsigned value) 
   if (buf[0] == Resp_STK_OK)
     return 0;
 
-  parm = buf[0];	/* if not STK_OK, we've been echoed parm here */
+  parm = buf[0];                /* if not STK_OK, we've been echoed parm here */
   if (stk500_recv(pgm, buf, 1) < 0)
     return -1;
   if (buf[0] == Resp_STK_FAILED) {
@@ -1154,12 +1150,12 @@ static void stk500_display(const PROGRAMMER *pgm, const char *p) {
 
     switch (topcard) {
       case 1:
-	n = "STK502";
-	break;
+        n = "STK502";
+        break;
 
       case 2:
-	n = "STK501";
-	break;
+        n = "STK501";
+        break;
     }
     msg_info("%sTopcard         : %s\n", p, n);
   }
@@ -1209,8 +1205,7 @@ static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p) {
       unit = "Hz";
     msg_info("%.3f %s\n", f, unit);
   }
-  msg_info("%sSCK period      : %.1f us\n", p,
-	  sck_duration * 8.0e6 / STK500_XTAL + 0.05);
+  msg_info("%sSCK period      : %.1f us\n", p, sck_duration * 8.0e6 / STK500_XTAL + 0.05);
 
   return;
 }

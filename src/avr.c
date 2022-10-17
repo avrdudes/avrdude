@@ -992,9 +992,8 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     if (flush_page) {
       rc = avr_write_page(pgm, p, m, i);
       if (rc) {
-        msg_error(" *** page %d (addresses 0x%04x - 0x%04x) failed to write\n",
+        msg_error(" *** page %d (addresses 0x%04x - 0x%04x) failed to write\n\n",
           i / m->page_size, i - m->page_size + 1, i);
-        msg_error("\n");
         pgm->err_led(pgm, ON);
           werror = 1;
       }

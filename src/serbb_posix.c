@@ -91,33 +91,33 @@ static int serbb_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
   switch ( pin )
   {
     case 3:  /* txd */
-        r = ioctl(pgm->fd.ifd, value ? TIOCSBRK : TIOCCBRK, 0);
-        if (r < 0) {
-          pmsg_ext_error("ioctl(\"TIOCxBRK\"): %s\n", strerror(errno));
-          return -1;
-        }
-        break;
+      r = ioctl(pgm->fd.ifd, value ? TIOCSBRK : TIOCCBRK, 0);
+      if (r < 0) {
+        pmsg_ext_error("ioctl(\"TIOCxBRK\"): %s\n", strerror(errno));
+        return -1;
+      }
+      break;
 
     case 4:  /* dtr */
     case 7:  /* rts */
-        r = ioctl(pgm->fd.ifd, TIOCMGET, &ctl);
-        if (r < 0) {
-          pmsg_ext_error("ioctl(\"TIOCMGET\"): %s\n", strerror(errno));
-          return -1;
-        }
-        if (value)
-          ctl |= serregbits[pin];
-        else
-          ctl &= ~(serregbits[pin]);
-        r = ioctl(pgm->fd.ifd, TIOCMSET, &ctl);
-        if (r < 0) {
-          pmsg_ext_error("ioctl(\"TIOCMSET\"): %s\n", strerror(errno));
-          return -1;
-        }
-        break;
+      r = ioctl(pgm->fd.ifd, TIOCMGET, &ctl);
+      if (r < 0) {
+        pmsg_ext_error("ioctl(\"TIOCMGET\"): %s\n", strerror(errno));
+        return -1;
+      }
+      if (value)
+        ctl |= serregbits[pin];
+      else
+        ctl &= ~(serregbits[pin]);
+      r = ioctl(pgm->fd.ifd, TIOCMSET, &ctl);
+      if (r < 0) {
+        pmsg_ext_error("ioctl(\"TIOCMSET\"): %s\n", strerror(errno));
+        return -1;
+      }
+      break;
 
     default: /* impossible */
-        return -1;
+      return -1;
   }
 
   if (pgm->ispdelay > 1)
@@ -145,34 +145,34 @@ static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
   switch ( pin )
   {
     case 2:  /* rxd, currently not implemented, FIXME */
-        return(-1);
+      return(-1);
 
     case 1:  /* cd  */
     case 6:  /* dsr */
     case 8:  /* cts */
     case 9:  /* ri  */
-        r = ioctl(pgm->fd.ifd, TIOCMGET, &ctl);
-        if (r < 0) {
-          pmsg_ext_error("ioctl(\"TIOCMGET\"): %s\n", strerror(errno));
-          return -1;
-        }
-        if ( !invert )
-        {
+      r = ioctl(pgm->fd.ifd, TIOCMGET, &ctl);
+      if (r < 0) {
+        pmsg_ext_error("ioctl(\"TIOCMGET\"): %s\n", strerror(errno));
+        return -1;
+      }
+      if ( !invert )
+      {
 #ifdef DEBUG
-          msg_info("%s is %d\n", serpins[pin], ctl & serregbits[pin]? 1: 0);
+        msg_info("%s is %d\n", serpins[pin], ctl & serregbits[pin]? 1: 0);
 #endif
-          return ctl & serregbits[pin]? 1: 0;
-        }
-        else
-        {
+        return ctl & serregbits[pin]? 1: 0;
+      }
+      else
+      {
 #ifdef DEBUG
-          msg_info("%s is %d (~)\n", serpins[pin], ctl & serregbits[pin]? 0: 1);
+        msg_info("%s is %d (~)\n", serpins[pin], ctl & serregbits[pin]? 0: 1);
 #endif
-          return ctl & serregbits[pin]? 0: 1;
-        }
+        return ctl & serregbits[pin]? 0: 1;
+      }
 
     default: /* impossible */
-        return(-1);
+      return(-1);
   }
 }
 
