@@ -222,7 +222,7 @@ static int cacheAddress(int addr, const AVR_Cache *cp, const AVRMEM *mem) {
   int cacheaddr = addr + (int) (mem->offset - cp->offset);
 
   if(cacheaddr < 0 || cacheaddr >= cp->size) { // Should never happen (unless offsets wrong in avrdude.conf)
-    pmsg_error("%s cache address 0x%04x out of range [0, 0x%04x]\n", mem->desc, cacheaddr, cp->size);
+    pmsg_error("%s cache address 0x%04x out of range [0, 0x%04x]\n", mem->desc, cacheaddr, cp->size-1);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
@@ -267,8 +267,8 @@ static int writeCachePage(AVR_Cache *cp, const PROGRAMMER *pgm, const AVRPART *p
            pgm->read_byte(pgm, p, mem, base+i, cp->copy+base+i) < 0) {
           report_progress(1, -1, NULL);
           if(nlOnErr && quell_progress)
-            avrdude_message(MSG_INFO, "\n");
-          avrdude_message(MSG_INFO, "%s: writeCachePage() %s access error at addr 0x%04x\n", progname, mem->desc, base+i);
+            msg_info("\n");
+          pmsg_error("writeCachePage() %s access error at addr 0x%04x\n", mem->desc, base+i);
           return LIBAVRDUDE_GENERAL_FAILURE;
         }
 

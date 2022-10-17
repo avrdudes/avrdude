@@ -854,10 +854,9 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
      * Ensure that we align our write size to this boundary.
      */
     if (m->n_word_writes < 0 || m->n_word_writes > 4 || m->n_word_writes == 3) {
-      avrdude_message(MSG_INFO, "\n%s: ERROR: Unsupported n_word_writes value of %d "
-                      "configured for %s memory\n"
-                      "%sAborting write\n",
-                      progname, m->n_word_writes, m->desc, progbuf);
+      msg_error("\n");
+      pmsg_error("unsupported n_word_writes value of %d for %s memory\n",
+        m->n_word_writes, m->desc);
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
     chunk = m->n_word_writes > 0 ? 2*m->n_word_writes : 2;
