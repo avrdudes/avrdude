@@ -166,7 +166,7 @@ static void teensy_dump_device_info(pdata_t* pdata)
         pdata->sig_bytes[0], pdata->sig_bytes[1], pdata->sig_bytes[2]);
 }
 
-static int teensy_write_page(pdata_t* pdata, uint32_t address, const uint8_t* buffer, uint32_t size)
+static int teensy_write_page(pdata_t* pdata, uint32_t address, const uint8_t* buffer, uint32_t size, bool suppress_warning)
 {
     avrdude_message(MSG_DEBUG, "%s: teensy_write_page(address=0x%06X, size=%d)\n", progname, address, size);
 
@@ -207,8 +207,12 @@ static int teensy_write_page(pdata_t* pdata, uint32_t address, const uint8_t* bu
     free(report);
     if (result < 0)
     {
-        avrdude_message(MSG_INFO, "%s: WARNING: Failed to write page: %ls\n",
-            progname, hid_error(pdata->hid_handle));
+        if (!suppress_warning)
+        {
+            avrdude_message(MSG_INFO, "%s: WARNING: Failed to write page: %ls\n",
+                progname, hid_error(pdata->hid_handle));
+        }
+
         return result;
     }
 
@@ -220,7 +224,7 @@ static int teensy_erase_flash(pdata_t* pdata)
     avrdude_message(MSG_DEBUG, "%s: teensy_erase_flash()\n", progname);
 
     // Write a dummy page at address 0 to explicitly erase the flash.
-    return teensy_write_page(pdata, 0, NULL, 0);
+    return teensy_write_page(pdata, 0, NULL, 0, false);
 }
 
 static int teensy_reboot(pdata_t* pdata)
@@ -228,7 +232,7 @@ static int teensy_reboot(pdata_t* pdata)
     avrdude_message(MSG_DEBUG, "%s: teensy_reboot()\n", progname);
 
     // Write a dummy page at address -1 to reboot the Teensy.
-    return teensy_write_page(pdata, 0xFFFFFFFF, NULL, 0);
+    return teensy_write_page(pdata, 0xFFFFFFFF, NULL, 0, true);
 }
 
 //-----------------------------------------------------------------------------
@@ -538,7 +542,7 @@ static int teensy_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
             pdata->erase_flash = false;
         }
 
-        int result = teensy_write_page(pdata, addr, mem->buf + addr, n_bytes);
+        int result = teensy_write_page(pdata, addr, mem->buf + addr, n_bytes, false);
         if (result < 0)
         {
             return result;
