@@ -1221,20 +1221,13 @@ int main(int argc, char * argv [])
         if (rc == LIBAVRDUDE_SOFTFAIL && (p->prog_modes & PM_UPDI) && attempt < 1) {
           attempt++;
           if (pgm->read_sib) {
-             // Read SIB and compare FamilyID
-             char sib[AVR_SIBLEN + 1];
-             pgm->read_sib(pgm, p, sib);
-             pmsg_notice("System Information Block: %s\n", sib);
-             pmsg_info("received FamilyID: \"%.*s\"\n", AVR_FAMILYIDLEN, sib);
-
-            if (strncmp(p->family_id, sib, AVR_FAMILYIDLEN)) {
+            // Read SIB and compare FamilyID
+            char sib[AVR_SIBLEN + 1];
+            pgm->read_sib(pgm, p, sib);
+            pmsg_notice("System Information Block: %s\n", sib);
+            pmsg_info("received FamilyID: \"%.*s\"\n", AVR_FAMILYIDLEN, sib);
+            if (strncmp(p->family_id, sib, AVR_FAMILYIDLEN))
               pmsg_error("expected FamilyID: \"%s\"\n", p->family_id);
-              if (!ovsigck) {
-                imsg_error("double check chip or use -F to override this check\n");
-                exitrc = 1;
-                goto main_exit;
-              }
-            }
           }
           if(erase) {
             erase = 0;
@@ -1247,6 +1240,11 @@ int main(int argc, char * argv [])
                 goto main_exit;
               goto sig_again;
             }
+          }
+          if (!ovsigck) {
+            imsg_error("double check chip or use -F to override this check\n");
+            exitrc = 1;
+            goto main_exit;
           }
         }
         pmsg_error("unable to read signature data, rc=%d\n", rc);

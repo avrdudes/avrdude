@@ -898,6 +898,7 @@ static int serialupdi_read_signature(const PROGRAMMER *pgm, const AVRPART *p, co
     m->buf[0]=0x00;
     m->buf[1]=0x00;
     m->buf[2]=0x00;
+    return LIBAVRDUDE_SOFTFAIL;
   } else {
     updi_read_byte(pgm, m->offset + 0, m->buf);
     updi_read_byte(pgm, m->offset + 1, m->buf+1);
