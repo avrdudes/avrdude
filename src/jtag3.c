@@ -1687,8 +1687,8 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   avrdude_message(MSG_NOTICE2, "%s: jtag3_page_erase(.., %s, 0x%x)\n",
 	    progname, m->desc, addr);
 
-  if (!(p->prog_modes & PM_PDI)) {
-    avrdude_message(MSG_INFO, "%s: jtag3_page_erase: not an Xmega device\n",
+  if (!(p->prog_modes & (PM_PDI | PM_UPDI))) {
+    avrdude_message(MSG_INFO, "%s: jtag3_page_erase: not supported\n",
 	    progname);
     return -1;
   }
@@ -1700,8 +1700,8 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   cmd[1] = CMD3_ERASE_MEMORY;
   cmd[2] = 0;
 
-  if (strcmp(m->desc, "flash") == 0) {
-    if (jtag3_memtype(pgm, p, addr) == MTYPE_FLASH)
+  if (avr_mem_is_flash_type(m)) {
+    if (p->prog_modes & PM_UPDI || jtag3_memtype(pgm, p, addr) == MTYPE_FLASH)
       cmd[3] = XMEGA_ERASE_APP_PAGE;
     else
       cmd[3] = XMEGA_ERASE_BOOT_PAGE;
@@ -1710,14 +1710,17 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   } else if (strcmp(m->desc, "usersig") == 0 ||
              strcmp(m->desc, "userrow") == 0) {
     cmd[3] = XMEGA_ERASE_USERSIG;
-  } else if (strcmp(m->desc, "boot") == 0) {
-    cmd[3] = XMEGA_ERASE_BOOT_PAGE;
   } else {
     cmd[3] = XMEGA_ERASE_APP_PAGE;
   }
 
-  u32_to_b4(cmd + 4, addr + m->offset);
+  unsigned int addr_adj = addr;
+  if(p->prog_modes & PM_PDI)
+    addr_adj += m->offset;
+  else // PM_UPDI
+    addr_adj = jtag3_memaddr(pgm, p, m, addr);
 
+  u32_to_b4(cmd + 4, addr_adj);
   if (jtag3_command(pgm, cmd, 8, &resp, "page erase") < 0)
     return -1;
 
