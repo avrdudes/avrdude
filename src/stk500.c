@@ -47,7 +47,7 @@
 
 static int stk500_getparm(const PROGRAMMER *pgm, unsigned parm, unsigned *value);
 static int stk500_setparm(const PROGRAMMER *pgm, unsigned parm, unsigned value);
-static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p);
+static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp);
 
 
 static int stk500_send(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
@@ -1160,13 +1160,13 @@ static void stk500_display(const PROGRAMMER *pgm, const char *p) {
     msg_info("%sTopcard         : %s\n", p, n);
   }
   if(strcmp(pgm->type, "Arduino") != 0)
-    stk500_print_parms1(pgm, p);
+    stk500_print_parms1(pgm, p, stderr);
 
   return;
 }
 
 
-static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p) {
+static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
   unsigned vtarget, vadjust, osc_pscale, osc_cmatch, sck_duration;
 
   stk500_getparm(pgm, Parm_STK_VTARGET, &vtarget);
@@ -1175,11 +1175,11 @@ static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p) {
   stk500_getparm(pgm, Parm_STK_OSC_CMATCH, &osc_cmatch);
   stk500_getparm(pgm, Parm_STK_SCK_DURATION, &sck_duration);
 
-  msg_info("%sVtarget         : %.1f V\n", p, vtarget / 10.0);
-  msg_info("%sVaref           : %.1f V\n", p, vadjust / 10.0);
-  msg_info("%sOscillator      : ", p);
+  fmsg_out(fp, "%sVtarget         : %.1f V\n", p, vtarget / 10.0);
+  fmsg_out(fp, "%sVaref           : %.1f V\n", p, vadjust / 10.0);
+  fmsg_out(fp, "%sOscillator      : ", p);
   if (osc_pscale == 0)
-    msg_info("Off\n");
+    fmsg_out(fp, "Off\n");
   else {
     int prescale = 1;
     double f = STK500_XTAL / 2;
@@ -1203,16 +1203,16 @@ static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p) {
       unit = "kHz";
     } else
       unit = "Hz";
-    msg_info("%.3f %s\n", f, unit);
+    fmsg_out(fp, "%.3f %s\n", f, unit);
   }
-  msg_info("%sSCK period      : %.1f us\n", p, sck_duration * 8.0e6 / STK500_XTAL + 0.05);
+  fmsg_out(fp, "%sSCK period      : %.1f us\n", p, sck_duration * 8.0e6 / STK500_XTAL + 0.05);
 
   return;
 }
 
 
-static void stk500_print_parms(const PROGRAMMER *pgm) {
-  stk500_print_parms1(pgm, "");
+static void stk500_print_parms(const PROGRAMMER *pgm, FILE *fp) {
+  stk500_print_parms1(pgm, "", fp);
 }
 
 static void stk500_setup(PROGRAMMER * pgm)

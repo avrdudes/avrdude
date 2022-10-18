@@ -783,7 +783,7 @@ typedef struct programmer_t {
                           unsigned long addr, unsigned char *value);
   int  (*read_sig_bytes) (const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m);
   int  (*read_sib)       (const struct programmer_t *pgm, const AVRPART *p, char *sib);
-  void (*print_parms)    (const struct programmer_t *pgm);
+  void (*print_parms)    (const struct programmer_t *pgm, FILE *fp);
   int  (*set_vtarget)    (const struct programmer_t *pgm, double v);
   int  (*set_varef)      (const struct programmer_t *pgm, unsigned int chan, double v);
   int  (*set_fosc)       (const struct programmer_t *pgm, double v);

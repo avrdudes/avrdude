@@ -144,7 +144,7 @@ static int jtagmkII_reset(const PROGRAMMER *pgm, unsigned char flags);
 static int jtagmkII_set_sck_period(const PROGRAMMER *pgm, double v);
 static int jtagmkII_setparm(const PROGRAMMER *pgm, unsigned char parm,
                             unsigned char * value);
-static void jtagmkII_print_parms1(const PROGRAMMER *pgm, const char *p);
+static void jtagmkII_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp);
 static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                 unsigned int page_size,
                                 unsigned int addr, unsigned int n_bytes);
@@ -2508,13 +2508,13 @@ static void jtagmkII_display(const PROGRAMMER *pgm, const char *p) {
     PDATA(pgm)->serno[0], PDATA(pgm)->serno[1], PDATA(pgm)->serno[2],
     PDATA(pgm)->serno[3], PDATA(pgm)->serno[4], PDATA(pgm)->serno[5]);
 
-  jtagmkII_print_parms1(pgm, p);
+  jtagmkII_print_parms1(pgm, p, stderr);
 
   return;
 }
 
 
-static void jtagmkII_print_parms1(const PROGRAMMER *pgm, const char *p) {
+static void jtagmkII_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
   unsigned char vtarget[4], jtag_clock[4];
   char clkbuf[20];
   double clk;
@@ -2522,7 +2522,7 @@ static void jtagmkII_print_parms1(const PROGRAMMER *pgm, const char *p) {
   if (jtagmkII_getparm(pgm, PAR_OCD_VTARGET, vtarget) < 0)
     return;
 
-  msg_info("%sVtarget         : %.1f V\n", p, b2_to_u16(vtarget) / 1000.0);
+  fmsg_out(fp, "%sVtarget         : %.1f V\n", p, b2_to_u16(vtarget) / 1000.0);
 
   if ((pgm->flag & PGM_FL_IS_JTAG)) {
     if (jtagmkII_getparm(pgm, PAR_OCD_JTAG_CLK, jtag_clock) < 0)
@@ -2541,15 +2541,15 @@ static void jtagmkII_print_parms1(const PROGRAMMER *pgm, const char *p) {
       sprintf(clkbuf, "%.1f kHz", 5.35e3 / (double)jtag_clock[0]);
       clk = 5.35e6 / (double)jtag_clock[0];
 
-      msg_info("%sJTAG clock      : %s (%.1f us)\n", p, clkbuf, 1.0e6 / clk);
+      fmsg_out(fp, "%sJTAG clock      : %s (%.1f us)\n", p, clkbuf, 1.0e6 / clk);
     }
   }
 
   return;
 }
 
-static void jtagmkII_print_parms(const PROGRAMMER *pgm) {
-  jtagmkII_print_parms1(pgm, "");
+static void jtagmkII_print_parms(const PROGRAMMER *pgm, FILE *fp) {
+  jtagmkII_print_parms1(pgm, "", fp);
 }
 
 static unsigned char jtagmkII_memtype(const PROGRAMMER *pgm, const AVRPART *p, unsigned long addr) {
