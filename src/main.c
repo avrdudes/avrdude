@@ -425,6 +425,7 @@ static void exit_part_not_found(const char *partdesc) {
 }
 
 
+#if !defined(WIN32)
 // Safely concatenate dir/file into dst that has size n
 static char *concatpath(char *dst, char *dir, char *file, size_t n) {
   // Has dir or file not at least one character?
@@ -447,6 +448,7 @@ static char *concatpath(char *dst, char *dir, char *file, size_t n) {
 
   return dst;
 }
+#endif
 
 
 /*
@@ -461,6 +463,7 @@ int main(int argc, char * argv [])
   int              len;         /* length for various strings */
   struct avrpart * p;           /* which avr part we are programming */
   AVRMEM         * sig;         /* signature data */
+  struct stat      sb;
   UPDATE         * upd;
   LNODEID        * ln;
 
@@ -874,7 +877,6 @@ int main(int argc, char * argv [])
 #if defined(WIN32)
   win_usr_config_set(usr_config);
 #else
-  struct stat sb;
   usr_config[0] = 0;
   if(!concatpath(usr_config, getenv("HOME"), USER_CONF_FILE, sizeof usr_config-1)
      || stat(usr_config, &sb) < 0
