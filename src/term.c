@@ -1303,7 +1303,7 @@ int terminal_mode(PROGRAMMER *pgm, struct avrpart *p) {
   term_pgm = pgm;               // For callback routine
   term_p = p;
 
-  rl_callback_handler_install("avrdude> ", (rl_vcpfunc_t*) &term_gotline);
+  rl_callback_handler_install("avrdude> ", term_gotline);
 
   term_running = 1;
   for(int n=1; term_running; n++) {
@@ -1312,7 +1312,7 @@ int terminal_mode(PROGRAMMER *pgm, struct avrpart *p) {
         pgm->term_keep_alive(pgm, NULL);
     }
     usleep(6250);
-    if(readytoread() && term_running)
+    if(readytoread() > 0 && term_running)
       rl_callback_read_char();
   }
 
