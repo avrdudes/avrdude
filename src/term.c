@@ -33,9 +33,20 @@
 #include <errno.h>
 
 #if defined(HAVE_LIBREADLINE)
-#  include <readline/readline.h>
-#  include <readline/history.h>
+#include <readline/readline.h>
+#include <readline/history.h>
+
+#ifdef _MSC_VER
+#include "msvc/unistd.h"
+#else
+#include <unistd.h>
 #endif
+
+#ifdef WIN32
+#include <windows.h>
+#endif
+#endif
+
 
 #include "avrdude.h"
 #include "term.h"
@@ -114,7 +125,7 @@ static int nexttok(char *buf, char **tok, char **next) {
   n = q;
   uint8_t quotes = 0;
   while (*n && (!isspace(*n) || quotes)) {
-    // poor man's quote and escape processing
+    // Poor man's quote and escape processing
     if (*n == '"' || *n == '\'')
       quotes++;
     else if(*n == '\\' && n[1])
@@ -173,7 +184,7 @@ static int chardump_line(char *buffer, unsigned char *p, int n, int pad) {
   int i;
   unsigned char b[128];
 
-  // sanity check
+  // Sanity check
   n = n < 1? 1: n > sizeof b? sizeof b: n;
 
   memcpy(b, p, n);
@@ -393,10 +404,10 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   }
 
   int i;
-  uint8_t write_mode;       // Operation mode, "standard" or "fill"
-  uint8_t start_offset;     // Which argc argument
-  int len;                  // Number of bytes to write to memory
-  char *memtype = argv[1]; // Memory name string
+  uint8_t write_mode;           // Operation mode, "standard" or "fill"
+  uint8_t start_offset;         // Which argc argument
+  int len;                      // Number of bytes to write to memory
+  char *memtype = argv[1];      // Memory name string
   AVRMEM *mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
     pmsg_error("(write) %s memory type not defined for part %s\n", memtype, p->desc);
@@ -508,7 +519,7 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
             bool is_out_of_range = 0;
             int nhexdigs = p-argi-2;
 
-            if(is_signed) {   // Is input in range for int64_t?
+            if(is_signed) {     // Is input in range for int64_t?
               errno = 0; (void) strtoll(argi, NULL, 0);
               is_outside_int64_t = errno == ERANGE;
             }
@@ -572,8 +583,8 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
         data.f = strtof(argi, &end_ptr);
         if (end_ptr != argi && toupper(*end_ptr) == 'F' && end_ptr[1] == 0)
           data.size = 4;
-        if (end_ptr != argi && *end_ptr == 0) // no suffix defaults to float but ...
-        // ... do not accept valid mantissa-only floats that are integer rejects (eg, 078 or ULL overflows)
+        if (end_ptr != argi && *end_ptr == 0) // No suffix defaults to float but ...
+          // ... do not accept valid mantissa-only floats that are integer rejects (eg, 078 or ULL overflows)
           if (!is_mantissa_only(argi))
             data.size = 4;
       }
@@ -589,13 +600,13 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
           // Strip start and end quotes, and unescape C string
           strncpy(s, argi+1, arglen-2);
           cfg_unescape(s, s);
-          if (*argi == '\'') { // Single C-style character
+          if (*argi == '\'') {  // Single C-style character
             if(*s && s[1])
               pmsg_error("(write) only using first character of %s\n", argi);
             data.ll = *s;
             data.size = 1;
             free(s);
-          } else {             // C-style string
+          } else {              // C-style string
             data.str_ptr = s;
           }
         }
@@ -905,7 +916,7 @@ static int cmd_sck(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     pmsg_error("(sck) cannot parse period %s\n", argv[1]);
     return -1;
   }
-  v *= 1e-6;			/* Convert from microseconds to seconds. */
+  v *= 1e-6;                    // Convert from microseconds to seconds
   if ((rc = pgm->set_sck_period(pgm, v)) != 0) {
     pmsg_error("(sck) unable to set SCK period (rc = %d)\n", rc);
     return -3;
@@ -1170,53 +1181,38 @@ static int do_cmd(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 
 char *terminal_get_input(const char *prompt) {
-#if defined(HAVE_LIBREADLINE) && !defined(WIN32)
-  char *input;
-  input = readline(prompt);
-  if ((input != NULL) && (strlen(input) >= 1))
-    add_history(input);
-
-  return input;
-#else
   char input[256];
+
   term_out("%s", prompt);
-  if (fgets(input, sizeof(input), stdin))
-  {
-    /* FIXME: readline strips the '\n', should this too? */
-    return strdup(input);
+  if(fgets(input, sizeof(input), stdin)) {
+    int len = strlen(input);
+    if(len > 0 && input[len-1] == '\n')
+      input[len-1] = 0;
+    return cfg_strdup(__func__, input);
   }
-  else
-    return NULL;
-#endif
+
+  return NULL;
 }
 
 
-int terminal_mode(PROGRAMMER *pgm, AVRPART *p) {
-  char  *cmdbuf;
-  char  *q;
-  int    rc;
-  int    argc;
-  char **argv;
+static int process_line(char *cmdbuf, PROGRAMMER *pgm, struct avrpart *p) {
+  int argc, rc;
+  char **argv = NULL, *q;
 
-  rc = 0;
-  while ((cmdbuf = terminal_get_input("avrdude> ")) != NULL) {
-    /*
-     * find the start of the command, skipping any white space
-     */
-    q = cmdbuf;
-    while (*q && isspace((unsigned char) *q))
-      q++;
+  // Find the start of the command, skipping any white space
+  q = cmdbuf;
+  while(*q && isspace((unsigned char) *q))
+    q++;
 
-    /* skip blank lines and comments */
-    if (!*q || (*q == '#'))
-      continue;
+  // Skip blank lines and comments
+  if (!*q || (*q == '#'))
+    return 0;
 
-    /* tokenize command line */
-    argc = tokenize(q, &argv);
-    if (argc < 0) {
-      free(cmdbuf);
-      return argc;
-    }
+  // Tokenize command line
+  argc = tokenize(q, &argv);
+
+  if(!argv)
+    return -1;
 
 #if !defined(HAVE_LIBREADLINE) || defined(WIN32) || defined(__APPLE__)
     term_out(">>> ");
@@ -1225,21 +1221,126 @@ int terminal_mode(PROGRAMMER *pgm, AVRPART *p) {
     term_out("\n");
 #endif
 
-    /* run the command */
-    rc = do_cmd(pgm, p, argc, argv);
-    free(argv);
-    if (rc > 0) {
-      rc = 0;
-      break;
-    }
-    free(cmdbuf);
-  }
-
-  pgm->flush_cache(pgm, p);
+  // Run the command
+  rc = do_cmd(pgm, p, argc, argv);
+  free(argv);
 
   return rc;
 }
 
+
+
+#if defined(HAVE_LIBREADLINE)
+
+static PROGRAMMER *term_pgm;
+static struct avrpart *term_p;
+
+static int term_running;
+
+// Any character in standard input available (without sleeping)?
+static int readytoread() {
+#ifdef WIN32
+  HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
+
+  while(1) {
+    INPUT_RECORD input[1] = { 0 };
+    DWORD dwNumberOfEventsRead = 0;
+
+    if(!PeekConsoleInputA(hStdin, input, ARRAYSIZE(input), &dwNumberOfEventsRead)) {
+      DWORD dwError = GetLastError();
+
+      // Stdin redirected from a pipe or file (FIXME: reading from a pipe may sleep)
+      if(dwError == ERROR_INVALID_HANDLE)
+        return 1;
+
+      pmsg_warning("PeekConsoleInputA() failed with error code %u\n", (unsigned int) dwError);
+      return -1;
+    }
+
+    if(dwNumberOfEventsRead <= 0) // Nothing in the input buffer
+      return 0;
+
+    // Filter out all the events that readline does not handle ...
+    if((input[0].EventType & KEY_EVENT) != 0 && input[0].Event.KeyEvent.bKeyDown)
+      return 1;
+
+    // Drain other events not handled by readline
+    if(!ReadConsoleInputA(hStdin, input, ARRAYSIZE(input), &dwNumberOfEventsRead)) {
+      pmsg_warning("ReadConsoleInputA() failed with error code %u\n", (unsigned int) GetLastError());
+      return -1;
+    }
+  }
+#else
+    struct timeval tv = { 0L, 0L };
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(0, &fds);
+
+    return select(1, &fds, NULL, NULL, &tv) > 0;
+#endif
+}
+
+// Callback processes commands whenever readline() has finished
+void term_gotline(char *cmdstr) {
+  if(cmdstr) {
+    if(*cmdstr) {
+      add_history(cmdstr);
+      // only quit/abort returns a value > 0
+      if(process_line(cmdstr, term_pgm, term_p) > 0)
+        term_running = 0;
+    }
+    free(cmdstr);
+  } else {
+    // call quit at end of file or terminal ^D
+    term_out("\n");
+    cmd_quit(term_pgm, term_p, 0, NULL);
+    term_running = 0;
+  }
+}
+
+
+int terminal_mode(PROGRAMMER *pgm, struct avrpart *p) {
+  term_pgm = pgm;               // For callback routine
+  term_p = p;
+
+  rl_callback_handler_install("avrdude> ", (rl_vcpfunc_t*) &term_gotline);
+
+  term_running = 1;
+  for(int n=1; term_running; n++) {
+    if(n%16 == 0) {             // Every 100 ms (16*6.25 us) reset bootloader watchdog timer
+      if(pgm->term_keep_alive)
+        pgm->term_keep_alive(pgm, NULL);
+    }
+    usleep(6250);
+    if(readytoread() && term_running)
+      rl_callback_read_char();
+  }
+
+  rl_callback_handler_remove();
+
+  return pgm->flush_cache(pgm, p);
+}
+
+#else
+
+
+int terminal_mode(PROGRAMMER *pgm, struct avrpart *p) {
+  char *cmdbuf;
+  int rc = 0;
+
+  while((cmdbuf = terminal_get_input("avrdude> "))) {
+    int rc = process_line(cmdbuf, pgm, p);
+    free(cmdbuf);
+    if(rc > 0)
+      break;
+  }
+
+  if(rc <= 0)
+    cmd_quit(pgm, p, 0, NULL);
+  return pgm->flush_cache(pgm, p);
+}
+
+#endif
 
 static void update_progress_tty(int percent, double etime, const char *hdr, int finish) {
   static char *header;
