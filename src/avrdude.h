@@ -89,7 +89,7 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
 #define imsg_trace(...)     avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_INDENT2|MSG2_FLUSH, MSG_TRACE, __VA_ARGS__)
 #define imsg_trace2(...)    avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_INDENT2|MSG2_FLUSH, MSG_TRACE2, __VA_ARGS__)
 
-#define term_out(...)       avrdude_message2(stdout, __LINE__, __FILE__, __func__, 0, MSG_INFO, __VA_ARGS__)
-#define fmsg_out(fp, ...)   avrdude_message2(fp, __LINE__, __FILE__, __func__, 0, MSG_INFO, __VA_ARGS__)
+#define term_out(...)       avrdude_message2(stdout, __LINE__, __FILE__, __func__, 0, MSG_INFO|MSG2_FLUSH, __VA_ARGS__)
+#define fmsg_out(fp, ...)   avrdude_message2(fp, __LINE__, __FILE__, __func__, 0, MSG_INFO|MSG2_FLUSH, __VA_ARGS__)
 
 #endif

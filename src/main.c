@@ -102,8 +102,15 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
           fprintf(fp, "%s", progname);
           if(verbose >= MSG_NOTICE && (msgmode & MSG2_FUNCTION))
             fprintf(fp, " %s()", func);
-          if(verbose >= MSG_DEBUG && (msgmode & MSG2_FILELINE))
-            fprintf(fp, " [%s:%d]", file, lno);
+          if(verbose >= MSG_DEBUG && (msgmode & MSG2_FILELINE)) {
+            const char *pr = strrchr(file, '/'); // only print basename
+#if defined (WIN32)
+            if(!pr)
+              pr =  strrchr(file, '\\');
+#endif
+            pr = pr? pr+1: file;
+            fprintf(fp, " [%s:%d]", pr, lno);
+          }
           if(msgmode & MSG2_TYPE)
             fprintf(fp, " %s", avrdude_message_type(msglvl));
           fprintf(fp, ": ");

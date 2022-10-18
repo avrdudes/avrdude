@@ -557,7 +557,7 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
             if(is_outside_int64_t || is_out_of_range)
               pmsg_error("(write) %s out of int%d_t range, "
-                "interpreted as %d-byte %lld; consider 'U' suffix\n", argi, data.size*8, data.size, data.ll);
+                "interpreted as %d-byte %lld; consider 'U' suffix\n", argi, data.size*8, data.size, (long long int) data.ll);
           }
         }
       }
@@ -762,7 +762,7 @@ static int cmd_pgerase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     return -1;
   }
   if(!avr_has_paged_access(pgm, mem)) {
-    pmsg_error("(pgerase) %s memory cannot be paged addressed by %s\n", memtype, ldata(lfirst(pgm->id)));
+    pmsg_error("(pgerase) %s memory cannot be paged addressed by %s\n", memtype, (char *) ldata(lfirst(pgm->id)));
     return -1;
   }
 
@@ -965,8 +965,8 @@ static int cmd_help(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   term_out("\n"
     "Note that not all programmer derivatives support all commands. Flash and\n"
     "EEPROM type memories are normally read and written using a cache via paged\n"
-    "read and write access; the cache is synchronised on quit. Use the part\n"
-    "command to display valid memory types for use with dump and write.\n\n");
+    "read and write access; the cache is synchronised on quit or flush commands.\n"
+    "The part command displays valid memory types for use with dump and write.\n\n");
   return 0;
 }
 
