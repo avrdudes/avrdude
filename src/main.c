@@ -425,6 +425,30 @@ static void exit_part_not_found(const char *partdesc) {
 }
 
 
+// Safely concatenate dir/file into dst that has size n
+static char *concatpath(char *dst, char *dir, char *file, size_t n) {
+  // Has dir or file not at least one character?
+  if(!dir || !*dir || !file || !*file)
+    return NULL;
+
+  size_t len = strlen(dir);
+
+  // Insufficient space?
+  if(len + (dir[len-1] != '/') + strlen(file) > n-1)
+    return NULL;
+
+  if(dst != dir)
+    strcpy(dst, dir);
+
+  if(dst[len-1] != '/')
+    strcat(dst, "/");
+
+  strcat(dst, file);
+
+  return dst;
+}
+
+
 /*
  * main routine
  */
@@ -437,7 +461,6 @@ int main(int argc, char * argv [])
   int              len;         /* length for various strings */
   struct avrpart * p;           /* which avr part we are programming */
   AVRMEM         * sig;         /* signature data */
-  struct stat      sb;
   UPDATE         * upd;
   LNODEID        * ln;
 
@@ -464,11 +487,6 @@ int main(int argc, char * argv [])
   int     is_open;     /* Device open succeeded */
   char  * logfile;     /* Use logfile rather than stderr for diagnostics */
   enum updateflags uflags = UF_AUTO_ERASE | UF_VERIFY; /* Flags for do_op() */
-
-#if !defined(WIN32)
-  char  * homedir;
-  char  * xdg_config_home;
-#endif
 
 #ifdef _MSC_VER
   _set_printf_count_output(1);
@@ -856,32 +874,13 @@ int main(int argc, char * argv [])
 #if defined(WIN32)
   win_usr_config_set(usr_config);
 #else
+  struct stat sb;
   usr_config[0] = 0;
-  homedir = getenv("HOME");
-  if (homedir != NULL) {
-    strcpy(usr_config, homedir);
-    i = strlen(usr_config);
-    if (i && (usr_config[i - 1] != '/'))
-      strcat(usr_config, "/");
-    strcat(usr_config, USER_CONF_FILE);
-    rc = stat(usr_config, &sb);
-    if ((rc < 0) || ((sb.st_mode & S_IFREG) == 0)) {
-      xdg_config_home = getenv("XDG_CONFIG_HOME");
-      if (xdg_config_home != NULL && *xdg_config_home != '\0') {
-        strcpy(usr_config, xdg_config_home);
-        i = strlen(usr_config);
-        if (i && (usr_config[i - 1] != '/'))
-          strcat(usr_config, "/");
-      } else {
-        strcpy(usr_config, homedir);
-        i = strlen(usr_config);
-        if (i && (usr_config[i - 1] != '/'))
-          strcat(usr_config, "/");
-        strcat(usr_config, ".config/");
-      }
-      strcat(usr_config, "avrdude/config");
-    }
-  }
+  if(!concatpath(usr_config, getenv("HOME"), USER_CONF_FILE, sizeof usr_config-1)
+     || stat(usr_config, &sb) < 0
+     || (sb.st_mode & S_IFREG) == 0)
+    if(!concatpath(usr_config, getenv("XDG_CONFIG_HOME"), XDG_USER_CONF_FILE, sizeof usr_config-1))
+      concatpath(usr_config, getenv("HOME"), ".config/" XDG_USER_CONF_FILE, sizeof usr_config-1);
 #endif
 
   if (quell_progress == 0)

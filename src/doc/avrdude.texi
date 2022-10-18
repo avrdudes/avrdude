@@ -1721,15 +1721,15 @@ programmer work with AVRDUDE.
 
 AVRDUDE first looks for a system wide configuration file in a platform
 dependent location.  On Unix, this is usually
-@code{/usr/local/etc/avrdude.conf}, while on Windows it is usually in the
+@code{/usr/local/etc/avrdude.conf}, whilst on Windows it is usually in the
 same location as the executable file.  The name of this file can be
 changed using the @option{-C} command line option.  After the system wide
 configuration file is parsed, AVRDUDE looks for a per-user configuration
 file to augment or override the system wide defaults.  On Unix, the
 per-user file is @code{.avrduderc} within the user's home directory or,
-if that does not exists, @code{$@{XDG_CONFIG_HOME@}/avrdude/config},
+if that does not exists, @code{$@{XDG_CONFIG_HOME@}/avrdude/avrdude.rc},
 whereas if @code{$@{XDG_CONFIG_HOME@}} is either not set or empty,
-@code{$@{HOME@}/.config/} is used by default.  On Windows, this file is
+@code{$@{HOME@}/.config/} is used instead.  On Windows, this file is
 the @code{avrdude.rc} file located in the same directory as the
 executable.
 
