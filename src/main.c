@@ -878,11 +878,11 @@ int main(int argc, char * argv [])
   win_usr_config_set(usr_config);
 #else
   usr_config[0] = 0;
-  if(!concatpath(usr_config, getenv("HOME"), USER_CONF_FILE, sizeof usr_config-1)
+  if(!concatpath(usr_config, getenv("HOME"), USER_CONF_FILE, sizeof usr_config)
      || stat(usr_config, &sb) < 0
      || (sb.st_mode & S_IFREG) == 0)
-    if(!concatpath(usr_config, getenv("XDG_CONFIG_HOME"), XDG_USER_CONF_FILE, sizeof usr_config-1))
-      concatpath(usr_config, getenv("HOME"), ".config/" XDG_USER_CONF_FILE, sizeof usr_config-1);
+    if(!concatpath(usr_config, getenv("XDG_CONFIG_HOME"), XDG_USER_CONF_FILE, sizeof usr_config))
+      concatpath(usr_config, getenv("HOME"), ".config/" XDG_USER_CONF_FILE, sizeof usr_config);
 #endif
 
   if (quell_progress == 0)
