@@ -121,6 +121,8 @@ enum flip2_mem_unit {
   FLIP2_MEM_UNIT_EXT_MEM_DF = 0x10
 };
 
+#ifdef HAVE_LIBUSB
+
 /* EXPORTED PROGRAMMER FUNCTION PROTOTYPES */
 
 static int flip2_open(PROGRAMMER *pgm, const char *port_spec);
@@ -146,8 +148,6 @@ static void flip2_setup(PROGRAMMER * pgm);
 static void flip2_teardown(PROGRAMMER * pgm);
 
 /* INTERNAL PROGRAMMER FUNCTION PROTOTYPES */
-#ifdef HAVE_LIBUSB
-// The internal ones are made conditional, as they're not defined further down #ifndef HAVE_LIBUSB
 
 static void flip2_show_info(struct flip2 *flip2);
 
