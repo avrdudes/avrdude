@@ -91,6 +91,9 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
     int rc = 0;
     va_list ap;
 
+    if(msglvl <= MSG_ERROR)     // Serious error? Freee progress bars (if any)
+      report_progress(1, -1, NULL);
+
     if(msgmode & MSG2_FLUSH) {
         fflush(stdout);
         fflush(stderr);
