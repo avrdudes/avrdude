@@ -1344,7 +1344,7 @@ int terminal_mode(PROGRAMMER *pgm, struct avrpart *p) {
 
 static void update_progress_tty(int percent, double etime, const char *hdr, int finish) {
   static char *header;
-  static int last, done;
+  static int last, done = 1;
   int i;
 
   setvbuf(stderr, (char *) NULL, _IONBF, 0);
@@ -1371,7 +1371,7 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
       hashes[i/2] = '#';
     hashes[50] = 0;
 
-    msg_info("\r%s | %s | %d%% %0.2fs", header, hashes, showperc, etime);
+    msg_info("\r%s | %s | %d%% %0.2f s ", header, hashes, showperc, etime);
     if(percent == 100) {
       if(finish)
         msg_info("\n\n");
@@ -1384,7 +1384,7 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
 }
 
 static void update_progress_no_tty(int percent, double etime, const char *hdr, int finish) {
-  static int last, done;
+  static int last, done = 1;
 
   setvbuf(stderr, (char *) NULL, _IONBF, 0);
 
