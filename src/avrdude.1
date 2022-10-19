@@ -1332,22 +1332,22 @@ On all other systems, the file is first looked up in
 relative to the path of the executable, then in the same directory as
 the executable itself, and finally in the system default location
 .Pa ${PREFIX}/etc/avrdude.conf .
-.It Pa ${HOME}/.avrduderc
-Local programmer and parts configuration file (per-user overrides)
 .It Pa ${XDG_CONFIG_HOME}/avrdude/avrdude.rc
-Used as local configuration file if
-.Pa ${HOME}/.avrduderc
-does not exist; if the
+Local programmer and parts configuration file (per-user overrides); it follows the same syntax as
+.Pa avrdude.conf ;
+if the
 .Pa ${XDG_CONFIG_HOME}
-environment variable is either not set or empty, the directory
+environment variable is not set or empty, the directory
 .Pa ${HOME}/.config/
 is used instead.
+.It Pa ${HOME}/.avrduderc
+Alternative location of the per-user configuration file if above file does not exist
 .It Pa ~/.inputrc
 Initialization file for the
 .Xr readline 3
 library
-.It Pa ${PREFIX}/share/doc/avrdude/avrdude.pdf
-Schematic of programming hardware
+.It Pa <prefix>/doc/avrdude/avrdude.pdf
+User manual
 .El
 .\" .Sh EXAMPLES
 .Sh DIAGNOSTICS
