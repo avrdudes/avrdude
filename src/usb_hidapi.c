@@ -133,8 +133,8 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
       dev = hid_open(pinfo.usbinfo.vid, pinfo.usbinfo.pid, NULL);
       if (dev == NULL)
       {
-	pmsg_error("no device found\n");
-	return -1;
+        pmsg_notice2("no device found\n");
+        return -1;
       }
     }
 
