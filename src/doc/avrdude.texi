@@ -598,6 +598,8 @@ Also, for programmers like the Atmel STK500 and STK600 which can
 adjust parameters local to the programming tool (independent of an
 actual connection to a target controller), this option can be used
 together with @option{-t} to continue in terminal mode.
+Moreover, the option allows to continue despite failed initialization
+of connection between a programmer and a target.
 
 @item -i @var{delay}
 For bitbang-type programmers, delay for approximately
