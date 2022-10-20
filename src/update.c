@@ -335,11 +335,11 @@ int update_is_readable(const char *fn) {
 static void ioerror(const char *iotype, UPDATE *upd) {
   int errnocp = errno;
 
-  pmsg_ext_error("file %s is not %s", update_outname(upd->filename), iotype);
+  pmsg_ext_error("file %s is not %s: ", update_outname(upd->filename), iotype);
   if(errnocp)
-    msg_ext_error("memstats(): %s", strerror(errnocp));
+    msg_ext_error("%s", strerror(errnocp));
   else if(upd->filename && *upd->filename)
-    msg_ext_error(" (not a regular or character file?)");
+    msg_ext_error("(not a regular or character file?)");
   msg_ext_error("\n");
 }
 
