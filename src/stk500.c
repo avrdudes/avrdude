@@ -701,7 +701,7 @@ static int stk500_loadaddr(const PROGRAMMER *pgm, const AVRMEM *mem, unsigned in
        * bootloader has been auto-incremented. Verifying the code from start exposes the
        * discrepancy. Below intervention forces the next r/w to send the correct ext_addr_byte.
        */
-      if((addr & 0xffff0000) != (addr+mem->page_size/a_div) & 0xffff0000)
+      if((addr & 0xffff0000) != ((addr+mem->page_size/a_div) & 0xffff0000))
         PDATA(pgm)->ext_addr_byte = 0xff;
     }
   } else {                      // Programmer *not* for bootloaders? Original stk500v1 protocol!
