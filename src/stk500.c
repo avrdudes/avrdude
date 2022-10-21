@@ -694,10 +694,11 @@ static int stk500_loadaddr(const PROGRAMMER *pgm, const AVRMEM *mem, unsigned in
       /*
        * Paper over a bug in some bootloaders: ensure next paged r/w will load ext addr again if
        * page sits just below 64k a boundary. Some bootloaders mistakenly increment their copy of
-       * ext_addr_byte in that situation, eg, when they use elpm rx,Z+ to read a byte from flash
-       * and they keep ext_addr_byte in RAMPZ. So, if an upload with automated verify finishes just
-       * below 64k, AVRDUDE still holds ext_addr_byte at the current 64k segment whilst it's copy
-       * in the bootloader has been auto-incremented. Verifying the code from start exposes the
+       * ext_addr_byte in that situation, eg, when they use elpm rx,Z+ to read a byte from flash or
+       * `spm Z+` to write to flash whilst they keep ext_addr_byte in RAMPZ that gets incremented
+       * by `Z+` at 64k page boundaries. So, if an upload with automated verify finishes just below
+       * 64k, AVRDUDE still holds ext_addr_byte at the current 64k segment whilst it's copy in the
+       * bootloader has been auto-incremented. Verifying the code from start exposes the
        * discrepancy. Below intervention forces the next r/w to send the correct ext_addr_byte.
        */
       if(addr & 0xffff0000 != (addr+mem->page_size/a_div) & 0xffff0000)
