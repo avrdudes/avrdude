@@ -625,6 +625,12 @@ static void stk500_disable(const PROGRAMMER *pgm) {
 }
 
 static void stk500_enable(PROGRAMMER *pgm, const AVRPART *p) {
+  AVRMEM *mem;
+  if(pgm->prog_modes & PM_SPM)  // For bootloaders (eg, arduino)
+    if(!(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire))) // Classic parts, eg, optiboot with word addresses
+      if((mem = avr_locate_mem(p, "eeprom")))
+        if(mem->page_size == 1)   // Increase pagesize if it is 1
+          mem->page_size = 16;
   return;
 }
 
@@ -758,10 +764,10 @@ static int set_memtype_a_div(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     *memtypep = 'F';
     if(!(pgm->prog_modes & PM_SPM)) // Programmer *not* for bootloaders: original stk500v1 protocol
       *a_divp = m->op[AVR_OP_LOADPAGE_LO] || m->op[AVR_OP_READ_LO]? 2: 1;
-    else if(p->prog_modes & (PM_UPDI | PM_PDI))
-      *a_divp = 1;              // For bootloaders whereas part is Xmega or "new" families (optiboot_x, optiboot_dx)
+    else if(!(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire)))
+      *a_divp = 2;              // Bootloader where part is a "classic" part (eg, optiboot)
     else
-      *a_divp = 2;              // For bootloaders whereas part is a "classic" part (eg, optiboot)
+      *a_divp = 1;              // Bootloader where part is Xmega or "new" families (optiboot_x, optiboot_dx)
     return 0;
   }
 
