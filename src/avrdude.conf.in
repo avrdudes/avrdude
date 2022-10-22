@@ -1270,7 +1270,7 @@ programmer
     id                     = "stk600";
     desc                   = "Atmel STK600";
     type                   = "stk600";
-    prog_modes             = PM_TPI | PM_ISP;
+    prog_modes             = PM_TPI | PM_ISP | PM_PDI;
     connection_type        = usb;
 ;
 
