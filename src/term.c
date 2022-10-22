@@ -38,15 +38,20 @@
 
 #ifdef _MSC_VER
 #include "msvc/unistd.h"
+deliberate fail msc_ver
 #else
 #include <unistd.h>
+deliberate fail not_msc_ver
 #endif
 
 #ifdef WIN32
 #include <windows.h>
+deliberate fail win32
+#endif
+#ifdef __APPLE__
+deliberate fail apple
 #endif
 #endif
-
 
 #include "avrdude.h"
 #include "term.h"
