@@ -389,7 +389,7 @@
 # ATmega169     0x78
 
 #
-# Overall avrdude defaults; suitable for ~/.avrduderc
+# Overall avrdude defaults; suitable for ~/.config/avrdude/config
 #
 default_parallel   = "@DEFAULT_PAR_PORT@";
 default_serial     = "@DEFAULT_SER_PORT@";
@@ -2280,7 +2280,7 @@ programmer
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
     connection_type        = usb;
-    usbpid                 = 0x217f, 0x2180, 0x2181;
+    usbpid                 = 0x2180, 0x217f, 0x2181;
     hvupdi_support         = 1;
 ;
 
@@ -2294,7 +2294,7 @@ programmer
     type                   = "jtagice3_pdi";
     prog_modes             = PM_PDI;
     connection_type        = usb;
-    usbpid                 = 0x217f, 0x2180, 0x2181;
+    usbpid                 = 0x2180, 0x217f, 0x2181;
 ;
 
 #------------------------------------------------------------
@@ -2307,7 +2307,7 @@ programmer
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
     connection_type        = usb;
-    usbpid                 = 0x217f, 0x2180, 0x2181;
+    usbpid                 = 0x2180, 0x217f, 0x2181;
 ;
 
 #------------------------------------------------------------

@@ -440,19 +440,21 @@ Override the RS-232 connection baud rate specified in the respective
 programmer's entry of the configuration file.
 
 @item -B @var{bitclock}
-Specify the bit clock period for the JTAG interface or the ISP clock (JTAG ICE only).
-The value is a floating-point number in microseconds.
-Alternatively, the value might be suffixed with "Hz", "kHz", or "MHz",
-in order to specify the bit clock frequency, rather than a period.
-The default value of the JTAG ICE results in about 1 microsecond bit
-clock period, suitable for target MCUs running at 4 MHz clock and
-above.
-Unlike certain parameters in the STK500, the JTAG ICE resets all its
-parameters to default values when the programming software signs
-off from the ICE, so for MCUs running at lower clock speeds, this
-parameter must be specified on the command-line.
-It can also be set in the configuration file by using the 'default_bitclock'
-keyword.
+Specify the bit clock period for the JTAG, PDI, TPI, UPDI, or ISP
+interface. The value is a floating-point number in microseconds.
+Alternatively, the value might be suffixed with "Hz", "kHz" or
+"MHz" in order to specify the bit clock frequency rather than a
+period. Some programmers default their bit clock value to a 1
+microsecond bit clock period, suitable for target MCUs running at 4
+MHz clock and above. Slower MCUs need a correspondingly higher bit
+clock period. Some programmers reset their bit clock value to the
+default value when the programming software signs off, whilst
+others store the last used bit clock value. It is recommended to
+always specify the bit clock if read/write speed is important.  You
+can use the 'default_bitclock' keyword in your
+@code{~/.config/avrdude/avrdude.rc} or @code{~/.avrduderc}
+configuration file to assign a default value to keep from having to
+specify this option on every invocation.
 
 @item -c @var{programmer-id}
 Specify the programmer to be used.  AVRDUDE knows about several common
@@ -598,6 +600,8 @@ Also, for programmers like the Atmel STK500 and STK600 which can
 adjust parameters local to the programming tool (independent of an
 actual connection to a target controller), this option can be used
 together with @option{-t} to continue in terminal mode.
+Moreover, the option allows to continue despite failed initialization
+of connection between a programmer and a target.
 
 @item -i @var{delay}
 For bitbang-type programmers, delay for approximately
@@ -1714,21 +1718,24 @@ AVRDUDE reads a configuration file upon startup which describes all of
 the parts and programmers that it knows about.  The advantage of this is
 that if you have a chip that is not currently supported by AVRDUDE, you
 can add it to the configuration file without waiting for a new release
-of AVRDUDE.  Likewise, if you have a parallel port programmer that is
-not supported by AVRDUDE, chances are good that you can copy and
-existing programmer definition, and with only a few changes, make your
-programmer work with AVRDUDE.
+of AVRDUDE. Likewise, if you have a parallel port programmer that is
+not supported, chances are that you can copy an
+existing programmer definition and, with only a few changes, make your
+programmer work.
 
 AVRDUDE first looks for a system wide configuration file in a platform
 dependent location.  On Unix, this is usually
-@code{/usr/local/etc/avrdude.conf}, while on Windows it is usually in the
-same location as the executable file.  The name of this file can be
-changed using the @option{-C} command line option.  After the system wide
-configuration file is parsed, AVRDUDE looks for a per-user configuration
+@code{/usr/local/etc/avrdude.conf}, whilst on Windows it is usually in the
+same location as the executable file.  The full name of this file can be
+specified using the @option{-C} command line option.  After parsing the system wide
+configuration file, AVRDUDE looks for a per-user configuration
 file to augment or override the system wide defaults.  On Unix, the
-per-user file is @code{.avrduderc} within the user's home directory.  On
-Windows, this file is the @code{avrdude.rc} file located in the same
-directory as the executable.
+per-user file is @code{$@{XDG_CONFIG_HOME@}/avrdude/avrdude.rc}, whereas
+if @code{$@{XDG_CONFIG_HOME@}} is either not set or empty,
+@code{$@{HOME@}/.config/} is used instead. If that does not exists
+@code{.avrduderc} within the user's home directory is used. On Windows,
+this file is the @code{avrdude.rc} file located in the same directory as
+the executable.
 
 @menu
 * AVRDUDE Defaults::            
@@ -3044,14 +3051,15 @@ See also: @url{http://www.libusb.org/ticket/6}
 @item
 Problem: after flashing a firmware that reduces the target's clock
 speed (e.g. through the @code{CLKPR} register), further ISP connection
-attempts fail.
+attempts fail.  Or a programmer cannot initialize communication with
+a brand new chip.
 
 Solution: Even though ISP starts with pulling @var{/RESET} low, the
-target continues to run at the internal clock speed as defined by the
-firmware running before.  Therefore, the ISP clock speed must be
-reduced appropriately (to less than 1/4 of the internal clock speed)
-using the -B option before the ISP initialization sequence will
-succeed.
+target continues to run at the internal clock speed either as defined by
+the firmware running before or as set by the factory.  Therefore, the
+ISP clock speed must be reduced appropriately (to less than 1/4 of the
+internal clock speed) using the -B option before the ISP initialization
+sequence will succeed.
 
 As that slows down the entire subsequent ISP session, it might make
 sense to just issue a @emph{chip erase} using the slow ISP clock

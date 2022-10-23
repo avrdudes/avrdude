@@ -103,7 +103,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                                 unsigned long addr, unsigned char data);
 static int jtag3_set_sck_period(const PROGRAMMER *pgm, double v);
-void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p);
+void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp);
 static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                 unsigned int page_size,
                                 unsigned int addr, unsigned int n_bytes);
@@ -1077,7 +1077,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if (PDATA(pgm)->set_sck(pgm, parm) < 0)
       return -1;
   }
-  jtag3_print_parms1(pgm, progbuf);
+  jtag3_print_parms1(pgm, progbuf, stderr);
   if (conn == PARM3_CONN_JTAG)
   {
     pmsg_notice2("jtag3_initialize(): "
@@ -1504,6 +1504,30 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
   }
 #endif
   if (rv < 0) {
+    // Check if SNAP or PICkit4 is in PIC mode
+    for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
+      if (matches(ldata(ln), "snap")) {
+        pinfo.usbinfo.vid = USB_VENDOR_MICROCHIP;
+        pinfo.usbinfo.pid = USB_DEVICE_SNAP_PIC_MODE;
+        int pic_mode = serial_open(port, pinfo, &pgm->fd);
+        if(pic_mode >= 0) {
+          msg_error("\n");
+          pmsg_error("MPLAB SNAP in PIC mode detected!\n");
+          imsg_error("Use MPLAB X or Microchip Studio to switch to AVR mode\n\n");
+          return -1;
+        }
+      } else if(matches(ldata(ln), "pickit4")) {
+        pinfo.usbinfo.vid = USB_VENDOR_MICROCHIP;
+        pinfo.usbinfo.pid = USB_DEVICE_PICKIT4_PIC_MODE;
+        int pic_mode = serial_open(port, pinfo, &pgm->fd);
+        if(pic_mode >= 0) {
+          msg_error("\n");
+          pmsg_error("PICkit4 in PIC mode detected!\n");
+          imsg_error("Use MPLAB X or Microchip Studio to switch to AVR mode\n\n");
+          return -1;
+        }
+      }
+    }
     pmsg_error("did not find any device matching VID 0x%04x and PID list: ",
       (unsigned) pinfo.usbinfo.vid);
     int notfirst = 0;
@@ -2333,12 +2357,12 @@ static void jtag3_display(const PROGRAMMER *pgm, const char *p) {
 }
 
 
-void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p) {
+void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
   unsigned char buf[3];
 
   if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0)
     return;
-  msg_info("%sVtarget         %s: %.2f V\n", p,
+  fmsg_out(fp, "%sVtarget         %s: %.2f V\n", p,
     verbose? "": "             ", b2_to_u16(buf)/1000.0);
 
   // Print features unique to the Power Debugger
@@ -2350,7 +2374,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p) {
       if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, 2) < 0)
         return;
       analog_raw_data = b2_to_u16(buf);
-      msg_info("%sVout set        %s: %.2f V\n", p,
+      fmsg_out(fp, "%sVout set        %s: %.2f V\n", p,
         verbose? "": "             ", analog_raw_data / 1000.0);
 
       // Read measured generator voltage value (VOUT)
@@ -2362,7 +2386,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p) {
       else {
         if (analog_raw_data & 0x0800)
           analog_raw_data |= 0xF000;
-        msg_info("%sVout measured   %s: %.02f V\n", p,
+        fmsg_out(fp, "%sVout measured   %s: %.02f V\n", p,
           verbose? "": "             ", ((float) analog_raw_data / -200.0));
       }
 
@@ -2375,7 +2399,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p) {
       else {
         if (analog_raw_data & 0x0800)
           analog_raw_data |= 0xF000;
-        msg_info("%sCh A voltage    %s: %.03f V\n", p,
+        fmsg_out(fp, "%sCh A voltage    %s: %.03f V\n", p,
           verbose? "": "             ", ((float) analog_raw_data / -200.0));
       }
 
@@ -2386,7 +2410,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p) {
       if (buf[0] != 0x90)
         pmsg_error("invalid PARM3_ANALOG_A_CURRENT data packet format\n");
       else
-        msg_info("%sCh A current    %s: %.3f mA\n", p,
+        fmsg_out(fp, "%sCh A current    %s: %.3f mA\n", p,
           verbose? "": "             ", (float) analog_raw_data * 0.003472);
 
       // Read channel B voltage
@@ -2398,7 +2422,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p) {
       else {
         if (analog_raw_data & 0x0800)
           analog_raw_data |= 0xF000;
-        msg_info("%sCh B voltage    %s: %.03f V\n", p,
+        fmsg_out(fp, "%sCh B voltage    %s: %.03f V\n", p,
           verbose? "": "             ", (float) analog_raw_data / -200.0);
       }
 
@@ -2411,7 +2435,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p) {
       else {
         if (analog_raw_data & 0x0800)
           analog_raw_data |= 0xF000;
-        msg_info("%sCh B current    %s: %.3f mA\n", p,
+        fmsg_out(fp, "%sCh B current    %s: %.3f mA\n", p,
           verbose? "": "             ", (float) analog_raw_data * 0.555556);
       }
       break;
@@ -2422,33 +2446,33 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p) {
     return;
 
   if (b2_to_u16(buf) > 0) {
-    msg_info("%sJTAG clock megaAVR/program   : %u kHz\n", p, b2_to_u16(buf));
+    fmsg_out(fp, "%sJTAG clock megaAVR/program   : %u kHz\n", p, b2_to_u16(buf));
   }
 
   if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_DEBUG, buf, 2) < 0)
     return;
 
   if (b2_to_u16(buf) > 0) {
-    msg_info("%sJTAG clock megaAVR/debug     : %u kHz\n", p, b2_to_u16(buf));
+    fmsg_out(fp, "%sJTAG clock megaAVR/debug     : %u kHz\n", p, b2_to_u16(buf));
   }
 
   if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_JTAG, buf, 2) < 0)
     return;
 
   if (b2_to_u16(buf) > 0) {
-    msg_info("%sJTAG clock Xmega             : %u kHz\n", p, b2_to_u16(buf));
+    fmsg_out(fp, "%sJTAG clock Xmega             : %u kHz\n", p, b2_to_u16(buf));
   }
 
   if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_PDI, buf, 2) < 0)
     return;
 
   if (b2_to_u16(buf) > 0) {
-    msg_info("%sPDI/UPDI clock Xmega/megaAVR : %u kHz\n", p, b2_to_u16(buf));
+    fmsg_out(fp, "%sPDI/UPDI clock Xmega/megaAVR : %u kHz\n", p, b2_to_u16(buf));
   }
 }
 
-static void jtag3_print_parms(const PROGRAMMER *pgm) {
-  jtag3_print_parms1(pgm, "");
+static void jtag3_print_parms(const PROGRAMMER *pgm, FILE *fp) {
+  jtag3_print_parms1(pgm, "", fp);
 }
 
 static unsigned char jtag3_memtype(const PROGRAMMER *pgm, const AVRPART *p, unsigned long addr) {

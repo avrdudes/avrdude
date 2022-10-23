@@ -87,36 +87,48 @@ static const char *avrdude_message_type(int msglvl) {
   }
 }
 
-int avrdude_message2(const char *fname, int msgmode, int msglvl, const char *format, ...) {
+int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...) {
     int rc = 0;
     va_list ap;
+
+    if(msglvl <= MSG_ERROR)     // Serious error? Freee progress bars (if any)
+      report_progress(1, -1, NULL);
 
     if(msgmode & MSG2_FLUSH) {
         fflush(stdout);
         fflush(stderr);
     }
  
-    // Reduce effective verbosity level by number of -q above one
-    if ((quell_progress < 2? verbose: verbose+1-quell_progress) >= msglvl) {
+    // Reduce effective verbosity level by number of -q above one when printing to stderr
+    if ((quell_progress < 2 || fp != stderr? verbose: verbose+1-quell_progress) >= msglvl) {
         if(msgmode & MSG2_PROGNAME) {
-          fprintf(stderr, "%s", progname);
+          fprintf(fp, "%s", progname);
           if(verbose >= MSG_NOTICE && (msgmode & MSG2_FUNCTION))
-            fprintf(stderr, " %s()", fname);
+            fprintf(fp, " %s()", func);
+          if(verbose >= MSG_DEBUG && (msgmode & MSG2_FILELINE)) {
+            const char *pr = strrchr(file, '/'); // only print basename
+#if defined (WIN32)
+            if(!pr)
+              pr =  strrchr(file, '\\');
+#endif
+            pr = pr? pr+1: file;
+            fprintf(fp, " [%s:%d]", pr, lno);
+          }
           if(msgmode & MSG2_TYPE)
-            fprintf(stderr, " %s", avrdude_message_type(msglvl));
-          fprintf(stderr, ": ");
+            fprintf(fp, " %s", avrdude_message_type(msglvl));
+          fprintf(fp, ": ");
         } else if(msgmode & MSG2_INDENT1) {
-          fprintf(stderr, "%*s", (int) strlen(progname)+1, "");
+          fprintf(fp, "%*s", (int) strlen(progname)+1, "");
         } else if(msgmode & MSG2_INDENT2) {
-          fprintf(stderr, "%*s", (int) strlen(progname)+2, "");
+          fprintf(fp, "%*s", (int) strlen(progname)+2, "");
         }
         va_start(ap, format);
-        rc = vfprintf(stderr, format, ap);
+        rc = vfprintf(fp, format, ap);
         va_end(ap);
     }
 
     if(msgmode & MSG2_FLUSH)
-        fflush(stderr);
+        fflush(fp);
 
     return rc;
 }
@@ -155,14 +167,14 @@ static void usage(void)
     "Options:\n"
     "  -p <partno>                Specify AVR device\n"
     "  -b <baudrate>              Override RS-232 baud rate\n"
-    "  -B <bitclock>              Specify JTAG/STK500v2 bit clock period (us)\n"
+    "  -B <bitclock>              Specify bit clock period (us)\n"
     "  -C <config-file>           Specify location of configuration file\n"
     "  -c <programmer>            Specify programmer type\n"
     "  -A                         Disable trailing-0xff removal from file and AVR read\n"
     "  -D                         Disable auto erase for flash memory; implies -A\n"
     "  -i <delay>                 ISP Clock Delay [in microseconds]\n"
     "  -P <port>                  Specify connection port\n"
-    "  -F                         Override invalid signature check\n"
+    "  -F                         Override invalid signature or initialisation check\n"
     "  -e                         Perform a chip erase\n"
     "  -O                         Perform RC oscillator calibration (see AVR053)\n"
     "  -U <memtype>:r|w|v:<filename>[:format]\n"
@@ -425,6 +437,32 @@ static void exit_part_not_found(const char *partdesc) {
 }
 
 
+#if !defined(WIN32)
+// Safely concatenate dir/file into dst that has size n
+static char *concatpath(char *dst, char *dir, char *file, size_t n) {
+  // Dir or file empty?
+  if(!dir || !*dir || !file || !*file)
+    return NULL;
+
+  size_t len = strlen(dir);
+
+  // Insufficient space?
+  if(len + (dir[len-1] != '/') + strlen(file) > n-1)
+    return NULL;
+
+  if(dst != dir)
+    strcpy(dst, dir);
+
+  if(dst[len-1] != '/')
+    strcat(dst, "/");
+
+  strcat(dst, file);
+
+  return dst;
+}
+#endif
+
+
 /*
  * main routine
  */
@@ -464,10 +502,6 @@ int main(int argc, char * argv [])
   int     is_open;     /* Device open succeeded */
   char  * logfile;     /* Use logfile rather than stderr for diagnostics */
   enum updateflags uflags = UF_AUTO_ERASE | UF_VERIFY; /* Flags for do_op() */
-
-#if !defined(WIN32)
-  char  * homedir;
-#endif
 
 #ifdef _MSC_VER
   _set_printf_count_output(1);
@@ -856,14 +890,10 @@ int main(int argc, char * argv [])
   win_usr_config_set(usr_config);
 #else
   usr_config[0] = 0;
-  homedir = getenv("HOME");
-  if (homedir != NULL) {
-    strcpy(usr_config, homedir);
-    i = strlen(usr_config);
-    if (i && (usr_config[i - 1] != '/'))
-      strcat(usr_config, "/");
-    strcat(usr_config, USER_CONF_FILE);
-  }
+  if(!concatpath(usr_config, getenv("XDG_CONFIG_HOME"), XDG_USER_CONF_FILE, sizeof usr_config))
+    concatpath(usr_config, getenv("HOME"), ".config/" XDG_USER_CONF_FILE, sizeof usr_config);
+  if(stat(usr_config, &sb) < 0 || (sb.st_mode & S_IFREG) == 0)
+    concatpath(usr_config, getenv("HOME"), USER_CONF_FILE, sizeof usr_config);
 #endif
 
   if (quell_progress == 0)
@@ -1190,9 +1220,10 @@ int main(int argc, char * argv [])
   init_ok = (rc = pgm->initialize(pgm, p)) >= 0;
   if (!init_ok) {
     pmsg_error("initialization failed, rc=%d\n", rc);
+    imsg_error("- double check the connections and try again\n");
+    imsg_error("- use -B to set lower ISP clock frequency, e.g. -B 200kHz\n");
     if (!ovsigck) {
-      imsg_error("double check connections and try again or use -F to override\n");
-      imsg_error("this check\n\n");
+      imsg_error("- use -F to override this check\n\n");
       exitrc = 1;
       goto main_exit;
     }

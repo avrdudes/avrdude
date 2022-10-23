@@ -104,7 +104,7 @@ static int jtagmkI_getparm(const PROGRAMMER *pgm, unsigned char parm,
 			    unsigned char * value);
 static int jtagmkI_setparm(const PROGRAMMER *pgm, unsigned char parm,
 			    unsigned char value);
-static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p);
+static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp);
 
 static int jtagmkI_resync(const PROGRAMMER *pgm, int maxtries, int signon);
 
@@ -1170,13 +1170,13 @@ static void jtagmkI_display(const PROGRAMMER *pgm, const char *p) {
   msg_info("%sICE HW version: 0x%02x\n", p, hw);
   msg_info("%sICE FW version: 0x%02x\n", p, fw);
 
-  jtagmkI_print_parms1(pgm, p);
+  jtagmkI_print_parms1(pgm, p, stderr);
 
   return;
 }
 
 
-static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p) {
+static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
   unsigned char vtarget, jtag_clock;
   const char *clkstr;
   double clk;
@@ -1211,15 +1211,15 @@ static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p) {
     clk = 1e6;
   }
 
-  msg_info("%sVtarget       : %.1f V\n", p, 6.25 * (unsigned)vtarget / 255.0);
-  msg_info("%sJTAG clock    : %s (%.1f us)\n", p, clkstr, 1.0e6 / clk);
+  fmsg_out(fp, "%sVtarget       : %.1f V\n", p, 6.25 * (unsigned)vtarget / 255.0);
+  fmsg_out(fp, "%sJTAG clock    : %s (%.1f us)\n", p, clkstr, 1.0e6 / clk);
 
   return;
 }
 
 
-static void jtagmkI_print_parms(const PROGRAMMER *pgm) {
-  jtagmkI_print_parms1(pgm, "");
+static void jtagmkI_print_parms(const PROGRAMMER *pgm, FILE *fp) {
+  jtagmkI_print_parms1(pgm, "", fp);
 }
 
 const char jtagmkI_desc[] = "Atmel JTAG ICE mkI";

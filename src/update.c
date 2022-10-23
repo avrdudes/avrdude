@@ -335,11 +335,11 @@ int update_is_readable(const char *fn) {
 static void ioerror(const char *iotype, UPDATE *upd) {
   int errnocp = errno;
 
-  pmsg_ext_error("file %s is not %s", update_outname(upd->filename), iotype);
+  pmsg_ext_error("file %s is not %s: ", update_outname(upd->filename), iotype);
   if(errnocp)
-    msg_ext_error("memstats(): %s", strerror(errnocp));
+    msg_ext_error("%s", strerror(errnocp));
   else if(upd->filename && *upd->filename)
-    msg_ext_error(" (not a regular or character file?)");
+    msg_ext_error("(not a regular or character file?)");
   msg_ext_error("\n");
 }
 
@@ -456,7 +456,8 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
     }
     pmsg_info("reading %s%s memory ...\n", mem->desc, alias_mem_desc);
 
-    report_progress(0, 1, "Reading");
+    if(mem->size > 32 || verbose > 1)
+      report_progress(0, 1, "Reading");
     
     rc = avr_read(pgm, p, upd->memtype, 0);
     report_progress(1, 1, NULL);
@@ -511,7 +512,8 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
       update_plural(fs.nbytes), mem->desc, alias_mem_desc);
 
     if (!(flags & UF_NOWRITE)) {
-      report_progress(0, 1, "Writing");
+      if(mem->size > 32 || verbose > 1)
+        report_progress(0, 1, "Writing");
       rc = avr_write(pgm, p, upd->memtype, size, (flags & UF_AUTO_ERASE) != 0);
       report_progress(1, 1, NULL);
     } else {
@@ -569,7 +571,8 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
       pmsg_notice2("reading on-chip %s%s data ...\n", mem->desc, alias_mem_desc);
     }
 
-    report_progress (0,1,"Reading");
+    if(mem->size > 32 || verbose > 1)
+      report_progress (0,1,"Reading");
     rc = avr_read(pgm, p, upd->memtype, v);
     report_progress (1,1,NULL);
     if (rc < 0) {
