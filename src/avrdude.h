@@ -26,7 +26,6 @@
 #define USER_CONF_FILE "avrdude.rc"
 #else
 #define USER_CONF_FILE ".avrduderc"
-#define XDG_USER_CONF_FILE "avrdude/avrdude.rc"
 #endif
 
 extern char *progname;       // name of program, for messages

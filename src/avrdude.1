@@ -1320,10 +1320,10 @@ the CS line being managed outside the application.
 .Sh FILES
 .Bl -tag -offset indent -width /dev/ppi0XXX
 .It Pa /dev/ppi0
-Default device to be used for communication with the programming
+default device to be used for communication with the programming
 hardware
 .It Pa avrdude.conf
-Programmer and parts configuration file
+programmer and parts configuration file
 .Pp
 On Windows systems, this file is looked up in the same directory as the
 executable file.
@@ -1332,22 +1332,14 @@ On all other systems, the file is first looked up in
 relative to the path of the executable, then in the same directory as
 the executable itself, and finally in the system default location
 .Pa ${PREFIX}/etc/avrdude.conf .
-.It Pa ${XDG_CONFIG_HOME}/avrdude/avrdude.rc
-Local programmer and parts configuration file (per-user overrides); it follows the same syntax as
-.Pa avrdude.conf ;
-if the
-.Pa ${XDG_CONFIG_HOME}
-environment variable is not set or empty, the directory
-.Pa ${HOME}/.config/
-is used instead.
 .It Pa ${HOME}/.avrduderc
-Alternative location of the per-user configuration file if above file does not exist
+programmer and parts configuration file (per-user overrides)
 .It Pa ~/.inputrc
 Initialization file for the
 .Xr readline 3
 library
-.It Pa <prefix>/doc/avrdude/avrdude.pdf
-User manual
+.It Pa ${PREFIX}/share/doc/avrdude/avrdude.pdf
+Schematic of programming hardware
 .El
 .\" .Sh EXAMPLES
 .Sh DIAGNOSTICS
