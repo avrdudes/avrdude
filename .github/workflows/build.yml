@@ -161,7 +161,7 @@ jobs:
           libftdi
           readline
           
-          brew link readline --forece
+          brew link readline --force
       - name: Configure
         run: >-
           cmake
