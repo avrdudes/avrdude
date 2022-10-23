@@ -160,8 +160,7 @@ jobs:
           hidapi
           libftdi
           readline
-          
-          brew link readline --force
+
       - name: Configure
         run: >-
           cmake
