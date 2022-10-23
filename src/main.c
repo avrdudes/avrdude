@@ -425,6 +425,32 @@ static void exit_part_not_found(const char *partdesc) {
 }
 
 
+#if !defined(WIN32)
+// Safely concatenate dir/file into dst that has size n
+static char *concatpath(char *dst, char *dir, char *file, size_t n) {
+  // Dir or file empty?
+  if(!dir || !*dir || !file || !*file)
+    return NULL;
+
+  size_t len = strlen(dir);
+
+  // Insufficient space?
+  if(len + (dir[len-1] != '/') + strlen(file) > n-1)
+    return NULL;
+
+  if(dst != dir)
+    strcpy(dst, dir);
+
+  if(dst[len-1] != '/')
+    strcat(dst, "/");
+
+  strcat(dst, file);
+
+  return dst;
+}
+#endif
+
+
 /*
  * main routine
  */
@@ -464,10 +490,6 @@ int main(int argc, char * argv [])
   int     is_open;     /* Device open succeeded */
   char  * logfile;     /* Use logfile rather than stderr for diagnostics */
   enum updateflags uflags = UF_AUTO_ERASE | UF_VERIFY; /* Flags for do_op() */
-
-#if !defined(WIN32)
-  char  * homedir;
-#endif
 
 #ifdef _MSC_VER
   _set_printf_count_output(1);
@@ -856,14 +878,10 @@ int main(int argc, char * argv [])
   win_usr_config_set(usr_config);
 #else
   usr_config[0] = 0;
-  homedir = getenv("HOME");
-  if (homedir != NULL) {
-    strcpy(usr_config, homedir);
-    i = strlen(usr_config);
-    if (i && (usr_config[i - 1] != '/'))
-      strcat(usr_config, "/");
-    strcat(usr_config, USER_CONF_FILE);
-  }
+  if(!concatpath(usr_config, getenv("XDG_CONFIG_HOME"), XDG_USER_CONF_FILE, sizeof usr_config))
+    concatpath(usr_config, getenv("HOME"), ".config/" XDG_USER_CONF_FILE, sizeof usr_config);
+  if(stat(usr_config, &sb) < 0 || (sb.st_mode & S_IFREG) == 0)
+    concatpath(usr_config, getenv("HOME"), USER_CONF_FILE, sizeof usr_config);
 #endif
 
   if (quell_progress == 0)
