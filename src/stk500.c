@@ -625,6 +625,12 @@ static void stk500_disable(const PROGRAMMER *pgm) {
 }
 
 static void stk500_enable(PROGRAMMER *pgm, const AVRPART *p) {
+  AVRMEM *mem;
+  if(pgm->prog_modes & PM_SPM)  // For bootloaders (eg, arduino)
+    if(!(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire))) // Classic parts, eg, optiboot with word addresses
+      if((mem = avr_locate_mem(p, "eeprom")))
+        if(mem->page_size == 1)   // Increase pagesize if it is 1
+          mem->page_size = 16;
   return;
 }
 
@@ -666,27 +672,56 @@ static void stk500_close(PROGRAMMER * pgm)
 }
 
 
-static int stk500_loadaddr(const PROGRAMMER *pgm, const AVRMEM *mem, const unsigned int addr) {
+// Address is byte address; a_div == 2: send word address; a_div == 1: send byte address
+static int stk500_loadaddr(const PROGRAMMER *pgm, const AVRMEM *mem, unsigned int addr, int a_div) {
   unsigned char buf[16];
   int tries;
   unsigned char ext_byte;
-  OPCODE * lext;
+
+  addr /= a_div;
 
   tries = 0;
  retry:
   tries++;
 
-  /* To support flash > 64K words the correct Extended Address Byte is needed */
-  lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
-  if (lext != NULL) {
-    ext_byte = (addr >> 16) & 0xff;
-    if (ext_byte != PDATA(pgm)->ext_addr_byte) {
-      /* Either this is the first addr load, or a different 64K word section */
-      memset(buf, 0, 4);
-      avr_set_bits(lext, buf);
-      avr_set_addr(lext, buf, addr);
-      stk500_cmd(pgm, buf, buf);
-      PDATA(pgm)->ext_addr_byte = ext_byte;
+  // Support large flash by sending the correct extended address byte when needed
+
+  if(pgm->prog_modes & PM_SPM) { // Bootloaders, eg, optiboot, optiboot_dx, optiboot_x
+    if(mem->size/a_div >  64*1024) { // Extended addressing needed
+      ext_byte = (addr >> 16) & 0xff;
+      if(ext_byte != PDATA(pgm)->ext_addr_byte) { // First addr load or a different 64k section
+        buf[0] = 0x4d;          // Protocol bytes that bootloaders expect
+        buf[1] = 0x00;
+        buf[2] = ext_byte;
+        buf[3] = 0x00;
+        if(stk500_cmd(pgm, buf, buf) == 0)
+          PDATA(pgm)->ext_addr_byte = ext_byte;
+      }
+      /*
+       * Ensure next paged r/w will load ext addr again if page sits just below a 64k boundary
+       *
+       * Some bootloaders increment their copy of ext_addr_byte in that situation, eg, when they
+       * use elpm rx,Z+ to read a byte from flash or spm Z+ to write to flash whilst they keep
+       * ext_addr_byte in RAMPZ, which in turn gets incremented by Z+ at 64k page boundaries. So,
+       * if an upload with automated verify finishes just below 64k, AVRDUDE still holds
+       * ext_addr_byte at the current 64k segment whilst its copy in the bootloader has been
+       * auto-incremented. Verifying the code from start exposes the discrepancy.
+       */
+      if((addr & 0xffff0000) != ((addr+mem->page_size/a_div) & 0xffff0000))
+        PDATA(pgm)->ext_addr_byte = 0xff;
+    }
+  } else {                      // Programmer *not* for bootloaders? Original stk500v1 protocol!
+    OPCODE *lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
+
+    if(lext) {
+      ext_byte = (addr >> 16) & 0xff;
+      if(ext_byte != PDATA(pgm)->ext_addr_byte) { // First addr load or a different 64k section
+        memset(buf, 0, 4);      // Part's load_ext_addr command is typically 4d 00 ext_addr 00
+        avr_set_bits(lext, buf);
+        avr_set_addr(lext, buf, addr);
+        if(stk500_cmd(pgm, buf, buf) == 0)
+          PDATA(pgm)->ext_addr_byte = ext_byte;
+      }
     }
   }
 
@@ -724,6 +759,29 @@ static int stk500_loadaddr(const PROGRAMMER *pgm, const AVRMEM *mem, const unsig
 }
 
 
+static int set_memtype_a_div(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int *memtypep, int *a_divp) {
+  if(avr_mem_is_flash_type(m)) {
+    *memtypep = 'F';
+    if(!(pgm->prog_modes & PM_SPM)) // Programmer *not* for bootloaders: original stk500v1 protocol
+      *a_divp = m->op[AVR_OP_LOADPAGE_LO] || m->op[AVR_OP_READ_LO]? 2: 1;
+    else if(!(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire)))
+      *a_divp = 2;              // Bootloader where part is a "classic" part (eg, optiboot)
+    else
+      *a_divp = 1;              // Bootloader where part is Xmega or "new" families (optiboot_x, optiboot_dx)
+    return 0;
+  }
+
+  if(avr_mem_is_eeprom_type(m)) {
+    *memtypep = 'E';
+    // Word addr for bootloaders where part is a "classic" part (eg, optiboot, arduinoisp, ...), byte addr otherwise
+    *a_divp = (pgm->prog_modes & PM_SPM) && !(p->prog_modes & (PM_UPDI | PM_PDI))? 2: 1;
+    return 0;
+  }
+
+  return -1;
+}
+
+
 static int stk500_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                               unsigned int page_size,
                               unsigned int addr, unsigned int n_bytes)
@@ -736,25 +794,12 @@ static int stk500_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   unsigned int n;
   unsigned int i;
 
-  if (strcmp(m->desc, "flash") == 0) {
-    memtype = 'F';
-    a_div = 2;
-  } else if (strcmp(m->desc, "eeprom") == 0) {
-    memtype = 'E';
-    /*
-     * The STK original 500 v1 protocol actually expects a_div = 1, but the
-     * v1.x FW of the STK500 kit has been superseded by v2 FW in the mid
-     * 2000s. Since optiboot, arduino as ISP and others assume a_div = 2,
-     * better use that. See https://github.com/avrdudes/avrdude/issues/967
-     */
-    a_div = 2;
-  } else {
+  if(set_memtype_a_div(pgm, p, m, &memtype, &a_div) < 0)
     return -2;
-  }
 
   n = addr + n_bytes;
 #if 0
-  msg_info(
+  msg_debug(
     "n_bytes   = %d\n"
     "n         = %u\n"
     "a_div     = %d\n"
@@ -775,7 +820,7 @@ static int stk500_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     tries = 0;
   retry:
     tries++;
-    stk500_loadaddr(pgm, m, addr/a_div);
+    stk500_loadaddr(pgm, m, addr, a_div);
 
     /* build command block and avoid multiple send commands as it leads to a crash
         of the silabs usb serial driver on mac os x */
@@ -830,21 +875,8 @@ static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   unsigned int n;
   int block_size;
 
-  if (strcmp(m->desc, "flash") == 0) {
-    memtype = 'F';
-    a_div = 2;
-  } else if (strcmp(m->desc, "eeprom") == 0) {
-    memtype = 'E';
-    /*
-     * The STK original 500 v1 protocol actually expects a_div = 1, but the
-     * v1.x FW of the STK500 kit has been superseded by v2 FW in the mid
-     * 2000s. Since optiboot, arduino as ISP and others assume a_div = 2,
-     * better use that. See https://github.com/avrdudes/avrdude/issues/967
-     */
-    a_div = 2;
-  } else {
+  if(set_memtype_a_div(pgm, p, m, &memtype, &a_div) < 0)
     return -2;
-  }
 
   n = addr + n_bytes;
   for (; addr < n; addr += block_size) {
@@ -861,7 +893,7 @@ static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     tries = 0;
   retry:
     tries++;
-    stk500_loadaddr(pgm, m, addr/a_div);
+    stk500_loadaddr(pgm, m, addr, a_div);
     buf[0] = Cmnd_STK_READ_PAGE;
     buf[1] = (block_size >> 8) & 0xff;
     buf[2] = block_size & 0xff;
