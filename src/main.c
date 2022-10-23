@@ -87,36 +87,48 @@ static const char *avrdude_message_type(int msglvl) {
   }
 }
 
-int avrdude_message2(const char *fname, int msgmode, int msglvl, const char *format, ...) {
+int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...) {
     int rc = 0;
     va_list ap;
+
+    if(msglvl <= MSG_ERROR)     // Serious error? Freee progress bars (if any)
+      report_progress(1, -1, NULL);
 
     if(msgmode & MSG2_FLUSH) {
         fflush(stdout);
         fflush(stderr);
     }
  
-    // Reduce effective verbosity level by number of -q above one
-    if ((quell_progress < 2? verbose: verbose+1-quell_progress) >= msglvl) {
+    // Reduce effective verbosity level by number of -q above one when printing to stderr
+    if ((quell_progress < 2 || fp != stderr? verbose: verbose+1-quell_progress) >= msglvl) {
         if(msgmode & MSG2_PROGNAME) {
-          fprintf(stderr, "%s", progname);
+          fprintf(fp, "%s", progname);
           if(verbose >= MSG_NOTICE && (msgmode & MSG2_FUNCTION))
-            fprintf(stderr, " %s()", fname);
+            fprintf(fp, " %s()", func);
+          if(verbose >= MSG_DEBUG && (msgmode & MSG2_FILELINE)) {
+            const char *pr = strrchr(file, '/'); // only print basename
+#if defined (WIN32)
+            if(!pr)
+              pr =  strrchr(file, '\\');
+#endif
+            pr = pr? pr+1: file;
+            fprintf(fp, " [%s:%d]", pr, lno);
+          }
           if(msgmode & MSG2_TYPE)
-            fprintf(stderr, " %s", avrdude_message_type(msglvl));
-          fprintf(stderr, ": ");
+            fprintf(fp, " %s", avrdude_message_type(msglvl));
+          fprintf(fp, ": ");
         } else if(msgmode & MSG2_INDENT1) {
-          fprintf(stderr, "%*s", (int) strlen(progname)+1, "");
+          fprintf(fp, "%*s", (int) strlen(progname)+1, "");
         } else if(msgmode & MSG2_INDENT2) {
-          fprintf(stderr, "%*s", (int) strlen(progname)+2, "");
+          fprintf(fp, "%*s", (int) strlen(progname)+2, "");
         }
         va_start(ap, format);
-        rc = vfprintf(stderr, format, ap);
+        rc = vfprintf(fp, format, ap);
         va_end(ap);
     }
 
     if(msgmode & MSG2_FLUSH)
-        fflush(stderr);
+        fflush(fp);
 
     return rc;
 }

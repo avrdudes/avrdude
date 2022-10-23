@@ -38,7 +38,7 @@ int jtag3_setparm(const PROGRAMMER *pgm, unsigned char scope,
 		  unsigned char *value, unsigned char length);
 int jtag3_command(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen,
 		  unsigned char **resp, const char *descr);
-void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p);
+void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp);
 int jtag3_set_vtarget(const PROGRAMMER *pgm, double voltage);
 extern const char jtag3_desc[];
 extern const char jtag3_dw_desc[];

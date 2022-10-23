@@ -1036,13 +1036,14 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
 int avr_signature(const PROGRAMMER *pgm, const AVRPART *p) {
   int rc;
 
-  report_progress (0,1,"Reading");
+  if(verbose > 1)
+    report_progress(0, 1, "Reading");
   rc = avr_read(pgm, p, "signature", 0);
   if (rc < LIBAVRDUDE_SUCCESS) {
     pmsg_error("unable to read signature data for part %s, rc=%d\n", p->desc, rc);
     return rc;
   }
-  report_progress (1,1,NULL);
+  report_progress(1, 1, NULL);
 
   return LIBAVRDUDE_SUCCESS;
 }
