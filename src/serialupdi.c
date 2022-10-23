@@ -881,8 +881,7 @@ static int serialupdi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 static int serialupdi_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                  unsigned int baseaddr)
 {
-  pmsg_error("page erase not implemented yet\n");
-  return -1;
+  return updi_nvm_erase_flash_page(pgm, p, m->offset + baseaddr);
 }
 
 static int serialupdi_read_signature(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m) {
