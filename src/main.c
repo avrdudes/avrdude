@@ -1220,9 +1220,10 @@ int main(int argc, char * argv [])
   init_ok = (rc = pgm->initialize(pgm, p)) >= 0;
   if (!init_ok) {
     pmsg_error("initialization failed, rc=%d\n", rc);
+    imsg_error("- double check the connections and try again\n");
+    imsg_error("- use -B to set lower ISP clock frequency, e.g. -B 200kHz\n");
     if (!ovsigck) {
-      imsg_error("double check connections and try again or use -F to override\n");
-      imsg_error("this check\n\n");
+      imsg_error("- use -F to override this check\n\n");
       exitrc = 1;
       goto main_exit;
     }

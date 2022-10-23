@@ -598,6 +598,8 @@ Also, for programmers like the Atmel STK500 and STK600 which can
 adjust parameters local to the programming tool (independent of an
 actual connection to a target controller), this option can be used
 together with @option{-t} to continue in terminal mode.
+Moreover, the option allows to continue despite failed initialization
+of connection between a programmer and a target.
 
 @item -i @var{delay}
 For bitbang-type programmers, delay for approximately
@@ -3047,14 +3049,15 @@ See also: @url{http://www.libusb.org/ticket/6}
 @item
 Problem: after flashing a firmware that reduces the target's clock
 speed (e.g. through the @code{CLKPR} register), further ISP connection
-attempts fail.
+attempts fail.  Or a programmer cannot initialize communication with
+a brand new chip.
 
 Solution: Even though ISP starts with pulling @var{/RESET} low, the
-target continues to run at the internal clock speed as defined by the
-firmware running before.  Therefore, the ISP clock speed must be
-reduced appropriately (to less than 1/4 of the internal clock speed)
-using the -B option before the ISP initialization sequence will
-succeed.
+target continues to run at the internal clock speed either as defined by
+the firmware running before or as set by the factory.  Therefore, the
+ISP clock speed must be reduced appropriately (to less than 1/4 of the
+internal clock speed) using the -B option before the ISP initialization
+sequence will succeed.
 
 As that slows down the entire subsequent ISP session, it might make
 sense to just issue a @emph{chip erase} using the slow ISP clock
