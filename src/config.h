@@ -25,17 +25,61 @@
 
 #include "libavrdude.h"
 
+#if defined(WIN32) || defined(_MSC_VER) || defined(__MINGW32__)
+#define realpath(N,R) _fullpath((R), (N), PATH_MAX)
+#endif
 
-#define MAX_STR_CONST 1024
 
-enum { V_NONE, V_NUM, V_NUM_REAL, V_STR };
+typedef struct {
+  char *kw;                     // Keyword near the comments
+  LISTID comms;                 // Chained list of comments
+  int rhs;                      // Comments to print rhs of keyword line
+} COMMENT;
+
+
+enum {                          // Which structures a component can occur in
+  COMP_CONFIG_MAIN,
+  COMP_PROGRAMMER,
+  COMP_AVRPART,
+  COMP_AVRMEM,
+};
+
+enum {                          // Component types in structure
+  COMP_INT,
+  COMP_SHORT,
+  COMP_CHAR,
+  COMP_STRING,
+  COMP_CHAR_ARRAY,              // This and below are not yet implemented
+  COMP_INT_LISTID,
+  COMP_STRING_LISTID,
+  COMP_OPCODE,
+  COMP_PIN,                     // Pins may never be implemented
+  COMP_PIN_LIST
+};
+
+typedef struct {                // Description of a component in a structure
+  const char *name;             // Component name
+  int strct;                    // Structure, eg, COMP_AVRPART
+  int offset, size, type;       // Location, size and type within structure
+} Component_t;
+
+
+enum {                          // Value types for VALUE struct
+  V_NONE,
+  V_NUM,
+  V_NUM_REAL,
+  V_STR,
+  V_COMPONENT,
+};
+
 typedef struct value_t {
   int      type;
-  /*union { TODO: use an anonymous union here ? */
+  union {
     int      number;
     double   number_real;
     char   * string;
-  /*};*/
+    Component_t *comp;
+  };
 } VALUE;
 
 
@@ -50,8 +94,9 @@ extern FILE       * yyin;
 extern PROGRAMMER * current_prog;
 extern AVRPART    * current_part;
 extern AVRMEM     * current_mem;
-extern int          lineno;
-extern const char * infile;
+extern int          current_strct;
+extern int          cfg_lineno;
+extern char       * cfg_infile;
 extern LISTID       string_list;
 extern LISTID       number_list;
 extern bool         is_alias; // current entry is alias
@@ -62,40 +107,61 @@ extern bool         is_alias; // current entry is alias
 #endif
 extern YYSTYPE yylval;
 
-extern char string_buf[MAX_STR_CONST];
-extern char *string_buf_ptr;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 int yyparse(void);
 
-int yyerror(char * errmsg, ...);
+int yyerror(char *errmsg, ...);
 
-int yywarning(char * errmsg, ...);
+int yywarning(char *errmsg, ...);
 
-TOKEN * new_token(int primary);
+TOKEN *new_token(int primary);
 
-void free_token(TOKEN * tkn);
+void free_token(TOKEN *tkn);
 
 void free_tokens(int n, ...);
 
-TOKEN * number(char * text);
+TOKEN *new_number(const char *text);
 
-TOKEN * number_real(char * text);
+TOKEN *new_number_real(const char *text);
 
-TOKEN * hexnumber(char * text);
+TOKEN *new_hexnumber(const char *text);
 
-TOKEN * string(char * text);
+TOKEN *new_constant(const char *text);
 
-TOKEN * keyword(int primary);
+TOKEN *new_string(const char *text);
 
-void print_token(TOKEN * tkn);
+TOKEN *new_keyword(int primary);
+
+void print_token(TOKEN *tkn);
 
 void pyytext(void);
 
-char * dup_string(const char * str);
+COMMENT *locate_comment(const LISTID comments, const char *where, int rhs);
+
+void cfg_capture_prologue(void);
+
+LISTID cfg_get_prologue(void);
+
+void capture_comment_str(const char *com, int lineno);
+
+void capture_lvalue_kw(const char *kw, int lineno);
+
+LISTID cfg_move_comments(void);
+
+void cfg_pop_comms(void);
+
+Component_t *cfg_comp_search(const char *name, int strct);
+
+const char *cfg_v_type(int type);
+
+const char *cfg_strct_name(int strct);
+
+void cfg_assign(char *sp, int strct, Component_t *cp, VALUE *v);
+
+void cfg_update_mcuid(AVRPART *part);
 
 #ifdef __cplusplus
 }

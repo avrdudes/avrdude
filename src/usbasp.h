@@ -130,7 +130,7 @@ extern "C" {
 #endif
 
 extern const char usbasp_desc[];
-void usbasp_initpgm (PROGRAMMER * pgm);
+void usbasp_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }

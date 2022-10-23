@@ -92,6 +92,7 @@ libavrdude_a_SOURCES = \
 	avr.c \
 	avr910.c \
 	avr910.h \
+	avrcache.c \
 	avrdude.h \
 	avrftdi.c \
 	avrftdi.h \
@@ -198,6 +199,11 @@ avrdude_SOURCES = \
 	main.c \
 	whereami.c \
 	whereami.h \
+	avrintel.c \
+	avrintel.h \
+	developer_opts.c \
+	developer_opts.h \
+	developer_opts_private.h \
 	term.c \
 	term.h
 

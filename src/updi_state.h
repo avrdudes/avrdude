@@ -80,13 +80,13 @@ typedef struct
 extern "C" {
 #endif
 
-updi_sib_info* updi_get_sib_info(PROGRAMMER * pgm);
-updi_datalink_mode updi_get_datalink_mode(PROGRAMMER * pgm);
-void updi_set_datalink_mode(PROGRAMMER * pgm, updi_datalink_mode mode);
-updi_nvm_mode updi_get_nvm_mode(PROGRAMMER * pgm);
-void updi_set_nvm_mode(PROGRAMMER * pgm, updi_nvm_mode mode);
-updi_rts_mode updi_get_rts_mode(PROGRAMMER * pgm);
-void updi_set_rts_mode(PROGRAMMER * pgm, updi_rts_mode mode);
+updi_sib_info* updi_get_sib_info(const PROGRAMMER *pgm);
+updi_datalink_mode updi_get_datalink_mode(const PROGRAMMER *pgm);
+void updi_set_datalink_mode(const PROGRAMMER *pgm, updi_datalink_mode mode);
+updi_nvm_mode updi_get_nvm_mode(const PROGRAMMER *pgm);
+void updi_set_nvm_mode(const PROGRAMMER *pgm, updi_nvm_mode mode);
+updi_rts_mode updi_get_rts_mode(const PROGRAMMER *pgm);
+void updi_set_rts_mode(const PROGRAMMER *pgm, updi_rts_mode mode);
 
 #ifdef __cplusplus
 }

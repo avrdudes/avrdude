@@ -250,7 +250,8 @@ See below for the limitations of debugWire.
 For ATxmega devices, the JTAG ICE mkII/3 is supported in PDI mode, provided it
 has a revision 1 hardware and firmware version of at least 5.37 (decimal).
 
-The Atmel-ICE (ARM/AVR) is supported (JTAG, PDI for Xmega, debugWIRE, ISP modes).
+The Atmel-ICE (ARM/AVR) is supported (JTAG, PDI for Xmega, debugWIRE, ISP,
+UPDI).
 
 Atmel's XplainedPro boards, using EDBG protocol (CMSIS-DAP compliant), are
 supported by the ``jtag3'' programmer type.
@@ -321,13 +322,13 @@ via a serial link (@url{https://github.com/ElTangas/jtag2updi}).
 
 The Micronucleus bootloader is supported for both protocol version V1
 and V2. As the bootloader does not support reading from flash memory,
-use the @code{-V} option to prevent AVRDUDE from verifing the flash memory.
+use the @code{-V} option to prevent AVRDUDE from verifying the flash memory.
 See the section on @emph{extended parameters}
 below for Micronucleus specific options.
 
 The Teensy bootloader is supported for all AVR boards.
 As the bootloader does not support reading from flash memory,
-use the @code{-V} option to prevent AVRDUDE from verifing the flash memory.
+use the @code{-V} option to prevent AVRDUDE from verifying the flash memory.
 See the section on @emph{extended parameters}
 below for Teensy specific options.
 
@@ -398,14 +399,19 @@ following options are recognized:
 
 @table @code
 @item -p @var{partno}
-This is the only mandatory option and it tells AVRDUDE what type of part
-(MCU) that is connected to the programmer.  The @var{partno} parameter
-is the part's id listed in the configuration file.  Specify -p ? to list
-all parts in the configuration file.  If a part is unknown
-to AVRDUDE, it means that there is no config file entry for that part,
-but it can be added to the configuration file if you have the Atmel
-datasheet so that you can enter the programming specifications.
-Currently, the following MCU types are understood:
+This option tells AVRDUDE what part (MCU) is connected to the programmer.
+The @var{partno} parameter is the part's id listed in the configuration file.
+For currently supported MCU types use ? as partno, which will print a list of
+partno ids and official part names on the terminal. Both can be used with the
+-p option.  If a part is unknown to AVRDUDE, it means that there is no config
+file entry for that part, but it can be added to the configuration file if
+you have the Atmel datasheet so that you can enter the programming
+specifications. If @code{-p ?} is specified with a specific programmer, see
+@code{-c} below, then only those parts are output that the programmer expects
+to be able to handle, together with the programming interface(s) that can be
+used in that combination. In reality there can be deviations from this list,
+particularly if programming is directly via a bootloader. Currently, the
+following MCU types are understood:
 
 @cindex Device support
 
@@ -458,7 +464,12 @@ AVRDUDE, and the programmer is controlled via the PC parallel port,
 there's a good chance that it can be easily added to the configuration
 file without any code changes to AVRDUDE.  Simply copy an existing entry
 and change the pin definitions to match that of the unknown programmer.
-Currently, the following programmer ids are understood and supported:
+If @code{-c ?} is specified with a specific part, see @code{-p} above, then
+only those programmers are output that expect to be able to handle this part,
+together with the programming interface(s) that can be used in that
+combination. In reality there can be deviations from this list, particularly
+if programming is directly via a bootloader. Currently, the following
+programmer ids are understood and supported:
 
 @cindex Programmer support
 
@@ -495,6 +506,16 @@ without patching your system wide configuration file. It can be used
 several times, the files are read in same order as given on the command 
 line.
 
+@item -A
+Disable the automatic removal of trailing-0xFF sequences in file
+input that is to be programmed to flash and in AVR reads from
+flash memory. Normally, trailing 0xFFs can be discarded, as flash
+programming requires the memory be erased to 0xFF beforehand. -A
+should be used when the programmer hardware, or bootloader
+software for that matter, does not carry out chip erase and
+instead handles the memory erase on a page level. The popular
+Arduino bootloader exhibits this behaviour; for this reason -A is
+engaged by default when specifying -c arduino.
 
 @item -D
 Disable auto erase for flash.  When the -U option with flash memory is 
@@ -506,6 +527,7 @@ use page erase before writing each page so no explicit chip erase
 is required.
 Note however that any page not affected by the current operation
 will retain its previous contents.
+Setting -D implies -A.
 
 @item -e
 Causes a chip erase to be executed.  This will reset the contents of the
@@ -534,12 +556,16 @@ Note in particular that the programming algorithm for the AT90S1200
 device mandates that the `/RESET' signal is active before powering up
 the MCU, so in case an external power supply is used for this MCU type,
 a previous invocation of AVRDUDE with this option specified is one of
-the possible ways to guarantee this condition.
+the possible ways to guarantee this condition. @code{reset} is supported
+by the @code{linuxspi} and @code{flip2} programmer options, as well as
+all parallel port based programmers.
 
 @item noreset
 The `/RESET' line will be deactivated at program exit, thus allowing the
 MCU target program to run while the programming hardware remains
-connected.
+connected. @code{noreset} is supported by the @code{linuxspi} and
+@code{flip2} programmer options, as well as all parallel port based
+programmers.
 
 @item vcc
 This option will leave those parallel port pins active (i. e. high) that
@@ -682,6 +708,10 @@ Posix systems (by now).
 Disable (or quell) output of the progress bar while reading or writing
 to the device.  Specify it a second time for even quieter operation.
 
+@item -s, -u
+These options used to control the obsolete "safemode" feature which
+is no longer present. They are silently ignored for backwards compatibility.
+
 @item -t
 Tells AVRDUDE to enter the interactive ``terminal'' mode instead of up-
 or downloading files.  See below for a detailed description of the
@@ -757,6 +787,9 @@ the file to read or write.  Possible values are:
 @item i
 Intel Hex
 
+@item I
+Intel Hex with comments on download and tolerance of checksum errors on upload
+
 @item s
 Motorola S-record
 
@@ -790,13 +823,16 @@ fuse bit settings.
 
 @item h
 hexadecimal; each value will get the string @emph{0x} prepended.
+Only valid on output.
 
 @item o
 octal; each value will get a @emph{0}
 prepended unless it is less than 8 in which case it gets no prefix.
+Only valid on output.
 
 @item b
 binary; each value will get the string @emph{0b} prepended.
+Only valid on output.
 
 @end table
 
@@ -843,10 +879,15 @@ accepting extended parameters.
 @table @code
 
 @item JTAG ICE mkII/3
+@itemx Atmel-ICE
+@itemx PICkit 4
+@itemx MPLAB SNAP
+@itemx Power Debugger
 @itemx AVR Dragon
 
-When using the JTAG ICE mkII/3 or AVR Dragon in JTAG mode, the
-following extended parameter is accepted:
+When using the JTAG ICE mkII, JTAGICE3, Atmel-ICE, PICkit 4, MPLAB SNAP,
+Power Debugger or AVR Dragon in JTAG mode, the following extended parameter
+is accepted:
 @table @code
 @item @samp{jtagchain=UB,UA,BB,BA}
 Setup the JTAG scan chain for @var{UB} units before, @var{UA} units
@@ -854,6 +895,14 @@ after, @var{BB} bits before, and @var{BA} bits after the target AVR,
 respectively.
 Each AVR unit within the chain shifts by 4 bits.
 Other JTAG units might require a different bit shift count.
+@end table
+
+The PICkit 4 and the Power Debugger also supports high-voltage UPDI programming.
+This is used to enable a UPDI pin that has previously been set to RESET or
+GPIO mode. High-voltage UPDI can be utilized by using an extended parameter:
+@table @code
+@item @samp{hvupdi}
+Enable high-voltage UPDI initialization for targets that supports this.
 @end table
 
 @cindex @code{-x} AVR910
@@ -1076,6 +1125,16 @@ specific.
 When not provided, driver/OS default value will be used.
 @end table
 
+@cindex @code{-x} linuxspi
+@item linuxspi
+Extended parameter:
+@table @code
+@item @samp{disable_no_cs}
+Ensures the programmer does not use the SPI_NO_CS bit for the SPI
+driver. This parameter is useful for kernels that do not support
+the CS line being managed outside the application.
+@end table
+
 @end table
 
 @page
@@ -1270,33 +1329,48 @@ commands can be recalled and edited.
 @section Terminal Mode Commands
 
 @noindent
-The following commands are implemented:
+The following commands are implemented for all programmers:
 
 @table @code
 
-@item dump @var{memtype} [@var{start_addr} [@var{nbytes}]]
+@item dump @var{memtype} @var{addr} @var{nbytes}
 Read @var{nbytes} from the specified memory area, and display them in
 the usual hexadecimal and ASCII form.
 
-@item dump @var{memtype} [@var{start_addr}] @dots{}
-Start reading from @var{start_addr}, all the way to the last memory address.
+@item dump @var{memtype} @var{addr} @dots{}
+Start reading from @var{addr}, all the way to the last memory address.
+
+@item dump @var{memtype} @var{addr}
+Read 256 bytes from the specified memory area, and display them.
+
+@item dump @var{memtype} @dots{}
+Read all bytes from the specified memory, and display them.
 
 @item dump @var{memtype}
 Continue dumping the memory contents for another @var{nbytes} where the
 previous dump command left off.
 
-@item write @var{memtype} @var{start_addr} @var{data1} @var{data2} @dots{} @var{dataN}
-Manually program the respective memory cells, starting at address @var{start_addr},
-using the values @var{data1} through @var{dataN}.  This feature is not
-implemented for bank-addressed memories such as the flash memory of
-ATMega devices.
+@item read
+Can be used as an alias for dump.
 
-Items @var{dataN} can have the following formats:
+@item write @var{memtype} @var{addr} @var{data[,]} @{@var{data[,]}@}
+Manually program the respective memory cells, starting at address
+@var{addr}, using the data items provided. The terminal implements
+reading from and writing to flash and EEPROM type memories normally
+through a cache and paged access functions. All other memories are
+directly written to without use of a cache. Some older parts without paged
+access will also have flash and EEPROM directly accessed without cache.
+
+Items @var{data} can have the following formats:
 
 @multitable @columnfractions .3 .4 .3
 @item @strong{Type}
 @tab @strong{Example}
 @tab @strong{Size (bytes)}
+
+@item String
+@tab @code{"Hello, world\n"}
+@tab varying
 
 @item Character
 @tab @code{'A'}
@@ -1304,85 +1378,111 @@ Items @var{dataN} can have the following formats:
 
 @item Decimal integer
 @tab 12345
-@tab 1, 2, 4, or 8 (see below)
+@tab 1, 2, 4, or 8
 
 @item Octal integer
 @tab 012345
-@tab 1, 2, 4, or 8 (see below)
+@tab 1, 2, 4, or 8
 
 @item Hexadecimal integer
 @tab 0x12345
-@tab 1, 2, 4, or 8 (see below)
+@tab 1, 2, 4, or 8
 
 @item Float
 @tab 3.1415926
 @tab 4
 
+@item Double
+@tab 3.141592653589793D
+@tab 8
+
 @end multitable
 
-Integer constants can be 1, 2, 4, or 8 bytes long.
-By default, the smallest possible size will be used where
-the specified number just fits into.
-A specific size can be denoted by appending one of these suffixes:
-
+@var{data}
+can be hexadecimal, octal or decimal integers, floating point numbers
+or C-style strings and characters. For integers, an optional case-insensitive
+suffix specifies the data size as in the table below:
 @table @code
 @item LL
-@itemx ll
 8 bytes / 64 bits
 @item L
-@itemx l
 4 bytes / 32 bits
-@item H
-@itemx h
-@itemx S
-@itemx s
+@item H or S
 2 bytes / 16 bits
 @item HH
-@itemx hh
 1 byte / 8 bits
 @end table
 
-Similarly, floating-point constants can have an @code{F} or @code{f}
-appended, but only 32-bit floating-point values are supported.
+Suffix @code{D} indicates a 64-bit double, @code{F} a 32-bit float, whilst a
+floating point number without suffix defaults to 32-bit float. Hexadecimal
+floating point notation is supported. An ambiguous trailing suffix, eg,
+@code{0x1.8D}, is read as no-suffix float where @code{D} is part of the
+mantissa; use a zero exponent @code{0x1.8p0D} to clarify.
 
-@item write @var{memtype} @var{start_addr} @var{length} @var{data1} @var{data2} @var{dataN} @dots{}
+An optional @code{U} suffix makes integers unsigned. Ordinary @code{0x} hex
+integers are always treated as unsigned. @code{+0x} or @code{-0x} hex
+numbers are treated as signed unless they have a @code{U} suffix. Unsigned
+integers cannot be larger than 2^64-1. If @var{n} is an unsigned integer then @var{-n}
+is also a valid unsigned integer as in C. Signed integers must fall into
+the [-2^63, 2^63-1] range or a correspondingly smaller range when a suffix
+specifies a smaller type. Out of range signed numbers trigger a warning.
 
-Similar to the above, but @var{length} byte of the memory are written.
-For that purpose, after writing the initial items, @var{dataN} is
-replicated as many times as needed.
+Ordinary @code{0x} hex integers with @var{n} hex digits (counting leading
+zeros) use the smallest size of 1, 2, 4 and 8 bytes that can accommodate
+any n-digit hex integer. If an integer suffix specifies a size explicitly
+the corresponding number of least significant bytes are written.
+Otherwise, signed and unsigned integers alike occupy the smallest of 1, 2,
+4, or 8 bytes needed to accommodate them in their respective
+representation.
+
+One trailing comma at the end of data items is ignored to facilitate copy
+and paste of lists.
+
+@item write @var{memtype} @var{addr} @var{length} @var{data[,]} @{@var{data[,]}@} @dots{}
+The ellipses form @dots{} of write is similar to above, but @var{length}
+byte of the memory are written. For that purpose, after writing the
+initial items, the last @var{data} item is replicated as many times as
+needed.
+
+@item flush
+Synchronise with the device all pending cached writes to EEPROM or flash.
+With some programmer and part combinations, flash (and sometimes EEPROM,
+too) looks like a NOR memory, ie, one can only write 0 bits, not 1 bits.
+When this is detected, either page erase is deployed (eg, with parts that
+have PDI/UPDI interfaces), or if that is not available, both EEPROM and
+flash caches are fully read in, a chip erase command is issued and both
+EEPROM and flash are written back to the device. Hence, it can take
+minutes to ensure that a single previously cleared bit is set and,
+therefore, this command should be used sparingly.
+
+@item abort
+Normally, caches are only ever actually written to the device when using
+@code{flush}, at the end of the terminal session after typing @code{quit},
+or after EOF on input is encountered. The @code{abort} command resets the
+cache discarding all previous writes to the flash and EEPROM cache.
 
 @item erase
-Perform a chip erase.
-
-@item send @var{b1} @var{b2} @var{b3} @var{b4}
-Send raw instruction codes to the AVR device.  If you need access to a
-feature of an AVR part that is not directly supported by AVRDUDE, this
-command allows you to use it, even though AVRDUDE does not implement the
-command.   When using direct SPI mode, up to 3 bytes
-can be omitted.
+Perform a chip erase and discard all pending writes to EEPROM and flash.
 
 @item sig
 Display the device signature bytes.
-
-@item spi
-Enter direct SPI mode.  The @emph{pgmled} pin acts as slave select.
-@emph{Only supported on parallel bitbang programmers, and partially by USBtiny.}
-Slave Select must be externally held low for direct SPI when
-using USBtinyISP, and send must be a multiple of four bytes.
 
 @item part
 Display the current part settings and parameters.  Includes chip
 specific information including all memory types supported by the
 device, read/write timing, etc.
 
-@item pgm
-Return to programming mode (from direct SPI mode).
-
 @item verbose [@var{level}]
 Change (when @var{level} is provided), or display the verbosity
 level.
 The initial verbosity level is controlled by the number of @code{-v} options
 given on the command line.
+
+@item quell [@var{level}]
+Change (when @var{level} is provided), or display the quell
+level. 1 is used to suppress progress reports. 2 or higher yields
+progressively quieter operations. The initial quell level is controlled
+by the number of @code{-q} options given on the command line.
 
 @item ?
 @itemx help
@@ -1394,10 +1494,28 @@ Leave terminal mode and thus AVRDUDE.
 @end table
 
 @noindent
-In addition, the following commands are supported on the STK500
-and STK600 programmer:
+In addition, the following commands are supported on some programmers:
 
 @table @code
+
+@item pgerase @var{memory} @var{addr}
+Erase one page of the memory specified.
+
+@item send @var{b1} @var{b2} @var{b3} @var{b4}
+Send raw instruction codes to the AVR device. If you need access to a
+feature of an AVR part that is not directly supported by AVRDUDE, this
+command allows you to use it, even though AVRDUDE does not implement the
+command. When using direct SPI mode, up to 3 bytes
+can be omitted.
+
+@item spi
+Enter direct SPI mode.  The @emph{pgmled} pin acts as slave select.
+@emph{Only supported on parallel bitbang programmers, and partially by USBtiny.}
+Slave Select must be externally held low for direct SPI when
+using USBtinyISP, and send must be a multiple of four bytes.
+
+@item pgm
+Return to programming mode (from direct SPI mode).
 
 @item vtarg @var{voltage}
 Set the target's supply voltage to @var{voltage} Volts.
@@ -1421,7 +1539,6 @@ Turn the master oscillator off.
 @item sck @var{period}
 @emph{STK500 and STK600 only:}
 Set the SCK clock period to @var{period} microseconds.
-
 @emph{JTAG ICE only:}
 Set the JTAG ICE bit clock period to @var{period} microseconds.
 Note that unlike STK500 settings, this setting will be reverted to
@@ -1433,7 +1550,6 @@ ISP clock period when operating the ICE in ISP mode.
 @item parms
 @emph{STK500 and STK600 only:}
 Display the current voltage and master oscillator parameters.
-
 @emph{JTAG ICE only:}
 Display the current target supply voltage and JTAG bit clock rate/period.
 
@@ -1659,28 +1775,32 @@ The format of the programmer definition is as follows:
 
 @smallexample
 programmer
-    parent <id>                                 # <id> is a quoted string
-    id       = <id1> [, <id2> [, <id3>] ...] ;  # <idN> are quoted strings
-    desc     = <description> ;                  # quoted string
-    type     = "par" | "stk500" | ... ;         # programmer type (see below for a list)
-    baudrate = <num> ;                          # baudrate for serial ports
-    vcc      = <num1> [, <num2> ... ] ;         # pin number(s)
-    buff     = <num1> [, <num2> ... ] ;         # pin number(s)
-    reset    = <num> ;                          # pin number
-    sck      = <num> ;                          # pin number
-    mosi     = <num> ;                          # pin number
-    miso     = <num> ;                          # pin number
-    errled   = <num> ;                          # pin number
-    rdyled   = <num> ;                          # pin number
-    pgmled   = <num> ;                          # pin number
-    vfyled   = <num> ;                          # pin number
-    usbvid   = <hexnum>;                        # USB VID (Vendor ID)
-    usbpid   = <hexnum> [, <hexnum> ...];       # USB PID (Product ID)
-    usbdev   = <interface>;                     # USB interface or other device info 
-    usbvendor = <vendorname>;                   # USB Vendor Name
-    usbproduct = <productname>;                 # USB Product Name
-    usbsn    = <serialno>;                      # USB Serial Number
-  ;
+    parent <id>                               # optional parent
+    id       = <id1> [, <id2> ... ] ;         # <idN> are quoted strings
+    desc     = <description> ;                # quoted string
+    type     = <type>;                        # programmer type, quoted string
+                                              # supported types can be listed by "-c ?type"
+    prog_modes = PM_<i/f> @{ | PM_<i/f> @}      # interfaces, eg, PM_SPM|PM_PDI
+    connection_type = parallel | serial | usb | spi
+    baudrate = <num> ;                        # baudrate for avr910-programmer
+    vcc      = <pin1> [, <pin2> ... ] ;       # pin number(s)
+    buff     = <pin1> [, <pin2> ... ] ;       # pin number(s)
+    reset    = <pin> ;                        # pin number
+    sck      = <pin> ;                        # pin number
+    mosi     = <pin> ;                        # pin number
+    miso     = <pin> ;                        # pin number
+    errled   = <pin> ;                        # pin number
+    rdyled   = <pin> ;                        # pin number
+    pgmled   = <pin> ;                        # pin number
+    vfyled   = <pin> ;                        # pin number
+    usbvid   = <hexnum> ;                     # USB VID (Vendor ID)
+    usbpid   = <hexnum> [, <hexnum> ...] ;    # USB PID (Product ID)
+    usbdev   = <interface> ;                  # USB interface or other device info
+    usbvendor = <vendorname> ;                # USB Vendor Name
+    usbproduct = <productname> ;              # USB Product Name
+    usbsn    = <serialno> ;                   # USB Serial Number
+    hvupdi_support = <num> [, <num>, ... ] ;  # UPDI HV Variants Support
+;
 @end smallexample
 
 @noindent
@@ -1688,13 +1808,32 @@ If a parent is specified, all settings of it (except its ids) are used for the n
 programmer. These values can be changed by new setting them for the new programmer.
 
 @noindent
-To invert a bit in the pin definitions, use @code{= ~ <num>}.
+Known programming modes are
+@itemize @bullet
+@item @code{PM_SPM}: Bootloaders, self-programming with SPM opcodes or NVM Controllers
+@item @code{PM_TPI}: Tiny Programming Interface (t4, t5, t9, t10, t20, t40, t102, t104)
+@item @code{PM_ISP}: SPI programming for In-System Programming (almost all classic parts)
+@item @code{PM_PDI}: Program and Debug Interface (xmega parts)
+@item @code{PM_UPDI}: Unified Program and Debug Interface
+@item @code{PM_HVSP}: High Voltage Serial Programming (some classic parts)
+@item @code{PM_HVPP}: High Voltage Parallel Programming (most non-HVSP classic parts)
+@item @code{PM_debugWIRE}: Simpler alternative to JTAG (a subset of HVPP/HVSP parts)
+@item @code{PM_JTAG}: Joint Test Action Group standard (some classic parts)
+@item @code{PM_JTAGmkI}: Subset of @code{PM_JTAG}, older parts, Atmel ICE mkI
+@item @code{PM_XMEGAJTAG}: JTAG, some XMEGA parts
+@item @code{PM_AVR32JTAG}: JTAG for 32-bit AVRs
+@item @code{PM_aWire}: AVR32 parts
+@end itemize
+
+@noindent
+To invert a bit in the pin definitions, use @code{= ~ <num>}. To invert a pin list
+(all pins get inverted) use @code{~ ( <num1> [, <num2> ... ] )}.
 
 @noindent
 Not all programmer types can handle a list of USB PIDs.
 
 @noindent
-Following programmer types are currently implemented:
+The following programmer types are currently implemented:
 
 @multitable @columnfractions .25 .6
 @include programmer_types.texi
@@ -1708,30 +1847,36 @@ Following programmer types are currently implemented:
 
 @smallexample
 part
-    id               = <id> ;                 # quoted string
     desc             = <description> ;        # quoted string
-    family_id        = <description> ;        # quoted string
-    has_jtag         = <yes/no> ;             # part has JTAG i/f
-    has_debugwire    = <yes/no> ;             # part has debugWire i/f
-    has_pdi          = <yes/no> ;             # part has PDI i/f
-    has_updi         = <yes/no> ;             # part has UPDI i/f
-    has_tpi          = <yes/no> ;             # part has TPI i/f
-    devicecode       = <num> ;                # numeric
+    id               = <id> ;                 # quoted string
+    family_id        = <id> ;                 # quoted string, eg, "megaAVR" or "tinyAVR"
+    prog_modes       = PM_<i/f> @{| PM_<i/f>@}  # interfaces, eg, PM_SPM|PM_ISP|PM_HVPP|PM_debugWIRE
+    mcuid            = <num>;                 # unique id in 0..2039 for 8-bit AVRs
+    n_interrupts     = <num>;                 # number of interrupts, used for vector bootloaders
+    n_page_erase     = <num>;                 # if set, number of pages erased during NVM erase
+    hvupdi_variant   = <num> ;                # numeric -1 (n/a) or 0..2
+    devicecode       = <num> ;                # deprecated, use stk500_devcode
     stk500_devcode   = <num> ;                # numeric
     avr910_devcode   = <num> ;                # numeric
+    has_jtag         = <yes/no> ;             # part has JTAG i/f (deprecated, use prog_modes)
+    has_debugwire    = <yes/no> ;             # part has debugWire i/f (deprecated, use prog_modes)
+    has_pdi          = <yes/no> ;             # part has PDI i/f (deprecated, use prog_modes)
+    has_updi         = <yes/no> ;             # part has UPDI i/f (deprecated, use prog_modes)
+    has_tpi          = <yes/no> ;             # part has TPI i/f (deprecated, use prog_modes)
+    is_avr32         = <yes/no> ;             # AVR32 part (deprecated, use prog_modes)
+    is_at90s1200     = <yes/no> ;             # AT90S1200 part
     signature        = <num> <num> <num> ;    # signature bytes
     usbpid           = <num> ;                # DFU USB PID
-    reset            = dedicated | io;
-    retry_pulse      = reset | sck;
-    pgm_enable       = <instruction format> ;
-    chip_erase       = <instruction format> ;
     chip_erase_delay = <num> ;                # micro-seconds
+    reset            = dedicated | io ;
+    retry_pulse      = reset | sck ;
+    chip_erase_delay = <num> ;                # chip erase delay (us)
     # STK500 parameters (parallel programming IO lines)
     pagel            = <num> ;                # pin name in hex, i.e., 0xD7
     bs2              = <num> ;                # pin name in hex, i.e., 0xA0
     serial           = <yes/no> ;             # can use serial downloading
-    parallel         = <yes/no/pseudo>;       # can use par. programming
-    # STK500v2 parameters, to be taken from Atmel's XML files
+    parallel         = <yes/no/pseudo> ;      # can use par. programming
+    # STK500v2 parameters, to be taken from Atmel's ATDF files
     timeout          = <num> ;
     stabdelay        = <num> ;
     cmdexedelay      = <num> ;
@@ -1742,52 +1887,60 @@ part
     predelay         = <num> ;
     postdelay        = <num> ;
     pollmethod       = <num> ;
-    mode             = <num> ;
-    delay            = <num> ;
-    blocksize        = <num> ;
-    readsize         = <num> ;
     hvspcmdexedelay  = <num> ;
-    # STK500v2 HV programming parameters, from XML
-    pp_controlstack  = <num>, <num>, ...;     # PP only
-    hvsp_controlstack = <num>, <num>, ...;    # HVSP only
-    hventerstabdelay = <num>;
-    progmodedelay    = <num>;                 # PP only
-    latchcycles      = <num>;
-    togglevtg        = <num>;
-    poweroffdelay    = <num>;
-    resetdelayms     = <num>;
-    resetdelayus     = <num>;
-    hvleavestabdelay = <num>;
-    resetdelay       = <num>;
-    synchcycles      = <num>;                 # HVSP only
-    chiperasepulsewidth = <num>;              # PP only
-    chiperasepolltimeout = <num>;
-    chiperasetime    = <num>;                 # HVSP only
-    programfusepulsewidth = <num>;            # PP only
-    programfusepolltimeout = <num>;
-    programlockpulsewidth = <num>;            # PP only
-    programlockpolltimeout = <num>;
-    # JTAG ICE mkII parameters, also from XML files
+    # STK500v2 HV programming parameters, from ATDFs
+    pp_controlstack  = <num>, <num>, ... ;    # PP only
+    hvsp_controlstack = <num>, <num>, ... ;   # HVSP only
+    flash_instr      = <num>, <num>, <num> ;
+    eeprom_instr     = <num>, <num>, ... ;
+    hventerstabdelay = <num> ;
+    progmodedelay    = <num> ;                # PP only
+    latchcycles      = <num> ;
+    togglevtg        = <num> ;
+    poweroffdelay    = <num> ;
+    resetdelayms     = <num> ;
+    resetdelayus     = <num> ;
+    hvleavestabdelay = <num> ;
+    resetdelay       = <num> ;
+    synchcycles      = <num> ;                # HVSP only
+    chiperasepulsewidth = <num> ;             # PP only
+    chiperasepolltimeout = <num> ;
+    chiperasetime    = <num> ;                # HVSP only
+    programfusepulsewidth = <num> ;           # PP only
+    programfusepolltimeout = <num> ;
+    programlockpulsewidth = <num> ;           # PP only
+    programlockpolltimeout = <num> ;
+    # JTAG ICE mkII parameters, also from ATDF files
     allowfullpagebitstream = <yes/no> ;
     enablepageprogramming = <yes/no> ;
-    idr              = <num> ;                # IO addr of IDR (OCD) reg.
-    rampz            = <num> ;                # IO addr of RAMPZ reg.
-    spmcr            = <num> ;                # mem addr of SPMC[S]R reg.
-    eecr             = <num> ;                # mem addr of EECR reg.
-                                              # (only when != 0x3c)
-    is_at90s1200     = <yes/no> ;             # AT90S1200 part
-    is_avr32         = <yes/no> ;             # AVR32 part
+    idr              = <num> ;                # IO addr of IDR (OCD) reg
+    rampz            = <num> ;                # IO addr of RAMPZ reg
+    spmcr            = <num> ;                # mem addr of SPMC[S]R reg
+    eecr             = <num> ;                # mem addr of EECR reg only when != 0x3f
+    mcu_base         = <num> ;
+    nvm_base         = <num> ;
+    ocd_base         = <num> ;
+    ocdrev           = <num> ;
+    pgm_enable       = <instruction format> ;
+    chip_erase       = <instruction format> ;
 
     memory <memtype>
-        paged           = <yes/no> ;          # yes / no
+        paged           = <yes/no> ;          # yes/no (flash only, do not use for EEPROM)
+        offset          = <num> ;             # memory offset
         size            = <num> ;             # bytes
         page_size       = <num> ;             # bytes
         num_pages       = <num> ;             # numeric
+        n_word_writes   = <num> ;             # TPI only: if set, number of words to write
         min_write_delay = <num> ;             # micro-seconds
         max_write_delay = <num> ;             # micro-seconds
-        readback_p1     = <num> ;             # byte value
-        readback_p2     = <num> ;             # byte value
-        pwroff_after_write = <yes/no> ;       # yes / no
+        readback        = <num> <num> ;       # pair of byte values
+        readback_p1     = <num> ;             # byte value (first component)
+        readback_p2     = <num> ;             # byte value (second component)
+        pwroff_after_write = <yes/no> ;       # yes/no
+        mode            = <num> ;             # STK500 v2 file parameter from ATDF files
+        delay           = <num> ;             #   "
+        blocksize       = <num> ;             #   "
+        readsize        = <num> ;             #   "
         read            = <instruction format> ;
         write           = <instruction format> ;
         read_lo         = <instruction format> ;
@@ -1797,9 +1950,19 @@ part
         loadpage_lo     = <instruction format> ;
         loadpage_hi     = <instruction format> ;
         writepage       = <instruction format> ;
-      ;
-  ;
+    ;
+;
 @end smallexample
+
+@noindent
+If any of the above parameters are not specified, the default value
+of 0 is used for numerics (except for @code{mcuid}, @code{hvupdi_variant} and @code{ocdrev},
+where the default value is -1) or the empty string @code{""} for string
+values. If a required parameter is left empty, AVRDUDE will complain.
+Almost all occurrences of numbers (with the exception of pin numbers
+and where they are separated by space, eg, in signature and readback)
+can also be given as simple expressions involving arithemtic and
+bitwise operators.
 
 @menu
 * Parent Part::
@@ -1813,11 +1976,19 @@ part
 @subsection Parent Part
 
 @noindent
-Parts can also inherit parameters from previously defined parts
-using the following syntax. In this case specified integer and 
-string values override parameter values from the parent part. New 
-memory definitions are added to the definitions inherited from the 
-parent.
+Parts can also inherit parameters from previously defined parts using
+the following syntax. In this case specified integer and  string values
+override parameter values from the parent part. New  memory definitions
+are added to the definitions inherited from the  parent. If, however, a
+new memory definition refers to an existing one of the same name for
+that part then, from v7.1, the existing memory definition is extended,
+and components overwritten with new values. Assigning @code{NULL}
+removes an inherited SPI instruction format, memory definition, control
+stack, eeprom or flash instruction, eg, as in @code{memory "efuse" =
+NULL;}
+
+@noindent
+Example format for part inheritance:
 
 @smallexample
    part parent <id>                              # quoted string
@@ -1879,7 +2050,22 @@ write = "1  1  0  0   0  0  0  0   x x x x  x x x x",
 
 @end smallexample
 
+As the address bit numbers in the SPI opcodes are highly systematic, they
+don't really need to be specified. A compact version of the format
+specification neither uses bit-numbers for address lines nor spaces. If such
+a string is longer than 7 characters, then the characters @code{0}, @code{1},
+@code{x}, @code{a}, @code{i} and @code{o} will be recognised as the
+corresponding bit, whilst any of the characters @code{.}, @code{-}, @code{_}
+or @code{/} can act as arbitrary visual separators, which are ignored.
+Examples:
 
+@smallexample
+
+  loadpage_lo = "0100.0000--000x.xxxx--xxaa.aaaa--iiii.iiii";
+
+  loadpage_lo = "0100.0000", "000x.xxxx", "xxaa.aaaa", "iiii.iiii";
+
+@end smallexample
 
 @c
 @c Node

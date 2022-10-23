@@ -25,27 +25,29 @@
 extern "C" {
 #endif
 
-int  jtag3_open_common(PROGRAMMER * pgm, char * port);
-int  jtag3_send(PROGRAMMER * pgm, unsigned char * data, size_t len);
-int  jtag3_recv(PROGRAMMER * pgm, unsigned char **msg);
+int  jtag3_open_common(PROGRAMMER *pgm, const char *port);
+int  jtag3_send(const PROGRAMMER *pgm, unsigned char *data, size_t len);
+int  jtag3_recv(const PROGRAMMER *pgm, unsigned char **msg);
 void jtag3_close(PROGRAMMER * pgm);
-int  jtag3_getsync(PROGRAMMER * pgm, int mode);
-int  jtag3_getparm(PROGRAMMER * pgm, unsigned char scope,
+int  jtag3_getsync(const PROGRAMMER *pgm, int mode);
+int  jtag3_getparm(const PROGRAMMER *pgm, unsigned char scope,
 		   unsigned char section, unsigned char parm,
 		   unsigned char *value, unsigned char length);
-int jtag3_setparm(PROGRAMMER * pgm, unsigned char scope,
+int jtag3_setparm(const PROGRAMMER *pgm, unsigned char scope,
 		  unsigned char section, unsigned char parm,
 		  unsigned char *value, unsigned char length);
-int jtag3_command(PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen,
+int jtag3_command(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen,
 		  unsigned char **resp, const char *descr);
+void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p);
+int jtag3_set_vtarget(const PROGRAMMER *pgm, double voltage);
 extern const char jtag3_desc[];
 extern const char jtag3_dw_desc[];
 extern const char jtag3_pdi_desc[];
 extern const char jtag3_updi_desc[];
-void jtag3_initpgm (PROGRAMMER * pgm);
-void jtag3_dw_initpgm (PROGRAMMER * pgm);
-void jtag3_pdi_initpgm (PROGRAMMER * pgm);
-void jtag3_updi_initpgm (PROGRAMMER * pgm);
+void jtag3_initpgm(PROGRAMMER *pgm);
+void jtag3_dw_initpgm(PROGRAMMER *pgm);
+void jtag3_pdi_initpgm(PROGRAMMER *pgm);
+void jtag3_updi_initpgm(PROGRAMMER *pgm);
 
 /*
  * These functions are referenced from stk500v2.c for JTAGICE3 in

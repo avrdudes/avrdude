@@ -34,7 +34,7 @@ extern "C" {
 #endif
 
 extern const char serialupdi_desc[];
-void serialupdi_initpgm (PROGRAMMER * pgm);
+void serialupdi_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }

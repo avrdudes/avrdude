@@ -26,7 +26,7 @@ extern "C" {
 #endif
 
 extern const char par_desc[];
-void par_initpgm        (PROGRAMMER * pgm);
+void par_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }

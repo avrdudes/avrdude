@@ -35,7 +35,7 @@ typedef uint32_t pinmask_t;
 #define LIBAVRDUDE_SUCCESS 0
 #define LIBAVRDUDE_GENERAL_FAILURE (-1)
 #define LIBAVRDUDE_NOTSUPPORTED (-2) // operation not supported
-#define LIBAVRDUDE_SOFTFAIL (-3) // returned by avr_signature() if caller
+#define LIBAVRDUDE_SOFTFAIL (-3) // returned, eg, by avr_signature() if caller
                                  // might proceed with chip erase
 
 /* formerly lists.h */
@@ -169,6 +169,7 @@ enum ctl_stack_t {
   CTL_STACK_HVSP      /* high voltage serial programming control stack */
 };
 
+
 /*
  * serial programming instruction bit specifications
  */
@@ -183,23 +184,33 @@ typedef struct opcode {
 } OPCODE;
 
 
-#define AVRPART_SERIALOK       0x0001  /* part supports serial programming */
-#define AVRPART_PARALLELOK     0x0002  /* part supports parallel programming */
-#define AVRPART_PSEUDOPARALLEL 0x0004  /* part has pseudo parallel support */
-#define AVRPART_HAS_JTAG       0x0008  /* part has a JTAG i/f */
-#define AVRPART_ALLOWFULLPAGEBITSTREAM 0x0010 /* JTAG ICE mkII param. */
-#define AVRPART_ENABLEPAGEPROGRAMMING 0x0020 /* JTAG ICE mkII param. */
-#define AVRPART_HAS_DW         0x0040  /* part has a debugWire i/f */
-#define AVRPART_HAS_PDI        0x0080  /* part has PDI i/f rather than ISP (ATxmega) */
-#define AVRPART_AVR32          0x0100  /* part is in AVR32 family */
-#define AVRPART_INIT_SMC       0x0200  /* part will undergo chip erase */
-#define AVRPART_WRITE          0x0400  /* at least one write operation specified */
-#define AVRPART_HAS_TPI        0x0800  /* part has TPI i/f rather than ISP (ATtiny4/5/9/10) */
-#define AVRPART_IS_AT90S1200   0x1000  /* part is an AT90S1200 (needs special treatment) */
-#define AVRPART_HAS_UPDI       0x2000  /* part has UPDI i/f (AVR8X) */
+// Any changes here, please also reflect in dev_part_strct() of developer_opts.c
+#define AVRPART_SERIALOK       1 // Part supports serial programming
+#define AVRPART_PARALLELOK     2 // Part supports parallel programming
+#define AVRPART_PSEUDOPARALLEL 4 // Part has pseudo parallel support
+#define AVRPART_ALLOWFULLPAGEBITSTREAM 8 // JTAG ICE mkII param
+#define AVRPART_ENABLEPAGEPROGRAMMING 16 // JTAG ICE mkII param
+#define AVRPART_IS_AT90S1200  32 // Part is an AT90S1200, needs special treatment
 
-#define AVR_DESCLEN 64
-#define AVR_IDLEN   32
+// Programming modes for parts and programmers: reflect changes in lexer.l, developer_opts.c and config.c
+#define PM_SPM                1 // Bootloaders, self-programming with SPM opcodes or NVM Controllers
+#define PM_TPI                2 // Tiny Programming Interface (t4, t5, t9, t10, t20, t40, t102, t104)
+#define PM_ISP                4 // SPI programming for In-System Programming (almost all classic parts)
+#define PM_PDI                8 // Program and Debug Interface (xmega parts)
+#define PM_UPDI              16 // Unified Program and Debug Interface
+#define PM_HVSP              32 // High Voltage Serial Programming (some classic parts)
+#define PM_HVPP              64 // High Voltage Parallel Programming (most non-HVSP classic parts)
+#define PM_debugWIRE        128 // Simpler alternative to JTAG (a subset of HVPP/HVSP parts)
+#define PM_JTAG             256 // Joint Test Action Group standard (some classic parts)
+#define PM_JTAGmkI          512 // Subset of PM_JTAG, older parts, Atmel ICE mkI
+#define PM_XMEGAJTAG       1024 // JTAG, some XMEGA parts
+#define PM_AVR32JTAG       2048 // JTAG for 32-bit AVRs
+#define PM_aWire           4096 // For 32-bit AVRs
+
+#define HV_UPDI_VARIANT_0      0 /* Shared UPDI/GPIO/RESET pin, HV on UPDI pin (tinyAVR0/1/2)*/
+#define HV_UPDI_VARIANT_1      1 /* Dedicated UPDI pin, no HV (megaAVR0/AVR-Dx) */
+#define HV_UPDI_VARIANT_2      2 /* Shared UPDI pin, HV on _RESET (AVR-Ex) */
+
 #define AVR_FAMILYIDLEN 7
 #define AVR_SIBLEN 16
 #define CTL_STACK_SIZE 32
@@ -208,10 +219,25 @@ typedef struct opcode {
 
 #define TAG_ALLOCATED          1    /* memory byte is allocated */
 
+/*
+ * Any changes in AVRPART or AVRMEM, please also ensure changes are made in
+ *  - lexer.l
+ *  - Either Component_t avr_comp[] of config.c or in config_gram.y
+ *  - dev_part_strct() in developer_opts.c
+ *  - avr_new_part() and/or avr_new_memtype() in avrpart.c for
+ *    initialisation; note that all const char * must be initialised with ""
+ */
 typedef struct avrpart {
-  char          desc[AVR_DESCLEN];  /* long part name */
-  char          id[AVR_IDLEN];      /* short part name */
-  char          family_id[AVR_FAMILYIDLEN+1]; /* family id in the SIB (avr8x) */
+  const char  * desc;               /* long part name */
+  const char  * id;                 /* short part name */
+  LISTID        comments;           // Used by developer options -p*/[ASsr...]
+  const char  * parent_id;          /* Used by developer options */
+  const char  * family_id;          /* family id in the SIB (avr8x) */
+  int           prog_modes;         /* Programming interfaces, see #define PM_... */
+  int           mcuid;              /* Unique id in 0..2039 for urclock programmer */
+  int           n_interrupts;       /* Number of interrupts, used for vector bootloaders */
+  int           n_page_erase;       /* If set, number of pages erased during NVM erase */
+  int           hvupdi_variant;     /* HV pulse on UPDI pin, no pin or RESET pin */
   int           stk500_devcode;     /* stk500 device code */
   int           avr910_devcode;     /* avr910 device code */
   int           chip_erase_delay;   /* microseconds */
@@ -257,12 +283,12 @@ typedef struct avrpart {
   int           programlockpulsewidth; /* stk500 v2 hv mode parameter */
   int           programlockpolltimeout; /* stk500 v2 hv mode parameter */
   int           synchcycles;        /* stk500 v2 hv mode parameter */
-  int           hvspcmdexedelay;    /* stk500 v2 xml file parameter */
+  int           hvspcmdexedelay;    /* stk500 v2 hv mode file parameter */
 
   unsigned char idr;                /* JTAG ICE mkII XML file parameter */
   unsigned char rampz;              /* JTAG ICE mkII XML file parameter */
   unsigned char spmcr;              /* JTAG ICE mkII XML file parameter */
-  unsigned short eecr;              /* JTAC ICE mkII XML file parameter */
+  unsigned char eecr;               /* JTAC ICE mkII XML file parameter */
   unsigned int mcu_base;            /* Base address of MCU control block in ATxmega devices */
   unsigned int nvm_base;            /* Base address of NVM controller in ATxmega devices */
   unsigned int ocd_base;            /* Base address of OCD module in AVR8X/UPDI devices */
@@ -272,17 +298,18 @@ typedef struct avrpart {
 
   LISTID        mem;                /* avr memory definitions */
   LISTID        mem_alias;          /* memory alias definitions */
-  char          config_file[PATH_MAX]; /* config file where defined */
-  int           lineno;                /* config file line number */
+  const char  * config_file;        /* config file where defined */
+  int           lineno;             /* config file line number */
 } AVRPART;
 
-#define AVR_MEMDESCLEN 64
 typedef struct avrmem {
-  char desc[AVR_MEMDESCLEN];  /* memory description ("flash", "eeprom", etc) */
+  const char *desc;           /* memory description ("flash", "eeprom", etc) */
+  LISTID comments;            // Used by developer options -p*/[ASsr...]
   int paged;                  /* page addressed (e.g. ATmega flash) */
   int size;                   /* total memory size in bytes */
   int page_size;              /* size of memory page (if page addressed) */
   int num_pages;              /* number of pages (if page addressed) */
+  int n_word_writes;          /* TPI only: number words to write at a time */
   unsigned int offset;        /* offset in IO memory (ATxmega) */
   int min_write_delay;        /* microseconds */
   int max_write_delay;        /* microseconds */
@@ -304,7 +331,7 @@ typedef struct avrmem {
 } AVRMEM;
 
 typedef struct avrmem_alias {
-  char desc[AVR_MEMDESCLEN];  /* alias name ("syscfg0" etc.) */
+  const char *desc;           /* alias name ("syscfg0" etc.) */
   AVRMEM *aliased_mem;
 } AVRMEM_ALIAS;
 
@@ -312,44 +339,54 @@ typedef struct avrmem_alias {
 extern "C" {
 #endif
 
+
+int intlog2(unsigned int n);
+
 /* Functions for OPCODE structures */
 OPCODE * avr_new_opcode(void);
 void     avr_free_opcode(OPCODE * op);
-int avr_set_bits(OPCODE * op, unsigned char * cmd);
-int avr_set_addr(OPCODE * op, unsigned char * cmd, unsigned long addr);
-int avr_set_input(OPCODE * op, unsigned char * cmd, unsigned char data);
-int avr_get_output(OPCODE * op, unsigned char * res, unsigned char * data);
-int avr_get_output_index(OPCODE * op);
+int avr_set_bits(const OPCODE *op, unsigned char *cmd);
+int avr_set_addr(const OPCODE *op, unsigned char *cmd, unsigned long addr);
+int avr_set_addr_mem(const AVRMEM *mem, int opnum, unsigned char *cmd, unsigned long addr);
+int avr_set_input(const OPCODE *op, unsigned char *cmd, unsigned char data);
+int avr_get_output(const OPCODE *op, const unsigned char *res, unsigned char *data);
+int avr_get_output_index(const OPCODE *op);
+char cmdbitchar(CMDBIT cb);
+char *cmdbitstr(CMDBIT cb);
+const char *opcodename(int opnum);
+char *opcode2str(const OPCODE *op, int opnum, int detailed);
 
 /* Functions for AVRMEM structures */
 AVRMEM * avr_new_memtype(void);
 AVRMEM_ALIAS * avr_new_memalias(void);
-int avr_initmem(AVRPART * p);
-AVRMEM * avr_dup_mem(AVRMEM * m);
+int avr_initmem(const AVRPART *p);
+AVRMEM * avr_dup_mem(const AVRMEM *m);
 void     avr_free_mem(AVRMEM * m);
 void     avr_free_memalias(AVRMEM_ALIAS * m);
-AVRMEM * avr_locate_mem(AVRPART * p, char * desc);
-AVRMEM * avr_locate_mem_noalias(AVRPART * p, char * desc);
-AVRMEM_ALIAS * avr_locate_memalias(AVRPART * p, char * desc);
-AVRMEM_ALIAS * avr_find_memalias(AVRPART * p, AVRMEM * m_orig);
-void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, AVRPART * p,
-                     int type, int verbose);
+AVRMEM * avr_locate_mem(const AVRPART *p, const char *desc);
+AVRMEM * avr_locate_mem_noalias(const AVRPART *p, const char *desc);
+AVRMEM_ALIAS * avr_locate_memalias(const AVRPART *p, const char *desc);
+AVRMEM_ALIAS * avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig);
+void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
+                     const AVRPART *p, int verbose);
 
 /* Functions for AVRPART structures */
 AVRPART * avr_new_part(void);
-AVRPART * avr_dup_part(AVRPART * d);
+AVRPART * avr_dup_part(const AVRPART *d);
 void      avr_free_part(AVRPART * d);
-AVRPART * locate_part(LISTID parts, char * partdesc);
-AVRPART * locate_part_by_avr910_devcode(LISTID parts, int devcode);
-AVRPART * locate_part_by_signature(LISTID parts, unsigned char * sig,
+AVRPART * locate_part(const LISTID parts, const char *partdesc);
+AVRPART * locate_part_by_avr910_devcode(const LISTID parts, int devcode);
+AVRPART * locate_part_by_signature(const LISTID parts, unsigned char *sig,
                                    int sigsize);
-void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose);
+void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose);
 
 typedef void (*walk_avrparts_cb)(const char *name, const char *desc,
                                  const char *cfgname, int cfglineno,
                                  void *cookie);
 void walk_avrparts(LISTID avrparts, walk_avrparts_cb cb, void *cookie);
 void sort_avrparts(LISTID avrparts);
+
+int part_match(const char *pattern, const char *string);
 
 int compare_memory_masked(AVRMEM * m, uint8_t buf1, uint8_t buf2);
 
@@ -498,7 +535,15 @@ int pins_check(const struct programmer_t * const pgm, const struct pin_checklist
 const char * avr_pin_name(int pinname);
 
 /**
- * This function returns a string representation of defined pins eg. ~1,2,~4,~5,7
+ * Returns the name of the pin as lowercase string.
+ *
+ * @param pinname the pinname which we want as string.
+ * @returns a lowercase string with the pinname, or <unknown> if pinname is invalid.
+ */
+const char * avr_pin_lcname(int pinname);
+
+/**
+ * This function returns a string of defined pins, eg, ~1,2,~4,~5,7 or " (not used)"
  * Another execution of this function will overwrite the previous result in the static buffer.
  *
  * @param[in] pindef the pin definition for which we want the string representation
@@ -507,9 +552,17 @@ const char * avr_pin_name(int pinname);
 const char * pins_to_str(const struct pindef_t * const pindef);
 
 /**
- * This function returns a string representation of pins in the mask eg. 1,3,5-7,9,12
+ * This function returns a string of defined pins, eg, ~1, 2, ~4, ~5, 7 or ""
+ *
+ * @param[in] pindef the pin definition for which we want the string representation
+ * @returns a pointer to a string, which was created by strdup
+ */
+char *pins_to_strdup(const struct pindef_t * const pindef);
+
+/**
+ * This function returns a string representation of pins in the mask, eg, 1,3,5-7,9,12
  * Another execution of this function will overwrite the previous result in the static buffer.
- * Consecutive pin number are representated as start-end.
+ * Consecutive pin number are represented as start-end.
  *
  * @param[in] pinmask the pin mask for which we want the string representation
  * @returns pointer to a static string.
@@ -581,18 +634,17 @@ union pinfo
 };
 
 
-struct serial_device
-{
+struct serial_device {
   // open should return -1 on error, other values on success
-  int (*open)(char * port, union pinfo pinfo, union filedescriptor *fd); 
-  int (*setparams)(union filedescriptor *fd, long baud, unsigned long cflags);
+  int (*open)(const char *port, union pinfo pinfo, union filedescriptor *fd);
+  int (*setparams)(const union filedescriptor *fd, long baud, unsigned long cflags);
   void (*close)(union filedescriptor *fd);
 
-  int (*send)(union filedescriptor *fd, const unsigned char * buf, size_t buflen);
-  int (*recv)(union filedescriptor *fd, unsigned char * buf, size_t buflen);
-  int (*drain)(union filedescriptor *fd, int display);
+  int (*send)(const union filedescriptor *fd, const unsigned char * buf, size_t buflen);
+  int (*recv)(const union filedescriptor *fd, unsigned char * buf, size_t buflen);
+  int (*drain)(const union filedescriptor *fd, int display);
 
-  int (*set_dtr_rts)(union filedescriptor *fd, int is_on);
+  int (*set_dtr_rts)(const union filedescriptor *fd, int is_on);
 
   int flags;
 #define SERDEV_FL_NONE         0x0000 /* no flags */
@@ -614,15 +666,21 @@ extern struct serial_device usbhid_serdev;
 #define serial_drain (serdev->drain)
 #define serial_set_dtr_rts (serdev->set_dtr_rts)
 
+// See avrcache.c
+typedef struct {                // Memory cache for a subset of cached pages
+  int size, page_size;          // Size of cache (flash or eeprom size) and page size
+  unsigned int offset;          // Offset of flash/eeprom memory
+  unsigned char *cont, *copy;   // current memory contens and device copy of it
+  unsigned char *iscached;      // iscached[i] set when page i has been loaded
+} AVR_Cache;
+
 /* formerly pgm.h */
 
 #define ON  1
 #define OFF 0
 
-#define PGM_DESCLEN 80
 #define PGM_PORTLEN PATH_MAX
 #define PGM_TYPELEN 32
-#define PGM_USBSTRINGLEN 256
 
 typedef enum {
   EXIT_VCC_UNSPEC,
@@ -645,85 +703,116 @@ typedef enum {
 typedef enum {
   CONNTYPE_PARALLEL,
   CONNTYPE_SERIAL,
-  CONNTYPE_USB
+  CONNTYPE_USB,
+  CONNTYPE_SPI
 } conntype_t;
 
+/*
+ * Any changes in PROGRAMMER, please also ensure changes are made in
+ *  - lexer.l
+ *  - Either Component_t avr_comp[] of config.c or config_gram.y
+ *  - dev_pgm_strct() in developer_opts.c
+ *  - pgm_new() in pgm.c for initialisation; note that all const char * must
+ *    be initialised with ""
+ */
 typedef struct programmer_t {
   LISTID id;
-  char desc[PGM_DESCLEN];
-  char type[PGM_TYPELEN];
-  char port[PGM_PORTLEN];
-  void (*initpgm)(struct programmer_t * pgm);
-  unsigned int pinno[N_PINS];
+  const char *desc;
+  void (*initpgm)(struct programmer_t *pgm); // Sets up the AVRDUDE programmer
+  LISTID comments;              // Used by developer options -c*/[ASsr...]
+  const char *parent_id;        // Used by developer options
+  int prog_modes;               // Programming interfaces, see #define PM_...
   struct pindef_t pin[N_PINS];
-  exit_vcc_t exit_vcc;
-  exit_reset_t exit_reset;
-  exit_datahigh_t exit_datahigh;
   conntype_t conntype;
-  int ppidata;
-  int ppictrl;
   int baudrate;
   int usbvid;
   LISTID usbpid;
-  char usbdev[PGM_USBSTRINGLEN], usbsn[PGM_USBSTRINGLEN];
-  char usbvendor[PGM_USBSTRINGLEN], usbproduct[PGM_USBSTRINGLEN];
-  double bitclock;    /* JTAG ICE clock period in microseconds */
-  int ispdelay;    /* ISP clock delay */
+  const char *usbdev;
+  const char *usbsn;
+  const char *usbvendor;
+  const char *usbproduct;
+  LISTID hvupdi_support;        // List of UPDI HV variants the tool supports, see HV_UPDI_VARIANT_x
+
+  // Values below are not set by config_gram.y; ensure fd is first for dev_pgm_raw()
   union filedescriptor fd;
-  int  page_size;  /* page size if the programmer supports paged write/load */
-  int  (*rdy_led)        (struct programmer_t * pgm, int value);
-  int  (*err_led)        (struct programmer_t * pgm, int value);
-  int  (*pgm_led)        (struct programmer_t * pgm, int value);
-  int  (*vfy_led)        (struct programmer_t * pgm, int value);
-  int  (*initialize)     (struct programmer_t * pgm, AVRPART * p);
-  void (*display)        (struct programmer_t * pgm, const char * p);
-  void (*enable)         (struct programmer_t * pgm);
-  void (*disable)        (struct programmer_t * pgm);
-  void (*powerup)        (struct programmer_t * pgm);
-  void (*powerdown)      (struct programmer_t * pgm);
-  int  (*program_enable) (struct programmer_t * pgm, AVRPART * p);
-  int  (*chip_erase)     (struct programmer_t * pgm, AVRPART * p);
-  int  (*unlock)         (struct programmer_t * pgm, AVRPART * p);
-  int  (*cmd)            (struct programmer_t * pgm, const unsigned char *cmd,
+  char type[PGM_TYPELEN];
+  char port[PGM_PORTLEN];
+  unsigned int pinno[N_PINS];   // TODO to be removed if old pin data no longer needed
+  exit_vcc_t exit_vcc;          // Should these be set in avrdude.conf?
+  exit_reset_t exit_reset;
+  exit_datahigh_t exit_datahigh;
+  int ppidata;
+  int ppictrl;
+  int ispdelay;                 // ISP clock delay
+  int page_size;                // Page size if the programmer supports paged write/load
+  double bitclock;              // JTAG ICE clock period in microseconds
+
+  int  (*rdy_led)        (const struct programmer_t *pgm, int value);
+  int  (*err_led)        (const struct programmer_t *pgm, int value);
+  int  (*pgm_led)        (const struct programmer_t *pgm, int value);
+  int  (*vfy_led)        (const struct programmer_t *pgm, int value);
+  int  (*initialize)     (const struct programmer_t *pgm, const AVRPART *p); // Sets up the physical programmer
+  void (*display)        (const struct programmer_t *pgm, const char *p);
+  void (*enable)         (struct programmer_t *pgm, const AVRPART *p);
+  void (*disable)        (const struct programmer_t *pgm);
+  void (*powerup)        (const struct programmer_t *pgm);
+  void (*powerdown)      (const struct programmer_t *pgm);
+  int  (*program_enable) (const struct programmer_t *pgm, const AVRPART *p);
+  int  (*chip_erase)     (const struct programmer_t *pgm, const AVRPART *p);
+  int  (*unlock)         (const struct programmer_t *pgm, const AVRPART *p);
+  int  (*cmd)            (const struct programmer_t *pgm, const unsigned char *cmd,
                           unsigned char *res);
-  int  (*cmd_tpi)        (struct programmer_t * pgm, const unsigned char *cmd,
+  int  (*cmd_tpi)        (const struct programmer_t *pgm, const unsigned char *cmd,
                           int cmd_len, unsigned char res[], int res_len);
-  int  (*spi)            (struct programmer_t * pgm, const unsigned char *cmd,
+  int  (*spi)            (const struct programmer_t *pgm, const unsigned char *cmd,
                           unsigned char *res, int count);
-  int  (*open)           (struct programmer_t * pgm, char * port);
-  void (*close)          (struct programmer_t * pgm);
-  int  (*paged_write)    (struct programmer_t * pgm, AVRPART * p, AVRMEM * m, 
+  int  (*open)           (struct programmer_t *pgm, const char *port);
+  void (*close)          (struct programmer_t *pgm);
+  int  (*paged_write)    (const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
                           unsigned int page_size, unsigned int baseaddr,
                           unsigned int n_bytes);
-  int  (*paged_load)     (struct programmer_t * pgm, AVRPART * p, AVRMEM * m,
+  int  (*paged_load)     (const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
                           unsigned int page_size, unsigned int baseaddr,
                           unsigned int n_bytes);
-  int  (*page_erase)     (struct programmer_t * pgm, AVRPART * p, AVRMEM * m,
+  int  (*page_erase)     (const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
                           unsigned int baseaddr);
-  void (*write_setup)    (struct programmer_t * pgm, AVRPART * p, AVRMEM * m);
-  int  (*write_byte)     (struct programmer_t * pgm, AVRPART * p, AVRMEM * m,
+  void (*write_setup)    (const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m);
+  int  (*write_byte)     (const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
                           unsigned long addr, unsigned char value);
-  int  (*read_byte)      (struct programmer_t * pgm, AVRPART * p, AVRMEM * m,
-                          unsigned long addr, unsigned char * value);
-  int  (*read_sig_bytes) (struct programmer_t * pgm, AVRPART * p, AVRMEM * m);
-  int  (*read_sib)       (struct programmer_t * pgm, AVRPART * p, char *sib);
-  void (*print_parms)    (struct programmer_t * pgm);
-  int  (*set_vtarget)    (struct programmer_t * pgm, double v);
-  int  (*set_varef)      (struct programmer_t * pgm, unsigned int chan, double v);
-  int  (*set_fosc)       (struct programmer_t * pgm, double v);
-  int  (*set_sck_period) (struct programmer_t * pgm, double v);
-  int  (*setpin)         (struct programmer_t * pgm, int pinfunc, int value);
-  int  (*getpin)         (struct programmer_t * pgm, int pinfunc);
-  int  (*highpulsepin)   (struct programmer_t * pgm, int pinfunc);
-  int  (*parseexitspecs) (struct programmer_t * pgm, char *s);
-  int  (*perform_osccal) (struct programmer_t * pgm);
-  int  (*parseextparams) (struct programmer_t * pgm, LISTID xparams);
-  void (*setup)          (struct programmer_t * pgm);
-  void (*teardown)       (struct programmer_t * pgm);
-  char config_file[PATH_MAX]; /* config file where defined */
-  int  lineno;                /* config file line number */
-  void *cookie;		      /* for private use by the programmer */
-  char flag;		      /* for private use of the programmer */
+  int  (*read_byte)      (const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
+                          unsigned long addr, unsigned char *value);
+  int  (*read_sig_bytes) (const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m);
+  int  (*read_sib)       (const struct programmer_t *pgm, const AVRPART *p, char *sib);
+  void (*print_parms)    (const struct programmer_t *pgm);
+  int  (*set_vtarget)    (const struct programmer_t *pgm, double v);
+  int  (*set_varef)      (const struct programmer_t *pgm, unsigned int chan, double v);
+  int  (*set_fosc)       (const struct programmer_t *pgm, double v);
+  int  (*set_sck_period) (const struct programmer_t *pgm, double v);
+  int  (*setpin)         (const struct programmer_t *pgm, int pinfunc, int value);
+  int  (*getpin)         (const struct programmer_t *pgm, int pinfunc);
+  int  (*highpulsepin)   (const struct programmer_t *pgm, int pinfunc);
+  int  (*parseexitspecs) (struct programmer_t *pgm, const char *s);
+  int  (*perform_osccal) (const struct programmer_t *pgm);
+  int  (*parseextparams) (const struct programmer_t *pgm, const LISTID xparams);
+  void (*setup)          (struct programmer_t *pgm);
+  void (*teardown)       (struct programmer_t *pgm);
+
+  // Cached r/w API for terminal reads/writes
+  int (*write_byte_cached)(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
+                          unsigned long addr, unsigned char value);
+  int (*read_byte_cached)(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
+                          unsigned long addr, unsigned char *value);
+  int (*chip_erase_cached)(const struct programmer_t *pgm, const AVRPART *p);
+  int (*page_erase_cached)(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
+                          unsigned int baseaddr);
+  int (*flush_cache)     (const struct programmer_t *pgm, const AVRPART *p);
+  int (*reset_cache)     (const struct programmer_t *pgm, const AVRPART *p);
+  AVR_Cache *cp_flash, *cp_eeprom;
+
+  const char *config_file;      // Config file where defined
+  int  lineno;                  // Config file line number
+  void *cookie;                 // For private use by the programmer
+  char flag;                    // For use by pgm->initpgm()
 } PROGRAMMER;
 
 #ifdef __cplusplus
@@ -731,8 +820,8 @@ extern "C" {
 #endif
 
 PROGRAMMER * pgm_new(void);
-PROGRAMMER * pgm_dup(const PROGRAMMER * const src);
-void         pgm_free(PROGRAMMER * const p);
+PROGRAMMER * pgm_dup(const PROGRAMMER *src);
+void         pgm_free(PROGRAMMER *p);
 
 void programmer_display(PROGRAMMER * pgm, const char * p);
 
@@ -741,10 +830,10 @@ void programmer_display(PROGRAMMER * pgm, const char * p);
 #define SHOW_PPI_PINS ((1<<PPI_AVR_VCC)|(1<<PPI_AVR_BUFF))
 #define SHOW_AVR_PINS ((1<<PIN_AVR_RESET)|(1<<PIN_AVR_SCK)|(1<<PIN_AVR_MOSI)|(1<<PIN_AVR_MISO))
 #define SHOW_LED_PINS ((1<<PIN_LED_ERR)|(1<<PIN_LED_RDY)|(1<<PIN_LED_PGM)|(1<<PIN_LED_VFY))
-void pgm_display_generic_mask(PROGRAMMER * pgm, const char * p, unsigned int show);
-void pgm_display_generic(PROGRAMMER * pgm, const char * p);
+void pgm_display_generic_mask(const PROGRAMMER *pgm, const char *p, unsigned int show);
+void pgm_display_generic(const PROGRAMMER *pgm, const char *p);
 
-PROGRAMMER * locate_programmer(LISTID programmers, const char * configid);
+PROGRAMMER *locate_programmer(const LISTID programmers, const char *configid);
 
 typedef void (*walk_programmers_cb)(const char *name, const char *desc,
                                     const char *cfgname, int cfglineno,
@@ -759,9 +848,10 @@ void sort_programmers(LISTID programmers);
 
 /* formerly avr.h */
 
-typedef void (*FP_UpdateProgress)(int percent, double etime, char *hdr);
+typedef void (*FP_UpdateProgress)(int percent, double etime, const char *hdr, int finish);
 
 extern struct avrpart parts[];
+extern const char *avr_mem_order[100];
 
 extern FP_UpdateProgress update_progress;
 
@@ -769,41 +859,71 @@ extern FP_UpdateProgress update_progress;
 extern "C" {
 #endif
 
-int avr_tpi_poll_nvmbsy(PROGRAMMER *pgm);
-int avr_tpi_chip_erase(PROGRAMMER * pgm, AVRPART * p);
-int avr_tpi_program_enable(PROGRAMMER * pgm, AVRPART * p, unsigned char guard_time);
-int avr_read_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+int avr_tpi_poll_nvmbsy(const PROGRAMMER *pgm);
+int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p);
+int avr_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p, unsigned char guard_time);
+int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			  unsigned long addr, unsigned char * value);
 
-int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype, AVRPART * v);
+int avr_read_mem(const PROGRAMMER * pgm, const AVRPART *p, const AVRMEM *mem, const AVRPART *v);
 
-int avr_write_page(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+int avr_read(const PROGRAMMER * pgm, const AVRPART *p, const char *memtype, const AVRPART *v);
+
+int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr);
 
-int avr_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr, unsigned char data);
 
-int avr_write_byte_default(PROGRAMMER * pgm, AVRPART * p, AVRMEM * mem,
+int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			   unsigned long addr, unsigned char data);
 
-int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
-              int auto_erase);
+int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int size, int auto_erase);
 
-int avr_signature(PROGRAMMER * pgm, AVRPART * p);
+int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, int size, int auto_erase);
 
-int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size);
+int avr_signature(const PROGRAMMER *pgm, const AVRPART *p);
 
-int avr_get_cycle_count(PROGRAMMER * pgm, AVRPART * p, int * cycles);
+int avr_verify(const AVRPART * p, const AVRPART * v, const char * memtype, int size);
 
-int avr_put_cycle_count(PROGRAMMER * pgm, AVRPART * p, int cycles);
+int avr_get_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int *cycles);
 
-int avr_mem_hiaddr(AVRMEM * mem);
+int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles);
 
-int avr_chip_erase(PROGRAMMER * pgm, AVRPART * p);
+void avr_add_mem_order(const char *str);
 
-int avr_unlock(PROGRAMMER * pgm, AVRPART * p);
+int avr_mem_is_flash_type(const AVRMEM *mem);
 
-void report_progress (int completed, int total, char *hdr);
+int avr_mem_is_eeprom_type(const AVRMEM *mem);
+
+int avr_mem_is_known(const char *str);
+
+int avr_mem_might_be_known(const char *str);
+
+#define disable_trailing_ff_removal() avr_mem_hiaddr(NULL)
+int avr_mem_hiaddr(const AVRMEM * mem);
+
+int avr_chip_erase(const PROGRAMMER *pgm, const AVRPART *p);
+
+int avr_unlock(const PROGRAMMER *pgm, const AVRPART *p);
+
+void report_progress(int completed, int total, const char *hdr);
+
+int avr_has_paged_access(const PROGRAMMER *pgm, const AVRMEM *m);
+
+int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int addr, unsigned char *buf);
+
+int avr_write_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int addr, unsigned char *data);
+
+int avr_is_and(const unsigned char *s1, const unsigned char *s2, const unsigned char *s3, size_t n);
+
+// byte-wise cached read/write API
+int avr_read_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr, unsigned char *value);
+int avr_write_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr, unsigned char data);
+int avr_chip_erase_cached(const PROGRAMMER *pgm, const AVRPART *p);
+int avr_page_erase_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned int baseaddr);
+int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p);
+int avr_reset_cache(const PROGRAMMER *pgm, const AVRPART *p);
 
 #ifdef __cplusplus
 }
@@ -821,7 +941,8 @@ typedef enum {
   FMT_DEC,
   FMT_OCT,
   FMT_BIN,
-  FMT_ELF
+  FMT_ELF,
+  FMT_IHXC,
 } FILEFMT;
 
 struct fioparms {
@@ -835,16 +956,19 @@ struct fioparms {
 
 enum {
   FIO_READ,
-  FIO_WRITE
+  FIO_WRITE,
+  FIO_READ_FOR_VERIFY,
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-char * fmtstr(FILEFMT format);
+char * fileio_fmtstr(FILEFMT format);
 
-int fileio(int op, char * filename, FILEFMT format,
+int fileio_fmt_autodetect(const char * fname);
+
+int fileio(int oprwv, char * filename, FILEFMT format,
            struct avrpart * p, char * memtype, int size);
 
 #ifdef __cplusplus
@@ -864,6 +988,7 @@ enum updateflags {
   UF_NONE = 0,
   UF_NOWRITE = 1,
   UF_AUTO_ERASE = 2,
+  UF_VERIFY = 4,
 };
 
 
@@ -873,6 +998,17 @@ typedef struct update_t {
   char * filename;
   int    format;
 } UPDATE;
+
+typedef struct {                // File reads for flash can exclude trailing 0xff, which are cut off
+  int nbytes,                   // Number of bytes set including 0xff but excluding cut off, trailing 0xff
+      nsections,                // Number of consecutive sections in source excluding cut off, trailing 0xff
+      npages,                   // Number of memory pages needed excluding pages solely with trailing 0xff
+      nfill,                    // Number of fill bytes to make up full pages that are needed
+      ntrailing,                // Number of trailing 0xff in source
+      firstaddr,                // First address set in [0, mem->size-1]
+      lastaddr;                 // Highest address set by input file
+} Filestats;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -886,6 +1022,22 @@ extern void free_update(UPDATE * upd);
 extern int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd,
 		 enum updateflags flags);
 
+extern int memstats(struct avrpart *p, char *memtype, int size, Filestats *fsp);
+
+// Convenience functions for printing
+const char *update_plural(int x);
+const char *update_inname(const char *fn);
+const char *update_outname(const char *fn);
+const char *update_interval(int a, int b);
+
+// Helper functions for dry run to determine file access
+int update_is_okfile(const char *fn);
+int update_is_writeable(const char *fn);
+int update_is_readable(const char *fn);
+
+int update_dryrun(struct avrpart *p, UPDATE *upd);
+
+
 #ifdef __cplusplus
 }
 #endif
@@ -897,7 +1049,7 @@ extern int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd,
 
 typedef struct programmer_type_t {
   const char * const id;
-  void (*initpgm)(struct programmer_t * pgm);
+  void (*initpgm)(struct programmer_t *pgm);
   const char * const desc;
 } PROGRAMMER_TYPE;
 
@@ -905,7 +1057,9 @@ typedef struct programmer_type_t {
 extern "C" {
 #endif
 
-const PROGRAMMER_TYPE * locate_programmer_type(/*LISTID programmer_types, */const char * id);
+const PROGRAMMER_TYPE *locate_programmer_type(const char *id);
+
+const char *locate_programmer_type_id(void (*initpgm)(struct programmer_t *pgm));
 
 typedef void (*walk_programmer_types_cb)(const char *id, const char *desc,
                                     void *cookie);
@@ -919,9 +1073,10 @@ void walk_programmer_types(/*LISTID programmer_types,*/ walk_programmer_types_cb
 
 extern LISTID       part_list;
 extern LISTID       programmers;
-extern char         default_programmer[];
-extern char         default_parallel[];
-extern char         default_serial[];
+extern const char *default_programmer;
+extern const char *default_parallel;
+extern const char *default_serial;
+extern const char *default_spi;
 extern double       default_bitclock;
 
 /* This name is fixed, it's only here for symmetry with
@@ -932,11 +1087,23 @@ extern double       default_bitclock;
 extern "C" {
 #endif
 
+void *cfg_malloc(const char *funcname, size_t n);
+
+char *cfg_strdup(const char *funcname, const char *s);
+
 int init_config(void);
 
 void cleanup_config(void);
 
 int read_config(const char * file);
+
+const char *cache_string(const char *file);
+
+unsigned char *cfg_unescapeu(unsigned char *d, const unsigned char *s);
+
+char *cfg_unescape(char *d, const char *s);
+
+char *cfg_escape(const char *s);
 
 #ifdef __cplusplus
 }

@@ -25,10 +25,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <errno.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
 #include "config.h"
+#include "developer_opts.h"
 
 #if defined(WIN32)
 #define strtok_r( _s, _sep, _lasts ) \
@@ -45,10 +47,12 @@ int yywarning(char * errmsg, ...);
 static int assign_pin(int pinno, TOKEN * v, int invert);
 static int assign_pin_list(int invert);
 static int which_opcode(TOKEN * opcode);
-static int parse_cmdbits(OPCODE * op);
+static int parse_cmdbits(OPCODE * op, int opnum);
 
 static int pin_name;
 %}
+
+%token K_NULL;
 
 %token K_READ
 %token K_WRITE
@@ -79,8 +83,11 @@ static int pin_name;
 %token K_DEFAULT_PARALLEL
 %token K_DEFAULT_PROGRAMMER
 %token K_DEFAULT_SERIAL
+%token K_DEFAULT_SPI
 %token K_DESC
 %token K_FAMILY_ID
+%token K_HVUPDI_SUPPORT
+%token K_HVUPDI_VARIANT
 %token K_DEVICECODE
 %token K_STK500_DEVCODE
 %token K_AVR910_DEVCODE
@@ -109,12 +116,14 @@ static int pin_name;
 %token K_PSEUDO
 %token K_PWROFF_AFTER_WRITE
 %token K_RDYLED
+%token K_READBACK
 %token K_READBACK_P1
 %token K_READBACK_P2
 %token K_READMEM
 %token K_RESET
 %token K_RETRY_PULSE
 %token K_SERIAL
+%token K_SPI
 %token K_SCK
 %token K_SIGNATURE
 %token K_SIZE
@@ -199,19 +208,26 @@ static int pin_name;
 %token TKN_COMMA
 %token TKN_EQUAL
 %token TKN_SEMI
-%token TKN_TILDE
 %token TKN_LEFT_PAREN
 %token TKN_RIGHT_PAREN
 %token TKN_NUMBER
 %token TKN_NUMBER_REAL
 %token TKN_STRING
+%token TKN_COMPONENT
+
+%left  OP_OR                    /* calculator operations */
+%left  OP_XOR
+%left  OP_AND
+%left  OP_PLUS OP_MINUS
+%left  OP_TIMES OP_DIVIDE OP_MODULO
+%right OP_TILDE UNARY
 
 %start configuration
 
 %%
 
 number_real : 
- TKN_NUMBER {
+ numexpr {
     $$ = $1;
     /* convert value to real */
     $$->value.number_real = $$->value.number;
@@ -220,6 +236,27 @@ number_real :
   TKN_NUMBER_REAL {
     $$ = $1;
   }
+;
+
+
+expr: numexpr | TKN_STRING;
+
+numexpr:
+  TKN_NUMBER |
+  numexpr OP_OR numexpr     { $$ = $1; $$->value.number |= $3->value.number; } |
+  numexpr OP_XOR numexpr    { $$ = $1; $$->value.number ^= $3->value.number; } |
+  numexpr OP_AND numexpr    { $$ = $1; $$->value.number &= $3->value.number; } |
+  numexpr OP_PLUS numexpr   { $$ = $1; $$->value.number += $3->value.number; } |
+  numexpr OP_MINUS numexpr  { $$ = $1; $$->value.number -= $3->value.number; } |
+  numexpr OP_TIMES numexpr  { $$ = $1; $$->value.number *= $3->value.number; } |
+  numexpr OP_DIVIDE numexpr { $$ = $1; $$->value.number /= $3->value.number; } |
+  numexpr OP_MODULO numexpr { $$ = $1; $$->value.number %= $3->value.number; } |
+  OP_PLUS numexpr %prec UNARY  { $$ = $2; } |
+  OP_MINUS numexpr %prec UNARY { $$ = $2; $$->value.number = -$$->value.number; } |
+  OP_TILDE numexpr %prec UNARY { $$ = $2; $$->value.number = ~$$->value.number; } |
+  TKN_LEFT_PAREN numexpr TKN_RIGHT_PAREN { $$ = $2; }
+;
+
 
 configuration :
   /* empty */ | config
@@ -237,20 +274,22 @@ def :
   part_def TKN_SEMI |
 
   K_DEFAULT_PROGRAMMER TKN_EQUAL TKN_STRING TKN_SEMI {
-    strncpy(default_programmer, $3->value.string, MAX_STR_CONST);
-    default_programmer[MAX_STR_CONST-1] = 0;
+    default_programmer = cache_string($3->value.string);
     free_token($3);
   } |
 
   K_DEFAULT_PARALLEL TKN_EQUAL TKN_STRING TKN_SEMI {
-    strncpy(default_parallel, $3->value.string, PATH_MAX);
-    default_parallel[PATH_MAX-1] = 0;
+    default_parallel = cache_string($3->value.string);
     free_token($3);
   } |
 
   K_DEFAULT_SERIAL TKN_EQUAL TKN_STRING TKN_SEMI {
-    strncpy(default_serial, $3->value.string, PATH_MAX);
-    default_serial[PATH_MAX-1] = 0;
+    default_serial = cache_string($3->value.string);
+    free_token($3);
+  } |
+
+  K_DEFAULT_SPI TKN_EQUAL TKN_STRING TKN_SEMI {
+    default_spi = cache_string($3->value.string);
     free_token($3);
   } |
 
@@ -278,18 +317,20 @@ prog_def :
       existing_prog = locate_programmer(programmers, id);
       if (existing_prog) {
         { /* temporarily set lineno to lineno of programmer start */
-          int temp = lineno; lineno = current_prog->lineno;
+          int temp = cfg_lineno; cfg_lineno = current_prog->lineno;
           yywarning("programmer %s overwrites previous definition %s:%d.",
                 id, existing_prog->config_file, existing_prog->lineno);
-          lineno = temp;
+          cfg_lineno = temp;
         }
         lrmv_d(programmers, existing_prog);
         pgm_free(existing_prog);
       }
+      current_prog->comments = cfg_move_comments();
       LISTADD(programmers, current_prog);
 //      pgm_fill_old_pins(current_prog); // TODO to be removed if old pin data no longer needed
 //      pgm_display_generic(current_prog, id);
       current_prog = NULL;
+      current_strct = COMP_CONFIG_MAIN;
     }
 ;
 
@@ -297,30 +338,25 @@ prog_def :
 prog_decl :
   K_PROGRAMMER
     { current_prog = pgm_new();
-      if (current_prog == NULL) {
-        yyerror("could not create pgm instance");
-        YYABORT;
-      }
-      strcpy(current_prog->config_file, infile);
-      current_prog->lineno = lineno;
+      current_strct = COMP_PROGRAMMER;
+      current_prog->config_file = cache_string(cfg_infile);
+      current_prog->lineno = cfg_lineno;
     }
     |
   K_PROGRAMMER K_PARENT TKN_STRING
     {
-      struct programmer_t * pgm = locate_programmer(programmers, $3->value.string);
+      PROGRAMMER * pgm = locate_programmer(programmers, $3->value.string);
       if (pgm == NULL) {
         yyerror("parent programmer %s not found", $3->value.string);
         free_token($3);
         YYABORT;
       }
       current_prog = pgm_dup(pgm);
-      if (current_prog == NULL) {
-        yyerror("could not duplicate pgm instance");
-        free_token($3);
-        YYABORT;
-      }
-      strcpy(current_prog->config_file, infile);
-      current_prog->lineno = lineno;
+      current_strct = COMP_PROGRAMMER;
+      current_prog->parent_id = cache_string($3->value.string);
+      current_prog->comments = NULL;
+      current_prog->config_file = cache_string(cfg_infile);
+      current_prog->lineno = cfg_lineno;
       free_token($3);
     }
 ;
@@ -338,49 +374,55 @@ part_def :
         YYABORT;
       }
 
-      /*
-       * perform some sanity checking, and compute the number of bits
-       * to shift a page for constructing the page address for
-       * page-addressed memories.
-       */
+      cfg_update_mcuid(current_part);
+
+      // Sanity checks for memory sizes and compute/override num_pages entry
       for (ln=lfirst(current_part->mem); ln; ln=lnext(ln)) {
         m = ldata(ln);
         if (m->paged) {
-          if (m->page_size == 0) {
-            yyerror("must specify page_size for paged memory");
+          if (m->size <= 0) {
+            yyerror("must specify a positive size for paged memory %s", m->desc);
             YYABORT;
           }
-          if (m->num_pages == 0) {
-            yyerror("must specify num_pages for paged memory");
+          if (m->page_size <= 0) {
+            yyerror("must specify a positive page size for paged memory %s", m->desc);
             YYABORT;
           }
-          if (m->size != m->page_size * m->num_pages) {
-            yyerror("page size (%u) * num_pages (%u) = "
-                    "%u does not match memory size (%u)",
-                    m->page_size,
-                    m->num_pages,
-                    m->page_size * m->num_pages,
-                    m->size);
+          // Code base relies on page_size being a power of 2 in some places
+          if (m->page_size & (m->page_size - 1)) {
+            yyerror("page size must be a power of 2 for paged memory %s", m->desc);
             YYABORT;
           }
+          // Code base relies on size being a multiple of page_size
+          if (m->size % m->page_size) {
+            yyerror("size must be a multiple of page size for paged memory %s", m->desc);
+            YYABORT;
+          }
+          // Warn if num_pages was specified but is inconsistent with size and page size
+          if (m->num_pages && m->num_pages != m->size / m->page_size)
+            yywarning("overriding num_page to be %d for memory %s", m->size/m->page_size, m->desc);
 
+          m->num_pages = m->size / m->page_size;
         }
       }
 
       existing_part = locate_part(part_list, current_part->id);
       if (existing_part) {
         { /* temporarily set lineno to lineno of part start */
-          int temp = lineno; lineno = current_part->lineno;
+          int temp = cfg_lineno; cfg_lineno = current_part->lineno;
           yywarning("part %s overwrites previous definition %s:%d.",
                 current_part->id,
                 existing_part->config_file, existing_part->lineno);
-          lineno = temp;
+          cfg_lineno = temp;
         }
         lrmv_d(part_list, existing_part);
         avr_free_part(existing_part);
       }
+
+      current_part->comments = cfg_move_comments();
       LISTADD(part_list, current_part); 
       current_part = NULL; 
+      current_strct = COMP_CONFIG_MAIN;
     }
 ;
 
@@ -388,12 +430,9 @@ part_decl :
   K_PART
     {
       current_part = avr_new_part();
-      if (current_part == NULL) {
-        yyerror("could not create part instance");
-        YYABORT;
-      }
-      strcpy(current_part->config_file, infile);
-      current_part->lineno = lineno;
+      current_strct = COMP_AVRPART;
+      current_part->config_file = cache_string(cfg_infile);
+      current_part->lineno = cfg_lineno;
     } |
   K_PART K_PARENT TKN_STRING 
     {
@@ -405,13 +444,11 @@ part_decl :
       }
 
       current_part = avr_dup_part(parent_part);
-      if (current_part == NULL) {
-        yyerror("could not duplicate part instance");
-        free_token($3);
-        YYABORT;
-      }
-      strcpy(current_part->config_file, infile);
-      current_part->lineno = lineno;
+      current_strct = COMP_AVRPART;
+      current_part->parent_id = cache_string($3->value.string);
+      current_part->comments = NULL;
+      current_part->config_file = cache_string(cfg_infile);
+      current_part->lineno = cfg_lineno;
 
       free_token($3);
     }
@@ -424,8 +461,8 @@ string_list :
 
 
 num_list :
-  TKN_NUMBER { ladd(number_list, $1); } |
-  num_list TKN_COMMA TKN_NUMBER { ladd(number_list, $3); }
+  numexpr { ladd(number_list, $1); } |
+  num_list TKN_COMMA numexpr { ladd(number_list, $3); }
 ;
 
 prog_parms :
@@ -434,26 +471,16 @@ prog_parms :
 ;
 
 prog_parm :
+  TKN_COMPONENT TKN_EQUAL expr {
+    cfg_assign((char *) current_prog, COMP_PROGRAMMER, $1->value.comp, &$3->value);
+    free_token($1);
+  } |
   K_ID TKN_EQUAL string_list {
     {
-      TOKEN * t;
-      char *s;
-      int do_yyabort = 0;
       while (lsize(string_list)) {
-        t = lrmv_n(string_list, 1);
-        if (!do_yyabort) {
-          s = dup_string(t->value.string);
-          if (s == NULL) {
-            do_yyabort = 1;
-          } else {
-            ladd(current_prog->id, s);
-          }
-        }
-        /* if do_yyabort == 1 just make the list empty */
+        TOKEN *t = lrmv_n(string_list, 1);
+        ladd(current_prog->id, cfg_strdup("config_gram.y", t->value.string));
         free_token(t);
-      }
-      if (do_yyabort) {
-        YYABORT;
       }
     }
   } |
@@ -466,16 +493,16 @@ prog_parm :
   prog_parm_conntype
   |
   K_DESC TKN_EQUAL TKN_STRING {
-    strncpy(current_prog->desc, $3->value.string, PGM_DESCLEN);
-    current_prog->desc[PGM_DESCLEN-1] = 0;
+    current_prog->desc = cache_string($3->value.string);
     free_token($3);
   } |
-  K_BAUDRATE TKN_EQUAL TKN_NUMBER {
+  K_BAUDRATE TKN_EQUAL numexpr {
     {
       current_prog->baudrate = $3->value.number;
       free_token($3);
     }
-  }
+  } |
+  prog_parm_updi
 ;
 
 prog_parm_type:
@@ -507,18 +534,18 @@ prog_parm_conntype:
 prog_parm_conntype_id:
   K_PARALLEL        { current_prog->conntype = CONNTYPE_PARALLEL; } |
   K_SERIAL          { current_prog->conntype = CONNTYPE_SERIAL; } |
-  K_USB             { current_prog->conntype = CONNTYPE_USB; }
+  K_USB             { current_prog->conntype = CONNTYPE_USB; } |
+  K_SPI             { current_prog->conntype = CONNTYPE_SPI; }
 ;
 
 prog_parm_usb:
   K_USBDEV TKN_EQUAL TKN_STRING {
     {
-      strncpy(current_prog->usbdev, $3->value.string, PGM_USBSTRINGLEN);
-      current_prog->usbdev[PGM_USBSTRINGLEN-1] = 0;
+      current_prog->usbdev = cache_string($3->value.string);
       free_token($3);
     }
   } |
-  K_USBVID TKN_EQUAL TKN_NUMBER {
+  K_USBVID TKN_EQUAL numexpr {
     {
       current_prog->usbvid = $3->value.number;
       free_token($3);
@@ -527,50 +554,73 @@ prog_parm_usb:
   K_USBPID TKN_EQUAL usb_pid_list |
   K_USBSN TKN_EQUAL TKN_STRING {
     {
-      strncpy(current_prog->usbsn, $3->value.string, PGM_USBSTRINGLEN);
-      current_prog->usbsn[PGM_USBSTRINGLEN-1] = 0;
+      current_prog->usbsn = cache_string($3->value.string);
       free_token($3);
     }
   } |
   K_USBVENDOR TKN_EQUAL TKN_STRING {
     {
-      strncpy(current_prog->usbvendor, $3->value.string, PGM_USBSTRINGLEN);
-      current_prog->usbvendor[PGM_USBSTRINGLEN-1] = 0;
+      current_prog->usbvendor = cache_string($3->value.string);
       free_token($3);
     }
   } |
   K_USBPRODUCT TKN_EQUAL TKN_STRING {
     {
-      strncpy(current_prog->usbproduct, $3->value.string, PGM_USBSTRINGLEN);
-      current_prog->usbproduct[PGM_USBSTRINGLEN-1] = 0;
+      current_prog->usbproduct = cache_string($3->value.string);
       free_token($3);
     }
   }
 ;
 
 usb_pid_list:
-  TKN_NUMBER {
+  numexpr {
     {
       /* overwrite pids, so clear the existing entries */
-      ldestroy_cb(current_prog->usbpid, free);
+      if(current_prog->usbpid)
+        ldestroy_cb(current_prog->usbpid, free);
       current_prog->usbpid = lcreat(NULL, 0);
     }
     {
-      int *ip = malloc(sizeof(int));
-      if (ip) {
-        *ip = $1->value.number;
-        ladd(current_prog->usbpid, ip);
-      }
+      int *ip = cfg_malloc("usb_pid_list", sizeof(int));
+      *ip = $1->value.number;
+      ladd(current_prog->usbpid, ip);
       free_token($1);
     }
   } |
-  usb_pid_list TKN_COMMA TKN_NUMBER {
+  usb_pid_list TKN_COMMA numexpr {
     {
-      int *ip = malloc(sizeof(int));
-      if (ip) {
-        *ip = $3->value.number;
-        ladd(current_prog->usbpid, ip);
-      }
+      int *ip = cfg_malloc("usb_pid_list", sizeof(int));
+      *ip = $3->value.number;
+      ladd(current_prog->usbpid, ip);
+      free_token($3);
+    }
+  }
+;
+
+prog_parm_updi:
+  K_HVUPDI_SUPPORT TKN_EQUAL hvupdi_support_list
+;
+
+hvupdi_support_list:
+  numexpr {
+    {
+      /* overwrite list entries, so clear the existing entries */
+      if(current_prog->hvupdi_support)
+        ldestroy_cb(current_prog->hvupdi_support, free);
+      current_prog->hvupdi_support = lcreat(NULL, 0);
+    }
+    {
+      int *ip = cfg_malloc("hvupdi_support_list", sizeof(int));
+      *ip = $1->value.number;
+      ladd(current_prog->hvupdi_support, ip);
+      free_token($1);
+    }
+  } |
+  hvupdi_support_list TKN_COMMA numexpr {
+    {
+      int *ip = cfg_malloc("hvupdi_support_list", sizeof(int));
+      *ip = $3->value.number;
+      ladd(current_prog->hvupdi_support, ip);
       free_token($3);
     }
   }
@@ -579,7 +629,7 @@ usb_pid_list:
 pin_number_non_empty:
   TKN_NUMBER { if(0 != assign_pin(pin_name, $1, 0)) YYABORT;  }
   |
-  TKN_TILDE TKN_NUMBER { if(0 != assign_pin(pin_name, $2, 1)) YYABORT; }
+  OP_TILDE TKN_NUMBER { if(0 != assign_pin(pin_name, $2, 1)) YYABORT; }
 ;
 
 pin_number:
@@ -591,7 +641,7 @@ pin_number:
 pin_list_element:
   pin_number_non_empty
   |
-  TKN_TILDE TKN_LEFT_PAREN num_list TKN_RIGHT_PAREN { if(0 != assign_pin_list(1)) YYABORT; }
+  OP_TILDE TKN_LEFT_PAREN num_list TKN_RIGHT_PAREN { if(0 != assign_pin_list(1)) YYABORT; }
 ;
 
 pin_list_non_empty:
@@ -655,28 +705,35 @@ retry_lines :
 ;
 
 part_parm :
+  TKN_COMPONENT TKN_EQUAL expr {
+    cfg_assign((char *) current_part, COMP_AVRPART, $1->value.comp, &$3->value);
+    free_token($1);
+  } |
   K_ID TKN_EQUAL TKN_STRING 
     {
-      strncpy(current_part->id, $3->value.string, AVR_IDLEN);
-      current_part->id[AVR_IDLEN-1] = 0;
+      current_part->id = cache_string($3->value.string);
       free_token($3);
     } |
 
   K_DESC TKN_EQUAL TKN_STRING 
     {
-      strncpy(current_part->desc, $3->value.string, AVR_DESCLEN - 1);
-      current_part->desc[AVR_DESCLEN-1] = 0;
+      current_part->desc = cache_string($3->value.string);
       free_token($3);
     } |
 
   K_FAMILY_ID TKN_EQUAL TKN_STRING
     {
-      strncpy(current_part->family_id, $3->value.string, AVR_FAMILYIDLEN);
-      current_part->family_id[AVR_FAMILYIDLEN] = 0;
+      current_part->family_id = cache_string($3->value.string);
       free_token($3);
     } |
 
-  K_DEVICECODE TKN_EQUAL TKN_NUMBER {
+  K_HVUPDI_VARIANT TKN_EQUAL numexpr
+    {
+      current_part->hvupdi_variant = $3->value.number;
+      free_token($3);
+    } |
+
+  K_DEVICECODE TKN_EQUAL numexpr {
     {
       yyerror("devicecode is deprecated, use "
               "stk500_devcode instead");
@@ -684,14 +741,14 @@ part_parm :
     }
   } |
 
-  K_STK500_DEVCODE TKN_EQUAL TKN_NUMBER {
+  K_STK500_DEVCODE TKN_EQUAL numexpr {
     {
       current_part->stk500_devcode = $3->value.number;
       free_token($3);
     }
   } |
 
-  K_AVR910_DEVCODE TKN_EQUAL TKN_NUMBER {
+  K_AVR910_DEVCODE TKN_EQUAL numexpr {
     {
       current_part->avr910_devcode = $3->value.number;
       free_token($3);
@@ -709,7 +766,7 @@ part_parm :
     }
   } |
 
- K_USBPID TKN_EQUAL TKN_NUMBER {
+ K_USBPID TKN_EQUAL numexpr {
     {
       current_part->usbpid = $3->value.number;
       free_token($3);
@@ -747,6 +804,13 @@ part_parm :
     }
   } |
 
+  K_PP_CONTROLSTACK TKN_EQUAL K_NULL {
+    {
+      current_part->ctl_stack_type = CTL_STACK_NONE;
+      memset(current_part->controlstack, 0, CTL_STACK_SIZE);
+    }
+  } |
+
   K_HVSP_CONTROLSTACK TKN_EQUAL num_list {
     {
       TOKEN * t;
@@ -775,6 +839,13 @@ part_parm :
 	{
 	  yywarning("too many bytes in control stack");
         }
+    }
+  } |
+
+  K_HVSP_CONTROLSTACK TKN_EQUAL K_NULL {
+    {
+      current_part->ctl_stack_type = CTL_STACK_NONE;
+      memset(current_part->controlstack, 0, CTL_STACK_SIZE);
     }
   } |
 
@@ -808,6 +879,12 @@ part_parm :
     }
   } |
 
+  K_FLASH_INSTR TKN_EQUAL K_NULL {
+    {
+      memset(current_part->flash_instr, 0, FLASH_INSTR_SIZE);
+    }
+  } |
+
   K_EEPROM_INSTR TKN_EQUAL num_list {
     {
       TOKEN * t;
@@ -838,19 +915,25 @@ part_parm :
     }
   } |
 
-  K_CHIP_ERASE_DELAY TKN_EQUAL TKN_NUMBER
+  K_EEPROM_INSTR TKN_EQUAL K_NULL {
+    {
+      memset(current_part->eeprom_instr, 0, EEPROM_INSTR_SIZE);
+    }
+  } |
+
+  K_CHIP_ERASE_DELAY TKN_EQUAL numexpr
     {
       current_part->chip_erase_delay = $3->value.number;
       free_token($3);
     } |
 
-  K_PAGEL TKN_EQUAL TKN_NUMBER
+  K_PAGEL TKN_EQUAL numexpr
     {
       current_part->pagel = $3->value.number;
       free_token($3);
     } |
 
-  K_BS2 TKN_EQUAL TKN_NUMBER
+  K_BS2 TKN_EQUAL numexpr
     {
       current_part->bs2 = $3->value.number;
       free_token($3);
@@ -866,169 +949,169 @@ part_parm :
       free_tokens(2, $1, $3);
     } |
 
-  K_TIMEOUT TKN_EQUAL TKN_NUMBER
+  K_TIMEOUT TKN_EQUAL numexpr
     {
       current_part->timeout = $3->value.number;
       free_token($3);
     } |
 
-  K_STABDELAY TKN_EQUAL TKN_NUMBER
+  K_STABDELAY TKN_EQUAL numexpr
     {
       current_part->stabdelay = $3->value.number;
       free_token($3);
     } |
 
-  K_CMDEXEDELAY TKN_EQUAL TKN_NUMBER
+  K_CMDEXEDELAY TKN_EQUAL numexpr
     {
       current_part->cmdexedelay = $3->value.number;
       free_token($3);
     } |
 
-  K_HVSPCMDEXEDELAY TKN_EQUAL TKN_NUMBER
+  K_HVSPCMDEXEDELAY TKN_EQUAL numexpr
     {
       current_part->hvspcmdexedelay = $3->value.number;
       free_token($3);
     } |
 
-  K_SYNCHLOOPS TKN_EQUAL TKN_NUMBER
+  K_SYNCHLOOPS TKN_EQUAL numexpr
     {
       current_part->synchloops = $3->value.number;
       free_token($3);
     } |
 
-  K_BYTEDELAY TKN_EQUAL TKN_NUMBER
+  K_BYTEDELAY TKN_EQUAL numexpr
     {
       current_part->bytedelay = $3->value.number;
       free_token($3);
     } |
 
-  K_POLLVALUE TKN_EQUAL TKN_NUMBER
+  K_POLLVALUE TKN_EQUAL numexpr
     {
       current_part->pollvalue = $3->value.number;
       free_token($3);
     } |
 
-  K_POLLINDEX TKN_EQUAL TKN_NUMBER
+  K_POLLINDEX TKN_EQUAL numexpr
     {
       current_part->pollindex = $3->value.number;
       free_token($3);
     } |
 
-  K_PREDELAY TKN_EQUAL TKN_NUMBER
+  K_PREDELAY TKN_EQUAL numexpr
     {
       current_part->predelay = $3->value.number;
       free_token($3);
     } |
 
-  K_POSTDELAY TKN_EQUAL TKN_NUMBER
+  K_POSTDELAY TKN_EQUAL numexpr
     {
       current_part->postdelay = $3->value.number;
       free_token($3);
     } |
 
-  K_POLLMETHOD TKN_EQUAL TKN_NUMBER
+  K_POLLMETHOD TKN_EQUAL numexpr
     {
       current_part->pollmethod = $3->value.number;
       free_token($3);
     } |
 
-  K_HVENTERSTABDELAY TKN_EQUAL TKN_NUMBER
+  K_HVENTERSTABDELAY TKN_EQUAL numexpr
     {
       current_part->hventerstabdelay = $3->value.number;
       free_token($3);
     } |
 
-  K_PROGMODEDELAY TKN_EQUAL TKN_NUMBER
+  K_PROGMODEDELAY TKN_EQUAL numexpr
     {
       current_part->progmodedelay = $3->value.number;
       free_token($3);
     } |
 
-  K_LATCHCYCLES TKN_EQUAL TKN_NUMBER
+  K_LATCHCYCLES TKN_EQUAL numexpr
     {
       current_part->latchcycles = $3->value.number;
       free_token($3);
     } |
 
-  K_TOGGLEVTG TKN_EQUAL TKN_NUMBER
+  K_TOGGLEVTG TKN_EQUAL numexpr
     {
       current_part->togglevtg = $3->value.number;
       free_token($3);
     } |
 
-  K_POWEROFFDELAY TKN_EQUAL TKN_NUMBER
+  K_POWEROFFDELAY TKN_EQUAL numexpr
     {
       current_part->poweroffdelay = $3->value.number;
       free_token($3);
     } |
 
-  K_RESETDELAYMS TKN_EQUAL TKN_NUMBER
+  K_RESETDELAYMS TKN_EQUAL numexpr
     {
       current_part->resetdelayms = $3->value.number;
       free_token($3);
     } |
 
-  K_RESETDELAYUS TKN_EQUAL TKN_NUMBER
+  K_RESETDELAYUS TKN_EQUAL numexpr
     {
       current_part->resetdelayus = $3->value.number;
       free_token($3);
     } |
 
-  K_HVLEAVESTABDELAY TKN_EQUAL TKN_NUMBER
+  K_HVLEAVESTABDELAY TKN_EQUAL numexpr
     {
       current_part->hvleavestabdelay = $3->value.number;
       free_token($3);
     } |
 
-  K_RESETDELAY TKN_EQUAL TKN_NUMBER
+  K_RESETDELAY TKN_EQUAL numexpr
     {
       current_part->resetdelay = $3->value.number;
       free_token($3);
     } |
 
-  K_CHIPERASEPULSEWIDTH TKN_EQUAL TKN_NUMBER
+  K_CHIPERASEPULSEWIDTH TKN_EQUAL numexpr
     {
       current_part->chiperasepulsewidth = $3->value.number;
       free_token($3);
     } |
 
-  K_CHIPERASEPOLLTIMEOUT TKN_EQUAL TKN_NUMBER
+  K_CHIPERASEPOLLTIMEOUT TKN_EQUAL numexpr
     {
       current_part->chiperasepolltimeout = $3->value.number;
       free_token($3);
     } |
 
-  K_CHIPERASETIME TKN_EQUAL TKN_NUMBER
+  K_CHIPERASETIME TKN_EQUAL numexpr
     {
       current_part->chiperasetime = $3->value.number;
       free_token($3);
     } |
 
-  K_PROGRAMFUSEPULSEWIDTH TKN_EQUAL TKN_NUMBER
+  K_PROGRAMFUSEPULSEWIDTH TKN_EQUAL numexpr
     {
       current_part->programfusepulsewidth = $3->value.number;
       free_token($3);
     } |
 
-  K_PROGRAMFUSEPOLLTIMEOUT TKN_EQUAL TKN_NUMBER
+  K_PROGRAMFUSEPOLLTIMEOUT TKN_EQUAL numexpr
     {
       current_part->programfusepolltimeout = $3->value.number;
       free_token($3);
     } |
 
-  K_PROGRAMLOCKPULSEWIDTH TKN_EQUAL TKN_NUMBER
+  K_PROGRAMLOCKPULSEWIDTH TKN_EQUAL numexpr
     {
       current_part->programlockpulsewidth = $3->value.number;
       free_token($3);
     } |
 
-  K_PROGRAMLOCKPOLLTIMEOUT TKN_EQUAL TKN_NUMBER
+  K_PROGRAMLOCKPOLLTIMEOUT TKN_EQUAL numexpr
     {
       current_part->programlockpolltimeout = $3->value.number;
       free_token($3);
     } |
 
-  K_SYNCHCYCLES TKN_EQUAL TKN_NUMBER
+  K_SYNCHCYCLES TKN_EQUAL numexpr
     {
       current_part->synchcycles = $3->value.number;
       free_token($3);
@@ -1037,50 +1120,45 @@ part_parm :
   K_HAS_JTAG TKN_EQUAL yesno
     {
       if ($3->primary == K_YES)
-        current_part->flags |= AVRPART_HAS_JTAG;
+        current_part->prog_modes |= PM_JTAG;
       else if ($3->primary == K_NO)
-        current_part->flags &= ~AVRPART_HAS_JTAG;
-
+        current_part->prog_modes &= ~(PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG);
       free_token($3);
     } |
 
   K_HAS_DW TKN_EQUAL yesno
     {
       if ($3->primary == K_YES)
-        current_part->flags |= AVRPART_HAS_DW;
+        current_part->prog_modes |= PM_debugWIRE;
       else if ($3->primary == K_NO)
-        current_part->flags &= ~AVRPART_HAS_DW;
-
+        current_part->prog_modes &= ~PM_debugWIRE;
       free_token($3);
     } |
 
   K_HAS_PDI TKN_EQUAL yesno
     {
       if ($3->primary == K_YES)
-        current_part->flags |= AVRPART_HAS_PDI;
+        current_part->prog_modes |= PM_PDI;
       else if ($3->primary == K_NO)
-        current_part->flags &= ~AVRPART_HAS_PDI;
-
+        current_part->prog_modes &= ~PM_PDI;
       free_token($3);
     } |
 
   K_HAS_UPDI TKN_EQUAL yesno
     {
       if ($3->primary == K_YES)
-        current_part->flags |= AVRPART_HAS_UPDI;
+        current_part->prog_modes |= PM_UPDI;
       else if ($3->primary == K_NO)
-        current_part->flags &= ~AVRPART_HAS_UPDI;
-
+        current_part->prog_modes &= ~PM_UPDI;
       free_token($3);
     } |
 
   K_HAS_TPI TKN_EQUAL yesno
     {
       if ($3->primary == K_YES)
-        current_part->flags |= AVRPART_HAS_TPI;
+        current_part->prog_modes |= PM_TPI;
       else if ($3->primary == K_NO)
-        current_part->flags &= ~AVRPART_HAS_TPI;
-
+        current_part->prog_modes &= ~PM_TPI;
       free_token($3);
     } |
 
@@ -1097,10 +1175,9 @@ part_parm :
   K_IS_AVR32 TKN_EQUAL yesno
     {
       if ($3->primary == K_YES)
-        current_part->flags |= AVRPART_AVR32;
+        current_part->prog_modes |= PM_aWire;
       else if ($3->primary == K_NO)
-        current_part->flags &= ~AVRPART_AVR32;
-
+        current_part->prog_modes &= ~PM_aWire;
       free_token($3);
     } |
 
@@ -1124,49 +1201,49 @@ part_parm :
       free_token($3);
     } |
 
-  K_IDR TKN_EQUAL TKN_NUMBER
+  K_IDR TKN_EQUAL numexpr
     {
       current_part->idr = $3->value.number;
       free_token($3);
     } |
 
-  K_RAMPZ TKN_EQUAL TKN_NUMBER
+  K_RAMPZ TKN_EQUAL numexpr
     {
       current_part->rampz = $3->value.number;
       free_token($3);
     } |
 
-  K_SPMCR TKN_EQUAL TKN_NUMBER
+  K_SPMCR TKN_EQUAL numexpr
     {
       current_part->spmcr = $3->value.number;
       free_token($3);
     } |
 
-  K_EECR TKN_EQUAL TKN_NUMBER
+  K_EECR TKN_EQUAL numexpr
     {
       current_part->eecr = $3->value.number;
       free_token($3);
     } |
 
-  K_MCU_BASE TKN_EQUAL TKN_NUMBER
+  K_MCU_BASE TKN_EQUAL numexpr
     {
       current_part->mcu_base = $3->value.number;
       free_token($3);
     } |
 
-  K_NVM_BASE TKN_EQUAL TKN_NUMBER
+  K_NVM_BASE TKN_EQUAL numexpr
     {
       current_part->nvm_base = $3->value.number;
       free_token($3);
     } |
 
- K_OCD_BASE TKN_EQUAL TKN_NUMBER
+ K_OCD_BASE TKN_EQUAL numexpr
     {
       current_part->ocd_base = $3->value.number;
       free_token($3);
     } |
 
-  K_OCDREV          TKN_EQUAL TKN_NUMBER
+  K_OCDREV          TKN_EQUAL numexpr
     {
       current_part->ocdrev = $3->value.number;
       free_token($3);
@@ -1216,44 +1293,53 @@ part_parm :
     } |
 
 
-/*
-  K_EEPROM { current_mem = AVR_M_EEPROM; }
-    mem_specs |
-
-  K_FLASH { current_mem = AVR_M_FLASH; }
-    mem_specs |
-*/
-
   K_MEMORY TKN_STRING 
-    {
-      current_mem = avr_new_memtype();
-      if (current_mem == NULL) {
-        yyerror("could not create mem instance");
-        free_token($2);
-        YYABORT;
+    { /* select memory for extension or create if not there */
+      AVRMEM *mem = avr_locate_mem_noalias(current_part, $2->value.string);
+      if(!mem) {
+        mem = avr_new_memtype();
+        mem->desc = cache_string($2->value.string);
+        ladd(current_part->mem, mem);
       }
-      strncpy(current_mem->desc, $2->value.string, AVR_MEMDESCLEN - 1);
-      current_mem->desc[AVR_MEMDESCLEN-1] = 0;
+      avr_add_mem_order($2->value.string);
+      current_mem = mem;
+      current_strct = COMP_AVRMEM;
       free_token($2);
     }
     mem_specs 
-    { 
-      AVRMEM * existing_mem;
+    {
+      if (is_alias) {           // alias mem has been already entered
+        lrmv_d(current_part->mem, current_mem);
+        avr_free_mem(current_mem);
+        is_alias = false;
+      } else {                  // check all opcodes re necessary address bits
+        unsigned char cmd[4] = { 0, 0, 0, 0, };
+        int bn;
 
-      existing_mem = avr_locate_mem_noalias(current_part, current_mem->desc);
+        for(int i=0; i<AVR_OP_MAX; i++)
+          if(current_mem && current_mem->op[i]) {
+            if((bn = avr_set_addr_mem(current_mem, i, cmd, 0UL)) > 0)
+              yywarning("%s's %s %s misses a necessary address bit a%d",
+                 current_part->desc, current_mem->desc, opcodename(i), bn-1);
+            }
+        current_mem->comments = cfg_move_comments();
+      }
+      cfg_pop_comms();
+      current_mem = NULL; 
+      current_strct = COMP_AVRPART;
+    } |
+  K_MEMORY TKN_STRING TKN_EQUAL K_NULL
+   {
+      AVRMEM *existing_mem = avr_locate_mem_noalias(current_part, $2->value.string);
       if (existing_mem != NULL) {
         lrmv_d(current_part->mem, existing_mem);
         avr_free_mem(existing_mem);
       }
-      if (is_alias) {
-        avr_free_mem(current_mem); // alias mem has been already entered below
-        is_alias = false;
-      } else {
-        ladd(current_part->mem, current_mem);
-      }
-      current_mem = NULL; 
+      free_token($2);
+      cfg_pop_comms();
+      current_mem = NULL;
+      current_strct = COMP_AVRPART;
     } |
-
   opcode TKN_EQUAL string_list {
     { 
       int opnum;
@@ -1262,17 +1348,26 @@ part_parm :
       opnum = which_opcode($1);
       if (opnum < 0) YYABORT;
       op = avr_new_opcode();
-      if (op == NULL) {
-        yyerror("could not create opcode instance");
-        free_token($1);
+      if(0 != parse_cmdbits(op, opnum))
         YYABORT;
-      }
-      if(0 != parse_cmdbits(op)) YYABORT;
       if (current_part->op[opnum] != NULL) {
         /*yywarning("operation redefined");*/
         avr_free_opcode(current_part->op[opnum]);
       }
       current_part->op[opnum] = op;
+
+      free_token($1);
+    }
+  } |
+
+  opcode TKN_EQUAL K_NULL {
+    {
+      int opnum = which_opcode($1);
+      if(opnum < 0)
+         YYABORT;
+      if(current_part->op[opnum] != NULL)
+        avr_free_opcode(current_part->op[opnum]);
+      current_part->op[opnum] = NULL;
 
       free_token($1);
     }
@@ -1293,50 +1388,53 @@ mem_specs :
 
 
 mem_spec :
+  TKN_COMPONENT TKN_EQUAL expr {
+    cfg_assign((char *) current_mem, COMP_AVRMEM, $1->value.comp, &$3->value);
+    free_token($1);
+  } |
+
   K_PAGED          TKN_EQUAL yesno
     {
       current_mem->paged = $3->primary == K_YES ? 1 : 0;
       free_token($3);
     } |
 
-  K_SIZE            TKN_EQUAL TKN_NUMBER
+  K_SIZE            TKN_EQUAL numexpr
     {
       current_mem->size = $3->value.number;
       free_token($3);
     } |
 
 
-  K_PAGE_SIZE       TKN_EQUAL TKN_NUMBER
+  K_PAGE_SIZE       TKN_EQUAL numexpr
     {
       int ps = $3->value.number;
       if (ps <= 0)
-        avrdude_message(MSG_INFO,
-                        "%s, line %d: invalid page size %d, ignored\n",
-                        infile, lineno, ps);
+        pmsg_warning("invalid page size %d, ignored [%s:%d]\n", ps, cfg_infile, cfg_lineno);
       else
         current_mem->page_size = ps;
       free_token($3);
     } |
 
-  K_NUM_PAGES       TKN_EQUAL TKN_NUMBER
+  K_NUM_PAGES       TKN_EQUAL numexpr
     {
       current_mem->num_pages = $3->value.number;
       free_token($3);
     } |
 
-  K_OFFSET          TKN_EQUAL TKN_NUMBER
+  K_OFFSET          TKN_EQUAL numexpr
     {
       current_mem->offset = $3->value.number;
       free_token($3);
     } |
 
-  K_MIN_WRITE_DELAY TKN_EQUAL TKN_NUMBER
+  K_MIN_WRITE_DELAY TKN_EQUAL numexpr
     {
       current_mem->min_write_delay = $3->value.number;
       free_token($3);
     } |
 
-  K_MAX_WRITE_DELAY TKN_EQUAL TKN_NUMBER
+  K_MAX_WRITE_DELAY TKN_EQUAL numexpr
     {
       current_mem->max_write_delay = $3->value.number;
       free_token($3);
@@ -1348,44 +1446,52 @@ mem_spec :
       free_token($3);
     } |
 
-  K_READBACK_P1     TKN_EQUAL TKN_NUMBER
+  K_READBACK        TKN_EQUAL TKN_NUMBER TKN_NUMBER
+    {
+      current_mem->readback[0] = $3->value.number;
+      current_mem->readback[1] = $4->value.number;
+      free_token($3);
+      free_token($4);
+    } |
+
+  K_READBACK_P1     TKN_EQUAL numexpr
     {
       current_mem->readback[0] = $3->value.number;
       free_token($3);
     } |
 
-  K_READBACK_P2     TKN_EQUAL TKN_NUMBER
+  K_READBACK_P2     TKN_EQUAL numexpr
     {
       current_mem->readback[1] = $3->value.number;
       free_token($3);
     } |
 
 
-  K_MODE TKN_EQUAL TKN_NUMBER
+  K_MODE TKN_EQUAL numexpr
     {
       current_mem->mode = $3->value.number;
       free_token($3);
     } |
 
-  K_DELAY TKN_EQUAL TKN_NUMBER
+  K_DELAY TKN_EQUAL numexpr
     {
       current_mem->delay = $3->value.number;
       free_token($3);
     } |
 
-  K_BLOCKSIZE TKN_EQUAL TKN_NUMBER
+  K_BLOCKSIZE TKN_EQUAL numexpr
     {
       current_mem->blocksize = $3->value.number;
       free_token($3);
     } |
 
-  K_READSIZE TKN_EQUAL TKN_NUMBER
+  K_READSIZE TKN_EQUAL numexpr
     {
       current_mem->readsize = $3->value.number;
       free_token($3);
     } |
 
-  K_POLLINDEX TKN_EQUAL TKN_NUMBER
+  K_POLLINDEX TKN_EQUAL numexpr
     {
       current_mem->pollindex = $3->value.number;
       free_token($3);
@@ -1400,17 +1506,26 @@ mem_spec :
       opnum = which_opcode($1);
       if (opnum < 0) YYABORT;
       op = avr_new_opcode();
-      if (op == NULL) {
-        yyerror("could not create opcode instance");
-        free_token($1);
+      if(0 != parse_cmdbits(op, opnum))
         YYABORT;
-      }
-      if(0 != parse_cmdbits(op)) YYABORT;
       if (current_mem->op[opnum] != NULL) {
         /*yywarning("operation redefined");*/
         avr_free_opcode(current_mem->op[opnum]);
       }
       current_mem->op[opnum] = op;
+
+      free_token($1);
+    }
+  } |
+
+  opcode TKN_EQUAL K_NULL {
+    {
+      int opnum = which_opcode($1);
+      if(opnum < 0)
+         YYABORT;
+      if(current_mem->op[opnum] != NULL)
+        avr_free_opcode(current_mem->op[opnum]);
+      current_mem->op[opnum] = NULL;
 
       free_token($1);
     }
@@ -1439,10 +1554,7 @@ mem_alias :
 
       is_alias = true;
       alias = avr_new_memalias();
-
-      // alias->desc and current_mem->desc have the same length
-      // definition, thus no need to check for length here
-      strcpy(alias->desc, current_mem->desc);
+      alias->desc = current_mem->desc;
       alias->aliased_mem = existing_mem;
       ladd(current_part->mem_alias, alias);
 
@@ -1529,15 +1641,12 @@ static int which_opcode(TOKEN * opcode)
 }
 
 
-static int parse_cmdbits(OPCODE * op)
+static int parse_cmdbits(OPCODE * op, int opnum)
 {
-  TOKEN * t;
+  TOKEN *t;
   int bitno;
-  char ch;
-  char * e;
-  char * q;
   int len;
-  char * s, *brkt = NULL;
+  char *s, *brkt = NULL;
   int rv = 0;
 
   bitno = 32;
@@ -1545,10 +1654,18 @@ static int parse_cmdbits(OPCODE * op)
 
     t = lrmv_n(string_list, 1);
 
-    s = strtok_r(t->value.string, " ", &brkt);
+    char *str = t->value.string;
+    // Compact alternative specification? (eg, "0100.0000--000x.xxxx--xxaa.aaaa--iiii.iiii")
+    char bit[2] = {0, 0}, *cc = str;
+    int compact = !strchr(str, ' ') && strlen(str) > 7;
+
+    bit[0] = *cc++;
+    s = !compact? strtok_r(str, " ", &brkt): *bit? bit: NULL;
     while (rv == 0 && s != NULL) {
 
-      bitno--;
+      // Ignore visual grouping characters in compact mode
+      if(*s != '.' && *s != '-' && *s != '_' && *s !='/')
+        bitno--;
       if (bitno < 0) {
         yyerror("too many opcode bits for instruction");
         rv = -1;
@@ -1563,10 +1680,8 @@ static int parse_cmdbits(OPCODE * op)
         break;
       }
 
-      ch = s[0];
-
       if (len == 1) {
-        switch (ch) {
+        switch (*s) {
           case '1':
             op->bit[bitno].type  = AVR_CMDBIT_VALUE;
             op->bit[bitno].value = 1;
@@ -1585,7 +1700,10 @@ static int parse_cmdbits(OPCODE * op)
           case 'a':
             op->bit[bitno].type  = AVR_CMDBIT_ADDRESS;
             op->bit[bitno].value = 0;
-            op->bit[bitno].bitno = 8*(bitno/8) + bitno % 8;
+            op->bit[bitno].bitno = bitno < 8 || bitno > 23? 0:
+              opnum == AVR_OP_LOAD_EXT_ADDR? bitno+8: bitno-8; /* correct bit number for lone 'a' */
+            if(bitno < 8 || bitno > 23)
+              yywarning("address bits don't normally appear in Bytes 0 or 3 of SPI commands");
             break;
           case 'i':
             op->bit[bitno].type  = AVR_CMDBIT_INPUT;
@@ -1597,37 +1715,60 @@ static int parse_cmdbits(OPCODE * op)
             op->bit[bitno].value = 0;
             op->bit[bitno].bitno = bitno % 8;
             break;
+          case '.':
+          case '-':
+          case '_':
+          case '/':
+            break;
           default :
-            yyerror("invalid bit specifier '%c'", ch);
+            yyerror("invalid bit specifier '%c'", *s);
             rv = -1;
             break;
         }
       }
       else {
-        if (ch == 'a') {
-          q = &s[1];
-          op->bit[bitno].bitno = strtol(q, &e, 0);
-          if ((e == q)||(*e != 0)) {
-            yyerror("can't parse bit number from \"%s\"", q);
-            rv = -1;
-            break;
+        if (*s == 'a') {
+          int sb, bn;
+          char *e, *q;
+
+          q = s+1;
+          errno = 0;
+          bn = strtol(q, &e, 0); // address line
+          if (e == q || *e != 0 || errno) {
+            yywarning("can't parse bit number from a%s", q);
+            bn = 0;
           }
+
+          sb = opnum == AVR_OP_LOAD_EXT_ADDR? bitno+8: bitno-8; // should be this number
+          if(bitno < 8 || bitno > 23)
+            yywarning("address bits don't normally appear in Bytes 0 or 3 of SPI commands");
+          else if((bn & 31) != sb)
+            yywarning("a%d would normally be expected to be a%d", bn, sb);
+          else if(bn < 0 || bn > 31)
+            yywarning("invalid address bit a%d, using a%d", bn, bn & 31);
+
+          op->bit[bitno].bitno = bn & 31;
+
           op->bit[bitno].type = AVR_CMDBIT_ADDRESS;
           op->bit[bitno].value = 0;
         }
         else {
-          yyerror("invalid bit specifier \"%s\"", s);
+          yyerror("invalid bit specifier %s", s);
           rv = -1;
           break;
         }
       }
 
-      s = strtok_r(NULL, " ", &brkt);
+      bit[0] = *cc++;
+      s = !compact? strtok_r(NULL, " ", &brkt): *bit? bit: NULL;
     } /* while */
 
     free_token(t);
 
   }  /* while */
+
+  if(bitno > 0)
+    yywarning("too few opcode bits in instruction");
 
   return rv;
 }

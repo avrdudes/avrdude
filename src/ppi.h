@@ -34,21 +34,21 @@ enum {
 extern "C" {
 #endif
 
-int ppi_get       (union filedescriptor *fdp, int reg, int bit);
+int ppi_get       (const union filedescriptor *fdp, int reg, int bit);
 
-int ppi_set       (union filedescriptor *fdp, int reg, int bit);
+int ppi_set       (const union filedescriptor *fdp, int reg, int bit);
 
-int ppi_clr       (union filedescriptor *fdp, int reg, int bit);
+int ppi_clr       (const union filedescriptor *fdp, int reg, int bit);
 
-int ppi_getall    (union filedescriptor *fdp, int reg);
+int ppi_getall    (const union filedescriptor *fdp, int reg);
 
-int ppi_setall    (union filedescriptor *fdp, int reg, int val);
+int ppi_setall    (const union filedescriptor *fdp, int reg, int val);
 
-int ppi_toggle    (union filedescriptor *fdp, int reg, int bit);
+int ppi_toggle    (const union filedescriptor *fdp, int reg, int bit);
 
-void ppi_open     (char * port, union filedescriptor *fdp);
+void ppi_open     (const char *port, union filedescriptor *fdp);
 
-void ppi_close    (union filedescriptor *fdp);
+void ppi_close    (const union filedescriptor *fdp);
 
 #ifdef __cplusplus
 }

@@ -57,8 +57,7 @@ struct pdata
 static void avr910_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    avrdude_message(MSG_INFO, "%s: avr910_setup(): Out of memory allocating private data\n",
-                    progname);
+    pmsg_error("out of memory allocating private data\n");
     exit(1);
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
@@ -71,40 +70,34 @@ static void avr910_teardown(PROGRAMMER * pgm)
 }
 
 
-static int avr910_send(PROGRAMMER * pgm, char * buf, size_t len)
-{
+static int avr910_send(const PROGRAMMER *pgm, char *buf, size_t len) {
   return serial_send(&pgm->fd, (unsigned char *)buf, len);
 }
 
 
-static int avr910_recv(PROGRAMMER * pgm, char * buf, size_t len)
-{
+static int avr910_recv(const PROGRAMMER *pgm, char *buf, size_t len) {
   int rv;
 
   rv = serial_recv(&pgm->fd, (unsigned char *)buf, len);
   if (rv < 0) {
-    avrdude_message(MSG_INFO, "%s: avr910_recv(): programmer is not responding\n",
-                    progname);
+    pmsg_error("programmer is not responding\n");
     return 1;
   }
   return 0;
 }
 
 
-static int avr910_drain(PROGRAMMER * pgm, int display)
-{
+static int avr910_drain(const PROGRAMMER *pgm, int display) {
   return serial_drain(&pgm->fd, display);
 }
 
 
-static int avr910_vfy_cmd_sent(PROGRAMMER * pgm, char * errmsg)
-{
+static int avr910_vfy_cmd_sent(const PROGRAMMER *pgm, char *errmsg) {
   char c;
 
   avr910_recv(pgm, &c, 1);
   if (c != '\r') {
-    avrdude_message(MSG_INFO, "%s: error: programmer did not respond to command: %s\n",
-            progname, errmsg);
+    pmsg_error("programmer did not respond to command: %s\n", errmsg);
     return 1;
   }
   return 0;
@@ -114,8 +107,7 @@ static int avr910_vfy_cmd_sent(PROGRAMMER * pgm, char * errmsg)
 /*
  * issue the 'chip erase' command to the AVR device
  */
-static int avr910_chip_erase(PROGRAMMER * pgm, AVRPART * p)
-{
+static int avr910_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   avr910_send(pgm, "e", 1);
   if (avr910_vfy_cmd_sent(pgm, "chip erase") < 0)
     return -1;
@@ -129,15 +121,13 @@ static int avr910_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 }
 
 
-static int avr910_enter_prog_mode(PROGRAMMER * pgm)
-{
+static int avr910_enter_prog_mode(const PROGRAMMER *pgm) {
   avr910_send(pgm, "P", 1);
   return avr910_vfy_cmd_sent(pgm, "enter prog mode");
 }
 
 
-static int avr910_leave_prog_mode(PROGRAMMER * pgm)
-{
+static int avr910_leave_prog_mode(const PROGRAMMER *pgm) {
   avr910_send(pgm, "L", 1);
   return avr910_vfy_cmd_sent(pgm, "leave prog mode");
 }
@@ -146,8 +136,7 @@ static int avr910_leave_prog_mode(PROGRAMMER * pgm)
 /*
  * issue the 'program enable' command to the AVR device
  */
-static int avr910_program_enable(PROGRAMMER * pgm, AVRPART * p)
-{
+static int avr910_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   return -1;
 }
 
@@ -155,8 +144,7 @@ static int avr910_program_enable(PROGRAMMER * pgm, AVRPART * p)
 /*
  * initialize the AVR device and prepare it to accept commands
  */
-static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
-{
+static int avr910_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   char id[8];
   char sw[2];
   char hw[2];
@@ -185,16 +173,16 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
   avr910_send(pgm, "p", 1);
   avr910_recv(pgm, &type, 1);
 
-  avrdude_message(MSG_INFO, "Found programmer: Id = \"%s\"; type = %c\n", id, type);
-  avrdude_message(MSG_INFO, "    Software Version = %c.%c; ", sw[0], sw[1]);
-  avrdude_message(MSG_INFO, "Hardware Version = %c.%c\n", hw[0], hw[1]);
+  msg_notice("Programmer id    = %s; type = %c\n", id, type);
+  msg_notice("Software version = %c.%c; ", sw[0], sw[1]);
+  msg_notice("Hardware version = %c.%c\n", hw[0], hw[1]);
 
   /* See if programmer supports autoincrement of address. */
 
   avr910_send(pgm, "a", 1);
   avr910_recv(pgm, &PDATA(pgm)->has_auto_incr_addr, 1);
   if (PDATA(pgm)->has_auto_incr_addr == 'Y')
-      avrdude_message(MSG_INFO, "Programmer supports auto addr increment.\n");
+      msg_notice("programmer supports auto addr increment\n");
 
   /* Check support for buffered memory access, ignore if not available */
 
@@ -206,8 +194,8 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
       PDATA(pgm)->buffersize = (unsigned int)(unsigned char)c<<8;
       avr910_recv(pgm, &c, 1);
       PDATA(pgm)->buffersize += (unsigned int)(unsigned char)c;
-      avrdude_message(MSG_INFO, "Programmer supports buffered memory access with "
-                      "buffersize = %u bytes.\n",
+      msg_notice("programmer supports buffered memory access with "
+                      "buffersize = %u bytes\n",
                       PDATA(pgm)->buffersize);
       PDATA(pgm)->use_blockmode = 1;
     } else {
@@ -224,7 +212,7 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
     /* Get list of devices that the programmer supports. */
 
     avr910_send(pgm, "t", 1);
-    avrdude_message(MSG_INFO, "\nProgrammer supports the following devices:\n");
+    msg_notice2("\nProgrammer supports the following devices:\n");
     devtype_1st = 0;
     while (1) {
       avr910_recv(pgm, &c, 1);
@@ -234,20 +222,22 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
 	break;
       part = locate_part_by_avr910_devcode(part_list, c);
 
-      avrdude_message(MSG_INFO, "    Device code: 0x%02x = %s\n", c, part ?  part->desc : "(unknown)");
+      msg_notice2("    Device code: 0x%02x = %s\n", c & 0xff, part? part->desc: "(unknown)");
 
       /* FIXME: Need to lookup devcode and report the device. */
 
       if (p->avr910_devcode == c)
 	dev_supported = 1;
     };
-    avrdude_message(MSG_INFO, "\n");
+    msg_notice2("\n");
 
     if (!dev_supported) {
-      avrdude_message(MSG_INFO, "%s: %s: selected device is not supported by programmer: %s\n",
-                      progname, ovsigck? "warning": "error", p->id);
-      if (!ovsigck)
+      if(ovsigck)
+        pmsg_warning("selected device is not supported by programmer %s\n", p->id);
+      else {
+        pmsg_error("selected device is not supported by programmer %s\n", p->id);
 	return -1;
+      }
     }
     /* If the user forced the selection, use the first device
        type that is supported by the programmer. */
@@ -264,8 +254,7 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
   avr910_send(pgm, buf, 2);
   avr910_vfy_cmd_sent(pgm, "select device");
 
-  avrdude_message(MSG_NOTICE, "%s: avr910_devcode selected: 0x%02x\n",
-                  progname, (unsigned)buf[1]);
+  pmsg_notice("avr910_devcode selected: 0x%02x\n", (unsigned) buf[1]);
 
   avr910_enter_prog_mode(pgm);
 
@@ -273,16 +262,14 @@ static int avr910_initialize(PROGRAMMER * pgm, AVRPART * p)
 }
 
 
-static void avr910_disable(PROGRAMMER * pgm)
-{
+static void avr910_disable(const PROGRAMMER *pgm) {
   /* Do nothing. */
 
   return;
 }
 
 
-static void avr910_enable(PROGRAMMER * pgm)
-{
+static void avr910_enable(PROGRAMMER *pgm, const AVRPART *p) {
   /* Do nothing. */
 
   return;
@@ -293,7 +280,7 @@ static void avr910_enable(PROGRAMMER * pgm)
  * transmit an AVR device command and return the results; 'cmd' and
  * 'res' must point to at least a 4 byte data buffer
  */
-static int avr910_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
+static int avr910_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
                       unsigned char *res)
 {
   char buf[5];
@@ -318,8 +305,7 @@ static int avr910_cmd(PROGRAMMER * pgm, const unsigned char *cmd,
 }
 
 
-static int avr910_parseextparms(PROGRAMMER * pgm, LISTID extparms)
-{
+static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   LNODEID ln;
   const char *extended_param;
   int rv = 0;
@@ -331,27 +317,23 @@ static int avr910_parseextparms(PROGRAMMER * pgm, LISTID extparms)
       int devcode;
       if (sscanf(extended_param, "devcode=%i", &devcode) != 1 ||
 	  devcode <= 0 || devcode > 255) {
-        avrdude_message(MSG_INFO, "%s: avr910_parseextparms(): invalid devcode '%s'\n",
-                        progname, extended_param);
+        pmsg_error("invalid devcode '%s'\n", extended_param);
         rv = -1;
         continue;
       }
-      avrdude_message(MSG_NOTICE2, "%s: avr910_parseextparms(): devcode overwritten as 0x%02x\n",
-                      progname, devcode);
+      pmsg_notice2("avr910_parseextparms(): devcode overwritten as 0x%02x\n", devcode);
       PDATA(pgm)->devcode = devcode;
 
       continue;
     }
     if (strncmp(extended_param, "no_blockmode", strlen("no_blockmode")) == 0) {
-      avrdude_message(MSG_NOTICE2, "%s: avr910_parseextparms(-x): no testing for Blockmode\n",
-                      progname);
+      pmsg_notice2("avr910_parseextparms(-x): no testing for Blockmode\n");
       PDATA(pgm)->test_blockmode = 0;
 
       continue;
     }
 
-    avrdude_message(MSG_INFO, "%s: avr910_parseextparms(): invalid extended parameter '%s'\n",
-                    progname, extended_param);
+    pmsg_error("invalid extended parameter '%s'\n", extended_param);
     rv = -1;
   }
 
@@ -359,8 +341,7 @@ static int avr910_parseextparms(PROGRAMMER * pgm, LISTID extparms)
 }
 
 
-static int avr910_open(PROGRAMMER * pgm, char * port)
-{
+static int avr910_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
   /*
    *  If baudrate was not specified use 19.200 Baud
@@ -393,14 +374,12 @@ static void avr910_close(PROGRAMMER * pgm)
 }
 
 
-static void avr910_display(PROGRAMMER * pgm, const char * p)
-{
+static void avr910_display(const PROGRAMMER *pgm, const char *p) {
   return;
 }
 
 
-static void avr910_set_addr(PROGRAMMER * pgm, unsigned long addr)
-{
+static void avr910_set_addr(const PROGRAMMER *pgm, unsigned long addr) {
   char cmd[3];
 
   cmd[0] = 'A';
@@ -412,7 +391,7 @@ static void avr910_set_addr(PROGRAMMER * pgm, unsigned long addr)
 }
 
 
-static int avr910_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int avr910_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                              unsigned long addr, unsigned char value)
 {
   char cmd[2];
@@ -445,7 +424,7 @@ static int avr910_write_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int avr910_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int avr910_read_byte_flash(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                   unsigned long addr, unsigned char * value)
 {
   char buf[2];
@@ -468,7 +447,7 @@ static int avr910_read_byte_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int avr910_read_byte_eeprom(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int avr910_read_byte_eeprom(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                    unsigned long addr, unsigned char * value)
 {
   avr910_set_addr(pgm, addr);
@@ -479,7 +458,7 @@ static int avr910_read_byte_eeprom(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int avr910_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int avr910_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                             unsigned long addr, unsigned char * value)
 {
   if (strcmp(m->desc, "flash") == 0) {
@@ -494,7 +473,7 @@ static int avr910_read_byte(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m, 
+static int avr910_paged_write_flash(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                     unsigned int page_size,
                                     unsigned int addr, unsigned int n_bytes)
 {
@@ -553,8 +532,8 @@ static int avr910_paged_write_flash(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int avr910_paged_write_eeprom(PROGRAMMER * pgm, AVRPART * p,
-                                     AVRMEM * m,
+static int avr910_paged_write_eeprom(const PROGRAMMER *pgm, const AVRPART *p,
+                                     const AVRMEM * m,
                                      unsigned int page_size,
                                      unsigned int addr, unsigned int n_bytes)
 {
@@ -582,7 +561,7 @@ static int avr910_paged_write_eeprom(PROGRAMMER * pgm, AVRPART * p,
 }
 
 
-static int avr910_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int avr910_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                               unsigned int page_size,
                               unsigned int addr, unsigned int n_bytes)
 {
@@ -642,7 +621,7 @@ static int avr910_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 }
 
 
-static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int avr910_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                              unsigned int page_size,
                              unsigned int addr, unsigned int n_bytes)
 {
@@ -719,12 +698,11 @@ static int avr910_paged_load(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
 
 /* Signature byte reads are always 3 bytes. */
 
-static int avr910_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
-{
+static int avr910_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m) {
   unsigned char tmp;
 
   if (m->size < 3) {
-    avrdude_message(MSG_INFO, "%s: memsize too small for sig byte read", progname);
+    pmsg_error("memsize too small for sig byte read");
     return -1;
   }
 
@@ -740,8 +718,7 @@ static int avr910_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
 
 const char avr910_desc[] = "Serial programmers using protocol described in application note AVR910";
 
-void avr910_initpgm(PROGRAMMER * pgm)
-{
+void avr910_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "avr910");
 
   /*

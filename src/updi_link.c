@@ -39,8 +39,7 @@
 #include "updi_constants.h"
 #include "updi_state.h"
 
-static void updi_set_rtsdtr_mode(PROGRAMMER* pgm)
-{
+static void updi_set_rtsdtr_mode(const PROGRAMMER *pgm) {
   updi_rts_mode rts_mode = updi_get_rts_mode(pgm);
 
   if (rts_mode == RTS_MODE_DEFAULT) {
@@ -59,11 +58,11 @@ static int updi_physical_open(PROGRAMMER* pgm, int baudrate, unsigned long cflag
   pinfo.serialinfo.baud = baudrate;
   pinfo.serialinfo.cflags = cflags;
 
-  avrdude_message(MSG_DEBUG, "%s: Opening serial port...\n", progname);
+  pmsg_debug("opening serial port ...\n");
 
   if (serial_open(pgm->port, pinfo, &pgm->fd)==-1) {
 
-    avrdude_message(MSG_DEBUG, "%s: Serial port open failed!\n", progname);
+    pmsg_debug("serial port open failed!\n");
     return -1;
   }
 
@@ -87,55 +86,50 @@ static void updi_physical_close(PROGRAMMER* pgm)
   pgm->fd.ifd = -1;
 }
 
-static int updi_physical_send(PROGRAMMER * pgm, unsigned char * buf, size_t len)
-{
+static int updi_physical_send(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
   size_t i;
   int rv;
 
-  avrdude_message(MSG_DEBUG, "%s: Sending %lu bytes [", progname, len);
+  pmsg_debug("sending %lu bytes [", len);
   for (i=0; i<len; i++) {
-    avrdude_message(MSG_DEBUG, "0x%02x", buf[i]);
+    msg_debug("0x%02x", buf[i]);
     if (i<len-1) {
-      avrdude_message(MSG_DEBUG, ", ");
+      msg_debug(", ");
     }
   }
-  avrdude_message(MSG_DEBUG, "]\n");
+  msg_debug("]\n");
 
   rv = serial_send(&pgm->fd, buf, len);
   serial_recv(&pgm->fd, buf, len);
   return rv;
 }
 
-static int updi_physical_recv(PROGRAMMER * pgm, unsigned char * buf, size_t len)
-{
+static int updi_physical_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
   size_t i;
   int rv;
 
   rv = serial_recv(&pgm->fd, buf, len);
   if (rv < 0) {
-    avrdude_message(MSG_DEBUG,
-      "%s: serialupdi_recv(): programmer is not responding\n",
-      progname);
+    pmsg_debug("serialupdi_recv(): programmer is not responding\n");
     return -1;
   }
 
-  avrdude_message(MSG_DEBUG, "%s: Received %lu bytes [", progname, len);
+  pmsg_debug("received %lu bytes [", len);
   for (i=0; i<len; i++) {
-    avrdude_message(MSG_DEBUG, "0x%02x", buf[i]);
+    msg_debug("0x%02x", buf[i]);
     if (i<len-1) {
-      avrdude_message(MSG_DEBUG, ", ");
+      msg_debug(", ");
     }
   }
-  avrdude_message(MSG_DEBUG, "]\n");
+  msg_debug("]\n");
 
   return len;
 }
 
-static int updi_physical_send_double_break(PROGRAMMER * pgm)
-{
+static int updi_physical_send_double_break(const PROGRAMMER *pgm) {
   unsigned char buffer[1];
 
-  avrdude_message(MSG_DEBUG, "%s: Sending double break\n", progname);
+  pmsg_debug("sending double break\n");
 
   if (serial_setparams(&pgm->fd, 300, SERIAL_8E1) < 0) {
     return -1;
@@ -171,8 +165,7 @@ static int updi_physical_send_double_break(PROGRAMMER * pgm)
   return 0;
 }
 
-int updi_physical_sib(PROGRAMMER * pgm, unsigned char * buffer, uint8_t size)
-{
+int updi_physical_sib(const PROGRAMMER *pgm, unsigned char *buffer, uint8_t size) {
 /*
     def sib(self):
         """
@@ -189,15 +182,14 @@ int updi_physical_sib(PROGRAMMER * pgm, unsigned char * buffer, uint8_t size)
   send_buffer[1] = UPDI_KEY | UPDI_KEY_SIB | UPDI_SIB_32BYTES;
 
   if (updi_physical_send(pgm, send_buffer, 2) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: SIB request send failed\n", progname);
+    pmsg_debug("SIB request send failed\n");
     return -1;
   }
 
   return updi_physical_recv(pgm, buffer, size);
 }
 
-int updi_link_open(PROGRAMMER * pgm) 
-{
+int updi_link_open(PROGRAMMER *pgm)  {
   unsigned char init_buffer[1];
 
   if (updi_physical_open(pgm, pgm->baudrate? pgm->baudrate: 115200, SERIAL_8E2) < 0) {
@@ -208,13 +200,11 @@ int updi_link_open(PROGRAMMER * pgm)
   return updi_physical_send(pgm, init_buffer, 1);
 }
 
-void updi_link_close(PROGRAMMER * pgm)
-{
+void updi_link_close(PROGRAMMER *pgm) {
   updi_physical_close(pgm);
 }
 
-static int updi_link_init_session_parameters(PROGRAMMER * pgm) 
-{
+static int updi_link_init_session_parameters(const PROGRAMMER *pgm)  {
 /*
     def _init_session_parameters(self):
         """
@@ -234,8 +224,7 @@ static int updi_link_init_session_parameters(PROGRAMMER * pgm)
   return 0;
 }
 
-static int updi_link_check(PROGRAMMER * pgm)
-{
+static int updi_link_check(const PROGRAMMER *pgm) {
 /*
     def _check_datalink(self):
         """
@@ -255,22 +244,21 @@ static int updi_link_check(PROGRAMMER * pgm)
   uint8_t value;
   result = updi_link_ldcs(pgm, UPDI_CS_STATUSA, &value);
   if (result < 0) {
-    avrdude_message(MSG_DEBUG, "%s: Check failed\n", progname);
+    pmsg_debug("check failed\n");
     return -1;
   } else {
     if (value > 0) {
-      avrdude_message(MSG_DEBUG, "%s: UDPI init OK\n", progname);
+      pmsg_debug("UDPI init OK\n");
       return 0;
     } else {
-      avrdude_message(MSG_DEBUG, "%s: UDPI not OK - reinitialisation required\n", progname);
+      pmsg_debug("UDPI not OK - reinitialisation required\n");
       return -1;
     }
   }
 }
 
 
-int updi_link_init(PROGRAMMER * pgm)
-{
+int updi_link_init(const PROGRAMMER *pgm) {
 /*
     def init_datalink(self):
         """
@@ -286,30 +274,29 @@ int updi_link_init(PROGRAMMER * pgm)
                 raise PymcuprogError("UPDI initialisation failed")
 */
   if (updi_link_init_session_parameters(pgm) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: Session initialisation failed\n", progname);
+    pmsg_debug("session initialisation failed\n");
     return -1;
   }
 
   if (updi_link_check(pgm) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: Datalink not active, resetting...\n", progname);
+    pmsg_debug("datalink not active, resetting ...\n");
     if (updi_physical_send_double_break(pgm) < 0) {
-      avrdude_message(MSG_DEBUG, "%s: Datalink initialisation failed\n", progname);
+      pmsg_debug("datalink initialisation failed\n");
       return -1;
     }
     if (updi_link_init_session_parameters(pgm) < 0) {
-      avrdude_message(MSG_DEBUG, "%s: Session initialisation failed\n", progname);
+      pmsg_debug("session initialisation failed\n");
       return -1;
     }
     if (updi_link_check(pgm) < 0) {
-      avrdude_message(MSG_DEBUG, "%s: Restoring datalink failed\n", progname);
+      pmsg_debug("restoring datalink failed\n");
       return -1;
     }
   }
   return 0;
 }
 
-int updi_link_ldcs(PROGRAMMER * pgm, uint8_t address, uint8_t * value) 
-{
+int updi_link_ldcs(const PROGRAMMER *pgm, uint8_t address, uint8_t *value)  {
 /*
     def ldcs(self, address):
         """
@@ -329,17 +316,17 @@ int updi_link_ldcs(PROGRAMMER * pgm, uint8_t address, uint8_t * value)
 */
   unsigned char buffer[2];
   int result;
-  avrdude_message(MSG_DEBUG, "%s: LDCS from 0x%02X\n", progname, address);
+  pmsg_debug("LDCS from 0x%02X\n", address);
   buffer[0]=UPDI_PHY_SYNC;
   buffer[1]=UPDI_LDCS | (address & 0x0F);
   if (updi_physical_send(pgm, buffer, 2) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: LDCS send operation failed\n", progname);
+    pmsg_debug("LDCS send operation failed\n");
     return -1;
   }
   result = updi_physical_recv(pgm, buffer, 1);
   if (result != 1) {
     if (result >= 0) {
-      avrdude_message(MSG_DEBUG, "%s: Incorrect response size, received %d instead of %d bytes\n", progname, result, 1);
+      pmsg_debug("incorrect response size, received %d instead of %d bytes\n", result, 1);
     }
     return -1;
   }
@@ -347,8 +334,7 @@ int updi_link_ldcs(PROGRAMMER * pgm, uint8_t address, uint8_t * value)
   return 0;
 }
 
-int updi_link_stcs(PROGRAMMER * pgm, uint8_t address, uint8_t value)
-{
+int updi_link_stcs(const PROGRAMMER *pgm, uint8_t address, uint8_t value) {
 /*
     def stcs(self, address, value):
         """
@@ -361,15 +347,14 @@ int updi_link_stcs(PROGRAMMER * pgm, uint8_t address, uint8_t value)
         self.updi_phy.send([constants.UPDI_PHY_SYNC, constants.UPDI_STCS | (address & 0x0F), value])
 */
   unsigned char buffer[3];
-  avrdude_message(MSG_DEBUG, "%s: STCS 0x%02X to address 0x%02X\n", progname, value, address);
+  pmsg_debug("STCS 0x%02X to address 0x%02X\n", value, address);
   buffer[0] = UPDI_PHY_SYNC;
   buffer[1] = UPDI_STCS | (address & 0x0F);
   buffer[2] = value;
   return updi_physical_send(pgm, buffer, 3);
 }
 
-int updi_link_ld_ptr_inc(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size)
-{
+int updi_link_ld_ptr_inc(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t size) {
 /*
     def ld_ptr_inc(self, size):
         """
@@ -384,18 +369,17 @@ int updi_link_ld_ptr_inc(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size
         return self.updi_phy.receive(size)
 */
   unsigned char send_buffer[2];
-  avrdude_message(MSG_DEBUG, "%s: LD8 from ptr++\n", progname);
+  pmsg_debug("LD8 from ptr++\n");
   send_buffer[0] = UPDI_PHY_SYNC;
   send_buffer[1] = UPDI_LD | UPDI_PTR_INC | UPDI_DATA_8;
   if (updi_physical_send(pgm, send_buffer, 2) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: LD_PTR_INC send operation failed\n", progname);
+    pmsg_debug("LD_PTR_INC send operation failed\n");
     return -1;
   }
   return updi_physical_recv(pgm, buffer, size);
 }
 
-int updi_link_ld_ptr_inc16(PROGRAMMER * pgm, unsigned char * buffer, uint16_t words)
-{
+int updi_link_ld_ptr_inc16(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t words) {
 /*
     def ld_ptr_inc16(self, words):
         """
@@ -410,18 +394,17 @@ int updi_link_ld_ptr_inc16(PROGRAMMER * pgm, unsigned char * buffer, uint16_t wo
         return self.updi_phy.receive(words << 1)
 */
   unsigned char send_buffer[2];
-  avrdude_message(MSG_DEBUG, "%s: LD16 from ptr++\n", progname);
+  pmsg_debug("LD16 from ptr++\n");
   send_buffer[0] = UPDI_PHY_SYNC;
   send_buffer[1] = UPDI_LD | UPDI_PTR_INC | UPDI_DATA_16;
   if (updi_physical_send(pgm, send_buffer, 2) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: LD_PTR_INC send operation failed\n", progname);
+    pmsg_debug("LD_PTR_INC send operation failed\n");
     return -1;
   }
   return updi_physical_recv(pgm, buffer, words << 2);
 }
 
-int updi_link_st_ptr_inc(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size)
-{
+int updi_link_st_ptr_inc(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t size) {
 /*
     def st_ptr_inc(self, data):
         """
@@ -450,32 +433,32 @@ int updi_link_st_ptr_inc(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size
   unsigned char recv_buffer[1];
   int response;
   int num = 1;
-  avrdude_message(MSG_DEBUG, "%s: ST8 to *ptr++\n", progname);
+  pmsg_debug("ST8 to *ptr++\n");
   send_buffer[0] = UPDI_PHY_SYNC;
   send_buffer[1] = UPDI_ST | UPDI_PTR_INC | UPDI_DATA_8;
   send_buffer[2] = buffer[0];
   if (updi_physical_send(pgm, send_buffer, 3) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: ST_PTR_INC send operation failed\n", progname);
+    pmsg_debug("ST_PTR_INC send operation failed\n");
     return -1;
   }
 
   response = updi_physical_recv(pgm, recv_buffer, 1);
 
   if (response != 1 || recv_buffer[0] != UPDI_PHY_ACK) {
-    avrdude_message(MSG_DEBUG, "%s: ACK was expected but not received\n", progname);
+    pmsg_debug("ACK was expected but not received\n");
     return -1;
   }
 
   while (num < size) {
     send_buffer[0]=buffer[num];
     if (updi_physical_send(pgm, send_buffer, 1) < 0) {
-      avrdude_message(MSG_DEBUG, "%s: ST_PTR_INC data send operation failed\n", progname);
+      pmsg_debug("ST_PTR_INC data send operation failed\n");
       return -1;
     }
     response = updi_physical_recv(pgm, recv_buffer, 1);
 
     if (response != 1 || recv_buffer[0] != UPDI_PHY_ACK) {
-      avrdude_message(MSG_DEBUG, "%s: Data ACK was expected but not received\n", progname);
+      pmsg_debug("data ACK was expected but not received\n");
       return -1;
     }
     num++;
@@ -484,8 +467,7 @@ int updi_link_st_ptr_inc(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size
   return 0;
 }
 
-int updi_link_st_ptr_inc16(PROGRAMMER * pgm, unsigned char * buffer, uint16_t words)
-{
+int updi_link_st_ptr_inc16(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t words) {
 /*
     def st_ptr_inc16(self, data):
         """
@@ -514,20 +496,20 @@ int updi_link_st_ptr_inc16(PROGRAMMER * pgm, unsigned char * buffer, uint16_t wo
   unsigned char recv_buffer[1];
   int response;
   int num = 2;
-  avrdude_message(MSG_DEBUG, "%s: ST16 to *ptr++\n", progname);
+  pmsg_debug("ST16 to *ptr++\n");
   send_buffer[0] = UPDI_PHY_SYNC;
   send_buffer[1] = UPDI_ST | UPDI_PTR_INC | UPDI_DATA_16;
   send_buffer[2] = buffer[0];
   send_buffer[3] = buffer[1];
   if (updi_physical_send(pgm, send_buffer, 4) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: ST_PTR_INC16 send operation failed\n", progname);
+    pmsg_debug("ST_PTR_INC16 send operation failed\n");
     return -1;
   }
 
   response = updi_physical_recv(pgm, recv_buffer, 1);
 
   if (response != 1 || recv_buffer[0] != UPDI_PHY_ACK) {
-    avrdude_message(MSG_DEBUG, "%s: ACK was expected but not received\n", progname);
+    pmsg_debug("ACK was expected but not received\n");
     return -1;
   }
 
@@ -535,13 +517,13 @@ int updi_link_st_ptr_inc16(PROGRAMMER * pgm, unsigned char * buffer, uint16_t wo
     send_buffer[0]=buffer[num];
     send_buffer[1]=buffer[num+1];
     if (updi_physical_send(pgm, send_buffer, 2) < 0) {
-      avrdude_message(MSG_DEBUG, "%s: ST_PTR_INC data send operation failed\n", progname);
+      pmsg_debug("ST_PTR_INC data send operation failed\n");
       return -1;
     }
     response = updi_physical_recv(pgm, recv_buffer, 1);
 
     if (response != 1 || recv_buffer[0] != UPDI_PHY_ACK) {
-      avrdude_message(MSG_DEBUG, "%s: Data ACK was expected but not received\n", progname);
+      pmsg_debug("data ACK was expected but not received\n");
       return -1;
     }
     num+=2;
@@ -550,7 +532,7 @@ int updi_link_st_ptr_inc16(PROGRAMMER * pgm, unsigned char * buffer, uint16_t wo
   return 0;
 }
 
-int updi_link_st_ptr_inc16_RSD(PROGRAMMER * pgm, unsigned char * buffer, uint16_t words, int blocksize) {
+int updi_link_st_ptr_inc16_RSD(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t words, int blocksize) {
 /*
     def st_ptr_inc16_RSD(self, data, blocksize):
         """
@@ -564,7 +546,7 @@ int updi_link_st_ptr_inc16_RSD(PROGRAMMER * pgm, unsigned char * buffer, uint16_
         """
         self.logger.debug("ST16 to *ptr++ with RSD, data length: 0x%03X in blocks of:  %d", len(data), blocksize)
 
-        #for performance we glob everything together into one USB transfer....
+        #for performance we glob everything together into one USB transfer ...
         repnumber= ((len(data) >> 1) -1)
         data = [*data, *[constants.UPDI_PHY_SYNC, constants.UPDI_STCS | constants.UPDI_CS_CTRLA, 0x06]]
 
@@ -593,14 +575,14 @@ int updi_link_st_ptr_inc16_RSD(PROGRAMMER * pgm, unsigned char * buffer, uint16_
             self.updi_phy.send(data_slice)
             num += len(data_slice)
 */
-  avrdude_message(MSG_DEBUG, "%s: ST16 to *ptr++ with RSD, data length: 0x%03X in blocks of: %d\n", progname, words * 2, blocksize);
+  pmsg_debug("ST16 to *ptr++ with RSD, data length: 0x%03X in blocks of: %d\n", words * 2, blocksize);
 
   unsigned int temp_buffer_size = 3 + 3 + 2 + (words * 2) + 3;
   unsigned int num=0;
   unsigned char* temp_buffer = malloc(temp_buffer_size);
 
   if (temp_buffer == 0) {
-    avrdude_message(MSG_DEBUG, "%s: Allocating temporary buffer failed\n", progname);
+    pmsg_debug("allocating temporary buffer failed\n");
     return -1;
   }
 
@@ -625,7 +607,7 @@ int updi_link_st_ptr_inc16_RSD(PROGRAMMER * pgm, unsigned char * buffer, uint16_
 
   if (blocksize < 10) {
     if (updi_physical_send(pgm, temp_buffer, 6) < 0) {
-      avrdude_message(MSG_DEBUG, "%s: Failed to send first package\n", progname);
+      pmsg_debug("unable to send first package\n");
       free(temp_buffer);
       return -1;
     }
@@ -642,7 +624,7 @@ int updi_link_st_ptr_inc16_RSD(PROGRAMMER * pgm, unsigned char * buffer, uint16_
     }
 
     if (updi_physical_send(pgm, temp_buffer + num, next_package_size) < 0) {
-      avrdude_message(MSG_DEBUG, "%s: Failed to send package\n", progname);
+      pmsg_debug("unable to send package\n");
       free(temp_buffer);
       return -1;
     }
@@ -653,8 +635,7 @@ int updi_link_st_ptr_inc16_RSD(PROGRAMMER * pgm, unsigned char * buffer, uint16_
   return 0;
 }
 
-int updi_link_repeat(PROGRAMMER * pgm, uint16_t repeats)
-{
+int updi_link_repeat(const PROGRAMMER *pgm, uint16_t repeats) {
 /*
     def repeat(self, repeats):
         """
@@ -671,9 +652,9 @@ int updi_link_repeat(PROGRAMMER * pgm, uint16_t repeats)
                             repeats & 0xFF])
 */
   unsigned char buffer[3];
-  avrdude_message(MSG_DEBUG, "%s: Repeat %d\n", progname, repeats);
+  pmsg_debug("repeat %d\n", repeats);
   if ((repeats - 1) > UPDI_MAX_REPEAT_SIZE) {
-    avrdude_message(MSG_DEBUG, "%s: Invalid repeat count of %d\n", progname, repeats);
+    pmsg_debug("invalid repeat count of %d\n", repeats);
     return -1;
   }
   repeats-=1;
@@ -683,8 +664,7 @@ int updi_link_repeat(PROGRAMMER * pgm, uint16_t repeats)
   return updi_physical_send(pgm, buffer, 3);
 }
 
-int updi_link_read_sib(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size)
-{
+int updi_link_read_sib(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t size) {
 /*
     def read_sib(self):
         """
@@ -695,8 +675,7 @@ int updi_link_read_sib(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size)
   return updi_physical_sib(pgm, buffer, size);
 }
 
-int updi_link_key(PROGRAMMER * pgm, unsigned char * buffer, uint8_t size_type, uint16_t size)
-{
+int updi_link_key(const PROGRAMMER *pgm, unsigned char *buffer, uint8_t size_type, uint16_t size) {
 /*
     def key(self, size, key):
         """
@@ -714,15 +693,15 @@ int updi_link_key(PROGRAMMER * pgm, unsigned char * buffer, uint8_t size_type, u
   unsigned char send_buffer[2];
   unsigned char reversed_key[256];
   int index;
-  avrdude_message(MSG_DEBUG, "%s: UPDI writing key\n", progname);
+  pmsg_debug("UPDI writing key\n");
   if (size != (8 << size_type)) {
-    avrdude_message(MSG_DEBUG, "%s: Invalid key length\n", progname);
+    pmsg_debug("invalid key length\n");
     return -1;
   }
   send_buffer[0] = UPDI_PHY_SYNC;
   send_buffer[1] = UPDI_KEY | UPDI_KEY_KEY | size_type;
   if (updi_physical_send(pgm, send_buffer, 2) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: UPDI key send message failed\n", progname);
+    pmsg_debug("UPDI key send message failed\n");
     return -1;
   }
   /* reverse key contents */
@@ -732,8 +711,7 @@ int updi_link_key(PROGRAMMER * pgm, unsigned char * buffer, uint8_t size_type, u
   return updi_physical_send(pgm, reversed_key, size);
 }
 
-int updi_link_ld(PROGRAMMER * pgm, uint32_t address, uint8_t * value)
-{
+int updi_link_ld(const PROGRAMMER *pgm, uint32_t address, uint8_t *value) {
 /*
     def ld(self, address):
         """
@@ -750,26 +728,25 @@ int updi_link_ld(PROGRAMMER * pgm, uint32_t address, uint8_t * value)
 */
   unsigned char send_buffer[5];
   unsigned char recv_buffer[1];
-  avrdude_message(MSG_DEBUG, "%s: LD from 0x%06X\n", progname, address);
+  pmsg_debug("LD from 0x%06X\n", address);
   send_buffer[0] = UPDI_PHY_SYNC;
   send_buffer[1] = UPDI_LDS | UPDI_DATA_8 | (updi_get_datalink_mode(pgm) == UPDI_LINK_MODE_24BIT ? UPDI_ADDRESS_24 : UPDI_ADDRESS_16);
   send_buffer[2] = address & 0xFF;
   send_buffer[3] = (address >> 8) & 0xFF;
   send_buffer[4] = (address >> 16) & 0xFF;
   if (updi_physical_send(pgm, send_buffer, updi_get_datalink_mode(pgm) == UPDI_LINK_MODE_24BIT ? 5 : 4) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: LD operation send failed\n", progname);
+    pmsg_debug("LD operation send failed\n");
     return -1;
   }
   if (updi_physical_recv(pgm, recv_buffer, 1) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: LD operation recv failed\n", progname);
+    pmsg_debug("LD operation recv failed\n");
     return -1;
   }
   * value = recv_buffer[0];
   return 0;
 }
 
-int updi_link_ld16(PROGRAMMER * pgm, uint32_t address, uint16_t * value)
-{
+int updi_link_ld16(const PROGRAMMER *pgm, uint32_t address, uint16_t *value) {
 /*
     def ld16(self, address):
         """
@@ -786,26 +763,25 @@ int updi_link_ld16(PROGRAMMER * pgm, uint32_t address, uint16_t * value)
 */
   unsigned char send_buffer[5];
   unsigned char recv_buffer[2];
-  avrdude_message(MSG_DEBUG, "%s: LD16 from 0x%06X\n", progname, address);
+  pmsg_debug("LD16 from 0x%06X\n", address);
   send_buffer[0] = UPDI_PHY_SYNC;
   send_buffer[1] = UPDI_LDS | UPDI_DATA_16 | (updi_get_datalink_mode(pgm) == UPDI_LINK_MODE_24BIT ? UPDI_ADDRESS_24 : UPDI_ADDRESS_16);
   send_buffer[2] = address & 0xFF;
   send_buffer[3] = (address >> 8) & 0xFF;
   send_buffer[4] = (address >> 16) & 0xFF;
   if (updi_physical_send(pgm, send_buffer, updi_get_datalink_mode(pgm) == UPDI_LINK_MODE_24BIT ? 5 : 4) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: LD16 operation send failed\n", progname);
+    pmsg_debug("LD16 operation send failed\n");
     return -1;
   }
   if (updi_physical_recv(pgm, recv_buffer, 2) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: LD16 operation recv failed\n", progname);
+    pmsg_debug("LD16 operation recv failed\n");
     return -1;
   }
   * value = (recv_buffer[0] << 8 | recv_buffer[1]);
   return 0;
 }
 
-static int updi_link_st_data_phase(PROGRAMMER * pgm, unsigned char * buffer, uint8_t size)
-{
+static int updi_link_st_data_phase(const PROGRAMMER *pgm, unsigned char *buffer, uint8_t size) {
 /*
     def _st_data_phase(self, values):
         """
@@ -826,30 +802,29 @@ static int updi_link_st_data_phase(PROGRAMMER * pgm, unsigned char * buffer, uin
 */
   unsigned char recv_buffer[1];
   if (updi_physical_recv(pgm, recv_buffer, 1) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: UPDI data phase recv failed on first ACK\n", progname);
+    pmsg_debug("UPDI data phase recv failed on first ACK\n");
     return -1;
   }
   if (recv_buffer[0] != UPDI_PHY_ACK) {
-    avrdude_message(MSG_DEBUG, "%s: UPDI data phase expected first ACK\n", progname);
+    pmsg_debug("UPDI data phase expected first ACK\n");
     return -1;
   }
   if (updi_physical_send(pgm, buffer, size) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: UPDI data phase send failed\n", progname);
+    pmsg_debug("UPDI data phase send failed\n");
     return -1;
   }
   if (updi_physical_recv(pgm, recv_buffer, 1) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: UPDI data phase recv failed on second ACK\n", progname);
+    pmsg_debug("UPDI data phase recv failed on second ACK\n");
     return -1;
   }
   if (recv_buffer[0] != UPDI_PHY_ACK) {
-    avrdude_message(MSG_DEBUG, "%s: UPDI data phase expected second ACK\n", progname);
+    pmsg_debug("UPDI data phase expected second ACK\n");
     return -1;
   }
   return 0;
 }
 
-int updi_link_st(PROGRAMMER * pgm, uint32_t address, uint8_t value)
-{
+int updi_link_st(const PROGRAMMER *pgm, uint32_t address, uint8_t value) {
 /*
     def st(self, address, value):
         """
@@ -865,22 +840,21 @@ int updi_link_st(PROGRAMMER * pgm, uint32_t address, uint8_t value)
         return self._st_data_phase([value & 0xFF])
 */
   unsigned char send_buffer[5];
-  avrdude_message(MSG_DEBUG, "%s: ST to 0x%06X\n", progname, address);
+  pmsg_debug("ST to 0x%06X\n", address);
   send_buffer[0] = UPDI_PHY_SYNC;
   send_buffer[1] = UPDI_STS | UPDI_DATA_8 | (updi_get_datalink_mode(pgm) == UPDI_LINK_MODE_24BIT ? UPDI_ADDRESS_24 : UPDI_ADDRESS_16);
   send_buffer[2] = address & 0xFF;
   send_buffer[3] = (address >> 8) & 0xFF;
   send_buffer[4] = (address >> 16) & 0xFF;
   if (updi_physical_send(pgm, send_buffer, updi_get_datalink_mode(pgm) == UPDI_LINK_MODE_24BIT ? 5 : 4) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: ST operation send failed\n", progname);
+    pmsg_debug("ST operation send failed\n");
     return -1;
   }
   send_buffer[0] = value;
   return updi_link_st_data_phase(pgm, send_buffer, 1);
 }
 
-int updi_link_st16(PROGRAMMER * pgm, uint32_t address, uint16_t value)
-{
+int updi_link_st16(const PROGRAMMER *pgm, uint32_t address, uint16_t value) {
 /*
     def st16(self, address, value):
         """
@@ -896,14 +870,14 @@ int updi_link_st16(PROGRAMMER * pgm, uint32_t address, uint16_t value)
         return self._st_data_phase([value & 0xFF, (value >> 8) & 0xFF])
 */
   unsigned char send_buffer[5];
-  avrdude_message(MSG_DEBUG, "%s: ST16 to 0x%06X\n", progname, address);
+  pmsg_debug("ST16 to 0x%06X\n", address);
   send_buffer[0] = UPDI_PHY_SYNC;
   send_buffer[1] = UPDI_STS | UPDI_DATA_16 | (updi_get_datalink_mode(pgm) == UPDI_LINK_MODE_24BIT ? UPDI_ADDRESS_24 : UPDI_ADDRESS_16);
   send_buffer[2] = address & 0xFF;
   send_buffer[3] = (address >> 8) & 0xFF;
   send_buffer[4] = (address >> 16) & 0xFF;
   if (updi_physical_send(pgm, send_buffer, updi_get_datalink_mode(pgm) == UPDI_LINK_MODE_24BIT ? 5 : 4) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: ST16 operation send failed\n", progname);
+    pmsg_debug("ST16 operation send failed\n");
     return -1;
   }
   send_buffer[0] = value & 0xFF;
@@ -911,8 +885,7 @@ int updi_link_st16(PROGRAMMER * pgm, uint32_t address, uint16_t value)
   return updi_link_st_data_phase(pgm, send_buffer, 2);
 }
 
-int updi_link_st_ptr(PROGRAMMER * pgm, uint32_t address)
-{
+int updi_link_st_ptr(const PROGRAMMER *pgm, uint32_t address) {
 /*
     def st_ptr(self, address):
         """
@@ -930,22 +903,22 @@ int updi_link_st_ptr(PROGRAMMER * pgm, uint32_t address)
 */
   unsigned char send_buffer[5];
   unsigned char recv_buffer[1];
-  avrdude_message(MSG_DEBUG, "%s: ST_PTR to 0x%06X\n", progname, address);
+  pmsg_debug("ST_PTR to 0x%06X\n", address);
   send_buffer[0] = UPDI_PHY_SYNC;
   send_buffer[1] = UPDI_STS | UPDI_ST | UPDI_PTR_ADDRESS | (updi_get_datalink_mode(pgm) == UPDI_LINK_MODE_24BIT ? UPDI_DATA_24 : UPDI_DATA_16);
   send_buffer[2] = address & 0xFF;
   send_buffer[3] = (address >> 8) & 0xFF;
   send_buffer[4] = (address >> 16) & 0xFF;
   if (updi_physical_send(pgm, send_buffer, updi_get_datalink_mode(pgm) == UPDI_LINK_MODE_24BIT ? 5 : 4) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: ST_PTR operation send failed\n", progname);
+    pmsg_debug("ST_PTR operation send failed\n");
     return -1;
   }
   if (updi_physical_recv(pgm, recv_buffer, 1) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: UPDI ST_PTR recv failed on ACK\n", progname);
+    pmsg_debug("UPDI ST_PTR recv failed on ACK\n");
     return -1;
   }
   if (recv_buffer[0] != UPDI_PHY_ACK) {
-    avrdude_message(MSG_DEBUG, "%s: UPDI ST_PTR expected ACK\n", progname);
+    pmsg_debug("UPDI ST_PTR expected ACK\n");
     return -1;
   }
   return 0;

@@ -62,14 +62,22 @@
 
 #define LINUXSPI "linuxspi"
 
+/*
+ * Private data for this programmer.
+ */
+struct pdata {
+  int disable_no_cs;
+};
+
+#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+
 static int fd_spidev, fd_gpiochip, fd_linehandle;
 
 /**
  * @brief Sends/receives a message in full duplex mode
  * @return -1 on failure, otherwise number of bytes sent/received
  */
-static int linuxspi_spi_duplex(PROGRAMMER *pgm, const unsigned char *tx, unsigned char *rx, int len)
-{
+static int linuxspi_spi_duplex(const PROGRAMMER *pgm, const unsigned char *tx, unsigned char *rx, int len) {
     struct spi_ioc_transfer tr;
     int ret;
 
@@ -78,27 +86,33 @@ static int linuxspi_spi_duplex(PROGRAMMER *pgm, const unsigned char *tx, unsigne
         .rx_buf = (unsigned long)rx,
         .len = len,
         .delay_usecs = 1,
-	.speed_hz = 1.0 / pgm->bitclock, // seconds to Hz
+        .speed_hz = 1.0 / pgm->bitclock,
         .bits_per_word = 8,
     };
 
+    errno = 0;
     ret = ioctl(fd_spidev, SPI_IOC_MESSAGE(1), &tr);
-    if (ret != len)
-        avrdude_message(MSG_INFO, "\n%s: error: Unable to send SPI message\n", progname);
+    if (ret != len) {
+        int ioctl_errno = errno;
+        msg_error("\n");
+        pmsg_error("unable to send SPI message");
+        if (ioctl_errno)
+            msg_error("%s", strerror(ioctl_errno));
+        msg_error("\n");
+    }
 
-    return (ret == -1) ? -1 : 0;
+    return ret == -1? -1: 0;
 }
 
-static void linuxspi_setup(PROGRAMMER *pgm)
-{
+static void linuxspi_setup(PROGRAMMER *pgm) {
+  pgm->cookie = cfg_malloc("linuxspi_setup()", sizeof(struct pdata));
 }
 
-static void linuxspi_teardown(PROGRAMMER* pgm)
-{
+static void linuxspi_teardown(PROGRAMMER* pgm) {
+  free(pgm->cookie);
 }
 
-static int linuxspi_reset_mcu(PROGRAMMER *pgm, bool active)
-{
+static int linuxspi_reset_mcu(const PROGRAMMER *pgm, bool active) {
     struct gpiohandle_data data;
     int ret;
 
@@ -120,21 +134,20 @@ static int linuxspi_reset_mcu(PROGRAMMER *pgm, bool active)
 #endif
     if (ret == -1) {
         ret = -errno;
-        avrdude_message(MSG_INFO, "%s error: Unable to set GPIO line %d value\n",
-                        progname, pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE);
+        pmsg_ext_error("unable to set GPIO line %d value: %s\n", pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE, strerror(errno));
         return ret;
     }
 
     return 0;
 }
 
-static int linuxspi_open(PROGRAMMER *pgm, char *port)
-{
+static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     const char *port_error =
-      "%s: error: Unknown port specification. "
-      "Please use the format /dev/spidev:/dev/gpiochip[:resetno]\n";
+      "unknown port specification, "
+      "please use the format /dev/spidev:/dev/gpiochip[:resetno]\n";
     char port_default[] = "/dev/spidev0.0:/dev/gpiochip0";
     char *spidev, *gpiochip, *reset_pin;
+    char *port = cfg_strdup("linuxspi_open()", pt);
     struct gpiohandle_request req;
     int ret;
 
@@ -144,13 +157,13 @@ static int linuxspi_open(PROGRAMMER *pgm, char *port)
 
     spidev = strtok(port, ":");
     if (!spidev) {
-        avrdude_message(MSG_INFO, port_error, progname);
+        pmsg_error("%s", port_error);
         return -1;
     }
 
     gpiochip = strtok(NULL, ":");
     if (!gpiochip) {
-        avrdude_message(MSG_INFO, port_error, progname);
+        pmsg_error("%s", port_error);
         return -1;
     }
 
@@ -162,20 +175,25 @@ static int linuxspi_open(PROGRAMMER *pgm, char *port)
     strcpy(pgm->port, port);
     fd_spidev = open(pgm->port, O_RDWR);
     if (fd_spidev < 0) {
-        avrdude_message(MSG_INFO, "\n%s: error: Unable to open the spidev device %s", progname, pgm->port);
+        pmsg_ext_error("unable to open the spidev device %s: %s\n", pgm->port, strerror(errno));
         return -1;
     }
 
-    uint32_t mode = SPI_MODE_0 | SPI_NO_CS;
+    uint32_t mode = SPI_MODE_0;
+    if (!PDATA(pgm)->disable_no_cs)
+        mode |= SPI_NO_CS;
+
     ret = ioctl(fd_spidev, SPI_IOC_WR_MODE32, &mode);
     if (ret == -1) {
-        avrdude_message(MSG_INFO, "%s: error: Unable to set SPI mode %0X on %s\n",
-                        progname, mode, spidev);
+        int ioctl_errno = errno;
+        pmsg_ext_error("unable to set SPI mode %02X on %s: %s\n", mode, spidev, strerror(errno));
+        if(ioctl_errno == EINVAL && !PDATA(pgm)->disable_no_cs)
+            pmsg_error("try -x disable_no_cs\n");
         goto close_spidev;
     }
     fd_gpiochip = open(gpiochip, 0);
     if (fd_gpiochip < 0) {
-        avrdude_message(MSG_INFO, "\n%s error: Unable to open the gpiochip %s", progname, gpiochip);
+        pmsg_ext_error("unable to open the gpiochip %s: %s\n", gpiochip, strerror(errno));
         ret = -1;
         goto close_spidev;
     }
@@ -210,8 +228,7 @@ static int linuxspi_open(PROGRAMMER *pgm, char *port)
 #endif
     if (ret == -1) {
         ret = -errno;
-        avrdude_message(MSG_INFO, "%s error: Unable to get GPIO line %d\n",
-                        progname, pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE);
+        pmsg_ext_error("unable to get GPIO line %d. %s\n", pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE, strerror(errno));
         goto close_gpiochip;
     }
 
@@ -220,16 +237,12 @@ static int linuxspi_open(PROGRAMMER *pgm, char *port)
         goto close_out;
 
     if (pgm->baudrate != 0) {
-      avrdude_message(MSG_INFO,
-		      "%s: obsolete use of -b <clock> option for bit clock; use -B <clock>\n",
-		      progname);
-      pgm->bitclock = 1.0 / pgm->baudrate;
+        pmsg_warning("obsolete use of -b <clock> option for bit clock; use -B <clock>\n");
+        pgm->bitclock = 1.0 / pgm->baudrate;
     }
     if (pgm->bitclock == 0) {
-      avrdude_message(MSG_NOTICE,
-		      "%s: defaulting bit clock to 200 kHz\n",
-		      progname);
-      pgm->bitclock = 5E-6; // 200 kHz - 5 µs
+        pmsg_notice("defaulting bit clock to 200 kHz\n");
+        pgm->bitclock = 5E-6; // 200 kHz - 5 µs
     }
 
     return 0;
@@ -243,8 +256,7 @@ close_spidev:
     return ret;
 }
 
-static void linuxspi_close(PROGRAMMER *pgm)
-{
+static void linuxspi_close(PROGRAMMER *pgm) {
     switch (pgm->exit_reset) {
     case EXIT_RESET_ENABLED:
         linuxspi_reset_mcu(pgm, true);
@@ -263,25 +275,21 @@ static void linuxspi_close(PROGRAMMER *pgm)
     close(fd_gpiochip);
 }
 
-static void linuxspi_disable(PROGRAMMER* pgm)
-{
+static void linuxspi_disable(const PROGRAMMER* pgm) {
 }
 
-static void linuxspi_enable(PROGRAMMER* pgm)
-{
+static void linuxspi_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
-static void linuxspi_display(PROGRAMMER* pgm, const char* p)
-{
+static void linuxspi_display(const PROGRAMMER* pgm, const char* p) {
 }
 
-static int linuxspi_initialize(PROGRAMMER *pgm, AVRPART *p)
-{
+static int linuxspi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     int tries, ret;
 
-    if (p->flags & AVRPART_HAS_TPI) {
-        /* We do not support tpi. This is a dedicated SPI thing */
-        avrdude_message(MSG_INFO, "%s: error: Programmer " LINUXSPI " does not support TPI\n", progname);
+    if (p->prog_modes & PM_TPI) {
+        /* We do not support TPI. This is a dedicated SPI thing */
+        pmsg_error("programmer " LINUXSPI " does not support TPI\n");
         return -1;
     }
 
@@ -295,22 +303,21 @@ static int linuxspi_initialize(PROGRAMMER *pgm, AVRPART *p)
     } while(tries++ < 65);
 
     if (ret)
-        avrdude_message(MSG_INFO, "%s: error: AVR device not responding\n", progname);
+        pmsg_error("AVR device not responding\n");
 
     return ret;
 }
 
-static int linuxspi_cmd(PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res)
+static int linuxspi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res)
 {
     return linuxspi_spi_duplex(pgm, cmd, res, 4);
 }
 
-static int linuxspi_program_enable(PROGRAMMER *pgm, AVRPART *p)
-{
+static int linuxspi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned char cmd[4], res[4];
 
     if (!p->op[AVR_OP_PGM_ENABLE]) {
-        avrdude_message(MSG_INFO, "%s: error: program enable instruction not defined for part \"%s\"\n", progname, p->desc);
+        pmsg_error("program enable instruction not defined for part %s\n", p->desc);
         return -1;
     }
 
@@ -349,12 +356,11 @@ static int linuxspi_program_enable(PROGRAMMER *pgm, AVRPART *p)
     return 0;
 }
 
-static int linuxspi_chip_erase(PROGRAMMER *pgm, AVRPART *p)
-{
+static int linuxspi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned char cmd[4], res[4];
 
     if (!p->op[AVR_OP_CHIP_ERASE]) {
-        avrdude_message(MSG_INFO, "%s: error: chip erase instruction not defined for part \"%s\"\n", progname, p->desc);
+        pmsg_error("chip erase instruction not defined for part %s\n", p->desc);
         return -1;
     }
 
@@ -367,12 +373,12 @@ static int linuxspi_chip_erase(PROGRAMMER *pgm, AVRPART *p)
     return 0;
 }
 
-static int linuxspi_parseexitspecs(PROGRAMMER *pgm, char *s)
-{
-    char *cp;
+static int linuxspi_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
+    char *cp, *s, *str = cfg_strdup("linuxspi_parseextitspecs()", sp);
 
+    s = str;
     while ((cp = strtok(s, ","))) {
-        s = 0;
+        s = NULL;
         if (!strcmp(cp, "reset")) {
             pgm->exit_reset = EXIT_RESET_ENABLED;
             continue;
@@ -381,14 +387,35 @@ static int linuxspi_parseexitspecs(PROGRAMMER *pgm, char *s)
             pgm->exit_reset = EXIT_RESET_DISABLED;
             continue;
         }
+        free(str);
         return -1;
     }
 
+    free(str);
     return 0;
 }
 
-void linuxspi_initpgm(PROGRAMMER *pgm)
-{
+static int linuxspi_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
+  LNODEID ln;
+  const char *extended_param;
+  int rc = 0;
+
+  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    extended_param = ldata(ln);
+
+    if (strcmp(extended_param, "disable_no_cs") == 0) {
+      PDATA(pgm)->disable_no_cs = 1;
+      continue;
+    }
+
+    pmsg_error("invalid extended parameter '%s'\n", extended_param);
+    rc = -1;
+  }
+
+  return rc;
+}
+
+void linuxspi_initpgm(PROGRAMMER *pgm) {
     strcpy(pgm->type, LINUXSPI);
 
     pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed
@@ -410,16 +437,15 @@ void linuxspi_initpgm(PROGRAMMER *pgm)
     pgm->setup          = linuxspi_setup;
     pgm->teardown       = linuxspi_teardown;
     pgm->parseexitspecs = linuxspi_parseexitspecs;
+    pgm->parseextparams = linuxspi_parseextparams;
 }
 
 const char linuxspi_desc[] = "SPI using Linux spidev driver";
 
 #else /* !HAVE_LINUXSPI */
 
-void linuxspi_initpgm(PROGRAMMER * pgm)
-{
-    avrdude_message(MSG_INFO, "%s: Linux SPI driver not available in this configuration\n",
-                    progname);
+void linuxspi_initpgm(PROGRAMMER *pgm) {
+  pmsg_error("Linux SPI driver not available in this configuration\n");
 }
 
 const char linuxspi_desc[] = "SPI using Linux spidev driver (not available)";

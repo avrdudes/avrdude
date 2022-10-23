@@ -64,7 +64,7 @@ static int pin_fill_old_pinno(const struct pindef_t * const pindef, unsigned int
   for(i = 0; i < PIN_MAX; i++) {
     if(pindef->mask[i / PIN_FIELD_ELEMENT_SIZE] & (1 << (i % PIN_FIELD_ELEMENT_SIZE))) {
       if(found) {
-        avrdude_message(MSG_INFO, "Multiple pins found\n"); //TODO
+        pmsg_error("multiple pins found\n"); // TODO
         return -1;
       }
       found = true;
@@ -89,7 +89,7 @@ static int pin_fill_old_pinlist(const struct pindef_t * const pindef, unsigned i
   for(i = 0; i < PIN_FIELD_SIZE; i++) {
     if(i == 0) {
       if((pindef->mask[i] & ~PIN_MASK) != 0) {
-        avrdude_message(MSG_INFO, "Pins of higher index than max field size for old pinno found\n");
+        pmsg_error("pins of higher index than max field size for old pinno found\n");
         return -1;
       }
       if (pindef->mask[i] == 0) {
@@ -101,11 +101,11 @@ static int pin_fill_old_pinlist(const struct pindef_t * const pindef, unsigned i
       } else if(pindef->mask[i] == ((~pindef->inverse[i]) & pindef->mask[i])) {  /* all set bits in mask are cleared in inverse */
         *pinno = pindef->mask[i];
       } else {
-        avrdude_message(MSG_INFO, "pins have different polarity set\n");
+        pmsg_error("pins have different polarity set\n");
         return -1;
       }
     } else if(pindef->mask[i] != 0) {
-      avrdude_message(MSG_INFO, "Pins have higher number than fit in old format\n");
+      pmsg_error("pins have higher number than fit in old format\n");
       return -1;
     }
   }
@@ -118,7 +118,7 @@ static int pin_fill_old_pinlist(const struct pindef_t * const pindef, unsigned i
  *
  * @param[inout] pgm programmer whose pins shall be converted.
  */
-int pgm_fill_old_pins(struct programmer_t * const pgm) {
+int pgm_fill_old_pins(PROGRAMMER * const pgm) {
 
   if (pin_fill_old_pinlist(&(pgm->pin[PPI_AVR_VCC]),  &(pgm->pinno[PPI_AVR_VCC])) < 0)
     return -1;
@@ -218,7 +218,7 @@ const char * pinmask_to_str(const pinmask_t * const pinmask) {
  * @param[in] size the number of entries in checklist
  * @returns 0 if all pin definitions are valid, -1 otherwise
  */
-int pins_check(const struct programmer_t * const pgm, const struct pin_checklist_t * const checklist, const int size, const bool output) {
+int pins_check(const PROGRAMMER *const pgm, const struct pin_checklist_t *const checklist, const int size, const bool output) {
   static const struct pindef_t no_valid_pins = {{0}, {0}}; // default value if check list does not contain anything else
   int rv = 0; // return value
   int pinname; // loop counter through pinnames
@@ -271,48 +271,46 @@ int pins_check(const struct programmer_t * const pgm, const struct pin_checklist
     }
     if(invalid) {
       if(output) {
-        avrdude_message(MSG_INFO, "%s: %s: Following pins are not valid pins for this function: %s\n",
-                        progname, avr_pin_name(pinname), pinmask_to_str(invalid_used));
-        avrdude_message(MSG_NOTICE2, "%s: %s: Valid pins for this function are: %s\n",
-                  progname, avr_pin_name(pinname), pinmask_to_str(valid_pins->mask));
+        pmsg_error("%s: these pins are not valid pins for this function: %s\n",
+          avr_pin_name(pinname), pinmask_to_str(invalid_used));
+        pmsg_notice("%s: valid pins for this function are: %s\n",
+          avr_pin_name(pinname), pinmask_to_str(valid_pins->mask));
       }
       is_ok = false;
     }
     if(inverse) {
       if(output) {
-        avrdude_message(MSG_INFO, "%s: %s: Following pins are not usable as inverse pins for this function: %s\n",
-                        progname, avr_pin_name(pinname), pinmask_to_str(inverse_used));
-        avrdude_message(MSG_NOTICE2, "%s: %s: Valid inverse pins for this function are: %s\n",
-                          progname, avr_pin_name(pinname), pinmask_to_str(valid_pins->inverse));
+        pmsg_error("%s: these pins are not usable as inverse pins for this function: %s\n",
+          avr_pin_name(pinname), pinmask_to_str(inverse_used));
+        pmsg_notice("%s: valid inverse pins for this function are: %s\n",
+          avr_pin_name(pinname), pinmask_to_str(valid_pins->inverse));
       }
       is_ok = false;
     }
     if(used) {
       if(output) {
-        avrdude_message(MSG_INFO, "%s: %s: Following pins are set for other functions too: %s\n",
-                        progname, avr_pin_name(pinname), pinmask_to_str(already_used));
+        pmsg_error("%s: these pins are set for other functions too: %s\n",
+          avr_pin_name(pinname), pinmask_to_str(already_used));
         is_ok = false;
       }
     }
     if(!mandatory_used && is_mandatory && !invalid) {
       if(output) {
-        avrdude_message(MSG_INFO, "%s: %s: Mandatory pin is not defined.\n",
-                        progname, avr_pin_name(pinname));
+        pmsg_error("%s: mandatory pin is not defined\n", avr_pin_name(pinname));
       }
       is_ok = false;
     }
     if(!is_ok) {
       rv = -1;
     } else if(output) {
-      avrdude_message(MSG_DEBUG, "%s: %s: Pin is ok.\n",
-                      progname, avr_pin_name(pinname));
+      pmsg_debug("%s: pin is OK\n", avr_pin_name(pinname));
     }
   }
   return rv;
 }
 
 /**
- * This function returns a string representation of defined pins eg. ~1,2,~4,~5,7
+ * This function returns a string of defined pins, eg, ~1,2,~4,~5,7 or " (not used)"
  * Another execution of this function will overwrite the previous result in the static buffer.
  *
  * @param[in] pindef the pin definition for which we want the string representation
@@ -347,6 +345,28 @@ const char * pins_to_str(const struct pindef_t * const pindef) {
 }
 
 /**
+ * This function returns a string of defined pins, eg, ~1, 2, ~4, ~5, 7 or ""
+ *
+ * @param[in] pindef the pin definition for which we want the string representation
+ * @returns a pointer to a string, which was created by cfg_strdup()
+ */
+char *pins_to_strdup(const struct pindef_t * const pindef) {
+  char buf[6*(PIN_MAX+1)], *p = buf;
+
+  *buf = 0;
+  for(int pin = PIN_MIN; pin <= PIN_MAX; pin++) {
+    int index = pin / PIN_FIELD_ELEMENT_SIZE, bit = pin % PIN_FIELD_ELEMENT_SIZE;
+    if(pindef->mask[index] & (1 << bit)) {
+      if(*buf)
+         *p++ = ',', *p++=' ';
+      p += sprintf(p, pindef->inverse[index] & (1 << bit)? "~%d": "%d", pin);
+    }
+  }
+
+  return cfg_strdup("pins_to_strdup()", buf);
+}
+
+/**
  * Returns the name of the pin as string.
  *
  * @param pinname the pinname which we want as string.
@@ -369,3 +389,24 @@ const char * avr_pin_name(int pinname) {
 }
 
 
+/**
+ * Returns the name of the pin as string.
+ *
+ * @param pinname the pinname which we want as string.
+ * @returns a lowercase string with the pinname, or <unknown> if pinname is invalid.
+ */
+const char * avr_pin_lcname(int pinname) {
+  switch(pinname) {
+  case PPI_AVR_VCC   : return "vcc";
+  case PPI_AVR_BUFF  : return "buff";
+  case PIN_AVR_RESET : return "reset";
+  case PIN_AVR_SCK   : return "sck";
+  case PIN_AVR_MOSI  : return "mosi";
+  case PIN_AVR_MISO  : return "miso";
+  case PIN_LED_ERR   : return "errled";
+  case PIN_LED_RDY   : return "rdyled";
+  case PIN_LED_PGM   : return "pgmled";
+  case PIN_LED_VFY   : return "vfyled";
+  default : return "<unknown>";
+  }
+}

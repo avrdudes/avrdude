@@ -184,16 +184,24 @@
  * precedes each parameter address.  There are distinct parameter
  * sets for generic and AVR scope.
  */
-#define PARM3_HW_VER      0x00  /* section 0, generic scope, 1 byte */
-#define PARM3_FW_MAJOR    0x01  /* section 0, generic scope, 1 byte */
-#define PARM3_FW_MINOR    0x02  /* section 0, generic scope, 1 byte */
-#define PARM3_FW_RELEASE  0x03  /* section 0, generic scope, 1 byte;
-                                 * always asked for by Atmel Studio,
-                                 * but never displayed there */
-#define PARM3_VTARGET     0x00  /* section 1, generic scope, 2 bytes, in millivolts */
-#define PARM3_VBUF        0x01  /* section 1, generic scope, 2 bytes, bufferred target voltage reference */
-#define PARM3_VUSB        0x02  /* section 1, generic scope, 2 bytes, USB voltage */
-#define PARM3_VADJUST     0x20  /* section 1, generic scope, 2 bytes, set voltage */
+#define PARM3_HW_VER            0x00  /* section 0, generic scope, 1 byte */
+#define PARM3_FW_MAJOR          0x01  /* section 0, generic scope, 1 byte */
+#define PARM3_FW_MINOR          0x02  /* section 0, generic scope, 1 byte */
+#define PARM3_FW_RELEASE        0x03  /* section 0, generic scope, 1 byte;
+                                       * always asked for by Atmel Studio,
+                                       * but never displayed there */
+
+#define PARM3_VTARGET           0x00  /* section 1, generic scope, 2 bytes, in millivolts */
+#define PARM3_VBUF              0x01  /* section 1, generic scope, 2 bytes, bufferred target voltage reference */
+#define PARM3_VUSB              0x02  /* section 1, generic scope, 2 bytes, USB voltage */
+#define PARM3_ANALOG_A_CURRENT  0x10  /* section 1, generic scope, 2 bytes, Ch A current in milliamps,  Powerdebugger only */
+#define PARM3_ANALOG_A_VOLTAGE  0x11  /* section 1, generic scope, 2 bytes, Ch A voltage in millivolts, Powerdebugger only */
+#define PARM3_ANALOG_B_CURRENT  0x12  /* section 1, generic scope, 2 bytes, Ch B current in milliamps,  Powerdebugger only */
+#define PARM3_ANALOG_B_VOLTAGE  0x13  /* section 1, generic scope, 2 bytes, Ch V voltage in millivolts, Powerdebugger only */
+#define PARM3_TSUP_VOLTAGE_MEAS 0x14  /* section 1, generic scope, 2 bytes, target voltage measurement in millivolts */
+#define PARM3_USB_VOLTAGE_MEAS  0x15  /* section 1, generic scope, 2 bytes, USB voltage measurement in millivolts */
+#define PARM3_VADJUST           0x20  /* section 1, generic scope, 2 bytes, set voltage in millivolts */
+#define PARM3_ANALOG_STATUS     0x30  /* section 1, generic scope, 2 bytes, analog status */
 
 #define PARM3_DEVICEDESC  0x00  /* section 2, memory etc. configuration,
                                  * 31 bytes for tiny/mega AVR, 47 bytes
@@ -236,6 +244,14 @@
  */
 #define PARM3_OPT_12V_UPDI_ENABLE      0x06
 #define PARM3_OPT_CHIP_ERASE_TO_ENTER  0x07
+
+/*
+ * UPDI high-voltage enable modes
+ */
+#define PARM3_UPDI_HV_NONE              0x00  /* Do not use high-voltage */
+#define PARM3_UPDI_HV_SIMPLE_PULSE      0x01  /* Issue a single high-voltage pulse immediately*/
+#define PARM3_UPDI_HV_AUTO_POWER_TOGGLE 0x02  /* Toggle power automatically and then apply a high-voltage pulse */
+#define PARM3_UPDI_HV_USER_POWER_TOGGLE 0x03  /* The user toggles power, and the tool applies a high-voltage pulse on power-up */
 
 /* Xmega erase memory types, for CMND_XMEGA_ERASE */
 #define XMEGA_ERASE_CHIP        0x00
@@ -393,5 +409,7 @@ struct updi_device_desc {
     unsigned char flash_page_size_msb;  // Extends flash_page_size, used in 24-bit mode
 
     unsigned char address_mode;  // 0x00 = 16-bit mode, 0x01 = 24-bit mode
+
+    unsigned char hvupdi_variant; // Indicates the target UPDI HV implementation
 };
 #endif /* JTAG3_PRIVATE_EXPORTED */

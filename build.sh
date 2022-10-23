@@ -37,7 +37,7 @@ case "${ostype}" in
 	# try to find out whether this is an Embedded Linux
 	# platform (e.g. Raspberry Pi)
 	machine=$(uname -m)
-	if expr "${machine}" : 'arm' >/dev/null
+	if expr "${machine}" : '^\(arm\|aarch\)' >/dev/null
 	then
 	    extra_enable="${extra_enable} -D HAVE_LINUXGPIO=ON -D HAVE_LINUXSPI=ON"
 	fi

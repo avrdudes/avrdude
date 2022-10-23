@@ -22,7 +22,7 @@
 #define arduino_h__
 
 extern const char arduino_desc[];
-void arduino_initpgm (PROGRAMMER * pgm);
+void arduino_initpgm(PROGRAMMER *pgm);
 
 #endif
 

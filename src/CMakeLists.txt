@@ -56,6 +56,8 @@ if(WIN32)
 endif()
 
 if(MSVC)
+    enable_language(CXX)
+
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS=1)
     add_compile_definitions(_CRT_NONSTDC_NO_WARNINGS=1)
     add_compile_definitions(_WINSOCK_DEPRECATED_NO_WARNINGS=1)
@@ -80,29 +82,51 @@ else()
 endif()
 
 # =====================================
+# Setup default port names
+# =====================================
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(DEFAULT_PAR_PORT "/dev/parport0")
+    set(DEFAULT_SER_PORT "/dev/ttyS0")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+    set(DEFAULT_PAR_PORT "/dev/ppi0")
+    set(DEFAULT_SER_PORT "/dev/cuad0")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Solaris")
+    set(DEFAULT_PAR_PORT "/dev/printers/0")
+    set(DEFAULT_SER_PORT "/dev/term/a")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(DEFAULT_PAR_PORT "lpt1")
+    set(DEFAULT_SER_PORT "com1")
+else()
+    set(DEFAULT_PAR_PORT "unknown")
+    set(DEFAULT_SER_PORT "unknown")
+endif()
+
+# =====================================
 # Configure files
 # =====================================
 
-macro(configure_option option)
-    if(${${option}})
-        string(REGEX REPLACE "(.*)@${option}_BEGIN@(.*)@${option}_END@(.*)" "\\1\\2\\3" conf_file "${conf_file}")
-    else()
-        string(REGEX REPLACE "(.*)@${option}_BEGIN@(.*)@${option}_END@(.*)" "\\1\\3" conf_file "${conf_file}")
-    endif()
-endmacro()
-
-file(READ avrdude.conf.in conf_file)
-configure_option(HAVE_PARPORT)
-configure_option(HAVE_LINUXGPIO)
-configure_option(HAVE_LINUXSPI)
-file(WRITE "${PROJECT_BINARY_DIR}/avrdude.conf.in" "${conf_file}")
-
 configure_file(cmake_config.h.in ac_cfg.h)
-configure_file("${PROJECT_BINARY_DIR}/avrdude.conf.in" avrdude.conf)
 configure_file(avrdude.spec.in avrdude.spec)
 if(WIN32)
     configure_file(windows.rc.in windows.rc)
 endif()
+
+add_custom_command(
+    OUTPUT avrdude.conf
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/avrdude.conf.in" avrdude.conf.in
+    COMMAND ${CMAKE_COMMAND}
+        -D HAVE_PARPORT=${HAVE_PARPORT}
+        -D HAVE_LINUXSPI=${HAVE_LINUXSPI}
+        -D HAVE_LINUXGPIO=${HAVE_LINUXGPIO}
+        -D DEFAULT_PAR_PORT=${DEFAULT_PAR_PORT}
+        -D DEFAULT_SER_PORT=${DEFAULT_SER_PORT}
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/configure.cmake"
+    DEPENDS avrdude.conf.in
+    VERBATIM
+    )
+
+add_custom_target(conf ALL DEPENDS avrdude.conf)
 
 # =====================================
 # Project
@@ -115,6 +139,7 @@ add_library(libavrdude
     avr.c
     avr910.c
     avr910.h
+    avrcache.c
     avrdude.h
     avrftdi.c
     avrftdi.h
@@ -250,6 +275,11 @@ add_executable(avrdude
     main.c
     term.c
     term.h
+    avrintel.c
+    avrintel.h
+    developer_opts.c
+    developer_opts.h
+    developer_opts_private.h
     whereami.c
     whereami.h
     "${EXTRA_WINDOWS_RESOURCES}"
@@ -268,4 +298,6 @@ install(TARGETS libavrdude
     PUBLIC_HEADER DESTINATION include COMPONENT dev
     )
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/avrdude.conf" TYPE SYSCONF)
-install(FILES avrdude.1 TYPE MAN)
+install(FILES "avrdude.1"
+	DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"
+	)

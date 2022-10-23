@@ -85,8 +85,7 @@ static void wiring_setup(PROGRAMMER * pgm)
    * Now prepare our data
    */
   if ((mycookie = malloc(sizeof(struct wiringpdata))) == 0) {
-    avrdude_message(MSG_INFO, "%s: wiring_setup(): Out of memory allocating private data\n",
-                    progname);
+    pmsg_error("out of memory allocating private data\n");
     exit(1);
   }
   memset(mycookie, 0, sizeof(struct wiringpdata));
@@ -109,8 +108,7 @@ static void wiring_teardown(PROGRAMMER * pgm)
   stk500v2_teardown(pgm);
 }
 
-static int wiring_parseextparms(PROGRAMMER * pgm, LISTID extparms)
-{
+static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   LNODEID ln;
   const char *extended_param;
   int rv = 0;
@@ -123,28 +121,24 @@ static int wiring_parseextparms(PROGRAMMER * pgm, LISTID extparms)
       int newsnooze;
       if (sscanf(extended_param, "snooze=%i", &newsnooze) != 1 ||
           newsnooze < 0) {
-        avrdude_message(MSG_INFO, "%s: wiring_parseextparms(): invalid snooze time '%s'\n",
-                        progname, extended_param);
+        pmsg_error("invalid snooze time '%s'\n", extended_param);
         rv = -1;
         continue;
       }
-      avrdude_message(MSG_NOTICE2, "%s: wiring_parseextparms(): snooze time set to %d ms\n",
-                      progname, newsnooze);
+      pmsg_notice2("wiring_parseextparms(): snooze time set to %d ms\n", newsnooze);
       WIRINGPDATA(mycookie)->snoozetime = newsnooze;
 
       continue;
     }
 
-    avrdude_message(MSG_INFO, "%s: wiring_parseextparms(): invalid extended parameter '%s'\n",
-                    progname, extended_param);
+    pmsg_error("invalid extended parameter '%s'\n", extended_param);
     rv = -1;
   }
 
   return rv;
 }
 
-static int wiring_open(PROGRAMMER * pgm, char * port)
-{
+static int wiring_open(PROGRAMMER *pgm, const char *port) {
   int timetosnooze;
   void *mycookie = STK500V2PDATA(pgm)->chained_pdata;
   union pinfo pinfo;
@@ -159,20 +153,17 @@ static int wiring_open(PROGRAMMER * pgm, char * port)
   if (WIRINGPDATA(mycookie)->snoozetime > 0) {
     timetosnooze = WIRINGPDATA(mycookie)->snoozetime;
 
-    avrdude_message(MSG_NOTICE2, "%s: wiring_open(): snoozing for %d ms\n",
-                    progname, timetosnooze);
+    pmsg_notice2("wiring_open(): snoozing for %d ms\n", timetosnooze);
     while (timetosnooze--)
       usleep(1000);
-    avrdude_message(MSG_NOTICE2, "%s: wiring_open(): done snoozing\n",
-                    progname);
+    pmsg_notice2("wiring_open(): done snoozing\n");
   } else {
     /* Perform Wiring programming mode RESET.           */
     /* This effectively *releases* both DTR and RTS.    */
     /* i.e. both DTR and RTS rise to a HIGH logic level */
     /* since they are active LOW signals.               */
 
-    avrdude_message(MSG_NOTICE2, "%s: wiring_open(): releasing DTR/RTS\n",
-                    progname);
+    pmsg_notice2("wiring_open(): releasing DTR/RTS\n");
 
     serial_set_dtr_rts(&pgm->fd, 0);
     usleep(50*1000);
@@ -180,8 +171,7 @@ static int wiring_open(PROGRAMMER * pgm, char * port)
     /* After releasing for 50 milliseconds, DTR and RTS */
     /* are asserted (i.e. logic LOW) again.             */
 
-    avrdude_message(MSG_NOTICE2, "%s: wiring_open(): asserting DTR/RTS\n",
-                    progname);
+    pmsg_notice2("wiring_open(): asserting DTR/RTS\n");
 
     serial_set_dtr_rts(&pgm->fd, 1);
     usleep(50*1000);
@@ -205,8 +195,7 @@ static void wiring_close(PROGRAMMER * pgm)
 
 const char wiring_desc[] = "http://wiring.org.co/, Basically STK500v2 protocol, with some glue to trigger the bootloader.";
 
-void wiring_initpgm(PROGRAMMER * pgm)
-{
+void wiring_initpgm(PROGRAMMER *pgm) {
   /* The Wiring bootloader uses a near-complete STK500v2 protocol. */
 
   stk500v2_initpgm(pgm);

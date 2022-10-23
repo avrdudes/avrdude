@@ -73,8 +73,7 @@ static struct ppipins_t ppipins[] = {
 
 #define NPINS (sizeof(ppipins)/sizeof(struct ppipins_t))
 
-static int par_setpin_internal(PROGRAMMER * pgm, int pin, int value)
-{
+static int par_setpin_internal(const PROGRAMMER *pgm, int pin, int value) {
   int inverted;
 
   inverted = pin & PIN_INVERSE;
@@ -102,13 +101,11 @@ static int par_setpin_internal(PROGRAMMER * pgm, int pin, int value)
   return 0;
 }
 
-static int par_setpin(PROGRAMMER * pgm, int pinfunc, int value)
-{
+static int par_setpin(const PROGRAMMER * pgm, int pinfunc, int value) {
   return par_setpin_internal(pgm, pgm->pinno[pinfunc], value);
 }
 
-static void par_setmany(PROGRAMMER * pgm, int pinfunc, int value)
-{
+static void par_setmany(const PROGRAMMER *pgm, int pinfunc, int value) {
   int pin, mask;
   int pinset = pgm->pinno[pinfunc];
 
@@ -121,8 +118,7 @@ static void par_setmany(PROGRAMMER * pgm, int pinfunc, int value)
   }
 }
 
-static int par_getpin(PROGRAMMER * pgm, int pinfunc)
-{
+static int par_getpin(const PROGRAMMER * pgm, int pinfunc) {
   int value;
   int inverted;
   int pin = pgm->pinno[pinfunc];
@@ -150,8 +146,7 @@ static int par_getpin(PROGRAMMER * pgm, int pinfunc)
 }
 
 
-static int par_highpulsepin(PROGRAMMER * pgm, int pinfunc)
-{
+static int par_highpulsepin(const PROGRAMMER *pgm, int pinfunc) {
   int inverted;
   int pin = pgm->pinno[pinfunc];
 
@@ -190,8 +185,7 @@ static int par_highpulsepin(PROGRAMMER * pgm, int pinfunc)
 /*
  * apply power to the AVR processor
  */
-static void par_powerup(PROGRAMMER * pgm)
-{
+static void par_powerup(const PROGRAMMER *pgm) {
   par_setmany(pgm, PPI_AVR_VCC, 1);	/* power up */
   usleep(100000);
 }
@@ -200,18 +194,15 @@ static void par_powerup(PROGRAMMER * pgm)
 /*
  * remove power from the AVR processor
  */
-static void par_powerdown(PROGRAMMER * pgm)
-{
+static void par_powerdown(const PROGRAMMER *pgm) {
   par_setmany(pgm, PPI_AVR_VCC, 0);	/* power down */
 }
 
-static void par_disable(PROGRAMMER * pgm)
-{
+static void par_disable(const PROGRAMMER *pgm) {
   par_setmany(pgm, PPI_AVR_BUFF, 1); /* turn off */
 }
 
-static void par_enable(PROGRAMMER * pgm)
-{
+static void par_enable(PROGRAMMER *pgm, const AVRPART *p) {
   /*
    * Prepare to start talking to the connected device - pull reset low
    * first, delay a few milliseconds, then enable the buffer.  This
@@ -232,8 +223,7 @@ static void par_enable(PROGRAMMER * pgm)
   par_setmany(pgm, PPI_AVR_BUFF, 0);
 }
 
-static int par_open(PROGRAMMER * pgm, char * port)
-{
+static int par_open(PROGRAMMER *pgm, const char *port) {
   int rc;
 
   if (bitbang_check_prerequisites(pgm) < 0)
@@ -241,8 +231,7 @@ static int par_open(PROGRAMMER * pgm, char * port)
 
   ppi_open(port, &pgm->fd);
   if (pgm->fd.ifd < 0) {
-    avrdude_message(MSG_INFO, "%s: failed to open parallel port \"%s\"\n\n",
-            progname, port);
+    pmsg_error("unable to open parallel port %s\n\n", port);
     return -1;
   }
 
@@ -251,14 +240,14 @@ static int par_open(PROGRAMMER * pgm, char * port)
    */
   rc = ppi_getall(&pgm->fd, PPIDATA);
   if (rc < 0) {
-    avrdude_message(MSG_INFO, "%s: error reading status of ppi data port\n", progname);
+    pmsg_error("unable to read status of ppi data port\n");
     return -1;
   }
   pgm->ppidata = rc;
 
   rc = ppi_getall(&pgm->fd, PPICTRL);
   if (rc < 0) {
-    avrdude_message(MSG_INFO, "%s: error reading status of ppi ctrl port\n", progname);
+    pmsg_error("unable to read status of ppi ctrl port\n");
     return -1;
   }
   pgm->ppictrl = rc;
@@ -267,8 +256,7 @@ static int par_open(PROGRAMMER * pgm, char * port)
 }
 
 
-static void par_close(PROGRAMMER * pgm)
-{
+static void par_close(PROGRAMMER *pgm) {
 
   /*
    * Restore pin values before closing,
@@ -331,40 +319,41 @@ static void par_close(PROGRAMMER * pgm)
 /*
  * parse the -E string
  */
-static int par_parseexitspecs(PROGRAMMER * pgm, char *s)
-{
-  char *cp;
+static int par_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
+  char *cp, *s, *str = cfg_strdup("par_parseexitspecs()", sp);
 
-  while ((cp = strtok(s, ","))) {
-    if (strcmp(cp, "reset") == 0) {
+  s = str;
+  while((cp = strtok(s, ","))) {
+    if(strcmp(cp, "reset") == 0)
       pgm->exit_reset = EXIT_RESET_ENABLED;
-    }
-    else if (strcmp(cp, "noreset") == 0) {
+
+    else if(strcmp(cp, "noreset") == 0)
       pgm->exit_reset = EXIT_RESET_DISABLED;
-    }
-    else if (strcmp(cp, "vcc") == 0) {
+
+    else if(strcmp(cp, "vcc") == 0)
       pgm->exit_vcc = EXIT_VCC_ENABLED;
-    }
-    else if (strcmp(cp, "novcc") == 0) {
+
+    else if(strcmp(cp, "novcc") == 0)
       pgm->exit_vcc = EXIT_VCC_DISABLED;
-    }
-    else if (strcmp(cp, "d_high") == 0) {
+
+    else if(strcmp(cp, "d_high") == 0)
       pgm->exit_datahigh = EXIT_DATAHIGH_ENABLED;
-    }
-    else if (strcmp(cp, "d_low") == 0) {
+
+    else if(strcmp(cp, "d_low") == 0)
       pgm->exit_datahigh = EXIT_DATAHIGH_DISABLED;
-    }
+
     else {
+      free(str);
       return -1;
     }
-    s = 0; /* strtok() should be called with the actual string only once */
+    s = NULL; // Only call strtok() once with the actual string
   }
 
+  free(str);
   return 0;
 }
 
-void par_initpgm(PROGRAMMER * pgm)
-{
+void par_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "PPI");
 
   pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed
@@ -400,10 +389,8 @@ void par_initpgm(PROGRAMMER * pgm)
 
 #else  /* !HAVE_PARPORT */
 
-void par_initpgm(PROGRAMMER * pgm)
-{
-  avrdude_message(MSG_INFO, "%s: parallel port access not available in this configuration\n",
-                  progname);
+void par_initpgm(PROGRAMMER *pgm) {
+  pmsg_error("parallel port access not available in this configuration\n");
 }
 
 #endif /* HAVE_PARPORT */

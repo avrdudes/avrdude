@@ -61,9 +61,6 @@ typedef	unsigned int	uint_t;
 typedef	unsigned long	ulong_t;
 #endif
 
-extern int avr_write_byte_default ( PROGRAMMER* pgm, AVRPART* p,
-				    AVRMEM* mem, ulong_t addr,
-				    unsigned char data );
 /*
  * Private data for this programmer.
  */
@@ -82,8 +79,7 @@ struct pdata
 static void usbtiny_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    avrdude_message(MSG_INFO, "%s: usbtiny_setup(): Out of memory allocating private data\n",
-                    progname);
+    pmsg_error("out of memory allocating private data\n");
     exit(1);
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
@@ -95,7 +91,7 @@ static void usbtiny_teardown(PROGRAMMER * pgm)
 }
 
 // Wrapper for simple usb_control_msg messages
-static int usb_control (PROGRAMMER * pgm,
+static int usb_control (const PROGRAMMER *pgm,
 			unsigned int requestid, unsigned int val, unsigned int index )
 {
   int nbytes;
@@ -106,7 +102,8 @@ static int usb_control (PROGRAMMER * pgm,
 			    NULL, 0,              // no data buffer in control message
 			    USB_TIMEOUT );        // default timeout
   if(nbytes < 0){
-    avrdude_message(MSG_INFO, "\n%s: error: usbtiny_transmit: %s\n", progname, usb_strerror());
+    msg_error("\n");
+    pmsg_error("%s\n", usb_strerror());
     return -1;
   }
 
@@ -114,7 +111,7 @@ static int usb_control (PROGRAMMER * pgm,
 }
 
 // Wrapper for simple usb_control_msg messages to receive data from programmer
-static int usb_in (PROGRAMMER * pgm,
+static int usb_in (const PROGRAMMER *pgm,
 		   unsigned int requestid, unsigned int val, unsigned int index,
 		   unsigned char* buffer, int buflen, int bitclk )
 {
@@ -138,23 +135,20 @@ static int usb_in (PROGRAMMER * pgm,
     }
     PDATA(pgm)->retries++;
   }
-  avrdude_message(MSG_INFO, "\n%s: error: usbtiny_receive: %s (expected %d, got %d)\n",
-          progname, usb_strerror(), buflen, nbytes);
+  msg_error("\n");
+  pmsg_error("%s (expected %d, got %d)\n", usb_strerror(), buflen, nbytes);
   return -1;
 }
 
 // Report the number of retries, and reset the counter.
-static void check_retries (PROGRAMMER * pgm, const char* operation)
-{
-  if (PDATA(pgm)->retries > 0 && quell_progress < 2) {
-    avrdude_message(MSG_INFO, "%s: %d retries during %s\n", progname,
-           PDATA(pgm)->retries, operation);
-  }
+static void check_retries (const PROGRAMMER *pgm, const char *operation) {
+  if (PDATA(pgm)->retries > 0)
+    pmsg_info("%d retries during %s\n", PDATA(pgm)->retries, operation);
   PDATA(pgm)->retries = 0;
 }
 
 // Wrapper for simple usb_control_msg messages to send data to programmer
-static int usb_out (PROGRAMMER * pgm,
+static int usb_out (const PROGRAMMER *pgm,
 		    unsigned int requestid, unsigned int val, unsigned int index,
 		    unsigned char* buffer, int buflen, int bitclk )
 {
@@ -172,8 +166,8 @@ static int usb_out (PROGRAMMER * pgm,
 			    (char *)buffer, buflen,
 			    timeout);
   if (nbytes != buflen) {
-    avrdude_message(MSG_INFO, "\n%s: error: usbtiny_send: %s (expected %d, got %d)\n",
-	    progname, usb_strerror(), buflen, nbytes);
+    msg_error("\n");
+    pmsg_error("%s (expected %d, got %d)\n", usb_strerror(), buflen, nbytes);
     return -1;
   }
 
@@ -221,21 +215,19 @@ static unsigned short tpi_frame(unsigned char b) {
 
 /* Transmit a single byte encapsulated in a 32-bit transfer. Unused
    bits are padded with 1s. */
-static int usbtiny_tpi_tx(PROGRAMMER *pgm, unsigned char b0)
-{
+static int usbtiny_tpi_tx(const PROGRAMMER *pgm, unsigned char b0) {
   unsigned char res[4];
 
   if (usb_in(pgm, USBTINY_SPI, tpi_frame(b0), 0xffff,
 	     res, sizeof(res), 8 * sizeof(res) * PDATA(pgm)->sck_period) < 0)
     return -1;
-  if (verbose > 1)
-    fprintf(stderr, "CMD_TPI_TX: [0x%02x]\n", b0);
+  msg_notice2("CMD_TPI_TX: [0x%02x]\n", b0);
   return 1;
 }
 
 /* Transmit a two bytes encapsulated in a 32-bit transfer. Unused
    bits are padded with 1s. */
-static int usbtiny_tpi_txtx(PROGRAMMER *pgm,
+static int usbtiny_tpi_txtx(const PROGRAMMER *pgm,
 			    unsigned char b0, unsigned char b1)
 {
   unsigned char res[4];
@@ -243,8 +235,7 @@ static int usbtiny_tpi_txtx(PROGRAMMER *pgm,
   if (usb_in(pgm, USBTINY_SPI, tpi_frame(b0), tpi_frame(b1),
 	     res, sizeof(res), 8 * sizeof(res) * PDATA(pgm)->sck_period) < 0)
     return -1;
-  if (verbose > 1)
-    fprintf(stderr, "CMD_TPI_TX_TX: [0x%02x 0x%02x]\n", b0, b1);
+  msg_notice2("CMD_TPI_TX_TX: [0x%02x 0x%02x]\n", b0, b1);
   return 1;
 }
 
@@ -253,8 +244,7 @@ static int usbtiny_tpi_txtx(PROGRAMMER *pgm,
    the start bit of the byte being received arrives within at most 2
    TPICLKs.  We ensure this by calling avr_tpi_program_enable() with
    delay==TPIPCR_GT_0b.  */
-static int usbtiny_tpi_txrx(PROGRAMMER *pgm, unsigned char b0)
-{
+static int usbtiny_tpi_txrx(const PROGRAMMER *pgm, unsigned char b0) {
   unsigned char res[4], r;
   short w;
 
@@ -270,16 +260,15 @@ static int usbtiny_tpi_txrx(PROGRAMMER *pgm, unsigned char b0)
      bit and the 8 data bits, but the latter in reverse order. */
   r = reverse(w >> 7);
   if (tpi_parity(r) != ((w >> 6) & 1)) {
-    fprintf(stderr, "%s: parity bit is wrong\n", __func__);
+    pmsg_error("parity bit is wrong\n");
     return -1;
   }
   if (((w >> 4) & 0x3) != TPI_STOP_BITS) {
-    fprintf(stderr, "%s: stop bits not received correctly\n", __func__);
+    pmsg_error("stop bits not received correctly\n");
     return -1;
   }
 
-  if (verbose > 1)
-    fprintf(stderr, "CMD_TPI_TX_RX: [0x%02x -> 0x%02x]\n", b0, r);
+  msg_notice2("CMD_TPI_TX_RX: [0x%02x -> 0x%02x]\n", b0, r);
   return r;
 }
 
@@ -287,14 +276,14 @@ static int usbtiny_tpi_txrx(PROGRAMMER *pgm, unsigned char b0)
 // a function. Here we wrap this request for an operation so that we
 // can just specify the part and operation and it'll do the right stuff
 // to get the information from AvrDude and send to the USBtiny
-static int usbtiny_avr_op (PROGRAMMER * pgm, AVRPART * p,
+static int usbtiny_avr_op (const PROGRAMMER *pgm, const AVRPART *p,
 			   int op,
 			   unsigned char *res)
 {
   unsigned char	cmd[4];
 
   if (p->op[op] == NULL) {
-    avrdude_message(MSG_INFO, "Operation %d not defined for this chip!\n", op );
+    pmsg_error("operation %d not defined for this chip\n", op);
     return -1;
   }
   memset(cmd, 0, sizeof(cmd));
@@ -307,11 +296,10 @@ static int usbtiny_avr_op (PROGRAMMER * pgm, AVRPART * p,
 
 /* Find a device with the correct VID/PID match for USBtiny */
 
-static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
-{
+static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
   struct usb_bus      *bus;
   struct usb_device   *dev = 0;
-  char *bus_name = NULL;
+  const char *bus_name = NULL;
   char *dev_name = NULL;
   int vid, pid;
 
@@ -344,8 +332,7 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
   if (usbpid) {
     pid = *(int *)(ldata(usbpid));
     if (lnext(usbpid))
-      avrdude_message(MSG_INFO, "%s: Warning: using PID 0x%04x, ignoring remaining PIDs in list\n",
-                      progname, pid);
+      pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
   } else {
     pid = USBTINY_PRODUCT_DEFAULT;
   }
@@ -356,8 +343,7 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
     for	( dev = bus->devices; dev; dev = dev->next ) {
       if (dev->descriptor.idVendor == vid
 	  && dev->descriptor.idProduct == pid ) {   // found match?
-    avrdude_message(MSG_NOTICE, "%s: usbdev_open(): Found USBtinyISP, bus:device: %s:%s\n",
-                      progname, bus->dirname, dev->filename);
+    pmsg_notice("usbdev_open(): found USBtinyISP, bus:device: %s:%s\n", bus->dirname, dev->filename);
     // if -P was given, match device by device name and bus name
     if(name != NULL &&
       (NULL == dev_name ||
@@ -368,8 +354,7 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
 
 	// wrong permissions or something?
 	if (!PDATA(pgm)->usb_handle) {
-	  avrdude_message(MSG_INFO, "%s: Warning: cannot open USB device: %s\n",
-		  progname, usb_strerror());
+	  pmsg_warning("cannot open USB device: %s\n", usb_strerror());
 	  continue;
 	}
       }
@@ -377,13 +362,12 @@ static	int	usbtiny_open(PROGRAMMER* pgm, char* name)
   }
 
   if(NULL != name && NULL == dev_name) {
-    avrdude_message(MSG_INFO, "%s: Error: Invalid -P value: '%s'\n", progname, name);
-    avrdude_message(MSG_INFO, "%sUse -P usb:bus:device\n", progbuf);
+    pmsg_error("invalid -P value: '%s'\n", name);
+    imsg_error("use -P usb:bus:device\n");
     return -1;
   }
   if (!PDATA(pgm)->usb_handle) {
-    avrdude_message(MSG_INFO, "%s: Error: Could not find USBtiny device (0x%x/0x%x)\n",
-	     progname, vid, pid );
+    pmsg_error("cannot find USBtiny device (0x%x/0x%x)\n", vid, pid );
     return -1;
   }
 
@@ -402,8 +386,7 @@ static	void usbtiny_close ( PROGRAMMER* pgm )
 
 /* A simple calculator function determines the maximum size of data we can
    shove through a USB connection without getting errors */
-static void usbtiny_set_chunk_size (PROGRAMMER * pgm, int period)
-{
+static void usbtiny_set_chunk_size (const PROGRAMMER *pgm, int period) {
   PDATA(pgm)->chunk_size = CHUNK_SIZE;       // start with the maximum (default)
   while	(PDATA(pgm)->chunk_size > 8 && period > 16) {
     // Reduce the chunk size for a slow SCK to reduce
@@ -415,8 +398,7 @@ static void usbtiny_set_chunk_size (PROGRAMMER * pgm, int period)
 
 /* Given a SCK bit-clock speed (in useconds) we verify its an OK speed and tell the
    USBtiny to update itself to the new frequency */
-static int usbtiny_set_sck_period (PROGRAMMER *pgm, double v)
-{
+static int usbtiny_set_sck_period (const PROGRAMMER *pgm, double v) {
   PDATA(pgm)->sck_period = (int)(v * 1e6 + 0.5);   // convert from us to 'int', the 0.5 is for rounding up
 
   // Make sure its not 0, as that will confuse the usbtiny
@@ -427,7 +409,7 @@ static int usbtiny_set_sck_period (PROGRAMMER *pgm, double v)
   if  (PDATA(pgm)->sck_period > SCK_MAX)
     PDATA(pgm)->sck_period = SCK_MAX;
 
-  avrdude_message(MSG_NOTICE, "%s: Setting SCK period to %d usec\n", progname,
+  pmsg_notice("setting SCK period to %d usec\n",
 	    PDATA(pgm)->sck_period );
 
   // send the command to the usbtiny device.
@@ -441,8 +423,7 @@ static int usbtiny_set_sck_period (PROGRAMMER *pgm, double v)
 }
 
 
-static int usbtiny_initialize (PROGRAMMER *pgm, AVRPART *p )
-{
+static int usbtiny_initialize (const PROGRAMMER *pgm, const AVRPART *p ) {
   unsigned char res[4];        // store the response from usbtinyisp
   int tries;
 
@@ -453,8 +434,7 @@ static int usbtiny_initialize (PROGRAMMER *pgm, AVRPART *p )
   } else {
     // -B option not specified: use default
     PDATA(pgm)->sck_period = SCK_DEFAULT;
-    avrdude_message(MSG_NOTICE, "%s: Using SCK period of %d usec\n",
-	      progname, PDATA(pgm)->sck_period );
+    pmsg_notice("using SCK period of %d usec\n", PDATA(pgm)->sck_period );
     if (usb_control(pgm,  USBTINY_POWERUP,
 		    PDATA(pgm)->sck_period, RESET_LOW ) < 0)
       return -1;
@@ -464,25 +444,23 @@ static int usbtiny_initialize (PROGRAMMER *pgm, AVRPART *p )
   // Let the device wake up.
   usleep(50000);
 
-  if (p->flags & AVRPART_HAS_TPI) {
+  if (p->prog_modes & PM_TPI) {
     /* Since there is a single TPIDATA line, MOSI and MISO must be
        linked together through a 1kOhm resistor.  Verify that
        everything we send on MOSI gets mirrored back on MISO.  */
-    if (verbose >= 2)
-      fprintf(stderr, "doing MOSI-MISO link check\n");
+    msg_notice2("doing MOSI-MISO link check\n");
 
     memset(res, 0xaa, sizeof(res));
     if (usb_in(pgm, USBTINY_SPI, LITTLE_TO_BIG_16(0x1234), LITTLE_TO_BIG_16(0x5678),
 	       res, 4, 32 * PDATA(pgm)->sck_period) < 0) {
-      fprintf(stderr, "usb_in() failed\n");
+      pmsg_error("usb_in() failed\n");
       return -1;
     }
     if (res[0] != 0x12 || res[1] != 0x34 || res[2] != 0x56 || res[3] != 0x78) {
-      fprintf(stderr,
-	      "MOSI->MISO check failed (got 0x%02x 0x%02x 0x%02x 0x%02x)\n"
-	      "\tPlease verify that MISO is connected directly to TPIDATA and\n"
-	      "\tMOSI is connected to TPIDATA through a 1kOhm resistor.\n",
-	      res[0], res[1], res[2], res[3]);
+      pmsg_error("MOSI->MISO check failed (got 0x%02x 0x%02x 0x%02x 0x%02x)\n"
+        "\tplease verify that MISO is connected directly to TPIDATA and\n"
+        "\tMOSI is connected to TPIDATA through a 1kOhm resistor\n",
+        res[0], res[1], res[2], res[3]);
       return -1;
     }
 
@@ -490,7 +468,7 @@ static int usbtiny_initialize (PROGRAMMER *pgm, AVRPART *p )
     if (usb_in(pgm, USBTINY_SPI, 0xffff, 0xffff, res, 4,
 	       32 * PDATA(pgm)->sck_period) < 0)
     {
-      fprintf(stderr, "Unable to switch chip into TPI mode\n");
+      pmsg_error("unable to switch chip into TPI mode\n");
       return -1;
     }
   }
@@ -511,8 +489,7 @@ static int usbtiny_initialize (PROGRAMMER *pgm, AVRPART *p )
   return 0;
 }
 
-static int usbtiny_setpin(struct programmer_t * pgm, int pinfunc, int value)
-{
+static int usbtiny_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
   /* USBtiny is not a bit bang device, but it can set RESET */
   if(pinfunc == PIN_AVR_RESET) {
     if (usb_control(pgm, USBTINY_POWERUP,
@@ -526,8 +503,7 @@ static int usbtiny_setpin(struct programmer_t * pgm, int pinfunc, int value)
 }
 
 /* Tell the USBtiny to release the output pins, etc */
-static void usbtiny_powerdown(PROGRAMMER * pgm)
-{
+static void usbtiny_powerdown(const PROGRAMMER *pgm) {
   if (!PDATA(pgm)->usb_handle) {
     return;                 // wasn't connected in the first place
   }
@@ -536,8 +512,7 @@ static void usbtiny_powerdown(PROGRAMMER * pgm)
 
 /* Send a 4-byte SPI command to the USBtinyISP for execution
    This procedure is used by higher-level Avrdude procedures */
-static int usbtiny_cmd(PROGRAMMER * pgm, const unsigned char *cmd, unsigned char *res)
-{
+static int usbtiny_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res) {
   int nbytes;
 
   // Make sure its empty so we don't read previous calls if it fails
@@ -551,14 +526,14 @@ static int usbtiny_cmd(PROGRAMMER * pgm, const unsigned char *cmd, unsigned char
     return -1;
   check_retries(pgm, "SPI command");
   // print out the data we sent and received
-  avrdude_message(MSG_NOTICE2, "CMD: [%02x %02x %02x %02x] [%02x %02x %02x %02x]\n",
+  msg_notice2("CMD: [%02x %02x %02x %02x] [%02x %02x %02x %02x]\n",
 	    cmd[0], cmd[1], cmd[2], cmd[3],
 	    res[0], res[1], res[2], res[3] );
   return ((nbytes == 4) &&      // should have read 4 bytes
 	  res[2] == cmd[1]);              // AVR's do a delayed-echo thing
 }
 
-int usbtiny_cmd_tpi(PROGRAMMER * pgm, const unsigned char *cmd,
+int usbtiny_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
 			int cmd_len, unsigned char *res, int res_len)
 {
   unsigned char b0, b1;
@@ -587,23 +562,20 @@ int usbtiny_cmd_tpi(PROGRAMMER * pgm, const unsigned char *cmd,
   }
 
   if (rx < res_len) {
-    fprintf(stderr, "%s: unexpected cmd_len=%d/res_len=%d\n",
-	    __func__, cmd_len, res_len);
+    pmsg_error("unexpected cmd_len=%d/res_len=%d\n", cmd_len, res_len);
     return -1;
   }
   return 0;
 }
 
-static int usbtiny_spi(struct programmer_t * pgm, const unsigned char *cmd, unsigned char *res, int count)
-{
+static int usbtiny_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res, int count) {
   int i;
 
   // Clear the receive buffer so we don't read old data in case of failure
   memset(res, 0, count);
 
   if (count % 4) {
-    avrdude_message(MSG_INFO, "Direct SPI write must be a multiple of 4 bytes for %s\n",
-            pgm->type);
+    pmsg_error("direct SPI write must be a multiple of 4 bytes for %s\n", pgm->type);
     return -1;
   }
 
@@ -616,16 +588,14 @@ static int usbtiny_spi(struct programmer_t * pgm, const unsigned char *cmd, unsi
 }
 
 /* Send the chip-erase command */
-static int usbtiny_chip_erase(PROGRAMMER * pgm, AVRPART * p)
-{
+static int usbtiny_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char res[4];
 
-  if (p->flags & AVRPART_HAS_TPI)
+  if (p->prog_modes & PM_TPI)
     return avr_tpi_chip_erase(pgm, p);
 
   if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
-    avrdude_message(MSG_INFO, "Chip erase instruction not defined for part \"%s\"\n",
-            p->desc);
+    pmsg_error("chip erase instruction not defined for part %s\n", p->desc);
     return -1;
   }
 
@@ -633,7 +603,13 @@ static int usbtiny_chip_erase(PROGRAMMER * pgm, AVRPART * p)
   if (! usbtiny_avr_op( pgm, p, AVR_OP_CHIP_ERASE, res )) {
     return -1;
   }
-  usleep( p->chip_erase_delay );
+
+  if(pgm->prog_modes & PM_SPM) { // Talking to bootloader directly
+    AVRMEM *fl = avr_locate_mem(p, "flash");
+    // Estimated time it takes to erase all pages in bootloader
+    usleep(p->chip_erase_delay * (fl? fl->num_pages: 999));
+  } else
+    usleep(p->chip_erase_delay);
 
   // prepare for further instruction
   pgm->initialize(pgm, p);
@@ -642,9 +618,11 @@ static int usbtiny_chip_erase(PROGRAMMER * pgm, AVRPART * p)
 }
 
 // These are required functions but don't actually do anything
-static	void	usbtiny_enable ( PROGRAMMER* pgm ) {}
+static void usbtiny_enable(PROGRAMMER *pgm, const AVRPART *p) {
+}
 
-static void usbtiny_disable ( PROGRAMMER* pgm ) {}
+static void usbtiny_disable(const PROGRAMMER *pgm) {
+}
 
 
 /* To speed up programming and reading, we do a 'chunked' read.
@@ -652,20 +630,44 @@ static void usbtiny_disable ( PROGRAMMER* pgm ) {}
  *  given to read in the data. Much faster than sending a 4-byte SPI request
  *  per byte
 */
-static int usbtiny_paged_load (PROGRAMMER * pgm, AVRPART * p, AVRMEM* m,
+static int usbtiny_paged_load (const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                unsigned int page_size,
                                unsigned int addr, unsigned int n_bytes)
 {
   unsigned int maxaddr = addr + n_bytes;
-  int chunk;
-  int function;
-
+  int chunk, function;
+  OPCODE *lext, *readop;
+  unsigned char cmd[8];
 
   // First determine what we're doing
-  if (strcmp( m->desc, "flash" ) == 0) {
-    function = USBTINY_FLASH_READ;
-  } else {
-    function = USBTINY_EEPROM_READ;
+  function = strcmp(m->desc, "eeprom")==0?
+    USBTINY_EEPROM_READ: USBTINY_FLASH_READ;
+
+  // paged_load() only called for pages, so OK to set ext addr once at start
+  if((lext = m->op[AVR_OP_LOAD_EXT_ADDR])) {
+    memset(cmd, 0, sizeof(cmd));
+    avr_set_bits(lext, cmd);
+    avr_set_addr(lext, cmd, addr/2);
+    if(pgm->cmd(pgm, cmd, cmd+4) < 0)
+      return -1;
+  }
+
+  // Byte acces as work around to correctly read flash above 64 kiB
+  if(function == USBTINY_FLASH_READ && addr >= 0x10000) {
+    for(unsigned int i=0; i<n_bytes; i++, addr++) {
+      if(!(readop = m->op[addr&1? AVR_OP_READ_HI: AVR_OP_READ_LO]))
+        return -1;
+
+      memset(cmd, 0, sizeof(cmd));
+      avr_set_bits(readop, cmd);
+      avr_set_addr(readop, cmd, addr/2);
+      if(pgm->cmd(pgm, cmd, cmd+4) < 0)
+        return -1;
+      m->buf[addr] = 0;
+      avr_get_output(readop, cmd+4, m->buf + addr);
+    }
+
+    return n_bytes;
   }
 
   for (; addr < maxaddr; addr += chunk) {
@@ -698,7 +700,7 @@ static int usbtiny_paged_load (PROGRAMMER * pgm, AVRPART * p, AVRMEM* m,
  *  given to write the data. Much faster than sending a 4-byte SPI request
  *  per byte.
 */
-static int usbtiny_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
+static int usbtiny_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                unsigned int page_size,
                                unsigned int addr, unsigned int n_bytes)
 {
@@ -759,18 +761,16 @@ static int usbtiny_paged_write(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m,
   return n_bytes;
 }
 
-static int usbtiny_program_enable(PROGRAMMER *pgm, AVRPART *p)
-{
+static int usbtiny_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char buf[4];
 
-  if (p->flags & AVRPART_HAS_TPI)
+  if (p->prog_modes & PM_TPI)
     return avr_tpi_program_enable(pgm, p, TPIPCR_GT_0b);
   else
     return usbtiny_avr_op(pgm, p, AVR_OP_PGM_ENABLE, buf);
 }
 
-void usbtiny_initpgm ( PROGRAMMER* pgm )
-{
+void usbtiny_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "USBtiny");
 
   /* Mandatory Functions */
@@ -802,16 +802,13 @@ void usbtiny_initpgm ( PROGRAMMER* pgm )
 
 // Give a proper error if we were not compiled with libusb
 
-static int usbtiny_nousb_open(struct programmer_t *pgm, char * name)
-{
-  avrdude_message(MSG_INFO, "%s: error: no usb support. Please compile again with libusb installed.\n",
-	  progname);
+static int usbtiny_nousb_open(PROGRAMMER *pgm, const char *name) {
+  pmsg_error("no usb support; please compile again with libusb installed\n");
 
   return -1;
 }
 
-void usbtiny_initpgm(PROGRAMMER * pgm)
-{
+void usbtiny_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "usbtiny");
 
   pgm->open = usbtiny_nousb_open;

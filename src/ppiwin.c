@@ -84,8 +84,7 @@ static void outb(unsigned char value, unsigned short port);
 
 /* FUNCTION DEFINITIONS */
 
-void ppi_open(char *port, union filedescriptor *fdp)
-{
+void ppi_open(const char *port, union filedescriptor *fdp) {
     unsigned char i;
     int fd;
 	
@@ -93,7 +92,7 @@ void ppi_open(char *port, union filedescriptor *fdp)
 
     if(fd < 0)
     {
-        avrdude_message(MSG_INFO, "%s: can't open device \"giveio\"\n\n", progname);
+        pmsg_ext_error("cannot open device \"giveio\"\n\n"); // giveio?!? FIXME!
         fdp->ifd = -1;
         return;
     }
@@ -121,14 +120,13 @@ void ppi_open(char *port, union filedescriptor *fdp)
 	fd = strtol(port, &cp, 0);
 	if(*port == '\0' || *cp != '\0')
 	{
-	    avrdude_message(MSG_INFO, "%s: port name \"%s\" is neither lpt1/2/3 nor valid number\n",
-                            progname, port);
+	    pmsg_error("port %s is neither lpt1/2/3 nor valid number\n", port);
 	    fd = -1;
 	}
     }
     if(fd < 0)
     {
-        avrdude_message(MSG_INFO, "%s: can't open device \"%s\"\n\n", progname, port);
+        pmsg_ext_error("cannot open port %s\n\n", port);
         fdp->ifd = -1;
         return;
     }
@@ -138,8 +136,7 @@ void ppi_open(char *port, union filedescriptor *fdp)
 
 
 #define DRIVERNAME      "\\\\.\\giveio"
-static int winnt_pp_open(void)
-{
+static int winnt_pp_open(void) {
     // Only try to use giveio under Windows NT/2000/XP.
     OSVERSIONINFO ver_info;
 
@@ -178,8 +175,7 @@ static int winnt_pp_open(void)
 
 
 
-void ppi_close(union filedescriptor *fdp)
-{
+void ppi_close(const union filedescriptor *fdp) {
     return;
 }
 
@@ -188,8 +184,7 @@ void ppi_close(union filedescriptor *fdp)
 /*
  * set the indicated bit of the specified register.
  */
-int ppi_set(union filedescriptor *fdp, int reg, int bit)
-{
+int ppi_set(const union filedescriptor *fdp, int reg, int bit) {
     unsigned char v;
     unsigned short port;
 
@@ -204,8 +199,7 @@ int ppi_set(union filedescriptor *fdp, int reg, int bit)
 /*
  * clear the indicated bit of the specified register.
  */
-int ppi_clr(union filedescriptor *fdp, int reg, int bit)
-{
+int ppi_clr(const union filedescriptor *fdp, int reg, int bit) {
     unsigned char v;
     unsigned short port;
 
@@ -221,8 +215,7 @@ int ppi_clr(union filedescriptor *fdp, int reg, int bit)
 /*
  * get the indicated bit of the specified register.
  */
-int ppi_get(union filedescriptor *fdp, int reg, int bit)
-{
+int ppi_get(const union filedescriptor *fdp, int reg, int bit) {
     unsigned char v;
 
     v = inb(port_get(fdp, reg));
@@ -237,8 +230,7 @@ int ppi_get(union filedescriptor *fdp, int reg, int bit)
 /*
  * toggle the indicated bit of the specified register.
  */
-int ppi_toggle(union filedescriptor *fdp, int reg, int bit)
-{
+int ppi_toggle(const union filedescriptor *fdp, int reg, int bit) {
     unsigned char v;
     unsigned short port;
 
@@ -255,8 +247,7 @@ int ppi_toggle(union filedescriptor *fdp, int reg, int bit)
 /*
  * get all bits of the specified register.
  */
-int ppi_getall(union filedescriptor *fdp, int reg)
-{
+int ppi_getall(const union filedescriptor *fdp, int reg) {
     unsigned char v;
 
     v = inb(port_get(fdp, reg));
@@ -270,8 +261,7 @@ int ppi_getall(union filedescriptor *fdp, int reg)
 /*
  * set all bits of the specified register to val.
  */
-int ppi_setall(union filedescriptor *fdp, int reg, int val)
-{
+int ppi_setall(const union filedescriptor *fdp, int reg, int val) {
     outb((unsigned char)val, port_get(fdp, reg));
     return 0;
 }
@@ -280,15 +270,13 @@ int ppi_setall(union filedescriptor *fdp, int reg, int val)
 
 
 /* Calculate port address to access. */
-static unsigned short port_get(union filedescriptor *fdp, int reg)
-{
+static unsigned short port_get(const union filedescriptor *fdp, int reg) {
     return((unsigned short)(fdp->ifd + reg2offset(reg)));
 }
 
 
 /* Convert register enum to offset of base address. */
-static unsigned char reg2offset(int reg)
-{
+static unsigned char reg2offset(int reg) {
     unsigned char offset = 0;
 
     switch(reg)
@@ -315,8 +303,7 @@ static unsigned char reg2offset(int reg)
 
 
 /* Read in value from port. */
-static unsigned char inb(unsigned short port)
-{
+static unsigned char inb(unsigned short port) {
     unsigned char t;
     
 	asm volatile ("in %1, %0"
@@ -328,8 +315,7 @@ static unsigned char inb(unsigned short port)
 
 
 /* Write value to port. */
-static void outb(unsigned char value, unsigned short port)
-{
+static void outb(unsigned char value, unsigned short port) {
     asm volatile ("out %1, %0"
         :
         : "d" (port), "a" (value) );

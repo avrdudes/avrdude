@@ -39,8 +39,7 @@
 #include "updi_link.h"
 #include "updi_readwrite.h"
 
-int updi_read_cs(PROGRAMMER * pgm, uint8_t address, uint8_t * value)
-{
+int updi_read_cs(const PROGRAMMER *pgm, uint8_t address, uint8_t *value) {
 /*
     def read_cs(self, address):
         """
@@ -54,8 +53,7 @@ int updi_read_cs(PROGRAMMER * pgm, uint8_t address, uint8_t * value)
   return updi_link_ldcs(pgm, address, value);
 }
 
-int updi_write_cs(PROGRAMMER * pgm, uint8_t address, uint8_t value)
-{
+int updi_write_cs(const PROGRAMMER *pgm, uint8_t address, uint8_t value) {
 /*
     def write_cs(self, address, value):
         """
@@ -69,8 +67,7 @@ int updi_write_cs(PROGRAMMER * pgm, uint8_t address, uint8_t value)
   return updi_link_stcs(pgm, address, value);
 }
 
-int updi_write_key(PROGRAMMER * pgm, unsigned char * buffer, uint8_t size_type, uint16_t size)
-{
+int updi_write_key(const PROGRAMMER *pgm, unsigned char *buffer, uint8_t size_type, uint16_t size) {
 /*
     def write_key(self, size, key):
         """
@@ -84,8 +81,7 @@ int updi_write_key(PROGRAMMER * pgm, unsigned char * buffer, uint8_t size_type, 
   return updi_link_key(pgm, buffer, size_type, size);
 }
 
-int updi_read_sib(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size)
-{
+int updi_read_sib(const PROGRAMMER *pgm, unsigned char *buffer, uint16_t size) {
 /*
     def read_sib(self):
         """
@@ -98,8 +94,7 @@ int updi_read_sib(PROGRAMMER * pgm, unsigned char * buffer, uint16_t size)
   return updi_link_read_sib(pgm, buffer, size);
 }
 
-int updi_read_byte(PROGRAMMER * pgm, uint32_t address, uint8_t * value)
-{
+int updi_read_byte(const PROGRAMMER *pgm, uint32_t address, uint8_t *value) {
 /*
     def read_byte(self, address):
         """
@@ -113,8 +108,7 @@ int updi_read_byte(PROGRAMMER * pgm, uint32_t address, uint8_t * value)
   return updi_link_ld(pgm, address, value);
 }
 
-int updi_write_byte(PROGRAMMER * pgm, uint32_t address, uint8_t value)
-{
+int updi_write_byte(const PROGRAMMER *pgm, uint32_t address, uint8_t value) {
 /*
     def write_byte(self, address, value):
         """
@@ -128,8 +122,7 @@ int updi_write_byte(PROGRAMMER * pgm, uint32_t address, uint8_t value)
   return updi_link_st(pgm, address, value);
 }
 
-int updi_read_data(PROGRAMMER * pgm, uint32_t address, uint8_t * buffer, uint16_t size)
-{
+int updi_read_data(const PROGRAMMER *pgm, uint32_t address, uint8_t *buffer, uint16_t size) {
 /*
     def read_data(self, address, size):
         """
@@ -153,29 +146,28 @@ int updi_read_data(PROGRAMMER * pgm, uint32_t address, uint8_t * buffer, uint16_
         # Do the read(s)
         return self.datalink.ld_ptr_inc(size)
 */
-  avrdude_message(MSG_DEBUG, "%s: Reading %d bytes from 0x%06X\n", progname, size, address);
+  pmsg_debug("reading %d bytes from 0x%06X\n", size, address);
 
   if (size > UPDI_MAX_REPEAT_SIZE) {
-    avrdude_message(MSG_DEBUG, "%s: Can't read that many bytes in one go\n", progname);
+    pmsg_debug("cannot read that many bytes in one go\n");
     return -1;
   }
 
   if (updi_link_st_ptr(pgm, address) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: ST_PTR operation failed\n", progname);
+    pmsg_debug("ST_PTR operation failed\n");
     return -1;
   }
 
   if (size > 1) {
     if (updi_link_repeat(pgm, size) < 0) {
-      avrdude_message(MSG_DEBUG, "%s: Repeat operation failed\n", progname);
+      pmsg_debug("repeat operation failed\n");
       return -1;
     }
   }
   return updi_link_ld_ptr_inc(pgm, buffer, size);
 }
 
-int updi_write_data(PROGRAMMER * pgm, uint32_t address, uint8_t * buffer, uint16_t size)
-{
+int updi_write_data(const PROGRAMMER *pgm, uint32_t address, uint8_t *buffer, uint16_t size) {
 /*
     def write_data(self, address, data):
         """
@@ -208,28 +200,27 @@ int updi_write_data(PROGRAMMER * pgm, uint32_t address, uint8_t * buffer, uint16
   }
   if (size == 2) {
     if (updi_link_st(pgm, address, buffer[0]) < 0) {
-      avrdude_message(MSG_DEBUG, "%s: ST operation failed\n", progname);
+      pmsg_debug("ST operation failed\n");
       return -1;
     }
     return updi_link_st(pgm, address+1, buffer[1]);
   }
   if (size > UPDI_MAX_REPEAT_SIZE) {
-    avrdude_message(MSG_DEBUG, "%s: Invalid length\n", progname);
+    pmsg_debug("invalid length\n");
     return -1;
   }
   if (updi_link_st_ptr(pgm, address) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: ST_PTR operation failed\n", progname);
+    pmsg_debug("ST_PTR operation failed\n");
     return -1;
   }
   if (updi_link_repeat(pgm, size) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: Repeat operation failed\n", progname);
+    pmsg_debug("repeat operation failed\n");
     return -1;
   }
   return updi_link_st_ptr_inc(pgm, buffer, size);
 }
 
-int updi_read_data_words(PROGRAMMER * pgm, uint32_t address, uint8_t * buffer, uint16_t size)
-{
+int updi_read_data_words(const PROGRAMMER *pgm, uint32_t address, uint8_t *buffer, uint16_t size) {
 /*
     def read_data_words(self, address, words):
         """
@@ -254,29 +245,28 @@ int updi_read_data_words(PROGRAMMER * pgm, uint32_t address, uint8_t * buffer, u
         # Do the read
         return self.datalink.ld_ptr_inc16(words)
 */
-  avrdude_message(MSG_DEBUG, "%s: Reading %d words from 0x%06X", progname, size, address);
+  pmsg_debug("reading %d words from 0x%06X", size, address);
 
   if (size > (UPDI_MAX_REPEAT_SIZE >> 1)) {
-    avrdude_message(MSG_DEBUG, "%s: Can't read that many words in one go\n", progname);
+    pmsg_debug("cannot read that many words in one go\n");
     return -1;
   }
 
   if (updi_link_st_ptr(pgm, address) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: ST_PTR operation failed\n", progname);
+    pmsg_debug("ST_PTR operation failed\n");
     return -1;
   }
 
   if (size > 1) {
     if (updi_link_repeat(pgm, size) < 0) {
-      avrdude_message(MSG_DEBUG, "%s: Repeat operation failed\n", progname);
+      pmsg_debug("repeat operation failed\n");
       return -1;
     }
   }
   return updi_link_ld_ptr_inc16(pgm, buffer, size);
 }
 
-int updi_write_data_words(PROGRAMMER * pgm, uint32_t address, uint8_t * buffer, uint16_t size)
-{
+int updi_write_data_words(const PROGRAMMER *pgm, uint32_t address, uint8_t *buffer, uint16_t size) {
 /*
     def write_data_words(self, address, data):
         """
@@ -305,11 +295,11 @@ int updi_write_data_words(PROGRAMMER * pgm, uint32_t address, uint8_t * buffer, 
     return updi_link_st16(pgm, address, buffer[0] + (buffer[1] << 8));
   }
   if (size > UPDI_MAX_REPEAT_SIZE << 1) {
-    avrdude_message(MSG_DEBUG, "%s: Invalid length\n", progname);
+    pmsg_debug("invalid length\n");
     return -1;
   }
   if (updi_link_st_ptr(pgm, address) < 0) {
-    avrdude_message(MSG_DEBUG, "%s: ST_PTR operation failed\n", progname);
+    pmsg_debug("ST_PTR operation failed\n");
     return -1;
   }
   return updi_link_st_ptr_inc16_RSD(pgm, buffer, size >> 1, -1);

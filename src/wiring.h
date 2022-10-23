@@ -22,7 +22,7 @@
 #define wiring_h__
 
 extern const char wiring_desc[];
-void wiring_initpgm(PROGRAMMER * pgm);
+void wiring_initpgm(PROGRAMMER *pgm);
 
 #endif
 

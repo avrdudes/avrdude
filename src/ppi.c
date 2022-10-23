@@ -51,7 +51,7 @@ enum {
   PPI_SHADOWREAD
 };
 
-static int ppi_shadow_access(union filedescriptor *fdp, int reg,
+static int ppi_shadow_access(const union filedescriptor *fdp, int reg,
 			     unsigned char *v, unsigned char action)
 {
   static unsigned char shadow[3];
@@ -68,8 +68,7 @@ static int ppi_shadow_access(union filedescriptor *fdp, int reg,
       shadow_num = 2;
       break;
     default:
-      avrdude_message(MSG_INFO, "%s: avr_set(): invalid register=%d\n",
-              progname, reg);
+      pmsg_error("invalid register=%d\n", reg);
       return -1;
       break;
   }
@@ -93,8 +92,7 @@ static int ppi_shadow_access(union filedescriptor *fdp, int reg,
 /*
  * set the indicated bit of the specified register.
  */
-int ppi_set(union filedescriptor *fdp, int reg, int bit)
-{
+int ppi_set(const union filedescriptor *fdp, int reg, int bit) {
   unsigned char v;
   int rc;
 
@@ -112,8 +110,7 @@ int ppi_set(union filedescriptor *fdp, int reg, int bit)
 /*
  * clear the indicated bit of the specified register.
  */
-int ppi_clr(union filedescriptor *fdp, int reg, int bit)
-{
+int ppi_clr(const union filedescriptor *fdp, int reg, int bit) {
   unsigned char v;
   int rc;
 
@@ -131,8 +128,7 @@ int ppi_clr(union filedescriptor *fdp, int reg, int bit)
 /*
  * get the indicated bit of the specified register.
  */
-int ppi_get(union filedescriptor *fdp, int reg, int bit)
-{
+int ppi_get(const union filedescriptor *fdp, int reg, int bit) {
   unsigned char v;
   int rc;
 
@@ -148,8 +144,7 @@ int ppi_get(union filedescriptor *fdp, int reg, int bit)
 /*
  * toggle the indicated bit of the specified register.
  */
-int ppi_toggle(union filedescriptor *fdp, int reg, int bit)
-{
+int ppi_toggle(const union filedescriptor *fdp, int reg, int bit) {
   unsigned char v;
   int rc;
 
@@ -167,8 +162,7 @@ int ppi_toggle(union filedescriptor *fdp, int reg, int bit)
 /*
  * get all bits of the specified register.
  */
-int ppi_getall(union filedescriptor *fdp, int reg)
-{
+int ppi_getall(const union filedescriptor *fdp, int reg) {
   unsigned char v;
   int rc;
 
@@ -183,8 +177,7 @@ int ppi_getall(union filedescriptor *fdp, int reg)
 /*
  * set all bits of the specified register to val.
  */
-int ppi_setall(union filedescriptor *fdp, int reg, int val)
-{
+int ppi_setall(const union filedescriptor *fdp, int reg, int val) {
   unsigned char v;
   int rc;
 
@@ -198,15 +191,13 @@ int ppi_setall(union filedescriptor *fdp, int reg, int val)
 }
 
 
-void ppi_open(char * port, union filedescriptor *fdp)
-{
+void ppi_open(const char *port, union filedescriptor *fdp) {
   int fd;
   unsigned char v;
 
   fd = open(port, O_RDWR);
   if (fd < 0) {
-    avrdude_message(MSG_INFO, "%s: can't open device \"%s\": %s\n",
-              progname, port, strerror(errno));
+    pmsg_ext_error("cannot open port %s: %s\n", port, strerror(errno));
     fdp->ifd = -1;
     return;
   }
@@ -225,8 +216,7 @@ void ppi_open(char * port, union filedescriptor *fdp)
 }
 
 
-void ppi_close(union filedescriptor *fdp)
-{
+void ppi_close(const union filedescriptor *fdp) {
   ppi_release (fdp->ifd);
   close(fdp->ifd);
 }
