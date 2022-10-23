@@ -440,19 +440,21 @@ Override the RS-232 connection baud rate specified in the respective
 programmer's entry of the configuration file.
 
 @item -B @var{bitclock}
-Specify the bit clock period for the JTAG interface or the ISP clock (JTAG ICE only).
-The value is a floating-point number in microseconds.
-Alternatively, the value might be suffixed with "Hz", "kHz", or "MHz",
-in order to specify the bit clock frequency, rather than a period.
-The default value of the JTAG ICE results in about 1 microsecond bit
-clock period, suitable for target MCUs running at 4 MHz clock and
-above.
-Unlike certain parameters in the STK500, the JTAG ICE resets all its
-parameters to default values when the programming software signs
-off from the ICE, so for MCUs running at lower clock speeds, this
-parameter must be specified on the command-line.
-It can also be set in the configuration file by using the 'default_bitclock'
-keyword.
+Specify the bit clock period for the JTAG, PDI, TPI, UPDI, or ISP
+interface. The value is a floating-point number in microseconds.
+Alternatively, the value might be suffixed with "Hz", "kHz" or
+"MHz" in order to specify the bit clock frequency rather than a
+period. Some programmers default their bit clock value to a 1
+microsecond bit clock period, suitable for target MCUs running at 4
+MHz clock and above. Slower MCUs need a correspondingly higher bit
+clock period. Some programmers reset their bit clock value to the
+default value when the programming software signs off, whilst
+others store the last used bit clock value. It is recommended to
+always specify the bit clock if read/write speed is important.  You
+can use the 'default_bitclock' keyword in your
+@code{~/.config/avrdude/avrdude.rc} or @code{~/.avrduderc}
+configuration file to assign a default value to keep from having to
+specify this option on every invocation.
 
 @item -c @var{programmer-id}
 Specify the programmer to be used.  AVRDUDE knows about several common
