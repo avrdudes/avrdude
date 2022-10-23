@@ -126,6 +126,9 @@ int avr_has_paged_access(const PROGRAMMER *pgm, const AVRMEM *mem) {
 }
 
 
+#define fallback_read_byte (pgm->read_byte != avr_read_byte_cached? pgm->read_byte: avr_read_byte_default)
+#define fallback_write_byte (pgm->write_byte != avr_write_byte_cached? pgm->write_byte: avr_write_byte_default)
+
 /*
  * Read the page containing addr from the device into buf
  *   - Caller to ensure buf has mem->page_size bytes
@@ -141,14 +144,14 @@ int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   unsigned char *pagecopy = cfg_malloc("avr_read_page_default()", pgsize);
 
   if(pgsize == 1)
-    return pgm->read_byte(pgm, p, mem, addr, buf);
+    return fallback_read_byte(pgm, p, mem, addr, buf);
 
   memcpy(pagecopy, mem->buf + base, pgsize);
   if((rc = pgm->paged_load(pgm, p, mem, pgsize, base, pgsize)) >= 0)
     memcpy(buf, mem->buf + base, pgsize);
   memcpy(mem->buf + base, pagecopy, pgsize);
 
-  if(rc < 0) {
+  if(rc < 0 && pgm->read_byte != avr_read_byte_cached) {
     rc = LIBAVRDUDE_SUCCESS;
     for(int i=0; i<pgsize; i++) {
       if(pgm->read_byte(pgm, p, mem, base+i, pagecopy+i) < 0) {
@@ -179,7 +182,7 @@ int avr_write_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   unsigned char *pagecopy = cfg_malloc("avr_write_page_default()", pgsize);
 
   if(pgsize == 1)
-    return pgm->write_byte(pgm, p, mem, addr, *data);
+    return fallback_write_byte(pgm, p, mem, addr, *data);
 
   memcpy(pagecopy, mem->buf + base, pgsize);
   memcpy(mem->buf + base, data, pgsize);
@@ -261,18 +264,25 @@ static int loadCachePage(AVR_Cache *cp, const PROGRAMMER *pgm, const AVRPART *p,
 static int writeCachePage(AVR_Cache *cp, const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int base, int nlOnErr) {
   // Write modified page cont to device; if unsuccessful try bytewise access
   if(avr_write_page_default(pgm, p, mem, base, cp->cont + base) < 0) {
-    for(int i=0; i < cp->page_size; i++)
-      if(cp->cont[base+i] != cp->copy[base+i])
-        if(pgm->write_byte(pgm, p, mem, base+i, cp->cont[base+i]) < 0 ||
-           pgm->read_byte(pgm, p, mem, base+i, cp->copy+base+i) < 0) {
-          report_progress(1, -1, NULL);
-          if(nlOnErr && quell_progress)
-            msg_info("\n");
-          pmsg_error("writeCachePage() %s access error at addr 0x%04x\n", mem->desc, base+i);
-          return LIBAVRDUDE_GENERAL_FAILURE;
-        }
+    if(pgm->read_byte != avr_read_byte_cached && pgm->write_byte != avr_write_byte_cached) {
+      for(int i=0; i < cp->page_size; i++)
+        if(cp->cont[base+i] != cp->copy[base+i])
+          if(pgm->write_byte(pgm, p, mem, base+i, cp->cont[base+i]) < 0 ||
+             pgm->read_byte(pgm, p, mem, base+i, cp->copy+base+i) < 0) {
+            report_progress(1, -1, NULL);
+            if(nlOnErr && quell_progress)
+              msg_info("\n");
+            pmsg_error("%s access error at addr 0x%04x\n", mem->desc, base+i);
+            return LIBAVRDUDE_GENERAL_FAILURE;
+          }
 
-    return LIBAVRDUDE_SUCCESS;  // Bytewise writes & reads successful
+      return LIBAVRDUDE_SUCCESS;  // Bytewise writes & reads successful
+    }
+    report_progress(1, -1, NULL);
+    if(nlOnErr && quell_progress)
+      msg_info("\n");
+    pmsg_error("write %s page error at addr 0x%04x\n", mem->desc, base);
+    return LIBAVRDUDE_GENERAL_FAILURE;
   }
   // Read page back from device and update copy to what is on device
   if(avr_read_page_default(pgm, p, mem, base, cp->copy + base) < 0) {
@@ -552,7 +562,7 @@ int avr_read_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *
 
   // Use pgm->read_byte() if not EEPROM/flash or no paged access
   if(!avr_has_paged_access(pgm, mem))
-    return pgm->read_byte(pgm, p, mem, addr, value);
+    return fallback_read_byte(pgm, p, mem, addr, value);
 
   // If address is out of range synchronise cache and, if successful, pretend reading a zero
   if(addr >= (unsigned long) mem->size) {
@@ -592,9 +602,9 @@ int avr_read_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *
 int avr_write_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char data) {
 
-  // Use pgm->read_byte() if not EEPROM/flash or no paged access
+  // Use pgm->write_byte() if not EEPROM/flash or no paged access
   if(!avr_has_paged_access(pgm, mem))
-    return pgm->write_byte(pgm, p, mem, addr, data);
+    return fallback_write_byte(pgm, p, mem, addr, data);
 
   // If address is out of range synchronise caches with device and return whether successful
   if(addr >= (unsigned long) mem->size)
@@ -687,7 +697,7 @@ int avr_page_erase_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
     return LIBAVRDUDE_GENERAL_FAILURE;
 
   if(mem->page_size == 1) {
-    if(pgm->write_byte(pgm, p, mem, uaddr, 0xff) < 0)
+    if(fallback_write_byte(pgm, p, mem, uaddr, 0xff) < 0)
       return LIBAVRDUDE_GENERAL_FAILURE;
   } else {
     if(!pgm->page_erase || pgm->page_erase(pgm, p, mem, uaddr) < 0)

@@ -498,22 +498,15 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
   int i, j;
   char * optr;
 
-  if (m == NULL) {
+  if (m == NULL || verbose > 2) {
       fprintf(f,
               "%s                                Block Poll               Page                       Polled\n"
               "%sMemory Type Alias    Mode Delay Size  Indx Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
               "%s----------- -------- ---- ----- ----- ---- ------ ------ ---- ------ ----- ----- ---------\n",
             prefix, prefix, prefix);
   }
-  else {
-    if (verbose > 2) {
-      fprintf(f,
-              "%s                                Block Poll               Page                       Polled\n"
-              "%sMemory Type Alias    Mode Delay Size  Indx Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
-              "%s----------- -------- ---- ----- ----- ---- ------ ------ ---- ------ ----- ----- ---------\n",
-              prefix, prefix, prefix);
-    }
 
+  if (m != NULL) {
     // Only print memory section if the previous section printed isn't identical
     if(prev_mem_offset != m->offset || prev_mem_size != m->size || (strcmp(p->family_id, "") == 0)) {
       prev_mem_offset = m->offset;

@@ -332,18 +332,20 @@ programmed in high-voltage serial mode.
 Override the RS-232 connection baud rate specified in the respective
 programmer's entry of the configuration file.
 .It Fl B Ar bitclock
-Specify the bit clock period for the JTAG interface or the ISP clock (JTAG ICE only).
-The value is a floating-point number in microseconds.
-Alternatively, the value might be suffixed with "Hz", "kHz", or "MHz",
-in order to specify the bit clock frequency, rather than a period.
-The default value of the JTAG ICE results in about 1 microsecond bit
-clock period, suitable for target MCUs running at 4 MHz clock and
-above.
-Unlike certain parameters in the STK500, the JTAG ICE resets all its
-parameters to default values when the programming software signs
-off from the ICE, so for MCUs running at lower clock speeds, this
-parameter must be specified on the command-line.
+Specify the bit clock period for the JTAG, PDI, TPI, UPDI, or ISP
+interface. The value is a floating-point number in microseconds.
+Alternatively, the value might be suffixed with "Hz", "kHz" or
+"MHz" in order to specify the bit clock frequency rather than a
+period. Some programmers default their bit clock value to a 1
+microsecond bit clock period, suitable for target MCUs running at 4
+MHz clock and above. Slower MCUs need a correspondingly higher bit
+clock period. Some programmers reset their bit clock value to the
+default value when the programming software signs off, whilst others
+store the last used bit clock value. It is recommended to always
+specify the bit clock if read/write speed is important.
 You can use the 'default_bitclock' keyword in your
+.Pa ${HOME}/.config/avrdude/avrdude.rc
+or
 .Pa ${HOME}/.avrduderc
 file to assign a default value to keep from having to specify this
 option on every invocation.
@@ -357,6 +359,8 @@ through the use of a config file to make
 work with different programmers as long as the programmer supports the
 Atmel AVR serial program method.  You can use the 'default_programmer'
 keyword in your
+.Pa ${HOME}/.config/avrdude/avrdude.rc
+or
 .Pa ${HOME}/.avrduderc
 file to assign a default programmer to keep from having to specify
 this option on every invocation.
@@ -507,6 +511,8 @@ actual connection to a target controller), this option can be used
 together with
 .Fl t
 to continue in terminal mode.
+Moreover, the option allows to continue despite failed initialization
+of connection between a programmer and a target.
 .It Fl i Ar delay
 For bitbang-type programmers, delay for approximately
 .Ar delay
@@ -1320,10 +1326,10 @@ the CS line being managed outside the application.
 .Sh FILES
 .Bl -tag -offset indent -width /dev/ppi0XXX
 .It Pa /dev/ppi0
-default device to be used for communication with the programming
+Default device to be used for communication with the programming
 hardware
 .It Pa avrdude.conf
-programmer and parts configuration file
+Programmer and parts configuration file
 .Pp
 On Windows systems, this file is looked up in the same directory as the
 executable file.
@@ -1332,14 +1338,22 @@ On all other systems, the file is first looked up in
 relative to the path of the executable, then in the same directory as
 the executable itself, and finally in the system default location
 .Pa ${PREFIX}/etc/avrdude.conf .
+.It Pa ${XDG_CONFIG_HOME}/avrdude/avrdude.rc
+Local programmer and parts configuration file (per-user overrides); it follows the same syntax as
+.Pa avrdude.conf ;
+if the
+.Pa ${XDG_CONFIG_HOME}
+environment variable is not set or empty, the directory
+.Pa ${HOME}/.config/
+is used instead.
 .It Pa ${HOME}/.avrduderc
-programmer and parts configuration file (per-user overrides)
+Alternative location of the per-user configuration file if above file does not exist
 .It Pa ~/.inputrc
 Initialization file for the
 .Xr readline 3
 library
-.It Pa ${PREFIX}/share/doc/avrdude/avrdude.pdf
-Schematic of programming hardware
+.It Pa <prefix>/doc/avrdude/avrdude.pdf
+User manual
 .El
 .\" .Sh EXAMPLES
 .Sh DIAGNOSTICS

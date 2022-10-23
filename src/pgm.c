@@ -140,6 +140,7 @@ PROGRAMMER *pgm_new(void) {
   pgm->write_setup    = NULL;
   pgm->read_sig_bytes = NULL;
   pgm->read_sib       = NULL;
+  pgm->term_keep_alive= NULL;
   pgm->print_parms    = NULL;
   pgm->set_vtarget    = NULL;
   pgm->set_varef      = NULL;
