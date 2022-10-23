@@ -58,6 +58,12 @@ Changes since version 7.0:
     - Make UPDI programmers less verbose during initialization
       #1084
     - Quell mode isn't handled systematically #1114
+    - Mixing the progress bar with warning messages #1136
+    - Inconsistent terminal output re stdout and stderr #1130
+    - Supress the warning for Microchip SNAP #1135
+    - ATtiny85 communication problem with default bitclock #1133
+    - [Regression] Optiboot for "modern AVRs" no longer works #1120
+    - Cannot access EEPROM on some bootloader/part combos #970
 
   * Pull requests:
 
@@ -153,6 +159,16 @@ Changes since version 7.0:
     - Suppress Teensy USB communication error message on reboot #1122
     - Fix UPDI erase when target is locked #1125
     - Review and overhaul AVRDUDE's messaging system #1126
+    - Look for ~/.config/avrdude/avrdude.rc then ~/.avrduderc #1131
+    - Revamp terminal output (progress bar, callback and
+      stdout/stderr) #1132
+    - Detect PICkit4 and SNAP in PIC mode #1138
+    - Mention -B in the error message #1139
+    - Support optiboot, optiboot_dx and optiboot_x bootloaders for
+      -c arduino #1140
+    - Always use paged access for programmers that serve
+      bootloaders #1141
+    - Add libreadline-dev for Linux github action build #1146
 
   * Internals:
 
