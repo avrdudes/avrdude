@@ -49,6 +49,7 @@ jobs:
           libusb-1.0-0-dev
           libhidapi-dev
           libftdi1-dev
+          libreadline-dev
           texinfo
           texlive
           texi2html
@@ -110,6 +111,7 @@ jobs:
           libusb-1.0-0-dev:${{matrix.arch}}
           libhidapi-dev:${{matrix.arch}}
           libftdi1-dev:${{matrix.arch}}
+          libreadline-dev:${{matrix.arch}}
       - name: Configure
         run: >-
           cmake
