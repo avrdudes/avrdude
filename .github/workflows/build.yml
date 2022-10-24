@@ -266,12 +266,14 @@ jobs:
             mingw-w64-${{matrix.env}}-libusb-compat-git
             mingw-w64-${{matrix.env}}-hidapi
             mingw-w64-${{matrix.env}}-libftdi
+            mingw-w64-${{matrix.env}}-readline
       - name: Configure
         run: >-
           cmake
           -G"MSYS Makefiles"
           -D DEBUG_CMAKE=1
           -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          -D USE_STATIC_LIBS=OFF
           -B build
       - name: Build
         run: cmake --build build
