@@ -651,8 +651,8 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   if(data.str_ptr)
     free(data.str_ptr);
 
-  pmsg_notice2("(write) writing %d bytes starting from address 0x%02lx",
-    len + data.bytes_grown, (long) addr);
+  pmsg_notice2("(write) writing %d byte%s starting from address 0x%02lx",
+    len + data.bytes_grown, update_plural(len + data.bytes_grown), (long) addr);
   if (write_mode == WRITE_MODE_FILL)
     msg_notice2("; remaining space filled with %s", argv[argc - 2]);
   msg_notice2("\n");
