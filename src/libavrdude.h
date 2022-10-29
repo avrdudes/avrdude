@@ -579,7 +579,8 @@ const char * pinmask_to_str(const pinmask_t * const pinmask);
 
    The target file will be selected at configure time. */
 
-extern long serial_recv_timeout;
+extern long serial_recv_timeout;  /* ms */
+
 union filedescriptor
 {
   int ifd;
@@ -797,7 +798,6 @@ typedef struct programmer_t {
   int  (*parseextparams) (const struct programmer_t *pgm, const LISTID xparams);
   void (*setup)          (struct programmer_t *pgm);
   void (*teardown)       (struct programmer_t *pgm);
-
   // Cached r/w API for terminal reads/writes
   int (*write_byte_cached)(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
                           unsigned long addr, unsigned char value);
@@ -969,8 +969,8 @@ char * fileio_fmtstr(FILEFMT format);
 
 int fileio_fmt_autodetect(const char * fname);
 
-int fileio(int oprwv, char * filename, FILEFMT format,
-           struct avrpart * p, char * memtype, int size);
+int fileio(int oprwv, const char *filename, FILEFMT format,
+      const AVRPART *p, const char *memtype, int size);
 
 #ifdef __cplusplus
 }
@@ -1020,10 +1020,10 @@ extern UPDATE * dup_update(UPDATE * upd);
 extern UPDATE * new_update(int op, char * memtype, int filefmt,
 			   char * filename);
 extern void free_update(UPDATE * upd);
-extern int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd,
-		 enum updateflags flags);
+extern int do_op(const PROGRAMMER *pgm, const AVRPART *p, UPDATE *upd,
+             enum updateflags flags);
 
-extern int memstats(struct avrpart *p, char *memtype, int size, Filestats *fsp);
+extern int memstats(const AVRPART *p, const char *memtype, int size, Filestats *fsp);
 
 // Convenience functions for printing
 const char *update_plural(int x);
@@ -1036,7 +1036,7 @@ int update_is_okfile(const char *fn);
 int update_is_writeable(const char *fn);
 int update_is_readable(const char *fn);
 
-int update_dryrun(struct avrpart *p, UPDATE *upd);
+int update_dryrun(const AVRPART *p, UPDATE *upd);
 
 
 #ifdef __cplusplus

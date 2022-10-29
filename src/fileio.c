@@ -57,48 +57,48 @@ struct ihexrec {
 };
 
 
-static int b2ihex(unsigned char * inbuf, int bufsize, 
+static int b2ihex(const unsigned char *inbuf, int bufsize,
              int recsize, int startaddr,
-             char * outfile, FILE * outf, FILEFMT ffmt);
+             const char *outfile, FILE *outf, FILEFMT ffmt);
 
-static int ihex2b(char * infile, FILE * inf,
-             AVRMEM * mem, int bufsize, unsigned int fileoffset,
+static int ihex2b(const char *infile, FILE *inf,
+             const AVRMEM *mem, int bufsize, unsigned int fileoffset,
              FILEFMT ffmt);
 
-static int b2srec(unsigned char * inbuf, int bufsize, 
-           int recsize, int startaddr,
-           char * outfile, FILE * outf);
+static int b2srec(const unsigned char *inbuf, int bufsize,
+             int recsize, int startaddr,
+             const char *outfile, FILE *outf);
 
-static int srec2b(char * infile, FILE * inf,
-             AVRMEM * mem, int bufsize, unsigned int fileoffset);
+static int srec2b(const char *infile, FILE *inf,
+             const AVRMEM *mem, int bufsize, unsigned int fileoffset);
 
-static int ihex_readrec(struct ihexrec * ihex, char * rec);
+static int ihex_readrec(struct ihexrec *ihex, char *rec);
 
-static int srec_readrec(struct ihexrec * srec, char * rec);
+static int srec_readrec(struct ihexrec *srec, char *rec);
 
-static int fileio_rbin(struct fioparms * fio,
-                  char * filename, FILE * f, AVRMEM * mem, int size);
+static int fileio_rbin(struct fioparms *fio,
+             const char *filename, FILE *f, const AVRMEM *mem, int size);
 
-static int fileio_ihex(struct fioparms * fio, 
-                  char * filename, FILE * f, AVRMEM * mem, int size,
-                  FILEFMT ffmt);
+static int fileio_ihex(struct fioparms *fio,
+             const char *filename, FILE *f, const AVRMEM *mem, int size,
+             FILEFMT ffmt);
 
-static int fileio_srec(struct fioparms * fio,
-                  char * filename, FILE * f, AVRMEM * mem, int size);
+static int fileio_srec(struct fioparms *fio,
+             const char *filename, FILE *f, const AVRMEM *mem, int size);
 
 #ifdef HAVE_LIBELF
-static int elf2b(char * infile, FILE * inf,
-                 AVRMEM * mem, struct avrpart * p,
+static int elf2b(const char *infile, FILE *inf,
+                 const AVRMEM *mem, const AVRPART *p,
                  int bufsize, unsigned int fileoffset);
 
-static int fileio_elf(struct fioparms * fio,
-                      char * filename, FILE * f, AVRMEM * mem,
-                      struct avrpart * p, int size);
+static int fileio_elf(struct fioparms *fio,
+             const char *filename, FILE *f, const AVRMEM *mem,
+             const AVRPART *p, int size);
 #endif
 
-static int fileio_num(struct fioparms * fio,
-		char * filename, FILE * f, AVRMEM * mem, int size,
-		FILEFMT fmt);
+static int fileio_num(struct fioparms *fio,
+             const char *filename, FILE *f, const AVRMEM *mem, int size,
+             FILEFMT fmt);
 
 
 char * fileio_fmtstr(FILEFMT format)
@@ -115,11 +115,11 @@ char * fileio_fmtstr(FILEFMT format)
 }
 
 
-static int b2ihex(unsigned char * inbuf, int bufsize, 
+static int b2ihex(const unsigned char *inbuf, int bufsize,
            int recsize, int startaddr,
-           char * outfile, FILE * outf, FILEFMT ffmt)
+           const char *outfile, FILE *outf, FILEFMT ffmt)
 {
-  unsigned char * buf;
+  const unsigned char *buf;
   unsigned int nextaddr;
   int n, nbytes, n_64k;
   int i;
@@ -292,8 +292,8 @@ static int ihex_readrec(struct ihexrec * ihex, char * rec)
  * If an error occurs, return -1.
  *
  * */
-static int ihex2b(char * infile, FILE * inf,
-             AVRMEM * mem, int bufsize, unsigned int fileoffset,
+static int ihex2b(const char *infile, FILE *inf,
+             const AVRMEM *mem, int bufsize, unsigned int fileoffset,
              FILEFMT ffmt)
 {
   char buffer [ MAX_LINE_LEN ];
@@ -394,11 +394,11 @@ static int ihex2b(char * infile, FILE * inf,
   }
 }
 
-static int b2srec(unsigned char * inbuf, int bufsize, 
+static int b2srec(const unsigned char *inbuf, int bufsize,
            int recsize, int startaddr,
-           char * outfile, FILE * outf)
+           const char *outfile, FILE *outf)
 {
-  unsigned char * buf;
+  const unsigned char *buf;
   unsigned int nextaddr;
   int n, nbytes, addr_width;
   unsigned char cksum;
@@ -516,9 +516,9 @@ static int srec_readrec(struct ihexrec * srec, char * rec)
     return -1;
   srec->rectyp = rec[offset++];
   if (srec->rectyp == 0x32 || srec->rectyp == 0x38) 
-    addr_width = 3;	/* S2,S8-record */
+    addr_width = 3;             /* S2,S8-record */
   else if (srec->rectyp == 0x33 || srec->rectyp == 0x37) 
-    addr_width = 4;	/* S3,S7-record */
+    addr_width = 4;             /* S3,S7-record */
 
   /* reclen */
   if (offset + 2 > len) 
@@ -573,8 +573,8 @@ static int srec_readrec(struct ihexrec * srec, char * rec)
 }
 
 
-static int srec2b(char * infile, FILE * inf,
-           AVRMEM * mem, int bufsize, unsigned int fileoffset)
+static int srec2b(const char *infile, FILE * inf,
+           const AVRMEM *mem, int bufsize, unsigned int fileoffset)
 {
   char buffer [ MAX_LINE_LEN ];
   unsigned int nextaddr, maxaddr;
@@ -741,7 +741,7 @@ static Elf_Scn *elf_get_scn(Elf *e, Elf32_Phdr *ph, Elf32_Shdr **shptr)
   return NULL;
 }
 
-static int elf_mem_limits(AVRMEM *mem, struct avrpart * p,
+static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
                           unsigned int *lowbound,
                           unsigned int *highbound,
                           unsigned int *fileoff)
@@ -799,8 +799,8 @@ static int elf_mem_limits(AVRMEM *mem, struct avrpart * p,
 }
 
 
-static int elf2b(char * infile, FILE * inf,
-                 AVRMEM * mem, struct avrpart * p,
+static int elf2b(const char *infile, FILE *inf,
+                 const AVRMEM *mem, const AVRPART *p,
                  int bufsize, unsigned int fileoffset)
 {
   Elf *e;
@@ -1039,9 +1039,8 @@ static char *itoa_simple(int n, char *buf, int base)
 
 
 
-static int fileio_rbin(struct fioparms * fio,
-                  char * filename, FILE * f, AVRMEM * mem, int size)
-{
+static int fileio_rbin(struct fioparms *fio,
+             const char *filename, FILE *f, const AVRMEM *mem, int size) {
   int rc;
   unsigned char *buf = mem->buf;
 
@@ -1069,13 +1068,15 @@ static int fileio_rbin(struct fioparms * fio,
 }
 
 
-static int fileio_imm(struct fioparms * fio,
-               char * filename, FILE * f, AVRMEM * mem, int size)
+static int fileio_imm(struct fioparms *fio,
+             const char *fname, FILE *f, const AVRMEM *mem, int size)
 {
   int rc = 0;
-  char * e, * p;
+  char *e, *p, *filename;
   unsigned long b;
   int loc;
+
+  filename = cfg_strdup(__func__, fname);
 
   switch (fio->op) {
     case FIO_READ:
@@ -1083,12 +1084,13 @@ static int fileio_imm(struct fioparms * fio,
       p = strtok(filename, " ,");
       while (p != NULL && loc < size) {
         b = strtoul(p, &e, 0);
-	/* check for binary formatted (0b10101001) strings */
-	b = (strncmp (p, "0b", 2))?
-	    strtoul (p, &e, 0):
-	    strtoul (p + 2, &e, 2);
+        /* check for binary formatted (0b10101001) strings */
+        b = (strncmp (p, "0b", 2))?
+            strtoul (p, &e, 0):
+           strtoul (p + 2, &e, 2);
         if (*e != 0) {
           pmsg_error("invalid byte value (%s) specified for immediate mode\n", p);
+          free(filename);
           return -1;
         }
         mem->buf[loc] = b;
@@ -1100,26 +1102,30 @@ static int fileio_imm(struct fioparms * fio,
 
     case FIO_WRITE:
       pmsg_error("invalid file format 'immediate' for output\n");
+      free(filename);
       return -1;
 
     default:
       pmsg_error("invalid operation=%d\n", fio->op);
+      free(filename);
       return -1;
   }
 
   if (rc < 0 || (fio->op == FIO_WRITE && rc < size)) {
     pmsg_ext_error("%s error %s %s: %s; %s %d of the expected %d bytes\n",
       fio->iodesc, fio->dir, filename, strerror(errno), fio->rw, rc, size);
+    free(filename);
     return -1;
   }
 
+  free(filename);
   return rc;
 }
 
 
-static int fileio_ihex(struct fioparms * fio,
-                  char * filename, FILE * f, AVRMEM * mem, int size,
-                  FILEFMT ffmt)
+static int fileio_ihex(struct fioparms *fio,
+             const char *filename, FILE *f, const AVRMEM *mem, int size,
+             FILEFMT ffmt)
 {
   int rc;
 
@@ -1147,8 +1153,8 @@ static int fileio_ihex(struct fioparms * fio,
 }
 
 
-static int fileio_srec(struct fioparms * fio,
-                  char * filename, FILE * f, AVRMEM * mem, int size)
+static int fileio_srec(struct fioparms *fio,
+             const char *filename, FILE *f, const AVRMEM *mem, int size)
 {
   int rc;
 
@@ -1177,9 +1183,9 @@ static int fileio_srec(struct fioparms * fio,
 
 
 #ifdef HAVE_LIBELF
-static int fileio_elf(struct fioparms * fio,
-                      char * filename, FILE * f, AVRMEM * mem,
-                      struct avrpart * p, int size)
+static int fileio_elf(struct fioparms *fio,
+             const char *filename, FILE *f, const AVRMEM *mem,
+             const AVRPART *p, int size)
 {
   int rc;
 
@@ -1202,9 +1208,9 @@ static int fileio_elf(struct fioparms * fio,
 
 #endif
 
-static int fileio_num(struct fioparms * fio,
-	       char * filename, FILE * f, AVRMEM * mem, int size,
-	       FILEFMT fmt)
+static int fileio_num(struct fioparms *fio,
+             const char *filename, FILE *f, const AVRMEM *mem, int size,
+             FILEFMT fmt)
 {
   const char *prefix;
   const char *name;
@@ -1255,7 +1261,7 @@ static int fileio_num(struct fioparms * fio,
   for (i = 0; i < size; i++) {
     if (i > 0) {
       if (putc(',', f) == EOF)
-	goto writeerr;
+        goto writeerr;
     }
     num = (unsigned int)(mem->buf[i]);
     /*
@@ -1265,7 +1271,7 @@ static int fileio_num(struct fioparms * fio,
      */
     if (prefix[0] != '\0' && !(base == 8 && num < 8)) {
       if (fputs(prefix, f) == EOF)
-	goto writeerr;
+        goto writeerr;
     }
     itoa_simple(num, cbuf, base);
     if (fputs(cbuf, f) == EOF)
@@ -1282,9 +1288,7 @@ static int fileio_num(struct fioparms * fio,
 }
 
 
-int fileio_setparms(int op, struct fioparms * fp,
-                    struct avrpart * p, AVRMEM * m)
-{
+int fileio_setparms(int op, struct fioparms *fp, const AVRPART *p, const AVRMEM * m) {
   fp->op = op;
 
   switch (op) {
@@ -1404,12 +1408,12 @@ int fileio_fmt_autodetect(const char * fname)
 
 
 
-int fileio(int oprwv, char * filename, FILEFMT format,
-             struct avrpart * p, char * memtype, int size)
+int fileio(int oprwv, const char *filename, FILEFMT format,
+      const AVRPART *p, const char *memtype, int size)
 {
   int op, rc;
   FILE * f;
-  char * fname;
+  const char *fname;
   struct fioparms fio;
   AVRMEM * mem;
   int using_stdio;

@@ -188,7 +188,7 @@ void free_update(UPDATE * u)
 
 
 // Memory statistics considering holes after a file read returned size bytes
-int memstats(struct avrpart *p, char *memtype, int size, Filestats *fsp) {
+int memstats(const AVRPART *p, const char *memtype, int size, Filestats *fsp) {
   Filestats ret = { 0 };
   AVRMEM *mem = avr_locate_mem(p, memtype);
 
@@ -332,7 +332,7 @@ int update_is_readable(const char *fn) {
 }
 
 
-static void ioerror(const char *iotype, UPDATE *upd) {
+static void ioerror(const char *iotype, const UPDATE *upd) {
   int errnocp = errno;
 
   pmsg_ext_error("file %s is not %s: ", update_outname(upd->filename), iotype);
@@ -344,7 +344,7 @@ static void ioerror(const char *iotype, UPDATE *upd) {
 }
 
 // Basic checks to reveal serious failure before programming
-int update_dryrun(struct avrpart *p, UPDATE *upd) {
+int update_dryrun(const AVRPART *p, UPDATE *upd) {
   static char **wrote;
   static int nfwritten;
 
@@ -426,10 +426,9 @@ int update_dryrun(struct avrpart *p, UPDATE *upd) {
 }
 
 
-int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags flags)
-{
-  struct avrpart * v;
-  AVRMEM * mem;
+int do_op(const PROGRAMMER *pgm, const AVRPART *p, UPDATE *upd, enum updateflags flags) {
+  AVRPART *v;
+  AVRMEM *mem;
   int size;
   int rc;
   Filestats fs;
@@ -486,6 +485,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
       pmsg_error("read from file %s failed\n", update_inname(upd->filename));
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
+
     size = rc;
     pmsg_info("reading input file %s for %s%s\n",
       update_inname(upd->filename), mem->desc, alias_mem_desc);
