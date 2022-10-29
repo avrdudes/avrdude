@@ -154,7 +154,7 @@ static PROGRAMMER * pgm;
 int    verbose;     /* verbose output */
 int    quell_progress; /* un-verebose output */
 int    ovsigck;     /* 1=override sig check, 0=don't */
-
+char  *partdesc;    /* part id */
 
 
 /*
@@ -487,7 +487,6 @@ int main(int argc, char * argv [])
   int     terminal;    /* 1=enter terminal mode, 0=don't */
   const char *exitspecs; /* exit specs string from command line */
   char  * programmer;  /* programmer id */
-  char  * partdesc;    /* part id */
   char    sys_config[PATH_MAX]; /* system wide config file */
   char    usr_config[PATH_MAX]; /* per-user config file */
   char    executable_abspath[PATH_MAX]; /* absolute path to avrdude executable */
