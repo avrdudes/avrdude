@@ -19,7 +19,7 @@
 #ifndef developer_opts_h
 #define developer_opts_h
 
-void dev_output_pgm_part(int dev_opt_c, char *programmer, int dev_opt_p, char *partdesc);
+void dev_output_pgm_part(int dev_opt_c, const char *programmer, int dev_opt_p, const char *partdesc);
 void dev_output_part_defs(char *partdesc);
 void dev_output_pgm_defs(char *programmer);
 

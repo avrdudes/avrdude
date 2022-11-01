@@ -98,7 +98,7 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
         fflush(stdout);
         fflush(stderr);
     }
- 
+
     // Reduce effective verbosity level by number of -q above one when printing to stderr
     if ((quell_progress < 2 || fp != stderr? verbose: verbose+1-quell_progress) >= msglvl) {
         if(msgmode & MSG2_PROGNAME) {
@@ -151,10 +151,10 @@ static PROGRAMMER * pgm;
 /*
  * global options
  */
-int    verbose;     /* verbose output */
-int    quell_progress; /* un-verebose output */
-int    ovsigck;     /* 1=override sig check, 0=don't */
-char  *partdesc;    /* part id */
+int verbose;                    // Verbose output
+int quell_progress;             // Quell progress report and un-verbose output
+int ovsigck;                    // 1 = override sig check, 0 = don't
+const char *partdesc;           // Part id
 
 
 /*
@@ -398,7 +398,7 @@ static void replace_backslashes(char *s)
 }
 
 // Return 2 if string is * or starts with */, 1 if string contains /, 0 otherwise
-static int dev_opt(char *str) {
+static int dev_opt(const char *str) {
   return
     !str? 0:
     !strcmp(str, "*") || !strncmp(str, "*/", 2)? 2:
@@ -406,7 +406,7 @@ static int dev_opt(char *str) {
 }
 
 
-static void exit_programmer_not_found(const char *programmer) {
+static void programmer_not_found(const char *programmer) {
   msg_error("\n");
   if(programmer && *programmer)
     pmsg_error("cannot find programmer id %s\n", programmer);
@@ -418,11 +418,9 @@ static void exit_programmer_not_found(const char *programmer) {
   msg_error("\nValid programmers are:\n");
   list_programmers(stderr, "  ", programmers, ~0);
   msg_error("\n");
-
-  exit(1);
 }
 
-static void exit_part_not_found(const char *partdesc) {
+static void part_not_found(const char *partdesc) {
   msg_error("\n");
   if(partdesc && *partdesc)
     pmsg_error("AVR part %s not found\n", partdesc);
@@ -432,8 +430,6 @@ static void exit_part_not_found(const char *partdesc) {
   msg_error("\nValid parts are:\n");
   list_parts(stderr, "  ", part_list, ~0);
   msg_error("\n");
-
-  exit(1);
 }
 
 
@@ -982,8 +978,10 @@ int main(int argc, char * argv [])
     if (strcmp(partdesc, "?") == 0) {
       if(programmer && *programmer) {
         PROGRAMMER *pgm = locate_programmer(programmers, programmer);
-        if(!pgm)
-          exit_programmer_not_found(programmer);
+        if(!pgm) {
+          programmer_not_found(programmer);
+          exit(1);
+        }
         msg_error("\nValid parts for programmer %s are:\n", programmer);
         list_parts(stderr, "  ", part_list, pgm->prog_modes);
       } else {
@@ -999,8 +997,10 @@ int main(int argc, char * argv [])
     if (strcmp(programmer, "?") == 0) {
       if(partdesc && *partdesc) {
         AVRPART *p = locate_part(part_list, partdesc);
-        if(!p)
-          exit_part_not_found(partdesc);
+        if(!p) {
+          part_not_found(partdesc);
+          exit(1);
+        }
         msg_error("\nValid programmers for part %s are:\n", p->desc);
         list_programmers(stderr, "  ", programmers, p->prog_modes);
       }  else {
@@ -1021,12 +1021,16 @@ int main(int argc, char * argv [])
 
   msg_notice("\n");
 
-  if (!programmer || !*programmer)
-    exit_programmer_not_found(NULL);
+  if (!programmer || !*programmer) {
+    programmer_not_found(NULL);
+    exit(1);
+  }
 
   pgm = locate_programmer(programmers, programmer);
-  if (pgm == NULL)
-    exit_programmer_not_found(programmer);
+  if (pgm == NULL) {
+    programmer_not_found(programmer);
+    exit(1);
+  }
 
   if (pgm->initpgm) {
     pgm->initpgm(pgm);
@@ -1077,56 +1081,6 @@ int main(int argc, char * argv [])
     }
   }
 
-
-  if (partdesc == NULL)
-    exit_part_not_found(NULL);
-
-  p = locate_part(part_list, partdesc);
-  if (p == NULL)
-    exit_part_not_found(partdesc);
-
-  if (exitspecs != NULL) {
-    if (pgm->parseexitspecs == NULL) {
-      pmsg_warning("-E option not supported by this programmer type\n");
-      exitspecs = NULL;
-    }
-    else if (pgm->parseexitspecs(pgm, exitspecs) < 0) {
-      usage();
-      exit(1);
-    }
-  }
-
-  if (avr_initmem(p) != 0) {
-    msg_error("\n");
-    pmsg_error("unable to initialize memories\n");
-    exit(1);
-  }
-
-  /*
-   * Now that we know which part we are going to program, locate any -U
-   * options using the default memory region, fill in the device-dependent
-   * default region name ("application" for Xmega parts or "flash" otherwise)
-   * and check for basic problems with memory names or file access with a
-   * view to exit before programming.
-   */
-  int doexit = 0;
-  for (ln=lfirst(updates); ln; ln=lnext(ln)) {
-    upd = ldata(ln);
-    if (upd->memtype == NULL) {
-      const char *mtype = p->prog_modes & PM_PDI? "application": "flash";
-      pmsg_notice2("defaulting memtype in -U %c:%s option to \"%s\"\n",
-        (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v',
-        upd->filename, mtype);
-      upd->memtype = cfg_strdup("main()", mtype);
-    }
-
-    rc = update_dryrun(p, upd);
-    if (rc && rc != LIBAVRDUDE_SOFTFAIL)
-      doexit = 1;
-  }
-  if(doexit)
-    exit(1);
-
   /*
    * open the programmer
    */
@@ -1140,13 +1094,6 @@ int main(int argc, char * argv [])
   if (verbose) {
     imsg_notice("Using Port                    : %s\n", port);
     imsg_notice("Using Programmer              : %s\n", programmer);
-    if ((strcmp(pgm->type, "avr910") == 0)) {
-      imsg_notice("avr910_devcode (avrdude.conf) : ");
-      if(p->avr910_devcode)
-        msg_notice("0x%x\n", p->avr910_devcode);
-      else
-        msg_notice("none\n");
-    }
   }
 
   if (baudrate != 0) {
@@ -1172,6 +1119,75 @@ int main(int argc, char * argv [])
     goto main_exit;
   }
   is_open = 1;
+
+  if (partdesc == NULL) {
+    part_not_found(NULL);
+    exitrc = 1;
+    goto main_exit;
+  }
+
+  p = locate_part(part_list, partdesc);
+  if (p == NULL) {
+    part_not_found(partdesc);
+    exitrc = 1;
+    goto main_exit;
+  }
+
+  if (exitspecs != NULL) {
+    if (pgm->parseexitspecs == NULL) {
+      pmsg_warning("-E option not supported by this programmer type\n");
+      exitspecs = NULL;
+    }
+    else if (pgm->parseexitspecs(pgm, exitspecs) < 0) {
+      usage();
+      exitrc = 1;
+      goto main_exit;
+    }
+  }
+
+  if (avr_initmem(p) != 0) {
+    msg_error("\n");
+    pmsg_error("unable to initialize memories\n");
+    exitrc = 1;
+    goto main_exit;
+  }
+
+  if(verbose) {
+    if ((strcmp(pgm->type, "avr910") == 0)) {
+      imsg_notice("avr910_devcode (avrdude.conf) : ");
+      if(p->avr910_devcode)
+        msg_notice("0x%02x\n", (uint8_t) p->avr910_devcode);
+      else
+        msg_notice("none\n");
+    }
+  }
+
+  /*
+   * Now that we know which part we are going to program, locate any -U
+   * options using the default memory region, fill in the device-dependent
+   * default region name ("application" for Xmega parts or "flash" otherwise)
+   * and check for basic problems with memory names or file access with a
+   * view to exit before programming.
+   */
+  int doexit = 0;
+  for (ln=lfirst(updates); ln; ln=lnext(ln)) {
+    upd = ldata(ln);
+    if (upd->memtype == NULL) {
+      const char *mtype = p->prog_modes & PM_PDI? "application": "flash";
+      pmsg_notice2("defaulting memtype in -U %c:%s option to \"%s\"\n",
+        (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v',
+        upd->filename, mtype);
+      upd->memtype = cfg_strdup("main()", mtype);
+    }
+
+    rc = update_dryrun(p, upd);
+    if (rc && rc != LIBAVRDUDE_SOFTFAIL)
+      doexit = 1;
+  }
+  if(doexit) {
+    exitrc = 1;
+    goto main_exit;
+  }
 
   if (calibrate) {
     /*
@@ -1379,7 +1395,8 @@ int main(int argc, char * argv [])
     } else {
       msg_info("erasing chip\n");
       exitrc = avr_chip_erase(pgm, p);
-      if(exitrc) goto main_exit;
+      if(exitrc)
+        goto main_exit;
     }
   }
 

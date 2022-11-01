@@ -799,7 +799,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
 }
 
 
-void dev_output_pgm_part(int dev_opt_c, char *programmer, int dev_opt_p, char *partdesc) {
+void dev_output_pgm_part(int dev_opt_c, const char *programmer, int dev_opt_p, const char *partdesc) {
   if(dev_opt_c == 2 && dev_opt_p == 2) {
     char *p;
 

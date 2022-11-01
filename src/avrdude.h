@@ -31,13 +31,13 @@
 #define XDG_USER_CONF_FILE "avrdude/avrdude.rc"
 #endif
 
-extern char *progname;       // name of program, for messages
-extern char progbuf[];       // spaces same length as progname
+extern char *progname;       // Name of program, for messages
+extern char progbuf[];       // Spaces same length as progname
 
-extern int ovsigck;          // override signature check (-F)
-extern int verbose;          // verbosity level (-v, -vv, ...)
-extern int quell_progress;   // quell progress report -q, reduce effective verbosity level (-qq, -qqq)
-extern char *partdesc;       // part id
+extern int ovsigck;          // Override signature check (-F)
+extern int verbose;          // Verbosity level (-v, -vv, ...)
+extern int quell_progress;   // Quell progress report -q, reduce effective verbosity level (-qq, -qqq)
+extern const char *partdesc; // Part id
 
 int avrdude_message(int msglvl, const char *format, ...);
 int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...);
