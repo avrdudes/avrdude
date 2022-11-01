@@ -171,6 +171,7 @@ Changes since version 7.0:
     - Add libreadline-dev for Linux github action build #1146
     - Install readline library for macos #1156
     - Implementation of SerialUPDI page erase operation #1151
+    - Fix Type 2 HV UPDI #1164
 
 
   * Internals:
