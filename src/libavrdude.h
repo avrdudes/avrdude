@@ -209,7 +209,7 @@ typedef struct opcode {
 
 #define HV_UPDI_VARIANT_0      0 /* Shared UPDI/GPIO/RESET pin, HV on UPDI pin (tinyAVR0/1/2)*/
 #define HV_UPDI_VARIANT_1      1 /* Dedicated UPDI pin, no HV (megaAVR0/AVR-Dx) */
-#define HV_UPDI_VARIANT_2      2 /* Shared UPDI pin, HV on _RESET (AVR-Ex) */
+#define HV_UPDI_VARIANT_2      2 /* Shared UPDI pin, HV on _RESET (AVR-DD/AVR-Ex) */
 
 #define AVR_FAMILYIDLEN 7
 #define AVR_SIBLEN 16

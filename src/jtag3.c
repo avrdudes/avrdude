@@ -1198,22 +1198,21 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
 
     // Generate UPDI high-voltage pulse if user asks for it and hardware supports it
-    LNODEID support;
     if (p->prog_modes & PM_UPDI &&
         PDATA(pgm)->use_hvupdi == true &&
         p->hvupdi_variant != HV_UPDI_VARIANT_1) {
       parm[0] = PARM3_UPDI_HV_NONE;
-      for (support = lfirst(pgm->hvupdi_support); support != NULL; support = lnext(support)) {
-        if(*(int *) ldata(support) == p->hvupdi_variant) {
+      for (LNODEID ln = lfirst(pgm->hvupdi_support); ln; ln = lnext(ln)) {
+        if(*(int *) ldata(ln) == p->hvupdi_variant) {
           pmsg_notice("sending HV pulse to targets %s pin\n",
             p->hvupdi_variant == HV_UPDI_VARIANT_0? "UPDI": "RESET");
           parm[0] = PARM3_UPDI_HV_SIMPLE_PULSE;
           break;
         }
-        if (parm[0] == PARM3_UPDI_HV_NONE) {
-          pmsg_error("%s does not support sending HV pulse to target %s\n", pgm->desc, p->desc);
-          return -1;
-        }
+      }
+      if (parm[0] == PARM3_UPDI_HV_NONE) {
+        pmsg_error("%s does not support sending HV pulse to target %s\n", pgm->desc, p->desc);
+        return -1;
       }
       if (jtag3_setparm(pgm, SCOPE_AVR, 3, PARM3_OPT_12V_UPDI_ENABLE, parm, 1) < 0)
         return -1;
