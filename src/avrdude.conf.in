@@ -757,6 +757,19 @@ programmer
 ;
 
 #------------------------------------------------------------
+# urclock
+#------------------------------------------------------------
+
+# See https://github.com/stefanrueger/urboot
+programmer
+    id                     = "urclock";
+    desc                   = "Urclock programmer for urboot bootloaders (arduino compatible)";
+    type                   = "urclock";
+    prog_modes             = PM_SPM;
+    connection_type        = serial;
+;
+
+#------------------------------------------------------------
 # xbee
 #------------------------------------------------------------
 

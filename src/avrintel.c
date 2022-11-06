@@ -6,10 +6,10 @@
  * Atmel AVR8L, AVR8, XMEGA and AVR8X family description of interrupts and more
  *
  * published under GNU General Public License, version 3 (GPL-3.0)
- * meta-author: Stefan Rueger <stefan.rueger@urclocks.com>
+ * meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.1
- * 30.08.2022
+ * 04.11.2022
  *
  */
 

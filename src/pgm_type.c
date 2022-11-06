@@ -51,6 +51,7 @@
 #include "stk500generic.h"
 #include "stk500v2.h"
 #include "teensy.h"
+#include "urclock.h"
 #include "usbasp.h"
 #include "usbtiny.h"
 #include "wiring.h"
@@ -102,6 +103,7 @@ const PROGRAMMER_TYPE programmers_types[] = { // Name(s) the programmers call th
   {"stk600hvsp", stk600hvsp_initpgm, stk600hvsp_desc}, // "STK600HVSP"
   {"stk600pp", stk600pp_initpgm, stk600pp_desc}, // "STK600PP"
   {"teensy", teensy_initpgm, teensy_desc}, // "teensy"
+  {"urclock", urclock_initpgm, urclock_desc}, // "Urclock"
   {"usbasp", usbasp_initpgm, usbasp_desc}, // "usbasp"
   {"usbtiny", usbtiny_initpgm, usbtiny_desc}, // "USBtiny" or "usbtiny"
   {"wiring", wiring_initpgm, wiring_desc}, // "Wiring"
@@ -171,5 +173,3 @@ void walk_programmer_types(walk_programmer_types_cb cb, void *cookie)
     cb(p->id, p->desc, cookie);
   }
 }
-
-

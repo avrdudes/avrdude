@@ -580,6 +580,7 @@ const char * pinmask_to_str(const pinmask_t * const pinmask);
    The target file will be selected at configure time. */
 
 extern long serial_recv_timeout;  /* ms */
+extern long serial_drain_timeout; /* ms */
 
 union filedescriptor
 {
@@ -798,6 +799,7 @@ typedef struct programmer_t {
   int  (*parseextparams) (const struct programmer_t *pgm, const LISTID xparams);
   void (*setup)          (struct programmer_t *pgm);
   void (*teardown)       (struct programmer_t *pgm);
+  int  (*flash_readhook) (const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *flm, const char *fname, int size);
   // Cached r/w API for terminal reads/writes
   int (*write_byte_cached)(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
                           unsigned long addr, unsigned char value);

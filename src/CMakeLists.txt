@@ -225,6 +225,9 @@ add_library(libavrdude
     updi_readwrite.h
     updi_state.c
     updi_state.h
+    urclock.c
+    urclock.h
+    urclock_private.h
     usbasp.c
     usbasp.h
     usbdevs.h

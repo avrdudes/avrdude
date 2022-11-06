@@ -51,6 +51,7 @@
 #include "libavrdude.h"
 
 long serial_recv_timeout = 5000; /* ms */
+long serial_drain_timeout = 250; /* ms */
 
 struct baud_mapping {
   long baud;
@@ -549,7 +550,7 @@ static int ser_drain(const union filedescriptor *fd, int display) {
   unsigned char buf;
 
   timeout.tv_sec = 0;
-  timeout.tv_usec = 250000;
+  timeout.tv_usec = serial_drain_timeout*1000L;
 
   if (display) {
     msg_info("drain>");

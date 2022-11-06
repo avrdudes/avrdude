@@ -485,6 +485,17 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, UPDATE *upd, enum updateflags
       pmsg_error("read from file %s failed\n", update_inname(upd->filename));
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
+    // Patch input if for flash, eg, for vector bootloaders?
+    if(pgm->flash_readhook) {
+      AVRMEM *mem = avr_locate_mem(p, upd->memtype);
+      if(mem && !strcmp(mem->desc, "flash")) {
+        rc = pgm->flash_readhook(pgm, p, mem, upd->filename, rc);
+        if (rc < 0) {
+          pmsg_notice("readhook for file %s failed\n", update_inname(upd->filename));
+          return LIBAVRDUDE_GENERAL_FAILURE;
+        }
+      }
+    }
 
     size = rc;
     pmsg_info("reading input file %s for %s%s\n",

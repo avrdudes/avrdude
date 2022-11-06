@@ -119,12 +119,12 @@ PROGRAMMER *pgm_new(void) {
   pgm->err_led        = pgm_default_led;
   pgm->pgm_led        = pgm_default_led;
   pgm->vfy_led        = pgm_default_led;
-  pgm->read_byte_cached = avr_read_byte_cached;
+  pgm->read_byte_cached  = avr_read_byte_cached;
   pgm->write_byte_cached = avr_write_byte_cached;
   pgm->chip_erase_cached = avr_chip_erase_cached;
   pgm->page_erase_cached = avr_page_erase_cached;
   pgm->flush_cache    = avr_flush_cache;
-  pgm->reset_cache = avr_reset_cache;
+  pgm->reset_cache    = avr_reset_cache;
 
   /*
    * optional functions - these are checked to make sure they are
@@ -154,6 +154,7 @@ PROGRAMMER *pgm_new(void) {
   pgm->parseextparams = NULL;
   pgm->setup          = NULL;
   pgm->teardown       = NULL;
+  pgm->flash_readhook = NULL;
 
   // For allocating "global" memory by the programmer
   pgm->cookie          = NULL;
