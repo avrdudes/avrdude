@@ -2125,4 +2125,6 @@ void urclock_initpgm(PROGRAMMER *pgm) {
   pgm->parseextparams = urclock_parseextparms;
   pgm->term_keep_alive = urclock_term_keep_alive;
   pgm->flash_readhook = urclock_flash_readhook;
+
+  disable_trailing_ff_removal();
 }
