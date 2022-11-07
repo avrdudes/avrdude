@@ -1152,9 +1152,12 @@ Defaults to 10 if not specified.
 .It Ar Urclock
 .Bl -tag -offset indent -width indent
 .It Ar showall
-Show all info for the connected part and exit.
+Show all info for the connected part, then exit. The -xshow... options
+below can be used to assemble a bespoke response consisting of a subset
+(or only one item) of all available relevant information about the
+connected part and bootloader.
 .It Ar showid
-Show a unique Urclock ID stored in either flash or EEPROM of the MCU and exit.
+Show a unique Urclock ID stored in either flash or EEPROM of the MCU, then exit.
 .It Ar id=<E|F>.<addr>.<len>
 Historically, the Urclock ID was a six-byte unique little-endian number
 stored in Urclock boards at EEPROM address 257. The location of this
@@ -1162,28 +1165,34 @@ number can be set by the -xid=<E|F>.<addr>.<len> extended parameter. E
 stands for EEPROM and F stands for flash. A negative address addr counts
 from the end of EEPROM and flash, respectively. The length len of the
 Urclock ID can be between 1 and 8 bytes.
+.It Ar showdate
+Show the last-modified date of the input file for the flash application,
+then exit. If the input file was stdin, the date will be that of the
+programming.
+.It Ar showfilename
+Show the input filename (or title) of the last flash writing session, then exit.
+.It Ar title=<string>
+When set, <string> will be used in lieu of the input filename. The maximum
+string length for the title/filename field is 254 bytes including
+terminating nul.
 .It Ar showapp
-Show the size of the programmed application and exit.
+Show the size of the programmed application, then exit.
 .It Ar showstore
-Show the size of the unused flash between the application and metadata and exit.
+Show the size of the unused flash between the application and metadata, then exit.
 .It Ar showmeta
-Show the size of the metadata just below the bootloader and exit.
+Show the size of the metadata just below the bootloader, then exit.
 .It Ar showboot
-Show the size of the bootloader and exit.
+Show the size of the bootloader, then exit.
 .It Ar showversion
-Show bootloader version and capabilities, and exit.
+Show bootloader version and capabilities, then exit.
 .It Ar showvbl
 Show the vector number and name of the interrupt table vector used by the
-bootloader for starting the application, and exit. For hardware-supported
+bootloader for starting the application, then exit. For hardware-supported
 bootloaders this will be vector 0 (Reset), and for vector bootloaders this
 will be any other vector number of the interrupt vector table or the slot
 just behind the vector table with the name VBL_ADDITIONAL_VECTOR.
-.It Ar showdate
-Show the last-modified date of the input file for the flash application
-and exit. If the input file was stdin, the date will be that of the
-programming.
-.It Ar showfilename
-Show the input filename (or title) of the last flash writing session, and exit.
+.It Ar showpart
+Show the part for which the bootloader was compiled, then exit.
 .It Ar bootsize=<size>
 Manual override for bootloader size. Urboot bootloaders put the number of used
 bootloader pages into a table at the top of flash, so the urclock programmer can
@@ -1223,10 +1232,6 @@ not be reached after reset.
 .It Ar initstore
 On writing to flash fill the store space between the flash application and
 the metadata section with 0xff.
-.It Ar title=<string>
-When set, <string> will be used in lieu of the input filename. The maximum
-string length for the title/filename field is 254 bytes including
-terminating nul.
 .It Ar nofilename
 On writing to flash do not store the application input filename (nor a title).
 .It Ar nodate

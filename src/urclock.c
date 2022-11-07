@@ -282,14 +282,15 @@ typedef struct {
   // Extended parameters for Urclock
   int showall,                  // Show all pieces of info for connected part and exit
       showid,                   //   ... Urclock ID
+      showdate,                 //   ... last-modified date of last uploaded application
+      showfilename,             //   ... filename of last uploaded application
       showapp,                  //   ... application size
       showstore,                //   ... store size
       showmeta,                 //   ... metadata size
       showboot,                 //   ... bootloader size
       showversion,              //   ... bootloader version and capabilities
       showvbl,                  //   ... vector bootloader level, vector number and name
-      showdate,                 //   ... last-modified date of last uploaded application
-      showfilename,             //   ... filename of last uploaded application
+      showpart,                 //   ... part for which bootloader was compiled
       xbootsize,                // Manual override for size of bootloader section
       xvectornum,               //   ... for vector number (implies vbllevel = 1)
       xeepromrw,                //   ... for EEPROM r/w capability
@@ -812,14 +813,15 @@ nopatch_nometa:
         set++;
 
     if(set && set != vecsz)
-      Return("input overwrites the reset vector partially rendering vector bootloader moot, exiting");
+      Return("input overwrites reset vector, which would render the vector bootloader inoperable");
 
     if(set) {
       int resetdest;
       if(reset2addr(flm->buf, vecsz, flm->size, &resetdest) < 0)
-        Return("input does not hold an r/jmp at reset vector rendering vector bootloader moot, exiting");
+        Return("input would overwrite the reset vector making the vector bootloader unreachable");
       if(resetdest != ur.blstart)
-        Return("input file points reset to 0x%04x instead of vector bootloader at 0x%04x, exiting", resetdest, ur.blstart);
+        Return("input file points reset to 0x%04x instead of vector bootloader at 0x%04x, exiting",
+          resetdest, ur.blstart);
     }
   }
   return size;
@@ -1260,7 +1262,7 @@ vblvecfound:
     // Showing properties mostly requires examining the bytes below bootloader for metadata
     if(ur.showall || (ur.showid && *ur.iddesc && *ur.iddesc != 'E') || ur.showapp ||
       ur.showstore || ur.showmeta || ur.showboot || ur.showversion || ur.showvbl ||
-      ur.showdate || ur.showfilename) {
+      ur.showpart || ur.showdate || ur.showfilename) {
 
       if((rc = ur_readEF(pgm, p, spc, ur.blstart-nm, nm, 'F')))
         return rc;
@@ -1313,7 +1315,8 @@ vblvecfound:
   // Print and exit when option show... was given
   int first=1;
   int single = !ur.showall && (!!ur.showid + !!ur.showapp + !!ur.showstore + !!ur.showmeta +
-    !!ur.showboot + !!ur.showversion + !!ur.showvbl + !!ur.showdate + !!ur.showfilename) == 1;
+    !!ur.showboot + !!ur.showversion + !!ur.showvbl + !!ur.showpart + !!ur.showdate +
+    !!ur.showfilename) == 1;
 
   if(ur.showid || ur.showall) {
     uint64_t urclockID;
@@ -1339,7 +1342,7 @@ vblvecfound:
     int vnum = ur.vbllevel? ur.vblvectornum & 0x7f: 0;
     term_out(" vector %d (%s)"+first, vnum, vblvecname(pgm, vnum)), first=0;
   }
-  if(ur.showall)
+  if(ur.showall || ur.showpart)
     term_out(" %s"+first, ur.uP.name);
   if(!first) {
     term_out("\n");
@@ -1907,7 +1910,7 @@ static int urclock_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     for(; addr < n; addr += chunk) {
       chunk = n-addr < page_size? n-addr: page_size;
 
-      if(urclock_paged_rdwr(pgm, p, Cmnd_STK_PROG_PAGE, addr, chunk, mchr, (char *) m->buf+addr) < 0)
+      if(urclock_paged_rdwr(pgm, p, Cmnd_STK_PROG_PAGE, addr, chunk, mchr, (char *) m->buf+addr)<0)
         return -3;
       if(urclock_res_check(pgm, __func__, 0, NULL, 0) < 0)
         return -4;
@@ -1986,14 +1989,16 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
   } options[] = {
     {"showall", &ur.showall, 0, NULL, 0,           "Show all info for connected part and exit"},
     {"showid", &ur.showid, 0, NULL, 0,             " ... unique Urclock ID"},
+    {"showdate", &ur.showdate, 0, NULL, 0,         " ... last-modified date of flash application"},
+    {"showfilename", &ur.showfilename, 0, NULL, 0, " ... filename of last uploaded application"},
     {"showapp", &ur.showapp, 0, NULL, 0,           " ... application size"},
     {"showstore", &ur.showstore, 0, NULL, 0,       " ... store size"},
     {"showmeta", &ur.showmeta, 0, NULL, 0,         " ... metadata size"},
     {"showboot", &ur.showboot, 0, NULL, 0,         " ... bootloader size"},
     {"showversion", &ur.showversion, 0, NULL, 0,   " ... bootloader version and capabilities"},
     {"showvbl", &ur.showvbl, 0, NULL, 0,           " ... vector bootloader level, vec # and name"},
-    {"showdate", &ur.showdate, 0, NULL, 0,         " ... last-modified date of flash application"},
-    {"showfilename", &ur.showfilename, 0, NULL, 0, " ... filename of last uploaded application"},
+    {"id", NULL, sizeof ur.iddesc, ur.iddesc, 1,   "Location of Urclock ID, eg, F.12345.6"},
+    {"title", NULL, sizeof ur.title, ur.title, 1,  "Title stored and shown in lieu of a filename"},
     {"bootsize", &ur.xbootsize, 0, NULL, 1,        "Manual override for bootloader size"},
     {"vectornum", &ur.xvectornum, 0, NULL, 1,      " ... for vector number"}, // implies vbllevel=1
     {"eepromrw", &ur.xeepromrw, 0, NULL, 0,        " ... for EEPROM read/write capability"},
@@ -2005,8 +2010,6 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     {"nodate", &ur.nodate, 0, NULL, 0,             " ... application filename and no date either"},
     {"nometadata", &ur.nometadata, 0, NULL, 0,     " ... metadata at all (ie, no store support)"},
     {"delay", &ur.delay, 0, NULL, 1,               "Add delay [ms] after reset, can be negative"},
-    {"id", NULL, sizeof ur.iddesc, ur.iddesc, 1,   "Location of Urclock ID, eg F.12324.6"},
-    {"title", NULL, sizeof ur.title, ur.title, 1,  "Title used in lieu of a filename when set"},
     {"help", &help, 0, NULL, 0,                    "Show this help menu and exit"},
   };
 
