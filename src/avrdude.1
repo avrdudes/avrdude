@@ -147,9 +147,17 @@ programming mode.  The programmer type is ``wiring''.  Note that the -D option
 will likely be required in this case, because the bootloader will rewrite the
 program memory, but no true chip erase can be performed.
 .Pp
-The Arduino (which is very similar to the STK500 1.x) is supported via
-its own programmer type specification ``arduino''.  This programmer works for
-the Arduino Uno Rev3 or any AVR that runs the Optiboot bootloader.
+Serial bootloaders that run a skeleton of the STK500 1.x protocol are
+supported via their own programmer type ``arduino''.  This programmer works
+for the Arduino Uno Rev3 or any AVR that runs the Optiboot bootloader.
+.Pp
+Urprotocol is a leaner version of the STK500 1.x protocol that is designed
+to be backwards compatible with STK500 v1.x, and allows bootloaders to be
+much smaller, eg, as implemented in the urboot project
+https://github.com/stefanrueger/urboot. The programmer type ``urclock''
+caters for these urboot programmers. Owing to its backward compatibility,
+any bootloader that can be served by the arduino programmer can normally
+also be served by the urclock programmer.
 .Pp
 The BusPirate is a versatile tool that can also be used as an AVR programmer.
 A single BusPirate can be connected to up to 3 independent AVRs. See
@@ -397,8 +405,8 @@ programming requires the memory be erased to 0xFF beforehand.
 .Fl A
 should be used when the programmer hardware, or bootloader
 software for that matter, does not carry out chip erase and
-instead handles the memory erase on a page level. The popular
-Arduino bootloader exhibits this behaviour; for this reason
+instead handles the memory erase on a page level. Popular
+Arduino bootloaders exhibit this behaviour; for this reason
 .Fl A
 is engaged by default when specifying
 . Fl c
@@ -432,7 +440,7 @@ contents would exclusively cause bits to be programmed from the value
 .Ql 1
 to
 .Ql 0 .
-Note that in order to reprogram EERPOM cells, no explicit prior chip
+Note that in order to reprogram EEPROM cells, no explicit prior chip
 erase is required since the MCU provides an auto-erase cycle in that
 case before programming the cell.
 .It Xo Fl E Ar exitspec Ns
@@ -1140,6 +1148,101 @@ programmer creates errors during initial sequence.
 .It Ar attemps[=<1..99>]
 Specify how many connection retry attemps to perform before exiting.
 Defaults to 10 if not specified.
+.El
+.It Ar Urclock
+.Bl -tag -offset indent -width indent
+.It Ar showall
+Show all info for the connected part and exit.
+.It Ar showid
+Show a unique Urclock ID stored in either flash or EEPROM of the MCU and exit.
+.It Ar id=<E|F>.<addr>.<len>
+Historically, the Urclock ID was a six-byte unique little-endian number
+stored in Urclock boards at EEPROM address 257. The location of this
+number can be set by the -xid=<E|F>.<addr>.<len> extended parameter. E
+stands for EEPROM and F stands for flash. A negative address addr counts
+from the end of EEPROM and flash, respectively. The length len of the
+Urclock ID can be between 1 and 8 bytes.
+.It Ar showapp
+Show the size of the programmed application and exit.
+.It Ar showstore
+Show the size of the unused flash between the application and metadata and exit.
+.It Ar showmeta
+Show the size of the metadata just below the bootloader and exit.
+.It Ar showboot
+Show the size of the bootloader and exit.
+.It Ar showversion
+Show bootloader version and capabilities, and exit.
+.It Ar showvbl
+Show the vector number and name of the interrupt table vector used by the
+bootloader for starting the application, and exit. For hardware-supported
+bootloaders this will be vector 0 (Reset), and for vector bootloaders this
+will be any other vector number of the interrupt vector table or the slot
+just behind the vector table with the name VBL_ADDITIONAL_VECTOR.
+.It Ar showdate
+Show the last-modified date of the input file for the flash application
+and exit. If the input file was stdin, the date will be that of the
+programming.
+.It Ar showfilename
+Show the input filename (or title) of the last flash writing session, and exit.
+.It Ar bootsize=<size>
+Manual override for bootloader size. Urboot bootloaders put the number of used
+bootloader pages into a table at the top of flash, so the urclock programmer can
+look up the bootloader size itself. In backward-compatibility mode, when programming
+via other bootloaders, this option can be used to tell the programmer the
+size, and therefore the location, of the bootloader.
+.It Ar vectornum=<arg>
+Manual override for vector number. Urboot bootloaders put the vector
+number used by a vector bootloader into a table at the top of flash, so
+this option is normally not needed for urboot bootloaders. However, it is
+useful in backward-compatibility mode (or when the urboot bootloader does
+not offer flash read). Specifying a vector number in these circumstances
+implies a vector bootloader whilst the default assumption would be a
+hardware-supported bootloader.
+.It Ar eepromrw
+Manual override for asserting EEPROM read/write capability. Not normally
+needed for urboot bootloaders, but useful for in backward-compatibility
+mode if the bootloader offers EEPROM read/write.
+.It Ar emulate_ce
+If an urboot bootloader does not offer a chip erase command it will tell
+the urclock programmer so during handshake. In this case the urclock
+programmer emulates a chip erase, if warranted by user command line
+options, by filling the remainder of unused flash below the bootloader
+with 0xff. If this option is specified, the urclock programmer will assume
+that the bootloader cannot erase the chip itself. The option is useful
+for backwards-compatible bootloaders that do not implement chip erase.
+.It Ar forcetrim
+Upload unchanged flash input files and trim below the bootloader if
+needed. This is most useful when one has a backup of the full flash and
+wants to play that back onto the device. No metadata are written in this
+case and no vector patching happens either if it is a vector bootloader.
+However, for vector bootloaders, even under the option -xforcetrim an
+input file will not be uploaded for which the reset vector does not point
+to the vector bootloader. This is to avoid writing an input file to the
+device that would render the vector bootloader not functional as it would
+not be reached after reset.
+.It Ar initstore
+On writing to flash fill the store space between the flash application and
+the metadata section with 0xff.
+.It Ar title=<string>
+When set, <string> will be used in lieu of the input filename. The maximum
+string length for the title/filename field is 254 bytes including
+terminating nul.
+.It Ar nofilename
+On writing to flash do not store the application input filename (nor a title).
+.It Ar nodate
+On writing to flash do not store the application input filename (nor a
+title) and no date either.
+.It Ar nometadata
+On writing to flash do not store any metadata. The full flash below the
+bootloader is available for the application. In particular, no data store
+frame is programmed.
+.It Ar delay=<n>
+Add a <n> ms delay after reset. This can be useful if a board takes a
+particularly long time to exit from external reset. <n> can be negative,
+in which case the default 80 ms delay after issuing reset will be
+shortened accordingly.
+.It Ar help
+Show this help menu and exit
 .El
 .It Ar buspirate
 .Bl -tag -offset indent -width indent

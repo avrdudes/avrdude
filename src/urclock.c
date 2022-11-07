@@ -223,8 +223,9 @@
 #define min(a, b) ((a) < (b)? (a): (b))
 
 static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p);
-static int ur_readEF(const PROGRAMMER *pgm, uint8_t *buf, uint32_t addr, int len, char memtype);
-static int readUrclockID(const PROGRAMMER *pgm);
+static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint32_t addr, int len,
+  char memchr);
+static int readUrclockID(const PROGRAMMER *pgm, const AVRPART *p, uint64_t *idp);
 static int urclock_send(const PROGRAMMER *pgm, unsigned char *buf, size_t len);
 static int urclock_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len);
 static int urclock_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res);
@@ -260,7 +261,8 @@ typedef struct {
       bloptiversion;            // Optiboot version as (major<<8) + minor
   int32_t blstart;              // Bootloader start address, eg, for bootloader write protection
 
-  uint64_t urclockID;           // Urclock ID read from flash or EEPROM as little endian
+  int idmchr;                   // Either 'E' or 'F' for the memory where the Urclock ID is located
+  int idaddr;                   // The address of the Urclock ID
   int idlen;                    // Number 1..8 of Urclock ID bytes (location, see iddesc below)
 
   int32_t storestart;           // Store (ie, unused flash) start address, same as application size
@@ -280,9 +282,9 @@ typedef struct {
   // Extended parameters for Urclock
   int showall,                  // Show all pieces of info for connected part and exit
       showid,                   //   ... Urclock ID
-      showsketch,               //   ... application size
+      showapp,                  //   ... application size
       showstore,                //   ... store size
-      showmetadata,             //   ... metadata size
+      showmeta,                 //   ... metadata size
       showboot,                 //   ... bootloader size
       showversion,              //   ... bootloader version and capabilities
       showvbl,                  //   ... vector bootloader level, vector number and name
@@ -539,11 +541,39 @@ static void set_date_filename(const PROGRAMMER *pgm, const char *fname) {
 }
 
 
+
+// Put destination address of reset vector jmp or rjmp into addr, return -1 if not an r/jmp
+static int reset2addr(const unsigned char *opcode, int vecsz, int flashsize, int *addrp) {
+  int op32, addr, rc = 0;
+  uint16_t op16;
+
+  op16 = buf2uint16(opcode); // First word of the jmp or the full rjmp
+  op32 = vecsz == 2? op16: buf2uint32(opcode);
+
+  if(vecsz == 4 && isJmp(op16)) {
+    addr = addr_jmp(op32);      // Accept compiler's destination (do not normalise)
+  } else if(isRjmp(op16)) {     // rjmp might be generated for larger parts, too
+    addr = dist_rjmp(op16, flashsize);
+    while(addr < 0)             // If rjmp was backwards
+      addr += flashsize;        // OK for small parts, likely(!) OK if flashsize is a power of 2
+    while(addr > flashsize)     // Sanity (should not happen): rjmp jumps over FLASHEND
+      addr -= flashsize;
+  } else
+    rc = -1;
+
+  if(addrp && rc == 0)
+    *addrp = addr;
+
+  return rc;
+}
+
+
 // Called after the input file has been read for writing or verifying flash
-static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p_unused,
-  const AVRMEM *flm, const char *fname, int size) {
+static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *flm,
+  const char *fname, int size) {
 
   int nmdata, maxsize, firstbeg, firstlen;
+  int vecsz = ur.uP.flashsize <= 8192? 2: 4; // Small parts use rjmp, large parts need 4-byte jmp
 
   set_date_filename(pgm, fname);
 
@@ -597,7 +627,6 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p_unused
     Return("input [0x%04x, 0x%04x] overlaps metadata [0x%04x, 0x%04x], consider -xnofilename",
       firstbeg, size-1, ur.blstart-nmdata, ur.blstart-1);
 
-  int vecsz = ur.uP.flashsize <= 8192? 2: 4; // Small parts use rjmp, large parts need 4-byte jmp
   bool llcode = firstbeg == 0 && firstlen > ur.uP.ninterrupts*vecsz; // Looks like code
   bool llvectors = firstbeg == 0 && firstlen >= ur.uP.ninterrupts*vecsz; // Looks like vector table
   for(int i=0; llvectors && i<ur.uP.ninterrupts*vecsz; i+=vecsz) {
@@ -613,11 +642,11 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p_unused
   if(llcode && llvectors && ur.vblvectornum > 0 && ur.vbllevel) {
     // From v7.5 patch all levels but for earlier and unknown versions only patch level 1
     if(ur.blurversion >= 075 || ((ur.blurversion==0 || ur.blurversion >= 072) && ur.vbllevel==1)) {
-      int appvecloc, reset32;
       uint16_t reset16;
+      int reset32, appstart, appvecloc;
 
-      appvecloc = ur.vblvectornum*vecsz;     // Location of jump-to-application in vector table
-      reset16 = buf2uint16(flm->buf);        // First reset word of to-be-uploaded application
+      appvecloc = ur.vblvectornum*vecsz; // Location of jump-to-application in vector table
+      reset16 = buf2uint16(flm->buf);    // First reset word of to-be-uploaded application
       reset32 = vecsz == 2? reset16: buf2uint32(flm->buf);
 
       /*
@@ -631,17 +660,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p_unused
        * an error thrown if so.
        */
 
-      int appstart;
-
-      if(vecsz == 4 && isJmp(reset16)) {
-        appstart = addr_jmp(reset32); // Accept compiler's destination for now (do not normalise)
-      } else if(isRjmp(reset16)) {    // rjmp might be generated for larger parts, too
-        appstart = dist_rjmp(reset16, ur.uP.flashsize);
-        while(appstart < 0)           // If rjmp was backwards
-          appstart += flm->size;      // OK for small parts, likely OK if size is a power of 2
-        while(appstart > flm->size)   // Sanity (should not happen): rjmp jumps over FLASHEND
-          appstart -= flm->size;
-      } else {
+      if(reset2addr(flm->buf, vecsz, flm->size, &appstart) < 0) {
         pmsg_warning("not patching input as opcode word %04x at reset is not a%sjmp\n",
           reset16, vecsz==2? "n r": " ");
         goto nopatch;
@@ -771,7 +790,7 @@ nopatch_nometa:
           if(isize < 1 || isize > (int) sizeof spc) // Should not happen
             Return("isize=%d out of range (enlarge spc[] and recompile)", isize);
 
-          if(ur_readEF(pgm, spc, istart, isize, 'F') == 0) { // @@@
+          if(ur_readEF(pgm, p, spc, istart, isize, 'F') == 0) {
             for(ai = istart; ai < istart + isize; ai++)
               if(!(flm->tags[ai] & TAG_ALLOCATED))
                 flm->buf[ai] = spc[ai-istart];
@@ -785,6 +804,24 @@ nopatch_nometa:
   }
   ur.done_ce = 0;               // From now on can no longer rely on being deleted
 
+  // Last, but not least: ensure that vector bootloaders have correct r/jmp at address 0
+  if(ur.blstart && ur.vbllevel==1) {
+    int set=0;
+    for(int i=0; i < vecsz; i++)
+      if(flm->tags[i] & TAG_ALLOCATED)
+        set++;
+
+    if(set && set != vecsz)
+      Return("input overwrites the reset vector partially rendering vector bootloader moot, exiting");
+
+    if(set) {
+      int resetdest;
+      if(reset2addr(flm->buf, vecsz, flm->size, &resetdest) < 0)
+        Return("input does not hold an r/jmp at reset vector rendering vector bootloader moot, exiting");
+      if(resetdest != ur.blstart)
+        Return("input file points reset to 0x%04x instead of vector bootloader at 0x%04x, exiting", resetdest, ur.blstart);
+    }
+  }
   return size;
 }
 
@@ -1061,7 +1098,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
     ur.blstart = ur.uP.flashsize - ur.xbootsize;
   }
 
-  if(ur.uP.ninterrupts >= 0)
+  if((int8_t) ur.uP.ninterrupts >= 0) // valid range is 0..127
     if(ur.xvectornum < -1 || ur.xvectornum > ur.uP.ninterrupts)
       Return("unknown interrupt vector #%d for vector bootloader -- should be in [-1, %d]",
         ur.xvectornum, ur.uP.ninterrupts);
@@ -1079,7 +1116,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
   // Sporting chance that we can read top flash to get intell about bootloader
   if(!ur.urprotocol || (ur.urfeatures & UB_READ_FLASH)) {
     // Read top 6 bytes from flash memory to obtain extended information about bootloader and type
-    if((rc = ur_readEF(pgm, spc, flm->size-6, 6, 'F')))
+    if((rc = ur_readEF(pgm, p, spc, flm->size-6, 6, 'F')))
       return rc;
 
     // In a urboot bootloader (v7.2 onwards) these six are as follows
@@ -1134,7 +1171,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
       int vecsz = ur.uP.flashsize <= 8192? 2: 4;
 
        // Reset vector points to the bootloader and the bootloader has r/jmp to application?
-      if((rc = ur_readEF(pgm, spc, 0, 4, 'F')))
+      if((rc = ur_readEF(pgm, p, spc, 0, 4, 'F')))
         return rc;
 
       uint16_t reset16 = buf2uint16(spc);
@@ -1161,7 +1198,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
 
       if(ur.blstart) {          // Read bootloader to identify jump to vbl vector
         int i, npages, j, n, toend, dist, wasop32, wasjmp, op16;
-        uint8_t *p;
+        uint8_t *q;
         uint16_t opcode;
 
         op16 = wasjmp = wasop32 = 0;
@@ -1169,10 +1206,10 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
         npages = toend/flm->page_size;
         for(i=0; i<npages; i++) {
           // Read bootloader page by page
-          if((rc = ur_readEF(pgm, spc, ur.blstart+i*flm->page_size, flm->page_size, 'F')))
+          if((rc = ur_readEF(pgm, p, spc, ur.blstart+i*flm->page_size, flm->page_size, 'F')))
             return rc;
-          for(n=flm->page_size/2, p=spc, j=0; j<n; j++, p+=2, toend-=2) { // Check 16-bit opcodes
-            opcode = buf2uint16(p);
+          for(n=flm->page_size/2, q=spc, j=0; j<n; j++, q+=2, toend-=2) { // Check 16-bit opcodes
+            opcode = buf2uint16(q);
             if(wasjmp) {        // Opcode is the word address of the destination
               wasjmp=0;
               int dest = addr_jmp((opcode<<16) | op16);
@@ -1217,17 +1254,15 @@ vblvecfound:
     !ur.blstart || ur.uP.bootsize <= 0 || ur.uP.bootsize == flm->size-ur.blstart? 'o':
     ur.uP.bootsize > flm->size-ur.blstart? 'O': '-');
 
-  if((rc = readUrclockID(pgm)) == -1)
-    return rc;
-
   ur.mcode = 0xff;
   if(ur.blstart) {
     int nm = nmeta(1, ur.uP.flashsize); // 6 for date + size of store struct + 1 for mcode byte
-    // If want to show properties, examine the bytes below bootloader for metadata
-    if(ur.showall || ur.showid || ur.showsketch || ur.showstore || ur.showmetadata ||
-       ur.showboot || ur.showversion || ur.showvbl || ur.showdate || ur.showfilename) {
+    // Showing properties mostly requires examining the bytes below bootloader for metadata
+    if(ur.showall || (ur.showid && *ur.iddesc && *ur.iddesc != 'E') || ur.showapp ||
+      ur.showstore || ur.showmeta || ur.showboot || ur.showversion || ur.showvbl ||
+      ur.showdate || ur.showfilename) {
 
-      if((rc = ur_readEF(pgm, spc, ur.blstart-nm, nm, 'F')))
+      if((rc = ur_readEF(pgm, p, spc, ur.blstart-nm, nm, 'F')))
         return rc;
 
       if(spc[nm-1] != 0xff) {
@@ -1260,7 +1295,7 @@ vblvecfound:
               ur.hr = hr;
               ur.mn = mn;
               if(mcode > 1) {   // Copy application name over
-                rc = ur_readEF(pgm, spc, ur.blstart-nmeta(mcode, ur.uP.flashsize), mcode, 'F');
+                rc = ur_readEF(pgm, p, spc, ur.blstart-nmeta(mcode, ur.uP.flashsize), mcode, 'F');
                 if(rc < 0)
                   return rc;
                 int len = mcode<sizeof ur.filename? mcode: sizeof ur.filename;
@@ -1277,27 +1312,33 @@ vblvecfound:
 
   // Print and exit when option show... was given
   int first=1;
-  int single = !ur.showall && (!!ur.showid + !!ur.showsketch + !!ur.showstore + !!ur.showmetadata +
+  int single = !ur.showall && (!!ur.showid + !!ur.showapp + !!ur.showstore + !!ur.showmeta +
     !!ur.showboot + !!ur.showversion + !!ur.showvbl + !!ur.showdate + !!ur.showfilename) == 1;
 
-  if(ur.showid || ur.showall)
-    term_out("%0*lx", 2*ur.idlen, ur.urclockID), first=0;
+  if(ur.showid || ur.showall) {
+    uint64_t urclockID;
+    if((rc = readUrclockID(pgm, p, &urclockID)) == -1)
+      return rc;
+    term_out("%0*lx", 2*ur.idlen, urclockID), first=0;
+  }
   if(ur.showdate || ur.showall)
     term_out(" %04d-%02d-%02d %02d.%02d"+first, ur.yyyy, ur.mm, ur.dd, ur.hr, ur.mn), first=0;
   if(ur.showfilename || ur.showall)
     term_out(" %s"+first, *ur.filename? ur.filename: ""), first=0;
-  if(ur.showsketch || ur.showall)
+  if(ur.showapp || ur.showall)
     term_out(" %s%d"+first, single || *ur.filename? "": "application ", ur.storestart), first=0;
   if(ur.showstore || ur.showall)
     term_out(" %s%d"+first, single? "": "store ", ur.storesize), first=0;
-  if(ur.showmetadata || ur.showall)
+  if(ur.showmeta || ur.showall)
     term_out(" %s%d"+first, single? "": "meta ", nmeta(ur.mcode, ur.uP.flashsize)), first=0;
   if(ur.showboot || ur.showall)
     term_out(" %s%d"+first, single? "": "boot ", ur.blstart? flm->size-ur.blstart: 0), first=0;
   if(ur.showversion || ur.showall)
     term_out(" %s"+first, ur.desc+(*ur.desc==' ')), first=0;
-  if(ur.showvbl || (ur.showall && ur.vbllevel))
-    term_out(" vector %d (%s)", ur.vblvectornum, vblvecname(pgm, ur.vblvectornum)), first=0;
+  if(ur.showvbl || ur.showall) {
+    int vnum = ur.vbllevel? ur.vblvectornum & 0x7f: 0;
+    term_out(" vector %d (%s)"+first, vnum, vblvecname(pgm, vnum)), first=0;
+  }
   if(ur.showall)
     term_out(" %s"+first, ur.uP.name);
   if(!first) {
@@ -1314,16 +1355,21 @@ alldone:
 
 // STK500 section from stk500.c but modified significantly for use with urboot bootloaders
 
-// STK500v1 load *word* address for flash/eeprom, memtype is 'E'/'F'
-static int urclock_load_waddr(const PROGRAMMER *pgm, char memtype, unsigned int waddr) {
-  unsigned char buf[16];
-  unsigned char ext_byte;
+// STK500v1 load correct address for flash/eeprom, memchr is 'E'/'F'
+static int urclock_load_baddr(const PROGRAMMER *pgm, const AVRPART *p, char memchr,
+  unsigned int baddr) {
 
-  // STK500 protocol: support flash > 64K words with the correct extended-address byte
-  if(memtype == 'F' && ur.uP.flashsize > 128*1024) {
-    ext_byte = (waddr >> 16) & 0xff;
+  unsigned char buf[16], ext_byte;
+
+  // For classic parts (think optiboot, avrisp) use word addr, otherwise byte addr (optiboot_x etc)
+  int classic = !(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire));
+  unsigned int addr = classic? baddr/2: baddr;
+
+  // STK500 protocol: support flash > 64k words/bytes with the correct extended-address byte
+  if(memchr == 'F' && ur.uP.flashsize > (classic? 128*1024: 64*1024)) {
+    ext_byte = (addr >> 16) & 0xff;
     if(ext_byte != ur.ext_addr_byte) {
-      // Either this is the first addr load, or a 64K word boundary is crossed
+      // Either this is the first addr load, or a 64k boundary is crossed
       buf[0] = (uint8_t) (Subc_STK_UNIVERSAL_LEXT>>24);
       buf[1] = (uint8_t) (Subc_STK_UNIVERSAL_LEXT>>16);
       buf[2] = ext_byte;
@@ -1334,8 +1380,8 @@ static int urclock_load_waddr(const PROGRAMMER *pgm, char memtype, unsigned int 
   }
 
   buf[0] = Cmnd_STK_LOAD_ADDRESS;
-  buf[1] = waddr & 0xff;
-  buf[2] = (waddr >> 8) & 0xff;
+  buf[1] = addr & 0xff;
+  buf[2] = (addr >> 8) & 0xff;
   buf[3] = Sync_CRC_EOP;
 
   if(urclock_send(pgm, buf, 4) < 0)
@@ -1352,21 +1398,21 @@ static int urclock_load_waddr(const PROGRAMMER *pgm, char memtype, unsigned int 
  *  - mchr is 'F' (flash) or 'E' (EEPROM)
  *  - payload for bytes to write or NULL for read
  */
-static int urclock_paged_rdwr(const PROGRAMMER *pgm, char rwop, unsigned int badd,
-  int len, char mchr, char *payload) {
+static int urclock_paged_rdwr(const PROGRAMMER *pgm, const AVRPART *part, char rwop,
+  unsigned int badd, int len, char mchr, char *payload) {
 
   int i;
   uint8_t buf[1024 + 5];
 
-  // STK500v1 only: tell the bootloader which word address should be used by next paged command
-  if(!ur.urprotocol && urclock_load_waddr(pgm, mchr, badd/2) < 0)
+  // STK500v1 only: tell the bootloader which address should be used by next paged command
+  if(!ur.urprotocol && urclock_load_baddr(pgm, part, mchr, badd) < 0)
       return -1;
 
   if(mchr == 'F' && rwop == Cmnd_STK_PROG_PAGE && len != ur.uP.pagesize)
     Return("len %d must be page size %d for paged flash writes", len, ur.uP.pagesize);
 
   if(ur.urprotocol) {
-    uint8_t *p = buf, op =
+    uint8_t *q = buf, op =
       mchr == 'F' && rwop == Cmnd_STK_PROG_PAGE? Cmnd_UR_PROG_PAGE_FL:
       mchr == 'E' && rwop == Cmnd_STK_PROG_PAGE? Cmnd_UR_PROG_PAGE_EE:
       mchr == 'F' && rwop == Cmnd_STK_READ_PAGE? Cmnd_UR_READ_PAGE_FL:
@@ -1375,25 +1421,25 @@ static int urclock_paged_rdwr(const PROGRAMMER *pgm, char rwop, unsigned int bad
     if(op == 0xff)
       Return("command not recognised");
 
-    *p++ = op;
-    *p++ = badd & 0xff;
-    *p++ = (badd >> 8) & 0xff;
+    *q++ = op;
+    *q++ = badd & 0xff;
+    *q++ = (badd >> 8) & 0xff;
     // Flash is larger than 64 kBytes, extend address (even for EEPROM)
     if(ur.uP.flashsize > 0x10000)
-      *p++ = (badd >> 16) & 0xff;
+      *q++ = (badd >> 16) & 0xff;
 
     if(ur.uP.pagesize <= 256) {
       if(len > 256)
         Return("urprotocol paged r/w len %d cannot exceed 256", len);
-      *p++ = len;               // len==256 is sent as 0
+      *q++ = len;               // len==256 is sent as 0
     } else {
       int max = ur.uP.pagesize > 256? ur.uP.pagesize: 256;
       if(len > max)
         Return("urprotocol paged r/w len %d cannot exceed %d for %s", len, max, ur.uP.name);
-      *p++ = len>>8;            // Big endian length when needed
-      *p++ = len;
+      *q++ = len>>8;            // Big endian length when needed
+      *q++ = len;
     }
-    i = p-buf;
+    i = q-buf;
 
   } else {
     int max = ur.uP.pagesize > 256? ur.uP.pagesize: 256;
@@ -1424,9 +1470,13 @@ static int urclock_paged_rdwr(const PROGRAMMER *pgm, char rwop, unsigned int bad
  * Read len bytes at byte address addr of EEPROM (mchr == 'E') or flash (mchr == 'F') from
  * device fd into buffer buf+1, using extended addressing if needed (extd); returns 0 on success
  */
-static int ur_readEF(const PROGRAMMER *pgm, uint8_t *buf, uint32_t badd, int len, char mchr) {
-  pmsg_debug("ur_readEF(%s, %s, %p, 0x%06x, %d, %c)\n",
-    pgm? pgm->desc: "?", mchr=='F'? "flash": "eeprom", buf, badd, len, mchr);
+static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint32_t badd, int len,
+  char mchr) {
+
+  int classic = !(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire));
+
+  pmsg_debug("ur_readEF(%s, %s, %s, %p, 0x%06x, %d, %c)\n",
+    pgm? ldata(lfirst(pgm->id)): "?", p->desc, mchr=='F'? "flash": "eeprom", buf, badd, len, mchr);
 
   if(mchr == 'F' && ur.urprotocol && !(ur.urfeatures & UB_READ_FLASH))
     Return("bootloader does not have flash read capability");
@@ -1437,8 +1487,8 @@ static int ur_readEF(const PROGRAMMER *pgm, uint8_t *buf, uint32_t badd, int len
   if(len < 1 || len > max(ur.uP.pagesize, 256))
     Return("len %d exceeds range [1, %d]", len, max(ur.uP.pagesize, 256));
 
-  // Odd byte address under STK500v1 word-address protocol
-  int odd = !ur.urprotocol && (badd&1);
+  // Odd byte address under word-address protocol for "classic" parts (optiboot, avrisp etc)
+  int odd = !ur.urprotocol && classic && (badd&1);
   if(odd) {                     // Need to read one extra byte
     len++;
     badd &= ~1;
@@ -1446,91 +1496,111 @@ static int ur_readEF(const PROGRAMMER *pgm, uint8_t *buf, uint32_t badd, int len
       Return("len+1 = %d odd address exceeds range [1, %d]", len, max(ur.uP.pagesize, 256));
   }
 
-  if(urclock_paged_rdwr(pgm, Cmnd_STK_READ_PAGE, badd, len, mchr, NULL) < 0)
+  if(urclock_paged_rdwr(pgm, p, Cmnd_STK_READ_PAGE, badd, len, mchr, NULL) < 0)
     return -1;
 
   return urclock_res_check(pgm, __func__, odd, buf, len-odd);
 }
 
 
-static int readUrclockID(const PROGRAMMER *pgm) {
+static int parseUrclockID(const PROGRAMMER *pgm) {
+  if(*ur.iddesc) {              // User override of ID, eg, -xid=F.-4.2 for penultimate flash word
+    char *idstr = cfg_strdup(__func__, ur.iddesc), *idlenp, *end;
+    unsigned long ad, lg;
+
+    if(!(strchr("EF", *idstr) && idstr[1] == '.')) {
+      pmsg_warning("-xid=%s string must start with E. or F.\n", ur.iddesc);
+      free(idstr);
+      return -1;
+    }
+
+    if(!(idlenp = strchr(idstr+2, '.'))) {
+      pmsg_warning("-xid=%s string must look like [E|F].<addr>.<len>\n", ur.iddesc);
+      free(idstr);
+      return -1;
+    }
+    *idlenp++ = 0;
+    ad = strtoul(idstr+2, &end, 0);
+    if(*end || end == idstr+2) {
+      pmsg_warning("cannot parse address %s of -xid=%s\n", idstr+2, ur.iddesc);
+      free(idstr);
+      return -1;
+    }
+    long sad = *(long *) &ad;
+    if(sad < INT_MIN || sad > INT_MAX) {
+      pmsg_warning("address %s of -xid=%s has implausible size\n", idstr+2, ur.iddesc);
+      free(idstr);
+      return -1;
+    }
+
+    lg = strtoul(idlenp, &end, 0);
+    if(*end || end == idlenp) {
+      pmsg_warning("cannot parse length %s of -xid=%s string\n", idlenp, ur.iddesc);
+      free(idstr);
+      return -1;
+    }
+    if(!lg || lg > 8) {
+      pmsg_warning("length %s of -xid=%s string must be between 1 and 8\n", idlenp, ur.iddesc);
+      free(idstr);
+      return -1;
+    }
+
+    ur.idmchr = *idstr;
+    ur.idaddr = sad;
+    ur.idlen = lg;
+
+    free(idstr);
+  }
+
+  return 0;
+}
+
+
+static int readUrclockID(const PROGRAMMER *pgm, const AVRPART *p, uint64_t *urclockIDp) {
   uint8_t spc[16];
-  int addr = 256+1;             // Location of DS18B20 ID of Urclock boards
-  int len = 6;
-  char mchr = 'E';
+  int mchr, addr, len, size;
 
-  ur.urclockID = 0;
+  if(ur.idlen)
+    mchr = ur.idmchr, addr = ur.idaddr, len = ur.idlen;
+  else
+    mchr = 'E', addr = 256+1, len = 6; // Default location for unique id on urclock boards
 
-  // Sanity for small boards
-  if(ur.uP.name && (addr >= ur.uP.eepromsize || addr+len > ur.uP.eepromsize)) {
+  *urclockIDp = 0;
+
+  // Sanity for small boards in absence of user -xid=... option
+  if(!ur.idlen && (addr >= ur.uP.eepromsize || addr+len > ur.uP.eepromsize)) {
     addr = 0;
     if(ur.uP.eepromsize < 8)
       mchr = 'F';
   }
 
-  if(*ur.iddesc) {              // User override of ID, eg, -xid=F.-4.2 for penultimate flash word
-    char *idstr = cfg_strdup(__func__, ur.iddesc), *idlen, *end, *memtype;
-    unsigned long ad, lg;
-    int size;
+  const char *memtype = mchr == 'E'? "eeprom": "flash";
 
-    if(!(strchr("EF", *idstr) && idstr[1] == '.')) {
-      pmsg_warning("-xid=%s string must start with E. or F.\n", ur.iddesc);
-      free(idstr);
-      return -2;
-    }
-    memtype = *idstr == 'E'? "EEPROM": "flash";
-    size = *idstr == 'F'? ur.uP.flashsize: ur.uP.eepromsize;
+  size = mchr == 'F'? ur.uP.flashsize: ur.uP.eepromsize;
 
-    if(!(idlen = strchr(idstr+2, '.'))) {
-      pmsg_warning("-xid=%s string must look like [E|F].<addr>.<len>\n", ur.iddesc);
-      free(idstr);
-      return -2;
-    }
-    *idlen++ = 0;
-    ad = strtoul(idstr+2, &end, 0);
-    if(*end || end == idstr+2) {
-      pmsg_warning("cannot parse address %s of -xid=%s\n", idstr+2, ur.iddesc);
-      free(idstr);
-      return -2;
-    }
-    if(size > 0 && (long) ad < 0)
-       ad += size;
-    if(ur.uP.name && size > 0 && ad >= (unsigned long) size) {
-      pmsg_warning("address %s of -xid=%s string out of %s range [0, 0x%04x]\n",
-        idstr+2, ur.iddesc, memtype, size-1);
-      free(idstr);
-      return -2;
-    }
-    lg = strtoul(idlen, &end, 0);
-    if(*end || end == idlen) {
-      pmsg_warning("cannot parse length %s of -xid=%s string\n", idlen, ur.iddesc);
-      free(idstr);
-      return -2;
-    }
-    if(!lg || lg > 8) {
-      pmsg_warning("length %s of -xid=%s string must be between 1 and 8\n", idlen, ur.iddesc);
-      free(idstr);
-      return -2;
-    }
-    if(ur.uP.name && size > 0 && ad+lg > (unsigned long) size) {
-      pmsg_warning("memory range [0x%04x, 0x%04x] of -xid=%s out of %s range [0, 0x%04x]\n",
-        (int) ad, (int) (ad+lg-1), ur.iddesc, memtype, size-1);
-      free(idstr);
-      return -2;
-    }
+  if(ur.uP.name && size > 0) {
+    if(addr < 0)                // X.-4.4 asks for 4 bytes at top memory
+      addr += size;
 
-    addr = ad;
-    len = lg;
-    mchr = *idstr;
-    free(idstr);
+    if(addr < 0 || addr >= size)
+      Return("effective address %d of -xids=%s string out of %s range [0, 0x%04x]\n",
+        addr, ur.iddesc, memtype, size-1);
+
+    if(addr+len > size)
+      Return("memory range [0x%04x, 0x%04x] of -xid=%s out of %s range [0, 0x%04x]\n",
+        addr, addr+len-1, ur.iddesc, memtype, size-1);
   }
 
   memset(spc, 0, sizeof spc);
-  (void) ur_readEF(pgm, spc, addr, len, mchr);
+  if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
+    return -2;
+
+  if(ur_readEF(pgm, p, spc, addr, len, mchr) < 0)
+    return -1;
 
   // Urclock ID
   for(int i = len-1; i >= 0; i--)
-    ur.urclockID <<= 8, ur.urclockID |= spc[i];
+    *urclockIDp <<= 8, *urclockIDp |= spc[i];
   ur.idlen = len;
 
   return 0;
@@ -1681,7 +1751,7 @@ static int urclock_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 
 
 // Either emulate chip erase or send appropriate command to bootloader
-static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
+static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p_unused) {
   unsigned char buf[16];
   long bak_timeout = serial_recv_timeout;
 
@@ -1784,8 +1854,6 @@ static void urclock_disable(const PROGRAMMER *pgm) {
 
 static int urclock_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
-  int showother = ur.showall || ur.showsketch || ur.showstore || ur.showmetadata || ur.showboot ||
-    ur.showversion || ur.showvbl || ur.showdate || ur.showfilename;
 
   strcpy(pgm->port, port);
   pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
@@ -1809,16 +1877,6 @@ static int urclock_open(PROGRAMMER *pgm, const char *port) {
   if(urclock_getsync(pgm) < 0)
     return -1;
 
-  // Only asking for the urclock ID: find out and exit fast!
-  if(ur.showid && !showother && strchr("EF", *ur.iddesc)) { // Also matches *ur.iddesc == 0
-    ur.xeepromrw = 1;           // Pretend can read EEPROM
-    if(readUrclockID(pgm) == -1)
-      return -1;
-
-    term_out("%0*lx\n", ur.idlen, ur.urclockID);
-    exit(0);
-  }
-
   return 0;
 }
 
@@ -1832,7 +1890,7 @@ static void urclock_close(PROGRAMMER *pgm) {
 }
 
 
-static int urclock_paged_write(const PROGRAMMER *pgm, const AVRPART *p_unused, const AVRMEM *m,
+static int urclock_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
   int mchr, chunk;
@@ -1840,8 +1898,8 @@ static int urclock_paged_write(const PROGRAMMER *pgm, const AVRPART *p_unused, c
 
   if(n_bytes) {
     // Paged writes only valid for flash and eeprom
-    mchr = strcmp(m->desc, "flash") == 0? 'F': 'E';
-    if(mchr == 'E' && strcmp(m->desc, "eeprom"))
+    mchr = avr_mem_is_flash_type(m)? 'F': 'E';
+    if(mchr == 'E' && !avr_mem_is_eeprom_type(m))
       return -2;
 
     n = addr + n_bytes;
@@ -1849,7 +1907,7 @@ static int urclock_paged_write(const PROGRAMMER *pgm, const AVRPART *p_unused, c
     for(; addr < n; addr += chunk) {
       chunk = n-addr < page_size? n-addr: page_size;
 
-      if(urclock_paged_rdwr(pgm, Cmnd_STK_PROG_PAGE, addr, chunk, mchr, (char *)&m->buf[addr]) < 0)
+      if(urclock_paged_rdwr(pgm, p, Cmnd_STK_PROG_PAGE, addr, chunk, mchr, (char *) m->buf+addr) < 0)
         return -3;
       if(urclock_res_check(pgm, __func__, 0, NULL, 0) < 0)
         return -4;
@@ -1860,7 +1918,7 @@ static int urclock_paged_write(const PROGRAMMER *pgm, const AVRPART *p_unused, c
 }
 
 
-static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p_unused, const AVRMEM *m,
+static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
   int mchr, chunk;
@@ -1868,15 +1926,15 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p_unused, co
 
   if(n_bytes) {
     // Paged reads only valid for flash and eeprom
-    mchr = strcmp(m->desc, "flash") == 0? 'F': 'E';
-    if(mchr == 'E' && strcmp(m->desc, "eeprom"))
+    mchr = avr_mem_is_flash_type(m)? 'F': 'E';
+    if(mchr == 'E' && !avr_mem_is_eeprom_type(m))
       return -2;
 
     n = addr + n_bytes;
     for(; addr < n; addr += chunk) {
       chunk = n-addr < page_size? n-addr: page_size;
 
-      if(urclock_paged_rdwr(pgm, Cmnd_STK_READ_PAGE, addr, chunk, mchr, NULL) < 0)
+      if(urclock_paged_rdwr(pgm, p, Cmnd_STK_READ_PAGE, addr, chunk, mchr, NULL) < 0)
         return -3;
       if(urclock_res_check(pgm, __func__, 0, &m->buf[addr], chunk) < 0)
         return -4;
@@ -1928,9 +1986,9 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
   } options[] = {
     {"showall", &ur.showall, 0, NULL, 0,           "Show all info for connected part and exit"},
     {"showid", &ur.showid, 0, NULL, 0,             " ... unique Urclock ID"},
-    {"showsketch", &ur.showsketch, 0, NULL, 0,     " ... application size"},
+    {"showapp", &ur.showapp, 0, NULL, 0,           " ... application size"},
     {"showstore", &ur.showstore, 0, NULL, 0,       " ... store size"},
-    {"showmetadata", &ur.showmetadata, 0, NULL, 0, " ... metadata size"},
+    {"showmeta", &ur.showmeta, 0, NULL, 0,         " ... metadata size"},
     {"showboot", &ur.showboot, 0, NULL, 0,         " ... bootloader size"},
     {"showversion", &ur.showversion, 0, NULL, 0,   " ... bootloader version and capabilities"},
     {"showvbl", &ur.showvbl, 0, NULL, 0,           " ... vector bootloader level, vec # and name"},
@@ -1949,7 +2007,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     {"delay", &ur.delay, 0, NULL, 1,               "Add delay [ms] after reset, can be negative"},
     {"id", NULL, sizeof ur.iddesc, ur.iddesc, 1,   "Location of Urclock ID, eg F.12324.6"},
     {"title", NULL, sizeof ur.title, ur.title, 1,  "Title used in lieu of a filename when set"},
-    {"?", &help, 0, NULL, 0,                       "Show this help menu and exit"},
+    {"help", &help, 0, NULL, 0,                    "Show this help menu and exit"},
   };
 
   int rc = 0;
@@ -2009,11 +2067,14 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     msg_error("%s -c %s extended options:\n", progname, (char *) ldata(lfirst(pgm->id)));
     for(size_t i=0; i<sizeof options/sizeof*options; i++) {
       msg_error("  -x%s%s%*s%s\n", options[i].name, options[i].assign? "=<arg>": "",
-        max(0, 16-strlen(options[i].name)-(options[i].assign? 6: 0)), "", options[i].help);
+        max(0, 16-(long) strlen(options[i].name)-(options[i].assign? 6: 0)), "", options[i].help);
     }
     if(rc == 0)
       exit(0);
   }
+
+  if(parseUrclockID(pgm) < 0)
+    return -1;
 
   return rc;
 }
