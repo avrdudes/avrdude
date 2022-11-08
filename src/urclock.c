@@ -289,7 +289,7 @@ typedef struct {
       showmeta,                 //   ... metadata size
       showboot,                 //   ... bootloader size
       showversion,              //   ... bootloader version and capabilities
-      showvbl,                  //   ... vector bootloader level, vector number and name
+      showvector,               //   ... vector bootloader level, vector number and name
       showpart,                 //   ... part for which bootloader was compiled
       xbootsize,                // Manual override for size of bootloader section
       xvectornum,               //   ... for vector number (implies vbllevel = 1)
@@ -1261,7 +1261,7 @@ vblvecfound:
     int nm = nmeta(1, ur.uP.flashsize); // 6 for date + size of store struct + 1 for mcode byte
     // Showing properties mostly requires examining the bytes below bootloader for metadata
     if(ur.showall || (ur.showid && *ur.iddesc && *ur.iddesc != 'E') || ur.showapp ||
-      ur.showstore || ur.showmeta || ur.showboot || ur.showversion || ur.showvbl ||
+      ur.showstore || ur.showmeta || ur.showboot || ur.showversion || ur.showvector ||
       ur.showpart || ur.showdate || ur.showfilename) {
 
       if((rc = ur_readEF(pgm, p, spc, ur.blstart-nm, nm, 'F')))
@@ -1315,7 +1315,7 @@ vblvecfound:
   // Print and exit when option show... was given
   int first=1;
   int single = !ur.showall && (!!ur.showid + !!ur.showapp + !!ur.showstore + !!ur.showmeta +
-    !!ur.showboot + !!ur.showversion + !!ur.showvbl + !!ur.showpart + !!ur.showdate +
+    !!ur.showboot + !!ur.showversion + !!ur.showvector + !!ur.showpart + !!ur.showdate +
     !!ur.showfilename) == 1;
 
   if(ur.showid || ur.showall) {
@@ -1338,7 +1338,7 @@ vblvecfound:
     term_out(" %s%d"+first, single? "": "boot ", ur.blstart? flm->size-ur.blstart: 0), first=0;
   if(ur.showversion || ur.showall)
     term_out(" %s"+first, ur.desc+(*ur.desc==' ')), first=0;
-  if(ur.showvbl || ur.showall) {
+  if(ur.showvector || ur.showall) {
     int vnum = ur.vbllevel? ur.vblvectornum & 0x7f: 0;
     term_out(" vector %d (%s)"+first, vnum, vblvecname(pgm, vnum)), first=0;
   }
@@ -1987,30 +1987,32 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     bool assign;
     const char *help;
   } options[] = {
-    {"showall", &ur.showall, 0, NULL, 0,           "Show all info for connected part and exit"},
-    {"showid", &ur.showid, 0, NULL, 0,             " ... unique Urclock ID"},
-    {"showdate", &ur.showdate, 0, NULL, 0,         " ... last-modified date of flash application"},
-    {"showfilename", &ur.showfilename, 0, NULL, 0, " ... filename of last uploaded application"},
-    {"showapp", &ur.showapp, 0, NULL, 0,           " ... application size"},
-    {"showstore", &ur.showstore, 0, NULL, 0,       " ... store size"},
-    {"showmeta", &ur.showmeta, 0, NULL, 0,         " ... metadata size"},
-    {"showboot", &ur.showboot, 0, NULL, 0,         " ... bootloader size"},
-    {"showversion", &ur.showversion, 0, NULL, 0,   " ... bootloader version and capabilities"},
-    {"showvbl", &ur.showvbl, 0, NULL, 0,           " ... vector bootloader level, vec # and name"},
-    {"id", NULL, sizeof ur.iddesc, ur.iddesc, 1,   "Location of Urclock ID, eg, F.12345.6"},
-    {"title", NULL, sizeof ur.title, ur.title, 1,  "Title stored and shown in lieu of a filename"},
-    {"bootsize", &ur.xbootsize, 0, NULL, 1,        "Manual override for bootloader size"},
-    {"vectornum", &ur.xvectornum, 0, NULL, 1,      " ... for vector number"}, // implies vbllevel=1
-    {"eepromrw", &ur.xeepromrw, 0, NULL, 0,        " ... for EEPROM read/write capability"},
-    {"emulate_ce", &ur.xemulate_ce, 0, NULL, 0,    " ... for making avrdude emulate chip erase"},
-    {"forcetrim", &ur.forcetrim, 0, NULL, 0,       "Upload of unchanged files, trim it if needed"},
-    {"initstore", &ur.initstore, 0, NULL, 0,       "Fill store with 0xff on writing to flash"},
-    // @@@  {"copystore", &ur.copystore, 0, NULL, 0, "Copy over store on writing to flash"},
-    {"nofilename", &ur.nofilename, 0, NULL, 0,     "Don't store filename on writing to flash"},
-    {"nodate", &ur.nodate, 0, NULL, 0,             " ... application filename and no date either"},
-    {"nometadata", &ur.nometadata, 0, NULL, 0,     " ... metadata at all (ie, no store support)"},
-    {"delay", &ur.delay, 0, NULL, 1,               "Add delay [ms] after reset, can be negative"},
-    {"help", &help, 0, NULL, 0,                    "Show this help menu and exit"},
+#define ARG  0, NULL, 1
+#define NA   0, NULL, 0
+    {"showall", &ur.showall, NA,          "Show all info for connected part and exit"},
+    {"showid", &ur.showid, NA,            "Show Urclock ID and exit"},
+    {"showdate", &ur.showdate, NA,        "Show last-modified date of flash application and exit"},
+    {"showfilename", &ur.showfilename, NA,"Show filename of last uploaded application and exit"},
+    {"showapp", &ur.showapp, NA,          "Show application size and exit"},
+    {"showstore", &ur.showstore, NA,      "Show store size and exit"},
+    {"showmeta", &ur.showmeta, NA,        "Show metadata size and exit"},
+    {"showboot", &ur.showboot, NA,        "Show bootloader size and exit"},
+    {"showversion", &ur.showversion, NA,  "Show bootloader version and capabilities and exit"},
+    {"showvector", &ur.showvector, NA,    "Show vector bootloader vector # and name and exit"},
+    {"id", NULL, sizeof ur.iddesc, ur.iddesc, 1, "Location of Urclock ID, eg, F.12345.6"},
+    {"title", NULL, sizeof ur.title, ur.title, 1, "Title stored and shown in lieu of a filename"},
+    {"bootsize", &ur.xbootsize, ARG,      "Manual override for bootloader size"},
+    {"vectornum", &ur.xvectornum, ARG,    "Manual override for vector number"},
+    {"eepromrw", &ur.xeepromrw, NA,       "Asssertion of bootloader EEPROM read/write capability"},
+    {"emulate_ce", &ur.xemulate_ce, NA,   "Emulate chip erase"},
+    {"forcetrim", &ur.forcetrim, NA,      "Upload of unchanged files, trim it if needed"},
+    {"initstore", &ur.initstore, NA,      "Fill store with 0xff on writing to flash"},
+    //@@@  {"copystore", &ur.copystore, NA, "Copy over store on writing to flash"},
+    {"nofilename", &ur.nofilename, NA,    "Do not store filename on writing to flash"},
+    {"nodate", &ur.nodate, NA,            "Do not store application filename and no date either"},
+    {"nometadata", &ur.nometadata, NA,    "Do not store metadata at all (ie, no store support)"},
+    {"delay", &ur.delay, ARG,             "Add delay [ms] after reset, can be negative"},
+    {"help", &help, NA,                   "Show this help menu and exit"},
   };
 
   int rc = 0;
