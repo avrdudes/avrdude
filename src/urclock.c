@@ -1471,7 +1471,7 @@ static int urclock_paged_rdwr(const PROGRAMMER *pgm, const AVRPART *part, char r
 
 /*
  * Read len bytes at byte address addr of EEPROM (mchr == 'E') or flash (mchr == 'F') from
- * device fd into buffer buf+1, using extended addressing if needed (extd); returns 0 on success
+ * device fd into buffer buf, using extended addressing if needed (extd); returns 0 on success
  */
 static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint32_t badd, int len,
   char mchr) {
@@ -1905,6 +1905,9 @@ static int urclock_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     if(mchr == 'E' && !avr_mem_is_eeprom_type(m))
       return -2;
 
+    if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
+      Return("bootloader does not %shave EEPROM r/w capability", ur.blurversion? "": "seem to ");
+
     n = addr + n_bytes;
 
     for(; addr < n; addr += chunk) {
@@ -1933,6 +1936,12 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     if(mchr == 'E' && !avr_mem_is_eeprom_type(m))
       return -2;
 
+    if(mchr == 'F' && ur.urprotocol && !(ur.urfeatures & UB_READ_FLASH))
+      Return("bootloader does not have flash read capability");
+
+    if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
+      Return("bootloader does not %shave EEPROM r/w capability", ur.blurversion? "": "seem to ");
+
     n = addr + n_bytes;
     for(; addr < n; addr += chunk) {
       chunk = n-addr < page_size? n-addr: page_size;
@@ -1947,6 +1956,34 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   return n_bytes;
 }
 
+
+int urclock_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned long addr, unsigned char data) {
+
+  pmsg_error("bootloader does not implement bytewise write to %s \n", mem->desc);
+  return -1;
+}
+
+int urclock_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned long addr, unsigned char *value) {
+
+  // Bytewise read only valid for flash and eeprom
+  int mchr = avr_mem_is_flash_type(mem)? 'F': 'E';
+  if(mchr == 'E' && !avr_mem_is_eeprom_type(mem)) {
+    if(!strcmp(mem->desc, "signature") && pgm->read_sig_bytes) {
+       if((int) addr < 0 || (int) addr >= mem->size) {
+         return -1;
+       }
+       pgm->read_sig_bytes(pgm, p, mem);
+       *value = mem->buf[(int) addr];
+       return 0;
+    }
+    pmsg_error("bootloader cannot read from %s \n", mem->desc);
+    return -1;
+  }
+
+  return ur_readEF(pgm, p, value, (uint32_t) addr, 1, mchr);
+}
 
 // Periodic call in terminal mode to keep bootloader alive
 static int urclock_term_keep_alive(const PROGRAMMER *pgm, const AVRPART *p_unused) {
@@ -2119,8 +2156,8 @@ void urclock_initpgm(PROGRAMMER *pgm) {
   pgm->cmd = urclock_cmd;
   pgm->open = urclock_open;
   pgm->close = urclock_close;
-  pgm->read_byte = avr_read_byte_cached;
-  pgm->write_byte = avr_write_byte_cached;
+  pgm->read_byte = urclock_read_byte;
+  pgm->write_byte = urclock_write_byte;
 
   // Optional functions
   pgm->paged_write = urclock_paged_write;

@@ -29,6 +29,7 @@ typedef struct {
   char *page, *copy;
 } Cache;
 
+
 // STK500v1 protocol constants
 
 #define Resp_STK_OK             0x10
@@ -46,6 +47,9 @@ typedef struct {
 #define Cmnd_STK_PROG_PAGE      0x64
 #define Cmnd_STK_READ_PAGE      0x74
 #define Cmnd_STK_READ_SIGN      0x75
+
+
+// Urprotocol command extensions to STK500v1
 
 #define Cmnd_UR_PROG_PAGE_EE    0x00
 #define Cmnd_UR_READ_PAGE_EE    0x01
