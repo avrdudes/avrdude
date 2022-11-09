@@ -434,7 +434,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     }
     if (!failure)
       return avr_mem_hiaddr(mem);
-    /* else: fall back to byte-at-a-time write, for historical reasons */
+    /* else: fall back to byte-at-a-time read, for historical reasons */
   }
 
   if (strcmp(mem->desc, "signature") == 0) {
