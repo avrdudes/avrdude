@@ -637,7 +637,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
   }
 
   if(llcode && !llvectors && ur.vblvectornum > 0 && ur.vbllevel)
-    pmsg_warning("not patching input as it appears to not start with a vector table\n");
+    pmsg_warning("not patching jmp to application as input does not start with a vector table\n");
 
   // Patch vectors if input looks like code and it's a vector bootloader with known vector number
   if(llcode && llvectors && ur.vblvectornum > 0 && ur.vbllevel) {
@@ -807,19 +807,14 @@ nopatch_nometa:
 
   // Last, but not least: ensure that vector bootloaders have correct r/jmp at address 0
   if(ur.blstart && ur.vbllevel==1) {
-    int set=0;
+    int rc, set=0;
     for(int i=0; i < vecsz; i++)
       if(flm->tags[i] & TAG_ALLOCATED)
         set++;
 
-    // Reset vector not programmed and flash readable: check what's on the flash
-    if(set != vecsz && (!ur.urprotocol || (ur.urfeatures & UB_READ_FLASH))) {
-      unsigned char device[2048], jmptoboot[4];
-      int rc;
-
-      // Read reset vector on device flash
-      if((rc = ur_readEF(pgm, p, device, 0, vecsz, 'F')) < 0)
-        return rc;
+    // Reset vector not programmed? Or -F? Ensure a jmp to bootloader
+    if(ovsigck || set != vecsz) {
+      unsigned char jmptoboot[4];
 
       // What reset *should* look like
       if(vecsz == 4)
@@ -827,34 +822,46 @@ nopatch_nometa:
       else
         uint16tobuf(jmptoboot, rjmp_opcode(ur.blstart - 0, ur.uP.flashsize));
 
-      int changed = 0;
-      for(int i=0; i < vecsz; i++) { // Patch reset vector to protect vector bootloader
-        if((flm->tags[i] & TAG_ALLOCATED? flm->buf[i]: device[i]) != jmptoboot[i]) {
-          flm->buf[i] = jmptoboot[i];
-          flm->tags[i] |= TAG_ALLOCATED;
-          changed = 1;
-        }
-      }
-      // If reset vector patched, ensure to fill in the holes in rest of page
-      if(changed && flm->page_size > vecsz && flm->page_size <= sizeof device) {
-        if((rc = ur_readEF(pgm, p, device+vecsz, vecsz, flm->page_size - vecsz, 'F')) < 0)
+      if(!ur.urprotocol || (ur.urfeatures & UB_READ_FLASH)) { // Flash readable?
+        unsigned char device[2048];
+
+        // Read reset vector from device flash
+        if((rc = ur_readEF(pgm, p, device, 0, vecsz, 'F')) < 0)
           return rc;
-        for(int i=vecsz; i < flm->page_size; i++) {
-          if(!(flm->tags[i] & TAG_ALLOCATED)) {
+
+        int changed = 0;
+        for(int i=0; i < vecsz; i++) {
+          if((flm->tags[i] & TAG_ALLOCATED? flm->buf[i]: device[i]) != jmptoboot[i]) {
             flm->buf[i] = jmptoboot[i];
             flm->tags[i] |= TAG_ALLOCATED;
+            changed = 1;
           }
         }
+        // If reset vector patched, ensure to fill in the holes in rest of page
+        if(changed && flm->page_size > vecsz && flm->page_size <= sizeof device) {
+          pmsg_warning("patching reset vector to protect vector bootloader\n");
+          if((rc = ur_readEF(pgm, p, device+vecsz, vecsz, flm->page_size - vecsz, 'F')) < 0)
+            return rc;
+          for(int i=vecsz; i < flm->page_size; i++) {
+            if(!(flm->tags[i] & TAG_ALLOCATED)) {
+              flm->buf[i] = jmptoboot[i];
+              flm->tags[i] |= TAG_ALLOCATED;
+            }
+          }
+        }
+      } else {                  // Flash not readable: patch reset vector
+        for(int i=0; i < vecsz; i++) {
+          flm->buf[i] = jmptoboot[i];
+          flm->tags[i] |= TAG_ALLOCATED;
+        }
       }
-    } else if(set && set != vecsz)
-      Return("input overwrites reset vector, which would render the vector bootloader inoperable");
-
-    if(set) {
+    } else {                    // Double-check reset vector jumps to bootloader
       int resetdest;
+
       if(reset2addr(flm->buf, vecsz, flm->size, &resetdest) < 0)
-        Return("input would overwrite the reset vector making the vector bootloader unreachable");
+        Return("input overwrites the reset vector bricking the bootloader; use -F to patch input");
       if(resetdest != ur.blstart)
-        Return("input file points reset to 0x%04x instead of vector bootloader at 0x%04x, exiting",
+        Return("input points reset to 0x%04x, not to bootloader at 0x%04x; use -F to patch input",
           resetdest, ur.blstart);
     }
   }
@@ -891,7 +898,7 @@ static void urbootPutVersion(char *buf, uint16_t ver) {
     *buf++ = type & UR_RESETFLAGS?  'r': '-';
     *buf = 0;
   } else if(hi)                 // Version number in binary from optiboot v4.1
-    sprintf(buf, "o%d.%d ??s-??%c", hi, type, hi>=4? 'r': '-');
+    sprintf(buf, "o%d.%d -?s-?-%c", hi, type, hi>=4? 'r': '-');
   else
     sprintf(buf, "x0.0 -------");
 
@@ -1931,7 +1938,8 @@ static int urclock_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
       return -2;
 
     if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
-      Return("bootloader does not %shave paged EEPROM write capability", ur.blurversion? "": "seem to ");
+      Return("bootloader does not %shave paged EEPROM write capability",
+        ur.blurversion? "": "seem to ");
 
     n = addr + n_bytes;
 
@@ -1965,7 +1973,8 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       Return("bootloader does not have flash read capability");
 
     if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
-      Return("bootloader does not %shave paged EEPROM read capability", ur.blurversion? "": "seem to ");
+      Return("bootloader does not %shave paged EEPROM read capability",
+        ur.blurversion? "": "seem to ");
 
     n = addr + n_bytes;
     for(; addr < n; addr += chunk) {
