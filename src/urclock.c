@@ -90,7 +90,7 @@
  * 24-bit address even though the EEPROM might only have 8192 bytes. Even though the write flash
  * page command only allows one length, and page erase does not need a page at all, it must always
  * be specified. This is to simplify the bootloader effort to decode the programmer's commands.
- * 
+ *
  *
  * Urprotocol commands
  *
@@ -812,7 +812,41 @@ nopatch_nometa:
       if(flm->tags[i] & TAG_ALLOCATED)
         set++;
 
-    if(set && set != vecsz)
+    // Reset vector not programmed and flash readable: check what's on the flash
+    if(set != vecsz && (!ur.urprotocol || (ur.urfeatures & UB_READ_FLASH))) {
+      unsigned char device[2048], jmptoboot[4];
+      int rc;
+
+      // Read reset vector on device flash
+      if((rc = ur_readEF(pgm, p, device, 0, vecsz, 'F')) < 0)
+        return rc;
+
+      // What reset *should* look like
+      if(vecsz == 4)
+        uint32tobuf(jmptoboot, jmp_opcode(ur.blstart));
+      else
+        uint16tobuf(jmptoboot, rjmp_opcode(ur.blstart - 0, ur.uP.flashsize));
+
+      int changed = 0;
+      for(int i=0; i < vecsz; i++) { // Patch reset vector to protect vector bootloader
+        if((flm->tags[i] & TAG_ALLOCATED? flm->buf[i]: device[i]) != jmptoboot[i]) {
+          flm->buf[i] = jmptoboot[i];
+          flm->tags[i] |= TAG_ALLOCATED;
+          changed = 1;
+        }
+      }
+      // If reset vector patched, ensure to fill in the holes in rest of page
+      if(changed && flm->page_size > vecsz && flm->page_size <= sizeof device) {
+        if((rc = ur_readEF(pgm, p, device+vecsz, vecsz, flm->page_size - vecsz, 'F')) < 0)
+          return rc;
+        for(int i=vecsz; i < flm->page_size; i++) {
+          if(!(flm->tags[i] & TAG_ALLOCATED)) {
+            flm->buf[i] = jmptoboot[i];
+            flm->tags[i] |= TAG_ALLOCATED;
+          }
+        }
+      }
+    } else if(set && set != vecsz)
       Return("input overwrites reset vector, which would render the vector bootloader inoperable");
 
     if(set) {
@@ -824,20 +858,21 @@ nopatch_nometa:
           resetdest, ur.blstart);
     }
   }
+
   return size;
 }
 
 
-// Put version string into a buffer of max 16 characters incl nul (normally 13-14 bytes incl nul)
-static void urbootPutVersion(char *buf, uint16_t ver, uint8_t piggy) {
+// Put version string into a buffer of max 17 characters incl nul (normally 13-14 bytes incl nul)
+static void urbootPutVersion(char *buf, uint16_t ver) {
   uint8_t hi = ver>>8, type = ver & 0xff, flags;
 
   if(ver == 0xffff)             // Unknown provenance
     hi = type = 0;
 
   if(hi >= 072) {               // These are urboot versions
-    sprintf(buf, "u%d.%d %c", hi>>3, hi&7, piggy);
-    buf += 6;
+    sprintf(buf, "u%d.%d ", hi>>3, hi&7);
+    buf += strlen(buf);
     *buf++ = type & UR_PGMWRITEPAGE? 'w': '-';
     *buf++ = type & UR_EEPROM? 'e': '-';
     if(hi >= 076) {             // From urboot version 7.6 URPROTOCOL has its own bit
@@ -856,9 +891,9 @@ static void urbootPutVersion(char *buf, uint16_t ver, uint8_t piggy) {
     *buf++ = type & UR_RESETFLAGS?  'r': '-';
     *buf = 0;
   } else if(hi)                 // Version number in binary from optiboot v4.1
-    sprintf(buf, "o%d.%d %c??s-??%c", hi, type, piggy, hi>=4? 'r': '-');
+    sprintf(buf, "o%d.%d ??s-??%c", hi, type, hi>=4? 'r': '-');
   else
-    sprintf(buf, "x0.0 %c-------", piggy);
+    sprintf(buf, "x0.0 -------");
 
   return;
 }
@@ -1160,13 +1195,9 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
         }
       }
     } else if(urver != 0xff) {  // Probably optiboot where the version number is two bytes
-      if(!ur.blstart) {
-        int guessblsize = ur.uP.bootsize >= 512? ur.uP.bootsize: 512;
-        pmsg_warning("guessing it is optiboot %d.%d with size %d (better use -xbootsize=<num>)\n",
-          urver, cap, guessblsize);
-        ur.blstart = flm->size - guessblsize;
-      }
       ur.bloptiversion = (urver<<8) + cap;
+      if(!ur.blstart)
+        Return("bootloader might be optiboot %d.%d? Please use -xbootsize=<num>\n", urver, cap);
     }
 
     if(!ur.blstart && ur.vbllevel) { // An older version urboot vector bootloader
@@ -1240,21 +1271,13 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
       }
     }
 
-    // Still no bootloader start address but HW support for bootloaders? Guess it
-    if(!ur.blstart && ur.uP.bootsize > 0 && ur.uP.nboots > 0) {
-      // With unknown provenance offer max protection otherwise, try smallest bootloader >= 512
-      int guessblsize = urver == 0xff? ur.uP.bootsize << (ur.uP.nboots-1):
-        ur.uP.bootsize >= 512? ur.uP.bootsize: 512;
-      pmsg_warning("unknown bootloader, guessing size %d (better use -xbootsize=<num>)\n",
-        guessblsize);
-      ur.blstart = flm->size - guessblsize;
-    }
+    // Still no bootloader start address?
+    if(!ur.blstart)
+      Return("unknown bootloader ... please specify -xbootsize=<num>\n");
   }
 
 vblvecfound:
-  urbootPutVersion(ur.desc, v16, //
-    !ur.blstart || ur.uP.bootsize <= 0 || ur.uP.bootsize == flm->size-ur.blstart? 'o':
-    ur.uP.bootsize > flm->size-ur.blstart? 'O': '-');
+  urbootPutVersion(ur.desc, v16);
 
   ur.mcode = 0xff;
   if(ur.blstart) {
@@ -1485,7 +1508,7 @@ static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint
     Return("bootloader does not have flash read capability");
 
   if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
-    Return("bootloader does not %shave EEPROM r/w capability", ur.blurversion? "": "seem to ");
+    Return("bootloader does not %shave EEPROM access capability", ur.blurversion? "": "seem to ");
 
   if(len < 1 || len > max(ur.uP.pagesize, 256))
     Return("len %d exceeds range [1, %d]", len, max(ur.uP.pagesize, 256));
@@ -1874,7 +1897,9 @@ static int urclock_open(PROGRAMMER *pgm, const char *port) {
     usleep((80+ur.delay)*1000); // Wait until board comes out of reset
 
   // Drain any extraneous input
+#ifndef WIN32
   serial_drain_timeout = 80;    // ms
+#endif
   serial_drain(&pgm->fd, 0);
 
   if(urclock_getsync(pgm) < 0)
@@ -1906,7 +1931,7 @@ static int urclock_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
       return -2;
 
     if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
-      Return("bootloader does not %shave EEPROM r/w capability", ur.blurversion? "": "seem to ");
+      Return("bootloader does not %shave paged EEPROM write capability", ur.blurversion? "": "seem to ");
 
     n = addr + n_bytes;
 
@@ -1940,7 +1965,7 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       Return("bootloader does not have flash read capability");
 
     if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
-      Return("bootloader does not %shave EEPROM r/w capability", ur.blurversion? "": "seem to ");
+      Return("bootloader does not %shave paged EEPROM read capability", ur.blurversion? "": "seem to ");
 
     n = addr + n_bytes;
     for(; addr < n; addr += chunk) {
@@ -1960,14 +1985,14 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 int urclock_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char data) {
 
-  pmsg_error("bootloader does not implement bytewise write to %s \n", mem->desc);
+  pmsg_error("bootloader does not implement byte-wise write to %s \n", mem->desc);
   return -1;
 }
 
 int urclock_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char *value) {
 
-  // Bytewise read only valid for flash and eeprom
+  // Byte-wise read only valid for flash and eeprom
   int mchr = avr_mem_is_flash_type(mem)? 'F': 'E';
   if(mchr == 'E' && !avr_mem_is_eeprom_type(mem)) {
     if(!strcmp(mem->desc, "signature") && pgm->read_sig_bytes) {
