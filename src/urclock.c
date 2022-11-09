@@ -1397,6 +1397,7 @@ static int urclock_load_baddr(const PROGRAMMER *pgm, const AVRPART *p, char memc
   // For classic parts (think optiboot, avrisp) use word addr, otherwise byte addr (optiboot_x etc)
   int classic = !(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire));
   unsigned int addr = classic? baddr/2: baddr;
+  int effpgsiz = classic? ur.uP.pagesize/2: ur.uP.pagesize;
 
   // STK500 protocol: support flash > 64k words/bytes with the correct extended-address byte
   if(memchr == 'F' && ur.uP.flashsize > (classic? 128*1024: 64*1024)) {
@@ -1410,6 +1411,12 @@ static int urclock_load_baddr(const PROGRAMMER *pgm, const AVRPART *p, char memc
       urclock_cmd(pgm, buf, buf);
       ur.ext_addr_byte = ext_byte;
     }
+    /*
+     * Ensure next paged r/w will reload ext addr if page is just below a 64k boundary
+     * to iron out a bug in some bootloaders
+     */
+    if((addr & 0xffff0000) != ((addr+effpgsiz) & 0xffff0000))
+      ur.ext_addr_byte = 0xff;
   }
 
   buf[0] = Cmnd_STK_LOAD_ADDRESS;
