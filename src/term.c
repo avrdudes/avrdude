@@ -667,14 +667,14 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       if (rc == -1)
         imsg_error("%*swrite operation not supported on memory type %s\n", 8, "", mem->desc);
       werror = true;
-    }
-
-    uint8_t b;
-    rc = pgm->read_byte_cached(pgm, p, mem, addr+i, &b);
-    if (b != buf[i]) {
-      pmsg_error("(write) error writing 0x%02x at 0x%05lx cell=0x%02x\n", buf[i], (long) addr+i, b);
-      werror = true;
-    }
+    } else {
+      uint8_t b;
+      rc = pgm->read_byte_cached(pgm, p, mem, addr+i, &b);
+      if (b != buf[i]) {
+        pmsg_error("(write) verification error writing 0x%02x at 0x%05lx cell=0x%02x\n", buf[i], (long) addr+i, b);
+        werror = true;
+      }
+   }
 
     if (werror)
       pgm->err_led(pgm, ON);
