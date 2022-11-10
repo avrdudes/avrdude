@@ -485,23 +485,11 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, UPDATE *upd, enum updateflags
       pmsg_error("read from file %s failed\n", update_inname(upd->filename));
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
-    // Patch input if for flash, eg, for vector bootloaders?
-    if(pgm->flash_readhook) {
-      AVRMEM *mem = avr_locate_mem(p, upd->memtype);
-      if(mem && !strcmp(mem->desc, "flash")) {
-        rc = pgm->flash_readhook(pgm, p, mem, upd->filename, rc);
-        if (rc < 0) {
-          pmsg_notice("readhook for file %s failed\n", update_inname(upd->filename));
-          return LIBAVRDUDE_GENERAL_FAILURE;
-        }
-      }
-    }
 
-    size = rc;
     pmsg_info("reading input file %s for %s%s\n",
       update_inname(upd->filename), mem->desc, alias_mem_desc);
 
-    if(memstats(p, upd->memtype, size, &fs) < 0)
+    if(memstats(p, upd->memtype, rc, &fs) < 0)
       return LIBAVRDUDE_GENERAL_FAILURE;
 
     imsg_info("with %d byte%s in %d section%s within %s\n",
@@ -517,6 +505,25 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, UPDATE *upd, enum updateflags
           fs.ntrailing, update_plural(fs.ntrailing));
       msg_info("\n");
     }
+
+    // Patch input if for flash, eg, for vector bootloaders?
+    if(pgm->flash_readhook) {
+      AVRMEM *mem = avr_locate_mem(p, upd->memtype);
+      if(mem && !strcmp(mem->desc, "flash")) {
+        Filestats fs_patched;
+        rc = pgm->flash_readhook(pgm, p, mem, upd->filename, rc);
+        if (rc < 0) {
+          pmsg_notice("readhook for file %s failed\n", update_inname(upd->filename));
+          return LIBAVRDUDE_GENERAL_FAILURE;
+        }
+        if(memstats(p, upd->memtype, rc, &fs_patched) < 0)
+          return LIBAVRDUDE_GENERAL_FAILURE;
+        if(memcmp(&fs_patched, &fs, sizeof fs))
+          imsg_info("and patching flash input for device%s\n",
+            pgm->prog_modes & PM_SPM? " bootloader": "");
+      }
+    }
+    size = rc;
 
     // Write the buffer contents to the selected memory type
     pmsg_info("writing %d byte%s %s%s ...\n", fs.nbytes,
