@@ -1393,7 +1393,7 @@ int main(int argc, char * argv [])
     if (uflags & UF_NOWRITE) {
       pmsg_warning("conflicting -e and -n options specified, NOT erasing chip\n");
     } else {
-      msg_info("erasing chip\n");
+      pmsg_info("erasing chip\n");
       exitrc = avr_chip_erase(pgm, p);
       if(exitrc)
         goto main_exit;
