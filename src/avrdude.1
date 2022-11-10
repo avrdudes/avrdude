@@ -1219,12 +1219,12 @@ options, by filling the remainder of unused flash below the bootloader
 with 0xff. If this option is specified, the urclock programmer will assume
 that the bootloader cannot erase the chip itself. The option is useful
 for backwards-compatible bootloaders that do not implement chip erase.
-.It Ar forcetrim
+.It Ar restore
 Upload unchanged flash input files and trim below the bootloader if
 needed. This is most useful when one has a backup of the full flash and
 wants to play that back onto the device. No metadata are written in this
 case and no vector patching happens either if it is a vector bootloader.
-However, for vector bootloaders, even under the option -xforcetrim an
+However, for vector bootloaders, even under the option -xrestore an
 input file will not be uploaded for which the reset vector does not point
 to the vector bootloader. This is to avoid writing an input file to the
 device that would render the vector bootloader not functional as it would

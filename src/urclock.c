@@ -297,7 +297,7 @@ typedef struct {
       xemulate_ce,              //   ... for making avrdude emulate any chip erase
       initstore,                // Zap store when writing the application, ie, fill with 0xff
 //@@@ copystore,                // Copy over store as far as possible when writing the application
-      forcetrim,                // Force uploading of exactly this file, possibly trimming it
+      restore,                  // Restore a flash backup exactly as it is trimming the bootloader
       nofilename,               // Don't store application filename when writing the application
       nodate,                   // Don't store application filename and no date either
       nometadata,               // Don't store any metadata at all (implies no store support)
@@ -596,7 +596,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
     ur.yyyy, ur.mm, ur.dd, ur.hr, ur.mn, nmdata, ur.blstart > 0? flm->size-ur.blstart: 0);
 
   // Force upload of exactly this file, no patching, no metadata update, just trim if too big
-  if(ur.forcetrim) {
+  if(ur.restore) {
     if(size > maxsize)
       size = maxsize;
 
@@ -613,7 +613,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
 
   // Check size of uploded application and protect bootloader from being overwritten
   if(size > ur.blstart)
-    Return("input [0x%04x, 0x%04x] overlaps bootloader [0x%04x, 0x%04x], consider -xforcetrim",
+    Return("input [0x%04x, 0x%04x] overlaps bootloader [0x%04x, 0x%04x]",
       firstbeg, size-1, ur.blstart, flm->size-1);
 
   if(nmdata >= nmeta(0, ur.uP.flashsize) && size > ur.blstart - nmeta(0, ur.uP.flashsize))
@@ -859,10 +859,14 @@ nopatch_nometa:
       int resetdest;
 
       if(reset2addr(flm->buf, vecsz, flm->size, &resetdest) < 0)
-        Return("input overwrites the reset vector bricking the bootloader; use -F to patch input");
+        Return("input would overwrite the reset vector bricking the bootloader\n"
+          "%*susing -F will patch the input but this may not be what is needed",
+          (int) strlen(progname)+1, "");
+
       if(resetdest != ur.blstart)
-        Return("input points reset to 0x%04x, not to bootloader at 0x%04x; use -F to patch input",
-          resetdest, ur.blstart);
+        Return("input points reset to 0x%04x, not to bootloader at 0x%04x\n"
+          "%*susing -F will patch the input but this may not be what is needed",
+          resetdest, ur.blstart, (int) strlen(progname)+1, "");
     }
   }
 
@@ -2083,7 +2087,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     {"vectornum", &ur.xvectornum, ARG,    "Manual override for vector number"},
     {"eepromrw", &ur.xeepromrw, NA,       "Asssertion of bootloader EEPROM read/write capability"},
     {"emulate_ce", &ur.xemulate_ce, NA,   "Emulate chip erase"},
-    {"forcetrim", &ur.forcetrim, NA,      "Upload of unchanged files, trim it if needed"},
+    {"restore", &ur.restore, NA,          "Restore a flash backup as is trimming the bootloader"},
     {"initstore", &ur.initstore, NA,      "Fill store with 0xff on writing to flash"},
     //@@@  {"copystore", &ur.copystore, NA, "Copy over store on writing to flash"},
     {"nofilename", &ur.nofilename, NA,    "Do not store filename on writing to flash"},
