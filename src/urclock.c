@@ -757,55 +757,8 @@ nopatch_nometa:
     ur.emulate_ce = 0;
   }
 
-  if(!ur.done_ce) {             // Unless chip erase was just issued (where all mem is 0xff)
-    if((ur.urprotocol && !(ur.urfeatures & UB_FLASH_LL_NOR)) ||
-       ur.bloptiversion ||
-      (ur.blurversion && ur.blurversion < 076)) {
 
-      int ai, addr, nset;
-
-      // Scan the memory for pages with unset bytes and read these bytes from current chip flash
-      uint8_t spc[2048];
-
-      for(addr = 0; addr < maxsize; addr += ur.uP.pagesize) {
-        // How many bytes are set in this page?
-        for(ai = addr, nset = 0; ai < addr + ur.uP.pagesize; ai++)
-          if(flm->tags[ai] & TAG_ALLOCATED)
-            nset++;
-
-        // Holes in this page that needs writing? read them in from the chip
-        if(nset && nset != ur.uP.pagesize) {
-          // Identify a covering interval for all holes in page
-          int istart, isize;
-
-          // Lowest address with unset byte
-          for(ai = addr; flm->tags[ai] & TAG_ALLOCATED; ai++)
-            continue;
-          istart = ai;
-
-          // Highest address with unset byte
-          for(ai = addr + ur.uP.pagesize - 1; flm->tags[ai] & TAG_ALLOCATED; ai--)
-            continue;
-          isize = ai - istart + 1;
-
-          if(isize < 1 || isize > (int) sizeof spc) // Should not happen
-            Return("isize=%d out of range (enlarge spc[] and recompile)", isize);
-
-          if(ur_readEF(pgm, p, spc, istart, isize, 'F') == 0) {
-            for(ai = istart; ai < istart + isize; ai++)
-              if(!(flm->tags[ai] & TAG_ALLOCATED))
-                flm->buf[ai] = spc[ai-istart];
-          } else {
-            pmsg_notice2("cannot read flash [0x%04x, 0x%04x] to pad page bytes\n",
-              istart, istart+isize-1);
-          }
-        }
-      }
-    }
-  }
-  ur.done_ce = 0;               // From now on can no longer rely on being deleted
-
-  // Last, but not least: ensure that vector bootloaders have correct r/jmp at address 0
+  // Ensure that vector bootloaders have correct r/jmp at address 0
   if(ur.blstart && ur.vbllevel==1) {
     int rc, set=0;
     for(int i=0; i < vecsz; i++)
@@ -829,24 +782,10 @@ nopatch_nometa:
         if((rc = ur_readEF(pgm, p, device, 0, vecsz, 'F')) < 0)
           return rc;
 
-        int changed = 0;
         for(int i=0; i < vecsz; i++) {
           if((flm->tags[i] & TAG_ALLOCATED? flm->buf[i]: device[i]) != jmptoboot[i]) {
             flm->buf[i] = jmptoboot[i];
             flm->tags[i] |= TAG_ALLOCATED;
-            changed = 1;
-          }
-        }
-        // If reset vector patched, ensure to fill in the holes in rest of page
-        if(changed && flm->page_size > vecsz && flm->page_size <= sizeof device) {
-          pmsg_warning("patching reset vector to protect vector bootloader\n");
-          if((rc = ur_readEF(pgm, p, device+vecsz, vecsz, flm->page_size - vecsz, 'F')) < 0)
-            return rc;
-          for(int i=vecsz; i < flm->page_size; i++) {
-            if(!(flm->tags[i] & TAG_ALLOCATED)) {
-              flm->buf[i] = jmptoboot[i];
-              flm->tags[i] |= TAG_ALLOCATED;
-            }
           }
         }
       } else {                  // Flash not readable: patch reset vector
@@ -869,6 +808,88 @@ nopatch_nometa:
           resetdest, ur.blstart, (int) strlen(progname)+1, "");
     }
   }
+
+  // Effective page size, can be 4*pagesize for 4-page erase parts
+  int pgsize = p->n_page_erase > 0? p->n_page_erase*ur.uP.pagesize: ur.uP.pagesize;
+  if((pgsize & (pgsize-1)) || pgsize < 1 || pgsize > maxsize || maxsize % pgsize)
+    Return("effective page size %d implausible for size %d below bootloader", pgsize, maxsize);
+
+  if(!ur.done_ce) {             // Unless chip erase was just issued (where all mem is 0xff)
+    if((ur.urprotocol && !(ur.urfeatures & UB_FLASH_LL_NOR)) || !ur.urprotocol) {
+      // Scan the memory for eff pages with unset bytes and read these bytes from device flash
+      int ai, npe, addr, nset;
+
+      uint8_t spc[2048];
+
+      for(addr = 0; addr < maxsize; addr += pgsize) {
+        // How many bytes are set in this effective page?
+        for(ai = addr, nset = 0; ai < addr + pgsize; ai++)
+          if(flm->tags[ai] & TAG_ALLOCATED)
+            nset++;
+
+        // Holes in this page that needs writing? read them in from the chip
+        if(nset && nset != pgsize) {
+          for(npe=0; npe < pgsize/ur.uP.pagesize; npe++) {
+            // Identify a covering interval for all holes in page
+            int istart, isize, beg, end;
+
+            beg = addr + npe*ur.uP.pagesize;
+            end = beg + ur.uP.pagesize;
+
+            // Lowest address with unset byte (there might be none)
+            for(ai = beg; ai < end; ai++)
+              if(!(flm->tags[ai] & TAG_ALLOCATED))
+                break;
+            istart = ai;
+
+            if(istart < end) {
+              // Highest address with unset byte
+              for(ai = end - 1; ai >= istart; ai--)
+                if(!(flm->tags[ai] & TAG_ALLOCATED))
+                  break;
+              isize = ai - istart + 1;
+
+              if(isize < 1 || isize > (int) sizeof spc) // Should not happen
+                Return("isize=%d out of range (enlarge spc[] and recompile)", isize);
+
+              if(ur_readEF(pgm, p, spc, istart, isize, 'F') == 0) {
+                pmsg_debug("padding [0x%04x, 0x%04x]\n", istart, istart+isize-1);
+
+                for(ai = istart; ai < istart + isize; ai++)
+                  if(!(flm->tags[ai] & TAG_ALLOCATED)) {
+                    flm->tags[ai] |= TAG_ALLOCATED;
+                    flm->buf[ai] = spc[ai-istart];
+                  }
+              } else {
+                pmsg_notice2("cannot read flash [0x%04x, 0x%04x] to pad page bytes\n",
+                  istart, istart+isize-1);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  ur.done_ce = 0;               // From now on can no longer rely on being deleted
+
+  // Fill remaining holes (chip was erased, could not be read or memory looks like NOR memory)
+  int ai, addr, nset;
+
+  for(addr = 0; addr < maxsize; addr += pgsize) {
+    for(ai = addr, nset = 0; ai < addr + pgsize; ai++)
+      if(flm->tags[ai] & TAG_ALLOCATED)
+        nset++;
+
+    if(nset && nset != pgsize) { // Page has holes: fill them
+      pmsg_debug("0xff padding page addr 0x%04d\n", addr);
+      for(ai = addr, nset = 0; ai < addr + pgsize; ai++)
+        if(!(flm->tags[ai] & TAG_ALLOCATED)) {
+          flm->tags[ai] |= TAG_ALLOCATED;
+          flm->buf[ai] = 0xff;
+        }
+    }
+  }
+
 
   return size;
 }
