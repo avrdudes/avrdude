@@ -431,7 +431,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, UPDATE *upd, enum updateflags
   AVRMEM *mem;
   int size;
   int rc;
-  Filestats fs;
+  Filestats fs, fs_patched;
 
   mem = avr_locate_mem(p, upd->memtype);
   if (mem == NULL) {
@@ -506,11 +506,10 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, UPDATE *upd, enum updateflags
       msg_info("\n");
     }
 
-    // Patch input if for flash, eg, for vector bootloaders?
+    // Patch flash input, eg, for vector bootloaders
     if(pgm->flash_readhook) {
       AVRMEM *mem = avr_locate_mem(p, upd->memtype);
       if(mem && !strcmp(mem->desc, "flash")) {
-        Filestats fs_patched;
         rc = pgm->flash_readhook(pgm, p, mem, upd->filename, rc);
         if (rc < 0) {
           pmsg_notice("readhook for file %s failed\n", update_inname(upd->filename));
@@ -518,9 +517,23 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, UPDATE *upd, enum updateflags
         }
         if(memstats(p, upd->memtype, rc, &fs_patched) < 0)
           return LIBAVRDUDE_GENERAL_FAILURE;
-        if(memcmp(&fs_patched, &fs, sizeof fs))
-          imsg_info("and patching flash input for device%s\n",
+        if(memcmp(&fs_patched, &fs, sizeof fs)) {
+          pmsg_info("preparing flash input for device%s\n",
             pgm->prog_modes & PM_SPM? " bootloader": "");
+            imsg_notice2("with %d byte%s in %d section%s within %s\n",
+              fs_patched.nbytes, update_plural(fs_patched.nbytes),
+              fs_patched.nsections, update_plural(fs_patched.nsections),
+              update_interval(fs_patched.firstaddr, fs_patched.lastaddr));
+            if(mem->page_size > 1) {
+              imsg_notice2("using %d page%s and %d pad byte%s",
+                fs_patched.npages, update_plural(fs_patched.npages),
+                fs_patched.nfill, update_plural(fs_patched.nfill));
+              if(fs_patched.ntrailing)
+                msg_notice2(", and %d trailing 0xff byte%s",
+                  fs_patched.ntrailing, update_plural(fs_patched.ntrailing));
+              msg_notice2("\n");
+            }
+        }
       }
     }
     size = rc;
