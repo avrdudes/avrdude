@@ -948,6 +948,8 @@ static int stk500v2_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   memset(buf+3, 0, 4);
   avr_set_bits(p->op[AVR_OP_CHIP_ERASE], buf+3);
   result = stk500v2_command(pgm, buf, 7, sizeof(buf));
+  usleep(p->chip_erase_delay);
+  pgm->initialize(pgm, p);
 
   pgm->pgm_led(pgm, OFF);
 
