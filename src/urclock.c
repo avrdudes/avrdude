@@ -1380,25 +1380,25 @@ vblvecfound:
     term_out("%0*lx", 2*ur.idlen, urclockID), first=0;
   }
   if(ur.showdate || ur.showall)
-    term_out(" %04d-%02d-%02d %02d.%02d"+first, ur.yyyy, ur.mm, ur.dd, ur.hr, ur.mn), first=0;
+    term_out(&" %04d-%02d-%02d %02d.%02d"[first], ur.yyyy, ur.mm, ur.dd, ur.hr, ur.mn), first=0;
   if(ur.showfilename || ur.showall)
-    term_out(" %s"+first, *ur.filename? ur.filename: ""), first=0;
+    term_out(&" %s"[first], *ur.filename? ur.filename: ""), first=0;
   if(ur.showapp || ur.showall)
-    term_out(" %s%d"+first, single || *ur.filename? "": "application ", ur.storestart), first=0;
+    term_out(&" %s%d"[first], single || *ur.filename? "": "application ", ur.storestart), first=0;
   if(ur.showstore || ur.showall)
-    term_out(" %s%d"+first, single? "": "store ", ur.storesize), first=0;
+    term_out(&" %s%d"[first], single? "": "store ", ur.storesize), first=0;
   if(ur.showmeta || ur.showall)
-    term_out(" %s%d"+first, single? "": "meta ", nmeta(ur.mcode, ur.uP.flashsize)), first=0;
+    term_out(&" %s%d"[first], single? "": "meta ", nmeta(ur.mcode, ur.uP.flashsize)), first=0;
   if(ur.showboot || ur.showall)
-    term_out(" %s%d"+first, single? "": "boot ", ur.blstart? flm->size-ur.blstart: 0), first=0;
+    term_out(&" %s%d"[first], single? "": "boot ", ur.blstart? flm->size-ur.blstart: 0), first=0;
   if(ur.showversion || ur.showall)
-    term_out(" %s"+first, ur.desc+(*ur.desc==' ')), first=0;
+    term_out(&" %s"[first], ur.desc+(*ur.desc==' ')), first=0;
   if(ur.showvector || ur.showall) {
     int vnum = ur.vbllevel? ur.vblvectornum & 0x7f: 0;
-    term_out(" vector %d (%s)"+first, vnum, vblvecname(pgm, vnum)), first=0;
+    term_out(&" vector %d (%s)"[first], vnum, vblvecname(pgm, vnum)), first=0;
   }
   if(ur.showall || ur.showpart)
-    term_out(" %s"+first, ur.uP.name);
+    term_out(&" %s"[first], ur.uP.name);
   if(!first) {
     term_out("\n");
     exit(0);
