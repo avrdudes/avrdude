@@ -907,6 +907,8 @@ static void jtagmkII_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
   sendbuf.dd.ucSPMCRAddress = p->spmcr;
   sendbuf.dd.ucRAMPZAddress = p->rampz;
   sendbuf.dd.ucIDRAddress = p->idr;
+  sendbuf.dd.uiStartSmallestBootLoaderSection[0] = 0x00; // Valid for the m328p
+  sendbuf.dd.uiStartSmallestBootLoaderSection[1] = 0x3F;
   u16_to_b2(sendbuf.dd.EECRAddress, p->eecr? p->eecr: 0x3f); // Unset eecr means 0x3f
   sendbuf.dd.ucAllowFullPageBitstream =
     (p->flags & AVRPART_ALLOWFULLPAGEBITSTREAM) != 0;
