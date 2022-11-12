@@ -219,8 +219,8 @@
 #include "urclock.h"
 #include "urclock_private.h"
 
-#define max(a, b) ((a) > (b)? (a): (b))
-#define min(a, b) ((a) < (b)? (a): (b))
+#define urmax(a, b) ((a) > (b)? (a): (b))
+#define urmin(a, b) ((a) < (b)? (a): (b))
 
 static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p);
 static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint32_t addr, int len,
@@ -1161,9 +1161,9 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
     if(ur.xbootsize % ur.uP.pagesize)
       Return("-xbootsize=%d size not a multiple of flash page size %d",
         ur.xbootsize, ur.uP.pagesize);
-    if(ur.xbootsize < 64 || ur.xbootsize > min(2048, ur.uP.flashsize/4))
+    if(ur.xbootsize < 64 || ur.xbootsize > urmin(2048, ur.uP.flashsize/4))
       Return("implausible -xbootsize=%d, should be in [64, %d]",
-        ur.xbootsize, min(2048, ur.uP.flashsize/4));
+        ur.xbootsize, urmin(2048, ur.uP.flashsize/4));
     ur.blstart = ur.uP.flashsize - ur.xbootsize;
   }
 
@@ -1549,16 +1549,16 @@ static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint
   if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
     Return("bootloader does not %shave EEPROM access capability", ur.blurversion? "": "seem to ");
 
-  if(len < 1 || len > max(ur.uP.pagesize, 256))
-    Return("len %d exceeds range [1, %d]", len, max(ur.uP.pagesize, 256));
+  if(len < 1 || len > urmax(ur.uP.pagesize, 256))
+    Return("len %d exceeds range [1, %d]", len, urmax(ur.uP.pagesize, 256));
 
   // Odd byte address under word-address protocol for "classic" parts (optiboot, avrisp etc)
   int odd = !ur.urprotocol && classic && (badd&1);
   if(odd) {                     // Need to read one extra byte
     len++;
     badd &= ~1;
-    if(len > max(ur.uP.pagesize, 256))
-      Return("len+1 = %d odd address exceeds range [1, %d]", len, max(ur.uP.pagesize, 256));
+    if(len > urmax(ur.uP.pagesize, 256))
+      Return("len+1 = %d odd address exceeds range [1, %d]", len, urmax(ur.uP.pagesize, 256));
   }
 
   if(urclock_paged_rdwr(pgm, p, Cmnd_STK_READ_PAGE, badd, len, mchr, NULL) < 0)
@@ -2104,9 +2104,9 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     {"showvector", &ur.showvector, NA,    "Show vector bootloader vector # and name and exit"},
     {"id", NULL, sizeof ur.iddesc, ur.iddesc, 1, "Location of Urclock ID, eg, F.12345.6"},
     {"title", NULL, sizeof ur.title, ur.title, 1, "Title stored and shown in lieu of a filename"},
-    {"bootsize", &ur.xbootsize, ARG,      "Manual override for bootloader size"},
-    {"vectornum", &ur.xvectornum, ARG,    "Manual override for vector number"},
-    {"eepromrw", &ur.xeepromrw, NA,       "Asssertion of bootloader EEPROM read/write capability"},
+    {"bootsize", &ur.xbootsize, ARG,      "Override/set bootloader size"},
+    {"vectornum", &ur.xvectornum, ARG,    "Treat bootloader as vector b/loader using this vector"},
+    {"eepromrw", &ur.xeepromrw, NA,       "Assert bootloader EEPROM read/write capability"},
     {"emulate_ce", &ur.xemulate_ce, NA,   "Emulate chip erase"},
     {"restore", &ur.restore, NA,          "Restore a flash backup as is trimming the bootloader"},
     {"initstore", &ur.initstore, NA,      "Fill store with 0xff on writing to flash"},
@@ -2175,7 +2175,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     msg_error("%s -c %s extended options:\n", progname, (char *) ldata(lfirst(pgm->id)));
     for(size_t i=0; i<sizeof options/sizeof*options; i++) {
       msg_error("  -x%s%s%*s%s\n", options[i].name, options[i].assign? "=<arg>": "",
-        max(0, 16-(long) strlen(options[i].name)-(options[i].assign? 6: 0)), "", options[i].help);
+        urmax(0, 16-(long) strlen(options[i].name)-(options[i].assign? 6: 0)), "", options[i].help);
     }
     if(rc == 0)
       exit(0);
@@ -2235,4 +2235,10 @@ void urclock_initpgm(PROGRAMMER *pgm) {
   pgm->flash_readhook = urclock_flash_readhook;
 
   disable_trailing_ff_removal();
+#if defined(HAVE_LIBREADLINE)
+  pmsg_notice2("libreadline is used; avrdude -t -c urclock should work");
+#else
+  pmsg_warning("compiled without readline library, cannot use avrdude -t -c urclock");
+#endif
+
 }
