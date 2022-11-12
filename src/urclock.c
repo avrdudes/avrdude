@@ -1682,7 +1682,7 @@ static int urclock_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
 
   rv = serial_recv(&pgm->fd, buf, len);
   if(rv < 0) {
-    pmsg_error("programmer is not responding\n");
+    pmsg_warning("programmer is not responding%s\n", ur.uP.name? "": "; try, eg, -xdelay=200");
     return -1;
   }
 
