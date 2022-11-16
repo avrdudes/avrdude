@@ -37,6 +37,9 @@
 #ifndef EM_AVR32
 #  define EM_AVR32 0x18ad         /* unofficial */
 #endif
+#ifndef EM_AVR
+#  define EM_AVR 83               /* OpenBSD lacks it */
+#endif
 #endif
 
 #include "avrdude.h"
