@@ -1152,9 +1152,9 @@ static void dev_pgm_raw(const PROGRAMMER *pgm) {
     dev_raw_dump(dp.usbproduct, strlen(dp.usbproduct)+1, id, "usbprod", 0);
 
   // Zap all bytes beyond terminating nul of desc, type and port array
-  if((len = strlen(dp.type)+1) < sizeof dp.type)
+  if((len = (int) strlen(dp.type)+1) < (int) sizeof dp.type)
     memset(dp.type + len, 0, sizeof dp.type - len);
-  if((len = strlen(dp.port)+1) < sizeof dp.port)
+  if((len = (int) strlen(dp.port)+1) < (int) sizeof dp.port)
     memset(dp.port + len, 0, sizeof dp.port - len);
 
   // Zap address values

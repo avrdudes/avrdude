@@ -1569,7 +1569,7 @@ static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint
   int classic = !(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire));
 
   pmsg_debug("ur_readEF(%s, %s, %s, %p, 0x%06x, %d, %c)\n",
-    pgm? ldata(lfirst(pgm->id)): "?", p->desc, mchr=='F'? "flash": "eeprom", buf, badd, len, mchr);
+    (char *) ldata(lfirst(pgm->id)), p->desc, mchr=='F'? "flash": "eeprom", buf, badd, len, mchr);
 
   if(mchr == 'F' && ur.urprotocol && !(ur.urfeatures & UB_READ_FLASH))
     Return("bootloader does not have flash read capability");
@@ -2098,8 +2098,8 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 }
 
 
-int urclock_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
-  unsigned long addr, unsigned char data) {
+int urclock_write_byte(const PROGRAMMER *pgm_uu, const AVRPART *p_uu, const AVRMEM *mem,
+  unsigned long addr_uu, unsigned char data_uu) {
 
   pmsg_error("bootloader does not implement byte-wise write to %s \n", mem->desc);
   return -1;
@@ -2155,7 +2155,7 @@ static void urclock_display(const PROGRAMMER *pgm, const char *p_unused) {
 
 
 // Return whether an address is write protected
-static int urclock_readonly(const struct programmer_t *pgm, const AVRPART *p,
+static int urclock_readonly(const struct programmer_t *pgm, const AVRPART *p_unused,
   const AVRMEM *mem, unsigned int addr) {
 
   if(avr_mem_is_flash_type(mem)) {
@@ -2268,7 +2268,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     msg_error("%s -c %s extended options:\n", progname, (char *) ldata(lfirst(pgm->id)));
     for(size_t i=0; i<sizeof options/sizeof*options; i++) {
       msg_error("  -x%s%s%*s%s\n", options[i].name, options[i].assign? "=<arg>": "",
-        urmax(0, 16-(long) strlen(options[i].name)-(options[i].assign? 6: 0)), "", options[i].help);
+        urmax(0, 16-(int) strlen(options[i].name)-(options[i].assign? 6: 0)), "", options[i].help);
     }
     if(rc == 0)
       exit(0);

@@ -185,7 +185,7 @@ static int chardump_line(char *buffer, unsigned char *p, int n, int pad) {
   unsigned char b[128];
 
   // Sanity check
-  n = n < 1? 1: n > sizeof b? sizeof b: n;
+  n = n < 1? 1: n > (int) sizeof b? (int) sizeof b: n;
 
   memcpy(b, p, n);
   for (int i = 0; i < n; i++)
