@@ -256,6 +256,8 @@ typedef struct {
   bool emulate_ce;              // Emulate chip erase when bootloader cannot and user wants it
   bool done_ce;                 // Set when flash of chip has been erased after first write
 
+  int sync_silence;             // Temporarily set during start of synchronisation
+
   // Info needed about bootloader to patch, if needed, the reset vector and one other vector
   int vblvectornum,             // Vector bootloader vector number for jump to application op code
       vbllevel,                 // 0=n/a, 1=patch externally, 2=bl patches, 3=bl patches & verifies
@@ -928,8 +930,8 @@ static void urbootPutVersion(char *buf, uint16_t ver, uint16_t rjmpwp) {
     *buf++ = flags==3? 'V': flags==2? 'v': flags? 'j': 'h';
     *buf++ = type & UR_PROTECTME? 'p': '-';
     *buf++ = (hi < 077 && (type & UR_RESETFLAGS)) || hi >= 077? 'r': '-';
-    *buf++ = hi >= 077 && (type & UR_AUTOBAUD)? 'a': '-'; // - means no
-    *buf++ = hi >= 077 && (type & UR_HAS_CE)? 'c': '.';   // . means don't know
+    *buf++ = hi >= 077 && (type & UR_AUTOBAUD)? 'a': '-';                 // - means no
+    *buf++ = hi >= 077 && (type & UR_HAS_CE)? 'c': hi >= 077? '-': '.';   // . means don't know
     *buf = 0;
   } else if(hi)                 // Version number in binary from optiboot v4.1
     sprintf(buf, "o%d.%d -?s-?-r--", hi, type);
@@ -1708,7 +1710,8 @@ static int urclock_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
 
   rv = serial_recv(&pgm->fd, buf, len);
   if(rv < 0) {
-    pmsg_warning("programmer is not responding%s\n", ur.uP.name? "": "; try, eg, -xdelay=200");
+    if(!ur.sync_silence)
+      pmsg_warning("programmer is not responding%s\n", ur.uP.name? "": "; try, eg, -xdelay=200");
     return -1;
   }
 
@@ -1716,8 +1719,7 @@ static int urclock_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
 }
 
 
-
-#define MAX_SYNC_ATTEMPTS 20
+#define MAX_SYNC_ATTEMPTS 23
 
 /*
  * The modified protocol makes stk_insync and stk_ok responses variable but fixed for a single
@@ -1730,7 +1732,13 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
   int attempt;
 
   // Reduce timeout for establishing comms
-  serial_recv_timeout = 100;    // ms
+  serial_recv_timeout = 80;     // ms
+
+  ur.sync_silence = 1;
+  iob[0] = Cmnd_STK_GET_SYNC;   // Initial sync for autobaud - drain response
+  iob[1] = Sync_CRC_EOP;
+  urclock_send(pgm, iob, 2);
+  serial_drain(&pgm->fd, 0);
 
   for(attempt = 0; attempt < MAX_SYNC_ATTEMPTS; attempt++) {
     iob[0] = Cmnd_STK_GET_SYNC;
@@ -1746,9 +1754,12 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
       } else
         break;
     }
-    if(attempt > 1)             // Don't report first two attempts
-      pmsg_warning("attempt %d of %d: not in sync\n", attempt + 1, MAX_SYNC_ATTEMPTS);
+    if(attempt > 2) {           // Don't report first three attempts
+      ur.sync_silence = 0;
+      pmsg_warning("attempt %d of %d: not in sync\n", attempt - 2, MAX_SYNC_ATTEMPTS-3);
+    }
   }
+  ur.sync_silence = 0;
 
   serial_recv_timeout = 500;    // ms
 
