@@ -230,6 +230,9 @@ static int urclock_send(const PROGRAMMER *pgm, unsigned char *buf, size_t len);
 static int urclock_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len);
 static int urclock_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res);
 
+static int urclock_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+  unsigned int page_size, unsigned int addr, unsigned int n_bytes);
+
 
 // Context of the programmer
 typedef struct {
@@ -569,6 +572,15 @@ static int reset2addr(const unsigned char *opcode, int vecsz, int flashsize, int
 }
 
 
+// What reset *should* look like for vector bootloaders
+static void set_reset(const PROGRAMMER *pgm, unsigned char *jmptoboot, int vecsz) {
+  if(vecsz == 4)
+    uint32tobuf(jmptoboot, jmp_opcode(ur.blstart));
+  else
+    uint16tobuf(jmptoboot, rjmp_opcode(ur.blstart - 0, ur.uP.flashsize));
+}
+
+
 // Called after the input file has been read for writing or verifying flash
 static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *flm,
   const char *fname, int size) {
@@ -768,12 +780,7 @@ nopatch_nometa:
     // Reset vector not programmed? Or -F? Ensure a jmp to bootloader
     if(ovsigck || set != vecsz) {
       unsigned char jmptoboot[4];
-
-      // What reset *should* look like
-      if(vecsz == 4)
-        uint32tobuf(jmptoboot, jmp_opcode(ur.blstart));
-      else
-        uint16tobuf(jmptoboot, rjmp_opcode(ur.blstart - 0, ur.uP.flashsize));
+      set_reset(pgm, jmptoboot, vecsz);
 
       if(!ur.urprotocol || (ur.urfeatures & UB_READ_FLASH)) { // Flash readable?
         unsigned char device[2048];
@@ -1457,7 +1464,7 @@ static int urclock_load_baddr(const PROGRAMMER *pgm, const AVRPART *p, char memc
 
 
 /*
- * Send a paged cmd
+ * Send a paged cmd to device
  *  - rwop is Cmnd_STK_READ/PROG_PAGE
  *  - badd is the byte address, len the length of data
  *  - mchr is 'F' (flash) or 'E' (EEPROM)
@@ -1473,8 +1480,25 @@ static int urclock_paged_rdwr(const PROGRAMMER *pgm, const AVRPART *part, char r
   if(!ur.urprotocol && urclock_load_baddr(pgm, part, mchr, badd) < 0)
       return -1;
 
-  if(mchr == 'F' && rwop == Cmnd_STK_PROG_PAGE && len != ur.uP.pagesize)
-    Return("len %d must be page size %d for paged flash writes", len, ur.uP.pagesize);
+  if(mchr == 'F' && rwop == Cmnd_STK_PROG_PAGE) {
+    if(len != ur.uP.pagesize)
+      Return("len %d must be page size %d for paged flash writes", len, ur.uP.pagesize);
+
+    int vecsz = ur.uP.flashsize <= 8192? 2: 4;
+    if(badd < (unsigned int) vecsz) { // Ensure reset vector points to bl
+      if(ur.blstart && ur.vbllevel==1) {
+        unsigned char jmptoboot[4];
+        int n = urmin((unsigned int) vecsz - badd, (unsigned int) len);
+
+        set_reset(pgm, jmptoboot, vecsz);
+
+        if(memcmp(payload, jmptoboot+badd, n)) {
+          memcpy(payload, jmptoboot+badd, n);
+          pmsg_info("forcing reset vector to point to vector bootloader\n");
+        }
+      }
+    }
+  }
 
   if(ur.urprotocol) {
     uint8_t *q = buf, op =
@@ -1816,20 +1840,23 @@ static int urclock_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 
 
 // Either emulate chip erase or send appropriate command to bootloader
-static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p_unused) {
+static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char buf[16];
   long bak_timeout = serial_recv_timeout;
 
   // Set timeout to 20 ms per page as chip erase may take a long time
   serial_recv_timeout = ur.uP.pagesize > 2? 500 + ur.uP.flashsize/ur.uP.pagesize * 20: 20000;
 
+  int emulated = 0;
+
   if(ur.xemulate_ce ||
     (ur.urprotocol && !(ur.urfeatures & UB_CHIP_ERASE)) ||
     ur.bloptiversion || (ur.blurversion && ur.blurversion < 076)) {
 
-    pmsg_notice2("emulating chip erase\n");
+    pmsg_info("delaying chip erase to first -U upload to flash\n");
     // Bootloader does not implement chip erase: don't send command to bootloader
     ur.emulate_ce = 1;
+    emulated = 1;
 
   } else if(ur.urprotocol) {    // Urprotocol uses chip erase command directly
     pmsg_notice2("chip erase via urprotocol\n");
@@ -1863,6 +1890,24 @@ static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p_unused) {
 
   serial_recv_timeout = bak_timeout;
   ur.done_ce = 1;
+
+  if(!emulated) {               // Write jump to boot section to reset vector
+    if(ur.blstart && ur.vbllevel==1) {
+      AVRMEM *flm = avr_locate_mem(p, "flash");
+      int vecsz = ur.uP.flashsize <= 8192? 2: 4;
+      if(flm && flm->page_size >= vecsz) {
+        unsigned char *page = cfg_malloc(__func__, flm->page_size);
+        memset(page, 0xff, flm->page_size);
+        set_reset(pgm, page, vecsz);
+        if(avr_write_page_default(pgm, p, flm, 0, page) < 0) {
+          free(page);
+          return -1;
+        }
+        free(page);
+      }
+    }
+  }
+
   return 0;
 }
 
@@ -2016,6 +2061,23 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
         return -3;
       if(urclock_res_check(pgm, __func__, 0, &m->buf[addr], chunk) < 0)
         return -4;
+
+      if(addr == 0 && mchr == 'F') { // Ensure reset vector points to bl
+        int vecsz = ur.uP.flashsize <= 8192? 2: 4;
+        if(chunk >= vecsz && ur.blstart && ur.vbllevel==1) {
+          unsigned char jmptoboot[4];
+          set_reset(pgm, jmptoboot, vecsz);
+
+          if(memcmp(&m->buf[addr], jmptoboot, vecsz)) {
+            memcpy(&m->buf[addr], jmptoboot, vecsz);
+            pmsg_info("en passant forcing reset vector to point to vector bootloader\n");
+            if(urclock_paged_rdwr(pgm, p, Cmnd_STK_PROG_PAGE, 0, chunk, mchr, (char *) &m->buf[addr]) < 0)
+              return -5;
+            if(urclock_res_check(pgm, __func__, 0, NULL, 0) < 0)
+              return -6;
+          }
+        }
+      }
     }
   }
 
@@ -2078,6 +2140,24 @@ static void urclock_display(const PROGRAMMER *pgm, const char *p_unused) {
 
 // End of STK500 section
 
+
+// Return whether an address is write protected
+static int urclock_readonly(const struct programmer_t *pgm, const AVRPART *p,
+  const AVRMEM *mem, unsigned int addr) {
+
+  if(avr_mem_is_flash_type(mem)) {
+    if(ur.blstart) {
+      if(addr >= (unsigned int) ur.blstart)
+        return 1;
+      if(ur.vbllevel)
+       if(addr < (unsigned int) (ur.uP.flashsize <= 8192? 2: 4))
+         return 1;
+    }
+  } else if(!avr_mem_is_eeprom_type(mem))
+    return 1;
+
+  return 0;
+}
 
 static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
   int help = 0;
@@ -2232,6 +2312,7 @@ void urclock_initpgm(PROGRAMMER *pgm) {
   pgm->teardown = urclock_teardown;
   pgm->parseextparams = urclock_parseextparms;
   pgm->term_keep_alive = urclock_term_keep_alive;
+  pgm->readonly = urclock_readonly;
   pgm->flash_readhook = urclock_flash_readhook;
 
   disable_trailing_ff_removal();

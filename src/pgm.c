@@ -154,6 +154,7 @@ PROGRAMMER *pgm_new(void) {
   pgm->parseextparams = NULL;
   pgm->setup          = NULL;
   pgm->teardown       = NULL;
+  pgm->readonly       = NULL;
   pgm->flash_readhook = NULL;
 
   // For allocating "global" memory by the programmer

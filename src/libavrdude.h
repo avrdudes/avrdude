@@ -808,6 +808,8 @@ typedef struct programmer_t {
   int (*chip_erase_cached)(const struct programmer_t *pgm, const AVRPART *p);
   int (*page_erase_cached)(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
                           unsigned int baseaddr);
+  int (*readonly)        (const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
+                          unsigned int addr);
   int (*flush_cache)     (const struct programmer_t *pgm, const AVRPART *p);
   int (*reset_cache)     (const struct programmer_t *pgm, const AVRPART *p);
   AVR_Cache *cp_flash, *cp_eeprom;

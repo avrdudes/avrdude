@@ -662,7 +662,9 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   report_progress(0, 1, avr_has_paged_access(pgm, mem)? "Caching": "Writing");
   for (i = 0; i < len + data.bytes_grown; i++) {
     int rc = pgm->write_byte_cached(pgm, p, mem, addr+i, buf[i]);
-    if (rc) {
+    if (rc == LIBAVRDUDE_SOFTFAIL) {
+      pmsg_warning("(write) programmer write protects %s address 0x%04x\n", mem->desc, addr+i);
+    } else if(rc) {
       pmsg_error("(write) error writing 0x%02x at 0x%05lx, rc=%d\n", buf[i], (long) addr+i, (int) rc);
       if (rc == -1)
         imsg_error("%*swrite operation not supported on memory type %s\n", 8, "", mem->desc);
