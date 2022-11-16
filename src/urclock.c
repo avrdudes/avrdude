@@ -902,8 +902,8 @@ nopatch_nometa:
 }
 
 
-// Put version string into a buffer of max 17 characters incl nul (normally 13-14 bytes incl nul)
-static void urbootPutVersion(char *buf, uint16_t ver) {
+// Put version string into a buffer of max 19 characters incl nul (normally 15-16 bytes incl nul)
+static void urbootPutVersion(char *buf, uint16_t ver, uint16_t rjmpwp) {
   uint8_t hi = ver>>8, type = ver & 0xff, flags;
 
   if(ver == 0xffff)             // Unknown provenance
@@ -912,7 +912,7 @@ static void urbootPutVersion(char *buf, uint16_t ver) {
   if(hi >= 072) {               // These are urboot versions
     sprintf(buf, "u%d.%d ", hi>>3, hi&7);
     buf += strlen(buf);
-    *buf++ = type & UR_PGMWRITEPAGE? 'w': '-';
+    *buf++ = (hi < 077 && (type & UR_PGMWRITEPAGE)) || (hi >= 077 && rjmpwp != ret_opcode)? 'w': '-';
     *buf++ = type & UR_EEPROM? 'e': '-';
     if(hi >= 076) {             // From urboot version 7.6 URPROTOCOL has its own bit
       *buf++ = type & UR_URPROTOCOL? 'u': 's';
@@ -927,12 +927,14 @@ static void urbootPutVersion(char *buf, uint16_t ver) {
     // V = VBL, patch & verify, v = VBL, patch only, j = VBL, jump only
     *buf++ = flags==3? 'V': flags==2? 'v': flags? 'j': 'h';
     *buf++ = type & UR_PROTECTME? 'p': '-';
-    *buf++ = type & UR_RESETFLAGS?  'r': '-';
+    *buf++ = (hi < 077 && (type & UR_RESETFLAGS)) || hi >= 077? 'r': '-';
+    *buf++ = hi >= 077 && (type & UR_AUTOBAUD)? 'a': '-'; // - means no
+    *buf++ = hi >= 077 && (type & UR_HAS_CE)? 'c': '.';   // . means don't know
     *buf = 0;
   } else if(hi)                 // Version number in binary from optiboot v4.1
-    sprintf(buf, "o%d.%d -?s-?-%c", hi, type, hi>=4? 'r': '-');
+    sprintf(buf, "o%d.%d -?s-?-r--", hi, type);
   else
-    sprintf(buf, "x0.0 -------");
+    sprintf(buf, "x0.0 .........");
 
   return;
 }
@@ -1187,7 +1189,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
     if(!ur.blstart)
       Return("please specify -xbootsize=<num> and, if needed, -xvectornum=<num> or -xeepromrw");
 
-  uint16_t v16 = 0xffff;
+  uint16_t v16 = 0xffff, rjmpwp = ret_opcode;
 
   // Sporting chance that we can read top flash to get intell about bootloader
   if(!ur.urprotocol || (ur.urfeatures & UB_READ_FLASH)) {
@@ -1198,7 +1200,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
     // In a urboot bootloader (v7.2 onwards) these six are as follows
     uint8_t numpags = spc[0];   // Actually, these two only exist from v7.5 onwards
     uint8_t vectnum = spc[1];
-    uint16_t rjmpwp = buf2uint16(spc+2); // rjmp to bootloader pgm_write_page() or ret opcode
+    rjmpwp = buf2uint16(spc+2); // rjmp to bootloader pgm_write_page() or ret opcode
     uint8_t cap = spc[4];       // Capability byte
     uint8_t urver = spc[5];     // Urboot version (low three bits are minor version: 076 is v7.6)
     v16 = buf2uint16(spc+4);    // Combo word for neatly printed version line of urboot bootloader
@@ -1316,7 +1318,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
 vblvecfound:
-  urbootPutVersion(ur.desc, v16);
+  urbootPutVersion(ur.desc, v16, rjmpwp);
 
   ur.mcode = 0xff;
   if(ur.blstart) {
