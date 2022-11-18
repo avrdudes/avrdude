@@ -900,7 +900,8 @@ int main(int argc, char * argv [])
    */
   msg_notice("\n");
   pmsg_notice("Version %s\n", version);
-  imsg_notice("Copyright the AVRDUDE authors; see file AUTHORS\n\n");
+  imsg_notice("Copyright the AVRDUDE authors;\n");
+  imsg_notice("see https://github.com/avrdudes/avrdude/blob/main/AUTHORS\n\n");
 
   if(*sys_config) {
     char *real_sys_config = realpath(sys_config, NULL);
