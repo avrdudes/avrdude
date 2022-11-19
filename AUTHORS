@@ -2,6 +2,13 @@ AVRDUDE was written by:
 
 	Brian S. Dean  <bsd@bdmicro.com>
 
+AVRDUDE is currently maintained by:
+
+	Hans Eirik Bull
+	Stefan Rueger
+	Xiaofan Chen
+	Joerg Wunsch
+
 Contributors:
 
 	Joerg Wunsch <j@uriah.heep.sax.de>
@@ -38,5 +45,5 @@ Contributors to code no longer present:
 	Paula Tomlinson for the loaddrv sources
 	Chris Liechti for loaddrv modifications
 
-For minor contributions, please see the ChangeLog files.
+For minor contributions, please see the ChangeLog files / Git log.
 
