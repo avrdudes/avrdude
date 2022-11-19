@@ -755,8 +755,47 @@ static int cmd_send(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 static int cmd_erase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   term_out("erasing chip ...\n");
+
   // Erase chip and clear cache
-  pgm->chip_erase_cached(pgm, p);
+  int rc = pgm->chip_erase_cached(pgm, p);
+
+  if(rc == LIBAVRDUDE_SOFTFAIL) {
+    pmsg_info("(erase) emulating chip erase by writing 0xff to flash ");
+    AVRMEM *flm = avr_locate_mem(p, "flash");
+    if(!flm) {
+      msg_error("but flash not defined for part %s?\n", p->desc);
+      return -1;
+    }
+    int addr, beg = 0, end = flm->size-1;
+    if(pgm->readonly) {
+      for(addr=beg; addr < flm->size; addr++)
+        if(!pgm->readonly(pgm, p, flm, addr)) {
+          beg = addr;
+          break;
+        }
+      if(addr >= flm->size) {
+        msg_info("but all flash is write protected\n");
+        return 0;
+      }
+      for(addr=end; addr >= 0; addr--)
+        if(!pgm->readonly(pgm, p, flm, addr)) {
+          end = addr;
+          break;
+        }
+    }
+
+    msg_info("[0x%04x, 0x%04x]; undo with abort\n", beg, end);
+    for(int addr=beg; addr <= end; addr++)
+      if(!pgm->readonly || !pgm->readonly(pgm, p, flm, addr))
+        if(pgm->write_byte_cached(pgm, p, flm, addr, 0xff) == -1)
+          return -1;
+    return 0;
+  }
+
+  if(rc) {
+    pmsg_error("(erase) programmer %s failed erasing the chip\n", (char *) ldata(lfirst(pgm->id)));
+    return -1;
+  }
 
   return 0;
 }

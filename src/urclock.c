@@ -1898,7 +1898,6 @@ static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     (ur.urprotocol && !(ur.urfeatures & UB_CHIP_ERASE)) ||
     ur.bloptiversion || (ur.blurversion && ur.blurversion < 076)) {
 
-    pmsg_info("delaying chip erase to first -U upload to flash\n");
     // Bootloader does not implement chip erase: don't send command to bootloader
     ur.emulate_ce = 1;
     emulated = 1;
@@ -1953,7 +1952,7 @@ static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
-  return 0;
+  return emulated? LIBAVRDUDE_SOFTFAIL: 0;
 }
 
 
