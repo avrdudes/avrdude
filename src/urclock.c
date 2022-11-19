@@ -448,6 +448,12 @@ static uint16_t rjmp_opcode(int dist, int flashsize) {
 }
 
 
+// rjmp opcode from reset to bootloader start; same as above if bl start is in top half of flash
+static uint16_t rjmp_bwd_blstart(int blstart, int flashsize) { // flashsize must be power of 2
+  return 0xc000 | (((uint16_t)((blstart-flashsize-2)/2)) & 0xfff); // Urboot uses this formula
+}
+
+
 // jmp opcode from byte address
 static uint32_t jmp_opcode(int32_t addr) {
   // jmp uses word address; hence, shift by that one extra bit more
@@ -574,12 +580,16 @@ static int reset2addr(const unsigned char *opcode, int vecsz, int flashsize, int
 }
 
 
-// What reset *should* look like for vector bootloaders
-static void set_reset(const PROGRAMMER *pgm, unsigned char *jmptoboot, int vecsz) {
-  if(vecsz == 4)
-    uint32tobuf(jmptoboot, jmp_opcode(ur.blstart));
-  else
-    uint16tobuf(jmptoboot, rjmp_opcode(ur.blstart - 0, ur.uP.flashsize));
+// What reset looks like for vector bootloaders
+static int set_reset(const PROGRAMMER *pgm, unsigned char *jmptoboot, int vecsz) {
+  // Small part or larger flash that is power or 2: urboot P reset vector protection uses this
+  if(vecsz == 2 || (ur.uP.flashsize & (ur.uP.flashsize-1)) == 0) {
+    uint16tobuf(jmptoboot, rjmp_bwd_blstart(ur.blstart, ur.uP.flashsize));
+    return 2;
+  }
+
+  uint32tobuf(jmptoboot, jmp_opcode(ur.blstart));
+  return 4;
 }
 
 
@@ -695,13 +705,11 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
         }
 
         // OK, now have bootloader start and application start: patch
-        if(vecsz == 4) {        // Always use absolute jump for large devices
-          uint32tobuf(flm->buf+0, jmp_opcode(ur.blstart));
+        set_reset(pgm, flm->buf+0, vecsz);
+        if(vecsz == 4)
           uint32tobuf(flm->buf+appvecloc, jmp_opcode(appstart));
-        } else {                // Must use relative jump for small devices
-          uint16tobuf(flm->buf+0, rjmp_opcode(ur.blstart - 0, ur.uP.flashsize));
+        else
           uint16tobuf(flm->buf+appvecloc, rjmp_opcode(appstart - appvecloc, ur.uP.flashsize));
-        }
       }
     }
   }
@@ -744,7 +752,7 @@ nopatch:
       }
       *p++ = ur.mcode;
 
-      // Set tags so above data get burned onto chip
+      // Set tags so metadata get burned onto chip
       memset(flm->tags + ur.blstart - nmdata, TAG_ALLOCATED, nmdata);
 
       if(ur.initstore)          // Zap the pgm store
@@ -754,7 +762,7 @@ nopatch:
     }
   }
 
-  //storing no metadata: put a 0xff byte just below bootloader
+  // Storing no metadata: put a 0xff byte just below bootloader
   if(size < ur.blstart && nmdata == 0) {
     flm->buf[ur.blstart-1] = 0xff;
     flm->tags[ur.blstart-1] = TAG_ALLOCATED;
@@ -779,26 +787,35 @@ nopatch_nometa:
       if(flm->tags[i] & TAG_ALLOCATED)
         set++;
 
+
     // Reset vector not programmed? Or -F? Ensure a jmp to bootloader
     if(ovsigck || set != vecsz) {
       unsigned char jmptoboot[4];
-      set_reset(pgm, jmptoboot, vecsz);
+      int resetsize = set_reset(pgm, jmptoboot, vecsz);
 
       if(!ur.urprotocol || (ur.urfeatures & UB_READ_FLASH)) { // Flash readable?
-        unsigned char device[2048];
+        int resetdest;
 
-        // Read reset vector from device flash
-        if((rc = ur_readEF(pgm, p, device, 0, vecsz, 'F')) < 0)
-          return rc;
+        if(set != vecsz) {
+          unsigned char device[4];
+          // Read reset vector from device flash
+          if((rc = ur_readEF(pgm, p, device, 0, vecsz, 'F')) < 0)
+            return rc;
 
-        for(int i=0; i < vecsz; i++) {
-          if((flm->tags[i] & TAG_ALLOCATED? flm->buf[i]: device[i]) != jmptoboot[i]) {
+          // Mix with already set bytes
+          for(int i=0; i < vecsz; i++)
+            if(!(flm->tags[i] & TAG_ALLOCATED))
+              flm->buf[i] = device[i];
+        }
+
+        if(reset2addr(flm->buf, vecsz, flm->size, &resetdest) < 0 || resetdest != ur.blstart) {
+          for(int i=0; i < resetsize; i++) {
             flm->buf[i] = jmptoboot[i];
             flm->tags[i] |= TAG_ALLOCATED;
           }
         }
-      } else {                  // Flash not readable: patch reset vector
-        for(int i=0; i < vecsz; i++) {
+      } else {                  // Flash not readable: patch reset vector unconditionally
+        for(int i=0; i < resetsize; i++) {
           flm->buf[i] = jmptoboot[i];
           flm->tags[i] |= TAG_ALLOCATED;
         }
@@ -808,12 +825,12 @@ nopatch_nometa:
 
       if(reset2addr(flm->buf, vecsz, flm->size, &resetdest) < 0)
         Return("input would overwrite the reset vector bricking the bootloader\n"
-          "%*susing -F will patch the input but this may not be what is needed",
+          "%*susing -F will try to patch the input but this may not be what is needed",
           (int) strlen(progname)+1, "");
 
       if(resetdest != ur.blstart)
         Return("input points reset to 0x%04x, not to bootloader at 0x%04x\n"
-          "%*susing -F will patch the input but this may not be what is needed",
+          "%*susing -F will try to patch the input but this may not be what is needed",
           resetdest, ur.blstart, (int) strlen(progname)+1, "");
     }
   }
@@ -928,7 +945,7 @@ static void urbootPutVersion(char *buf, uint16_t ver, uint16_t rjmpwp) {
     flags = (type/UR_VBL) & 3;
     // V = VBL, patch & verify, v = VBL, patch only, j = VBL, jump only
     *buf++ = flags==3? 'V': flags==2? 'v': flags? 'j': 'h';
-    *buf++ = type & UR_PROTECTME? 'p': '-';
+    *buf++ = hi < 077? (type & UR_PROTECTME? 'p': '-'): (type & UR_PROTECTME? 'P': 'p');
     *buf++ = (hi < 077 && (type & UR_RESETFLAGS)) || hi >= 077? 'r': '-';
     *buf++ = hi >= 077 && (type & UR_AUTOBAUD)? 'a': '-';                 // - means no
     *buf++ = hi >= 077 && (type & UR_HAS_CE)? 'c': hi >= 077? '-': '.';   // . means don't know
@@ -1172,9 +1189,9 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
     if(ur.xbootsize % ur.uP.pagesize)
       Return("-xbootsize=%d size not a multiple of flash page size %d",
         ur.xbootsize, ur.uP.pagesize);
-    if(ur.xbootsize < 64 || ur.xbootsize > urmin(2048, ur.uP.flashsize/4))
+    if(ur.xbootsize < 64 || ur.xbootsize > urmin(8192, ur.uP.flashsize/4))
       Return("implausible -xbootsize=%d, should be in [64, %d]",
-        ur.xbootsize, urmin(2048, ur.uP.flashsize/4));
+        ur.xbootsize, urmin(8192, ur.uP.flashsize/4));
     ur.blstart = ur.uP.flashsize - ur.xbootsize;
   }
 
@@ -1222,16 +1239,23 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
           // Further check whether writepage() rjmp opcode jumps backwards into bootloader
           if(rjmpwp == ret_opcode || (dfromend >= -blsize && dfromend < -6)) { // Due diligence
             if(ur.xbootsize) {
-              if(flm->size - blsize != ur.blstart)
-                pmsg_warning("urboot bootloader size %d manually overwritten by -xbootsize=%d\n",
+              if(flm->size - blsize != ur.blstart) {
+                pmsg_warning("urboot bootloader size %d explicitly overwritten by -xbootsize=%d\n",
                   blsize, ur.xbootsize);
+                if(!ovsigck && ur.vbllevel) {
+                  imsg_warning("this can lead to bricking the vector bootloader\n");
+                  return -1;
+                }
+              }
             } else
               ur.blstart = flm->size - blsize;
 
             if(ur.xvectornum != -1) {
-              if(ur.vblvectornum != vectnum)
-                pmsg_warning("urboot vector number %d manually overwritten by -xvectornum=%d\n",
+              if(ur.vblvectornum != vectnum) {
+                pmsg_warning("urboot vector number %d overwritten by -xvectornum=%d\n",
                   vectnum, ur.xvectornum);
+                imsg_warning("the application might not start\n");
+              }
             } else
               ur.vblvectornum = vectnum;
           }
@@ -1488,17 +1512,25 @@ static int urclock_paged_rdwr(const PROGRAMMER *pgm, const AVRPART *part, char r
     if(len != ur.uP.pagesize)
       Return("len %d must be page size %d for paged flash writes", len, ur.uP.pagesize);
 
-    int vecsz = ur.uP.flashsize <= 8192? 2: 4;
-    if(badd < (unsigned int) vecsz) { // Ensure reset vector points to bl
-      if(ur.blstart && ur.vbllevel==1) {
-        unsigned char jmptoboot[4];
-        int n = urmin((unsigned int) vecsz - badd, (unsigned int) len);
+    if(badd < 4U && ur.blstart && ur.vbllevel==1) {
+      int vecsz = ur.uP.flashsize <= 8192? 2: 4;
+      unsigned char jmptoboot[4];
+      int resetsize = set_reset(pgm, jmptoboot, vecsz);
 
-        set_reset(pgm, jmptoboot, vecsz);
+      if(badd < (unsigned int) resetsize) { // Ensure reset vector points to bl
+        int n = urmin((unsigned int) resetsize - badd, (unsigned int) len);
+        int resetdest;
 
-        if(memcmp(payload, jmptoboot+badd, n)) {
+        if(badd == 0 && len >= vecsz) {
+          if(reset2addr((unsigned char *) payload, vecsz, ur.uP.flashsize, &resetdest) < 0 ||
+            resetdest != ur.blstart) {
+
+            memcpy(payload, jmptoboot, resetsize);
+            pmsg_info("forcing reset vector to point to vector bootloader\n");
+          }
+        } else if(memcmp(payload, jmptoboot+badd, n)) {
           memcpy(payload, jmptoboot+badd, n);
-          pmsg_info("forcing reset vector to point to vector bootloader\n");
+          pmsg_info("forcing partial reset vector to point to vector bootloader\n");
         }
       }
     }
@@ -2077,14 +2109,15 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
       if(addr == 0 && mchr == 'F') { // Ensure reset vector points to bl
         int vecsz = ur.uP.flashsize <= 8192? 2: 4;
-        if(chunk >= vecsz && ur.blstart && ur.vbllevel==1) {
+        if(chunk >= vecsz && ur.blstart && ur.vbllevel == 1) {
           unsigned char jmptoboot[4];
-          set_reset(pgm, jmptoboot, vecsz);
+          int resetsize = set_reset(pgm, jmptoboot, vecsz);
+          int resetdest;
 
-          if(memcmp(&m->buf[addr], jmptoboot, vecsz)) {
-            memcpy(&m->buf[addr], jmptoboot, vecsz);
+          if(reset2addr(m->buf, vecsz, ur.uP.flashsize, &resetdest) < 0 || resetdest != ur.blstart) {
+            memcpy(m->buf, jmptoboot, resetsize);
             pmsg_info("en passant forcing reset vector to point to vector bootloader\n");
-            if(urclock_paged_rdwr(pgm, p, Cmnd_STK_PROG_PAGE, 0, chunk, mchr, (char *) &m->buf[addr]) < 0)
+            if(urclock_paged_rdwr(pgm, p, Cmnd_STK_PROG_PAGE, 0, chunk, mchr, (char *) m->buf) < 0)
               return -5;
             if(urclock_res_check(pgm, __func__, 0, NULL, 0) < 0)
               return -6;
@@ -2334,5 +2367,4 @@ void urclock_initpgm(PROGRAMMER *pgm) {
 #else
   pmsg_warning("compiled without readline library, cannot use avrdude -t -c urclock");
 #endif
-
 }
