@@ -577,6 +577,12 @@ else
    echo "DON'T HAVE libhidapi"
 fi
 
+if test x$have_readline = xyes; then
+   echo "DO HAVE    libreadline"
+else
+   echo "DON'T HAVE libreadline"
+fi
+
 if test x$have_pthread = xyes; then
    echo "DO HAVE    pthread"
 else
