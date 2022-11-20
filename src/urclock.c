@@ -774,8 +774,21 @@ nopatch:
     size = ur.blstart;
   }
 
-
 nopatch_nometa:
+
+  // Delete metadata on device (if any) that's between new input and metadata
+  if(!ur.urprotocol || (ur.urfeatures & UB_READ_FLASH)) { // Flash readable?
+    uint8_t devmcode;           // Metadata marker on the device
+    if(ur.blstart && ur_readEF(pgm, p, &devmcode, ur.blstart-1, 1, 'F') == 0) {
+      int devnmeta=nmeta(devmcode, ur.uP.flashsize);
+      for(int addr=ur.blstart-devnmeta; addr < ur.blstart; addr++) {
+         if(!(flm->tags[addr] & TAG_ALLOCATED)) {
+            flm->tags[addr] |= TAG_ALLOCATED;
+            flm->buf[addr] = 0xff;
+         }
+      }
+    }
+  }
 
   // Emulate chip erase if bootloader unable to: mark all bytes for upload on first -U flash:w:...
   if(ur.emulate_ce) {
