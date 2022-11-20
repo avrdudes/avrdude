@@ -2194,9 +2194,16 @@ static int urclock_readonly(const struct programmer_t *pgm, const AVRPART *p_unu
     if(ur.blstart) {
       if(addr >= (unsigned int) ur.blstart)
         return 1;
-      if(ur.vbllevel)
-       if(addr < (unsigned int) (ur.uP.flashsize <= 8192? 2: 4))
-         return 1;
+      if(addr < 512 && ur.vbllevel) {
+        unsigned int vecsz = ur.uP.flashsize <= 8192? 2u: 4u;
+        if(addr < vecsz)
+          return 1;
+        if(ur.vblvectornum > 0) {
+          unsigned int appvecloc = ur.vblvectornum*vecsz;
+          if(addr >= appvecloc && addr < appvecloc+vecsz)
+            return 1;
+        }
+      }
     }
   } else if(!avr_mem_is_eeprom_type(mem))
     return 1;

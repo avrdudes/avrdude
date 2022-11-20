@@ -616,7 +616,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, UPDATE *upd, enum updateflags
     if (quell_progress < 2)
       pmsg_notice2("verifying ...\n");
 
-    rc = avr_verify(p, v, upd->memtype, size);
+    rc = avr_verify(pgm, p, v, upd->memtype, size);
     if (rc < 0) {
       pmsg_error("verification mismatch\n");
       pgm->err_led(pgm, ON);

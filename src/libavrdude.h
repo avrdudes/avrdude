@@ -889,7 +889,7 @@ int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, int 
 
 int avr_signature(const PROGRAMMER *pgm, const AVRPART *p);
 
-int avr_verify(const AVRPART * p, const AVRPART * v, const char * memtype, int size);
+int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const char *m, int size);
 
 int avr_get_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int *cycles);
 
