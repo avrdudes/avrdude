@@ -173,6 +173,8 @@ Changes since version 7.0:
     - Implementation of SerialUPDI page erase operation #1151
     - Fix Type 2 HV UPDI #1164
     - Rewrite authors/copyrights #1182
+    - Add fallback for EM_AVR #1181
+    - Add a workaround for issue 1173 #1185
 
 
   * Internals:
