@@ -89,6 +89,7 @@ struct pdata
 #define PGM_FL_IS_JTAG          (0x0004)
 #define PGM_FL_IS_EDBG          (0x0008)
 #define PGM_FL_IS_UPDI          (0x0010)
+#define PGM_FL_IS_TPI           (0x0020)
 
 static int jtag3_open(PROGRAMMER *pgm, const char *port);
 static int jtag3_edbg_prepare(const PROGRAMMER *pgm);
@@ -2513,6 +2514,187 @@ static unsigned int jtag3_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const
   return addr;
 }
 
+/*
+ * Send the data as a JTAGICE3 encapsulated TPI packet.
+ */
+static int jtag3_send_tpi(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
+  unsigned char *cmdbuf;
+  int rv;
+
+  if ((cmdbuf = malloc(len + 1)) == NULL) {
+    pmsg_error("out of memory for command packet\n");
+    exit(1);
+  }
+
+  cmdbuf[0] = SCOPE_AVR_TPI;
+  memcpy(cmdbuf + 1, data, len);
+
+  msg_trace("STK500V2: jtag3_send_tpi(");
+  for (size_t i=0; i<len+1; i++)
+    msg_trace("0x%02x ", cmdbuf[i]);
+  msg_trace(", %d)\n", (int) len);
+
+  rv = jtag3_send(pgm, cmdbuf, len + 1);
+  free(cmdbuf);
+
+  return rv;
+}
+
+int jtag3_recv_tpi(const PROGRAMMER *pgm, unsigned char *resp) {
+  int rv;
+  unsigned char *tpimsg;
+
+  rv = jtag3_recv(pgm, &tpimsg);
+
+  if (rv <= 0) {
+    pmsg_error("unable to receive\n");
+    return -1;
+  }
+
+  msg_trace("STK500V2: jtag3_recv_tpi(");
+  for (size_t i=0; i<rv; i++)
+    msg_trace("0x%02x ", tpimsg[i]);
+  msg_trace(", %d)\n", (int) rv);
+
+  memcpy(resp, tpimsg + 1, rv - 1);
+  free(tpimsg);
+  return resp[1];
+}
+
+/*
+ * initialize the AVR device and prepare it to accept commands
+ */
+static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
+  unsigned char cmdbuf[4];
+  unsigned char resp[4];
+  // AVRMEM * m;
+  pmsg_info("jtag3_initialize_tpi() start\n");
+
+  cmdbuf[0] = XPRG_CMD_ENTER_PROGMODE;
+
+  if (jtag3_send_tpi(pgm, cmdbuf, 1) < 0) {
+    pmsg_error("XPRG_CMD_ENTER_PROGMODE failed\n");
+    return -1;
+  }
+
+  jtag3_recv_tpi(pgm, resp);
+
+  cmdbuf[0] = XPRG_CMD_SET_PARAM;
+  cmdbuf[1] = XPRG_PARAM_NVMCMD_ADDR;
+  cmdbuf[2] = 0x33; // NVMCMD address
+
+  if (jtag3_send_tpi(pgm, cmdbuf, 3) < 0) {
+    pmsg_error("Set NVMCMD address failed\n");
+    return -1;
+  }
+
+  jtag3_recv_tpi(pgm, resp);
+
+  cmdbuf[0] = XPRG_CMD_SET_PARAM;
+  cmdbuf[1] = XPRG_PARAM_NVMCSR_ADDR;
+  cmdbuf[2] = 0x32; // NVMCSR address
+
+  if (jtag3_send_tpi(pgm, cmdbuf, 3) < 0) {
+    pmsg_error("Set NVMCSR address failed\n");
+    return -1;
+  }
+
+  jtag3_recv_tpi(pgm, resp);
+
+  return 0;
+}
+
+static void jtag3_enable_tpi(PROGRAMMER *pgm, const AVRPART *p) {
+  pmsg_notice2("jtag3_enable_tpi() is empty. No action necessary.\n");
+}
+
+static void jtag3_disable_tpi(const PROGRAMMER *pgm) {
+  unsigned char cmdbuf[4];
+  int result;
+
+  cmdbuf[0] = XPRG_CMD_LEAVE_PROGMODE;
+
+  if (jtag3_send_tpi(pgm, cmdbuf, 1) < 0) {
+    pmsg_error("XPRG_CMD_LEAVE_PROGMODE failed\n");
+    return;
+  }
+  jtag3_recv_tpi(pgm, cmdbuf);
+}
+
+static int jtag3_read_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+			       unsigned long addr, unsigned char * value)
+{
+  int result, pollidx;
+  unsigned char buf[8];
+  unsigned long paddr = 0UL, *paddr_ptr = NULL;
+  unsigned int pagesize = 0;
+  unsigned char *cache_ptr = NULL;
+  OPCODE *op;
+  size_t len = 8;
+
+  pmsg_notice2("jtag3_read_byte_tpi(.., %s, 0x%lx, ...)\n", mem->desc, addr);
+
+
+  buf[0] = XPRG_CMD_READ_MEM;
+
+  if (strcmp(mem->desc, "lfuse") == 0 ||
+	     strcmp(mem->desc, "fuse") == 0) {
+    buf[1] = XPRG_MEM_TYPE_FUSE;
+    addr = 0;
+  } else if (strcmp(mem->desc, "hfuse") == 0) {
+    buf[1] = XPRG_MEM_TYPE_FUSE;
+    addr = 1;
+  } else if (strcmp(mem->desc, "efuse") == 0) {
+    buf[1] = XPRG_MEM_TYPE_FUSE;
+    addr = 2;
+  } else if (strcmp(mem->desc, "lock") == 0) {
+    buf[1] = XPRG_MEM_TYPE_LOCKBITS;
+    paddr = 0x3F00 + addr;
+  } else if (strcmp(mem->desc, "calibration") == 0) {
+    buf[1] = XPRG_MEM_TYPE_LOCKBITS;
+    paddr = 0x3F80 + addr;
+  } else if (strcmp(mem->desc, "signature") == 0) {
+    buf[1] = XPRG_MEM_TYPE_LOCKBITS;
+    paddr = 0x3FC0 + addr;
+  }
+
+  buf[2] = (paddr>>24) & 0xFF;
+  buf[3] = (paddr>>16) & 0xFF;
+  buf[4] = (paddr>>8) & 0xFF;
+  buf[5] = paddr & 0xFF;
+
+  buf[6] = 0; // Length MSB
+  buf[7] = 1; // Length LSB, 1 since we are reading only one byte
+
+  if (jtag3_send_tpi(pgm, buf, len) < 0)
+    return -1;
+
+  result = jtag3_recv_tpi(pgm, buf);
+  if (result < 0) {
+    pmsg_error("timeout/error communicating with programmer\n");
+    return -1;
+  }
+  *value = buf[2];
+  return 0;
+}
+
+static int jtag3_chip_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
+  pmsg_error("jtag3_chip_erase_tpi() not implemented\n");
+  return -1;
+}
+
+static int jtag3_open_tpi(PROGRAMMER *pgm, const char *port) {
+  pmsg_notice2("jtag3_open_tpi()\n");
+
+  if (jtag3_open_common(pgm, port) < 0)
+    return -1;
+  return 0;
+}
+
+void jtag3_close_tpi(PROGRAMMER *pgm) {
+  pmsg_notice2("jtag3_close_tpi() is empty. No action necessary.\n");
+}
+
 
 const char jtag3_desc[] = "Atmel JTAGICE3";
 
@@ -2677,3 +2859,33 @@ void jtag3_updi_initpgm(PROGRAMMER *pgm) {
   }
 }
 
+const char jtag3_tpi_desc[] = "Atmel JTAGICE3 in TPI mode";
+
+void jtag3_tpi_initpgm(PROGRAMMER *pgm) {
+  strcpy(pgm->type, "JTAGICE3_TPI");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = jtag3_initialize_tpi;
+  pgm->display        = jtag3_display;
+  pgm->enable         = jtag3_enable_tpi;
+  pgm->disable        = jtag3_disable_tpi;
+  pgm->program_enable = jtag3_program_enable_dummy;
+  pgm->chip_erase     = jtag3_chip_erase_tpi;
+  pgm->open           = jtag3_open_tpi;
+  pgm->close          = jtag3_close_tpi;
+  pgm->read_byte      = jtag3_read_byte_tpi;
+  pgm->write_byte     = jtag3_write_byte;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = jtag3_paged_write;
+  pgm->paged_load     = jtag3_paged_load;
+  pgm->print_parms    = jtag3_print_parms;
+  pgm->setup          = jtag3_setup;
+  pgm->teardown       = jtag3_teardown;
+  pgm->page_size      = 256;
+  pgm->flag           = PGM_FL_IS_TPI;
+}

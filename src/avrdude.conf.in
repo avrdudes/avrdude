@@ -2099,6 +2099,19 @@ programmer
 ;
 
 #------------------------------------------------------------
+# xplainedmini_tpi
+#------------------------------------------------------------
+
+programmer
+    id                     = "xplainedmini_tpi";
+    desc                   = "Atmel AVR XplainedMini in TPI mode";
+    type                   = "jtagice3_tpi";
+    prog_modes             = PM_TPI;
+    connection_type        = usb;
+    usbpid                 = 0x2145;
+;
+
+#------------------------------------------------------------
 # atmelice
 #------------------------------------------------------------
 

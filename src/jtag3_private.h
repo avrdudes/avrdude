@@ -96,6 +96,7 @@
 #define SCOPE_GENERAL              0x01
 #define SCOPE_AVR_ISP              0x11
 #define SCOPE_AVR                  0x12
+#define SCOPE_AVR_TPI              0x14
 
 /* Info scope */
 #define CMD3_GET_INFO              0x00
@@ -313,6 +314,57 @@
 #define UPDI_ADDRESS_MODE_16BIT 0
 #define UPDI_ADDRESS_MODE_24BIT 1
 #define FUSES_SYSCFG0_OFFSET 5
+
+// TPI Protocol commands
+#define XPRG_CMD_ENTER_PROGMODE             0x01
+#define XPRG_CMD_LEAVE_PROGMODE             0x02
+#define XPRG_CMD_ERASE                      0x03
+#define XPRG_CMD_WRITE_MEM                  0x04
+#define XPRG_CMD_READ_MEM                   0x05
+#define XPRG_CMD_CRC                        0x06
+#define XPRG_CMD_SET_PARAM                  0x07
+
+// TPI Protocol responses
+// Success
+#define XPRG_ERR_OK                         0x00
+// Errors
+#define XPRG_ERR_FAILED                     0x01
+#define XPRG_ERR_COLLISION                  0x02
+#define XPRG_ERR_TIMEOUT                    0x03
+#define XPRG_ERR_ILLEGAL_PARAM              0x04
+#define XPRG_ERR_UNKNOWN_COMMAND            0x10
+
+// TPI Memory types
+#define XPRG_MEM_TYPE_APPL                  0x01
+#define XPRG_MEM_TYPE_BOOT                  0x02
+#define XPRG_MEM_TYPE_EEPROM                0x03
+#define XPRG_MEM_TYPE_FUSE                  0x04
+#define XPRG_MEM_TYPE_LOCKBITS              0x05
+#define XPRG_MEM_TYPE_USERSIG               0x06
+#define XPRG_MEM_TYPE_FACTORY_CALIBRATION   0x07
+
+// TPI Erase modes
+#define XPRG_ERASE_CHIP                     0x01
+#define XPRG_ERASE_APP                      0x02
+#define XPRG_ERASE_BOOT                     0x03
+#define XPRG_ERASE_EEPROM                   0x04
+#define XPRG_ERASE_APP_PAGE                 0x05
+#define XPRG_ERASE_BOOT_PAGE                0x06
+#define XPRG_ERASE_EEPROM_PAGE              0x07
+#define XPRG_ERASE_USERSIG                  0x08
+// Erase types for Tiny XPROG
+#define XPRG_ERASE_CONFIG                   0x09
+
+// TPI Parameters
+// XPROG parameters of different sizes
+// 4-byte address
+#define XPRG_PARAM_NVMBASE                  0x01
+// 2-byte page size
+#define XPRG_PARAM_EEPPAGESIZE              0x02
+// tiny TPI, 1-byte address
+#define XPRG_PARAM_NVMCMD_ADDR              0x03
+#define XPRG_PARAM_NVMCSR_ADDR              0x04
+
 
 #if !defined(JTAG3_PRIVATE_EXPORTED)
 
