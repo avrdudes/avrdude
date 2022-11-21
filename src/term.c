@@ -1290,6 +1290,15 @@ void term_gotline(char *cmdstr) {
         term_running = 0;
     }
     free(cmdstr);
+    /*
+     * This is a workaround for a bug apparently present in the
+     * readline compat layer of libedit which is natively present in
+     * NetBSD and MacOS.
+     *
+     * see https://github.com/avrdudes/avrdude/issues/1173
+     */
+    rl_callback_handler_remove();
+    rl_callback_handler_install("avrdude> ", term_gotline);
   } else {
     // call quit at end of file or terminal ^D
     term_out("\n");
