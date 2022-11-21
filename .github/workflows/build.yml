@@ -169,7 +169,6 @@ jobs:
           -D CMAKE_EXE_LINKER_FLAGS=-L/usr/local/Cellar
           -D DEBUG_CMAKE=1
           -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          -D HAVE_LIBREADLINE:FILEPATH=/usr/local/opt/readline/lib/libreadline.dylib
           -B build
       - name: Build
         run: cmake --build build
