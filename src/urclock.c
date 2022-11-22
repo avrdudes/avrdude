@@ -2154,9 +2154,7 @@ static int urclock_open(PROGRAMMER *pgm, const char *port) {
     usleep((80+ur.delay)*1000); // Wait until board comes out of reset
 
   // Drain any extraneous input
-#ifndef WIN32
   serial_drain_timeout = 80;    // ms
-#endif
   serial_drain(&pgm->fd, 0);
 
   if(urclock_getsync(pgm) < 0)
