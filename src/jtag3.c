@@ -165,6 +165,22 @@ u16_to_b2(unsigned char *b, unsigned short l)
   b[1] = (l >> 8) & 0xff;
 }
 
+static void
+u32_to_b4_big_endian(unsigned char *b, unsigned long l)
+{
+  b[0] = (l >> 24) & 0xff;
+  b[1] = (l >> 16) & 0xff;
+  b[2] = (l >> 8) & 0xff;
+  b[3] = l & 0xff;
+}
+
+static void
+u16_to_b2_big_endian(unsigned char *b, unsigned short l)
+{
+  b[0] = (l >> 8) & 0xff;
+  b[1] = l & 0xff;
+}
+
 static bool matches(const char *s, const char *pat)
 {
   return strncmp(s, pat, strlen(pat)) == 0;
@@ -2491,7 +2507,7 @@ static int jtag3_send_tpi(const PROGRAMMER *pgm, unsigned char *data, size_t len
   memcpy(cmdbuf + 1, data, len);
 
   msg_trace("STK500V2: jtag3_send_tpi(");
-  for (size_t i=0; i<len+1; i++)
+  for (size_t i=1; i<=len; i++)
     msg_trace("0x%02x ", cmdbuf[i]);
   msg_trace(", %d)\n", (int) len);
 
@@ -2511,14 +2527,15 @@ int jtag3_recv_tpi(const PROGRAMMER *pgm, unsigned char *resp) {
     pmsg_error("unable to receive\n");
     return -1;
   }
+  rv = rv - 1;
+  memcpy(resp, tpimsg + 1, rv);
+  free(tpimsg);
 
   msg_trace("STK500V2: jtag3_recv_tpi(");
   for (size_t i=0; i<rv; i++)
-    msg_trace("0x%02x ", tpimsg[i]);
+    msg_trace("0x%02x ", resp[i]);
   msg_trace(", %d)\n", (int) rv);
 
-  memcpy(resp, tpimsg + 1, rv - 1);
-  free(tpimsg);
   return resp[1];
 }
 
@@ -2608,22 +2625,17 @@ static int jtag3_read_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AV
     addr = 2;
   } else if (strcmp(mem->desc, "lock") == 0) {
     buf[1] = XPRG_MEM_TYPE_LOCKBITS;
-    paddr = 0x3F00 + addr;
+    paddr = mem->offset + addr;
   } else if (strcmp(mem->desc, "calibration") == 0) {
     buf[1] = XPRG_MEM_TYPE_LOCKBITS;
-    paddr = 0x3F80 + addr;
+    paddr = mem->offset + addr;
   } else if (strcmp(mem->desc, "signature") == 0) {
     buf[1] = XPRG_MEM_TYPE_LOCKBITS;
-    paddr = 0x3FC0 + addr;
+    paddr = mem->offset + addr;
   }
 
-  buf[2] = (paddr>>24) & 0xFF;
-  buf[3] = (paddr>>16) & 0xFF;
-  buf[4] = (paddr>>8) & 0xFF;
-  buf[5] = paddr & 0xFF;
-
-  buf[6] = 0; // Length MSB
-  buf[7] = 1; // Length LSB, 1 since we are reading only one byte
+  u32_to_b4_big_endian((buf+2), paddr);  // Address
+  u16_to_b2_big_endian((buf+6), 1);      // Size
 
   if (jtag3_send_tpi(pgm, buf, len) < 0)
     return -1;
