@@ -1033,7 +1033,7 @@ static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
 
 
 /* This code assumes that each count of the SCK duration parameter
-   represents 8/f, where f is the clock frequency of the STK500 master
+   represents 8/f, where f is the clock frequency of the STK500 controller
    processors (not the target).  This number comes from Atmel
    application note AVR061.  It appears that the STK500 bit bangs SCK.
    For small duration values, the actual SCK width is larger than

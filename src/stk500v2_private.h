@@ -149,8 +149,8 @@
 
 // hw_status
 // Bits in status variable
-// Bit 0-3: Slave MCU
-// Bit 4-7: Master MCU
+// Bit 0-3: Periphery MCU
+// Bit 4-7: Controller MCU
 
 #define STATUS_AREF_ERROR    0
 // Set to '1' if AREF is short circuited
@@ -191,10 +191,10 @@
 #define PARAM_SOCKETCARD_ID                 0xA5
 #define PARAM_ROUTINGCARD_ID                0xA6
 #define PARAM_EXPCARD_ID                    0xA7
-#define PARAM_SW_MAJOR_SLAVE1               0xA8
-#define PARAM_SW_MINOR_SLAVE1               0xA9
-#define PARAM_SW_MAJOR_SLAVE2               0xAA
-#define PARAM_SW_MINOR_SLAVE2               0xAB
+#define PARAM_SW_MAJOR_PERIPHERY1           0xA8
+#define PARAM_SW_MINOR_PERIPHERY1           0xA9
+#define PARAM_SW_MAJOR_PERIPHERY2           0xAA
+#define PARAM_SW_MINOR_PERIPHERY2           0xAB
 #define PARAM_BOARD_ID_STATUS               0xAD
 #define PARAM_RESET                         0xB4
 

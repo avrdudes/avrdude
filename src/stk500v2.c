@@ -3038,14 +3038,14 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
     stk500v2_getparm(pgm, PARAM_SW_MAJOR, &maj);
     stk500v2_getparm(pgm, PARAM_SW_MINOR, &min);
     msg_info("%sHardware Version: %d\n", p, hdw);
-    msg_info("%sFirmware Version Master : %d.%02d\n", p, maj, min);
+    msg_info("%sFirmware Version Controller : %d.%02d\n", p, maj, min);
     if (PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
-      stk500v2_getparm(pgm, PARAM_SW_MAJOR_SLAVE1, &maj_s1);
-      stk500v2_getparm(pgm, PARAM_SW_MINOR_SLAVE1, &min_s1);
-      stk500v2_getparm(pgm, PARAM_SW_MAJOR_SLAVE2, &maj_s2);
-      stk500v2_getparm(pgm, PARAM_SW_MINOR_SLAVE2, &min_s2);
-      msg_info("%sFirmware Version Slave 1: %d.%02d\n", p, maj_s1, min_s1);
-      msg_info("%sFirmware Version Slave 2: %d.%02d\n", p, maj_s2, min_s2);
+      stk500v2_getparm(pgm, PARAM_SW_MAJOR_PERIPHERY1, &maj_s1);
+      stk500v2_getparm(pgm, PARAM_SW_MINOR_PERIPHERY1, &min_s1);
+      stk500v2_getparm(pgm, PARAM_SW_MAJOR_PERIPHERY2, &maj_s2);
+      stk500v2_getparm(pgm, PARAM_SW_MINOR_PERIPHERY2, &min_s2);
+      msg_info("%sFirmware Version Periphery 1: %d.%02d\n", p, maj_s1, min_s1);
+      msg_info("%sFirmware Version Periphery 2: %d.%02d\n", p, maj_s2, min_s2);
     }
   }
 

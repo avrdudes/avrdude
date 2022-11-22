@@ -114,7 +114,7 @@ programmer type can be used to directly connect to and program a chip
 using the built in interfaces on the computer. The requirements to use
 this type are that an SPI interface is exposed along with one GPIO
 pin. The GPIO serves as the reset output since the Linux SPI drivers
-do not hold slave select down when a transfer is not occurring and thus
+do not hold chip select down when a transfer is not occurring and thus
 it cannot be used as the reset pin. A readily available level
 translator should be used between the SPI bus/reset GPIO and the chip
 to avoid potentially damaging the computer's SPI controller in the
@@ -301,7 +301,7 @@ file.  Finally, a ``terminal'' mode is available that allows one to
 interactively communicate with the MCU, and to display or program
 individual memory cells.
 On the STK500 and STK600 programmer, several operational parameters (target supply
-voltage, target Aref voltage, master clock) can be examined and changed
+voltage, target Aref voltage, programming clock) can be examined and changed
 from within terminal mode as well.
 .Ss Options
 In order to control all the different operation modi, a number of options
@@ -959,7 +959,7 @@ can be omitted.
 .It Ar spi
 Enter direct SPI mode.  The
 .Em pgmled
-pin acts as slave select.
+pin acts as chip select.
 .Em Supported on parallel bitbang programmers, and partially by USBtiny.
 .It Ar pgm
 Return to programming mode (from direct SPI mode).
@@ -981,7 +981,7 @@ can be selected by the optional
 argument (either 0 or 1).
 .Em Supported on the STK500 and STK600 programmer.
 .It Ar fosc freq Ns Op M Ns \&| Ns k
-Set the master oscillator to
+Set the programming oscillator to
 .Ar freq
 Hz.
 An optional trailing letter
@@ -991,7 +991,7 @@ multiplies by 1E6, a trailing letter
 by 1E3.
 .Em Supported on the STK500 and STK600 programmer.
 .It Ar fosc off
-Turn the master oscillator off.
+Turn the programming oscillator off.
 .Em Supported on the STK500 and STK600 programmer.
 .It Ar sck period
 .Em STK500 and STK600 programmer:
@@ -1009,7 +1009,7 @@ This parameter can also be used on the JTAG ICE mkII, JTAGICE3, and Atmel-ICE to
 ISP clock period when operating the ICE in ISP mode.
 .It Ar parms
 .Em STK500 and STK600 programmer:
-Display the current voltage and master oscillator parameters.
+Display the current voltage and programming oscillator parameters.
 .Em JTAG ICE:
 Display the current target supply voltage and JTAG bit clock rate/period.
 .Em Other programmers:
@@ -1529,7 +1529,7 @@ The USBasp and USBtinyISP drivers do not offer any option to distinguish multipl
 devices connected simultaneously, so effectively only a single device
 is supported.
 .Pp
-Slave Select must be externally held low for direct SPI when
+Chip Select must be externally held low for direct SPI when
 using USBtinyISP, and send must be a multiple of four bytes.
 .Pp
 The avrftdi driver allows one to select specific devices using any combination of vid,pid

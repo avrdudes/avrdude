@@ -9,7 +9,7 @@
  * meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.1
- * 20.11.2022
+ * 22.11.2022
  *
  */
 
@@ -447,7 +447,7 @@ const char * const vtab_attiny20[vts_attiny20] = { // ATtiny20
   "TIM0_OVF",                   //  11: Timer 0 Overflow
   "ANA_COMP",                   //  12: Analog Comparator
   "ADC_ADC",                    //  13: Conversion Complete
-  "TWI_SLAVE",                  //  14: 2-Wire Interface Periphery
+  "TWI_PERIPHERY",              //  14: 2-Wire Interface Periphery
   "SPI",                        //  15: SPI Serial Peripheral Interface
   "QTRIP",                      //  16: Touch Sensing
 };
@@ -468,7 +468,7 @@ const char * const vtab_attiny40[vts_attiny40] = { // ATtiny40
   "TIM0_OVF",                   //  12: Timer 0 Overflow
   "ANA_COMP",                   //  13: Analog Comparator
   "ADC",                        //  14: ADC Conversion Complete
-  "TWI_SLAVE",                  //  15: 2-Wire Interface Periphery
+  "TWI_PERIPHERY",              //  15: 2-Wire Interface Periphery
   "SPI",                        //  16: SPI Serial Peripheral Interface
   "QTRIP",                      //  17: Touch Sensing
 };
@@ -691,7 +691,7 @@ const char * const vtab_attiny828[vts_attiny828] = { // ATtiny828
   "ADC",                        //  20: ADC Conversion Complete
   "EE_READY",                   //  21: EEPROM Ready
   "ANALOG_COMP",                //  22: Analog Comparator
-  "TWI_SLAVE",                  //  23: 2-Wire Interface Periphery
+  "TWI_PERIPHERY",              //  23: 2-Wire Interface Periphery
   "SPM_Ready",                  //  24: Store Program Memory Ready
   "QTRIP",                      //  25: Touch Sensing
 };
@@ -726,7 +726,7 @@ const char * const vtab_attiny841[vts_attiny841] = { // ATtiny841, ATtiny441
   "USART1_RX",                  //  26: USART 1 Receive Complete
   "USART1_UDRE",                //  27: USART 1 Data Register Empty
   "USART1_TX",                  //  28: USART 1 Transmit Complete
-  "TWI_SLAVE",                  //  29: 2-Wire Interface Periphery
+  "TWI_PERIPHERY",              //  29: 2-Wire Interface Periphery
 };
 
 const char * const vtab_attiny861a[vts_attiny861a] = { // ATtiny861A, ATtiny861, ATtiny461A, ATtiny461, ATtiny261A, ATtiny261
@@ -777,7 +777,7 @@ const char * const vtab_attiny1634[vts_attiny1634] = { // ATtiny1634
   "USART1_TXC",                 //  22: USART 1 Transmit Complete
   "USI_START",                  //  23: USI Start Condition
   "USI_OVERFLOW",               //  24: USI Overflow
-  "TWI/TWI_SLAVE",              //  25: 2-Wire Interface/2-Wire Interface Periphery
+  "TWI/TWI_PERIPHERY",          //  25: 2-Wire Interface/2-Wire Interface Periphery
   "EE_RDY",                     //  26: EEPROM Ready
   "QTRIP",                      //  27: Touch Sensing
 };
