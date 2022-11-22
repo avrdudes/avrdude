@@ -482,7 +482,7 @@ int main(int argc, char * argv [])
   char  * port;        /* device port (/dev/xxx) */
   int     terminal;    /* 1=enter terminal mode, 0=don't */
   const char *exitspecs; /* exit specs string from command line */
-  char  * programmer;  /* programmer id */
+  const char *programmer; /* programmer id */
   char    sys_config[PATH_MAX]; /* system wide config file */
   char    usr_config[PATH_MAX]; /* per-user config file */
   char    executable_abspath[PATH_MAX]; /* absolute path to avrdude executable */
@@ -568,7 +568,7 @@ int main(int argc, char * argv [])
   quell_progress = 0;
   exitspecs     = NULL;
   pgm           = NULL;
-  programmer    = cfg_strdup("main()", default_programmer);
+  programmer    = "";
   verbose       = 0;
   baudrate      = 0;
   bitclock      = 0.0;
@@ -953,6 +953,9 @@ int main(int argc, char * argv [])
   if (default_bitclock > 0 && bitclock == 0.0) {
     bitclock = default_bitclock;
   }
+
+  if(!(programmer && *programmer) && *default_programmer)
+    programmer = cache_string(default_programmer);
 
   // Developer options to print parts and/or programmer entries of avrdude.conf
   int dev_opt_c = dev_opt(programmer); // -c <wildcard>/[sSArt]
