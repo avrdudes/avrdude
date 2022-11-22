@@ -72,6 +72,8 @@
 #       mcuid            = <num>;                 # unique id in 0..2039 for 8-bit AVRs
 #       n_interrupts     = <num>;                 # number of interrupts, used for vector bootloaders
 #       n_page_erase     = <num>;                 # if set, number of pages erased during SPM erase
+#       n_boot_sections  = <num>;                 # Number of boot sections
+#       boot_section_size = <num>;                # Size of (smallest) boot section, if any
 #       hvupdi_variant   = <num> ;                # numeric -1 (n/a) or 0..2
 #       devicecode       = <num> ;                # deprecated, use stk500_devcode
 #       stk500_devcode   = <num> ;                # numeric
@@ -2729,6 +2731,8 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    spmcr                  = 0x57;
+    eecr                   = 0x3c;
     ocdrev                 = 0;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -3740,6 +3744,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG | PM_JTAGmkI;
     mcuid                  = 72;
     n_interrupts           = 35;
+    n_boot_sections        = 4;
+    boot_section_size      = 1024;
     stk500_devcode         = 0xa0;
     avr910_devcode         = 0x45;
     chip_erase_delay       = 9000;
@@ -3869,6 +3875,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG | PM_JTAGmkI;
     mcuid                  = 85;
     n_interrupts           = 35;
+    n_boot_sections        = 4;
+    boot_section_size      = 1024;
     stk500_devcode         = 0xb2;
     avr910_devcode         = 0x43;
     chip_erase_delay       = 9000;
@@ -3999,6 +4007,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG | PM_JTAGmkI;
     mcuid                  = 176;
     n_interrupts           = 37;
+    n_boot_sections        = 4;
+    boot_section_size      = 1024;
     stk500_devcode         = 0xb3;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
@@ -4122,6 +4132,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 172;
     n_interrupts           = 37;
+    n_boot_sections        = 4;
+    boot_section_size      = 1024;
     stk500_devcode         = 0xb3;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
@@ -4245,6 +4257,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 171;
     n_interrupts           = 37;
+    n_boot_sections        = 4;
+    boot_section_size      = 1024;
     stk500_devcode         = 0xb3;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
@@ -4368,6 +4382,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG | PM_JTAGmkI;
     mcuid                  = 49;
     n_interrupts           = 21;
+    n_boot_sections        = 4;
+    boot_section_size      = 256;
     stk500_devcode         = 0x82;
     avr910_devcode         = 0x74;
     chip_erase_delay       = 9000;
@@ -4493,6 +4509,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 111;
     n_interrupts           = 31;
+    n_boot_sections        = 4;
+    boot_section_size      = 512;
     stk500_devcode         = 0x82; # no STK500v1 support, use the ATmega16 one
     avr910_devcode         = 0x74;
     chip_erase_delay       = 55000;
@@ -4614,6 +4632,7 @@ part parent "m324p"
     desc                   = "ATmega164P";
     id                     = "m164p";
     mcuid                  = 93;
+    boot_section_size      = 256;
     signature              = 0x1e 0x94 0x0a;
 
     memory "eeprom"
@@ -4690,6 +4709,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 127;
     n_interrupts           = 28;
+    n_boot_sections        = 4;
+    boot_section_size      = 1024;
     stk500_devcode         = 0x82; # no STK500v1 support, use the ATmega16 one
     avr910_devcode         = 0x74;
     chip_erase_delay       = 55000;
@@ -4845,6 +4866,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 140;
     n_interrupts           = 35;
+    n_boot_sections        = 4;
+    boot_section_size      = 1024;
     stk500_devcode         = 0x82; # no STK500v1 support, use the ATmega16 one
     avr910_devcode         = 0x74;
     chip_erase_delay       = 55000;
@@ -4980,6 +5003,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG | PM_JTAGmkI;
     mcuid                  = 90;
     n_interrupts           = 28;
+    n_boot_sections        = 4;
+    boot_section_size      = 256;
     stk500_devcode         = 0x83;
     avr910_devcode         = 0x63;
     chip_erase_delay       = 9000;
@@ -5101,6 +5126,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
     mcuid                  = 91;
     n_interrupts           = 18;
+    n_boot_sections        = 4;
+    boot_section_size      = 256;
     stk500_devcode         = 0x81;
     avr910_devcode         = 0x64;
     chip_erase_delay       = 32000;
@@ -5205,6 +5232,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG | PM_JTAGmkI;
     mcuid                  = 104;
     n_interrupts           = 23;
+    n_boot_sections        = 4;
+    boot_section_size      = 256;
     stk500_devcode         = 0x85;
     avr910_devcode         = 0x78;
     chip_erase_delay       = 9000;
@@ -5362,6 +5391,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 121;
     n_interrupts           = 23;
+    n_boot_sections        = 4;
+    boot_section_size      = 512;
 #   stk500_devcode         = 0x85; # no STK500 support, only STK500v2
 #   avr910_devcode         = 0x?;  # try the ATmega169 one:
     avr910_devcode         = 0x75;
@@ -5565,6 +5596,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 135;
     n_interrupts           = 23;
+    n_boot_sections        = 4;
+    boot_section_size      = 1024;
 #   stk500_devcode         = 0x85; # no STK500 support, only STK500v2
 #   avr910_devcode         = 0x?;  # try the ATmega169 one:
     avr910_devcode         = 0x75;
@@ -5745,6 +5778,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG | PM_JTAGmkI;
     mcuid                  = 58;
     n_interrupts           = 21;
+    n_boot_sections        = 4;
+    boot_section_size      = 512;
     stk500_devcode         = 0x91;
     avr910_devcode         = 0x72;
     chip_erase_delay       = 9000;
@@ -5858,6 +5893,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
     mcuid                  = 89;
     n_interrupts           = 21;
+    n_boot_sections        = 1;
+    boot_section_size      = 1024;
     stk500_devcode         = 0x80;
     avr910_devcode         = 0x60;
     chip_erase_delay       = 28000;
@@ -5959,6 +5996,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
     mcuid                  = 45;
     n_interrupts           = 19;
+    n_boot_sections        = 4;
+    boot_section_size      = 256;
     stk500_devcode         = 0x70;
     avr910_devcode         = 0x76;
     chip_erase_delay       = 10000;
@@ -6080,6 +6119,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
     mcuid                  = 160;
     n_interrupts           = 17;
+    n_boot_sections        = 4;
+    boot_section_size      = 256;
     stk500_devcode         = 0x63;
     avr910_devcode         = 0x3a;
     chip_erase_delay       = 9000;
@@ -6183,6 +6224,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
     mcuid                  = 161;
     n_interrupts           = 21;
+    n_boot_sections        = 4;
+    boot_section_size      = 256;
     stk500_devcode         = 0x64;
     avr910_devcode         = 0x69;
     chip_erase_delay       = 9000;
@@ -6429,6 +6472,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -6565,6 +6610,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -6701,6 +6748,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -6892,6 +6941,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -7028,6 +7079,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
     mcuid                  = 79;
     n_interrupts           = 26;
+    n_boot_sections        = 4;
+    boot_section_size      = 256;
     stk500_devcode         = 0x73;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
@@ -7064,6 +7117,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -7201,6 +7256,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
     mcuid                  = 99;
     n_interrupts           = 26;
+    n_boot_sections        = 4;
+    boot_section_size      = 256;
     stk500_devcode         = 0x86;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
@@ -7237,6 +7294,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -7374,6 +7433,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
     mcuid                  = 35;
     n_interrupts           = 26;
+    n_boot_sections        = 4;
+    boot_section_size      = 256;
     stk500_devcode         = 0x86;
     chip_erase_delay       = 15000;
     pagel                  = 0xd7;
@@ -7410,6 +7471,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3f;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -7546,6 +7609,7 @@ part
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
     spmcr                  = 0x57;
+    eecr                   = 0x3f;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -7673,6 +7737,7 @@ part
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
     spmcr                  = 0x57;
+    eecr                   = 0x3f;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -7800,6 +7865,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -7928,6 +7995,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -8020,6 +8089,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
     mcuid                  = 118;
     n_interrupts           = 26;
+    n_boot_sections        = 4;
+    boot_section_size      = 512;
     stk500_devcode         = 0x86;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
@@ -8056,6 +8127,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -8194,6 +8267,7 @@ part parent "m328"
     id                     = "m64m1";
     mcuid                  = 76;
     n_interrupts           = 31;
+    boot_section_size      = 1024;
     bs2                    = 0xe2;
 #   stk500_devcode         = 0x??;
 #   avr910_devcode         = 0x??;
@@ -8269,6 +8343,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3c;
     ocdrev                 = 0;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -8413,6 +8489,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3c;
     ocdrev                 = 0;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -8505,6 +8583,7 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
     mcuid                  = 167;
     n_interrupts           = 32;
+    n_boot_sections        = 4;
     stk500_devcode         = 0x65;
     chip_erase_delay       = 9000;
     pagel                  = 0xd8;
@@ -8540,6 +8619,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3f;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -8631,6 +8712,7 @@ part parent "pwm2"
     desc                   = "AT90PWM3";
     id                     = "pwm3";
     mcuid                  = 169;
+    boot_section_size      = 256;
 ;
 
 #------------------------------------------------------------
@@ -8642,6 +8724,7 @@ part parent "pwm2"
     desc                   = "AT90PWM2B";
     id                     = "pwm2b";
     mcuid                  = 168;
+    boot_section_size      = 256;
     signature              = 0x1e 0x93 0x83;
     ocdrev                 = 1;
 ;
@@ -8668,6 +8751,7 @@ part parent "pwm3b"
     desc                   = "AT90PWM316";
     id                     = "pwm316";
     mcuid                  = 180;
+    boot_section_size      = 512;
     signature              = 0x1e 0x94 0x83;
 
     memory "flash"
@@ -8742,6 +8826,8 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    spmcr                  = 0x57;
+    eecr                   = 0x3c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -8871,6 +8957,8 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    spmcr                  = 0x57;
+    eecr                   = 0x3c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -9001,6 +9089,8 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    spmcr                  = 0x57;
+    eecr                   = 0x3c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -9094,6 +9184,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 126;
     n_interrupts           = 57;
+    n_boot_sections        = 4;
+    boot_section_size      = 1024;
 #   stk500_devcode         = 0xB2;
 #   avr910_devcode         = 0x43;
     chip_erase_delay       = 9000;
@@ -9217,6 +9309,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 138;
     n_interrupts           = 57;
+    n_boot_sections        = 4;
+    boot_section_size      = 1024;
 #   stk500_devcode         = 0xB2;
 #   avr910_devcode         = 0x43;
     chip_erase_delay       = 9000;
@@ -9353,6 +9447,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 143;
     n_interrupts           = 57;
+    n_boot_sections        = 4;
+    boot_section_size      = 1024;
     stk500_devcode         = 0xb2;
 #   avr910_devcode         = 0x43;
     chip_erase_delay       = 9000;
@@ -9649,6 +9745,8 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    spmcr                  = 0x57;
+    eecr                   = 0x3c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -9789,6 +9887,8 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    spmcr                  = 0x57;
+    eecr                   = 0x3c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -9929,6 +10029,8 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    spmcr                  = 0x57;
+    eecr                   = 0x3c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -10119,6 +10221,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3c;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -10212,6 +10316,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 57;
     n_interrupts           = 43;
+    n_boot_sections        = 4;
+    boot_section_size      = 512;
 #   stk500_devcode         = 0xB2;
 #   avr910_devcode         = 0x43;
     chip_erase_delay       = 9000;
@@ -10336,6 +10442,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 65;
     n_interrupts           = 43;
+    n_boot_sections        = 4;
+    boot_section_size      = 512;
 #   stk500_devcode         = 0xB2;
 #   avr910_devcode         = 0x43;
     chip_erase_delay       = 9000;
@@ -10460,6 +10568,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 181;
     n_interrupts           = 38;
+    n_boot_sections        = 4;
+    boot_section_size      = 1024;
 #   stk500_devcode         = 0xB2;
 #   avr910_devcode         = 0x43;
     chip_erase_delay       = 9000;
@@ -10595,6 +10705,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 184;
     n_interrupts           = 38;
+    n_boot_sections        = 4;
+    boot_section_size      = 1024;
 #   stk500_devcode         = 0xB2;
 #   avr910_devcode         = 0x43;
     chip_erase_delay       = 9000;
@@ -10730,6 +10842,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
     mcuid                  = 178;
     n_interrupts           = 29;
+    n_boot_sections        = 4;
+    boot_section_size      = 512;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
     bs2                    = 0xc6;
@@ -10759,6 +10873,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -10850,6 +10966,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
     mcuid                  = 174;
     n_interrupts           = 58;
+    n_boot_sections        = 4;
+    boot_section_size      = 512;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
     bs2                    = 0xc6;
@@ -10879,6 +10997,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -10970,6 +11090,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
     mcuid                  = 64;
     n_interrupts           = 29;
+    n_boot_sections        = 4;
+    boot_section_size      = 512;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
     bs2                    = 0xc6;
@@ -10999,6 +11121,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -11090,6 +11214,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
     mcuid                  = 56;
     n_interrupts           = 29;
+    n_boot_sections        = 4;
+    boot_section_size      = 512;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
     bs2                    = 0xc6;
@@ -11119,6 +11245,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -11210,6 +11338,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
     mcuid                  = 48;
     n_interrupts           = 58;
+    n_boot_sections        = 4;
+    boot_section_size      = 512;
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
     bs2                    = 0xc6;
@@ -11239,6 +11369,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -11330,6 +11462,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 95;
     n_interrupts           = 22;
+    n_boot_sections        = 4;
+    boot_section_size      = 256;
 #   stk500_devcode         = 0x??;
 #   avr910_devcode         = 0x??;
     chip_erase_delay       = 9000;
@@ -11484,6 +11618,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 114;
     n_interrupts           = 23;
+    n_boot_sections        = 4;
+    boot_section_size      = 512;
 #   stk500_devcode         = 0x??; # No STK500v1 support?
 #   avr910_devcode         = 0x??; # Try the ATmega16 one
     avr910_devcode         = 0x74;
@@ -11642,6 +11778,8 @@ part
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 132;
     n_interrupts           = 23;
+    n_boot_sections        = 4;
+    boot_section_size      = 1024;
 #   stk500_devcode         = 0x??; # No STK500v1 support?
 #   avr910_devcode         = 0x??; # Try the ATmega16 one
     avr910_devcode         = 0x74;
@@ -11870,6 +12008,7 @@ part
     desc                   = "AVR XMEGA family common values";
     id                     = ".xmega";
     prog_modes             = PM_SPM | PM_PDI;
+    n_boot_sections        = 1;
     mcu_base               = 0x0090;
     nvm_base               = 0x01c0;
 
@@ -11925,6 +12064,7 @@ part parent ".xmega"
     id                     = "x16a4u";
     mcuid                  = 232;
     n_interrupts           = 127;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x94 0x41;
     usbpid                 = 0x2fe3;
 
@@ -12019,6 +12159,7 @@ part parent ".xmega"
     id                     = "x32a4u";
     mcuid                  = 239;
     n_interrupts           = 127;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x95 0x41;
     usbpid                 = 0x2fe4;
 
@@ -12113,6 +12254,7 @@ part parent ".xmega"
     id                     = "x64a4u";
     mcuid                  = 252;
     n_interrupts           = 127;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x46;
     usbpid                 = 0x2fe5;
 
@@ -12295,6 +12437,7 @@ part parent ".xmega"
     id                     = "x128c3";
     mcuid                  = 261;
     n_interrupts           = 127;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x52;
     usbpid                 = 0x2fd7;
 
@@ -12503,6 +12646,7 @@ part parent ".xmega"
     id                     = "x128a4u";
     mcuid                  = 264;
     n_interrupts           = 127;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x46;
     usbpid                 = 0x2fde;
 
@@ -12559,6 +12703,7 @@ part parent ".xmega"
     prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 257;
     n_interrupts           = 81;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x4d;
     usbpid                 = 0x2fea;
 
@@ -12632,6 +12777,7 @@ part parent ".xmega"
     id                     = "x192c3";
     mcuid                  = 269;
     n_interrupts           = 127;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x51;
 #   usbpid                 = 0x2f??;
 
@@ -12740,6 +12886,7 @@ part parent ".xmega"
     id                     = "x256c3";
     mcuid                  = 276;
     n_interrupts           = 127;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x98 0x46;
     usbpid                 = 0x2fda;
 
@@ -12871,6 +13018,7 @@ part parent ".xmega"
     id                     = "x384c3";
     mcuid                  = 278;
     n_interrupts           = 127;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x98 0x45;
     usbpid                 = 0x2fdb;
 
@@ -12938,6 +13086,7 @@ part parent ".xmega"
     id                     = "x8e5";
     mcuid                  = 230;
     n_interrupts           = 43;
+    boot_section_size      = 2048;
     signature              = 0x1e 0x93 0x41;
 
     memory "eeprom"
@@ -12992,6 +13141,7 @@ part parent ".xmega"
     id                     = "x16e5";
     mcuid                  = 235;
     n_interrupts           = 43;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x94 0x45;
 
     memory "eeprom"
@@ -13046,6 +13196,7 @@ part parent ".xmega"
     id                     = "x32e5";
     mcuid                  = 242;
     n_interrupts           = 43;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x95 0x4c;
 
     memory "eeprom"
@@ -13166,6 +13317,8 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    spmcr                  = 0x57;
+    eecr                   = 0x3c;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -13446,6 +13599,8 @@ part
     prog_modes             = PM_SPM | PM_HVPP | PM_JTAG;
     mcuid                  = 125;
     n_interrupts           = 23;
+    n_boot_sections        = 4;
+    boot_section_size      = 512;
     # STK500 parameters (parallel programming IO lines)
     pagel                  = 0xa7;
     bs2                    = 0xa0;
@@ -13508,6 +13663,7 @@ part
     desc                   = "AVR8X family common values";
     id                     = ".avr8x";
     prog_modes             = PM_SPM | PM_UPDI;
+    n_boot_sections        = 1;
     nvm_base               = 0x1000;
     ocd_base               = 0x0f80;
 
@@ -14880,6 +15036,7 @@ part
     id                     = ".avrdx";
     family_id              = "AVR    ";
     prog_modes             = PM_SPM | PM_UPDI;
+    n_boot_sections        = 1;
     # Dedicated UPDI pin, no HV
     hvupdi_variant         = 1;
     nvm_base               = 0x1000;
