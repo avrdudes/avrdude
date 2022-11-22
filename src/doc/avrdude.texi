@@ -1866,6 +1866,8 @@ part
     mcuid            = <num>;                 # unique id in 0..2039 for 8-bit AVRs
     n_interrupts     = <num>;                 # number of interrupts, used for vector bootloaders
     n_page_erase     = <num>;                 # if set, number of pages erased during SPM erase
+    n_boot_sections  = <num>;                 # Number of boot sections
+    boot_section_size = <num>;                # Size of (smallest) boot section, if any
     hvupdi_variant   = <num> ;                # numeric -1 (n/a) or 0..2
     devicecode       = <num> ;                # deprecated, use stk500_devcode
     stk500_devcode   = <num> ;                # numeric
