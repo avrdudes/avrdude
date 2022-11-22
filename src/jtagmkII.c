@@ -896,7 +896,7 @@ static void jtagmkII_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
   int status;
   unsigned char *resp, c;
   LNODEID ln;
-  AVRMEM * m;
+  AVRMEM *flm;
   struct {
     unsigned char cmd;
     struct device_descriptor dd;
@@ -907,13 +907,18 @@ static void jtagmkII_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
   sendbuf.dd.ucSPMCRAddress = p->spmcr;
   sendbuf.dd.ucRAMPZAddress = p->rampz;
   sendbuf.dd.ucIDRAddress = p->idr;
+  if((flm = avr_locate_mem(p, "flash")) && p->boot_section_size > 0) {
+    unsigned int sbls = (flm->size - p->boot_section_size)/2; // Words
+    sendbuf.dd.uiStartSmallestBootLoaderSection[0] = sbls;
+    sendbuf.dd.uiStartSmallestBootLoaderSection[1] = sbls>>8;
+  }
   u16_to_b2(sendbuf.dd.EECRAddress, p->eecr? p->eecr: 0x3f); // Unset eecr means 0x3f
   sendbuf.dd.ucAllowFullPageBitstream =
     (p->flags & AVRPART_ALLOWFULLPAGEBITSTREAM) != 0;
   sendbuf.dd.EnablePageProgramming =
     (p->flags & AVRPART_ENABLEPAGEPROGRAMMING) != 0;
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
-    m = ldata(ln);
+    AVRMEM *m = ldata(ln);
     if (strcmp(m->desc, "flash") == 0) {
       if (m->page_size > 256)
         PDATA(pgm)->flash_pagesize = 256;
