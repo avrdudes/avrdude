@@ -1005,7 +1005,7 @@ static struct
   const char *description;
 } connection_status[] =
 {
-  { STATUS_CONN_FAIL_MOSI, "MOSI fail" },
+  { STATUS_CONN_FAIL_SDO, "SDO fail" },
   { STATUS_CONN_FAIL_RST, "RST fail" },
   { STATUS_CONN_FAIL_SCK, "SCK fail" },
   { STATUS_TGT_NOT_DETECTED, "Target not detected" },

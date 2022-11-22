@@ -335,7 +335,7 @@ static int linuxspi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
          * plus two CPU clock cycles. See Table 25-5 on page 240 for definition of
          * minimum pulse width on RESET pin, t RST
          * 2. Wait for at least 20 ms and then enable serial programming by sending
-         * the Programming Enable serial instruction to the MOSI pin
+         * the Programming Enable serial instruction to the SDO pin
          * 3. The serial programming instructions will not work if the communication
          * is out of synchronization. When in sync, the second byte (0x53) will echo
          * back when issuing the third byte of the Programming Enable instruction

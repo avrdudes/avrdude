@@ -75,9 +75,9 @@ so, for the
 based programmer, the MCU signals
 .Ql /RESET ,
 .Ql SCK ,
-.Ql MISO
+.Ql SDI
 and
-.Ql MOSI
+.Ql SDO
 need to be connected to the parallel port.  Optionally, some otherwise
 unused output pins of the parallel port can be used to supply power
 for the MCU part, so it is also possible to construct a passive
@@ -98,7 +98,7 @@ work at all, or to work abysmally slow.
 .Pp
 If you happen to have a Linux system with at least 4 hardware GPIOs 
 available (like almost all embedded Linux boards) you can do without 
-any additional hardware - just connect them to the MOSI, MISO, RESET 
+any additional hardware - just connect them to the SDO, SDI, RESET
 and SCK pins on the AVR and use the linuxgpio programmer type. It bitbangs
 the lines using the Linux sysfs GPIO interface. Of course, care should
 be taken about voltage level compatibility. Also, although not strictly
@@ -217,7 +217,7 @@ has been compiled in
 .Nm avrdude ,
 the avrftdi device adds support for many programmers using FTDI's 2232C/D/H 
 and 4232H parts running in MPSSE mode, which hard-codes (in the chip) 
-SCK to bit 1, MOSI to bit 2, and MISO to bit 3. Reset is usually bit 4.
+SCK to bit 1, SDO to bit 2, and SDI to bit 3. Reset is usually bit 4.
 .Pp
 The Atmel DFU bootloader is supported in both, FLIP protocol version 1
 (AT90USB* and ATmega*U* devices), as well as version 2 (Xmega devices).
@@ -1025,8 +1025,8 @@ ll.
 2-5	Vcc (optional power supply to MCU)
 7	/RESET (to MCU)
 8	SCK (to MCU)
-9	MOSI (to MCU)
-10	MISO (from MCU)
+9	SDO (to MCU)
+10	SDI (from MCU)
 18-25	GND
 .TE
 .Ss debugWire limitations
@@ -1258,7 +1258,7 @@ Show this help menu and exit
 .It Ar reset={cs,aux,aux2}
 The default setup assumes the BusPirate's CS output pin connected to 
 the RESET pin on AVR side. It is however possible to have multiple AVRs
-connected to the same BP with MISO, MOSI and SCK lines common for all of them.
+connected to the same BP with SDI, SDO and SCK lines common for all of them.
 In such a case one AVR should have its RESET connected to BusPirate's
 .Pa CS
 pin, second AVR's RESET connected to BusPirate's
@@ -1371,9 +1371,9 @@ Connection to the PICkit2 programmer:
 RST  -   VPP/MCLR (1) 
 VDD  -   VDD Target (2) -- possibly optional if AVR self powered 
 GND  -   GND (3) 
-MISO -   PGD (4) 
+SDI  -   PGD (4)
 SCLK -   PDC (5) 
-MOSI -   AUX (6) 
+SDO  -   AUX (6)
 
 .Ed
 Extended commandline parameters:
