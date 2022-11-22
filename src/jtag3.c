@@ -2542,7 +2542,7 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
 
   cmdbuf[0] = XPRG_CMD_SET_PARAM;
   cmdbuf[1] = XPRG_PARAM_NVMCMD_ADDR;
-  cmdbuf[2] = 0x33; // NVMCMD address
+  cmdbuf[2] = TPI_NVMCMD_ADDRESS;
 
   if (jtag3_send_tpi(pgm, cmdbuf, 3) < 0) {
     pmsg_error("Set NVMCMD address failed\n");
@@ -2553,7 +2553,7 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
 
   cmdbuf[0] = XPRG_CMD_SET_PARAM;
   cmdbuf[1] = XPRG_PARAM_NVMCSR_ADDR;
-  cmdbuf[2] = 0x32; // NVMCSR address
+  cmdbuf[2] = TPI_NVMCSR_ADDRESS;
 
   if (jtag3_send_tpi(pgm, cmdbuf, 3) < 0) {
     pmsg_error("Set NVMCSR address failed\n");

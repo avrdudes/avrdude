@@ -365,6 +365,9 @@
 #define XPRG_PARAM_NVMCMD_ADDR              0x03
 #define XPRG_PARAM_NVMCSR_ADDR              0x04
 
+#define TPI_NVMCMD_ADDRESS                  0x33
+#define TPI_NVMCSR_ADDRESS                  0x32
+
 
 #if !defined(JTAG3_PRIVATE_EXPORTED)
 
