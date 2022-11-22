@@ -361,6 +361,12 @@ else()
     message(STATUS "DON'T HAVE libftdi1")
 endif()
 
+if(HAVE_LIBREADLINE)
+    message(STATUS "DO HAVE    libreadline")
+else()
+    message(STATUS "DON'T HAVE libreadline")
+endif()
+
 if(BUILD_DOC)
 	message(STATUS "ENABLED    doc")
 else()
