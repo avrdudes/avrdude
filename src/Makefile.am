@@ -180,6 +180,9 @@ libavrdude_a_SOURCES = \
 	updi_readwrite.h \
 	updi_nvm.c \
 	updi_nvm.h \
+	urclock.c \
+	urclock.h \
+	urclock_private.h \
 	usbdevs.h \
 	usb_hidapi.c \
 	usb_libusb.c \

@@ -204,23 +204,6 @@ int avr_is_and(const unsigned char *s1, const unsigned char *s2, const unsigned 
 }
 
 
-static int initCache(AVR_Cache *cp, const PROGRAMMER *pgm, const AVRPART *p) {
-  AVRMEM *basemem = avr_locate_mem(p, cp == pgm->cp_flash? "flash": "eeprom");
-
-  if(!basemem || !avr_has_paged_access(pgm, basemem))
-    return LIBAVRDUDE_GENERAL_FAILURE;
-
-  cp->size = basemem->size;
-  cp->page_size = basemem->page_size;
-  cp->offset = basemem->offset;
-  cp->cont = cfg_malloc("initCache()", cp->size);
-  cp->copy = cfg_malloc("initCache()", cp->size);
-  cp->iscached = cfg_malloc("initCache()", cp->size/cp->page_size);
-
-  return LIBAVRDUDE_SUCCESS;
-}
-
-
 static int cacheAddress(int addr, const AVR_Cache *cp, const AVRMEM *mem) {
   int cacheaddr = addr + (int) (mem->offset - cp->offset);
 
@@ -255,6 +238,29 @@ static int loadCachePage(AVR_Cache *cp, const PROGRAMMER *pgm, const AVRPART *p,
     // Copy last read device page, so we can later check for changes
     memcpy(cp->copy + cachebase, cp->cont + cachebase, cp->page_size);
     cp->iscached[pgno] = 1;
+  }
+
+  return LIBAVRDUDE_SUCCESS;
+}
+
+
+static int initCache(AVR_Cache *cp, const PROGRAMMER *pgm, const AVRPART *p) {
+  AVRMEM *basemem = avr_locate_mem(p, cp == pgm->cp_flash? "flash": "eeprom");
+
+  if(!basemem || !avr_has_paged_access(pgm, basemem))
+    return LIBAVRDUDE_GENERAL_FAILURE;
+
+  cp->size = basemem->size;
+  cp->page_size = basemem->page_size;
+  cp->offset = basemem->offset;
+  cp->cont = cfg_malloc("initCache()", cp->size);
+  cp->copy = cfg_malloc("initCache()", cp->size);
+  cp->iscached = cfg_malloc("initCache()", cp->size/cp->page_size);
+
+  if((pgm->prog_modes & PM_SPM) && avr_mem_is_flash_type(basemem)) { // Could be vector bootloader
+    // Caching the vector page gives control to the progammer that then can patch the reset vector
+    if(loadCachePage(cp, pgm, p, basemem, 0, 0, 0) < 0)
+      return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
   return LIBAVRDUDE_SUCCESS;
@@ -597,10 +603,14 @@ int avr_read_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *
  *  - Used if paged routines available and if memory is EEPROM or flash
  *  - Otherwise fall back to pgm->write_byte()
  *  - Out of memory addr: synchronise cache with device and return whether successful
+ *  - If programmer indicates a readonly spot, return LIBAVRDUDE_SOFTFAIL
  *  - Cache is automagically created and initialised if needed
  */
 int avr_write_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char data) {
+
+  if(pgm->readonly && pgm->readonly(pgm, p, mem, addr))
+    return LIBAVRDUDE_SOFTFAIL;
 
   // Use pgm->write_byte() if not EEPROM/flash or no paged access
   if(!avr_has_paged_access(pgm, mem))
@@ -636,9 +646,10 @@ int avr_chip_erase_cached(const PROGRAMMER *pgm, const AVRPART *p) {
     { avr_locate_mem(p, "flash"), pgm->cp_flash, 1 },
     { avr_locate_mem(p, "eeprom"), pgm->cp_eeprom, 0 },
   };
+  int rc;
 
-  if(pgm->chip_erase(pgm, p) < 0)
-    return LIBAVRDUDE_GENERAL_FAILURE;
+  if((rc = pgm->chip_erase(pgm, p)) < 0)
+    return rc;
 
   for(size_t i = 0; i < sizeof mems/sizeof*mems; i++) {
     AVRMEM *mem = mems[i].mem;

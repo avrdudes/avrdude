@@ -434,7 +434,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     }
     if (!failure)
       return avr_mem_hiaddr(mem);
-    /* else: fall back to byte-at-a-time write, for historical reasons */
+    /* else: fall back to byte-at-a-time read, for historical reasons */
   }
 
   if (strcmp(mem->desc, "signature") == 0) {
@@ -1088,8 +1088,7 @@ int compare_memory_masked(AVRMEM * m, uint8_t b1, uint8_t b2) {
  *
  * Return the number of bytes verified, or -1 if they don't match.
  */
-int avr_verify(const AVRPART * p, const AVRPART * v, const char * memtype, int size)
-{
+int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const char *memtype, int size) {
   int i;
   unsigned char * buf1, * buf2;
   int vsize;
@@ -1118,14 +1117,34 @@ int avr_verify(const AVRPART * p, const AVRPART * v, const char * memtype, int s
     size = vsize;
   }
 
+  int verror = 0, vroerror = 0, maxerrs = verbose >= MSG_DEBUG? size+1: 10;
   for (i=0; i<size; i++) {
     if ((b->tags[i] & TAG_ALLOCATED) != 0 && buf1[i] != buf2[i]) {
       uint8_t bitmask = get_fuse_bitmask(a);
-      if((buf1[i] & bitmask) != (buf2[i] & bitmask)) {
+      if(pgm->readonly && pgm->readonly(pgm, p, a, i)) {
+        if(quell_progress < 2) {
+          if(vroerror < 10) {
+            if(!(verror + vroerror))
+              pmsg_warning("verification mismatch%s\n",
+                avr_mem_is_flash_type(a)? " in r/o areas, expected for vectors and/or bootloader": "");
+            imsg_warning("device 0x%02x != input 0x%02x at addr 0x%04x (read only location)\n",
+              buf1[i], buf2[i], i);
+          } else if(vroerror == 10)
+            imsg_warning("suppressing further mismatches in read-only areas\n");
+        }
+        vroerror++;
+      } else if((buf1[i] & bitmask) != (buf2[i] & bitmask)) {
         // Mismatch is not just in unused bits
-        pmsg_error("verification mismatch, first encountered at addr 0x%04x\n", i);
-        imsg_error("device 0x%02x != input 0x%02x\n", buf1[i], buf2[i]);
-        return -1;
+        if(verror < maxerrs) {
+          if(!(verror + vroerror))
+            pmsg_warning("verification mismatch\n");
+          imsg_error("device 0x%02x != input 0x%02x at addr 0x%04x (error)\n", buf1[i], buf2[i], i);
+        } else if(verror == maxerrs) {
+          imsg_warning("suppressing further verification errors\n");
+        }
+        verror++;
+        if(verbose < 1)
+          return -1;
       } else {
         // Mismatch is only in unused bits
         if ((buf1[i] | bitmask) != 0xff) {
@@ -1143,7 +1162,7 @@ int avr_verify(const AVRPART * p, const AVRPART * v, const char * memtype, int s
     }
   }
 
-  return size;
+  return verror? -1: size;
 }
 
 

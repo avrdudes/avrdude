@@ -580,6 +580,7 @@ const char * pinmask_to_str(const pinmask_t * const pinmask);
    The target file will be selected at configure time. */
 
 extern long serial_recv_timeout;  /* ms */
+extern long serial_drain_timeout; /* ms */
 
 union filedescriptor
 {
@@ -798,6 +799,7 @@ typedef struct programmer_t {
   int  (*parseextparams) (const struct programmer_t *pgm, const LISTID xparams);
   void (*setup)          (struct programmer_t *pgm);
   void (*teardown)       (struct programmer_t *pgm);
+  int  (*flash_readhook) (const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *flm, const char *fname, int size);
   // Cached r/w API for terminal reads/writes
   int (*write_byte_cached)(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
                           unsigned long addr, unsigned char value);
@@ -806,6 +808,8 @@ typedef struct programmer_t {
   int (*chip_erase_cached)(const struct programmer_t *pgm, const AVRPART *p);
   int (*page_erase_cached)(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
                           unsigned int baseaddr);
+  int (*readonly)        (const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
+                          unsigned int addr);
   int (*flush_cache)     (const struct programmer_t *pgm, const AVRPART *p);
   int (*reset_cache)     (const struct programmer_t *pgm, const AVRPART *p);
   AVR_Cache *cp_flash, *cp_eeprom;
@@ -885,7 +889,7 @@ int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, int 
 
 int avr_signature(const PROGRAMMER *pgm, const AVRPART *p);
 
-int avr_verify(const AVRPART * p, const AVRPART * v, const char * memtype, int size);
+int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const char *m, int size);
 
 int avr_get_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int *cycles);
 

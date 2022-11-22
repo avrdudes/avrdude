@@ -37,6 +37,7 @@
 #include "libavrdude.h"
 
 long serial_recv_timeout = 5000; /* ms */
+long serial_drain_timeout = 250; /* ms */
 
 #define W32SERBUFSIZE 1024
 
@@ -635,7 +636,7 @@ static int net_drain(const union filedescriptor *fd, int display) {
 	}
 
 	timeout.tv_sec  = 0;
-	timeout.tv_usec = 250000;
+	timeout.tv_usec = serial_drain_timeout*1000L;
 
 	while (1) {
 		FD_ZERO(&rfds);
@@ -712,7 +713,7 @@ static int ser_drain(const union filedescriptor *fd, int display) {
 		return -1;
 	}
 
-	serial_w32SetTimeOut(hComPort,250);
+	serial_w32SetTimeOut(hComPort, serial_drain_timeout);
   
 	if (display) {
 		msg_info("drain>");

@@ -6,10 +6,10 @@
  * Atmel AVR8L, AVR8, XMEGA and AVR8X family description of interrupts and more
  *
  * published under GNU General Public License, version 3 (GPL-3.0)
- * meta-author: Stefan Rueger <stefan.rueger@urclocks.com>
+ * meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.1
- * 30.08.2022
+ * 20.11.2022
  *
  */
 
@@ -256,9 +256,9 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"ATA8515",          224,  F_AVR8, {0x1E, 0x95, 0x63},      -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400,  1,  1,  42,    vtab_ata8515}, // atdf
   {"ATA664251",        225,  F_AVR8, {0x1E, 0x94, 0x87},       0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  20,  vtab_attiny167}, // atdf, avr-gcc 12.2.0
   {"M3000",            226,  F_AVR8, {0xff,   -1,   -1},       0, 0x10000,    -1, -1,     -1,      -1,     -1, -1, 0x1000, 0x1000, -1, -1,   0,            NULL}, // avr-gcc 12.2.0
-  {"LGT8F88P",         227,  F_AVR8, {0x1E, 0x93, 0x0F},       0, 0x02000, 0x040, -1,     -1,       0, 0x0200,  4,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
-  {"LGT8F168P",        228,  F_AVR8, {0x1E, 0x94, 0x0B},       0, 0x04000, 0x080, -1,     -1,       0, 0x0200,  4,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
-  {"LGT8F328P",        229,  F_AVR8, {0x1E, 0x95, 0x0F},       0, 0x08000, 0x080, -1,     -1,       0, 0x0400,  4,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
+  {"LGT8F88P",         227,  F_AVR8, {0x1E, 0x93, 0x0F},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // avrdude, from ATmega88
+  {"LGT8F168P",        228,  F_AVR8, {0x1E, 0x94, 0x0B},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // avrdude, from ATmega168P
+  {"LGT8F328P",        229,  F_AVR8, {0x1E, 0x95, 0x0F},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  26, vtab_atmega328p}, // avrdude, from ATmega328P
 
   {"ATxmega8E5",       230, F_XMEGA, {0x1E, 0x93, 0x41},       0, 0x02800, 0x080,  1, 0x0800,       0, 0x0200, 32, 0x2000, 0x0400,  7,  1,  43, vtab_atxmega32e5}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATxmega16A4",      231, F_XMEGA, {0x1E, 0x94, 0x41},       0, 0x05000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x0800,  6,  1,  94, vtab_atxmega32a4}, // atdf, avr-gcc 12.2.0, avrdude

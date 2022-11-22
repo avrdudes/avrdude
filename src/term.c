@@ -187,7 +187,7 @@ static int chardump_line(char *buffer, unsigned char *p, int n, int pad) {
   unsigned char b[128];
 
   // Sanity check
-  n = n < 1? 1: n > sizeof b? sizeof b: n;
+  n = n < 1? 1: n > (int) sizeof b? (int) sizeof b: n;
 
   memcpy(b, p, n);
   for (int i = 0; i < n; i++)
@@ -664,19 +664,21 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   report_progress(0, 1, avr_has_paged_access(pgm, mem)? "Caching": "Writing");
   for (i = 0; i < len + data.bytes_grown; i++) {
     int rc = pgm->write_byte_cached(pgm, p, mem, addr+i, buf[i]);
-    if (rc) {
+    if (rc == LIBAVRDUDE_SOFTFAIL) {
+      pmsg_warning("(write) programmer write protects %s address 0x%04x\n", mem->desc, addr+i);
+    } else if(rc) {
       pmsg_error("(write) error writing 0x%02x at 0x%05lx, rc=%d\n", buf[i], (long) addr+i, (int) rc);
       if (rc == -1)
         imsg_error("%*swrite operation not supported on memory type %s\n", 8, "", mem->desc);
       werror = true;
-    }
-
-    uint8_t b;
-    rc = pgm->read_byte_cached(pgm, p, mem, addr+i, &b);
-    if (b != buf[i]) {
-      pmsg_error("(write) error writing 0x%02x at 0x%05lx cell=0x%02x\n", buf[i], (long) addr+i, b);
-      werror = true;
-    }
+    } else {
+      uint8_t b;
+      rc = pgm->read_byte_cached(pgm, p, mem, addr+i, &b);
+      if (b != buf[i]) {
+        pmsg_error("(write) verification error writing 0x%02x at 0x%05lx cell=0x%02x\n", buf[i], (long) addr+i, b);
+        werror = true;
+      }
+   }
 
     if (werror)
       pgm->err_led(pgm, ON);
@@ -755,8 +757,47 @@ static int cmd_send(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 static int cmd_erase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   term_out("erasing chip ...\n");
+
   // Erase chip and clear cache
-  pgm->chip_erase_cached(pgm, p);
+  int rc = pgm->chip_erase_cached(pgm, p);
+
+  if(rc == LIBAVRDUDE_SOFTFAIL) {
+    pmsg_info("(erase) emulating chip erase by writing 0xff to flash ");
+    AVRMEM *flm = avr_locate_mem(p, "flash");
+    if(!flm) {
+      msg_error("but flash not defined for part %s?\n", p->desc);
+      return -1;
+    }
+    int addr, beg = 0, end = flm->size-1;
+    if(pgm->readonly) {
+      for(addr=beg; addr < flm->size; addr++)
+        if(!pgm->readonly(pgm, p, flm, addr)) {
+          beg = addr;
+          break;
+        }
+      if(addr >= flm->size) {
+        msg_info("but all flash is write protected\n");
+        return 0;
+      }
+      for(addr=end; addr >= 0; addr--)
+        if(!pgm->readonly(pgm, p, flm, addr)) {
+          end = addr;
+          break;
+        }
+    }
+
+    msg_info("[0x%04x, 0x%04x]; undo with abort\n", beg, end);
+    for(int addr=beg; addr <= end; addr++)
+      if(!pgm->readonly || !pgm->readonly(pgm, p, flm, addr))
+        if(pgm->write_byte_cached(pgm, p, flm, addr, 0xff) == -1)
+          return -1;
+    return 0;
+  }
+
+  if(rc) {
+    pmsg_error("(erase) programmer %s failed erasing the chip\n", (char *) ldata(lfirst(pgm->id)));
+    return -1;
+  }
 
   return 0;
 }

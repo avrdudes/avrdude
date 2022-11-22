@@ -9,7 +9,7 @@
  * meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.1
- * 30.08.2022
+ * 20.11.2022
  *
  */
 
@@ -770,7 +770,7 @@ typedef struct {                // Value of -1 typically means unknown
 #define vts_avr128da64       64
 #define vts_avr128db64       65
 
-// Suggested vector bootloader interrupt number (first unused vector or, failing that, slot just above vector table)
+// Suggested vector bootloader interrupt: first unused vector or slot just above vector table
 #define vbu_attiny4          10
 #define vbu_attiny5          11
 #define vbu_attiny9          10
