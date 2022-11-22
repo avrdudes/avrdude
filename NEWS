@@ -9,6 +9,25 @@ Changes since version 7.0:
 
   * Major changes compared to the previous version:
 
+    - Provide a new programmer -c urclock that specialises in supporting
+      bootloaders and which is compatible with `-c arduino` in
+      the sense that it can also deal with arduino bootloaders
+      + Urclock fully supports vector bootloaders at no extra code size
+      + Uprotocol
+        https://github.com/stefanrueger/urboot/blob/main/urprotocol.md
+        allows programming much shorter bootloaders with more
+        features, eg, urboot
+         * Exports a pgm_write_page(sram, progmem) function that
+           one can call at FLASHEND-4+1 to use flash for storage
+         * Supports EEPROM reads/writes
+         * Protects itself from overwriting
+         * Vector bootloaders: can protect the reset vector
+         * Offers Chip Erase function (quicker than uploading 0xff's)
+      + Urclock when compiled with libreadline supports bootloaders in
+        terminal mode (preventing them from WDT timeout)
+      + The -c urclock programmer provides a metadata interface that
+        allows unused flash to be used as storage
+
   * New devices supported:
 
   * New programmers supported:
@@ -169,12 +188,18 @@ Changes since version 7.0:
     - Always use paged access for programmers that serve
       bootloaders #1141
     - Add libreadline-dev for Linux github action build #1146
-    - Install readline library for macos #1156
     - Implementation of SerialUPDI page erase operation #1151
     - Fix Type 2 HV UPDI #1164
     - Rewrite authors/copyrights #1182
     - Add fallback for EM_AVR #1181
     - Add a workaround for issue 1173 #1185
+    - Add xplainedpro_pdi programmer #1147
+    - Provide Urclock programmer #1171
+    - Fix JTAGICE mkII (not initializing after chip erase) #1172
+    - Ensure default_programmer from config files is used #1174
+    - Make terminal write's automatic number width less surprising
+      #1175
+    - Print HAVE_LIBREADLINE status when making the project #1184
 
 
   * Internals:
