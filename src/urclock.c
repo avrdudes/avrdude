@@ -1164,7 +1164,7 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
   uint8_t buf[4096], b128[128];
 
   qsort(blist, sizeof blist/sizeof*blist, sizeof*blist, cmpblhash);
-  for(int ii, si = 0, sz = 0, bi = 0; si < (int) sizeof blist/sizeof*blist; si++) {
+  for(int ii, si = 0, sz = 0, bi = 0; si < (int) (sizeof blist/sizeof*blist); si++) {
     if(blist[si].sz > sz) { // Read in and compare
       sz = blist[si].sz;
       if(sz > ur.uP.flashsize/2 || (sz+127)/128*128 > (int) sizeof buf)
@@ -1178,7 +1178,7 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
 
       // Does the hash for the full size match? OK: found a known bootloader
       uint32_t hash = jenkins_hash(buf, sz);
-      for(ii = 0; ii < (int) sizeof blist/sizeof*blist; ii++)
+      for(ii = 0; ii < (int) (sizeof blist/sizeof*blist); ii++)
         if(blist[ii].hash == hash && sz == blist[ii].sz && !(sz & (ur.uP.pagesize-1))) {
           // Page aligned bootloader size matches
           ur.blstart = ur.uP.flashsize-sz;
@@ -1190,10 +1190,10 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
 
       // Can we exclude the top 256 byte flash from the botloader list?
       if(sz == 256) {
-        for(ii = 0; ii < (int) sizeof blist/sizeof*blist; ii++)
+        for(ii = 0; ii < (int) (sizeof blist/sizeof*blist); ii++)
           if(hash == blist[ii].h256)
             break;
-        if(ii >= (int) sizeof blist/sizeof*blist)
+        if(ii >= (int) (sizeof blist/sizeof*blist))
           return;
       }
     }
