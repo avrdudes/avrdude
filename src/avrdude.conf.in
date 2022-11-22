@@ -2045,6 +2045,20 @@ programmer
 ;
 
 #------------------------------------------------------------
+# xplainedpro_pdi
+#------------------------------------------------------------
+
+programmer
+    id                     = "xplainedpro_pdi";
+    desc                   = "Atmel AVR XplainedPro in PDI mode";
+    type                   = "jtagice3_pdi";
+    prog_modes             = PM_PDI;
+    connection_type        = usb;
+    usbpid                 = 0x2111;
+    hvupdi_support         = 1;
+;
+
+#------------------------------------------------------------
 # xplainedpro_updi
 #------------------------------------------------------------
 
