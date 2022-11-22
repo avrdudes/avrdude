@@ -247,10 +247,9 @@ u16_to_b2(unsigned char *b, unsigned short l)
 static const char *
 jtagmkII_get_rc(unsigned int rc)
 {
-  int i;
   static char msg[64];
 
-  for (i = 0; i < sizeof jtagresults / sizeof jtagresults[0]; i++)
+  for (size_t i = 0; i < sizeof jtagresults/sizeof*jtagresults; i++)
     if (jtagresults[i].code == rc)
       return jtagresults[i].descr;
 
@@ -261,7 +260,7 @@ jtagmkII_get_rc(unsigned int rc)
 
 static void jtagmkII_print_memory(unsigned char *b, size_t s)
 {
-  int i;
+  size_t i;
 
   if (s < 2)
     return;
@@ -277,8 +276,8 @@ static void jtagmkII_print_memory(unsigned char *b, size_t s)
     msg_info("\n");
 }
 
-static void jtagmkII_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
-  int i;
+static void jtagmkII_prmsg(const PROGRAMMER *pgm_unused, unsigned char *data, size_t len) {
+  size_t i;
 
   if (verbose >= 4) {
     msg_trace("Raw message:\n");
@@ -885,7 +884,7 @@ static int jtagmkII_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 /*
  * There is no chip erase functionality in debugWire mode.
  */
-static int jtagmkII_chip_erase_dw(const PROGRAMMER *pgm, const AVRPART *p) {
+static int jtagmkII_chip_erase_dw(const PROGRAMMER *pgm_unused, const AVRPART *p_unused) {
 
   pmsg_info("chip erase not supported in debugWire mode\n");
 
@@ -1076,7 +1075,7 @@ static int jtagmkII_reset(const PROGRAMMER *pgm, unsigned char flags) {
   return 0;
 }
 
-static int jtagmkII_program_enable_INFO(const PROGRAMMER *pgm, const AVRPART *p) {
+static int jtagmkII_program_enable_INFO(const PROGRAMMER *pgm_unused, const AVRPART *p_unused) {
   return 0;
 }
 
@@ -1202,9 +1201,8 @@ static unsigned char jtagmkII_get_baud(long baud)
   { 2000000L, PAR_BAUD_2000000 },
   { 3000000L, PAR_BAUD_3000000 },
 };
-  int i;
 
-  for (i = 0; i < sizeof baudtab / sizeof baudtab[0]; i++)
+  for (size_t i = 0; i < sizeof baudtab/sizeof*baudtab; i++)
     if (baud == baudtab[i].baud)
       return baudtab[i].val;
 
@@ -1369,7 +1367,7 @@ static void jtagmkII_disable(const PROGRAMMER *pgm) {
   (void)jtagmkII_program_disable(pgm);
 }
 
-static void jtagmkII_enable(PROGRAMMER * pgm, const AVRPART *p) {
+static void jtagmkII_enable(PROGRAMMER *pgm_unused, const AVRPART *p_unused) {
   return;
 }
 
@@ -2988,7 +2986,7 @@ static int jtagmkII_initialize32(const PROGRAMMER *pgm, const AVRPART *p) {
   return 0;
 }
 
-static int jtagmkII_chip_erase32(const PROGRAMMER *pgm, const AVRPART *p) {
+static int jtagmkII_chip_erase32(const PROGRAMMER *pgm, const AVRPART *p_unused) {
   int status=0, loops;
   unsigned char *resp, buf[3], x, ret[4], *retP;
   unsigned long val=0;
@@ -3253,10 +3251,9 @@ static void jtagmkII_close32(PROGRAMMER * pgm)
     goto ret;
 }
 
-static int jtagmkII_paged_load32(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
-                                 unsigned int page_size,
-                                 unsigned int addr, unsigned int n_bytes)
-{
+static int jtagmkII_paged_load32(const PROGRAMMER *pgm, const AVRPART *p_unused, const AVRMEM *m,
+  unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
+
   unsigned int block_size;
   unsigned int maxaddr = addr + n_bytes;
   unsigned char cmd[7];
@@ -3289,7 +3286,8 @@ static int jtagmkII_paged_load32(const PROGRAMMER *pgm, const AVRPART *p, const 
   cmd[2] = 0x05;
 
   for (; addr < maxaddr; addr += block_size) {
-    block_size = ((maxaddr-addr) < pgm->page_size) ? (maxaddr - addr) : pgm->page_size;
+    block_size = maxaddr - addr < (unsigned int) pgm->page_size?
+      maxaddr - addr: (unsigned int) pgm->page_size;
     pmsg_debug("jtagmkII_paged_load32(): "
       "block_size at addr %d is %d\n", addr, block_size);
 
@@ -3328,10 +3326,9 @@ static int jtagmkII_paged_load32(const PROGRAMMER *pgm, const AVRPART *p, const 
     return -1;
 }
 
-static int jtagmkII_paged_write32(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
-                                  unsigned int page_size,
-                                  unsigned int addr, unsigned int n_bytes)
-{
+static int jtagmkII_paged_write32(const PROGRAMMER *pgm, const AVRPART *p_unused , const AVRMEM *m,
+  unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
+
   unsigned int block_size;
   unsigned char *cmd=NULL;
   unsigned char *resp;
@@ -3388,7 +3385,8 @@ static int jtagmkII_paged_write32(const PROGRAMMER *pgm, const AVRPART *p, const
     if(status != 0) {lineno = __LINE__; goto eRR;}
 
     for(blocks=0; blocks<2; ++blocks) {
-      block_size = ((maxaddr-addr) < pgm->page_size) ? (maxaddr - addr) : pgm->page_size;
+      block_size = maxaddr - addr < (unsigned int) pgm->page_size?
+        maxaddr - addr: (unsigned int) pgm->page_size;
       pmsg_debug("jtagmkII_paged_write32(): "
         "block_size at addr %d is %d\n", addr, block_size);
 
