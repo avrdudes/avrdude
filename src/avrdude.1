@@ -874,15 +874,19 @@ always treated as unsigned. +0x or -0x hex numbers are treated as signed
 unless they have a U suffix. Unsigned integers cannot be larger than 2^64-1.
 If n is an unsigned integer then -n is also a valid unsigned integer as in C.
 Signed integers must fall into the [-2^63, 2^63-1] range or a correspondingly
-smaller range when a suffix specifies a smaller type. Out of range signed
-numbers trigger a warning.
+smaller range when a suffix specifies a smaller type.
 .Pp
 Ordinary 0x hex integers with n hex digits (counting leading zeros) use the
-smallest size of 1, 2, 4 and 8 bytes that can accommodate any n-digit hex
-integer. If an integer suffix specifies a size explicitly the corresponding
-number of least significant bytes are written. Otherwise, signed and unsigned
-integers alike occupy the smallest of 1, 2, 4, or 8 bytes needed to
-accommodate them in their respective representation.
+smallest size of one, two, four and eight bytes that can accommodate any
+n-digit hex integer. If an integer suffix specifies a size explicitly the
+corresponding number of least significant bytes are written, and a warning
+shown if the number does not fit into the desired representation. Otherwise,
+unsigned integers occupy the smallest of one, two, four or eight bytes
+needed. Signed numbers are allowed to fit into the smallest signed or
+smallest unsigned representation: For example, 255 is stored as one byte as
+255U would fit in one byte, though as a signed number it would not fit into a
+one-byte interval [-128, 127]. The number -1 is stored in one byte whilst -1U
+needs eight bytes as it is the same as 0xFFFFffffFFFFffffU.
 .Pp
 One trailing comma at the end of
 .Ar data

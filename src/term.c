@@ -392,15 +392,19 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       "unless they have a U suffix. Unsigned integers cannot be larger than 2^64-1.\n"
       "If n is an unsigned integer then -n is also a valid unsigned integer as in C.\n"
       "Signed integers must fall into the [-2^63, 2^63-1] range or a correspondingly\n"
-      "smaller range when a suffix specifies a smaller type. Out of range signed\n"
-      "numbers trigger a warning.\n"
+      "smaller range when a suffix specifies a smaller type.\n"
       "\n"
       "Ordinary 0x hex integers with n hex digits (counting leading zeros) use the\n"
-      "smallest size of 1, 2, 4 and 8 bytes that can accommodate any n-digit hex\n"
-      "integer. If an integer suffix specifies a size explicitly the corresponding\n"
-      "number of least significant bytes are written. Otherwise, signed and unsigned\n"
-      "integers alike occupy the smallest of 1, 2, 4, or 8 bytes needed to\n"
-      "accommodate them in their respective representation.\n"
+      "smallest size of one, two, four and eight bytes that can accommodate any\n"
+      "n-digit hex integer. If an integer suffix specifies a size explicitly the\n"
+      "corresponding number of least significant bytes are written, and a warning\n"
+      "shown if the number does not fit into the desired representation. Otherwise,\n"
+      "unsigned integers occupy the smallest of one, two, four or eight bytes\n"
+      "needed. Signed numbers are allowed to fit into the smallest signed or\n"
+      "smallest unsigned representation: For example, 255 is stored as one byte as\n"
+      "255U would fit in one byte, though as a signed number it would not fit into a\n"
+      "one-byte interval [-128, 127]. The number -1 is stored in one byte whilst -1U\n"
+      "needs eight bytes as it is the same as 0xFFFFffffFFFFffffU.\n"
     );
     return -1;
   }
@@ -532,12 +536,12 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
                 data.size = nhexdigs > 8? 8: nhexdigs > 4? 4: nhexdigs > 2? 2: 1;
 
               } else if(is_signed) {
-                // Smallest size that fits signed representation
+                // Smallest size that fits signed or unsigned (asymmetric to meet user expectation)
                 data.size =
                   is_outside_int64_t? 8:
-                  data.ll < INT32_MIN || data.ll > INT32_MAX? 8:
-                  data.ll < INT16_MIN || data.ll > INT16_MAX? 4:
-                  data.ll < INT8_MIN  || data.ll > INT8_MAX? 2: 1;
+                  data.ll < INT32_MIN || data.ll > (long long) UINT32_MAX? 8:
+                  data.ll < INT16_MIN || data.ll > (long long) UINT16_MAX? 4:
+                  data.ll < INT8_MIN  || data.ll > (long long) UINT8_MAX? 2: 1;
 
               } else {
                 // Smallest size that fits unsigned representation
@@ -566,9 +570,11 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
               }
             } else if(nl==2 && nh==0 && ns==0) { // LL
               data.size = 8;
+              if(is_outside_int64_t || is_signed)
+                is_out_of_range = 1;
             }
 
-            if(is_outside_int64_t || is_out_of_range)
+            if(is_out_of_range)
               pmsg_error("(write) %s out of int%d_t range, "
                 "interpreted as %d-byte %lld; consider 'U' suffix\n", argi, data.size*8, data.size, (long long int) data.ll);
           }
