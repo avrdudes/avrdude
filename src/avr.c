@@ -340,6 +340,10 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
 
   if (v != NULL)
       vmem = avr_locate_mem(v, mem->desc);
+
+  if(mem->size < 0)             // Sanity check
+    return -1;
+
   /*
    * start with all 0xff
    */
@@ -355,7 +359,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     avr_tpi_setup_rw(pgm, mem, 0, TPI_NVMCMD_NO_OPERATION);
 
     /* load bytes */
-    for (lastaddr = i = 0; i < mem->size; i++) {
+    for (lastaddr = i = 0; i < (unsigned long) mem->size; i++) {
       if (vmem == NULL ||
           (vmem->tags[i] & TAG_ALLOCATED) != 0)
       {
@@ -389,7 +393,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
 
     /* quickly scan number of pages to be written to first */
     for (pageaddr = 0, npages = 0;
-         pageaddr < mem->size;
+         pageaddr < (unsigned int) mem->size;
          pageaddr += mem->page_size) {
       /* check whether this page must be read */
       for (i = pageaddr;
@@ -406,7 +410,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     }
 
     for (pageaddr = 0, failure = 0, nread = 0;
-         !failure && pageaddr < mem->size;
+         !failure && pageaddr < (unsigned int) mem->size;
          pageaddr += mem->page_size) {
       /* check whether this page must be read */
       for (i = pageaddr, need_read = 0;
@@ -443,7 +447,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     }
   }
 
-  for (i=0; i < mem->size; i++) {
+  for (i=0; i < (unsigned long) mem->size; i++) {
     if (vmem == NULL ||
 	(vmem->tags[i] & TAG_ALLOCATED) != 0)
     {
@@ -469,9 +473,9 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
 /*
  * write a page data at the specified address
  */
-int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
-                   unsigned long addr)
-{
+int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p_unused, const AVRMEM *mem,
+  unsigned long addr) {
+
   unsigned char cmd[4];
   unsigned char res[4];
   OPCODE * wp, * lext;
@@ -718,8 +722,8 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
         }
         gettimeofday (&tv, NULL);
         prog_time = (tv.tv_sec * 1000000) + tv.tv_usec;
-      } while ((r != data) &&
-               ((prog_time-start_time) < mem->max_write_delay));
+      } while (r != data &&  mem->max_write_delay >= 0 &&
+          prog_time - start_time < (unsigned long) mem->max_write_delay);
     }
 
     /*
@@ -865,7 +869,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     wsize = (wsize+chunk-1) / chunk * chunk;
 
     /* write words in chunks, low byte first */
-    for (lastaddr = i = 0; i < wsize; i += chunk) {
+    for (lastaddr = i = 0; i < (unsigned int) wsize; i += chunk) {
       /* check that at least one byte in this chunk is allocated */
       for (writeable_chunk = j = 0; !writeable_chunk && j < chunk; j++) {
         writeable_chunk = m->tags[i+j] & TAG_ALLOCATED;
@@ -1023,7 +1027,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
   page_tainted = 0;
   flush_page = 0;
 
-  for (i=0; i<wsize; i++) {
+  for (i = 0; i < (unsigned int) wsize; i++) {
     data = m->buf[i];
     report_progress(i, wsize, NULL);
 
@@ -1047,8 +1051,8 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
       } else {
         page_tainted |= do_write;
       }
-      if (i % m->page_size == m->page_size - 1 ||
-          i == wsize - 1) {
+      if (i % m->page_size == (unsigned int) m->page_size - 1 ||
+          i == (unsigned int) wsize - 1) {
         /* last byte this page */
         flush_page = page_tainted;
         newpage = 1;
