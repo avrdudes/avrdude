@@ -263,7 +263,9 @@ typedef struct {
       vbllevel,                 // 0=n/a, 1=patch externally, 2=bl patches, 3=bl patches & verifies
       blurversion,              // Octal byte 076 means v7.6 (minor version number is lowest 3 bit)
                                 // Small numbers < 070 probably are optiboot major version number
-      bloptiversion;            // Optiboot version as (major<<8) + minor
+      bloptiversion,            // Optiboot version as (major<<8) + minor
+      blguessed;                // Guessed the bootloader from hash data
+
   int32_t blstart;              // Bootloader start address, eg, for bootloader write protection
 
   int idmchr;                   // Either 'E' or 'F' for the memory where the Urclock ID is located
@@ -940,7 +942,7 @@ nopatch_nometa:
 
 
 // Put version string into a buffer of max 19 characters incl nul (normally 15-16 bytes incl nul)
-static void urbootPutVersion(char *buf, uint16_t ver, uint16_t rjmpwp) {
+static void urbootPutVersion(const PROGRAMMER *pgm, char *buf, uint16_t ver, uint16_t rjmpwp) {
   uint8_t hi = ver>>8, type = ver & 0xff, flags;
 
   if(ver == 0xffff)             // Unknown provenance
@@ -968,9 +970,11 @@ static void urbootPutVersion(char *buf, uint16_t ver, uint16_t rjmpwp) {
     *buf++ = hi >= 077 && (type & UR_AUTOBAUD)? 'a': '-';                 // - means no
     *buf++ = hi >= 077 && (type & UR_HAS_CE)? 'c': hi >= 077? '-': '.';   // . means don't know
     *buf = 0;
-  } else if(hi)                 // Version number in binary from optiboot v4.1
-    sprintf(buf, "o%d.%d -?s-?-r--", hi, type);
-  else
+  } else if(hi) {               // Version number in binary from optiboot v4.1
+    sprintf(buf, "o%d.%d -%cs-%c-r--", hi, type,
+      ur.blguessed? (ur.bleepromrw? 'e': '-'): '?',
+      ur.blguessed? "hjvV"[ur.vbllevel & 3]: '?');
+  } else
     sprintf(buf, "x0.0 .........");
 
   return;
@@ -1092,6 +1096,107 @@ static void set_uP(const PROGRAMMER *pgm, const AVRPART *p, int mcuid, int mcuid
     ur.uP.nlocks = -1;
     ur.uP.ninterrupts = p->n_interrupts;
     ur.uP.isrtable = NULL;
+  }
+}
+
+
+// https://en.wikipedia.org/wiki/Jenkins_hash_function
+static uint32_t jenkins_hash(const uint8_t* key, size_t length) {
+  size_t i = 0;
+  uint32_t hash = 0;
+
+  while (i != length) {
+    hash += key[i++];
+    hash += hash << 10;
+    hash ^= hash >> 6;
+  }
+  hash += hash << 3;
+  hash ^= hash >> 11;
+  hash += hash << 15;
+
+  return hash;
+}
+
+typedef struct {
+  uint16_t sz, ee;
+  uint32_t h256, hash;
+} Blhash_t;
+
+static int cmpblhash(const void *va, const void *vb) {
+  const Blhash_t *a = va, *b = vb;
+  return a->sz > b->sz? 1: a->sz < b->sz? -1: a->hash > b->hash? 1: a->hash < b->hash? -1: 0;
+}
+
+static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
+  if(ur.urprotocol && !(ur.urfeatures & UB_READ_FLASH)) // Cannot read flash
+    return;
+
+  Blhash_t blist[] = {
+    { 1024, 0, 0x35445c45, 0x9ef77953 }, // ATmegaBOOT-prod-firmware-2009-11-07.hex
+    { 1024, 0, 0x32b1376c, 0xceba80bb }, // ATmegaBOOT.hex
+    { 2048, 0, 0x08426ba2, 0x29e81e21 }, // ATmegaBOOT_168.hex
+    { 4096, 0, 0x1bf8ed1b, 0x272e49ed }, // ATmegaBOOT_168_atmega1280.hex
+    { 2048, 0, 0x9774b926, 0x335016ed }, // ATmegaBOOT_168_atmega328.hex
+    { 4096, 0, 0x3242ddd3, 0x809632a3 }, // ATmegaBOOT_168_atmega328_bt.hex
+    { 2048, 0, 0xc553f5b4, 0x56be91cb }, // ATmegaBOOT_168_atmega328_pro_8MHz.hex
+    { 2048, 0, 0x12ab8da0, 0xca46a3ca }, // ATmegaBOOT_168_diecimila.hex
+    { 2048, 0, 0x3242ddd3, 0xf3e94dba }, // ATmegaBOOT_168_ng.hex
+    { 2048, 0, 0x2eed30b3, 0x47d14ffa }, // ATmegaBOOT_168_pro_8MHz.hex
+    { 4096, 0, 0xc52edd05, 0xa3371f94 }, // Caterina-LilyPadUSB.hex
+    { 4096, 0, 0x663b8f7e, 0x7efdda2b }, // Caterina-Robot-Control.hex
+    { 4096, 0, 0x3c6387e7, 0x7e96eea2 }, // Caterina-Robot-Motor.hex
+    { 2048, 0, 0x1cef0d75, 0x6cfbac49 }, // LilyPadBOOT_168.hex
+    { 1024, 1, 0x6ca0f37b, 0x31bae545 }, // bigboot_328.hex
+    {  512, 0, 0x035cbc07, 0x24ba435e }, // optiboot_atmega168.hex
+    {  512, 0, 0x455050db, 0x1d53065f }, // optiboot_atmega328-Mini.hex
+    {  512, 0, 0xd2001ddb, 0x16c9663b }, // optiboot_atmega328.hex v4.4
+    {  512, 0, 0x49c1e9a4, 0xa450759b }, // optiboot_atmega328.hex v8.3
+    {  512, 0, 0xc54dcd6c, 0x5bfc5d06 }, // optiboot_atmega8.hex
+    {  256, 0, 0x5a01c55b, 0x5a01c55b }, // picobootArduino168.hex
+    {  256, 0, 0x1451061b, 0x1451061b }, // picobootArduino168v3b2.hex
+    {  512, 0, 0x3242ddd3, 0x53348738 }, // picobootArduino328.hex
+    {  512, 0, 0x858e12de, 0xc80a44a4 }, // picobootArduino328v3beta.hex
+    {  256, 0, 0xaa62bafc, 0xaa62bafc }, // picobootArduino8v3rc1.hex
+    {  256, 0, 0x56263965, 0x56263965 }, // picobootSTK500-168p.hex
+    {  512, 0, 0x3242ddd3, 0x5ba5f5f6 }, // picobootSTK500-328p.hex
+  };
+
+  uint8_t buf[4096], b128[128];
+
+  qsort(blist, sizeof blist/sizeof*blist, sizeof*blist, cmpblhash);
+  for(int ii, si = 0, sz = 0, bi = 0; si < (int) sizeof blist/sizeof*blist; si++) {
+    if(blist[si].sz > sz) { // Read in and compare
+      sz = blist[si].sz;
+      if(sz > ur.uP.flashsize/2 || (sz+127)/128*128 > (int) sizeof buf)
+        return;
+      while(bi < sz) {
+       if(ur_readEF(pgm, p, b128, ur.uP.flashsize-bi-128, 128, 'F') < 0)
+         return;
+       for(int ti=127; ti >= 0; ti--) // read in backwards
+         buf[bi++] = b128[ti];
+      }
+
+      // Does the hash for the full size match? OK: found a known bootloader
+      uint32_t hash = jenkins_hash(buf, sz);
+      for(ii = 0; ii < (int) sizeof blist/sizeof*blist; ii++)
+        if(blist[ii].hash == hash && sz == blist[ii].sz && !(sz & (ur.uP.pagesize-1))) {
+          // Page aligned bootloader size matches
+          ur.blstart = ur.uP.flashsize-sz;
+          if(blist[ii].ee)
+            ur.bleepromrw = 1;
+          ur.blguessed = 1;
+          return;
+        }
+
+      // Can we exclude the top 256 byte flash from the botloader list?
+      if(sz == 256) {
+        for(ii = 0; ii < (int) sizeof blist/sizeof*blist; ii++)
+          if(hash == blist[ii].h256)
+            break;
+        if(ii >= (int) sizeof blist/sizeof*blist)
+          return;
+      }
+    }
   }
 }
 
@@ -1242,8 +1347,8 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
     uint8_t urver = spc[5];     // Urboot version (low three bits are minor version: 076 is v7.6)
     v16 = buf2uint16(spc+4);    // Combo word for neatly printed version line of urboot bootloader
 
-    // Extensively check this is an urboot bootloader, and if OK extract properties
-    if(urver >= 072 && urver != 0xff && (isRjmp(rjmpwp) || rjmpwp == ret_opcode)) { // Prob urboot
+    // Extensively check this is an urboot bootloader v7.2 .. v12.7 == 0147 and extract properties
+    if(urver >= 072 && urver <= 0147 && (isRjmp(rjmpwp) || rjmpwp == ret_opcode)) { // Prob urboot
       ur.blurversion = urver;
       ur.bleepromrw = iseeprom_cap(cap);
       // Vector bootloader: 0 = none, 1 = external patching, 2 = bl patches, 3 = patches + verifies
@@ -1281,11 +1386,9 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
       }
     } else if(urver != 0xff) {  // Probably optiboot where the version number is two bytes
       ur.bloptiversion = (urver<<8) + cap;
-      if(!ur.blstart)
-        Return("bootloader might be optiboot %d.%d? Please use -xbootsize=<num>\n", urver, cap);
     }
 
-    if(!ur.blstart && ur.vbllevel) { // An older version urboot vector bootloader
+    if(!ur.blstart && ur.vbllevel) { // An older version urboot vector bootloader?
       int vecsz = ur.uP.flashsize <= 8192? 2: 4;
 
        // Reset vector points to the bootloader and the bootloader has r/jmp to application?
@@ -1356,13 +1459,21 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
       }
     }
 
-    // Still no bootloader start address?
+    // Still no bootloader start address? Read in top flash and guess bootloader start
     if(!ur.blstart)
+      guessblstart(pgm, p);
+
+    // Still no bootloader start address?
+    if(!ur.blstart) {
+      if(ur. bloptiversion)
+       Return("bootloader might be optiboot %d.%d? Please use -xbootsize=<num>\n",
+         ur.bloptiversion>>8, ur.bloptiversion & 255);
       Return("unknown bootloader ... please specify -xbootsize=<num>\n");
+    }
   }
 
 vblvecfound:
-  urbootPutVersion(ur.desc, v16, rjmpwp);
+  urbootPutVersion(pgm, ur.desc, v16, rjmpwp);
 
   ur.mcode = 0xff;
   if(ur.blstart) {
