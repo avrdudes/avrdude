@@ -219,6 +219,11 @@ typedef struct opcode {
 
 #define TAG_ALLOCATED          1    /* memory byte is allocated */
 
+#ifdef HAVE_LIBELF
+#define MAX_LOCK_SIZE          1
+#define MAX_FUSE_SIZE          10
+#define MAX_EEPROM_SIZE        8192
+#endif
 /*
  * Any changes in AVRPART or AVRMEM, please also ensure changes are made in
  *  - lexer.l
@@ -334,6 +339,19 @@ typedef struct avrmem_alias {
   const char *desc;           /* alias name ("syscfg0" etc.) */
   AVRMEM *aliased_mem;
 } AVRMEM_ALIAS;
+
+#ifdef HAVE_LIBELF
+typedef struct elf_cmd {
+  int elf_fuse_size;
+  unsigned char elf_fuse_data[MAX_FUSE_SIZE];
+
+  int elf_lock_size;
+  unsigned char elf_lock_data;
+
+  int elf_eeprom_size;
+  unsigned char elf_eeprom_data[MAX_EEPROM_SIZE];
+} ELF_CMD;
+#endif
 
 #ifdef __cplusplus
 extern "C" {

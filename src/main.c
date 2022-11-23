@@ -140,7 +140,7 @@ struct list_walk_cookie
     const char *prefix;
 };
 
-static LISTID updates = NULL;
+LISTID updates = NULL;
 
 static LISTID extended_params = NULL;
 

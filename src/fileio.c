@@ -801,14 +801,117 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
   return rv;
 }
 
+extern LISTID updates;
+
+/*  Example for AVR C code.
+For Atmega8:
+
+FUSES = { 0xC9, 0xEF };
+LOCKBITS = 0xFC;
+// Fix add .eeprom section
+#define _EEMEM  __attribute__((__used__, __section__ (".eeprom")))
+#define _EEPROM uint8_t __eeprom[512] _EEMEM
+
+_EEPROM = { 0x11, 0x22, };
+
+For Attiny10(Not support FUSES macros!!!):
+
+#define FUSES uint8_t __fuses FUSEMEM
+FUSES = 0xFE;
+LOCKBITS = 0xFC;
+*/
+
+static void cmd_from_elf(ELF_CMD *lcmd, const AVRPART *p)
+{
+  char cmd[32] = {0};
+  LNODEID ln;
+  AVRMEM * m;
+  unsigned int elf_prev_mem_offset = 0;
+  int num = 0, elf_prev_mem_size = 0;
+  UPDATE * upd = NULL;
+
+  for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
+    if ((m = ldata(ln)) && lcmd->elf_eeprom_size) {
+      if (elf_prev_mem_offset != m->offset || elf_prev_mem_size != m->size || (strcmp(p->family_id, "") == 0)) {
+        elf_prev_mem_offset = m->offset;
+        elf_prev_mem_size = m->size;
+        if (!strcmp(m->desc, "eeprom")) {
+          if (lcmd->elf_eeprom_size <= m->size) {
+            int i, next_byte = 0;
+            char e_cmd[(MAX_EEPROM_SIZE * 4) + 32] = {0};
+            char b_str[5]  = {0};
+            memset(e_cmd, 0, sizeof(e_cmd));
+            pmsg_info("found in ELF %s, size = %d\n", m->desc, lcmd->elf_eeprom_size);
+            strcat(e_cmd, "eeprom:w:");
+            for (i = 0; i < lcmd->elf_eeprom_size; i++) {
+              if (next_byte)
+                strcat(e_cmd, ",");
+              snprintf(b_str, sizeof(b_str), "0x%02X", lcmd->elf_eeprom_data[i]);
+              strcat(e_cmd, b_str);
+              next_byte = 1;
+            }
+            strcat(e_cmd, ":m");
+            if ((upd = parse_op(e_cmd)))
+              ladd(updates, upd);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
+    if ((m = ldata(ln)) && lcmd->elf_fuse_size) {
+      if (elf_prev_mem_offset != m->offset || elf_prev_mem_size != m->size || (strcmp(p->family_id, "") == 0)) {
+        elf_prev_mem_offset = m->offset;
+        elf_prev_mem_size = m->size;
+        if (sscanf(m->desc, "fuse%d", &num) == 1) {
+          if (num <= lcmd->elf_fuse_size) {
+            pmsg_info("found in ELF %s = 0x%02X\n", m->desc, lcmd->elf_fuse_data[num]);
+            snprintf(cmd, sizeof(cmd),"%s:w:0x%02X:m", m->desc, lcmd->elf_fuse_data[num]);
+            if ((upd = parse_op(cmd)))
+              ladd(updates, upd);
+          }
+        } else if (strstr(m->desc, "fuse")) {
+          int b = -1;
+          if (!strcmp(m->desc, "fuse") || !strcmp(m->desc, "lfuse")) {
+            if (lcmd->elf_fuse_size >= 1)
+              b = 0;
+          } else if (!strcmp(m->desc, "hfuse")) {
+            if (lcmd->elf_fuse_size >= 2)
+              b = 1;
+          } else if (!strcmp(m->desc, "efuse")) {
+            if (lcmd->elf_fuse_size == 3)
+              b = 2;
+          }
+          if (b >= 0) {
+            pmsg_info("found in ELF %s = 0x%02X\n", m->desc, lcmd->elf_fuse_data[b]);
+            snprintf(cmd, sizeof(cmd),"%s:w:0x%02X:m", m->desc, lcmd->elf_fuse_data[b]);
+            if ((upd = parse_op(cmd)))
+              ladd(updates, upd);
+          }
+        }
+      }
+    }
+  }
+
+  if (lcmd->elf_lock_size == MAX_LOCK_SIZE) {
+    pmsg_info("found in ELF lockbits = 0x%02X\n", lcmd->elf_lock_data);
+    snprintf(cmd, sizeof(cmd),"lock:w:0x%02X:m", lcmd->elf_lock_data);
+    if ((upd = parse_op(cmd)))
+      ladd(updates, upd);
+  }
+}
 
 static int elf2b(const char *infile, FILE *inf,
                  const AVRMEM *mem, const AVRPART *p,
                  int bufsize, unsigned int fileoffset)
 {
   Elf *e;
-  int rv = -1;
+  int ign_chk = 0, rv = -1;
   unsigned int low, high, foff;
+  ELF_CMD l_cmd;
+  memset(&l_cmd, 0, sizeof(l_cmd));
 
   if (elf_mem_limits(mem, p, &low, &high, &foff) != 0) {
     pmsg_error("cannot handle %s memory region from ELF file\n", mem->desc);
@@ -940,6 +1043,11 @@ static int elf2b(const char *infile, FILE *inf,
         sname = "*unknown*";
       }
 
+      ign_chk = 0;
+      if (!strcmp(sname, ".fuse") || !strcmp(sname, ".lock") || !strcmp(sname, ".eeprom")) {
+        ign_chk = sh->sh_size;
+      }
+
       unsigned int lma;
       lma = ph[i].p_paddr + sh->sh_offset - ph[i].p_offset;
 
@@ -948,7 +1056,7 @@ static int elf2b(const char *infile, FILE *inf,
       if (lma >= low &&
           lma + sh->sh_size < high) {
         /* OK */
-      } else {
+      } else if (!ign_chk) {
         msg_notice2("    => skipping, inappropriate for %s memory region\n", mem->desc);
         continue;
       }
@@ -968,6 +1076,28 @@ static int elf2b(const char *infile, FILE *inf,
 
       Elf_Data *d = NULL;
       while ((d = elf_getdata(s, d)) != NULL) {
+
+        if (!strcmp(sname, ".fuse")) {
+          if ((d->d_size > 0) && (d->d_size <= MAX_FUSE_SIZE)) {
+            l_cmd.elf_fuse_size = d->d_size;
+            memcpy(l_cmd.elf_fuse_data, d->d_buf, d->d_size);
+          }
+          continue;
+        } else if (!strcmp(sname, ".lock")) {
+          if (d->d_size == MAX_LOCK_SIZE) {
+            l_cmd.elf_lock_size = d->d_size;
+            l_cmd.elf_lock_data = ((unsigned char *)d->d_buf)[0];
+          }
+          continue;
+        } else if (!strcmp(sname, ".eeprom")) {
+          if ((d->d_size > 0) && (d->d_size <= MAX_EEPROM_SIZE)) {
+            l_cmd.elf_eeprom_size = d->d_size;
+            memcpy(l_cmd.elf_eeprom_data, d->d_buf, d->d_size);
+          }
+          continue;
+        } else if (strcmp(sname, ".text"))
+          continue;
+
         msg_notice2("    Data block: d_buf %p, d_off 0x%x, d_size %ld\n",
                         d->d_buf, (unsigned int)d->d_off, (long) d->d_size);
         if (mem->size == 1) {
@@ -996,6 +1126,7 @@ static int elf2b(const char *infile, FILE *inf,
       }
     }
   }
+  cmd_from_elf(&l_cmd, p);
 done:
   (void)elf_end(e);
   return rv;
