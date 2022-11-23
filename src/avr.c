@@ -1257,16 +1257,24 @@ void avr_add_mem_order(const char *str) {
   exit(1);
 }
 
+int avr_memtype_is_flash_type(const char *memtype) {
+  return memtype && (
+     strcmp(memtype, "flash") == 0 ||
+     strcmp(memtype, "application") == 0 ||
+     strcmp(memtype, "apptable") == 0 ||
+     strcmp(memtype, "boot") == 0);
+}
+
 int avr_mem_is_flash_type(const AVRMEM *mem) {
-  return
-     strcmp(mem->desc, "flash") == 0 ||
-     strcmp(mem->desc, "application") == 0 ||
-     strcmp(mem->desc, "apptable") == 0 ||
-     strcmp(mem->desc, "boot") == 0;
+  return avr_memtype_is_flash_type(mem->desc);
+}
+
+int avr_memtype_is_eeprom_type(const char *memtype) {
+  return memtype && strcmp(memtype, "eeprom") == 0;
 }
 
 int avr_mem_is_eeprom_type(const AVRMEM *mem) {
-  return strcmp(mem->desc, "eeprom") == 0;
+  return avr_memtype_is_eeprom_type(mem->desc);
 }
 
 int avr_mem_is_known(const char *str) {

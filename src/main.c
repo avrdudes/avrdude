@@ -495,6 +495,7 @@ int main(int argc, char * argv [])
   int     ispdelay;    /* Specify the delay for ISP clock */
   int     init_ok;     /* Device initialization worked well */
   int     is_open;     /* Device open succeeded */
+  int     ce_delayed;  /* Chip erase delayed */
   char  * logfile;     /* Use logfile rather than stderr for diagnostics */
   enum updateflags uflags = UF_AUTO_ERASE | UF_VERIFY; /* Flags for do_op() */
 
@@ -574,6 +575,7 @@ int main(int argc, char * argv [])
   bitclock      = 0.0;
   ispdelay      = 0;
   is_open       = 0;
+  ce_delayed    = 0;
   logfile       = NULL;
 
   len = strlen(progname) + 2;
@@ -1400,7 +1402,8 @@ int main(int argc, char * argv [])
       exitrc = avr_chip_erase(pgm, p);
       if(exitrc == LIBAVRDUDE_SOFTFAIL) {
         imsg_info("delaying chip erase until first -U upload to flash\n");
-        exitrc = 1;
+        ce_delayed = 1;
+        exitrc = 0;
       } else if(exitrc)
         goto main_exit;
     }
@@ -1428,7 +1431,8 @@ int main(int argc, char * argv [])
     if (rc && rc != LIBAVRDUDE_SOFTFAIL) {
       exitrc = 1;
       break;
-    }
+    } else if(rc == 0 && upd->op == DEVICE_WRITE && avr_memtype_is_flash_type(upd->memtype))
+      ce_delayed = 0;           // Redeemed chip erase promise
   }
 
 main_exit:
@@ -1449,5 +1453,5 @@ main_exit:
 
   msg_info("\n%s done.  Thank you.\n\n", progname);
 
-  return exitrc;
+  return ce_delayed? 1: exitrc;
 }
