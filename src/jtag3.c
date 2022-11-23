@@ -2491,6 +2491,27 @@ static unsigned int jtag3_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const
   return addr;
 }
 
+unsigned char tpi_get_memtype(const AVRMEM *mem) {
+  unsigned char memtype;
+  if (strcmp(mem->desc, "fuse") == 0) {
+    memtype = XPRG_MEM_TYPE_FUSE;
+  } else if (strcmp(mem->desc, "lock") == 0) {
+    memtype = XPRG_MEM_TYPE_LOCKBITS;
+  } else if (strcmp(mem->desc, "calibration") == 0) {
+    memtype = XPRG_MEM_TYPE_LOCKBITS;
+  } else if (strcmp(mem->desc, "signature") == 0) {
+    memtype = XPRG_MEM_TYPE_LOCKBITS;
+  }
+  else {
+    memtype = XPRG_MEM_TYPE_APPL;
+  }
+  return memtype;
+}
+
+// void tpi_print_error_status(unsigned char error) {
+//   pmsg_error("error communicating with programmer, received status 0x%02x\n", error);
+// }
+
 /*
  * Send the data as a JTAGICE3 encapsulated TPI packet.
  */
@@ -2588,7 +2609,6 @@ static void jtag3_enable_tpi(PROGRAMMER *pgm, const AVRPART *p) {
 
 static void jtag3_disable_tpi(const PROGRAMMER *pgm) {
   unsigned char cmdbuf[4];
-  int result;
 
   cmdbuf[0] = XPRG_CMD_LEAVE_PROGMODE;
 
@@ -2601,39 +2621,17 @@ static void jtag3_disable_tpi(const PROGRAMMER *pgm) {
 
 static int jtag3_read_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                                unsigned long addr, unsigned char * value) {
-  int result, pollidx;
-  unsigned char buf[8];
-  unsigned long paddr = 0UL, *paddr_ptr = NULL;
-  unsigned int pagesize = 0;
-  unsigned char *cache_ptr = NULL;
-  OPCODE *op;
+  int result;
   size_t len = 8;
+  unsigned char buf[len];
+  unsigned long paddr = 0UL;
 
   pmsg_notice2("jtag3_read_byte_tpi(.., %s, 0x%lx, ...)\n", mem->desc, addr);
 
+  paddr = mem->offset + addr;
+
   buf[0] = XPRG_CMD_READ_MEM;
-
-  if (strcmp(mem->desc, "lfuse") == 0 ||
-      strcmp(mem->desc, "fuse") == 0) {
-    buf[1] = XPRG_MEM_TYPE_FUSE;
-    addr = 0;
-  } else if (strcmp(mem->desc, "hfuse") == 0) {
-    buf[1] = XPRG_MEM_TYPE_FUSE;
-    addr = 1;
-  } else if (strcmp(mem->desc, "efuse") == 0) {
-    buf[1] = XPRG_MEM_TYPE_FUSE;
-    addr = 2;
-  } else if (strcmp(mem->desc, "lock") == 0) {
-    buf[1] = XPRG_MEM_TYPE_LOCKBITS;
-    paddr = mem->offset + addr;
-  } else if (strcmp(mem->desc, "calibration") == 0) {
-    buf[1] = XPRG_MEM_TYPE_LOCKBITS;
-    paddr = mem->offset + addr;
-  } else if (strcmp(mem->desc, "signature") == 0) {
-    buf[1] = XPRG_MEM_TYPE_LOCKBITS;
-    paddr = mem->offset + addr;
-  }
-
+  buf[1] = tpi_get_memtype(mem);
   u32_to_b4_big_endian((buf+2), paddr);  // Address
   u16_to_b2_big_endian((buf+6), 1);      // Size
 
@@ -2642,16 +2640,105 @@ static int jtag3_read_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   result = jtag3_recv_tpi(pgm, buf);
   if (result < 0) {
-    pmsg_error("timeout/error communicating with programmer\n");
+    pmsg_error("error in communication, received status 0x%02x\n", result);
     return -1;
   }
   *value = buf[2];
   return 0;
 }
 
+static int jtag3_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+                                unsigned long addr) {
+  size_t len = 6;
+  unsigned char buf[len];
+  int result;
+  unsigned long paddr = 0UL;
+
+  buf[0] = XPRG_CMD_ERASE;
+  if (strcmp(mem->desc, "fuse") == 0) {
+    buf[1] = XPRG_ERASE_CONFIG;
+  } else if (strcmp(mem->desc, "flash") == 0) {
+    buf[1] = XPRG_ERASE_APP;
+  } else {
+    pmsg_error("jtag3_erase_tpi() unsupported memory: %s\n", mem->desc);
+    return -1;
+  }
+  paddr = (mem->offset + addr) | 0x01;   // An erase is triggered by an access to the hi-byte
+  u32_to_b4_big_endian((buf+2), paddr);
+
+  if (jtag3_send_tpi(pgm, buf, len) < 0)
+    return -1;
+
+  result = jtag3_recv_tpi(pgm, buf);
+  if (result < 0) {
+    pmsg_error("error in communication, received status 0x%02x\n", result);
+    return -1;
+  }
+  return 0;
+}
+
+static int jtag3_write_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+                                unsigned long addr, unsigned char data) {
+  size_t len = 11;
+  unsigned char buf[len];
+  int result;
+  unsigned long paddr = 0UL;
+
+  result = jtag3_erase_tpi(pgm, p, mem, addr);
+  if (result < 0) {
+    pmsg_error("error in communication, received status 0x%02x\n", result);
+    return -1;
+  }
+
+  paddr = mem->offset + addr;
+
+  buf[0] = XPRG_CMD_WRITE_MEM;
+  buf[1] = tpi_get_memtype(mem);
+  buf[2] = 0;  // Page Mode - Not used
+  u32_to_b4_big_endian((buf+3), paddr);  // Address
+  u16_to_b2_big_endian((buf+7), 2);      // Size
+  buf[9] = data;
+  buf[10] = 0x00;
+
+  if (jtag3_send_tpi(pgm, buf, len) < 0)
+    return -1;
+
+  result = jtag3_recv_tpi(pgm, buf);
+  if (result < 0) {
+    pmsg_error("error in communication, received status 0x%02x\n", result);
+    return -1;
+  }
+  return 0;
+}
+
 static int jtag3_chip_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
-  pmsg_error("jtag3_chip_erase_tpi() not implemented\n");
-  return -1;
+  size_t len = 6;
+  unsigned char buf[len];
+  int result;
+  unsigned long paddr = 0UL;
+
+  AVRMEM *m = avr_locate_mem(p, "flash");
+  if (m == NULL) {
+    pmsg_error("no flash memory for part %s\n", p->desc);
+    return LIBAVRDUDE_GENERAL_FAILURE;
+  }
+
+  paddr = m->offset | 0x01;
+
+  buf[0] = XPRG_CMD_ERASE;
+  buf[1] = XPRG_ERASE_CHIP;
+  // An erase is triggered by an access to the hi-byte
+  u32_to_b4_big_endian((buf+2), paddr);
+
+  if (jtag3_send_tpi(pgm, buf, len) < 0)
+    return -1;
+
+  result = jtag3_recv_tpi(pgm, buf);
+  if (result < 0) {
+    pmsg_error("error in communication, received status 0x%02x\n", result);
+    return -1;
+  }
+  return 0;
 }
 
 static int jtag3_open_tpi(PROGRAMMER *pgm, const char *port) {
@@ -2847,7 +2934,7 @@ void jtag3_tpi_initpgm(PROGRAMMER *pgm) {
   pgm->open           = jtag3_open_tpi;
   pgm->close          = jtag3_close_tpi;
   pgm->read_byte      = jtag3_read_byte_tpi;
-  pgm->write_byte     = jtag3_write_byte;
+  pgm->write_byte     = jtag3_write_byte_tpi;
 
   /*
    * optional functions
