@@ -960,7 +960,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
              continue;
 
           // Read flash contents to separate memory spc and fill in holes
-          if(avr_read_page_default(pgm, p, cm, beg, spc) == 0) {
+          if(avr_read_page_default(pgm, p, cm, beg, spc) >= 0) {
             pmsg_notice2("padding %s [0x%04x, 0x%04x]\n", cm->desc, beg, end-1);
             for(i = beg; i < end; i++)
               if(!(cm->tags[i] & TAG_ALLOCATED)) {
