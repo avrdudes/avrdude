@@ -560,8 +560,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, UPDATE *upd, enum updateflags
     pmsg_info("%d byte%s of %s%s written\n", fs.nbytes,
       update_plural(fs.nbytes), mem->desc, alias_mem_desc);
 
-    // Fall through for (default) auto verify, ie, unless -V was specified
-    if (!(flags & UF_VERIFY))
+    if (!(flags & UF_VERIFY))   // Fall through for auto verify unless -V was specified
       break;
 
   case DEVICE_VERIFY:
