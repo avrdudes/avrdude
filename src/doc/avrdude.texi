@@ -163,9 +163,10 @@ emulated on top of USB is likely to not work at all, or to work
 abysmally slow.
 
 If you happen to have a Linux system with at least 4 hardware GPIOs 
-available (like almost all embedded Linux boards) you can do without 
-any additional hardware - just connect them to the SDO, SDI, RESET
-and SCK pins on the AVR and use the linuxgpio programmer type. It bitbangs
+available (like almost all embedded Linux boards) you can do without any
+additional hardware - just connect them to the SDO, SDI, RESET and SCK
+pins of the AVR's SPI interface and use the linuxgpio programmer
+type. Older boards might use the labels MOSI for SDO and MISO for SDI. It bitbangs
 the lines using the Linux sysfs GPIO interface. Of course, care should
 be taken about voltage level compatibility. Also, although not strictly 
 required, it is strongly advisable to protect the GPIO pins from 

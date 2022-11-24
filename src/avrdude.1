@@ -78,7 +78,9 @@ based programmer, the MCU signals
 .Ql SDI
 and
 .Ql SDO
-need to be connected to the parallel port.  Optionally, some otherwise
+of the AVR's SPI interface need to be connected to the
+parallel port; older boards might use the labels MOSI for SDO or MISO for SDI.
+Optionally, some otherwise
 unused output pins of the parallel port can be used to supply power
 for the MCU part, so it is also possible to construct a passive
 stand-alone programming device.  Some status LEDs indicating the

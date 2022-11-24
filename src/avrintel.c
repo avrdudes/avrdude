@@ -9,7 +9,7 @@
  * meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.1
- * 22.11.2022
+ * 24.11.2022
  *
  */
 
@@ -447,7 +447,7 @@ const char * const vtab_attiny20[vts_attiny20] = { // ATtiny20
   "TIM0_OVF",                   //  11: Timer 0 Overflow
   "ANA_COMP",                   //  12: Analog Comparator
   "ADC_ADC",                    //  13: Conversion Complete
-  "TWI_PERIPHERY",              //  14: 2-Wire Interface Periphery
+  "TWI_PERIPHERAL",             //  14: 2-Wire Interface Peripheral
   "SPI",                        //  15: SPI Serial Peripheral Interface
   "QTRIP",                      //  16: Touch Sensing
 };
@@ -468,7 +468,7 @@ const char * const vtab_attiny40[vts_attiny40] = { // ATtiny40
   "TIM0_OVF",                   //  12: Timer 0 Overflow
   "ANA_COMP",                   //  13: Analog Comparator
   "ADC",                        //  14: ADC Conversion Complete
-  "TWI_PERIPHERY",              //  15: 2-Wire Interface Periphery
+  "TWI_PERIPHERAL",             //  15: 2-Wire Interface Peripheral
   "SPI",                        //  16: SPI Serial Peripheral Interface
   "QTRIP",                      //  17: Touch Sensing
 };
@@ -691,7 +691,7 @@ const char * const vtab_attiny828[vts_attiny828] = { // ATtiny828
   "ADC",                        //  20: ADC Conversion Complete
   "EE_READY",                   //  21: EEPROM Ready
   "ANALOG_COMP",                //  22: Analog Comparator
-  "TWI_PERIPHERY",              //  23: 2-Wire Interface Periphery
+  "TWI_PERIPHERAL",             //  23: 2-Wire Interface Peripheral
   "SPM_Ready",                  //  24: Store Program Memory Ready
   "QTRIP",                      //  25: Touch Sensing
 };
@@ -726,7 +726,7 @@ const char * const vtab_attiny841[vts_attiny841] = { // ATtiny841, ATtiny441
   "USART1_RX",                  //  26: USART 1 Receive Complete
   "USART1_UDRE",                //  27: USART 1 Data Register Empty
   "USART1_TX",                  //  28: USART 1 Transmit Complete
-  "TWI_PERIPHERY",              //  29: 2-Wire Interface Periphery
+  "TWI_PERIPHERAL",             //  29: 2-Wire Interface Peripheral
 };
 
 const char * const vtab_attiny861a[vts_attiny861a] = { // ATtiny861A, ATtiny861, ATtiny461A, ATtiny461, ATtiny261A, ATtiny261
@@ -777,7 +777,7 @@ const char * const vtab_attiny1634[vts_attiny1634] = { // ATtiny1634
   "USART1_TXC",                 //  22: USART 1 Transmit Complete
   "USI_START",                  //  23: USI Start Condition
   "USI_OVERFLOW",               //  24: USI Overflow
-  "TWI/TWI_PERIPHERY",          //  25: 2-Wire Interface/2-Wire Interface Periphery
+  "TWI/TWI_PERIPHERAL",         //  25: 2-Wire Interface/2-Wire Interface Peripheral
   "EE_RDY",                     //  26: EEPROM Ready
   "QTRIP",                      //  27: Touch Sensing
 };
@@ -2597,7 +2597,7 @@ const char * const vtab_atxmega32a4[vts_atxmega32a4] = { // ATxmega32A4, ATxmega
   "DMA_CH3",                    //   9: DMA Channel 3
   "RTC_OVF",                    //  10: RTC Overflow
   "RTC_COMP",                   //  11: RTC Compare
-  "TWIC_TWIS",                  //  12: 2-Wire Interface C Periphery
+  "TWIC_TWIP",                  //  12: 2-Wire Interface C Peripheral
   "TWIC_TWIM",                  //  13: 2-Wire Interface C Controller
   "TCC0_OVF",                   //  14: TC C0 Overflow
   "TCC0_ERR",                   //  15: TC C0 Error
@@ -2630,7 +2630,7 @@ const char * const vtab_atxmega32a4[vts_atxmega32a4] = { // ATxmega32A4, ATxmega
   "UNUSED",                     //  42: not implemented on this device
   "PORTE_INT0",                 //  43: External Interrupt 0 PORT E
   "PORTE_INT1",                 //  44: External Interrupt 1 PORT E
-  "TWIE_TWIS",                  //  45: 2-Wire Interface E Periphery
+  "TWIE_TWIP",                  //  45: 2-Wire Interface E Peripheral
   "TWIE_TWIM",                  //  46: 2-Wire Interface E Controller
   "TCE0_OVF",                   //  47: TC E0 Overflow
   "TCE0_ERR",                   //  48: TC E0 Error
@@ -2694,7 +2694,7 @@ const char * const vtab_atxmega32c4[vts_atxmega32c4] = { // ATxmega32C4, ATxmega
   "UNUSED",                     //   9: not implemented on this device
   "RTC_OVF",                    //  10: RTC Overflow
   "RTC_COMP",                   //  11: RTC Compare
-  "TWIC_TWIS",                  //  12: 2-Wire Interface C Periphery
+  "TWIC_TWIP",                  //  12: 2-Wire Interface C Peripheral
   "TWIC_TWIM",                  //  13: 2-Wire Interface C Controller
   "TCC0_OVF/TCC2_LUNF",         //  14: TC C0 Overflow/TC C2 Low Byte Underflow
   "TCC0_ERR/TCC2_HUNF",         //  15: TC C0 Error/TC C2 High Byte Underflow
@@ -2727,7 +2727,7 @@ const char * const vtab_atxmega32c4[vts_atxmega32c4] = { // ATxmega32C4, ATxmega
   "UNUSED",                     //  42: not implemented on this device
   "PORTE_INT0",                 //  43: External Interrupt 0 PORT E
   "PORTE_INT1",                 //  44: External Interrupt 1 PORT E
-  "TWIE_TWIS",                  //  45: 2-Wire Interface E Periphery
+  "TWIE_TWIP",                  //  45: 2-Wire Interface E Peripheral
   "TWIE_TWIM",                  //  46: 2-Wire Interface E Controller
   "TCE0_OVF",                   //  47: TC E0 Overflow
   "TCE0_ERR",                   //  48: TC E0 Error
@@ -2824,7 +2824,7 @@ const char * const vtab_atxmega32d4[vts_atxmega32d4] = { // ATxmega32D4, ATxmega
   "UNUSED",                     //   9: not implemented on this device
   "RTC_OVF",                    //  10: RTC Overflow
   "RTC_COMP",                   //  11: RTC Compare
-  "TWIC_TWIS",                  //  12: 2-Wire Interface C Periphery
+  "TWIC_TWIP",                  //  12: 2-Wire Interface C Peripheral
   "TWIC_TWIM",                  //  13: 2-Wire Interface C Controller
   "TCC0_OVF/TCC2_LUNF",         //  14: TC C0 Overflow/TC C2 Low Byte Underflow
   "TCC0_ERR/TCC2_HUNF",         //  15: TC C0 Error/TC C2 High Byte Underflow
@@ -2857,7 +2857,7 @@ const char * const vtab_atxmega32d4[vts_atxmega32d4] = { // ATxmega32D4, ATxmega
   "UNUSED",                     //  42: not implemented on this device
   "PORTE_INT0",                 //  43: External Interrupt 0 PORT E
   "PORTE_INT1",                 //  44: External Interrupt 1 PORT E
-  "TWIE_TWIS",                  //  45: 2-Wire Interface E Periphery
+  "TWIE_TWIP",                  //  45: 2-Wire Interface E Peripheral
   "TWIE_TWIM",                  //  46: 2-Wire Interface E Controller
   "TCE0_OVF",                   //  47: TC E0 Overflow
   "TCE0_ERR",                   //  48: TC E0 Error
@@ -2916,7 +2916,7 @@ const char * const vtab_atxmega32e5[vts_atxmega32e5] = { // ATxmega32E5, ATxmega
   "RTC_OVF",                    //   7: RTC Overflow
   "RTC_COMP",                   //   8: RTC Compare
   "PORTC_INT",                  //   9: External Interrupt PORT C
-  "TWIC_TWIS",                  //  10: 2-Wire Interface C Periphery
+  "TWIC_TWIP",                  //  10: 2-Wire Interface C Peripheral
   "TWIC_TWIM",                  //  11: 2-Wire Interface C Controller
   "TCC4_OVF",                   //  12: TC C4 Overflow
   "TCC4_ERR",                   //  13: TC C4 Error
@@ -2964,7 +2964,7 @@ const char * const vtab_atxmega128a1[vts_atxmega128a1] = { // ATxmega128A1, ATxm
   "DMA_CH3",                    //   9: DMA Channel 3
   "RTC_OVF",                    //  10: RTC Overflow
   "RTC_COMP",                   //  11: RTC Compare
-  "TWIC_TWIS",                  //  12: 2-Wire Interface C Periphery
+  "TWIC_TWIP",                  //  12: 2-Wire Interface C Peripheral
   "TWIC_TWIM",                  //  13: 2-Wire Interface C Controller
   "TCC0_OVF",                   //  14: TC C0 Overflow
   "TCC0_ERR",                   //  15: TC C0 Error
@@ -2997,7 +2997,7 @@ const char * const vtab_atxmega128a1[vts_atxmega128a1] = { // ATxmega128A1, ATxm
   "ADCB_CH3",                   //  42: ADCB Interrupt 3
   "PORTE_INT0",                 //  43: External Interrupt 0 PORT E
   "PORTE_INT1",                 //  44: External Interrupt 1 PORT E
-  "TWIE_TWIS",                  //  45: 2-Wire Interface E Periphery
+  "TWIE_TWIP",                  //  45: 2-Wire Interface E Peripheral
   "TWIE_TWIM",                  //  46: 2-Wire Interface E Controller
   "TCE0_OVF",                   //  47: TC E0 Overflow
   "TCE0_ERR",                   //  48: TC E0 Error
@@ -3027,7 +3027,7 @@ const char * const vtab_atxmega128a1[vts_atxmega128a1] = { // ATxmega128A1, ATxm
   "ADCA_CH1",                   //  72: ADCA Interrupt 1
   "ADCA_CH2",                   //  73: ADCA Interrupt 2
   "ADCA_CH3",                   //  74: ADCA Interrupt 3
-  "TWID_TWIS",                  //  75: 2-Wire Interface D Periphery
+  "TWID_TWIP",                  //  75: 2-Wire Interface D Peripheral
   "TWID_TWIM",                  //  76: 2-Wire Interface D Controller
   "TCD0_OVF",                   //  77: TC D0 Overflow
   "TCD0_ERR",                   //  78: TC D0 Error
@@ -3058,7 +3058,7 @@ const char * const vtab_atxmega128a1[vts_atxmega128a1] = { // ATxmega128A1, ATxm
   "UNUSED",                     // 103: not implemented on this device
   "PORTF_INT0",                 // 104: External Interrupt 0 PORT F
   "PORTF_INT1",                 // 105: External Interrupt 1 PORT F
-  "TWIF_TWIS",                  // 106: 2-Wire Interface F Periphery
+  "TWIF_TWIP",                  // 106: 2-Wire Interface F Peripheral
   "TWIF_TWIM",                  // 107: 2-Wire Interface F Controller
   "TCF0_OVF",                   // 108: TC F0 Overflow
   "TCF0_ERR",                   // 109: TC F0 Error
@@ -3092,7 +3092,7 @@ const char * const vtab_atxmega128a1u[vts_atxmega128a1u] = { // ATxmega128A1U, A
   "DMA_CH3",                    //   9: DMA Channel 3
   "RTC_OVF",                    //  10: RTC Overflow
   "RTC_COMP",                   //  11: RTC Compare
-  "TWIC_TWIS",                  //  12: 2-Wire Interface C Periphery
+  "TWIC_TWIP",                  //  12: 2-Wire Interface C Peripheral
   "TWIC_TWIM",                  //  13: 2-Wire Interface C Controller
   "TCC0_OVF/TCC2_LUNF",         //  14: TC C0 Overflow/TC C2 Low Byte Underflow
   "TCC0_ERR/TCC2_HUNF",         //  15: TC C0 Error/TC C2 High Byte Underflow
@@ -3125,7 +3125,7 @@ const char * const vtab_atxmega128a1u[vts_atxmega128a1u] = { // ATxmega128A1U, A
   "ADCB_CH3",                   //  42: ADCB Interrupt 3
   "PORTE_INT0",                 //  43: External Interrupt 0 PORT E
   "PORTE_INT1",                 //  44: External Interrupt 1 PORT E
-  "TWIE_TWIS",                  //  45: 2-Wire Interface E Periphery
+  "TWIE_TWIP",                  //  45: 2-Wire Interface E Peripheral
   "TWIE_TWIM",                  //  46: 2-Wire Interface E Controller
   "TCE0_OVF/TCE2_LUNF",         //  47: TC E0 Overflow/TC E2 Low Byte Underflow
   "TCE0_ERR/TCE2_HUNF",         //  48: TC E0 Error/TC E2 High Byte Underflow
@@ -3155,7 +3155,7 @@ const char * const vtab_atxmega128a1u[vts_atxmega128a1u] = { // ATxmega128A1U, A
   "ADCA_CH1",                   //  72: ADCA Interrupt 1
   "ADCA_CH2",                   //  73: ADCA Interrupt 2
   "ADCA_CH3",                   //  74: ADCA Interrupt 3
-  "TWID_TWIS",                  //  75: 2-Wire Interface D Periphery
+  "TWID_TWIP",                  //  75: 2-Wire Interface D Peripheral
   "TWID_TWIM",                  //  76: 2-Wire Interface D Controller
   "TCD0_OVF/TCD2_LUNF",         //  77: TC D0 Overflow/TC D2 Low Byte Underflow
   "TCD0_ERR/TCD2_HUNF",         //  78: TC D0 Error/TC D2 High Byte Underflow
@@ -3186,7 +3186,7 @@ const char * const vtab_atxmega128a1u[vts_atxmega128a1u] = { // ATxmega128A1U, A
   "UNUSED",                     // 103: not implemented on this device
   "PORTF_INT0",                 // 104: External Interrupt 0 PORT F
   "PORTF_INT1",                 // 105: External Interrupt 1 PORT F
-  "TWIF_TWIS",                  // 106: 2-Wire Interface F Periphery
+  "TWIF_TWIP",                  // 106: 2-Wire Interface F Peripheral
   "TWIF_TWIM",                  // 107: 2-Wire Interface F Controller
   "TCF0_OVF/TCF2_LUNF",         // 108: TC F0 Overflow/TC F2 Low Byte Underflow
   "TCF0_ERR/TCF2_HUNF",         // 109: TC F0 Error/TC F2 High Byte Underflow
@@ -3222,7 +3222,7 @@ const char * const vtab_atxmega128b1[vts_atxmega128b1] = { // ATxmega128B1, ATxm
   "UNUSED",                     //   9: not implemented on this device
   "RTC_OVF",                    //  10: RTC Overflow
   "RTC_COMP",                   //  11: RTC Compare
-  "TWIC_TWIS",                  //  12: 2-Wire Interface C Periphery
+  "TWIC_TWIP",                  //  12: 2-Wire Interface C Peripheral
   "TWIC_TWIM",                  //  13: 2-Wire Interface C Controller
   "TCC0_OVF/TCC2_LUNF",         //  14: TC C0 Overflow/TC C2 Low Byte Underflow
   "TCC0_ERR/TCC2_HUNF",         //  15: TC C0 Error/TC C2 High Byte Underflow
@@ -3306,7 +3306,7 @@ const char * const vtab_atxmega128b3[vts_atxmega128b3] = { // ATxmega128B3, ATxm
   "UNUSED",                     //   9: not implemented on this device
   "RTC_OVF",                    //  10: RTC Overflow
   "RTC_COMP",                   //  11: RTC Compare
-  "TWIC_TWIS",                  //  12: 2-Wire Interface C Periphery
+  "TWIC_TWIP",                  //  12: 2-Wire Interface C Peripheral
   "TWIC_TWIM",                  //  13: 2-Wire Interface C Controller
   "TCC0_OVF/TCC2_LUNF",         //  14: TC C0 Overflow/TC C2 Low Byte Underflow
   "TCC0_ERR/TCC2_HUNF",         //  15: TC C0 Error/TC C2 High Byte Underflow
@@ -3363,7 +3363,7 @@ const char * const vtab_atxmega128a4u[vts_atxmega128a4u] = { // ATxmega128A4U, A
   "DMA_CH3",                    //   9: DMA Channel 3
   "RTC_OVF",                    //  10: RTC Overflow
   "RTC_COMP",                   //  11: RTC Compare
-  "TWIC_TWIS",                  //  12: 2-Wire Interface C Periphery
+  "TWIC_TWIP",                  //  12: 2-Wire Interface C Peripheral
   "TWIC_TWIM",                  //  13: 2-Wire Interface C Controller
   "TCC0_OVF/TCC2_LUNF",         //  14: TC C0 Overflow/TC C2 Low Byte Underflow
   "TCC0_ERR/TCC2_HUNF",         //  15: TC C0 Error/TC C2 High Byte Underflow
@@ -3396,7 +3396,7 @@ const char * const vtab_atxmega128a4u[vts_atxmega128a4u] = { // ATxmega128A4U, A
   "UNUSED",                     //  42: not implemented on this device
   "PORTE_INT0",                 //  43: External Interrupt 0 PORT E
   "PORTE_INT1",                 //  44: External Interrupt 1 PORT E
-  "TWIE_TWIS",                  //  45: 2-Wire Interface E Periphery
+  "TWIE_TWIP",                  //  45: 2-Wire Interface E Peripheral
   "TWIE_TWIM",                  //  46: 2-Wire Interface E Controller
   "TCE0_OVF",                   //  47: TC E0 Overflow
   "TCE0_ERR",                   //  48: TC E0 Error
@@ -3493,7 +3493,7 @@ const char * const vtab_atxmega128d4[vts_atxmega128d4] = { // ATxmega128D4, ATxm
   "UNUSED",                     //   9: not implemented on this device
   "RTC_OVF",                    //  10: RTC Overflow
   "RTC_COMP",                   //  11: RTC Compare
-  "TWIC_TWIS",                  //  12: 2-Wire Interface C Periphery
+  "TWIC_TWIP",                  //  12: 2-Wire Interface C Peripheral
   "TWIC_TWIM",                  //  13: 2-Wire Interface C Controller
   "TCC0_OVF/TCC2_LUNF",         //  14: TC C0 Overflow/TC C2 Low Byte Underflow
   "TCC0_ERR/TCC2_HUNF",         //  15: TC C0 Error/TC C2 High Byte Underflow
@@ -3526,7 +3526,7 @@ const char * const vtab_atxmega128d4[vts_atxmega128d4] = { // ATxmega128D4, ATxm
   "UNUSED",                     //  42: not implemented on this device
   "PORTE_INT0",                 //  43: External Interrupt 0 PORT E
   "PORTE_INT1",                 //  44: External Interrupt 1 PORT E
-  "TWIE_TWIS",                  //  45: 2-Wire Interface E Periphery
+  "TWIE_TWIP",                  //  45: 2-Wire Interface E Peripheral
   "TWIE_TWIM",                  //  46: 2-Wire Interface E Controller
   "TCE0_OVF",                   //  47: TC E0 Overflow
   "TCE0_ERR",                   //  48: TC E0 Error
@@ -3587,7 +3587,7 @@ const char * const vtab_atxmega256a3[vts_atxmega256a3] = { // ATxmega256A3, ATxm
   "DMA_CH3",                    //   9: DMA Channel 3
   "RTC_OVF",                    //  10: RTC Overflow
   "RTC_COMP",                   //  11: RTC Compare
-  "TWIC_TWIS",                  //  12: 2-Wire Interface C Periphery
+  "TWIC_TWIP",                  //  12: 2-Wire Interface C Peripheral
   "TWIC_TWIM",                  //  13: 2-Wire Interface C Controller
   "TCC0_OVF",                   //  14: TC C0 Overflow
   "TCC0_ERR",                   //  15: TC C0 Error
@@ -3620,7 +3620,7 @@ const char * const vtab_atxmega256a3[vts_atxmega256a3] = { // ATxmega256A3, ATxm
   "ADCB_CH3",                   //  42: ADCB Interrupt 3
   "PORTE_INT0",                 //  43: External Interrupt 0 PORT E
   "PORTE_INT1",                 //  44: External Interrupt 1 PORT E
-  "TWIE_TWIS",                  //  45: 2-Wire Interface E Periphery
+  "TWIE_TWIP",                  //  45: 2-Wire Interface E Peripheral
   "TWIE_TWIM",                  //  46: 2-Wire Interface E Controller
   "TCE0_OVF",                   //  47: TC E0 Overflow
   "TCE0_ERR",                   //  48: TC E0 Error
@@ -3712,7 +3712,7 @@ const char * const vtab_atxmega256a3b[vts_atxmega256a3b] = { // ATxmega256A3B
   "DMA_CH3",                    //   9: DMA Channel 3
   "RTC32_OVF",                  //  10: RTC32 Overflow
   "RTC32_COMP",                 //  11: RTC32 Compare
-  "TWIC_TWIS",                  //  12: 2-Wire Interface C Periphery
+  "TWIC_TWIP",                  //  12: 2-Wire Interface C Peripheral
   "TWIC_TWIM",                  //  13: 2-Wire Interface C Controller
   "TCC0_OVF",                   //  14: TC C0 Overflow
   "TCC0_ERR",                   //  15: TC C0 Error
@@ -3745,7 +3745,7 @@ const char * const vtab_atxmega256a3b[vts_atxmega256a3b] = { // ATxmega256A3B
   "ADCB_CH3",                   //  42: ADCB Interrupt 3
   "PORTE_INT0",                 //  43: External Interrupt 0 PORT E
   "PORTE_INT1",                 //  44: External Interrupt 1 PORT E
-  "TWIE_TWIS",                  //  45: 2-Wire Interface E Periphery
+  "TWIE_TWIP",                  //  45: 2-Wire Interface E Peripheral
   "TWIE_TWIM",                  //  46: 2-Wire Interface E Controller
   "TCE0_OVF",                   //  47: TC E0 Overflow
   "TCE0_ERR",                   //  48: TC E0 Error
@@ -3837,7 +3837,7 @@ const char * const vtab_atxmega256a3bu[vts_atxmega256a3bu] = { // ATxmega256A3BU
   "DMA_CH3",                    //   9: DMA Channel 3
   "RTC32_OVF",                  //  10: RTC32 Overflow
   "RTC32_COMP",                 //  11: RTC32 Compare
-  "TWIC_TWIS",                  //  12: 2-Wire Interface C Periphery
+  "TWIC_TWIP",                  //  12: 2-Wire Interface C Peripheral
   "TWIC_TWIM",                  //  13: 2-Wire Interface C Controller
   "TCC0_OVF/TCC2_LUNF",         //  14: TC C0 Overflow/TC C2 Low Byte Underflow
   "TCC0_ERR/TCC2_HUNF",         //  15: TC C0 Error/TC C2 High Byte Underflow
@@ -3870,7 +3870,7 @@ const char * const vtab_atxmega256a3bu[vts_atxmega256a3bu] = { // ATxmega256A3BU
   "ADCB_CH3",                   //  42: ADCB Interrupt 3
   "PORTE_INT0",                 //  43: External Interrupt 0 PORT E
   "PORTE_INT1",                 //  44: External Interrupt 1 PORT E
-  "TWIE_TWIS",                  //  45: 2-Wire Interface E Periphery
+  "TWIE_TWIP",                  //  45: 2-Wire Interface E Peripheral
   "TWIE_TWIM",                  //  46: 2-Wire Interface E Controller
   "TCE0_OVF/TCE2_LUNF",         //  47: TC E0 Overflow/TC E2 Low Byte Underflow
   "TCE0_ERR/TCE2_HUNF",         //  48: TC E0 Error/TC E2 High Byte Underflow
@@ -3967,7 +3967,7 @@ const char * const vtab_atxmega256a3u[vts_atxmega256a3u] = { // ATxmega256A3U, A
   "DMA_CH3",                    //   9: DMA Channel 3
   "RTC_OVF",                    //  10: RTC Overflow
   "RTC_COMP",                   //  11: RTC Compare
-  "TWIC_TWIS",                  //  12: 2-Wire Interface C Periphery
+  "TWIC_TWIP",                  //  12: 2-Wire Interface C Peripheral
   "TWIC_TWIM",                  //  13: 2-Wire Interface C Controller
   "TCC0_OVF/TCC2_LUNF",         //  14: TC C0 Overflow/TC C2 Low Byte Underflow
   "TCC0_ERR/TCC2_HUNF",         //  15: TC C0 Error/TC C2 High Byte Underflow
@@ -4000,7 +4000,7 @@ const char * const vtab_atxmega256a3u[vts_atxmega256a3u] = { // ATxmega256A3U, A
   "ADCB_CH3",                   //  42: ADCB Interrupt 3
   "PORTE_INT0",                 //  43: External Interrupt 0 PORT E
   "PORTE_INT1",                 //  44: External Interrupt 1 PORT E
-  "TWIE_TWIS",                  //  45: 2-Wire Interface E Periphery
+  "TWIE_TWIP",                  //  45: 2-Wire Interface E Peripheral
   "TWIE_TWIM",                  //  46: 2-Wire Interface E Controller
   "TCE0_OVF/TCE2_LUNF",         //  47: TC E0 Overflow/TC E2 Low Byte Underflow
   "TCE0_ERR/TCE2_HUNF",         //  48: TC E0 Error/TC E2 High Byte Underflow
@@ -4097,7 +4097,7 @@ const char * const vtab_atxmega256c3[vts_atxmega256c3] = { // ATxmega256C3, ATxm
   "UNUSED",                     //   9: not implemented on this device
   "RTC_OVF",                    //  10: RTC Overflow
   "RTC_COMP",                   //  11: RTC Compare
-  "TWIC_TWIS",                  //  12: 2-Wire Interface C Periphery
+  "TWIC_TWIP",                  //  12: 2-Wire Interface C Peripheral
   "TWIC_TWIM",                  //  13: 2-Wire Interface C Controller
   "TCC0_OVF/TCC2_LUNF",         //  14: TC C0 Overflow/TC C2 Low Byte Underflow
   "TCC0_ERR/TCC2_HUNF",         //  15: TC C0 Error/TC C2 High Byte Underflow
@@ -4130,7 +4130,7 @@ const char * const vtab_atxmega256c3[vts_atxmega256c3] = { // ATxmega256C3, ATxm
   "UNUSED",                     //  42: not implemented on this device
   "PORTE_INT0",                 //  43: External Interrupt 0 PORT E
   "PORTE_INT1",                 //  44: External Interrupt 1 PORT E
-  "TWIE_TWIS",                  //  45: 2-Wire Interface E Periphery
+  "TWIE_TWIP",                  //  45: 2-Wire Interface E Peripheral
   "TWIE_TWIM",                  //  46: 2-Wire Interface E Controller
   "TCE0_OVF/TCE2_LUNF",         //  47: TC E0 Overflow/TC E2 Low Byte Underflow
   "TCE0_ERR/TCE2_HUNF",         //  48: TC E0 Error/TC E2 High Byte Underflow
@@ -4227,7 +4227,7 @@ const char * const vtab_atxmega384c3[vts_atxmega384c3] = { // ATxmega384C3
   "UNUSED",                     //   9: not implemented on this device
   "RTC_OVF",                    //  10: RTC Overflow
   "RTC_COMP",                   //  11: RTC Compare
-  "TWIC_TWIS",                  //  12: 2-Wire Interface C Periphery
+  "TWIC_TWIP",                  //  12: 2-Wire Interface C Peripheral
   "TWIC_TWIM",                  //  13: 2-Wire Interface C Controller
   "TCC0_OVF/TCC2_LUNF",         //  14: TC C0 Overflow/TC C2 Low Byte Underflow
   "TCC0_ERR/TCC2_HUNF",         //  15: TC C0 Error/TC C2 High Byte Underflow
@@ -4260,7 +4260,7 @@ const char * const vtab_atxmega384c3[vts_atxmega384c3] = { // ATxmega384C3
   "UNUSED",                     //  42: not implemented on this device
   "PORTE_INT0",                 //  43: External Interrupt 0 PORT E
   "PORTE_INT1",                 //  44: External Interrupt 1 PORT E
-  "TWIE_TWIS",                  //  45: 2-Wire Interface E Periphery
+  "TWIE_TWIP",                  //  45: 2-Wire Interface E Peripheral
   "TWIE_TWIM",                  //  46: 2-Wire Interface E Controller
   "TCE0_OVF/TCE2_LUNF",         //  47: TC E0 Overflow/TC E2 Low Byte Underflow
   "TCE0_ERR/TCE2_HUNF",         //  48: TC E0 Error/TC E2 High Byte Underflow
@@ -4357,7 +4357,7 @@ const char * const vtab_atxmega384d3[vts_atxmega384d3] = { // ATxmega384D3, ATxm
   "UNUSED",                     //   9: not implemented on this device
   "RTC_OVF",                    //  10: RTC Overflow
   "RTC_COMP",                   //  11: RTC Compare
-  "TWIC_TWIS",                  //  12: 2-Wire Interface C Periphery
+  "TWIC_TWIP",                  //  12: 2-Wire Interface C Peripheral
   "TWIC_TWIM",                  //  13: 2-Wire Interface C Controller
   "TCC0_OVF/TCC2_LUNF",         //  14: TC C0 Overflow/TC C2 Low Byte Underflow
   "TCC0_ERR/TCC2_HUNF",         //  15: TC C0 Error/TC C2 High Byte Underflow
@@ -4390,7 +4390,7 @@ const char * const vtab_atxmega384d3[vts_atxmega384d3] = { // ATxmega384D3, ATxm
   "UNUSED",                     //  42: not implemented on this device
   "PORTE_INT0",                 //  43: External Interrupt 0 PORT E
   "PORTE_INT1",                 //  44: External Interrupt 1 PORT E
-  "TWIE_TWIS",                  //  45: 2-Wire Interface E Periphery
+  "TWIE_TWIP",                  //  45: 2-Wire Interface E Peripheral
   "TWIE_TWIM",                  //  46: 2-Wire Interface E Controller
   "TCE0_OVF/TCE2_LUNF",         //  47: TC E0 Overflow/TC E2 Low Byte Underflow
   "TCE0_ERR/TCE2_HUNF",         //  48: TC E0 Error/TC E2 High Byte Underflow
@@ -4481,7 +4481,7 @@ const char * const vtab_attiny402[vts_attiny402] = { // ATtiny402, ATtiny202
   "AC0_AC",                     //  16: AC0 AC Interrupt
   "ADC0_RESRDY",                //  17: ADC 0 Result Ready
   "ADC0_WCOMP",                 //  18: ADC 0 Window Comparator
-  "TWI0_TWIS",                  //  19: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  19: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  20: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  21: SPI 0 Interrupt
   "USART0_RXC",                 //  22: USART 0 Receive Complete
@@ -4510,7 +4510,7 @@ const char * const vtab_attiny404[vts_attiny404] = { // ATtiny404, ATtiny204
   "AC0_AC",                     //  16: AC0 AC Interrupt
   "ADC0_RESRDY",                //  17: ADC 0 Result Ready
   "ADC0_WCOMP",                 //  18: ADC 0 Window Comparator
-  "TWI0_TWIS",                  //  19: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  19: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  20: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  21: SPI 0 Interrupt
   "USART0_RXC",                 //  22: USART 0 Receive Complete
@@ -4539,7 +4539,7 @@ const char * const vtab_attiny406[vts_attiny406] = { // ATtiny406
   "AC0_AC",                     //  16: AC0 AC Interrupt
   "ADC0_RESRDY",                //  17: ADC 0 Result Ready
   "ADC0_WCOMP",                 //  18: ADC 0 Window Comparator
-  "TWI0_TWIS",                  //  19: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  19: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  20: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  21: SPI 0 Interrupt
   "USART0_RXC",                 //  22: USART 0 Receive Complete
@@ -4568,7 +4568,7 @@ const char * const vtab_attiny412[vts_attiny412] = { // ATtiny412, ATtiny212
   "AC0_AC",                     //  16: AC0 AC Interrupt
   "ADC0_RESRDY",                //  17: ADC 0 Result Ready
   "ADC0_WCOMP",                 //  18: ADC 0 Window Comparator
-  "TWI0_TWIS",                  //  19: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  19: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  20: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  21: SPI 0 Interrupt
   "USART0_RXC",                 //  22: USART 0 Receive Complete
@@ -4597,7 +4597,7 @@ const char * const vtab_attiny814[vts_attiny814] = { // ATtiny814, ATtiny414, AT
   "AC0_AC",                     //  16: AC0 AC Interrupt
   "ADC0_RESRDY",                //  17: ADC 0 Result Ready
   "ADC0_WCOMP",                 //  18: ADC 0 Window Comparator
-  "TWI0_TWIS",                  //  19: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  19: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  20: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  21: SPI 0 Interrupt
   "USART0_RXC",                 //  22: USART 0 Receive Complete
@@ -4626,7 +4626,7 @@ const char * const vtab_attiny817[vts_attiny817] = { // ATtiny817, ATtiny816, AT
   "AC0_AC",                     //  16: AC0 AC Interrupt
   "ADC0_RESRDY",                //  17: ADC 0 Result Ready
   "ADC0_WCOMP",                 //  18: ADC 0 Window Comparator
-  "TWI0_TWIS",                  //  19: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  19: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  20: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  21: SPI 0 Interrupt
   "USART0_RXC",                 //  22: USART 0 Receive Complete
@@ -4660,7 +4660,7 @@ const char * const vtab_attiny1607[vts_attiny1607] = { // ATtiny1607, ATtiny1606
   "ADC0_WCOMP",                 //  21: ADC 0 Window Comparator
   "UNUSED",                     //  22: not implemented on this device
   "UNUSED",                     //  23: not implemented on this device
-  "TWI0_TWIS",                  //  24: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  24: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  25: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  26: SPI 0 Interrupt
   "USART0_RXC",                 //  27: USART 0 Receive Complete
@@ -4694,7 +4694,7 @@ const char * const vtab_attiny1614[vts_attiny1614] = { // ATtiny1614
   "ADC0_WCOMP",                 //  21: ADC 0 Window Comparator
   "ADC1_RESRDY",                //  22: ADC 1 Result Ready
   "ADC1_WCOMP",                 //  23: ADC 1 Window Comparator
-  "TWI0_TWIS",                  //  24: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  24: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  25: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  26: SPI 0 Interrupt
   "USART0_RXC",                 //  27: USART 0 Receive Complete
@@ -4728,7 +4728,7 @@ const char * const vtab_attiny3214[vts_attiny3214] = { // ATtiny3214
   "ADC0_WCOMP",                 //  21: ADC 0 Window Comparator
   "ADC1_RESRDY",                //  22: ADC 1 Result Ready
   "ADC1_WCOMP",                 //  23: ADC 1 Window Comparator
-  "TWI0_TWIS",                  //  24: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  24: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  25: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  26: SPI 0 Interrupt
   "USART0_RXC",                 //  27: USART 0 Receive Complete
@@ -4762,7 +4762,7 @@ const char * const vtab_attiny3217[vts_attiny3217] = { // ATtiny3217, ATtiny3216
   "ADC0_WCOMP",                 //  21: ADC 0 Window Comparator
   "ADC1_RESRDY",                //  22: ADC 1 Result Ready
   "ADC1_WCOMP",                 //  23: ADC 1 Window Comparator
-  "TWI0_TWIS",                  //  24: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  24: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  25: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  26: SPI 0 Interrupt
   "USART0_RXC",                 //  27: USART 0 Receive Complete
@@ -4786,7 +4786,7 @@ const char * const vtab_attiny3227[vts_attiny3227] = { // ATtiny3227, ATtiny3226
   "TCA0_CMP1/TCA0_LCMP1",       //  11: TC A0 Compare 1/TC A0 Low Compare 1
   "TCA0_CMP2/TCA0_LCMP2",       //  12: TC A0 Compare 2/TC A0 Low Compare 2
   "TCB0_INT",                   //  13: TC B0 Interrupt
-  "TWI0_TWIS",                  //  14: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  14: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  15: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  16: SPI 0 Interrupt
   "USART0_RXC",                 //  17: USART 0 Receive Complete
@@ -4819,7 +4819,7 @@ const char * const vtab_atmega4808[vts_atmega4808] = { // ATmega4808, ATmega3208
   "TCA0_CMP2/TCA0_LCMP2",       //  11: TC A0 Compare 2/TC A0 Low Compare 2
   "TCB0_INT",                   //  12: TC B0 Interrupt
   "TCB1_INT",                   //  13: TC B1 Interrupt
-  "TWI0_TWIS",                  //  14: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  14: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  15: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  16: SPI 0 Interrupt
   "USART0_RXC",                 //  17: USART 0 Receive Complete
@@ -4858,7 +4858,7 @@ const char * const vtab_atmega4809[vts_atmega4809] = { // ATmega4809, ATmega3209
   "TCA0_CMP2/TCA0_LCMP2",       //  11: TC A0 Compare 2/TC A0 Low Compare 2
   "TCB0_INT",                   //  12: TC B0 Interrupt
   "TCB1_INT",                   //  13: TC B1 Interrupt
-  "TWI0_TWIS",                  //  14: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  14: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  15: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  16: SPI 0 Interrupt
   "USART0_RXC",                 //  17: USART 0 Receive Complete
@@ -4905,7 +4905,7 @@ const char * const vtab_avr64dd32[vts_avr64dd32] = { // AVR64DD32, AVR64DD28, AV
   "TCB1_INT",                   //  15: TC B1 Interrupt
   "TCD0_OVF",                   //  16: TC D0 Overflow
   "TCD0_TRIG",                  //  17: TC D0 Trigger
-  "TWI0_TWIS",                  //  18: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  18: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  19: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  20: SPI 0 Interrupt
   "USART0_RXC",                 //  21: USART 0 Receive Complete
@@ -4941,7 +4941,7 @@ const char * const vtab_avr64ea32[vts_avr64ea32] = { // AVR64EA32, AVR64EA28
   "TCA0_CMP2/TCA0_LCMP2",       //  12: TC A0 Compare 2/TC A0 Low Compare 2
   "TCB0_INT",                   //  13: TC B0 Interrupt
   "TCB1_INT",                   //  14: TC B1 Interrupt
-  "TWI0_TWIS",                  //  15: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  15: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  16: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  17: SPI 0 Interrupt
   "USART0_RXC",                 //  18: USART 0 Receive Complete
@@ -4981,7 +4981,7 @@ const char * const vtab_avr64ea48[vts_avr64ea48] = { // AVR64EA48
   "TCA0_CMP2/TCA0_LCMP2",       //  12: TC A0 Compare 2/TC A0 Low Compare 2
   "TCB0_INT",                   //  13: TC B0 Interrupt
   "TCB1_INT",                   //  14: TC B1 Interrupt
-  "TWI0_TWIS",                  //  15: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  15: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  16: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  17: SPI 0 Interrupt
   "USART0_RXC",                 //  18: USART 0 Receive Complete
@@ -5030,7 +5030,7 @@ const char * const vtab_avr128da28[vts_avr128da28] = { // AVR128DA28, AVR64DA28,
   "TCB1_INT",                   //  13: TC B1 Interrupt
   "TCD0_OVF",                   //  14: TC D0 Overflow
   "TCD0_TRIG",                  //  15: TC D0 Trigger
-  "TWI0_TWIS",                  //  16: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  16: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  17: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  18: SPI 0 Interrupt
   "USART0_RXC",                 //  19: USART 0 Receive Complete
@@ -5076,7 +5076,7 @@ const char * const vtab_avr128db28[vts_avr128db28] = { // AVR128DB28, AVR64DB28,
   "TCB1_INT",                   //  15: TC B1 Interrupt
   "TCD0_OVF",                   //  16: TC D0 Overflow
   "TCD0_TRIG",                  //  17: TC D0 Trigger
-  "TWI0_TWIS",                  //  18: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  18: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  19: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  20: SPI 0 Interrupt
   "USART0_RXC",                 //  21: USART 0 Receive Complete
@@ -5119,7 +5119,7 @@ const char * const vtab_avr128da32[vts_avr128da32] = { // AVR128DA32, AVR64DA32,
   "TCB1_INT",                   //  13: TC B1 Interrupt
   "TCD0_OVF",                   //  14: TC D0 Overflow
   "TCD0_TRIG",                  //  15: TC D0 Trigger
-  "TWI0_TWIS",                  //  16: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  16: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  17: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  18: SPI 0 Interrupt
   "USART0_RXC",                 //  19: USART 0 Receive Complete
@@ -5145,7 +5145,7 @@ const char * const vtab_avr128da32[vts_avr128da32] = { // AVR128DA32, AVR64DA32,
   "USART2_TXC",                 //  39: USART 2 Transmit Complete
   "AC2_AC",                     //  40: AC2 AC Interrupt
   "UNUSED",                     //  41: not implemented on this device
-  "TWI1_TWIS",                  //  42: 2-Wire Interface 1 Periphery
+  "TWI1_TWIP",                  //  42: 2-Wire Interface 1 Peripheral
   "TWI1_TWIM",                  //  43: 2-Wire Interface 1 Controller
 };
 
@@ -5168,7 +5168,7 @@ const char * const vtab_avr128db32[vts_avr128db32] = { // AVR128DB32, AVR64DB32,
   "TCB1_INT",                   //  15: TC B1 Interrupt
   "TCD0_OVF",                   //  16: TC D0 Overflow
   "TCD0_TRIG",                  //  17: TC D0 Trigger
-  "TWI0_TWIS",                  //  18: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  18: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  19: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  20: SPI 0 Interrupt
   "USART0_RXC",                 //  21: USART 0 Receive Complete
@@ -5192,7 +5192,7 @@ const char * const vtab_avr128db32[vts_avr128db32] = { // AVR128DB32, AVR64DB32,
   "USART2_DRE",                 //  39: USART 2 Data Register Empty
   "USART2_TXC",                 //  40: USART 2 Transmit Complete
   "AC2_AC",                     //  41: AC2 AC Interrupt
-  "TWI1_TWIS",                  //  42: 2-Wire Interface 1 Periphery
+  "TWI1_TWIP",                  //  42: 2-Wire Interface 1 Peripheral
   "TWI1_TWIM",                  //  43: 2-Wire Interface 1 Controller
 };
 
@@ -5213,7 +5213,7 @@ const char * const vtab_avr128da48[vts_avr128da48] = { // AVR128DA48, AVR64DA48,
   "TCB1_INT",                   //  13: TC B1 Interrupt
   "TCD0_OVF",                   //  14: TC D0 Overflow
   "TCD0_TRIG",                  //  15: TC D0 Trigger
-  "TWI0_TWIS",                  //  16: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  16: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  17: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  18: SPI 0 Interrupt
   "USART0_RXC",                 //  19: USART 0 Receive Complete
@@ -5239,7 +5239,7 @@ const char * const vtab_avr128da48[vts_avr128da48] = { // AVR128DA48, AVR64DA48,
   "USART2_TXC",                 //  39: USART 2 Transmit Complete
   "AC2_AC",                     //  40: AC2 AC Interrupt
   "TCB3_INT",                   //  41: TC B3 Interrupt
-  "TWI1_TWIS",                  //  42: 2-Wire Interface 1 Periphery
+  "TWI1_TWIP",                  //  42: 2-Wire Interface 1 Peripheral
   "TWI1_TWIM",                  //  43: 2-Wire Interface 1 Controller
   "PORTB_PORT",                 //  44: Interrupt PORT B
   "PORTE_PORT",                 //  45: Interrupt PORT E
@@ -5276,7 +5276,7 @@ const char * const vtab_avr128db48[vts_avr128db48] = { // AVR128DB48, AVR64DB48,
   "TCB1_INT",                   //  15: TC B1 Interrupt
   "TCD0_OVF",                   //  16: TC D0 Overflow
   "TCD0_TRIG",                  //  17: TC D0 Trigger
-  "TWI0_TWIS",                  //  18: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  18: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  19: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  20: SPI 0 Interrupt
   "USART0_RXC",                 //  21: USART 0 Receive Complete
@@ -5300,7 +5300,7 @@ const char * const vtab_avr128db48[vts_avr128db48] = { // AVR128DB48, AVR64DB48,
   "USART2_DRE",                 //  39: USART 2 Data Register Empty
   "USART2_TXC",                 //  40: USART 2 Transmit Complete
   "AC2_AC",                     //  41: AC2 AC Interrupt
-  "TWI1_TWIS",                  //  42: 2-Wire Interface 1 Periphery
+  "TWI1_TWIP",                  //  42: 2-Wire Interface 1 Peripheral
   "TWI1_TWIM",                  //  43: 2-Wire Interface 1 Controller
   "TCB3_INT",                   //  44: TC B3 Interrupt
   "PORTB_PORT",                 //  45: Interrupt PORT B
@@ -5338,7 +5338,7 @@ const char * const vtab_avr128da64[vts_avr128da64] = { // AVR128DA64, AVR64DA64
   "TCB1_INT",                   //  13: TC B1 Interrupt
   "TCD0_OVF",                   //  14: TC D0 Overflow
   "TCD0_TRIG",                  //  15: TC D0 Trigger
-  "TWI0_TWIS",                  //  16: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  16: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  17: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  18: SPI 0 Interrupt
   "USART0_RXC",                 //  19: USART 0 Receive Complete
@@ -5364,7 +5364,7 @@ const char * const vtab_avr128da64[vts_avr128da64] = { // AVR128DA64, AVR64DA64
   "USART2_TXC",                 //  39: USART 2 Transmit Complete
   "AC2_AC",                     //  40: AC2 AC Interrupt
   "TCB3_INT",                   //  41: TC B3 Interrupt
-  "TWI1_TWIS",                  //  42: 2-Wire Interface 1 Periphery
+  "TWI1_TWIP",                  //  42: 2-Wire Interface 1 Peripheral
   "TWI1_TWIM",                  //  43: 2-Wire Interface 1 Controller
   "PORTB_PORT",                 //  44: Interrupt PORT B
   "PORTE_PORT",                 //  45: Interrupt PORT E
@@ -5407,7 +5407,7 @@ const char * const vtab_avr128db64[vts_avr128db64] = { // AVR128DB64, AVR64DB64
   "TCB1_INT",                   //  15: TC B1 Interrupt
   "TCD0_OVF",                   //  16: TC D0 Overflow
   "TCD0_TRIG",                  //  17: TC D0 Trigger
-  "TWI0_TWIS",                  //  18: 2-Wire Interface 0 Periphery
+  "TWI0_TWIP",                  //  18: 2-Wire Interface 0 Peripheral
   "TWI0_TWIM",                  //  19: 2-Wire Interface 0 Controller
   "SPI0_INT",                   //  20: SPI 0 Interrupt
   "USART0_RXC",                 //  21: USART 0 Receive Complete
@@ -5431,7 +5431,7 @@ const char * const vtab_avr128db64[vts_avr128db64] = { // AVR128DB64, AVR64DB64
   "USART2_DRE",                 //  39: USART 2 Data Register Empty
   "USART2_TXC",                 //  40: USART 2 Transmit Complete
   "AC2_AC",                     //  41: AC2 AC Interrupt
-  "TWI1_TWIS",                  //  42: 2-Wire Interface 1 Periphery
+  "TWI1_TWIP",                  //  42: 2-Wire Interface 1 Peripheral
   "TWI1_TWIM",                  //  43: 2-Wire Interface 1 Controller
   "TCB3_INT",                   //  44: TC B3 Interrupt
   "PORTB_PORT",                 //  45: Interrupt PORT B
