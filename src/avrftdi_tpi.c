@@ -72,7 +72,7 @@ avrftdi_tpi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 	log_info("Setting /Reset pin low\n");
 	pgm->setpin(pgm, PIN_AVR_RESET, OFF);
 	pgm->setpin(pgm, PIN_AVR_SCK, OFF);
-	pgm->setpin(pgm, PIN_AVR_MOSI, ON);
+	pgm->setpin(pgm, PIN_AVR_SDO, ON);
 	usleep(20 * 1000);
 
 	pgm->setpin(pgm, PIN_AVR_RESET, ON);

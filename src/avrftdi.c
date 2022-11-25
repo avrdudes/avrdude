@@ -62,7 +62,7 @@ void avrftdi_initpgm(PROGRAMMER *pgm) {
 
 #else
 
-enum { FTDI_SCK = 0, FTDI_MOSI, FTDI_MISO, FTDI_RESET };
+enum { FTDI_SCK = 0, FTDI_SDO, FTDI_SDI, FTDI_RESET };
 
 static int write_flush(avrftdi_t *);
 
@@ -216,7 +216,7 @@ static int set_frequency(avrftdi_t* ftdi, uint32_t freq)
 }
 
 /*
- * This function sets or clears any pin, except SCK, MISO and MOSI. Depending
+ * This function sets or clears any pin, except SCK, SDI and SDO. Depending
  * on the pin configuration, a non-zero value sets the pin in the 'active'
  * state (high active, low active) and a zero value sets the pin in the
  * inactive state.
@@ -288,7 +288,7 @@ static inline int set_data(const PROGRAMMER *pgm, unsigned char *buf, unsigned c
 	avrftdi_t* pdata = to_pdata(pgm);
 
 	for (j=0; j<8; j++) {
-		pdata->pin_value = SET_BITS_0(pdata->pin_value,pgm,PIN_AVR_MOSI,data & bit);
+		pdata->pin_value = SET_BITS_0(pdata->pin_value,pgm,PIN_AVR_SDO,data & bit);
 		pdata->pin_value = SET_BITS_0(pdata->pin_value,pgm,PIN_AVR_SCK,0);
 		buf[buf_pos++] = SET_BITS_LOW;
 		buf[buf_pos++] = (pdata->pin_value) & 0xff;
@@ -323,7 +323,7 @@ static inline unsigned char extract_data(const PROGRAMMER *pgm, unsigned char *b
 	buf += offset * 16; // 2 bytes per bit, 8 bits
 	for (j=0; j<8; j++) {
 		uint16_t in = buf[0] | (buf[1] << 8);
-		if (GET_BITS_0(in,pgm,PIN_AVR_MISO)) {
+		if (GET_BITS_0(in,pgm,PIN_AVR_SDI)) {
 			r |= bit;
 		}
 		buf += 2; // 2 bytes per input
@@ -545,16 +545,16 @@ static int avrftdi_check_pins_mpsse(const PROGRAMMER *pgm, bool output) {
 
 	avrftdi_t* pdata = to_pdata(pgm);
 
-	/* SCK/MOSI/MISO are fixed and not invertible?*/
-	/* TODO: inverted SCK/MISO/MOSI */
-	static const struct pindef_t valid_pins_SCK  = {{0x01},{0x00}} ;
-	static const struct pindef_t valid_pins_MOSI = {{0x02},{0x00}} ;
-	static const struct pindef_t valid_pins_MISO = {{0x04},{0x00}} ;
+	/* SCK/SDO/SDI are fixed and not invertible? */
+	/* TODO: inverted SCK/SDI/SDO */
+	static const struct pindef_t valid_pins_SCK = {{0x01},{0x00}};
+	static const struct pindef_t valid_pins_SDO = {{0x02},{0x00}};
+	static const struct pindef_t valid_pins_SDI = {{0x04},{0x00}};
 
 	/* value for 8/12/16 bit wide interface for other pins */
 	int valid_mask = ((1 << pdata->pin_limit) - 1);
-	/* mask out SCK/MISO/MOSI */
-	valid_mask &= ~((1 << FTDI_SCK) | (1 << FTDI_MOSI) | (1 << FTDI_MISO));
+	/* mask out SCK/SDI/SDO */
+	valid_mask &= ~((1 << FTDI_SCK) | (1 << FTDI_SDO) | (1 << FTDI_SDI));
 
 	log_debug("Using valid mask mpsse: 0x%08x\n", valid_mask);
 	static struct pindef_t valid_pins_others;
@@ -571,10 +571,10 @@ static int avrftdi_check_pins_mpsse(const PROGRAMMER *pgm, bool output) {
 	/* now set mpsse specific pins */
 	pin_checklist[PIN_AVR_SCK].mandatory = 1;
 	pin_checklist[PIN_AVR_SCK].valid_pins = &valid_pins_SCK;
-	pin_checklist[PIN_AVR_MOSI].mandatory = 1;
-	pin_checklist[PIN_AVR_MOSI].valid_pins = &valid_pins_MOSI;
-	pin_checklist[PIN_AVR_MISO].mandatory = 1;
-	pin_checklist[PIN_AVR_MISO].valid_pins = &valid_pins_MISO;
+	pin_checklist[PIN_AVR_SDO].mandatory = 1;
+	pin_checklist[PIN_AVR_SDO].valid_pins = &valid_pins_SDO;
+	pin_checklist[PIN_AVR_SDI].mandatory = 1;
+	pin_checklist[PIN_AVR_SDI].valid_pins = &valid_pins_SDI;
 	pin_checklist[PIN_AVR_RESET].mandatory = 1;
 
 	/* assumes all checklists above have same number of entries */
@@ -599,10 +599,10 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 		avrftdi_check_pins_bb(pgm, true);
 		log_err("Pin configuration for FTDI MPSSE must be:\n");
 		log_err("%s: 0, %s: 1, %s: 2 (is: %s, %s, %s)\n", avr_pin_name(PIN_AVR_SCK),
-		         avr_pin_name(PIN_AVR_MOSI), avr_pin_name(PIN_AVR_MISO),
-						 pins_to_str(&pgm->pin[PIN_AVR_SCK]),
-						 pins_to_str(&pgm->pin[PIN_AVR_MOSI]),
-						 pins_to_str(&pgm->pin[PIN_AVR_MISO]));
+		         avr_pin_name(PIN_AVR_SDO), avr_pin_name(PIN_AVR_SDI),
+			 pins_to_str(&pgm->pin[PIN_AVR_SCK]),
+			 pins_to_str(&pgm->pin[PIN_AVR_SDO]),
+			 pins_to_str(&pgm->pin[PIN_AVR_SDI]));
 		log_err("If other pin configuration is used, fallback to slower bitbanging mode is used.\n");
 
 		return -1;
@@ -614,16 +614,16 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 
 	/*
 	 * TODO: No need to fail for a wrongly configured led or something.
-	 * Maybe we should only fail for SCK; MISO, MOSI, RST (and probably
+	 * Maybe we should only fail for SCK; SDI, SDO, RST (and probably
 	 * VCC and BUFF).
 	 */
 
-	/* everything is an output, except MISO */
+	/* everything is an output, except SDI */
 	for(pin = 0; pin < N_PINS; ++pin) {
 		pdata->pin_direction |= pgm->pin[pin].mask[0];
 		pdata->pin_value = SET_BITS_0(pdata->pin_value, pgm, pin, OFF);
 	}
-	pdata->pin_direction &= ~pgm->pin[PIN_AVR_MISO].mask[0];
+	pdata->pin_direction &= ~pgm->pin[PIN_AVR_SDI].mask[0];
 
 	for(pin = PIN_LED_ERR; pin < N_PINS; ++pin) {
 		pdata->led_mask |= pgm->pin[pin].mask[0];

@@ -252,7 +252,7 @@ static int linuxgpio_open(PROGRAMMER *pgm, const char *port) {
     linuxgpio_fds[i] = -1;
   //Avrdude assumes that if a pin number is 0 it means not used/available
   //this causes a problem because 0 is a valid GPIO number in Linux sysfs.
-  //To avoid annoying off by one pin numbering we assume SCK, MOSI, MISO 
+  //To avoid annoying off by one pin numbering we assume SCK, SDO, SDI 
   //and RESET pins are always defined in avrdude.conf, even as 0. If they're
   //not programming will not work anyway. The drawbacks of this approach are
   //that unwanted toggling of GPIO0 can occur and that other optional pins
@@ -262,8 +262,8 @@ static int linuxgpio_open(PROGRAMMER *pgm, const char *port) {
     if ( (pgm->pinno[i] & PIN_MASK) != 0 ||
          i == PIN_AVR_RESET ||
          i == PIN_AVR_SCK   ||
-         i == PIN_AVR_MOSI  ||
-         i == PIN_AVR_MISO ) {
+         i == PIN_AVR_SDO   ||
+         i == PIN_AVR_SDI ) {
         pin = pgm->pinno[i] & PIN_MASK;
         if ((r=linuxgpio_export(pin)) < 0) {
             pmsg_ext_error("cannot export GPIO %d, already exported/busy?: %s",
@@ -290,7 +290,7 @@ static int linuxgpio_open(PROGRAMMER *pgm, const char *port) {
          * udev permission rule application after export */
         for (retry_count = 0; retry_count < GPIO_SYSFS_OPEN_RETRIES; retry_count++) {
             usleep(GPIO_SYSFS_OPEN_DELAY);
-            if (i == PIN_AVR_MISO)
+            if (i == PIN_AVR_SDI)
                 r=linuxgpio_dir_in(pin);
             else
                 r=linuxgpio_dir_out(pin);
@@ -307,7 +307,7 @@ static int linuxgpio_open(PROGRAMMER *pgm, const char *port) {
         if (retry_count)
             pmsg_notice2("needed %d retr%s for linuxgpio_dir_%s(%s)\n",
               retry_count, retry_count > 1? "ies": "y",
-              i == PIN_AVR_MISO? "in": "out", avr_pin_name(pin));
+              i == PIN_AVR_SDI? "in": "out", avr_pin_name(pin));
 
         if (r < 0) {
             linuxgpio_unexport(pin);

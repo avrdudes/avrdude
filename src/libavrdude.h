@@ -401,8 +401,8 @@ enum {
   PPI_AVR_BUFF,
   PIN_AVR_RESET,
   PIN_AVR_SCK,
-  PIN_AVR_MOSI,
-  PIN_AVR_MISO,
+  PIN_AVR_SDO,
+  PIN_AVR_SDI,
   PIN_LED_ERR,
   PIN_LED_RDY,
   PIN_LED_PGM,
@@ -830,10 +830,10 @@ void         pgm_free(PROGRAMMER *p);
 
 void programmer_display(PROGRAMMER * pgm, const char * p);
 
-/* show is a mask like this (1<<PIN_AVR_SCK)|(1<<PIN_AVR_MOSI)| ... */
+/* show is a mask like this (1<<PIN_AVR_SCK)|(1<<PIN_AVR_SDO)| ... */
 #define SHOW_ALL_PINS (~0u)
 #define SHOW_PPI_PINS ((1<<PPI_AVR_VCC)|(1<<PPI_AVR_BUFF))
-#define SHOW_AVR_PINS ((1<<PIN_AVR_RESET)|(1<<PIN_AVR_SCK)|(1<<PIN_AVR_MOSI)|(1<<PIN_AVR_MISO))
+#define SHOW_AVR_PINS ((1<<PIN_AVR_RESET)|(1<<PIN_AVR_SCK)|(1<<PIN_AVR_SDO)|(1<<PIN_AVR_SDI))
 #define SHOW_LED_PINS ((1<<PIN_LED_ERR)|(1<<PIN_LED_RDY)|(1<<PIN_LED_PGM)|(1<<PIN_LED_VFY))
 void pgm_display_generic_mask(const PROGRAMMER *pgm, const char *p, unsigned int show);
 void pgm_display_generic(const PROGRAMMER *pgm, const char *p);

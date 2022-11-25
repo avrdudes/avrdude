@@ -29,8 +29,8 @@
 #       buff     = <pin1> [, <pin2> ... ] ;       # pin number(s)
 #       reset    = <pin> ;                        # pin number
 #       sck      = <pin> ;                        # pin number
-#       mosi     = <pin> ;                        # pin number
-#       miso     = <pin> ;                        # pin number
+#       sdo      = <pin> ;                        # pin number
+#       sdi      = <pin> ;                        # pin number
 #       errled   = <pin> ;                        # pin number
 #       rdyled   = <pin> ;                        # pin number
 #       pgmled   = <pin> ;                        # pin number
@@ -411,8 +411,8 @@ programmer
     vcc                    = 2, 3, 4, 5;
     reset                  = 7;
     sck                    = 8;
-    mosi                   = 9;
-    miso                   = 10;
+    sdo                    = 9;
+    sdi                    = 10;
 ;
 
 #------------------------------------------------------------
@@ -427,8 +427,8 @@ programmer
     buff                   = 4, 5;
     reset                  = 9;
     sck                    = 6;
-    mosi                   = 7;
-    miso                   = 10;
+    sdo                    = 7;
+    sdi                    = 10;
 ;
 
 #------------------------------------------------------------
@@ -457,8 +457,8 @@ programmer
     prog_modes             = PM_TPI | PM_ISP;
     reset                  = 4;
     sck                    = 5;
-    mosi                   = 2;
-    miso                   = 11;
+    sdo                    = 2;
+    sdi                    = 11;
 ;
 
 #------------------------------------------------------------
@@ -483,8 +483,8 @@ programmer
     buff                   = 6;
     reset                  = 7;
     sck                    = 8;
-    mosi                   = 9;
-    miso                   = 10;
+    sdo                    = 9;
+    sdi                    = 10;
     errled                 = 1;
     rdyled                 = 14;
     pgmled                 = 16;
@@ -503,8 +503,8 @@ programmer
     vcc                    = 4, 5, 6, 7, 8;
     reset                  = 3;
     sck                    = 2;
-    mosi                   = 9;
-    miso                   = 11;
+    sdo                    = 9;
+    sdi                    = 11;
 ;
 
 #------------------------------------------------------------
@@ -518,8 +518,8 @@ programmer
     prog_modes             = PM_TPI | PM_ISP;
     reset                  = 2;
     sck                    = 3;
-    mosi                   = 4;
-    miso                   = 13;
+    sdo                    = 4;
+    sdi                    = 13;
 ;
 
 #------------------------------------------------------------
@@ -533,8 +533,8 @@ programmer
     prog_modes             = PM_TPI | PM_ISP;
     reset                  = 4;
     sck                    = 3;
-    mosi                   = 2;
-    miso                   = 10;
+    sdo                    = 2;
+    sdi                    = 10;
 ;
 
 #------------------------------------------------------------
@@ -548,8 +548,8 @@ programmer
     prog_modes             = PM_TPI | PM_ISP;
     reset                  = 3;
     sck                    = 2;
-    mosi                   = 1;
-    miso                   = 10;
+    sdo                    = 1;
+    sdi                    = 10;
 ;
 
 #------------------------------------------------------------
@@ -561,7 +561,7 @@ programmer
 # the programming circuit) but is necessary to switch one of the
 # buffer lines (trying to add it to the "buff" lines doesn't work in
 # avrdude versions before 5.5j).
-# With this, TMS connects to RESET, TDI to MOSI, TDO to MISO and TCK
+# With this, TMS connects to RESET, TDI to SDO, TDO to SDI and TCK
 # to SCK (plus vcc/gnd of course)
 
 programmer
@@ -573,8 +573,8 @@ programmer
     buff                   = 5;
     reset                  = 4;
     sck                    = 3;
-    mosi                   = 2;
-    miso                   = 13;
+    sdo                    = 2;
+    sdi                    = 13;
 ;
 
 #------------------------------------------------------------
@@ -589,8 +589,8 @@ programmer
     vcc                    = 3;
     reset                  = 16;
     sck                    = 1;
-    mosi                   = 2;
-    miso                   = 11;
+    sdo                    = 2;
+    sdi                    = 11;
 ;
 
 #------------------------------------------------------------
@@ -604,8 +604,8 @@ programmer
     prog_modes             = PM_TPI | PM_ISP;
     reset                  = ~6;
     sck                    = ~8;
-    mosi                   = ~7;
-    miso                   = ~10;
+    sdo                    = ~7;
+    sdi                    = ~10;
 ;
 
 #------------------------------------------------------------
@@ -619,8 +619,8 @@ programmer
     prog_modes             = PM_TPI | PM_ISP;
     reset                  = ~4;
     sck                    = 3;
-    mosi                   = 2;
-    miso                   = 10;
+    sdo                    = 2;
+    sdi                    = 10;
 ;
 
 #------------------------------------------------------------
@@ -635,8 +635,8 @@ programmer
     buff                   = 14;
     reset                  = 3;
     sck                    = 2;
-    mosi                   = 8;
-    miso                   = 11;
+    sdo                    = 8;
+    sdi                    = 11;
 ;
 
 #------------------------------------------------------------
@@ -667,8 +667,8 @@ programmer
     prog_modes             = PM_TPI | PM_ISP;
     reset                  = 17;
     sck                    = 1;
-    mosi                   = 2;
-    miso                   = 10;
+    sdo                    = 2;
+    sdi                    = 10;
 ;
 @HAVE_PARPORT_END@
 
@@ -699,8 +699,8 @@ programmer
 #     prog_modes           = PM_ISP;
 #     reset                = ?;
 #     sck                  = ?;
-#     mosi                 = ?;
-#     miso                 = ?;
+#     sdo                  = ?;
+#     sdi                  = ?;
 # ;
 @HAVE_LINUXGPIO_END@
 
@@ -801,7 +801,7 @@ programmer
 # And fill that in here.
 #
 # Note that the pin numbers for the main ISP signals (reset, sck,
-# mosi, miso) are fixed and cannot be changed, since they must match
+# sdo, sdi) are fixed and cannot be changed, since they must match
 # the way the Multi-Protocol Synchronous Serial Engine (MPSSE) of
 # these FTDI ICs has been designed.
 
@@ -817,8 +817,8 @@ programmer
 #   ISP-signals - lower ADBUS-Nibble (default)
     reset                  = 3;
     sck                    = 0;
-    mosi                   = 1;
-    miso                   = 2;
+    sdo                    = 1;
+    sdi                    = 2;
 #   LED SIGNALs - higher ADBUS-Nibble
 #   errled                 = 4;
 #   rdyled                 = 5;
@@ -851,8 +851,8 @@ programmer
 #ISP-signals
     reset                  = 3;
     sck                    = 0;
-    mosi                   = 1;
-    miso                   = 2;
+    sdo                    = 1;
+    sdi                    = 2;
 #LED SIGNALs
     errled                 = ~11;
     rdyled                 = ~14;
@@ -891,8 +891,8 @@ programmer
 #   ISP-signals => 20 - Pin connector on JTAGKey
     reset                  = 3; # TMS 7 violet
     sck                    = 0; # TCK 9 white
-    mosi                   = 1; # TDI 5 green
-    miso                   = 2; # TDO 13 orange
+    sdo                    = 1; # TDI 5 green
+    sdi                    = 2; # TDO 13 orange
 #   VTG           VREF 1 brown with red tip
 #   GND           GND 20 black
 # The colors are on the 20 pin breakout cable from Amontec
@@ -914,8 +914,8 @@ programmer
 #ISP-signals
     reset                  = 3; # AD3 (TMS)
     sck                    = 0; # AD0 (TCK)
-    mosi                   = 1; # AD1 (TDI)
-    miso                   = 2; # AD2 (TDO)
+    sdo                    = 1; # AD1 (TDI)
+    sdi                    = 2; # AD2 (TDO)
 ;
 
 #------------------------------------------------------------
@@ -923,8 +923,8 @@ programmer
 #------------------------------------------------------------
 
 # Pin J2-7 (AD0) is SCK
-# Pin J2-8 (AD1) is MOSI
-# Pin J2-9 (AD2) is MISO
+# Pin J2-8 (AD1) is SDO
+# Pin J2-9 (AD2) is SDI
 # Pin J2-10 (AD3) is RESET
 # Pin J2-6 is GND
 # Use the -b flag to set the SPI clock rate eg -b 3750000 is the fastest I could get
@@ -941,8 +941,8 @@ programmer parent "ft232h"
 #------------------------------------------------------------
 
 # Orange (Pin 2) is SCK
-# Yellow (Pin 3) is MOSI
-# Green (Pin 4) is MISO
+# Yellow (Pin 3) is SDO
+# Green (Pin 4) is SDI
 # Brown (Pin 5) is RESET
 # Black (Pin 10) is GND
 # Use the -b flag to set the SPI clock rate eg -b 3750000 is the fastest I could get
@@ -997,8 +997,8 @@ programmer
     usbdev                 = "A";
     reset                  = 3; # TMS 7
     sck                    = 0; # TCK 9
-    mosi                   = 1; # TDI 5
-    miso                   = 2; # TDO 13
+    sdo                    = 1; # TDI 5
+    sdi                    = 2; # TDO 13
 ;
 
 #------------------------------------------------------------
@@ -1024,8 +1024,8 @@ programmer
 #ISP-signals - lower ACBUS-Nibble (default)
     reset                  = 3;
     sck                    = 0;
-    mosi                   = 1;
-    miso                   = 2;
+    sdo                    = 1;
+    sdi                    = 2;
 ;
 
 #------------------------------------------------------------
@@ -1046,8 +1046,8 @@ programmer
     usbvendor              = "TIAO";
     reset                  = 3; # TMS 7
     sck                    = 0; # TCK 9
-    mosi                   = 1; # TDI 5
-    miso                   = 2; # TDO 13
+    sdo                    = 1; # TDI 5
+    sdi                    = 2; # TDO 13
 ;
 
 #------------------------------------------------------------
@@ -1063,7 +1063,7 @@ programmer
 # KT-LINK JTAG CONN:
 #  1=Vsense(->EXT13), 19=5V(EXT1->EXT3), 20=GND, 3=TPIRST, 9=TPICLK, 7=TPIDATA.
 # INTERNALS CONFIGURATION ("~" MEANS ACTIVE LOW):
-#  ~TRST_EN=10(ACBUS2), ~CLK_EN=14(ACBUS6), ~MOSI_EN=13(ACBUS5),
+#  ~TRST_EN=10(ACBUS2), ~CLK_EN=14(ACBUS6), ~SDO_EN=13(ACBUS5),
 #  TMS_SEL=5(ADBUS5), ~TMS_EN=12(ACBUS4), LED=~15(ACBUS7).
 # CONNECTION NOTES:
 #  * Connect EXT connector pin 1 with 3 to get 5V on JTAG connector pin 19.
@@ -1083,8 +1083,8 @@ programmer
     buff                   = 5, ~10, ~13, ~14;
     reset                  = 8;
     sck                    = 0;
-    mosi                   = 1;
-    miso                   = 2;
+    sdo                    = 1;
+    sdi                    = 2;
     rdyled                 = ~15;
 ;
 
@@ -1106,8 +1106,8 @@ programmer
     buff                   = 5, 6, 7;
     reset                  = 3;
     sck                    = 0;
-    mosi                   = 1;
-    miso                   = 2;
+    sdo                    = 1;
+    sdi                    = 2;
 ;
 
 #------------------------------------------------------------
@@ -1190,11 +1190,11 @@ programmer
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
   # pins are bits in bitbang byte (numbers are 87654321)
-  # 1|POWER|PULLUP|AUX|MOSI|CLK|MISO|CS
+  # 1|POWER|PULLUP|AUX|SDO|CLK|SDI|CS
     reset                  = 1;
     sck                    = 3;
-    mosi                   = 4;
-    miso                   = 2;
+    sdo                    = 4;
+    sdi                    = 2;
   # vcc                    = 7; # Internally set independent of this setting
 ;
 
@@ -1335,8 +1335,8 @@ programmer
     connection_type        = usb;
     reset                  = 4; # D4
     sck                    = 0; # D0
-    mosi                   = 2; # D2
-    miso                   = 1; # D1
+    sdo                    = 2; # D2
+    sdi                    = 1; # D1
 ;
 
 #------------------------------------------------------------
@@ -1351,8 +1351,8 @@ programmer
     connection_type        = usb;
     reset                  = 4;  # DTR
     sck                    = 0;  # TxD
-    mosi                   = 2;  # RTS
-    miso                   = 1;  # RxD
+    sdo                    = 2;  # RTS
+    sdi                    = 1;  # RxD
 ;
 
 #------------------------------------------------------------
@@ -1369,8 +1369,8 @@ programmer
     connection_type        = usb;
     reset                  = 7;  # RI
     sck                    = 6;  # DCD
-    mosi                   = 3;  # CTS
-    miso                   = 5;  # DSR
+    sdo                    = 3;  # CTS
+    sdi                    = 5;  # DSR
 ;
 
 #------------------------------------------------------------
@@ -1388,8 +1388,8 @@ programmer
     connection_type        = usb;
     reset                  = 7;  # RI  X3(4)
     sck                    = 5;  # DSR X3(2)
-    mosi                   = 6;  # DCD X3(3)
-    miso                   = 3;  # CTS X3(1)
+    sdo                    = 6;  # DCD X3(3)
+    sdi                    = 3;  # CTS X3(1)
 ;
 
 #------------------------------------------------------------
@@ -1405,8 +1405,8 @@ programmer
   #                      FOR TPI devices:
     reset                  = 3;  # CTS = D3 (wire to ~RESET)
     sck                    = 2;  # RTS = D2 (wire to SCK)
-    mosi                   = 0;  # TxD = D0 (wire to TPIDATA via 1k resistor)
-    miso                   = 1;  # RxD = D1 (wire to TPIDATA directly)
+    sdo                    = 0;  # TxD = D0 (wire to TPIDATA via 1k resistor)
+    sdi                    = 1;  # RxD = D1 (wire to TPIDATA directly)
 ;
 
 #------------------------------------------------------------
@@ -1439,8 +1439,8 @@ programmer
     connection_type        = usb;
     reset                  = 7; # ri
     sck                    = 5; # dsr
-    mosi                   = 6; # dcd
-    miso                   = 3; # cts
+    sdo                    = 6; # dcd
+    sdi                    = 3; # cts
 ;
 
 #------------------------------------------------------------
@@ -1453,11 +1453,11 @@ programmer
 # For ICSP pinout see for example http://www.atmel.com/images/doc2562.pdf
 # (Figure 1. ISP6PIN header pinout and Table 1. Connections required for ISP ...)
 # TTL-232R GND 1 Black  -> ICPS GND   (pin 6)
-# TTL-232R CTS 2 Brown  -> ICPS MOSI  (pin 4)
+# TTL-232R CTS 2 Brown  -> ICPS SDO   (pin 4)
 # TTL-232R VCC 3 Red    -> ICPS VCC   (pin 2)
 # TTL-232R TXD 4 Orange -> ICPS RESET (pin 5)
 # TTL-232R RXD 5 Yellow -> ICPS SCK   (pin 3)
-# TTL-232R RTS 6 Green  -> ICPS MISO  (pin 1)
+# TTL-232R RTS 6 Green  -> ICPS SDI   (pin 1)
 # Except for VCC and GND, you can connect arbitual pairs as long as
 # the following table is adjusted.
 
@@ -1469,8 +1469,8 @@ programmer
     connection_type        = usb;
     reset                  = 0; # txd
     sck                    = 1; # rxd
-    mosi                   = 3; # cts
-    miso                   = 2; # rts
+    sdo                    = 3; # cts
+    sdi                    = 2; # rts
 ;
 
 #------------------------------------------------------------
@@ -1537,8 +1537,8 @@ programmer
 #------------------------------------------------------------
 
 # USBtiny can also be used for TPI programming.
-# In that case, a resistor of 1 kOhm is needed between MISO and MOSI
-# pins of the connector, and MISO (pin 1 of the 6-pin connector)
+# In that case, a resistor of 1 kOhm is needed between SDI and SDO
+# pins of the connector, and SDI (pin 1 of the 6-pin connector)
 # connects to TPIDATA.
 
 programmer
@@ -2421,18 +2421,18 @@ programmer
 # Using RI is not supported under Win32 but is supported under Posix.
 
 # serial ponyprog design (dasa2 in uisp)
-# reset=!txd sck=rts mosi=dtr miso=cts
+# reset=!txd sck=rts sdo=dtr sdi=cts
 
 programmer
     id                     = "ponyser";
-    desc                   = "design ponyprog serial, reset=!txd sck=rts mosi=dtr miso=cts";
+    desc                   = "design ponyprog serial, reset=!txd sck=rts sdo=dtr sdi=cts";
     type                   = "serbb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
     reset                  = ~3;
     sck                    = 7;
-    mosi                   = 4;
-    miso                   = 8;
+    sdo                    = 4;
+    sdi                    = 8;
 ;
 
 #------------------------------------------------------------
@@ -2440,7 +2440,7 @@ programmer
 #------------------------------------------------------------
 
 # Same as above, different name
-# reset=!txd sck=rts mosi=dtr miso=cts
+# reset=!txd sck=rts sdo=dtr sdi=cts
 
 programmer parent "ponyser"
     id                     = "siprog";
@@ -2452,18 +2452,18 @@ programmer parent "ponyser"
 #------------------------------------------------------------
 
 # unknown (dasa in uisp)
-# reset=rts sck=dtr mosi=txd miso=cts
+# reset=rts sck=dtr sdo=txd sdi=cts
 
 programmer
     id                     = "dasa";
-    desc                   = "serial port banging, reset=rts sck=dtr mosi=txd miso=cts";
+    desc                   = "serial port banging, reset=rts sck=dtr sdo=txd sdi=cts";
     type                   = "serbb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
     reset                  = 7;
     sck                    = 4;
-    mosi                   = 3;
-    miso                   = 8;
+    sdo                    = 3;
+    sdi                    = 8;
 ;
 
 #------------------------------------------------------------
@@ -2471,18 +2471,18 @@ programmer
 #------------------------------------------------------------
 
 # unknown (dasa3 in uisp)
-# reset=!dtr sck=rts mosi=txd miso=cts
+# reset=!dtr sck=rts sdo=txd sdi=cts
 
 programmer
     id                     = "dasa3";
-    desc                   = "serial port banging, reset=!dtr sck=rts mosi=txd miso=cts";
+    desc                   = "serial port banging, reset=!dtr sck=rts sdo=txd sdi=cts";
     type                   = "serbb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
     reset                  = ~4;
     sck                    = 7;
-    mosi                   = 3;
-    miso                   = 8;
+    sdo                    = 3;
+    sdi                    = 8;
 ;
 
 #------------------------------------------------------------
@@ -2490,18 +2490,18 @@ programmer
 #------------------------------------------------------------
 
 # C2N232i (jumper configuration "auto")
-# reset=dtr sck=!rts mosi=!txd miso=!cts
+# reset=dtr sck=!rts sdo=!txd sdi=!cts
 
 programmer
     id                     = "c2n232i";
-    desc                   = "serial port banging, reset=dtr sck=!rts mosi=!txd miso=!cts";
+    desc                   = "serial port banging, reset=dtr sck=!rts sdo=!txd sdi=!cts";
     type                   = "serbb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
     reset                  = 4;
     sck                    = ~7;
-    mosi                   = ~3;
-    miso                   = ~8;
+    sdo                    = ~3;
+    sdi                    = ~8;
 ;
 
 #------------------------------------------------------------

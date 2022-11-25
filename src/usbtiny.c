@@ -445,10 +445,10 @@ static int usbtiny_initialize (const PROGRAMMER *pgm, const AVRPART *p ) {
   usleep(50000);
 
   if (p->prog_modes & PM_TPI) {
-    /* Since there is a single TPIDATA line, MOSI and MISO must be
+    /* Since there is a single TPIDATA line, SDO and SDI must be
        linked together through a 1kOhm resistor.  Verify that
-       everything we send on MOSI gets mirrored back on MISO.  */
-    msg_notice2("doing MOSI-MISO link check\n");
+       everything we send on SDO gets mirrored back on SDI.  */
+    msg_notice2("doing SDO-SDI link check\n");
 
     memset(res, 0xaa, sizeof(res));
     if (usb_in(pgm, USBTINY_SPI, LITTLE_TO_BIG_16(0x1234), LITTLE_TO_BIG_16(0x5678),
@@ -457,9 +457,9 @@ static int usbtiny_initialize (const PROGRAMMER *pgm, const AVRPART *p ) {
       return -1;
     }
     if (res[0] != 0x12 || res[1] != 0x34 || res[2] != 0x56 || res[3] != 0x78) {
-      pmsg_error("MOSI->MISO check failed (got 0x%02x 0x%02x 0x%02x 0x%02x)\n"
-        "\tplease verify that MISO is connected directly to TPIDATA and\n"
-        "\tMOSI is connected to TPIDATA through a 1kOhm resistor\n",
+      pmsg_error("SDO->SDI check failed (got 0x%02x 0x%02x 0x%02x 0x%02x)\n"
+        "\tplease verify that SDI is connected directly to TPIDATA and\n"
+        "\tSDO is connected to TPIDATA through a 1kOhm resistor\n",
         res[0], res[1], res[2], res[3]);
       return -1;
     }

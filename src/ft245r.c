@@ -25,9 +25,9 @@
 /* ft245r -- FT245R/FT232R Synchronous BitBangMode Programmer
   default pin assign
                FT232R / FT245R
-  miso  = 1;  # RxD   / D1
+  sdi   = 1;  # RxD   / D1
   sck   = 0;  # RTS   / D0
-  mosi  = 2;  # TxD   / D2
+  sdo   = 2;  # TxD   / D2
   reset = 4;  # DTR   / D4
 */
 
@@ -548,7 +548,7 @@ static int ft245r_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     set_reset(pgm, OFF);
 
     /* Wait for at least 20 ms and enable serial programming by sending the Programming
-     * Enable serial instruction to pin MOSI.
+     * Enable serial instruction to pin SDO.
      */
     ft245r_usleep(pgm, 20000); // 20ms
 
@@ -557,35 +557,35 @@ static int ft245r_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 	uint8_t byte;
 	int i;
 
-	/* Since there is a single TPIDATA line, MOSI and MISO must be
+	/* Since there is a single TPIDATA line, SDO and SDI must be
 	   linked together through a 1kOhm resistor.  Verify that
-	   everything we send on MOSI gets mirrored back on MISO.  */
-	set_pin(pgm, PIN_AVR_MOSI, 0);
-	if (get_pin(pgm, PIN_AVR_MISO) != 0) {
+	   everything we send on SDO gets mirrored back on SDI.  */
+	set_pin(pgm, PIN_AVR_SDO, 0);
+	if (get_pin(pgm, PIN_AVR_SDI) != 0) {
 	    io_link_ok = false;
 	    if(ovsigck) {
-		pmsg_warning("MOSI->MISO 0 failed\n");
+		pmsg_warning("SDO->SDI 0 failed\n");
 	    } else {
-		pmsg_error("MOSI->MISO 0 failed\n");
+		pmsg_error("SDO->SDI 0 failed\n");
 		return -1;
 	    }
 	}
-	set_pin(pgm, PIN_AVR_MOSI, 1);
-	if (get_pin(pgm, PIN_AVR_MISO) != 1) {
+	set_pin(pgm, PIN_AVR_SDO, 1);
+	if (get_pin(pgm, PIN_AVR_SDI) != 1) {
 	    io_link_ok = false;
 	    if(ovsigck) {
-		pmsg_warning("MOSI->MISO 1 failed\n");
+		pmsg_warning("SDO->SDI 1 failed\n");
 	    } else {
-		pmsg_error("MOSI->MISO 1 failed\n");
+		pmsg_error("SDO->SDI 1 failed\n");
 		return -1;
 	    }
 	}
 
 	if (io_link_ok)
-	    msg_notice2("MOSI-MISO link present\n");
+	    msg_notice2("SDO-SDI link present\n");
 
 	/* keep TPIDATA high for 16 clock cycles */
-	set_pin(pgm, PIN_AVR_MOSI, 1);
+	set_pin(pgm, PIN_AVR_SDO, 1);
 	for (i = 0; i < 16; i++) {
 	    set_sck(pgm, 1);
 	    set_sck(pgm, 0);
@@ -608,7 +608,7 @@ static int ft245r_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
 static inline void add_bit(const PROGRAMMER *pgm, unsigned char *buf, int *buf_pos,
 			   uint8_t bit) {
-    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_MOSI, bit);
+    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SDO, bit);
     ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,0);
     buf[*buf_pos] = ft245r_out;
     (*buf_pos)++;
@@ -632,14 +632,14 @@ static inline int set_data(const PROGRAMMER *pgm, unsigned char *buf, unsigned c
 
 static inline unsigned char extract_data(const PROGRAMMER *pgm, unsigned char *buf, int offset) {
     int j;
-    int buf_pos = FT245R_CYCLES; /* MISO data is valid AFTER rising SCK edge,
+    int buf_pos = FT245R_CYCLES; /* SDI data is valid AFTER rising SCK edge,
                                             i.e. in next clock cycle */
     unsigned char bit = 0x80;
     unsigned char r = 0;
 
     buf += offset * (8 * FT245R_CYCLES);
     for (j=0; j<8; j++) {
-        if (GET_BITS_0(buf[buf_pos],pgm,PIN_AVR_MISO)) {
+        if (GET_BITS_0(buf[buf_pos],pgm,PIN_AVR_SDI)) {
             r |= bit;
         }
         buf_pos += FT245R_CYCLES;
@@ -658,7 +658,7 @@ static inline unsigned char extract_data_out(const PROGRAMMER *pgm, unsigned cha
 
     buf += offset * (8 * FT245R_CYCLES);
     for (j=0; j<8; j++) {
-        if (GET_BITS_0(buf[buf_pos],pgm,PIN_AVR_MOSI)) {
+        if (GET_BITS_0(buf[buf_pos],pgm,PIN_AVR_SDO)) {
             r |= bit;
         }
         buf_pos += FT245R_CYCLES;
@@ -702,7 +702,7 @@ static inline uint8_t extract_tpi_data(const PROGRAMMER *pgm, unsigned char *buf
 
     for (j = 0; j < 8; j++) {
 	(*buf_pos)++;	// skip over falling clock edge
-        if (GET_BITS_0(buf[(*buf_pos)++], pgm, PIN_AVR_MISO))
+        if (GET_BITS_0(buf[(*buf_pos)++], pgm, PIN_AVR_SDI))
             byte |= bit;
         bit <<= 1;
     }
@@ -747,7 +747,7 @@ static int ft245r_tpi_rx(const PROGRAMMER *pgm, uint8_t *bytep) {
     uint32_t res, m, byte;
 
     /* Allow for up to 4 bits before we must see start bit; during
-       that time, we must keep the MOSI line high. */
+       that time, we must keep the SDO line high. */
     for (i = 0; i < 2; ++i)
 	len += set_data(pgm, &buf[len], 0xff);
 
@@ -815,8 +815,8 @@ static const struct pindef_t valid_pins = {{0xff},{0xff}} ;
 
 static const struct pin_checklist_t pin_checklist[] = {
     { PIN_AVR_SCK,  1, &valid_pins},
-    { PIN_AVR_MOSI, 1, &valid_pins},
-    { PIN_AVR_MISO, 1, &valid_pins},
+    { PIN_AVR_SDO, 1, &valid_pins},
+    { PIN_AVR_SDI, 1, &valid_pins},
     { PIN_AVR_RESET,1, &valid_pins},
     { PPI_AVR_BUFF, 0, &valid_pins},
 };
@@ -889,7 +889,7 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
 
     ft245r_ddr = 
          pgm->pin[PIN_AVR_SCK].mask[0]
-       | pgm->pin[PIN_AVR_MOSI].mask[0]
+       | pgm->pin[PIN_AVR_SDO].mask[0]
        | pgm->pin[PIN_AVR_RESET].mask[0]
        | pgm->pin[PPI_AVR_BUFF].mask[0]
        | pgm->pin[PPI_AVR_VCC].mask[0]
@@ -902,7 +902,7 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
     ft245r_out = 0;
     ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_RESET,1);
     ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,0);
-    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_MOSI,0);
+    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SDO,0);
     ft245r_out = SET_BITS_0(ft245r_out,pgm,PPI_AVR_BUFF,0);
     ft245r_out = SET_BITS_0(ft245r_out,pgm,PPI_AVR_VCC,0);
     ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_LED_ERR,0);
