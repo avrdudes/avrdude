@@ -899,7 +899,11 @@ int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles);
 
 void avr_add_mem_order(const char *str);
 
+int avr_memtype_is_flash_type(const char *mem);
+
 int avr_mem_is_flash_type(const AVRMEM *mem);
+
+int avr_memtype_is_eeprom_type(const char *mem);
 
 int avr_mem_is_eeprom_type(const AVRMEM *mem);
 

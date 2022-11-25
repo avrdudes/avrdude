@@ -49,7 +49,7 @@ int avr_tpi_poll_nvmbsy(const PROGRAMMER *pgm) {
 
 /* TPI chip erase sequence */
 int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
-	int err;
+  int err;
   AVRMEM *mem;
 
   if (p->prog_modes & PM_TPI) {
@@ -62,27 +62,27 @@ int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
       return -1;
     }
 
-		unsigned char cmd[] = {
-			/* write pointer register high byte */
-			(TPI_CMD_SSTPR | 0),
-			((mem->offset & 0xFF) | 1),
-			/* and low byte */
-			(TPI_CMD_SSTPR | 1),
-			((mem->offset >> 8) & 0xFF),
-	    /* write CHIP_ERASE command to NVMCMD register */
-			(TPI_CMD_SOUT | TPI_SIO_ADDR(TPI_IOREG_NVMCMD)),
-			TPI_NVMCMD_CHIP_ERASE,
-			/* write dummy value to start erase */
-			TPI_CMD_SST,
-			0xFF
-		};
+    unsigned char cmd[] = {
+      /* write pointer register high byte */
+      (TPI_CMD_SSTPR | 0),
+      ((mem->offset & 0xFF) | 1),
+      /* and low byte */
+      (TPI_CMD_SSTPR | 1),
+      ((mem->offset >> 8) & 0xFF),
+      /* write CHIP_ERASE command to NVMCMD register */
+      (TPI_CMD_SOUT | TPI_SIO_ADDR(TPI_IOREG_NVMCMD)),
+      TPI_NVMCMD_CHIP_ERASE,
+      /* write dummy value to start erase */
+      TPI_CMD_SST,
+      0xFF
+    };
 
     while (avr_tpi_poll_nvmbsy(pgm))
         ;
 
     err = pgm->cmd_tpi(pgm, cmd, sizeof(cmd), NULL, 0);
     if(err)
-	return err;
+      return err;
 
     while (avr_tpi_poll_nvmbsy(pgm));
 
@@ -97,56 +97,56 @@ int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 
 /* TPI program enable sequence */
 int avr_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p, unsigned char guard_time) {
-	int err, retry;
-	unsigned char cmd[2];
-	unsigned char response;
+  int err, retry;
+  unsigned char cmd[2];
+  unsigned char response;
 
-	if(p->prog_modes & PM_TPI) {
-		/* set guard time */
-		cmd[0] = (TPI_CMD_SSTCS | TPI_REG_TPIPCR);
-		cmd[1] = guard_time;
+  if(p->prog_modes & PM_TPI) {
+    /* set guard time */
+    cmd[0] = (TPI_CMD_SSTCS | TPI_REG_TPIPCR);
+    cmd[1] = guard_time;
 
-		err = pgm->cmd_tpi(pgm, cmd, sizeof(cmd), NULL, 0);
+    err = pgm->cmd_tpi(pgm, cmd, sizeof(cmd), NULL, 0);
     if(err)
-			return err;
+      return err;
 
-		/* read TPI ident reg */
+    /* read TPI ident reg */
     cmd[0] = (TPI_CMD_SLDCS | TPI_REG_TPIIR);
-		err = pgm->cmd_tpi(pgm, cmd, 1, &response, sizeof(response));
+    err = pgm->cmd_tpi(pgm, cmd, 1, &response, sizeof(response));
     if (err || response != TPI_IDENT_CODE) {
       pmsg_error("TPIIR not correct\n");
       return -1;
     }
 
-		/* send SKEY command + SKEY */
-		err = pgm->cmd_tpi(pgm, tpi_skey_cmd, sizeof(tpi_skey_cmd), NULL, 0);
-		if(err)
-			return err;
+    /* send SKEY command + SKEY */
+    err = pgm->cmd_tpi(pgm, tpi_skey_cmd, sizeof(tpi_skey_cmd), NULL, 0);
+    if(err)
+      return err;
 
-		/* check if device is ready */
-		for(retry = 0; retry < 10; retry++)
-		{
-			cmd[0] =  (TPI_CMD_SLDCS | TPI_REG_TPISR);
-			err = pgm->cmd_tpi(pgm, cmd, 1, &response, sizeof(response));
-			if(err || !(response & TPI_REG_TPISR_NVMEN))
-				continue;
+    /* check if device is ready */
+    for(retry = 0; retry < 10; retry++)
+    {
+      cmd[0] =  (TPI_CMD_SLDCS | TPI_REG_TPISR);
+      err = pgm->cmd_tpi(pgm, cmd, 1, &response, sizeof(response));
+      if(err || !(response & TPI_REG_TPISR_NVMEN))
+        continue;
 
-			return 0;
-		}
+      return 0;
+    }
 
-		pmsg_error("target does not reply when enabling TPI external programming mode\n");
-		return -1;
+    pmsg_error("target does not reply when enabling TPI external programming mode\n");
+    return -1;
 
-	} else {
-		pmsg_error("part has no TPI\n");
-		return -1;
-	}
+  } else {
+    pmsg_error("part has no TPI\n");
+    return -1;
+  }
 }
 
 /* TPI: setup NVMCMD register and pointer register (PR) for read/write/erase */
 static int avr_tpi_setup_rw(const PROGRAMMER *pgm, const AVRMEM *mem,
-			    unsigned long addr, unsigned char nvmcmd)
-{
+  unsigned long addr, unsigned char nvmcmd) {
+
   unsigned char cmd[4];
   int rc;
 
@@ -448,9 +448,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
   }
 
   for (i=0; i < (unsigned long) mem->size; i++) {
-    if (vmem == NULL ||
-	(vmem->tags[i] & TAG_ALLOCATED) != 0)
-    {
+    if (vmem == NULL || (vmem->tags[i] & TAG_ALLOCATED) != 0) {
       rc = pgm->read_byte(pgm, p, mem, i, mem->buf + i);
       if (rc != LIBAVRDUDE_SUCCESS) {
         pmsg_error("unable to read byte at address 0x%04lx\n", i);
@@ -711,9 +709,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       gettimeofday (&tv, NULL);
       start_time = (tv.tv_sec * 1000000) + tv.tv_usec;
       do {
-        /*
-         * Do polling, but timeout after max_write_delay.
-	 */
+        // Do polling, but timeout after max_write_delay
         rc = pgm->read_byte(pgm, p, mem, addr, &r);
         if (rc != 0) {
           pgm->pgm_led(pgm, OFF);
@@ -1326,16 +1322,24 @@ void avr_add_mem_order(const char *str) {
   exit(1);
 }
 
+int avr_memtype_is_flash_type(const char *memtype) {
+  return memtype && (
+     strcmp(memtype, "flash") == 0 ||
+     strcmp(memtype, "application") == 0 ||
+     strcmp(memtype, "apptable") == 0 ||
+     strcmp(memtype, "boot") == 0);
+}
+
 int avr_mem_is_flash_type(const AVRMEM *mem) {
-  return
-     strcmp(mem->desc, "flash") == 0 ||
-     strcmp(mem->desc, "application") == 0 ||
-     strcmp(mem->desc, "apptable") == 0 ||
-     strcmp(mem->desc, "boot") == 0;
+  return avr_memtype_is_flash_type(mem->desc);
+}
+
+int avr_memtype_is_eeprom_type(const char *memtype) {
+  return memtype && strcmp(memtype, "eeprom") == 0;
 }
 
 int avr_mem_is_eeprom_type(const AVRMEM *mem) {
-  return strcmp(mem->desc, "eeprom") == 0;
+  return avr_memtype_is_eeprom_type(mem->desc);
 }
 
 int avr_mem_is_known(const char *str) {
