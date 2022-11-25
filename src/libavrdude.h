@@ -223,6 +223,9 @@ typedef struct opcode {
 #define MAX_LOCK_SIZE          1
 #define MAX_FUSE_SIZE          10
 #define MAX_EEPROM_SIZE        8192
+
+extern int elf_all_write;              /* if -U file.elf */
+
 #endif
 /*
  * Any changes in AVRPART or AVRMEM, please also ensure changes are made in

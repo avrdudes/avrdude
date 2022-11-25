@@ -830,6 +830,9 @@ static void cmd_from_elf(ELF_CMD *lcmd, const AVRPART *p)
   int num = 0, elf_prev_mem_size = 0;
   UPDATE * upd = NULL;
 
+  if (!elf_all_write)
+    return;
+
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     if ((m = ldata(ln)) && lcmd->elf_eeprom_size) {
       if (elf_prev_mem_offset != m->offset || elf_prev_mem_size != m->size || (strcmp(p->family_id, "") == 0)) {
@@ -1044,7 +1047,7 @@ static int elf2b(const char *infile, FILE *inf,
       }
 
       ign_chk = 0;
-      if (!strcmp(sname, ".fuse") || !strcmp(sname, ".lock") || !strcmp(sname, ".eeprom")) {
+      if (elf_all_write && (!strcmp(sname, ".fuse") || !strcmp(sname, ".lock") || !strcmp(sname, ".eeprom"))) {
         ign_chk = sh->sh_size;
       }
 
@@ -1077,6 +1080,9 @@ static int elf2b(const char *infile, FILE *inf,
       Elf_Data *d = NULL;
       while ((d = elf_getdata(s, d)) != NULL) {
 
+        if (!elf_all_write)
+          goto skip_found_sect;
+
         if (!strcmp(sname, ".fuse")) {
           if ((d->d_size > 0) && (d->d_size <= MAX_FUSE_SIZE)) {
             l_cmd.elf_fuse_size = d->d_size;
@@ -1098,6 +1104,7 @@ static int elf2b(const char *infile, FILE *inf,
         } else if (strcmp(sname, ".text"))
           continue;
 
+skip_found_sect:
         msg_notice2("    Data block: d_buf %p, d_off 0x%x, d_size %ld\n",
                         d->d_buf, (unsigned int)d->d_off, (long) d->d_size);
         if (mem->size == 1) {

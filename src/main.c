@@ -148,6 +148,10 @@ static LISTID additional_config_files = NULL;
 
 static PROGRAMMER * pgm;
 
+#ifdef HAVE_LIBELF
+int elf_all_write = 0;
+#endif
+
 /*
  * global options
  */

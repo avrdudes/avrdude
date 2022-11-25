@@ -53,6 +53,9 @@ UPDATE * parse_op(char * s)
     upd->op = DEVICE_WRITE;
     upd->filename = cfg_strdup("parse_op()", buf);
     upd->format = FMT_AUTO;
+#ifdef HAVE_LIBELF
+    elf_all_write = 1;
+#endif
     return upd;
   }
 
