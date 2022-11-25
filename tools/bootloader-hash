@@ -1,0 +1,123 @@
+#!/bin/bash
+
+# published under GNU General Public License, version 3 (GPL-3.0)
+# author Stefan Rueger, 2022
+#
+# Recursivly find in the current directory intel .hex files, which are
+# presumed to be bootloaders; create their hash table entry for urclock.c
+#
+# Background. This bash script computes the hash-sum of stk500v1 bootloaders
+# to ease the guesswork of AVRDUDE's -c urclock programmer. Urclock is
+# compatible with -c arduino, but needs to know the size of the bootloader to
+# protect it *externally* from being overwritten. In contrast to urboot,
+# optiboot et al binaries do not advertise their size and properties. Hence,
+# urclock.c maintains a table with hash-sums of popular bootloaders that are
+# out there in the wild, so the user doesn't have to know, let alone specify,
+# the size of the bootloader on their devices. This utility computes the
+# table entry from a .hex files in the directory.
+#
+# Example:
+# $ git clone git@github.com:MCUdude/optiboot_flash.git
+# $ ./bootloader-hash
+
+progname=$(basename $0)
+
+hash srec_cat 2>/dev/null || { echo $progname: package srecord is needed, try apt install srecord; exit; }
+hash cc 2>/dev/null || { echo $progname: need a C compiler; exit; }
+
+tmp=$(mktemp "$progname.XXXXXX")
+trap "rm -f $tmp $tmp.[ch]" EXIT
+
+cat >$tmp.c <<END
+// published under GNU General Public License, version 3 (GPL-3.0)
+// meta-autor Stefan Rueger, 2022
+
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "$tmp.h"
+
+// https://en.wikipedia.org/wiki/Jenkins_hash_function
+uint32_t jenkins_hash(const uint8_t* key, size_t length) {
+  size_t i = 0;
+  uint32_t hash = 0;
+
+  while (i != length) {
+    hash += key[i++];
+    hash += hash << 10;
+    hash ^= hash >> 6;
+  }
+  hash += hash << 3;
+  hash ^= hash >> 11;
+  hash += hash << 15;
+
+  return hash;
+}
+
+
+int main(int argc, char **argv) {
+  unsigned char reverse[4096];
+
+  if(argc != 2 || !argv[1])
+    exit(1);
+
+  int len, addr, end, flashsize, bi, ri;
+  char *base = strrchr(argv[1], '/');
+  base = base? base+1: argv[1];
+
+  memset(reverse, 0, sizeof reverse);
+
+  flashsize = bootloader_finish;
+  while(flashsize & (flashsize-1))
+    flashsize++;
+
+  int N = sizeof bootloader_length_of_sections/sizeof*bootloader_length_of_sections;
+
+  ri = 0;                       // buffer index
+  bi = sizeof bootloader-1;     // index in bootloader[] array, top to bottom
+  end = flashsize;
+  for(int i=N-1; i >= 0; i--) {
+    len = bootloader_length_of_sections[i];
+    addr = bootloader_address[i];
+    if(addr == 0)
+      break;
+    if(addr + len > end) {
+      printf("inconsistent %d + %d > %d\n", addr, len, end);
+      exit(1);
+    }
+
+    int nff = end-addr-len;
+    if(ri+nff <= (int) sizeof reverse)
+      memset(reverse+ri, 0xff, nff);
+    else {
+      printf("buffer too small %d + %d > %d\n", ri, nff, (int) sizeof reverse);
+      exit(1);
+    }
+    ri += nff;
+
+    for(int n=len; n; n--) {
+      if(ri >= (int) sizeof reverse)
+        goto done;
+      reverse[ri] = bootloader[bi];
+      ri++;
+      bi--;
+    }
+    end = addr;
+  }
+  
+done:
+  ;
+  printf("    { %4d, %d, 0x%08x, 0x%08x }, // %s\n", ri, 
+    strstr(base, "bigboot") || strstr(base, "BIGBOOT"),
+    jenkins_hash(reverse, 256), jenkins_hash(reverse, ri), base);
+}
+END
+
+
+for hn in $(find . -iname \*.hex -type f); do
+  srec_cat "$hn" -intel -o "$tmp.h" -c-array bootloader -c_compressed -line_length 96
+  cc $tmp.c -o $tmp
+  ./$tmp $hn
+done
