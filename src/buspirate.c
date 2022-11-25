@@ -25,8 +25,8 @@
  *       GND  <->  GND
  *       +5V  <->  Vcc
  *        CS  <->  RESET
- *      MOSI  <->  MOSI
- *      MISO  <->  MISO
+ *       SDO  <->  SDO
+ *       SDI  <->  SDI
  *   SCL/CLK  <->  SCK
  *     ( AUX  <->  XTAL1 )
  *
@@ -1168,12 +1168,12 @@ static void buspirate_bb_enable(PROGRAMMER *pgm, const AVRPART *p) {
 	PDATA(pgm)->flag |= BP_FLAG_IN_BINMODE;
 
 	/* Set pin directions and an initial pin status (all high) */
-	PDATA(pgm)->pin_dir = 0x12;  /* AUX, MISO input; everything else output */
+	PDATA(pgm)->pin_dir = 0x12;  /* AUX, SDI input; everything else output */
 	buf[0] = PDATA(pgm)->pin_dir | 0x40;
 	buspirate_send_bin(pgm, buf, 1);
 	buspirate_recv_bin(pgm, buf, 1);
 
-	PDATA(pgm)->pin_val = 0x3f; /* PULLUP, AUX, MOSI, CLK, MISO, CS high */
+	PDATA(pgm)->pin_val = 0x3f; /* PULLUP, AUX, SDO, CLK, SDI, CS high */
 	buf[0] = PDATA(pgm)->pin_val | 0x80;
 	buspirate_send_bin(pgm, buf, 1);
 	buspirate_recv_bin(pgm, buf, 1);
@@ -1186,15 +1186,15 @@ static void buspirate_bb_enable(PROGRAMMER *pgm, const AVRPART *p) {
    Direction:
    010xxxxx
    Input (1) or output (0):
-   AUX|MOSI|CLK|MISO|CS
+   AUX|SDO|CLK|SDI|CS
 
    Output value:
    1xxxxxxx
    High (1) or low(0):
-   1|POWER|PULLUP|AUX|MOSI|CLK|MISO|CS
+   1|POWER|PULLUP|AUX|SDO|CLK|SDI|CS
 
    Both respond with a byte with current status:
-   0|POWER|PULLUP|AUX|MOSI|CLK|MISO|CS
+   0|POWER|PULLUP|AUX|SDO|CLK|SDI|CS
 */
 static int buspirate_bb_getpin(const PROGRAMMER *pgm, int pinfunc) {
 	unsigned char buf[10];
