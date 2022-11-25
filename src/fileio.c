@@ -744,6 +744,8 @@ static Elf_Scn *elf_get_scn(Elf *e, Elf32_Phdr *ph, Elf32_Shdr **shptr)
   return NULL;
 }
 
+static int is_flash = 0;
+
 static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
                           unsigned int *lowbound,
                           unsigned int *highbound,
@@ -756,6 +758,7 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
       *lowbound = 0x80000000;
       *highbound = 0xffffffff;
       *fileoff = 0;
+      is_flash = 1;
     } else {
       rv = -1;
     }
@@ -767,6 +770,7 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
       *lowbound = 0;
       *highbound = 0x7ffff;       /* max 8 MiB */
       *fileoff = 0;
+      is_flash = 1;
     } else if (strcmp(mem->desc, "eeprom") == 0) {
       *lowbound = 0x810000;
       *highbound = 0x81ffff;      /* max 64 KiB */
@@ -1080,8 +1084,11 @@ static int elf2b(const char *infile, FILE *inf,
       Elf_Data *d = NULL;
       while ((d = elf_getdata(s, d)) != NULL) {
 
-        if (!elf_all_write)
+        if (!elf_all_write) {
+          if (is_flash && strcmp(sname, ".text"))
+            continue;
           goto skip_found_sect;
+        }
 
         if (!strcmp(sname, ".fuse")) {
           if ((d->d_size > 0) && (d->d_size <= MAX_FUSE_SIZE)) {
