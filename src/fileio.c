@@ -753,6 +753,7 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
 {
   int rv = 0;
 
+  is_flash = 0;
   if (p->prog_modes & PM_aWire) { // AVR32
     if (strcmp(mem->desc, "flash") == 0) {
       *lowbound = 0x80000000;
