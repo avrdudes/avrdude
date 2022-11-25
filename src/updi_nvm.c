@@ -1201,10 +1201,8 @@ int updi_nvm_wait_ready(const PROGRAMMER *pgm, const AVRPART *p) {
 */
   unsigned long start_time;
   unsigned long current_time;
-  struct timeval tv;
   uint8_t status;
-  gettimeofday (&tv, NULL);
-  start_time = (tv.tv_sec * 1000000) + tv.tv_usec;
+  start_time = avr_ustimestamp();
   do {
     if (updi_read_byte(pgm, p->nvm_base + UPDI_NVMCTRL_STATUS, &status) >= 0) {
       if (status & (1 << UPDI_NVM_STATUS_WRITE_ERROR)) {
@@ -1216,8 +1214,7 @@ int updi_nvm_wait_ready(const PROGRAMMER *pgm, const AVRPART *p) {
         return 0;
       }
     }
-    gettimeofday (&tv, NULL);
-    current_time = (tv.tv_sec * 1000000) + tv.tv_usec;
+    current_time = avr_ustimestamp();
   } while ((current_time - start_time) < 10000000);
 
   pmsg_error("wait NVM ready timed out\n");

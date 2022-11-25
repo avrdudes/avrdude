@@ -603,7 +603,6 @@ static int stk500v2_recv(const PROGRAMMER *pgm, unsigned char *msg, size_t maxsi
    * https://savannah.nongnu.org/bugs/index.php?43626
    */
   long timeoutval = SERIAL_TIMEOUT;		// seconds
-  struct timeval tv;
   double tstart, tnow;
 
   if (PDATA(pgm)->pgmtype == PGMTYPE_AVRISP_MKII ||
@@ -616,8 +615,7 @@ static int stk500v2_recv(const PROGRAMMER *pgm, unsigned char *msg, size_t maxsi
 
   DEBUG("STK500V2: stk500v2_recv(): ");
 
-  gettimeofday(&tv, NULL);
-  tstart = tv.tv_sec;
+  tstart = avr_timestamp();
 
   while ( (state != sDONE ) && (!timeout) ) {
     if (serial_recv(&pgm->fd, &c, 1) < 0)
@@ -690,9 +688,8 @@ static int stk500v2_recv(const PROGRAMMER *pgm, unsigned char *msg, size_t maxsi
         return -5;
      } /* switch */
 
-     gettimeofday(&tv, NULL);
-     tnow = tv.tv_sec;
-     if (tnow-tstart > timeoutval) {			// wuff - signed/unsigned/overflow
+     tnow = avr_timestamp();
+     if (tnow-tstart > timeoutval) {
       timedout:
        pmsg_error("timeout\n");
        return -1;

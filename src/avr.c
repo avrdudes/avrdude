@@ -529,6 +529,38 @@ int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p_unused, const AVRMEM 
 }
 
 
+// Return us since program start, rolls over after ca 1h 12min
+unsigned long avr_ustimestamp() {
+  struct timeval tv;
+
+  memset(&tv, 0, sizeof tv);
+  if(gettimeofday(&tv, NULL) == 0) {
+    static unsigned long long epoch;
+    static int init;
+    unsigned long long now;
+
+    now = tv.tv_sec*1000000ULL + tv.tv_usec;
+    if(!init) {
+      epoch = now;
+      init = 1;
+    }
+    return now - epoch;
+  }
+
+  return 0;
+}
+
+// Return ms since program start, rolls over after ca 49d 17h
+unsigned long avr_mstimestamp() {
+  return avr_ustimestamp()/1000;
+}
+
+// Return s since program start as double
+double avr_timestamp() {
+  return avr_ustimestamp()/1e6;
+}
+
+
 int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr, unsigned char data)
 {
@@ -544,7 +576,6 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   OPCODE * writeop;
   int rc;
   int readok=0;
-  struct timeval tv;
 
   if (pgm->cmd == NULL) {
     pmsg_error("%s programmer uses avr_write_byte_default() but does not\n", pgm->type);
@@ -706,8 +737,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       }
     }
     else {
-      gettimeofday (&tv, NULL);
-      start_time = (tv.tv_sec * 1000000) + tv.tv_usec;
+      start_time = avr_ustimestamp();
       do {
         // Do polling, but timeout after max_write_delay
         rc = pgm->read_byte(pgm, p, mem, addr, &r);
@@ -716,8 +746,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
           pgm->err_led(pgm, ON);
           return -4;
         }
-        gettimeofday (&tv, NULL);
-        prog_time = (tv.tv_sec * 1000000) + tv.tv_usec;
+        prog_time = avr_ustimestamp();
       } while (r != data &&  mem->max_write_delay >= 0 &&
           prog_time - start_time < (unsigned long) mem->max_write_delay);
     }
@@ -1399,7 +1428,6 @@ void report_progress(int completed, int total, const char *hdr) {
   static int last;
   static double start_time;
   int percent;
-  struct timeval tv;
   double t;
 
   if (update_progress == NULL)
@@ -1410,8 +1438,7 @@ void report_progress(int completed, int total, const char *hdr) {
     completed < 0? 0:
     completed < INT_MAX/100? 100*completed/total: completed/(total/100);
 
-  gettimeofday(&tv, NULL);
-  t = tv.tv_sec + ((double)tv.tv_usec)/1000000;
+  t = avr_timestamp();
 
   if(hdr || !start_time)
     start_time = t;

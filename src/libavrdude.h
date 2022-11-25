@@ -886,6 +886,12 @@ int avr_read(const PROGRAMMER * pgm, const AVRPART *p, const char *memtype, cons
 int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr);
 
+unsigned long avr_ustimestamp();
+
+unsigned long avr_mstimestamp();
+
+double avr_timestamp();
+
 int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr, unsigned char data);
 
