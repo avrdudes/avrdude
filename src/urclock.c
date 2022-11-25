@@ -2496,8 +2496,9 @@ void urclock_initpgm(PROGRAMMER *pgm) {
 
   disable_trailing_ff_removal();
 #if defined(HAVE_LIBREADLINE)
-  pmsg_notice2("libreadline is used; avrdude -t -c urclock should work");
+  pmsg_notice2("libreadline is used; avrdude -t -c urclock should work interactively\n");
 #else
-  pmsg_warning("compiled without readline library, cannot use avrdude -t -c urclock");
+  pmsg_warning("compiled without readline library, cannot use avrdude -t -c urclock interactively\n");
+  imsg_warning("but it is still possible to pipe: echo \"d fl 0 32; quit\" | tr \\; \\\\n | avrdude -t -curclock\n");
 #endif
 }
