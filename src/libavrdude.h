@@ -237,6 +237,8 @@ typedef struct avrpart {
   int           mcuid;              /* Unique id in 0..2039 for urclock programmer */
   int           n_interrupts;       /* Number of interrupts, used for vector bootloaders */
   int           n_page_erase;       /* If set, number of pages erased during NVM erase */
+  int           n_boot_sections;    /* Number of boot sections */
+  int           boot_section_size;  /* Size of (smallest) boot section, if any */
   int           hvupdi_variant;     /* HV pulse on UPDI pin, no pin or RESET pin */
   int           stk500_devcode;     /* stk500 device code */
   int           avr910_devcode;     /* avr910 device code */
