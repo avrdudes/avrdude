@@ -100,8 +100,8 @@ static int pin_name;
 %token K_MAX_WRITE_DELAY
 %token K_MCU_BASE
 %token K_MIN_WRITE_DELAY
-%token K_MISO
-%token K_MOSI
+%token K_SDI
+%token K_SDO
 %token K_NUM_PAGES
 %token K_NVM_BASE
 %token K_OCD_BASE
@@ -662,8 +662,8 @@ prog_parm_pins:
   K_BUFF   TKN_EQUAL {pin_name = PPI_AVR_BUFF; } pin_list |
   K_RESET  TKN_EQUAL {pin_name = PIN_AVR_RESET;} pin_number { free_token($1); } |
   K_SCK    TKN_EQUAL {pin_name = PIN_AVR_SCK;  } pin_number { free_token($1); } |
-  K_MOSI   TKN_EQUAL {pin_name = PIN_AVR_MOSI; } pin_number |
-  K_MISO   TKN_EQUAL {pin_name = PIN_AVR_MISO; } pin_number |
+  K_SDO    TKN_EQUAL {pin_name = PIN_AVR_SDO;  } pin_number |
+  K_SDI    TKN_EQUAL {pin_name = PIN_AVR_SDI;  } pin_number |
   K_ERRLED TKN_EQUAL {pin_name = PIN_LED_ERR;  } pin_number |
   K_RDYLED TKN_EQUAL {pin_name = PIN_LED_RDY;  } pin_number |
   K_PGMLED TKN_EQUAL {pin_name = PIN_LED_PGM;  } pin_number |

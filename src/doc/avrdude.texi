@@ -163,9 +163,10 @@ emulated on top of USB is likely to not work at all, or to work
 abysmally slow.
 
 If you happen to have a Linux system with at least 4 hardware GPIOs 
-available (like almost all embedded Linux boards) you can do without 
-any additional hardware - just connect them to the MOSI, MISO, RESET 
-and SCK pins on the AVR and use the linuxgpio programmer type. It bitbangs
+available (like almost all embedded Linux boards) you can do without any
+additional hardware - just connect them to the SDO, SDI, RESET and SCK
+pins of the AVR's SPI interface and use the linuxgpio programmer
+type. Older boards might use the labels MOSI for SDO and MISO for SDI. It bitbangs
 the lines using the Linux sysfs GPIO interface. Of course, care should
 be taken about voltage level compatibility. Also, although not strictly 
 required, it is strongly advisable to protect the GPIO pins from 
@@ -180,7 +181,7 @@ programmer type can be used to directly connect to and program a chip
 using the built in interfaces on the computer. The requirements to use
 this type are that an SPI interface is exposed along with one GPIO
 pin. The GPIO serves as the reset output since the Linux SPI drivers
-do not hold slave select down when a transfer is not occuring and thus
+do not hold chip select down when a transfer is not occuring and thus
 it cannot be used as the reset pin. A readily available level
 translator should be used between the SPI bus/reset GPIO and the chip
 to avoid potentially damaging the computer's SPI controller in the
@@ -195,7 +196,7 @@ the level translator to protect the hardware from damage.
 On a Raspberry Pi, header J8 provides access to the SPI and GPIO
 lines.
 
-Typically, pins 19, 21, and 23 are SPI MOSI, MISO, and SCK, while
+Typically, pins 19, 21, and 23 are SPI SDO, SDI, and SCK, while
 pins 24 and 26 would serve as CE outputs. So, close to these pins
 is pin 22 as GPIO25 which can be used as /RESET, and pin 25 can
 be used as GND.
@@ -204,10 +205,10 @@ A typical programming cable would then look like:
 
 @multitable @columnfractions .15 .15 .3
 @item @code{J8 pin} @tab @code{ISP pin} @tab @code{Name}
-@item @code{21}     @tab @code{1}   @tab @code{MISO}
+@item @code{21}     @tab @code{1}   @tab @code{SDI}
 @item @code{-}      @tab @code{2}   @tab @code{Vcc - leave open}
 @item @code{23}     @tab @code{3}   @tab @code{SCK}
-@item @code{19}     @tab @code{4}   @tab @code{MOSI}
+@item @code{19}     @tab @code{4}   @tab @code{SDO}
 @item @code{22}     @tab @code{5}   @tab @code{/RESET}
 @item @code{25}     @tab @code{6}   @tab @code{GND}
 @end multitable
@@ -223,7 +224,7 @@ programmers communicate through the USB, using @code{libusb} as a
 platform abstraction layer.
 The avrftdi adds support for the FT2232C/D, FT2232H, and FT4232H devices. These all use 
 the MPSSE mode, which has a specific pin mapping. Bit 1 (the lsb of the byte in the config
-file) is SCK. Bit 2 is MOSI, and Bit 3 is MISO. Bit 4 usually reset. The 2232C/D parts
+file) is SCK. Bit 2 is SDO, and Bit 3 is SDI. Bit 4 usually reset. The 2232C/D parts
 are only supported on interface A, but the H parts can be either A or B (specified by the
 usbdev config parameter).
 The STK500, STK600, JTAG ICE, and avr910 contain on-board logic to control the programming of the target
@@ -947,7 +948,7 @@ The BusPirate programmer type accepts the following extended parameters:
 @item @samp{reset=cs,aux,aux2}
 The default setup assumes the BusPirate's CS output pin connected to
 the RESET pin on AVR side. It is however possible to have multiple AVRs
-connected to the same BP with MISO, MOSI and SCK lines common for all of them.
+connected to the same BP with SDI, SDO and SCK lines common for all of them.
 In such a case one AVR should have its RESET connected to BusPirate's
 @emph{CS}
 pin, second AVR's RESET connected to BusPirate's
@@ -1075,7 +1076,7 @@ Connection to the PICkit2 programmer:
 @item @code{RST} @tab      @code{VPP/MCLR (1) }
 @item @code{VDD} @tab      @code{VDD Target (2) -- possibly optional if AVR self powered }
 @item @code{GND} @tab      @code{GND (3) }
-@item @code{MISO} @tab      @code{PGD (4) }
+@item @code{SDI} @tab      @code{PGD (4) }
 @item @code{SCLK} @tab      @code{PDC (5) }
 @item @code{OSI} @tab      @code{AUX (6) }
 @end multitable
@@ -1518,9 +1519,9 @@ command. When using direct SPI mode, up to 3 bytes
 can be omitted.
 
 @item spi
-Enter direct SPI mode.  The @emph{pgmled} pin acts as slave select.
+Enter direct SPI mode.  The @emph{pgmled} pin acts as chip select.
 @emph{Only supported on parallel bitbang programmers, and partially by USBtiny.}
-Slave Select must be externally held low for direct SPI when
+Chip Select must be externally held low for direct SPI when
 using USBtinyISP, and send must be a multiple of four bytes.
 
 @item pgm
@@ -1538,12 +1539,12 @@ selected by the optional parameter @var{channel} (either
 0 or 1).
 
 @item fosc @var{freq}[@code{M}|@code{k}]
-Set the master oscillator to @var{freq} Hz.
+Set the programming oscillator to @var{freq} Hz.
 An optional trailing letter @code{M}
 multiplies by 1E6, a trailing letter @code{k} by 1E3.
 
 @item fosc off
-Turn the master oscillator off.
+Turn the programming oscillator off.
 
 @item sck @var{period}
 @emph{STK500 and STK600 only:}
@@ -1558,7 +1559,7 @@ ISP clock period when operating the ICE in ISP mode.
 
 @item parms
 @emph{STK500 and STK600 only:}
-Display the current voltage and master oscillator parameters.
+Display the current voltage and programming oscillator parameters.
 @emph{JTAG ICE only:}
 Display the current target supply voltage and JTAG bit clock rate/period.
 
@@ -1799,8 +1800,8 @@ programmer
     buff     = <pin1> [, <pin2> ... ] ;       # pin number(s)
     reset    = <pin> ;                        # pin number
     sck      = <pin> ;                        # pin number
-    mosi     = <pin> ;                        # pin number
-    miso     = <pin> ;                        # pin number
+    sdo      = <pin> ;                        # pin number
+    sdi      = <pin> ;                        # pin number
     errled   = <pin> ;                        # pin number
     rdyled   = <pin> ;                        # pin number
     pgmled   = <pin> ;                        # pin number
@@ -1866,6 +1867,8 @@ part
     mcuid            = <num>;                 # unique id in 0..2039 for 8-bit AVRs
     n_interrupts     = <num>;                 # number of interrupts, used for vector bootloaders
     n_page_erase     = <num>;                 # if set, number of pages erased during SPM erase
+    n_boot_sections  = <num>;                 # Number of boot sections
+    boot_section_size = <num>;                # Size of (smallest) boot section, if any
     hvupdi_variant   = <num> ;                # numeric -1 (n/a) or 0..2
     devicecode       = <num> ;                # deprecated, use stk500_devcode
     stk500_devcode   = <num> ;                # numeric
@@ -2957,10 +2960,10 @@ Solution: Use the 6 pin ISP header on the Dragon and the following pin mapping:
 @multitable @columnfractions .2 .2
 @item @strong{Dragon} @tab @strong{Target}
 @item @strong{ISP Header} @tab @strong{pins}
-@item 1 (MISO)  @tab PDI_DATA
+@item 1 (SDI)   @tab PDI_DATA
 @item 2 (VCC)   @tab VCC
 @item 3 (SCK)   @tab 
-@item 4 (MOSI)  @tab 
+@item 4 (SDO)   @tab
 @item 5 (RESET) @tab PDI_CLK / RST
 @item 6 (GND)   @tab GND
 @end multitable
@@ -2974,10 +2977,10 @@ Solution: Use the following pin mapping:
 @multitable @columnfractions .2 .2 .2
 @item @strong{AVRISP} @tab @strong{Target} @tab @strong{ATtiny}
 @item @strong{connector} @tab @strong{pins} @tab @strong{pin #}
-@item 1 (MISO)  @tab TPIDATA  @tab 1
+@item 1 (SDI)   @tab TPIDATA  @tab 1
 @item 2 (VTref) @tab Vcc      @tab 5
 @item 3 (SCK)   @tab TPICLK   @tab 3
-@item 4 (MOSI)  @tab          @tab
+@item 4 (SDO)   @tab          @tab
 @item 5 (RESET) @tab /RESET   @tab 6
 @item 6 (GND)   @tab GND      @tab 2
 @end multitable
@@ -2987,10 +2990,10 @@ Problem: I want to program an ATtiny4/5/9/10 device using a serial/parallel
 bitbang programmer.  How to connect the pins?
 
 Solution: Since TPI has only 1 pin for bi-directional data transfer, both 
-@var{MISO} and @var{MOSI} pins should be connected to the @var{TPIDATA} pin 
+@var{SDI} and @var{SDO} pins should be connected to the @var{TPIDATA} pin
 on the ATtiny device.
-However, a 1K resistor should be placed between the @var{MOSI} and @var{TPIDATA}.
-The @var{MISO} pin connects to @var{TPIDATA} directly.
+However, a 1K resistor should be placed between the @var{SDO} and @var{TPIDATA}.
+The @var{SDI} pin connects to @var{TPIDATA} directly.
 The @var{SCK} pin is connected to @var{TPICLK}.
 
 In addition, the @var{Vcc}, @var{/RESET} and @var{GND} pins should 
@@ -3008,12 +3011,12 @@ front of pins 7, 4, 3 and 8):
 @example
 programmer
   id    = "dasa_ftdi";
-  desc  = "serial port banging, reset=rts sck=dtr mosi=txd miso=cts";
+  desc  = "serial port banging, reset=rts sck=dtr sdo=txd sdi=cts";
   type  = serbb;
   reset = ~7;
   sck   = ~4;
-  mosi  = ~3;
-  miso  = ~8;
+  sdo   = ~3;
+  sdi   = ~8;
 ;
 @end example
 

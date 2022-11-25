@@ -270,10 +270,10 @@ void pgm_display_generic_mask(const PROGRAMMER *pgm, const char *p, unsigned int
     msg_info("%s  RESET   = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_RESET]));
   if(show & (1<<PIN_AVR_SCK))
     msg_info("%s  SCK     = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_SCK]));
-  if(show & (1<<PIN_AVR_MOSI))
-    msg_info("%s  MOSI    = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_MOSI]));
-  if(show & (1<<PIN_AVR_MISO))
-    msg_info("%s  MISO    = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_MISO]));
+  if(show & (1<<PIN_AVR_SDO))
+    msg_info("%s  SDO     = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_SDO]));
+  if(show & (1<<PIN_AVR_SDI))
+    msg_info("%s  SDI     = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_SDI]));
   if(show & (1<<PIN_LED_ERR))
     msg_info("%s  ERR LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_ERR]));
   if(show & (1<<PIN_LED_RDY))

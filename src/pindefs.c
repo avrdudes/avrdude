@@ -128,9 +128,9 @@ int pgm_fill_old_pins(PROGRAMMER * const pgm) {
     return -1;
   if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_SCK]),  &(pgm->pinno[PIN_AVR_SCK])) < 0)
     return -1;
-  if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_MOSI]), &(pgm->pinno[PIN_AVR_MOSI])) < 0)
+  if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_SDO]), &(pgm->pinno[PIN_AVR_SDO])) < 0)
     return -1;
-  if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_MISO]), &(pgm->pinno[PIN_AVR_MISO])) < 0)
+  if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_SDI]), &(pgm->pinno[PIN_AVR_SDI])) < 0)
     return -1;
   if (pin_fill_old_pinno(&(pgm->pin[PIN_LED_ERR]),  &(pgm->pinno[PIN_LED_ERR])) < 0)
     return -1;
@@ -378,8 +378,8 @@ const char * avr_pin_name(int pinname) {
   case PPI_AVR_BUFF  : return "BUFF";
   case PIN_AVR_RESET : return "RESET";
   case PIN_AVR_SCK   : return "SCK";
-  case PIN_AVR_MOSI  : return "MOSI";
-  case PIN_AVR_MISO  : return "MISO";
+  case PIN_AVR_SDO   : return "SDO";
+  case PIN_AVR_SDI   : return "SDI";
   case PIN_LED_ERR   : return "ERRLED";
   case PIN_LED_RDY   : return "RDYLED";
   case PIN_LED_PGM   : return "PGMLED";
@@ -401,8 +401,8 @@ const char * avr_pin_lcname(int pinname) {
   case PPI_AVR_BUFF  : return "buff";
   case PIN_AVR_RESET : return "reset";
   case PIN_AVR_SCK   : return "sck";
-  case PIN_AVR_MOSI  : return "mosi";
-  case PIN_AVR_MISO  : return "miso";
+  case PIN_AVR_SDO   : return "sdo";
+  case PIN_AVR_SDI   : return "sdi";
   case PIN_LED_ERR   : return "errled";
   case PIN_LED_RDY   : return "rdyled";
   case PIN_LED_PGM   : return "pgmled";

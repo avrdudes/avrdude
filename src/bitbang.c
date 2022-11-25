@@ -172,9 +172,9 @@ static unsigned char bitbang_txrx(const PROGRAMMER *pgm, unsigned char byte) {
      * one pgm->setpin()-call resp. par clrpin()-call, then
      * - SCK is high for 2T
      * - SCK is low for 2T
-     * - MOSI setuptime is 1T
-     * - MOSI holdtime is 3T
-     * - SCK low to MISO read is 2T to 3T
+     * - SDO setuptime is 1T
+     * - SDO holdtime is 3T
+     * - SCK low to SDI read is 2T to 3T
      * So we are within programming specs (expect for AT90S1200),
      * if and only if T>t_CLCL (t_CLCL=clock period of target system).
      *
@@ -186,7 +186,7 @@ static unsigned char bitbang_txrx(const PROGRAMMER *pgm, unsigned char byte) {
     b = (byte >> i) & 0x01;
 
     /* set the data input line as desired */
-    pgm->setpin(pgm, PIN_AVR_MOSI, b);
+    pgm->setpin(pgm, PIN_AVR_SDO, b);
 
     pgm->setpin(pgm, PIN_AVR_SCK, 1);
 
@@ -194,7 +194,7 @@ static unsigned char bitbang_txrx(const PROGRAMMER *pgm, unsigned char byte) {
      * read the result bit (it is either valid from a previous falling
      * edge or it is ignored in the current context)
      */
-    r = pgm->getpin(pgm, PIN_AVR_MISO);
+    r = pgm->getpin(pgm, PIN_AVR_SDI);
 
     pgm->setpin(pgm, PIN_AVR_SCK, 0);
 
@@ -208,7 +208,7 @@ static int bitbang_tpi_clk(const PROGRAMMER *pgm)  {
   unsigned char r = 0;
   pgm->setpin(pgm, PIN_AVR_SCK, 1);
 
-  r = pgm->getpin(pgm, PIN_AVR_MISO);
+  r = pgm->getpin(pgm, PIN_AVR_SDI);
 
   pgm->setpin(pgm, PIN_AVR_SCK, 0);
 
@@ -220,7 +220,7 @@ void bitbang_tpi_tx(const PROGRAMMER *pgm, unsigned char byte)  {
   unsigned char b, parity;
 
   /* start bit */
-  pgm->setpin(pgm, PIN_AVR_MOSI, 0);
+  pgm->setpin(pgm, PIN_AVR_SDO, 0);
   bitbang_tpi_clk(pgm);
 
   parity = 0;
@@ -229,16 +229,16 @@ void bitbang_tpi_tx(const PROGRAMMER *pgm, unsigned char byte)  {
     parity ^= b;
 
     /* set the data input line as desired */
-    pgm->setpin(pgm, PIN_AVR_MOSI, b);
+    pgm->setpin(pgm, PIN_AVR_SDO, b);
     bitbang_tpi_clk(pgm);
   }
   
   /* parity bit */
-  pgm->setpin(pgm, PIN_AVR_MOSI, parity);
+  pgm->setpin(pgm, PIN_AVR_SDO, parity);
   bitbang_tpi_clk(pgm);
 
   /* 2 stop bits */
-  pgm->setpin(pgm, PIN_AVR_MOSI, 1);
+  pgm->setpin(pgm, PIN_AVR_SDO, 1);
   bitbang_tpi_clk(pgm);
   bitbang_tpi_clk(pgm);
 }
@@ -248,7 +248,7 @@ int bitbang_tpi_rx(const PROGRAMMER *pgm)  {
   unsigned char b, rbyte, parity;
 
   /* make sure pin is on for "pullup" */
-  pgm->setpin(pgm, PIN_AVR_MOSI, 1);
+  pgm->setpin(pgm, PIN_AVR_SDO, 1);
 
   /* wait for start bit (up to 10 bits) */
   b = 1;
@@ -517,7 +517,7 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pgm->powerup(pgm);
   usleep(20000);
 
-  /* TPIDATA is a single line, so MISO & MOSI should be connected */
+  /* TPIDATA is a single line, so SDI & SDO should be connected */
   if (p->prog_modes & PM_TPI) {
     /* make sure cmd_tpi() is defined */
     if (pgm->cmd_tpi == NULL) {
@@ -532,20 +532,20 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     /* RESET must be LOW in case the existing code is driving the TPI pins: */
     pgm->setpin(pgm, PIN_AVR_RESET, 0);
 
-    msg_notice2("doing MOSI-MISO link check\n");
+    msg_notice2("doing SDO-SDI link check\n");
 
-    pgm->setpin(pgm, PIN_AVR_MOSI, 0);
-    if (pgm->getpin(pgm, PIN_AVR_MISO) != 0) {
-      pmsg_error("MOSI->MISO 0 failed\n");
+    pgm->setpin(pgm, PIN_AVR_SDO, 0);
+    if (pgm->getpin(pgm, PIN_AVR_SDI) != 0) {
+      pmsg_error("SDO->SDI 0 failed\n");
       return -1;
     }
-    pgm->setpin(pgm, PIN_AVR_MOSI, 1);
-    if (pgm->getpin(pgm, PIN_AVR_MISO) != 1) {
-      pmsg_error("MOSI->MISO 1 failed\n");
+    pgm->setpin(pgm, PIN_AVR_SDO, 1);
+    if (pgm->getpin(pgm, PIN_AVR_SDI) != 1) {
+      pmsg_error("SDO->SDI 1 failed\n");
       return -1;
     }
 
-    msg_notice2("MOSI-MISO link present\n");
+    msg_notice2("SDO-SDI link present\n");
   }
 
   pgm->setpin(pgm, PIN_AVR_SCK, 0);
@@ -554,7 +554,7 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   if (p->prog_modes & PM_TPI) {
     /* keep TPIDATA high for 16 clock cycles */
-    pgm->setpin(pgm, PIN_AVR_MOSI, 1);
+    pgm->setpin(pgm, PIN_AVR_SDO, 1);
     for (i = 0; i < 16; i++)
       pgm->highpulsepin(pgm, PIN_AVR_SCK);
 
@@ -626,9 +626,9 @@ int bitbang_check_prerequisites(const PROGRAMMER *pgm) {
     return -1;
   if (verify_pin_assigned(pgm, PIN_AVR_SCK,   "AVR SCK") < 0)
     return -1;
-  if (verify_pin_assigned(pgm, PIN_AVR_MISO,  "AVR MISO") < 0)
+  if (verify_pin_assigned(pgm, PIN_AVR_SDI,   "AVR SDI") < 0)
     return -1;
-  if (verify_pin_assigned(pgm, PIN_AVR_MOSI,  "AVR MOSI") < 0)
+  if (verify_pin_assigned(pgm, PIN_AVR_SDO,   "AVR SDO") < 0)
     return -1;
 
   if (pgm->cmd == NULL) {

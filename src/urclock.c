@@ -1142,9 +1142,6 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
     { 2048, 0, 0x12ab8da0, 0xca46a3ca }, // ATmegaBOOT_168_diecimila.hex
     { 2048, 0, 0x3242ddd3, 0xf3e94dba }, // ATmegaBOOT_168_ng.hex
     { 2048, 0, 0x2eed30b3, 0x47d14ffa }, // ATmegaBOOT_168_pro_8MHz.hex
-    { 4096, 0, 0xc52edd05, 0xa3371f94 }, // Caterina-LilyPadUSB.hex
-    { 4096, 0, 0x663b8f7e, 0x7efdda2b }, // Caterina-Robot-Control.hex
-    { 4096, 0, 0x3c6387e7, 0x7e96eea2 }, // Caterina-Robot-Motor.hex
     { 2048, 0, 0x1cef0d75, 0x6cfbac49 }, // LilyPadBOOT_168.hex
     { 1024, 1, 0x6ca0f37b, 0x31bae545 }, // bigboot_328.hex
     {  512, 0, 0x035cbc07, 0x24ba435e }, // optiboot_atmega168.hex
@@ -1159,6 +1156,7 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
     {  256, 0, 0xaa62bafc, 0xaa62bafc }, // picobootArduino8v3rc1.hex
     {  256, 0, 0x56263965, 0x56263965 }, // picobootSTK500-168p.hex
     {  512, 0, 0x3242ddd3, 0x5ba5f5f6 }, // picobootSTK500-328p.hex
+    { 3072, 0, 0x3242ddd3, 0xd3347c5d }, // optiboot_lgt8f328p.hex
   };
 
   uint8_t buf[4096], b128[128];
@@ -2260,14 +2258,14 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 int urclock_write_byte(const PROGRAMMER *pgm_uu, const AVRPART *p_uu, const AVRMEM *mem,
   unsigned long addr_uu, unsigned char data_uu) {
 
-  pmsg_error("bootloader does not implement byte-wise write to %s \n", mem->desc);
+  pmsg_error("bootloader does not implement bytewise write to %s \n", mem->desc);
   return -1;
 }
 
 int urclock_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char *value) {
 
-  // Byte-wise read only valid for flash and eeprom
+  // Bytewise read only valid for flash and eeprom
   int mchr = avr_mem_is_flash_type(mem)? 'F': 'E';
   if(mchr == 'E' && !avr_mem_is_eeprom_type(mem)) {
     if(!strcmp(mem->desc, "signature") && pgm->read_sig_bytes) {

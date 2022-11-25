@@ -615,7 +615,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
       dev_print_comment(cp->comms);
 
     if(p->parent_id && *p->parent_id)
-      dev_info("part parent %s\n", p->parent_id);
+      dev_info("part parent \"%s\"\n", p->parent_id);
     else
       dev_info("part\n");
   }
@@ -627,6 +627,8 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
   _if_partout(intcmp, "%d", mcuid);
   _if_partout(intcmp, "%d", n_interrupts);
   _if_partout(intcmp, "%d", n_page_erase);
+  _if_partout(intcmp, "%d", n_boot_sections);
+  _if_partout(intcmp, "%d", boot_section_size);
   _if_partout(intcmp, "%d", hvupdi_variant);
   _if_partout(intcmp, "0x%02x", stk500_devcode);
   _if_partout(intcmp, "0x%02x", avr910_devcode);

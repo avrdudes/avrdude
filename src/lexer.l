@@ -121,7 +121,9 @@ SIGN     [+-]
      }
 
 
-prog_modes|mcuid|n_interrupts|n_page_erase|n_word_writes { /* Components for assignment  */
+(?x: prog_modes | mcuid | n_interrupts | n_page_erase | n_word_writes | n_boot_sections |
+  boot_section_size ) { /* Components for assignment  */
+
   Component_t *cp = cfg_comp_search(yytext, current_strct);
   if(!cp) {
     yyerror("Unknown component %s in %s", yytext, cfg_strct_name(current_strct));
@@ -196,9 +198,9 @@ max_write_delay  { yylval=NULL; ccap(); return K_MAX_WRITE_DELAY; }
 mcu_base         { yylval=NULL; ccap(); return K_MCU_BASE; }
 memory           { yylval=NULL; ccap(); return K_MEMORY; }
 min_write_delay  { yylval=NULL; ccap(); return K_MIN_WRITE_DELAY; }
-miso             { yylval=NULL; ccap(); return K_MISO; }
+miso             { yylval=NULL; ccap(); return K_SDI; } // Deprecated
 mode             { yylval=NULL; ccap(); return K_MODE; }
-mosi             { yylval=NULL; ccap(); return K_MOSI; }
+mosi             { yylval=NULL; ccap(); return K_SDO; } // Deprecated
 no               { yylval=new_token(K_NO); return K_NO; }
 NULL             { yylval=NULL; return K_NULL; }
 num_banks        { yylval=NULL; return K_NUM_PAGES; }
@@ -245,6 +247,8 @@ resetdelayms     { yylval=NULL; ccap(); return K_RESETDELAYMS; }
 resetdelayus     { yylval=NULL; ccap(); return K_RESETDELAYUS; }
 retry_pulse      { yylval=NULL; ccap(); return K_RETRY_PULSE; }
 sck              { yylval=new_token(K_SCK); ccap(); return K_SCK; }
+sdi              { yylval=NULL; ccap(); return K_SDI; }
+sdo              { yylval=NULL; ccap(); return K_SDO; }
 serial           { yylval=NULL; ccap(); return K_SERIAL; }
 signature        { yylval=NULL; ccap(); return K_SIGNATURE; }
 size             { yylval=NULL; ccap(); return K_SIZE; }

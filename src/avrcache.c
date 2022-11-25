@@ -135,6 +135,9 @@ int avr_has_paged_access(const PROGRAMMER *pgm, const AVRMEM *mem) {
  *   - Part memory buffer mem is unaffected by this (though temporarily changed)
  *   - Uses read_byte() if memory page size is one, otherwise paged_load()
  *   - Fall back to bytewise read if paged_load() returned an error
+ *   - On failure returns a negative value, on success a non-negative value, which is either
+ *       + The number of bytes read by pgm->paged_load() if that succeeded
+ *       + LIBAVRDUDE_SUCCESS (0) if the fallback of bytewise read succeeded
  */
 int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int addr, unsigned char *buf) {
   if(!avr_has_paged_access(pgm, mem) || addr < 0 || addr >= mem->size)
@@ -643,8 +646,8 @@ int avr_write_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 // Erase the chip and set the cache accordingly
 int avr_chip_erase_cached(const PROGRAMMER *pgm, const AVRPART *p) {
   CacheDesc_t mems[2] = {
-    { avr_locate_mem(p, "flash"), pgm->cp_flash, 1 },
-    { avr_locate_mem(p, "eeprom"), pgm->cp_eeprom, 0 },
+    { avr_locate_mem(p, "flash"), pgm->cp_flash, 1, -1, 0 },
+    { avr_locate_mem(p, "eeprom"), pgm->cp_eeprom, 0, -1, 0 },
   };
   int rc;
 
@@ -740,7 +743,7 @@ int avr_page_erase_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 
 
 // Free cache(s) discarding any pending writes
-int avr_reset_cache(const PROGRAMMER *pgm, const AVRPART *p) {
+int avr_reset_cache(const PROGRAMMER *pgm, const AVRPART *p_unused) {
   AVR_Cache *mems[2] = { pgm->cp_flash, pgm->cp_eeprom, };
 
   for(size_t i = 0; i < sizeof mems/sizeof*mems; i++) {
