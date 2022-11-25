@@ -252,56 +252,63 @@ typedef struct avrpart {
                                        this pin (PIN_AVR_*) */
   unsigned      flags;              /* see AVRPART_ masks */
 
-  int           timeout;            /* stk500 v2 xml file parameter */
-  int           stabdelay;          /* stk500 v2 xml file parameter */
-  int           cmdexedelay;        /* stk500 v2 xml file parameter */
-  int           synchloops;         /* stk500 v2 xml file parameter */
-  int           bytedelay;          /* stk500 v2 xml file parameter */
-  int           pollindex;          /* stk500 v2 xml file parameter */
-  unsigned char pollvalue;          /* stk500 v2 xml file parameter */
-  int           predelay;           /* stk500 v2 xml file parameter */
-  int           postdelay;          /* stk500 v2 xml file parameter */
-  int           pollmethod;         /* stk500 v2 xml file parameter */
+  /* STK500 v2 parameters from ATDF files */
+  int           timeout;
+  int           stabdelay;
+  int           cmdexedelay;
+  int           synchloops;
+  int           bytedelay;
+  int           pollindex;
+  unsigned char pollvalue;
+  int           predelay;
+  int           postdelay;
+  int           pollmethod;
 
   enum ctl_stack_t ctl_stack_type;  /* what to use the ctl stack for */
   unsigned char controlstack[CTL_STACK_SIZE]; /* stk500v2 PP/HVSP ctl stack */
   unsigned char flash_instr[FLASH_INSTR_SIZE]; /* flash instructions (debugWire, JTAG) */
   unsigned char eeprom_instr[EEPROM_INSTR_SIZE]; /* EEPROM instructions (debugWire, JTAG) */
 
-  int           hventerstabdelay;   /* stk500 v2 hv mode parameter */
-  int           progmodedelay;      /* stk500 v2 hv mode parameter */
-  int           latchcycles;        /* stk500 v2 hv mode parameter */
-  int           togglevtg;          /* stk500 v2 hv mode parameter */
-  int           poweroffdelay;      /* stk500 v2 hv mode parameter */
-  int           resetdelayms;       /* stk500 v2 hv mode parameter */
-  int           resetdelayus;       /* stk500 v2 hv mode parameter */
-  int           hvleavestabdelay;   /* stk500 v2 hv mode parameter */
-  int           resetdelay;         /* stk500 v2 hv mode parameter */
-  int           chiperasepulsewidth; /* stk500 v2 hv mode parameter */
-  int           chiperasepolltimeout; /* stk500 v2 hv mode parameter */
-  int           chiperasetime;      /* stk500 v2 hv mode parameter */
-  int           programfusepulsewidth; /* stk500 v2 hv mode parameter */
-  int           programfusepolltimeout; /* stk500 v2 hv mode parameter */
-  int           programlockpulsewidth; /* stk500 v2 hv mode parameter */
-  int           programlockpolltimeout; /* stk500 v2 hv mode parameter */
-  int           synchcycles;        /* stk500 v2 hv mode parameter */
-  int           hvspcmdexedelay;    /* stk500 v2 hv mode file parameter */
+  /* STK500 v2 hv mode parameters */
+  int           hventerstabdelay;
+  int           progmodedelay;
+  int           latchcycles;
+  int           togglevtg;
+  int           poweroffdelay;
+  int           resetdelayms;
+  int           resetdelayus;
+  int           hvleavestabdelay;
+  int           resetdelay;
+  int           chiperasepulsewidth;
+  int           chiperasepolltimeout;
+  int           chiperasetime;
+  int           programfusepulsewidth;
+  int           programfusepolltimeout;
+  int           programlockpulsewidth;
+  int           programlockpolltimeout;
+  int           synchcycles;
+  int           hvspcmdexedelay;
 
-  unsigned char idr;                /* JTAG ICE mkII XML file parameter */
-  unsigned char rampz;              /* JTAG ICE mkII XML file parameter */
-  unsigned char spmcr;              /* JTAG ICE mkII XML file parameter */
-  unsigned char eecr;               /* JTAC ICE mkII XML file parameter */
-  unsigned int mcu_base;            /* Base address of MCU control block in ATxmega devices */
-  unsigned int nvm_base;            /* Base address of NVM controller in ATxmega devices */
-  unsigned int ocd_base;            /* Base address of OCD module in AVR8X/UPDI devices */
-  int           ocdrev;             /* OCD revision (JTAGICE3 parameter, from AS6 XML files) */
 
-  OPCODE      * op[AVR_OP_MAX];     /* opcodes */
+  /* debugWIRE and/or JTAG ICE mkII XML file parameters */
+  unsigned char idr;            /* I/O address of IDR (OCD) reg */
+  unsigned char rampz;          /* I/O address of RAMPZ reg */
+  unsigned char spmcr;          /* memory address of SPMCR reg */
+  unsigned char eecr;           /* memory address of EECR reg */
+  unsigned int mcu_base;        /* Base address of MCU control block in ATxmega devices */
+  unsigned int nvm_base;        /* Base address of NVM controller in ATxmega devices */
+  unsigned int ocd_base;        /* Base address of OCD module in AVR8X/UPDI devices */
+  int           ocdrev;         /* OCD revision (JTAGICE3 parameter, from AS6 XML files) */
 
-  LISTID        mem;                /* avr memory definitions */
-  LISTID        mem_alias;          /* memory alias definitions */
-  const char  * config_file;        /* config file where defined */
-  int           lineno;             /* config file line number */
+  /* Bootloader paramater */
+  unsigned char autobaud_sync;  /* Sync byte for bootloader autobaud,  must be <= 0x30 */
+
+  OPCODE      * op[AVR_OP_MAX]; /* opcodes */
+
+  LISTID        mem;            /* avr memory definitions */
+  LISTID        mem_alias;      /* memory alias definitions */
+  const char  * config_file;    /* config file where defined */
+  int           lineno;         /* config file line number */
 } AVRPART;
 
 typedef struct avrmem {

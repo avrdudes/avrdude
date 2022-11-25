@@ -130,7 +130,7 @@
 #       programfusepolltimeout = <num> ;
 #       programlockpulsewidth = <num> ;           # PP only
 #       programlockpolltimeout = <num> ;
-#       # JTAG ICE mkII parameters, also from ATDF files
+#       # debugWIRE and/or JTAG ICE mkII parameters, also from ATDF files
 #       allowfullpagebitstream = <yes/no> ;
 #       enablepageprogramming = <yes/no> ;
 #       idr              = <num> ;                # IO addr of IDR (OCD) reg
@@ -143,6 +143,8 @@
 #       ocdrev           = <num> ;
 #       pgm_enable       = <instruction format> ;
 #       chip_erase       = <instruction format> ;
+#       # parameters for bootloaders
+#       autobaud_sync    = <num> ;                # autobaud detection byte, default 0x30
 #
 #       memory <memtype>
 #           paged           = <yes/no> ;          # yes/no (flash only, do not use for EEPROM)
@@ -175,12 +177,13 @@
 #
 # If any of the above parameters are not specified, the default value
 # of 0 is used for numerics (except for mcuid, hvupdi_variant and
-# ocdrev, where the default value is -1) or the empty string "" for
-# string values. If a required parameter is left empty, AVRDUDE will
-# complain. Almost all occurrences of numbers (with the exception of
-# pin numbers and where they are separated by space, eg, in signature
-# and readback) can also be given as simple expressions involving
-# arithemtic and bitwise operators.
+# ocdrev, where the default value is -1, and for autobaud_sync which
+# defaults to 0x30), or the empty string "" for string values. If a
+# required parameter is left empty, AVRDUDE will complain. Almost all
+# occurrences of numbers (with the exception of pin numbers and where
+# they are separated by space, eg, in signature and readback) can also
+# be given as simple expressions involving arithemtic and bitwise
+# operators.
 #
 # Parts can also inherit parameters from previously defined parts
 # using the following syntax. In this case specified integer and
@@ -12011,6 +12014,7 @@ part
     n_boot_sections        = 1;
     mcu_base               = 0x0090;
     nvm_base               = 0x01c0;
+    autobaud_sync          = 0x20;
 
     memory "fuse1"
         size               = 1;
@@ -16329,6 +16333,7 @@ part parent "m88"
     id                     = "lgt8f88p";
     mcuid                  = 227;
     signature              = 0x1e 0x93 0x0f;
+    autobaud_sync          = 0x1c;
 ;
 
 #------------------------------------------------------------
@@ -16340,6 +16345,7 @@ part parent "m168"
     id                     = "lgt8f168p";
     mcuid                  = 228;
     signature              = 0x1e 0x94 0x0b;
+    autobaud_sync          = 0x1c;
 ;
 
 #------------------------------------------------------------
@@ -16351,4 +16357,5 @@ part parent "m328"
     id                     = "lgt8f328p";
     mcuid                  = 229;
     signature              = 0x1e 0x95 0x0f;
+    autobaud_sync          = 0x1c;
 ;

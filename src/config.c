@@ -72,6 +72,7 @@ Component_t avr_comp[] = {
   part_comp_desc(n_page_erase, COMP_INT),
   part_comp_desc(n_boot_sections, COMP_INT),
   part_comp_desc(boot_section_size, COMP_INT),
+  part_comp_desc(autobaud_sync, COMP_CHAR),
 
   // AVRMEM
   mem_comp_desc(n_word_writes, COMP_INT),

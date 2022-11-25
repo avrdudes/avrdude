@@ -716,6 +716,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
   _if_partout(intcmp, "0x%04x", nvm_base);
   _if_partout(intcmp, "0x%04x", ocd_base);
   _if_partout(intcmp, "%d", ocdrev);
+  _if_partout(intcmp, "0x%02x", autobaud_sync);
 
   for(int i=0; i < AVR_OP_MAX; i++)
     if(!base || opcodecmp(p->op[i], base->op[i], i))
