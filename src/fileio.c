@@ -794,6 +794,11 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
       *lowbound = 0x820000;
       *highbound = 0x82ffff;
       *fileoff = mem->desc[4] - '0';
+    } else if (strcmp(mem->desc, "fuse") == 0) {
+      /* ATtiny4/5/9/10 use section .config in ELF */
+      *lowbound = 0x820000;
+      *highbound = 0x82ffff;
+      *fileoff = 0;
     } else if (strncmp(mem->desc, "lock", 4) == 0) {
       *lowbound = 0x830000;
       *highbound = 0x83ffff;
@@ -819,9 +824,11 @@ LOCKBITS = 0xFC;
 
 _EEPROM = { 0x11, 0x22, };
 
-For Attiny10(Not support FUSES macros!!!):
+For Attiny4/5/9/10(Not support FUSES macros and .fuse section!!!):
 
-#define FUSES uint8_t __fuses FUSEMEM
+#define _FUSEMEM __attribute__((__used__, __section__(".config")))
+#define FUSES uint8_t __fuses _FUSEMEM
+
 FUSES = 0xFE;
 LOCKBITS = 0xFC;
 */
@@ -1052,7 +1059,8 @@ static int elf2b(const char *infile, FILE *inf,
       }
 
       ign_chk = 0;
-      if (elf_all_write && (!strcmp(sname, ".fuse") || !strcmp(sname, ".lock") || !strcmp(sname, ".eeprom"))) {
+      if (elf_all_write && (!strcmp(sname, ".fuse") || (!strcmp(sname, ".config") ||
+          !strcmp(sname, ".lock") || !strcmp(sname, ".eeprom")))) {
         ign_chk = sh->sh_size;
       }
 
@@ -1091,7 +1099,7 @@ static int elf2b(const char *infile, FILE *inf,
           goto skip_found_sect;
         }
 
-        if (!strcmp(sname, ".fuse")) {
+        if (!strcmp(sname, ".fuse") || !strcmp(sname, ".config")) {
           if ((d->d_size > 0) && (d->d_size <= MAX_FUSE_SIZE)) {
             l_cmd.elf_fuse_size = d->d_size;
             memcpy(l_cmd.elf_fuse_data, d->d_buf, d->d_size);
