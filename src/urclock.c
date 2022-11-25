@@ -2260,14 +2260,14 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 int urclock_write_byte(const PROGRAMMER *pgm_uu, const AVRPART *p_uu, const AVRMEM *mem,
   unsigned long addr_uu, unsigned char data_uu) {
 
-  pmsg_error("bootloader does not implement byte-wise write to %s \n", mem->desc);
+  pmsg_error("bootloader does not implement bytewise write to %s \n", mem->desc);
   return -1;
 }
 
 int urclock_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char *value) {
 
-  // Byte-wise read only valid for flash and eeprom
+  // Bytewise read only valid for flash and eeprom
   int mchr = avr_mem_is_flash_type(mem)? 'F': 'E';
   if(mchr == 'E' && !avr_mem_is_eeprom_type(mem)) {
     if(!strcmp(mem->desc, "signature") && pgm->read_sig_bytes) {

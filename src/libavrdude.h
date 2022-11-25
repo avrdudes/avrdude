@@ -922,7 +922,7 @@ int avr_write_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
 int avr_is_and(const unsigned char *s1, const unsigned char *s2, const unsigned char *s3, size_t n);
 
-// byte-wise cached read/write API
+// Bytewise cached read/write API
 int avr_read_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr, unsigned char *value);
 int avr_write_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr, unsigned char data);
 int avr_chip_erase_cached(const PROGRAMMER *pgm, const AVRPART *p);

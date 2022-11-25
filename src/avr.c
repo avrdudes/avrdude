@@ -340,6 +340,10 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
 
   if (v != NULL)
       vmem = avr_locate_mem(v, mem->desc);
+
+  if(mem->size < 0)             // Sanity check
+    return -1;
+
   /*
    * start with all 0xff
    */
@@ -355,7 +359,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     avr_tpi_setup_rw(pgm, mem, 0, TPI_NVMCMD_NO_OPERATION);
 
     /* load bytes */
-    for (lastaddr = i = 0; i < mem->size; i++) {
+    for (lastaddr = i = 0; i < (unsigned long) mem->size; i++) {
       if (vmem == NULL ||
           (vmem->tags[i] & TAG_ALLOCATED) != 0)
       {
@@ -389,7 +393,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
 
     /* quickly scan number of pages to be written to first */
     for (pageaddr = 0, npages = 0;
-         pageaddr < mem->size;
+         pageaddr < (unsigned int) mem->size;
          pageaddr += mem->page_size) {
       /* check whether this page must be read */
       for (i = pageaddr;
@@ -406,7 +410,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     }
 
     for (pageaddr = 0, failure = 0, nread = 0;
-         !failure && pageaddr < mem->size;
+         !failure && pageaddr < (unsigned int) mem->size;
          pageaddr += mem->page_size) {
       /* check whether this page must be read */
       for (i = pageaddr, need_read = 0;
@@ -443,7 +447,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     }
   }
 
-  for (i=0; i < mem->size; i++) {
+  for (i=0; i < (unsigned long) mem->size; i++) {
     if (vmem == NULL ||
 	(vmem->tags[i] & TAG_ALLOCATED) != 0)
     {
@@ -469,9 +473,9 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
 /*
  * write a page data at the specified address
  */
-int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
-                   unsigned long addr)
-{
+int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p_unused, const AVRMEM *mem,
+  unsigned long addr) {
+
   unsigned char cmd[4];
   unsigned char res[4];
   OPCODE * wp, * lext;
@@ -718,8 +722,8 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
         }
         gettimeofday (&tv, NULL);
         prog_time = (tv.tv_sec * 1000000) + tv.tv_usec;
-      } while ((r != data) &&
-               ((prog_time-start_time) < mem->max_write_delay));
+      } while (r != data &&  mem->max_write_delay >= 0 &&
+          prog_time - start_time < (unsigned long) mem->max_write_delay);
     }
 
     /*
@@ -828,12 +832,13 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
   wsize = m->size;
   if (size < wsize) {
     wsize = size;
-  }
-  else if (size > wsize) {
+  } else if (size > wsize) {
     pmsg_warning("%d bytes requested, but memory region is only %d bytes\n", size, wsize);
     imsg_warning("Only %d bytes will actually be written\n", wsize);
   }
 
+  if(wsize <= 0)
+    return wsize;
 
   if ((p->prog_modes & PM_TPI) && m->page_size > 1 && pgm->cmd_tpi) {
     unsigned int    chunk; /* number of words for each write command */
@@ -864,7 +869,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     wsize = (wsize+chunk-1) / chunk * chunk;
 
     /* write words in chunks, low byte first */
-    for (lastaddr = i = 0; i < wsize; i += chunk) {
+    for (lastaddr = i = 0; i < (unsigned int) wsize; i += chunk) {
       /* check that at least one byte in this chunk is allocated */
       for (writeable_chunk = j = 0; !writeable_chunk && j < chunk; j++) {
         writeable_chunk = m->tags[i+j] & TAG_ALLOCATED;
@@ -901,50 +906,114 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     /*
      * the programmer supports a paged mode write
      */
-    int need_write, failure;
+    int need_write, failure, nset;
     unsigned int pageaddr;
     unsigned int npages, nwritten;
 
-    /* quickly scan number of pages to be written to first */
-    for (pageaddr = 0, npages = 0;
-         pageaddr < wsize;
-         pageaddr += m->page_size) {
-      /* check whether this page must be written to */
-      for (i = pageaddr;
-           i < pageaddr + m->page_size;
-           i++)
-        if ((m->tags[i] & TAG_ALLOCATED) != 0) {
+    /*
+     * Not all paged memory looks like NOR memory to AVRDUDE, particularly
+     *  - EEPROM
+     *  - when talking to a bootloader
+     *  - handling write via a part-programmer combo that can do page erase
+     *
+     * Hence, read in from the chip all pages with holes to fill them in. The
+     * small cost of doing so is outweighed by the benefit of not potentially
+     * overwriting bytes with 0xff outside the input file.
+     *
+     * Also consider that the effective page size for *SPM* erasing of parts
+     * can be 4 times the page size for SPM writing (eg, ATtiny1634). Thus
+     * ensure the holes cover the effective page size for SPM programming.
+     * Benefits -c arduino with input files with holes on 4-page-erase parts.
+     */
+
+    AVRMEM *cm = avr_dup_mem(m);
+
+    // Establish and sanity check effective page size
+    int pgsize = (pgm->prog_modes & PM_SPM) && p->n_page_erase > 0?
+      p->n_page_erase*cm->page_size: cm->page_size;
+    if((pgsize & (pgsize-1)) || pgsize < 1) {
+      pmsg_error("effective page size %d implausible\n", pgsize);
+      avr_free_mem(cm);
+      return -1;
+    }
+
+    uint8_t *spc = cfg_malloc(__func__, cm->page_size);
+
+    // Set cwsize as rounded-up wsize
+    int cwsize = (wsize + pgsize-1)/pgsize*pgsize;
+
+    for(pageaddr = 0; pageaddr < (unsigned int) cwsize; pageaddr += pgsize) {
+      for(i = pageaddr, nset = 0; i < pageaddr + pgsize; i++)
+        if(cm->tags[i] & TAG_ALLOCATED)
+          nset++;
+
+      if(nset && nset != pgsize) { // Effective page has holes
+        for(int np=0; np < pgsize/cm->page_size; np++) { // page by page
+          unsigned int beg = pageaddr + np*cm->page_size;
+          unsigned int end = beg + cm->page_size;
+
+          for(i = beg; i < end; i++)
+            if(!(cm->tags[i] & TAG_ALLOCATED))
+              break;
+
+          if(i >= end)          // Memory page has no holes
+             continue;
+
+          // Read flash contents to separate memory spc and fill in holes
+          if(avr_read_page_default(pgm, p, cm, beg, spc) >= 0) {
+            pmsg_notice2("padding %s [0x%04x, 0x%04x]\n", cm->desc, beg, end-1);
+            for(i = beg; i < end; i++)
+              if(!(cm->tags[i] & TAG_ALLOCATED)) {
+                cm->tags[i] |= TAG_ALLOCATED;
+                cm->buf[i] = spc[i-beg];
+              }
+          } else {
+            pmsg_notice2("cannot read %s [0x%04x, 0x%04x] to pad page\n",
+              cm->desc, beg, end-1);
+          }
+        }
+      }
+    }
+
+    // Quickly scan number of pages to be written to
+    for(pageaddr = 0, npages = 0; pageaddr < (unsigned int) cwsize; pageaddr += cm->page_size) {
+      for(i = pageaddr; i < pageaddr + cm->page_size; i++)
+        if(cm->tags[i] & TAG_ALLOCATED) {
           npages++;
           break;
         }
     }
 
     for (pageaddr = 0, failure = 0, nwritten = 0;
-         !failure && pageaddr < wsize;
-         pageaddr += m->page_size) {
-      /* check whether this page must be written to */
-      for (i = pageaddr, need_write = 0;
-           i < pageaddr + m->page_size;
-           i++)
-        if ((m->tags[i] & TAG_ALLOCATED) != 0) {
+      !failure && pageaddr < (unsigned int) cwsize;
+      pageaddr += cm->page_size) {
+
+      // Check whether this page must be written to
+      for (i = pageaddr, need_write = 0; i < pageaddr + cm->page_size; i++)
+        if ((cm->tags[i] & TAG_ALLOCATED) != 0) {
           need_write = 1;
           break;
         }
+
       if (need_write) {
         rc = 0;
         if (auto_erase)
-          rc = pgm->page_erase(pgm, p, m, pageaddr);
+          rc = pgm->page_erase(pgm, p, cm, pageaddr);
         if (rc >= 0)
-          rc = pgm->paged_write(pgm, p, m, m->page_size, pageaddr, m->page_size);
+          rc = pgm->paged_write(pgm, p, cm, cm->page_size, pageaddr, cm->page_size);
         if (rc < 0)
           /* paged write failed, fall back to byte-at-a-time write below */
           failure = 1;
       } else {
-        pmsg_debug("avr_write_mem(): skipping page %u: no interesting data\n", pageaddr / m->page_size);
+        pmsg_debug("avr_write_mem(): skipping page %u: no interesting data\n", pageaddr / cm->page_size);
       }
       nwritten++;
       report_progress(nwritten, npages, NULL);
     }
+
+    avr_free_mem(cm);
+    free(spc);
+
     if (!failure)
       return wsize;
     /* else: fall back to byte-at-a-time write, for historical reasons */
@@ -958,7 +1027,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
   page_tainted = 0;
   flush_page = 0;
 
-  for (i=0; i<wsize; i++) {
+  for (i = 0; i < (unsigned int) wsize; i++) {
     data = m->buf[i];
     report_progress(i, wsize, NULL);
 
@@ -982,8 +1051,8 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
       } else {
         page_tainted |= do_write;
       }
-      if (i % m->page_size == m->page_size - 1 ||
-          i == wsize - 1) {
+      if (i % m->page_size == (unsigned int) m->page_size - 1 ||
+          i == (unsigned int) wsize - 1) {
         /* last byte this page */
         flush_page = page_tainted;
         newpage = 1;
