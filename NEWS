@@ -83,6 +83,10 @@ Changes since version 7.0:
     - ATtiny85 communication problem with default bitclock #1133
     - [Regression] Optiboot for "modern AVRs" no longer works #1120
     - Cannot access EEPROM on some bootloader/part combos #970
+    - -U writes sometimes more bytes to flash/memory than input
+      file has #1050
+    - debugWire using dragon_dw and jtag2dw not working #1168
+    - && echo OK does not work after -c urclock #1192
 
   * Pull requests:
 
@@ -200,6 +204,11 @@ Changes since version 7.0:
     - Make terminal write's automatic number width less surprising
       #1175
     - Print HAVE_LIBREADLINE status when making the project #1184
+    - Pad pages with input file contents before avr_write() #1188
+    - Deprecate mosi/miso in favour of sdo/sdi #1189
+    - Provide bootloader-hash tool #1190
+    - Fix JTAGICE mkII parameters for parts with bootloaders #1191
+    - Fix shell exit value when chip erase is delayed #1194
 
 
   * Internals:
