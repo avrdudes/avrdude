@@ -308,7 +308,8 @@ typedef struct {
       nofilename,               // Don't store application filename when writing the application
       nodate,                   // Don't store application filename and no date either
       nometadata,               // Don't store any metadata at all (implies no store support)
-      delay;                    // Additional delay [ms] after resetting the board, can be negative
+      delay,                    // Additional delay [ms] after resetting the board, can be negative
+      strict;                   // Use strict synchronisation protocol
 
   char title[254];              // Use instead of filename for metadata - same size as filename
   char iddesc[64];              // Location of Urclock ID, eg F.12324.6 or E.-4.4 (default E.257.6)
@@ -1153,6 +1154,7 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
     {  256, 0, 0x1451061b, 0x1451061b }, // picobootArduino168v3b2.hex
     {  512, 0, 0x3242ddd3, 0x53348738 }, // picobootArduino328.hex
     {  512, 0, 0x858e12de, 0xc80a44a4 }, // picobootArduino328v3beta.hex
+    {  512, 0, 0x3242ddd3, 0xc254e344 }, // picobootArduino328v3b2.hex
     {  256, 0, 0xaa62bafc, 0xaa62bafc }, // picobootArduino8v3rc1.hex
     {  256, 0, 0x56263965, 0x56263965 }, // picobootSTK500-168p.hex
     {  512, 0, 0x3242ddd3, 0x5ba5f5f6 }, // picobootSTK500-328p.hex
@@ -1870,7 +1872,7 @@ static int urclock_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
   rv = serial_recv(&pgm->fd, buf, len);
   if(rv < 0) {
     if(!ur.sync_silence)
-      pmsg_warning("programmer is not responding%s\n", ur.uP.name? "": "; try, eg, -xdelay=200");
+      pmsg_error("programmer is not responding; try and vary -xdelay=100 and/or -xstrict\n");
     return -1;
   }
 
@@ -1878,7 +1880,7 @@ static int urclock_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
 }
 
 
-#define MAX_SYNC_ATTEMPTS 23
+#define MAX_SYNC_ATTEMPTS 16
 
 /*
  * The modified protocol makes stk_insync and stk_ok responses variable but fixed for a single
@@ -1887,37 +1889,78 @@ static int urclock_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
  * sync until the stk_insync/ok responses coincide with the the most recent responses.
  */
 static int urclock_getsync(const PROGRAMMER *pgm) {
-  unsigned char iob[2];
+  unsigned char iob[2], autobaud_sync;
   int attempt;
+  AVRPART *part;
 
   // Reduce timeout for establishing comms
-  serial_recv_timeout = 80;     // ms
+  serial_recv_timeout = 10;     // ms
+  part = partdesc? locate_part(part_list, partdesc): NULL;
+  /*
+   * The urboot autosync detection uses a loop
+   *
+   * 2: adiw  r26, 32
+   *    sbis  RX_Pin_Port,RX_Bit
+   *    rjmp  2
+   *
+   * The number of cycles in this loop must be the position of the least significant set bit of the
+   * first byte sent by AVRDUDE. For a 5-cycle loop (ATmega*) the fifth-lowest bit must be set and
+   * the four least significant bit unset, eg, 0x30, which by coincidence is Cmnd_STK_GET_SYNC. For
+   * ATxmega* parts, the sync byte could be 0x20. For LGT8F* parts this loop has three cycles, so
+   * 0x1c would be appropriate. Care must be taken to not choose a sync byte that is an otherwise
+   * legitimate command, ie nothing avove 0x30 or below 0x10 should be chosen.
+   */
+  autobaud_sync = part && part->autobaud_sync? part->autobaud_sync: Cmnd_STK_GET_SYNC;
 
   ur.sync_silence = 1;
-  iob[0] = Cmnd_STK_GET_SYNC;   // Initial sync for autobaud - drain response
-  iob[1] = Sync_CRC_EOP;
-  urclock_send(pgm, iob, 2);
-  serial_drain(&pgm->fd, 0);
 
   for(attempt = 0; attempt < MAX_SYNC_ATTEMPTS; attempt++) {
-    iob[0] = Cmnd_STK_GET_SYNC;
+    /*
+     * The initial byte for autobaud must be the sync byte/Sync_CRC_EOP sequence; thereafter it
+     * should normally be Cmnd_STK_GET_SYNC/Sync_CRC_EOP. However, both urboot and optiboot are
+     * "permissive" as to the get sync command: anything that is not a valid, known command is
+     * acceptable. However, these are less permissive when it comes to the End of command byte
+     * Sync_CRC_EOP: if that is wrong the bootloader swiftly enters the application. Old but
+     * popular optiboot v4.4 first initialises the USART and *then* entertains the user for 300 ms
+     * with a flashing LED, which means that AVRDUDE's initial 2-byte sync sequence will appear as
+     * one byte Sync_CRC_EOP (because the first byte is overwritten) getting the communication out
+     * of step through a missing byte. If AVRDUDE then sends the next request starting with a
+     * Cmnd_STK_GET_SYNC command then optiboot v4.4 will bail as ist's not Sync_CRC_EOP. Hence, the
+     * strategy here is to send Sync_CRC_EOP/Sync_CRC_EOP for getting a sync. For those bootloaders
+     * that are strict about the protocol, eg, picoboot, the presence of -xstrict implies that
+     * comms should use Cmnd_STK_GET_SYNC for getting in sync.
+     */
+    iob[0] = attempt == 0? autobaud_sync: ur.strict? Cmnd_STK_GET_SYNC: Sync_CRC_EOP;
     iob[1] = Sync_CRC_EOP;
     urclock_send(pgm, iob, 2);
     if(urclock_recv(pgm, iob, 2) == 0) { // Expect bootloader to respond with two bytes
       if(!ur.gs.seen || iob[0] != ur.gs.stk_insync || iob[1] != ur.gs.stk_ok || iob[0] == iob[1]) {
         ur.gs.stk_insync = iob[0];
         ur.gs.stk_ok = iob[1];
-        if(ur.gs.seen)
-          serial_drain(&pgm->fd, 0);
         ur.gs.seen = 1;
       } else
         break;
+    } else {                    // Board not yet out of reset or bootloader twiddles lights
+      int slp = 32<<(attempt<3? attempt: 3);
+      pmsg_debug("%4d ms: sleeping for %d ms\n", avr_mstimestamp(), slp);
+      usleep(slp*1000);
     }
-    if(attempt > 2) {           // Don't report first three attempts
+    if(attempt > 5) {           // Don't report first six attempts
       ur.sync_silence = 0;
-      pmsg_warning("attempt %d of %d: not in sync\n", attempt - 2, MAX_SYNC_ATTEMPTS-3);
+      pmsg_warning("attempt %d of %d: not in sync\n", attempt - 5, MAX_SYNC_ATTEMPTS-6);
     }
   }
+
+  if(!ur.strict) {              // Could be out of step by one byte
+    iob[0] = Sync_CRC_EOP;
+    urclock_send(pgm, iob, 1);  // If so must send EOP
+    if(urclock_recv(pgm, iob, 1) < 0) {
+      iob[0] = Sync_CRC_EOP;    // No reply: we were not out of step, but are now
+      urclock_send(pgm, iob, 1); // So, send the concluding byte
+    }
+  }
+  serial_drain(&pgm->fd, 0);  // And either way drain the reply
+
   ur.sync_silence = 0;
 
   serial_recv_timeout = 500;    // ms
@@ -1943,7 +1986,7 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
     ur.urfeatures = UB_FEATURES(bootinfo);
     ur.urprotocol = 1;
 
-    set_uP(pgm, partdesc? locate_part(part_list, partdesc): NULL, mcuid, 1);
+    set_uP(pgm, part, mcuid, 1);
     if(!ur.uP.name)
       Return("cannot identify MCU");
     if(!partdesc)               // Provide partdesc info, so user does not have to set it
@@ -2148,15 +2191,17 @@ static int urclock_open(PROGRAMMER *pgm, const char *port) {
   // Set DTR and RTS back to high
   serial_set_dtr_rts(&pgm->fd, 1);
 
-  if((80+ur.delay) > 0)
-    usleep((80+ur.delay)*1000); // Wait until board comes out of reset
+  if((110+ur.delay) > 0)
+    usleep((110+ur.delay)*1000); // Wait until board comes out of reset
 
   // Drain any extraneous input
-  serial_drain_timeout = 80;    // ms
+  serial_drain_timeout = 20;    // ms
   serial_drain(&pgm->fd, 0);
 
+  pmsg_debug("%4d ms: enter urclock_getsync()\n", avr_mstimestamp());
   if(urclock_getsync(pgm) < 0)
     return -1;
+  pmsg_debug("%4d ms: all good, ready to rock\n", avr_mstimestamp());
 
   return 0;
 }
@@ -2372,6 +2417,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     {"nodate", &ur.nodate, NA,            "Do not store application filename and no date either"},
     {"nometadata", &ur.nometadata, NA,    "Do not store metadata at all (ie, no store support)"},
     {"delay", &ur.delay, ARG,             "Add delay [ms] after reset, can be negative"},
+    {"strict", &ur.strict, NA,            "Use strict synchronisation protocol"},
     {"help", &help, NA,                   "Show this help menu and exit"},
   };
 
@@ -2397,11 +2443,11 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
             char *end;
             long ret = strtol(arg, &end, 0);
             if(*end || end == arg) {
-             pmsg_error("cannot parse -x%s\n", arg);
+             pmsg_error("cannot parse -x%s\n", extended_param);
              return -1;
             }
             if((int) ret != ret) {
-             pmsg_error("out of integer range -x%s\n", arg);
+             pmsg_error("out of integer range -x%s\n", extended_param);
              return -1;
             }
             *options[i].optionp = ret;
