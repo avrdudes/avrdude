@@ -1872,7 +1872,7 @@ static int urclock_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
   rv = serial_recv(&pgm->fd, buf, len);
   if(rv < 0) {
     if(!ur.sync_silence)
-      pmsg_error("programmer is not responding; try and vary -xdelay=100 and/or -xstrict\n");
+      pmsg_error("programmer is not responding; try -xstrict and/or vary -xdelay=100\n");
     return -1;
   }
 
@@ -2191,8 +2191,13 @@ static int urclock_open(PROGRAMMER *pgm, const char *port) {
   // Set DTR and RTS back to high
   serial_set_dtr_rts(&pgm->fd, 1);
 
+#ifndef WIN32
   if((110+ur.delay) > 0)
     usleep((110+ur.delay)*1000); // Wait until board comes out of reset
+#else
+  if((137+ur.delay) > 0)
+    usleep((137+ur.delay)*1000); // Wait until board starts up accommodating effective drain time
+#endif
 
   // Drain any extraneous input
   serial_drain_timeout = 20;    // ms
