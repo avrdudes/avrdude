@@ -138,6 +138,9 @@
 #define STATUS_CKSUM_ERROR                  0xC1
 #define STATUS_CMD_UNKNOWN                  0xC9
 #define STATUS_CMD_ILLEGAL_PARAMETER        0xCA
+#define STATUS_PHY_ERROR                    0xCB
+#define STATUS_CLOCK_ERROR                  0xCC
+#define STATUS_BAUD_INVALID                 0xCD
 
 // Status
 #define STATUS_ISP_READY                    0x00
