@@ -481,14 +481,12 @@ static int jtagmkII_recv_frame(const PROGRAMMER *pgm, unsigned char **msg,
   unsigned char c, *buf = NULL, header[8];
   unsigned short r_seqno = 0;
 
-  struct timeval tv;
   double timeoutval = 100;	/* seconds */
   double tstart, tnow;
 
   pmsg_trace("jtagmkII_recv():\n");
 
-  gettimeofday(&tv, NULL);
-  tstart = tv.tv_sec;
+  tstart = avr_timestamp();
 
   while ( (state != sDONE ) && (!timeout) ) {
     if (state == sDATA) {
@@ -583,8 +581,7 @@ static int jtagmkII_recv_frame(const PROGRAMMER *pgm, unsigned char **msg,
         return -5;
      }
 
-     gettimeofday(&tv, NULL);
-     tnow = tv.tv_sec;
+     tnow = avr_timestamp();
      if (tnow - tstart > timeoutval) {
        pmsg_error("timeout\n");
        free(buf);

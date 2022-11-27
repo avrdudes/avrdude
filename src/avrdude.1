@@ -158,7 +158,7 @@ to be backwards compatible with STK500 v1.x, and allows bootloaders to be
 much smaller, eg, as implemented in the urboot project
 https://github.com/stefanrueger/urboot. The programmer type ``urclock''
 caters for these urboot programmers. Owing to its backward compatibility,
-any bootloader that can be served by the arduino programmer can normally
+bootloaders that can be served by the arduino programmer can normally
 also be served by the urclock programmer.
 .Pp
 The BusPirate is a versatile tool that can also be used as an AVR programmer.
@@ -1174,7 +1174,9 @@ Urclock ID can be between 1 and 8 bytes.
 .It Ar showdate
 Show the last-modified date of the input file for the flash application,
 then exit. If the input file was stdin, the date will be that of the
-programming.
+programming.  Date and filename are part of the metadata that the urclock
+programmer stores by default in high flash just under the bootloader; see also
+-xnometadata.
 .It Ar showfilename
 Show the input filename (or title) of the last flash writing session, then exit.
 .It Ar title=<string>
@@ -1200,9 +1202,10 @@ just behind the vector table with the name VBL_ADDITIONAL_VECTOR.
 .It Ar showpart
 Show the part for which the bootloader was compiled, then exit.
 .It Ar bootsize=<size>
-Manual override for bootloader size. Urboot bootloaders put the number of used
-bootloader pages into a table at the top of flash, so the urclock programmer can
-look up the bootloader size itself. In backward-compatibility mode, when programming
+Manual override for bootloader size. Urboot bootloaders put the number of
+used bootloader pages into a table at the top of the bootloader section,
+ie, typically top of flash, so the urclock programmer can look up the
+bootloader size itself. In backward-compatibility mode, when programming
 via other bootloaders, this option can be used to tell the programmer the
 size, and therefore the location, of the bootloader.
 .It Ar vectornum=<arg>
@@ -1250,8 +1253,12 @@ frame is programmed.
 .It Ar delay=<n>
 Add a <n> ms delay after reset. This can be useful if a board takes a
 particularly long time to exit from external reset. <n> can be negative,
-in which case the default 80 ms delay after issuing reset will be
+in which case the default 110-140 ms delay after issuing reset will be
 shortened accordingly.
+.It Ar strict
+Urclock has a faster, but slightly different strategy than -c arduino to
+synchronise with the bootloader; some stk500v1 bootloaders cannot cope
+with this, and they need the -xstrict option.
 .It Ar help
 Show this help menu and exit
 .El

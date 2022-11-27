@@ -578,6 +578,7 @@ AVRPART *avr_new_part(void) {
   // Default values
   p->mcuid = -1;
   p->hvupdi_variant = -1;
+  p->autobaud_sync = 0x30; // STK_GET_SYNC
   memset(p->signature, 0xFF, 3);
   p->reset_disposition = RESET_DEDICATED;
   p->retry_pulse = PIN_AVR_SCK;

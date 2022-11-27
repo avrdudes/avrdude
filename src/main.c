@@ -499,6 +499,8 @@ int main(int argc, char * argv [])
   char  * logfile;     /* Use logfile rather than stderr for diagnostics */
   enum updateflags uflags = UF_AUTO_ERASE | UF_VERIFY; /* Flags for do_op() */
 
+  (void) avr_ustimestamp();
+
 #ifdef _MSC_VER
   _set_printf_count_output(1);
 #endif
