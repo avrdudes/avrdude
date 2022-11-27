@@ -2051,6 +2051,7 @@ part
     rampz            = <num> ;                # IO addr of RAMPZ reg
     spmcr            = <num> ;                # mem addr of SPMC[S]R reg
     eecr             = <num> ;                # mem addr of EECR reg only when != 0x3f
+    eind             = <num> ;                # mem addr of EIND reg
     mcu_base         = <num> ;
     nvm_base         = <num> ;
     ocd_base         = <num> ;

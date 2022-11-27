@@ -295,6 +295,7 @@ typedef struct avrpart {
   unsigned char rampz;          /* I/O address of RAMPZ reg */
   unsigned char spmcr;          /* memory address of SPMCR reg */
   unsigned char eecr;           /* memory address of EECR reg */
+  unsigned char eind;           /* memory address of EIND reg */
   unsigned int mcu_base;        /* Base address of MCU control block in ATxmega devices */
   unsigned int nvm_base;        /* Base address of NVM controller in ATxmega devices */
   unsigned int ocd_base;        /* Base address of OCD module in AVR8X/UPDI devices */

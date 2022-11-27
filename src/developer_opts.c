@@ -56,7 +56,7 @@
 // Inject part parameters into a semi-automated rewrite of avrdude.conf
 //  - Add entries to the tables below; they get written on -p*/si or -c*/si
 //  - Use the output in a new avrdude.conf
-//  - Output again with -p* or -c* (no /i) and use that for final avrdude.conf
+//  - Output again with -p*/s or -c*/s (no /i) and use that for final avrdude.conf
 //  - Remove entries from below tables
 
 static struct {
@@ -712,6 +712,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
   _if_partout(intcmp, "0x%02x", rampz);
   _if_partout(intcmp, "0x%02x", spmcr);
   _if_partout(intcmp, "0x%02x", eecr);
+  _if_partout(intcmp, "0x%02x", eind);
   _if_partout(intcmp, "0x%04x", mcu_base);
   _if_partout(intcmp, "0x%04x", nvm_base);
   _if_partout(intcmp, "0x%04x", ocd_base);

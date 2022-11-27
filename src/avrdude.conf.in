@@ -137,6 +137,7 @@
 #       rampz            = <num> ;                # IO addr of RAMPZ reg
 #       spmcr            = <num> ;                # mem addr of SPMC[S]R reg
 #       eecr             = <num> ;                # mem addr of EECR reg only when != 0x3f
+#       eind             = <num> ;                # mem addr of EIND reg
 #       mcu_base         = <num> ;
 #       nvm_base         = <num> ;
 #       ocd_base         = <num> ;
@@ -4677,6 +4678,7 @@ part parent "m324p"
     desc                   = "ATmega324PB";
     id                     = "m324pb";
     mcuid                  = 113;
+    n_interrupts           = 51;
     signature              = 0x1e 0x95 0x17;
 ;
 
@@ -9436,7 +9438,6 @@ part parent "m1280"
     desc                   = "ATmega1281";
     id                     = "m1281";
     mcuid                  = 139;
-    n_interrupts           = 51;
     signature              = 0x1e 0x97 0x04;
 ;
 
@@ -9574,7 +9575,6 @@ part parent "m2560"
     desc                   = "ATmega2561";
     id                     = "m2561";
     mcuid                  = 144;
-    n_interrupts           = 51;
     signature              = 0x1e 0x98 0x02;
 ;
 
@@ -10878,6 +10878,7 @@ part
     programlockpolltimeout = 5;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
+    eind                   = 0x5c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -10968,7 +10969,7 @@ part
     id                     = "usb82";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
     mcuid                  = 174;
-    n_interrupts           = 58;
+    n_interrupts           = 29;
     n_boot_sections        = 4;
     boot_section_size      = 512;
     chip_erase_delay       = 9000;
@@ -11002,6 +11003,7 @@ part
     programlockpolltimeout = 5;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
+    eind                   = 0x5c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -11126,6 +11128,7 @@ part
     programlockpolltimeout = 5;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
+    eind                   = 0x5c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -11250,6 +11253,7 @@ part
     programlockpolltimeout = 5;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
+    eind                   = 0x5c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -11340,7 +11344,7 @@ part
     id                     = "m8u2";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
     mcuid                  = 48;
-    n_interrupts           = 58;
+    n_interrupts           = 29;
     n_boot_sections        = 4;
     boot_section_size      = 512;
     chip_erase_delay       = 9000;
@@ -11374,6 +11378,7 @@ part
     programlockpolltimeout = 5;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
+    eind                   = 0x5c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -11620,7 +11625,7 @@ part
     id                     = "m325";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 114;
-    n_interrupts           = 23;
+    n_interrupts           = 22;
     n_boot_sections        = 4;
     boot_section_size      = 512;
 #   stk500_devcode         = 0x??; # No STK500v1 support?
@@ -11767,7 +11772,6 @@ part parent "m325"
     desc                   = "ATmega325PA";
     id                     = "m325pa";
     mcuid                  = 117;
-    n_interrupts           = 22;
     signature              = 0x1e 0x95 0x0d;
 ;
 
@@ -11780,7 +11784,7 @@ part
     id                     = "m645";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 132;
-    n_interrupts           = 23;
+    n_interrupts           = 22;
     n_boot_sections        = 4;
     boot_section_size      = 1024;
 #   stk500_devcode         = 0x??; # No STK500v1 support?
@@ -13565,6 +13569,7 @@ part parent ".reduced_core_tiny"
     desc                   = "ATtiny102";
     id                     = "t102";
     mcuid                  = 6;
+    n_interrupts           = 16;
     signature              = 0x1e 0x90 0x0c;
 
     memory "flash"
@@ -13583,6 +13588,7 @@ part parent ".reduced_core_tiny"
     desc                   = "ATtiny104";
     id                     = "t104";
     mcuid                  = 7;
+    n_interrupts           = 16;
     signature              = 0x1e 0x90 0x0b;
 
     memory "flash"
@@ -14531,6 +14537,7 @@ part parent ".avr8x_tiny"
     desc                   = "ATtiny424";
     id                     = "t424";
     mcuid                  = 292;
+    n_interrupts           = 30;
     signature              = 0x1e 0x92 0x2c;
 
     memory "eeprom"
@@ -14556,6 +14563,7 @@ part parent ".avr8x_tiny"
     desc                   = "ATtiny426";
     id                     = "t426";
     mcuid                  = 293;
+    n_interrupts           = 30;
     signature              = 0x1e 0x92 0x2b;
 
     memory "eeprom"
@@ -14581,6 +14589,7 @@ part parent ".avr8x_tiny"
     desc                   = "ATtiny427";
     id                     = "t427";
     mcuid                  = 294;
+    n_interrupts           = 30;
     signature              = 0x1e 0x92 0x2a;
 
     memory "eeprom"
@@ -14606,6 +14615,7 @@ part parent ".avr8x_tiny"
     desc                   = "ATtiny824";
     id                     = "t824";
     mcuid                  = 301;
+    n_interrupts           = 30;
     signature              = 0x1e 0x93 0x29;
 
     memory "eeprom"
@@ -14631,6 +14641,7 @@ part parent ".avr8x_tiny"
     desc                   = "ATtiny826";
     id                     = "t826";
     mcuid                  = 302;
+    n_interrupts           = 30;
     signature              = 0x1e 0x93 0x28;
 
     memory "eeprom"
@@ -14656,6 +14667,7 @@ part parent ".avr8x_tiny"
     desc                   = "ATtiny827";
     id                     = "t827";
     mcuid                  = 303;
+    n_interrupts           = 30;
     signature              = 0x1e 0x93 0x27;
 
     memory "eeprom"
@@ -14681,6 +14693,7 @@ part parent ".avr8x_tiny"
     desc                   = "ATtiny1624";
     id                     = "t1624";
     mcuid                  = 310;
+    n_interrupts           = 30;
     signature              = 0x1e 0x94 0x2a;
 
     memory "eeprom"
@@ -14706,6 +14719,7 @@ part parent ".avr8x_tiny"
     desc                   = "ATtiny1626";
     id                     = "t1626";
     mcuid                  = 311;
+    n_interrupts           = 30;
     signature              = 0x1e 0x94 0x29;
 
     memory "eeprom"
@@ -14731,6 +14745,7 @@ part parent ".avr8x_tiny"
     desc                   = "ATtiny1627";
     id                     = "t1627";
     mcuid                  = 312;
+    n_interrupts           = 30;
     signature              = 0x1e 0x94 0x28;
 
     memory "eeprom"
@@ -14756,6 +14771,7 @@ part parent ".avr8x_tiny"
     desc                   = "ATtiny3224";
     id                     = "t3224";
     mcuid                  = 316;
+    n_interrupts           = 30;
     signature              = 0x1e 0x95 0x28;
 
     memory "eeprom"
@@ -14781,6 +14797,7 @@ part parent ".avr8x_tiny"
     desc                   = "ATtiny3226";
     id                     = "t3226";
     mcuid                  = 317;
+    n_interrupts           = 30;
     signature              = 0x1e 0x95 0x27;
 
     memory "eeprom"
@@ -14806,6 +14823,7 @@ part parent ".avr8x_tiny"
     desc                   = "ATtiny3227";
     id                     = "t3227";
     mcuid                  = 318;
+    n_interrupts           = 30;
     signature              = 0x1e 0x95 0x26;
 
     memory "eeprom"
@@ -15198,6 +15216,7 @@ part parent ".avrdx"
     id                     = "avr32da28";
     family_id              = "    AVR";
     mcuid                  = 338;
+    n_interrupts           = 41;
     signature              = 0x1e 0x95 0x34;
 
     memory "eeprom"
@@ -15223,6 +15242,7 @@ part parent ".avrdx"
     id                     = "avr32da32";
     family_id              = "    AVR";
     mcuid                  = 342;
+    n_interrupts           = 44;
     signature              = 0x1e 0x95 0x33;
 
     memory "eeprom"
@@ -15248,6 +15268,7 @@ part parent ".avrdx"
     id                     = "avr32da48";
     family_id              = "    AVR";
     mcuid                  = 346;
+    n_interrupts           = 58;
     signature              = 0x1e 0x95 0x32;
 
     memory "eeprom"
@@ -15273,6 +15294,7 @@ part parent ".avrdx"
     id                     = "avr64da28";
     family_id              = "    AVR";
     mcuid                  = 351;
+    n_interrupts           = 41;
     signature              = 0x1e 0x96 0x15;
 
     memory "eeprom"
@@ -15298,6 +15320,7 @@ part parent ".avrdx"
     id                     = "avr64da32";
     family_id              = "    AVR";
     mcuid                  = 355;
+    n_interrupts           = 44;
     signature              = 0x1e 0x96 0x14;
 
     memory "eeprom"
@@ -15323,6 +15346,7 @@ part parent ".avrdx"
     id                     = "avr64da48";
     family_id              = "    AVR";
     mcuid                  = 359;
+    n_interrupts           = 58;
     signature              = 0x1e 0x96 0x13;
 
     memory "eeprom"
@@ -15348,6 +15372,7 @@ part parent ".avrdx"
     id                     = "avr64da64";
     family_id              = "    AVR";
     mcuid                  = 362;
+    n_interrupts           = 64;
     signature              = 0x1e 0x96 0x12;
 
     memory "eeprom"
@@ -15373,6 +15398,7 @@ part parent ".avrdx"
     id                     = "avr128da28";
     family_id              = "    AVR";
     mcuid                  = 364;
+    n_interrupts           = 41;
     signature              = 0x1e 0x97 0x0a;
 
     memory "eeprom"
@@ -15398,6 +15424,7 @@ part parent ".avrdx"
     id                     = "avr128da32";
     family_id              = "    AVR";
     mcuid                  = 366;
+    n_interrupts           = 44;
     signature              = 0x1e 0x97 0x09;
 
     memory "eeprom"
@@ -15423,6 +15450,7 @@ part parent ".avrdx"
     id                     = "avr128da48";
     family_id              = "    AVR";
     mcuid                  = 368;
+    n_interrupts           = 58;
     signature              = 0x1e 0x97 0x08;
 
     memory "eeprom"
@@ -15448,6 +15476,7 @@ part parent ".avrdx"
     id                     = "avr128da64";
     family_id              = "    AVR";
     mcuid                  = 370;
+    n_interrupts           = 64;
     signature              = 0x1e 0x97 0x07;
 
     memory "eeprom"
@@ -15472,6 +15501,7 @@ part parent ".avrdx"
     desc                   = "AVR32DB28";
     id                     = "avr32db28";
     mcuid                  = 339;
+    n_interrupts           = 42;
     signature              = 0x1e 0x95 0x37;
 
     memory "eeprom"
@@ -15496,6 +15526,7 @@ part parent ".avrdx"
     desc                   = "AVR32DB32";
     id                     = "avr32db32";
     mcuid                  = 343;
+    n_interrupts           = 44;
     signature              = 0x1e 0x95 0x36;
 
     memory "eeprom"
@@ -15520,6 +15551,7 @@ part parent ".avrdx"
     desc                   = "AVR32DB48";
     id                     = "avr32db48";
     mcuid                  = 347;
+    n_interrupts           = 61;
     signature              = 0x1e 0x95 0x35;
 
     memory "eeprom"
@@ -15544,6 +15576,7 @@ part parent ".avrdx"
     desc                   = "AVR64DB28";
     id                     = "avr64db28";
     mcuid                  = 352;
+    n_interrupts           = 42;
     signature              = 0x1e 0x96 0x19;
 
     memory "eeprom"
@@ -15568,6 +15601,7 @@ part parent ".avrdx"
     desc                   = "AVR64DB32";
     id                     = "avr64db32";
     mcuid                  = 356;
+    n_interrupts           = 44;
     signature              = 0x1e 0x96 0x18;
 
     memory "eeprom"
@@ -15592,6 +15626,7 @@ part parent ".avrdx"
     desc                   = "AVR64DB48";
     id                     = "avr64db48";
     mcuid                  = 360;
+    n_interrupts           = 61;
     signature              = 0x1e 0x96 0x17;
 
     memory "eeprom"
@@ -15616,6 +15651,7 @@ part parent ".avrdx"
     desc                   = "AVR64DB64";
     id                     = "avr64db64";
     mcuid                  = 363;
+    n_interrupts           = 65;
     signature              = 0x1e 0x96 0x16;
 
     memory "eeprom"
@@ -15640,6 +15676,7 @@ part parent ".avrdx"
     desc                   = "AVR128DB28";
     id                     = "avr128db28";
     mcuid                  = 365;
+    n_interrupts           = 42;
     signature              = 0x1e 0x97 0x0e;
 
     memory "eeprom"
@@ -15664,6 +15701,7 @@ part parent ".avrdx"
     desc                   = "AVR128DB32";
     id                     = "avr128db32";
     mcuid                  = 367;
+    n_interrupts           = 44;
     signature              = 0x1e 0x97 0x0d;
 
     memory "eeprom"
@@ -15688,6 +15726,7 @@ part parent ".avrdx"
     desc                   = "AVR128DB48";
     id                     = "avr128db48";
     mcuid                  = 369;
+    n_interrupts           = 61;
     signature              = 0x1e 0x97 0x0c;
 
     memory "eeprom"
@@ -15712,6 +15751,7 @@ part parent ".avrdx"
     desc                   = "AVR128DB64";
     id                     = "avr128db64";
     mcuid                  = 371;
+    n_interrupts           = 65;
     signature              = 0x1e 0x97 0x0b;
 
     memory "eeprom"
@@ -15736,6 +15776,7 @@ part parent ".avrdx"
     desc                   = "AVR16DD14";
     id                     = "avr16dd14";
     mcuid                  = 329;
+    n_interrupts           = 36;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x94 0x34;
 
@@ -15761,6 +15802,7 @@ part parent ".avrdx"
     desc                   = "AVR16DD20";
     id                     = "avr16dd20";
     mcuid                  = 330;
+    n_interrupts           = 36;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x94 0x33;
 
@@ -15786,6 +15828,7 @@ part parent ".avrdx"
     desc                   = "AVR16DD28";
     id                     = "avr16dd28";
     mcuid                  = 331;
+    n_interrupts           = 36;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x94 0x32;
 
@@ -15811,6 +15854,7 @@ part parent ".avrdx"
     desc                   = "AVR16DD32";
     id                     = "avr16dd32";
     mcuid                  = 333;
+    n_interrupts           = 36;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x94 0x31;
 
@@ -15836,6 +15880,7 @@ part parent ".avrdx"
     desc                   = "AVR32DD14";
     id                     = "avr32dd14";
     mcuid                  = 336;
+    n_interrupts           = 36;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x95 0x3b;
 
@@ -15861,6 +15906,7 @@ part parent ".avrdx"
     desc                   = "AVR32DD20";
     id                     = "avr32dd20";
     mcuid                  = 337;
+    n_interrupts           = 36;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x95 0x3a;
 
@@ -15886,6 +15932,7 @@ part parent ".avrdx"
     desc                   = "AVR32DD28";
     id                     = "avr32dd28";
     mcuid                  = 340;
+    n_interrupts           = 36;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x95 0x39;
 
@@ -15911,6 +15958,7 @@ part parent ".avrdx"
     desc                   = "AVR32DD32";
     id                     = "avr32dd32";
     mcuid                  = 344;
+    n_interrupts           = 36;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x95 0x38;
 
@@ -15936,6 +15984,7 @@ part parent ".avrdx"
     desc                   = "AVR64DD14";
     id                     = "avr64dd14";
     mcuid                  = 349;
+    n_interrupts           = 36;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x96 0x1d;
 
@@ -15961,6 +16010,7 @@ part parent ".avrdx"
     desc                   = "AVR64DD20";
     id                     = "avr64dd20";
     mcuid                  = 350;
+    n_interrupts           = 36;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x96 0x1c;
 
@@ -15986,6 +16036,7 @@ part parent ".avrdx"
     desc                   = "AVR64DD28";
     id                     = "avr64dd28";
     mcuid                  = 353;
+    n_interrupts           = 36;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x96 0x1b;
 
@@ -16011,6 +16062,7 @@ part parent ".avrdx"
     desc                   = "AVR64DD32";
     id                     = "avr64dd32";
     mcuid                  = 357;
+    n_interrupts           = 36;
     hvupdi_variant         = 2;
     signature              = 0x1e 0x96 0x1a;
 
@@ -16257,6 +16309,7 @@ part parent ".avrex"
     desc                   = "AVR64EA28";
     id                     = "avr64ea28";
     mcuid                  = 354;
+    n_interrupts           = 37;
     signature              = 0x1e 0x96 0x20;
 
     memory "eeprom"
@@ -16282,6 +16335,7 @@ part parent ".avrex"
     desc                   = "AVR64EA32";
     id                     = "avr64ea32";
     mcuid                  = 358;
+    n_interrupts           = 37;
     signature              = 0x1e 0x96 0x1f;
 
     memory "eeprom"
@@ -16307,6 +16361,7 @@ part parent ".avrex"
     desc                   = "AVR64EA48";
     id                     = "avr64ea48";
     mcuid                  = 361;
+    n_interrupts           = 45;
     signature              = 0x1e 0x96 0x1e;
 
     memory "eeprom"
