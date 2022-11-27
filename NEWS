@@ -87,6 +87,7 @@ Changes since version 7.0:
       file has #1050
     - debugWire using dragon_dw and jtag2dw not working #1168
     - && echo OK does not work after -c urclock #1192
+    - Serial drain timeout needs calibrating for -c urclock #1193
 
   * Pull requests:
 
@@ -209,6 +210,8 @@ Changes since version 7.0:
     - Provide bootloader-hash tool #1190
     - Fix JTAGICE mkII parameters for parts with bootloaders #1191
     - Fix shell exit value when chip erase is delayed #1194
+    - Support autobaud for urclock programmer #1198
+    - Fix userrow size and page_size for ATtiny3216/7 #1199
 
 
   * Internals:
