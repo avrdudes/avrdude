@@ -14501,32 +14501,26 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "userrow"
+        size               = 64;
+        page_size          = 64;
+    ;
+
+    memory "usersig"
+        alias "userrow";
+    ;
 ;
 
 #------------------------------------------------------------
 # ATtiny3217
 #------------------------------------------------------------
 
-part parent ".avr8x_tiny"
+part parent "t3216"
     desc                   = "ATtiny3217";
     id                     = "t3217";
     mcuid                  = 315;
-    n_interrupts           = 31;
     signature              = 0x1e 0x95 0x22;
-
-    memory "eeprom"
-        size               = 256;
-        page_size          = 64;
-        offset             = 0x1400;
-        readsize           = 256;
-    ;
-
-    memory "flash"
-        size               = 0x8000;
-        page_size          = 128;
-        offset             = 0x8000;
-        readsize           = 256;
-    ;
 ;
 
 #------------------------------------------------------------
