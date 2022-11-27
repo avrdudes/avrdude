@@ -744,22 +744,21 @@ static Elf_Scn *elf_get_scn(Elf *e, Elf32_Phdr *ph, Elf32_Shdr **shptr)
   return NULL;
 }
 
-static int is_flash = 0;
-
 static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
                           unsigned int *lowbound,
                           unsigned int *highbound,
-                          unsigned int *fileoff)
+                          unsigned int *fileoff,
+                          unsigned int *is_flash)
 {
   int rv = 0;
 
-  is_flash = 0;
+  *is_flash = 0;
   if (p->prog_modes & PM_aWire) { // AVR32
     if (strcmp(mem->desc, "flash") == 0) {
       *lowbound = 0x80000000;
       *highbound = 0xffffffff;
       *fileoff = 0;
-      is_flash = 1;
+      *is_flash = 1;
     } else {
       rv = -1;
     }
@@ -771,7 +770,7 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
       *lowbound = 0;
       *highbound = 0x7ffff;       /* max 8 MiB */
       *fileoff = 0;
-      is_flash = 1;
+      *is_flash = 1;
     } else if (strcmp(mem->desc, "eeprom") == 0) {
       *lowbound = 0x810000;
       *highbound = 0x81ffff;      /* max 64 KiB */
@@ -795,7 +794,7 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
       *highbound = 0x82ffff;
       *fileoff = mem->desc[4] - '0';
     } else if (strcmp(mem->desc, "fuse") == 0) {
-      /* ATtiny4/5/9/10 use section .config in ELF */
+      /* ATtiny4/5/9/10/20/40 use section .config in ELF */
       *lowbound = 0x820000;
       *highbound = 0x82ffff;
       *fileoff = 0;
@@ -842,7 +841,7 @@ static void cmd_from_elf(ELF_CMD *lcmd, const AVRPART *p)
   int num = 0, elf_prev_mem_size = 0;
   UPDATE * upd = NULL;
 
-  if (!elf_all_write)
+  if (!lcmd->elf_all_write)
     return;
 
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
@@ -924,11 +923,11 @@ static int elf2b(const char *infile, FILE *inf,
 {
   Elf *e;
   int ign_chk = 0, rv = -1;
-  unsigned int low, high, foff;
+  unsigned int low, high, foff, isfl;
   ELF_CMD l_cmd;
   memset(&l_cmd, 0, sizeof(l_cmd));
 
-  if (elf_mem_limits(mem, p, &low, &high, &foff) != 0) {
+  if (elf_mem_limits(mem, p, &low, &high, &foff, &isfl) != 0) {
     pmsg_error("cannot handle %s memory region from ELF file\n", mem->desc);
     return -1;
   }
@@ -952,6 +951,7 @@ static int elf2b(const char *infile, FILE *inf,
     /* The config file offsets are PDI offsets, rebase to 0. */
     low = mem->offset - flashmem->offset;
     high = low + mem->size - 1;
+    isfl = 1;
   }
 
   if (elf_version(EV_CURRENT) == EV_NONE) {
@@ -1058,8 +1058,22 @@ static int elf2b(const char *infile, FILE *inf,
         sname = "*unknown*";
       }
 
+      if (isfl && !strcmp(sname, ".text")) {
+        LNODEID ln;
+        UPDATE * upd = NULL;
+        for (ln=lfirst(updates); ln; ln=lnext(ln)) {
+          upd = ldata(ln);
+          if (!strcmp(upd->memtype, "flash") ||
+              !strcmp(upd->memtype, "boot") ||
+              !strcmp(upd->memtype, "application") ||
+              !strcmp(upd->memtype, "apptable")) {
+            l_cmd.elf_all_write = upd->elf_all_write;
+            break;
+          }
+        }
+      }
       ign_chk = 0;
-      if (elf_all_write && (!strcmp(sname, ".fuse") || (!strcmp(sname, ".config") ||
+      if (l_cmd.elf_all_write && (!strcmp(sname, ".fuse") || (!strcmp(sname, ".config") ||
           !strcmp(sname, ".lock") || !strcmp(sname, ".eeprom")))) {
         ign_chk = sh->sh_size;
       }
@@ -1093,8 +1107,8 @@ static int elf2b(const char *infile, FILE *inf,
       Elf_Data *d = NULL;
       while ((d = elf_getdata(s, d)) != NULL) {
 
-        if (!elf_all_write) {
-          if (is_flash && strcmp(sname, ".text"))
+        if (!l_cmd.elf_all_write) {
+          if (isfl && strcmp(sname, ".text"))
             continue;
           goto skip_found_sect;
         }

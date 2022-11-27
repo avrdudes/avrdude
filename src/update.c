@@ -54,11 +54,14 @@ UPDATE * parse_op(char * s)
     upd->filename = cfg_strdup("parse_op()", buf);
     upd->format = FMT_AUTO;
 #ifdef HAVE_LIBELF
-    elf_all_write = 1;
+    upd->elf_all_write = 1;
 #endif
     return upd;
   }
 
+#ifdef HAVE_LIBELF
+  upd->elf_all_write = 0;
+#endif
   upd->memtype = cfg_strdup("parse_op()", buf);
 
   p++;
