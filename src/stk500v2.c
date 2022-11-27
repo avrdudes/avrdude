@@ -795,6 +795,11 @@ retry:
   // attempt to read the status back
   status = stk500v2_recv(pgm,buf,maxlen);
 
+  DEBUG("STK500V2: stk500v2_command() received content: [ ");
+  for (size_t i=0; i<len; i++)
+    DEBUG("0x%02x ",buf[i]);
+  DEBUG("], length %d\n", (int) len);
+
   // if we got a successful readback, return
   if (status > 0) {
     DEBUG(" = %d\n",status);
@@ -858,6 +863,9 @@ retry:
             return status;
         } else if (buf[1] == STATUS_CMD_FAILED) {
             pmsg_error("command failed\n");
+        } else if (buf[1] == STATUS_CLOCK_ERROR) {
+            pmsg_error("target clock speed error\n");
+            return -2;
         } else if (buf[1] == STATUS_CMD_UNKNOWN) {
             pmsg_error("unknown command\n");
         } else {
