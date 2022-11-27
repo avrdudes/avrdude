@@ -953,10 +953,7 @@ static int elf2b(const char *infile, FILE *inf,
   int ign_chk = 0, rv = -1;
   unsigned int low, high, foff, isfl;
   ELF_CMD l_cmd;
-
   memset(&l_cmd, 0, sizeof(l_cmd));
-  l_cmd.elf_fuse_data = cfg_malloc(__func__, 32);
-  l_cmd.elf_lock_data = cfg_malloc(__func__, 32);
 
   if (elf_mem_limits(mem, p, &low, &high, &foff, &isfl) != 0) {
     pmsg_error("cannot handle %s memory region from ELF file\n", mem->desc);
@@ -1063,6 +1060,8 @@ static int elf2b(const char *infile, FILE *inf,
     sndx = 0;
   }
 
+  l_cmd.elf_fuse_data = cfg_malloc(__func__, 32);
+  l_cmd.elf_lock_data = cfg_malloc(__func__, 32);
   /*
    * Walk the program header table, pick up entries that are of type
    * PT_LOAD, and have a non-zero p_filesz.
