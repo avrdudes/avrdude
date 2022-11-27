@@ -122,7 +122,7 @@ SIGN     [+-]
 
 
 (?x: prog_modes | mcuid | n_interrupts | n_page_erase | n_word_writes | n_boot_sections |
-  boot_section_size ) { /* Components for assignment  */
+  boot_section_size | autobaud_sync | idr | rampz | spmcr | eecr | eind ) { /* struct components */
 
   Component_t *cp = cfg_comp_search(yytext, current_strct);
   if(!cp) {
@@ -166,7 +166,6 @@ default_spi      { yylval=NULL; return K_DEFAULT_SPI; }
 delay            { yylval=NULL; ccap(); return K_DELAY; }
 desc             { yylval=NULL; ccap(); return K_DESC; }
 devicecode       { yylval=NULL; ccap(); return K_DEVICECODE; }
-eecr             { yylval=NULL; ccap(); return K_EECR; }
 eeprom           { yylval=NULL; return K_EEPROM; }
 eeprom_instr     { yylval=NULL; ccap(); return K_EEPROM_INSTR; }
 enablepageprogramming { yylval=NULL; ccap(); return K_ENABLEPAGEPROGRAMMING; }
@@ -186,7 +185,6 @@ hvspcmdexedelay  { yylval=NULL; ccap(); return K_HVSPCMDEXEDELAY; }
 hvupdi_support   { yylval=NULL; ccap(); return K_HVUPDI_SUPPORT; }
 hvupdi_variant   { yylval=NULL; ccap(); return K_HVUPDI_VARIANT; }
 id               { yylval=NULL; ccap(); return K_ID; }
-idr              { yylval=NULL; ccap(); return K_IDR; }
 io               { yylval=new_token(K_IO); return K_IO; }
 is_at90s1200     { yylval=NULL; ccap(); return K_IS_AT90S1200; }
 is_avr32         { yylval=NULL; ccap(); return K_IS_AVR32; }
@@ -232,7 +230,6 @@ programlockpulsewidth { yylval=NULL; ccap(); return K_PROGRAMLOCKPULSEWIDTH; }
 programmer       { yylval=NULL; ccap(); return K_PROGRAMMER; }
 pseudo           { yylval=new_token(K_PSEUDO); return K_PSEUDO; }
 pwroff_after_write { yylval=NULL; ccap(); return K_PWROFF_AFTER_WRITE; }
-rampz            { yylval=NULL; ccap(); return K_RAMPZ; }
 rdyled           { yylval=NULL; ccap(); return K_RDYLED; }
 read             { yylval=new_token(K_READ); ccap(); return K_READ; }
 read_hi          { yylval=new_token(K_READ_HI); ccap(); return K_READ_HI; }
@@ -253,7 +250,6 @@ serial           { yylval=NULL; ccap(); return K_SERIAL; }
 signature        { yylval=NULL; ccap(); return K_SIGNATURE; }
 size             { yylval=NULL; ccap(); return K_SIZE; }
 spi              { yylval=NULL; return K_SPI; }
-spmcr            { yylval=NULL; ccap(); return K_SPMCR; }
 stabdelay        { yylval=NULL; ccap(); return K_STABDELAY; }
 stk500_devcode   { yylval=NULL; ccap(); return K_STK500_DEVCODE; }
 synchcycles      { yylval=NULL; ccap(); return K_SYNCHCYCLES; }

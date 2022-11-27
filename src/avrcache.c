@@ -318,12 +318,8 @@ static int guessBootStart(const PROGRAMMER *pgm, const AVRPART *p) {
   int bootstart = 0;
   const AVR_Cache *cp = pgm->cp_flash;
 
-  for(size_t i = 0; i < sizeof uP_table/sizeof*uP_table; i++)
-    if(p->mcuid == uP_table[i].mcuid) {
-      if(uP_table[i].nboots > 0 && uP_table[i].bootsize > 0 && uP_table[i].flashsize == cp->size)
-        bootstart = cp->size - uP_table[i].nboots * uP_table[i].bootsize;
-      break;
-    }
+  if(p->n_boot_sections > 0 && p->boot_section_size > 0)
+    bootstart = cp->size - (p->boot_section_size<<(p->n_boot_sections-1));
 
   if(bootstart <= cp->size/2 || bootstart >= cp->size)
     bootstart = cp->size > 32768? cp->size - 16384: cp->size*3/4;

@@ -196,12 +196,8 @@ static int pin_name;
 %token K_HAS_PDI                /* MCU has PDI i/f rather than ISP (ATxmega). */
 %token K_HAS_UPDI               /* MCU has UPDI i/f (AVR8X). */
 %token K_HAS_TPI                /* MCU has TPI i/f rather than ISP (ATtiny4/5/9/10). */
-%token K_IDR			/* address of OCD register in IO space */
 %token K_IS_AT90S1200		/* chip is an AT90S1200 (needs special treatment) */
 %token K_IS_AVR32               /* chip is in the avr32 family */
-%token K_RAMPZ			/* address of RAMPZ reg. in IO space */
-%token K_SPMCR			/* address of SPMC[S]R in memory space */
-%token K_EECR    		/* address of EECR in memory space */
 %token K_FLASH_INSTR		/* flash instructions */
 %token K_EEPROM_INSTR		/* EEPROM instructions */
 
@@ -1198,30 +1194,6 @@ part_parm :
       else if ($3->primary == K_NO)
         current_part->flags &= ~AVRPART_ENABLEPAGEPROGRAMMING;
 
-      free_token($3);
-    } |
-
-  K_IDR TKN_EQUAL numexpr
-    {
-      current_part->idr = $3->value.number;
-      free_token($3);
-    } |
-
-  K_RAMPZ TKN_EQUAL numexpr
-    {
-      current_part->rampz = $3->value.number;
-      free_token($3);
-    } |
-
-  K_SPMCR TKN_EQUAL numexpr
-    {
-      current_part->spmcr = $3->value.number;
-      free_token($3);
-    } |
-
-  K_EECR TKN_EQUAL numexpr
-    {
-      current_part->eecr = $3->value.number;
       free_token($3);
     } |
 
