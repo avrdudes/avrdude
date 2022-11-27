@@ -222,7 +222,6 @@ typedef struct opcode {
 #ifdef HAVE_LIBELF
 #define MAX_LOCK_SIZE          1
 #define MAX_FUSE_SIZE          10
-#define MAX_EEPROM_SIZE        8192
 #endif
 /*
  * Any changes in AVRPART or AVRMEM, please also ensure changes are made in
@@ -351,7 +350,7 @@ typedef struct elf_cmd {
   unsigned char elf_lock_data;
 
   int elf_eeprom_size;
-  unsigned char elf_eeprom_data[MAX_EEPROM_SIZE];
+  char * elf_eeprom_filename;
 
   int elf_all_write;
 } ELF_CMD;

@@ -844,30 +844,22 @@ static void cmd_from_elf(ELF_CMD *lcmd, const AVRPART *p)
   if (!lcmd->elf_all_write)
     return;
 
-  for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
-    if ((m = ldata(ln)) && lcmd->elf_eeprom_size) {
-      if (elf_prev_mem_offset != m->offset || elf_prev_mem_size != m->size || (strcmp(p->family_id, "") == 0)) {
-        elf_prev_mem_offset = m->offset;
-        elf_prev_mem_size = m->size;
-        if (!strcmp(m->desc, "eeprom")) {
-          if (lcmd->elf_eeprom_size <= m->size) {
-            int i, next_byte = 0;
-            char e_cmd[(MAX_EEPROM_SIZE * 4) + 32] = {0};
-            char b_str[5]  = {0};
-            memset(e_cmd, 0, sizeof(e_cmd));
-            pmsg_info("found in ELF %s, size = %d\n", m->desc, lcmd->elf_eeprom_size);
-            strcat(e_cmd, "eeprom:w:");
-            for (i = 0; i < lcmd->elf_eeprom_size; i++) {
-              if (next_byte)
-                strcat(e_cmd, ",");
-              snprintf(b_str, sizeof(b_str), "0x%02X", lcmd->elf_eeprom_data[i]);
-              strcat(e_cmd, b_str);
-              next_byte = 1;
+  if (lcmd->elf_eeprom_filename) {
+    for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
+      if ((m = ldata(ln)) && lcmd->elf_eeprom_size) {
+        if (elf_prev_mem_offset != m->offset || elf_prev_mem_size != m->size || (strcmp(p->family_id, "") == 0)) {
+          elf_prev_mem_offset = m->offset;
+          elf_prev_mem_size = m->size;
+          if (!strcmp(m->desc, "eeprom")) {
+            if (lcmd->elf_eeprom_size <= m->size) {
+              char e_cmd[PATH_MAX + 32] = {0};
+              memset(e_cmd, 0, sizeof(e_cmd));
+              pmsg_info("found in ELF %s, size = %d\n", m->desc, lcmd->elf_eeprom_size);
+              snprintf(e_cmd, sizeof(e_cmd), "%s:w:%s:a", m->desc, lcmd->elf_eeprom_filename);
+              if ((upd = parse_op(e_cmd)))
+                ladd(updates, upd);
+              break;
             }
-            strcat(e_cmd, ":m");
-            if ((upd = parse_op(e_cmd)))
-              ladd(updates, upd);
-            break;
           }
         }
       }
@@ -1068,6 +1060,7 @@ static int elf2b(const char *infile, FILE *inf,
               !strcmp(upd->memtype, "application") ||
               !strcmp(upd->memtype, "apptable")) {
             l_cmd.elf_all_write = upd->elf_all_write;
+            l_cmd.elf_eeprom_filename = upd->filename;
             break;
           }
         }
@@ -1110,31 +1103,27 @@ static int elf2b(const char *infile, FILE *inf,
         if (!l_cmd.elf_all_write) {
           if (isfl && strcmp(sname, ".text"))
             continue;
-          goto skip_found_sect;
+        } else {
+          if (!strcmp(sname, ".fuse") || !strcmp(sname, ".config")) {
+            if ((d->d_size > 0) && (d->d_size <= MAX_FUSE_SIZE)) {
+              l_cmd.elf_fuse_size = d->d_size;
+              memcpy(l_cmd.elf_fuse_data, d->d_buf, d->d_size);
+            }
+            continue;
+          } else if (!strcmp(sname, ".lock")) {
+            if (d->d_size == MAX_LOCK_SIZE) {
+              l_cmd.elf_lock_size = d->d_size;
+              l_cmd.elf_lock_data = ((unsigned char *)d->d_buf)[0];
+            }
+            continue;
+          } else if (!strcmp(sname, ".eeprom")) {
+            if (d->d_size > 0)
+              l_cmd.elf_eeprom_size = d->d_size;
+            continue;
+          } else if (strcmp(sname, ".text"))
+            continue;
         }
 
-        if (!strcmp(sname, ".fuse") || !strcmp(sname, ".config")) {
-          if ((d->d_size > 0) && (d->d_size <= MAX_FUSE_SIZE)) {
-            l_cmd.elf_fuse_size = d->d_size;
-            memcpy(l_cmd.elf_fuse_data, d->d_buf, d->d_size);
-          }
-          continue;
-        } else if (!strcmp(sname, ".lock")) {
-          if (d->d_size == MAX_LOCK_SIZE) {
-            l_cmd.elf_lock_size = d->d_size;
-            l_cmd.elf_lock_data = ((unsigned char *)d->d_buf)[0];
-          }
-          continue;
-        } else if (!strcmp(sname, ".eeprom")) {
-          if ((d->d_size > 0) && (d->d_size <= MAX_EEPROM_SIZE)) {
-            l_cmd.elf_eeprom_size = d->d_size;
-            memcpy(l_cmd.elf_eeprom_data, d->d_buf, d->d_size);
-          }
-          continue;
-        } else if (strcmp(sname, ".text"))
-          continue;
-
-skip_found_sect:
         msg_notice2("    Data block: d_buf %p, d_off 0x%x, d_size %ld\n",
                         d->d_buf, (unsigned int)d->d_off, (long) d->d_size);
         if (mem->size == 1) {
