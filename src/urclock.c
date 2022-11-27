@@ -545,11 +545,10 @@ static void set_date_filename(const PROGRAMMER *pgm, const char *fname) {
   else {
     ur.filename[0] = 0;
     if(fname && *fname) {
-#if !defined (WIN32)
       if((base=strrchr(fname, '/')))
         base++;
-#else
-      if((base=strrchr(fname, '\\')))
+#ifdef WIN32
+      else if((base=strrchr(fname, '\\')))
         base++;
 #endif
       else
