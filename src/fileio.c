@@ -857,9 +857,9 @@ int file_is_elf(const char *filename)
   unsigned char buf[MAX_LINE_LEN];
 
 #if defined(WIN32)
-  f = fopen(filename, "r");
-#else
   f = fopen(filename, "rb");
+#else
+  f = fopen(filename, "r");
 #endif
   if (f == NULL)
     return 0;
@@ -1568,9 +1568,9 @@ int fileio_fmt_autodetect(const char * fname)
   int first = 1;
 
 #if defined(WIN32)
-  f = fopen(fname, "r");
-#else
   f = fopen(fname, "rb");
+#else
+  f = fopen(fname, "r");
 #endif
   if (f == NULL) {
     pmsg_ext_error("unable to open %s: %s\n", fname, strerror(errno));
