@@ -996,6 +996,10 @@ int fileio_fmt_autodetect(const char * fname);
 int fileio(int oprwv, const char *filename, FILEFMT format,
       const AVRPART *p, const char *memtype, int size);
 
+#ifdef HAVE_LIBELF
+int file_is_elf(const char *filename);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

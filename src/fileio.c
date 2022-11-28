@@ -851,6 +851,30 @@ FUSES = 0xFE;
 LOCKBITS = 0xFC;
 */
 
+int file_is_elf(const char *filename)
+{
+  FILE * f;
+  unsigned char buf[MAX_LINE_LEN];
+
+#if defined(WIN32)
+  f = fopen(filename, "r");
+#else
+  f = fopen(filename, "rb");
+#endif
+  if (f == NULL)
+    return 0;
+
+  while (fgets((char *)buf, MAX_LINE_LEN, f)!=NULL) {
+    /* check for ELF file */
+    if (buf[0] == 0177 && buf[1] == 'E' &&
+         buf[2] == 'L' && buf[3] == 'F') {
+      fclose(f);
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void cmd_from_elf(ELF_CMD *lcmd, const AVRPART *p)
 {
   char * cmd;
@@ -878,8 +902,10 @@ static void cmd_from_elf(ELF_CMD *lcmd, const AVRPART *p)
               pmsg_info("found in ELF %s, size = %d\n", m->desc, lcmd->elf_eeprom_size);
               memset(cmd, 0, MAX_CMD_SIZE);
               snprintf(cmd, MAX_CMD_SIZE, "%s:w:%s:a", m->desc, lcmd->elf_eeprom_filename);
-              if ((upd = parse_op(cmd)))
+              if ((upd = parse_op(cmd))) {
+                upd->elf_all_write = 1;
                 ladd(updates, upd);
+              }
               break;
             }
           }
@@ -898,8 +924,10 @@ static void cmd_from_elf(ELF_CMD *lcmd, const AVRPART *p)
             pmsg_info("found in ELF %s = 0x%02X\n", m->desc, lcmd->elf_fuse_data[num]);
             memset(cmd, 0, MAX_CMD_SIZE);
             snprintf(cmd, MAX_CMD_SIZE,"%s:w:0x%02X:m", m->desc, lcmd->elf_fuse_data[num]);
-            if ((upd = parse_op(cmd)))
+            if ((upd = parse_op(cmd))) {
+              upd->elf_all_write = 1;
               ladd(updates, upd);
+            }
           }
         } else if (strstr(m->desc, "fuse")) {
           int b = -1;
@@ -917,8 +945,10 @@ static void cmd_from_elf(ELF_CMD *lcmd, const AVRPART *p)
             pmsg_info("found in ELF %s = 0x%02X\n", m->desc, lcmd->elf_fuse_data[b]);
             memset(cmd, 0, MAX_CMD_SIZE);
             snprintf(cmd, MAX_CMD_SIZE,"%s:w:0x%02X:m", m->desc, lcmd->elf_fuse_data[b]);
-            if ((upd = parse_op(cmd)))
+            if ((upd = parse_op(cmd))) {
+              upd->elf_all_write = 1;
               ladd(updates, upd);
+            }
           }
         }
       }
@@ -930,15 +960,19 @@ static void cmd_from_elf(ELF_CMD *lcmd, const AVRPART *p)
     if (lcmd->elf_lock_size == MIN_LOCK_SIZE) {
       pmsg_info("found in ELF lockbits = 0x%02X\n", lcmd->elf_lock_data[0]);
       snprintf(cmd, MAX_CMD_SIZE,"lock:w:0x%02X:m", lcmd->elf_lock_data[0]);
-      if ((upd = parse_op(cmd)))
+      if ((upd = parse_op(cmd))) {
+        upd->elf_all_write = 1;
         ladd(updates, upd);
+      }
     } else if (lcmd->elf_lock_size == MAX_LOCK_SIZE) {
       pmsg_info("found in ELF lockbits = 0x%02X,0x%02X,0x%02X,0x%02X\n", lcmd->elf_lock_data[0],
                 lcmd->elf_lock_data[1], lcmd->elf_lock_data[2], lcmd->elf_lock_data[3]);
       snprintf(cmd, MAX_CMD_SIZE,"lock:w:0x%02X,0x%02X,0x%02X,0x%02X:m", lcmd->elf_lock_data[0],
                 lcmd->elf_lock_data[1], lcmd->elf_lock_data[2], lcmd->elf_lock_data[3]);
-      if ((upd = parse_op(cmd)))
+      if ((upd = parse_op(cmd))) {
+        upd->elf_all_write = 1;
         ladd(updates, upd);
+      }
     }
   }
 

@@ -54,7 +54,7 @@ UPDATE * parse_op(char * s)
     upd->filename = cfg_strdup("parse_op()", buf);
     upd->format = FMT_AUTO;
 #ifdef HAVE_LIBELF
-    upd->elf_all_write = 1;
+    upd->elf_all_write = file_is_elf(upd->filename);
 #endif
     return upd;
   }

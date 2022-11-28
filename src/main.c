@@ -1426,9 +1426,43 @@ int main(int argc, char * argv [])
     goto main_exit;
   }
 
+#ifdef HAVE_LIBELF
+  rc = 0;
+  for (ln=lfirst(updates); ln; ln=lnext(ln)) {
+    upd = ldata(ln);
+    if (avr_memtype_is_flash_type(upd->memtype) && (upd->op == DEVICE_WRITE) &&
+        upd->elf_all_write) {
+      rc++;
+    }
+  }
+  if (rc > 1) {
+    pmsg_error("option -U file.elf can be used only once!!!\n");
+    exitrc = 1;
+    goto main_exit;
+  }
+#endif
 
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
     upd = ldata(ln);
+#ifdef HAVE_LIBELF
+    if (avr_memtype_is_flash_type(upd->memtype) && (upd->op == DEVICE_WRITE) &&
+        upd->elf_all_write) {
+      LNODEID * ln_e = NULL;
+      for (ln_e=ln; ln_e; ln_e=lnext(ln_e)) {
+        upd = ldata(ln_e);
+        if (upd->elf_all_write) {
+          rc = do_op(pgm, p, upd, uflags);
+          if (rc && rc != LIBAVRDUDE_SOFTFAIL) {
+            exitrc = 1;
+            goto main_exit;
+          } else if(rc == 0 && upd->op == DEVICE_WRITE && avr_memtype_is_flash_type(upd->memtype))
+            ce_delayed = 0;           // Redeemed chip erase promise
+        }
+      }
+    }
+    if (upd->elf_all_write)
+      continue;
+#endif
     rc = do_op(pgm, p, upd, uflags);
     if (rc && rc != LIBAVRDUDE_SOFTFAIL) {
       exitrc = 1;
