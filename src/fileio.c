@@ -842,7 +842,7 @@ LOCKBITS = 0xFC;
 
 _EEPROM = { 0x11, 0x22, };
 
-For Attiny4/5/9/10(Not support FUSES macros and .fuse section!!!):
+For ATtiny4/5/9/10/20/40 (FUSES macro and .fuse section not supported by avr-libc):
 
 #define _FUSEMEM __attribute__((__used__, __section__(".config")))
 #define FUSES uint8_t __fuses _FUSEMEM

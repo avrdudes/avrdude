@@ -1436,7 +1436,7 @@ int main(int argc, char * argv [])
     }
   }
   if (rc > 1) {
-    pmsg_error("option -U file.elf can be used only once!!!\n");
+    pmsg_error("option -U file.elf can only be used once.\n");
     exitrc = 1;
     goto main_exit;
   }
