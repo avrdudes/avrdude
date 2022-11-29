@@ -2652,7 +2652,7 @@ static void jtag3_disable_tpi(const PROGRAMMER *pgm) {
 static int jtag3_read_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                                unsigned long addr, unsigned char * value) {
   int result;
-  static size_t len = 8;
+  const size_t len = 8;
   unsigned char buf[len];
   unsigned char* resp;
   unsigned long paddr = 0UL;
@@ -2681,7 +2681,7 @@ static int jtag3_read_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
 static int jtag3_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                            unsigned long addr) {
-  static size_t len = 6;
+  const size_t len = 6;
   unsigned char buf[len];
   unsigned char* resp;
   int result;
@@ -2713,7 +2713,7 @@ static int jtag3_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
 static int jtag3_write_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                                 unsigned long addr, unsigned char data) {
-  size_t len = 11;
+  const size_t len = 11;
   unsigned char buf[len];
   unsigned char* resp;
   int result;
@@ -2748,7 +2748,7 @@ static int jtag3_write_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const A
 }
 
 static int jtag3_chip_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
-  size_t len = 6;
+  const size_t len = 6;
   unsigned char buf[len];
   unsigned char* resp;
   int result;
@@ -2801,6 +2801,7 @@ static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
   int status;
   long otimeout = serial_recv_timeout;
 
+  msg_notice2("\n");
   pmsg_notice2("jtag3_paged_load_tpi(.., %s, %d, 0x%04x, %d)\n",
                m->desc, page_size, addr, n_bytes);
 
@@ -2842,6 +2843,71 @@ static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
 
   return n_bytes;
 }
+
+static int jtag3_paged_write_tpi(const PROGRAMMER *pgm, const AVRPART *p,
+                                 const AVRMEM *m, unsigned int page_size,
+                                 unsigned int addr, unsigned int n_bytes) {
+  unsigned int block_size;
+  unsigned int maxaddr = addr + n_bytes;
+  unsigned char *cmd;
+  unsigned char *resp;
+  int status;
+  long otimeout = serial_recv_timeout;
+
+  msg_notice2("\n");
+  pmsg_notice2("jtag3_paged_write_tpi(.., %s, %d, 0x%04x, %d)\n", m->desc, page_size, addr, n_bytes);
+
+  if(m->offset)
+    msg_notice2("          mapped to address: 0x%04x\n", (addr+m->offset));
+
+  if (page_size == 0)
+    page_size = m->page_size;
+
+  if ((cmd = malloc(page_size + 9)) == NULL) {
+    pmsg_error("out of memory\n");
+    return -1;
+  }
+
+  cmd[0] = XPRG_CMD_WRITE_MEM;
+  cmd[1] = tpi_get_memtype(m);
+  cmd[2] = 0;  // Page Mode; Not used - ignored
+
+  serial_recv_timeout = 100;
+  for (; addr < maxaddr; addr += page_size) {
+    if ((maxaddr - addr) < page_size)
+      block_size = maxaddr - addr;
+    else
+      block_size = page_size;
+    pmsg_debug("jtag3_paged_write(): "
+      "block_size at addr 0x%x is %d\n", addr, block_size);
+
+    u32_to_b4_big_endian((cmd+3), addr + m->offset);  // Address
+    u16_to_b2_big_endian((cmd+7), page_size);        // Size
+
+    /*
+     * If a partial page has been requested, set the remainder to 0xff.
+     * (Maybe we should rather read back the existing contents instead
+     * before?  Doesn't matter much, as bits cannot be written to 1 anyway.)
+     */
+    memset(cmd + 9, 0xff, page_size);
+    memcpy(cmd + 9, m->buf + addr, block_size);
+
+    if ((status = jtag3_command_tpi(pgm, cmd, page_size + 9,
+        &resp, "write memory")) < 0) {
+      free(cmd);
+      serial_recv_timeout = otimeout;
+      return -1;
+    }
+
+    free(resp);
+  }
+
+  free(cmd);
+  serial_recv_timeout = otimeout;
+
+  return n_bytes;
+}
+
 
 const char jtag3_desc[] = "Atmel JTAGICE3";
 
@@ -3028,7 +3094,7 @@ void jtag3_tpi_initpgm(PROGRAMMER *pgm) {
   /*
    * optional functions
    */
-  pgm->paged_write    = jtag3_paged_write;
+  pgm->paged_write    = jtag3_paged_write_tpi;
   pgm->paged_load     = jtag3_paged_load_tpi;
   pgm->print_parms    = jtag3_print_parms;
   pgm->setup          = jtag3_setup;
