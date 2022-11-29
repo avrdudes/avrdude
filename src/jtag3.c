@@ -2653,7 +2653,7 @@ static int jtag3_read_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AV
                                unsigned long addr, unsigned char * value) {
   int result;
   const size_t len = 8;
-  unsigned char buf[len];
+  unsigned char buf[8];  // Using "len" as array length causes msvc build jobs to fail with error C2057: expected constant expression
   unsigned char* resp;
   unsigned long paddr = 0UL;
 
@@ -2682,7 +2682,7 @@ static int jtag3_read_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AV
 static int jtag3_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                            unsigned long addr) {
   const size_t len = 6;
-  unsigned char buf[len];
+  unsigned char buf[6];  // Using "len" as array length causes msvc build jobs to fail with error C2057: expected constant expression
   unsigned char* resp;
   int result;
   unsigned long paddr = 0UL;
@@ -2714,7 +2714,7 @@ static int jtag3_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 static int jtag3_write_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                                 unsigned long addr, unsigned char data) {
   const size_t len = 11;
-  unsigned char buf[len];
+  unsigned char buf[11];  // Using "len" as array length causes msvc build jobs to fail with error C2057: expected constant expression
   unsigned char* resp;
   int result;
   unsigned long paddr = 0UL;
@@ -2733,7 +2733,7 @@ static int jtag3_write_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const A
   u32_to_b4_big_endian((buf+3), paddr);  // Address
   u16_to_b2_big_endian((buf+7), 2);      // Size
   buf[9] = data;
-  buf[10] = 0x00;
+  buf[10] = 0xFF;
 
   if (jtag3_send_tpi(pgm, buf, len) < 0)
     return -1;
@@ -2749,7 +2749,7 @@ static int jtag3_write_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const A
 
 static int jtag3_chip_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
   const size_t len = 6;
-  unsigned char buf[len];
+  unsigned char buf[6];  // Using "len" as array length causes msvc build jobs to fail with error C2057: expected constant expression
   unsigned char* resp;
   int result;
   unsigned long paddr = 0UL;
