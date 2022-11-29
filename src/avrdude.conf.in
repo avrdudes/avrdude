@@ -13265,12 +13265,6 @@ part
         offset             = 0x3f00;
     ;
 
-    memory "lockbits"
-        size               = 1;
-        page_size          = 16;
-        offset             = 0x3f00;
-    ;
-
     memory "signature"
         size               = 3;
         page_size          = 16;
@@ -13402,6 +13396,12 @@ part parent ".reduced_core_tiny"
         offset             = 0x4000;
         blocksize          = 128;
     ;
+
+    memory "sigrow"
+        size               = 16;
+        page_size          = 16;
+        offset             = 0x3fc6;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -13419,6 +13419,12 @@ part parent ".reduced_core_tiny"
         page_size          = 16;
         offset             = 0x4000;
         blocksize          = 128;
+    ;
+
+    memory "sigrow"
+        size               = 16;
+        page_size          = 16;
+        offset             = 0x3fc6;
     ;
 ;
 
