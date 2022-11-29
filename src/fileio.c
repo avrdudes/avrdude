@@ -1335,7 +1335,7 @@ int fileio_fmt_autodetect(const char * fname)
   int found;
   int first = 1;
 
-#if defined(WIN32)
+#if !defined(WIN32)
   f = fopen(fname, "r");
 #else
   f = fopen(fname, "rb");
