@@ -1170,7 +1170,7 @@ static int elf2b(const char *infile, FILE *inf,
       while ((d = elf_getdata(s, d)) != NULL) {
 
         if (!l_cmd.elf_all_write) {
-          if (isfl && strcmp(sname, ".text"))
+          if (isfl && strcmp(sname, ".text") && strcmp(sname, ".data"))
             continue;
         } else {
           if (!strcmp(sname, ".fuse") || !strcmp(sname, ".config")) {
@@ -1193,7 +1193,7 @@ static int elf2b(const char *infile, FILE *inf,
             if (d->d_size > 0)
               l_cmd.elf_eeprom_size = d->d_size;
             continue;
-          } else if (strcmp(sname, ".text"))
+          } else if (strcmp(sname, ".text") && strcmp(sname, ".data"))
             continue;
         }
 
