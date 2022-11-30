@@ -2559,52 +2559,6 @@ int jtag3_recv_tpi(const PROGRAMMER *pgm, unsigned char **msg) {
   return rv;
 }
 
-/*
- * initialize the AVR device and prepare it to accept commands
- */
-static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
-  unsigned char cmdbuf[4];
-  unsigned char* resp;
-  // AVRMEM * m;
-  pmsg_info("jtag3_initialize_tpi() start\n");
-
-  cmdbuf[0] = XPRG_CMD_ENTER_PROGMODE;
-
-  if (jtag3_send_tpi(pgm, cmdbuf, 1) < 0) {
-    pmsg_error("XPRG_CMD_ENTER_PROGMODE failed\n");
-    return -1;
-  }
-
-  jtag3_recv_tpi(pgm, &resp);
-  free(resp);
-
-  cmdbuf[0] = XPRG_CMD_SET_PARAM;
-  cmdbuf[1] = XPRG_PARAM_NVMCMD_ADDR;
-  cmdbuf[2] = TPI_NVMCMD_ADDRESS;
-
-  if (jtag3_send_tpi(pgm, cmdbuf, 3) < 0) {
-    pmsg_error("Set NVMCMD address failed\n");
-    return -1;
-  }
-
-  jtag3_recv_tpi(pgm, &resp);
-  free(resp);
-
-  cmdbuf[0] = XPRG_CMD_SET_PARAM;
-  cmdbuf[1] = XPRG_PARAM_NVMCSR_ADDR;
-  cmdbuf[2] = TPI_NVMCSR_ADDRESS;
-
-  if (jtag3_send_tpi(pgm, cmdbuf, 3) < 0) {
-    pmsg_error("Set NVMCSR address failed\n");
-    return -1;
-  }
-
-  jtag3_recv_tpi(pgm, &resp);
-  free(resp);
-
-  return 0;
-}
-
 int jtag3_command_tpi(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen,
                   unsigned char **resp, const char *descr) {
   int status;
@@ -2621,7 +2575,7 @@ int jtag3_command_tpi(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cm
 
   c = (*resp)[1];
   if (c != XPRG_ERR_OK) {
-    pmsg_notice("bad response to %s command: 0x%02x\n", descr, c);
+    pmsg_error("[TPI] command %s FAILED! Status: 0x%02x\n", descr, c);
     status = (*resp)[3];
     free(*resp);
     resp = 0;
@@ -2631,49 +2585,76 @@ int jtag3_command_tpi(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cm
   return status;
 }
 
+/*
+ * initialize the AVR device and prepare it to accept commands
+ */
+static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
+  unsigned char cmd[4];
+  unsigned char* resp;
+  int status;
+
+  pmsg_info("jtag3_initialize_tpi() start\n");
+
+  cmd[0] = XPRG_CMD_ENTER_PROGMODE;
+
+  if ((status = jtag3_command_tpi(pgm, cmd, 1, &resp, "Enter Progmode")) < 0)
+    return -1;
+  free(resp);
+
+  cmd[0] = XPRG_CMD_SET_PARAM;
+  cmd[1] = XPRG_PARAM_NVMCMD_ADDR;
+  cmd[2] = TPI_NVMCMD_ADDRESS;
+
+  if ((status = jtag3_command_tpi(pgm, cmd, 3, &resp, "Set NVMCMD")) < 0)
+    return -1;
+  free(resp);
+
+  cmd[0] = XPRG_CMD_SET_PARAM;
+  cmd[1] = XPRG_PARAM_NVMCSR_ADDR;
+  cmd[2] = TPI_NVMCSR_ADDRESS;
+
+  if ((status = jtag3_command_tpi(pgm, cmd, 3, &resp, "Set NVMCSR")) < 0)
+    return -1;
+  free(resp);
+  return 0;
+}
+
 static void jtag3_enable_tpi(PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_notice2("jtag3_enable_tpi() is empty. No action necessary.\n");
 }
 
 static void jtag3_disable_tpi(const PROGRAMMER *pgm) {
-  unsigned char cmdbuf[4];
+  unsigned char cmd[1];
   unsigned char* resp;
+  int status;
 
-  cmdbuf[0] = XPRG_CMD_LEAVE_PROGMODE;
+  cmd[0] = XPRG_CMD_LEAVE_PROGMODE;
 
-  if (jtag3_send_tpi(pgm, cmdbuf, 1) < 0) {
-    pmsg_error("XPRG_CMD_LEAVE_PROGMODE failed\n");
+  if ((status = jtag3_command_tpi(pgm, cmd, 1, &resp, "Leave Progmode")) < 0)
     return;
-  }
-  jtag3_recv_tpi(pgm, &resp);
   free(resp);
 }
 
 static int jtag3_read_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                                unsigned long addr, unsigned char * value) {
-  int result;
+  int status;
   const size_t len = 8;
-  unsigned char buf[8];  // Using "len" as array length causes msvc build jobs to fail with error C2057: expected constant expression
+  unsigned char cmd[8];  // Using "len" as array length causes msvc build jobs to fail with error C2057: expected constant expression
   unsigned char* resp;
   unsigned long paddr = 0UL;
 
+  msg_notice2("\n");
   pmsg_notice2("jtag3_read_byte_tpi(.., %s, 0x%lx, ...)\n", mem->desc, addr);
 
   paddr = mem->offset + addr;
 
-  buf[0] = XPRG_CMD_READ_MEM;
-  buf[1] = tpi_get_memtype(mem);
-  u32_to_b4_big_endian((buf+2), paddr);  // Address
-  u16_to_b2_big_endian((buf+6), 1);      // Size
+  cmd[0] = XPRG_CMD_READ_MEM;
+  cmd[1] = tpi_get_memtype(mem);
+  u32_to_b4_big_endian((cmd+2), paddr);  // Address
+  u16_to_b2_big_endian((cmd+6), 1);      // Size
 
-  if (jtag3_send_tpi(pgm, buf, len) < 0)
+  if ((status = jtag3_command_tpi(pgm, cmd, len, &resp, "read byte")) < 0)
     return -1;
-
-  result = jtag3_recv_tpi(pgm, &resp);
-  if (result < 0) {
-    pmsg_error("error in communication, received status 0x%02x\n", result);
-    return -1;
-  }
   *value = resp[2];
   free(resp);
   return 0;
@@ -2682,76 +2663,77 @@ static int jtag3_read_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AV
 static int jtag3_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                            unsigned long addr) {
   const size_t len = 6;
-  unsigned char buf[6];  // Using "len" as array length causes msvc build jobs to fail with error C2057: expected constant expression
+  unsigned char cmd[6];  // Using "len" as array length causes msvc build jobs to fail with error C2057: expected constant expression
   unsigned char* resp;
-  int result;
+  int status;
   unsigned long paddr = 0UL;
 
-  buf[0] = XPRG_CMD_ERASE;
+  cmd[0] = XPRG_CMD_ERASE;
   if (strcmp(mem->desc, "fuse") == 0) {
-    buf[1] = XPRG_ERASE_CONFIG;
+    cmd[1] = XPRG_ERASE_CONFIG;
   } else if (strcmp(mem->desc, "flash") == 0) {
-    buf[1] = XPRG_ERASE_APP;
+    cmd[1] = XPRG_ERASE_APP;
   } else {
     pmsg_error("jtag3_erase_tpi() unsupported memory: %s\n", mem->desc);
     return -1;
   }
   paddr = (mem->offset + addr) | 0x01;  // An erase is triggered by an access to the hi-byte
-  u32_to_b4_big_endian((buf+2), paddr);
+  u32_to_b4_big_endian((cmd+2), paddr);
 
-  if (jtag3_send_tpi(pgm, buf, len) < 0)
+  if ((status = jtag3_command_tpi(pgm, cmd, len, &resp, "erase")) < 0)
     return -1;
-
-  result = jtag3_recv_tpi(pgm, &resp);
-  if (result < 0) {
-    pmsg_error("error in communication, received status 0x%02x\n", result);
-    return -1;
-  }
   free(resp);
   return 0;
 }
 
 static int jtag3_write_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                                 unsigned long addr, unsigned char data) {
-  const size_t len = 11;
-  unsigned char buf[11];  // Using "len" as array length causes msvc build jobs to fail with error C2057: expected constant expression
+  size_t len = 11;
+  unsigned char cmd[17];
   unsigned char* resp;
-  int result;
+  int status;
   unsigned long paddr = 0UL;
 
-  result = jtag3_erase_tpi(pgm, p, mem, addr);
-  if (result < 0) {
-    pmsg_error("error in communication, received status 0x%02x\n", result);
+  status = jtag3_erase_tpi(pgm, p, mem, addr);
+  if (status < 0) {
+    pmsg_error("error in communication, received status 0x%02x\n", status);
     return -1;
   }
 
   paddr = mem->offset + addr;
 
-  buf[0] = XPRG_CMD_WRITE_MEM;
-  buf[1] = tpi_get_memtype(mem);
-  buf[2] = 0;  // Page Mode - Not used
-  u32_to_b4_big_endian((buf+3), paddr);  // Address
-  u16_to_b2_big_endian((buf+7), 2);      // Size
-  buf[9] = data;
-  buf[10] = 0xFF;
+  cmd[0] = XPRG_CMD_WRITE_MEM;
+  cmd[1] = tpi_get_memtype(mem);
+  cmd[2] = 0;  // Page Mode - Not used
+  u32_to_b4_big_endian((cmd+3), paddr);  // Address
+  u16_to_b2_big_endian((cmd+7), 2);      // Size
+  cmd[9] = data;
+  cmd[10] = 0xFF;  // len = 11 if no n_word_writes
+  cmd[11] = 0xFF;
+  cmd[12] = 0xFF;  // len = 13 if n_word_writes == 2
+  cmd[13] = 0xFF;
+  cmd[14] = 0xFF;
+  cmd[15] = 0xFF;
+  cmd[16] = 0xFF;  // len = 17 if n_word_writes == 4
 
-  if (jtag3_send_tpi(pgm, buf, len) < 0)
-    return -1;
-
-  result = jtag3_recv_tpi(pgm, &resp);
-  if (result < 0) {
-    pmsg_error("error in communication, received status 0x%02x\n", result);
-    return -1;
+  if (mem->n_word_writes != 0) {
+    if (mem->n_word_writes == 2)
+      len = 13;
+    else if (mem->n_word_writes == 4)
+      len = 17;
   }
+
+  if ((status = jtag3_command_tpi(pgm, cmd, len, &resp, "write byte")) < 0)
+    return -1;
   free(resp);
   return 0;
 }
 
 static int jtag3_chip_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
   const size_t len = 6;
-  unsigned char buf[6];  // Using "len" as array length causes msvc build jobs to fail with error C2057: expected constant expression
+  unsigned char cmd[6];  // Using "len" as array length causes msvc build jobs to fail with error C2057: expected constant expression
   unsigned char* resp;
-  int result;
+  int status;
   unsigned long paddr = 0UL;
 
   AVRMEM *m = avr_locate_mem(p, "flash");
@@ -2760,21 +2742,15 @@ static int jtag3_chip_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
+  // An erase is triggered by an access to the hi-byte
   paddr = m->offset | 0x01;
 
-  buf[0] = XPRG_CMD_ERASE;
-  buf[1] = XPRG_ERASE_CHIP;
-  // An erase is triggered by an access to the hi-byte
-  u32_to_b4_big_endian((buf+2), paddr);
+  cmd[0] = XPRG_CMD_ERASE;
+  cmd[1] = XPRG_ERASE_CHIP;
+  u32_to_b4_big_endian((cmd+2), paddr);
 
-  if (jtag3_send_tpi(pgm, buf, len) < 0)
+  if ((status = jtag3_command_tpi(pgm, cmd, len, &resp, "chip erase")) < 0)
     return -1;
-
-  result = jtag3_recv_tpi(pgm, &resp);
-  if (result < 0) {
-    pmsg_error("error in communication, received status 0x%02x\n", result);
-    return -1;
-  }
   free(resp);
   return 0;
 }
