@@ -230,6 +230,8 @@ add_library(libavrdude
     urclock_private.h
     usbasp.c
     usbasp.h
+    ch341a.c
+    ch341a.h
     usbdevs.h
     usb_hidapi.c
     usb_libusb.c
@@ -244,7 +246,7 @@ add_library(libavrdude
     ${BISON_Parser_OUTPUTS}
     "${EXTRA_WINDOWS_SOURCES}"
     )
-    
+
 set_target_properties(libavrdude PROPERTIES
     PREFIX ""
     PUBLIC_HEADER "libavrdude.h"

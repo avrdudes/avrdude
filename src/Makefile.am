@@ -169,6 +169,8 @@ libavrdude_a_SOURCES = \
 	tpi.h \
 	usbasp.c \
 	usbasp.h \
+	ch341a.c \
+	ch341a.h \
 	serialupdi.c \
 	serialupdi.h \
 	updi_constants.h \

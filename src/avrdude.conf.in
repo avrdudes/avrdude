@@ -1508,6 +1508,17 @@ programmer
   # see below "nibobee"
 ;
 
+programmer
+  id    = "ch341a";
+  desc  = "ch341a programmer";
+  type  = "ch341a";
+  connection_type = usb;
+  usbvid     = 0x1A86;
+  usbpid     = 0x5512;
+  usbvendor  = "wch.cn";
+  usbproduct = "CH341A";
+;
+
 #------------------------------------------------------------
 # nibobee
 #------------------------------------------------------------
