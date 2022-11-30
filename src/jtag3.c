@@ -2689,6 +2689,7 @@ static int jtag3_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 static int jtag3_write_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                                 unsigned long addr, unsigned char data) {
   size_t len = 11;
+  size_t data_size = 2;
   unsigned char cmd[17];
   unsigned char* resp;
   int status;
@@ -2702,11 +2703,22 @@ static int jtag3_write_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const A
 
   paddr = mem->offset + addr;
 
+  if (mem->n_word_writes != 0) {
+    if (mem->n_word_writes == 2) {
+      len = 13;
+      data_size = 4;
+    }
+    else if (mem->n_word_writes == 4) {
+      len = 17;
+      data_size = 8;
+    }
+  }
+
   cmd[0] = XPRG_CMD_WRITE_MEM;
   cmd[1] = tpi_get_memtype(mem);
   cmd[2] = 0;  // Page Mode - Not used
-  u32_to_b4_big_endian((cmd+3), paddr);  // Address
-  u16_to_b2_big_endian((cmd+7), 2);      // Size
+  u32_to_b4_big_endian((cmd+3), paddr);      // Address
+  u16_to_b2_big_endian((cmd+7), data_size);  // Size
   cmd[9] = data;
   cmd[10] = 0xFF;  // len = 11 if no n_word_writes
   cmd[11] = 0xFF;
@@ -2715,13 +2727,6 @@ static int jtag3_write_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const A
   cmd[14] = 0xFF;
   cmd[15] = 0xFF;
   cmd[16] = 0xFF;  // len = 17 if n_word_writes == 4
-
-  if (mem->n_word_writes != 0) {
-    if (mem->n_word_writes == 2)
-      len = 13;
-    else if (mem->n_word_writes == 4)
-      len = 17;
-  }
 
   if ((status = jtag3_command_tpi(pgm, cmd, len, &resp, "write byte")) < 0)
     return -1;
