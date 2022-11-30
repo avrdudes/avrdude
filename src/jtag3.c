@@ -2653,7 +2653,7 @@ static int jtag3_read_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AV
   u32_to_b4_big_endian((cmd+2), paddr);  // Address
   u16_to_b2_big_endian((cmd+6), 1);      // Size
 
-  if ((status = jtag3_command_tpi(pgm, cmd, len, &resp, "read byte")) < 0)
+  if ((status = jtag3_command_tpi(pgm, cmd, len, &resp, "Read Byte")) < 0)
     return -1;
   *value = resp[2];
   free(resp);
@@ -2680,7 +2680,7 @@ static int jtag3_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   paddr = (mem->offset + addr) | 0x01;  // An erase is triggered by an access to the hi-byte
   u32_to_b4_big_endian((cmd+2), paddr);
 
-  if ((status = jtag3_command_tpi(pgm, cmd, len, &resp, "erase")) < 0)
+  if ((status = jtag3_command_tpi(pgm, cmd, len, &resp, "Erase")) < 0)
     return -1;
   free(resp);
   return 0;
@@ -2728,7 +2728,7 @@ static int jtag3_write_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const A
   cmd[15] = 0xFF;
   cmd[16] = 0xFF;  // len = 17 if n_word_writes == 4
 
-  if ((status = jtag3_command_tpi(pgm, cmd, len, &resp, "write byte")) < 0)
+  if ((status = jtag3_command_tpi(pgm, cmd, len, &resp, "Write Byte")) < 0)
     return -1;
   free(resp);
   return 0;
@@ -2754,7 +2754,7 @@ static int jtag3_chip_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
   cmd[1] = XPRG_ERASE_CHIP;
   u32_to_b4_big_endian((cmd+2), paddr);
 
-  if ((status = jtag3_command_tpi(pgm, cmd, len, &resp, "chip erase")) < 0)
+  if ((status = jtag3_command_tpi(pgm, cmd, len, &resp, "Chip Erase")) < 0)
     return -1;
   free(resp);
   return 0;
@@ -2787,7 +2787,7 @@ static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
                m->desc, page_size, addr, n_bytes);
 
   if(m->offset)
-    msg_notice2("          mapped to address: 0x%04x\n", (addr+m->offset));
+    imsg_notice2("mapped to address: 0x%04x\n", (addr+m->offset));
 
   cmd[0] = XPRG_CMD_READ_MEM;
   cmd[1] = tpi_get_memtype(m);
@@ -2807,7 +2807,7 @@ static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
     u32_to_b4_big_endian((cmd+2), addr + m->offset);  // Address
     u16_to_b2_big_endian((cmd+6), block_size);        // Size
 
-    if ((status = jtag3_command_tpi(pgm, cmd, 8, &resp, "read memory")) < 0)
+    if ((status = jtag3_command_tpi(pgm, cmd, 8, &resp, "Read Memory")) < 0)
       return -1;
 
     if (resp[1] != XPRG_ERR_OK ||
@@ -2839,7 +2839,7 @@ static int jtag3_paged_write_tpi(const PROGRAMMER *pgm, const AVRPART *p,
   pmsg_notice2("jtag3_paged_write_tpi(.., %s, %d, 0x%04x, %d)\n", m->desc, page_size, addr, n_bytes);
 
   if(m->offset)
-    msg_notice2("          mapped to address: 0x%04x\n", (addr+m->offset));
+    imsg_notice2("mapped to address: 0x%04x\n", (addr+m->offset));
 
   if (page_size == 0)
     page_size = m->page_size;
@@ -2874,7 +2874,7 @@ static int jtag3_paged_write_tpi(const PROGRAMMER *pgm, const AVRPART *p,
     memcpy(cmd + 9, m->buf + addr, block_size);
 
     if ((status = jtag3_command_tpi(pgm, cmd, page_size + 9,
-        &resp, "write memory")) < 0) {
+        &resp, "Write Memory")) < 0) {
       free(cmd);
       serial_recv_timeout = otimeout;
       return -1;
