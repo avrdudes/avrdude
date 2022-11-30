@@ -2593,7 +2593,7 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char* resp;
   int status;
 
-  pmsg_info("jtag3_initialize_tpi() start\n");
+  pmsg_notice2("jtag3_initialize_tpi() start\n");
 
   cmd[0] = XPRG_CMD_ENTER_PROGMODE;
 
