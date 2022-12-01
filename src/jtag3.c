@@ -2509,10 +2509,6 @@ unsigned char tpi_get_memtype(const AVRMEM *mem) {
   return memtype;
 }
 
-// void tpi_print_error_status(unsigned char error) {
-//   pmsg_error("error communicating with programmer, received status 0x%02x\n", error);
-// }
-
 /*
  * Send the data as a JTAGICE3 encapsulated TPI packet.
  */
@@ -2589,7 +2585,7 @@ int jtag3_command_tpi(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cm
  * initialize the AVR device and prepare it to accept commands
  */
 static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
-  unsigned char cmd[4];
+  unsigned char cmd[3];
   unsigned char* resp;
   int status;
 

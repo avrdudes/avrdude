@@ -343,7 +343,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
   for(size_t i = 0; i < sizeof mems/sizeof*mems; i++) {
     AVRMEM *mem = mems[i].mem;
     AVR_Cache *cp = mems[i].cp;
-    if(!mem || !cp->cont)
+    if(!mem || !cp->cont || !cp->size)
       continue;
 
     for(int pgno = 0, n = 0; n < cp->size; pgno++, n += cp->page_size) {
@@ -367,6 +367,8 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
     AVRMEM *mem = mems[i].mem;
     AVR_Cache *cp = mems[i].cp;
 
+    if(!cp->size)
+      continue;
     if(!cp->cont)           // Ensure cache is initialised from now on
       if(initCache(cp, pgm, p) < 0) {
         if(quell_progress)
@@ -419,7 +421,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
     for(size_t i = 0; i < sizeof mems/sizeof*mems; i++) {
       AVRMEM *mem = mems[i].mem;
       AVR_Cache *cp = mems[i].cp;
-      if(!mem)
+      if(!mem || !cp->size)
         continue;
 
       for(int pgno = 0, n = 0; n < cp->size; pgno++, n += cp->page_size)
@@ -433,7 +435,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
       for(size_t i = 0; i < sizeof mems/sizeof*mems; i++) {
         AVRMEM *mem = mems[i].mem;
         AVR_Cache *cp = mems[i].cp;
-        if(!mem)
+        if(!mem || !cp->size)
           continue;
 
         for(int ird = 0, pgno = 0, n = 0; n < cp->size; pgno++, n += cp->page_size) {
@@ -460,7 +462,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
     for(size_t i = 0; i < sizeof mems/sizeof*mems; i++) {
       AVRMEM *mem = mems[i].mem;
       AVR_Cache *cp = mems[i].cp;
-      if(!mem)
+      if(!mem || !cp->size)
         continue;
 
       if(mems[i].isflash) {     // flash
@@ -508,7 +510,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
   for(size_t i = 0; i < sizeof mems/sizeof*mems; i++) {
     AVRMEM *mem = mems[i].mem;
     AVR_Cache *cp = mems[i].cp;
-    if(!mem)
+    if(!mem || !cp->size)
       continue;
 
     for(int pgno = 0, n = 0; n < cp->size; pgno++, n += cp->page_size)
@@ -522,7 +524,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
     for(size_t i = 0; i < sizeof mems/sizeof*mems; i++) {
       AVRMEM *mem = mems[i].mem;
       AVR_Cache *cp = mems[i].cp;
-      if(!mem || !cp->cont)
+      if(!mem || !cp->cont || !cp->size)
         continue;
 
       for(int iwr = 0, pgno = 0, n = 0; n < cp->size; pgno++, n += cp->page_size) {
@@ -644,7 +646,7 @@ int avr_chip_erase_cached(const PROGRAMMER *pgm, const AVRPART *p) {
     AVRMEM *mem = mems[i].mem;
     AVR_Cache *cp = mems[i].cp;
 
-    if(!mem || !avr_has_paged_access(pgm, mem))
+    if(!mem || !cp->size || !avr_has_paged_access(pgm, mem))
       continue;
 
     if(!cp->cont)               // Init cache if needed
@@ -734,6 +736,8 @@ int avr_reset_cache(const PROGRAMMER *pgm, const AVRPART *p) {
 
   for(size_t i = 0; i < sizeof mems/sizeof*mems; i++) {
     AVR_Cache *cp = mems[i];
+    if(!cp->size)
+      continue;
     if(cp->cont)
       free(cp->cont);
     if(cp->copy)
