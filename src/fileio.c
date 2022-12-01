@@ -959,7 +959,6 @@ static int elf2b(const char *infile, FILE *inf,
           memset(mem->tags + idx, TAG_ALLOCATED, d->d_size);
         }
       }
-      break;                  // Stop after first section in program header
     }
   }
 done:
