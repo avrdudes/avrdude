@@ -367,6 +367,9 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
     AVRMEM *mem = mems[i].mem;
     AVR_Cache *cp = mems[i].cp;
 
+    if(!mem)
+      continue;
+
     if(!cp->cont)           // Ensure cache is initialised from now on
       if(initCache(cp, pgm, p) < 0) {
         if(quell_progress)
