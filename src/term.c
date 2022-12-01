@@ -1357,7 +1357,7 @@ void term_gotline(char *cmdstr) {
 }
 
 
-int terminal_mode(PROGRAMMER *pgm, struct avrpart *p) {
+int terminal_mode_interactive(PROGRAMMER *pgm, struct avrpart *p) {
   term_pgm = pgm;               // For callback routine
   term_p = p;
 
@@ -1379,10 +1379,10 @@ int terminal_mode(PROGRAMMER *pgm, struct avrpart *p) {
   return pgm->flush_cache(pgm, p);
 }
 
-#else
+#endif
 
 
-int terminal_mode(PROGRAMMER *pgm, struct avrpart *p) {
+int terminal_mode_noninteractive(PROGRAMMER *pgm, struct avrpart *p) {
   char *cmdbuf;
   int rc = 0;
 
@@ -1398,7 +1398,13 @@ int terminal_mode(PROGRAMMER *pgm, struct avrpart *p) {
   return pgm->flush_cache(pgm, p);
 }
 
+int terminal_mode(PROGRAMMER *pgm, struct avrpart *p) {
+#if defined(HAVE_LIBREADLINE)
+  if (isatty(fileno(stdin)))
+    return terminal_mode_interactive(pgm, p);
 #endif
+  return terminal_mode_noninteractive(pgm, p);
+}
 
 static void update_progress_tty(int percent, double etime, const char *hdr, int finish) {
   static char *header;
