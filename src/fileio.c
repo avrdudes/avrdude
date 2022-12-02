@@ -772,7 +772,7 @@ static int elf2b(const char *infile, FILE *inf,
                  int bufsize, unsigned int fileoffset)
 {
   Elf *e;
-  int rv = -1;
+  int rv = 0, size = 0;
   unsigned int low, high, foff;
 
   if (elf_mem_limits(mem, p, &low, &high, &foff) != 0) {
@@ -897,6 +897,7 @@ static int elf2b(const char *infile, FILE *inf,
 
       if (sh == NULL) {
         pmsg_error("unable to read section #%u header: %s\n", (unsigned int) ndx, elf_errmsg(-1));
+        rv = -1;
         continue;
       }
       // Only interested in PROGBITS, ALLOC sections
@@ -927,8 +928,9 @@ static int elf2b(const char *infile, FILE *inf,
        * from it, using the "foff" offset obtained above.
        */
       if (mem->size != 1 && sh->sh_size > (unsigned) mem->size) {
-        pmsg_error("section %s does not fit into %s memory:\n"
-          "    0x%x + %u > %u\n", sname, mem->desc, lma, sh->sh_size, mem->size);
+        pmsg_error("section %s of size %u does not fit into %s of size %d\n",
+          sname, sh->sh_size, mem->desc, mem->size);
+        rv = -1;
         continue;
       }
 
@@ -939,31 +941,38 @@ static int elf2b(const char *infile, FILE *inf,
         if (mem->size == 1) {
           if (d->d_off != 0) {
             pmsg_error("unexpected data block at offset != 0\n");
+            rv = -1;
           } else if (foff >= d->d_size) {
             pmsg_error("ELF file section does not contain byte at offset %d\n", foff);
+            rv = -1;
           } else {
             msg_notice2("    Extracting one byte from file offset %d\n", foff);
             mem->buf[0] = ((unsigned char *)d->d_buf)[foff];
             mem->tags[0] = TAG_ALLOCATED;
-            rv = 1;
+            size = 1;
           }
         } else {
-          unsigned int idx;
+          int idx = lma-low + d->d_off;
+          int end = idx + d->d_size;
 
-          idx = lma - low + d->d_off;
-          if ((int)(idx + d->d_size) > rv)
-            rv = idx + d->d_size;
-          msg_debug("    Writing %ld bytes to mem offset 0x%x\n",
-            (long) d->d_size, idx);
-          memcpy(mem->buf + idx, d->d_buf, d->d_size);
-          memset(mem->tags + idx, TAG_ALLOCATED, d->d_size);
+          if(idx >= 0 && idx < mem->size && end >= 0 && end <= mem->size && end-idx >= 0) {
+            if (end > size)
+              size = end;
+            imsg_debug("writing %d bytes to mem offset 0x%x\n", end-idx, idx);
+            memcpy(mem->buf + idx, d->d_buf, end-idx);
+            memset(mem->tags + idx, TAG_ALLOCATED, end-idx);
+          } else {
+            pmsg_error("section %s [0x%04x, 0x%04x] does not fit into %s [0, 0x%04x]\n",
+              sname, idx, (int) (idx + d->d_size-1), mem->desc, mem->size-1);
+            rv = -1;
+          }
         }
       }
     }
   }
 done:
   (void)elf_end(e);
-  return rv;
+  return rv<0? rv: size;
 }
 #endif  /* HAVE_LIBELF */
 
