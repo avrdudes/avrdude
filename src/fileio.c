@@ -887,8 +887,8 @@ static int elf2b(const char *infile, FILE *inf,
     if (ph[i].p_type != PT_LOAD || ph[i].p_filesz == 0)
       continue;
 
-    pmsg_notice2("considering PT_LOAD program header entry #%d:\n"
-      "    p_vaddr 0x%x, p_paddr 0x%x, p_filesz %d\n", (int) i, ph[i].p_vaddr, ph[i].p_paddr, ph[i].p_filesz);
+    pmsg_notice2("considering PT_LOAD program header entry #%d\n", (int) i);
+    imsg_notice2("p_vaddr 0x%x, p_paddr 0x%x, p_filesz %d\n", ph[i].p_vaddr, ph[i].p_paddr, ph[i].p_filesz);
 
     Elf_Scn *scn = NULL;
     while ((scn = elf_nextscn(e, scn)) != NULL) {
@@ -916,7 +916,7 @@ static int elf2b(const char *infile, FILE *inf,
       pmsg_notice2("found section %s, LMA 0x%x, sh_size %u\n", sname, lma, sh->sh_size);
 
       if(!(lma >= low && lma + sh->sh_size < high)) {
-        msg_notice2("    => skipping, inappropriate for %s memory region\n", mem->desc);
+        imsg_notice2("skipping %s (inappropriate for %s)\n", sname, mem->desc);
         continue;
       }
       /*
@@ -936,7 +936,7 @@ static int elf2b(const char *infile, FILE *inf,
 
       Elf_Data *d = NULL;
       while ((d = elf_getdata(scn, d)) != NULL) {
-        msg_notice2("    Data block: d_buf %p, d_off 0x%x, d_size %ld\n",
+        imsg_notice2("data block: d_buf %p, d_off 0x%x, d_size %ld\n",
           d->d_buf, (unsigned int)d->d_off, (long) d->d_size);
         if (mem->size == 1) {
           if (d->d_off != 0) {
@@ -946,7 +946,7 @@ static int elf2b(const char *infile, FILE *inf,
             pmsg_error("ELF file section does not contain byte at offset %d\n", foff);
             rv = -1;
           } else {
-            msg_notice2("    Extracting one byte from file offset %d\n", foff);
+            imsg_notice2("extracting one byte from file offset %d\n", foff);
             mem->buf[0] = ((unsigned char *)d->d_buf)[foff];
             mem->tags[0] = TAG_ALLOCATED;
             size = 1;
