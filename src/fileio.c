@@ -118,10 +118,9 @@ char * fileio_fmtstr(FILEFMT format)
 }
 
 
-static int b2ihex(const unsigned char *inbuf, int bufsize,
-           int recsize, int startaddr,
-           const char *outfile, FILE *outf, FILEFMT ffmt)
-{
+static int b2ihex(const unsigned char *inbuf, int bufsize, int recsize,
+  int startaddr, const char *outfile_unused, FILE *outf, FILEFMT ffmt) {
+
   const unsigned char *buf;
   unsigned int nextaddr;
   int n, nbytes, n_64k;
@@ -397,10 +396,9 @@ static int ihex2b(const char *infile, FILE *inf,
   }
 }
 
-static int b2srec(const unsigned char *inbuf, int bufsize,
-           int recsize, int startaddr,
-           const char *outfile, FILE *outf)
-{
+static int b2srec(const unsigned char *inbuf, int bufsize, int recsize,
+  int startaddr, const char *outfile_unused, FILE *outf) {
+
   const unsigned char *buf;
   unsigned int nextaddr;
   int n, nbytes, addr_width;
@@ -767,10 +765,9 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
 }
 
 
-static int elf2b(const char *infile, FILE *inf,
-                 const AVRMEM *mem, const AVRPART *p,
-                 int bufsize, unsigned int fileoffset)
-{
+static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
+  const AVRPART *p, int bufsize_unused, unsigned int fileoffset_unused) {
+
   Elf *e;
   int rv = 0, size = 0;
   unsigned int low, high, foff;
@@ -1045,9 +1042,9 @@ static int fileio_rbin(struct fioparms *fio,
 }
 
 
-static int fileio_imm(struct fioparms *fio,
-             const char *fname, FILE *f, const AVRMEM *mem, int size)
-{
+static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
+ const AVRMEM *mem, int size) {
+
   int rc = 0;
   char *e, *p, *filename;
   unsigned long b;
