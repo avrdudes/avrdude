@@ -267,11 +267,11 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     if (read_mem[i].mem == NULL) {
       read_mem[i].mem = mem;
       if (read_mem[i].len == 0)
-        read_mem[i].len = read_size;
+        read_mem[i].len = maxsize > read_size? read_size: maxsize;
       break;
     } else if (read_mem[i].mem == mem) {
       if (read_mem[i].len == 0)
-        read_mem[i].len = read_size;
+        read_mem[i].len = maxsize > read_size? read_size: maxsize;
       break;
     }
   }
