@@ -728,11 +728,11 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
         strcmp(mem->desc, "application") == 0 ||
         strcmp(mem->desc, "apptable") == 0) {
       *lowbound = 0;
-      *highbound = 0x7ffff;       /* max 8 MiB */
+      *highbound = 0x7Fffff;    // Max 8 MiB
       *fileoff = 0;
     } else if (strcmp(mem->desc, "eeprom") == 0) {
       *lowbound = 0x810000;
-      *highbound = 0x81ffff;      /* max 64 KiB */
+      *highbound = 0x81ffff;    // Max 64 KiB
       *fileoff = 0;
     } else if (strcmp(mem->desc, "lfuse") == 0) {
       *lowbound = 0x820000;
