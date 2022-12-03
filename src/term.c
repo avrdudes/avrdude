@@ -248,15 +248,26 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   int maxsize = mem->size;
 
   // Preserve memory start address and length info for every readable memory
-  static struct mem_addr_len {
+  struct mem_addr_len {
     int addr;
     int len;
     AVRMEM *mem;
-  } read_mem[32];
+  };
+  static struct mem_addr_len* read_mem;
+  int n_mems = 0;
+  if (read_mem == NULL) {
+    for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln))
+      n_mems++;
+    read_mem = calloc(n_mems, sizeof(struct mem_addr_len));
+    if (read_mem == NULL) {
+      pmsg_error("(dump) out of memory\n");
+      return -1;
+    }
+  }
 
   // Iterate though the structs to find relevant address and length info
   int i;
-  for(i = 0; i < 32; i++) {
+  for(i = 0; i < n_mems; i++) {
     if (read_mem[i].mem == NULL) { // Memory not read / no match
       read_mem[i].mem = mem;
       if (read_mem[i].len == 0)
