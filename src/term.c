@@ -203,7 +203,7 @@ static int chardump_line(char *buffer, unsigned char *p, int n, int pad) {
 }
 
 
-static int hexdump_buf(FILE *f, int startaddr, unsigned char *buf, int len) {
+static int hexdump_buf(FILE *f, AVRMEM *m, int startaddr, unsigned char *buf, int len) {
   char dst1[80];
   char dst2[80];
 
@@ -213,11 +213,15 @@ static int hexdump_buf(FILE *f, int startaddr, unsigned char *buf, int len) {
     int n = 16;
     if (n > len)
       n = len;
+    else if(addr + n > m->size)
+      n = m->size - addr;
     hexdump_line(dst1, p, n, 48);
     chardump_line(dst2, p, n, 16);
     term_out("%04x  %s  |%s|\n", addr, dst1, dst2);
     len -= n;
     addr += n;
+    if (addr >= m->size)
+      addr = 0;
     p += n;
   }
 
@@ -325,8 +329,8 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   }
 
   // Trim len if nessary to not read past the end of memory
-  if ((read_mem[i].addr + read_mem[i].len) > maxsize)
-    read_mem[i].len = maxsize - read_mem[i].addr;
+  //if ((read_mem[i].addr + read_mem[i].len) > maxsize)
+  //  read_mem[i].len = maxsize - read_mem[i].addr;
 
   uint8_t *buf = malloc(read_mem[i].len);
   if (buf == NULL) {
@@ -336,7 +340,8 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
   report_progress(0, 1, "Reading");
   for (int j = 0; j < read_mem[i].len; j++) {
-    int rc = pgm->read_byte_cached(pgm, p, read_mem[i].mem, read_mem[i].addr + j, &buf[j]);
+    int addr = (read_mem[i].addr + j) % mem->size;
+    int rc = pgm->read_byte_cached(pgm, p, read_mem[i].mem, addr, &buf[j]);
     if (rc != 0) {
       report_progress(1, -1, NULL);
       pmsg_error("(dump) error reading %s address 0x%05lx of part %s\n", mem->desc, (long) read_mem[i].addr + j, p->desc);
@@ -348,7 +353,7 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   }
   report_progress(1, 1, NULL);
 
-  hexdump_buf(stdout, read_mem[i].addr, buf, read_mem[i].len);
+  hexdump_buf(stdout, mem, read_mem[i].addr, buf, read_mem[i].len);
   term_out("\n");
 
   free(buf);
