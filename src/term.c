@@ -230,15 +230,14 @@ static int hexdump_buf(FILE *f, AVRMEM *m, int startaddr, unsigned char *buf, in
 
 
 static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
-  struct mem_addr_len {
+  static struct mem_addr_len {
     int addr;
     int len;
     AVRMEM *mem;
-  };
-  static struct mem_addr_len* read_mem;
+  } read_mem[32];
   static int i;
 
-  if ((argc < 2 && read_mem == NULL) || argc > 4) {
+  if ((argc < 2 && read_mem[0].mem == NULL) || argc > 4) {
     msg_error(
       "Usage: %s <memory> <addr> <len>\n"
       "       %s <memory> <addr> ...\n"
@@ -263,20 +262,8 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   }
   int maxsize = mem->size;
 
-  // Preserve memory start address and length info for every readable memory
-  static int n_mems = 0;
-  if (read_mem == NULL) {
-    for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln))
-      n_mems++;
-    read_mem = calloc(n_mems, sizeof(struct mem_addr_len));
-    if (read_mem == NULL) {
-      pmsg_error("(dump) out of memory\n");
-      return -1;
-    }
-  }
-
   // Iterate through the read_mem structs to find relevant address and length info
-  for(i = 0; i < n_mems; i++) {
+  for(i = 0; i < 32; i++) {
     if (read_mem[i].mem == NULL) {
       read_mem[i].mem = mem;
       if (read_mem[i].len == 0)
