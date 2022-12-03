@@ -315,9 +315,9 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       read_mem[i].addr = 0; // Wrap around
   }
 
-  // Trim len if nessary to not read past the end of memory
-  //if ((read_mem[i].addr + read_mem[i].len) > maxsize)
-  //  read_mem[i].len = maxsize - read_mem[i].addr;
+  // Trim len if nessary to prevent reading from the same memory address twice
+  if (read_mem[i].len > maxsize)
+    read_mem[i].len = maxsize;
 
   uint8_t *buf = malloc(read_mem[i].len);
   if (buf == NULL) {
