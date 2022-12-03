@@ -226,7 +226,15 @@ static int hexdump_buf(FILE *f, int startaddr, unsigned char *buf, int len) {
 
 
 static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
-  if (argc < 2 || argc > 4) {
+  struct mem_addr_len {
+    int addr;
+    int len;
+    AVRMEM *mem;
+  };
+  static struct mem_addr_len* read_mem;
+  static int i;
+
+  if ((argc < 2 && read_mem == NULL) || argc > 4) {
     msg_error(
       "Usage: %s <memory> <addr> <len>\n"
       "       %s <memory> <addr> ...\n"
@@ -239,7 +247,11 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
   enum { read_size = 256 };
   static const char *prevmem = "";
-  char *memtype = argv[1];
+  char *memtype;
+  if(argc > 1)
+    memtype = argv[1];
+  else
+    memtype = (char*)read_mem[i].mem->desc;
   AVRMEM *mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
     pmsg_error("(dump) %s memory type not defined for part %s\n", memtype, p->desc);
@@ -248,13 +260,7 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   int maxsize = mem->size;
 
   // Preserve memory start address and length info for every readable memory
-  struct mem_addr_len {
-    int addr;
-    int len;
-    AVRMEM *mem;
-  };
-  static struct mem_addr_len* read_mem;
-  int n_mems = 0;
+  static int n_mems = 0;
   if (read_mem == NULL) {
     for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln))
       n_mems++;
@@ -265,15 +271,14 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     }
   }
 
-  // Iterate though the structs to find relevant address and length info
-  int i;
+  // Iterate through the read_mem structs to find relevant address and length info
   for(i = 0; i < n_mems; i++) {
-    if (read_mem[i].mem == NULL) { // Memory not read / no match
+    if (read_mem[i].mem == NULL) {
       read_mem[i].mem = mem;
       if (read_mem[i].len == 0)
         read_mem[i].len = read_size;
       break;
-    } else if (read_mem[i].mem == mem) { // Match
+    } else if (read_mem[i].mem == mem) {
       if (read_mem[i].len == 0)
         read_mem[i].len = read_size;
       break;
