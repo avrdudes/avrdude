@@ -308,7 +308,7 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     }
   }
   // No address or length specified
-  else if (argc == 2) {
+  else {
     if (strncmp(prevmem, memtype, strlen(memtype)) != 0) {
       prevmem = cache_string(mem->desc);
     }
