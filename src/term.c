@@ -213,8 +213,9 @@ static int hexdump_buf(FILE *f, AVRMEM *m, int startaddr, unsigned char *buf, in
     int n = 16;
     if (n > len)
       n = len;
-    else if(addr + n > m->size)
+    if(addr + n > m->size)
       n = m->size - addr;
+
     hexdump_line(dst1, p, n, 48);
     chardump_line(dst2, p, n, 16);
     term_out("%0*x  %s  |%s|\n", m->size > 0x10000 ? 5: 4, addr, dst1, dst2);
