@@ -250,7 +250,6 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   }
 
   enum { read_size = 256 };
-  static const char *prevmem = "";
   char *memtype;
   if(argc > 1)
     memtype = argv[1];
@@ -292,7 +291,6 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
   // Get no. bytes to read if present
   if (argc >= 3) {
-    prevmem = cache_string("");
     if (strcmp(argv[argc - 1], "...") == 0) {
       if (argc == 3)
         read_mem[i].addr = 0;
@@ -308,13 +306,8 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     }
   }
   // No address or length specified
-  else {
-    if (strncmp(prevmem, memtype, strlen(memtype)) != 0) {
-      prevmem = cache_string(mem->desc);
-    }
-    if (read_mem[i].addr >= maxsize)
-      read_mem[i].addr = 0; // Wrap around
-  }
+  else if(read_mem[i].addr >= maxsize)
+    read_mem[i].addr = 0; // Wrap around
 
   // Trim len if nessary to prevent reading from the same memory address twice
   if (read_mem[i].len > maxsize)
