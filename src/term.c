@@ -260,7 +260,12 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     pmsg_error("(dump) %s memory type not defined for part %s\n", memtype, p->desc);
     return -1;
   }
+
   int maxsize = mem->size;
+  if(maxsize <= 0) { // Sanity check
+    pmsg_error("cannot read memory %s of size %d\n", mem->desc, maxsize);
+    return -1;
+  }
 
   // Iterate through the read_mem structs to find relevant address and length info
   for(i = 0; i < 32; i++) {
@@ -281,14 +286,17 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   // Get start address if present
   char *end_ptr;
   if (argc >= 3 && strcmp(argv[2], "...") != 0) {
-    read_mem[i].addr = strtoul(argv[2], &end_ptr, 0);
-    if (*end_ptr || (end_ptr == argv[2])) {
+    unsigned long ul = strtoul(argv[2], &end_ptr, 0);
+    if(*end_ptr || (end_ptr == argv[2])) {
       pmsg_error("(dump) cannot parse address %s\n", argv[2]);
       return -1;
-    } else if (read_mem[i].addr < 0 || read_mem[i].addr >= maxsize) {
-      pmsg_error("(dump) %s address 0x%05x is out of range [0, 0x%05x]\n", mem->desc, read_mem[i].addr, maxsize-1);
+    }
+    if(ul > INT_MAX || ul >= (unsigned long) maxsize) {
+      pmsg_error("(dump) %s address 0x%lx is out of range [0, 0x%0*x]\n", mem->desc, ul,
+        mem->size > 0x10000? 5: 4, maxsize-1);
       return -1;
     }
+    read_mem[i].addr = (int) ul;
   }
 
   // Get no. bytes to read if present
@@ -298,17 +306,19 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
         read_mem[i].addr = 0;
       read_mem[i].len = maxsize - read_mem[i].addr;
     } else if (argc == 4) {
-      read_mem[i].len = strtol(argv[3], &end_ptr, 0);
+      unsigned long ul = strtol(argv[3], &end_ptr, 0);
       if (*end_ptr || (end_ptr == argv[3])) {
         pmsg_error("(dump) cannot parse length %s\n", argv[3]);
         return -1;
       }
-    } else {
-      read_mem[i].len = read_size;
+      if (ul > INT_MAX) {
+        pmsg_error("(dump) %s cannot read 0x%lx bytes from start address 0x%0*x\n", mem->desc, ul,
+          mem->size > 0x10000? 5: 4, maxsize-1);
+      }
     }
   }
-  // No address or length specified
-  else if(read_mem[i].addr >= maxsize)
+  // Wrap around if the memory address is greater than the maximum size
+  if(read_mem[i].addr >= maxsize)
     read_mem[i].addr = 0; // Wrap around
 
   // Trim len if nessary to prevent reading from the same memory address twice
