@@ -319,6 +319,9 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     return -1;
   }
 
+  if(argc < 4)
+    term_out(">>> %s %s 0x%x 0x%x", argv[0], read_mem[i].mem->desc, read_mem[i].addr, read_mem[i].len);
+
   report_progress(0, 1, "Reading");
   for (int j = 0; j < read_mem[i].len; j++) {
     int addr = (read_mem[i].addr + j) % mem->size;
@@ -1281,13 +1284,6 @@ static int process_line(char *cmdbuf, PROGRAMMER *pgm, struct avrpart *p) {
 
   if(!argv)
     return -1;
-
-#if !defined(HAVE_LIBREADLINE) || defined(WIN32) || defined(__APPLE__)
-    term_out(">>> ");
-    for (int i=0; i<argc; i++)
-      term_out("%s ", argv[i]);
-    term_out("\n");
-#endif
 
   // Run the command
   rc = do_cmd(pgm, p, argc, argv);
