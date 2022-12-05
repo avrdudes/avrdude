@@ -314,7 +314,9 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       if (ul > INT_MAX) {
         pmsg_error("(dump) %s cannot read 0x%lx bytes from start address 0x%0*x\n", mem->desc, ul,
           mem->size > 0x10000? 5: 4, maxsize-1);
+        return -1;
       }
+      read_mem[i].len = (int) ul;
     }
   }
   // Wrap around if the memory address is greater than the maximum size
