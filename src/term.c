@@ -354,7 +354,7 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
   free(buf);
 
-  read_mem[i].addr = read_mem[i].addr + read_mem[i].len;
+  read_mem[i].addr = (read_mem[i].addr + read_mem[i].len) % maxsize;
 
   return 0;
 }
