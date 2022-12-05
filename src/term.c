@@ -331,7 +331,7 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     return -1;
   }
 
-  if(argc < 4)
+  if(argc < 4 && verbose)
     term_out(">>> %s %s 0x%x 0x%x", argv[0], read_mem[i].mem->desc, read_mem[i].addr, read_mem[i].len);
 
   report_progress(0, 1, "Reading");
