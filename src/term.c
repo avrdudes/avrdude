@@ -264,16 +264,18 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
   // Iterate through the read_mem structs to find relevant address and length info
   for(i = 0; i < 32; i++) {
-    if (read_mem[i].mem == NULL) {
+    if(read_mem[i].mem == NULL)
       read_mem[i].mem = mem;
-      if (read_mem[i].len == 0)
-        read_mem[i].len = maxsize > read_size? read_size: maxsize;
-      break;
-    } else if (read_mem[i].mem == mem) {
-      if (read_mem[i].len == 0)
+    if(read_mem[i].mem == mem) {
+      if(read_mem[i].len == 0)
         read_mem[i].len = maxsize > read_size? read_size: maxsize;
       break;
     }
+  }
+
+  if(i >= 32) { // Catch highly unlikely case
+    pmsg_error("read_mem[] under-dimensioned; increase and recompile\n");
+    return -1;
   }
 
   // Get start address if present
