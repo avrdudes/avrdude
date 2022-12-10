@@ -1400,7 +1400,10 @@ int terminal_mode_noninteractive(PROGRAMMER *pgm, struct avrpart *p) {
 
 int terminal_mode(PROGRAMMER *pgm, struct avrpart *p) {
 #if defined(HAVE_LIBREADLINE)
-  if (isatty(fileno(stdin)))
+  // GNU libreadline can also work if input is a pipe.
+  // EditLine (NetBSD, MacOS) has issues with that, so only use it when
+  // running interactively.
+  if (isatty(fileno(stdin)) || (strstr(rl_library_version, "EditLine wrapper") != 0))
     return terminal_mode_interactive(pgm, p);
 #endif
   return terminal_mode_noninteractive(pgm, p);
