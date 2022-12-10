@@ -730,11 +730,15 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
       *lowbound = 0;
       *highbound = 0x7Fffff;    // Max 8 MiB
       *fileoff = 0;
+    } else if (strcmp(mem->desc, "data") == 0) { // Volatile SRAM for XMEGA (not the .data section)
+      *lowbound = 0x802000;
+      *highbound = 0x80ffff;
+      *fileoff = 0;
     } else if (strcmp(mem->desc, "eeprom") == 0) {
       *lowbound = 0x810000;
       *highbound = 0x81ffff;    // Max 64 KiB
       *fileoff = 0;
-    } else if (strcmp(mem->desc, "lfuse") == 0) {
+    } else if (strcmp(mem->desc, "lfuse") == 0 || strcmp(mem->desc, "fuses") == 0) {
       *lowbound = 0x820000;
       *highbound = 0x82ffff;
       *fileoff = 0;
@@ -752,9 +756,17 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
       *lowbound = 0x820000;
       *highbound = 0x82ffff;
       *fileoff = mem->desc[4] - '0';
-    } else if (strncmp(mem->desc, "lock", 4) == 0) {
+    } else if (strncmp(mem->desc, "lock", 4) == 0) { // Lock or lockbits
       *lowbound = 0x830000;
       *highbound = 0x83ffff;
+      *fileoff = 0;
+    } else if (strcmp(mem->desc, "signature") == 0) { // Read only
+      *lowbound = 0x840000;
+      *highbound = 0x84ffff;
+      *fileoff = 0;
+    } else if (strncmp(mem->desc, "user", 4) == 0) { // Usersig or userrow
+      *lowbound = 0x850000;
+      *highbound = 0x85ffff;
       *fileoff = 0;
     } else {
       rv = -1;
