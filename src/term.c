@@ -306,16 +306,13 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
         read_mem[i].addr = 0;
       read_mem[i].len = maxsize - read_mem[i].addr;
     } else if (argc == 4) {
-      unsigned long ul = strtol(argv[3], &end_ptr, 0);
+      unsigned long ul = strtoul(argv[3], &end_ptr, 0);
       if (*end_ptr || (end_ptr == argv[3])) {
         pmsg_error("(dump) cannot parse length %s\n", argv[3]);
         return -1;
       }
-      if (ul > INT_MAX) {
-        pmsg_error("(dump) %s cannot read 0x%lx bytes from start address 0x%0*x\n", mem->desc, ul,
-          mem->size > 0x10000? 5: 4, maxsize-1);
-        return -1;
-      }
+      if (ul == 0 || ul > INT_MAX) // Not positive if used as int, make it 1
+        ul = 1;
       read_mem[i].len = (int) ul;
     }
   }
@@ -345,6 +342,7 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       pmsg_error("(dump) error reading %s address 0x%05lx of part %s\n", mem->desc, (long) read_mem[i].addr + j, p->desc);
       if (rc == -1)
         imsg_error("%*sread operation not supported on memory type %s\n", 7, "", mem->desc);
+      free(buf);
       return -1;
     }
     report_progress(j, read_mem[i].len, NULL);
