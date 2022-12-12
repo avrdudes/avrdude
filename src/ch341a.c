@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/time.h>
 #include <unistd.h>
 
 #include "avrdude.h"
@@ -46,6 +45,8 @@
 #  include <libusb.h>
 # endif
 #endif
+
+#include <sys/time.h>
 
 #ifdef USE_LIBUSB_1_0
 
@@ -106,18 +107,18 @@ struct pdata
 /* Prototypes */
 static void ch341a_setup(PROGRAMMER * pgm);
 static void ch341a_teardown(PROGRAMMER * pgm);
-static int  ch341a_open(PROGRAMMER * pgm, char * port);
+static int  ch341a_open(PROGRAMMER * pgm, const char * port);
 static void ch341a_close(PROGRAMMER * pgm);
-static int ch341a_initialize(PROGRAMMER * pgm, AVRPART * p);
-static int ch341a_spi_cmd(PROGRAMMER * pgm, const unsigned char *cmd, unsigned char *res);
-static int ch341a_spi(PROGRAMMER * pgm, const unsigned char *in, unsigned char *out, unsigned int size);
-static int ch341a_spi_program_enable(PROGRAMMER * pgm, AVRPART * p);
-static int ch341a_spi_chip_erase(PROGRAMMER * pgm, AVRPART * p);
-static int ch341a_spi_transfer(PROGRAMMER * pgm, const unsigned char *cmd, unsigned char *res);
+static int ch341a_initialize(const PROGRAMMER * pgm, const AVRPART * p);
+static int ch341a_spi_cmd(const PROGRAMMER * pgm, const unsigned char *cmd, unsigned char *res);
+static int ch341a_spi(const PROGRAMMER * pgm, const unsigned char *in, unsigned char *out, int size);
+static int ch341a_spi_program_enable(const PROGRAMMER * pgm, const AVRPART * p);
+static int ch341a_spi_chip_erase(const PROGRAMMER * pgm, const AVRPART * p);
+static int ch341a_spi_transfer(const PROGRAMMER * pgm, const unsigned char *cmd, unsigned char *res);
 // dummy functions
-static void ch341a_disable(PROGRAMMER * pgm);
-static void ch341a_enable(PROGRAMMER * pgm);
-static void ch341a_display(PROGRAMMER * pgm, const char * p);
+static void ch341a_disable(const PROGRAMMER * pgm);
+static void ch341a_enable(PROGRAMMER * pgm, const AVRPART *p);
+static void ch341a_display(const PROGRAMMER * pgm, const char * p);
 
 
 /* ch341 requires LSB first, swap the bit order before send and after receive */
@@ -128,7 +129,7 @@ static unsigned char swap_byte(unsigned char byte) {
     return byte;
 }
 
-static int CH341USBTransferPart(PROGRAMMER * pgm, enum libusb_endpoint_direction dir, unsigned char *buff, unsigned int size) {
+static int CH341USBTransferPart(const PROGRAMMER * pgm, enum libusb_endpoint_direction dir, unsigned char *buff, unsigned int size) {
     int ret, bytestransferred;
 
     if (!PDATA(pgm)->usbhandle)
@@ -141,7 +142,7 @@ static int CH341USBTransferPart(PROGRAMMER * pgm, enum libusb_endpoint_direction
     return bytestransferred;
 }
 
-static bool CH341USBTransfer(PROGRAMMER * pgm, enum libusb_endpoint_direction dir, unsigned char *buff, unsigned int size)
+static bool CH341USBTransfer(const PROGRAMMER * pgm, enum libusb_endpoint_direction dir, unsigned char *buff, unsigned int size)
 {
     int pos = 0, bytestransferred;
     while (size) {
@@ -166,7 +167,7 @@ static bool CH341USBTransfer(PROGRAMMER * pgm, enum libusb_endpoint_direction di
  *  D6/21   unused  (DIN2)
  *  D7/22   SO/2    (DIN)
  */
-bool CH341ChipSelect(PROGRAMMER * pgm, unsigned int cs, bool enable) {
+bool CH341ChipSelect(const PROGRAMMER * pgm, unsigned int cs, bool enable) {
     unsigned char res[4];
     unsigned char cmd[4];
     memset(cmd, 0, sizeof(cmd));
@@ -186,7 +187,7 @@ bool CH341ChipSelect(PROGRAMMER * pgm, unsigned int cs, bool enable) {
     return CH341USBTransferPart(pgm, LIBUSB_ENDPOINT_OUT, cmd, 4);
 }
 
-static int ch341a_open(PROGRAMMER * pgm, char * port) {
+static int ch341a_open(PROGRAMMER * pgm, const char * port) {
     LNODEID usbpid = lfirst(pgm->usbpid);
     int                   pid, vid, j, r;
     int                   errorCode = USB_ERROR_NOTFOUND;
@@ -258,7 +259,7 @@ static void ch341a_close(PROGRAMMER * pgm) {
     libusb_exit(ctx);
 }
 
-static int ch341a_initialize(PROGRAMMER * pgm, AVRPART * p) {
+static int ch341a_initialize(const PROGRAMMER * pgm, const AVRPART * p) {
     avrdude_message(MSG_DEBUG, "%s: ch341a_initialize()\n", progname);
     CH341ChipSelect(pgm, 0,false);
     usleep(20 * 1000);
@@ -266,10 +267,11 @@ static int ch341a_initialize(PROGRAMMER * pgm, AVRPART * p) {
     return pgm->program_enable(pgm, p);
 }
 
-static int ch341a_spi_transfer(PROGRAMMER * pgm, const unsigned char *cmd, unsigned char *res) {
+static __attribute__((unused)) int ch341a_spi_transfer(const PROGRAMMER *pgm,
+                                                       const unsigned char *cmd,
+                                                       unsigned char *res) {
     unsigned char pkt[CH341A_PACKET_LENGTH];
     unsigned int i;
-    int ret, bytestransferred;
     int size=sizeof(cmd);
 
     avrdude_message(MSG_DEBUG, "%s: ch341a_spi_transfer(0x%02x, 0x%02x, 0x%02x, 0x%02x)%s",
@@ -292,10 +294,10 @@ static int ch341a_spi_transfer(PROGRAMMER * pgm, const unsigned char *cmd, unsig
     }
     return size;
 }
-static int ch341a_spi_cmd(PROGRAMMER * pgm, const unsigned char *cmd, unsigned char *res) {
+static int ch341a_spi_cmd(const PROGRAMMER * pgm, const unsigned char *cmd, unsigned char *res) {
     return pgm->spi(pgm, cmd, res, 4);
 }
-static int ch341a_spi(PROGRAMMER * pgm, const unsigned char *in, unsigned char *out, unsigned int size) {
+static int ch341a_spi(const PROGRAMMER * pgm, const unsigned char *in, unsigned char *out, int size) {
     unsigned char pkt[CH341A_PACKET_LENGTH];
     unsigned int i;
 
@@ -327,7 +329,7 @@ static int ch341a_spi(PROGRAMMER * pgm, const unsigned char *in, unsigned char *
 
     return size;
 }
-static int ch341a_spi_program_enable(PROGRAMMER * pgm, AVRPART * p) {
+static int ch341a_spi_program_enable(const PROGRAMMER * pgm, const AVRPART * p) {
     unsigned char res[4];
     unsigned char cmd[4];
     memset(cmd, 0, sizeof(cmd));
@@ -350,7 +352,7 @@ static int ch341a_spi_program_enable(PROGRAMMER * pgm, AVRPART * p) {
         return -2;
     return 0;
 }
-static int  ch341a_spi_chip_erase(struct programmer_t * pgm, AVRPART * p) {
+static int  ch341a_spi_chip_erase(const struct programmer_t * pgm, const AVRPART * p) {
     unsigned char cmd[4];
     unsigned char res[4];
     if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
@@ -409,17 +411,17 @@ static void ch341a_teardown(PROGRAMMER * pgm) {
     free(pgm->cookie);
 }
 /* Dummy functions */
-static void ch341a_disable(PROGRAMMER * pgm) {
+static void ch341a_disable(const PROGRAMMER * pgm) {
     /* Do nothing. */
     return;
 }
 
-static void ch341a_enable(PROGRAMMER * pgm) {
+static void ch341a_enable(PROGRAMMER * pgm, const AVRPART *p) {
     /* Do nothing. */
     return;
 }
 
-static void ch341a_display(PROGRAMMER * pgm, const char * p) {
+static void ch341a_display(const PROGRAMMER * pgm, const char * p) {
     return;
 }
 
@@ -427,7 +429,7 @@ static void ch341a_display(PROGRAMMER * pgm, const char * p) {
 // ----------------------------------------------------------------------
 #else /* HAVE_LIBUSB */
 
-static int ch341a_nousb_open (struct programmer_t *pgm, char * name) {
+static int ch341a_nousb_open (struct programmer_t *pgm, const char * name) {
     avrdude_message(MSG_INFO, "%s: error: no usb support. please compile again with libusb installed.\n",
                     progname);
     return -1;

@@ -31,7 +31,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <errno.h>
-#include <sys/time.h>
+
 #include <unistd.h>
 
 #include "avrdude.h"
@@ -61,6 +61,8 @@
 #  error "libusb needs either <usb.h> or <lusb0_usb.h>"
 # endif
 #endif
+
+#include <sys/time.h>
 
 #ifdef USE_LIBUSB_1_0
 
