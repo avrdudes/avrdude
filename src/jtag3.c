@@ -2612,6 +2612,12 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
   if ((status = jtag3_command_tpi(pgm, cmd, 3, &resp, "Set NVMCSR")) < 0)
     return -1;
   free(resp);
+
+  if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, cmd, 2) < 0)
+    return -1;
+  fmsg_out(stderr, "%sVtarget         %s: %.2f V\n", "",
+           verbose? "": "             ", b2_to_u16(cmd)/1000.0);
+
   return 0;
 }
 
