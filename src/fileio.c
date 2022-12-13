@@ -730,7 +730,7 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
       *lowbound = 0;
       *highbound = 0x7Fffff;    // Max 8 MiB
       *fileoff = 0;
-    } else if (strcmp(mem->desc, "data") == 0) { // Volatile SRAM for XMEGA (not the .data section)
+    } else if (strcmp(mem->desc, "data") == 0) { // SRAM for XMEGAs
       *lowbound = 0x802000;
       *highbound = 0x80ffff;
       *fileoff = 0;
