@@ -31,23 +31,25 @@ int  jtag3_recv(const PROGRAMMER *pgm, unsigned char **msg);
 void jtag3_close(PROGRAMMER * pgm);
 int  jtag3_getsync(const PROGRAMMER *pgm, int mode);
 int  jtag3_getparm(const PROGRAMMER *pgm, unsigned char scope,
-		   unsigned char section, unsigned char parm,
-		   unsigned char *value, unsigned char length);
+                   unsigned char section, unsigned char parm,
+                   unsigned char *value, unsigned char length);
 int jtag3_setparm(const PROGRAMMER *pgm, unsigned char scope,
-		  unsigned char section, unsigned char parm,
-		  unsigned char *value, unsigned char length);
+                  unsigned char section, unsigned char parm,
+                  unsigned char *value, unsigned char length);
 int jtag3_command(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen,
-		  unsigned char **resp, const char *descr);
+                  unsigned char **resp, const char *descr);
 void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp);
 int jtag3_set_vtarget(const PROGRAMMER *pgm, double voltage);
 extern const char jtag3_desc[];
 extern const char jtag3_dw_desc[];
 extern const char jtag3_pdi_desc[];
 extern const char jtag3_updi_desc[];
+extern const char jtag3_tpi_desc[];
 void jtag3_initpgm(PROGRAMMER *pgm);
 void jtag3_dw_initpgm(PROGRAMMER *pgm);
 void jtag3_pdi_initpgm(PROGRAMMER *pgm);
 void jtag3_updi_initpgm(PROGRAMMER *pgm);
+void jtag3_tpi_initpgm(PROGRAMMER *pgm);
 
 /*
  * These functions are referenced from stk500v2.c for JTAGICE3 in

@@ -372,6 +372,9 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
     AVRMEM *mem = mems[i].mem;
     AVR_Cache *cp = mems[i].cp;
 
+    if(!mem)
+      continue;
+
     if(!cp->cont)           // Ensure cache is initialised from now on
       if(initCache(cp, pgm, p) < 0) {
         if(quell_progress)
@@ -380,7 +383,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
         return LIBAVRDUDE_GENERAL_FAILURE;
       }
 
-    if(chiperase || !mem || mems[i].zopaddr < 0)
+    if(chiperase || mems[i].zopaddr < 0)
       continue;
 
     int n=mems[i].zopaddr;

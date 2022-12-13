@@ -3605,18 +3605,18 @@ static int stk600_xprog_program_enable(const PROGRAMMER *pgm, const AVRPART *p) 
             return -1;
 
         buf[0] = XPRG_CMD_SET_PARAM;
-        buf[1] = XPRG_PARAM_TPI_3;
+        buf[1] = XPRG_PARAM_NVMCMD_ADDR;
         buf[2] = 51;
         if (stk600_xprog_command(pgm, buf, 3, 2) < 0) {
-            pmsg_error("XPRG_CMD_SET_PARAM(XPRG_PARAM_TPI_3) failed\n");
+            pmsg_error("XPRG_CMD_SET_PARAM(XPRG_PARAM_NVMCMD_ADDR) failed\n");
             return -1;
         }
 
         buf[0] = XPRG_CMD_SET_PARAM;
-        buf[1] = XPRG_PARAM_TPI_4;
+        buf[1] = XPRG_PARAM_NVMCSR_ADDR;
         buf[2] = 50;
         if (stk600_xprog_command(pgm, buf, 3, 2) < 0) {
-            pmsg_error("XPRG_CMD_SET_PARAM(XPRG_PARAM_TPI_4) failed\n");
+            pmsg_error("XPRG_CMD_SET_PARAM(XPRG_PARAM_NVMCSR_ADDR) failed\n");
             return -1;
         }
     } else {

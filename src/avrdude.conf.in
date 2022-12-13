@@ -2132,6 +2132,19 @@ programmer
 ;
 
 #------------------------------------------------------------
+# xplainedmini_tpi
+#------------------------------------------------------------
+
+programmer
+    id                     = "xplainedmini_tpi";
+    desc                   = "Atmel AVR XplainedMini in TPI mode";
+    type                   = "jtagice3_tpi";
+    prog_modes             = PM_TPI;
+    connection_type        = usb;
+    usbpid                 = 0x2145;
+;
+
+#------------------------------------------------------------
 # atmelice
 #------------------------------------------------------------
 
@@ -2193,6 +2206,19 @@ programmer
     desc                   = "Atmel-ICE (ARM/AVR) in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
+    connection_type        = usb;
+    usbpid                 = 0x2141;
+;
+
+#------------------------------------------------------------
+# atmelice_tpi
+#------------------------------------------------------------
+
+programmer
+    id                     = "atmelice_tpi";
+    desc                   = "Atmel-ICE (ARM/AVR) in TPI mode";
+    type                   = "jtagice3_tpi";
+    prog_modes             = PM_TPI;
     connection_type        = usb;
     usbpid                 = 0x2141;
 ;
@@ -2264,6 +2290,19 @@ programmer
 ;
 
 #------------------------------------------------------------
+# powerdebugger_tpi
+#------------------------------------------------------------
+
+programmer
+    id                     = "powerdebugger_tpi";
+    desc                   = "Atmel PowerDebugger (ARM/AVR) in TPI mode";
+    type                   = "jtagice3_tpi";
+    prog_modes             = PM_TPI;
+    connection_type        = usb;
+    usbpid                 = 0x2144;
+;
+
+#------------------------------------------------------------
 # pickit4_updi
 #------------------------------------------------------------
 
@@ -2304,6 +2343,19 @@ programmer
 ;
 
 #------------------------------------------------------------
+# pickit4_tpi
+#------------------------------------------------------------
+
+programmer
+    id                     = "pickit4_tpi";
+    desc                   = "MPLAB(R) PICkit 4 in TPI mode";
+    type                   = "jtagice3_tpi";
+    prog_modes             = PM_TPI;
+    connection_type        = usb;
+    usbpid                 = 0x2177, 0x2178, 0x2179;
+;
+
+#------------------------------------------------------------
 # snap_updi
 #------------------------------------------------------------
 
@@ -2339,6 +2391,19 @@ programmer
     desc                   = "MPLAB(R) SNAP in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
+    connection_type        = usb;
+    usbpid                 = 0x2180, 0x217f, 0x2181;
+;
+
+#------------------------------------------------------------
+# snap_tpi
+#------------------------------------------------------------
+
+programmer
+    id                     = "snap_tpi";
+    desc                   = "MPLAB(R) SNAP in TPI mode";
+    type                   = "jtagice3_tpi";
+    prog_modes             = PM_TPI;
     connection_type        = usb;
     usbpid                 = 0x2180, 0x217f, 0x2181;
 ;
@@ -13440,12 +13505,6 @@ part
         offset             = 0x3f00;
     ;
 
-    memory "lockbits"
-        size               = 1;
-        page_size          = 16;
-        offset             = 0x3f00;
-    ;
-
     memory "signature"
         size               = 3;
         page_size          = 16;
@@ -13539,6 +13598,14 @@ part parent ".reduced_core_tiny"
         offset             = 0x4000;
         blocksize          = 128;
     ;
+
+    memory "fuse"
+        size               = 1;
+        page_size          = 16;
+        n_word_writes      = 2;
+        offset             = 0x3f40;
+        blocksize          = 4;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -13559,6 +13626,14 @@ part parent ".reduced_core_tiny"
         offset             = 0x4000;
         blocksize          = 128;
     ;
+
+    memory "fuse"
+        size               = 1;
+        page_size          = 16;
+        n_word_writes      = 4;
+        offset             = 0x3f40;
+        blocksize          = 4;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -13578,6 +13653,12 @@ part parent ".reduced_core_tiny"
         offset             = 0x4000;
         blocksize          = 128;
     ;
+
+    memory "sigrow"
+        size               = 16;
+        page_size          = 16;
+        offset             = 0x3fc6;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -13596,6 +13677,12 @@ part parent ".reduced_core_tiny"
         page_size          = 16;
         offset             = 0x4000;
         blocksize          = 128;
+    ;
+
+    memory "sigrow"
+        size               = 16;
+        page_size          = 16;
+        offset             = 0x3fc6;
     ;
 ;
 
