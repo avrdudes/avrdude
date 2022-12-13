@@ -2419,32 +2419,35 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
     }
   }
 
-  if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_PROG, buf, 2) < 0)
-    return;
+  // Print clocks if programmer typ is not TPI
+  if (strcmp(pgm->type, "JTAGICE3_TPI")) {
+    if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_PROG, buf, 2) < 0)
+      return;
 
-  if (b2_to_u16(buf) > 0) {
-    fmsg_out(fp, "%sJTAG clock megaAVR/program   : %u kHz\n", p, b2_to_u16(buf));
-  }
+    if (b2_to_u16(buf) > 0) {
+      fmsg_out(fp, "%sJTAG clock megaAVR/program   : %u kHz\n", p, b2_to_u16(buf));
+    }
 
-  if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_DEBUG, buf, 2) < 0)
-    return;
+    if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_DEBUG, buf, 2) < 0)
+      return;
 
-  if (b2_to_u16(buf) > 0) {
-    fmsg_out(fp, "%sJTAG clock megaAVR/debug     : %u kHz\n", p, b2_to_u16(buf));
-  }
+    if (b2_to_u16(buf) > 0) {
+      fmsg_out(fp, "%sJTAG clock megaAVR/debug     : %u kHz\n", p, b2_to_u16(buf));
+    }
 
-  if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_JTAG, buf, 2) < 0)
-    return;
+    if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_JTAG, buf, 2) < 0)
+      return;
 
-  if (b2_to_u16(buf) > 0) {
-    fmsg_out(fp, "%sJTAG clock Xmega             : %u kHz\n", p, b2_to_u16(buf));
-  }
+    if (b2_to_u16(buf) > 0) {
+      fmsg_out(fp, "%sJTAG clock Xmega             : %u kHz\n", p, b2_to_u16(buf));
+    }
 
-  if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_PDI, buf, 2) < 0)
-    return;
+    if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_PDI, buf, 2) < 0)
+      return;
 
-  if (b2_to_u16(buf) > 0) {
-    fmsg_out(fp, "%sPDI/UPDI clock Xmega/megaAVR : %u kHz\n", p, b2_to_u16(buf));
+    if (b2_to_u16(buf) > 0) {
+      fmsg_out(fp, "%sPDI/UPDI clock Xmega/megaAVR : %u kHz\n", p, b2_to_u16(buf));
+    }
   }
 }
 
@@ -2613,10 +2616,7 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   free(resp);
 
-  if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, cmd, 2) < 0)
-    return -1;
-  fmsg_out(stderr, "%sVtarget         %s: %.2f V\n", "",
-           verbose? "": "             ", b2_to_u16(cmd)/1000.0);
+  jtag3_print_parms(pgm, stderr);
 
   return 0;
 }
