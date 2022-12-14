@@ -118,10 +118,9 @@ char * fileio_fmtstr(FILEFMT format)
 }
 
 
-static int b2ihex(const unsigned char *inbuf, int bufsize,
-           int recsize, int startaddr,
-           const char *outfile, FILE *outf, FILEFMT ffmt)
-{
+static int b2ihex(const unsigned char *inbuf, int bufsize, int recsize,
+  int startaddr, const char *outfile_unused, FILE *outf, FILEFMT ffmt) {
+
   const unsigned char *buf;
   unsigned int nextaddr;
   int n, nbytes, n_64k;
@@ -397,10 +396,9 @@ static int ihex2b(const char *infile, FILE *inf,
   }
 }
 
-static int b2srec(const unsigned char *inbuf, int bufsize,
-           int recsize, int startaddr,
-           const char *outfile, FILE *outf)
-{
+static int b2srec(const unsigned char *inbuf, int bufsize, int recsize,
+  int startaddr, const char *outfile_unused, FILE *outf) {
+
   const unsigned char *buf;
   unsigned int nextaddr;
   int n, nbytes, addr_width;
@@ -708,41 +706,6 @@ int is_section_in_segment(Elf32_Shdr *sh, Elf32_Phdr *ph)
     return 1;
 }
 
-/*
- * Return the ELF section descriptor that corresponds to program
- * header `ph'.  The program header is expected to be of p_type
- * PT_LOAD, and to have a nonzero p_filesz.  (PT_LOAD sections with a
- * zero p_filesz are typically RAM sections that are not initialized
- * by file data, e.g. ".bss".)
- */
-static Elf_Scn *elf_get_scn(Elf *e, Elf32_Phdr *ph, Elf32_Shdr **shptr)
-{
-  Elf_Scn *s = NULL;
-
-  while ((s = elf_nextscn(e, s)) != NULL) {
-    Elf32_Shdr *sh;
-    size_t ndx = elf_ndxscn(s);
-    if ((sh = elf32_getshdr(s)) == NULL) {
-      pmsg_error("unable to read section #%u header: %s\n", (unsigned int)ndx, elf_errmsg(-1));
-      continue;
-    }
-    if ((sh->sh_flags & SHF_ALLOC) == 0 ||
-        sh->sh_type != SHT_PROGBITS)
-      /* we are only interested in PROGBITS, ALLOC sections */
-      continue;
-    if (sh->sh_size == 0)
-      /* we are not interested in empty sections */
-      continue;
-    if (is_section_in_segment(sh, ph)) {
-      /* yeah, we found it */
-      *shptr = sh;
-      return s;
-    }
-  }
-
-  pmsg_error("cannot find a matching section for program header entry @p_vaddr 0x%x\n", ph->p_vaddr);
-  return NULL;
-}
 
 static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
                           unsigned int *lowbound,
@@ -765,13 +728,17 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
         strcmp(mem->desc, "application") == 0 ||
         strcmp(mem->desc, "apptable") == 0) {
       *lowbound = 0;
-      *highbound = 0x7ffff;       /* max 8 MiB */
+      *highbound = 0x7Fffff;    // Max 8 MiB
+      *fileoff = 0;
+    } else if (strcmp(mem->desc, "data") == 0) { // SRAM for XMEGAs
+      *lowbound = 0x802000;
+      *highbound = 0x80ffff;
       *fileoff = 0;
     } else if (strcmp(mem->desc, "eeprom") == 0) {
       *lowbound = 0x810000;
-      *highbound = 0x81ffff;      /* max 64 KiB */
+      *highbound = 0x81ffff;    // Max 64 KiB
       *fileoff = 0;
-    } else if (strcmp(mem->desc, "lfuse") == 0) {
+    } else if (strcmp(mem->desc, "lfuse") == 0 || strcmp(mem->desc, "fuses") == 0) {
       *lowbound = 0x820000;
       *highbound = 0x82ffff;
       *fileoff = 0;
@@ -789,9 +756,17 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
       *lowbound = 0x820000;
       *highbound = 0x82ffff;
       *fileoff = mem->desc[4] - '0';
-    } else if (strncmp(mem->desc, "lock", 4) == 0) {
+    } else if (strncmp(mem->desc, "lock", 4) == 0) { // Lock or lockbits
       *lowbound = 0x830000;
       *highbound = 0x83ffff;
+      *fileoff = 0;
+    } else if (strcmp(mem->desc, "signature") == 0) { // Read only
+      *lowbound = 0x840000;
+      *highbound = 0x84ffff;
+      *fileoff = 0;
+    } else if (strncmp(mem->desc, "user", 4) == 0) { // Usersig or userrow
+      *lowbound = 0x850000;
+      *highbound = 0x85ffff;
       *fileoff = 0;
     } else {
       rv = -1;
@@ -802,12 +777,11 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
 }
 
 
-static int elf2b(const char *infile, FILE *inf,
-                 const AVRMEM *mem, const AVRPART *p,
-                 int bufsize, unsigned int fileoffset)
-{
+static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
+  const AVRPART *p, int bufsize_unused, unsigned int fileoffset_unused) {
+
   Elf *e;
-  int rv = -1;
+  int rv = 0, size = 0;
   unsigned int low, high, foff;
 
   if (elf_mem_limits(mem, p, &low, &high, &foff) != 0) {
@@ -919,37 +893,39 @@ static int elf2b(const char *infile, FILE *inf,
    * PT_LOAD, and have a non-zero p_filesz.
    */
   for (i = 0; i < eh->e_phnum; i++) {
-    if (ph[i].p_type != PT_LOAD ||
-        ph[i].p_filesz == 0)
+    if (ph[i].p_type != PT_LOAD || ph[i].p_filesz == 0)
       continue;
 
-    pmsg_notice2("considering PT_LOAD program header entry #%d:\n"
-      "    p_vaddr 0x%x, p_paddr 0x%x, p_filesz %d\n", (int) i, ph[i].p_vaddr, ph[i].p_paddr, ph[i].p_filesz);
+    pmsg_notice2("considering PT_LOAD program header entry #%d\n", (int) i);
+    imsg_notice2("p_vaddr 0x%x, p_paddr 0x%x, p_filesz %d\n", ph[i].p_vaddr, ph[i].p_paddr, ph[i].p_filesz);
 
-    Elf32_Shdr *sh;
-    Elf_Scn *s = elf_get_scn(e, ph + i, &sh);
-    if (s == NULL)
-      continue;
+    Elf_Scn *scn = NULL;
+    while ((scn = elf_nextscn(e, scn)) != NULL) {
+      size_t ndx = elf_ndxscn(scn);
+      Elf32_Shdr *sh = elf32_getshdr(scn);
 
-    if ((sh->sh_flags & SHF_ALLOC) && sh->sh_size) {
-      const char *sname;
-
-      if (sndx != 0) {
-        sname = elf_strptr(e, sndx, sh->sh_name);
-      } else {
-        sname = "*unknown*";
+      if (sh == NULL) {
+        pmsg_error("unable to read section #%u header: %s\n", (unsigned int) ndx, elf_errmsg(-1));
+        rv = -1;
+        continue;
       }
+      // Only interested in PROGBITS, ALLOC sections
+      if ((sh->sh_flags & SHF_ALLOC) == 0 || sh->sh_type != SHT_PROGBITS)
+        continue;
+      // Not interested in empty sections
+      if (sh->sh_size == 0)
+        continue;
+      // Section must belong to this segment
+      if (!is_section_in_segment(sh, ph+i))
+        continue;
 
-      unsigned int lma;
-      lma = ph[i].p_paddr + sh->sh_offset - ph[i].p_offset;
+      const char *sname = sndx? elf_strptr(e, sndx, sh->sh_name): "*unknown*";
+      unsigned int lma = ph[i].p_paddr + sh->sh_offset - ph[i].p_offset;
 
       pmsg_notice2("found section %s, LMA 0x%x, sh_size %u\n", sname, lma, sh->sh_size);
 
-      if (lma >= low &&
-          lma + sh->sh_size < high) {
-        /* OK */
-      } else {
-        msg_notice2("    => skipping, inappropriate for %s memory region\n", mem->desc);
+      if(!(lma >= low && lma + sh->sh_size < high)) {
+        imsg_notice2("skipping %s (inappropriate for %s)\n", sname, mem->desc);
         continue;
       }
       /*
@@ -961,44 +937,51 @@ static int elf2b(const char *infile, FILE *inf,
        * from it, using the "foff" offset obtained above.
        */
       if (mem->size != 1 && sh->sh_size > (unsigned) mem->size) {
-        pmsg_error("section %s does not fit into %s memory:\n"
-          "    0x%x + %u > %u\n", sname, mem->desc, lma, sh->sh_size, mem->size);
+        pmsg_error("section %s of size %u does not fit into %s of size %d\n",
+          sname, sh->sh_size, mem->desc, mem->size);
+        rv = -1;
         continue;
       }
 
       Elf_Data *d = NULL;
-      while ((d = elf_getdata(s, d)) != NULL) {
-        msg_notice2("    Data block: d_buf %p, d_off 0x%x, d_size %ld\n",
-                        d->d_buf, (unsigned int)d->d_off, (long) d->d_size);
+      while ((d = elf_getdata(scn, d)) != NULL) {
+        imsg_notice2("data block: d_buf %p, d_off 0x%x, d_size %ld\n",
+          d->d_buf, (unsigned int)d->d_off, (long) d->d_size);
         if (mem->size == 1) {
           if (d->d_off != 0) {
             pmsg_error("unexpected data block at offset != 0\n");
+            rv = -1;
           } else if (foff >= d->d_size) {
             pmsg_error("ELF file section does not contain byte at offset %d\n", foff);
+            rv = -1;
           } else {
-            msg_notice2("    Extracting one byte from file offset %d\n",
-                            foff);
+            imsg_notice2("extracting one byte from file offset %d\n", foff);
             mem->buf[0] = ((unsigned char *)d->d_buf)[foff];
             mem->tags[0] = TAG_ALLOCATED;
-            rv = 1;
+            size = 1;
           }
         } else {
-          unsigned int idx;
+          int idx = lma-low + d->d_off;
+          int end = idx + d->d_size;
 
-          idx = lma - low + d->d_off;
-          if ((int)(idx + d->d_size) > rv)
-            rv = idx + d->d_size;
-          msg_debug("    Writing %ld bytes to mem offset 0x%x\n",
-            (long) d->d_size, idx);
-          memcpy(mem->buf + idx, d->d_buf, d->d_size);
-          memset(mem->tags + idx, TAG_ALLOCATED, d->d_size);
+          if(idx >= 0 && idx < mem->size && end >= 0 && end <= mem->size && end-idx >= 0) {
+            if (end > size)
+              size = end;
+            imsg_debug("writing %d bytes to mem offset 0x%x\n", end-idx, idx);
+            memcpy(mem->buf + idx, d->d_buf, end-idx);
+            memset(mem->tags + idx, TAG_ALLOCATED, end-idx);
+          } else {
+            pmsg_error("section %s [0x%04x, 0x%04x] does not fit into %s [0, 0x%04x]\n",
+              sname, idx, (int) (idx + d->d_size-1), mem->desc, mem->size-1);
+            rv = -1;
+          }
         }
       }
     }
   }
 done:
   (void)elf_end(e);
-  return rv;
+  return rv<0? rv: size;
 }
 #endif  /* HAVE_LIBELF */
 
@@ -1071,9 +1054,9 @@ static int fileio_rbin(struct fioparms *fio,
 }
 
 
-static int fileio_imm(struct fioparms *fio,
-             const char *fname, FILE *f, const AVRMEM *mem, int size)
-{
+static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
+ const AVRMEM *mem, int size) {
+
   int rc = 0;
   char *e, *p, *filename;
   unsigned long b;
