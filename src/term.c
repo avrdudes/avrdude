@@ -203,7 +203,7 @@ static int chardump_line(char *buffer, unsigned char *p, int n, int pad) {
 }
 
 
-static int hexdump_buf(FILE *f, int startaddr, unsigned char *buf, int len) {
+static int hexdump_buf(FILE *f, AVRMEM *m, int startaddr, unsigned char *buf, int len) {
   char dst1[80];
   char dst2[80];
 
@@ -213,11 +213,16 @@ static int hexdump_buf(FILE *f, int startaddr, unsigned char *buf, int len) {
     int n = 16;
     if (n > len)
       n = len;
+    if(addr + n > m->size)
+      n = m->size - addr;
+
     hexdump_line(dst1, p, n, 48);
     chardump_line(dst2, p, n, 16);
-    term_out("%04x  %s  |%s|\n", addr, dst1, dst2);
+    term_out("%0*x  %s  |%s|\n", m->size > 0x10000 ? 5: 4, addr, dst1, dst2);
     len -= n;
     addr += n;
+    if (addr >= m->size)
+      addr = 0;
     p += n;
   }
 
@@ -226,7 +231,14 @@ static int hexdump_buf(FILE *f, int startaddr, unsigned char *buf, int len) {
 
 
 static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
-  if (argc < 2 || argc > 4) {
+  static struct mem_addr_len {
+    int addr;
+    int len;
+    AVRMEM *mem;
+  } read_mem[32];
+  static int i;
+
+  if ((argc < 2 && read_mem[0].mem == NULL) || argc > 4) {
     msg_error(
       "Usage: %s <memory> <addr> <len>\n"
       "       %s <memory> <addr> ...\n"
@@ -238,89 +250,111 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   }
 
   enum { read_size = 256 };
-  static const char *prevmem = "";
-  char *memtype = argv[1];
+  char *memtype;
+  if(argc > 1)
+    memtype = argv[1];
+  else
+    memtype = (char*)read_mem[i].mem->desc;
   AVRMEM *mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
     pmsg_error("(dump) %s memory type not defined for part %s\n", memtype, p->desc);
     return -1;
   }
+
   int maxsize = mem->size;
+  if(maxsize <= 0) { // Sanity check
+    pmsg_error("cannot read memory %s of size %d\n", mem->desc, maxsize);
+    return -1;
+  }
 
-  // Get start address if present
-  char *end_ptr;
-  static int addr = 0;
-
-  if (argc >= 3 && strcmp(argv[2], "...") != 0) {
-    addr = strtoul(argv[2], &end_ptr, 0);
-    if (*end_ptr || (end_ptr == argv[2])) {
-      pmsg_error("(dump) cannot parse address %s\n", argv[2]);
-      return -1;
-    } else if (addr < 0 || addr >= maxsize) {
-      pmsg_error("(dump) %s address 0x%05x is out of range [0, 0x%05x]\n", mem->desc, addr, maxsize-1);
-      return -1;
+  // Iterate through the read_mem structs to find relevant address and length info
+  for(i = 0; i < 32; i++) {
+    if(read_mem[i].mem == NULL)
+      read_mem[i].mem = mem;
+    if(read_mem[i].mem == mem) {
+      if(read_mem[i].len == 0)
+        read_mem[i].len = maxsize > read_size? read_size: maxsize;
+      break;
     }
   }
 
+  if(i >= 32) { // Catch highly unlikely case
+    pmsg_error("read_mem[] under-dimensioned; increase and recompile\n");
+    return -1;
+  }
+
+  // Get start address if present
+  char *end_ptr;
+  if (argc >= 3 && strcmp(argv[2], "...") != 0) {
+    unsigned long ul = strtoul(argv[2], &end_ptr, 0);
+    if(*end_ptr || (end_ptr == argv[2])) {
+      pmsg_error("(dump) cannot parse address %s\n", argv[2]);
+      return -1;
+    }
+    if(ul > INT_MAX || ul >= (unsigned long) maxsize) {
+      pmsg_error("(dump) %s address 0x%lx is out of range [0, 0x%0*x]\n", mem->desc, ul,
+        mem->size > 0x10000? 5: 4, maxsize-1);
+      return -1;
+    }
+    read_mem[i].addr = (int) ul;
+  }
+
   // Get no. bytes to read if present
-  static int len = read_size;
   if (argc >= 3) {
-    prevmem = cache_string("");
     if (strcmp(argv[argc - 1], "...") == 0) {
       if (argc == 3)
-        addr = 0;
-      len = maxsize - addr;
+        read_mem[i].addr = 0;
+      read_mem[i].len = maxsize - read_mem[i].addr;
     } else if (argc == 4) {
-      len = strtol(argv[3], &end_ptr, 0);
+      unsigned long ul = strtoul(argv[3], &end_ptr, 0);
       if (*end_ptr || (end_ptr == argv[3])) {
         pmsg_error("(dump) cannot parse length %s\n", argv[3]);
         return -1;
       }
-    } else {
-      len = read_size;
+      if (ul == 0 || ul > INT_MAX) // Not positive if used as int, make it 1
+        ul = 1;
+      read_mem[i].len = (int) ul;
     }
   }
-  // No address or length specified
-  else if (argc == 2) {
-    if (strncmp(prevmem, memtype, strlen(memtype)) != 0) {
-      addr = 0;
-      len  = read_size;
-      prevmem = cache_string(mem->desc);
-    }
-    if (addr >= maxsize)
-      addr = 0; // Wrap around
-  }
+  // Wrap around if the memory address is greater than the maximum size
+  if(read_mem[i].addr >= maxsize)
+    read_mem[i].addr = 0; // Wrap around
 
-  // Trim len if nessary to not read past the end of memory
-  if ((addr + len) > maxsize)
-    len = maxsize - addr;
+  // Trim len if nessary to prevent reading from the same memory address twice
+  if (read_mem[i].len > maxsize)
+    read_mem[i].len = maxsize;
 
-  uint8_t *buf = malloc(len);
+  uint8_t *buf = malloc(read_mem[i].len);
   if (buf == NULL) {
     pmsg_error("(dump) out of memory\n");
     return -1;
   }
 
+  if(argc < 4 && verbose)
+    term_out(">>> %s %s 0x%x 0x%x\n", argv[0], read_mem[i].mem->desc, read_mem[i].addr, read_mem[i].len);
+
   report_progress(0, 1, "Reading");
-  for (int i = 0; i < len; i++) {
-    int rc = pgm->read_byte_cached(pgm, p, mem, addr + i, &buf[i]);
+  for (int j = 0; j < read_mem[i].len; j++) {
+    int addr = (read_mem[i].addr + j) % mem->size;
+    int rc = pgm->read_byte_cached(pgm, p, read_mem[i].mem, addr, &buf[j]);
     if (rc != 0) {
       report_progress(1, -1, NULL);
-      pmsg_error("(dump) error reading %s address 0x%05lx of part %s\n", mem->desc, (long) addr + i, p->desc);
+      pmsg_error("(dump) error reading %s address 0x%05lx of part %s\n", mem->desc, (long) read_mem[i].addr + j, p->desc);
       if (rc == -1)
         imsg_error("%*sread operation not supported on memory type %s\n", 7, "", mem->desc);
+      free(buf);
       return -1;
     }
-    report_progress(i, len, NULL);
+    report_progress(j, read_mem[i].len, NULL);
   }
   report_progress(1, 1, NULL);
 
-  hexdump_buf(stdout, addr, buf, len);
+  hexdump_buf(stdout, mem, read_mem[i].addr, buf, read_mem[i].len);
   term_out("\n");
 
   free(buf);
 
-  addr = addr + len;
+  read_mem[i].addr = (read_mem[i].addr + read_mem[i].len) % maxsize;
 
   return 0;
 }
@@ -1262,13 +1296,6 @@ static int process_line(char *cmdbuf, PROGRAMMER *pgm, struct avrpart *p) {
 
   if(!argv)
     return -1;
-
-#if !defined(HAVE_LIBREADLINE) || defined(WIN32) || defined(__APPLE__)
-    term_out(">>> ");
-    for (int i=0; i<argc; i++)
-      term_out("%s ", argv[i]);
-    term_out("\n");
-#endif
 
   // Run the command
   rc = do_cmd(pgm, p, argc, argv);
