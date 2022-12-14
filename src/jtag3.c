@@ -1497,6 +1497,11 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
         pinfo.usbinfo.vid = USB_VENDOR_MICROCHIP;
         pinfo.usbinfo.pid = USB_DEVICE_SNAP_PIC_MODE;
         int pic_mode = serial_open(port, pinfo, &pgm->fd);
+        if(pic_mode < 0) {
+          // Retry with alternative USB PID
+          pinfo.usbinfo.pid = USB_DEVICE_SNAP_PIC_MODE_ALT;
+          pic_mode = serial_open(port, pinfo, &pgm->fd);
+        }
         if(pic_mode >= 0) {
           msg_error("\n");
           pmsg_error("MPLAB SNAP in PIC mode detected!\n");
@@ -1507,6 +1512,11 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
         pinfo.usbinfo.vid = USB_VENDOR_MICROCHIP;
         pinfo.usbinfo.pid = USB_DEVICE_PICKIT4_PIC_MODE;
         int pic_mode = serial_open(port, pinfo, &pgm->fd);
+        if(pic_mode < 0) {
+          // Retry with alternative USB PID
+          pinfo.usbinfo.pid = USB_DEVICE_PICKIT4_PIC_MODE_ALT;
+          pic_mode = serial_open(port, pinfo, &pgm->fd);
+        }
         if(pic_mode >= 0) {
           msg_error("\n");
           pmsg_error("PICkit4 in PIC mode detected!\n");
