@@ -28,9 +28,22 @@ Changes since version 7.0:
       + The -c urclock programmer provides a metadata interface that
         allows unused flash to be used as storage
 
+   - Add TPI support for Microchip tools #1205
+
+   - Provide flash write in the terminal
+
   * New devices supported:
 
   * New programmers supported:
+
+    - urclock
+    - xplainedmini_tpi
+    - atmelice_tpi
+    - powerdebugger_tpi
+    - pickit4_tpi
+    - snap_tpi
+    - arduino_gemma
+    - adafruit_gemma
 
   * Issues fixed:
 
@@ -88,6 +101,11 @@ Changes since version 7.0:
     - debugWire using dragon_dw and jtag2dw not working #1168
     - && echo OK does not work after -c urclock #1192
     - Serial drain timeout needs calibrating for -c urclock #1193
+    - avrdude -U file.elf misses second and following suitable
+      sections in elf segements #1204
+    - Avrdude on macOS has problems with libedit #1173
+    - urclock support for optiboot_x and optiboot_dx #1200
+    - Terminal does not continue read/dump correctly #1201
 
   * Pull requests:
 
@@ -212,6 +230,12 @@ Changes since version 7.0:
     - Fix shell exit value when chip erase is delayed #1194
     - Support autobaud for urclock programmer #1198
     - Fix userrow size and page_size for ATtiny3216/7 #1199
+    - Added TPI support for Microchip tools #1205
+    - Fix reading of .elf files #1206
+    - Use libedit only in interactive mode #1207
+    - Add urclock support for bootloaders in low flash #1208
+    - Terminal read improvements #1209
+
 
 
   * Internals:
