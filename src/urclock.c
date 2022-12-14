@@ -266,7 +266,9 @@ typedef struct {
       bloptiversion,            // Optiboot version as (major<<8) + minor
       blguessed;                // Guessed the bootloader from hash data
 
-  int32_t blstart;              // Bootloader start address, eg, for bootloader write protection
+  int boothigh;                 // 1: Bootloader sits in high flash; 0: low flash (UPDI parts)
+  int32_t blstart, blend;       // Bootloader address range [blstart, blend] for write protection
+  int32_t pfstart, pfend;       // Programmable flash address range [pfstart, pfend]
 
   int idmchr;                   // Either 'E' or 'F' for the memory where the Urclock ID is located
   int idaddr;                   // The address of the Urclock ID
@@ -282,9 +284,15 @@ typedef struct {
   uint8_t freeflash[3];         // 24-bit little endian number (storesize)
   uint8_t mcode;                // 255 = no metadata, 0 = only freeflash, 1 = freeflash + date,
                                 // 2-254 = freeflash + date + that many bytes filename incl nul
-  // Note:
-  // blstart = application size + freeflash + nmeta(mcode, flashsize)
-  // FLASHEND+1 = application size + freeflash + nmeta(mcode, flashsize) + bootloader size
+
+  /*
+   * Examples:
+   *   blend-blstart+1 = bootloader size
+   *   FLASHEND+1 = application size + freeflash + nmeta(mcode, flashsize) + bootloader size
+   *   Note for "classic" parts the bootloader is in high flash: blend = FLASHEND
+   *   blstart = application size + freeflash + nmeta(mcode, flashsize)
+   *   For "modern" parts the bootloader is in low flash: blstart = 0
+   */
 
   // Extended parameters for Urclock
   int showall,                  // Show all pieces of info for connected part and exit
@@ -315,7 +323,7 @@ typedef struct {
   char iddesc[64];              // Location of Urclock ID, eg F.12324.6 or E.-4.4 (default E.257.6)
 } Urclock_t;
 
-// Use private programmer data as if it were a global structure ur
+// Use private programmer data as if they were a global structure ur
 #define ur (*(Urclock_t *)(pgm->cookie))
 
 #define Return(...) do { pmsg_error(__VA_ARGS__); msg_error("\n"); return -1; } while (0)
@@ -613,7 +621,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
   ur.mcode = ur.nometadata? 0xff: ur.nodate? 0: ur.nofilename? 1: strlen(ur.filename)+1;
   nmdata = nmeta(ur.mcode, ur.uP.flashsize);
 
-  maxsize = ur.blstart? ur.blstart: flm->size;
+  maxsize = ur.pfend+1;
 
   // Compute begin and length of first contiguous block in input
   for(firstbeg=0; firstbeg < size; firstbeg++)
@@ -624,7 +632,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
       break;
 
   pmsg_notice2("%s %04d.%02d.%02d %02d.%02d meta %d boot %d\n", ur.filename,
-    ur.yyyy, ur.mm, ur.dd, ur.hr, ur.mn, nmdata, ur.blstart > 0? flm->size-ur.blstart: 0);
+    ur.yyyy, ur.mm, ur.dd, ur.hr, ur.mn, nmdata, ur.blend > ur.blstart? ur.blend-ur.blstart+1: 0);
 
   // Force upload of exactly this file, no patching, no metadata update, just trim if too big
   if(ur.restore) {
@@ -635,29 +643,33 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
   }
 
   // Sanity: no patching and no metadata if bootloader location is unknown
-  if(!ur.blstart)
+  if(ur.blend <= ur.blstart)
     goto nopatch_nometa;
 
-  // Sanity check the bootloader start address
-  if(ur.blstart < 0 || ur.blstart >= flm->size)
-    Return("bootloader at 0x%04x outside flash [0, 0x%04x]?", ur.blstart, flm->size-1);
+  // Sanity check the bootloader position
+  if(ur.blstart < 0 || ur.blstart >= flm->size || ur.blend < 0 || ur.blend >= flm->size)
+    Return("bootloader [0x%04x, 0x%04x] outside flash [0, 0x%04x]",
+      ur.blstart, ur.blend, flm->size-1);
 
   // Check size of uploded application and protect bootloader from being overwritten
-  if(size > ur.blstart)
+  if((ur.boothigh && size > ur.pfend+1) || (!ur.boothigh && firstbeg <= ur.blend))
     Return("input [0x%04x, 0x%04x] overlaps bootloader [0x%04x, 0x%04x]",
-      firstbeg, size-1, ur.blstart, flm->size-1);
+      firstbeg, size-1, ur.blstart, ur.blend);
 
-  if(nmdata >= nmeta(0, ur.uP.flashsize) && size > ur.blstart - nmeta(0, ur.uP.flashsize))
+  if(nmdata >= nmeta(0, ur.uP.flashsize) && size > ur.pfend+1 - nmeta(0, ur.uP.flashsize))
     Return("input [0x%04x, 0x%04x] overlaps metadata [0x%04x, 0x%04x], consider -xnometadata",
-      firstbeg, size-1, ur.blstart-nmeta(0, ur.uP.flashsize), ur.blstart-1);
+      firstbeg, size-1, ur.pfend+1-nmeta(0, ur.uP.flashsize), ur.pfend);
 
-  if(nmdata >= nmeta(1, ur.uP.flashsize) && size > ur.blstart - nmeta(1, ur.uP.flashsize))
+  if(nmdata >= nmeta(1, ur.uP.flashsize) && size > ur.pfend+1 - nmeta(1, ur.uP.flashsize))
     Return("input [0x%04x, 0x%04x] overlaps metadata [0x%04x, 0x%04x], consider -xnodate",
-      firstbeg, size-1, ur.blstart-nmeta(1, ur.uP.flashsize), ur.blstart-1);
+      firstbeg, size-1, ur.pfend+1-nmeta(1, ur.uP.flashsize), ur.pfend);
 
-  if(size > ur.blstart - nmdata)
+  if(size > ur.pfend+1 - nmdata)
     Return("input [0x%04x, 0x%04x] overlaps metadata [0x%04x, 0x%04x], consider -xnofilename",
-      firstbeg, size-1, ur.blstart-nmdata, ur.blstart-1);
+      firstbeg, size-1, ur.pfend+1-nmdata, ur.pfend);
+
+  if(!ur.boothigh)
+    goto nopatch;
 
   bool llcode = firstbeg == 0 && firstlen > ur.uP.ninterrupts*vecsz; // Looks like code
   bool llvectors = firstbeg == 0 && firstlen >= ur.uP.ninterrupts*vecsz; // Looks like vector table
@@ -724,10 +736,10 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
 nopatch:
 
   if(nmdata) {
-    int32_t nfree = ur.blstart - size;
+    int32_t nfree = ur.pfend+1 - size;
 
     if(nfree >= nmdata) {
-      unsigned char *p = flm->buf + ur.blstart - nmdata;
+      unsigned char *p = flm->buf + ur.pfend+1 - nmdata;
 
       if(ur.mcode > 1) {        // Save filename (ur.mcode cannot be 0xff b/c nmdata is non-zero)
         memcpy(p, ur.filename, ur.mcode);
@@ -760,20 +772,20 @@ nopatch:
       *p++ = ur.mcode;
 
       // Set tags so metadata get burned onto chip
-      memset(flm->tags + ur.blstart - nmdata, TAG_ALLOCATED, nmdata);
+      memset(flm->tags + ur.pfend+1 - nmdata, TAG_ALLOCATED, nmdata);
 
       if(ur.initstore)          // Zap the pgm store
         memset(flm->tags + size, TAG_ALLOCATED, nfree);
 
-      size = ur.blstart;
+      size = ur.pfend+1;
     }
   }
 
   // Storing no metadata: put a 0xff byte just below bootloader
-  if(size < ur.blstart && nmdata == 0) {
-    flm->buf[ur.blstart-1] = 0xff;
-    flm->tags[ur.blstart-1] = TAG_ALLOCATED;
-    size = ur.blstart;
+  if(size < ur.pfend+1 && nmdata == 0) {
+    flm->buf[ur.pfend] = 0xff;
+    flm->tags[ur.pfend] = TAG_ALLOCATED;
+    size = ur.pfend+1;
   }
 
 nopatch_nometa:
@@ -781,13 +793,13 @@ nopatch_nometa:
   // Delete metadata on device (if any) that's between new input and metadata
   if(!ur.urprotocol || (ur.urfeatures & UB_READ_FLASH)) { // Flash readable?
     uint8_t devmcode;           // Metadata marker on the device
-    if(ur.blstart && ur_readEF(pgm, p, &devmcode, ur.blstart-1, 1, 'F') == 0) {
+    if(ur_readEF(pgm, p, &devmcode, ur.pfend, 1, 'F') == 0) {
       int devnmeta=nmeta(devmcode, ur.uP.flashsize);
-      for(int addr=ur.blstart-devnmeta; addr < ur.blstart; addr++) {
-         if(!(flm->tags[addr] & TAG_ALLOCATED)) {
-            flm->tags[addr] |= TAG_ALLOCATED;
-            flm->buf[addr] = 0xff;
-         }
+      for(int addr=ur.pfend+1-devnmeta; addr < ur.pfend+1; addr++) {
+        if(addr >=0 && addr < flm->size && !(flm->tags[addr] & TAG_ALLOCATED)) {
+          flm->tags[addr] |= TAG_ALLOCATED;
+          flm->buf[addr] = 0xff;
+        }
       }
     }
   }
@@ -801,7 +813,7 @@ nopatch_nometa:
 
 
   // Ensure that vector bootloaders have correct r/jmp at address 0
-  if(ur.blstart && ur.vbllevel==1) {
+  if(ur.boothigh && ur.blstart && ur.vbllevel == 1) {
     int rc, set=0;
     for(int i=0; i < vecsz; i++)
       if(flm->tags[i] & TAG_ALLOCATED)
@@ -1180,7 +1192,10 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
       for(ii = 0; ii < (int) (sizeof blist/sizeof*blist); ii++)
         if(blist[ii].hash == hash && sz == blist[ii].sz && !(sz & (ur.uP.pagesize-1))) {
           // Page aligned bootloader size matches
-          ur.blstart = ur.uP.flashsize-sz;
+          ur.blstart = ur.uP.flashsize - sz;
+          ur.blend   = ur.uP.flashsize - 1;
+          ur.pfend   = ur.blstart - 1;
+
           if(blist[ii].ee)
             ur.bleepromrw = 1;
           ur.blguessed = 1;
@@ -1297,43 +1312,63 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
       "use correct -p ... or override with -F",
       ur.uP.name, ur.uP.ninterrupts, p->desc, p->n_interrupts);
 
-  // No urboot bootloaders on AVR32 parts, neither on really small devices
-  if((p->prog_modes & PM_aWire) || flm->size < 512)
-    goto alldone;
-
+  // Initialse so that programmable flash is all flash and no bootloader
+  ur.pfstart = 0;
+  ur.pfend   = flm->size-1;
   ur.blstart = 0;
+  ur.blend = 0;
   ur.vbllevel = 0;
   ur.vblvectornum = -1;
   ur.bleepromrw = 0;
 
+  // No urboot bootloaders on AVR32 parts, neither on really small devices
+  if((p->prog_modes & PM_aWire) || flm->size < 512)
+    goto alldone;
+
+  // UPDI parts have bootloader in low flash
+  ur.boothigh = !(p->prog_modes & PM_UPDI);
+
   // Manual provision of above bootloader parameters
   if(ur.xbootsize) {
-    if(ur.xbootsize % ur.uP.pagesize)
+    if(ur.boothigh && ur.xbootsize % ur.uP.pagesize)
       Return("-xbootsize=%d size not a multiple of flash page size %d",
         ur.xbootsize, ur.uP.pagesize);
     if(ur.xbootsize < 64 || ur.xbootsize > urmin(8192, ur.uP.flashsize/4))
       Return("implausible -xbootsize=%d, should be in [64, %d]",
         ur.xbootsize, urmin(8192, ur.uP.flashsize/4));
-    ur.blstart = ur.uP.flashsize - ur.xbootsize;
+    if(ur.boothigh) {
+      ur.blstart = flm->size - ur.xbootsize;
+      ur.blend   = flm->size - 1;
+      ur.pfend   = ur.blstart - 1;
+    } else {
+      ur.blstart = 0;
+      ur.blend   = ur.xbootsize - 1;
+      ur.pfstart = ur.blend + 1;
+    }
   }
 
-  if((int8_t) ur.uP.ninterrupts >= 0) // valid range is 0..127
-    if(ur.xvectornum < -1 || ur.xvectornum > ur.uP.ninterrupts)
-      Return("unknown interrupt vector #%d for vector bootloader -- should be in [-1, %d]",
-        ur.xvectornum, ur.uP.ninterrupts);
-  if(ur.xvectornum > 0) {
-    ur.vbllevel = 1;
-    ur.vblvectornum = ur.xvectornum;
+  if(ur.boothigh) {
+    if((int8_t) ur.uP.ninterrupts >= 0) // valid range is 0..127
+      if(ur.xvectornum < -1 || ur.xvectornum > ur.uP.ninterrupts)
+        Return("unknown interrupt vector #%d for vector bootloader -- should be in [-1, %d]",
+          ur.xvectornum, ur.uP.ninterrupts);
+    if(ur.xvectornum > 0) {
+      ur.vbllevel = 1;
+      ur.vblvectornum = ur.xvectornum;
+    }
+  } else if(ur.xvectornum != -1) {
+    Return("UPDI part %s does not support vector bootloaders", ur.uP.name);
   }
 
   if(ur.urprotocol && !(ur.urfeatures & UB_READ_FLASH)) // Bootloader that cannot read flash?
-    if(!ur.blstart)
-      Return("please specify -xbootsize=<num> and, if needed, -xvectornum=<num> or -xeepromrw");
+    if(ur.blend <= ur.blstart)
+      Return("please specify -xbootsize=<num> and, if needed, %s-xeepromrw",
+        ur.boothigh? "-xvectornum=<num> or ": "");
 
   uint16_t v16 = 0xffff, rjmpwp = ret_opcode;
 
-  // Sporting chance that we can read top flash to get intell about bootloader
-  if(!ur.urprotocol || (ur.urfeatures & UB_READ_FLASH)) {
+  // Sporting chance that we can read top flash to get intell about bootloader?
+  if(ur.boothigh && (!ur.urprotocol || (ur.urfeatures & UB_READ_FLASH))) {
     // Read top 6 bytes from flash memory to obtain extended information about bootloader and type
     if((rc = ur_readEF(pgm, p, spc, flm->size-6, 6, 'F')))
       return rc;
@@ -1369,14 +1404,17 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
                   return -1;
                 }
               }
-            } else
+            } else {
               ur.blstart = flm->size - blsize;
+              ur.blend   = flm->size - 1;
+              ur.pfend   = ur.blstart - 1;
+            }
 
             if(ur.xvectornum != -1) {
               if(ur.vblvectornum != vectnum) {
                 pmsg_warning("urboot vector number %d overwritten by -xvectornum=%d\n",
                   vectnum, ur.xvectornum);
-                imsg_warning("the application might not start\n");
+                imsg_warning("the application might not start correctly\n");
               }
             } else
               ur.vblvectornum = vectnum;
@@ -1387,7 +1425,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
       ur.bloptiversion = (urver<<8) + cap;
     }
 
-    if(!ur.blstart && ur.vbllevel) { // An older version urboot vector bootloader?
+    if(ur.blend <= ur.blstart && ur.vbllevel) { // An older version urboot vector bootloader?
       int vecsz = ur.uP.flashsize <= 8192? 2: 4;
 
        // Reset vector points to the bootloader and the bootloader has r/jmp to application?
@@ -1402,21 +1440,27 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
           while(guess < 0)      // Convert to absolute address
             guess += flm->size;
           if((guess & (flm->page_size-1)) == 0) // Page aligned? Good
-            if(flm->size - guess <= 2048) // Accept unless size of bootloader exceeds 2048 bytes
+            if(flm->size - guess <= 2048) { // Accept unless size of bootloader exceeds 2048 bytes
               ur.blstart = guess;
+              ur.blend   = flm->size - 1;
+              ur.pfend   = guess - 1;
+            }
         }
       } else if(vecsz == 4 && isJmp(reset16)) { // Jmp op code
         int guess = addr_jmp(buf2uint32(spc));
         if(guess < flm->size)
           if((guess & (flm->page_size-1)) == 0) // Page aligned? Good
-            if(flm->size - guess <= 2048) // Accept unless size of bootloader exceeds 2048 bytes
+            if(flm->size - guess <= 2048) { // Accept unless size of bootloader exceeds 2048 bytes
               ur.blstart = guess;
+              ur.blend   = flm->size - 1;
+              ur.pfend   = guess - 1;
+            }
       }
 
-      if(ur.blstart && ur.vblvectornum > 0)
+      if(ur.blend > ur.blstart && ur.vblvectornum > 0)
         goto vblvecfound;
 
-      if(ur.blstart) {          // Read bootloader to identify jump to vbl vector
+      if(ur.blend > ur.blstart) { // Read bootloader to identify jump to vbl vector
         int i, npages, j, n, toend, dist, wasop32, wasjmp, op16;
         uint8_t *q;
         uint16_t opcode;
@@ -1459,30 +1503,31 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
     }
 
     // Still no bootloader start address? Read in top flash and guess bootloader start
-    if(!ur.blstart)
+    if(ur.blend <= ur.blstart)
       guessblstart(pgm, p);
 
     // Still no bootloader start address?
-    if(!ur.blstart) {
+    if(ur.blend <= ur.blstart) {
       if(ur. bloptiversion)
-       Return("bootloader might be optiboot %d.%d? Please use -xbootsize=<num>\n",
-         ur.bloptiversion>>8, ur.bloptiversion & 255);
+        Return("bootloader might be optiboot %d.%d? Please use -xbootsize=<num>\n",
+          ur.bloptiversion>>8, ur.bloptiversion & 255);
       Return("unknown bootloader ... please specify -xbootsize=<num>\n");
     }
+  } else if(!ur.boothigh) { // Fixme: guess bootloader size from low flash
   }
 
 vblvecfound:
   urbootPutVersion(pgm, ur.desc, v16, rjmpwp);
 
   ur.mcode = 0xff;
-  if(ur.blstart) {
+  if(ur.pfend >= nmeta(254, flm->size)) {
     int nm = nmeta(1, ur.uP.flashsize); // 6 for date + size of store struct + 1 for mcode byte
     // Showing properties mostly requires examining the bytes below bootloader for metadata
     if(ur.showall || (ur.showid && *ur.iddesc && *ur.iddesc != 'E') || ur.showapp ||
       ur.showstore || ur.showmeta || ur.showboot || ur.showversion || ur.showvector ||
       ur.showpart || ur.showdate || ur.showfilename) {
 
-      if((rc = ur_readEF(pgm, p, spc, ur.blstart-nm, nm, 'F')))
+      if((rc = ur_readEF(pgm, p, spc, ur.pfend+1-nm, nm, 'F')))
         return rc;
 
       if(spc[nm-1] != 0xff) {
@@ -1492,7 +1537,7 @@ vblvecfound:
         int nmdata = nmeta(mcode, ur.uP.flashsize);
 
         // Check plausibility of metadata header just below bootloader
-        if(storestart > 0 && storestart == ur.blstart-nmdata-storesize) {
+        if(storestart > 0 && storestart == ur.pfend+1-nmdata-storesize) {
           ur.storestart = storestart;
           ur.storesize = storesize;
           ur.mcode = mcode;
@@ -1515,7 +1560,7 @@ vblvecfound:
               ur.hr = hr;
               ur.mn = mn;
               if(mcode > 1) {   // Copy application name over
-                rc = ur_readEF(pgm, p, spc, ur.blstart-nmeta(mcode, ur.uP.flashsize), mcode, 'F');
+                rc = ur_readEF(pgm, p, spc, ur.pfend+1-nmeta(mcode, ur.uP.flashsize), mcode, 'F');
                 if(rc < 0)
                   return rc;
                 int len = mcode<sizeof ur.filename? mcode: sizeof ur.filename;
@@ -1553,7 +1598,7 @@ vblvecfound:
   if(ur.showmeta || ur.showall)
     term_out(&" %s%d"[first], single? "": "meta ", nmeta(ur.mcode, ur.uP.flashsize)), first=0;
   if(ur.showboot || ur.showall)
-    term_out(&" %s%d"[first], single? "": "boot ", ur.blstart? flm->size-ur.blstart: 0), first=0;
+    term_out(&" %s%d"[first], single? "": "boot ", ur.blend>ur.blstart? ur.blend-ur.blstart+1: 0), first=0;
   if(ur.showversion || ur.showall)
     term_out(&" %s"[first], ur.desc+(*ur.desc==' ')), first=0;
   if(ur.showvector || ur.showall) {
@@ -1640,7 +1685,7 @@ static int urclock_paged_rdwr(const PROGRAMMER *pgm, const AVRPART *part, char r
     if(len != ur.uP.pagesize)
       Return("len %d must be page size %d for paged flash writes", len, ur.uP.pagesize);
 
-    if(badd < 4U && ur.blstart && ur.vbllevel==1) {
+    if(badd < 4U && ur.boothigh && ur.blstart && ur.vbllevel==1) {
       int vecsz = ur.uP.flashsize <= 8192? 2: 4;
       unsigned char jmptoboot[4];
       int resetsize = set_reset(pgm, jmptoboot, vecsz);
@@ -1941,7 +1986,7 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
         break;
     } else {                    // Board not yet out of reset or bootloader twiddles lights
       int slp = 32<<(attempt<3? attempt: 3);
-      pmsg_debug("%4d ms: sleeping for %d ms\n", avr_mstimestamp(), slp);
+      pmsg_debug("%4ld ms: sleeping for %d ms\n", avr_mstimestamp(), slp);
       usleep(slp*1000);
     }
     if(attempt > 5) {           // Don't report first six attempts
@@ -2105,7 +2150,7 @@ static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   ur.done_ce = 1;
 
   if(!emulated) {               // Write jump to boot section to reset vector
-    if(ur.blstart && ur.vbllevel==1) {
+    if(ur.boothigh && ur.blstart && ur.vbllevel==1) {
       AVRMEM *flm = avr_locate_mem(p, "flash");
       int vecsz = ur.uP.flashsize <= 8192? 2: 4;
       if(flm && flm->page_size >= vecsz) {
@@ -2202,10 +2247,10 @@ static int urclock_open(PROGRAMMER *pgm, const char *port) {
   serial_drain_timeout = 20;    // ms
   serial_drain(&pgm->fd, 0);
 
-  pmsg_debug("%4d ms: enter urclock_getsync()\n", avr_mstimestamp());
+  pmsg_debug("%4ld ms: enter urclock_getsync()\n", avr_mstimestamp());
   if(urclock_getsync(pgm) < 0)
     return -1;
-  pmsg_debug("%4d ms: all good, ready to rock\n", avr_mstimestamp());
+  pmsg_debug("%4ld ms: all good, ready to rock\n", avr_mstimestamp());
 
   return 0;
 }
@@ -2282,7 +2327,7 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
       if(addr == 0 && mchr == 'F') { // Ensure reset vector points to bl
         int vecsz = ur.uP.flashsize <= 8192? 2: 4;
-        if(chunk >= vecsz && ur.blstart && ur.vbllevel == 1) {
+        if(chunk >= vecsz && ur.boothigh && ur.blstart && ur.vbllevel == 1) {
           unsigned char jmptoboot[4];
           int resetsize = set_reset(pgm, jmptoboot, vecsz);
           int resetdest;
@@ -2365,18 +2410,18 @@ static int urclock_readonly(const struct programmer_t *pgm, const AVRPART *p_unu
   const AVRMEM *mem, unsigned int addr) {
 
   if(avr_mem_is_flash_type(mem)) {
-    if(ur.blstart) {
-      if(addr >= (unsigned int) ur.blstart)
+    if(addr > (unsigned int) ur.pfend)
+      return 1;
+    if(addr < (unsigned int) ur.pfstart)
+      return 1;
+    if(ur.boothigh && addr < 512 && ur.vbllevel) {
+      unsigned int vecsz = ur.uP.flashsize <= 8192? 2u: 4u;
+      if(addr < vecsz)
         return 1;
-      if(addr < 512 && ur.vbllevel) {
-        unsigned int vecsz = ur.uP.flashsize <= 8192? 2u: 4u;
-        if(addr < vecsz)
+      if(ur.vblvectornum > 0) {
+        unsigned int appvecloc = ur.vblvectornum*vecsz;
+        if(addr >= appvecloc && addr < appvecloc+vecsz)
           return 1;
-        if(ur.vblvectornum > 0) {
-          unsigned int appvecloc = ur.vblvectornum*vecsz;
-          if(addr >= appvecloc && addr < appvecloc+vecsz)
-            return 1;
-        }
       }
     }
   } else if(!avr_mem_is_eeprom_type(mem))
