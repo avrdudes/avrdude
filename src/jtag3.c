@@ -2304,6 +2304,7 @@ int jtag3_set_vtarget(const PROGRAMMER *pgm, double v) {
 
 static void jtag3_display(const PROGRAMMER *pgm, const char *p) {
   unsigned char parms[5];
+  const char *sn;
 
   /*
    * Ask for:
@@ -2315,10 +2316,35 @@ static void jtag3_display(const PROGRAMMER *pgm, const char *p) {
   if (jtag3_getparm(pgm, SCOPE_GENERAL, 0, PARM3_HW_VER, parms, 5) < 0)
     return;
 
+  // Use serial number pulled from the USB driver. If not present, query the programmer
+  if(pgm->usbsn)
+    sn = pgm->usbsn;
+  else {
+    unsigned char cmd[4], *resp, c;
+    int status;
+    cmd[0] = SCOPE_INFO;
+    cmd[1] = CMD3_GET_INFO;
+    cmd[2] = 0;
+    cmd[3] = CMD3_INFO_SERIAL;
+
+    if ((status = jtag3_command(pgm, cmd, 4, &resp, "get info (serial number)")) < 0)
+      return;
+
+    c = resp[1];
+    if (c != RSP3_INFO) {
+      pmsg_error("response is not RSP3_INFO\n");
+      free(resp);
+      return;
+    }
+    memmove(resp, resp + 3, status - 3);
+    resp[status - 3] = 0;
+    sn = (const char*)resp;
+  }
+
   msg_info("%sICE HW version  : %d\n", p, parms[0]);
   msg_info("%sICE FW version  : %d.%02d (rel. %d)\n", p, parms[1], parms[2],
            (parms[3] | (parms[4] << 8)));
-  msg_info("%sSerial number   : %s", p, pgm->usbsn);
+  msg_info("%sSerial number   : %s", p, sn);
 }
 
 
