@@ -58,6 +58,14 @@ static int buflen = -1, bufptr;
 
 static int usb_interface;
 
+static char usbsn[15];
+
+const char *usbdev_get_serno() {
+  if (!*usbsn)
+    return NULL;
+  return usbsn;
+}
+
 /*
  * The "baud" parameter is meaningless for USB devices, so we reuse it
  * to pass the desired USB device ID.
@@ -138,7 +146,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 		      else
 			strcpy(string, "[unknown]");
 		    }
-
+		  strncpy((char *)usbsn, string, 15);
 		  if (usb_get_string_simple(udev,
 					    dev->descriptor.iProduct,
 					    product, sizeof(product)) < 0)
@@ -576,6 +584,7 @@ static int usbdev_drain(const union filedescriptor *fd, int display)
 struct serial_device usb_serdev =
 {
   .open = usbdev_open,
+  .serno = usbdev_get_serno,
   .close = usbdev_close,
   .send = usbdev_send,
   .recv = usbdev_recv,
@@ -589,6 +598,7 @@ struct serial_device usb_serdev =
 struct serial_device usb_serdev_frame =
 {
   .open = usbdev_open,
+  .serno = usbdev_get_serno,
   .close = usbdev_close,
   .send = usbdev_send,
   .recv = usbdev_recv_frame,
