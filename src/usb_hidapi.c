@@ -42,11 +42,12 @@
 
 #include "usbdevs.h"
 
-static int usbhid_get_serno(union pinfo pinfo, const char *sn) {
-  struct hid_device_info *list;
-  list = hid_enumerate(pinfo.usbinfo.vid, pinfo.usbinfo.pid);
-  wcstombs((char *)sn, list->serial_number, 15);
-  hid_free_enumeration(list);
+static char usbsn[15];
+
+static int usbhid_get_serno(const char* sn) {
+  if (!*usbsn)
+    return -1;
+  strncpy((char *)sn, usbsn, 15);
   return 0;
 }
 
@@ -136,6 +137,11 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
       return -1;
     }
   }
+
+  // Store USB serial number to usbsn string
+  wchar_t sn[15];
+  hid_get_serial_number_string(dev, sn, 15);
+  wcstombs((char *)usbsn, sn, 15);
 
   fd->usb.handle = dev;
 

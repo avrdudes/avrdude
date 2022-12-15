@@ -649,7 +649,7 @@ union pinfo
 struct serial_device {
   // open should return -1 on error, other values on success
   int (*open)(const char *port, union pinfo pinfo, union filedescriptor *fd);
-  int (*serno)(union pinfo pinfo, const char *sn);
+  int (*serno)(const char *sn);
   int (*setparams)(const union filedescriptor *fd, long baud, unsigned long cflags);
   void (*close)(union filedescriptor *fd);
 
