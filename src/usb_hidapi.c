@@ -44,11 +44,10 @@
 
 static char usbsn[15];
 
-static int usbhid_get_serno(const char* sn) {
+const char *usbhid_get_serno() {
   if (!*usbsn)
-    return -1;
-  strncpy((char *)sn, usbsn, 15);
-  return 0;
+    return NULL;
+  return usbsn;
 }
 
 /*

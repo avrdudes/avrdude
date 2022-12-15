@@ -1542,7 +1542,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
   }
 
   // Store USB serial number
-  serial_serno(pgm->usbsn);
+  pgm->usbsn = serial_serno();
 
   /*
    * drain any extraneous input
