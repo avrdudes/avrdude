@@ -1515,7 +1515,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
         }
       }
     }
-    pmsg_error("did not find any device matching VID 0x%04x and PID list: ",
+    pmsg_error("no device found matching VID 0x%04x and PID list: ",
                (unsigned) pinfo.usbinfo.vid);
     int notfirst = 0;
     for (usbpid = lfirst(pgm->usbpid); usbpid != NULL; usbpid = lnext(usbpid)) {
@@ -1524,6 +1524,11 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
       msg_error("0x%04x", (unsigned int)(*(int *)(ldata(usbpid))));
       notfirst = 1;
     }
+
+    char *serno;
+    if ((serno = strchr(port, ':')))
+      msg_error(" with SN %s", ++serno);
+
     msg_error("\n");
 
     return -1;
@@ -1535,6 +1540,9 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
     pgm->flag |= PGM_FL_IS_EDBG;
     pmsg_notice("found CMSIS-DAP compliant device, using EDBG protocol\n");
   }
+
+  // Get USB serial number
+  serial_serno(pinfo, pgm->usbsn);
 
   /*
    * drain any extraneous input
@@ -2296,8 +2304,6 @@ int jtag3_set_vtarget(const PROGRAMMER *pgm, double v) {
 
 static void jtag3_display(const PROGRAMMER *pgm, const char *p) {
   unsigned char parms[5];
-  unsigned char cmd[4], *resp, c;
-  int status;
 
   /*
    * Ask for:
@@ -2309,28 +2315,10 @@ static void jtag3_display(const PROGRAMMER *pgm, const char *p) {
   if (jtag3_getparm(pgm, SCOPE_GENERAL, 0, PARM3_HW_VER, parms, 5) < 0)
     return;
 
-  cmd[0] = SCOPE_INFO;
-  cmd[1] = CMD3_GET_INFO;
-  cmd[2] = 0;
-  cmd[3] = CMD3_INFO_SERIAL;
-
-  if ((status = jtag3_command(pgm, cmd, 4, &resp, "get info (serial number)")) < 0)
-    return;
-
-  c = resp[1];
-  if (c != RSP3_INFO) {
-    pmsg_error("response is not RSP3_INFO\n");
-    free(resp);
-    return;
-  }
-  memmove(resp, resp + 3, status - 3);
-  resp[status - 3] = 0;
-
   msg_info("%sICE HW version  : %d\n", p, parms[0]);
   msg_info("%sICE FW version  : %d.%02d (rel. %d)\n", p, parms[1], parms[2],
            (parms[3] | (parms[4] << 8)));
-  msg_info("%sSerial number   : %s", p, resp);
-  free(resp);
+  msg_info("%sSerial number   : %s", p, pgm->usbsn);
 }
 
 
