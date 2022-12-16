@@ -1243,7 +1243,7 @@ int main(int argc, char * argv [])
   if (!init_ok) {
     pmsg_error("initialization failed, rc=%d\n", rc);
     if(rc == -2)
-      imsg_error("The programmer ISP clock is too fast for the target\n");
+      imsg_error("the programmer ISP clock is too fast for the target\n");
     else
       imsg_error("- double check the connections and try again\n");
     imsg_error("- use -B to set lower ISP clock frequency, e.g. -B 125kHz\n");
