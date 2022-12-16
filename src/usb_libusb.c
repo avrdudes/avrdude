@@ -58,11 +58,9 @@ static int buflen = -1, bufptr;
 
 static int usb_interface;
 
-static char usbsn[15];
+static const char *usbsn = "";
 
 const char *usbdev_get_serno() {
-  if (!*usbsn)
-    return NULL;
   return usbsn;
 }
 
@@ -146,7 +144,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 		      else
 			strcpy(string, "[unknown]");
 		    }
-		  strncpy((char *)usbsn, string, 15);
+		  usbsn = cache_string(string);
 		  if (usb_get_string_simple(udev,
 					    dev->descriptor.iProduct,
 					    product, sizeof(product)) < 0)

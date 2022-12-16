@@ -1541,7 +1541,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
     pmsg_notice("found CMSIS-DAP compliant device, using EDBG protocol\n");
   }
 
-  // Store USB serial number
+  // Get USB serial number
   pgm->usbsn = serial_serno();
 
   /*
@@ -2317,7 +2317,7 @@ static void jtag3_display(const PROGRAMMER *pgm, const char *p) {
     return;
 
   // Use serial number pulled from the USB driver. If not present, query the programmer
-  if(pgm->usbsn)
+  if (pgm->usbsn && *pgm->usbsn)
     sn = pgm->usbsn;
   else {
     unsigned char cmd[4], *resp, c;
@@ -2334,6 +2334,10 @@ static void jtag3_display(const PROGRAMMER *pgm, const char *p) {
     if (c != RSP3_INFO) {
       pmsg_error("response is not RSP3_INFO\n");
       free(resp);
+      return;
+    }
+    if (status < 3) {
+      msg_error("unexpected response from PARM3_HW_VER command");
       return;
     }
     memmove(resp, resp + 3, status - 3);

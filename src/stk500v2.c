@@ -1569,7 +1569,7 @@ static int stk500v2_open(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 
-  // Store USB serial number
+  // Get USB serial number
   pgm->usbsn = serial_serno();
 
   /*
@@ -3038,7 +3038,7 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
     stk500v2_getparm(pgm, PARAM_SW_MAJOR, &maj);
     stk500v2_getparm(pgm, PARAM_SW_MINOR, &min);
     msg_info("%sHardware Version: %d\n", p, hdw);
-    if(pgm->usbsn)
+    if (pgm->usbsn && *pgm->usbsn)
       msg_info("%sSerial number   : %s\n", p, pgm->usbsn);
     msg_info("%sFirmware Version Controller : %d.%02d\n", p, maj, min);
     if (PDATA(pgm)->pgmtype == PGMTYPE_STK600) {

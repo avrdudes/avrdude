@@ -42,11 +42,9 @@
 
 #include "usbdevs.h"
 
-static char usbsn[15];
+static const char *usbsn = "";
 
 const char *usbhid_get_serno() {
-  if (!*usbsn)
-    return NULL;
   return usbsn;
 }
 
@@ -138,9 +136,16 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
   }
 
   // Store USB serial number to usbsn string
-  wchar_t sn[15];
-  hid_get_serial_number_string(dev, sn, 15);
-  wcstombs((char *)usbsn, sn, 15);
+  wchar_t sn[256];
+  if (hid_get_serial_number_string(dev, sn, sizeof(sn)/sizeof(*sn)) == 0) {
+    size_t n = wcstombs(NULL, sn, 0) + 1;
+    if (n) {
+      char *cn = cfg_malloc(__func__, n);
+      if (wcstombs(cn, sn, n) != (size_t) -1)
+        usbsn = cache_string(cn);
+      free(cn);
+    }
+  }
 
   fd->usb.handle = dev;
 
