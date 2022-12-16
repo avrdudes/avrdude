@@ -3078,6 +3078,12 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
     msg_info("%sRC_ID table rev : %d\n", p, rev);
     stk500v2_getparm2(pgm, PARAM2_EC_ID_TABLE_REV, &rev);
     msg_info("%sEC_ID table rev : %d\n", p, rev);
+  } else if (PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE3) {
+    PROGRAMMER *pgmcp = pgm_dup(pgm);
+    pgmcp->cookie = PDATA(pgm)->chained_pdata;
+    jtag3_display(pgmcp, p);
+    msg_info("\n");
+    free(pgmcp);
   }
   stk500v2_print_parms1(pgm, p, stderr);
 

@@ -104,6 +104,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                                 unsigned long addr, unsigned char data);
 static int jtag3_set_sck_period(const PROGRAMMER *pgm, double v);
+void jtag3_display(const PROGRAMMER *pgm, const char *p);
 void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp);
 static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                 unsigned int page_size,
@@ -2302,7 +2303,7 @@ int jtag3_set_vtarget(const PROGRAMMER *pgm, double v) {
   return 0;
 }
 
-static void jtag3_display(const PROGRAMMER *pgm, const char *p) {
+void jtag3_display(const PROGRAMMER *pgm, const char *p) {
   unsigned char parms[5];
   const char *sn;
 
