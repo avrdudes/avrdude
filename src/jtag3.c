@@ -2328,8 +2328,10 @@ void jtag3_display(const PROGRAMMER *pgm, const char *p) {
     cmd[2] = 0;
     cmd[3] = CMD3_INFO_SERIAL;
 
-    if ((status = jtag3_command(pgm, cmd, 4, &resp, "get info (serial number)")) < 0)
+    if ((status = jtag3_command(pgm, cmd, 4, &resp, "get info (serial number)")) < 0) {
+      free(resp);
       return;
+    }
 
     c = resp[1];
     if (c != RSP3_INFO) {
