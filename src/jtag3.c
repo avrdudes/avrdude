@@ -2340,7 +2340,7 @@ void jtag3_display(const PROGRAMMER *pgm, const char *p) {
       return;
     }
     if (status < 3) {
-      msg_error("unexpected response from PARM3_HW_VER command");
+      msg_error("unexpected response from CMD3_GET_INFO command\n");
       return;
     }
     memmove(resp, resp + 3, status - 3);
