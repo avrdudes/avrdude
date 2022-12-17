@@ -1780,7 +1780,8 @@ static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint
     Return("bootloader does not have flash read capability");
 
   if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
-    Return("bootloader does not %shave EEPROM access capability", ur.blurversion? "": "seem to ");
+    Return("bootloader %s not have EEPROM access%s", ur.blurversion? "does": "might",
+      ur.blurversion? " capability": "; try -xeepromrw if it has");
 
   if(len < 1 || len > urmax(ur.uP.pagesize, 256))
     Return("len %d exceeds range [1, %d]", len, urmax(ur.uP.pagesize, 256));
@@ -2278,8 +2279,8 @@ static int urclock_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
       return -2;
 
     if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
-      Return("bootloader does not %shave paged EEPROM write capability",
-        ur.blurversion? "": "seem to ");
+      Return("bootloader %s not have paged EEPROM write%s", ur.blurversion? "does": "might",
+        ur.blurversion? " capability": ", try -xeepromrw if it has");
 
     n = addr + n_bytes;
 
@@ -2313,8 +2314,8 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       Return("bootloader does not have flash read capability");
 
     if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
-      Return("bootloader does not %shave paged EEPROM read capability",
-        ur.blurversion? "": "seem to ");
+      Return("bootloader %s not have paged EEPROM read%s", ur.blurversion? "does": "might",
+        ur.blurversion? " capability": "; try -xeepromrw if it has");
 
     n = addr + n_bytes;
     for(; addr < n; addr += chunk) {
