@@ -2346,6 +2346,7 @@ void jtag3_display(const PROGRAMMER *pgm, const char *p) {
     memmove(resp, resp + 3, status - 3);
     resp[status - 3] = 0;
     sn = (const char*)resp;
+    free(resp);
   }
 
   msg_info("%sICE HW version  : %d\n", p, parms[0]);

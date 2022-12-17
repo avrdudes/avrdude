@@ -3083,7 +3083,7 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
     pgmcp->cookie = PDATA(pgm)->chained_pdata;
     jtag3_display(pgmcp, p);
     msg_info("\n");
-    free(pgmcp);
+    pgm_free(pgmcp);
   }
   stk500v2_print_parms1(pgm, p, stderr);
 
