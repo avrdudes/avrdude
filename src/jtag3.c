@@ -641,7 +641,7 @@ static int jtag3_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
   if (pgm->flag & PGM_FL_IS_EDBG)
     return jtag3_edbg_recv_frame(pgm, msg);
 
-  pmsg_trace("jtag3_recv():\n");
+  pmsg_trace("jtag3_recv_frame():\n");
 
   if ((buf = malloc(pgm->fd.usb.max_xfer)) == NULL) {
     pmsg_error("out of memory\n");
@@ -654,7 +654,7 @@ static int jtag3_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
 
   if (rv < 0) {
     /* timeout in receive */
-    pmsg_notice2("jtag3_recv(): timeout receiving packet\n");
+    pmsg_notice2("jtag3_recv_frame(): timeout receiving packet\n");
     free(buf);
     return -1;
   }
@@ -795,6 +795,11 @@ int jtag3_recv(const PROGRAMMER *pgm, unsigned char **msg) {
        * original pointer though, as the caller must free() it.
        */
       rv -= 3;
+      if (rv < 0) {
+        pmsg_error("unexpected return value %d from jtag3_recv_frame()\n", rv);
+        free(*msg);
+        return -1;
+      }
       memmove(*msg, *msg + 3, rv);
 
       return rv;
@@ -818,6 +823,8 @@ int jtag3_command(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen
   if (status <= 0) {
     msg_notice2("\n");
     pmsg_notice2("%s command: timeout/error communicating with programmer (status %d)\n", descr, status);
+    if (status == 0)
+      free(*resp);
     return LIBAVRDUDE_GENERAL_FAILURE;
   } else if (verbose >= 3) {
     msg_info("\n");
@@ -1866,6 +1873,13 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
       free(resp);
       return -1;
     }
+
+    if(status < 4) {
+      pmsg_error("unexpected response from read memory jtag3_command()\n");
+      free(resp);
+      return -1;
+    }
+
     memcpy(m->buf + addr, resp + 3, status - 4);
     free(resp);
   }
@@ -2215,6 +2229,11 @@ int jtag3_getparm(const PROGRAMMER *pgm, unsigned char scope,
   }
 
   status -= 3;
+  if (status < 3) {
+    pmsg_error("unexpected return value %d from jtag3_command()\n", status);
+    free(resp);
+    return -1;
+  }
   memcpy(value, resp + 3, (length < status? length: status));
   free(resp);
 
@@ -2252,7 +2271,7 @@ int jtag3_setparm(const PROGRAMMER *pgm, unsigned char scope,
   status = jtag3_command(pgm, buf, length + 6, &resp, descr);
 
   free(buf);
-  if (status > 0)
+  if (status >= 0)
     free(resp);
 
   return status;
@@ -2341,12 +2360,12 @@ void jtag3_display(const PROGRAMMER *pgm, const char *p) {
     }
     if (status < 3) {
       msg_error("unexpected response from CMD3_GET_INFO command\n");
+      free(resp);
       return;
     }
     memmove(resp, resp + 3, status - 3);
     resp[status - 3] = 0;
     sn = (const char*)resp;
-    free(resp);
   }
 
   msg_info("%sICE HW version  : %d\n", p, parms[0]);
@@ -2547,6 +2566,11 @@ static int jtag3_send_tpi(const PROGRAMMER *pgm, unsigned char *data, size_t len
   }
 
   cmdbuf[0] = SCOPE_AVR_TPI;
+  if (len < 0) {
+    pmsg_error("invalid jtag3_send_tpi() packet length %d\n", len);
+    free(cmdbuf);
+    return -1;
+  }
   memcpy(cmdbuf + 1, data, len);
 
   msg_trace("[TPI send] ");
