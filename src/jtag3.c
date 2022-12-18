@@ -2324,6 +2324,7 @@ int jtag3_set_vtarget(const PROGRAMMER *pgm, double v) {
 
 void jtag3_display(const PROGRAMMER *pgm, const char *p) {
   unsigned char parms[5];
+  unsigned char *resp = NULL;
   const char *sn;
 
   /*
@@ -2340,7 +2341,7 @@ void jtag3_display(const PROGRAMMER *pgm, const char *p) {
   if (pgm->usbsn && *pgm->usbsn)
     sn = pgm->usbsn;
   else {
-    unsigned char cmd[4], *resp, c;
+    unsigned char cmd[4], c;
     int status;
     cmd[0] = SCOPE_INFO;
     cmd[1] = CMD3_GET_INFO;
@@ -2372,6 +2373,8 @@ void jtag3_display(const PROGRAMMER *pgm, const char *p) {
   msg_info("%sICE FW version  : %d.%02d (rel. %d)\n", p, parms[1], parms[2],
            (parms[3] | (parms[4] << 8)));
   msg_info("%sSerial number   : %s", p, sn);
+
+  free(resp);
 }
 
 
