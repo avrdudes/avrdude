@@ -2869,7 +2869,7 @@ static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
       return -1;
     }
 
-    if (status < 0) {
+    if (status < 2) {
       pmsg_error("unexpected return value %d from jtag3_paged_load_tpi()\n", status);
       free(resp);
       return -1;
