@@ -2229,7 +2229,7 @@ int jtag3_getparm(const PROGRAMMER *pgm, unsigned char scope,
   }
 
   status -= 3;
-  if (status < 3) {
+  if (status < 0) {
     pmsg_error("unexpected return value %d from jtag3_command()\n", status);
     free(resp);
     return -1;
@@ -2865,6 +2865,13 @@ static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
       free(resp);
       return -1;
     }
+
+    if (status < 0) {
+      pmsg_error("unexpected return value %d from jtag3_paged_load_tpi()\n", status);
+      free(resp);
+      return -1;
+    }
+
     memcpy(m->buf + addr, resp + 2, status - 2);
     free(resp);
   }
