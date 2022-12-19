@@ -847,6 +847,7 @@ retry:
             case STATUS_SET_PARAM_MISSING:
                 msg = "The `Set Device Parameters' have not been "
                     "executed in advance of this command";
+                break;
 
             default:
                 sprintf(msgbuf, "unknown, code 0x%02x", buf[1]);
