@@ -189,7 +189,7 @@ static bool matches(const char *s, const char *pat)
 
 static void jtag3_print_data(unsigned char *b, size_t s)
 {
-  int i;
+  size_t i;
 
   if (s < 2)
     return;
@@ -206,9 +206,9 @@ static void jtag3_print_data(unsigned char *b, size_t s)
 }
 
 static void jtag3_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
-  int i;
-
   if (verbose >= 4) {
+    size_t i;
+
     msg_trace("Raw message:\n");
 
     for (i = 0; i < len; i++) {
@@ -303,7 +303,7 @@ static void jtag3_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) 
 
     case RSP3_INFO:
       msg_info("Info returned:\n");
-      for (i = 2; i < len; i++) {
+      for (size_t i = 2; i < len; i++) {
         if (isprint(data[i]))
           msg_info("%c", data[i]);
         else
@@ -337,9 +337,9 @@ static int jtag3_errcode(int reason)
 }
 
 static void jtag3_prevent(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
-  int i;
-
   if (verbose >= 4) {
+    size_t i;
+
     msg_trace("Raw event:\n");
 
     for (i = 0; i < len; i++) {
@@ -469,6 +469,7 @@ static int jtag3_edbg_send(const PROGRAMMER *pgm, unsigned char *data, size_t le
 
   /* 4 bytes overhead for CMD, fragment #, and length info */
   int max_xfer = pgm->fd.usb.max_xfer;
+
   int nfragments = (len + max_xfer - 1) / max_xfer;
   if (nfragments > 1) {
     pmsg_debug("jtag3_edbg_send(): fragmenting into %d packets\n", nfragments);
@@ -485,18 +486,26 @@ static int jtag3_edbg_send(const PROGRAMMER *pgm, unsigned char *data, size_t le
     if (frag == 0) {
       /* Only first fragment has TOKEN and seq#, thus four bytes
         * less payload than subsequent fragments. */
-      this_len = len < max_xfer - 8? len: max_xfer - 8;
+      this_len = (int) len < max_xfer - 8? (int) len: max_xfer - 8;
       buf[2] = (this_len + 4) >> 8;
       buf[3] = (this_len + 4) & 0xff;
       buf[4] = TOKEN;
       buf[5] = 0;                   /* dummy */
       u16_to_b2(buf + 6, PDATA(pgm)->command_sequence);
+      if(this_len < 0) {
+        pmsg_error("unexpected this_len = %d\n", this_len);
+        return -1;
+      }
       memcpy(buf + 8, data, this_len);
     }
     else {
-      this_len = len < max_xfer - 4? len: max_xfer - 4;
+      this_len = (int) len < max_xfer - 4? (int) len: max_xfer - 4;
       buf[2] = (this_len) >> 8;
       buf[3] = (this_len) & 0xff;
+      if(this_len < 0) {
+        pmsg_error("unexpected this_len = %d\n", this_len);
+        return -1;
+      }
       memcpy(buf + 4, data, this_len);
     }
 
@@ -1866,8 +1875,7 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     if ((status = jtag3_command(pgm, cmd, 12, &resp, "read memory")) < 0)
       return -1;
 
-    if (resp[1] != RSP3_DATA ||
-        status < block_size + 4) {
+    if (resp[1] != RSP3_DATA || status < (int) block_size + 4) {
       pmsg_error("wrong/short reply to read memory command\n");
       serial_recv_timeout = otimeout;
       free(resp);
@@ -2041,7 +2049,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     return status;
 
   if (resp[1] != RSP3_DATA ||
-      status < (pagesize? pagesize: 1) + 4) {
+      status < (int) (pagesize? pagesize: 1) + 4) {
     pmsg_error("wrong/short reply to read memory command\n");
     free(resp);
     return -1;
@@ -2569,8 +2577,8 @@ static int jtag3_send_tpi(const PROGRAMMER *pgm, unsigned char *data, size_t len
   }
 
   cmdbuf[0] = SCOPE_AVR_TPI;
-  if (len < 0) {
-    pmsg_error("invalid jtag3_send_tpi() packet length %d\n", len);
+  if (len > INT_MAX) {
+    pmsg_error("invalid jtag3_send_tpi() packet length %zu\n", len);
     free(cmdbuf);
     return -1;
   }
@@ -2600,7 +2608,7 @@ int jtag3_recv_tpi(const PROGRAMMER *pgm, unsigned char **msg) {
   memcpy(*msg, *msg + 1, rv);
 
   msg_trace("[TPI recv] ");
-  for (size_t i=0; i<rv; i++)
+  for (int i=0; i<rv; i++)
     msg_trace("0x%02x ", (*msg)[i]);
   msg_trace("\n");
 
@@ -2843,7 +2851,7 @@ static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
   cmd[0] = XPRG_CMD_READ_MEM;
   cmd[1] = tpi_get_memtype(m);
 
-  if(m->blocksize > page_size)
+  if(m->blocksize > (int) page_size)
     page_size = m->blocksize;
 
   serial_recv_timeout = 100;
@@ -2861,8 +2869,7 @@ static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
     if ((status = jtag3_command_tpi(pgm, cmd, 8, &resp, "Read Memory")) < 0)
       return -1;
 
-    if (resp[1] != XPRG_ERR_OK ||
-        status < block_size + 2) {
+    if (resp[1] != XPRG_ERR_OK || status < (int) block_size + 2) {
       pmsg_error("wrong/short reply to read memory command\n");
       serial_recv_timeout = otimeout;
       free(resp);
