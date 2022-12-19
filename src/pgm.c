@@ -89,7 +89,7 @@ PROGRAMMER *pgm_new(void) {
 
   // Clear pin array
   for(int i=0; i<N_PINS; i++) {
-    pgm->pinno[i] = 0;
+    pgm->pinno[i] = NO_PIN;
     pin_clear_all(&(pgm->pin[i]));
   }
 

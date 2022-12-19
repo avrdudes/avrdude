@@ -769,7 +769,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
        */
       pgm->pgm_led(pgm, OFF);
       pmsg_info("this device must be powered off and back on to continue\n");
-      if (pgm->pinno[PPI_AVR_VCC]) {
+      if (pgm->pinno[PPI_AVR_VCC] != NO_PIN) {
         pmsg_info("attempting to do this now ...\n");
         pgm->powerdown(pgm);
         usleep(250000);

@@ -1573,7 +1573,7 @@ static int assign_pin_list(int invert)
   int pin;
   int rv = 0;
 
-  current_prog->pinno[pin_name] = 0;
+  current_prog->pinno[pin_name] = NO_PIN;
   while (lsize(number_list)) {
     t = lrmv_n(number_list, 1);
     if (rv == 0) {

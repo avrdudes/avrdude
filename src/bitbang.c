@@ -609,7 +609,7 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int verify_pin_assigned(const PROGRAMMER *pgm, int pin, char *desc) {
-  if (pgm->pinno[pin] == 0) {
+  if (pgm->pinno[pin] == NO_PIN) {
     pmsg_error("no pin has been assigned for %s\n", desc);
     return -1;
   }

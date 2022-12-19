@@ -250,20 +250,9 @@ static int linuxgpio_open(PROGRAMMER *pgm, const char *port) {
 
   for (i=0; i<N_GPIO; i++)
     linuxgpio_fds[i] = -1;
-  //Avrdude assumes that if a pin number is 0 it means not used/available
-  //this causes a problem because 0 is a valid GPIO number in Linux sysfs.
-  //To avoid annoying off by one pin numbering we assume SCK, SDO, SDI 
-  //and RESET pins are always defined in avrdude.conf, even as 0. If they're
-  //not programming will not work anyway. The drawbacks of this approach are
-  //that unwanted toggling of GPIO0 can occur and that other optional pins
-  //mostry LED status, can't be set to GPIO0. It can be fixed when a better 
-  //solution exists.
+  //Avrdude assumes that if a pin number is -1 it means not used/available
   for (i=0; i<N_PINS; i++) {
-    if ( (pgm->pinno[i] & PIN_MASK) != 0 ||
-         i == PIN_AVR_RESET ||
-         i == PIN_AVR_SCK   ||
-         i == PIN_AVR_SDO   ||
-         i == PIN_AVR_SDI ) {
+    if (pgm->pinno[i] != NO_PIN) {
         pin = pgm->pinno[i] & PIN_MASK;
         if ((r=linuxgpio_export(pin)) < 0) {
             pmsg_ext_error("cannot export GPIO %d, already exported/busy?: %s",

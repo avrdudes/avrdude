@@ -94,7 +94,7 @@ static int pin_fill_old_pinlist(const struct pindef_t * const pindef, unsigned i
       }
       if (pindef->mask[i] == 0) {
         /* this pin function is not using any pins */
-        *pinno = 0;
+        *pinno = NO_PIN;
       } else if(pindef->mask[i] == pindef->inverse[i]) {  /* all set bits in mask are set in inverse */
         *pinno = pindef->mask[i];
         *pinno |= PIN_INVERSE;
