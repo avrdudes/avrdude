@@ -3122,16 +3122,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
     jtagmkII_getparm(pgmcp, PAR_OCD_VTARGET, vtarget_jtag);
     pgm_free(pgmcp);
     fmsg_out(fp, "%sVtarget         : %.1f V\n", p, b2_to_u16(vtarget_jtag) / 1000.0);
-  } else if (PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE3) {
-    PROGRAMMER *pgmcp = pgm_dup(pgm);
-    pgmcp->cookie = PDATA(pgm)->chained_pdata;
-    pgmcp->id = lcreat(NULL, 0);
-    // Copy pgm->id contents over to pgmcp->id
-    for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln))
-      ladd(pgmcp->id, cfg_strdup("stk500v2_print_parms1()", ldata(ln)));
-    jtag3_print_parms1(pgmcp, p, fp);
-    pgm_free(pgmcp);
-  } else {
+  } else if (PDATA(pgm)->pgmtype != PGMTYPE_JTAGICE3) {
     stk500v2_getparm(pgm, PARAM_VTARGET, &vtarget);
     fmsg_out(fp, "%sVtarget         : %.1f V\n", p, vtarget / 10.0);
   }
@@ -3177,14 +3168,19 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
   case PGMTYPE_JTAGICE3:
     {
       unsigned char cmd[4];
-
       cmd[0] = CMD_GET_SCK;
-      if (stk500v2_jtag3_send(pgm, cmd, 1) >= 0 &&
-	  stk500v2_jtag3_recv(pgm, cmd, 4) >= 2) {
-	unsigned int sck = cmd[1] | (cmd[2] << 8);
-	fmsg_out(fp, "%sSCK period                   : %.2f us\n", p,
-		(float)(1E6 / (1000.0 * sck)));
+      if (stk500v2_jtag3_send(pgm, cmd, 1) >= 0 && stk500v2_jtag3_recv(pgm, cmd, 4) >= 2) {
+	      unsigned int sck = cmd[1] | (cmd[2] << 8);
+	      fmsg_out(fp, "%sSCK period      : %.2f us\n", p, (1E6 / (1000.0 * sck)));
       }
+      PROGRAMMER *pgmcp = pgm_dup(pgm);
+      pgmcp->cookie = PDATA(pgm)->chained_pdata;
+      pgmcp->id = lcreat(NULL, 0);
+      // Copy pgm->id contents over to pgmcp->id
+      for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln))
+        ladd(pgmcp->id, cfg_strdup("stk500v2_print_parms1()", ldata(ln)));
+      jtag3_print_parms1(pgmcp, p, fp);
+      pgm_free(pgmcp);
     }
     break;
 

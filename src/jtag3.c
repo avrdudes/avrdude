@@ -2380,19 +2380,17 @@ void jtag3_display(const PROGRAMMER *pgm, const char *p) {
   msg_info("%sICE HW version  : %d\n", p, parms[0]);
   msg_info("%sICE FW version  : %d.%02d (rel. %d)\n", p, parms[1], parms[2],
            (parms[3] | (parms[4] << 8)));
-  msg_info("%sSerial number   : %s", p, sn);
-
+  msg_info("%sSerial number   : %s\n", p, sn);
   free(resp);
+
+  if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, parms, 2) < 0)
+    return;
+  msg_info("%sVtarget         : %.2f V", p, b2_to_u16(parms)/1000.0);
 }
 
 
 void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
   unsigned char buf[3];
-
-  if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0)
-    return;
-  fmsg_out(fp, "%sVtarget         %s: %.2f V\n", p,
-           verbose? "": "             ", b2_to_u16(buf)/1000.0);
 
   // Print features unique to the Power Debugger
   for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
