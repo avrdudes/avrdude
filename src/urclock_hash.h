@@ -564,5 +564,10 @@
     { 1024, 1, 0xae42ebb8, 0xb80318bc }, // optiboot_flash_atmega6450_UART0_9600_1000000L_B7_BIGBOOT.hex
     { 1024, 1, 0xae42ebb8, 0x31550abd }, // optiboot_flash_atmega6450_UART0_115200_20000000L_B7_BIGBOOT.hex
     { 1024, 1, 0xae42ebb8, 0x28381b17 }, // optiboot_flash_atmega6450_UART0_115200_16000000L_B7_BIGBOOT.hex
+    {  512, 0, 0x540e745c, 0x3eacc51c }, // optiboot_flash_atmega165a_UART0_57600_8000000L_B5.hex
+    {  512, 0, 0x540e745c, 0x7fd86c1f }, // optiboot_flash_atmega165a_UART0_38400_8000000L_B5.hex
+    {  512, 0, 0xfe267731, 0xe57f0c05 }, // optiboot_flash_atmega165a_UART0_9600_1000000L_B5.hex
+    {  512, 0, 0x540e745c, 0x68a49c5a }, // optiboot_flash_atmega165a_UART0_115200_20000000L_B5.hex
+    {  512, 0, 0x540e745c, 0xd3efd1b5 }, // optiboot_flash_atmega165a_UART0_115200_16000000L_B5.hex
 
 #endif
