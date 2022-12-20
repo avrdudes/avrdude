@@ -1155,6 +1155,8 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
     { 2048, 0, 0x3242ddd3, 0xf3e94dba }, // ATmegaBOOT_168_ng.hex
     { 2048, 0, 0x2eed30b3, 0x47d14ffa }, // ATmegaBOOT_168_pro_8MHz.hex
     { 2048, 0, 0x1cef0d75, 0x6cfbac49 }, // LilyPadBOOT_168.hex
+    { 1024, 1, 0x6ca0f37b, 0x21124cde }, // bigboot_328p_8v3_uno_ch340_clone.hex
+    { 1024, 1, 0xae42ebb8, 0xeb4b1b71 }, // bigboot_328p_8v0.hex
     { 1024, 1, 0x6ca0f37b, 0x31bae545 }, // bigboot_328.hex
     {  512, 0, 0x035cbc07, 0x24ba435e }, // optiboot_atmega168.hex
     {  512, 0, 0x455050db, 0x1d53065f }, // optiboot_atmega328-Mini.hex
@@ -1170,6 +1172,7 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
     {  256, 0, 0x56263965, 0x56263965 }, // picobootSTK500-168p.hex
     {  512, 0, 0x3242ddd3, 0x5ba5f5f6 }, // picobootSTK500-328p.hex
     { 3072, 0, 0x3242ddd3, 0xd3347c5d }, // optiboot_lgt8f328p.hex
+#include "urclock_hash.h"                // Selected from https://github.com/MCUdude/optiboot_flash
   };
 
   uint8_t buf[4096], b128[128];

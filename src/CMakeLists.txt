@@ -227,6 +227,7 @@ add_library(libavrdude
     updi_state.h
     urclock.c
     urclock.h
+    urclock_hash.h
     urclock_private.h
     usbasp.c
     usbasp.h
