@@ -2310,7 +2310,7 @@ programmer
     id                     = "pickit4";
     desc                   = "MPLAB(R) PICkit 4 in JTAG mode";
     type                   = "jtagice3";
-    prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
+    prog_modes             = PM_JTAG | PM_XMEGAJTAG;
     connection_type        = usb;
     usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
@@ -2376,7 +2376,7 @@ programmer
     id                     = "snap";
     desc                   = "MPLAB(R) Snap in JTAG mode";
     type                   = "jtagice3";
-    prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
+    prog_modes             = PM_JTAG | PM_XMEGAJTAG;
     connection_type        = usb;
     usbpid                 = 0x2180, 0x217f, 0x2181;
 ;
