@@ -2669,7 +2669,7 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   free(resp);
 
-  jtag3_print_parms(pgm, stderr);
+  jtag3_print_parms1(pgm, progbuf, stderr);
 
   return 0;
 }
