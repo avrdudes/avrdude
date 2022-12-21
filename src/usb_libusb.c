@@ -58,6 +58,12 @@ static int buflen = -1, bufptr;
 
 static int usb_interface;
 
+static const char *usbsn = "";
+
+const char *usbdev_get_serno() {
+  return usbsn;
+}
+
 /*
  * The "baud" parameter is meaningless for USB devices, so we reuse it
  * to pass the desired USB device ID.
@@ -138,7 +144,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 		      else
 			strcpy(string, "[unknown]");
 		    }
-
+		  usbsn = cache_string(string);
 		  if (usb_get_string_simple(udev,
 					    dev->descriptor.iProduct,
 					    product, sizeof(product)) < 0)
@@ -334,7 +340,7 @@ static int usbdev_send(const union filedescriptor *fd, const unsigned char *bp, 
    * 0.
    */
   do {
-    tx_size = (mlen < fd->usb.max_xfer)? mlen: fd->usb.max_xfer;
+    tx_size = ((int) mlen < fd->usb.max_xfer)? (int) mlen: fd->usb.max_xfer;
     if (fd->usb.use_interrupt_xfer)
       rv = usb_interrupt_write(udev, fd->usb.wep, (char *)bp, tx_size, 10000);
     else
@@ -416,7 +422,7 @@ static int usbdev_recv(const union filedescriptor *fd, unsigned char *buf, size_
 	  if (usb_fill_buf(udev, fd->usb.max_xfer, fd->usb.rep, fd->usb.use_interrupt_xfer) < 0)
 	    return -1;
 	}
-      amnt = buflen - bufptr > nbytes? nbytes: buflen - bufptr;
+      amnt = buflen - bufptr > (int) nbytes? (int) nbytes: buflen - bufptr;
       memcpy(buf + i, usbbuf + bufptr, amnt);
       bufptr += amnt;
       nbytes -= amnt;
@@ -500,7 +506,7 @@ static int usbdev_recv_frame(const union filedescriptor *fd, unsigned char *buf,
 	  return -1;
 	}
 
-      if (rv <= nbytes)
+      if (rv <= (int) nbytes)
 	{
 	  memcpy (buf, usbbuf, rv);
 	  buf += rv;
@@ -576,6 +582,7 @@ static int usbdev_drain(const union filedescriptor *fd, int display)
 struct serial_device usb_serdev =
 {
   .open = usbdev_open,
+  .serno = usbdev_get_serno,
   .close = usbdev_close,
   .send = usbdev_send,
   .recv = usbdev_recv,
@@ -589,6 +596,7 @@ struct serial_device usb_serdev =
 struct serial_device usb_serdev_frame =
 {
   .open = usbdev_open,
+  .serno = usbdev_get_serno,
   .close = usbdev_close,
   .send = usbdev_send,
   .recv = usbdev_recv_frame,

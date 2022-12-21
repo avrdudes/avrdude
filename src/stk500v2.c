@@ -852,6 +852,7 @@ retry:
             case STATUS_SET_PARAM_MISSING:
                 msg = "The `Set Device Parameters' have not been "
                     "executed in advance of this command";
+                break;
 
             default:
                 sprintf(msgbuf, "unknown, code 0x%02x", buf[1]);
@@ -1576,6 +1577,9 @@ static int stk500v2_open(PROGRAMMER *pgm, const char *port) {
   if (serial_open(port, pinfo, &pgm->fd)==-1) {
     return -1;
   }
+
+  // Get USB serial number
+  pgm->usbsn = serial_serno();
 
   /*
    * drain any extraneous input
@@ -3043,6 +3047,8 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
     stk500v2_getparm(pgm, PARAM_SW_MAJOR, &maj);
     stk500v2_getparm(pgm, PARAM_SW_MINOR, &min);
     msg_info("%sHardware Version: %d\n", p, hdw);
+    if (pgm->usbsn && *pgm->usbsn)
+      msg_info("%sSerial number   : %s\n", p, pgm->usbsn);
     msg_info("%sFirmware Version Controller : %d.%02d\n", p, maj, min);
     if (PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
       stk500v2_getparm(pgm, PARAM_SW_MAJOR_PERIPHERY1, &maj_s1);
@@ -3081,6 +3087,12 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
     msg_info("%sRC_ID table rev : %d\n", p, rev);
     stk500v2_getparm2(pgm, PARAM2_EC_ID_TABLE_REV, &rev);
     msg_info("%sEC_ID table rev : %d\n", p, rev);
+  } else if (PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE3) {
+    PROGRAMMER *pgmcp = pgm_dup(pgm);
+    pgmcp->cookie = PDATA(pgm)->chained_pdata;
+    jtag3_display(pgmcp, p);
+    msg_info("\n");
+    pgm_free(pgmcp);
   }
   stk500v2_print_parms1(pgm, p, stderr);
 
@@ -3118,16 +3130,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
     jtagmkII_getparm(pgmcp, PAR_OCD_VTARGET, vtarget_jtag);
     pgm_free(pgmcp);
     fmsg_out(fp, "%sVtarget         : %.1f V\n", p, b2_to_u16(vtarget_jtag) / 1000.0);
-  } else if (PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE3) {
-    PROGRAMMER *pgmcp = pgm_dup(pgm);
-    pgmcp->cookie = PDATA(pgm)->chained_pdata;
-    pgmcp->id = lcreat(NULL, 0);
-    // Copy pgm->id contents over to pgmcp->id
-    for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln))
-      ladd(pgmcp->id, cfg_strdup("stk500v2_print_parms1()", ldata(ln)));
-    jtag3_print_parms1(pgmcp, p, fp);
-    pgm_free(pgmcp);
-  } else {
+  } else if (PDATA(pgm)->pgmtype != PGMTYPE_JTAGICE3) {
     stk500v2_getparm(pgm, PARAM_VTARGET, &vtarget);
     fmsg_out(fp, "%sVtarget         : %.1f V\n", p, vtarget / 10.0);
   }
@@ -3173,14 +3176,19 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
   case PGMTYPE_JTAGICE3:
     {
       unsigned char cmd[4];
-
       cmd[0] = CMD_GET_SCK;
-      if (stk500v2_jtag3_send(pgm, cmd, 1) >= 0 &&
-	  stk500v2_jtag3_recv(pgm, cmd, 4) >= 2) {
-	unsigned int sck = cmd[1] | (cmd[2] << 8);
-	fmsg_out(fp, "%sSCK period                   : %.2f us\n", p,
-		(float)(1E6 / (1000.0 * sck)));
+      if (stk500v2_jtag3_send(pgm, cmd, 1) >= 0 && stk500v2_jtag3_recv(pgm, cmd, 4) >= 2) {
+	      unsigned int sck = cmd[1] | (cmd[2] << 8);
+	      fmsg_out(fp, "%sSCK period      : %.2f us\n", p, (1E6 / (1000.0 * sck)));
       }
+      PROGRAMMER *pgmcp = pgm_dup(pgm);
+      pgmcp->cookie = PDATA(pgm)->chained_pdata;
+      pgmcp->id = lcreat(NULL, 0);
+      // Copy pgm->id contents over to pgmcp->id
+      for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln))
+        ladd(pgmcp->id, cfg_strdup("stk500v2_print_parms1()", ldata(ln)));
+      jtag3_print_parms1(pgmcp, p, fp);
+      pgm_free(pgmcp);
     }
     break;
 

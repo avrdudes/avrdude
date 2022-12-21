@@ -649,6 +649,7 @@ union pinfo
 struct serial_device {
   // open should return -1 on error, other values on success
   int (*open)(const char *port, union pinfo pinfo, union filedescriptor *fd);
+  const char *(*serno)();
   int (*setparams)(const union filedescriptor *fd, long baud, unsigned long cflags);
   void (*close)(union filedescriptor *fd);
 
@@ -671,6 +672,7 @@ extern struct serial_device avrdoper_serdev;
 extern struct serial_device usbhid_serdev;
 
 #define serial_open (serdev->open)
+#define serial_serno (serdev->serno)
 #define serial_setparams (serdev->setparams)
 #define serial_close (serdev->close)
 #define serial_send (serdev->send)

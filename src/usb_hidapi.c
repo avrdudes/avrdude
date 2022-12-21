@@ -42,6 +42,12 @@
 
 #include "usbdevs.h"
 
+static const char *usbsn = "";
+
+const char *usbhid_get_serno() {
+  return usbsn;
+}
+
 /*
  * The "baud" parameter is meaningless for USB devices, so we reuse it
  * to pass the desired USB device ID.
@@ -120,13 +126,24 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
       return -1;
     }
   } else {
-    /* No serial number requested, pass straight to hid_open() */
     dev = hid_open(pinfo.usbinfo.vid, pinfo.usbinfo.pid, NULL);
     if (dev == NULL)
     {
       pmsg_warning("USB device with VID: 0x%04x and PID: 0x%04x not found\n",
         pinfo.usbinfo.vid, pinfo.usbinfo.pid);
       return -1;
+    }
+  }
+
+  // Store USB serial number to usbsn string
+  wchar_t sn[256];
+  if (hid_get_serial_number_string(dev, sn, sizeof(sn)/sizeof(*sn)) == 0) {
+    size_t n = wcstombs(NULL, sn, 0) + 1;
+    if (n) {
+      char *cn = cfg_malloc(__func__, n);
+      if (wcstombs(cn, sn, n) != (size_t) -1)
+        usbsn = cache_string(cn);
+      free(cn);
     }
   }
 
@@ -302,6 +319,7 @@ static int usbhid_drain(const union filedescriptor *fd, int display) {
  */
 struct serial_device usbhid_serdev = {
   .open = usbhid_open,
+  .serno = usbhid_get_serno,
   .close = usbhid_close,
   .send = usbhid_send,
   .recv = usbhid_recv,
