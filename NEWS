@@ -9,16 +9,13 @@ Changes since version 7.0:
 
   * Major changes compared to the previous version:
 
-    - Provide a new programmer -c urclock that specialises in supporting
-      bootloaders and which is compatible with `-c arduino` in
-      the sense that it can also deal with arduino bootloaders
+    - Provide a new programmer -c urclock for bootloader urprotocol
       + Urclock fully supports vector bootloaders at no extra code size
       + Uprotocol
         https://github.com/stefanrueger/urboot/blob/main/urprotocol.md
-        allows programming much shorter bootloaders with more
-        features, eg, urboot
-         * Exports a pgm_write_page(sram, progmem) function that
-           one can call at FLASHEND-4+1 to use flash for storage
+        allows programming much shorter bootloaders with more features:
+         * Exports a pgm_write_page(sram, progmem) function that the
+           application can call at FLASHEND-4+1 to use flash as storage
          * Supports EEPROM reads/writes
          * Protects itself from overwriting
          * Vector bootloaders: can protect the reset vector
@@ -27,23 +24,32 @@ Changes since version 7.0:
         terminal mode (preventing them from WDT timeout)
       + The -c urclock programmer provides a metadata interface that
         allows unused flash to be used as storage
+      + avrdude -c urclock is backward compatible with avrdude -c arduino
 
-   - Add TPI support for Microchip tools #1205
+    - Add TPI support for Microchip tools #1205
 
-   - Provide flash write in the terminal
+    - Add C-strings, C characters and double to terminal write
 
-  * New devices supported:
+    - Provide write flash in the terminal (using a cache)
+
+    - Provide page erase in the terminal as pgerase
+
+  * New devices supported: none
 
   * New programmers supported:
 
-    - urclock
-    - xplainedmini_tpi
-    - atmelice_tpi
-    - powerdebugger_tpi
-    - pickit4_tpi
-    - snap_tpi
-    - arduino_gemma
-    - adafruit_gemma
+    - urclock           = Urclock programmer for bootloaders using urprotocol
+    - xplainedmini_tpi  = Atmel AVR XplainedMini in TPI mode
+    - xplainedpro_pdi   = Atmel AVR XplainedPro in PDI mode
+    - atmelice_tpi      = Atmel-ICE (ARM/AVR) in TPI mode
+    - powerdebugger_tpi = Atmel PowerDebugger (ARM/AVR) in TPI mode
+    - pickit4           = MPLAB(R) PICkit 4 in JTAG mode
+    - pickit4_tpi       = MPLAB(R) PICkit 4 in TPI mode
+    - snap              = MPLAB(R) SNAP in JTAG mode
+    - snap_tpi          = MPLAB(R) SNAP in TPI mode
+    - arduino_gemma     = Arduino Gemma bootloader disguised as USBtiny
+    - adafruit_gemma    = Adafruit Trinket Gemma bootloader disguised as USBtiny
+    - digilent-hs2      = Digilient JTAG HS2 (MPSSE)
 
   * Issues fixed:
 
@@ -106,6 +112,12 @@ Changes since version 7.0:
     - Avrdude on macOS has problems with libedit #1173
     - urclock support for optiboot_x and optiboot_dx #1200
     - Terminal does not continue read/dump correctly #1201
+    - JTAG3 programmer info not available in ISP mode #1212
+    - Extra avrdude> prompt with -qqt in terminal mode #1214
+    - PICkit4 and SNAP serial numbers not read by Avrdude #1038
+    - Optiboot EEPROM support cannot be detected by avrdude #1224
+    - megaAVR JTAG programming doesn't work for SNAP and PICkit4
+      #1052
 
   * Pull requests:
 
@@ -235,16 +247,26 @@ Changes since version 7.0:
     - Use libedit only in interactive mode #1207
     - Add urclock support for bootloaders in low flash #1208
     - Terminal read improvements #1209
-
-
+    - Print meaningful error when a too slow ISP clock is detected #1216
+    - Check alternative USB PID for PICkit4/SNAP in PIC mode #1219
+    - Remove extraneous avrdude> prompt at end of terminal session #1220
+    - Read programmer serial number from libusb or hidusb #1223
+    - Hint at -xeepromrw option in EEPROM error messages #1226
+    - Add JTAG support for PICkit4 and Snap. #1233
 
   * Internals:
 
     - Implement -c <wildcard>/dev_opts and -p <wildcard>/dev_opts
       for printing avrdude.conf programmer and part entries
+
+    - Added shorter alternative ISP commands for avrdude.conf
+
+    - Reformatted avrdude.conf to canonical form
+
     - Reviewed API for prgrammer functions: use const for
       programmer functions where useful; add second argument for
       void (*enable)(PROGRAMMER *pgm, const AVRPART *p) #1078
+
     - Reviewed messaging system making warnings and errors explicit
       and treat them systematically
 
