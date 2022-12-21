@@ -1361,7 +1361,7 @@ void term_gotline(char *cmdstr) {
   if(cmdstr) {
     if(*cmdstr) {
       add_history(cmdstr);
-      // only quit/abort returns a value > 0
+      // Only quit returns a value > 0
       if(process_line(cmdstr, term_pgm, term_p) > 0)
         term_running = 0;
     }
@@ -1373,14 +1373,18 @@ void term_gotline(char *cmdstr) {
      *
      * see https://github.com/avrdudes/avrdude/issues/1173
      */
-    rl_callback_handler_remove();
-    rl_callback_handler_install("avrdude> ", term_gotline);
+    if(term_running) {
+      rl_callback_handler_remove();
+      rl_callback_handler_install("avrdude> ", term_gotline);
+    }
   } else {
-    // call quit at end of file or terminal ^D
+    // End of file or terminal ^D
     term_out("\n");
     cmd_quit(term_pgm, term_p, 0, NULL);
     term_running = 0;
   }
+  if(!term_running)
+    rl_callback_handler_remove();
 }
 
 
@@ -1400,8 +1404,6 @@ int terminal_mode_interactive(PROGRAMMER *pgm, struct avrpart *p) {
     if(readytoread() > 0 && term_running)
       rl_callback_read_char();
   }
-
-  rl_callback_handler_remove();
 
   return pgm->flush_cache(pgm, p);
 }
