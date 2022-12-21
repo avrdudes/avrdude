@@ -292,9 +292,14 @@ Urprotocol is a leaner version of the STK500 1.x protocol that is designed
 to be backwards compatible with STK500 v1.x; it allows bootloaders to be
 much smaller, eg, as implemented in the urboot project
 @uref{https://github.com/stefanrueger/urboot}. The programmer type ``urclock''
-caters for these urboot programmers. Owing to its backward compatibility,
-bootloaders that can be served by the arduino programmer can normally
-also be served by the urclock programmer.
+caters for these urboot bootloaders. Owing to its backward compatibility,
+bootloaders that can be served by the arduino programmer can normally also
+be served by the urclock programmer. This may require specifying the size
+of (to AVRDUDE) @emph{unknown} bootloaders in bytes using the @code{-x
+bootsize=<n>} option, which is necessary for the urclock programmer to
+enable it to protect the bootloader from being overwritten. If an unknown
+bootloader has EEPROM read/write capability then the option @code{-x eepromrw}
+informs @code{avrdude -c urclock} of that capability.
 
 The BusPirate is a versatile tool that can also be used as an AVR programmer.
 A single BusPirate can be connected to up to 3 independent AVRs. See
@@ -424,7 +429,7 @@ following MCU types are understood:
 
 @cindex Device support
 
-@multitable @columnfractions .15 .3
+@multitable @columnfractions .15 .45
 @include parts.texi
 @end multitable
 

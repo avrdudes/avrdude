@@ -159,7 +159,13 @@ much smaller, eg, as implemented in the urboot project
 https://github.com/stefanrueger/urboot. The programmer type ``urclock''
 caters for these urboot programmers. Owing to its backward compatibility,
 bootloaders that can be served by the arduino programmer can normally
-also be served by the urclock programmer.
+also be served by the urclock programmer. This may require specifying the
+size of (to avrdude) unknown bootloaders in bytes using the
+.Fl x Ar bootsize=<n>
+option, which is necessary for the urclock programmer to enable it to
+protect the bootloader from being overwritten. If an unknown bootloader
+has EEPROM read/write capability then the option -x eepromrw informs
+avrdude -c urclock of that capability.
 .Pp
 The BusPirate is a versatile tool that can also be used as an AVR programmer.
 A single BusPirate can be connected to up to 3 independent AVRs. See

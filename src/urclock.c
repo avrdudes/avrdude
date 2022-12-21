@@ -1155,6 +1155,8 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
     { 2048, 0, 0x3242ddd3, 0xf3e94dba }, // ATmegaBOOT_168_ng.hex
     { 2048, 0, 0x2eed30b3, 0x47d14ffa }, // ATmegaBOOT_168_pro_8MHz.hex
     { 2048, 0, 0x1cef0d75, 0x6cfbac49 }, // LilyPadBOOT_168.hex
+    { 1024, 1, 0x6ca0f37b, 0x21124cde }, // bigboot_328p_8v3_uno_ch340_clone.hex
+    { 1024, 1, 0xae42ebb8, 0xeb4b1b71 }, // bigboot_328p_8v0.hex
     { 1024, 1, 0x6ca0f37b, 0x31bae545 }, // bigboot_328.hex
     {  512, 0, 0x035cbc07, 0x24ba435e }, // optiboot_atmega168.hex
     {  512, 0, 0x455050db, 0x1d53065f }, // optiboot_atmega328-Mini.hex
@@ -1170,6 +1172,7 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
     {  256, 0, 0x56263965, 0x56263965 }, // picobootSTK500-168p.hex
     {  512, 0, 0x3242ddd3, 0x5ba5f5f6 }, // picobootSTK500-328p.hex
     { 3072, 0, 0x3242ddd3, 0xd3347c5d }, // optiboot_lgt8f328p.hex
+#include "urclock_hash.h"                // Selected from https://github.com/MCUdude/optiboot_flash
   };
 
   uint8_t buf[4096], b128[128];
@@ -1780,7 +1783,8 @@ static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint
     Return("bootloader does not have flash read capability");
 
   if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
-    Return("bootloader does not %shave EEPROM access capability", ur.blurversion? "": "seem to ");
+    Return("bootloader %s not have EEPROM access%s", ur.blurversion? "does": "might",
+      ur.blurversion? " capability": "; try -xeepromrw if it has");
 
   if(len < 1 || len > urmax(ur.uP.pagesize, 256))
     Return("len %d exceeds range [1, %d]", len, urmax(ur.uP.pagesize, 256));
@@ -2278,8 +2282,8 @@ static int urclock_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
       return -2;
 
     if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
-      Return("bootloader does not %shave paged EEPROM write capability",
-        ur.blurversion? "": "seem to ");
+      Return("bootloader %s not have paged EEPROM write%s", ur.blurversion? "does": "might",
+        ur.blurversion? " capability": ", try -xeepromrw if it has");
 
     n = addr + n_bytes;
 
@@ -2313,8 +2317,8 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       Return("bootloader does not have flash read capability");
 
     if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
-      Return("bootloader does not %shave paged EEPROM read capability",
-        ur.blurversion? "": "seem to ");
+      Return("bootloader %s not have paged EEPROM read%s", ur.blurversion? "does": "might",
+        ur.blurversion? " capability": "; try -xeepromrw if it has");
 
     n = addr + n_bytes;
     for(; addr < n; addr += chunk) {
