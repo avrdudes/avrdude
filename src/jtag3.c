@@ -1283,7 +1283,8 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       }
     }
 
-    //md.sram_offset[2] = p->sram;  // do we need it?
+    u16_to_b2(md.sram_offset, 0x100);  // do we need it? YES, but it won't be used
+
     if (p->ocdrev == -1) {
       int ocdrev;
 
