@@ -155,7 +155,7 @@ for the Arduino Uno Rev3 or any AVR that runs the Optiboot bootloader.
 .Pp
 Urprotocol is a leaner version of the STK500 1.x protocol that is designed
 to be backwards compatible with STK500 v1.x, and allows bootloaders to be
-much smaller, eg, as implemented in the urboot project
+much smaller, e.g., as implemented in the urboot project
 https://github.com/stefanrueger/urboot. The programmer type ``urclock''
 caters for these urboot programmers. Owing to its backward compatibility,
 bootloaders that can be served by the arduino programmer can normally
@@ -338,6 +338,11 @@ and bit-bang programmers.
 The ATtiny11 can only be
 programmed in high-voltage serial mode.
 .El
+.It Fl p Ar wildcard/flags
+Run developer options for MCUs that are matched by wildcard. Whilst
+their main use is for developers some flags can be of utility for users, e.g.,
+avrdude -p m328p/S outputs AVRDUDE's understanding of ATmega328P MCU properties;
+for more information run avrdude -p x/h.
 .It Fl b Ar baudrate
 Override the RS-232 connection baud rate specified in the respective
 programmer's entry of the configuration file.
@@ -381,6 +386,11 @@ If -c ? is specified with a specific part, see
 to be able to handle this part, together with the programming interface(s) that can be
 used in that combination. In reality there can be deviations from this list,
 particularly if programming is directly via a bootloader.
+.It Fl c Ar wildcard/flags
+Run developer options for programmers that are matched by wildcard. Whilst
+their main use is for developers some flags can be of utility for users, e.g.,
+avrdude -c usbtiny/S shows AVRDUDE's understanding of usbtiny's properties;
+for more information run avrdude -c x/h.
 .It Fl C Ar config-file
 Use the specified config file to load configuration data.  This file
 contains all programmer and part definitions that
@@ -867,7 +877,7 @@ or C-style strings and characters. For integers, an optional case-insensitive
 suffix specifies the data size: HH 8 bit, H/S 16 bit, L 32 bit, LL 64 bit.
 Suffix D indicates a 64-bit double, F a 32-bit float, whilst a floating point
 number without suffix defaults to 32-bit float. Hexadecimal floating point
-notation is supported. An ambiguous trailing suffix, eg, 0x1.8D, is read as
+notation is supported. An ambiguous trailing suffix, e.g., 0x1.8D, is read as
 no-suffix float where D is part of the mantissa; use a zero exponent 0x1.8p0D
 to clarify.
 .Pp
@@ -901,7 +911,7 @@ item.
 Synchronise with the device all pending cached writes to EEPROM or flash.
 With some programmer and part combinations, flash (and sometimes EEPROM,
 too) looks like a NOR memory, ie, one can only write 0 bits, not 1 bits.
-When this is detected, either page erase is deployed (eg, with parts that
+When this is detected, either page erase is deployed (e.g., with parts that
 have PDI/UPDI interfaces), or if that is not available, both EEPROM and
 flash caches are fully read in, a chip erase command is issued and both
 EEPROM and flash are written back to the device. Hence, it can take
