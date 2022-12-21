@@ -1242,8 +1242,11 @@ int main(int argc, char * argv [])
   init_ok = (rc = pgm->initialize(pgm, p)) >= 0;
   if (!init_ok) {
     pmsg_error("initialization failed, rc=%d\n", rc);
-    imsg_error("- double check the connections and try again\n");
-    imsg_error("- use -B to set lower ISP clock frequency, e.g. -B 200kHz\n");
+    if(rc == -2)
+      imsg_error("the programmer ISP clock is too fast for the target\n");
+    else
+      imsg_error("- double check the connections and try again\n");
+    imsg_error("- use -B to set lower ISP clock frequency, e.g. -B 125kHz\n");
     if (!ovsigck) {
       imsg_error("- use -F to override this check\n\n");
       exitrc = 1;
