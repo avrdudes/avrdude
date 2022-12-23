@@ -61,7 +61,7 @@ void pin_clear_all(struct pindef_t * const pindef) {
 static int pin_fill_old_pinno(const struct pindef_t * const pindef, unsigned int * const pinno) {
   bool found = false;
   int i;
-  for(i = 0; i < PIN_MAX; i++) {
+  for(i = 0; i <= PIN_MAX; i++) {
     if(pindef->mask[i / PIN_FIELD_ELEMENT_SIZE] & (1 << (i % PIN_FIELD_ELEMENT_SIZE))) {
       if(found) {
         pmsg_error("multiple pins found\n"); // TODO
