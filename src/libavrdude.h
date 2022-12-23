@@ -749,7 +749,7 @@ typedef struct programmer_t {
   union filedescriptor fd;
   char type[PGM_TYPELEN];
   char port[PGM_PORTLEN];
-  int pinno[N_PINS];   // TODO to be removed if old pin data no longer needed
+  unsigned int pinno[N_PINS];   // TODO to be removed if old pin data no longer needed
   exit_vcc_t exit_vcc;          // Should these be set in avrdude.conf?
   exit_reset_t exit_reset;
   exit_datahigh_t exit_datahigh;
@@ -830,8 +830,7 @@ typedef struct programmer_t {
   char flag;                    // For use by pgm->initpgm()
 } PROGRAMMER;
 
-// Magic pinno value for pins that are not used.
-#define NO_PIN -1
+#define NO_PIN   (PIN_MAX + 1U) // Magic pinno[] value for unused pins
 
 #ifdef __cplusplus
 extern "C" {
