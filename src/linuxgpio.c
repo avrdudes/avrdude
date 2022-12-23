@@ -252,7 +252,7 @@ static int linuxgpio_open(PROGRAMMER *pgm, const char *port) {
     linuxgpio_fds[i] = -1;
   //Avrdude assumes that if a pin number is -1 it means not used/available
   for (i=0; i<N_PINS; i++) {
-    if (pgm->pinno[i] != NO_PIN) {
+    if (pgm->pinno[i] <= PIN_MAX) {
         pin = pgm->pinno[i] & PIN_MASK;
         if ((r=linuxgpio_export(pin)) < 0) {
             pmsg_ext_error("cannot export GPIO %d, already exported/busy?: %s",
