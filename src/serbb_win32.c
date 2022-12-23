@@ -208,7 +208,7 @@ static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
 }
 
 static int serbb_highpulsepin(const PROGRAMMER *pgm, int pinfunc) {
-	    int pin = pgm->pinno[pinfunc];
+        int pin = pgm->pinno[pinfunc];
         if ( (pin & PIN_MASK) < 1 || (pin & PIN_MASK) > DB9PINS )
           return -1;
 
