@@ -74,6 +74,11 @@ struct pdata
   /* Flag for triggering HV UPDI */
   bool use_hvupdi;
 
+  /* Get/set flags for Xplained Mini SUFFER register */
+  bool suffer_get;
+  bool suffer_set;
+  unsigned char suffer_data[2];
+
   /* Function to set the appropriate clock parameter */
   int (*set_sck)(const PROGRAMMER *, unsigned char *);
 };
@@ -1104,6 +1109,21 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       return -1;
   }
 
+  // Read or write Xplained Mini SUFFER register
+  if (PDATA(pgm)->suffer_get || PDATA(pgm)->suffer_set) {
+    // Read existing SUFFER value
+    if (jtag3_getparm(pgm, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10, MEDBG_REG_SUFFER_OFFSET, &(PDATA(pgm)->suffer_data[0]), 1) < 0)
+      return -1;
+    if (!PDATA(pgm)->suffer_set)
+      msg_info("Xplained Mini SUFFER register value read as 0x%02x\n", PDATA(pgm)->suffer_data[0]);
+    // Write new SUFFER value
+    else {
+      if (jtag3_setparm(pgm, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10, MEDBG_REG_SUFFER_OFFSET, &(PDATA(pgm)->suffer_data[1]), 1) < 0)
+        return -1;
+      msg_info("Xplained Mini SUFFER register value changed from 0x%02x to 0x%02x\n", PDATA(pgm)->suffer_data[0], PDATA(pgm)->suffer_data[1]);
+    }
+  }
+
   /* set device descriptor data */
   if ((p->prog_modes & PM_PDI)) {
     struct xmega_device_desc xd;
@@ -1409,7 +1429,7 @@ static void jtag3_enable(PROGRAMMER *pgm, const AVRPART *p) {
   return;
 }
 
-static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
+int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   LNODEID ln;
   const char *extended_param;
   int rv = 0;
@@ -1417,7 +1437,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
 
-    if (matches(extended_param, "jtagchain=")) {
+    if (matches(extended_param, "jtagchain=") && (pgm->prog_modes & (PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG))) {
       unsigned int ub, ua, bb, ba;
       if (sscanf(extended_param, "jtagchain=%u,%u,%u,%u", &ub, &ua, &bb, &ba) != 4) {
         pmsg_error("invalid JTAG chain '%s'\n", extended_param);
@@ -1435,9 +1455,30 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
 
-    else if ((strcmp(extended_param, "hvupdi") == 0) &&
-             (lsize(pgm->hvupdi_support) > 1)) {
+    else if ((strcmp(extended_param, "hvupdi") == 0) && (lsize(pgm->hvupdi_support) > 1)) {
       PDATA(pgm)->use_hvupdi = true;
+      continue;
+    }
+
+    else if (matches(extended_param, "suffer") ) {
+      for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
+        if (matches(ldata(ln), "xplainedmini")) {
+          // Set SUFFER value
+          if (matches(extended_param, "suffer=")) {
+            int sscanf_success = sscanf(extended_param, "suffer=%hhx", (&PDATA(pgm)->suffer_data[1]));
+            if (sscanf_success < 1 || ( ~PDATA(pgm)->suffer_data[1] & 0x78)) {
+              pmsg_error("invalid suffer value '%s'\n", extended_param);
+              rv = -1;
+              break;
+            }
+            PDATA(pgm)->suffer_set = true;
+          }
+          // Get SUFFER value
+          else
+            PDATA(pgm)->suffer_get = true;
+          break;
+        }
+      }
       continue;
     }
 
