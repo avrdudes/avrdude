@@ -1315,6 +1315,21 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if (jtag3_recv(pgmcp, &resp) > 0)
     free(resp);
 
+  // Read or write Xplained Mini SUFFER register
+  if (PDATA(pgm)->suffer_get || PDATA(pgm)->suffer_set) {
+    // Read existing SUFFER value
+    if (jtag3_getparm(pgmcp, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10, MEDBG_REG_SUFFER_OFFSET, &(PDATA(pgm)->suffer_data[0]), 1) < 0)
+      return -1;
+    if (!PDATA(pgm)->suffer_set)
+      msg_info("Xplained Mini SUFFER register value read as 0x%02x\n", PDATA(pgm)->suffer_data[0]);
+    // Write new SUFFER value
+    else {
+      if (jtag3_setparm(pgmcp, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10, MEDBG_REG_SUFFER_OFFSET, &(PDATA(pgm)->suffer_data[1]), 1) < 0)
+        return -1;
+      msg_info("Xplained Mini SUFFER register value changed from 0x%02x to 0x%02x\n", PDATA(pgm)->suffer_data[0], PDATA(pgm)->suffer_data[1]);
+    }
+  }
+
   free(pgmcp);
 
   /*
@@ -1526,6 +1541,41 @@ static void stk500v2_enable(PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   return;
+}
+
+static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
+  LNODEID ln;
+  const char *extended_param;
+  int rv = 0;
+
+  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    extended_param = ldata(ln);
+    if (strncmp(extended_param, "suffer", strlen("suffer")) == 0) {
+      for (LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
+        if (strncmp(ldata(ln), "xplainedmini", strlen("xplainedmini")) == 0) {
+          // Set SUFFER value
+          if (strncmp(extended_param, "suffer=", strlen("suffer=")) == 0) {
+            int sscanf_success = sscanf(extended_param, "suffer=%hhx", (&PDATA(pgm)->suffer_data[1]));
+            if (sscanf_success < 1 || (~PDATA(pgm)->suffer_data[1] & 0x78)) {
+              pmsg_error("invalid suffer value '%s'\n", extended_param);
+              rv = -1;
+              break;
+            }
+            PDATA(pgm)->suffer_set = true;
+          }
+          // Get SUFFER value
+          else
+            PDATA(pgm)->suffer_get = true;
+          break;
+        }
+      }
+      continue;
+    }
+
+    pmsg_error("invalid extended parameter '%s'\n", extended_param);
+    rv = -1;
+  }
+  return rv;
 }
 
 
@@ -4529,6 +4579,7 @@ void stk500v2_jtag3_initpgm(PROGRAMMER *pgm) {
    * mandatory functions
    */
   pgm->initialize     = stk500v2_jtag3_initialize;
+  pgm->parseextparams = stk500v2_jtag3_parseextparms;
   pgm->display        = stk500v2_display;
   pgm->enable         = stk500v2_enable;
   pgm->disable        = stk500v2_jtag3_disable;

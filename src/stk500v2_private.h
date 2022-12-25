@@ -270,6 +270,11 @@ struct pdata
     }
         pgmtype;
 
+  /* Get/set flags for Xplained Mini SUFFER register */
+  bool suffer_get;
+  bool suffer_set;
+  unsigned char suffer_data[2];
+
   const AVRPART *lastpart;
 
   /* Start address of Xmega boot area */
