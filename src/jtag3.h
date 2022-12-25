@@ -29,7 +29,6 @@ int  jtag3_open_common(PROGRAMMER *pgm, const char *port);
 int  jtag3_send(const PROGRAMMER *pgm, unsigned char *data, size_t len);
 int  jtag3_recv(const PROGRAMMER *pgm, unsigned char **msg);
 void jtag3_close(PROGRAMMER * pgm);
-int  jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms);
 int  jtag3_getsync(const PROGRAMMER *pgm, int mode);
 int  jtag3_getparm(const PROGRAMMER *pgm, unsigned char scope,
                    unsigned char section, unsigned char parm,
