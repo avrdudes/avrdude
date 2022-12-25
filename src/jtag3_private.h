@@ -271,9 +271,14 @@
 #define XMEGA_ERASE_USERSIG     0x07
 
 /* EDBG vendor commands */
-#define EDBG_VENDOR_AVR_CMD     0x80
-#define EDBG_VENDOR_AVR_RSP     0x81
-#define EDBG_VENDOR_AVR_EVT     0x82
+#define EDBG_VENDOR_AVR_CMD       0x80
+#define EDBG_VENDOR_AVR_RSP       0x81
+#define EDBG_VENDOR_AVR_EVT       0x82
+
+#define EDBG_CTXT_CONTROL         0x00
+#define EDBG_CONTROL_LED_USAGE    0x00
+#define EDBG_CONTROL_EXT_PROG     0x01
+#define EDBG_CONTROL_TARGET_POWER 0x10
 
 /* CMSIS-DAP commands */
 #define CMSISDAP_CMD_INFO       0x00 /* get info, followed by INFO byte */
