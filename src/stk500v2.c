@@ -1550,6 +1550,13 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
 
   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
+
+    // SUFFER bits
+    // Bit 7 ARDUINO: Adds control of extra LEDs when set to 0
+    // Bit 6..3: Reserved (masked out with 0x78 in the code below)
+    // Bit 2 EOF: Agressive power-down, sleep after 5 seconds if no USB enumeration when set to 0
+    // Bit 1 LOWP: forces running at 1 MHz when bit set to 0
+    // Bit 0 FUSE: Fuses are safe-masked when bit sent to 1 Fuses are unprotected when set to 0
     if (strncmp(extended_param, "suffer", strlen("suffer")) == 0) {
       for (LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
         if (strncmp(ldata(ln), "xplainedmini", strlen("xplainedmini")) == 0) {

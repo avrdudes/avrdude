@@ -1429,7 +1429,7 @@ static void jtag3_enable(PROGRAMMER *pgm, const AVRPART *p) {
   return;
 }
 
-int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
+static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   LNODEID ln;
   const char *extended_param;
   int rv = 0;
@@ -1460,6 +1460,12 @@ int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
 
+    // SUFFER bits
+    // Bit 7 ARDUINO: Adds control of extra LEDs when set to 0
+    // Bit 6..3: Reserved (masked out with 0x78 in the code below)
+    // Bit 2 EOF: Agressive power-down, sleep after 5 seconds if no USB enumeration when set to 0
+    // Bit 1 LOWP: forces running at 1 MHz when bit set to 0
+    // Bit 0 FUSE: Fuses are safe-masked when bit sent to 1 Fuses are unprotected when set to 0
     else if (matches(extended_param, "suffer") ) {
       for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
         if (matches(ldata(ln), "xplainedmini")) {
