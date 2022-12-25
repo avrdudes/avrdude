@@ -1348,6 +1348,8 @@ int main(int argc, char * argv [])
         msg_info("\n");
         pmsg_error("Yikes!  Invalid device signature.\n");
         if (!ovsigck) {
+          pmsg_error("expected signature for %s is %02X %02X %02X\n", p->desc,
+            p->signature[0], p->signature[1], p->signature[2]);
           imsg_error("Double check connections and try again, or use -F to override\n");
           imsg_error("this check.\n\n");
           exitrc = 1;
