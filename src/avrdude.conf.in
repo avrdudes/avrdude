@@ -42,6 +42,7 @@
 #       usbproduct = <productname> ;              # USB Product Name
 #       usbsn    = <serialno> ;                   # USB Serial Number
 #       hvupdi_support = <num> [, <num>, ... ] ;  # UPDI HV Variants Support
+#       target_power_ctrl = <true|false> ;        # can we control the target power?
 #   ;
 #
 #   # To invert a pin use = ~ <num>
@@ -2061,6 +2062,7 @@ programmer
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
     connection_type        = usb;
     usbpid                 = 0x2111;
+    target_power_ctrl      = true;
 ;
 
 #------------------------------------------------------------
@@ -2075,6 +2077,7 @@ programmer
     connection_type        = usb;
     usbpid                 = 0x2111;
     hvupdi_support         = 1;
+    target_power_ctrl      = true;
 ;
 
 #------------------------------------------------------------
@@ -2089,6 +2092,7 @@ programmer
     connection_type        = usb;
     usbpid                 = 0x2111;
     hvupdi_support         = 1;
+    target_power_ctrl      = true;
 ;
 
 #------------------------------------------------------------
@@ -2102,6 +2106,7 @@ programmer
     prog_modes             = PM_ISP;
     connection_type        = usb;
     usbpid                 = 0x2145;
+    target_power_ctrl      = true;
 ;
 
 #------------------------------------------------------------
@@ -2115,6 +2120,7 @@ programmer
     prog_modes             = PM_debugWIRE;
     connection_type        = usb;
     usbpid                 = 0x2145;
+    target_power_ctrl      = true;
 ;
 
 #------------------------------------------------------------
@@ -2129,6 +2135,7 @@ programmer
     connection_type        = usb;
     usbpid                 = 0x2145;
     hvupdi_support         = 1;
+    target_power_ctrl      = true;
 ;
 
 #------------------------------------------------------------
@@ -2142,6 +2149,7 @@ programmer
     prog_modes             = PM_TPI;
     connection_type        = usb;
     usbpid                 = 0x2145;
+    target_power_ctrl      = true;
 ;
 
 #------------------------------------------------------------
@@ -2446,6 +2454,7 @@ programmer
     connection_type        = usb;
     usbpid                 = 0x2175;
     hvupdi_support         = 1;
+    target_power_ctrl      = true;
 ;
 
 #------------------------------------------------------------
