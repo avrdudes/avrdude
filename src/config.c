@@ -282,6 +282,8 @@ TOKEN *new_constant(const char *con) {
     !strcmp("PM_XMEGAJTAG", con)? PM_XMEGAJTAG:
     !strcmp("PM_AVR32JTAG", con)? PM_AVR32JTAG:
     !strcmp("PM_aWire", con)? PM_aWire:
+    !strcmp("true", con)? 1:
+    !strcmp("false", con)? 0:
     (assigned = 0);
 
   if(!assigned) {
@@ -802,6 +804,7 @@ const char *cfg_comp_type(int type) {
   case COMP_INT: return "number";
   case COMP_SHORT: return "short";
   case COMP_CHAR: return "char";
+  case COMP_BOOL: return "bool";
   case COMP_STRING: return "string";
   case COMP_CHAR_ARRAY: return "byte array";
   case COMP_INT_LISTID: return "number list";
@@ -823,6 +826,7 @@ void cfg_assign(char *sp, int strct, Component_t *cp, VALUE *v) {
   case COMP_CHAR:
   case COMP_SHORT:
   case COMP_INT:
+  case COMP_BOOL:
     if(v->type != V_NUM) {
       yywarning("%s in %s expects a %s but is assigned a %s",
         cp->name, cfg_strct_name(strct), cfg_comp_type(cp->type), cfg_v_type(v->type));

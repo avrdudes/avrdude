@@ -123,7 +123,6 @@ SIGN     [+-]
 
 (?x: prog_modes | mcuid | n_interrupts | n_page_erase | n_word_writes | n_boot_sections |
   boot_section_size | autobaud_sync | idr | rampz | spmcr | eecr | eind ) { /* struct components */
-
   Component_t *cp = cfg_comp_search(yytext, current_strct);
   if(!cp) {
     yyerror("Unknown component %s in %s", yytext, cfg_strct_name(current_strct));
@@ -135,7 +134,9 @@ SIGN     [+-]
   return TKN_COMPONENT;
 }
 
-PM_(SPM|TPI|ISP|PDI|UPDI|HVSP|HVPP|debugWIRE|JTAG|JTAGmkI|XMEGAJTAG|AVR32JTAG|aWire) { /* Constants */
+(?x: PM_(SPM|TPI|ISP|PDI|UPDI|HVSP|HVPP|debugWIRE|JTAG|JTAGmkI|XMEGAJTAG|AVR32JTAG|aWire) |
+  true | false) {
+  /* Constants */
   yylval = new_constant(yytext);
   return TKN_NUMBER;
 }
