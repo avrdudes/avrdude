@@ -43,6 +43,7 @@
 #       usbsn    = <serialno> ;                   # USB Serial Number
 #       hvupdi_support = <num> [, <num>, ... ] ;  # UPDI HV Variants Support
 #       target_power_ctrl = <true|false> ;        # can we control the target power?
+#       target_v_adjust = <true|false> ;          # can we adjust the target voltage?
 #   ;
 #
 #   # To invert a pin use = ~ <num>

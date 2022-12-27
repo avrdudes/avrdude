@@ -122,7 +122,8 @@ SIGN     [+-]
 
 
 (?x: prog_modes | mcuid | n_interrupts | n_page_erase | n_word_writes | n_boot_sections |
-  boot_section_size | autobaud_sync | idr | rampz | spmcr | eecr | eind | target_power_ctrl) {
+  boot_section_size | autobaud_sync | idr | rampz | spmcr | eecr | eind | target_power_ctrl |
+  target_v_adjust ) {
   /* struct components */
   Component_t *cp = cfg_comp_search(yytext, current_strct);
   if(!cp) {
