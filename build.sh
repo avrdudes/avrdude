@@ -39,7 +39,7 @@ case "${ostype}" in
 	machine=$(uname -m)
 	if expr "${machine}" : '^\(arm\|aarch\)' >/dev/null
 	then
-	    extra_enable="${extra_enable} -D HAVE_LINUXGPIO=ON -D HAVE_LINUXSPI=ON"
+	    extra_enable="${extra_enable} -D HAVE_LINUXGPIO=1 -D HAVE_LINUXSPI=1"
 	fi
 	;;
 
