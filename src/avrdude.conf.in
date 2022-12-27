@@ -843,25 +843,11 @@ programmer parent "ft2232h"
 # This is an implementation of the above with a buffer IC (74AC244) and
 # 4 LEDs directly attached, all active low.
 
-programmer
-    id                     = "2232HIO";
+programmer parent "ft2232h"
+    id                     = "2232hio";
     desc                   = "FT2232H based generic programmer";
-    type                   = "avrftdi";
-    prog_modes             = PM_TPI | PM_ISP;
-    connection_type        = usb;
-    usbvid                 = 0x0403;
-# Note: This PID is reserved for generic H devices and
-# should be programmed into the EEPROM
-#   usbpid                 = 0x8A48;
-    usbpid                 = 0x6010;
-    usbdev                 = "A";
     buff                   = ~4;
-#ISP-signals
-    reset                  = 3;
-    sck                    = 0;
-    sdo                    = 1;
-    sdi                    = 2;
-#LED SIGNALs
+# LED SIGNALs
     errled                 = ~11;
     rdyled                 = ~14;
     pgmled                 = ~13;
