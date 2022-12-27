@@ -61,7 +61,7 @@ case "${ostype}" in
 	;;
 
     netbsd)
-	build_flags="${build_flags} -D CMAKE_C_FLAGS=-I/usr/pkg/include -D CMAKE_EXE_LINKER_FLAGS=-L/usr/pkg/lib"
+	build_flags="${build_flags} -D CMAKE_C_FLAGS=-I/usr/pkg/include -D CMAKE_EXE_LINKER_FLAGS=-R/usr/pkg/lib -D CMAKE_INSTALL_PREFIX:PATH=/usr/pkg"
 	;;
 
     *bsd)
