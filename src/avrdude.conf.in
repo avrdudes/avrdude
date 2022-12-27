@@ -788,7 +788,7 @@ programmer
 ;
 
 #------------------------------------------------------------
-# avrftdi
+# ft2232h
 #------------------------------------------------------------
 
 # this will interface with the chips on these programmers:
@@ -812,26 +812,28 @@ programmer
 # these FTDI ICs has been designed.
 
 programmer
-    id                     = "avrftdi";
-    desc                   = "FT2232D based generic programmer";
+    id                     = "ft2232h";
+    desc                   = "FT2232H based generic programmer";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6010;
     usbdev                 = "A";
-#   ISP-signals - lower ADBUS-Nibble (default)
-    reset                  = 3;
-    sck                    = 0;
-    sdo                    = 1;
-    sdi                    = 2;
-#   LED SIGNALs - higher ADBUS-Nibble
-#   errled                 = 4;
-#   rdyled                 = 5;
-#   pgmled                 = 6;
-#   vfyled                 = 7;
-#   Buffer Signal - ACBUS - Nibble
-#   buff                   = 8;
+# ISP-signals - lower ADBUS-Nibble (default)
+    reset                  = 3; # AD3 (TMS)
+    sck                    = 0; # AD0 (TCK)
+    sdo                    = 1; # AD1 (TDI)
+    sdi                    = 2; # AD2 (TDO)
+;
+
+#------------------------------------------------------------
+# avrftdi
+#------------------------------------------------------------
+
+programmer parent "ft2232h"
+    id                     = "avrftdi";
+    desc                   = "FT2232D based generic programmer";
 ;
 
 #------------------------------------------------------------
