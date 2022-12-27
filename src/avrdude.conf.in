@@ -869,16 +869,25 @@ programmer
 ;
 
 #------------------------------------------------------------
-# 4232h
+# ft4232h
 #------------------------------------------------------------
 
 #The FT4232H can be treated as FT2232H, but it has a different USB
 #device ID of 0x6011.
 
-programmer parent "avrftdi"
-    id                     = "4232h";
+programmer parent "ft2232h"
+    id                     = "ft4232h";
     desc                   = "FT4232H based generic programmer";
     usbpid                 = 0x6011;
+;
+
+#------------------------------------------------------------
+# 4232h
+#------------------------------------------------------------
+
+programmer parent "ft4232h"
+    id                     = "4232h";
+    desc                   = "FT4232H based generic programmer";
 ;
 
 #------------------------------------------------------------
