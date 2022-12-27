@@ -855,6 +855,24 @@ programmer parent "ft2232h"
 ;
 
 #------------------------------------------------------------
+# tigard
+#------------------------------------------------------------
+
+# Tigard - FT2232H based multi-protocol tool for hardware hacking.
+# https://github.com/tigard-tools/tigard
+
+programmer parent "ft2232h"
+    id                     = "tigard";
+    desc                   = "Tigard interface board";
+    usbdev                 = "B";
+# ISP-signals
+    reset                  = 5; # BD5 (GPIOL1)
+    sck                    = 0; # BD0 (TCK)
+    sdo                    = 1; # BD1 (TDI)
+    sdi                    = 2; # BD2 (TDO)
+;
+
+#------------------------------------------------------------
 # ft4232h
 #------------------------------------------------------------
 
