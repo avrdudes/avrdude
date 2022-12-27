@@ -33,6 +33,8 @@ Changes since version 7.0:
     - Provide write flash in the terminal (using a cache)
 
     - Provide page erase in the terminal as pgerase
+    
+    - Add support for NetBSD and OpenBSD to build.sh
 
   * New devices supported: none
 
@@ -50,6 +52,7 @@ Changes since version 7.0:
     - arduino_gemma     = Arduino Gemma bootloader disguised as USBtiny
     - adafruit_gemma    = Adafruit Trinket Gemma bootloader disguised as USBtiny
     - digilent-hs2      = Digilient JTAG HS2 (MPSSE)
+    - tigard            = Tigard interface board
 
   * Issues fixed:
 
@@ -253,6 +256,11 @@ Changes since version 7.0:
     - Read programmer serial number from libusb or hidusb #1223
     - Hint at -xeepromrw option in EEPROM error messages #1226
     - Add JTAG support for PICkit4 and Snap. #1233
+    - Mention developer options in documentation and Usage() #1234
+    - Print expected signature when the one read by the programmer doesn't match the expected one #1237
+    - To work around Issue #1107 #1240
+    - Update build.sh for NetBSD #1241
+    - Add FT2232H support for Windows, Tigard programmer #1242    
 
   * Internals:
 
