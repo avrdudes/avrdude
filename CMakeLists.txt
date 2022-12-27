@@ -20,7 +20,7 @@
 #     cmake -B build
 #     cmake --build build
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.14)
 project(avrdude VERSION 7.0 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 11)
