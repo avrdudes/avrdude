@@ -247,7 +247,7 @@ if(USE_EXTERNAL)
 
     FetchContent_Declare(libftdi
         GIT_REPOSITORY https://github.com/avrdudes/libftdi.git
-        GIT_TAG f3a54da710002a7d25a32a69e667a69ef84cc120
+        GIT_TAG f9fe6e96b97c3a08efd081632c1859cb83aa14e3
         )
 
     message(STATUS "Fetching external libraries, please wait...")
