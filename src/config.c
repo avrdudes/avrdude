@@ -66,6 +66,7 @@ Component_t avr_comp[] = {
   pgm_comp_desc(prog_modes, COMP_INT),
   pgm_comp_desc(target_power_ctrl, COMP_BOOL),
   pgm_comp_desc(target_v_adjust, COMP_BOOL),
+  pgm_comp_desc(suffer, COMP_BOOL),
 
   // AVRPART
   part_comp_desc(prog_modes, COMP_INT),

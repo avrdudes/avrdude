@@ -1309,6 +1309,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
 
   _if_pgmout_bool(target_power_ctrl);
   _if_pgmout_bool(target_v_adjust);
+  _if_pgmout_bool(suffer);
 
   if(injct)
     for(size_t i=0; i<sizeof pgminj/sizeof*pgminj; i++)

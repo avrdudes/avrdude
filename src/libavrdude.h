@@ -748,6 +748,7 @@ typedef struct programmer_t {
   LISTID hvupdi_support;        // List of UPDI HV variants the tool supports, see HV_UPDI_VARIANT_x
   int target_power_ctrl;
   int target_v_adjust;
+  int suffer;
 
   // Values below are not set by config_gram.y; ensure fd is first for dev_pgm_raw()
   union filedescriptor fd;
