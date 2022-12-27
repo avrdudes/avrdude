@@ -65,8 +65,6 @@ if(MSVC)
     add_compile_options(/wd4018) # warning C4018: signed/unsigned mismatch
     add_compile_options(/wd4244) # warning C4244: conversion from '...' to '...', possible loss of data
     add_compile_options(/wd4267) # warning C4267: conversion from '...' to '...', possible loss of data
-    add_compile_options(/wd5105) # warning C5105: macro expansion producing 'xxx' has undefined behavior
-    add_compile_options(/wd6255) # warning C6255: _alloca indicates failure by raising a stack overflow exception. Consider using _malloca instead
 
     set(EXTRA_WINDOWS_SOURCES ${EXTRA_WINDOWS_SOURCES}
         "msvc/getopt.c"
