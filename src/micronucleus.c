@@ -824,7 +824,7 @@ static int micronucleus_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const
     }
     else
     {
-        pmsg_error("unsupported memory type %s\n", mem->desc);
+        pmsg_notice("reading not supported for %s memory\n", mem->desc);
         return -1;
     }
 }
