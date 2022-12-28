@@ -1942,7 +1942,7 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
   AVRPART *part;
 
   // Reduce timeout for establishing comms
-  serial_recv_timeout = 10;     // ms
+  serial_recv_timeout = 25;     // ms
   part = partdesc? locate_part(part_list, partdesc): NULL;
   /*
    * The urboot autosync detection uses a loop
@@ -2240,11 +2240,11 @@ static int urclock_open(PROGRAMMER *pgm, const char *port) {
   serial_set_dtr_rts(&pgm->fd, 1);
 
 #ifndef WIN32
-  if((110+ur.delay) > 0)
-    usleep((110+ur.delay)*1000); // Wait until board comes out of reset
+  if((100+ur.delay) > 0)
+    usleep((100+ur.delay)*1000); // Wait until board comes out of reset
 #else
-  if((137+ur.delay) > 0)
-    usleep((137+ur.delay)*1000); // Wait until board starts up accommodating effective drain time
+  if((125+ur.delay) > 0)
+    usleep((125+ur.delay)*1000); // Wait until board starts up accommodating effective drain time
 #endif
 
   // Drain any extraneous input
