@@ -257,7 +257,7 @@ Changes since version 7.0:
     - Hint at -xeepromrw option in EEPROM error messages #1226
     - Add JTAG support for PICkit4 and Snap. #1233
     - Mention developer options in documentation and Usage() #1234
-    - Print expected signature when the one read by the programmer doesn't match the expected one #1237
+    - Print expected signature on signature mismatch #1237
     - To work around Issue #1107 #1240
     - Update build.sh for NetBSD #1241
     - Add FT2232H support for Windows, Tigard programmer #1242
