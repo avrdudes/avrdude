@@ -819,10 +819,10 @@ int main(int argc, char * argv [])
       executable_dirpath[executable_dirpath_len] = '\0';
 
       // Debug output
-      msg_debug("executable_abspath = %s\n", executable_abspath);
-      msg_debug("executable_abspath_len = %i\n", executable_abspath_len);
-      msg_debug("executable_dirpath = %s\n", executable_dirpath);
-      msg_debug("executable_dirpath_len = %i\n", executable_dirpath_len);
+      msg_trace2("executable_abspath = %s\n", executable_abspath);
+      msg_trace2("executable_abspath_len = %i\n", executable_abspath_len);
+      msg_trace2("executable_dirpath = %s\n", executable_dirpath);
+      msg_trace2("executable_dirpath_len = %i\n", executable_dirpath_len);
     }
 
     /*
@@ -878,9 +878,9 @@ int main(int argc, char * argv [])
     }
   }
   // Debug output
-  msg_debug("sys_config = %s\n", sys_config);
-  msg_debug("sys_config_found = %s\n", sys_config_found ? "true" : "false");
-  msg_debug("\n");
+  msg_trace2("sys_config = %s\n", sys_config);
+  msg_trace2("sys_config_found = %s\n", sys_config_found ? "true" : "false");
+  msg_trace2("\n");
 
   /*
    * USER CONFIG
