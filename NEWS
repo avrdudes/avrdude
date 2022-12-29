@@ -263,6 +263,7 @@ Changes since version 7.0:
     - Add FT2232H support for Windows, Tigard programmer #1242
     - Modify recv timeouts to accommodate urclock sync with ftdi
       #1246
+   -  CMake updates #1243
 
   * Internals:
 
