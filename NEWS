@@ -261,6 +261,8 @@ Changes since version 7.0:
     - To work around Issue #1107 #1240
     - Update build.sh for NetBSD #1241
     - Add FT2232H support for Windows, Tigard programmer #1242
+    - Modify recv timeouts to accommodate urclock sync with ftdi
+      #1246
 
   * Internals:
 
