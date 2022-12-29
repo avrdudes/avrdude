@@ -589,7 +589,7 @@ static int ser_recv(const union filedescriptor *fd, unsigned char * buf, size_t 
 	}
 
 	/* time out detected */
-	if (read == 0) {
+	if (read < buflen) {
 		pmsg_notice2("ser_recv(): programmer is not responding\n");
 		return -1;
 	}
