@@ -20,7 +20,7 @@
 #     cmake -B build
 #     cmake --build build
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.14)
 project(avrdude VERSION 7.0 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 11)
@@ -30,7 +30,7 @@ option(BUILD_DOC "Enable building documents" OFF)
 option(HAVE_LINUXGPIO "Enable Linux sysfs GPIO support" OFF)
 option(HAVE_LINUXSPI "Enable Linux SPI support" OFF)
 option(HAVE_PARPORT "Enable parallel port support" OFF)
-option(USE_EXTERNAL "Use external libraries from AVRDUDE GitHub repositories" OFF)
+option(USE_EXTERNAL_LIBS "Use external libraries from AVRDUDE GitHub repositories" OFF)
 option(USE_LIBUSBWIN32 "Prefer libusb-win32 over libusb" OFF)
 option(DEBUG_CMAKE "Enable debugging output for this CMake project" OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
@@ -229,7 +229,7 @@ endif()
 # Use external libraries if requested
 # =====================================
 
-if(USE_EXTERNAL)
+if(USE_EXTERNAL_LIBS)
     FetchContent_Declare(libelf
         GIT_REPOSITORY https://github.com/avrdudes/libelf.git
         GIT_TAG e5a39bf19bd6598c42e09172be5a78ceec2a065c
@@ -299,7 +299,7 @@ if (DEBUG_CMAKE)
     message(STATUS "CMAKE_C_COMPILER: ${CMAKE_C_COMPILER}")
     message(STATUS "CONFIG_DIR: ${CONFIG_DIR}")
     message(STATUS "AVRDUDE_FULL_VERSION: ${AVRDUDE_FULL_VERSION}")
-    message(STATUS "USE_EXTERNAL: ${USE_EXTERNAL}")
+    message(STATUS "USE_EXTERNAL_LIBS: ${USE_EXTERNAL_LIBS}")
     message(STATUS "USE_LIBUSBWIN32: ${USE_LIBUSBWIN32}")
     message(STATUS "HAVE_LIBELF: ${HAVE_LIBELF}")
     message(STATUS "HAVE_LIBUSB: ${HAVE_LIBUSB}")
