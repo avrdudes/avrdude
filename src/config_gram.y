@@ -44,7 +44,7 @@ int yylex(void);
 int yyerror(char * errmsg, ...);
 int yywarning(char * errmsg, ...);
 
-static int assign_pin(int pinno, TOKEN * v, int invert);
+static int assign_pin(int pinfunc, TOKEN *v, int invert);
 static int assign_pin_list(int invert);
 static int which_opcode(TOKEN * opcode);
 static int parse_cmdbits(OPCODE * op, int opnum);
@@ -1550,11 +1550,13 @@ static char * vtypestr(int type)
 #endif
 
 
-static int assign_pin(int pinno, TOKEN * v, int invert)
-{
-  int value;
+static int assign_pin(int pinfunc, TOKEN *v, int invert) {
+  if(pinfunc < 0 || pinfunc >= N_PINS) {
+    yyerror("pin function must be in the range [0, %d]", N_PINS-1);
+    return -1;
+  }
 
-  value = v->value.number;
+  int value = v->value.number;
   free_token(v);
 
   if ((value < PIN_MIN) || (value > PIN_MAX)) {
@@ -1562,7 +1564,7 @@ static int assign_pin(int pinno, TOKEN * v, int invert)
     return -1;
   }
 
-  pin_set_value(&(current_prog->pin[pinno]), value, invert);
+  pin_set_value(&(current_prog->pin[pinfunc]), value, invert);
 
   return 0;
 }
@@ -1572,6 +1574,11 @@ static int assign_pin_list(int invert)
   TOKEN * t;
   int pin;
   int rv = 0;
+
+  if(pin_name < 0 || pin_name >= N_PINS) {
+    yyerror("pin_name should be in the range [0, %d]", N_PINS-1);
+    return -1;
+  }
 
   current_prog->pinno[pin_name] = NO_PIN;
   while (lsize(number_list)) {

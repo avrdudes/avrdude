@@ -102,12 +102,19 @@ static int par_setpin_internal(const PROGRAMMER *pgm, int pin, int value) {
 }
 
 static int par_setpin(const PROGRAMMER * pgm, int pinfunc, int value) {
+  if(pinfunc < 0 || pinfunc >= N_PINS)
+    return -1;
+
   return par_setpin_internal(pgm, pgm->pinno[pinfunc], value);
 }
 
 static void par_setmany(const PROGRAMMER *pgm, int pinfunc, int value) {
-  int pin, mask;
-  int pinset = pgm->pinno[pinfunc];
+  int pin, mask, pinset;
+
+  if(pinfunc < 0 || pinfunc >= N_PINS)
+    return;
+
+  pinset = pgm->pinno[pinfunc];
 
   /* mask is anything non-pin - needs to be applied to each par_setpin to preserve inversion */
   mask = pinset & (~PIN_MASK);
@@ -119,9 +126,12 @@ static void par_setmany(const PROGRAMMER *pgm, int pinfunc, int value) {
 }
 
 static int par_getpin(const PROGRAMMER * pgm, int pinfunc) {
-  int value;
-  int inverted;
-  int pin = pgm->pinno[pinfunc];
+  int value, inverted, pin;
+
+  if(pinfunc < 0 || pinfunc >= N_PINS)
+    return -1;
+
+  pin = pgm->pinno[pinfunc];
 
   inverted = pin & PIN_INVERSE;
   pin &= PIN_MASK;
@@ -147,8 +157,12 @@ static int par_getpin(const PROGRAMMER * pgm, int pinfunc) {
 
 
 static int par_highpulsepin(const PROGRAMMER *pgm, int pinfunc) {
-  int inverted;
-  int pin = pgm->pinno[pinfunc];
+  int inverted, pin;
+
+  if(pinfunc < 0 || pinfunc >= N_PINS)
+    return -1;
+
+  pin = pgm->pinno[pinfunc];
 
   inverted = pin & PIN_INVERSE;
   pin &= PIN_MASK;

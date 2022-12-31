@@ -224,6 +224,9 @@ static int set_frequency(avrftdi_t* ftdi, uint32_t freq)
  * here.
  */
 static int set_pin(const PROGRAMMER *pgm, int pinfunc, int value) {
+	if(pinfunc < 0 || pinfunc >= N_PINS)
+		return -1;
+
 	avrftdi_t* pdata = to_pdata(pgm);
 	struct pindef_t pin = pgm->pin[pinfunc];
 	

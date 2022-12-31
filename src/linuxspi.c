@@ -134,7 +134,7 @@ static int linuxspi_reset_mcu(const PROGRAMMER *pgm, bool active) {
 #endif
     if (ret == -1) {
         ret = -errno;
-        pmsg_ext_error("unable to set GPIO line %d value: %s\n", pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE, strerror(errno));
+        pmsg_ext_error("unable to set GPIO line %d value: %s\n", pgm->pinno[PIN_AVR_RESET] & PIN_MASK, strerror(errno));
         return ret;
     }
 
@@ -200,7 +200,7 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
 
     strcpy(req.consumer_label, progname);
     req.lines = 1;
-    req.lineoffsets[0] = pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE;
+    req.lineoffsets[0] = pgm->pinno[PIN_AVR_RESET] & PIN_MASK;
     req.default_values[0] = !!(pgm->pinno[PIN_AVR_RESET] & PIN_INVERSE);
     req.flags = GPIOHANDLE_REQUEST_OUTPUT;
 
@@ -212,7 +212,7 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
         struct gpio_v2_line_request reqv2;
 
         memset(&reqv2, 0, sizeof(reqv2));
-        reqv2.offsets[0] = pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE;
+        reqv2.offsets[0] = pgm->pinno[PIN_AVR_RESET] & PIN_MASK;
         strncpy(reqv2.consumer, progname, sizeof(reqv2.consumer) - 1);
         reqv2.config.flags = GPIO_V2_LINE_FLAG_OUTPUT;
         reqv2.config.num_attrs = 1;
@@ -228,7 +228,7 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
 #endif
     if (ret == -1) {
         ret = -errno;
-        pmsg_ext_error("unable to get GPIO line %d. %s\n", pgm->pinno[PIN_AVR_RESET] & ~PIN_INVERSE, strerror(errno));
+        pmsg_ext_error("unable to get GPIO line %d. %s\n", pgm->pinno[PIN_AVR_RESET] & PIN_MASK, strerror(errno));
         goto close_gpiochip;
     }
 
