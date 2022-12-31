@@ -240,7 +240,7 @@ static int linuxgpio_open(PROGRAMMER *pgm, const char *port) {
   for (i=0; i<N_GPIO; i++)
     linuxgpio_fds[i] = -1;
   // Avrdude assumes that if a pin number is invalid it means not used/available
-  for (i=0; i<N_PINS; i++) {
+  for (i = 1; i < N_PINS; i++) { // The pin enumeration in libavrdude.h starts with PPI_AVR_VCC = 1
     if ((pgm->pinno[i] & PIN_MASK) <= PIN_MAX) {
         pin = pgm->pinno[i] & PIN_MASK;
         if ((r=linuxgpio_export(pin)) < 0) {
