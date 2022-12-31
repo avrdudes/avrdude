@@ -1919,8 +1919,9 @@ static int urclock_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
 
   rv = serial_recv(&pgm->fd, buf, len);
   if(rv < 0) {
-    if(!ur.sync_silence)
-      pmsg_error("programmer is not responding; try -xstrict and/or vary -xdelay=100\n");
+    if(ur.sync_silence < 2)
+      pmsg_warning("programmer is not responding%s\n",
+        ur.sync_silence? "; try -xstrict and/or vary -xdelay=100": "");
     return -1;
   }
 
@@ -1960,7 +1961,8 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
    */
   autobaud_sync = part && part->autobaud_sync? part->autobaud_sync: Cmnd_STK_GET_SYNC;
 
-  ur.sync_silence = 1;
+  ur.sync_silence = 2;
+  serial_drain_timeout = 20;    // ms
 
   for(attempt = 0; attempt < MAX_SYNC_ATTEMPTS; attempt++) {
     /*
@@ -1985,6 +1987,7 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
       if(!ur.gs.seen || iob[0] != ur.gs.stk_insync || iob[1] != ur.gs.stk_ok || iob[0] == iob[1]) {
         ur.gs.stk_insync = iob[0];
         ur.gs.stk_ok = iob[1];
+        serial_drain(&pgm->fd, 0); // Drain periodically to guard against initial line noise
         ur.gs.seen = 1;
       } else
         break;
@@ -1994,7 +1997,8 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
       usleep(slp*1000);
     }
     if(attempt > 5) {           // Don't report first six attempts
-      ur.sync_silence = 0;
+      if(attempt == MAX_SYNC_ATTEMPTS-1)
+        ur.sync_silence = 1;
       pmsg_warning("attempt %d of %d: not in sync\n", attempt - 5, MAX_SYNC_ATTEMPTS-6);
     }
   }
@@ -2239,17 +2243,8 @@ static int urclock_open(PROGRAMMER *pgm, const char *port) {
   // Set DTR and RTS back to high
   serial_set_dtr_rts(&pgm->fd, 1);
 
-#ifndef WIN32
-  if((100+ur.delay) > 0)
-    usleep((100+ur.delay)*1000); // Wait until board comes out of reset
-#else
-  if((125+ur.delay) > 0)
-    usleep((125+ur.delay)*1000); // Wait until board starts up accommodating effective drain time
-#endif
-
-  // Drain any extraneous input
-  serial_drain_timeout = 20;    // ms
-  serial_drain(&pgm->fd, 0);
+  if((120+ur.delay) > 0)
+    usleep((120+ur.delay)*1000); // Wait until board comes out of reset
 
   pmsg_debug("%4ld ms: enter urclock_getsync()\n", avr_mstimestamp());
   if(urclock_getsync(pgm) < 0)
@@ -2595,7 +2590,7 @@ void urclock_initpgm(PROGRAMMER *pgm) {
 #if defined(HAVE_LIBREADLINE)
   pmsg_notice2("libreadline is used; avrdude -t -c urclock should work interactively\n");
 #else
-  pmsg_warning("compiled without readline library, cannot use avrdude -t -c urclock interactively\n");
-  imsg_warning("but it is still possible to pipe: echo \"d fl 0 32; quit\" | tr \\; \\\\n | avrdude -t -curclock\n");
+  pmsg_notice2("compiled without readline library, cannot use avrdude -t -c urclock interactively\n");
+  imsg_notice2("but it is still possible to pipe: echo \"d fl 0 32; quit\" | tr \\; \\\\n | avrdude -t -curclock\n");
 #endif
 }
