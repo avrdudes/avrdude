@@ -121,6 +121,7 @@ Changes since version 7.0:
     - Optiboot EEPROM support cannot be detected by avrdude #1224
     - megaAVR JTAG programming doesn't work for SNAP and PICkit4
       #1052
+    - urclock/FTDI communication issues #1245
 
   * Pull requests:
 
@@ -263,7 +264,10 @@ Changes since version 7.0:
     - Add FT2232H support for Windows, Tigard programmer #1242
     - Modify recv timeouts to accommodate urclock sync with ftdi
       #1246
-   -  CMake updates #1243
+    - CMake updates #1243
+    - Silence conf path detection debug output #1247
+    - Make WIN32 ser_recv() fail on time-out #1248
+    - Guard urclock_getsync() against initial spurious input #1251
 
   * Internals:
 
