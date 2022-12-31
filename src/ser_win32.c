@@ -486,12 +486,12 @@ reselect:
 		nfds = select(fd->ifd + 1, &rfds, NULL, NULL, &to2);
 		if (nfds == 0) {
 			if (verbose > 1) {
-				pmsg_notice("ser_recv(): programmer is not responding\n");
+				pmsg_notice("net_recv(): programmer is not responding\n");
 			}
 			return -1;
 		} else if (nfds == -1) {
 			if (WSAGetLastError() == WSAEINTR || WSAGetLastError() == WSAEINPROGRESS) {
-				pmsg_notice("ser_recv(): programmer is not responding, reselecting\n");
+				pmsg_notice("net_recv(): programmer is not responding, reselecting\n");
 				goto reselect;
 			} else {
 				FormatMessage(
@@ -589,7 +589,7 @@ static int ser_recv(const union filedescriptor *fd, unsigned char * buf, size_t 
 	}
 
 	/* time out detected */
-	if (read == 0) {
+	if (read < buflen) {
 		pmsg_notice2("ser_recv(): programmer is not responding\n");
 		return -1;
 	}
