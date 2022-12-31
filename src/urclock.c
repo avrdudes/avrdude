@@ -2243,8 +2243,8 @@ static int urclock_open(PROGRAMMER *pgm, const char *port) {
   // Set DTR and RTS back to high
   serial_set_dtr_rts(&pgm->fd, 1);
 
-  if((80+ur.delay) > 0)
-    usleep((80+ur.delay)*1000); // Wait until board comes out of reset
+  if((120+ur.delay) > 0)
+    usleep((120+ur.delay)*1000); // Wait until board comes out of reset
 
   pmsg_debug("%4ld ms: enter urclock_getsync()\n", avr_mstimestamp());
   if(urclock_getsync(pgm) < 0)
