@@ -122,6 +122,7 @@ Changes since version 7.0:
     - megaAVR JTAG programming doesn't work for SNAP and PICkit4
       #1052
     - urclock/FTDI communication issues #1245
+    - stk500v2.c dumps core on open #1254
 
   * Pull requests:
 

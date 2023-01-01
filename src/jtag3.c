@@ -1570,7 +1570,8 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
   }
 
   // Get USB serial number
-  pgm->usbsn = serial_serno();
+  if (serial_serno)
+    pgm->usbsn = serial_serno();
 
   /*
    * drain any extraneous input
