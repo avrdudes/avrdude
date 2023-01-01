@@ -1569,7 +1569,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
     pmsg_notice("found CMSIS-DAP compliant device, using EDBG protocol\n");
   }
 
-  // Get USB serial number
+  // Get USB serial number function if function pointer is present
   if (serial_serno)
     pgm->usbsn = serial_serno();
 
