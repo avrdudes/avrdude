@@ -486,6 +486,13 @@ typedef struct {
   AVRMEMdeep mems[40];
 } AVRPARTdeep;
 
+
+// Return memory iff its desc matches str exactly
+static AVRMEM *dev_locate_mem(const AVRPART *p, const char *str) {
+  AVRMEM *m = p->mem? avr_locate_mem_noalias(p, str): NULL;
+  return m && strcmp(m->desc, str) == 0? m: NULL;
+}
+
 static int avrpart_deep_copy(AVRPARTdeep *d, const AVRPART *p) {
   AVRMEM *m;
   size_t di;
@@ -525,7 +532,7 @@ static int avrpart_deep_copy(AVRPARTdeep *d, const AVRPART *p) {
   // Fill in all memories we got in defined order
   di = 0;
   for(size_t mi=0; mi < sizeof avr_mem_order/sizeof *avr_mem_order && avr_mem_order[mi]; mi++) {
-    m = p->mem? avr_locate_mem_noalias(p, avr_mem_order[mi]): NULL;
+    m = dev_locate_mem(p, avr_mem_order[mi]);
     if(m) {
       if(di >= sizeof d->mems/sizeof *d->mems) {
         pmsg_error("ran out of mems[] space, increase size in AVRMEMdeep of developer_opts.c and recompile\n");
@@ -726,8 +733,8 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
   for(size_t mi=0; mi < sizeof avr_mem_order/sizeof *avr_mem_order && avr_mem_order[mi]; mi++) {
     AVRMEM *m, *bm;
 
-    m = p->mem? avr_locate_mem_noalias(p, avr_mem_order[mi]): NULL;
-    bm = base && base->mem? avr_locate_mem_noalias(base, avr_mem_order[mi]): NULL;
+    m = dev_locate_mem(p, avr_mem_order[mi]);
+    bm = base? dev_locate_mem(base, avr_mem_order[mi]): NULL;
 
     if(!m && bm && !tsv)
       dev_info("\n    memory \"%s\" = NULL;\n", bm->desc);
