@@ -47,10 +47,8 @@
 
 /*
  * GPIO user space helpers
- * The following functions are acting on an "unsigned gpio" argument, which corresponds to the 
- * gpio numbering scheme in the kernel (starting from 0).  
- * The higher level functions use "int pin" to specify the pins with an offset of 1:
- * gpio = pin - 1;
+ * The following functions are acting on an "unsigned gpio" argument, which corresponds to the
+ * gpio numbering scheme in the kernel (starting from 0).
  */
 
 #define GPIO_DIR_IN	0
@@ -151,24 +149,19 @@ static int linuxgpio_fds[N_GPIO] ;
 
 
 static int linuxgpio_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
-  int r;
-  int pin = pgm->pinno[pinfunc]; // TODO
-
-  if (pin & PIN_INVERSE)
-  {
-    value  = !value;
-    pin   &= PIN_MASK;
-  }
-
-  if ( linuxgpio_fds[pin] < 0 )
+  if(pinfunc < 0 || pinfunc >= N_PINS)
     return -1;
 
-  if (value)
-    r = write(linuxgpio_fds[pin], "1", 1);
-  else
-    r = write(linuxgpio_fds[pin], "0", 1);
+  unsigned pin = pgm->pinno[pinfunc];
+  if (pin & PIN_INVERSE)
+    value = !value;
+  pin &= PIN_MASK;
 
-  if (r!=1) return -1;
+  if (pin > PIN_MAX || linuxgpio_fds[pin] < 0)
+    return -1;
+
+  if (write(linuxgpio_fds[pin], value? "1": "0", 1) != 1)
+    return -1;
 
   if (pgm->ispdelay > 1)
     bitbang_delay(pgm->ispdelay);
@@ -177,37 +170,33 @@ static int linuxgpio_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
 }
 
 static int linuxgpio_getpin(const PROGRAMMER *pgm, int pinfunc) {
-  unsigned char invert=0;
+  if(pinfunc < 0 || pinfunc >= N_PINS)
+    return -1;
+
+  unsigned int pin = pgm->pinno[pinfunc];
+  int invert = !!(pin & PIN_INVERSE);
+  pin &= PIN_MASK;
+
+  if(pin > PIN_MAX || linuxgpio_fds[pin] < 0)
+    return -1;
+
+  if(lseek(linuxgpio_fds[pin], 0, SEEK_SET) < 0)
+    return -1;
+
   char c;
-  int pin = pgm->pinno[pinfunc]; // TODO
-
-  if (pin & PIN_INVERSE)
-  {
-    invert = 1;
-    pin   &= PIN_MASK;
-  }
-
-  if ( linuxgpio_fds[pin] < 0 )
+  if(read(linuxgpio_fds[pin], &c, 1) != 1)
     return -1;
 
-  if (lseek(linuxgpio_fds[pin], 0, SEEK_SET)<0)
-    return -1;
-
-  if (read(linuxgpio_fds[pin], &c, 1)!=1)
-    return -1;
-
-  if (c=='0')
-    return 0+invert;
-  else if (c=='1')
-    return 1-invert;
-  else
-    return -1;
+  return c=='0'? 0+invert: c=='1'? 1-invert: -1;
 }
 
 static int linuxgpio_highpulsepin(const PROGRAMMER *pgm, int pinfunc) {
-  int pin = pgm->pinno[pinfunc]; // TODO
-  
-  if ( linuxgpio_fds[pin & PIN_MASK] < 0 )
+  if(pinfunc < 0 || pinfunc >= N_PINS)
+    return -1;
+
+  unsigned int pin = pgm->pinno[pinfunc] & PIN_MASK;
+
+  if (pin > PIN_MAX || linuxgpio_fds[pin] < 0 )
     return -1;
 
   linuxgpio_setpin(pgm, pinfunc, 1);
@@ -250,20 +239,9 @@ static int linuxgpio_open(PROGRAMMER *pgm, const char *port) {
 
   for (i=0; i<N_GPIO; i++)
     linuxgpio_fds[i] = -1;
-  //Avrdude assumes that if a pin number is 0 it means not used/available
-  //this causes a problem because 0 is a valid GPIO number in Linux sysfs.
-  //To avoid annoying off by one pin numbering we assume SCK, SDO, SDI 
-  //and RESET pins are always defined in avrdude.conf, even as 0. If they're
-  //not programming will not work anyway. The drawbacks of this approach are
-  //that unwanted toggling of GPIO0 can occur and that other optional pins
-  //mostry LED status, can't be set to GPIO0. It can be fixed when a better 
-  //solution exists.
-  for (i=0; i<N_PINS; i++) {
-    if ( (pgm->pinno[i] & PIN_MASK) != 0 ||
-         i == PIN_AVR_RESET ||
-         i == PIN_AVR_SCK   ||
-         i == PIN_AVR_SDO   ||
-         i == PIN_AVR_SDI ) {
+  // Avrdude assumes that if a pin number is invalid it means not used/available
+  for (i = 1; i < N_PINS; i++) { // The pin enumeration in libavrdude.h starts with PPI_AVR_VCC = 1
+    if ((pgm->pinno[i] & PIN_MASK) <= PIN_MAX) {
         pin = pgm->pinno[i] & PIN_MASK;
         if ((r=linuxgpio_export(pin)) < 0) {
             pmsg_ext_error("cannot export GPIO %d, already exported/busy?: %s",
@@ -333,13 +311,15 @@ static void linuxgpio_close(PROGRAMMER *pgm)
   for (i=0; i<N_GPIO; i++) {
     if (linuxgpio_fds[i] >= 0 && i != reset_pin) {
        close(linuxgpio_fds[i]);
+       linuxgpio_fds[i] = -1;
        linuxgpio_dir_in(i);
        linuxgpio_unexport(i);
     }
   }
   //configure RESET as input, if there's external pull up it will go high
-  if (linuxgpio_fds[reset_pin] >= 0) {
+  if(reset_pin <= PIN_MAX && linuxgpio_fds[reset_pin] >= 0) {
     close(linuxgpio_fds[reset_pin]);
+    linuxgpio_fds[reset_pin] = -1;
     linuxgpio_dir_in(reset_pin);
     linuxgpio_unexport(reset_pin);
   }

@@ -1198,8 +1198,12 @@ static void buspirate_bb_enable(PROGRAMMER *pgm, const AVRPART *p) {
 */
 static int buspirate_bb_getpin(const PROGRAMMER *pgm, int pinfunc) {
 	unsigned char buf[10];
-	int value = 0;
-	int pin = pgm->pinno[pinfunc];
+	int pin, value = 0;
+
+	if(pinfunc < 0 || pinfunc >= N_PINS)
+		return -1;
+
+	pin = pgm->pinno[pinfunc];
 
 	if (pin & PIN_INVERSE) {
 		pin &= PIN_MASK;
@@ -1261,6 +1265,9 @@ static int buspirate_bb_setpin_internal(const PROGRAMMER *pgm, int pin, int valu
 }
 
 static int buspirate_bb_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
+	if(pinfunc < 0 || pinfunc >= N_PINS)
+		return -1;
+
 	return buspirate_bb_setpin_internal(pgm, pgm->pinno[pinfunc], value);
 }
 

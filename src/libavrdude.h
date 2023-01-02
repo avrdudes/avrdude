@@ -434,7 +434,7 @@ enum {
 /** Number of pins in each element of the bitfield */
 #define PIN_FIELD_ELEMENT_SIZE (sizeof(pinmask_t) * 8)
 /** Numer of elements to store the complete bitfield of all pins */
-#define PIN_FIELD_SIZE ((PIN_MAX + PIN_FIELD_ELEMENT_SIZE)/PIN_FIELD_ELEMENT_SIZE)
+#define PIN_FIELD_SIZE ((PIN_MAX+1 + PIN_FIELD_ELEMENT_SIZE-1)/PIN_FIELD_ELEMENT_SIZE)
 
 /**
  * This sets the corresponding bits to 1 or 0, the inverse mask is used to invert the value in necessary.
@@ -831,6 +831,8 @@ typedef struct programmer_t {
   void *cookie;                 // For private use by the programmer
   char flag;                    // For use by pgm->initpgm()
 } PROGRAMMER;
+
+#define NO_PIN   (PIN_MAX + 1U) // Magic pinno[] value for unused pins
 
 #ifdef __cplusplus
 extern "C" {
