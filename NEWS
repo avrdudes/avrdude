@@ -123,6 +123,7 @@ Changes since version 7.0:
       #1052
     - urclock/FTDI communication issues #1245
     - stk500v2.c dumps core on open #1254
+    - linuxgpio cannot use pin 0 #1228
 
   * Pull requests:
 
@@ -269,6 +270,10 @@ Changes since version 7.0:
     - Silence conf path detection debug output #1247
     - Make WIN32 ser_recv() fail on time-out #1248
     - Guard urclock_getsync() against initial spurious input #1251
+    - Change definition of NO_PIN to 1+PIN_MAX #1231
+    - Fix partial matches for locate_mem() and do_cmd() #1256
+    - Add abbreviated q command in terminal
+    - Move static usbsn into serdev struct and remove serno #1258
 
   * Internals:
 
