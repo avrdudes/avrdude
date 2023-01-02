@@ -1578,9 +1578,9 @@ static int stk500v2_open(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 
-  // Get USB serial number function if function pointer is present
-  if (serial_serno)
-    pgm->usbsn = serial_serno();
+  // Copy over pointer to USB serial number function
+  if (serdev && serdev->usbsn)
+    pgm->usbsn = serdev->usbsn;
 
   /*
    * drain any extraneous input

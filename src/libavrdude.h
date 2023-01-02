@@ -649,7 +649,6 @@ union pinfo
 struct serial_device {
   // open should return -1 on error, other values on success
   int (*open)(const char *port, union pinfo pinfo, union filedescriptor *fd);
-  const char *(*serno)();
   int (*setparams)(const union filedescriptor *fd, long baud, unsigned long cflags);
   void (*close)(union filedescriptor *fd);
 
@@ -659,6 +658,7 @@ struct serial_device {
 
   int (*set_dtr_rts)(const union filedescriptor *fd, int is_on);
 
+  const char *usbsn;
   int flags;
 #define SERDEV_FL_NONE         0x0000 /* no flags */
 #define SERDEV_FL_CANSETSPEED  0x0001 /* device can change speed */
@@ -672,7 +672,6 @@ extern struct serial_device avrdoper_serdev;
 extern struct serial_device usbhid_serdev;
 
 #define serial_open (serdev->open)
-#define serial_serno (serdev->serno)
 #define serial_setparams (serdev->setparams)
 #define serial_close (serdev->close)
 #define serial_send (serdev->send)

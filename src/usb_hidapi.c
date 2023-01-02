@@ -42,12 +42,6 @@
 
 #include "usbdevs.h"
 
-static const char *usbsn = "";
-
-const char *usbhid_get_serno() {
-  return usbsn;
-}
-
 /*
  * The "baud" parameter is meaningless for USB devices, so we reuse it
  * to pass the desired USB device ID.
@@ -142,7 +136,8 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
     if (n) {
       char *cn = cfg_malloc(__func__, n);
       if (wcstombs(cn, sn, n) != (size_t) -1)
-        usbsn = cache_string(cn);
+        if(serdev)
+          serdev->usbsn = cache_string(cn);
       free(cn);
     }
   }
@@ -319,7 +314,6 @@ static int usbhid_drain(const union filedescriptor *fd, int display) {
  */
 struct serial_device usbhid_serdev = {
   .open = usbhid_open,
-  .serno = usbhid_get_serno,
   .close = usbhid_close,
   .send = usbhid_send,
   .recv = usbhid_recv,
