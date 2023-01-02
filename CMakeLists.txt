@@ -250,12 +250,18 @@ if(USE_EXTERNAL_LIBS)
         GIT_TAG f9fe6e96b97c3a08efd081632c1859cb83aa14e3
         )
 
+    FetchContent_Declare(libreadline
+        GIT_REPOSITORY https://github.com/avrdudes/libreadline.git
+        GIT_TAG 9322168c71d798dc0dcdec5ad5187b4205dce185
+        )
+
     message(STATUS "Fetching external libraries, please wait...")
     FetchContent_MakeAvailable(
         libelf
         libusb
         libhidapi
         libftdi
+        libreadline
         )
 
     message(STATUS "Using external library 'libelf'")
@@ -277,6 +283,10 @@ if(USE_EXTERNAL_LIBS)
     set(LIB_LIBFTDI libftdi)
     set(HAVE_LIBFTDI 1)
     set(HAVE_LIBFTDI_TYPE_232H 1)
+
+    message(STATUS "Using external library 'libreadline'")
+    set(LIB_LIBREADLINE libreadline)
+    set(HAVE_LIBREADLINE 1)
 endif()
 
 add_subdirectory(src)
