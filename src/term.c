@@ -1235,30 +1235,28 @@ static int tokenize(char *s, char ***argv) {
 
 static int do_cmd(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   int i;
-  int hold;
-  int len;
+  int hold, matches;
+  size_t len;
 
   len = strlen(argv[0]);
-  hold = -1;
+  matches = 0;
   for (i=0; i<NCMDS; i++) {
     if(!*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
       continue;
-    if (len && strcasecmp(argv[0], cmd[i].name) == 0)
-      return cmd[i].func(pgm, p, argc, argv);
-    if (len && strncasecmp(argv[0], cmd[i].name, len)==0) {
-      if (hold != -1) {
-        pmsg_error("(cmd) command %s is ambiguous\n", argv[0]);
-        return -1;
-      }
+    if(len && strncasecmp(argv[0], cmd[i].name, len)==0) { // Partial initial match
       hold = i;
+      matches++;
+      if(cmd[i].name[len] == 0) { // Exact match
+        matches = 1;
+        break;
+      }
     }
   }
 
-  if (hold != -1)
+  if(matches == 1)
     return cmd[hold].func(pgm, p, argc, argv);
 
-  pmsg_error("(cmd) invalid command %s\n", argv[0]);
-
+  pmsg_error("(cmd) command %s is %s\n", argv[0], matches > 1? "ambiguous": "invalid");
   return -1;
 }
 
