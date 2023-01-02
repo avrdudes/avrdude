@@ -107,7 +107,8 @@ struct command cmd[] = {
   { "quell", cmd_quell, _fo(open),              "set quell level for progress bars" },
   { "help",  cmd_help,  _fo(open),              "show help message" },
   { "?",     cmd_help,  _fo(open),              "same as help" },
-  { "quit",  cmd_quit,  _fo(open),              "quit after writing out cache for flash & EEPROM" }
+  { "quit",  cmd_quit,  _fo(open),              "quit after writing out cache for flash & EEPROM" },
+  { "q",     cmd_quit,  _fo(open),              "abbreviation for quit" },
 };
 
 #define NCMDS ((int)(sizeof(cmd)/sizeof(struct command)))
