@@ -334,7 +334,6 @@ prog_def :
 prog_decl :
   K_PROGRAMMER
     { current_prog = pgm_new();
-      current_strct = COMP_PROGRAMMER;
       current_prog->config_file = cache_string(cfg_infile);
       current_prog->lineno = cfg_lineno;
     }
@@ -348,7 +347,6 @@ prog_decl :
         YYABORT;
       }
       current_prog = pgm_dup(pgm);
-      current_strct = COMP_PROGRAMMER;
       current_prog->parent_id = cache_string($3->value.string);
       current_prog->comments = NULL;
       current_prog->config_file = cache_string(cfg_infile);
@@ -426,7 +424,6 @@ part_decl :
   K_PART
     {
       current_part = avr_new_part();
-      current_strct = COMP_AVRPART;
       current_part->config_file = cache_string(cfg_infile);
       current_part->lineno = cfg_lineno;
     } |
@@ -440,7 +437,6 @@ part_decl :
       }
 
       current_part = avr_dup_part(parent_part);
-      current_strct = COMP_AVRPART;
       current_part->parent_id = cache_string($3->value.string);
       current_part->comments = NULL;
       current_part->config_file = cache_string(cfg_infile);
@@ -1275,7 +1271,6 @@ part_parm :
       }
       avr_add_mem_order($2->value.string);
       current_mem = mem;
-      current_strct = COMP_AVRMEM;
       free_token($2);
     }
     mem_specs 
