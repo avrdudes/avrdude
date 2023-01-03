@@ -34,6 +34,8 @@ Changes since version 7.0:
 
     - Provide page erase in the terminal as pgerase
 
+    - Add support for NetBSD and OpenBSD to build.sh
+
   * New devices supported: none
 
   * New programmers supported:
@@ -50,6 +52,7 @@ Changes since version 7.0:
     - arduino_gemma     = Arduino Gemma bootloader disguised as USBtiny
     - adafruit_gemma    = Adafruit Trinket Gemma bootloader disguised as USBtiny
     - digilent-hs2      = Digilient JTAG HS2 (MPSSE)
+    - tigard            = Tigard interface board
 
   * Issues fixed:
 
@@ -118,6 +121,9 @@ Changes since version 7.0:
     - Optiboot EEPROM support cannot be detected by avrdude #1224
     - megaAVR JTAG programming doesn't work for SNAP and PICkit4
       #1052
+    - urclock/FTDI communication issues #1245
+    - stk500v2.c dumps core on open #1254
+    - linuxgpio cannot use pin 0 #1228
 
   * Pull requests:
 
@@ -253,6 +259,21 @@ Changes since version 7.0:
     - Read programmer serial number from libusb or hidusb #1223
     - Hint at -xeepromrw option in EEPROM error messages #1226
     - Add JTAG support for PICkit4 and Snap. #1233
+    - Mention developer options in documentation and Usage() #1234
+    - Print expected signature on signature mismatch #1237
+    - To work around Issue #1107 #1240
+    - Update build.sh for NetBSD #1241
+    - Add FT2232H support for Windows, Tigard programmer #1242
+    - Modify recv timeouts to accommodate urclock sync with ftdi
+      #1246
+    - CMake updates #1243
+    - Silence conf path detection debug output #1247
+    - Make WIN32 ser_recv() fail on time-out #1248
+    - Guard urclock_getsync() against initial spurious input #1251
+    - Change definition of NO_PIN to 1+PIN_MAX #1231
+    - Fix partial matches for locate_mem() and do_cmd() #1256
+    - Add abbreviated q command in terminal
+    - Move static usbsn into serdev struct and remove serno #1258
 
   * Internals:
 

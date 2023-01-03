@@ -29,7 +29,12 @@ ostype=$(uname | tr '[A-Z]' '[a-z]')
 build_type=RelWithDebInfo
 # build_type=Release # no debug info
 
+# See CMakeLists.txt for all options
+#
+# Use this to enable (historical) parallel-port based programmers:
+#extra_enable="-D HAVE_PARPORT=1"
 extra_enable=""
+
 build_flags=""
 
 case "${ostype}" in
@@ -39,7 +44,7 @@ case "${ostype}" in
 	machine=$(uname -m)
 	if expr "${machine}" : '^\(arm\|aarch\)' >/dev/null
 	then
-	    extra_enable="${extra_enable} -D HAVE_LINUXGPIO=ON -D HAVE_LINUXSPI=ON"
+	    extra_enable="${extra_enable} -D HAVE_LINUXGPIO=1 -D HAVE_LINUXSPI=1"
 	fi
 	;;
 
@@ -61,7 +66,7 @@ case "${ostype}" in
 	;;
 
     netbsd)
-	build_flags="${build_flags} -D CMAKE_C_FLAGS=-I/usr/pkg/include -D CMAKE_EXE_LINKER_FLAGS=-L/usr/pkg/lib"
+	build_flags="${build_flags} -D CMAKE_C_FLAGS=-I/usr/pkg/include -D CMAKE_EXE_LINKER_FLAGS=-R/usr/pkg/lib -D CMAKE_INSTALL_PREFIX:PATH=/usr/pkg"
 	;;
 
     *bsd)

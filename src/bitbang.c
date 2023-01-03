@@ -608,8 +608,13 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   return 0;
 }
 
-static int verify_pin_assigned(const PROGRAMMER *pgm, int pin, char *desc) {
-  if (pgm->pinno[pin] == 0) {
+static int verify_pin_assigned(const PROGRAMMER *pgm, int pinfunc, char *desc) {
+  if(pinfunc < 0 || pinfunc >= N_PINS) {
+    pmsg_error("invalid pin function number %d\n", pinfunc);
+    return -1;
+  }
+
+  if ((pgm->pinno[pinfunc] & PIN_MASK) > PIN_MAX) {
     pmsg_error("no pin has been assigned for %s\n", desc);
     return -1;
   }

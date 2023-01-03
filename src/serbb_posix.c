@@ -73,6 +73,10 @@ static char *serpins[DB9PINS + 1] =
 static int serbb_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
   unsigned int	ctl;
   int           r;
+
+  if(pinfunc < 0 || pinfunc >= N_PINS)
+    return -1;
+
   int pin = pgm->pinno[pinfunc]; // get its value
 
   if (pin & PIN_INVERSE)
@@ -130,6 +134,10 @@ static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
   unsigned int	ctl;
   unsigned char invert;
   int           r;
+
+  if(pinfunc < 0 || pinfunc >= N_PINS)
+    return -1;
+
   int pin = pgm->pinno[pinfunc]; // get its value
 
   if (pin & PIN_INVERSE)
@@ -177,6 +185,9 @@ static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
 }
 
 static int serbb_highpulsepin(const PROGRAMMER *pgm, int pinfunc) {
+  if (pinfunc < 0 || pinfunc >= N_PINS)
+    return -1;
+
   int pin = pgm->pinno[pinfunc]; // replace pin name by its value
 
   if ( (pin & PIN_MASK) < 1 || (pin & PIN_MASK) > DB9PINS )

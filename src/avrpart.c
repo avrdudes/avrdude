@@ -420,51 +420,51 @@ void avr_free_memalias(AVRMEM_ALIAS *m) {
 AVRMEM_ALIAS *avr_locate_memalias(const AVRPART *p, const char *desc) {
   AVRMEM_ALIAS * m, * match;
   LNODEID ln;
-  int matches, exact;
-  int l;
+  int matches;
+  size_t l;
 
   if(!p || !desc || !p->mem_alias)
     return NULL;
 
   l = strlen(desc);
-  matches = exact = 0;
+  matches = 0;
   match = NULL;
   for (ln=lfirst(p->mem_alias); ln; ln=lnext(ln)) {
     m = ldata(ln);
-    if (strncmp(m->desc, desc, l) == 0) { // Partial initial match
+    if(l && strncmp(m->desc, desc, l) == 0) { // Partial initial match
       match = m;
       matches++;
-      if(m->desc[l] == 0)       // Exact match between arg and memory
-        exact++;
+      if(m->desc[l] == 0)       // Exact match; return straight away
+        return m;
     }
   }
 
-  return exact == 1 || matches == 1? match: NULL;
+  return matches == 1? match: NULL;
 }
 
 AVRMEM *avr_locate_mem_noalias(const AVRPART *p, const char *desc) {
   AVRMEM * m, * match;
   LNODEID ln;
-  int matches, exact;
-  int l;
+  int matches;
+  size_t l;
 
   if(!p || !desc || !p->mem)
     return NULL;
 
   l = strlen(desc);
-  matches = exact = 0;
+  matches = 0;
   match = NULL;
   for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
     m = ldata(ln);
-    if (strncmp(m->desc, desc, l) == 0) { // Partial initial match
+    if(l && strncmp(m->desc, desc, l) == 0) { // Partial initial match
       match = m;
       matches++;
-      if(m->desc[l] == 0)       // Exact match between arg and memory
-        exact++;
+      if(m->desc[l] == 0)       // Exact match; return straight away
+        return m;
     }
   }
 
-  return exact == 1 || matches == 1? match: NULL;
+  return matches == 1? match: NULL;
 }
 
 

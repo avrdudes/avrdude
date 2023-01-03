@@ -819,10 +819,10 @@ int main(int argc, char * argv [])
       executable_dirpath[executable_dirpath_len] = '\0';
 
       // Debug output
-      msg_debug("executable_abspath = %s\n", executable_abspath);
-      msg_debug("executable_abspath_len = %i\n", executable_abspath_len);
-      msg_debug("executable_dirpath = %s\n", executable_dirpath);
-      msg_debug("executable_dirpath_len = %i\n", executable_dirpath_len);
+      msg_trace2("executable_abspath = %s\n", executable_abspath);
+      msg_trace2("executable_abspath_len = %i\n", executable_abspath_len);
+      msg_trace2("executable_dirpath = %s\n", executable_dirpath);
+      msg_trace2("executable_dirpath_len = %i\n", executable_dirpath_len);
     }
 
     /*
@@ -878,9 +878,9 @@ int main(int argc, char * argv [])
     }
   }
   // Debug output
-  msg_debug("sys_config = %s\n", sys_config);
-  msg_debug("sys_config_found = %s\n", sys_config_found ? "true" : "false");
-  msg_debug("\n");
+  msg_trace2("sys_config = %s\n", sys_config);
+  msg_trace2("sys_config_found = %s\n", sys_config_found ? "true" : "false");
+  msg_trace2("\n");
 
   /*
    * USER CONFIG
@@ -1348,6 +1348,8 @@ int main(int argc, char * argv [])
         msg_info("\n");
         pmsg_error("Yikes!  Invalid device signature.\n");
         if (!ovsigck) {
+          pmsg_error("expected signature for %s is %02X %02X %02X\n", p->desc,
+            p->signature[0], p->signature[1], p->signature[2]);
           imsg_error("Double check connections and try again, or use -F to override\n");
           imsg_error("this check.\n\n");
           exitrc = 1;

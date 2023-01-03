@@ -62,6 +62,9 @@ static int dtr, rts, txd;
 #define DB9PINS 9
 
 static int serbb_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
+	if(pinfunc < 0 || pinfunc >= N_PINS)
+		return -1;
+
 	int pin = pgm->pinno[pinfunc];
 	HANDLE hComPort = (HANDLE)pgm->fd.pfd;
         LPVOID lpMsgBuf;
@@ -126,6 +129,9 @@ static int serbb_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
 }
 
 static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
+	if(pinfunc < 0 || pinfunc >= N_PINS)
+		return -1;
+
 	int pin = pgm->pinno[pinfunc];
 	HANDLE hComPort = (HANDLE)pgm->fd.pfd;
         LPVOID lpMsgBuf;
@@ -208,7 +214,10 @@ static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
 }
 
 static int serbb_highpulsepin(const PROGRAMMER *pgm, int pinfunc) {
-	    int pin = pgm->pinno[pinfunc];
+	if(pinfunc < 0 || pinfunc >= N_PINS)
+		return -1;
+
+        int pin = pgm->pinno[pinfunc];
         if ( (pin & PIN_MASK) < 1 || (pin & PIN_MASK) > DB9PINS )
           return -1;
 

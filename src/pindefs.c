@@ -61,7 +61,7 @@ void pin_clear_all(struct pindef_t * const pindef) {
 static int pin_fill_old_pinno(const struct pindef_t * const pindef, unsigned int * const pinno) {
   bool found = false;
   int i;
-  for(i = 0; i < PIN_MAX; i++) {
+  for(i = 0; i <= PIN_MAX; i++) {
     if(pindef->mask[i / PIN_FIELD_ELEMENT_SIZE] & (1 << (i % PIN_FIELD_ELEMENT_SIZE))) {
       if(found) {
         pmsg_error("multiple pins found\n"); // TODO
@@ -94,7 +94,7 @@ static int pin_fill_old_pinlist(const struct pindef_t * const pindef, unsigned i
       }
       if (pindef->mask[i] == 0) {
         /* this pin function is not using any pins */
-        *pinno = 0;
+        *pinno = NO_PIN;
       } else if(pindef->mask[i] == pindef->inverse[i]) {  /* all set bits in mask are set in inverse */
         *pinno = pindef->mask[i];
         *pinno |= PIN_INVERSE;

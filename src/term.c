@@ -107,7 +107,8 @@ struct command cmd[] = {
   { "quell", cmd_quell, _fo(open),              "set quell level for progress bars" },
   { "help",  cmd_help,  _fo(open),              "show help message" },
   { "?",     cmd_help,  _fo(open),              "same as help" },
-  { "quit",  cmd_quit,  _fo(open),              "quit after writing out cache for flash & EEPROM" }
+  { "quit",  cmd_quit,  _fo(open),              "quit after writing out cache for flash & EEPROM" },
+  { "q",     cmd_quit,  _fo(open),              "abbreviation for quit" },
 };
 
 #define NCMDS ((int)(sizeof(cmd)/sizeof(struct command)))
@@ -1235,30 +1236,28 @@ static int tokenize(char *s, char ***argv) {
 
 static int do_cmd(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   int i;
-  int hold;
-  int len;
+  int hold, matches;
+  size_t len;
 
   len = strlen(argv[0]);
-  hold = -1;
+  matches = 0;
   for (i=0; i<NCMDS; i++) {
     if(!*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
       continue;
-    if (len && strcasecmp(argv[0], cmd[i].name) == 0)
-      return cmd[i].func(pgm, p, argc, argv);
-    if (len && strncasecmp(argv[0], cmd[i].name, len)==0) {
-      if (hold != -1) {
-        pmsg_error("(cmd) command %s is ambiguous\n", argv[0]);
-        return -1;
-      }
+    if(len && strncasecmp(argv[0], cmd[i].name, len)==0) { // Partial initial match
       hold = i;
+      matches++;
+      if(cmd[i].name[len] == 0) { // Exact match
+        matches = 1;
+        break;
+      }
     }
   }
 
-  if (hold != -1)
+  if(matches == 1)
     return cmd[hold].func(pgm, p, argc, argv);
 
-  pmsg_error("(cmd) invalid command %s\n", argv[0]);
-
+  pmsg_error("(cmd) command %s is %s\n", argv[0], matches > 1? "ambiguous": "invalid");
   return -1;
 }
 
@@ -1433,7 +1432,7 @@ int terminal_mode(PROGRAMMER *pgm, struct avrpart *p) {
   // EditLine (NetBSD, MacOS) has issues with that, so only use it when
   // running interactively.
   // EditLine uses version 4.2 (0x0402).
-  if (isatty(fileno(stdin)) || (rl_readline_version >= 0x0500))
+  if (isatty(fileno(stdin)) || rl_readline_version > 0x0500)
     return terminal_mode_interactive(pgm, p);
 #endif
   return terminal_mode_noninteractive(pgm, p);

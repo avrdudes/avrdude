@@ -788,7 +788,7 @@ programmer
 ;
 
 #------------------------------------------------------------
-# avrftdi
+# ft2232h
 #------------------------------------------------------------
 
 # this will interface with the chips on these programmers:
@@ -812,26 +812,28 @@ programmer
 # these FTDI ICs has been designed.
 
 programmer
-    id                     = "avrftdi";
-    desc                   = "FT2232D based generic programmer";
+    id                     = "ft2232h";
+    desc                   = "FT2232H based generic programmer";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6010;
     usbdev                 = "A";
-#   ISP-signals - lower ADBUS-Nibble (default)
-    reset                  = 3;
-    sck                    = 0;
-    sdo                    = 1;
-    sdi                    = 2;
-#   LED SIGNALs - higher ADBUS-Nibble
-#   errled                 = 4;
-#   rdyled                 = 5;
-#   pgmled                 = 6;
-#   vfyled                 = 7;
-#   Buffer Signal - ACBUS - Nibble
-#   buff                   = 8;
+# ISP-signals - lower ADBUS-Nibble (default)
+    reset                  = 3; # AD3 (TMS)
+    sck                    = 0; # AD0 (TCK)
+    sdo                    = 1; # AD1 (TDI)
+    sdi                    = 2; # AD2 (TDO)
+;
+
+#------------------------------------------------------------
+# avrftdi
+#------------------------------------------------------------
+
+programmer parent "ft2232h"
+    id                     = "avrftdi";
+    desc                   = "FT2232D based generic programmer";
 ;
 
 #------------------------------------------------------------
@@ -841,25 +843,11 @@ programmer
 # This is an implementation of the above with a buffer IC (74AC244) and
 # 4 LEDs directly attached, all active low.
 
-programmer
-    id                     = "2232HIO";
+programmer parent "ft2232h"
+    id                     = "2232hio";
     desc                   = "FT2232H based generic programmer";
-    type                   = "avrftdi";
-    prog_modes             = PM_TPI | PM_ISP;
-    connection_type        = usb;
-    usbvid                 = 0x0403;
-# Note: This PID is reserved for generic H devices and
-# should be programmed into the EEPROM
-#   usbpid                 = 0x8A48;
-    usbpid                 = 0x6010;
-    usbdev                 = "A";
     buff                   = ~4;
-#ISP-signals
-    reset                  = 3;
-    sck                    = 0;
-    sdo                    = 1;
-    sdi                    = 2;
-#LED SIGNALs
+# LED SIGNALs
     errled                 = ~11;
     rdyled                 = ~14;
     pgmled                 = ~13;
@@ -867,16 +855,43 @@ programmer
 ;
 
 #------------------------------------------------------------
-# 4232h
+# tigard
+#------------------------------------------------------------
+
+# Tigard - FT2232H based multi-protocol tool for hardware hacking.
+# https://github.com/tigard-tools/tigard
+
+programmer parent "ft2232h"
+    id                     = "tigard";
+    desc                   = "Tigard interface board";
+    usbdev                 = "B";
+# ISP-signals
+    reset                  = 5; # BD5 (GPIOL1)
+    sck                    = 0; # BD0 (TCK)
+    sdo                    = 1; # BD1 (TDI)
+    sdi                    = 2; # BD2 (TDO)
+;
+
+#------------------------------------------------------------
+# ft4232h
 #------------------------------------------------------------
 
 #The FT4232H can be treated as FT2232H, but it has a different USB
 #device ID of 0x6011.
 
-programmer parent "avrftdi"
-    id                     = "4232h";
+programmer parent "ft2232h"
+    id                     = "ft4232h";
     desc                   = "FT4232H based generic programmer";
     usbpid                 = 0x6011;
+;
+
+#------------------------------------------------------------
+# 4232h
+#------------------------------------------------------------
+
+programmer parent "ft4232h"
+    id                     = "4232h";
+    desc                   = "FT4232H based generic programmer";
 ;
 
 #------------------------------------------------------------
@@ -910,14 +925,14 @@ programmer
 
 programmer
     id                     = "ft232h";
-    desc                   = "FT232H in MPSSE mode";
+    desc                   = "FT232H based generic programmer";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6014;
     usbdev                 = "A";
-#ISP-signals
+# ISP-signals
     reset                  = 3; # AD3 (TMS)
     sck                    = 0; # AD0 (TCK)
     sdo                    = 1; # AD1 (TDI)
@@ -1027,7 +1042,7 @@ programmer
     usbproduct             = "LM3S811 Evaluation Board";
 # Enable correct buffers
     buff                   = 7;
-#ISP-signals - lower ACBUS-Nibble (default)
+# ISP-signals - lower ACBUS-Nibble (default)
     reset                  = 3;
     sck                    = 0;
     sdo                    = 1;
@@ -1335,7 +1350,7 @@ programmer
 
 programmer
     id                     = "ft245r";
-    desc                   = "FT245R Synchronous BitBang";
+    desc                   = "FT245R based generic programmer";
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
@@ -1351,7 +1366,7 @@ programmer
 
 programmer
     id                     = "ft232r";
-    desc                   = "FT232R Synchronous BitBang";
+    desc                   = "FT232R based generic programmer";
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
