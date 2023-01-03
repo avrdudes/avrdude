@@ -8690,6 +8690,7 @@ part
     mcuid                  = 167;
     n_interrupts           = 32;
     n_boot_sections        = 4;
+    boot_section_size      = 256;
     stk500_devcode         = 0x65;
     chip_erase_delay       = 9000;
     pagel                  = 0xd8;
@@ -8818,7 +8819,6 @@ part parent "pwm2"
     desc                   = "AT90PWM3";
     id                     = "pwm3";
     mcuid                  = 169;
-    boot_section_size      = 256;
 ;
 
 #------------------------------------------------------------
@@ -8830,7 +8830,6 @@ part parent "pwm2"
     desc                   = "AT90PWM2B";
     id                     = "pwm2b";
     mcuid                  = 168;
-    boot_section_size      = 256;
     signature              = 0x1e 0x93 0x83;
     ocdrev                 = 1;
 ;
