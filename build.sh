@@ -29,7 +29,12 @@ ostype=$(uname | tr '[A-Z]' '[a-z]')
 build_type=RelWithDebInfo
 # build_type=Release # no debug info
 
+# See CMakeLists.txt for all options
+#
+# Use this to enable (historical) parallel-port based programmers:
+#extra_enable="-D HAVE_PARPORT=1"
 extra_enable=""
+
 build_flags=""
 
 case "${ostype}" in
