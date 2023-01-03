@@ -403,6 +403,7 @@ default_spi        = "@DEFAULT_SPI_PORT@";
 # default_bitclock = 2.5;
 
 @HAVE_PARPORT_BEGIN@
+
 # Parallel port programmers
 
 #------------------------------------------------------------
@@ -845,7 +846,7 @@ programmer parent "ft2232h"
 
 programmer parent "ft2232h"
     id                     = "2232hio";
-    desc                   = "FT2232H based generic programmer";
+    desc                   = "2232hio based on FT2232H with buffer and LEDs";
     buff                   = ~4;
 # LED SIGNALs
     errled                 = ~11;
@@ -858,18 +859,15 @@ programmer parent "ft2232h"
 # tigard
 #------------------------------------------------------------
 
-# Tigard - FT2232H based multi-protocol tool for hardware hacking.
+# Tigard - FT2232H based multi-protocol tool for hardware hacking
 # https://github.com/tigard-tools/tigard
 
 programmer parent "ft2232h"
     id                     = "tigard";
     desc                   = "Tigard interface board";
     usbdev                 = "B";
-# ISP-signals
+# Reset is different to the FT2232H; sck, sdo, sdi remain at 0, 1, 2
     reset                  = 5; # BD5 (GPIOL1)
-    sck                    = 0; # BD0 (TCK)
-    sdo                    = 1; # BD1 (TDI)
-    sdi                    = 2; # BD2 (TDO)
 ;
 
 #------------------------------------------------------------
@@ -891,7 +889,6 @@ programmer parent "ft2232h"
 
 programmer parent "ft4232h"
     id                     = "4232h";
-    desc                   = "FT4232H based generic programmer";
 ;
 
 #------------------------------------------------------------
@@ -954,7 +951,6 @@ programmer
 programmer parent "ft232h"
     id                     = "um232h";
     desc                   = "UM232H module from FTDI";
-    usbpid                 = 0x6014;
 ;
 
 #------------------------------------------------------------
@@ -972,7 +968,6 @@ programmer parent "ft232h"
 programmer parent "ft232h"
     id                     = "c232hm";
     desc                   = "C232HM cable from FTDI";
-    usbpid                 = 0x6014;
 ;
 
 #------------------------------------------------------------
@@ -13641,11 +13636,7 @@ part parent ".reduced_core_tiny"
     ;
 
     memory "fuse"
-        size               = 1;
-        page_size          = 16;
         n_word_writes      = 2;
-        offset             = 0x3f40;
-        blocksize          = 4;
     ;
 ;
 
@@ -13669,11 +13660,7 @@ part parent ".reduced_core_tiny"
     ;
 
     memory "fuse"
-        size               = 1;
-        page_size          = 16;
         n_word_writes      = 4;
-        offset             = 0x3f40;
-        blocksize          = 4;
     ;
 ;
 
@@ -13777,10 +13764,6 @@ part
     ;
 
     memory "hfuse"
-        size               = 1;
-    ;
-
-    memory "lockbits"
         size               = 1;
     ;
 
