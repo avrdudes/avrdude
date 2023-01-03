@@ -126,7 +126,7 @@ SIGN     [+-]
 
   Component_t *cp = cfg_comp_search(yytext, current_strct);
   if(!cp) {
-    yyerror("Unknown component %s in %s", yytext, cfg_strct_name(current_strct));
+    yyerror("unknown component %s in %s", yytext, cfg_strct_name(current_strct));
     return YYERRCODE;
   }
   yylval = new_token(TKN_COMPONENT);
@@ -194,7 +194,7 @@ loadpage_hi      { yylval=new_token(K_LOADPAGE_HI); ccap(); return K_LOADPAGE_HI
 loadpage_lo      { yylval=new_token(K_LOADPAGE_LO); ccap(); return K_LOADPAGE_LO; }
 max_write_delay  { yylval=NULL; ccap(); return K_MAX_WRITE_DELAY; }
 mcu_base         { yylval=NULL; ccap(); return K_MCU_BASE; }
-memory           { yylval=NULL; ccap(); return K_MEMORY; }
+memory           { yylval=NULL; ccap(); current_strct = COMP_AVRMEM; return K_MEMORY; }
 min_write_delay  { yylval=NULL; ccap(); return K_MIN_WRITE_DELAY; }
 miso             { yylval=NULL; ccap(); return K_SDI; } // Deprecated
 mode             { yylval=NULL; ccap(); return K_MODE; }
@@ -212,7 +212,7 @@ pagel            { yylval=NULL; ccap(); return K_PAGEL; }
 page_size        { yylval=NULL; ccap(); return K_PAGE_SIZE; }
 parallel         { yylval=NULL; ccap(); return K_PARALLEL; }
 parent           { yylval=NULL; return K_PARENT; }
-part             { yylval=NULL; ccap(); return K_PART; }
+part             { yylval=NULL; ccap(); current_strct = COMP_AVRPART; return K_PART; }
 pgm_enable       { yylval=new_token(K_PGM_ENABLE); ccap(); return K_PGM_ENABLE; }
 pgmled           { yylval=NULL; ccap(); return K_PGMLED; }
 pollindex        { yylval=NULL; ccap(); return K_POLLINDEX; }
@@ -227,7 +227,7 @@ programfusepolltimeout { yylval=NULL; ccap(); return K_PROGRAMFUSEPOLLTIMEOUT; }
 programfusepulsewidth { yylval=NULL; ccap(); return K_PROGRAMFUSEPULSEWIDTH; }
 programlockpolltimeout { yylval=NULL; ccap(); return K_PROGRAMLOCKPOLLTIMEOUT; }
 programlockpulsewidth { yylval=NULL; ccap(); return K_PROGRAMLOCKPULSEWIDTH; }
-programmer       { yylval=NULL; ccap(); return K_PROGRAMMER; }
+programmer       { yylval=NULL; ccap(); current_strct = COMP_PROGRAMMER; return K_PROGRAMMER; }
 pseudo           { yylval=new_token(K_PSEUDO); return K_PSEUDO; }
 pwroff_after_write { yylval=NULL; ccap(); return K_PWROFF_AFTER_WRITE; }
 rdyled           { yylval=NULL; ccap(); return K_RDYLED; }

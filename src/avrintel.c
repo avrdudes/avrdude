@@ -9,7 +9,7 @@
  * meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.1
- * 24.11.2022
+ * 02.01.2023
  *
  */
 
@@ -42,7 +42,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"ATtiny13",          10,  F_AVR8, {0x1E, 0x90, 0x07},       0, 0x00400, 0x020,  0,      0,       0, 0x0040,  4, 0x0060, 0x0040,  2,  1,  10,  vtab_attiny13a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny13A",         11,  F_AVR8, {0x1E, 0x90, 0x07},       0, 0x00400, 0x020,  0,      0,       0, 0x0040,  4, 0x0060, 0x0040,  2,  1,  10,  vtab_attiny13a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny15",          12,  F_AVR8, {0x1E, 0x90, 0x06},       0, 0x00400, 0x001,  0,      0,       0, 0x0040,  2, 0x0060, 0x0020,  1,  1,   9,   vtab_attiny15}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny22",          13,  F_AVR8, {0x1E, 0x91, 0x06},       0, 0x00800,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // avr-gcc 12.2.0
+  {"ATtiny22",          13,  F_AVR8, {0x1E, 0x91, 0x06},       0, 0x00800,    -1,  0,      0,      -1,     -1, -1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // avr-gcc 12.2.0, boot size (manual)
   {"ATtiny24",          14,  F_AVR8, {0x1E, 0x91, 0x0B},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  3,  1,  17,  vtab_attiny84a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny24A",         15,  F_AVR8, {0x1E, 0x91, 0x0B},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  3,  1,  17,  vtab_attiny84a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny25",          16,  F_AVR8, {0x1E, 0x91, 0x08},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  3,  1,  15,   vtab_attiny85}, // atdf, avr-gcc 12.2.0, avrdude
@@ -65,12 +65,12 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"ATtiny461",         33,  F_AVR8, {0x1E, 0x92, 0x08},       0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100,  3,  1,  19, vtab_attiny861a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny461A",        34,  F_AVR8, {0x1E, 0x92, 0x08},       0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100,  3,  1,  19, vtab_attiny861a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny828",         35,  F_AVR8, {0x1E, 0x93, 0x14},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0100,  4, 0x0100, 0x0200,  3,  1,  26,  vtab_attiny828}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny828R",        36,  F_AVR8, {0x1E, 0x93, 0x14},       0, 0x02000, 0x040, -1,     -1,       0, 0x0100,  4,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
+  {"ATtiny828R",        36,  F_AVR8, {0x1E, 0x93, 0x14},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0100,  4, 0x0100, 0x0200,  3,  1,  26,  vtab_attiny828}, // avrdude, from ATtiny828
   {"ATtiny841",         37,  F_AVR8, {0x1E, 0x93, 0x15},       0, 0x02000, 0x010,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  30,  vtab_attiny841}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny861",         38,  F_AVR8, {0x1E, 0x93, 0x0D},       0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200,  3,  1,  19, vtab_attiny861a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny861A",        39,  F_AVR8, {0x1E, 0x93, 0x0D},       0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200,  3,  1,  19, vtab_attiny861a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny1634",        40,  F_AVR8, {0x1E, 0x94, 0x12},       0, 0x04000, 0x020,  0,      0,       0, 0x0100,  4, 0x0100, 0x0400,  3,  1,  28, vtab_attiny1634}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny1634R",       41,  F_AVR8, {0x1E, 0x94, 0x12},       0, 0x04000, 0x020, -1,     -1,       0, 0x0100,  4,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
+  {"ATtiny1634R",       41,  F_AVR8, {0x1E, 0x94, 0x12},       0, 0x04000, 0x020,  0,      0,       0, 0x0100,  4, 0x0100, 0x0400,  3,  1,  28, vtab_attiny1634}, // avrdude, from ATtiny1634
   {"ATtiny2313",        42,  F_AVR8, {0x1E, 0x91, 0x0A},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  3,  1,  19, vtab_attiny2313}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny2313A",       43,  F_AVR8, {0x1E, 0x91, 0x0A},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  3,  1,  21, vtab_attiny4313}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny4313",        44,  F_AVR8, {0x1E, 0x92, 0x0D},       0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100,  3,  1,  21, vtab_attiny4313}, // atdf, avr-gcc 12.2.0, avrdude
@@ -113,7 +113,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"ATmega88P",         81,  F_AVR8, {0x1E, 0x93, 0x0F},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega88PA",        82,  F_AVR8, {0x1E, 0x93, 0x0F},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega88PB",        83,  F_AVR8, {0x1E, 0x93, 0x16},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  27, vtab_atmega168pb}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega103",         84,  F_AVR8, {0x1E, 0x97, 0x01},       0, 0x20000, 0x100, -1,     -1,       0, 0x1000,  1, 0x0060, 0x0fa0,  1,  1,  24,  vtab_atmega103}, // avr-gcc 12.2.0, avrdude
+  {"ATmega103",         84,  F_AVR8, {0x1E, 0x97, 0x01},       0, 0x20000, 0x100,  0,      0,       0, 0x1000,  1, 0x0060, 0x0fa0,  1,  1,  24,  vtab_atmega103}, // avr-gcc 12.2.0, avrdude, boot size (manual)
   {"ATmega128",         85,  F_AVR8, {0x1E, 0x97, 0x02},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x1000,  3,  1,  35, vtab_atmega128a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega128A",        86,  F_AVR8, {0x1E, 0x97, 0x02},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x1000,  3,  1,  35, vtab_atmega128a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega128RFA1",     87,  F_AVR8, {0x1E, 0xA7, 0x01},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x4000,  3,  1,  72, vtab_atmega128rfa1}, // atdf, avr-gcc 12.2.0, avrdude
@@ -196,7 +196,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"AT76C711",         164,  F_AVR8, {0xff,   -1,   -1},       0, 0x04000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x07a0, -1, -1,   0,            NULL}, // avr-gcc 12.2.0
   {"AT86RF401",        165,  F_AVR8, {0x1E, 0x91, 0x81},       0, 0x00800,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0080,  0,  1,   3,  vtab_at86rf401}, // avr-gcc 12.2.0
   {"AT90PWM1",         166,  F_AVR8, {0x1E, 0x93, 0x83},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32, vtab_at90pwm316}, // atdf, avr-gcc 12.2.0
-  {"AT90PWM2",         167,  F_AVR8, {0x1E, 0x93, 0x81},       0, 0x02000, 0x040,  4,     -1,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,   vtab_at90pwm2}, // avr-gcc 12.2.0, avrdude
+  {"AT90PWM2",         167,  F_AVR8, {0x1E, 0x93, 0x81},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,   vtab_at90pwm2}, // avr-gcc 12.2.0, avrdude, boot size (manual)
   {"AT90PWM2B",        168,  F_AVR8, {0x1E, 0x93, 0x83},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,  vtab_at90pwm3b}, // atdf, avr-gcc 12.2.0, avrdude
   {"AT90PWM3",         169,  F_AVR8, {0x1E, 0x93, 0x81},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,  vtab_at90pwm3b}, // atdf, avr-gcc 12.2.0, avrdude
   {"AT90PWM3B",        170,  F_AVR8, {0x1E, 0x93, 0x83},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,  vtab_at90pwm3b}, // atdf, avr-gcc 12.2.0, avrdude
@@ -212,19 +212,19 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"AT90PWM316",       180,  F_AVR8, {0x1E, 0x94, 0x83},       0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  32, vtab_at90pwm316}, // atdf, avr-gcc 12.2.0, avrdude
   {"AT90USB646",       181,  F_AVR8, {0x1E, 0x96, 0x82},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  38, vtab_atmega32u6}, // atdf, avr-gcc 12.2.0, avrdude
   {"AT90USB647",       182,  F_AVR8, {0x1E, 0x96, 0x82},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  38, vtab_atmega32u6}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT90S1200",        183,  F_AVR8, {0x1E, 0x90, 0x01},       0, 0x00400, 0x001, -1,     -1,       0, 0x0040,  1, 0x0060, 0x0020,  1,  1,   4,  vtab_at90s1200}, // avr-gcc 12.2.0, avrdude
+  {"AT90S1200",        183,  F_AVR8, {0x1E, 0x90, 0x01},       0, 0x00400, 0x001,  0,      0,       0, 0x0040,  1, 0x0060, 0x0020,  1,  1,   4,  vtab_at90s1200}, // avr-gcc 12.2.0, avrdude, boot size (manual)
   {"AT90USB1286",      184,  F_AVR8, {0x1E, 0x97, 0x82},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x2000,  3,  1,  38, vtab_atmega32u6}, // atdf, avr-gcc 12.2.0, avrdude
   {"AT90USB1287",      185,  F_AVR8, {0x1E, 0x97, 0x82},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x2000,  3,  1,  38, vtab_atmega32u6}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT90S2313",        186,  F_AVR8, {0x1E, 0x91, 0x01},       0, 0x00800, 0x001, -1,     -1,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,  11,  vtab_at90s2313}, // avr-gcc 12.2.0, avrdude
-  {"AT90S2323",        187,  F_AVR8, {0x1E, 0x91, 0x02},       0, 0x00800,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // avr-gcc 12.2.0
-  {"AT90S2333",        188,  F_AVR8, {0x1E, 0x91, 0x05},       0, 0x00800, 0x001, -1,     -1,       0, 0x0080,  1, 0x0060, 0x0080, -1, -1,  14,  vtab_at90s4433}, // avr-gcc 12.2.0, avrdude
-  {"AT90S2343",        189,  F_AVR8, {0x1E, 0x91, 0x03},       0, 0x00800, 0x001, -1,     -1,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // avr-gcc 12.2.0, avrdude
-  {"AT90S4414",        190,  F_AVR8, {0x1E, 0x92, 0x01},       0, 0x01000, 0x001, -1,     -1,       0, 0x0100,  1, 0x0060, 0x0100,  1,  1,  13,  vtab_at90s8515}, // avr-gcc 12.2.0, avrdude
-  {"AT90S4433",        191,  F_AVR8, {0x1E, 0x92, 0x03},       0, 0x01000, 0x001, -1,     -1,       0, 0x0100,  1, 0x0060, 0x0080,  1,  1,  14,  vtab_at90s4433}, // avr-gcc 12.2.0, avrdude
-  {"AT90S4434",        192,  F_AVR8, {0x1E, 0x92, 0x02},       0, 0x01000, 0x001, -1,     -1,       0, 0x0100,  1, 0x0060, 0x0100,  1,  1,  17,  vtab_at90s8535}, // avr-gcc 12.2.0, avrdude
-  {"AT90S8515",        193,  F_AVR8, {0x1E, 0x93, 0x01},       0, 0x02000, 0x001, -1,     -1,       0, 0x0200,  1, 0x0060, 0x0200,  1,  1,  13,  vtab_at90s8515}, // avr-gcc 12.2.0, avrdude
+  {"AT90S2313",        186,  F_AVR8, {0x1E, 0x91, 0x01},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,  11,  vtab_at90s2313}, // avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"AT90S2323",        187,  F_AVR8, {0x1E, 0x91, 0x02},       0, 0x00800,    -1,  0,      0,      -1,     -1, -1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // avr-gcc 12.2.0, boot size (manual)
+  {"AT90S2333",        188,  F_AVR8, {0x1E, 0x91, 0x05},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, -1, -1,  14,  vtab_at90s4433}, // avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"AT90S2343",        189,  F_AVR8, {0x1E, 0x91, 0x03},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"AT90S4414",        190,  F_AVR8, {0x1E, 0x92, 0x01},       0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0100,  1,  1,  13,  vtab_at90s8515}, // avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"AT90S4433",        191,  F_AVR8, {0x1E, 0x92, 0x03},       0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0080,  1,  1,  14,  vtab_at90s4433}, // avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"AT90S4434",        192,  F_AVR8, {0x1E, 0x92, 0x02},       0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0100,  1,  1,  17,  vtab_at90s8535}, // avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"AT90S8515",        193,  F_AVR8, {0x1E, 0x93, 0x01},       0, 0x02000, 0x001,  0,      0,       0, 0x0200,  1, 0x0060, 0x0200,  1,  1,  13,  vtab_at90s8515}, // avr-gcc 12.2.0, avrdude, boot size (manual)
   {"AT90C8534",        194,  F_AVR8, {0xff,   -1,   -1},       0, 0x02000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0100, -1, -1,   0,            NULL}, // avr-gcc 12.2.0
-  {"AT90S8535",        195,  F_AVR8, {0x1E, 0x93, 0x03},       0, 0x02000, 0x001, -1,     -1,       0, 0x0200,  1, 0x0060, 0x0200,  1,  1,  17,  vtab_at90s8535}, // avr-gcc 12.2.0, avrdude
+  {"AT90S8535",        195,  F_AVR8, {0x1E, 0x93, 0x03},       0, 0x02000, 0x001,  0,      0,       0, 0x0200,  1, 0x0060, 0x0200,  1,  1,  17,  vtab_at90s8535}, // avr-gcc 12.2.0, avrdude, boot size (manual)
   {"AT94K",            196,  F_AVR8, {0xff,   -1,   -1},       0, 0x08000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0fa0, -1, -1,   0,            NULL}, // avr-gcc 12.2.0
   {"ATA5272",          197,  F_AVR8, {0x1E, 0x93, 0x87},       0, 0x02000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  37,    vtab_ata5272}, // atdf, avr-gcc 12.2.0
   {"ATA5505",          198,  F_AVR8, {0x1E, 0x94, 0x87},       0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  20,  vtab_attiny167}, // atdf, avr-gcc 12.2.0

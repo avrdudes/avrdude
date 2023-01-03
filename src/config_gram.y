@@ -44,6 +44,7 @@ int yylex(void);
 int yyerror(char * errmsg, ...);
 int yywarning(char * errmsg, ...);
 
+static int clear_pin(int pinfunc);
 static int assign_pin(int pinfunc, TOKEN *v, int invert);
 static int assign_pin_list(int invert);
 static int which_opcode(TOKEN * opcode);
@@ -334,7 +335,6 @@ prog_def :
 prog_decl :
   K_PROGRAMMER
     { current_prog = pgm_new();
-      current_strct = COMP_PROGRAMMER;
       current_prog->config_file = cache_string(cfg_infile);
       current_prog->lineno = cfg_lineno;
     }
@@ -348,7 +348,6 @@ prog_decl :
         YYABORT;
       }
       current_prog = pgm_dup(pgm);
-      current_strct = COMP_PROGRAMMER;
       current_prog->parent_id = cache_string($3->value.string);
       current_prog->comments = NULL;
       current_prog->config_file = cache_string(cfg_infile);
@@ -426,7 +425,6 @@ part_decl :
   K_PART
     {
       current_part = avr_new_part();
-      current_strct = COMP_AVRPART;
       current_part->config_file = cache_string(cfg_infile);
       current_part->lineno = cfg_lineno;
     } |
@@ -440,7 +438,6 @@ part_decl :
       }
 
       current_part = avr_dup_part(parent_part);
-      current_strct = COMP_AVRPART;
       current_part->parent_id = cache_string($3->value.string);
       current_part->comments = NULL;
       current_part->config_file = cache_string(cfg_infile);
@@ -654,16 +651,16 @@ pin_list:
 ;
 
 prog_parm_pins:
-  K_VCC    TKN_EQUAL {pin_name = PPI_AVR_VCC;  } pin_list |
-  K_BUFF   TKN_EQUAL {pin_name = PPI_AVR_BUFF; } pin_list |
-  K_RESET  TKN_EQUAL {pin_name = PIN_AVR_RESET;} pin_number { free_token($1); } |
-  K_SCK    TKN_EQUAL {pin_name = PIN_AVR_SCK;  } pin_number { free_token($1); } |
-  K_SDO    TKN_EQUAL {pin_name = PIN_AVR_SDO;  } pin_number |
-  K_SDI    TKN_EQUAL {pin_name = PIN_AVR_SDI;  } pin_number |
-  K_ERRLED TKN_EQUAL {pin_name = PIN_LED_ERR;  } pin_number |
-  K_RDYLED TKN_EQUAL {pin_name = PIN_LED_RDY;  } pin_number |
-  K_PGMLED TKN_EQUAL {pin_name = PIN_LED_PGM;  } pin_number |
-  K_VFYLED TKN_EQUAL {pin_name = PIN_LED_VFY;  } pin_number
+  K_VCC    TKN_EQUAL {pin_name = PPI_AVR_VCC; clear_pin(pin_name);  } pin_list |
+  K_BUFF   TKN_EQUAL {pin_name = PPI_AVR_BUFF; clear_pin(pin_name); } pin_list |
+  K_RESET  TKN_EQUAL {pin_name = PIN_AVR_RESET; clear_pin(pin_name);} pin_number { free_token($1); } |
+  K_SCK    TKN_EQUAL {pin_name = PIN_AVR_SCK; clear_pin(pin_name);  } pin_number { free_token($1); } |
+  K_SDO    TKN_EQUAL {pin_name = PIN_AVR_SDO; clear_pin(pin_name);  } pin_number |
+  K_SDI    TKN_EQUAL {pin_name = PIN_AVR_SDI; clear_pin(pin_name);  } pin_number |
+  K_ERRLED TKN_EQUAL {pin_name = PIN_LED_ERR; clear_pin(pin_name);  } pin_number |
+  K_RDYLED TKN_EQUAL {pin_name = PIN_LED_RDY; clear_pin(pin_name);  } pin_number |
+  K_PGMLED TKN_EQUAL {pin_name = PIN_LED_PGM; clear_pin(pin_name);  } pin_number |
+  K_VFYLED TKN_EQUAL {pin_name = PIN_LED_VFY; clear_pin(pin_name);  } pin_number
 ;
 
 opcode :
@@ -1275,7 +1272,6 @@ part_parm :
       }
       avr_add_mem_order($2->value.string);
       current_mem = mem;
-      current_strct = COMP_AVRMEM;
       free_token($2);
     }
     mem_specs 
@@ -1549,6 +1545,17 @@ static char * vtypestr(int type)
 }
 #endif
 
+
+static int clear_pin(int pinfunc) {
+  if(pinfunc < 0 || pinfunc >= N_PINS) {
+    yyerror("pin function must be in the range [0, %d]", N_PINS-1);
+    return -1;
+  }
+
+  pin_clear_all(&(current_prog->pin[pinfunc]));
+
+  return 0;
+}
 
 static int assign_pin(int pinfunc, TOKEN *v, int invert) {
   if(pinfunc < 0 || pinfunc >= N_PINS) {
