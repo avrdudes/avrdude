@@ -124,6 +124,7 @@ Changes since version 7.0:
     - urclock/FTDI communication issues #1245
     - stk500v2.c dumps core on open #1254
     - linuxgpio cannot use pin 0 #1228
+    - Remove non-working butterfly page erase function
 
   * Pull requests:
 
@@ -274,6 +275,7 @@ Changes since version 7.0:
     - Fix partial matches for locate_mem() and do_cmd() #1256
     - Add abbreviated q command in terminal
     - Move static usbsn into serdev struct and remove serno #1258
+    - Clean up avrdude.conf.in fixing a couple of bugs #1260
 
   * Internals:
 
