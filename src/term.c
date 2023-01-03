@@ -1432,7 +1432,7 @@ int terminal_mode(PROGRAMMER *pgm, struct avrpart *p) {
   // EditLine (NetBSD, MacOS) has issues with that, so only use it when
   // running interactively.
   // EditLine uses version 4.2 (0x0402).
-  if (isatty(fileno(stdin)) || (rl_readline_version >= 0x0500))
+  if (isatty(fileno(stdin)) || rl_readline_version > 0x0500)
     return terminal_mode_interactive(pgm, p);
 #endif
   return terminal_mode_noninteractive(pgm, p);
