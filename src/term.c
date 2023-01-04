@@ -1314,7 +1314,9 @@ static int term_running;
 
 // Any character in standard input available (without sleeping)?
 static int readytoread() {
-#ifdef WIN32
+#ifdef _MSC_VER
+    return rl_input_available();
+#elif defined(WIN32)
   HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
 
   while(1) {
