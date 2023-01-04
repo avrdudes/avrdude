@@ -1047,6 +1047,12 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
       pgm->write_setup(pgm, p, m);
   }
 
+  // Ensure both bytes of a needed word in flash are TAG_ALLOCATED
+  if(avr_mem_is_flash_type(m))
+    for (int j = 0; j+1 < wsize; j += 2)
+      if((m->tags[j] ^ m->tags[j+1]) & TAG_ALLOCATED)
+        m->tags[j] |= TAG_ALLOCATED, m->tags[j+1] |= TAG_ALLOCATED;
+
   int page_tainted = 0;
   int flush_page = 0;
 
