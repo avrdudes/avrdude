@@ -318,6 +318,9 @@ static int guessBootStart(const PROGRAMMER *pgm, const AVRPART *p) {
   int bootstart = 0;
   const AVR_Cache *cp = pgm->cp_flash;
 
+  if(p->prog_modes & PM_UPDI)   // Modern AVRs put the bootloader at 0
+    return 0;
+
   if(p->n_boot_sections > 0 && p->boot_section_size > 0)
     bootstart = cp->size - (p->boot_section_size<<(p->n_boot_sections-1));
 
