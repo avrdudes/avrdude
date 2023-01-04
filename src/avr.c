@@ -843,7 +843,6 @@ int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, int 
  */
 int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int size, int auto_erase) {
   int              rc;
-  int              newpage, page_tainted, flush_page, do_write;
   int              wsize;
   unsigned int     i, lastaddr;
   unsigned char    data;
@@ -1048,9 +1047,8 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
       pgm->write_setup(pgm, p, m);
   }
 
-  newpage = 1;
-  page_tainted = 0;
-  flush_page = 0;
+  int page_tainted = 0;
+  int flush_page = 0;
 
   for (i = 0; i < (unsigned int) wsize; i++) {
     data = m->buf[i];
@@ -1069,20 +1067,14 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
      * tainted page, the write operation must also be invoked in order
      * to actually write the page buffer to memory.
      */
-    do_write = (m->tags[i] & TAG_ALLOCATED) != 0;
+    int do_write = (m->tags[i] & TAG_ALLOCATED) != 0;
     if (m->paged) {
-      if (newpage) {
-        page_tainted = do_write;
-      } else {
-        page_tainted |= do_write;
-      }
+      page_tainted |= do_write;
       if (i % m->page_size == (unsigned int) m->page_size - 1 ||
           i == (unsigned int) wsize - 1) {
         /* last byte this page */
         flush_page = page_tainted;
-        newpage = 1;
-      } else {
-        flush_page = newpage = 0;
+        page_tainted = 0;
       }
     }
 
@@ -1104,6 +1096,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
      * write
      */
     if (flush_page) {
+      flush_page = 0;
       rc = avr_write_page(pgm, p, m, i);
       if (rc) {
         msg_error(" *** page %d (addresses 0x%04x - 0x%04x) failed to write\n\n",
