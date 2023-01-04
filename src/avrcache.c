@@ -331,6 +331,17 @@ static int guessBootStart(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 
+// Page erase but without error messages if it does not work
+static int silent_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned int a) {
+  int bakverb = verbose;
+  verbose = -123;
+  int ret = pgm->page_erase? pgm->page_erase(pgm, p, m, a): -1;
+  verbose = bakverb;
+
+  return ret;
+}
+
+
 typedef struct {
   AVRMEM *mem;
   AVR_Cache *cp;
@@ -400,7 +411,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
     }
 
     // Probably NOR memory, check out page erase
-    if(pgm->page_erase && pgm->page_erase(pgm, p, mem, n) >= 0) {
+    if(silent_page_erase(pgm, p, mem, n) >= 0) {
       if(writeCachePage(cp, pgm, p, mem, n, 1) < 0)
         return LIBAVRDUDE_GENERAL_FAILURE;
       // Worked OK? Can use page erase on this memory
@@ -716,7 +727,7 @@ int avr_page_erase_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
     if(fallback_write_byte(pgm, p, mem, uaddr, 0xff) < 0)
       return LIBAVRDUDE_GENERAL_FAILURE;
   } else {
-    if(!pgm->page_erase || pgm->page_erase(pgm, p, mem, uaddr) < 0)
+    if(silent_page_erase(pgm, p, mem, uaddr) < 0)
       return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
