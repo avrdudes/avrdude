@@ -13,9 +13,8 @@
 #include "readline/readline.h"
 #include "readline/history.h"
 
-int rl_readline_version = 0x0500;
+int rl_readline_version = 0x0502;
 
-static char* rl_prompt;
 static rl_vcpfunc_t* rl_handler;
 static std::unique_ptr<std::thread> rl_thread;
 static std::mutex rl_mutex;
@@ -34,8 +33,11 @@ static void get_line_thread()
 
 static void call_handler(const char* string)
 {
-    rl_thread->join();
-    rl_thread = nullptr;
+    if (rl_thread)
+    {
+        rl_thread->join();
+        rl_thread = nullptr;
+    }
 
     if (rl_handler != nullptr)
     {
@@ -78,19 +80,13 @@ void rl_callback_read_char(void)
 
 void rl_callback_handler_install(char* prompt, rl_vcpfunc_t* handler)
 {
-    rl_prompt = _strdup(prompt);
     rl_handler = handler;
 
-    std::cout << rl_prompt;
+    std::cout << prompt;
 }
 
 void rl_callback_handler_remove(void)
 {
-    if (rl_prompt != nullptr)
-    {
-        free(rl_prompt);
-    }
-
     rl_handler = nullptr;
 }
 
