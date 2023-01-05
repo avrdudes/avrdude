@@ -242,7 +242,7 @@ if(USE_EXTERNAL_LIBS)
 
     FetchContent_Declare(libhidapi
         GIT_REPOSITORY https://github.com/avrdudes/libhidapi.git
-        GIT_TAG e3700e951f762ef92871ff4fc94586e4d1c042a6
+        GIT_TAG d1307487973c857bc158e27ecc99644b2f5e68ea
         )
 
     FetchContent_Declare(libftdi
