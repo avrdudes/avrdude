@@ -1509,14 +1509,15 @@ programmer
 ;
 
 programmer
-  id    = "ch341a";
-  desc  = "ch341a programmer";
-  type  = "ch341a";
+  id              = "ch341a";
+  desc            = "ch341a programmer";
+  type            = "ch341a";
+  prog_modes      = PM_ISP;
   connection_type = usb;
-  usbvid     = 0x1A86;
-  usbpid     = 0x5512;
-  usbvendor  = "wch.cn";
-  usbproduct = "CH341A";
+  usbvid          = 0x1A86;
+  usbpid          = 0x5512;
+  usbvendor       = "wch.cn";
+  usbproduct      = "CH341A";
 ;
 
 #------------------------------------------------------------
