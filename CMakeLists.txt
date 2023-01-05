@@ -223,6 +223,8 @@ endif()
 find_library(HAVE_LIBREADLINE NAMES ${PREFERRED_LIBREADLINE})
 if(HAVE_LIBREADLINE)
     set(LIB_LIBREADLINE ${HAVE_LIBREADLINE})
+elseif(MSVC)
+    set(HAVE_LIBREADLINE 1)
 endif()
 
 # =====================================
