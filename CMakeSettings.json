@@ -35,6 +35,42 @@
           "type": "BOOL"
         }
       ]
+    },
+    {
+      "name": "x86-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x86" ],
+      "variables": [
+        {
+          "name": "USE_EXTERNAL_LIBS",
+          "value": "true",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x86-Release",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x86" ],
+      "variables": [
+        {
+          "name": "USE_EXTERNAL_LIBS",
+          "value": "true",
+          "type": "BOOL"
+        }
+      ]
     }
   ]
 }
