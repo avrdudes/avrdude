@@ -1043,50 +1043,42 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     /* else: fall back to byte-at-a-time write, for historical reasons */
   }
 
-  if (pgm->write_setup) {
-      pgm->write_setup(pgm, p, m);
-  }
-
-  // Ensure both bytes of a needed word in flash are TAG_ALLOCATED
-  if(avr_mem_is_flash_type(m))
-    for (int j = 0; j+1 < wsize; j += 2)
-      if((m->tags[j] ^ m->tags[j+1]) & TAG_ALLOCATED)
-        m->tags[j] |= TAG_ALLOCATED, m->tags[j+1] |= TAG_ALLOCATED;
+  // ISP programming from now on; flash will look like NOR-memory
+  if (pgm->write_setup)
+    pgm->write_setup(pgm, p, m);
 
   int page_tainted = 0;
   int flush_page = 0;
+  int paged = avr_mem_is_flash_type(m) && m->paged;
 
+  if(paged)
+    wsize = (wsize+1)/2*2;      // Round up write size for word boundary
   for (i = 0; i < (unsigned int) wsize; i++) {
     data = m->buf[i];
     report_progress(i, wsize, NULL);
 
     /*
-     * Find out whether the write action must be invoked for this
-     * byte.
+     * Find out whether the write action must be invoked for this byte.
      *
-     * For non-paged memory, this only happens if TAG_ALLOCATED is
-     * set for the byte.
+     * For non-paged memory, this means the byte is set to TAG_ALLOCATED.
      *
-     * For paged memory, TAG_ALLOCATED also invokes the write
-     * operation, which is actually a page buffer fill only.  This
-     * "taints" the page, and upon encountering the last byte of each
-     * tainted page, the write operation must also be invoked in order
-     * to actually write the page buffer to memory.
+     * For paged memory, TAG_ALLOCATED also invokes loading the associated
+     * full word, low-byte first, into the device page buffer as required by
+     * ISP page programming. This "taints" the page, and upon encountering
+     * the last byte of each tainted page, the write operation must also be
+     * invoked in order to actually write the page buffer to device memory.
      */
-    int do_write = (m->tags[i] & TAG_ALLOCATED) != 0;
-    if (m->paged) {
+    int do_write = (paged? m->tags[i&~1] | m->tags[i|1]: m->tags[i]) & TAG_ALLOCATED;
+    if (paged) {
       page_tainted |= do_write;
-      if (i % m->page_size == (unsigned int) m->page_size - 1 ||
-          i == (unsigned int) wsize - 1) {
-        /* last byte this page */
+      if ((int) i % m->page_size == m->page_size - 1 || (int) i == wsize - 1) {
         flush_page = page_tainted;
         page_tainted = 0;
       }
     }
 
-    if (!do_write && !flush_page) {
+    if (!do_write && !flush_page)
       continue;
-    }
 
     if (do_write) {
       rc = avr_write_byte(pgm, p, m, i, data);
@@ -1097,11 +1089,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
       }
     }
 
-    /*
-     * check to see if it is time to flush the page with a page
-     * write
-     */
-    if (flush_page) {
+    if (flush_page) {           // Time to flush the page with a page write
       flush_page = 0;
       rc = avr_write_page(pgm, p, m, i);
       if (rc) {
@@ -1112,13 +1100,9 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
       }
     }
 
-    if (werror) {
-      /*
-       * make sure the error led stay on if there was a previous write
-       * error, otherwise it gets cleared in avr_write_byte()
-       */
+    // Ensure error led stays on lest it was cleared in avr_write_byte()
+    if (werror)
       pgm->err_led(pgm, ON);
-    }
   }
 
   return i;
