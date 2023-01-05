@@ -125,6 +125,8 @@ Changes since version 7.0:
     - stk500v2.c dumps core on open #1254
     - linuxgpio cannot use pin 0 #1228
     - Remove non-working butterfly page erase function
+    - linuxgpio and linuxspi: input files with unset bytes don't program
+      correctly #1263 #455
 
   * Pull requests:
 
@@ -276,6 +278,9 @@ Changes since version 7.0:
     - Add abbreviated q command in terminal
     - Move static usbsn into serdev struct and remove serno #1258
     - Clean up avrdude.conf.in fixing a couple of bugs #1260
+    - Add readline library replacement for MSVC #1264
+    - Ensure full words are loaded for ISP programming #1265
+    - Silence page erase in cache code #1266
 
   * Internals:
 
