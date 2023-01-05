@@ -281,6 +281,8 @@ Changes since version 7.0:
     - Add readline library replacement for MSVC #1264
     - Ensure full words are loaded for ISP programming #1265
     - Silence page erase in cache code #1266
+    - Update to latest MSVC fork of hidapi to include bug fixes
+      #1269
 
   * Internals:
 
