@@ -268,6 +268,7 @@ jobs:
             mingw-w64-${{matrix.env}}-libusb-compat-git
             mingw-w64-${{matrix.env}}-hidapi
             mingw-w64-${{matrix.env}}-libftdi
+            mingw-w64-${{matrix.env}}-libreadline
       - name: Configure
         run: >-
           cmake
