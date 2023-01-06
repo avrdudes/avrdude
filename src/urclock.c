@@ -2237,14 +2237,19 @@ static int urclock_open(PROGRAMMER *pgm, const char *port) {
   if(serial_open(port, pinfo, &pgm->fd) == -1)
     return -1;
 
-  // Clear DTR and RTS to unload the RESET capacitor
+  // This code assumes a negative-logic USB to TTL serial adapter
+  // Set RTS/DTR high to discharge the series-capacitor, if present
   serial_set_dtr_rts(&pgm->fd, 0);
-  usleep(20*1000);              // 20 ms is ample for dis/charging the cap from reset to DTR/RTS
-  // Set DTR and RTS back to high
+  usleep(50 * 1000);
+  // Pull the RTS/DTR line low to reset AVR
   serial_set_dtr_rts(&pgm->fd, 1);
+  usleep(50 * 1000);
+  // Set the RTS/DTR line back to high
+  serial_set_dtr_rts(&pgm->fd, 0);
+  usleep(50 * 1000);
 
-  if((120+ur.delay) > 0)
-    usleep((120+ur.delay)*1000); // Wait until board comes out of reset
+  if((70+ur.delay) > 0)
+    usleep((70+ur.delay)*1000); // Wait until board comes out of reset
 
   pmsg_debug("%4ld ms: enter urclock_getsync()\n", avr_mstimestamp());
   if(urclock_getsync(pgm) < 0)
@@ -2256,7 +2261,6 @@ static int urclock_open(PROGRAMMER *pgm, const char *port) {
 
 
 static void urclock_close(PROGRAMMER *pgm) {
-  serial_set_dtr_rts(&pgm->fd, 0);
   serial_close(&pgm->fd);
   pgm->fd.ifd = -1;
   if(ur.bloptiversion)          // Optiboot needs a pause between two successive avrdude calls
