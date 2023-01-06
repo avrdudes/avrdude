@@ -76,10 +76,3 @@ jobs:
           asset_path: ./asset.zip
           asset_name: avrdude-${{github.ref_name}}-windows-${{matrix.arch}}.zip
           asset_content_type: application/zip
-
-  #deploy:
-  #  needs: [asset-msvc]
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #    - name: Create package (Chocolatey)
-  #      run: echo TODO
