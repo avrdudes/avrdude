@@ -5,6 +5,21 @@ Approximate change log for AVRDUDE by version.
 (For detailed changes, see the version control system logs.)
 
 ----------------------------------------------------------------------
+Changes since version 7.1:
+
+  * Major changes compared to the previous version:
+
+  * New devices supported: none
+
+  * New programmers supported:
+
+  * Issues fixed:
+
+  * Pull requests:
+
+  * Internals:
+
+
 Changes in version 7.1:
 
   * Major changes compared to the previous version:
