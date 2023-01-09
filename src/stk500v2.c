@@ -1330,6 +1330,21 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
+  // Read or write Vtarg switch
+  if (PDATA(pgm)->vtarg_switch_get || PDATA(pgm)->vtarg_switch_set) {
+    // Read existing Vtarg switch value
+    if (jtag3_getparm(pgmcp, SCOPE_EDBG, EDBG_CTXT_CONTROL, EDBG_CONTROL_TARGET_POWER, &(PDATA(pgm)->vtarg_switch_data[0]), 1) < 0)
+      return -1;
+    if (!PDATA(pgm)->vtarg_switch_set)
+      msg_info("Vtarg switch setting read as %u. Target power is switched %s\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[0] ? "on" : "off");
+    // Write Vtarg switch value
+    else {
+      if (jtag3_setparm(pgmcp, SCOPE_EDBG, EDBG_CTXT_CONTROL, EDBG_CONTROL_TARGET_POWER, &(PDATA(pgm)->vtarg_switch_data[1]), 1) < 0)
+        return -1;
+      msg_info("Vtarg switch setting changed from %u to %u\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[1]);
+    }
+  }
+
   free(pgmcp);
 
   /*
@@ -1572,6 +1587,25 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
         // Get SUFFER value
         else
           PDATA(pgm)->suffer_get = true;
+        continue;
+      }
+    }
+
+    else if (strncmp(extended_param, "vtarg_switch", strlen("vtarg_switch")) == 0) {
+      if(pgm->extra_features & HAS_VTARG_SWITCH) {
+        // Set Vtarget switch value
+        if (strncmp(extended_param, "vtarg_switch=", strlen("vtarg_switch=")) == 0) {
+          int sscanf_success = sscanf(extended_param, "vtarg_switch=%hhu", (&PDATA(pgm)->vtarg_switch_data[1]));
+          if (sscanf_success < 1 || PDATA(pgm)->vtarg_switch_data[1] > 1) {
+            pmsg_error("invalid vtarg_switch value '%s'\n", extended_param);
+            rv = -1;
+            break;
+          }
+          PDATA(pgm)->vtarg_switch_set = true;
+        }
+        // Get Vtarget switch value
+        else
+          PDATA(pgm)->vtarg_switch_get = true;
         continue;
       }
     }

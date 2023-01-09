@@ -2110,7 +2110,7 @@ programmer
     desc                   = "Atmel AVR XplainedMini in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
-    extra_features         = HAS_SUFFER;
+    extra_features         = HAS_SUFFER | HAS_VTARG_SWITCH;
     connection_type        = usb;
     usbpid                 = 0x2145;
 ;
@@ -2124,7 +2124,7 @@ programmer
     desc                   = "Atmel AVR XplainedMini in debugWIRE mode";
     type                   = "jtagice3_dw";
     prog_modes             = PM_debugWIRE;
-    extra_features         = HAS_SUFFER;
+    extra_features         = HAS_SUFFER | HAS_VTARG_SWITCH;
     connection_type        = usb;
     usbpid                 = 0x2145;
 ;
@@ -2138,7 +2138,7 @@ programmer
     desc                   = "Atmel AVR XplainedMini in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
-    extra_features         = HAS_SUFFER;
+    extra_features         = HAS_SUFFER | HAS_VTARG_SWITCH;
     connection_type        = usb;
     usbpid                 = 0x2145;
     hvupdi_support         = 1;
