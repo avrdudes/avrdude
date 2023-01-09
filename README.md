@@ -22,7 +22,7 @@ Documentation for current and previous releases is [on Github Pages](https://avr
 
 ## Getting AVRDUDE for Windows
 
-To get AVRDUDE for Windows, install the latest version from the [Releases](http://download.savannah.gnu.org/releases/avrdude/) page.
+To get AVRDUDE for Windows, install the latest version from the [Releases](https://github.com/avrdudes/avrdude/releases) page.
 
 Alternatively, you may [build AVRDUDE](https://github.com/avrdudes/avrdude/wiki) yourself from source.
 
