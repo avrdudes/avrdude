@@ -135,12 +135,9 @@ SIGN     [+-]
   return TKN_COMPONENT;
 }
 
-PM_(SPM|TPI|ISP|PDI|UPDI|HVSP|HVPP|debugWIRE|JTAG|JTAGmkI|XMEGAJTAG|AVR32JTAG|aWire) { /* Constants */
-  yylval = new_constant(yytext);
-  return TKN_NUMBER;
-}
-
-HAS_(SUFFER|VTARG_SWITCH|VTARG_ADJ) { /* Constants */
+(?x: PM_(SPM|TPI|ISP|PDI|UPDI|HVSP|HVPP|debugWIRE|JTAG|JTAGmkI|XMEGAJTAG|AVR32JTAG|aWire) |
+     HAS_(SUFFER|VTARG_SWITCH|VTARG_ADJ)
+) {  /* Constants */
   yylval = new_constant(yytext);
   return TKN_NUMBER;
 }
@@ -175,7 +172,6 @@ eeprom           { yylval=NULL; return K_EEPROM; }
 eeprom_instr     { yylval=NULL; ccap(); return K_EEPROM_INSTR; }
 enablepageprogramming { yylval=NULL; ccap(); return K_ENABLEPAGEPROGRAMMING; }
 errled           { yylval=NULL; ccap(); return K_ERRLED; }
-extra_features   { yylval=NULL; ccap(); return K_EXTRA_FEATURES; }
 family_id        { yylval=NULL; ccap(); return K_FAMILY_ID; }
 flash            { yylval=NULL; return K_FLASH; }
 flash_instr      { yylval=NULL; ccap(); return K_FLASH_INSTR; }

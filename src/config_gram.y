@@ -94,7 +94,6 @@ static int pin_name;
 %token K_AVR910_DEVCODE
 %token K_EEPROM
 %token K_ERRLED
-%token K_EXTRA_FEATURES
 %token K_FLASH
 %token K_ID
 %token K_IO
@@ -355,11 +354,6 @@ prog_decl :
       current_prog->lineno = cfg_lineno;
       free_token($3);
     }
-  K_EXTRA_FEATURES TKN_EQUAL numexpr
-    {
-      current_prog->extra_features = $3->value.number;
-      free_token($3);
-    } |
 ;
 
 
