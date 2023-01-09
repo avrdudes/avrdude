@@ -74,7 +74,7 @@ struct pdata
   /* Flag for triggering HV UPDI */
   bool use_hvupdi;
 
-  /* Get/set flags for Xplained Mini SUFFER register */
+  /* Get/set flags for SUFFER register */
   bool suffer_get;
   bool suffer_set;
   unsigned char suffer_data[2];
@@ -1109,18 +1109,18 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       return -1;
   }
 
-  // Read or write Xplained Mini SUFFER register
+  // Read or write SUFFER register
   if (PDATA(pgm)->suffer_get || PDATA(pgm)->suffer_set) {
     // Read existing SUFFER value
     if (jtag3_getparm(pgm, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10, MEDBG_REG_SUFFER_OFFSET, &(PDATA(pgm)->suffer_data[0]), 1) < 0)
       return -1;
     if (!PDATA(pgm)->suffer_set)
-      msg_info("Xplained Mini SUFFER register value read as 0x%02x\n", PDATA(pgm)->suffer_data[0]);
+      msg_info("SUFFER register value read as 0x%02x\n", PDATA(pgm)->suffer_data[0]);
     // Write new SUFFER value
     else {
       if (jtag3_setparm(pgm, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10, MEDBG_REG_SUFFER_OFFSET, &(PDATA(pgm)->suffer_data[1]), 1) < 0)
         return -1;
-      msg_info("Xplained Mini SUFFER register value changed from 0x%02x to 0x%02x\n", PDATA(pgm)->suffer_data[0], PDATA(pgm)->suffer_data[1]);
+      msg_info("SUFFER register value changed from 0x%02x to 0x%02x\n", PDATA(pgm)->suffer_data[0], PDATA(pgm)->suffer_data[1]);
     }
   }
 
@@ -1467,25 +1467,22 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     // Bit 1 LOWP: forces running at 1 MHz when bit set to 0
     // Bit 0 FUSE: Fuses are safe-masked when bit sent to 1 Fuses are unprotected when set to 0
     else if (matches(extended_param, "suffer") ) {
-      for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
-        if (matches(ldata(ln), "xplainedmini")) {
-          // Set SUFFER value
-          if (matches(extended_param, "suffer=")) {
-            int sscanf_success = sscanf(extended_param, "suffer=%hhx", (&PDATA(pgm)->suffer_data[1]));
-            if (sscanf_success < 1 || ( ~PDATA(pgm)->suffer_data[1] & 0x78)) {
-              pmsg_error("invalid suffer value '%s'\n", extended_param);
-              rv = -1;
-              break;
-            }
-            PDATA(pgm)->suffer_set = true;
+      if(pgm->extra_features & HAS_SUFFER) {
+        // Set SUFFER value
+        if (matches(extended_param, "suffer=")) {
+          int sscanf_success = sscanf(extended_param, "suffer=%hhx", (&PDATA(pgm)->suffer_data[1]));
+          if (sscanf_success < 1 || ( ~PDATA(pgm)->suffer_data[1] & 0x78)) {
+            pmsg_error("invalid suffer value '%s'\n", extended_param);
+            rv = -1;
+            break;
           }
-          // Get SUFFER value
-          else
-            PDATA(pgm)->suffer_get = true;
-          break;
+          PDATA(pgm)->suffer_set = true;
         }
+        // Get SUFFER value
+        else
+          PDATA(pgm)->suffer_get = true;
+        continue;
       }
-      continue;
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);
