@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<!-- Created on April 26, 2022 by texi2html 5.0
+<!-- Created on January 8, 2023 by texi2html 5.0
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -92,30 +92,38 @@ code {
 
 <div class="smallexample">
 <pre class="smallexample">part
-    id               = &lt;id&gt; ;                 # quoted string
     desc             = &lt;description&gt; ;        # quoted string
-    family_id        = &lt;description&gt; ;        # quoted string
-    has_jtag         = &lt;yes/no&gt; ;             # part has JTAG i/f
-    has_debugwire    = &lt;yes/no&gt; ;             # part has debugWire i/f
-    has_pdi          = &lt;yes/no&gt; ;             # part has PDI i/f
-    has_updi         = &lt;yes/no&gt; ;             # part has UPDI i/f
-    has_tpi          = &lt;yes/no&gt; ;             # part has TPI i/f
-    devicecode       = &lt;num&gt; ;                # numeric
+    id               = &lt;id&gt; ;                 # quoted string
+    family_id        = &lt;id&gt; ;                 # quoted string, e.g., &quot;megaAVR&quot; or &quot;tinyAVR&quot;
+    prog_modes       = PM_&lt;i/f&gt; {| PM_&lt;i/f&gt;}  # interfaces, e.g., PM_SPM|PM_ISP|PM_HVPP|PM_debugWIRE
+    mcuid            = &lt;num&gt;;                 # unique id in 0..2039 for 8-bit AVRs
+    n_interrupts     = &lt;num&gt;;                 # number of interrupts, used for vector bootloaders
+    n_page_erase     = &lt;num&gt;;                 # if set, number of pages erased during SPM erase
+    n_boot_sections  = &lt;num&gt;;                 # Number of boot sections
+    boot_section_size = &lt;num&gt;;                # Size of (smallest) boot section, if any
+    hvupdi_variant   = &lt;num&gt; ;                # numeric -1 (n/a) or 0..2
+    devicecode       = &lt;num&gt; ;                # deprecated, use stk500_devcode
     stk500_devcode   = &lt;num&gt; ;                # numeric
     avr910_devcode   = &lt;num&gt; ;                # numeric
+    has_jtag         = &lt;yes/no&gt; ;             # part has JTAG i/f (deprecated, use prog_modes)
+    has_debugwire    = &lt;yes/no&gt; ;             # part has debugWire i/f (deprecated, use prog_modes)
+    has_pdi          = &lt;yes/no&gt; ;             # part has PDI i/f (deprecated, use prog_modes)
+    has_updi         = &lt;yes/no&gt; ;             # part has UPDI i/f (deprecated, use prog_modes)
+    has_tpi          = &lt;yes/no&gt; ;             # part has TPI i/f (deprecated, use prog_modes)
+    is_avr32         = &lt;yes/no&gt; ;             # AVR32 part (deprecated, use prog_modes)
+    is_at90s1200     = &lt;yes/no&gt; ;             # AT90S1200 part
     signature        = &lt;num&gt; &lt;num&gt; &lt;num&gt; ;    # signature bytes
     usbpid           = &lt;num&gt; ;                # DFU USB PID
-    reset            = dedicated | io;
-    retry_pulse      = reset | sck;
-    pgm_enable       = &lt;instruction format&gt; ;
-    chip_erase       = &lt;instruction format&gt; ;
     chip_erase_delay = &lt;num&gt; ;                # micro-seconds
+    reset            = dedicated | io ;
+    retry_pulse      = reset | sck ;
+    chip_erase_delay = &lt;num&gt; ;                # chip erase delay (us)
     # STK500 parameters (parallel programming IO lines)
     pagel            = &lt;num&gt; ;                # pin name in hex, i.e., 0xD7
     bs2              = &lt;num&gt; ;                # pin name in hex, i.e., 0xA0
     serial           = &lt;yes/no&gt; ;             # can use serial downloading
-    parallel         = &lt;yes/no/pseudo&gt;;       # can use par. programming
-    # STK500v2 parameters, to be taken from Atmel's XML files
+    parallel         = &lt;yes/no/pseudo&gt; ;      # can use par. programming
+    # STK500v2 parameters, to be taken from Atmel's ATDF files
     timeout          = &lt;num&gt; ;
     stabdelay        = &lt;num&gt; ;
     cmdexedelay      = &lt;num&gt; ;
@@ -126,52 +134,63 @@ code {
     predelay         = &lt;num&gt; ;
     postdelay        = &lt;num&gt; ;
     pollmethod       = &lt;num&gt; ;
-    mode             = &lt;num&gt; ;
-    delay            = &lt;num&gt; ;
-    blocksize        = &lt;num&gt; ;
-    readsize         = &lt;num&gt; ;
     hvspcmdexedelay  = &lt;num&gt; ;
-    # STK500v2 HV programming parameters, from XML
-    pp_controlstack  = &lt;num&gt;, &lt;num&gt;, ...;     # PP only
-    hvsp_controlstack = &lt;num&gt;, &lt;num&gt;, ...;    # HVSP only
-    hventerstabdelay = &lt;num&gt;;
-    progmodedelay    = &lt;num&gt;;                 # PP only
-    latchcycles      = &lt;num&gt;;
-    togglevtg        = &lt;num&gt;;
-    poweroffdelay    = &lt;num&gt;;
-    resetdelayms     = &lt;num&gt;;
-    resetdelayus     = &lt;num&gt;;
-    hvleavestabdelay = &lt;num&gt;;
-    resetdelay       = &lt;num&gt;;
-    synchcycles      = &lt;num&gt;;                 # HVSP only
-    chiperasepulsewidth = &lt;num&gt;;              # PP only
-    chiperasepolltimeout = &lt;num&gt;;
-    chiperasetime    = &lt;num&gt;;                 # HVSP only
-    programfusepulsewidth = &lt;num&gt;;            # PP only
-    programfusepolltimeout = &lt;num&gt;;
-    programlockpulsewidth = &lt;num&gt;;            # PP only
-    programlockpolltimeout = &lt;num&gt;;
-    # JTAG ICE mkII parameters, also from XML files
+    # STK500v2 HV programming parameters, from ATDFs
+    pp_controlstack  = &lt;num&gt;, &lt;num&gt;, ... ;    # PP only
+    hvsp_controlstack = &lt;num&gt;, &lt;num&gt;, ... ;   # HVSP only
+    flash_instr      = &lt;num&gt;, &lt;num&gt;, &lt;num&gt; ;
+    eeprom_instr     = &lt;num&gt;, &lt;num&gt;, ... ;
+    hventerstabdelay = &lt;num&gt; ;
+    progmodedelay    = &lt;num&gt; ;                # PP only
+    latchcycles      = &lt;num&gt; ;
+    togglevtg        = &lt;num&gt; ;
+    poweroffdelay    = &lt;num&gt; ;
+    resetdelayms     = &lt;num&gt; ;
+    resetdelayus     = &lt;num&gt; ;
+    hvleavestabdelay = &lt;num&gt; ;
+    resetdelay       = &lt;num&gt; ;
+    synchcycles      = &lt;num&gt; ;                # HVSP only
+    chiperasepulsewidth = &lt;num&gt; ;             # PP only
+    chiperasepolltimeout = &lt;num&gt; ;
+    chiperasetime    = &lt;num&gt; ;                # HVSP only
+    programfusepulsewidth = &lt;num&gt; ;           # PP only
+    programfusepolltimeout = &lt;num&gt; ;
+    programlockpulsewidth = &lt;num&gt; ;           # PP only
+    programlockpolltimeout = &lt;num&gt; ;
+    # debugWIRE and/or JTAG ICE mkII parameters, also from ATDF files
     allowfullpagebitstream = &lt;yes/no&gt; ;
     enablepageprogramming = &lt;yes/no&gt; ;
-    idr              = &lt;num&gt; ;                # IO addr of IDR (OCD) reg.
-    rampz            = &lt;num&gt; ;                # IO addr of RAMPZ reg.
-    spmcr            = &lt;num&gt; ;                # mem addr of SPMC[S]R reg.
-    eecr             = &lt;num&gt; ;                # mem addr of EECR reg.
-                                              # (only when != 0x3c)
-    is_at90s1200     = &lt;yes/no&gt; ;             # AT90S1200 part
-    is_avr32         = &lt;yes/no&gt; ;             # AVR32 part
+    idr              = &lt;num&gt; ;                # IO addr of IDR (OCD) reg
+    rampz            = &lt;num&gt; ;                # IO addr of RAMPZ reg
+    spmcr            = &lt;num&gt; ;                # mem addr of SPMC[S]R reg
+    eecr             = &lt;num&gt; ;                # mem addr of EECR reg only when != 0x3f
+    eind             = &lt;num&gt; ;                # mem addr of EIND reg
+    mcu_base         = &lt;num&gt; ;
+    nvm_base         = &lt;num&gt; ;
+    ocd_base         = &lt;num&gt; ;
+    ocdrev           = &lt;num&gt; ;
+    pgm_enable       = &lt;instruction format&gt; ;
+    chip_erase       = &lt;instruction format&gt; ;
+    # parameters for bootloaders
+    autobaud_sync    = &lt;num&gt; ;                # autobaud detection byte, default 0x30
 
     memory &lt;memtype&gt;
-        paged           = &lt;yes/no&gt; ;          # yes / no
+        paged           = &lt;yes/no&gt; ;          # yes/no (flash only, do not use for EEPROM)
+        offset          = &lt;num&gt; ;             # memory offset
         size            = &lt;num&gt; ;             # bytes
         page_size       = &lt;num&gt; ;             # bytes
         num_pages       = &lt;num&gt; ;             # numeric
+        n_word_writes   = &lt;num&gt; ;             # TPI only: if set, number of words to write
         min_write_delay = &lt;num&gt; ;             # micro-seconds
         max_write_delay = &lt;num&gt; ;             # micro-seconds
-        readback_p1     = &lt;num&gt; ;             # byte value
-        readback_p2     = &lt;num&gt; ;             # byte value
-        pwroff_after_write = &lt;yes/no&gt; ;       # yes / no
+        readback        = &lt;num&gt; &lt;num&gt; ;       # pair of byte values
+        readback_p1     = &lt;num&gt; ;             # byte value (first component)
+        readback_p2     = &lt;num&gt; ;             # byte value (second component)
+        pwroff_after_write = &lt;yes/no&gt; ;       # yes/no
+        mode            = &lt;num&gt; ;             # STK500 v2 file parameter from ATDF files
+        delay           = &lt;num&gt; ;             #   &quot;
+        blocksize       = &lt;num&gt; ;             #   &quot;
+        readsize        = &lt;num&gt; ;             #   &quot;
         read            = &lt;instruction format&gt; ;
         write           = &lt;instruction format&gt; ;
         read_lo         = &lt;instruction format&gt; ;
@@ -181,10 +200,19 @@ code {
         loadpage_lo     = &lt;instruction format&gt; ;
         loadpage_hi     = &lt;instruction format&gt; ;
         writepage       = &lt;instruction format&gt; ;
-      ;
-  ;
+    ;
+;
 </pre></div>
 
+<p>If any of the above parameters are not specified, the default value of 0
+is used for numerics (except for <code>mcuid</code>, <code>hvupdi_variant</code> and
+<code>ocdrev</code>, where the default value is -1, and for <code>autobaud_sync</code>
+which defaults to 0x30) or the empty string <code>&quot;&quot;</code> for string values.
+If a required parameter is left empty, AVRDUDE will complain. Almost all
+occurrences of numbers (with the exception of pin numbers and where they
+are separated by space, e.g., in signature and readback) can also be given
+as simple expressions involving arithemtic and bitwise operators.
+</p>
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top"><a href="avrdude_13.html#Parent-Part">4.3.1 Parent Part</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
@@ -210,7 +238,7 @@ code {
 </tr></table>
 <p>
  <font size="-1">
-  This document was generated on <i>April 26, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>January 8, 2023</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
  </font>
  <br>
 

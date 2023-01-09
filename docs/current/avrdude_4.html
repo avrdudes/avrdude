@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<!-- Created on April 26, 2022 by texi2html 5.0
+<!-- Created on January 8, 2023 by texi2html 5.0
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -92,10 +92,15 @@ code {
 <a name="index-_002dx-AVR-Dragon"></a>
 <dl compact="compact">
 <dt><code>JTAG ICE mkII/3</code></dt>
+<dt><code>Atmel-ICE</code></dt>
+<dt><code>PICkit 4</code></dt>
+<dt><code>MPLAB SNAP</code></dt>
+<dt><code>Power Debugger</code></dt>
 <dt><code>AVR Dragon</code></dt>
 <dd>
-<p>When using the JTAG ICE mkII/3 or AVR Dragon in JTAG mode, the
-following extended parameter is accepted:
+<p>When using the JTAG ICE mkII, JTAGICE3, Atmel-ICE, PICkit 4, MPLAB SNAP,
+Power Debugger or AVR Dragon in JTAG mode, the following extended parameter
+is accepted:
 </p><dl compact="compact">
 <dt><code>&lsquo;<samp>jtagchain=UB,UA,BB,BA</samp>&rsquo;</code></dt>
 <dd><p>Setup the JTAG scan chain for <var>UB</var> units before, <var>UA</var> units
@@ -103,6 +108,15 @@ after, <var>BB</var> bits before, and <var>BA</var> bits after the target AVR,
 respectively.
 Each AVR unit within the chain shifts by 4 bits.
 Other JTAG units might require a different bit shift count.
+</p></dd>
+</dl>
+
+<p>The PICkit 4 and the Power Debugger also supports high-voltage UPDI programming.
+This is used to enable a UPDI pin that has previously been set to RESET or
+GPIO mode. High-voltage UPDI can be utilized by using an extended parameter:
+</p><dl compact="compact">
+<dt><code>&lsquo;<samp>hvupdi</samp>&rsquo;</code></dt>
+<dd><p>Enable high-voltage UPDI initialization for targets that supports this.
 </p></dd>
 </dl>
 
@@ -141,6 +155,143 @@ programmer creates errors during initial sequence.
 </p></dd>
 </dl>
 
+<a name="index-_002dx-Urclock"></a>
+</dd>
+<dt><code>Urclock</code></dt>
+<dd>
+<p>The urclock programmer type accepts the following extended parameters:
+</p><dl compact="compact">
+<dt><code>&lsquo;<samp>showall</samp>&rsquo;</code></dt>
+<dd><p>Show all info for the connected part, then exit. The <code>-xshow...</code> options
+below can be used to assemble a bespoke response consisting of a subset
+(or only one item) of all available relevant information about the
+connected part and bootloader.
+</p></dd>
+<dt><code>&lsquo;<samp>showid</samp>&rsquo;</code></dt>
+<dd><p>Show a unique Urclock ID stored in either flash or EEPROM of the MCU, then exit.
+</p></dd>
+<dt><code>&lsquo;<samp>id=&lt;E|F&gt;.&lt;addr&gt;.&lt;len&gt;</samp>&rsquo;</code></dt>
+<dd><p>Historically, the Urclock ID was a six-byte unique little-endian number
+stored in Urclock boards at EEPROM address 257. The location of this
+number can be set by the <code>-xid=&lt;E|F&gt;.&lt;addr&gt;.&lt;len&gt;</code> extended parameter. <code>E</code>
+stands for EEPROM and <code>F</code> stands for flash. A negative address addr counts
+from the end of EEPROM and flash, respectively. The length len of the
+Urclock ID can be between 1 and 8 bytes.
+</p></dd>
+<dt><code>&lsquo;<samp>showdate</samp>&rsquo;</code></dt>
+<dd><p>Show the last-modified date of the input file for the flash application,
+then exit. If the input file was stdin, the date will be that of the
+programming. Date and filename are part of the metadata that the urclock
+programmer stores by default in high flash just under the bootloader; see also
+<code>-xnometadata</code>.
+</p></dd>
+<dt><code>&lsquo;<samp>showfilename</samp>&rsquo;</code></dt>
+<dd><p>Show the input filename (or title) of the last flash writing session, then exit.
+</p></dd>
+<dt><code>&lsquo;<samp>title=&lt;string&gt;</samp>&rsquo;</code></dt>
+<dd><p>When set, &lt;string&gt; will be used in lieu of the input filename. The maximum
+string length for the title/filename field is 254 bytes including
+terminating nul.
+</p></dd>
+<dt><code>&lsquo;<samp>showapp</samp>&rsquo;</code></dt>
+<dd><p>Show the size of the programmed application, then exit.
+</p></dd>
+<dt><code>&lsquo;<samp>showstore</samp>&rsquo;</code></dt>
+<dd><p>Show the size of the unused flash between the application and metadata, then exit.
+</p></dd>
+<dt><code>&lsquo;<samp>showmeta</samp>&rsquo;</code></dt>
+<dd><p>Show the size of the metadata just below the bootloader, then exit.
+</p></dd>
+<dt><code>&lsquo;<samp>showboot</samp>&rsquo;</code></dt>
+<dd><p>Show the size of the bootloader, then exit.
+</p></dd>
+<dt><code>&lsquo;<samp>showversion</samp>&rsquo;</code></dt>
+<dd><p>Show bootloader version and capabilities, then exit.
+</p></dd>
+<dt><code>&lsquo;<samp>showvector</samp>&rsquo;</code></dt>
+<dd><p>Show the vector number and name of the interrupt table vector used by the
+bootloader for starting the application, then exit. For hardware-supported
+bootloaders this will be vector 0 (Reset), and for vector bootloaders this
+will be any other vector number of the interrupt vector table or the slot
+just behind the vector table with the name <code>VBL_ADDITIONAL_VECTOR</code>.
+</p></dd>
+<dt><code>&lsquo;<samp>showpart</samp>&rsquo;</code></dt>
+<dd><p>Show the part for which the bootloader was compiled, then exit.
+</p></dd>
+<dt><code>&lsquo;<samp>bootsize=&lt;size&gt;</samp>&rsquo;</code></dt>
+<dd><p>Manual override for bootloader size. Urboot bootloaders put the number of
+used bootloader pages into a table at the top of the bootloader section,
+ie, typically top of flash, so the urclock programmer can look up the
+bootloader size itself. In backward-compatibility mode, when programming
+via other bootloaders, this option can be used to tell the programmer the
+size, and therefore the location, of the bootloader.
+</p></dd>
+<dt><code>&lsquo;<samp>vectornum=&lt;arg&gt;</samp>&rsquo;</code></dt>
+<dd><p>Manual override for vector number. Urboot bootloaders put the vector
+number used by a vector bootloader into a table at the top of flash, so
+this option is normally not needed for urboot bootloaders. However, it is
+useful in backward-compatibility mode (or when the urboot bootloader does
+not offer flash read). Specifying a vector number in these circumstances
+implies a vector bootloader whilst the default assumption would be a
+hardware-supported bootloader.
+</p></dd>
+<dt><code>&lsquo;<samp>eepromrw</samp>&rsquo;</code></dt>
+<dd><p>Manual override for asserting EEPROM read/write capability. Not normally
+needed for urboot bootloaders, but useful for in backward-compatibility
+mode if the bootloader offers EEPROM read/write.
+</p></dd>
+<dt><code>&lsquo;<samp>emulate_ce</samp>&rsquo;</code></dt>
+<dd><p>If an urboot bootloader does not offer a chip erase command it will tell
+the urclock programmer so during handshake. In this case the urclock
+programmer emulates a chip erase, if warranted by user command line
+options, by filling the remainder of unused flash below the bootloader
+with 0xff. If this option is specified, the urclock programmer will assume
+that the bootloader cannot erase the chip itself. The option is useful
+for backwards-compatible bootloaders that do not implement chip erase.
+</p></dd>
+<dt><code>&lsquo;<samp>restore</samp>&rsquo;</code></dt>
+<dd><p>Upload unchanged flash input files and trim below the bootloader if
+needed. This is most useful when one has a backup of the full flash and
+wants to play that back onto the device. No metadata are written in this
+case and no vector patching happens either if it is a vector bootloader.
+However, for vector bootloaders, even under the option <code>-xrestore</code> an
+input file will not be uploaded for which the reset vector does not point
+to the vector bootloader. This is to avoid writing an input file to the
+device that would render the vector bootloader not functional as it would
+not be reached after reset.
+</p></dd>
+<dt><code>&lsquo;<samp>initstore</samp>&rsquo;</code></dt>
+<dd><p>On writing to flash fill the store space between the flash application and
+the metadata section with 0xff.
+</p></dd>
+<dt><code>&lsquo;<samp>nofilename</samp>&rsquo;</code></dt>
+<dd><p>On writing to flash do not store the application input filename (nor a title).
+</p></dd>
+<dt><code>&lsquo;<samp>nodate</samp>&rsquo;</code></dt>
+<dd><p>On writing to flash do not store the application input filename (nor a
+title) and no date either.
+</p></dd>
+<dt><code>&lsquo;<samp>nometadata</samp>&rsquo;</code></dt>
+<dd><p>On writing to flash do not store any metadata. The full flash below the
+bootloader is available for the application. In particular, no data store
+frame is programmed.
+</p></dd>
+<dt><code>&lsquo;<samp>delay=&lt;n&gt;</samp>&rsquo;</code></dt>
+<dd><p>Add a &lt;n&gt; ms delay after reset. This can be useful if a board takes a
+particularly long time to exit from external reset. &lt;n&gt; can be negative,
+in which case the default 120 ms delay after issuing reset will be
+shortened accordingly.
+</p></dd>
+<dt><code>&lsquo;<samp>strict</samp>&rsquo;</code></dt>
+<dd><p>Urclock has a faster, but slightly different strategy than -c arduino to
+synchronise with the bootloader; some stk500v1 bootloaders cannot cope
+with this, and they need the <code>-xstrict</code> option.
+</p></dd>
+<dt><code>&lsquo;<samp>help</samp>&rsquo;</code></dt>
+<dd><p>Show this help menu and exit
+</p></dd>
+</dl>
+
 <a name="index-_002dx-Buspirate"></a>
 </dd>
 <dt><code>BusPirate</code></dt>
@@ -150,7 +301,7 @@ programmer creates errors during initial sequence.
 <dt><code>&lsquo;<samp>reset=cs,aux,aux2</samp>&rsquo;</code></dt>
 <dd><p>The default setup assumes the BusPirate&rsquo;s CS output pin connected to
 the RESET pin on AVR side. It is however possible to have multiple AVRs
-connected to the same BP with MISO, MOSI and SCK lines common for all of them.
+connected to the same BP with SDI, SDO and SCK lines common for all of them.
 In such a case one AVR should have its RESET connected to BusPirate&rsquo;s
 <em>CS</em>
 pin, second AVR&rsquo;s RESET connected to BusPirate&rsquo;s
@@ -293,7 +444,7 @@ No toggling of DTR/RTS is performed if <var>snooze</var> &gt; 0.
 <tr><td width="5%"><code>RST</code></td><td width="30%"><code>VPP/MCLR (1) </code></td></tr>
 <tr><td width="5%"><code>VDD</code></td><td width="30%"><code>VDD Target (2) -- possibly optional if AVR self powered </code></td></tr>
 <tr><td width="5%"><code>GND</code></td><td width="30%"><code>GND (3) </code></td></tr>
-<tr><td width="5%"><code>MISO</code></td><td width="30%"><code>PGD (4) </code></td></tr>
+<tr><td width="5%"><code>SDI</code></td><td width="30%"><code>PGD (4) </code></td></tr>
 <tr><td width="5%"><code>SCLK</code></td><td width="30%"><code>PDC (5) </code></td></tr>
 <tr><td width="5%"><code>OSI</code></td><td width="30%"><code>AUX (6) </code></td></tr>
 </table>
@@ -355,6 +506,18 @@ specific.
 </p></dd>
 </dl>
 
+<a name="index-_002dx-linuxspi"></a>
+</dd>
+<dt><code>linuxspi</code></dt>
+<dd><p>Extended parameter:
+</p><dl compact="compact">
+<dt><code>&lsquo;<samp>disable_no_cs</samp>&rsquo;</code></dt>
+<dd><p>Ensures the programmer does not use the SPI_NO_CS bit for the SPI
+driver. This parameter is useful for kernels that do not support
+the CS line being managed outside the application.
+</p></dd>
+</dl>
+
 </dd>
 </dl>
 
@@ -377,7 +540,7 @@ specific.
 </tr></table>
 <p>
  <font size="-1">
-  This document was generated on <i>April 26, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>January 8, 2023</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
  </font>
  <br>
 

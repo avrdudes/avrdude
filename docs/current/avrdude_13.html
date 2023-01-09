@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<!-- Created on April 26, 2022 by texi2html 5.0
+<!-- Created on January 8, 2023 by texi2html 5.0
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -90,11 +90,18 @@ code {
 <a name="Parent-Part-1"></a>
 <h3 class="subsection">4.3.1 Parent Part</h3>
 
-<p>Parts can also inherit parameters from previously defined parts
-using the following syntax. In this case specified integer and 
-string values override parameter values from the parent part. New 
-memory definitions are added to the definitions inherited from the 
-parent.
+<p>Parts can also inherit parameters from previously defined parts using
+the following syntax. In this case specified integer and  string values
+override parameter values from the parent part. New  memory definitions
+are added to the definitions inherited from the  parent. If, however, a
+new memory definition refers to an existing one of the same name for
+that part then, from v7.1, the existing memory definition is extended,
+and components overwritten with new values. Assigning <code>NULL</code>
+removes an inherited SPI instruction format, memory definition, control
+stack, eeprom or flash instruction, e.g., as in <code>memory &quot;efuse&quot; =
+NULL;</code>
+</p>
+<p>Example format for part inheritance:
 </p>
 <div class="smallexample">
 <pre class="smallexample">   part parent &lt;id&gt;                              # quoted string
@@ -106,7 +113,7 @@ parent.
 <hr>
 <p>
  <font size="-1">
-  This document was generated on <i>April 26, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>January 8, 2023</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
  </font>
  <br>
 

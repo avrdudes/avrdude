@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<!-- Created on April 26, 2022 by texi2html 5.0
+<!-- Created on January 8, 2023 by texi2html 5.0
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -72,7 +72,7 @@ code {
 
 <h1>AVRDUDE</h1>
 <h3 align="right">A program for download/uploading AVR microcontroller flash and eeprom.</h3>
-<h3 align="right">For AVRDUDE, Version 6.99-20211218, 26 April 2022.</h3>
+<h3 align="right">For AVRDUDE, Version 7.1, 3 January 2023.</h3>
 <strong>by Brian S. Dean</strong><br>
 
 
@@ -182,9 +182,10 @@ emulated on top of USB is likely to not work at all, or to work
 abysmally slow.
 </p>
 <p>If you happen to have a Linux system with at least 4 hardware GPIOs 
-available (like almost all embedded Linux boards) you can do without 
-any additional hardware - just connect them to the MOSI, MISO, RESET 
-and SCK pins on the AVR and use the linuxgpio programmer type. It bitbangs
+available (like almost all embedded Linux boards) you can do without any
+additional hardware - just connect them to the SDO, SDI, RESET and SCK
+pins of the AVR&rsquo;s SPI interface and use the linuxgpio programmer
+type. Older boards might use the labels MOSI for SDO and MISO for SDI. It bitbangs
 the lines using the Linux sysfs GPIO interface. Of course, care should
 be taken about voltage level compatibility. Also, although not strictly 
 required, it is strongly advisable to protect the GPIO pins from 
@@ -199,7 +200,7 @@ programmer type can be used to directly connect to and program a chip
 using the built in interfaces on the computer. The requirements to use
 this type are that an SPI interface is exposed along with one GPIO
 pin. The GPIO serves as the reset output since the Linux SPI drivers
-do not hold slave select down when a transfer is not occuring and thus
+do not hold chip select down when a transfer is not occuring and thus
 it cannot be used as the reset pin. A readily available level
 translator should be used between the SPI bus/reset GPIO and the chip
 to avoid potentially damaging the computer&rsquo;s SPI controller in the
@@ -214,7 +215,7 @@ the level translator to protect the hardware from damage.
 <p>On a Raspberry Pi, header J8 provides access to the SPI and GPIO
 lines.
 </p>
-<p>Typically, pins 19, 21, and 23 are SPI MOSI, MISO, and SCK, while
+<p>Typically, pins 19, 21, and 23 are SPI SDO, SDI, and SCK, while
 pins 24 and 26 would serve as CE outputs. So, close to these pins
 is pin 22 as GPIO25 which can be used as /RESET, and pin 25 can
 be used as GND.
@@ -223,10 +224,10 @@ be used as GND.
 </p>
 <table>
 <tr><td width="15%"><code>J8 pin</code></td><td width="15%"><code>ISP pin</code></td><td width="30%"><code>Name</code></td></tr>
-<tr><td width="15%"><code>21</code></td><td width="15%"><code>1</code></td><td width="30%"><code>MISO</code></td></tr>
+<tr><td width="15%"><code>21</code></td><td width="15%"><code>1</code></td><td width="30%"><code>SDI</code></td></tr>
 <tr><td width="15%"><code>-</code></td><td width="15%"><code>2</code></td><td width="30%"><code>Vcc - leave open</code></td></tr>
 <tr><td width="15%"><code>23</code></td><td width="15%"><code>3</code></td><td width="30%"><code>SCK</code></td></tr>
-<tr><td width="15%"><code>19</code></td><td width="15%"><code>4</code></td><td width="30%"><code>MOSI</code></td></tr>
+<tr><td width="15%"><code>19</code></td><td width="15%"><code>4</code></td><td width="30%"><code>SDO</code></td></tr>
 <tr><td width="15%"><code>22</code></td><td width="15%"><code>5</code></td><td width="30%"><code>/RESET</code></td></tr>
 <tr><td width="15%"><code>25</code></td><td width="15%"><code>6</code></td><td width="30%"><code>GND</code></td></tr>
 </table>
@@ -242,7 +243,7 @@ programmers communicate through the USB, using <code>libusb</code> as a
 platform abstraction layer.
 The avrftdi adds support for the FT2232C/D, FT2232H, and FT4232H devices. These all use 
 the MPSSE mode, which has a specific pin mapping. Bit 1 (the lsb of the byte in the config
-file) is SCK. Bit 2 is MOSI, and Bit 3 is MISO. Bit 4 usually reset. The 2232C/D parts
+file) is SCK. Bit 2 is SDO, and Bit 3 is SDI. Bit 4 usually reset. The 2232C/D parts
 are only supported on interface A, but the H parts can be either A or B (specified by the
 usbdev config parameter).
 The STK500, STK600, JTAG ICE, and avr910 contain on-board logic to control the programming of the target
@@ -269,7 +270,8 @@ See below for the limitations of debugWire.
 For ATxmega devices, the JTAG ICE mkII/3 is supported in PDI mode, provided it
 has a revision 1 hardware and firmware version of at least 5.37 (decimal).
 </p>
-<p>The Atmel-ICE (ARM/AVR) is supported (JTAG, PDI for Xmega, debugWIRE, ISP modes).
+<p>The Atmel-ICE (ARM/AVR) is supported (JTAG, PDI for Xmega, debugWIRE, ISP,
+UPDI).
 </p>
 <p>Atmel&rsquo;s XplainedPro boards, using EDBG protocol (CMSIS-DAP compliant), are
 supported by the &ldquo;jtag3&rdquo; programmer type.
@@ -297,13 +299,26 @@ the -D option will likely be required in this case, because the
 bootloader will rewrite the program memory, but no true chip erase can
 be performed.
 </p>
-<p>The Arduino (which is very similar to the STK500 1.x) is supported via
-its own programmer type specification &ldquo;arduino&rdquo;.  This programmer works for
+<p>Serial bootloaders that run a skeleton of the STK500 1.x protocol are supported via
+their own programmer type specification &ldquo;arduino&rdquo;.  This programmer works for
 the Arduino Uno Rev3 or any AVR that runs the Optiboot bootloader.
 The number of connection retry attempts can be specified as an
 extended parameter. See the section on
 <em>extended parameters</em>
 below for details.
+</p>
+<p>Urprotocol is a leaner version of the STK500 1.x protocol that is designed
+to be backwards compatible with STK500 v1.x; it allows bootloaders to be
+much smaller, e.g., as implemented in the urboot project
+<a href="https://github.com/stefanrueger/urboot">https://github.com/stefanrueger/urboot</a>. The programmer type &ldquo;urclock&rdquo;
+caters for these urboot bootloaders. Owing to its backward compatibility,
+bootloaders that can be served by the arduino programmer can normally also
+be served by the urclock programmer. This may require specifying the size
+of (to AVRDUDE) <em>unknown</em> bootloaders in bytes using the <code>-x
+bootsize=&lt;n&gt;</code> option, which is necessary for the urclock programmer to
+enable it to protect the bootloader from being overwritten. If an unknown
+bootloader has EEPROM read/write capability then the option <code>-x eepromrw</code>
+informs <code>avrdude -c urclock</code> of that capability.
 </p>
 <p>The BusPirate is a versatile tool that can also be used as an AVR programmer.
 A single BusPirate can be connected to up to 3 independent AVRs. See
@@ -320,7 +335,7 @@ an ATmega8 (or ATmega88), or ATtiny2313, respectively.
 (AT90USB* and ATmega*U* devices), as well as version 2 (Xmega devices).
 See below for some hints about FLIP version 1 protocol behaviour.
 </p>
-<p>The MPLAB(R) PICkit 4 and MPLAB(R) SNAP are supported in ISP, PDI and UPDI mode.
+<p>The MPLAB(R) PICkit 4 and MPLAB(R) SNAP are supported in JTAG, TPI, ISP, PDI and UPDI mode.
 The Curiosity Nano board is supported in UPDI mode. It is dubbed &ldquo;PICkit on
 Board&rdquo;, thus the name <code>pkobn_updi</code>.
 </p>
@@ -340,13 +355,13 @@ via a serial link (<a href="https://github.com/ElTangas/jtag2updi">https://githu
 </p>
 <p>The Micronucleus bootloader is supported for both protocol version V1
 and V2. As the bootloader does not support reading from flash memory,
-use the <code>-V</code> option to prevent AVRDUDE from verifing the flash memory.
+use the <code>-V</code> option to prevent AVRDUDE from verifying the flash memory.
 See the section on <em>extended parameters</em>
 below for Micronucleus specific options.
 </p>
 <p>The Teensy bootloader is supported for all AVR boards.
 As the bootloader does not support reading from flash memory,
-use the <code>-V</code> option to prevent AVRDUDE from verifing the flash memory.
+use the <code>-V</code> option to prevent AVRDUDE from verifying the flash memory.
 See the section on <em>extended parameters</em>
 below for Teensy specific options.
 </p>
@@ -373,7 +388,7 @@ below for Teensy specific options.
 </tr></table>
 <p>
  <font size="-1">
-  This document was generated on <i>April 26, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>January 8, 2023</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
  </font>
  <br>
 

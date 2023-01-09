@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<!-- Created on April 26, 2022 by texi2html 5.0
+<!-- Created on January 8, 2023 by texi2html 5.0
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -102,332 +102,337 @@ following options are recognized:
 </p>
 <dl compact="compact">
 <dt><code>-p <var>partno</var></code></dt>
-<dd><p>This is the only mandatory option and it tells AVRDUDE what type of part
-(MCU) that is connected to the programmer.  The <var>partno</var> parameter
-is the part&rsquo;s id listed in the configuration file.  Specify -p ? to list
-all parts in the configuration file.  If a part is unknown
-to AVRDUDE, it means that there is no config file entry for that part,
-but it can be added to the configuration file if you have the Atmel
-datasheet so that you can enter the programming specifications.
-Currently, the following MCU types are understood:
+<dd><p>This option tells AVRDUDE what part (MCU) is connected to the programmer.
+The <var>partno</var> parameter is the part&rsquo;s id listed in the configuration file.
+For currently supported MCU types use ? as partno, which will print a list of
+partno ids and official part names on the terminal. Both can be used with the
+-p option.  If a part is unknown to AVRDUDE, it means that there is no config
+file entry for that part, but it can be added to the configuration file if
+you have the Atmel datasheet so that you can enter the programming
+specifications. If <code>-p ?</code> is specified with a specific programmer, see
+<code>-c</code> below, then only those parts are output that the programmer expects
+to be able to handle, together with the programming interface(s) that can be
+used in that combination. In reality there can be deviations from this list,
+particularly if programming is directly via a bootloader. Currently, the
+following MCU types are understood:
 </p>
 <a name="index-Device-support"></a>
 
 <table>
-<tr><td width="15%"><code>uc3a0512</code></td><td width="30%">AT32UC3A0512</td></tr>
-<tr><td width="15%"><code>c128</code></td><td width="30%">AT90CAN128</td></tr>
-<tr><td width="15%"><code>c32</code></td><td width="30%">AT90CAN32</td></tr>
-<tr><td width="15%"><code>c64</code></td><td width="30%">AT90CAN64</td></tr>
-<tr><td width="15%"><code>pwm2</code></td><td width="30%">AT90PWM2</td></tr>
-<tr><td width="15%"><code>pwm216</code></td><td width="30%">AT90PWM216</td></tr>
-<tr><td width="15%"><code>pwm2b</code></td><td width="30%">AT90PWM2B</td></tr>
-<tr><td width="15%"><code>pwm3</code></td><td width="30%">AT90PWM3</td></tr>
-<tr><td width="15%"><code>pwm316</code></td><td width="30%">AT90PWM316</td></tr>
-<tr><td width="15%"><code>pwm3b</code></td><td width="30%">AT90PWM3B</td></tr>
-<tr><td width="15%"><code>1200</code></td><td width="30%">AT90S1200 (****)</td></tr>
-<tr><td width="15%"><code>2313</code></td><td width="30%">AT90S2313</td></tr>
-<tr><td width="15%"><code>2333</code></td><td width="30%">AT90S2333</td></tr>
-<tr><td width="15%"><code>2343</code></td><td width="30%">AT90S2343 (*)</td></tr>
-<tr><td width="15%"><code>4414</code></td><td width="30%">AT90S4414</td></tr>
-<tr><td width="15%"><code>4433</code></td><td width="30%">AT90S4433</td></tr>
-<tr><td width="15%"><code>4434</code></td><td width="30%">AT90S4434</td></tr>
-<tr><td width="15%"><code>8515</code></td><td width="30%">AT90S8515</td></tr>
-<tr><td width="15%"><code>8535</code></td><td width="30%">AT90S8535</td></tr>
-<tr><td width="15%"><code>usb1286</code></td><td width="30%">AT90USB1286</td></tr>
-<tr><td width="15%"><code>usb1287</code></td><td width="30%">AT90USB1287</td></tr>
-<tr><td width="15%"><code>usb162</code></td><td width="30%">AT90USB162</td></tr>
-<tr><td width="15%"><code>usb646</code></td><td width="30%">AT90USB646</td></tr>
-<tr><td width="15%"><code>usb647</code></td><td width="30%">AT90USB647</td></tr>
-<tr><td width="15%"><code>usb82</code></td><td width="30%">AT90USB82</td></tr>
-<tr><td width="15%"><code>m103</code></td><td width="30%">ATmega103</td></tr>
-<tr><td width="15%"><code>m128</code></td><td width="30%">ATmega128</td></tr>
-<tr><td width="15%"><code>m1280</code></td><td width="30%">ATmega1280</td></tr>
-<tr><td width="15%"><code>m1281</code></td><td width="30%">ATmega1281</td></tr>
-<tr><td width="15%"><code>m1284</code></td><td width="30%">ATmega1284</td></tr>
-<tr><td width="15%"><code>m1284p</code></td><td width="30%">ATmega1284P</td></tr>
-<tr><td width="15%"><code>m1284rfr2</code></td><td width="30%">ATmega1284RFR2</td></tr>
-<tr><td width="15%"><code>m128a</code></td><td width="30%">ATmega128A</td></tr>
-<tr><td width="15%"><code>m128rfa1</code></td><td width="30%">ATmega128RFA1</td></tr>
-<tr><td width="15%"><code>m128rfr2</code></td><td width="30%">ATmega128RFR2</td></tr>
-<tr><td width="15%"><code>m16</code></td><td width="30%">ATmega16</td></tr>
-<tr><td width="15%"><code>m1608</code></td><td width="30%">ATmega1608</td></tr>
-<tr><td width="15%"><code>m1609</code></td><td width="30%">ATmega1609</td></tr>
-<tr><td width="15%"><code>m161</code></td><td width="30%">ATmega161</td></tr>
-<tr><td width="15%"><code>m162</code></td><td width="30%">ATmega162</td></tr>
-<tr><td width="15%"><code>m163</code></td><td width="30%">ATmega163</td></tr>
-<tr><td width="15%"><code>m164a</code></td><td width="30%">ATmega164A</td></tr>
-<tr><td width="15%"><code>m164p</code></td><td width="30%">ATmega164P</td></tr>
-<tr><td width="15%"><code>m164pa</code></td><td width="30%">ATmega164PA</td></tr>
-<tr><td width="15%"><code>m165</code></td><td width="30%">ATmega165</td></tr>
-<tr><td width="15%"><code>m165a</code></td><td width="30%">ATmega165A</td></tr>
-<tr><td width="15%"><code>m165p</code></td><td width="30%">ATmega165P</td></tr>
-<tr><td width="15%"><code>m165pa</code></td><td width="30%">ATmega165PA</td></tr>
-<tr><td width="15%"><code>m168</code></td><td width="30%">ATmega168</td></tr>
-<tr><td width="15%"><code>m168a</code></td><td width="30%">ATmega168A</td></tr>
-<tr><td width="15%"><code>m168p</code></td><td width="30%">ATmega168P</td></tr>
-<tr><td width="15%"><code>m168pa</code></td><td width="30%">ATmega168PA</td></tr>
-<tr><td width="15%"><code>m168pb</code></td><td width="30%">ATmega168PB</td></tr>
-<tr><td width="15%"><code>m169</code></td><td width="30%">ATmega169</td></tr>
-<tr><td width="15%"><code>m169a</code></td><td width="30%">ATmega169A</td></tr>
-<tr><td width="15%"><code>m169p</code></td><td width="30%">ATmega169P</td></tr>
-<tr><td width="15%"><code>m169pa</code></td><td width="30%">ATmega169PA</td></tr>
-<tr><td width="15%"><code>m16a</code></td><td width="30%">ATmega16A</td></tr>
-<tr><td width="15%"><code>m16u2</code></td><td width="30%">ATmega16U2</td></tr>
-<tr><td width="15%"><code>m16u4</code></td><td width="30%">ATmega16U4</td></tr>
-<tr><td width="15%"><code>m2560</code></td><td width="30%">ATmega2560 (**)</td></tr>
-<tr><td width="15%"><code>m2561</code></td><td width="30%">ATmega2561 (**)</td></tr>
-<tr><td width="15%"><code>m2564rfr2</code></td><td width="30%">ATmega2564RFR2</td></tr>
-<tr><td width="15%"><code>m256rfr2</code></td><td width="30%">ATmega256RFR2</td></tr>
-<tr><td width="15%"><code>m32</code></td><td width="30%">ATmega32</td></tr>
-<tr><td width="15%"><code>m3208</code></td><td width="30%">ATmega3208</td></tr>
-<tr><td width="15%"><code>m3209</code></td><td width="30%">ATmega3209</td></tr>
-<tr><td width="15%"><code>m324a</code></td><td width="30%">ATmega324A</td></tr>
-<tr><td width="15%"><code>m324p</code></td><td width="30%">ATmega324P</td></tr>
-<tr><td width="15%"><code>m324pa</code></td><td width="30%">ATmega324PA</td></tr>
-<tr><td width="15%"><code>m324pb</code></td><td width="30%">ATmega324PB</td></tr>
-<tr><td width="15%"><code>m325</code></td><td width="30%">ATmega325</td></tr>
-<tr><td width="15%"><code>m3250</code></td><td width="30%">ATmega3250</td></tr>
-<tr><td width="15%"><code>m3250a</code></td><td width="30%">ATmega3250A</td></tr>
-<tr><td width="15%"><code>m3250p</code></td><td width="30%">ATmega3250P</td></tr>
-<tr><td width="15%"><code>m3250pa</code></td><td width="30%">ATmega3250PA</td></tr>
-<tr><td width="15%"><code>m325a</code></td><td width="30%">ATmega325A</td></tr>
-<tr><td width="15%"><code>m325p</code></td><td width="30%">ATmega325P</td></tr>
-<tr><td width="15%"><code>m325pa</code></td><td width="30%">ATmega325PA</td></tr>
-<tr><td width="15%"><code>m328</code></td><td width="30%">ATmega328</td></tr>
-<tr><td width="15%"><code>m328p</code></td><td width="30%">ATmega328P</td></tr>
-<tr><td width="15%"><code>m328pb</code></td><td width="30%">ATmega328PB</td></tr>
-<tr><td width="15%"><code>m329</code></td><td width="30%">ATmega329</td></tr>
-<tr><td width="15%"><code>m3290</code></td><td width="30%">ATmega3290</td></tr>
-<tr><td width="15%"><code>m3290a</code></td><td width="30%">ATmega3290A</td></tr>
-<tr><td width="15%"><code>m3290p</code></td><td width="30%">ATmega3290P</td></tr>
-<tr><td width="15%"><code>m3290pa</code></td><td width="30%">ATmega3290PA</td></tr>
-<tr><td width="15%"><code>m329a</code></td><td width="30%">ATmega329A</td></tr>
-<tr><td width="15%"><code>m329p</code></td><td width="30%">ATmega329P</td></tr>
-<tr><td width="15%"><code>m329pa</code></td><td width="30%">ATmega329PA</td></tr>
-<tr><td width="15%"><code>m32a</code></td><td width="30%">ATmega32A</td></tr>
-<tr><td width="15%"><code>m32m1</code></td><td width="30%">ATmega32M1</td></tr>
-<tr><td width="15%"><code>m32u2</code></td><td width="30%">ATmega32U2</td></tr>
-<tr><td width="15%"><code>m32u4</code></td><td width="30%">ATmega32U4</td></tr>
-<tr><td width="15%"><code>m406</code></td><td width="30%">ATmega406</td></tr>
-<tr><td width="15%"><code>m48</code></td><td width="30%">ATmega48</td></tr>
-<tr><td width="15%"><code>m4808</code></td><td width="30%">ATmega4808</td></tr>
-<tr><td width="15%"><code>m4809</code></td><td width="30%">ATmega4809</td></tr>
-<tr><td width="15%"><code>m48a</code></td><td width="30%">ATmega48A</td></tr>
-<tr><td width="15%"><code>m48p</code></td><td width="30%">ATmega48P</td></tr>
-<tr><td width="15%"><code>m48pa</code></td><td width="30%">ATmega48PA</td></tr>
-<tr><td width="15%"><code>m48pb</code></td><td width="30%">ATmega48PB</td></tr>
-<tr><td width="15%"><code>m64</code></td><td width="30%">ATmega64</td></tr>
-<tr><td width="15%"><code>m640</code></td><td width="30%">ATmega640</td></tr>
-<tr><td width="15%"><code>m644</code></td><td width="30%">ATmega644</td></tr>
-<tr><td width="15%"><code>m644a</code></td><td width="30%">ATmega644A</td></tr>
-<tr><td width="15%"><code>m644p</code></td><td width="30%">ATmega644P</td></tr>
-<tr><td width="15%"><code>m644pa</code></td><td width="30%">ATmega644PA</td></tr>
-<tr><td width="15%"><code>m644rfr2</code></td><td width="30%">ATmega644RFR2</td></tr>
-<tr><td width="15%"><code>m645</code></td><td width="30%">ATmega645</td></tr>
-<tr><td width="15%"><code>m6450</code></td><td width="30%">ATmega6450</td></tr>
-<tr><td width="15%"><code>m6450a</code></td><td width="30%">ATmega6450A</td></tr>
-<tr><td width="15%"><code>m6450p</code></td><td width="30%">ATmega6450P</td></tr>
-<tr><td width="15%"><code>m645a</code></td><td width="30%">ATmega645A</td></tr>
-<tr><td width="15%"><code>m645p</code></td><td width="30%">ATmega645P</td></tr>
-<tr><td width="15%"><code>m649</code></td><td width="30%">ATmega649</td></tr>
-<tr><td width="15%"><code>m6490</code></td><td width="30%">ATmega6490</td></tr>
-<tr><td width="15%"><code>m6490a</code></td><td width="30%">ATmega6490A</td></tr>
-<tr><td width="15%"><code>m6490p</code></td><td width="30%">ATmega6490P</td></tr>
-<tr><td width="15%"><code>m649a</code></td><td width="30%">ATmega649A</td></tr>
-<tr><td width="15%"><code>m649p</code></td><td width="30%">ATmega649P</td></tr>
-<tr><td width="15%"><code>m64a</code></td><td width="30%">ATmega64A</td></tr>
-<tr><td width="15%"><code>m64m1</code></td><td width="30%">ATmega64M1</td></tr>
-<tr><td width="15%"><code>m64rfr2</code></td><td width="30%">ATmega64RFR2</td></tr>
-<tr><td width="15%"><code>m8</code></td><td width="30%">ATmega8</td></tr>
-<tr><td width="15%"><code>m808</code></td><td width="30%">ATmega808</td></tr>
-<tr><td width="15%"><code>m809</code></td><td width="30%">ATmega809</td></tr>
-<tr><td width="15%"><code>m8515</code></td><td width="30%">ATmega8515</td></tr>
-<tr><td width="15%"><code>m8535</code></td><td width="30%">ATmega8535</td></tr>
-<tr><td width="15%"><code>m88</code></td><td width="30%">ATmega88</td></tr>
-<tr><td width="15%"><code>m88a</code></td><td width="30%">ATmega88A</td></tr>
-<tr><td width="15%"><code>m88p</code></td><td width="30%">ATmega88P</td></tr>
-<tr><td width="15%"><code>m88pa</code></td><td width="30%">ATmega88PA</td></tr>
-<tr><td width="15%"><code>m88pb</code></td><td width="30%">ATmega88PB</td></tr>
-<tr><td width="15%"><code>m8a</code></td><td width="30%">ATmega8A</td></tr>
-<tr><td width="15%"><code>m8u2</code></td><td width="30%">ATmega8U2</td></tr>
-<tr><td width="15%"><code>t10</code></td><td width="30%">ATtiny10</td></tr>
-<tr><td width="15%"><code>t102</code></td><td width="30%">ATtiny102</td></tr>
-<tr><td width="15%"><code>t104</code></td><td width="30%">ATtiny104</td></tr>
-<tr><td width="15%"><code>t11</code></td><td width="30%">ATtiny11 (***)</td></tr>
-<tr><td width="15%"><code>t12</code></td><td width="30%">ATtiny12</td></tr>
-<tr><td width="15%"><code>t13</code></td><td width="30%">ATtiny13</td></tr>
-<tr><td width="15%"><code>t13a</code></td><td width="30%">ATtiny13A</td></tr>
-<tr><td width="15%"><code>t15</code></td><td width="30%">ATtiny15</td></tr>
-<tr><td width="15%"><code>t1604</code></td><td width="30%">ATtiny1604</td></tr>
-<tr><td width="15%"><code>t1606</code></td><td width="30%">ATtiny1606</td></tr>
-<tr><td width="15%"><code>t1607</code></td><td width="30%">ATtiny1607</td></tr>
-<tr><td width="15%"><code>t1614</code></td><td width="30%">ATtiny1614</td></tr>
-<tr><td width="15%"><code>t1616</code></td><td width="30%">ATtiny1616</td></tr>
-<tr><td width="15%"><code>t1617</code></td><td width="30%">ATtiny1617</td></tr>
-<tr><td width="15%"><code>t1624</code></td><td width="30%">ATtiny1624</td></tr>
-<tr><td width="15%"><code>t1626</code></td><td width="30%">ATtiny1626</td></tr>
-<tr><td width="15%"><code>t1627</code></td><td width="30%">ATtiny1627</td></tr>
-<tr><td width="15%"><code>t1634</code></td><td width="30%">ATtiny1634</td></tr>
-<tr><td width="15%"><code>t1634r</code></td><td width="30%">ATtiny1634R</td></tr>
-<tr><td width="15%"><code>t167</code></td><td width="30%">ATtiny167</td></tr>
-<tr><td width="15%"><code>t20</code></td><td width="30%">ATtiny20</td></tr>
-<tr><td width="15%"><code>t202</code></td><td width="30%">ATtiny202</td></tr>
-<tr><td width="15%"><code>t204</code></td><td width="30%">ATtiny204</td></tr>
-<tr><td width="15%"><code>t212</code></td><td width="30%">ATtiny212</td></tr>
-<tr><td width="15%"><code>t214</code></td><td width="30%">ATtiny214</td></tr>
-<tr><td width="15%"><code>t2313</code></td><td width="30%">ATtiny2313</td></tr>
-<tr><td width="15%"><code>t2313a</code></td><td width="30%">ATtiny2313A</td></tr>
-<tr><td width="15%"><code>t24</code></td><td width="30%">ATtiny24</td></tr>
-<tr><td width="15%"><code>t24a</code></td><td width="30%">ATtiny24A</td></tr>
-<tr><td width="15%"><code>t25</code></td><td width="30%">ATtiny25</td></tr>
-<tr><td width="15%"><code>t26</code></td><td width="30%">ATtiny26</td></tr>
-<tr><td width="15%"><code>t261</code></td><td width="30%">ATtiny261</td></tr>
-<tr><td width="15%"><code>t261a</code></td><td width="30%">ATtiny261A</td></tr>
-<tr><td width="15%"><code>t28</code></td><td width="30%">ATtiny28</td></tr>
-<tr><td width="15%"><code>t3216</code></td><td width="30%">ATtiny3216</td></tr>
-<tr><td width="15%"><code>t3217</code></td><td width="30%">ATtiny3217</td></tr>
-<tr><td width="15%"><code>t3224</code></td><td width="30%">ATtiny3224</td></tr>
-<tr><td width="15%"><code>t3226</code></td><td width="30%">ATtiny3226</td></tr>
-<tr><td width="15%"><code>t3227</code></td><td width="30%">ATtiny3227</td></tr>
-<tr><td width="15%"><code>t4</code></td><td width="30%">ATtiny4</td></tr>
-<tr><td width="15%"><code>t40</code></td><td width="30%">ATtiny40</td></tr>
-<tr><td width="15%"><code>t402</code></td><td width="30%">ATtiny402</td></tr>
-<tr><td width="15%"><code>t404</code></td><td width="30%">ATtiny404</td></tr>
-<tr><td width="15%"><code>t406</code></td><td width="30%">ATtiny406</td></tr>
-<tr><td width="15%"><code>t412</code></td><td width="30%">ATtiny412</td></tr>
-<tr><td width="15%"><code>t414</code></td><td width="30%">ATtiny414</td></tr>
-<tr><td width="15%"><code>t416</code></td><td width="30%">ATtiny416</td></tr>
-<tr><td width="15%"><code>t417</code></td><td width="30%">ATtiny417</td></tr>
-<tr><td width="15%"><code>t424</code></td><td width="30%">ATtiny424</td></tr>
-<tr><td width="15%"><code>t426</code></td><td width="30%">ATtiny426</td></tr>
-<tr><td width="15%"><code>t427</code></td><td width="30%">ATtiny427</td></tr>
-<tr><td width="15%"><code>t4313</code></td><td width="30%">ATtiny4313</td></tr>
-<tr><td width="15%"><code>t43u</code></td><td width="30%">ATtiny43U</td></tr>
-<tr><td width="15%"><code>t44</code></td><td width="30%">ATtiny44</td></tr>
-<tr><td width="15%"><code>t441</code></td><td width="30%">ATtiny441</td></tr>
-<tr><td width="15%"><code>t44a</code></td><td width="30%">ATtiny44A</td></tr>
-<tr><td width="15%"><code>t45</code></td><td width="30%">ATtiny45</td></tr>
-<tr><td width="15%"><code>t461</code></td><td width="30%">ATtiny461</td></tr>
-<tr><td width="15%"><code>t461a</code></td><td width="30%">ATtiny461A</td></tr>
-<tr><td width="15%"><code>t48</code></td><td width="30%">ATtiny48</td></tr>
-<tr><td width="15%"><code>t5</code></td><td width="30%">ATtiny5</td></tr>
-<tr><td width="15%"><code>t804</code></td><td width="30%">ATtiny804</td></tr>
-<tr><td width="15%"><code>t806</code></td><td width="30%">ATtiny806</td></tr>
-<tr><td width="15%"><code>t807</code></td><td width="30%">ATtiny807</td></tr>
-<tr><td width="15%"><code>t814</code></td><td width="30%">ATtiny814</td></tr>
-<tr><td width="15%"><code>t816</code></td><td width="30%">ATtiny816</td></tr>
-<tr><td width="15%"><code>t817</code></td><td width="30%">ATtiny817</td></tr>
-<tr><td width="15%"><code>t824</code></td><td width="30%">ATtiny824</td></tr>
-<tr><td width="15%"><code>t826</code></td><td width="30%">ATtiny826</td></tr>
-<tr><td width="15%"><code>t827</code></td><td width="30%">ATtiny827</td></tr>
-<tr><td width="15%"><code>t828</code></td><td width="30%">ATtiny828</td></tr>
-<tr><td width="15%"><code>t828r</code></td><td width="30%">ATtiny828R</td></tr>
-<tr><td width="15%"><code>t84</code></td><td width="30%">ATtiny84</td></tr>
-<tr><td width="15%"><code>t841</code></td><td width="30%">ATtiny841</td></tr>
-<tr><td width="15%"><code>t84a</code></td><td width="30%">ATtiny84A</td></tr>
-<tr><td width="15%"><code>t85</code></td><td width="30%">ATtiny85</td></tr>
-<tr><td width="15%"><code>t861</code></td><td width="30%">ATtiny861</td></tr>
-<tr><td width="15%"><code>t861a</code></td><td width="30%">ATtiny861A</td></tr>
-<tr><td width="15%"><code>t87</code></td><td width="30%">ATtiny87</td></tr>
-<tr><td width="15%"><code>t88</code></td><td width="30%">ATtiny88</td></tr>
-<tr><td width="15%"><code>t9</code></td><td width="30%">ATtiny9</td></tr>
-<tr><td width="15%"><code>x128a1</code></td><td width="30%">ATxmega128A1</td></tr>
-<tr><td width="15%"><code>x128a1d</code></td><td width="30%">ATxmega128A1revD</td></tr>
-<tr><td width="15%"><code>x128a1u</code></td><td width="30%">ATxmega128A1U</td></tr>
-<tr><td width="15%"><code>x128a3</code></td><td width="30%">ATxmega128A3</td></tr>
-<tr><td width="15%"><code>x128a3u</code></td><td width="30%">ATxmega128A3U</td></tr>
-<tr><td width="15%"><code>x128a4</code></td><td width="30%">ATxmega128A4</td></tr>
-<tr><td width="15%"><code>x128a4u</code></td><td width="30%">ATxmega128A4U</td></tr>
-<tr><td width="15%"><code>x128b1</code></td><td width="30%">ATxmega128B1</td></tr>
-<tr><td width="15%"><code>x128b3</code></td><td width="30%">ATxmega128B3</td></tr>
-<tr><td width="15%"><code>x128c3</code></td><td width="30%">ATxmega128C3</td></tr>
-<tr><td width="15%"><code>x128d3</code></td><td width="30%">ATxmega128D3</td></tr>
-<tr><td width="15%"><code>x128d4</code></td><td width="30%">ATxmega128D4</td></tr>
-<tr><td width="15%"><code>x16a4</code></td><td width="30%">ATxmega16A4</td></tr>
-<tr><td width="15%"><code>x16a4u</code></td><td width="30%">ATxmega16A4U</td></tr>
-<tr><td width="15%"><code>x16c4</code></td><td width="30%">ATxmega16C4</td></tr>
-<tr><td width="15%"><code>x16d4</code></td><td width="30%">ATxmega16D4</td></tr>
-<tr><td width="15%"><code>x16e5</code></td><td width="30%">ATxmega16E5</td></tr>
-<tr><td width="15%"><code>x192a1</code></td><td width="30%">ATxmega192A1</td></tr>
-<tr><td width="15%"><code>x192a3</code></td><td width="30%">ATxmega192A3</td></tr>
-<tr><td width="15%"><code>x192a3u</code></td><td width="30%">ATxmega192A3U</td></tr>
-<tr><td width="15%"><code>x192c3</code></td><td width="30%">ATxmega192C3</td></tr>
-<tr><td width="15%"><code>x192d3</code></td><td width="30%">ATxmega192D3</td></tr>
-<tr><td width="15%"><code>x256a1</code></td><td width="30%">ATxmega256A1</td></tr>
-<tr><td width="15%"><code>x256a3</code></td><td width="30%">ATxmega256A3</td></tr>
-<tr><td width="15%"><code>x256a3b</code></td><td width="30%">ATxmega256A3B</td></tr>
-<tr><td width="15%"><code>x256a3bu</code></td><td width="30%">ATxmega256A3BU</td></tr>
-<tr><td width="15%"><code>x256a3u</code></td><td width="30%">ATxmega256A3U</td></tr>
-<tr><td width="15%"><code>x256c3</code></td><td width="30%">ATxmega256C3</td></tr>
-<tr><td width="15%"><code>x256d3</code></td><td width="30%">ATxmega256D3</td></tr>
-<tr><td width="15%"><code>x32a4</code></td><td width="30%">ATxmega32A4</td></tr>
-<tr><td width="15%"><code>x32a4u</code></td><td width="30%">ATxmega32A4U</td></tr>
-<tr><td width="15%"><code>x32c4</code></td><td width="30%">ATxmega32C4</td></tr>
-<tr><td width="15%"><code>x32d4</code></td><td width="30%">ATxmega32D4</td></tr>
-<tr><td width="15%"><code>x32e5</code></td><td width="30%">ATxmega32E5</td></tr>
-<tr><td width="15%"><code>x384c3</code></td><td width="30%">ATxmega384C3</td></tr>
-<tr><td width="15%"><code>x384d3</code></td><td width="30%">ATxmega384D3</td></tr>
-<tr><td width="15%"><code>x64a1</code></td><td width="30%">ATxmega64A1</td></tr>
-<tr><td width="15%"><code>x64a1u</code></td><td width="30%">ATxmega64A1U</td></tr>
-<tr><td width="15%"><code>x64a3</code></td><td width="30%">ATxmega64A3</td></tr>
-<tr><td width="15%"><code>x64a3u</code></td><td width="30%">ATxmega64A3U</td></tr>
-<tr><td width="15%"><code>x64a4</code></td><td width="30%">ATxmega64A4</td></tr>
-<tr><td width="15%"><code>x64a4u</code></td><td width="30%">ATxmega64A4U</td></tr>
-<tr><td width="15%"><code>x64b1</code></td><td width="30%">ATxmega64B1</td></tr>
-<tr><td width="15%"><code>x64b3</code></td><td width="30%">ATxmega64B3</td></tr>
-<tr><td width="15%"><code>x64c3</code></td><td width="30%">ATxmega64C3</td></tr>
-<tr><td width="15%"><code>x64d3</code></td><td width="30%">ATxmega64D3</td></tr>
-<tr><td width="15%"><code>x64d4</code></td><td width="30%">ATxmega64D4</td></tr>
-<tr><td width="15%"><code>x8e5</code></td><td width="30%">ATxmega8E5</td></tr>
-<tr><td width="15%"><code>avr128da28</code></td><td width="30%">AVR128DA28</td></tr>
-<tr><td width="15%"><code>avr128da32</code></td><td width="30%">AVR128DA32</td></tr>
-<tr><td width="15%"><code>avr128da48</code></td><td width="30%">AVR128DA48</td></tr>
-<tr><td width="15%"><code>avr128da64</code></td><td width="30%">AVR128DA64</td></tr>
-<tr><td width="15%"><code>avr128db28</code></td><td width="30%">AVR128DB28</td></tr>
-<tr><td width="15%"><code>avr128db32</code></td><td width="30%">AVR128DB32</td></tr>
-<tr><td width="15%"><code>avr128db48</code></td><td width="30%">AVR128DB48</td></tr>
-<tr><td width="15%"><code>avr128db64</code></td><td width="30%">AVR128DB64</td></tr>
-<tr><td width="15%"><code>avr16dd14</code></td><td width="30%">AVR16DD14</td></tr>
-<tr><td width="15%"><code>avr16dd20</code></td><td width="30%">AVR16DD20</td></tr>
-<tr><td width="15%"><code>avr16dd28</code></td><td width="30%">AVR16DD28</td></tr>
-<tr><td width="15%"><code>avr16dd32</code></td><td width="30%">AVR16DD32</td></tr>
-<tr><td width="15%"><code>avr16ea28</code></td><td width="30%">AVR16EA28</td></tr>
-<tr><td width="15%"><code>avr16ea32</code></td><td width="30%">AVR16EA32</td></tr>
-<tr><td width="15%"><code>avr16ea48</code></td><td width="30%">AVR16EA48</td></tr>
-<tr><td width="15%"><code>avr32da28</code></td><td width="30%">AVR32DA28</td></tr>
-<tr><td width="15%"><code>avr32da32</code></td><td width="30%">AVR32DA32</td></tr>
-<tr><td width="15%"><code>avr32da48</code></td><td width="30%">AVR32DA48</td></tr>
-<tr><td width="15%"><code>avr32db28</code></td><td width="30%">AVR32DB28</td></tr>
-<tr><td width="15%"><code>avr32db32</code></td><td width="30%">AVR32DB32</td></tr>
-<tr><td width="15%"><code>avr32db48</code></td><td width="30%">AVR32DB48</td></tr>
-<tr><td width="15%"><code>avr32dd14</code></td><td width="30%">AVR32DD14</td></tr>
-<tr><td width="15%"><code>avr32dd20</code></td><td width="30%">AVR32DD20</td></tr>
-<tr><td width="15%"><code>avr32dd28</code></td><td width="30%">AVR32DD28</td></tr>
-<tr><td width="15%"><code>avr32dd32</code></td><td width="30%">AVR32DD32</td></tr>
-<tr><td width="15%"><code>avr32ea28</code></td><td width="30%">AVR32EA28</td></tr>
-<tr><td width="15%"><code>avr32ea32</code></td><td width="30%">AVR32EA32</td></tr>
-<tr><td width="15%"><code>avr32ea48</code></td><td width="30%">AVR32EA48</td></tr>
-<tr><td width="15%"><code>avr64da28</code></td><td width="30%">AVR64DA28</td></tr>
-<tr><td width="15%"><code>avr64da32</code></td><td width="30%">AVR64DA32</td></tr>
-<tr><td width="15%"><code>avr64da48</code></td><td width="30%">AVR64DA48</td></tr>
-<tr><td width="15%"><code>avr64da64</code></td><td width="30%">AVR64DA64</td></tr>
-<tr><td width="15%"><code>avr64db28</code></td><td width="30%">AVR64DB28</td></tr>
-<tr><td width="15%"><code>avr64db32</code></td><td width="30%">AVR64DB32</td></tr>
-<tr><td width="15%"><code>avr64db48</code></td><td width="30%">AVR64DB48</td></tr>
-<tr><td width="15%"><code>avr64db64</code></td><td width="30%">AVR64DB64</td></tr>
-<tr><td width="15%"><code>avr64dd14</code></td><td width="30%">AVR64DD14</td></tr>
-<tr><td width="15%"><code>avr64dd20</code></td><td width="30%">AVR64DD20</td></tr>
-<tr><td width="15%"><code>avr64dd28</code></td><td width="30%">AVR64DD28</td></tr>
-<tr><td width="15%"><code>avr64dd32</code></td><td width="30%">AVR64DD32</td></tr>
-<tr><td width="15%"><code>avr64ea28</code></td><td width="30%">AVR64EA28</td></tr>
-<tr><td width="15%"><code>avr64ea32</code></td><td width="30%">AVR64EA32</td></tr>
-<tr><td width="15%"><code>avr64ea48</code></td><td width="30%">AVR64EA48</td></tr>
-<tr><td width="15%"><code>avr8ea28</code></td><td width="30%">AVR8EA28</td></tr>
-<tr><td width="15%"><code>avr8ea32</code></td><td width="30%">AVR8EA32</td></tr>
-<tr><td width="15%"><code>ucr2</code></td><td width="30%">deprecated,</td></tr>
-<tr><td width="15%"><code>lgt8f168p</code></td><td width="30%">LGT8F168P</td></tr>
-<tr><td width="15%"><code>lgt8f328p</code></td><td width="30%">LGT8F328P</td></tr>
-<tr><td width="15%"><code>lgt8f88p</code></td><td width="30%">LGT8F88P</td></tr>
+<tr><td width="15%"><code>uc3a0512</code></td><td width="45%">AT32UC3A0512</td></tr>
+<tr><td width="15%"><code>c128</code></td><td width="45%">AT90CAN128</td></tr>
+<tr><td width="15%"><code>c32</code></td><td width="45%">AT90CAN32</td></tr>
+<tr><td width="15%"><code>c64</code></td><td width="45%">AT90CAN64</td></tr>
+<tr><td width="15%"><code>pwm2</code></td><td width="45%">AT90PWM2</td></tr>
+<tr><td width="15%"><code>pwm216</code></td><td width="45%">AT90PWM216</td></tr>
+<tr><td width="15%"><code>pwm2b</code></td><td width="45%">AT90PWM2B</td></tr>
+<tr><td width="15%"><code>pwm3</code></td><td width="45%">AT90PWM3</td></tr>
+<tr><td width="15%"><code>pwm316</code></td><td width="45%">AT90PWM316</td></tr>
+<tr><td width="15%"><code>pwm3b</code></td><td width="45%">AT90PWM3B</td></tr>
+<tr><td width="15%"><code>1200</code></td><td width="45%">AT90S1200 (****)</td></tr>
+<tr><td width="15%"><code>2313</code></td><td width="45%">AT90S2313</td></tr>
+<tr><td width="15%"><code>2333</code></td><td width="45%">AT90S2333</td></tr>
+<tr><td width="15%"><code>2343</code></td><td width="45%">AT90S2343 (*)</td></tr>
+<tr><td width="15%"><code>4414</code></td><td width="45%">AT90S4414</td></tr>
+<tr><td width="15%"><code>4433</code></td><td width="45%">AT90S4433</td></tr>
+<tr><td width="15%"><code>4434</code></td><td width="45%">AT90S4434</td></tr>
+<tr><td width="15%"><code>8515</code></td><td width="45%">AT90S8515</td></tr>
+<tr><td width="15%"><code>8535</code></td><td width="45%">AT90S8535</td></tr>
+<tr><td width="15%"><code>usb1286</code></td><td width="45%">AT90USB1286</td></tr>
+<tr><td width="15%"><code>usb1287</code></td><td width="45%">AT90USB1287</td></tr>
+<tr><td width="15%"><code>usb162</code></td><td width="45%">AT90USB162</td></tr>
+<tr><td width="15%"><code>usb646</code></td><td width="45%">AT90USB646</td></tr>
+<tr><td width="15%"><code>usb647</code></td><td width="45%">AT90USB647</td></tr>
+<tr><td width="15%"><code>usb82</code></td><td width="45%">AT90USB82</td></tr>
+<tr><td width="15%"><code>m103</code></td><td width="45%">ATmega103</td></tr>
+<tr><td width="15%"><code>m128</code></td><td width="45%">ATmega128</td></tr>
+<tr><td width="15%"><code>m1280</code></td><td width="45%">ATmega1280</td></tr>
+<tr><td width="15%"><code>m1281</code></td><td width="45%">ATmega1281</td></tr>
+<tr><td width="15%"><code>m1284</code></td><td width="45%">ATmega1284</td></tr>
+<tr><td width="15%"><code>m1284p</code></td><td width="45%">ATmega1284P</td></tr>
+<tr><td width="15%"><code>m1284rfr2</code></td><td width="45%">ATmega1284RFR2</td></tr>
+<tr><td width="15%"><code>m128a</code></td><td width="45%">ATmega128A</td></tr>
+<tr><td width="15%"><code>m128rfa1</code></td><td width="45%">ATmega128RFA1</td></tr>
+<tr><td width="15%"><code>m128rfr2</code></td><td width="45%">ATmega128RFR2</td></tr>
+<tr><td width="15%"><code>m16</code></td><td width="45%">ATmega16</td></tr>
+<tr><td width="15%"><code>m1608</code></td><td width="45%">ATmega1608</td></tr>
+<tr><td width="15%"><code>m1609</code></td><td width="45%">ATmega1609</td></tr>
+<tr><td width="15%"><code>m161</code></td><td width="45%">ATmega161</td></tr>
+<tr><td width="15%"><code>m162</code></td><td width="45%">ATmega162</td></tr>
+<tr><td width="15%"><code>m163</code></td><td width="45%">ATmega163</td></tr>
+<tr><td width="15%"><code>m164a</code></td><td width="45%">ATmega164A</td></tr>
+<tr><td width="15%"><code>m164p</code></td><td width="45%">ATmega164P</td></tr>
+<tr><td width="15%"><code>m164pa</code></td><td width="45%">ATmega164PA</td></tr>
+<tr><td width="15%"><code>m165</code></td><td width="45%">ATmega165</td></tr>
+<tr><td width="15%"><code>m165a</code></td><td width="45%">ATmega165A</td></tr>
+<tr><td width="15%"><code>m165p</code></td><td width="45%">ATmega165P</td></tr>
+<tr><td width="15%"><code>m165pa</code></td><td width="45%">ATmega165PA</td></tr>
+<tr><td width="15%"><code>m168</code></td><td width="45%">ATmega168</td></tr>
+<tr><td width="15%"><code>m168a</code></td><td width="45%">ATmega168A</td></tr>
+<tr><td width="15%"><code>m168p</code></td><td width="45%">ATmega168P</td></tr>
+<tr><td width="15%"><code>m168pa</code></td><td width="45%">ATmega168PA</td></tr>
+<tr><td width="15%"><code>m168pb</code></td><td width="45%">ATmega168PB</td></tr>
+<tr><td width="15%"><code>m169</code></td><td width="45%">ATmega169</td></tr>
+<tr><td width="15%"><code>m169a</code></td><td width="45%">ATmega169A</td></tr>
+<tr><td width="15%"><code>m169p</code></td><td width="45%">ATmega169P</td></tr>
+<tr><td width="15%"><code>m169pa</code></td><td width="45%">ATmega169PA</td></tr>
+<tr><td width="15%"><code>m16a</code></td><td width="45%">ATmega16A</td></tr>
+<tr><td width="15%"><code>m16u2</code></td><td width="45%">ATmega16U2</td></tr>
+<tr><td width="15%"><code>m16u4</code></td><td width="45%">ATmega16U4</td></tr>
+<tr><td width="15%"><code>m2560</code></td><td width="45%">ATmega2560 (**)</td></tr>
+<tr><td width="15%"><code>m2561</code></td><td width="45%">ATmega2561 (**)</td></tr>
+<tr><td width="15%"><code>m2564rfr2</code></td><td width="45%">ATmega2564RFR2</td></tr>
+<tr><td width="15%"><code>m256rfr2</code></td><td width="45%">ATmega256RFR2</td></tr>
+<tr><td width="15%"><code>m32</code></td><td width="45%">ATmega32</td></tr>
+<tr><td width="15%"><code>m3208</code></td><td width="45%">ATmega3208</td></tr>
+<tr><td width="15%"><code>m3209</code></td><td width="45%">ATmega3209</td></tr>
+<tr><td width="15%"><code>m324a</code></td><td width="45%">ATmega324A</td></tr>
+<tr><td width="15%"><code>m324p</code></td><td width="45%">ATmega324P</td></tr>
+<tr><td width="15%"><code>m324pa</code></td><td width="45%">ATmega324PA</td></tr>
+<tr><td width="15%"><code>m324pb</code></td><td width="45%">ATmega324PB</td></tr>
+<tr><td width="15%"><code>m325</code></td><td width="45%">ATmega325</td></tr>
+<tr><td width="15%"><code>m3250</code></td><td width="45%">ATmega3250</td></tr>
+<tr><td width="15%"><code>m3250a</code></td><td width="45%">ATmega3250A</td></tr>
+<tr><td width="15%"><code>m3250p</code></td><td width="45%">ATmega3250P</td></tr>
+<tr><td width="15%"><code>m3250pa</code></td><td width="45%">ATmega3250PA</td></tr>
+<tr><td width="15%"><code>m325a</code></td><td width="45%">ATmega325A</td></tr>
+<tr><td width="15%"><code>m325p</code></td><td width="45%">ATmega325P</td></tr>
+<tr><td width="15%"><code>m325pa</code></td><td width="45%">ATmega325PA</td></tr>
+<tr><td width="15%"><code>m328</code></td><td width="45%">ATmega328</td></tr>
+<tr><td width="15%"><code>m328p</code></td><td width="45%">ATmega328P</td></tr>
+<tr><td width="15%"><code>m328pb</code></td><td width="45%">ATmega328PB</td></tr>
+<tr><td width="15%"><code>m329</code></td><td width="45%">ATmega329</td></tr>
+<tr><td width="15%"><code>m3290</code></td><td width="45%">ATmega3290</td></tr>
+<tr><td width="15%"><code>m3290a</code></td><td width="45%">ATmega3290A</td></tr>
+<tr><td width="15%"><code>m3290p</code></td><td width="45%">ATmega3290P</td></tr>
+<tr><td width="15%"><code>m3290pa</code></td><td width="45%">ATmega3290PA</td></tr>
+<tr><td width="15%"><code>m329a</code></td><td width="45%">ATmega329A</td></tr>
+<tr><td width="15%"><code>m329p</code></td><td width="45%">ATmega329P</td></tr>
+<tr><td width="15%"><code>m329pa</code></td><td width="45%">ATmega329PA</td></tr>
+<tr><td width="15%"><code>m32a</code></td><td width="45%">ATmega32A</td></tr>
+<tr><td width="15%"><code>m32m1</code></td><td width="45%">ATmega32M1</td></tr>
+<tr><td width="15%"><code>m32u2</code></td><td width="45%">ATmega32U2</td></tr>
+<tr><td width="15%"><code>m32u4</code></td><td width="45%">ATmega32U4</td></tr>
+<tr><td width="15%"><code>m406</code></td><td width="45%">ATmega406</td></tr>
+<tr><td width="15%"><code>m48</code></td><td width="45%">ATmega48</td></tr>
+<tr><td width="15%"><code>m4808</code></td><td width="45%">ATmega4808</td></tr>
+<tr><td width="15%"><code>m4809</code></td><td width="45%">ATmega4809</td></tr>
+<tr><td width="15%"><code>m48a</code></td><td width="45%">ATmega48A</td></tr>
+<tr><td width="15%"><code>m48p</code></td><td width="45%">ATmega48P</td></tr>
+<tr><td width="15%"><code>m48pa</code></td><td width="45%">ATmega48PA</td></tr>
+<tr><td width="15%"><code>m48pb</code></td><td width="45%">ATmega48PB</td></tr>
+<tr><td width="15%"><code>m64</code></td><td width="45%">ATmega64</td></tr>
+<tr><td width="15%"><code>m640</code></td><td width="45%">ATmega640</td></tr>
+<tr><td width="15%"><code>m644</code></td><td width="45%">ATmega644</td></tr>
+<tr><td width="15%"><code>m644a</code></td><td width="45%">ATmega644A</td></tr>
+<tr><td width="15%"><code>m644p</code></td><td width="45%">ATmega644P</td></tr>
+<tr><td width="15%"><code>m644pa</code></td><td width="45%">ATmega644PA</td></tr>
+<tr><td width="15%"><code>m644rfr2</code></td><td width="45%">ATmega644RFR2</td></tr>
+<tr><td width="15%"><code>m645</code></td><td width="45%">ATmega645</td></tr>
+<tr><td width="15%"><code>m6450</code></td><td width="45%">ATmega6450</td></tr>
+<tr><td width="15%"><code>m6450a</code></td><td width="45%">ATmega6450A</td></tr>
+<tr><td width="15%"><code>m6450p</code></td><td width="45%">ATmega6450P</td></tr>
+<tr><td width="15%"><code>m645a</code></td><td width="45%">ATmega645A</td></tr>
+<tr><td width="15%"><code>m645p</code></td><td width="45%">ATmega645P</td></tr>
+<tr><td width="15%"><code>m649</code></td><td width="45%">ATmega649</td></tr>
+<tr><td width="15%"><code>m6490</code></td><td width="45%">ATmega6490</td></tr>
+<tr><td width="15%"><code>m6490a</code></td><td width="45%">ATmega6490A</td></tr>
+<tr><td width="15%"><code>m6490p</code></td><td width="45%">ATmega6490P</td></tr>
+<tr><td width="15%"><code>m649a</code></td><td width="45%">ATmega649A</td></tr>
+<tr><td width="15%"><code>m649p</code></td><td width="45%">ATmega649P</td></tr>
+<tr><td width="15%"><code>m64a</code></td><td width="45%">ATmega64A</td></tr>
+<tr><td width="15%"><code>m64m1</code></td><td width="45%">ATmega64M1</td></tr>
+<tr><td width="15%"><code>m64rfr2</code></td><td width="45%">ATmega64RFR2</td></tr>
+<tr><td width="15%"><code>m8</code></td><td width="45%">ATmega8</td></tr>
+<tr><td width="15%"><code>m808</code></td><td width="45%">ATmega808</td></tr>
+<tr><td width="15%"><code>m809</code></td><td width="45%">ATmega809</td></tr>
+<tr><td width="15%"><code>m8515</code></td><td width="45%">ATmega8515</td></tr>
+<tr><td width="15%"><code>m8535</code></td><td width="45%">ATmega8535</td></tr>
+<tr><td width="15%"><code>m88</code></td><td width="45%">ATmega88</td></tr>
+<tr><td width="15%"><code>m88a</code></td><td width="45%">ATmega88A</td></tr>
+<tr><td width="15%"><code>m88p</code></td><td width="45%">ATmega88P</td></tr>
+<tr><td width="15%"><code>m88pa</code></td><td width="45%">ATmega88PA</td></tr>
+<tr><td width="15%"><code>m88pb</code></td><td width="45%">ATmega88PB</td></tr>
+<tr><td width="15%"><code>m8a</code></td><td width="45%">ATmega8A</td></tr>
+<tr><td width="15%"><code>m8u2</code></td><td width="45%">ATmega8U2</td></tr>
+<tr><td width="15%"><code>t10</code></td><td width="45%">ATtiny10</td></tr>
+<tr><td width="15%"><code>t102</code></td><td width="45%">ATtiny102</td></tr>
+<tr><td width="15%"><code>t104</code></td><td width="45%">ATtiny104</td></tr>
+<tr><td width="15%"><code>t11</code></td><td width="45%">ATtiny11 (***)</td></tr>
+<tr><td width="15%"><code>t12</code></td><td width="45%">ATtiny12</td></tr>
+<tr><td width="15%"><code>t13</code></td><td width="45%">ATtiny13</td></tr>
+<tr><td width="15%"><code>t13a</code></td><td width="45%">ATtiny13A</td></tr>
+<tr><td width="15%"><code>t15</code></td><td width="45%">ATtiny15</td></tr>
+<tr><td width="15%"><code>t1604</code></td><td width="45%">ATtiny1604</td></tr>
+<tr><td width="15%"><code>t1606</code></td><td width="45%">ATtiny1606</td></tr>
+<tr><td width="15%"><code>t1607</code></td><td width="45%">ATtiny1607</td></tr>
+<tr><td width="15%"><code>t1614</code></td><td width="45%">ATtiny1614</td></tr>
+<tr><td width="15%"><code>t1616</code></td><td width="45%">ATtiny1616</td></tr>
+<tr><td width="15%"><code>t1617</code></td><td width="45%">ATtiny1617</td></tr>
+<tr><td width="15%"><code>t1624</code></td><td width="45%">ATtiny1624</td></tr>
+<tr><td width="15%"><code>t1626</code></td><td width="45%">ATtiny1626</td></tr>
+<tr><td width="15%"><code>t1627</code></td><td width="45%">ATtiny1627</td></tr>
+<tr><td width="15%"><code>t1634</code></td><td width="45%">ATtiny1634</td></tr>
+<tr><td width="15%"><code>t1634r</code></td><td width="45%">ATtiny1634R</td></tr>
+<tr><td width="15%"><code>t167</code></td><td width="45%">ATtiny167</td></tr>
+<tr><td width="15%"><code>t20</code></td><td width="45%">ATtiny20</td></tr>
+<tr><td width="15%"><code>t202</code></td><td width="45%">ATtiny202</td></tr>
+<tr><td width="15%"><code>t204</code></td><td width="45%">ATtiny204</td></tr>
+<tr><td width="15%"><code>t212</code></td><td width="45%">ATtiny212</td></tr>
+<tr><td width="15%"><code>t214</code></td><td width="45%">ATtiny214</td></tr>
+<tr><td width="15%"><code>t2313</code></td><td width="45%">ATtiny2313</td></tr>
+<tr><td width="15%"><code>t2313a</code></td><td width="45%">ATtiny2313A</td></tr>
+<tr><td width="15%"><code>t24</code></td><td width="45%">ATtiny24</td></tr>
+<tr><td width="15%"><code>t24a</code></td><td width="45%">ATtiny24A</td></tr>
+<tr><td width="15%"><code>t25</code></td><td width="45%">ATtiny25</td></tr>
+<tr><td width="15%"><code>t26</code></td><td width="45%">ATtiny26</td></tr>
+<tr><td width="15%"><code>t261</code></td><td width="45%">ATtiny261</td></tr>
+<tr><td width="15%"><code>t261a</code></td><td width="45%">ATtiny261A</td></tr>
+<tr><td width="15%"><code>t28</code></td><td width="45%">ATtiny28</td></tr>
+<tr><td width="15%"><code>t3216</code></td><td width="45%">ATtiny3216</td></tr>
+<tr><td width="15%"><code>t3217</code></td><td width="45%">ATtiny3217</td></tr>
+<tr><td width="15%"><code>t3224</code></td><td width="45%">ATtiny3224</td></tr>
+<tr><td width="15%"><code>t3226</code></td><td width="45%">ATtiny3226</td></tr>
+<tr><td width="15%"><code>t3227</code></td><td width="45%">ATtiny3227</td></tr>
+<tr><td width="15%"><code>t4</code></td><td width="45%">ATtiny4</td></tr>
+<tr><td width="15%"><code>t40</code></td><td width="45%">ATtiny40</td></tr>
+<tr><td width="15%"><code>t402</code></td><td width="45%">ATtiny402</td></tr>
+<tr><td width="15%"><code>t404</code></td><td width="45%">ATtiny404</td></tr>
+<tr><td width="15%"><code>t406</code></td><td width="45%">ATtiny406</td></tr>
+<tr><td width="15%"><code>t412</code></td><td width="45%">ATtiny412</td></tr>
+<tr><td width="15%"><code>t414</code></td><td width="45%">ATtiny414</td></tr>
+<tr><td width="15%"><code>t416</code></td><td width="45%">ATtiny416</td></tr>
+<tr><td width="15%"><code>t417</code></td><td width="45%">ATtiny417</td></tr>
+<tr><td width="15%"><code>t424</code></td><td width="45%">ATtiny424</td></tr>
+<tr><td width="15%"><code>t426</code></td><td width="45%">ATtiny426</td></tr>
+<tr><td width="15%"><code>t427</code></td><td width="45%">ATtiny427</td></tr>
+<tr><td width="15%"><code>t4313</code></td><td width="45%">ATtiny4313</td></tr>
+<tr><td width="15%"><code>t43u</code></td><td width="45%">ATtiny43U</td></tr>
+<tr><td width="15%"><code>t44</code></td><td width="45%">ATtiny44</td></tr>
+<tr><td width="15%"><code>t441</code></td><td width="45%">ATtiny441</td></tr>
+<tr><td width="15%"><code>t44a</code></td><td width="45%">ATtiny44A</td></tr>
+<tr><td width="15%"><code>t45</code></td><td width="45%">ATtiny45</td></tr>
+<tr><td width="15%"><code>t461</code></td><td width="45%">ATtiny461</td></tr>
+<tr><td width="15%"><code>t461a</code></td><td width="45%">ATtiny461A</td></tr>
+<tr><td width="15%"><code>t48</code></td><td width="45%">ATtiny48</td></tr>
+<tr><td width="15%"><code>t5</code></td><td width="45%">ATtiny5</td></tr>
+<tr><td width="15%"><code>t804</code></td><td width="45%">ATtiny804</td></tr>
+<tr><td width="15%"><code>t806</code></td><td width="45%">ATtiny806</td></tr>
+<tr><td width="15%"><code>t807</code></td><td width="45%">ATtiny807</td></tr>
+<tr><td width="15%"><code>t814</code></td><td width="45%">ATtiny814</td></tr>
+<tr><td width="15%"><code>t816</code></td><td width="45%">ATtiny816</td></tr>
+<tr><td width="15%"><code>t817</code></td><td width="45%">ATtiny817</td></tr>
+<tr><td width="15%"><code>t824</code></td><td width="45%">ATtiny824</td></tr>
+<tr><td width="15%"><code>t826</code></td><td width="45%">ATtiny826</td></tr>
+<tr><td width="15%"><code>t827</code></td><td width="45%">ATtiny827</td></tr>
+<tr><td width="15%"><code>t828</code></td><td width="45%">ATtiny828</td></tr>
+<tr><td width="15%"><code>t828r</code></td><td width="45%">ATtiny828R</td></tr>
+<tr><td width="15%"><code>t84</code></td><td width="45%">ATtiny84</td></tr>
+<tr><td width="15%"><code>t841</code></td><td width="45%">ATtiny841</td></tr>
+<tr><td width="15%"><code>t84a</code></td><td width="45%">ATtiny84A</td></tr>
+<tr><td width="15%"><code>t85</code></td><td width="45%">ATtiny85</td></tr>
+<tr><td width="15%"><code>t861</code></td><td width="45%">ATtiny861</td></tr>
+<tr><td width="15%"><code>t861a</code></td><td width="45%">ATtiny861A</td></tr>
+<tr><td width="15%"><code>t87</code></td><td width="45%">ATtiny87</td></tr>
+<tr><td width="15%"><code>t88</code></td><td width="45%">ATtiny88</td></tr>
+<tr><td width="15%"><code>t9</code></td><td width="45%">ATtiny9</td></tr>
+<tr><td width="15%"><code>x128a1</code></td><td width="45%">ATxmega128A1</td></tr>
+<tr><td width="15%"><code>x128a1d</code></td><td width="45%">ATxmega128A1revD</td></tr>
+<tr><td width="15%"><code>x128a1u</code></td><td width="45%">ATxmega128A1U</td></tr>
+<tr><td width="15%"><code>x128a3</code></td><td width="45%">ATxmega128A3</td></tr>
+<tr><td width="15%"><code>x128a3u</code></td><td width="45%">ATxmega128A3U</td></tr>
+<tr><td width="15%"><code>x128a4</code></td><td width="45%">ATxmega128A4</td></tr>
+<tr><td width="15%"><code>x128a4u</code></td><td width="45%">ATxmega128A4U</td></tr>
+<tr><td width="15%"><code>x128b1</code></td><td width="45%">ATxmega128B1</td></tr>
+<tr><td width="15%"><code>x128b3</code></td><td width="45%">ATxmega128B3</td></tr>
+<tr><td width="15%"><code>x128c3</code></td><td width="45%">ATxmega128C3</td></tr>
+<tr><td width="15%"><code>x128d3</code></td><td width="45%">ATxmega128D3</td></tr>
+<tr><td width="15%"><code>x128d4</code></td><td width="45%">ATxmega128D4</td></tr>
+<tr><td width="15%"><code>x16a4</code></td><td width="45%">ATxmega16A4</td></tr>
+<tr><td width="15%"><code>x16a4u</code></td><td width="45%">ATxmega16A4U</td></tr>
+<tr><td width="15%"><code>x16c4</code></td><td width="45%">ATxmega16C4</td></tr>
+<tr><td width="15%"><code>x16d4</code></td><td width="45%">ATxmega16D4</td></tr>
+<tr><td width="15%"><code>x16e5</code></td><td width="45%">ATxmega16E5</td></tr>
+<tr><td width="15%"><code>x192a1</code></td><td width="45%">ATxmega192A1</td></tr>
+<tr><td width="15%"><code>x192a3</code></td><td width="45%">ATxmega192A3</td></tr>
+<tr><td width="15%"><code>x192a3u</code></td><td width="45%">ATxmega192A3U</td></tr>
+<tr><td width="15%"><code>x192c3</code></td><td width="45%">ATxmega192C3</td></tr>
+<tr><td width="15%"><code>x192d3</code></td><td width="45%">ATxmega192D3</td></tr>
+<tr><td width="15%"><code>x256a1</code></td><td width="45%">ATxmega256A1</td></tr>
+<tr><td width="15%"><code>x256a3</code></td><td width="45%">ATxmega256A3</td></tr>
+<tr><td width="15%"><code>x256a3b</code></td><td width="45%">ATxmega256A3B</td></tr>
+<tr><td width="15%"><code>x256a3bu</code></td><td width="45%">ATxmega256A3BU</td></tr>
+<tr><td width="15%"><code>x256a3u</code></td><td width="45%">ATxmega256A3U</td></tr>
+<tr><td width="15%"><code>x256c3</code></td><td width="45%">ATxmega256C3</td></tr>
+<tr><td width="15%"><code>x256d3</code></td><td width="45%">ATxmega256D3</td></tr>
+<tr><td width="15%"><code>x32a4</code></td><td width="45%">ATxmega32A4</td></tr>
+<tr><td width="15%"><code>x32a4u</code></td><td width="45%">ATxmega32A4U</td></tr>
+<tr><td width="15%"><code>x32c4</code></td><td width="45%">ATxmega32C4</td></tr>
+<tr><td width="15%"><code>x32d4</code></td><td width="45%">ATxmega32D4</td></tr>
+<tr><td width="15%"><code>x32e5</code></td><td width="45%">ATxmega32E5</td></tr>
+<tr><td width="15%"><code>x384c3</code></td><td width="45%">ATxmega384C3</td></tr>
+<tr><td width="15%"><code>x384d3</code></td><td width="45%">ATxmega384D3</td></tr>
+<tr><td width="15%"><code>x64a1</code></td><td width="45%">ATxmega64A1</td></tr>
+<tr><td width="15%"><code>x64a1u</code></td><td width="45%">ATxmega64A1U</td></tr>
+<tr><td width="15%"><code>x64a3</code></td><td width="45%">ATxmega64A3</td></tr>
+<tr><td width="15%"><code>x64a3u</code></td><td width="45%">ATxmega64A3U</td></tr>
+<tr><td width="15%"><code>x64a4</code></td><td width="45%">ATxmega64A4</td></tr>
+<tr><td width="15%"><code>x64a4u</code></td><td width="45%">ATxmega64A4U</td></tr>
+<tr><td width="15%"><code>x64b1</code></td><td width="45%">ATxmega64B1</td></tr>
+<tr><td width="15%"><code>x64b3</code></td><td width="45%">ATxmega64B3</td></tr>
+<tr><td width="15%"><code>x64c3</code></td><td width="45%">ATxmega64C3</td></tr>
+<tr><td width="15%"><code>x64d3</code></td><td width="45%">ATxmega64D3</td></tr>
+<tr><td width="15%"><code>x64d4</code></td><td width="45%">ATxmega64D4</td></tr>
+<tr><td width="15%"><code>x8e5</code></td><td width="45%">ATxmega8E5</td></tr>
+<tr><td width="15%"><code>avr128da28</code></td><td width="45%">AVR128DA28</td></tr>
+<tr><td width="15%"><code>avr128da32</code></td><td width="45%">AVR128DA32</td></tr>
+<tr><td width="15%"><code>avr128da48</code></td><td width="45%">AVR128DA48</td></tr>
+<tr><td width="15%"><code>avr128da64</code></td><td width="45%">AVR128DA64</td></tr>
+<tr><td width="15%"><code>avr128db28</code></td><td width="45%">AVR128DB28</td></tr>
+<tr><td width="15%"><code>avr128db32</code></td><td width="45%">AVR128DB32</td></tr>
+<tr><td width="15%"><code>avr128db48</code></td><td width="45%">AVR128DB48</td></tr>
+<tr><td width="15%"><code>avr128db64</code></td><td width="45%">AVR128DB64</td></tr>
+<tr><td width="15%"><code>avr16dd14</code></td><td width="45%">AVR16DD14</td></tr>
+<tr><td width="15%"><code>avr16dd20</code></td><td width="45%">AVR16DD20</td></tr>
+<tr><td width="15%"><code>avr16dd28</code></td><td width="45%">AVR16DD28</td></tr>
+<tr><td width="15%"><code>avr16dd32</code></td><td width="45%">AVR16DD32</td></tr>
+<tr><td width="15%"><code>avr16ea28</code></td><td width="45%">AVR16EA28</td></tr>
+<tr><td width="15%"><code>avr16ea32</code></td><td width="45%">AVR16EA32</td></tr>
+<tr><td width="15%"><code>avr16ea48</code></td><td width="45%">AVR16EA48</td></tr>
+<tr><td width="15%"><code>avr32da28</code></td><td width="45%">AVR32DA28</td></tr>
+<tr><td width="15%"><code>avr32da32</code></td><td width="45%">AVR32DA32</td></tr>
+<tr><td width="15%"><code>avr32da48</code></td><td width="45%">AVR32DA48</td></tr>
+<tr><td width="15%"><code>avr32db28</code></td><td width="45%">AVR32DB28</td></tr>
+<tr><td width="15%"><code>avr32db32</code></td><td width="45%">AVR32DB32</td></tr>
+<tr><td width="15%"><code>avr32db48</code></td><td width="45%">AVR32DB48</td></tr>
+<tr><td width="15%"><code>avr32dd14</code></td><td width="45%">AVR32DD14</td></tr>
+<tr><td width="15%"><code>avr32dd20</code></td><td width="45%">AVR32DD20</td></tr>
+<tr><td width="15%"><code>avr32dd28</code></td><td width="45%">AVR32DD28</td></tr>
+<tr><td width="15%"><code>avr32dd32</code></td><td width="45%">AVR32DD32</td></tr>
+<tr><td width="15%"><code>avr32ea28</code></td><td width="45%">AVR32EA28</td></tr>
+<tr><td width="15%"><code>avr32ea32</code></td><td width="45%">AVR32EA32</td></tr>
+<tr><td width="15%"><code>avr32ea48</code></td><td width="45%">AVR32EA48</td></tr>
+<tr><td width="15%"><code>avr64da28</code></td><td width="45%">AVR64DA28</td></tr>
+<tr><td width="15%"><code>avr64da32</code></td><td width="45%">AVR64DA32</td></tr>
+<tr><td width="15%"><code>avr64da48</code></td><td width="45%">AVR64DA48</td></tr>
+<tr><td width="15%"><code>avr64da64</code></td><td width="45%">AVR64DA64</td></tr>
+<tr><td width="15%"><code>avr64db28</code></td><td width="45%">AVR64DB28</td></tr>
+<tr><td width="15%"><code>avr64db32</code></td><td width="45%">AVR64DB32</td></tr>
+<tr><td width="15%"><code>avr64db48</code></td><td width="45%">AVR64DB48</td></tr>
+<tr><td width="15%"><code>avr64db64</code></td><td width="45%">AVR64DB64</td></tr>
+<tr><td width="15%"><code>avr64dd14</code></td><td width="45%">AVR64DD14</td></tr>
+<tr><td width="15%"><code>avr64dd20</code></td><td width="45%">AVR64DD20</td></tr>
+<tr><td width="15%"><code>avr64dd28</code></td><td width="45%">AVR64DD28</td></tr>
+<tr><td width="15%"><code>avr64dd32</code></td><td width="45%">AVR64DD32</td></tr>
+<tr><td width="15%"><code>avr64ea28</code></td><td width="45%">AVR64EA28</td></tr>
+<tr><td width="15%"><code>avr64ea32</code></td><td width="45%">AVR64EA32</td></tr>
+<tr><td width="15%"><code>avr64ea48</code></td><td width="45%">AVR64EA48</td></tr>
+<tr><td width="15%"><code>avr8ea28</code></td><td width="45%">AVR8EA28</td></tr>
+<tr><td width="15%"><code>avr8ea32</code></td><td width="45%">AVR8EA32</td></tr>
+<tr><td width="15%"><code>ucr2</code></td><td width="45%">deprecated,</td></tr>
+<tr><td width="15%"><code>lgt8f168p</code></td><td width="45%">LGT8F168P</td></tr>
+<tr><td width="15%"><code>lgt8f328p</code></td><td width="45%">LGT8F328P</td></tr>
+<tr><td width="15%"><code>lgt8f88p</code></td><td width="45%">LGT8F88P</td></tr>
 </table>
 
 <p>(*)   The AT90S2323 and ATtiny22 use the same algorithm.
@@ -447,25 +452,34 @@ device.  Known to work are all direct bitbang programmers, and all
 programmers talking the STK500v2 protocol.
 </p>
 </dd>
+<dt><code>-p <var>wildcard/flags</var></code></dt>
+<dd><p>Run developer options for MCUs that are matched by <var>wildcard</var>. Whilst
+their main use is for developers some <var>flags</var> can be of utility for
+users, e.g.,  <code>avrdude -p m328p/S</code> outputs AVRDUDE&rsquo;s understanding of
+ATmega328P MCU properties; for more information run <code>avrdude -p x/h</code>.
+</p>
+</dd>
 <dt><code>-b <var>baudrate</var></code></dt>
 <dd><p>Override the RS-232 connection baud rate specified in the respective
 programmer&rsquo;s entry of the configuration file.
 </p>
 </dd>
 <dt><code>-B <var>bitclock</var></code></dt>
-<dd><p>Specify the bit clock period for the JTAG interface or the ISP clock (JTAG ICE only).
-The value is a floating-point number in microseconds.
-Alternatively, the value might be suffixed with &quot;Hz&quot;, &quot;kHz&quot;, or &quot;MHz&quot;,
-in order to specify the bit clock frequency, rather than a period.
-The default value of the JTAG ICE results in about 1 microsecond bit
-clock period, suitable for target MCUs running at 4 MHz clock and
-above.
-Unlike certain parameters in the STK500, the JTAG ICE resets all its
-parameters to default values when the programming software signs
-off from the ICE, so for MCUs running at lower clock speeds, this
-parameter must be specified on the command-line.
-It can also be set in the configuration file by using the &rsquo;default_bitclock&rsquo;
-keyword.
+<dd><p>Specify the bit clock period for the JTAG, PDI, TPI, UPDI, or ISP
+interface. The value is a floating-point number in microseconds.
+Alternatively, the value might be suffixed with &quot;Hz&quot;, &quot;kHz&quot; or
+&quot;MHz&quot; in order to specify the bit clock frequency rather than a
+period. Some programmers default their bit clock value to a 1
+microsecond bit clock period, suitable for target MCUs running at 4
+MHz clock and above. Slower MCUs need a correspondingly higher bit
+clock period. Some programmers reset their bit clock value to the
+default value when the programming software signs off, whilst
+others store the last used bit clock value. It is recommended to
+always specify the bit clock if read/write speed is important.  You
+can use the &rsquo;default_bitclock&rsquo; keyword in your
+<code>~/.config/avrdude/avrdude.rc</code> or <code>~/.avrduderc</code>
+configuration file to assign a default value to keep from having to
+specify this option on every invocation.
 </p>
 </dd>
 <dt><code>-c <var>programmer-id</var></code></dt>
@@ -478,124 +492,152 @@ AVRDUDE, and the programmer is controlled via the PC parallel port,
 there&rsquo;s a good chance that it can be easily added to the configuration
 file without any code changes to AVRDUDE.  Simply copy an existing entry
 and change the pin definitions to match that of the unknown programmer.
-Currently, the following programmer ids are understood and supported:
+If <code>-c ?</code> is specified with a specific part, see <code>-p</code> above, then
+only those programmers are output that expect to be able to handle this part,
+together with the programming interface(s) that can be used in that
+combination. In reality there can be deviations from this list, particularly
+if programming is directly via a bootloader. Currently, the following
+programmer ids are understood and supported:
 </p>
 <a name="index-Programmer-support"></a>
 
 <table>
-<tr><td width="20%"><code>2232HIO</code></td><td width="60%">FT2232H based generic programmer</td></tr>
-<tr><td width="20%"><code>4232h</code></td><td width="60%">FT4232H based generic programmer</td></tr>
-<tr><td width="20%"><code>arduino</code></td><td width="60%">Arduino</td></tr>
-<tr><td width="20%"><code>arduino-ft232r</code></td><td width="60%">Arduino: FT232R connected to ISP</td></tr>
-<tr><td width="20%"><code>arduinoisp</code></td><td width="60%">Arduino ISP Programmer</td></tr>
-<tr><td width="20%"><code>arduinoisporg</code></td><td width="60%">Arduino ISP Programmer</td></tr>
-<tr><td width="20%"><code>atmelice</code></td><td width="60%">Atmel-ICE (ARM/AVR) in JTAG mode</td></tr>
-<tr><td width="20%"><code>atmelice_dw</code></td><td width="60%">Atmel-ICE (ARM/AVR) in debugWIRE mode</td></tr>
-<tr><td width="20%"><code>atmelice_isp</code></td><td width="60%">Atmel-ICE (ARM/AVR) in ISP mode</td></tr>
-<tr><td width="20%"><code>atmelice_pdi</code></td><td width="60%">Atmel-ICE (ARM/AVR) in PDI mode</td></tr>
-<tr><td width="20%"><code>atmelice_updi</code></td><td width="60%">Atmel-ICE (ARM/AVR) in UPDI mode</td></tr>
-<tr><td width="20%"><code>avr109</code></td><td width="60%">Atmel AppNote AVR109 Boot Loader</td></tr>
-<tr><td width="20%"><code>avr910</code></td><td width="60%">Atmel Low Cost Serial Programmer</td></tr>
-<tr><td width="20%"><code>avr911</code></td><td width="60%">Atmel AppNote AVR911 AVROSP</td></tr>
-<tr><td width="20%"><code>avrftdi</code></td><td width="60%">FT2232D based generic programmer</td></tr>
-<tr><td width="20%"><code>avrisp</code></td><td width="60%">Atmel AVR ISP</td></tr>
-<tr><td width="20%"><code>avrisp2</code></td><td width="60%">Atmel AVR ISP mkII</td></tr>
-<tr><td width="20%"><code>avrispmkII</code></td><td width="60%">Atmel AVR ISP mkII</td></tr>
-<tr><td width="20%"><code>avrispv2</code></td><td width="60%">Atmel AVR ISP V2</td></tr>
-<tr><td width="20%"><code>buspirate</code></td><td width="60%">The Bus Pirate</td></tr>
-<tr><td width="20%"><code>buspirate_bb</code></td><td width="60%">The Bus Pirate (bitbang interface, supports TPI)</td></tr>
-<tr><td width="20%"><code>butterfly</code></td><td width="60%">Atmel Butterfly Development Board</td></tr>
-<tr><td width="20%"><code>butterfly_mk</code></td><td width="60%">Mikrokopter.de Butterfly</td></tr>
-<tr><td width="20%"><code>bwmega</code></td><td width="60%">BitWizard ftdi_atmega builtin programmer</td></tr>
-<tr><td width="20%"><code>c232hm</code></td><td width="60%">C232HM cable from FTDI</td></tr>
-<tr><td width="20%"><code>c2n232i</code></td><td width="60%">serial port banging, reset=dtr sck=!rts mosi=!txd miso=!cts</td></tr>
-<tr><td width="20%"><code>dasa</code></td><td width="60%">serial port banging, reset=rts sck=dtr mosi=txd miso=cts</td></tr>
-<tr><td width="20%"><code>dasa3</code></td><td width="60%">serial port banging, reset=!dtr sck=rts mosi=txd miso=cts</td></tr>
-<tr><td width="20%"><code>diecimila</code></td><td width="60%">alias for arduino-ft232r</td></tr>
-<tr><td width="20%"><code>dragon_dw</code></td><td width="60%">Atmel AVR Dragon in debugWire mode</td></tr>
-<tr><td width="20%"><code>dragon_hvsp</code></td><td width="60%">Atmel AVR Dragon in HVSP mode</td></tr>
-<tr><td width="20%"><code>dragon_isp</code></td><td width="60%">Atmel AVR Dragon in ISP mode</td></tr>
-<tr><td width="20%"><code>dragon_jtag</code></td><td width="60%">Atmel AVR Dragon in JTAG mode</td></tr>
-<tr><td width="20%"><code>dragon_pdi</code></td><td width="60%">Atmel AVR Dragon in PDI mode</td></tr>
-<tr><td width="20%"><code>dragon_pp</code></td><td width="60%">Atmel AVR Dragon in PP mode</td></tr>
-<tr><td width="20%"><code>ehajo-isp</code></td><td width="60%">avr-isp-programmer from eHaJo, http://www.eHaJo.de</td></tr>
-<tr><td width="20%"><code>flip1</code></td><td width="60%">FLIP USB DFU protocol version 1 (doc7618)</td></tr>
-<tr><td width="20%"><code>flip2</code></td><td width="60%">FLIP USB DFU protocol version 2 (AVR4023)</td></tr>
-<tr><td width="20%"><code>ft232h</code></td><td width="60%">FT232H in MPSSE mode</td></tr>
-<tr><td width="20%"><code>ft232r</code></td><td width="60%">FT232R Synchronous BitBang</td></tr>
-<tr><td width="20%"><code>ft245r</code></td><td width="60%">FT245R Synchronous BitBang</td></tr>
-<tr><td width="20%"><code>iseavrprog</code></td><td width="60%">USBtiny-based USB programmer, https://github.com/IowaScaledEngineering/ckt-avrp</td></tr>
-<tr><td width="20%"><code>jtag1</code></td><td width="60%">Atmel JTAG ICE (mkI)</td></tr>
-<tr><td width="20%"><code>jtag1slow</code></td><td width="60%">Atmel JTAG ICE (mkI)</td></tr>
-<tr><td width="20%"><code>jtag2</code></td><td width="60%">Atmel JTAG ICE mkII</td></tr>
-<tr><td width="20%"><code>jtag2avr32</code></td><td width="60%">Atmel JTAG ICE mkII im AVR32 mode</td></tr>
-<tr><td width="20%"><code>jtag2dw</code></td><td width="60%">Atmel JTAG ICE mkII in debugWire mode</td></tr>
-<tr><td width="20%"><code>jtag2fast</code></td><td width="60%">Atmel JTAG ICE mkII</td></tr>
-<tr><td width="20%"><code>jtag2isp</code></td><td width="60%">Atmel JTAG ICE mkII in ISP mode</td></tr>
-<tr><td width="20%"><code>jtag2pdi</code></td><td width="60%">Atmel JTAG ICE mkII PDI mode</td></tr>
-<tr><td width="20%"><code>jtag2slow</code></td><td width="60%">Atmel JTAG ICE mkII</td></tr>
-<tr><td width="20%"><code>jtag2updi</code></td><td width="60%">JTAGv2 to UPDI bridge</td></tr>
-<tr><td width="20%"><code>jtag3</code></td><td width="60%">Atmel AVR JTAGICE3 in JTAG mode</td></tr>
-<tr><td width="20%"><code>jtag3dw</code></td><td width="60%">Atmel AVR JTAGICE3 in debugWIRE mode</td></tr>
-<tr><td width="20%"><code>jtag3isp</code></td><td width="60%">Atmel AVR JTAGICE3 in ISP mode</td></tr>
-<tr><td width="20%"><code>jtag3pdi</code></td><td width="60%">Atmel AVR JTAGICE3 in PDI mode</td></tr>
-<tr><td width="20%"><code>jtag3updi</code></td><td width="60%">Atmel AVR JTAGICE3 in UPDI mode</td></tr>
-<tr><td width="20%"><code>jtagkey</code></td><td width="60%">Amontec JTAGKey, JTAGKey-Tiny and JTAGKey2</td></tr>
-<tr><td width="20%"><code>jtagmkI</code></td><td width="60%">Atmel JTAG ICE (mkI)</td></tr>
-<tr><td width="20%"><code>jtagmkII</code></td><td width="60%">Atmel JTAG ICE mkII</td></tr>
-<tr><td width="20%"><code>jtagmkII_avr32</code></td><td width="60%">Atmel JTAG ICE mkII im AVR32 mode</td></tr>
-<tr><td width="20%"><code>lm3s811</code></td><td width="60%">Luminary Micro LM3S811 Eval Board (Rev. A)</td></tr>
-<tr><td width="20%"><code>mib510</code></td><td width="60%">Crossbow MIB510 programming board</td></tr>
-<tr><td width="20%"><code>micronucleus</code></td><td width="60%">Micronucleus Bootloader</td></tr>
-<tr><td width="20%"><code>mkbutterfly</code></td><td width="60%">Mikrokopter.de Butterfly</td></tr>
-<tr><td width="20%"><code>nibobee</code></td><td width="60%">NIBObee</td></tr>
-<tr><td width="20%"><code>o-link</code></td><td width="60%">O-Link, OpenJTAG from www.100ask.net</td></tr>
-<tr><td width="20%"><code>openmoko</code></td><td width="60%">Openmoko debug board (v3)</td></tr>
-<tr><td width="20%"><code>pavr</code></td><td width="60%">Jason Kyle&rsquo;s pAVR Serial Programmer</td></tr>
-<tr><td width="20%"><code>pickit2</code></td><td width="60%">MicroChip&rsquo;s PICkit2 Programmer</td></tr>
-<tr><td width="20%"><code>pickit4_isp</code></td><td width="60%">MPLAB(R) PICkit 4 in ISP mode</td></tr>
-<tr><td width="20%"><code>pickit4_pdi</code></td><td width="60%">MPLAB(R) PICkit 4 in PDI mode</td></tr>
-<tr><td width="20%"><code>pickit4_updi</code></td><td width="60%">MPLAB(R) PICkit 4 in UPDI mode</td></tr>
-<tr><td width="20%"><code>pkobn_updi</code></td><td width="60%">Curiosity nano (nEDBG) in UPDI mode</td></tr>
-<tr><td width="20%"><code>ponyser</code></td><td width="60%">design ponyprog serial, reset=!txd sck=rts mosi=dtr miso=cts</td></tr>
-<tr><td width="20%"><code>powerdebugger</code></td><td width="60%">Atmel PowerDebugger (ARM/AVR) in JTAG mode</td></tr>
-<tr><td width="20%"><code>powerdebugger_dw</code></td><td width="60%">Atmel PowerDebugger (ARM/AVR) in debugWire mode</td></tr>
-<tr><td width="20%"><code>powerdebugger_isp</code></td><td width="60%">Atmel PowerDebugger (ARM/AVR) in ISP mode</td></tr>
-<tr><td width="20%"><code>powerdebugger_pdi</code></td><td width="60%">Atmel PowerDebugger (ARM/AVR) in PDI mode</td></tr>
-<tr><td width="20%"><code>powerdebugger_updi</code></td><td width="60%">Atmel PowerDebugger (ARM/AVR) in UPDI mode</td></tr>
-<tr><td width="20%"><code>serialupdi</code></td><td width="60%">SerialUPDI</td></tr>
-<tr><td width="20%"><code>siprog</code></td><td width="60%">Lancos SI-Prog &lt;http://www.lancos.com/siprogsch.html&gt;</td></tr>
-<tr><td width="20%"><code>snap_isp</code></td><td width="60%">MPLAB(R) SNAP in ISP mode</td></tr>
-<tr><td width="20%"><code>snap_pdi</code></td><td width="60%">MPLAB(R) SNAP in PDI mode</td></tr>
-<tr><td width="20%"><code>snap_updi</code></td><td width="60%">MPLAB(R) SNAP in UPDI mode</td></tr>
-<tr><td width="20%"><code>stk500</code></td><td width="60%">Atmel STK500</td></tr>
-<tr><td width="20%"><code>stk500hvsp</code></td><td width="60%">Atmel STK500 V2 in high-voltage serial programming mode</td></tr>
-<tr><td width="20%"><code>stk500pp</code></td><td width="60%">Atmel STK500 V2 in parallel programming mode</td></tr>
-<tr><td width="20%"><code>stk500v1</code></td><td width="60%">Atmel STK500 Version 1.x firmware</td></tr>
-<tr><td width="20%"><code>stk500v2</code></td><td width="60%">Atmel STK500 Version 2.x firmware</td></tr>
-<tr><td width="20%"><code>stk600</code></td><td width="60%">Atmel STK600</td></tr>
-<tr><td width="20%"><code>stk600hvsp</code></td><td width="60%">Atmel STK600 in high-voltage serial programming mode</td></tr>
-<tr><td width="20%"><code>stk600pp</code></td><td width="60%">Atmel STK600 in parallel programming mode</td></tr>
-<tr><td width="20%"><code>tc2030</code></td><td width="60%">Tag-Connect TC2030</td></tr>
-<tr><td width="20%"><code>teensy</code></td><td width="60%">Teensy Bootloader</td></tr>
-<tr><td width="20%"><code>ttl232r</code></td><td width="60%">FTDI TTL232R-5V with ICSP adapter</td></tr>
-<tr><td width="20%"><code>tumpa</code></td><td width="60%">TIAO USB Multi-Protocol Adapter</td></tr>
-<tr><td width="20%"><code>um232h</code></td><td width="60%">UM232H module from FTDI</td></tr>
-<tr><td width="20%"><code>uncompatino</code></td><td width="60%">uncompatino with all pairs of pins shorted</td></tr>
-<tr><td width="20%"><code>usbasp</code></td><td width="60%">USBasp, http://www.fischl.de/usbasp/</td></tr>
-<tr><td width="20%"><code>usbasp-clone</code></td><td width="60%">Any usbasp clone with correct VID/PID</td></tr>
-<tr><td width="20%"><code>usbtiny</code></td><td width="60%">USBtiny simple USB programmer, https://learn.adafruit.com/usbtinyisp</td></tr>
-<tr><td width="20%"><code>wiring</code></td><td width="60%">Wiring</td></tr>
-<tr><td width="20%"><code>xbee</code></td><td width="60%">XBee Series 2 Over-The-Air (XBeeBoot)</td></tr>
-<tr><td width="20%"><code>xplainedmini</code></td><td width="60%">Atmel AVR XplainedMini in ISP mode</td></tr>
-<tr><td width="20%"><code>xplainedmini_dw</code></td><td width="60%">Atmel AVR XplainedMini in debugWIRE mode</td></tr>
-<tr><td width="20%"><code>xplainedmini_updi</code></td><td width="60%">Atmel AVR XplainedMini in UPDI mode</td></tr>
-<tr><td width="20%"><code>xplainedpro</code></td><td width="60%">Atmel AVR XplainedPro in JTAG mode</td></tr>
-<tr><td width="20%"><code>xplainedpro_updi</code></td><td width="60%">Atmel AVR XplainedPro in UPDI mode</td></tr>
+<tr><td width="30%"><code>2232hio</code></td><td width="68%">2232hio based on FT2232H with buffer and LEDs</td></tr>
+<tr><td width="30%"><code>4232h</code></td><td width="68%">FT4232H based generic programmer</td></tr>
+<tr><td width="30%"><code>adafruit_gemma</code></td><td width="68%">Adafruit Trinket Gemma bootloader disguised as USBtiny</td></tr>
+<tr><td width="30%"><code>arduino</code></td><td width="68%">Arduino for bootloader using STK500 v1 protocol</td></tr>
+<tr><td width="30%"><code>arduino-ft232r</code></td><td width="68%">Arduino: FT232R connected to ISP</td></tr>
+<tr><td width="30%"><code>arduino_gemma</code></td><td width="68%">Arduino Gemma bootloader disguised as USBtiny</td></tr>
+<tr><td width="30%"><code>arduinoisp</code></td><td width="68%">Arduino ISP Programmer</td></tr>
+<tr><td width="30%"><code>arduinoisporg</code></td><td width="68%">Arduino ISP Programmer</td></tr>
+<tr><td width="30%"><code>atmelice</code></td><td width="68%">Atmel-ICE (ARM/AVR) in JTAG mode</td></tr>
+<tr><td width="30%"><code>atmelice_dw</code></td><td width="68%">Atmel-ICE (ARM/AVR) in debugWIRE mode</td></tr>
+<tr><td width="30%"><code>atmelice_isp</code></td><td width="68%">Atmel-ICE (ARM/AVR) in ISP mode</td></tr>
+<tr><td width="30%"><code>atmelice_pdi</code></td><td width="68%">Atmel-ICE (ARM/AVR) in PDI mode</td></tr>
+<tr><td width="30%"><code>atmelice_tpi</code></td><td width="68%">Atmel-ICE (ARM/AVR) in TPI mode</td></tr>
+<tr><td width="30%"><code>atmelice_updi</code></td><td width="68%">Atmel-ICE (ARM/AVR) in UPDI mode</td></tr>
+<tr><td width="30%"><code>avr109</code></td><td width="68%">Atmel for bootloader using AppNote AVR109</td></tr>
+<tr><td width="30%"><code>avr910</code></td><td width="68%">Atmel Low Cost Serial Programmer</td></tr>
+<tr><td width="30%"><code>avr911</code></td><td width="68%">Atmel for bootloader using AppNote AVR911 AVROSP</td></tr>
+<tr><td width="30%"><code>avrftdi</code></td><td width="68%">FT2232D based generic programmer</td></tr>
+<tr><td width="30%"><code>avrisp</code></td><td width="68%">Atmel AVR ISP</td></tr>
+<tr><td width="30%"><code>avrisp2</code></td><td width="68%">Atmel AVR ISP mkII</td></tr>
+<tr><td width="30%"><code>avrispmkII</code></td><td width="68%">Atmel AVR ISP mkII</td></tr>
+<tr><td width="30%"><code>avrispv2</code></td><td width="68%">Atmel AVR ISP v2</td></tr>
+<tr><td width="30%"><code>buspirate</code></td><td width="68%">The Bus Pirate</td></tr>
+<tr><td width="30%"><code>buspirate_bb</code></td><td width="68%">The Bus Pirate (bitbang interface, supports TPI)</td></tr>
+<tr><td width="30%"><code>butterfly</code></td><td width="68%">Atmel for bootloader (Butterfly Development Board)</td></tr>
+<tr><td width="30%"><code>butterfly_mk</code></td><td width="68%">Mikrokopter.de Butterfly for bootloader</td></tr>
+<tr><td width="30%"><code>bwmega</code></td><td width="68%">BitWizard ftdi_atmega builtin programmer</td></tr>
+<tr><td width="30%"><code>c232hm</code></td><td width="68%">C232HM cable from FTDI</td></tr>
+<tr><td width="30%"><code>c2n232i</code></td><td width="68%">serial port banging, reset=dtr sck=!rts sdo=!txd sdi=!cts</td></tr>
+<tr><td width="30%"><code>dasa</code></td><td width="68%">serial port banging, reset=rts sck=dtr sdo=txd sdi=cts</td></tr>
+<tr><td width="30%"><code>dasa3</code></td><td width="68%">serial port banging, reset=!dtr sck=rts sdo=txd sdi=cts</td></tr>
+<tr><td width="30%"><code>diecimila</code></td><td width="68%">alias for arduino-ft232r</td></tr>
+<tr><td width="30%"><code>digilent-hs2</code></td><td width="68%">Digilient JTAG HS2 (MPSSE)</td></tr>
+<tr><td width="30%"><code>dragon_dw</code></td><td width="68%">Atmel AVR Dragon in debugWire mode</td></tr>
+<tr><td width="30%"><code>dragon_hvsp</code></td><td width="68%">Atmel AVR Dragon in HVSP mode</td></tr>
+<tr><td width="30%"><code>dragon_isp</code></td><td width="68%">Atmel AVR Dragon in ISP mode</td></tr>
+<tr><td width="30%"><code>dragon_jtag</code></td><td width="68%">Atmel AVR Dragon in JTAG mode</td></tr>
+<tr><td width="30%"><code>dragon_pdi</code></td><td width="68%">Atmel AVR Dragon in PDI mode</td></tr>
+<tr><td width="30%"><code>dragon_pp</code></td><td width="68%">Atmel AVR Dragon in PP mode</td></tr>
+<tr><td width="30%"><code>ehajo-isp</code></td><td width="68%">avr-isp-programmer from eHaJo, http://www.eHaJo.de</td></tr>
+<tr><td width="30%"><code>flip1</code></td><td width="68%">FLIP for bootloader using USB DFU protocol version 1 (doc7618)</td></tr>
+<tr><td width="30%"><code>flip2</code></td><td width="68%">FLIP for bootloader using USB DFU protocol version 2 (AVR4023)</td></tr>
+<tr><td width="30%"><code>ft2232h</code></td><td width="68%">FT2232H based generic programmer</td></tr>
+<tr><td width="30%"><code>ft232h</code></td><td width="68%">FT232H based generic programmer</td></tr>
+<tr><td width="30%"><code>ft232r</code></td><td width="68%">FT232R based generic programmer</td></tr>
+<tr><td width="30%"><code>ft245r</code></td><td width="68%">FT245R based generic programmer</td></tr>
+<tr><td width="30%"><code>ft4232h</code></td><td width="68%">FT4232H based generic programmer</td></tr>
+<tr><td width="30%"><code>iseavrprog</code></td><td width="68%">USBtiny-based programmer, https://iascaled.com</td></tr>
+<tr><td width="30%"><code>jtag1</code></td><td width="68%">Atmel JTAG ICE (mkI)</td></tr>
+<tr><td width="30%"><code>jtag1slow</code></td><td width="68%">Atmel JTAG ICE (mkI)</td></tr>
+<tr><td width="30%"><code>jtag2</code></td><td width="68%">Atmel JTAG ICE mkII</td></tr>
+<tr><td width="30%"><code>jtag2avr32</code></td><td width="68%">Atmel JTAG ICE mkII in AVR32 mode</td></tr>
+<tr><td width="30%"><code>jtag2dw</code></td><td width="68%">Atmel JTAG ICE mkII in debugWire mode</td></tr>
+<tr><td width="30%"><code>jtag2fast</code></td><td width="68%">Atmel JTAG ICE mkII</td></tr>
+<tr><td width="30%"><code>jtag2isp</code></td><td width="68%">Atmel JTAG ICE mkII in ISP mode</td></tr>
+<tr><td width="30%"><code>jtag2pdi</code></td><td width="68%">Atmel JTAG ICE mkII in PDI mode</td></tr>
+<tr><td width="30%"><code>jtag2slow</code></td><td width="68%">Atmel JTAG ICE mkII</td></tr>
+<tr><td width="30%"><code>jtag2updi</code></td><td width="68%">JTAGv2 to UPDI bridge</td></tr>
+<tr><td width="30%"><code>jtag3</code></td><td width="68%">Atmel AVR JTAGICE3 in JTAG mode</td></tr>
+<tr><td width="30%"><code>jtag3dw</code></td><td width="68%">Atmel AVR JTAGICE3 in debugWIRE mode</td></tr>
+<tr><td width="30%"><code>jtag3isp</code></td><td width="68%">Atmel AVR JTAGICE3 in ISP mode</td></tr>
+<tr><td width="30%"><code>jtag3pdi</code></td><td width="68%">Atmel AVR JTAGICE3 in PDI mode</td></tr>
+<tr><td width="30%"><code>jtag3updi</code></td><td width="68%">Atmel AVR JTAGICE3 in UPDI mode</td></tr>
+<tr><td width="30%"><code>jtagkey</code></td><td width="68%">Amontec JTAGKey, JTAGKey-Tiny and JTAGKey2</td></tr>
+<tr><td width="30%"><code>jtagmkI</code></td><td width="68%">Atmel JTAG ICE (mkI)</td></tr>
+<tr><td width="30%"><code>jtagmkII</code></td><td width="68%">Atmel JTAG ICE mkII</td></tr>
+<tr><td width="30%"><code>jtagmkII_avr32</code></td><td width="68%">Atmel JTAG ICE mkII in AVR32 mode</td></tr>
+<tr><td width="30%"><code>ktlink</code></td><td width="68%">KT-LINK FT2232H interface with IO switching and voltage buffers.</td></tr>
+<tr><td width="30%"><code>lm3s811</code></td><td width="68%">Luminary Micro LM3S811 Eval Board (Rev. A)</td></tr>
+<tr><td width="30%"><code>mib510</code></td><td width="68%">Crossbow MIB510 programming board</td></tr>
+<tr><td width="30%"><code>micronucleus</code></td><td width="68%">Micronucleus for bootloader</td></tr>
+<tr><td width="30%"><code>mkbutterfly</code></td><td width="68%">Mikrokopter.de Butterfly for bootloader</td></tr>
+<tr><td width="30%"><code>nibobee</code></td><td width="68%">NIBObee</td></tr>
+<tr><td width="30%"><code>o-link</code></td><td width="68%">O-Link, OpenJTAG from www.100ask.net</td></tr>
+<tr><td width="30%"><code>openmoko</code></td><td width="68%">Openmoko debug board (v3)</td></tr>
+<tr><td width="30%"><code>pavr</code></td><td width="68%">Jason Kyle&rsquo;s pAVR Serial Programmer</td></tr>
+<tr><td width="30%"><code>pickit2</code></td><td width="68%">MicroChip&rsquo;s PICkit2 Programmer</td></tr>
+<tr><td width="30%"><code>pickit4</code></td><td width="68%">MPLAB(R) PICkit 4 in JTAG mode</td></tr>
+<tr><td width="30%"><code>pickit4_isp</code></td><td width="68%">MPLAB(R) PICkit 4 in ISP mode</td></tr>
+<tr><td width="30%"><code>pickit4_pdi</code></td><td width="68%">MPLAB(R) PICkit 4 in PDI mode</td></tr>
+<tr><td width="30%"><code>pickit4_tpi</code></td><td width="68%">MPLAB(R) PICkit 4 in TPI mode</td></tr>
+<tr><td width="30%"><code>pickit4_updi</code></td><td width="68%">MPLAB(R) PICkit 4 in UPDI mode</td></tr>
+<tr><td width="30%"><code>pkobn_updi</code></td><td width="68%">Curiosity nano (nEDBG) in UPDI mode</td></tr>
+<tr><td width="30%"><code>ponyser</code></td><td width="68%">design ponyprog serial, reset=!txd sck=rts sdo=dtr sdi=cts</td></tr>
+<tr><td width="30%"><code>powerdebugger</code></td><td width="68%">Atmel PowerDebugger (ARM/AVR) in JTAG mode</td></tr>
+<tr><td width="30%"><code>powerdebugger_dw</code></td><td width="68%">Atmel PowerDebugger (ARM/AVR) in debugWire mode</td></tr>
+<tr><td width="30%"><code>powerdebugger_isp</code></td><td width="68%">Atmel PowerDebugger (ARM/AVR) in ISP mode</td></tr>
+<tr><td width="30%"><code>powerdebugger_pdi</code></td><td width="68%">Atmel PowerDebugger (ARM/AVR) in PDI mode</td></tr>
+<tr><td width="30%"><code>powerdebugger_tpi</code></td><td width="68%">Atmel PowerDebugger (ARM/AVR) in TPI mode</td></tr>
+<tr><td width="30%"><code>powerdebugger_updi</code></td><td width="68%">Atmel PowerDebugger (ARM/AVR) in UPDI mode</td></tr>
+<tr><td width="30%"><code>serialupdi</code></td><td width="68%">SerialUPDI</td></tr>
+<tr><td width="30%"><code>siprog</code></td><td width="68%">Lancos SI-Prog &lt;http://www.lancos.com/siprogsch.html&gt;</td></tr>
+<tr><td width="30%"><code>snap</code></td><td width="68%">MPLAB(R) Snap in JTAG mode</td></tr>
+<tr><td width="30%"><code>snap_isp</code></td><td width="68%">MPLAB(R) SNAP in ISP mode</td></tr>
+<tr><td width="30%"><code>snap_pdi</code></td><td width="68%">MPLAB(R) SNAP in PDI mode</td></tr>
+<tr><td width="30%"><code>snap_tpi</code></td><td width="68%">MPLAB(R) SNAP in TPI mode</td></tr>
+<tr><td width="30%"><code>snap_updi</code></td><td width="68%">MPLAB(R) SNAP in UPDI mode</td></tr>
+<tr><td width="30%"><code>stk500</code></td><td width="68%">Atmel STK500</td></tr>
+<tr><td width="30%"><code>stk500hvsp</code></td><td width="68%">Atmel STK500 v2 in high-voltage serial programming mode</td></tr>
+<tr><td width="30%"><code>stk500pp</code></td><td width="68%">Atmel STK500 v2 in parallel programming mode</td></tr>
+<tr><td width="30%"><code>stk500v1</code></td><td width="68%">Atmel STK500 version 1.x firmware</td></tr>
+<tr><td width="30%"><code>stk500v2</code></td><td width="68%">Atmel STK500 version 2.x firmware</td></tr>
+<tr><td width="30%"><code>stk600</code></td><td width="68%">Atmel STK600</td></tr>
+<tr><td width="30%"><code>stk600hvsp</code></td><td width="68%">Atmel STK600 in high-voltage serial programming mode</td></tr>
+<tr><td width="30%"><code>stk600pp</code></td><td width="68%">Atmel STK600 in parallel programming mode</td></tr>
+<tr><td width="30%"><code>tc2030</code></td><td width="68%">Tag-Connect TC2030</td></tr>
+<tr><td width="30%"><code>teensy</code></td><td width="68%">Teensy for bootloader</td></tr>
+<tr><td width="30%"><code>tigard</code></td><td width="68%">Tigard interface board</td></tr>
+<tr><td width="30%"><code>ttl232r</code></td><td width="68%">FTDI TTL232R-5V with ICSP adapter</td></tr>
+<tr><td width="30%"><code>tumpa</code></td><td width="68%">TIAO USB Multi-Protocol Adapter</td></tr>
+<tr><td width="30%"><code>um232h</code></td><td width="68%">UM232H module from FTDI</td></tr>
+<tr><td width="30%"><code>uncompatino</code></td><td width="68%">uncompatino with all pairs of pins shorted</td></tr>
+<tr><td width="30%"><code>urclock</code></td><td width="68%">Urclock programmer for urboot bootloaders using urprotocol</td></tr>
+<tr><td width="30%"><code>usbasp</code></td><td width="68%">USBasp, http://www.fischl.de/usbasp/</td></tr>
+<tr><td width="30%"><code>usbasp-clone</code></td><td width="68%">Any usbasp clone with correct VID/PID</td></tr>
+<tr><td width="30%"><code>usbtiny</code></td><td width="68%">USBtiny simple USB programmer, https://learn.adafruit.com/usbtinyisp</td></tr>
+<tr><td width="30%"><code>wiring</code></td><td width="68%">Wiring for bootloader using STK500 v2 protocol</td></tr>
+<tr><td width="30%"><code>xbee</code></td><td width="68%">XBee for Series 2 Over-The-Air (XBeeBoot) bootloader using STK500 v1 protocol</td></tr>
+<tr><td width="30%"><code>xplainedmini</code></td><td width="68%">Atmel AVR XplainedMini in ISP mode</td></tr>
+<tr><td width="30%"><code>xplainedmini_dw</code></td><td width="68%">Atmel AVR XplainedMini in debugWIRE mode</td></tr>
+<tr><td width="30%"><code>xplainedmini_tpi</code></td><td width="68%">Atmel AVR XplainedMini in TPI mode</td></tr>
+<tr><td width="30%"><code>xplainedmini_updi</code></td><td width="68%">Atmel AVR XplainedMini in UPDI mode</td></tr>
+<tr><td width="30%"><code>xplainedpro</code></td><td width="68%">Atmel AVR XplainedPro in JTAG mode</td></tr>
+<tr><td width="30%"><code>xplainedpro_pdi</code></td><td width="68%">Atmel AVR XplainedPro in PDI mode</td></tr>
+<tr><td width="30%"><code>xplainedpro_updi</code></td><td width="68%">Atmel AVR XplainedPro in UPDI mode</td></tr>
 </table>
 
 
 
+</dd>
+<dt><code>-c <var>wildcard/flags</var></code></dt>
+<dd><p>Run developer options for programmers that are matched by <var>wildcard</var>.
+Whilst their main use is for developers some <var>flags</var> can be of utility
+for users, e.g., <code>avrdude -c usbtiny/S</code> shows AVRDUDE&rsquo;s understanding of
+usbtiny&rsquo;s properties; for more information run <code>avrdude -c x/h</code>.
+</p>
 </dd>
 <dt><code>-C <var>config-file</var></code></dt>
 <dd><p>Use the specified config file for configuration data.  This file
@@ -623,7 +665,18 @@ without patching your system wide configuration file. It can be used
 several times, the files are read in same order as given on the command 
 line.
 </p>
-
+</dd>
+<dt><code>-A</code></dt>
+<dd><p>Disable the automatic removal of trailing-0xFF sequences in file
+input that is to be programmed to flash and in AVR reads from
+flash memory. Normally, trailing 0xFFs can be discarded, as flash
+programming requires the memory be erased to 0xFF beforehand. -A
+should be used when the programmer hardware, or bootloader
+software for that matter, does not carry out chip erase and
+instead handles the memory erase on a page level. The popular
+Arduino bootloader exhibits this behaviour; for this reason -A is
+engaged by default when specifying -c arduino.
+</p>
 </dd>
 <dt><code>-D</code></dt>
 <dd><p>Disable auto erase for flash.  When the -U option with flash memory is 
@@ -635,6 +688,7 @@ use page erase before writing each page so no explicit chip erase
 is required.
 Note however that any page not affected by the current operation
 will retain its previous contents.
+Setting -D implies -A.
 </p>
 </dd>
 <dt><code>-e</code></dt>
@@ -665,13 +719,17 @@ Note in particular that the programming algorithm for the AT90S1200
 device mandates that the &lsquo;/RESET&rsquo; signal is active before powering up
 the MCU, so in case an external power supply is used for this MCU type,
 a previous invocation of AVRDUDE with this option specified is one of
-the possible ways to guarantee this condition.
+the possible ways to guarantee this condition. <code>reset</code> is supported
+by the <code>linuxspi</code> and <code>flip2</code> programmer options, as well as
+all parallel port based programmers.
 </p>
 </dd>
 <dt><code>noreset</code></dt>
 <dd><p>The &lsquo;/RESET&rsquo; line will be deactivated at program exit, thus allowing the
 MCU target program to run while the programming hardware remains
-connected.
+connected. <code>noreset</code> is supported by the <code>linuxspi</code> and
+<code>flip2</code> programmer options, as well as all parallel port based
+programmers.
 </p>
 </dd>
 <dt><code>vcc</code></dt>
@@ -710,6 +768,8 @@ Also, for programmers like the Atmel STK500 and STK600 which can
 adjust parameters local to the programming tool (independent of an
 actual connection to a target controller), this option can be used
 together with &lsquo;<samp>-t</samp>&rsquo; to continue in terminal mode.
+Moreover, the option allows to continue despite failed initialization
+of connection between a programmer and a target.
 </p>
 </dd>
 <dt><code>-i <var>delay</var></code></dt>
@@ -827,6 +887,11 @@ Posix systems (by now).
 to the device.  Specify it a second time for even quieter operation.
 </p>
 </dd>
+<dt><code>-s, -u</code></dt>
+<dd><p>These options used to control the obsolete &quot;safemode&quot; feature which
+is no longer present. They are silently ignored for backwards compatibility.
+</p>
+</dd>
 <dt><code>-t</code></dt>
 <dd><p>Tells AVRDUDE to enter the interactive &ldquo;terminal&rdquo; mode instead of up-
 or downloading files.  See below for a detailed description of the
@@ -922,6 +987,10 @@ the file to read or write.  Possible values are:
 <dd><p>Intel Hex
 </p>
 </dd>
+<dt><code>I</code></dt>
+<dd><p>Intel Hex with comments on download and tolerance of checksum errors on upload
+</p>
+</dd>
 <dt><code>s</code></dt>
 <dd><p>Motorola S-record
 </p>
@@ -961,15 +1030,18 @@ fuse bit settings.
 </dd>
 <dt><code>h</code></dt>
 <dd><p>hexadecimal; each value will get the string <em>0x</em> prepended.
+Only valid on output.
 </p>
 </dd>
 <dt><code>o</code></dt>
 <dd><p>octal; each value will get a <em>0</em>
 prepended unless it is less than 8 in which case it gets no prefix.
+Only valid on output.
 </p>
 </dd>
 <dt><code>b</code></dt>
 <dd><p>binary; each value will get the string <em>0b</em> prepended.
+Only valid on output.
 </p>
 </dd>
 </dl>
@@ -1030,7 +1102,7 @@ accepting extended parameters.
 </tr></table>
 <p>
  <font size="-1">
-  This document was generated on <i>April 26, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>January 8, 2023</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
  </font>
  <br>
 

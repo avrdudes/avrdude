@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<!-- Created on April 26, 2022 by texi2html 5.0
+<!-- Created on January 8, 2023 by texi2html 5.0
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -96,21 +96,24 @@ code {
 the parts and programmers that it knows about.  The advantage of this is
 that if you have a chip that is not currently supported by AVRDUDE, you
 can add it to the configuration file without waiting for a new release
-of AVRDUDE.  Likewise, if you have a parallel port programmer that is
-not supported by AVRDUDE, chances are good that you can copy and
-existing programmer definition, and with only a few changes, make your
-programmer work with AVRDUDE.
+of AVRDUDE. Likewise, if you have a parallel port programmer that is
+not supported, chances are that you can copy an
+existing programmer definition and, with only a few changes, make your
+programmer work.
 </p>
 <p>AVRDUDE first looks for a system wide configuration file in a platform
 dependent location.  On Unix, this is usually
-<code>/usr/local/etc/avrdude.conf</code>, while on Windows it is usually in the
-same location as the executable file.  The name of this file can be
-changed using the &lsquo;<samp>-C</samp>&rsquo; command line option.  After the system wide
-configuration file is parsed, AVRDUDE looks for a per-user configuration
+<code>/usr/local/etc/avrdude.conf</code>, whilst on Windows it is usually in the
+same location as the executable file.  The full name of this file can be
+specified using the &lsquo;<samp>-C</samp>&rsquo; command line option.  After parsing the system wide
+configuration file, AVRDUDE looks for a per-user configuration
 file to augment or override the system wide defaults.  On Unix, the
-per-user file is <code>.avrduderc</code> within the user&rsquo;s home directory.  On
-Windows, this file is the <code>avrdude.rc</code> file located in the same
-directory as the executable.
+per-user file is <code>${XDG_CONFIG_HOME}/avrdude/avrdude.rc</code>, whereas
+if <code>${XDG_CONFIG_HOME}</code> is either not set or empty,
+<code>${HOME}/.config/</code> is used instead. If that does not exists
+<code>.avrduderc</code> within the user&rsquo;s home directory is used. On Windows,
+this file is the <code>avrdude.rc</code> file located in the same directory as
+the executable.
 </p>
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top"><a href="avrdude_10.html#AVRDUDE-Defaults">4.1 AVRDUDE Defaults</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">            
@@ -141,7 +144,7 @@ directory as the executable.
 </tr></table>
 <p>
  <font size="-1">
-  This document was generated on <i>April 26, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>January 8, 2023</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
  </font>
  <br>
 

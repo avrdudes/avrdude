@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<!-- Created on April 26, 2022 by texi2html 5.0
+<!-- Created on January 8, 2023 by texi2html 5.0
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -280,10 +280,10 @@ Xmega device through PDI.
 <table>
 <tr><td width="20%"><strong>Dragon</strong></td><td width="20%"><strong>Target</strong></td></tr>
 <tr><td width="20%"><strong>ISP Header</strong></td><td width="20%"><strong>pins</strong></td></tr>
-<tr><td width="20%">1 (MISO)</td><td width="20%">PDI_DATA</td></tr>
+<tr><td width="20%">1 (SDI)</td><td width="20%">PDI_DATA</td></tr>
 <tr><td width="20%">2 (VCC)</td><td width="20%">VCC</td></tr>
 <tr><td width="20%">3 (SCK)</td><td width="20%"></td></tr>
-<tr><td width="20%">4 (MOSI)</td><td width="20%"></td></tr>
+<tr><td width="20%">4 (SDO)</td><td width="20%"></td></tr>
 <tr><td width="20%">5 (RESET)</td><td width="20%">PDI_CLK / RST</td></tr>
 <tr><td width="20%">6 (GND)</td><td width="20%">GND</td></tr>
 </table>
@@ -297,10 +297,10 @@ ATtiny4/5/9/10 device through TPI.  How to connect the pins?
 <table>
 <tr><td width="20%"><strong>AVRISP</strong></td><td width="20%"><strong>Target</strong></td><td width="20%"><strong>ATtiny</strong></td></tr>
 <tr><td width="20%"><strong>connector</strong></td><td width="20%"><strong>pins</strong></td><td width="20%"><strong>pin #</strong></td></tr>
-<tr><td width="20%">1 (MISO)</td><td width="20%">TPIDATA</td><td width="20%">1</td></tr>
+<tr><td width="20%">1 (SDI)</td><td width="20%">TPIDATA</td><td width="20%">1</td></tr>
 <tr><td width="20%">2 (VTref)</td><td width="20%">Vcc</td><td width="20%">5</td></tr>
 <tr><td width="20%">3 (SCK)</td><td width="20%">TPICLK</td><td width="20%">3</td></tr>
-<tr><td width="20%">4 (MOSI)</td><td width="20%"></td><td width="20%"></td></tr>
+<tr><td width="20%">4 (SDO)</td><td width="20%"></td><td width="20%"></td></tr>
 <tr><td width="20%">5 (RESET)</td><td width="20%">/RESET</td><td width="20%">6</td></tr>
 <tr><td width="20%">6 (GND)</td><td width="20%">GND</td><td width="20%">2</td></tr>
 </table>
@@ -310,10 +310,10 @@ Problem: I want to program an ATtiny4/5/9/10 device using a serial/parallel
 bitbang programmer.  How to connect the pins?
 
 <p>Solution: Since TPI has only 1 pin for bi-directional data transfer, both 
-<var>MISO</var> and <var>MOSI</var> pins should be connected to the <var>TPIDATA</var> pin 
+<var>SDI</var> and <var>SDO</var> pins should be connected to the <var>TPIDATA</var> pin
 on the ATtiny device.
-However, a 1K resistor should be placed between the <var>MOSI</var> and <var>TPIDATA</var>.
-The <var>MISO</var> pin connects to <var>TPIDATA</var> directly.
+However, a 1K resistor should be placed between the <var>SDO</var> and <var>TPIDATA</var>.
+The <var>SDI</var> pin connects to <var>TPIDATA</var> directly.
 The <var>SCK</var> pin is connected to <var>TPICLK</var>.
 </p>
 <p>In addition, the <var>Vcc</var>, <var>/RESET</var> and <var>GND</var> pins should 
@@ -331,12 +331,12 @@ front of pins 7, 4, 3 and 8):
 <div class="example">
 <pre class="example">programmer
   id    = &quot;dasa_ftdi&quot;;
-  desc  = &quot;serial port banging, reset=rts sck=dtr mosi=txd miso=cts&quot;;
+  desc  = &quot;serial port banging, reset=rts sck=dtr sdo=txd sdi=cts&quot;;
   type  = serbb;
   reset = ~7;
   sck   = ~4;
-  mosi  = ~3;
-  miso  = ~8;
+  sdo   = ~3;
+  sdi   = ~8;
 ;
 </pre></div>
 
@@ -379,14 +379,15 @@ affected by this.
 </li><li>
 Problem: after flashing a firmware that reduces the target&rsquo;s clock
 speed (e.g. through the <code>CLKPR</code> register), further ISP connection
-attempts fail.
+attempts fail.  Or a programmer cannot initialize communication with
+a brand new chip.
 
 <p>Solution: Even though ISP starts with pulling <var>/RESET</var> low, the
-target continues to run at the internal clock speed as defined by the
-firmware running before.  Therefore, the ISP clock speed must be
-reduced appropriately (to less than 1/4 of the internal clock speed)
-using the -B option before the ISP initialization sequence will
-succeed.
+target continues to run at the internal clock speed either as defined by
+the firmware running before or as set by the factory.  Therefore, the
+ISP clock speed must be reduced appropriately (to less than 1/4 of the
+internal clock speed) using the -B option before the ISP initialization
+sequence will succeed.
 </p>
 <p>As that slows down the entire subsequent ISP session, it might make
 sense to just issue a <em>chip erase</em> using the slow ISP clock
@@ -414,7 +415,7 @@ erase cycle.
 </tr></table>
 <p>
  <font size="-1">
-  This document was generated on <i>April 26, 2022</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>January 8, 2023</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
  </font>
  <br>
 
