@@ -486,6 +486,13 @@ typedef struct {
   AVRMEMdeep mems[40];
 } AVRPARTdeep;
 
+
+// Return memory iff its desc matches str exactly
+static AVRMEM *dev_locate_mem(const AVRPART *p, const char *str) {
+  AVRMEM *m = p->mem? avr_locate_mem_noalias(p, str): NULL;
+  return m && strcmp(m->desc, str) == 0? m: NULL;
+}
+
 static int avrpart_deep_copy(AVRPARTdeep *d, const AVRPART *p) {
   AVRMEM *m;
   size_t di;
@@ -525,7 +532,7 @@ static int avrpart_deep_copy(AVRPARTdeep *d, const AVRPART *p) {
   // Fill in all memories we got in defined order
   di = 0;
   for(size_t mi=0; mi < sizeof avr_mem_order/sizeof *avr_mem_order && avr_mem_order[mi]; mi++) {
-    m = p->mem? avr_locate_mem_noalias(p, avr_mem_order[mi]): NULL;
+    m = dev_locate_mem(p, avr_mem_order[mi]);
     if(m) {
       if(di >= sizeof d->mems/sizeof *d->mems) {
         pmsg_error("ran out of mems[] space, increase size in AVRMEMdeep of developer_opts.c and recompile\n");
@@ -726,8 +733,8 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
   for(size_t mi=0; mi < sizeof avr_mem_order/sizeof *avr_mem_order && avr_mem_order[mi]; mi++) {
     AVRMEM *m, *bm;
 
-    m = p->mem? avr_locate_mem_noalias(p, avr_mem_order[mi]): NULL;
-    bm = base && base->mem? avr_locate_mem_noalias(base, avr_mem_order[mi]): NULL;
+    m = dev_locate_mem(p, avr_mem_order[mi]);
+    bm = base? dev_locate_mem(base, avr_mem_order[mi]): NULL;
 
     if(!m && bm && !tsv)
       dev_info("\n    memory \"%s\" = NULL;\n", bm->desc);
@@ -1189,6 +1196,42 @@ static const char *connstr(conntype_t conntype) {
   }
 }
 
+
+static char *dev_usbpid_liststr(const PROGRAMMER *pgm) {
+  char spc[1024];  int firstid = 1;
+
+  spc[0] = 0;
+  if(pgm->usbpid)
+    for(LNODEID ln=lfirst(pgm->usbpid); ln; ln=lnext(ln)) {
+      if(strlen(spc) > sizeof spc - 20)
+        break;
+      if(!firstid)
+        strcat(spc, ", ");
+      firstid = 0;
+      sprintf(spc + strlen(spc), "0x%04x", *(unsigned int *) ldata(ln));
+    }
+
+  return cfg_strdup(__func__, *spc? spc: "NULL");
+}
+
+static char *dev_hvupdi_support_liststr(const PROGRAMMER *pgm) {
+  char spc[1024];  int firstid = 1;
+
+  spc[0] = 0;
+  if(pgm->hvupdi_support)
+    for(LNODEID ln=lfirst(pgm->hvupdi_support); ln; ln=lnext(ln)) {
+      if(strlen(spc) > sizeof spc - 20)
+        break;
+      if(!firstid)
+        strcat(spc, ", ");
+      firstid = 0;
+      sprintf(spc + strlen(spc), "%d", *(unsigned int *) ldata(ln));
+    }
+
+  return cfg_strdup(__func__, *spc? spc: "NULL");
+}
+
+
 static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *base, bool injct) {
   char *id = ldata(lfirst(pgm->id));
   LNODEID ln;
@@ -1249,26 +1292,18 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
 
   _if_pgmout(intcmp, "0x%04x", usbvid);
 
-  if(pgm->usbpid && lfirst(pgm->usbpid)) {
-    if(tsv)
-      dev_info(".prog\t%s\tusbpid\t", id);
-    else {
-      dev_cout(pgm->comments, "usbpid", 0, 0);
-      dev_info("    %-22s = ", "usbpid");
-    }
-    for(firstid=1, ln=lfirst(pgm->usbpid); ln; ln=lnext(ln)) {
-      if(!firstid)
-        dev_info(", ");
-      firstid = 0;
-      dev_info("0x%04x", *(unsigned int *) ldata(ln));
-    }
-    if(tsv)
-      dev_info("\n");
-    else {
-      dev_info(";");
-      dev_cout(pgm->comments, "usbpid", 1, 1);
-    }
+  char *pgmstr = dev_usbpid_liststr(pgm);
+  int show = !base;
+
+  if(base) {
+    char *basestr = dev_usbpid_liststr(base);
+    show = strcmp(basestr, pgmstr) != 0;
+    free(basestr);
   }
+  if(show)
+    dev_part_strct_entry(tsv, ".prog", id, NULL, "usbpid", pgmstr, pgm->comments);
+  else                          // dev_part_strct_entry() frees pgmstr
+    free(pgmstr);
 
   _if_pgmout_str(strcmp, cfg_escape(pgm->usbdev), usbdev);
   _if_pgmout_str(strcmp, cfg_escape(pgm->usbsn), usbsn);
@@ -1286,26 +1321,18 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
       free(bstr);
   }
 
-  if(pgm->hvupdi_support && lfirst(pgm->hvupdi_support)) {
-    if(tsv)
-      dev_info(".prog\t%s\thvupdu_support\t", id);
-    else {
-      dev_cout(pgm->comments, "hvupdi_support", 0, 0);
-      dev_info("    %-22s = ", "hvupdi_support");
-    }
-    for(firstid=1, ln=lfirst(pgm->hvupdi_support); ln; ln=lnext(ln)) {
-      if(!firstid)
-        dev_info(", ");
-      firstid = 0;
-      dev_info("%d", *(unsigned int *) ldata(ln));
-    }
-    if(tsv)
-      dev_info("\n");
-    else {
-      dev_info(";");
-      dev_cout(pgm->comments, "hvupdi_support", 1, 1);
-    }
+  pgmstr = dev_hvupdi_support_liststr(pgm);
+  show = !base;
+
+  if(base) {
+    char *basestr = dev_hvupdi_support_liststr(base);
+    show = strcmp(basestr, pgmstr) != 0;
+    free(basestr);
   }
+  if(show)
+    dev_part_strct_entry(tsv, ".prog", id, NULL, "hvupdi_support", pgmstr, pgm->comments);
+  else                          // dev_part_strct_entry() frees pgmstr
+    free(pgmstr);
 
   if(injct)
     for(size_t i=0; i<sizeof pgminj/sizeof*pgminj; i++)

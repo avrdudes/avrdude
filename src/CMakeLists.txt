@@ -70,6 +70,7 @@ if(MSVC)
         "msvc/getopt.c"
         "msvc/gettimeofday.c"
         "msvc/usleep.cpp"
+        "msvc/readline.cpp"
         )
     set(EXTRA_WINDOWS_INCLUDES ${EXTRA_WINDOWS_INCLUDES}
         "msvc"

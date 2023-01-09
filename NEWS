@@ -5,7 +5,22 @@ Approximate change log for AVRDUDE by version.
 (For detailed changes, see the version control system logs.)
 
 ----------------------------------------------------------------------
-Changes since version 7.0:
+Changes since version 7.1:
+
+  * Major changes compared to the previous version:
+
+  * New devices supported: none
+
+  * New programmers supported:
+
+  * Issues fixed:
+
+  * Pull requests:
+
+  * Internals:
+
+
+Changes in version 7.1:
 
   * Major changes compared to the previous version:
 
@@ -124,6 +139,9 @@ Changes since version 7.0:
     - urclock/FTDI communication issues #1245
     - stk500v2.c dumps core on open #1254
     - linuxgpio cannot use pin 0 #1228
+    - Remove non-working butterfly page erase function
+    - linuxgpio and linuxspi: input files with unset bytes don't program
+      correctly #1263 #455
 
   * Pull requests:
 
@@ -274,6 +292,12 @@ Changes since version 7.0:
     - Fix partial matches for locate_mem() and do_cmd() #1256
     - Add abbreviated q command in terminal
     - Move static usbsn into serdev struct and remove serno #1258
+    - Clean up avrdude.conf.in fixing a couple of bugs #1260
+    - Add readline library replacement for MSVC #1264
+    - Ensure full words are loaded for ISP programming #1265
+    - Silence page erase in cache code #1266
+    - Update to latest MSVC fork of hidapi to include bug fixes
+      #1269
 
   * Internals:
 

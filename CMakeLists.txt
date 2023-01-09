@@ -21,7 +21,7 @@
 #     cmake --build build
 
 cmake_minimum_required(VERSION 3.14)
-project(avrdude VERSION 7.0 LANGUAGES C)
+project(avrdude VERSION 7.1 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED True)
@@ -223,6 +223,8 @@ endif()
 find_library(HAVE_LIBREADLINE NAMES ${PREFERRED_LIBREADLINE})
 if(HAVE_LIBREADLINE)
     set(LIB_LIBREADLINE ${HAVE_LIBREADLINE})
+elseif(MSVC)
+    set(HAVE_LIBREADLINE 1)
 endif()
 
 # =====================================
@@ -242,7 +244,7 @@ if(USE_EXTERNAL_LIBS)
 
     FetchContent_Declare(libhidapi
         GIT_REPOSITORY https://github.com/avrdudes/libhidapi.git
-        GIT_TAG e3700e951f762ef92871ff4fc94586e4d1c042a6
+        GIT_TAG d1307487973c857bc158e27ecc99644b2f5e68ea
         )
 
     FetchContent_Declare(libftdi

@@ -34,7 +34,7 @@ jobs:
   linux-x86_64:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install prerequisites
         run: >-
           sudo apt-get update
@@ -66,7 +66,7 @@ jobs:
         run: cmake --build build
       - name: Archive build artifacts
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-linux-x86_64
           path: |
@@ -74,7 +74,7 @@ jobs:
             !**/*.d
             !**/*.o
       - name: Archive executables
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: avrdude-linux-x86_64
           path: |
@@ -91,7 +91,7 @@ jobs:
           - { arch: armhf, processor: armhf, prefix: arm-linux-gnueabihf, inc-lib: arm-linux-gnueabihf }
           - { arch: arm64, processor: aarch64, prefix: aarch64-linux-gnu, inc-lib: aarch64-linux-gnu }
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Add architecture
         run: |
           dpkg --add-architecture ${{matrix.arch}}
@@ -130,7 +130,7 @@ jobs:
         run: cmake --build build
       - name: Archive build artifacts
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-linux-${{matrix.processor}}
           path: |
@@ -138,7 +138,7 @@ jobs:
             !**/*.d
             !**/*.o
       - name: Archive executables
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: avrdude-linux-${{matrix.processor}}
           path: |
@@ -148,7 +148,7 @@ jobs:
   macos-x86_64:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install prerequisites
         run: >-
           # brew update
@@ -174,7 +174,7 @@ jobs:
         run: cmake --build build
       - name: Archive build artifacts
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-macos-x86_64
           path: |
@@ -182,7 +182,7 @@ jobs:
             !**/*.d
             !**/*.o
       - name: Archive executables
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: avrdude-macos-x86_64
           path: |
@@ -198,7 +198,7 @@ jobs:
           - { arch: x64, platform: x64 }
           - { arch: arm64, platform: ARM64 }
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install prerequisites
         # As Chocolatey is notoriously unreliable, install winflexbison3 directly from GitHub.
         # run: choco install winflexbison3
@@ -223,7 +223,7 @@ jobs:
         run: cmake --build build --config ${{env.BUILD_TYPE}}
       - name: Archive build artifacts
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-msvc-${{matrix.arch}}
           path: |
@@ -235,7 +235,7 @@ jobs:
           mv build/src/RelWithDebInfo/avrdude.exe build/src
           mv build/src/RelWithDebInfo/avrdude.pdb build/src
       - name: Archive executables
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: avrdude-msvc-${{matrix.arch}}
           path: |
@@ -254,7 +254,7 @@ jobs:
           - { sys: mingw32, env: i686 }
           - { sys: mingw64, env: x86_64 }
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: msys2/setup-msys2@v2
         with:
           msystem: ${{matrix.sys}}
@@ -279,13 +279,13 @@ jobs:
         run: cmake --build build
       - name: Archive build artifacts
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-mingw-${{matrix.env}}
           path: |
             build/
       - name: Archive executables
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: avrdude-mingw-${{matrix.env}}
           path: |
