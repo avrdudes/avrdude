@@ -2279,7 +2279,11 @@ static int stk500v2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
 
     memcpy(buf+10,m->buf+addr, block_size);
 
-    result = stk500v2_command(pgm,buf,block_size+10, sizeof(buf));
+    // Do not send request to write empty flash pages except for bootloaders (fixes Issue #425)
+    unsigned char *p = m->buf+addr;
+    result = (pgm->prog_modes & PM_SPM) || !addrshift || *p != 0xff || memcmp(p, p+1, block_size-1)?
+      stk500v2_command(pgm, buf, block_size+10, sizeof buf): 0;
+
     if (result < 0) {
       pmsg_error("write command failed\n");
       return -1;
