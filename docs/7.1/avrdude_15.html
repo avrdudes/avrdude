@@ -1,0 +1,167 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created on January 8, 2023 by texi2html 5.0
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: 4.4 Other Notes</title>
+
+<meta name="description" content="AVRDUDE: 4.4 Other Notes">
+<meta name="keywords" content="AVRDUDE: 4.4 Other Notes">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 5.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:pre}
+span.nolinebreak {white-space:pre}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+body { background-color: #ffd; }
+h1 { text-shadow: .05em .05em #ccc; }
+table {
+  border: 3px solid #ccf;
+  background-color: white;
+}
+div.smallexample {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+div.example {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+samp {
+  color: blue;
+}
+code {
+  color: green;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Other-Notes"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_9.html#Configuration-File" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_14.html#Instruction-Format" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_9.html#Configuration-File" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_16.html#Programmer-Specific-Information" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_16.html#Programmer-Specific-Information" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_40.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<hr>
+<a name="Other-Notes-1"></a>
+<h2 class="section">4.4 Other Notes</h2>
+
+
+<ul>
+<li>
+The <code>devicecode</code> parameter is the device code used by the STK500
+and is obtained from the software section (<code>avr061.zip</code>) of
+Atmel&rsquo;s AVR061 application note available from
+<a href="http://www.atmel.com/dyn/resources/prod_documents/doc2525.pdf">http://www.atmel.com/dyn/resources/prod_documents/doc2525.pdf</a>.
+
+</li><li>
+Not all memory types will implement all instructions.
+
+</li><li>
+AVR Fuse bits and Lock bits are implemented as a type of memory.
+
+</li><li>
+Example memory types are: <code>flash</code>, <code>eeprom</code>, <code>fuse</code>,
+<code>lfuse</code> (low fuse), <code>hfuse</code> (high fuse), <code>efuse</code>
+(extended fuse), <code>signature</code>, <code>calibration</code>, <code>lock</code>.
+
+</li><li>
+The memory type specified on the AVRDUDE command line must match one of
+the memory types defined for the specified chip.
+
+</li><li>
+The <code>pwroff_after_write</code> flag causes AVRDUDE to attempt to power
+the device off and back on after an unsuccessful write to the affected
+memory area if VCC programmer pins are defined.  If VCC pins are not
+defined for the programmer, a message indicating that the device needs a
+power-cycle is printed out.  This flag was added to work around a
+problem with the at90s4433/2333&rsquo;s; see the at90s4433 errata at:
+
+<p>         <a href="http://www.atmel.com/dyn/resources/prod_documents/doc1280.pdf">http://www.atmel.com/dyn/resources/prod_documents/doc1280.pdf</a>
+</p>
+</li><li>
+The boot loader from application note AVR109 (and thus also the AVR
+Butterfly) does not support writing of fuse bits.  Writing lock bits
+is supported, but is restricted to the boot lock bits (BLBxx).  These
+are restrictions imposed by the underlying SPM instruction that is used
+to program the device from inside the boot loader.  Note that programming
+the boot lock bits can result in a &ldquo;shoot-into-your-foot&rdquo; scenario as
+the only way to unprogram these bits is a chip erase, which will also
+erase the boot loader code.
+
+<p>The boot loader implements the &ldquo;chip erase&rdquo; function by erasing the
+flash pages of the application section.
+</p>
+<p>Reading fuse and lock bits is fully supported.
+</p>
+</li></ul>
+
+<hr>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_9.html#Configuration-File" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_14.html#Instruction-Format" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_9.html#Configuration-File" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_16.html#Programmer-Specific-Information" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_16.html#Programmer-Specific-Information" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_40.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated on <i>January 8, 2023</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>
