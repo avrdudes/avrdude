@@ -23,6 +23,7 @@
 #       type     = <type>;                        # programmer type, quoted string
 #                                                 # supported types can be listed by "-c ?type"
 #       prog_modes = PM_<i/f> {| PM_<i/f>}        # interfaces, eg, PM_SPM|PM_PDI (1)
+#       extra_features = HAS_<ft.> {| has_<ft.>}  # extra features, eg, HAS_SUFFER|HAS_VTARG_ADJ (2)
 #       connection_type = parallel | serial | usb | spi
 #       baudrate = <num> ;                        # baudrate for avr910-programmer
 #       vcc      = <pin1> [, <pin2> ... ] ;       # pin number(s)
@@ -36,7 +37,7 @@
 #       pgmled   = <pin> ;                        # pin number
 #       vfyled   = <pin> ;                        # pin number
 #       usbvid   = <hexnum> ;                     # USB VID (Vendor ID)
-#       usbpid   = <hexnum> [, <hexnum> ...] ;    # USB PID (Product ID) (2)
+#       usbpid   = <hexnum> [, <hexnum> ...] ;    # USB PID (Product ID) (3)
 #       usbdev   = <interface> ;                  # USB interface or other device info
 #       usbvendor = <vendorname> ;                # USB Vendor Name
 #       usbproduct = <productname> ;              # USB Product Name
@@ -62,7 +63,16 @@
 #   #  - PM_AVR32JTAG: JTAG for 32-bit AVRs
 #   #  - PM_aWire: AVR32 parts
 #   #
-#   # (2) Not all programmer types can process a list of PIDs
+#   # (2) The following extra programmer features are known:
+#   #  - HAS_SUFFER: Only present on Xplained Mini/Nano programmers.
+#   #    The Super User Fantastic Feature Enable Register allows the user to modify
+#   #    the behavior of the mEDBG programmer/debugger chip. See the Xplained Mini/Nano
+#   #    documentation for more information
+#   #  - HAS_VTARG_SWITCH: Programer has a programmable target power switch
+#   #  - HAS_VTARG_ADJ: Programmer has an adjustable target power source that can
+#   #    be controlled with Avrdude
+#   #
+#   # (3) Not all programmer types can process a list of PIDs
 #
 #   part
 #       desc             = <description> ;        # quoted string
@@ -2245,6 +2255,7 @@ programmer
     desc                   = "Atmel PowerDebugger (ARM/AVR) in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
+    extra_features         = HAS_VTARG_ADJ;
     connection_type        = usb;
     usbpid                 = 0x2144;
 ;
@@ -2258,6 +2269,7 @@ programmer
     desc                   = "Atmel PowerDebugger (ARM/AVR) in PDI mode";
     type                   = "jtagice3_pdi";
     prog_modes             = PM_PDI;
+    extra_features         = HAS_VTARG_ADJ;
     connection_type        = usb;
     usbpid                 = 0x2144;
 ;
@@ -2271,6 +2283,7 @@ programmer
     desc                   = "Atmel PowerDebugger (ARM/AVR) in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
+    extra_features         = HAS_VTARG_ADJ;
     connection_type        = usb;
     usbpid                 = 0x2144;
     hvupdi_support         = 0, 1;
@@ -2285,6 +2298,7 @@ programmer
     desc                   = "Atmel PowerDebugger (ARM/AVR) in debugWire mode";
     type                   = "jtagice3_dw";
     prog_modes             = PM_debugWIRE;
+    extra_features         = HAS_VTARG_ADJ;
     connection_type        = usb;
     usbpid                 = 0x2144;
 ;
@@ -2298,6 +2312,7 @@ programmer
     desc                   = "Atmel PowerDebugger (ARM/AVR) in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
+    extra_features         = HAS_VTARG_ADJ;
     connection_type        = usb;
     usbpid                 = 0x2144;
 ;
@@ -2311,6 +2326,7 @@ programmer
     desc                   = "Atmel PowerDebugger (ARM/AVR) in TPI mode";
     type                   = "jtagice3_tpi";
     prog_modes             = PM_TPI;
+    extra_features         = HAS_VTARG_ADJ;
     connection_type        = usb;
     usbpid                 = 0x2144;
 ;
@@ -2456,6 +2472,7 @@ programmer
     desc                   = "Curiosity nano (nEDBG) in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
+    extra_features         = HAS_VTARG_ADJ;
     connection_type        = usb;
     usbpid                 = 0x2175;
     hvupdi_support         = 1;
