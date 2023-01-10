@@ -4643,6 +4643,6 @@ void stk500v2_jtag3_initpgm(PROGRAMMER *pgm) {
   pgm->teardown       = stk500v2_jtag3_teardown;
   pgm->page_size      = 256;
 
-  if (strcmp(ldata(lfirst(pgm->id)), "powerdebugger_isp") == 0)
+  if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }

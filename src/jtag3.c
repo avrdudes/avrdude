@@ -3079,12 +3079,8 @@ void jtag3_initpgm(PROGRAMMER *pgm) {
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_JTAG;
 
-  for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
-    if (matches(ldata(ln), "powerdebugger")) {
-      pgm->set_vtarget  = jtag3_set_vtarget;
-      break;
-    }
-  }
+  if (pgm->extra_features & HAS_VTARG_ADJ)
+    pgm->set_vtarget  = jtag3_set_vtarget;
 }
 
 const char jtag3_dw_desc[] = "Atmel JTAGICE3 in debugWire mode";
@@ -3117,12 +3113,8 @@ void jtag3_dw_initpgm(PROGRAMMER *pgm) {
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_DW;
 
-  for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
-    if (matches(ldata(ln), "powerdebugger")) {
-      pgm->set_vtarget  = jtag3_set_vtarget;
-      break;
-    }
-  }
+  if (pgm->extra_features & HAS_VTARG_ADJ)
+    pgm->set_vtarget  = jtag3_set_vtarget;
 }
 
 const char jtag3_pdi_desc[] = "Atmel JTAGICE3 in PDI mode";
@@ -3157,12 +3149,8 @@ void jtag3_pdi_initpgm(PROGRAMMER *pgm) {
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_PDI;
 
-  for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
-    if (matches(ldata(ln), "powerdebugger")) {
-      pgm->set_vtarget  = jtag3_set_vtarget;
-      break;
-    }
-  }
+  if (pgm->extra_features & HAS_VTARG_ADJ)
+    pgm->set_vtarget  = jtag3_set_vtarget;
 }
 
 const char jtag3_updi_desc[] = "Atmel JTAGICE3 in UPDI mode";
@@ -3200,13 +3188,8 @@ void jtag3_updi_initpgm(PROGRAMMER *pgm) {
   pgm->unlock         = jtag3_unlock_erase_key;
   pgm->read_sib       = jtag3_read_sib;
 
-  for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
-    if (matches(ldata(ln), "powerdebugger") ||
-        matches(ldata(ln), "pkob")) {
-      pgm->set_vtarget  = jtag3_set_vtarget;
-      break;
-    }
-  }
+  if (pgm->extra_features & HAS_VTARG_ADJ)
+    pgm->set_vtarget  = jtag3_set_vtarget;
 }
 
 const char jtag3_tpi_desc[] = "Atmel JTAGICE3 in TPI mode";
