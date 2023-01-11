@@ -653,9 +653,9 @@ static int avr910_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     avr910_set_addr(pgm, addr / rd_size);
 
     while (addr < max_addr) {
-      if ((max_addr - addr) < blocksize) {
+      if (max_addr - addr < (unsigned int) blocksize)
         blocksize = max_addr - addr;
-      }
+
       cmd[1] = (blocksize >> 8) & 0xff;
       cmd[2] = blocksize & 0xff;
 
