@@ -276,7 +276,7 @@ static int ft245r_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
     ft245r_fill(pgm);
 
 #if FT245R_DEBUG
-    msg_info("%s: discarding %d, consuming %zu bytes\n", __func__, rx.discard, len);
+    msg_info("%s: discarding %d, consuming %lu bytes\n", __func__, rx.discard, (unsigned long) len);
 #endif
     while (rx.discard > 0) {
         int result = ft245r_rx_buf_fill_and_get(pgm);
