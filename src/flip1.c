@@ -652,7 +652,7 @@ int flip1_write_memory(struct dfu_dev *dfu,
   int cmd_result = 0;
   int aux_result;
   struct flip1_cmd_header cmd_header = {
-    FLIP1_CMD_PROG_START, mem_unit
+    FLIP1_CMD_PROG_START, mem_unit, {0}, {0}, {0},
   };
   struct flip1_prog_footer cmd_footer = {
     { 0, 0, 0, 0 },             /* CRC */
