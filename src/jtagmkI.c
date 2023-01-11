@@ -182,6 +182,7 @@ static void jtagmkI_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len
 
   case RESP_POWER:
     msg_info("target power lost\n");
+    break;
 
   default:
     msg_info("unknown message 0x%02x\n", data[0]);
