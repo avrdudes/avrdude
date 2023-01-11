@@ -459,7 +459,7 @@ int flip2_paged_load(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *m
   result = flip2_read_memory(FLIP2(pgm)->dfu, mem_unit, addr,
     mem->buf + addr, n_bytes);
 
-  return (result == 0) ? n_bytes : -1;
+  return result == 0? (int) n_bytes: -1;
 }
 
 int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
@@ -490,7 +490,7 @@ int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *
   result = flip2_write_memory(FLIP2(pgm)->dfu, mem_unit, addr,
     mem->buf + addr, n_bytes);
 
-  return (result == 0) ? n_bytes : -1;
+  return result == 0? (int) n_bytes: -1;
 }
 
 // Parse the -E option flag
@@ -520,7 +520,7 @@ int flip2_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRME
   if (FLIP2(pgm)->dfu == NULL)
     return -1;
 
-  if (mem->size < sizeof(FLIP2(pgm)->part_sig)) {
+  if (mem->size < (int) sizeof(FLIP2(pgm)->part_sig)) {
     pmsg_error("signature read must be at least %u bytes\n", (unsigned int) sizeof(FLIP2(pgm)->part_sig));
     return -1;
   }
