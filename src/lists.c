@@ -795,7 +795,7 @@ lget ( LISTID lid )
 void * 
 lget_n ( LISTID lid, unsigned int n )
 {
-  int i;
+  unsigned int i;
   LIST * l;
   LISTNODE * ln;
 
@@ -803,7 +803,7 @@ lget_n ( LISTID lid, unsigned int n )
 
   CKLMAGIC(l);
 
-  if ((n<1)||(n>lsize(l))) {
+  if (n < 1 || n > (unsigned int) lsize(l)) {
     return NULL;
   }
 
@@ -836,7 +836,7 @@ lget_n ( LISTID lid, unsigned int n )
 LNODEID
 lget_ln ( LISTID lid, unsigned int n )
 {
-  int i;
+  unsigned int i;
   LIST * l;
   LISTNODE * ln;
 
@@ -844,7 +844,7 @@ lget_ln ( LISTID lid, unsigned int n )
 
   CKLMAGIC(l);
 
-  if ((n<1)||(n>lsize(l))) {
+  if (n < 1 || n > (unsigned int) lsize(l)) {
     return NULL;
   }
 
@@ -944,7 +944,7 @@ insert_ln ( LIST * l, LISTNODE * ln, void * data_ptr )
 int 
 lins_n ( LISTID lid, void * data_ptr, unsigned int n )
 {
-  int i;
+  unsigned int i;
   LIST * l;
   LISTNODE * ln;
 
@@ -952,7 +952,7 @@ lins_n ( LISTID lid, void * data_ptr, unsigned int n )
 
   CKLMAGIC(l);
 
-  if ((n<1)||(n>(l->num+1))) {
+  if (n < 1 || n > (unsigned int) (l->num+1)) {
     return -1;
   }
 
@@ -1185,7 +1185,7 @@ lrmv_ln ( LISTID lid, LNODEID lnid )
 void * 
 lrmv_n ( LISTID lid, unsigned int n )
 {
-  int i;
+  unsigned int i;
   LIST * l;
   LISTNODE * ln;
 
@@ -1193,7 +1193,7 @@ lrmv_n ( LISTID lid, unsigned int n )
 
   CKLMAGIC(l);
 
-  if ((n<1)||(n>l->num)) {
+  if (n < 1 || n > (unsigned int) l->num) {
     return NULL;
   }
 
