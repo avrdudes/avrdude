@@ -705,11 +705,17 @@ static int serialupdi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
                                  unsigned int page_size,
                                  unsigned int addr, unsigned int n_bytes)
 {
-  if (n_bytes > m->readsize) {
+  if(n_bytes > 65535) {
+    pmsg_error("%s() called with implausibly high n_bytes = %u\n", __func__, n_bytes);
+    return -1;
+  }
+
+  if ((int) n_bytes > m->readsize) {
     unsigned int read_offset = addr;
-    unsigned int remaining_bytes = n_bytes;
+    int remaining_bytes = n_bytes;
     int read_bytes = 0;
     int rc;
+
     while (remaining_bytes > 0) {
       rc = updi_read_data(pgm, m->offset + read_offset, m->buf + read_offset, 
                           remaining_bytes > m->readsize ? m->readsize : remaining_bytes);
@@ -733,10 +739,16 @@ static int serialupdi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
                                   unsigned int addr, unsigned int n_bytes)
 {
   int rc;
-  if (n_bytes > m->page_size) {
+
+  if(n_bytes > 65535) {
+    pmsg_error("%s() called with implausibly high n_bytes = %u\n", __func__, n_bytes);
+    return -1;
+  }
+  if ((int) n_bytes > m->page_size) {
     unsigned int write_offset = addr;
-    unsigned int remaining_bytes = n_bytes;
+    int remaining_bytes = n_bytes;
     int write_bytes = 0;
+
     while (remaining_bytes > 0) {
 
       if (strcmp(m->desc, "eeprom")==0) {
