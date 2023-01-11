@@ -166,14 +166,14 @@ static void ft245r_rx_buf_purge(const PROGRAMMER *pgm) {
 static void ft245r_rx_buf_put(const PROGRAMMER *pgm, uint8_t byte) {
     rx.len++;
     rx.buf[rx.wr++] = byte;
-    if (rx.wr >= sizeof(rx.buf))
+    if (rx.wr >= (int) sizeof(rx.buf))
 	rx.wr = 0;
 }
 
 static uint8_t ft245r_rx_buf_get(const PROGRAMMER *pgm) {
     rx.len--;
     uint8_t byte = rx.buf[rx.rd++];
-    if (rx.rd >= sizeof(rx.buf))
+    if (rx.rd >= (int) sizeof(rx.buf))
 	rx.rd = 0;
     return byte;
 }
@@ -246,10 +246,8 @@ static int ft245r_flush(const PROGRAMMER *pgm) {
 
 static int ft245r_send2(const PROGRAMMER *pgm, unsigned char *buf, size_t len,
 			bool discard_rx_data) {
-    int i, j;
-
-    for (i = 0; i < len; ++i) {
-	for (j = 0; j < baud_multiplier; ++j) {
+    for (size_t i = 0; i < len; ++i) {
+	for (int j = 0; j < baud_multiplier; ++j) {
 	    if (discard_rx_data)
 		++rx.discard;
 	    tx.buf[tx.len++] = buf[i];
@@ -270,8 +268,6 @@ static int ft245r_send_and_discard(const PROGRAMMER *pgm, unsigned char *buf,
 }
 
 static int ft245r_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
-    int i, j;
-
     ft245r_flush(pgm);
     ft245r_fill(pgm);
 
@@ -288,7 +284,7 @@ static int ft245r_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
         --rx.discard;
     }
 
-    for (i = 0; i < len; ++i)
+    for (size_t i = 0; i < len; ++i)
     {
         int result = ft245r_rx_buf_fill_and_get(pgm);
         if (result < 0)
@@ -297,7 +293,7 @@ static int ft245r_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
         }
 
         buf[i] = (uint8_t)result;
-        for (j = 1; j < baud_multiplier; ++j)
+        for (int j = 1; j < baud_multiplier; ++j)
         {
             result = ft245r_rx_buf_fill_and_get(pgm);
             if (result < 0)
@@ -1054,7 +1050,7 @@ static int ft245r_paged_write_flash(const PROGRAMMER *pgm, const AVRPART *p, con
         avr_set_bits(m->op[spi], cmd);
         avr_set_addr(m->op[spi], cmd, addr/2);
         avr_set_input(m->op[spi], cmd, m->buf[addr]);
-        for(int k=0; k<sizeof cmd; k++)
+        for(size_t k=0; k<sizeof cmd; k++)
            buf_pos += set_data(pgm, buf+buf_pos, cmd[k]);
 
         i++; j++; addr++;
@@ -1064,7 +1060,7 @@ static int ft245r_paged_write_flash(const PROGRAMMER *pgm, const AVRPART *p, con
 
         // page boundary, finished or buffer exhausted? queue up requests
         if(do_page_write || i >= (int) n_bytes || j >= FT245R_FRAGMENT_SIZE/FT245R_CMD_SIZE) {
-            if(i >= n_bytes) {
+            if(i >= (int) n_bytes) {
                 ft245r_out = SET_BITS_0(ft245r_out, pgm, PIN_AVR_SCK, 0); // SCK down
                 buf[buf_pos++] = ft245r_out;
             } else {
@@ -1150,7 +1146,7 @@ static int ft245r_paged_load_flash(const PROGRAMMER *pgm, const AVRPART *p, cons
 	avr_set_addr(m->op[AVR_OP_LOAD_EXT_ADDR], cmd, addr/2);
 
         buf_pos = 0;
-        for(int k=0; k<sizeof cmd; k++)
+        for(size_t k=0; k<sizeof cmd; k++)
             buf_pos += set_data(pgm, buf+buf_pos, cmd[k]);
         ft245r_send_and_discard(pgm, buf, buf_pos);
     }
@@ -1164,7 +1160,7 @@ static int ft245r_paged_load_flash(const PROGRAMMER *pgm, const AVRPART *p, cons
         memset(cmd, 0, sizeof cmd);
         avr_set_bits(m->op[spi], cmd);
         avr_set_addr(m->op[spi], cmd, addr/2);
-        for(int k=0; k<sizeof cmd; k++)
+        for(size_t k=0; k<sizeof cmd; k++)
            buf_pos += set_data(pgm, buf+buf_pos, cmd[k]);
 
         i++; j++; addr++;
