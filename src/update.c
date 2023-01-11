@@ -560,8 +560,9 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, UPDATE *upd, enum updateflags
     pmsg_info("%d byte%s of %s%s written\n", fs.nbytes,
       update_plural(fs.nbytes), mem->desc, alias_mem_desc);
 
-    if (!(flags & UF_VERIFY))   // Fall through for auto verify unless -V was specified
+    if (!(flags & UF_VERIFY))   // Fall through for auto verify unless
       break;
+    // Fall through
 
   case DEVICE_VERIFY:
     // Verify that the in memory file is the same as what is on the chip
