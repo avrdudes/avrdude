@@ -275,12 +275,12 @@ int dfu_getstatus(struct dfu_dev *dfu, struct dfu_status *status)
     return -1;
   }
 
-  if (result < sizeof(struct dfu_status)) {
+  if (result < (int) sizeof(struct dfu_status)) {
     pmsg_error("unable to get DFU status: %s\n", "short read");
     return -1;
   }
 
-  if (result > sizeof(struct dfu_status)) {
+  if (result > (int) sizeof(struct dfu_status)) {
     pmsg_error("oversize read (should not happen); exiting\n");
     exit(1);
   }
