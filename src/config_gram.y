@@ -74,7 +74,6 @@ static int pin_name;
 %token K_PAGED
 
 %token K_ALIAS
-%token K_BAUDRATE
 %token K_BS2
 %token K_BUFF
 %token K_CHIP_ERASE_DELAY
@@ -85,7 +84,6 @@ static int pin_name;
 %token K_DEFAULT_PROGRAMMER
 %token K_DEFAULT_SERIAL
 %token K_DEFAULT_SPI
-%token K_DESC
 %token K_FAMILY_ID
 %token K_HVUPDI_SUPPORT
 %token K_HVUPDI_VARIANT
@@ -129,12 +127,7 @@ static int pin_name;
 %token K_SIGNATURE
 %token K_SIZE
 %token K_USB
-%token K_USBDEV
-%token K_USBSN
 %token K_USBPID
-%token K_USBPRODUCT
-%token K_USBVENDOR
-%token K_USBVID
 %token K_TYPE
 %token K_VCC
 %token K_VFYLED
@@ -481,20 +474,10 @@ prog_parm :
   |
   prog_parm_pins
   |
-  prog_parm_usb
+  K_USBPID TKN_EQUAL usb_pid_list
   |
   prog_parm_conntype
   |
-  K_DESC TKN_EQUAL TKN_STRING {
-    current_prog->desc = cache_string($3->value.string);
-    free_token($3);
-  } |
-  K_BAUDRATE TKN_EQUAL numexpr {
-    {
-      current_prog->baudrate = $3->value.number;
-      free_token($3);
-    }
-  } |
   prog_parm_updi
 ;
 
@@ -529,40 +512,6 @@ prog_parm_conntype_id:
   K_SERIAL          { current_prog->conntype = CONNTYPE_SERIAL; } |
   K_USB             { current_prog->conntype = CONNTYPE_USB; } |
   K_SPI             { current_prog->conntype = CONNTYPE_SPI; }
-;
-
-prog_parm_usb:
-  K_USBDEV TKN_EQUAL TKN_STRING {
-    {
-      current_prog->usbdev = cache_string($3->value.string);
-      free_token($3);
-    }
-  } |
-  K_USBVID TKN_EQUAL numexpr {
-    {
-      current_prog->usbvid = $3->value.number;
-      free_token($3);
-    }
-  } |
-  K_USBPID TKN_EQUAL usb_pid_list |
-  K_USBSN TKN_EQUAL TKN_STRING {
-    {
-      current_prog->usbsn = cache_string($3->value.string);
-      free_token($3);
-    }
-  } |
-  K_USBVENDOR TKN_EQUAL TKN_STRING {
-    {
-      current_prog->usbvendor = cache_string($3->value.string);
-      free_token($3);
-    }
-  } |
-  K_USBPRODUCT TKN_EQUAL TKN_STRING {
-    {
-      current_prog->usbproduct = cache_string($3->value.string);
-      free_token($3);
-    }
-  }
 ;
 
 usb_pid_list:
@@ -705,12 +654,6 @@ part_parm :
   K_ID TKN_EQUAL TKN_STRING 
     {
       current_part->id = cache_string($3->value.string);
-      free_token($3);
-    } |
-
-  K_DESC TKN_EQUAL TKN_STRING 
-    {
-      current_part->desc = cache_string($3->value.string);
       free_token($3);
     } |
 

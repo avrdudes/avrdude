@@ -63,9 +63,17 @@ extern char * yytext;
 // Component description for config_gram.y, will be sorted appropriately on first use
 Component_t avr_comp[] = {
   // PROGRAMMER
+  pgm_comp_desc(desc, COMP_STRING),
   pgm_comp_desc(prog_modes, COMP_INT),
+  pgm_comp_desc(baudrate, COMP_INT),
+  pgm_comp_desc(usbvid, COMP_INT),
+  pgm_comp_desc(usbdev, COMP_STRING),
+  pgm_comp_desc(usbsn, COMP_STRING),
+  pgm_comp_desc(usbvendor, COMP_STRING),
+  pgm_comp_desc(usbproduct, COMP_STRING),
 
   // AVRPART
+  part_comp_desc(desc, COMP_STRING),
   part_comp_desc(prog_modes, COMP_INT),
   part_comp_desc(mcuid, COMP_INT),
   part_comp_desc(n_interrupts, COMP_INT),

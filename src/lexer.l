@@ -121,7 +121,8 @@ SIGN     [+-]
      }
 
 
-(?x: prog_modes | mcuid | n_interrupts | n_page_erase | n_word_writes | n_boot_sections |
+(?x: desc | prog_modes | baudrate | usbvid | usbdev | usbsn | usbvendor | usbproduct |
+  mcuid | n_interrupts | n_page_erase | n_word_writes | n_boot_sections |
   boot_section_size | autobaud_sync | idr | rampz | spmcr | eecr | eind ) { /* struct components */
 
   Component_t *cp = cfg_comp_search(yytext, current_strct);
@@ -145,7 +146,6 @@ allowfullpagebitstream { yylval=NULL; ccap(); return K_ALLOWFULLPAGEBITSTREAM; }
 avr910_devcode   { yylval=NULL; ccap(); return K_AVR910_DEVCODE; }
 bank_size        { yylval=NULL; return K_PAGE_SIZE; }
 banked           { yylval=NULL; return K_PAGED; }
-baudrate         { yylval=NULL; ccap(); return K_BAUDRATE; }
 blocksize        { yylval=NULL; ccap(); return K_BLOCKSIZE; }
 bs2              { yylval=NULL; ccap(); return K_BS2; }
 buff             { yylval=NULL; ccap(); return K_BUFF; }
@@ -164,7 +164,6 @@ default_programmer { yylval=NULL; return K_DEFAULT_PROGRAMMER; }
 default_serial   { yylval=NULL; return K_DEFAULT_SERIAL; }
 default_spi      { yylval=NULL; return K_DEFAULT_SPI; }
 delay            { yylval=NULL; ccap(); return K_DELAY; }
-desc             { yylval=NULL; ccap(); return K_DESC; }
 devicecode       { yylval=NULL; ccap(); return K_DEVICECODE; }
 eeprom           { yylval=NULL; return K_EEPROM; }
 eeprom_instr     { yylval=NULL; ccap(); return K_EEPROM_INSTR; }
@@ -258,12 +257,7 @@ timeout          { yylval=NULL; ccap(); return K_TIMEOUT; }
 togglevtg        { yylval=NULL; ccap(); return K_TOGGLEVTG; }
 type             { yylval=NULL; ccap(); return K_TYPE; }
 usb              { yylval=NULL; return K_USB; }
-usbdev           { yylval=NULL; ccap(); return K_USBDEV; }
 usbpid           { yylval=NULL; ccap(); return K_USBPID; }
-usbproduct       { yylval=NULL; ccap(); return K_USBPRODUCT; }
-usbsn            { yylval=NULL; ccap(); return K_USBSN; }
-usbvendor        { yylval=NULL; ccap(); return K_USBVENDOR; }
-usbvid           { yylval=NULL; ccap(); return K_USBVID; }
 vcc              { yylval=NULL; ccap(); return K_VCC; }
 vfyled           { yylval=NULL; ccap(); return K_VFYLED; }
 write            { yylval=new_token(K_WRITE); ccap(); return K_WRITE; }
