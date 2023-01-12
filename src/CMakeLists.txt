@@ -77,7 +77,7 @@ if(MSVC)
         )
 else()
     set(LIB_MATH m)
-    add_compile_options(-Wall) # -Wextra
+    add_compile_options(-Wall -Wextra -Wno-unused-parameter)
 endif()
 
 # =====================================
