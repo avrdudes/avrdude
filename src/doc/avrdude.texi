@@ -935,6 +935,38 @@ GPIO mode. High-voltage UPDI can be utilized by using an extended parameter:
 Enable high-voltage UPDI initialization for targets that supports this.
 @end table
 
+@cindex @code{-x} Xplained Mini
+@item Xplained Mini
+
+The Xplained Mini/Nano programmer (ISP or UPDI, not TPI) type accepts the
+following extended parameters:
+
+@table @code
+@item @samp{suffer=VALUE}, @samp{suffer}
+The SUFFER register allows the user to modify the behavior of the on-board mEDBG.
+Use flag @samp{suffer} without an equal sign to read the current SUFFER value.
+@table @code
+@item Bit 7 ARDUINO:
+Adds control of extra LEDs when set to 0
+@item Bit 6..3:
+Reserved
+@item Bit 2 EOF:
+Agressive power-down, sleep after 5 seconds if no USB enumeration when set to 0
+@item Bit 1 LOWP:
+forc running the mEDBG at 1 MHz when bit set to 0
+@item Bit 0 FUSE:
+Fuses are safe-masked when bit sent to 1. Fuses are unprotected when set to 0
+@end table
+@end table
+
+@table @code
+@item @samp{vtarg_switch=VALUE}, @samp{vtarg_switch}
+The on-board target voltage switch can be turned on or off by writing a 1 or
+a 0. The current state can be read by not providing an equal sign and a value.
+Note that the target power switch will always be on after power cycle.
+Also note that the smaller Xplained Nano boards does not have a target power switch.
+@end table
+
 @cindex @code{-x} AVR910
 @item AVR910
 
