@@ -1310,6 +1310,7 @@ programmer
     desc                   = "Atmel STK600";
     type                   = "stk600";
     prog_modes             = PM_TPI | PM_ISP | PM_PDI;
+    extra_features         = HAS_VTARG_ADJ;
     connection_type        = usb;
 ;
 
@@ -1322,6 +1323,7 @@ programmer
     desc                   = "Atmel STK600 in parallel programming mode";
     type                   = "stk600pp";
     prog_modes             = PM_HVPP;
+    extra_features         = HAS_VTARG_ADJ;
     connection_type        = usb;
 ;
 
@@ -1334,6 +1336,7 @@ programmer
     desc                   = "Atmel STK600 in high-voltage serial programming mode";
     type                   = "stk600hvsp";
     prog_modes             = PM_HVSP;
+    extra_features         = HAS_VTARG_ADJ;
     connection_type        = usb;
 ;
 
