@@ -597,7 +597,7 @@ part_parm :
 
   K_DEVICECODE TKN_EQUAL numexpr {
     {
-      yyerror("devicecode is deprecated, use stk500_devcode instead");
+      yyerror("devicecode is deprecated, will be removed in v8.0, use stk500_devcode instead");
       YYABORT;
     }
   } |
@@ -780,6 +780,7 @@ part_parm :
 
   K_HAS_JTAG TKN_EQUAL numexpr
     {
+      yywarning("has_jtag is deprecated, will be removed in v8.0, use prog_modes");
       if ($3->value.number == 1)
         current_part->prog_modes |= PM_JTAG;
       else if ($3->value.number == 0)
@@ -789,6 +790,7 @@ part_parm :
 
   K_HAS_DW TKN_EQUAL numexpr
     {
+      yywarning("has_debugwire is deprecated, will be removed in v8.0, use prog_modes");
       if ($3->value.number == 1)
         current_part->prog_modes |= PM_debugWIRE;
       else if ($3->value.number == 0)
@@ -798,6 +800,7 @@ part_parm :
 
   K_HAS_PDI TKN_EQUAL numexpr
     {
+      yywarning("has_pdi is deprecated, will be removed in v8.0, use prog_modes");
       if ($3->value.number == 1)
         current_part->prog_modes |= PM_PDI;
       else if ($3->value.number == 0)
@@ -807,6 +810,7 @@ part_parm :
 
   K_HAS_UPDI TKN_EQUAL numexpr
     {
+      yywarning("has_updi is deprecated, will be removed in v8.0, use prog_modes");
       if ($3->value.number == 1)
         current_part->prog_modes |= PM_UPDI;
       else if ($3->value.number == 0)
@@ -816,6 +820,7 @@ part_parm :
 
   K_HAS_TPI TKN_EQUAL numexpr
     {
+      yywarning("has_tpi is deprecated, will be removed in v8.0, use prog_modes");
       if ($3->value.number == 1)
         current_part->prog_modes |= PM_TPI;
       else if ($3->value.number == 0)
@@ -830,7 +835,7 @@ part_parm :
       else if ($3->value.number == 0)
         current_part->flags &= ~AVRPART_IS_AT90S1200;
       else {
-        yyerror("not a Boolean value");
+        yyerror("is_at90s1200 not a Boolean value");
         free_token($3);
         YYABORT;
       }
@@ -840,6 +845,7 @@ part_parm :
 
   K_IS_AVR32 TKN_EQUAL numexpr
     {
+      yywarning("is_avr32 is deprecated, will be removed in v8.0, use prog_modes");
       if ($3->value.number == 1)
         current_part->prog_modes |= PM_aWire;
       else if ($3->value.number == 0)
@@ -854,7 +860,7 @@ part_parm :
       else if ($3->value.number == 0)
         current_part->flags &= ~AVRPART_ALLOWFULLPAGEBITSTREAM;
       else {
-        yyerror("not a Boolean value");
+        yyerror("allowfullpagebitstream not a Boolean value");
         free_token($3);
         YYABORT;
       }
@@ -869,7 +875,7 @@ part_parm :
       else if ($3->value.number == 0)
         current_part->flags &= ~AVRPART_ENABLEPAGEPROGRAMMING;
       else {
-        yyerror("not a Boolean value");
+        yyerror("enablepageprogramming not a Boolean value");
         free_token($3);
         YYABORT;
       }
@@ -884,7 +890,7 @@ part_parm :
       else if ($3->value.number == 0)
         current_part->flags &= ~AVRPART_SERIALOK;
       else {
-        yyerror("not a Boolean value");
+        yyerror("serial not a Boolean value");
         free_token($3);
         YYABORT;
       }
@@ -907,7 +913,7 @@ part_parm :
         current_part->flags |= AVRPART_PSEUDOPARALLEL;
       }
       else {
-        yyerror("outside [0, 2] (yes/no/pseudo)");
+        yyerror("parallel outside [0, 2] (yes/no/pseudo)");
         free_token($3);
         YYABORT;
       }

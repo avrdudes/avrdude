@@ -183,8 +183,8 @@ load_ext_addr    { yylval=new_token(K_LOAD_EXT_ADDR); ccap(); return K_LOAD_EXT_
 loadpage_hi      { yylval=new_token(K_LOADPAGE_HI); ccap(); return K_LOADPAGE_HI; }
 loadpage_lo      { yylval=new_token(K_LOADPAGE_LO); ccap(); return K_LOADPAGE_LO; }
 memory           { yylval=NULL; ccap(); current_strct = COMP_AVRMEM; return K_MEMORY; }
-miso             { yylval=NULL; ccap(); return K_SDI; } // Deprecated
-mosi             { yylval=NULL; ccap(); return K_SDO; } // Deprecated
+miso             { yylval=NULL; ccap(); yywarning("miso is deprecated, will be removed in v8.0, use sdi"); return K_SDI; }
+mosi             { yylval=NULL; ccap(); yywarning("mosi is deprecated, will be removed in v8.0, use sdo"); return K_SDO; }
 NULL             { yylval=NULL; return K_NULL; }
 page_size        { yylval=NULL; ccap(); return K_PAGE_SIZE; }
 parallel         { yylval=NULL; ccap(); return K_PARALLEL; }
