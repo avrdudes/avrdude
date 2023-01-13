@@ -71,12 +71,9 @@ static int pin_name;
 %token K_MEMORY
 
 %token K_PAGE_SIZE
-%token K_PAGED
 
 %token K_ALIAS
-%token K_BS2
 %token K_BUFF
-%token K_CHIP_ERASE_DELAY
 %token K_CONNTYPE
 %token K_DEDICATED
 %token K_DEFAULT_BITCLOCK
@@ -84,40 +81,23 @@ static int pin_name;
 %token K_DEFAULT_PROGRAMMER
 %token K_DEFAULT_SERIAL
 %token K_DEFAULT_SPI
-%token K_FAMILY_ID
 %token K_HVUPDI_SUPPORT
-%token K_HVUPDI_VARIANT
 %token K_DEVICECODE
-%token K_STK500_DEVCODE
-%token K_AVR910_DEVCODE
 %token K_EEPROM
 %token K_ERRLED
 %token K_FLASH
 %token K_ID
 %token K_IO
 %token K_LOADPAGE
-%token K_MAX_WRITE_DELAY
-%token K_MCU_BASE
-%token K_MIN_WRITE_DELAY
 %token K_SDI
 %token K_SDO
-%token K_NUM_PAGES
-%token K_NVM_BASE
-%token K_OCD_BASE
-%token K_OCDREV
-%token K_OFFSET
-%token K_PAGEL
 %token K_PARALLEL
 %token K_PARENT
 %token K_PART
 %token K_PGMLED
 %token K_PROGRAMMER
-%token K_PSEUDO
-%token K_PWROFF_AFTER_WRITE
 %token K_RDYLED
 %token K_READBACK
-%token K_READBACK_P1
-%token K_READBACK_P2
 %token K_READMEM
 %token K_RESET
 %token K_RETRY_PULSE
@@ -132,46 +112,8 @@ static int pin_name;
 %token K_VCC
 %token K_VFYLED
 
-%token K_NO
-%token K_YES
-
 /* stk500 v2 xml file parameters */
 /* ISP */
-%token K_TIMEOUT
-%token K_STABDELAY
-%token K_CMDEXEDELAY
-%token K_HVSPCMDEXEDELAY
-%token K_SYNCHLOOPS
-%token K_BYTEDELAY
-%token K_POLLVALUE
-%token K_POLLINDEX
-%token K_PREDELAY
-%token K_POSTDELAY
-%token K_POLLMETHOD
-%token K_MODE
-%token K_DELAY
-%token K_BLOCKSIZE
-%token K_READSIZE
-/* HV mode */
-%token K_HVENTERSTABDELAY
-%token K_PROGMODEDELAY
-%token K_LATCHCYCLES
-%token K_TOGGLEVTG
-%token K_POWEROFFDELAY
-%token K_RESETDELAYMS
-%token K_RESETDELAYUS
-%token K_HVLEAVESTABDELAY
-%token K_RESETDELAY
-%token K_SYNCHCYCLES
-%token K_HVCMDEXEDELAY
-
-%token K_CHIPERASEPULSEWIDTH
-%token K_CHIPERASEPOLLTIMEOUT
-%token K_CHIPERASETIME
-%token K_PROGRAMFUSEPULSEWIDTH
-%token K_PROGRAMFUSEPOLLTIMEOUT
-%token K_PROGRAMLOCKPULSEWIDTH
-%token K_PROGRAMLOCKPOLLTIMEOUT
 
 %token K_PP_CONTROLSTACK
 %token K_HVSP_CONTROLSTACK
@@ -638,10 +580,6 @@ reset_disposition :
   K_DEDICATED | K_IO
 ;
 
-parallel_modes :
-  yesno | K_PSEUDO
-;
-
 retry_lines :
   K_RESET | K_SCK
 ;
@@ -657,37 +595,10 @@ part_parm :
       free_token($3);
     } |
 
-  K_FAMILY_ID TKN_EQUAL TKN_STRING
-    {
-      current_part->family_id = cache_string($3->value.string);
-      free_token($3);
-    } |
-
-  K_HVUPDI_VARIANT TKN_EQUAL numexpr
-    {
-      current_part->hvupdi_variant = $3->value.number;
-      free_token($3);
-    } |
-
   K_DEVICECODE TKN_EQUAL numexpr {
     {
-      yyerror("devicecode is deprecated, use "
-              "stk500_devcode instead");
+      yyerror("devicecode is deprecated, use stk500_devcode instead");
       YYABORT;
-    }
-  } |
-
-  K_STK500_DEVCODE TKN_EQUAL numexpr {
-    {
-      current_part->stk500_devcode = $3->value.number;
-      free_token($3);
-    }
-  } |
-
-  K_AVR910_DEVCODE TKN_EQUAL numexpr {
-    {
-      current_part->avr910_devcode = $3->value.number;
-      free_token($3);
     }
   } |
 
@@ -857,24 +768,6 @@ part_parm :
     }
   } |
 
-  K_CHIP_ERASE_DELAY TKN_EQUAL numexpr
-    {
-      current_part->chip_erase_delay = $3->value.number;
-      free_token($3);
-    } |
-
-  K_PAGEL TKN_EQUAL numexpr
-    {
-      current_part->pagel = $3->value.number;
-      free_token($3);
-    } |
-
-  K_BS2 TKN_EQUAL numexpr
-    {
-      current_part->bs2 = $3->value.number;
-      free_token($3);
-    } |
-
   K_RESET TKN_EQUAL reset_disposition
     {
       if ($3->primary == K_DEDICATED)
@@ -885,305 +778,138 @@ part_parm :
       free_tokens(2, $1, $3);
     } |
 
-  K_TIMEOUT TKN_EQUAL numexpr
+  K_HAS_JTAG TKN_EQUAL numexpr
     {
-      current_part->timeout = $3->value.number;
-      free_token($3);
-    } |
-
-  K_STABDELAY TKN_EQUAL numexpr
-    {
-      current_part->stabdelay = $3->value.number;
-      free_token($3);
-    } |
-
-  K_CMDEXEDELAY TKN_EQUAL numexpr
-    {
-      current_part->cmdexedelay = $3->value.number;
-      free_token($3);
-    } |
-
-  K_HVSPCMDEXEDELAY TKN_EQUAL numexpr
-    {
-      current_part->hvspcmdexedelay = $3->value.number;
-      free_token($3);
-    } |
-
-  K_SYNCHLOOPS TKN_EQUAL numexpr
-    {
-      current_part->synchloops = $3->value.number;
-      free_token($3);
-    } |
-
-  K_BYTEDELAY TKN_EQUAL numexpr
-    {
-      current_part->bytedelay = $3->value.number;
-      free_token($3);
-    } |
-
-  K_POLLVALUE TKN_EQUAL numexpr
-    {
-      current_part->pollvalue = $3->value.number;
-      free_token($3);
-    } |
-
-  K_POLLINDEX TKN_EQUAL numexpr
-    {
-      current_part->pollindex = $3->value.number;
-      free_token($3);
-    } |
-
-  K_PREDELAY TKN_EQUAL numexpr
-    {
-      current_part->predelay = $3->value.number;
-      free_token($3);
-    } |
-
-  K_POSTDELAY TKN_EQUAL numexpr
-    {
-      current_part->postdelay = $3->value.number;
-      free_token($3);
-    } |
-
-  K_POLLMETHOD TKN_EQUAL numexpr
-    {
-      current_part->pollmethod = $3->value.number;
-      free_token($3);
-    } |
-
-  K_HVENTERSTABDELAY TKN_EQUAL numexpr
-    {
-      current_part->hventerstabdelay = $3->value.number;
-      free_token($3);
-    } |
-
-  K_PROGMODEDELAY TKN_EQUAL numexpr
-    {
-      current_part->progmodedelay = $3->value.number;
-      free_token($3);
-    } |
-
-  K_LATCHCYCLES TKN_EQUAL numexpr
-    {
-      current_part->latchcycles = $3->value.number;
-      free_token($3);
-    } |
-
-  K_TOGGLEVTG TKN_EQUAL numexpr
-    {
-      current_part->togglevtg = $3->value.number;
-      free_token($3);
-    } |
-
-  K_POWEROFFDELAY TKN_EQUAL numexpr
-    {
-      current_part->poweroffdelay = $3->value.number;
-      free_token($3);
-    } |
-
-  K_RESETDELAYMS TKN_EQUAL numexpr
-    {
-      current_part->resetdelayms = $3->value.number;
-      free_token($3);
-    } |
-
-  K_RESETDELAYUS TKN_EQUAL numexpr
-    {
-      current_part->resetdelayus = $3->value.number;
-      free_token($3);
-    } |
-
-  K_HVLEAVESTABDELAY TKN_EQUAL numexpr
-    {
-      current_part->hvleavestabdelay = $3->value.number;
-      free_token($3);
-    } |
-
-  K_RESETDELAY TKN_EQUAL numexpr
-    {
-      current_part->resetdelay = $3->value.number;
-      free_token($3);
-    } |
-
-  K_CHIPERASEPULSEWIDTH TKN_EQUAL numexpr
-    {
-      current_part->chiperasepulsewidth = $3->value.number;
-      free_token($3);
-    } |
-
-  K_CHIPERASEPOLLTIMEOUT TKN_EQUAL numexpr
-    {
-      current_part->chiperasepolltimeout = $3->value.number;
-      free_token($3);
-    } |
-
-  K_CHIPERASETIME TKN_EQUAL numexpr
-    {
-      current_part->chiperasetime = $3->value.number;
-      free_token($3);
-    } |
-
-  K_PROGRAMFUSEPULSEWIDTH TKN_EQUAL numexpr
-    {
-      current_part->programfusepulsewidth = $3->value.number;
-      free_token($3);
-    } |
-
-  K_PROGRAMFUSEPOLLTIMEOUT TKN_EQUAL numexpr
-    {
-      current_part->programfusepolltimeout = $3->value.number;
-      free_token($3);
-    } |
-
-  K_PROGRAMLOCKPULSEWIDTH TKN_EQUAL numexpr
-    {
-      current_part->programlockpulsewidth = $3->value.number;
-      free_token($3);
-    } |
-
-  K_PROGRAMLOCKPOLLTIMEOUT TKN_EQUAL numexpr
-    {
-      current_part->programlockpolltimeout = $3->value.number;
-      free_token($3);
-    } |
-
-  K_SYNCHCYCLES TKN_EQUAL numexpr
-    {
-      current_part->synchcycles = $3->value.number;
-      free_token($3);
-    } |
-
-  K_HAS_JTAG TKN_EQUAL yesno
-    {
-      if ($3->primary == K_YES)
+      if ($3->value.number == 1)
         current_part->prog_modes |= PM_JTAG;
-      else if ($3->primary == K_NO)
+      else if ($3->value.number == 0)
         current_part->prog_modes &= ~(PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG);
       free_token($3);
     } |
 
-  K_HAS_DW TKN_EQUAL yesno
+  K_HAS_DW TKN_EQUAL numexpr
     {
-      if ($3->primary == K_YES)
+      if ($3->value.number == 1)
         current_part->prog_modes |= PM_debugWIRE;
-      else if ($3->primary == K_NO)
+      else if ($3->value.number == 0)
         current_part->prog_modes &= ~PM_debugWIRE;
       free_token($3);
     } |
 
-  K_HAS_PDI TKN_EQUAL yesno
+  K_HAS_PDI TKN_EQUAL numexpr
     {
-      if ($3->primary == K_YES)
+      if ($3->value.number == 1)
         current_part->prog_modes |= PM_PDI;
-      else if ($3->primary == K_NO)
+      else if ($3->value.number == 0)
         current_part->prog_modes &= ~PM_PDI;
       free_token($3);
     } |
 
-  K_HAS_UPDI TKN_EQUAL yesno
+  K_HAS_UPDI TKN_EQUAL numexpr
     {
-      if ($3->primary == K_YES)
+      if ($3->value.number == 1)
         current_part->prog_modes |= PM_UPDI;
-      else if ($3->primary == K_NO)
+      else if ($3->value.number == 0)
         current_part->prog_modes &= ~PM_UPDI;
       free_token($3);
     } |
 
-  K_HAS_TPI TKN_EQUAL yesno
+  K_HAS_TPI TKN_EQUAL numexpr
     {
-      if ($3->primary == K_YES)
+      if ($3->value.number == 1)
         current_part->prog_modes |= PM_TPI;
-      else if ($3->primary == K_NO)
+      else if ($3->value.number == 0)
         current_part->prog_modes &= ~PM_TPI;
       free_token($3);
     } |
 
-  K_IS_AT90S1200 TKN_EQUAL yesno
+  K_IS_AT90S1200 TKN_EQUAL numexpr
     {
-      if ($3->primary == K_YES)
+      if ($3->value.number == 1)
         current_part->flags |= AVRPART_IS_AT90S1200;
-      else if ($3->primary == K_NO)
+      else if ($3->value.number == 0)
         current_part->flags &= ~AVRPART_IS_AT90S1200;
+      else {
+        yyerror("not a Boolean value");
+        free_token($3);
+        YYABORT;
+      }
 
       free_token($3);
     } |
 
-  K_IS_AVR32 TKN_EQUAL yesno
+  K_IS_AVR32 TKN_EQUAL numexpr
     {
-      if ($3->primary == K_YES)
+      if ($3->value.number == 1)
         current_part->prog_modes |= PM_aWire;
-      else if ($3->primary == K_NO)
+      else if ($3->value.number == 0)
         current_part->prog_modes &= ~PM_aWire;
       free_token($3);
     } |
 
-  K_ALLOWFULLPAGEBITSTREAM TKN_EQUAL yesno
+  K_ALLOWFULLPAGEBITSTREAM TKN_EQUAL numexpr
     {
-      if ($3->primary == K_YES)
+      if ($3->value.number == 1)
         current_part->flags |= AVRPART_ALLOWFULLPAGEBITSTREAM;
-      else if ($3->primary == K_NO)
+      else if ($3->value.number == 0)
         current_part->flags &= ~AVRPART_ALLOWFULLPAGEBITSTREAM;
+      else {
+        yyerror("not a Boolean value");
+        free_token($3);
+        YYABORT;
+      }
 
       free_token($3);
     } |
 
-  K_ENABLEPAGEPROGRAMMING TKN_EQUAL yesno
+  K_ENABLEPAGEPROGRAMMING TKN_EQUAL numexpr
     {
-      if ($3->primary == K_YES)
+      if ($3->value.number == 1)
         current_part->flags |= AVRPART_ENABLEPAGEPROGRAMMING;
-      else if ($3->primary == K_NO)
+      else if ($3->value.number == 0)
         current_part->flags &= ~AVRPART_ENABLEPAGEPROGRAMMING;
+      else {
+        yyerror("not a Boolean value");
+        free_token($3);
+        YYABORT;
+      }
 
       free_token($3);
     } |
 
-  K_MCU_BASE TKN_EQUAL numexpr
+  K_SERIAL TKN_EQUAL numexpr
     {
-      current_part->mcu_base = $3->value.number;
-      free_token($3);
-    } |
-
-  K_NVM_BASE TKN_EQUAL numexpr
-    {
-      current_part->nvm_base = $3->value.number;
-      free_token($3);
-    } |
-
- K_OCD_BASE TKN_EQUAL numexpr
-    {
-      current_part->ocd_base = $3->value.number;
-      free_token($3);
-    } |
-
-  K_OCDREV          TKN_EQUAL numexpr
-    {
-      current_part->ocdrev = $3->value.number;
-      free_token($3);
-    } |
-
-  K_SERIAL TKN_EQUAL yesno
-    {
-      if ($3->primary == K_YES)
+      if ($3->value.number == 1)
         current_part->flags |= AVRPART_SERIALOK;
-      else if ($3->primary == K_NO)
+      else if ($3->value.number == 0)
         current_part->flags &= ~AVRPART_SERIALOK;
+      else {
+        yyerror("not a Boolean value");
+        free_token($3);
+        YYABORT;
+      }
 
       free_token($3);
     } |
 
-  K_PARALLEL TKN_EQUAL parallel_modes
+  K_PARALLEL TKN_EQUAL numexpr
     {
-      if ($3->primary == K_YES) {
+      if ($3->value.number == 1) {
         current_part->flags |= AVRPART_PARALLELOK;
         current_part->flags &= ~AVRPART_PSEUDOPARALLEL;
       }
-      else if ($3->primary == K_NO) {
+      else if ($3->value.number == 0) {
         current_part->flags &= ~AVRPART_PARALLELOK;
         current_part->flags &= ~AVRPART_PSEUDOPARALLEL;
       }
-      else if ($3->primary == K_PSEUDO) {
+      else if ($3->value.number == 2) {
         current_part->flags |= AVRPART_PARALLELOK;
         current_part->flags |= AVRPART_PSEUDOPARALLEL;
+      }
+      else {
+        yyerror("outside [0, 2] (yes/no/pseudo)");
+        free_token($3);
+        YYABORT;
       }
 
 
@@ -1286,11 +1012,6 @@ part_parm :
 ;
 
 
-yesno :
-  K_YES | K_NO
-;
-
-
 mem_specs :
   mem_spec TKN_SEMI |
   mem_alias TKN_SEMI |
@@ -1304,19 +1025,6 @@ mem_spec :
     free_token($1);
   } |
 
-  K_PAGED          TKN_EQUAL yesno
-    {
-      current_mem->paged = $3->primary == K_YES ? 1 : 0;
-      free_token($3);
-    } |
-
-  K_SIZE            TKN_EQUAL numexpr
-    {
-      current_mem->size = $3->value.number;
-      free_token($3);
-    } |
-
-
   K_PAGE_SIZE       TKN_EQUAL numexpr
     {
       int ps = $3->value.number;
@@ -1327,36 +1035,6 @@ mem_spec :
       free_token($3);
     } |
 
-  K_NUM_PAGES       TKN_EQUAL numexpr
-    {
-      current_mem->num_pages = $3->value.number;
-      free_token($3);
-    } |
-
-  K_OFFSET          TKN_EQUAL numexpr
-    {
-      current_mem->offset = $3->value.number;
-      free_token($3);
-    } |
-
-  K_MIN_WRITE_DELAY TKN_EQUAL numexpr
-    {
-      current_mem->min_write_delay = $3->value.number;
-      free_token($3);
-    } |
-
-  K_MAX_WRITE_DELAY TKN_EQUAL numexpr
-    {
-      current_mem->max_write_delay = $3->value.number;
-      free_token($3);
-    } |
-
-  K_PWROFF_AFTER_WRITE TKN_EQUAL yesno
-    {
-      current_mem->pwroff_after_write = $3->primary == K_YES ? 1 : 0;
-      free_token($3);
-    } |
-
   K_READBACK        TKN_EQUAL TKN_NUMBER TKN_NUMBER
     {
       current_mem->readback[0] = $3->value.number;
@@ -1364,50 +1042,6 @@ mem_spec :
       free_token($3);
       free_token($4);
     } |
-
-  K_READBACK_P1     TKN_EQUAL numexpr
-    {
-      current_mem->readback[0] = $3->value.number;
-      free_token($3);
-    } |
-
-  K_READBACK_P2     TKN_EQUAL numexpr
-    {
-      current_mem->readback[1] = $3->value.number;
-      free_token($3);
-    } |
-
-
-  K_MODE TKN_EQUAL numexpr
-    {
-      current_mem->mode = $3->value.number;
-      free_token($3);
-    } |
-
-  K_DELAY TKN_EQUAL numexpr
-    {
-      current_mem->delay = $3->value.number;
-      free_token($3);
-    } |
-
-  K_BLOCKSIZE TKN_EQUAL numexpr
-    {
-      current_mem->blocksize = $3->value.number;
-      free_token($3);
-    } |
-
-  K_READSIZE TKN_EQUAL numexpr
-    {
-      current_mem->readsize = $3->value.number;
-      free_token($3);
-    } |
-
-  K_POLLINDEX TKN_EQUAL numexpr
-    {
-      current_mem->pollindex = $3->value.number;
-      free_token($3);
-    } |
-
 
   opcode TKN_EQUAL string_list {
     { 

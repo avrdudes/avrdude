@@ -48,6 +48,7 @@ enum {                          // Component types in structure
   COMP_INT,
   COMP_SHORT,
   COMP_CHAR,
+  COMP_BOOL,
   COMP_STRING,
   COMP_CHAR_ARRAY,              // This and below are not yet implemented
   COMP_INT_LISTID,

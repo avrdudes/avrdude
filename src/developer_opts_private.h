@@ -62,6 +62,11 @@ static int dev_message(int msglvl, const char *fmt, ...);
     dev_part_strct_entry(tsv, ".prog", id, NULL, #component, dev_sprintf(fmt, pgm->component), pgm->comments); \
 } while(0)
 
+#define _if_pgmout_bool(component) do { \
+  if(!base || !!base->component != !!pgm->component) \
+    dev_part_strct_entry(tsv, ".prog", id, NULL, #component, dev_sprintf("%s", pgm->component? "true": "false"), pgm->comments); \
+} while(0)
+
 // Result must be a malloc'd string
 #define _if_pgmout_str(cmp, result, component) do { \
   if(!base || cmp(base->component, pgm->component)) \
@@ -75,6 +80,11 @@ static int dev_message(int msglvl, const char *fmt, ...);
 #define _if_partout(cmp, fmt, component) do { \
   if(!base || cmp(base->component, p->component)) \
     dev_part_strct_entry(tsv, ".pt", p->desc, NULL, #component, dev_sprintf(fmt, p->component), p->comments); \
+} while(0)
+
+#define _if_partout_bool(component) do { \
+  if(!base || !!base->component != !!p->component) \
+    dev_part_strct_entry(tsv, ".pt", p->desc, NULL, #component, dev_sprintf("%s", p->component? "true": "false"), p->comments); \
 } while(0)
 
 #define _if_n_partout(cmp, n, fmt, component) do { \
@@ -119,6 +129,11 @@ static int dev_message(int msglvl, const char *fmt, ...);
 
 #define _memout_yn(component) \
   dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc, #component, cfg_strdup("_memout_yn()", m->component? "yes": "no"), m->comments)
+
+#define _if_memout_bool(component) do { \
+  if(!bm || !!bm->component != !!m->component) \
+    dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc, #component, dev_sprintf("%s", m->component? "true": "false"), m->comments); \
+} while(0)
 
 #define _if_memout_yn(component) do { \
   if(!bm || bm->component != m->component) \
