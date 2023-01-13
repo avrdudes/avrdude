@@ -2115,11 +2115,11 @@ programmer
 ;
 
 #------------------------------------------------------------
-# xplainedmini
+# xplainedmini / xplainedmini_isp
 #------------------------------------------------------------
 
 programmer
-    id                     = "xplainedmini";
+    id                     = "xplainedmini", "xplainedmini_isp";
     desc                   = "Atmel AVR XplainedMini in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
@@ -2171,11 +2171,11 @@ programmer
 ;
 
 #------------------------------------------------------------
-# atmelice
+# atmelice / atmelice_jtag
 #------------------------------------------------------------
 
 programmer
-    id                     = "atmelice";
+    id                     = "atmelice", "atmelice_jtag";
     desc                   = "Atmel-ICE (ARM/AVR) in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
@@ -2250,11 +2250,11 @@ programmer
 ;
 
 #------------------------------------------------------------
-# powerdebugger
+# powerdebugger / powerdebugger_jtag
 #------------------------------------------------------------
 
 programmer
-    id                     = "powerdebugger";
+    id                     = "powerdebugger", "powerdebugger_jtag";
     desc                   = "Atmel PowerDebugger (ARM/AVR) in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
@@ -2335,11 +2335,11 @@ programmer
 ;
 
 #------------------------------------------------------------
-# pickit4
+# pickit4 / pickit4_jtag
 #------------------------------------------------------------
 
 programmer
-    id                     = "pickit4";
+    id                     = "pickit4", "pickit4_jtag";
     desc                   = "MPLAB(R) PICkit 4 in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
@@ -2401,11 +2401,11 @@ programmer
 ;
 
 #------------------------------------------------------------
-# snap
+# snap /snap_jtag
 #------------------------------------------------------------
 
 programmer
-    id                     = "snap";
+    id                     = "snap", "snap_jtag";
     desc                   = "MPLAB(R) Snap in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
