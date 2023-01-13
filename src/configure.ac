@@ -83,7 +83,7 @@ AC_CHECK_LIB([ws2_32], [WSAStartup])
 
 AC_CHECK_LIB([termcap], [tputs])
 AC_CHECK_LIB([ncurses], [tputs])
-AC_CHECK_LIB([readline], [readline])
+AC_CHECK_LIB([readline], [readline], [have_readline=yes])
 AH_TEMPLATE([HAVE_LIBELF],
             [Define if ELF support is enabled via libelf])
 AC_CHECK_LIB([elf], [elf_getshdrstrndx], [have_libelf=yes])
