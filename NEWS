@@ -9,13 +9,23 @@ Changes since version 7.1:
 
   * Major changes compared to the previous version:
 
-  * New devices supported: none
+  * New devices supported:
 
   * New programmers supported:
 
   * Issues fixed:
 
+    - STK500V2 ISP problem with ATmega8/8515/8535, ATmega16 and
+      ATmega32 #425
+
   * Pull requests:
+
+    - Correct memory mode, delay and readback (classic parts) #1272
+    - Only send write flash cmd to STK500v2 ISP programmers if page
+      is not empty #1273
+    - Fix docu that avrftdi bit numbers start with 0 #1276
+    - Silence gcc compiler warnings #1277
+    - Reduce complexity of grammar #1282
 
   * Internals:
 
