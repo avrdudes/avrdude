@@ -83,7 +83,7 @@ struct pdata
  * to try connecting at startup, we keep these two entries on top to
  * speedup the program start.
  */
-const static struct {
+static const struct {
   long baud;
   unsigned char val;
 } baudtab[] = {
@@ -139,11 +139,10 @@ u16_to_b2(unsigned char *b, unsigned short l)
 }
 
 static void jtagmkI_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
-  int i;
-
   if (verbose >= 4) {
     msg_trace("Raw message:\n");
 
+    size_t i;
     for (i = 0; i < len; i++) {
       msg_trace("0x%02x ", data[i]);
       if (i % 16 == 15)
@@ -182,6 +181,7 @@ static void jtagmkI_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len
 
   case RESP_POWER:
     msg_info("target power lost\n");
+    break;
 
   default:
     msg_info("unknown message 0x%02x\n", data[0]);
@@ -471,9 +471,7 @@ static int jtagmkI_program_disable(const PROGRAMMER *pgm) {
 
 static unsigned char jtagmkI_get_baud(long baud)
 {
-  int i;
-
-  for (i = 0; i < sizeof baudtab / sizeof baudtab[0]; i++)
+  for (size_t i = 0; i < sizeof baudtab / sizeof baudtab[0]; i++)
     if (baud == baudtab[i].baud)
       return baudtab[i].val;
 

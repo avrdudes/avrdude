@@ -374,7 +374,7 @@ int flip1_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *me
   if (strcmp(mem->desc, "signature") == 0) {
     if (flip1_read_sig_bytes(pgm, part, mem) < 0)
       return -1;
-    if (addr >= mem->size) {
+    if (addr >= (unsigned long) mem->size) {
       pmsg_error("signature address %lu out of range [0, %d]\n", addr, mem->size-1);
       return -1;
     }
@@ -461,7 +461,7 @@ int flip1_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *
   result = flip1_write_memory(FLIP1(pgm)->dfu, mem_unit, addr,
     mem->buf + addr, n_bytes);
 
-  return (result == 0) ? n_bytes : -1;
+  return result == 0? (int) n_bytes: -1;
 }
 
 int flip1_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem) {
@@ -470,7 +470,7 @@ int flip1_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRME
   if (FLIP1(pgm)->dfu == NULL)
     return -1;
 
-  if (mem->size < sizeof(FLIP1(pgm)->part_sig)) {
+  if (mem->size < (int) sizeof(FLIP1(pgm)->part_sig)) {
     pmsg_error("signature read must be at least %u bytes\n", (unsigned int) sizeof(FLIP1(pgm)->part_sig));
     return -1;
   }
@@ -652,7 +652,7 @@ int flip1_write_memory(struct dfu_dev *dfu,
   int cmd_result = 0;
   int aux_result;
   struct flip1_cmd_header cmd_header = {
-    FLIP1_CMD_PROG_START, mem_unit
+    FLIP1_CMD_PROG_START, mem_unit, {0}, {0}, {0},
   };
   struct flip1_prog_footer cmd_footer = {
     { 0, 0, 0, 0 },             /* CRC */

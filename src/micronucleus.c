@@ -191,7 +191,7 @@ static int micronucleus_get_bootloader_info_v1(pdata_t* pdata)
         pmsg_warning("unable to get bootloader info block: %s\n", usb_strerror());
         return result;
     }
-    else if (result < sizeof(buffer))
+    else if ((size_t) result < sizeof(buffer))
     {
         pmsg_warning("received invalid bootloader info block size: %d\n", result);
         return -1;
@@ -258,7 +258,7 @@ static int micronucleus_get_bootloader_info_v2(pdata_t* pdata)
         pmsg_warning("unable to get bootloader info block: %s\n", usb_strerror());
         return result;
     }
-    else if (result < sizeof(buffer))
+    else if ((size_t) result < sizeof(buffer))
     {
         pmsg_warning("received invalid bootloader info block size: %d\n", result);
         return -1;
@@ -449,7 +449,7 @@ static int micronucleus_write_page_v2(pdata_t* pdata, uint32_t address, uint8_t*
         return result;
     }
 
-    for (int i = 0; i < size; i += 4)
+    for (uint32_t i = 0; i < size; i += 4)
     {
         int w1 = (buffer[i + 1] << 8) | (buffer[i + 0] << 0);
         int w2 = (buffer[i + 3] << 8) | (buffer[i + 2] << 0);
@@ -491,7 +491,7 @@ static int micronucleus_write_page(pdata_t* pdata, uint32_t address, uint8_t* bu
         // Require software start.
         pdata->start_program = true;
     }
-    else if (address >= pdata->bootloader_start - pdata->page_size)
+    else if (address >= (uint32_t) (pdata->bootloader_start - pdata->page_size))
     {
         if (pdata->major_version >= 2)
         {

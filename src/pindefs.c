@@ -84,9 +84,7 @@ static int pin_fill_old_pinno(const struct pindef_t * const pindef, unsigned int
  * @param[out] pinno old pin definition integer
  */
 static int pin_fill_old_pinlist(const struct pindef_t * const pindef, unsigned int * const pinno) {
-  int i;
-
-  for(i = 0; i < PIN_FIELD_SIZE; i++) {
+  for(size_t i = 0; i < PIN_FIELD_SIZE; i++) {
     if(i == 0) {
       if((pindef->mask[i] & ~PIN_MASK) != 0) {
         pmsg_error("pins of higher index than max field size for old pinno found\n");
@@ -229,7 +227,6 @@ int pins_check(const PROGRAMMER *const pgm, const struct pin_checklist_t *const 
     bool invalid = false;
     bool inverse = false;
     int index;
-    int segment;
     bool mandatory_used = false;
     pinmask_t invalid_used[PIN_FIELD_SIZE] = {0};
     pinmask_t inverse_used[PIN_FIELD_SIZE] = {0};
@@ -246,7 +243,7 @@ int pins_check(const PROGRAMMER *const pgm, const struct pin_checklist_t *const 
       }
     }
 
-    for(segment = 0; segment < PIN_FIELD_SIZE; segment++) {
+    for(size_t segment = 0; segment < PIN_FIELD_SIZE; segment++) {
       // check if for mandatory any pin is defined
       invalid_used[segment] = pgm->pin[pinname].mask[segment] & ~valid_pins->mask[segment];
       if(is_mandatory && (0 != (pgm->pin[pinname].mask[segment] & valid_pins->mask[segment]))) {

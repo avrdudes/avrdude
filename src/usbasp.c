@@ -932,7 +932,7 @@ static int usbasp_spi_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
     pmsg_notice2("try to set SCK period to %g s (= %i Hz)\n", sckperiod, sckfreq);
 
     /* Check if programmer is capable of 3 MHz SCK, if not then ommit 3 MHz setting */
-    int i;
+    size_t i;
     if (PDATA(pgm)->sck_3mhz) {
       pmsg_notice2("connected USBasp is capable of 3 MHz SCK\n");
       i = 0;
@@ -1122,7 +1122,7 @@ static int usbasp_tpi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
   pr = addr + m->offset;
   readed = 0;
 
-  while(readed < n_bytes)
+  while(readed < (int) n_bytes)
   {
     clen = n_bytes - readed;
     if(clen > 32)
@@ -1187,7 +1187,7 @@ static int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
   usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(1));
   usbasp_tpi_send_byte(pgm, (pr >> 8) );
 
-  while(writed < n_bytes)
+  while(writed < (int) n_bytes)
   {
     clen = n_bytes - writed;
     if(clen > 32)
