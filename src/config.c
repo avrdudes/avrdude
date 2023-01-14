@@ -63,24 +63,88 @@ extern char * yytext;
 // Component description for config_gram.y, will be sorted appropriately on first use
 Component_t avr_comp[] = {
   // PROGRAMMER
+  pgm_comp_desc(desc, COMP_STRING),
   pgm_comp_desc(prog_modes, COMP_INT),
+  pgm_comp_desc(baudrate, COMP_INT),
+  pgm_comp_desc(usbvid, COMP_INT),
+  pgm_comp_desc(usbdev, COMP_STRING),
+  pgm_comp_desc(usbsn, COMP_STRING),
+  pgm_comp_desc(usbvendor, COMP_STRING),
+  pgm_comp_desc(usbproduct, COMP_STRING),
 
   // AVRPART
+  part_comp_desc(desc, COMP_STRING),
+  part_comp_desc(family_id, COMP_STRING),
   part_comp_desc(prog_modes, COMP_INT),
   part_comp_desc(mcuid, COMP_INT),
   part_comp_desc(n_interrupts, COMP_INT),
   part_comp_desc(n_page_erase, COMP_INT),
   part_comp_desc(n_boot_sections, COMP_INT),
   part_comp_desc(boot_section_size, COMP_INT),
-  part_comp_desc(autobaud_sync, COMP_CHAR),
+  part_comp_desc(hvupdi_variant, COMP_INT),
+  part_comp_desc(stk500_devcode, COMP_INT),
+  part_comp_desc(avr910_devcode, COMP_INT),
+  part_comp_desc(chip_erase_delay, COMP_INT),
+  part_comp_desc(pagel, COMP_CHAR),
+  part_comp_desc(bs2, COMP_CHAR),
+
+  part_comp_desc(timeout, COMP_INT),
+  part_comp_desc(stabdelay, COMP_INT),
+  part_comp_desc(cmdexedelay, COMP_INT),
+  part_comp_desc(synchloops, COMP_INT),
+  part_comp_desc(bytedelay, COMP_INT),
+  part_comp_desc(pollindex, COMP_INT),
+  part_comp_desc(pollvalue, COMP_CHAR),
+  part_comp_desc(predelay, COMP_INT),
+  part_comp_desc(postdelay, COMP_INT),
+  part_comp_desc(pollmethod, COMP_INT),
+
+  part_comp_desc(hventerstabdelay, COMP_INT), // STK500 v2 hv mode parameters
+  part_comp_desc(progmodedelay, COMP_INT),
+  part_comp_desc(latchcycles, COMP_INT),
+  part_comp_desc(togglevtg, COMP_INT),
+  part_comp_desc(poweroffdelay, COMP_INT),
+  part_comp_desc(resetdelayms, COMP_INT),
+  part_comp_desc(resetdelayus, COMP_INT),
+  part_comp_desc(hvleavestabdelay, COMP_INT),
+  part_comp_desc(resetdelay, COMP_INT),
+  part_comp_desc(chiperasepulsewidth, COMP_INT),
+  part_comp_desc(chiperasepolltimeout, COMP_INT),
+  part_comp_desc(chiperasetime, COMP_INT),
+  part_comp_desc(programfusepulsewidth, COMP_INT),
+  part_comp_desc(programfusepolltimeout, COMP_INT),
+  part_comp_desc(programlockpulsewidth, COMP_INT),
+  part_comp_desc(programlockpolltimeout, COMP_INT),
+  part_comp_desc(synchcycles, COMP_INT),
+  part_comp_desc(hvspcmdexedelay, COMP_INT),
+
   part_comp_desc(idr, COMP_CHAR),
   part_comp_desc(rampz, COMP_CHAR),
   part_comp_desc(spmcr, COMP_CHAR),
   part_comp_desc(eecr, COMP_CHAR),
   part_comp_desc(eind, COMP_CHAR),
+  part_comp_desc(mcu_base, COMP_INT),
+  part_comp_desc(nvm_base, COMP_INT),
+  part_comp_desc(ocd_base, COMP_INT),
+  part_comp_desc(ocdrev, COMP_INT),
+  part_comp_desc(autobaud_sync, COMP_CHAR),
 
   // AVRMEM
+  mem_comp_desc(paged, COMP_BOOL),
+  mem_comp_desc(size, COMP_INT),
+  mem_comp_desc(num_pages, COMP_INT),
   mem_comp_desc(n_word_writes, COMP_INT),
+  mem_comp_desc(offset, COMP_INT),
+  mem_comp_desc(min_write_delay, COMP_INT),
+  mem_comp_desc(max_write_delay, COMP_INT),
+  mem_comp_desc(pwroff_after_write, COMP_INT),
+  {"readback_p1", COMP_AVRMEM, offsetof(AVRMEM, readback)+0, 1, COMP_CHAR },
+  {"readback_p2", COMP_AVRMEM, offsetof(AVRMEM, readback)+1, 1, COMP_CHAR },
+  mem_comp_desc(mode, COMP_INT),
+  mem_comp_desc(delay, COMP_INT),
+  mem_comp_desc(pollindex, COMP_INT),
+  mem_comp_desc(blocksize, COMP_INT),
+  mem_comp_desc(readsize, COMP_INT),
 };
 
 #define DEBUG 0
@@ -282,6 +346,9 @@ TOKEN *new_constant(const char *con) {
     !strcmp("PM_XMEGAJTAG", con)? PM_XMEGAJTAG:
     !strcmp("PM_AVR32JTAG", con)? PM_AVR32JTAG:
     !strcmp("PM_aWire", con)? PM_aWire:
+    !strcmp("pseudo", con)? 2:
+    !strcmp("yes", con) || !strcmp("true", con)? 1:
+    !strcmp("no", con) || !strcmp("false", con)? 0:
     (assigned = 0);
 
   if(!assigned) {
@@ -802,6 +869,7 @@ const char *cfg_comp_type(int type) {
   case COMP_INT: return "number";
   case COMP_SHORT: return "short";
   case COMP_CHAR: return "char";
+  case COMP_BOOL: return "bool";
   case COMP_STRING: return "string";
   case COMP_CHAR_ARRAY: return "byte array";
   case COMP_INT_LISTID: return "number list";
@@ -820,6 +888,7 @@ void cfg_assign(char *sp, int strct, Component_t *cp, VALUE *v) {
   int num;
 
   switch(cp->type) {
+  case COMP_BOOL:
   case COMP_CHAR:
   case COMP_SHORT:
   case COMP_INT:
