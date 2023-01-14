@@ -223,8 +223,8 @@ The STK600, JTAG ICE mkII/3, AVRISP mkII, USBasp, avrftdi (and derivatives), and
 programmers communicate through the USB, using @code{libusb} as a
 platform abstraction layer.
 The avrftdi adds support for the FT2232C/D, FT2232H, and FT4232H devices. These all use 
-the MPSSE mode, which has a specific pin mapping. Bit 1 (the lsb of the byte in the config
-file) is SCK. Bit 2 is SDO, and Bit 3 is SDI. Bit 4 usually reset. The 2232C/D parts
+the MPSSE mode, which has a specific pin mapping. Bit 0 (the lsb of the byte in the config
+file) is SCK. Bit 1 is SDO, and Bit 2 is SDI. Bit 3 usually reset. The 2232C/D parts
 are only supported on interface A, but the H parts can be either A or B (specified by the
 usbdev config parameter).
 The STK500, STK600, JTAG ICE, and avr910 contain on-board logic to control the programming of the target

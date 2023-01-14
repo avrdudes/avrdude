@@ -735,7 +735,7 @@ static int usbtiny_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     }
 
     // we can only write a page at a time anyways
-    if (m->paged && chunk > page_size)
+    if (m->paged && chunk > (int) page_size)
       chunk = page_size;
 
     if (usb_out(pgm,
@@ -752,8 +752,7 @@ static int usbtiny_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     }
 
     next = addr + chunk;       // Calculate what address we're at now
-    if (m->paged
-	&& ((next % page_size) == 0 || next == maxaddr) ) {
+    if (m->paged && (next % page_size == 0 || next == (int) maxaddr) ) {
       // If we're at a page boundary, send the SPI command to flush it.
       avr_write_page(pgm, p, m, (unsigned long) addr);
     }

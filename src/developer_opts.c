@@ -776,7 +776,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
     _if_memout(intcmp, "%d", max_write_delay);
     _if_memout_yn(pwroff_after_write);
     _if_n_memout_str(memcmp, 2, dev_sprintf("0x%02x 0x%02x", m->readback[0], m->readback[1]), readback);
-    _if_memout(intcmp, "%d", mode);
+    _if_memout(intcmp, "0x%02x", mode);
     _if_memout(intcmp, "%d", delay);
     _if_memout(intcmp, "%d", blocksize);
     _if_memout(intcmp, "%d", readsize);

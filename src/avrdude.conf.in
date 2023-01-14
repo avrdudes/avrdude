@@ -2766,8 +2766,8 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 20000;
         readback           = 0xff 0xff;
-        mode               = 4;
-        delay              = 8;
+        mode               = 0x04;
+        delay              = 20;
         blocksize          = 64;
         readsize           = 256;
         read               = "1010.0000--xxxx.xxxx--xxaa.aaaa--oooo.oooo";
@@ -2778,9 +2778,9 @@ part
         size               = 1024;
         min_write_delay    = 4500;
         max_write_delay    = 20000;
-        readback           = 0xff 0xff;
-        mode               = 4;
-        delay              = 5;
+        readback           = 0xff 0x00;
+        mode               = 0x04;
+        delay              = 10;
         blocksize          = 128;
         readsize           = 256;
         read_lo            = "0010.0000--xxxx.xxxa--aaaa.aaaa--oooo.oooo";
@@ -2870,8 +2870,7 @@ part
         page_size          = 4;
         min_write_delay    = 4000;
         max_write_delay    = 4000;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 5;
         blocksize          = 4;
         readsize           = 256;
@@ -2888,9 +2887,8 @@ part
         num_pages          = 32;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 32;
         readsize           = 256;
         read_lo            = "0010.0000--0000.000a--aaaa.aaaa--oooo.oooo";
@@ -2992,8 +2990,8 @@ part
         min_write_delay    = 8200;
         max_write_delay    = 8200;
         readback           = 0xff 0xff;
-        mode               = 4;
-        delay              = 10;
+        mode               = 0x04;
+        delay              = 20;
         blocksize          = 64;
         readsize           = 256;
         read               = "1010.0000--xxxx.xxxx--xxaa.aaaa--oooo.oooo";
@@ -3004,9 +3002,9 @@ part
         size               = 1024;
         min_write_delay    = 4100;
         max_write_delay    = 4100;
-        readback           = 0xff 0xff;
-        mode               = 4;
-        delay              = 5;
+        readback           = 0xff 0x00;
+        mode               = 0x04;
+        delay              = 10;
         blocksize          = 128;
         readsize           = 256;
         read_lo            = "0010.0000--xxxx.xxxa--aaaa.aaaa--oooo.oooo";
@@ -3084,7 +3082,7 @@ part
         min_write_delay    = 4000;
         max_write_delay    = 9000;
         readback           = 0x00 0xff;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 20;
         blocksize          = 32;
         readsize           = 256;
@@ -3097,7 +3095,7 @@ part
         min_write_delay    = 4000;
         max_write_delay    = 9000;
         readback           = 0xff 0xff;
-        mode               = 2;
+        mode               = 0x02;
         delay              = 15;
         blocksize          = 128;
         readsize           = 256;
@@ -3164,7 +3162,7 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 20000;
         readback           = 0x80 0x7f;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 12;
         blocksize          = 64;
         readsize           = 256;
@@ -3177,7 +3175,7 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 20000;
         readback           = 0x7f 0x7f;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 12;
         blocksize          = 64;
         readsize           = 256;
@@ -3244,7 +3242,7 @@ part
         min_write_delay    = 4000;
         max_write_delay    = 9000;
         readback           = 0x80 0x7f;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 12;
         blocksize          = 64;
         readsize           = 256;
@@ -3257,7 +3255,7 @@ part
         min_write_delay    = 4000;
         max_write_delay    = 9000;
         readback           = 0x7f 0x7f;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 12;
         blocksize          = 128;
         readsize           = 256;
@@ -3325,7 +3323,7 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 20000;
         readback           = 0x00 0xff;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 12;
         blocksize          = 128;
         readsize           = 256;
@@ -3338,7 +3336,7 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 20000;
         readback           = 0xff 0xff;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 12;
         blocksize          = 128;
         readsize           = 256;
@@ -3416,7 +3414,7 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 20000;
         readback           = 0x00 0xff;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 12;
         blocksize          = 64;
         readsize           = 256;
@@ -3429,7 +3427,7 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 20000;
         readback           = 0xff 0xff;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 12;
         blocksize          = 128;
         readsize           = 128;
@@ -3501,7 +3499,7 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 20000;
         readback           = 0x00 0xff;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 12;
         blocksize          = 128;
         readsize           = 256;
@@ -3514,7 +3512,7 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 20000;
         readback           = 0xff 0xff;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 12;
         blocksize          = 128;
         readsize           = 256;
@@ -3648,7 +3646,7 @@ part
         min_write_delay    = 4000;
         max_write_delay    = 9000;
         readback           = 0x80 0x7f;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 12;
         blocksize          = 128;
         readsize           = 256;
@@ -3661,7 +3659,7 @@ part
         min_write_delay    = 4000;
         max_write_delay    = 9000;
         readback           = 0x7f 0x7f;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 12;
         blocksize          = 128;
         readsize           = 256;
@@ -3728,7 +3726,7 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 20000;
         readback           = 0x00 0xff;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 12;
         blocksize          = 128;
         readsize           = 256;
@@ -3741,7 +3739,7 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 20000;
         readback           = 0xff 0xff;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 12;
         blocksize          = 128;
         readsize           = 256;
@@ -3813,7 +3811,7 @@ part
         min_write_delay    = 4000;
         max_write_delay    = 9000;
         readback           = 0x80 0x7f;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 12;
         blocksize          = 64;
         readsize           = 256;
@@ -3829,7 +3827,7 @@ part
         min_write_delay    = 22000;
         max_write_delay    = 56000;
         readback           = 0xff 0xff;
-        mode               = 17;
+        mode               = 0x11;
         delay              = 70;
         blocksize          = 256;
         readsize           = 256;
@@ -3913,7 +3911,7 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         readback           = 0xff 0xff;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 20;
         blocksize          = 64;
         readsize           = 256;
@@ -3928,9 +3926,9 @@ part
         num_pages          = 256;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 33;
-        delay              = 6;
+        readback           = 0xff 0x00;
+        mode               = 0x21;
+        delay              = 10;
         blocksize          = 128;
         readsize           = 256;
         read_lo            = "0010.0000--xaaa.aaaa--aaaa.aaaa--oooo.oooo";
@@ -4045,8 +4043,8 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         readback           = 0xff 0xff;
-        mode               = 4;
-        delay              = 12;
+        mode               = 0x04;
+        delay              = 20;
         blocksize          = 64;
         readsize           = 256;
         read               = "1010.0000--xxxx.aaaa--aaaa.aaaa--oooo.oooo";
@@ -4060,9 +4058,9 @@ part
         num_pages          = 512;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 33;
-        delay              = 6;
+        readback           = 0xff 0x00;
+        mode               = 0x21;
+        delay              = 10;
         blocksize          = 128;
         readsize           = 256;
         read_lo            = "0010.0000--aaaa.aaaa--aaaa.aaaa--oooo.oooo";
@@ -4177,8 +4175,7 @@ part
         page_size          = 8;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 8;
         readsize           = 256;
@@ -4195,9 +4192,9 @@ part
         num_pages          = 512;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        readback           = 0xff 0x00;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 256;
         readsize           = 256;
         read_lo            = "0010.0000--aaaa.aaaa--aaaa.aaaa--oooo.oooo";
@@ -4302,8 +4299,7 @@ part
         page_size          = 8;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 8;
         readsize           = 256;
@@ -4320,9 +4316,8 @@ part
         num_pages          = 256;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 256;
         readsize           = 256;
         read_lo            = "0010.0000--aaaa.aaaa--aaaa.aaaa--oooo.oooo";
@@ -4427,8 +4422,7 @@ part
         page_size          = 8;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 8;
         readsize           = 256;
@@ -4445,9 +4439,8 @@ part
         num_pages          = 128;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 256;
         readsize           = 256;
         read_lo            = "0010.0000--aaaa.aaaa--aaaa.aaaa--oooo.oooo";
@@ -4553,8 +4546,8 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         readback           = 0xff 0xff;
-        mode               = 4;
-        delay              = 10;
+        mode               = 0x04;
+        delay              = 20;
         blocksize          = 128;
         readsize           = 256;
         read               = "1010.0000--00xx.xxaa--aaaa.aaaa--oooo.oooo";
@@ -4570,9 +4563,9 @@ part
         num_pages          = 128;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 33;
-        delay              = 6;
+        readback           = 0xff 0x00;
+        mode               = 0x21;
+        delay              = 10;
         blocksize          = 128;
         readsize           = 256;
         read_lo            = "0010.0000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
@@ -4679,8 +4672,7 @@ part
         page_size          = 4;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 128;
         readsize           = 256;
@@ -4697,9 +4689,8 @@ part
         num_pages          = 256;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 33;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 256;
         readsize           = 256;
         read_lo            = "0010.0000--0aaa.aaaa--aaaa.aaaa--oooo.oooo";
@@ -4765,6 +4756,7 @@ part parent "m324p"
 
     memory "eeprom"
         size               = 512;
+        delay              = 20;
     ;
 
     memory "flash"
@@ -4877,8 +4869,7 @@ part
         page_size          = 8;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 128;
         readsize           = 256;
@@ -4895,9 +4886,8 @@ part
         num_pages          = 256;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 33;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 256;
         readsize           = 256;
         read_lo            = "0010.0000--aaaa.aaaa--aaaa.aaaa--oooo.oooo";
@@ -5038,8 +5028,7 @@ part
         page_size          = 8;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 128;
         readsize           = 256;
@@ -5056,8 +5045,7 @@ part
         num_pages          = 512;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 256;
         readsize           = 256;
@@ -5172,8 +5160,7 @@ part
         page_size          = 4;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
         readsize           = 256;
@@ -5190,8 +5177,7 @@ part
         num_pages          = 128;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 128;
         readsize           = 256;
@@ -5289,7 +5275,7 @@ part
         min_write_delay    = 4000;
         max_write_delay    = 4000;
         readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
         readsize           = 256;
@@ -5305,7 +5291,7 @@ part
         min_write_delay    = 16000;
         max_write_delay    = 16000;
         readback           = 0xff 0xff;
-        mode               = 17;
+        mode               = 0x11;
         delay              = 20;
         blocksize          = 128;
         readsize           = 256;
@@ -5402,7 +5388,7 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
         readsize           = 256;
@@ -5420,7 +5406,7 @@ part
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 6;
         blocksize          = 128;
         readsize           = 256;
@@ -5562,9 +5548,8 @@ part
         page_size          = 4;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 20;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 8;
         readsize           = 256;
         read               = "1010.0000--xxxx.xxaa--aaaa.aaaa--oooo.oooo";
@@ -5580,9 +5565,8 @@ part
         num_pages          = 256;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 256;
         readsize           = 256;
         read_lo            = "0010.0000--xaaa.aaaa--aaaa.aaaa--oooo.oooo";
@@ -5767,9 +5751,8 @@ part
         page_size          = 8;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 20;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 8;
         readsize           = 256;
         read               = "1010.0000--xxxx.xaaa--aaaa.aaaa--oooo.oooo";
@@ -5785,9 +5768,8 @@ part
         num_pages          = 256;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 256;
         readsize           = 256;
         read_lo            = "0010.0000--aaaa.aaaa--aaaa.aaaa--oooo.oooo";
@@ -5948,8 +5930,8 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         readback           = 0xff 0xff;
-        mode               = 4;
-        delay              = 10;
+        mode               = 0x04;
+        delay              = 20;
         blocksize          = 64;
         readsize           = 256;
         read               = "1010.0000--00xx.xxaa--aaaa.aaaa--oooo.oooo";
@@ -5965,9 +5947,9 @@ part
         num_pages          = 256;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 33;
-        delay              = 6;
+        readback           = 0xff 0x00;
+        mode               = 0x21;
+        delay              = 10;
         blocksize          = 64;
         readsize           = 256;
         read_lo            = "0010.0000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
@@ -6056,7 +6038,7 @@ part
         min_write_delay    = 3400;
         max_write_delay    = 3400;
         readback           = 0xff 0xff;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 5;
         blocksize          = 128;
         readsize           = 256;
@@ -6072,7 +6054,7 @@ part
         min_write_delay    = 14000;
         max_write_delay    = 14000;
         readback           = 0xff 0xff;
-        mode               = 33;
+        mode               = 0x21;
         delay              = 16;
         blocksize          = 128;
         readsize           = 256;
@@ -6166,7 +6148,7 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         readback           = 0xff 0xff;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 20;
         blocksize          = 128;
         readsize           = 256;
@@ -6182,7 +6164,7 @@ part
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         readback           = 0xff 0x00;
-        mode               = 33;
+        mode               = 0x21;
         delay              = 10;
         blocksize          = 64;
         readsize           = 256;
@@ -6281,7 +6263,7 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         readback           = 0xff 0xff;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 20;
         blocksize          = 128;
         readsize           = 256;
@@ -6296,9 +6278,9 @@ part
         num_pages          = 128;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 33;
-        delay              = 6;
+        readback           = 0xff 0x00;
+        mode               = 0x21;
+        delay              = 10;
         blocksize          = 64;
         readsize           = 256;
         read_lo            = "0010.0000--0000.aaaa--aaaa.aaaa--oooo.oooo";
@@ -6388,7 +6370,7 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         readback           = 0xff 0xff;
-        mode               = 4;
+        mode               = 0x04;
         delay              = 20;
         blocksize          = 128;
         readsize           = 256;
@@ -6403,9 +6385,9 @@ part
         num_pages          = 128;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 33;
-        delay              = 6;
+        readback           = 0xff 0x00;
+        mode               = 0x21;
+        delay              = 10;
         blocksize          = 64;
         readsize           = 256;
         read_lo            = "0010.0000--0000.aaaa--aaaa.aaaa--oooo.oooo";
@@ -6496,8 +6478,8 @@ part
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         readback           = 0xff 0xff;
-        mode               = 4;
-        delay              = 10;
+        mode               = 0x04;
+        delay              = 20;
         blocksize          = 64;
         readsize           = 256;
         read               = "1010.0000--xxxx.xxxx--xaaa.aaaa--oooo.oooo";
@@ -6511,9 +6493,9 @@ part
         num_pages          = 64;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 33;
-        delay              = 6;
+        readback           = 0xff 0x00;
+        mode               = 0x21;
+        delay              = 10;
         blocksize          = 16;
         readsize           = 256;
         read_lo            = "0010.0000--xxxx.xxaa--aaaa.aaaa--oooo.oooo";
@@ -6613,8 +6595,7 @@ part
         num_pages          = 32;
         min_write_delay    = 4000;
         max_write_delay    = 4000;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 4;
         readsize           = 256;
@@ -6631,9 +6612,8 @@ part
         num_pages          = 64;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 32;
         readsize           = 256;
         read_lo            = "0010.0000--xxxx.xxaa--aaaa.aaaa--oooo.oooo";
@@ -6751,8 +6731,7 @@ part
         num_pages          = 64;
         min_write_delay    = 4000;
         max_write_delay    = 4000;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 4;
         readsize           = 256;
@@ -6769,9 +6748,8 @@ part
         num_pages          = 64;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 64;
         readsize           = 256;
         read_lo            = "0010.0000--xxxx.xaaa--aaaa.aaaa--oooo.oooo";
@@ -6889,8 +6867,7 @@ part
         num_pages          = 128;
         min_write_delay    = 4000;
         max_write_delay    = 4000;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 4;
         readsize           = 256;
@@ -6907,9 +6884,8 @@ part
         num_pages          = 128;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 64;
         readsize           = 256;
         read_lo            = "0010.0000--xxxx.aaaa--aaaa.aaaa--oooo.oooo";
@@ -7081,8 +7057,7 @@ part
         page_size          = 4;
         min_write_delay    = 3600;
         max_write_delay    = 3600;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
         readsize           = 256;
@@ -7099,8 +7074,8 @@ part
         num_pages          = 64;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 64;
         readsize           = 256;
         read_lo            = "0010.0000--0000.0aaa--aaaa.aaaa--oooo.oooo";
@@ -7257,8 +7232,7 @@ part
         page_size          = 4;
         min_write_delay    = 3600;
         max_write_delay    = 3600;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
         readsize           = 256;
@@ -7275,9 +7249,8 @@ part
         num_pages          = 128;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 64;
         readsize           = 256;
         read_lo            = "0010.0000--0000.aaaa--aaaa.aaaa--oooo.oooo";
@@ -7434,8 +7407,7 @@ part
         page_size          = 4;
         min_write_delay    = 3600;
         max_write_delay    = 3600;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
         readsize           = 256;
@@ -7452,9 +7424,8 @@ part
         num_pages          = 128;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 128;
         readsize           = 256;
         read_lo            = "0010.0000--000a.aaaa--aaaa.aaaa--oooo.oooo";
@@ -7610,9 +7581,8 @@ part
         page_size          = 4;
         min_write_delay    = 3600;
         max_write_delay    = 3600;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 5;
+        mode               = 0x41;
+        delay              = 20;
         blocksize          = 4;
         readsize           = 256;
         read               = "1010.0000--000x.xxxa--aaaa.aaaa--oooo.oooo";
@@ -7628,9 +7598,8 @@ part
         num_pages          = 128;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 128;
         readsize           = 256;
         read_lo            = "0010.0000--0000.aaaa--aaaa.aaaa--oooo.oooo";
@@ -7747,8 +7716,7 @@ part
         page_size          = 4;
         min_write_delay    = 4000;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 4;
         readsize           = 256;
@@ -7765,8 +7733,7 @@ part
         num_pages          = 64;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 64;
         readsize           = 256;
@@ -7875,8 +7842,7 @@ part
         page_size          = 4;
         min_write_delay    = 4000;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 4;
         readsize           = 256;
@@ -7893,8 +7859,7 @@ part
         num_pages          = 128;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 64;
         readsize           = 256;
@@ -8005,8 +7970,7 @@ part
         page_size          = 4;
         min_write_delay    = 3600;
         max_write_delay    = 3600;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
         readsize           = 64;
@@ -8023,9 +7987,8 @@ part
         num_pages          = 64;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 64;
         readsize           = 256;
         read_lo            = "0010.0000--0000.aaaa--aaaa.aaaa--oooo.oooo";
@@ -8135,8 +8098,7 @@ part
         page_size          = 4;
         min_write_delay    = 3600;
         max_write_delay    = 3600;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
         readsize           = 64;
@@ -8153,9 +8115,8 @@ part
         num_pages          = 128;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 64;
         readsize           = 256;
         read_lo            = "0010.0000--0000.aaaa--aaaa.aaaa--oooo.oooo";
@@ -8267,8 +8228,7 @@ part
         page_size          = 4;
         min_write_delay    = 3600;
         max_write_delay    = 3600;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
         readsize           = 256;
@@ -8285,9 +8245,8 @@ part
         num_pages          = 256;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 128;
         readsize           = 256;
         read_lo            = "0010.0000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
@@ -8405,6 +8364,7 @@ part parent "m328"
     memory "eeprom"
         size               = 2048;
         page_size          = 8;
+        delay              = 10;
         read               = "1010.0000--000x.xaaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--000x.xaaa--aaaa.aaaa--iiii.iiii";
         loadpage_lo        = "1100.0001--0000.0000--0000.0aaa--iiii.iiii";
@@ -8483,8 +8443,7 @@ part
         page_size          = 4;
         min_write_delay    = 4000;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 6;
         blocksize          = 4;
         readsize           = 256;
@@ -8501,9 +8460,8 @@ part
         num_pages          = 64;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 32;
         readsize           = 256;
         read_lo            = "0010.0000--0000.00aa--aaaa.aaaa--oooo.oooo";
@@ -8629,8 +8587,7 @@ part
         page_size          = 4;
         min_write_delay    = 4000;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 6;
         blocksize          = 4;
         readsize           = 256;
@@ -8647,9 +8604,8 @@ part
         num_pages          = 64;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 32;
         readsize           = 256;
         read_lo            = "0010.0000--0000.0aaa--aaaa.aaaa--oooo.oooo";
@@ -8760,7 +8716,7 @@ part
         min_write_delay    = 4000;
         max_write_delay    = 4500;
         readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 6;
         blocksize          = 4;
         readsize           = 256;
@@ -8778,7 +8734,7 @@ part
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 6;
         blocksize          = 64;
         readsize           = 256;
@@ -8885,7 +8841,8 @@ part parent "pwm3b"
     memory "flash"
         size               = 0x4000;
         page_size          = 128;
-        mode               = 33;
+        readback           = 0x00 0x00;
+        delay              = 10;
         blocksize          = 128;
         read_lo            = "0010.0000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
@@ -8965,9 +8922,8 @@ part
         page_size          = 4;
         min_write_delay    = 4000;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 5;
         blocksize          = 4;
         readsize           = 256;
         read               = "1010.0000--000x.xxxx--xaaa.aaaa--oooo.oooo";
@@ -8983,9 +8939,8 @@ part
         num_pages          = 64;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 32;
         readsize           = 256;
         read_lo            = "0010.0000--0000.00aa--aaaa.aaaa--oooo.oooo";
@@ -9096,9 +9051,8 @@ part
         page_size          = 4;
         min_write_delay    = 4000;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 5;
         blocksize          = 4;
         readsize           = 256;
         read               = "1010.0000--000x.xxxx--aaaa.aaaa--oooo.oooo";
@@ -9114,9 +9068,8 @@ part
         num_pages          = 64;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 32;
         readsize           = 256;
         read_lo            = "0010.0000--0000.0aaa--aaaa.aaaa--oooo.oooo";
@@ -9228,9 +9181,8 @@ part
         page_size          = 4;
         min_write_delay    = 4000;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 5;
         blocksize          = 4;
         readsize           = 256;
         read               = "1010.0000--000x.xxxa--aaaa.aaaa--oooo.oooo";
@@ -9246,9 +9198,8 @@ part
         num_pages          = 128;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 32;
         readsize           = 256;
         read_lo            = "0010.0000--0000.aaaa--aaaa.aaaa--oooo.oooo";
@@ -9356,7 +9307,7 @@ part
         page_size          = 8;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 8;
         readsize           = 256;
@@ -9373,7 +9324,7 @@ part
         num_pages          = 256;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 256;
         readsize           = 256;
@@ -9481,7 +9432,7 @@ part
         page_size          = 8;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 8;
         readsize           = 256;
@@ -9498,7 +9449,7 @@ part
         num_pages          = 512;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 256;
         readsize           = 256;
@@ -9618,7 +9569,7 @@ part
         page_size          = 8;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 8;
         readsize           = 256;
@@ -9635,7 +9586,7 @@ part
         num_pages          = 1024;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 256;
         readsize           = 256;
@@ -9721,7 +9672,7 @@ part parent "m2561"
         num_pages          = 512;
         min_write_delay    = 50000;
         max_write_delay    = 50000;
-        delay              = 20;
+        delay              = 50;
         load_ext_addr      = NULL;
     ;
 ;
@@ -9743,6 +9694,7 @@ part parent "m2561"
         size               = 8192;
         min_write_delay    = 13000;
         max_write_delay    = 13000;
+        delay              = 50;
         read               = "1010.0000--xxxa.aaaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--xxxa.aaaa--aaaa.aaaa--iiii.iiii";
         writepage          = "1100.0010--00xa.aaaa--aaaa.a000--xxxx.xxxx";
@@ -9776,6 +9728,7 @@ part parent "m128rfa1"
         size               = 2048;
         min_write_delay    = 13000;
         max_write_delay    = 13000;
+        delay              = 50;
         read               = "1010.0000--xxxx.xaaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--xxxx.xaaa--aaaa.aaaa--iiii.iiii";
         writepage          = "1100.0010--00xx.xaaa--aaaa.a000--xxxx.xxxx";
@@ -9882,9 +9835,8 @@ part
         page_size          = 4;
         min_write_delay    = 4000;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 4;
         readsize           = 256;
         read               = "1010.0000--000x.xxxx--xaaa.aaaa--oooo.oooo";
@@ -9900,9 +9852,8 @@ part
         num_pages          = 64;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 32;
         readsize           = 256;
         read_lo            = "0010.0000--0000.00aa--aaaa.aaaa--oooo.oooo";
@@ -10024,9 +9975,8 @@ part
         page_size          = 4;
         min_write_delay    = 4000;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 4;
         readsize           = 256;
         read               = "1010.0000--000x.xxxx--aaaa.aaaa--oooo.oooo";
@@ -10042,9 +9992,8 @@ part
         num_pages          = 64;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 32;
         readsize           = 256;
         read_lo            = "0010.0000--0000.0aaa--aaaa.aaaa--oooo.oooo";
@@ -10166,9 +10115,8 @@ part
         page_size          = 4;
         min_write_delay    = 4000;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 4;
         readsize           = 256;
         read               = "1010.0000--000x.xxxa--aaaa.aaaa--oooo.oooo";
@@ -10184,9 +10132,8 @@ part
         num_pages          = 128;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 32;
         readsize           = 256;
         read_lo            = "0010.0000--0000.aaaa--aaaa.aaaa--oooo.oooo";
@@ -10359,9 +10306,8 @@ part
         num_pages          = 16;
         min_write_delay    = 4000;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 5;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 4;
         readsize           = 256;
         read               = "1010.0000--000x.xxxx--00aa.aaaa--oooo.oooo";
@@ -10377,8 +10323,7 @@ part
         num_pages          = 64;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 64;
         readsize           = 256;
@@ -10487,7 +10432,7 @@ part
         page_size          = 4;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
         readsize           = 256;
@@ -10504,7 +10449,7 @@ part
         num_pages          = 128;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 6;
         blocksize          = 128;
         readsize           = 256;
@@ -10613,7 +10558,7 @@ part
         page_size          = 4;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
         readsize           = 256;
@@ -10630,7 +10575,7 @@ part
         num_pages          = 256;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 6;
         blocksize          = 128;
         readsize           = 256;
@@ -10739,7 +10684,7 @@ part
         page_size          = 8;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 8;
         readsize           = 256;
@@ -10756,7 +10701,7 @@ part
         num_pages          = 256;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 6;
         blocksize          = 256;
         readsize           = 256;
@@ -10876,7 +10821,7 @@ part
         page_size          = 8;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 8;
         readsize           = 256;
@@ -10893,7 +10838,7 @@ part
         num_pages          = 512;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 6;
         blocksize          = 256;
         readsize           = 256;
@@ -11012,7 +10957,7 @@ part
         num_pages          = 128;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
         readsize           = 256;
@@ -11029,7 +10974,7 @@ part
         num_pages          = 128;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 6;
         blocksize          = 128;
         readsize           = 256;
@@ -11137,7 +11082,7 @@ part
         num_pages          = 128;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
         readsize           = 256;
@@ -11154,7 +11099,7 @@ part
         num_pages          = 64;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 6;
         blocksize          = 128;
         readsize           = 256;
@@ -11262,7 +11207,7 @@ part
         num_pages          = 256;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
         readsize           = 256;
@@ -11279,7 +11224,7 @@ part
         num_pages          = 256;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 6;
         blocksize          = 128;
         readsize           = 256;
@@ -11387,7 +11332,7 @@ part
         num_pages          = 128;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
         readsize           = 256;
@@ -11404,7 +11349,7 @@ part
         num_pages          = 128;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 6;
         blocksize          = 128;
         readsize           = 256;
@@ -11512,7 +11457,7 @@ part
         num_pages          = 128;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
         readsize           = 256;
@@ -11529,7 +11474,7 @@ part
         num_pages          = 64;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 6;
         blocksize          = 128;
         readsize           = 256;
@@ -11636,7 +11581,7 @@ part
         num_pages          = 128;
         min_write_delay    = 3600;
         max_write_delay    = 3600;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
         readsize           = 256;
@@ -11653,7 +11598,7 @@ part
         num_pages          = 128;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 128;
         readsize           = 256;
@@ -11793,8 +11738,7 @@ part
         page_size          = 4;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 4;
         readsize           = 256;
@@ -11811,8 +11755,7 @@ part
         num_pages          = 256;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 128;
         readsize           = 256;
@@ -11952,8 +11895,7 @@ part
         page_size          = 8;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 8;
         readsize           = 256;
@@ -11970,8 +11912,7 @@ part
         num_pages          = 256;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
+        mode               = 0x41;
         delay              = 10;
         blocksize          = 128;
         readsize           = 256;
@@ -13458,9 +13399,8 @@ part
         page_size          = 4;
         min_write_delay    = 3600;
         max_write_delay    = 3600;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 5;
+        mode               = 0x41;
+        delay              = 20;
         blocksize          = 4;
         readsize           = 256;
         read               = "1010.0000--000x.xxxa--aaaa.aaaa--oooo.oooo";
@@ -13476,9 +13416,8 @@ part
         num_pages          = 512;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0xff;
-        mode               = 65;
-        delay              = 6;
+        mode               = 0x41;
+        delay              = 10;
         blocksize          = 128;
         readsize           = 256;
         read_lo            = "0010.0000--00aa.aaaa--aaaa.aaaa--oooo.oooo";

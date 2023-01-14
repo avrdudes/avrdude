@@ -2669,7 +2669,7 @@ static int jtag3_send_tpi(const PROGRAMMER *pgm, unsigned char *data, size_t len
 
   cmdbuf[0] = SCOPE_AVR_TPI;
   if (len > INT_MAX) {
-    pmsg_error("invalid jtag3_send_tpi() packet length %zu\n", len);
+    pmsg_error("invalid jtag3_send_tpi() packet length %lu\n", (unsigned long) len);
     free(cmdbuf);
     return -1;
   }

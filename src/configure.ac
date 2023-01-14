@@ -78,9 +78,12 @@ dnl Makefile.am:77: compiling `config_gram.c' with per-target flags requires `AM
 AM_PROG_CC_C_O
 
 # Checks for libraries.
+# For MinGW.
+AC_CHECK_LIB([ws2_32], [WSAStartup])
+
 AC_CHECK_LIB([termcap], [tputs])
 AC_CHECK_LIB([ncurses], [tputs])
-AC_CHECK_LIB([readline], [readline])
+AC_CHECK_LIB([readline], [readline], [have_readline=yes])
 AH_TEMPLATE([HAVE_LIBELF],
             [Define if ELF support is enabled via libelf])
 AC_CHECK_LIB([elf], [elf_getshdrstrndx], [have_libelf=yes])
@@ -429,7 +432,7 @@ fi
 
 # If we are compiling with gcc, enable all warnings and make warnings errors.
 if test "$GCC" = yes; then
-    ENABLE_WARNINGS="-Wall"
+    ENABLE_WARNINGS="-Wall -Wextra -Wno-unused-parameter"
 
 	# does this compiler support -Wno-pointer-sign ?
 	AC_MSG_CHECKING([if gcc accepts -Wno-pointer-sign ])

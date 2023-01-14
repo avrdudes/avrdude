@@ -199,7 +199,7 @@ static int pickit2_open(PROGRAMMER *pgm, const char *port) {
           strcpy(cbuf, pgm->desc);
 
         // Convert from wide chars and overlay over initial part of desc
-        for (int i = 0; i < sizeof wbuf/sizeof*wbuf && wbuf[i]; i++)
+        for(size_t i = 0; i < sizeof wbuf/sizeof*wbuf && wbuf[i]; i++)
           cbuf[i] = (char) wbuf[i]; // TODO what about little/big endian???
         pgm->desc = cache_string(cbuf);
     }
@@ -1058,7 +1058,7 @@ static int usb_read_interrupt(const PROGRAMMER *pgm, void *buff, int size, int t
 
     GetOverlappedResult(PDATA(pgm)->usb_handle, &ovr, &bytesRead, 0);
 
-    return bytesRead > 0 ? bytesRead : -1;
+    return bytesRead > 0? (int) bytesRead: -1;
 }
 
 // simple write with timeout
@@ -1083,7 +1083,7 @@ static int usb_write_interrupt(const PROGRAMMER *pgm, const void *buff, int size
 
     GetOverlappedResult(PDATA(pgm)->usb_handle, &ovr, &bytesWritten, 0);
 
-    return bytesWritten > 0 ? bytesWritten : -1;
+    return bytesWritten > 0? (int) bytesWritten: -1;
 }
 
 static int pickit2_write_report(const PROGRAMMER *pgm, const unsigned char report[65]) {

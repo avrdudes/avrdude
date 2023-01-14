@@ -55,7 +55,7 @@
 #define USB_VENDOR_ID   0x16c0
 #define USB_PRODUCT_ID  0x05df
 
-static int  reportDataSizes[4] = {13, 29, 61, 125};
+static const int reportDataSizes[4] = {13, 29, 61, 125};
 
 static unsigned char    avrdoperRxBuffer[280];  /* buffer for receive data */
 static int              avrdoperRxLength = 0;   /* amount of valid bytes in rx buffer */
@@ -232,7 +232,7 @@ static void avrdoper_close(union filedescriptor *fdp)
 
 static int  chooseDataSize(int len)
 {
-    int i;
+    size_t i;
 
     for(i = 0; i < sizeof(reportDataSizes)/sizeof(reportDataSizes[0]); i++){
         if(reportDataSizes[i] >= len)
@@ -243,13 +243,17 @@ static int  chooseDataSize(int len)
 
 static int avrdoper_send(const union filedescriptor *fdp, const unsigned char *buf, size_t buflen)
 {
+    if(buflen > INT_MAX) {
+        pmsg_error("%s() called with too large buflen = %lu\n", __func__, (unsigned long) buflen);
+        return -1;
+    }
     if(verbose > 3)
         dumpBlock("Send", buf, buflen);
     while(buflen > 0){
         unsigned char buffer[256];
         int rval, lenIndex = chooseDataSize(buflen);
-        int thisLen = buflen > reportDataSizes[lenIndex] ?
-	    reportDataSizes[lenIndex] : buflen;
+        int thisLen = (int) buflen > reportDataSizes[lenIndex]?
+            reportDataSizes[lenIndex]: (int) buflen;
         buffer[0] = lenIndex + 1;   /* report ID */
         buffer[1] = thisLen;
         memcpy(buffer + 2, buf, thisLen);
@@ -290,7 +294,7 @@ static int avrdoperFillBuffer(const union filedescriptor *fdp) {
         bytesPending = buffer[1] - len; /* amount still buffered */
         if(len > buffer[1])             /* cut away padding */
             len = buffer[1];
-        if(avrdoperRxLength + len > sizeof(avrdoperRxBuffer)){
+        if(avrdoperRxLength + len > (int) sizeof(avrdoperRxBuffer)){
             pmsg_error("buffer overflow\n");
             return -1;
         }
