@@ -115,9 +115,9 @@ add_custom_command(
     OUTPUT avrdude.conf
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/avrdude.conf.in" avrdude.conf.in
     COMMAND ${CMAKE_COMMAND}
-        -D HAVE_PARPORT=${HAVE_PARPORT}
-        -D HAVE_LINUXSPI=${HAVE_LINUXSPI}
-        -D HAVE_LINUXGPIO=${HAVE_LINUXGPIO}
+        -D HAVE_PARPORT=$<BOOL:${HAVE_PARPORT}>
+        -D HAVE_LINUXSPI=$<BOOL:${HAVE_LINUXSPI}>
+        -D HAVE_LINUXGPIO=$<BOOL:${HAVE_LINUXGPIO}>
         -D DEFAULT_PAR_PORT=${DEFAULT_PAR_PORT}
         -D DEFAULT_SER_PORT=${DEFAULT_SER_PORT}
         -P "${CMAKE_CURRENT_SOURCE_DIR}/configure.cmake"
