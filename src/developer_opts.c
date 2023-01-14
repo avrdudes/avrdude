@@ -249,7 +249,7 @@ static char *extra_features_str(int m) {
 
   strcpy(mode, "0");
   if(m & HAS_SUFFER)
-    strcat(mode, " | SUFFER");
+    strcat(mode, " | HAS_SUFFER");
   if(m & HAS_VTARG_SWITCH)
     strcat(mode, " | HAS_VTARG_SWITCH");
   if(m & HAS_VTARG_ADJ)
