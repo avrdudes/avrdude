@@ -1117,13 +1117,13 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   // Read or write SUFFER register
   if (PDATA(pgm)->suffer_get || PDATA(pgm)->suffer_set) {
     // Read existing SUFFER value
-    if (jtag3_getparm(pgm, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10, MEDBG_REG_SUFFER_OFFSET, &(PDATA(pgm)->suffer_data[0]), 1) < 0)
+    if (jtag3_getparm(pgm, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10, MEDBG_REG_SUFFER_OFFSET, PDATA(pgm)->suffer_data, 1) < 0)
       return -1;
     if (!PDATA(pgm)->suffer_set)
       msg_info("SUFFER register value read as 0x%02x\n", PDATA(pgm)->suffer_data[0]);
     // Write new SUFFER value
     else {
-      if (jtag3_setparm(pgm, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10, MEDBG_REG_SUFFER_OFFSET, &(PDATA(pgm)->suffer_data[1]), 1) < 0)
+      if (jtag3_setparm(pgm, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10, MEDBG_REG_SUFFER_OFFSET, PDATA(pgm)->suffer_data+1, 1) < 0)
         return -1;
       msg_info("SUFFER register value changed from 0x%02x to 0x%02x\n", PDATA(pgm)->suffer_data[0], PDATA(pgm)->suffer_data[1]);
     }
@@ -1132,13 +1132,13 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   // Read or write Vtarg switch
   if (PDATA(pgm)->vtarg_switch_get || PDATA(pgm)->vtarg_switch_set) {
     // Read existing Vtarg switch value
-    if (jtag3_getparm(pgm, SCOPE_EDBG, EDBG_CTXT_CONTROL, EDBG_CONTROL_TARGET_POWER, &(PDATA(pgm)->vtarg_switch_data[0]), 1) < 0)
+    if (jtag3_getparm(pgm, SCOPE_EDBG, EDBG_CTXT_CONTROL, EDBG_CONTROL_TARGET_POWER, PDATA(pgm)->vtarg_switch_data, 1) < 0)
       return -1;
     if (!PDATA(pgm)->vtarg_switch_set)
-      msg_info("Vtarg switch setting read as %u. Target power is switched %s\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[0] ? "on" : "off");
+      msg_info("Vtarg switch setting read as %u: target power is switched %s\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[0] ? "on" : "off");
     // Write Vtarg switch value
     else {
-      if (jtag3_setparm(pgm, SCOPE_EDBG, EDBG_CTXT_CONTROL, EDBG_CONTROL_TARGET_POWER, &(PDATA(pgm)->vtarg_switch_data[1]), 1) < 0)
+      if (jtag3_setparm(pgm, SCOPE_EDBG, EDBG_CTXT_CONTROL, EDBG_CONTROL_TARGET_POWER, PDATA(pgm)->vtarg_switch_data+1, 1) < 0)
         return -1;
       msg_info("Vtarg switch setting changed from %u to %u\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[1]);
     }
@@ -1482,7 +1482,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 
     // SUFFER bits
     // Bit 7 ARDUINO: Adds control of extra LEDs when set to 0
-    // Bit 6..3: Reserved (masked out with 0x78 in the code below)
+    // Bit 6..3: Reserved (must be set to 1)
     // Bit 2 EOF: Agressive power-down, sleep after 5 seconds if no USB enumeration when set to 0
     // Bit 1 LOWP: forces running at 1 MHz when bit set to 0
     // Bit 0 FUSE: Fuses are safe-masked when bit sent to 1 Fuses are unprotected when set to 0
@@ -1490,11 +1490,15 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       if(pgm->extra_features & HAS_SUFFER) {
         // Set SUFFER value
         if (matches(extended_param, "suffer=")) {
-          int sscanf_success = sscanf(extended_param, "suffer=%hhx", (&PDATA(pgm)->suffer_data[1]));
-          if (sscanf_success < 1 || ( ~PDATA(pgm)->suffer_data[1] & 0x78)) {
-            pmsg_error("invalid suffer value '%s'\n", extended_param);
+          if (sscanf(extended_param, "suffer=%hhi", PDATA(pgm)->suffer_data+1) < 1) {
+            pmsg_error("invalid -xsuffer=<value> '%s'\n", extended_param);
             rv = -1;
             break;
+          }
+          if((PDATA(pgm)->suffer_data[1] & 0x78) != 0x78) {
+            PDATA(pgm)->suffer_data[1] |= 0x78;
+            pmsg_info("setting -xsuffer=0x%02x so that reserved bits 3..6 are set\n",
+              PDATA(pgm)->suffer_data[1]);
           }
           PDATA(pgm)->suffer_set = true;
         }
@@ -1509,7 +1513,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       if(pgm->extra_features & HAS_VTARG_SWITCH) {
         // Set Vtarget switch value
         if (matches(extended_param, "vtarg_switch=")) {
-          int sscanf_success = sscanf(extended_param, "vtarg_switch=%hhu", (&PDATA(pgm)->vtarg_switch_data[1]));
+          int sscanf_success = sscanf(extended_param, "vtarg_switch=%hhi", PDATA(pgm)->vtarg_switch_data+1);
           if (sscanf_success < 1 || PDATA(pgm)->vtarg_switch_data[1] > 1) {
             pmsg_error("invalid vtarg_switch value '%s'\n", extended_param);
             rv = -1;
