@@ -23,7 +23,7 @@
 #       type     = <type>;                        # programmer type, quoted string
 #                                                 # supported types can be listed by "-c ?type"
 #       prog_modes = PM_<i/f> {| PM_<i/f>}        # interfaces, eg, PM_SPM|PM_PDI (1)
-#       extra_features = HAS_<ft.> {| has_<ft.>}  # extra features, eg, HAS_SUFFER|HAS_VTARG_ADJ (2)
+#       extra_features = HAS_<fea> {| HAS_<fea>}  # extra features, eg, HAS_SUFFER|HAS_VTARG_ADJ (2)
 #       connection_type = parallel | serial | usb | spi
 #       baudrate = <num> ;                        # baudrate for avr910-programmer
 #       vcc      = <pin1> [, <pin2> ... ] ;       # pin number(s)
