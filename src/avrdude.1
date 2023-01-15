@@ -18,7 +18,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd July 12, 2022
+.Dd January 15, 2023
 .Os
 .Dt AVRDUDE 1
 .Sh NAME
@@ -1145,14 +1145,14 @@ Enable high-voltage UPDI initialization for targets that supports this.
 .Bl -tag -offset indent -width indent
 .It Ar suffer=VALUE, suffer
 The SUFFER register allows the user to modify the behavior of the on-board mEDBG.
-Use flag
-.Ar suffer
-without an equal sign to read the current SUFFER value.
+The current state can be read by
+.Ar -xsuffer
+alone.
 .Bl -tag -offset indent -width indent
 .It Bit 7 ARDUINO:
 Adds control of extra LEDs when set to 0
 .It Bit 6..3:
-Reserved
+Reserved (must be set to 1)
 .It Bit 2 EOF:
 Agressive power-down, sleep after 5 seconds if no USB enumeration when set to 0
 .It Bit 1 LOWP:
@@ -1165,8 +1165,10 @@ Fuses are safe-masked when bit sent to 1. Fuses are unprotected when set to 0
 .Bl -tag -offset indent -width indent
 .It Ar vtarg_switch=VALUE, vtarg_switch
 The on-board target voltage switch can be turned on or off by writing a 1 or
-a 0. The current state can be read by not providing an equal sign and a value.
-Note that the target power switch will always be on after power cycle.
+a 0. The current state can be read by
+.Ar -xvtarg_switch
+alone.
+Note that the target power switch will always be on after a power cycle.
 Also note that the smaller Xplained Nano boards does not have a target power switch.
 .El
 .It Ar AVR910
