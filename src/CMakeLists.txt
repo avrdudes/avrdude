@@ -271,6 +271,7 @@ target_link_libraries(libavrdude
     ${LIB_LIBFTDI}
     ${LIB_LIBFTDI1}
     ${LIB_LIBREADLINE}
+    ${LIB_NCURSES}
     ${EXTRA_WINDOWS_LIBRARIES}
     )
 
