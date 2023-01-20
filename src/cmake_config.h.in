@@ -79,9 +79,6 @@
 /* Define to 1 if you have the <libusb-1.0/libusb.h> header file. */
 #cmakedefine HAVE_LIBUSB_1_0_LIBUSB_H 1
 
-/* Define if HID support is enabled via the Win32 DDK */
-#cmakedefine HAVE_LIBHID 1
-
 /* Define if HID support is enabled via libhidapi */
 #cmakedefine HAVE_LIBHIDAPI 1
 

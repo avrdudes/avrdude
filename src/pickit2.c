@@ -54,9 +54,9 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 
-#if defined(HAVE_LIBUSB) || (defined(WIN32) && defined(HAVE_LIBHID))
+#if defined(HAVE_LIBUSB) || defined(WIN32)
 
-#if (defined(WIN32) && defined(HAVE_LIBHID))
+#ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <hidsdi.h>
@@ -88,7 +88,7 @@
 
 #define SPI_MAX_CHUNK (64 - 10)    // max packet size less the command overhead
 
-#if (defined(WIN32) && defined(HAVE_LIBHID))
+#ifdef WIN32
 static HANDLE open_hid(unsigned short vid, unsigned short pid);
 static const char *usb_strerror()
 {
@@ -116,7 +116,7 @@ static int pickit2_read_report(const PROGRAMMER *pgm, unsigned char report[65]);
  */
 struct pdata
 {
-#if (defined(WIN32) && defined(HAVE_LIBHID))
+#ifdef WIN32
     HANDLE usb_handle, write_event, read_event;
 #else
     struct usb_dev_handle *usb_handle;     // LIBUSB STUFF
@@ -179,7 +179,7 @@ static void pickit2_teardown(PROGRAMMER * pgm)
 }
 
 static int pickit2_open(PROGRAMMER *pgm, const char *port) {
-#if (defined(WIN32) && defined(HAVE_LIBHID))
+#ifdef WIN32
     PDATA(pgm)->usb_handle = open_hid(PICKIT2_VID, PICKIT2_PID);
 
     if (PDATA(pgm)->usb_handle == INVALID_HANDLE_VALUE)
@@ -227,7 +227,7 @@ static int pickit2_open(PROGRAMMER *pgm, const char *port) {
 
 static void pickit2_close(PROGRAMMER * pgm)
 {
-#if (defined(WIN32) && defined(HAVE_LIBHID))
+#ifdef WIN32
     CloseHandle(PDATA(pgm)->usb_handle);
     CloseHandle(PDATA(pgm)->read_event);
     CloseHandle(PDATA(pgm)->write_event);
@@ -788,7 +788,7 @@ static int pickit2_spi(const PROGRAMMER *pgm, const unsigned char *cmd,
     return n_bytes;
 }
 
-#if (defined(WIN32) && defined(HAVE_LIBHID))
+#ifdef WIN32
 /*
     Func: open_hid()
     Desc: finds & opens device having specified VID & PID.
@@ -1298,7 +1298,7 @@ void pickit2_initpgm(PROGRAMMER *pgm) {
     strncpy(pgm->type, "pickit2", sizeof(pgm->type));
 }
 
-#endif /* defined(HAVE_LIBUSB) || (defined(WIN32) && defined(HAVE_LIBHID)) */
+#endif /* defined(HAVE_LIBUSB) || defined(WIN32) */
 
 const char pickit2_desc[] = "Microchip's PICkit2 Programmer";
 

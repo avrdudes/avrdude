@@ -189,11 +189,6 @@ endif()
 # -------------------------------------
 # Find libhidapi
 
-find_library(HAVE_LIBHID NAMES hid)
-if(HAVE_LIBHID)
-    set(LIB_LIBHID ${HAVE_LIBHID})
-endif()
-
 find_library(HAVE_LIBHIDAPI NAMES ${PREFERRED_LIBHIDAPI})
 if(HAVE_LIBHIDAPI)
     set(LIB_LIBHIDAPI ${HAVE_LIBHIDAPI})
@@ -307,7 +302,6 @@ if (DEBUG_CMAKE)
     message(STATUS "HAVE_LIBUSB: ${HAVE_LIBUSB}")
     message(STATUS "HAVE_LIBUSB_1_0: ${HAVE_LIBUSB_1_0}")
     message(STATUS "HAVE_LIBUSB_WIN32: ${HAVE_LIBUSB_WIN32}")
-    message(STATUS "HAVE_LIBHID: ${HAVE_LIBHID}")
     message(STATUS "HAVE_LIBHIDAPI: ${HAVE_LIBHIDAPI}")
     message(STATUS "HAVE_LIBFTDI: ${HAVE_LIBFTDI}")
     message(STATUS "HAVE_LIBFTDI1: ${HAVE_LIBFTDI1}")

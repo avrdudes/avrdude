@@ -52,7 +52,7 @@ add_compile_definitions(CONFIG_DIR=\"${CONFIG_DIR}\")
 
 if(WIN32)
     set(EXTRA_WINDOWS_RESOURCES "${PROJECT_BINARY_DIR}/src/windows.rc")
-    set(EXTRA_WINDOWS_LIBRARIES setupapi ws2_32)
+    set(EXTRA_WINDOWS_LIBRARIES setupapi hid ws2_32)
 endif()
 
 if(MSVC)

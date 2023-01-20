@@ -23,11 +23,6 @@
 #include <io.h>
 #include <malloc.h> 
 
-#pragma comment(lib, "advapi32.lib")
-#pragma comment(lib, "hid.lib")
-#pragma comment(lib, "ws2_32.lib")
-#pragma comment(lib, "setupapi.lib")
-
 #define strerror_r(errno,buf,len) strerror_s(buf,len,errno)
 
 #define R_OK 4
