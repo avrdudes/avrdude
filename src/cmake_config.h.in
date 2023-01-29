@@ -27,6 +27,9 @@
 /* Linux sysfs GPIO support enabled */
 #cmakedefine HAVE_LINUXGPIO 1
 
+/* Let linuxgpio know if libgpiod is available. */
+#cmakedefine HAVE_LIBGPIOD
+
 /* Linux SPI support enabled */
 #cmakedefine HAVE_LINUXSPI 1
 
