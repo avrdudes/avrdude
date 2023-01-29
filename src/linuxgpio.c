@@ -1,8 +1,9 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Support for bitbanging GPIO pins using the /sys/class/gpio interface
- * 
+ * Support for bitbanging GPIO pins using libgpiod or the /sys/class/gpio interface
+ *
  * Copyright (C) 2013 Radoslav Kolev <radoslav@kolev.info>
+ * Copyright (C) 2023 Sebastian Kuzminsky <seb@highlab.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +29,10 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/stat.h>
+
+#ifdef HAVE_LIBGPIOD
+#include <gpiod.h>
+#endif
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -325,6 +330,192 @@ static void linuxgpio_sysfs_close(PROGRAMMER *pgm)
   }
 }
 
+
+//
+// libgpiod backend for the linuxgpio programmer.
+//
+
+#ifdef HAVE_LIBGPIOD
+
+struct gpiod_line * linuxgpio_libgpiod_lines[N_PINS];
+
+// Try to tell if libgpiod is going to work.
+// Returns True (non-zero) if it looks like libgpiod will work, False
+// (zero) if libgpiod will not work.
+static int libgpiod_is_working(void) {
+  char const * filename = "/dev/gpiochip0";
+  struct gpiod_chip * gpiod_chip_ptr;
+  gpiod_chip_ptr = gpiod_chip_open(filename);
+  if (gpiod_chip_ptr == NULL) {
+    msg_info("failed to open gpiod chip %s: %s\n", filename, strerror(errno));
+    return 0;
+  }
+  gpiod_chip_close(gpiod_chip_ptr);
+  return 1;
+}
+
+
+static void linuxgpio_libgpiod_display(const PROGRAMMER *pgm, const char *p) {
+  msg_info("Pin assignment  : libgpiod\n");
+  pgm_display_generic_mask(pgm, p, SHOW_AVR_PINS);
+}
+
+
+static int linuxgpio_libgpiod_open(PROGRAMMER *pgm, const char *port) {
+  int i;
+
+  if (bitbang_check_prerequisites(pgm) < 0) {
+    return -1;
+  }
+
+  for (i = 0; i < N_PINS; ++i) {
+    linuxgpio_libgpiod_lines[i] = NULL;
+  }
+
+  // Avrdude assumes that if a pin number is invalid it means not used/available
+  for (i = 1; i < N_PINS; i++) { // The pin enumeration in libavrdude.h starts with PPI_AVR_VCC = 1
+    int r;
+    int gpio_num;
+
+    gpio_num = pgm->pinno[i] & PIN_MASK;
+    if (gpio_num > PIN_MAX) {
+      continue;
+    }
+
+    char gpio_name[100];
+    sprintf(gpio_name, "GPIO%d", gpio_num);
+    linuxgpio_libgpiod_lines[i] = gpiod_line_find(gpio_name);
+    if (linuxgpio_libgpiod_lines[i] == NULL) {
+      msg_error("failed to open %s: %s\n", gpio_name, strerror(errno));
+      return -1;
+    }
+
+    // Request the pin, select direction.
+    if (i == PIN_AVR_SDI) {
+        r = gpiod_line_request_input(linuxgpio_libgpiod_lines[i], "avrdude");
+    } else {
+        r = gpiod_line_request_output(linuxgpio_libgpiod_lines[i], "avrdude", 0);
+    }
+    if (r != 0) {
+      msg_error("failed to request pin %s: %s\n", gpiod_line_name(linuxgpio_libgpiod_lines[i]), strerror(errno));
+      return -1;
+    }
+
+  }
+
+  return(0);
+}
+
+
+static void linuxgpio_libgpiod_close(PROGRAMMER *pgm) {
+  int i;
+
+  // First configure all pins as input, except RESET.
+  // This should avoid possible conflicts when AVR firmware starts.
+  for (i = 0; i < N_PINS; ++i) {
+    if (linuxgpio_libgpiod_lines[i] != NULL && i != PIN_AVR_RESET) {
+      int r = gpiod_line_set_direction_input(linuxgpio_libgpiod_lines[i]);
+      if (r != 0) {
+        msg_error("failed to set pin %s to input: %s\n", gpiod_line_name(linuxgpio_libgpiod_lines[i]), strerror(errno));
+      }
+      gpiod_line_release(linuxgpio_libgpiod_lines[i]);
+      linuxgpio_libgpiod_lines[i] = NULL;
+    }
+  }
+
+  // Configure RESET as input.
+  if (linuxgpio_libgpiod_lines[PIN_AVR_RESET] != NULL) {
+    int r = gpiod_line_set_direction_input(linuxgpio_libgpiod_lines[PIN_AVR_RESET]);
+    if (r != 0) {
+      msg_error("failed to set pin %s to input: %s\n", gpiod_line_name(linuxgpio_libgpiod_lines[PIN_AVR_RESET]), strerror(errno));
+    }
+    gpiod_line_release(linuxgpio_libgpiod_lines[PIN_AVR_RESET]);
+    linuxgpio_libgpiod_lines[PIN_AVR_RESET] = NULL;
+  }
+}
+
+
+static int linuxgpio_libgpiod_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
+  if (pinfunc < 0 || pinfunc >= N_PINS) {
+    return -1;
+  }
+
+  unsigned pin = pgm->pinno[pinfunc];
+  if (pin & PIN_INVERSE) {
+    value = !value;
+  }
+  pin &= PIN_MASK;
+
+  if (pin > PIN_MAX || linuxgpio_libgpiod_lines[pinfunc] == NULL) {
+    return -1;
+  }
+
+  int r = gpiod_line_set_value(linuxgpio_libgpiod_lines[pinfunc], value);
+  if (r != 0) {
+    msg_error("failed to set value of %s (%s) to %d: %s\n", avr_pin_name(pinfunc), gpiod_line_name(linuxgpio_libgpiod_lines[pinfunc]), value, strerror(errno));
+    return -1;
+  }
+
+  if (pgm->ispdelay > 1) {
+    bitbang_delay(pgm->ispdelay);
+  }
+
+  return 0;
+}
+
+static int linuxgpio_libgpiod_getpin(const PROGRAMMER *pgm, int pinfunc) {
+  if (pinfunc < 0 || pinfunc >= N_PINS) {
+    return -1;
+  }
+
+  unsigned int pin = pgm->pinno[pinfunc];
+  int invert = !!(pin & PIN_INVERSE);
+  pin &= PIN_MASK;
+
+  if (pin > PIN_MAX || linuxgpio_libgpiod_lines[pinfunc] == NULL) {
+    return -1;
+  }
+
+  int r = gpiod_line_get_value(linuxgpio_libgpiod_lines[pinfunc]);
+  if (r == -1) {
+    msg_error("failed to read %s: %s\n", gpiod_line_name(linuxgpio_libgpiod_lines[pinfunc]), strerror(errno));
+    return -1;
+  }
+
+  return r ^ invert;
+}
+
+
+static int linuxgpio_libgpiod_highpulsepin(const PROGRAMMER *pgm, int pinfunc) {
+  if(pinfunc < 0 || pinfunc >= N_PINS) {
+    return -1;
+  }
+
+  unsigned int pin = pgm->pinno[pinfunc] & PIN_MASK;
+
+  if (pin > PIN_MAX || linuxgpio_libgpiod_lines[pinfunc] == NULL ) {
+    return -1;
+  }
+
+  int r = gpiod_line_set_value(linuxgpio_libgpiod_lines[pinfunc], 1);
+  if (r != 0) {
+    msg_error("failed to set value\n");
+    return -1;
+  }
+
+  r = gpiod_line_set_value(linuxgpio_libgpiod_lines[pinfunc], 0);
+  if (r != 0) {
+    msg_error("failed to set value\n");
+    return -1;
+  }
+
+  return 0;
+}
+
+
+#endif // HAVE_LIBGPIOD
+
+
 void linuxgpio_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "linuxgpio");
 
@@ -351,16 +542,30 @@ void linuxgpio_initpgm(PROGRAMMER *pgm) {
   pgm->highpulsepin   = linuxgpio_sysfs_highpulsepin;
   pgm->read_byte      = avr_read_byte_default;
   pgm->write_byte     = avr_write_byte_default;
+
+#ifdef HAVE_LIBGPIOD
+  if (libgpiod_is_working()) {
+    msg_info("using libgpiod for linuxgpio\n");
+    pgm->display        = linuxgpio_libgpiod_display;
+    pgm->open           = linuxgpio_libgpiod_open;
+    pgm->close          = linuxgpio_libgpiod_close;
+    pgm->setpin         = linuxgpio_libgpiod_setpin;
+    pgm->getpin         = linuxgpio_libgpiod_getpin;
+    pgm->highpulsepin   = linuxgpio_libgpiod_highpulsepin;
+  } else {
+    msg_info("falling back to sysfs for linuxgpio\n");
+  }
+#endif
 }
 
-const char linuxgpio_desc[] = "GPIO bitbanging using the Linux sysfs interface";
+const char linuxgpio_desc[] = "GPIO bitbanging using the Linux libgpiod or sysfs interface";
 
 #else  /* !HAVE_LINUXGPIO */
 
 void linuxgpio_initpgm(PROGRAMMER *pgm) {
-  pmsg_error("Linux sysfs GPIO support not available in this configuration\n");
+  pmsg_error("Linux libgpiod/sysfs GPIO support not available in this configuration\n");
 }
 
-const char linuxgpio_desc[] = "GPIO bitbanging using the Linux sysfs interface (not available)";
+const char linuxgpio_desc[] = "GPIO bitbanging using the Linux libgpiod or sysfs interface (not available)";
 
 #endif /* HAVE_LINUXGPIO */
