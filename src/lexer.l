@@ -145,7 +145,7 @@ SIGN     [+-]
 
 
 (?x: PM_(SPM|TPI|ISP|PDI|UPDI|HVSP|HVPP|debugWIRE|JTAG|JTAGmkI|XMEGAJTAG|AVR32JTAG|aWire) |
- HAS_(SUFFER|VTARG_SWITCH|VTARG_ADJ) |
+ HAS_(SUFFER|VTARG_SWITCH|VTARG_ADJ|VTARG_READ) |
  yes|no|pseudo | true|false ) { /* Constants */
   yylval = new_constant(yytext);
   return TKN_NUMBER;

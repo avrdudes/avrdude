@@ -350,6 +350,7 @@ TOKEN *new_constant(const char *con) {
     !strcmp("HAS_SUFFER", con)? HAS_SUFFER:
     !strcmp("HAS_VTARG_SWITCH", con)? HAS_VTARG_SWITCH:
     !strcmp("HAS_VTARG_ADJ", con)? HAS_VTARG_ADJ:
+    !strcmp("HAS_VTARG_READ", con)? HAS_VTARG_READ:
     !strcmp("pseudo", con)? 2:
     !strcmp("yes", con) || !strcmp("true", con)? 1:
     !strcmp("no", con) || !strcmp("false", con)? 0:

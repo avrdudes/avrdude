@@ -214,6 +214,7 @@ typedef struct opcode {
 #define HAS_SUFFER             1
 #define HAS_VTARG_SWITCH       2
 #define HAS_VTARG_ADJ          4
+#define HAS_VTARG_READ         8
 
 #define AVR_FAMILYIDLEN 7
 #define AVR_SIBLEN 16

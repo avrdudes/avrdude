@@ -254,6 +254,8 @@ static char *extra_features_str(int m) {
     strcat(mode, " | HAS_VTARG_SWITCH");
   if(m & HAS_VTARG_ADJ)
     strcat(mode, " | HAS_VTARG_ADJ");
+  if(m & HAS_VTARG_READ)
+    strcat(mode, " | HAS_VTARG_READ");
 
   return mode + (mode[1] == 0? 0: 4);
 }

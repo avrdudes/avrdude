@@ -1182,6 +1182,7 @@ programmer
     desc                   = "Atmel AVR ISP mkII";
     type                   = "stk500v2";
     prog_modes             = PM_TPI | PM_ISP | PM_PDI;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
 ;
 
@@ -1310,7 +1311,7 @@ programmer
     desc                   = "Atmel STK600";
     type                   = "stk600";
     prog_modes             = PM_TPI | PM_ISP | PM_PDI;
-    extra_features         = HAS_VTARG_ADJ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
 ;
 
@@ -1323,7 +1324,7 @@ programmer
     desc                   = "Atmel STK600 in parallel programming mode";
     type                   = "stk600pp";
     prog_modes             = PM_HVPP;
-    extra_features         = HAS_VTARG_ADJ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
 ;
 
@@ -1336,7 +1337,7 @@ programmer
     desc                   = "Atmel STK600 in high-voltage serial programming mode";
     type                   = "stk600hvsp";
     prog_modes             = PM_HVSP;
-    extra_features         = HAS_VTARG_ADJ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
 ;
 
@@ -1768,6 +1769,7 @@ programmer
     desc                   = "Atmel JTAG ICE (mkI)";
     type                   = "jtagmki";
     prog_modes             = PM_JTAGmkI;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = serial;
     baudrate               = 115200;    # default is 115200
 ;
@@ -1807,6 +1809,7 @@ programmer
     desc                   = "Atmel JTAG ICE mkII";
     type                   = "jtagmkii";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 19200;    # default is 19200
 ;
@@ -1853,6 +1856,7 @@ programmer
     desc                   = "Atmel JTAG ICE mkII in ISP mode";
     type                   = "jtagmkii_isp";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1868,6 +1872,7 @@ programmer
     desc                   = "Atmel JTAG ICE mkII in debugWire mode";
     type                   = "jtagmkii_dw";
     prog_modes             = PM_debugWIRE;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1883,6 +1888,7 @@ programmer
     desc                   = "Atmel JTAG ICE mkII in AVR32 mode";
     type                   = "jtagmkii_avr32";
     prog_modes             = PM_aWire;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1893,13 +1899,8 @@ programmer
 
 # JTAG ICE mkII in AVR32 mode
 
-programmer
+programmer parent "jtagmkII_avr32"
     id                     = "jtag2avr32";
-    desc                   = "Atmel JTAG ICE mkII in AVR32 mode";
-    type                   = "jtagmkii_avr32";
-    prog_modes             = PM_aWire;
-    connection_type        = usb;
-    baudrate               = 115200;
 ;
 
 #------------------------------------------------------------
@@ -1913,6 +1914,7 @@ programmer
     desc                   = "Atmel JTAG ICE mkII in PDI mode";
     type                   = "jtagmkii_pdi";
     prog_modes             = PM_PDI;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1928,6 +1930,7 @@ programmer
     desc                   = "Atmel AVR Dragon in JTAG mode";
     type                   = "dragon_jtag";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1943,6 +1946,7 @@ programmer
     desc                   = "Atmel AVR Dragon in ISP mode";
     type                   = "dragon_isp";
     prog_modes             = PM_TPI | PM_ISP;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1958,6 +1962,7 @@ programmer
     desc                   = "Atmel AVR Dragon in PP mode";
     type                   = "dragon_pp";
     prog_modes             = PM_HVPP;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1973,6 +1978,7 @@ programmer
     desc                   = "Atmel AVR Dragon in HVSP mode";
     type                   = "dragon_hvsp";
     prog_modes             = PM_HVSP;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -1988,6 +1994,7 @@ programmer
     desc                   = "Atmel AVR Dragon in debugWire mode";
     type                   = "dragon_dw";
     prog_modes             = PM_debugWIRE;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -2003,6 +2010,7 @@ programmer
     desc                   = "Atmel AVR Dragon in PDI mode";
     type                   = "dragon_pdi";
     prog_modes             = PM_PDI;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
 ;
@@ -2016,6 +2024,7 @@ programmer
     desc                   = "Atmel AVR JTAGICE3 in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2110, 0x2140;
 ;
@@ -2029,6 +2038,7 @@ programmer
     desc                   = "Atmel AVR JTAGICE3 in PDI mode";
     type                   = "jtagice3_pdi";
     prog_modes             = PM_PDI;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2110, 0x2140;
 ;
@@ -2042,6 +2052,7 @@ programmer
     desc                   = "Atmel AVR JTAGICE3 in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2110, 0x2140;
     hvupdi_support         = 1;
@@ -2056,6 +2067,7 @@ programmer
     desc                   = "Atmel AVR JTAGICE3 in debugWIRE mode";
     type                   = "jtagice3_dw";
     prog_modes             = PM_debugWIRE;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2110, 0x2140;
 ;
@@ -2069,6 +2081,7 @@ programmer
     desc                   = "Atmel AVR JTAGICE3 in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2110, 0x2140;
 ;
@@ -2179,6 +2192,7 @@ programmer
     desc                   = "Atmel-ICE (ARM/AVR) in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2141;
 ;
@@ -2192,6 +2206,7 @@ programmer
     desc                   = "Atmel-ICE (ARM/AVR) in PDI mode";
     type                   = "jtagice3_pdi";
     prog_modes             = PM_PDI;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2141;
 ;
@@ -2205,6 +2220,7 @@ programmer
     desc                   = "Atmel-ICE (ARM/AVR) in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2141;
     hvupdi_support         = 1;
@@ -2219,6 +2235,7 @@ programmer
     desc                   = "Atmel-ICE (ARM/AVR) in debugWIRE mode";
     type                   = "jtagice3_dw";
     prog_modes             = PM_debugWIRE;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2141;
 ;
@@ -2232,6 +2249,7 @@ programmer
     desc                   = "Atmel-ICE (ARM/AVR) in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2141;
 ;
@@ -2245,6 +2263,7 @@ programmer
     desc                   = "Atmel-ICE (ARM/AVR) in TPI mode";
     type                   = "jtagice3_tpi";
     prog_modes             = PM_TPI;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2141;
 ;
@@ -2258,7 +2277,7 @@ programmer
     desc                   = "Atmel PowerDebugger (ARM/AVR) in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
-    extra_features         = HAS_VTARG_ADJ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2144;
 ;
@@ -2272,7 +2291,7 @@ programmer
     desc                   = "Atmel PowerDebugger (ARM/AVR) in PDI mode";
     type                   = "jtagice3_pdi";
     prog_modes             = PM_PDI;
-    extra_features         = HAS_VTARG_ADJ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2144;
 ;
@@ -2286,7 +2305,7 @@ programmer
     desc                   = "Atmel PowerDebugger (ARM/AVR) in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
-    extra_features         = HAS_VTARG_ADJ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2144;
     hvupdi_support         = 0, 1;
@@ -2301,7 +2320,7 @@ programmer
     desc                   = "Atmel PowerDebugger (ARM/AVR) in debugWire mode";
     type                   = "jtagice3_dw";
     prog_modes             = PM_debugWIRE;
-    extra_features         = HAS_VTARG_ADJ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2144;
 ;
@@ -2315,7 +2334,7 @@ programmer
     desc                   = "Atmel PowerDebugger (ARM/AVR) in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
-    extra_features         = HAS_VTARG_ADJ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2144;
 ;
@@ -2329,7 +2348,7 @@ programmer
     desc                   = "Atmel PowerDebugger (ARM/AVR) in TPI mode";
     type                   = "jtagice3_tpi";
     prog_modes             = PM_TPI;
-    extra_features         = HAS_VTARG_ADJ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2144;
 ;
@@ -2343,6 +2362,7 @@ programmer
     desc                   = "MPLAB(R) PICkit 4 in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
@@ -2356,6 +2376,7 @@ programmer
     desc                   = "MPLAB(R) PICkit 4 in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2177, 0x2178, 0x2179;
     hvupdi_support         = 0, 1, 2;
@@ -2370,6 +2391,7 @@ programmer
     desc                   = "MPLAB(R) PICkit 4 in PDI mode";
     type                   = "jtagice3_pdi";
     prog_modes             = PM_PDI;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
@@ -2383,6 +2405,7 @@ programmer
     desc                   = "MPLAB(R) PICkit 4 in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
@@ -2396,6 +2419,7 @@ programmer
     desc                   = "MPLAB(R) PICkit 4 in TPI mode";
     type                   = "jtagice3_tpi";
     prog_modes             = PM_TPI;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
@@ -2409,6 +2433,7 @@ programmer
     desc                   = "MPLAB(R) Snap in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2180, 0x217f, 0x2181;
 ;
@@ -2422,6 +2447,7 @@ programmer
     desc                   = "MPLAB(R) SNAP in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2180, 0x217f, 0x2181;
     hvupdi_support         = 1;
@@ -2436,6 +2462,7 @@ programmer
     desc                   = "MPLAB(R) SNAP in PDI mode";
     type                   = "jtagice3_pdi";
     prog_modes             = PM_PDI;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2180, 0x217f, 0x2181;
 ;
@@ -2449,6 +2476,7 @@ programmer
     desc                   = "MPLAB(R) SNAP in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2180, 0x217f, 0x2181;
 ;
@@ -2462,6 +2490,7 @@ programmer
     desc                   = "MPLAB(R) SNAP in TPI mode";
     type                   = "jtagice3_tpi";
     prog_modes             = PM_TPI;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2180, 0x217f, 0x2181;
 ;
@@ -2475,7 +2504,7 @@ programmer
     desc                   = "Curiosity nano (nEDBG) in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
-    extra_features         = HAS_VTARG_ADJ;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2175;
     hvupdi_support         = 1;
