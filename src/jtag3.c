@@ -1140,7 +1140,12 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     else {
       if (jtag3_setparm(pgm, SCOPE_EDBG, EDBG_CTXT_CONTROL, EDBG_CONTROL_TARGET_POWER, PDATA(pgm)->vtarg_switch_data+1, 1) < 0)
         return -1;
-      msg_info("Vtarg switch setting changed from %u to %u\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[1]);
+      imsg_info("Vtarg switch setting changed from %u to %u\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[1]);
+      // Exit early is the target power switch is off and print sensible info message
+      if (PDATA(pgm)->vtarg_switch_data[1] == 0) {
+        imsg_info("Turn on the Vtarg switch to establish connection with the target\n\n");
+        return -1;
+      }
     }
   }
 
