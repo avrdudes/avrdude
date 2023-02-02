@@ -382,11 +382,9 @@ static int linuxgpio_libgpiod_open(PROGRAMMER *pgm, const char *port) {
       continue;
     }
 
-    char gpio_name[100];
-    sprintf(gpio_name, "GPIO%d", gpio_num);
-    linuxgpio_libgpiod_lines[i] = gpiod_line_find(gpio_name);
+    linuxgpio_libgpiod_lines[i] = gpiod_line_get(port, gpio_num);
     if (linuxgpio_libgpiod_lines[i] == NULL) {
-      msg_error("failed to open %s: %s\n", gpio_name, strerror(errno));
+      msg_error("failed to open %s line %d: %s\n", port, gpio_num, strerror(errno));
       return -1;
     }
 
@@ -397,7 +395,7 @@ static int linuxgpio_libgpiod_open(PROGRAMMER *pgm, const char *port) {
         r = gpiod_line_request_output(linuxgpio_libgpiod_lines[i], "avrdude", 0);
     }
     if (r != 0) {
-      msg_error("failed to request pin %s: %s\n", gpiod_line_name(linuxgpio_libgpiod_lines[i]), strerror(errno));
+      msg_error("failed to request %s line %d: %s\n", port, gpio_num, strerror(errno));
       return -1;
     }
 
