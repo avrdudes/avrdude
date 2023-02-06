@@ -74,12 +74,13 @@ case "${ostype}" in
 	;;
 esac
 
-# force cmake version check
+# force cmake version check before anything else
 echo "Checking CMake version"
 T=/tmp/versioncheck.$$
 mkdir $T
-fgrep cmake_minimum_required CMakeLists.txt > $T/CMakeLists.txt
-(cd $T && cmake -Wno-dev .) > /dev/null || exit 1
+grep -i "^cmake_minimum_required" CMakeLists.txt > $T/CMakeLists.txt
+echo "project(test_cmake_version)" >> $T/CMakeLists.txt
+(cd $T && cmake .) || exit 1
 rm -Rf $T
 
 cmake ${build_flags} ${extra_enable} -D CMAKE_BUILD_TYPE=${build_type} -B build_${ostype} ||\
