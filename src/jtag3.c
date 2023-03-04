@@ -74,6 +74,16 @@ struct pdata
   /* Flag for triggering HV UPDI */
   bool use_hvupdi;
 
+  /* Get/set flags for SUFFER register */
+  bool suffer_get;
+  bool suffer_set;
+  unsigned char suffer_data[2];
+
+  /* Get/set flags for target power switch */
+  bool vtarg_switch_get;
+  bool vtarg_switch_set;
+  unsigned char vtarg_switch_data[2];
+
   /* Function to set the appropriate clock parameter */
   int (*set_sck)(const PROGRAMMER *, unsigned char *);
 };
@@ -182,7 +192,7 @@ u16_to_b2_big_endian(unsigned char *b, unsigned short l)
   b[1] = l & 0xff;
 }
 
-static bool matches(const char *s, const char *pat)
+static bool str_starts(const char *s, const char *pat)
 {
   return strncmp(s, pat, strlen(pat)) == 0;
 }
@@ -869,7 +879,7 @@ int jtag3_getsync(const PROGRAMMER *pgm, int mode) {
   /* XplainedMini boards do not need this, and early revisions had a
    * firmware bug where they complained about it. */
   if ((pgm->flag & PGM_FL_IS_EDBG) &&
-      !matches(ldata(lfirst(pgm->id)), "xplainedmini")) {
+      !str_starts(ldata(lfirst(pgm->id)), "xplainedmini")) {
     if (jtag3_edbg_prepare(pgm) < 0) {
       return -1;
     }
@@ -1104,6 +1114,41 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       return -1;
   }
 
+  // Read or write SUFFER register
+  if (PDATA(pgm)->suffer_get || PDATA(pgm)->suffer_set) {
+    // Read existing SUFFER value
+    if (jtag3_getparm(pgm, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10, MEDBG_REG_SUFFER_OFFSET, PDATA(pgm)->suffer_data, 1) < 0)
+      return -1;
+    if (!PDATA(pgm)->suffer_set)
+      msg_info("SUFFER register value read as 0x%02x\n", PDATA(pgm)->suffer_data[0]);
+    // Write new SUFFER value
+    else {
+      if (jtag3_setparm(pgm, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10, MEDBG_REG_SUFFER_OFFSET, PDATA(pgm)->suffer_data+1, 1) < 0)
+        return -1;
+      msg_info("SUFFER register value changed from 0x%02x to 0x%02x\n", PDATA(pgm)->suffer_data[0], PDATA(pgm)->suffer_data[1]);
+    }
+  }
+
+  // Read or write Vtarg switch
+  if (PDATA(pgm)->vtarg_switch_get || PDATA(pgm)->vtarg_switch_set) {
+    // Read existing Vtarg switch value
+    if (jtag3_getparm(pgm, SCOPE_EDBG, EDBG_CTXT_CONTROL, EDBG_CONTROL_TARGET_POWER, PDATA(pgm)->vtarg_switch_data, 1) < 0)
+      return -1;
+    if (!PDATA(pgm)->vtarg_switch_set)
+      msg_info("Vtarg switch setting read as %u: target power is switched %s\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[0] ? "on" : "off");
+    // Write Vtarg switch value
+    else {
+      if (jtag3_setparm(pgm, SCOPE_EDBG, EDBG_CTXT_CONTROL, EDBG_CONTROL_TARGET_POWER, PDATA(pgm)->vtarg_switch_data+1, 1) < 0)
+        return -1;
+      imsg_info("Vtarg switch setting changed from %u to %u\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[1]);
+      // Exit early is the target power switch is off and print sensible info message
+      if (PDATA(pgm)->vtarg_switch_data[1] == 0) {
+        imsg_info("Turn on the Vtarg switch to establish connection with the target\n\n");
+        return -1;
+      }
+    }
+  }
+
   /* set device descriptor data */
   if ((p->prog_modes & PM_PDI)) {
     struct xmega_device_desc xd;
@@ -1134,7 +1179,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         u32_to_b4(xd.nvm_boot_offset, m->offset);
       } else if (strcmp(m->desc, "fuse1") == 0) {
         u32_to_b4(xd.nvm_fuse_offset, m->offset & ~7);
-      } else if (matches(m->desc, "lock")) {
+      } else if (str_starts(m->desc, "lock")) {
         u32_to_b4(xd.nvm_lock_offset, m->offset);
       } else if (strcmp(m->desc, "usersig") == 0 ||
                  strcmp(m->desc, "userrow") == 0) {
@@ -1417,7 +1462,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
 
-    if (matches(extended_param, "jtagchain=")) {
+    if (str_starts(extended_param, "jtagchain=") && (pgm->prog_modes & (PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG))) {
       unsigned int ub, ua, bb, ba;
       if (sscanf(extended_param, "jtagchain=%u,%u,%u,%u", &ub, &ua, &bb, &ba) != 4) {
         pmsg_error("invalid JTAG chain '%s'\n", extended_param);
@@ -1435,10 +1480,57 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
 
-    else if ((strcmp(extended_param, "hvupdi") == 0) &&
-             (lsize(pgm->hvupdi_support) > 1)) {
+    else if ((strcmp(extended_param, "hvupdi") == 0) && (lsize(pgm->hvupdi_support) > 1)) {
       PDATA(pgm)->use_hvupdi = true;
       continue;
+    }
+
+    // SUFFER bits
+    // Bit 7 ARDUINO: Adds control of extra LEDs when set to 0
+    // Bit 6..3: Reserved (must be set to 1)
+    // Bit 2 EOF: Agressive power-down, sleep after 5 seconds if no USB enumeration when set to 0
+    // Bit 1 LOWP: forces running at 1 MHz when bit set to 0
+    // Bit 0 FUSE: Fuses are safe-masked when bit sent to 1 Fuses are unprotected when set to 0
+    else if (str_starts(extended_param, "suffer") ) {
+      if(pgm->extra_features & HAS_SUFFER) {
+        // Set SUFFER value
+        if (str_starts(extended_param, "suffer=")) {
+          if (sscanf(extended_param, "suffer=%hhi", PDATA(pgm)->suffer_data+1) < 1) {
+            pmsg_error("invalid -xsuffer=<value> '%s'\n", extended_param);
+            rv = -1;
+            break;
+          }
+          if((PDATA(pgm)->suffer_data[1] & 0x78) != 0x78) {
+            PDATA(pgm)->suffer_data[1] |= 0x78;
+            pmsg_info("setting -xsuffer=0x%02x so that reserved bits 3..6 are set\n",
+              PDATA(pgm)->suffer_data[1]);
+          }
+          PDATA(pgm)->suffer_set = true;
+        }
+        // Get SUFFER value
+        else
+          PDATA(pgm)->suffer_get = true;
+        continue;
+      }
+    }
+
+    else if (str_starts(extended_param, "vtarg_switch") ) {
+      if(pgm->extra_features & HAS_VTARG_SWITCH) {
+        // Set Vtarget switch value
+        if (str_starts(extended_param, "vtarg_switch=")) {
+          int sscanf_success = sscanf(extended_param, "vtarg_switch=%hhi", PDATA(pgm)->vtarg_switch_data+1);
+          if (sscanf_success < 1 || PDATA(pgm)->vtarg_switch_data[1] > 1) {
+            pmsg_error("invalid vtarg_switch value '%s'\n", extended_param);
+            rv = -1;
+            break;
+          }
+          PDATA(pgm)->vtarg_switch_set = true;
+        }
+        // Get Vtarget switch value
+        else
+          PDATA(pgm)->vtarg_switch_get = true;
+        continue;
+      }
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);
@@ -1458,7 +1550,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
   return -1;
 #endif
 
-  if (!matches(port, "usb")) {
+  if (!str_starts(port, "usb")) {
     pmsg_error("JTAGICE3/EDBG port names must start with usb\n");
     return -1;
   }
@@ -1511,7 +1603,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
   if (rv < 0) {
     // Check if SNAP or PICkit4 is in PIC mode
     for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
-      if (matches(ldata(ln), "snap")) {
+      if (str_starts(ldata(ln), "snap")) {
         pinfo.usbinfo.vid = USB_VENDOR_MICROCHIP;
         pinfo.usbinfo.pid = USB_DEVICE_SNAP_PIC_MODE;
         int pic_mode = serial_open(port, pinfo, &pgm->fd);
@@ -1526,7 +1618,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
           imsg_error("Use MPLAB X or Microchip Studio to switch to AVR mode\n\n");
           return -1;
         }
-      } else if(matches(ldata(ln), "pickit4")) {
+      } else if(str_starts(ldata(ln), "pickit4")) {
         pinfo.usbinfo.vid = USB_VENDOR_MICROCHIP;
         pinfo.usbinfo.pid = USB_DEVICE_PICKIT4_PIC_MODE;
         int pic_mode = serial_open(port, pinfo, &pgm->fd);
@@ -1658,7 +1750,7 @@ void jtag3_close(PROGRAMMER * pgm) {
   /* XplainedMini boards do not need this, and early revisions had a
    * firmware bug where they complained about it. */
   if ((pgm->flag & PGM_FL_IS_EDBG) &&
-      !matches(ldata(lfirst(pgm->id)), "xplainedmini")) {
+      !str_starts(ldata(lfirst(pgm->id)), "xplainedmini")) {
     jtag3_edbg_signoff(pgm);
   }
 
@@ -1963,11 +2055,11 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     addr = 2;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (matches(mem->desc, "lock")) {
+  } else if (str_starts(mem->desc, "lock")) {
     cmd[3] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (matches(mem->desc, "fuse")) {
+  } else if (str_starts(mem->desc, "fuse")) {
     cmd[3] = MTYPE_FUSE_BITS;
     if (!(p->prog_modes & PM_UPDI))
       addr = mem->offset & 7;
@@ -2126,7 +2218,7 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     addr = 2;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (matches(mem->desc, "fuse")) {
+  } else if (str_starts(mem->desc, "fuse")) {
     cmd[3] = MTYPE_FUSE_BITS;
     if (!(p->prog_modes & PM_UPDI))
       addr = mem->offset & 7;
@@ -2135,7 +2227,7 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     cmd[3] = MTYPE_USERSIG;
   } else if (strcmp(mem->desc, "prodsig") == 0) {
     cmd[3] = MTYPE_PRODSIG;
-  } else if (matches(mem->desc, "lock")) {
+  } else if (str_starts(mem->desc, "lock")) {
     cmd[3] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -2407,7 +2499,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
 
   // Print features unique to the Power Debugger
   for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
-    if(matches(ldata(ln), "powerdebugger")) {
+    if(str_starts(ldata(ln), "powerdebugger")) {
       short analog_raw_data;
 
       // Read generator set voltage value (VOUT)
@@ -2996,12 +3088,8 @@ void jtag3_initpgm(PROGRAMMER *pgm) {
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_JTAG;
 
-  for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
-    if (matches(ldata(ln), "powerdebugger")) {
-      pgm->set_vtarget  = jtag3_set_vtarget;
-      break;
-    }
-  }
+  if (pgm->extra_features & HAS_VTARG_ADJ)
+    pgm->set_vtarget  = jtag3_set_vtarget;
 }
 
 const char jtag3_dw_desc[] = "Atmel JTAGICE3 in debugWire mode";
@@ -3034,12 +3122,8 @@ void jtag3_dw_initpgm(PROGRAMMER *pgm) {
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_DW;
 
-  for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
-    if (matches(ldata(ln), "powerdebugger")) {
-      pgm->set_vtarget  = jtag3_set_vtarget;
-      break;
-    }
-  }
+  if (pgm->extra_features & HAS_VTARG_ADJ)
+    pgm->set_vtarget  = jtag3_set_vtarget;
 }
 
 const char jtag3_pdi_desc[] = "Atmel JTAGICE3 in PDI mode";
@@ -3074,12 +3158,8 @@ void jtag3_pdi_initpgm(PROGRAMMER *pgm) {
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_PDI;
 
-  for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
-    if (matches(ldata(ln), "powerdebugger")) {
-      pgm->set_vtarget  = jtag3_set_vtarget;
-      break;
-    }
-  }
+  if (pgm->extra_features & HAS_VTARG_ADJ)
+    pgm->set_vtarget  = jtag3_set_vtarget;
 }
 
 const char jtag3_updi_desc[] = "Atmel JTAGICE3 in UPDI mode";
@@ -3117,13 +3197,8 @@ void jtag3_updi_initpgm(PROGRAMMER *pgm) {
   pgm->unlock         = jtag3_unlock_erase_key;
   pgm->read_sib       = jtag3_read_sib;
 
-  for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
-    if (matches(ldata(ln), "powerdebugger") ||
-        matches(ldata(ln), "pkob")) {
-      pgm->set_vtarget  = jtag3_set_vtarget;
-      break;
-    }
-  }
+  if (pgm->extra_features & HAS_VTARG_ADJ)
+    pgm->set_vtarget  = jtag3_set_vtarget;
 }
 
 const char jtag3_tpi_desc[] = "Atmel JTAGICE3 in TPI mode";

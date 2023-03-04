@@ -244,6 +244,21 @@ static char *prog_modes_str(int pm) {
   return type + (type[1] == 0? 0: 4);
 }
 
+static char *extra_features_str(int m) {
+  static char mode[1024];
+
+  strcpy(mode, "0");
+  if(m & HAS_SUFFER)
+    strcat(mode, " | HAS_SUFFER");
+  if(m & HAS_VTARG_SWITCH)
+    strcat(mode, " | HAS_VTARG_SWITCH");
+  if(m & HAS_VTARG_ADJ)
+    strcat(mode, " | HAS_VTARG_ADJ");
+  if(m & HAS_VTARG_READ)
+    strcat(mode, " | HAS_VTARG_READ");
+
+  return mode + (mode[1] == 0? 0: 4);
+}
 
 // Check whether address bits are where they should be in ISP commands
 static void checkaddr(int memsize, int pagesize, int opnum, const OPCODE *op, const AVRPART *p, const AVRMEM *m) {
@@ -1286,6 +1301,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
   if(!base || base->initpgm != pgm->initpgm)
     _pgmout_fmt("type", "\"%s\"", locate_programmer_type_id(pgm->initpgm));
   _if_pgmout_str(intcmp, cfg_strdup("dev_pgm_strct()", prog_modes_str(pgm->prog_modes)), prog_modes);
+  _if_pgmout_str(intcmp, cfg_strdup("dev_pgm_strct()", extra_features_str(pgm->extra_features)), extra_features);
   if(!base || base->conntype != pgm->conntype)
     _pgmout_fmt("connection_type", "%s", connstr(pgm->conntype));
   _if_pgmout(intcmp, "%d", baudrate);

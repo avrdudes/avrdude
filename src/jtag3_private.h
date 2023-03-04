@@ -96,7 +96,9 @@
 #define SCOPE_GENERAL              0x01
 #define SCOPE_AVR_ISP              0x11
 #define SCOPE_AVR                  0x12
+#define SCOPE_AVR32                0x13
 #define SCOPE_AVR_TPI              0x14
+#define SCOPE_EDBG                 0x20
 
 /* Info scope */
 #define CMD3_GET_INFO              0x00
@@ -204,6 +206,10 @@
 #define PARM3_VADJUST           0x20  /* section 1, generic scope, 2 bytes, set voltage in millivolts */
 #define PARM3_ANALOG_STATUS     0x30  /* section 1, generic scope, 2 bytes, analog status */
 
+/* mEDBG Xplained Mini / Nano constants */
+#define MEDBG_REG_SUFFER_BANK   0x01
+#define MEDBG_REG_SUFFER_OFFSET 0x20 /* section 17, EDBG scope, 1 byte, SUFFER register value */
+
 #define PARM3_DEVICEDESC  0x00  /* section 2, memory etc. configuration,
                                  * 31 bytes for tiny/mega AVR, 47 bytes
                                  * for Xmega; is also used in command
@@ -265,9 +271,14 @@
 #define XMEGA_ERASE_USERSIG     0x07
 
 /* EDBG vendor commands */
-#define EDBG_VENDOR_AVR_CMD     0x80
-#define EDBG_VENDOR_AVR_RSP     0x81
-#define EDBG_VENDOR_AVR_EVT     0x82
+#define EDBG_VENDOR_AVR_CMD       0x80
+#define EDBG_VENDOR_AVR_RSP       0x81
+#define EDBG_VENDOR_AVR_EVT       0x82
+
+#define EDBG_CTXT_CONTROL         0x00
+#define EDBG_CONTROL_LED_USAGE    0x00
+#define EDBG_CONTROL_EXT_PROG     0x01
+#define EDBG_CONTROL_TARGET_POWER 0x10
 
 /* CMSIS-DAP commands */
 #define CMSISDAP_CMD_INFO       0x00 /* get info, followed by INFO byte */

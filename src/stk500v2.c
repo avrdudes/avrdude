@@ -1315,6 +1315,41 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if (jtag3_recv(pgmcp, &resp) > 0)
     free(resp);
 
+  // Read or write SUFFER register
+  if (PDATA(pgm)->suffer_get || PDATA(pgm)->suffer_set) {
+    // Read existing SUFFER value
+    if (jtag3_getparm(pgmcp, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10, MEDBG_REG_SUFFER_OFFSET, PDATA(pgm)->suffer_data, 1) < 0)
+      return -1;
+    if (!PDATA(pgm)->suffer_set)
+      imsg_info("SUFFER register value read as 0x%02x\n", PDATA(pgm)->suffer_data[0]);
+    // Write new SUFFER value
+    else {
+      if (jtag3_setparm(pgmcp, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10, MEDBG_REG_SUFFER_OFFSET, PDATA(pgm)->suffer_data+1, 1) < 0)
+        return -1;
+      imsg_info("SUFFER register value changed from 0x%02x to 0x%02x\n", PDATA(pgm)->suffer_data[0], PDATA(pgm)->suffer_data[1]);
+    }
+  }
+
+  // Read or write Vtarg switch
+  if (PDATA(pgm)->vtarg_switch_get || PDATA(pgm)->vtarg_switch_set) {
+    // Read existing Vtarg switch value
+    if (jtag3_getparm(pgmcp, SCOPE_EDBG, EDBG_CTXT_CONTROL, EDBG_CONTROL_TARGET_POWER, PDATA(pgm)->vtarg_switch_data, 1) < 0)
+      return -1;
+    if (!PDATA(pgm)->vtarg_switch_set)
+      imsg_info("Vtarg switch setting read as %u: target power is switched %s\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[0] ? "on" : "off");
+    // Write Vtarg switch value
+    else {
+      if (jtag3_setparm(pgmcp, SCOPE_EDBG, EDBG_CTXT_CONTROL, EDBG_CONTROL_TARGET_POWER, PDATA(pgm)->vtarg_switch_data+1, 1) < 0)
+        return -1;
+      imsg_info("Vtarg switch setting changed from %u to %u\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[1]);
+      // Exit early is the target power switch is off and print sensible info message
+      if (PDATA(pgm)->vtarg_switch_data[1] == 0) {
+        imsg_info("Turn on the Vtarg switch to establish connection with the target\n\n");
+        return -1;
+      }
+    }
+  }
+
   free(pgmcp);
 
   /*
@@ -1526,6 +1561,68 @@ static void stk500v2_enable(PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   return;
+}
+
+static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
+  LNODEID ln;
+  const char *extended_param;
+  int rv = 0;
+
+  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    extended_param = ldata(ln);
+
+    // SUFFER bits
+    // Bit 7 ARDUINO: Adds control of extra LEDs when set to 0
+    // Bit 6..3: Reserved (must be set to 1)
+    // Bit 2 EOF: Agressive power-down, sleep after 5 seconds if no USB enumeration when set to 0
+    // Bit 1 LOWP: forces running at 1 MHz when bit set to 0
+    // Bit 0 FUSE: Fuses are safe-masked when bit sent to 1 Fuses are unprotected when set to 0
+    if (strncmp(extended_param, "suffer", strlen("suffer")) == 0) {
+      if(pgm->extra_features & HAS_SUFFER) {
+        // Set SUFFER value
+        if (strncmp(extended_param, "suffer=", strlen("suffer=")) == 0) {
+          if (sscanf(extended_param, "suffer=%hhi", PDATA(pgm)->suffer_data+1) < 1) {
+            pmsg_error("invalid -xsuffer=<value> '%s'\n", extended_param);
+            rv = -1;
+            break;
+          }
+          if((PDATA(pgm)->suffer_data[1] & 0x78) != 0x78) {
+            PDATA(pgm)->suffer_data[1] |= 0x78;
+            pmsg_info("setting -xsuffer=0x%02x so that reserved bits 3..6 are set\n",
+              PDATA(pgm)->suffer_data[1]);
+          }
+          PDATA(pgm)->suffer_set = true;
+        }
+        // Get SUFFER value
+        else
+          PDATA(pgm)->suffer_get = true;
+        continue;
+      }
+    }
+
+    else if (strncmp(extended_param, "vtarg_switch", strlen("vtarg_switch")) == 0) {
+      if(pgm->extra_features & HAS_VTARG_SWITCH) {
+        // Set Vtarget switch value
+        if (strncmp(extended_param, "vtarg_switch=", strlen("vtarg_switch=")) == 0) {
+          int sscanf_success = sscanf(extended_param, "vtarg_switch=%hhi", PDATA(pgm)->vtarg_switch_data+1);
+          if (sscanf_success < 1 || PDATA(pgm)->vtarg_switch_data[1] > 1) {
+            pmsg_error("invalid vtarg_switch value '%s'\n", extended_param);
+            rv = -1;
+            break;
+          }
+          PDATA(pgm)->vtarg_switch_set = true;
+        }
+        // Get Vtarget switch value
+        else
+          PDATA(pgm)->vtarg_switch_get = true;
+        continue;
+      }
+    }
+
+    pmsg_error("invalid extended parameter '%s'\n", extended_param);
+    rv = -1;
+  }
+  return rv;
 }
 
 
@@ -4534,6 +4631,7 @@ void stk500v2_jtag3_initpgm(PROGRAMMER *pgm) {
    * mandatory functions
    */
   pgm->initialize     = stk500v2_jtag3_initialize;
+  pgm->parseextparams = stk500v2_jtag3_parseextparms;
   pgm->display        = stk500v2_display;
   pgm->enable         = stk500v2_enable;
   pgm->disable        = stk500v2_jtag3_disable;
@@ -4558,6 +4656,6 @@ void stk500v2_jtag3_initpgm(PROGRAMMER *pgm) {
   pgm->teardown       = stk500v2_jtag3_teardown;
   pgm->page_size      = 256;
 
-  if (strcmp(ldata(lfirst(pgm->id)), "powerdebugger_isp") == 0)
+  if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }

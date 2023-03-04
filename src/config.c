@@ -65,6 +65,7 @@ Component_t avr_comp[] = {
   // PROGRAMMER
   pgm_comp_desc(desc, COMP_STRING),
   pgm_comp_desc(prog_modes, COMP_INT),
+  pgm_comp_desc(extra_features, COMP_INT),
   pgm_comp_desc(baudrate, COMP_INT),
   pgm_comp_desc(usbvid, COMP_INT),
   pgm_comp_desc(usbdev, COMP_STRING),
@@ -346,6 +347,10 @@ TOKEN *new_constant(const char *con) {
     !strcmp("PM_XMEGAJTAG", con)? PM_XMEGAJTAG:
     !strcmp("PM_AVR32JTAG", con)? PM_AVR32JTAG:
     !strcmp("PM_aWire", con)? PM_aWire:
+    !strcmp("HAS_SUFFER", con)? HAS_SUFFER:
+    !strcmp("HAS_VTARG_SWITCH", con)? HAS_VTARG_SWITCH:
+    !strcmp("HAS_VTARG_ADJ", con)? HAS_VTARG_ADJ:
+    !strcmp("HAS_VTARG_READ", con)? HAS_VTARG_READ:
     !strcmp("pseudo", con)? 2:
     !strcmp("yes", con) || !strcmp("true", con)? 1:
     !strcmp("no", con) || !strcmp("false", con)? 0:

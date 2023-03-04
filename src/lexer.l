@@ -121,7 +121,7 @@ SIGN     [+-]
      }
 
 
-(?x: desc | prog_modes | baudrate | usbvid | usbdev | usbsn | usbvendor | usbproduct |
+(?x: desc | prog_modes | extra_features | baudrate | usbvid | usbdev | usbsn | usbvendor | usbproduct |
   family_id | mcuid | n_interrupts | n_page_erase | n_boot_sections | boot_section_size |
   hvupdi_variant | stk500_devcode | avr910_devcode | chip_erase_delay | pagel | bs2 |
   timeout | stabdelay | cmdexedelay | synchloops | bytedelay | pollindex | pollvalue | predelay | postdelay | pollmethod |
@@ -145,6 +145,7 @@ SIGN     [+-]
 
 
 (?x: PM_(SPM|TPI|ISP|PDI|UPDI|HVSP|HVPP|debugWIRE|JTAG|JTAGmkI|XMEGAJTAG|AVR32JTAG|aWire) |
+ HAS_(SUFFER|VTARG_SWITCH|VTARG_ADJ|VTARG_READ) |
  yes|no|pseudo | true|false ) { /* Constants */
   yylval = new_constant(yytext);
   return TKN_NUMBER;

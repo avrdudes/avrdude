@@ -211,6 +211,11 @@ typedef struct opcode {
 #define HV_UPDI_VARIANT_1      1 /* Dedicated UPDI pin, no HV (megaAVR0/AVR-Dx) */
 #define HV_UPDI_VARIANT_2      2 /* Shared UPDI pin, HV on _RESET (AVR-DD/AVR-Ex) */
 
+#define HAS_SUFFER             1
+#define HAS_VTARG_SWITCH       2
+#define HAS_VTARG_ADJ          4
+#define HAS_VTARG_READ         8
+
 #define AVR_FAMILYIDLEN 7
 #define AVR_SIBLEN 16
 #define CTL_STACK_SIZE 32
@@ -735,6 +740,7 @@ typedef struct programmer_t {
   LISTID comments;              // Used by developer options -c*/[ASsr...]
   const char *parent_id;        // Used by developer options
   int prog_modes;               // Programming interfaces, see #define PM_...
+  int extra_features;
   struct pindef_t pin[N_PINS];
   conntype_t conntype;
   int baudrate;
