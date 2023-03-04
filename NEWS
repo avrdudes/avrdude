@@ -17,6 +17,14 @@ Changes since version 7.1:
 
     - STK500V2 ISP problem with ATmega8/8515/8535, ATmega16 and
       ATmega32 #425
+    - CMAKE issue: parport, linuxspi and linuxgpio not available
+      when compiled #1107
+    - MSYS2: Linker error when readline is present. #1293
+    - CMake Warning for MSVC build about CMAKE_BUILD_TYPE #1290
+    - PICKit 2: MSVC build of avrdude Windows binary does not work
+      #1006
+    - CMake version not checked properly in Ubuntu 18.04 #1300
+    - Pin limit too low for LePotato RPi clone #1307
 
   * Pull requests:
 
@@ -26,6 +34,13 @@ Changes since version 7.1:
     - Fix docu that avrftdi bit numbers start with 0 #1276
     - Silence gcc compiler warnings #1277
     - Reduce complexity of grammar #1282
+    - CMake: Convert verbal switches into boolean expressions #1285
+    - Add extra_features to identify a programmer's abilities #1286
+    - CMake: Remove LIB_LIBHID from configuration in favour of
+      hard-coding #1294
+    - build.sh: For compatibility with old CMake versions, use old
+      syntax to generate build system #1301
+    - Extend max pin number to 1000 #1308
 
   * Internals:
 
