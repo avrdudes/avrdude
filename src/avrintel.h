@@ -3,13 +3,13 @@
  *
  * avrintel.h
  *
- * Atmel AVR8L, AVR8, XMEGA and AVR8X family description of interrupts and more
+ * Microchip AVR8L, AVR8, XMEGA and AVR8X family description of interrupts and more
  *
- * published under GNU General Public License, version 3 (GPL-3.0)
- * meta-author Stefan Rueger <stefan.rueger@urclocks.com>
+ * Published under GNU General Public License, version 3 (GPL-3.0)
+ * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.1
- * 02.01.2023
+ * 04.03.2023
  *
  */
 
@@ -213,6 +213,8 @@ typedef struct {                // Value of -1 typically means unknown
 #define id_at43usb355      163u
 #define id_at76c711        164u
 #define id_at86rf401       165u
+#define id_at89s51         372u
+#define id_at89s52         373u
 #define id_at90pwm1        166u
 #define id_at90pwm2        167u
 #define id_at90pwm2b       168u
@@ -826,7 +828,7 @@ typedef struct {                // Value of -1 typically means unknown
 #define vbu_atmega16m1       31
 #define vbu_atmega16hva2     22
 #define vbu_atmega16u2       29
-#define vbu_atmega16u4       43
+#define vbu_atmega16u4        5
 #define vbu_atmega32         21
 #define vbu_atmega32a        21
 #define vbu_atmega32hvb      29
@@ -834,7 +836,7 @@ typedef struct {                // Value of -1 typically means unknown
 #define vbu_atmega32c1       31
 #define vbu_atmega32m1       31
 #define vbu_atmega32u2       29
-#define vbu_atmega32u4       43
+#define vbu_atmega32u4        5
 #define vbu_atmega32u6       38
 #define vbu_atmega48         26
 #define vbu_atmega48a        26
@@ -847,7 +849,7 @@ typedef struct {                // Value of -1 typically means unknown
 #define vbu_atmega64c1       31
 #define vbu_atmega64m1       31
 #define vbu_atmega64hve2     25
-#define vbu_atmega64rfr2     77
+#define vbu_atmega64rfr2     51
 #define vbu_atmega88         26
 #define vbu_atmega88a        26
 #define vbu_atmega88p        26
@@ -856,8 +858,8 @@ typedef struct {                // Value of -1 typically means unknown
 #define vbu_atmega103        24
 #define vbu_atmega128        35
 #define vbu_atmega128a       35
-#define vbu_atmega128rfa1    72
-#define vbu_atmega128rfr2    77
+#define vbu_atmega128rfa1    51
+#define vbu_atmega128rfr2    51
 #define vbu_atmega161        21
 #define vbu_atmega162        28
 #define vbu_atmega163        18
@@ -877,7 +879,7 @@ typedef struct {                // Value of -1 typically means unknown
 #define vbu_atmega169a       23
 #define vbu_atmega169p       23
 #define vbu_atmega169pa      23
-#define vbu_atmega256rfr2    77
+#define vbu_atmega256rfr2    51
 #define vbu_atmega323        21
 #define vbu_atmega324a       31
 #define vbu_atmega324p       31
@@ -900,7 +902,7 @@ typedef struct {                // Value of -1 typically means unknown
 #define vbu_atmega644a       31
 #define vbu_atmega644p       31
 #define vbu_atmega644pa      31
-#define vbu_atmega644rfr2    77
+#define vbu_atmega644rfr2    51
 #define vbu_atmega645        22
 #define vbu_atmega645a       22
 #define vbu_atmega645p       22
@@ -908,45 +910,45 @@ typedef struct {                // Value of -1 typically means unknown
 #define vbu_atmega649a       23
 #define vbu_atmega649p       23
 #define vbu_atmega1280       57
-#define vbu_atmega1281       57
+#define vbu_atmega1281       51
 #define vbu_atmega1284       35
 #define vbu_atmega1284p      35
-#define vbu_atmega1284rfr2   77
+#define vbu_atmega1284rfr2   51
 #define vbu_atmega2560       57
-#define vbu_atmega2561       57
-#define vbu_atmega2564rfr2   77
-#define vbu_atmega3250       25
-#define vbu_atmega3250a      25
-#define vbu_atmega3250p      25
-#define vbu_atmega3250pa     25
+#define vbu_atmega2561       51
+#define vbu_atmega2564rfr2   51
+#define vbu_atmega3250       22
+#define vbu_atmega3250a      22
+#define vbu_atmega3250p      22
+#define vbu_atmega3250pa     22
 #define vbu_atmega3290       25
 #define vbu_atmega3290a      25
 #define vbu_atmega3290p      25
 #define vbu_atmega3290pa     25
-#define vbu_atmega6450       25
-#define vbu_atmega6450a      25
-#define vbu_atmega6450p      25
+#define vbu_atmega6450       22
+#define vbu_atmega6450a      22
+#define vbu_atmega6450p      22
 #define vbu_atmega6490       25
 #define vbu_atmega6490a      25
 #define vbu_atmega6490p      25
 #define vbu_atmega8515       17
 #define vbu_atmega8535       21
 #define vbu_at86rf401         3
-#define vbu_at90pwm1         32
+#define vbu_at90pwm1         14
 #define vbu_at90pwm2         14
-#define vbu_at90pwm2b        32
-#define vbu_at90pwm3         32
-#define vbu_at90pwm3b        32
+#define vbu_at90pwm2b        14
+#define vbu_at90pwm3         14
+#define vbu_at90pwm3b        14
 #define vbu_at90can32        37
 #define vbu_at90can64        37
 #define vbu_at90pwm81        20
 #define vbu_at90usb82        29
-#define vbu_at90scr100       38
+#define vbu_at90scr100       24
 #define vbu_at90can128       37
 #define vbu_at90pwm161       20
 #define vbu_at90usb162       29
-#define vbu_at90pwm216       32
-#define vbu_at90pwm316       32
+#define vbu_at90pwm216       14
+#define vbu_at90pwm316       14
 #define vbu_at90usb646       38
 #define vbu_at90usb647       38
 #define vbu_at90s1200         4
@@ -1199,7 +1201,7 @@ typedef struct {                // Value of -1 typically means unknown
 #define vtab_atmega329a      vtab_atmega649p
 #define vtab_atmega329p      vtab_atmega649p
 #define vtab_atmega329pa     vtab_atmega649p
-#define vtab_atmega640       vtab_atmega2561
+#define vtab_atmega640       vtab_atmega2560
 #define vtab_atmega644a      vtab_atmega644pa
 #define vtab_atmega644p      vtab_atmega644pa
 #define vtab_atmega644rfr2   vtab_atmega2564rfr2
@@ -1207,11 +1209,10 @@ typedef struct {                // Value of -1 typically means unknown
 #define vtab_atmega645a      vtab_atmega645p
 #define vtab_atmega649       vtab_atmega649p
 #define vtab_atmega649a      vtab_atmega649p
-#define vtab_atmega1280      vtab_atmega2561
+#define vtab_atmega1280      vtab_atmega2560
 #define vtab_atmega1281      vtab_atmega2561
 #define vtab_atmega1284      vtab_atmega1284p
 #define vtab_atmega1284rfr2  vtab_atmega2564rfr2
-#define vtab_atmega2560      vtab_atmega2561
 #define vtab_atmega3250      vtab_atmega6450p
 #define vtab_atmega3250a     vtab_atmega6450p
 #define vtab_atmega3250p     vtab_atmega6450p
@@ -1224,7 +1225,6 @@ typedef struct {                // Value of -1 typically means unknown
 #define vtab_atmega6450a     vtab_atmega6450p
 #define vtab_atmega6490      vtab_atmega6490p
 #define vtab_atmega6490a     vtab_atmega6490p
-#define vtab_at90pwm1        vtab_at90pwm316
 #define vtab_at90pwm2b       vtab_at90pwm3b
 #define vtab_at90pwm3        vtab_at90pwm3b
 #define vtab_at90can32       vtab_at90can128
@@ -1404,19 +1404,21 @@ extern const char * const vtab_atmega644pa[31];   // ATmega644PA, ATmega644P, AT
 extern const char * const vtab_atmega645p[22];    // ATmega645P, ATmega645A, ATmega645, ATmega325PA, ATmega325P, ATmega325A, ATmega325, ATmega165PA, ATmega165P, ATmega165A, ATmega165
 extern const char * const vtab_atmega649p[23];    // ATmega649P, ATmega649A, ATmega649, ATmega329PA, ATmega329P, ATmega329A, ATmega329, ATmega169PA, ATmega169P, ATmega169A, ATmega169
 extern const char * const vtab_atmega1284p[35];   // ATmega1284P, ATmega1284
-extern const char * const vtab_atmega2561[57];    // ATmega2561, ATmega2560, ATmega1281, ATmega1280, ATmega640
+extern const char * const vtab_atmega2560[57];    // ATmega2560, ATmega1280, ATmega640
+extern const char * const vtab_atmega2561[57];    // ATmega2561, ATmega1281
 extern const char * const vtab_atmega2564rfr2[77]; // ATmega2564RFR2, ATmega1284RFR2, ATmega644RFR2, ATmega256RFR2, ATmega128RFR2, ATmega64RFR2
 extern const char * const vtab_atmega6450p[25];   // ATmega6450P, ATmega6450A, ATmega6450, ATmega3250PA, ATmega3250P, ATmega3250A, ATmega3250
 extern const char * const vtab_atmega6490p[25];   // ATmega6490P, ATmega6490A, ATmega6490, ATmega3290PA, ATmega3290P, ATmega3290A, ATmega3290
 extern const char * const vtab_atmega8515[17];    // ATmega8515
 extern const char * const vtab_atmega8535[21];    // ATmega8535
 extern const char * const vtab_at86rf401[3];      // AT86RF401
+extern const char * const vtab_at90pwm1[32];      // AT90PWM1
 extern const char * const vtab_at90pwm2[32];      // AT90PWM2
 extern const char * const vtab_at90pwm3b[32];     // AT90PWM3B, AT90PWM3, AT90PWM2B
 extern const char * const vtab_at90scr100[38];    // AT90SCR100
 extern const char * const vtab_at90can128[37];    // AT90CAN128, AT90CAN64, AT90CAN32
 extern const char * const vtab_at90pwm161[20];    // AT90PWM161, AT90PWM81
-extern const char * const vtab_at90pwm316[32];    // AT90PWM316, AT90PWM216, AT90PWM1
+extern const char * const vtab_at90pwm316[32];    // AT90PWM316, AT90PWM216
 extern const char * const vtab_at90s1200[4];      // AT90S1200
 extern const char * const vtab_at90s2313[11];     // AT90S2313
 extern const char * const vtab_at90s4433[14];     // AT90S4433, AT90S2333
@@ -1472,6 +1474,6 @@ extern const char * const vtab_avr128db48[61];    // AVR128DB48, AVR64DB48, AVR3
 extern const char * const vtab_avr128da64[64];    // AVR128DA64, AVR64DA64
 extern const char * const vtab_avr128db64[65];    // AVR128DB64, AVR64DB64
 
-extern const uPcore_t uP_table[372];
+extern const uPcore_t uP_table[374];
 
 #endif

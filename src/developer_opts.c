@@ -1099,7 +1099,7 @@ void dev_output_part_defs(char *partdesc) {
       if(descs) {
         int len = 16-strlen(p->desc);
         dev_info("%s '%s' =>%*s [0x%02X, 0x%02X, 0x%02X, 0x%08x, 0x%05x, 0x%03x, 0x%06x, 0x%04x, 0x%03x, %d, 0x%03x, 0x%04x, '%s'], # %s %d\n",
-          tsv || all? ".desc": " ",
+          tsv || all? ".desc": "   ",
           p->desc, len > 0? len: 0, "",
           p->signature[0], p->signature[1], p->signature[2],
           flashoffset, flashsize, flashpagesize,
