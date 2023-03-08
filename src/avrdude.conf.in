@@ -1169,7 +1169,7 @@ programmer
     id                     = "avrispv2";
     desc                   = "Atmel AVR ISP v2";
     type                   = "stk500v2";
-    prog_modes             = PM_TPI | PM_ISP | PM_PDI;
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
 ;
 
