@@ -406,10 +406,11 @@ static int is_mantissa_only(char *p) {
 
 
 static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
-  if (argc < 4) {
+  if (argc < 3) {
     msg_error(
       "Usage: write <memory> <addr> <data>[,] {<data>[,]}\n"
       "       write <memory> <addr> <len> <data>[,] {<data>[,]} ...\n"
+      "       write <memory> <data>\n"
       "\n"
       "Ellipsis ... writes <len> bytes padded by repeating the last <data> item.\n"
       "\n"
@@ -456,11 +457,21 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   }
   int maxsize = mem->size;
 
-  char *end_ptr;
-  int addr = strtoul(argv[2], &end_ptr, 0);
-  if (*end_ptr || (end_ptr == argv[2])) {
-    pmsg_error("(write) cannot parse address %s\n", argv[2]);
+  if (argc == 3 && maxsize > 1) {
+    pmsg_error("(write) no start address specified for memory %s\n"
+      "Please specify a start address for memories greater than 1 byte in size\n",
+      memtype);
     return -1;
+  }
+
+  char *end_ptr;
+  int addr = 0;
+  if(argc >= 4) {
+    addr = strtoul(argv[2], &end_ptr, 0);
+    if (*end_ptr || (end_ptr == argv[2])) {
+      pmsg_error("(write) cannot parse address %s\n", argv[2]);
+      return -1;
+    }
   }
 
   if (addr < 0 || addr >= maxsize) {
@@ -487,7 +498,12 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     }
   } else {
     write_mode = WRITE_MODE_STANDARD;
-    start_offset = 3;
+    // With no user specified start address, data starts at argv[2]
+    // With user specified start address, data starts at a argv[3]
+    if(argc == 3)
+      start_offset = 2;
+    else
+      start_offset = 3;
     len = argc - start_offset;
   }
 
