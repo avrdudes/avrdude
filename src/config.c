@@ -40,6 +40,7 @@ const char *default_parallel;
 const char *default_serial;
 const char *default_spi;
 double default_bitclock;
+char const *default_linuxgpio;
 
 LISTID       string_list;
 LISTID       number_list;

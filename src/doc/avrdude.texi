@@ -1934,6 +1934,11 @@ Assign the default parallel port device.  Can be overridden using the
 Assign the default serial port device.  Can be overridden using the
 @option{-P} option.
 
+@item default_linuxgpio = "@var{default-linuxgpio-device}";
+Assign the default gpiochip for linuxgpio's libgpiod mode,
+e.g. "gpiochip0".  Ignored for linuxgpio's sysfs mode.  Can be overridden
+using the @option{-P} option.
+
 @item default_programmer = "@var{default-programmer-id}";
 Assign the default programmer id.  Can be overridden using the @option{-c}
 option.

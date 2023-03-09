@@ -411,6 +411,7 @@ default_parallel   = "@DEFAULT_PAR_PORT@";
 default_serial     = "@DEFAULT_SER_PORT@";
 default_spi        = "@DEFAULT_SPI_PORT@";
 # default_bitclock = 2.5;
+default_linuxgpio  = "@DEFAULT_LINUXGPIO_PORT@";
 
 @HAVE_PARPORT_BEGIN@
 
@@ -691,7 +692,7 @@ programmer
 
 @HAVE_LINUXGPIO_BEGIN@
 
-# This programmer bitbangs GPIO lines using the Linux sysfs GPIO interface
+# This programmer bitbangs GPIO lines using the Linux libgpiod or sysfs GPIO interface
 #
 # To enable it set the configuration below to match the GPIO lines connected
 # to the relevant ISP header pins and uncomment the entry definition. In case
@@ -719,6 +720,21 @@ programmer
 #     sdo                  = ?;
 #     sdi                  = ?;
 # ;
+
+# #------------------------------------------------------------
+# # Program from a Raspberry Pi GPIO port using linuxgpio
+# #------------------------------------------------------------
+#
+programmer
+    id = "raspberry_pi_gpio";
+    desc = "Bitbang Raspberry Pi GPIO via linuxgpio (sysfs or libgpiod)";
+    type = "linuxgpio";
+    connection_type = linuxgpio;
+    reset = 12;
+    sck = 24;
+    sdo = 23;
+    sdi = 18;
+;
 @HAVE_LINUXGPIO_END@
 
 @HAVE_LINUXSPI_BEGIN@
