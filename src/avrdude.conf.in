@@ -725,15 +725,17 @@ programmer
 # # Program from a Raspberry Pi GPIO port using linuxgpio
 # #------------------------------------------------------------
 #
+
 programmer
-    id = "raspberry_pi_gpio";
-    desc = "Bitbang Raspberry Pi GPIO via linuxgpio (sysfs or libgpiod)";
-    type = "linuxgpio";
-    connection_type = linuxgpio;
-    reset = 12;
-    sck = 24;
-    sdo = 23;
-    sdi = 18;
+    id                     = "raspberry_pi_gpio";
+    desc                   = "Bitbang Raspberry Pi GPIO via linuxgpio (sysfs or libgpiod)";
+    type                   = "linuxgpio";
+    prog_modes             = PM_ISP;
+    connection_type        = linuxgpio;
+    reset                  = 22;
+    sck                    = 24;
+    sdo                    = 23;
+    sdi                    = 18;
 ;
 @HAVE_LINUXGPIO_END@
 
