@@ -715,6 +715,7 @@ programmer
 #     desc                 = "Use the Linux sysfs interface to bitbang GPIO lines";
 #     type                 = "linuxgpio";
 #     prog_modes           = PM_ISP;
+#     connection_type      = linuxgpio;
 #     reset                = ?;
 #     sck                  = ?;
 #     sdo                  = ?;
