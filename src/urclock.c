@@ -2240,16 +2240,15 @@ static int urclock_open(PROGRAMMER *pgm, const char *port) {
   // This code assumes a negative-logic USB to TTL serial adapter
   // Set RTS/DTR high to discharge the series-capacitor, if present
   serial_set_dtr_rts(&pgm->fd, 0);
-  usleep(50 * 1000);
+  usleep(20*1000);
   // Pull the RTS/DTR line low to reset AVR
   serial_set_dtr_rts(&pgm->fd, 1);
-  usleep(50 * 1000);
+  usleep(20*1000);
   // Set the RTS/DTR line back to high
   serial_set_dtr_rts(&pgm->fd, 0);
-  usleep(50 * 1000);
 
-  if((70+ur.delay) > 0)
-    usleep((70+ur.delay)*1000); // Wait until board comes out of reset
+  if((100+ur.delay) > 0)
+    usleep((100+ur.delay)*1000); // Wait until board comes out of reset
 
   pmsg_debug("%4ld ms: enter urclock_getsync()\n", avr_mstimestamp());
   if(urclock_getsync(pgm) < 0)

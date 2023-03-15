@@ -88,7 +88,13 @@ static int arduino_open(PROGRAMMER *pgm, const char *port) {
   // This code assumes a negative-logic USB to TTL serial adapter
   // Set RTS/DTR high to discharge the series-capacitor, if present
   serial_set_dtr_rts(&pgm->fd, 0);
-  usleep(50 * 1000);
+  /*
+   * Long wait needed for optiboot: otherwise the second of two bootloader
+   * calls in quick succession fails:
+   *
+   * avrdude -c arduino -qqp m328p -U x.hex; avrdude -c arduino -qqp m328p -U x.hex
+   */
+  usleep(250 * 1000);
   // Pull the RTS/DTR line low to reset AVR
   serial_set_dtr_rts(&pgm->fd, 1);
   usleep(50 * 1000);
