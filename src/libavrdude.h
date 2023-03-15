@@ -176,7 +176,7 @@ enum ctl_stack_t {
 typedef struct cmdbit {
   int          type;  /* AVR_CMDBIT_* */
   int          bitno; /* which input bit to use for this command bit */
-  int          value; /* bit value if type == AVR_CMDBIT_VALUD */
+  int          value; /* bit value if type == AVR_CMDBIT_VALUE */
 } CMDBIT;
 
 typedef struct opcode {
