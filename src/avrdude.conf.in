@@ -3073,6 +3073,10 @@ part
 # AT89S51
 #------------------------------------------------------------
 
+# Nonstandard part
+#   - Tested with -c avrisp
+#   - USBASP programmers may require different firmware
+
 part
     desc                   = "AT89S51";
     id                     = "89S51";
@@ -3111,12 +3115,12 @@ part
     memory "lock"
         size               = 1;
         read               = "0010.0100--xxxx.xxxx--xxxx.xxxx--xxxo.ooxx";
-        # Nonstandard write
+        # Nonstandard write: expect verification errors
         # See datasheet Page 20, Note 1 https://ww1.microchip.com/downloads/en/DeviceDoc/doc2487.pdf
-        # Activating lock mode 0: -U lock:w:0:m
-        # Activating lock mode 1: -U lock:w:0:m -U lock:w:1:m
-        # Activating lock mode 2: -U lock:w:0:m -U lock:w:1:m -U lock:w:2:m
-        # Activating lock mode 3: -U lock:w:0:m -U lock:w:1:m -U lock:w:2:m -U lock:w:3:m
+        # Activate lock mode 0 through chip erase: avrdude -e
+        # Activate lock mode 1: avrdude -e -V -U lock:w:1:m
+        # Activate lock mode 2: avrdude -e -V -U lock:w:1:m -U lock:w:2:m
+        # Activate lock mode 3: avrdude -e -V -U lock:w:1:m -U lock:w:2:m -U lock:w:3:m
         write              = "1010.1100--1110.00ii--xxxx.xxxx--xxxx.xxxx";
     ;
 
