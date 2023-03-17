@@ -479,12 +479,17 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   if (strcmp(argv[argc - 1], "...") == 0) {
     write_mode = WRITE_MODE_FILL;
     start_offset = 4;
-    len = strtoul(argv[3], &end_ptr, 0);
-    if (*end_ptr || (end_ptr == argv[3])) {
-      pmsg_error("(write ...) cannot parse length %s\n", argv[3]);
-      free(buf);
-      return -1;
+    if(strcmp(argv[3], "...") == 0) {
+      len = maxsize - addr;
+    } else {
+      len = strtoul(argv[3], &end_ptr, 0);
+      if (*end_ptr || (end_ptr == argv[3])) {
+        pmsg_error("(write ...) cannot parse length %s\n", argv[3]);
+        free(buf);
+        return -1;
+      }
     }
+
   } else {
     write_mode = WRITE_MODE_STANDARD;
     start_offset = 3;
