@@ -802,6 +802,32 @@ static int cmd_send(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 
 static int cmd_erase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
+  if (argc > 4 || argc == 3) {
+    msg_error("Usage: erase <memory> <addr> <len>\n");
+    return -1;
+  }
+
+  if (argc > 1) {
+    char *memtype = argv[1];
+    AVRMEM *mem = avr_locate_mem(p, memtype);
+    if (mem == NULL) {
+      pmsg_error("(erase) %s memory type not defined for part %s\n", argv[1], p->desc);
+      return -1;
+    }
+    char *args[6] = {"write", memtype, "", "", "0xff", "..."};
+    // erase <mem>
+    if (argc == 2) {
+      args[2] = "0";
+      args[3] = "-1";
+    }
+    // erase <mem> <addr> <len>
+    else {
+      args[2] = argv[2];
+      args[3] = argv[3];
+    }
+    return cmd_write(pgm, p, 6, args);
+  }
+
   term_out("erasing chip ...\n");
 
   // Erase chip and clear cache
