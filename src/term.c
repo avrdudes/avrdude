@@ -457,14 +457,18 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   int maxsize = mem->size;
 
   char *end_ptr;
-  int addr = strtoul(argv[2], &end_ptr, 0);
+  int addr = strtol(argv[2], &end_ptr, 0);
   if (*end_ptr || (end_ptr == argv[2])) {
     pmsg_error("(write) cannot parse address %s\n", argv[2]);
     return -1;
   }
 
+  // Turn negative addr value (counting from top and down) into an actual memory address
+  if (addr < 0)
+    addr = maxsize + addr;
+
   if (addr < 0 || addr >= maxsize) {
-    pmsg_error("(write) %s address 0x%05x is out of range [0, 0x%05x]\n", mem->desc, addr, maxsize-1);
+    pmsg_error("(write) %s address 0x%05x is out of range [-0x%05x, 0x%05x]\n", mem->desc, addr, maxsize, maxsize-1);
     return -1;
   }
 
@@ -479,17 +483,15 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   if (strcmp(argv[argc - 1], "...") == 0) {
     write_mode = WRITE_MODE_FILL;
     start_offset = 4;
-    if(strcmp(argv[3], "...") == 0) {
-      len = maxsize - addr;
-    } else {
-      len = strtoul(argv[3], &end_ptr, 0);
-      if (*end_ptr || (end_ptr == argv[3])) {
-        pmsg_error("(write ...) cannot parse length %s\n", argv[3]);
-        free(buf);
-        return -1;
-      }
+    len = strtol(argv[3], &end_ptr, 0);
+    if (*end_ptr || (end_ptr == argv[3])) {
+      pmsg_error("(write ...) cannot parse length %s\n", argv[3]);
+      free(buf);
+      return -1;
     }
-
+    // Turn negative len value (no. bytes from top of memory) into an actual length number
+    if (len < 0)
+      len = maxsize + len;
   } else {
     write_mode = WRITE_MODE_STANDARD;
     start_offset = 3;
