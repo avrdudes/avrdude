@@ -321,10 +321,14 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       // Turn negative len value (no. bytes from top of memory) into an actual length number
       if (len < 0)
         len = maxsize + len + 1 - read_mem[i].addr;
-      if (len <= 0)
-        len = 1;
+
+      if (len == 0)
+        return 0;
+      else if (len < 0) {
+        pmsg_error("(dump) invalid length %d\n", len);
+        return -1;
+      }
       read_mem[i].len = len;
-      msg_info("len: %d\n", len);
     }
   }
   // Wrap around if the memory address is greater than the maximum size
@@ -501,7 +505,7 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     }
     // Turn negative len value (no. bytes from top of memory) into an actual length number
     if (len < 0)
-      len = maxsize + len;
+      len = maxsize + len - addr + 1;
   } else {
     write_mode = WRITE_MODE_STANDARD;
     start_offset = 3;
