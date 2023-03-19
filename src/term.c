@@ -482,7 +482,9 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     addr = maxsize + addr;
 
   if (addr < 0 || addr >= maxsize) {
-    pmsg_error("(write) %s address 0x%05x is out of range [-0x%05x, 0x%05x]\n", mem->desc, addr, maxsize, maxsize-1);
+    int digits = maxsize > 0x10000? 5: 4;
+    pmsg_error("(write) %s address 0x%0*x is out of range [-0x%0*x, 0x%0*x]\n",
+      mem->desc, digits, addr, digits, maxsize, digits, maxsize-1);
     return -1;
   }
 
@@ -506,6 +508,13 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     // Turn negative len value (no. bytes from top of memory) into an actual length number
     if (len < 0)
       len = maxsize + len - addr + 1;
+    if (len == 0)
+      return 0;
+    if (len < 0 || len > maxsize - addr) {
+      pmsg_error("(write) effective %s start address 0x%0*x and effective length %d not compatible with memory size %d\n",
+        mem->desc, maxsize > 0x10000? 5: 4, addr, len, maxsize);
+      return -1;
+    }
   } else {
     write_mode = WRITE_MODE_STANDARD;
     start_offset = 3;
