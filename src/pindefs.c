@@ -130,6 +130,14 @@ int pgm_fill_old_pins(PROGRAMMER * const pgm) {
     return -1;
   if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_SDI]), &(pgm->pinno[PIN_AVR_SDI])) < 0)
     return -1;
+  if (pin_fill_old_pinno(&(pgm->pin[PIN_JTAG_TCK]), &(pgm->pinno[PIN_JTAG_TCK])) < 0)
+    return -1;
+  if (pin_fill_old_pinno(&(pgm->pin[PIN_JTAG_TDI]), &(pgm->pinno[PIN_JTAG_TDI])) < 0)
+    return -1;
+  if (pin_fill_old_pinno(&(pgm->pin[PIN_JTAG_TDO]), &(pgm->pinno[PIN_JTAG_TDO])) < 0)
+    return -1;
+  if (pin_fill_old_pinno(&(pgm->pin[PIN_JTAG_TMS]), &(pgm->pinno[PIN_JTAG_TMS])) < 0)
+    return -1;
   if (pin_fill_old_pinno(&(pgm->pin[PIN_LED_ERR]),  &(pgm->pinno[PIN_LED_ERR])) < 0)
     return -1;
   if (pin_fill_old_pinno(&(pgm->pin[PIN_LED_RDY]),  &(pgm->pinno[PIN_LED_RDY])) < 0)
@@ -377,6 +385,10 @@ const char * avr_pin_name(int pinname) {
   case PIN_AVR_SCK   : return "SCK";
   case PIN_AVR_SDO   : return "SDO";
   case PIN_AVR_SDI   : return "SDI";
+  case PIN_JTAG_TCK  : return "TCK";
+  case PIN_JTAG_TDI  : return "TDI";
+  case PIN_JTAG_TDO  : return "TDO";
+  case PIN_JTAG_TMS  : return "TMS";
   case PIN_LED_ERR   : return "ERRLED";
   case PIN_LED_RDY   : return "RDYLED";
   case PIN_LED_PGM   : return "PGMLED";
@@ -400,6 +412,10 @@ const char * avr_pin_lcname(int pinname) {
   case PIN_AVR_SCK   : return "sck";
   case PIN_AVR_SDO   : return "sdo";
   case PIN_AVR_SDI   : return "sdi";
+  case PIN_JTAG_TCK  : return "tck";
+  case PIN_JTAG_TDI  : return "tdi";
+  case PIN_JTAG_TDO  : return "tdo";
+  case PIN_JTAG_TMS  : return "tms";
   case PIN_LED_ERR   : return "errled";
   case PIN_LED_RDY   : return "rdyled";
   case PIN_LED_PGM   : return "pgmled";

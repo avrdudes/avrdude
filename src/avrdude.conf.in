@@ -32,6 +32,10 @@
 #       sck      = <pin> ;                        # pin number
 #       sdo      = <pin> ;                        # pin number
 #       sdi      = <pin> ;                        # pin number
+#       tck      = <pin> ;                        # pin number
+#       tdi      = <pin> ;                        # pin number
+#       tdo      = <pin> ;                        # pin number
+#       tms      = <pin> ;                        # pin number
 #       errled   = <pin> ;                        # pin number
 #       rdyled   = <pin> ;                        # pin number
 #       pgmled   = <pin> ;                        # pin number
