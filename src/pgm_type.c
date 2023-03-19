@@ -64,6 +64,7 @@ const PROGRAMMER_TYPE programmers_types[] = { // Name(s) the programmers call th
   {"arduino", arduino_initpgm, arduino_desc}, // "Arduino"
   {"avr910", avr910_initpgm, avr910_desc}, // "avr910"
   {"avrftdi", avrftdi_initpgm, avrftdi_desc}, // "avrftdi"
+  {"avrftdi_jtag", avrftdi_jtag_initpgm, avrftdi_jtag_desc}, // "avrftdi_jtag"
   {"buspirate", buspirate_initpgm, buspirate_desc}, // "BusPirate"
   {"buspirate_bb", buspirate_bb_initpgm, buspirate_bb_desc}, // "BusPirate_BB"
   {"butterfly", butterfly_initpgm, butterfly_desc}, // "butterfly"

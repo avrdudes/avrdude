@@ -1136,6 +1136,26 @@ programmer
 ;
 
 #------------------------------------------------------------
+# tumpa-jtag
+#------------------------------------------------------------
+
+programmer parent "tumpa"
+    id                     = "tumpa-jtag";
+    desc                   = "TIAO USB Multi-Protocol Adapter (JTAG)";
+    type                   = "avrftdi_jtag";
+    sck                    = ;
+    sdo                    = ;
+    sdi                    = ;
+    tck                    = 0; # TCK 9
+    tdi                    = 1; # TDI 5
+    tdo                    = 2; # TDO 13
+    tms                    = 3; # TMS 7
+    reset                  = ; #4; # RST 15
+    buff                   = ~11;
+    prog_modes             = PM_JTAG;
+;
+
+#------------------------------------------------------------
 # ktlink
 #------------------------------------------------------------
 

@@ -1,6 +1,7 @@
 /*
  * avrftdi - extension for avrdude, Wolfgang Moser, Ville Voipio
  * Copyright (C) 2011 Hannes Weisbach, Doug Springer
+ * Copyright (C) 2023 Jeff Kent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,9 +61,27 @@ void avrftdi_initpgm(PROGRAMMER *pgm) {
 	pgm->open = avrftdi_noftdi_open;
 }
 
+void avrftdi_jtag_initpgm(PROGRAMMER *pgm) {
+	strcpy(pgm->type, "avrftdi_jtag");
+	pgm->open = avrftdi_noftdi_open;
+}
+
 #else
 
-enum { FTDI_SCK = 0, FTDI_SDO, FTDI_SDI, FTDI_RESET };
+#define PGM_FL_IS_DW            (0x0001)
+#define PGM_FL_IS_PDI           (0x0002)
+#define PGM_FL_IS_JTAG          (0x0004)
+#define PGM_FL_IS_EDBG          (0x0008)
+#define PGM_FL_IS_UPDI          (0x0010)
+#define PGM_FL_IS_TPI           (0x0020)
+
+/* MPSSE pins */
+enum {
+	FTDI_TCK_SCK = 0,
+	FTDI_TDI_SDO,
+	FTDI_TDO_SDI,
+	FTDI_TMS_CS,
+};
 
 static int write_flush(avrftdi_t *);
 
@@ -186,37 +205,60 @@ static void buf_dump(const unsigned char *buf, int len, char *desc,
  */
 static int set_frequency(avrftdi_t* ftdi, uint32_t freq)
 {
-	int32_t divisor;
-	uint8_t buf[3];
+	int32_t clock, divisor;
+	float hs_error, ls_error;
+	uint8_t buf[4], *ptr = buf;
 
-	/* divisor on 6000000 / freq - 1 */
-	divisor = (6000000 / freq) - 1;
+	if (ftdi->ftdic->type == TYPE_232H ||
+		ftdi->ftdic->type == TYPE_2232H ||
+		ftdi->ftdic->type == TYPE_4232H) {
+
+		clock = 60000000;
+		divisor = ((clock / 2) / freq) - 1;
+		hs_error = (float)(clock / 2) / (divisor + 1) / freq;
+
+		clock = 12000000;
+		divisor = ((clock / 2) / freq) - 1;
+		ls_error = (float)(clock / 2) / (divisor + 1) / freq;
+
+		if (ls_error <= hs_error) {
+			*ptr++ = EN_DIV_5;
+		} else {
+			clock = 60000000;
+			divisor = ((clock / 2) / freq) - 1;
+			*ptr++ = DIS_DIV_5;
+		}
+	} else {
+		clock = 12000000;
+		divisor = ((clock / 2) / freq) - 1;
+	}
+
 	if (divisor < 0) {
-		log_warn("Frequency too high (%u > 6 MHz)\n", freq);
-		log_warn("Resetting Frequency to 6MHz\n");
+		log_warn("Frequency too high (%u > %u MHz)\n", freq, clock / 2000000);
+		log_warn("Resetting Frequency to %uMHz\n", clock / 2000000);
 		divisor = 0;
 	}
 
 	if (divisor > 65535) {
-		log_warn("Frequency too low (%u < 91.553 Hz)\n", freq);
-		log_warn("Resetting Frequency to 91.553Hz\n");
+		log_warn("Frequency too low (%u < %.3f Hz)\n", freq, (float) clock / 2 / 65535);
+		log_warn("Resetting Frequency to %.3fHz\n", (float) clock / 2 / 65535);
 		divisor = 65535;
 	}
 
-	log_info("Using frequency: %d\n", 6000000/(divisor+1));
+	log_info("Using frequency: %d\n", clock / 2 / (divisor + 1));
 	log_info("Clock divisor: 0x%04x\n", divisor);
 
-	buf[0] = TCK_DIVISOR;
-	buf[1] = (uint8_t)(divisor & 0xff);
-	buf[2] = (uint8_t)((divisor >> 8) & 0xff);
+	*ptr++ = TCK_DIVISOR;
+	*ptr++ = (uint8_t)(divisor & 0xff);
+	*ptr++ = (uint8_t)(divisor >> 8) & 0xff;
 
-	E(ftdi_write_data(ftdi->ftdic, buf, 3) < 0, ftdi->ftdic);
+	E(ftdi_write_data(ftdi->ftdic, buf, ptr - buf) < 0, ftdi->ftdic);
 
 	return 0;
 }
 
 /*
- * This function sets or clears any pin, except SCK, SDI and SDO. Depending
+ * This function sets or clears any pin, except mandatory pins. Depending
  * on the pin configuration, a non-zero value sets the pin in the 'active'
  * state (high active, low active) and a zero value sets the pin in the
  * inactive state.
@@ -550,14 +592,21 @@ static int avrftdi_check_pins_mpsse(const PROGRAMMER *pgm, bool output) {
 
 	/* SCK/SDO/SDI are fixed and not invertible? */
 	/* TODO: inverted SCK/SDI/SDO */
-	static const struct pindef_t valid_pins_SCK = {{0x01},{0x00}};
-	static const struct pindef_t valid_pins_SDO = {{0x02},{0x00}};
-	static const struct pindef_t valid_pins_SDI = {{0x04},{0x00}};
+	static const struct pindef_t valid_pins[4] = {
+		{{0x01}, {0x00}},
+		{{0x02}, {0x00}},
+		{{0x04}, {0x00}},
+		{{0x08}, {0x00}},
+	};
 
 	/* value for 8/12/16 bit wide interface for other pins */
 	int valid_mask = ((1 << pdata->pin_limit) - 1);
-	/* mask out SCK/SDI/SDO */
-	valid_mask &= ~((1 << FTDI_SCK) | (1 << FTDI_SDO) | (1 << FTDI_SDI));
+
+	/* mask MPSSE pins */
+	valid_mask &= ~((1 << FTDI_TCK_SCK) | (1 << FTDI_TDI_SDO) | (1 << FTDI_TDO_SDI));
+	if (pgm->flag == PGM_FL_IS_JTAG) {
+		valid_mask &= ~(1 << FTDI_TMS_CS);
+	}
 
 	log_debug("Using valid mask mpsse: 0x%08x\n", valid_mask);
 	static struct pindef_t valid_pins_others;
@@ -572,13 +621,24 @@ static int avrftdi_check_pins_mpsse(const PROGRAMMER *pgm, bool output) {
 	}
 
 	/* now set mpsse specific pins */
+	if (pgm->flag == PGM_FL_IS_JTAG) {
+		pin_checklist[PIN_JTAG_TCK].mandatory = 1;
+		pin_checklist[PIN_JTAG_TCK].valid_pins = &valid_pins[FTDI_TCK_SCK];
+		pin_checklist[PIN_JTAG_TDI].mandatory = 1;
+		pin_checklist[PIN_JTAG_TDI].valid_pins = &valid_pins[FTDI_TDI_SDO];
+		pin_checklist[PIN_JTAG_TDO].mandatory = 1;
+		pin_checklist[PIN_JTAG_TDO].valid_pins = &valid_pins[FTDI_TDO_SDI];
+		pin_checklist[PIN_JTAG_TMS].mandatory = 1;
+		pin_checklist[PIN_JTAG_TMS].valid_pins = &valid_pins[FTDI_TMS_CS];
+	} else {
 	pin_checklist[PIN_AVR_SCK].mandatory = 1;
-	pin_checklist[PIN_AVR_SCK].valid_pins = &valid_pins_SCK;
-	pin_checklist[PIN_AVR_SDO].mandatory = 1;
-	pin_checklist[PIN_AVR_SDO].valid_pins = &valid_pins_SDO;
-	pin_checklist[PIN_AVR_SDI].mandatory = 1;
-	pin_checklist[PIN_AVR_SDI].valid_pins = &valid_pins_SDI;
-	pin_checklist[PIN_AVR_RESET].mandatory = 1;
+		pin_checklist[PIN_AVR_SCK].valid_pins = &valid_pins[FTDI_TCK_SCK];
+		pin_checklist[PIN_AVR_SDO].mandatory = 1;
+		pin_checklist[PIN_AVR_SDO].valid_pins = &valid_pins[FTDI_TDI_SDO];
+		pin_checklist[PIN_AVR_SDI].mandatory = 1;
+		pin_checklist[PIN_AVR_SDI].valid_pins = &valid_pins[FTDI_TDO_SDI];
+		pin_checklist[PIN_AVR_RESET].mandatory = 1;
+	}
 
 	/* assumes all checklists above have same number of entries */
 	return pins_check(pgm, pin_checklist, N_PINS, output);
@@ -601,11 +661,23 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 		log_err("No valid pin configuration found.\n");
 		avrftdi_check_pins_bb(pgm, true);
 		log_err("Pin configuration for FTDI MPSSE must be:\n");
-		log_err("%s: 0, %s: 1, %s: 2 (is: %s, %s, %s)\n", avr_pin_name(PIN_AVR_SCK),
-		         avr_pin_name(PIN_AVR_SDO), avr_pin_name(PIN_AVR_SDI),
-			 pins_to_str(&pgm->pin[PIN_AVR_SCK]),
-			 pins_to_str(&pgm->pin[PIN_AVR_SDO]),
-			 pins_to_str(&pgm->pin[PIN_AVR_SDI]));
+		if (pgm->flag == PGM_FL_IS_JTAG) {
+			log_err("%s: 0, %s: 1, %s: 2, %s :3 (is: %s, %s, %s, %s)\n",
+				avr_pin_name(PIN_JTAG_TCK), avr_pin_name(PIN_JTAG_TDI),
+				avr_pin_name(PIN_JTAG_TDO), avr_pin_name(PIN_JTAG_TMS),
+				pins_to_str(&pgm->pin[PIN_JTAG_TCK]),
+				pins_to_str(&pgm->pin[PIN_JTAG_TDI]),
+				pins_to_str(&pgm->pin[PIN_JTAG_TDO]),
+				pins_to_str(&pgm->pin[PIN_JTAG_TMS]));
+		} else {
+			log_err("%s: 0, %s: 1, %s: 2 (is: %s, %s, %s)\n",
+				avr_pin_name(PIN_AVR_SCK),
+				avr_pin_name(PIN_AVR_SDO),
+				avr_pin_name(PIN_AVR_SDI),
+				pins_to_str(&pgm->pin[PIN_AVR_SCK]),
+				pins_to_str(&pgm->pin[PIN_AVR_SDO]),
+				pins_to_str(&pgm->pin[PIN_AVR_SDI]));
+		}
 		log_err("If other pin configuration is used, fallback to slower bitbanging mode is used.\n");
 
 		return -1;
@@ -627,6 +699,20 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 		pdata->pin_value = SET_BITS_0(pdata->pin_value, pgm, pin, OFF);
 	}
 	pdata->pin_direction &= ~pgm->pin[PIN_AVR_SDI].mask[0];
+
+	if (pgm->flag & PGM_FL_IS_JTAG) {
+		if (!pdata->use_bitbanging) {
+			pdata->pin_value &= ~pgm->pin[PIN_JTAG_TCK].mask[0];
+			pdata->pin_value |= pgm->pin[PIN_JTAG_TCK].inverse[0];
+		}
+		pdata->pin_direction &= ~pgm->pin[PIN_JTAG_TDO].mask[0];
+	} else {
+		if (!pdata->use_bitbanging) {
+			pdata->pin_value &= ~pgm->pin[PIN_AVR_SCK].mask[0];
+			pdata->pin_value |= pgm->pin[PIN_AVR_SCK].inverse[0];
+		}
+		pdata->pin_direction &= ~pgm->pin[PIN_AVR_SDI].mask[0];
+	}
 
 	for(pin = PIN_LED_ERR; pin < N_PINS; ++pin) {
 		pdata->led_mask |= pgm->pin[pin].mask[0];
@@ -835,9 +921,10 @@ static int avrftdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 	return pgm->program_enable(pgm, p);
 }
 
-static void avrftdi_display(const PROGRAMMER *pgm, const char *p) {
-	// print the full pin definitions as in ft245r ?
-	return;
+static void avrftdi_display(const PROGRAMMER *pgm, const char *p)
+{
+	msg_info("%sPin assignment  : 0..7 = DBUS0..7, 8..15 = CBUS0..7\n", p);
+	pgm_display_generic_mask(pgm, p, SHOW_ALL_PINS);
 }
 
 
@@ -1219,13 +1306,511 @@ avrftdi_teardown(PROGRAMMER * pgm)
 	}
 }
 
-void avrftdi_initpgm(PROGRAMMER *pgm) {
+/******************/
+/* JTAG functions */
+/******************/
+
+static int avrftdi_jtag_reset(const PROGRAMMER *pgm)
+{
+	avrftdi_t *pdata = to_pdata(pgm);
+	unsigned char buf[3], *ptr = buf;
+
+	/* Unknown -> Reset -> Run-Test/Idle */
+	*ptr++ = MPSSE_WRITE_TMS | MPSSE_LSB | MPSSE_BITMODE | MPSSE_WRITE_NEG;
+	*ptr++ = 5;
+	*ptr++ = 0x1f;
+
+	E(ftdi_write_data(pdata->ftdic, buf, ptr - buf) != ptr - buf, pdata->ftdic);
+
+	return 0;
+}
+
+static int avrftdi_jtag_ir_out(const PROGRAMMER *pgm, unsigned char ir)
+{
+	avrftdi_t *pdata = to_pdata(pgm);
+	unsigned char buf[9], *ptr = buf;
+
+	/* Idle -> Select-DR -> Select-IR -> Capture-IR -> Shift-IR */
+	*ptr++ = MPSSE_WRITE_TMS | MPSSE_LSB | MPSSE_BITMODE | MPSSE_WRITE_NEG;
+	*ptr++ = 3;
+	*ptr++ = 0x03;
+
+	/* Clock out first 3 bits */
+	*ptr++ = MPSSE_DO_WRITE | MPSSE_LSB | MPSSE_BITMODE | MPSSE_WRITE_NEG;
+	*ptr++ = 2;
+	*ptr++ = ir & 0x7;
+
+	/* Clock out 4th bit and Shift-IR -> Exit1-IR -> Update-IR -> Idle */
+	*ptr++ = MPSSE_WRITE_TMS | MPSSE_LSB | MPSSE_BITMODE | MPSSE_WRITE_NEG;
+	*ptr++ = 2;
+	*ptr++ = (ir & 0x8) << 4 | 0x03;
+
+	E(ftdi_write_data(pdata->ftdic, buf, ptr - buf) != ptr - buf, pdata->ftdic);
+
+	return 0;
+}
+
+static int avrftdi_jtag_dr_out(const PROGRAMMER *pgm, unsigned int dr, int bits)
+{
+	avrftdi_t *pdata = to_pdata(pgm);
+	unsigned char buf[18], *ptr = buf;
+
+	if (bits <= 0 || bits > 31) {
+		return -1;
+	}
+
+	/* Idle -> Select-DR -> Capture-DR -> Shift-DR */
+	*ptr++ = MPSSE_WRITE_TMS | MPSSE_LSB | MPSSE_BITMODE | MPSSE_WRITE_NEG;
+	*ptr++ = 2;
+	*ptr++ = 0x01;
+
+	while (bits > 8) {
+		/* Write bits */
+		*ptr++ = MPSSE_DO_WRITE | MPSSE_LSB | MPSSE_BITMODE | MPSSE_WRITE_NEG;
+		*ptr++ = 7;
+		*ptr++ = dr & 0xff;
+		bits -= 8;
+		dr >>= 8;
+	}
+
+	if (bits > 1) {
+		/* Write */
+		*ptr++ = MPSSE_DO_WRITE | MPSSE_LSB | MPSSE_BITMODE | MPSSE_WRITE_NEG;
+		*ptr++ = bits - 2;
+		*ptr++ = dr & ((1 << (bits - 1)) - 1);
+	}
+	dr <<= 8 - bits;
+
+	/* Write MSB and Shift-DR -> Exit1-DR -> Update-DR -> Idle */
+	*ptr++ = MPSSE_WRITE_TMS | MPSSE_LSB | MPSSE_BITMODE | MPSSE_WRITE_NEG;
+	*ptr++ = 2;
+	*ptr++ = (dr & 0x80) | 0x03;
+
+	E(ftdi_write_data(pdata->ftdic, buf, ptr - buf) != ptr - buf, pdata->ftdic);
+
+	return 0;
+}
+
+static int avrftdi_jtag_dr_inout(const PROGRAMMER *pgm, unsigned int dr,
+		int bits)
+{
+	avrftdi_t *pdata = to_pdata(pgm);
+	unsigned char buf[19], *ptr = buf;
+	unsigned char bytes = 1, pos;
+	unsigned int dr_in;
+
+	if (bits <= 0 || bits > 31) {
+		return -1;
+	}
+
+	/* Run-Test/Idle -> Select-DR -> Capture-DR -> Shift-DR */
+	*ptr++ = MPSSE_WRITE_TMS | MPSSE_LSB | MPSSE_BITMODE | MPSSE_WRITE_NEG;
+	*ptr++ = 2;
+	*ptr++ = 0x01;
+
+	while (bits > 8) {
+		/* Read/write bits */
+		*ptr++ = MPSSE_DO_READ | MPSSE_DO_WRITE | MPSSE_LSB | MPSSE_BITMODE | MPSSE_WRITE_NEG;
+		*ptr++ = 7;
+		*ptr++ = dr & 0xff;
+		bits -= 8;
+		bytes++;
+		dr >>= 8;
+	}
+
+	if (bits > 1) {
+		/* Read/write */
+		*ptr++ = MPSSE_DO_READ | MPSSE_DO_WRITE | MPSSE_LSB | MPSSE_BITMODE | MPSSE_WRITE_NEG;
+		*ptr++ = bits - 2;
+		*ptr++ = dr & ((1 << (bits - 1)) - 1);
+		bytes++;
+	}
+	dr <<= 8 - bits;
+
+	/* Read/write MSB and Shift-DR -> Exit1-DR -> Update-DR -> Run-Test/Idle */
+	*ptr++ = MPSSE_WRITE_TMS | MPSSE_DO_READ | MPSSE_LSB | MPSSE_BITMODE | MPSSE_WRITE_NEG;
+	*ptr++ = 2;
+	*ptr++ = (dr & 0x80) | 0x03;
+	*ptr++ = SEND_IMMEDIATE;
+
+	E(ftdi_write_data(pdata->ftdic, buf, ptr - buf) != ptr - buf, pdata->ftdic);
+
+	pos = 0;
+	do {
+		int n = ftdi_read_data(pdata->ftdic, &buf[pos], bytes - pos);
+		E(n < 0, pdata->ftdic);
+		pos += n;
+	} while (pos < bytes);
+
+	dr_in = 0;
+	ptr = buf;
+	pos = 0;
+	while (bytes - (ptr - buf) > 2) {
+		dr_in |= *ptr++ << pos;
+		pos += 8;
+	}
+	if (bytes >= 1) {
+		dr_in |= *ptr++ << (pos - 8 + bits - 1);
+		pos += bits - 1;
+	}
+	dr_in |= (*ptr++ & 0x20) << (pos - 5);
+
+	return dr_in;
+}
+
+static int avrftdi_jtag_initialize(const PROGRAMMER *pgm, const AVRPART *p)
+{
+	pgm->powerup(pgm);
+
+	set_pin(pgm, PIN_AVR_RESET, OFF);
+	set_pin(pgm, PIN_JTAG_TCK, OFF);
+	usleep(20 * 1000);
+
+	set_pin(pgm, PIN_AVR_RESET, ON);
+	usleep(20 * 1000);
+
+	return 0;
+}
+
+static void avrftdi_jtag_enable(PROGRAMMER *pgm, const AVRPART *p)
+{
+	set_pin(pgm, PPI_AVR_BUFF, ON);
+
+	avrftdi_jtag_reset(pgm);
+
+	/* Set RESET */
+	avrftdi_jtag_ir_out(pgm, JTAG_IR_AVR_RESET);
+	avrftdi_jtag_dr_out(pgm, 1, 1);
+
+	/* Write program enable magic */
+	avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_ENABLE);
+	avrftdi_jtag_dr_out(pgm, 0xa370, 16);
+}
+
+static void avrftdi_jtag_disable(const PROGRAMMER *pgm)
+{
+	avrftdi_t *pdata = to_pdata(pgm);
+
+	/* NOP command */
+	avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
+	avrftdi_jtag_dr_out(pgm, 0x2300, 15);
+	avrftdi_jtag_dr_out(pgm, 0x3300, 15);
+
+	/* Clear program enable */
+	avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_ENABLE);
+	avrftdi_jtag_dr_out(pgm, 0x0000, 16);
+
+	/* Disable RESET */
+	avrftdi_jtag_ir_out(pgm, JTAG_IR_AVR_RESET);
+	avrftdi_jtag_dr_out(pgm, 0, 1);
+
+	write_flush(pdata);
+
+	set_pin(pgm, PPI_AVR_BUFF, OFF);
+}
+
+static int avrftdi_jtag_chip_erase(const PROGRAMMER *pgm, const AVRPART *p)
+{
+	avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
+	avrftdi_jtag_dr_out(pgm, 0x2380, 15);
+	avrftdi_jtag_dr_out(pgm, 0x3180, 15);
+	avrftdi_jtag_dr_out(pgm, 0x3380, 15);
+	avrftdi_jtag_dr_out(pgm, 0x3380, 15);
+	while (!(avrftdi_jtag_dr_inout(pgm, 0x3380, 15) & 0x0200))
+		;
+
+	return 0;
+}
+
+static int avrftdi_jtag_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
+		const AVRMEM *m, unsigned long addr, unsigned char *value)
+{
+	if (strcmp(m->desc, "lfuse") == 0) {
+		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
+		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_READ, 15);
+
+		/* Read fuse low byte */
+		avrftdi_jtag_dr_out(pgm, 0x3200, 15);
+		*value = avrftdi_jtag_dr_inout(pgm, 0x3300, 15) & 0xff;
+
+	} else if (strcmp(m->desc, "hfuse") == 0) {
+		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
+		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_READ, 15);
+
+		/* Read fuse high byte */
+		avrftdi_jtag_dr_out(pgm, 0x3e00, 15);
+		*value = avrftdi_jtag_dr_inout(pgm, 0x3f00, 15) & 0xff;
+
+	} else if (strcmp(m->desc, "efuse") == 0) {
+		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
+		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_READ, 15);
+
+		/* Read fuse extended byte */
+		avrftdi_jtag_dr_out(pgm, 0x3a00, 15);
+		*value = avrftdi_jtag_dr_inout(pgm, 0x3b00, 15) & 0xff;
+
+	} else if (strcmp(m->desc, "lock") == 0) {
+		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
+		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_READ, 15);
+
+		/* Read lock bits byte */
+		avrftdi_jtag_dr_out(pgm, 0x3600, 15);
+		*value = avrftdi_jtag_dr_inout(pgm, 0x3700, 15) & 0xff;
+
+	} else if (strcmp(m->desc, "signature") == 0) {
+		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
+		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_SIGCAL_READ, 15);
+		avrftdi_jtag_dr_out(pgm, 0x0300 | (addr & 0xff), 15);
+
+		/* Read signature byte */
+		avrftdi_jtag_dr_out(pgm, 0x3200, 15);
+		*value = avrftdi_jtag_dr_inout(pgm, 0x3300, 15) & 0xff;
+
+	} else if (strcmp(m->desc, "calibration") == 0) {
+		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
+		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_SIGCAL_READ, 15);
+		avrftdi_jtag_dr_out(pgm, 0x0300 | (addr & 0xff), 15);
+
+		/* Read calibration byte */
+		avrftdi_jtag_dr_out(pgm, 0x3600, 15);
+		*value = avrftdi_jtag_dr_inout(pgm, 0x3700, 15) & 0xff;
+
+	} else {
+		return -1;
+	}
+
+	return 0;
+}
+
+static int avrftdi_jtag_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
+		const AVRMEM *m, unsigned long addr, unsigned char value)
+{
+	if (strcmp(m->desc, "lfuse") == 0) {
+		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
+		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_WRITE, 15);
+
+		/* Load data low byte */
+		avrftdi_jtag_dr_out(pgm, 0x1300 | value, 15);
+
+		/* Write fuse low byte */
+		avrftdi_jtag_dr_out(pgm, 0x3300, 15);
+		avrftdi_jtag_dr_out(pgm, 0x3100, 15);
+		avrftdi_jtag_dr_out(pgm, 0x3300, 15);
+		avrftdi_jtag_dr_out(pgm, 0x3300, 15);
+
+		/* Poll for fuse write complete */
+		while (!(avrftdi_jtag_dr_inout(pgm, 0x3300, 15) & 0x0200))
+			;
+
+	} else if (strcmp(m->desc, "hfuse") == 0) {
+		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
+		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_WRITE, 15);
+
+		/* Load data low byte */
+		avrftdi_jtag_dr_out(pgm, 0x1300 | value, 15);
+
+		/* Write fuse low byte */
+		avrftdi_jtag_dr_out(pgm, 0x3700, 15);
+		avrftdi_jtag_dr_out(pgm, 0x3500, 15);
+		avrftdi_jtag_dr_out(pgm, 0x3700, 15);
+		avrftdi_jtag_dr_out(pgm, 0x3700, 15);
+
+		/* Poll for fuse write complete */
+		while (!(avrftdi_jtag_dr_inout(pgm, 0x3700, 15) & 0x0200))
+			;
+
+	} else if (strcmp(m->desc, "efuse") == 0) {
+		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
+		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_WRITE, 15);
+
+		/* Load data low byte */
+		avrftdi_jtag_dr_out(pgm, 0x1300 | value, 15);
+
+		/* Write fuse low byte */
+		avrftdi_jtag_dr_out(pgm, 0x3b00, 15);
+		avrftdi_jtag_dr_out(pgm, 0x3900, 15);
+		avrftdi_jtag_dr_out(pgm, 0x3b00, 15);
+		avrftdi_jtag_dr_out(pgm, 0x3b00, 15);
+
+		/* Poll for fuse write complete */
+		while (!(avrftdi_jtag_dr_inout(pgm, 0x3b00, 15) & 0x0200))
+			;
+
+	} else if (strcmp(m->desc, "lock") == 0) {
+		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
+		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_LOCK_WRITE, 15);
+
+		/* Load data low byte */
+		avrftdi_jtag_dr_out(pgm, 0x1300 | value | 0xc0, 15);
+
+		/* Write fuse low byte */
+		avrftdi_jtag_dr_out(pgm, 0x3300, 15);
+		avrftdi_jtag_dr_out(pgm, 0x3100, 15);
+		avrftdi_jtag_dr_out(pgm, 0x3300, 15);
+		avrftdi_jtag_dr_out(pgm, 0x3300, 15);
+
+		/* Poll for fuse write complete */
+		while (!(avrftdi_jtag_dr_inout(pgm, 0x3300, 15) & 0x0200))
+			;
+
+	} else {
+		return -1;
+	}
+
+	return 0;
+}
+
+static int avrftdi_jtag_paged_write(const PROGRAMMER *pgm, const AVRPART *p,
+		const AVRMEM *m, unsigned int page_size, unsigned int addr,
+		unsigned int n_bytes)
+{
+	unsigned int maxaddr = addr + n_bytes;
+	unsigned char byte;
+
+	if (strcmp(m->desc, "flash") == 0) {
+		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
+		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FLASH_WRITE, 15);
+
+		/* Load address */
+		avrftdi_jtag_dr_out(pgm, 0x0b00 | ((addr >> 17) & 0xff), 15);
+		avrftdi_jtag_dr_out(pgm, 0x0700 | ((addr >> 9) & 0xff), 15);
+		avrftdi_jtag_dr_out(pgm, 0x0300 | ((addr >> 1) & 0xff), 15);
+
+		/* Load page data */
+		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_PAGELOAD);
+		for (unsigned int i = 0; i < page_size; i++) {
+			byte = i < (maxaddr - addr) ? m->buf[addr + i] : 0xff;
+			avrftdi_jtag_dr_out(pgm, byte, 8);
+		}
+
+		/* Write Flash page */
+		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
+		avrftdi_jtag_dr_out(pgm, 0x3700, 15);
+		avrftdi_jtag_dr_out(pgm, 0x3500, 15);
+		avrftdi_jtag_dr_out(pgm, 0x3700, 15);
+		avrftdi_jtag_dr_out(pgm, 0x3700, 15);
+
+		/* Wait for completion */
+		while (!(avrftdi_jtag_dr_inout(pgm, 0x3700, 15) & 0x0200))
+			;
+
+	} else if (strcmp(m->desc, "eeprom") == 0) {
+		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
+		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_EEPROM_WRITE, 15);
+
+		for (; addr < maxaddr; addr += page_size) {
+			for (unsigned int i = 0; i < page_size; i++) {
+				/* Load address */
+				avrftdi_jtag_dr_out(pgm, 0x0700 | ((addr >> 8) & 0xff), 15);
+				avrftdi_jtag_dr_out(pgm, 0x0300 | ((addr + i) & 0xff), 15);
+
+				/* Load data byte */
+				avrftdi_jtag_dr_out(pgm, 0x1300 | m->buf[addr + i], 15);
+
+				/* Latch data */
+				avrftdi_jtag_dr_out(pgm, 0x3700, 15);
+				avrftdi_jtag_dr_out(pgm, 0x7700, 15);
+				avrftdi_jtag_dr_out(pgm, 0x3700, 15);
+			}
+
+			/* Write EEPROM page */
+			avrftdi_jtag_dr_out(pgm, 0x3300, 15);
+			avrftdi_jtag_dr_out(pgm, 0x3100, 15);
+			avrftdi_jtag_dr_out(pgm, 0x3300, 15);
+			avrftdi_jtag_dr_out(pgm, 0x3300, 15);
+
+			/* Wait for completion */
+			while (!(avrftdi_jtag_dr_inout(pgm, 0x3300, 15) & 0x0200))
+				;
+		}
+	} else {
+		return -1;
+	}
+
+	return n_bytes;
+}
+
+static int avrftdi_jtag_paged_read(const PROGRAMMER *pgm, const AVRPART *p,
+		const AVRMEM *m, unsigned int page_size, unsigned int addr,
+		unsigned int n_bytes)
+{
+	avrftdi_t *pdata = to_pdata(pgm);
+	unsigned int maxaddr = addr + n_bytes;
+	unsigned char *buf, *ptr;
+	unsigned int bytes;
+   
+    buf = alloca(n_bytes * 8 + 1);
+    ptr = buf;
+
+	if (strcmp(m->desc, "flash") == 0) {
+		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
+		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FLASH_READ, 15);
+
+		/* Load address */
+		avrftdi_jtag_dr_out(pgm, 0x0b00 | ((addr >> 17) & 0xff), 15);
+		avrftdi_jtag_dr_out(pgm, 0x0700 | ((addr >> 9) & 0xff), 15);
+		avrftdi_jtag_dr_out(pgm, 0x0300 | ((addr >> 1) & 0xff), 15);
+		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_PAGEREAD);
+
+		for (unsigned int i = addr; i < maxaddr; i++) {
+			/* Run-Test/Idle -> Select-DR -> Capture-DR -> Shift-DR */
+			*ptr++ = MPSSE_WRITE_TMS | MPSSE_LSB | MPSSE_BITMODE | MPSSE_WRITE_NEG;
+			*ptr++ = 2;
+			*ptr++ = 0x01;
+
+			/* Read byte */
+			*ptr++ = MPSSE_DO_READ | MPSSE_LSB | MPSSE_BITMODE;
+			*ptr++ = 6;
+
+			/* Shift-DR -> Exit1-DR -> Update-DR -> Run-Test/Idle */
+			*ptr++ = MPSSE_WRITE_TMS | MPSSE_DO_READ | MPSSE_LSB | MPSSE_BITMODE | MPSSE_WRITE_NEG;
+			*ptr++ = 2;
+			*ptr++ = 0x03;
+		}
+
+		*ptr++ = SEND_IMMEDIATE;
+		E(ftdi_write_data(pdata->ftdic, buf, ptr - buf) != ptr - buf, pdata->ftdic);
+
+		bytes = 0;
+		do {
+			int n = ftdi_read_data(pdata->ftdic, &buf[bytes], n_bytes * 2 - bytes);
+			E(n < 0, pdata->ftdic);
+			bytes += n;
+		} while (bytes < n_bytes * 2);
+
+		for (unsigned int i = 0; i < n_bytes; i++) {
+			m->buf[addr + i] = (buf[i * 2] >> 1) | (buf[(i * 2) + 1] << 2);
+		}
+
+	} else if (strcmp(m->desc, "eeprom") == 0) {
+		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
+		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_EEPROM_READ, 15);
+
+		for (; addr < maxaddr; addr++) {
+			/* Load address */
+			avrftdi_jtag_dr_out(pgm, 0x0700 | ((addr >> 8) & 0xff), 15);
+			avrftdi_jtag_dr_out(pgm, 0x0300 | (addr & 0xff), 15);
+
+			/* Read data byte */
+			avrftdi_jtag_dr_out(pgm, 0x3300 | (addr & 0xff), 15);
+			avrftdi_jtag_dr_out(pgm, 0x3200, 15);
+			m->buf[addr] = avrftdi_jtag_dr_inout(pgm, 0x3300, 15) & 0xff;
+		}
+
+	} else {
+		return -1;
+	}
+
+	return n_bytes;
+}
+
+void avrftdi_initpgm(PROGRAMMER *pgm)
+{
 	strcpy(pgm->type, "avrftdi");
 
 	/*
 	 * mandatory functions
 	 */
-
 	pgm->initialize = avrftdi_initialize;
 	pgm->display = avrftdi_display;
 	pgm->enable = avrftdi_enable;
@@ -1243,23 +1828,53 @@ void avrftdi_initpgm(PROGRAMMER *pgm) {
 	/*
 	 * optional functions
 	 */
-
 	pgm->paged_write = avrftdi_paged_write;
 	pgm->paged_load = avrftdi_paged_load;
-
 	pgm->setpin = set_pin;
-
 	pgm->setup = avrftdi_setup;
 	pgm->teardown = avrftdi_teardown;
-
 	pgm->rdy_led = set_led_rdy;
 	pgm->err_led = set_led_err;
 	pgm->pgm_led = set_led_pgm;
 	pgm->vfy_led = set_led_vfy;
 }
 
+void avrftdi_jtag_initpgm(PROGRAMMER *pgm)
+{
+	strcpy(pgm->type, "avrftdi_jtag");
+
+	/*
+	 * mandatory functions
+	 */
+	pgm->initialize = avrftdi_jtag_initialize;
+	pgm->display = avrftdi_display;
+	pgm->enable = avrftdi_jtag_enable;
+	pgm->disable = avrftdi_jtag_disable;
+	pgm->powerup = avrftdi_powerup;
+	pgm->powerdown = avrftdi_powerdown;
+	pgm->chip_erase = avrftdi_jtag_chip_erase;
+	pgm->open = avrftdi_open;
+	pgm->close = avrftdi_close;
+	pgm->read_byte = avrftdi_jtag_read_byte;
+	pgm->write_byte = avrftdi_jtag_write_byte;
+
+	/*
+	 * optional functions
+	 */
+	pgm->paged_write = avrftdi_jtag_paged_write;
+	pgm->paged_load = avrftdi_jtag_paged_read;
+	pgm->setup = avrftdi_setup;
+	pgm->teardown = avrftdi_teardown;
+	pgm->rdy_led = set_led_rdy;
+	pgm->err_led = set_led_err;
+	pgm->pgm_led = set_led_pgm;
+	pgm->vfy_led = set_led_vfy;
+	pgm->page_size = 256;
+	pgm->flag = PGM_FL_IS_JTAG;
+}
+
 #endif /* DO_NOT_BUILD_AVRFTDI */
 
-
 const char avrftdi_desc[] = "Interface to the MPSSE Engine of FTDI Chips using libftdi.";
+const char avrftdi_jtag_desc[] = "libftdi JTAG interface";
 

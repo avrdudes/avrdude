@@ -61,6 +61,33 @@ enum { ERR, WARN, INFO, DEBUG, TRACE };
     }                                                               \
   } while(0)
 
+enum {
+    JTAG_IR_EXTEST              = 0,
+    JTAG_IR_IDCODE              = 1,
+    JTAG_IR_SAMPLE_PRELOAD      = 2,
+    JTAG_IR_PROG_ENABLE         = 4,
+    JTAG_IR_PROG_COMMANDS       = 5,
+    JTAG_IR_PROG_PAGELOAD       = 6,
+    JTAG_IR_PROG_PAGEREAD       = 7,
+    JTAG_IR_PRIVATE0            = 8,
+    JTAG_IR_PRIVATE1            = 9,
+    JTAG_IR_PRIVATE2            = 10,
+    JTAG_IR_PRIVATE3            = 11,
+    JTAG_IR_AVR_RESET           = 12,
+    JTAG_IR_BYPASS              = 15,
+};
+
+enum jtag_cmd {
+    JTAG_DR_PROG_NONE           = 0x00,
+    JTAG_DR_PROG_FLASH_READ     = 0x02,
+    JTAG_DR_PROG_EEPROM_READ    = 0x03,
+    JTAG_DR_PROG_FUSE_READ      = 0x04,
+    JTAG_DR_PROG_SIGCAL_READ    = 0x08,
+    JTAG_DR_PROG_FLASH_WRITE    = 0x10,
+    JTAG_DR_PROG_EEPROM_WRITE   = 0x11,
+    JTAG_DR_PROG_LOCK_WRITE     = 0x20,
+    JTAG_DR_PROG_FUSE_WRITE     = 0x40,
+};
 
 #define to_pdata(pgm) \
   ((avrftdi_t *)((pgm)->cookie))
