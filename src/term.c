@@ -324,8 +324,8 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
       if (len == 0)
         return 0;
-      else if (len < 0) {
-        pmsg_error("(dump) invalid length %d\n", len);
+      if (len < 0) {
+        pmsg_error("(dump) invalid effective length %d\n", len);
         return -1;
       }
       read_mem[i].len = len;
@@ -511,7 +511,7 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     if (len == 0)
       return 0;
     if (len < 0 || len > maxsize - addr) {
-      pmsg_error("(write) effective %s start address 0x%0*x and effective length %d not compatible with memory size %d\n",
+      pmsg_error("(write ...) effective %s start address 0x%0*x and effective length %d not compatible with memory size %d\n",
         mem->desc, maxsize > 0x10000? 5: 4, addr, len, maxsize);
       return -1;
     }
@@ -839,7 +839,7 @@ static int cmd_erase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       pmsg_error("(erase) %s memory type not defined for part %s\n", argv[1], p->desc);
       return -1;
     }
-    char *args[6] = {"write", memtype, "", "", "0xff", "..."};
+    char *args[] = {"write", memtype, "", "", "0xff", "...", NULL};
     // erase <mem>
     if (argc == 2) {
       args[2] = "0";
