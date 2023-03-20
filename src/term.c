@@ -242,9 +242,7 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   if ((argc < 2 && read_mem[0].mem == NULL) || argc > 4) {
     msg_error(
       "Usage: %s <memory> <addr> <len>\n"
-      "       %s <memory> <addr> ...\n"
       "       %s <memory> <addr>\n"
-      "       %s <memory> ...\n"
       "       %s <memory>\n",
       argv[0], argv[0], argv[0], argv[0], argv[0]);
     return -1;
