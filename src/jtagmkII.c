@@ -2268,13 +2268,15 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
        addr &= ~1L;
      }
      writesize = 2;
-     need_progmode = 0;
+     if(strcmp(p->family_id, "AVR    ") && strcmp(p->family_id, "    AVR")) // Unless it's a DX part
+       need_progmode = 0;
      PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
      if (pgm->flag & PGM_FL_IS_DW)
        unsupp = 1;
   } else if (strcmp(mem->desc, "eeprom") == 0) {
     cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM_XMEGA: MTYPE_EEPROM;
-    need_progmode = 0;
+    if(strcmp(p->family_id, "AVR    ") && strcmp(p->family_id, "    AVR")) // Unless DX
+      need_progmode = 0;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if (strcmp(mem->desc, "lfuse") == 0) {
     cmd[1] = MTYPE_FUSE_BITS;
