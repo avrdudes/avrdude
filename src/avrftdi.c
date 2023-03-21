@@ -924,7 +924,11 @@ static int avrftdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 static void avrftdi_display(const PROGRAMMER *pgm, const char *p)
 {
 	msg_info("%sPin assignment  : 0..7 = DBUS0..7, 8..15 = CBUS0..7\n", p);
-	pgm_display_generic_mask(pgm, p, SHOW_ALL_PINS);
+	if (pgm->flag & PGM_FL_IS_JTAG) {
+		pgm_display_generic_mask(pgm, p, SHOW_ALL_PINS & ~SHOW_AVR_PINS);
+	} else {
+		pgm_display_generic_mask(pgm, p, SHOW_ALL_PINS & ~SHOW_JTAG_PINS);
+	}
 }
 
 
