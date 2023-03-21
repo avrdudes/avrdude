@@ -85,7 +85,7 @@ static int cmd_quell  (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 #define _fo(x) offsetof(PROGRAMMER, x)
 
 struct command cmd[] = {
-  { "dump",  cmd_dump,  _fo(read_byte_cached),  "%s <memory> [<addr> <len> | <addr> ... | <addr> | ...]" },
+  { "dump",  cmd_dump,  _fo(read_byte_cached),  "%s <memory> [<addr> | <addr> <len>]" },
   { "read",  cmd_dump,  _fo(read_byte_cached),  "alias for dump" },
   { "write", cmd_write, _fo(write_byte_cached), "write <memory> <addr> <data>[,] {<data>[,]}" },
   { "",      cmd_write, _fo(write_byte_cached), "write <memory> <addr> <len> <data>[,] {<data>[,]} ..." },
