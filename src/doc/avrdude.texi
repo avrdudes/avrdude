@@ -1616,6 +1616,10 @@ eight bytes as it is the same as @code{0xFFFFffffFFFFffffU}.
 One trailing comma at the end of data items is ignored to facilitate copy
 and paste of lists.
 
+@item write @var{memtype} @var{addr} @var{data}
+The start address @code{addr} may be omitted if the size of the memory
+being written to is 1 byte in size.
+
 @item write @var{memtype} @var{addr} @var{length} @var{data[,]} @{@var{data[,]}@} @dots{}
 The ellipsis form @dots{} of write is similar to above, but @var{length}
 byte of the memory are written. For that purpose, after writing the

@@ -910,6 +910,11 @@ needs eight bytes as it is the same as 0xFFFFffffFFFFffffU.
 One trailing comma at the end of
 .Ar data
 items is ignored to facilitate copy & paste of lists.
+.It Ar write memory data
+The start address
+.Ar addr
+may be omitted if the size of the memory being written to is
+1 byte in size.
 .It Ar write memory addr len data[,] {data[,]} ...
 The ellipsis ... form writes <len> bytes padded by repeating the last
 .Ar data
