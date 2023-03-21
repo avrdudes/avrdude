@@ -175,6 +175,9 @@ static int wiring_open(PROGRAMMER *pgm, const char *port) {
 
     serial_set_dtr_rts(&pgm->fd, 1);
     usleep(50*1000);
+
+    /* Set high, so a direct connection to reset works. */
+    serial_set_dtr_rts(&pgm->fd, 0);
   }
 
   /* drain any extraneous input */
@@ -188,7 +191,6 @@ static int wiring_open(PROGRAMMER *pgm, const char *port) {
 
 static void wiring_close(PROGRAMMER * pgm)
 {
-  serial_set_dtr_rts(&pgm->fd, 0);
   serial_close(&pgm->fd);
   pgm->fd.ifd = -1;
 }
