@@ -1250,11 +1250,16 @@ int main(int argc, char * argv [])
   init_ok = (rc = pgm->initialize(pgm, p)) >= 0;
   if (!init_ok) {
     pmsg_error("initialization failed, rc=%d\n", rc);
-    if(rc == -2)
+    if (rc == -2)
       imsg_error("the programmer ISP clock is too fast for the target\n");
     else
       imsg_error("- double check the connections and try again\n");
-    imsg_error("- use -B to set lower ISP clock frequency, e.g. -B 125kHz\n");
+
+    if (strcmp(pgm->type, "serialupdi") == 0 || strcmp(pgm->type, "SERBB") == 0)
+      imsg_error("- use -b to set lower baud rate, e.g. -b %d\n", baudrate? baudrate/2: 57600);
+    else
+      imsg_error("- use -B to set lower the bit clock frequency, e.g. -B 125kHz\n");
+
     if (!ovsigck) {
       imsg_error("- use -F to override this check\n\n");
       exitrc = 1;
