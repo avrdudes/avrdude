@@ -3,13 +3,13 @@
  *
  * avrintel.c
  *
- * Atmel AVR8L, AVR8, XMEGA and AVR8X family description of interrupts and more
+ * Microchip AVR8L, AVR8, XMEGA and AVR8X family description of interrupts and more
  *
- * published under GNU General Public License, version 3 (GPL-3.0)
- * meta-author Stefan Rueger <stefan.rueger@urclocks.com>
+ * Published under GNU General Public License, version 3 (GPL-3.0)
+ * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.1
- * 02.01.2023
+ * 04.03.2023
  *
  */
 
@@ -42,7 +42,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"ATtiny13",          10,  F_AVR8, {0x1E, 0x90, 0x07},       0, 0x00400, 0x020,  0,      0,       0, 0x0040,  4, 0x0060, 0x0040,  2,  1,  10,  vtab_attiny13a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny13A",         11,  F_AVR8, {0x1E, 0x90, 0x07},       0, 0x00400, 0x020,  0,      0,       0, 0x0040,  4, 0x0060, 0x0040,  2,  1,  10,  vtab_attiny13a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny15",          12,  F_AVR8, {0x1E, 0x90, 0x06},       0, 0x00400, 0x001,  0,      0,       0, 0x0040,  2, 0x0060, 0x0020,  1,  1,   9,   vtab_attiny15}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny22",          13,  F_AVR8, {0x1E, 0x91, 0x06},       0, 0x00800,    -1,  0,      0,      -1,     -1, -1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // avr-gcc 12.2.0, boot size (manual)
+  {"ATtiny22",          13,  F_AVR8, {0x1E, 0x91, 0x06},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // avr-gcc 12.2.0, avrdude, boot size (manual)
   {"ATtiny24",          14,  F_AVR8, {0x1E, 0x91, 0x0B},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  3,  1,  17,  vtab_attiny84a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny24A",         15,  F_AVR8, {0x1E, 0x91, 0x0B},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  3,  1,  17,  vtab_attiny84a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny25",          16,  F_AVR8, {0x1E, 0x91, 0x08},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  3,  1,  15,   vtab_attiny85}, // atdf, avr-gcc 12.2.0, avrdude
@@ -155,7 +155,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"ATmega329P",       123,  F_AVR8, {0x1E, 0x95, 0x0B},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  23, vtab_atmega649p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega329PA",      124,  F_AVR8, {0x1E, 0x95, 0x0B},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  23, vtab_atmega649p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega406",        125,  F_AVR8, {0x1E, 0x95, 0x07},       0, 0x0a000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0800,  2,  1,  23,  vtab_atmega406}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega640",        126,  F_AVR8, {0x1E, 0x96, 0x08},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000,  3,  1,  57, vtab_atmega2561}, // atdf, avr-gcc 12.2.0, avrdude
+  {"ATmega640",        126,  F_AVR8, {0x1E, 0x96, 0x08},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000,  3,  1,  57, vtab_atmega2560}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega644",        127,  F_AVR8, {0x1E, 0x96, 0x09},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  28,  vtab_atmega644}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega644A",       128,  F_AVR8, {0x1E, 0x96, 0x09},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  31, vtab_atmega644pa}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega644P",       129,  F_AVR8, {0x1E, 0x96, 0x0A},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  31, vtab_atmega644pa}, // atdf, avr-gcc 12.2.0, avrdude
@@ -167,12 +167,12 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"ATmega649",        135,  F_AVR8, {0x1E, 0x96, 0x03},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  23, vtab_atmega649p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega649A",       136,  F_AVR8, {0x1E, 0x96, 0x03},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  23, vtab_atmega649p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega649P",       137,  F_AVR8, {0x1E, 0x96, 0x0B},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  23, vtab_atmega649p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega1280",       138,  F_AVR8, {0x1E, 0x97, 0x03},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000,  3,  1,  57, vtab_atmega2561}, // atdf, avr-gcc 12.2.0, avrdude
+  {"ATmega1280",       138,  F_AVR8, {0x1E, 0x97, 0x03},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000,  3,  1,  57, vtab_atmega2560}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega1281",       139,  F_AVR8, {0x1E, 0x97, 0x04},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000,  3,  1,  57, vtab_atmega2561}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega1284",       140,  F_AVR8, {0x1E, 0x97, 0x06},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x4000,  3,  1,  35, vtab_atmega1284p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega1284P",      141,  F_AVR8, {0x1E, 0x97, 0x05},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x4000,  3,  1,  35, vtab_atmega1284p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega1284RFR2",   142,  F_AVR8, {0x1E, 0xA7, 0x03},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x4000,  3,  1,  77, vtab_atmega2564rfr2}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega2560",       143,  F_AVR8, {0x1E, 0x98, 0x01},       0, 0x40000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000,  3,  1,  57, vtab_atmega2561}, // atdf, avr-gcc 12.2.0, avrdude
+  {"ATmega2560",       143,  F_AVR8, {0x1E, 0x98, 0x01},       0, 0x40000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000,  3,  1,  57, vtab_atmega2560}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega2561",       144,  F_AVR8, {0x1E, 0x98, 0x02},       0, 0x40000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000,  3,  1,  57, vtab_atmega2561}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega2564RFR2",   145,  F_AVR8, {0x1E, 0xA8, 0x03},       0, 0x40000, 0x100,  4, 0x0400,       0, 0x2000,  8, 0x0200, 0x8000,  3,  1,  77, vtab_atmega2564rfr2}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega3250",       146,  F_AVR8, {0x1E, 0x95, 0x06},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  25, vtab_atmega6450p}, // atdf, avr-gcc 12.2.0, avrdude
@@ -195,7 +195,9 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"AT43USB355",       163,  F_AVR8, {0xff,   -1,   -1},       0, 0x06000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0400, -1, -1,   0,            NULL}, // avr-gcc 12.2.0
   {"AT76C711",         164,  F_AVR8, {0xff,   -1,   -1},       0, 0x04000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x07a0, -1, -1,   0,            NULL}, // avr-gcc 12.2.0
   {"AT86RF401",        165,  F_AVR8, {0x1E, 0x91, 0x81},       0, 0x00800,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0080,  0,  1,   3,  vtab_at86rf401}, // avr-gcc 12.2.0
-  {"AT90PWM1",         166,  F_AVR8, {0x1E, 0x93, 0x83},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32, vtab_at90pwm316}, // atdf, avr-gcc 12.2.0
+  {"AT89S51",          372,  F_AVR8, {0x1E, 0x51, 0x06},       0, 0x01000, 0x001, -1,     -1,       0,      0,  0,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
+  {"AT89S52",          373,  F_AVR8, {0x1E, 0x52, 0x06},       0, 0x02000, 0x001, -1,     -1,       0,      0,  0,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
+  {"AT90PWM1",         166,  F_AVR8, {0x1E, 0x93, 0x83},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,   vtab_at90pwm1}, // atdf, avr-gcc 12.2.0
   {"AT90PWM2",         167,  F_AVR8, {0x1E, 0x93, 0x81},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,   vtab_at90pwm2}, // avr-gcc 12.2.0, avrdude, boot size (manual)
   {"AT90PWM2B",        168,  F_AVR8, {0x1E, 0x93, 0x83},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,  vtab_at90pwm3b}, // atdf, avr-gcc 12.2.0, avrdude
   {"AT90PWM3",         169,  F_AVR8, {0x1E, 0x93, 0x81},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,  vtab_at90pwm3b}, // atdf, avr-gcc 12.2.0, avrdude
@@ -216,7 +218,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"AT90USB1286",      184,  F_AVR8, {0x1E, 0x97, 0x82},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x2000,  3,  1,  38, vtab_atmega32u6}, // atdf, avr-gcc 12.2.0, avrdude
   {"AT90USB1287",      185,  F_AVR8, {0x1E, 0x97, 0x82},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x2000,  3,  1,  38, vtab_atmega32u6}, // atdf, avr-gcc 12.2.0, avrdude
   {"AT90S2313",        186,  F_AVR8, {0x1E, 0x91, 0x01},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,  11,  vtab_at90s2313}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"AT90S2323",        187,  F_AVR8, {0x1E, 0x91, 0x02},       0, 0x00800,    -1,  0,      0,      -1,     -1, -1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // avr-gcc 12.2.0, boot size (manual)
+  {"AT90S2323",        187,  F_AVR8, {0x1E, 0x91, 0x02},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // avr-gcc 12.2.0, avrdude, boot size (manual)
   {"AT90S2333",        188,  F_AVR8, {0x1E, 0x91, 0x05},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, -1, -1,  14,  vtab_at90s4433}, // avr-gcc 12.2.0, avrdude, boot size (manual)
   {"AT90S2343",        189,  F_AVR8, {0x1E, 0x91, 0x03},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // avr-gcc 12.2.0, avrdude, boot size (manual)
   {"AT90S4414",        190,  F_AVR8, {0x1E, 0x92, 0x01},       0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0100,  1,  1,  13,  vtab_at90s8515}, // avr-gcc 12.2.0, avrdude, boot size (manual)
@@ -285,7 +287,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"ATxmega64A4U",     252, F_XMEGA, {0x1E, 0x96, 0x46},       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000,  6,  1, 127, vtab_atxmega128a4u}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATxmega64D4",      253, F_XMEGA, {0x1E, 0x96, 0x47},       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000,  6,  1,  91, vtab_atxmega128d4}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATxmega128A1",     254, F_XMEGA, {0x1E, 0x97, 0x4C},       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000,  6,  1, 125, vtab_atxmega128a1}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega128A1revD", 255, F_XMEGA, {0x1E, 0x97, 0x41},       0, 0x22000, 0x200, -1,     -1,       0, 0x0800, 32,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
+  {"ATxmega128A1revD", 255, F_XMEGA, {0x1E, 0x97, 0x41},       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000,  6,  1, 125, vtab_atxmega128a1}, // avrdude, from ATxmega128A1
   {"ATxmega128A1U",    256, F_XMEGA, {0x1E, 0x97, 0x4C},       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000,  6,  1, 127, vtab_atxmega128a1u}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATxmega128B1",     257, F_XMEGA, {0x1E, 0x97, 0x4D},       0, 0x22000, 0x100,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000,  6,  1,  81, vtab_atxmega128b1}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATxmega128A3",     258, F_XMEGA, {0x1E, 0x97, 0x42},       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000,  6,  1, 122, vtab_atxmega256a3}, // atdf, avr-gcc 12.2.0, avrdude
@@ -1123,8 +1125,8 @@ const char * const vtab_atmega64hve2[vts_atmega64hve2] = { // ATmega64HVE2, ATme
   "TIMER0_COMPA",               //  11: Timer 0 Compare Match A
   "TIMER0_COMPB",               //  12: Timer 0 Compare Match B
   "TIMER0_OVF",                 //  13: Timer 0 Overflow
-  "LIN_STATUS",                 //  14: Local Interconnect Network Status
-  "LIN_ERROR",                  //  15: Local Interconnect Network Error
+  "LIN_STATUS",                 //  14: LIN Status Change
+  "LIN_ERROR",                  //  15: LIN Error
   "SPI_STC",                    //  16: SPI Serial Transfer Complete
   "VADC_CONV",                  //  17: Versatile Analog to Digital Conversion
   "VADC_ACC",                   //  18: Versatile Analog to Digital Compare or Capture
@@ -1253,12 +1255,12 @@ const char * const vtab_atmega128rfa1[vts_atmega128rfa1] = { // ATmega128RFA1
   "TIMER5_COMPB",               //  48: Timer 5 Compare Match B
   "TIMER5_COMPC",               //  49: Timer 5 Compare Match C
   "TIMER5_OVF",                 //  50: Timer 5 Overflow
-  "USART2_RX",                  //  51: USART 2 Receive Complete
-  "USART2_UDRE",                //  52: USART 2 Data Register Empty
-  "USART2_TX",                  //  53: USART 2 Transmit Complete
-  "USART3_RX",                  //  54: USART 3 Receive Complete
-  "USART3_UDRE",                //  55: USART 3 Data Register Empty
-  "USART3_TX",                  //  56: USART 3 Transmit Complete
+  "UNUSED",                     //  51: not useful owing to limited pin count
+  "UNUSED",                     //  52: not useful owing to limited pin count
+  "UNUSED",                     //  53: not useful owing to limited pin count
+  "UNUSED",                     //  54: not useful owing to limited pin count
+  "UNUSED",                     //  55: not useful owing to limited pin count
+  "UNUSED",                     //  56: not useful owing to limited pin count
   "TRX24_PLL_LOCK",             //  57: TRX24 PLL Lock
   "TRX24_PLL_UNLOCK",           //  58: TRX24 PLL Unlock
   "TRX24_RX_START",             //  59: TRX24 Receive Start
@@ -1746,7 +1748,7 @@ const char * const vtab_atmega1284p[vts_atmega1284p] = { // ATmega1284P, ATmega1
   "TIMER3_OVF",                 //  34: Timer 3 Overflow
 };
 
-const char * const vtab_atmega2561[vts_atmega2561] = { // ATmega2561, ATmega2560, ATmega1281, ATmega1280, ATmega640
+const char * const vtab_atmega2560[vts_atmega2560] = { // ATmega2560, ATmega1280, ATmega640
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1804,6 +1806,66 @@ const char * const vtab_atmega2561[vts_atmega2561] = { // ATmega2561, ATmega2560
   "USART3_RX",                  //  54: USART 3 Receive Complete
   "USART3_UDRE",                //  55: USART 3 Data Register Empty
   "USART3_TX",                  //  56: USART 3 Transmit Complete
+};
+
+const char * const vtab_atmega2561[vts_atmega2561] = { // ATmega2561, ATmega1281
+  "RESET",                      //   0: Reset (various reasons)
+  "INT0",                       //   1: External Interrupt 0
+  "INT1",                       //   2: External Interrupt 1
+  "INT2",                       //   3: External Interrupt 2
+  "INT3",                       //   4: External Interrupt 3
+  "INT4",                       //   5: External Interrupt 4
+  "INT5",                       //   6: External Interrupt 5
+  "INT6",                       //   7: External Interrupt 6
+  "INT7",                       //   8: External Interrupt 7
+  "PCINT0",                     //   9: Pin Change Interrupt 0
+  "PCINT1",                     //  10: Pin Change Interrupt 1
+  "PCINT2",                     //  11: Pin Change Interrupt 2
+  "WDT",                        //  12: Watchdog Time-out
+  "TIMER2_COMPA",               //  13: Timer 2 Compare Match A
+  "TIMER2_COMPB",               //  14: Timer 2 Compare Match B
+  "TIMER2_OVF",                 //  15: Timer 2 Overflow
+  "TIMER1_CAPT",                //  16: Timer 1 Capture Event
+  "TIMER1_COMPA",               //  17: Timer 1 Compare Match A
+  "TIMER1_COMPB",               //  18: Timer 1 Compare Match B
+  "TIMER1_COMPC",               //  19: Timer 1 Compare Match C
+  "TIMER1_OVF",                 //  20: Timer 1 Overflow
+  "TIMER0_COMPA",               //  21: Timer 0 Compare Match A
+  "TIMER0_COMPB",               //  22: Timer 0 Compare Match B
+  "TIMER0_OVF",                 //  23: Timer 0 Overflow
+  "SPI_STC",                    //  24: SPI Serial Transfer Complete
+  "USART0_RX",                  //  25: USART 0 Receive Complete
+  "USART0_UDRE",                //  26: USART 0 Data Register Empty
+  "USART0_TX",                  //  27: USART 0 Transmit Complete
+  "ANALOG_COMP",                //  28: Analog Comparator
+  "ADC",                        //  29: ADC Conversion Complete
+  "EE_READY",                   //  30: EEPROM Ready
+  "TIMER3_CAPT",                //  31: Timer 3 Capture Event
+  "TIMER3_COMPA",               //  32: Timer 3 Compare Match A
+  "TIMER3_COMPB",               //  33: Timer 3 Compare Match B
+  "TIMER3_COMPC",               //  34: Timer 3 Compare Match C
+  "TIMER3_OVF",                 //  35: Timer 3 Overflow
+  "USART1_RX",                  //  36: USART 1 Receive Complete
+  "USART1_UDRE",                //  37: USART 1 Data Register Empty
+  "USART1_TX",                  //  38: USART 1 Transmit Complete
+  "TWI",                        //  39: 2-Wire Interface
+  "SPM_READY",                  //  40: Store Program Memory Ready
+  "TIMER4_CAPT",                //  41: Timer 4 Capture Event
+  "TIMER4_COMPA",               //  42: Timer 4 Compare Match A
+  "TIMER4_COMPB",               //  43: Timer 4 Compare Match B
+  "TIMER4_COMPC",               //  44: Timer 4 Compare Match C
+  "TIMER4_OVF",                 //  45: Timer 4 Overflow
+  "TIMER5_CAPT",                //  46: Timer 5 Capture Event
+  "TIMER5_COMPA",               //  47: Timer 5 Compare Match A
+  "TIMER5_COMPB",               //  48: Timer 5 Compare Match B
+  "TIMER5_COMPC",               //  49: Timer 5 Compare Match C
+  "TIMER5_OVF",                 //  50: Timer 5 Overflow
+  "UNUSED",                     //  51: not useful owing to limited pin count
+  "UNUSED",                     //  52: not useful owing to limited pin count
+  "UNUSED",                     //  53: not useful owing to limited pin count
+  "UNUSED",                     //  54: not useful owing to limited pin count
+  "UNUSED",                     //  55: not useful owing to limited pin count
+  "UNUSED",                     //  56: not useful owing to limited pin count
 };
 
 const char * const vtab_atmega2564rfr2[vts_atmega2564rfr2] = { // ATmega2564RFR2, ATmega1284RFR2, ATmega644RFR2, ATmega256RFR2, ATmega128RFR2, ATmega64RFR2
@@ -1992,6 +2054,41 @@ const char * const vtab_at86rf401[vts_at86rf401] = { // AT86RF401
   "TXEMPTY",                    //   2: Transmit Register Empty
 };
 
+const char * const vtab_at90pwm1[vts_at90pwm1] = { // AT90PWM1
+  "RESET",                      //   0: Reset (various reasons)
+  "PSC2_CAPT",                  //   1: PSC 2 Capture Event
+  "PSC2_EC",                    //   2: PSC 2 End Cycle
+  "PSC1_CAPT",                  //   3: PSC 1 Capture Event
+  "PSC1_EC",                    //   4: PSC 1 End Cycle
+  "PSC0_CAPT",                  //   5: PSC 0 Capture Event
+  "PSC0_EC",                    //   6: PSC 0 End Cycle
+  "ANALOG_COMP_0",              //   7: Analog Comparator 0
+  "ANALOG_COMP_1",              //   8: Analog Comparator 1
+  "ANALOG_COMP_2",              //   9: Analog Comparator 2
+  "INT0",                       //  10: External Interrupt 0
+  "TIMER1_CAPT",                //  11: Timer 1 Capture Event
+  "TIMER1_COMPA",               //  12: Timer 1 Compare Match A
+  "TIMER1_COMPB",               //  13: Timer 1 Compare Match B
+  "RESERVED15",                 //  14: Reserved 15
+  "TIMER1_OVF",                 //  15: Timer 1 Overflow
+  "TIMER0_COMP_A",              //  16: Timer 0 Compare Match A
+  "TIMER0_OVF",                 //  17: Timer 0 Overflow
+  "ADC",                        //  18: ADC Conversion Complete
+  "INT1",                       //  19: External Interrupt 1
+  "SPI_STC",                    //  20: SPI Serial Transfer Complete
+  "RESERVED21",                 //  21: Reserved 21
+  "RESERVED22",                 //  22: Reserved 22
+  "RESERVED23",                 //  23: Reserved 23
+  "INT2",                       //  24: External Interrupt 2
+  "WDT",                        //  25: Watchdog Time-out
+  "EE_READY",                   //  26: EEPROM Ready
+  "TIMER0_COMPB",               //  27: Timer 0 Compare Match B
+  "INT3",                       //  28: External Interrupt 3
+  "RESERVED30",                 //  29: Reserved 30
+  "RESERVED31",                 //  30: Reserved 31
+  "SPM_READY",                  //  31: Store Program Memory Ready
+};
+
 const char * const vtab_at90pwm2[vts_at90pwm2] = { // AT90PWM2
   "RESET",                      //   0: Reset (various reasons)
   "PSC2_CAPT",                  //   1: PSC 2 Capture Event
@@ -2166,7 +2263,7 @@ const char * const vtab_at90pwm161[vts_at90pwm161] = { // AT90PWM161, AT90PWM81
   "SPM_READY",                  //  19: Store Program Memory Ready
 };
 
-const char * const vtab_at90pwm316[vts_at90pwm316] = { // AT90PWM316, AT90PWM216, AT90PWM1
+const char * const vtab_at90pwm316[vts_at90pwm316] = { // AT90PWM316, AT90PWM216
   "RESET",                      //   0: Reset (various reasons)
   "PSC2_CAPT",                  //   1: PSC 2 Capture Event
   "PSC2_EC",                    //   2: PSC 2 End Cycle
@@ -3539,9 +3636,9 @@ const char * const vtab_atxmega128d4[vts_atxmega128d4] = { // ATxmega128D4, ATxm
   "UNUSED",                     //  55: not implemented on this device
   "UNUSED",                     //  56: not implemented on this device
   "UNUSED",                     //  57: not implemented on this device
-  "USARTE0_RXC",                //  58: USARTE 0 Reception Complete
-  "USARTE0_DRE",                //  59: USARTE 0 Data Register Empty
-  "USARTE0_TXC",                //  60: USARTE 0 Transmission Complete
+  "UNUSED",                     //  58: not implemented on this device
+  "UNUSED",                     //  59: not implemented on this device
+  "UNUSED",                     //  60: not implemented on this device
   "UNUSED",                     //  61: not implemented on this device
   "UNUSED",                     //  62: not implemented on this device
   "UNUSED",                     //  63: not implemented on this device
@@ -4243,9 +4340,9 @@ const char * const vtab_atxmega384c3[vts_atxmega384c3] = { // ATxmega384C3
   "USARTC0_RXC",                //  25: USARTC 0 Reception Complete
   "USARTC0_DRE",                //  26: USARTC 0 Data Register Empty
   "USARTC0_TXC",                //  27: USARTC 0 Transmission Complete
-  "USARTC1_RXC",                //  28: USARTC 1 Reception Complete
-  "USARTC1_DRE",                //  29: USARTC 1 Data Register Empty
-  "USARTC1_TXC",                //  30: USARTC 1 Transmission Complete
+  "UNUSED",                     //  28: not implemented on this device
+  "UNUSED",                     //  29: not implemented on this device
+  "UNUSED",                     //  30: not implemented on this device
   "AES_INT",                    //  31: AES Interrupt
   "NVM_EE",                     //  32: NVM EEPROM
   "NVM_SPM",                    //  33: NVM SPM
