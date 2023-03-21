@@ -364,30 +364,37 @@ case $target in
 	i[[3456]]86-*-linux*|x86_64-*-linux*)
 		DEFAULT_PAR_PORT="/dev/parport0"
 		DEFAULT_SER_PORT="/dev/ttyS0"
+		DEFAULT_LINUXGPIO_PORT="gpiochip0"
 		;;
 	*-*-linux*)
 		DEFAULT_PAR_PORT="unknown"
 		DEFAULT_SER_PORT="/dev/ttyS0"
+		DEFAULT_LINUXGPIO_PORT="gpiochip0"
 		;;
 	i[[3456]]86-*-*freebsd*|amd64-*-*freebsd*)
 		DEFAULT_PAR_PORT="/dev/ppi0"
 		DEFAULT_SER_PORT="/dev/cuad0"
+		DEFAULT_LINUXGPIO_PORT="unknown"
 		;;
 	*-*-*freebsd*)
 		DEFAULT_PAR_PORT="unknown"
 		DEFAULT_SER_PORT="/dev/cuad0"
+		DEFAULT_LINUXGPIO_PORT="unknown"
 		;;
 	*-*-solaris*)
 		DEFAULT_PAR_PORT="/dev/printers/0"
 		DEFAULT_SER_PORT="/dev/term/a"
+		DEFAULT_LINUXGPIO_PORT="unknown"
 		;;
 	*-*-msdos* | *-*-mingw32* | *-*-cygwin* | *-*-windows*)
 		DEFAULT_PAR_PORT="lpt1"
 		DEFAULT_SER_PORT="com1"
+		DEFAULT_LINUXGPIO_PORT="unknown"
 		;;
 	*)
 		DEFAULT_PAR_PORT="unknown"
 		DEFAULT_SER_PORT="unknown"
+		DEFAULT_LINUXGPIO_PORT="unknown"
 		;;
 esac
 
@@ -413,6 +420,17 @@ else
 	confsubst="-e /^@HAVE_PARPORT_BEGIN@/,/^@HAVE_PARPORT_END@/d"
 fi
 
+
+if test "$enabled_linuxgpio" = "yes"; then
+	AC_MSG_CHECKING([for default linuxgpio port])
+	if test "$DEFAULT_LINUXGPIO_PORT" = "unknown"; then
+		AC_MSG_NOTICE([linuxgpio port access disabled for this system])
+		enabled_linuxgpio=no
+	else
+		AC_MSG_RESULT([$DEFAULT_LINUXGPIO_PORT])
+	fi
+	AC_SUBST(DEFAULT_LINUXGPIO_PORT, $DEFAULT_LINUXGPIO_PORT)
+fi
 
 if test "$enabled_linuxgpio" = "yes"; then
 	AC_DEFINE(HAVE_LINUXGPIO, 1, [Linux sysfs GPIO support enabled])

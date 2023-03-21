@@ -722,7 +722,8 @@ typedef enum {
   CONNTYPE_PARALLEL,
   CONNTYPE_SERIAL,
   CONNTYPE_USB,
-  CONNTYPE_SPI
+  CONNTYPE_SPI,
+  CONNTYPE_LINUXGPIO
 } conntype_t;
 
 /*
@@ -1112,6 +1113,7 @@ extern const char *default_parallel;
 extern const char *default_serial;
 extern const char *default_spi;
 extern double       default_bitclock;
+extern char const * default_linuxgpio;
 
 /* This name is fixed, it's only here for symmetry with
  * default_parallel and default_serial. */

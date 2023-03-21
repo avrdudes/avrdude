@@ -540,6 +540,7 @@ int main(int argc, char * argv [])
   default_serial     = "";
   default_spi        = "";
   default_bitclock   = 0.0;
+  default_linuxgpio  = "";
 
   init_config();
 
@@ -1087,6 +1088,11 @@ int main(int argc, char * argv [])
         port = cfg_strdup("main()", *default_spi? default_spi: "unknown");
 #endif
         break;
+
+      case CONNTYPE_LINUXGPIO:
+        port = cfg_strdup("main()", default_linuxgpio);
+        break;
+
     }
   }
 

@@ -81,6 +81,7 @@ static int pin_name;
 %token K_DEFAULT_PROGRAMMER
 %token K_DEFAULT_SERIAL
 %token K_DEFAULT_SPI
+%token K_DEFAULT_LINUXGPIO
 %token K_HVUPDI_SUPPORT
 %token K_DEVICECODE
 %token K_EEPROM
@@ -88,6 +89,7 @@ static int pin_name;
 %token K_FLASH
 %token K_ID
 %token K_IO
+%token K_LINUXGPIO
 %token K_LOADPAGE
 %token K_SDI
 %token K_SDO
@@ -227,6 +229,11 @@ def :
 
   K_DEFAULT_BITCLOCK TKN_EQUAL number_real TKN_SEMI {
     default_bitclock = $3->value.number_real;
+    free_token($3);
+  } |
+
+  K_DEFAULT_LINUXGPIO TKN_EQUAL TKN_STRING TKN_SEMI {
+    default_linuxgpio = cache_string($3->value.string);
     free_token($3);
   }
 ;
@@ -450,6 +457,7 @@ prog_parm_conntype:
 ;
 
 prog_parm_conntype_id:
+  K_LINUXGPIO       { current_prog->conntype = CONNTYPE_LINUXGPIO; } |
   K_PARALLEL        { current_prog->conntype = CONNTYPE_PARALLEL; } |
   K_SERIAL          { current_prog->conntype = CONNTYPE_SERIAL; } |
   K_USB             { current_prog->conntype = CONNTYPE_USB; } |
