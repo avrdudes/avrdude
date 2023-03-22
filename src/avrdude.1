@@ -848,7 +848,12 @@ so previously entered command lines can be recalled and edited.
 .Pp
 The <addr> and <len> parameters of the read, write and erase commands can be
 negative with the same syntax as substring() computations in perl or python.
-The table below details their meaning with respect to a memory of size=0x800:
+The table below details their meaning with respect to a memory of size=0x800.
+Note that
+.Ar pos
+means positive, and
+.Ar neg
+means negative in the table below:
 .Pp
 .nf
 addr      len   Memory interval     Comment
