@@ -411,6 +411,7 @@ default_parallel   = "@DEFAULT_PAR_PORT@";
 default_serial     = "@DEFAULT_SER_PORT@";
 default_spi        = "@DEFAULT_SPI_PORT@";
 # default_bitclock = 2.5;
+default_linuxgpio  = "@DEFAULT_LINUXGPIO_PORT@";
 
 @HAVE_PARPORT_BEGIN@
 
@@ -691,7 +692,7 @@ programmer
 
 @HAVE_LINUXGPIO_BEGIN@
 
-# This programmer bitbangs GPIO lines using the Linux sysfs GPIO interface
+# This programmer bitbangs GPIO lines using the Linux libgpiod or sysfs GPIO interface
 #
 # To enable it set the configuration below to match the GPIO lines connected
 # to the relevant ISP header pins and uncomment the entry definition. In case
@@ -714,11 +715,28 @@ programmer
 #     desc                 = "Use the Linux sysfs interface to bitbang GPIO lines";
 #     type                 = "linuxgpio";
 #     prog_modes           = PM_ISP;
+#     connection_type      = linuxgpio;
 #     reset                = ?;
 #     sck                  = ?;
 #     sdo                  = ?;
 #     sdi                  = ?;
 # ;
+
+#------------------------------------------------------------
+# Program from a Raspberry Pi GPIO port using linuxgpio
+#------------------------------------------------------------
+
+programmer
+    id                     = "raspberry_pi_gpio";
+    desc                   = "Bitbang Raspberry Pi GPIO via linuxgpio (sysfs or libgpiod)";
+    type                   = "linuxgpio";
+    prog_modes             = PM_ISP;
+    connection_type        = linuxgpio;
+    reset                  = 22;
+    sck                    = 24;
+    sdo                    = 23;
+    sdi                    = 18;
+;
 @HAVE_LINUXGPIO_END@
 
 @HAVE_LINUXSPI_BEGIN@
@@ -1169,7 +1187,7 @@ programmer
     id                     = "avrispv2";
     desc                   = "Atmel AVR ISP v2";
     type                   = "stk500v2";
-    prog_modes             = PM_TPI | PM_ISP | PM_PDI;
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
 ;
 
@@ -3070,7 +3088,84 @@ part
 ;
 
 #------------------------------------------------------------
-# AT90s1200
+# AT89S51
+#------------------------------------------------------------
+
+# Nonstandard part
+#   - Tested with -c avrisp
+#   - USBASP programmers may require different firmware
+
+part
+    desc                   = "AT89S51";
+    id                     = "89S51";
+    prog_modes             = PM_ISP | PM_HVPP;
+    mcuid                  = 372;
+    stk500_devcode         = 0xe0;
+    chip_erase_delay       = 250000;
+    signature              = 0x1e 0x51 0x06;
+    timeout                = 200;
+    stabdelay              = 100;
+    cmdexedelay            = 25;
+    synchloops             = 32;
+    pollindex              = 4;
+    pollvalue              = 0x69;
+    predelay               = 1;
+    postdelay              = 1;
+    chiperasepulsewidth    = 15;
+    programfusepulsewidth  = 2;
+    programlockpolltimeout = 1;
+    chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
+    pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
+
+    memory "flash"
+        size               = 4096;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        readback           = 0xff 0xff;
+        mode               = 0x02;
+        delay              = 10;
+        blocksize          = 256;
+        read               = "0010.0000--xxxa.aaaa--aaaa.aaaa--oooo.oooo";
+        write              = "0100.0000--xxxa.aaaa--aaaa.aaaa--iiii.iiii";
+        # Nonstandard page mode is available but not implemented
+    ;
+
+    memory "lock"
+        size               = 1;
+        read               = "0010.0100--xxxx.xxxx--xxxx.xxxx--xxxo.ooxx";
+        # Nonstandard write: expect verification errors
+        # See datasheet Page 20, Note 1 https://ww1.microchip.com/downloads/en/DeviceDoc/doc2487.pdf
+        # Activate lock mode 0 through chip erase: avrdude -e
+        # Activate lock mode 1: avrdude -e -V -U lock:w:1:m
+        # Activate lock mode 2: avrdude -e -V -U lock:w:1:m -U lock:w:2:m
+        # Activate lock mode 3: avrdude -e -V -U lock:w:1:m -U lock:w:2:m -U lock:w:3:m
+        write              = "1010.1100--1110.00ii--xxxx.xxxx--xxxx.xxxx";
+    ;
+
+    memory "signature"
+        size               = 3;
+        read               = "0 0 1 0 1 0 0 0  x x x x x x a1 a0  x x x x x x x 0  o o o o o o o o";
+    ;
+;
+
+#------------------------------------------------------------
+# AT89S52
+#------------------------------------------------------------
+
+part parent "89S51"
+    desc                   = "AT89S52";
+    id                     = "89S52";
+    mcuid                  = 373;
+    stk500_devcode         = 0xe1;
+    signature              = 0x1e 0x52 0x06;
+
+    memory "flash"
+        size               = 8192;
+    ;
+;
+
+#------------------------------------------------------------
+# AT90S1200
 #------------------------------------------------------------
 
 part
@@ -3152,7 +3247,7 @@ part
 ;
 
 #------------------------------------------------------------
-# AT90s4414
+# AT90S4414
 #------------------------------------------------------------
 
 part
@@ -3232,7 +3327,7 @@ part
 ;
 
 #------------------------------------------------------------
-# AT90s2313
+# AT90S2313
 #------------------------------------------------------------
 
 part
@@ -3312,7 +3407,7 @@ part
 ;
 
 #------------------------------------------------------------
-# AT90s2333
+# AT90S2333
 #------------------------------------------------------------
 
 part
@@ -3399,7 +3494,7 @@ part
 ;
 
 #------------------------------------------------------------
-# AT90s2343 (also AT90s2323 and ATtiny22)
+# AT90S2343 (also AT90S2323 and ATtiny22)
 #------------------------------------------------------------
 
 part
@@ -3489,93 +3584,60 @@ part
 ;
 
 #------------------------------------------------------------
-# AT90s4433
+# AT90S2323
 #------------------------------------------------------------
 
-part
+part parent "2343"
+    desc                   = "AT90S2323";
+    id                     = "2323";
+    mcuid                  = 187;
+    stk500_devcode         = 0x41;
+    avr910_devcode         = 0x48;
+    signature              = 0x1e 0x91 0x02;
+;
+
+#------------------------------------------------------------
+# ATtiny22
+#------------------------------------------------------------
+
+part parent "2343"
+    desc                   = "ATtiny22";
+    id                     = "t22";
+    mcuid                  = 13;
+    stk500_devcode         = 0x20;
+    avr910_devcode         = 0; # Unknown
+    signature              = 0x1e 0x91 0x06;
+;
+
+#------------------------------------------------------------
+# AT90S4433
+#------------------------------------------------------------
+
+part parent "2333"
     desc                   = "AT90S4433";
     id                     = "4433";
-    prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
     mcuid                  = 191;
-    n_interrupts           = 14;
     stk500_devcode         = 0x51;
     avr910_devcode         = 0x30;
-    chip_erase_delay       = 20000;
     signature              = 0x1e 0x92 0x03;
-    timeout                = 200;
-    stabdelay              = 100;
-    cmdexedelay            = 25;
-    synchloops             = 32;
-    pollindex              = 3;
-    pollvalue              = 0x53;
-    predelay               = 1;
-    postdelay              = 1;
-    pp_controlstack        =
-        0x0e, 0x1e, 0x0f, 0x1f, 0x2e, 0x3e, 0x2f, 0x3f,
-        0x4e, 0x5e, 0x4f, 0x5f, 0x6e, 0x7e, 0x6f, 0x7f,
-        0x66, 0x76, 0x67, 0x77, 0x6a, 0x7a, 0x6b, 0x7b,
-        0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
-    hventerstabdelay       = 100;
-    hvleavestabdelay       = 15;
-    chiperasepulsewidth    = 15;
-    programfusepulsewidth  = 2;
-    programlockpolltimeout = 1;
-    chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
-    pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
     memory "eeprom"
         size               = 256;
-        min_write_delay    = 9000;
-        max_write_delay    = 20000;
-        readback           = 0x00 0xff;
-        mode               = 0x04;
-        delay              = 12;
-        blocksize          = 128;
-        readsize           = 256;
         read               = "1010.0000--xxxx.xxxx--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--xxxx.xxxx--aaaa.aaaa--iiii.iiii";
     ;
 
     memory "flash"
         size               = 4096;
-        min_write_delay    = 9000;
-        max_write_delay    = 20000;
-        readback           = 0xff 0xff;
-        mode               = 0x04;
-        delay              = 12;
-        blocksize          = 128;
-        readsize           = 256;
         read_lo            = "0010.0000--xxxx.xaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--xxxx.xaaa--aaaa.aaaa--oooo.oooo";
         write_lo           = "0100.0000--xxxx.xaaa--aaaa.aaaa--iiii.iiii";
         write_hi           = "0100.1000--xxxx.xaaa--aaaa.aaaa--iiii.iiii";
     ;
-
-    memory "fuse"
-        size               = 1;
-        min_write_delay    = 9000;
-        max_write_delay    = 20000;
-        pwroff_after_write = yes;
-        read               = "0101.0000--xxxx.xxxx--xxxx.xxxx--xxoo.oooo";
-        write              = "1010.1100--101i.iiii--xxxx.xxxx--xxxx.xxxx";
-    ;
-
-    memory "lock"
-        size               = 1;
-        min_write_delay    = 9000;
-        max_write_delay    = 20000;
-        read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--xxxx.xoox";
-        write              = "1010.1100--1111.1ii1--xxxx.xxxx--xxxx.xxxx";
-    ;
-
-    memory "signature"
-        size               = 3;
-        read               = "0011.0000--xxxx.xxxx--xxxx.xxaa--oooo.oooo";
-    ;
 ;
 
 #------------------------------------------------------------
-# AT90s4434
+# AT90S4434
 #------------------------------------------------------------
 
 part
@@ -3635,7 +3697,7 @@ part
 ;
 
 #------------------------------------------------------------
-# AT90s8515
+# AT90S8515
 #------------------------------------------------------------
 
 part
@@ -3716,7 +3778,7 @@ part
 ;
 
 #------------------------------------------------------------
-# AT90s8535
+# AT90S8535
 #------------------------------------------------------------
 
 part

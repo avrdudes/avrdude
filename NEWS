@@ -9,9 +9,16 @@ Changes since version 7.1:
 
   * Major changes compared to the previous version:
 
+    - libgpiod support for linuxgpio #1299
+
   * New devices supported:
 
+    - AT89S51, AT89S52
+    - AT90S2323, ATtiny22
+
   * New programmers supported:
+
+    - raspberry_pi_gpio
 
   * Issues fixed:
 
@@ -25,6 +32,13 @@ Changes since version 7.1:
       #1006
     - CMake version not checked properly in Ubuntu 18.04 #1300
     - Pin limit too low for LePotato RPi clone #1307
+    - Port Linux sysfs GPIO feature to libgpiod #831
+    - Allow direct reset connection #1262
+    - AT89S51 and AT89S52 support for avrdude #1304
+    - Using serialupdi gives mismached help message #1311
+    - jtag2updi -U EEPROM write fails for AVR Dx parts #1128
+    - Usbtiny initialization never resets the part #1321
+
 
   * Pull requests:
 
@@ -41,6 +55,15 @@ Changes since version 7.1:
     - build.sh: For compatibility with old CMake versions, use old
       syntax to generate build system #1301
     - Extend max pin number to 1000 #1308
+    - Add optional libgpiod support to linuxgpio #1299
+    - Auto-reset via RTS for direct RTS-reset connection #1309
+    - Support AT89S51, AT89S52, AT90S2323 and ATtiny22 #1310
+    - Remove PM_PDI flag for avrispv2 programmer #1314
+    - Make terminal write address optional for 1-byte memories #1315
+    - Print meaningful error message when using the serialupdi and
+      bitbanged UART ISP programmers #1317
+    - Support -U UPDI EEPROM write #1318
+    - Fix return value in usbtiny_cmd() and wrong error msg #1323
 
   * Internals:
 

@@ -835,6 +835,7 @@ void dev_output_pgm_part(int dev_opt_c, const char *programmer, int dev_opt_p, c
     dev_info("default_parallel   = %s;\n", p = cfg_escape(default_parallel)); free(p);
     dev_info("default_serial     = %s;\n", p = cfg_escape(default_serial)); free(p);
     dev_info("default_spi        = %s;\n", p = cfg_escape(default_spi)); free(p);
+    dev_info("default_linuxgpio  = %s;\n", p = cfg_escape(default_linuxgpio)); free(p);
 
     dev_info("\n#\n# PROGRAMMER DEFINITIONS\n#\n\n");
   }
@@ -1099,7 +1100,7 @@ void dev_output_part_defs(char *partdesc) {
       if(descs) {
         int len = 16-strlen(p->desc);
         dev_info("%s '%s' =>%*s [0x%02X, 0x%02X, 0x%02X, 0x%08x, 0x%05x, 0x%03x, 0x%06x, 0x%04x, 0x%03x, %d, 0x%03x, 0x%04x, '%s'], # %s %d\n",
-          tsv || all? ".desc": " ",
+          tsv || all? ".desc": "   ",
           p->desc, len > 0? len: 0, "",
           p->signature[0], p->signature[1], p->signature[2],
           flashoffset, flashsize, flashpagesize,
@@ -1203,6 +1204,7 @@ static void dev_pgm_raw(const PROGRAMMER *pgm) {
 
 static const char *connstr(conntype_t conntype) {
   switch(conntype) {
+  case CONNTYPE_LINUXGPIO: return "linuxgpio";
   case CONNTYPE_PARALLEL: return "parallel";
   case CONNTYPE_SERIAL: return "serial";
   case CONNTYPE_USB: return "usb";

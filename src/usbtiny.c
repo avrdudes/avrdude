@@ -529,8 +529,8 @@ static int usbtiny_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
   msg_notice2("CMD: [%02x %02x %02x %02x] [%02x %02x %02x %02x]\n",
 	    cmd[0], cmd[1], cmd[2], cmd[3],
 	    res[0], res[1], res[2], res[3] );
-  return ((nbytes == 4) &&      // should have read 4 bytes
-	  res[2] == cmd[1]);              // AVR's do a delayed-echo thing
+
+  return nbytes == 4 && res[2] == cmd[1]? LIBAVRDUDE_SUCCESS: LIBAVRDUDE_GENERAL_FAILURE;
 }
 
 int usbtiny_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
@@ -600,9 +600,8 @@ static int usbtiny_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   // get the command for erasing this chip and transmit to avrdude
-  if (! usbtiny_avr_op( pgm, p, AVR_OP_CHIP_ERASE, res )) {
+  if (usbtiny_avr_op(pgm, p, AVR_OP_CHIP_ERASE, res) < 0)
     return -1;
-  }
 
   if(pgm->prog_modes & PM_SPM) { // Talking to bootloader directly
     AVRMEM *fl = avr_locate_mem(p, "flash");
@@ -622,6 +621,10 @@ static void usbtiny_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void usbtiny_disable(const PROGRAMMER *pgm) {
+}
+
+
+static void usbtiny_display(const PROGRAMMER *pgm, const char *p) {
 }
 
 
@@ -774,6 +777,7 @@ void usbtiny_initpgm(PROGRAMMER *pgm) {
 
   /* Mandatory Functions */
   pgm->initialize	= usbtiny_initialize;
+  pgm->display		= usbtiny_display;
   pgm->enable	        = usbtiny_enable;
   pgm->disable	        = usbtiny_disable;
   pgm->program_enable	= usbtiny_program_enable;

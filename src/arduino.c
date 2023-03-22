@@ -85,13 +85,22 @@ static int arduino_open(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 
-  /* Clear DTR and RTS to unload the RESET capacitor 
-   * (for example in Arduino) */
+  // This code assumes a negative-logic USB to TTL serial adapter
+  // Set RTS/DTR high to discharge the series-capacitor, if present
   serial_set_dtr_rts(&pgm->fd, 0);
-  usleep(250*1000);
-  /* Set DTR and RTS back to high */
+  /*
+   * Long wait needed for optiboot: otherwise the second of two bootloader
+   * calls in quick succession fails:
+   *
+   * avrdude -c arduino -qqp m328p -U x.hex; avrdude -c arduino -qqp m328p -U x.hex
+   */
+  usleep(250 * 1000);
+  // Pull the RTS/DTR line low to reset AVR
   serial_set_dtr_rts(&pgm->fd, 1);
-  usleep(50*1000);
+  usleep(50 * 1000);
+  // Set the RTS/DTR line back to high
+  serial_set_dtr_rts(&pgm->fd, 0);
+  usleep(50 * 1000);
 
   /*
    * drain any extraneous input
@@ -106,7 +115,6 @@ static int arduino_open(PROGRAMMER *pgm, const char *port) {
 
 static void arduino_close(PROGRAMMER * pgm)
 {
-  serial_set_dtr_rts(&pgm->fd, 0);
   serial_close(&pgm->fd);
   pgm->fd.ifd = -1;
 }

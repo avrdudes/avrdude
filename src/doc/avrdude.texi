@@ -1694,11 +1694,12 @@ eight bytes as it is the same as @code{0xFFFFffffFFFFffffU}.
 One trailing comma at the end of data items is ignored to facilitate copy
 and paste of lists.
 
-@code{addr} may be ommitted if the size of the memory being written to is
-exactly one byte in size, for instance a fuse.
+@item write @var{memtype} @var{addr} @var{data}
+The start address @code{addr} may be omitted if the size of the memory
+being written to is 1 byte in size.
 
-@item write @var{memtype} @var{addr} @var{len} @var{data[,]} @{@var{data[,]}@} @dots{}
-The ellipses form @dots{} of write is similar to above, but @var{len}
+@item write @var{memtype} @var{addr} @var{length} @var{data[,]} @{@var{data[,]}@} @dots{}
+The ellipsis form @dots{} of write is similar to above, but @var{length}
 byte of the memory are written. For that purpose, after writing the
 initial items, the last @var{data} item is replicated as many times as
 needed.
@@ -2021,6 +2022,11 @@ Assign the default parallel port device.  Can be overridden using the
 @item default_serial = "@var{default-serial-device}";
 Assign the default serial port device.  Can be overridden using the
 @option{-P} option.
+
+@item default_linuxgpio = "@var{default-linuxgpio-device}";
+Assign the default gpiochip for linuxgpio's libgpiod mode,
+e.g. "gpiochip0".  Ignored for linuxgpio's sysfs mode.  Can be overridden
+using the @option{-P} option.
 
 @item default_programmer = "@var{default-programmer-id}";
 Assign the default programmer id.  Can be overridden using the @option{-c}
