@@ -1834,137 +1834,173 @@ Display part parameters, modify eeprom cells, perform a chip erase:
 
 @smallexample
 @cartouche
-% avrdude -p m128 -c stk500 -t
+% avrdude -c usbasp -p atmega328p -t
 
 avrdude: AVR device initialized and ready to accept instructions
-avrdude: Device signature = 0x1e9702
+avrdude: device signature = 0x1e950f (probably m328p)
 avrdude> part
->>> part 
 
-AVR Part              : ATMEGA128
-Chip Erase delay      : 9000 us
-PAGEL                 : PD7
-BS2                   : PA0
-RESET disposition     : dedicated
-RETRY pulse           : SCK
-serial program mode   : yes
-parallel program mode : yes
-Memory Detail         :
+AVR Part                      : ATmega328P
+Chip Erase delay              : 9000 us
+PAGEL                         : PD7
+BS2                           : PC2
+RESET disposition             : possible i/o
+RETRY pulse                   : SCK
+Serial program mode           : yes
+Parallel program mode         : yes
+Timeout                       : 200
+StabDelay                     : 100
+CmdexeDelay                   : 25
+SyncLoops                     : 32
+PollIndex                     : 3
+PollValue                     : 0x53
+Memory Detail                 :
 
-                            Page                       Polled
-  Memory Type Paged  Size   Size #Pages MinW  MaxW   ReadBack
-  ----------- ------ ------ ---- ------ ----- ----- ---------
-  eeprom      no       4096    8     0  9000  9000 0xff 0xff
-  flash       yes    131072  256   512  4500  9000 0xff 0x00
-  lfuse       no          1    0     0     0     0 0x00 0x00
-  hfuse       no          1    0     0     0     0 0x00 0x00
-  efuse       no          1    0     0     0     0 0x00 0x00
-  lock        no          1    0     0     0     0 0x00 0x00
-  calibration no          1    0     0     0     0 0x00 0x00
-  signature   no          3    0     0     0     0 0x00 0x00
+                                  Block Poll               Page                       Polled
+  Memory Type Alias    Mode Delay Size  Indx Paged  Size   Size #Pages MinW  MaxW   ReadBack
+  ----------- -------- ---- ----- ----- ---- ------ ------ ---- ------ ----- ----- ---------
+  eeprom                 65    20     4    0 no       1024    4      0  3600  3600 0x00 0x00
+  flash                  65    10   128    0 yes     32768  128    256  4500  4500 0x00 0x00
+  lfuse                   0     0     0    0 no          1    1      0  4500  4500 0x00 0x00
+  hfuse                   0     0     0    0 no          1    1      0  4500  4500 0x00 0x00
+  efuse                   0     0     0    0 no          1    1      0  4500  4500 0x00 0x00
+  lock                    0     0     0    0 no          1    1      0  4500  4500 0x00 0x00
+  signature               0     0     0    0 no          3    1      0     0     0 0x00 0x00
+  calibration             0     0     0    0 no          1    1      0     0     0 0x00 0x00
 
 avrdude> dump eeprom 0 16
->>> dump eeprom 0 16 
+
+Reading | ################################################## | 100% 0.01 s
+
 0000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
 
-avrdude> write eeprom 0 1 2 3 4
->>> write eeprom 0 1 2 3 4 
+
+avrdude> write eeprom 0 1 2 3 4 0xcafe "Avrdude"
+
+Caching | ################################################## | 100% 0.00 s
+
 
 avrdude> dump eeprom 0 16
->>> dump eeprom 0 16 
-0000  01 02 03 04 ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+
+Reading | ################################################## | 100% 0.00 s
+
+0000  01 02 03 04 fe ca 41 76  72 64 75 64 65 00 ff ff  |......Avrdude...|
+
+avrdude> flush
+avrdude: synching cache to device ...
+Writing | ################################################## | 100% 0.36 s
 
 avrdude> erase
->>> erase 
-avrdude: erasing chip
+erasing chip ...
+
 avrdude> dump eeprom 0 16
->>> dump eeprom 0 16 
+
+Reading | ################################################## | 100% 0.00 s
+
 0000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
 
-avrdude> 
+avrdude> quit
 @end cartouche
 @end smallexample
 
 
 @noindent
-Program the fuse bits of an ATmega128 (disable M103 compatibility,
-enable high speed external crystal, enable brown-out detection, slowly
-rising power).  Note since we are working with fuse bits the -u (unsafe)
-option is specified, which allows you to modify the fuse bits. First 
-display the factory defaults, then reprogram:
+Program the fuse bits of an ATmega328P (enable high speed external crystal,
+enable brown-out detection). First display the factory defaults, then reprogram:
 
 @smallexample
 @cartouche
-% avrdude -p m128 -u -c stk500 -t
+% avrdude -c usbasp -p atmega328p -t
 
 avrdude: AVR device initialized and ready to accept instructions
-avrdude: Device signature = 0x1e9702
-avrdude> d efuse
->>> d efuse 
-0000  fd                                                |.               |
+avrdude: device signature = 0x1e950f (probably m328p)
+avrdude> dump efuse
 
-avrdude> d hfuse
->>> d hfuse 
-0000  99                                                |.               |
+Reading | ################################################## | 100% 0.00 s
 
-avrdude> d lfuse
->>> d lfuse 
-0000  e1                                                |.               |
+0000  ff                                                |.               |
 
-avrdude> w efuse 0 0xff
->>> w efuse 0 0xff 
+avrdude> dump hfuse
 
-avrdude> w hfuse 0 0x89
->>> w hfuse 0 0x89 
+Reading | ################################################## | 100% 0.00 s
 
-avrdude> w lfuse 0 0x2f
->>> w lfuse 0 0x2f 
+0000  d9                                                |.               |
 
-avrdude> 
+avrdude> dump lfuse
+
+Reading | ################################################## | 100% 0.00 s
+
+0000  62                                                |b               |
+
+avrdude> write efuse 0xfd
+
+Writing | ################################################## | 100% 0.01 s
+
+avrdude> write hfuse 0xde
+
+Writing | ################################################## | 100% 0.01 s
+
+avrdude> write lfuse 0xf7
+
+Writing | ################################################## | 100% 0.01 s
+
+avrdude> quit
 @end cartouche
 @end smallexample
 
+The following example demonstrates negative address and length bytes, and the
+second form of the @code{write} command where the last data value provided
+is used to fill up the indicated memory range.
+
 @smallexample
 @cartouche
-% avrdude -c pkobn_updi -p avr128db48 -t
-
-         Vtarget                      : 4.71 V
-         PDI/UPDI clock Xmega/megaAVR : 100 kHz
+% avrdude -c usbasp -p atmega328p -t
 
 avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e950f (probably m328p)
+avrdude> dump flash -64 -33
 
-Reading | ################################################## | 100% 0.01s
+Reading | ################################################## | 100% 0.02 s
 
-avrdude: Device signature = 0x1e970c (probably avr128db48)
-avrdude> write eeprom 0 1234567890 'A' 'V' 'R' 2.718282 "Hello World!"
->>> write eeprom 0 1234567890 'A' 'V' 'R' 2.718282 "Hello World!"
-Warning: no size suffix specified for "1234567890". Writing 4 byte(s)
-Info: Writing 24 bytes starting from address 0x00
+7fc0  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+7fd0  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
 
-avrdude> dump eeprom 0 32
->>> dump eeprom 0 32 
+avrdude> dump flash -32 -1
 
-0000  d2 02 96 49 41 56 52 55  f8 2d 40 48 65 6c 6c 6f  |...IAVRU.-@@Hello|
-0010  20 57 6f 72 6c 64 21 00  ff ff ff ff ff ff ff ff  | World!.........|
+Reading | ################################################## | 100% 0.00 s
 
-avrdude> q
-@end cartouche
-@end smallexample
+7fe0  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+7ff0  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
 
-The following example demonstrates the second form of the @code{write}
-command where the last data value provided is used to fill up the
-indicated memory range.
+avrdude> write flash -64 1234567890 'A' 'V' 'R' 2.718282 0xaa 0xbb 0xcc "Hello World!"
 
-@smallexample
-@cartouche
-avrdude> write eeprom 0x00 0x20 'a' 'b' 'c' 0x11 0xcafe 0x55 ...
->>> write eeprom 0x00 0x20 'a' 'b' 'c' 0x11 0xcafe 0x55 ... 
+Caching | ################################################## | 100% 0.00 s
 
-avrdude> dump eeprom 0 0x30
->>> dump eeprom 0 0x30 
-0000  61 62 63 11 fe ca 55 55  55 55 55 55 55 55 55 55  |abc...UUUUUUUUUU|
-0010  55 55 55 55 55 55 55 55  55 55 55 55 55 55 55 55  |UUUUUUUUUUUUUUUU|
-0020  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+avrdude> write flash -32 -1 0x01 0x02 0x03 0x04 0x05 ...
+
+Caching | ################################################## | 100% 0.00 s
+
+avrdude> read flash -64 -33
+
+Reading | ################################################## | 100% 0.00 s
+
+7fc0  d2 02 96 49 41 56 52 55  f8 2d 40 aa bb cc 48 65  |...IAVRU.-@@...He|
+7fd0  6c 6c 6f 20 57 6f 72 6c  64 21 00 ff ff ff ff ff  |llo World!......|
+
+avrdude> read flash -32 -1
+
+Reading | ################################################## | 100% 0.00 s
+
+7fe0  01 02 03 04 05 05 05 05  05 05 05 05 05 05 05 05  |................|
+7ff0  05 05 05 05 05 05 05 05  05 05 05 05 05 05 05 05  |................|
+
+avrdude> flush
+avrdude: synching cache to device ...
+Writing | ################################################## | 100% 0.05 s
+
+avrdude> quit
+
+avrdude done.  Thank you.
 @end cartouche
 @end smallexample
 
