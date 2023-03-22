@@ -722,10 +722,9 @@ programmer
 #     sdi                  = ?;
 # ;
 
-# #------------------------------------------------------------
-# # Program from a Raspberry Pi GPIO port using linuxgpio
-# #------------------------------------------------------------
-#
+#------------------------------------------------------------
+# Program from a Raspberry Pi GPIO port using linuxgpio
+#------------------------------------------------------------
 
 programmer
     id                     = "raspberry_pi_gpio";
