@@ -1501,30 +1501,108 @@ commands can be recalled and edited.
 @cindex Terminal Mode
 @section Terminal Mode Commands
 
+The @var{addr} and @var{len} parameters of the read, write, and erase commands
+can be negative with the same syntax as substring() computations in
+perl or python. The table below details their meaning with respect to a
+memory of size=0x800:
+
+@multitable @columnfractions .16 .10 .35 .48
+@item @strong{@code{addr}}
+@tab @strong{@code{len}}
+@tab @strong{Memory interval}
+@tab @strong{Comment}
+
+@item @var{zero or positive}
+@tab @var{positive}
+@tab @code{[addr, addr+len-1]}
+@tab Conventional use, note @code{len = end-start + 1}
+
+@item @var{zero or positive}
+@tab @var{negative}
+@tab @code{[addr, size+len]}
+@tab End address is @code{|len|} bytes below memory size
+
+@item @var{negative}
+@tab @var{positive}
+@tab @code{[size+addr, size+addr+len-1]}
+@tab Start address is @code{|addr|} bytes below memory size
+
+@item @var{negative}
+@tab @var{negative}
+@tab @code{[size+addr, size+len]}
+@tab Combining above two cases
+
+@item @var{any}
+@tab @var{zero}
+@tab empty set
+@tab No action
+
+@item 0x700
+@tab 12
+@tab @code{[0x700, 0x711]}
+@tab Example
+
+@item 1024
+@tab -257
+@tab @code{[0x400, 0x6ff]}
+@tab Here, size of memory is @code{2048} or @code{0x800}
+
+@item -512
+@tab 512
+@tab @code{[0x600, 0x7ff]}
+@tab Last 512 bytes
+
+@item -512
+@tab -512
+@tab @code{[0x600, 0x600]}
+@tab One byte located at 512 bytes below memory size
+
+@item -256
+@tab -1
+@tab @code{[0x700, 0x7ff]}
+@tab Last 256 bytes
+
+@item 0
+@tab 49
+@tab @code{[0, 48]}
+@tab First 49 bytes
+
+@item 0
+@tab -49
+@tab @code{[0, 1999]}
+@tab All but the last @code{48 = |len+1|} bytes
+
+@item 0
+@tab -1
+@tab @code{[0, 0x7ff]}
+@tab All memory without knowing its size
+
+@end multitable
+
 @noindent
 The following commands are implemented for all programmers:
 
 @table @code
 
-@item dump @var{memtype} @var{addr} @var{nbytes}
-Read @var{nbytes} from the specified memory area, and display them in
+@item dump @var{memtype} @var{addr} @var{len}
+Read @var{len} from the specified memory area, and display them in
 the usual hexadecimal and ASCII form.
 
-@item dump @var{memtype} @var{addr} @dots{}
+@item dump @var{memtype} @var{addr} -1
 Start reading from @var{addr}, all the way to the last memory address.
 
 @item dump @var{memtype} @var{addr}
 Read 256 bytes from the specified memory area, and display them.
 
-@item dump @var{memtype} @dots{}
+@item dump @var{memtype} -1
 Read all bytes from the specified memory, and display them.
 
 @item dump @var{memtype}
 Continue dumping the memory contents for another @var{nbytes} where the
 previous dump command left off.
 
-@item read
-Can be used as an alias for dump.
+@item read, d, r
+Each of these can be used as an alias for dump.
 
 @item write @var{memtype} @var{addr} @var{data[,]} @{@var{data[,]}@}
 Manually program the respective memory cells, starting at address
@@ -1616,11 +1694,24 @@ eight bytes as it is the same as @code{0xFFFFffffFFFFffffU}.
 One trailing comma at the end of data items is ignored to facilitate copy
 and paste of lists.
 
-@item write @var{memtype} @var{addr} @var{length} @var{data[,]} @{@var{data[,]}@} @dots{}
-The ellipses form @dots{} of write is similar to above, but @var{length}
+@code{addr} may be ommitted if the size of the memory being written to is
+exactly one byte in size, for instance a fuse.
+
+@item write @var{memtype} @var{addr} @var{len} @var{data[,]} @{@var{data[,]}@} @dots{}
+The ellipses form @dots{} of write is similar to above, but @var{len}
 byte of the memory are written. For that purpose, after writing the
 initial items, the last @var{data} item is replicated as many times as
 needed.
+
+@item erase
+Perform a chip erase and discard all pending writes to EEPROM and flash.
+Note that EEPROM will be preserved if the EESAVE fuse bit is set.
+
+@item erase memory
+Erase the entire specified memory.
+
+@item erase memory addr len
+Erase a section of the specified memory.
 
 @item flush
 Synchronise with the device all pending cached writes to EEPROM or flash.
@@ -1638,9 +1729,6 @@ Normally, caches are only ever actually written to the device when using
 @code{flush}, at the end of the terminal session after typing @code{quit},
 or after EOF on input is encountered. The @code{abort} command resets the
 cache discarding all previous writes to the flash and EEPROM cache.
-
-@item erase
-Perform a chip erase and discard all pending writes to EEPROM and flash.
 
 @item sig
 Display the device signature bytes.

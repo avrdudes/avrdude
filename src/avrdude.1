@@ -844,21 +844,40 @@ commands on standard input.  Commands and parameters may be
 abbreviated to the shortest unambiguous form.  Terminal mode provides
 a command history using
 .Xr readline 3 ,
-so previously entered command lines can be recalled and edited.  The
-following commands are currently implemented for all programmers:
+so previously entered command lines can be recalled and edited.
+.Pp
+The <addr> and <len> parameters of the read, write and erase commands can be
+negative with the same syntax as substring() computations in perl or python.
+The table below details their meaning with respect to a memory of size=0x800:
+.Pp
+.nf
+addr      len   Memory interval     Comment
+--------------------------------------------------------------------------
+0 or pos  pos   [addr, addr+len-1]  Conventional use, len = end-start+1
+0 or pos  neg   [addr, size+len]    End addr |len| bytes below memory size
+0x700     12    [0x700, 0x711]      Example
+1024      -257  [0x400, 0x6ff]      Here, size of memory is 2048 or 0x800
+-512      512   [0x600, 0x7ff]      Last 512 bytes
+-256      -1    [0x700, 0x7ff]      Last 256 bytes
+0         49    [0, 48]             First 49 bytes
+0         -1    [0, 0x7ff]          Entire memory without knowing its size
+.fi
+.Pp
 .Bl -tag -offset indent -width indent
-.It Ar dump  memory addr len
+.It Ar dump memory addr len
 Read
 .Ar len
 bytes from the specified memory area, and display them in the usual
 hexadecimal and ASCII form.
-.It Ar dump memory addr ...
+.It Ar dump memory addr -1
 Read all bytes from the specified memory starting at address
-.Ar addr,
+.Ar addr Ns ,
 and display them.
 .It Ar dump memory addr
-Read 256 bytes from the specified memory area, and display them.
-.It Ar dump memory ...
+Read
+.Ar 256
+bytes from the specified memory area, and display them.
+.It Ar dump memory -1
 Read all bytes from the specified memory, and display them.
 .It Ar dump memory
 Continue dumping the memory contents for another
@@ -866,8 +885,8 @@ Continue dumping the memory contents for another
 bytes where the previous
 .Ar dump
 command left off.
-.It Ar read
-can be used as an alias for dump
+.It Ar read Ns , Ar d Ns , Ar r
+Each of these can be used as an alias for dump.
 .It Ar write memory addr data[,] {data[,]}
 Manually program the respective memory cells, starting at address
 .Ar addr ,
@@ -910,10 +929,23 @@ needs eight bytes as it is the same as 0xFFFFffffFFFFffffU.
 One trailing comma at the end of
 .Ar data
 items is ignored to facilitate copy & paste of lists.
+.Pp
+.Ar addr
+may be ommitted if the size of the memory being written to is exactly one
+byte in size, for instance a fuse.
 .It Ar write memory addr len data[,] {data[,]} ...
 The ellipsis ... form writes <len> bytes padded by repeating the last
 .Ar data
 item.
+.It Ar w
+can be used as an alias for write.
+.It Ar erase
+Perform a chip erase and discard all pending writes to EEPROM and flash.
+Note that EEPROM will be preserved if the EESAVE fuse bit is set.
+.It Ar erase memory
+Erase the entire specified memory.
+.It Ar erase memory addr len
+Erase a section of the specified memory.
 .It Ar flush
 Synchronise with the device all pending cached writes to EEPROM or flash.
 With some programmer and part combinations, flash (and sometimes EEPROM,
@@ -932,8 +964,6 @@ command, at the end of the terminal session after typing
 .Ar quit ,
 or after EOF on input is encountered. The abort command resets
 the cache discarding all previous writes to the flash and EEPROM cache.
-.It Ar erase
-Perform a chip erase and discard all pending writes to EEPROM and flash.
 .It Ar sig
 Display the device signature bytes.
 .It Ar part
