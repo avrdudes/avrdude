@@ -1508,7 +1508,7 @@ command history using readline(3), so previously entered command lines can be
 recalled and edited.
 
 The @var{addr} and @var{len} parameters of the read, write, and erase
-commands can be negative with the same syntax as substring() computations in
+commands can be negative with the same syntax as substring computations in
 perl or python. The table below details their meaning with respect to an
 example memory of size @code{sz=0x800}.
 
@@ -1586,21 +1586,22 @@ The following commands are implemented for all programmers:
 @table @code
 
 @item dump @var{memtype} @var{addr} @var{len}
-Read @var{len} from the specified memory area, and display them in
-the usual hexadecimal and ASCII form.
-
-@item dump @var{memtype} @var{addr} -1
-Start reading from @var{addr}, all the way to the last memory address.
+Read from the specified memory interval (see above), and display in the usual hexadecimal and
+ASCII form.
 
 @item dump @var{memtype} @var{addr}
-Read 256 bytes from the specified memory area, and display them.
-
-@item dump @var{memtype} -1
-Read all bytes from the specified memory, and display them.
+Read from memory addr as many bytes as the most recent dump memory addr len command with this
+very memory had specified (default 256 bytes), and display them.
 
 @item dump @var{memtype}
-Continue dumping the memory contents for another @var{nbytes} where the
-previous dump command left off.
+Continue dumping from the memory and location where the most recent dump command left off; if no
+previous dump command has addressed a memory an error message will be shown.
+
+@item dump @var{memtype} @var{addr} @dots{}
+Start reading from @var{addr}, all the way to the last memory address (deprecated: use @code{dump @var{memtype} @var{addr} -1}).
+
+@item dump @var{memtype} @dots{}
+Read all bytes from the specified memory, and display them (deprecated: use @code{dump @var{memtype} 0 -1}).
 
 @item read, d, r
 Each of these can be used as an alias for dump.
@@ -1699,11 +1700,11 @@ and paste of lists.
 The start address @code{addr} may be omitted if the size of the memory
 being written to is 1 byte in size.
 
-@item write @var{memtype} @var{addr} @var{length} @var{data[,]} @{@var{data[,]}@} @dots{}
-The ellipsis form @dots{} of write is similar to above, but @var{length}
-byte of the memory are written. For that purpose, after writing the
-initial items, the last @var{data} item is replicated as many times as
-needed.
+@item write @var{memtype} @var{addr} @var{len} @var{data[,]} @{@var{data[,]}@} @dots{}
+The ellipsis @dots{} form writes the data to the entire memory intervall
+addressed by @var{addr len} and, if necessary, pads the remaining space by
+repeating the last data item. The fill write command does not write beyond
+the specified memory area even if more data than needed were given.
 
 @item erase
 Perform a chip erase and discard all pending writes to EEPROM and flash.

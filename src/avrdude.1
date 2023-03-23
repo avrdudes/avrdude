@@ -846,8 +846,12 @@ a command history using
 .Xr readline 3 ,
 so previously entered command lines can be recalled and edited.
 .Pp
-The <addr> and <len> parameters of the read, write and erase commands can be
-negative with the same syntax as substring() computations in perl or python.
+The 
+.Ar addr
+and
+.Ar len
+parameters of the read, write and erase commands can be
+negative with the same syntax as substring computations in perl or python.
 The table below details their meaning with respect to an example memory of size
 sz=0x800.
 .Pp
@@ -869,28 +873,31 @@ addr    len  Memory interval     Comment
     0    -1  [0, 0x7ff]          All memory without knowing its size
 .fi
 .Pp
+The following commands are implemented for all programmers:
 .Bl -tag -offset indent -width indent
 .It Ar dump memory addr len
-Read
-.Ar len
-bytes from the specified memory area, and display them in the usual
+Read from the specified memory interval (see above), and display in the usual
 hexadecimal and ASCII form.
-.It Ar dump memory addr -1
+.It Ar dump memory addr
+Read from
+.Ar memory addr
+as many bytes as the most recent 
+.Ar dump memory addr len command
+with this very memory had specified (default 256 bytes), and display them.
+.It Ar dump memory
+Continue dumping the contents from the same memory where the previous
+.Ar dump memory
+command left off.
+.It Ar dump
+Continue dumping from the memory and location where the most recent
+.Ar dump
+command left off; if no previous dump command has addressed a memory an error message will be shown.
+.It Ar dump memory addr ...
 Read all bytes from the specified memory starting at address
 .Ar addr Ns ,
-and display them.
-.It Ar dump memory addr
-Read
-.Ar 256
-bytes from the specified memory area, and display them.
-.It Ar dump memory -1
-Read all bytes from the specified memory, and display them.
-.It Ar dump memory
-Continue dumping the memory contents for another
-.Ar 256
-bytes where the previous
-.Ar dump
-command left off.
+and display them (deprecated: use dump memory addr -1).
+.It Ar dump memory ...
+Read all bytes from the specified memory, and display them (deprecated: use dump memory 0 -1).
 .It Ar read Ns , Ar d Ns , Ar r
 Each of these can be used as an alias for dump.
 .It Ar write memory addr data[,] {data[,]}
@@ -941,9 +948,12 @@ The start address
 may be omitted if the size of the memory being written to is
 1 byte in size.
 .It Ar write memory addr len data[,] {data[,]} ...
-The ellipsis ... form writes <len> bytes padded by repeating the last
+The ellipsis ... form writes the data to the entire memory intervall addressed by
+.Ar addr len
+and, if necessary, pads the remaining space by repeating the last
 .Ar data
-item.
+item. The fill write command does not write beyond the specified memory area
+even if more data than needed were given.
 .It Ar w
 can be used as an alias for write.
 .It Ar erase
