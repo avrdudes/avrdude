@@ -848,24 +848,25 @@ so previously entered command lines can be recalled and edited.
 .Pp
 The <addr> and <len> parameters of the read, write and erase commands can be
 negative with the same syntax as substring() computations in perl or python.
-The table below details their meaning with respect to a memory of size=0x800.
-Note that
-.Ar pos
-means positive, and
-.Ar neg
-means negative in the table below:
+The table below details their meaning with respect to an example memory of size
+sz=0x800.
 .Pp
 .nf
-addr      len   Memory interval     Comment
---------------------------------------------------------------------------
-0 or pos  pos   [addr, addr+len-1]  Conventional use, len = end-start+1
-0 or pos  neg   [addr, size+len]    End addr |len| bytes below memory size
-0x700     12    [0x700, 0x711]      Example
-1024      -257  [0x400, 0x6ff]      Here, size of memory is 2048 or 0x800
--512      512   [0x600, 0x7ff]      Last 512 bytes
--256      -1    [0x700, 0x7ff]      Last 256 bytes
-0         49    [0, 48]             First 49 bytes
-0         -1    [0, 0x7ff]          Entire memory without knowing its size
+addr    len  Memory interval     Comment
+------------------------------------------------------------------------
+0/pos   pos  [addr, addr+len-1]  Note: len = end-start+1
+0/pos   neg  [addr, sz+len]      End is |len| bytes below memory size sz
+  neg   pos  [sz+addr,           Start is |addr| bytes below memory size
+                 sz+addr+len-1]
+  neg   neg  [sz+addr, sz+len]   Combining above two cases
+  any     0  empty set           No action
+0x700    12  [0x700, 0x70b]      Conventional use
+ 1024  -257  [0x400, 0x6ff]      Size of memory is 2048 or 0x800
+ -512   512  [0x600, 0x7ff]      Last 512 bytes
+ -256    -1  [0x700, 0x7ff]      Last 256 bytes
+    0    49  [0, 48]             First 49 bytes
+    0   -49  [0, 1999]           All but the last 48 = |len+1| bytes
+    0    -1  [0, 0x7ff]          All memory without knowing its size
 .fi
 .Pp
 .Bl -tag -offset indent -width indent

@@ -1501,79 +1501,80 @@ commands can be recalled and edited.
 @cindex Terminal Mode
 @section Terminal Mode Commands
 
-The @var{addr} and @var{len} parameters of the read, write, and erase commands
-can be negative with the same syntax as substring() computations in
-perl or python. The table below details their meaning with respect to a
-memory of size=0x800:
+In this mode, AVRDUDE only initializes communication with the MCU, and then
+awaits user commands on standard input.  Commands and parameters may be
+abbreviated to the shortest unambiguous form.  Terminal mode provides a
+command history using readline(3), so previously entered command lines can be
+recalled and edited.
 
-@multitable @columnfractions .16 .10 .35 .48
-@item @strong{@code{addr}}
-@tab @strong{@code{len}}
-@tab @strong{Memory interval}
-@tab @strong{Comment}
+The @var{addr} and @var{len} parameters of the read, write, and erase
+commands can be negative with the same syntax as substring() computations in
+perl or python. The table below details their meaning with respect to an
+example memory of size @code{sz=0x800}.
 
-@item @var{zero or positive}
-@tab @var{positive}
-@tab @code{[addr, addr+len-1]}
-@tab Conventional use, note @code{len = end-start + 1}
+@multitable {0/negativ}{negativ}{@code{[addr, addr+len-1]}}{End is @code{|len|} bytes below memory size @code{sz}}
+@headitem @code{addr}
+@tab @code{len}
+@tab Memory interval
+@tab Comment
 
-@item @var{zero or positive}
-@tab @var{negative}
-@tab @code{[addr, size+len]}
-@tab End address is @code{|len|} bytes below memory size
+@item 0/positive
+@tab  positive
+@tab  @code{[addr, addr+len-1]}
+@tab  Note: @code{len = end-start + 1}
 
-@item @var{negative}
-@tab @var{positive}
-@tab @code{[size+addr, size+addr+len-1]}
-@tab Start address is @code{|addr|} bytes below memory size
+@item 0/positive
+@tab  negative
+@tab  @code{[addr, sz+len]}
+@tab  End is @code{|len|} bytes below memory size @code{sz}
 
-@item @var{negative}
-@tab @var{negative}
-@tab @code{[size+addr, size+len]}
-@tab Combining above two cases
+@item negative
+@tab  positive
+@tab  @code{[sz+addr, @dots{}]}
+@tab  Start is @code{|addr|} bytes below memory size
 
-@item @var{any}
-@tab @var{zero}
-@tab empty set
-@tab No action
+@item negative
+@tab  negative
+@tab  @code{[sz+addr, sz+len]}
+@tab  Combining above two cases
 
-@item 0x700
-@tab 12
-@tab @code{[0x700, 0x711]}
-@tab Example
+@item any
+@tab  zero
+@tab  empty set
+@tab  No action
 
-@item 1024
-@tab -257
+@item @verb{|0x700|}
+@tab  @verb{|   12|}
+@tab @code{[0x700, 0x70b]}
+@tab Conventional use
+
+@item @verb{| 1024|}
+@tab  @verb{| -257|}
 @tab @code{[0x400, 0x6ff]}
-@tab Here, size of memory is @code{2048} or @code{0x800}
+@tab Size of memory is @code{2048} or @code{0x800}
 
-@item -512
-@tab 512
+@item @verb{| -512|}
+@tab  @verb{|  512|}
 @tab @code{[0x600, 0x7ff]}
 @tab Last 512 bytes
 
-@item -512
-@tab -512
-@tab @code{[0x600, 0x600]}
-@tab One byte located at 512 bytes below memory size
-
-@item -256
-@tab -1
+@item @verb{| -256|}
+@tab  @verb{|   -1|}
 @tab @code{[0x700, 0x7ff]}
 @tab Last 256 bytes
 
-@item 0
-@tab 49
+@item @verb{|    0|}
+@tab  @verb{|   49|}
 @tab @code{[0, 48]}
 @tab First 49 bytes
 
-@item 0
-@tab -49
+@item @verb{|    0|}
+@tab  @verb{|  -49|}
 @tab @code{[0, 1999]}
 @tab All but the last @code{48 = |len+1|} bytes
 
-@item 0
-@tab -1
+@item @verb{|    0|}
+@tab  @verb{|   -1|}
 @tab @code{[0, 0x7ff]}
 @tab All memory without knowing its size
 
