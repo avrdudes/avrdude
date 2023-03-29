@@ -476,6 +476,13 @@ can use the 'default_bitclock' keyword in your
 configuration file to assign a default value to keep from having to
 specify this option on every invocation.
 
+Note that some official Microchip programmers stores the bitclock setting and
+will continue to use it until a different value is provided. This applies to
+"2nd gen" programmers (AVRISPmkII, AVR Dragon, JTAG ICE mkII, STK600) and
+"3rd gen"programmers (JTAGICE3, Atmel ICE, Power Debugger). "4th gen"
+programmers (PICkit 4, MPLAB SNAP) will store the last user-specified bitclock
+until it's disconnected from the computer.
+
 @item -c @var{programmer-id}
 Specify the programmer to be used.  AVRDUDE knows about several common
 programmers.  Use this option to specify which one to use.  The
