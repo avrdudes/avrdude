@@ -1726,21 +1726,13 @@ multiplies by 1E6, a trailing letter @code{k} by 1E3.
 Turn the programming oscillator off.
 
 @item sck @var{period}
-@emph{STK500 and STK600 only:}
 Set the SCK clock period to @var{period} microseconds.
-@emph{JTAG ICE only:}
-Set the JTAG ICE bit clock period to @var{period} microseconds.
-Note that unlike STK500 settings, this setting will be reverted to
-its default value (approximately 1 microsecond) when the programming
-software signs off from the JTAG ICE.
-This parameter can also be used on the JTAG ICE mkII/3 to specify the
-ISP clock period when operating the ICE in ISP mode.
+Note that some official Microchip programmers stores the bitclock setting and
+will continue to use it until a diferent value is provided. See
+@code{-B bitclock} for more information.
 
 @item parms
-@emph{STK500 and STK600 only:}
-Display the current voltage and programming oscillator parameters.
-@emph{JTAG ICE only:}
-Display the current target supply voltage and JTAG bit clock rate/period.
+Display programmer specific parameters.
 
 @end table
 

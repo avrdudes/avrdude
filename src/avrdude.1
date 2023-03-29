@@ -1026,26 +1026,15 @@ by 1E3.
 Turn the programming oscillator off.
 .Em Supported on the STK500 and STK600 programmer.
 .It Ar sck period
-.Em STK500 and STK600 programmer:
 Set the SCK clock period to
 .Ar period
-microseconds.
-.Em JTAG ICE:
-Set the JTAG ICE bit clock period to
-.Ar period
-microseconds.
-Note that unlike STK500 settings, this setting will be reverted to
-its default value (approximately 1 microsecond) when the programming
-software signs off from the JTAG ICE.
-This parameter can also be used on the JTAG ICE mkII, JTAGICE3, and Atmel-ICE to specify the
-ISP clock period when operating the ICE in ISP mode.
+microseconds. Note that some official Microchip programmers stores the
+bitclock setting and will continue to use it until a diferent value is
+provided. See
+.Em -B bitclock
+for more information.
 .It Ar parms
-.Em STK500 and STK600 programmer:
-Display the current voltage and programming oscillator parameters.
-.Em JTAG ICE:
-Display the current target supply voltage and JTAG bit clock rate/period.
-.Em Other programmers:
-Display the programmer specific parameters.
+Display programmer specific parameters.
 .El
 .Ss Default Parallel port pin connections
 (these can be changed, see the
