@@ -3,13 +3,13 @@
  *
  * avrintel.c
  *
- * Microchip AVR8L, AVR8, XMEGA and AVR8X family description of interrupts and more
+ * Microchip AVR8L, AVR8, XMEGA and AVR8X family description of interrupts, configurations and more
  *
  * Published under GNU General Public License, version 3 (GPL-3.0)
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
- * v 1.1
- * 04.03.2023
+ * v 1.3
+ * 31.03.2023
  *
  */
 
@@ -42,7 +42,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"ATtiny13",          10,  F_AVR8, {0x1E, 0x90, 0x07},       0, 0x00400, 0x020,  0,      0,       0, 0x0040,  4, 0x0060, 0x0040,  2,  1,  10,  vtab_attiny13a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny13A",         11,  F_AVR8, {0x1E, 0x90, 0x07},       0, 0x00400, 0x020,  0,      0,       0, 0x0040,  4, 0x0060, 0x0040,  2,  1,  10,  vtab_attiny13a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny15",          12,  F_AVR8, {0x1E, 0x90, 0x06},       0, 0x00400, 0x001,  0,      0,       0, 0x0040,  2, 0x0060, 0x0020,  1,  1,   9,   vtab_attiny15}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny22",          13,  F_AVR8, {0x1E, 0x91, 0x06},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"ATtiny22",          13,  F_AVR8, {0x1E, 0x91, 0x06},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // xml, avr-gcc 12.2.0, avrdude, boot size (manual)
   {"ATtiny24",          14,  F_AVR8, {0x1E, 0x91, 0x0B},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  3,  1,  17,  vtab_attiny84a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny24A",         15,  F_AVR8, {0x1E, 0x91, 0x0B},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  3,  1,  17,  vtab_attiny84a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATtiny25",          16,  F_AVR8, {0x1E, 0x91, 0x08},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  3,  1,  15,   vtab_attiny85}, // atdf, avr-gcc 12.2.0, avrdude
@@ -84,7 +84,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"ATmega16HVB",       52,  F_AVR8, {0x1E, 0x94, 0x0D},       0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400,  2,  1,  29, vtab_atmega32hvbrevb}, // atdf, avr-gcc 12.2.0
   {"ATmega16HVBrevB",   53,  F_AVR8, {0x1E, 0x94, 0x0D},       0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400,  2,  1,  29, vtab_atmega32hvbrevb}, // atdf, avr-gcc 12.2.0
   {"ATmega16M1",        54,  F_AVR8, {0x1E, 0x94, 0x84},       0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  31, vtab_atmega64m1}, // atdf, avr-gcc 12.2.0
-  {"ATmega16HVA2",      55,  F_AVR8, {0x1E, 0x94, 0x0E},       0, 0x04000, 0x080, -1,     -1,      -1,     -1, -1, 0x0100, 0x0400,  2,  1,  22, vtab_atmega16hva2}, // avr-gcc 12.2.0
+  {"ATmega16HVA2",      55,  F_AVR8, {0x1E, 0x94, 0x0E},       0, 0x04000, 0x080, -1,     -1,      -1,     -1, -1, 0x0100, 0x0400,  2,  1,  22, vtab_atmega16hva2}, // xml, avr-gcc 12.2.0
   {"ATmega16U2",        56,  F_AVR8, {0x1E, 0x94, 0x89},       0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  29, vtab_atmega32u2}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega16U4",        57,  F_AVR8, {0x1E, 0x94, 0x88},       0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0500,  3,  1,  43, vtab_atmega32u4}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega32",          58,  F_AVR8, {0x1E, 0x95, 0x02},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0060, 0x0800,  2,  1,  21,  vtab_atmega323}, // atdf, avr-gcc 12.2.0, avrdude
@@ -95,7 +95,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"ATmega32M1",        63,  F_AVR8, {0x1E, 0x95, 0x84},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  31, vtab_atmega64m1}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega32U2",        64,  F_AVR8, {0x1E, 0x95, 0x8A},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0400,  3,  1,  29, vtab_atmega32u2}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega32U4",        65,  F_AVR8, {0x1E, 0x95, 0x87},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0a00,  3,  1,  43, vtab_atmega32u4}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega32U6",        66,  F_AVR8, {0x1E, 0x95, 0x88},       0, 0x08000, 0x080,  4, 0x0200,      -1,     -1, -1, 0x0100, 0x0a00,  3,  1,  38, vtab_atmega32u6}, // avr-gcc 12.2.0, boot size (manual)
+  {"ATmega32U6",        66,  F_AVR8, {0x1E, 0x95, 0x88},       0, 0x08000, 0x080,  4, 0x0200,      -1,     -1, -1, 0x0100, 0x0a00,  3,  1,  38, vtab_atmega32u6}, // xml, avr-gcc 12.2.0, boot size (manual)
   {"ATmega48",          67,  F_AVR8, {0x1E, 0x92, 0x05},       0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega48A",         68,  F_AVR8, {0x1E, 0x92, 0x05},       0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega48P",         69,  F_AVR8, {0x1E, 0x92, 0x0A},       0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
@@ -103,7 +103,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"ATmega48PB",        71,  F_AVR8, {0x1E, 0x92, 0x10},       0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200,  3,  1,  27, vtab_atmega168pb}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega64",          72,  F_AVR8, {0x1E, 0x96, 0x02},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  35, vtab_atmega128a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega64A",         73,  F_AVR8, {0x1E, 0x96, 0x02},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  35, vtab_atmega128a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega64HVE",       74,  F_AVR8, {0x1E, 0x96, 0x10},       0, 0x10000, 0x080,  4, 0x0400,      -1,     -1, -1, 0x0100, 0x1000,  2,  1,  25, vtab_atmega64hve2}, // avr-gcc 12.2.0, boot size (manual)
+  {"ATmega64HVE",       74,  F_AVR8, {0x1E, 0x96, 0x10},       0, 0x10000, 0x080,  4, 0x0400,      -1,     -1, -1, 0x0100, 0x1000,  2,  1,  25, vtab_atmega64hve2}, // xml, avr-gcc 12.2.0, boot size (manual)
   {"ATmega64C1",        75,  F_AVR8, {0x1E, 0x96, 0x86},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  31, vtab_atmega64m1}, // atdf, avr-gcc 12.2.0
   {"ATmega64M1",        76,  F_AVR8, {0x1E, 0x96, 0x84},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  31, vtab_atmega64m1}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega64HVE2",      77,  F_AVR8, {0x1E, 0x96, 0x10},       0, 0x10000, 0x080,  4, 0x0400,       0, 0x0400,  4, 0x0100, 0x1000,  2,  1,  25, vtab_atmega64hve2}, // atdf, avr-gcc 12.2.0
@@ -113,18 +113,20 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"ATmega88P",         81,  F_AVR8, {0x1E, 0x93, 0x0F},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega88PA",        82,  F_AVR8, {0x1E, 0x93, 0x0F},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega88PB",        83,  F_AVR8, {0x1E, 0x93, 0x16},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  27, vtab_atmega168pb}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega103",         84,  F_AVR8, {0x1E, 0x97, 0x01},       0, 0x20000, 0x100,  0,      0,       0, 0x1000,  1, 0x0060, 0x0fa0,  1,  1,  24,  vtab_atmega103}, // avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"ATmega103",         84,  F_AVR8, {0x1E, 0x97, 0x01},       0, 0x20000, 0x100,  0,      0,       0, 0x1000,  1, 0x0060, 0x0fa0,  1,  1,  24,  vtab_atmega103}, // xml, avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"ATmega103comp",    374,  F_AVR8, {0x1E, 0x97, 0x01},      -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, -1, -1,   0,            NULL}, // xml
   {"ATmega128",         85,  F_AVR8, {0x1E, 0x97, 0x02},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x1000,  3,  1,  35, vtab_atmega128a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega128A",        86,  F_AVR8, {0x1E, 0x97, 0x02},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x1000,  3,  1,  35, vtab_atmega128a}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega128RFA1",     87,  F_AVR8, {0x1E, 0xA7, 0x01},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x4000,  3,  1,  72, vtab_atmega128rfa1}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega128RFR2",     88,  F_AVR8, {0x1E, 0xA7, 0x02},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x4000,  3,  1,  77, vtab_atmega2564rfr2}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega161",         89,  F_AVR8, {0x1E, 0x94, 0x01},       0, 0x04000, 0x080,  1, 0x0400,       0, 0x0200,  1, 0x0060, 0x0400,  1,  1,  21,  vtab_atmega161}, // avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"ATmega161",         89,  F_AVR8, {0x1E, 0x94, 0x01},       0, 0x04000, 0x080,  1, 0x0400,       0, 0x0200,  1, 0x0060, 0x0400,  1,  1,  21,  vtab_atmega161}, // xml, avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"ATmega161comp",    375,  F_AVR8, {0x1E, 0x94, 0x01},      -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, -1, -1,   0,            NULL}, // xml
   {"ATmega162",         90,  F_AVR8, {0x1E, 0x94, 0x04},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  28,  vtab_atmega162}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega163",         91,  F_AVR8, {0x1E, 0x94, 0x02},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  1, 0x0060, 0x0400,  2,  1,  18,  vtab_atmega163}, // avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"ATmega163",         91,  F_AVR8, {0x1E, 0x94, 0x02},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  1, 0x0060, 0x0400,  2,  1,  18,  vtab_atmega163}, // xml, avr-gcc 12.2.0, avrdude, boot size (manual)
   {"ATmega164A",        92,  F_AVR8, {0x1E, 0x94, 0x0F},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  31, vtab_atmega644pa}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega164P",        93,  F_AVR8, {0x1E, 0x94, 0x0A},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  31, vtab_atmega644pa}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega164PA",       94,  F_AVR8, {0x1E, 0x94, 0x0A},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  31, vtab_atmega644pa}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega165",         95,  F_AVR8, {0x1E, 0x94, 0x10},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  22, vtab_atmega645p}, // avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"ATmega165",         95,  F_AVR8, {0x1E, 0x94, 0x07},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  22, vtab_atmega645p}, // xml, avr-gcc 12.2.0, avrdude, boot size (manual)
   {"ATmega165A",        96,  F_AVR8, {0x1E, 0x94, 0x10},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  22, vtab_atmega645p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega165P",        97,  F_AVR8, {0x1E, 0x94, 0x07},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  22, vtab_atmega645p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega165PA",       98,  F_AVR8, {0x1E, 0x94, 0x07},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  22, vtab_atmega645p}, // atdf, avr-gcc 12.2.0, avrdude
@@ -133,12 +135,12 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"ATmega168P",       101,  F_AVR8, {0x1E, 0x94, 0x0B},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega168PA",      102,  F_AVR8, {0x1E, 0x94, 0x0B},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega168PB",      103,  F_AVR8, {0x1E, 0x94, 0x15},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  27, vtab_atmega168pb}, // atdf, avr-gcc 7.3.0, avrdude
-  {"ATmega169",        104,  F_AVR8, {0x1E, 0x94, 0x05},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  23, vtab_atmega649p}, // avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"ATmega169",        104,  F_AVR8, {0x1E, 0x94, 0x05},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  23, vtab_atmega649p}, // xml, avr-gcc 12.2.0, avrdude, boot size (manual)
   {"ATmega169A",       105,  F_AVR8, {0x1E, 0x94, 0x11},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  23, vtab_atmega649p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega169P",       106,  F_AVR8, {0x1E, 0x94, 0x05},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  23, vtab_atmega649p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega169PA",      107,  F_AVR8, {0x1E, 0x94, 0x05},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  23, vtab_atmega649p}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega256RFR2",    108,  F_AVR8, {0x1E, 0xA8, 0x02},       0, 0x40000, 0x100,  4, 0x0400,       0, 0x2000,  8, 0x0200, 0x8000,  3,  1,  77, vtab_atmega2564rfr2}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega323",        109,  F_AVR8, {0x1E, 0x95, 0x01},       0, 0x08000, 0x080,  4, 0x0200,      -1,     -1, -1, 0x0060, 0x0800,  2,  1,  21,  vtab_atmega323}, // avr-gcc 12.2.0, boot size (manual)
+  {"ATmega323",        109,  F_AVR8, {0x1E, 0x95, 0x01},       0, 0x08000, 0x080,  4, 0x0200,      -1,     -1, -1, 0x0060, 0x0800,  2,  1,  21,  vtab_atmega323}, // xml, avr-gcc 12.2.0, boot size (manual)
   {"ATmega324A",       110,  F_AVR8, {0x1E, 0x95, 0x15},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  31, vtab_atmega644pa}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega324P",       111,  F_AVR8, {0x1E, 0x95, 0x08},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  31, vtab_atmega644pa}, // atdf, avr-gcc 12.2.0, avrdude
   {"ATmega324PA",      112,  F_AVR8, {0x1E, 0x95, 0x11},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  31, vtab_atmega644pa}, // atdf, avr-gcc 12.2.0, avrdude
@@ -198,7 +200,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"AT89S51",          372,  F_AVR8, {0x1E, 0x51, 0x06},       0, 0x01000, 0x001, -1,     -1,       0,      0,  0,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
   {"AT89S52",          373,  F_AVR8, {0x1E, 0x52, 0x06},       0, 0x02000, 0x001, -1,     -1,       0,      0,  0,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
   {"AT90PWM1",         166,  F_AVR8, {0x1E, 0x93, 0x83},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,   vtab_at90pwm1}, // atdf, avr-gcc 12.2.0
-  {"AT90PWM2",         167,  F_AVR8, {0x1E, 0x93, 0x81},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,   vtab_at90pwm2}, // avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"AT90PWM2",         167,  F_AVR8, {0x1E, 0x93, 0x81},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,   vtab_at90pwm2}, // xml, avr-gcc 12.2.0, avrdude, boot size (manual)
   {"AT90PWM2B",        168,  F_AVR8, {0x1E, 0x93, 0x83},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,  vtab_at90pwm3b}, // atdf, avr-gcc 12.2.0, avrdude
   {"AT90PWM3",         169,  F_AVR8, {0x1E, 0x93, 0x81},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,  vtab_at90pwm3b}, // atdf, avr-gcc 12.2.0, avrdude
   {"AT90PWM3B",        170,  F_AVR8, {0x1E, 0x93, 0x83},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,  vtab_at90pwm3b}, // atdf, avr-gcc 12.2.0, avrdude
@@ -207,6 +209,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"AT90PWM81",        173,  F_AVR8, {0x1E, 0x93, 0x88},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0100,  3,  1,  20, vtab_at90pwm161}, // atdf, avr-gcc 12.2.0
   {"AT90USB82",        174,  F_AVR8, {0x1E, 0x93, 0x82},       0, 0x02000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  29, vtab_atmega32u2}, // atdf, avr-gcc 12.2.0, avrdude
   {"AT90SCR100",       175,  F_AVR8, {0x1E, 0x96, 0xC1},       0, 0x10000, 0x100,  4, 0x0200,      -1,     -1, -1, 0x0100, 0x1000,  3,  1,  38, vtab_at90scr100}, // avr-gcc 12.2.0, boot size (manual)
+  {"AT90SCR100H",      376,  F_AVR8, {0x1E, 0x96, 0xC1},      -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, -1, -1,   0,            NULL}, // xml
   {"AT90CAN128",       176,  F_AVR8, {0x1E, 0x97, 0x81},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x1000,  3,  1,  37, vtab_at90can128}, // atdf, avr-gcc 12.2.0, avrdude
   {"AT90PWM161",       177,  F_AVR8, {0x1E, 0x94, 0x8B},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  20, vtab_at90pwm161}, // atdf, avr-gcc 12.2.0
   {"AT90USB162",       178,  F_AVR8, {0x1E, 0x94, 0x82},       0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  29, vtab_atmega32u2}, // atdf, avr-gcc 12.2.0, avrdude
@@ -214,19 +217,21 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"AT90PWM316",       180,  F_AVR8, {0x1E, 0x94, 0x83},       0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  32, vtab_at90pwm316}, // atdf, avr-gcc 12.2.0, avrdude
   {"AT90USB646",       181,  F_AVR8, {0x1E, 0x96, 0x82},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  38, vtab_atmega32u6}, // atdf, avr-gcc 12.2.0, avrdude
   {"AT90USB647",       182,  F_AVR8, {0x1E, 0x96, 0x82},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  38, vtab_atmega32u6}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT90S1200",        183,  F_AVR8, {0x1E, 0x90, 0x01},       0, 0x00400, 0x001,  0,      0,       0, 0x0040,  1, 0x0060, 0x0020,  1,  1,   4,  vtab_at90s1200}, // avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"AT90S1200",        183,  F_AVR8, {0x1E, 0x90, 0x01},       0, 0x00400, 0x001,  0,      0,       0, 0x0040,  1, 0x0060, 0x0020,  1,  1,   4,  vtab_at90s1200}, // xml, avr-gcc 12.2.0, avrdude, boot size (manual)
   {"AT90USB1286",      184,  F_AVR8, {0x1E, 0x97, 0x82},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x2000,  3,  1,  38, vtab_atmega32u6}, // atdf, avr-gcc 12.2.0, avrdude
   {"AT90USB1287",      185,  F_AVR8, {0x1E, 0x97, 0x82},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x2000,  3,  1,  38, vtab_atmega32u6}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT90S2313",        186,  F_AVR8, {0x1E, 0x91, 0x01},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,  11,  vtab_at90s2313}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"AT90S2323",        187,  F_AVR8, {0x1E, 0x91, 0x02},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"AT90S2313",        186,  F_AVR8, {0x1E, 0x91, 0x01},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,  11,  vtab_at90s2313}, // xml, avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"AT90S2323",        187,  F_AVR8, {0x1E, 0x91, 0x02},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // xml, avr-gcc 12.2.0, avrdude, boot size (manual)
   {"AT90S2333",        188,  F_AVR8, {0x1E, 0x91, 0x05},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, -1, -1,  14,  vtab_at90s4433}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"AT90S2343",        189,  F_AVR8, {0x1E, 0x91, 0x03},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"AT90S4414",        190,  F_AVR8, {0x1E, 0x92, 0x01},       0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0100,  1,  1,  13,  vtab_at90s8515}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"AT90S4433",        191,  F_AVR8, {0x1E, 0x92, 0x03},       0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0080,  1,  1,  14,  vtab_at90s4433}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"AT90S4434",        192,  F_AVR8, {0x1E, 0x92, 0x02},       0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0100,  1,  1,  17,  vtab_at90s8535}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"AT90S8515",        193,  F_AVR8, {0x1E, 0x93, 0x01},       0, 0x02000, 0x001,  0,      0,       0, 0x0200,  1, 0x0060, 0x0200,  1,  1,  13,  vtab_at90s8515}, // avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"AT90S2343",        189,  F_AVR8, {0x1E, 0x91, 0x03},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // xml, avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"AT90S4414",        190,  F_AVR8, {0x1E, 0x92, 0x01},       0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0100,  1,  1,  13,  vtab_at90s8515}, // xml, avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"AT90S4433",        191,  F_AVR8, {0x1E, 0x92, 0x03},       0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0080,  1,  1,  14,  vtab_at90s4433}, // xml, avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"AT90S4434",        192,  F_AVR8, {0x1E, 0x92, 0x02},       0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0100,  1,  1,  17,  vtab_at90s8535}, // xml, avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"AT90S8515",        193,  F_AVR8, {0x1E, 0x93, 0x01},       0, 0x02000, 0x001,  0,      0,       0, 0x0200,  1, 0x0060, 0x0200,  1,  1,  13,  vtab_at90s8515}, // xml, avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"AT90S8515comp",    377,  F_AVR8, {0x1E, 0x93, 0x01},      -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, -1, -1,   0,            NULL}, // xml
   {"AT90C8534",        194,  F_AVR8, {0xff,   -1,   -1},       0, 0x02000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0100, -1, -1,   0,            NULL}, // avr-gcc 12.2.0
-  {"AT90S8535",        195,  F_AVR8, {0x1E, 0x93, 0x03},       0, 0x02000, 0x001,  0,      0,       0, 0x0200,  1, 0x0060, 0x0200,  1,  1,  17,  vtab_at90s8535}, // avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"AT90S8535",        195,  F_AVR8, {0x1E, 0x93, 0x03},       0, 0x02000, 0x001,  0,      0,       0, 0x0200,  1, 0x0060, 0x0200,  1,  1,  17,  vtab_at90s8535}, // xml, avr-gcc 12.2.0, avrdude, boot size (manual)
+  {"AT90S8535comp",    378,  F_AVR8, {0x1E, 0x93, 0x03},      -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, -1, -1,   0,            NULL}, // xml
   {"AT94K",            196,  F_AVR8, {0xff,   -1,   -1},       0, 0x08000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0fa0, -1, -1,   0,            NULL}, // avr-gcc 12.2.0
   {"ATA5272",          197,  F_AVR8, {0x1E, 0x93, 0x87},       0, 0x02000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  37,    vtab_ata5272}, // atdf, avr-gcc 12.2.0
   {"ATA5505",          198,  F_AVR8, {0x1E, 0x94, 0x87},       0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  20,  vtab_attiny167}, // atdf, avr-gcc 12.2.0
@@ -246,7 +251,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"ATA5835",          212,  F_AVR8, {0x1E, 0x94, 0x6B}, 0x08000, 0x05200, 0x040,  0,      0,       0, 0x0400, 16, 0x0200, 0x0800,  1,  1,  44,    vtab_ata5835}, // atdf
   {"ATA6285",          213,  F_AVR8, {0x1E, 0x93, 0x82},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0140,  4, 0x0100, 0x0200,  2,  1,  27,    vtab_ata6289}, // atdf, avr-gcc 12.2.0
   {"ATA6286",          214,  F_AVR8, {0x1E, 0x93, 0x82},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0140,  4, 0x0100, 0x0200,  2,  1,  27,    vtab_ata6289}, // atdf, avr-gcc 12.2.0
-  {"ATA6289",          215,  F_AVR8, {0x1E, 0x93, 0x82},       0, 0x02000, 0x040,  4, 0x0100,      -1,     -1, -1, 0x0100, 0x0200,  2,  1,  27,    vtab_ata6289}, // avr-gcc 12.2.0, boot size (manual)
+  {"ATA6289",          215,  F_AVR8, {0x1E, 0x93, 0x82},       0, 0x02000, 0x040,  4, 0x0100,      -1,     -1, -1, 0x0100, 0x0200,  2,  1,  27,    vtab_ata6289}, // xml, avr-gcc 12.2.0, boot size (manual)
   {"ATA6612C",         216,  F_AVR8, {0x1E, 0x93, 0x0A},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0
   {"ATA6613C",         217,  F_AVR8, {0x1E, 0x94, 0x06},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0
   {"ATA6614Q",         218,  F_AVR8, {0x1E, 0x95, 0x0F},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0
@@ -407,7 +412,8 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"AVR128DB64",       371, F_AVR8X, {0x1E, 0x97, 0x0B},       0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, 16,  4,  65, vtab_avr128db64}, // atdf, avrdude
 };
 
-const char * const vtab_attiny9[vts_attiny9] = { // ATtiny9, ATtiny4
+// ATtiny9 ATtiny4
+const char * const vtab_attiny9[vts_attiny9] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -420,7 +426,8 @@ const char * const vtab_attiny9[vts_attiny9] = { // ATtiny9, ATtiny4
   "VLM",                        //   9: Vcc Voltage Level Monitor
 };
 
-const char * const vtab_attiny10[vts_attiny10] = { // ATtiny10, ATtiny5
+// ATtiny10 ATtiny5
+const char * const vtab_attiny10[vts_attiny10] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -434,7 +441,8 @@ const char * const vtab_attiny10[vts_attiny10] = { // ATtiny10, ATtiny5
   "ADC",                        //  10: ADC Conversion Complete
 };
 
-const char * const vtab_attiny20[vts_attiny20] = { // ATtiny20
+// ATtiny20
+const char * const vtab_attiny20[vts_attiny20] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -454,7 +462,8 @@ const char * const vtab_attiny20[vts_attiny20] = { // ATtiny20
   "QTRIP",                      //  16: Touch Sensing
 };
 
-const char * const vtab_attiny40[vts_attiny40] = { // ATtiny40
+// ATtiny40
+const char * const vtab_attiny40[vts_attiny40] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -475,7 +484,8 @@ const char * const vtab_attiny40[vts_attiny40] = { // ATtiny40
   "QTRIP",                      //  17: Touch Sensing
 };
 
-const char * const vtab_attiny104[vts_attiny104] = { // ATtiny104, ATtiny102
+// ATtiny104 ATtiny102
+const char * const vtab_attiny104[vts_attiny104] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -494,7 +504,8 @@ const char * const vtab_attiny104[vts_attiny104] = { // ATtiny104, ATtiny102
   "USART_TXC",                  //  15: USART Transmit Complete
 };
 
-const char * const vtab_attiny11[vts_attiny11] = { // ATtiny11
+// ATtiny11
+const char * const vtab_attiny11[vts_attiny11] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "IO_PINS",                    //   2: External Interrupt
@@ -502,7 +513,8 @@ const char * const vtab_attiny11[vts_attiny11] = { // ATtiny11
   "ANA_COMP",                   //   4: Analog Comparator
 };
 
-const char * const vtab_attiny12[vts_attiny12] = { // ATtiny12
+// ATtiny12
+const char * const vtab_attiny12[vts_attiny12] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "IO_PINS",                    //   2: External Interrupt
@@ -511,7 +523,8 @@ const char * const vtab_attiny12[vts_attiny12] = { // ATtiny12
   "ANA_COMP",                   //   5: Analog Comparator
 };
 
-const char * const vtab_attiny13a[vts_attiny13a] = { // ATtiny13A, ATtiny13
+// ATtiny13A ATtiny13
+const char * const vtab_attiny13a[vts_attiny13a] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -524,7 +537,8 @@ const char * const vtab_attiny13a[vts_attiny13a] = { // ATtiny13A, ATtiny13
   "ADC",                        //   9: ADC Conversion Complete
 };
 
-const char * const vtab_attiny15[vts_attiny15] = { // ATtiny15
+// ATtiny15
+const char * const vtab_attiny15[vts_attiny15] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "IO_PINS",                    //   2: External Interrupt
@@ -536,13 +550,15 @@ const char * const vtab_attiny15[vts_attiny15] = { // ATtiny15
   "ADC",                        //   8: ADC Conversion Complete
 };
 
-const char * const vtab_attiny22[vts_attiny22] = { // ATtiny22, AT90S2343, AT90S2323
+// ATtiny22 AT90S2343 AT90S2323
+const char * const vtab_attiny22[vts_attiny22] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "TIMER0_OVF0",                //   2: Timer 0 Overflow
 };
 
-const char * const vtab_attiny26[vts_attiny26] = { // ATtiny26
+// ATtiny26
+const char * const vtab_attiny26[vts_attiny26] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "IO_PINS",                    //   2: External Interrupt
@@ -557,7 +573,8 @@ const char * const vtab_attiny26[vts_attiny26] = { // ATtiny26
   "ADC",                        //  11: ADC Conversion Complete
 };
 
-const char * const vtab_attiny28[vts_attiny28] = { // ATtiny28
+// ATtiny28
+const char * const vtab_attiny28[vts_attiny28] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -566,7 +583,8 @@ const char * const vtab_attiny28[vts_attiny28] = { // ATtiny28
   "ANA_COMP",                   //   5: Analog Comparator
 };
 
-const char * const vtab_attiny43u[vts_attiny43u] = { // ATtiny43U
+// ATtiny43U
+const char * const vtab_attiny43u[vts_attiny43u] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -585,7 +603,8 @@ const char * const vtab_attiny43u[vts_attiny43u] = { // ATtiny43U
   "USI_OVF",                    //  15: USI Overflow
 };
 
-const char * const vtab_attiny84a[vts_attiny84a] = { // ATtiny84A, ATtiny84, ATtiny44A, ATtiny44, ATtiny24A, ATtiny24
+// ATtiny84A ATtiny84 ATtiny44A ATtiny44 ATtiny24A ATtiny24
+const char * const vtab_attiny84a[vts_attiny84a] = {
   "RESET",                      //   0: Reset (various reasons)
   "EXT_INT0",                   //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -605,7 +624,8 @@ const char * const vtab_attiny84a[vts_attiny84a] = { // ATtiny84A, ATtiny84, ATt
   "USI_OVF",                    //  16: USI Overflow
 };
 
-const char * const vtab_attiny85[vts_attiny85] = { // ATtiny85, ATtiny45, ATtiny25
+// ATtiny85 ATtiny45 ATtiny25
+const char * const vtab_attiny85[vts_attiny85] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -623,7 +643,8 @@ const char * const vtab_attiny85[vts_attiny85] = { // ATtiny85, ATtiny45, ATtiny
   "USI_OVF",                    //  14: USI Overflow
 };
 
-const char * const vtab_attiny88[vts_attiny88] = { // ATtiny88, ATtiny48
+// ATtiny88 ATtiny48
+const char * const vtab_attiny88[vts_attiny88] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -646,7 +667,8 @@ const char * const vtab_attiny88[vts_attiny88] = { // ATtiny88, ATtiny48
   "TWI",                        //  19: 2-Wire Interface
 };
 
-const char * const vtab_attiny167[vts_attiny167] = { // ATtiny167, ATtiny87, ATA664251, ATA6617C, ATA6616C, ATA5505
+// ATtiny167 ATtiny87 ATA664251 ATA6617C ATA6616C ATA5505
+const char * const vtab_attiny167[vts_attiny167] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -669,7 +691,8 @@ const char * const vtab_attiny167[vts_attiny167] = { // ATtiny167, ATtiny87, ATA
   "USI_OVF",                    //  19: USI Overflow
 };
 
-const char * const vtab_attiny828[vts_attiny828] = { // ATtiny828
+// ATtiny828
+const char * const vtab_attiny828[vts_attiny828] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -698,7 +721,8 @@ const char * const vtab_attiny828[vts_attiny828] = { // ATtiny828
   "QTRIP",                      //  25: Touch Sensing
 };
 
-const char * const vtab_attiny841[vts_attiny841] = { // ATtiny841, ATtiny441
+// ATtiny841 ATtiny441
+const char * const vtab_attiny841[vts_attiny841] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -731,7 +755,8 @@ const char * const vtab_attiny841[vts_attiny841] = { // ATtiny841, ATtiny441
   "TWI_PERIPHERAL",             //  29: 2-Wire Interface Peripheral
 };
 
-const char * const vtab_attiny861a[vts_attiny861a] = { // ATtiny861A, ATtiny861, ATtiny461A, ATtiny461, ATtiny261A, ATtiny261
+// ATtiny861A ATtiny861 ATtiny461A ATtiny461 ATtiny261A ATtiny261
+const char * const vtab_attiny861a[vts_attiny861a] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT",                      //   2: Pin Change Interrupt
@@ -753,7 +778,8 @@ const char * const vtab_attiny861a[vts_attiny861a] = { // ATtiny861A, ATtiny861,
   "FAULT_PROTECTION",           //  18: Timer 1 Fault Protection
 };
 
-const char * const vtab_attiny1634[vts_attiny1634] = { // ATtiny1634
+// ATtiny1634
+const char * const vtab_attiny1634[vts_attiny1634] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -784,7 +810,8 @@ const char * const vtab_attiny1634[vts_attiny1634] = { // ATtiny1634
   "QTRIP",                      //  27: Touch Sensing
 };
 
-const char * const vtab_attiny2313[vts_attiny2313] = { // ATtiny2313
+// ATtiny2313
+const char * const vtab_attiny2313[vts_attiny2313] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -806,7 +833,8 @@ const char * const vtab_attiny2313[vts_attiny2313] = { // ATtiny2313
   "WDT_OVERFLOW",               //  18: Watchdog Timer Overflow
 };
 
-const char * const vtab_attiny4313[vts_attiny4313] = { // ATtiny4313, ATtiny2313A
+// ATtiny4313 ATtiny2313A
+const char * const vtab_attiny4313[vts_attiny4313] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -830,7 +858,8 @@ const char * const vtab_attiny4313[vts_attiny4313] = { // ATtiny4313, ATtiny2313
   "PCINT_D",                    //  20: Pin Change Interrupt D
 };
 
-const char * const vtab_atmega8a[vts_atmega8a] = { // ATmega8A, ATmega8
+// ATmega8A ATmega8
+const char * const vtab_atmega8a[vts_atmega8a] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -852,7 +881,8 @@ const char * const vtab_atmega8a[vts_atmega8a] = { // ATmega8A, ATmega8
   "SPM_RDY",                    //  18: Store Program Memory Ready
 };
 
-const char * const vtab_atmega16a[vts_atmega16a] = { // ATmega16A, ATmega16
+// ATmega16A ATmega16
+const char * const vtab_atmega16a[vts_atmega16a] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -876,7 +906,8 @@ const char * const vtab_atmega16a[vts_atmega16a] = { // ATmega16A, ATmega16
   "SPM_RDY",                    //  20: Store Program Memory Ready
 };
 
-const char * const vtab_atmega16hva[vts_atmega16hva] = { // ATmega16HVA, ATmega8HVA
+// ATmega16HVA ATmega8HVA
+const char * const vtab_atmega16hva[vts_atmega16hva] = {
   "RESET",                      //   0: Reset (various reasons)
   "BPINT",                      //   1: Battery Protection Interrupt
   "VREGMON",                    //   2: Voltage Regulator Monitor
@@ -900,7 +931,8 @@ const char * const vtab_atmega16hva[vts_atmega16hva] = { // ATmega16HVA, ATmega8
   "EE_READY",                   //  20: EEPROM Ready
 };
 
-const char * const vtab_atmega16hva2[vts_atmega16hva2] = { // ATmega16HVA2
+// ATmega16HVA2
+const char * const vtab_atmega16hva2[vts_atmega16hva2] = {
   "RESET",                      //   0: Reset (various reasons)
   "BPINT",                      //   1: Battery Protection Interrupt
   "VREGMON",                    //   2: Voltage Regulator Monitor
@@ -925,7 +957,8 @@ const char * const vtab_atmega16hva2[vts_atmega16hva2] = { // ATmega16HVA2
   "EE_READY",                   //  21: EEPROM Ready
 };
 
-const char * const vtab_atmega32hvbrevb[vts_atmega32hvbrevb] = { // ATmega32HVBrevB, ATmega32HVB, ATmega16HVBrevB, ATmega16HVB
+// ATmega32HVBrevB ATmega32HVB ATmega16HVBrevB ATmega16HVB
+const char * const vtab_atmega32hvbrevb[vts_atmega32hvbrevb] = {
   "RESET",                      //   0: Reset (various reasons)
   "BPINT",                      //   1: Battery Protection Interrupt
   "VREGMON",                    //   2: Voltage Regulator Monitor
@@ -957,7 +990,8 @@ const char * const vtab_atmega32hvbrevb[vts_atmega32hvbrevb] = { // ATmega32HVBr
   "SPM",                        //  28: SPM Ready
 };
 
-const char * const vtab_atmega32u2[vts_atmega32u2] = { // ATmega32U2, ATmega16U2, ATmega8U2, AT90USB162, AT90USB82
+// ATmega32U2 ATmega16U2 ATmega8U2 AT90USB162 AT90USB82
+const char * const vtab_atmega32u2[vts_atmega32u2] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -989,7 +1023,8 @@ const char * const vtab_atmega32u2[vts_atmega32u2] = { // ATmega32U2, ATmega16U2
   "SPM_READY",                  //  28: Store Program Memory Ready
 };
 
-const char * const vtab_atmega32u4[vts_atmega32u4] = { // ATmega32U4, ATmega16U4
+// ATmega32U4 ATmega16U4
+const char * const vtab_atmega32u4[vts_atmega32u4] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1035,7 +1070,8 @@ const char * const vtab_atmega32u4[vts_atmega32u4] = { // ATmega32U4, ATmega16U4
   "TIMER4_FPF",                 //  42: Timer 4 Fault Protection
 };
 
-const char * const vtab_atmega32u6[vts_atmega32u6] = { // ATmega32U6, AT90USB1287, AT90USB1286, AT90USB647, AT90USB646
+// ATmega32U6 AT90USB1287 AT90USB1286 AT90USB647 AT90USB646
+const char * const vtab_atmega32u6[vts_atmega32u6] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1076,7 +1112,8 @@ const char * const vtab_atmega32u6[vts_atmega32u6] = { // ATmega32U6, AT90USB128
   "SPM_READY",                  //  37: Store Program Memory Ready
 };
 
-const char * const vtab_atmega64m1[vts_atmega64m1] = { // ATmega64M1, ATmega64C1, ATmega32M1, ATmega32C1, ATmega16M1
+// ATmega64M1 ATmega64C1 ATmega32M1 ATmega32C1 ATmega16M1
+const char * const vtab_atmega64m1[vts_atmega64m1] = {
   "RESET",                      //   0: Reset (various reasons)
   "ANACOMP0",                   //   1: Analog Comparator 0
   "ANACOMP1",                   //   2: Analog Comparator 1
@@ -1110,7 +1147,8 @@ const char * const vtab_atmega64m1[vts_atmega64m1] = { // ATmega64M1, ATmega64C1
   "SPM_READY",                  //  30: Store Program Memory Ready
 };
 
-const char * const vtab_atmega64hve2[vts_atmega64hve2] = { // ATmega64HVE2, ATmega64HVE
+// ATmega64HVE2 ATmega64HVE
+const char * const vtab_atmega64hve2[vts_atmega64hve2] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -1138,7 +1176,8 @@ const char * const vtab_atmega64hve2[vts_atmega64hve2] = { // ATmega64HVE2, ATme
   "PLL",                        //  24: PLL
 };
 
-const char * const vtab_atmega103[vts_atmega103] = { // ATmega103
+// ATmega103
+const char * const vtab_atmega103[vts_atmega103] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1165,7 +1204,8 @@ const char * const vtab_atmega103[vts_atmega103] = { // ATmega103
   "ANALOG_COMP",                //  23: Analog Comparator
 };
 
-const char * const vtab_atmega128a[vts_atmega128a] = { // ATmega128A, ATmega128, ATmega64A, ATmega64
+// ATmega128A ATmega128 ATmega64A ATmega64
+const char * const vtab_atmega128a[vts_atmega128a] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1203,7 +1243,8 @@ const char * const vtab_atmega128a[vts_atmega128a] = { // ATmega128A, ATmega128,
   "SPM_READY",                  //  34: Store Program Memory Ready
 };
 
-const char * const vtab_atmega128rfa1[vts_atmega128rfa1] = { // ATmega128RFA1
+// ATmega128RFA1
+const char * const vtab_atmega128rfa1[vts_atmega128rfa1] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1278,7 +1319,8 @@ const char * const vtab_atmega128rfa1[vts_atmega128rfa1] = { // ATmega128RFA1
   "BAT_LOW",                    //  71: Battery Voltage Below Threshold
 };
 
-const char * const vtab_atmega161[vts_atmega161] = { // ATmega161
+// ATmega161
+const char * const vtab_atmega161[vts_atmega161] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1302,7 +1344,8 @@ const char * const vtab_atmega161[vts_atmega161] = { // ATmega161
   "ANA_COMP",                   //  20: Analog Comparator
 };
 
-const char * const vtab_atmega162[vts_atmega162] = { // ATmega162
+// ATmega162
+const char * const vtab_atmega162[vts_atmega162] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1333,7 +1376,8 @@ const char * const vtab_atmega162[vts_atmega162] = { // ATmega162
   "SPM_RDY",                    //  27: Store Program Memory Ready
 };
 
-const char * const vtab_atmega163[vts_atmega163] = { // ATmega163
+// ATmega163
+const char * const vtab_atmega163[vts_atmega163] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1354,7 +1398,8 @@ const char * const vtab_atmega163[vts_atmega163] = { // ATmega163
   "TWI",                        //  17: 2-Wire Interface
 };
 
-const char * const vtab_atmega168pb[vts_atmega168pb] = { // ATmega168PB, ATmega88PB, ATmega48PB
+// ATmega168PB ATmega88PB ATmega48PB
+const char * const vtab_atmega168pb[vts_atmega168pb] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1384,7 +1429,8 @@ const char * const vtab_atmega168pb[vts_atmega168pb] = { // ATmega168PB, ATmega8
   "USART_START",                //  26: USART Start
 };
 
-const char * const vtab_atmega323[vts_atmega323] = { // ATmega323, ATmega32A, ATmega32
+// ATmega323 ATmega32A ATmega32
+const char * const vtab_atmega323[vts_atmega323] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1408,7 +1454,8 @@ const char * const vtab_atmega323[vts_atmega323] = { // ATmega323, ATmega32A, AT
   "SPM_RDY",                    //  20: Store Program Memory Ready
 };
 
-const char * const vtab_atmega324pb[vts_atmega324pb] = { // ATmega324PB
+// ATmega324PB
+const char * const vtab_atmega324pb[vts_atmega324pb] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1462,7 +1509,8 @@ const char * const vtab_atmega324pb[vts_atmega324pb] = { // ATmega324PB
   "USART2_START",               //  50: USART 2 Receive Start
 };
 
-const char * const vtab_atmega328[vts_atmega328] = { // ATmega328, ATmega168
+// ATmega328 ATmega168
+const char * const vtab_atmega328[vts_atmega328] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1491,7 +1539,11 @@ const char * const vtab_atmega328[vts_atmega328] = { // ATmega328, ATmega168
   "SPM_READY",                  //  25: Store Program Memory Ready
 };
 
-const char * const vtab_atmega328p[vts_atmega328p] = { // ATmega328P, ATmega168PA, ATmega168P, ATmega168A, ATmega88PA, ATmega88P, ATmega88A, ATmega88, ATmega48PA, ATmega48P, ATmega48A, ATmega48, ATA6614Q, ATA6613C, ATA6612C
+/*
+ * ATmega328P ATmega168PA ATmega168P ATmega168A ATmega88PA ATmega88P ATmega88A ATmega88 ATmega48PA
+ * ATmega48P ATmega48A ATmega48 ATA6614Q ATA6613C ATA6612C
+ */
+const char * const vtab_atmega328p[vts_atmega328p] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1520,7 +1572,8 @@ const char * const vtab_atmega328p[vts_atmega328p] = { // ATmega328P, ATmega168P
   "SPM_Ready",                  //  25: Store Program Memory Ready
 };
 
-const char * const vtab_atmega328pb[vts_atmega328pb] = { // ATmega328PB
+// ATmega328PB
+const char * const vtab_atmega328pb[vts_atmega328pb] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1568,7 +1621,8 @@ const char * const vtab_atmega328pb[vts_atmega328pb] = { // ATmega328PB
   "TIMER4_OVF",                 //  44: Timer 4 Overflow
 };
 
-const char * const vtab_atmega406[vts_atmega406] = { // ATmega406
+// ATmega406
+const char * const vtab_atmega406[vts_atmega406] = {
   "RESET",                      //   0: Reset (various reasons)
   "BPINT",                      //   1: Battery Protection Interrupt
   "INT0",                       //   2: External Interrupt 0
@@ -1594,7 +1648,8 @@ const char * const vtab_atmega406[vts_atmega406] = { // ATmega406
   "SPM_READY",                  //  22: Store Program Memory Ready
 };
 
-const char * const vtab_atmega644[vts_atmega644] = { // ATmega644
+// ATmega644
+const char * const vtab_atmega644[vts_atmega644] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1625,7 +1680,11 @@ const char * const vtab_atmega644[vts_atmega644] = { // ATmega644
   "SPM_READY",                  //  27: Store Program Memory Ready
 };
 
-const char * const vtab_atmega644pa[vts_atmega644pa] = { // ATmega644PA, ATmega644P, ATmega644A, ATmega324PA, ATmega324P, ATmega324A, ATmega164PA, ATmega164P, ATmega164A
+/*
+ * ATmega644PA ATmega644P ATmega644A ATmega324PA ATmega324P ATmega324A ATmega164PA ATmega164P
+ * ATmega164A
+ */
+const char * const vtab_atmega644pa[vts_atmega644pa] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1659,7 +1718,11 @@ const char * const vtab_atmega644pa[vts_atmega644pa] = { // ATmega644PA, ATmega6
   "USART1_TX",                  //  30: USART 1 Transmit Complete
 };
 
-const char * const vtab_atmega645p[vts_atmega645p] = { // ATmega645P, ATmega645A, ATmega645, ATmega325PA, ATmega325P, ATmega325A, ATmega325, ATmega165PA, ATmega165P, ATmega165A, ATmega165
+/*
+ * ATmega645P ATmega645A ATmega645 ATmega325PA ATmega325P ATmega325A ATmega325 ATmega165PA
+ * ATmega165P ATmega165A ATmega165
+ */
+const char * const vtab_atmega645p[vts_atmega645p] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -1684,7 +1747,11 @@ const char * const vtab_atmega645p[vts_atmega645p] = { // ATmega645P, ATmega645A
   "SPM_READY",                  //  21: Store Program Memory Ready
 };
 
-const char * const vtab_atmega649p[vts_atmega649p] = { // ATmega649P, ATmega649A, ATmega649, ATmega329PA, ATmega329P, ATmega329A, ATmega329, ATmega169PA, ATmega169P, ATmega169A, ATmega169
+/*
+ * ATmega649P ATmega649A ATmega649 ATmega329PA ATmega329P ATmega329A ATmega329 ATmega169PA
+ * ATmega169P ATmega169A ATmega169
+ */
+const char * const vtab_atmega649p[vts_atmega649p] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -1710,7 +1777,8 @@ const char * const vtab_atmega649p[vts_atmega649p] = { // ATmega649P, ATmega649A
   "LCD",                        //  22: LCD Start of Frame
 };
 
-const char * const vtab_atmega1284p[vts_atmega1284p] = { // ATmega1284P, ATmega1284
+// ATmega1284P ATmega1284
+const char * const vtab_atmega1284p[vts_atmega1284p] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1748,7 +1816,8 @@ const char * const vtab_atmega1284p[vts_atmega1284p] = { // ATmega1284P, ATmega1
   "TIMER3_OVF",                 //  34: Timer 3 Overflow
 };
 
-const char * const vtab_atmega2560[vts_atmega2560] = { // ATmega2560, ATmega1280, ATmega640
+// ATmega2560 ATmega1280 ATmega640
+const char * const vtab_atmega2560[vts_atmega2560] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1808,7 +1877,8 @@ const char * const vtab_atmega2560[vts_atmega2560] = { // ATmega2560, ATmega1280
   "USART3_TX",                  //  56: USART 3 Transmit Complete
 };
 
-const char * const vtab_atmega2561[vts_atmega2561] = { // ATmega2561, ATmega1281
+// ATmega2561 ATmega1281
+const char * const vtab_atmega2561[vts_atmega2561] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1868,7 +1938,8 @@ const char * const vtab_atmega2561[vts_atmega2561] = { // ATmega2561, ATmega1281
   "UNUSED",                     //  56: not useful owing to limited pin count
 };
 
-const char * const vtab_atmega2564rfr2[vts_atmega2564rfr2] = { // ATmega2564RFR2, ATmega1284RFR2, ATmega644RFR2, ATmega256RFR2, ATmega128RFR2, ATmega64RFR2
+// ATmega2564RFR2 ATmega1284RFR2 ATmega644RFR2 ATmega256RFR2 ATmega128RFR2 ATmega64RFR2
+const char * const vtab_atmega2564rfr2[vts_atmega2564rfr2] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1948,7 +2019,8 @@ const char * const vtab_atmega2564rfr2[vts_atmega2564rfr2] = { // ATmega2564RFR2
   "TRX24_AMI3",                 //  76: TRX24 Address Match 3
 };
 
-const char * const vtab_atmega6450p[vts_atmega6450p] = { // ATmega6450P, ATmega6450A, ATmega6450, ATmega3250PA, ATmega3250P, ATmega3250A, ATmega3250
+// ATmega6450P ATmega6450A ATmega6450 ATmega3250PA ATmega3250P ATmega3250A ATmega3250
+const char * const vtab_atmega6450p[vts_atmega6450p] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -1976,7 +2048,8 @@ const char * const vtab_atmega6450p[vts_atmega6450p] = { // ATmega6450P, ATmega6
   "PCINT3",                     //  24: Pin Change Interrupt 3
 };
 
-const char * const vtab_atmega6490p[vts_atmega6490p] = { // ATmega6490P, ATmega6490A, ATmega6490, ATmega3290PA, ATmega3290P, ATmega3290A, ATmega3290
+// ATmega6490P ATmega6490A ATmega6490 ATmega3290PA ATmega3290P ATmega3290A ATmega3290
+const char * const vtab_atmega6490p[vts_atmega6490p] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -2004,7 +2077,8 @@ const char * const vtab_atmega6490p[vts_atmega6490p] = { // ATmega6490P, ATmega6
   "PCINT3",                     //  24: Pin Change Interrupt 3
 };
 
-const char * const vtab_atmega8515[vts_atmega8515] = { // ATmega8515
+// ATmega8515
+const char * const vtab_atmega8515[vts_atmega8515] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2024,7 +2098,8 @@ const char * const vtab_atmega8515[vts_atmega8515] = { // ATmega8515
   "SPM_RDY",                    //  16: Store Program Memory Ready
 };
 
-const char * const vtab_atmega8535[vts_atmega8535] = { // ATmega8535
+// ATmega8535
+const char * const vtab_atmega8535[vts_atmega8535] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2048,13 +2123,15 @@ const char * const vtab_atmega8535[vts_atmega8535] = { // ATmega8535
   "SPM_RDY",                    //  20: Store Program Memory Ready
 };
 
-const char * const vtab_at86rf401[vts_at86rf401] = { // AT86RF401
+// AT86RF401
+const char * const vtab_at86rf401[vts_at86rf401] = {
   "RESET",                      //   0: Reset (various reasons)
   "TXDONE",                     //   1: Transmit Complete
   "TXEMPTY",                    //   2: Transmit Register Empty
 };
 
-const char * const vtab_at90pwm1[vts_at90pwm1] = { // AT90PWM1
+// AT90PWM1
+const char * const vtab_at90pwm1[vts_at90pwm1] = {
   "RESET",                      //   0: Reset (various reasons)
   "PSC2_CAPT",                  //   1: PSC 2 Capture Event
   "PSC2_EC",                    //   2: PSC 2 End Cycle
@@ -2089,7 +2166,8 @@ const char * const vtab_at90pwm1[vts_at90pwm1] = { // AT90PWM1
   "SPM_READY",                  //  31: Store Program Memory Ready
 };
 
-const char * const vtab_at90pwm2[vts_at90pwm2] = { // AT90PWM2
+// AT90PWM2
+const char * const vtab_at90pwm2[vts_at90pwm2] = {
   "RESET",                      //   0: Reset (various reasons)
   "PSC2_CAPT",                  //   1: PSC 2 Capture Event
   "PSC2_EC",                    //   2: PSC 2 End Cycle
@@ -2124,7 +2202,8 @@ const char * const vtab_at90pwm2[vts_at90pwm2] = { // AT90PWM2
   "SPM_READY",                  //  31: Store Program Memory Ready
 };
 
-const char * const vtab_at90pwm3b[vts_at90pwm3b] = { // AT90PWM3B, AT90PWM3, AT90PWM2B
+// AT90PWM3B AT90PWM3 AT90PWM2B
+const char * const vtab_at90pwm3b[vts_at90pwm3b] = {
   "RESET",                      //   0: Reset (various reasons)
   "PSC2_CAPT",                  //   1: PSC 2 Capture Event
   "PSC2_EC",                    //   2: PSC 2 End Cycle
@@ -2159,7 +2238,8 @@ const char * const vtab_at90pwm3b[vts_at90pwm3b] = { // AT90PWM3B, AT90PWM3, AT9
   "SPM_READY",                  //  31: Store Program Memory Ready
 };
 
-const char * const vtab_at90scr100[vts_at90scr100] = { // AT90SCR100
+// AT90SCR100
+const char * const vtab_at90scr100[vts_at90scr100] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2200,7 +2280,8 @@ const char * const vtab_at90scr100[vts_at90scr100] = { // AT90SCR100
   "PCINT3",                     //  37: Pin Change Interrupt 3
 };
 
-const char * const vtab_at90can128[vts_at90can128] = { // AT90CAN128, AT90CAN64, AT90CAN32
+// AT90CAN128 AT90CAN64 AT90CAN32
+const char * const vtab_at90can128[vts_at90can128] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2240,7 +2321,8 @@ const char * const vtab_at90can128[vts_at90can128] = { // AT90CAN128, AT90CAN64,
   "SPM_READY",                  //  36: Store Program Memory Ready
 };
 
-const char * const vtab_at90pwm161[vts_at90pwm161] = { // AT90PWM161, AT90PWM81
+// AT90PWM161 AT90PWM81
+const char * const vtab_at90pwm161[vts_at90pwm161] = {
   "RESET",                      //   0: Reset (various reasons)
   "PSC2_CAPT",                  //   1: PSC 2 Capture Event
   "PSC2_EC",                    //   2: PSC 2 End Cycle
@@ -2263,7 +2345,8 @@ const char * const vtab_at90pwm161[vts_at90pwm161] = { // AT90PWM161, AT90PWM81
   "SPM_READY",                  //  19: Store Program Memory Ready
 };
 
-const char * const vtab_at90pwm316[vts_at90pwm316] = { // AT90PWM316, AT90PWM216
+// AT90PWM316 AT90PWM216
+const char * const vtab_at90pwm316[vts_at90pwm316] = {
   "RESET",                      //   0: Reset (various reasons)
   "PSC2_CAPT",                  //   1: PSC 2 Capture Event
   "PSC2_EC",                    //   2: PSC 2 End Cycle
@@ -2298,14 +2381,16 @@ const char * const vtab_at90pwm316[vts_at90pwm316] = { // AT90PWM316, AT90PWM216
   "SPM_READY",                  //  31: Store Program Memory Ready
 };
 
-const char * const vtab_at90s1200[vts_at90s1200] = { // AT90S1200
+// AT90S1200
+const char * const vtab_at90s1200[vts_at90s1200] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "TIMER0_OVF",                 //   2: Timer 0 Overflow
   "ANA_COMP",                   //   3: Analog Comparator
 };
 
-const char * const vtab_at90s2313[vts_at90s2313] = { // AT90S2313
+// AT90S2313
+const char * const vtab_at90s2313[vts_at90s2313] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2319,7 +2404,8 @@ const char * const vtab_at90s2313[vts_at90s2313] = { // AT90S2313
   "ANA_COMP",                   //  10: Analog Comparator
 };
 
-const char * const vtab_at90s4433[vts_at90s4433] = { // AT90S4433, AT90S2333
+// AT90S4433 AT90S2333
+const char * const vtab_at90s4433[vts_at90s4433] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2336,7 +2422,8 @@ const char * const vtab_at90s4433[vts_at90s4433] = { // AT90S4433, AT90S2333
   "ANA_COMP",                   //  13: Analog Comparator
 };
 
-const char * const vtab_at90s8515[vts_at90s8515] = { // AT90S8515, AT90S4414
+// AT90S8515 AT90S4414
+const char * const vtab_at90s8515[vts_at90s8515] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2352,7 +2439,8 @@ const char * const vtab_at90s8515[vts_at90s8515] = { // AT90S8515, AT90S4414
   "ANA_COMP",                   //  12: Analog Comparator
 };
 
-const char * const vtab_at90s8535[vts_at90s8535] = { // AT90S8535, AT90S4434
+// AT90S8535 AT90S4434
+const char * const vtab_at90s8535[vts_at90s8535] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2372,7 +2460,8 @@ const char * const vtab_at90s8535[vts_at90s8535] = { // AT90S8535, AT90S4434
   "ANA_COMP",                   //  16: Analog Comparator
 };
 
-const char * const vtab_ata5272[vts_ata5272] = { // ATA5272
+// ATA5272
+const char * const vtab_ata5272[vts_ata5272] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2412,7 +2501,8 @@ const char * const vtab_ata5272[vts_ata5272] = { // ATA5272
   "USI_START",                  //  36: USI Start Condition
 };
 
-const char * const vtab_ata5702m322[vts_ata5702m322] = { // ATA5702M322, ATA5700M322
+// ATA5702M322 ATA5700M322
+const char * const vtab_ata5702m322[vts_ata5702m322] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2466,7 +2556,8 @@ const char * const vtab_ata5702m322[vts_ata5702m322] = { // ATA5702M322, ATA5700
   "TWI2",                       //  50: 2-Wire Interface 2
 };
 
-const char * const vtab_ata5790[vts_ata5790] = { // ATA5790
+// ATA5790
+const char * const vtab_ata5790[vts_ata5790] = {
   "RESET",                      //   0: Reset (various reasons)
   "TPINT",                      //   1: Transponder Mode Interrupt
   "INT0",                       //   2: External Interrupt 0
@@ -2499,7 +2590,8 @@ const char * const vtab_ata5790[vts_ata5790] = { // ATA5790
   "SPMREADY",                   //  29: Store Program Memory Ready
 };
 
-const char * const vtab_ata5791[vts_ata5791] = { // ATA5791, ATA5790N
+// ATA5791 ATA5790N
+const char * const vtab_ata5791[vts_ata5791] = {
   "RESET",                      //   0: Reset (various reasons)
   "TPINT",                      //   1: Transponder Mode Interrupt
   "INT0",                       //   2: External Interrupt 0
@@ -2533,7 +2625,8 @@ const char * const vtab_ata5791[vts_ata5791] = { // ATA5791, ATA5790N
   "SPMREADY",                   //  30: Store Program Memory Ready
 };
 
-const char * const vtab_ata5795[vts_ata5795] = { // ATA5795
+// ATA5795
+const char * const vtab_ata5795[vts_ata5795] = {
   "RESET",                      //   0: Reset (various reasons)
   "TPINT",                      //   1: Transponder Mode Interrupt
   "INT0",                       //   2: External Interrupt 0
@@ -2559,7 +2652,8 @@ const char * const vtab_ata5795[vts_ata5795] = { // ATA5795
   "SPMREADY",                   //  22: Store Program Memory Ready
 };
 
-const char * const vtab_ata5835[vts_ata5835] = { // ATA5835, ATA5787
+// ATA5835 ATA5787
+const char * const vtab_ata5835[vts_ata5835] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2606,7 +2700,8 @@ const char * const vtab_ata5835[vts_ata5835] = { // ATA5835, ATA5787
   "IDFULL",                     //  43: IDSCAN Full
 };
 
-const char * const vtab_ata6289[vts_ata6289] = { // ATA6289, ATA6286, ATA6285
+// ATA6289 ATA6286 ATA6285
+const char * const vtab_ata6289[vts_ata6289] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2636,7 +2731,8 @@ const char * const vtab_ata6289[vts_ata6289] = { // ATA6289, ATA6286, ATA6285
   "SPM_RDY",                    //  26: Store Program Memory Ready
 };
 
-const char * const vtab_ata8515[vts_ata8515] = { // ATA8515, ATA8510, ATA8215, ATA8210, ATA5833, ATA5832, ATA5831, ATA5783, ATA5782, ATA5781
+// ATA8515 ATA8510 ATA8215 ATA8210 ATA5833 ATA5832 ATA5831 ATA5783 ATA5782 ATA5781
+const char * const vtab_ata8515[vts_ata8515] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2681,7 +2777,8 @@ const char * const vtab_ata8515[vts_ata8515] = { // ATA8515, ATA8510, ATA8215, A
   "IDFULL",                     //  41: IDSCAN Full
 };
 
-const char * const vtab_atxmega32a4[vts_atxmega32a4] = { // ATxmega32A4, ATxmega16A4
+// ATxmega32A4 ATxmega16A4
+const char * const vtab_atxmega32a4[vts_atxmega32a4] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -2778,7 +2875,8 @@ const char * const vtab_atxmega32a4[vts_atxmega32a4] = { // ATxmega32A4, ATxmega
   "USARTD1_TXC",                //  93: USARTD 1 Transmission Complete
 };
 
-const char * const vtab_atxmega32c4[vts_atxmega32c4] = { // ATxmega32C4, ATxmega16C4
+// ATxmega32C4 ATxmega16C4
+const char * const vtab_atxmega32c4[vts_atxmega32c4] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -2908,7 +3006,8 @@ const char * const vtab_atxmega32c4[vts_atxmega32c4] = { // ATxmega32C4, ATxmega
   "USB_TRNCOMPL",               // 126: USB Transaction Complete
 };
 
-const char * const vtab_atxmega32d4[vts_atxmega32d4] = { // ATxmega32D4, ATxmega16D4
+// ATxmega32D4 ATxmega16D4
+const char * const vtab_atxmega32d4[vts_atxmega32d4] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -3002,7 +3101,8 @@ const char * const vtab_atxmega32d4[vts_atxmega32d4] = { // ATxmega32D4, ATxmega
   "USARTD0_TXC",                //  90: USARTD 0 Transmission Complete
 };
 
-const char * const vtab_atxmega32e5[vts_atxmega32e5] = { // ATxmega32E5, ATxmega16E5, ATxmega8E5
+// ATxmega32E5 ATxmega16E5 ATxmega8E5
+const char * const vtab_atxmega32e5[vts_atxmega32e5] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTR_INT",                  //   2: External Interrupt PORT R
@@ -3048,7 +3148,8 @@ const char * const vtab_atxmega32e5[vts_atxmega32e5] = { // ATxmega32E5, ATxmega
   "USARTD0_TXC",                //  42: USARTD 0 Transmission Complete
 };
 
-const char * const vtab_atxmega128a1[vts_atxmega128a1] = { // ATxmega128A1, ATxmega64A1
+// ATxmega128A1 ATxmega64A1
+const char * const vtab_atxmega128a1[vts_atxmega128a1] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -3176,7 +3277,8 @@ const char * const vtab_atxmega128a1[vts_atxmega128a1] = { // ATxmega128A1, ATxm
   "USARTF1_TXC",                // 124: USARTF 1 Transmission Complete
 };
 
-const char * const vtab_atxmega128a1u[vts_atxmega128a1u] = { // ATxmega128A1U, ATxmega64A1U
+// ATxmega128A1U ATxmega64A1U
+const char * const vtab_atxmega128a1u[vts_atxmega128a1u] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -3306,7 +3408,8 @@ const char * const vtab_atxmega128a1u[vts_atxmega128a1u] = { // ATxmega128A1U, A
   "USB_TRNCOMPL",               // 126: USB Transaction Complete
 };
 
-const char * const vtab_atxmega128b1[vts_atxmega128b1] = { // ATxmega128B1, ATxmega64B1
+// ATxmega128B1 ATxmega64B1
+const char * const vtab_atxmega128b1[vts_atxmega128b1] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -3390,7 +3493,8 @@ const char * const vtab_atxmega128b1[vts_atxmega128b1] = { // ATxmega128B1, ATxm
   "ADCA_CH0",                   //  80: ADCA Interrupt 0
 };
 
-const char * const vtab_atxmega128b3[vts_atxmega128b3] = { // ATxmega128B3, ATxmega64B3
+// ATxmega128B3 ATxmega64B3
+const char * const vtab_atxmega128b3[vts_atxmega128b3] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -3447,7 +3551,8 @@ const char * const vtab_atxmega128b3[vts_atxmega128b3] = { // ATxmega128B3, ATxm
   "PORTM_INT1",                 //  53: External Interrupt 1 PORT M
 };
 
-const char * const vtab_atxmega128a4u[vts_atxmega128a4u] = { // ATxmega128A4U, ATxmega64A4U, ATxmega32A4U, ATxmega16A4U
+// ATxmega128A4U ATxmega64A4U ATxmega32A4U ATxmega16A4U
+const char * const vtab_atxmega128a4u[vts_atxmega128a4u] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -3577,7 +3682,8 @@ const char * const vtab_atxmega128a4u[vts_atxmega128a4u] = { // ATxmega128A4U, A
   "USB_TRNCOMPL",               // 126: USB Transaction Complete
 };
 
-const char * const vtab_atxmega128d4[vts_atxmega128d4] = { // ATxmega128D4, ATxmega64D4
+// ATxmega128D4 ATxmega64D4
+const char * const vtab_atxmega128d4[vts_atxmega128d4] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -3671,7 +3777,8 @@ const char * const vtab_atxmega128d4[vts_atxmega128d4] = { // ATxmega128D4, ATxm
   "USARTD0_TXC",                //  90: USARTD 0 Transmission Complete
 };
 
-const char * const vtab_atxmega256a3[vts_atxmega256a3] = { // ATxmega256A3, ATxmega192A3, ATxmega128A3, ATxmega64A3
+// ATxmega256A3 ATxmega192A3 ATxmega128A3 ATxmega64A3
+const char * const vtab_atxmega256a3[vts_atxmega256a3] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -3796,7 +3903,8 @@ const char * const vtab_atxmega256a3[vts_atxmega256a3] = { // ATxmega256A3, ATxm
   "USARTF0_TXC",                // 121: USARTF 0 Transmission Complete
 };
 
-const char * const vtab_atxmega256a3b[vts_atxmega256a3b] = { // ATxmega256A3B
+// ATxmega256A3B
+const char * const vtab_atxmega256a3b[vts_atxmega256a3b] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -3921,7 +4029,8 @@ const char * const vtab_atxmega256a3b[vts_atxmega256a3b] = { // ATxmega256A3B
   "USARTF0_TXC",                // 121: USARTF 0 Transmission Complete
 };
 
-const char * const vtab_atxmega256a3bu[vts_atxmega256a3bu] = { // ATxmega256A3BU
+// ATxmega256A3BU
+const char * const vtab_atxmega256a3bu[vts_atxmega256a3bu] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -4051,7 +4160,8 @@ const char * const vtab_atxmega256a3bu[vts_atxmega256a3bu] = { // ATxmega256A3BU
   "USB_TRNCOMPL",               // 126: USB Transaction Complete
 };
 
-const char * const vtab_atxmega256a3u[vts_atxmega256a3u] = { // ATxmega256A3U, ATxmega192A3U, ATxmega128A3U, ATxmega64A3U
+// ATxmega256A3U ATxmega192A3U ATxmega128A3U ATxmega64A3U
+const char * const vtab_atxmega256a3u[vts_atxmega256a3u] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -4181,7 +4291,8 @@ const char * const vtab_atxmega256a3u[vts_atxmega256a3u] = { // ATxmega256A3U, A
   "USB_TRNCOMPL",               // 126: USB Transaction Complete
 };
 
-const char * const vtab_atxmega256c3[vts_atxmega256c3] = { // ATxmega256C3, ATxmega192C3, ATxmega128C3, ATxmega64C3, ATxmega32C3
+// ATxmega256C3 ATxmega192C3 ATxmega128C3 ATxmega64C3 ATxmega32C3
+const char * const vtab_atxmega256c3[vts_atxmega256c3] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -4311,7 +4422,8 @@ const char * const vtab_atxmega256c3[vts_atxmega256c3] = { // ATxmega256C3, ATxm
   "USB_TRNCOMPL",               // 126: USB Transaction Complete
 };
 
-const char * const vtab_atxmega384c3[vts_atxmega384c3] = { // ATxmega384C3
+// ATxmega384C3
+const char * const vtab_atxmega384c3[vts_atxmega384c3] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -4441,7 +4553,8 @@ const char * const vtab_atxmega384c3[vts_atxmega384c3] = { // ATxmega384C3
   "USB_TRNCOMPL",               // 126: USB Transaction Complete
 };
 
-const char * const vtab_atxmega384d3[vts_atxmega384d3] = { // ATxmega384D3, ATxmega256D3, ATxmega192D3, ATxmega128D3, ATxmega64D3, ATxmega32D3
+// ATxmega384D3 ATxmega256D3 ATxmega192D3 ATxmega128D3 ATxmega64D3 ATxmega32D3
+const char * const vtab_atxmega384d3[vts_atxmega384d3] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -4558,7 +4671,8 @@ const char * const vtab_atxmega384d3[vts_atxmega384d3] = { // ATxmega384D3, ATxm
   "TCF0_CCD/TCF2_LCMPD",        // 113: TC F0 Compare or Capture D/TC F2 Low Byte Compare D
 };
 
-const char * const vtab_attiny402[vts_attiny402] = { // ATtiny402, ATtiny202
+// ATtiny402 ATtiny202
+const char * const vtab_attiny402[vts_attiny402] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4587,7 +4701,8 @@ const char * const vtab_attiny402[vts_attiny402] = { // ATtiny402, ATtiny202
   "NVMCTRL_EE",                 //  25: NVM EEPROM
 };
 
-const char * const vtab_attiny404[vts_attiny404] = { // ATtiny404, ATtiny204
+// ATtiny404 ATtiny204
+const char * const vtab_attiny404[vts_attiny404] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4616,7 +4731,8 @@ const char * const vtab_attiny404[vts_attiny404] = { // ATtiny404, ATtiny204
   "NVMCTRL_EE",                 //  25: NVM EEPROM
 };
 
-const char * const vtab_attiny406[vts_attiny406] = { // ATtiny406
+// ATtiny406
+const char * const vtab_attiny406[vts_attiny406] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4645,7 +4761,8 @@ const char * const vtab_attiny406[vts_attiny406] = { // ATtiny406
   "NVMCTRL_EE",                 //  25: NVM EEPROM
 };
 
-const char * const vtab_attiny412[vts_attiny412] = { // ATtiny412, ATtiny212
+// ATtiny412 ATtiny212
+const char * const vtab_attiny412[vts_attiny412] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4674,7 +4791,8 @@ const char * const vtab_attiny412[vts_attiny412] = { // ATtiny412, ATtiny212
   "NVMCTRL_EE",                 //  25: NVM EEPROM
 };
 
-const char * const vtab_attiny814[vts_attiny814] = { // ATtiny814, ATtiny414, ATtiny214
+// ATtiny814 ATtiny414 ATtiny214
+const char * const vtab_attiny814[vts_attiny814] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4703,7 +4821,8 @@ const char * const vtab_attiny814[vts_attiny814] = { // ATtiny814, ATtiny414, AT
   "NVMCTRL_EE",                 //  25: NVM EEPROM
 };
 
-const char * const vtab_attiny817[vts_attiny817] = { // ATtiny817, ATtiny816, ATtiny417, ATtiny416auto, ATtiny416
+// ATtiny817 ATtiny816 ATtiny417 ATtiny416auto ATtiny416
+const char * const vtab_attiny817[vts_attiny817] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4732,7 +4851,8 @@ const char * const vtab_attiny817[vts_attiny817] = { // ATtiny817, ATtiny816, AT
   "NVMCTRL_EE",                 //  25: NVM EEPROM
 };
 
-const char * const vtab_attiny1607[vts_attiny1607] = { // ATtiny1607, ATtiny1606, ATtiny1604, ATtiny807, ATtiny806, ATtiny804
+// ATtiny1607 ATtiny1606 ATtiny1604 ATtiny807 ATtiny806 ATtiny804
+const char * const vtab_attiny1607[vts_attiny1607] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4766,7 +4886,8 @@ const char * const vtab_attiny1607[vts_attiny1607] = { // ATtiny1607, ATtiny1606
   "NVMCTRL_EE",                 //  30: NVM EEPROM
 };
 
-const char * const vtab_attiny1614[vts_attiny1614] = { // ATtiny1614
+// ATtiny1614
+const char * const vtab_attiny1614[vts_attiny1614] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4800,7 +4921,8 @@ const char * const vtab_attiny1614[vts_attiny1614] = { // ATtiny1614
   "NVMCTRL_EE",                 //  30: NVM EEPROM
 };
 
-const char * const vtab_attiny3214[vts_attiny3214] = { // ATtiny3214
+// ATtiny3214
+const char * const vtab_attiny3214[vts_attiny3214] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4834,7 +4956,8 @@ const char * const vtab_attiny3214[vts_attiny3214] = { // ATtiny3214
   "NVMCTRL_EE",                 //  30: NVM EEPROM
 };
 
-const char * const vtab_attiny3217[vts_attiny3217] = { // ATtiny3217, ATtiny3216, ATtiny1617, ATtiny1616
+// ATtiny3217 ATtiny3216 ATtiny1617 ATtiny1616
+const char * const vtab_attiny3217[vts_attiny3217] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4868,7 +4991,11 @@ const char * const vtab_attiny3217[vts_attiny3217] = { // ATtiny3217, ATtiny3216
   "NVMCTRL_EE",                 //  30: NVM EEPROM
 };
 
-const char * const vtab_attiny3227[vts_attiny3227] = { // ATtiny3227, ATtiny3226, ATtiny3224, ATtiny1627, ATtiny1626, ATtiny1624, ATtiny827, ATtiny826, ATtiny824, ATtiny427, ATtiny426, ATtiny424
+/*
+ * ATtiny3227 ATtiny3226 ATtiny3224 ATtiny1627 ATtiny1626 ATtiny1624 ATtiny827 ATtiny826 ATtiny824
+ * ATtiny427 ATtiny426 ATtiny424
+ */
+const char * const vtab_attiny3227[vts_attiny3227] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4901,7 +5028,8 @@ const char * const vtab_attiny3227[vts_attiny3227] = { // ATtiny3227, ATtiny3226
   "NVMCTRL_EE",                 //  29: NVM EEPROM
 };
 
-const char * const vtab_atmega4808[vts_atmega4808] = { // ATmega4808, ATmega3208, ATmega1608, ATmega808
+// ATmega4808 ATmega3208 ATmega1608 ATmega808
+const char * const vtab_atmega4808[vts_atmega4808] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4940,7 +5068,8 @@ const char * const vtab_atmega4808[vts_atmega4808] = { // ATmega4808, ATmega3208
   "PORTE_PORT",                 //  35: Interrupt PORT E
 };
 
-const char * const vtab_atmega4809[vts_atmega4809] = { // ATmega4809, ATmega3209, ATmega1609, ATmega809
+// ATmega4809 ATmega3209 ATmega1609 ATmega809
+const char * const vtab_atmega4809[vts_atmega4809] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4983,7 +5112,11 @@ const char * const vtab_atmega4809[vts_atmega4809] = { // ATmega4809, ATmega3209
   "USART3_TXC",                 //  39: USART 3 Transmit Complete
 };
 
-const char * const vtab_avr64dd32[vts_avr64dd32] = { // AVR64DD32, AVR64DD28, AVR64DD20, AVR64DD14, AVR32DD32, AVR32DD28, AVR32DD20, AVR32DD14, AVR16DD32, AVR16DD28, AVR16DD20, AVR16DD14
+/*
+ * AVR64DD32 AVR64DD28 AVR64DD20 AVR64DD14 AVR32DD32 AVR32DD28 AVR32DD20 AVR32DD14 AVR16DD32
+ * AVR16DD28 AVR16DD20 AVR16DD14
+ */
+const char * const vtab_avr64dd32[vts_avr64dd32] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5022,7 +5155,8 @@ const char * const vtab_avr64dd32[vts_avr64dd32] = { // AVR64DD32, AVR64DD28, AV
   "NVMCTRL_EE",                 //  35: NVM EEPROM
 };
 
-const char * const vtab_avr64ea32[vts_avr64ea32] = { // AVR64EA32, AVR64EA28
+// AVR64EA32 AVR64EA28
+const char * const vtab_avr64ea32[vts_avr64ea32] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5062,7 +5196,8 @@ const char * const vtab_avr64ea32[vts_avr64ea32] = { // AVR64EA32, AVR64EA28
   "USART2_TXC",                 //  36: USART 2 Transmit Complete
 };
 
-const char * const vtab_avr64ea48[vts_avr64ea48] = { // AVR64EA48
+// AVR64EA48
+const char * const vtab_avr64ea48[vts_avr64ea48] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5110,7 +5245,8 @@ const char * const vtab_avr64ea48[vts_avr64ea48] = { // AVR64EA48
   "PORTB_PORT",                 //  44: Interrupt PORT B
 };
 
-const char * const vtab_avr128da28[vts_avr128da28] = { // AVR128DA28, AVR64DA28, AVR32DA28
+// AVR128DA28 AVR64DA28 AVR32DA28
+const char * const vtab_avr128da28[vts_avr128da28] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5154,7 +5290,8 @@ const char * const vtab_avr128da28[vts_avr128da28] = { // AVR128DA28, AVR64DA28,
   "AC2_AC",                     //  40: AC2 AC Interrupt
 };
 
-const char * const vtab_avr128db28[vts_avr128db28] = { // AVR128DB28, AVR64DB28, AVR32DB28
+// AVR128DB28 AVR64DB28 AVR32DB28
+const char * const vtab_avr128db28[vts_avr128db28] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5199,7 +5336,8 @@ const char * const vtab_avr128db28[vts_avr128db28] = { // AVR128DB28, AVR64DB28,
   "AC2_AC",                     //  41: AC2 AC Interrupt
 };
 
-const char * const vtab_avr128da32[vts_avr128da32] = { // AVR128DA32, AVR64DA32, AVR32DA32
+// AVR128DA32 AVR64DA32 AVR32DA32
+const char * const vtab_avr128da32[vts_avr128da32] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5246,7 +5384,8 @@ const char * const vtab_avr128da32[vts_avr128da32] = { // AVR128DA32, AVR64DA32,
   "TWI1_TWIM",                  //  43: 2-Wire Interface 1 Controller
 };
 
-const char * const vtab_avr128db32[vts_avr128db32] = { // AVR128DB32, AVR64DB32, AVR32DB32
+// AVR128DB32 AVR64DB32 AVR32DB32
+const char * const vtab_avr128db32[vts_avr128db32] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5293,7 +5432,8 @@ const char * const vtab_avr128db32[vts_avr128db32] = { // AVR128DB32, AVR64DB32,
   "TWI1_TWIM",                  //  43: 2-Wire Interface 1 Controller
 };
 
-const char * const vtab_avr128da48[vts_avr128da48] = { // AVR128DA48, AVR64DA48, AVR32DA48
+// AVR128DA48 AVR64DA48 AVR32DA48
+const char * const vtab_avr128da48[vts_avr128da48] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5354,7 +5494,8 @@ const char * const vtab_avr128da48[vts_avr128da48] = { // AVR128DA48, AVR64DA48,
   "USART4_TXC",                 //  57: USART 4 Transmit Complete
 };
 
-const char * const vtab_avr128db48[vts_avr128db48] = { // AVR128DB48, AVR64DB48, AVR32DB48
+// AVR128DB48 AVR64DB48 AVR32DB48
+const char * const vtab_avr128db48[vts_avr128db48] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5418,7 +5559,8 @@ const char * const vtab_avr128db48[vts_avr128db48] = { // AVR128DB48, AVR64DB48,
   "ZCD2_ZCD",                   //  60: Zero Cross Detect 2
 };
 
-const char * const vtab_avr128da64[vts_avr128da64] = { // AVR128DA64, AVR64DA64
+// AVR128DA64 AVR64DA64
+const char * const vtab_avr128da64[vts_avr128da64] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5485,7 +5627,8 @@ const char * const vtab_avr128da64[vts_avr128da64] = { // AVR128DA64, AVR64DA64
   "USART5_TXC",                 //  63: USART 5 Transmit Complete
 };
 
-const char * const vtab_avr128db64[vts_avr128db64] = { // AVR128DB64, AVR64DB64
+// AVR128DB64 AVR64DB64
+const char * const vtab_avr128db64[vts_avr128db64] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
