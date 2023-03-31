@@ -1208,8 +1208,7 @@ The default value is 100ms. Using 10ms might work in most cases.
 @cindex @code{-x} Micronucleus bootloader
 @item Micronucleus bootloader
 
-When using the Micronucleus programmer type, the
-following optional extended parameter is accepted:
+The Micronucleus programmer type accepts the following extended parameter:
 @table @code
 @item @samp{wait=@var{timeout}}
 If the device is not connected, wait for the device to be plugged in.
@@ -1221,8 +1220,7 @@ device is plugged in.
 @cindex @code{-x} Teensy bootloader
 @item Teensy bootloader
 
-When using the Teensy programmer type, the
-following optional extended parameter is accepted:
+The Teensy programmer type accepts the following extended parameter:
 @table @code
 @item @samp{wait=@var{timeout}}
 If the device is not connected, wait for the device to be plugged in.
@@ -1234,8 +1232,7 @@ device is plugged in.
 @cindex @code{-x} Wiring
 @item Wiring
 
-When using the Wiring programmer type, the
-following optional extended parameter is accepted:
+The Wiring programmer type accepts the following extended parameter:
 @table @code
 @item @samp{snooze=@var{0..32767}}
 After performing the port open phase, AVRDUDE will wait/snooze for
@@ -1256,7 +1253,7 @@ Connection to the PICkit2 programmer:
 @item @code{OSI} @tab      @code{AUX (6) }
 @end multitable
 
-Extended command line parameters:
+The PICkit2 programmer type accepts the following extended parameters:
 @table @code
 @item @samp{clockrate=@var{rate}}
 Sets the SPI clocking rate in Hz (default is 100kHz). Alternately the -B or -i options can be used to set the period.
@@ -1266,7 +1263,8 @@ Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
 
 @cindex @code{-x} USBasp
 @item USBasp
-Extended parameters:
+
+The USBasp programmer type accepts the following extended parameter:
 @table @code
 @item @samp{section_config}
 Programmer will erase
@@ -1277,7 +1275,8 @@ Only applicable to TPI devices (ATtiny 4/5/9/10/20/40).
 
 @cindex @code{-x} xbee
 @item xbee
-Extended parameters:
+
+The xbee programmer type accepts the following extended parameter:
 @table @code
 @item @samp{xbeeresetpin=@var{1..7}}
 Select the XBee pin @code{DIO<1..7>} that is connected to the MCU's
@@ -1294,7 +1293,8 @@ the MCU's ‘TXD’ line.
 
 @cindex @code{-x} serialupdi
 @item serialupdi
-Extended parameters:
+
+The serialupdi programmer type accepts the following extended parameter:
 @table @code
 @item @samp{rtsdtr=low|high}
 Forces RTS/DTR lines to assume low or high state during the whole
@@ -1307,7 +1307,8 @@ When not provided, driver/OS default value will be used.
 
 @cindex @code{-x} linuxspi
 @item linuxspi
-Extended parameter:
+
+The linuxspi programmer type accepts the following extended parameter:
 @table @code
 @item @samp{disable_no_cs}
 Ensures the programmer does not use the SPI_NO_CS bit for the SPI

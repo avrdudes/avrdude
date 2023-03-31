@@ -1434,7 +1434,6 @@ SCLK -   PDC (5)
 SDO  -   AUX (6)
 
 .Ed
-Extended commandline parameters:
 .Bl -tag -offset indent -width indent
 .It Ar clockrate=<rate>
 Sets the SPI clocking rate in Hz (default is 100kHz). Alternately the -B or -i options can be used to set the period.
@@ -1442,7 +1441,6 @@ Sets the SPI clocking rate in Hz (default is 100kHz). Alternately the -B or -i o
 Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
 .El
 .It Ar USBasp
-Extended parameters:
 .Bl -tag -offset indent -width indent
 .It Ar section_config
 Programmer will erase configuration section with option
@@ -1451,7 +1449,6 @@ Programmer will erase configuration section with option
 Only applicable to TPI devices (ATtiny 4/5/9/10/20/40).
 .El
 .It Ar xbee
-Extended parameters:
 .Bl -tag -offset indent -width indent
 .It Ar xbeeresetpin=<1..7>
 Select the XBee pin DIO<1..7> that is connected to the MCU's
@@ -1474,7 +1471,6 @@ Specify how many connection retry attemps to perform before exiting.
 Defaults to 10 if not specified.
 .El
 .It Ar serialupdi
-Extended parameters:
 .Bl -tag -offset indent -width indent
 .It Ar rtsdtr=low|high
 Forces RTS/DTR lines to assume low or high state during the whole
@@ -1485,7 +1481,6 @@ specific.
 When not provided, driver/OS default value will be used.
 .El
 .It Ar linuxspi
-Extended parameter:
 .Bl -tag -offset indent -width indent
 .It Ar disable_no_cs
 Ensures the programmer does not use the SPI_NO_CS bit for the SPI
