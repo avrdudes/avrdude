@@ -161,19 +161,19 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
 
         // Determine required size first
         va_start(ap, format);
-        int size = vsnprintf(NULL, 0, format, ap);
+        rc = vsnprintf(NULL, 0, format, ap);
         va_end(ap);
 
-        if(size < 0)            // Some errror?
+        if(rc < 0)              // Some errror?
           return 0;
 
-        size++;                 // Accommodate terminating nul
-        char *p = cfg_malloc(__func__, size);
+        rc++;                   // Accommodate terminating nul
+        char *p = cfg_malloc(__func__, rc);
         va_start(ap, format);
-        size = vsnprintf(p, size, format, ap);
+        rc = vsnprintf(p, rc, format, ap);
         va_end(ap);
 
-        if(size < 0) {
+        if(rc < 0) {
           free(p);
           return 0;
         }
