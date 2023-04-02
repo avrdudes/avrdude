@@ -1603,8 +1603,8 @@ Start reading from @var{addr}, all the way to the last memory address (deprecate
 @item dump @var{memtype} @dots{}
 Read all bytes from the specified memory, and display them (deprecated: use @code{dump @var{memtype} 0 -1}).
 
-@item read, d, r
-Each of these can be used as an alias for dump.
+@item read
+Can be used as an alias for dump.
 
 @item write @var{memtype} @var{addr} @var{data[,]} @{@var{data[,]}@}
 Manually program the respective memory cells, starting at address
@@ -1759,6 +1759,9 @@ Give a short on-line summary of the available commands.
 
 @item quit
 Leave terminal mode and thus AVRDUDE.
+
+@item q
+Can be used as an alias for @code{quit}.
 
 @end table
 
