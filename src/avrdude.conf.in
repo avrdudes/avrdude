@@ -31,6 +31,7 @@
 #       reset    = <pin> ;                        # pin number
 #       sck      = <pin> ;                        # pin number
 #       sdo      = <pin> ;                        # pin number
+#       sii      = <pin> ;                        # pin number
 #       sdi      = <pin> ;                        # pin number
 #       errled   = <pin> ;                        # pin number
 #       rdyled   = <pin> ;                        # pin number
@@ -608,6 +609,22 @@ programmer
     sck                    = 1;
     sdo                    = 2;
     sdi                    = 11;
+;
+
+#------------------------------------------------------------
+# dapa_hvsp
+#------------------------------------------------------------
+
+programmer
+    id                     = "dapa_hvsp";
+    desc                   = "Direct AVR Parallel Access cable for HVSP mode";
+    type                   = "par";
+    prog_modes             = PM_HVSP;
+    reset                  = 16;	/* RESET (0V) on HIGH and 12V on LOW */
+    sck                    = 1;	/* SCI in HVSP */
+    sdo                    = 2;	/* SDI in HVSP */
+    sii                    = 3;
+    sdi                    = 11;	/* SDO in HVSP */
 ;
 
 #------------------------------------------------------------
