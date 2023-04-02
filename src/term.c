@@ -365,7 +365,7 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   report_progress(1, 1, NULL);
 
   hexdump_buf(stdout, mem, read_mem[i].addr, buf, read_mem[i].len);
-  term_out("\n");
+  term_out("\v");
 
   free(buf);
 
@@ -744,7 +744,7 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     len + data.bytes_grown, update_plural(len + data.bytes_grown), (long) addr);
   if (write_mode == WRITE_MODE_FILL)
     msg_notice2("; remaining space filled with %s", argv[argc - 2]);
-  msg_notice2("\n");
+  msg_notice2("\v");
 
   pgm->err_led(pgm, OFF);
   bool werror = false;
@@ -959,9 +959,9 @@ static int cmd_pgerase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 
 static int cmd_part(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
-  term_out("\n");
+  term_out("\v");
   avr_display(stdout, p, "", 0);
-  term_out("\n");
+  term_out("\v");
 
   return 0;
 }
@@ -1003,7 +1003,7 @@ static int cmd_quit(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 static int cmd_parms(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   pgm->print_parms(pgm, stdout);
-  term_out("\n");
+  term_out("\v");
   return 0;
 }
 
@@ -1135,7 +1135,7 @@ static int cmd_help(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     "Note that not all programmer derivatives support all commands. Flash and\n"
     "EEPROM type memories are normally read and written using a cache via paged\n"
     "read and write access; the cache is synchronised on quit or flush commands.\n"
-    "The part command displays valid memory types for use with dump and write.\n\n");
+    "The part command displays valid memory types for use with dump and write.\n");
   return 0;
 }
 
@@ -1454,7 +1454,7 @@ void term_gotline(char *cmdstr) {
     }
   } else {
     // End of file or terminal ^D
-    term_out("\n");
+    term_out("\v");
     cmd_quit(term_pgm, term_p, 0, NULL);
     term_running = 0;
   }
@@ -1522,7 +1522,7 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
   setvbuf(stderr, (char *) NULL, _IONBF, 0);
 
   if(hdr) {
-    msg_info("\n");
+    msg_info("\v");
     last = done = 0;
     if(header)
       free(header);
@@ -1546,7 +1546,7 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
     msg_info("\r%s | %s | %d%% %0.2f s ", header, hashes, showperc, etime);
     if(percent == 100) {
       if(finish)
-        msg_info("\n\n");
+        msg_info("\v");
       done = 1;
     }
   }
