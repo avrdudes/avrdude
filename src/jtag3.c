@@ -38,6 +38,7 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
+#include "strutil.h"
 
 #include "crc16.h"
 #include "jtag3.h"
@@ -190,15 +191,6 @@ u16_to_b2_big_endian(unsigned char *b, unsigned short l)
 {
   b[0] = (l >> 8) & 0xff;
   b[1] = l & 0xff;
-}
-
-static bool str_starts(const char *s, const char *pat)
-{
-  return strncmp(s, pat, strlen(pat)) == 0;
-}
-
-static bool str_eq(const char *str1, const char *str2) {
-  return strncmp(str1, str2, strlen(str1)) == 0;
 }
 
 static void jtag3_print_data(unsigned char *b, size_t s)

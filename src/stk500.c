@@ -38,6 +38,7 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
+#include "strutil.h"
 
 #include "stk500.h"
 #include "stk500_private.h"
@@ -576,7 +577,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
        continue;
      }
 
-    else if (strncmp(extended_param, "help", strlen("help")) == 0) {
+    else if (str_eq(extended_param, "help")) {
       char *prg = (char *)ldata(lfirst(pgm->id));
       msg_error("%s -c %s extended options:\n", progname, prg);
       msg_error("  -xattempts=<arg>     Specify no. connection retry attempts\n");

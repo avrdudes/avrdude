@@ -44,6 +44,7 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
+#include "strutil.h"
 
 #include "crc16.h"
 #include "jtagmkII.h"
@@ -1394,11 +1395,10 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
       continue;
     }
 
-    else if (strncmp(extended_param, "help", strlen("help")) == 0) {
+    else if (str_eq(extended_param, "help")) {
       char *prg = (char *)ldata(lfirst(pgm->id));
       msg_error("%s -c %s extended options:\n", progname, prg);
-      if (strncmp(pgm->type, "JTAGMKII", strlen(prg)) == 0 ||
-          strncmp(pgm->type, "DRAGON_JTAG", strlen(prg)) == 0)
+      if (str_eq(pgm->type, "JTAGMKII") || str_eq(pgm->type, "DRAGON_JTAG"))
         msg_error("  -xjtagchain=<arg>    Setup the JTAG scan chain order\n");
       msg_error(  "  -xhelp               Show this help menu and exit\n");
       exit(0);

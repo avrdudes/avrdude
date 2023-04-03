@@ -49,6 +49,7 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
+#include "strutil.h"
 
 #include "stk500_private.h"	// temp until all code converted
 #include "stk500v2.h"
@@ -1619,10 +1620,10 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
       }
     }
 
-    else if (strncmp(extended_param, "help", strlen("help")) == 0) {
+    else if (str_eq(extended_param, "help")) {
       char *prg = (char *)ldata(lfirst(pgm->id));
       msg_error("%s -c %s extended options:\n", progname, prg);
-      if (strncmp(prg, "xplainedmini", strlen("xplainedmini")) == 0) {
+      if (str_starts(prg, "xplainedmini")) {
         msg_error("  -xsuffer             Read SUFFER register value\n");
         msg_error("  -xsuffer=<arg>       Set SUFFER register value\n");
         msg_error("  -xvtarg_switch       Read on‐board target voltage switch state\n");
