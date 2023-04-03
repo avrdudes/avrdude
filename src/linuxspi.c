@@ -28,6 +28,7 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
+#include "strutil.h"
 
 #include "linuxspi.h"
 
@@ -403,9 +404,16 @@ static int linuxspi_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
 
-    if (strcmp(extended_param, "disable_no_cs") == 0) {
+    if (str_starts(extended_param, "disable_no_cs")) {
       PDATA(pgm)->disable_no_cs = 1;
       continue;
+    }
+    if (str_eq(extended_param, "help")) {
+      char *prg = (char *)ldata(lfirst(pgm->id));
+      msg_error("%s -c %s extended options:\n", progname, prg);
+      msg_error("  -xdisable_no_cs      Do not use the SPI_NO_CS bit for the SPI driver\n");
+      msg_error("  -xhelp               Show this help menu and exit\n");
+      exit(0);
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);

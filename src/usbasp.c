@@ -36,6 +36,7 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
+#include "strutil.h"
 
 #include "usbasp.h"
 #include "usbdevs.h"
@@ -282,10 +283,17 @@ static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
 
-    if (strncmp(extended_param, "section_config", strlen("section_config")) == 0) {
+    if (str_eq(extended_param, "section_config")) {
       pmsg_notice2("usbasp_parseextparms(): set section_e to 1 (config section)\n");
       PDATA(pgm)->section_e = 1;
       continue;
+    }
+    if (str_eq(extended_param, "help")) {
+      char *prg = (char *)ldata(lfirst(pgm->id));
+      msg_error("%s -c %s extended options:\n", progname, prg);
+      msg_error("  -xsection_config     Erase configuration section only with -e (TPI only)\n");
+      msg_error("  -xhelp               Show this help menu and exit\n");
+      exit(0);
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);

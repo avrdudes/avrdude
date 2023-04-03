@@ -37,6 +37,7 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
+#include "strutil.h"
 
 #include "avr910.h"
 
@@ -313,7 +314,7 @@ static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
 
-    if (strncmp(extended_param, "devcode=", strlen("devcode=")) == 0) {
+    if (str_starts(extended_param, "devcode=")) {
       int devcode;
       if (sscanf(extended_param, "devcode=%i", &devcode) != 1 ||
 	  devcode <= 0 || devcode > 255) {
@@ -326,11 +327,19 @@ static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 
       continue;
     }
-    if (strncmp(extended_param, "no_blockmode", strlen("no_blockmode")) == 0) {
+    if (str_eq(extended_param, "no_blockmode")) {
       pmsg_notice2("avr910_parseextparms(-x): no testing for Blockmode\n");
       PDATA(pgm)->test_blockmode = 0;
 
       continue;
+    }
+    if (str_eq(extended_param, "help")) {
+      char *prg = (char *)ldata(lfirst(pgm->id));
+      msg_error("%s -c %s extended options:\n", progname, prg);
+      msg_error("  -xdevcode=<arg>      Override device code\n");
+      msg_error("  -xno_blockmode       Disable default checking for block transfer capability\n");
+      msg_error("  -xhelp               Show this help menu and exit\n");
+      exit(0);
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);
