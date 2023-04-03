@@ -836,7 +836,7 @@ static int cmd_send(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   term_out("results:");
   for (i=0; i<len; i++)
     term_out(" %02x", res[i]);
-  term_out("\n\n");
+  term_out("\n");
 
   return 0;
 }
@@ -985,7 +985,7 @@ static int cmd_sig(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     term_out("Device signature = 0x");
     for (i=0; i<m->size; i++)
       term_out("%02x", m->buf[i]);
-    term_out("\n\n");
+    term_out("\n");
   }
 
   return 0;
@@ -1563,7 +1563,7 @@ static void update_progress_no_tty(int percent, double etime, const char *hdr, i
   percent = percent > 100? 100: percent < 0? 0: percent;
 
   if(hdr) {
-    msg_info("\n%s | ", hdr);
+    msg_info("\v%s | ", hdr);
     last = done = 0;
   }
 
@@ -1574,7 +1574,7 @@ static void update_progress_no_tty(int percent, double etime, const char *hdr, i
     if(percent == 100) {
       msg_info(" | %d%% %0.2fs", finish >= 0? 100: last, etime);
       if(finish)
-        msg_info("\n\n");
+        msg_info("\v");
       done = 1;
     }
   }

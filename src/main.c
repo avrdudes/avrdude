@@ -1285,7 +1285,7 @@ int main(int argc, char * argv [])
     programmer_display(pgm, progbuf);
   }
 
-  msg_info("\n");
+  msg_info("\v");
 
   exitrc = 0;
 
@@ -1319,7 +1319,7 @@ int main(int argc, char * argv [])
       imsg_error("- use -B to set lower the bit clock frequency, e.g. -B 125kHz\n");
 
     if (!ovsigck) {
-      imsg_error("- use -F to override this check\n\n");
+      imsg_error("- use -F to override this check\n");
       exitrc = 1;
       goto main_exit;
     }
