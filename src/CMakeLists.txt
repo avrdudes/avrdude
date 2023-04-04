@@ -153,6 +153,8 @@ add_library(libavrdude
     buspirate.h
     butterfly.c
     butterfly.h
+    ch341a.c
+    ch341a.h
     config.c
     config.h
     confwin.c
@@ -230,8 +232,6 @@ add_library(libavrdude
     urclock_private.h
     usbasp.c
     usbasp.h
-    ch341a.c
-    ch341a.h
     usbdevs.h
     usb_hidapi.c
     usb_libusb.c

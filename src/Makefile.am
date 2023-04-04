@@ -106,6 +106,8 @@ libavrdude_a_SOURCES = \
 	buspirate.h \
 	butterfly.c \
 	butterfly.h \
+	ch341a.c \
+	ch341a.h \
 	config.c \
 	config.h \
 	confwin.c \
@@ -169,8 +171,6 @@ libavrdude_a_SOURCES = \
 	tpi.h \
 	usbasp.c \
 	usbasp.h \
-	ch341a.c \
-	ch341a.h \
 	serialupdi.c \
 	serialupdi.h \
 	updi_constants.h \
