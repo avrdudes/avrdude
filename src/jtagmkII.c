@@ -44,7 +44,6 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
-#include "strutil.h"
 
 #include "crc16.h"
 #include "jtagmkII.h"

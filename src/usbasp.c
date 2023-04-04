@@ -36,7 +36,6 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
-#include "strutil.h"
 
 #include "usbasp.h"
 #include "usbdevs.h"

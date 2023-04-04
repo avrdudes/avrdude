@@ -46,7 +46,6 @@
 #include <unistd.h>
 #include <time.h>
 #include "avrdude.h"
-#include "strutil.h"
 #include "micronucleus.h"
 #include "usbdevs.h"
 

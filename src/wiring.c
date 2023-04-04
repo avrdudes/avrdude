@@ -47,7 +47,6 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
-#include "strutil.h"
 
 #include "stk500v2_private.h"
 #include "stk500v2.h"

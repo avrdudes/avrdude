@@ -53,7 +53,6 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
-#include "strutil.h"
 
 #if defined(HAVE_LIBUSB) || defined(WIN32)
 

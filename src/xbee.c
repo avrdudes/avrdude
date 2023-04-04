@@ -39,7 +39,7 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
-#include "strutil.h"
+
 #include "stk500_private.h"
 #include "stk500.h"
 #include "xbee.h"

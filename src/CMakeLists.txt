@@ -219,7 +219,6 @@ add_library(libavrdude
     stk500generic.c
     stk500generic.h
     strutil.c
-    strutil.h
     teensy.c
     teensy.h
     tpi.h

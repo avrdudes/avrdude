@@ -1,8 +1,7 @@
 
+#include "ac_cfg.h"
 #include <string.h>
-#include <stdint.h>
-
-#include "strutil.h"
+#include "libavrdude.h"
 
 int str_starts(const char *str, const char *starts) {
   return strncmp(str, starts, strlen(starts)) == 0;

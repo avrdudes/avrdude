@@ -37,7 +37,6 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
-#include "strutil.h"
 
 #include "avr910.h"
 

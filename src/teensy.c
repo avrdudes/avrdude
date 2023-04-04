@@ -44,7 +44,6 @@
 #include <unistd.h>
 #include <time.h>
 #include "avrdude.h"
-#include "strutil.h"
 #include "teensy.h"
 #include "usbdevs.h"
 

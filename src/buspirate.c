@@ -44,7 +44,6 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
-#include "strutil.h"
 
 #include "bitbang.h"
 #include "buspirate.h"

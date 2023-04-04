@@ -36,7 +36,7 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
-#include "strutil.h"
+
 #include "serialupdi.h"
 #include "updi_link.h"
 #include "updi_state.h"
