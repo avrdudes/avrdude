@@ -1326,34 +1326,19 @@ STK500 programmer connected to the default serial port:
 % avrdude -p m128 -c stk500 -e -U flash:w:diag.hex 
 
 avrdude: AVR device initialized and ready to accept instructions
-
-Reading | ################################################## | 100% 0.03s
-
-avrdude: Device signature = 0x1e9702
+avrdude: device signature = 0x1e9702 (probably m128)
 avrdude: erasing chip
-avrdude: done.
-avrdude: performing op: 1, flash, 0, diag.hex
-avrdude: reading input file "diag.hex"
-avrdude: input file diag.hex auto detected as Intel Hex
-avrdude: writing flash (19278 bytes):
-
-Writing | ################################################## | 100% 7.60s
-
-avrdude: 19456 bytes of flash written
-avrdude: verifying flash memory against diag.hex:
-avrdude: load data flash data from input file diag.hex:
-avrdude: input file diag.hex auto detected as Intel Hex
-avrdude: input file diag.hex contains 19278 bytes
-avrdude: reading on-chip flash data:
-
-Reading | ################################################## | 100% 6.83s
-
-avrdude: verifying ...
+avrdude: reading input file diag.hex for flash
+         with 19278 bytes in 74 section within [0, 0x4b4e]
+avrdude: writing 19278 bytes flash ...
+Writing | ################################################## | 100% 7.60 s
+avrdude: 19278 bytes of flash written
+avrdude: verifying flash memory against diag.hex
+Reading | ################################################## | 100% 6.83 s
 avrdude: 19278 bytes of flash verified
 
 avrdude done.  Thank you.
 
-%
 @end cartouche
 @end smallexample
 
@@ -1368,68 +1353,49 @@ programmer and save it in raw binary format in the file named
 % avrdude -p m128 -c stk500 -U flash:r:"c:/diag flash.bin":r 
 
 avrdude: AVR device initialized and ready to accept instructions
-
-Reading | ################################################## | 100% 0.03s
-
-avrdude: Device signature = 0x1e9702
-avrdude: reading flash memory:
-
+avrdude: device signature = 0x1e9702 (probably m128)
+avrdude: reading flash memory ...
 Reading | ################################################## | 100% 46.10s
-
-avrdude: writing output file "c:/diag flash.bin"
+avrdude: writing output file c:/diag flash.bin
 
 avrdude done.  Thank you.
 
-% 
 @end cartouche
 @end smallexample
 
 @page
 @noindent
 Using the default programmer, download the file @code{diag.hex} to
-flash, @code{eeprom.hex} to EEPROM, and set the Extended, High, and Low
+flash, @code{eeprom.hex} to EEPROM, and set the extended, high, and low
 fuse bytes to 0xff, 0x89, and 0x2e respectively:
 
 @smallexample
 @cartouche
 
-% avrdude -p m128 -u -U flash:w:diag.hex \
+% avrdude -p m128 -U flash:w:diag.hex    \
 >                 -U eeprom:w:eeprom.hex \
 >                 -U efuse:w:0xff:m      \
 >                 -U hfuse:w:0x89:m      \
 >                 -U lfuse:w:0x2e:m
 
 avrdude: AVR device initialized and ready to accept instructions
-
-Reading | ################################################## | 100% 0.03s
-
-avrdude: Device signature = 0x1e9702
-avrdude: NOTE: FLASH memory has been specified, an erase cycle will be performed
+avrdude: device signature = 0x1e9702 (probably m128)
+avrdude: Note: flash memory has been specified, an erase cycle will be performed.
          To disable this feature, specify the -D option.
 avrdude: erasing chip
-avrdude: reading input file "diag.hex"
-avrdude: input file diag.hex auto detected as Intel Hex
-avrdude: writing flash (19278 bytes):
-
-Writing | ################################################## | 100% 7.60s
-
-avrdude: 19456 bytes of flash written
-avrdude: verifying flash memory against diag.hex:
-avrdude: load data flash data from input file diag.hex:
-avrdude: input file diag.hex auto detected as Intel Hex
-avrdude: input file diag.hex contains 19278 bytes
-avrdude: reading on-chip flash data:
-
-Reading | ################################################## | 100% 6.84s
-
-avrdude: verifying ...
+avrdude: reading input file diag.hex for flash
+         with 19278 bytes in 74 section within [0, 0x4b4e]
+avrdude: writing 19278 bytes flash ...
+Writing | ################################################## | 100% 7.60 s
+avrdude: 19278 bytes of flash written
+avrdude: verifying flash memory against diag.hex
+Reading | ################################################## | 100% 6.83 s
 avrdude: 19278 bytes of flash verified
 
 [ ... other memory status output skipped for brevity ... ]
 
 avrdude done.  Thank you.
 
-% 
 @end cartouche
 @end smallexample
 
@@ -1444,9 +1410,6 @@ USB, and enter terminal mode:
 % avrdude -c jtag2 -p m649 -P usb:1c:37 -t
 
 avrdude: AVR device initialized and ready to accept instructions
-
-Reading | ################################################## | 100% 0.03s
-
 avrdude: Device signature = 0x1e9603
 
 [ ... terminal mode output skipped for brevity ... ]
