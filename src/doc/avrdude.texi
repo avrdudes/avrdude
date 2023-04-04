@@ -1843,8 +1843,8 @@ Display part parameters, modify eeprom cells, perform a chip erase:
 
 avrdude: AVR device initialized and ready to accept instructions
 avrdude: device signature = 0x1e950f (probably m328p)
-avrdude> part
 
+avrdude> part
 AVR Part                      : ATmega328P
 Chip Erase delay              : 9000 us
 PAGEL                         : PD7
@@ -1874,21 +1874,14 @@ Memory Detail                 :
   calibration             0     0     0    0 no          1    1      0     0     0 0x00 0x00
 
 avrdude> dump eeprom 0 16
-
 Reading | ################################################## | 100% 0.01 s
-
 0000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
 
-
 avrdude> write eeprom 0 1 2 3 4 0xcafe "Avrdude"
-
 Caching | ################################################## | 100% 0.00 s
 
-
 avrdude> dump eeprom 0 16
-
 Reading | ################################################## | 100% 0.00 s
-
 0000  01 02 03 04 fe ca 41 76  72 64 75 64 65 00 ff ff  |......Avrdude...|
 
 avrdude> flush
@@ -1899,12 +1892,13 @@ avrdude> erase
 erasing chip ...
 
 avrdude> dump eeprom 0 16
-
 Reading | ################################################## | 100% 0.00 s
-
 0000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
 
 avrdude> quit
+
+avrdude done.  Thank you.
+
 @end cartouche
 @end smallexample
 
@@ -1919,37 +1913,32 @@ enable brown-out detection). First display the factory defaults, then reprogram:
 
 avrdude: AVR device initialized and ready to accept instructions
 avrdude: device signature = 0x1e950f (probably m328p)
+
 avrdude> dump efuse
-
 Reading | ################################################## | 100% 0.00 s
-
 0000  ff                                                |.               |
 
 avrdude> dump hfuse
-
 Reading | ################################################## | 100% 0.00 s
-
 0000  d9                                                |.               |
 
 avrdude> dump lfuse
-
 Reading | ################################################## | 100% 0.00 s
-
 0000  62                                                |b               |
 
 avrdude> write efuse 0xfd
-
 Writing | ################################################## | 100% 0.01 s
 
 avrdude> write hfuse 0xde
-
 Writing | ################################################## | 100% 0.01 s
 
 avrdude> write lfuse 0xf7
-
 Writing | ################################################## | 100% 0.01 s
 
 avrdude> quit
+
+avrdude done.  Thank you.
+
 @end cartouche
 @end smallexample
 
@@ -1963,39 +1952,30 @@ is used to fill up the indicated memory range.
 
 avrdude: AVR device initialized and ready to accept instructions
 avrdude: device signature = 0x1e950f (probably m328p)
+
 avrdude> dump flash -64 -33
-
 Reading | ################################################## | 100% 0.02 s
-
 7fc0  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
 7fd0  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
 
 avrdude> dump flash -32 -1
-
 Reading | ################################################## | 100% 0.00 s
-
 7fe0  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
 7ff0  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
 
 avrdude> write flash -64 1234567890 'A' 'V' 'R' 2.718282 0xaa 0xbb 0xcc "Hello World!"
-
 Caching | ################################################## | 100% 0.00 s
 
 avrdude> write flash -32 -1 0x01 0x02 0x03 0x04 0x05 ...
-
 Caching | ################################################## | 100% 0.00 s
 
 avrdude> read flash -64 -33
-
 Reading | ################################################## | 100% 0.00 s
-
 7fc0  d2 02 96 49 41 56 52 55  f8 2d 40 aa bb cc 48 65  |...IAVRU.-@@...He|
 7fd0  6c 6c 6f 20 57 6f 72 6c  64 21 00 ff ff ff ff ff  |llo World!......|
 
 avrdude> read flash -32 -1
-
 Reading | ################################################## | 100% 0.00 s
-
 7fe0  01 02 03 04 05 05 05 05  05 05 05 05 05 05 05 05  |................|
 7ff0  05 05 05 05 05 05 05 05  05 05 05 05 05 05 05 05  |................|
 
@@ -2006,6 +1986,7 @@ Writing | ################################################## | 100% 0.05 s
 avrdude> quit
 
 avrdude done.  Thank you.
+
 @end cartouche
 @end smallexample
 
