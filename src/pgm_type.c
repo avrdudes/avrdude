@@ -115,12 +115,9 @@ const PROGRAMMER_TYPE programmers_types[] = { // Name(s) the programmers call th
 const PROGRAMMER_TYPE * locate_programmer_type(const char * id)
 {
   const PROGRAMMER_TYPE * p = NULL;
-  int i;
-  int found;
+  int found = 0;
 
-  found = 0;
-
-  for (i = 0; i < sizeof(programmers_types)/sizeof(programmers_types[0]) && !found; i++) {
+  for(size_t i = 0; i < sizeof(programmers_types)/sizeof(programmers_types[0]) && !found; i++) {
     p = &(programmers_types[i]);
     if (strcasecmp(id, p->id) == 0)
         found = 1;
@@ -134,7 +131,7 @@ const PROGRAMMER_TYPE * locate_programmer_type(const char * id)
 
 // Return type id given the init function or "" if not found
 const char *locate_programmer_type_id(void (*initpgm)(PROGRAMMER *pgm)) {
-  for (int i=0; i < sizeof programmers_types/sizeof*programmers_types; i++)
+  for (size_t i=0; i < sizeof programmers_types/sizeof*programmers_types; i++)
     if(programmers_types[i].initpgm == initpgm)
       return programmers_types[i].id;
 
@@ -168,9 +165,8 @@ void walk_programmer_types(LISTID programmer_types, walk_programmer_types_cb cb,
 void walk_programmer_types(walk_programmer_types_cb cb, void *cookie)
 {
   const PROGRAMMER_TYPE * p;
-  int i;
 
-  for (i = 0; i < sizeof(programmers_types)/sizeof(programmers_types[0]); i++) {
+  for (size_t i = 0; i < sizeof(programmers_types)/sizeof(programmers_types[0]); i++) {
     p = &(programmers_types[i]);
     cb(p->id, p->desc, cookie);
   }

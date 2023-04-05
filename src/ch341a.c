@@ -38,14 +38,12 @@
 
 #if defined(HAVE_LIBUSB_1_0)
 
-#ifdef HAVE_LIBUSB_1_0
 #define USE_LIBUSB_1_0
 
 #if defined(HAVE_LIBUSB_1_0_LIBUSB_H)
 #include <libusb-1.0/libusb.h>
 #else
 #include <libusb.h>
-#endif
 #endif
 
 #include <sys/time.h>
@@ -196,7 +194,8 @@ bool CH341ChipSelect(const PROGRAMMER *pgm, unsigned int cs, bool enable) {
     cmd[1] = CH341A_CMD_UIO_STM_OUT | 0x37;
   cmd[2] = CH341A_CMD_UIO_STM_DIR | 0x3F;
   cmd[3] = CH341A_CMD_UIO_STM_END;
-  return CH341USBTransferPart(pgm, LIBUSB_ENDPOINT_OUT, cmd, 4);
+
+  return CH341USBTransferPart(pgm, LIBUSB_ENDPOINT_OUT, cmd, 4) > 0;
 }
 
 
@@ -251,9 +250,10 @@ static int ch341a_open(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
   if((r = libusb_claim_interface(PDATA(pgm)->usbhandle, 0))) {
-    msg_error("libusb_claim_interface failed, return value %d (%s)\n", r, libusb_error_name(r));
+    pmsg_error("libusb_claim_interface failed, return value %d (%s)\n", r, libusb_error_name(r));
     libusb_close(PDATA(pgm)->usbhandle);
     libusb_exit(ctx);
+    return -1;
   }
   return 0;
 }
@@ -272,16 +272,22 @@ static void ch341a_close(PROGRAMMER *pgm) {
 
 static int ch341a_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_trace("ch341a_initialize()\n");
-  CH341ChipSelect(pgm, 0, false);
+  if(!CH341ChipSelect(pgm, 0, false)) {
+    pmsg_error("CH341ChipSelect(..., false) failed\n");
+    return -1;
+  }
   usleep(20 * 1000);
-  CH341ChipSelect(pgm, 0, true);
+  if(!CH341ChipSelect(pgm, 0, true)) {
+    pmsg_error("CH341ChipSelect(..., true) failed\n");
+    return -1;
+  }
+
   return pgm->program_enable(pgm, p);
 }
 
 
 static int ch341a_spi(const PROGRAMMER *pgm, const unsigned char *in, unsigned char *out, int size) {
   unsigned char pkt[CH341A_PACKET_LENGTH];
-  unsigned int i;
 
   if(!size)
     return 0;
@@ -291,20 +297,20 @@ static int ch341a_spi(const PROGRAMMER *pgm, const unsigned char *in, unsigned c
 
   pkt[0] = CH341A_CMD_SPI_STREAM;
 
-  for(i = 0; i < size; i++)
+  for(int i = 0; i < size; i++)
     pkt[i+1] = swap_byte(in[i]);
 
   if(!CH341USBTransfer(pgm, LIBUSB_ENDPOINT_OUT, pkt, size + 1)) {
-    msg_error("failed to transfer data to CH341\n");
+    pmsg_error("failed to transfer data to CH341\n");
     return -1;
   }
 
   if(!CH341USBTransfer(pgm, LIBUSB_ENDPOINT_IN, pkt, size)) {
-    msg_error("failed to transfer data from CH341\n");
+    pmsg_error("failed to transfer data from CH341\n");
     return -1;
   }
 
-  for(i = 0; i < size; i++)
+  for(int i = 0; i < size; i++)
     out[i] = swap_byte(pkt[i]);
 
   return size;
@@ -456,7 +462,7 @@ void ch341a_initpgm(PROGRAMMER *pgm) {
 }
 
 // ----------------------------------------------------------------------
-#else // HAVE_LIBUSB
+#else // !defined(HAVE_LIBUSB_1_0)
 
 static int ch341a_nousb_open(struct programmer_t *pgm, const char *name) {
   pmsg_error("no usb support, please compile again with libusb installed\n");
@@ -467,6 +473,6 @@ void ch341a_initpgm(PROGRAMMER * pgm) {
   strcpy(pgm->type, "ch341a");
   pgm->open = ch341a_nousb_open;
 }
-#endif // HAVE_LIBUSB
+#endif // !defined(HAVE_LIBUSB_1_0)
 
 const char ch341a_desc[] = "Driver for \"ch341a\"-type programmers";
