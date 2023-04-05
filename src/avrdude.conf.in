@@ -1682,15 +1682,15 @@ programmer
 # ch341a
 #------------------------------------------------------------
 
-# Allows programming of AVR parts with F_CPU of min 5.6 MHz with the
-# CH431A chip http://www.wch-ic.com/downloads/CH341DS1_PDF.html
+# Allows programming of AVR parts with F_CPU of min 6.8 MHz with the
+# CH341A chip http://www.wch-ic.com/downloads/CH341DS1_PDF.html
 #
 # See also:
 # https://www.onetransistor.eu/2017/08/ch341a-mini-programmer-schematic.html
 #
 # Connection scheme:
 #  CH341A chip -- AVR ISP Connector
-#  ~CTS/D0/CS0 -- RESET
+#  ~CTS/D0/CS0 -- RESET (can be D1 or D2, see reset setting below)
 #  ~DCD/D3/DCK -- SCK
 # ~DTR/D5/DOUT -- SDO
 #  ~SLP/D7/DIN -- SDI
@@ -1699,7 +1699,7 @@ programmer
 
 programmer
     id                     = "ch341a";
-    desc                   = "ch341a programmer (target AVR must have minimum F_CPU of 5.6 MHz)";
+    desc                   = "ch341a programmer (AVR must have minimum F_CPU of 6.8 MHz)";
     type                   = "ch341a";
     prog_modes             = PM_ISP;
     connection_type        = usb;
@@ -1707,6 +1707,7 @@ programmer
     usbpid                 = 0x5512;
     usbvendor              = "wch.cn";
     usbproduct             = "CH341A";
+    reset                  = 0; # Can be 0, 1 or 2 for CS0, CS1 or CS2
 ;
 
 #------------------------------------------------------------

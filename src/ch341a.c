@@ -260,7 +260,13 @@ static int ch341a_open(PROGRAMMER *pgm, const char *port) {
 
 static void ch341a_close(PROGRAMMER *pgm) {
   pmsg_trace("ch341a_close()\n");
-  CH341ChipSelect(pgm, 0, false);
+
+  int cs = intlog2(pgm->pin[PIN_AVR_RESET].mask[0]);
+
+  if(cs < 0)
+    cs = 0;
+
+  CH341ChipSelect(pgm, cs, false);
 
   if(PDATA(pgm)->usbhandle != NULL) {
     libusb_release_interface(PDATA(pgm)->usbhandle, 0);
@@ -272,12 +278,18 @@ static void ch341a_close(PROGRAMMER *pgm) {
 
 static int ch341a_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_trace("ch341a_initialize()\n");
-  if(!CH341ChipSelect(pgm, 0, false)) {
+
+  int cs = intlog2(pgm->pin[PIN_AVR_RESET].mask[0]);
+
+  if(cs < 0)
+    cs = 0;
+
+  if(!CH341ChipSelect(pgm, cs, false)) {
     pmsg_error("CH341ChipSelect(..., false) failed\n");
     return -1;
   }
   usleep(20 * 1000);
-  if(!CH341ChipSelect(pgm, 0, true)) {
+  if(!CH341ChipSelect(pgm, cs, true)) {
     pmsg_error("CH341ChipSelect(..., true) failed\n");
     return -1;
   }
