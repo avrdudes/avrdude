@@ -210,12 +210,17 @@ option might be required to achieve a stable ISP communication.
 For ATxmega devices, the AVR Dragon is supported in PDI mode, provided it
 has a firmware version of at least 6.11 (decimal).
 .Pp
-The avrftdi, USBasp ISP and USBtinyISP adapters are also supported, provided
+The USBasp ISP, USBtinyISP, avrftdi and CH341A adapters are also supported,
+provided
 .Nm avrdude
-has been compiled with libusb support.
-USBasp ISP and USBtinyISP both feature simple firmware-only USB implementations, 
-running on an ATmega8 (or ATmega88), or ATtiny2313, respectively. If libftdi has 
-has been compiled in 
+has been compiled with libusb support. USBasp ISP and USBtinyISP both
+feature simple firmware-only USB implementations, running on an ATmega8
+(or ATmega88), or ATtiny2313, respectively. CH341A programmers connect
+directly to the AVR target. Their SPI bit clock is approximately 1.7 MHz
+and cannot be changed. As a consequence, the AVR target must have a CPU
+frequency of 6.8 MHz or more: factory-set AVR parts, which typically run
+on an internal oscillator between 1 MHz and 1.6 MHz, cannot be programmed
+using -c ch341a. If libftdi has  has been compiled in
 .Nm avrdude ,
 the avrftdi device adds support for many programmers using FTDI's 2232C/D/H 
 and 4232H parts running in MPSSE mode, which hard-codes (in the chip) 

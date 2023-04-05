@@ -302,10 +302,15 @@ the section on
 @emph{extended parameters}
 below for details.
 
-The USBasp ISP and USBtinyISP adapters are also supported, provided AVRDUDE
-has been compiled with libusb support.
-They both feature simple firmware-only USB implementations, running on
+The USBasp ISP, USBtinyISP and CH341A adapters are also supported, provided
+AVRDUDE has been compiled with libusb support.
+They former two feature simple firmware-only USB implementations, running on
 an ATmega8 (or ATmega88), or ATtiny2313, respectively.
+CH341A programmers connect directly to the AVR target. Their SPI bit clock
+is approximately 1.7@w{ }MHz and cannot be changed. As a consequence, the
+AVR target must have a CPU frequency of 6.8@w{ }MHz or more: factory-set
+AVR parts, which typically run on an internal oscillator between 1 MHz and
+1.6 MHz, cannot be programmed using @code{-c ch341a}.
 
 The Atmel DFU bootloader is supported in both, FLIP protocol version 1
 (AT90USB* and ATmega*U* devices), as well as version 2 (Xmega devices).
