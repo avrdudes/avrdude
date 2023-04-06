@@ -1155,6 +1155,34 @@ programmer
 ;
 
 #------------------------------------------------------------
+# flyswatter2
+#------------------------------------------------------------
+
+# FT2232H based JTAG programmer. Requires a buff pin to be set.
+# https://www.tincantools.com/flyswatter2
+
+programmer
+    id                     = "flyswatter2";
+    desc                   = "TinCan Tools Flyswatter 2";
+    type                   = "avrftdi";
+    prog_modes             = PM_TPI | PM_ISP;
+    connection_type        = usb;
+    usbvid                 = 0x0403;
+    usbpid                 = 0x6010;
+    usbdev                 = "A";
+    usbvendor              = "TinCanTools";
+    usbproduct             = "Flyswatter2";
+    buff                   = ~6;
+    reset                  = 3;
+    sck                    = 0;
+    sdo                    = 1;
+    sdi                    = 2;
+    rdyled                 = ~11;
+    pgmled                 = ~12;
+;
+
+
+#------------------------------------------------------------
 # serialupdi
 #------------------------------------------------------------
 
