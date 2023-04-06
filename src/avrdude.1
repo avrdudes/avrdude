@@ -849,30 +849,62 @@ commands on standard input.  Commands and parameters may be
 abbreviated to the shortest unambiguous form.  Terminal mode provides
 a command history using
 .Xr readline 3 ,
-so previously entered command lines can be recalled and edited.  The
-following commands are currently implemented for all programmers:
-.Bl -tag -offset indent -width indent
-.It Ar dump  memory addr len
-Read
+so previously entered command lines can be recalled and edited.
+.Pp
+The 
+.Ar addr
+and
 .Ar len
-bytes from the specified memory area, and display them in the usual
+parameters of the read, write and erase commands can be
+negative with the same syntax as substring computations in perl or python.
+The table below details their meaning with respect to an example memory of size
+sz=0x800.
+.Pp
+.nf
+addr    len  Memory interval     Comment
+------------------------------------------------------------------------
+0/pos   pos  [addr, addr+len-1]  Note: len = end-start+1
+0/pos   neg  [addr, sz+len]      End is |len| bytes below memory size sz
+  neg   pos  [sz+addr,           Start is |addr| bytes below memory size
+                 sz+addr+len-1]
+  neg   neg  [sz+addr, sz+len]   Combining above two cases
+  any     0  empty set           No action
+0x700    12  [0x700, 0x70b]      Conventional use
+ 1024  -257  [0x400, 0x6ff]      Size of memory is 2048 or 0x800
+ -512   512  [0x600, 0x7ff]      Last 512 bytes
+ -256    -1  [0x700, 0x7ff]      Last 256 bytes
+    0    49  [0, 48]             First 49 bytes
+    0   -49  [0, 1999]           All but the last 48 = |len+1| bytes
+    0    -1  [0, 0x7ff]          All memory without knowing its size
+.fi
+.Pp
+The following commands are implemented for all programmers:
+.Bl -tag -offset indent -width indent
+.It Ar dump memory addr len
+Read from the specified memory interval (see above), and display in the usual
 hexadecimal and ASCII form.
+.It Ar dump memory addr
+Read from
+.Ar memory addr
+as many bytes as the most recent 
+.Ar dump memory addr len command
+with this very memory had specified (default 256 bytes), and display them.
+.It Ar dump memory
+Continue dumping the contents from the same memory where the previous
+.Ar dump memory
+command left off.
+.It Ar dump
+Continue dumping from the memory and location where the most recent
+.Ar dump
+command left off; if no previous dump command has addressed a memory an error message will be shown.
 .It Ar dump memory addr ...
 Read all bytes from the specified memory starting at address
-.Ar addr,
-and display them.
-.It Ar dump memory addr
-Read 256 bytes from the specified memory area, and display them.
+.Ar addr Ns ,
+and display them (deprecated: use dump memory addr -1).
 .It Ar dump memory ...
-Read all bytes from the specified memory, and display them.
-.It Ar dump memory
-Continue dumping the memory contents for another
-.Ar 256
-bytes where the previous
-.Ar dump
-command left off.
+Read all bytes from the specified memory, and display them (deprecated: use dump memory 0 -1).
 .It Ar read
-can be used as an alias for dump
+Can be used as an alias for dump.
 .It Ar write memory addr data[,] {data[,]}
 Manually program the respective memory cells, starting at address
 .Ar addr ,
@@ -921,9 +953,19 @@ The start address
 may be omitted if the size of the memory being written to is
 1 byte in size.
 .It Ar write memory addr len data[,] {data[,]} ...
-The ellipsis ... form writes <len> bytes padded by repeating the last
+The ellipsis ... form writes the data to the entire memory intervall addressed by
+.Ar addr len
+and, if necessary, pads the remaining space by repeating the last
 .Ar data
-item.
+item. The fill write command does not write beyond the specified memory area
+even if more data than needed were given.
+.It Ar erase
+Perform a chip erase and discard all pending writes to EEPROM and flash.
+Note that EEPROM will be preserved if the EESAVE fuse bit is set.
+.It Ar erase memory
+Erase the entire specified memory.
+.It Ar erase memory addr len
+Erase a section of the specified memory.
 .It Ar flush
 Synchronise with the device all pending cached writes to EEPROM or flash.
 With some programmer and part combinations, flash (and sometimes EEPROM,
@@ -942,8 +984,6 @@ command, at the end of the terminal session after typing
 .Ar quit ,
 or after EOF on input is encountered. The abort command resets
 the cache discarding all previous writes to the flash and EEPROM cache.
-.It Ar erase
-Perform a chip erase and discard all pending writes to EEPROM and flash.
 .It Ar sig
 Display the device signature bytes.
 .It Ar part
@@ -971,6 +1011,8 @@ Give a short on-line summary of the available commands.
 .It Ar quit
 Leave terminal mode and thus
 .Nm avrdude .
+.It Ar q
+Can be used as an alias for quit.
 .El
 .Pp
 The terminal commands below may only be implemented on some specific programmers, and may therefore not be available in the help menu.
