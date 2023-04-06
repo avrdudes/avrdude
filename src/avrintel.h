@@ -3,20 +3,38 @@
  *
  * avrintel.h
  *
- * Microchip AVR8L, AVR8, XMEGA and AVR8X family description of interrupts and more
+ * Microchip AVR8L, AVR8, XMEGA and AVR8X family description of interrupts, configurations and more
  *
  * Published under GNU General Public License, version 3 (GPL-3.0)
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
- * v 1.1
- * 04.03.2023
+ * v 1.3
+ * 06.04.2023
  *
  */
 
-#ifndef AVRINTEL_H
-#define AVRINTEL_H
+#ifndef avrintel_h
+#define avrintel_h
 
 #include "libavrdude.h"
+
+typedef struct {
+  int value;                    // Value (to be shifted into mask position)
+  const char *label;            // Symbolic label for this config item
+  const char *comment;          // Expanded semantic comment
+} Valueitem_t;
+
+typedef struct {
+  const char *confignm;         // Name of this configuration item
+  int nvalues;                  // Number of (symbolic) values
+  const Valueitem_t *vlist;     // Pointer to nvalues value items
+  const char *memtype;          // Fuse/Lock memory for this configuration
+  int memoffset;                // Byte offset within fuses (always 0 for lock)
+  int mask;                     // Bit mask of fuse/lock memory
+  int lsh;                      // Values need shifting left by lsh to be in mask
+  int initval;                  // Factory default, to be shifted into mask position
+  const char *configcomment;    // Expanded semantic name for this configuration item
+} Configitem_t;
 
 typedef struct {                // Value of -1 typically means unknown
   const char *name;             // Name of part
@@ -26,8 +44,8 @@ typedef struct {                // Value of -1 typically means unknown
   int32_t flashoffset;          // Flash offset
   int32_t flashsize;            // Flash size
   int16_t pagesize;             // Flash page size
-  int8_t  nboots;               // Number of supported boot sectors
-  int16_t bootsize;             // Size of (smallest) boot sector
+  int8_t  nboots;               // Number of supported boot sections
+  int16_t bootsize;             // Size of (smallest) boot section
   int32_t eepromoffset;         // EEPROM offset
   int32_t eepromsize;           // EEPROM size
   int32_t eeprompagesize;       // EEPROM page size
@@ -37,6 +55,8 @@ typedef struct {                // Value of -1 typically means unknown
   int8_t  nlocks;               // Number of lock bytes
   uint8_t ninterrupts;          // Number of vectors in interrupt vector table
   const char * const *isrtable; // Interrupt vector table vector names
+  uint8_t nconfigs;             // Number of configuration bitfields in fuses/locks
+  const Configitem_t *cfgtable; // Configuration bitfield table
 } uPcore_t;
 
 #define F_AVR8L               1 // TPI programming, ATtiny(4|5|9|10|20|40|102|104)
@@ -45,6 +65,7 @@ typedef struct {                // Value of -1 typically means unknown
 #define F_AVR8X               8 // UPDI programming, newer 8-bit MCUs
 
 #define UB_N_MCU           2040 // mcuid is in 0..2039
+
 
 // MCU id: running number in arbitrary order; once assigned never change for backward compatibility
 #define id_attiny4           0u
@@ -132,11 +153,13 @@ typedef struct {                // Value of -1 typically means unknown
 #define id_atmega88pa       82u
 #define id_atmega88pb       83u
 #define id_atmega103        84u
+#define id_atmega103comp   374u
 #define id_atmega128        85u
 #define id_atmega128a       86u
 #define id_atmega128rfa1    87u
 #define id_atmega128rfr2    88u
 #define id_atmega161        89u
+#define id_atmega161comp   375u
 #define id_atmega162        90u
 #define id_atmega163        91u
 #define id_atmega164a       92u
@@ -225,6 +248,7 @@ typedef struct {                // Value of -1 typically means unknown
 #define id_at90pwm81       173u
 #define id_at90usb82       174u
 #define id_at90scr100      175u
+#define id_at90scr100h     376u
 #define id_at90can128      176u
 #define id_at90pwm161      177u
 #define id_at90usb162      178u
@@ -243,8 +267,10 @@ typedef struct {                // Value of -1 typically means unknown
 #define id_at90s4433       191u
 #define id_at90s4434       192u
 #define id_at90s8515       193u
+#define id_at90s8515comp   377u
 #define id_at90c8534       194u
 #define id_at90s8535       195u
+#define id_at90s8535comp   378u
 #define id_at94k           196u
 #define id_ata5272         197u
 #define id_ata5505         198u
@@ -1353,127 +1379,385 @@ typedef struct {                // Value of -1 typically means unknown
 #define vtab_avr64db64       vtab_avr128db64
 
 // Interrupt vector table interrupt names
-extern const char * const vtab_attiny9[10];       // ATtiny9, ATtiny4
-extern const char * const vtab_attiny10[11];      // ATtiny10, ATtiny5
-extern const char * const vtab_attiny20[17];      // ATtiny20
-extern const char * const vtab_attiny40[18];      // ATtiny40
-extern const char * const vtab_attiny104[16];     // ATtiny104, ATtiny102
-extern const char * const vtab_attiny11[5];       // ATtiny11
-extern const char * const vtab_attiny12[6];       // ATtiny12
-extern const char * const vtab_attiny13a[10];     // ATtiny13A, ATtiny13
-extern const char * const vtab_attiny15[9];       // ATtiny15
-extern const char * const vtab_attiny22[3];       // ATtiny22, AT90S2343, AT90S2323
-extern const char * const vtab_attiny26[12];      // ATtiny26
-extern const char * const vtab_attiny28[6];       // ATtiny28
-extern const char * const vtab_attiny43u[16];     // ATtiny43U
-extern const char * const vtab_attiny84a[17];     // ATtiny84A, ATtiny84, ATtiny44A, ATtiny44, ATtiny24A, ATtiny24
-extern const char * const vtab_attiny85[15];      // ATtiny85, ATtiny45, ATtiny25
-extern const char * const vtab_attiny88[20];      // ATtiny88, ATtiny48
-extern const char * const vtab_attiny167[20];     // ATtiny167, ATtiny87, ATA664251, ATA6617C, ATA6616C, ATA5505
-extern const char * const vtab_attiny828[26];     // ATtiny828
-extern const char * const vtab_attiny841[30];     // ATtiny841, ATtiny441
-extern const char * const vtab_attiny861a[19];    // ATtiny861A, ATtiny861, ATtiny461A, ATtiny461, ATtiny261A, ATtiny261
-extern const char * const vtab_attiny1634[28];    // ATtiny1634
-extern const char * const vtab_attiny2313[19];    // ATtiny2313
-extern const char * const vtab_attiny4313[21];    // ATtiny4313, ATtiny2313A
-extern const char * const vtab_atmega8a[19];      // ATmega8A, ATmega8
-extern const char * const vtab_atmega16a[21];     // ATmega16A, ATmega16
-extern const char * const vtab_atmega16hva[21];   // ATmega16HVA, ATmega8HVA
-extern const char * const vtab_atmega16hva2[22];  // ATmega16HVA2
-extern const char * const vtab_atmega32hvbrevb[29]; // ATmega32HVBrevB, ATmega32HVB, ATmega16HVBrevB, ATmega16HVB
-extern const char * const vtab_atmega32u2[29];    // ATmega32U2, ATmega16U2, ATmega8U2, AT90USB162, AT90USB82
-extern const char * const vtab_atmega32u4[43];    // ATmega32U4, ATmega16U4
-extern const char * const vtab_atmega32u6[38];    // ATmega32U6, AT90USB1287, AT90USB1286, AT90USB647, AT90USB646
-extern const char * const vtab_atmega64m1[31];    // ATmega64M1, ATmega64C1, ATmega32M1, ATmega32C1, ATmega16M1
-extern const char * const vtab_atmega64hve2[25];  // ATmega64HVE2, ATmega64HVE
-extern const char * const vtab_atmega103[24];     // ATmega103
-extern const char * const vtab_atmega128a[35];    // ATmega128A, ATmega128, ATmega64A, ATmega64
-extern const char * const vtab_atmega128rfa1[72]; // ATmega128RFA1
-extern const char * const vtab_atmega161[21];     // ATmega161
-extern const char * const vtab_atmega162[28];     // ATmega162
-extern const char * const vtab_atmega163[18];     // ATmega163
-extern const char * const vtab_atmega168pb[27];   // ATmega168PB, ATmega88PB, ATmega48PB
-extern const char * const vtab_atmega323[21];     // ATmega323, ATmega32A, ATmega32
-extern const char * const vtab_atmega324pb[51];   // ATmega324PB
-extern const char * const vtab_atmega328[26];     // ATmega328, ATmega168
-extern const char * const vtab_atmega328p[26];    // ATmega328P, ATmega168PA, ATmega168P, ATmega168A, ATmega88PA, ATmega88P, ATmega88A, ATmega88, ATmega48PA, ATmega48P, ATmega48A, ATmega48, ATA6614Q, ATA6613C, ATA6612C
-extern const char * const vtab_atmega328pb[45];   // ATmega328PB
-extern const char * const vtab_atmega406[23];     // ATmega406
-extern const char * const vtab_atmega644[28];     // ATmega644
-extern const char * const vtab_atmega644pa[31];   // ATmega644PA, ATmega644P, ATmega644A, ATmega324PA, ATmega324P, ATmega324A, ATmega164PA, ATmega164P, ATmega164A
-extern const char * const vtab_atmega645p[22];    // ATmega645P, ATmega645A, ATmega645, ATmega325PA, ATmega325P, ATmega325A, ATmega325, ATmega165PA, ATmega165P, ATmega165A, ATmega165
-extern const char * const vtab_atmega649p[23];    // ATmega649P, ATmega649A, ATmega649, ATmega329PA, ATmega329P, ATmega329A, ATmega329, ATmega169PA, ATmega169P, ATmega169A, ATmega169
-extern const char * const vtab_atmega1284p[35];   // ATmega1284P, ATmega1284
-extern const char * const vtab_atmega2560[57];    // ATmega2560, ATmega1280, ATmega640
-extern const char * const vtab_atmega2561[57];    // ATmega2561, ATmega1281
-extern const char * const vtab_atmega2564rfr2[77]; // ATmega2564RFR2, ATmega1284RFR2, ATmega644RFR2, ATmega256RFR2, ATmega128RFR2, ATmega64RFR2
-extern const char * const vtab_atmega6450p[25];   // ATmega6450P, ATmega6450A, ATmega6450, ATmega3250PA, ATmega3250P, ATmega3250A, ATmega3250
-extern const char * const vtab_atmega6490p[25];   // ATmega6490P, ATmega6490A, ATmega6490, ATmega3290PA, ATmega3290P, ATmega3290A, ATmega3290
-extern const char * const vtab_atmega8515[17];    // ATmega8515
-extern const char * const vtab_atmega8535[21];    // ATmega8535
-extern const char * const vtab_at86rf401[3];      // AT86RF401
-extern const char * const vtab_at90pwm1[32];      // AT90PWM1
-extern const char * const vtab_at90pwm2[32];      // AT90PWM2
-extern const char * const vtab_at90pwm3b[32];     // AT90PWM3B, AT90PWM3, AT90PWM2B
-extern const char * const vtab_at90scr100[38];    // AT90SCR100
-extern const char * const vtab_at90can128[37];    // AT90CAN128, AT90CAN64, AT90CAN32
-extern const char * const vtab_at90pwm161[20];    // AT90PWM161, AT90PWM81
-extern const char * const vtab_at90pwm316[32];    // AT90PWM316, AT90PWM216
-extern const char * const vtab_at90s1200[4];      // AT90S1200
-extern const char * const vtab_at90s2313[11];     // AT90S2313
-extern const char * const vtab_at90s4433[14];     // AT90S4433, AT90S2333
-extern const char * const vtab_at90s8515[13];     // AT90S8515, AT90S4414
-extern const char * const vtab_at90s8535[17];     // AT90S8535, AT90S4434
-extern const char * const vtab_ata5272[37];       // ATA5272
-extern const char * const vtab_ata5702m322[51];   // ATA5702M322, ATA5700M322
-extern const char * const vtab_ata5790[30];       // ATA5790
-extern const char * const vtab_ata5791[31];       // ATA5791, ATA5790N
-extern const char * const vtab_ata5795[23];       // ATA5795
-extern const char * const vtab_ata5835[44];       // ATA5835, ATA5787
-extern const char * const vtab_ata6289[27];       // ATA6289, ATA6286, ATA6285
-extern const char * const vtab_ata8515[42];       // ATA8515, ATA8510, ATA8215, ATA8210, ATA5833, ATA5832, ATA5831, ATA5783, ATA5782, ATA5781
-extern const char * const vtab_atxmega32a4[94];   // ATxmega32A4, ATxmega16A4
-extern const char * const vtab_atxmega32c4[127];  // ATxmega32C4, ATxmega16C4
-extern const char * const vtab_atxmega32d4[91];   // ATxmega32D4, ATxmega16D4
-extern const char * const vtab_atxmega32e5[43];   // ATxmega32E5, ATxmega16E5, ATxmega8E5
-extern const char * const vtab_atxmega128a1[125]; // ATxmega128A1, ATxmega64A1
-extern const char * const vtab_atxmega128a1u[127]; // ATxmega128A1U, ATxmega64A1U
-extern const char * const vtab_atxmega128b1[81];  // ATxmega128B1, ATxmega64B1
-extern const char * const vtab_atxmega128b3[54];  // ATxmega128B3, ATxmega64B3
-extern const char * const vtab_atxmega128a4u[127]; // ATxmega128A4U, ATxmega64A4U, ATxmega32A4U, ATxmega16A4U
-extern const char * const vtab_atxmega128d4[91];  // ATxmega128D4, ATxmega64D4
-extern const char * const vtab_atxmega256a3[122]; // ATxmega256A3, ATxmega192A3, ATxmega128A3, ATxmega64A3
-extern const char * const vtab_atxmega256a3b[122]; // ATxmega256A3B
-extern const char * const vtab_atxmega256a3bu[127]; // ATxmega256A3BU
-extern const char * const vtab_atxmega256a3u[127]; // ATxmega256A3U, ATxmega192A3U, ATxmega128A3U, ATxmega64A3U
-extern const char * const vtab_atxmega256c3[127]; // ATxmega256C3, ATxmega192C3, ATxmega128C3, ATxmega64C3, ATxmega32C3
-extern const char * const vtab_atxmega384c3[127]; // ATxmega384C3
-extern const char * const vtab_atxmega384d3[114]; // ATxmega384D3, ATxmega256D3, ATxmega192D3, ATxmega128D3, ATxmega64D3, ATxmega32D3
-extern const char * const vtab_attiny402[26];     // ATtiny402, ATtiny202
-extern const char * const vtab_attiny404[26];     // ATtiny404, ATtiny204
-extern const char * const vtab_attiny406[26];     // ATtiny406
-extern const char * const vtab_attiny412[26];     // ATtiny412, ATtiny212
-extern const char * const vtab_attiny814[26];     // ATtiny814, ATtiny414, ATtiny214
-extern const char * const vtab_attiny817[26];     // ATtiny817, ATtiny816, ATtiny417, ATtiny416auto, ATtiny416
-extern const char * const vtab_attiny1607[31];    // ATtiny1607, ATtiny1606, ATtiny1604, ATtiny807, ATtiny806, ATtiny804
-extern const char * const vtab_attiny1614[31];    // ATtiny1614
-extern const char * const vtab_attiny3214[31];    // ATtiny3214
-extern const char * const vtab_attiny3217[31];    // ATtiny3217, ATtiny3216, ATtiny1617, ATtiny1616
-extern const char * const vtab_attiny3227[30];    // ATtiny3227, ATtiny3226, ATtiny3224, ATtiny1627, ATtiny1626, ATtiny1624, ATtiny827, ATtiny826, ATtiny824, ATtiny427, ATtiny426, ATtiny424
-extern const char * const vtab_atmega4808[36];    // ATmega4808, ATmega3208, ATmega1608, ATmega808
-extern const char * const vtab_atmega4809[40];    // ATmega4809, ATmega3209, ATmega1609, ATmega809
-extern const char * const vtab_avr64dd32[36];     // AVR64DD32, AVR64DD28, AVR64DD20, AVR64DD14, AVR32DD32, AVR32DD28, AVR32DD20, AVR32DD14, AVR16DD32, AVR16DD28, AVR16DD20, AVR16DD14
-extern const char * const vtab_avr64ea32[37];     // AVR64EA32, AVR64EA28
-extern const char * const vtab_avr64ea48[45];     // AVR64EA48
-extern const char * const vtab_avr128da28[41];    // AVR128DA28, AVR64DA28, AVR32DA28
-extern const char * const vtab_avr128db28[42];    // AVR128DB28, AVR64DB28, AVR32DB28
-extern const char * const vtab_avr128da32[44];    // AVR128DA32, AVR64DA32, AVR32DA32
-extern const char * const vtab_avr128db32[44];    // AVR128DB32, AVR64DB32, AVR32DB32
-extern const char * const vtab_avr128da48[58];    // AVR128DA48, AVR64DA48, AVR32DA48
-extern const char * const vtab_avr128db48[61];    // AVR128DB48, AVR64DB48, AVR32DB48
-extern const char * const vtab_avr128da64[64];    // AVR128DA64, AVR64DA64
-extern const char * const vtab_avr128db64[65];    // AVR128DB64, AVR64DB64
 
-extern const uPcore_t uP_table[374];
+// ATtiny9 ATtiny4
+extern const char * const vtab_attiny9[10];
+
+// ATtiny10 ATtiny5
+extern const char * const vtab_attiny10[11];
+
+// ATtiny20
+extern const char * const vtab_attiny20[17];
+
+// ATtiny40
+extern const char * const vtab_attiny40[18];
+
+// ATtiny104 ATtiny102
+extern const char * const vtab_attiny104[16];
+
+// ATtiny11
+extern const char * const vtab_attiny11[5];
+
+// ATtiny12
+extern const char * const vtab_attiny12[6];
+
+// ATtiny13A ATtiny13
+extern const char * const vtab_attiny13a[10];
+
+// ATtiny15
+extern const char * const vtab_attiny15[9];
+
+// ATtiny22 AT90S2343 AT90S2323
+extern const char * const vtab_attiny22[3];
+
+// ATtiny26
+extern const char * const vtab_attiny26[12];
+
+// ATtiny28
+extern const char * const vtab_attiny28[6];
+
+// ATtiny43U
+extern const char * const vtab_attiny43u[16];
+
+// ATtiny84A ATtiny84 ATtiny44A ATtiny44 ATtiny24A ATtiny24
+extern const char * const vtab_attiny84a[17];
+
+// ATtiny85 ATtiny45 ATtiny25
+extern const char * const vtab_attiny85[15];
+
+// ATtiny88 ATtiny48
+extern const char * const vtab_attiny88[20];
+
+// ATtiny167 ATtiny87 ATA664251 ATA6617C ATA6616C ATA5505
+extern const char * const vtab_attiny167[20];
+
+// ATtiny828
+extern const char * const vtab_attiny828[26];
+
+// ATtiny841 ATtiny441
+extern const char * const vtab_attiny841[30];
+
+// ATtiny861A ATtiny861 ATtiny461A ATtiny461 ATtiny261A ATtiny261
+extern const char * const vtab_attiny861a[19];
+
+// ATtiny1634
+extern const char * const vtab_attiny1634[28];
+
+// ATtiny2313
+extern const char * const vtab_attiny2313[19];
+
+// ATtiny4313 ATtiny2313A
+extern const char * const vtab_attiny4313[21];
+
+// ATmega8A ATmega8
+extern const char * const vtab_atmega8a[19];
+
+// ATmega16A ATmega16
+extern const char * const vtab_atmega16a[21];
+
+// ATmega16HVA ATmega8HVA
+extern const char * const vtab_atmega16hva[21];
+
+// ATmega16HVA2
+extern const char * const vtab_atmega16hva2[22];
+
+// ATmega32HVBrevB ATmega32HVB ATmega16HVBrevB ATmega16HVB
+extern const char * const vtab_atmega32hvbrevb[29];
+
+// ATmega32U2 ATmega16U2 ATmega8U2 AT90USB162 AT90USB82
+extern const char * const vtab_atmega32u2[29];
+
+// ATmega32U4 ATmega16U4
+extern const char * const vtab_atmega32u4[43];
+
+// ATmega32U6 AT90USB1287 AT90USB1286 AT90USB647 AT90USB646
+extern const char * const vtab_atmega32u6[38];
+
+// ATmega64M1 ATmega64C1 ATmega32M1 ATmega32C1 ATmega16M1
+extern const char * const vtab_atmega64m1[31];
+
+// ATmega64HVE2 ATmega64HVE
+extern const char * const vtab_atmega64hve2[25];
+
+// ATmega103
+extern const char * const vtab_atmega103[24];
+
+// ATmega128A ATmega128 ATmega64A ATmega64
+extern const char * const vtab_atmega128a[35];
+
+// ATmega128RFA1
+extern const char * const vtab_atmega128rfa1[72];
+
+// ATmega161
+extern const char * const vtab_atmega161[21];
+
+// ATmega162
+extern const char * const vtab_atmega162[28];
+
+// ATmega163
+extern const char * const vtab_atmega163[18];
+
+// ATmega168PB ATmega88PB ATmega48PB
+extern const char * const vtab_atmega168pb[27];
+
+// ATmega323 ATmega32A ATmega32
+extern const char * const vtab_atmega323[21];
+
+// ATmega324PB
+extern const char * const vtab_atmega324pb[51];
+
+// ATmega328 ATmega168
+extern const char * const vtab_atmega328[26];
+
+/*
+ * ATmega328P ATmega168PA ATmega168P ATmega168A ATmega88PA ATmega88P ATmega88A ATmega88 ATmega48PA
+ * ATmega48P ATmega48A ATmega48 ATA6614Q ATA6613C ATA6612C
+ */
+extern const char * const vtab_atmega328p[26];
+
+// ATmega328PB
+extern const char * const vtab_atmega328pb[45];
+
+// ATmega406
+extern const char * const vtab_atmega406[23];
+
+// ATmega644
+extern const char * const vtab_atmega644[28];
+
+/*
+ * ATmega644PA ATmega644P ATmega644A ATmega324PA ATmega324P ATmega324A ATmega164PA ATmega164P
+ * ATmega164A
+ */
+extern const char * const vtab_atmega644pa[31];
+
+/*
+ * ATmega645P ATmega645A ATmega645 ATmega325PA ATmega325P ATmega325A ATmega325 ATmega165PA
+ * ATmega165P ATmega165A ATmega165
+ */
+extern const char * const vtab_atmega645p[22];
+
+/*
+ * ATmega649P ATmega649A ATmega649 ATmega329PA ATmega329P ATmega329A ATmega329 ATmega169PA
+ * ATmega169P ATmega169A ATmega169
+ */
+extern const char * const vtab_atmega649p[23];
+
+// ATmega1284P ATmega1284
+extern const char * const vtab_atmega1284p[35];
+
+// ATmega2560 ATmega1280 ATmega640
+extern const char * const vtab_atmega2560[57];
+
+// ATmega2561 ATmega1281
+extern const char * const vtab_atmega2561[57];
+
+// ATmega2564RFR2 ATmega1284RFR2 ATmega644RFR2 ATmega256RFR2 ATmega128RFR2 ATmega64RFR2
+extern const char * const vtab_atmega2564rfr2[77];
+
+// ATmega6450P ATmega6450A ATmega6450 ATmega3250PA ATmega3250P ATmega3250A ATmega3250
+extern const char * const vtab_atmega6450p[25];
+
+// ATmega6490P ATmega6490A ATmega6490 ATmega3290PA ATmega3290P ATmega3290A ATmega3290
+extern const char * const vtab_atmega6490p[25];
+
+// ATmega8515
+extern const char * const vtab_atmega8515[17];
+
+// ATmega8535
+extern const char * const vtab_atmega8535[21];
+
+// AT86RF401
+extern const char * const vtab_at86rf401[3];
+
+// AT90PWM1
+extern const char * const vtab_at90pwm1[32];
+
+// AT90PWM2
+extern const char * const vtab_at90pwm2[32];
+
+// AT90PWM3B AT90PWM3 AT90PWM2B
+extern const char * const vtab_at90pwm3b[32];
+
+// AT90SCR100
+extern const char * const vtab_at90scr100[38];
+
+// AT90CAN128 AT90CAN64 AT90CAN32
+extern const char * const vtab_at90can128[37];
+
+// AT90PWM161 AT90PWM81
+extern const char * const vtab_at90pwm161[20];
+
+// AT90PWM316 AT90PWM216
+extern const char * const vtab_at90pwm316[32];
+
+// AT90S1200
+extern const char * const vtab_at90s1200[4];
+
+// AT90S2313
+extern const char * const vtab_at90s2313[11];
+
+// AT90S4433 AT90S2333
+extern const char * const vtab_at90s4433[14];
+
+// AT90S8515 AT90S4414
+extern const char * const vtab_at90s8515[13];
+
+// AT90S8535 AT90S4434
+extern const char * const vtab_at90s8535[17];
+
+// ATA5272
+extern const char * const vtab_ata5272[37];
+
+// ATA5702M322 ATA5700M322
+extern const char * const vtab_ata5702m322[51];
+
+// ATA5790
+extern const char * const vtab_ata5790[30];
+
+// ATA5791 ATA5790N
+extern const char * const vtab_ata5791[31];
+
+// ATA5795
+extern const char * const vtab_ata5795[23];
+
+// ATA5835 ATA5787
+extern const char * const vtab_ata5835[44];
+
+// ATA6289 ATA6286 ATA6285
+extern const char * const vtab_ata6289[27];
+
+// ATA8515 ATA8510 ATA8215 ATA8210 ATA5833 ATA5832 ATA5831 ATA5783 ATA5782 ATA5781
+extern const char * const vtab_ata8515[42];
+
+// ATxmega32A4 ATxmega16A4
+extern const char * const vtab_atxmega32a4[94];
+
+// ATxmega32C4 ATxmega16C4
+extern const char * const vtab_atxmega32c4[127];
+
+// ATxmega32D4 ATxmega16D4
+extern const char * const vtab_atxmega32d4[91];
+
+// ATxmega32E5 ATxmega16E5 ATxmega8E5
+extern const char * const vtab_atxmega32e5[43];
+
+// ATxmega128A1 ATxmega64A1
+extern const char * const vtab_atxmega128a1[125];
+
+// ATxmega128A1U ATxmega64A1U
+extern const char * const vtab_atxmega128a1u[127];
+
+// ATxmega128B1 ATxmega64B1
+extern const char * const vtab_atxmega128b1[81];
+
+// ATxmega128B3 ATxmega64B3
+extern const char * const vtab_atxmega128b3[54];
+
+// ATxmega128A4U ATxmega64A4U ATxmega32A4U ATxmega16A4U
+extern const char * const vtab_atxmega128a4u[127];
+
+// ATxmega128D4 ATxmega64D4
+extern const char * const vtab_atxmega128d4[91];
+
+// ATxmega256A3 ATxmega192A3 ATxmega128A3 ATxmega64A3
+extern const char * const vtab_atxmega256a3[122];
+
+// ATxmega256A3B
+extern const char * const vtab_atxmega256a3b[122];
+
+// ATxmega256A3BU
+extern const char * const vtab_atxmega256a3bu[127];
+
+// ATxmega256A3U ATxmega192A3U ATxmega128A3U ATxmega64A3U
+extern const char * const vtab_atxmega256a3u[127];
+
+// ATxmega256C3 ATxmega192C3 ATxmega128C3 ATxmega64C3 ATxmega32C3
+extern const char * const vtab_atxmega256c3[127];
+
+// ATxmega384C3
+extern const char * const vtab_atxmega384c3[127];
+
+// ATxmega384D3 ATxmega256D3 ATxmega192D3 ATxmega128D3 ATxmega64D3 ATxmega32D3
+extern const char * const vtab_atxmega384d3[114];
+
+// ATtiny402 ATtiny202
+extern const char * const vtab_attiny402[26];
+
+// ATtiny404 ATtiny204
+extern const char * const vtab_attiny404[26];
+
+// ATtiny406
+extern const char * const vtab_attiny406[26];
+
+// ATtiny412 ATtiny212
+extern const char * const vtab_attiny412[26];
+
+// ATtiny814 ATtiny414 ATtiny214
+extern const char * const vtab_attiny814[26];
+
+// ATtiny817 ATtiny816 ATtiny417 ATtiny416auto ATtiny416
+extern const char * const vtab_attiny817[26];
+
+// ATtiny1607 ATtiny1606 ATtiny1604 ATtiny807 ATtiny806 ATtiny804
+extern const char * const vtab_attiny1607[31];
+
+// ATtiny1614
+extern const char * const vtab_attiny1614[31];
+
+// ATtiny3214
+extern const char * const vtab_attiny3214[31];
+
+// ATtiny3217 ATtiny3216 ATtiny1617 ATtiny1616
+extern const char * const vtab_attiny3217[31];
+
+/*
+ * ATtiny3227 ATtiny3226 ATtiny3224 ATtiny1627 ATtiny1626 ATtiny1624 ATtiny827 ATtiny826 ATtiny824
+ * ATtiny427 ATtiny426 ATtiny424
+ */
+extern const char * const vtab_attiny3227[30];
+
+// ATmega4808 ATmega3208 ATmega1608 ATmega808
+extern const char * const vtab_atmega4808[36];
+
+// ATmega4809 ATmega3209 ATmega1609 ATmega809
+extern const char * const vtab_atmega4809[40];
+
+/*
+ * AVR64DD32 AVR64DD28 AVR64DD20 AVR64DD14 AVR32DD32 AVR32DD28 AVR32DD20 AVR32DD14 AVR16DD32
+ * AVR16DD28 AVR16DD20 AVR16DD14
+ */
+extern const char * const vtab_avr64dd32[36];
+
+// AVR64EA32 AVR64EA28
+extern const char * const vtab_avr64ea32[37];
+
+// AVR64EA48
+extern const char * const vtab_avr64ea48[45];
+
+// AVR128DA28 AVR64DA28 AVR32DA28
+extern const char * const vtab_avr128da28[41];
+
+// AVR128DB28 AVR64DB28 AVR32DB28
+extern const char * const vtab_avr128db28[42];
+
+// AVR128DA32 AVR64DA32 AVR32DA32
+extern const char * const vtab_avr128da32[44];
+
+// AVR128DB32 AVR64DB32 AVR32DB32
+extern const char * const vtab_avr128db32[44];
+
+// AVR128DA48 AVR64DA48 AVR32DA48
+extern const char * const vtab_avr128da48[58];
+
+// AVR128DB48 AVR64DB48 AVR32DB48
+extern const char * const vtab_avr128db48[61];
+
+// AVR128DA64 AVR64DA64
+extern const char * const vtab_avr128da64[64];
+
+// AVR128DB64 AVR64DB64
+extern const char * const vtab_avr128db64[65];
+
+extern const uPcore_t uP_table[379];
 
 #endif

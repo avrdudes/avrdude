@@ -3,13 +3,13 @@
  *
  * avrintel.c
  *
- * Microchip AVR8L, AVR8, XMEGA and AVR8X family description of interrupts and more
+ * Microchip AVR8L, AVR8, XMEGA and AVR8X family description of interrupts, configurations and more
  *
  * Published under GNU General Public License, version 3 (GPL-3.0)
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
- * v 1.1
- * 04.03.2023
+ * v 1.3
+ * 06.04.2023
  *
  */
 
@@ -27,387 +27,1912 @@
 #include "avrintel.h"
 
 const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
-  //{mcu_name,       mcuid,  family, {sig,    na, ture}, flstart,  flsize, pgsiz, nb, bootsz, eestart, eesize, ep, rambeg, ramsiz, nf, nl,  ni,       isr_names}, // Source
-  {"ATtiny4",            0, F_AVR8L, {0x1E, 0x8F, 0x0A},       0, 0x00200, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020,  1,  1,  10,    vtab_attiny9}, // atdf, avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"ATtiny5",            1, F_AVR8L, {0x1E, 0x8F, 0x09},       0, 0x00200, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020,  1,  1,  11,   vtab_attiny10}, // atdf, avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"ATtiny9",            2, F_AVR8L, {0x1E, 0x90, 0x08},       0, 0x00400, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020,  1,  1,  10,    vtab_attiny9}, // atdf, avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"ATtiny10",           3, F_AVR8L, {0x1E, 0x90, 0x03},       0, 0x00400, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020,  1,  1,  11,   vtab_attiny10}, // atdf, avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"ATtiny20",           4, F_AVR8L, {0x1E, 0x91, 0x0F},       0, 0x00800, 0x020,  0,      0,       0,      0,  0, 0x0040, 0x0080,  1,  1,  17,   vtab_attiny20}, // atdf, avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"ATtiny40",           5, F_AVR8L, {0x1E, 0x92, 0x0E},       0, 0x01000, 0x040,  0,      0,       0,      0,  0, 0x0040, 0x0100,  1,  1,  18,   vtab_attiny40}, // atdf, avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"ATtiny102",          6, F_AVR8L, {0x1E, 0x90, 0x0C},       0, 0x00400, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020,  1,  1,  16,  vtab_attiny104}, // atdf, avrdude, boot size (manual)
-  {"ATtiny104",          7, F_AVR8L, {0x1E, 0x90, 0x0B},       0, 0x00400, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020,  1,  1,  16,  vtab_attiny104}, // atdf, avrdude, boot size (manual)
+  //mcu_name                                                             // Sources
+  //{mcu_name,       mcuid,  family, {sig,    na, ture}, // ID
+  //mcu_name       flstart,  flsize, pgsiz, nb, bootsz, eestart, eesize, ep, rambeg, ramsiz, // Mem
+  //mcu_naame           nf, nl,  ni, isr_names, nc, cfg_table},      // Config and ISRs
 
-  {"ATtiny11",           8,  F_AVR8, {0x1E, 0x90, 0x04},       0, 0x00400, 0x001,  0,      0,       0, 0x0040,  1, 0x0060, 0x0020,  1,  1,   5,   vtab_attiny11}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny12",           9,  F_AVR8, {0x1E, 0x90, 0x05},       0, 0x00400, 0x001,  0,      0,       0, 0x0040,  2, 0x0060, 0x0020,  1,  1,   6,   vtab_attiny12}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny13",          10,  F_AVR8, {0x1E, 0x90, 0x07},       0, 0x00400, 0x020,  0,      0,       0, 0x0040,  4, 0x0060, 0x0040,  2,  1,  10,  vtab_attiny13a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny13A",         11,  F_AVR8, {0x1E, 0x90, 0x07},       0, 0x00400, 0x020,  0,      0,       0, 0x0040,  4, 0x0060, 0x0040,  2,  1,  10,  vtab_attiny13a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny15",          12,  F_AVR8, {0x1E, 0x90, 0x06},       0, 0x00400, 0x001,  0,      0,       0, 0x0040,  2, 0x0060, 0x0020,  1,  1,   9,   vtab_attiny15}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny22",          13,  F_AVR8, {0x1E, 0x91, 0x06},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"ATtiny24",          14,  F_AVR8, {0x1E, 0x91, 0x0B},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  3,  1,  17,  vtab_attiny84a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny24A",         15,  F_AVR8, {0x1E, 0x91, 0x0B},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  3,  1,  17,  vtab_attiny84a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny25",          16,  F_AVR8, {0x1E, 0x91, 0x08},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  3,  1,  15,   vtab_attiny85}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny26",          17,  F_AVR8, {0x1E, 0x91, 0x09},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  2,  1,  12,   vtab_attiny26}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny28",          18,  F_AVR8, {0x1E, 0x91, 0x07},       0, 0x00800, 0x002,  0,      0,       0,      0,  0, 0x0060, 0x0020,  1,  1,   6,   vtab_attiny28}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny43U",         19,  F_AVR8, {0x1E, 0x92, 0x0C},       0, 0x01000, 0x040,  0,      0,       0, 0x0040,  4, 0x0060, 0x0100,  3,  1,  16,  vtab_attiny43u}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny44",          20,  F_AVR8, {0x1E, 0x92, 0x07},       0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100,  3,  1,  17,  vtab_attiny84a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny44A",         21,  F_AVR8, {0x1E, 0x92, 0x07},       0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100,  3,  1,  17,  vtab_attiny84a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny45",          22,  F_AVR8, {0x1E, 0x92, 0x06},       0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100,  3,  1,  15,   vtab_attiny85}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny48",          23,  F_AVR8, {0x1E, 0x92, 0x09},       0, 0x01000, 0x040,  0,      0,       0, 0x0040,  4, 0x0100, 0x0100,  3,  1,  20,   vtab_attiny88}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny84",          24,  F_AVR8, {0x1E, 0x93, 0x0C},       0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200,  3,  1,  17,  vtab_attiny84a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny84A",         25,  F_AVR8, {0x1E, 0x93, 0x0C},       0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200,  3,  1,  17,  vtab_attiny84a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny85",          26,  F_AVR8, {0x1E, 0x93, 0x0B},       0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200,  3,  1,  15,   vtab_attiny85}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny87",          27,  F_AVR8, {0x1E, 0x93, 0x87},       0, 0x02000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  20,  vtab_attiny167}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny88",          28,  F_AVR8, {0x1E, 0x93, 0x11},       0, 0x02000, 0x040,  0,      0,       0, 0x0040,  4, 0x0100, 0x0200,  3,  1,  20,   vtab_attiny88}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny167",         29,  F_AVR8, {0x1E, 0x94, 0x87},       0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  20,  vtab_attiny167}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny261",         30,  F_AVR8, {0x1E, 0x91, 0x0C},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  3,  1,  19, vtab_attiny861a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny261A",        31,  F_AVR8, {0x1E, 0x91, 0x0C},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  3,  1,  19, vtab_attiny861a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny441",         32,  F_AVR8, {0x1E, 0x92, 0x15},       0, 0x01000, 0x010,  0,      0,       0, 0x0100,  4, 0x0100, 0x0100,  3,  1,  30,  vtab_attiny841}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny461",         33,  F_AVR8, {0x1E, 0x92, 0x08},       0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100,  3,  1,  19, vtab_attiny861a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny461A",        34,  F_AVR8, {0x1E, 0x92, 0x08},       0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100,  3,  1,  19, vtab_attiny861a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny828",         35,  F_AVR8, {0x1E, 0x93, 0x14},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0100,  4, 0x0100, 0x0200,  3,  1,  26,  vtab_attiny828}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny828R",        36,  F_AVR8, {0x1E, 0x93, 0x14},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0100,  4, 0x0100, 0x0200,  3,  1,  26,  vtab_attiny828}, // avrdude, from ATtiny828
-  {"ATtiny841",         37,  F_AVR8, {0x1E, 0x93, 0x15},       0, 0x02000, 0x010,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  30,  vtab_attiny841}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny861",         38,  F_AVR8, {0x1E, 0x93, 0x0D},       0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200,  3,  1,  19, vtab_attiny861a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny861A",        39,  F_AVR8, {0x1E, 0x93, 0x0D},       0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200,  3,  1,  19, vtab_attiny861a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny1634",        40,  F_AVR8, {0x1E, 0x94, 0x12},       0, 0x04000, 0x020,  0,      0,       0, 0x0100,  4, 0x0100, 0x0400,  3,  1,  28, vtab_attiny1634}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny1634R",       41,  F_AVR8, {0x1E, 0x94, 0x12},       0, 0x04000, 0x020,  0,      0,       0, 0x0100,  4, 0x0100, 0x0400,  3,  1,  28, vtab_attiny1634}, // avrdude, from ATtiny1634
-  {"ATtiny2313",        42,  F_AVR8, {0x1E, 0x91, 0x0A},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  3,  1,  19, vtab_attiny2313}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny2313A",       43,  F_AVR8, {0x1E, 0x91, 0x0A},       0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080,  3,  1,  21, vtab_attiny4313}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny4313",        44,  F_AVR8, {0x1E, 0x92, 0x0D},       0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100,  3,  1,  21, vtab_attiny4313}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega8",           45,  F_AVR8, {0x1E, 0x93, 0x07},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0400,  2,  1,  19,   vtab_atmega8a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega8A",          46,  F_AVR8, {0x1E, 0x93, 0x07},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0400,  2,  1,  19,   vtab_atmega8a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega8HVA",        47,  F_AVR8, {0x1E, 0x93, 0x10},       0, 0x02000, 0x080,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200,  1,  1,  21, vtab_atmega16hva}, // atdf, avr-gcc 12.2.0
-  {"ATmega8U2",         48,  F_AVR8, {0x1E, 0x93, 0x89},       0, 0x02000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  29, vtab_atmega32u2}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega16",          49,  F_AVR8, {0x1E, 0x94, 0x03},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0400,  2,  1,  21,  vtab_atmega16a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega16A",         50,  F_AVR8, {0x1E, 0x94, 0x03},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0400,  2,  1,  21,  vtab_atmega16a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega16HVA",       51,  F_AVR8, {0x1E, 0x94, 0x0C},       0, 0x04000, 0x080,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200,  1,  1,  21, vtab_atmega16hva}, // atdf, avr-gcc 12.2.0
-  {"ATmega16HVB",       52,  F_AVR8, {0x1E, 0x94, 0x0D},       0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400,  2,  1,  29, vtab_atmega32hvbrevb}, // atdf, avr-gcc 12.2.0
-  {"ATmega16HVBrevB",   53,  F_AVR8, {0x1E, 0x94, 0x0D},       0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400,  2,  1,  29, vtab_atmega32hvbrevb}, // atdf, avr-gcc 12.2.0
-  {"ATmega16M1",        54,  F_AVR8, {0x1E, 0x94, 0x84},       0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  31, vtab_atmega64m1}, // atdf, avr-gcc 12.2.0
-  {"ATmega16HVA2",      55,  F_AVR8, {0x1E, 0x94, 0x0E},       0, 0x04000, 0x080, -1,     -1,      -1,     -1, -1, 0x0100, 0x0400,  2,  1,  22, vtab_atmega16hva2}, // avr-gcc 12.2.0
-  {"ATmega16U2",        56,  F_AVR8, {0x1E, 0x94, 0x89},       0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  29, vtab_atmega32u2}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega16U4",        57,  F_AVR8, {0x1E, 0x94, 0x88},       0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0500,  3,  1,  43, vtab_atmega32u4}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega32",          58,  F_AVR8, {0x1E, 0x95, 0x02},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0060, 0x0800,  2,  1,  21,  vtab_atmega323}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega32A",         59,  F_AVR8, {0x1E, 0x95, 0x02},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0060, 0x0800,  2,  1,  21,  vtab_atmega323}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega32HVB",       60,  F_AVR8, {0x1E, 0x95, 0x10},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  2,  1,  29, vtab_atmega32hvbrevb}, // atdf, avr-gcc 12.2.0
-  {"ATmega32HVBrevB",   61,  F_AVR8, {0x1E, 0x95, 0x10},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  2,  1,  29, vtab_atmega32hvbrevb}, // atdf, avr-gcc 12.2.0
-  {"ATmega32C1",        62,  F_AVR8, {0x1E, 0x95, 0x86},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  31, vtab_atmega64m1}, // atdf, avr-gcc 12.2.0
-  {"ATmega32M1",        63,  F_AVR8, {0x1E, 0x95, 0x84},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  31, vtab_atmega64m1}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega32U2",        64,  F_AVR8, {0x1E, 0x95, 0x8A},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0400,  3,  1,  29, vtab_atmega32u2}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega32U4",        65,  F_AVR8, {0x1E, 0x95, 0x87},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0a00,  3,  1,  43, vtab_atmega32u4}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega32U6",        66,  F_AVR8, {0x1E, 0x95, 0x88},       0, 0x08000, 0x080,  4, 0x0200,      -1,     -1, -1, 0x0100, 0x0a00,  3,  1,  38, vtab_atmega32u6}, // avr-gcc 12.2.0, boot size (manual)
-  {"ATmega48",          67,  F_AVR8, {0x1E, 0x92, 0x05},       0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega48A",         68,  F_AVR8, {0x1E, 0x92, 0x05},       0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega48P",         69,  F_AVR8, {0x1E, 0x92, 0x0A},       0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega48PA",        70,  F_AVR8, {0x1E, 0x92, 0x0A},       0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega48PB",        71,  F_AVR8, {0x1E, 0x92, 0x10},       0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200,  3,  1,  27, vtab_atmega168pb}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega64",          72,  F_AVR8, {0x1E, 0x96, 0x02},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  35, vtab_atmega128a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega64A",         73,  F_AVR8, {0x1E, 0x96, 0x02},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  35, vtab_atmega128a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega64HVE",       74,  F_AVR8, {0x1E, 0x96, 0x10},       0, 0x10000, 0x080,  4, 0x0400,      -1,     -1, -1, 0x0100, 0x1000,  2,  1,  25, vtab_atmega64hve2}, // avr-gcc 12.2.0, boot size (manual)
-  {"ATmega64C1",        75,  F_AVR8, {0x1E, 0x96, 0x86},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  31, vtab_atmega64m1}, // atdf, avr-gcc 12.2.0
-  {"ATmega64M1",        76,  F_AVR8, {0x1E, 0x96, 0x84},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  31, vtab_atmega64m1}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega64HVE2",      77,  F_AVR8, {0x1E, 0x96, 0x10},       0, 0x10000, 0x080,  4, 0x0400,       0, 0x0400,  4, 0x0100, 0x1000,  2,  1,  25, vtab_atmega64hve2}, // atdf, avr-gcc 12.2.0
-  {"ATmega64RFR2",      78,  F_AVR8, {0x1E, 0xA6, 0x02},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0200, 0x2000,  3,  1,  77, vtab_atmega2564rfr2}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega88",          79,  F_AVR8, {0x1E, 0x93, 0x0A},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega88A",         80,  F_AVR8, {0x1E, 0x93, 0x0A},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega88P",         81,  F_AVR8, {0x1E, 0x93, 0x0F},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega88PA",        82,  F_AVR8, {0x1E, 0x93, 0x0F},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega88PB",        83,  F_AVR8, {0x1E, 0x93, 0x16},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  27, vtab_atmega168pb}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega103",         84,  F_AVR8, {0x1E, 0x97, 0x01},       0, 0x20000, 0x100,  0,      0,       0, 0x1000,  1, 0x0060, 0x0fa0,  1,  1,  24,  vtab_atmega103}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"ATmega128",         85,  F_AVR8, {0x1E, 0x97, 0x02},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x1000,  3,  1,  35, vtab_atmega128a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega128A",        86,  F_AVR8, {0x1E, 0x97, 0x02},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x1000,  3,  1,  35, vtab_atmega128a}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega128RFA1",     87,  F_AVR8, {0x1E, 0xA7, 0x01},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x4000,  3,  1,  72, vtab_atmega128rfa1}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega128RFR2",     88,  F_AVR8, {0x1E, 0xA7, 0x02},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x4000,  3,  1,  77, vtab_atmega2564rfr2}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega161",         89,  F_AVR8, {0x1E, 0x94, 0x01},       0, 0x04000, 0x080,  1, 0x0400,       0, 0x0200,  1, 0x0060, 0x0400,  1,  1,  21,  vtab_atmega161}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"ATmega162",         90,  F_AVR8, {0x1E, 0x94, 0x04},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  28,  vtab_atmega162}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega163",         91,  F_AVR8, {0x1E, 0x94, 0x02},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  1, 0x0060, 0x0400,  2,  1,  18,  vtab_atmega163}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"ATmega164A",        92,  F_AVR8, {0x1E, 0x94, 0x0F},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  31, vtab_atmega644pa}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega164P",        93,  F_AVR8, {0x1E, 0x94, 0x0A},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  31, vtab_atmega644pa}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega164PA",       94,  F_AVR8, {0x1E, 0x94, 0x0A},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  31, vtab_atmega644pa}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega165",         95,  F_AVR8, {0x1E, 0x94, 0x10},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  22, vtab_atmega645p}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"ATmega165A",        96,  F_AVR8, {0x1E, 0x94, 0x10},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  22, vtab_atmega645p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega165P",        97,  F_AVR8, {0x1E, 0x94, 0x07},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  22, vtab_atmega645p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega165PA",       98,  F_AVR8, {0x1E, 0x94, 0x07},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  22, vtab_atmega645p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega168",         99,  F_AVR8, {0x1E, 0x94, 0x06},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26,  vtab_atmega328}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega168A",       100,  F_AVR8, {0x1E, 0x94, 0x06},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega168P",       101,  F_AVR8, {0x1E, 0x94, 0x0B},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega168PA",      102,  F_AVR8, {0x1E, 0x94, 0x0B},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega168PB",      103,  F_AVR8, {0x1E, 0x94, 0x15},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  27, vtab_atmega168pb}, // atdf, avr-gcc 7.3.0, avrdude
-  {"ATmega169",        104,  F_AVR8, {0x1E, 0x94, 0x05},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  23, vtab_atmega649p}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"ATmega169A",       105,  F_AVR8, {0x1E, 0x94, 0x11},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  23, vtab_atmega649p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega169P",       106,  F_AVR8, {0x1E, 0x94, 0x05},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  23, vtab_atmega649p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega169PA",      107,  F_AVR8, {0x1E, 0x94, 0x05},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  23, vtab_atmega649p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega256RFR2",    108,  F_AVR8, {0x1E, 0xA8, 0x02},       0, 0x40000, 0x100,  4, 0x0400,       0, 0x2000,  8, 0x0200, 0x8000,  3,  1,  77, vtab_atmega2564rfr2}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega323",        109,  F_AVR8, {0x1E, 0x95, 0x01},       0, 0x08000, 0x080,  4, 0x0200,      -1,     -1, -1, 0x0060, 0x0800,  2,  1,  21,  vtab_atmega323}, // avr-gcc 12.2.0, boot size (manual)
-  {"ATmega324A",       110,  F_AVR8, {0x1E, 0x95, 0x15},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  31, vtab_atmega644pa}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega324P",       111,  F_AVR8, {0x1E, 0x95, 0x08},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  31, vtab_atmega644pa}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega324PA",      112,  F_AVR8, {0x1E, 0x95, 0x11},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  31, vtab_atmega644pa}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega324PB",      113,  F_AVR8, {0x1E, 0x95, 0x17},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  51, vtab_atmega324pb}, // atdf, avrdude
-  {"ATmega325",        114,  F_AVR8, {0x1E, 0x95, 0x05},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  22, vtab_atmega645p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega325A",       115,  F_AVR8, {0x1E, 0x95, 0x05},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  22, vtab_atmega645p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega325P",       116,  F_AVR8, {0x1E, 0x95, 0x0D},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  22, vtab_atmega645p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega325PA",      117,  F_AVR8, {0x1E, 0x95, 0x0D},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  22, vtab_atmega645p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega328",        118,  F_AVR8, {0x1E, 0x95, 0x14},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  26,  vtab_atmega328}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega328P",       119,  F_AVR8, {0x1E, 0x95, 0x0F},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega328PB",      120,  F_AVR8, {0x1E, 0x95, 0x16},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  45, vtab_atmega328pb}, // atdf, avr-gcc 7.3.0, avrdude
-  {"ATmega329",        121,  F_AVR8, {0x1E, 0x95, 0x03},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  23, vtab_atmega649p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega329A",       122,  F_AVR8, {0x1E, 0x95, 0x03},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  23, vtab_atmega649p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega329P",       123,  F_AVR8, {0x1E, 0x95, 0x0B},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  23, vtab_atmega649p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega329PA",      124,  F_AVR8, {0x1E, 0x95, 0x0B},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  23, vtab_atmega649p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega406",        125,  F_AVR8, {0x1E, 0x95, 0x07},       0, 0x0a000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0800,  2,  1,  23,  vtab_atmega406}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega640",        126,  F_AVR8, {0x1E, 0x96, 0x08},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000,  3,  1,  57, vtab_atmega2560}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega644",        127,  F_AVR8, {0x1E, 0x96, 0x09},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  28,  vtab_atmega644}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega644A",       128,  F_AVR8, {0x1E, 0x96, 0x09},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  31, vtab_atmega644pa}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega644P",       129,  F_AVR8, {0x1E, 0x96, 0x0A},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  31, vtab_atmega644pa}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega644PA",      130,  F_AVR8, {0x1E, 0x96, 0x0A},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  31, vtab_atmega644pa}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega644RFR2",    131,  F_AVR8, {0x1E, 0xA6, 0x03},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0200, 0x2000,  3,  1,  77, vtab_atmega2564rfr2}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega645",        132,  F_AVR8, {0x1E, 0x96, 0x05},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  22, vtab_atmega645p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega645A",       133,  F_AVR8, {0x1E, 0x96, 0x05},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  22, vtab_atmega645p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega645P",       134,  F_AVR8, {0x1E, 0x96, 0x0D},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  22, vtab_atmega645p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega649",        135,  F_AVR8, {0x1E, 0x96, 0x03},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  23, vtab_atmega649p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega649A",       136,  F_AVR8, {0x1E, 0x96, 0x03},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  23, vtab_atmega649p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega649P",       137,  F_AVR8, {0x1E, 0x96, 0x0B},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  23, vtab_atmega649p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega1280",       138,  F_AVR8, {0x1E, 0x97, 0x03},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000,  3,  1,  57, vtab_atmega2560}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega1281",       139,  F_AVR8, {0x1E, 0x97, 0x04},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000,  3,  1,  57, vtab_atmega2561}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega1284",       140,  F_AVR8, {0x1E, 0x97, 0x06},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x4000,  3,  1,  35, vtab_atmega1284p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega1284P",      141,  F_AVR8, {0x1E, 0x97, 0x05},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x4000,  3,  1,  35, vtab_atmega1284p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega1284RFR2",   142,  F_AVR8, {0x1E, 0xA7, 0x03},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x4000,  3,  1,  77, vtab_atmega2564rfr2}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega2560",       143,  F_AVR8, {0x1E, 0x98, 0x01},       0, 0x40000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000,  3,  1,  57, vtab_atmega2560}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega2561",       144,  F_AVR8, {0x1E, 0x98, 0x02},       0, 0x40000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000,  3,  1,  57, vtab_atmega2561}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega2564RFR2",   145,  F_AVR8, {0x1E, 0xA8, 0x03},       0, 0x40000, 0x100,  4, 0x0400,       0, 0x2000,  8, 0x0200, 0x8000,  3,  1,  77, vtab_atmega2564rfr2}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega3250",       146,  F_AVR8, {0x1E, 0x95, 0x06},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  25, vtab_atmega6450p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega3250A",      147,  F_AVR8, {0x1E, 0x95, 0x06},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  25, vtab_atmega6450p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega3250P",      148,  F_AVR8, {0x1E, 0x95, 0x0E},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  25, vtab_atmega6450p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega3250PA",     149,  F_AVR8, {0x1E, 0x95, 0x0E},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  25, vtab_atmega6450p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega3290",       150,  F_AVR8, {0x1E, 0x95, 0x04},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  25, vtab_atmega6490p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega3290A",      151,  F_AVR8, {0x1E, 0x95, 0x04},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  25, vtab_atmega6490p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega3290P",      152,  F_AVR8, {0x1E, 0x95, 0x0C},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  25, vtab_atmega6490p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega3290PA",     153,  F_AVR8, {0x1E, 0x95, 0x0C},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  25, vtab_atmega6490p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega6450",       154,  F_AVR8, {0x1E, 0x96, 0x06},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  25, vtab_atmega6450p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega6450A",      155,  F_AVR8, {0x1E, 0x96, 0x06},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  25, vtab_atmega6450p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega6450P",      156,  F_AVR8, {0x1E, 0x96, 0x0E},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  25, vtab_atmega6450p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega6490",       157,  F_AVR8, {0x1E, 0x96, 0x04},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  25, vtab_atmega6490p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega6490A",      158,  F_AVR8, {0x1E, 0x96, 0x04},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  25, vtab_atmega6490p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega6490P",      159,  F_AVR8, {0x1E, 0x96, 0x0C},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  25, vtab_atmega6490p}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega8515",       160,  F_AVR8, {0x1E, 0x93, 0x06},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0200,  2,  1,  17, vtab_atmega8515}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega8535",       161,  F_AVR8, {0x1E, 0x93, 0x08},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0200,  2,  1,  21, vtab_atmega8535}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT43USB320",       162,  F_AVR8, {0xff,   -1,   -1},       0, 0x10000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0200, -1, -1,   0,            NULL}, // avr-gcc 12.2.0
-  {"AT43USB355",       163,  F_AVR8, {0xff,   -1,   -1},       0, 0x06000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0400, -1, -1,   0,            NULL}, // avr-gcc 12.2.0
-  {"AT76C711",         164,  F_AVR8, {0xff,   -1,   -1},       0, 0x04000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x07a0, -1, -1,   0,            NULL}, // avr-gcc 12.2.0
-  {"AT86RF401",        165,  F_AVR8, {0x1E, 0x91, 0x81},       0, 0x00800,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0080,  0,  1,   3,  vtab_at86rf401}, // avr-gcc 12.2.0
-  {"AT89S51",          372,  F_AVR8, {0x1E, 0x51, 0x06},       0, 0x01000, 0x001, -1,     -1,       0,      0,  0,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
-  {"AT89S52",          373,  F_AVR8, {0x1E, 0x52, 0x06},       0, 0x02000, 0x001, -1,     -1,       0,      0,  0,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
-  {"AT90PWM1",         166,  F_AVR8, {0x1E, 0x93, 0x83},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,   vtab_at90pwm1}, // atdf, avr-gcc 12.2.0
-  {"AT90PWM2",         167,  F_AVR8, {0x1E, 0x93, 0x81},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,   vtab_at90pwm2}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"AT90PWM2B",        168,  F_AVR8, {0x1E, 0x93, 0x83},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,  vtab_at90pwm3b}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT90PWM3",         169,  F_AVR8, {0x1E, 0x93, 0x81},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,  vtab_at90pwm3b}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT90PWM3B",        170,  F_AVR8, {0x1E, 0x93, 0x83},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  32,  vtab_at90pwm3b}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT90CAN32",        171,  F_AVR8, {0x1E, 0x95, 0x81},       0, 0x08000, 0x100,  4, 0x0400,       0, 0x0400,  8, 0x0100, 0x0800,  3,  1,  37, vtab_at90can128}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT90CAN64",        172,  F_AVR8, {0x1E, 0x96, 0x81},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  37, vtab_at90can128}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT90PWM81",        173,  F_AVR8, {0x1E, 0x93, 0x88},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0100,  3,  1,  20, vtab_at90pwm161}, // atdf, avr-gcc 12.2.0
-  {"AT90USB82",        174,  F_AVR8, {0x1E, 0x93, 0x82},       0, 0x02000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  29, vtab_atmega32u2}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT90SCR100",       175,  F_AVR8, {0x1E, 0x96, 0xC1},       0, 0x10000, 0x100,  4, 0x0200,      -1,     -1, -1, 0x0100, 0x1000,  3,  1,  38, vtab_at90scr100}, // avr-gcc 12.2.0, boot size (manual)
-  {"AT90CAN128",       176,  F_AVR8, {0x1E, 0x97, 0x81},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x1000,  3,  1,  37, vtab_at90can128}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT90PWM161",       177,  F_AVR8, {0x1E, 0x94, 0x8B},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  20, vtab_at90pwm161}, // atdf, avr-gcc 12.2.0
-  {"AT90USB162",       178,  F_AVR8, {0x1E, 0x94, 0x82},       0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  29, vtab_atmega32u2}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT90PWM216",       179,  F_AVR8, {0x1E, 0x94, 0x83},       0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  32, vtab_at90pwm316}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT90PWM316",       180,  F_AVR8, {0x1E, 0x94, 0x83},       0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  32, vtab_at90pwm316}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT90USB646",       181,  F_AVR8, {0x1E, 0x96, 0x82},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  38, vtab_atmega32u6}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT90USB647",       182,  F_AVR8, {0x1E, 0x96, 0x82},       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000,  3,  1,  38, vtab_atmega32u6}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT90S1200",        183,  F_AVR8, {0x1E, 0x90, 0x01},       0, 0x00400, 0x001,  0,      0,       0, 0x0040,  1, 0x0060, 0x0020,  1,  1,   4,  vtab_at90s1200}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"AT90USB1286",      184,  F_AVR8, {0x1E, 0x97, 0x82},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x2000,  3,  1,  38, vtab_atmega32u6}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT90USB1287",      185,  F_AVR8, {0x1E, 0x97, 0x82},       0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x2000,  3,  1,  38, vtab_atmega32u6}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AT90S2313",        186,  F_AVR8, {0x1E, 0x91, 0x01},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,  11,  vtab_at90s2313}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"AT90S2323",        187,  F_AVR8, {0x1E, 0x91, 0x02},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"AT90S2333",        188,  F_AVR8, {0x1E, 0x91, 0x05},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, -1, -1,  14,  vtab_at90s4433}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"AT90S2343",        189,  F_AVR8, {0x1E, 0x91, 0x03},       0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080,  1,  1,   3,   vtab_attiny22}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"AT90S4414",        190,  F_AVR8, {0x1E, 0x92, 0x01},       0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0100,  1,  1,  13,  vtab_at90s8515}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"AT90S4433",        191,  F_AVR8, {0x1E, 0x92, 0x03},       0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0080,  1,  1,  14,  vtab_at90s4433}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"AT90S4434",        192,  F_AVR8, {0x1E, 0x92, 0x02},       0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0100,  1,  1,  17,  vtab_at90s8535}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"AT90S8515",        193,  F_AVR8, {0x1E, 0x93, 0x01},       0, 0x02000, 0x001,  0,      0,       0, 0x0200,  1, 0x0060, 0x0200,  1,  1,  13,  vtab_at90s8515}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"AT90C8534",        194,  F_AVR8, {0xff,   -1,   -1},       0, 0x02000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0100, -1, -1,   0,            NULL}, // avr-gcc 12.2.0
-  {"AT90S8535",        195,  F_AVR8, {0x1E, 0x93, 0x03},       0, 0x02000, 0x001,  0,      0,       0, 0x0200,  1, 0x0060, 0x0200,  1,  1,  17,  vtab_at90s8535}, // avr-gcc 12.2.0, avrdude, boot size (manual)
-  {"AT94K",            196,  F_AVR8, {0xff,   -1,   -1},       0, 0x08000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0fa0, -1, -1,   0,            NULL}, // avr-gcc 12.2.0
-  {"ATA5272",          197,  F_AVR8, {0x1E, 0x93, 0x87},       0, 0x02000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  37,    vtab_ata5272}, // atdf, avr-gcc 12.2.0
-  {"ATA5505",          198,  F_AVR8, {0x1E, 0x94, 0x87},       0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  20,  vtab_attiny167}, // atdf, avr-gcc 12.2.0
-  {"ATA5700M322",      199,  F_AVR8, {0x1E, 0x95, 0x67}, 0x08000, 0x08000, 0x040,  0,      0,       0, 0x0880, 16, 0x0200, 0x0400,  1,  1,  51, vtab_ata5702m322}, // atdf
-  {"ATA5702M322",      200,  F_AVR8, {0x1E, 0x95, 0x69}, 0x08000, 0x08000, 0x040,  0,      0,       0, 0x0880, 16, 0x0200, 0x0400,  1,  1,  51, vtab_ata5702m322}, // atdf, avr-gcc 12.2.0
-  {"ATA5781",          201,  F_AVR8, {0x1E, 0x95, 0x64},      -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400,  1,  1,  42,    vtab_ata8515}, // atdf
-  {"ATA5782",          202,  F_AVR8, {0x1E, 0x95, 0x65}, 0x08000, 0x05000, 0x040,  1, 0x5000,       0, 0x0400, 16, 0x0200, 0x0400,  1,  1,  42,    vtab_ata8515}, // atdf, avr-gcc 12.2.0
-  {"ATA5783",          203,  F_AVR8, {0x1E, 0x95, 0x66},      -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400,  1,  1,  42,    vtab_ata8515}, // atdf
-  {"ATA5787",          204,  F_AVR8, {0x1E, 0x94, 0x6C}, 0x08000, 0x05200, 0x040,  0,      0,       0, 0x0400, 16, 0x0200, 0x0800,  1,  1,  44,    vtab_ata5835}, // atdf
-  {"ATA5790",          205,  F_AVR8, {0x1E, 0x94, 0x61},       0, 0x04000, 0x080,  1, 0x0800,       0, 0x0800, 16, 0x0100, 0x0200,  1,  1,  30,    vtab_ata5790}, // atdf, avr-gcc 12.2.0
-  {"ATA5790N",         206,  F_AVR8, {0x1E, 0x94, 0x62},       0, 0x04000, 0x080,  1, 0x0800,       0, 0x0800, 16, 0x0100, 0x0200,  1,  1,  31,    vtab_ata5791}, // atdf, avr-gcc 12.2.0
-  {"ATA5791",          207,  F_AVR8, {0x1E, 0x94, 0x62},       0, 0x04000, 0x080,  1, 0x0800,       0, 0x0800, 16, 0x0100, 0x0200,  1,  1,  31,    vtab_ata5791}, // atdf, avr-gcc 7.3.0
-  {"ATA5795",          208,  F_AVR8, {0x1E, 0x93, 0x61},       0, 0x02000, 0x040,  1, 0x0800,       0, 0x0800, 16, 0x0100, 0x0200,  1,  1,  23,    vtab_ata5795}, // atdf, avr-gcc 12.2.0
-  {"ATA5831",          209,  F_AVR8, {0x1E, 0x95, 0x61}, 0x08000, 0x05000, 0x040,  1, 0x5000,       0, 0x0400, 16, 0x0200, 0x0400,  1,  1,  42,    vtab_ata8515}, // atdf, avr-gcc 12.2.0
-  {"ATA5832",          210,  F_AVR8, {0x1E, 0x95, 0x62},      -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400,  1,  1,  42,    vtab_ata8515}, // atdf
-  {"ATA5833",          211,  F_AVR8, {0x1E, 0x95, 0x63},      -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400,  1,  1,  42,    vtab_ata8515}, // atdf
-  {"ATA5835",          212,  F_AVR8, {0x1E, 0x94, 0x6B}, 0x08000, 0x05200, 0x040,  0,      0,       0, 0x0400, 16, 0x0200, 0x0800,  1,  1,  44,    vtab_ata5835}, // atdf
-  {"ATA6285",          213,  F_AVR8, {0x1E, 0x93, 0x82},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0140,  4, 0x0100, 0x0200,  2,  1,  27,    vtab_ata6289}, // atdf, avr-gcc 12.2.0
-  {"ATA6286",          214,  F_AVR8, {0x1E, 0x93, 0x82},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0140,  4, 0x0100, 0x0200,  2,  1,  27,    vtab_ata6289}, // atdf, avr-gcc 12.2.0
-  {"ATA6289",          215,  F_AVR8, {0x1E, 0x93, 0x82},       0, 0x02000, 0x040,  4, 0x0100,      -1,     -1, -1, 0x0100, 0x0200,  2,  1,  27,    vtab_ata6289}, // avr-gcc 12.2.0, boot size (manual)
-  {"ATA6612C",         216,  F_AVR8, {0x1E, 0x93, 0x0A},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0
-  {"ATA6613C",         217,  F_AVR8, {0x1E, 0x94, 0x06},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0
-  {"ATA6614Q",         218,  F_AVR8, {0x1E, 0x95, 0x0F},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  26, vtab_atmega328p}, // atdf, avr-gcc 12.2.0
-  {"ATA6616C",         219,  F_AVR8, {0x1E, 0x93, 0x87},       0, 0x02000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  20,  vtab_attiny167}, // atdf, avr-gcc 12.2.0
-  {"ATA6617C",         220,  F_AVR8, {0x1E, 0x94, 0x87},       0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  20,  vtab_attiny167}, // atdf, avr-gcc 12.2.0
-  {"ATA8210",          221,  F_AVR8, {0x1E, 0x95, 0x65}, 0x08000, 0x05000, 0x040,  1, 0x5000,       0, 0x0400, 16, 0x0200, 0x0400,  1,  1,  42,    vtab_ata8515}, // atdf, avr-gcc 7.3.0
-  {"ATA8215",          222,  F_AVR8, {0x1E, 0x95, 0x64},      -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400,  1,  1,  42,    vtab_ata8515}, // atdf
-  {"ATA8510",          223,  F_AVR8, {0x1E, 0x95, 0x61}, 0x08000, 0x05000, 0x040,  1, 0x5000,       0, 0x0400, 16, 0x0200, 0x0400,  1,  1,  42,    vtab_ata8515}, // atdf, avr-gcc 7.3.0
-  {"ATA8515",          224,  F_AVR8, {0x1E, 0x95, 0x63},      -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400,  1,  1,  42,    vtab_ata8515}, // atdf
-  {"ATA664251",        225,  F_AVR8, {0x1E, 0x94, 0x87},       0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200,  3,  1,  20,  vtab_attiny167}, // atdf, avr-gcc 12.2.0
-  {"M3000",            226,  F_AVR8, {0xff,   -1,   -1},       0, 0x10000,    -1, -1,     -1,      -1,     -1, -1, 0x1000, 0x1000, -1, -1,   0,            NULL}, // avr-gcc 12.2.0
-  {"LGT8F88P",         227,  F_AVR8, {0x1E, 0x93, 0x0F},       0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // avrdude, from ATmega88
-  {"LGT8F168P",        228,  F_AVR8, {0x1E, 0x94, 0x0B},       0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400,  3,  1,  26, vtab_atmega328p}, // avrdude, from ATmega168P
-  {"LGT8F328P",        229,  F_AVR8, {0x1E, 0x95, 0x0F},       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800,  3,  1,  26, vtab_atmega328p}, // avrdude, from ATmega328P
+  //ATtiny4         atdf, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"ATtiny4",            0, F_AVR8L, {0x1E, 0x8F, 0x0A}, // ID
+  /*ATtiny4*/            0, 0x00200, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020, // Mem
+  /*ATtiny4*/            1,  1,  10, vtab_attiny9,         0, NULL}, // Config and interrupts
 
-  {"ATxmega8E5",       230, F_XMEGA, {0x1E, 0x93, 0x41},       0, 0x02800, 0x080,  1, 0x0800,       0, 0x0200, 32, 0x2000, 0x0400,  7,  1,  43, vtab_atxmega32e5}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega16A4",      231, F_XMEGA, {0x1E, 0x94, 0x41},       0, 0x05000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x0800,  6,  1,  94, vtab_atxmega32a4}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega16A4U",     232, F_XMEGA, {0x1E, 0x94, 0x41},       0, 0x05000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x0800,  6,  1, 127, vtab_atxmega128a4u}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega16C4",      233, F_XMEGA, {0x1E, 0x94, 0x43},       0, 0x05000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x0800,  6,  1, 127, vtab_atxmega32c4}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega16D4",      234, F_XMEGA, {0x1E, 0x94, 0x42},       0, 0x05000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x0800,  6,  1,  91, vtab_atxmega32d4}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega16E5",      235, F_XMEGA, {0x1E, 0x94, 0x45},       0, 0x05000, 0x080,  1, 0x1000,       0, 0x0200, 32, 0x2000, 0x0800,  7,  1,  43, vtab_atxmega32e5}, // atdf, avr-gcc 7.3.0, avrdude
-  {"ATxmega32C3",      236, F_XMEGA, {0x1E, 0x95, 0x49},       0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000,  6,  1, 127, vtab_atxmega256c3}, // atdf, avr-gcc 12.2.0
-  {"ATxmega32D3",      237, F_XMEGA, {0x1E, 0x95, 0x4A},       0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000,  6,  1, 114, vtab_atxmega384d3}, // atdf, avr-gcc 12.2.0
-  {"ATxmega32A4",      238, F_XMEGA, {0x1E, 0x95, 0x41},       0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000,  6,  1,  94, vtab_atxmega32a4}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega32A4U",     239, F_XMEGA, {0x1E, 0x95, 0x41},       0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000,  6,  1, 127, vtab_atxmega128a4u}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega32C4",      240, F_XMEGA, {0x1E, 0x95, 0x44},       0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000,  6,  1, 127, vtab_atxmega32c4}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega32D4",      241, F_XMEGA, {0x1E, 0x95, 0x42},       0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000,  6,  1,  91, vtab_atxmega32d4}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega32E5",      242, F_XMEGA, {0x1E, 0x95, 0x4C},       0, 0x09000, 0x080,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000,  7,  1,  43, vtab_atxmega32e5}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega64A1",      243, F_XMEGA, {0x1E, 0x96, 0x4E},       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000,  6,  1, 125, vtab_atxmega128a1}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega64A1U",     244, F_XMEGA, {0x1E, 0x96, 0x4E},       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000,  6,  1, 127, vtab_atxmega128a1u}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega64B1",      245, F_XMEGA, {0x1E, 0x96, 0x52},       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000,  6,  1,  81, vtab_atxmega128b1}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega64A3",      246, F_XMEGA, {0x1E, 0x96, 0x42},       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000,  6,  1, 122, vtab_atxmega256a3}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega64A3U",     247, F_XMEGA, {0x1E, 0x96, 0x42},       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000,  6,  1, 127, vtab_atxmega256a3u}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega64B3",      248, F_XMEGA, {0x1E, 0x96, 0x51},       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000,  6,  1,  54, vtab_atxmega128b3}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega64C3",      249, F_XMEGA, {0x1E, 0x96, 0x49},       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000,  6,  1, 127, vtab_atxmega256c3}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega64D3",      250, F_XMEGA, {0x1E, 0x96, 0x4A},       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000,  6,  1, 114, vtab_atxmega384d3}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega64A4",      251, F_XMEGA, {0x1E, 0x96, 0x46},       0, 0x11000, 0x100, -1,     -1,       0, 0x0800, 32,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
-  {"ATxmega64A4U",     252, F_XMEGA, {0x1E, 0x96, 0x46},       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000,  6,  1, 127, vtab_atxmega128a4u}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega64D4",      253, F_XMEGA, {0x1E, 0x96, 0x47},       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000,  6,  1,  91, vtab_atxmega128d4}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega128A1",     254, F_XMEGA, {0x1E, 0x97, 0x4C},       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000,  6,  1, 125, vtab_atxmega128a1}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega128A1revD", 255, F_XMEGA, {0x1E, 0x97, 0x41},       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000,  6,  1, 125, vtab_atxmega128a1}, // avrdude, from ATxmega128A1
-  {"ATxmega128A1U",    256, F_XMEGA, {0x1E, 0x97, 0x4C},       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000,  6,  1, 127, vtab_atxmega128a1u}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega128B1",     257, F_XMEGA, {0x1E, 0x97, 0x4D},       0, 0x22000, 0x100,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000,  6,  1,  81, vtab_atxmega128b1}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega128A3",     258, F_XMEGA, {0x1E, 0x97, 0x42},       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000,  6,  1, 122, vtab_atxmega256a3}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega128A3U",    259, F_XMEGA, {0x1E, 0x97, 0x42},       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000,  6,  1, 127, vtab_atxmega256a3u}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega128B3",     260, F_XMEGA, {0x1E, 0x97, 0x4B},       0, 0x22000, 0x100,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000,  6,  1,  54, vtab_atxmega128b3}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega128C3",     261, F_XMEGA, {0x1E, 0x97, 0x52},       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000,  6,  1, 127, vtab_atxmega256c3}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega128D3",     262, F_XMEGA, {0x1E, 0x97, 0x48},       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000,  6,  1, 114, vtab_atxmega384d3}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega128A4",     263, F_XMEGA, {0x1E, 0x97, 0x46},       0, 0x22000, 0x200, -1,     -1,       0, 0x0800, 32,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
-  {"ATxmega128A4U",    264, F_XMEGA, {0x1E, 0x97, 0x46},       0, 0x22000, 0x100,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000,  6,  1, 127, vtab_atxmega128a4u}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega128D4",     265, F_XMEGA, {0x1E, 0x97, 0x47},       0, 0x22000, 0x100,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000,  6,  1,  91, vtab_atxmega128d4}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega192A1",     266, F_XMEGA, {0x1E, 0x97, 0x4E},       0, 0x32000, 0x200, -1,     -1,       0, 0x0800, 32,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
-  {"ATxmega192A3",     267, F_XMEGA, {0x1E, 0x97, 0x44},       0, 0x32000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x4000,  6,  1, 122, vtab_atxmega256a3}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega192A3U",    268, F_XMEGA, {0x1E, 0x97, 0x44},       0, 0x32000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x4000,  6,  1, 127, vtab_atxmega256a3u}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega192C3",     269, F_XMEGA, {0x1E, 0x97, 0x51},       0, 0x32000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x4000,  6,  1, 127, vtab_atxmega256c3}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega192D3",     270, F_XMEGA, {0x1E, 0x97, 0x49},       0, 0x32000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x4000,  6,  1, 114, vtab_atxmega384d3}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega256A1",     271, F_XMEGA, {0x1E, 0x98, 0x46},       0, 0x42000, 0x200, -1,     -1,       0, 0x1000, 32,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
-  {"ATxmega256A3",     272, F_XMEGA, {0x1E, 0x98, 0x42},       0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000,  6,  1, 122, vtab_atxmega256a3}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega256A3B",    273, F_XMEGA, {0x1E, 0x98, 0x43},       0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000,  6,  1, 122, vtab_atxmega256a3b}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega256A3BU",   274, F_XMEGA, {0x1E, 0x98, 0x43},       0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000,  6,  1, 127, vtab_atxmega256a3bu}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega256A3U",    275, F_XMEGA, {0x1E, 0x98, 0x42},       0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000,  6,  1, 127, vtab_atxmega256a3u}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega256C3",     276, F_XMEGA, {0x1E, 0x98, 0x46},       0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000,  6,  1, 127, vtab_atxmega256c3}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega256D3",     277, F_XMEGA, {0x1E, 0x98, 0x44},       0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000,  6,  1, 114, vtab_atxmega384d3}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega384C3",     278, F_XMEGA, {0x1E, 0x98, 0x45},       0, 0x62000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x8000,  6,  1, 127, vtab_atxmega384c3}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATxmega384D3",     279, F_XMEGA, {0x1E, 0x98, 0x47},       0, 0x62000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x8000,  6,  1, 114, vtab_atxmega384d3}, // atdf, avr-gcc 12.2.0, avrdude
+  //ATtiny5         atdf, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"ATtiny5",            1, F_AVR8L, {0x1E, 0x8F, 0x09}, // ID
+  /*ATtiny5*/            0, 0x00200, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020, // Mem
+  /*ATtiny5*/            1,  1,  11, vtab_attiny10,        0, NULL}, // Config and interrupts
 
-  {"ATtiny202",        280, F_AVR8X, {0x1E, 0x91, 0x23},       0, 0x00800, 0x040,  1,      0, 0x01400, 0x0040, 32, 0x3f80, 0x0080, 10,  1,  26,  vtab_attiny402}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny204",        281, F_AVR8X, {0x1E, 0x91, 0x22},       0, 0x00800, 0x040,  1,      0, 0x01400, 0x0040, 32, 0x3f80, 0x0080, 10,  1,  26,  vtab_attiny404}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny212",        282, F_AVR8X, {0x1E, 0x91, 0x21},       0, 0x00800, 0x040,  1,      0, 0x01400, 0x0040, 32, 0x3f80, 0x0080, 10,  1,  26,  vtab_attiny412}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny214",        283, F_AVR8X, {0x1E, 0x91, 0x20},       0, 0x00800, 0x040,  1,      0, 0x01400, 0x0040, 32, 0x3f80, 0x0080, 10,  1,  26,  vtab_attiny814}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny402",        284, F_AVR8X, {0x1E, 0x92, 0x27},       0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, 10,  1,  26,  vtab_attiny402}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny404",        285, F_AVR8X, {0x1E, 0x92, 0x26},       0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, 10,  1,  26,  vtab_attiny404}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny406",        286, F_AVR8X, {0x1E, 0x92, 0x25},       0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, 10,  1,  26,  vtab_attiny406}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny412",        287, F_AVR8X, {0x1E, 0x92, 0x23},       0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, 10,  1,  26,  vtab_attiny412}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny414",        288, F_AVR8X, {0x1E, 0x92, 0x22},       0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, 10,  1,  26,  vtab_attiny814}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny416",        289, F_AVR8X, {0x1E, 0x92, 0x21},       0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, 10,  1,  26,  vtab_attiny817}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny416auto",    290, F_AVR8X, {0x1E, 0x92, 0x28},       0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, 10,  1,  26,  vtab_attiny817}, // atdf
-  {"ATtiny417",        291, F_AVR8X, {0x1E, 0x92, 0x20},       0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, 10,  1,  26,  vtab_attiny817}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny424",        292, F_AVR8X, {0x1E, 0x92, 0x2C},       0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, 10,  1,  30, vtab_attiny3227}, // atdf, avrdude
-  {"ATtiny426",        293, F_AVR8X, {0x1E, 0x92, 0x2B},       0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, 10,  1,  30, vtab_attiny3227}, // atdf, avrdude
-  {"ATtiny427",        294, F_AVR8X, {0x1E, 0x92, 0x2A},       0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, 10,  1,  30, vtab_attiny3227}, // atdf, avrdude
-  {"ATtiny804",        295, F_AVR8X, {0x1E, 0x93, 0x25},       0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, 10,  1,  31, vtab_attiny1607}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny806",        296, F_AVR8X, {0x1E, 0x93, 0x24},       0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, 10,  1,  31, vtab_attiny1607}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny807",        297, F_AVR8X, {0x1E, 0x93, 0x23},       0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, 10,  1,  31, vtab_attiny1607}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny814",        298, F_AVR8X, {0x1E, 0x93, 0x22},       0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, 10,  1,  26,  vtab_attiny814}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny816",        299, F_AVR8X, {0x1E, 0x93, 0x21},       0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, 10,  1,  26,  vtab_attiny817}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny817",        300, F_AVR8X, {0x1E, 0x93, 0x20},       0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, 10,  1,  26,  vtab_attiny817}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny824",        301, F_AVR8X, {0x1E, 0x93, 0x29},       0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3c00, 0x0400, 10,  1,  30, vtab_attiny3227}, // atdf, avrdude
-  {"ATtiny826",        302, F_AVR8X, {0x1E, 0x93, 0x28},       0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3c00, 0x0400, 10,  1,  30, vtab_attiny3227}, // atdf, avrdude
-  {"ATtiny827",        303, F_AVR8X, {0x1E, 0x93, 0x27},       0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3c00, 0x0400, 10,  1,  30, vtab_attiny3227}, // atdf, avrdude
-  {"ATtiny1604",       304, F_AVR8X, {0x1E, 0x94, 0x25},       0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, 10,  1,  31, vtab_attiny1607}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny1606",       305, F_AVR8X, {0x1E, 0x94, 0x24},       0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, 10,  1,  31, vtab_attiny1607}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny1607",       306, F_AVR8X, {0x1E, 0x94, 0x23},       0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, 10,  1,  31, vtab_attiny1607}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny1614",       307, F_AVR8X, {0x1E, 0x94, 0x22},       0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, 10,  1,  31, vtab_attiny1614}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny1616",       308, F_AVR8X, {0x1E, 0x94, 0x21},       0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, 10,  1,  31, vtab_attiny3217}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny1617",       309, F_AVR8X, {0x1E, 0x94, 0x20},       0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, 10,  1,  31, vtab_attiny3217}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny1624",       310, F_AVR8X, {0x1E, 0x94, 0x2A},       0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, 10,  1,  30, vtab_attiny3227}, // atdf, avrdude
-  {"ATtiny1626",       311, F_AVR8X, {0x1E, 0x94, 0x29},       0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, 10,  1,  30, vtab_attiny3227}, // atdf, avrdude
-  {"ATtiny1627",       312, F_AVR8X, {0x1E, 0x94, 0x28},       0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, 10,  1,  30, vtab_attiny3227}, // atdf, avrdude
-  {"ATtiny3214",       313, F_AVR8X, {0x1E, 0x95, 0x20},       0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3800, 0x0800, 10,  1,  31, vtab_attiny3214}, // avr-gcc 12.2.0
-  {"ATtiny3216",       314, F_AVR8X, {0x1E, 0x95, 0x21},       0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3800, 0x0800, 10,  1,  31, vtab_attiny3217}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny3217",       315, F_AVR8X, {0x1E, 0x95, 0x22},       0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3800, 0x0800, 10,  1,  31, vtab_attiny3217}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATtiny3224",       316, F_AVR8X, {0x1E, 0x95, 0x28},       0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3400, 0x0c00, 10,  1,  30, vtab_attiny3227}, // atdf, avrdude
-  {"ATtiny3226",       317, F_AVR8X, {0x1E, 0x95, 0x27},       0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3400, 0x0c00, 10,  1,  30, vtab_attiny3227}, // atdf, avrdude
-  {"ATtiny3227",       318, F_AVR8X, {0x1E, 0x95, 0x26},       0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3400, 0x0c00, 10,  1,  30, vtab_attiny3227}, // atdf, avrdude
-  {"ATmega808",        319, F_AVR8X, {0x1E, 0x93, 0x26},       0, 0x02000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, 10,  1,  36, vtab_atmega4808}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega809",        320, F_AVR8X, {0x1E, 0x93, 0x2A},       0, 0x02000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, 10,  1,  40, vtab_atmega4809}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega1608",       321, F_AVR8X, {0x1E, 0x94, 0x27},       0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, 10,  1,  36, vtab_atmega4808}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega1609",       322, F_AVR8X, {0x1E, 0x94, 0x26},       0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, 10,  1,  40, vtab_atmega4809}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega3208",       323, F_AVR8X, {0x1E, 0x95, 0x30},       0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3000, 0x1000, 10,  1,  36, vtab_atmega4808}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega3209",       324, F_AVR8X, {0x1E, 0x95, 0x31},       0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3000, 0x1000, 10,  1,  40, vtab_atmega4809}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega4808",       325, F_AVR8X, {0x1E, 0x96, 0x50},       0, 0x0c000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x2800, 0x1800, 10,  1,  36, vtab_atmega4808}, // atdf, avr-gcc 12.2.0, avrdude
-  {"ATmega4809",       326, F_AVR8X, {0x1E, 0x96, 0x51},       0, 0x0c000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x2800, 0x1800, 10,  1,  40, vtab_atmega4809}, // atdf, avr-gcc 12.2.0, avrdude
-  {"AVR8EA28",         327, F_AVR8X, {0x1E, 0x93, 0x2C},       0, 0x02000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
-  {"AVR8EA32",         328, F_AVR8X, {0x1E, 0x93, 0x2B},       0, 0x02000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
-  {"AVR16DD14",        329, F_AVR8X, {0x1E, 0x94, 0x34},       0, 0x04000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7800, 0x0800, 16,  4,  36,  vtab_avr64dd32}, // atdf, avrdude
-  {"AVR16DD20",        330, F_AVR8X, {0x1E, 0x94, 0x33},       0, 0x04000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7800, 0x0800, 16,  4,  36,  vtab_avr64dd32}, // atdf, avrdude
-  {"AVR16DD28",        331, F_AVR8X, {0x1E, 0x94, 0x32},       0, 0x04000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7800, 0x0800, 16,  4,  36,  vtab_avr64dd32}, // atdf, avrdude
-  {"AVR16EA28",        332, F_AVR8X, {0x1E, 0x94, 0x37},       0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
-  {"AVR16DD32",        333, F_AVR8X, {0x1E, 0x94, 0x31},       0, 0x04000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7800, 0x0800, 16,  4,  36,  vtab_avr64dd32}, // atdf, avrdude
-  {"AVR16EA32",        334, F_AVR8X, {0x1E, 0x94, 0x36},       0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
-  {"AVR16EA48",        335, F_AVR8X, {0x1E, 0x94, 0x35},       0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
-  {"AVR32DD14",        336, F_AVR8X, {0x1E, 0x95, 0x3B},       0, 0x08000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7000, 0x1000, 16,  4,  36,  vtab_avr64dd32}, // atdf, avrdude
-  {"AVR32DD20",        337, F_AVR8X, {0x1E, 0x95, 0x3A},       0, 0x08000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7000, 0x1000, 16,  4,  36,  vtab_avr64dd32}, // atdf, avrdude
-  {"AVR32DA28",        338, F_AVR8X, {0x1E, 0x95, 0x34},       0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, 16,  4,  41, vtab_avr128da28}, // atdf, avrdude
-  {"AVR32DB28",        339, F_AVR8X, {0x1E, 0x95, 0x37},       0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, 16,  4,  42, vtab_avr128db28}, // atdf, avrdude
-  {"AVR32DD28",        340, F_AVR8X, {0x1E, 0x95, 0x39},       0, 0x08000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7000, 0x1000, 16,  4,  36,  vtab_avr64dd32}, // atdf, avrdude
-  {"AVR32EA28",        341, F_AVR8X, {0x1E, 0x95, 0x3E},       0, 0x08000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
-  {"AVR32DA32",        342, F_AVR8X, {0x1E, 0x95, 0x33},       0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, 16,  4,  44, vtab_avr128da32}, // atdf, avrdude
-  {"AVR32DB32",        343, F_AVR8X, {0x1E, 0x95, 0x36},       0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, 16,  4,  44, vtab_avr128db32}, // atdf, avrdude
-  {"AVR32DD32",        344, F_AVR8X, {0x1E, 0x95, 0x38},       0, 0x08000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7000, 0x1000, 16,  4,  36,  vtab_avr64dd32}, // atdf, avrdude
-  {"AVR32EA32",        345, F_AVR8X, {0x1E, 0x95, 0x3D},       0, 0x08000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
-  {"AVR32DA48",        346, F_AVR8X, {0x1E, 0x95, 0x32},       0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, 16,  4,  58, vtab_avr128da48}, // atdf, avrdude
-  {"AVR32DB48",        347, F_AVR8X, {0x1E, 0x95, 0x35},       0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, 16,  4,  61, vtab_avr128db48}, // atdf, avrdude
-  {"AVR32EA48",        348, F_AVR8X, {0x1E, 0x95, 0x3C},       0, 0x08000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, -1, -1,   0,            NULL}, // avrdude
-  {"AVR64DD14",        349, F_AVR8X, {0x1E, 0x96, 0x1D},       0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, 16,  4,  36,  vtab_avr64dd32}, // atdf, avrdude
-  {"AVR64DD20",        350, F_AVR8X, {0x1E, 0x96, 0x1C},       0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, 16,  4,  36,  vtab_avr64dd32}, // atdf, avrdude
-  {"AVR64DA28",        351, F_AVR8X, {0x1E, 0x96, 0x15},       0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, 16,  4,  41, vtab_avr128da28}, // atdf, avrdude
-  {"AVR64DB28",        352, F_AVR8X, {0x1E, 0x96, 0x19},       0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, 16,  4,  42, vtab_avr128db28}, // atdf, avrdude
-  {"AVR64DD28",        353, F_AVR8X, {0x1E, 0x96, 0x1B},       0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, 16,  4,  36,  vtab_avr64dd32}, // atdf, avrdude
-  {"AVR64EA28",        354, F_AVR8X, {0x1E, 0x96, 0x20},       0, 0x10000, 0x080,  1,      0, 0x01400, 0x0200,  8, 0x6800, 0x1800, 16,  4,  37,  vtab_avr64ea32}, // atdf, avrdude
-  {"AVR64DA32",        355, F_AVR8X, {0x1E, 0x96, 0x14},       0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, 16,  4,  44, vtab_avr128da32}, // atdf, avrdude
-  {"AVR64DB32",        356, F_AVR8X, {0x1E, 0x96, 0x18},       0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, 16,  4,  44, vtab_avr128db32}, // atdf, avrdude
-  {"AVR64DD32",        357, F_AVR8X, {0x1E, 0x96, 0x1A},       0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, 16,  4,  36,  vtab_avr64dd32}, // atdf, avrdude
-  {"AVR64EA32",        358, F_AVR8X, {0x1E, 0x96, 0x1F},       0, 0x10000, 0x080,  1,      0, 0x01400, 0x0200,  8, 0x6800, 0x1800, 16,  4,  37,  vtab_avr64ea32}, // atdf, avrdude
-  {"AVR64DA48",        359, F_AVR8X, {0x1E, 0x96, 0x13},       0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, 16,  4,  58, vtab_avr128da48}, // atdf, avrdude
-  {"AVR64DB48",        360, F_AVR8X, {0x1E, 0x96, 0x17},       0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, 16,  4,  61, vtab_avr128db48}, // atdf, avrdude
-  {"AVR64EA48",        361, F_AVR8X, {0x1E, 0x96, 0x1E},       0, 0x10000, 0x080,  1,      0, 0x01400, 0x0200,  8, 0x6800, 0x1800, 16,  4,  45,  vtab_avr64ea48}, // atdf, avrdude
-  {"AVR64DA64",        362, F_AVR8X, {0x1E, 0x96, 0x12},       0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, 16,  4,  64, vtab_avr128da64}, // atdf, avrdude
-  {"AVR64DB64",        363, F_AVR8X, {0x1E, 0x96, 0x16},       0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, 16,  4,  65, vtab_avr128db64}, // atdf, avrdude
-  {"AVR128DA28",       364, F_AVR8X, {0x1E, 0x97, 0x0A},       0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, 16,  4,  41, vtab_avr128da28}, // atdf, avrdude
-  {"AVR128DB28",       365, F_AVR8X, {0x1E, 0x97, 0x0E},       0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, 16,  4,  42, vtab_avr128db28}, // atdf, avrdude
-  {"AVR128DA32",       366, F_AVR8X, {0x1E, 0x97, 0x09},       0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, 16,  4,  44, vtab_avr128da32}, // atdf, avrdude
-  {"AVR128DB32",       367, F_AVR8X, {0x1E, 0x97, 0x0D},       0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, 16,  4,  44, vtab_avr128db32}, // atdf, avrdude
-  {"AVR128DA48",       368, F_AVR8X, {0x1E, 0x97, 0x08},       0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, 16,  4,  58, vtab_avr128da48}, // atdf, avrdude
-  {"AVR128DB48",       369, F_AVR8X, {0x1E, 0x97, 0x0C},       0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, 16,  4,  61, vtab_avr128db48}, // atdf, avrdude
-  {"AVR128DA64",       370, F_AVR8X, {0x1E, 0x97, 0x07},       0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, 16,  4,  64, vtab_avr128da64}, // atdf, avrdude
-  {"AVR128DB64",       371, F_AVR8X, {0x1E, 0x97, 0x0B},       0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, 16,  4,  65, vtab_avr128db64}, // atdf, avrdude
+  //ATtiny9         atdf, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"ATtiny9",            2, F_AVR8L, {0x1E, 0x90, 0x08}, // ID
+  /*ATtiny9*/            0, 0x00400, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020, // Mem
+  /*ATtiny9*/            1,  1,  10, vtab_attiny9,         0, NULL}, // Config and interrupts
+
+  //ATtiny10        atdf, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"ATtiny10",           3, F_AVR8L, {0x1E, 0x90, 0x03}, // ID
+  /*ATtiny10*/           0, 0x00400, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020, // Mem
+  /*ATtiny10*/           1,  1,  11, vtab_attiny10,        0, NULL}, // Config and interrupts
+
+  //ATtiny20        atdf, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"ATtiny20",           4, F_AVR8L, {0x1E, 0x91, 0x0F}, // ID
+  /*ATtiny20*/           0, 0x00800, 0x020,  0,      0,       0,      0,  0, 0x0040, 0x0080, // Mem
+  /*ATtiny20*/           1,  1,  17, vtab_attiny20,        0, NULL}, // Config and interrupts
+
+  //ATtiny40        atdf, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"ATtiny40",           5, F_AVR8L, {0x1E, 0x92, 0x0E}, // ID
+  /*ATtiny40*/           0, 0x01000, 0x040,  0,      0,       0,      0,  0, 0x0040, 0x0100, // Mem
+  /*ATtiny40*/           1,  1,  18, vtab_attiny40,        0, NULL}, // Config and interrupts
+
+  //ATtiny102                       atdf, avrdude, boot size (manual) // Sources
+  {"ATtiny102",          6, F_AVR8L, {0x1E, 0x90, 0x0C}, // ID
+  /*ATtiny102*/          0, 0x00400, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020, // Mem
+  /*ATtiny102*/          1,  1,  16, vtab_attiny104,       0, NULL}, // Config and interrupts
+
+  //ATtiny104                       atdf, avrdude, boot size (manual) // Sources
+  {"ATtiny104",          7, F_AVR8L, {0x1E, 0x90, 0x0B}, // ID
+  /*ATtiny104*/          0, 0x00400, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020, // Mem
+  /*ATtiny104*/          1,  1,  16, vtab_attiny104,       0, NULL}, // Config and interrupts
+
+
+  //ATtiny11                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny11",           8,  F_AVR8, {0x1E, 0x90, 0x04}, // ID
+  /*ATtiny11*/           0, 0x00400, 0x001,  0,      0,       0, 0x0040,  1, 0x0060, 0x0020, // Mem
+  /*ATtiny11*/           1,  1,   5, vtab_attiny11,        0, NULL}, // Config and interrupts
+
+  //ATtiny12                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny12",           9,  F_AVR8, {0x1E, 0x90, 0x05}, // ID
+  /*ATtiny12*/           0, 0x00400, 0x001,  0,      0,       0, 0x0040,  2, 0x0060, 0x0020, // Mem
+  /*ATtiny12*/           1,  1,   6, vtab_attiny12,        0, NULL}, // Config and interrupts
+
+  //ATtiny13                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny13",          10,  F_AVR8, {0x1E, 0x90, 0x07}, // ID
+  /*ATtiny13*/           0, 0x00400, 0x020,  0,      0,       0, 0x0040,  4, 0x0060, 0x0040, // Mem
+  /*ATtiny13*/           2,  1,  10, vtab_attiny13a,       0, NULL}, // Config and interrupts
+
+  //ATtiny13A                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny13A",         11,  F_AVR8, {0x1E, 0x90, 0x07}, // ID
+  /*ATtiny13A*/          0, 0x00400, 0x020,  0,      0,       0, 0x0040,  4, 0x0060, 0x0040, // Mem
+  /*ATtiny13A*/          2,  1,  10, vtab_attiny13a,       0, NULL}, // Config and interrupts
+
+  //ATtiny15                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny15",          12,  F_AVR8, {0x1E, 0x90, 0x06}, // ID
+  /*ATtiny15*/           0, 0x00400, 0x001,  0,      0,       0, 0x0040,  2, 0x0060, 0x0020, // Mem
+  /*ATtiny15*/           1,  1,   9, vtab_attiny15,        0, NULL}, // Config and interrupts
+
+  //ATtiny22         xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"ATtiny22",          13,  F_AVR8, {0x1E, 0x91, 0x06}, // ID
+  /*ATtiny22*/           0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, // Mem
+  /*ATtiny22*/           1,  1,   3, vtab_attiny22,        0, NULL}, // Config and interrupts
+
+  //ATtiny24                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny24",          14,  F_AVR8, {0x1E, 0x91, 0x0B}, // ID
+  /*ATtiny24*/           0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
+  /*ATtiny24*/           3,  1,  17, vtab_attiny84a,       0, NULL}, // Config and interrupts
+
+  //ATtiny24A                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny24A",         15,  F_AVR8, {0x1E, 0x91, 0x0B}, // ID
+  /*ATtiny24A*/          0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
+  /*ATtiny24A*/          3,  1,  17, vtab_attiny84a,       0, NULL}, // Config and interrupts
+
+  //ATtiny25                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny25",          16,  F_AVR8, {0x1E, 0x91, 0x08}, // ID
+  /*ATtiny25*/           0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
+  /*ATtiny25*/           3,  1,  15, vtab_attiny85,        0, NULL}, // Config and interrupts
+
+  //ATtiny26                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny26",          17,  F_AVR8, {0x1E, 0x91, 0x09}, // ID
+  /*ATtiny26*/           0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
+  /*ATtiny26*/           2,  1,  12, vtab_attiny26,        0, NULL}, // Config and interrupts
+
+  //ATtiny28                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny28",          18,  F_AVR8, {0x1E, 0x91, 0x07}, // ID
+  /*ATtiny28*/           0, 0x00800, 0x002,  0,      0,       0,      0,  0, 0x0060, 0x0020, // Mem
+  /*ATtiny28*/           1,  1,   6, vtab_attiny28,        0, NULL}, // Config and interrupts
+
+  //ATtiny43U                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny43U",         19,  F_AVR8, {0x1E, 0x92, 0x0C}, // ID
+  /*ATtiny43U*/          0, 0x01000, 0x040,  0,      0,       0, 0x0040,  4, 0x0060, 0x0100, // Mem
+  /*ATtiny43U*/          3,  1,  16, vtab_attiny43u,       0, NULL}, // Config and interrupts
+
+  //ATtiny44                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny44",          20,  F_AVR8, {0x1E, 0x92, 0x07}, // ID
+  /*ATtiny44*/           0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100, // Mem
+  /*ATtiny44*/           3,  1,  17, vtab_attiny84a,       0, NULL}, // Config and interrupts
+
+  //ATtiny44A                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny44A",         21,  F_AVR8, {0x1E, 0x92, 0x07}, // ID
+  /*ATtiny44A*/          0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100, // Mem
+  /*ATtiny44A*/          3,  1,  17, vtab_attiny84a,       0, NULL}, // Config and interrupts
+
+  //ATtiny45                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny45",          22,  F_AVR8, {0x1E, 0x92, 0x06}, // ID
+  /*ATtiny45*/           0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100, // Mem
+  /*ATtiny45*/           3,  1,  15, vtab_attiny85,        0, NULL}, // Config and interrupts
+
+  //ATtiny48                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny48",          23,  F_AVR8, {0x1E, 0x92, 0x09}, // ID
+  /*ATtiny48*/           0, 0x01000, 0x040,  0,      0,       0, 0x0040,  4, 0x0100, 0x0100, // Mem
+  /*ATtiny48*/           3,  1,  20, vtab_attiny88,        0, NULL}, // Config and interrupts
+
+  //ATtiny84                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny84",          24,  F_AVR8, {0x1E, 0x93, 0x0C}, // ID
+  /*ATtiny84*/           0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
+  /*ATtiny84*/           3,  1,  17, vtab_attiny84a,       0, NULL}, // Config and interrupts
+
+  //ATtiny84A                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny84A",         25,  F_AVR8, {0x1E, 0x93, 0x0C}, // ID
+  /*ATtiny84A*/          0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
+  /*ATtiny84A*/          3,  1,  17, vtab_attiny84a,       0, NULL}, // Config and interrupts
+
+  //ATtiny85                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny85",          26,  F_AVR8, {0x1E, 0x93, 0x0B}, // ID
+  /*ATtiny85*/           0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
+  /*ATtiny85*/           3,  1,  15, vtab_attiny85,        0, NULL}, // Config and interrupts
+
+  //ATtiny87                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny87",          27,  F_AVR8, {0x1E, 0x93, 0x87}, // ID
+  /*ATtiny87*/           0, 0x02000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
+  /*ATtiny87*/           3,  1,  20, vtab_attiny167,       0, NULL}, // Config and interrupts
+
+  //ATtiny88                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny88",          28,  F_AVR8, {0x1E, 0x93, 0x11}, // ID
+  /*ATtiny88*/           0, 0x02000, 0x040,  0,      0,       0, 0x0040,  4, 0x0100, 0x0200, // Mem
+  /*ATtiny88*/           3,  1,  20, vtab_attiny88,        0, NULL}, // Config and interrupts
+
+  //ATtiny167                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny167",         29,  F_AVR8, {0x1E, 0x94, 0x87}, // ID
+  /*ATtiny167*/          0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
+  /*ATtiny167*/          3,  1,  20, vtab_attiny167,       0, NULL}, // Config and interrupts
+
+  //ATtiny261                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny261",         30,  F_AVR8, {0x1E, 0x91, 0x0C}, // ID
+  /*ATtiny261*/          0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
+  /*ATtiny261*/          3,  1,  19, vtab_attiny861a,      0, NULL}, // Config and interrupts
+
+  //ATtiny261A                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny261A",        31,  F_AVR8, {0x1E, 0x91, 0x0C}, // ID
+  /*ATtiny261A*/         0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
+  /*ATtiny261A*/         3,  1,  19, vtab_attiny861a,      0, NULL}, // Config and interrupts
+
+  //ATtiny441                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny441",         32,  F_AVR8, {0x1E, 0x92, 0x15}, // ID
+  /*ATtiny441*/          0, 0x01000, 0x010,  0,      0,       0, 0x0100,  4, 0x0100, 0x0100, // Mem
+  /*ATtiny441*/          3,  1,  30, vtab_attiny841,       0, NULL}, // Config and interrupts
+
+  //ATtiny461                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny461",         33,  F_AVR8, {0x1E, 0x92, 0x08}, // ID
+  /*ATtiny461*/          0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100, // Mem
+  /*ATtiny461*/          3,  1,  19, vtab_attiny861a,      0, NULL}, // Config and interrupts
+
+  //ATtiny461A                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny461A",        34,  F_AVR8, {0x1E, 0x92, 0x08}, // ID
+  /*ATtiny461A*/         0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100, // Mem
+  /*ATtiny461A*/         3,  1,  19, vtab_attiny861a,      0, NULL}, // Config and interrupts
+
+  //ATtiny828                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny828",         35,  F_AVR8, {0x1E, 0x93, 0x14}, // ID
+  /*ATtiny828*/          0, 0x02000, 0x040,  4, 0x0100,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
+  /*ATtiny828*/          3,  1,  26, vtab_attiny828,       0, NULL}, // Config and interrupts
+
+  //ATtiny828R                                avrdude, from ATtiny828 // Sources
+  {"ATtiny828R",        36,  F_AVR8, {0x1E, 0x93, 0x14}, // ID
+  /*ATtiny828R*/         0, 0x02000, 0x040,  4, 0x0100,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
+  /*ATtiny828R*/         3,  1,  26, vtab_attiny828,       0, NULL}, // Config and interrupts
+
+  //ATtiny841                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny841",         37,  F_AVR8, {0x1E, 0x93, 0x15}, // ID
+  /*ATtiny841*/          0, 0x02000, 0x010,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
+  /*ATtiny841*/          3,  1,  30, vtab_attiny841,       0, NULL}, // Config and interrupts
+
+  //ATtiny861                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny861",         38,  F_AVR8, {0x1E, 0x93, 0x0D}, // ID
+  /*ATtiny861*/          0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
+  /*ATtiny861*/          3,  1,  19, vtab_attiny861a,      0, NULL}, // Config and interrupts
+
+  //ATtiny861A                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny861A",        39,  F_AVR8, {0x1E, 0x93, 0x0D}, // ID
+  /*ATtiny861A*/         0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
+  /*ATtiny861A*/         3,  1,  19, vtab_attiny861a,      0, NULL}, // Config and interrupts
+
+  //ATtiny1634                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny1634",        40,  F_AVR8, {0x1E, 0x94, 0x12}, // ID
+  /*ATtiny1634*/         0, 0x04000, 0x020,  0,      0,       0, 0x0100,  4, 0x0100, 0x0400, // Mem
+  /*ATtiny1634*/         3,  1,  28, vtab_attiny1634,      0, NULL}, // Config and interrupts
+
+  //ATtiny1634R                              avrdude, from ATtiny1634 // Sources
+  {"ATtiny1634R",       41,  F_AVR8, {0x1E, 0x94, 0x12}, // ID
+  /*ATtiny1634R*/        0, 0x04000, 0x020,  0,      0,       0, 0x0100,  4, 0x0100, 0x0400, // Mem
+  /*ATtiny1634R*/        3,  1,  28, vtab_attiny1634,      0, NULL}, // Config and interrupts
+
+  //ATtiny2313                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny2313",        42,  F_AVR8, {0x1E, 0x91, 0x0A}, // ID
+  /*ATtiny2313*/         0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
+  /*ATtiny2313*/         3,  1,  19, vtab_attiny2313,      0, NULL}, // Config and interrupts
+
+  //ATtiny2313A                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny2313A",       43,  F_AVR8, {0x1E, 0x91, 0x0A}, // ID
+  /*ATtiny2313A*/        0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
+  /*ATtiny2313A*/        3,  1,  21, vtab_attiny4313,      0, NULL}, // Config and interrupts
+
+  //ATtiny4313                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny4313",        44,  F_AVR8, {0x1E, 0x92, 0x0D}, // ID
+  /*ATtiny4313*/         0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100, // Mem
+  /*ATtiny4313*/         3,  1,  21, vtab_attiny4313,      0, NULL}, // Config and interrupts
+
+  //ATmega8                             atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega8",           45,  F_AVR8, {0x1E, 0x93, 0x07}, // ID
+  /*ATmega8*/            0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0400, // Mem
+  /*ATmega8*/            2,  1,  19, vtab_atmega8a,        0, NULL}, // Config and interrupts
+
+  //ATmega8A                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega8A",          46,  F_AVR8, {0x1E, 0x93, 0x07}, // ID
+  /*ATmega8A*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0400, // Mem
+  /*ATmega8A*/           2,  1,  19, vtab_atmega8a,        0, NULL}, // Config and interrupts
+
+  //ATmega8HVA                                   atdf, avr-gcc 12.2.0 // Sources
+  {"ATmega8HVA",        47,  F_AVR8, {0x1E, 0x93, 0x10}, // ID
+  /*ATmega8HVA*/         0, 0x02000, 0x080,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
+  /*ATmega8HVA*/         1,  1,  21, vtab_atmega16hva,     0, NULL}, // Config and interrupts
+
+  //ATmega8U2                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega8U2",         48,  F_AVR8, {0x1E, 0x93, 0x89}, // ID
+  /*ATmega8U2*/          0, 0x02000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
+  /*ATmega8U2*/          3,  1,  29, vtab_atmega32u2,      0, NULL}, // Config and interrupts
+
+  //ATmega16                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega16",          49,  F_AVR8, {0x1E, 0x94, 0x03}, // ID
+  /*ATmega16*/           0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0400, // Mem
+  /*ATmega16*/           2,  1,  21, vtab_atmega16a,       0, NULL}, // Config and interrupts
+
+  //ATmega16A                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega16A",         50,  F_AVR8, {0x1E, 0x94, 0x03}, // ID
+  /*ATmega16A*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0400, // Mem
+  /*ATmega16A*/          2,  1,  21, vtab_atmega16a,       0, NULL}, // Config and interrupts
+
+  //ATmega16HVA                                  atdf, avr-gcc 12.2.0 // Sources
+  {"ATmega16HVA",       51,  F_AVR8, {0x1E, 0x94, 0x0C}, // ID
+  /*ATmega16HVA*/        0, 0x04000, 0x080,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
+  /*ATmega16HVA*/        1,  1,  21, vtab_atmega16hva,     0, NULL}, // Config and interrupts
+
+  //ATmega16HVB                                  atdf, avr-gcc 12.2.0 // Sources
+  {"ATmega16HVB",       52,  F_AVR8, {0x1E, 0x94, 0x0D}, // ID
+  /*ATmega16HVB*/        0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega16HVB*/        2,  1,  29, vtab_atmega32hvbrevb, 0, NULL}, // Config and interrupts
+
+  //ATmega16HVBrevB                              atdf, avr-gcc 12.2.0 // Sources
+  {"ATmega16HVBrevB",   53,  F_AVR8, {0x1E, 0x94, 0x0D}, // ID
+  /*ATmega16HVBrevB*/    0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega16HVBrevB*/    2,  1,  29, vtab_atmega32hvbrevb, 0, NULL}, // Config and interrupts
+
+  //ATmega16M1                                   atdf, avr-gcc 12.2.0 // Sources
+  {"ATmega16M1",        54,  F_AVR8, {0x1E, 0x94, 0x84}, // ID
+  /*ATmega16M1*/         0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega16M1*/         3,  1,  31, vtab_atmega64m1,      0, NULL}, // Config and interrupts
+
+  //ATmega16HVA2                                  xml, avr-gcc 12.2.0 // Sources
+  {"ATmega16HVA2",      55,  F_AVR8, {0x1E, 0x94, 0x0E}, // ID
+  /*ATmega16HVA2*/       0, 0x04000, 0x080, -1,     -1,      -1,     -1, -1, 0x0100, 0x0400, // Mem
+  /*ATmega16HVA2*/       2,  1,  22, vtab_atmega16hva2,    0, NULL}, // Config and interrupts
+
+  //ATmega16U2                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega16U2",        56,  F_AVR8, {0x1E, 0x94, 0x89}, // ID
+  /*ATmega16U2*/         0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
+  /*ATmega16U2*/         3,  1,  29, vtab_atmega32u2,      0, NULL}, // Config and interrupts
+
+  //ATmega16U4                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega16U4",        57,  F_AVR8, {0x1E, 0x94, 0x88}, // ID
+  /*ATmega16U4*/         0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0500, // Mem
+  /*ATmega16U4*/         3,  1,  43, vtab_atmega32u4,      0, NULL}, // Config and interrupts
+
+  //ATmega32                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega32",          58,  F_AVR8, {0x1E, 0x95, 0x02}, // ID
+  /*ATmega32*/           0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0060, 0x0800, // Mem
+  /*ATmega32*/           2,  1,  21, vtab_atmega323,       0, NULL}, // Config and interrupts
+
+  //ATmega32A                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega32A",         59,  F_AVR8, {0x1E, 0x95, 0x02}, // ID
+  /*ATmega32A*/          0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0060, 0x0800, // Mem
+  /*ATmega32A*/          2,  1,  21, vtab_atmega323,       0, NULL}, // Config and interrupts
+
+  //ATmega32HVB                                  atdf, avr-gcc 12.2.0 // Sources
+  {"ATmega32HVB",       60,  F_AVR8, {0x1E, 0x95, 0x10}, // ID
+  /*ATmega32HVB*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega32HVB*/        2,  1,  29, vtab_atmega32hvbrevb, 0, NULL}, // Config and interrupts
+
+  //ATmega32HVBrevB                              atdf, avr-gcc 12.2.0 // Sources
+  {"ATmega32HVBrevB",   61,  F_AVR8, {0x1E, 0x95, 0x10}, // ID
+  /*ATmega32HVBrevB*/    0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega32HVBrevB*/    2,  1,  29, vtab_atmega32hvbrevb, 0, NULL}, // Config and interrupts
+
+  //ATmega32C1                                   atdf, avr-gcc 12.2.0 // Sources
+  {"ATmega32C1",        62,  F_AVR8, {0x1E, 0x95, 0x86}, // ID
+  /*ATmega32C1*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega32C1*/         3,  1,  31, vtab_atmega64m1,      0, NULL}, // Config and interrupts
+
+  //ATmega32M1                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega32M1",        63,  F_AVR8, {0x1E, 0x95, 0x84}, // ID
+  /*ATmega32M1*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega32M1*/         3,  1,  31, vtab_atmega64m1,      0, NULL}, // Config and interrupts
+
+  //ATmega32U2                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega32U2",        64,  F_AVR8, {0x1E, 0x95, 0x8A}, // ID
+  /*ATmega32U2*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0400, // Mem
+  /*ATmega32U2*/         3,  1,  29, vtab_atmega32u2,      0, NULL}, // Config and interrupts
+
+  //ATmega32U4                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega32U4",        65,  F_AVR8, {0x1E, 0x95, 0x87}, // ID
+  /*ATmega32U4*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0a00, // Mem
+  /*ATmega32U4*/         3,  1,  43, vtab_atmega32u4,      0, NULL}, // Config and interrupts
+
+  //ATmega32U6                xml, avr-gcc 12.2.0, boot size (manual) // Sources
+  {"ATmega32U6",        66,  F_AVR8, {0x1E, 0x95, 0x88}, // ID
+  /*ATmega32U6*/         0, 0x08000, 0x080,  4, 0x0200,      -1,     -1, -1, 0x0100, 0x0a00, // Mem
+  /*ATmega32U6*/         3,  1,  38, vtab_atmega32u6,      0, NULL}, // Config and interrupts
+
+  //ATmega48                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega48",          67,  F_AVR8, {0x1E, 0x92, 0x05}, // ID
+  /*ATmega48*/           0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
+  /*ATmega48*/           3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+
+  //ATmega48A                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega48A",         68,  F_AVR8, {0x1E, 0x92, 0x05}, // ID
+  /*ATmega48A*/          0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
+  /*ATmega48A*/          3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+
+  //ATmega48P                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega48P",         69,  F_AVR8, {0x1E, 0x92, 0x0A}, // ID
+  /*ATmega48P*/          0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
+  /*ATmega48P*/          3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+
+  //ATmega48PA                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega48PA",        70,  F_AVR8, {0x1E, 0x92, 0x0A}, // ID
+  /*ATmega48PA*/         0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
+  /*ATmega48PA*/         3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+
+  //ATmega48PB                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega48PB",        71,  F_AVR8, {0x1E, 0x92, 0x10}, // ID
+  /*ATmega48PB*/         0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
+  /*ATmega48PB*/         3,  1,  27, vtab_atmega168pb,     0, NULL}, // Config and interrupts
+
+  //ATmega64                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega64",          72,  F_AVR8, {0x1E, 0x96, 0x02}, // ID
+  /*ATmega64*/           0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega64*/           3,  1,  35, vtab_atmega128a,      0, NULL}, // Config and interrupts
+
+  //ATmega64A                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega64A",         73,  F_AVR8, {0x1E, 0x96, 0x02}, // ID
+  /*ATmega64A*/          0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega64A*/          3,  1,  35, vtab_atmega128a,      0, NULL}, // Config and interrupts
+
+  //ATmega64HVE               xml, avr-gcc 12.2.0, boot size (manual) // Sources
+  {"ATmega64HVE",       74,  F_AVR8, {0x1E, 0x96, 0x10}, // ID
+  /*ATmega64HVE*/        0, 0x10000, 0x080,  4, 0x0400,      -1,     -1, -1, 0x0100, 0x1000, // Mem
+  /*ATmega64HVE*/        2,  1,  25, vtab_atmega64hve2,    0, NULL}, // Config and interrupts
+
+  //ATmega64C1                                   atdf, avr-gcc 12.2.0 // Sources
+  {"ATmega64C1",        75,  F_AVR8, {0x1E, 0x96, 0x86}, // ID
+  /*ATmega64C1*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega64C1*/         3,  1,  31, vtab_atmega64m1,      0, NULL}, // Config and interrupts
+
+  //ATmega64M1                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega64M1",        76,  F_AVR8, {0x1E, 0x96, 0x84}, // ID
+  /*ATmega64M1*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega64M1*/         3,  1,  31, vtab_atmega64m1,      0, NULL}, // Config and interrupts
+
+  //ATmega64HVE2                                 atdf, avr-gcc 12.2.0 // Sources
+  {"ATmega64HVE2",      77,  F_AVR8, {0x1E, 0x96, 0x10}, // ID
+  /*ATmega64HVE2*/       0, 0x10000, 0x080,  4, 0x0400,       0, 0x0400,  4, 0x0100, 0x1000, // Mem
+  /*ATmega64HVE2*/       2,  1,  25, vtab_atmega64hve2,    0, NULL}, // Config and interrupts
+
+  //ATmega64RFR2                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega64RFR2",      78,  F_AVR8, {0x1E, 0xA6, 0x02}, // ID
+  /*ATmega64RFR2*/       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0200, 0x2000, // Mem
+  /*ATmega64RFR2*/       3,  1,  77, vtab_atmega2564rfr2,  0, NULL}, // Config and interrupts
+
+  //ATmega88                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega88",          79,  F_AVR8, {0x1E, 0x93, 0x0A}, // ID
+  /*ATmega88*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega88*/           3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+
+  //ATmega88A                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega88A",         80,  F_AVR8, {0x1E, 0x93, 0x0A}, // ID
+  /*ATmega88A*/          0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega88A*/          3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+
+  //ATmega88P                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega88P",         81,  F_AVR8, {0x1E, 0x93, 0x0F}, // ID
+  /*ATmega88P*/          0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega88P*/          3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+
+  //ATmega88PA                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega88PA",        82,  F_AVR8, {0x1E, 0x93, 0x0F}, // ID
+  /*ATmega88PA*/         0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega88PA*/         3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+
+  //ATmega88PB                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega88PB",        83,  F_AVR8, {0x1E, 0x93, 0x16}, // ID
+  /*ATmega88PB*/         0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega88PB*/         3,  1,  27, vtab_atmega168pb,     0, NULL}, // Config and interrupts
+
+  //ATmega103        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"ATmega103",         84,  F_AVR8, {0x1E, 0x97, 0x01}, // ID
+  /*ATmega103*/          0, 0x20000, 0x100,  0,      0,       0, 0x1000,  1, 0x0060, 0x0fa0, // Mem
+  /*ATmega103*/          1,  1,  24, vtab_atmega103,       0, NULL}, // Config and interrupts
+
+  //ATmega103comp                                                 xml // Sources
+  {"ATmega103comp",    374,  F_AVR8, {0x1E, 0x97, 0x01}, // ID
+  /*ATmega103comp*/     -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, // Mem
+  /*ATmega103comp*/     -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //ATmega128                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega128",         85,  F_AVR8, {0x1E, 0x97, 0x02}, // ID
+  /*ATmega128*/          0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x1000, // Mem
+  /*ATmega128*/          3,  1,  35, vtab_atmega128a,      0, NULL}, // Config and interrupts
+
+  //ATmega128A                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega128A",        86,  F_AVR8, {0x1E, 0x97, 0x02}, // ID
+  /*ATmega128A*/         0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x1000, // Mem
+  /*ATmega128A*/         3,  1,  35, vtab_atmega128a,      0, NULL}, // Config and interrupts
+
+  //ATmega128RFA1                       atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega128RFA1",     87,  F_AVR8, {0x1E, 0xA7, 0x01}, // ID
+  /*ATmega128RFA1*/      0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x4000, // Mem
+  /*ATmega128RFA1*/      3,  1,  72, vtab_atmega128rfa1,   0, NULL}, // Config and interrupts
+
+  //ATmega128RFR2                       atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega128RFR2",     88,  F_AVR8, {0x1E, 0xA7, 0x02}, // ID
+  /*ATmega128RFR2*/      0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x4000, // Mem
+  /*ATmega128RFR2*/      3,  1,  77, vtab_atmega2564rfr2,  0, NULL}, // Config and interrupts
+
+  //ATmega161        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"ATmega161",         89,  F_AVR8, {0x1E, 0x94, 0x01}, // ID
+  /*ATmega161*/          0, 0x04000, 0x080,  1, 0x0400,       0, 0x0200,  1, 0x0060, 0x0400, // Mem
+  /*ATmega161*/          1,  1,  21, vtab_atmega161,       0, NULL}, // Config and interrupts
+
+  //ATmega161comp                                                 xml // Sources
+  {"ATmega161comp",    375,  F_AVR8, {0x1E, 0x94, 0x01}, // ID
+  /*ATmega161comp*/     -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, // Mem
+  /*ATmega161comp*/     -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //ATmega162                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega162",         90,  F_AVR8, {0x1E, 0x94, 0x04}, // ID
+  /*ATmega162*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega162*/          3,  1,  28, vtab_atmega162,       0, NULL}, // Config and interrupts
+
+  //ATmega163        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"ATmega163",         91,  F_AVR8, {0x1E, 0x94, 0x02}, // ID
+  /*ATmega163*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  1, 0x0060, 0x0400, // Mem
+  /*ATmega163*/          2,  1,  18, vtab_atmega163,       0, NULL}, // Config and interrupts
+
+  //ATmega164A                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega164A",        92,  F_AVR8, {0x1E, 0x94, 0x0F}, // ID
+  /*ATmega164A*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega164A*/         3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
+
+  //ATmega164P                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega164P",        93,  F_AVR8, {0x1E, 0x94, 0x0A}, // ID
+  /*ATmega164P*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega164P*/         3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
+
+  //ATmega164PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega164PA",       94,  F_AVR8, {0x1E, 0x94, 0x0A}, // ID
+  /*ATmega164PA*/        0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega164PA*/        3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
+
+  //ATmega165        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"ATmega165",         95,  F_AVR8, {0x1E, 0x94, 0x07}, // ID
+  /*ATmega165*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega165*/          3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+
+  //ATmega165A                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega165A",        96,  F_AVR8, {0x1E, 0x94, 0x10}, // ID
+  /*ATmega165A*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega165A*/         3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+
+  //ATmega165P                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega165P",        97,  F_AVR8, {0x1E, 0x94, 0x07}, // ID
+  /*ATmega165P*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega165P*/         3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+
+  //ATmega165PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega165PA",       98,  F_AVR8, {0x1E, 0x94, 0x07}, // ID
+  /*ATmega165PA*/        0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega165PA*/        3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+
+  //ATmega168                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega168",         99,  F_AVR8, {0x1E, 0x94, 0x06}, // ID
+  /*ATmega168*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega168*/          3,  1,  26, vtab_atmega328,       0, NULL}, // Config and interrupts
+
+  //ATmega168A                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega168A",       100,  F_AVR8, {0x1E, 0x94, 0x06}, // ID
+  /*ATmega168A*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega168A*/         3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+
+  //ATmega168P                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega168P",       101,  F_AVR8, {0x1E, 0x94, 0x0B}, // ID
+  /*ATmega168P*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega168P*/         3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+
+  //ATmega168PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega168PA",      102,  F_AVR8, {0x1E, 0x94, 0x0B}, // ID
+  /*ATmega168PA*/        0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega168PA*/        3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+
+  //ATmega168PB                          atdf, avr-gcc 7.3.0, avrdude // Sources
+  {"ATmega168PB",      103,  F_AVR8, {0x1E, 0x94, 0x15}, // ID
+  /*ATmega168PB*/        0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega168PB*/        3,  1,  27, vtab_atmega168pb,     0, NULL}, // Config and interrupts
+
+  //ATmega169        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"ATmega169",        104,  F_AVR8, {0x1E, 0x94, 0x05}, // ID
+  /*ATmega169*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega169*/          3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+
+  //ATmega169A                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega169A",       105,  F_AVR8, {0x1E, 0x94, 0x11}, // ID
+  /*ATmega169A*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega169A*/         3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+
+  //ATmega169P                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega169P",       106,  F_AVR8, {0x1E, 0x94, 0x05}, // ID
+  /*ATmega169P*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega169P*/         3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+
+  //ATmega169PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega169PA",      107,  F_AVR8, {0x1E, 0x94, 0x05}, // ID
+  /*ATmega169PA*/        0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATmega169PA*/        3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+
+  //ATmega256RFR2                       atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega256RFR2",    108,  F_AVR8, {0x1E, 0xA8, 0x02}, // ID
+  /*ATmega256RFR2*/      0, 0x40000, 0x100,  4, 0x0400,       0, 0x2000,  8, 0x0200, 0x8000, // Mem
+  /*ATmega256RFR2*/      3,  1,  77, vtab_atmega2564rfr2,  0, NULL}, // Config and interrupts
+
+  //ATmega323                 xml, avr-gcc 12.2.0, boot size (manual) // Sources
+  {"ATmega323",        109,  F_AVR8, {0x1E, 0x95, 0x01}, // ID
+  /*ATmega323*/          0, 0x08000, 0x080,  4, 0x0200,      -1,     -1, -1, 0x0060, 0x0800, // Mem
+  /*ATmega323*/          2,  1,  21, vtab_atmega323,       0, NULL}, // Config and interrupts
+
+  //ATmega324A                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega324A",       110,  F_AVR8, {0x1E, 0x95, 0x15}, // ID
+  /*ATmega324A*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega324A*/         3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
+
+  //ATmega324P                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega324P",       111,  F_AVR8, {0x1E, 0x95, 0x08}, // ID
+  /*ATmega324P*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega324P*/         3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
+
+  //ATmega324PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega324PA",      112,  F_AVR8, {0x1E, 0x95, 0x11}, // ID
+  /*ATmega324PA*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega324PA*/        3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
+
+  //ATmega324PB                                         atdf, avrdude // Sources
+  {"ATmega324PB",      113,  F_AVR8, {0x1E, 0x95, 0x17}, // ID
+  /*ATmega324PB*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega324PB*/        3,  1,  51, vtab_atmega324pb,     0, NULL}, // Config and interrupts
+
+  //ATmega325                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega325",        114,  F_AVR8, {0x1E, 0x95, 0x05}, // ID
+  /*ATmega325*/          0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega325*/          3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+
+  //ATmega325A                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega325A",       115,  F_AVR8, {0x1E, 0x95, 0x05}, // ID
+  /*ATmega325A*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega325A*/         3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+
+  //ATmega325P                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega325P",       116,  F_AVR8, {0x1E, 0x95, 0x0D}, // ID
+  /*ATmega325P*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega325P*/         3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+
+  //ATmega325PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega325PA",      117,  F_AVR8, {0x1E, 0x95, 0x0D}, // ID
+  /*ATmega325PA*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega325PA*/        3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+
+  //ATmega328                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega328",        118,  F_AVR8, {0x1E, 0x95, 0x14}, // ID
+  /*ATmega328*/          0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega328*/          3,  1,  26, vtab_atmega328,       0, NULL}, // Config and interrupts
+
+  //ATmega328P                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega328P",       119,  F_AVR8, {0x1E, 0x95, 0x0F}, // ID
+  /*ATmega328P*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega328P*/         3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+
+  //ATmega328PB                          atdf, avr-gcc 7.3.0, avrdude // Sources
+  {"ATmega328PB",      120,  F_AVR8, {0x1E, 0x95, 0x16}, // ID
+  /*ATmega328PB*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega328PB*/        3,  1,  45, vtab_atmega328pb,     0, NULL}, // Config and interrupts
+
+  //ATmega329                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega329",        121,  F_AVR8, {0x1E, 0x95, 0x03}, // ID
+  /*ATmega329*/          0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega329*/          3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+
+  //ATmega329A                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega329A",       122,  F_AVR8, {0x1E, 0x95, 0x03}, // ID
+  /*ATmega329A*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega329A*/         3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+
+  //ATmega329P                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega329P",       123,  F_AVR8, {0x1E, 0x95, 0x0B}, // ID
+  /*ATmega329P*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega329P*/         3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+
+  //ATmega329PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega329PA",      124,  F_AVR8, {0x1E, 0x95, 0x0B}, // ID
+  /*ATmega329PA*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega329PA*/        3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+
+  //ATmega406                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega406",        125,  F_AVR8, {0x1E, 0x95, 0x07}, // ID
+  /*ATmega406*/          0, 0x0a000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0800, // Mem
+  /*ATmega406*/          2,  1,  23, vtab_atmega406,       0, NULL}, // Config and interrupts
+
+  //ATmega640                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega640",        126,  F_AVR8, {0x1E, 0x96, 0x08}, // ID
+  /*ATmega640*/          0, 0x10000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000, // Mem
+  /*ATmega640*/          3,  1,  57, vtab_atmega2560,      0, NULL}, // Config and interrupts
+
+  //ATmega644                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega644",        127,  F_AVR8, {0x1E, 0x96, 0x09}, // ID
+  /*ATmega644*/          0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega644*/          3,  1,  28, vtab_atmega644,       0, NULL}, // Config and interrupts
+
+  //ATmega644A                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega644A",       128,  F_AVR8, {0x1E, 0x96, 0x09}, // ID
+  /*ATmega644A*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega644A*/         3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
+
+  //ATmega644P                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega644P",       129,  F_AVR8, {0x1E, 0x96, 0x0A}, // ID
+  /*ATmega644P*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega644P*/         3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
+
+  //ATmega644PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega644PA",      130,  F_AVR8, {0x1E, 0x96, 0x0A}, // ID
+  /*ATmega644PA*/        0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega644PA*/        3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
+
+  //ATmega644RFR2                       atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega644RFR2",    131,  F_AVR8, {0x1E, 0xA6, 0x03}, // ID
+  /*ATmega644RFR2*/      0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0200, 0x2000, // Mem
+  /*ATmega644RFR2*/      3,  1,  77, vtab_atmega2564rfr2,  0, NULL}, // Config and interrupts
+
+  //ATmega645                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega645",        132,  F_AVR8, {0x1E, 0x96, 0x05}, // ID
+  /*ATmega645*/          0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega645*/          3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+
+  //ATmega645A                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega645A",       133,  F_AVR8, {0x1E, 0x96, 0x05}, // ID
+  /*ATmega645A*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega645A*/         3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+
+  //ATmega645P                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega645P",       134,  F_AVR8, {0x1E, 0x96, 0x0D}, // ID
+  /*ATmega645P*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega645P*/         3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+
+  //ATmega649                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega649",        135,  F_AVR8, {0x1E, 0x96, 0x03}, // ID
+  /*ATmega649*/          0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega649*/          3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+
+  //ATmega649A                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega649A",       136,  F_AVR8, {0x1E, 0x96, 0x03}, // ID
+  /*ATmega649A*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega649A*/         3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+
+  //ATmega649P                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega649P",       137,  F_AVR8, {0x1E, 0x96, 0x0B}, // ID
+  /*ATmega649P*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega649P*/         3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+
+  //ATmega1280                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega1280",       138,  F_AVR8, {0x1E, 0x97, 0x03}, // ID
+  /*ATmega1280*/         0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000, // Mem
+  /*ATmega1280*/         3,  1,  57, vtab_atmega2560,      0, NULL}, // Config and interrupts
+
+  //ATmega1281                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega1281",       139,  F_AVR8, {0x1E, 0x97, 0x04}, // ID
+  /*ATmega1281*/         0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000, // Mem
+  /*ATmega1281*/         3,  1,  57, vtab_atmega2561,      0, NULL}, // Config and interrupts
+
+  //ATmega1284                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega1284",       140,  F_AVR8, {0x1E, 0x97, 0x06}, // ID
+  /*ATmega1284*/         0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x4000, // Mem
+  /*ATmega1284*/         3,  1,  35, vtab_atmega1284p,     0, NULL}, // Config and interrupts
+
+  //ATmega1284P                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega1284P",      141,  F_AVR8, {0x1E, 0x97, 0x05}, // ID
+  /*ATmega1284P*/        0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x4000, // Mem
+  /*ATmega1284P*/        3,  1,  35, vtab_atmega1284p,     0, NULL}, // Config and interrupts
+
+  //ATmega1284RFR2                      atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega1284RFR2",   142,  F_AVR8, {0x1E, 0xA7, 0x03}, // ID
+  /*ATmega1284RFR2*/     0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x4000, // Mem
+  /*ATmega1284RFR2*/     3,  1,  77, vtab_atmega2564rfr2,  0, NULL}, // Config and interrupts
+
+  //ATmega2560                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega2560",       143,  F_AVR8, {0x1E, 0x98, 0x01}, // ID
+  /*ATmega2560*/         0, 0x40000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000, // Mem
+  /*ATmega2560*/         3,  1,  57, vtab_atmega2560,      0, NULL}, // Config and interrupts
+
+  //ATmega2561                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega2561",       144,  F_AVR8, {0x1E, 0x98, 0x02}, // ID
+  /*ATmega2561*/         0, 0x40000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000, // Mem
+  /*ATmega2561*/         3,  1,  57, vtab_atmega2561,      0, NULL}, // Config and interrupts
+
+  //ATmega2564RFR2                      atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega2564RFR2",   145,  F_AVR8, {0x1E, 0xA8, 0x03}, // ID
+  /*ATmega2564RFR2*/     0, 0x40000, 0x100,  4, 0x0400,       0, 0x2000,  8, 0x0200, 0x8000, // Mem
+  /*ATmega2564RFR2*/     3,  1,  77, vtab_atmega2564rfr2,  0, NULL}, // Config and interrupts
+
+  //ATmega3250                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega3250",       146,  F_AVR8, {0x1E, 0x95, 0x06}, // ID
+  /*ATmega3250*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega3250*/         3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
+
+  //ATmega3250A                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega3250A",      147,  F_AVR8, {0x1E, 0x95, 0x06}, // ID
+  /*ATmega3250A*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega3250A*/        3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
+
+  //ATmega3250P                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega3250P",      148,  F_AVR8, {0x1E, 0x95, 0x0E}, // ID
+  /*ATmega3250P*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega3250P*/        3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
+
+  //ATmega3250PA                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega3250PA",     149,  F_AVR8, {0x1E, 0x95, 0x0E}, // ID
+  /*ATmega3250PA*/       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega3250PA*/       3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
+
+  //ATmega3290                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega3290",       150,  F_AVR8, {0x1E, 0x95, 0x04}, // ID
+  /*ATmega3290*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega3290*/         3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
+
+  //ATmega3290A                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega3290A",      151,  F_AVR8, {0x1E, 0x95, 0x04}, // ID
+  /*ATmega3290A*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega3290A*/        3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
+
+  //ATmega3290P                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega3290P",      152,  F_AVR8, {0x1E, 0x95, 0x0C}, // ID
+  /*ATmega3290P*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega3290P*/        3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
+
+  //ATmega3290PA                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega3290PA",     153,  F_AVR8, {0x1E, 0x95, 0x0C}, // ID
+  /*ATmega3290PA*/       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATmega3290PA*/       3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
+
+  //ATmega6450                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega6450",       154,  F_AVR8, {0x1E, 0x96, 0x06}, // ID
+  /*ATmega6450*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega6450*/         3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
+
+  //ATmega6450A                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega6450A",      155,  F_AVR8, {0x1E, 0x96, 0x06}, // ID
+  /*ATmega6450A*/        0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega6450A*/        3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
+
+  //ATmega6450P                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega6450P",      156,  F_AVR8, {0x1E, 0x96, 0x0E}, // ID
+  /*ATmega6450P*/        0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega6450P*/        3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
+
+  //ATmega6490                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega6490",       157,  F_AVR8, {0x1E, 0x96, 0x04}, // ID
+  /*ATmega6490*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega6490*/         3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
+
+  //ATmega6490A                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega6490A",      158,  F_AVR8, {0x1E, 0x96, 0x04}, // ID
+  /*ATmega6490A*/        0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega6490A*/        3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
+
+  //ATmega6490P                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega6490P",      159,  F_AVR8, {0x1E, 0x96, 0x0C}, // ID
+  /*ATmega6490P*/        0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*ATmega6490P*/        3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
+
+  //ATmega8515                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega8515",       160,  F_AVR8, {0x1E, 0x93, 0x06}, // ID
+  /*ATmega8515*/         0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
+  /*ATmega8515*/         2,  1,  17, vtab_atmega8515,      0, NULL}, // Config and interrupts
+
+  //ATmega8535                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega8535",       161,  F_AVR8, {0x1E, 0x93, 0x08}, // ID
+  /*ATmega8535*/         0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
+  /*ATmega8535*/         2,  1,  21, vtab_atmega8535,      0, NULL}, // Config and interrupts
+
+  //AT43USB320                                         avr-gcc 12.2.0 // Sources
+  {"AT43USB320",       162,  F_AVR8, {0xff,   -1,   -1}, // ID
+  /*AT43USB320*/         0, 0x10000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0200, // Mem
+  /*AT43USB320*/        -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //AT43USB355                                         avr-gcc 12.2.0 // Sources
+  {"AT43USB355",       163,  F_AVR8, {0xff,   -1,   -1}, // ID
+  /*AT43USB355*/         0, 0x06000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0400, // Mem
+  /*AT43USB355*/        -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //AT76C711                                           avr-gcc 12.2.0 // Sources
+  {"AT76C711",         164,  F_AVR8, {0xff,   -1,   -1}, // ID
+  /*AT76C711*/           0, 0x04000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x07a0, // Mem
+  /*AT76C711*/          -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //AT86RF401                                          avr-gcc 12.2.0 // Sources
+  {"AT86RF401",        165,  F_AVR8, {0x1E, 0x91, 0x81}, // ID
+  /*AT86RF401*/          0, 0x00800,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0080, // Mem
+  /*AT86RF401*/          0,  1,   3, vtab_at86rf401,       0, NULL}, // Config and interrupts
+
+  //AT89S51                                                   avrdude // Sources
+  {"AT89S51",          372,  F_AVR8, {0x1E, 0x51, 0x06}, // ID
+  /*AT89S51*/            0, 0x01000, 0x001, -1,     -1,       0,      0,  0,     -1,     -1, // Mem
+  /*AT89S51*/           -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //AT89S52                                                   avrdude // Sources
+  {"AT89S52",          373,  F_AVR8, {0x1E, 0x52, 0x06}, // ID
+  /*AT89S52*/            0, 0x02000, 0x001, -1,     -1,       0,      0,  0,     -1,     -1, // Mem
+  /*AT89S52*/           -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //AT90PWM1                                     atdf, avr-gcc 12.2.0 // Sources
+  {"AT90PWM1",         166,  F_AVR8, {0x1E, 0x93, 0x83}, // ID
+  /*AT90PWM1*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
+  /*AT90PWM1*/           3,  1,  32, vtab_at90pwm1,        0, NULL}, // Config and interrupts
+
+  //AT90PWM2         xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"AT90PWM2",         167,  F_AVR8, {0x1E, 0x93, 0x81}, // ID
+  /*AT90PWM2*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
+  /*AT90PWM2*/           3,  1,  32, vtab_at90pwm2,        0, NULL}, // Config and interrupts
+
+  //AT90PWM2B                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"AT90PWM2B",        168,  F_AVR8, {0x1E, 0x93, 0x83}, // ID
+  /*AT90PWM2B*/          0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
+  /*AT90PWM2B*/          3,  1,  32, vtab_at90pwm3b,       0, NULL}, // Config and interrupts
+
+  //AT90PWM3                            atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"AT90PWM3",         169,  F_AVR8, {0x1E, 0x93, 0x81}, // ID
+  /*AT90PWM3*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
+  /*AT90PWM3*/           3,  1,  32, vtab_at90pwm3b,       0, NULL}, // Config and interrupts
+
+  //AT90PWM3B                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"AT90PWM3B",        170,  F_AVR8, {0x1E, 0x93, 0x83}, // ID
+  /*AT90PWM3B*/          0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
+  /*AT90PWM3B*/          3,  1,  32, vtab_at90pwm3b,       0, NULL}, // Config and interrupts
+
+  //AT90CAN32                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"AT90CAN32",        171,  F_AVR8, {0x1E, 0x95, 0x81}, // ID
+  /*AT90CAN32*/          0, 0x08000, 0x100,  4, 0x0400,       0, 0x0400,  8, 0x0100, 0x0800, // Mem
+  /*AT90CAN32*/          3,  1,  37, vtab_at90can128,      0, NULL}, // Config and interrupts
+
+  //AT90CAN64                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"AT90CAN64",        172,  F_AVR8, {0x1E, 0x96, 0x81}, // ID
+  /*AT90CAN64*/          0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*AT90CAN64*/          3,  1,  37, vtab_at90can128,      0, NULL}, // Config and interrupts
+
+  //AT90PWM81                                    atdf, avr-gcc 12.2.0 // Sources
+  {"AT90PWM81",        173,  F_AVR8, {0x1E, 0x93, 0x88}, // ID
+  /*AT90PWM81*/          0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0100, // Mem
+  /*AT90PWM81*/          3,  1,  20, vtab_at90pwm161,      0, NULL}, // Config and interrupts
+
+  //AT90USB82                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"AT90USB82",        174,  F_AVR8, {0x1E, 0x93, 0x82}, // ID
+  /*AT90USB82*/          0, 0x02000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
+  /*AT90USB82*/          3,  1,  29, vtab_atmega32u2,      0, NULL}, // Config and interrupts
+
+  //AT90SCR100                     avr-gcc 12.2.0, boot size (manual) // Sources
+  {"AT90SCR100",       175,  F_AVR8, {0x1E, 0x96, 0xC1}, // ID
+  /*AT90SCR100*/         0, 0x10000, 0x100,  4, 0x0200,      -1,     -1, -1, 0x0100, 0x1000, // Mem
+  /*AT90SCR100*/         3,  1,  38, vtab_at90scr100,      0, NULL}, // Config and interrupts
+
+  //AT90SCR100H                                  xml, from AT90SCR100 // Sources
+  {"AT90SCR100H",      376,  F_AVR8, {0x1E, 0x96, 0xC1}, // ID
+  /*AT90SCR100H*/       -1,      -1,    -1,  4, 0x0200,      -1,     -1, -1, 0x0100, 0x1000, // Mem
+  /*AT90SCR100H*/        3,  1,  38, vtab_at90scr100,      0, NULL}, // Config and interrupts
+
+  //AT90CAN128                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"AT90CAN128",       176,  F_AVR8, {0x1E, 0x97, 0x81}, // ID
+  /*AT90CAN128*/         0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x1000, // Mem
+  /*AT90CAN128*/         3,  1,  37, vtab_at90can128,      0, NULL}, // Config and interrupts
+
+  //AT90PWM161                                   atdf, avr-gcc 12.2.0 // Sources
+  {"AT90PWM161",       177,  F_AVR8, {0x1E, 0x94, 0x8B}, // ID
+  /*AT90PWM161*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*AT90PWM161*/         3,  1,  20, vtab_at90pwm161,      0, NULL}, // Config and interrupts
+
+  //AT90USB162                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"AT90USB162",       178,  F_AVR8, {0x1E, 0x94, 0x82}, // ID
+  /*AT90USB162*/         0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
+  /*AT90USB162*/         3,  1,  29, vtab_atmega32u2,      0, NULL}, // Config and interrupts
+
+  //AT90PWM216                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"AT90PWM216",       179,  F_AVR8, {0x1E, 0x94, 0x83}, // ID
+  /*AT90PWM216*/         0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*AT90PWM216*/         3,  1,  32, vtab_at90pwm316,      0, NULL}, // Config and interrupts
+
+  //AT90PWM316                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"AT90PWM316",       180,  F_AVR8, {0x1E, 0x94, 0x83}, // ID
+  /*AT90PWM316*/         0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*AT90PWM316*/         3,  1,  32, vtab_at90pwm316,      0, NULL}, // Config and interrupts
+
+  //AT90USB646                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"AT90USB646",       181,  F_AVR8, {0x1E, 0x96, 0x82}, // ID
+  /*AT90USB646*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*AT90USB646*/         3,  1,  38, vtab_atmega32u6,      0, NULL}, // Config and interrupts
+
+  //AT90USB647                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"AT90USB647",       182,  F_AVR8, {0x1E, 0x96, 0x82}, // ID
+  /*AT90USB647*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
+  /*AT90USB647*/         3,  1,  38, vtab_atmega32u6,      0, NULL}, // Config and interrupts
+
+  //AT90S1200        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"AT90S1200",        183,  F_AVR8, {0x1E, 0x90, 0x01}, // ID
+  /*AT90S1200*/          0, 0x00400, 0x001,  0,      0,       0, 0x0040,  1, 0x0060, 0x0020, // Mem
+  /*AT90S1200*/          1,  1,   4, vtab_at90s1200,       0, NULL}, // Config and interrupts
+
+  //AT90USB1286                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"AT90USB1286",      184,  F_AVR8, {0x1E, 0x97, 0x82}, // ID
+  /*AT90USB1286*/        0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x2000, // Mem
+  /*AT90USB1286*/        3,  1,  38, vtab_atmega32u6,      0, NULL}, // Config and interrupts
+
+  //AT90USB1287                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"AT90USB1287",      185,  F_AVR8, {0x1E, 0x97, 0x82}, // ID
+  /*AT90USB1287*/        0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x2000, // Mem
+  /*AT90USB1287*/        3,  1,  38, vtab_atmega32u6,      0, NULL}, // Config and interrupts
+
+  //AT90S2313        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"AT90S2313",        186,  F_AVR8, {0x1E, 0x91, 0x01}, // ID
+  /*AT90S2313*/          0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, // Mem
+  /*AT90S2313*/          1,  1,  11, vtab_at90s2313,       0, NULL}, // Config and interrupts
+
+  //AT90S2323        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"AT90S2323",        187,  F_AVR8, {0x1E, 0x91, 0x02}, // ID
+  /*AT90S2323*/          0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, // Mem
+  /*AT90S2323*/          1,  1,   3, vtab_attiny22,        0, NULL}, // Config and interrupts
+
+  //AT90S2333             avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"AT90S2333",        188,  F_AVR8, {0x1E, 0x91, 0x05}, // ID
+  /*AT90S2333*/          0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, // Mem
+  /*AT90S2333*/         -1, -1,  14, vtab_at90s4433,       0, NULL}, // Config and interrupts
+
+  //AT90S2343        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"AT90S2343",        189,  F_AVR8, {0x1E, 0x91, 0x03}, // ID
+  /*AT90S2343*/          0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, // Mem
+  /*AT90S2343*/          1,  1,   3, vtab_attiny22,        0, NULL}, // Config and interrupts
+
+  //AT90S4414        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"AT90S4414",        190,  F_AVR8, {0x1E, 0x92, 0x01}, // ID
+  /*AT90S4414*/          0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0100, // Mem
+  /*AT90S4414*/          1,  1,  13, vtab_at90s8515,       0, NULL}, // Config and interrupts
+
+  //AT90S4433        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"AT90S4433",        191,  F_AVR8, {0x1E, 0x92, 0x03}, // ID
+  /*AT90S4433*/          0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0080, // Mem
+  /*AT90S4433*/          1,  1,  14, vtab_at90s4433,       0, NULL}, // Config and interrupts
+
+  //AT90S4434        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"AT90S4434",        192,  F_AVR8, {0x1E, 0x92, 0x02}, // ID
+  /*AT90S4434*/          0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0100, // Mem
+  /*AT90S4434*/          1,  1,  17, vtab_at90s8535,       0, NULL}, // Config and interrupts
+
+  //AT90S8515        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"AT90S8515",        193,  F_AVR8, {0x1E, 0x93, 0x01}, // ID
+  /*AT90S8515*/          0, 0x02000, 0x001,  0,      0,       0, 0x0200,  1, 0x0060, 0x0200, // Mem
+  /*AT90S8515*/          1,  1,  13, vtab_at90s8515,       0, NULL}, // Config and interrupts
+
+  //AT90S8515comp                                                 xml // Sources
+  {"AT90S8515comp",    377,  F_AVR8, {0x1E, 0x93, 0x01}, // ID
+  /*AT90S8515comp*/     -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, // Mem
+  /*AT90S8515comp*/     -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //AT90C8534                                          avr-gcc 12.2.0 // Sources
+  {"AT90C8534",        194,  F_AVR8, {0xff,   -1,   -1}, // ID
+  /*AT90C8534*/          0, 0x02000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0100, // Mem
+  /*AT90C8534*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //AT90S8535        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
+  {"AT90S8535",        195,  F_AVR8, {0x1E, 0x93, 0x03}, // ID
+  /*AT90S8535*/          0, 0x02000, 0x001,  0,      0,       0, 0x0200,  1, 0x0060, 0x0200, // Mem
+  /*AT90S8535*/          1,  1,  17, vtab_at90s8535,       0, NULL}, // Config and interrupts
+
+  //AT90S8535comp                                                 xml // Sources
+  {"AT90S8535comp",    378,  F_AVR8, {0x1E, 0x93, 0x03}, // ID
+  /*AT90S8535comp*/     -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, // Mem
+  /*AT90S8535comp*/     -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //AT94K                                              avr-gcc 12.2.0 // Sources
+  {"AT94K",            196,  F_AVR8, {0xff,   -1,   -1}, // ID
+  /*AT94K*/              0, 0x08000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0fa0, // Mem
+  /*AT94K*/             -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //ATA5272                                      atdf, avr-gcc 12.2.0 // Sources
+  {"ATA5272",          197,  F_AVR8, {0x1E, 0x93, 0x87}, // ID
+  /*ATA5272*/            0, 0x02000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
+  /*ATA5272*/            3,  1,  37, vtab_ata5272,         0, NULL}, // Config and interrupts
+
+  //ATA5505                                      atdf, avr-gcc 12.2.0 // Sources
+  {"ATA5505",          198,  F_AVR8, {0x1E, 0x94, 0x87}, // ID
+  /*ATA5505*/            0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
+  /*ATA5505*/            3,  1,  20, vtab_attiny167,       0, NULL}, // Config and interrupts
+
+  //ATA5700M322                                                  atdf // Sources
+  {"ATA5700M322",      199,  F_AVR8, {0x1E, 0x95, 0x67}, // ID
+  /*ATA5700M322*/  0x08000, 0x08000, 0x040,  0,      0,       0, 0x0880, 16, 0x0200, 0x0400, // Mem
+  /*ATA5700M322*/        1,  1,  51, vtab_ata5702m322,     0, NULL}, // Config and interrupts
+
+  //ATA5702M322                                  atdf, avr-gcc 12.2.0 // Sources
+  {"ATA5702M322",      200,  F_AVR8, {0x1E, 0x95, 0x69}, // ID
+  /*ATA5702M322*/  0x08000, 0x08000, 0x040,  0,      0,       0, 0x0880, 16, 0x0200, 0x0400, // Mem
+  /*ATA5702M322*/        1,  1,  51, vtab_ata5702m322,     0, NULL}, // Config and interrupts
+
+  //ATA5781                                                      atdf // Sources
+  {"ATA5781",          201,  F_AVR8, {0x1E, 0x95, 0x64}, // ID
+  /*ATA5781*/           -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
+  /*ATA5781*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+
+  //ATA5782                                      atdf, avr-gcc 12.2.0 // Sources
+  {"ATA5782",          202,  F_AVR8, {0x1E, 0x95, 0x65}, // ID
+  /*ATA5782*/      0x08000, 0x05000, 0x040,  1, 0x5000,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
+  /*ATA5782*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+
+  //ATA5783                                                      atdf // Sources
+  {"ATA5783",          203,  F_AVR8, {0x1E, 0x95, 0x66}, // ID
+  /*ATA5783*/           -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
+  /*ATA5783*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+
+  //ATA5787                                                      atdf // Sources
+  {"ATA5787",          204,  F_AVR8, {0x1E, 0x94, 0x6C}, // ID
+  /*ATA5787*/      0x08000, 0x05200, 0x040,  0,      0,       0, 0x0400, 16, 0x0200, 0x0800, // Mem
+  /*ATA5787*/            1,  1,  44, vtab_ata5835,         0, NULL}, // Config and interrupts
+
+  //ATA5790                                      atdf, avr-gcc 12.2.0 // Sources
+  {"ATA5790",          205,  F_AVR8, {0x1E, 0x94, 0x61}, // ID
+  /*ATA5790*/            0, 0x04000, 0x080,  1, 0x0800,       0, 0x0800, 16, 0x0100, 0x0200, // Mem
+  /*ATA5790*/            1,  1,  30, vtab_ata5790,         0, NULL}, // Config and interrupts
+
+  //ATA5790N                                     atdf, avr-gcc 12.2.0 // Sources
+  {"ATA5790N",         206,  F_AVR8, {0x1E, 0x94, 0x62}, // ID
+  /*ATA5790N*/           0, 0x04000, 0x080,  1, 0x0800,       0, 0x0800, 16, 0x0100, 0x0200, // Mem
+  /*ATA5790N*/           1,  1,  31, vtab_ata5791,         0, NULL}, // Config and interrupts
+
+  //ATA5791                                       atdf, avr-gcc 7.3.0 // Sources
+  {"ATA5791",          207,  F_AVR8, {0x1E, 0x94, 0x62}, // ID
+  /*ATA5791*/            0, 0x04000, 0x080,  1, 0x0800,       0, 0x0800, 16, 0x0100, 0x0200, // Mem
+  /*ATA5791*/            1,  1,  31, vtab_ata5791,         0, NULL}, // Config and interrupts
+
+  //ATA5795                                      atdf, avr-gcc 12.2.0 // Sources
+  {"ATA5795",          208,  F_AVR8, {0x1E, 0x93, 0x61}, // ID
+  /*ATA5795*/            0, 0x02000, 0x040,  1, 0x0800,       0, 0x0800, 16, 0x0100, 0x0200, // Mem
+  /*ATA5795*/            1,  1,  23, vtab_ata5795,         0, NULL}, // Config and interrupts
+
+  //ATA5831                                      atdf, avr-gcc 12.2.0 // Sources
+  {"ATA5831",          209,  F_AVR8, {0x1E, 0x95, 0x61}, // ID
+  /*ATA5831*/      0x08000, 0x05000, 0x040,  1, 0x5000,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
+  /*ATA5831*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+
+  //ATA5832                                                      atdf // Sources
+  {"ATA5832",          210,  F_AVR8, {0x1E, 0x95, 0x62}, // ID
+  /*ATA5832*/           -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
+  /*ATA5832*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+
+  //ATA5833                                                      atdf // Sources
+  {"ATA5833",          211,  F_AVR8, {0x1E, 0x95, 0x63}, // ID
+  /*ATA5833*/           -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
+  /*ATA5833*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+
+  //ATA5835                                                      atdf // Sources
+  {"ATA5835",          212,  F_AVR8, {0x1E, 0x94, 0x6B}, // ID
+  /*ATA5835*/      0x08000, 0x05200, 0x040,  0,      0,       0, 0x0400, 16, 0x0200, 0x0800, // Mem
+  /*ATA5835*/            1,  1,  44, vtab_ata5835,         0, NULL}, // Config and interrupts
+
+  //ATA6285                                      atdf, avr-gcc 12.2.0 // Sources
+  {"ATA6285",          213,  F_AVR8, {0x1E, 0x93, 0x82}, // ID
+  /*ATA6285*/            0, 0x02000, 0x040,  4, 0x0100,       0, 0x0140,  4, 0x0100, 0x0200, // Mem
+  /*ATA6285*/            2,  1,  27, vtab_ata6289,         0, NULL}, // Config and interrupts
+
+  //ATA6286                                      atdf, avr-gcc 12.2.0 // Sources
+  {"ATA6286",          214,  F_AVR8, {0x1E, 0x93, 0x82}, // ID
+  /*ATA6286*/            0, 0x02000, 0x040,  4, 0x0100,       0, 0x0140,  4, 0x0100, 0x0200, // Mem
+  /*ATA6286*/            2,  1,  27, vtab_ata6289,         0, NULL}, // Config and interrupts
+
+  //ATA6289                   xml, avr-gcc 12.2.0, boot size (manual) // Sources
+  {"ATA6289",          215,  F_AVR8, {0x1E, 0x93, 0x82}, // ID
+  /*ATA6289*/            0, 0x02000, 0x040,  4, 0x0100,      -1,     -1, -1, 0x0100, 0x0200, // Mem
+  /*ATA6289*/            2,  1,  27, vtab_ata6289,         0, NULL}, // Config and interrupts
+
+  //ATA6612C                                     atdf, avr-gcc 12.2.0 // Sources
+  {"ATA6612C",         216,  F_AVR8, {0x1E, 0x93, 0x0A}, // ID
+  /*ATA6612C*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATA6612C*/           3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+
+  //ATA6613C                                     atdf, avr-gcc 12.2.0 // Sources
+  {"ATA6613C",         217,  F_AVR8, {0x1E, 0x94, 0x06}, // ID
+  /*ATA6613C*/           0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*ATA6613C*/           3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+
+  //ATA6614Q                                     atdf, avr-gcc 12.2.0 // Sources
+  {"ATA6614Q",         218,  F_AVR8, {0x1E, 0x95, 0x0F}, // ID
+  /*ATA6614Q*/           0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*ATA6614Q*/           3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+
+  //ATA6616C                                     atdf, avr-gcc 12.2.0 // Sources
+  {"ATA6616C",         219,  F_AVR8, {0x1E, 0x93, 0x87}, // ID
+  /*ATA6616C*/           0, 0x02000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
+  /*ATA6616C*/           3,  1,  20, vtab_attiny167,       0, NULL}, // Config and interrupts
+
+  //ATA6617C                                     atdf, avr-gcc 12.2.0 // Sources
+  {"ATA6617C",         220,  F_AVR8, {0x1E, 0x94, 0x87}, // ID
+  /*ATA6617C*/           0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
+  /*ATA6617C*/           3,  1,  20, vtab_attiny167,       0, NULL}, // Config and interrupts
+
+  //ATA8210                                       atdf, avr-gcc 7.3.0 // Sources
+  {"ATA8210",          221,  F_AVR8, {0x1E, 0x95, 0x65}, // ID
+  /*ATA8210*/      0x08000, 0x05000, 0x040,  1, 0x5000,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
+  /*ATA8210*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+
+  //ATA8215                                                      atdf // Sources
+  {"ATA8215",          222,  F_AVR8, {0x1E, 0x95, 0x64}, // ID
+  /*ATA8215*/           -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
+  /*ATA8215*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+
+  //ATA8510                                       atdf, avr-gcc 7.3.0 // Sources
+  {"ATA8510",          223,  F_AVR8, {0x1E, 0x95, 0x61}, // ID
+  /*ATA8510*/      0x08000, 0x05000, 0x040,  1, 0x5000,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
+  /*ATA8510*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+
+  //ATA8515                                                      atdf // Sources
+  {"ATA8515",          224,  F_AVR8, {0x1E, 0x95, 0x63}, // ID
+  /*ATA8515*/           -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
+  /*ATA8515*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+
+  //ATA664251                                    atdf, avr-gcc 12.2.0 // Sources
+  {"ATA664251",        225,  F_AVR8, {0x1E, 0x94, 0x87}, // ID
+  /*ATA664251*/          0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
+  /*ATA664251*/          3,  1,  20, vtab_attiny167,       0, NULL}, // Config and interrupts
+
+  //M3000                                              avr-gcc 12.2.0 // Sources
+  {"M3000",            226,  F_AVR8, {0xff,   -1,   -1}, // ID
+  /*M3000*/              0, 0x10000,    -1, -1,     -1,      -1,     -1, -1, 0x1000, 0x1000, // Mem
+  /*M3000*/             -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //LGT8F88P                                   avrdude, from ATmega88 // Sources
+  {"LGT8F88P",         227,  F_AVR8, {0x1E, 0x93, 0x0F}, // ID
+  /*LGT8F88P*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*LGT8F88P*/           3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+
+  //LGT8F168P                                avrdude, from ATmega168P // Sources
+  {"LGT8F168P",        228,  F_AVR8, {0x1E, 0x94, 0x0B}, // ID
+  /*LGT8F168P*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
+  /*LGT8F168P*/          3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+
+  //LGT8F328P                                avrdude, from ATmega328P // Sources
+  {"LGT8F328P",        229,  F_AVR8, {0x1E, 0x95, 0x0F}, // ID
+  /*LGT8F328P*/          0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
+  /*LGT8F328P*/          3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+
+
+  //ATxmega8E5                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega8E5",       230, F_XMEGA, {0x1E, 0x93, 0x41}, // ID
+  /*ATxmega8E5*/         0, 0x02800, 0x080,  1, 0x0800,       0, 0x0200, 32, 0x2000, 0x0400, // Mem
+  /*ATxmega8E5*/         7,  1,  43, vtab_atxmega32e5,     0, NULL}, // Config and interrupts
+
+  //ATxmega16A4                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega16A4",      231, F_XMEGA, {0x1E, 0x94, 0x41}, // ID
+  /*ATxmega16A4*/        0, 0x05000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x0800, // Mem
+  /*ATxmega16A4*/        6,  1,  94, vtab_atxmega32a4,     0, NULL}, // Config and interrupts
+
+  //ATxmega16A4U                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega16A4U",     232, F_XMEGA, {0x1E, 0x94, 0x41}, // ID
+  /*ATxmega16A4U*/       0, 0x05000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x0800, // Mem
+  /*ATxmega16A4U*/       6,  1, 127, vtab_atxmega128a4u,   0, NULL}, // Config and interrupts
+
+  //ATxmega16C4                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega16C4",      233, F_XMEGA, {0x1E, 0x94, 0x43}, // ID
+  /*ATxmega16C4*/        0, 0x05000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x0800, // Mem
+  /*ATxmega16C4*/        6,  1, 127, vtab_atxmega32c4,     0, NULL}, // Config and interrupts
+
+  //ATxmega16D4                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega16D4",      234, F_XMEGA, {0x1E, 0x94, 0x42}, // ID
+  /*ATxmega16D4*/        0, 0x05000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x0800, // Mem
+  /*ATxmega16D4*/        6,  1,  91, vtab_atxmega32d4,     0, NULL}, // Config and interrupts
+
+  //ATxmega16E5                          atdf, avr-gcc 7.3.0, avrdude // Sources
+  {"ATxmega16E5",      235, F_XMEGA, {0x1E, 0x94, 0x45}, // ID
+  /*ATxmega16E5*/        0, 0x05000, 0x080,  1, 0x1000,       0, 0x0200, 32, 0x2000, 0x0800, // Mem
+  /*ATxmega16E5*/        7,  1,  43, vtab_atxmega32e5,     0, NULL}, // Config and interrupts
+
+  //ATxmega32C3                                  atdf, avr-gcc 12.2.0 // Sources
+  {"ATxmega32C3",      236, F_XMEGA, {0x1E, 0x95, 0x49}, // ID
+  /*ATxmega32C3*/        0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
+  /*ATxmega32C3*/        6,  1, 127, vtab_atxmega256c3,    0, NULL}, // Config and interrupts
+
+  //ATxmega32D3                                  atdf, avr-gcc 12.2.0 // Sources
+  {"ATxmega32D3",      237, F_XMEGA, {0x1E, 0x95, 0x4A}, // ID
+  /*ATxmega32D3*/        0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
+  /*ATxmega32D3*/        6,  1, 114, vtab_atxmega384d3,    0, NULL}, // Config and interrupts
+
+  //ATxmega32A4                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega32A4",      238, F_XMEGA, {0x1E, 0x95, 0x41}, // ID
+  /*ATxmega32A4*/        0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
+  /*ATxmega32A4*/        6,  1,  94, vtab_atxmega32a4,     0, NULL}, // Config and interrupts
+
+  //ATxmega32A4U                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega32A4U",     239, F_XMEGA, {0x1E, 0x95, 0x41}, // ID
+  /*ATxmega32A4U*/       0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
+  /*ATxmega32A4U*/       6,  1, 127, vtab_atxmega128a4u,   0, NULL}, // Config and interrupts
+
+  //ATxmega32C4                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega32C4",      240, F_XMEGA, {0x1E, 0x95, 0x44}, // ID
+  /*ATxmega32C4*/        0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
+  /*ATxmega32C4*/        6,  1, 127, vtab_atxmega32c4,     0, NULL}, // Config and interrupts
+
+  //ATxmega32D4                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega32D4",      241, F_XMEGA, {0x1E, 0x95, 0x42}, // ID
+  /*ATxmega32D4*/        0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
+  /*ATxmega32D4*/        6,  1,  91, vtab_atxmega32d4,     0, NULL}, // Config and interrupts
+
+  //ATxmega32E5                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega32E5",      242, F_XMEGA, {0x1E, 0x95, 0x4C}, // ID
+  /*ATxmega32E5*/        0, 0x09000, 0x080,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
+  /*ATxmega32E5*/        7,  1,  43, vtab_atxmega32e5,     0, NULL}, // Config and interrupts
+
+  //ATxmega64A1                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega64A1",      243, F_XMEGA, {0x1E, 0x96, 0x4E}, // ID
+  /*ATxmega64A1*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
+  /*ATxmega64A1*/        6,  1, 125, vtab_atxmega128a1,    0, NULL}, // Config and interrupts
+
+  //ATxmega64A1U                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega64A1U",     244, F_XMEGA, {0x1E, 0x96, 0x4E}, // ID
+  /*ATxmega64A1U*/       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
+  /*ATxmega64A1U*/       6,  1, 127, vtab_atxmega128a1u,   0, NULL}, // Config and interrupts
+
+  //ATxmega64B1                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega64B1",      245, F_XMEGA, {0x1E, 0x96, 0x52}, // ID
+  /*ATxmega64B1*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
+  /*ATxmega64B1*/        6,  1,  81, vtab_atxmega128b1,    0, NULL}, // Config and interrupts
+
+  //ATxmega64A3                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega64A3",      246, F_XMEGA, {0x1E, 0x96, 0x42}, // ID
+  /*ATxmega64A3*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
+  /*ATxmega64A3*/        6,  1, 122, vtab_atxmega256a3,    0, NULL}, // Config and interrupts
+
+  //ATxmega64A3U                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega64A3U",     247, F_XMEGA, {0x1E, 0x96, 0x42}, // ID
+  /*ATxmega64A3U*/       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
+  /*ATxmega64A3U*/       6,  1, 127, vtab_atxmega256a3u,   0, NULL}, // Config and interrupts
+
+  //ATxmega64B3                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega64B3",      248, F_XMEGA, {0x1E, 0x96, 0x51}, // ID
+  /*ATxmega64B3*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
+  /*ATxmega64B3*/        6,  1,  54, vtab_atxmega128b3,    0, NULL}, // Config and interrupts
+
+  //ATxmega64C3                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega64C3",      249, F_XMEGA, {0x1E, 0x96, 0x49}, // ID
+  /*ATxmega64C3*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
+  /*ATxmega64C3*/        6,  1, 127, vtab_atxmega256c3,    0, NULL}, // Config and interrupts
+
+  //ATxmega64D3                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega64D3",      250, F_XMEGA, {0x1E, 0x96, 0x4A}, // ID
+  /*ATxmega64D3*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
+  /*ATxmega64D3*/        6,  1, 114, vtab_atxmega384d3,    0, NULL}, // Config and interrupts
+
+  //ATxmega64A4                                               avrdude // Sources
+  {"ATxmega64A4",      251, F_XMEGA, {0x1E, 0x96, 0x46}, // ID
+  /*ATxmega64A4*/        0, 0x11000, 0x100, -1,     -1,       0, 0x0800, 32,     -1,     -1, // Mem
+  /*ATxmega64A4*/       -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //ATxmega64A4U                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega64A4U",     252, F_XMEGA, {0x1E, 0x96, 0x46}, // ID
+  /*ATxmega64A4U*/       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
+  /*ATxmega64A4U*/       6,  1, 127, vtab_atxmega128a4u,   0, NULL}, // Config and interrupts
+
+  //ATxmega64D4                         atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega64D4",      253, F_XMEGA, {0x1E, 0x96, 0x47}, // ID
+  /*ATxmega64D4*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
+  /*ATxmega64D4*/        6,  1,  91, vtab_atxmega128d4,    0, NULL}, // Config and interrupts
+
+  //ATxmega128A1                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega128A1",     254, F_XMEGA, {0x1E, 0x97, 0x4C}, // ID
+  /*ATxmega128A1*/       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
+  /*ATxmega128A1*/       6,  1, 125, vtab_atxmega128a1,    0, NULL}, // Config and interrupts
+
+  //ATxmega128A1revD                       avrdude, from ATxmega128A1 // Sources
+  {"ATxmega128A1revD", 255, F_XMEGA, {0x1E, 0x97, 0x41}, // ID
+  /*ATxmega128A1revD*/   0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
+  /*ATxmega128A1revD*/   6,  1, 125, vtab_atxmega128a1,    0, NULL}, // Config and interrupts
+
+  //ATxmega128A1U                       atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega128A1U",    256, F_XMEGA, {0x1E, 0x97, 0x4C}, // ID
+  /*ATxmega128A1U*/      0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
+  /*ATxmega128A1U*/      6,  1, 127, vtab_atxmega128a1u,   0, NULL}, // Config and interrupts
+
+  //ATxmega128B1                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega128B1",     257, F_XMEGA, {0x1E, 0x97, 0x4D}, // ID
+  /*ATxmega128B1*/       0, 0x22000, 0x100,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
+  /*ATxmega128B1*/       6,  1,  81, vtab_atxmega128b1,    0, NULL}, // Config and interrupts
+
+  //ATxmega128A3                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega128A3",     258, F_XMEGA, {0x1E, 0x97, 0x42}, // ID
+  /*ATxmega128A3*/       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
+  /*ATxmega128A3*/       6,  1, 122, vtab_atxmega256a3,    0, NULL}, // Config and interrupts
+
+  //ATxmega128A3U                       atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega128A3U",    259, F_XMEGA, {0x1E, 0x97, 0x42}, // ID
+  /*ATxmega128A3U*/      0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
+  /*ATxmega128A3U*/      6,  1, 127, vtab_atxmega256a3u,   0, NULL}, // Config and interrupts
+
+  //ATxmega128B3                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega128B3",     260, F_XMEGA, {0x1E, 0x97, 0x4B}, // ID
+  /*ATxmega128B3*/       0, 0x22000, 0x100,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
+  /*ATxmega128B3*/       6,  1,  54, vtab_atxmega128b3,    0, NULL}, // Config and interrupts
+
+  //ATxmega128C3                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega128C3",     261, F_XMEGA, {0x1E, 0x97, 0x52}, // ID
+  /*ATxmega128C3*/       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
+  /*ATxmega128C3*/       6,  1, 127, vtab_atxmega256c3,    0, NULL}, // Config and interrupts
+
+  //ATxmega128D3                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega128D3",     262, F_XMEGA, {0x1E, 0x97, 0x48}, // ID
+  /*ATxmega128D3*/       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
+  /*ATxmega128D3*/       6,  1, 114, vtab_atxmega384d3,    0, NULL}, // Config and interrupts
+
+  //ATxmega128A4                                              avrdude // Sources
+  {"ATxmega128A4",     263, F_XMEGA, {0x1E, 0x97, 0x46}, // ID
+  /*ATxmega128A4*/       0, 0x22000, 0x200, -1,     -1,       0, 0x0800, 32,     -1,     -1, // Mem
+  /*ATxmega128A4*/      -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //ATxmega128A4U                       atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega128A4U",    264, F_XMEGA, {0x1E, 0x97, 0x46}, // ID
+  /*ATxmega128A4U*/      0, 0x22000, 0x100,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
+  /*ATxmega128A4U*/      6,  1, 127, vtab_atxmega128a4u,   0, NULL}, // Config and interrupts
+
+  //ATxmega128D4                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega128D4",     265, F_XMEGA, {0x1E, 0x97, 0x47}, // ID
+  /*ATxmega128D4*/       0, 0x22000, 0x100,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
+  /*ATxmega128D4*/       6,  1,  91, vtab_atxmega128d4,    0, NULL}, // Config and interrupts
+
+  //ATxmega192A1                                              avrdude // Sources
+  {"ATxmega192A1",     266, F_XMEGA, {0x1E, 0x97, 0x4E}, // ID
+  /*ATxmega192A1*/       0, 0x32000, 0x200, -1,     -1,       0, 0x0800, 32,     -1,     -1, // Mem
+  /*ATxmega192A1*/      -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //ATxmega192A3                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega192A3",     267, F_XMEGA, {0x1E, 0x97, 0x44}, // ID
+  /*ATxmega192A3*/       0, 0x32000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x4000, // Mem
+  /*ATxmega192A3*/       6,  1, 122, vtab_atxmega256a3,    0, NULL}, // Config and interrupts
+
+  //ATxmega192A3U                       atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega192A3U",    268, F_XMEGA, {0x1E, 0x97, 0x44}, // ID
+  /*ATxmega192A3U*/      0, 0x32000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x4000, // Mem
+  /*ATxmega192A3U*/      6,  1, 127, vtab_atxmega256a3u,   0, NULL}, // Config and interrupts
+
+  //ATxmega192C3                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega192C3",     269, F_XMEGA, {0x1E, 0x97, 0x51}, // ID
+  /*ATxmega192C3*/       0, 0x32000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x4000, // Mem
+  /*ATxmega192C3*/       6,  1, 127, vtab_atxmega256c3,    0, NULL}, // Config and interrupts
+
+  //ATxmega192D3                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega192D3",     270, F_XMEGA, {0x1E, 0x97, 0x49}, // ID
+  /*ATxmega192D3*/       0, 0x32000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x4000, // Mem
+  /*ATxmega192D3*/       6,  1, 114, vtab_atxmega384d3,    0, NULL}, // Config and interrupts
+
+  //ATxmega256A1                                              avrdude // Sources
+  {"ATxmega256A1",     271, F_XMEGA, {0x1E, 0x98, 0x46}, // ID
+  /*ATxmega256A1*/       0, 0x42000, 0x200, -1,     -1,       0, 0x1000, 32,     -1,     -1, // Mem
+  /*ATxmega256A1*/      -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //ATxmega256A3                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega256A3",     272, F_XMEGA, {0x1E, 0x98, 0x42}, // ID
+  /*ATxmega256A3*/       0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000, // Mem
+  /*ATxmega256A3*/       6,  1, 122, vtab_atxmega256a3,    0, NULL}, // Config and interrupts
+
+  //ATxmega256A3B                       atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega256A3B",    273, F_XMEGA, {0x1E, 0x98, 0x43}, // ID
+  /*ATxmega256A3B*/      0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000, // Mem
+  /*ATxmega256A3B*/      6,  1, 122, vtab_atxmega256a3b,   0, NULL}, // Config and interrupts
+
+  //ATxmega256A3BU                      atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega256A3BU",   274, F_XMEGA, {0x1E, 0x98, 0x43}, // ID
+  /*ATxmega256A3BU*/     0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000, // Mem
+  /*ATxmega256A3BU*/     6,  1, 127, vtab_atxmega256a3bu,  0, NULL}, // Config and interrupts
+
+  //ATxmega256A3U                       atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega256A3U",    275, F_XMEGA, {0x1E, 0x98, 0x42}, // ID
+  /*ATxmega256A3U*/      0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000, // Mem
+  /*ATxmega256A3U*/      6,  1, 127, vtab_atxmega256a3u,   0, NULL}, // Config and interrupts
+
+  //ATxmega256C3                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega256C3",     276, F_XMEGA, {0x1E, 0x98, 0x46}, // ID
+  /*ATxmega256C3*/       0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000, // Mem
+  /*ATxmega256C3*/       6,  1, 127, vtab_atxmega256c3,    0, NULL}, // Config and interrupts
+
+  //ATxmega256D3                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega256D3",     277, F_XMEGA, {0x1E, 0x98, 0x44}, // ID
+  /*ATxmega256D3*/       0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000, // Mem
+  /*ATxmega256D3*/       6,  1, 114, vtab_atxmega384d3,    0, NULL}, // Config and interrupts
+
+  //ATxmega384C3                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega384C3",     278, F_XMEGA, {0x1E, 0x98, 0x45}, // ID
+  /*ATxmega384C3*/       0, 0x62000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x8000, // Mem
+  /*ATxmega384C3*/       6,  1, 127, vtab_atxmega384c3,    0, NULL}, // Config and interrupts
+
+  //ATxmega384D3                        atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATxmega384D3",     279, F_XMEGA, {0x1E, 0x98, 0x47}, // ID
+  /*ATxmega384D3*/       0, 0x62000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x8000, // Mem
+  /*ATxmega384D3*/       6,  1, 114, vtab_atxmega384d3,    0, NULL}, // Config and interrupts
+
+
+  //ATtiny202                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny202",        280, F_AVR8X, {0x1E, 0x91, 0x23}, // ID
+  /*ATtiny202*/          0, 0x00800, 0x040,  1,      0, 0x01400, 0x0040, 32, 0x3f80, 0x0080, // Mem
+  /*ATtiny202*/         10,  1,  26, vtab_attiny402,       0, NULL}, // Config and interrupts
+
+  //ATtiny204                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny204",        281, F_AVR8X, {0x1E, 0x91, 0x22}, // ID
+  /*ATtiny204*/          0, 0x00800, 0x040,  1,      0, 0x01400, 0x0040, 32, 0x3f80, 0x0080, // Mem
+  /*ATtiny204*/         10,  1,  26, vtab_attiny404,       0, NULL}, // Config and interrupts
+
+  //ATtiny212                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny212",        282, F_AVR8X, {0x1E, 0x91, 0x21}, // ID
+  /*ATtiny212*/          0, 0x00800, 0x040,  1,      0, 0x01400, 0x0040, 32, 0x3f80, 0x0080, // Mem
+  /*ATtiny212*/         10,  1,  26, vtab_attiny412,       0, NULL}, // Config and interrupts
+
+  //ATtiny214                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny214",        283, F_AVR8X, {0x1E, 0x91, 0x20}, // ID
+  /*ATtiny214*/          0, 0x00800, 0x040,  1,      0, 0x01400, 0x0040, 32, 0x3f80, 0x0080, // Mem
+  /*ATtiny214*/         10,  1,  26, vtab_attiny814,       0, NULL}, // Config and interrupts
+
+  //ATtiny402                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny402",        284, F_AVR8X, {0x1E, 0x92, 0x27}, // ID
+  /*ATtiny402*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
+  /*ATtiny402*/         10,  1,  26, vtab_attiny402,       0, NULL}, // Config and interrupts
+
+  //ATtiny404                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny404",        285, F_AVR8X, {0x1E, 0x92, 0x26}, // ID
+  /*ATtiny404*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
+  /*ATtiny404*/         10,  1,  26, vtab_attiny404,       0, NULL}, // Config and interrupts
+
+  //ATtiny406                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny406",        286, F_AVR8X, {0x1E, 0x92, 0x25}, // ID
+  /*ATtiny406*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
+  /*ATtiny406*/         10,  1,  26, vtab_attiny406,       0, NULL}, // Config and interrupts
+
+  //ATtiny412                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny412",        287, F_AVR8X, {0x1E, 0x92, 0x23}, // ID
+  /*ATtiny412*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
+  /*ATtiny412*/         10,  1,  26, vtab_attiny412,       0, NULL}, // Config and interrupts
+
+  //ATtiny414                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny414",        288, F_AVR8X, {0x1E, 0x92, 0x22}, // ID
+  /*ATtiny414*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
+  /*ATtiny414*/         10,  1,  26, vtab_attiny814,       0, NULL}, // Config and interrupts
+
+  //ATtiny416                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny416",        289, F_AVR8X, {0x1E, 0x92, 0x21}, // ID
+  /*ATtiny416*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
+  /*ATtiny416*/         10,  1,  26, vtab_attiny817,       0, NULL}, // Config and interrupts
+
+  //ATtiny416auto                                                atdf // Sources
+  {"ATtiny416auto",    290, F_AVR8X, {0x1E, 0x92, 0x28}, // ID
+  /*ATtiny416auto*/      0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
+  /*ATtiny416auto*/     10,  1,  26, vtab_attiny817,       0, NULL}, // Config and interrupts
+
+  //ATtiny417                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny417",        291, F_AVR8X, {0x1E, 0x92, 0x20}, // ID
+  /*ATtiny417*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
+  /*ATtiny417*/         10,  1,  26, vtab_attiny817,       0, NULL}, // Config and interrupts
+
+  //ATtiny424                                           atdf, avrdude // Sources
+  {"ATtiny424",        292, F_AVR8X, {0x1E, 0x92, 0x2C}, // ID
+  /*ATtiny424*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
+  /*ATtiny424*/         10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+
+  //ATtiny426                                           atdf, avrdude // Sources
+  {"ATtiny426",        293, F_AVR8X, {0x1E, 0x92, 0x2B}, // ID
+  /*ATtiny426*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
+  /*ATtiny426*/         10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+
+  //ATtiny427                                           atdf, avrdude // Sources
+  {"ATtiny427",        294, F_AVR8X, {0x1E, 0x92, 0x2A}, // ID
+  /*ATtiny427*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
+  /*ATtiny427*/         10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+
+  //ATtiny804                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny804",        295, F_AVR8X, {0x1E, 0x93, 0x25}, // ID
+  /*ATtiny804*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
+  /*ATtiny804*/         10,  1,  31, vtab_attiny1607,      0, NULL}, // Config and interrupts
+
+  //ATtiny806                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny806",        296, F_AVR8X, {0x1E, 0x93, 0x24}, // ID
+  /*ATtiny806*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
+  /*ATtiny806*/         10,  1,  31, vtab_attiny1607,      0, NULL}, // Config and interrupts
+
+  //ATtiny807                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny807",        297, F_AVR8X, {0x1E, 0x93, 0x23}, // ID
+  /*ATtiny807*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
+  /*ATtiny807*/         10,  1,  31, vtab_attiny1607,      0, NULL}, // Config and interrupts
+
+  //ATtiny814                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny814",        298, F_AVR8X, {0x1E, 0x93, 0x22}, // ID
+  /*ATtiny814*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
+  /*ATtiny814*/         10,  1,  26, vtab_attiny814,       0, NULL}, // Config and interrupts
+
+  //ATtiny816                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny816",        299, F_AVR8X, {0x1E, 0x93, 0x21}, // ID
+  /*ATtiny816*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
+  /*ATtiny816*/         10,  1,  26, vtab_attiny817,       0, NULL}, // Config and interrupts
+
+  //ATtiny817                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny817",        300, F_AVR8X, {0x1E, 0x93, 0x20}, // ID
+  /*ATtiny817*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
+  /*ATtiny817*/         10,  1,  26, vtab_attiny817,       0, NULL}, // Config and interrupts
+
+  //ATtiny824                                           atdf, avrdude // Sources
+  {"ATtiny824",        301, F_AVR8X, {0x1E, 0x93, 0x29}, // ID
+  /*ATtiny824*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3c00, 0x0400, // Mem
+  /*ATtiny824*/         10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+
+  //ATtiny826                                           atdf, avrdude // Sources
+  {"ATtiny826",        302, F_AVR8X, {0x1E, 0x93, 0x28}, // ID
+  /*ATtiny826*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3c00, 0x0400, // Mem
+  /*ATtiny826*/         10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+
+  //ATtiny827                                           atdf, avrdude // Sources
+  {"ATtiny827",        303, F_AVR8X, {0x1E, 0x93, 0x27}, // ID
+  /*ATtiny827*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3c00, 0x0400, // Mem
+  /*ATtiny827*/         10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+
+  //ATtiny1604                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny1604",       304, F_AVR8X, {0x1E, 0x94, 0x25}, // ID
+  /*ATtiny1604*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, // Mem
+  /*ATtiny1604*/        10,  1,  31, vtab_attiny1607,      0, NULL}, // Config and interrupts
+
+  //ATtiny1606                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny1606",       305, F_AVR8X, {0x1E, 0x94, 0x24}, // ID
+  /*ATtiny1606*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, // Mem
+  /*ATtiny1606*/        10,  1,  31, vtab_attiny1607,      0, NULL}, // Config and interrupts
+
+  //ATtiny1607                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny1607",       306, F_AVR8X, {0x1E, 0x94, 0x23}, // ID
+  /*ATtiny1607*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, // Mem
+  /*ATtiny1607*/        10,  1,  31, vtab_attiny1607,      0, NULL}, // Config and interrupts
+
+  //ATtiny1614                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny1614",       307, F_AVR8X, {0x1E, 0x94, 0x22}, // ID
+  /*ATtiny1614*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
+  /*ATtiny1614*/        10,  1,  31, vtab_attiny1614,      0, NULL}, // Config and interrupts
+
+  //ATtiny1616                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny1616",       308, F_AVR8X, {0x1E, 0x94, 0x21}, // ID
+  /*ATtiny1616*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
+  /*ATtiny1616*/        10,  1,  31, vtab_attiny3217,      0, NULL}, // Config and interrupts
+
+  //ATtiny1617                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny1617",       309, F_AVR8X, {0x1E, 0x94, 0x20}, // ID
+  /*ATtiny1617*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
+  /*ATtiny1617*/        10,  1,  31, vtab_attiny3217,      0, NULL}, // Config and interrupts
+
+  //ATtiny1624                                          atdf, avrdude // Sources
+  {"ATtiny1624",       310, F_AVR8X, {0x1E, 0x94, 0x2A}, // ID
+  /*ATtiny1624*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
+  /*ATtiny1624*/        10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+
+  //ATtiny1626                                          atdf, avrdude // Sources
+  {"ATtiny1626",       311, F_AVR8X, {0x1E, 0x94, 0x29}, // ID
+  /*ATtiny1626*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
+  /*ATtiny1626*/        10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+
+  //ATtiny1627                                          atdf, avrdude // Sources
+  {"ATtiny1627",       312, F_AVR8X, {0x1E, 0x94, 0x28}, // ID
+  /*ATtiny1627*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
+  /*ATtiny1627*/        10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+
+  //ATtiny3214                                         avr-gcc 12.2.0 // Sources
+  {"ATtiny3214",       313, F_AVR8X, {0x1E, 0x95, 0x20}, // ID
+  /*ATtiny3214*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3800, 0x0800, // Mem
+  /*ATtiny3214*/        10,  1,  31, vtab_attiny3214,      0, NULL}, // Config and interrupts
+
+  //ATtiny3216                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny3216",       314, F_AVR8X, {0x1E, 0x95, 0x21}, // ID
+  /*ATtiny3216*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3800, 0x0800, // Mem
+  /*ATtiny3216*/        10,  1,  31, vtab_attiny3217,      0, NULL}, // Config and interrupts
+
+  //ATtiny3217                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATtiny3217",       315, F_AVR8X, {0x1E, 0x95, 0x22}, // ID
+  /*ATtiny3217*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3800, 0x0800, // Mem
+  /*ATtiny3217*/        10,  1,  31, vtab_attiny3217,      0, NULL}, // Config and interrupts
+
+  //ATtiny3224                                          atdf, avrdude // Sources
+  {"ATtiny3224",       316, F_AVR8X, {0x1E, 0x95, 0x28}, // ID
+  /*ATtiny3224*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3400, 0x0c00, // Mem
+  /*ATtiny3224*/        10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+
+  //ATtiny3226                                          atdf, avrdude // Sources
+  {"ATtiny3226",       317, F_AVR8X, {0x1E, 0x95, 0x27}, // ID
+  /*ATtiny3226*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3400, 0x0c00, // Mem
+  /*ATtiny3226*/        10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+
+  //ATtiny3227                                          atdf, avrdude // Sources
+  {"ATtiny3227",       318, F_AVR8X, {0x1E, 0x95, 0x26}, // ID
+  /*ATtiny3227*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3400, 0x0c00, // Mem
+  /*ATtiny3227*/        10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+
+  //ATmega808                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega808",        319, F_AVR8X, {0x1E, 0x93, 0x26}, // ID
+  /*ATmega808*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, // Mem
+  /*ATmega808*/         10,  1,  36, vtab_atmega4808,      0, NULL}, // Config and interrupts
+
+  //ATmega809                           atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega809",        320, F_AVR8X, {0x1E, 0x93, 0x2A}, // ID
+  /*ATmega809*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, // Mem
+  /*ATmega809*/         10,  1,  40, vtab_atmega4809,      0, NULL}, // Config and interrupts
+
+  //ATmega1608                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega1608",       321, F_AVR8X, {0x1E, 0x94, 0x27}, // ID
+  /*ATmega1608*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
+  /*ATmega1608*/        10,  1,  36, vtab_atmega4808,      0, NULL}, // Config and interrupts
+
+  //ATmega1609                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega1609",       322, F_AVR8X, {0x1E, 0x94, 0x26}, // ID
+  /*ATmega1609*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
+  /*ATmega1609*/        10,  1,  40, vtab_atmega4809,      0, NULL}, // Config and interrupts
+
+  //ATmega3208                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega3208",       323, F_AVR8X, {0x1E, 0x95, 0x30}, // ID
+  /*ATmega3208*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3000, 0x1000, // Mem
+  /*ATmega3208*/        10,  1,  36, vtab_atmega4808,      0, NULL}, // Config and interrupts
+
+  //ATmega3209                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega3209",       324, F_AVR8X, {0x1E, 0x95, 0x31}, // ID
+  /*ATmega3209*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3000, 0x1000, // Mem
+  /*ATmega3209*/        10,  1,  40, vtab_atmega4809,      0, NULL}, // Config and interrupts
+
+  //ATmega4808                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega4808",       325, F_AVR8X, {0x1E, 0x96, 0x50}, // ID
+  /*ATmega4808*/         0, 0x0c000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x2800, 0x1800, // Mem
+  /*ATmega4808*/        10,  1,  36, vtab_atmega4808,      0, NULL}, // Config and interrupts
+
+  //ATmega4809                          atdf, avr-gcc 12.2.0, avrdude // Sources
+  {"ATmega4809",       326, F_AVR8X, {0x1E, 0x96, 0x51}, // ID
+  /*ATmega4809*/         0, 0x0c000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x2800, 0x1800, // Mem
+  /*ATmega4809*/        10,  1,  40, vtab_atmega4809,      0, NULL}, // Config and interrupts
+
+  //AVR8EA28                                                  avrdude // Sources
+  {"AVR8EA28",         327, F_AVR8X, {0x1E, 0x93, 0x2C}, // ID
+  /*AVR8EA28*/           0, 0x02000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
+  /*AVR8EA28*/          -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //AVR8EA32                                                  avrdude // Sources
+  {"AVR8EA32",         328, F_AVR8X, {0x1E, 0x93, 0x2B}, // ID
+  /*AVR8EA32*/           0, 0x02000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
+  /*AVR8EA32*/          -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //AVR16DD14                                           atdf, avrdude // Sources
+  {"AVR16DD14",        329, F_AVR8X, {0x1E, 0x94, 0x34}, // ID
+  /*AVR16DD14*/          0, 0x04000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7800, 0x0800, // Mem
+  /*AVR16DD14*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+
+  //AVR16DD20                                           atdf, avrdude // Sources
+  {"AVR16DD20",        330, F_AVR8X, {0x1E, 0x94, 0x33}, // ID
+  /*AVR16DD20*/          0, 0x04000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7800, 0x0800, // Mem
+  /*AVR16DD20*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+
+  //AVR16DD28                                           atdf, avrdude // Sources
+  {"AVR16DD28",        331, F_AVR8X, {0x1E, 0x94, 0x32}, // ID
+  /*AVR16DD28*/          0, 0x04000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7800, 0x0800, // Mem
+  /*AVR16DD28*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+
+  //AVR16EA28                                                 avrdude // Sources
+  {"AVR16EA28",        332, F_AVR8X, {0x1E, 0x94, 0x37}, // ID
+  /*AVR16EA28*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
+  /*AVR16EA28*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //AVR16DD32                                           atdf, avrdude // Sources
+  {"AVR16DD32",        333, F_AVR8X, {0x1E, 0x94, 0x31}, // ID
+  /*AVR16DD32*/          0, 0x04000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7800, 0x0800, // Mem
+  /*AVR16DD32*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+
+  //AVR16EA32                                                 avrdude // Sources
+  {"AVR16EA32",        334, F_AVR8X, {0x1E, 0x94, 0x36}, // ID
+  /*AVR16EA32*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
+  /*AVR16EA32*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //AVR16EA48                                                 avrdude // Sources
+  {"AVR16EA48",        335, F_AVR8X, {0x1E, 0x94, 0x35}, // ID
+  /*AVR16EA48*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
+  /*AVR16EA48*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //AVR32DD14                                           atdf, avrdude // Sources
+  {"AVR32DD14",        336, F_AVR8X, {0x1E, 0x95, 0x3B}, // ID
+  /*AVR32DD14*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7000, 0x1000, // Mem
+  /*AVR32DD14*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+
+  //AVR32DD20                                           atdf, avrdude // Sources
+  {"AVR32DD20",        337, F_AVR8X, {0x1E, 0x95, 0x3A}, // ID
+  /*AVR32DD20*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7000, 0x1000, // Mem
+  /*AVR32DD20*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+
+  //AVR32DA28                                           atdf, avrdude // Sources
+  {"AVR32DA28",        338, F_AVR8X, {0x1E, 0x95, 0x34}, // ID
+  /*AVR32DA28*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, // Mem
+  /*AVR32DA28*/         16,  4,  41, vtab_avr128da28,      0, NULL}, // Config and interrupts
+
+  //AVR32DB28                                           atdf, avrdude // Sources
+  {"AVR32DB28",        339, F_AVR8X, {0x1E, 0x95, 0x37}, // ID
+  /*AVR32DB28*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, // Mem
+  /*AVR32DB28*/         16,  4,  42, vtab_avr128db28,      0, NULL}, // Config and interrupts
+
+  //AVR32DD28                                           atdf, avrdude // Sources
+  {"AVR32DD28",        340, F_AVR8X, {0x1E, 0x95, 0x39}, // ID
+  /*AVR32DD28*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7000, 0x1000, // Mem
+  /*AVR32DD28*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+
+  //AVR32EA28                                                 avrdude // Sources
+  {"AVR32EA28",        341, F_AVR8X, {0x1E, 0x95, 0x3E}, // ID
+  /*AVR32EA28*/          0, 0x08000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
+  /*AVR32EA28*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //AVR32DA32                                           atdf, avrdude // Sources
+  {"AVR32DA32",        342, F_AVR8X, {0x1E, 0x95, 0x33}, // ID
+  /*AVR32DA32*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, // Mem
+  /*AVR32DA32*/         16,  4,  44, vtab_avr128da32,      0, NULL}, // Config and interrupts
+
+  //AVR32DB32                                           atdf, avrdude // Sources
+  {"AVR32DB32",        343, F_AVR8X, {0x1E, 0x95, 0x36}, // ID
+  /*AVR32DB32*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, // Mem
+  /*AVR32DB32*/         16,  4,  44, vtab_avr128db32,      0, NULL}, // Config and interrupts
+
+  //AVR32DD32                                           atdf, avrdude // Sources
+  {"AVR32DD32",        344, F_AVR8X, {0x1E, 0x95, 0x38}, // ID
+  /*AVR32DD32*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7000, 0x1000, // Mem
+  /*AVR32DD32*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+
+  //AVR32EA32                                                 avrdude // Sources
+  {"AVR32EA32",        345, F_AVR8X, {0x1E, 0x95, 0x3D}, // ID
+  /*AVR32EA32*/          0, 0x08000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
+  /*AVR32EA32*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //AVR32DA48                                           atdf, avrdude // Sources
+  {"AVR32DA48",        346, F_AVR8X, {0x1E, 0x95, 0x32}, // ID
+  /*AVR32DA48*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, // Mem
+  /*AVR32DA48*/         16,  4,  58, vtab_avr128da48,      0, NULL}, // Config and interrupts
+
+  //AVR32DB48                                           atdf, avrdude // Sources
+  {"AVR32DB48",        347, F_AVR8X, {0x1E, 0x95, 0x35}, // ID
+  /*AVR32DB48*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, // Mem
+  /*AVR32DB48*/         16,  4,  61, vtab_avr128db48,      0, NULL}, // Config and interrupts
+
+  //AVR32EA48                                                 avrdude // Sources
+  {"AVR32EA48",        348, F_AVR8X, {0x1E, 0x95, 0x3C}, // ID
+  /*AVR32EA48*/          0, 0x08000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
+  /*AVR32EA48*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+
+  //AVR64DD14                                           atdf, avrdude // Sources
+  {"AVR64DD14",        349, F_AVR8X, {0x1E, 0x96, 0x1D}, // ID
+  /*AVR64DD14*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, // Mem
+  /*AVR64DD14*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+
+  //AVR64DD20                                           atdf, avrdude // Sources
+  {"AVR64DD20",        350, F_AVR8X, {0x1E, 0x96, 0x1C}, // ID
+  /*AVR64DD20*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, // Mem
+  /*AVR64DD20*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+
+  //AVR64DA28                                           atdf, avrdude // Sources
+  {"AVR64DA28",        351, F_AVR8X, {0x1E, 0x96, 0x15}, // ID
+  /*AVR64DA28*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
+  /*AVR64DA28*/         16,  4,  41, vtab_avr128da28,      0, NULL}, // Config and interrupts
+
+  //AVR64DB28                                           atdf, avrdude // Sources
+  {"AVR64DB28",        352, F_AVR8X, {0x1E, 0x96, 0x19}, // ID
+  /*AVR64DB28*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
+  /*AVR64DB28*/         16,  4,  42, vtab_avr128db28,      0, NULL}, // Config and interrupts
+
+  //AVR64DD28                                           atdf, avrdude // Sources
+  {"AVR64DD28",        353, F_AVR8X, {0x1E, 0x96, 0x1B}, // ID
+  /*AVR64DD28*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, // Mem
+  /*AVR64DD28*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+
+  //AVR64EA28                                           atdf, avrdude // Sources
+  {"AVR64EA28",        354, F_AVR8X, {0x1E, 0x96, 0x20}, // ID
+  /*AVR64EA28*/          0, 0x10000, 0x080,  1,      0, 0x01400, 0x0200,  8, 0x6800, 0x1800, // Mem
+  /*AVR64EA28*/         16,  4,  37, vtab_avr64ea32,       0, NULL}, // Config and interrupts
+
+  //AVR64DA32                                           atdf, avrdude // Sources
+  {"AVR64DA32",        355, F_AVR8X, {0x1E, 0x96, 0x14}, // ID
+  /*AVR64DA32*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
+  /*AVR64DA32*/         16,  4,  44, vtab_avr128da32,      0, NULL}, // Config and interrupts
+
+  //AVR64DB32                                           atdf, avrdude // Sources
+  {"AVR64DB32",        356, F_AVR8X, {0x1E, 0x96, 0x18}, // ID
+  /*AVR64DB32*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
+  /*AVR64DB32*/         16,  4,  44, vtab_avr128db32,      0, NULL}, // Config and interrupts
+
+  //AVR64DD32                                           atdf, avrdude // Sources
+  {"AVR64DD32",        357, F_AVR8X, {0x1E, 0x96, 0x1A}, // ID
+  /*AVR64DD32*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, // Mem
+  /*AVR64DD32*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+
+  //AVR64EA32                                           atdf, avrdude // Sources
+  {"AVR64EA32",        358, F_AVR8X, {0x1E, 0x96, 0x1F}, // ID
+  /*AVR64EA32*/          0, 0x10000, 0x080,  1,      0, 0x01400, 0x0200,  8, 0x6800, 0x1800, // Mem
+  /*AVR64EA32*/         16,  4,  37, vtab_avr64ea32,       0, NULL}, // Config and interrupts
+
+  //AVR64DA48                                           atdf, avrdude // Sources
+  {"AVR64DA48",        359, F_AVR8X, {0x1E, 0x96, 0x13}, // ID
+  /*AVR64DA48*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
+  /*AVR64DA48*/         16,  4,  58, vtab_avr128da48,      0, NULL}, // Config and interrupts
+
+  //AVR64DB48                                           atdf, avrdude // Sources
+  {"AVR64DB48",        360, F_AVR8X, {0x1E, 0x96, 0x17}, // ID
+  /*AVR64DB48*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
+  /*AVR64DB48*/         16,  4,  61, vtab_avr128db48,      0, NULL}, // Config and interrupts
+
+  //AVR64EA48                                           atdf, avrdude // Sources
+  {"AVR64EA48",        361, F_AVR8X, {0x1E, 0x96, 0x1E}, // ID
+  /*AVR64EA48*/          0, 0x10000, 0x080,  1,      0, 0x01400, 0x0200,  8, 0x6800, 0x1800, // Mem
+  /*AVR64EA48*/         16,  4,  45, vtab_avr64ea48,       0, NULL}, // Config and interrupts
+
+  //AVR64DA64                                           atdf, avrdude // Sources
+  {"AVR64DA64",        362, F_AVR8X, {0x1E, 0x96, 0x12}, // ID
+  /*AVR64DA64*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
+  /*AVR64DA64*/         16,  4,  64, vtab_avr128da64,      0, NULL}, // Config and interrupts
+
+  //AVR64DB64                                           atdf, avrdude // Sources
+  {"AVR64DB64",        363, F_AVR8X, {0x1E, 0x96, 0x16}, // ID
+  /*AVR64DB64*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
+  /*AVR64DB64*/         16,  4,  65, vtab_avr128db64,      0, NULL}, // Config and interrupts
+
+  //AVR128DA28                                          atdf, avrdude // Sources
+  {"AVR128DA28",       364, F_AVR8X, {0x1E, 0x97, 0x0A}, // ID
+  /*AVR128DA28*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
+  /*AVR128DA28*/        16,  4,  41, vtab_avr128da28,      0, NULL}, // Config and interrupts
+
+  //AVR128DB28                                          atdf, avrdude // Sources
+  {"AVR128DB28",       365, F_AVR8X, {0x1E, 0x97, 0x0E}, // ID
+  /*AVR128DB28*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
+  /*AVR128DB28*/        16,  4,  42, vtab_avr128db28,      0, NULL}, // Config and interrupts
+
+  //AVR128DA32                                          atdf, avrdude // Sources
+  {"AVR128DA32",       366, F_AVR8X, {0x1E, 0x97, 0x09}, // ID
+  /*AVR128DA32*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
+  /*AVR128DA32*/        16,  4,  44, vtab_avr128da32,      0, NULL}, // Config and interrupts
+
+  //AVR128DB32                                          atdf, avrdude // Sources
+  {"AVR128DB32",       367, F_AVR8X, {0x1E, 0x97, 0x0D}, // ID
+  /*AVR128DB32*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
+  /*AVR128DB32*/        16,  4,  44, vtab_avr128db32,      0, NULL}, // Config and interrupts
+
+  //AVR128DA48                                          atdf, avrdude // Sources
+  {"AVR128DA48",       368, F_AVR8X, {0x1E, 0x97, 0x08}, // ID
+  /*AVR128DA48*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
+  /*AVR128DA48*/        16,  4,  58, vtab_avr128da48,      0, NULL}, // Config and interrupts
+
+  //AVR128DB48                                          atdf, avrdude // Sources
+  {"AVR128DB48",       369, F_AVR8X, {0x1E, 0x97, 0x0C}, // ID
+  /*AVR128DB48*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
+  /*AVR128DB48*/        16,  4,  61, vtab_avr128db48,      0, NULL}, // Config and interrupts
+
+  //AVR128DA64                                          atdf, avrdude // Sources
+  {"AVR128DA64",       370, F_AVR8X, {0x1E, 0x97, 0x07}, // ID
+  /*AVR128DA64*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
+  /*AVR128DA64*/        16,  4,  64, vtab_avr128da64,      0, NULL}, // Config and interrupts
+
+  //AVR128DB64                                          atdf, avrdude // Sources
+  {"AVR128DB64",       371, F_AVR8X, {0x1E, 0x97, 0x0B}, // ID
+  /*AVR128DB64*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
+  /*AVR128DB64*/        16,  4,  65, vtab_avr128db64,      0, NULL}, // Config and interrupts
 };
 
-const char * const vtab_attiny9[vts_attiny9] = { // ATtiny9, ATtiny4
+// ATtiny9 ATtiny4
+const char * const vtab_attiny9[vts_attiny9] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -420,7 +1945,8 @@ const char * const vtab_attiny9[vts_attiny9] = { // ATtiny9, ATtiny4
   "VLM",                        //   9: Vcc Voltage Level Monitor
 };
 
-const char * const vtab_attiny10[vts_attiny10] = { // ATtiny10, ATtiny5
+// ATtiny10 ATtiny5
+const char * const vtab_attiny10[vts_attiny10] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -434,7 +1960,8 @@ const char * const vtab_attiny10[vts_attiny10] = { // ATtiny10, ATtiny5
   "ADC",                        //  10: ADC Conversion Complete
 };
 
-const char * const vtab_attiny20[vts_attiny20] = { // ATtiny20
+// ATtiny20
+const char * const vtab_attiny20[vts_attiny20] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -454,7 +1981,8 @@ const char * const vtab_attiny20[vts_attiny20] = { // ATtiny20
   "QTRIP",                      //  16: Touch Sensing
 };
 
-const char * const vtab_attiny40[vts_attiny40] = { // ATtiny40
+// ATtiny40
+const char * const vtab_attiny40[vts_attiny40] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -475,7 +2003,8 @@ const char * const vtab_attiny40[vts_attiny40] = { // ATtiny40
   "QTRIP",                      //  17: Touch Sensing
 };
 
-const char * const vtab_attiny104[vts_attiny104] = { // ATtiny104, ATtiny102
+// ATtiny104 ATtiny102
+const char * const vtab_attiny104[vts_attiny104] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -494,7 +2023,8 @@ const char * const vtab_attiny104[vts_attiny104] = { // ATtiny104, ATtiny102
   "USART_TXC",                  //  15: USART Transmit Complete
 };
 
-const char * const vtab_attiny11[vts_attiny11] = { // ATtiny11
+// ATtiny11
+const char * const vtab_attiny11[vts_attiny11] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "IO_PINS",                    //   2: External Interrupt
@@ -502,7 +2032,8 @@ const char * const vtab_attiny11[vts_attiny11] = { // ATtiny11
   "ANA_COMP",                   //   4: Analog Comparator
 };
 
-const char * const vtab_attiny12[vts_attiny12] = { // ATtiny12
+// ATtiny12
+const char * const vtab_attiny12[vts_attiny12] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "IO_PINS",                    //   2: External Interrupt
@@ -511,7 +2042,8 @@ const char * const vtab_attiny12[vts_attiny12] = { // ATtiny12
   "ANA_COMP",                   //   5: Analog Comparator
 };
 
-const char * const vtab_attiny13a[vts_attiny13a] = { // ATtiny13A, ATtiny13
+// ATtiny13A ATtiny13
+const char * const vtab_attiny13a[vts_attiny13a] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -524,7 +2056,8 @@ const char * const vtab_attiny13a[vts_attiny13a] = { // ATtiny13A, ATtiny13
   "ADC",                        //   9: ADC Conversion Complete
 };
 
-const char * const vtab_attiny15[vts_attiny15] = { // ATtiny15
+// ATtiny15
+const char * const vtab_attiny15[vts_attiny15] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "IO_PINS",                    //   2: External Interrupt
@@ -536,13 +2069,15 @@ const char * const vtab_attiny15[vts_attiny15] = { // ATtiny15
   "ADC",                        //   8: ADC Conversion Complete
 };
 
-const char * const vtab_attiny22[vts_attiny22] = { // ATtiny22, AT90S2343, AT90S2323
+// ATtiny22 AT90S2343 AT90S2323
+const char * const vtab_attiny22[vts_attiny22] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "TIMER0_OVF0",                //   2: Timer 0 Overflow
 };
 
-const char * const vtab_attiny26[vts_attiny26] = { // ATtiny26
+// ATtiny26
+const char * const vtab_attiny26[vts_attiny26] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "IO_PINS",                    //   2: External Interrupt
@@ -557,7 +2092,8 @@ const char * const vtab_attiny26[vts_attiny26] = { // ATtiny26
   "ADC",                        //  11: ADC Conversion Complete
 };
 
-const char * const vtab_attiny28[vts_attiny28] = { // ATtiny28
+// ATtiny28
+const char * const vtab_attiny28[vts_attiny28] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -566,7 +2102,8 @@ const char * const vtab_attiny28[vts_attiny28] = { // ATtiny28
   "ANA_COMP",                   //   5: Analog Comparator
 };
 
-const char * const vtab_attiny43u[vts_attiny43u] = { // ATtiny43U
+// ATtiny43U
+const char * const vtab_attiny43u[vts_attiny43u] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -585,7 +2122,8 @@ const char * const vtab_attiny43u[vts_attiny43u] = { // ATtiny43U
   "USI_OVF",                    //  15: USI Overflow
 };
 
-const char * const vtab_attiny84a[vts_attiny84a] = { // ATtiny84A, ATtiny84, ATtiny44A, ATtiny44, ATtiny24A, ATtiny24
+// ATtiny84A ATtiny84 ATtiny44A ATtiny44 ATtiny24A ATtiny24
+const char * const vtab_attiny84a[vts_attiny84a] = {
   "RESET",                      //   0: Reset (various reasons)
   "EXT_INT0",                   //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -605,7 +2143,8 @@ const char * const vtab_attiny84a[vts_attiny84a] = { // ATtiny84A, ATtiny84, ATt
   "USI_OVF",                    //  16: USI Overflow
 };
 
-const char * const vtab_attiny85[vts_attiny85] = { // ATtiny85, ATtiny45, ATtiny25
+// ATtiny85 ATtiny45 ATtiny25
+const char * const vtab_attiny85[vts_attiny85] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -623,7 +2162,8 @@ const char * const vtab_attiny85[vts_attiny85] = { // ATtiny85, ATtiny45, ATtiny
   "USI_OVF",                    //  14: USI Overflow
 };
 
-const char * const vtab_attiny88[vts_attiny88] = { // ATtiny88, ATtiny48
+// ATtiny88 ATtiny48
+const char * const vtab_attiny88[vts_attiny88] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -646,7 +2186,8 @@ const char * const vtab_attiny88[vts_attiny88] = { // ATtiny88, ATtiny48
   "TWI",                        //  19: 2-Wire Interface
 };
 
-const char * const vtab_attiny167[vts_attiny167] = { // ATtiny167, ATtiny87, ATA664251, ATA6617C, ATA6616C, ATA5505
+// ATtiny167 ATtiny87 ATA664251 ATA6617C ATA6616C ATA5505
+const char * const vtab_attiny167[vts_attiny167] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -669,7 +2210,8 @@ const char * const vtab_attiny167[vts_attiny167] = { // ATtiny167, ATtiny87, ATA
   "USI_OVF",                    //  19: USI Overflow
 };
 
-const char * const vtab_attiny828[vts_attiny828] = { // ATtiny828
+// ATtiny828
+const char * const vtab_attiny828[vts_attiny828] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -698,7 +2240,8 @@ const char * const vtab_attiny828[vts_attiny828] = { // ATtiny828
   "QTRIP",                      //  25: Touch Sensing
 };
 
-const char * const vtab_attiny841[vts_attiny841] = { // ATtiny841, ATtiny441
+// ATtiny841 ATtiny441
+const char * const vtab_attiny841[vts_attiny841] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -731,7 +2274,8 @@ const char * const vtab_attiny841[vts_attiny841] = { // ATtiny841, ATtiny441
   "TWI_PERIPHERAL",             //  29: 2-Wire Interface Peripheral
 };
 
-const char * const vtab_attiny861a[vts_attiny861a] = { // ATtiny861A, ATtiny861, ATtiny461A, ATtiny461, ATtiny261A, ATtiny261
+// ATtiny861A ATtiny861 ATtiny461A ATtiny461 ATtiny261A ATtiny261
+const char * const vtab_attiny861a[vts_attiny861a] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT",                      //   2: Pin Change Interrupt
@@ -753,7 +2297,8 @@ const char * const vtab_attiny861a[vts_attiny861a] = { // ATtiny861A, ATtiny861,
   "FAULT_PROTECTION",           //  18: Timer 1 Fault Protection
 };
 
-const char * const vtab_attiny1634[vts_attiny1634] = { // ATtiny1634
+// ATtiny1634
+const char * const vtab_attiny1634[vts_attiny1634] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -784,7 +2329,8 @@ const char * const vtab_attiny1634[vts_attiny1634] = { // ATtiny1634
   "QTRIP",                      //  27: Touch Sensing
 };
 
-const char * const vtab_attiny2313[vts_attiny2313] = { // ATtiny2313
+// ATtiny2313
+const char * const vtab_attiny2313[vts_attiny2313] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -806,7 +2352,8 @@ const char * const vtab_attiny2313[vts_attiny2313] = { // ATtiny2313
   "WDT_OVERFLOW",               //  18: Watchdog Timer Overflow
 };
 
-const char * const vtab_attiny4313[vts_attiny4313] = { // ATtiny4313, ATtiny2313A
+// ATtiny4313 ATtiny2313A
+const char * const vtab_attiny4313[vts_attiny4313] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -830,7 +2377,8 @@ const char * const vtab_attiny4313[vts_attiny4313] = { // ATtiny4313, ATtiny2313
   "PCINT_D",                    //  20: Pin Change Interrupt D
 };
 
-const char * const vtab_atmega8a[vts_atmega8a] = { // ATmega8A, ATmega8
+// ATmega8A ATmega8
+const char * const vtab_atmega8a[vts_atmega8a] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -852,7 +2400,8 @@ const char * const vtab_atmega8a[vts_atmega8a] = { // ATmega8A, ATmega8
   "SPM_RDY",                    //  18: Store Program Memory Ready
 };
 
-const char * const vtab_atmega16a[vts_atmega16a] = { // ATmega16A, ATmega16
+// ATmega16A ATmega16
+const char * const vtab_atmega16a[vts_atmega16a] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -876,7 +2425,8 @@ const char * const vtab_atmega16a[vts_atmega16a] = { // ATmega16A, ATmega16
   "SPM_RDY",                    //  20: Store Program Memory Ready
 };
 
-const char * const vtab_atmega16hva[vts_atmega16hva] = { // ATmega16HVA, ATmega8HVA
+// ATmega16HVA ATmega8HVA
+const char * const vtab_atmega16hva[vts_atmega16hva] = {
   "RESET",                      //   0: Reset (various reasons)
   "BPINT",                      //   1: Battery Protection Interrupt
   "VREGMON",                    //   2: Voltage Regulator Monitor
@@ -900,7 +2450,8 @@ const char * const vtab_atmega16hva[vts_atmega16hva] = { // ATmega16HVA, ATmega8
   "EE_READY",                   //  20: EEPROM Ready
 };
 
-const char * const vtab_atmega16hva2[vts_atmega16hva2] = { // ATmega16HVA2
+// ATmega16HVA2
+const char * const vtab_atmega16hva2[vts_atmega16hva2] = {
   "RESET",                      //   0: Reset (various reasons)
   "BPINT",                      //   1: Battery Protection Interrupt
   "VREGMON",                    //   2: Voltage Regulator Monitor
@@ -925,7 +2476,8 @@ const char * const vtab_atmega16hva2[vts_atmega16hva2] = { // ATmega16HVA2
   "EE_READY",                   //  21: EEPROM Ready
 };
 
-const char * const vtab_atmega32hvbrevb[vts_atmega32hvbrevb] = { // ATmega32HVBrevB, ATmega32HVB, ATmega16HVBrevB, ATmega16HVB
+// ATmega32HVBrevB ATmega32HVB ATmega16HVBrevB ATmega16HVB
+const char * const vtab_atmega32hvbrevb[vts_atmega32hvbrevb] = {
   "RESET",                      //   0: Reset (various reasons)
   "BPINT",                      //   1: Battery Protection Interrupt
   "VREGMON",                    //   2: Voltage Regulator Monitor
@@ -957,7 +2509,8 @@ const char * const vtab_atmega32hvbrevb[vts_atmega32hvbrevb] = { // ATmega32HVBr
   "SPM",                        //  28: SPM Ready
 };
 
-const char * const vtab_atmega32u2[vts_atmega32u2] = { // ATmega32U2, ATmega16U2, ATmega8U2, AT90USB162, AT90USB82
+// ATmega32U2 ATmega16U2 ATmega8U2 AT90USB162 AT90USB82
+const char * const vtab_atmega32u2[vts_atmega32u2] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -989,7 +2542,8 @@ const char * const vtab_atmega32u2[vts_atmega32u2] = { // ATmega32U2, ATmega16U2
   "SPM_READY",                  //  28: Store Program Memory Ready
 };
 
-const char * const vtab_atmega32u4[vts_atmega32u4] = { // ATmega32U4, ATmega16U4
+// ATmega32U4 ATmega16U4
+const char * const vtab_atmega32u4[vts_atmega32u4] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1035,7 +2589,8 @@ const char * const vtab_atmega32u4[vts_atmega32u4] = { // ATmega32U4, ATmega16U4
   "TIMER4_FPF",                 //  42: Timer 4 Fault Protection
 };
 
-const char * const vtab_atmega32u6[vts_atmega32u6] = { // ATmega32U6, AT90USB1287, AT90USB1286, AT90USB647, AT90USB646
+// ATmega32U6 AT90USB1287 AT90USB1286 AT90USB647 AT90USB646
+const char * const vtab_atmega32u6[vts_atmega32u6] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1076,7 +2631,8 @@ const char * const vtab_atmega32u6[vts_atmega32u6] = { // ATmega32U6, AT90USB128
   "SPM_READY",                  //  37: Store Program Memory Ready
 };
 
-const char * const vtab_atmega64m1[vts_atmega64m1] = { // ATmega64M1, ATmega64C1, ATmega32M1, ATmega32C1, ATmega16M1
+// ATmega64M1 ATmega64C1 ATmega32M1 ATmega32C1 ATmega16M1
+const char * const vtab_atmega64m1[vts_atmega64m1] = {
   "RESET",                      //   0: Reset (various reasons)
   "ANACOMP0",                   //   1: Analog Comparator 0
   "ANACOMP1",                   //   2: Analog Comparator 1
@@ -1110,7 +2666,8 @@ const char * const vtab_atmega64m1[vts_atmega64m1] = { // ATmega64M1, ATmega64C1
   "SPM_READY",                  //  30: Store Program Memory Ready
 };
 
-const char * const vtab_atmega64hve2[vts_atmega64hve2] = { // ATmega64HVE2, ATmega64HVE
+// ATmega64HVE2 ATmega64HVE
+const char * const vtab_atmega64hve2[vts_atmega64hve2] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -1138,7 +2695,8 @@ const char * const vtab_atmega64hve2[vts_atmega64hve2] = { // ATmega64HVE2, ATme
   "PLL",                        //  24: PLL
 };
 
-const char * const vtab_atmega103[vts_atmega103] = { // ATmega103
+// ATmega103
+const char * const vtab_atmega103[vts_atmega103] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1165,7 +2723,8 @@ const char * const vtab_atmega103[vts_atmega103] = { // ATmega103
   "ANALOG_COMP",                //  23: Analog Comparator
 };
 
-const char * const vtab_atmega128a[vts_atmega128a] = { // ATmega128A, ATmega128, ATmega64A, ATmega64
+// ATmega128A ATmega128 ATmega64A ATmega64
+const char * const vtab_atmega128a[vts_atmega128a] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1203,7 +2762,8 @@ const char * const vtab_atmega128a[vts_atmega128a] = { // ATmega128A, ATmega128,
   "SPM_READY",                  //  34: Store Program Memory Ready
 };
 
-const char * const vtab_atmega128rfa1[vts_atmega128rfa1] = { // ATmega128RFA1
+// ATmega128RFA1
+const char * const vtab_atmega128rfa1[vts_atmega128rfa1] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1278,7 +2838,8 @@ const char * const vtab_atmega128rfa1[vts_atmega128rfa1] = { // ATmega128RFA1
   "BAT_LOW",                    //  71: Battery Voltage Below Threshold
 };
 
-const char * const vtab_atmega161[vts_atmega161] = { // ATmega161
+// ATmega161
+const char * const vtab_atmega161[vts_atmega161] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1302,7 +2863,8 @@ const char * const vtab_atmega161[vts_atmega161] = { // ATmega161
   "ANA_COMP",                   //  20: Analog Comparator
 };
 
-const char * const vtab_atmega162[vts_atmega162] = { // ATmega162
+// ATmega162
+const char * const vtab_atmega162[vts_atmega162] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1333,7 +2895,8 @@ const char * const vtab_atmega162[vts_atmega162] = { // ATmega162
   "SPM_RDY",                    //  27: Store Program Memory Ready
 };
 
-const char * const vtab_atmega163[vts_atmega163] = { // ATmega163
+// ATmega163
+const char * const vtab_atmega163[vts_atmega163] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1354,7 +2917,8 @@ const char * const vtab_atmega163[vts_atmega163] = { // ATmega163
   "TWI",                        //  17: 2-Wire Interface
 };
 
-const char * const vtab_atmega168pb[vts_atmega168pb] = { // ATmega168PB, ATmega88PB, ATmega48PB
+// ATmega168PB ATmega88PB ATmega48PB
+const char * const vtab_atmega168pb[vts_atmega168pb] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1384,7 +2948,8 @@ const char * const vtab_atmega168pb[vts_atmega168pb] = { // ATmega168PB, ATmega8
   "USART_START",                //  26: USART Start
 };
 
-const char * const vtab_atmega323[vts_atmega323] = { // ATmega323, ATmega32A, ATmega32
+// ATmega323 ATmega32A ATmega32
+const char * const vtab_atmega323[vts_atmega323] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1408,7 +2973,8 @@ const char * const vtab_atmega323[vts_atmega323] = { // ATmega323, ATmega32A, AT
   "SPM_RDY",                    //  20: Store Program Memory Ready
 };
 
-const char * const vtab_atmega324pb[vts_atmega324pb] = { // ATmega324PB
+// ATmega324PB
+const char * const vtab_atmega324pb[vts_atmega324pb] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1462,7 +3028,8 @@ const char * const vtab_atmega324pb[vts_atmega324pb] = { // ATmega324PB
   "USART2_START",               //  50: USART 2 Receive Start
 };
 
-const char * const vtab_atmega328[vts_atmega328] = { // ATmega328, ATmega168
+// ATmega328 ATmega168
+const char * const vtab_atmega328[vts_atmega328] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1491,7 +3058,11 @@ const char * const vtab_atmega328[vts_atmega328] = { // ATmega328, ATmega168
   "SPM_READY",                  //  25: Store Program Memory Ready
 };
 
-const char * const vtab_atmega328p[vts_atmega328p] = { // ATmega328P, ATmega168PA, ATmega168P, ATmega168A, ATmega88PA, ATmega88P, ATmega88A, ATmega88, ATmega48PA, ATmega48P, ATmega48A, ATmega48, ATA6614Q, ATA6613C, ATA6612C
+/*
+ * ATmega328P ATmega168PA ATmega168P ATmega168A ATmega88PA ATmega88P ATmega88A ATmega88 ATmega48PA
+ * ATmega48P ATmega48A ATmega48 ATA6614Q ATA6613C ATA6612C
+ */
+const char * const vtab_atmega328p[vts_atmega328p] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1520,7 +3091,8 @@ const char * const vtab_atmega328p[vts_atmega328p] = { // ATmega328P, ATmega168P
   "SPM_Ready",                  //  25: Store Program Memory Ready
 };
 
-const char * const vtab_atmega328pb[vts_atmega328pb] = { // ATmega328PB
+// ATmega328PB
+const char * const vtab_atmega328pb[vts_atmega328pb] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1568,7 +3140,8 @@ const char * const vtab_atmega328pb[vts_atmega328pb] = { // ATmega328PB
   "TIMER4_OVF",                 //  44: Timer 4 Overflow
 };
 
-const char * const vtab_atmega406[vts_atmega406] = { // ATmega406
+// ATmega406
+const char * const vtab_atmega406[vts_atmega406] = {
   "RESET",                      //   0: Reset (various reasons)
   "BPINT",                      //   1: Battery Protection Interrupt
   "INT0",                       //   2: External Interrupt 0
@@ -1594,7 +3167,8 @@ const char * const vtab_atmega406[vts_atmega406] = { // ATmega406
   "SPM_READY",                  //  22: Store Program Memory Ready
 };
 
-const char * const vtab_atmega644[vts_atmega644] = { // ATmega644
+// ATmega644
+const char * const vtab_atmega644[vts_atmega644] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1625,7 +3199,11 @@ const char * const vtab_atmega644[vts_atmega644] = { // ATmega644
   "SPM_READY",                  //  27: Store Program Memory Ready
 };
 
-const char * const vtab_atmega644pa[vts_atmega644pa] = { // ATmega644PA, ATmega644P, ATmega644A, ATmega324PA, ATmega324P, ATmega324A, ATmega164PA, ATmega164P, ATmega164A
+/*
+ * ATmega644PA ATmega644P ATmega644A ATmega324PA ATmega324P ATmega324A ATmega164PA ATmega164P
+ * ATmega164A
+ */
+const char * const vtab_atmega644pa[vts_atmega644pa] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1659,7 +3237,11 @@ const char * const vtab_atmega644pa[vts_atmega644pa] = { // ATmega644PA, ATmega6
   "USART1_TX",                  //  30: USART 1 Transmit Complete
 };
 
-const char * const vtab_atmega645p[vts_atmega645p] = { // ATmega645P, ATmega645A, ATmega645, ATmega325PA, ATmega325P, ATmega325A, ATmega325, ATmega165PA, ATmega165P, ATmega165A, ATmega165
+/*
+ * ATmega645P ATmega645A ATmega645 ATmega325PA ATmega325P ATmega325A ATmega325 ATmega165PA
+ * ATmega165P ATmega165A ATmega165
+ */
+const char * const vtab_atmega645p[vts_atmega645p] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -1684,7 +3266,11 @@ const char * const vtab_atmega645p[vts_atmega645p] = { // ATmega645P, ATmega645A
   "SPM_READY",                  //  21: Store Program Memory Ready
 };
 
-const char * const vtab_atmega649p[vts_atmega649p] = { // ATmega649P, ATmega649A, ATmega649, ATmega329PA, ATmega329P, ATmega329A, ATmega329, ATmega169PA, ATmega169P, ATmega169A, ATmega169
+/*
+ * ATmega649P ATmega649A ATmega649 ATmega329PA ATmega329P ATmega329A ATmega329 ATmega169PA
+ * ATmega169P ATmega169A ATmega169
+ */
+const char * const vtab_atmega649p[vts_atmega649p] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -1710,7 +3296,8 @@ const char * const vtab_atmega649p[vts_atmega649p] = { // ATmega649P, ATmega649A
   "LCD",                        //  22: LCD Start of Frame
 };
 
-const char * const vtab_atmega1284p[vts_atmega1284p] = { // ATmega1284P, ATmega1284
+// ATmega1284P ATmega1284
+const char * const vtab_atmega1284p[vts_atmega1284p] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1748,7 +3335,8 @@ const char * const vtab_atmega1284p[vts_atmega1284p] = { // ATmega1284P, ATmega1
   "TIMER3_OVF",                 //  34: Timer 3 Overflow
 };
 
-const char * const vtab_atmega2560[vts_atmega2560] = { // ATmega2560, ATmega1280, ATmega640
+// ATmega2560 ATmega1280 ATmega640
+const char * const vtab_atmega2560[vts_atmega2560] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1808,7 +3396,8 @@ const char * const vtab_atmega2560[vts_atmega2560] = { // ATmega2560, ATmega1280
   "USART3_TX",                  //  56: USART 3 Transmit Complete
 };
 
-const char * const vtab_atmega2561[vts_atmega2561] = { // ATmega2561, ATmega1281
+// ATmega2561 ATmega1281
+const char * const vtab_atmega2561[vts_atmega2561] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1868,7 +3457,8 @@ const char * const vtab_atmega2561[vts_atmega2561] = { // ATmega2561, ATmega1281
   "UNUSED",                     //  56: not useful owing to limited pin count
 };
 
-const char * const vtab_atmega2564rfr2[vts_atmega2564rfr2] = { // ATmega2564RFR2, ATmega1284RFR2, ATmega644RFR2, ATmega256RFR2, ATmega128RFR2, ATmega64RFR2
+// ATmega2564RFR2 ATmega1284RFR2 ATmega644RFR2 ATmega256RFR2 ATmega128RFR2 ATmega64RFR2
+const char * const vtab_atmega2564rfr2[vts_atmega2564rfr2] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -1948,7 +3538,8 @@ const char * const vtab_atmega2564rfr2[vts_atmega2564rfr2] = { // ATmega2564RFR2
   "TRX24_AMI3",                 //  76: TRX24 Address Match 3
 };
 
-const char * const vtab_atmega6450p[vts_atmega6450p] = { // ATmega6450P, ATmega6450A, ATmega6450, ATmega3250PA, ATmega3250P, ATmega3250A, ATmega3250
+// ATmega6450P ATmega6450A ATmega6450 ATmega3250PA ATmega3250P ATmega3250A ATmega3250
+const char * const vtab_atmega6450p[vts_atmega6450p] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -1976,7 +3567,8 @@ const char * const vtab_atmega6450p[vts_atmega6450p] = { // ATmega6450P, ATmega6
   "PCINT3",                     //  24: Pin Change Interrupt 3
 };
 
-const char * const vtab_atmega6490p[vts_atmega6490p] = { // ATmega6490P, ATmega6490A, ATmega6490, ATmega3290PA, ATmega3290P, ATmega3290A, ATmega3290
+// ATmega6490P ATmega6490A ATmega6490 ATmega3290PA ATmega3290P ATmega3290A ATmega3290
+const char * const vtab_atmega6490p[vts_atmega6490p] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -2004,7 +3596,8 @@ const char * const vtab_atmega6490p[vts_atmega6490p] = { // ATmega6490P, ATmega6
   "PCINT3",                     //  24: Pin Change Interrupt 3
 };
 
-const char * const vtab_atmega8515[vts_atmega8515] = { // ATmega8515
+// ATmega8515
+const char * const vtab_atmega8515[vts_atmega8515] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2024,7 +3617,8 @@ const char * const vtab_atmega8515[vts_atmega8515] = { // ATmega8515
   "SPM_RDY",                    //  16: Store Program Memory Ready
 };
 
-const char * const vtab_atmega8535[vts_atmega8535] = { // ATmega8535
+// ATmega8535
+const char * const vtab_atmega8535[vts_atmega8535] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2048,13 +3642,15 @@ const char * const vtab_atmega8535[vts_atmega8535] = { // ATmega8535
   "SPM_RDY",                    //  20: Store Program Memory Ready
 };
 
-const char * const vtab_at86rf401[vts_at86rf401] = { // AT86RF401
+// AT86RF401
+const char * const vtab_at86rf401[vts_at86rf401] = {
   "RESET",                      //   0: Reset (various reasons)
   "TXDONE",                     //   1: Transmit Complete
   "TXEMPTY",                    //   2: Transmit Register Empty
 };
 
-const char * const vtab_at90pwm1[vts_at90pwm1] = { // AT90PWM1
+// AT90PWM1
+const char * const vtab_at90pwm1[vts_at90pwm1] = {
   "RESET",                      //   0: Reset (various reasons)
   "PSC2_CAPT",                  //   1: PSC 2 Capture Event
   "PSC2_EC",                    //   2: PSC 2 End Cycle
@@ -2089,7 +3685,8 @@ const char * const vtab_at90pwm1[vts_at90pwm1] = { // AT90PWM1
   "SPM_READY",                  //  31: Store Program Memory Ready
 };
 
-const char * const vtab_at90pwm2[vts_at90pwm2] = { // AT90PWM2
+// AT90PWM2
+const char * const vtab_at90pwm2[vts_at90pwm2] = {
   "RESET",                      //   0: Reset (various reasons)
   "PSC2_CAPT",                  //   1: PSC 2 Capture Event
   "PSC2_EC",                    //   2: PSC 2 End Cycle
@@ -2124,7 +3721,8 @@ const char * const vtab_at90pwm2[vts_at90pwm2] = { // AT90PWM2
   "SPM_READY",                  //  31: Store Program Memory Ready
 };
 
-const char * const vtab_at90pwm3b[vts_at90pwm3b] = { // AT90PWM3B, AT90PWM3, AT90PWM2B
+// AT90PWM3B AT90PWM3 AT90PWM2B
+const char * const vtab_at90pwm3b[vts_at90pwm3b] = {
   "RESET",                      //   0: Reset (various reasons)
   "PSC2_CAPT",                  //   1: PSC 2 Capture Event
   "PSC2_EC",                    //   2: PSC 2 End Cycle
@@ -2159,7 +3757,8 @@ const char * const vtab_at90pwm3b[vts_at90pwm3b] = { // AT90PWM3B, AT90PWM3, AT9
   "SPM_READY",                  //  31: Store Program Memory Ready
 };
 
-const char * const vtab_at90scr100[vts_at90scr100] = { // AT90SCR100
+// AT90SCR100
+const char * const vtab_at90scr100[vts_at90scr100] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2200,7 +3799,8 @@ const char * const vtab_at90scr100[vts_at90scr100] = { // AT90SCR100
   "PCINT3",                     //  37: Pin Change Interrupt 3
 };
 
-const char * const vtab_at90can128[vts_at90can128] = { // AT90CAN128, AT90CAN64, AT90CAN32
+// AT90CAN128 AT90CAN64 AT90CAN32
+const char * const vtab_at90can128[vts_at90can128] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2240,7 +3840,8 @@ const char * const vtab_at90can128[vts_at90can128] = { // AT90CAN128, AT90CAN64,
   "SPM_READY",                  //  36: Store Program Memory Ready
 };
 
-const char * const vtab_at90pwm161[vts_at90pwm161] = { // AT90PWM161, AT90PWM81
+// AT90PWM161 AT90PWM81
+const char * const vtab_at90pwm161[vts_at90pwm161] = {
   "RESET",                      //   0: Reset (various reasons)
   "PSC2_CAPT",                  //   1: PSC 2 Capture Event
   "PSC2_EC",                    //   2: PSC 2 End Cycle
@@ -2263,7 +3864,8 @@ const char * const vtab_at90pwm161[vts_at90pwm161] = { // AT90PWM161, AT90PWM81
   "SPM_READY",                  //  19: Store Program Memory Ready
 };
 
-const char * const vtab_at90pwm316[vts_at90pwm316] = { // AT90PWM316, AT90PWM216
+// AT90PWM316 AT90PWM216
+const char * const vtab_at90pwm316[vts_at90pwm316] = {
   "RESET",                      //   0: Reset (various reasons)
   "PSC2_CAPT",                  //   1: PSC 2 Capture Event
   "PSC2_EC",                    //   2: PSC 2 End Cycle
@@ -2298,14 +3900,16 @@ const char * const vtab_at90pwm316[vts_at90pwm316] = { // AT90PWM316, AT90PWM216
   "SPM_READY",                  //  31: Store Program Memory Ready
 };
 
-const char * const vtab_at90s1200[vts_at90s1200] = { // AT90S1200
+// AT90S1200
+const char * const vtab_at90s1200[vts_at90s1200] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "TIMER0_OVF",                 //   2: Timer 0 Overflow
   "ANA_COMP",                   //   3: Analog Comparator
 };
 
-const char * const vtab_at90s2313[vts_at90s2313] = { // AT90S2313
+// AT90S2313
+const char * const vtab_at90s2313[vts_at90s2313] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2319,7 +3923,8 @@ const char * const vtab_at90s2313[vts_at90s2313] = { // AT90S2313
   "ANA_COMP",                   //  10: Analog Comparator
 };
 
-const char * const vtab_at90s4433[vts_at90s4433] = { // AT90S4433, AT90S2333
+// AT90S4433 AT90S2333
+const char * const vtab_at90s4433[vts_at90s4433] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2336,7 +3941,8 @@ const char * const vtab_at90s4433[vts_at90s4433] = { // AT90S4433, AT90S2333
   "ANA_COMP",                   //  13: Analog Comparator
 };
 
-const char * const vtab_at90s8515[vts_at90s8515] = { // AT90S8515, AT90S4414
+// AT90S8515 AT90S4414
+const char * const vtab_at90s8515[vts_at90s8515] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2352,7 +3958,8 @@ const char * const vtab_at90s8515[vts_at90s8515] = { // AT90S8515, AT90S4414
   "ANA_COMP",                   //  12: Analog Comparator
 };
 
-const char * const vtab_at90s8535[vts_at90s8535] = { // AT90S8535, AT90S4434
+// AT90S8535 AT90S4434
+const char * const vtab_at90s8535[vts_at90s8535] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2372,7 +3979,8 @@ const char * const vtab_at90s8535[vts_at90s8535] = { // AT90S8535, AT90S4434
   "ANA_COMP",                   //  16: Analog Comparator
 };
 
-const char * const vtab_ata5272[vts_ata5272] = { // ATA5272
+// ATA5272
+const char * const vtab_ata5272[vts_ata5272] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2412,7 +4020,8 @@ const char * const vtab_ata5272[vts_ata5272] = { // ATA5272
   "USI_START",                  //  36: USI Start Condition
 };
 
-const char * const vtab_ata5702m322[vts_ata5702m322] = { // ATA5702M322, ATA5700M322
+// ATA5702M322 ATA5700M322
+const char * const vtab_ata5702m322[vts_ata5702m322] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2466,7 +4075,8 @@ const char * const vtab_ata5702m322[vts_ata5702m322] = { // ATA5702M322, ATA5700
   "TWI2",                       //  50: 2-Wire Interface 2
 };
 
-const char * const vtab_ata5790[vts_ata5790] = { // ATA5790
+// ATA5790
+const char * const vtab_ata5790[vts_ata5790] = {
   "RESET",                      //   0: Reset (various reasons)
   "TPINT",                      //   1: Transponder Mode Interrupt
   "INT0",                       //   2: External Interrupt 0
@@ -2499,7 +4109,8 @@ const char * const vtab_ata5790[vts_ata5790] = { // ATA5790
   "SPMREADY",                   //  29: Store Program Memory Ready
 };
 
-const char * const vtab_ata5791[vts_ata5791] = { // ATA5791, ATA5790N
+// ATA5791 ATA5790N
+const char * const vtab_ata5791[vts_ata5791] = {
   "RESET",                      //   0: Reset (various reasons)
   "TPINT",                      //   1: Transponder Mode Interrupt
   "INT0",                       //   2: External Interrupt 0
@@ -2533,7 +4144,8 @@ const char * const vtab_ata5791[vts_ata5791] = { // ATA5791, ATA5790N
   "SPMREADY",                   //  30: Store Program Memory Ready
 };
 
-const char * const vtab_ata5795[vts_ata5795] = { // ATA5795
+// ATA5795
+const char * const vtab_ata5795[vts_ata5795] = {
   "RESET",                      //   0: Reset (various reasons)
   "TPINT",                      //   1: Transponder Mode Interrupt
   "INT0",                       //   2: External Interrupt 0
@@ -2559,7 +4171,8 @@ const char * const vtab_ata5795[vts_ata5795] = { // ATA5795
   "SPMREADY",                   //  22: Store Program Memory Ready
 };
 
-const char * const vtab_ata5835[vts_ata5835] = { // ATA5835, ATA5787
+// ATA5835 ATA5787
+const char * const vtab_ata5835[vts_ata5835] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2606,7 +4219,8 @@ const char * const vtab_ata5835[vts_ata5835] = { // ATA5835, ATA5787
   "IDFULL",                     //  43: IDSCAN Full
 };
 
-const char * const vtab_ata6289[vts_ata6289] = { // ATA6289, ATA6286, ATA6285
+// ATA6289 ATA6286 ATA6285
+const char * const vtab_ata6289[vts_ata6289] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2636,7 +4250,8 @@ const char * const vtab_ata6289[vts_ata6289] = { // ATA6289, ATA6286, ATA6285
   "SPM_RDY",                    //  26: Store Program Memory Ready
 };
 
-const char * const vtab_ata8515[vts_ata8515] = { // ATA8515, ATA8510, ATA8215, ATA8210, ATA5833, ATA5832, ATA5831, ATA5783, ATA5782, ATA5781
+// ATA8515 ATA8510 ATA8215 ATA8210 ATA5833 ATA5832 ATA5831 ATA5783 ATA5782 ATA5781
+const char * const vtab_ata8515[vts_ata8515] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2681,7 +4296,8 @@ const char * const vtab_ata8515[vts_ata8515] = { // ATA8515, ATA8510, ATA8215, A
   "IDFULL",                     //  41: IDSCAN Full
 };
 
-const char * const vtab_atxmega32a4[vts_atxmega32a4] = { // ATxmega32A4, ATxmega16A4
+// ATxmega32A4 ATxmega16A4
+const char * const vtab_atxmega32a4[vts_atxmega32a4] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -2778,7 +4394,8 @@ const char * const vtab_atxmega32a4[vts_atxmega32a4] = { // ATxmega32A4, ATxmega
   "USARTD1_TXC",                //  93: USARTD 1 Transmission Complete
 };
 
-const char * const vtab_atxmega32c4[vts_atxmega32c4] = { // ATxmega32C4, ATxmega16C4
+// ATxmega32C4 ATxmega16C4
+const char * const vtab_atxmega32c4[vts_atxmega32c4] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -2908,7 +4525,8 @@ const char * const vtab_atxmega32c4[vts_atxmega32c4] = { // ATxmega32C4, ATxmega
   "USB_TRNCOMPL",               // 126: USB Transaction Complete
 };
 
-const char * const vtab_atxmega32d4[vts_atxmega32d4] = { // ATxmega32D4, ATxmega16D4
+// ATxmega32D4 ATxmega16D4
+const char * const vtab_atxmega32d4[vts_atxmega32d4] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -3002,7 +4620,8 @@ const char * const vtab_atxmega32d4[vts_atxmega32d4] = { // ATxmega32D4, ATxmega
   "USARTD0_TXC",                //  90: USARTD 0 Transmission Complete
 };
 
-const char * const vtab_atxmega32e5[vts_atxmega32e5] = { // ATxmega32E5, ATxmega16E5, ATxmega8E5
+// ATxmega32E5 ATxmega16E5 ATxmega8E5
+const char * const vtab_atxmega32e5[vts_atxmega32e5] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTR_INT",                  //   2: External Interrupt PORT R
@@ -3048,7 +4667,8 @@ const char * const vtab_atxmega32e5[vts_atxmega32e5] = { // ATxmega32E5, ATxmega
   "USARTD0_TXC",                //  42: USARTD 0 Transmission Complete
 };
 
-const char * const vtab_atxmega128a1[vts_atxmega128a1] = { // ATxmega128A1, ATxmega64A1
+// ATxmega128A1 ATxmega64A1
+const char * const vtab_atxmega128a1[vts_atxmega128a1] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -3176,7 +4796,8 @@ const char * const vtab_atxmega128a1[vts_atxmega128a1] = { // ATxmega128A1, ATxm
   "USARTF1_TXC",                // 124: USARTF 1 Transmission Complete
 };
 
-const char * const vtab_atxmega128a1u[vts_atxmega128a1u] = { // ATxmega128A1U, ATxmega64A1U
+// ATxmega128A1U ATxmega64A1U
+const char * const vtab_atxmega128a1u[vts_atxmega128a1u] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -3306,7 +4927,8 @@ const char * const vtab_atxmega128a1u[vts_atxmega128a1u] = { // ATxmega128A1U, A
   "USB_TRNCOMPL",               // 126: USB Transaction Complete
 };
 
-const char * const vtab_atxmega128b1[vts_atxmega128b1] = { // ATxmega128B1, ATxmega64B1
+// ATxmega128B1 ATxmega64B1
+const char * const vtab_atxmega128b1[vts_atxmega128b1] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -3390,7 +5012,8 @@ const char * const vtab_atxmega128b1[vts_atxmega128b1] = { // ATxmega128B1, ATxm
   "ADCA_CH0",                   //  80: ADCA Interrupt 0
 };
 
-const char * const vtab_atxmega128b3[vts_atxmega128b3] = { // ATxmega128B3, ATxmega64B3
+// ATxmega128B3 ATxmega64B3
+const char * const vtab_atxmega128b3[vts_atxmega128b3] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -3447,7 +5070,8 @@ const char * const vtab_atxmega128b3[vts_atxmega128b3] = { // ATxmega128B3, ATxm
   "PORTM_INT1",                 //  53: External Interrupt 1 PORT M
 };
 
-const char * const vtab_atxmega128a4u[vts_atxmega128a4u] = { // ATxmega128A4U, ATxmega64A4U, ATxmega32A4U, ATxmega16A4U
+// ATxmega128A4U ATxmega64A4U ATxmega32A4U ATxmega16A4U
+const char * const vtab_atxmega128a4u[vts_atxmega128a4u] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -3577,7 +5201,8 @@ const char * const vtab_atxmega128a4u[vts_atxmega128a4u] = { // ATxmega128A4U, A
   "USB_TRNCOMPL",               // 126: USB Transaction Complete
 };
 
-const char * const vtab_atxmega128d4[vts_atxmega128d4] = { // ATxmega128D4, ATxmega64D4
+// ATxmega128D4 ATxmega64D4
+const char * const vtab_atxmega128d4[vts_atxmega128d4] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -3671,7 +5296,8 @@ const char * const vtab_atxmega128d4[vts_atxmega128d4] = { // ATxmega128D4, ATxm
   "USARTD0_TXC",                //  90: USARTD 0 Transmission Complete
 };
 
-const char * const vtab_atxmega256a3[vts_atxmega256a3] = { // ATxmega256A3, ATxmega192A3, ATxmega128A3, ATxmega64A3
+// ATxmega256A3 ATxmega192A3 ATxmega128A3 ATxmega64A3
+const char * const vtab_atxmega256a3[vts_atxmega256a3] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -3796,7 +5422,8 @@ const char * const vtab_atxmega256a3[vts_atxmega256a3] = { // ATxmega256A3, ATxm
   "USARTF0_TXC",                // 121: USARTF 0 Transmission Complete
 };
 
-const char * const vtab_atxmega256a3b[vts_atxmega256a3b] = { // ATxmega256A3B
+// ATxmega256A3B
+const char * const vtab_atxmega256a3b[vts_atxmega256a3b] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -3921,7 +5548,8 @@ const char * const vtab_atxmega256a3b[vts_atxmega256a3b] = { // ATxmega256A3B
   "USARTF0_TXC",                // 121: USARTF 0 Transmission Complete
 };
 
-const char * const vtab_atxmega256a3bu[vts_atxmega256a3bu] = { // ATxmega256A3BU
+// ATxmega256A3BU
+const char * const vtab_atxmega256a3bu[vts_atxmega256a3bu] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -4051,7 +5679,8 @@ const char * const vtab_atxmega256a3bu[vts_atxmega256a3bu] = { // ATxmega256A3BU
   "USB_TRNCOMPL",               // 126: USB Transaction Complete
 };
 
-const char * const vtab_atxmega256a3u[vts_atxmega256a3u] = { // ATxmega256A3U, ATxmega192A3U, ATxmega128A3U, ATxmega64A3U
+// ATxmega256A3U ATxmega192A3U ATxmega128A3U ATxmega64A3U
+const char * const vtab_atxmega256a3u[vts_atxmega256a3u] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -4181,7 +5810,8 @@ const char * const vtab_atxmega256a3u[vts_atxmega256a3u] = { // ATxmega256A3U, A
   "USB_TRNCOMPL",               // 126: USB Transaction Complete
 };
 
-const char * const vtab_atxmega256c3[vts_atxmega256c3] = { // ATxmega256C3, ATxmega192C3, ATxmega128C3, ATxmega64C3, ATxmega32C3
+// ATxmega256C3 ATxmega192C3 ATxmega128C3 ATxmega64C3 ATxmega32C3
+const char * const vtab_atxmega256c3[vts_atxmega256c3] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -4311,7 +5941,8 @@ const char * const vtab_atxmega256c3[vts_atxmega256c3] = { // ATxmega256C3, ATxm
   "USB_TRNCOMPL",               // 126: USB Transaction Complete
 };
 
-const char * const vtab_atxmega384c3[vts_atxmega384c3] = { // ATxmega384C3
+// ATxmega384C3
+const char * const vtab_atxmega384c3[vts_atxmega384c3] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -4441,7 +6072,8 @@ const char * const vtab_atxmega384c3[vts_atxmega384c3] = { // ATxmega384C3
   "USB_TRNCOMPL",               // 126: USB Transaction Complete
 };
 
-const char * const vtab_atxmega384d3[vts_atxmega384d3] = { // ATxmega384D3, ATxmega256D3, ATxmega192D3, ATxmega128D3, ATxmega64D3, ATxmega32D3
+// ATxmega384D3 ATxmega256D3 ATxmega192D3 ATxmega128D3 ATxmega64D3 ATxmega32D3
+const char * const vtab_atxmega384d3[vts_atxmega384d3] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -4558,7 +6190,8 @@ const char * const vtab_atxmega384d3[vts_atxmega384d3] = { // ATxmega384D3, ATxm
   "TCF0_CCD/TCF2_LCMPD",        // 113: TC F0 Compare or Capture D/TC F2 Low Byte Compare D
 };
 
-const char * const vtab_attiny402[vts_attiny402] = { // ATtiny402, ATtiny202
+// ATtiny402 ATtiny202
+const char * const vtab_attiny402[vts_attiny402] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4587,7 +6220,8 @@ const char * const vtab_attiny402[vts_attiny402] = { // ATtiny402, ATtiny202
   "NVMCTRL_EE",                 //  25: NVM EEPROM
 };
 
-const char * const vtab_attiny404[vts_attiny404] = { // ATtiny404, ATtiny204
+// ATtiny404 ATtiny204
+const char * const vtab_attiny404[vts_attiny404] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4616,7 +6250,8 @@ const char * const vtab_attiny404[vts_attiny404] = { // ATtiny404, ATtiny204
   "NVMCTRL_EE",                 //  25: NVM EEPROM
 };
 
-const char * const vtab_attiny406[vts_attiny406] = { // ATtiny406
+// ATtiny406
+const char * const vtab_attiny406[vts_attiny406] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4645,7 +6280,8 @@ const char * const vtab_attiny406[vts_attiny406] = { // ATtiny406
   "NVMCTRL_EE",                 //  25: NVM EEPROM
 };
 
-const char * const vtab_attiny412[vts_attiny412] = { // ATtiny412, ATtiny212
+// ATtiny412 ATtiny212
+const char * const vtab_attiny412[vts_attiny412] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4674,7 +6310,8 @@ const char * const vtab_attiny412[vts_attiny412] = { // ATtiny412, ATtiny212
   "NVMCTRL_EE",                 //  25: NVM EEPROM
 };
 
-const char * const vtab_attiny814[vts_attiny814] = { // ATtiny814, ATtiny414, ATtiny214
+// ATtiny814 ATtiny414 ATtiny214
+const char * const vtab_attiny814[vts_attiny814] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4703,7 +6340,8 @@ const char * const vtab_attiny814[vts_attiny814] = { // ATtiny814, ATtiny414, AT
   "NVMCTRL_EE",                 //  25: NVM EEPROM
 };
 
-const char * const vtab_attiny817[vts_attiny817] = { // ATtiny817, ATtiny816, ATtiny417, ATtiny416auto, ATtiny416
+// ATtiny817 ATtiny816 ATtiny417 ATtiny416auto ATtiny416
+const char * const vtab_attiny817[vts_attiny817] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4732,7 +6370,8 @@ const char * const vtab_attiny817[vts_attiny817] = { // ATtiny817, ATtiny816, AT
   "NVMCTRL_EE",                 //  25: NVM EEPROM
 };
 
-const char * const vtab_attiny1607[vts_attiny1607] = { // ATtiny1607, ATtiny1606, ATtiny1604, ATtiny807, ATtiny806, ATtiny804
+// ATtiny1607 ATtiny1606 ATtiny1604 ATtiny807 ATtiny806 ATtiny804
+const char * const vtab_attiny1607[vts_attiny1607] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4766,7 +6405,8 @@ const char * const vtab_attiny1607[vts_attiny1607] = { // ATtiny1607, ATtiny1606
   "NVMCTRL_EE",                 //  30: NVM EEPROM
 };
 
-const char * const vtab_attiny1614[vts_attiny1614] = { // ATtiny1614
+// ATtiny1614
+const char * const vtab_attiny1614[vts_attiny1614] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4800,7 +6440,8 @@ const char * const vtab_attiny1614[vts_attiny1614] = { // ATtiny1614
   "NVMCTRL_EE",                 //  30: NVM EEPROM
 };
 
-const char * const vtab_attiny3214[vts_attiny3214] = { // ATtiny3214
+// ATtiny3214
+const char * const vtab_attiny3214[vts_attiny3214] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4834,7 +6475,8 @@ const char * const vtab_attiny3214[vts_attiny3214] = { // ATtiny3214
   "NVMCTRL_EE",                 //  30: NVM EEPROM
 };
 
-const char * const vtab_attiny3217[vts_attiny3217] = { // ATtiny3217, ATtiny3216, ATtiny1617, ATtiny1616
+// ATtiny3217 ATtiny3216 ATtiny1617 ATtiny1616
+const char * const vtab_attiny3217[vts_attiny3217] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4868,7 +6510,11 @@ const char * const vtab_attiny3217[vts_attiny3217] = { // ATtiny3217, ATtiny3216
   "NVMCTRL_EE",                 //  30: NVM EEPROM
 };
 
-const char * const vtab_attiny3227[vts_attiny3227] = { // ATtiny3227, ATtiny3226, ATtiny3224, ATtiny1627, ATtiny1626, ATtiny1624, ATtiny827, ATtiny826, ATtiny824, ATtiny427, ATtiny426, ATtiny424
+/*
+ * ATtiny3227 ATtiny3226 ATtiny3224 ATtiny1627 ATtiny1626 ATtiny1624 ATtiny827 ATtiny826 ATtiny824
+ * ATtiny427 ATtiny426 ATtiny424
+ */
+const char * const vtab_attiny3227[vts_attiny3227] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4901,7 +6547,8 @@ const char * const vtab_attiny3227[vts_attiny3227] = { // ATtiny3227, ATtiny3226
   "NVMCTRL_EE",                 //  29: NVM EEPROM
 };
 
-const char * const vtab_atmega4808[vts_atmega4808] = { // ATmega4808, ATmega3208, ATmega1608, ATmega808
+// ATmega4808 ATmega3208 ATmega1608 ATmega808
+const char * const vtab_atmega4808[vts_atmega4808] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4940,7 +6587,8 @@ const char * const vtab_atmega4808[vts_atmega4808] = { // ATmega4808, ATmega3208
   "PORTE_PORT",                 //  35: Interrupt PORT E
 };
 
-const char * const vtab_atmega4809[vts_atmega4809] = { // ATmega4809, ATmega3209, ATmega1609, ATmega809
+// ATmega4809 ATmega3209 ATmega1609 ATmega809
+const char * const vtab_atmega4809[vts_atmega4809] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -4983,7 +6631,11 @@ const char * const vtab_atmega4809[vts_atmega4809] = { // ATmega4809, ATmega3209
   "USART3_TXC",                 //  39: USART 3 Transmit Complete
 };
 
-const char * const vtab_avr64dd32[vts_avr64dd32] = { // AVR64DD32, AVR64DD28, AVR64DD20, AVR64DD14, AVR32DD32, AVR32DD28, AVR32DD20, AVR32DD14, AVR16DD32, AVR16DD28, AVR16DD20, AVR16DD14
+/*
+ * AVR64DD32 AVR64DD28 AVR64DD20 AVR64DD14 AVR32DD32 AVR32DD28 AVR32DD20 AVR32DD14 AVR16DD32
+ * AVR16DD28 AVR16DD20 AVR16DD14
+ */
+const char * const vtab_avr64dd32[vts_avr64dd32] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5022,7 +6674,8 @@ const char * const vtab_avr64dd32[vts_avr64dd32] = { // AVR64DD32, AVR64DD28, AV
   "NVMCTRL_EE",                 //  35: NVM EEPROM
 };
 
-const char * const vtab_avr64ea32[vts_avr64ea32] = { // AVR64EA32, AVR64EA28
+// AVR64EA32 AVR64EA28
+const char * const vtab_avr64ea32[vts_avr64ea32] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5062,7 +6715,8 @@ const char * const vtab_avr64ea32[vts_avr64ea32] = { // AVR64EA32, AVR64EA28
   "USART2_TXC",                 //  36: USART 2 Transmit Complete
 };
 
-const char * const vtab_avr64ea48[vts_avr64ea48] = { // AVR64EA48
+// AVR64EA48
+const char * const vtab_avr64ea48[vts_avr64ea48] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5110,7 +6764,8 @@ const char * const vtab_avr64ea48[vts_avr64ea48] = { // AVR64EA48
   "PORTB_PORT",                 //  44: Interrupt PORT B
 };
 
-const char * const vtab_avr128da28[vts_avr128da28] = { // AVR128DA28, AVR64DA28, AVR32DA28
+// AVR128DA28 AVR64DA28 AVR32DA28
+const char * const vtab_avr128da28[vts_avr128da28] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5154,7 +6809,8 @@ const char * const vtab_avr128da28[vts_avr128da28] = { // AVR128DA28, AVR64DA28,
   "AC2_AC",                     //  40: AC2 AC Interrupt
 };
 
-const char * const vtab_avr128db28[vts_avr128db28] = { // AVR128DB28, AVR64DB28, AVR32DB28
+// AVR128DB28 AVR64DB28 AVR32DB28
+const char * const vtab_avr128db28[vts_avr128db28] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5199,7 +6855,8 @@ const char * const vtab_avr128db28[vts_avr128db28] = { // AVR128DB28, AVR64DB28,
   "AC2_AC",                     //  41: AC2 AC Interrupt
 };
 
-const char * const vtab_avr128da32[vts_avr128da32] = { // AVR128DA32, AVR64DA32, AVR32DA32
+// AVR128DA32 AVR64DA32 AVR32DA32
+const char * const vtab_avr128da32[vts_avr128da32] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5246,7 +6903,8 @@ const char * const vtab_avr128da32[vts_avr128da32] = { // AVR128DA32, AVR64DA32,
   "TWI1_TWIM",                  //  43: 2-Wire Interface 1 Controller
 };
 
-const char * const vtab_avr128db32[vts_avr128db32] = { // AVR128DB32, AVR64DB32, AVR32DB32
+// AVR128DB32 AVR64DB32 AVR32DB32
+const char * const vtab_avr128db32[vts_avr128db32] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5293,7 +6951,8 @@ const char * const vtab_avr128db32[vts_avr128db32] = { // AVR128DB32, AVR64DB32,
   "TWI1_TWIM",                  //  43: 2-Wire Interface 1 Controller
 };
 
-const char * const vtab_avr128da48[vts_avr128da48] = { // AVR128DA48, AVR64DA48, AVR32DA48
+// AVR128DA48 AVR64DA48 AVR32DA48
+const char * const vtab_avr128da48[vts_avr128da48] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5354,7 +7013,8 @@ const char * const vtab_avr128da48[vts_avr128da48] = { // AVR128DA48, AVR64DA48,
   "USART4_TXC",                 //  57: USART 4 Transmit Complete
 };
 
-const char * const vtab_avr128db48[vts_avr128db48] = { // AVR128DB48, AVR64DB48, AVR32DB48
+// AVR128DB48 AVR64DB48 AVR32DB48
+const char * const vtab_avr128db48[vts_avr128db48] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5418,7 +7078,8 @@ const char * const vtab_avr128db48[vts_avr128db48] = { // AVR128DB48, AVR64DB48,
   "ZCD2_ZCD",                   //  60: Zero Cross Detect 2
 };
 
-const char * const vtab_avr128da64[vts_avr128da64] = { // AVR128DA64, AVR64DA64
+// AVR128DA64 AVR64DA64
+const char * const vtab_avr128da64[vts_avr128da64] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
@@ -5485,7 +7146,8 @@ const char * const vtab_avr128da64[vts_avr128da64] = { // AVR128DA64, AVR64DA64
   "USART5_TXC",                 //  63: USART 5 Transmit Complete
 };
 
-const char * const vtab_avr128db64[vts_avr128db64] = { // AVR128DB64, AVR64DB64
+// AVR128DB64 AVR64DB64
+const char * const vtab_avr128db64[vts_avr128db64] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
