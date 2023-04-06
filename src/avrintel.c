@@ -9,7 +9,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.3
- * 31.03.2023
+ * 06.04.2023
  *
  */
 
@@ -30,1905 +30,1905 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   //mcu_name                                                             // Sources
   //{mcu_name,       mcuid,  family, {sig,    na, ture}, // ID
   //mcu_name       flstart,  flsize, pgsiz, nb, bootsz, eestart, eesize, ep, rambeg, ramsiz, // Mem
-  //mcu_naame           nf, nl,  ni, isr_names},            // Config and ISRs
+  //mcu_naame           nf, nl,  ni, isr_names, nc, cfg_table},      // Config and ISRs
 
   //ATtiny4         atdf, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATtiny4",            0, F_AVR8L, {0x1E, 0x8F, 0x0A}, // ID
   /*ATtiny4*/            0, 0x00200, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020, // Mem
-  /*ATtiny4*/            1,  1,  10, vtab_attiny9},         // Config and interrupts
+  /*ATtiny4*/            1,  1,  10, vtab_attiny9,         0, NULL}, // Config and interrupts
 
   //ATtiny5         atdf, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATtiny5",            1, F_AVR8L, {0x1E, 0x8F, 0x09}, // ID
   /*ATtiny5*/            0, 0x00200, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020, // Mem
-  /*ATtiny5*/            1,  1,  11, vtab_attiny10},        // Config and interrupts
+  /*ATtiny5*/            1,  1,  11, vtab_attiny10,        0, NULL}, // Config and interrupts
 
   //ATtiny9         atdf, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATtiny9",            2, F_AVR8L, {0x1E, 0x90, 0x08}, // ID
   /*ATtiny9*/            0, 0x00400, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020, // Mem
-  /*ATtiny9*/            1,  1,  10, vtab_attiny9},         // Config and interrupts
+  /*ATtiny9*/            1,  1,  10, vtab_attiny9,         0, NULL}, // Config and interrupts
 
   //ATtiny10        atdf, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATtiny10",           3, F_AVR8L, {0x1E, 0x90, 0x03}, // ID
   /*ATtiny10*/           0, 0x00400, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020, // Mem
-  /*ATtiny10*/           1,  1,  11, vtab_attiny10},        // Config and interrupts
+  /*ATtiny10*/           1,  1,  11, vtab_attiny10,        0, NULL}, // Config and interrupts
 
   //ATtiny20        atdf, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATtiny20",           4, F_AVR8L, {0x1E, 0x91, 0x0F}, // ID
   /*ATtiny20*/           0, 0x00800, 0x020,  0,      0,       0,      0,  0, 0x0040, 0x0080, // Mem
-  /*ATtiny20*/           1,  1,  17, vtab_attiny20},        // Config and interrupts
+  /*ATtiny20*/           1,  1,  17, vtab_attiny20,        0, NULL}, // Config and interrupts
 
   //ATtiny40        atdf, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATtiny40",           5, F_AVR8L, {0x1E, 0x92, 0x0E}, // ID
   /*ATtiny40*/           0, 0x01000, 0x040,  0,      0,       0,      0,  0, 0x0040, 0x0100, // Mem
-  /*ATtiny40*/           1,  1,  18, vtab_attiny40},        // Config and interrupts
+  /*ATtiny40*/           1,  1,  18, vtab_attiny40,        0, NULL}, // Config and interrupts
 
   //ATtiny102                       atdf, avrdude, boot size (manual) // Sources
   {"ATtiny102",          6, F_AVR8L, {0x1E, 0x90, 0x0C}, // ID
   /*ATtiny102*/          0, 0x00400, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020, // Mem
-  /*ATtiny102*/          1,  1,  16, vtab_attiny104},       // Config and interrupts
+  /*ATtiny102*/          1,  1,  16, vtab_attiny104,       0, NULL}, // Config and interrupts
 
   //ATtiny104                       atdf, avrdude, boot size (manual) // Sources
   {"ATtiny104",          7, F_AVR8L, {0x1E, 0x90, 0x0B}, // ID
   /*ATtiny104*/          0, 0x00400, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020, // Mem
-  /*ATtiny104*/          1,  1,  16, vtab_attiny104},       // Config and interrupts
+  /*ATtiny104*/          1,  1,  16, vtab_attiny104,       0, NULL}, // Config and interrupts
 
 
   //ATtiny11                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny11",           8,  F_AVR8, {0x1E, 0x90, 0x04}, // ID
   /*ATtiny11*/           0, 0x00400, 0x001,  0,      0,       0, 0x0040,  1, 0x0060, 0x0020, // Mem
-  /*ATtiny11*/           1,  1,   5, vtab_attiny11},        // Config and interrupts
+  /*ATtiny11*/           1,  1,   5, vtab_attiny11,        0, NULL}, // Config and interrupts
 
   //ATtiny12                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny12",           9,  F_AVR8, {0x1E, 0x90, 0x05}, // ID
   /*ATtiny12*/           0, 0x00400, 0x001,  0,      0,       0, 0x0040,  2, 0x0060, 0x0020, // Mem
-  /*ATtiny12*/           1,  1,   6, vtab_attiny12},        // Config and interrupts
+  /*ATtiny12*/           1,  1,   6, vtab_attiny12,        0, NULL}, // Config and interrupts
 
   //ATtiny13                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny13",          10,  F_AVR8, {0x1E, 0x90, 0x07}, // ID
   /*ATtiny13*/           0, 0x00400, 0x020,  0,      0,       0, 0x0040,  4, 0x0060, 0x0040, // Mem
-  /*ATtiny13*/           2,  1,  10, vtab_attiny13a},       // Config and interrupts
+  /*ATtiny13*/           2,  1,  10, vtab_attiny13a,       0, NULL}, // Config and interrupts
 
   //ATtiny13A                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny13A",         11,  F_AVR8, {0x1E, 0x90, 0x07}, // ID
   /*ATtiny13A*/          0, 0x00400, 0x020,  0,      0,       0, 0x0040,  4, 0x0060, 0x0040, // Mem
-  /*ATtiny13A*/          2,  1,  10, vtab_attiny13a},       // Config and interrupts
+  /*ATtiny13A*/          2,  1,  10, vtab_attiny13a,       0, NULL}, // Config and interrupts
 
   //ATtiny15                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny15",          12,  F_AVR8, {0x1E, 0x90, 0x06}, // ID
   /*ATtiny15*/           0, 0x00400, 0x001,  0,      0,       0, 0x0040,  2, 0x0060, 0x0020, // Mem
-  /*ATtiny15*/           1,  1,   9, vtab_attiny15},        // Config and interrupts
+  /*ATtiny15*/           1,  1,   9, vtab_attiny15,        0, NULL}, // Config and interrupts
 
   //ATtiny22         xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATtiny22",          13,  F_AVR8, {0x1E, 0x91, 0x06}, // ID
   /*ATtiny22*/           0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, // Mem
-  /*ATtiny22*/           1,  1,   3, vtab_attiny22},        // Config and interrupts
+  /*ATtiny22*/           1,  1,   3, vtab_attiny22,        0, NULL}, // Config and interrupts
 
   //ATtiny24                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny24",          14,  F_AVR8, {0x1E, 0x91, 0x0B}, // ID
   /*ATtiny24*/           0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
-  /*ATtiny24*/           3,  1,  17, vtab_attiny84a},       // Config and interrupts
+  /*ATtiny24*/           3,  1,  17, vtab_attiny84a,       0, NULL}, // Config and interrupts
 
   //ATtiny24A                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny24A",         15,  F_AVR8, {0x1E, 0x91, 0x0B}, // ID
   /*ATtiny24A*/          0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
-  /*ATtiny24A*/          3,  1,  17, vtab_attiny84a},       // Config and interrupts
+  /*ATtiny24A*/          3,  1,  17, vtab_attiny84a,       0, NULL}, // Config and interrupts
 
   //ATtiny25                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny25",          16,  F_AVR8, {0x1E, 0x91, 0x08}, // ID
   /*ATtiny25*/           0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
-  /*ATtiny25*/           3,  1,  15, vtab_attiny85},        // Config and interrupts
+  /*ATtiny25*/           3,  1,  15, vtab_attiny85,        0, NULL}, // Config and interrupts
 
   //ATtiny26                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny26",          17,  F_AVR8, {0x1E, 0x91, 0x09}, // ID
   /*ATtiny26*/           0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
-  /*ATtiny26*/           2,  1,  12, vtab_attiny26},        // Config and interrupts
+  /*ATtiny26*/           2,  1,  12, vtab_attiny26,        0, NULL}, // Config and interrupts
 
   //ATtiny28                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny28",          18,  F_AVR8, {0x1E, 0x91, 0x07}, // ID
   /*ATtiny28*/           0, 0x00800, 0x002,  0,      0,       0,      0,  0, 0x0060, 0x0020, // Mem
-  /*ATtiny28*/           1,  1,   6, vtab_attiny28},        // Config and interrupts
+  /*ATtiny28*/           1,  1,   6, vtab_attiny28,        0, NULL}, // Config and interrupts
 
   //ATtiny43U                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny43U",         19,  F_AVR8, {0x1E, 0x92, 0x0C}, // ID
   /*ATtiny43U*/          0, 0x01000, 0x040,  0,      0,       0, 0x0040,  4, 0x0060, 0x0100, // Mem
-  /*ATtiny43U*/          3,  1,  16, vtab_attiny43u},       // Config and interrupts
+  /*ATtiny43U*/          3,  1,  16, vtab_attiny43u,       0, NULL}, // Config and interrupts
 
   //ATtiny44                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny44",          20,  F_AVR8, {0x1E, 0x92, 0x07}, // ID
   /*ATtiny44*/           0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100, // Mem
-  /*ATtiny44*/           3,  1,  17, vtab_attiny84a},       // Config and interrupts
+  /*ATtiny44*/           3,  1,  17, vtab_attiny84a,       0, NULL}, // Config and interrupts
 
   //ATtiny44A                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny44A",         21,  F_AVR8, {0x1E, 0x92, 0x07}, // ID
   /*ATtiny44A*/          0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100, // Mem
-  /*ATtiny44A*/          3,  1,  17, vtab_attiny84a},       // Config and interrupts
+  /*ATtiny44A*/          3,  1,  17, vtab_attiny84a,       0, NULL}, // Config and interrupts
 
   //ATtiny45                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny45",          22,  F_AVR8, {0x1E, 0x92, 0x06}, // ID
   /*ATtiny45*/           0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100, // Mem
-  /*ATtiny45*/           3,  1,  15, vtab_attiny85},        // Config and interrupts
+  /*ATtiny45*/           3,  1,  15, vtab_attiny85,        0, NULL}, // Config and interrupts
 
   //ATtiny48                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny48",          23,  F_AVR8, {0x1E, 0x92, 0x09}, // ID
   /*ATtiny48*/           0, 0x01000, 0x040,  0,      0,       0, 0x0040,  4, 0x0100, 0x0100, // Mem
-  /*ATtiny48*/           3,  1,  20, vtab_attiny88},        // Config and interrupts
+  /*ATtiny48*/           3,  1,  20, vtab_attiny88,        0, NULL}, // Config and interrupts
 
   //ATtiny84                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny84",          24,  F_AVR8, {0x1E, 0x93, 0x0C}, // ID
   /*ATtiny84*/           0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
-  /*ATtiny84*/           3,  1,  17, vtab_attiny84a},       // Config and interrupts
+  /*ATtiny84*/           3,  1,  17, vtab_attiny84a,       0, NULL}, // Config and interrupts
 
   //ATtiny84A                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny84A",         25,  F_AVR8, {0x1E, 0x93, 0x0C}, // ID
   /*ATtiny84A*/          0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
-  /*ATtiny84A*/          3,  1,  17, vtab_attiny84a},       // Config and interrupts
+  /*ATtiny84A*/          3,  1,  17, vtab_attiny84a,       0, NULL}, // Config and interrupts
 
   //ATtiny85                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny85",          26,  F_AVR8, {0x1E, 0x93, 0x0B}, // ID
   /*ATtiny85*/           0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
-  /*ATtiny85*/           3,  1,  15, vtab_attiny85},        // Config and interrupts
+  /*ATtiny85*/           3,  1,  15, vtab_attiny85,        0, NULL}, // Config and interrupts
 
   //ATtiny87                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny87",          27,  F_AVR8, {0x1E, 0x93, 0x87}, // ID
   /*ATtiny87*/           0, 0x02000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATtiny87*/           3,  1,  20, vtab_attiny167},       // Config and interrupts
+  /*ATtiny87*/           3,  1,  20, vtab_attiny167,       0, NULL}, // Config and interrupts
 
   //ATtiny88                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny88",          28,  F_AVR8, {0x1E, 0x93, 0x11}, // ID
   /*ATtiny88*/           0, 0x02000, 0x040,  0,      0,       0, 0x0040,  4, 0x0100, 0x0200, // Mem
-  /*ATtiny88*/           3,  1,  20, vtab_attiny88},        // Config and interrupts
+  /*ATtiny88*/           3,  1,  20, vtab_attiny88,        0, NULL}, // Config and interrupts
 
   //ATtiny167                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny167",         29,  F_AVR8, {0x1E, 0x94, 0x87}, // ID
   /*ATtiny167*/          0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATtiny167*/          3,  1,  20, vtab_attiny167},       // Config and interrupts
+  /*ATtiny167*/          3,  1,  20, vtab_attiny167,       0, NULL}, // Config and interrupts
 
   //ATtiny261                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny261",         30,  F_AVR8, {0x1E, 0x91, 0x0C}, // ID
   /*ATtiny261*/          0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
-  /*ATtiny261*/          3,  1,  19, vtab_attiny861a},      // Config and interrupts
+  /*ATtiny261*/          3,  1,  19, vtab_attiny861a,      0, NULL}, // Config and interrupts
 
   //ATtiny261A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny261A",        31,  F_AVR8, {0x1E, 0x91, 0x0C}, // ID
   /*ATtiny261A*/         0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
-  /*ATtiny261A*/         3,  1,  19, vtab_attiny861a},      // Config and interrupts
+  /*ATtiny261A*/         3,  1,  19, vtab_attiny861a,      0, NULL}, // Config and interrupts
 
   //ATtiny441                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny441",         32,  F_AVR8, {0x1E, 0x92, 0x15}, // ID
   /*ATtiny441*/          0, 0x01000, 0x010,  0,      0,       0, 0x0100,  4, 0x0100, 0x0100, // Mem
-  /*ATtiny441*/          3,  1,  30, vtab_attiny841},       // Config and interrupts
+  /*ATtiny441*/          3,  1,  30, vtab_attiny841,       0, NULL}, // Config and interrupts
 
   //ATtiny461                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny461",         33,  F_AVR8, {0x1E, 0x92, 0x08}, // ID
   /*ATtiny461*/          0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100, // Mem
-  /*ATtiny461*/          3,  1,  19, vtab_attiny861a},      // Config and interrupts
+  /*ATtiny461*/          3,  1,  19, vtab_attiny861a,      0, NULL}, // Config and interrupts
 
   //ATtiny461A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny461A",        34,  F_AVR8, {0x1E, 0x92, 0x08}, // ID
   /*ATtiny461A*/         0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100, // Mem
-  /*ATtiny461A*/         3,  1,  19, vtab_attiny861a},      // Config and interrupts
+  /*ATtiny461A*/         3,  1,  19, vtab_attiny861a,      0, NULL}, // Config and interrupts
 
   //ATtiny828                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny828",         35,  F_AVR8, {0x1E, 0x93, 0x14}, // ID
   /*ATtiny828*/          0, 0x02000, 0x040,  4, 0x0100,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
-  /*ATtiny828*/          3,  1,  26, vtab_attiny828},       // Config and interrupts
+  /*ATtiny828*/          3,  1,  26, vtab_attiny828,       0, NULL}, // Config and interrupts
 
   //ATtiny828R                                avrdude, from ATtiny828 // Sources
   {"ATtiny828R",        36,  F_AVR8, {0x1E, 0x93, 0x14}, // ID
   /*ATtiny828R*/         0, 0x02000, 0x040,  4, 0x0100,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
-  /*ATtiny828R*/         3,  1,  26, vtab_attiny828},       // Config and interrupts
+  /*ATtiny828R*/         3,  1,  26, vtab_attiny828,       0, NULL}, // Config and interrupts
 
   //ATtiny841                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny841",         37,  F_AVR8, {0x1E, 0x93, 0x15}, // ID
   /*ATtiny841*/          0, 0x02000, 0x010,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATtiny841*/          3,  1,  30, vtab_attiny841},       // Config and interrupts
+  /*ATtiny841*/          3,  1,  30, vtab_attiny841,       0, NULL}, // Config and interrupts
 
   //ATtiny861                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny861",         38,  F_AVR8, {0x1E, 0x93, 0x0D}, // ID
   /*ATtiny861*/          0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
-  /*ATtiny861*/          3,  1,  19, vtab_attiny861a},      // Config and interrupts
+  /*ATtiny861*/          3,  1,  19, vtab_attiny861a,      0, NULL}, // Config and interrupts
 
   //ATtiny861A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny861A",        39,  F_AVR8, {0x1E, 0x93, 0x0D}, // ID
   /*ATtiny861A*/         0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
-  /*ATtiny861A*/         3,  1,  19, vtab_attiny861a},      // Config and interrupts
+  /*ATtiny861A*/         3,  1,  19, vtab_attiny861a,      0, NULL}, // Config and interrupts
 
   //ATtiny1634                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny1634",        40,  F_AVR8, {0x1E, 0x94, 0x12}, // ID
   /*ATtiny1634*/         0, 0x04000, 0x020,  0,      0,       0, 0x0100,  4, 0x0100, 0x0400, // Mem
-  /*ATtiny1634*/         3,  1,  28, vtab_attiny1634},      // Config and interrupts
+  /*ATtiny1634*/         3,  1,  28, vtab_attiny1634,      0, NULL}, // Config and interrupts
 
   //ATtiny1634R                              avrdude, from ATtiny1634 // Sources
   {"ATtiny1634R",       41,  F_AVR8, {0x1E, 0x94, 0x12}, // ID
   /*ATtiny1634R*/        0, 0x04000, 0x020,  0,      0,       0, 0x0100,  4, 0x0100, 0x0400, // Mem
-  /*ATtiny1634R*/        3,  1,  28, vtab_attiny1634},      // Config and interrupts
+  /*ATtiny1634R*/        3,  1,  28, vtab_attiny1634,      0, NULL}, // Config and interrupts
 
   //ATtiny2313                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny2313",        42,  F_AVR8, {0x1E, 0x91, 0x0A}, // ID
   /*ATtiny2313*/         0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
-  /*ATtiny2313*/         3,  1,  19, vtab_attiny2313},      // Config and interrupts
+  /*ATtiny2313*/         3,  1,  19, vtab_attiny2313,      0, NULL}, // Config and interrupts
 
   //ATtiny2313A                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny2313A",       43,  F_AVR8, {0x1E, 0x91, 0x0A}, // ID
   /*ATtiny2313A*/        0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
-  /*ATtiny2313A*/        3,  1,  21, vtab_attiny4313},      // Config and interrupts
+  /*ATtiny2313A*/        3,  1,  21, vtab_attiny4313,      0, NULL}, // Config and interrupts
 
   //ATtiny4313                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny4313",        44,  F_AVR8, {0x1E, 0x92, 0x0D}, // ID
   /*ATtiny4313*/         0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100, // Mem
-  /*ATtiny4313*/         3,  1,  21, vtab_attiny4313},      // Config and interrupts
+  /*ATtiny4313*/         3,  1,  21, vtab_attiny4313,      0, NULL}, // Config and interrupts
 
   //ATmega8                             atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega8",           45,  F_AVR8, {0x1E, 0x93, 0x07}, // ID
   /*ATmega8*/            0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0400, // Mem
-  /*ATmega8*/            2,  1,  19, vtab_atmega8a},        // Config and interrupts
+  /*ATmega8*/            2,  1,  19, vtab_atmega8a,        0, NULL}, // Config and interrupts
 
   //ATmega8A                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega8A",          46,  F_AVR8, {0x1E, 0x93, 0x07}, // ID
   /*ATmega8A*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0400, // Mem
-  /*ATmega8A*/           2,  1,  19, vtab_atmega8a},        // Config and interrupts
+  /*ATmega8A*/           2,  1,  19, vtab_atmega8a,        0, NULL}, // Config and interrupts
 
   //ATmega8HVA                                   atdf, avr-gcc 12.2.0 // Sources
   {"ATmega8HVA",        47,  F_AVR8, {0x1E, 0x93, 0x10}, // ID
   /*ATmega8HVA*/         0, 0x02000, 0x080,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
-  /*ATmega8HVA*/         1,  1,  21, vtab_atmega16hva},     // Config and interrupts
+  /*ATmega8HVA*/         1,  1,  21, vtab_atmega16hva,     0, NULL}, // Config and interrupts
 
   //ATmega8U2                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega8U2",         48,  F_AVR8, {0x1E, 0x93, 0x89}, // ID
   /*ATmega8U2*/          0, 0x02000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATmega8U2*/          3,  1,  29, vtab_atmega32u2},      // Config and interrupts
+  /*ATmega8U2*/          3,  1,  29, vtab_atmega32u2,      0, NULL}, // Config and interrupts
 
   //ATmega16                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega16",          49,  F_AVR8, {0x1E, 0x94, 0x03}, // ID
   /*ATmega16*/           0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0400, // Mem
-  /*ATmega16*/           2,  1,  21, vtab_atmega16a},       // Config and interrupts
+  /*ATmega16*/           2,  1,  21, vtab_atmega16a,       0, NULL}, // Config and interrupts
 
   //ATmega16A                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega16A",         50,  F_AVR8, {0x1E, 0x94, 0x03}, // ID
   /*ATmega16A*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0400, // Mem
-  /*ATmega16A*/          2,  1,  21, vtab_atmega16a},       // Config and interrupts
+  /*ATmega16A*/          2,  1,  21, vtab_atmega16a,       0, NULL}, // Config and interrupts
 
   //ATmega16HVA                                  atdf, avr-gcc 12.2.0 // Sources
   {"ATmega16HVA",       51,  F_AVR8, {0x1E, 0x94, 0x0C}, // ID
   /*ATmega16HVA*/        0, 0x04000, 0x080,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
-  /*ATmega16HVA*/        1,  1,  21, vtab_atmega16hva},     // Config and interrupts
+  /*ATmega16HVA*/        1,  1,  21, vtab_atmega16hva,     0, NULL}, // Config and interrupts
 
   //ATmega16HVB                                  atdf, avr-gcc 12.2.0 // Sources
   {"ATmega16HVB",       52,  F_AVR8, {0x1E, 0x94, 0x0D}, // ID
   /*ATmega16HVB*/        0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega16HVB*/        2,  1,  29, vtab_atmega32hvbrevb}, // Config and interrupts
+  /*ATmega16HVB*/        2,  1,  29, vtab_atmega32hvbrevb, 0, NULL}, // Config and interrupts
 
   //ATmega16HVBrevB                              atdf, avr-gcc 12.2.0 // Sources
   {"ATmega16HVBrevB",   53,  F_AVR8, {0x1E, 0x94, 0x0D}, // ID
   /*ATmega16HVBrevB*/    0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega16HVBrevB*/    2,  1,  29, vtab_atmega32hvbrevb}, // Config and interrupts
+  /*ATmega16HVBrevB*/    2,  1,  29, vtab_atmega32hvbrevb, 0, NULL}, // Config and interrupts
 
   //ATmega16M1                                   atdf, avr-gcc 12.2.0 // Sources
   {"ATmega16M1",        54,  F_AVR8, {0x1E, 0x94, 0x84}, // ID
   /*ATmega16M1*/         0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega16M1*/         3,  1,  31, vtab_atmega64m1},      // Config and interrupts
+  /*ATmega16M1*/         3,  1,  31, vtab_atmega64m1,      0, NULL}, // Config and interrupts
 
   //ATmega16HVA2                                  xml, avr-gcc 12.2.0 // Sources
   {"ATmega16HVA2",      55,  F_AVR8, {0x1E, 0x94, 0x0E}, // ID
   /*ATmega16HVA2*/       0, 0x04000, 0x080, -1,     -1,      -1,     -1, -1, 0x0100, 0x0400, // Mem
-  /*ATmega16HVA2*/       2,  1,  22, vtab_atmega16hva2},    // Config and interrupts
+  /*ATmega16HVA2*/       2,  1,  22, vtab_atmega16hva2,    0, NULL}, // Config and interrupts
 
   //ATmega16U2                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega16U2",        56,  F_AVR8, {0x1E, 0x94, 0x89}, // ID
   /*ATmega16U2*/         0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATmega16U2*/         3,  1,  29, vtab_atmega32u2},      // Config and interrupts
+  /*ATmega16U2*/         3,  1,  29, vtab_atmega32u2,      0, NULL}, // Config and interrupts
 
   //ATmega16U4                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega16U4",        57,  F_AVR8, {0x1E, 0x94, 0x88}, // ID
   /*ATmega16U4*/         0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0500, // Mem
-  /*ATmega16U4*/         3,  1,  43, vtab_atmega32u4},      // Config and interrupts
+  /*ATmega16U4*/         3,  1,  43, vtab_atmega32u4,      0, NULL}, // Config and interrupts
 
   //ATmega32                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega32",          58,  F_AVR8, {0x1E, 0x95, 0x02}, // ID
   /*ATmega32*/           0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0060, 0x0800, // Mem
-  /*ATmega32*/           2,  1,  21, vtab_atmega323},       // Config and interrupts
+  /*ATmega32*/           2,  1,  21, vtab_atmega323,       0, NULL}, // Config and interrupts
 
   //ATmega32A                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega32A",         59,  F_AVR8, {0x1E, 0x95, 0x02}, // ID
   /*ATmega32A*/          0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0060, 0x0800, // Mem
-  /*ATmega32A*/          2,  1,  21, vtab_atmega323},       // Config and interrupts
+  /*ATmega32A*/          2,  1,  21, vtab_atmega323,       0, NULL}, // Config and interrupts
 
   //ATmega32HVB                                  atdf, avr-gcc 12.2.0 // Sources
   {"ATmega32HVB",       60,  F_AVR8, {0x1E, 0x95, 0x10}, // ID
   /*ATmega32HVB*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega32HVB*/        2,  1,  29, vtab_atmega32hvbrevb}, // Config and interrupts
+  /*ATmega32HVB*/        2,  1,  29, vtab_atmega32hvbrevb, 0, NULL}, // Config and interrupts
 
   //ATmega32HVBrevB                              atdf, avr-gcc 12.2.0 // Sources
   {"ATmega32HVBrevB",   61,  F_AVR8, {0x1E, 0x95, 0x10}, // ID
   /*ATmega32HVBrevB*/    0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega32HVBrevB*/    2,  1,  29, vtab_atmega32hvbrevb}, // Config and interrupts
+  /*ATmega32HVBrevB*/    2,  1,  29, vtab_atmega32hvbrevb, 0, NULL}, // Config and interrupts
 
   //ATmega32C1                                   atdf, avr-gcc 12.2.0 // Sources
   {"ATmega32C1",        62,  F_AVR8, {0x1E, 0x95, 0x86}, // ID
   /*ATmega32C1*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega32C1*/         3,  1,  31, vtab_atmega64m1},      // Config and interrupts
+  /*ATmega32C1*/         3,  1,  31, vtab_atmega64m1,      0, NULL}, // Config and interrupts
 
   //ATmega32M1                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega32M1",        63,  F_AVR8, {0x1E, 0x95, 0x84}, // ID
   /*ATmega32M1*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega32M1*/         3,  1,  31, vtab_atmega64m1},      // Config and interrupts
+  /*ATmega32M1*/         3,  1,  31, vtab_atmega64m1,      0, NULL}, // Config and interrupts
 
   //ATmega32U2                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega32U2",        64,  F_AVR8, {0x1E, 0x95, 0x8A}, // ID
   /*ATmega32U2*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0400, // Mem
-  /*ATmega32U2*/         3,  1,  29, vtab_atmega32u2},      // Config and interrupts
+  /*ATmega32U2*/         3,  1,  29, vtab_atmega32u2,      0, NULL}, // Config and interrupts
 
   //ATmega32U4                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega32U4",        65,  F_AVR8, {0x1E, 0x95, 0x87}, // ID
   /*ATmega32U4*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0a00, // Mem
-  /*ATmega32U4*/         3,  1,  43, vtab_atmega32u4},      // Config and interrupts
+  /*ATmega32U4*/         3,  1,  43, vtab_atmega32u4,      0, NULL}, // Config and interrupts
 
   //ATmega32U6                xml, avr-gcc 12.2.0, boot size (manual) // Sources
   {"ATmega32U6",        66,  F_AVR8, {0x1E, 0x95, 0x88}, // ID
   /*ATmega32U6*/         0, 0x08000, 0x080,  4, 0x0200,      -1,     -1, -1, 0x0100, 0x0a00, // Mem
-  /*ATmega32U6*/         3,  1,  38, vtab_atmega32u6},      // Config and interrupts
+  /*ATmega32U6*/         3,  1,  38, vtab_atmega32u6,      0, NULL}, // Config and interrupts
 
   //ATmega48                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega48",          67,  F_AVR8, {0x1E, 0x92, 0x05}, // ID
   /*ATmega48*/           0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
-  /*ATmega48*/           3,  1,  26, vtab_atmega328p},      // Config and interrupts
+  /*ATmega48*/           3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
 
   //ATmega48A                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega48A",         68,  F_AVR8, {0x1E, 0x92, 0x05}, // ID
   /*ATmega48A*/          0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
-  /*ATmega48A*/          3,  1,  26, vtab_atmega328p},      // Config and interrupts
+  /*ATmega48A*/          3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
 
   //ATmega48P                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega48P",         69,  F_AVR8, {0x1E, 0x92, 0x0A}, // ID
   /*ATmega48P*/          0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
-  /*ATmega48P*/          3,  1,  26, vtab_atmega328p},      // Config and interrupts
+  /*ATmega48P*/          3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
 
   //ATmega48PA                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega48PA",        70,  F_AVR8, {0x1E, 0x92, 0x0A}, // ID
   /*ATmega48PA*/         0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
-  /*ATmega48PA*/         3,  1,  26, vtab_atmega328p},      // Config and interrupts
+  /*ATmega48PA*/         3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
 
   //ATmega48PB                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega48PB",        71,  F_AVR8, {0x1E, 0x92, 0x10}, // ID
   /*ATmega48PB*/         0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
-  /*ATmega48PB*/         3,  1,  27, vtab_atmega168pb},     // Config and interrupts
+  /*ATmega48PB*/         3,  1,  27, vtab_atmega168pb,     0, NULL}, // Config and interrupts
 
   //ATmega64                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega64",          72,  F_AVR8, {0x1E, 0x96, 0x02}, // ID
   /*ATmega64*/           0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega64*/           3,  1,  35, vtab_atmega128a},      // Config and interrupts
+  /*ATmega64*/           3,  1,  35, vtab_atmega128a,      0, NULL}, // Config and interrupts
 
   //ATmega64A                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega64A",         73,  F_AVR8, {0x1E, 0x96, 0x02}, // ID
   /*ATmega64A*/          0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega64A*/          3,  1,  35, vtab_atmega128a},      // Config and interrupts
+  /*ATmega64A*/          3,  1,  35, vtab_atmega128a,      0, NULL}, // Config and interrupts
 
   //ATmega64HVE               xml, avr-gcc 12.2.0, boot size (manual) // Sources
   {"ATmega64HVE",       74,  F_AVR8, {0x1E, 0x96, 0x10}, // ID
   /*ATmega64HVE*/        0, 0x10000, 0x080,  4, 0x0400,      -1,     -1, -1, 0x0100, 0x1000, // Mem
-  /*ATmega64HVE*/        2,  1,  25, vtab_atmega64hve2},    // Config and interrupts
+  /*ATmega64HVE*/        2,  1,  25, vtab_atmega64hve2,    0, NULL}, // Config and interrupts
 
   //ATmega64C1                                   atdf, avr-gcc 12.2.0 // Sources
   {"ATmega64C1",        75,  F_AVR8, {0x1E, 0x96, 0x86}, // ID
   /*ATmega64C1*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega64C1*/         3,  1,  31, vtab_atmega64m1},      // Config and interrupts
+  /*ATmega64C1*/         3,  1,  31, vtab_atmega64m1,      0, NULL}, // Config and interrupts
 
   //ATmega64M1                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega64M1",        76,  F_AVR8, {0x1E, 0x96, 0x84}, // ID
   /*ATmega64M1*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega64M1*/         3,  1,  31, vtab_atmega64m1},      // Config and interrupts
+  /*ATmega64M1*/         3,  1,  31, vtab_atmega64m1,      0, NULL}, // Config and interrupts
 
   //ATmega64HVE2                                 atdf, avr-gcc 12.2.0 // Sources
   {"ATmega64HVE2",      77,  F_AVR8, {0x1E, 0x96, 0x10}, // ID
   /*ATmega64HVE2*/       0, 0x10000, 0x080,  4, 0x0400,       0, 0x0400,  4, 0x0100, 0x1000, // Mem
-  /*ATmega64HVE2*/       2,  1,  25, vtab_atmega64hve2},    // Config and interrupts
+  /*ATmega64HVE2*/       2,  1,  25, vtab_atmega64hve2,    0, NULL}, // Config and interrupts
 
   //ATmega64RFR2                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega64RFR2",      78,  F_AVR8, {0x1E, 0xA6, 0x02}, // ID
   /*ATmega64RFR2*/       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0200, 0x2000, // Mem
-  /*ATmega64RFR2*/       3,  1,  77, vtab_atmega2564rfr2},  // Config and interrupts
+  /*ATmega64RFR2*/       3,  1,  77, vtab_atmega2564rfr2,  0, NULL}, // Config and interrupts
 
   //ATmega88                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega88",          79,  F_AVR8, {0x1E, 0x93, 0x0A}, // ID
   /*ATmega88*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega88*/           3,  1,  26, vtab_atmega328p},      // Config and interrupts
+  /*ATmega88*/           3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
 
   //ATmega88A                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega88A",         80,  F_AVR8, {0x1E, 0x93, 0x0A}, // ID
   /*ATmega88A*/          0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega88A*/          3,  1,  26, vtab_atmega328p},      // Config and interrupts
+  /*ATmega88A*/          3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
 
   //ATmega88P                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega88P",         81,  F_AVR8, {0x1E, 0x93, 0x0F}, // ID
   /*ATmega88P*/          0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega88P*/          3,  1,  26, vtab_atmega328p},      // Config and interrupts
+  /*ATmega88P*/          3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
 
   //ATmega88PA                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega88PA",        82,  F_AVR8, {0x1E, 0x93, 0x0F}, // ID
   /*ATmega88PA*/         0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega88PA*/         3,  1,  26, vtab_atmega328p},      // Config and interrupts
+  /*ATmega88PA*/         3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
 
   //ATmega88PB                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega88PB",        83,  F_AVR8, {0x1E, 0x93, 0x16}, // ID
   /*ATmega88PB*/         0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega88PB*/         3,  1,  27, vtab_atmega168pb},     // Config and interrupts
+  /*ATmega88PB*/         3,  1,  27, vtab_atmega168pb,     0, NULL}, // Config and interrupts
 
   //ATmega103        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATmega103",         84,  F_AVR8, {0x1E, 0x97, 0x01}, // ID
   /*ATmega103*/          0, 0x20000, 0x100,  0,      0,       0, 0x1000,  1, 0x0060, 0x0fa0, // Mem
-  /*ATmega103*/          1,  1,  24, vtab_atmega103},       // Config and interrupts
+  /*ATmega103*/          1,  1,  24, vtab_atmega103,       0, NULL}, // Config and interrupts
 
   //ATmega103comp                                                 xml // Sources
   {"ATmega103comp",    374,  F_AVR8, {0x1E, 0x97, 0x01}, // ID
   /*ATmega103comp*/     -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, // Mem
-  /*ATmega103comp*/     -1, -1,   0, NULL},                 // Config and interrupts
+  /*ATmega103comp*/     -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //ATmega128                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega128",         85,  F_AVR8, {0x1E, 0x97, 0x02}, // ID
   /*ATmega128*/          0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x1000, // Mem
-  /*ATmega128*/          3,  1,  35, vtab_atmega128a},      // Config and interrupts
+  /*ATmega128*/          3,  1,  35, vtab_atmega128a,      0, NULL}, // Config and interrupts
 
   //ATmega128A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega128A",        86,  F_AVR8, {0x1E, 0x97, 0x02}, // ID
   /*ATmega128A*/         0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x1000, // Mem
-  /*ATmega128A*/         3,  1,  35, vtab_atmega128a},      // Config and interrupts
+  /*ATmega128A*/         3,  1,  35, vtab_atmega128a,      0, NULL}, // Config and interrupts
 
   //ATmega128RFA1                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega128RFA1",     87,  F_AVR8, {0x1E, 0xA7, 0x01}, // ID
   /*ATmega128RFA1*/      0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x4000, // Mem
-  /*ATmega128RFA1*/      3,  1,  72, vtab_atmega128rfa1},   // Config and interrupts
+  /*ATmega128RFA1*/      3,  1,  72, vtab_atmega128rfa1,   0, NULL}, // Config and interrupts
 
   //ATmega128RFR2                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega128RFR2",     88,  F_AVR8, {0x1E, 0xA7, 0x02}, // ID
   /*ATmega128RFR2*/      0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x4000, // Mem
-  /*ATmega128RFR2*/      3,  1,  77, vtab_atmega2564rfr2},  // Config and interrupts
+  /*ATmega128RFR2*/      3,  1,  77, vtab_atmega2564rfr2,  0, NULL}, // Config and interrupts
 
   //ATmega161        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATmega161",         89,  F_AVR8, {0x1E, 0x94, 0x01}, // ID
   /*ATmega161*/          0, 0x04000, 0x080,  1, 0x0400,       0, 0x0200,  1, 0x0060, 0x0400, // Mem
-  /*ATmega161*/          1,  1,  21, vtab_atmega161},       // Config and interrupts
+  /*ATmega161*/          1,  1,  21, vtab_atmega161,       0, NULL}, // Config and interrupts
 
   //ATmega161comp                                                 xml // Sources
   {"ATmega161comp",    375,  F_AVR8, {0x1E, 0x94, 0x01}, // ID
   /*ATmega161comp*/     -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, // Mem
-  /*ATmega161comp*/     -1, -1,   0, NULL},                 // Config and interrupts
+  /*ATmega161comp*/     -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //ATmega162                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega162",         90,  F_AVR8, {0x1E, 0x94, 0x04}, // ID
   /*ATmega162*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega162*/          3,  1,  28, vtab_atmega162},       // Config and interrupts
+  /*ATmega162*/          3,  1,  28, vtab_atmega162,       0, NULL}, // Config and interrupts
 
   //ATmega163        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATmega163",         91,  F_AVR8, {0x1E, 0x94, 0x02}, // ID
   /*ATmega163*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  1, 0x0060, 0x0400, // Mem
-  /*ATmega163*/          2,  1,  18, vtab_atmega163},       // Config and interrupts
+  /*ATmega163*/          2,  1,  18, vtab_atmega163,       0, NULL}, // Config and interrupts
 
   //ATmega164A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega164A",        92,  F_AVR8, {0x1E, 0x94, 0x0F}, // ID
   /*ATmega164A*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega164A*/         3,  1,  31, vtab_atmega644pa},     // Config and interrupts
+  /*ATmega164A*/         3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
 
   //ATmega164P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega164P",        93,  F_AVR8, {0x1E, 0x94, 0x0A}, // ID
   /*ATmega164P*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega164P*/         3,  1,  31, vtab_atmega644pa},     // Config and interrupts
+  /*ATmega164P*/         3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
 
   //ATmega164PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega164PA",       94,  F_AVR8, {0x1E, 0x94, 0x0A}, // ID
   /*ATmega164PA*/        0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega164PA*/        3,  1,  31, vtab_atmega644pa},     // Config and interrupts
+  /*ATmega164PA*/        3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
 
   //ATmega165        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATmega165",         95,  F_AVR8, {0x1E, 0x94, 0x07}, // ID
   /*ATmega165*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega165*/          3,  1,  22, vtab_atmega645p},      // Config and interrupts
+  /*ATmega165*/          3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
 
   //ATmega165A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega165A",        96,  F_AVR8, {0x1E, 0x94, 0x10}, // ID
   /*ATmega165A*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega165A*/         3,  1,  22, vtab_atmega645p},      // Config and interrupts
+  /*ATmega165A*/         3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
 
   //ATmega165P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega165P",        97,  F_AVR8, {0x1E, 0x94, 0x07}, // ID
   /*ATmega165P*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega165P*/         3,  1,  22, vtab_atmega645p},      // Config and interrupts
+  /*ATmega165P*/         3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
 
   //ATmega165PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega165PA",       98,  F_AVR8, {0x1E, 0x94, 0x07}, // ID
   /*ATmega165PA*/        0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega165PA*/        3,  1,  22, vtab_atmega645p},      // Config and interrupts
+  /*ATmega165PA*/        3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
 
   //ATmega168                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega168",         99,  F_AVR8, {0x1E, 0x94, 0x06}, // ID
   /*ATmega168*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega168*/          3,  1,  26, vtab_atmega328},       // Config and interrupts
+  /*ATmega168*/          3,  1,  26, vtab_atmega328,       0, NULL}, // Config and interrupts
 
   //ATmega168A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega168A",       100,  F_AVR8, {0x1E, 0x94, 0x06}, // ID
   /*ATmega168A*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega168A*/         3,  1,  26, vtab_atmega328p},      // Config and interrupts
+  /*ATmega168A*/         3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
 
   //ATmega168P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega168P",       101,  F_AVR8, {0x1E, 0x94, 0x0B}, // ID
   /*ATmega168P*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega168P*/         3,  1,  26, vtab_atmega328p},      // Config and interrupts
+  /*ATmega168P*/         3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
 
   //ATmega168PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega168PA",      102,  F_AVR8, {0x1E, 0x94, 0x0B}, // ID
   /*ATmega168PA*/        0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega168PA*/        3,  1,  26, vtab_atmega328p},      // Config and interrupts
+  /*ATmega168PA*/        3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
 
   //ATmega168PB                          atdf, avr-gcc 7.3.0, avrdude // Sources
   {"ATmega168PB",      103,  F_AVR8, {0x1E, 0x94, 0x15}, // ID
   /*ATmega168PB*/        0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega168PB*/        3,  1,  27, vtab_atmega168pb},     // Config and interrupts
+  /*ATmega168PB*/        3,  1,  27, vtab_atmega168pb,     0, NULL}, // Config and interrupts
 
   //ATmega169        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATmega169",        104,  F_AVR8, {0x1E, 0x94, 0x05}, // ID
   /*ATmega169*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega169*/          3,  1,  23, vtab_atmega649p},      // Config and interrupts
+  /*ATmega169*/          3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
 
   //ATmega169A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega169A",       105,  F_AVR8, {0x1E, 0x94, 0x11}, // ID
   /*ATmega169A*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega169A*/         3,  1,  23, vtab_atmega649p},      // Config and interrupts
+  /*ATmega169A*/         3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
 
   //ATmega169P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega169P",       106,  F_AVR8, {0x1E, 0x94, 0x05}, // ID
   /*ATmega169P*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega169P*/         3,  1,  23, vtab_atmega649p},      // Config and interrupts
+  /*ATmega169P*/         3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
 
   //ATmega169PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega169PA",      107,  F_AVR8, {0x1E, 0x94, 0x05}, // ID
   /*ATmega169PA*/        0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega169PA*/        3,  1,  23, vtab_atmega649p},      // Config and interrupts
+  /*ATmega169PA*/        3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
 
   //ATmega256RFR2                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega256RFR2",    108,  F_AVR8, {0x1E, 0xA8, 0x02}, // ID
   /*ATmega256RFR2*/      0, 0x40000, 0x100,  4, 0x0400,       0, 0x2000,  8, 0x0200, 0x8000, // Mem
-  /*ATmega256RFR2*/      3,  1,  77, vtab_atmega2564rfr2},  // Config and interrupts
+  /*ATmega256RFR2*/      3,  1,  77, vtab_atmega2564rfr2,  0, NULL}, // Config and interrupts
 
   //ATmega323                 xml, avr-gcc 12.2.0, boot size (manual) // Sources
   {"ATmega323",        109,  F_AVR8, {0x1E, 0x95, 0x01}, // ID
   /*ATmega323*/          0, 0x08000, 0x080,  4, 0x0200,      -1,     -1, -1, 0x0060, 0x0800, // Mem
-  /*ATmega323*/          2,  1,  21, vtab_atmega323},       // Config and interrupts
+  /*ATmega323*/          2,  1,  21, vtab_atmega323,       0, NULL}, // Config and interrupts
 
   //ATmega324A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega324A",       110,  F_AVR8, {0x1E, 0x95, 0x15}, // ID
   /*ATmega324A*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega324A*/         3,  1,  31, vtab_atmega644pa},     // Config and interrupts
+  /*ATmega324A*/         3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
 
   //ATmega324P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega324P",       111,  F_AVR8, {0x1E, 0x95, 0x08}, // ID
   /*ATmega324P*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega324P*/         3,  1,  31, vtab_atmega644pa},     // Config and interrupts
+  /*ATmega324P*/         3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
 
   //ATmega324PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega324PA",      112,  F_AVR8, {0x1E, 0x95, 0x11}, // ID
   /*ATmega324PA*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega324PA*/        3,  1,  31, vtab_atmega644pa},     // Config and interrupts
+  /*ATmega324PA*/        3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
 
   //ATmega324PB                                         atdf, avrdude // Sources
   {"ATmega324PB",      113,  F_AVR8, {0x1E, 0x95, 0x17}, // ID
   /*ATmega324PB*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega324PB*/        3,  1,  51, vtab_atmega324pb},     // Config and interrupts
+  /*ATmega324PB*/        3,  1,  51, vtab_atmega324pb,     0, NULL}, // Config and interrupts
 
   //ATmega325                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega325",        114,  F_AVR8, {0x1E, 0x95, 0x05}, // ID
   /*ATmega325*/          0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega325*/          3,  1,  22, vtab_atmega645p},      // Config and interrupts
+  /*ATmega325*/          3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
 
   //ATmega325A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega325A",       115,  F_AVR8, {0x1E, 0x95, 0x05}, // ID
   /*ATmega325A*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega325A*/         3,  1,  22, vtab_atmega645p},      // Config and interrupts
+  /*ATmega325A*/         3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
 
   //ATmega325P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega325P",       116,  F_AVR8, {0x1E, 0x95, 0x0D}, // ID
   /*ATmega325P*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega325P*/         3,  1,  22, vtab_atmega645p},      // Config and interrupts
+  /*ATmega325P*/         3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
 
   //ATmega325PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega325PA",      117,  F_AVR8, {0x1E, 0x95, 0x0D}, // ID
   /*ATmega325PA*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega325PA*/        3,  1,  22, vtab_atmega645p},      // Config and interrupts
+  /*ATmega325PA*/        3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
 
   //ATmega328                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega328",        118,  F_AVR8, {0x1E, 0x95, 0x14}, // ID
   /*ATmega328*/          0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega328*/          3,  1,  26, vtab_atmega328},       // Config and interrupts
+  /*ATmega328*/          3,  1,  26, vtab_atmega328,       0, NULL}, // Config and interrupts
 
   //ATmega328P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega328P",       119,  F_AVR8, {0x1E, 0x95, 0x0F}, // ID
   /*ATmega328P*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega328P*/         3,  1,  26, vtab_atmega328p},      // Config and interrupts
+  /*ATmega328P*/         3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
 
   //ATmega328PB                          atdf, avr-gcc 7.3.0, avrdude // Sources
   {"ATmega328PB",      120,  F_AVR8, {0x1E, 0x95, 0x16}, // ID
   /*ATmega328PB*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega328PB*/        3,  1,  45, vtab_atmega328pb},     // Config and interrupts
+  /*ATmega328PB*/        3,  1,  45, vtab_atmega328pb,     0, NULL}, // Config and interrupts
 
   //ATmega329                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega329",        121,  F_AVR8, {0x1E, 0x95, 0x03}, // ID
   /*ATmega329*/          0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega329*/          3,  1,  23, vtab_atmega649p},      // Config and interrupts
+  /*ATmega329*/          3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
 
   //ATmega329A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega329A",       122,  F_AVR8, {0x1E, 0x95, 0x03}, // ID
   /*ATmega329A*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega329A*/         3,  1,  23, vtab_atmega649p},      // Config and interrupts
+  /*ATmega329A*/         3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
 
   //ATmega329P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega329P",       123,  F_AVR8, {0x1E, 0x95, 0x0B}, // ID
   /*ATmega329P*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega329P*/         3,  1,  23, vtab_atmega649p},      // Config and interrupts
+  /*ATmega329P*/         3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
 
   //ATmega329PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega329PA",      124,  F_AVR8, {0x1E, 0x95, 0x0B}, // ID
   /*ATmega329PA*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega329PA*/        3,  1,  23, vtab_atmega649p},      // Config and interrupts
+  /*ATmega329PA*/        3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
 
   //ATmega406                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega406",        125,  F_AVR8, {0x1E, 0x95, 0x07}, // ID
   /*ATmega406*/          0, 0x0a000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0800, // Mem
-  /*ATmega406*/          2,  1,  23, vtab_atmega406},       // Config and interrupts
+  /*ATmega406*/          2,  1,  23, vtab_atmega406,       0, NULL}, // Config and interrupts
 
   //ATmega640                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega640",        126,  F_AVR8, {0x1E, 0x96, 0x08}, // ID
   /*ATmega640*/          0, 0x10000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000, // Mem
-  /*ATmega640*/          3,  1,  57, vtab_atmega2560},      // Config and interrupts
+  /*ATmega640*/          3,  1,  57, vtab_atmega2560,      0, NULL}, // Config and interrupts
 
   //ATmega644                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega644",        127,  F_AVR8, {0x1E, 0x96, 0x09}, // ID
   /*ATmega644*/          0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega644*/          3,  1,  28, vtab_atmega644},       // Config and interrupts
+  /*ATmega644*/          3,  1,  28, vtab_atmega644,       0, NULL}, // Config and interrupts
 
   //ATmega644A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega644A",       128,  F_AVR8, {0x1E, 0x96, 0x09}, // ID
   /*ATmega644A*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega644A*/         3,  1,  31, vtab_atmega644pa},     // Config and interrupts
+  /*ATmega644A*/         3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
 
   //ATmega644P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega644P",       129,  F_AVR8, {0x1E, 0x96, 0x0A}, // ID
   /*ATmega644P*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega644P*/         3,  1,  31, vtab_atmega644pa},     // Config and interrupts
+  /*ATmega644P*/         3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
 
   //ATmega644PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega644PA",      130,  F_AVR8, {0x1E, 0x96, 0x0A}, // ID
   /*ATmega644PA*/        0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega644PA*/        3,  1,  31, vtab_atmega644pa},     // Config and interrupts
+  /*ATmega644PA*/        3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
 
   //ATmega644RFR2                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega644RFR2",    131,  F_AVR8, {0x1E, 0xA6, 0x03}, // ID
   /*ATmega644RFR2*/      0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0200, 0x2000, // Mem
-  /*ATmega644RFR2*/      3,  1,  77, vtab_atmega2564rfr2},  // Config and interrupts
+  /*ATmega644RFR2*/      3,  1,  77, vtab_atmega2564rfr2,  0, NULL}, // Config and interrupts
 
   //ATmega645                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega645",        132,  F_AVR8, {0x1E, 0x96, 0x05}, // ID
   /*ATmega645*/          0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega645*/          3,  1,  22, vtab_atmega645p},      // Config and interrupts
+  /*ATmega645*/          3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
 
   //ATmega645A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega645A",       133,  F_AVR8, {0x1E, 0x96, 0x05}, // ID
   /*ATmega645A*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega645A*/         3,  1,  22, vtab_atmega645p},      // Config and interrupts
+  /*ATmega645A*/         3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
 
   //ATmega645P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega645P",       134,  F_AVR8, {0x1E, 0x96, 0x0D}, // ID
   /*ATmega645P*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega645P*/         3,  1,  22, vtab_atmega645p},      // Config and interrupts
+  /*ATmega645P*/         3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
 
   //ATmega649                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega649",        135,  F_AVR8, {0x1E, 0x96, 0x03}, // ID
   /*ATmega649*/          0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega649*/          3,  1,  23, vtab_atmega649p},      // Config and interrupts
+  /*ATmega649*/          3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
 
   //ATmega649A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega649A",       136,  F_AVR8, {0x1E, 0x96, 0x03}, // ID
   /*ATmega649A*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega649A*/         3,  1,  23, vtab_atmega649p},      // Config and interrupts
+  /*ATmega649A*/         3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
 
   //ATmega649P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega649P",       137,  F_AVR8, {0x1E, 0x96, 0x0B}, // ID
   /*ATmega649P*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega649P*/         3,  1,  23, vtab_atmega649p},      // Config and interrupts
+  /*ATmega649P*/         3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
 
   //ATmega1280                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega1280",       138,  F_AVR8, {0x1E, 0x97, 0x03}, // ID
   /*ATmega1280*/         0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000, // Mem
-  /*ATmega1280*/         3,  1,  57, vtab_atmega2560},      // Config and interrupts
+  /*ATmega1280*/         3,  1,  57, vtab_atmega2560,      0, NULL}, // Config and interrupts
 
   //ATmega1281                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega1281",       139,  F_AVR8, {0x1E, 0x97, 0x04}, // ID
   /*ATmega1281*/         0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000, // Mem
-  /*ATmega1281*/         3,  1,  57, vtab_atmega2561},      // Config and interrupts
+  /*ATmega1281*/         3,  1,  57, vtab_atmega2561,      0, NULL}, // Config and interrupts
 
   //ATmega1284                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega1284",       140,  F_AVR8, {0x1E, 0x97, 0x06}, // ID
   /*ATmega1284*/         0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x4000, // Mem
-  /*ATmega1284*/         3,  1,  35, vtab_atmega1284p},     // Config and interrupts
+  /*ATmega1284*/         3,  1,  35, vtab_atmega1284p,     0, NULL}, // Config and interrupts
 
   //ATmega1284P                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega1284P",      141,  F_AVR8, {0x1E, 0x97, 0x05}, // ID
   /*ATmega1284P*/        0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x4000, // Mem
-  /*ATmega1284P*/        3,  1,  35, vtab_atmega1284p},     // Config and interrupts
+  /*ATmega1284P*/        3,  1,  35, vtab_atmega1284p,     0, NULL}, // Config and interrupts
 
   //ATmega1284RFR2                      atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega1284RFR2",   142,  F_AVR8, {0x1E, 0xA7, 0x03}, // ID
   /*ATmega1284RFR2*/     0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x4000, // Mem
-  /*ATmega1284RFR2*/     3,  1,  77, vtab_atmega2564rfr2},  // Config and interrupts
+  /*ATmega1284RFR2*/     3,  1,  77, vtab_atmega2564rfr2,  0, NULL}, // Config and interrupts
 
   //ATmega2560                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega2560",       143,  F_AVR8, {0x1E, 0x98, 0x01}, // ID
   /*ATmega2560*/         0, 0x40000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000, // Mem
-  /*ATmega2560*/         3,  1,  57, vtab_atmega2560},      // Config and interrupts
+  /*ATmega2560*/         3,  1,  57, vtab_atmega2560,      0, NULL}, // Config and interrupts
 
   //ATmega2561                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega2561",       144,  F_AVR8, {0x1E, 0x98, 0x02}, // ID
   /*ATmega2561*/         0, 0x40000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000, // Mem
-  /*ATmega2561*/         3,  1,  57, vtab_atmega2561},      // Config and interrupts
+  /*ATmega2561*/         3,  1,  57, vtab_atmega2561,      0, NULL}, // Config and interrupts
 
   //ATmega2564RFR2                      atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega2564RFR2",   145,  F_AVR8, {0x1E, 0xA8, 0x03}, // ID
   /*ATmega2564RFR2*/     0, 0x40000, 0x100,  4, 0x0400,       0, 0x2000,  8, 0x0200, 0x8000, // Mem
-  /*ATmega2564RFR2*/     3,  1,  77, vtab_atmega2564rfr2},  // Config and interrupts
+  /*ATmega2564RFR2*/     3,  1,  77, vtab_atmega2564rfr2,  0, NULL}, // Config and interrupts
 
   //ATmega3250                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3250",       146,  F_AVR8, {0x1E, 0x95, 0x06}, // ID
   /*ATmega3250*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega3250*/         3,  1,  25, vtab_atmega6450p},     // Config and interrupts
+  /*ATmega3250*/         3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
 
   //ATmega3250A                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3250A",      147,  F_AVR8, {0x1E, 0x95, 0x06}, // ID
   /*ATmega3250A*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega3250A*/        3,  1,  25, vtab_atmega6450p},     // Config and interrupts
+  /*ATmega3250A*/        3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
 
   //ATmega3250P                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3250P",      148,  F_AVR8, {0x1E, 0x95, 0x0E}, // ID
   /*ATmega3250P*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega3250P*/        3,  1,  25, vtab_atmega6450p},     // Config and interrupts
+  /*ATmega3250P*/        3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
 
   //ATmega3250PA                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3250PA",     149,  F_AVR8, {0x1E, 0x95, 0x0E}, // ID
   /*ATmega3250PA*/       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega3250PA*/       3,  1,  25, vtab_atmega6450p},     // Config and interrupts
+  /*ATmega3250PA*/       3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
 
   //ATmega3290                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3290",       150,  F_AVR8, {0x1E, 0x95, 0x04}, // ID
   /*ATmega3290*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega3290*/         3,  1,  25, vtab_atmega6490p},     // Config and interrupts
+  /*ATmega3290*/         3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
 
   //ATmega3290A                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3290A",      151,  F_AVR8, {0x1E, 0x95, 0x04}, // ID
   /*ATmega3290A*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega3290A*/        3,  1,  25, vtab_atmega6490p},     // Config and interrupts
+  /*ATmega3290A*/        3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
 
   //ATmega3290P                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3290P",      152,  F_AVR8, {0x1E, 0x95, 0x0C}, // ID
   /*ATmega3290P*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega3290P*/        3,  1,  25, vtab_atmega6490p},     // Config and interrupts
+  /*ATmega3290P*/        3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
 
   //ATmega3290PA                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3290PA",     153,  F_AVR8, {0x1E, 0x95, 0x0C}, // ID
   /*ATmega3290PA*/       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega3290PA*/       3,  1,  25, vtab_atmega6490p},     // Config and interrupts
+  /*ATmega3290PA*/       3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
 
   //ATmega6450                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega6450",       154,  F_AVR8, {0x1E, 0x96, 0x06}, // ID
   /*ATmega6450*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega6450*/         3,  1,  25, vtab_atmega6450p},     // Config and interrupts
+  /*ATmega6450*/         3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
 
   //ATmega6450A                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega6450A",      155,  F_AVR8, {0x1E, 0x96, 0x06}, // ID
   /*ATmega6450A*/        0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega6450A*/        3,  1,  25, vtab_atmega6450p},     // Config and interrupts
+  /*ATmega6450A*/        3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
 
   //ATmega6450P                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega6450P",      156,  F_AVR8, {0x1E, 0x96, 0x0E}, // ID
   /*ATmega6450P*/        0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega6450P*/        3,  1,  25, vtab_atmega6450p},     // Config and interrupts
+  /*ATmega6450P*/        3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
 
   //ATmega6490                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega6490",       157,  F_AVR8, {0x1E, 0x96, 0x04}, // ID
   /*ATmega6490*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega6490*/         3,  1,  25, vtab_atmega6490p},     // Config and interrupts
+  /*ATmega6490*/         3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
 
   //ATmega6490A                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega6490A",      158,  F_AVR8, {0x1E, 0x96, 0x04}, // ID
   /*ATmega6490A*/        0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega6490A*/        3,  1,  25, vtab_atmega6490p},     // Config and interrupts
+  /*ATmega6490A*/        3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
 
   //ATmega6490P                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega6490P",      159,  F_AVR8, {0x1E, 0x96, 0x0C}, // ID
   /*ATmega6490P*/        0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega6490P*/        3,  1,  25, vtab_atmega6490p},     // Config and interrupts
+  /*ATmega6490P*/        3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
 
   //ATmega8515                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega8515",       160,  F_AVR8, {0x1E, 0x93, 0x06}, // ID
   /*ATmega8515*/         0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
-  /*ATmega8515*/         2,  1,  17, vtab_atmega8515},      // Config and interrupts
+  /*ATmega8515*/         2,  1,  17, vtab_atmega8515,      0, NULL}, // Config and interrupts
 
   //ATmega8535                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega8535",       161,  F_AVR8, {0x1E, 0x93, 0x08}, // ID
   /*ATmega8535*/         0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
-  /*ATmega8535*/         2,  1,  21, vtab_atmega8535},      // Config and interrupts
+  /*ATmega8535*/         2,  1,  21, vtab_atmega8535,      0, NULL}, // Config and interrupts
 
   //AT43USB320                                         avr-gcc 12.2.0 // Sources
   {"AT43USB320",       162,  F_AVR8, {0xff,   -1,   -1}, // ID
   /*AT43USB320*/         0, 0x10000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0200, // Mem
-  /*AT43USB320*/        -1, -1,   0, NULL},                 // Config and interrupts
+  /*AT43USB320*/        -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //AT43USB355                                         avr-gcc 12.2.0 // Sources
   {"AT43USB355",       163,  F_AVR8, {0xff,   -1,   -1}, // ID
   /*AT43USB355*/         0, 0x06000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0400, // Mem
-  /*AT43USB355*/        -1, -1,   0, NULL},                 // Config and interrupts
+  /*AT43USB355*/        -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //AT76C711                                           avr-gcc 12.2.0 // Sources
   {"AT76C711",         164,  F_AVR8, {0xff,   -1,   -1}, // ID
   /*AT76C711*/           0, 0x04000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x07a0, // Mem
-  /*AT76C711*/          -1, -1,   0, NULL},                 // Config and interrupts
+  /*AT76C711*/          -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //AT86RF401                                          avr-gcc 12.2.0 // Sources
   {"AT86RF401",        165,  F_AVR8, {0x1E, 0x91, 0x81}, // ID
   /*AT86RF401*/          0, 0x00800,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0080, // Mem
-  /*AT86RF401*/          0,  1,   3, vtab_at86rf401},       // Config and interrupts
+  /*AT86RF401*/          0,  1,   3, vtab_at86rf401,       0, NULL}, // Config and interrupts
 
   //AT89S51                                                   avrdude // Sources
   {"AT89S51",          372,  F_AVR8, {0x1E, 0x51, 0x06}, // ID
   /*AT89S51*/            0, 0x01000, 0x001, -1,     -1,       0,      0,  0,     -1,     -1, // Mem
-  /*AT89S51*/           -1, -1,   0, NULL},                 // Config and interrupts
+  /*AT89S51*/           -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //AT89S52                                                   avrdude // Sources
   {"AT89S52",          373,  F_AVR8, {0x1E, 0x52, 0x06}, // ID
   /*AT89S52*/            0, 0x02000, 0x001, -1,     -1,       0,      0,  0,     -1,     -1, // Mem
-  /*AT89S52*/           -1, -1,   0, NULL},                 // Config and interrupts
+  /*AT89S52*/           -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //AT90PWM1                                     atdf, avr-gcc 12.2.0 // Sources
   {"AT90PWM1",         166,  F_AVR8, {0x1E, 0x93, 0x83}, // ID
   /*AT90PWM1*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*AT90PWM1*/           3,  1,  32, vtab_at90pwm1},        // Config and interrupts
+  /*AT90PWM1*/           3,  1,  32, vtab_at90pwm1,        0, NULL}, // Config and interrupts
 
   //AT90PWM2         xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90PWM2",         167,  F_AVR8, {0x1E, 0x93, 0x81}, // ID
   /*AT90PWM2*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*AT90PWM2*/           3,  1,  32, vtab_at90pwm2},        // Config and interrupts
+  /*AT90PWM2*/           3,  1,  32, vtab_at90pwm2,        0, NULL}, // Config and interrupts
 
   //AT90PWM2B                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90PWM2B",        168,  F_AVR8, {0x1E, 0x93, 0x83}, // ID
   /*AT90PWM2B*/          0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*AT90PWM2B*/          3,  1,  32, vtab_at90pwm3b},       // Config and interrupts
+  /*AT90PWM2B*/          3,  1,  32, vtab_at90pwm3b,       0, NULL}, // Config and interrupts
 
   //AT90PWM3                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90PWM3",         169,  F_AVR8, {0x1E, 0x93, 0x81}, // ID
   /*AT90PWM3*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*AT90PWM3*/           3,  1,  32, vtab_at90pwm3b},       // Config and interrupts
+  /*AT90PWM3*/           3,  1,  32, vtab_at90pwm3b,       0, NULL}, // Config and interrupts
 
   //AT90PWM3B                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90PWM3B",        170,  F_AVR8, {0x1E, 0x93, 0x83}, // ID
   /*AT90PWM3B*/          0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*AT90PWM3B*/          3,  1,  32, vtab_at90pwm3b},       // Config and interrupts
+  /*AT90PWM3B*/          3,  1,  32, vtab_at90pwm3b,       0, NULL}, // Config and interrupts
 
   //AT90CAN32                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90CAN32",        171,  F_AVR8, {0x1E, 0x95, 0x81}, // ID
   /*AT90CAN32*/          0, 0x08000, 0x100,  4, 0x0400,       0, 0x0400,  8, 0x0100, 0x0800, // Mem
-  /*AT90CAN32*/          3,  1,  37, vtab_at90can128},      // Config and interrupts
+  /*AT90CAN32*/          3,  1,  37, vtab_at90can128,      0, NULL}, // Config and interrupts
 
   //AT90CAN64                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90CAN64",        172,  F_AVR8, {0x1E, 0x96, 0x81}, // ID
   /*AT90CAN64*/          0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*AT90CAN64*/          3,  1,  37, vtab_at90can128},      // Config and interrupts
+  /*AT90CAN64*/          3,  1,  37, vtab_at90can128,      0, NULL}, // Config and interrupts
 
   //AT90PWM81                                    atdf, avr-gcc 12.2.0 // Sources
   {"AT90PWM81",        173,  F_AVR8, {0x1E, 0x93, 0x88}, // ID
   /*AT90PWM81*/          0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0100, // Mem
-  /*AT90PWM81*/          3,  1,  20, vtab_at90pwm161},      // Config and interrupts
+  /*AT90PWM81*/          3,  1,  20, vtab_at90pwm161,      0, NULL}, // Config and interrupts
 
   //AT90USB82                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90USB82",        174,  F_AVR8, {0x1E, 0x93, 0x82}, // ID
   /*AT90USB82*/          0, 0x02000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*AT90USB82*/          3,  1,  29, vtab_atmega32u2},      // Config and interrupts
+  /*AT90USB82*/          3,  1,  29, vtab_atmega32u2,      0, NULL}, // Config and interrupts
 
   //AT90SCR100                     avr-gcc 12.2.0, boot size (manual) // Sources
   {"AT90SCR100",       175,  F_AVR8, {0x1E, 0x96, 0xC1}, // ID
   /*AT90SCR100*/         0, 0x10000, 0x100,  4, 0x0200,      -1,     -1, -1, 0x0100, 0x1000, // Mem
-  /*AT90SCR100*/         3,  1,  38, vtab_at90scr100},      // Config and interrupts
+  /*AT90SCR100*/         3,  1,  38, vtab_at90scr100,      0, NULL}, // Config and interrupts
 
-  //AT90SCR100H                                                   xml // Sources
+  //AT90SCR100H                                  xml, from AT90SCR100 // Sources
   {"AT90SCR100H",      376,  F_AVR8, {0x1E, 0x96, 0xC1}, // ID
-  /*AT90SCR100H*/       -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, // Mem
-  /*AT90SCR100H*/       -1, -1,   0, NULL},                 // Config and interrupts
+  /*AT90SCR100H*/       -1,      -1,    -1,  4, 0x0200,      -1,     -1, -1, 0x0100, 0x1000, // Mem
+  /*AT90SCR100H*/        3,  1,  38, vtab_at90scr100,      0, NULL}, // Config and interrupts
 
   //AT90CAN128                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90CAN128",       176,  F_AVR8, {0x1E, 0x97, 0x81}, // ID
   /*AT90CAN128*/         0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x1000, // Mem
-  /*AT90CAN128*/         3,  1,  37, vtab_at90can128},      // Config and interrupts
+  /*AT90CAN128*/         3,  1,  37, vtab_at90can128,      0, NULL}, // Config and interrupts
 
   //AT90PWM161                                   atdf, avr-gcc 12.2.0 // Sources
   {"AT90PWM161",       177,  F_AVR8, {0x1E, 0x94, 0x8B}, // ID
   /*AT90PWM161*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*AT90PWM161*/         3,  1,  20, vtab_at90pwm161},      // Config and interrupts
+  /*AT90PWM161*/         3,  1,  20, vtab_at90pwm161,      0, NULL}, // Config and interrupts
 
   //AT90USB162                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90USB162",       178,  F_AVR8, {0x1E, 0x94, 0x82}, // ID
   /*AT90USB162*/         0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*AT90USB162*/         3,  1,  29, vtab_atmega32u2},      // Config and interrupts
+  /*AT90USB162*/         3,  1,  29, vtab_atmega32u2,      0, NULL}, // Config and interrupts
 
   //AT90PWM216                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90PWM216",       179,  F_AVR8, {0x1E, 0x94, 0x83}, // ID
   /*AT90PWM216*/         0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*AT90PWM216*/         3,  1,  32, vtab_at90pwm316},      // Config and interrupts
+  /*AT90PWM216*/         3,  1,  32, vtab_at90pwm316,      0, NULL}, // Config and interrupts
 
   //AT90PWM316                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90PWM316",       180,  F_AVR8, {0x1E, 0x94, 0x83}, // ID
   /*AT90PWM316*/         0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*AT90PWM316*/         3,  1,  32, vtab_at90pwm316},      // Config and interrupts
+  /*AT90PWM316*/         3,  1,  32, vtab_at90pwm316,      0, NULL}, // Config and interrupts
 
   //AT90USB646                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90USB646",       181,  F_AVR8, {0x1E, 0x96, 0x82}, // ID
   /*AT90USB646*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*AT90USB646*/         3,  1,  38, vtab_atmega32u6},      // Config and interrupts
+  /*AT90USB646*/         3,  1,  38, vtab_atmega32u6,      0, NULL}, // Config and interrupts
 
   //AT90USB647                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90USB647",       182,  F_AVR8, {0x1E, 0x96, 0x82}, // ID
   /*AT90USB647*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*AT90USB647*/         3,  1,  38, vtab_atmega32u6},      // Config and interrupts
+  /*AT90USB647*/         3,  1,  38, vtab_atmega32u6,      0, NULL}, // Config and interrupts
 
   //AT90S1200        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S1200",        183,  F_AVR8, {0x1E, 0x90, 0x01}, // ID
   /*AT90S1200*/          0, 0x00400, 0x001,  0,      0,       0, 0x0040,  1, 0x0060, 0x0020, // Mem
-  /*AT90S1200*/          1,  1,   4, vtab_at90s1200},       // Config and interrupts
+  /*AT90S1200*/          1,  1,   4, vtab_at90s1200,       0, NULL}, // Config and interrupts
 
   //AT90USB1286                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90USB1286",      184,  F_AVR8, {0x1E, 0x97, 0x82}, // ID
   /*AT90USB1286*/        0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x2000, // Mem
-  /*AT90USB1286*/        3,  1,  38, vtab_atmega32u6},      // Config and interrupts
+  /*AT90USB1286*/        3,  1,  38, vtab_atmega32u6,      0, NULL}, // Config and interrupts
 
   //AT90USB1287                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90USB1287",      185,  F_AVR8, {0x1E, 0x97, 0x82}, // ID
   /*AT90USB1287*/        0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x2000, // Mem
-  /*AT90USB1287*/        3,  1,  38, vtab_atmega32u6},      // Config and interrupts
+  /*AT90USB1287*/        3,  1,  38, vtab_atmega32u6,      0, NULL}, // Config and interrupts
 
   //AT90S2313        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S2313",        186,  F_AVR8, {0x1E, 0x91, 0x01}, // ID
   /*AT90S2313*/          0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, // Mem
-  /*AT90S2313*/          1,  1,  11, vtab_at90s2313},       // Config and interrupts
+  /*AT90S2313*/          1,  1,  11, vtab_at90s2313,       0, NULL}, // Config and interrupts
 
   //AT90S2323        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S2323",        187,  F_AVR8, {0x1E, 0x91, 0x02}, // ID
   /*AT90S2323*/          0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, // Mem
-  /*AT90S2323*/          1,  1,   3, vtab_attiny22},        // Config and interrupts
+  /*AT90S2323*/          1,  1,   3, vtab_attiny22,        0, NULL}, // Config and interrupts
 
   //AT90S2333             avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S2333",        188,  F_AVR8, {0x1E, 0x91, 0x05}, // ID
   /*AT90S2333*/          0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, // Mem
-  /*AT90S2333*/         -1, -1,  14, vtab_at90s4433},       // Config and interrupts
+  /*AT90S2333*/         -1, -1,  14, vtab_at90s4433,       0, NULL}, // Config and interrupts
 
   //AT90S2343        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S2343",        189,  F_AVR8, {0x1E, 0x91, 0x03}, // ID
   /*AT90S2343*/          0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, // Mem
-  /*AT90S2343*/          1,  1,   3, vtab_attiny22},        // Config and interrupts
+  /*AT90S2343*/          1,  1,   3, vtab_attiny22,        0, NULL}, // Config and interrupts
 
   //AT90S4414        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S4414",        190,  F_AVR8, {0x1E, 0x92, 0x01}, // ID
   /*AT90S4414*/          0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0100, // Mem
-  /*AT90S4414*/          1,  1,  13, vtab_at90s8515},       // Config and interrupts
+  /*AT90S4414*/          1,  1,  13, vtab_at90s8515,       0, NULL}, // Config and interrupts
 
   //AT90S4433        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S4433",        191,  F_AVR8, {0x1E, 0x92, 0x03}, // ID
   /*AT90S4433*/          0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0080, // Mem
-  /*AT90S4433*/          1,  1,  14, vtab_at90s4433},       // Config and interrupts
+  /*AT90S4433*/          1,  1,  14, vtab_at90s4433,       0, NULL}, // Config and interrupts
 
   //AT90S4434        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S4434",        192,  F_AVR8, {0x1E, 0x92, 0x02}, // ID
   /*AT90S4434*/          0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0100, // Mem
-  /*AT90S4434*/          1,  1,  17, vtab_at90s8535},       // Config and interrupts
+  /*AT90S4434*/          1,  1,  17, vtab_at90s8535,       0, NULL}, // Config and interrupts
 
   //AT90S8515        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S8515",        193,  F_AVR8, {0x1E, 0x93, 0x01}, // ID
   /*AT90S8515*/          0, 0x02000, 0x001,  0,      0,       0, 0x0200,  1, 0x0060, 0x0200, // Mem
-  /*AT90S8515*/          1,  1,  13, vtab_at90s8515},       // Config and interrupts
+  /*AT90S8515*/          1,  1,  13, vtab_at90s8515,       0, NULL}, // Config and interrupts
 
   //AT90S8515comp                                                 xml // Sources
   {"AT90S8515comp",    377,  F_AVR8, {0x1E, 0x93, 0x01}, // ID
   /*AT90S8515comp*/     -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, // Mem
-  /*AT90S8515comp*/     -1, -1,   0, NULL},                 // Config and interrupts
+  /*AT90S8515comp*/     -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //AT90C8534                                          avr-gcc 12.2.0 // Sources
   {"AT90C8534",        194,  F_AVR8, {0xff,   -1,   -1}, // ID
   /*AT90C8534*/          0, 0x02000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0100, // Mem
-  /*AT90C8534*/         -1, -1,   0, NULL},                 // Config and interrupts
+  /*AT90C8534*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //AT90S8535        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S8535",        195,  F_AVR8, {0x1E, 0x93, 0x03}, // ID
   /*AT90S8535*/          0, 0x02000, 0x001,  0,      0,       0, 0x0200,  1, 0x0060, 0x0200, // Mem
-  /*AT90S8535*/          1,  1,  17, vtab_at90s8535},       // Config and interrupts
+  /*AT90S8535*/          1,  1,  17, vtab_at90s8535,       0, NULL}, // Config and interrupts
 
   //AT90S8535comp                                                 xml // Sources
   {"AT90S8535comp",    378,  F_AVR8, {0x1E, 0x93, 0x03}, // ID
   /*AT90S8535comp*/     -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, // Mem
-  /*AT90S8535comp*/     -1, -1,   0, NULL},                 // Config and interrupts
+  /*AT90S8535comp*/     -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //AT94K                                              avr-gcc 12.2.0 // Sources
   {"AT94K",            196,  F_AVR8, {0xff,   -1,   -1}, // ID
   /*AT94K*/              0, 0x08000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0fa0, // Mem
-  /*AT94K*/             -1, -1,   0, NULL},                 // Config and interrupts
+  /*AT94K*/             -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //ATA5272                                      atdf, avr-gcc 12.2.0 // Sources
   {"ATA5272",          197,  F_AVR8, {0x1E, 0x93, 0x87}, // ID
   /*ATA5272*/            0, 0x02000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATA5272*/            3,  1,  37, vtab_ata5272},         // Config and interrupts
+  /*ATA5272*/            3,  1,  37, vtab_ata5272,         0, NULL}, // Config and interrupts
 
   //ATA5505                                      atdf, avr-gcc 12.2.0 // Sources
   {"ATA5505",          198,  F_AVR8, {0x1E, 0x94, 0x87}, // ID
   /*ATA5505*/            0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATA5505*/            3,  1,  20, vtab_attiny167},       // Config and interrupts
+  /*ATA5505*/            3,  1,  20, vtab_attiny167,       0, NULL}, // Config and interrupts
 
   //ATA5700M322                                                  atdf // Sources
   {"ATA5700M322",      199,  F_AVR8, {0x1E, 0x95, 0x67}, // ID
   /*ATA5700M322*/  0x08000, 0x08000, 0x040,  0,      0,       0, 0x0880, 16, 0x0200, 0x0400, // Mem
-  /*ATA5700M322*/        1,  1,  51, vtab_ata5702m322},     // Config and interrupts
+  /*ATA5700M322*/        1,  1,  51, vtab_ata5702m322,     0, NULL}, // Config and interrupts
 
   //ATA5702M322                                  atdf, avr-gcc 12.2.0 // Sources
   {"ATA5702M322",      200,  F_AVR8, {0x1E, 0x95, 0x69}, // ID
   /*ATA5702M322*/  0x08000, 0x08000, 0x040,  0,      0,       0, 0x0880, 16, 0x0200, 0x0400, // Mem
-  /*ATA5702M322*/        1,  1,  51, vtab_ata5702m322},     // Config and interrupts
+  /*ATA5702M322*/        1,  1,  51, vtab_ata5702m322,     0, NULL}, // Config and interrupts
 
   //ATA5781                                                      atdf // Sources
   {"ATA5781",          201,  F_AVR8, {0x1E, 0x95, 0x64}, // ID
   /*ATA5781*/           -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA5781*/            1,  1,  42, vtab_ata8515},         // Config and interrupts
+  /*ATA5781*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
 
   //ATA5782                                      atdf, avr-gcc 12.2.0 // Sources
   {"ATA5782",          202,  F_AVR8, {0x1E, 0x95, 0x65}, // ID
   /*ATA5782*/      0x08000, 0x05000, 0x040,  1, 0x5000,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA5782*/            1,  1,  42, vtab_ata8515},         // Config and interrupts
+  /*ATA5782*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
 
   //ATA5783                                                      atdf // Sources
   {"ATA5783",          203,  F_AVR8, {0x1E, 0x95, 0x66}, // ID
   /*ATA5783*/           -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA5783*/            1,  1,  42, vtab_ata8515},         // Config and interrupts
+  /*ATA5783*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
 
   //ATA5787                                                      atdf // Sources
   {"ATA5787",          204,  F_AVR8, {0x1E, 0x94, 0x6C}, // ID
   /*ATA5787*/      0x08000, 0x05200, 0x040,  0,      0,       0, 0x0400, 16, 0x0200, 0x0800, // Mem
-  /*ATA5787*/            1,  1,  44, vtab_ata5835},         // Config and interrupts
+  /*ATA5787*/            1,  1,  44, vtab_ata5835,         0, NULL}, // Config and interrupts
 
   //ATA5790                                      atdf, avr-gcc 12.2.0 // Sources
   {"ATA5790",          205,  F_AVR8, {0x1E, 0x94, 0x61}, // ID
   /*ATA5790*/            0, 0x04000, 0x080,  1, 0x0800,       0, 0x0800, 16, 0x0100, 0x0200, // Mem
-  /*ATA5790*/            1,  1,  30, vtab_ata5790},         // Config and interrupts
+  /*ATA5790*/            1,  1,  30, vtab_ata5790,         0, NULL}, // Config and interrupts
 
   //ATA5790N                                     atdf, avr-gcc 12.2.0 // Sources
   {"ATA5790N",         206,  F_AVR8, {0x1E, 0x94, 0x62}, // ID
   /*ATA5790N*/           0, 0x04000, 0x080,  1, 0x0800,       0, 0x0800, 16, 0x0100, 0x0200, // Mem
-  /*ATA5790N*/           1,  1,  31, vtab_ata5791},         // Config and interrupts
+  /*ATA5790N*/           1,  1,  31, vtab_ata5791,         0, NULL}, // Config and interrupts
 
   //ATA5791                                       atdf, avr-gcc 7.3.0 // Sources
   {"ATA5791",          207,  F_AVR8, {0x1E, 0x94, 0x62}, // ID
   /*ATA5791*/            0, 0x04000, 0x080,  1, 0x0800,       0, 0x0800, 16, 0x0100, 0x0200, // Mem
-  /*ATA5791*/            1,  1,  31, vtab_ata5791},         // Config and interrupts
+  /*ATA5791*/            1,  1,  31, vtab_ata5791,         0, NULL}, // Config and interrupts
 
   //ATA5795                                      atdf, avr-gcc 12.2.0 // Sources
   {"ATA5795",          208,  F_AVR8, {0x1E, 0x93, 0x61}, // ID
   /*ATA5795*/            0, 0x02000, 0x040,  1, 0x0800,       0, 0x0800, 16, 0x0100, 0x0200, // Mem
-  /*ATA5795*/            1,  1,  23, vtab_ata5795},         // Config and interrupts
+  /*ATA5795*/            1,  1,  23, vtab_ata5795,         0, NULL}, // Config and interrupts
 
   //ATA5831                                      atdf, avr-gcc 12.2.0 // Sources
   {"ATA5831",          209,  F_AVR8, {0x1E, 0x95, 0x61}, // ID
   /*ATA5831*/      0x08000, 0x05000, 0x040,  1, 0x5000,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA5831*/            1,  1,  42, vtab_ata8515},         // Config and interrupts
+  /*ATA5831*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
 
   //ATA5832                                                      atdf // Sources
   {"ATA5832",          210,  F_AVR8, {0x1E, 0x95, 0x62}, // ID
   /*ATA5832*/           -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA5832*/            1,  1,  42, vtab_ata8515},         // Config and interrupts
+  /*ATA5832*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
 
   //ATA5833                                                      atdf // Sources
   {"ATA5833",          211,  F_AVR8, {0x1E, 0x95, 0x63}, // ID
   /*ATA5833*/           -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA5833*/            1,  1,  42, vtab_ata8515},         // Config and interrupts
+  /*ATA5833*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
 
   //ATA5835                                                      atdf // Sources
   {"ATA5835",          212,  F_AVR8, {0x1E, 0x94, 0x6B}, // ID
   /*ATA5835*/      0x08000, 0x05200, 0x040,  0,      0,       0, 0x0400, 16, 0x0200, 0x0800, // Mem
-  /*ATA5835*/            1,  1,  44, vtab_ata5835},         // Config and interrupts
+  /*ATA5835*/            1,  1,  44, vtab_ata5835,         0, NULL}, // Config and interrupts
 
   //ATA6285                                      atdf, avr-gcc 12.2.0 // Sources
   {"ATA6285",          213,  F_AVR8, {0x1E, 0x93, 0x82}, // ID
   /*ATA6285*/            0, 0x02000, 0x040,  4, 0x0100,       0, 0x0140,  4, 0x0100, 0x0200, // Mem
-  /*ATA6285*/            2,  1,  27, vtab_ata6289},         // Config and interrupts
+  /*ATA6285*/            2,  1,  27, vtab_ata6289,         0, NULL}, // Config and interrupts
 
   //ATA6286                                      atdf, avr-gcc 12.2.0 // Sources
   {"ATA6286",          214,  F_AVR8, {0x1E, 0x93, 0x82}, // ID
   /*ATA6286*/            0, 0x02000, 0x040,  4, 0x0100,       0, 0x0140,  4, 0x0100, 0x0200, // Mem
-  /*ATA6286*/            2,  1,  27, vtab_ata6289},         // Config and interrupts
+  /*ATA6286*/            2,  1,  27, vtab_ata6289,         0, NULL}, // Config and interrupts
 
   //ATA6289                   xml, avr-gcc 12.2.0, boot size (manual) // Sources
   {"ATA6289",          215,  F_AVR8, {0x1E, 0x93, 0x82}, // ID
   /*ATA6289*/            0, 0x02000, 0x040,  4, 0x0100,      -1,     -1, -1, 0x0100, 0x0200, // Mem
-  /*ATA6289*/            2,  1,  27, vtab_ata6289},         // Config and interrupts
+  /*ATA6289*/            2,  1,  27, vtab_ata6289,         0, NULL}, // Config and interrupts
 
   //ATA6612C                                     atdf, avr-gcc 12.2.0 // Sources
   {"ATA6612C",         216,  F_AVR8, {0x1E, 0x93, 0x0A}, // ID
   /*ATA6612C*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATA6612C*/           3,  1,  26, vtab_atmega328p},      // Config and interrupts
+  /*ATA6612C*/           3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
 
   //ATA6613C                                     atdf, avr-gcc 12.2.0 // Sources
   {"ATA6613C",         217,  F_AVR8, {0x1E, 0x94, 0x06}, // ID
   /*ATA6613C*/           0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATA6613C*/           3,  1,  26, vtab_atmega328p},      // Config and interrupts
+  /*ATA6613C*/           3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
 
   //ATA6614Q                                     atdf, avr-gcc 12.2.0 // Sources
   {"ATA6614Q",         218,  F_AVR8, {0x1E, 0x95, 0x0F}, // ID
   /*ATA6614Q*/           0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATA6614Q*/           3,  1,  26, vtab_atmega328p},      // Config and interrupts
+  /*ATA6614Q*/           3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
 
   //ATA6616C                                     atdf, avr-gcc 12.2.0 // Sources
   {"ATA6616C",         219,  F_AVR8, {0x1E, 0x93, 0x87}, // ID
   /*ATA6616C*/           0, 0x02000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATA6616C*/           3,  1,  20, vtab_attiny167},       // Config and interrupts
+  /*ATA6616C*/           3,  1,  20, vtab_attiny167,       0, NULL}, // Config and interrupts
 
   //ATA6617C                                     atdf, avr-gcc 12.2.0 // Sources
   {"ATA6617C",         220,  F_AVR8, {0x1E, 0x94, 0x87}, // ID
   /*ATA6617C*/           0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATA6617C*/           3,  1,  20, vtab_attiny167},       // Config and interrupts
+  /*ATA6617C*/           3,  1,  20, vtab_attiny167,       0, NULL}, // Config and interrupts
 
   //ATA8210                                       atdf, avr-gcc 7.3.0 // Sources
   {"ATA8210",          221,  F_AVR8, {0x1E, 0x95, 0x65}, // ID
   /*ATA8210*/      0x08000, 0x05000, 0x040,  1, 0x5000,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA8210*/            1,  1,  42, vtab_ata8515},         // Config and interrupts
+  /*ATA8210*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
 
   //ATA8215                                                      atdf // Sources
   {"ATA8215",          222,  F_AVR8, {0x1E, 0x95, 0x64}, // ID
   /*ATA8215*/           -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA8215*/            1,  1,  42, vtab_ata8515},         // Config and interrupts
+  /*ATA8215*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
 
   //ATA8510                                       atdf, avr-gcc 7.3.0 // Sources
   {"ATA8510",          223,  F_AVR8, {0x1E, 0x95, 0x61}, // ID
   /*ATA8510*/      0x08000, 0x05000, 0x040,  1, 0x5000,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA8510*/            1,  1,  42, vtab_ata8515},         // Config and interrupts
+  /*ATA8510*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
 
   //ATA8515                                                      atdf // Sources
   {"ATA8515",          224,  F_AVR8, {0x1E, 0x95, 0x63}, // ID
   /*ATA8515*/           -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA8515*/            1,  1,  42, vtab_ata8515},         // Config and interrupts
+  /*ATA8515*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
 
   //ATA664251                                    atdf, avr-gcc 12.2.0 // Sources
   {"ATA664251",        225,  F_AVR8, {0x1E, 0x94, 0x87}, // ID
   /*ATA664251*/          0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATA664251*/          3,  1,  20, vtab_attiny167},       // Config and interrupts
+  /*ATA664251*/          3,  1,  20, vtab_attiny167,       0, NULL}, // Config and interrupts
 
   //M3000                                              avr-gcc 12.2.0 // Sources
   {"M3000",            226,  F_AVR8, {0xff,   -1,   -1}, // ID
   /*M3000*/              0, 0x10000,    -1, -1,     -1,      -1,     -1, -1, 0x1000, 0x1000, // Mem
-  /*M3000*/             -1, -1,   0, NULL},                 // Config and interrupts
+  /*M3000*/             -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //LGT8F88P                                   avrdude, from ATmega88 // Sources
   {"LGT8F88P",         227,  F_AVR8, {0x1E, 0x93, 0x0F}, // ID
   /*LGT8F88P*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*LGT8F88P*/           3,  1,  26, vtab_atmega328p},      // Config and interrupts
+  /*LGT8F88P*/           3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
 
   //LGT8F168P                                avrdude, from ATmega168P // Sources
   {"LGT8F168P",        228,  F_AVR8, {0x1E, 0x94, 0x0B}, // ID
   /*LGT8F168P*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*LGT8F168P*/          3,  1,  26, vtab_atmega328p},      // Config and interrupts
+  /*LGT8F168P*/          3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
 
   //LGT8F328P                                avrdude, from ATmega328P // Sources
   {"LGT8F328P",        229,  F_AVR8, {0x1E, 0x95, 0x0F}, // ID
   /*LGT8F328P*/          0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*LGT8F328P*/          3,  1,  26, vtab_atmega328p},      // Config and interrupts
+  /*LGT8F328P*/          3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
 
 
   //ATxmega8E5                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega8E5",       230, F_XMEGA, {0x1E, 0x93, 0x41}, // ID
   /*ATxmega8E5*/         0, 0x02800, 0x080,  1, 0x0800,       0, 0x0200, 32, 0x2000, 0x0400, // Mem
-  /*ATxmega8E5*/         7,  1,  43, vtab_atxmega32e5},     // Config and interrupts
+  /*ATxmega8E5*/         7,  1,  43, vtab_atxmega32e5,     0, NULL}, // Config and interrupts
 
   //ATxmega16A4                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega16A4",      231, F_XMEGA, {0x1E, 0x94, 0x41}, // ID
   /*ATxmega16A4*/        0, 0x05000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x0800, // Mem
-  /*ATxmega16A4*/        6,  1,  94, vtab_atxmega32a4},     // Config and interrupts
+  /*ATxmega16A4*/        6,  1,  94, vtab_atxmega32a4,     0, NULL}, // Config and interrupts
 
   //ATxmega16A4U                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega16A4U",     232, F_XMEGA, {0x1E, 0x94, 0x41}, // ID
   /*ATxmega16A4U*/       0, 0x05000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x0800, // Mem
-  /*ATxmega16A4U*/       6,  1, 127, vtab_atxmega128a4u},   // Config and interrupts
+  /*ATxmega16A4U*/       6,  1, 127, vtab_atxmega128a4u,   0, NULL}, // Config and interrupts
 
   //ATxmega16C4                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega16C4",      233, F_XMEGA, {0x1E, 0x94, 0x43}, // ID
   /*ATxmega16C4*/        0, 0x05000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x0800, // Mem
-  /*ATxmega16C4*/        6,  1, 127, vtab_atxmega32c4},     // Config and interrupts
+  /*ATxmega16C4*/        6,  1, 127, vtab_atxmega32c4,     0, NULL}, // Config and interrupts
 
   //ATxmega16D4                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega16D4",      234, F_XMEGA, {0x1E, 0x94, 0x42}, // ID
   /*ATxmega16D4*/        0, 0x05000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x0800, // Mem
-  /*ATxmega16D4*/        6,  1,  91, vtab_atxmega32d4},     // Config and interrupts
+  /*ATxmega16D4*/        6,  1,  91, vtab_atxmega32d4,     0, NULL}, // Config and interrupts
 
   //ATxmega16E5                          atdf, avr-gcc 7.3.0, avrdude // Sources
   {"ATxmega16E5",      235, F_XMEGA, {0x1E, 0x94, 0x45}, // ID
   /*ATxmega16E5*/        0, 0x05000, 0x080,  1, 0x1000,       0, 0x0200, 32, 0x2000, 0x0800, // Mem
-  /*ATxmega16E5*/        7,  1,  43, vtab_atxmega32e5},     // Config and interrupts
+  /*ATxmega16E5*/        7,  1,  43, vtab_atxmega32e5,     0, NULL}, // Config and interrupts
 
   //ATxmega32C3                                  atdf, avr-gcc 12.2.0 // Sources
   {"ATxmega32C3",      236, F_XMEGA, {0x1E, 0x95, 0x49}, // ID
   /*ATxmega32C3*/        0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega32C3*/        6,  1, 127, vtab_atxmega256c3},    // Config and interrupts
+  /*ATxmega32C3*/        6,  1, 127, vtab_atxmega256c3,    0, NULL}, // Config and interrupts
 
   //ATxmega32D3                                  atdf, avr-gcc 12.2.0 // Sources
   {"ATxmega32D3",      237, F_XMEGA, {0x1E, 0x95, 0x4A}, // ID
   /*ATxmega32D3*/        0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega32D3*/        6,  1, 114, vtab_atxmega384d3},    // Config and interrupts
+  /*ATxmega32D3*/        6,  1, 114, vtab_atxmega384d3,    0, NULL}, // Config and interrupts
 
   //ATxmega32A4                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega32A4",      238, F_XMEGA, {0x1E, 0x95, 0x41}, // ID
   /*ATxmega32A4*/        0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega32A4*/        6,  1,  94, vtab_atxmega32a4},     // Config and interrupts
+  /*ATxmega32A4*/        6,  1,  94, vtab_atxmega32a4,     0, NULL}, // Config and interrupts
 
   //ATxmega32A4U                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega32A4U",     239, F_XMEGA, {0x1E, 0x95, 0x41}, // ID
   /*ATxmega32A4U*/       0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega32A4U*/       6,  1, 127, vtab_atxmega128a4u},   // Config and interrupts
+  /*ATxmega32A4U*/       6,  1, 127, vtab_atxmega128a4u,   0, NULL}, // Config and interrupts
 
   //ATxmega32C4                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega32C4",      240, F_XMEGA, {0x1E, 0x95, 0x44}, // ID
   /*ATxmega32C4*/        0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega32C4*/        6,  1, 127, vtab_atxmega32c4},     // Config and interrupts
+  /*ATxmega32C4*/        6,  1, 127, vtab_atxmega32c4,     0, NULL}, // Config and interrupts
 
   //ATxmega32D4                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega32D4",      241, F_XMEGA, {0x1E, 0x95, 0x42}, // ID
   /*ATxmega32D4*/        0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega32D4*/        6,  1,  91, vtab_atxmega32d4},     // Config and interrupts
+  /*ATxmega32D4*/        6,  1,  91, vtab_atxmega32d4,     0, NULL}, // Config and interrupts
 
   //ATxmega32E5                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega32E5",      242, F_XMEGA, {0x1E, 0x95, 0x4C}, // ID
   /*ATxmega32E5*/        0, 0x09000, 0x080,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega32E5*/        7,  1,  43, vtab_atxmega32e5},     // Config and interrupts
+  /*ATxmega32E5*/        7,  1,  43, vtab_atxmega32e5,     0, NULL}, // Config and interrupts
 
   //ATxmega64A1                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64A1",      243, F_XMEGA, {0x1E, 0x96, 0x4E}, // ID
   /*ATxmega64A1*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64A1*/        6,  1, 125, vtab_atxmega128a1},    // Config and interrupts
+  /*ATxmega64A1*/        6,  1, 125, vtab_atxmega128a1,    0, NULL}, // Config and interrupts
 
   //ATxmega64A1U                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64A1U",     244, F_XMEGA, {0x1E, 0x96, 0x4E}, // ID
   /*ATxmega64A1U*/       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64A1U*/       6,  1, 127, vtab_atxmega128a1u},   // Config and interrupts
+  /*ATxmega64A1U*/       6,  1, 127, vtab_atxmega128a1u,   0, NULL}, // Config and interrupts
 
   //ATxmega64B1                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64B1",      245, F_XMEGA, {0x1E, 0x96, 0x52}, // ID
   /*ATxmega64B1*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64B1*/        6,  1,  81, vtab_atxmega128b1},    // Config and interrupts
+  /*ATxmega64B1*/        6,  1,  81, vtab_atxmega128b1,    0, NULL}, // Config and interrupts
 
   //ATxmega64A3                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64A3",      246, F_XMEGA, {0x1E, 0x96, 0x42}, // ID
   /*ATxmega64A3*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64A3*/        6,  1, 122, vtab_atxmega256a3},    // Config and interrupts
+  /*ATxmega64A3*/        6,  1, 122, vtab_atxmega256a3,    0, NULL}, // Config and interrupts
 
   //ATxmega64A3U                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64A3U",     247, F_XMEGA, {0x1E, 0x96, 0x42}, // ID
   /*ATxmega64A3U*/       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64A3U*/       6,  1, 127, vtab_atxmega256a3u},   // Config and interrupts
+  /*ATxmega64A3U*/       6,  1, 127, vtab_atxmega256a3u,   0, NULL}, // Config and interrupts
 
   //ATxmega64B3                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64B3",      248, F_XMEGA, {0x1E, 0x96, 0x51}, // ID
   /*ATxmega64B3*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64B3*/        6,  1,  54, vtab_atxmega128b3},    // Config and interrupts
+  /*ATxmega64B3*/        6,  1,  54, vtab_atxmega128b3,    0, NULL}, // Config and interrupts
 
   //ATxmega64C3                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64C3",      249, F_XMEGA, {0x1E, 0x96, 0x49}, // ID
   /*ATxmega64C3*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64C3*/        6,  1, 127, vtab_atxmega256c3},    // Config and interrupts
+  /*ATxmega64C3*/        6,  1, 127, vtab_atxmega256c3,    0, NULL}, // Config and interrupts
 
   //ATxmega64D3                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64D3",      250, F_XMEGA, {0x1E, 0x96, 0x4A}, // ID
   /*ATxmega64D3*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64D3*/        6,  1, 114, vtab_atxmega384d3},    // Config and interrupts
+  /*ATxmega64D3*/        6,  1, 114, vtab_atxmega384d3,    0, NULL}, // Config and interrupts
 
   //ATxmega64A4                                               avrdude // Sources
   {"ATxmega64A4",      251, F_XMEGA, {0x1E, 0x96, 0x46}, // ID
   /*ATxmega64A4*/        0, 0x11000, 0x100, -1,     -1,       0, 0x0800, 32,     -1,     -1, // Mem
-  /*ATxmega64A4*/       -1, -1,   0, NULL},                 // Config and interrupts
+  /*ATxmega64A4*/       -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //ATxmega64A4U                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64A4U",     252, F_XMEGA, {0x1E, 0x96, 0x46}, // ID
   /*ATxmega64A4U*/       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64A4U*/       6,  1, 127, vtab_atxmega128a4u},   // Config and interrupts
+  /*ATxmega64A4U*/       6,  1, 127, vtab_atxmega128a4u,   0, NULL}, // Config and interrupts
 
   //ATxmega64D4                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64D4",      253, F_XMEGA, {0x1E, 0x96, 0x47}, // ID
   /*ATxmega64D4*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64D4*/        6,  1,  91, vtab_atxmega128d4},    // Config and interrupts
+  /*ATxmega64D4*/        6,  1,  91, vtab_atxmega128d4,    0, NULL}, // Config and interrupts
 
   //ATxmega128A1                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128A1",     254, F_XMEGA, {0x1E, 0x97, 0x4C}, // ID
   /*ATxmega128A1*/       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128A1*/       6,  1, 125, vtab_atxmega128a1},    // Config and interrupts
+  /*ATxmega128A1*/       6,  1, 125, vtab_atxmega128a1,    0, NULL}, // Config and interrupts
 
   //ATxmega128A1revD                       avrdude, from ATxmega128A1 // Sources
   {"ATxmega128A1revD", 255, F_XMEGA, {0x1E, 0x97, 0x41}, // ID
   /*ATxmega128A1revD*/   0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128A1revD*/   6,  1, 125, vtab_atxmega128a1},    // Config and interrupts
+  /*ATxmega128A1revD*/   6,  1, 125, vtab_atxmega128a1,    0, NULL}, // Config and interrupts
 
   //ATxmega128A1U                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128A1U",    256, F_XMEGA, {0x1E, 0x97, 0x4C}, // ID
   /*ATxmega128A1U*/      0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128A1U*/      6,  1, 127, vtab_atxmega128a1u},   // Config and interrupts
+  /*ATxmega128A1U*/      6,  1, 127, vtab_atxmega128a1u,   0, NULL}, // Config and interrupts
 
   //ATxmega128B1                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128B1",     257, F_XMEGA, {0x1E, 0x97, 0x4D}, // ID
   /*ATxmega128B1*/       0, 0x22000, 0x100,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128B1*/       6,  1,  81, vtab_atxmega128b1},    // Config and interrupts
+  /*ATxmega128B1*/       6,  1,  81, vtab_atxmega128b1,    0, NULL}, // Config and interrupts
 
   //ATxmega128A3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128A3",     258, F_XMEGA, {0x1E, 0x97, 0x42}, // ID
   /*ATxmega128A3*/       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128A3*/       6,  1, 122, vtab_atxmega256a3},    // Config and interrupts
+  /*ATxmega128A3*/       6,  1, 122, vtab_atxmega256a3,    0, NULL}, // Config and interrupts
 
   //ATxmega128A3U                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128A3U",    259, F_XMEGA, {0x1E, 0x97, 0x42}, // ID
   /*ATxmega128A3U*/      0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128A3U*/      6,  1, 127, vtab_atxmega256a3u},   // Config and interrupts
+  /*ATxmega128A3U*/      6,  1, 127, vtab_atxmega256a3u,   0, NULL}, // Config and interrupts
 
   //ATxmega128B3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128B3",     260, F_XMEGA, {0x1E, 0x97, 0x4B}, // ID
   /*ATxmega128B3*/       0, 0x22000, 0x100,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128B3*/       6,  1,  54, vtab_atxmega128b3},    // Config and interrupts
+  /*ATxmega128B3*/       6,  1,  54, vtab_atxmega128b3,    0, NULL}, // Config and interrupts
 
   //ATxmega128C3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128C3",     261, F_XMEGA, {0x1E, 0x97, 0x52}, // ID
   /*ATxmega128C3*/       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128C3*/       6,  1, 127, vtab_atxmega256c3},    // Config and interrupts
+  /*ATxmega128C3*/       6,  1, 127, vtab_atxmega256c3,    0, NULL}, // Config and interrupts
 
   //ATxmega128D3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128D3",     262, F_XMEGA, {0x1E, 0x97, 0x48}, // ID
   /*ATxmega128D3*/       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128D3*/       6,  1, 114, vtab_atxmega384d3},    // Config and interrupts
+  /*ATxmega128D3*/       6,  1, 114, vtab_atxmega384d3,    0, NULL}, // Config and interrupts
 
   //ATxmega128A4                                              avrdude // Sources
   {"ATxmega128A4",     263, F_XMEGA, {0x1E, 0x97, 0x46}, // ID
   /*ATxmega128A4*/       0, 0x22000, 0x200, -1,     -1,       0, 0x0800, 32,     -1,     -1, // Mem
-  /*ATxmega128A4*/      -1, -1,   0, NULL},                 // Config and interrupts
+  /*ATxmega128A4*/      -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //ATxmega128A4U                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128A4U",    264, F_XMEGA, {0x1E, 0x97, 0x46}, // ID
   /*ATxmega128A4U*/      0, 0x22000, 0x100,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128A4U*/      6,  1, 127, vtab_atxmega128a4u},   // Config and interrupts
+  /*ATxmega128A4U*/      6,  1, 127, vtab_atxmega128a4u,   0, NULL}, // Config and interrupts
 
   //ATxmega128D4                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128D4",     265, F_XMEGA, {0x1E, 0x97, 0x47}, // ID
   /*ATxmega128D4*/       0, 0x22000, 0x100,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128D4*/       6,  1,  91, vtab_atxmega128d4},    // Config and interrupts
+  /*ATxmega128D4*/       6,  1,  91, vtab_atxmega128d4,    0, NULL}, // Config and interrupts
 
   //ATxmega192A1                                              avrdude // Sources
   {"ATxmega192A1",     266, F_XMEGA, {0x1E, 0x97, 0x4E}, // ID
   /*ATxmega192A1*/       0, 0x32000, 0x200, -1,     -1,       0, 0x0800, 32,     -1,     -1, // Mem
-  /*ATxmega192A1*/      -1, -1,   0, NULL},                 // Config and interrupts
+  /*ATxmega192A1*/      -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //ATxmega192A3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega192A3",     267, F_XMEGA, {0x1E, 0x97, 0x44}, // ID
   /*ATxmega192A3*/       0, 0x32000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega192A3*/       6,  1, 122, vtab_atxmega256a3},    // Config and interrupts
+  /*ATxmega192A3*/       6,  1, 122, vtab_atxmega256a3,    0, NULL}, // Config and interrupts
 
   //ATxmega192A3U                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega192A3U",    268, F_XMEGA, {0x1E, 0x97, 0x44}, // ID
   /*ATxmega192A3U*/      0, 0x32000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega192A3U*/      6,  1, 127, vtab_atxmega256a3u},   // Config and interrupts
+  /*ATxmega192A3U*/      6,  1, 127, vtab_atxmega256a3u,   0, NULL}, // Config and interrupts
 
   //ATxmega192C3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega192C3",     269, F_XMEGA, {0x1E, 0x97, 0x51}, // ID
   /*ATxmega192C3*/       0, 0x32000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega192C3*/       6,  1, 127, vtab_atxmega256c3},    // Config and interrupts
+  /*ATxmega192C3*/       6,  1, 127, vtab_atxmega256c3,    0, NULL}, // Config and interrupts
 
   //ATxmega192D3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega192D3",     270, F_XMEGA, {0x1E, 0x97, 0x49}, // ID
   /*ATxmega192D3*/       0, 0x32000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega192D3*/       6,  1, 114, vtab_atxmega384d3},    // Config and interrupts
+  /*ATxmega192D3*/       6,  1, 114, vtab_atxmega384d3,    0, NULL}, // Config and interrupts
 
   //ATxmega256A1                                              avrdude // Sources
   {"ATxmega256A1",     271, F_XMEGA, {0x1E, 0x98, 0x46}, // ID
   /*ATxmega256A1*/       0, 0x42000, 0x200, -1,     -1,       0, 0x1000, 32,     -1,     -1, // Mem
-  /*ATxmega256A1*/      -1, -1,   0, NULL},                 // Config and interrupts
+  /*ATxmega256A1*/      -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //ATxmega256A3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega256A3",     272, F_XMEGA, {0x1E, 0x98, 0x42}, // ID
   /*ATxmega256A3*/       0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega256A3*/       6,  1, 122, vtab_atxmega256a3},    // Config and interrupts
+  /*ATxmega256A3*/       6,  1, 122, vtab_atxmega256a3,    0, NULL}, // Config and interrupts
 
   //ATxmega256A3B                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega256A3B",    273, F_XMEGA, {0x1E, 0x98, 0x43}, // ID
   /*ATxmega256A3B*/      0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega256A3B*/      6,  1, 122, vtab_atxmega256a3b},   // Config and interrupts
+  /*ATxmega256A3B*/      6,  1, 122, vtab_atxmega256a3b,   0, NULL}, // Config and interrupts
 
   //ATxmega256A3BU                      atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega256A3BU",   274, F_XMEGA, {0x1E, 0x98, 0x43}, // ID
   /*ATxmega256A3BU*/     0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega256A3BU*/     6,  1, 127, vtab_atxmega256a3bu},  // Config and interrupts
+  /*ATxmega256A3BU*/     6,  1, 127, vtab_atxmega256a3bu,  0, NULL}, // Config and interrupts
 
   //ATxmega256A3U                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega256A3U",    275, F_XMEGA, {0x1E, 0x98, 0x42}, // ID
   /*ATxmega256A3U*/      0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega256A3U*/      6,  1, 127, vtab_atxmega256a3u},   // Config and interrupts
+  /*ATxmega256A3U*/      6,  1, 127, vtab_atxmega256a3u,   0, NULL}, // Config and interrupts
 
   //ATxmega256C3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega256C3",     276, F_XMEGA, {0x1E, 0x98, 0x46}, // ID
   /*ATxmega256C3*/       0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega256C3*/       6,  1, 127, vtab_atxmega256c3},    // Config and interrupts
+  /*ATxmega256C3*/       6,  1, 127, vtab_atxmega256c3,    0, NULL}, // Config and interrupts
 
   //ATxmega256D3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega256D3",     277, F_XMEGA, {0x1E, 0x98, 0x44}, // ID
   /*ATxmega256D3*/       0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega256D3*/       6,  1, 114, vtab_atxmega384d3},    // Config and interrupts
+  /*ATxmega256D3*/       6,  1, 114, vtab_atxmega384d3,    0, NULL}, // Config and interrupts
 
   //ATxmega384C3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega384C3",     278, F_XMEGA, {0x1E, 0x98, 0x45}, // ID
   /*ATxmega384C3*/       0, 0x62000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x8000, // Mem
-  /*ATxmega384C3*/       6,  1, 127, vtab_atxmega384c3},    // Config and interrupts
+  /*ATxmega384C3*/       6,  1, 127, vtab_atxmega384c3,    0, NULL}, // Config and interrupts
 
   //ATxmega384D3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega384D3",     279, F_XMEGA, {0x1E, 0x98, 0x47}, // ID
   /*ATxmega384D3*/       0, 0x62000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x8000, // Mem
-  /*ATxmega384D3*/       6,  1, 114, vtab_atxmega384d3},    // Config and interrupts
+  /*ATxmega384D3*/       6,  1, 114, vtab_atxmega384d3,    0, NULL}, // Config and interrupts
 
 
   //ATtiny202                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny202",        280, F_AVR8X, {0x1E, 0x91, 0x23}, // ID
   /*ATtiny202*/          0, 0x00800, 0x040,  1,      0, 0x01400, 0x0040, 32, 0x3f80, 0x0080, // Mem
-  /*ATtiny202*/         10,  1,  26, vtab_attiny402},       // Config and interrupts
+  /*ATtiny202*/         10,  1,  26, vtab_attiny402,       0, NULL}, // Config and interrupts
 
   //ATtiny204                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny204",        281, F_AVR8X, {0x1E, 0x91, 0x22}, // ID
   /*ATtiny204*/          0, 0x00800, 0x040,  1,      0, 0x01400, 0x0040, 32, 0x3f80, 0x0080, // Mem
-  /*ATtiny204*/         10,  1,  26, vtab_attiny404},       // Config and interrupts
+  /*ATtiny204*/         10,  1,  26, vtab_attiny404,       0, NULL}, // Config and interrupts
 
   //ATtiny212                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny212",        282, F_AVR8X, {0x1E, 0x91, 0x21}, // ID
   /*ATtiny212*/          0, 0x00800, 0x040,  1,      0, 0x01400, 0x0040, 32, 0x3f80, 0x0080, // Mem
-  /*ATtiny212*/         10,  1,  26, vtab_attiny412},       // Config and interrupts
+  /*ATtiny212*/         10,  1,  26, vtab_attiny412,       0, NULL}, // Config and interrupts
 
   //ATtiny214                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny214",        283, F_AVR8X, {0x1E, 0x91, 0x20}, // ID
   /*ATtiny214*/          0, 0x00800, 0x040,  1,      0, 0x01400, 0x0040, 32, 0x3f80, 0x0080, // Mem
-  /*ATtiny214*/         10,  1,  26, vtab_attiny814},       // Config and interrupts
+  /*ATtiny214*/         10,  1,  26, vtab_attiny814,       0, NULL}, // Config and interrupts
 
   //ATtiny402                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny402",        284, F_AVR8X, {0x1E, 0x92, 0x27}, // ID
   /*ATtiny402*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
-  /*ATtiny402*/         10,  1,  26, vtab_attiny402},       // Config and interrupts
+  /*ATtiny402*/         10,  1,  26, vtab_attiny402,       0, NULL}, // Config and interrupts
 
   //ATtiny404                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny404",        285, F_AVR8X, {0x1E, 0x92, 0x26}, // ID
   /*ATtiny404*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
-  /*ATtiny404*/         10,  1,  26, vtab_attiny404},       // Config and interrupts
+  /*ATtiny404*/         10,  1,  26, vtab_attiny404,       0, NULL}, // Config and interrupts
 
   //ATtiny406                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny406",        286, F_AVR8X, {0x1E, 0x92, 0x25}, // ID
   /*ATtiny406*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
-  /*ATtiny406*/         10,  1,  26, vtab_attiny406},       // Config and interrupts
+  /*ATtiny406*/         10,  1,  26, vtab_attiny406,       0, NULL}, // Config and interrupts
 
   //ATtiny412                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny412",        287, F_AVR8X, {0x1E, 0x92, 0x23}, // ID
   /*ATtiny412*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
-  /*ATtiny412*/         10,  1,  26, vtab_attiny412},       // Config and interrupts
+  /*ATtiny412*/         10,  1,  26, vtab_attiny412,       0, NULL}, // Config and interrupts
 
   //ATtiny414                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny414",        288, F_AVR8X, {0x1E, 0x92, 0x22}, // ID
   /*ATtiny414*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
-  /*ATtiny414*/         10,  1,  26, vtab_attiny814},       // Config and interrupts
+  /*ATtiny414*/         10,  1,  26, vtab_attiny814,       0, NULL}, // Config and interrupts
 
   //ATtiny416                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny416",        289, F_AVR8X, {0x1E, 0x92, 0x21}, // ID
   /*ATtiny416*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
-  /*ATtiny416*/         10,  1,  26, vtab_attiny817},       // Config and interrupts
+  /*ATtiny416*/         10,  1,  26, vtab_attiny817,       0, NULL}, // Config and interrupts
 
   //ATtiny416auto                                                atdf // Sources
   {"ATtiny416auto",    290, F_AVR8X, {0x1E, 0x92, 0x28}, // ID
   /*ATtiny416auto*/      0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
-  /*ATtiny416auto*/     10,  1,  26, vtab_attiny817},       // Config and interrupts
+  /*ATtiny416auto*/     10,  1,  26, vtab_attiny817,       0, NULL}, // Config and interrupts
 
   //ATtiny417                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny417",        291, F_AVR8X, {0x1E, 0x92, 0x20}, // ID
   /*ATtiny417*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
-  /*ATtiny417*/         10,  1,  26, vtab_attiny817},       // Config and interrupts
+  /*ATtiny417*/         10,  1,  26, vtab_attiny817,       0, NULL}, // Config and interrupts
 
   //ATtiny424                                           atdf, avrdude // Sources
   {"ATtiny424",        292, F_AVR8X, {0x1E, 0x92, 0x2C}, // ID
   /*ATtiny424*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
-  /*ATtiny424*/         10,  1,  30, vtab_attiny3227},      // Config and interrupts
+  /*ATtiny424*/         10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
 
   //ATtiny426                                           atdf, avrdude // Sources
   {"ATtiny426",        293, F_AVR8X, {0x1E, 0x92, 0x2B}, // ID
   /*ATtiny426*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
-  /*ATtiny426*/         10,  1,  30, vtab_attiny3227},      // Config and interrupts
+  /*ATtiny426*/         10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
 
   //ATtiny427                                           atdf, avrdude // Sources
   {"ATtiny427",        294, F_AVR8X, {0x1E, 0x92, 0x2A}, // ID
   /*ATtiny427*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
-  /*ATtiny427*/         10,  1,  30, vtab_attiny3227},      // Config and interrupts
+  /*ATtiny427*/         10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
 
   //ATtiny804                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny804",        295, F_AVR8X, {0x1E, 0x93, 0x25}, // ID
   /*ATtiny804*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
-  /*ATtiny804*/         10,  1,  31, vtab_attiny1607},      // Config and interrupts
+  /*ATtiny804*/         10,  1,  31, vtab_attiny1607,      0, NULL}, // Config and interrupts
 
   //ATtiny806                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny806",        296, F_AVR8X, {0x1E, 0x93, 0x24}, // ID
   /*ATtiny806*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
-  /*ATtiny806*/         10,  1,  31, vtab_attiny1607},      // Config and interrupts
+  /*ATtiny806*/         10,  1,  31, vtab_attiny1607,      0, NULL}, // Config and interrupts
 
   //ATtiny807                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny807",        297, F_AVR8X, {0x1E, 0x93, 0x23}, // ID
   /*ATtiny807*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
-  /*ATtiny807*/         10,  1,  31, vtab_attiny1607},      // Config and interrupts
+  /*ATtiny807*/         10,  1,  31, vtab_attiny1607,      0, NULL}, // Config and interrupts
 
   //ATtiny814                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny814",        298, F_AVR8X, {0x1E, 0x93, 0x22}, // ID
   /*ATtiny814*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
-  /*ATtiny814*/         10,  1,  26, vtab_attiny814},       // Config and interrupts
+  /*ATtiny814*/         10,  1,  26, vtab_attiny814,       0, NULL}, // Config and interrupts
 
   //ATtiny816                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny816",        299, F_AVR8X, {0x1E, 0x93, 0x21}, // ID
   /*ATtiny816*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
-  /*ATtiny816*/         10,  1,  26, vtab_attiny817},       // Config and interrupts
+  /*ATtiny816*/         10,  1,  26, vtab_attiny817,       0, NULL}, // Config and interrupts
 
   //ATtiny817                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny817",        300, F_AVR8X, {0x1E, 0x93, 0x20}, // ID
   /*ATtiny817*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
-  /*ATtiny817*/         10,  1,  26, vtab_attiny817},       // Config and interrupts
+  /*ATtiny817*/         10,  1,  26, vtab_attiny817,       0, NULL}, // Config and interrupts
 
   //ATtiny824                                           atdf, avrdude // Sources
   {"ATtiny824",        301, F_AVR8X, {0x1E, 0x93, 0x29}, // ID
   /*ATtiny824*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3c00, 0x0400, // Mem
-  /*ATtiny824*/         10,  1,  30, vtab_attiny3227},      // Config and interrupts
+  /*ATtiny824*/         10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
 
   //ATtiny826                                           atdf, avrdude // Sources
   {"ATtiny826",        302, F_AVR8X, {0x1E, 0x93, 0x28}, // ID
   /*ATtiny826*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3c00, 0x0400, // Mem
-  /*ATtiny826*/         10,  1,  30, vtab_attiny3227},      // Config and interrupts
+  /*ATtiny826*/         10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
 
   //ATtiny827                                           atdf, avrdude // Sources
   {"ATtiny827",        303, F_AVR8X, {0x1E, 0x93, 0x27}, // ID
   /*ATtiny827*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3c00, 0x0400, // Mem
-  /*ATtiny827*/         10,  1,  30, vtab_attiny3227},      // Config and interrupts
+  /*ATtiny827*/         10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
 
   //ATtiny1604                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny1604",       304, F_AVR8X, {0x1E, 0x94, 0x25}, // ID
   /*ATtiny1604*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, // Mem
-  /*ATtiny1604*/        10,  1,  31, vtab_attiny1607},      // Config and interrupts
+  /*ATtiny1604*/        10,  1,  31, vtab_attiny1607,      0, NULL}, // Config and interrupts
 
   //ATtiny1606                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny1606",       305, F_AVR8X, {0x1E, 0x94, 0x24}, // ID
   /*ATtiny1606*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, // Mem
-  /*ATtiny1606*/        10,  1,  31, vtab_attiny1607},      // Config and interrupts
+  /*ATtiny1606*/        10,  1,  31, vtab_attiny1607,      0, NULL}, // Config and interrupts
 
   //ATtiny1607                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny1607",       306, F_AVR8X, {0x1E, 0x94, 0x23}, // ID
   /*ATtiny1607*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, // Mem
-  /*ATtiny1607*/        10,  1,  31, vtab_attiny1607},      // Config and interrupts
+  /*ATtiny1607*/        10,  1,  31, vtab_attiny1607,      0, NULL}, // Config and interrupts
 
   //ATtiny1614                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny1614",       307, F_AVR8X, {0x1E, 0x94, 0x22}, // ID
   /*ATtiny1614*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
-  /*ATtiny1614*/        10,  1,  31, vtab_attiny1614},      // Config and interrupts
+  /*ATtiny1614*/        10,  1,  31, vtab_attiny1614,      0, NULL}, // Config and interrupts
 
   //ATtiny1616                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny1616",       308, F_AVR8X, {0x1E, 0x94, 0x21}, // ID
   /*ATtiny1616*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
-  /*ATtiny1616*/        10,  1,  31, vtab_attiny3217},      // Config and interrupts
+  /*ATtiny1616*/        10,  1,  31, vtab_attiny3217,      0, NULL}, // Config and interrupts
 
   //ATtiny1617                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny1617",       309, F_AVR8X, {0x1E, 0x94, 0x20}, // ID
   /*ATtiny1617*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
-  /*ATtiny1617*/        10,  1,  31, vtab_attiny3217},      // Config and interrupts
+  /*ATtiny1617*/        10,  1,  31, vtab_attiny3217,      0, NULL}, // Config and interrupts
 
   //ATtiny1624                                          atdf, avrdude // Sources
   {"ATtiny1624",       310, F_AVR8X, {0x1E, 0x94, 0x2A}, // ID
   /*ATtiny1624*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
-  /*ATtiny1624*/        10,  1,  30, vtab_attiny3227},      // Config and interrupts
+  /*ATtiny1624*/        10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
 
   //ATtiny1626                                          atdf, avrdude // Sources
   {"ATtiny1626",       311, F_AVR8X, {0x1E, 0x94, 0x29}, // ID
   /*ATtiny1626*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
-  /*ATtiny1626*/        10,  1,  30, vtab_attiny3227},      // Config and interrupts
+  /*ATtiny1626*/        10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
 
   //ATtiny1627                                          atdf, avrdude // Sources
   {"ATtiny1627",       312, F_AVR8X, {0x1E, 0x94, 0x28}, // ID
   /*ATtiny1627*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
-  /*ATtiny1627*/        10,  1,  30, vtab_attiny3227},      // Config and interrupts
+  /*ATtiny1627*/        10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
 
   //ATtiny3214                                         avr-gcc 12.2.0 // Sources
   {"ATtiny3214",       313, F_AVR8X, {0x1E, 0x95, 0x20}, // ID
   /*ATtiny3214*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3800, 0x0800, // Mem
-  /*ATtiny3214*/        10,  1,  31, vtab_attiny3214},      // Config and interrupts
+  /*ATtiny3214*/        10,  1,  31, vtab_attiny3214,      0, NULL}, // Config and interrupts
 
   //ATtiny3216                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny3216",       314, F_AVR8X, {0x1E, 0x95, 0x21}, // ID
   /*ATtiny3216*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3800, 0x0800, // Mem
-  /*ATtiny3216*/        10,  1,  31, vtab_attiny3217},      // Config and interrupts
+  /*ATtiny3216*/        10,  1,  31, vtab_attiny3217,      0, NULL}, // Config and interrupts
 
   //ATtiny3217                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny3217",       315, F_AVR8X, {0x1E, 0x95, 0x22}, // ID
   /*ATtiny3217*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3800, 0x0800, // Mem
-  /*ATtiny3217*/        10,  1,  31, vtab_attiny3217},      // Config and interrupts
+  /*ATtiny3217*/        10,  1,  31, vtab_attiny3217,      0, NULL}, // Config and interrupts
 
   //ATtiny3224                                          atdf, avrdude // Sources
   {"ATtiny3224",       316, F_AVR8X, {0x1E, 0x95, 0x28}, // ID
   /*ATtiny3224*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3400, 0x0c00, // Mem
-  /*ATtiny3224*/        10,  1,  30, vtab_attiny3227},      // Config and interrupts
+  /*ATtiny3224*/        10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
 
   //ATtiny3226                                          atdf, avrdude // Sources
   {"ATtiny3226",       317, F_AVR8X, {0x1E, 0x95, 0x27}, // ID
   /*ATtiny3226*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3400, 0x0c00, // Mem
-  /*ATtiny3226*/        10,  1,  30, vtab_attiny3227},      // Config and interrupts
+  /*ATtiny3226*/        10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
 
   //ATtiny3227                                          atdf, avrdude // Sources
   {"ATtiny3227",       318, F_AVR8X, {0x1E, 0x95, 0x26}, // ID
   /*ATtiny3227*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3400, 0x0c00, // Mem
-  /*ATtiny3227*/        10,  1,  30, vtab_attiny3227},      // Config and interrupts
+  /*ATtiny3227*/        10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
 
   //ATmega808                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega808",        319, F_AVR8X, {0x1E, 0x93, 0x26}, // ID
   /*ATmega808*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, // Mem
-  /*ATmega808*/         10,  1,  36, vtab_atmega4808},      // Config and interrupts
+  /*ATmega808*/         10,  1,  36, vtab_atmega4808,      0, NULL}, // Config and interrupts
 
   //ATmega809                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega809",        320, F_AVR8X, {0x1E, 0x93, 0x2A}, // ID
   /*ATmega809*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, // Mem
-  /*ATmega809*/         10,  1,  40, vtab_atmega4809},      // Config and interrupts
+  /*ATmega809*/         10,  1,  40, vtab_atmega4809,      0, NULL}, // Config and interrupts
 
   //ATmega1608                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega1608",       321, F_AVR8X, {0x1E, 0x94, 0x27}, // ID
   /*ATmega1608*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
-  /*ATmega1608*/        10,  1,  36, vtab_atmega4808},      // Config and interrupts
+  /*ATmega1608*/        10,  1,  36, vtab_atmega4808,      0, NULL}, // Config and interrupts
 
   //ATmega1609                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega1609",       322, F_AVR8X, {0x1E, 0x94, 0x26}, // ID
   /*ATmega1609*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
-  /*ATmega1609*/        10,  1,  40, vtab_atmega4809},      // Config and interrupts
+  /*ATmega1609*/        10,  1,  40, vtab_atmega4809,      0, NULL}, // Config and interrupts
 
   //ATmega3208                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3208",       323, F_AVR8X, {0x1E, 0x95, 0x30}, // ID
   /*ATmega3208*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3000, 0x1000, // Mem
-  /*ATmega3208*/        10,  1,  36, vtab_atmega4808},      // Config and interrupts
+  /*ATmega3208*/        10,  1,  36, vtab_atmega4808,      0, NULL}, // Config and interrupts
 
   //ATmega3209                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3209",       324, F_AVR8X, {0x1E, 0x95, 0x31}, // ID
   /*ATmega3209*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3000, 0x1000, // Mem
-  /*ATmega3209*/        10,  1,  40, vtab_atmega4809},      // Config and interrupts
+  /*ATmega3209*/        10,  1,  40, vtab_atmega4809,      0, NULL}, // Config and interrupts
 
   //ATmega4808                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega4808",       325, F_AVR8X, {0x1E, 0x96, 0x50}, // ID
   /*ATmega4808*/         0, 0x0c000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x2800, 0x1800, // Mem
-  /*ATmega4808*/        10,  1,  36, vtab_atmega4808},      // Config and interrupts
+  /*ATmega4808*/        10,  1,  36, vtab_atmega4808,      0, NULL}, // Config and interrupts
 
   //ATmega4809                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega4809",       326, F_AVR8X, {0x1E, 0x96, 0x51}, // ID
   /*ATmega4809*/         0, 0x0c000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x2800, 0x1800, // Mem
-  /*ATmega4809*/        10,  1,  40, vtab_atmega4809},      // Config and interrupts
+  /*ATmega4809*/        10,  1,  40, vtab_atmega4809,      0, NULL}, // Config and interrupts
 
   //AVR8EA28                                                  avrdude // Sources
   {"AVR8EA28",         327, F_AVR8X, {0x1E, 0x93, 0x2C}, // ID
   /*AVR8EA28*/           0, 0x02000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
-  /*AVR8EA28*/          -1, -1,   0, NULL},                 // Config and interrupts
+  /*AVR8EA28*/          -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //AVR8EA32                                                  avrdude // Sources
   {"AVR8EA32",         328, F_AVR8X, {0x1E, 0x93, 0x2B}, // ID
   /*AVR8EA32*/           0, 0x02000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
-  /*AVR8EA32*/          -1, -1,   0, NULL},                 // Config and interrupts
+  /*AVR8EA32*/          -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //AVR16DD14                                           atdf, avrdude // Sources
   {"AVR16DD14",        329, F_AVR8X, {0x1E, 0x94, 0x34}, // ID
   /*AVR16DD14*/          0, 0x04000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7800, 0x0800, // Mem
-  /*AVR16DD14*/         16,  4,  36, vtab_avr64dd32},       // Config and interrupts
+  /*AVR16DD14*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
 
   //AVR16DD20                                           atdf, avrdude // Sources
   {"AVR16DD20",        330, F_AVR8X, {0x1E, 0x94, 0x33}, // ID
   /*AVR16DD20*/          0, 0x04000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7800, 0x0800, // Mem
-  /*AVR16DD20*/         16,  4,  36, vtab_avr64dd32},       // Config and interrupts
+  /*AVR16DD20*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
 
   //AVR16DD28                                           atdf, avrdude // Sources
   {"AVR16DD28",        331, F_AVR8X, {0x1E, 0x94, 0x32}, // ID
   /*AVR16DD28*/          0, 0x04000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7800, 0x0800, // Mem
-  /*AVR16DD28*/         16,  4,  36, vtab_avr64dd32},       // Config and interrupts
+  /*AVR16DD28*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
 
   //AVR16EA28                                                 avrdude // Sources
   {"AVR16EA28",        332, F_AVR8X, {0x1E, 0x94, 0x37}, // ID
   /*AVR16EA28*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
-  /*AVR16EA28*/         -1, -1,   0, NULL},                 // Config and interrupts
+  /*AVR16EA28*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //AVR16DD32                                           atdf, avrdude // Sources
   {"AVR16DD32",        333, F_AVR8X, {0x1E, 0x94, 0x31}, // ID
   /*AVR16DD32*/          0, 0x04000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7800, 0x0800, // Mem
-  /*AVR16DD32*/         16,  4,  36, vtab_avr64dd32},       // Config and interrupts
+  /*AVR16DD32*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
 
   //AVR16EA32                                                 avrdude // Sources
   {"AVR16EA32",        334, F_AVR8X, {0x1E, 0x94, 0x36}, // ID
   /*AVR16EA32*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
-  /*AVR16EA32*/         -1, -1,   0, NULL},                 // Config and interrupts
+  /*AVR16EA32*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //AVR16EA48                                                 avrdude // Sources
   {"AVR16EA48",        335, F_AVR8X, {0x1E, 0x94, 0x35}, // ID
   /*AVR16EA48*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
-  /*AVR16EA48*/         -1, -1,   0, NULL},                 // Config and interrupts
+  /*AVR16EA48*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //AVR32DD14                                           atdf, avrdude // Sources
   {"AVR32DD14",        336, F_AVR8X, {0x1E, 0x95, 0x3B}, // ID
   /*AVR32DD14*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DD14*/         16,  4,  36, vtab_avr64dd32},       // Config and interrupts
+  /*AVR32DD14*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
 
   //AVR32DD20                                           atdf, avrdude // Sources
   {"AVR32DD20",        337, F_AVR8X, {0x1E, 0x95, 0x3A}, // ID
   /*AVR32DD20*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DD20*/         16,  4,  36, vtab_avr64dd32},       // Config and interrupts
+  /*AVR32DD20*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
 
   //AVR32DA28                                           atdf, avrdude // Sources
   {"AVR32DA28",        338, F_AVR8X, {0x1E, 0x95, 0x34}, // ID
   /*AVR32DA28*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DA28*/         16,  4,  41, vtab_avr128da28},      // Config and interrupts
+  /*AVR32DA28*/         16,  4,  41, vtab_avr128da28,      0, NULL}, // Config and interrupts
 
   //AVR32DB28                                           atdf, avrdude // Sources
   {"AVR32DB28",        339, F_AVR8X, {0x1E, 0x95, 0x37}, // ID
   /*AVR32DB28*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DB28*/         16,  4,  42, vtab_avr128db28},      // Config and interrupts
+  /*AVR32DB28*/         16,  4,  42, vtab_avr128db28,      0, NULL}, // Config and interrupts
 
   //AVR32DD28                                           atdf, avrdude // Sources
   {"AVR32DD28",        340, F_AVR8X, {0x1E, 0x95, 0x39}, // ID
   /*AVR32DD28*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DD28*/         16,  4,  36, vtab_avr64dd32},       // Config and interrupts
+  /*AVR32DD28*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
 
   //AVR32EA28                                                 avrdude // Sources
   {"AVR32EA28",        341, F_AVR8X, {0x1E, 0x95, 0x3E}, // ID
   /*AVR32EA28*/          0, 0x08000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
-  /*AVR32EA28*/         -1, -1,   0, NULL},                 // Config and interrupts
+  /*AVR32EA28*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //AVR32DA32                                           atdf, avrdude // Sources
   {"AVR32DA32",        342, F_AVR8X, {0x1E, 0x95, 0x33}, // ID
   /*AVR32DA32*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DA32*/         16,  4,  44, vtab_avr128da32},      // Config and interrupts
+  /*AVR32DA32*/         16,  4,  44, vtab_avr128da32,      0, NULL}, // Config and interrupts
 
   //AVR32DB32                                           atdf, avrdude // Sources
   {"AVR32DB32",        343, F_AVR8X, {0x1E, 0x95, 0x36}, // ID
   /*AVR32DB32*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DB32*/         16,  4,  44, vtab_avr128db32},      // Config and interrupts
+  /*AVR32DB32*/         16,  4,  44, vtab_avr128db32,      0, NULL}, // Config and interrupts
 
   //AVR32DD32                                           atdf, avrdude // Sources
   {"AVR32DD32",        344, F_AVR8X, {0x1E, 0x95, 0x38}, // ID
   /*AVR32DD32*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DD32*/         16,  4,  36, vtab_avr64dd32},       // Config and interrupts
+  /*AVR32DD32*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
 
   //AVR32EA32                                                 avrdude // Sources
   {"AVR32EA32",        345, F_AVR8X, {0x1E, 0x95, 0x3D}, // ID
   /*AVR32EA32*/          0, 0x08000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
-  /*AVR32EA32*/         -1, -1,   0, NULL},                 // Config and interrupts
+  /*AVR32EA32*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //AVR32DA48                                           atdf, avrdude // Sources
   {"AVR32DA48",        346, F_AVR8X, {0x1E, 0x95, 0x32}, // ID
   /*AVR32DA48*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DA48*/         16,  4,  58, vtab_avr128da48},      // Config and interrupts
+  /*AVR32DA48*/         16,  4,  58, vtab_avr128da48,      0, NULL}, // Config and interrupts
 
   //AVR32DB48                                           atdf, avrdude // Sources
   {"AVR32DB48",        347, F_AVR8X, {0x1E, 0x95, 0x35}, // ID
   /*AVR32DB48*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DB48*/         16,  4,  61, vtab_avr128db48},      // Config and interrupts
+  /*AVR32DB48*/         16,  4,  61, vtab_avr128db48,      0, NULL}, // Config and interrupts
 
   //AVR32EA48                                                 avrdude // Sources
   {"AVR32EA48",        348, F_AVR8X, {0x1E, 0x95, 0x3C}, // ID
   /*AVR32EA48*/          0, 0x08000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
-  /*AVR32EA48*/         -1, -1,   0, NULL},                 // Config and interrupts
+  /*AVR32EA48*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
 
   //AVR64DD14                                           atdf, avrdude // Sources
   {"AVR64DD14",        349, F_AVR8X, {0x1E, 0x96, 0x1D}, // ID
   /*AVR64DD14*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DD14*/         16,  4,  36, vtab_avr64dd32},       // Config and interrupts
+  /*AVR64DD14*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
 
   //AVR64DD20                                           atdf, avrdude // Sources
   {"AVR64DD20",        350, F_AVR8X, {0x1E, 0x96, 0x1C}, // ID
   /*AVR64DD20*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DD20*/         16,  4,  36, vtab_avr64dd32},       // Config and interrupts
+  /*AVR64DD20*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
 
   //AVR64DA28                                           atdf, avrdude // Sources
   {"AVR64DA28",        351, F_AVR8X, {0x1E, 0x96, 0x15}, // ID
   /*AVR64DA28*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DA28*/         16,  4,  41, vtab_avr128da28},      // Config and interrupts
+  /*AVR64DA28*/         16,  4,  41, vtab_avr128da28,      0, NULL}, // Config and interrupts
 
   //AVR64DB28                                           atdf, avrdude // Sources
   {"AVR64DB28",        352, F_AVR8X, {0x1E, 0x96, 0x19}, // ID
   /*AVR64DB28*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DB28*/         16,  4,  42, vtab_avr128db28},      // Config and interrupts
+  /*AVR64DB28*/         16,  4,  42, vtab_avr128db28,      0, NULL}, // Config and interrupts
 
   //AVR64DD28                                           atdf, avrdude // Sources
   {"AVR64DD28",        353, F_AVR8X, {0x1E, 0x96, 0x1B}, // ID
   /*AVR64DD28*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DD28*/         16,  4,  36, vtab_avr64dd32},       // Config and interrupts
+  /*AVR64DD28*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
 
   //AVR64EA28                                           atdf, avrdude // Sources
   {"AVR64EA28",        354, F_AVR8X, {0x1E, 0x96, 0x20}, // ID
   /*AVR64EA28*/          0, 0x10000, 0x080,  1,      0, 0x01400, 0x0200,  8, 0x6800, 0x1800, // Mem
-  /*AVR64EA28*/         16,  4,  37, vtab_avr64ea32},       // Config and interrupts
+  /*AVR64EA28*/         16,  4,  37, vtab_avr64ea32,       0, NULL}, // Config and interrupts
 
   //AVR64DA32                                           atdf, avrdude // Sources
   {"AVR64DA32",        355, F_AVR8X, {0x1E, 0x96, 0x14}, // ID
   /*AVR64DA32*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DA32*/         16,  4,  44, vtab_avr128da32},      // Config and interrupts
+  /*AVR64DA32*/         16,  4,  44, vtab_avr128da32,      0, NULL}, // Config and interrupts
 
   //AVR64DB32                                           atdf, avrdude // Sources
   {"AVR64DB32",        356, F_AVR8X, {0x1E, 0x96, 0x18}, // ID
   /*AVR64DB32*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DB32*/         16,  4,  44, vtab_avr128db32},      // Config and interrupts
+  /*AVR64DB32*/         16,  4,  44, vtab_avr128db32,      0, NULL}, // Config and interrupts
 
   //AVR64DD32                                           atdf, avrdude // Sources
   {"AVR64DD32",        357, F_AVR8X, {0x1E, 0x96, 0x1A}, // ID
   /*AVR64DD32*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DD32*/         16,  4,  36, vtab_avr64dd32},       // Config and interrupts
+  /*AVR64DD32*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
 
   //AVR64EA32                                           atdf, avrdude // Sources
   {"AVR64EA32",        358, F_AVR8X, {0x1E, 0x96, 0x1F}, // ID
   /*AVR64EA32*/          0, 0x10000, 0x080,  1,      0, 0x01400, 0x0200,  8, 0x6800, 0x1800, // Mem
-  /*AVR64EA32*/         16,  4,  37, vtab_avr64ea32},       // Config and interrupts
+  /*AVR64EA32*/         16,  4,  37, vtab_avr64ea32,       0, NULL}, // Config and interrupts
 
   //AVR64DA48                                           atdf, avrdude // Sources
   {"AVR64DA48",        359, F_AVR8X, {0x1E, 0x96, 0x13}, // ID
   /*AVR64DA48*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DA48*/         16,  4,  58, vtab_avr128da48},      // Config and interrupts
+  /*AVR64DA48*/         16,  4,  58, vtab_avr128da48,      0, NULL}, // Config and interrupts
 
   //AVR64DB48                                           atdf, avrdude // Sources
   {"AVR64DB48",        360, F_AVR8X, {0x1E, 0x96, 0x17}, // ID
   /*AVR64DB48*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DB48*/         16,  4,  61, vtab_avr128db48},      // Config and interrupts
+  /*AVR64DB48*/         16,  4,  61, vtab_avr128db48,      0, NULL}, // Config and interrupts
 
   //AVR64EA48                                           atdf, avrdude // Sources
   {"AVR64EA48",        361, F_AVR8X, {0x1E, 0x96, 0x1E}, // ID
   /*AVR64EA48*/          0, 0x10000, 0x080,  1,      0, 0x01400, 0x0200,  8, 0x6800, 0x1800, // Mem
-  /*AVR64EA48*/         16,  4,  45, vtab_avr64ea48},       // Config and interrupts
+  /*AVR64EA48*/         16,  4,  45, vtab_avr64ea48,       0, NULL}, // Config and interrupts
 
   //AVR64DA64                                           atdf, avrdude // Sources
   {"AVR64DA64",        362, F_AVR8X, {0x1E, 0x96, 0x12}, // ID
   /*AVR64DA64*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DA64*/         16,  4,  64, vtab_avr128da64},      // Config and interrupts
+  /*AVR64DA64*/         16,  4,  64, vtab_avr128da64,      0, NULL}, // Config and interrupts
 
   //AVR64DB64                                           atdf, avrdude // Sources
   {"AVR64DB64",        363, F_AVR8X, {0x1E, 0x96, 0x16}, // ID
   /*AVR64DB64*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DB64*/         16,  4,  65, vtab_avr128db64},      // Config and interrupts
+  /*AVR64DB64*/         16,  4,  65, vtab_avr128db64,      0, NULL}, // Config and interrupts
 
   //AVR128DA28                                          atdf, avrdude // Sources
   {"AVR128DA28",       364, F_AVR8X, {0x1E, 0x97, 0x0A}, // ID
   /*AVR128DA28*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
-  /*AVR128DA28*/        16,  4,  41, vtab_avr128da28},      // Config and interrupts
+  /*AVR128DA28*/        16,  4,  41, vtab_avr128da28,      0, NULL}, // Config and interrupts
 
   //AVR128DB28                                          atdf, avrdude // Sources
   {"AVR128DB28",       365, F_AVR8X, {0x1E, 0x97, 0x0E}, // ID
   /*AVR128DB28*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
-  /*AVR128DB28*/        16,  4,  42, vtab_avr128db28},      // Config and interrupts
+  /*AVR128DB28*/        16,  4,  42, vtab_avr128db28,      0, NULL}, // Config and interrupts
 
   //AVR128DA32                                          atdf, avrdude // Sources
   {"AVR128DA32",       366, F_AVR8X, {0x1E, 0x97, 0x09}, // ID
   /*AVR128DA32*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
-  /*AVR128DA32*/        16,  4,  44, vtab_avr128da32},      // Config and interrupts
+  /*AVR128DA32*/        16,  4,  44, vtab_avr128da32,      0, NULL}, // Config and interrupts
 
   //AVR128DB32                                          atdf, avrdude // Sources
   {"AVR128DB32",       367, F_AVR8X, {0x1E, 0x97, 0x0D}, // ID
   /*AVR128DB32*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
-  /*AVR128DB32*/        16,  4,  44, vtab_avr128db32},      // Config and interrupts
+  /*AVR128DB32*/        16,  4,  44, vtab_avr128db32,      0, NULL}, // Config and interrupts
 
   //AVR128DA48                                          atdf, avrdude // Sources
   {"AVR128DA48",       368, F_AVR8X, {0x1E, 0x97, 0x08}, // ID
   /*AVR128DA48*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
-  /*AVR128DA48*/        16,  4,  58, vtab_avr128da48},      // Config and interrupts
+  /*AVR128DA48*/        16,  4,  58, vtab_avr128da48,      0, NULL}, // Config and interrupts
 
   //AVR128DB48                                          atdf, avrdude // Sources
   {"AVR128DB48",       369, F_AVR8X, {0x1E, 0x97, 0x0C}, // ID
   /*AVR128DB48*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
-  /*AVR128DB48*/        16,  4,  61, vtab_avr128db48},      // Config and interrupts
+  /*AVR128DB48*/        16,  4,  61, vtab_avr128db48,      0, NULL}, // Config and interrupts
 
   //AVR128DA64                                          atdf, avrdude // Sources
   {"AVR128DA64",       370, F_AVR8X, {0x1E, 0x97, 0x07}, // ID
   /*AVR128DA64*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
-  /*AVR128DA64*/        16,  4,  64, vtab_avr128da64},      // Config and interrupts
+  /*AVR128DA64*/        16,  4,  64, vtab_avr128da64,      0, NULL}, // Config and interrupts
 
   //AVR128DB64                                          atdf, avrdude // Sources
   {"AVR128DB64",       371, F_AVR8X, {0x1E, 0x97, 0x0B}, // ID
   /*AVR128DB64*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
-  /*AVR128DB64*/        16,  4,  65, vtab_avr128db64},      // Config and interrupts
+  /*AVR128DB64*/        16,  4,  65, vtab_avr128db64,      0, NULL}, // Config and interrupts
 };
 
 // ATtiny9 ATtiny4

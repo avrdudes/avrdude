@@ -9,14 +9,32 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.3
- * 31.03.2023
+ * 06.04.2023
  *
  */
 
-#ifndef AVRINTEL_H
-#define AVRINTEL_H
+#ifndef avrintel_h
+#define avrintel_h
 
 #include "libavrdude.h"
+
+typedef struct {
+  int value;                    // Value (to be shifted into mask position)
+  const char *label;            // Symbolic label for this config item
+  const char *comment;          // Expanded semantic comment
+} Valueitem_t;
+
+typedef struct {
+  const char *confignm;         // Name of this configuration item
+  int nvalues;                  // Number of (symbolic) values
+  const Valueitem_t *vlist;     // Pointer to nvalues value items
+  const char *memtype;          // Fuse/Lock memory for this configuration
+  int memoffset;                // Byte offset within fuses (always 0 for lock)
+  int mask;                     // Bit mask of fuse/lock memory
+  int lsh;                      // Values need shifting left by lsh to be in mask
+  int initval;                  // Factory default, to be shifted into mask position
+  const char *configcomment;    // Expanded semantic name for this configuration item
+} Configitem_t;
 
 typedef struct {                // Value of -1 typically means unknown
   const char *name;             // Name of part
@@ -37,6 +55,8 @@ typedef struct {                // Value of -1 typically means unknown
   int8_t  nlocks;               // Number of lock bytes
   uint8_t ninterrupts;          // Number of vectors in interrupt vector table
   const char * const *isrtable; // Interrupt vector table vector names
+  uint8_t nconfigs;             // Number of configuration bitfields in fuses/locks
+  const Configitem_t *cfgtable; // Configuration bitfield table
 } uPcore_t;
 
 #define F_AVR8L               1 // TPI programming, ATtiny(4|5|9|10|20|40|102|104)
@@ -45,6 +65,7 @@ typedef struct {                // Value of -1 typically means unknown
 #define F_AVR8X               8 // UPDI programming, newer 8-bit MCUs
 
 #define UB_N_MCU           2040 // mcuid is in 0..2039
+
 
 // MCU id: running number in arbitrary order; once assigned never change for backward compatibility
 #define id_attiny4           0u
