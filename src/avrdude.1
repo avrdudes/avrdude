@@ -314,9 +314,10 @@ been code-protected previously, of course) and store the data in a
 file.  Finally, a ``terminal'' mode is available that allows one to
 interactively communicate with the MCU, and to display or program
 individual memory cells.
-On the STK500 and STK600 programmer, several operational parameters (target supply
-voltage, target Aref voltage, programming clock) can be examined and changed
-from within terminal mode as well.
+On some programmers some settings of the programmer itself can be examined and
+changed from within terminal mode as well; see the
+.Em Terminal mode
+section.
 .Ss Options
 In order to control all the different operation modi, a number of options
 need to be specified to
@@ -376,6 +377,13 @@ or
 .Pa ${HOME}/.avrduderc
 file to assign a default value to keep from having to specify this
 option on every invocation.
+.Pp
+Note that some official Microchip programmers store the bitclock setting and
+will continue to use it until a different value is provided. This applies to
+"2nd gen" programmers (AVRISPmkII, AVR Dragon, JTAG ICE mkII, STK600) and
+"3rd gen"programmers (JTAGICE3, Atmel ICE, Power Debugger). "4th gen"
+programmers (PICkit 4, MPLAB SNAP) will store the last user-specified bitclock
+until the programmer is disconnected from the computer.
 .It Fl c Ar programmer-id
 Use the programmer specified by the argument.  Programmers and their pin
 configurations are read from the config file (see the
@@ -1017,7 +1025,7 @@ Can be used as an alias for quit.
 .Pp
 The terminal commands below may only be implemented on some specific programmers, and may therefore not be available in the help menu.
 .Bl -tag -offset indent -width indent
-.It pgerase memory addr
+.It Ar pgerase memory addr
 Erase one page of the memory specified.
 .It Ar send b1 b2 b3 b4
 Send raw instruction codes to the AVR device.  If you need access to a
@@ -1065,26 +1073,15 @@ by 1E3.
 Turn the programming oscillator off.
 .Em Supported on the STK500 and STK600 programmer.
 .It Ar sck period
-.Em STK500 and STK600 programmer:
 Set the SCK clock period to
 .Ar period
-microseconds.
-.Em JTAG ICE:
-Set the JTAG ICE bit clock period to
-.Ar period
-microseconds.
-Note that unlike STK500 settings, this setting will be reverted to
-its default value (approximately 1 microsecond) when the programming
-software signs off from the JTAG ICE.
-This parameter can also be used on the JTAG ICE mkII, JTAGICE3, and Atmel-ICE to specify the
-ISP clock period when operating the ICE in ISP mode.
+microseconds. Note that some official Microchip programmers store the
+bitclock setting and will continue to use it until a diferent value is
+provided. See
+.Em -B bitclock
+for more information.
 .It Ar parms
-.Em STK500 and STK600 programmer:
-Display the current voltage and programming oscillator parameters.
-.Em JTAG ICE:
-Display the current target supply voltage and JTAG bit clock rate/period.
-.Em Other programmers:
-Display the programmer specific parameters.
+Display programmer specific parameters.
 .El
 .Ss Default Parallel port pin connections
 (these can be changed, see the
@@ -1484,7 +1481,6 @@ SCLK -   PDC (5)
 SDO  -   AUX (6)
 
 .Ed
-Extended commandline parameters:
 .Bl -tag -offset indent -width indent
 .It Ar clockrate=<rate>
 Sets the SPI clocking rate in Hz (default is 100kHz). Alternately the -B or -i options can be used to set the period.
@@ -1492,7 +1488,6 @@ Sets the SPI clocking rate in Hz (default is 100kHz). Alternately the -B or -i o
 Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
 .El
 .It Ar USBasp
-Extended parameters:
 .Bl -tag -offset indent -width indent
 .It Ar section_config
 Programmer will erase configuration section with option
@@ -1501,7 +1496,6 @@ Programmer will erase configuration section with option
 Only applicable to TPI devices (ATtiny 4/5/9/10/20/40).
 .El
 .It Ar xbee
-Extended parameters:
 .Bl -tag -offset indent -width indent
 .It Ar xbeeresetpin=<1..7>
 Select the XBee pin DIO<1..7> that is connected to the MCU's
@@ -1524,7 +1518,6 @@ Specify how many connection retry attemps to perform before exiting.
 Defaults to 10 if not specified.
 .El
 .It Ar serialupdi
-Extended parameters:
 .Bl -tag -offset indent -width indent
 .It Ar rtsdtr=low|high
 Forces RTS/DTR lines to assume low or high state during the whole
@@ -1535,7 +1528,6 @@ specific.
 When not provided, driver/OS default value will be used.
 .El
 .It Ar linuxspi
-Extended parameter:
 .Bl -tag -offset indent -width indent
 .It Ar disable_no_cs
 Ensures the programmer does not use the SPI_NO_CS bit for the SPI
