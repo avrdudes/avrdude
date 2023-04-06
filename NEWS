@@ -19,6 +19,8 @@ Changes since version 7.1:
   * New programmers supported:
 
     - raspberry_pi_gpio
+    - Flysquatter2
+    - CH341A
 
   * Issues fixed:
 
@@ -64,6 +66,11 @@ Changes since version 7.1:
       bitbanged UART ISP programmers #1317
     - Support -U UPDI EEPROM write #1318
     - Fix return value in usbtiny_cmd() and wrong error msg #1323
+    - Add CH341A programmer #1215
+    - Terminal read, write and erase with address intervals #1320
+    - Add Flyswatter2 programmer #1332
+    - Update avrintel.[ch] #1333
+    - Improve bitclock, sck and terminal documentation #1331
 
   * Internals:
 
