@@ -515,6 +515,7 @@ int bitbang_initialize_hvsp(const PROGRAMMER *pgm) {
     pgm->setpin(pgm, PIN_AVR_RESET, 1); /* 12V to MCU RESET */
     bitbang_delay(310);
   } while (!pgm->getpin(pgm, PIN_AVR_SDI) && --tries_left); /* check MCU SDO */
+msg_debug("pgm->getpin(pgm, PIN_AVR_SDI) = %x\n", pgm->getpin(pgm, PIN_AVR_SDI));
   if (!tries_left) {
     pmsg_error("Could not latch HVSP mode.\n");
     return -1;
