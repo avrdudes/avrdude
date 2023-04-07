@@ -158,6 +158,8 @@ add_library(libavrdude
     buspirate.h
     butterfly.c
     butterfly.h
+    ch341a.c
+    ch341a.h
     config.c
     config.h
     confwin.c
@@ -251,7 +253,7 @@ add_library(libavrdude
     ${BISON_Parser_OUTPUTS}
     "${EXTRA_WINDOWS_SOURCES}"
     )
-    
+
 set_target_properties(libavrdude PROPERTIES
     PREFIX ""
     PUBLIC_HEADER "libavrdude.h"

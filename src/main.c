@@ -60,6 +60,7 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
                              multiline messages */
 
+// Old (deprecated) message routine
 int avrdude_message(int msglvl, const char *format, ...)
 {
     int rc = 0;
@@ -87,11 +88,32 @@ static const char *avrdude_message_type(int msglvl) {
   }
 }
 
+
+/*
+ * Core msg_xyz() routine
+ * See #define lines in avrdude.h of how it is normally called
+ * Side note: if format starts with \v print \n but only if *not* at beginning of line
+ */
 int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...) {
     int rc = 0;
     va_list ap;
 
-    if(msglvl <= MSG_ERROR)     // Serious error? Freee progress bars (if any)
+    static struct {             // Memorise whether last print ended at beginning of line
+      FILE *fp;
+      int bol;                  // Are we at the beginning of a line for this fp stream?
+    } bols[5+1];                // Cater for up to 5 different FILE pointers plus one catch-all
+
+    size_t bi = 0;              // bi is index to bols[] array
+    for(bi=0; bi < sizeof bols/sizeof*bols -1; bi++) { // Note the -1, so bi is valid after loop
+      if(!bols[bi].fp) {        // First free space
+        bols[bi].fp = fp;       // Insert fp in first free space
+        bols[bi].bol = 1;       // Assume beginning of line on first use
+      }
+      if(bols[bi].fp == fp)
+        break;
+    }
+
+    if(msglvl <= MSG_ERROR)     // Serious error? Free progress bars (if any)
       report_progress(1, -1, NULL);
 
     if(msgmode & MSG2_FLUSH) {
@@ -106,7 +128,7 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
           if(verbose >= MSG_NOTICE && (msgmode & MSG2_FUNCTION))
             fprintf(fp, " %s()", func);
           if(verbose >= MSG_DEBUG && (msgmode & MSG2_FILELINE)) {
-            const char *pr = strrchr(file, '/'); // only print basename
+            const char *pr = strrchr(file, '/'); // Only print basename
 #if defined (WIN32)
             if(!pr)
               pr =  strrchr(file, '\\');
@@ -117,14 +139,50 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
           if(msgmode & MSG2_TYPE)
             fprintf(fp, " %s", avrdude_message_type(msglvl));
           fprintf(fp, ": ");
+          bols[bi].bol = 0;
         } else if(msgmode & MSG2_INDENT1) {
           fprintf(fp, "%*s", (int) strlen(progname)+1, "");
+          bols[bi].bol = 0;
         } else if(msgmode & MSG2_INDENT2) {
           fprintf(fp, "%*s", (int) strlen(progname)+2, "");
+          bols[bi].bol = 0;
         }
+
+        // Vertical tab at start of format string is a conditional new line
+        if(*format == '\v') {
+          format++;
+          if(!bols[bi].bol) {
+            fprintf(fp, "\n");
+            bols[bi].bol = 1;
+          }
+        }
+
+        // Figure out whether this print will leave us at beginning of line
+
+        // Determine required size first
         va_start(ap, format);
-        rc = vfprintf(fp, format, ap);
+        rc = vsnprintf(NULL, 0, format, ap);
         va_end(ap);
+
+        if(rc < 0)              // Some errror?
+          return 0;
+
+        rc++;                   // Accommodate terminating nul
+        char *p = cfg_malloc(__func__, rc);
+        va_start(ap, format);
+        rc = vsnprintf(p, rc, format, ap);
+        va_end(ap);
+
+        if(rc < 0) {
+          free(p);
+          return 0;
+        }
+
+        if(*p) {
+          fprintf(fp, "%s", p); // Finally: print!
+          bols[bi].bol = p[strlen(p)-1] == '\n';
+        }
+        free(p);
     }
 
     if(msgmode & MSG2_FLUSH)
@@ -1227,7 +1285,7 @@ int main(int argc, char * argv [])
     programmer_display(pgm, progbuf);
   }
 
-  msg_info("\n");
+  msg_info("\v");
 
   exitrc = 0;
 
@@ -1261,7 +1319,7 @@ int main(int argc, char * argv [])
       imsg_error("- use -B to set lower the bit clock frequency, e.g. -B 125kHz\n");
 
     if (!ovsigck) {
-      imsg_error("- use -F to override this check\n\n");
+      imsg_error("- use -F to override this check\n");
       exitrc = 1;
       goto main_exit;
     }

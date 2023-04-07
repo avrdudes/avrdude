@@ -216,12 +216,17 @@ option might be required to achieve a stable ISP communication.
 For ATxmega devices, the AVR Dragon is supported in PDI mode, provided it
 has a firmware version of at least 6.11 (decimal).
 .Pp
-The avrftdi, USBasp ISP and USBtinyISP adapters are also supported, provided
+The USBasp ISP, USBtinyISP, avrftdi and CH341A adapters are also supported,
+provided
 .Nm avrdude
-has been compiled with libusb support.
-USBasp ISP and USBtinyISP both feature simple firmware-only USB implementations, 
-running on an ATmega8 (or ATmega88), or ATtiny2313, respectively. If libftdi has 
-has been compiled in 
+has been compiled with libusb support. USBasp ISP and USBtinyISP both
+feature simple firmware-only USB implementations, running on an ATmega8
+(or ATmega88), or ATtiny2313, respectively. CH341A programmers connect
+directly to the AVR target. Their SPI bit clock is approximately 1.7 MHz
+and cannot be changed. As a consequence, the AVR target must have a CPU
+frequency of 6.8 MHz or more: factory-set AVR parts, which typically run
+on an internal oscillator between 1 MHz and 1.6 MHz, cannot be programmed
+using -c ch341a. If libftdi has  has been compiled in
 .Nm avrdude ,
 the avrftdi device adds support for many programmers using FTDI's 2232C/D/H 
 and 4232H parts running in MPSSE mode, which hard-codes (in the chip) 
@@ -309,9 +314,10 @@ been code-protected previously, of course) and store the data in a
 file.  Finally, a ``terminal'' mode is available that allows one to
 interactively communicate with the MCU, and to display or program
 individual memory cells.
-On the STK500 and STK600 programmer, several operational parameters (target supply
-voltage, target Aref voltage, programming clock) can be examined and changed
-from within terminal mode as well.
+On some programmers some settings of the programmer itself can be examined and
+changed from within terminal mode as well; see the
+.Em Terminal mode
+section.
 .Ss Options
 In order to control all the different operation modi, a number of options
 need to be specified to
@@ -371,6 +377,13 @@ or
 .Pa ${HOME}/.avrduderc
 file to assign a default value to keep from having to specify this
 option on every invocation.
+.Pp
+Note that some official Microchip programmers store the bitclock setting and
+will continue to use it until a different value is provided. This applies to
+"2nd gen" programmers (AVRISPmkII, AVR Dragon, JTAG ICE mkII, STK600) and
+"3rd gen"programmers (JTAGICE3, Atmel ICE, Power Debugger). "4th gen"
+programmers (PICkit 4, MPLAB SNAP) will store the last user-specified bitclock
+until the programmer is disconnected from the computer.
 .It Fl c Ar programmer-id
 Use the programmer specified by the argument.  Programmers and their pin
 configurations are read from the config file (see the
@@ -844,30 +857,62 @@ commands on standard input.  Commands and parameters may be
 abbreviated to the shortest unambiguous form.  Terminal mode provides
 a command history using
 .Xr readline 3 ,
-so previously entered command lines can be recalled and edited.  The
-following commands are currently implemented for all programmers:
-.Bl -tag -offset indent -width indent
-.It Ar dump  memory addr len
-Read
+so previously entered command lines can be recalled and edited.
+.Pp
+The 
+.Ar addr
+and
 .Ar len
-bytes from the specified memory area, and display them in the usual
+parameters of the read, write and erase commands can be
+negative with the same syntax as substring computations in perl or python.
+The table below details their meaning with respect to an example memory of size
+sz=0x800.
+.Pp
+.nf
+addr    len  Memory interval     Comment
+------------------------------------------------------------------------
+0/pos   pos  [addr, addr+len-1]  Note: len = end-start+1
+0/pos   neg  [addr, sz+len]      End is |len| bytes below memory size sz
+  neg   pos  [sz+addr,           Start is |addr| bytes below memory size
+                 sz+addr+len-1]
+  neg   neg  [sz+addr, sz+len]   Combining above two cases
+  any     0  empty set           No action
+0x700    12  [0x700, 0x70b]      Conventional use
+ 1024  -257  [0x400, 0x6ff]      Size of memory is 2048 or 0x800
+ -512   512  [0x600, 0x7ff]      Last 512 bytes
+ -256    -1  [0x700, 0x7ff]      Last 256 bytes
+    0    49  [0, 48]             First 49 bytes
+    0   -49  [0, 1999]           All but the last 48 = |len+1| bytes
+    0    -1  [0, 0x7ff]          All memory without knowing its size
+.fi
+.Pp
+The following commands are implemented for all programmers:
+.Bl -tag -offset indent -width indent
+.It Ar dump memory addr len
+Read from the specified memory interval (see above), and display in the usual
 hexadecimal and ASCII form.
+.It Ar dump memory addr
+Read from
+.Ar memory addr
+as many bytes as the most recent 
+.Ar dump memory addr len command
+with this very memory had specified (default 256 bytes), and display them.
+.It Ar dump memory
+Continue dumping the contents from the same memory where the previous
+.Ar dump memory
+command left off.
+.It Ar dump
+Continue dumping from the memory and location where the most recent
+.Ar dump
+command left off; if no previous dump command has addressed a memory an error message will be shown.
 .It Ar dump memory addr ...
 Read all bytes from the specified memory starting at address
-.Ar addr,
-and display them.
-.It Ar dump memory addr
-Read 256 bytes from the specified memory area, and display them.
+.Ar addr Ns ,
+and display them (deprecated: use dump memory addr -1).
 .It Ar dump memory ...
-Read all bytes from the specified memory, and display them.
-.It Ar dump memory
-Continue dumping the memory contents for another
-.Ar 256
-bytes where the previous
-.Ar dump
-command left off.
+Read all bytes from the specified memory, and display them (deprecated: use dump memory 0 -1).
 .It Ar read
-can be used as an alias for dump
+Can be used as an alias for dump.
 .It Ar write memory addr data[,] {data[,]}
 Manually program the respective memory cells, starting at address
 .Ar addr ,
@@ -916,9 +961,19 @@ The start address
 may be omitted if the size of the memory being written to is
 1 byte in size.
 .It Ar write memory addr len data[,] {data[,]} ...
-The ellipsis ... form writes <len> bytes padded by repeating the last
+The ellipsis ... form writes the data to the entire memory intervall addressed by
+.Ar addr len
+and, if necessary, pads the remaining space by repeating the last
 .Ar data
-item.
+item. The fill write command does not write beyond the specified memory area
+even if more data than needed were given.
+.It Ar erase
+Perform a chip erase and discard all pending writes to EEPROM and flash.
+Note that EEPROM will be preserved if the EESAVE fuse bit is set.
+.It Ar erase memory
+Erase the entire specified memory.
+.It Ar erase memory addr len
+Erase a section of the specified memory.
 .It Ar flush
 Synchronise with the device all pending cached writes to EEPROM or flash.
 With some programmer and part combinations, flash (and sometimes EEPROM,
@@ -937,8 +992,6 @@ command, at the end of the terminal session after typing
 .Ar quit ,
 or after EOF on input is encountered. The abort command resets
 the cache discarding all previous writes to the flash and EEPROM cache.
-.It Ar erase
-Perform a chip erase and discard all pending writes to EEPROM and flash.
 .It Ar sig
 Display the device signature bytes.
 .It Ar part
@@ -966,11 +1019,13 @@ Give a short on-line summary of the available commands.
 .It Ar quit
 Leave terminal mode and thus
 .Nm avrdude .
+.It Ar q
+Can be used as an alias for quit.
 .El
 .Pp
 The terminal commands below may only be implemented on some specific programmers, and may therefore not be available in the help menu.
 .Bl -tag -offset indent -width indent
-.It pgerase memory addr
+.It Ar pgerase memory addr
 Erase one page of the memory specified.
 .It Ar send b1 b2 b3 b4
 Send raw instruction codes to the AVR device.  If you need access to a
@@ -1018,26 +1073,15 @@ by 1E3.
 Turn the programming oscillator off.
 .Em Supported on the STK500 and STK600 programmer.
 .It Ar sck period
-.Em STK500 and STK600 programmer:
 Set the SCK clock period to
 .Ar period
-microseconds.
-.Em JTAG ICE:
-Set the JTAG ICE bit clock period to
-.Ar period
-microseconds.
-Note that unlike STK500 settings, this setting will be reverted to
-its default value (approximately 1 microsecond) when the programming
-software signs off from the JTAG ICE.
-This parameter can also be used on the JTAG ICE mkII, JTAGICE3, and Atmel-ICE to specify the
-ISP clock period when operating the ICE in ISP mode.
+microseconds. Note that some official Microchip programmers store the
+bitclock setting and will continue to use it until a diferent value is
+provided. See
+.Em -B bitclock
+for more information.
 .It Ar parms
-.Em STK500 and STK600 programmer:
-Display the current voltage and programming oscillator parameters.
-.Em JTAG ICE:
-Display the current target supply voltage and JTAG bit clock rate/period.
-.Em Other programmers:
-Display the programmer specific parameters.
+Display programmer specific parameters.
 .El
 .Ss Default Parallel port pin connections
 (these can be changed, see the
@@ -1437,7 +1481,6 @@ SCLK -   PDC (5)
 SDO  -   AUX (6)
 
 .Ed
-Extended commandline parameters:
 .Bl -tag -offset indent -width indent
 .It Ar clockrate=<rate>
 Sets the SPI clocking rate in Hz (default is 100kHz). Alternately the -B or -i options can be used to set the period.
@@ -1445,7 +1488,6 @@ Sets the SPI clocking rate in Hz (default is 100kHz). Alternately the -B or -i o
 Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
 .El
 .It Ar USBasp
-Extended parameters:
 .Bl -tag -offset indent -width indent
 .It Ar section_config
 Programmer will erase configuration section with option
@@ -1454,7 +1496,6 @@ Programmer will erase configuration section with option
 Only applicable to TPI devices (ATtiny 4/5/9/10/20/40).
 .El
 .It Ar xbee
-Extended parameters:
 .Bl -tag -offset indent -width indent
 .It Ar xbeeresetpin=<1..7>
 Select the XBee pin DIO<1..7> that is connected to the MCU's
@@ -1477,7 +1518,6 @@ Specify how many connection retry attemps to perform before exiting.
 Defaults to 10 if not specified.
 .El
 .It Ar serialupdi
-Extended parameters:
 .Bl -tag -offset indent -width indent
 .It Ar rtsdtr=low|high
 Forces RTS/DTR lines to assume low or high state during the whole
@@ -1488,7 +1528,6 @@ specific.
 When not provided, driver/OS default value will be used.
 .El
 .It Ar linuxspi
-Extended parameter:
 .Bl -tag -offset indent -width indent
 .It Ar disable_no_cs
 Ensures the programmer does not use the SPI_NO_CS bit for the SPI

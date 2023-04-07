@@ -85,7 +85,7 @@ static int cmd_quell  (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 #define _fo(x) offsetof(PROGRAMMER, x)
 
 struct command cmd[] = {
-  { "dump",  cmd_dump,  _fo(read_byte_cached),  "%s <memory> [<addr> <len> | <addr> ... | <addr> | ...]" },
+  { "dump",  cmd_dump,  _fo(read_byte_cached),  "%s <memory> [<addr> | <addr> <len>]" },
   { "read",  cmd_dump,  _fo(read_byte_cached),  "alias for dump" },
   { "write", cmd_write, _fo(write_byte_cached), "write <memory> <addr> <data>[,] {<data>[,]}" },
   { "",      cmd_write, _fo(write_byte_cached), "write <memory> <addr> <len> <data>[,] {<data>[,]} ..." },
@@ -238,15 +238,15 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     AVRMEM *mem;
   } read_mem[32];
   static int i;
+  const char *cmd = tolower(**argv) == 'd'? "dump": "read";
 
   if ((argc < 2 && read_mem[0].mem == NULL) || argc > 4) {
     msg_error(
       "Usage: %s <memory> <addr> <len>\n"
-      "       %s <memory> <addr> ...\n"
       "       %s <memory> <addr>\n"
-      "       %s <memory> ...\n"
-      "       %s <memory>\n",
-      argv[0], argv[0], argv[0], argv[0], argv[0]);
+      "       %s <memory>\n"
+      "       %s%s\n",
+      cmd, cmd, cmd, cmd, argc < 2? " (can only be used for continuation)": "");
     return -1;
   }
 
@@ -287,17 +287,23 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   // Get start address if present
   char *end_ptr;
   if (argc >= 3 && strcmp(argv[2], "...") != 0) {
-    unsigned long ul = strtoul(argv[2], &end_ptr, 0);
+    int addr = strtol(argv[2], &end_ptr, 0);
     if(*end_ptr || (end_ptr == argv[2])) {
       pmsg_error("(dump) cannot parse address %s\n", argv[2]);
       return -1;
     }
-    if(ul > INT_MAX || ul >= (unsigned long) maxsize) {
-      pmsg_error("(dump) %s address 0x%lx is out of range [0, 0x%0*x]\n", mem->desc, ul,
-        mem->size > 0x10000? 5: 4, maxsize-1);
+
+    // Turn negative addr value (counting from top and down) into an actual memory address
+    if (addr < 0)
+      addr = maxsize + addr;
+
+    if (addr < 0 || addr >= maxsize) {
+      int digits = mem->size > 0x10000? 5: 4;
+      pmsg_error("(dump) %s address %s is out of range [-0x%0*x, 0x%0*x]\n",
+        mem->desc, argv[2], digits, maxsize, digits, maxsize-1);
       return -1;
     }
-    read_mem[i].addr = (int) ul;
+    read_mem[i].addr = addr;
   }
 
   // Get no. bytes to read if present
@@ -307,14 +313,22 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
         read_mem[i].addr = 0;
       read_mem[i].len = maxsize - read_mem[i].addr;
     } else if (argc == 4) {
-      unsigned long ul = strtoul(argv[3], &end_ptr, 0);
+      int len = strtol(argv[3], &end_ptr, 0);
       if (*end_ptr || (end_ptr == argv[3])) {
         pmsg_error("(dump) cannot parse length %s\n", argv[3]);
         return -1;
       }
-      if (ul == 0 || ul > INT_MAX) // Not positive if used as int, make it 1
-        ul = 1;
-      read_mem[i].len = (int) ul;
+      // Turn negative len value (no. bytes from top of memory) into an actual length number
+      if (len < 0)
+        len = maxsize + len + 1 - read_mem[i].addr;
+
+      if (len == 0)
+        return 0;
+      if (len < 0) {
+        pmsg_error("(dump) invalid effective length %d\n", len);
+        return -1;
+      }
+      read_mem[i].len = len;
     }
   }
   // Wrap around if the memory address is greater than the maximum size
@@ -332,7 +346,7 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   }
 
   if(argc < 4 && verbose)
-    term_out(">>> %s %s 0x%x 0x%x\n", argv[0], read_mem[i].mem->desc, read_mem[i].addr, read_mem[i].len);
+    term_out(">>> %s %s 0x%x 0x%x\n", cmd, read_mem[i].mem->desc, read_mem[i].addr, read_mem[i].len);
 
   report_progress(0, 1, "Reading");
   for (int j = 0; j < read_mem[i].len; j++) {
@@ -351,7 +365,7 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   report_progress(1, 1, NULL);
 
   hexdump_buf(stdout, mem, read_mem[i].addr, buf, read_mem[i].len);
-  term_out("\n");
+  term_out("\v");
 
   free(buf);
 
@@ -467,15 +481,21 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   char *end_ptr;
   int addr = 0;
   if(argc >= 4) {
-    addr = strtoul(argv[2], &end_ptr, 0);
+    addr = strtol(argv[2], &end_ptr, 0);
     if (*end_ptr || (end_ptr == argv[2])) {
       pmsg_error("(write) cannot parse address %s\n", argv[2]);
       return -1;
     }
   }
 
+  // Turn negative addr value (counting from top and down) into an actual memory address
+  if (addr < 0)
+    addr = maxsize + addr;
+
   if (addr < 0 || addr >= maxsize) {
-    pmsg_error("(write) %s address 0x%05x is out of range [0, 0x%05x]\n", mem->desc, addr, maxsize-1);
+    int digits = maxsize > 0x10000? 5: 4;
+    pmsg_error("(write) %s address 0x%0*x is out of range [-0x%0*x, 0x%0*x]\n",
+      mem->desc, digits, addr, digits, maxsize, digits, maxsize-1);
     return -1;
   }
 
@@ -490,10 +510,20 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   if (strcmp(argv[argc - 1], "...") == 0) {
     write_mode = WRITE_MODE_FILL;
     start_offset = 4;
-    len = strtoul(argv[3], &end_ptr, 0);
+    len = strtol(argv[3], &end_ptr, 0);
     if (*end_ptr || (end_ptr == argv[3])) {
       pmsg_error("(write ...) cannot parse length %s\n", argv[3]);
       free(buf);
+      return -1;
+    }
+    // Turn negative len value (no. bytes from top of memory) into an actual length number
+    if (len < 0)
+      len = maxsize + len - addr + 1;
+    if (len == 0)
+      return 0;
+    if (len < 0 || len > maxsize - addr) {
+      pmsg_error("(write ...) effective %s start address 0x%0*x and effective length %d not compatible with memory size %d\n",
+        mem->desc, maxsize > 0x10000? 5: 4, addr, len, maxsize);
       return -1;
     }
   } else {
@@ -714,7 +744,7 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     len + data.bytes_grown, update_plural(len + data.bytes_grown), (long) addr);
   if (write_mode == WRITE_MODE_FILL)
     msg_notice2("; remaining space filled with %s", argv[argc - 2]);
-  msg_notice2("\n");
+  msg_notice2("\v");
 
   pgm->err_led(pgm, OFF);
   bool werror = false;
@@ -806,13 +836,41 @@ static int cmd_send(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   term_out("results:");
   for (i=0; i<len; i++)
     term_out(" %02x", res[i]);
-  term_out("\n\n");
+  term_out("\n");
 
   return 0;
 }
 
 
 static int cmd_erase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
+  if (argc > 4 || argc == 3) {
+    msg_error("Usage: erase <memory> <addr> <len>\n");
+    msg_error("       erase <memory>\n");
+    msg_error("       erase\n");
+    return -1;
+  }
+
+  if (argc > 1) {
+    char *memtype = argv[1];
+    AVRMEM *mem = avr_locate_mem(p, memtype);
+    if (mem == NULL) {
+      pmsg_error("(erase) %s memory type not defined for part %s\n", argv[1], p->desc);
+      return -1;
+    }
+    char *args[] = {"write", memtype, "", "", "0xff", "...", NULL};
+    // erase <mem>
+    if (argc == 2) {
+      args[2] = "0";
+      args[3] = "-1";
+    }
+    // erase <mem> <addr> <len>
+    else {
+      args[2] = argv[2];
+      args[3] = argv[3];
+    }
+    return cmd_write(pgm, p, 6, args);
+  }
+
   term_out("erasing chip ...\n");
 
   // Erase chip and clear cache
@@ -901,9 +959,9 @@ static int cmd_pgerase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 
 static int cmd_part(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
-  term_out("\n");
+  term_out("\v");
   avr_display(stdout, p, "", 0);
-  term_out("\n");
+  term_out("\v");
 
   return 0;
 }
@@ -927,7 +985,7 @@ static int cmd_sig(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     term_out("Device signature = 0x");
     for (i=0; i<m->size; i++)
       term_out("%02x", m->buf[i]);
-    term_out("\n\n");
+    term_out("\n");
   }
 
   return 0;
@@ -945,7 +1003,7 @@ static int cmd_quit(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 static int cmd_parms(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   pgm->print_parms(pgm, stdout);
-  term_out("\n");
+  term_out("\v");
   return 0;
 }
 
@@ -1077,7 +1135,7 @@ static int cmd_help(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     "Note that not all programmer derivatives support all commands. Flash and\n"
     "EEPROM type memories are normally read and written using a cache via paged\n"
     "read and write access; the cache is synchronised on quit or flush commands.\n"
-    "The part command displays valid memory types for use with dump and write.\n\n");
+    "The part command displays valid memory types for use with dump and write.\n");
   return 0;
 }
 
@@ -1396,7 +1454,7 @@ void term_gotline(char *cmdstr) {
     }
   } else {
     // End of file or terminal ^D
-    term_out("\n");
+    term_out("\v");
     cmd_quit(term_pgm, term_p, 0, NULL);
     term_running = 0;
   }
@@ -1464,7 +1522,7 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
   setvbuf(stderr, (char *) NULL, _IONBF, 0);
 
   if(hdr) {
-    msg_info("\n");
+    msg_info("\v");
     last = done = 0;
     if(header)
       free(header);
@@ -1488,7 +1546,7 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
     msg_info("\r%s | %s | %d%% %0.2f s ", header, hashes, showperc, etime);
     if(percent == 100) {
       if(finish)
-        msg_info("\n\n");
+        msg_info("\v");
       done = 1;
     }
   }
@@ -1505,7 +1563,7 @@ static void update_progress_no_tty(int percent, double etime, const char *hdr, i
   percent = percent > 100? 100: percent < 0? 0: percent;
 
   if(hdr) {
-    msg_info("\n%s | ", hdr);
+    msg_info("\v%s | ", hdr);
     last = done = 0;
   }
 
@@ -1516,7 +1574,7 @@ static void update_progress_no_tty(int percent, double etime, const char *hdr, i
     if(percent == 100) {
       msg_info(" | %d%% %0.2fs", finish >= 0? 100: last, etime);
       if(finish)
-        msg_info("\n\n");
+        msg_info("\v");
       done = 1;
     }
   }

@@ -107,6 +107,8 @@ libavrdude_a_SOURCES = \
 	buspirate.h \
 	butterfly.c \
 	butterfly.h \
+	ch341a.c \
+	ch341a.h \
 	config.c \
 	config.h \
 	confwin.c \
