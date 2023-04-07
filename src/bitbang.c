@@ -538,7 +538,7 @@ msg_debug("PROGRAMMER->prog_modes = %x, AVRPART->prog_modes = %x\n", pgm->prog_m
 
   bitbang_calibrate_delay();
 
-  if (pgm->prog_modes & p->prog_modes == PM_HVSP) {
+  if ((pgm->prog_modes & p->prog_modes) == PM_HVSP) {
     /* go for HVSP only if there are no other options */
     return bitbang_initialize_hvsp(pgm);
   }
