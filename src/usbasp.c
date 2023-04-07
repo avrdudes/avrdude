@@ -292,8 +292,8 @@ static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     if (str_eq(extended_param, "help")) {
       char *prg = (char *)ldata(lfirst(pgm->id));
       msg_error("%s -c %s extended options:\n", progname, prg);
-      msg_error("  -xsection_config     Erase configuration section only with -e (TPI only)\n");
-      msg_error("  -xhelp               Show this help menu and exit\n");
+      msg_error("  -xsection_config Erase configuration section only with -e (TPI only)\n");
+      msg_error("  -xhelp           Show this help menu and exit\n");
       exit(0);
     }
 
