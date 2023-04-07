@@ -945,6 +945,9 @@ GPIO mode. High-voltage UPDI can be utilized by using an extended parameter:
 @table @code
 @item @samp{hvupdi}
 Enable high-voltage UPDI initialization for targets that supports this.
+
+@item @samp{help}
+Show help menu and exit.
 @end table
 
 @cindex @code{-x} Xplained Mini
@@ -977,6 +980,9 @@ The on-board target voltage switch can be turned on or off by writing a 1 or
 a 0. The current state can be read by @samp{-xvtarg_switch} alone.
 Note that the target power switch will always be on after a power cycle.
 Also note that the smaller Xplained Nano boards does not have a target power switch.
+
+@item @samp{help}
+Show help menu and exit.
 @end table
 
 @cindex @code{-x} AVR910
@@ -998,6 +1004,8 @@ Disables the default checking for block transfer capability.
 Use 
 @samp{no_blockmode} only if your @samp{AVR910} 
 programmer creates errors during initial sequence.
+@item @samp{help}
+Show help menu and exit.
 @end table
 
 @cindex @code{-x} Arduino
@@ -1007,6 +1015,8 @@ The Arduino programmer type accepts the following extended parameter:
 @table @code
 @item @samp{attemps=VALUE}
 Overide the default number of connection retry attempt by using @var{VALUE}.
+@item @samp{help}
+Show help menu and exit.
 @end table
 
 @cindex @code{-x} Urclock
@@ -1117,7 +1127,7 @@ Urclock has a faster, but slightly different strategy than -c arduino to
 synchronise with the bootloader; some stk500v1 bootloaders cannot cope
 with this, and they need the @code{-xstrict} option.
 @item @samp{help}
-Show this help menu and exit
+Show help menu and exit.
 @end table
 
 @cindex @code{-x} Buspirate
@@ -1208,6 +1218,9 @@ Especially in ascii mode this happens very often, so setting a smaller value
 can speed up programming a lot. 
 The default value is 100ms. Using 10ms might work in most cases.  
 
+@item @samp{help}
+Show help menu and exit.
+
 @end table
 
 @cindex @code{-x} Micronucleus bootloader
@@ -1220,6 +1233,8 @@ If the device is not connected, wait for the device to be plugged in.
 The optional @var{timeout} specifies the connection time-out in seconds.
 If no time-out is specified, AVRDUDE will wait indefinitely until the
 device is plugged in.
+@item @samp{help}
+Show help menu and exit.
 @end table
 
 @cindex @code{-x} Teensy bootloader
@@ -1232,6 +1247,8 @@ If the device is not connected, wait for the device to be plugged in.
 The optional @var{timeout} specifies the connection time-out in seconds.
 If no time-out is specified, AVRDUDE will wait indefinitely until the
 device is plugged in.
+@item @samp{help}
+Show help menu and exit.
 @end table
 
 @cindex @code{-x} Wiring
@@ -1243,6 +1260,8 @@ The Wiring programmer type accepts the following extended parameter:
 After performing the port open phase, AVRDUDE will wait/snooze for
 @var{snooze} milliseconds before continuing to the protocol sync phase.
 No toggling of DTR/RTS is performed if @var{snooze} > 0.
+@item @samp{help}
+Show help menu and exit.
 @end table
 
 @cindex @code{-x} PICkit2
@@ -1264,6 +1283,8 @@ The PICkit2 programmer type accepts the following extended parameters:
 Sets the SPI clocking rate in Hz (default is 100kHz). Alternately the -B or -i options can be used to set the period.
 @item @samp{timeout=@var{usb-transaction-timeout}}
 Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
+@item @samp{help}
+Show help menu and exit.
 @end table
 
 @cindex @code{-x} USBasp
@@ -1276,6 +1297,8 @@ Programmer will erase
 configuration section with option '-e' (chip erase),
 rather than entire chip.
 Only applicable to TPI devices (ATtiny 4/5/9/10/20/40).
+@item @samp{help}
+Show help menu and exit.
 @end table
 
 @cindex @code{-x} xbee
@@ -1294,6 +1317,9 @@ The remaining two necessary XBee-to-MCU connections are not selectable
 - the XBee @code{DOUT} pin (pin 2) must be connected to the MCU's
 ‘RXD’ line, and the XBee @code{DIN} pin (pin 3) must be connected to
 the MCU's ‘TXD’ line.
+
+@item @samp{help}
+Show help menu and exit.
 @end table
 
 @cindex @code{-x} serialupdi
@@ -1301,13 +1327,16 @@ the MCU's ‘TXD’ line.
 
 The serialupdi programmer type accepts the following extended parameter:
 @table @code
-@item @samp{rtsdtr=low|high}
+@item @samp{rtsdtr=low,high}
 Forces RTS/DTR lines to assume low or high state during the whole
 programming session. Some programmers might use this signal to
 indicate UPDI programming state, but this is strictly hardware
 specific.
 
 When not provided, driver/OS default value will be used.
+
+@item @samp{help}
+Show help menu and exit.
 @end table
 
 @cindex @code{-x} linuxspi
@@ -1319,6 +1348,8 @@ The linuxspi programmer type accepts the following extended parameter:
 Ensures the programmer does not use the SPI_NO_CS bit for the SPI
 driver. This parameter is useful for kernels that do not support
 the CS line being managed outside the application.
+@item @samp{help}
+Show help menu and exit.
 @end table
 
 @end table
