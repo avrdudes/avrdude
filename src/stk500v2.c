@@ -1623,12 +1623,12 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
       char *prg = (char *)ldata(lfirst(pgm->id));
       msg_error("%s -c %s extended options:\n", progname, prg);
       if (str_starts(prg, "xplainedmini")) {
-        msg_error("  -xsuffer             Read SUFFER register value\n");
-        msg_error("  -xsuffer=<arg>       Set SUFFER register value\n");
-        msg_error("  -xvtarg_switch       Read on‐board target voltage switch state\n");
-        msg_error("  -xvtarg_switch=<arg> Set on‐board target voltage switch state\n");
+        msg_error("  -xsuffer                 Read SUFFER register value\n");
+        msg_error("  -xsuffer=<arg>           Set SUFFER register value\n");
+        msg_error("  -xvtarg_switch           Read on‐board target voltage switch state\n");
+        msg_error("  -xvtarg_switch=<0..1>    Set on‐board target voltage switch state\n");
       }
-      msg_error  ("  -xhelp               Show this help menu and exit\n");
+      msg_error  ("  -xhelp                   Show this help menu and exit\n");
       exit(0);
     }
 

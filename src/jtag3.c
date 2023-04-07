@@ -1532,16 +1532,16 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       char *prg = (char *)ldata(lfirst(pgm->id));
       msg_error("%s -c %s extended options:\n", progname, prg);
       if (str_eq(pgm->type, "JTAGICE3"))
-        msg_error("  -xjtagchain=<arg>    Setup the JTAG scan chain order\n");
+        msg_error("  -xjtagchain=UB,UA,BB,BA  Setup the JTAG scan chain order\n");
       if (str_eq(prg, "powerdebugger_updi") || str_eq(prg, "pickit4_updi"))
-        msg_error("  -xhvupdi             Enable high‐voltage UPDI initialization\n");
+        msg_error("  -xhvupdi                 Enable high‐voltage UPDI initialization\n");
       if (str_starts(prg, "xplainedmini") && !str_eq(prg, "xplainedmini_tpi")) {
-        msg_error("  -xsuffer             Read SUFFER register value\n");
-        msg_error("  -xsuffer=<arg>       Set SUFFER register value\n");
-        msg_error("  -xvtarg_switch       Read on‐board target voltage switch state\n");
-        msg_error("  -xvtarg_switch=<arg> Set on‐board target voltage switch state\n");
+        msg_error("  -xsuffer                 Read SUFFER register value\n");
+        msg_error("  -xsuffer=<arg>           Set SUFFER register value\n");
+        msg_error("  -xvtarg_switch           Read on‐board target voltage switch state\n");
+        msg_error("  -xvtarg_switch=<0..1>    Set on‐board target voltage switch state\n");
       }
-      msg_error  ("  -xhelp               Show this help menu and exit\n");
+      msg_error  ("  -xhelp                   Show this help menu and exit\n");
       exit(0);
     }
 

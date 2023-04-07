@@ -380,7 +380,7 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     if (str_eq(extended_param, "help")) {
       char *prg = (char *)ldata(lfirst(pgm->id));
       msg_error("%s -c %s extended options:\n", progname, prg);
-      msg_error("  -xreset=cs|aux|aux2         Override default reset pin\n");
+      msg_error("  -xreset=cs,aux,aux2         Override default reset pin\n");
 			msg_error("  -xspifreq=<0..7>            Set binary SPI mode speed\n");
 			msg_error("  -xrawfreq=<0..3>            Set \"raw-wire\" SPI mode speed\n");
 			msg_error("  -xascii                     Use ASCII protocol between BP and Avrdude\n");
