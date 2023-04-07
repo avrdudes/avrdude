@@ -504,6 +504,28 @@ int bitbang_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   return 0;
 }
 
+int bitbang_initialize_hvsp(const PROGRAMMER *pgm) {
+  int tries_left = 4;
+  do {
+    pgm->setpin(pgm, PIN_AVR_RESET, 0); /* 0V to MCU RESET */
+    pgm->setpin(pgm, PIN_AVR_SDO, 0); /* L to MCU SDI */
+    pgm->setpin(pgm, PIN_AVR_SII, 0); /* L to MCU SII */
+    /* MCU SDO is driven L by the parallel port (non-inverting) input pin */
+    bitbang_delay(30);
+    pgm->setpin(pgm, PIN_AVR_RESET, 1); /* 12V to MCU RESET */
+    bitbang_delay(310);
+  } while (!pgm->getpin(pgm, PIN_AVR_SDI) && --tries_left); /* check MCU SDO */
+  if (!tries_left) {
+    pmsg_error("Could not latch HVSP mode.\n");
+    return -1;
+  } else {
+    msg_debug("HVSP mode latched.\n");
+return -1;
+  }
+  /* There is no program enable command in HVSP mode. */
+  return 0;
+}
+
 /*
  * initialize the AVR device and prepare it to accept commands
  */
@@ -512,9 +534,14 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   int tries;
   int i;
 
-msg_debug("PROGRAMMER->prog_modes = %x, AVRPART->prog_modes = %x", pgm->prog_modes, p->prog_modes);
+msg_debug("PROGRAMMER->prog_modes = %x, AVRPART->prog_modes = %x\n", pgm->prog_modes, p->prog_modes);
 
   bitbang_calibrate_delay();
+
+  if (pgm->prog_modes & p->prog_modes == PM_HVSP) {
+    /* go for HVSP only if there are no other options */
+    return bitbang_initialize_hvsp(pgm);
+  }
 
   pgm->powerup(pgm);
   usleep(20000);
