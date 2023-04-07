@@ -505,12 +505,12 @@ int bitbang_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 int bitbang_initialize_hvsp(const PROGRAMMER *pgm) {
-  int tries_left = 4;
+  int tries_left = 16;
   do {
     pgm->setpin(pgm, PIN_AVR_RESET, 0); /* 0V to MCU RESET */
     pgm->setpin(pgm, PIN_AVR_SDO, 0); /* L to MCU SDI */
     pgm->setpin(pgm, PIN_AVR_SII, 0); /* L to MCU SII */
-    /* MCU SDO is driven L by the parallel port (non-inverting) input pin */
+    /* MCU SDO is driven L by the adaptor harware */
     bitbang_delay(30);
     pgm->setpin(pgm, PIN_AVR_RESET, 1); /* 12V to MCU RESET */
     bitbang_delay(310);
@@ -520,8 +520,7 @@ msg_debug("pgm->getpin(pgm, PIN_AVR_SDI) = %x\n", pgm->getpin(pgm, PIN_AVR_SDI))
     pmsg_error("Could not latch HVSP mode.\n");
     return -1;
   } else {
-    msg_debug("HVSP mode latched.\n");
-return -1;
+    msg_debug("HVSP mode latched (or adaptor is not connected).\n");
   }
   /* There is no program enable command in HVSP mode. */
   return 0;
