@@ -367,6 +367,13 @@ static int par_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
   return 0;
 }
 
+void par_display(const PROGRAMMER *pgm, const char *p) {
+   pgm_display_generic(pgm, p);
+   if (pgm->prog_modes & PM_HVSP) {
+      msg_info("%s  SII     = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_SII]));
+   }
+}
+
 void par_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "PPI");
 
@@ -381,7 +388,7 @@ void par_initpgm(PROGRAMMER *pgm) {
   pgm->pgm_led        = bitbang_pgm_led;
   pgm->vfy_led        = bitbang_vfy_led;
   pgm->initialize     = bitbang_initialize;
-  pgm->display        = pgm_display_generic;
+  pgm->display        = par_display;
   pgm->enable         = par_enable;
   pgm->disable        = par_disable;
   pgm->powerup        = par_powerup;
