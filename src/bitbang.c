@@ -512,6 +512,8 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   int tries;
   int i;
 
+msg_debug("PROGRAMMER->prog_modes = %x, AVRPART->prog_modes = %x", pgm->prog_modes, p->prog_modes);
+
   bitbang_calibrate_delay();
 
   pgm->powerup(pgm);

@@ -620,7 +620,7 @@ programmer
     desc                   = "Direct AVR Parallel Access cable for HVSP mode";
     type                   = "par";
     prog_modes             = PM_HVSP;
-    reset                  = 16;	/* RESET (0V) on HIGH and 12V on LOW */
+    reset                  = ~16;	/* RESET (0V) on HIGH and 12V on LOW */
     sck                    = 1;	/* SCI in HVSP */
     sdo                    = 2;	/* SDI in HVSP */
     sii                    = 3;
