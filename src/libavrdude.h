@@ -786,6 +786,9 @@ typedef struct programmer_t {
                           unsigned char *res);
   int  (*cmd_tpi)        (const struct programmer_t *pgm, const unsigned char *cmd,
                           int cmd_len, unsigned char res[], int res_len);
+  int  (*cmd_hvsp)       (const struct programmer_t *pgm,
+				const unsigned char *cmd,
+				const unsigned char *data, unsigned char *res);
   int  (*spi)            (const struct programmer_t *pgm, const unsigned char *cmd,
                           unsigned char *res, int count);
   int  (*open)           (struct programmer_t *pgm, const char *port);

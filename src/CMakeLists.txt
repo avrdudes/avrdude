@@ -167,6 +167,8 @@ add_library(libavrdude
     freebsd_ppi.h
     ft245r.c
     ft245r.h
+    hvsp.c
+    hvsp.h
     jtagmkI.c
     jtagmkI.h
     jtagmkI_private.h

@@ -30,6 +30,7 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
+#include "hvsp.h"
 
 #include "tpi.h"
 
@@ -176,13 +177,17 @@ static int avr_tpi_setup_rw(const PROGRAMMER *pgm, const AVRMEM *mem,
 int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                           unsigned long addr, unsigned char * value)
 {
-  unsigned char cmd[4];
+  unsigned char cmd[4], cmd_instr[4];
   unsigned char res[4];
   unsigned char data;
   int r;
-  OPCODE * readop, * lext;
+  OPCODE * readop, * readop_cmd = NULL, * lext;
 
-  if (pgm->cmd == NULL) {
+  if (
+    !(
+      (hvsp_is_hvsp_mode(pgm, p) && pgm->cmd_hvsp != NULL) || (pgm->cmd != NULL)
+    )
+  ) {
     pmsg_error("%s programmer uses avr_read_byte_default() but does not\n", pgm->type);
     imsg_error("provide a cmd() method\n");
     return -1;
@@ -214,15 +219,20 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   /*
    * figure out what opcode to use
    */
-  if (mem->op[AVR_OP_READ_LO]) {
-    if (addr & 0x00000001)
-      readop = mem->op[AVR_OP_READ_HI];
-    else
-      readop = mem->op[AVR_OP_READ_LO];
-    addr = addr / 2;
-  }
-  else {
-    readop = mem->op[AVR_OP_READ];
+  if (hvsp_is_hvsp_mode(pgm, p)) {
+    readop_cmd = mem->op[AVR_OP_READ_HVSP_CMD];
+    readop = mem->op[AVR_OP_READ_HVSP_DATA];
+  } else {
+    if (mem->op[AVR_OP_READ_LO]) {
+      if (addr & 0x00000001)
+        readop = mem->op[AVR_OP_READ_HI];
+      else
+        readop = mem->op[AVR_OP_READ_LO];
+      addr = addr / 2;
+    }
+    else {
+      readop = mem->op[AVR_OP_READ];
+    }
   }
 
   if (readop == NULL) {
@@ -247,10 +257,13 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   }
 
   memset(cmd, 0, sizeof(cmd));
+  memset(cmd_instr, 0, sizeof(cmd_instr));
 
   avr_set_bits(readop, cmd);
+  if (readop_cmd) avr_set_bits(readop_cmd, cmd_instr);
   avr_set_addr(readop, cmd, addr);
-  r = pgm->cmd(pgm, cmd, res);
+  if (hvsp_is_hvsp_mode(pgm, p)) r = pgm->cmd_hvsp(pgm, cmd_instr, cmd, res);
+  else r = pgm->cmd(pgm, cmd, res);
   if (r < 0)
     return r;
   data = 0;

@@ -41,6 +41,8 @@ int  bitbang_cmd            (const PROGRAMMER *pgm, const unsigned char *cmd,
                                 unsigned char *res);
 int  bitbang_cmd_tpi        (const PROGRAMMER *pgm, const unsigned char *cmd,
                                 int cmd_len, unsigned char *res, int res_len);
+int  bitbang_cmd_hvsp       (const PROGRAMMER *pgm, const unsigned char *cmd,
+				const unsigned char *data, unsigned char *res);
 int  bitbang_spi            (const PROGRAMMER *pgm, const unsigned char *cmd,
                                 unsigned char *res, int count);
 int  bitbang_chip_erase     (const PROGRAMMER *pgm, const AVRPART *p);

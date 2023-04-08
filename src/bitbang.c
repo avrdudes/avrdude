@@ -43,6 +43,7 @@
 #include "serbb.h"
 #include "tpi.h"
 #include "bitbang.h"
+#include "hvsp.h"
 
 static int delay_decrement;
 
@@ -204,6 +205,58 @@ static unsigned char bitbang_txrx(const PROGRAMMER *pgm, unsigned char byte) {
   return rbyte;
 }
 
+
+static unsigned int bitbang_pad_hvsp(unsigned char byte) {
+  return (unsigned int)byte << 2;
+}
+
+
+static unsigned char bitbang_unpad_hvsp(unsigned int data) {
+  return (unsigned char)(data >> 3);
+}
+
+
+static unsigned char bitbang_txrx_hvsp(
+  const PROGRAMMER *pgm, unsigned char cmd_byte, unsigned char data_byte
+) {
+  int i;
+  unsigned char r;
+  unsigned int rbyte, cmd_padded, data_padded;
+
+  cmd_padded = bitbang_pad_hvsp(cmd_byte);
+  data_padded = bitbang_pad_hvsp(data_byte);
+  rbyte = 0;
+  for (i=10; i>=0; i--) {
+    /*
+     * Some notes on timing: Let T be the time it takes to do
+     * one pgm->setpin()-call resp. par clrpin()-call, then
+     * - SII hold time >= t_SCI_HIGH = T + pgm->ispdelay >= T
+     * - SII setup time >= T
+     * - SDI hold time >= t_SCI_HIGH + T >= 2T
+     * - SDI setup time >= pgm->getpin() time - ?
+     * - SDO setup time >= T + 2T >= 3T
+     * - SDO hold time: read occurs before SCI high-pulse - ?
+     * - SCI low for reading SDO is 2T
+     * - SCI is high for T plus pgm->ispdelay uss
+     * According to bitbang_txrx, T > 1us.
+     * The minimum clock period is 220ns in HVSP, so these figures are OK.
+    */
+    pgm->setpin(pgm, PIN_AVR_SII, (cmd_padded >> i) & 0x01);
+    pgm->setpin(pgm, PIN_AVR_SDO, (data_padded >> i) & 0x01);
+    /*
+     * read the result bit (it is either valid from a previous rising
+     * edge or it is ignored in the current context)
+     */
+    r = pgm->getpin(pgm, PIN_AVR_SDI);
+    rbyte |= r << i;
+    /* guard delay might be required here to ensure stable reading of SDO (and
+       give more setup time to SDI) */
+    pgm->highpulsepin(pgm, PIN_AVR_SCK);
+  }
+  return bitbang_unpad_hvsp(rbyte);
+}
+
+
 static int bitbang_tpi_clk(const PROGRAMMER *pgm)  {
   unsigned char r = 0;
   pgm->setpin(pgm, PIN_AVR_SCK, 1);
@@ -309,18 +362,20 @@ int bitbang_vfy_led(const PROGRAMMER *pgm, int value) {
   return 0;
 }
 
-
 /*
  * transmit an AVR device command and return the results; 'cmd' and
  * 'res' must point to at least a 4 byte data buffer
  */
-int bitbang_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
+int bitbang_cmd_internal(const PROGRAMMER *pgm, const unsigned char *cmd,
+		   const unsigned char *data,
                    unsigned char *res)
 {
   int i;
 
   for (i=0; i<4; i++) {
-    res[i] = bitbang_txrx(pgm, cmd[i]);
+    res[i] = (
+      data ? bitbang_txrx_hvsp(pgm, cmd[i], data[i]) : bitbang_txrx(pgm, cmd[i])
+    );
   }
 
     if(verbose >= 2)
@@ -329,6 +384,10 @@ int bitbang_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
         for(i = 0; i < 4; i++)
             msg_notice2("%02X ", cmd[i]);
         msg_notice2("] [ ");
+	if (data) {
+	  for(i = 0; i < 4; i++) msg_notice2("%02X ", data[i]);
+	  msg_notice2("] [ ");
+	}
         for(i = 0; i < 4; i++)
 		{
             msg_notice2("%02X ", res[i]);
@@ -338,6 +397,14 @@ int bitbang_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
 
   return 0;
 }
+
+
+int bitbang_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
+                   unsigned char *res)
+{
+  return bitbang_cmd_internal(pgm, cmd, NULL, res);
+}
+
 
 int bitbang_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
                        int cmd_len, unsigned char *res, int res_len)
@@ -376,6 +443,20 @@ int bitbang_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
     return -1;
   return 0;
 }
+
+
+int bitbang_is_avr_ready_hvsp(const PROGRAMMER *pgm) {
+  return pgm->getpin(pgm, PIN_AVR_SDI);
+}
+
+int bitbang_cmd_hvsp(const PROGRAMMER *pgm, const unsigned char *cmd,
+		   const unsigned char *data,
+                   unsigned char *res)
+{
+  while(!bitbang_is_avr_ready_hvsp(pgm)) bitbang_delay(1);
+  return bitbang_cmd_internal(pgm, cmd, data, res);
+}
+
 
 /*
  * transmit bytes via SPI and return the results; 'cmd' and
@@ -514,7 +595,7 @@ int bitbang_initialize_hvsp(const PROGRAMMER *pgm) {
     bitbang_delay(30);
     pgm->setpin(pgm, PIN_AVR_RESET, 1); /* 12V to MCU RESET */
     bitbang_delay(310);
-  } while (!pgm->getpin(pgm, PIN_AVR_SDI) && --tries_left); /* check MCU SDO */
+  } while (!bitbang_is_avr_ready_hvsp(pgm) && --tries_left); /* check MCU SDO */
 msg_debug("pgm->getpin(pgm, PIN_AVR_SDI) = %x\n", pgm->getpin(pgm, PIN_AVR_SDI));
   if (!tries_left) {
     pmsg_error("Could not latch HVSP mode.\n");
@@ -538,8 +619,7 @@ msg_debug("PROGRAMMER->prog_modes = %x, AVRPART->prog_modes = %x\n", pgm->prog_m
 
   bitbang_calibrate_delay();
 
-  if ((pgm->prog_modes & p->prog_modes) == PM_HVSP) {
-    /* go for HVSP only if there are no other options */
+  if (hvsp_is_hvsp_mode(pgm, p)) {
     return bitbang_initialize_hvsp(pgm);
   }
 

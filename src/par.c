@@ -397,6 +397,7 @@ void par_initpgm(PROGRAMMER *pgm) {
   pgm->chip_erase     = bitbang_chip_erase;
   pgm->cmd            = bitbang_cmd;
   pgm->cmd_tpi        = bitbang_cmd_tpi;
+  pgm->cmd_hvsp       = bitbang_cmd_hvsp;
   pgm->spi            = bitbang_spi;
   pgm->open           = par_open;
   pgm->close          = par_close;
