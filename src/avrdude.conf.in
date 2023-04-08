@@ -9291,7 +9291,8 @@ part
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
         read_hvsp_cmd      = "0100.1100--0000.1100--0110.1000--0110.1100";
-        read_hvsp_data     = "0000.1000--0000.00aa--0000.0000--oooo.oooo";
+        read_hvsp_data     =	"0000.1000", "0 0 0 0 0 0 a1 a0",
+                                "0000.0000", "oooo.oooo";
     ;
 
     memory "calibration"
