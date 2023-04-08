@@ -248,6 +248,7 @@ static unsigned char bitbang_txrx_hvsp(
      * edge or it is ignored in the current context)
      */
     r = pgm->getpin(pgm, PIN_AVR_SDI);
+    msg_debug("r = %x\n", r);
     rbyte |= r << i;
     /* guard delay might be required here to ensure stable reading of SDO (and
        give more setup time to SDI) */
@@ -380,7 +381,7 @@ int bitbang_cmd_internal(const PROGRAMMER *pgm, const unsigned char *cmd,
 
     if(verbose >= 2)
 	{
-        msg_notice2("bitbang_cmd(): [ ");
+        msg_notice2("\nbitbang_cmd(): [ ");
         for(i = 0; i < 4; i++)
             msg_notice2("%02X ", cmd[i]);
         msg_notice2("] [ ");
