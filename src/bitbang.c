@@ -220,7 +220,7 @@ static unsigned char bitbang_txrx_hvsp(
   const PROGRAMMER *pgm, unsigned char cmd_byte, unsigned char data_byte
 ) {
   int i;
-  unsigned char r;
+  unsigned char r, data_bit, cmd_bit;
   unsigned int rbyte, cmd_padded, data_padded;
 
   cmd_padded = bitbang_pad_hvsp(cmd_byte);
@@ -241,18 +241,22 @@ static unsigned char bitbang_txrx_hvsp(
      * According to bitbang_txrx, T > 1us.
      * The minimum clock period is 220ns in HVSP, so these figures are OK.
     */
-    pgm->setpin(pgm, PIN_AVR_SII, (cmd_padded >> i) & 0x01);
-    pgm->setpin(pgm, PIN_AVR_SDO, (data_padded >> i) & 0x01);
+    cmd_bit = (cmd_padded >> i) & 0x01;
+    pgm->setpin(pgm, PIN_AVR_SII, cmd_bit);
+    data_bit = (data_padded >> i) & 0x01;
+    pgm->setpin(pgm, PIN_AVR_SDO, data_bit);
     /*
      * read the result bit (it is either valid from a previous rising
      * edge or it is ignored in the current context)
      */
     r = pgm->getpin(pgm, PIN_AVR_SDI);
-    msg_debug("r = %x\n", r);
+    msg_debug("\n%02d. %x %x %x", data_bit, cmd_bit, r);
     rbyte |= r << i;
     /* guard delay might be required here to ensure stable reading of SDO (and
        give more setup time to SDI) */
+    msg_debug(" SCI->H");
     pgm->highpulsepin(pgm, PIN_AVR_SCK);
+    msg_debug(" SCI->L");
   }
   return bitbang_unpad_hvsp(rbyte);
 }
