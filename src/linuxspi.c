@@ -403,7 +403,7 @@ static int linuxspi_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
 
-    if (str_starts(extended_param, "disable_no_cs")) {
+    if (str_eq(extended_param, "disable_no_cs")) {
       PDATA(pgm)->disable_no_cs = 1;
       continue;
     }
