@@ -18,14 +18,9 @@ int str_contains(const char *str, const char *substr) {
 int str_ends(const char *str, const char *ends) {
   size_t str_len  = strlen(str);
   size_t ends_len = strlen(ends);
-  
+
   if (ends_len > str_len)
     return 0;
-  
-  for (size_t i = 0; i < ends_len; i++) {
-    if (str[str_len - i] != ends[ends_len - i])
-      return 0;
-  }
-  
-  return 1;
-}
+
+  return strncmp(str + str_len - ends_len, ends, ends_len) == 0;
+ }
