@@ -250,7 +250,7 @@ static unsigned char bitbang_txrx_hvsp(
      * edge or it is ignored in the current context)
      */
     r = pgm->getpin(pgm, PIN_AVR_SDI);
-    msg_debug("\n%02d. %x %x %x", data_bit, cmd_bit, r);
+    msg_debug("\n%02d. %x %x %x", i, data_bit, cmd_bit, r);
     rbyte |= r << i;
     /* guard delay might be required here to ensure stable reading of SDO (and
        give more setup time to SDI) */
