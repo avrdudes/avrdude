@@ -22,5 +22,5 @@ int str_ends(const char *str, const char *ends) {
   if (ends_len > str_len)
     return 0;
 
-  return strncmp(str + str_len - ends_len, ends, ends_len) == 0;
- }
+  return str_eq(str + str_len - ends_len, ends);
+}
