@@ -9,14 +9,12 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.3
- * 06.04.2023
+ * 09.04.2023
  *
  */
 
 #ifndef avrintel_h
 #define avrintel_h
-
-#include "libavrdude.h"
 
 typedef struct {
   int value;                    // Value (to be shifted into mask position)
