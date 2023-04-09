@@ -9,7 +9,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.3
- * 06.04.2023
+ * 09.04.2023
  *
  */
 
@@ -6199,7 +6199,7 @@ const char * const vtab_attiny402[vts_attiny402] = {
   "UNUSED",                     //   4: not implemented on this device
   "UNUSED",                     //   5: not implemented on this device
   "RTC_CNT",                    //   6: RTC Counter Interrupt
-  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
   "TCA0_LUNF/TCA0_OVF",         //   8: TC A0 Low Underflow/TC A0 Overflow
   "TCA0_HUNF",                  //   9: TC A0 High Underflow
   "TCA0_CMP0/TCA0_LCMP0",       //  10: TC A0 Compare 0/TC A0 Low Compare 0
@@ -6229,7 +6229,7 @@ const char * const vtab_attiny404[vts_attiny404] = {
   "PORTB_PORT",                 //   4: Interrupt PORT B
   "UNUSED",                     //   5: not implemented on this device
   "RTC_CNT",                    //   6: RTC Counter Interrupt
-  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
   "TCA0_LUNF/TCA0_OVF",         //   8: TC A0 Low Underflow/TC A0 Overflow
   "TCA0_HUNF",                  //   9: TC A0 High Underflow
   "TCA0_CMP0/TCA0_LCMP0",       //  10: TC A0 Compare 0/TC A0 Low Compare 0
@@ -6259,7 +6259,7 @@ const char * const vtab_attiny406[vts_attiny406] = {
   "PORTB_PORT",                 //   4: Interrupt PORT B
   "PORTC_PORT",                 //   5: Interrupt PORT C
   "RTC_CNT",                    //   6: RTC Counter Interrupt
-  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
   "TCA0_LUNF/TCA0_OVF",         //   8: TC A0 Low Underflow/TC A0 Overflow
   "TCA0_HUNF",                  //   9: TC A0 High Underflow
   "TCA0_CMP0/TCA0_LCMP0",       //  10: TC A0 Compare 0/TC A0 Low Compare 0
@@ -6289,7 +6289,7 @@ const char * const vtab_attiny412[vts_attiny412] = {
   "UNUSED",                     //   4: not implemented on this device
   "UNUSED",                     //   5: not implemented on this device
   "RTC_CNT",                    //   6: RTC Counter Interrupt
-  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
   "TCA0_LUNF/TCA0_OVF",         //   8: TC A0 Low Underflow/TC A0 Overflow
   "TCA0_HUNF",                  //   9: TC A0 High Underflow
   "TCA0_CMP0/TCA0_LCMP0",       //  10: TC A0 Compare 0/TC A0 Low Compare 0
@@ -6319,7 +6319,7 @@ const char * const vtab_attiny814[vts_attiny814] = {
   "PORTB_PORT",                 //   4: Interrupt PORT B
   "UNUSED",                     //   5: not implemented on this device
   "RTC_CNT",                    //   6: RTC Counter Interrupt
-  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
   "TCA0_LUNF/TCA0_OVF",         //   8: TC A0 Low Underflow/TC A0 Overflow
   "TCA0_HUNF",                  //   9: TC A0 High Underflow
   "TCA0_CMP0/TCA0_LCMP0",       //  10: TC A0 Compare 0/TC A0 Low Compare 0
@@ -6349,7 +6349,7 @@ const char * const vtab_attiny817[vts_attiny817] = {
   "PORTB_PORT",                 //   4: Interrupt PORT B
   "PORTC_PORT",                 //   5: Interrupt PORT C
   "RTC_CNT",                    //   6: RTC Counter Interrupt
-  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
   "TCA0_LUNF/TCA0_OVF",         //   8: TC A0 Low Underflow/TC A0 Overflow
   "TCA0_HUNF",                  //   9: TC A0 High Underflow
   "TCA0_CMP0/TCA0_LCMP0",       //  10: TC A0 Compare 0/TC A0 Low Compare 0
@@ -6379,7 +6379,7 @@ const char * const vtab_attiny1607[vts_attiny1607] = {
   "PORTB_PORT",                 //   4: Interrupt PORT B
   "PORTC_PORT",                 //   5: Interrupt PORT C
   "RTC_CNT",                    //   6: RTC Counter Interrupt
-  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
   "TCA0_LUNF/TCA0_OVF",         //   8: TC A0 Low Underflow/TC A0 Overflow
   "TCA0_HUNF",                  //   9: TC A0 High Underflow
   "TCA0_CMP0/TCA0_LCMP0",       //  10: TC A0 Compare 0/TC A0 Low Compare 0
@@ -6414,7 +6414,7 @@ const char * const vtab_attiny1614[vts_attiny1614] = {
   "PORTB_PORT",                 //   4: Interrupt PORT B
   "UNUSED",                     //   5: not implemented on this device
   "RTC_CNT",                    //   6: RTC Counter Interrupt
-  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
   "TCA0_LUNF/TCA0_OVF",         //   8: TC A0 Low Underflow/TC A0 Overflow
   "TCA0_HUNF",                  //   9: TC A0 High Underflow
   "TCA0_CMP0/TCA0_LCMP0",       //  10: TC A0 Compare 0/TC A0 Low Compare 0
@@ -6449,7 +6449,7 @@ const char * const vtab_attiny3214[vts_attiny3214] = {
   "PORTB_PORT",                 //   4: Interrupt PORT B
   "PORTC_PORT",                 //   5: Interrupt PORT C
   "RTC_CNT",                    //   6: RTC Counter Interrupt
-  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
   "TCA0_LUNF",                  //   8: TC A0 Low Underflow
   "TCA0_HUNF",                  //   9: TC A0 High Underflow
   "TCA0_CMP0",                  //  10: TC A0 Compare 0
@@ -6484,7 +6484,7 @@ const char * const vtab_attiny3217[vts_attiny3217] = {
   "PORTB_PORT",                 //   4: Interrupt PORT B
   "PORTC_PORT",                 //   5: Interrupt PORT C
   "RTC_CNT",                    //   6: RTC Counter Interrupt
-  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   7: RTC Periodic Interrupt Timer
   "TCA0_LUNF/TCA0_OVF",         //   8: TC A0 Low Underflow/TC A0 Overflow
   "TCA0_HUNF",                  //   9: TC A0 High Underflow
   "TCA0_CMP0/TCA0_LCMP0",       //  10: TC A0 Compare 0/TC A0 Low Compare 0
@@ -6519,7 +6519,7 @@ const char * const vtab_attiny3227[vts_attiny3227] = {
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
   "RTC_CNT",                    //   3: RTC Counter Interrupt
-  "RTC_PIT",                    //   4: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   4: RTC Periodic Interrupt Timer
   "CCL_CCL",                    //   5: Configurable Custom Logic
   "PORTA_PORT",                 //   6: Interrupt PORT A
   "PORTB_PORT",                 //   7: Interrupt PORT B
@@ -6553,7 +6553,7 @@ const char * const vtab_atmega4808[vts_atmega4808] = {
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
   "RTC_CNT",                    //   3: RTC Counter Interrupt
-  "RTC_PIT",                    //   4: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   4: RTC Periodic Interrupt Timer
   "CCL_CCL",                    //   5: Configurable Custom Logic
   "PORTA_PORT",                 //   6: Interrupt PORT A
   "TCA0_LUNF/TCA0_OVF",         //   7: TC A0 Low Underflow/TC A0 Overflow
@@ -6593,7 +6593,7 @@ const char * const vtab_atmega4809[vts_atmega4809] = {
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
   "RTC_CNT",                    //   3: RTC Counter Interrupt
-  "RTC_PIT",                    //   4: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   4: RTC Periodic Interrupt Timer
   "CCL_CCL",                    //   5: Configurable Custom Logic
   "PORTA_PORT",                 //   6: Interrupt PORT A
   "TCA0_LUNF/TCA0_OVF",         //   7: TC A0 Low Underflow/TC A0 Overflow
@@ -6642,7 +6642,7 @@ const char * const vtab_avr64dd32[vts_avr64dd32] = {
   "CLKCTRL_CFD",                //   3: Clock Failure Detection
   "MVIO_MVIO",                  //   4: Multi-Voltage I/O
   "RTC_CNT",                    //   5: RTC Counter Interrupt
-  "RTC_PIT",                    //   6: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   6: RTC Periodic Interrupt Timer
   "CCL_CCL",                    //   7: Configurable Custom Logic
   "PORTA_PORT",                 //   8: Interrupt PORT A
   "TCA0_LUNF/TCA0_OVF",         //   9: TC A0 Low Underflow/TC A0 Overflow
@@ -6681,7 +6681,7 @@ const char * const vtab_avr64ea32[vts_avr64ea32] = {
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
   "CLKCTRL_CFD",                //   3: Clock Failure Detection
   "RTC_CNT",                    //   4: RTC Counter Interrupt
-  "RTC_PIT",                    //   5: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   5: RTC Periodic Interrupt Timer
   "CCL_CCL",                    //   6: Configurable Custom Logic
   "PORTA_PORT",                 //   7: Interrupt PORT A
   "TCA0_LUNF/TCA0_OVF",         //   8: TC A0 Low Underflow/TC A0 Overflow
@@ -6722,7 +6722,7 @@ const char * const vtab_avr64ea48[vts_avr64ea48] = {
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
   "CLKCTRL_CFD",                //   3: Clock Failure Detection
   "RTC_CNT",                    //   4: RTC Counter Interrupt
-  "RTC_PIT",                    //   5: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   5: RTC Periodic Interrupt Timer
   "CCL_CCL",                    //   6: Configurable Custom Logic
   "PORTA_PORT",                 //   7: Interrupt PORT A
   "TCA0_LUNF/TCA0_OVF",         //   8: TC A0 Low Underflow/TC A0 Overflow
@@ -6770,7 +6770,7 @@ const char * const vtab_avr128da28[vts_avr128da28] = {
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
   "RTC_CNT",                    //   3: RTC Counter Interrupt
-  "RTC_PIT",                    //   4: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   4: RTC Periodic Interrupt Timer
   "CCL_CCL",                    //   5: Configurable Custom Logic
   "PORTA_PORT",                 //   6: Interrupt PORT A
   "TCA0_LUNF/TCA0_OVF",         //   7: TC A0 Low Underflow/TC A0 Overflow
@@ -6817,7 +6817,7 @@ const char * const vtab_avr128db28[vts_avr128db28] = {
   "CLKCTRL_CFD",                //   3: Clock Failure Detection
   "MVIO_MVIO",                  //   4: Multi-Voltage I/O
   "RTC_CNT",                    //   5: RTC Counter Interrupt
-  "RTC_PIT",                    //   6: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   6: RTC Periodic Interrupt Timer
   "CCL_CCL",                    //   7: Configurable Custom Logic
   "PORTA_PORT",                 //   8: Interrupt PORT A
   "TCA0_LUNF/TCA0_OVF",         //   9: TC A0 Low Underflow/TC A0 Overflow
@@ -6861,7 +6861,7 @@ const char * const vtab_avr128da32[vts_avr128da32] = {
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
   "RTC_CNT",                    //   3: RTC Counter Interrupt
-  "RTC_PIT",                    //   4: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   4: RTC Periodic Interrupt Timer
   "CCL_CCL",                    //   5: Configurable Custom Logic
   "PORTA_PORT",                 //   6: Interrupt PORT A
   "TCA0_LUNF/TCA0_OVF",         //   7: TC A0 Low Underflow/TC A0 Overflow
@@ -6911,7 +6911,7 @@ const char * const vtab_avr128db32[vts_avr128db32] = {
   "CLKCTRL_CFD",                //   3: Clock Failure Detection
   "MVIO_MVIO",                  //   4: Multi-Voltage I/O
   "RTC_CNT",                    //   5: RTC Counter Interrupt
-  "RTC_PIT",                    //   6: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   6: RTC Periodic Interrupt Timer
   "CCL_CCL",                    //   7: Configurable Custom Logic
   "PORTA_PORT",                 //   8: Interrupt PORT A
   "TCA0_LUNF/TCA0_OVF",         //   9: TC A0 Low Underflow/TC A0 Overflow
@@ -6957,7 +6957,7 @@ const char * const vtab_avr128da48[vts_avr128da48] = {
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
   "RTC_CNT",                    //   3: RTC Counter Interrupt
-  "RTC_PIT",                    //   4: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   4: RTC Periodic Interrupt Timer
   "CCL_CCL",                    //   5: Configurable Custom Logic
   "PORTA_PORT",                 //   6: Interrupt PORT A
   "TCA0_LUNF/TCA0_OVF",         //   7: TC A0 Low Underflow/TC A0 Overflow
@@ -7021,7 +7021,7 @@ const char * const vtab_avr128db48[vts_avr128db48] = {
   "CLKCTRL_CFD",                //   3: Clock Failure Detection
   "MVIO_MVIO",                  //   4: Multi-Voltage I/O
   "RTC_CNT",                    //   5: RTC Counter Interrupt
-  "RTC_PIT",                    //   6: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   6: RTC Periodic Interrupt Timer
   "CCL_CCL",                    //   7: Configurable Custom Logic
   "PORTA_PORT",                 //   8: Interrupt PORT A
   "TCA0_LUNF/TCA0_OVF",         //   9: TC A0 Low Underflow/TC A0 Overflow
@@ -7084,7 +7084,7 @@ const char * const vtab_avr128da64[vts_avr128da64] = {
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
   "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
   "RTC_CNT",                    //   3: RTC Counter Interrupt
-  "RTC_PIT",                    //   4: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   4: RTC Periodic Interrupt Timer
   "CCL_CCL",                    //   5: Configurable Custom Logic
   "PORTA_PORT",                 //   6: Interrupt PORT A
   "TCA0_LUNF/TCA0_OVF",         //   7: TC A0 Low Underflow/TC A0 Overflow
@@ -7154,7 +7154,7 @@ const char * const vtab_avr128db64[vts_avr128db64] = {
   "CLKCTRL_CFD",                //   3: Clock Failure Detection
   "MVIO_MVIO",                  //   4: Multi-Voltage I/O
   "RTC_CNT",                    //   5: RTC Counter Interrupt
-  "RTC_PIT",                    //   6: RTC Periodic Interrupt Timer
+  "RTC_PIT",                    //   6: RTC Periodic Interrupt Timer
   "CCL_CCL",                    //   7: Configurable Custom Logic
   "PORTA_PORT",                 //   8: Interrupt PORT A
   "TCA0_LUNF/TCA0_OVF",         //   9: TC A0 Low Underflow/TC A0 Overflow

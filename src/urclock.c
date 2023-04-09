@@ -971,7 +971,7 @@ static void urbootPutVersion(const PROGRAMMER *pgm, char *buf, uint16_t ver, uin
     } else {
       *buf++ = '-';             // Dummy bit
       flags = (type/UR_DUAL) & 3;
-      // D = Dual boot with SE & SPI restoration, d = dual boot with SE, f = dual boot only
+      // D = Dual boot with SE & SPI restoration, d = dual boot with SE, f = dual boot only
       *buf++ = flags==3? 'D': flags==2? 'd': flags? 'f': '-';
     }
     flags = (type/UR_VBL) & 3;
