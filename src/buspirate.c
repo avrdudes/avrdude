@@ -377,10 +377,10 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 			continue;
 		}
 
-    if (str_eq(extended_param, "help")) {
-      char *prg = (char *)ldata(lfirst(pgm->id));
-      msg_error("%s -c %s extended options:\n", progname, prg);
-      msg_error("  -xreset=cs,aux,aux2         Override default reset pin\n");
+		if (str_eq(extended_param, "help")) {
+			char *prg = (char *)ldata(lfirst(pgm->id));
+			msg_error("%s -c %s extended options:\n", progname, prg);
+			msg_error("  -xreset=cs,aux,aux2         Override default reset pin\n");
 			msg_error("  -xspifreq=<0..7>            Set binary SPI mode speed\n");
 			msg_error("  -xrawfreq=<0..3>            Set \"raw-wire\" SPI mode speed\n");
 			msg_error("  -xascii                     Use ASCII protocol between BP and Avrdude\n");
@@ -388,9 +388,9 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 			msg_error("  -xnopagedread               Disable page read functionality\n");
 			msg_error("  -xcpufreq=<125..4000>       Set the AUX pin to output a frequency to n [kHz]\n");
 			msg_error("  -xserial_recv_timeout=<arg> Set serial receive timeout to <arg> [ms]\n");
-      msg_error("  -xhelp                      Show this help menu and exit\n");
-      exit(0);
-    }
+			msg_error("  -xhelp                      Show this help menu and exit\n");
+			exit(0);
+		}
 
 		pmsg_error("do not understand extended param '%s'\n", extended_param);
 		return -1;
