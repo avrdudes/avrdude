@@ -1577,10 +1577,10 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
     // Bit 2 EOF: Agressive power-down, sleep after 5 seconds if no USB enumeration when set to 0
     // Bit 1 LOWP: forces running at 1 MHz when bit set to 0
     // Bit 0 FUSE: Fuses are safe-masked when bit sent to 1 Fuses are unprotected when set to 0
-    if (strncmp(extended_param, "suffer", strlen("suffer")) == 0) {
+    if (str_starts(extended_param, "suffer")) {
       if(pgm->extra_features & HAS_SUFFER) {
         // Set SUFFER value
-        if (strncmp(extended_param, "suffer=", strlen("suffer=")) == 0) {
+        if (str_starts(extended_param, "suffer=")) {
           if (sscanf(extended_param, "suffer=%hhi", PDATA(pgm)->suffer_data+1) < 1) {
             pmsg_error("invalid -xsuffer=<value> '%s'\n", extended_param);
             rv = -1;
@@ -1600,10 +1600,10 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
       }
     }
 
-    else if (strncmp(extended_param, "vtarg_switch", strlen("vtarg_switch")) == 0) {
+    else if (str_starts(extended_param, "vtarg_switch")) {
       if(pgm->extra_features & HAS_VTARG_SWITCH) {
         // Set Vtarget switch value
-        if (strncmp(extended_param, "vtarg_switch=", strlen("vtarg_switch=")) == 0) {
+        if (str_starts(extended_param, "vtarg_switch=")) {
           int sscanf_success = sscanf(extended_param, "vtarg_switch=%hhi", PDATA(pgm)->vtarg_switch_data+1);
           if (sscanf_success < 1 || PDATA(pgm)->vtarg_switch_data[1] > 1) {
             pmsg_error("invalid vtarg_switch value '%s'\n", extended_param);
