@@ -9,7 +9,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.3
- * 09.04.2023
+ * 13.04.2023
  *
  */
 
@@ -1930,6 +1930,9 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   /*AVR128DB64*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
   /*AVR128DB64*/        16,  4,  65, vtab_avr128db64,      0, NULL}, // Config and interrupts
 };
+
+
+// Interrupt vector table interrupt names
 
 // ATtiny9 ATtiny4
 const char * const vtab_attiny9[vts_attiny9] = {
