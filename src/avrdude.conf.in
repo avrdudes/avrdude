@@ -3933,6 +3933,8 @@ part
     stk500_devcode         = 0xb1;
     avr910_devcode         = 0x41;
     chip_erase_delay       = 112000;
+    pagel                  = 0xa0;
+    bs2                    = 0xd7;
     signature              = 0x1e 0x97 0x01;
     timeout                = 200;
     stabdelay              = 100;
@@ -5501,6 +5503,8 @@ part
     stk500_devcode         = 0x85;
     avr910_devcode         = 0x78;
     chip_erase_delay       = 9000;
+    pagel                  = 0xd7;
+    bs2                    = 0xa0;
     signature              = 0x1e 0x94 0x05;
     timeout                = 200;
     stabdelay              = 100;
@@ -5661,6 +5665,8 @@ part
 #   avr910_devcode         = 0x?;  # try the ATmega169 one:
     avr910_devcode         = 0x75;
     chip_erase_delay       = 9000;
+    pagel                  = 0xd7;
+    bs2                    = 0xa0;
     signature              = 0x1e 0x95 0x03;
     reset                  = io;
     timeout                = 200;
@@ -5864,6 +5870,8 @@ part
 #   avr910_devcode         = 0x?;  # try the ATmega169 one:
     avr910_devcode         = 0x75;
     chip_erase_delay       = 9000;
+    pagel                  = 0xd7;
+    bs2                    = 0xa0;
     signature              = 0x1e 0x96 0x03;
     reset                  = io;
     timeout                = 200;
@@ -6384,6 +6392,8 @@ part
     stk500_devcode         = 0x63;
     avr910_devcode         = 0x3a;
     chip_erase_delay       = 9000;
+    pagel                  = 0xd7;
+    bs2                    = 0xa0;
     signature              = 0x1e 0x93 0x06;
     timeout                = 200;
     stabdelay              = 100;
@@ -7826,6 +7836,8 @@ part
 #   Try the AT90S2313 devcode:
     avr910_devcode         = 0x20;
     chip_erase_delay       = 15000;
+    pagel                  = 0xb3;
+    bs2                    = 0xb2;
     signature              = 0x1e 0x93 0x87;
     reset                  = io;
     timeout                = 200;
@@ -7952,6 +7964,8 @@ part
 #   Try the AT90S2313 devcode:
     avr910_devcode         = 0x20;
     chip_erase_delay       = 15000;
+    pagel                  = 0xb3;
+    bs2                    = 0xb2;
     signature              = 0x1e 0x94 0x87;
     reset                  = io;
     timeout                = 200;
@@ -8695,8 +8709,6 @@ part parent "t167"
     id                     = "ata5505";
     mcuid                  = 198;
     chip_erase_delay       = 4000;
-    pagel                  = 0xb3;
-    bs2                    = 0xb2;
     reset                  = dedicated;
     poweroffdelay          = 15;
     resetdelay             = 15;
@@ -8825,8 +8837,6 @@ part parent "t87"
     id                     = "ata6616c";
     mcuid                  = 219;
     chip_erase_delay       = 4000;
-    pagel                  = 0xb3;
-    bs2                    = 0xb2;
     reset                  = dedicated;
     poweroffdelay          = 15;
     resetdelay             = 15;
@@ -8881,8 +8891,6 @@ part parent "t167"
     id                     = "ata6617c";
     mcuid                  = 220;
     chip_erase_delay       = 4000;
-    pagel                  = 0xb3;
-    bs2                    = 0xb2;
     reset                  = dedicated;
     poweroffdelay          = 15;
     resetdelay             = 15;
@@ -8931,8 +8939,6 @@ part parent "t167"
     id                     = "ata664251";
     mcuid                  = 225;
     chip_erase_delay       = 4000;
-    pagel                  = 0xb3;
-    bs2                    = 0xb2;
     reset                  = dedicated;
     poweroffdelay          = 15;
     resetdelay             = 15;
@@ -11561,6 +11567,8 @@ part
 #   Try the AT90S2313 devcode:
     avr910_devcode         = 0x20;
     chip_erase_delay       = 1000;
+    pagel                  = 0xa3;
+    bs2                    = 0xa2;
     signature              = 0x1e 0x92 0x0c;
     reset                  = io;
     timeout                = 200;
