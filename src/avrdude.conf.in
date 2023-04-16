@@ -147,10 +147,10 @@
 #       spmcr            = <num> ;                # mem addr of SPMC[S]R reg
 #       eecr             = <num> ;                # mem addr of EECR reg
 #       eind             = <num> ;                # mem addr of EIND reg
-#       mcu_base         = <num> ;
-#       nvm_base         = <num> ;
-#       ocd_base         = <num> ;
-#       ocdrev           = <num> ;
+#       mcu_base         = <num> ;                # MCU control block in ATxmega devices
+#       nvm_base         = <num> ;                # NVM controller in ATxmega devices
+#       ocd_base         = <num> ;                # OCD module in AVR8X/UPDI devices
+#       ocdrev           = <num> ;                # JTAGICE3 parameter from ATDF files
 #       pgm_enable       = <instruction format> ;
 #       chip_erase       = <instruction format> ;
 #       # parameters for bootloaders
@@ -7750,6 +7750,7 @@ part
     idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
+    ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -7888,6 +7889,7 @@ part
     idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
+    ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -8017,6 +8019,7 @@ part
     idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
+    ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -8735,7 +8738,6 @@ part parent "t167"
     reset                  = dedicated;
     poweroffdelay          = 15;
     resetdelay             = 15;
-    ocdrev                 = 1;
 
     memory "eeprom"
         max_write_delay    = 4000;
@@ -8779,7 +8781,6 @@ part parent "m88"
     id                     = "ata6612c";
     mcuid                  = 216;
     chip_erase_delay       = 4000;
-    ocd_base               = 0x1000;
 
     memory "eeprom"
         min_write_delay    = 4000;
@@ -8859,7 +8860,6 @@ part parent "t87"
     reset                  = dedicated;
     poweroffdelay          = 15;
     resetdelay             = 15;
-    ocdrev                 = 1;
 
     memory "eeprom"
         max_write_delay    = 4000;
@@ -8912,7 +8912,6 @@ part parent "t167"
     reset                  = dedicated;
     poweroffdelay          = 15;
     resetdelay             = 15;
-    ocdrev                 = 1;
 
     memory "eeprom"
         max_write_delay    = 4000;
@@ -8959,7 +8958,6 @@ part parent "t167"
     reset                  = dedicated;
     poweroffdelay          = 15;
     resetdelay             = 15;
-    ocdrev                 = 1;
 
     memory "eeprom"
         max_write_delay    = 4000;
@@ -9972,6 +9970,7 @@ part parent "pwm2"
     id                     = "pwm3";
     mcuid                  = 169;
     idr                    = 0x31;
+    ocdrev                 = 1;
 ;
 
 #------------------------------------------------------------
@@ -11633,6 +11632,7 @@ part
     idr                    = 0x27;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
+    ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -14800,6 +14800,7 @@ part
     idr                    = 0x2e;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
+    ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -15111,6 +15112,7 @@ part
     idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
+    ocdrev                 = 3;
 
     memory "eeprom"
         size               = 512;
